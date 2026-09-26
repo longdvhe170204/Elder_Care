@@ -40,6 +40,14 @@
 - Q: Quản lý viện (không xếp ca) có cần ngoại lệ để nhận tin nhắn cho thông báo Trung bình không? → A: Có; Quản lý viện, Hành chính, Dinh dưỡng viên không có ca đang diễn ra được coi là đang trong ca trong giờ hành chính CFG-M13-06 (đề xuất, mặc định \[07:30–17:00, thứ 2 → thứ 7\]); ngoài giờ đó chỉ nhận Trung bình trong ứng dụng (FR-016a, User Story 3, đề xuất Q-111).
 - Q: Người thân được nêu trong bản ghi nguồn nhưng không phải người thân của người cao tuổi liên quan (khách thăm trong danh sách tiếp xúc) được xác định và lọc thế nào? → A: Thêm vào nhóm (d) "người thân được nêu trong bản ghi nguồn"; họ chỉ nhận và chỉ thấy phần loại "chung"; không có tài khoản hay kênh thì vào danh sách liên hệ trực tiếp (FR-007, FR-013, FR-021, đề xuất Q-112).
 
+### Session 2026-09-26 (lượt 5, chốt mức thông báo của các spec nguồn)
+
+- Q: Nên xếp mức cho các thông báo mà spec 000, 001, 003, 004, 005, 006 chưa nêu theo nguyên tắc nào? → A: Nguyên tắc 3 bậc áp chung: Nhẹ — thông tin hoặc nhắc không cần làm ngay; Trung bình — cần hành động trong ca hoặc trong ngày, hoặc nhắc leo thang vì quá hạn; Khẩn cấp — nguy cơ trực tiếp tới an toàn người cao tuổi hoặc báo tin nghiêm trọng cho gia đình; kèm bảng mức mặc định trong 009, spec nguồn được ghi đè có lý do (FR-043b, đề xuất Q-113).
+- Q: Thông báo cho Bác sĩ trực và Trưởng tầng khi người cao tuổi trở về giường thuộc phòng đang cách ly hoặc vùng khoanh vùng (spec 003 FR-024a) ở mức nào? → A: Khẩn cấp (FR-043b, đề xuất Q-114).
+- Q: Khi hết ngày mà người bán trú vẫn "Có mặt" (spec 005 FR-019), thông báo ở mức nào và cho ai? → A: Trung bình cho Người phụ trách ca đang diễn ra của tầng để kiểm tra ngay, Nhẹ cho Trưởng tầng; nếu xác minh là mất dấu thì ghi sự cố đi lạc theo feature 007 (FR-043b, spec 005 FR-019, đề xuất Q-115).
+- Q: Thông báo cho người thân khi thuốc gia đình gửi sắp hết (spec 006 FR-046) ở mức nào? → A: Trung bình (cổng người thân và tin nhắn, chịu giờ yên tĩnh); nội dung chia phần "chung" (có thuốc sắp hết, số ngày còn lại) và "sức khỏe" (tên thuốc) (FR-043b, FR-013, đề xuất Q-116).
+- Q: Nhắc công việc quá hạn gửi chính người thực hiện (spec 005 FR-043) ở mức nào? → A: Nhẹ (chỉ trong ứng dụng); báo leo thang cho Người phụ trách ca, Trưởng tầng (FR-044) giữ Trung bình (FR-043b, spec 005 FR-043, đề xuất Q-117).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 13 mục 17, 17.1; BR-M13-01 → 05; UC-66; mục 23 dòng "Nhà cung cấp SMS", "Gọi điện"; CFG-M13-01, CFG-M13-02, CFG-M13-03 → CFG-M13-06 (đề xuất); thực thể THONG_BAO):
@@ -316,6 +324,33 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 | Cung cấp | 016 | Số thông báo theo mức, tỷ lệ và thời gian xác nhận thông báo Khẩn cấp, số yêu cầu gọi và kết quả, lỗi gửi |
 
 - **FR-043a**: Mọi spec nguồn (kể cả 010 → 016 viết sau) MUST nêu cho mỗi thông báo mình phát ra: (1) loại sự kiện và khóa sự kiện, gồm cách đánh khóa cho nhắc lặp lại (FR-005); (2) mức (FR-002, FR-003); (3) các nhóm người nhận theo FR-007 và cách thay của từng nhóm loại (a) (FR-010); (4) loại thông tin của từng phần nội dung (FR-013, FR-020); (5) nội dung rút gọn cho kênh ngoài ứng dụng theo FR-019; (6) giới hạn nội dung cho người thân không có bản đồng ý, nếu gửi người thân (FR-014). Thiếu (2) hoặc (4) được xử lý theo FR-003 và FR-013 nhưng bị ghi vào danh sách lỗi gửi. *(Nguồn: 17, BR-M13-04, BR-M13-05; Q-108, Q-110)*
+- **FR-043b**: Module nguồn MUST xếp mức theo nguyên tắc chung: **Nhẹ** — thông tin hoặc nhắc không cần làm ngay (kể cả nhắc theo chu kỳ khi chưa quá hạn); **Trung bình** — cần người nhận hành động trong ca hoặc trong ngày, hoặc nhắc leo thang vì đã quá hạn; **Khẩn cấp** — nguy cơ trực tiếp tới an toàn người cao tuổi, hoặc báo tin nghiêm trọng cho gia đình. Với các thông báo mà spec nguồn chưa nêu mức, mức mặc định MUST theo bảng dưới; spec nguồn MAY ghi đè bằng mức riêng có lý do. Thông báo không có trong bảng và không được nêu mức vẫn xử lý theo FR-003 (Nhẹ, dấu "thiếu mức").
+
+| Nguồn | Thông báo | Người nhận | Mức mặc định |
+| --- | --- | --- | --- |
+| 000 | Có yêu cầu phê duyệt mới; đã có quyết định | Người có quyền duyệt; người yêu cầu | Nhẹ |
+| 000 | Yêu cầu Chờ duyệt quá CFG-M15-05; quá CFG-M15-06 | Người có quyền duyệt; Quản lý viện | Trung bình |
+| 000 | Yêu cầu đã duyệt "Áp dụng không thành" (Q-11) | Người duyệt, người yêu cầu | Trung bình |
+| 001 | Yêu cầu đổi mức chăm sóc "Được thay thế" (FR-036a) | Người yêu cầu, người duyệt | Nhẹ |
+| 001, 004 | Chuyển viện; Ghi nhận qua đời | Người liên hệ chính | Khẩn cấp (Q-97) |
+| 003 | Yêu cầu chuyển giường khác giá gửi duyệt; kết quả duyệt (FR-030) | Quản lý viện; Hành chính, Trưởng tầng | Nhẹ |
+| 003 | Nhắc chu kỳ "chờ chuyển về phòng cùng giá", "phòng không còn phù hợp" (FR-030, FR-034) | Trưởng tầng, Hành chính | Nhẹ |
+| 003 | Người cao tuổi trở về giường thuộc phòng đang chịu chặn cách ly (FR-024a) | Bác sĩ trực, Trưởng tầng | Khẩn cấp (Q-114) |
+| 003 | Kết quả vệ sinh Không đạt hoặc hư hỏng (FR-048) | Trưởng tầng | Trung bình |
+| 004 | Đề xuất hồ sơ chờ khi có giường trống (FR-013) | Hành chính | Nhẹ |
+| 004 | Nhắc chu kỳ danh sách việc sau qua đời (CFG-M02-09) | Hành chính, người đại diện | Nhẹ |
+| 004 | Hợp đồng quá hạn quá CFG-M02-10 | Quản lý viện | Trung bình |
+| 005 | Nhắc công việc quá hạn (FR-043) | Người thực hiện (hoặc mọi nhân viên đủ điều kiện của tầng với công việc chung) | Nhẹ (Q-117) |
+| 005 | Báo leo thang công việc Thường, Quan trọng quá hạn (FR-044) | Người phụ trách ca, Trưởng tầng | Trung bình |
+| 005 | Người bán trú vẫn "Có mặt" lúc hết ngày (FR-019) | Người phụ trách ca đang diễn ra của tầng; Trưởng tầng | Trung bình; Nhẹ (Q-115). Nếu xác minh là mất dấu, người kiểm tra ghi sự cố đi lạc theo feature 007 (mức Khẩn cấp) |
+| 005 | Nhân viên vắng ca hoặc nghỉ việc, công việc chuyển thành việc chung (FR-032) | Trưởng tầng | Trung bình |
+| 005 | Phiên bản kế hoạch Chờ duyệt quá hạn (FR-005) | Người duyệt; Quản lý viện | Trung bình |
+| 005 | Yêu cầu xem xét kế hoạch (FR-011); nhắc Dinh dưỡng viên khi ăn kém kéo dài (FR-040) | Điều dưỡng phụ trách; Dinh dưỡng viên | Nhẹ |
+| 006 | Đơn thuốc sắp hết hạn (FR-017) | Người kê hoặc Bác sĩ, Điều dưỡng phụ trách | Nhẹ |
+| 006 | Thuốc gia đình gửi sắp hết (FR-046) | Người liên hệ chính, người đại diện | Trung bình (Q-116); nội dung chia phần: "chung" — có thuốc gia đình gửi sắp hết, số ngày dùng còn lại, đề nghị liên hệ viện; "sức khỏe" — tên thuốc, hàm lượng (FR-013) |
+| 006 | Nhắc liều Trễ; người cao tuổi chưa có điều dưỡng phụ trách (FR-026a); liều thuốc kiểm soát đặc biệt "chờ xem lại" (FR-029); phiếu đối chiếu thuốc cần hoàn thành (CFG-M07-05) | Điều dưỡng; Trưởng tầng, Người phụ trách ca | Trung bình |
+
+  *(Nguồn: 17 "mức độ thông báo phụ thuộc vào mức độ nghiệp vụ", BR-M13-01; Clarification 2026-09-26 lượt 5, đề xuất Q-113)*
 
 - **FR-044**: Trạng thái của một thông báo MUST theo bảng (trạng thái được suy ra từ các sự kiện ghi thêm; không sửa bản ghi):
 
@@ -395,3 +430,4 @@ Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nh�
 15. **Các quyết định clarify lượt 4 (2026-09-26, sau checklist consistency)** cần phản ánh vào tài liệu nguồn và thêm vào mục 24.2: Q-108 yêu cầu thiếu mức gửi ở mức Nhẹ kèm dấu "thiếu mức" (bổ sung 17); Q-109 tài khoản Khóa tạm vẫn là người nhận thông báo (bổ sung BR-M13-04, 19.1); Q-110 mỗi nhóm người nhận khai cách thay: mặc định / chỉ định / không thay (bổ sung BR-M13-04; feature 007 FR-033 cần ghi rõ dùng "không thay"); Q-111 vai trò không xếp ca được coi đang trong ca trong giờ hành chính — **tham số mới CFG-M13-06 giờ hành chính \[07:30–17:00, thứ 2 → thứ 7\] cần thêm vào Phụ lục 25**; Q-112 người thân được nêu trong bản ghi nguồn chỉ nhận phần loại "chung" (bổ sung 14.1, BR-M10-01; feature 007 FR-062 cần ghi rõ gửi theo nhóm này). Mục 23 dòng "Nhà cung cấp SMS" cần ghi thêm rằng tin nhắn Trung bình cho nhân viên chỉ gửi khi đang trong ca hoặc trong giờ hành chính (Q-98, Q-111).
 16. **Làm rõ sau checklist consistency (2026-09-26)**, là mặc định suy ra, cần chủ tài liệu xác nhận: nhóm "nhân viên có ca tại tầng theo vai trò" (FR-007 (a)); nội dung theo từng người nhận bằng một yêu cầu mỗi người (FR-007); phần nội dung không khai loại thông tin coi là "sức khỏe" (FR-013); khóa sự kiện cho nhắc lặp lại do module nguồn định nghĩa (FR-005); tự duyệt không nhận thông báo Nhẹ của chính yêu cầu (FR-012); nhận thay Khẩn cấp áp cả cho cảnh báo Khẩn cấp của 007 (FR-011); tin tổng hợp gửi nhân viên nêu tầng/khu vực và ca (FR-016b); trần nội dung tin nhắn cho người thân không có bản đồng ý (FR-019); một thời điểm xem cho thông báo nhiều phần (FR-034); dữ liệu trả lại cho module nguồn (FR-035); điều kiện chung cho spec nguồn (FR-043a). Định nghĩa THONG_BAO ở 3.2 ("một thông báo đã gửi") cần sửa thành "một thông báo cho một người nhận, kể cả khi bị giữ hoặc không gửi". Các tham số đề xuất CFG-M13-03 → 06 đánh số tiếp theo CFG-M13-02 và không trùng ý nghĩa với CFG-M15-05/06 (nhắc người duyệt) hay CFG-M05-01 (hạn tiếp nhận cảnh báo).
 17. **Yêu cầu đối với feature 012 (chưa viết)**, cần đưa vào khi làm spec 012: quyền "nhận thông báo khẩn" luôn bật và không tắt được cho người liên hệ chính (FR-014, Q-96); thứ tự người thân trong cùng nhóm cho chuỗi gọi (FR-029a); số liên hệ hiện hành và tài khoản cổng của từng người thân (FR-027, FR-043); bản tin gửi qua 009 với nội dung chia phần theo loại thông tin (FR-013, Q-105) và chịu giờ yên tĩnh (FR-022); khóa sự kiện cho nhắc duyệt bản tin quá hạn (FR-005, BR-M10-08).
+18. **Các quyết định clarify lượt 5 (2026-09-26, chốt mức thông báo)** cần phản ánh vào tài liệu nguồn và thêm vào mục 24.2: Q-113 nguyên tắc xếp mức 3 bậc và bảng mức mặc định (FR-043b; bổ sung 17 "mức độ thông báo phụ thuộc vào mức độ nghiệp vụ"); Q-114 người trở về phòng đang chịu chặn cách ly — Khẩn cấp (spec 003 FR-024a); Q-115 người bán trú còn "Có mặt" lúc hết ngày — Trung bình cho Người phụ trách ca, Nhẹ cho Trưởng tầng (spec 005 FR-019 đã sửa người nhận); Q-116 thuốc gia đình gửi sắp hết — Trung bình, nội dung chia phần (spec 006 FR-046 đã sửa); Q-117 nhắc công việc quá hạn cho người thực hiện — Nhẹ (spec 005 FR-043 đã sửa). Với bảng FR-043b, điểm 14 được giải quyết phần lớn: các thông báo trong bảng không còn "thiếu mức"; spec 000, 001, 003, 004 chưa sửa câu chữ, mức của chúng lấy từ bảng FR-043b cho tới khi các spec đó ghi đè.

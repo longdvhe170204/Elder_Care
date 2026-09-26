@@ -34,6 +34,10 @@
 
 Spec 008 đã chốt khi clarify (Q-85): từ giờ bắt đầu ca sau mà bàn giao chưa được xác nhận, liều chưa đóng và liều Mang theo chờ ghi nhận của điều dưỡng ca trước đã hết ca trở thành liều chung của tầng. FR-026a được bổ sung cho khớp.
 
+### Cập nhật 2026-09-26 (đồng bộ với spec 009)
+
+Spec 009 đã chốt mức cho các thông báo của spec này (spec 009 FR-043b): đơn thuốc sắp hết hạn (FR-017) là Nhẹ; nhắc liều Trễ, người cao tuổi chưa có điều dưỡng phụ trách (FR-026a), liều thuốc kiểm soát đặc biệt "chờ xem lại" (FR-029), phiếu đối chiếu cần hoàn thành là Trung bình; thuốc gia đình gửi sắp hết gửi người thân (FR-046) là Trung bình với nội dung chia phần "chung" và "sức khỏe" (Q-116); FR-046 được sửa cho khớp. Thông báo "người cao tuổi chưa có điều dưỡng phụ trách" của FR-026a gửi spec 009 với cách thay "không thay" vì spec này đã tự xử lý bằng liều chung (spec 009 FR-010, Q-110).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 07, mục 11.1 → 11.6; UC-39 → UC-44):
@@ -406,7 +410,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 - **FR-043**: Khi đơn gắn với thuốc gia đình gửi được thay thế (đổi liều) bởi đơn cùng thuốc và nguồn "gia đình gửi", liên kết MUST chuyển sang đơn thay thế trong cùng lệnh, thuốc giữ Được sử dụng. Một đơn MAY gắn với nhiều lô thuốc gia đình gửi Được sử dụng. *(Nguồn: 11.4, DBR-14)*
 - **FR-044**: Khi xác nhận Đã dùng một liều hoặc lần dùng PRN nguồn gia đình gửi, hệ thống MUST: đề xuất lô Được sử dụng có hạn dùng sớm nhất còn đủ số lượng (điều dưỡng MAY chọn lô khác đang Được sử dụng); chặn xác nhận nếu không có lô nào còn đủ số lượng hoặc chưa hết hạn dùng; trừ số lượng của lô bằng liều đã dùng và lưu biến động số lượng trỏ về liều. Liều thuộc một lần "Giao thuốc mang theo" không áp yêu cầu này vì số lượng đã trừ khi giao (FR-048a). *(Nguồn: BR-M07-11)*
 - **FR-045**: Số lượng thuốc gia đình gửi MUST NOT sửa trực tiếp; mọi thay đổi MUST là biến động có nguồn: tiếp nhận, liều đã dùng, đính chính liều, giao thuốc mang theo, nhận lại thuốc mang theo (FR-048a), hoàn trả, hủy theo yêu cầu gia đình, hoặc lệnh "Kiểm kê điều chỉnh" do Điều dưỡng thực hiện có lý do (rơi vỡ, đếm lại). Người thân gửi thêm cùng thuốc MUST được ghi như một lần tiếp nhận mới (lô mới). *(Nguồn: BR-M07-11, 1.5)*
-- **FR-046**: Sau mỗi biến động làm giảm số lượng, hệ thống MUST tính số ngày dùng còn lại của mỗi đơn gắn thuốc gia đình gửi = tổng số lượng còn của các lô Được sử dụng gắn đơn ÷ lượng dùng mỗi ngày của đơn (với đơn PRN: liều × số lần tối đa mỗi ngày). Khi số ngày còn lại chuyển từ không nhỏ hơn sang nhỏ hơn CFG-M07-06 (mặc định \[5 ngày\] dùng), hệ thống MUST yêu cầu feature 009 thông báo người liên hệ chính và người đại diện một lần cho lần vượt ngưỡng đó; thông báo lại chỉ khi số ngày còn lại đã trở về không nhỏ hơn ngưỡng (do tiếp nhận thêm) rồi lại giảm dưới ngưỡng. *(Nguồn: BR-M07-11, CFG-M07-06)*
+- **FR-046**: Sau mỗi biến động làm giảm số lượng, hệ thống MUST tính số ngày dùng còn lại của mỗi đơn gắn thuốc gia đình gửi = tổng số lượng còn của các lô Được sử dụng gắn đơn ÷ lượng dùng mỗi ngày của đơn (với đơn PRN: liều × số lần tối đa mỗi ngày). Khi số ngày còn lại chuyển từ không nhỏ hơn sang nhỏ hơn CFG-M07-06 (mặc định \[5 ngày\] dùng), hệ thống MUST yêu cầu feature 009 thông báo mức Trung bình (feature 009 FR-043b, Q-116; nội dung chia phần "chung" gồm việc thuốc sắp hết và số ngày còn lại, phần "sức khỏe" gồm tên thuốc, hàm lượng) cho người liên hệ chính và người đại diện một lần cho lần vượt ngưỡng đó; thông báo lại chỉ khi số ngày còn lại đã trở về không nhỏ hơn ngưỡng (do tiếp nhận thêm) rồi lại giảm dưới ngưỡng. *(Nguồn: BR-M07-11, CFG-M07-06)*
 
 #### H. Tác động từ trạng thái người cao tuổi, quyền xem và dữ liệu cung cấp
 
