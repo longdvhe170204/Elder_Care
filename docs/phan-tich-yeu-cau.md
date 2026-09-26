@@ -28,11 +28,11 @@ flowchart LR
     SYS -- "Dị ứng, hạn chế ăn, cảnh báo xung đột" --> DDV["Dinh dưỡng viên"]
     DDV -- "Chế độ ăn, món ăn, thực đơn" --> SYS
 
-    SYS -- "Số suất theo chế độ ăn, yêu cầu đặc biệt" --> BEP["Nhân viên bếp"]
-    BEP -- "Xác nhận chuẩn bị, phân phối suất ăn" --> SYS
+    SYS -- "Phiếu bữa ăn, suất đặc biệt, phát sinh sau chốt" --> BEP["Nhân viên bếp"]
+    BEP -- "Chuẩn bị, giao phiếu, xác nhận phát sinh, lưu mẫu" --> SYS
 
-    SYS -- "Công việc vệ sinh được phân công" --> VS["Nhân viên vệ sinh"]
-    VS -- "Kết quả công việc vệ sinh" --> SYS
+    SYS -- "Công việc vệ sinh định kỳ, trả giường, khử khuẩn, đột xuất" --> VS["Nhân viên vệ sinh"]
+    VS -- "Kết quả theo hạng mục, hư hỏng" --> SYS
 
     SYS -- "Đề xuất hồ sơ chờ, nhắc hợp đồng, bảng chi phí" --> HC["Nhân viên hành chính"]
     HC -- "Hồ sơ, hợp đồng, tạm vắng, đón, đồ gửi, kiểm tra chi phí" --> SYS
@@ -49,8 +49,8 @@ flowchart LR
 | Điều dưỡng           | Xác nhận liều, xử lý cảnh báo, phiên bản kế hoạch chăm sóc, bàn giao ca                  | Lịch liều, cảnh báo, bản nháp bàn giao, checklist ca                        | 2.3, M04, M05, M07, M09 |
 | Nhân viên chăm sóc   | Kết quả công việc chăm sóc, chỉ số đo, sự cố                                             | Checklist ca, nhắc việc quá hạn, cờ nguy cơ                                 | 2.3, M04                |
 | Dinh dưỡng viên      | Chế độ ăn, món ăn, thực đơn                                                              | Dị ứng và hạn chế ăn, cảnh báo xung đột, yêu cầu xem lại chế độ ăn          | 2.3, M08                |
-| Nhân viên bếp        | Xác nhận chuẩn bị và phân phối suất ăn                                                   | Số suất theo chế độ ăn, yêu cầu đặc biệt, thay đổi phát sinh sau chốt       | 2.3, 12.3               |
-| Nhân viên vệ sinh    | Kết quả công việc vệ sinh                                                                | Công việc vệ sinh phòng/khu vực được phân công                              | 2.3, 8.3                |
+| Nhân viên bếp        | Đánh dấu chuẩn bị suất đặc biệt, giao phiếu bữa ăn, xác nhận phát sinh, bản ghi lưu mẫu (bổ sung) | Phiếu bữa ăn theo tầng/khu (số suất theo chế độ ăn, suất đặc biệt có tên), thay đổi phát sinh sau chốt, sai lệch do tầng báo | 2.3, 12.3, 12.5 |
+| Nhân viên vệ sinh    | Kết quả từng hạng mục (Đạt / Không đạt), hư hỏng, xác nhận đồ bảo hộ (bổ sung)           | Công việc vệ sinh định kỳ, trả giường, khử khuẩn, đột xuất của phòng/khu vực được phân công | 2.3, 7.5, 8.3 |
 | Nhân viên hành chính | Hồ sơ, hợp đồng, đặt cọc, tạm vắng, đón, đồ gửi, người thân, kiểm tra chi phí            | Đề xuất hồ sơ chờ, nhắc hợp đồng, bảng chi phí kỳ, file chi phí cho kế toán | 2.3, M02, M10–M12       |
 | Người thân           | Đăng ký thăm, bản đồng ý, xác nhận thay đổi, phản hồi                                    | Bản tin, thông báo, chi phí, lịch sinh hoạt                                 | 2.3, M10                |
 
@@ -117,7 +117,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph SYS[Hệ thống]
-        S1["Sinh công việc, liều thuốc, chốt suất ăn"]
+        S1["Sinh công việc, việc vệ sinh, liều thuốc; chốt suất ăn, sinh phiếu bữa ăn"]
         S2["Đánh giá kết quả theo quy tắc"]
         S3{"Bất thường?"}
         S4["Tạo cảnh báo, sinh chi phí nháp"]
@@ -153,7 +153,7 @@ flowchart TD
 
 | Bước | Vai trò                        | Hoạt động                                                                 | Tham chiếu                           |
 | ---- | ------------------------------ | ------------------------------------------------------------------------- | ------------------------------------ |
-| 1    | Hệ thống                       | Sinh công việc, liều thuốc theo ca; chốt suất ăn trước bữa                | BR-M04-01, BR-M07-01, BR-M08-01      |
+| 1    | Hệ thống                       | Sinh công việc (kể cả vệ sinh theo lịch), liều thuốc theo ca; chốt suất ăn trước bữa và sinh phiếu bữa ăn theo tầng/khu | BR-M04-01, BR-M03-08, BR-M07-01, BR-M08-01, BR-M08-09 |
 | 2    | Điều dưỡng                     | Nhận bàn giao đã tổng hợp sẵn, xác nhận; việc tồn vào checklist           | BR-M09-06 → 08                       |
 | 3    | Nhân viên chăm sóc             | Mở checklist, thực hiện, ghi nhận kết quả                                 | 8.5, 8.6                             |
 | 4    | Điều dưỡng                     | Phát thuốc, xác nhận từng liều trong cửa sổ thời gian                     | BR-M07-02                            |
@@ -253,8 +253,12 @@ erDiagram
 
 ```mermaid
 erDiagram
-    NGUOI_CAO_TUOI ||--o| HO_SO_CHO : "đăng ký chờ"
+    NGUOI_CAO_TUOI ||--o{ LUOT_DANG_KY : "đăng ký tiếp nhận"
+    LUOT_DANG_KY ||--o| HO_SO_CHO : "đưa vào chờ"
     NGUOI_CAO_TUOI ||--o{ HOP_DONG : "là bên hưởng"
+    HOP_DONG ||--o| DAT_COC : "yêu cầu"
+    NGUOI_CAO_TUOI ||--o{ HO_SO_KET_THUC : "kết thúc lưu trú"
+    NGUOI_CAO_TUOI ||--o| BAN_GHI_QUA_DOI : "qua đời"
     NGUOI_THAN ||--o{ HOP_DONG : "ký với tư cách đại diện"
     HOP_DONG ||--o{ PHU_LUC_HOP_DONG : "có"
     YEU_CAU_PHE_DUYET |o--o| PHU_LUC_HOP_DONG : "tạo ra"
@@ -267,6 +271,12 @@ erDiagram
     NGUOI_CAO_TUOI ||--o{ PHAN_BO_GIUONG : "được phân bổ"
     NGUOI_CAO_TUOI ||--o{ LUOT_VANG : "có"
     NGUOI_CAO_TUOI ||--o{ CO_MAT_BAN_TRU : "có"
+    TANG ||--o{ KHU_VUC_CHUNG : "gồm"
+    PHONG ||--o{ LICH_VE_SINH : "có"
+    KHU_VUC_CHUNG ||--o{ LICH_VE_SINH : "có"
+    LICH_VE_SINH ||--o{ CONG_VIEC : "sinh ra (vệ sinh định kỳ)"
+    PHAN_BO_GIUONG ||--o| CONG_VIEC : "khi đóng sinh ra (vệ sinh trả giường)"
+    KHOANH_VUNG ||--o{ CONG_VIEC : "sinh ra (khử khuẩn)"
 ```
 
 **Miền C – Chăm sóc, thuốc, sức khỏe, sự cố**
@@ -316,10 +326,17 @@ erDiagram
     NGUOI_CAO_TUOI ||--o{ CHI_PHI : "phát sinh"
     KY_CHI_PHI ||--o{ CHI_PHI : "gồm"
     CHI_PHI |o--o| CHI_PHI : "điều chỉnh cho"
-    PHIEN_BAN_DON_GIA ||--o{ CHI_PHI : "định giá"
+    PHIEN_BAN_DON_GIA ||--o{ CHI_PHI : "định giá (khoản ngoài hợp đồng)"
+    HOP_DONG ||--o{ CHI_PHI : "định giá (khoản thuộc hợp đồng)"
     NGUOI_CAO_TUOI }o--|| CHE_DO_AN : "áp dụng"
     THUC_DON ||--|{ MON_AN : "gồm"
     THUC_DON ||--o{ SUAT_AN : "chốt thành"
+    SUAT_AN }o--o{ PHIEU_BUA_AN : "chia theo tầng/khu vào"
+    TANG ||--o{ PHIEU_BUA_AN : "nhận"
+    PHIEU_BUA_AN ||--o{ SUAT_DAC_BIET : "gồm"
+    NGUOI_CAO_TUOI ||--o{ SUAT_DAC_BIET : "được phục vụ"
+    PHIEU_BUA_AN ||--o{ SAI_LECH_PHIEU : "có"
+    PHIEU_BUA_AN }o--o| LUU_MAU_THUC_AN : "của bữa"
     NGUOI_CAO_TUOI ||--o{ DO_AN_GIA_DINH : "nhận"
     NGUOI_CAO_TUOI ||--o{ DO_GUI : "gửi"
     DO_GUI ||--|{ BAN_GIAO_DO_GUI : "có"
@@ -345,20 +362,26 @@ Cột Nhóm theo phân loại ở mục 1.5 tab nghiệp vụ: **1** danh mục 
 | KET_QUA_THANG_DIEM        | Điểm của một thang trong lần đánh giá                     | Thang (Barthel, Braden, Morse, MMSE), điểm, phân loại                                                         | 3              | 5.3             |
 | CO_NGUY_CO                | Cờ nguy cơ đang gắn cho người cao tuổi                    | Loại (ngã, loét, đi lạc), đánh giá gắn cờ, đánh giá gỡ cờ                                                     | 2              | BR-M01-10       |
 | LICH_SU_TRANG_THAI        | Mỗi lần chuyển trạng thái                                 | Trạng thái từ, đến, lệnh, thời điểm, người thực hiện, lý do                                                   | 3              | BR-M01-04       |
-| HO_SO_CHO                 | Hồ sơ trong danh sách chờ                                 | Ngày đăng ký, loại lưu trú, mức chăm sóc, điểm ưu tiên, trạng thái, hạn giữ chỗ                               | 2              | 6.2, BR-M02-10  |
-| HOP_DONG                  | Hợp đồng lưu trú gốc                                      | Số hợp đồng, loại lưu trú, thời hạn, mức chăm sóc, chính sách phí và giữ giường, trạng thái                   | 2              | 6.3             |
+| LUOT_DANG_KY              | **(Bổ sung)** Một lượt đăng ký tiếp nhận                  | Ngày đăng ký, người liên hệ, nhu cầu, loại lưu trú mong muốn, mức chăm sóc dự kiến, ngày mong muốn vào, trạng thái | 2              | 6.1, UC-09      |
+| HO_SO_CHO                 | Hồ sơ trong danh sách chờ                                 | Ngày đăng ký, loại lưu trú, mức chăm sóc, tình huống đặc biệt, điểm ưu tiên, giường đang giữ, trạng thái, hạn giữ chỗ | 2              | 6.2, BR-M02-10  |
+| HOP_DONG                  | Hợp đồng lưu trú gốc                                      | Số hợp đồng, loại lưu trú, thời hạn, mức chăm sóc, đơn giá đã ghi khi ký, chính sách phí và giữ giường, dấu quá hạn, lý do chấm dứt, trạng thái | 2              | 6.3, Q-20, Q-25 |
+| DAT_COC                   | **(Bổ sung)** Trạng thái đặt cọc của hợp đồng             | Khoản cần đặt cọc, trạng thái (Chưa đáp ứng / Đã đáp ứng / Không yêu cầu), thời điểm, người, nguồn xác nhận | 2              | 6.5, UC-12      |
+| HO_SO_KET_THUC            | **(Bổ sung)** Hồ sơ kết thúc lưu trú                      | Trường hợp, ngày kết thúc dự kiến, lý do, nơi chuyển đến, điều kiện và ngoại lệ, bàn giao người cao tuổi, trạng thái | 2              | 6.8, Q-21       |
+| BAN_GHI_QUA_DOI           | **(Bổ sung)** Ghi nhận qua đời và danh sách việc sau qua đời | Thời điểm, địa điểm, người phát hiện, người xác nhận, nguyên nhân, bằng chứng; các việc còn lại và trạng thái | 3 / 2          | 6.8, UC-18      |
 | PHU_LUC_HOP_DONG          | Thay đổi đã duyệt gắn với hợp đồng                        | Nội dung thay đổi (trước/sau), ngày hiệu lực, trạng thái áp dụng                                              | 2              | 6.6, BR-M02-09  |
 | DICH_VU                   | Dịch vụ viện cung cấp                                     | Tên, đơn vị tính, có trong gói, trạng thái hiệu lực                                                           | 1              | 6.4             |
 | PHIEN_BAN_DON_GIA         | Đơn giá của dịch vụ/vật phẩm theo thời gian               | Đơn giá, hiệu lực từ, hiệu lực đến                                                                            | 1              | 6.4             |
-| KHU_VUC, TANG, PHONG      | Cơ cấu vị trí                                             | Mã, tên; phòng có loại, mức chăm sóc cho phép, chính sách giới tính, trạng thái cách ly                       | 1              | 7.1             |
-| GIUONG                    | Giường trong phòng                                        | Mã, trạng thái, lý do giữ chỗ, hạn giữ chỗ                                                                    | 2              | 7.2             |
-| PHAN_BO_GIUONG            | Người cao tuổi dùng giường trong một khoảng thời gian     | Bắt đầu, kết thúc, lý do, người thực hiện                                                                     | 2              | 7.3, BR-M03-07  |
+| KHU_VUC, TANG, PHONG      | Cơ cấu vị trí                                             | Mã, tên; tầng có tên tòa nhà (tùy chọn); phòng có loại, loại hình lưu trú được phục vụ, mức chăm sóc cho phép, chính sách giới tính, trạng thái cách ly | 1              | 7.1             |
+| GIUONG                    | Giường trong phòng                                        | Mã, trạng thái (Trống, Đang sử dụng, Đang bảo trì, Không sử dụng, Đang giữ chỗ, **Chờ vệ sinh**), lý do giữ chỗ, hạn giữ chỗ | 2              | 7.2, BR-M03-09  |
+| KHU_VUC_CHUNG             | **(Bổ sung)** Khu vực chung là đối tượng vệ sinh          | Mã, tên, loại (hành lang, nhà vệ sinh chung, phòng ăn, phòng sinh hoạt, khu nghỉ bán trú), tầng/khu vực, trạng thái | 1              | 7.5             |
+| LICH_VE_SINH              | **(Bổ sung)** Mẫu lịch vệ sinh của phòng/khu vực chung   | Đối tượng, loại vệ sinh, tần suất, ca thực hiện, danh sách hạng mục kiểm tra                                  | 1              | 7.5, CFG-M03-03 |
+| PHAN_BO_GIUONG            | Người cao tuổi dùng giường trong một khoảng thời gian     | Bắt đầu, kết thúc, lý do, người thực hiện, trạng thái (Tương lai / Đang hiệu lực / Đã đóng / Đã hủy), bác sĩ chỉ định (khi chuyển vì kiểm soát lây nhiễm) | 2              | 7.3, BR-M03-07  |
 | LUOT_VANG                 | Một lần tạm vắng hoặc nằm viện                            | Loại vắng, rời lúc, dự kiến về, về lúc, người đón, người bàn giao, chính sách áp dụng                         | 2              | 6.7             |
 | CO_MAT_BAN_TRU            | Trạng thái có mặt của người bán trú theo ngày             | Ngày, trạng thái, giờ đến, giờ về                                                                             | 2              | 3.4             |
 | KE_HOACH_CHAM_SOC         | Phiên bản kế hoạch chăm sóc                               | Số phiên bản, hiệu lực từ, trạng thái, người lập, người duyệt                                                 | 2              | 8.1, BR-M04-19  |
 | MUC_KE_HOACH              | Một hoạt động chăm sóc trong kế hoạch                     | Loại công việc, tần suất, khung giờ, mức quan trọng, vai trò thực hiện, có tính phí                           | 2              | 8.1             |
-| CONG_VIEC                 | Công việc cụ thể trong một ca                             | Thời điểm dự kiến, khung cho phép, người phụ trách, trạng thái, lý do không thực hiện                         | 2              | 8.3, BR-M04-04  |
-| KET_QUA_GHI_NHAN          | Kết quả thực hiện công việc                               | Giá trị kết quả, thời điểm thực hiện, thời điểm ghi, ghi nhận muộn                                            | 3              | 8.6             |
+| CONG_VIEC                 | Công việc cụ thể trong một ca                             | Thời điểm dự kiến, khung cho phép, người phụ trách, trạng thái, lý do không thực hiện. **(Bổ sung)** Đối tượng là người cao tuổi hoặc phòng/giường/khu vực chung; với công việc vệ sinh: loại (định kỳ, trả giường, khử khuẩn, khử khuẩn kết thúc, đột xuất), nguồn sinh, mức ưu tiên Thường/Gấp, yêu cầu xác nhận đồ bảo hộ | 2              | 8.3, BR-M04-04, 7.5 |
+| KET_QUA_GHI_NHAN          | Kết quả thực hiện công việc                               | Giá trị kết quả, thời điểm thực hiện, thời điểm ghi, ghi nhận muộn. **(Bổ sung)** Với công việc vệ sinh: kết quả từng hạng mục Đạt / Không đạt, hư hỏng, xác nhận đồ bảo hộ | 3              | 8.6, 7.5        |
 | DON_THUOC                 | Đơn thuốc của người cao tuổi                              | Thuốc, hoạt chất, liều, đường dùng, tần suất, loại (định kỳ/PRN), nguồn thuốc, người kê, cơ sở kê, trạng thái | 2              | 11.1            |
 | LIEU_THUOC                | Một liều cụ thể                                           | Thời điểm dự kiến, cửa sổ, trạng thái, thời điểm xác nhận, người xác nhận, phản ứng                           | 3              | 11.2, BR-M07-02 |
 | PHIEU_DOI_CHIEU           | Đối chiếu thuốc khi tiếp nhận/trở về                      | Lý do, quyết định từng thuốc, người thực hiện, người xác nhận                                                 | 3              | 11.5            |
@@ -370,7 +393,7 @@ Cột Nhóm theo phân loại ở mục 1.5 tab nghiệp vụ: **1** danh mục 
 | KHOANH_VUNG               | Khu vực bị khoanh vùng lây nhiễm                          | Khu vực, bắt đầu, kết thúc, người khoanh, người gỡ, danh sách tiếp xúc                                        | 2              | 9.6, BR-M05-11  |
 | NHAN_VIEN                 | Nhân viên của viện                                        | Họ tên, chức danh, chuyên môn, trạng thái làm việc                                                            | 1              | 13.1            |
 | CHUNG_CHI                 | Giấy phép hành nghề hoặc đào tạo                          | Loại, số, phạm vi, ngày cấp, ngày hết hạn                                                                     | 1              | 13.1, BR-M09-01 |
-| TAI_KHOAN, VAI_TRO        | Đăng nhập và vai trò hệ thống                             | Tên đăng nhập, trạng thái; vai trò, quyền                                                                     | 1              | 19.1, 19.2      |
+| TAI_KHOAN, VAI_TRO        | Đăng nhập và vai trò hệ thống                             | Tên đăng nhập, trạng thái; vai trò, quyền                                                                     | 1 (vai trò); 2 (trạng thái tài khoản) | 19.1, 19.2      |
 | CA_TRUC                   | Một ca cụ thể                                             | Ngày, giờ bắt đầu, giờ kết thúc, khu vực, người phụ trách ca, trạng thái                                      | 2              | 13.2            |
 | PHAN_CONG                 | Nhân viên được giao người cao tuổi/khu vực trong ca       | Vai trò (chính/hỗ trợ), phạm vi                                                                               | 2              | 13.4            |
 | BAN_GIAO                  | Bàn giao cuối ca                                          | Nội dung tự tổng hợp, nhận định, người lập, người xác nhận, trạng thái                                        | 3              | 13.5, BR-M09-06 |
@@ -378,7 +401,11 @@ Cột Nhóm theo phân loại ở mục 1.5 tab nghiệp vụ: **1** danh mục 
 | DIEM_DANH                 | Điểm danh người tham gia buổi hoạt động                   | Có mặt, mức độ tham gia, tình trạng sau                                                                       | 3              | 8.8             |
 | CHE_DO_AN, MON_AN         | Chế độ ăn và món ăn                                       | Tên; thành phần gây dị ứng, chế độ phù hợp                                                                    | 1              | 12.1            |
 | THUC_DON                  | Thực đơn tuần                                             | Kỳ, trạng thái                                                                                                | 2              | 12.2, BR-M08-06 |
-| SUAT_AN                   | Số suất đã chốt cho một bữa                               | Bữa, chế độ ăn, số lượng, phát sinh sau chốt                                                                  | 3              | BR-M08-01       |
+| SUAT_AN                   | Số suất đã chốt cho một bữa                               | Bữa, chế độ ăn, số lượng, phát sinh sau chốt, bếp đã xác nhận phát sinh (bổ sung)                             | 3              | BR-M08-01, 13   |
+| PHIEU_BUA_AN              | **(Bổ sung)** Phiếu bữa ăn của một tầng/khu cho một bữa   | Bữa, tầng/khu, số suất theo chế độ ăn, trạng thái (Đã chốt, Đã chuẩn bị, Đã giao, Đã nhận, Có sai lệch), người và thời điểm giao, người và thời điểm nhận | 2              | 12.5, BR-M08-09 → 12 |
+| SUAT_DAC_BIET             | **(Bổ sung)** Suất có tên trên phiếu bữa ăn               | Người cao tuổi, phòng, chế độ ăn, món thay thế, kết cấu (thường / mềm / xay nhuyễn), đã chuẩn bị, xác nhận phục vụ đúng người | 2              | 12.5, BR-M08-10, 14 |
+| SAI_LECH_PHIEU            | **(Bổ sung)** Sai lệch do tầng báo trên phiếu             | Nội dung, người báo, thời điểm, cách bếp xử lý, người xử lý                                                   | 3              | BR-M08-11       |
+| LUU_MAU_THUC_AN           | **(Bổ sung, cần xác nhận Q-39)** Bản ghi lưu mẫu của một bữa | Món đã lưu mẫu, thời điểm lưu, người lưu, thời điểm hủy mẫu                                                 | 3              | 12.5, BR-M08-15 |
 | DO_AN_GIA_DINH            | Đồ ăn gia đình mang vào                                   | Loại, số lượng, kết quả đối chiếu, trạng thái                                                                 | 2              | 12.4            |
 | CHI_PHI                   | Một khoản chi phí phát sinh                               | Loại, số lượng, đơn giá, số tiền, nguồn, tham chiếu nguồn, trạng thái, khoản điều chỉnh cho                   | 2 → 3 khi chốt | 15.3            |
 | KY_CHI_PHI                | Kỳ chi phí                                                | Từ ngày, đến ngày, trạng thái chốt, người chốt                                                                | 2              | 15.6            |
@@ -397,7 +424,7 @@ Quy tắc dữ liệu là các ràng buộc luôn đúng trên dữ liệu (tín
 
 | Mã     | Quy tắc                                                                                                                                                       | Thực thể                       | Nguồn             |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ----------------- |
-| DBR-01 | Mã hồ sơ người cao tuổi là duy nhất; CCCD là duy nhất nếu có. Mỗi người cao tuổi có đúng một trạng thái hiện tại                                              | NGUOI_CAO_TUOI                 | 5.1, 5.5          |
+| DBR-01 | Mã hồ sơ người cao tuổi là duy nhất; CCCD là duy nhất trong các hồ sơ chưa ở trạng thái cuối (người quay lại có hồ sơ mới liên kết hồ sơ cũ, Q-12). Mỗi người cao tuổi có đúng một trạng thái hiện tại | NGUOI_CAO_TUOI                 | 5.1, 5.5          |
 | DBR-02 | Người cao tuổi đang lưu trú có đúng một người liên hệ chính và ít nhất một người đại diện                                                                     | QUAN_HE_NGUOI_THAN             | 14.1              |
 | DBR-03 | Người thân chỉ có quyền xem sức khỏe khi nằm trong phạm vi một bản đồng ý đang hiệu lực                                                                       | BAN_DONG_Y, QUAN_HE_NGUOI_THAN | BR-M01-08         |
 | DBR-04 | Mục dị ứng, bệnh nền không bao giờ bị xóa; chỉ chuyển Đã loại trừ kèm lý do và người thực hiện                                                                | MUC_SUC_KHOE                   | BR-M01-07         |
@@ -405,14 +432,14 @@ Quy tắc dữ liệu là các ràng buộc luôn đúng trên dữ liệu (tín
 | DBR-06 | Mỗi người cao tuổi có tối đa một hợp đồng hiệu lực tại một thời điểm; hợp đồng hiệu lực không bị sửa                                                          | HOP_DONG                       | BR-M02-08, 09     |
 | DBR-07 | Phụ lục hợp đồng phải gắn với một yêu cầu phê duyệt đã duyệt; ngày hiệu lực không sớm hơn ngày bắt đầu hợp đồng                                               | PHU_LUC_HOP_DONG               | 6.6               |
 | DBR-08 | Các phiên bản đơn giá của cùng một dịch vụ không chồng khoảng hiệu lực                                                                                        | PHIEN_BAN_DON_GIA              | 6.4               |
-| DBR-09 | Tại một thời điểm, mỗi giường có tối đa một phân bổ đang mở; mỗi người cao tuổi nội trú có tối đa một phân bổ đang mở                                         | PHAN_BO_GIUONG                 | 7.3               |
-| DBR-10 | Phân bổ chỉ được tạo khi giường Trống (hoặc đang giữ chỗ cho chính người đó), phòng khớp mức chăm sóc, giới tính và không bị cách ly                          | PHAN_BO_GIUONG, GIUONG, PHONG  | BR-M03-01         |
+| DBR-09 | Tại một thời điểm, mỗi giường có tối đa một phân bổ đang hiệu lực; mỗi người cao tuổi nội trú có tối đa một phân bổ đang hiệu lực và tối đa một phân bổ tương lai; khoảng thời gian các phân bổ của cùng giường không chồng nhau | PHAN_BO_GIUONG                 | 7.3               |
+| DBR-10 | Phân bổ chỉ được tạo khi giường Trống (hoặc đang giữ tạm cho hồ sơ chờ của chính người đó), phòng khớp loại hình lưu trú, mức chăm sóc, giới tính và không bị cách ly (trừ chuyển theo chỉ định kiểm soát lây nhiễm, Q-17). **(Bổ sung)** Giường Chờ vệ sinh không nhận phân bổ bắt đầu ngay; phân bổ tương lai trên giường Chờ vệ sinh chờ Q-40 | PHAN_BO_GIUONG, GIUONG, PHONG  | BR-M03-01         |
 | DBR-11 | Mỗi người cao tuổi có tối đa một phiên bản kế hoạch chăm sóc hiệu lực tại một ngày                                                                            | KE_HOACH_CHAM_SOC              | BR-M04-19         |
-| DBR-12 | Công việc là duy nhất theo (mục kế hoạch, thời điểm dự kiến), để sinh lại không tạo trùng                                                                     | CONG_VIEC                      | BR-M04-01, NFR-04 |
+| DBR-12 | Công việc là duy nhất theo (mục kế hoạch, thời điểm dự kiến), để sinh lại không tạo trùng. **(Bổ sung)** Công việc vệ sinh định kỳ là duy nhất theo (mục lịch vệ sinh, thời điểm dự kiến); mỗi lần đóng phân bổ sinh đúng một công việc vệ sinh trả giường hoặc khử khuẩn | CONG_VIEC                      | BR-M04-01, BR-M03-08, 09, NFR-04 |
 | DBR-13 | Liều thuốc là duy nhất theo (đơn thuốc, thời điểm dự kiến) và chỉ có một lần xác nhận                                                                         | LIEU_THUOC                     | BR-M07-12         |
 | DBR-14 | Đơn thuốc hiệu lực không đổi thuốc, liều, tần suất. Đơn thay thế trỏ về đơn cũ, và đơn cũ chuyển Đã ngừng trong cùng giao dịch                                | DON_THUOC                      | 11.1              |
 | DBR-15 | Mỗi khoản chi phí có đúng một nguồn: một bản ghi nguồn (công việc, liều thuốc, điểm danh, lượt vắng, có mặt bán trú) hoặc "nhập tay" kèm lý do và người duyệt | CHI_PHI                        | BR-M11-01, 04     |
-| DBR-16 | Đơn giá của khoản chi phí là phiên bản hiệu lực tại ngày phát sinh; khoản thuộc gói có số tiền 0                                                              | CHI_PHI                        | BR-M11-02, 03     |
+| DBR-16 | Đơn giá của khoản chi phí thuộc hợp đồng là đơn giá trong nội dung hợp đồng hiệu lực tại ngày phát sinh; khoản ngoài hợp đồng là phiên bản đơn giá hiệu lực tại ngày phát sinh (Q-25); khoản thuộc gói có số tiền 0 | CHI_PHI                        | BR-M11-02, 03     |
 | DBR-17 | Khi kỳ đã chốt, các khoản thuộc kỳ không đổi; sai sót được ghi bằng khoản điều chỉnh mới trỏ về khoản gốc                                                     | KY_CHI_PHI, CHI_PHI            | 15.6              |
 | DBR-18 | Cùng một người cao tuổi không có hai cảnh báo cùng loại đang mở; cảnh báo mới được gộp vào cảnh báo cũ                                                        | CANH_BAO                       | BR-M05-02         |
 | DBR-19 | Sự cố khẩn cấp không sửa, không xóa; nếu người cao tuổi có nguyện vọng cuối đời thì phải có xác nhận đã đối chiếu                                             | SU_CO                          | BR-M05-08, 13     |
@@ -422,6 +449,8 @@ Quy tắc dữ liệu là các ràng buộc luôn đúng trên dữ liệu (tín
 | DBR-23 | Mọi thay đổi dữ liệu nhóm 2 và 3 có bản ghi nhật ký; mỗi bản đính chính trỏ đúng một bản ghi gốc                                                              | NHAT_KY, DINH_CHINH            | 19.4, 1.5         |
 | DBR-24 | Mỗi mã tham số có đúng một giá trị hiện hành; các giá trị cũ được lưu lịch sử                                                                                 | THAM_SO                        | BR-M15-04         |
 | DBR-25 | Mọi mốc thời gian theo múi giờ Asia/Ho_Chi_Minh; bản ghi ngoại tuyến lưu cả thời điểm trên thiết bị và thời điểm đồng bộ                                      | Tất cả                         | NFR-09, 8.6       |
+| DBR-26 | **(Bổ sung)** Giường Chờ vệ sinh chỉ chuyển Trống khi công việc vệ sinh trả giường (hoặc khử khuẩn thay thế) của lần đóng phân bổ gần nhất đã Hoàn thành; giường Chờ vệ sinh không có phân bổ đang hiệu lực | GIUONG, CONG_VIEC, PHAN_BO_GIUONG | BR-M03-06, 09 |
+| DBR-27 | **(Bổ sung)** Mỗi (bữa, tầng/khu) có đúng một phiếu bữa ăn; tổng suất trên các phiếu của một bữa bằng số suất đã chốt cộng phát sinh | PHIEU_BUA_AN, SUAT_AN | BR-M08-01, 09 |
 
 ## 4. User Requirements
 
@@ -436,8 +465,8 @@ Quy tắc dữ liệu là các ràng buộc luôn đúng trên dữ liệu (tín
 | AC-04 | Điều dưỡng           | Chính              | Thuốc, cảnh báo, kế hoạch chăm sóc, bàn giao ca                                                                      | App nhân viên                            |
 | AC-05 | Nhân viên chăm sóc   | Chính              | Thực hiện và ghi nhận công việc chăm sóc, đo chỉ số                                                                  | App nhân viên                            |
 | AC-06 | Dinh dưỡng viên      | Chính              | Chế độ ăn, món ăn, thực đơn                                                                                          | Web                                      |
-| AC-07 | Nhân viên bếp        | Chính              | Xem số suất đã chốt và yêu cầu đặc biệt                                                                              | App hoặc màn hình bếp                    |
-| AC-08 | Nhân viên vệ sinh    | Chính              | Thực hiện công việc vệ sinh được phân công                                                                           | App nhân viên                            |
+| AC-07 | Nhân viên bếp        | Chính              | Xem phiếu bữa ăn; chuẩn bị, dán nhãn và giao suất ăn; xác nhận phát sinh; ghi lưu mẫu                                | App hoặc màn hình bếp                    |
+| AC-08 | Nhân viên vệ sinh    | Chính              | Thực hiện vệ sinh định kỳ, trả giường, khử khuẩn, đột xuất theo phòng/khu vực; ghi nhận kết quả và hư hỏng           | App nhân viên                            |
 | AC-09 | Nhân viên hành chính | Chính              | Tiếp nhận, hợp đồng, tạm vắng, đón, đồ gửi, kiểm tra chi phí                                                         | Web                                      |
 | AC-10 | Người thân           | Chính              | Xem thông tin được phép, đăng ký thăm, phản hồi, xác nhận thay đổi                                                   | Cổng người thân (trình duyệt điện thoại) |
 | AC-11 | Bộ lập lịch hệ thống | Hệ thống           | Khởi phát các use case theo thời gian: sinh công việc/liều/buổi, kiểm tra quá hạn, leo thang, nhắc hạn, sinh bản tin | —                                        |
@@ -482,7 +511,7 @@ Tên use case là **lệnh nghiệp vụ** (động từ + đối tượng), kh�
 | UC-28 | Điểm danh bán trú đến/về              | Hành chính, Nhân viên chăm sóc          | 005      | 3.4, BR-M04-02      |
 | UC-29 | Tổ chức hoạt động và điểm danh        | Trưởng tầng, Nhân viên chăm sóc         | 014      | 8.8, BR-M04-15, 21  |
 | UC-30 | Tổ chức hoạt động ngoài viện          | Trưởng tầng                             | 014      | 8.9, BR-M04-16, 17  |
-| UC-31 | Kiểm tra chất lượng ngẫu nhiên        | Trưởng tầng                             | 014      | BR-M04-23           |
+| UC-31 | Kiểm tra chất lượng ngẫu nhiên        | Trưởng tầng                             | 014      | BR-M04-23 (kể cả công việc vệ sinh) |
 | UC-32 | Ghi nhận chỉ số sức khỏe              | Nhân viên chăm sóc, Điều dưỡng          | 007      | 10.1, BR-M06-03, 04 |
 | UC-33 | Thiết lập ngưỡng cảnh báo             | Bác sĩ                                  | 007      | 10.3, BR-M06-01     |
 | UC-34 | Tiếp nhận và xử lý cảnh báo           | Điều dưỡng                              | 007      | 9.4, BR-M05-01, 02  |
@@ -498,7 +527,7 @@ Tên use case là **lệnh nghiệp vụ** (động từ + đối tượng), kh�
 | UC-44 | Tiếp nhận thuốc gia đình gửi          | Điều dưỡng                              | 006      | 11.4, BR-M07-10, 11 |
 | UC-45 | Gán chế độ ăn / duyệt chế độ bệnh lý  | Dinh dưỡng viên, Bác sĩ                 | 011      | BR-M08-03           |
 | UC-46 | Lập và công bố thực đơn               | Dinh dưỡng viên                         | 011      | BR-M08-06 → 08      |
-| UC-47 | Xem số suất đã chốt                   | Nhân viên bếp                           | 011      | BR-M08-01           |
+| UC-47 | Xem số suất đã chốt và phiếu bữa ăn   | Nhân viên bếp                           | 011      | BR-M08-01, 09       |
 | UC-48 | Đối chiếu đồ ăn gia đình              | Điều dưỡng, Dinh dưỡng viên             | 011      | BR-M08-04           |
 | UC-49 | Quản lý hồ sơ nhân viên và chứng chỉ  | Quản lý viện                            | 008      | 13.1, BR-M09-05     |
 | UC-50 | Lập và công bố lịch ca                | Quản lý viện, Trưởng tầng               | 008, 015 | 13.2, BR-M09-09     |
@@ -522,6 +551,16 @@ Tên use case là **lệnh nghiệp vụ** (động từ + đối tượng), kh�
 | UC-68 | Quản lý tài khoản và phân quyền       | Quản lý viện                            | 002      | 19.1, 19.2          |
 | UC-69 | Cấu hình tham số                      | Quản lý viện                            | 000      | BR-M15-04           |
 | UC-70 | Đăng nhập                             | Nhân viên, Người thân                   | 002      | BR-M15-05           |
+| UC-71 | **(Bổ sung)** Cấu hình lịch vệ sinh    | Quản lý viện                            | 003      | 7.5, CFG-M03-03     |
+| UC-72 | **(Bổ sung)** Sinh công việc vệ sinh (định kỳ, trả giường, khử khuẩn) | Bộ lập lịch | 003      | BR-M03-08 → 11      |
+| UC-73 | **(Bổ sung)** Yêu cầu vệ sinh đột xuất | Nhân viên chăm sóc, Điều dưỡng, Trưởng tầng | 003  | BR-M03-12           |
+| UC-74 | **(Bổ sung)** Xử lý hư hỏng phát hiện khi vệ sinh | Trưởng tầng                  | 003      | BR-M03-13, 05       |
+| UC-75 | **(Bổ sung)** Chuẩn bị và giao phiếu bữa ăn | Nhân viên bếp                      | 011      | 12.5, BR-M08-10, 12, 13 |
+| UC-76 | **(Bổ sung)** Nhận phiếu bữa ăn / báo sai lệch | Nhân viên tại tầng (*)          | 011      | BR-M08-11           |
+| UC-77 | **(Bổ sung)** Xác nhận phục vụ suất đặc biệt | Nhân viên chăm sóc                | 011, 005 | BR-M08-14           |
+| UC-78 | **(Bổ sung, cần xác nhận Q-39)** Ghi nhận lưu mẫu thức ăn | Nhân viên bếp          | 011      | BR-M08-15           |
+
+(*) Tài liệu nghiệp vụ chỉ ghi "người nhận tại tầng" (BR-M08-11), chưa nêu vai trò. Permission Matrix tạm cho Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc; cần chốt khi làm spec feature 011.
 
 ### 4.3. Use Case Diagrams
 
@@ -537,15 +576,16 @@ flowchart LR
     DD["Điều dưỡng"]
     CS["Nhân viên chăm sóc"]
     DDV["Dinh dưỡng viên / Bếp"]
+    VS["Nhân viên vệ sinh"]
     HC["Hành chính"]
     NT["Người thân"]
     SCH["Bộ lập lịch hệ thống"]
     KT["Hệ thống kế toán"]
     subgraph SYS[Hệ thống quản lý viện dưỡng lão]
-        P1(["Hồ sơ, tiếp nhận, lưu trú, giường<br/>UC-01 → 21"])
+        P1(["Hồ sơ, tiếp nhận, lưu trú, giường, vệ sinh<br/>UC-01 → 21, UC-71 → 74"])
         P2(["Chăm sóc và hoạt động<br/>UC-22 → 31"])
         P3(["Sức khỏe, sự cố, thuốc<br/>UC-32 → 44"])
-        P4(["Dinh dưỡng<br/>UC-45 → 48"])
+        P4(["Dinh dưỡng, suất ăn<br/>UC-45 → 48, UC-75 → 78"])
         P5(["Nhân sự, ca, bàn giao<br/>UC-49 → 54"])
         P6(["Người thân<br/>UC-55 → 60"])
         P7(["Chi phí, đồ gửi<br/>UC-61 → 65"])
@@ -561,6 +601,10 @@ flowchart LR
     DD --- P3
     CS --- P3
     DDV --- P4
+    CS --- P4
+    VS --- P1
+    VS --- P2
+    TT --- P1
     QL --- P5
     TT --- P5
     DD --- P5
@@ -626,6 +670,41 @@ flowchart LR
     U08 -. "«include»" .-> U43
     U13 -. "«include»" .-> U14
     U17 -. "«include»" .-> U65
+```
+
+**D1b – Vệ sinh phòng và khu vực (bổ sung)**
+
+```mermaid
+flowchart LR
+    QL["Quản lý viện"]
+    TT["Trưởng tầng"]
+    DD["Điều dưỡng"]
+    CS["Nhân viên chăm sóc"]
+    VS["Nhân viên vệ sinh"]
+    SCH["Bộ lập lịch"]
+    subgraph SYS[Vệ sinh phòng và khu vực]
+        U71(["UC-71 Cấu hình lịch vệ sinh"])
+        U72(["UC-72 Sinh công việc vệ sinh"])
+        U73(["UC-73 Yêu cầu vệ sinh đột xuất"])
+        U74(["UC-74 Xử lý hư hỏng khi vệ sinh"])
+        U25(["UC-25 Xem checklist ca"])
+        U26(["UC-26 Ghi nhận thực hiện"])
+        U17(["UC-17 Kết thúc lưu trú"])
+        U21(["UC-21 Chuyển giường"])
+        U37(["UC-37 Khoanh vùng lây nhiễm"])
+    end
+    QL --- U71
+    SCH --- U72
+    CS --- U73
+    DD --- U73
+    TT --- U73
+    TT --- U74
+    VS --- U25
+    VS --- U26
+    U17 -. "«include» sinh vệ sinh trả giường" .-> U72
+    U21 -. "«include» sinh vệ sinh trả giường" .-> U72
+    U37 -. "«include» sinh khử khuẩn" .-> U72
+    U74 -. "«extend» có hư hỏng" .-> U26
 ```
 
 **D2 – Chăm sóc hằng ngày và hoạt động**
@@ -731,11 +810,17 @@ flowchart LR
     DDV["Dinh dưỡng viên"]
     BS["Bác sĩ"]
     BEP["Nhân viên bếp"]
+    CS["Nhân viên chăm sóc"]
     subgraph SYS[Dinh dưỡng, nhân sự, ca]
         U45(["UC-45 Gán / duyệt chế độ ăn"])
         U46(["UC-46 Lập và công bố thực đơn"])
-        U47(["UC-47 Xem số suất đã chốt"])
+        U47(["UC-47 Xem số suất và phiếu bữa ăn"])
         U48(["UC-48 Đối chiếu đồ ăn gia đình"])
+        U75(["UC-75 Chuẩn bị và giao phiếu bữa ăn"])
+        U76(["UC-76 Nhận phiếu / báo sai lệch"])
+        U77(["UC-77 Xác nhận phục vụ suất đặc biệt"])
+        U78(["UC-78 Ghi nhận lưu mẫu"])
+        U35(["UC-35 Ghi nhận sự cố"])
         U49(["UC-49 Hồ sơ nhân viên, chứng chỉ"])
         U50(["UC-50 Lập và công bố lịch ca"])
         U51(["UC-51 Phân công chăm sóc"])
@@ -747,6 +832,14 @@ flowchart LR
     BS --- U45
     DDV --- U46
     BEP --- U47
+    BEP --- U75
+    BEP --- U78
+    CS --- U76
+    TT --- U76
+    DD --- U76
+    CS --- U77
+    U75 -. "«include» trước khi giao (Q-39)" .-> U78
+    U35 -. "«extend» suất gây dị ứng" .-> U77
     DD --- U48
     DDV --- U48
     QL --- U49
@@ -821,32 +914,40 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 
 | Chức năng                           | Use case          | QL   | TT   | BS   | ĐD  | CS  | DDV | Bếp | VS  | HC  | NT  |
 | ----------------------------------- | ----------------- | ---- | ---- | ---- | --- | --- | --- | --- | --- | --- | --- |
-| Hồ sơ người cao tuổi                | UC-01, 02         | X    | P    | X    | P   | P   | P   | —   | —   | T   | X   |
+| Hồ sơ người cao tuổi                | UC-01, 02         | X    | P    | X    | P   | P   | P   | —   | —   | T⁵  | X   |
 | Bản đồng ý chia sẻ dữ liệu          | UC-03             | X    | —    | —    | —   | —   | —   | —   | —   | T   | X   |
 | Dị ứng, bệnh nền                    | UC-04             | X    | P    | T    | T   | P   | X   | —   | —   | —   | X¹  |
 | Đánh giá, quy đổi mức chăm sóc      | UC-05, 06         | X    | P    | T, D | T   | —   | —   | —   | —   | —   | —   |
-| Tiếp nhận, hợp đồng, đặt cọc        | UC-08, 09, 11, 12 | X    | —    | —    | —   | —   | —   | —   | —   | T   | X   |
+| Tiếp nhận, hợp đồng, đặt cọc        | UC-08, 09, 11, 12 | X, D⁶ | —   | —    | —   | —   | —   | —   | —   | T   | X⁷  |
 | Danh sách chờ, điểm ưu tiên         | UC-10             | D    | —    | —    | —   | —   | —   | —   | —   | T   | —   |
 | Yêu cầu thay đổi lưu trú            | UC-13, 14         | D    | —    | T    | —   | —   | —   | —   | —   | T   | T²  |
-| Tạm vắng, trở về                    | UC-15             | D    | T    | —    | X   | —   | —   | —   | —   | T   | X   |
+| Tạm vắng, trở về                    | UC-15             | D⁸   | T    | —    | X   | —   | —   | —   | —   | T   | X   |
 | Kết thúc lưu trú, qua đời           | UC-17, 18         | D    | —    | T    | —   | —   | —   | —   | —   | T   | X   |
 | Cấu hình phòng, giường              | UC-19             | C    | X    | —    | —   | —   | —   | —   | —   | X   | —   |
+| Đặt, gỡ cách ly phòng (bổ sung)     | UC-19, 37         | T    | X    | T    | X   | —   | —   | —   | —   | X   | —   |
+| Dịch vụ, đơn giá (bổ sung)          | 6.4               | C    | —    | —    | —   | —   | —   | —   | —   | X   | —   |
 | Phân bổ, chuyển giường              | UC-20, 21         | X    | T    | —    | —   | —   | —   | —   | —   | T   | —   |
+| Lịch vệ sinh (bổ sung)              | UC-71             | C    | X    | —    | —   | —   | —   | —   | —   | —   | —   |
+| Yêu cầu vệ sinh đột xuất (bổ sung)  | UC-73             | X    | T    | —    | T   | T   | —   | —   | P   | —   | —   |
+| Xử lý hư hỏng, đưa giường vào bảo trì (bổ sung) | UC-74 | T    | T    | —    | —   | —   | —   | —   | —   | X   | —   |
 | Kế hoạch chăm sóc                   | UC-22, 23         | X    | X    | D    | T   | P   | —   | —   | —   | —   | —   |
 | Checklist, ghi nhận công việc       | UC-25, 26         | X    | T    | —    | T   | T   | —   | —   | T   | —   | —   |
-| Xử lý việc quá hạn                  | UC-27             | X    | T    | —    | —   | —   | —   | —   | —   | —   | —   |
+| Xử lý việc quá hạn                  | UC-27             | X    | T⁹   | —    | —   | —   | —   | —   | —   | —   | —   |
 | Hoạt động, ngoài viện               | UC-29, 30         | X    | T    | —    | —   | T   | —   | —   | —   | —   | X   |
 | Kiểm tra chất lượng                 | UC-31             | X    | T    | —    | —   | —   | —   | —   | —   | —   | —   |
 | Chỉ số sức khỏe                     | UC-32             | X    | P    | X    | T   | T   | —   | —   | —   | —   | X¹  |
 | Ngưỡng cảnh báo                     | UC-33             | X    | —    | T    | X   | —   | —   | —   | —   | —   | —   |
 | Xử lý cảnh báo                      | UC-34             | X    | T    | T    | T   | X   | —   | —   | —   | —   | —   |
-| Sự cố, khẩn cấp                     | UC-35, 36         | X    | T    | T    | T   | T   | T   | T   | T   | T   | X¹  |
+| Sự cố, khẩn cấp                     | UC-35, 36         | X    | T¹⁰  | T¹⁰  | T¹⁰ | T¹⁰ | T¹⁰ | T¹⁰ | T¹⁰ | T¹⁰ | X¹  |
 | Khoanh vùng lây nhiễm               | UC-37             | T    | X    | T    | X   | —   | —   | —   | —   | X   | —   |
 | Đơn thuốc                           | UC-39, 40         | X    | —    | T³   | T⁴  | —   | —   | —   | —   | —   | X¹  |
 | Phát thuốc, thuốc khi cần           | UC-41, 42         | X    | X    | X    | T   | —   | —   | —   | —   | —   | —   |
 | Đối chiếu thuốc, thuốc gia đình gửi | UC-43, 44         | X    | —    | T    | T   | —   | —   | —   | —   | —   | X   |
 | Chế độ ăn, thực đơn                 | UC-45, 46         | X    | —    | D    | X   | —   | T   | X   | —   | —   | X   |
-| Suất ăn đã chốt                     | UC-47             | X    | —    | —    | —   | —   | X   | X   | —   | —   | —   |
+| Suất ăn đã chốt, phiếu bữa ăn       | UC-47             | X    | X    | —    | —   | —   | X   | X¹⁴ | —   | —   | —   |
+| Chuẩn bị, giao phiếu, lưu mẫu (bổ sung) | UC-75, 78     | X    | X    | —    | —   | —   | X   | T   | —   | —   | —   |
+| Nhận phiếu, báo sai lệch (bổ sung)  | UC-76             | X    | T¹⁵  | —    | T¹⁵ | T¹⁵ | X   | X   | —   | —   | —   |
+| Xác nhận phục vụ suất đặc biệt (bổ sung) | UC-77        | X    | X    | —    | X   | T   | X   | —   | —   | —   | —   |
 | Hồ sơ nhân viên, chứng chỉ          | UC-49             | T    | X    | —    | —   | —   | —   | —   | —   | —   | —   |
 | Lịch ca, phân công                  | UC-50, 51         | T, D | T, D | P    | P   | P   | P   | P   | P   | P   | —   |
 | Bàn giao ca                         | UC-52, 53         | X    | T    | X    | T   | X   | —   | —   | —   | —   | —   |
@@ -858,7 +959,15 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Chi phí, khoản điều chỉnh           | UC-61, 63         | D    | —    | —    | —   | —   | —   | —   | —   | T   | X   |
 | Chốt kỳ, xuất kế toán               | UC-62, 64         | D    | —    | —    | —   | —   | —   | —   | —   | T   | —   |
 | Đồ gửi                              | UC-65             | X    | X    | —    | T   | —   | —   | —   | —   | T   | X   |
-| Dashboard, báo cáo                  | UC-67             | X    | P    | P    | P   | —   | —   | —   | —   | P   | —   |
-| Tài khoản, phân quyền, tham số      | UC-68, 69         | C    | —    | —    | —   | —   | —   | —   | —   | —   | —   |
+| Dashboard, báo cáo                  | UC-67             | X    | P    | P¹¹  | P   | —   | —   | —   | —   | P¹¹ | —   |
+| Tài khoản, phân quyền, tham số      | UC-68, 69         | C    | —    | —    | —   | —   | —   | —   | —   | T¹² | —   |
+| Nhật ký thay đổi (bổ sung)          | 19.4              | X    | P    | P    | P   | P   | P   | P   | P   | P   | —   |
+| Đính chính bản ghi không gắn tầng (bổ sung) | 1.5       | D    | T¹³  | T¹³  | T¹³ | T¹³ | T¹³ | T¹³ | T¹³ | T¹³ | —   |
 
 ¹ Chỉ khi có bản đồng ý chia sẻ dữ liệu đang hiệu lực bao gồm người thân đó (BR-M01-08). ² Chỉ người đại diện; thao tác là gửi yêu cầu hoặc xác nhận, không trực tiếp thay đổi. ³ Kê đơn nội bộ chỉ khi cơ sở và bác sĩ có giấy phép còn hiệu lực (BR-M06-05); nếu không, chỉ nhập đơn từ cơ sở bên ngoài. ⁴ Chỉ nhập đơn đã được kê tại cơ sở y tế bên ngoài, bắt buộc có thông tin cơ sở kê (BR-M07-05).
+
+**(Bổ sung, từ spec 000–004)** ⁵ Hành chính chỉ xem mức chăm sóc và cờ nguy cơ, không xem dị ứng, bệnh nền, tiền sử, chỉ số, thuốc, kết quả đánh giá (19.3). ⁶ Quản lý viện duyệt điều khoản hợp đồng khác chuẩn trước khi gửi ký (Q-23). ⁷ Chỉ người đại diện xem nội dung hợp đồng, phụ lục và trạng thái đặt cọc; người thân khác không xem. ⁸ Cho tạm vắng và Ghi nhận trở về không cần duyệt; quyền D chỉ áp cho quyết định giữ tiếp hay giải phóng giường khi vắng quá ngưỡng (BR-M02-07). ⁹ Nhân viên giữ nhiệm vụ Người phụ trách ca có cùng quyền trong tầng/khu vực và thời gian của ca (2.4). ¹⁰ Miễn kiểm tra phạm vi dữ liệu; người ghi ngoài phạm vi chỉ thấy thông tin nhận dạng (BR-M15-01). ¹¹ Toàn viện, vẫn áp giới hạn trường của ⁵. ¹² Chỉ với tài khoản người thân: tạo, kích hoạt lại, cấp lại mật khẩu sau khi xác minh danh tính (Q-16); tài khoản nhân viên, phân quyền, tham số chỉ Quản lý viện. ¹³ Chỉ nhân viên cùng vai trò với người ghi bản gốc; bản đính chính là yêu cầu phê duyệt, có hiệu lực khi Quản lý viện duyệt (1.5). Bản ghi gắn tầng/khu vực được đính chính trực tiếp bởi người ghi gốc, trưởng tầng hoặc người phụ trách ca của phạm vi đó.
+
+**(Bổ sung, vệ sinh và suất ăn)** ¹⁴ Với suất đặc biệt, bếp xem họ tên, phòng, chế độ ăn, món thay thế, kết cấu thức ăn; không xem dị ứng, bệnh lý hay thông tin sức khỏe khác (19.3). ¹⁵ Tài liệu nghiệp vụ chỉ ghi "người nhận tại tầng" (BR-M08-11); vai trò ở đây là tạm, cần chốt khi làm spec feature 011. Dòng "Checklist, ghi nhận công việc" (UC-25, 26) áp cho cả công việc vệ sinh; nhân viên vệ sinh không thấy thông tin sức khỏe, kể cả lý do một công việc là khử khuẩn (BR-M03-10, 19.3). Dòng "Xử lý hư hỏng" là ngoại lệ của dòng "Cấu hình phòng, giường": Trưởng tầng chỉ đưa giường sang Đang bảo trì khi kết quả vệ sinh ghi hư hỏng liên quan giường (BR-M03-13).
+
+**(Bổ sung, Q-15)** Phạm vi của T và D theo vai trò: Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc, Nhân viên vệ sinh trong phạm vi phân công (giờ ca ± CFG-M15-07); Quản lý viện, Bác sĩ, Hành chính, Dinh dưỡng viên, Nhân viên bếp toàn viện. Quản lý viện chỉ được thu hẹp quyền so với ma trận; ngoại lệ duy nhất được thêm là quyền Duyệt kế hoạch chăm sóc cho điều dưỡng.

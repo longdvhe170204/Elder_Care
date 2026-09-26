@@ -18,3 +18,4 @@
 - Giữ nguyên mã BR, DBR, UC, CFG, Q khi trích dẫn.
 - Điểm chưa rõ: đánh dấu [NEEDS CLARIFICATION] kèm mã Q-xx, không tự đoán.
 - Không đưa diagram vào spec ở giai đoạn này; trạng thái thể hiện bằng bảng.
+- Sau khi hoàn thành 1 bước spec nào đó, hãy gợi ý cho tôi bước tiếp theo nên làm gì sao cho phú hợp nhất

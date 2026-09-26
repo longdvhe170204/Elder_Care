@@ -31,6 +31,10 @@ Spec 009 đã chốt khi clarify: chỉ thông báo mức Khẩn cấp được 
 
 Tài liệu nguồn thêm trạng thái giường Chờ vệ sinh (7.2) và BR-M03-09, sửa BR-M03-06: giường vừa kết thúc một phân bổ (kết thúc lưu trú, qua đời, tạm vắng không giữ giường, giải phóng khi vắng, chuyển giường) chuyển Chờ vệ sinh, chỉ về Trống khi vệ sinh trả giường Hoàn thành; giường giữ tạm cho hồ sơ chờ hết hạn hoặc bị hủy giữ vẫn về thẳng Trống. Spec cập nhật: Phạm vi, User Story 2 kịch bản 10, FR-012, FR-054, FR-070.
 
+### Cập nhật 2026-09-26 (đồng bộ với spec 012)
+
+Spec 012 đã chốt khi clarify: quy trình đón do người có quyền lệnh nguồn thực hiện (Q-121) — Hành chính, Trưởng tầng với Cho tạm vắng; Hành chính với Kết thúc lưu trú — khớp FR-049 của spec này. Người đón của lượt vắng MUST có bản ghi đón hợp lệ của feature 012: thuộc danh sách được phép đón hoặc có ngoại lệ đón Hiệu lực (BR-M10-03, feature 012 FR-024, FR-026); FR-048 được sửa cho khớp.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 02, mục 6; UC-08 phần điều kiện, UC-09 → UC-18):
@@ -391,7 +395,7 @@ Kết thúc, Chấm dứt, Đã hủy là trạng thái cuối. Người cao tu�
 
 #### G. Tạm vắng và chính sách phí khi vắng
 
-- **FR-048**: Mỗi lần người cao tuổi chuyển sang Tạm vắng hoặc Điều trị tại bệnh viện (feature 001), hệ thống MUST mở một lượt vắng gồm: loại vắng (Về nhà, Đi chơi với gia đình, Đi khám trong ngày, Lý do khác, Bệnh viện), thời điểm rời viện, thời điểm dự kiến trở lại (bắt buộc với Tạm vắng; với Bệnh viện MAY để trống), lý do, người đón (MUST thuộc danh sách được phép đón, feature 012; với Bệnh viện ghi người/đơn vị đưa đi), người bàn giao (nhân viên), tình trạng giường (giữ/không giữ), chính sách áp dụng (nguồn: bảng cơ sở hoặc hợp đồng; dòng chính sách). *(Nguồn: 6.7, 3.2 LUOT_VANG, 5.6)*
+- **FR-048**: Mỗi lần người cao tuổi chuyển sang Tạm vắng hoặc Điều trị tại bệnh viện (feature 001), hệ thống MUST mở một lượt vắng gồm: loại vắng (Về nhà, Đi chơi với gia đình, Đi khám trong ngày, Lý do khác, Bệnh viện), thời điểm rời viện, thời điểm dự kiến trở lại (bắt buộc với Tạm vắng; với Bệnh viện MAY để trống), lý do, người đón (MUST có bản ghi đón hợp lệ của feature 012 — thuộc danh sách được phép đón hoặc có ngoại lệ đón Hiệu lực, feature 012 FR-021, FR-024, FR-026; với Bệnh viện ghi người/đơn vị đưa đi, không qua quy trình đón), người bàn giao (nhân viên), tình trạng giường (giữ/không giữ), chính sách áp dụng (nguồn: bảng cơ sở hoặc hợp đồng; dòng chính sách). *(Nguồn: 6.7, 3.2 LUOT_VANG, 5.6)*
 - **FR-049**: Hành chính và Trưởng tầng MUST thực hiện được "Cho tạm vắng", "Gia hạn dự kiến trở lại" (bắt buộc lý do; lưu lịch sử các mốc) và "Ghi nhận trở về" trực tiếp, không qua phê duyệt (feature 001 FR-047a); Điều dưỡng MUST xem được lượt vắng; người thân MUST xem được lượt vắng của người mình liên quan. *(Nguồn: UC-15, 4.4 dòng "Tạm vắng, trở về": QL D, TT T, ĐD X, HC T, NT X)*
 - **FR-050**: Bảng chính sách phí khi vắng CFG-M02-05 MUST có các dòng gồm: loại lưu trú, loại vắng, khoảng ngày vắng (từ ngày thứ … đến ngày thứ …, hoặc không giới hạn), hệ số phí lưu trú (phần trăm, "Theo hợp đồng" hoặc "Quản lý quyết định"), giữ giường (Có / Không / "Theo hợp đồng" / "Quản lý quyết định"). Giá trị mặc định MUST là bảng ví dụ 6.7 (Q-08). Hệ thống MUST chặn lưu bảng có hai dòng cùng loại lưu trú, loại vắng mà khoảng ngày chồng nhau. *(Nguồn: 6.7, CFG-M02-05, Q-08)*
 - **FR-051**: Hợp đồng MAY ghi đè bảng chính sách bằng các dòng riêng cùng cấu trúc FR-050; khi tra, dòng của hợp đồng hiệu lực tại ngày vắng MUST được ưu tiên hơn dòng của bảng cơ sở. Dòng bảng cơ sở mang giá trị "Theo hợp đồng" MUST lấy từ dòng ghi đè của hợp đồng; nếu hợp đồng không có dòng tương ứng, hệ thống MUST áp FR-053. *(Nguồn: 6.7 "có thể được ghi đè theo từng hợp đồng")*

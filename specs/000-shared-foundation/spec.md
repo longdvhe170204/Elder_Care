@@ -28,6 +28,10 @@
 - Q: Bản ghi hết hạn lưu nhưng còn được bản ghi chưa hết hạn tham chiếu thì xử lý thế nào? → A: Hoãn loại bỏ tới khi mọi bản ghi tham chiếu cũng hết hạn; cả chuỗi (gốc, đính chính, nhật ký liên quan) loại bỏ cùng một đợt.
 - Q: Nếu áp dụng yêu cầu đã duyệt bị lỗi giữa chừng thì xử lý thế nào? → A: Hoặc toàn bộ, hoặc không; lỗi thì bỏ mọi tác động, yêu cầu giữ Đã duyệt (chờ hiệu lực) và được thử lại ở lần chạy kế tiếp như áp dụng bù.
 
+### Cập nhật 2026-09-26 (đồng bộ với spec 012)
+
+Spec 012 đã chốt khi clarify (Q-118): yêu cầu thay đổi quyền người thân và danh sách được phép đón (BR-M10-07), cùng yêu cầu ngoại lệ đón (BR-M10-03) và dấu "được tự về" (Q-125), dùng vòng đời riêng "Chờ xác nhận → Hiệu lực / Từ chối / Hủy", không đi qua vòng đời chung của spec này. FR-031 được bổ sung ngoại lệ này; Điểm báo lại "Còn mở" 1 được giải quyết.
+
 ## Phạm vi
 
 **Trong phạm vi**: các quy tắc mà mọi module (001–016) kế thừa, không lặp lại trong spec của module:
@@ -225,7 +229,7 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 
 #### D. Yêu cầu phê duyệt dùng chung
 
-- **FR-031**: Hệ thống MUST cung cấp một vòng đời yêu cầu phê duyệt dùng chung cho mọi loại yêu cầu, theo bảng trạng thái dưới đây. Module sở hữu một loại yêu cầu MUST định nghĩa: nội dung yêu cầu, vai trò được tạo, vai trò được duyệt (theo cột D của Permission Matrix), điều kiện và tác động khi áp dụng. *(Nguồn: mục 1.5, 3.2 YEU_CAU_PHE_DUYET, 6.6, UC-14)*
+- **FR-031**: Hệ thống MUST cung cấp một vòng đời yêu cầu phê duyệt dùng chung cho mọi loại yêu cầu, theo bảng trạng thái dưới đây. Module sở hữu một loại yêu cầu MUST định nghĩa: nội dung yêu cầu, vai trò được tạo, vai trò được duyệt (theo cột D của Permission Matrix), điều kiện và tác động khi áp dụng. Ngoại lệ: các yêu cầu thuộc BR-M10-03, BR-M10-07 của feature 012 (thay đổi quyền người thân, danh sách được phép đón, dấu "được tự về", ngoại lệ đón) dùng vòng đời riêng "Chờ xác nhận → Hiệu lực / Từ chối / Hủy" do feature 012 định nghĩa (feature 012 FR-020, FR-024), nhưng vẫn theo quy tắc lý do bắt buộc, nhật ký và chống quyết định đồng thời của spec này. *(Nguồn: mục 1.5, 3.2 YEU_CAU_PHE_DUYET, 6.6, UC-14; đồng bộ spec 012, Q-118)*
 - **FR-031a**: Khi yêu cầu ở Chờ duyệt quá thời hạn CFG-M15-05 (đề xuất, mặc định \[48 giờ\]) kể từ lúc gửi duyệt, Bộ lập lịch hệ thống MUST nhắc những người có quyền duyệt loại yêu cầu đó trong phạm vi; quá thời hạn CFG-M15-06 (đề xuất, mặc định \[96 giờ\] kể từ lúc gửi duyệt, MUST lớn hơn CFG-M15-05) mà vẫn chưa có quyết định, hệ thống MUST báo Quản lý viện (nếu người duyệt không phải Quản lý viện). Yêu cầu MUST NOT tự chuyển Hủy hay Từ chối vì quá hạn. Module sở hữu MAY quy định thời hạn ngắn hơn cho loại yêu cầu của mình. *(Clarification 2026-09-25)*
 - **FR-032**: Yêu cầu MUST lưu: loại, nội dung, người yêu cầu, thời điểm tạo, ngày hiệu lực mong muốn, ngày hiệu lực thực tế, lý do, người duyệt, thời điểm quyết định, ý kiến/lý do quyết định, trạng thái. *(Nguồn: mục 3.2 YEU_CAU_PHE_DUYET)*
 - **FR-033**: Nội dung yêu cầu MUST chỉ sửa được ở trạng thái Nháp; từ Chờ duyệt trở đi nội dung bị khóa.
@@ -320,4 +324,4 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep
 
 **Còn mở**
 
-1. **Vòng đời yêu cầu phê duyệt chưa thống nhất với BR-M10-07**: 6.6 (nay là vòng đời chung) dùng "Nháp → Chờ duyệt → Đã duyệt (chờ hiệu lực) → Đã áp dụng / Từ chối / Hủy / Áp dụng không thành / Được thay thế", còn BR-M10-07 dùng "Chờ xác nhận → Hiệu lực / Từ chối". Cần chốt khi làm spec feature 012.
+1. **Vòng đời yêu cầu phê duyệt và BR-M10-07**: đã chốt ở spec 012 (Q-118) — yêu cầu của BR-M10-07 dùng vòng đời riêng "Chờ xác nhận → Hiệu lực / Từ chối / Hủy", là ngoại lệ của FR-031. Cần ghi ngoại lệ vào 6.6 và thêm trạng thái Hủy vào BR-M10-07.

@@ -35,6 +35,10 @@ Spec 008 đã chốt khi clarify: (Q-85) từ giờ bắt đầu ca sau mà bàn
 
 Spec 009 đã chốt mức cho các thông báo của spec này (spec 009 FR-043b): nhắc công việc quá hạn cho người thực hiện là Nhẹ (FR-043, Q-117); báo leo thang công việc Thường, Quan trọng quá hạn (FR-044), vắng ca/nghỉ việc (FR-032), kế hoạch Chờ duyệt quá hạn (FR-005) là Trung bình; yêu cầu xem xét kế hoạch (FR-011) và nhắc Dinh dưỡng viên khi ăn kém kéo dài (FR-040) là Nhẹ. Người bán trú còn "Có mặt" lúc hết ngày (FR-019) được báo Trung bình cho Người phụ trách ca đang diễn ra của tầng và Nhẹ cho Trưởng tầng (Q-115); FR-019 được sửa người nhận cho khớp. Leo thang của FR-044 là yêu cầu gửi spec 009 với cách thay mặc định (spec 009 FR-010).
 
+### Cập nhật 2026-09-26 (đồng bộ với spec 012)
+
+Spec 012 đã chốt khi clarify: (1) Q-121 — quy trình đón khi điểm danh về do Hành chính hoặc Nhân viên chăm sóc thực hiện, khớp bảng trạng thái có mặt của spec này. (2) Q-125 — người bán trú có dấu "được tự về" có tác dụng được điểm danh về không cần người đón; feature 012 vẫn tạo bản ghi đón loại "Tự về" với nhân viên tiễn. Dòng "Có mặt → Điểm danh về" của bảng trạng thái có mặt và User Story 2 kịch bản 3 được sửa cho khớp.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 04, mục 8.1 → 8.7; UC-22 → UC-28):
@@ -122,7 +126,7 @@ Mỗi ngày có lịch đến, người bán trú có trạng thái có mặt. C
 
 1. **Given** E (bán trú) có lịch đến hôm nay 07:30–16:30, **When** tới thời điểm sinh công việc, **Then** E có trạng thái có mặt "Chưa đến" và không có công việc nào (BR-M04-02).
 2. **Given** E Chưa đến, **When** nhân viên chăm sóc điểm danh đến lúc 08:10, **Then** trạng thái có mặt chuyển "Có mặt", ghi giờ đến và người điểm danh; hệ thống sinh công việc của E có thời điểm dự kiến từ 08:10 tới 16:30; công việc có khung đã kết thúc trước 08:10 không được sinh.
-3. **Given** E Có mặt, còn công việc Chưa đến hạn lúc 15:30, **When** E được điểm danh về lúc 15:00 qua quy trình đón (feature 012), **Then** trạng thái có mặt chuyển "Đã về" và công việc lúc 15:30 chuyển Hủy (lý do "đã về"); công việc đang Đến hạn hoặc Quá hạn vẫn giữ để nhân viên đóng.
+3. **Given** E Có mặt, còn công việc Chưa đến hạn lúc 15:30, **When** E được điểm danh về lúc 15:00 qua quy trình đón hoặc "Tự về" (feature 012), **Then** trạng thái có mặt chuyển "Đã về" và công việc lúc 15:30 chuyển Hủy (lý do "đã về"); công việc đang Đến hạn hoặc Quá hạn vẫn giữ để nhân viên đóng.
 4. **Given** E Chưa đến và không có báo vắng, **When** quá giờ đến dự kiến CFG-M02-07 (mặc định \[2 giờ\]), **Then** trạng thái chuyển "Vắng không báo" và trưởng tầng được thông báo; **When** E đến lúc 10:00 sau đó, **Then** điểm danh đến vẫn được thực hiện, trạng thái chuyển "Có mặt" và công việc được sinh từ 10:00.
 5. **Given** hành chính đã ghi nhận báo vắng cho E trước CFG-M02-06 (feature 004), **When** tới ngày đó, **Then** trạng thái có mặt là "Vắng có báo" và không có công việc nào.
 
@@ -336,7 +340,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | — hoặc Chưa đến | Ghi nhận báo vắng | Vắng có báo | Hành chính (feature 004) | Báo trước giờ đến dự kiến ít nhất CFG-M02-06 (mặc định \[24 giờ\]) | Không sinh công việc |
 | Chưa đến | Quá giờ đến dự kiến CFG-M02-07 (mặc định \[2 giờ\]) | Vắng không báo | Bộ lập lịch | Chưa điểm danh đến, không có báo vắng hợp lệ | Thông báo Trưởng tầng |
 | Chưa đến, Vắng không báo | Điểm danh đến | Có mặt | Hành chính, Nhân viên chăm sóc | Người cao tuổi Đang lưu trú | Ghi giờ đến, người điểm danh; sinh công việc (FR-018) |
-| Có mặt | Điểm danh về | Đã về | Hành chính, Nhân viên chăm sóc | Người đón hợp lệ theo quy trình đón (feature 012, 14.3) | Ghi giờ về; hủy công việc Chưa đến hạn sau giờ về (FR-019) |
+| Có mặt | Điểm danh về | Đã về | Hành chính, Nhân viên chăm sóc | Có bản ghi đón hợp lệ của feature 012 (FR-026 của 012): người đón thuộc danh sách hoặc có ngoại lệ đón Hiệu lực, hoặc loại "Tự về" khi dấu "được tự về" có tác dụng (Q-125) | Ghi giờ về; hủy công việc Chưa đến hạn sau giờ về (FR-019) |
 
 - **FR-014**: Báo vắng được ghi muộn hơn CFG-M02-06 MUST NOT tạo trạng thái "Vắng có báo"; trạng thái vẫn đi theo bảng FR-013 và bản ghi báo vắng muộn MUST được lưu kèm để feature 004 áp phí. *(Nguồn: UC-28, 3.4)*
 - **FR-015**: Điểm danh đến/về MUST NOT sửa trực tiếp; giờ đến/về ghi sai MUST được xử lý bằng đính chính theo feature 000. *(Nguồn: UC-28, 1.5)*
