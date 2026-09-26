@@ -46,4 +46,6 @@
 - Lượt 1 (2026-09-26): còn 3 điểm cần làm rõ — Q-118 vòng đời yêu cầu BR-M10-07 so với vòng đời phê duyệt chung (spec 000 Điểm báo lại 1); Q-119 lượt thăm tự duyệt hay Hành chính duyệt; Q-120 lượt thăm đã duyệt khi khu bị khoanh vùng (feature 007 để lại cho 012).
 - Đã sửa trong lượt 1: đánh số lại FR cho liền mạch; chuyển quy tắc đếm ngày ở lại (FR-043) về mục F.
 - Lượt 2 (2026-09-26): chốt Q-118 = A (vòng đời riêng BR-M10-07 + Hủy), Q-119 = A (lượt thăm hợp lệ tự Đã duyệt), Q-120 = A (lượt đã duyệt trong vùng khoanh vùng tự Hủy); cập nhật FR-020, FR-031, FR-037, bảng FR-039, bảng thông báo FR-069, Điểm báo lại 1 và 10. Mọi mục đạt.
+- Lượt 3 (2026-09-26, sau checklist business-rules): thêm clarify Q-126 → Q-129, bảng truy vết quy tắc → kịch bản, sửa mâu thuẫn User Story 3 kịch bản 3 và FR-001/FR-021; mọi mục vẫn đạt.
+- Lượt 4 (2026-09-26, sau checklist consistency): thêm clarify Q-130, mục "Quy ước trong spec", đồng bộ spec 000, 007; mọi mục vẫn đạt.
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`

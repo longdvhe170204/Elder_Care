@@ -29,7 +29,7 @@ Spec 009 đã chốt khi clarify: chỉ thông báo mức Khẩn cấp được 
 
 ### Cập nhật 2026-09-26 (đồng bộ với spec 012)
 
-Spec 012 đã chốt khi clarify: điều kiện "người đón" của lệnh Cho tạm vắng là người thuộc danh sách được phép đón tại thời điểm đón hoặc có ngoại lệ đón Hiệu lực (BR-M10-03, feature 012 FR-021, FR-024); dòng "Đang lưu trú → Cho tạm vắng" của bảng trạng thái được sửa cho khớp. Cờ nguy cơ đi lạc do spec này quản lý làm dấu "được tự về" của người bán trú mất tác dụng ngay khi được gắn (feature 012 FR-021, Q-125); spec này không đổi hành vi.
+Spec 012 đã chốt khi clarify: điều kiện "người đón" của lệnh Cho tạm vắng là người thuộc danh sách được phép đón tại thời điểm đón hoặc có ngoại lệ đón Hiệu lực (BR-M10-03, feature 012 FR-021, FR-024); dòng "Đang lưu trú → Cho tạm vắng" của bảng trạng thái được sửa cho khớp. Cờ nguy cơ đi lạc do spec này quản lý làm dấu "được tự về" của người bán trú mất tác dụng ngay khi được gắn (feature 012 FR-021, Q-125); spec này không đổi hành vi. Dòng "Đang tiếp nhận → Hoàn tất tiếp nhận" thêm điều kiện đủ DBR-02 do feature 012 cung cấp (012 FR-003).
 
 ## Phạm vi
 
@@ -301,7 +301,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Trạng thái hiện tại | Lệnh | Trạng thái kế tiếp | Ai thực hiện | Điều kiện (chặn nếu không đạt) | Tác động (feature thực hiện) |
 | --- | --- | --- | --- | --- | --- |
 | (chưa có) | Tạo hồ sơ | Đang tiếp nhận | Hành chính | FR-001, FR-003 | — |
-| Đang tiếp nhận | Hoàn tất tiếp nhận | Đang lưu trú | Hành chính | Đánh giá đầu vào Đã xác nhận và kết quả đánh giá gần nhất chưa quá CFG-M01-02 (001, FR-034a); hợp đồng Hiệu lực và đặt cọc đạt (004); nếu nội trú: đã có phân bổ giường (003). Bản đồng ý không chặn (FR-012) | Sinh lịch cá nhân, lịch thuốc, suất ăn từ ngày hiệu lực (005, 006, 011); nếu chưa có bản đồng ý Hiệu lực: cảnh báo và bắt đầu nhắc theo CFG-M01-06 (001) |
+| Đang tiếp nhận | Hoàn tất tiếp nhận | Đang lưu trú | Hành chính | Đánh giá đầu vào Đã xác nhận và kết quả đánh giá gần nhất chưa quá CFG-M01-02 (001, FR-034a); hợp đồng Hiệu lực và đặt cọc đạt (004); nếu nội trú: đã có phân bổ giường (003); đủ DBR-02 — đúng một người liên hệ chính và ít nhất một người đại diện (012 FR-003). Bản đồng ý không chặn (FR-012) | Sinh lịch cá nhân, lịch thuốc, suất ăn từ ngày hiệu lực (005, 006, 011); nếu chưa có bản đồng ý Hiệu lực: cảnh báo và bắt đầu nhắc theo CFG-M01-06 (001) |
 | Đang tiếp nhận | Hủy tiếp nhận | Hủy tiếp nhận | Hành chính | Có lý do | Hủy giữ chỗ giường nếu có (003); đóng hồ sơ chờ liên quan (004) |
 | Đang lưu trú | Cho tạm vắng | Tạm vắng | Hành chính, Trưởng tầng | Có bản ghi đón hợp lệ: người đón thuộc danh sách được phép đón hoặc có ngoại lệ đón Hiệu lực (14.3, BR-M10-03, 012 FR-026) | Hủy công việc, suất ăn trong thời gian vắng (005, 011); liều chuyển "Mang theo" hoặc "Tạm dừng" (006); giường Giữ chỗ hoặc Trống theo chính sách (003); áp chính sách phí vắng BR-M02-06 (004, 010) |
 | Đang lưu trú | Điểm danh rời viện (chuyến đi) | Hoạt động bên ngoài | Hệ thống, khi trưởng đoàn điểm danh rời viện (014) | Người cao tuổi có trong danh sách chuyến đi đã điểm danh rời viện (8.9) | Tạm dừng công việc trong khoảng đi (005); liều chuyển "Mang theo" (006) (BR-M04-16) |
