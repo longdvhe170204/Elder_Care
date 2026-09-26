@@ -27,6 +27,10 @@
 
 Spec 009 đã chốt khi clarify: chỉ thông báo mức Khẩn cấp được gửi người thân trong giờ yên tĩnh CFG-M13-02 (Q-97), và mọi thông báo phải được module nguồn nêu mức (Q-108, spec 009 FR-043a). Thông báo cho người liên hệ chính khi Chuyển viện và khi Ghi nhận qua đời vì vậy được nêu rõ là mức Khẩn cấp (bảng trạng thái, User Story 4 kịch bản 11), kéo theo xác nhận đã nhận và yêu cầu gọi điện nếu chưa xác nhận (spec 009 FR-026 → FR-030a). Các thông báo khác của spec này (FR-036a) chưa được nêu mức; spec 009 tạm gửi ở mức Nhẹ kèm dấu "thiếu mức" (spec 009 Điểm báo lại 14).
 
+### Cập nhật 2026-09-26 (đồng bộ với spec 012)
+
+Spec 012 đã chốt khi clarify: điều kiện "người đón" của lệnh Cho tạm vắng là người thuộc danh sách được phép đón tại thời điểm đón hoặc có ngoại lệ đón Hiệu lực (BR-M10-03, feature 012 FR-021, FR-024); dòng "Đang lưu trú → Cho tạm vắng" của bảng trạng thái được sửa cho khớp. Cờ nguy cơ đi lạc do spec này quản lý làm dấu "được tự về" của người bán trú mất tác dụng ngay khi được gắn (feature 012 FR-021, Q-125); spec này không đổi hành vi.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 01, mục 5; UC-01 → UC-08):
@@ -299,7 +303,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | (chưa có) | Tạo hồ sơ | Đang tiếp nhận | Hành chính | FR-001, FR-003 | — |
 | Đang tiếp nhận | Hoàn tất tiếp nhận | Đang lưu trú | Hành chính | Đánh giá đầu vào Đã xác nhận và kết quả đánh giá gần nhất chưa quá CFG-M01-02 (001, FR-034a); hợp đồng Hiệu lực và đặt cọc đạt (004); nếu nội trú: đã có phân bổ giường (003). Bản đồng ý không chặn (FR-012) | Sinh lịch cá nhân, lịch thuốc, suất ăn từ ngày hiệu lực (005, 006, 011); nếu chưa có bản đồng ý Hiệu lực: cảnh báo và bắt đầu nhắc theo CFG-M01-06 (001) |
 | Đang tiếp nhận | Hủy tiếp nhận | Hủy tiếp nhận | Hành chính | Có lý do | Hủy giữ chỗ giường nếu có (003); đóng hồ sơ chờ liên quan (004) |
-| Đang lưu trú | Cho tạm vắng | Tạm vắng | Hành chính, Trưởng tầng | Người đón thuộc danh sách được phép đón (14.3, 012) | Hủy công việc, suất ăn trong thời gian vắng (005, 011); liều chuyển "Mang theo" hoặc "Tạm dừng" (006); giường Giữ chỗ hoặc Trống theo chính sách (003); áp chính sách phí vắng BR-M02-06 (004, 010) |
+| Đang lưu trú | Cho tạm vắng | Tạm vắng | Hành chính, Trưởng tầng | Có bản ghi đón hợp lệ: người đón thuộc danh sách được phép đón hoặc có ngoại lệ đón Hiệu lực (14.3, BR-M10-03, 012 FR-026) | Hủy công việc, suất ăn trong thời gian vắng (005, 011); liều chuyển "Mang theo" hoặc "Tạm dừng" (006); giường Giữ chỗ hoặc Trống theo chính sách (003); áp chính sách phí vắng BR-M02-06 (004, 010) |
 | Đang lưu trú | Điểm danh rời viện (chuyến đi) | Hoạt động bên ngoài | Hệ thống, khi trưởng đoàn điểm danh rời viện (014) | Người cao tuổi có trong danh sách chuyến đi đã điểm danh rời viện (8.9) | Tạm dừng công việc trong khoảng đi (005); liều chuyển "Mang theo" (006) (BR-M04-16) |
 | Đang lưu trú, Tạm vắng, Hoạt động bên ngoài | Chuyển viện | Điều trị tại bệnh viện | Điều dưỡng, Bác sĩ | Có sự cố hoặc chỉ định chuyển viện (007) | Như Cho tạm vắng; thông báo người liên hệ chính mức Khẩn cấp (009, Q-97) |
 | Tạm vắng | Ghi nhận trở về | Đang lưu trú | Hành chính, Trưởng tầng | — | Khôi phục sinh công việc, liều, suất ăn từ thời điểm trở về (005, 006, 011) |

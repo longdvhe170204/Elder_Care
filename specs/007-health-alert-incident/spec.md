@@ -34,6 +34,10 @@ Spec 008 đã chốt khi clarify (Q-78): từ giờ bắt đầu ca sau, nếu b
 
 Spec 009 đã chốt khi clarify, và spec này được sửa cho khớp: (1) Q-102 — "Xác nhận đã nhận" thông báo Khẩn cấp không phải là tiếp nhận cảnh báo/sự cố; thao tác gộp "Xác nhận và tiếp nhận" gọi lệnh Tiếp nhận (bảng FR-029) hoặc Tiếp nhận xử lý (bảng FR-045) như hai bản ghi riêng. (2) Q-110 — yêu cầu thông báo leo thang khai "không thay" để giữ quy tắc bỏ qua cấp không có người (FR-033). (3) Q-112 — người thân trong danh sách tiếp xúc nhận theo nhóm "người thân được nêu trong bản ghi nguồn", chỉ phần loại "chung" (FR-062). (4) Spec 009 FR-011: khi một yêu cầu Khẩn cấp không còn người nhận nào, mọi Quản lý viện và Trưởng tầng đang hoạt động nhận thay; điều này áp cả với cảnh báo Khẩn cấp (FR-047a) như một lưới an toàn, cùng tinh thần với FR-047b. (5) Q-109 — Bác sĩ trực có tài khoản đang Khóa tạm vẫn nhận thông báo Khẩn cấp. Dữ liệu "người được thông báo" (FR-040, FR-048b) lấy từ spec 009 FR-035, gồm cả xác nhận qua cuộc gọi, xác nhận muộn và "Không liên lạc được" (Q-100, Q-104).
 
+### Cập nhật 2026-09-26 (đồng bộ với spec 012)
+
+Spec 012 đã chốt khi clarify (Q-120): lượt thăm Đã duyệt của người cao tuổi trong vùng vừa khoanh vùng được feature 012 tự chuyển Hủy (lý do "khu đang khoanh vùng") và báo người đăng ký; gỡ vùng không khôi phục lượt. Edge Case "Lượt thăm đã được duyệt trước khi khoanh vùng" và FR-065 được sửa cho khớp.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 05 mục 9.1 → 9.7; Module 06 mục 10.1 → 10.5; UC-16 phần khởi phát từ sự cố, UC-32 → UC-38):
@@ -291,7 +295,7 @@ Bản ghi chỉ số và sự cố không bao giờ bị sửa hay xóa. Khi ghi
 - **Người tiếp xúc đã có lịch đo nhiệt độ do bác sĩ đặt**: lịch theo dõi tiếp xúc vẫn được tạo riêng; hai lịch có thể sinh công việc gần giờ nhau, nhân viên ghi cả hai.
 - **Người tiếp xúc thuộc nhiều sự cố lây nhiễm**: mỗi lần xác nhận tạo lịch theo dõi riêng gắn sự cố đó; lịch trùng thời gian của cùng người cao tuổi được gộp thành một lịch kéo tới thời điểm kết thúc muộn nhất.
 - **Hai vùng khoanh vùng chồng nhau**: chặn còn hiệu lực khi còn ít nhất một vùng đang khoanh vùng bao phòng đó; gỡ một vùng không bỏ chặn của vùng kia.
-- **Lượt thăm đã được duyệt trước khi khoanh vùng**: không tự hủy; Hành chính nhận danh sách lượt thăm đã duyệt trong vùng để liên hệ gia đình (feature 012 quyết định).
+- **Lượt thăm đã được duyệt trước khi khoanh vùng**: feature 012 tự chuyển Hủy với lý do "khu đang khoanh vùng" và báo người đăng ký; gỡ vùng không khôi phục lượt; Hành chính và Trưởng tầng nhận danh sách các lượt bị hủy (feature 012 FR-037, Q-120).
 - **Giấy phép cơ sở hết hạn giữa chừng khi bác sĩ đang ghi chẩn đoán tại viện**: kiểm tra tại thời điểm lưu; sau 23:59 ngày hết hạn thì bị chặn (feature 002 FR-038).
 
 ## Requirements *(mandatory)*
@@ -489,7 +493,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | — | Khoanh vùng | Đang khoanh vùng | Bác sĩ, Quản lý viện | FR-063 | FR-065; thông báo Trưởng tầng, Hành chính, điều dưỡng có ca trong vùng; dashboard (18.5) |
 | Đang khoanh vùng | Gỡ khoanh vùng | Đã gỡ | Bác sĩ, Quản lý viện | Bắt buộc lý do | Bỏ các chặn của FR-065 với phần không còn vùng nào khác bao (BR-M05-12); feature 003 hủy khử khuẩn định kỳ và sinh khử khuẩn kết thúc (feature 003 FR-046) |
 
-- **FR-065**: Trong thời gian một vùng Đang khoanh vùng, hệ thống MUST cung cấp trạng thái "đang chịu khoanh vùng" cho mọi phòng, khu vực chung và người cao tuổi có giường trong vùng, để: chặn đăng ký thăm mới cho người cao tuổi trong vùng (feature 012, BR-M10-02); chặn đăng ký mới vào hoạt động chung của người cao tuổi trong vùng và buổi hoạt động diễn ra trong vùng (feature 014, BR-M04-15); chặn phân bổ giường mới và đăng ký lịch đến khu nghỉ bán trú trong vùng (feature 003 FR-009, FR-042); sinh công việc khử khuẩn (feature 003 FR-046). Lượt thăm đã duyệt và đăng ký hoạt động đã có trong thời gian khoanh vùng MUST được liệt kê cho Hành chính và Trưởng tầng. *(Nguồn: BR-M05-11, 9.6 "hạn chế hoạt động/thăm nom theo chính sách")*
+- **FR-065**: Trong thời gian một vùng Đang khoanh vùng, hệ thống MUST cung cấp trạng thái "đang chịu khoanh vùng" cho mọi phòng, khu vực chung và người cao tuổi có giường trong vùng, để: chặn đăng ký thăm mới cho người cao tuổi trong vùng (feature 012, BR-M10-02); chặn đăng ký mới vào hoạt động chung của người cao tuổi trong vùng và buổi hoạt động diễn ra trong vùng (feature 014, BR-M04-15); chặn phân bổ giường mới và đăng ký lịch đến khu nghỉ bán trú trong vùng (feature 003 FR-009, FR-042); sinh công việc khử khuẩn (feature 003 FR-046). Lượt thăm đã duyệt trong vùng được feature 012 tự hủy (feature 012 FR-037, Q-120); danh sách lượt bị hủy và đăng ký hoạt động đã có trong thời gian khoanh vùng MUST được liệt kê cho Hành chính và Trưởng tầng. *(Nguồn: BR-M05-11, 9.6 "hạn chế hoạt động/thăm nom theo chính sách")*
 - **FR-066**: Sự cố lây nhiễm MUST NOT đóng được khi còn vùng Đang khoanh vùng chỉ gắn với sự cố đó. Kết quả xử lý của sự cố lây nhiễm MUST chọn một trong: xác nhận nhiễm, loại trừ, không xác định. Việc đã báo cơ quan y tế (nếu có) MUST ghi được như một diễn biến (thời điểm, người báo, nơi nhận). *(Suy ra từ BR-M05-12, 9.6)*
 
 #### J. Phạm vi y tế và khám, điều trị
