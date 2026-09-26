@@ -324,8 +324,14 @@ erDiagram
 ```mermaid
 erDiagram
     NGUOI_CAO_TUOI ||--o{ CHI_PHI : "phát sinh"
-    KY_CHI_PHI ||--o{ CHI_PHI : "gồm"
+    KY_CHI_PHI ||--o{ BANG_CHI_PHI : "gồm"
+    NGUOI_CAO_TUOI ||--o{ BANG_CHI_PHI : "có"
+    BANG_CHI_PHI ||--o{ CHI_PHI : "gồm"
     CHI_PHI |o--o| CHI_PHI : "điều chỉnh cho"
+    HOP_DONG ||--o{ NGAY_LUU_TRU : "sinh"
+    NGAY_LUU_TRU |o--o| CHI_PHI : "nguồn của"
+    NGUOI_CAO_TUOI ||--o{ DE_NGHI_MUA_HO : "có"
+    DE_NGHI_MUA_HO |o--o| CHI_PHI : "nguồn của"
     PHIEN_BAN_DON_GIA ||--o{ CHI_PHI : "định giá (khoản ngoài hợp đồng)"
     HOP_DONG ||--o{ CHI_PHI : "định giá (khoản thuộc hợp đồng)"
     NGUOI_CAO_TUOI }o--|| CHE_DO_AN : "áp dụng"
@@ -345,7 +351,7 @@ erDiagram
     NGUOI_CAO_TUOI ||--o{ BAN_TIN : "có"
 ```
 
-Quan hệ nguồn của CHI_PHI là quan hệ đa hình: mỗi khoản trỏ tới đúng một bản ghi nguồn thuộc CONG_VIEC, LIEU_THUOC, DIEM_DANH, LUOT_VANG, CO_MAT_BAN_TRU hoặc là khoản nhập tay (DBR-15). Các thực thể nền tảng THAM_SO, YEU_CAU_PHE_DUYET, NHAT_KY, DINH_CHINH, THONG_BAO dùng chung cho mọi miền nên không vẽ quan hệ riêng.
+Quan hệ nguồn của CHI_PHI là quan hệ đa hình: mỗi khoản trỏ tới đúng một bản ghi nguồn thuộc NGAY_LUU_TRU (tham chiếu phụ LUOT_VANG cho ngày vắng), CO_MAT_BAN_TRU, CONG_VIEC, LIEU_THUOC (kể cả lần giao thuốc mang theo), DIEM_DANH, LUOT_O_LAI, SUAT_AN của người thân ở lại, DE_NGHI_MUA_HO, hoặc là khoản nhập tay; khoản điều chỉnh trỏ thêm về khoản gốc (DBR-15, DBR-17; bổ sung, spec 010). Các thực thể nền tảng THAM_SO, YEU_CAU_PHE_DUYET, NHAT_KY, DINH_CHINH, THONG_BAO dùng chung cho mọi miền nên không vẽ quan hệ riêng.
 
 ### 3.2. Entity Descriptions
 
@@ -407,8 +413,11 @@ Cột Nhóm theo phân loại ở mục 1.5 tab nghiệp vụ: **1** danh mục 
 | SAI_LECH_PHIEU            | **(Bổ sung)** Sai lệch do tầng báo trên phiếu             | Nội dung, người báo, thời điểm, cách bếp xử lý, người xử lý                                                   | 3              | BR-M08-11       |
 | LUU_MAU_THUC_AN           | **(Bổ sung, cần xác nhận Q-39)** Bản ghi lưu mẫu của một bữa | Món đã lưu mẫu, thời điểm lưu, người lưu, thời điểm hủy mẫu                                                 | 3              | 12.5, BR-M08-15 |
 | DO_AN_GIA_DINH            | Đồ ăn gia đình mang vào                                   | Loại, số lượng, kết quả đối chiếu, trạng thái                                                                 | 2              | 12.4            |
-| CHI_PHI                   | Một khoản chi phí phát sinh                               | Loại, số lượng, đơn giá, số tiền, nguồn, tham chiếu nguồn, trạng thái, khoản điều chỉnh cho                   | 2 → 3 khi chốt | 15.3            |
-| KY_CHI_PHI                | Kỳ chi phí                                                | Từ ngày, đến ngày, trạng thái chốt, người chốt                                                                | 2              | 15.6            |
+| CHI_PHI                   | Một khoản chi phí phát sinh                               | Loại, số lượng, đơn giá, căn cứ đơn giá, hệ số, thuộc gói, số tiền, nguồn sinh, tham chiếu nguồn, các dấu, trạng thái, bảng chi phí, khoản điều chỉnh cho, kỳ gốc | 2 → 3 khi chốt | 15.3            |
+| KY_CHI_PHI                | Kỳ chi phí của viện (tháng dương lịch)                    | Từ ngày, đến ngày, hạn chốt (CFG-M11-01), trạng thái (Đang mở / Chờ chốt / Đã chốt)                          | 2              | 15.6, 15.7      |
+| BANG_CHI_PHI              | **(Bổ sung, spec 010)** Bảng chi phí của một người cao tuổi trong một kỳ; đơn vị chốt (Q-131) | Kỳ, người cao tuổi, loại (thường / bổ sung), là kỳ cuối, tổng theo loại, người gửi chốt, người chốt, lần xuất đầu tiên, trạng thái | 2 → 3 khi chốt | 15.6 |
+| NGAY_LUU_TRU              | **(Bổ sung, spec 010)** Ngày lưu trú nội trú, nguồn của phí lưu trú | Người cao tuổi, hợp đồng, ngày, có mặt / vắng, lượt vắng, số thứ tự ngày vắng, hệ số, dấu | 2 (dẫn xuất) | 15.2 |
+| DE_NGHI_MUA_HO            | **(Bổ sung, spec 010)** Đề nghị mua hộ, cần đồng ý khi vượt hạn mức | Mục, số lượng, số tiền dự kiến, số tiền được phép, người yêu cầu, người quyết định và kênh, số tiền thực tế, bằng chứng, trạng thái | 2 | 15.2, BR-M11-07 |
 | DO_GUI, BAN_GIAO_DO_GUI   | Đồ gửi và từng lần bàn giao                               | Vật phẩm, số lượng, vị trí, trạng thái; người giao, người nhận, thời điểm, tình trạng                         | 2 / 3          | 16              |
 | LUOT_THAM                 | Một lượt thăm                                             | Người thăm, thời gian đăng ký, giờ vào, giờ ra, trạng thái                                                    | 2              | 14.2            |
 | PHAN_HOI                  | Phản hồi, khiếu nại                                       | Nội dung, loại, ưu tiên, hạn, người phụ trách, kết quả, trạng thái                                            | 2              | 14.7            |
@@ -438,9 +447,9 @@ Quy tắc dữ liệu là các ràng buộc luôn đúng trên dữ liệu (tín
 | DBR-12 | Công việc là duy nhất theo (mục kế hoạch, thời điểm dự kiến), để sinh lại không tạo trùng. **(Bổ sung)** Công việc vệ sinh định kỳ là duy nhất theo (mục lịch vệ sinh, thời điểm dự kiến); mỗi lần đóng phân bổ sinh đúng một công việc vệ sinh trả giường hoặc khử khuẩn | CONG_VIEC                      | BR-M04-01, BR-M03-08, 09, NFR-04 |
 | DBR-13 | Liều thuốc là duy nhất theo (đơn thuốc, thời điểm dự kiến) và chỉ có một lần xác nhận                                                                         | LIEU_THUOC                     | BR-M07-12         |
 | DBR-14 | Đơn thuốc hiệu lực không đổi thuốc, liều, tần suất. Đơn thay thế trỏ về đơn cũ, và đơn cũ chuyển Đã ngừng trong cùng giao dịch                                | DON_THUOC                      | 11.1              |
-| DBR-15 | Mỗi khoản chi phí có đúng một nguồn: một bản ghi nguồn (công việc, liều thuốc, điểm danh, lượt vắng, có mặt bán trú) hoặc "nhập tay" kèm lý do và người duyệt | CHI_PHI                        | BR-M11-01, 04     |
+| DBR-15 | Mỗi khoản chi phí có đúng một nguồn: một bản ghi nguồn (ngày lưu trú, có mặt bán trú, công việc, liều thuốc hoặc lần giao thuốc mang theo, điểm danh, lượt ở lại, suất ăn người thân, đề nghị mua hộ) hoặc "nhập tay" kèm lý do và người duyệt. **(Bổ sung, spec 010)** Mỗi bản ghi nguồn có tối đa một khoản đang hiệu lực cho mỗi đơn vị tính phí, không kể khoản điều chỉnh | CHI_PHI, NGAY_LUU_TRU, DE_NGHI_MUA_HO | BR-M11-01, 04     |
 | DBR-16 | Đơn giá của khoản chi phí thuộc hợp đồng là đơn giá trong nội dung hợp đồng hiệu lực tại ngày phát sinh; khoản ngoài hợp đồng là phiên bản đơn giá hiệu lực tại ngày phát sinh (Q-25); khoản thuộc gói có số tiền 0 | CHI_PHI                        | BR-M11-02, 03     |
-| DBR-17 | Khi kỳ đã chốt, các khoản thuộc kỳ không đổi; sai sót được ghi bằng khoản điều chỉnh mới trỏ về khoản gốc                                                     | KY_CHI_PHI, CHI_PHI            | 15.6              |
+| DBR-17 | Khi bảng chi phí đã chốt, các khoản thuộc bảng không đổi; sai sót được ghi bằng khoản điều chỉnh mới trỏ về khoản gốc. **(Bổ sung, spec 010)** Khoản bổ sung phát sinh muộn không có khoản gốc thì trỏ về bản ghi nguồn và kỳ gốc; tổng của khoản gốc và các điều chỉnh không âm | BANG_CHI_PHI, CHI_PHI | 15.6              |
 | DBR-18 | Cùng một người cao tuổi không có hai cảnh báo cùng loại đang mở; cảnh báo mới được gộp vào cảnh báo cũ                                                        | CANH_BAO                       | BR-M05-02         |
 | DBR-19 | Sự cố khẩn cấp không sửa, không xóa; nếu người cao tuổi có nguyện vọng cuối đời thì phải có xác nhận đã đối chiếu                                             | SU_CO                          | BR-M05-08, 13     |
 | DBR-20 | Mỗi ca kết thúc có đúng một bàn giao; bàn giao đã xác nhận không sửa được                                                                                     | CA_TRUC, BAN_GIAO              | BR-M09-07, 08     |
@@ -538,11 +547,11 @@ Tên use case là **lệnh nghiệp vụ** (động từ + đối tượng), kh�
 | UC-55 | Quản lý người thân và quyền           | Hành chính                              | 012      | 14.1, BR-M10-07     |
 | UC-56 | Xem thông tin trên cổng               | Người thân                              | 012      | BR-M10-01           |
 | UC-57 | Đăng ký thăm                          | Người thân                              | 012      | BR-M10-02           |
-| UC-58 | Đón người cao tuổi                    | Hành chính                              | 012      | 14.3, BR-M10-03     |
+| UC-58 | Đón người cao tuổi                    | Hành chính; Trưởng tầng, Nhân viên chăm sóc theo lệnh nguồn (Q-121) | 012      | 14.3, BR-M10-03     |
 | UC-59 | Gửi phản hồi / khiếu nại              | Người thân                              | 012      | 14.7, BR-M10-05     |
 | UC-60 | Duyệt và gửi bản tin                  | Điều dưỡng                              | 012      | BR-M10-08, 09       |
 | UC-61 | Kiểm tra chi phí phát sinh            | Hành chính                              | 010      | 15.6                |
-| UC-62 | Duyệt và chốt kỳ chi phí              | Quản lý viện                            | 010      | BR-M11-06           |
+| UC-62 | Duyệt và chốt kỳ chi phí (theo bảng chi phí từng người, Q-131) | Quản lý viện (Hành chính gửi chốt) | 010      | BR-M11-06           |
 | UC-63 | Tạo khoản điều chỉnh                  | Hành chính                              | 010      | BR-M11-05           |
 | UC-64 | Xuất dữ liệu cho kế toán              | Hành chính                              | 010      | 23                  |
 | UC-65 | Tiếp nhận, bàn giao, trả đồ gửi       | Hành chính                              | 013      | 16, BR-M12-01 → 05  |
@@ -559,6 +568,7 @@ Tên use case là **lệnh nghiệp vụ** (động từ + đối tượng), kh�
 | UC-76 | **(Bổ sung)** Nhận phiếu bữa ăn / báo sai lệch | Nhân viên tại tầng (*)          | 011      | BR-M08-11           |
 | UC-77 | **(Bổ sung)** Xác nhận phục vụ suất đặc biệt | Nhân viên chăm sóc                | 011, 005 | BR-M08-14           |
 | UC-78 | **(Bổ sung, cần xác nhận Q-39)** Ghi nhận lưu mẫu thức ăn | Nhân viên bếp          | 011      | BR-M08-15           |
+| UC-79 | **(Bổ sung, spec 010)** Đề nghị và đồng ý mua hộ | Hành chính; Người thân (người đại diện); Quản lý viện | 010      | BR-M11-07, BR-M10-10, Q-137, Q-139 |
 
 (*) Tài liệu nghiệp vụ chỉ ghi "người nhận tại tầng" (BR-M08-11), chưa nêu vai trò. Permission Matrix tạm cho Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc; cần chốt khi làm spec feature 011.
 
@@ -588,7 +598,7 @@ flowchart LR
         P4(["Dinh dưỡng, suất ăn<br/>UC-45 → 48, UC-75 → 78"])
         P5(["Nhân sự, ca, bàn giao<br/>UC-49 → 54"])
         P6(["Người thân<br/>UC-55 → 60"])
-        P7(["Chi phí, đồ gửi<br/>UC-61 → 65"])
+        P7(["Chi phí, đồ gửi<br/>UC-61 → 65, UC-79"])
         P8(["Thông báo, báo cáo, quản trị<br/>UC-66 → 70"])
     end
     HC --- P1
@@ -875,6 +885,7 @@ flowchart LR
         U62(["UC-62 Duyệt và chốt kỳ"])
         U63(["UC-63 Tạo khoản điều chỉnh"])
         U64(["UC-64 Xuất dữ liệu kế toán"])
+        U79(["UC-79 Đề nghị và đồng ý mua hộ"])
         U65(["UC-65 Tiếp nhận, trả đồ gửi"])
         U66(["UC-66 Nhận, xác nhận thông báo"])
         U67(["UC-67 Xem dashboard, báo cáo"])
@@ -904,6 +915,9 @@ flowchart LR
     U66 --- SMS
     U56 -. "«include»" .-> U70
     U62 -. "«include» khi còn sai sót" .-> U63
+    HC --- U79
+    NT --- U79
+    QL --- U79
 ```
 
 ### 4.4. Permission Matrix
@@ -931,15 +945,16 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Yêu cầu vệ sinh đột xuất (bổ sung)  | UC-73             | X    | T    | —    | T   | T   | —   | —   | P   | —   | —   |
 | Xử lý hư hỏng, đưa giường vào bảo trì (bổ sung) | UC-74 | T    | T    | —    | —   | —   | —   | —   | —   | X   | —   |
 | Kế hoạch chăm sóc                   | UC-22, 23         | X    | X    | D    | T   | P   | —   | —   | —   | —   | —   |
-| Checklist, ghi nhận công việc       | UC-25, 26         | X    | T    | —    | T   | T   | —   | —   | T   | —   | —   |
+| Checklist, ghi nhận công việc       | UC-25, 26         | X    | T    | X²²  | T   | T   | X²² | —   | T   | —   | —   |
 | Xử lý việc quá hạn                  | UC-27             | X    | T⁹   | —    | —   | —   | —   | —   | —   | —   | —   |
 | Hoạt động, ngoài viện               | UC-29, 30         | X    | T    | —    | —   | T   | —   | —   | —   | —   | X   |
 | Kiểm tra chất lượng                 | UC-31             | X    | T    | —    | —   | —   | —   | —   | —   | —   | —   |
 | Chỉ số sức khỏe                     | UC-32             | X    | P    | X    | T   | T   | —   | —   | —   | —   | X¹  |
 | Ngưỡng cảnh báo                     | UC-33             | X    | —    | T    | X   | —   | —   | —   | —   | —   | —   |
 | Xử lý cảnh báo                      | UC-34             | X    | T    | T    | T   | X   | —   | —   | —   | —   | —   |
-| Sự cố, khẩn cấp                     | UC-35, 36         | X    | T¹⁰  | T¹⁰  | T¹⁰ | T¹⁰ | T¹⁰ | T¹⁰ | T¹⁰ | T¹⁰ | X¹  |
+| Sự cố, khẩn cấp                     | UC-35, 36         | X, T²³ | T¹⁰  | T¹⁰  | T¹⁰ | T¹⁰ | T¹⁰ | T¹⁰ | T¹⁰ | T¹⁰ | X¹  |
 | Khoanh vùng lây nhiễm               | UC-37             | T    | X    | T    | X   | —   | —   | —   | —   | X   | —   |
+| Danh sách tiếp xúc (bổ sung, Q-68)  | 9.6               | X    | P    | T    | T²⁴ | —   | —   | —   | —   | —   | —   |
 | Đơn thuốc                           | UC-39, 40         | X    | —    | T³   | T⁴  | —   | —   | —   | —   | —   | X¹  |
 | Phát thuốc, thuốc khi cần           | UC-41, 42         | X    | X    | X    | T   | —   | —   | —   | —   | —   | —   |
 | Đối chiếu thuốc, thuốc gia đình gửi | UC-43, 44         | X    | —    | T    | T   | —   | —   | —   | —   | —   | X   |
@@ -952,12 +967,15 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Lịch ca, phân công                  | UC-50, 51         | T, D | T, D | P    | P   | P   | P   | P   | P   | P   | —   |
 | Bàn giao ca                         | UC-52, 53         | X    | T    | X    | T   | X   | —   | —   | —   | —   | —   |
 | Yêu cầu đổi ca                      | UC-54             | X    | D    | T    | T   | T   | T   | T   | T   | T   | —   |
-| Người thân và quyền                 | UC-55             | D    | —    | —    | —   | —   | —   | —   | —   | T   | T²  |
-| Đăng ký thăm, đón                   | UC-57, 58         | X    | X    | —    | —   | —   | —   | —   | —   | T   | T   |
+| Người thân và quyền                 | UC-55             | D¹⁸  | —    | —    | —   | —   | —   | —   | —   | T   | T²  |
+| Đăng ký thăm                        | UC-57             | X    | X    | —    | —   | —   | —   | —   | —   | T   | T   |
+| Quy trình đón, ngoại lệ đón (bổ sung, Q-121) | UC-58    | D¹⁹  | T¹⁹  | —    | —   | T¹⁹ | —   | —   | —   | T   | T²  |
+| Người thân ở lại (bổ sung, Q-123)   | 14.4              | X²⁰  | T²⁰  | —    | —   | —   | —   | —   | —   | T   | X   |
 | Phản hồi, khiếu nại                 | UC-59             | D    | T    | —    | T   | —   | —   | —   | —   | T   | T   |
-| Bản tin định kỳ                     | UC-60             | X    | X    | —    | T   | —   | —   | —   | —   | —   | X   |
-| Chi phí, khoản điều chỉnh           | UC-61, 63         | D    | —    | —    | —   | —   | —   | —   | —   | T   | X   |
-| Chốt kỳ, xuất kế toán               | UC-62, 64         | D    | —    | —    | —   | —   | —   | —   | —   | T   | —   |
+| Bản tin định kỳ                     | UC-60             | X    | X²¹  | —    | T   | —   | —   | —   | —   | —   | X   |
+| Chi phí, khoản điều chỉnh           | UC-61, 63         | D    | —    | —    | —   | —   | —   | —   | —   | T¹⁶ | X¹⁶ |
+| Chốt kỳ, xuất kế toán               | UC-62, 64         | D¹⁷  | —    | —    | —   | —   | —   | —   | —   | T¹⁷ | —   |
+| Đề nghị mua hộ (bổ sung)            | UC-79             | D    | —    | —    | —   | —   | —   | —   | —   | T   | T²  |
 | Đồ gửi                              | UC-65             | X    | X    | —    | T   | —   | —   | —   | —   | T   | X   |
 | Dashboard, báo cáo                  | UC-67             | X    | P    | P¹¹  | P   | —   | —   | —   | —   | P¹¹ | —   |
 | Tài khoản, phân quyền, tham số      | UC-68, 69         | C    | —    | —    | —   | —   | —   | —   | —   | T¹² | —   |
@@ -969,5 +987,18 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 **(Bổ sung, từ spec 000–004)** ⁵ Hành chính chỉ xem mức chăm sóc và cờ nguy cơ, không xem dị ứng, bệnh nền, tiền sử, chỉ số, thuốc, kết quả đánh giá (19.3). ⁶ Quản lý viện duyệt điều khoản hợp đồng khác chuẩn trước khi gửi ký (Q-23). ⁷ Chỉ người đại diện xem nội dung hợp đồng, phụ lục và trạng thái đặt cọc; người thân khác không xem. ⁸ Cho tạm vắng và Ghi nhận trở về không cần duyệt; quyền D chỉ áp cho quyết định giữ tiếp hay giải phóng giường khi vắng quá ngưỡng (BR-M02-07). ⁹ Nhân viên giữ nhiệm vụ Người phụ trách ca có cùng quyền trong tầng/khu vực và thời gian của ca (2.4). ¹⁰ Miễn kiểm tra phạm vi dữ liệu; người ghi ngoài phạm vi chỉ thấy thông tin nhận dạng (BR-M15-01). ¹¹ Toàn viện, vẫn áp giới hạn trường của ⁵. ¹² Chỉ với tài khoản người thân: tạo, kích hoạt lại, cấp lại mật khẩu sau khi xác minh danh tính (Q-16); tài khoản nhân viên, phân quyền, tham số chỉ Quản lý viện. ¹³ Chỉ nhân viên cùng vai trò với người ghi bản gốc; bản đính chính là yêu cầu phê duyệt, có hiệu lực khi Quản lý viện duyệt (1.5). Bản ghi gắn tầng/khu vực được đính chính trực tiếp bởi người ghi gốc, trưởng tầng hoặc người phụ trách ca của phạm vi đó.
 
 **(Bổ sung, vệ sinh và suất ăn)** ¹⁴ Với suất đặc biệt, bếp xem họ tên, phòng, chế độ ăn, món thay thế, kết cấu thức ăn; không xem dị ứng, bệnh lý hay thông tin sức khỏe khác (19.3). ¹⁵ Tài liệu nghiệp vụ chỉ ghi "người nhận tại tầng" (BR-M08-11); vai trò ở đây là tạm, cần chốt khi làm spec feature 011. Dòng "Checklist, ghi nhận công việc" (UC-25, 26) áp cho cả công việc vệ sinh; nhân viên vệ sinh không thấy thông tin sức khỏe, kể cả lý do một công việc là khử khuẩn (BR-M03-10, 19.3). Dòng "Xử lý hư hỏng" là ngoại lệ của dòng "Cấu hình phòng, giường": Trưởng tầng chỉ đưa giường sang Đang bảo trì khi kết quả vệ sinh ghi hư hỏng liên quan giường (BR-M03-13).
+
+**(Bổ sung, spec 010)** ¹⁶ Với khoản chi phí loại Thuốc, hành chính và người thân chỉ có quyền xem chi phí thấy mã vật phẩm, không thấy tên thuốc. Tên thuốc chỉ hiện với Quản lý viện và người thân có quyền xem sức khỏe có tác dụng (Q-133, 19.3). ¹⁷ Chốt theo bảng chi phí của từng người (Q-131): hành chính gửi chốt, Quản lý viện chốt; chỉ hành chính xuất kế toán. Dòng "Đề nghị mua hộ": người đại diện đồng ý hoặc từ chối đề nghị vượt hạn mức qua cổng (chú thích ², BR-M11-07).
+
+**(Bổ sung, spec 012)**
+- ¹⁸ Quản lý viện duyệt yêu cầu BR-M10-07, gồm yêu cầu thêm/thôi người đại diện khi không có người đại diện khác xác nhận (Q-127). Chú thích ² của dòng này: mọi người thân còn được tự bỏ mình khỏi danh sách đón hoặc tắt quyền của chính mình.
+- ¹⁹ Quy trình đón do người có quyền lệnh nguồn thực hiện: Trưởng tầng với Cho tạm vắng, Nhân viên chăm sóc với Điểm danh về bán trú, Hành chính với mọi lệnh. Quản lý viện duyệt ngoại lệ đón; người đại diện xác nhận ngoại lệ (Q-121, BR-M10-03).
+- ²⁰ Hành chính đăng ký, gia hạn, kết thúc, hủy lượt ở lại. Trưởng tầng được giao của tầng xác nhận, từ chối, bắt đầu, kết thúc. Quản lý viện xác nhận thay khi tầng không có Trưởng tầng (Q-123, Q-128).
+- ²¹ Trưởng tầng được giao của tầng được duyệt thay bản tin sau CFG-M10-12 (Q-124).
+
+**(Bổ sung, spec 005, spec 007)**
+- ²² Bác sĩ xem mọi kết quả ghi nhận chăm sóc; Dinh dưỡng viên chỉ xem kết quả ăn uống và lượng nước; cả hai không ghi (Q-33).
+- ²³ Quản lý viện được ghi nhận sự cố, kích hoạt khẩn cấp và tiếp nhận cảnh báo ở Leo thang cấp 2 rồi giao người phụ trách; không xử lý, không đóng cảnh báo hay sự cố (Q-71).
+- ²⁴ Điều dưỡng xác nhận, bổ sung, loại người khỏi danh sách tiếp xúc trong phạm vi phân công (Q-68).
 
 **(Bổ sung, Q-15)** Phạm vi của T và D theo vai trò: Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc, Nhân viên vệ sinh trong phạm vi phân công (giờ ca ± CFG-M15-07); Quản lý viện, Bác sĩ, Hành chính, Dinh dưỡng viên, Nhân viên bếp toàn viện. Quản lý viện chỉ được thu hẹp quyền so với ma trận; ngoại lệ duy nhất được thêm là quyền Duyệt kế hoạch chăm sóc cho điều dưỡng.

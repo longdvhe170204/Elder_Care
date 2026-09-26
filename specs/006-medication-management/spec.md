@@ -38,6 +38,12 @@ Spec 008 đã chốt khi clarify (Q-85): từ giờ bắt đầu ca sau mà bàn
 
 Spec 009 đã chốt mức cho các thông báo của spec này (spec 009 FR-043b): đơn thuốc sắp hết hạn (FR-017) là Nhẹ; nhắc liều Trễ, người cao tuổi chưa có điều dưỡng phụ trách (FR-026a), liều thuốc kiểm soát đặc biệt "chờ xem lại" (FR-029), phiếu đối chiếu cần hoàn thành là Trung bình; thuốc gia đình gửi sắp hết gửi người thân (FR-046) là Trung bình với nội dung chia phần "chung" và "sức khỏe" (Q-116); FR-046 được sửa cho khớp. Thông báo "người cao tuổi chưa có điều dưỡng phụ trách" của FR-026a gửi spec 009 với cách thay "không thay" vì spec này đã tự xử lý bằng liều chung (spec 009 FR-010, Q-110).
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 010)
+
+Spec 010 và tài liệu nguồn (6.4, 11.4, 15.2) đã chốt hai điểm, và các FR của spec này được sửa theo:
+- **Q-139, FR-040 và FR-033:** thuốc mua hộ được tiếp nhận như thuốc gia đình gửi, có tham chiếu tới đề nghị mua hộ; liều của nó không sinh chi phí.
+- **FR-003:** đơn giá thuốc nguồn viện nằm trong danh mục vật phẩm có phiên bản đơn giá của feature 004 (FR-034, FR-035).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 07, mục 11.1 → 11.6; UC-39 → UC-44):
@@ -278,7 +284,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 - **FR-001**: Hệ thống MUST có danh mục thuốc, mỗi thuốc gồm: tên, một hoặc nhiều hoạt chất (liên kết danh mục dị nguyên của feature 001 FR-018a), hàm lượng, dạng bào chế, đường dùng mặc định, đơn vị dùng, cửa sổ thời gian riêng (nếu có, thay cho CFG-M07-01), đánh dấu "kiểm soát đặc biệt", trạng thái hiệu lực. *(Nguồn: 11.1, 11.2, 8.6, 1.5 nhóm 1)*
 - **FR-002**: Chỉ Quản lý viện MUST cấu hình được danh mục thuốc; thuốc đã có đơn tham chiếu MUST NOT bị xóa, chỉ Ngừng hiệu lực; thuốc Ngừng hiệu lực MUST NOT được chọn cho đơn mới nhưng đơn đang có vẫn giữ nguyên. Sửa hoạt chất hoặc cửa sổ riêng MUST chỉ áp cho đơn tạo sau và liều sinh sau. *(Nguồn: 1.5 nhóm 1; giả định về quyền, xem Điểm cần báo lại 7)*
-- **FR-003**: Đơn giá thuốc nguồn viện cung cấp MUST NOT được quản lý ở spec này; feature 010 lấy đơn giá theo dịch vụ/vật phẩm và DBR-16. *(Nguồn: 15.2, BR-M11-01)*
+- **FR-003**: Đơn giá thuốc nguồn viện cung cấp MUST NOT được quản lý ở spec này. Thuốc nguồn viện có mục trong danh mục vật phẩm với phiên bản đơn giá do Quản lý viện quản lý (feature 004 FR-034, FR-035); feature 010 lấy đơn giá theo DBR-16. Mỗi thuốc nguồn viện trong danh mục thuốc của spec này MUST liên kết được tới mục vật phẩm tương ứng, để khoản chi phí mang mã vật phẩm (feature 010 FR-019). *(Nguồn: 6.4, 15.2, BR-M11-01; đồng bộ spec 010)*
 
 #### B. Đơn thuốc
 
@@ -363,7 +369,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 - **FR-030**: Liều đã xác nhận và lần dùng PRN MUST NOT sửa hay xóa (BR-M07-12, BR-M15-03). Đính chính MUST có lý do và chỉ do Điều dưỡng đáp ứng FR-026 (a) tạo, là: người xác nhận gốc; hoặc Điều dưỡng giữ nhiệm vụ Người phụ trách ca của tầng/khu vực đó; hoặc, với liều do Hệ thống đóng (Bỏ lỡ, Không thực hiện do trạng thái cuối), Điều dưỡng phụ trách người cao tuổi trong ca của liều. Spec này thu hẹp quy tắc đính chính của feature 000: Trưởng tầng không là Điều dưỡng MUST NOT đính chính liều. Đính chính làm thay đổi trạng thái Đã dùng MUST kích hoạt: sự kiện chi phí cho feature 010; biến động số lượng thuốc gia đình gửi tương ứng; yêu cầu đóng hoặc tạo cảnh báo liên quan ở feature 007. *(Nguồn: BR-M07-12, BR-M15-03, 1.5, DBR-23)*
 - **FR-031**: Khi xác nhận liều hoặc lần dùng PRN có ghi phản ứng sau dùng, hệ thống MUST yêu cầu feature 007 tạo cảnh báo mức trung bình trở lên gắn liều đó. *(Nguồn: BR-M07-13, 11.3)*
 - **FR-032**: Khi một thuốc bị ghi Từ chối CFG-M05-04 (mặc định \[2\]) lần liên tiếp (tính trên các liều đã đóng của các đơn cùng thuốc của người cao tuổi, theo thứ tự thời điểm dự kiến; liều Tạm dừng, Đã hủy không tính và không làm đứt chuỗi), hệ thống MUST yêu cầu feature 007 tạo cảnh báo mức trung bình trở lên; gộp với cảnh báo cùng loại đang mở theo BR-M05-02. *(Nguồn: BR-M07-13, BR-M05-04, CFG-M05-04)*
-- **FR-033**: Liều nguồn viện cung cấp được xác nhận Đã dùng MUST yêu cầu feature 010 tạo chi phí nháp trỏ về liều đó (DBR-15), trừ liều thuộc một lần "Giao thuốc mang theo" đã được tính phí khi giao (FR-048a); spec này cung cấp thuốc và số lượng, feature 010 quyết định đơn giá và việc khoản đó thuộc gói (DBR-16). *(Nguồn: BR-M07-14, BR-M11-01, 15.2)*
+- **FR-033**: Liều nguồn viện cung cấp được xác nhận Đã dùng MUST yêu cầu feature 010 tạo chi phí nháp trỏ về liều đó (DBR-15), trừ liều thuộc một lần "Giao thuốc mang theo" đã được tính phí khi giao (FR-048a). Liều nguồn "gia đình gửi", kể cả thuốc mua hộ, MUST NOT yêu cầu tạo chi phí (Q-139). Spec này cung cấp thuốc và số lượng, feature 010 quyết định đơn giá và việc khoản đó thuộc gói (DBR-16). *(Nguồn: BR-M07-14, BR-M11-01, 15.2)*
 
 #### F. Đối chiếu thuốc
 
@@ -391,7 +397,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 #### G. Thuốc gia đình gửi
 
-- **FR-040**: Điều dưỡng MUST ghi nhận được việc tiếp nhận thuốc gia đình gửi với: người cao tuổi, tên thuốc (chọn từ danh mục nếu có, nếu không ghi tự do kèm hoạt chất nếu biết), hàm lượng, số lượng và đơn vị, hạn dùng, tình trạng bao bì, có đơn/toa hay không (kèm ảnh nếu có), người giao (người thân trong danh sách người thân của người cao tuổi, feature 012, hoặc ghi rõ họ tên và quan hệ), người nhận, thời điểm. Thuốc đã hết hạn dùng lúc tiếp nhận MUST được ghi nhận nhưng MUST NOT chuyển Được sử dụng. *(Nguồn: 11.4, UC-44, THUOC_GIA_DINH_GUI)*
+- **FR-040**: Điều dưỡng MUST ghi nhận được việc tiếp nhận thuốc gia đình gửi với: người cao tuổi, tên thuốc (chọn từ danh mục nếu có, nếu không ghi tự do kèm hoạt chất nếu biết), hàm lượng, số lượng và đơn vị, hạn dùng, tình trạng bao bì, có đơn/toa hay không (kèm ảnh nếu có), người giao (người thân trong danh sách người thân của người cao tuổi, feature 012, hoặc ghi rõ họ tên và quan hệ), người nhận, thời điểm. Thuốc đã hết hạn dùng lúc tiếp nhận MUST được ghi nhận nhưng MUST NOT chuyển Được sử dụng. Thuốc mua hộ (feature 010, đề nghị mua hộ ở trạng thái Đã mua) MUST được tiếp nhận theo FR này, với nguồn "gia đình gửi", người giao là nhân viên đã mua, và tham chiếu tới đề nghị mua hộ. Liều dùng thuốc đó MUST NOT sinh chi phí (FR-033), vì thuốc đã được tính ở khoản mua hộ. *(Nguồn: 11.4, UC-44, THUOC_GIA_DINH_GUI; đồng bộ spec 010, Q-139)*
 - **FR-041**: Vòng đời thuốc gia đình gửi MUST theo bảng dưới. *(Nguồn: 11.4, BR-M07-10, 11, UC-44, constitution IV)*
 
 | Trạng thái hiện tại | Lệnh / sự kiện | Trạng thái mới | Người thực hiện | Điều kiện | Tác động |
@@ -441,7 +447,8 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Cung cấp | 005, 008 | Liều cho checklist; liều Trễ, Bỏ lỡ, Từ chối, Mang theo chờ ghi nhận và lần giao thuốc Chờ nhận lại cho checklist và bàn giao |
 | Cung cấp | 007 | Yêu cầu tạo/đóng cảnh báo: Bỏ lỡ, phản ứng, từ chối liên tiếp, xung đột dị ứng, chưa đối chiếu, lần dùng PRN "ghi theo báo lại" vượt giới hạn (FR-027); yêu cầu đóng cảnh báo khi bản ghi đồng bộ muộn hoặc "ghi sau mất kết nối" có thời điểm dùng trong cửa sổ (FR-029); thuốc đang dùng |
 | Cung cấp | 009 | Nhắc hết hạn đơn, nhắc Trễ, thông báo thuốc gia đình gửi sắp hết/hết hạn dùng, thông báo phiếu đối chiếu, thông báo "người cao tuổi chưa có điều dưỡng phụ trách" và nhắc Trễ của liều chung của tầng (FR-026a), bản ghi thuốc kiểm soát đặc biệt "chờ xem lại" (FR-029) |
-| Cung cấp | 010 | Liều và lần dùng PRN nguồn viện Đã dùng (ngoài lần giao mang theo); lần giao và nhận lại thuốc mang theo nguồn viện; đính chính liên quan |
+| Cung cấp | 010 | Liều và lần dùng PRN nguồn viện Đã dùng (ngoài lần giao mang theo; không gồm liều gia đình gửi, kể cả thuốc mua hộ); lần giao và nhận lại thuốc mang theo nguồn viện; đính chính liên quan |
+| Nhận | 010 | Đề nghị mua hộ thuốc đã Đã mua, để tiếp nhận với nguồn "gia đình gửi" (FR-040, Q-139) |
 
 ### Key Entities *(include if feature involves data)*
 
@@ -510,3 +517,5 @@ Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nh�
 16. **Các quyết định clarify lượt 2 (2026-09-26)** cần phản ánh vào tài liệu nguồn và thêm vào mục 24.2: Q-60 liều Mang theo trở về sớm thôi thuộc lần giao và vòng đời lần giao thuốc mang theo (FR-021, FR-048a; bổ sung cho 8.9, BR-M07-11, BR-M07-14); Q-61 "liều chung của tầng" khi người cao tuổi không có điều dưỡng phụ trách (FR-026a; bổ sung cho 11.3, 13.4); Q-62 thuốc kiểm soát đặc biệt khi mất kết nối được ghi ngay khi có mạng, luôn chờ xem lại (FR-029; bổ sung cho 8.6 và Q-01). Ngoài ra bảng trạng thái liều FR-021 đã được sửa để trở về từ bệnh viện không khôi phục liều (khớp BR-M07-09).
 17. **Kiểm soát pháp lý cho thuốc gây nghiện, hướng thần** chưa có trong tài liệu nguồn (8.6 chỉ nêu "xác nhận liều thuốc có kiểm soát đặc biệt" bắt buộc trực tuyến). Đề xuất thêm Q-63 vào mục 24.1 (quyết định còn mở): có cần người chứng kiến liều, sổ theo dõi, đếm số lượng còn cho nhóm thuốc này không; mặc định đề xuất: không bổ sung kiểm soát ngoài bắt buộc trực tuyến và xem lại khi mất kết nối (FR-029); người quyết định: Quản lý viện và tư vấn pháp lý; feature ảnh hưởng: 006.
 18. **Các quyết định sau checklist business-rules lượt 2 (2026-09-26)** cần phản ánh vào tài liệu nguồn và thêm vào mục 24.2: Q-64 lần giao thuốc mang theo chưa nhận lại chặn Kết thúc lưu trú và vào danh sách việc sau qua đời (cần bổ sung vào 6.8, dòng "→ Kết thúc lưu trú" của 5.6 và feature 004 FR-063, FR-071); Q-65 thuốc đã giao chỉ được dùng lại sau khi ghi Nhận lại (8.9); Q-66 người xem lại bản ghi thuốc kiểm soát đặc biệt ghi sau mất kết nối là Điều dưỡng khác người ghi, Trưởng tầng chỉ được thông báo (8.6, Q-01).
+
+**(2026-09-27)** Các quyết định Q-54 → Q-62, Q-64 → Q-66 của spec này đã được phản ánh vào `docs/nghiep-vu.md` (11.2 → 11.5) và nằm ở mục 24.2; Q-63 được ghi vào 24.1 (quyết định còn mở).

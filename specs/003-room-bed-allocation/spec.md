@@ -484,3 +484,5 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep
 16. **Giường hỏng có phân bổ tương lai** (đề xuất Q-51, FR-013a): cần ghi ngoại lệ vào BR-M03-05 hoặc BR-M03-13, thêm Q-51 vào mục 24.
 17. **Người yêu cầu của yêu cầu thay đổi lưu trú tự tạo khi chuyển gấp** (đề xuất Q-52, FR-030): là "Hệ thống", giao hành chính theo dõi; cần ghi vào 6.6 và thêm Q-52 vào mục 24. Không cần sửa Permission Matrix.
 18. **Nâng vệ sinh trả giường lên khử khuẩn khi danh sách nghi nhiễm cập nhật muộn** (đề xuất Q-53, FR-045): cần ghi vào BR-M03-10, thêm Q-53 vào mục 24.
+
+**(2026-09-27)** Các quyết định Q-40 → Q-53 của spec này đã được phản ánh vào `docs/nghiep-vu.md` (3.3, 7.2 → 7.5; CFG-M03-07, CFG-M03-08 ở Phụ lục 25) và nằm ở mục 24.2. Q-40 được chuyển khỏi 24.1 vì đã chốt. Các điểm "Còn mở" 4, 5, 7 của mục này được giải quyết.

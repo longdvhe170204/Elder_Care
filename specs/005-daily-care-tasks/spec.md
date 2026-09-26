@@ -39,6 +39,14 @@ Spec 009 đã chốt mức cho các thông báo của spec này (spec 009 FR-043
 
 Spec 012 đã chốt khi clarify: (1) Q-121 — quy trình đón khi điểm danh về do Hành chính hoặc Nhân viên chăm sóc thực hiện, khớp bảng trạng thái có mặt của spec này. (2) Q-125 — người bán trú có dấu "được tự về" có tác dụng được điểm danh về không cần người đón; feature 012 vẫn tạo bản ghi đón loại "Tự về" với nhân viên tiễn. Dòng "Có mặt → Điểm danh về" của bảng trạng thái có mặt và User Story 2 kịch bản 3 được sửa cho khớp.
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 010)
+
+Spec 010 và tài liệu nguồn 3.4 đã chốt Q-140:
+- Người bán trú được điểm danh đến cả vào ngày không có lịch (buổi phát sinh).
+- Buổi có lịch trùng ngày khu bán trú nghỉ (feature 004 FR-060a) không chuyển Vắng không báo.
+
+Bảng trạng thái có mặt (FR-013) thêm hai dòng tương ứng, và FR-016 nêu rõ các trạng thái gửi cho feature 010. Theo FR-025, ngày phát sinh chi phí của kết quả công việc là thời điểm thực hiện.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 04, mục 8.1 → 8.7; UC-22 → UC-28):
@@ -336,7 +344,9 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 | Trạng thái hiện tại | Lệnh / sự kiện | Trạng thái mới | Người thực hiện | Điều kiện | Tác động |
 | --- | --- | --- | --- | --- | --- |
-| — | Tạo theo lịch đến | Chưa đến | Bộ lập lịch | Có lịch đến trong ngày; chưa có báo vắng | — |
+| — | Tạo theo lịch đến | Chưa đến | Bộ lập lịch | Có lịch đến trong ngày; chưa có báo vắng; ngày đó không phải ngày khu bán trú nghỉ (feature 004 FR-060a) | — |
+| — | Điểm danh đến vào ngày không có lịch (buổi phát sinh) | Có mặt | Hành chính, Nhân viên chăm sóc | Người cao tuổi Đang lưu trú; ngày không có lịch hoặc trùng ngày khu nghỉ | Ghi giờ đến, đánh dấu "buổi phát sinh"; sinh công việc (FR-018); feature 010 tính phí buổi phát sinh (feature 010 FR-005b, Q-140) |
+| Chưa đến, Vắng không báo | Khai báo ngày khu bán trú nghỉ (feature 004) | (không còn trạng thái có mặt cho buổi đó) | Hệ thống | Buổi chưa có điểm danh đến | Hủy trạng thái có mặt của buổi; không thông báo Trưởng tầng; feature 010 không tính phí buổi (Q-140) |
 | — hoặc Chưa đến | Ghi nhận báo vắng | Vắng có báo | Hành chính (feature 004) | Báo trước giờ đến dự kiến ít nhất CFG-M02-06 (mặc định \[24 giờ\]) | Không sinh công việc |
 | Chưa đến | Quá giờ đến dự kiến CFG-M02-07 (mặc định \[2 giờ\]) | Vắng không báo | Bộ lập lịch | Chưa điểm danh đến, không có báo vắng hợp lệ | Thông báo Trưởng tầng |
 | Chưa đến, Vắng không báo | Điểm danh đến | Có mặt | Hành chính, Nhân viên chăm sóc | Người cao tuổi Đang lưu trú | Ghi giờ đến, người điểm danh; sinh công việc (FR-018) |
@@ -344,7 +354,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 - **FR-014**: Báo vắng được ghi muộn hơn CFG-M02-06 MUST NOT tạo trạng thái "Vắng có báo"; trạng thái vẫn đi theo bảng FR-013 và bản ghi báo vắng muộn MUST được lưu kèm để feature 004 áp phí. *(Nguồn: UC-28, 3.4)*
 - **FR-015**: Điểm danh đến/về MUST NOT sửa trực tiếp; giờ đến/về ghi sai MUST được xử lý bằng đính chính theo feature 000. *(Nguồn: UC-28, 1.5)*
-- **FR-016**: Trạng thái có mặt MUST được cung cấp cho feature 004/010 (tính phí buổi), feature 011 (chốt suất ăn) và cho việc sinh công việc. *(Nguồn: UC-28, 3.4)*
+- **FR-016**: Trạng thái có mặt MUST được cung cấp cho feature 004/010 (tính phí buổi), feature 011 (chốt suất ăn) và cho việc sinh công việc. Mỗi lần trạng thái được xác định lần đầu hoặc thay đổi, kể cả buổi phát sinh ngoài lịch và việc hủy buổi do ngày khu nghỉ, MUST được gửi cho feature 010 (feature 010 FR-005b). *(Nguồn: UC-28, 3.4; đồng bộ spec 010, Q-140)*
 
 #### C. Sinh công việc và vòng đời công việc
 
@@ -517,3 +527,5 @@ Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nh�
 11. **Các quyết định clarify lượt 2** cần phản ánh vào tài liệu nguồn và thêm vào mục 24.2: Q-33 quyền xem kết quả ghi nhận của Bác sĩ, Dinh dưỡng viên (Permission Matrix 4.4, xem điểm 7); Q-34 ngày hiệu lực kế hoạch sớm nhất là ngày hôm sau ngày duyệt (8.1, BR-M04-19); Q-35 người phụ trách ca chỉ ghi nhận thay công việc Quá hạn, hủy công việc Chưa đến hạn chỉ do Trưởng tầng (BR-M04-12, 8.3); Q-36 lệnh "Ghi nhận phát sinh" (8.3, 8.6); Q-37 mốc xét tự đóng công việc Thường là lúc ca sau xác nhận bàn giao (BR-M09-08); Q-38 hệ thống tự đóng công việc Đến hạn/Quá hạn khi người cao tuổi chuyển trạng thái cuối (8.3, BR-M04-04).
 12. **Mục 4.2 chưa có use case** cho cấu hình danh mục loại công việc (FR-038) và xem thời khóa biểu cá nhân (FR-048, 8.2); cần bổ sung UC hoặc ghi rõ hai chức năng này thuộc UC nào.
 13. **Các bổ sung của spec không có trong tài liệu nguồn**, cần chủ tài liệu xác nhận: mỗi người cao tuổi tối đa một phiên bản kế hoạch đang soạn/chờ (FR-004); người duyệt không sửa ngày hiệu lực mà phải Trả lại (FR-004); bảng trạng thái yêu cầu xem xét kế hoạch và việc yêu cầu không mở lại khi phiên bản bị Trả lại (FR-011); điều kiện "đang có mặt tại mốc kiểm tra" và tối đa một công việc bổ sung nước mỗi ngày (FR-039); giới hạn thời điểm, vai trò và gợi ý tránh trùng của "Ghi nhận phát sinh" (FR-025); cập nhật bản nháp bàn giao khi người cao tuổi chuyển trạng thái cuối (FR-010); sửa loại công việc chỉ áp cho mục và công việc tạo sau (FR-038).
+
+**(2026-09-27)** Các quyết định Q-30 → Q-38 của spec này đã được phản ánh vào `docs/nghiep-vu.md` (8.1, 8.3, 8.7, 19.3; CFG-M04-12 ở Phụ lục 25) và `docs/phan-tich-yeu-cau.md` (chú thích ²² của 4.4, quyền xem của Bác sĩ, Dinh dưỡng viên), và nằm ở mục 24.2.
