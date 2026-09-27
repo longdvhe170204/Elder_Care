@@ -66,6 +66,10 @@ Spec 014 và tài liệu nguồn (3.4, 8.8, BR-M04-04, BR-M04-23, Q-163, Q-169, 
 
 Spec 015 thêm yêu cầu nghỉ đột xuất có duyệt và đổi ca. FR-032 nhận thêm nguồn kích hoạt "nghỉ có duyệt" (chỉ các ca được duyệt nghỉ, như vắng ca theo Q-91); phân công không chuyển được khi đổi ca đi theo quy tắc kết thúc phân công của feature 008 FR-027. Trưởng tầng được thông báo như các trường hợp khác của FR-032.
 
+### Cập nhật 2026-09-28 (đồng bộ với spec 016, rà chéo)
+
+Spec 016 (báo cáo và dashboard) dùng dữ liệu công việc của spec này; bảng giao tiếp có thêm dòng "Gửi 016". Spec 016 FR-030, FR-031 chia công việc đóng bởi "Hệ thống" theo đúng danh mục quy tắc của FR-028 (FR-010, FR-047, hủy tự động); công việc Không thực hiện do hệ thống đóng không vào mẫu số tỷ lệ đúng hạn; công việc từng Quá hạn nhưng được ghi Hoàn thành theo thời điểm thực hiện vẫn tính là "đã từng quá hạn" nhưng đúng hạn. Không có thay đổi về hành vi của spec này.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 04, mục 8.1 → 8.7; UC-22 → UC-28):
@@ -478,6 +482,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Gửi | 009 | Nhắc và thông báo (FR-019, FR-043, FR-044, FR-011, FR-032) | Nguồn kích hoạt, người nhận theo phân công hiện tại, mức (BR-M13-04, 05) |
 | Gửi | 010 | Kết quả có tính phí; đính chính hoặc hủy ghi nhận trên kết quả đó | Kết quả ghi nhận (nguồn, DBR-15), người cao tuổi, loại công việc, dịch vụ/vật phẩm, số lượng, thời điểm thực hiện |
 | Gửi | 004, 010, 011 | Trạng thái có mặt bán trú theo ngày | Như FR-016 |
+| Gửi | 016 | Dữ liệu cho báo cáo chăm sóc và dashboard (18.2, 18.5): công việc theo trạng thái, mức quan trọng, loại, tầng/khu, ca; người đóng và căn cứ đóng (FR-028); nhãn "ghi nhận muộn" (BR-M04-12); bản ghi ngoại tuyến và trạng thái "chờ xem lại"; trạng thái có mặt bán trú theo ngày (FR-016) | Công việc, người cao tuổi, tầng/khu, thời điểm dự kiến, thời điểm thực hiện (kể cả thời điểm trên thiết bị), trạng thái và lịch sử trạng thái, người thực hiện, người đóng, quy tắc đóng, nhãn |
 | Nhận | 001 | Đánh giá lại được chấp nhận; hoạt động mẫu; chuyển trạng thái người cao tuổi | Người cao tuổi, thời điểm, trạng thái mới |
 | Nhận | 003 | Chuyển giường thành công | Người cao tuổi, khu cũ, khu mới, thời điểm |
 | Nhận | 004 | Lịch đến bán trú; báo vắng | Người cao tuổi, ngày, giờ đến/về dự kiến, thời điểm báo |

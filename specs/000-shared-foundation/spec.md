@@ -42,6 +42,14 @@ Theo 15.6, DBR-17 và mục 1.5 đã làm rõ ở tài liệu nguồn, chi phí 
 
 Spec 015 (Q-179, Q-182, Q-184) dùng yêu cầu phê duyệt dùng chung cho yêu cầu đổi ca và yêu cầu nghỉ đột xuất, với các sai khác vòng đời được khai báo là ngoại lệ ở FR-031: bước "Chờ người nhận đồng ý", trạng thái "Người nhận từ chối", "Đã áp dụng một phần", "Hết hiệu lực", và chuyển dạng "theo ngày" → "theo ca". Lý do bắt buộc, nhật ký, tự duyệt (Q-10), chống quyết định đồng thời và nhắc theo FR-031a giữ nguyên.
 
+### Cập nhật 2026-09-28 (đồng bộ với spec 002, 016; rà chéo)
+
+Spec 002 (FR-015, ghi nhật ký đăng nhập) và spec 016 (FR-062, ghi lại mỗi lần xuất báo cáo; Q-193, Q-198) cần ghi nhật ký cho hành động **không thay đổi dữ liệu**. Mục E trước đây chỉ nói về thay đổi. Spec này bổ sung:
+- FR-043a mới: nhật ký cho hành động không thay đổi dữ liệu, do spec module sở hữu yêu cầu; lần xuất báo cáo là một bản ghi nhật ký, không phải dữ liệu nghiệp vụ riêng.
+- FR-044: lý do bắt buộc với lần xuất báo cáo có định danh người cao tuổi (mục đích xuất, Q-198).
+- FR-047: áp cho việc xuất; không file nào được giao cho người dùng mà thiếu bản ghi nhật ký.
+- Tên mục E đổi thành "Nhật ký hệ thống".
+
 ## Phạm vi
 
 **Trong phạm vi**: các quy tắc mà mọi module (001–016) kế thừa, không lặp lại trong spec của module:
@@ -50,7 +58,7 @@ Spec 015 (Q-179, Q-182, Q-184) dùng yêu cầu phê duyệt dùng chung cho yê
 2. Tham số cấu hình (Phụ lục 25, BR-M15-04, DBR-24, UC-69).
 3. Yêu cầu phê duyệt dùng chung (YEU_CAU_PHE_DUYET, UC-14).
 4. Đính chính bản ghi đã xác nhận (mục 1.3, 1.5, BR-M15-03, DBR-23).
-5. Nhật ký thay đổi (mục 19.4, DBR-23, DBR-25).
+5. Nhật ký hệ thống: thay đổi dữ liệu và các hành động không thay đổi dữ liệu mà spec module yêu cầu ghi (mục 19.4, DBR-23, DBR-25).
 
 **Ngoài phạm vi**:
 
@@ -122,6 +130,7 @@ Quản lý viện (hoặc người có quyền xem đối tượng) tra cứu đ
 8. **Given** Dinh dưỡng viên xem lịch sử thay đổi của hồ sơ một người cao tuổi, trong đó có lần sửa cả dị ứng và một trường sức khỏe ngoài phạm vi của Dinh dưỡng viên, **When** mở bản ghi nhật ký đó, **Then** thấy giá trị trước/sau của dị ứng, còn trường sức khỏe kia chỉ hiện "đã thay đổi".
 9. **Given** người thân được cấp quyền xem một dữ liệu đã được đính chính, **When** xem dữ liệu đó trên cổng người thân, **Then** chỉ thấy giá trị hiện hành, không thấy nhật ký hay giá trị trước.
 10. **Given** quản lý viện cần điều tra, **When** tra cứu nhật ký theo đối tượng, người thực hiện, loại hành động hoặc khoảng thời gian, **Then** hệ thống trả về các bản ghi phù hợp, sắp xếp theo thời điểm.
+11. **Given** Quản lý viện xuất một báo cáo có định danh người cao tuổi với mục đích "họp giao ban" (feature 016), **When** lần xuất hoàn tất, **Then** có đúng một bản ghi nhật ký hành động "Xuất báo cáo" với lý do là mục đích xuất, dữ liệu trước/sau để trống và phần chi tiết của lần xuất; không có bản ghi nghiệp vụ nào khác được tạo; **When** việc lưu bản ghi nhật ký thất bại, **Then** file không được giao (FR-043a, FR-044, FR-047); **When** một nhân viên chỉ xem báo cáo trên hệ thống, **Then** không có bản ghi nhật ký nào được tạo.
 
 ---
 
@@ -271,14 +280,15 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 
 Đã áp dụng, Áp dụng không thành, Từ chối, Hủy là trạng thái kết thúc; không có lệnh nào đưa yêu cầu ra khỏi các trạng thái này.
 
-#### E. Nhật ký thay đổi
+#### E. Nhật ký hệ thống
 
 - **FR-042**: Mọi thay đổi trên dữ liệu nhóm 2 và nhóm 3 (bao gồm lệnh nghiệp vụ, phiên bản mới, xác nhận, đính chính, chuyển trạng thái yêu cầu phê duyệt) MUST có bản ghi nhật ký tương ứng. *(Nguồn: DBR-23, mục 1.3)*
 - **FR-043**: Thay đổi dữ liệu nhóm 1 (tạo, sửa, ngừng hiệu lực, kích hoạt lại, xóa), thay đổi tham số và thay đổi phân quyền MUST được ghi nhật ký. *(Nguồn: mục 1.3, BR-M15-04)*
-- **FR-044**: Mỗi bản ghi nhật ký MUST gồm: người thực hiện; thời điểm; hành động; đối tượng (loại và định danh); dữ liệu trước; dữ liệu sau; lý do (bắt buộc với lệnh nhóm 2, đính chính, từ chối, hủy, tự duyệt, thay đổi tham số; tùy chọn với hành động khác). *(Nguồn: 19.4)*
+- **FR-043a**: Spec module MAY yêu cầu ghi nhật ký cho hành động **không thay đổi dữ liệu**; hiện gồm: đăng nhập thành công và thất bại (feature 002 FR-015) và xuất báo cáo ra file (feature 016 FR-062). Bản ghi loại này dùng cùng khung FR-044 → FR-051: "dữ liệu trước/sau" để trống; phần chi tiết riêng (ví dụ bộ lọc, khoảng, phạm vi, số dòng, dấu "có định danh" của lần xuất) do spec sở hữu quy định; lý do bắt buộc hay không theo FR-044. Lần xuất báo cáo là một bản ghi nhật ký, không phải dữ liệu nghiệp vụ nhóm 1, 2, 3 riêng, nên không sinh thêm bản ghi nhật ký thứ hai theo FR-042. Việc xem dữ liệu, dashboard, báo cáo trên hệ thống MUST NOT được ghi nhật ký, trừ lần người thân xem hồ sơ sức khỏe (NFR-08, feature 012). *(Nguồn: 19.4; NFR-08; đồng bộ spec 002, 016; Q-193)*
+- **FR-044**: Mỗi bản ghi nhật ký MUST gồm: người thực hiện; thời điểm; hành động; đối tượng (loại và định danh); dữ liệu trước; dữ liệu sau; lý do (bắt buộc với lệnh nhóm 2, đính chính, từ chối, hủy, tự duyệt, thay đổi tham số, và xuất báo cáo có thông tin định danh người cao tuổi — lý do là mục đích xuất, feature 016 FR-061, Q-198; tùy chọn với hành động khác). *(Nguồn: 19.4; Q-198)*
 - **FR-045**: Với thay đổi do hệ thống tự thực hiện, người thực hiện MUST là "Bộ lập lịch hệ thống" (AC-11) và nhật ký MUST tham chiếu căn cứ (quy tắc hoặc yêu cầu phê duyệt đã dẫn tới thay đổi).
 - **FR-046**: Thời điểm trong nhật ký MUST theo múi giờ Asia/Ho_Chi_Minh và lấy theo đồng hồ của hệ thống, không theo thiết bị; với bản ghi ngoại tuyến, nhật ký MUST lưu cả thời điểm trên thiết bị và thời điểm đồng bộ. *(Nguồn: DBR-25, NFR-09)*
-- **FR-047**: Thay đổi và bản ghi nhật ký tương ứng MUST cùng được lưu hoặc cùng không được lưu; không có thay đổi nào được lưu mà thiếu nhật ký.
+- **FR-047**: Thay đổi và bản ghi nhật ký tương ứng MUST cùng được lưu hoặc cùng không được lưu; không có thay đổi nào được lưu mà thiếu nhật ký. Với lần xuất báo cáo (FR-043a), file MUST NOT được giao cho người dùng nếu bản ghi nhật ký của lần xuất chưa được lưu.
 - **FR-048**: Nhật ký MUST chỉ ghi thêm; MUST NOT có thao tác sửa hay xóa cho bất kỳ vai trò người dùng nào, kể cả Quản lý viện. Ngoại lệ duy nhất là việc loại bỏ theo thời hạn lưu giữ ở FR-051.
 - **FR-049**: Quản lý viện MUST tra cứu được nhật ký toàn viện theo đối tượng, người thực hiện, loại hành động và khoảng thời gian. Nhân viên (AC-02 → AC-09) MUST chỉ xem được lịch sử thay đổi của đối tượng mà họ hiện có quyền xem, trong phạm vi dữ liệu hiện tại của họ (BR-M15-01); trong mỗi bản ghi nhật ký, giá trị trước/sau của một trường MUST chỉ hiện khi người xem hiện có quyền xem trường đó, nếu không thì chỉ hiện "đã thay đổi" (mục 19.3). Người thân (AC-10) MUST NOT xem nhật ký; họ chỉ thấy giá trị hiện hành của dữ liệu được cấp quyền (sau đính chính). *(Clarification 2026-09-25)*
 - **FR-050**: Hồ sơ người cao tuổi, sức khỏe, thuốc, sự cố MUST được lưu giữ tối thiểu theo CFG-M15-03 (mặc định \[10 năm\] sau khi kết thúc lưu trú); nhật ký MUST được lưu giữ tối thiểu theo CFG-M15-04 (mặc định \[10 năm\]). Bản ghi nhật ký của một hồ sơ MUST NOT bị loại bỏ trước khi chính hồ sơ đó hết thời hạn lưu giữ, bất kể giá trị CFG-M15-04. *(Nguồn: NFR-07; Clarification 2026-09-25, Q-04; hai mã CFG là đề xuất bổ sung Phụ lục 25)*
@@ -291,7 +301,7 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 - **Lịch sử giá trị tham số**: mã CFG, giá trị, thời điểm bắt đầu hiệu lực, thời điểm kết thúc, người đổi, lý do. Cho phép xác định giá trị tại một thời điểm quá khứ.
 - **Yêu cầu phê duyệt (YEU_CAU_PHE_DUYET)** – nhóm 2: loại, nội dung, người yêu cầu, ngày hiệu lực mong muốn, ngày hiệu lực thực tế, lý do, người duyệt, thời điểm và lý do quyết định, trạng thái; liên kết tới kết quả áp dụng.
 - **Đính chính (DINH_CHINH)** – nhóm 3: bản ghi gốc (đúng một), loại (sửa nội dung / Hủy ghi nhận), nội dung đúng, lý do, người thực hiện, thời điểm.
-- **Nhật ký (NHAT_KY)** – nhóm 3: người thực hiện (người dùng hoặc Bộ lập lịch hệ thống), thời điểm (và thời điểm thiết bị nếu ngoại tuyến), hành động, đối tượng, dữ liệu trước, dữ liệu sau, lý do, căn cứ.
+- **Nhật ký (NHAT_KY)** – nhóm 3: người thực hiện (người dùng hoặc Bộ lập lịch hệ thống), thời điểm (và thời điểm thiết bị nếu ngoại tuyến), hành động, đối tượng, dữ liệu trước, dữ liệu sau, lý do, căn cứ, phần chi tiết riêng của hành động (FR-043a). Hành động gồm thay đổi dữ liệu và hành động không thay đổi dữ liệu (đăng nhập, xuất báo cáo).
 - **Nhóm dữ liệu** (khái niệm): thuộc tính của mỗi loại dữ liệu, quyết định thao tác được phép theo mục A.
 
 ## Success Criteria *(mandatory)*

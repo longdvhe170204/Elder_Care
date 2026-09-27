@@ -38,6 +38,10 @@ Spec 014 và tài liệu nguồn (8.8, 8.9, 3.4, BR-M04-18, Q-167, Q-170, Q-173,
 - Hủy lượt đến từ đính chính điểm danh và từ Hủy ghi nhận điểm danh rời viện (bảng giao tiếp được sửa).
 - Phí buổi của bán trú dùng giờ về theo ngày do feature 005 quản lý, có thể dời vì đồng ý về muộn; spec 014 không tạo khoản riêng cho phần giờ thêm (Q-138, Q-140 áp như cũ).
 
+### Cập nhật 2026-09-28 (đồng bộ với spec 016, rà chéo)
+
+Spec 016 (báo cáo chi phí 18.4) tính tỷ lệ tự sinh / nhập tay theo trường **nguồn sinh** của FR-014: tự sinh = tự động, mua hộ, điều chỉnh do hệ thống tạo (FR-027); nhập tay = nhập tay, điều chỉnh do Hành chính lập (UC-63). Khoản điều chỉnh tính vào kỳ của bảng chứa nó (FR-002a, FR-003); "bảng chưa chốt" gồm cả bảng thường và bảng bổ sung. Dòng giao tiếp "Gửi Module 14" đổi thành "Gửi 016" với đủ dữ liệu tối thiểu. Không có thay đổi về hành vi của spec này.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 11, mục 15; UC-61 → UC-64, UC-79):
@@ -456,7 +460,7 @@ Từ chối, Hủy, Đã mua là trạng thái cuối. Đề nghị mua hộ là
 | Gửi | 012 | Bảng chi phí đã chốt; chi phí tạm tính; đề nghị mua hộ cần đồng ý | Theo FR-037, FR-038, FR-023 |
 | Nhận | 014 | Điểm danh hoạt động có thu phí và việc hủy lượt (đính chính điểm danh, Hủy ghi nhận điểm danh rời viện, feature 014 FR-031, FR-031a); giờ về theo ngày của bán trú lấy từ feature 005 (Q-176) | Buổi, người cao tuổi, hoạt động/dịch vụ, bản ghi điểm danh |
 | Gửi | 009 | Các thông báo ở bảng FR-044 | Nguồn, mức, nhóm người nhận, loại thông tin "chi phí" |
-| Gửi | Module 14 | Dữ liệu cho báo cáo chi phí 18.4 | Khoản, loại, nguồn sinh, dịch vụ/vật phẩm/thuốc/hoạt động, điều chỉnh sau chốt |
+| Gửi | 016 | Dữ liệu cho báo cáo chi phí 18.4 và dashboard 18.5 | Khoản (loại, nguồn sinh, người lập khoản điều chỉnh: hệ thống hay Hành chính, dịch vụ/vật phẩm/thuốc/hoạt động, ngày phát sinh, số lượng, đơn giá, thành tiền, dấu "thiếu đơn giá", "thuộc gói", trạng thái); bảng (thường/bổ sung, kỳ, trạng thái, hạn chốt); khoản điều chỉnh (khoản gốc, kỳ gốc); kỳ của viện và trạng thái |
 
 ### Key Entities *(include if feature involves data)*
 
