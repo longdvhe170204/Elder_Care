@@ -117,6 +117,12 @@ Vai trò hệ thống là các vai trò ở bảng 2.3, được gán cho tài k
 | Phần bổ sung         | Khái niệm | **(Bổ sung, spec 011)** Suất của phát sinh cần giao, được giao sau khi phiếu bữa ăn đã Đã giao (12.5) |
 | Người nhận tại tầng  | Nhiệm vụ  | **(Bổ sung, spec 011, Q-143)** Trưởng tầng, Điều dưỡng hoặc Nhân viên chăm sóc trong phạm vi phân công, kiểm đếm và nhận phiếu bữa ăn, phần bổ sung (BR-M08-11) |
 | Danh sách cần đối chiếu khi phục vụ | Khái niệm | **(Bổ sung, spec 011)** Người có dị ứng không kiểm tra tự động, phải được xác nhận phục vụ; chỉ nhân viên tại tầng thấy, bếp không thấy (12.5) |
+| Người giữ            | Khái niệm | **(Bổ sung, spec 013)** Người nhận ở bản ghi bàn giao gần nhất của một đồ gửi: nhân viên đang giữ hoặc chính người cao tuổi (16.3) |
+| Người có quyền nhận  | Quan hệ   | **(Bổ sung, spec 013)** Người đại diện hoặc người thân có quyền "được phép đón" đang hiệu lực, tại thời điểm trả đồ gửi (BR-M12-04) |
+| Xác nhận người nhận khác | Khái niệm | **(Bổ sung, spec 013, Q-149, Q-150)** Xác nhận của người đại diện (hoặc Quản lý viện duyệt thay) cho một người không có quyền nhận, kể cả chính người cao tuổi, nhận các đồ gửi cụ thể, dùng một lần (16.4) |
+| Đồng ý cho tự giữ    | Khái niệm | **(Bổ sung, spec 013, Q-155)** Đồng ý của người đại diện cho người cao tuổi tự giữ một đồ gửi là tiền mặt, trang sức (BR-M12-06) |
+| Đồ có giá trị        | Khái niệm | **(Bổ sung, spec 013)** Đồ gửi thuộc loại nằm trong CFG-M12-01; bắt buộc ảnh (BR-M12-05) và được kiểm kê định kỳ (BR-M12-07) |
+| Đồ không rõ chủ      | Khái niệm | **(Bổ sung, spec 013)** Đồ phát hiện khi kiểm kê mà không khớp đồ gửi nào; không phải đồ gửi (16.6) |
 | BR-Mxx-yy            | Mã        | Quy tắc nghiệp vụ của module xx                                                                                                                                                                                                                                                                                                                                                               |
 | CFG-Mxx-yy           | Mã        | Tham số cấu hình (Phụ lục 25)                                                                                                                                                                                                                                                                                                                                                                 |
 
@@ -282,7 +288,7 @@ Sơ đồ trên thể hiện cùng bảng chuyển trạng thái; hồ sơ ở t
 | Đang lưu trú → Hoạt động bên ngoài    | Điểm danh rời viện của chuyến đi (8.9)                                                                                                                                                                                                             | Tạm dừng công việc trong khoảng thời gian đi; liều thuốc chuyển "Mang theo"                                                                                                        |
 | → Điều trị tại bệnh viện              | Có sự cố hoặc chỉ định chuyển viện                                                                                                                                                                                                                 | Như Tạm vắng; thông báo người liên hệ chính                                                                                                                                        |
 | Điều trị tại bệnh viện → Đang lưu trú | —                                                                                                                                                                                                                                                  | Tạm dừng toàn bộ lịch thuốc cũ; tạo yêu cầu đối chiếu thuốc (BR-M07-09) và yêu cầu đánh giá lại (BR-M01-02)                                                                        |
-| → Kết thúc lưu trú                    | Không còn đồ gửi/thuốc gửi đang giữ; chi phí kỳ cuối đã chốt theo trình tự 6.8 (Q-21); không còn cảnh báo/sự cố mở — trừ khi quản lý duyệt ngoại lệ; đã bàn giao người cao tuổi                                                                    | Hủy mọi lịch tương lai; giải phóng giường; khóa tài khoản người thân sau \[30 ngày\]                                                                                               |
+| → Kết thúc lưu trú                    | Không còn đồ gửi ở Đang giữ, Đang được sử dụng hoặc Hư hỏng (BR-M12-03, Q-148); không còn thuốc gửi đang giữ; chi phí kỳ cuối đã chốt theo trình tự 6.8 (Q-21); không còn cảnh báo/sự cố mở — trừ khi quản lý duyệt ngoại lệ; đã bàn giao người cao tuổi                                                                    | Hủy mọi lịch tương lai; giải phóng giường; khóa tài khoản người thân sau \[30 ngày\]                                                                                               |
 | → Qua đời                             | Có người xác nhận: bác sĩ khi mất tại viện; khi mất ngoài viện, bác sĩ hoặc hành chính kèm giấy tờ bằng chứng                                                                                                                                      | Như Kết thúc lưu trú; thông báo người liên hệ chính; hồ sơ chỉ đọc                                                                                                                 |
 | Đang tiếp nhận → Hủy tiếp nhận        | Có lý do                                                                                                                                                                                                                                           | Hủy giữ chỗ giường nếu có; đóng hồ sơ chờ liên quan                                                                                                                                |
 
@@ -413,11 +419,11 @@ Trường hợp qua đời, ghi nhận: thời điểm; địa điểm; người
 **(Bổ sung, spec 004, Q-21, Q-26) Trình tự kết thúc lưu trú.**
 
 1. Hành chính (hoặc bác sĩ, với xuất viện/chuyển cơ sở vì lý do y tế) lập **hồ sơ kết thúc lưu trú**: trường hợp, ngày kết thúc dự kiến, lý do, nơi chuyển đến (nếu chuyển cơ sở). Từ lúc này hệ thống dừng sinh chi phí tự động sau ngày kết thúc dự kiến và tạo bảng kỳ cuối nháp.
-2. Hệ thống tự kiểm tra danh sách điều kiện: chi phí kỳ cuối đã chốt; không còn đồ gửi; không còn thuốc gia đình gửi; không còn cảnh báo/sự cố mở; đã ghi nhận bàn giao người cao tuổi (người nhận, thời điểm, nhân viên bàn giao). Bốn điều kiện đầu có thể được quản lý viện duyệt ngoại lệ; bàn giao người cao tuổi không có ngoại lệ.
+2. Hệ thống tự kiểm tra danh sách điều kiện: chi phí kỳ cuối đã chốt; không còn đồ gửi ở Đang giữ, Đang được sử dụng hoặc Hư hỏng (**(Bổ sung, spec 013, Q-148)** đồ Thất lạc không tính ở điều kiện này, nhưng sự cố của nó thuộc điều kiện cảnh báo/sự cố mở); không còn thuốc gia đình gửi; không còn cảnh báo/sự cố mở; đã ghi nhận bàn giao người cao tuổi (người nhận, thời điểm, nhân viên bàn giao). Bốn điều kiện đầu có thể được quản lý viện duyệt ngoại lệ; bàn giao người cao tuổi không có ngoại lệ.
 3. Khi mọi điều kiện đạt, lệnh **Kết thúc lưu trú** được thực hiện trong ngày kết thúc dự kiến; hợp đồng chuyển Kết thúc hoặc Chấm dứt, giường được giải phóng, lịch tương lai bị hủy.
 4. Đổi ngày kết thúc dự kiến thì kỳ cuối được tính lại. Quá ngày kết thúc dự kiến mà lệnh chưa thực hiện được thì hồ sơ mang dấu "quá ngày dự kiến", hệ thống sinh bù và tiếp tục sinh chi phí, điều kiện chi phí về chưa đạt, hành chính được nhắc hằng ngày đặt ngày mới.
 
-**(Bổ sung, spec 004) Sau khi qua đời.** Lệnh Ghi nhận qua đời không bị chặn bởi đồ gửi, chi phí hay sự cố. Hệ thống chấm dứt hợp đồng, giải phóng giường, hủy lịch tương lai và dừng sinh chi phí ngay; đồng thời mở **danh sách việc sau qua đời** (xử lý đồ gửi, hoàn trả thuốc gia đình gửi, chốt chi phí kỳ cuối, xử lý cảnh báo/sự cố mở) và nhắc hành chính mỗi \[1 ngày\] (CFG-M02-09) tới khi hoàn thành; khi đó hồ sơ lưu trú được đóng. Bổ sung nguyên nhân tử vong về sau được ghi bằng đính chính.
+**(Bổ sung, spec 004) Sau khi qua đời.** Lệnh Ghi nhận qua đời không bị chặn bởi đồ gửi, chi phí hay sự cố. Hệ thống chấm dứt hợp đồng, giải phóng giường, hủy lịch tương lai và dừng sinh chi phí ngay; đồng thời mở **danh sách việc sau qua đời** (xử lý đồ gửi, hoàn trả thuốc gia đình gửi, chốt chi phí kỳ cuối, xử lý cảnh báo/sự cố mở) và nhắc hành chính mỗi \[1 ngày\] (CFG-M02-09) tới khi hoàn thành; khi đó hồ sơ lưu trú được đóng. **(Bổ sung, spec 013)** Mục "xử lý đồ gửi" hoàn thành khi mọi đồ ở Đã trả, Thất lạc hoặc Đã xử lý (16.6); đồ Thất lạc được tìm thấy sau khi hồ sơ đã đóng không làm mở lại hồ sơ mà được nhắc theo CFG-M12-02. Bổ sung nguyên nhân tử vong về sau được ghi bằng đính chính.
 
 ### 6.9. Quy tắc nghiệp vụ Module 02 (bổ sung)
 
@@ -695,7 +701,7 @@ Ghi nhận: tâm trạng; giao tiếp; mức độ tham gia; hành vi bất thư
 
 ### 9.1. Nguồn phát sinh
 
-Sự cố có thể phát sinh từ: chăm sóc; ăn uống; thuốc; vận động; hoạt động; đi lại; điều trị; hoạt động ngoài viện; **(bổ sung)** phục vụ sai suất ăn (BR-M08-14).
+Sự cố có thể phát sinh từ: chăm sóc; ăn uống; thuốc; vận động; hoạt động; đi lại; điều trị; hoạt động ngoài viện; **(bổ sung)** phục vụ sai suất ăn (BR-M08-14); **(bổ sung, spec 013)** đồ gửi (thất lạc, hư hỏng; BR-M12-02), kể cả khi đồ mất lúc người cao tuổi đang ở ngoài viện.
 
 Cảnh báo có thể được tạo tự động từ: chỉ số vượt ngưỡng; công việc quá hạn; bỏ ăn; từ chối thuốc; hành vi bất thường.
 
@@ -1182,6 +1188,8 @@ Có thể cung cấp: tình trạng chăm sóc; hoạt động; thông báo; th�
 
 Người thân có thể: xem thông tin được cấp quyền; xem lịch sinh hoạt; đăng ký thăm; xem chi phí; nhận thông báo; gửi phản hồi. Camera, nếu có, được xem là tích hợp tùy chọn, không phải nghiệp vụ lõi của hệ thống.
 
+**(Bổ sung, spec 013)** Đồ gửi: người đại diện và người có quyền "được phép đón" xem danh sách đồ gửi, lịch sử bàn giao và ảnh (BR-M12-09, Q-151); người đại diện xác nhận người nhận khác và ghi, rút đồng ý cho tự giữ (BR-M12-04, BR-M12-06). Người thân khác không thấy đồ gửi. Đây là quy tắc hiển thị riêng, không phải một loại thông tin mới của thông báo.
+
 ### 14.7. Phản hồi và khiếu nại
 
 Ghi nhận: người gửi; người cao tuổi; nội dung; loại; mức ưu tiên; người phụ trách; hướng xử lý; kết quả; thời gian đóng.
@@ -1330,27 +1338,68 @@ Module này quản lý đồ gửi của người cao tuổi, không phải qu�
 
 Điện thoại; kính; quần áo; xe lăn; giấy tờ; đồ dùng cá nhân; thuốc gia đình gửi (quy tắc sử dụng tại 11.4); tài sản khác.
 
+**(Bổ sung, spec 013)**
+- **Thuốc gia đình gửi** được tiếp nhận, sử dụng và hoàn trả theo 11.4 (Điều dưỡng), không đi qua quy trình đồ gửi của Hành chính, vì Hành chính không xem thông tin thuốc (19.3).
+- Danh mục loại đồ có thêm **trang sức** và **tiền mặt** (CFG-M12-01 đã dùng hai loại này). Tiền mặt ghi số tiền bằng đồng; ngoại tệ, vàng miếng, giấy tờ có giá ghi là "tài sản khác".
+- **Xe lăn** ở đây là xe lăn riêng của người cao tuổi. Tài sản, thiết bị của viện không phải đồ gửi (hư hỏng thiết bị trong phòng theo 7.5).
+- Mỗi loại đồ có dấu "cần đồng ý khi giao sử dụng", mặc định bật cho tiền mặt và trang sức (BR-M12-06). Bật, tắt dấu phải có lý do và được lưu lịch sử.
+
 ### 16.2. Tiếp nhận
 
 Ghi nhận: người cao tuổi; vật phẩm; số lượng; tình trạng; người giao; người nhận; thời gian; vị trí lưu giữ; hình ảnh nếu cần.
+
+**(Bổ sung, spec 013)** Vị trí lưu giữ là danh mục (1.5 nhóm 1), có thể gắn tầng/khu vực; vị trí còn đồ đang giữ không được ngừng hiệu lực. Tình trạng ghi theo **danh mục mức tình trạng** (Q-156) kèm mô tả. Được tiếp nhận khi người cao tuổi ở Đang tiếp nhận, Đang lưu trú, Tạm vắng, Hoạt động bên ngoài hoặc Điều trị tại bệnh viện. Đồ dùng hằng ngày có thể được giao ngay cho người cao tuổi sử dụng trong cùng lần tiếp nhận (với tiền mặt, trang sức: chỉ khi người giao là người đại diện và ký đồng ý cho tự giữ trong lần đó).
 
 ### 16.3. Bàn giao
 
 Mỗi lần bàn giao phải có: Ai giao → Ai nhận → Khi nào → Vật gì → Số lượng → Tình trạng.
 
+**(Bổ sung, spec 013)**
+- **Loại bàn giao:** Tiếp nhận; Giao sử dụng (cho người cao tuổi); Thu lại; Chuyển giữ (đổi người giữ hoặc vị trí); Trả; Báo thất lạc; Ghi hư hỏng; Tìm thấy; Xử lý (đồ không người nhận, 16.6). Mỗi lần là một bản ghi bàn giao (1.5 nhóm 3); trạng thái hiện tại là trạng thái của bản ghi gần nhất.
+- **Người giữ** là người nhận ở bản ghi gần nhất. Người giao ghi trên lệnh phải là người giữ, trừ lệnh Trả từ người cao tuổi, Báo thất lạc, Tìm thấy, và Hành chính bàn giao thay khi người giữ vắng mặt (điều kiện theo Q-158).
+- **Bàn giao một phần** số lượng thì đồ gửi được **tách**: phần được bàn giao thành đồ gửi mới trỏ về đồ gốc và lần tiếp nhận gốc. Đếm thiếu khi bàn giao thì phần thiếu được tách và ghi Báo thất lạc trong cùng lệnh.
+- **Tình trạng xấu đi** so với lần trước thì người ghi chọn ghi nhận tình trạng mới hoặc Ghi hư hỏng; mức "không dùng được" chỉ ghi qua Ghi hư hỏng, trừ khi tiếp nhận đồ đã hỏng từ trước.
+- **Đính chính** theo 1.5 (bản ghi không gắn tầng): không đổi loại bàn giao hay trạng thái đích; "Hủy ghi nhận" chỉ áp cho bản ghi gần nhất và làm trạng thái, sự cố liên quan được tính lại (Q-160).
+- Tiếp nhận, bàn giao, trả đồ gửi phải thực hiện trực tuyến.
+
 ### 16.4. Trả lại
 
 Khi trả: người nhận; người bàn giao; thời gian; tình trạng; trạng thái. Khi kết thúc lưu trú, hệ thống kiểm tra các đồ gửi chưa hoàn trả.
 
-**(Bổ sung)** Trạng thái đồ gửi: Đang giữ → Đang được người cao tuổi sử dụng → Đang giữ (lặp lại) → Đã trả; hoặc Thất lạc / Hư hỏng.
+**(Bổ sung, đã chỉnh sửa theo Q-148, Q-152)** Trạng thái đồ gửi:
+
+| Trạng thái | Có thể chuyển sang |
+| --- | --- |
+| Đang giữ | Đang được người cao tuổi sử dụng (Giao sử dụng); Đang giữ (Chuyển giữ); Đã trả; Thất lạc; Hư hỏng; Đã xử lý (16.6) |
+| Đang được người cao tuổi sử dụng | Đang giữ (Thu lại); Đã trả; Thất lạc; Hư hỏng |
+| Thất lạc | Đang giữ (Tìm thấy) |
+| Hư hỏng | Hư hỏng (Chuyển giữ); Đã trả; Thất lạc; Đã xử lý (16.6) |
+| Đã trả | Trạng thái cuối |
+| Đã xử lý | Trạng thái cuối |
+
+**(Bổ sung, spec 013)**
+- **Người có quyền nhận:** người đại diện hoặc người thân có quyền "được phép đón" đang hiệu lực, xác minh danh tính như quy trình đón (14.3). Người nhận ký xác nhận; trả nhiều đồ một lần thì mỗi đồ một bản ghi, chung chữ ký. Người nhận xem tình trạng lúc tiếp nhận và được ghi ý kiến không đồng ý.
+- **Người trả (Q-153):** Hành chính trả mọi đồ; Điều dưỡng chỉ trả đồ không có giá trị cho người có quyền nhận.
+- **Người nhận khác (Q-149, Q-150):** kể cả chính người cao tuổi, cần **xác nhận người nhận khác** của người đại diện (qua cổng hoặc bản ký), cho đúng người nhận và đúng đồ, dùng một lần trong CFG-M10-08. Không liên hệ được người đại diện sau CFG-M12-05, hoặc không còn người đại diện Hiệu lực, thì Quản lý viện duyệt thay có lý do và bằng chứng liên hệ (CFG-M12-06, Q-157); không duyệt thay khi người đại diện đã từ chối. Xác nhận này có vòng đời riêng: Chờ xác nhận → Hiệu lực / Từ chối / Hủy; Hiệu lực → Đã dùng / Hết hạn.
+- Khi hồ sơ người cao tuổi đã ở trạng thái cuối, đồ gửi vẫn được thu lại, chuyển giữ, trả, báo thất lạc, ghi hư hỏng (ngoại lệ (3) của BR-M01-05); Hành chính được nhắc theo CFG-M12-02 tới khi hết đồ chưa trả.
 
 ### 16.5. Quy tắc nghiệp vụ Module 12 (bổ sung)
 
-- **BR-M12-01:** Mọi lần chuyển trạng thái đồ gửi phải có người giao, người nhận và thời điểm; bản ghi bàn giao không sửa/xóa được.
-- **BR-M12-02:** Đồ gửi chuyển sang Thất lạc hoặc Hư hỏng thì hệ thống tự tạo sự cố mức trung bình và thông báo người liên hệ chính.
-- **BR-M12-03:** Kết thúc lưu trú bị chặn nếu còn đồ gửi ở trạng thái Đang giữ hoặc Đang được sử dụng, trừ khi quản lý duyệt ngoại lệ có lý do (5.6).
-- **BR-M12-04:** Đồ gửi chỉ được trả cho người thân có quyền đón hoặc người đại diện; người nhận khác cần người đại diện xác nhận.
-- **BR-M12-05:** Đồ có giá trị (theo danh mục cấu hình, ví dụ điện thoại, trang sức, tiền mặt) bắt buộc có hình ảnh khi tiếp nhận và khi trả.
+- **BR-M12-01:** Mọi lần chuyển trạng thái đồ gửi phải có người giao, người nhận và thời điểm; bản ghi bàn giao không sửa/xóa được. **(Làm rõ, spec 013)** Báo thất lạc không có người nhận thực tế, Tìm thấy không có người giao; khi đó người ghi nhận được ghi thay.
+- **BR-M12-02:** Đồ gửi chuyển sang Thất lạc hoặc Hư hỏng thì hệ thống tự tạo sự cố mức trung bình và thông báo người liên hệ chính. **(Bổ sung, spec 013)** Sự cố có nguồn "đồ gửi" (9.1), loại "đồ gửi thất lạc" / "đồ gửi hư hỏng"; không tạo yêu cầu đánh giá lại "sau sự cố" (BR-M01-02). Nếu sự cố về việc này đã được ghi trực tiếp, lệnh đồ gửi liên kết sự cố đó thay vì tạo mới. Thông báo tới người thân chỉ nêu loại đồ và sự kiện; sau khi người cao tuổi qua đời chỉ gửi người đại diện.
+- **BR-M12-03 (đã chỉnh sửa, Q-148):** Kết thúc lưu trú bị chặn nếu còn đồ gửi ở trạng thái Đang giữ, Đang được sử dụng hoặc **Hư hỏng**, trừ khi quản lý duyệt ngoại lệ có lý do (5.6). Đồ Thất lạc không chặn điều kiện đồ gửi, nhưng sự cố của nó vẫn chặn qua điều kiện "không còn sự cố mở" cho tới khi đóng.
+- **BR-M12-04 (đã chỉnh sửa, Q-149, Q-150, Q-153):** Đồ gửi chỉ được trả cho người thân có quyền đón hoặc người đại diện; người nhận khác, **kể cả chính người cao tuổi**, cần người đại diện xác nhận. Không liên hệ được người đại diện quá CFG-M12-05, hoặc không còn người đại diện Hiệu lực, thì Quản lý viện duyệt thay có lý do và bằng chứng (16.4). Điều dưỡng chỉ trả đồ không có giá trị cho người có quyền nhận.
+- **BR-M12-05:** Đồ có giá trị (theo danh mục cấu hình, ví dụ điện thoại, trang sức, tiền mặt) bắt buộc có hình ảnh khi tiếp nhận và khi trả. **(Bổ sung, spec 013)** Cũng bắt buộc khi Tìm thấy; Ghi hư hỏng bắt buộc hình ảnh với mọi loại đồ.
+- **BR-M12-06 (bổ sung, Q-155):** Tiền mặt, trang sức (loại có dấu "cần đồng ý khi giao sử dụng") chỉ được giao cho người cao tuổi tự giữ khi người đại diện đã đồng ý cho đúng đồ đó (qua cổng hoặc bản ký) và người cao tuổi không có cờ nguy cơ đi lạc. Đồng ý bị rút hoặc cờ đi lạc được gắn khi đồ đang được sử dụng thì Hành chính và điều dưỡng phụ trách được báo để thu lại. Điện thoại giao sử dụng không cần đồng ý.
+- **BR-M12-07 (bổ sung, Q-154):** Theo CFG-M12-04, hệ thống sinh phiếu kiểm kê cho mỗi vị trí lưu giữ đang có đồ có giá trị ở Đang giữ; Hành chính kiểm kê; đồ không tìm thấy phải được ghi Báo thất lạc khi hoàn thành phiếu. Phiếu quá hạn được nhắc Hành chính hằng ngày và báo Quản lý viện.
+- **BR-M12-08 (bổ sung, Q-152):** Hồ sơ người cao tuổi ở trạng thái cuối từ CFG-M12-03 trở lên mà còn đồ Đang giữ hoặc Hư hỏng không ai nhận thì Hành chính được lập đề nghị "Xử lý đồ không người nhận" (thanh lý, tiêu hủy, chuyển cơ quan có thẩm quyền) kèm biên bản và bằng chứng liên hệ (CFG-M12-07); Quản lý viện duyệt thì đồ chuyển Đã xử lý. Tiền mặt chỉ được chuyển cơ quan có thẩm quyền (Q-159).
+- **BR-M12-09 (bổ sung, Q-151):** Trên cổng người thân, đồ gửi, lịch sử bàn giao và ảnh chỉ hiển thị cho người đại diện và người có quyền "được phép đón" đang hiệu lực.
+
+### 16.6. Kiểm kê và đồ không người nhận (bổ sung, spec 013)
+
+- **Kiểm kê (Q-154):** chỉ áp cho đồ có giá trị ở Đang giữ, theo từng vị trí lưu giữ. Phiếu kiểm kê: Chờ kiểm kê → Hoàn thành / Đã hủy (khi mọi đồ đã rời vị trí trước khi kiểm). Kết quả từng đồ: Đúng (không sinh bản ghi bàn giao); Lệch tình trạng; Không tìm thấy (Báo thất lạc). Đồ thừa: đồ Thất lạc thấy lại thì ghi Tìm thấy; số lượng nhiều hơn thì đính chính lần tiếp nhận; đồ không rõ chủ ghi ở phiếu kèm ảnh và báo Quản lý viện.
+- **Đồ không người nhận (Q-152):** đề nghị "Xử lý đồ không người nhận" là một loại yêu cầu phê duyệt dùng chung (6.6); Quản lý viện không tự duyệt đề nghị do mình lập. Đồ được trả trong lúc đề nghị chờ duyệt thì bị loại khỏi phần áp dụng. Đồ Đang được sử dụng phải thu lại trước; đồ Thất lạc không thuộc đề nghị.
+- **Đồ do nhân viên giữ khi hết ca:** đồ có giá trị ở Đang giữ mà người giữ hết ca được đưa vào bản nháp bàn giao ca (13.5) và nhân viên được nhắc chuyển giữ (Q-158).
 
 ## 17. Module 13 – Thông báo
 
@@ -1459,6 +1508,8 @@ Quyền được chia thành: xem; tạo; sửa; xác nhận; duyệt; chốt; t
 * **(Bổ sung, spec 002)** Hành chính chỉ xem mức chăm sóc và cờ nguy cơ của người cao tuổi; không xem dị ứng, bệnh nền, tiền sử, chỉ số, thuốc, kết quả đánh giá. Trưởng tầng xem đầy đủ hồ sơ sức khỏe trong phạm vi. Giới hạn này áp dụng cả với giá trị trước/sau trong nhật ký. **(Bổ sung, spec 010, Q-133)** Giới hạn "không xem thuốc" áp cả cho khoản chi phí loại Thuốc: hành chính chỉ thấy mã vật phẩm, số lượng, đơn giá, thành tiền, kể cả trong lịch sử tính lại, thông báo và file kế toán.
 * **(Bổ sung, spec 002)** Phạm vi của quyền thực hiện và duyệt theo vai trò: Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc, Nhân viên vệ sinh trong phạm vi phân công; Quản lý viện, Bác sĩ, Hành chính, Dinh dưỡng viên, Nhân viên bếp toàn viện. Dashboard, báo cáo của Bác sĩ và Hành chính là toàn viện, vẫn áp giới hạn trường ở trên.
 * **(Bổ sung, spec 002)** Khi không xác định được quyền vì dữ liệu nguồn thiếu hoặc lỗi (phân công, giấy phép, bản đồng ý…), hệ thống từ chối và báo Quản lý viện; riêng ghi nhận sự cố và kích hoạt khẩn cấp vẫn được thực hiện (BR-M15-01).
+
+* **(Bổ sung, spec 013, Q-150 → Q-153)** Đồ gửi: Hành chính và Điều dưỡng (trong phạm vi) tiếp nhận, bàn giao; Điều dưỡng chỉ trả đồ không có giá trị cho người có quyền nhận, còn trả theo xác nhận người nhận khác, lập yêu cầu xác nhận, kiểm kê và lập đề nghị xử lý đồ không người nhận chỉ do Hành chính. Quản lý viện, ngoài quyền xem, duyệt thay xác nhận người nhận khác (BR-M12-04) và duyệt đề nghị xử lý đồ (BR-M12-08). Trưởng tầng chỉ xem đồ gửi của người cao tuổi trong tầng. Người thân: theo 14.6.
 
 Ma trận chi tiết theo từng use case và vai trò nằm ở mục 4.4 tab Phân tích yêu cầu; khi hai nơi khác nhau, mục 19.3 này là căn cứ.
 
@@ -1723,12 +1774,25 @@ Các quyết định dưới đây đã được chốt khi làm rõ spec của 
 | Q-145 | Khi nào bản gán chế độ ăn cần bác sĩ duyệt | Khi đổi, thêm hoặc bỏ chế độ ăn liên quan điều trị, chuyển kết cấu cứng hơn, hoặc bỏ hạn chế trong lúc dùng chế độ đó; còn lại áp dụng ngay và báo bác sĩ | 12.1, BR-M08-03 | 011 |
 | Q-146 | Bản ghi lưu mẫu gồm những món nào | Mọi món được nấu trong bữa, kể cả món thay thế và món an toàn, mỗi món một mẫu; món không lưu được ghi lý do, không chặn giao | 12.5, BR-M08-15 | 011 |
 | Q-147 | Ai xử lý suất thiếu món thay thế khi dinh dưỡng viên không xử lý kịp | Hệ thống tự dùng món an toàn của chế độ ăn nếu không xung đột (ngoài giờ hành chính, hoặc tới mốc CFG-M08-05); nếu vẫn xung đột thì báo điều dưỡng phụ trách | 12.1, BR-M08-02, 2.4 | 011 |
+| Q-148 | Thất lạc, Hư hỏng có phải trạng thái cuối của đồ gửi không | Không. Thất lạc → Đang giữ khi tìm thấy; Hư hỏng → Đã trả; Hư hỏng chặn kết thúc lưu trú, Thất lạc không chặn (sự cố của nó vẫn chặn qua điều kiện sự cố mở) | 16.4, BR-M12-03, 5.6, 6.8 | 013 |
+| Q-149 | Người cao tuổi có được là người nhận khi trả đồ gửi không | Được, nhưng luôn cần xác nhận người nhận khác của người đại diện | 16.4, BR-M12-04 | 013 |
+| Q-150 | Quản lý viện có được duyệt thay người đại diện cho người nhận khác không | Có, khi yêu cầu chờ quá CFG-M12-05 mà không liên hệ được người đại diện, hoặc không còn người đại diện Hiệu lực; bắt buộc lý do, bằng chứng; không duyệt thay khi người đại diện đã từ chối | 16.4, BR-M12-04, 19.3 | 013 |
+| Q-151 | Ai xem đồ gửi trên cổng người thân | Chỉ người đại diện và người có quyền "được phép đón" đang hiệu lực | 14.6, BR-M12-09 | 013 |
+| Q-152 | Đồ không ai nhận sau khi hồ sơ ở trạng thái cuối | Sau CFG-M12-03, Hành chính lập đề nghị "Xử lý đồ không người nhận" kèm biên bản; Quản lý viện duyệt thì đồ chuyển Đã xử lý (trạng thái cuối) | 16.4, 16.6, BR-M12-08 | 013 |
+| Q-153 | Ai được trả đồ gửi | Hành chính trả mọi đồ; Điều dưỡng chỉ trả đồ không có giá trị cho người có quyền nhận | 16.4, BR-M12-04, 19.3 | 013 |
+| Q-154 | Có kiểm kê định kỳ đồ gửi không | Có, theo CFG-M12-04, chỉ đồ có giá trị Đang giữ, theo vị trí; Hành chính kiểm kê; không tìm thấy thì Báo thất lạc | 16.6, BR-M12-07 | 013 |
+| Q-155 | Đồ có giá trị có được giao cho người cao tuổi tự giữ không | Điện thoại được; tiền mặt, trang sức chỉ khi người đại diện đồng ý cho đúng đồ đó và không có cờ nguy cơ đi lạc | 16.1, 16.2, BR-M12-06 | 013 |
+| Q-156 | Thang mức tình trạng đồ gửi | Danh mục mức tình trạng cấu hình được, mặc định 4 mức: Tốt / Có dấu hiệu sử dụng / Hư hỏng một phần / Không dùng được; "Không dùng được" chỉ ghi qua Ghi hư hỏng (trừ khi tiếp nhận) | 16.2, 16.3 | 013 |
+| Q-157 | Bằng chứng liên hệ tối thiểu trước khi Quản lý viện duyệt thay người nhận khác hoặc lập đề nghị xử lý đồ | CFG-M12-06: mỗi người đại diện 2 lần qua 2 kênh; CFG-M12-07: 2 lần, cách nhau không dưới CFG-M12-02 | 16.4, BR-M12-04, BR-M12-08, Phụ lục 25 | 013 |
+| Q-158 | Khi nào Hành chính được bàn giao thay người giữ; đồ có giá trị do nhân viên giữ khi hết ca | Người giữ không có ca đang diễn ra hoặc tài khoản không Hoạt động (bắt buộc lý do, báo người giữ); đồ có giá trị còn giữ lúc hết ca vào bản nháp bàn giao ca, nhắc chuyển giữ; xác nhận bàn giao ca không đổi người giữ | 16.3, 16.6 | 013, 008 |
+| Q-159 | Hình thức xử lý tiền mặt không người nhận | Chỉ chuyển cơ quan có thẩm quyền; tiền thu từ thanh lý đồ ghi biên bản, xử lý ngoài hệ thống, không sinh chi phí | 16.6, BR-M12-08 | 013 |
+| Q-160 | Giới hạn đính chính bản ghi bàn giao đồ gửi | Không đổi loại bàn giao, trạng thái đích; "Hủy ghi nhận" chỉ áp cho bản ghi gần nhất, trạng thái được tính lại và sự cố do bản ghi đó tạo chuyển Đã hủy | 16.3 | 013, 007 |
 
 ### 24.3. Quyết định đã chốt ở spec, chưa phản ánh vào thân tài liệu (bổ sung)
 
 Mục này ghi các quyết định đã được chốt khi làm rõ spec nhưng **chưa** được đưa vào các mục nghiệp vụ và Phụ lục 25. Khi đã phản ánh, dòng được chuyển lên 24.2.
 
-**Hiện không còn dòng nào (2026-09-27).** Mọi quyết định Q-01 → Q-147 đã được phản ánh và nằm ở 24.2, trừ các quyết định còn mở ở 24.1. Các quyết định Q-39, Q-142 → Q-147 của spec 011 được phản ánh vào thân tài liệu này; theo quyết định của người dùng, tab Phân tích yêu cầu (4.4, 3.2, ERD) không được sửa theo các quyết định này, và 19.3 là căn cứ khi 4.4 khác. Spec làm sau có quyết định chưa kịp phản ánh thì ghi thêm vào bảng dưới.
+**Hiện không còn dòng nào (2026-09-27).** Mọi quyết định Q-01 → Q-160 đã được phản ánh và nằm ở 24.2, trừ các quyết định còn mở ở 24.1. **(Bổ sung, spec 013)** Các quyết định Q-148 → Q-160 (Q-156 → Q-160 chốt ngày 2026-09-27 theo mặc định đề xuất) được phản ánh vào 2.4, 5.6, 6.8, 9.1, 14.6, 16, 19.3 và Phụ lục 25; tab Phân tích yêu cầu (4.4, UC-65, ERD, DBR-22) không được sửa, và 19.3 là căn cứ khi 4.4 khác. Các quyết định Q-39, Q-142 → Q-147 của spec 011 được phản ánh vào thân tài liệu này; theo quyết định của người dùng, tab Phân tích yêu cầu (4.4, 3.2, ERD) không được sửa theo các quyết định này, và 19.3 là căn cứ khi 4.4 khác. Spec làm sau có quyết định chưa kịp phản ánh thì ghi thêm vào bảng dưới.
 
 | Mã   | Vấn đề | Quyết định | Cần phản ánh tại | Spec |
 | ---- | ------ | ---------- | ---------------- | ---- |
@@ -1789,6 +1853,12 @@ Mọi giá trị trong ngoặc vuông ở các quy tắc nghiệp vụ được 
 | CFG-M11-02 | Hạn mức mua hộ cần đồng ý/duyệt                                                              | 500.000 đồng                                           | BR-M11-07            |
 | CFG-M11-03 | Biến động tổng chi phí kỳ để cảnh báo                                                        | 30% so với kỳ trước                                    | BR-M11-07            |
 | CFG-M12-01 | Danh mục đồ có giá trị bắt buộc chụp ảnh                                                     | Điện thoại, trang sức, tiền mặt                        | BR-M12-05            |
+| CFG-M12-02 | Chu kỳ nhắc đồ gửi chưa trả sau khi hồ sơ ở trạng thái cuối (bổ sung, spec 013) | 7 ngày | 16.4, 6.8 |
+| CFG-M12-03 | Thời gian tối thiểu từ khi hồ sơ ở trạng thái cuối tới khi được lập đề nghị xử lý đồ không người nhận (bổ sung, spec 013, Q-152) | 90 ngày | BR-M12-08 |
+| CFG-M12-04 | Chu kỳ và hạn kiểm kê đồ có giá trị (bổ sung, spec 013, Q-154) | Hằng tháng, hạn hoàn thành 3 ngày | BR-M12-07 |
+| CFG-M12-05 | Thời gian chờ người đại diện phản hồi trước khi Quản lý viện được duyệt thay xác nhận người nhận khác (bổ sung, spec 013, Q-150) | 4 giờ | BR-M12-04 |
+| CFG-M12-06 | Bằng chứng liên hệ tối thiểu trước khi Quản lý viện duyệt thay (bổ sung, spec 013, Q-157) | Mỗi người đại diện 2 lần qua 2 kênh | BR-M12-04 |
+| CFG-M12-07 | Bằng chứng liên hệ tối thiểu trước khi lập đề nghị xử lý đồ không người nhận (bổ sung, spec 013, Q-157) | 2 lần, cách nhau không dưới CFG-M12-02 | BR-M12-08 |
 | CFG-M13-01 | Thời hạn xác nhận thông báo khẩn cấp trước khi gọi điện                                      | 5 phút                                                 | BR-M13-02            |
 | CFG-M13-02 | Giờ yên tĩnh cho thông báo người thân                                                        | 21:00–07:00                                            | BR-M13-03            |
 | CFG-M13-03 | Khung gộp tin nhắn mức Trung bình cho cùng người nhận (bổ sung, spec 009, Q-101, Q-107)      | 5 phút                                                 | BR-M13-01            |
@@ -1833,7 +1903,7 @@ Mọi giá trị trong ngoặc vuông ở các quy tắc nghiệp vụ được 
 | CFG-M10-05 | Thời hạn đăng ký thăm trước (bổ sung, spec 012)                                              | Tối thiểu 2 giờ, tối đa 14 ngày                        | 14.2, BR-M10-02      |
 | CFG-M10-06 | Số người tối đa mỗi lượt thăm (bổ sung, spec 012)                                            | 3                                                      | 14.2                 |
 | CFG-M10-07 | Nhắc ghi giờ ra sau khi hết khung thăm (bổ sung, spec 012)                                   | 30 phút                                                | 14.2                 |
-| CFG-M10-08 | Hiệu lực của ngoại lệ đón (bổ sung, spec 012)                                                | 4 giờ                                                  | 14.3, BR-M10-03      |
+| CFG-M10-08 | Hiệu lực của ngoại lệ đón (bổ sung, spec 012); cũng là hiệu lực của xác nhận người nhận khác đồ gửi (spec 013) | 4 giờ                                                  | 14.3, BR-M10-03, 16.4 |
 | CFG-M10-09 | Thời gian bản ghi đón chưa dùng còn làm căn cứ (bổ sung, spec 012)                           | 2 giờ                                                  | 14.3                 |
 | CFG-M10-10 | Số lượt người thân ở lại tối đa cùng lúc cho một người cao tuổi (bổ sung, spec 012, Q-128)   | 1                                                      | 14.4                 |
 | CFG-M10-11 | Nhắc / báo Quản lý viện khi yêu cầu BR-M10-07 Chờ xác nhận lâu (bổ sung, spec 012, Q-130)    | 48 giờ / 96 giờ                                        | BR-M10-07            |

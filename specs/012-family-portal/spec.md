@@ -52,6 +52,14 @@ Spec 011 đã chốt:
 - Tỷ lệ ăn và lượng nước cho bản tin lấy từ feature 005, không từ feature 011 (FR-052 được sửa). Feature 011 cung cấp thực đơn chung (loại "chung") và chế độ ăn riêng (loại "sức khỏe") cho cổng (FR-046).
 - Người thân gửi đồ ăn có tài khoản và quan hệ Hiệu lực được báo khi đồ ăn Không sử dụng; lý do liên quan dị ứng, chế độ ăn thuộc loại "sức khỏe" (feature 011 FR-057).
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 013)
+
+Spec 013 và tài liệu nguồn (14.6, BR-M12-04, BR-M12-06, BR-M12-09, Q-149 → Q-151, Q-155) đã chốt:
+- Mục **đồ gửi** trên cổng (danh sách, trạng thái, lịch sử bàn giao, ảnh) chỉ hiển thị cho người đại diện và người thân có quyền "được phép đón" đang hiệu lực, xét tại thời điểm xem. Đây là quy tắc hiển thị riêng (FR-046b mới), không phải loại thông tin thứ năm ở FR-046; thông báo đồ gửi vẫn mang loại "chung" của feature 009 với người nhận xác định theo nhóm.
+- Người đại diện có thêm hai thao tác trên cổng: xác nhận hoặc từ chối **xác nhận người nhận khác** (kể cả khi người nhận là chính người cao tuổi), và ghi hoặc rút **đồng ý cho tự giữ** tiền mặt, trang sức. Hai thao tác này thuộc vòng đời của feature 013 (FR-017b), không đi qua vòng đời "Chờ xác nhận" của FR-020.
+- Việc trả đồ gửi dựa trên danh sách được phép đón, người đại diện và giấy tờ tùy thân ở hồ sơ người thân (FR-001, FR-007). Người đại diện không có quyền đón chưa có giấy tờ thì feature 013 cho ghi giấy tờ xuất trình và nhắc Hành chính bổ sung vào hồ sơ; spec này không đổi FR-001.
+- Tắt quyền "được phép đón" (FR-017) có hiệu lực ngay cả với việc xem và nhận đồ gửi.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 10 mục 14.1 → 14.8; BR-M10-01 → 09, BR-M10-10 phần cổng; DBR-02, DBR-03; UC-55 → UC-60; NFR-08 phần lượt xem của người thân; CFG-M10-01 → 03, CFG-M10-04 → 12 (đề xuất); thực thể NGUOI_THAN, QUAN_HE_NGUOI_THAN, LUOT_THAM, PHAN_HOI, BAN_TIN):
@@ -77,6 +85,7 @@ Spec 011 đã chốt:
 - Yêu cầu thay đổi dịch vụ của người đại diện (nội dung, duyệt, áp dụng): feature 004 (FR-039). Spec này chỉ bảo đảm chỉ người đại diện có quyền này mới gửi được (BR-M10-01).
 - Dữ liệu nguồn của bản tin (ăn uống, nước, hoạt động, cân nặng, chỉ số, sự cố, chi phí tạm tính): feature 005, 007, 010, 011, 014.
 - Camera (14.6, mục 23): ngoài phạm vi giai đoạn đầu.
+- Đồ gửi (tiếp nhận, bàn giao, trả, xác nhận người nhận khác, đồng ý cho tự giữ): feature 013. Spec này chỉ hiển thị mục đồ gửi và nhận quyết định của người đại diện trên cổng (FR-046b).
 - Quy tắc dùng chung (nhóm dữ liệu, nhật ký, tham số, đính chính, yêu cầu phê duyệt): feature 000, kế thừa, không lặp lại.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -401,6 +410,7 @@ Khi người thân được phép ở lại với người cao tuổi (ví dụ 
 #### G. Cổng thông tin người thân (14.5, 14.6, BR-M10-01)
 
 - **FR-046**: Cổng MUST chỉ hiển thị người cao tuổi mà người thân có quan hệ Hiệu lực (feature 002 FR-045) và chia thông tin thành bốn loại, hiển thị theo quyền: (1) **chung**, mọi người thân có quan hệ: họ tên, ảnh, phòng, trạng thái lưu trú, lịch sinh hoạt gồm buổi hoạt động, lượt thăm, lịch đến/về bán trú, lượt vắng dự kiến, thực đơn chung của viện (không gồm chế độ ăn riêng); hoạt động đã tham gia; lượt vắng; lượt thăm và phản hồi của chính mình; bản tin; thông báo; (2) **sức khỏe**, khi có quyền xem sức khỏe có tác dụng (FR-011): dị ứng và bệnh nền Hiệu lực, chỉ số, cân nặng, thuốc đang dùng, sự cố theo phạm vi được chia sẻ, kết quả công việc chăm sóc, tỷ lệ ăn và lượng nước, chế độ ăn riêng, lịch khám bên ngoài; (3) **chi phí**, khi có quyền xem chi phí: bảng chi phí đã chốt và chi phí tạm tính của kỳ đang mở do feature 010 cung cấp (feature 010 FR-037, FR-038). Tên thuốc trên khoản chi phí chỉ hiện khi người thân có thêm quyền xem sức khỏe có tác dụng; nếu không, chỉ hiện "Thuốc" và mã vật phẩm (Q-133, BR-M10-10); (4) **hợp đồng, dịch vụ**, chỉ người đại diện: hợp đồng, phụ lục, đặt cọc, tiến trình kết thúc lưu trú (feature 004). Phân loại này MUST trùng với loại thông tin của feature 009 FR-013. *(Nguồn: 14.5, 14.6, BR-M10-01, 4.4 chú thích ¹ ² ⁷)*
+- **FR-046b**: Ngoài bốn loại ở FR-046, cổng MUST hiển thị mục **đồ gửi** do feature 013 cung cấp (danh sách đồ gửi, trạng thái, lịch sử bàn giao, ảnh) chỉ cho người đại diện và người thân có quyền "được phép đón" đang hiệu lực của người cao tuổi đó, xét tại thời điểm xem; người thân khác MUST NOT thấy mục này. Cổng MUST cho người đại diện: xác nhận hoặc từ chối (kèm lý do) yêu cầu xác nhận người nhận khác; ghi hoặc rút (kèm lý do) đồng ý cho tự giữ tiền mặt, trang sức. Vòng đời, điều kiện và thông báo của hai thao tác này do feature 013 định nghĩa (feature 013 FR-015a, FR-017, FR-017b, FR-030). *(Nguồn: 14.6, BR-M12-04, BR-M12-06, BR-M12-09; đồng bộ spec 013)*
 - **FR-046a**: Cổng MUST cho người đại diện có quan hệ Hiệu lực xem và quyết định (Đồng ý / Từ chối kèm lý do) các đề nghị mua hộ ở trạng thái Chờ đồng ý của người cao tuổi mình đại diện. Đề nghị hiển thị mục cần mua, số lượng, số tiền dự kiến, lý do, người yêu cầu. Với thuốc, chỉ hiện tên thuốc khi người đại diện có quyền xem sức khỏe có tác dụng (Q-133). Vòng đời, việc nhắc và quy tắc "quyết định đầu tiên được ghi nhận" do feature 010 định nghĩa (feature 010 FR-023, FR-023a). Yêu cầu này không đi qua vòng đời "Chờ xác nhận" của FR-020. Người đại diện cũng MUST xem được, trên phần chi phí, khoản mua hộ đã duyệt có phần vượt số đã đồng ý, kèm lý do của Quản lý viện (Q-137). Người thân chưa lập đề nghị mua hộ qua cổng ở giai đoạn này. *(Nguồn: BR-M11-07, BR-M10-10, UC-79; đồng bộ spec 010)*
 - **FR-047**: Người thân MUST chỉ thấy giá trị hiện hành, không thấy nhật ký hay giá trị trước đính chính (feature 000). *(Nguồn: 19.4)*
 - **FR-048**: Mỗi lần người thân mở một phần thuộc loại sức khỏe MUST được ghi nhật ký gồm: người thân, người cao tuổi, phần đã xem, nguồn (cổng / bản tin / thông báo), thời điểm. Với bản tin và thông báo gửi qua feature 009, lần xem được ghi khi người thân mở bản tin hoặc thông báo có phần sức khỏe mà người đó được thấy (feature 009 FR-034), mỗi lần mở một bản ghi. Quản lý viện MUST tra cứu được nhật ký này; người thân MUST NOT xem nhật ký. *(Nguồn: NFR-08, 19.4)*
@@ -507,6 +517,7 @@ Khi người thân được phép ở lại với người cao tuổi (ví dụ 
 | Cung cấp | 009 | Người liên hệ chính, người đại diện, quyền, thứ tự liên hệ, số liên hệ; yêu cầu thông báo (FR-069) |
 | Cung cấp | 010 | Lượt ở lại làm nguồn chi phí (mỗi mốc 00:00 là một đêm); quyết định của người đại diện về đề nghị mua hộ (FR-046a); nhận chi phí tạm tính, bảng chi phí đã chốt (có che tên thuốc theo Q-133) và đề nghị mua hộ Chờ đồng ý |
 | Cung cấp | 011 | Người ở lại có đăng ký ăn, khi lượt chuyển Đang ở lại, kết thúc sớm hoặc bị hủy (feature 011 FR-034 (c), FR-043) |
+| Nhận, Cung cấp | 013 | Nhận đồ gửi, lịch sử bàn giao, ảnh, yêu cầu xác nhận người nhận khác, đồng ý cho tự giữ cho cổng (FR-046b); cung cấp người đại diện, người có quyền "được phép đón", người liên hệ chính, giấy tờ tùy thân, và quyết định của người đại diện trên cổng (feature 013 FR-016, FR-017, FR-015a) |
 | Cung cấp | 016 | Dữ liệu thăm, phản hồi, bản tin cho báo cáo |
 
 - **FR-072**: Mọi quy tắc theo thời gian của spec (hạn phản hồi, tự đóng, sinh bản tin, hạn duyệt, Không đến, hạn ngoại lệ đón) MUST kiểm thử được bằng đồng hồ giả lập và dùng múi giờ Asia/Ho_Chi_Minh. *(Nguồn: NFR-09, NFR-13)*
