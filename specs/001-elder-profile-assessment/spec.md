@@ -49,6 +49,10 @@ Spec 014 và tài liệu nguồn (5.6, 8.9, BR-M04-04, Q-166, Q-170, Q-171) đã
 - Chuyển Hoạt động bên ngoài → Đang lưu trú còn xảy ra khi trưởng tầng Hủy ghi nhận bản ghi rời viện của người bị ghi đi nhầm (feature 014 FR-031a); căn cứ ghi "đính chính điểm danh".
 - Hoạt động bên ngoài không chuyển sang Tạm vắng; người thân không đón thẳng từ điểm đến (Q-166). Người thiếu khi về giữ Hoạt động bên ngoài tới lệnh phù hợp (không đổi).
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 016)
+
+Spec 016 (báo cáo và dashboard) lấy tình trạng "quá hạn" của yêu cầu đánh giá lại từ feature này, không tự tính (spec 016 FR-002, FR-044). FR-041 được bổ sung dấu "quá hạn" trên yêu cầu và việc cung cấp cho feature 016.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 01, mục 5; UC-01 → UC-08):
@@ -297,7 +301,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 - **FR-039**: Bộ lập lịch hệ thống MUST tạo yêu cầu đánh giá lại cho người cao tuổi Đang lưu trú, Tạm vắng, Hoạt động bên ngoài hoặc Điều trị tại bệnh viện khi lần đánh giá Đã xác nhận gần nhất đã qua CFG-M01-02 (mặc định \[90 ngày\]). *(Nguồn: BR-M01-02, UC-07)*
 - **FR-040**: Hệ thống MUST tạo yêu cầu đánh giá lại khi: feature 007 ghi nhận sự cố ngã hoặc sự cố mức trung bình trở lên; lệnh "Ghi nhận trở về" từ Điều trị tại bệnh viện được thực hiện; FR-032 phát hiện kết quả sau đính chính khác. Bác sĩ và điều dưỡng MUST tạo được yêu cầu thủ công với căn cứ "tình trạng thay đổi đáng kể" hoặc "yêu cầu chuyên môn". *(Nguồn: BR-M01-02, 5.4, 5.6)*
-- **FR-041**: Mỗi yêu cầu MUST có hạn hoàn thành CFG-M01-03 (mặc định \[48 giờ\]) tính từ lúc tạo; riêng người cao tuổi đang Điều trị tại bệnh viện, hạn tính từ lúc Ghi nhận trở về. Quá hạn mà chưa có đánh giá lại Đã xác nhận, hệ thống MUST cảnh báo bác sĩ; yêu cầu MUST NOT tự đóng. *(Nguồn: BR-M01-02)*
+- **FR-041**: Mỗi yêu cầu MUST có hạn hoàn thành CFG-M01-03 (mặc định \[48 giờ\]) tính từ lúc tạo; riêng người cao tuổi đang Điều trị tại bệnh viện, hạn tính từ lúc Ghi nhận trở về. Quá hạn mà chưa có đánh giá lại Đã xác nhận, hệ thống MUST cảnh báo bác sĩ; yêu cầu MUST NOT tự đóng. Từ lúc quá hạn tới khi hoàn thành, yêu cầu MUST mang dấu "quá hạn" kèm thời điểm bắt đầu quá hạn, và dấu này MUST được cung cấp cho báo cáo sức khỏe (feature 016 FR-044). *(Nguồn: BR-M01-02; 18.3)*
 - **FR-042**: Mỗi người cao tuổi MUST có tối đa một yêu cầu đánh giá lại đang mở; căn cứ mới phát sinh MUST được bổ sung vào yêu cầu đang mở, hạn hoàn thành lấy hạn sớm hơn.
 - **FR-043**: Khi đánh giá lại được bác sĩ chấp nhận, yêu cầu đang mở MUST được đóng với tham chiếu lần đánh giá, và feature 005 MUST được kích hoạt tạo yêu cầu xem xét kế hoạch chăm sóc (BR-M04-20). Yêu cầu đang mở MUST bị hệ thống đóng với lý do tương ứng khi người cao tuổi chuyển sang trạng thái cuối.
 

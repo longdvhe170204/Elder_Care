@@ -22,6 +22,10 @@
 - Q: Đồ có giá trị có được giao cho người cao tuổi tự giữ và dùng trong phòng không? → A: Điện thoại giao tự do; tiền mặt và trang sức chỉ giao khi người đại diện đã đồng ý cho đúng đồ đó (qua cổng hoặc bản ký) và người cao tuổi không có cờ nguy cơ đi lạc (đề xuất Q-155).
 - Q: Các mặc định spec tự đặt khi rà checklist (thang tình trạng, bằng chứng liên hệ, người giữ vắng mặt và đồ khi hết ca, tiền mặt không người nhận, giới hạn đính chính) có được giữ không? → A: Giữ nguyên toàn bộ theo mặc định đề xuất; chốt thành Q-156 (danh mục 4 mức tình trạng, FR-001a), Q-157 (CFG-M12-06, CFG-M12-07), Q-158 (FR-014, FR-014a), Q-159 (tiền mặt chỉ chuyển cơ quan có thẩm quyền, FR-027a), Q-160 (FR-011a) và đưa vào mục 24.2.
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 016)
+
+Theo Q-194, báo cáo đồ gửi (số đồ thất lạc, hư hỏng, đồ chưa trả) thuộc giai đoạn sau; bảng giao tiếp được ghi rõ. Ở giai đoạn này, Hành chính thấy số liệu sự cố đồ gửi thất lạc, hư hỏng trên báo cáo của feature 016 qua dấu "không thuộc sức khỏe" của danh mục loại sự cố (feature 007 FR-042, Q-202).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 12, mục 16; UC-65; DBR-22):
@@ -424,7 +428,7 @@ Hoàn thành và Đã hủy là trạng thái cuối. Đề nghị "Xử lý đ�
 | Cung cấp | 012 | Đồ gửi, lịch sử bàn giao, ảnh cho cổng, chỉ hiển thị cho người có quyền nhận (FR-030, Q-151); yêu cầu xác nhận người nhận khác; thao tác ghi, rút đồng ý cho tự giữ (FR-015a) | Người cao tuổi, đồ gửi, bản ghi, yêu cầu, đồng ý |
 | Nhận | 002, 008 | Trạng thái tài khoản nhân viên, ca đang diễn ra của người giữ (FR-014); sự kiện kết thúc ca | Nhân viên, ca, trạng thái tài khoản |
 | Gửi | 008 | Mục "đồ gửi đang giữ" cho bản nháp bàn giao ca (FR-014a) | Nhân viên, tầng/khu vực, ca, danh sách đồ có giá trị (loại, người cao tuổi, vị trí) |
-| Gửi | Module 14 | Số đồ thất lạc, hư hỏng theo kỳ; đồ chưa trả sau kết thúc lưu trú | Đồ gửi, trạng thái, thời điểm |
+| Gửi (giai đoạn sau, Q-194) | Module 14 (feature 016) | Số đồ thất lạc, hư hỏng theo kỳ; đồ chưa trả sau kết thúc lưu trú. Ở giai đoạn này feature 016 chỉ đếm sự cố đồ gửi qua feature 007 (Q-202) | Đồ gửi, trạng thái, thời điểm |
 
 ### Key Entities *(include if feature involves data)*
 
