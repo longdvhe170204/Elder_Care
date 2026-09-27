@@ -49,6 +49,14 @@ Spec 010 đã chốt các quyết định Q-131 → Q-141, và tài liệu ngu�
 
 Spec 011 và tài liệu nguồn (BR-M08-01, Q-144) đã chốt: người Tạm vắng có thời điểm dự kiến trở lại không muộn hơn giờ bữa được tính suất sẵn; tới giờ bữa chưa trở về thì phát sinh "−1" chỉ để ghi nhận. Spec này cung cấp cho feature 011 lượt vắng, thời điểm dự kiến trở lại (bắt buộc với Tạm vắng) và mọi lần đổi thời điểm đó (FR-048), cùng ngày khu bán trú nghỉ (FR-060a). Danh mục có đơn giá "suất ăn ngoài hợp đồng" (FR-034) được feature 010 dùng cho suất ăn người thân do feature 011 ghi.
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 013)
+
+Spec 013 và tài liệu nguồn (BR-M12-03, 5.6, 6.8, Q-148, Q-152) đã chốt:
+- Điều kiện (b) của FR-063 là "không còn đồ gửi ở Đang giữ, Đang được người cao tuổi sử dụng hoặc **Hư hỏng**", do feature 013 FR-025 cung cấp kèm danh sách đồ làm căn cứ. Đồ **Thất lạc** không làm (b) Chưa đạt; sự cố của nó vẫn chặn qua điều kiện (d) cho tới khi đóng hoặc có ngoại lệ. Căn cứ của (b) liệt kê riêng đồ Thất lạc có sự cố mở với ghi chú "chặn qua điều kiện (d)".
+- Mục "xử lý đồ gửi" của danh sách việc sau qua đời (FR-071) Hoàn thành khi mọi đồ ở Đã trả, Thất lạc hoặc Đã xử lý (trạng thái cuối mới, sau đề nghị "Xử lý đồ không người nhận" được duyệt); Không áp dụng khi không còn đồ chưa trả lúc qua đời (feature 013 FR-026).
+- Đồ Thất lạc được tìm thấy sau khi hồ sơ lưu trú "Đã đóng" (FR-072) không làm mở lại mục hay hồ sơ; feature 013 tự theo dõi và nhắc (feature 013 FR-026a). Spec này không cần nhận sự kiện đó.
+- Người đại diện xem trên cổng các đồ gửi cần nhận (FR-068) theo quy tắc hiển thị đồ gửi của feature 013 FR-030.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 02, mục 6; UC-08 phần điều kiện, UC-09 → UC-18):
@@ -432,7 +440,7 @@ Kết thúc, Chấm dứt, Đã hủy là trạng thái cuối. Người cao tu�
 - **FR-062**: Hành chính MUST lập được hồ sơ kết thúc lưu trú cho người cao tuổi đang ở Đang lưu trú, Tạm vắng hoặc Điều trị tại bệnh viện, gồm: trường hợp (Hết hợp đồng, Xuất viện, Chuyển cơ sở, Chấm dứt hợp đồng), ngày kết thúc dự kiến, lý do, người yêu cầu, nơi chuyển đến (với Chuyển cơ sở). Mỗi người MUST có tối đa một hồ sơ kết thúc lưu trú chưa ở trạng thái cuối. Bác sĩ MUST lập được hồ sơ với trường hợp Xuất viện hoặc Chuyển cơ sở vì lý do y tế. *(Nguồn: 6.8, UC-17, 4.4 dòng "Kết thúc lưu trú, qua đời": BS T, HC T)*
 - **FR-063**: Hệ thống MUST tạo và tự kiểm tra danh sách điều kiện kết thúc, mỗi điều kiện có trạng thái Đạt / Chưa đạt / Đạt (ngoại lệ) và căn cứ:
   (a) chi phí kỳ cuối đã chốt, theo feature 010 FR-034a — xem FR-066;
-  (b) không còn đồ gửi đang giữ (feature 013);
+  (b) không còn đồ gửi ở Đang giữ, Đang được người cao tuổi sử dụng hoặc Hư hỏng (feature 013 FR-025, BR-M12-03, Q-148); đồ Thất lạc không tính ở (b), sự cố của nó thuộc (d) (đồng bộ spec 013);
   (c) không còn thuốc gia đình gửi đang giữ (feature 006);
   (d) không còn cảnh báo hoặc sự cố đang mở (feature 007);
   (e) đã ghi nhận bàn giao người cao tuổi: người nhận (người thân hoặc cơ sở tiếp nhận), thời điểm, nhân viên bàn giao;
@@ -449,8 +457,8 @@ Kết thúc, Chấm dứt, Đã hủy là trạng thái cuối. Người cao tu�
 
 - **FR-069**: Lệnh "Ghi nhận qua đời" (quyền và điều kiện theo feature 001 FR-047b) MUST ghi: thời điểm, địa điểm, người phát hiện, người xác nhận, thông tin nguyên nhân nếu đã xác định, bằng chứng (bắt buộc khi hành chính thực hiện). Bản ghi qua đời là nhóm 3; bổ sung nguyên nhân hay sửa sai MUST bằng đính chính. *(Nguồn: 6.8, UC-18)*
 - **FR-070**: Lệnh "Ghi nhận qua đời" MUST NOT bị chặn bởi đồ gửi, thuốc gửi, chi phí, cảnh báo hay sự cố. Khi thành công, trong cùng một lần: hợp đồng chuyển Chấm dứt với lý do "Qua đời"; lượt vắng đang mở đóng tại thời điểm qua đời; hồ sơ kết thúc lưu trú đang mở chuyển Đã hủy; hồ sơ chờ, yêu cầu thay đổi đang mở chuyển Hủy / Áp dụng không thành; feature 003 đóng phân bổ và giải phóng giường (giường chuyển Chờ vệ sinh, FR-011a của feature 003); sinh chi phí tự động dừng cho sự kiện có thời điểm sau thời điểm qua đời và cho các ngày sau ngày qua đời; ngày qua đời vẫn được tính phí lưu trú trọn ngày (feature 010 FR-036, Q-141); các tác động còn lại theo feature 001 (hủy lịch tương lai, thông báo người liên hệ chính ở mức Khẩn cấp theo feature 009 Q-97, hồ sơ chỉ đọc). *(Nguồn: 5.6, 6.8; feature 009 Q-97)*
-- **FR-071**: Khi ghi nhận qua đời, hệ thống MUST tạo danh sách việc bắt buộc sau qua đời gồm: xử lý đồ gửi (feature 013); hoàn trả thuốc gia đình gửi (feature 006); chốt chi phí kỳ cuối (feature 010); xử lý cảnh báo/sự cố đang mở (feature 007). Mỗi mục có trạng thái Chưa hoàn thành / Hoàn thành / Không áp dụng, được hệ thống tự cập nhật từ feature sở hữu. *(Nguồn: 6.8)*
-- **FR-072**: Khi danh sách việc sau qua đời còn mục Chưa hoàn thành, hệ thống MUST nhắc hành chính theo chu kỳ CFG-M02-09 (đề xuất, mặc định \[1 ngày\]); khi mọi mục Hoàn thành hoặc Không áp dụng, hồ sơ lưu trú MUST chuyển "Đã đóng". Các thao tác hoàn thành những mục này MUST được phép dù hồ sơ người cao tuổi ở trạng thái cuối, vì chúng thuộc đối tượng của feature sở hữu, không sửa hồ sơ người cao tuổi. *(Nguồn: 6.8, BF-01 "đóng hồ sơ"; feature 001 FR-049)*
+- **FR-071**: Khi ghi nhận qua đời, hệ thống MUST tạo danh sách việc bắt buộc sau qua đời gồm: xử lý đồ gửi (feature 013); hoàn trả thuốc gia đình gửi (feature 006); chốt chi phí kỳ cuối (feature 010); xử lý cảnh báo/sự cố đang mở (feature 007). Mỗi mục có trạng thái Chưa hoàn thành / Hoàn thành / Không áp dụng, được hệ thống tự cập nhật từ feature sở hữu. Mục "xử lý đồ gửi" Hoàn thành khi mọi đồ gửi ở Đã trả, Thất lạc hoặc Đã xử lý (feature 013 FR-026, đồng bộ spec 013). *(Nguồn: 6.8)*
+- **FR-072**: Khi danh sách việc sau qua đời còn mục Chưa hoàn thành, hệ thống MUST nhắc hành chính theo chu kỳ CFG-M02-09 (đề xuất, mặc định \[1 ngày\]); khi mọi mục Hoàn thành hoặc Không áp dụng, hồ sơ lưu trú MUST chuyển "Đã đóng". Các thao tác hoàn thành những mục này MUST được phép dù hồ sơ người cao tuổi ở trạng thái cuối, vì chúng thuộc đối tượng của feature sở hữu, không sửa hồ sơ người cao tuổi. Hồ sơ đã "Đã đóng" MUST NOT mở lại khi một đồ gửi Thất lạc được tìm thấy về sau (feature 013 FR-026a, đồng bộ spec 013). *(Nguồn: 6.8, BF-01 "đóng hồ sơ"; feature 001 FR-049)*
 - **FR-073**: Nhắc việc, thông báo định kỳ và bản tin cho người thân về người đã qua đời MUST dừng từ thời điểm qua đời, trừ thông báo liên quan tới danh sách việc sau qua đời gửi người đại diện. *(Suy ra từ 6.8)*
 
 #### J. Căn cứ tính phí lưu trú

@@ -35,6 +35,13 @@ Spec 012 đã chốt khi clarify: điều kiện "người đón" của lệnh C
 
 Spec 011 cần thêm hai sự kiện từ spec này: mục dị ứng chuyển Đã loại trừ (để tính lại suất đặc biệt, đối chiếu lại đồ ăn gia đình, đóng nguồn cảnh báo xung đột), và mục dị ứng loại "khác" mới (để đưa người cao tuổi vào danh sách cần đối chiếu khi phục vụ). FR-020 được bổ sung tương ứng.
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 013)
+
+Spec 013 và tài liệu nguồn (BR-M12-03, BR-M12-06, Q-148, Q-155) đã chốt:
+- Tiền mặt, trang sức chỉ được giao cho người cao tuổi tự giữ khi không có cờ nguy cơ đi lạc; khi cờ đi lạc được gắn trong lúc người cao tuổi đang tự giữ đồ đó, feature 013 báo thu lại. Spec này cung cấp cho feature 013 cờ đi lạc hiện hành và sự kiện gắn, gỡ cờ (FR-038 được bổ sung).
+- Điều kiện đồ gửi của lệnh Kết thúc lưu trú (bảng trạng thái) là "không còn đồ gửi ở Đang giữ, Đang được sử dụng hoặc Hư hỏng"; đồ Thất lạc không tính ở điều kiện này nhưng sự cố của nó thuộc điều kiện sự cố mở.
+- Thao tác trên đồ gửi sau khi hồ sơ ở trạng thái cuối (thu lại, trả, báo thất lạc, xử lý đồ không người nhận) thuộc ngoại lệ (3) của BR-M01-05, không sửa hồ sơ người cao tuổi.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 01, mục 5; UC-01 → UC-08):
@@ -277,7 +284,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 - **FR-036**: Khi đánh giá lại được chấp nhận với mức chăm sóc khác mức hiện hành, hệ thống MUST tạo yêu cầu thay đổi lưu trú loại "đổi mức chăm sóc" ở trạng thái Chờ duyệt (vòng đời feature 000, loại yêu cầu thuộc feature 004); mức chăm sóc hiện hành và kế hoạch chăm sóc cũ MUST giữ nguyên tới ngày hiệu lực của thay đổi. *(Nguồn: BR-M01-03, 5.4)*
 - **FR-036a**: Khi bác sĩ chấp nhận một lần đánh giá lại mà người cao tuổi đang có yêu cầu đổi mức chăm sóc ở Nháp, Chờ duyệt hoặc Đã duyệt (chờ hiệu lực), hệ thống MUST chuyển yêu cầu cũ sang trạng thái kết thúc "Được thay thế", trong cùng lần thực hiện với việc chấp nhận, ghi tham chiếu tới lần đánh giá mới và tới yêu cầu mới (nếu có), người thực hiện là hệ thống; yêu cầu Được thay thế MUST NOT tạo tác động nào. Sau đó: nếu mức mới khác mức hiện hành thì tạo yêu cầu mới theo FR-036; nếu mức mới trùng mức hiện hành thì không tạo yêu cầu mới. Tại mọi thời điểm, mỗi người cao tuổi MUST có tối đa một yêu cầu đổi mức chăm sóc chưa kết thúc. Người yêu cầu và người duyệt của yêu cầu cũ MUST được báo (feature 009). *(Nguồn: BR-M01-03; Clarification 2026-09-25; trạng thái "Được thay thế" là đề xuất bổ sung vào vòng đời chung của feature 000)*
 - **FR-037**: Cờ nguy cơ MUST chỉ được gỡ qua một lần đánh giá lại Đã xác nhận: cờ gắn theo quy đổi được gỡ khi thang tương ứng (ngã – Morse, loét – Braden, đi lạc – MMSE, theo CFG-M01-05) cho kết quả không còn nguy cơ; cờ do bác sĩ gắn thêm được gỡ khi bác sĩ xác nhận không còn nguy cơ kèm lý do và thang tương ứng, nếu được chấm trong lần đó, cũng không cho kết quả nguy cơ. Cờ lưu lần đánh giá gắn và lần đánh giá gỡ. Không có thao tác gỡ cờ trực tiếp. *(Nguồn: BR-M01-10, 3.2 CO_NGUY_CO)*
-- **FR-038**: Cờ nguy cơ đang gắn MUST sẵn có cho thẻ người cao tuổi trong checklist ca (feature 005) và thẻ thông tin khẩn cấp (feature 007); cờ đi lạc MUST kèm yêu cầu "bắt buộc người đi kèm khi rời khu vực". *(Nguồn: BR-M01-10, 5.3)*
+- **FR-038**: Cờ nguy cơ đang gắn MUST sẵn có cho thẻ người cao tuổi trong checklist ca (feature 005) và thẻ thông tin khẩn cấp (feature 007); cờ đi lạc MUST kèm yêu cầu "bắt buộc người đi kèm khi rời khu vực". Cờ đi lạc hiện hành và sự kiện gắn, gỡ cờ đi lạc MUST được cung cấp cho feature 013 để chặn giao tiền mặt, trang sức cho người cao tuổi tự giữ và báo thu lại (feature 013 FR-015a, BR-M12-06; đồng bộ spec 013). *(Nguồn: BR-M01-10, 5.3)*
 
 #### E. Yêu cầu đánh giá lại
 
@@ -313,7 +320,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Tạm vắng | Ghi nhận trở về | Đang lưu trú | Hành chính, Trưởng tầng | — | Khôi phục sinh công việc, liều, suất ăn từ thời điểm trở về (005, 006, 011) |
 | Hoạt động bên ngoài | Điểm danh về (chuyến đi) | Đang lưu trú | Hệ thống, khi trưởng đoàn điểm danh về (014) | Người cao tuổi được điểm danh về | Tiếp tục công việc đã tạm dừng (005) |
 | Điều trị tại bệnh viện | Ghi nhận trở về | Đang lưu trú | Hành chính, Trưởng tầng | — | Tạm dừng toàn bộ lịch thuốc cũ, tạo yêu cầu đối chiếu thuốc BR-M07-09 (006); tạo yêu cầu đánh giá lại (001, FR-040) |
-| Đang lưu trú, Tạm vắng, Điều trị tại bệnh viện | Kết thúc lưu trú | Kết thúc lưu trú | Hành chính, Bác sĩ; Quản lý viện duyệt ngoại lệ | Không còn đồ gửi/thuốc gửi đang giữ (013, 006); chi phí đã chốt (010); không còn cảnh báo/sự cố mở (007) — trừ khi có yêu cầu ngoại lệ đã được Quản lý viện duyệt (vòng đời 000) | Hủy mọi lịch tương lai (005, 006, 011); giải phóng giường (003); khóa tài khoản người thân sau CFG-M01-04, mặc định \[30 ngày\] (012) |
+| Đang lưu trú, Tạm vắng, Điều trị tại bệnh viện | Kết thúc lưu trú | Kết thúc lưu trú | Hành chính, Bác sĩ; Quản lý viện duyệt ngoại lệ | Không còn đồ gửi ở Đang giữ, Đang được sử dụng hoặc Hư hỏng (013, Q-148); không còn thuốc gửi đang giữ (006); chi phí đã chốt (010); không còn cảnh báo/sự cố mở (007) — trừ khi có yêu cầu ngoại lệ đã được Quản lý viện duyệt (vòng đời 000) | Hủy mọi lịch tương lai (005, 006, 011); giải phóng giường (003); khóa tài khoản người thân sau CFG-M01-04, mặc định \[30 ngày\] (012) |
 | Đang lưu trú, Tạm vắng, Hoạt động bên ngoài, Điều trị tại bệnh viện | Ghi nhận qua đời | Qua đời | Bác sĩ; Hành chính chỉ khi trạng thái hiện tại là Tạm vắng, Hoạt động bên ngoài hoặc Điều trị tại bệnh viện (FR-047b) | Có người xác nhận: bác sĩ thực hiện lệnh, hoặc giấy tờ bằng chứng (giấy báo tử, giấy tờ của cơ sở y tế) khi hành chính thực hiện | Như Kết thúc lưu trú; thông báo người liên hệ chính mức Khẩn cấp (009, Q-97); hồ sơ chỉ đọc |
 
 Kết thúc lưu trú, Qua đời, Hủy tiếp nhận là trạng thái cuối; không có lệnh nào đưa hồ sơ ra khỏi các trạng thái này. Nội dung chi tiết của từng lệnh (ví dụ thời gian dự kiến trở lại, người bàn giao, thông tin qua đời ở 6.8) thuộc feature 004; spec này quy định tập trạng thái, chuyển hợp lệ, điều kiện chặn và lịch sử.
