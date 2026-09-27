@@ -45,4 +45,4 @@
 
 - Lượt rà 1: sửa câu chữ dấu "hoạt động nhóm" ở FR-001; giá trị \[1 giờ\] ở FR-040 chuyển thành CFG-M04-13 (đề xuất) theo nguyên tắc V.
 - Lượt rà 2 (sau khi chốt Q-161 → Q-163): thay 3 marker; thêm FR-023a → FR-023c và bảng trạng thái chỉ định hạn chế; sửa FR-035, FR-036, FR-046, FR-059 → FR-064, FR-067; thêm FR-059a, SC-011, 3 dòng thông báo, 3 dòng truy vết; SC-008 đổi theo cách chọn rải trong ca. Mọi mục đạt.
-- Còn mở để clarify tiếp (mặc định spec tự đặt): hủy tự động khi khoanh vùng (FR-021), không đón thẳng từ điểm tham quan (FR-045), bán trú đi chuyến ngoài khung (FR-016), loại công việc của trưởng tầng khỏi mẫu (FR-060).
+- Lượt clarify 2026-09-27 đã chốt Q-164 → Q-168. Lượt rà business-rules.md, consistency.md thêm các mặc định Q-169 → Q-176 (điểm báo lại 17 của spec), người dùng đã chốt toàn bộ ngày 2026-09-27.

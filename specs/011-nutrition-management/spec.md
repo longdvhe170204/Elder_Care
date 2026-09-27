@@ -20,6 +20,12 @@
 - Q: Mỗi bữa, bản ghi lưu mẫu thức ăn phải gồm những món nào thì mới cho bếp giao phiếu? → A: Mọi món được nấu trong bữa, kể cả món thay thế, mỗi món một mẫu; món không lưu được thì ghi lý do và không chặn giao (đề xuất Q-146; người dùng xác nhận phương án B).
 - Q: Khi chốt suất ngoài giờ hành chính mà có suất "thiếu món thay thế", ai xử lý khi dinh dưỡng viên không có mặt? → A: Hệ thống tự dùng "món an toàn" do dinh dưỡng viên khai sẵn cho mỗi chế độ ăn nếu không xung đột với người nhận; nếu vẫn xung đột thì báo điều dưỡng phụ trách (đề xuất Q-147; người dùng xác nhận phương án B).
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 014)
+
+Spec 014 và tài liệu nguồn (8.9, 3.4, Q-144, Q-170, Q-176) đã chốt:
+- Feature 014 gửi chuyến đi đã lên lịch cùng danh sách người tham gia ở mọi lần thay đổi (đăng ký, hủy, "Không đi", đi sau), giờ về dự kiến và gia hạn, thời điểm rời/về thực tế và đính chính (bảng giao tiếp được sửa). Giả định ở Assumptions về "chuyến ngoài viện có thời điểm dự kiến trở lại" nay đã được spec 014 xác nhận (FR-034).
+- Suất ăn của bán trú dùng giờ về theo ngày do feature 005 quản lý, có thể dời vì đồng ý về muộn.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 08, mục 12; UC-45 → UC-48, UC-75 → UC-78):
@@ -518,7 +524,7 @@ Ngừng, Từ chối, Đã hủy là trạng thái cuối. Không có lệnh Ng�
 | Gửi | 010 | Suất ăn người thân (ghi, hủy) làm bản ghi nguồn chi phí | Suất, người thân, lượt ở lại, người cao tuổi được gắn, ngày bữa, trạng thái |
 | Nhận | 012 | Lượt người thân ở lại có đăng ký ăn (xác nhận, bắt đầu, kết thúc, hủy); người thân có quan hệ Hiệu lực (người gửi đồ ăn) | Lượt, người thân, người cao tuổi, khoảng thời gian, có đăng ký ăn |
 | Cung cấp | 012 | Thực đơn chung (FR-028); chế độ ăn riêng (loại thông tin "sức khỏe") | Tuần, ngày, bữa, món; người cao tuổi, chế độ ăn, kết cấu |
-| Nhận | 014 | Chuyến hoạt động ngoài viện đã lên lịch, điểm danh rời viện và trở về, hủy chuyến | Chuyến, người tham gia, khoảng thời gian |
+| Nhận | 014 | Chuyến hoạt động ngoài viện đã lên lịch, người tham gia ở mọi lần thay đổi, giờ về dự kiến và gia hạn, điểm danh rời viện và trở về, đính chính thời điểm hoặc Hủy ghi nhận (feature 014 FR-034, FR-031a), hủy chuyến; giờ về theo ngày của bán trú lấy từ feature 005 (Q-176) | Chuyến, người tham gia, khoảng thời gian |
 | Gửi | Module 14 | Dữ liệu cho báo cáo: số phiếu giao trễ, có sai lệch (18.2); số suất theo bữa, chế độ ăn | Phiếu, bữa, tầng/khu, thời điểm giao, sai lệch |
 
 ### Key Entities *(include if feature involves data)*
