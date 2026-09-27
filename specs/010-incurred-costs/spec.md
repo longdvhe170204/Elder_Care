@@ -27,6 +27,10 @@
 - Q: Người bán trú đến vào ngày không có lịch, hoặc có lịch nhưng khu bán trú nghỉ, tính phí thế nào? → A: Ngày đến ngoài lịch tính một buổi phát sinh hệ số 100% theo đơn giá buổi, ngoài giá tháng; buổi trùng ngày nghỉ không tính và không đếm vào số buổi chia giá tháng (đề xuất Q-140).
 - Q: Có tính phí lưu trú cho ngày người cao tuổi qua đời không? → A: Có, trọn ngày theo hệ số của ngày đó; "dừng từ thời điểm qua đời" áp cho sự kiện sau thời điểm đó (đề xuất Q-141).
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 011)
+
+Spec 011 đã chốt nguồn "suất ăn người thân" (FR-043 của spec 011): mỗi suất của người thân ở lại có đăng ký ăn, chỉ khi lượt Đang ở lại, là một bản ghi nguồn; suất bị hủy trước giờ bữa thì khoản tương ứng bị hủy; sau giờ bữa không hủy vì người thân không ăn. Bảng nguồn FR-005 và bảng giao tiếp được cập nhật; điểm báo lại 14 phần 011 đã hoàn tất.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 11, mục 15; UC-61 → UC-64, UC-79):
@@ -293,7 +297,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Liều nguồn viện Đã dùng; lần dùng PRN nguồn viện; trừ liều thuộc một lần giao mang theo đã tính phí (feature 006 FR-033) và liều nguồn gia đình gửi, kể cả thuốc mua hộ (Q-139) | 006 | Thuốc | Liều / lần dùng PRN | Số lượng theo liều | Như trên | Thời điểm dùng |
 | Lần giao thuốc mang theo nguồn viện; nhận lại | 006 | Thuốc | Lần giao | Số lượng giao, trừ số nhận lại | Như trên | Thời điểm giao |
 | Lượt ở lại đi qua một mốc 00:00 (mỗi mốc là một đêm, feature 012 FR-043); lượt kết thúc trước mốc 00:00 đầu tiên thì không sinh khoản | 012 | Người thân ở lại | Lượt ở lại | 1 đêm | Phiên bản đơn giá "Người thân ở lại" tại ngày bắt đầu của đêm | Ngày bắt đầu của đêm |
-| Suất ăn của người thân ở lại có đăng ký ăn | 011 | Suất ăn người thân | Suất ăn đã ghi nhận | 1 suất | Phiên bản đơn giá suất ăn ngoài hợp đồng | Ngày của bữa |
+| Suất ăn của người thân ở lại có đăng ký ăn (chỉ khi lượt Đang ở lại; suất Đã hủy trước giờ bữa thì khoản bị hủy) | 011 | Suất ăn người thân | Suất ăn đã ghi nhận (feature 011 FR-043) | 1 suất | Phiên bản đơn giá suất ăn ngoài hợp đồng | Ngày của bữa |
 
 - **FR-005a**: Với người cao tuổi nội trú, sau khi mỗi ngày trong thời gian tính phí kết thúc, Bộ lập lịch MUST lập đúng một **ngày lưu trú**. Ngày lưu trú gồm: người cao tuổi, hợp đồng hiệu lực ngày đó (feature 004 FR-024), ngày, có mặt hay vắng, lượt vắng và số thứ tự ngày vắng (nếu vắng), hệ số và các dấu do feature 004 xác định. Ngày lưu trú là bản ghi nguồn của khoản phí lưu trú. Nếu dữ liệu của feature 004 cho ngày đó đổi (đính chính lượt vắng, quyết định giữ giường), ngày lưu trú MUST được cập nhật và kéo theo tính lại hoặc điều chỉnh khoản (FR-020). *(Nguồn: 15.2, BR-M02-06, DBR-15)*
 - **FR-005b**: Khoản phí buổi bán trú MUST được sinh khi trạng thái có mặt của buổi có lịch được xác định lần đầu (Có mặt khi điểm danh đến; Vắng có báo khi ghi báo vắng; Vắng không báo do Bộ lập lịch của feature 005 xác định sau CFG-M02-07, mặc định \[2 giờ\]; báo vắng trước CFG-M02-06, mặc định \[24 giờ\], là Vắng có báo). Khi trạng thái đổi sau đó, khoản MUST được tính lại (chưa chốt) hoặc điều chỉnh (đã chốt). Vì feature 005 luôn xác định trạng thái cho mọi buổi có lịch, không có buổi có lịch nào ở cuối ngày mà chưa có trạng thái. Hai trường hợp riêng:
@@ -440,7 +444,7 @@ Từ chối, Hủy, Đã mua là trạng thái cuối. Đề nghị mua hộ là
 | Nhận | 005 | Kết quả có tính phí; đính chính hoặc hủy ghi nhận; trạng thái có mặt bán trú theo ngày, kể cả điểm danh đến ngoài lịch (Q-140) | Như bảng giao tiếp của feature 005 |
 | Nhận | 006 | Liều và lần dùng PRN nguồn viện Đã dùng (không gồm liều thuộc lần giao đã tính phí, liều nguồn gia đình gửi); lần giao và nhận lại thuốc mang theo; đính chính | Liều/lần giao, thuốc, nguồn thuốc, số lượng, thời điểm |
 | Gửi | 006 | Đề nghị mua hộ thuốc đã Đã mua, để tiếp nhận với nguồn "gia đình gửi" (Q-139) | Đề nghị, người cao tuổi, mục, số lượng, ngày mua |
-| Nhận | 011 | Suất ăn của người thân ở lại | Suất, người cao tuổi được gắn, ngày bữa |
+| Nhận | 011 | Suất ăn của người thân ở lại: ghi và hủy (hủy trước giờ bữa; sau giờ bữa không hủy vì người thân không ăn) | Suất, người thân, lượt ở lại, người cao tuổi được gắn, bữa, ngày bữa, trạng thái (Đã ghi / Đã hủy) |
 | Nhận | 012 | Đêm người thân ở lại; đồng ý hoặc từ chối đề nghị mua hộ của người đại diện | Lượt ở lại, đêm; đề nghị, người đại diện, quyết định |
 | Gửi | 012 | Bảng chi phí đã chốt; chi phí tạm tính; đề nghị mua hộ cần đồng ý | Theo FR-037, FR-038, FR-023 |
 | Nhận | 014 | Điểm danh hoạt động có thu phí và việc hủy điểm danh | Buổi, người cao tuổi, hoạt động/dịch vụ |
@@ -515,7 +519,7 @@ Từ chối, Hủy, Đã mua là trạng thái cuối. Đề nghị mua hộ là
 
 **Còn mở**
 - Điểm 9: Q-05 và Q-08 vẫn chờ người quyết định. Các cột xuất và thời điểm xuất ở mục 23 cần kế toán của cơ sở xác nhận.
-- Điểm 14: yêu cầu với feature 011, 014 chờ khi viết các spec đó.
+- Điểm 14: phần yêu cầu với feature 011 đã hoàn tất (2026-09-27, spec 011 FR-043); phần feature 014 chờ khi viết spec đó.
 
 Nội dung gốc của từng điểm được giữ dưới đây để truy vết.
 
@@ -543,7 +547,7 @@ Nội dung gốc của từng điểm được giữ dưới đây để truy v�
 12. **Mục 23 và 19.3**: cột "mô tả" trong file kế toán là mã vật phẩm với khoản thuốc (Q-133). Nên thêm vào 19.3 rằng giới hạn "hành chính không xem thuốc" áp cả cho khoản chi phí thuốc, và bổ sung chú thích cho dòng "Chi phí, khoản điều chỉnh" của 4.4 với cột NT.
 13. **BR-M11-05** viết "hệ thống tạo khoản Điều chỉnh chờ duyệt", còn spec cho khoản bắt đầu ở Nháp theo câu "đi lại vòng đời này" ở 15.6 (FR-027). Nên sửa BR-M11-05 thành "tạo khoản Điều chỉnh ở trạng thái Nháp" cho khớp.
 14. **Yêu cầu đối với feature chưa viết**, cần đưa vào khi làm các spec đó:
-    - **011**: ghi suất ăn của người thân ở lại có đăng ký ăn làm bản ghi nguồn chi phí (người cao tuổi được gắn, ngày bữa, hủy suất). Cung cấp đơn giá suất ăn ngoài hợp đồng qua danh mục của feature 004.
+    - **011**: ghi suất ăn của người thân ở lại có đăng ký ăn làm bản ghi nguồn chi phí (người cao tuổi được gắn, ngày bữa, hủy suất). Cung cấp đơn giá suất ăn ngoài hợp đồng qua danh mục của feature 004. — *đã đưa vào spec 011 ngày 2026-09-27 (feature 011 FR-043, bảng giao tiếp).*
     - **014**: cung cấp lượt điểm danh có mặt ở buổi hoạt động có thu phí, và sự kiện hủy điểm danh hoặc hủy buổi. Đánh dấu hoạt động "có thu phí", kèm dịch vụ tương ứng trong danh mục.
 15. **Cần đồng bộ ở feature đã viết**:
     - **004**:

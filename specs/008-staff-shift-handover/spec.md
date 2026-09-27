@@ -40,6 +40,10 @@
 - Q: Công việc Thường quá hạn đã chuyển tạm thành việc chung và đã có nhân viên ca sau nhận có bị tự đóng khi bàn giao được xác nhận (feature 005 FR-047) không? → A: Không; chỉ công việc vẫn là việc chung chưa ai nhận mới bị tự đóng như FR-047 (FR-044a, feature 005 FR-047a, đề xuất Q-93).
 - Q: Trong lúc cảnh báo ở trạng thái "tạm nhận", chuỗi leo thang và thông báo gửi cho ai? → A: Người tạm nhận thay Điều dưỡng phụ trách ở mọi chỗ feature 007 dùng (người nhận thông báo, bậc đầu của chuỗi leo thang); các bậc sau giữ nguyên (FR-044a, feature 007 FR-037, đề xuất Q-94).
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 011)
+
+Spec 011 dùng phân công và ca của spec này để xác định người nhận phiếu bữa ăn tại tầng (Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc, Người phụ trách ca có phạm vi tại tầng/khu vực của phiếu trong ca, Q-143). Phiếu của khu bán trú do nhân viên phân công tại tầng/khu vực mà khu nghỉ bán trú gắn vào nhận (feature 003 FR-038); không cần loại đối tượng phân công mới. Ca bếp là ca toàn viện không có bàn giao: phát sinh và sai lệch chưa xử lý do bất kỳ nhân viên bếp nào đang trong ca xử lý (feature 011 FR-039). Không có yêu cầu nào thay đổi của spec này.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 09 mục 13.1 → 13.5; BR-M09-01 → 08; UC-49, UC-50 phần lập và công bố lịch ca, UC-51, UC-52, UC-53; DBR-20, DBR-21):
