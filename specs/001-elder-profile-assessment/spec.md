@@ -49,6 +49,10 @@ Spec 014 và tài liệu nguồn (5.6, 8.9, BR-M04-04, Q-166, Q-170, Q-171) đã
 - Chuyển Hoạt động bên ngoài → Đang lưu trú còn xảy ra khi trưởng tầng Hủy ghi nhận bản ghi rời viện của người bị ghi đi nhầm (feature 014 FR-031a); căn cứ ghi "đính chính điểm danh".
 - Hoạt động bên ngoài không chuyển sang Tạm vắng; người thân không đón thẳng từ điểm đến (Q-166). Người thiếu khi về giữ Hoạt động bên ngoài tới lệnh phù hợp (không đổi).
 
+### Cập nhật 2026-09-28 (đồng bộ với spec 003, rà chéo)
+
+Spec 003 và tài liệu nguồn (7.3, Q-50) đã chốt: "Hoàn tất tiếp nhận" bị chặn khi giường đặt trước chưa về Trống (ví dụ còn Chờ vệ sinh), trừ khi người thực hiện chuyển phân bổ sang một giường Trống khác ngay trong lệnh. Điều kiện được thêm vào dòng "Đang tiếp nhận → Hoàn tất tiếp nhận" của bảng trạng thái người cao tuổi.
+
 ### Cập nhật 2026-09-27 (đồng bộ với spec 016)
 
 Spec 016 (báo cáo và dashboard) lấy tình trạng "quá hạn" của yêu cầu đánh giá lại từ feature này, không tự tính (spec 016 FR-002, FR-044). FR-041 được bổ sung dấu "quá hạn" trên yêu cầu và việc cung cấp cho feature 016.
@@ -323,7 +327,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Trạng thái hiện tại | Lệnh | Trạng thái kế tiếp | Ai thực hiện | Điều kiện (chặn nếu không đạt) | Tác động (feature thực hiện) |
 | --- | --- | --- | --- | --- | --- |
 | (chưa có) | Tạo hồ sơ | Đang tiếp nhận | Hành chính | FR-001, FR-003 | — |
-| Đang tiếp nhận | Hoàn tất tiếp nhận | Đang lưu trú | Hành chính | Đánh giá đầu vào Đã xác nhận và kết quả đánh giá gần nhất chưa quá CFG-M01-02 (001, FR-034a); hợp đồng Hiệu lực và đặt cọc đạt (004); nếu nội trú: đã có phân bổ giường (003); đủ DBR-02 — đúng một người liên hệ chính và ít nhất một người đại diện (012 FR-003). Bản đồng ý không chặn (FR-012) | Sinh lịch cá nhân, lịch thuốc, suất ăn từ ngày hiệu lực (005, 006, 011); nếu chưa có bản đồng ý Hiệu lực: cảnh báo và bắt đầu nhắc theo CFG-M01-06 (001) |
+| Đang tiếp nhận | Hoàn tất tiếp nhận | Đang lưu trú | Hành chính | Đánh giá đầu vào Đã xác nhận và kết quả đánh giá gần nhất chưa quá CFG-M01-02 (001, FR-034a); hợp đồng Hiệu lực và đặt cọc đạt (004); nếu nội trú: đã có phân bổ giường và giường đặt trước đã về Trống, hoặc người thực hiện chuyển phân bổ sang một giường Trống khác ngay trong lệnh (003 FR-023, Q-50); đủ DBR-02 — đúng một người liên hệ chính và ít nhất một người đại diện (012 FR-003). Bản đồng ý không chặn (FR-012) | Sinh lịch cá nhân, lịch thuốc, suất ăn từ ngày hiệu lực (005, 006, 011); nếu chưa có bản đồng ý Hiệu lực: cảnh báo và bắt đầu nhắc theo CFG-M01-06 (001) |
 | Đang tiếp nhận | Hủy tiếp nhận | Hủy tiếp nhận | Hành chính | Có lý do | Hủy giữ chỗ giường nếu có (003); đóng hồ sơ chờ liên quan (004) |
 | Đang lưu trú | Cho tạm vắng | Tạm vắng | Hành chính, Trưởng tầng | Có bản ghi đón hợp lệ: người đón thuộc danh sách được phép đón hoặc có ngoại lệ đón Hiệu lực (14.3, BR-M10-03, 012 FR-026) | Hủy công việc, suất ăn trong thời gian vắng (005, 011); liều chuyển "Mang theo" hoặc "Tạm dừng" (006); giường Giữ chỗ hoặc Trống theo chính sách (003); áp chính sách phí vắng BR-M02-06 (004, 010) |
 | Đang lưu trú | Điểm danh rời viện (chuyến đi) | Hoạt động bên ngoài | Hệ thống, khi trưởng đoàn (hoặc trưởng tầng thay) điểm danh rời viện (014 FR-040) | Người cao tuổi có trong danh sách chuyến đi, được đánh giá Đạt, đang Đang lưu trú (8.9) | Hủy công việc Chưa đến hạn trong khoảng đi (005 FR-020, BR-M04-04); liều chuyển "Mang theo" (006) (BR-M04-16) |

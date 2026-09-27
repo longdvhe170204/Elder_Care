@@ -51,6 +51,10 @@ Spec 014 và tài liệu nguồn (8.9, BR-M04-16, BR-M07-03, Q-54, Q-58, Q-171) 
 - Chuyến bị hủy, người chuyển "Không đi", hoặc chuyến dời sang ngày khác sau khi đã giao thuốc thì điều dưỡng phụ trách được nhắc Nhận lại; đính chính thời điểm rời/về làm liều được tính lại (FR-048b).
 - BR-M04-16 được làm rõ theo Q-54: liều Mang theo chỉ do Điều dưỡng ghi nhận (FR-027 không đổi).
 
+### Cập nhật 2026-09-28 (đồng bộ với spec 016, rà chéo)
+
+Spec 016 dùng dữ liệu liều và phiếu đối chiếu của spec này cho báo cáo sức khỏe. FR-051 được bổ sung đủ định nghĩa (tử số, mẫu số, liều bị loại, ca của liều, phiếu quá hạn) để là căn cứ cho feature 016 FR-043, FR-044; bảng giao tiếp có thêm dòng "Cung cấp 016". Không có thay đổi về hành vi của spec này.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 07, mục 11.1 → 11.6; UC-39 → UC-44):
@@ -442,7 +446,13 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 Đã nhận lại là trạng thái cuối; sai sót của lần giao hoặc lần nhận lại MUST được xử lý bằng đính chính có lý do, do người ghi gốc hoặc Điều dưỡng giữ nhiệm vụ Người phụ trách ca tạo, kèm biến động số lượng và sự kiện chi phí tương ứng.
 - **FR-049**: Quyền xem MUST theo 4.4: Bác sĩ, Quản lý viện xem mọi đơn, liều, phiếu đối chiếu, thuốc gia đình gửi; Điều dưỡng xem trong phạm vi phân công (theo feature 002); Trưởng tầng xem liều và trạng thái liều trong phạm vi (dòng "Phát thuốc": X) nhưng MUST NOT xem hay thao tác trên đơn thuốc và phiếu đối chiếu (dòng "Đơn thuốc", "Đối chiếu thuốc": —); Nhân viên chăm sóc, Dinh dưỡng viên, Nhân viên bếp, Nhân viên vệ sinh, Nhân viên hành chính MUST NOT xem thông tin thuốc (19.3); Người thân xem đơn thuốc chỉ khi có bản đồng ý chia sẻ dữ liệu đang hiệu lực bao gồm người thân đó (chú thích ¹), luôn xem được thuốc gia đình gửi của người cao tuổi (tên thuốc, trạng thái, số lượng còn, hạn dùng) không cần bản đồng ý, xem phiếu đối chiếu đã xác nhận chỉ khi có bản đồng ý đang hiệu lực bao gồm người thân đó (như đơn thuốc), và không xem liều. *(Nguồn: 4.4, 19.3, BR-M01-08, DBR-03; Clarification 2026-09-26, đề xuất Q-59)*
 - **FR-050**: Hệ thống MUST cung cấp danh sách "thuốc đang dùng" (đơn Hiệu lực và Tạm dừng, kèm liều và mốc giờ) cho thẻ thông tin khẩn cấp và bản tóm tắt chuyển viện (feature 007, 9.5, BR-M05-14), và liều của người được phân công cho checklist điều dưỡng (feature 005 FR-029). *(Nguồn: 9.5, BR-M05-14, 8.3 "Làm rõ")*
-- **FR-051**: Hệ thống MUST cung cấp cho báo cáo sức khỏe (18.3): tỷ lệ liều Bỏ lỡ, Từ chối theo người cao tuổi và theo ca; số phiếu đối chiếu quá hạn. *(Nguồn: 18.3)*
+- **FR-051**: Hệ thống MUST cung cấp cho báo cáo sức khỏe (18.3, feature 016): tỷ lệ liều Bỏ lỡ, Từ chối theo người cao tuổi và theo ca; số phiếu đối chiếu quá hạn. Định nghĩa là căn cứ cho feature 016:
+  - tỷ lệ liều Bỏ lỡ (Từ chối) = số liều Bỏ lỡ (Từ chối) ÷ số liều có trạng thái cuối Đã dùng, Từ chối, Không thực hiện hoặc Bỏ lỡ, có thời điểm dự kiến trong khoảng;
+  - liều Mang theo đã ghi Đã dùng hoặc Không thực hiện có vào mẫu số; liều Đã hủy, liều kết thúc ở Tạm dừng (FR-022) và liều Không thực hiện do người cao tuổi chuyển trạng thái cuối (FR-047, người đóng "Hệ thống") không vào mẫu số, loại cuối được đếm riêng; liều mang nhãn "dùng trễ" đếm riêng;
+  - ca của một liều là ca của tầng người cao tuổi có khoảng giờ chứa thời điểm dự kiến của liều, kể cả liều chung của tầng (Q-61);
+  - phiếu đối chiếu quá hạn là phiếu Mở hoặc Chờ xác nhận đang mang dấu "quá hạn" (bảng trạng thái phiếu, CFG-M07-05).
+
+  *(Nguồn: 18.3; FR-022, FR-047; đồng bộ spec 016)*
 - **FR-052**: Bảng tổng hợp giao tiếp với feature khác:
 
 | Chiều | Feature | Sự kiện / dữ liệu |
@@ -456,6 +466,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Cung cấp | 007 | Yêu cầu tạo/đóng cảnh báo: Bỏ lỡ, phản ứng, từ chối liên tiếp, xung đột dị ứng, chưa đối chiếu, lần dùng PRN "ghi theo báo lại" vượt giới hạn (FR-027); yêu cầu đóng cảnh báo khi bản ghi đồng bộ muộn hoặc "ghi sau mất kết nối" có thời điểm dùng trong cửa sổ (FR-029); thuốc đang dùng |
 | Cung cấp | 009 | Nhắc hết hạn đơn, nhắc Trễ, thông báo thuốc gia đình gửi sắp hết/hết hạn dùng, thông báo phiếu đối chiếu, thông báo "người cao tuổi chưa có điều dưỡng phụ trách" và nhắc Trễ của liều chung của tầng (FR-026a), bản ghi thuốc kiểm soát đặc biệt "chờ xem lại" (FR-029) |
 | Cung cấp | 010 | Liều và lần dùng PRN nguồn viện Đã dùng (ngoài lần giao mang theo; không gồm liều gia đình gửi, kể cả thuốc mua hộ); lần giao và nhận lại thuốc mang theo nguồn viện; đính chính liên quan |
+| Cung cấp | 016 | Dữ liệu cho báo cáo sức khỏe 18.3 theo FR-051: liều (người cao tuổi, tầng, thời điểm dự kiến, trạng thái cuối, người đóng và quy tắc đóng, nhãn "dùng trễ", căn cứ "mang theo", dấu "chờ xem lại"/"ghi sau mất kết nối"); phiếu đối chiếu (người cao tuổi, lý do, trạng thái, hạn, dấu quá hạn) |
 | Nhận | 010 | Đề nghị mua hộ thuốc đã Đã mua, để tiếp nhận với nguồn "gia đình gửi" (FR-040, Q-139) |
 
 ### Key Entities *(include if feature involves data)*

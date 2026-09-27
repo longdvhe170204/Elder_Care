@@ -68,6 +68,10 @@ Spec 016 và tài liệu nguồn (9.2, 18.3, 19.3, Q-199, Q-202) đã chốt:
 - Mỗi loại trong danh mục loại sự cố có dấu "không thuộc sức khỏe" do Quản lý viện đặt, mặc định bật cho đồ gửi thất lạc, đồ gửi hư hỏng, cơ sở vật chất; Hành chính chỉ thấy số liệu sự cố của các loại mang dấu (FR-042 được sửa).
 - Báo cáo sức khỏe đếm cả leo thang và thời gian tiếp nhận xử lý của sự cố, tính riêng với cảnh báo; mốc tạo, tiếp nhận của cảnh báo theo 18.3 (FR-081 được sửa).
 
+### Cập nhật 2026-09-28 (đồng bộ với spec 016, rà chéo)
+
+FR-081 được bổ sung định nghĩa "lần đo" (bản ghi đã xác nhận; bản ghi "chờ đo lại" được thay thì tính lần đo lại), "vượt ngưỡng" hai mức theo ngưỡng hiệu lực lúc đo, và mức dùng để xếp (số lượng theo mức hiện hành; thời gian tiếp nhận theo mức lúc tiếp nhận). Đây là căn cứ cho feature 016 FR-040 → FR-042. Không có thay đổi về hành vi của spec này.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 05 mục 9.1 → 9.7; Module 06 mục 10.1 → 10.5; UC-16 phần khởi phát từ sự cố, UC-32 → UC-38):
@@ -552,7 +556,12 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Giấy phép cơ sở | Cấu hình | — | Xem | — | — | — | — | — |
 | Khám và điều trị | Xem | Xem trong phạm vi | Ghi (FR-073) | Ghi (FR-072), xem trong phạm vi | — | — | — | Xem khi có bản đồng ý (¹) |
 
-- **FR-081**: Hệ thống MUST cung cấp cho báo cáo sức khỏe và dashboard (18.3, 18.5, feature 016): chỉ số theo thời gian; số cảnh báo, sự cố theo mức, loại, tầng; thời gian trung bình từ tạo cảnh báo đến tiếp nhận theo mức (mốc tạo là lần tạo đầu tiên, không đặt lại khi gộp; mốc tiếp nhận với cảnh báo kích hoạt khẩn cấp là thời điểm kích hoạt, với cảnh báo Quản lý viện tiếp nhận ở cấp 2 là thời điểm Quản lý viện tiếp nhận); số lần leo thang của cảnh báo; **số lần leo thang của sự cố và thời điểm sự cố được tiếp nhận xử lý (chuyển Đang xử lý), theo mức (Q-199)**; trường hợp đang theo dõi (lịch theo dõi sau ngã, theo dõi tiếp xúc Hiệu lực); khu đang khoanh vùng; cảnh báo "đã leo thang tối đa"; dấu "không thuộc sức khỏe" của từng loại sự cố (FR-042). *(Nguồn: 18.3, 18.5; Q-199, Q-202, đồng bộ spec 016)*
+- **FR-081**: Hệ thống MUST cung cấp cho báo cáo sức khỏe và dashboard (18.3, 18.5, feature 016): chỉ số theo thời gian; số cảnh báo, sự cố theo mức, loại, tầng; thời gian trung bình từ tạo cảnh báo đến tiếp nhận theo mức (mốc tạo là lần tạo đầu tiên, không đặt lại khi gộp; mốc tiếp nhận với cảnh báo kích hoạt khẩn cấp là thời điểm kích hoạt, với cảnh báo Quản lý viện tiếp nhận ở cấp 2 là thời điểm Quản lý viện tiếp nhận); số lần leo thang của cảnh báo; **số lần leo thang của sự cố và thời điểm sự cố được tiếp nhận xử lý (chuyển Đang xử lý), theo mức (Q-199)**; trường hợp đang theo dõi (lịch theo dõi sau ngã, theo dõi tiếp xúc Hiệu lực); khu đang khoanh vùng; cảnh báo "đã leo thang tối đa"; dấu "không thuộc sức khỏe" của từng loại sự cố (FR-042). Định nghĩa là căn cứ cho feature 016:
+  - **lần đo** là bản ghi chỉ số đã xác nhận; bản ghi "chờ đo lại" đã được thay bằng lần đo lại không được tính (tính lần đo lại); bản ghi "chờ đo lại" tự xác nhận sau CFG-M06-04 được tính;
+  - **vượt ngưỡng** chia hai mức, cảnh báo và nguy hiểm, theo ngưỡng đang hiệu lực lúc đo (ngưỡng cá nhân nếu có, không thì ngưỡng mặc định); chỉ số nhiều thành phần (ví dụ huyết áp) tính một lần ở mức cao nhất của các thành phần;
+  - **mức dùng để xếp:** số cảnh báo, sự cố theo mức dùng mức hiện hành; thời gian từ tạo đến tiếp nhận theo mức dùng mức tại thời điểm tiếp nhận, vì hạn tiếp nhận và leo thang chạy theo mức lúc đó.
+
+  *(Nguồn: 18.3, 18.5; FR-016, FR-033, FR-044; Q-199, Q-202, đồng bộ spec 016)*
 - **FR-082**: Hệ thống MUST cung cấp cho bản tin định kỳ (feature 012): cân nặng và xu hướng, các chỉ số chính, sự cố trong kỳ kèm mức (BR-M10-09 yêu cầu giải thích khi có sự cố Trung bình trở lên). *(Nguồn: 14.5, BR-M10-09)*
 - **FR-083**: Bảng tổng hợp giao tiếp với feature khác:
 
@@ -575,7 +584,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Nhận, Cung cấp | 013 | Nhận yêu cầu tạo sự cố loại "đồ gửi thất lạc" / "đồ gửi hư hỏng" (nguồn "đồ gửi", FR-040, FR-042), liên kết sự cố đã có, diễn biến "đã tìm thấy", yêu cầu chuyển Đã hủy (FR-046b); cung cấp sự cố đã ghi để liên kết và trạng thái mở/đóng cho căn cứ điều kiện đồ gửi (feature 013 FR-021, FR-025) |
 | Nhận, Cung cấp | 012 | Nhận lượt thăm (FR-060) và người liên hệ chính; cung cấp trạng thái khoanh vùng, sự cố theo quyền, dữ liệu bản tin (FR-082) |
 | Nhận, Cung cấp | 014 | Nhận điểm danh hoạt động, yêu cầu tạo sự cố thiếu người khi trở về; cung cấp trạng thái khoanh vùng |
-| Cung cấp | 016 | FR-081 |
+| Cung cấp | 016 | FR-081 (chỉ số đã xác nhận và mức vượt ngưỡng lúc đo; cảnh báo, sự cố với mức hiện hành, mức lúc tiếp nhận, thời điểm tạo, tiếp nhận, các lần leo thang; theo dõi; khoanh vùng; dấu loại sự cố) |
 
 ### Key Entities *(include if feature involves data)*
 
