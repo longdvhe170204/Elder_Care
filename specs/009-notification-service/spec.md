@@ -63,6 +63,10 @@ Spec 013 nêu mức, người nhận, khóa sự kiện và nội dung rút gọ
 
 Bảng mức mặc định FR-043b có thêm dòng 014: mọi thông báo của feature 014 theo bảng FR-071 của spec đó (buổi bị hủy, dời, đăng ký hủy tự động; điểm danh chưa hoàn tất, "Không ghi nhận"; chuẩn bị thuốc mang theo, Nhận lại thuốc; chỉ định hạn chế và chỉ định tạm; đồng ý về muộn; quá giờ về và báo Quản lý viện; chuyển trưởng đoàn; kiểm tra chất lượng). Cảnh báo "nguy cơ cô lập" và sự cố thiếu người đi qua feature 007. BR-M04-17 được làm rõ: "cảnh báo" quá giờ về là thông báo mức Trung bình. Thông báo tới người thân của feature 014 (đồng ý về muộn) chỉ mang loại thông tin "chung".
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 016)
+
+Theo Q-194, báo cáo thống kê thông báo thuộc giai đoạn sau; dòng "Cung cấp 016" của bảng giao tiếp và mục Ngoài phạm vi được ghi rõ. Spec 016 không gửi thông báo nào (feature 016 FR-001).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 13 mục 17, 17.1; BR-M13-01 → 05; UC-66; mục 23 dòng "Nhà cung cấp SMS", "Gọi điện"; CFG-M13-01, CFG-M13-02, CFG-M13-03 → CFG-M13-06 (đề xuất); thực thể THONG_BAO):
@@ -82,7 +86,7 @@ Bảng mức mặc định FR-043b có thêm dòng 014: mọi thông báo của 
 - Bản tin định kỳ (lập, duyệt, nội dung, BR-M10-08, 09): feature 012; spec này chỉ gửi và ghi nhận đã xem khi feature 012 yêu cầu. Bản tin gửi qua spec này chịu đầy đủ quy tắc của thông báo không khẩn: giờ yên tĩnh (FR-022), lọc theo loại thông tin từng phần (FR-013, Q-105) và gộp tin nhắn (FR-016b).
 - Quy tắc dùng chung (nhóm dữ liệu, nhật ký, tham số, đính chính): feature 000 — kế thừa, không lặp lại.
 - Tự động gọi điện, chọn nhà cung cấp tin nhắn (Q-06): ngoài phạm vi giai đoạn đầu (mục 23).
-- Báo cáo thống kê thông báo: feature 016; spec này cung cấp dữ liệu.
+- Báo cáo thống kê thông báo: feature 016, **giai đoạn sau** (Q-194); spec này lưu đủ dữ liệu để cung cấp khi đó.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -336,7 +340,7 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 | Nhận | 012 | Quan hệ người thân còn hiệu lực, người liên hệ chính, người đại diện, quyền từng người thân, số liên hệ, tài khoản cổng |
 | Nhận | 001, 004 | Bản đồng ý chia sẻ dữ liệu đang hiệu lực; trạng thái Qua đời và thời điểm |
 | Cung cấp | Module nguồn | Người nhận thực tế, căn cứ, kết quả gửi từng kênh, thời điểm gửi, xem, xác nhận, kết quả gọi (FR-035) |
-| Cung cấp | 016 | Số thông báo theo mức, tỷ lệ và thời gian xác nhận thông báo Khẩn cấp, số yêu cầu gọi và kết quả, lỗi gửi |
+| Cung cấp (giai đoạn sau, Q-194) | 016 | Số thông báo theo mức, tỷ lệ và thời gian xác nhận thông báo Khẩn cấp, số yêu cầu gọi và kết quả, lỗi gửi |
 
 - **FR-043a**: Mọi spec nguồn (kể cả 010 → 016 viết sau) MUST nêu cho mỗi thông báo mình phát ra: (1) loại sự kiện và khóa sự kiện, gồm cách đánh khóa cho nhắc lặp lại (FR-005); (2) mức (FR-002, FR-003); (3) các nhóm người nhận theo FR-007 và cách thay của từng nhóm loại (a) (FR-010); (4) loại thông tin của từng phần nội dung (FR-013, FR-020); (5) nội dung rút gọn cho kênh ngoài ứng dụng theo FR-019; (6) giới hạn nội dung cho người thân không có bản đồng ý, nếu gửi người thân (FR-014). Thiếu (2) hoặc (4) được xử lý theo FR-003 và FR-013 nhưng bị ghi vào danh sách lỗi gửi. *(Nguồn: 17, BR-M13-04, BR-M13-05; Q-108, Q-110)*
 - **FR-043b**: Module nguồn MUST xếp mức theo nguyên tắc chung: **Nhẹ** — thông tin hoặc nhắc không cần làm ngay (kể cả nhắc theo chu kỳ khi chưa quá hạn); **Trung bình** — cần người nhận hành động trong ca hoặc trong ngày, hoặc nhắc leo thang vì đã quá hạn; **Khẩn cấp** — nguy cơ trực tiếp tới an toàn người cao tuổi, hoặc báo tin nghiêm trọng cho gia đình. Với các thông báo mà spec nguồn chưa nêu mức, mức mặc định MUST theo bảng dưới; spec nguồn MAY ghi đè bằng mức riêng có lý do. Thông báo không có trong bảng và không được nêu mức vẫn xử lý theo FR-003 (Nhẹ, dấu "thiếu mức").

@@ -132,6 +132,13 @@ Vai trò hệ thống là các vai trò ở bảng 2.3, được gán cho tài k
 | Đồng ý về muộn       | Khái niệm | **(Bổ sung, spec 014, Q-167)** Đồng ý của người đại diện cho người bán trú về muộn hơn giờ về theo lịch vì một buổi hoạt động cụ thể (3.4) |
 | Ngày tính            | Khái niệm | **(Bổ sung, spec 014, Q-173)** Ngày được đếm cho cảnh báo nguy cơ cô lập (BR-M04-22) |
 | Không ghi nhận       | Khái niệm | **(Bổ sung, spec 014, Q-169)** Kết quả hệ thống gán cho đăng ký chưa được điểm danh khi hết ngày của buổi; không phải Có mặt, không phải Vắng (8.8) |
+| Mẫu xoay ca          | Khái niệm | **(Bổ sung, spec 015)** Chu kỳ nhiều ngày, mỗi ngày là một mẫu ca hoặc Nghỉ (ví dụ 2 ngày – 2 đêm – 2 nghỉ), dùng để sinh lịch ca tháng (13.2) |
+| Nhóm xoay ca         | Khái niệm | **(Bổ sung, spec 015)** Nhóm nhân viên của một tầng, khu vực hoặc toàn viện dùng chung một mẫu xoay ca và ngày gốc; mỗi thành viên có vị trí bắt đầu riêng trong chu kỳ; mỗi nhân viên thuộc tối đa một nhóm tại một thời điểm (13.2, Q-190) |
+| Phủ tối thiểu        | Khái niệm | **(Bổ sung, spec 015)** Số người tối thiểu theo vai trò cho một ca (CFG-M09-07); ca có dòng không đạt là **thiếu phủ**. Nhân viên chỉ được tính cho một dòng và chỉ khi giấy phép, đào tạo bắt buộc với vai trò còn hiệu lực trong toàn ca (Q-181, Q-188) |
+| Thiếu ca             | Khái niệm | **(Bổ sung, spec 015, Q-189)** Ngày và mẫu ca có yêu cầu phủ tối thiểu áp dụng nhưng lịch không có ca nào; được báo khi sinh lịch và khi công bố |
+| Nghỉ có duyệt        | Khái niệm | **(Bổ sung, spec 015)** Tình trạng của nhân viên với một ca (dạng "theo ca") hoặc một ngày (dạng "theo ngày") thuộc yêu cầu nghỉ đột xuất đã được duyệt; không được tính phủ, tỷ lệ phục vụ, không là ứng viên thay (13.2, Q-184) |
+| Người nhường, người nhận ca | Quan hệ | **(Bổ sung, spec 015)** Hai bên của yêu cầu đổi ca; **nhận thay** là dạng đổi ca một chiều, người nhận nhận ca mà không trả ca (BR-M09-10, Q-179) |
+| Lời mời nhận ca thay | Khái niệm | **(Bổ sung, spec 015, Q-183)** Lời mời trưởng tầng gửi nhân viên phù hợp cho ca thiếu phủ; người nhận đầu tiên được bổ sung ngay vào ca (BR-M09-11) |
 | Danh sách kiểm tra chất lượng | Khái niệm | **(Bổ sung, spec 014)** Các công việc được chọn ngẫu nhiên trong một ca của một tầng để trưởng tầng kiểm tra (BR-M04-23) |
 | BR-Mxx-yy            | Mã        | Quy tắc nghiệp vụ của module xx                                                                                                                                                                                                                                                                                                                                                               |
 | CFG-Mxx-yy           | Mã        | Tham số cấu hình (Phụ lục 25)                                                                                                                                                                                                                                                                                                                                                                 |
@@ -742,6 +749,8 @@ Cảnh báo có thể được tạo tự động từ: chỉ số vượt ngư�
 
 Bao gồm: người cao tuổi; thời gian; địa điểm; hoạt động; người phát hiện; mô tả; mức độ; xử lý ban đầu; người được thông báo.
 
+**(Bổ sung, spec 016, Q-202)** Mỗi loại trong danh mục loại sự cố có dấu "không thuộc sức khỏe" do Quản lý viện đặt, mặc định bật cho đồ gửi thất lạc, đồ gửi hư hỏng, cơ sở vật chất; đổi dấu được ghi nhật ký. Dấu quyết định Hành chính có thấy số liệu của loại sự cố đó trên báo cáo, dashboard hay không (19.3).
+
 ### 9.3. Mức độ
 
 | Mức độ     | Ví dụ                            | Xử lý                                   | Thời hạn tiếp nhận (bổ sung) |
@@ -1110,6 +1119,13 @@ Ví dụ khảo sát: Ca ngày 07:00–18:00; Ca đêm 18:00–07:00 hôm sau. �
 - Lịch không công bố được khi còn ca thiếu người phụ trách, khi tầng/khu vực chưa có Trưởng tầng được giao cho cả tháng (Q-86), hoặc khi còn phân công soạn sẵn không hợp lệ. Người lập tự công bố được, bắt buộc lý do, nhật ký đánh dấu "tự duyệt" (Q-10).
 - Ghi nhận vắng ca (Q-81) chỉ thực hiện được từ giờ bắt đầu ca trừ \[2 giờ\] (CFG-M15-07) tới giờ kết thúc ca, do Trưởng tầng hoặc Người phụ trách ca của ca đó (Q-80); vắng biết trước phải đi qua yêu cầu nghỉ đột xuất có duyệt. **(Q-91)** Một lần ghi nhận vắng ca chỉ ảnh hưởng ca đó; ca tương lai của nhân viên giữ nguyên. Nghỉ nhiều ca đi qua yêu cầu nghỉ đột xuất; chuyển công việc tương lai về việc chung chỉ áp cho Nghỉ việc (BR-M09-04).
 
+**(Làm rõ, spec 015)**
+
+- Mẫu xoay ca do Quản lý viện cấu hình; nhóm xoay ca do Trưởng tầng (tầng được giao) hoặc Quản lý viện lập, nhóm toàn viện chỉ Quản lý viện. Vị trí của nhân viên trong chu kỳ tính từ ngày gốc của nhóm, nối liền qua các tháng. Mẫu xoay ca và ngày gốc của nhóm đã có thành viên không sửa được; muốn đổi thì lập nhóm mới và chuyển thành viên (Q-190).
+- Khi sinh lịch, hệ thống không tạo ca rỗng; ngày và mẫu ca có yêu cầu phủ áp dụng mà không có ca được báo là "thiếu ca" (Q-189). Lịch còn ca thiếu phủ hoặc thiếu ca vẫn công bố được; người công bố xác nhận kèm một lý do, và mỗi ca thiếu phủ mở cảnh báo cho Trưởng tầng từ lúc công bố (Q-178).
+- Nghỉ đột xuất có hai dạng: "theo ca" cho ca đã công bố chưa bắt đầu, và "theo ngày" cho ngày thuộc tháng chưa công bố lịch (Q-184). Nghỉ theo ngày đã duyệt được áp khi sinh, sinh lại và gỡ khỏi lịch Nháp; "ngày nghỉ" là các ca bắt đầu trong ngày đó. Nhân viên tự lập; Trưởng tầng lập thay cho nhân viên tầng mình, Quản lý viện lập thay cho ca toàn viện. Người duyệt được duyệt một phần theo từng ca hoặc từng ngày (Q-182).
+- Người duyệt yêu cầu đổi ca, nghỉ đột xuất là Trưởng tầng được giao của phạm vi; với ca toàn viện là Quản lý viện (Q-177).
+
 ### 13.3. Trưởng tầng
 
 Trưởng tầng có thể: xem người cao tuổi trong tầng; điều phối công việc; phân công; theo dõi thuốc; theo dõi cảnh báo; điều phối hoạt động; kiểm tra công việc chưa hoàn thành; tiếp nhận/bàn giao ca. Trưởng tầng không mặc định có quyền thay đổi y lệnh hoặc kê đơn.
@@ -1123,6 +1139,8 @@ Hỗ trợ: phân công theo tầng; phòng; người cao tuổi; công việc; 
 **(Bổ sung)** Mỗi loại công việc khai báo vai trò và chứng chỉ/đào tạo yêu cầu, ví dụ phát thuốc yêu cầu điều dưỡng có giấy phép còn hiệu lực.
 
 **(Làm rõ, spec 008)** Mỗi người cao tuổi có tối đa một nhân viên chính cho mỗi vai trò tại mỗi thời điểm; phân công theo người cao tuổi thắng theo phòng, theo phòng thắng theo tầng; cùng mức, phân công giới hạn theo loại công việc thắng phân công không giới hạn. Phân công theo tầng/phòng tự áp cho người đang ở đó. Phân công soạn trên lịch Nháp chỉ có hiệu lực (phạm vi dữ liệu, gán công việc, liều) khi lịch được công bố, lúc đó được kiểm tra lại (Q-82).
+
+**(Bổ sung, spec 016)** Lịch sử phân công theo ca, giao Trưởng tầng (kể cả giao tạm có thời hạn), bổ sung và gỡ nhân viên khỏi ca, vắng ca và Người phụ trách ca được lưu theo thời gian, làm căn cứ tính phạm vi báo cáo cho khoảng đã qua (18.7, Q-192).
 
 ### 13.5. Bàn giao ca
 
@@ -1159,9 +1177,9 @@ Quy trình: Lập bàn giao → Ca sau tiếp nhận → Xác nhận → Công v
 
 **Lịch ca**
 
-- **BR-M09-09:** Hệ thống sinh bản nháp lịch ca tháng từ mẫu xoay ca trước \[15 ngày\]; trưởng tầng hoặc quản lý duyệt để công bố.
-- **BR-M09-10:** Yêu cầu đổi ca giữa hai nhân viên cần người nhận ca đồng ý và trưởng tầng duyệt. Trước khi duyệt, hệ thống kiểm tra BR-M09-01 (chứng chỉ) và BR-M09-03 (chồng giờ, giờ làm liên tục).
-- **BR-M09-11:** Khi nghỉ đột xuất hoặc đổi ca làm một ca không đạt yêu cầu phủ tối thiểu theo vai trò, hệ thống cảnh báo trưởng tầng và gợi ý nhân viên phù hợp đang không có ca, sắp theo số giờ đã làm trong tháng (ít nhất trước).
+- **BR-M09-09:** Hệ thống sinh bản nháp lịch ca tháng từ mẫu xoay ca trước \[15 ngày\]; trưởng tầng hoặc quản lý duyệt để công bố. **(Làm rõ, spec 015)** Không ghi đè lịch đã có; lịch Nháp sinh lại được, mất các sửa tay sau khi xác nhận kèm lý do; người phụ trách ca chọn theo danh sách ưu tiên của nhóm; sinh lỗi thì thử lại lúc 00:00 kế tiếp. Nhắc công bố trước đầu tháng CFG-M09-10. Công bố khi còn ca thiếu phủ hoặc thiếu ca theo Q-178, Q-189.
+- **BR-M09-10:** Yêu cầu đổi ca giữa hai nhân viên cần người nhận ca đồng ý và trưởng tầng duyệt. Trước khi duyệt, hệ thống kiểm tra BR-M09-01 (chứng chỉ) và BR-M09-03 (chồng giờ, giờ làm liên tục). **(Làm rõ, spec 015)** Gồm đổi hai chiều và nhận thay một chiều, chỉ trong cùng phạm vi (Q-179). Người nhận phải có vai trò của dòng phủ mà người nhường được tính; nếu người nhường không được tính cho dòng nào, hai người phải có chung ít nhất một vai trò hệ thống (Q-191). Phân công của người nhường chuyển cho người nhận nếu đạt BR-M09-01, không đạt thì thành việc chung. Người nhường là người phụ trách ca mà không có ai đủ điều kiện thay thì không duyệt được (Q-187). Yêu cầu hết hiệu lực khi tới giờ ca; nhắc trước CFG-M09-11. Ca toàn viện do Quản lý viện duyệt (Q-177).
+- **BR-M09-11:** Khi nghỉ đột xuất hoặc đổi ca làm một ca không đạt yêu cầu phủ tối thiểu theo vai trò, hệ thống cảnh báo trưởng tầng và gợi ý nhân viên phù hợp đang không có ca, sắp theo số giờ đã làm trong tháng (ít nhất trước). **(Làm rõ, spec 015)** Cảnh báo cũng phát khi ghi nhận vắng ca, nghỉ việc, giấy phép hết hiệu lực (Q-188) hoặc thay đổi cấu hình làm ca thiếu phủ. "Đang không có ca" là không có ca chồng giờ với ca cần thay. "Số giờ đã làm trong tháng" gồm giờ đã làm và giờ đã xếp còn lại của tháng, hai phần hiển thị riêng (Q-180). Trưởng tầng gửi lời mời nhận ca thay; người nhận đầu tiên được bổ sung ngay vào ca (Q-183); người đang ngoài ca chỉ nhận lời mời trong ứng dụng (Q-186). Nghỉ đột xuất vẫn được duyệt khi người nghỉ là người phụ trách ca (ca gắn dấu "thiếu người phụ trách", Q-187) hoặc là trưởng đoàn, người đi cùng của chuyến đi (nhiệm vụ bị gỡ, Q-185).
 
 ## 14. Module 10 – Người thân và gia đình
 
@@ -1462,7 +1480,7 @@ Mức độ thông báo phụ thuộc vào mức độ nghiệp vụ.
 ### 17.1. Quy tắc nghiệp vụ Module 13 (bổ sung)
 
 - **BR-M13-01 (đã chỉnh sửa, spec 009):** Kênh gửi theo mức độ: Nhẹ – chỉ thông báo trong ứng dụng; Trung bình – ứng dụng và tin nhắn; Khẩn cấp – đồng thời mọi kênh tự động đang dùng được, gửi song song cho tất cả người nhận (không tuần tự); gọi điện theo BR-M13-02, không gọi đồng thời.
-  - **Nhân viên ngoài ca (Q-98):** thông báo Trung bình chỉ vào ứng dụng, không gửi tin nhắn.
+  - **Nhân viên ngoài ca (Q-98):** thông báo Trung bình chỉ vào ứng dụng, không gửi tin nhắn. **(Bổ sung, spec 015, Q-186)** Áp cả cho lời mời nhận ca thay, yêu cầu đổi ca và nhắc gửi người đang ngoài ca; không có ngoại lệ.
   - **Vai trò không xếp ca (Q-111):** Quản lý viện, Hành chính, Dinh dưỡng viên được coi là trong ca trong giờ hành chính CFG-M13-06.
   - **Gộp tin nhắn (Q-101, Q-107):** các thông báo Trung bình của cùng người nhận được gộp ở kênh tin nhắn theo khung cố định CFG-M13-03. Tin đầu gửi ngay; mỗi khung tối đa một tin tổng hợp. Khẩn cấp không gộp.
 - **BR-M13-02 (đã chỉnh sửa, spec 009):** Thông báo khẩn cấp không được xác nhận đã xem sau \[5 phút\] thì hệ thống yêu cầu người phụ trách gọi điện và ghi nhận kết quả cuộc gọi.
@@ -1487,21 +1505,39 @@ Số lượng; loại lưu trú; mức chăm sóc; trạng thái; phân bố ph�
 
 ### 18.2. Báo cáo chăm sóc
 
-Công việc hoàn thành; chưa hoàn thành; quá hạn; theo nhân viên; theo ca; theo tầng; hoạt động; tỷ lệ tham gia. **(Bổ sung)** Tỷ lệ hoàn thành đúng hạn công việc Bắt buộc; số ghi nhận muộn (BR-M04-12); tỷ lệ Đạt của kiểm tra chất lượng ngẫu nhiên theo nhân viên và theo tầng (BR-M04-23); danh sách người cao tuổi có nguy cơ cô lập (BR-M04-22). **(Bổ sung, vệ sinh và suất ăn)** Tỷ lệ vệ sinh đúng hạn theo khu; thời gian giường ở trạng thái Chờ vệ sinh (BR-M03-09); số phiếu bữa ăn giao trễ hoặc có sai lệch (BR-M08-11, BR-M08-12). **(Bổ sung, spec 014)** Tỷ lệ tham gia theo công thức ở 8.8 (Q-173); số lượt "Không ghi nhận" theo hoạt động và tầng (Q-169); số mục kiểm tra chất lượng "Không kiểm tra được" và "Quá hạn kiểm tra" tính riêng; công việc do trưởng tầng thực hiện ghi rõ là ngoài phạm vi kiểm tra, không hiển thị tỷ lệ Đạt cho trưởng tầng (Q-168); chuyến đi quá giờ về và sự cố thiếu người.
+Công việc hoàn thành; chưa hoàn thành; quá hạn; theo nhân viên; theo ca; theo tầng; hoạt động; tỷ lệ tham gia. **(Bổ sung)** Tỷ lệ hoàn thành đúng hạn công việc Bắt buộc; số ghi nhận muộn (BR-M04-12); tỷ lệ Đạt của kiểm tra chất lượng ngẫu nhiên theo nhân viên và theo tầng (BR-M04-23); danh sách người cao tuổi có nguy cơ cô lập (BR-M04-22). **(Bổ sung, vệ sinh và suất ăn)** Tỷ lệ vệ sinh đúng hạn theo khu; thời gian giường ở trạng thái Chờ vệ sinh (BR-M03-09); số phiếu bữa ăn giao trễ hoặc có sai lệch (BR-M08-11, BR-M08-12). **(Bổ sung, spec 014)** Tỷ lệ tham gia theo công thức ở 8.8 (Q-173); số lượt "Không ghi nhận" theo hoạt động và tầng (Q-169); số mục kiểm tra chất lượng "Không kiểm tra được" và "Quá hạn kiểm tra" tính riêng; công việc do trưởng tầng thực hiện ghi rõ là ngoài phạm vi kiểm tra, không hiển thị tỷ lệ Đạt cho trưởng tầng (Q-168); chuyến đi quá giờ về và sự cố thiếu người. **(Làm rõ, spec 016)** Tỷ lệ hoàn thành đúng hạn và tỷ lệ vệ sinh đúng hạn = Hoàn thành ÷ (Hoàn thành + Hoàn thành trễ + Không thực hiện); công việc Không thực hiện do hệ thống đóng (Q-32, Q-38) không vào mẫu số và được đếm riêng. "Quá hạn" là công việc đã từng ở Quá hạn trong khoảng. Phiếu giao trễ là phiếu Đã giao sau giờ bữa + CFG-M08-04 hoặc chưa giao khi tới mốc đó; phiếu có sai lệch là phiếu đã từng Có sai lệch. Chuyến quá giờ về tính theo CFG-M04-07, số chuyến tới mốc 2 × CFG-M04-07 (Q-172) tính riêng.
 
 ### 18.3. Báo cáo sức khỏe
 
-Chỉ số; cảnh báo; sự cố; trường hợp cần theo dõi; tình trạng dùng thuốc. **(Bổ sung)** Thời gian trung bình từ khi tạo cảnh báo đến khi tiếp nhận, theo mức độ; số lần leo thang; tỷ lệ liều Bỏ lỡ/Từ chối theo người cao tuổi và theo ca; yêu cầu đánh giá lại và đối chiếu thuốc quá hạn.
+Chỉ số; cảnh báo; sự cố; trường hợp cần theo dõi; tình trạng dùng thuốc. **(Bổ sung)** Thời gian trung bình từ khi tạo cảnh báo đến khi tiếp nhận, theo mức độ; số lần leo thang; tỷ lệ liều Bỏ lỡ/Từ chối theo người cao tuổi và theo ca; yêu cầu đánh giá lại và đối chiếu thuốc quá hạn. **(Bổ sung, spec 016, Q-199)** Số lần leo thang và thời gian từ khi tạo đến khi tiếp nhận xử lý của **sự cố** theo mức, tính riêng với cảnh báo. **(Làm rõ, spec 016)** Mốc "tạo" của cảnh báo là lần tạo đầu tiên (không đặt lại khi gộp, DBR-18); mốc "tiếp nhận" với cảnh báo kích hoạt khẩn cấp là thời điểm kích hoạt, với cảnh báo Quản lý viện tiếp nhận ở cấp 2 là thời điểm Quản lý viện tiếp nhận (Q-71). Tỷ lệ liều = số liều Bỏ lỡ (hoặc Từ chối) ÷ số liều có trạng thái cuối Đã dùng, Từ chối, Không thực hiện, Bỏ lỡ; liều Đã hủy, Tạm dừng và liều Không thực hiện do người cao tuổi chuyển trạng thái cuối không vào mẫu số.
 
 ### 18.4. Báo cáo chi phí
 
-Theo người cao tuổi; theo tháng; theo loại; theo dịch vụ; theo hoạt động; theo thuốc; theo vật phẩm. Đây là chi phí phát sinh của người cao tuổi, không phải báo cáo tài chính của viện. **(Bổ sung)** Tỷ lệ chi phí tự sinh so với nhập tay; số khoản điều chỉnh sau chốt.
+Theo người cao tuổi; theo tháng; theo loại; theo dịch vụ; theo hoạt động; theo thuốc; theo vật phẩm. Đây là chi phí phát sinh của người cao tuổi, không phải báo cáo tài chính của viện. **(Bổ sung)** Tỷ lệ chi phí tự sinh so với nhập tay; số khoản điều chỉnh sau chốt. **(Làm rõ, spec 016)** Mặc định chỉ tính bảng chi phí Đã chốt, có chế độ "tạm tính" theo thành phần của Q-136; khoản điều chỉnh tính vào kỳ của bảng chứa nó, kèm kỳ gốc, để số kỳ khớp bảng đã chốt và file kế toán. Khoản Mua hộ là tự sinh; chỉ "Khoản khác (nhập tay)" là nhập tay.
 
 ### 18.5. Dashboard
 
 Dashboard có thể hiển thị: số người đang lưu trú; tình trạng phòng/giường; công việc hôm nay; công việc quá hạn; cảnh báo; sự cố; hoạt động; chi phí; giấy phép sắp hết hạn; giấy phép hành nghề/đào tạo sắp hết hạn. **(Bổ sung)** Tỷ lệ phục vụ theo khu trong ca hiện tại (BR-M09-02); khu đang khoanh vùng; bàn giao chưa xác nhận.
 
 **(Bổ sung)** Báo cáo và dashboard tuân theo phân quyền dữ liệu (19.2): trưởng tầng chỉ thấy tầng mình phụ trách.
+
+**(Làm rõ, spec 016)** "Bàn giao chưa xác nhận" là bàn giao Đã lập hoặc Có ý kiến, cộng ca đang Chờ bàn giao mà bàn giao còn Bản nháp. Tình trạng giường tách hai loại Đang giữ chỗ (hồ sơ chờ, người vắng) và có Không sử dụng; "tổng giường có thể dùng" không tính giường Không sử dụng. "Khu đang khoanh vùng" và "bàn giao chưa xác nhận" chỉ có trên dashboard.
+
+### 18.6. Báo cáo nhân sự và ca trực (bổ sung, spec 016, Q-194)
+
+Tỷ lệ phục vụ của từng ca đã diễn ra theo lần tính cuối trước khi ca kết thúc, kèm dấu "từng không đạt" nếu có lần tính nào trong ca không đạt; số ca không đạt đếm theo dấu này (Q-200). Số ca thiếu phủ, tổng thời gian ca chạy thiếu phủ, số mục "thiếu ca" đã công bố theo tầng, vai trò, tháng (BR-M09-11). Số yêu cầu đổi ca, nghỉ đột xuất theo trạng thái cuối và thời gian từ lập tới quyết định; số lời mời nhận ca thay và số được nhận. Phân bố số giờ làm trong tháng theo nhân viên (giờ đã làm, giờ đã xếp còn lại, Q-180). Không hiện lý do nghỉ, lý do đổi ca, danh sách gợi ý người thay; không chia theo loại nghỉ. Chỉ Quản lý viện và trưởng tầng được giao xem (19.3).
+
+Số liệu thăm, phản hồi (Module 10), đồ gửi (Module 12), thống kê thông báo (Module 13), số suất theo bữa và chế độ ăn (Module 08) thuộc giai đoạn sau.
+
+### 18.7. Quy tắc chung của báo cáo và dashboard (bổ sung, spec 016)
+
+- **Chỉ đọc:** báo cáo, dashboard không tạo, sửa dữ liệu nghiệp vụ, không gửi thông báo; trạng thái và kết quả lấy đúng như module sở hữu đã xác định. Bản ghi duy nhất được tạo là bản ghi lần xuất (19.4).
+- **Nhóm chỉ tiêu theo vai trò:** một vai trò thấy một nhóm chỉ tiêu khi có quyền ở dòng "Dashboard, báo cáo" của 4.4 và có quyền ở **dòng nguồn chính** của nhóm; phạm vi lấy theo ký hiệu ở dòng "Dashboard, báo cáo"; "P" ở dòng "Lịch ca, phân công" chỉ là lịch của chính mình. Nhân viên chăm sóc, dinh dưỡng viên, bếp, vệ sinh và người thân không có dashboard, báo cáo. Quản lý viện được thu hẹp theo vai trò, tài khoản (Q-15).
+- **Phạm vi theo thời gian (Q-192, Q-195):** dashboard theo phạm vi hiện hành (giờ ca ± CFG-M15-07). Báo cáo khoảng đã qua: trưởng tầng theo các tầng/khu đang được giao, gồm cả bản ghi trước khi được giao; điều dưỡng theo phân công trong các ca mình thật sự thuộc về (không tính ca vắng, nghỉ có duyệt, ca hủy); Người phụ trách ca thấy cả tầng/khu trong các ca mình phụ trách, chỉ với nhóm chỉ tiêu của Điều dưỡng; khi tầng tạm chưa có trưởng tầng (Q-90), Người phụ trách ca cũng không được thêm nhóm chỉ tiêu nào dành cho trưởng tầng.
+- **Bản ghi của người ngoài phạm vi (Q-196):** danh sách chi tiết chỉ hiện họ tên, phòng/giường lúc phát sinh và nội dung bản ghi (theo giới hạn trường); không mở hồ sơ hiện tại; mở bản ghi đầy đủ chỉ khi quyền ở module sở hữu cho phép.
+- **Mốc và giá trị:** mọi số liệu dùng giá trị hiện hành sau đính chính; bản ghi ngoại tuyến xếp theo thời điểm trên thiết bị; bản ghi "chờ xem lại" được đếm theo giá trị đang ghi và nêu kèm số bản ghi chờ xem lại (Q-201). Mẫu số bằng 0 hiện "—".
+- **Khoảng thời gian:** một lần xem, xuất không dài hơn CFG-M14-01 (Q-203).
+- **Xuất file (Q-193, Q-197, Q-198):** ai có quyền xem báo cáo thì xuất được, đúng phạm vi và giới hạn trường. Chỉ Quản lý viện xuất được thông tin định danh người cao tuổi (họ tên, mã, phòng/giường, ngày sinh, CCCD, ảnh, nhóm chỉ có một người) và phải nhập mục đích; vai trò khác chỉ xuất số liệu tổng hợp. Tên nhân viên được xuất theo quyền xem; số giờ làm theo nhân viên chỉ Quản lý viện xuất. File đã xuất không bị sửa khi dữ liệu nguồn đổi.
 
 ## 19. Module 15 – Quản trị hệ thống
 
@@ -1544,13 +1580,17 @@ Quyền được chia thành: xem; tạo; sửa; xác nhận; duyệt; chốt; t
 
 * **(Bổ sung, spec 014, Q-161, Q-162, Q-167, Q-168, Q-175)** Hoạt động, ngoài viện, kiểm tra chất lượng: Trưởng tầng khai báo hoạt động, mẫu lặp, buổi (tầng mình hoặc toàn viện, theo 8.8), phân công trưởng đoàn và người đi cùng, đánh giá khả năng tham gia, ghi kết quả kiểm tra chất lượng (chỉ Trưởng tầng được giao; Người phụ trách ca không có quyền này). Nhân viên chăm sóc đăng ký, hủy đăng ký, điểm danh, làm trưởng đoàn. Trưởng đoàn (Trưởng tầng hoặc Nhân viên chăm sóc) điểm danh rời/về, gia hạn giờ về, chuyển trưởng đoàn; trưởng tầng làm thay được. Bác sĩ gắn, xác nhận, gỡ chỉ định hạn chế hoạt động. Điều dưỡng gắn chỉ định tạm, ghi quyết định "không mang thuốc" (Module 07), làm người đi cùng với lệnh duy nhất "Báo thiếu người". Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc ghi sở thích và xem hồ sơ tinh thần trong phạm vi. Hành chính ghi nhận đồng ý về muộn của người đại diện cho bán trú (3.4). Người thân xem buổi đã đăng ký, chuyến đi, số hoạt động đã tham gia; không xem chỉ định hạn chế, mức độ tham gia, cảnh báo cô lập hay kết quả kiểm tra; người đại diện ghi, rút đồng ý về muộn qua cổng. Lý do của chỉ định hạn chế là thông tin sức khỏe, chỉ người có quyền xem sức khỏe thấy.
 
+* **(Bổ sung, spec 015, Q-177)** Lịch ca xoay vòng, đổi ca, nghỉ đột xuất: Quản lý viện cấu hình mẫu xoay ca và yêu cầu phủ tối thiểu; Trưởng tầng (tầng được giao) và Quản lý viện lập nhóm xoay ca, sinh, sinh lại lịch. Mọi nhân viên có ca lập yêu cầu đổi ca, nghỉ đột xuất cho chính mình; Trưởng tầng duyệt và lập thay yêu cầu nghỉ cho nhân viên tầng mình, gửi lời mời nhận ca thay. Với ca toàn viện, Quản lý viện duyệt, lập thay và gửi lời mời; đây là ngoại lệ thứ hai của Q-15 so với dòng "Yêu cầu đổi ca" của 4.4 (Quản lý viện "X"). Người lập yêu cầu đổi ca chỉ thấy ngày, giờ, mẫu ca của các ca đổi được của người nhận. Lý do nghỉ, lý do đổi ca chỉ người lập, các bên, người duyệt và Quản lý viện xem; danh sách gợi ý người thay và số giờ làm của người khác chỉ người nhận cảnh báo thiếu phủ và Quản lý viện xem. **(Làm rõ, spec 016)** Người nhận cảnh báo thiếu phủ gồm Trưởng tầng được giao của tầng, là người nhận cố định (Q-178); vì vậy Trưởng tầng được giao xem được số giờ làm của nhân viên có phân công tại tầng trong báo cáo nhân sự (18.6); Người phụ trách ca không phải trưởng tầng thì không.
+
+* **(Bổ sung, spec 016, Q-192 → Q-203)** Dashboard, báo cáo: nhóm chỉ tiêu theo vai trò và phạm vi theo 18.7. Chú thích ¹¹ của dòng "Dashboard, báo cáo" (4.4): giới hạn trường chỉ áp cho Hành chính; Bác sĩ không có giới hạn trường riêng. Trạng thái 5.5 (kể cả Điều trị tại bệnh viện) là trạng thái lưu trú, Hành chính xem được; lý do, chẩn đoán thì không. Hành chính xem số liệu sự cố chỉ với loại sự cố mang dấu "không thuộc sức khỏe" trên danh mục loại sự cố (mặc định đồ gửi thất lạc, đồ gửi hư hỏng, cơ sở vật chất; dấu do Quản lý viện đặt), không xem mô tả, diễn biến (Q-202). Chỉ Quản lý viện xuất được danh sách có định danh người cao tuổi, kèm mục đích (Q-193, Q-198).
+
 Ma trận chi tiết theo từng use case và vai trò nằm ở mục 4.4 tab Phân tích yêu cầu; khi hai nơi khác nhau, mục 19.3 này là căn cứ.
 
 ### 19.4. Nhật ký hệ thống
 
 Ghi: người thực hiện; thời gian; hành động; đối tượng; dữ liệu trước; dữ liệu sau; lý do. **(Làm rõ, spec 000)** Lý do là bắt buộc với mọi lệnh nghiệp vụ trên dữ liệu nhóm 2, đính chính, từ chối, hủy và thay đổi tham số (mục 1.5); các thao tác khác ghi lý do nếu có.
 
-Đặc biệt quan trọng với: sức khỏe; thuốc; sự cố; chi phí; đồ gửi; phân quyền; hợp đồng; bàn giao. **(Bổ sung, spec 002)** Đăng nhập thành công và thất bại cũng được ghi nhật ký.
+Đặc biệt quan trọng với: sức khỏe; thuốc; sự cố; chi phí; đồ gửi; phân quyền; hợp đồng; bàn giao. **(Bổ sung, spec 002)** Đăng nhập thành công và thất bại cũng được ghi nhật ký. **(Bổ sung, spec 016)** Mỗi lần xuất báo cáo được ghi (người xuất, vai trò, thời điểm, báo cáo, bộ lọc, khoảng, phạm vi, số dòng, dấu "có định danh", mục đích khi có định danh), lưu theo CFG-M15-04; lần xem báo cáo, dashboard của nhân viên không ghi nhật ký (NFR-08 chỉ đòi với người thân; xem lại khi chốt Q-03).
 
 **(Bổ sung, spec 000)** Quyền xem nhật ký: Quản lý viện xem toàn bộ; nhân viên xem lịch sử của đối tượng trong phạm vi mình đang được xem, trường không có quyền xem chỉ hiện "đã thay đổi"; người thân không xem nhật ký. Thời hạn lưu giữ theo NFR-07.
 
@@ -1675,7 +1715,7 @@ Các quyết định dưới đây đã được chốt khi làm rõ spec của 
 | Q-12 | Người từng lưu trú quay lại                                     | Tạo hồ sơ mới liên kết hồ sơ cũ; CCCD chỉ duy nhất trong các hồ sơ chưa ở trạng thái cuối                                   | 5.1                  | 001  |
 | Q-13 | Bác sĩ có được bỏ hoặc thêm cờ nguy cơ khi chấp nhận đánh giá   | Được gắn thêm (bắt buộc lý do); không được bỏ cờ đề xuất                                                                    | BR-M01-09, BR-M01-10 | 001  |
 | Q-14 | Phạm vi dữ liệu theo ca ngoài giờ ca                            | Giờ ca ± \[2 giờ\] (CFG-M15-07)                                                                                             | BR-M15-02            | 002  |
-| Q-15 | Quản lý viện điều chỉnh quyền khác Permission Matrix            | Chỉ thu hẹp; ngoại lệ duy nhất được thêm là quyền Duyệt kế hoạch chăm sóc cho điều dưỡng                                    | 19.2                 | 002  |
+| Q-15 | Quản lý viện điều chỉnh quyền khác Permission Matrix            | Chỉ thu hẹp; ngoại lệ duy nhất được thêm là quyền Duyệt kế hoạch chăm sóc cho điều dưỡng. **(Bổ sung, spec 015, Q-177)** Ngoại lệ thứ hai: Quản lý viện duyệt và lập thay yêu cầu đổi ca, nghỉ đột xuất của ca toàn viện | 19.2, 19.3           | 002, 015 |
 | Q-16 | Ai quản lý tài khoản người thân                                 | Hành chính (và Quản lý viện) tạo, kích hoạt lại, cấp lại mật khẩu, sau khi xác minh danh tính                               | 19.1                 | 002  |
 | Q-17 | Chuyển người trong/ra khỏi phòng cách ly                        | Chặn; ngoại lệ duy nhất là chuyển theo chỉ định bác sĩ vì kiểm soát lây nhiễm                                               | BR-M03-01            | 003  |
 | Q-18 | Phân bổ giường khi giữ giường cho người vắng                    | Bản ghi phân bổ giữ nguyên; giường Đang giữ chỗ, trở về thì Đang sử dụng lại                                                | 7.2                  | 003  |
@@ -1836,12 +1876,39 @@ Các quyết định dưới đây đã được chốt khi làm rõ spec của 
 | Q-174 | Phạm vi kiểm tra chất lượng, ngoại tuyến, giường | Loại vệ sinh khu vực chung không gắn tầng; công việc ngoại tuyến xét khi đồng bộ nếu ca còn diễn ra; Không đạt không đổi trạng thái giường | BR-M04-23 | 014 |
 | Q-175 | Địa điểm, người phụ trách, quyền trên hoạt động toàn viện | Địa điểm là phòng/khu vực gắn tầng; người phụ trách là Trưởng tầng hoặc Nhân viên chăm sóc; hoạt động toàn viện do trưởng tầng tạo hoặc trưởng tầng nơi đặt địa điểm quản lý; chuyến toàn viện: mỗi người do trưởng tầng của mình đánh giá | 8.8, 8.9, 19.3 | 014 |
 | Q-176 | Ai sở hữu giờ về theo ngày của bán trú; rút đồng ý về muộn | Trạng thái có mặt theo ngày (3.4, Module 04) sở hữu; các module khác lấy từ đây; đồng ý đã dùng từ giờ bắt đầu buổi, không rút sau đó | 3.4 | 014 |
+| Q-177 | Ai duyệt yêu cầu đổi ca, nghỉ đột xuất của ca toàn viện | Quản lý viện duyệt và lập thay; ngoại lệ thứ hai của Q-15 so với dòng "Yêu cầu đổi ca" của 4.4 | 13.2, BR-M09-10, 19.3, Q-15 | 015 |
+| Q-178 | Lịch còn ca thiếu phủ tối thiểu có công bố được không | Được; chỉ cảnh báo, người công bố xác nhận kèm lý do; mỗi ca thiếu phủ mở cảnh báo cho Trưởng tầng từ lúc công bố | 13.2, BR-M09-09 | 015 |
+| Q-179 | Đổi ca gồm những dạng nào | Đổi hai chiều và nhận thay một chiều, chỉ trong cùng phạm vi; điều người giữa hai phạm vi dùng "Bổ sung nhân viên vào ca" | BR-M09-10, 2.4 | 015 |
+| Q-180 | "Số giờ đã làm trong tháng" để sắp người thay | Giờ đã làm cộng giờ đã xếp còn lại trong tháng chứa ca cần thay; hiển thị riêng hai phần | BR-M09-11 | 015 |
+| Q-181 | Nhân viên nhiều vai trò được tính cho mấy dòng phủ | Một dòng; hệ thống phân sao cho số dòng đạt lớn nhất, hòa thì theo thứ tự khai báo | 2.4, BR-M09-11 | 015 |
+| Q-182 | Duyệt một phần yêu cầu nghỉ đột xuất nhiều ca | Được; ca (ngày) không duyệt bị từ chối kèm lý do; yêu cầu "Đã áp dụng một phần" | 13.2 | 015 |
+| Q-183 | Người nhận lời mời nhận ca thay có cần trưởng tầng xác nhận | Không; người nhận đầu tiên được bổ sung ngay sau khi hệ thống kiểm tra lại | 2.4, BR-M09-11 | 015 |
+| Q-184 | Nghỉ biết trước cho tháng chưa công bố lịch | Yêu cầu nghỉ dạng "theo ngày"; duyệt thì không xếp khi sinh, sinh lại và gỡ khỏi lịch Nháp; lịch công bố khi còn chờ thì yêu cầu chuyển dạng "theo ca" | 2.4, 13.2 | 015 |
+| Q-185 | Đổi ca, nghỉ gỡ trưởng đoàn hoặc người đi cùng khỏi ca | Vẫn duyệt, cảnh báo trước; khi áp dụng, nhiệm vụ bị gỡ và Trưởng tầng được báo phân công lại; chặn điểm danh rời viện khi chưa có trưởng đoàn giữ nguyên | BR-M09-11, 8.9 | 015, 014 |
+| Q-186 | Lời mời nhận ca thay gửi người ngoài ca có tin nhắn không | Không; giữ Q-98, chỉ trong ứng dụng | BR-M13-01 | 015 |
+| Q-187 | Người rời ca là người phụ trách ca mà không có ai đủ điều kiện thay | Đổi ca: không duyệt được; nghỉ đột xuất: vẫn duyệt, ca gắn dấu "thiếu người phụ trách" | BR-M09-10, BR-M09-11 | 015 |
+| Q-188 | Phủ tối thiểu có xét giấy phép, đào tạo không | Có; chỉ tính khi giấy phép, đào tạo bắt buộc với vai trò còn hiệu lực trong toàn ca; hết hiệu lực là sự kiện tính lại phủ | 2.4, BR-M09-11, Phụ lục 25 | 015 |
+| Q-189 | Ngày và mẫu ca không có ai được xếp khi sinh lịch | Không tạo ca rỗng; báo mục "thiếu ca" khi sinh và khi công bố; công bố vẫn được, xác nhận bằng cùng lý do | 2.4, 13.2, BR-M09-09 | 015 |
+| Q-190 | Đổi mẫu xoay ca hoặc ngày gốc của nhóm đang dùng | Không cho sửa khi nhóm đã có thành viên; lập nhóm mới và chuyển thành viên | 2.4, 13.2 | 015 |
+| Q-191 | Điều kiện vai trò khi đổi ca | Người nhận có vai trò của dòng phủ mà người nhường được tính; nếu không có dòng nào, hai người có chung ít nhất một vai trò hệ thống | BR-M09-10 | 015 |
+| Q-192 | Phạm vi của trưởng tầng, điều dưỡng khi báo cáo khoảng thời gian đã qua | Trưởng tầng theo tầng/khu đang được giao, gồm cả bản ghi trước khi được giao; điều dưỡng theo phân công trong các ca đã thật sự thuộc về (giờ ca ± CFG-M15-07) | 13.4, 18.7 | 016 |
+| Q-193 | Có xuất báo cáo ra file không | Có; ai có quyền xem báo cáo thì xuất được, đúng phạm vi và giới hạn trường; chỉ Quản lý viện xuất thông tin định danh người cao tuổi; mỗi lần xuất được ghi lại | 18.7, 19.3, 19.4 | 016 |
+| Q-194 | Nhóm báo cáo ngoài 18.1 → 18.5 | Thêm "nhân sự và ca trực"; thăm, phản hồi, đồ gửi, thông báo, số suất theo bữa để giai đoạn sau | 18.6 | 016 |
+| Q-195 | Người phụ trách ca thấy gì trên dashboard, báo cáo | Cả tầng/khu của ca, nhóm chỉ tiêu của Điều dưỡng, trong giờ ca ± CFG-M15-07; không thêm nhóm của trưởng tầng khi tầng chưa có trưởng tầng | 18.7 | 016 |
+| Q-196 | Bản ghi của người ngoài phạm vi trong danh sách chi tiết | Hiện họ tên, phòng/giường lúc phát sinh, nội dung bản ghi theo giới hạn trường; không mở hồ sơ hiện tại; mở bản ghi đầy đủ chỉ khi quyền ở module sở hữu cho phép | 18.7 | 016 |
+| Q-197 | Tên nhân viên trong file xuất | Được theo quyền xem; số giờ làm theo nhân viên chỉ Quản lý viện xuất | 18.7 | 016 |
+| Q-198 | Mục đích khi xuất danh sách có định danh người cao tuổi | Quản lý viện bắt buộc nhập mục đích; lưu vào bản ghi lần xuất | 18.7, 19.4 | 016 |
+| Q-199 | Có đếm leo thang của sự cố trong báo cáo sức khỏe | Có; số lần leo thang và thời gian tạo → tiếp nhận xử lý của sự cố theo mức, tính riêng với cảnh báo | 18.3 | 016 |
+| Q-200 | Tỷ lệ phục vụ của ca đã qua lấy lần tính nào | Lần tính cuối trước khi ca kết thúc, kèm dấu "từng không đạt"; số ca không đạt đếm theo dấu | 18.6 | 016 |
+| Q-201 | Bản ghi ngoại tuyến "chờ xem lại" có được đếm | Có, theo giá trị đang ghi, nêu kèm số bản ghi chờ xem lại | 18.7 | 016 |
+| Q-202 | Hành chính có thấy số liệu sự cố không | Chỉ loại sự cố mang dấu "không thuộc sức khỏe" trên danh mục loại sự cố; không thấy mô tả, diễn biến | 19.3 | 016 |
+| Q-203 | Độ dài tối đa của khoảng thời gian báo cáo | CFG-M14-01, mặc định 12 tháng; dài hơn thì từ chối | 18.7, Phụ lục 25 | 016 |
 
 ### 24.3. Quyết định đã chốt ở spec, chưa phản ánh vào thân tài liệu (bổ sung)
 
 Mục này ghi các quyết định đã được chốt khi làm rõ spec nhưng **chưa** được đưa vào các mục nghiệp vụ và Phụ lục 25. Khi đã phản ánh, dòng được chuyển lên 24.2.
 
-**Hiện không còn dòng nào (2026-09-27).** Mọi quyết định Q-01 → Q-176 đã được phản ánh và nằm ở 24.2, trừ các quyết định còn mở ở 24.1. **(Bổ sung, spec 014)** Các quyết định Q-161 → Q-176 (Q-169 → Q-176 chốt ngày 2026-09-27 theo mặc định đề xuất) được phản ánh vào 2.4, 3.4, 5.6, 8.8 → 8.10, BR-M04-15 → 18, 21 → 23, BR-M05-11, BR-M07-03, 18.2, 19.3 và Phụ lục 25; tab Phân tích yêu cầu (4.4, UC-29 → 31, ERD, DBR) không được sửa, và 19.3 là căn cứ khi 4.4 khác. **(Bổ sung, spec 013)** Các quyết định Q-148 → Q-160 (Q-156 → Q-160 chốt ngày 2026-09-27 theo mặc định đề xuất) được phản ánh vào 2.4, 5.6, 6.8, 9.1, 14.6, 16, 19.3 và Phụ lục 25; tab Phân tích yêu cầu (4.4, UC-65, ERD, DBR-22) không được sửa, và 19.3 là căn cứ khi 4.4 khác. Các quyết định Q-39, Q-142 → Q-147 của spec 011 được phản ánh vào thân tài liệu này; theo quyết định của người dùng, tab Phân tích yêu cầu (4.4, 3.2, ERD) không được sửa theo các quyết định này, và 19.3 là căn cứ khi 4.4 khác. Spec làm sau có quyết định chưa kịp phản ánh thì ghi thêm vào bảng dưới.
+**Hiện không còn dòng nào (2026-09-27).** Mọi quyết định Q-01 → Q-203 đã được phản ánh và nằm ở 24.2, trừ các quyết định còn mở ở 24.1. **(Bổ sung, spec 016)** Các quyết định Q-192 → Q-203 được phản ánh vào 13.4, 18.2 → 18.7, 19.3, 19.4 và Phụ lục 25 (CFG-M14-01); tab Phân tích yêu cầu (UC-67, 4.4 dòng "Dashboard, báo cáo" và chú thích ¹¹) không được sửa, và 19.3 là căn cứ khi 4.4 khác. **(Bổ sung, spec 015)** Các quyết định Q-177 → Q-191 được phản ánh vào 2.4, 13.2, BR-M09-09 → 11, BR-M13-01, 19.3, Q-15 và Phụ lục 25 (CFG-M09-07, CFG-M09-10, CFG-M09-11); tab Phân tích yêu cầu (4.2 UC cho nghỉ đột xuất, 4.4 dòng cho nghỉ đột xuất và ngoại lệ của Quản lý viện ở dòng "Yêu cầu đổi ca", ERD) không được sửa, và 19.3 là căn cứ khi 4.4 khác. **(Bổ sung, spec 014)** Các quyết định Q-161 → Q-176 (Q-169 → Q-176 chốt ngày 2026-09-27 theo mặc định đề xuất) được phản ánh vào 2.4, 3.4, 5.6, 8.8 → 8.10, BR-M04-15 → 18, 21 → 23, BR-M05-11, BR-M07-03, 18.2, 19.3 và Phụ lục 25; tab Phân tích yêu cầu (4.4, UC-29 → 31, ERD, DBR) không được sửa, và 19.3 là căn cứ khi 4.4 khác. **(Bổ sung, spec 013)** Các quyết định Q-148 → Q-160 (Q-156 → Q-160 chốt ngày 2026-09-27 theo mặc định đề xuất) được phản ánh vào 2.4, 5.6, 6.8, 9.1, 14.6, 16, 19.3 và Phụ lục 25; tab Phân tích yêu cầu (4.4, UC-65, ERD, DBR-22) không được sửa, và 19.3 là căn cứ khi 4.4 khác. Các quyết định Q-39, Q-142 → Q-147 của spec 011 được phản ánh vào thân tài liệu này; theo quyết định của người dùng, tab Phân tích yêu cầu (4.4, 3.2, ERD) không được sửa theo các quyết định này, và 19.3 là căn cứ khi 4.4 khác. Spec làm sau có quyết định chưa kịp phản ánh thì ghi thêm vào bảng dưới.
 
 | Mã   | Vấn đề | Quyết định | Cần phản ánh tại | Spec |
 | ---- | ------ | ---------- | ---------------- | ---- |
@@ -1926,7 +1993,7 @@ Mọi giá trị trong ngoặc vuông ở các quy tắc nghiệp vụ được 
 | CFG-M04-14 | Thời hạn tối đa của chỉ định hạn chế tạm do điều dưỡng gắn (bổ sung, spec 014, Q-162) | 24 giờ | BR-M04-15 |
 | CFG-M08-03 | Số ngày lặp món liên tiếp để cảnh báo                                                        | 3 ngày                                                 | BR-M08-07            |
 | CFG-M09-06 | Sinh bản nháp lịch ca tháng trước                                                            | 15 ngày                                                | BR-M09-09            |
-| CFG-M09-07 | Mẫu xoay ca và yêu cầu phủ ca tối thiểu theo vai trò                                         | ≥ 1 điều dưỡng / tầng / ca                             | 13.2, BR-M09-11      |
+| CFG-M09-07 | Yêu cầu phủ ca tối thiểu theo vai trò (mẫu ca, phạm vi, vai trò, số người). **(Làm rõ, spec 015)** Dòng mặc định áp mọi tầng/khu vực, mọi mẫu ca; ca toàn viện không có dòng mặc định; chỉ tính nhân viên có giấy phép, đào tạo còn hiệu lực (Q-188). Mẫu xoay ca là danh mục riêng (13.2), không thuộc tham số này | ≥ 1 điều dưỡng / tầng / ca                             | 13.2, BR-M09-11      |
 | CFG-M10-03 | Lịch gửi bản tin / hạn duyệt bản tin                                                         | Thứ 2 hằng tuần / 48 giờ                               | BR-M10-08            |
 | CFG-M01-06 | Chu kỳ nhắc khi đã tiếp nhận mà chưa có bản đồng ý Hiệu lực                                  | 1 ngày                                                 | 5.1, 5.6             |
 | CFG-M02-09 | Chu kỳ nhắc danh sách việc sau qua đời                                                       | 1 ngày                                                 | 6.8                  |
@@ -1950,6 +2017,8 @@ Mọi giá trị trong ngoặc vuông ở các quy tắc nghiệp vụ được 
 | CFG-M08-07 | Nhắc công bố thực đơn tuần kế tiếp (bổ sung, spec 011)                                       | 2 ngày trước ngày đầu tuần                             | BR-M08-16            |
 | CFG-M09-08 | Báo Quản lý viện khi ca dưới ngưỡng phục vụ sắp bắt đầu (bổ sung, spec 008)                  | 24 giờ                                                 | BR-M09-02, Q-89      |
 | CFG-M09-09 | Khoảng tối đa tìm ca sau để nhận bàn giao (bổ sung, spec 008)                                | 24 giờ                                                 | 13.5, Q-89           |
+| CFG-M09-10 | Nhắc công bố lịch ca tháng trước ngày đầu tháng (bổ sung, spec 015)                          | 3 ngày                                                 | BR-M09-09            |
+| CFG-M09-11 | Nhắc yêu cầu đổi ca, nghỉ đột xuất chưa quyết định trước giờ bắt đầu ca (bổ sung, spec 015) | 24 giờ                                                 | BR-M09-10, BR-M09-11 |
 | CFG-M10-04 | Khung giờ thăm và sức chứa mỗi khung (bổ sung, spec 012)                                     | 09:00–11:00 và 15:00–17:00; 20 người mỗi khung         | 14.2, BR-M10-02      |
 | CFG-M10-05 | Thời hạn đăng ký thăm trước (bổ sung, spec 012)                                              | Tối thiểu 2 giờ, tối đa 14 ngày                        | 14.2, BR-M10-02      |
 | CFG-M10-06 | Số người tối đa mỗi lượt thăm (bổ sung, spec 012)                                            | 3                                                      | 14.2                 |
@@ -1959,5 +2028,6 @@ Mọi giá trị trong ngoặc vuông ở các quy tắc nghiệp vụ được 
 | CFG-M10-10 | Số lượt người thân ở lại tối đa cùng lúc cho một người cao tuổi (bổ sung, spec 012, Q-128)   | 1                                                      | 14.4                 |
 | CFG-M10-11 | Nhắc / báo Quản lý viện khi yêu cầu BR-M10-07 Chờ xác nhận lâu (bổ sung, spec 012, Q-130)    | 48 giờ / 96 giờ                                        | BR-M10-07            |
 | CFG-M10-12 | Mốc Trưởng tầng được duyệt thay bản tin (bổ sung, spec 012, Q-124, Q-130)                    | 96 giờ                                                 | BR-M10-08            |
+| CFG-M14-01 | Độ dài tối đa của khoảng thời gian một lần xem, xuất báo cáo (bổ sung, spec 016, Q-203)      | 12 tháng                                               | 18.7                 |
 
 Đầu vào cho Spec Kit (constitution, bản đồ feature, user story theo feature): Đầu vào Spec Kit

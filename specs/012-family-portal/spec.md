@@ -67,6 +67,10 @@ Spec 014 và tài liệu nguồn (3.4, 8.8, 19.3, Q-167, Q-173, Q-176) đã ch�
 - "Số hoạt động đã tham gia" trong bản tin (FR-052) là số lượt Có mặt trong kỳ, gồm hoạt động cá nhân và chuyến đi (feature 014 FR-033).
 - Mục hoạt động trên cổng (loại "chung") không gồm chỉ định hạn chế, mức độ tham gia, cảnh báo cô lập hay kết quả kiểm tra chất lượng.
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 016)
+
+Theo Q-194, báo cáo thăm, phản hồi, bản tin thuộc giai đoạn sau; dòng "Cung cấp 016" của bảng giao tiếp được ghi rõ. Người thân không có dashboard, báo cáo của feature 016 (4.4 dòng "Dashboard, báo cáo").
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 10 mục 14.1 → 14.8; BR-M10-01 → 09, BR-M10-10 phần cổng; DBR-02, DBR-03; UC-55 → UC-60; NFR-08 phần lượt xem của người thân; CFG-M10-01 → 03, CFG-M10-04 → 12 (đề xuất); thực thể NGUOI_THAN, QUAN_HE_NGUOI_THAN, LUOT_THAM, PHAN_HOI, BAN_TIN):
@@ -526,7 +530,7 @@ Khi người thân được phép ở lại với người cao tuổi (ví dụ 
 | Cung cấp | 010 | Lượt ở lại làm nguồn chi phí (mỗi mốc 00:00 là một đêm); quyết định của người đại diện về đề nghị mua hộ (FR-046a); nhận chi phí tạm tính, bảng chi phí đã chốt (có che tên thuốc theo Q-133) và đề nghị mua hộ Chờ đồng ý |
 | Cung cấp | 011 | Người ở lại có đăng ký ăn, khi lượt chuyển Đang ở lại, kết thúc sớm hoặc bị hủy (feature 011 FR-034 (c), FR-043) |
 | Nhận, Cung cấp | 013 | Nhận đồ gửi, lịch sử bàn giao, ảnh, yêu cầu xác nhận người nhận khác, đồng ý cho tự giữ cho cổng (FR-046b); cung cấp người đại diện, người có quyền "được phép đón", người liên hệ chính, giấy tờ tùy thân, và quyết định của người đại diện trên cổng (feature 013 FR-016, FR-017, FR-015a) |
-| Cung cấp | 016 | Dữ liệu thăm, phản hồi, bản tin cho báo cáo |
+| Cung cấp (giai đoạn sau, Q-194) | 016 | Dữ liệu thăm, phản hồi, bản tin cho báo cáo |
 
 - **FR-072**: Mọi quy tắc theo thời gian của spec (hạn phản hồi, tự đóng, sinh bản tin, hạn duyệt, Không đến, hạn ngoại lệ đón) MUST kiểm thử được bằng đồng hồ giả lập và dùng múi giờ Asia/Ho_Chi_Minh. *(Nguồn: NFR-09, NFR-13)*
 - **FR-073**: Khi bản tin chuyển Không gửi vì quá kỳ, Quản lý viện MUST được báo (mức Nhẹ) kèm người cao tuổi, kỳ và các lần nhắc đã gửi. *(Nguồn: Clarification 2026-09-26 lượt 2, đề xuất Q-124)*
