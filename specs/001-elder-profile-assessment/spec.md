@@ -42,6 +42,13 @@ Spec 013 và tài liệu nguồn (BR-M12-03, BR-M12-06, Q-148, Q-155) đã chố
 - Điều kiện đồ gửi của lệnh Kết thúc lưu trú (bảng trạng thái) là "không còn đồ gửi ở Đang giữ, Đang được sử dụng hoặc Hư hỏng"; đồ Thất lạc không tính ở điều kiện này nhưng sự cố của nó thuộc điều kiện sự cố mở.
 - Thao tác trên đồ gửi sau khi hồ sơ ở trạng thái cuối (thu lại, trả, báo thất lạc, xử lý đồ không người nhận) thuộc ngoại lệ (3) của BR-M01-05, không sửa hồ sơ người cao tuổi.
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 014)
+
+Spec 014 và tài liệu nguồn (5.6, 8.9, BR-M04-04, Q-166, Q-170, Q-171) đã chốt:
+- Chuyển Đang lưu trú → Hoạt động bên ngoài do trưởng đoàn, hoặc trưởng tầng thay, điểm danh rời viện; chỉ từ Đang lưu trú. Công việc Chưa đến hạn trong khoảng đi bị **Hủy** theo BR-M04-04 (không "tạm dừng"), sinh lại khi trở về (bảng trạng thái, hai dòng chuyến đi được sửa).
+- Chuyển Hoạt động bên ngoài → Đang lưu trú còn xảy ra khi trưởng tầng Hủy ghi nhận bản ghi rời viện của người bị ghi đi nhầm (feature 014 FR-031a); căn cứ ghi "đính chính điểm danh".
+- Hoạt động bên ngoài không chuyển sang Tạm vắng; người thân không đón thẳng từ điểm đến (Q-166). Người thiếu khi về giữ Hoạt động bên ngoài tới lệnh phù hợp (không đổi).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 01, mục 5; UC-01 → UC-08):
@@ -315,10 +322,10 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Đang tiếp nhận | Hoàn tất tiếp nhận | Đang lưu trú | Hành chính | Đánh giá đầu vào Đã xác nhận và kết quả đánh giá gần nhất chưa quá CFG-M01-02 (001, FR-034a); hợp đồng Hiệu lực và đặt cọc đạt (004); nếu nội trú: đã có phân bổ giường (003); đủ DBR-02 — đúng một người liên hệ chính và ít nhất một người đại diện (012 FR-003). Bản đồng ý không chặn (FR-012) | Sinh lịch cá nhân, lịch thuốc, suất ăn từ ngày hiệu lực (005, 006, 011); nếu chưa có bản đồng ý Hiệu lực: cảnh báo và bắt đầu nhắc theo CFG-M01-06 (001) |
 | Đang tiếp nhận | Hủy tiếp nhận | Hủy tiếp nhận | Hành chính | Có lý do | Hủy giữ chỗ giường nếu có (003); đóng hồ sơ chờ liên quan (004) |
 | Đang lưu trú | Cho tạm vắng | Tạm vắng | Hành chính, Trưởng tầng | Có bản ghi đón hợp lệ: người đón thuộc danh sách được phép đón hoặc có ngoại lệ đón Hiệu lực (14.3, BR-M10-03, 012 FR-026) | Hủy công việc, suất ăn trong thời gian vắng (005, 011); liều chuyển "Mang theo" hoặc "Tạm dừng" (006); giường Giữ chỗ hoặc Trống theo chính sách (003); áp chính sách phí vắng BR-M02-06 (004, 010) |
-| Đang lưu trú | Điểm danh rời viện (chuyến đi) | Hoạt động bên ngoài | Hệ thống, khi trưởng đoàn điểm danh rời viện (014) | Người cao tuổi có trong danh sách chuyến đi đã điểm danh rời viện (8.9) | Tạm dừng công việc trong khoảng đi (005); liều chuyển "Mang theo" (006) (BR-M04-16) |
+| Đang lưu trú | Điểm danh rời viện (chuyến đi) | Hoạt động bên ngoài | Hệ thống, khi trưởng đoàn (hoặc trưởng tầng thay) điểm danh rời viện (014 FR-040) | Người cao tuổi có trong danh sách chuyến đi, được đánh giá Đạt, đang Đang lưu trú (8.9) | Hủy công việc Chưa đến hạn trong khoảng đi (005 FR-020, BR-M04-04); liều chuyển "Mang theo" (006) (BR-M04-16) |
 | Đang lưu trú, Tạm vắng, Hoạt động bên ngoài | Chuyển viện | Điều trị tại bệnh viện | Điều dưỡng, Bác sĩ | Có sự cố hoặc chỉ định chuyển viện (007) | Như Cho tạm vắng; thông báo người liên hệ chính mức Khẩn cấp (009, Q-97) |
 | Tạm vắng | Ghi nhận trở về | Đang lưu trú | Hành chính, Trưởng tầng | — | Khôi phục sinh công việc, liều, suất ăn từ thời điểm trở về (005, 006, 011) |
-| Hoạt động bên ngoài | Điểm danh về (chuyến đi) | Đang lưu trú | Hệ thống, khi trưởng đoàn điểm danh về (014) | Người cao tuổi được điểm danh về | Tiếp tục công việc đã tạm dừng (005) |
+| Hoạt động bên ngoài | Điểm danh về (chuyến đi), hoặc Hủy ghi nhận điểm danh rời viện (014 FR-031a) | Đang lưu trú | Hệ thống, khi trưởng đoàn hoặc trưởng tầng điểm danh về, hoặc trưởng tầng đính chính (014) | Người cao tuổi được điểm danh về, hoặc bản ghi rời viện bị hủy ghi nhận khi chuyến chưa về | Sinh lại công việc từ lúc trở về (005 FR-020); tính lại liều Mang theo (006) |
 | Điều trị tại bệnh viện | Ghi nhận trở về | Đang lưu trú | Hành chính, Trưởng tầng | — | Tạm dừng toàn bộ lịch thuốc cũ, tạo yêu cầu đối chiếu thuốc BR-M07-09 (006); tạo yêu cầu đánh giá lại (001, FR-040) |
 | Đang lưu trú, Tạm vắng, Điều trị tại bệnh viện | Kết thúc lưu trú | Kết thúc lưu trú | Hành chính, Bác sĩ; Quản lý viện duyệt ngoại lệ | Không còn đồ gửi ở Đang giữ, Đang được sử dụng hoặc Hư hỏng (013, Q-148); không còn thuốc gửi đang giữ (006); chi phí đã chốt (010); không còn cảnh báo/sự cố mở (007) — trừ khi có yêu cầu ngoại lệ đã được Quản lý viện duyệt (vòng đời 000) | Hủy mọi lịch tương lai (005, 006, 011); giải phóng giường (003); khóa tài khoản người thân sau CFG-M01-04, mặc định \[30 ngày\] (012) |
 | Đang lưu trú, Tạm vắng, Hoạt động bên ngoài, Điều trị tại bệnh viện | Ghi nhận qua đời | Qua đời | Bác sĩ; Hành chính chỉ khi trạng thái hiện tại là Tạm vắng, Hoạt động bên ngoài hoặc Điều trị tại bệnh viện (FR-047b) | Có người xác nhận: bác sĩ thực hiện lệnh, hoặc giấy tờ bằng chứng (giấy báo tử, giấy tờ của cơ sở y tế) khi hành chính thực hiện | Như Kết thúc lưu trú; thông báo người liên hệ chính mức Khẩn cấp (009, Q-97); hồ sơ chỉ đọc |

@@ -43,6 +43,12 @@ Tài liệu nguồn thêm mục 7.5 (vệ sinh phòng và khu vực), trạng th
 
 Spec 011 cần biết ai nhận phiếu bữa ăn của khu bán trú (BR-M08-11, Q-143). Vì khu nghỉ bán trú đã gắn với một tầng hoặc khu vực (FR-038), người nhận là nhân viên có phân công tại tầng/khu vực đó trong ca; không cần thêm đối tượng phân công mới. FR-038 được bổ sung việc cung cấp tầng/khu vực gắn khu nghỉ cho feature 011. Giường và tầng của người nội trú, cùng việc chuyển giường, tiếp tục được cung cấp cho feature 011 để chia suất theo tầng/khu.
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 014)
+
+Spec 014 và tài liệu nguồn (BR-M04-23, 3.4, Q-163, Q-174, Q-176) đã chốt:
+- Kiểm tra chất lượng áp cho công việc vệ sinh của phòng và khu vực chung gắn tầng/khu vực; vệ sinh khu vực chung không gắn tầng không vào mẫu. Kết quả Không đạt sinh công việc vệ sinh làm lại trong cùng ca, không tự đổi trạng thái giường (FR-049a mới).
+- Chỗ khu nghỉ bán trú (Q-47) tính theo giờ về theo ngày do feature 005 quản lý; giờ này có thể dời khi người bán trú có đồng ý về muộn vì hoạt động (3.4, Q-167).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 03, mục 7; UC-19 → UC-21, UC-71 → UC-74):
@@ -401,6 +407,7 @@ Công việc vệ sinh dùng chung vòng đời trạng thái, checklist, quá h
 - **FR-047**: Nhân viên chăm sóc, Điều dưỡng và Trưởng tầng MUST tạo được yêu cầu vệ sinh đột xuất cho phòng hoặc khu vực chung trong phạm vi được phân công, gồm: phòng/khu vực, mô tả, mức ưu tiên Thường / Gấp. Yêu cầu tạo ngay một công việc vệ sinh đột xuất; mức Gấp có hạn = thời điểm tạo + CFG-M03-06 (mặc định \[30 phút\]), quá hạn thì hệ thống MUST cảnh báo trưởng tầng phụ trách. Hạn của mức Thường theo khung mặc định của loại công việc (CFG-M04-02, feature 005). Các vai trò khác MUST NOT tạo. *(Nguồn: BR-M03-12, UC-73, 4.4 dòng "Yêu cầu vệ sinh đột xuất": TT, ĐD, CS T; VS P chỉ xem trong phạm vi; QL X)*
 - **FR-048**: Kết quả vệ sinh MUST gồm: kết quả từng hạng mục (Đạt / Không đạt); hư hỏng phát hiện (nếu có, kèm hạng mục và mô tả); ghi chú; người thực hiện; thời điểm. Khi có hạng mục Không đạt hoặc hư hỏng, hệ thống MUST thông báo trưởng tầng phụ trách. Khi hư hỏng liên quan đến giường, trưởng tầng (trong phạm vi) hoặc Quản lý viện MAY đưa giường sang Đang bảo trì theo bảng trạng thái giường, chịu điều kiện BR-M03-05 (FR-013). Hạng mục Không đạt MUST NOT tự đổi trạng thái công việc; công việc vẫn đóng theo feature 005. *(Nguồn: 7.5, BR-M03-13, UC-74)*
 - **FR-049**: Công việc vệ sinh chưa Hoàn thành khi hết ca MUST trở thành công việc chung của khu ở ca sau. Yêu cầu vệ sinh Gấp chưa Hoàn thành khi hết ca MUST được đưa vào bản nháp bàn giao (feature 008). *(Nguồn: BR-M03-14, BR-M09-06)*
+- **FR-049a**: **(Đồng bộ spec 014, BR-M04-23, Q-174)** Khi feature 014 ghi kết quả kiểm tra chất lượng Không đạt cho một công việc vệ sinh, hệ thống MUST sinh một công việc vệ sinh làm lại cùng loại, cùng phòng/khu vực, mức quan trọng bằng công việc gốc (Q-49), thời điểm dự kiến trong ca của danh sách kiểm tra, giao người thực hiện gốc nếu còn trong ca, nếu không thì thành việc chung của tầng; công việc làm lại trỏ về công việc gốc và kết quả kiểm tra. Kết quả Không đạt MUST NOT tự đổi trạng thái giường; công việc vệ sinh của khu vực chung không gắn tầng/khu vực không thuộc mẫu kiểm tra. *(Nguồn: BR-M04-23; feature 014 FR-060, FR-064)*
 - **FR-050**: Người thực hiện công việc vệ sinh MUST lấy theo phân công nhân viên vệ sinh theo khu vực trong ca (feature 008); công việc chưa có người nhận là công việc chung của khu. Nhân viên vệ sinh MUST chỉ xem công việc vệ sinh của phòng/khu vực được phân công và công việc chung của khu đó; MUST NOT xem thông tin sức khỏe của người cao tuổi. *(Nguồn: 7.5, 13.4, 19.3)*
 
 ### Key Entities *(include if feature involves data)*

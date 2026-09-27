@@ -48,6 +48,12 @@ Spec 011 dùng phân công và ca của spec này để xác định người nh
 
 Spec 013 và tài liệu nguồn (16.6, Q-158) đã chốt: đồ gửi có giá trị ở Đang giữ mà người giữ là nhân viên hết ca được đưa vào bản nháp bàn giao ca, và nhân viên được nhắc chuyển giữ cho Hành chính hoặc nhân viên ca sau. Spec này thêm mục tự lập (g) "đồ gửi đang giữ" ở FR-039 và điều kiện "đã xử lý xong" tương ứng ở FR-040; xác nhận bàn giao không đổi người giữ đồ gửi. Spec này cung cấp cho feature 013 ca đang diễn ra, sự kiện kết thúc ca và trạng thái tài khoản để xác định "người giữ vắng mặt" (feature 013 FR-014). Q-158 đã được chốt theo mặc định này ngày 2026-09-27 (mục 24.2).
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 014)
+
+Spec 014 và tài liệu nguồn (2.4, 8.9, Q-161, Q-172) đã chốt:
+- Mục (e) của bản nháp bàn giao (FR-039) gồm cả người đang đi chuyến ngoài viện và chuyến đã quá giờ về dự kiến.
+- Trưởng đoàn, người đi cùng giữ nhiệm vụ qua hết ca; xác nhận bàn giao ca không chuyển nhiệm vụ đó. Trưởng đoàn và người đi cùng phải có tên trong ca chồng thời gian chuyến khi được phân công (feature 014 FR-035).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 09 mục 13.1 → 13.5; BR-M09-01 → 08; UC-49, UC-50 phần lập và công bố lịch ca, UC-51, UC-52, UC-53; DBR-20, DBR-21):
@@ -331,7 +337,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
   (b) liều Trễ, Bỏ lỡ, Từ chối trong ca và liều Mang theo chờ ghi nhận (feature 006 FR-028);
   (c) chỉ số vượt ngưỡng cảnh báo hoặc nguy hiểm đo trong ca (feature 007);
   (d) cảnh báo và sự cố đang mở của người cao tuổi trong phạm vi (feature 007 FR-037);
-  (e) người cao tuổi mới nhập, trở về hoặc bắt đầu vắng (Tạm vắng, Điều trị tại bệnh viện, Hoạt động bên ngoài) trong ca, và người đang vắng mà đã quá giờ dự kiến trở về (feature 004); người vắng từ trước ca và chưa quá giờ dự kiến trở về MUST NOT được lặp lại ở mỗi bàn giao;
+  (e) người cao tuổi mới nhập, trở về hoặc bắt đầu vắng (Tạm vắng, Điều trị tại bệnh viện, Hoạt động bên ngoài) trong ca, và người đang vắng mà đã quá giờ dự kiến trở về (feature 004); người vắng từ trước ca và chưa quá giờ dự kiến trở về MUST NOT được lặp lại ở mỗi bàn giao; **(Đồng bộ spec 014)** Mục này gồm cả người đang đi chuyến ngoài viện và chuyến đã quá giờ về dự kiến (feature 014 FR-049); trưởng đoàn, người đi cùng giữ nhiệm vụ qua hết ca, xác nhận bàn giao không chuyển nhiệm vụ đó (feature 014 FR-035, Q-172);
   (f) yêu cầu vệ sinh Gấp chưa hoàn thành (feature 003 FR-049);
   (g) đồ gửi có giá trị ở Đang giữ mà người giữ là nhân viên có tên trong ca của tầng/khu vực này (feature 013 FR-014a; đồng bộ spec 013, Q-158).
   Chạy lại bước tạo MUST NOT tạo bàn giao thứ hai. Nếu mốc tạo bị lỡ do hệ thống gián đoạn, bản nháp MUST được tạo ngay khi hệ thống hoạt động lại; việc ca chuyển Chờ bàn giao tại giờ kết thúc (FR-022) không phụ thuộc bản nháp đã được tạo hay chưa. Người bàn giao MUST được thông báo. *(Nguồn: BR-M09-06, BR-M04-07, 13.5, DBR-20, NFR-04)*

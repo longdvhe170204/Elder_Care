@@ -59,6 +59,10 @@ Spec 013 nêu mức, người nhận, khóa sự kiện và nội dung rút gọ
 - Sau khi người cao tuổi qua đời, thông báo đồ gửi tới người thân chỉ gửi người đại diện và được đánh dấu thuộc danh sách việc sau qua đời (FR-015).
 - Nhắc lặp (đồ chưa trả theo CFG-M12-02, phiếu kiểm kê quá hạn) dùng khóa sự kiện có ngày nhắc (FR-005).
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 014)
+
+Bảng mức mặc định FR-043b có thêm dòng 014: mọi thông báo của feature 014 theo bảng FR-071 của spec đó (buổi bị hủy, dời, đăng ký hủy tự động; điểm danh chưa hoàn tất, "Không ghi nhận"; chuẩn bị thuốc mang theo, Nhận lại thuốc; chỉ định hạn chế và chỉ định tạm; đồng ý về muộn; quá giờ về và báo Quản lý viện; chuyển trưởng đoàn; kiểm tra chất lượng). Cảnh báo "nguy cơ cô lập" và sự cố thiếu người đi qua feature 007. BR-M04-17 được làm rõ: "cảnh báo" quá giờ về là thông báo mức Trung bình. Thông báo tới người thân của feature 014 (đồng ý về muộn) chỉ mang loại thông tin "chung".
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 13 mục 17, 17.1; BR-M13-01 → 05; UC-66; mục 23 dòng "Nhà cung cấp SMS", "Gọi điện"; CFG-M13-01, CFG-M13-02, CFG-M13-03 → CFG-M13-06 (đề xuất); thực thể THONG_BAO):
@@ -362,6 +366,7 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 | 006 | Nhắc liều Trễ; người cao tuổi chưa có điều dưỡng phụ trách (FR-026a); liều thuốc kiểm soát đặc biệt "chờ xem lại" (FR-029); phiếu đối chiếu thuốc cần hoàn thành (CFG-M07-05) | Điều dưỡng; Trưởng tầng, Người phụ trách ca | Trung bình |
 | 011 | Mọi thông báo của feature 011 (chế độ ăn, thực đơn, chốt suất, phát sinh, phiếu bữa ăn, đồ ăn gia đình, yêu cầu xem lại chế độ ăn — gồm cả thông báo tới Dinh dưỡng viên khi ăn kém kéo dài, thay cho nhắc cũ của feature 005 FR-040) | Theo bảng FR-065 của spec 011 | Theo bảng FR-065 của spec 011 (FR-043a) |
 | 013 | Mọi thông báo của feature 013 (thất lạc, hư hỏng, tìm thấy; tiếp nhận, trả đồ; xác nhận người nhận khác và duyệt thay; đồng ý cho tự giữ; nhắc đồ chưa trả sau trạng thái cuối; đề nghị xử lý đồ không người nhận; phiếu kiểm kê; đồ có giá trị khi hết ca; đính chính) | Theo bảng FR-032 của spec 013 | Theo bảng FR-032 của spec 013 (FR-043a); thông báo tới người thân chỉ loại "chung", nội dung chỉ loại đồ và sự kiện |
+| 014 | Mọi thông báo của feature 014 (buổi hoạt động bị hủy, dời, đăng ký hủy tự động; điểm danh chưa hoàn tất, "Không ghi nhận"; chuẩn bị thuốc mang theo, Nhận lại thuốc; chỉ định hạn chế và chỉ định tạm; đồng ý về muộn của bán trú; quá giờ về, báo Quản lý viện; chuyển trưởng đoàn; kiểm tra chất lượng) | Theo bảng FR-071 của spec 014 | Theo bảng FR-071 của spec 014 (FR-043a); cảnh báo "nguy cơ cô lập" và sự cố thiếu người đi qua feature 007 |
 
   *(Nguồn: 17 "mức độ thông báo phụ thuộc vào mức độ nghiệp vụ", BR-M13-01; Clarification 2026-09-26 lượt 5, đề xuất Q-113)*
 

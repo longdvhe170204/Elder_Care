@@ -31,6 +31,13 @@
 
 Spec 011 đã chốt nguồn "suất ăn người thân" (FR-043 của spec 011): mỗi suất của người thân ở lại có đăng ký ăn, chỉ khi lượt Đang ở lại, là một bản ghi nguồn; suất bị hủy trước giờ bữa thì khoản tương ứng bị hủy; sau giờ bữa không hủy vì người thân không ăn. Bảng nguồn FR-005 và bảng giao tiếp được cập nhật; điểm báo lại 14 phần 011 đã hoàn tất.
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 014)
+
+Spec 014 và tài liệu nguồn (8.8, 8.9, 3.4, BR-M04-18, Q-167, Q-170, Q-173, Q-176) đã chốt:
+- Nguồn "điểm danh có mặt ở buổi hoạt động có thu phí": với chuyến đi là bản ghi điểm danh rời viện, ngày tính phí là ngày rời viện thực tế; lượt "bỏ giữa chừng" vẫn tính; lượt Vắng và "Không ghi nhận" không tạo khoản (bảng nguồn được sửa).
+- Hủy lượt đến từ đính chính điểm danh và từ Hủy ghi nhận điểm danh rời viện (bảng giao tiếp được sửa).
+- Phí buổi của bán trú dùng giờ về theo ngày do feature 005 quản lý, có thể dời vì đồng ý về muộn; spec 014 không tạo khoản riêng cho phần giờ thêm (Q-138, Q-140 áp như cũ).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 11, mục 15; UC-61 → UC-64, UC-79):
@@ -293,7 +300,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Điểm danh đến bán trú vào ngày không có lịch (buổi phát sinh, FR-005b (a)) | 005 | Phí buổi bán trú | Trạng thái có mặt bán trú theo ngày | 1 buổi, hệ số 100% | Giá buổi trong hợp đồng; nếu không có, phiên bản đơn giá "buổi bán trú" | Ngày đến |
 | Công việc dịch vụ có tính phí Hoàn thành (đưa đi khám, tiêm, phục hồi ngoài gói…) | 005 | Dịch vụ | Kết quả ghi nhận công việc | Theo kết quả (mặc định 1 lần) | Hợp đồng nếu dịch vụ đăng ký; ngược lại phiên bản đơn giá | Thời điểm thực hiện (feature 005 FR-025), không phải thời điểm ghi |
 | Ghi nhận dùng vật phẩm tiêu hao (tã, bỉm, sữa…) | 005 | Vật phẩm tiêu hao | Kết quả ghi nhận công việc | Số lượng đã ghi, đơn vị của vật phẩm | Như trên | Thời điểm thực hiện |
-| Điểm danh có mặt ở buổi hoạt động có thu phí | 014 | Hoạt động | Lượt điểm danh | 1 lượt | Như trên | Ngày của buổi |
+| Điểm danh có mặt ở buổi hoạt động có thu phí (chuyến đi: bản ghi điểm danh rời viện, đồng bộ spec 014) | 014 | Hoạt động | Lượt điểm danh | 1 lượt (kể cả mức "bỏ giữa chừng", Q-173; lượt Vắng, "Không ghi nhận" không tạo khoản) | Như trên | Ngày của buổi; chuyến đi: ngày rời viện thực tế |
 | Liều nguồn viện Đã dùng; lần dùng PRN nguồn viện; trừ liều thuộc một lần giao mang theo đã tính phí (feature 006 FR-033) và liều nguồn gia đình gửi, kể cả thuốc mua hộ (Q-139) | 006 | Thuốc | Liều / lần dùng PRN | Số lượng theo liều | Như trên | Thời điểm dùng |
 | Lần giao thuốc mang theo nguồn viện; nhận lại | 006 | Thuốc | Lần giao | Số lượng giao, trừ số nhận lại | Như trên | Thời điểm giao |
 | Lượt ở lại đi qua một mốc 00:00 (mỗi mốc là một đêm, feature 012 FR-043); lượt kết thúc trước mốc 00:00 đầu tiên thì không sinh khoản | 012 | Người thân ở lại | Lượt ở lại | 1 đêm | Phiên bản đơn giá "Người thân ở lại" tại ngày bắt đầu của đêm | Ngày bắt đầu của đêm |
@@ -447,7 +454,7 @@ Từ chối, Hủy, Đã mua là trạng thái cuối. Đề nghị mua hộ là
 | Nhận | 011 | Suất ăn của người thân ở lại: ghi và hủy (hủy trước giờ bữa; sau giờ bữa không hủy vì người thân không ăn) | Suất, người thân, lượt ở lại, người cao tuổi được gắn, bữa, ngày bữa, trạng thái (Đã ghi / Đã hủy) |
 | Nhận | 012 | Đêm người thân ở lại; đồng ý hoặc từ chối đề nghị mua hộ của người đại diện | Lượt ở lại, đêm; đề nghị, người đại diện, quyết định |
 | Gửi | 012 | Bảng chi phí đã chốt; chi phí tạm tính; đề nghị mua hộ cần đồng ý | Theo FR-037, FR-038, FR-023 |
-| Nhận | 014 | Điểm danh hoạt động có thu phí và việc hủy điểm danh | Buổi, người cao tuổi, hoạt động/dịch vụ |
+| Nhận | 014 | Điểm danh hoạt động có thu phí và việc hủy lượt (đính chính điểm danh, Hủy ghi nhận điểm danh rời viện, feature 014 FR-031, FR-031a); giờ về theo ngày của bán trú lấy từ feature 005 (Q-176) | Buổi, người cao tuổi, hoạt động/dịch vụ, bản ghi điểm danh |
 | Gửi | 009 | Các thông báo ở bảng FR-044 | Nguồn, mức, nhóm người nhận, loại thông tin "chi phí" |
 | Gửi | Module 14 | Dữ liệu cho báo cáo chi phí 18.4 | Khoản, loại, nguồn sinh, dịch vụ/vật phẩm/thuốc/hoạt động, điều chỉnh sau chốt |
 
