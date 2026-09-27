@@ -48,6 +48,10 @@
 - Q: Thông báo cho người thân khi thuốc gia đình gửi sắp hết (spec 006 FR-046) ở mức nào? → A: Trung bình (cổng người thân và tin nhắn, chịu giờ yên tĩnh); nội dung chia phần "chung" (có thuốc sắp hết, số ngày còn lại) và "sức khỏe" (tên thuốc) (FR-043b, FR-013, đề xuất Q-116).
 - Q: Nhắc công việc quá hạn gửi chính người thực hiện (spec 005 FR-043) ở mức nào? → A: Nhẹ (chỉ trong ứng dụng); báo leo thang cho Người phụ trách ca, Trưởng tầng (FR-044) giữ Trung bình (FR-043b, spec 005 FR-043, đề xuất Q-117).
 
+### Cập nhật 2026-09-27 (đồng bộ với spec 011)
+
+Spec 011 nêu mức cho mọi thông báo của mình ở bảng FR-065 (theo FR-043a). Bảng mức ở FR-043b được sửa: dòng 005 bỏ "nhắc Dinh dưỡng viên khi ăn kém kéo dài", vì thông báo này nay do feature 011 gửi khi tạo yêu cầu xem lại chế độ ăn (BR-M08-05, BR-M04-09 làm rõ); thêm dòng 011 trỏ về bảng FR-065 của spec 011.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 13 mục 17, 17.1; BR-M13-01 → 05; UC-66; mục 23 dòng "Nhà cung cấp SMS", "Gọi điện"; CFG-M13-01, CFG-M13-02, CFG-M13-03 → CFG-M13-06 (đề xuất); thực thể THONG_BAO):
@@ -345,10 +349,11 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 | 005 | Người bán trú vẫn "Có mặt" lúc hết ngày (FR-019) | Người phụ trách ca đang diễn ra của tầng; Trưởng tầng | Trung bình; Nhẹ (Q-115). Nếu xác minh là mất dấu, người kiểm tra ghi sự cố đi lạc theo feature 007 (mức Khẩn cấp) |
 | 005 | Nhân viên vắng ca hoặc nghỉ việc, công việc chuyển thành việc chung (FR-032) | Trưởng tầng | Trung bình |
 | 005 | Phiên bản kế hoạch Chờ duyệt quá hạn (FR-005) | Người duyệt; Quản lý viện | Trung bình |
-| 005 | Yêu cầu xem xét kế hoạch (FR-011); nhắc Dinh dưỡng viên khi ăn kém kéo dài (FR-040) | Điều dưỡng phụ trách; Dinh dưỡng viên | Nhẹ |
+| 005 | Yêu cầu xem xét kế hoạch (FR-011) | Điều dưỡng phụ trách | Nhẹ |
 | 006 | Đơn thuốc sắp hết hạn (FR-017) | Người kê hoặc Bác sĩ, Điều dưỡng phụ trách | Nhẹ |
 | 006 | Thuốc gia đình gửi sắp hết (FR-046) | Người liên hệ chính, người đại diện | Trung bình (Q-116); nội dung chia phần: "chung" — có thuốc gia đình gửi sắp hết, số ngày dùng còn lại, đề nghị liên hệ viện; "sức khỏe" — tên thuốc, hàm lượng (FR-013) |
 | 006 | Nhắc liều Trễ; người cao tuổi chưa có điều dưỡng phụ trách (FR-026a); liều thuốc kiểm soát đặc biệt "chờ xem lại" (FR-029); phiếu đối chiếu thuốc cần hoàn thành (CFG-M07-05) | Điều dưỡng; Trưởng tầng, Người phụ trách ca | Trung bình |
+| 011 | Mọi thông báo của feature 011 (chế độ ăn, thực đơn, chốt suất, phát sinh, phiếu bữa ăn, đồ ăn gia đình, yêu cầu xem lại chế độ ăn — gồm cả thông báo tới Dinh dưỡng viên khi ăn kém kéo dài, thay cho nhắc cũ của feature 005 FR-040) | Theo bảng FR-065 của spec 011 | Theo bảng FR-065 của spec 011 (FR-043a) |
 
   *(Nguồn: 17 "mức độ thông báo phụ thuộc vào mức độ nghiệp vụ", BR-M13-01; Clarification 2026-09-26 lượt 5, đề xuất Q-113)*
 

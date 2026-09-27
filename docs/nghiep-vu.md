@@ -109,6 +109,14 @@ Vai trò hệ thống là các vai trò ở bảng 2.3, được gán cho tài k
 | Đính chính           | Khái niệm | Bản ghi mới sửa sai cho một bản ghi đã xác nhận; bản gốc giữ nguyên                                                                                                                                                                                                                                                                                                                           |
 | Phiên bản            | Khái niệm | Một lần thay đổi của dữ liệu có ngày hiệu lực (hợp đồng, kế hoạch, đơn giá, ngưỡng)                                                                                                                                                                                                                                                                                                           |
 | Cờ nguy cơ           | Khái niệm | Nhãn ngã / loét / đi lạc gắn cho người cao tuổi từ kết quả đánh giá (5.3)                                                                                                                                                                                                                                                                                                                     |
+| Bản gán chế độ ăn    | Khái niệm | **(Bổ sung, spec 011)** Chế độ ăn, kết cấu thức ăn và hạn chế thực phẩm riêng áp cho một người cao tuổi trong một khoảng thời gian; là "chế độ ăn" nhóm 2 ở bảng 1.5 (12.1) |
+| Món an toàn          | Khái niệm | **(Bổ sung, spec 011, Q-147)** Món dinh dưỡng viên khai sẵn cho mỗi chế độ ăn, hệ thống tự dùng khi suất thiếu món thay thế hoặc thiếu món mà dinh dưỡng viên chưa xử lý kịp (BR-M08-02) |
+| Suất đặc biệt        | Khái niệm | **(Bổ sung, spec 011)** Suất có tên người trên phiếu bữa ăn vì cần món thay thế, kết cấu khác thường hoặc món chỉ định riêng (12.5) |
+| Phát sinh            | Khái niệm | **(Bổ sung, spec 011)** Thay đổi số suất hoặc nội dung suất sau thời điểm chốt; loại cần giao (bếp xác nhận, chuẩn bị, giao) hoặc chỉ để ghi nhận (BR-M08-01, BR-M08-13) |
+| Suất giữ             | Khái niệm | **(Bổ sung, spec 011, Q-144)** Suất của người chưa trở về đúng dự kiến, giữ tại tầng tới hết ngưỡng giao trễ (BR-M08-01) |
+| Phần bổ sung         | Khái niệm | **(Bổ sung, spec 011)** Suất của phát sinh cần giao, được giao sau khi phiếu bữa ăn đã Đã giao (12.5) |
+| Người nhận tại tầng  | Nhiệm vụ  | **(Bổ sung, spec 011, Q-143)** Trưởng tầng, Điều dưỡng hoặc Nhân viên chăm sóc trong phạm vi phân công, kiểm đếm và nhận phiếu bữa ăn, phần bổ sung (BR-M08-11) |
+| Danh sách cần đối chiếu khi phục vụ | Khái niệm | **(Bổ sung, spec 011)** Người có dị ứng không kiểm tra tự động, phải được xác nhận phục vụ; chỉ nhân viên tại tầng thấy, bếp không thấy (12.5) |
 | BR-Mxx-yy            | Mã        | Quy tắc nghiệp vụ của module xx                                                                                                                                                                                                                                                                                                                                                               |
 | CFG-Mxx-yy           | Mã        | Tham số cấu hình (Phụ lục 25)                                                                                                                                                                                                                                                                                                                                                                 |
 
@@ -652,7 +660,7 @@ Ghi nhận: tâm trạng; giao tiếp; mức độ tham gia; hành vi bất thư
 **Kết quả kích hoạt quy tắc**
 
 - **BR-M04-08:** Đến \[16:00\], nếu tổng lượng nước trong ngày dưới \[60%\] mục tiêu thì hệ thống tạo cảnh báo nhẹ và sinh thêm công việc "hỗ trợ uống nước".
-- **BR-M04-09:** \[3\] bữa liên tiếp ở mức "một phần", "không ăn" hoặc "bỏ bữa" thì hệ thống cảnh báo điều dưỡng và nhắc dinh dưỡng viên.
+- **BR-M04-09:** \[3\] bữa liên tiếp ở mức "một phần", "không ăn" hoặc "bỏ bữa" thì hệ thống cảnh báo điều dưỡng và nhắc dinh dưỡng viên. **(Làm rõ, spec 011)** Việc nhắc dinh dưỡng viên được thực hiện bằng yêu cầu xem lại chế độ ăn của BR-M08-05, không gửi nhắc riêng.
 - **BR-M04-10:** Kết quả đo chỉ số được so ngay với ngưỡng ở Module 06.
 - **BR-M04-11:** Tâm trạng tiêu cực hoặc hành vi bất thường ghi nhận \[3\] ngày liên tiếp thì hệ thống tạo cảnh báo nhẹ và đề xuất hoạt động theo sở thích đã ghi nhận.
 
@@ -944,11 +952,25 @@ Quản lý: nhu cầu dinh dưỡng; dị ứng; hạn chế thực phẩm; ch�
 
 **(Bổ sung)** Chế độ ăn gán cho người cao tuổi có trạng thái: Đề xuất → Chờ duyệt (với chế độ ăn liên quan điều trị) → Hiệu lực → Ngừng. Mỗi món ăn được gắn thành phần gây dị ứng và các chế độ ăn phù hợp.
 
+**(Bổ sung, spec 011)** Làm rõ:
+
+- **Danh mục chế độ ăn** (nhóm 1) gồm: tên; dấu "liên quan điều trị"; danh sách thành phần bị hạn chế của chế độ ăn (ví dụ "đường" với chế độ tiểu đường); **món an toàn** của chế độ ăn (Q-147, BR-M08-02), là trường bắt buộc; món đang là món an toàn của một chế độ ăn còn hiệu lực không bị Ngừng hiệu lực cho tới khi chế độ ăn đó có món an toàn khác. Có đúng một chế độ ăn **mặc định của viện**, không liên quan điều trị, dùng cho người chưa được gán chế độ ăn và cho người thân ở lại.
+- **Bản gán chế độ ăn** (nhóm 2, là "chế độ ăn" ở bảng 1.5) gồm: chế độ ăn; kết cấu thức ăn (thường / mềm / xay nhuyễn, danh sách cố định); **hạn chế thực phẩm riêng** của người đó (ví dụ kiêng thịt bò); ghi chú nhu cầu dinh dưỡng; thời điểm hiệu lực. Hạn chế thực phẩm ở mục này được lưu tại bản gán, vì hồ sơ sức khỏe (5.2) chỉ quản lý dị ứng, bệnh nền, tiền sử. Nội dung bản gán không sửa được; thay đổi kết cấu hay hạn chế cũng tạo bản gán mới.
+- Mỗi người cao tuổi có tối đa một bản gán Hiệu lực và tối đa một bản gán đang chờ (Đề xuất, Chờ duyệt, Chờ hiệu lực). Vòng đời đầy đủ: Đề xuất → Chờ duyệt (khi cần bác sĩ duyệt theo BR-M08-03) → Chờ hiệu lực (nếu thời điểm hiệu lực ở tương lai) → Hiệu lực → Ngừng (khi có bản gán mới Hiệu lực, hoặc Kết thúc lưu trú, Qua đời). Bản gán không cần duyệt đi thẳng Đề xuất → Hiệu lực. Bác sĩ từ chối thì bản gán chuyển **Từ chối**; bản gán đang chờ bị hủy hoặc gặp Kết thúc lưu trú, Qua đời thì chuyển **Đã hủy**. Không có lệnh Ngừng trực tiếp.
+- Người Đang lưu trú chưa có bản gán Hiệu lực được tính suất theo chế độ ăn mặc định, kết cấu thường, và dinh dưỡng viên được nhắc. Việc thiếu bản gán không chặn Hoàn tất tiếp nhận.
+
 ### 12.2. Lập thực đơn
 
 Dinh dưỡng viên xây dựng thực đơn dựa trên: nhóm người cao tuổi; chế độ ăn; dị ứng; nhu cầu dinh dưỡng. Chế độ ăn liên quan đến điều trị phải tuân theo quy trình phê duyệt chuyên môn của cơ sở.
 
 **(Bổ sung)** Thực đơn (theo tuần) có vòng đời: Nháp → Chờ duyệt → Công bố → Đã áp dụng. Thực đơn chỉ được công bố khi qua các kiểm tra tự động ở BR-M08-06 và BR-M08-07.
+
+**(Bổ sung, spec 011, Q-142)** Làm rõ vòng đời thực đơn:
+
+- Thực đơn là của toàn viện, theo tuần (thứ 2 → chủ nhật); mỗi tuần có tối đa một thực đơn chưa hủy. Nội dung gồm, với mỗi ngày, bữa, chế độ ăn: các món, và với mỗi món: các món thay thế theo thứ tự ưu tiên. "Nhóm người cao tuổi" ở trên là những người dùng cùng một chế độ ăn.
+- **Không có người duyệt thủ công.** Dinh dưỡng viên gửi duyệt; thực đơn qua kiểm tra tự động (BR-M08-06, BR-M08-07) chuyển Chờ duyệt, với nghĩa "đã qua kiểm tra, chờ công bố". Chính dinh dưỡng viên công bố; khi công bố, kiểm tra độ phủ chạy lại với dữ liệu tại thời điểm đó. Bác sĩ và Quản lý viện xem được thực đơn và các cảnh báo đã được xác nhận. Quyền duyệt của bác sĩ ở dòng "Chế độ ăn, thực đơn" (4.4) chỉ áp cho việc gán chế độ ăn (UC-45); căn cứ ở 19.3.
+- Các lệnh khác: Rút lại (Chờ duyệt → Nháp); Hủy (Nháp → Đã hủy); thực đơn công bố khi tuần đã bắt đầu chuyển thẳng Đã áp dụng. Thực đơn Công bố hoặc Đã áp dụng không bị hủy, chỉ đổi món theo BR-M08-08.
+- Khi tới thời điểm CFG-M08-07 trước ngày đầu tuần mà tuần kế tiếp chưa có thực đơn Công bố, hệ thống nhắc dinh dưỡng viên và báo Quản lý viện (BR-M08-16). Nếu tới lúc chốt suất vẫn chưa có thực đơn, việc chốt vẫn chạy và phiếu mang dấu "chưa có thực đơn công bố".
 
 ### 12.3. Chuẩn bị suất ăn
 
@@ -959,6 +981,13 @@ Bếp nhận thông tin: thực đơn; số lượng; chế độ ăn; yêu cầ
 Hệ thống hỗ trợ ghi nhận: người gửi; người cao tuổi; loại đồ ăn; thời gian; số lượng; tình trạng; ghi chú.
 
 Đồ ăn không được sử dụng nếu vi phạm chính sách của cơ sở hoặc không phù hợp với các hạn chế/dị ứng đã được ghi nhận.
+
+**(Bổ sung, spec 011)** Làm rõ:
+
+- Chính sách của cơ sở được thể hiện bằng danh mục **loại đồ ăn bị cấm** (ví dụ đồ uống có cồn, thực phẩm sống, thực phẩm không nhãn) do Quản lý viện quản lý. Điều dưỡng hoặc dinh dưỡng viên ghi nhận đồ ăn, gồm cả thành phần chính (chọn từ danh mục dị nguyên, được chọn "không rõ") và hạn dùng nếu có.
+- Trạng thái: Không sử dụng / Cần xác nhận / Được sử dụng → Đã kết thúc (trả lại người gửi, hủy bỏ, đã dùng hết). Đồ ăn Không sử dụng không bao giờ chuyển sang Được sử dụng; nếu thông tin được làm rõ thì ghi nhận lại như một lần gửi mới.
+- Với đồ ăn tự chế biến hoặc đã mở, người xác nhận cho dùng phải ghi hạn dùng. Đồ ăn Được sử dụng tới hạn dùng, hoặc trở nên xung đột do dị ứng mới hay bản gán chế độ ăn mới, được hệ thống chuyển Không sử dụng và điều dưỡng phụ trách được báo.
+- Khi đồ ăn Không sử dụng, người gửi là người thân có tài khoản và quan hệ Hiệu lực được báo; lý do liên quan dị ứng, chế độ ăn chỉ hiện cho người có quyền xem sức khỏe.
 
 ### 12.5. Chuẩn bị và phân phối suất ăn (bổ sung)
 
@@ -981,31 +1010,44 @@ Phiếu không chứa thông tin sức khỏe ngoài những gì bếp cần đ�
 
 Luồng chính: Đã chốt → Đã chuẩn bị → Đã giao → Đã nhận; hoặc từ Đã giao sang Có sai lệch.
 
+**(Bổ sung, spec 011)** Làm rõ phiếu bữa ăn:
+
+- Phiếu chỉ được sinh cho tầng/khu có ít nhất một suất; tầng/khu chưa có phiếu mà nhận phát sinh "+" thì được sinh phiếu lúc đó (DBR-27 áp cho tầng/khu có suất). Người bán trú thuộc phiếu của khu bán trú; người thân ở lại thuộc phiếu của tầng người cao tuổi được gắn.
+- Có sai lệch → Đã giao khi bếp ghi cách xử lý (bổ sung suất / đổi suất / khác), rồi tầng xác nhận Đã nhận; lịch sử sai lệch giữ nguyên. Đã chuẩn bị → Đã chốt khi có phát sinh làm thêm hoặc đổi suất đặc biệt. Đã nhận là trạng thái cuối.
+- Phát sinh tới sau khi phiếu Đã giao được giao như **phần bổ sung** của phiếu, có người, thời điểm giao và nhận, và có thể bị báo sai lệch riêng; phiếu không quay lại trạng thái trước. Sau Đã nhận, thiếu suất xử lý bằng yêu cầu suất bổ sung (BR-M08-01), suất sai đã phục vụ xử lý theo BR-M08-14 hoặc ghi sự cố.
+
+**(Bổ sung, spec 011) Suất đặc biệt.** Suất của một người cao tuổi là suất đặc biệt khi có ít nhất một: một món trong bữa của chế độ ăn người đó dùng có thành phần trùng dị ứng Hiệu lực, hạn chế riêng hoặc hạn chế của chế độ ăn, nên cần món thay thế (BR-M08-02); kết cấu khác "thường"; dinh dưỡng viên đã chỉ định món thay thế riêng. Suất của người thân ở lại không là suất đặc biệt. Người có mục dị ứng loại "khác" (không kiểm tra tự động) **không** được đưa thành suất đặc biệt, để bếp không suy ra việc có dị ứng (19.3); họ nằm trong **danh sách cần đối chiếu khi phục vụ** chỉ nhân viên tại tầng thấy, và được xác nhận phục vụ như suất đặc biệt (BR-M08-14).
+
 **Nhãn suất đặc biệt.** Mỗi suất đặc biệt được dán nhãn họ tên, phòng và chế độ ăn để nhân viên chăm sóc đối chiếu khi phục vụ.
 
-**(Cần xác nhận với cơ sở, Q-39) Lưu mẫu thức ăn.** Mỗi bữa ghi nhận: món đã lưu mẫu; thời điểm lưu; người lưu; thời điểm hủy mẫu. Mục này tham chiếu quy định kiểm thực ba bước và lưu mẫu thức ăn đối với bếp ăn tập thể của Bộ Y tế; cần đối chiếu văn bản hiện hành khi triển khai.
+**(Đã chốt, Q-39, Q-146) Lưu mẫu thức ăn.** Mỗi bữa có một bản ghi lưu mẫu, gồm danh sách **mọi món được nấu trong bữa** (món của mọi chế độ ăn, món thay thế và món chỉ định riêng; mỗi món một mẫu dù xuất hiện ở nhiều chế độ ăn), với mỗi món: đã lưu mẫu hay không và lý do nếu không lưu; thời điểm lưu; người lưu; thời điểm hủy mẫu. Món không lưu được có lý do thì không chặn giao phiếu, nhưng được báo cho dinh dưỡng viên và Quản lý viện. Mục này tham chiếu quy định kiểm thực ba bước và lưu mẫu thức ăn đối với bếp ăn tập thể của Bộ Y tế; hệ thống chỉ ghi nhận, không thay quy định đó; cần đối chiếu văn bản hiện hành khi triển khai.
 
 ### 12.6. Quy tắc nghiệp vụ Module 08 (bổ sung)
 
-- **BR-M08-01:** Trước mỗi bữa \[2 giờ\], hệ thống chốt số suất theo từng chế độ ăn = số người dự kiến có mặt trong bữa (đã trừ Tạm vắng, Điều trị tại bệnh viện, Hoạt động bên ngoài, bán trú không có mặt) + người thân ở lại có đăng ký ăn. Thay đổi sau thời điểm chốt được gửi cho bếp dưới dạng phát sinh.
-- **BR-M08-02:** Khi lập thực đơn và khi phân bổ, hệ thống cảnh báo nếu món ăn chứa thành phần gây dị ứng hoặc không phù hợp chế độ ăn của người được phân bổ; bếp nhận danh sách người cần món thay thế.
-- **BR-M08-03:** Chế độ ăn liên quan điều trị chỉ chuyển Hiệu lực khi bác sĩ duyệt; trong lúc chờ duyệt, người cao tuổi vẫn dùng chế độ ăn đang hiệu lực.
-- **BR-M08-04:** Đồ ăn gia đình mang vào được hệ thống đối chiếu với dị ứng và hạn chế đã ghi nhận. Vi phạm thì trạng thái là Không sử dụng; còn nghi vấn thì cần điều dưỡng hoặc dinh dưỡng viên xác nhận trước khi cho dùng.
-- **BR-M08-05:** Khi BR-M04-09 kích hoạt (ăn kém kéo dài) hoặc BR-M05-04 phát hiện sụt cân, hệ thống tạo yêu cầu dinh dưỡng viên xem lại chế độ ăn, có hạn xử lý \[48 giờ\].
+- **BR-M08-01:** Trước mỗi bữa \[2 giờ\], hệ thống chốt số suất theo từng chế độ ăn = số người dự kiến có mặt trong bữa (đã trừ Tạm vắng, Điều trị tại bệnh viện, Hoạt động bên ngoài, bán trú không có mặt) + người thân ở lại có đăng ký ăn. Thay đổi sau thời điểm chốt được gửi cho bếp dưới dạng phát sinh. **(Bổ sung, spec 011, Q-144)** Làm rõ:
+  - Người Tạm vắng hoặc Hoạt động bên ngoài **được tính** nếu lượt vắng hoặc chuyến đi có thời điểm dự kiến trở lại không muộn hơn giờ bữa dự kiến; suất mang dấu "dự kiến trở về". Tới giờ bữa mà người đó chưa trở về thì hệ thống ghi phát sinh "−1" chỉ để ghi nhận (không cần bếp xác nhận, không chặn giao phiếu); suất thành "suất giữ" tại tầng tới hết ngưỡng giao trễ (CFG-M08-04), người đó về trong khoảng này thì được phục vụ suất giữ. Lượt vắng không có thời điểm dự kiến trở lại, và người Điều trị tại bệnh viện, không được tính.
+  - Người bán trú được tính khi có lịch đến bao trùm giờ bữa, ngày đó không phải ngày khu bán trú nghỉ, và trạng thái có mặt là Chưa đến hoặc Có mặt (3.4).
+  - Người thân ở lại chỉ được tính khi lượt ở lại **Đang ở lại** (14.4); lượt bắt đầu sau thời điểm chốt và trước giờ bữa tạo phát sinh "+1".
+  - Phát sinh chỉ được hệ thống tự tạo cho thay đổi xảy ra trước giờ bữa dự kiến; một thay đổi ảnh hưởng nhiều bữa tạo một phát sinh cho mỗi bữa đã chốt mà chưa tới giờ. Sau giờ bữa, người nhận tại tầng lập **yêu cầu suất bổ sung** có lý do cho người đang có mặt, tới hết ngưỡng giao trễ; yêu cầu này được gửi bếp như một phát sinh.
+- **BR-M08-02:** Khi lập thực đơn và khi phân bổ, hệ thống cảnh báo nếu món ăn chứa thành phần gây dị ứng hoặc không phù hợp chế độ ăn của người được phân bổ; bếp nhận danh sách người cần món thay thế. **(Bổ sung, spec 011, Q-147)** Khi chốt suất, hệ thống chọn món thay thế đầu tiên trong danh sách ưu tiên của thực đơn không xung đột với người nhận; không có món phù hợp thì suất mang dấu "thiếu món thay thế" và dinh dưỡng viên được báo để chỉ định món thay thế riêng, hoặc xác nhận kèm lý do rằng món gốc được chế biến không có thành phần xung đột; bếp không chuẩn bị suất đó cho tới khi có một trong hai. Hệ thống tự dùng **món an toàn** của chế độ ăn (12.1), nếu món đó không xung đột với người nhận, khi suất thiếu món thay thế hoặc chế độ ăn không có món ở bữa, vào lúc chốt hoặc tạo phát sinh ngoài giờ hành chính của dinh dưỡng viên (CFG-M13-06), hoặc lúc còn \[30 phút\] (CFG-M08-05) trước giờ bữa mà dinh dưỡng viên chưa xử lý; sau đó báo dinh dưỡng viên xem lại. Nếu món an toàn cũng xung đột thì báo điều dưỡng phụ trách người đó để xử lý tại tầng.
+- **BR-M08-03:** Chế độ ăn liên quan điều trị chỉ chuyển Hiệu lực khi bác sĩ duyệt; trong lúc chờ duyệt, người cao tuổi vẫn dùng chế độ ăn đang hiệu lực. **(Bổ sung, spec 011, Q-145)** Bản gán mới cần bác sĩ duyệt khi, so với bản gán Hiệu lực (hoặc chế độ ăn mặc định nếu chưa có): (a) chuyển sang một chế độ ăn liên quan điều trị khác chế độ đang dùng; (b) rời khỏi chế độ ăn liên quan điều trị đang dùng; (c) giữ chế độ ăn liên quan điều trị nhưng chuyển kết cấu cứng hơn (xay nhuyễn → mềm → thường); (d) giữ chế độ ăn liên quan điều trị nhưng bỏ bớt một hạn chế riêng (thay một hạn chế bằng hạn chế khác cũng tính là bỏ). Các thay đổi khác, gồm thêm hạn chế hoặc chuyển kết cấu mềm hơn khi đang dùng chế độ ăn liên quan điều trị, được dinh dưỡng viên áp dụng ngay và bác sĩ đã duyệt chế độ ăn đó được báo.
+- **BR-M08-04:** Đồ ăn gia đình mang vào được hệ thống đối chiếu với dị ứng và hạn chế đã ghi nhận. Vi phạm thì trạng thái là Không sử dụng; còn nghi vấn thì cần điều dưỡng hoặc dinh dưỡng viên xác nhận trước khi cho dùng. **(Bổ sung, spec 011)** Vi phạm gồm: loại đồ ăn bị cấm, hạn dùng đã qua, thành phần trùng dị ứng Hiệu lực, hạn chế riêng hoặc hạn chế của chế độ ăn đang dùng. Nghi vấn gồm ít nhất: thành phần "không rõ" hoặc loại "khác"; người nhận có dị ứng không kiểm tra tự động; kết cấu thức ăn của người nhận khác "thường"; đồ ăn đã mở hoặc tự chế biến; người gửi không có quan hệ Hiệu lực; người nhận đang dùng chế độ ăn liên quan điều trị.
+- **BR-M08-05:** Khi BR-M04-09 kích hoạt (ăn kém kéo dài) hoặc BR-M05-04 phát hiện sụt cân, hệ thống tạo yêu cầu dinh dưỡng viên xem lại chế độ ăn, có hạn xử lý \[48 giờ\]. **(Bổ sung, spec 011)** Mỗi người cao tuổi có tối đa một yêu cầu đang mở; sự kiện mới được gộp làm nguồn, hạn giữ nguyên. Dinh dưỡng viên kết thúc yêu cầu bằng "giữ nguyên chế độ ăn" có lý do hoặc bằng một đề xuất chế độ ăn mới. Hạn xử lý không dừng khi người cao tuổi vắng mặt; quá hạn thì nhắc dinh dưỡng viên và báo quản lý viện, yêu cầu không tự đóng. Thông báo tạo yêu cầu là thông báo duy nhất tới dinh dưỡng viên cho sự kiện ăn kém kéo dài (thay cho nhắc riêng ở BR-M04-09).
 
 * **BR-M08-06:** Khi gửi duyệt thực đơn, hệ thống kiểm tra độ phủ: mỗi chế độ ăn đang có người sử dụng phải có món cho mọi bữa trong kỳ. Thiếu thì chặn công bố và chỉ rõ chế độ ăn, bữa bị thiếu.
 * **BR-M08-07:** Hệ thống cảnh báo khi một món lặp lại trong \[3 ngày\] liên tiếp, hoặc khi món chứa thành phần gây dị ứng của người thuộc nhóm được phân bổ mà chưa có món thay thế.
-* **BR-M08-08:** Thực đơn đã công bố chỉ đổi món qua yêu cầu thay đổi có lý do. Bếp nhận thông báo; thay đổi sau thời điểm chốt suất (BR-M08-01) được đánh dấu phát sinh.
+* **BR-M08-08:** Thực đơn đã công bố chỉ đổi món qua yêu cầu thay đổi có lý do. Bếp nhận thông báo; thay đổi sau thời điểm chốt suất (BR-M08-01) được đánh dấu phát sinh. **(Bổ sung, spec 011)** Lệnh Đổi món do dinh dưỡng viên thực hiện, có hiệu lực ngay khi có lý do, không cần duyệt; không áp cho bữa đã qua giờ bữa dự kiến; bị chặn nếu làm một chế độ ăn đang có người sử dụng mất món ở bữa đó (BR-M08-06); chạy lại cảnh báo lặp món và dị ứng (BR-M08-07). Bác sĩ và quản lý viện xem được lịch sử đổi món.
 
 **Chuẩn bị và phân phối suất ăn (bổ sung)**
 
 - **BR-M08-09:** Ngay sau thời điểm chốt suất, hệ thống sinh phiếu bữa ăn theo tầng/khu. Suất của người thân ở lại có đăng ký ăn được tính vào tầng tương ứng.
 - **BR-M08-10:** Bếp chỉ chuyển phiếu sang Đã giao khi mọi suất đặc biệt trên phiếu đã được đánh dấu chuẩn bị. Khi giao, hệ thống ghi người giao và thời điểm giao.
-- **BR-M08-11:** Người nhận tại tầng kiểm đếm rồi xác nhận Đã nhận, hoặc báo Có sai lệch kèm nội dung. Bếp xử lý bổ sung hoặc đổi suất, và mọi sai lệch được lưu lịch sử.
+- **BR-M08-11:** Người nhận tại tầng kiểm đếm rồi xác nhận Đã nhận, hoặc báo Có sai lệch kèm nội dung. Bếp xử lý bổ sung hoặc đổi suất, và mọi sai lệch được lưu lịch sử. **(Bổ sung, spec 011, Q-143)** Người nhận tại tầng là Trưởng tầng, Điều dưỡng hoặc Nhân viên chăm sóc (kể cả Người phụ trách ca) có phạm vi phân công tại tầng/khu của phiếu trong ca đang diễn ra; với phiếu khu bán trú là nhân viên thuộc các vai trò đó được phân công tại tầng/khu vực mà khu nghỉ bán trú gắn vào (7.1); nếu tầng/khu vực đó không có ai được phân công trong ca, cảnh báo giao trễ (BR-M08-12) gửi Quản lý viện. Mỗi phiếu chỉ có một lần xác nhận Đã nhận. Người nhận tại tầng cũng xác nhận nhận, hoặc báo sai lệch, cho từng **phần bổ sung** của phiếu (12.5).
 - **BR-M08-12:** Quá giờ bữa dự kiến \[30 phút\] (CFG-M08-04) mà phiếu chưa ở trạng thái Đã giao thì hệ thống cảnh báo nhẹ cho trưởng tầng và bếp.
 - **BR-M08-13:** Thay đổi phát sinh sau thời điểm chốt (BR-M08-01, BR-M08-08) phải được bếp xác nhận đã nhận. Chưa xác nhận trước giờ bữa \[30 phút\] (CFG-M08-05) thì nhắc bếp và dinh dưỡng viên.
 - **BR-M08-14:** Khi phục vụ suất đặc biệt, nhân viên chăm sóc xác nhận đúng người, đúng suất trước khi ghi nhận kết quả ăn uống (8.6). Nếu suất có thành phần gây dị ứng với người nhận, hệ thống chặn ghi nhận và tạo sự cố mức trung bình. Nếu người cao tuổi đã ăn, mức sự cố được xác định theo triệu chứng, nguồn sự cố là "ăn uống", và hệ thống thông báo điều dưỡng phụ trách.
-- **BR-M08-15 (cần xác nhận, Q-39):** Mỗi bữa phải có bản ghi lưu mẫu trước khi phiếu chuyển Đã giao. Mẫu được nhắc hủy sau \[24 giờ\] (CFG-M08-06).
+- **BR-M08-15 (đã chốt, Q-39, Q-146):** Mỗi bữa phải có bản ghi lưu mẫu trước khi phiếu chuyển Đã giao. Bản ghi gồm mọi món được nấu trong bữa, kể cả món thay thế, mỗi món một mẫu; món không lưu được thì ghi lý do và không chặn giao (12.5). Mẫu được nhắc hủy sau \[24 giờ\] (CFG-M08-06).
+- **BR-M08-16 (bổ sung, spec 011):** Tới thời điểm \[2 ngày\] trước ngày đầu tuần (CFG-M08-07) mà tuần kế tiếp chưa có thực đơn Công bố, hệ thống nhắc dinh dưỡng viên và báo quản lý viện (12.2).
 
 ## 13. Module 09 – Nhân sự và ca trực
 
@@ -1409,6 +1451,7 @@ Quyền được chia thành: xem; tạo; sửa; xác nhận; duyệt; chốt; t
 - **(Bổ sung)** Dinh dưỡng viên xem dị ứng và bệnh lý liên quan chế độ ăn, không xem toàn bộ hồ sơ sức khỏe. **(Bổ sung, spec 005, Q-33)** Dinh dưỡng viên xem kết quả ghi nhận ăn uống và lượng nước (chỉ xem); Bác sĩ xem mọi kết quả ghi nhận chăm sóc (chỉ xem, không ghi).
 - **(Bổ sung)** Nhân viên bếp chỉ xem số suất và yêu cầu đặc biệt theo chế độ ăn, không xem hồ sơ sức khỏe. **(Làm rõ, suất ăn)** Với suất đặc biệt trên phiếu bữa ăn (12.5), bếp xem họ tên, phòng, chế độ ăn, món thay thế và kết cấu thức ăn; không xem dị ứng, bệnh lý hay thông tin sức khỏe khác ngoài những gì đã thể hiện qua chế độ ăn và món thay thế.
 - **(Bổ sung)** Nhân viên vệ sinh chỉ xem công việc vệ sinh phòng/khu vực được phân công.
+- **(Bổ sung, spec 011, Q-142, Q-143)** Quyền duyệt (D) của Bác sĩ ở dòng "Chế độ ăn, thực đơn" (4.4) chỉ áp cho việc gán chế độ ăn (UC-45); thực đơn tuần do dinh dưỡng viên tự công bố sau kiểm tra tự động, không có người duyệt (12.2). Người nhận phiếu bữa ăn tại tầng (UC-76) là Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc trong phạm vi phân công của tầng/khu và ca (BR-M08-11); vai trò ở chú thích ¹⁵ của 4.4 không còn là tạm. Danh sách người có dị ứng không kiểm tra tự động (danh sách cần đối chiếu khi phục vụ, 12.5) không hiển thị cho bếp.
 
 * **(Bổ sung)** Trưởng tầng xử lý việc quá hạn, kiểm tra chất lượng ngẫu nhiên, tham gia xử lý phản hồi của người thân trong tầng và duyệt yêu cầu đổi ca; không duyệt thay đổi lưu trú hay chi phí.
 * **(Bổ sung)** Quản lý viện có thể gỡ khoanh vùng lây nhiễm cùng bác sĩ (BR-M05-12) và là người duyệt các ngoại lệ (kết thúc lưu trú, người đón ngoài danh sách, điều chỉnh điểm ưu tiên).
@@ -1534,7 +1577,6 @@ Những điểm dưới đây cần được chốt trước hoặc trong bướ
 | Q-07 | Ai có quyền Duyệt kế hoạch chăm sóc (2.4)                                                | Bác sĩ; cơ sở được gán thêm cho điều dưỡng (xem Q-15)                                                                                                                                                                                                                 | Quản lý viện + bác sĩ          | 005                |
 | Q-08 | Bảng chính sách phí khi vắng (6.7)                                                       | Theo bảng ví dụ 6.7                                                                                                                                                                                                                                                   | Quản lý viện                   | 004, 010           |
 | Q-09 | Mẫu xoay ca thực tế (13.2)                                                               | 2 ca ngày/đêm theo khảo sát                                                                                                                                                                                                                                           | Quản lý viện                   | 008, 015           |
-| Q-39 | Có đưa lưu mẫu thức ăn vào hệ thống không (12.5, BR-M08-15)                              | Có, bản ghi đơn giản                                                                                                                                                                                                                                                  | Quản lý viện                   | Module 08          |
 | Q-63 | Có cần kiểm soát pháp lý riêng cho thuốc gây nghiện, hướng thần (người chứng kiến, đếm số lượng còn) ngoài xác nhận trực tuyến không (11.6) | Không bổ sung; giữ xác nhận trực tuyến và xem lại khi mất kết nối (spec 006) | Quản lý viện, tư vấn pháp lý | 006 |
 
 ### 24.2. Quyết định đã chốt (bổ sung)
@@ -1674,12 +1716,19 @@ Các quyết định dưới đây đã được chốt khi làm rõ spec của 
 | Q-139 | Thuốc mua hộ dùng theo liều có tính phí thêm không | Không; tiếp nhận như thuốc gia đình gửi, chỉ tính một lần ở khoản mua hộ | 11.4, 15.2 | 010 |
 | Q-140 | Bán trú đến ngoài lịch, ngày khu bán trú nghỉ | Buổi phát sinh tính 100%, ngoài giá tháng; buổi trùng ngày nghỉ không tính, không đếm khi chia giá tháng | 3.4, 15.2, BR-M11-09 | 010 |
 | Q-141 | Có tính phí lưu trú ngày qua đời không | Có, trọn ngày theo hệ số của ngày đó; dừng với sự kiện sau thời điểm qua đời | 15.7, BR-M11-08 | 010 |
+| Q-39 | Có đưa lưu mẫu thức ăn vào hệ thống không | Có, bản ghi đơn giản mỗi bữa; chưa có bản ghi thì phiếu không chuyển Đã giao | 12.5, BR-M08-15 | 011 |
+| Q-142 | Ai duyệt để thực đơn tuần được công bố | Dinh dưỡng viên tự công bố sau kiểm tra tự động; không có người duyệt; quyền duyệt của bác sĩ chỉ cho UC-45 | 12.2, 19.3 | 011 |
+| Q-143 | Ai là người nhận phiếu bữa ăn tại tầng | Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc (và Người phụ trách ca) trong phạm vi phân công của tầng/khu và ca | BR-M08-11, 19.3, 2.4 | 011 |
+| Q-144 | Người đang vắng có dự kiến trở về trước giờ bữa có được tính suất không | Có, dấu "dự kiến trở về"; chưa về tới giờ bữa thì phát sinh "−1" chỉ để ghi nhận, suất giữ tại tầng tới hết ngưỡng giao trễ | BR-M08-01, 2.4 | 011 |
+| Q-145 | Khi nào bản gán chế độ ăn cần bác sĩ duyệt | Khi đổi, thêm hoặc bỏ chế độ ăn liên quan điều trị, chuyển kết cấu cứng hơn, hoặc bỏ hạn chế trong lúc dùng chế độ đó; còn lại áp dụng ngay và báo bác sĩ | 12.1, BR-M08-03 | 011 |
+| Q-146 | Bản ghi lưu mẫu gồm những món nào | Mọi món được nấu trong bữa, kể cả món thay thế và món an toàn, mỗi món một mẫu; món không lưu được ghi lý do, không chặn giao | 12.5, BR-M08-15 | 011 |
+| Q-147 | Ai xử lý suất thiếu món thay thế khi dinh dưỡng viên không xử lý kịp | Hệ thống tự dùng món an toàn của chế độ ăn nếu không xung đột (ngoài giờ hành chính, hoặc tới mốc CFG-M08-05); nếu vẫn xung đột thì báo điều dưỡng phụ trách | 12.1, BR-M08-02, 2.4 | 011 |
 
 ### 24.3. Quyết định đã chốt ở spec, chưa phản ánh vào thân tài liệu (bổ sung)
 
 Mục này ghi các quyết định đã được chốt khi làm rõ spec nhưng **chưa** được đưa vào các mục nghiệp vụ và Phụ lục 25. Khi đã phản ánh, dòng được chuyển lên 24.2.
 
-**Hiện không còn dòng nào (2026-09-27).** Mọi quyết định Q-01 → Q-141 đã được phản ánh và nằm ở 24.2, trừ các quyết định còn mở ở 24.1 (gồm Q-39 và Q-63). Spec làm sau có quyết định chưa kịp phản ánh thì ghi thêm vào bảng dưới.
+**Hiện không còn dòng nào (2026-09-27).** Mọi quyết định Q-01 → Q-147 đã được phản ánh và nằm ở 24.2, trừ các quyết định còn mở ở 24.1. Các quyết định Q-39, Q-142 → Q-147 của spec 011 được phản ánh vào thân tài liệu này; theo quyết định của người dùng, tab Phân tích yêu cầu (4.4, 3.2, ERD) không được sửa theo các quyết định này, và 19.3 là căn cứ khi 4.4 khác. Spec làm sau có quyết định chưa kịp phản ánh thì ghi thêm vào bảng dưới.
 
 | Mã   | Vấn đề | Quyết định | Cần phản ánh tại | Spec |
 | ---- | ------ | ---------- | ---------------- | ---- |
@@ -1777,6 +1826,7 @@ Mọi giá trị trong ngoặc vuông ở các quy tắc nghiệp vụ được 
 | CFG-M08-04 | Giờ bữa dự kiến / ngưỡng giao trễ                                                            | Theo cơ sở / 30 phút                                   | BR-M08-12            |
 | CFG-M08-05 | Nhắc xác nhận phát sinh trước bữa                                                            | 30 phút                                                | BR-M08-13            |
 | CFG-M08-06 | Thời gian giữ mẫu thức ăn                                                                    | 24 giờ                                                 | BR-M08-15            |
+| CFG-M08-07 | Nhắc công bố thực đơn tuần kế tiếp (bổ sung, spec 011)                                       | 2 ngày trước ngày đầu tuần                             | BR-M08-16            |
 | CFG-M09-08 | Báo Quản lý viện khi ca dưới ngưỡng phục vụ sắp bắt đầu (bổ sung, spec 008)                  | 24 giờ                                                 | BR-M09-02, Q-89      |
 | CFG-M09-09 | Khoảng tối đa tìm ca sau để nhận bàn giao (bổ sung, spec 008)                                | 24 giờ                                                 | 13.5, Q-89           |
 | CFG-M10-04 | Khung giờ thăm và sức chứa mỗi khung (bổ sung, spec 012)                                     | 09:00–11:00 và 15:00–17:00; 20 người mỗi khung         | 14.2, BR-M10-02      |
