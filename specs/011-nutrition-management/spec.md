@@ -53,7 +53,7 @@ Spec 016 định nghĩa "phiếu giao trễ" (Đã giao sau giờ bữa + CFG-M0
 - Trạng thái người cao tuổi, lượt vắng, Điều trị tại bệnh viện, kết thúc lưu trú, qua đời: feature 001, 004. Giường và tầng của người nội trú, khu bán trú: feature 003. Trạng thái có mặt bán trú theo ngày, công việc "hỗ trợ ăn" và kết quả ăn uống, cảnh báo ăn kém kéo dài: feature 005. Chuyến hoạt động ngoài viện: feature 014. Lượt người thân ở lại có đăng ký ăn: feature 012.
 - Tạo cảnh báo và sự cố (xung đột dị ứng, phục vụ sai suất ăn), cảnh báo sụt cân: feature 007. Gửi thông báo: feature 009. Khoản chi phí suất ăn của người thân ở lại: feature 010. Đơn giá suất ăn ngoài hợp đồng: danh mục của feature 004.
 - Báo cáo số phiếu giao trễ, có sai lệch (18.2) và dashboard: feature báo cáo (Module 14). Spec này chỉ cung cấp dữ liệu.
-- Quản lý kho thực phẩm, mua nguyên liệu, định lượng dinh dưỡng từng món: ngoài hệ thống (1.2).
+- *(Đã chỉnh sửa 2026-09-28, Q-210)* Kho nguyên liệu nấu ăn (nhập, xuất theo lô, kiểm kê, 12.7, BR-M08-17 → 20): thuộc Module 08 nhưng được viết ở một spec riêng (chưa có), không thuộc spec này. Spec này không tự trừ kho theo thực đơn hay số suất (Q-220). Mua nguyên liệu ngoài kho và định lượng dinh dưỡng từng món: ngoài hệ thống ở giai đoạn này.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -623,3 +623,7 @@ Ngừng, Từ chối, Đã hủy là trạng thái cuối. Không có lệnh Ng�
     - 12.4, BR-M08-04: điểm nghi vấn đầy đủ của đồ ăn gia đình, gồm người dùng chế độ ăn liên quan điều trị (FR-054); hạn dùng do người xác nhận ghi và việc tự chuyển Không sử dụng khi tới hạn dùng (FR-055); danh mục loại đồ ăn bị cấm do Quản lý viện quản lý (FR-007).
     - BR-M08-08: lệnh Đổi món có hiệu lực ngay khi có lý do, không cần duyệt (FR-031); không áp cho bữa đã qua giờ bữa; bị chặn nếu làm mất độ phủ (FR-032).
     - BR-M08-05: hạn xử lý yêu cầu xem lại không dừng khi người cao tuổi vắng mặt (FR-059).
+
+**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
+
+1. **[Đã xử lý 2026-09-28: mục Ngoài phạm vi; nội dung chờ spec kho nguyên liệu]** **Kho nguyên liệu nấu ăn (Q-210, Q-220; 12.7, BR-M08-17 → 20, UC-91, 92, DBR-31).** Chức năng mới thuộc Module 08: danh mục nguyên liệu, phiếu nhập (có kiểm tra đầu vào), phiếu xuất theo lô, kiểm kê. Quản lý viện quản lý; Nhân viên bếp lập phiếu xuất cho bữa và đề nghị nhập; Dinh dưỡng viên xem tồn. Không tự trừ kho theo định lượng món. Đề xuất viết spec riêng (cùng tài sản 7.7) thay vì mở rộng spec này.

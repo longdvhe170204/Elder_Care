@@ -1,5 +1,18 @@
 <!--
-Sync Impact Report
+Sync Impact Report (2026-09-28)
+- Version change: 1.0.0 → 1.1.0 (MINOR: thêm tài liệu nguồn docs/luong-nghiep-vu.md; làm rõ VI, VII)
+- Modified principles:
+  VI. Vai trò và quyền: căn cứ chuyển từ docs/phan-tich-yeu-cau.md (đã bỏ) sang Phụ lục 26.1,
+      Phụ lục 27 và mục 19.3 của docs/nghiep-vu.md
+  VII. Điểm chưa rõ: làm rõ theo Q-204 (dùng "theo mặc định Q-xx" khi 24.1 đã có Mặc định;
+       [NEEDS CLARIFICATION] chỉ khi chưa có Mặc định)
+- Modified sections: "Tài liệu nguồn" bỏ docs/phan-tich-yeu-cau.md, thêm docs/luong-nghiep-vu.md
+- Removed sections: không có
+- Templates: không sửa
+- Follow-up TODOs: các spec còn ghi "4.1", "4.4", "Permission Matrix", "tab Phân tích yêu cầu"
+  được hiểu theo bảng ánh xạ ở đầu Phụ lục 26 docs/nghiep-vu.md; không bắt buộc sửa từng spec
+
+Sync Impact Report (2026-09-25)
 - Version change: (template, chưa ban hành) → 1.0.0
 - Modified principles: toàn bộ placeholder được thay bằng 9 nguyên tắc:
   I. Nguồn gốc và truy vết
@@ -67,15 +80,19 @@ Lý do: các giá trị này do viện cấu hình và có thể thay đổi mà
 
 ### VI. Vai trò và quyền
 
-- Actor và quyền trong spec MUST khớp danh sách actor (mục 4.1) và Permission Matrix (mục 4.4)
-  trong `docs/phan-tich-yeu-cau.md`.
+- Actor và quyền trong spec MUST khớp danh sách actor (Phụ lục 26.1), ma trận quyền (Phụ lục 27)
+  và mục 19.3 của `docs/nghiep-vu.md`; khi Phụ lục 27 khác 19.3, 19.3 là căn cứ.
 
 Lý do: tránh phát sinh vai trò hoặc quyền ngoài mô hình phân quyền đã thống nhất.
 
 ### VII. Điểm chưa rõ
 
-- Điểm chưa chốt MUST được đánh dấu `[NEEDS CLARIFICATION]` và tham chiếu mã quyết định (Q-xx) ở
-  mục 24 `docs/nghiep-vu.md`; MUST NOT tự đoán.
+- Điểm chưa chốt MUST tham chiếu mã quyết định (Q-xx) ở mục 24 `docs/nghiep-vu.md`; MUST NOT tự
+  đoán.
+- Quyết định còn mở đã có giá trị Mặc định ở mục 24.1: spec MUST ghi "theo mặc định Q-xx" và viết
+  yêu cầu, tiêu chí kiểm thử theo giá trị đó (Q-204).
+- Điểm chưa có Mặc định, hoặc chưa có mã Q: spec MUST đánh dấu `[NEEDS CLARIFICATION]` kèm mã Q-xx
+  (hoặc ghi rõ cần mã Q mới).
 
 Lý do: giả định ngầm là nguồn lỗi nghiệp vụ khó phát hiện nhất.
 
@@ -91,12 +108,14 @@ Lý do: giả định ngầm là nguồn lỗi nghiệp vụ khó phát hiện n
 
 ## Tài liệu nguồn
 
-- `docs/nghiep-vu.md`: quy tắc nghiệp vụ (BR, DBR, CFG), phân loại dữ liệu (mục 1.5), thuật ngữ
-  (mục 2.4), quyết định còn mở Q-xx (mục 24).
-- `docs/phan-tich-yeu-cau.md`: actor (mục 4.1), use case, Permission Matrix (mục 4.4), ERD khái
-  niệm.
+- `docs/nghiep-vu.md`: quy tắc nghiệp vụ (BR, CFG), phân loại dữ liệu (mục 1.5), thuật ngữ
+  (mục 2.4), quyết định Q-xx (mục 24), actor và use case (Phụ lục 26), ma trận quyền (Phụ lục 27),
+  quy tắc dữ liệu DBR (Phụ lục 28).
+- `docs/luong-nghiep-vu.md`: luồng nghiệp vụ chính BF-xx, nguồn duy nhất của mã BF.
 - Hai tài liệu trên MUST NOT bị sửa khi làm spec trừ khi được yêu cầu rõ ràng; mâu thuẫn phát hiện
   được MUST được báo lại thay vì tự sửa.
+- `docs/phan-tich-yeu-cau.md` đã bỏ ngày 2026-09-28; nội dung còn dùng được chuyển vào Phụ lục
+  26 → 28 của `docs/nghiep-vu.md`.
 
 ## Quy trình làm spec
 
@@ -112,4 +131,4 @@ Lý do: giả định ngầm là nguồn lỗi nghiệp vụ khó phát hiện n
   kể; PATCH khi làm rõ câu chữ.
 - Mỗi lần clarify hoặc checklist MUST kiểm tra spec theo constitution hiện hành.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-09-25
+**Version**: 1.1.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-09-28

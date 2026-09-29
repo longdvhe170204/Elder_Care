@@ -49,6 +49,10 @@ Spec 014 và tài liệu nguồn (5.6, 8.9, BR-M04-04, Q-166, Q-170, Q-171) đã
 - Chuyển Hoạt động bên ngoài → Đang lưu trú còn xảy ra khi trưởng tầng Hủy ghi nhận bản ghi rời viện của người bị ghi đi nhầm (feature 014 FR-031a); căn cứ ghi "đính chính điểm danh".
 - Hoạt động bên ngoài không chuyển sang Tạm vắng; người thân không đón thẳng từ điểm đến (Q-166). Người thiếu khi về giữ Hoạt động bên ngoài tới lệnh phù hợp (không đổi).
 
+### Cập nhật 2026-09-28 (đồng bộ với góp ý nghiệp vụ Q-213, Q-216, Q-217)
+
+Tài liệu nguồn (5.2, 19.3, UC-82, Phụ lục 27 dòng "Nguyện vọng cuối đời", DBR-34, BF-01 bước 3a) đã chốt: "thông tin chăm sóc cuối đời" trở thành **phiếu nguyện vọng cuối đời** có phiên bản, khảo sát khi tiếp nhận. Spec này thêm mục Phạm vi 7, User Story 7, mục C1 (FR-023a → FR-023f), dòng phân nhóm dữ liệu, Key Entities, SC-011; FR-017 và FR-023 được sửa. Việc dùng nguyện vọng khi nguy kịch thuộc feature 007 (BR-M05-15, 16).
+
 ### Cập nhật 2026-09-28 (đồng bộ với spec 003, rà chéo)
 
 Spec 003 và tài liệu nguồn (7.3, Q-50) đã chốt: "Hoàn tất tiếp nhận" bị chặn khi giường đặt trước chưa về Trống (ví dụ còn Chờ vệ sinh), trừ khi người thực hiện chuyển phân bổ sang một giường Trống khác ngay trong lệnh. Điều kiện được thêm vào dòng "Đang tiếp nhận → Hoàn tất tiếp nhận" của bảng trạng thái người cao tuổi.
@@ -67,6 +71,7 @@ Spec 016 (báo cáo và dashboard) lấy tình trạng "quá hạn" của yêu c
 4. Đánh giá đầu vào và đánh giá lại bằng thang điểm; quy đổi tự động ra mức chăm sóc đề xuất, cờ nguy cơ, hoạt động mẫu; yêu cầu đánh giá lại tự động (5.3, 5.4, UC-05 → UC-07, BR-M01-02, 03, 09, 10, DBR-05).
 5. Vòng đời trạng thái người cao tuổi: tập trạng thái, chuyển hợp lệ, lệnh nghiệp vụ, điều kiện chặn, lịch sử (5.5, 5.6, BR-M01-01, 04, 05, 06).
 6. Tính độc lập giữa loại hình lưu trú và mức chăm sóc (1.3, mục 4).
+7. Phiếu nguyện vọng cuối đời: khảo sát khi tiếp nhận, phiên bản, người ký, nhắc khi chưa có (5.2, UC-82, DBR-34, Q-213, Q-216, Q-217).
 
 **Ngoài phạm vi** (spec này chỉ **dùng** kết quả hoặc **kích hoạt** feature sở hữu):
 
@@ -213,6 +218,25 @@ Hệ thống tự tạo yêu cầu đánh giá lại khi đến hạn định k�
 
 ---
 
+### User Story 7 - Bác sĩ, điều dưỡng ghi phiếu nguyện vọng cuối đời khi tiếp nhận (Priority: P2) *(bổ sung 2026-09-28)*
+
+Khi tiếp nhận, bác sĩ hoặc điều dưỡng khảo sát và ghi nguyện vọng của người cao tuổi hoặc gia đình về nơi chăm sóc khi nguy kịch: chuyển bệnh viện điều trị tích cực, đưa về nhà, hoặc ở lại viện chăm sóc giảm nhẹ. Phiếu có người ký, bản scan, và được thay bằng phiên bản mới khi nguyện vọng đổi. Phiếu không chặn tiếp nhận nhưng được nhắc tới khi có.
+
+**Why this priority**: Góp ý nghiệp vụ Q-213: khi người cao tuổi nguy kịch, nhân viên phải biết ngay gia đình muốn gì; đây là thông tin có ý nghĩa pháp lý (Q-216).
+
+**Independent Test**: Hoàn tất tiếp nhận một người chưa có phiếu, kiểm tra cảnh báo và nhắc; ghi phiếu, ghi phiên bản mới; thử xem phiếu bằng tài khoản Hành chính.
+
+**Acceptance Scenarios**:
+
+1. **Given** A Đang tiếp nhận, Bác sĩ nhận định A còn đủ năng lực, **When** điều dưỡng D ghi phiếu với lựa chọn "chuyển bệnh viện điều trị tích cực", người ký là A, kèm bản scan, **Then** phiếu Hiệu lực với người ghi D, thời điểm, người ký A (FR-023a, FR-023c).
+2. **Given** B không còn đủ năng lực theo nhận định của Bác sĩ, **When** D ghi phiếu với người ký là chính B, **Then** hệ thống chặn; người ký phải là một người đại diện Hiệu lực (FR-023c, Q-216).
+3. **Given** A còn đủ năng lực chọn "ở lại viện chăm sóc giảm nhẹ", con của A muốn "chuyển bệnh viện", **When** D ghi phiếu, **Then** lựa chọn ghi theo ý A; ý kiến của con được ghi vào ghi chú (FR-023c).
+4. **Given** C đủ mọi điều kiện tiếp nhận nhưng chưa có phiếu, **When** hành chính Hoàn tất tiếp nhận, **Then** lệnh thành công, hiển thị cảnh báo "chưa có nguyện vọng cuối đời", Bác sĩ và Điều dưỡng phụ trách được nhắc mỗi CFG-M01-06 (mặc định \[1 ngày\]) tới khi có phiếu (FR-023d).
+5. **Given** A có phiếu Hiệu lực, **When** gia đình A yêu cầu đổi sang "đưa về nhà" và D ghi phiên bản mới, **Then** phiên bản cũ chuyển Được thay thế, phiên bản mới Hiệu lực; không có thao tác sửa hay xóa phiên bản cũ (FR-023b, DBR-34).
+6. **Given** hành chính H mở hồ sơ A, **When** xem mục nguyện vọng, **Then** H chỉ thấy "đã có nguyện vọng", không thấy lựa chọn hay ghi chú (FR-023e).
+
+---
+
 ### Edge Cases
 
 - **Đánh giá đã xác nhận bị nhập sai điểm**: sửa bằng đính chính theo feature 000. Đính chính không tự đổi mức chăm sóc hay cờ nguy cơ đã áp dụng; nếu quy đổi theo điểm đã đính chính khác kết quả đã chấp nhận, hệ thống tạo yêu cầu đánh giá lại với lý do "đính chính đánh giá".
@@ -244,6 +268,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Cờ nguy cơ | 2 | Chỉ gắn/gỡ qua đánh giá đã xác nhận |
 | Yêu cầu đánh giá lại | 2 | Tạo (hệ thống hoặc BS/ĐD), bổ sung căn cứ, đóng khi có đánh giá |
 | Hồ sơ sức khỏe ban đầu | 3 (sau xác nhận) | Nháp sửa được; sau xác nhận chỉ đính chính |
+| Phiếu nguyện vọng cuối đời | 2 – phiên bản | Ghi phiên bản mới; phiên bản đã lưu không sửa, không xóa (FR-023b) |
 | Lần đánh giá, kết quả thang điểm | 3 (sau xác nhận) | Nháp sửa được; sau xác nhận chỉ đính chính |
 | Lịch sử trạng thái | 3 | Chỉ ghi thêm |
 
@@ -272,14 +297,23 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 #### C. Hồ sơ sức khỏe ban đầu và mục sức khỏe
 
-- **FR-017**: Hệ thống MUST cho phép bác sĩ hoặc điều dưỡng ghi hồ sơ sức khỏe ban đầu gồm: nhóm máu nếu có; khả năng vận động; khả năng tự chăm sóc; khả năng nhận thức; nhu cầu chăm sóc; nhu cầu dinh dưỡng; thuốc đang sử dụng khi tiếp nhận; nhu cầu phục hồi chức năng; thông tin chăm sóc cuối đời nếu có. Hồ sơ sức khỏe ban đầu sửa được khi còn Nháp; sau khi bác sĩ xác nhận, chỉ sửa bằng đính chính (feature 000). Thuốc dùng trong thời gian lưu trú thuộc feature 006. *(Nguồn: 5.2)*
+- **FR-017**: Hệ thống MUST cho phép bác sĩ hoặc điều dưỡng ghi hồ sơ sức khỏe ban đầu gồm: nhóm máu nếu có; khả năng vận động; khả năng tự chăm sóc; khả năng nhận thức; nhu cầu chăm sóc; nhu cầu dinh dưỡng; thuốc đang sử dụng khi tiếp nhận; nhu cầu phục hồi chức năng. *(Đã chỉnh sửa 2026-09-28: thông tin chăm sóc cuối đời chuyển thành phiếu nguyện vọng cuối đời ở mục C1.)* Hồ sơ sức khỏe ban đầu sửa được khi còn Nháp; sau khi bác sĩ xác nhận, chỉ sửa bằng đính chính (feature 000). Thuốc dùng trong thời gian lưu trú thuộc feature 006. *(Nguồn: 5.2)*
 - **FR-018**: Dị ứng, bệnh nền và tiền sử bệnh MUST được lưu thành từng mục riêng, mỗi mục gồm: loại (dị ứng / bệnh nền / tiền sử bệnh); nội dung; mức độ (bắt buộc với dị ứng); nguồn thông tin; người ghi nhận; ngày ghi nhận; trạng thái Hiệu lực / Đã loại trừ; lý do loại trừ. *(Nguồn: 5.2)*
 - **FR-018a**: Nội dung của mục dị ứng MUST được chọn từ danh mục dị nguyên (hoạt chất hoặc nhóm thuốc, thành phần thực phẩm, dị nguyên khác), dùng chung với danh mục thuốc (feature 006) và thành phần món ăn (feature 011). Khi dị nguyên chưa có trong danh mục, người ghi MAY ghi loại "khác" bằng văn bản; mục đó MUST được đánh dấu "không kiểm tra tự động", hệ thống MUST cảnh báo người ghi ngay khi lưu rằng xung đột với thuốc và chế độ ăn sẽ không được phát hiện tự động, và dấu hiệu này MUST hiển thị cùng mục ở mọi nơi mục được xem (hồ sơ, thẻ thông tin khẩn cấp). *(Nguồn: BR-M01-07, BR-M07-06, BR-M08-02; Clarification 2026-09-25)*
 - **FR-019**: Chỉ bác sĩ và điều dưỡng MUST được ghi nhận hoặc loại trừ mục sức khỏe; lệnh "Loại trừ" MUST có lý do; mục MUST NOT bị xóa hay sửa nội dung bởi bất kỳ ai. Sai nội dung được xử lý bằng loại trừ mục sai và ghi mục mới. *(Nguồn: BR-M01-07, DBR-04, UC-04, 4.4: BS T, ĐD T)*
 - **FR-020**: Khi một mục dị ứng mới được ghi nhận, hệ thống MUST kích hoạt kiểm tra lại toàn bộ đơn thuốc đang hiệu lực (BR-M07-06, feature 006) và chế độ ăn, thực đơn đang phân bổ (BR-M08-02, feature 011) của người cao tuổi đó; mỗi xung đột tạo cảnh báo (feature 007). Việc kiểm tra MUST so khớp theo mục danh mục dị nguyên; mục loại "khác" không tham gia kiểm tra tự động (FR-018a). Khi một mục dị ứng chuyển Đã loại trừ, hệ thống MUST báo feature 011 để tính lại suất đặc biệt, đối chiếu lại đồ ăn gia đình và báo feature 007 nguồn của cảnh báo xung đột tương ứng đã được xử lý (feature 011 FR-021). Mục dị ứng loại "khác" mới được ghi MUST được báo cho feature 011 để đưa người đó vào danh sách cần đối chiếu khi phục vụ (feature 011 FR-036a). *(Nguồn: BR-M01-07; đồng bộ spec 011)*
 - **FR-021**: Khi ghi một mục dị ứng cùng mục danh mục dị nguyên, hoặc một mục (bệnh nền, tiền sử, dị ứng "khác") có loại và nội dung trùng một mục đang Hiệu lực, hệ thống MUST cảnh báo trùng và yêu cầu xác nhận.
 - **FR-022**: Người thân MUST chỉ xem được dị ứng, bệnh nền và thông tin sức khỏe khác khi có bản đồng ý Hiệu lực có người thân đó trong phạm vi; khi xem, chỉ thấy mục đang Hiệu lực. *(Nguồn: BR-M01-08, DBR-03, 4.4 chú thích ¹)*
-- **FR-023**: Các mục dị ứng Hiệu lực, bệnh nền Hiệu lực và thông tin chăm sóc cuối đời MUST sẵn có cho thẻ thông tin khẩn cấp (9.5, feature 007).
+- **FR-023**: Các mục dị ứng Hiệu lực, bệnh nền Hiệu lực và phiên bản nguyện vọng cuối đời Hiệu lực (FR-023a) MUST sẵn có cho thẻ thông tin khẩn cấp (9.5) và cảnh báo nguy kịch (BR-M05-15) của feature 007.
+
+#### C1. Nguyện vọng cuối đời *(bổ sung 2026-09-28)*
+
+- **FR-023a**: Bác sĩ hoặc Điều dưỡng MUST ghi được phiếu nguyện vọng cuối đời cho người cao tuổi Đang tiếp nhận hoặc chưa ở trạng thái cuối, gồm: lựa chọn khi nguy kịch — (a) chuyển bệnh viện điều trị tích cực, (b) đưa về nhà, (c) ở lại viện chăm sóc giảm nhẹ; người cần liên hệ trước khi thực hiện; ghi chú; người trả lời (người cao tuổi hoặc người đại diện) và quan hệ; nhận định của Bác sĩ về việc người cao tuổi còn đủ năng lực hay không; người ký; thời điểm; bản ký được scan (bắt buộc); người ghi nhận. *(Nguồn: 5.2, UC-82, Q-213, Q-217)*
+- **FR-023b**: Phiếu là dữ liệu có phiên bản. Mỗi người cao tuổi MUST có tối đa một phiên bản Hiệu lực (DBR-34). Ghi phiên bản mới MUST chuyển phiên bản cũ sang "Được thay thế" trong cùng lần; phiên bản đã lưu MUST NOT bị sửa hay xóa. Phiên bản mới được ghi theo yêu cầu của người cao tuổi hoặc người đại diện, hoặc khi feature 007 ghi kết quả xác nhận lại nguyện vọng lúc nguy kịch (BR-M05-16). *(Nguồn: 5.2, DBR-34)*
+- **FR-023c**: Người ký MUST là người cao tuổi khi Bác sĩ nhận định người cao tuổi còn đủ năng lực; ngược lại MUST là một người đại diện có quan hệ Hiệu lực (feature 012). Khi ý kiến của người cao tuổi còn đủ năng lực và của gia đình khác nhau, lựa chọn được ghi theo ý người cao tuổi, ý kiến của gia đình ghi vào ghi chú. Mẫu phiếu do viện ban hành. *(Nguồn: 5.2, Q-216)*
+- **FR-023d**: Chưa có phiếu Hiệu lực MUST NOT chặn "Hoàn tất tiếp nhận". Khi Hoàn tất tiếp nhận mà chưa có phiếu, hệ thống MUST hiển thị cảnh báo "chưa có nguyện vọng cuối đời" và từ đó nhắc Bác sĩ, Điều dưỡng phụ trách mỗi CFG-M01-06 (mặc định \[1 ngày\]) tới khi có phiếu, như với bản đồng ý (FR-012). *(Nguồn: 5.2, Q-217)*
+- **FR-023e**: Nội dung phiếu là thông tin sức khỏe: Bác sĩ, Điều dưỡng, Trưởng tầng, Nhân viên chăm sóc xem trong phạm vi; người thân xem khi có bản đồng ý Hiệu lực bao gồm mình (FR-022); Hành chính và Kế toán chỉ thấy "đã có / chưa có nguyện vọng", không thấy nội dung. *(Nguồn: 19.3, Phụ lục 27 dòng "Nguyện vọng cuối đời", chú thích ³⁰)*
+- **FR-023f**: Khi hồ sơ chuyển trạng thái cuối, phiên bản Hiệu lực giữ nguyên để tra cứu; việc nhắc ở FR-023d dừng. *(Suy ra từ BR-M01-05)*
 
 #### D. Đánh giá đầu vào, đánh giá lại và quy đổi
 
@@ -352,6 +386,7 @@ Kết thúc lưu trú, Qua đời, Hủy tiếp nhận là trạng thái cuối;
 - **Lịch sử trạng thái (LICH_SU_TRANG_THAI)** – nhóm 3: trạng thái từ, đến, lệnh, thời điểm, người thực hiện, lý do, căn cứ.
 - **Bản đồng ý (BAN_DONG_Y)** – nhóm 2: người đồng ý, là người đại diện hay không, lý do đại diện, phạm vi (người thân được xem sức khỏe, hình ảnh, thông báo), thời điểm, bằng chứng, trạng thái, bản thay thế.
 - **Hồ sơ sức khỏe ban đầu** – nhóm 3 sau xác nhận: các thông tin ở FR-017, người ghi, người xác nhận.
+- **Phiếu nguyện vọng cuối đời (NGUYEN_VONG_CUOI_DOI)** – nhóm 2, có phiên bản: các trường ở FR-023a, trạng thái (Hiệu lực / Được thay thế), phiên bản thay thế, nguồn (tiếp nhận, yêu cầu của gia đình, xác nhận lại lúc nguy kịch).
 - **Danh mục dị nguyên** – nhóm 1: tên, nhóm (thuốc/hoạt chất, thực phẩm, khác), liên kết tới hoạt chất (feature 006) hoặc thành phần món ăn (feature 011).
 - **Mục sức khỏe (MUC_SUC_KHOE)** – nhóm 2: loại, nội dung (với dị ứng: mục danh mục dị nguyên, hoặc văn bản kèm dấu "không kiểm tra tự động"), mức độ, nguồn, người ghi, ngày ghi, trạng thái, lý do và người loại trừ.
 - **Thang điểm** – nhóm 1: tên, mục chấm, khoảng điểm, bắt buộc hay không; bảng quy đổi nằm ở CFG-M01-05.
@@ -374,6 +409,7 @@ Kết thúc lưu trú, Qua đời, Hủy tiếp nhận là trạng thái cuối;
 - **SC-008**: Sau khi bản đồng ý bị rút lại, 0 lần người thân ngoài phạm vi còn xem được thông tin sức khỏe ở lần truy cập kế tiếp.
 - **SC-009**: 100% lần thêm dị ứng mới chọn từ danh mục kích hoạt kiểm tra đơn thuốc và chế độ ăn; mọi xung đột có sẵn trong dữ liệu kiểm thử đều sinh cảnh báo; 100% mục dị ứng loại "khác" mang dấu "không kiểm tra tự động" ở mọi nơi hiển thị.
 - **SC-010**: Mọi tổ hợp loại hình lưu trú × mức chăm sóc trong danh mục đều ghi nhận được cho một người cao tuổi; đổi một thuộc tính không làm thay đổi thuộc tính còn lại trong 100% ca kiểm thử.
+- **SC-011**: 0 người cao tuổi có hai phiên bản nguyện vọng Hiệu lực cùng lúc; 100% người Hoàn tất tiếp nhận mà chưa có phiếu được nhắc theo CFG-M01-06 tới khi có phiếu; 0 lần Hành chính, Kế toán thấy nội dung phiếu.
 
 ## Assumptions
 
@@ -411,3 +447,7 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep
 
 1. **Bảng 5.3, dòng Barthel 21–60** ghi "mức chăm sóc thường xuyên trở lên" — không phải một mức cụ thể; spec giả định đề xuất "Chăm sóc thường xuyên" (đã ghi tạm vào cột Mặc định của Q-02, mục 24.1). Chờ bác sĩ của cơ sở chốt Q-02.
 2. **Q-03** (căn cứ pháp lý và mẫu bản đồng ý) vẫn mở.
+
+**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
+
+1. **[Đã xử lý 2026-09-28: Phạm vi 7, User Story 7, FR-017, FR-023, FR-023a → FR-023f, bảng phân nhóm dữ liệu, Key Entities, SC-011]** **Nguyện vọng cuối đời (Q-213, Q-216, Q-217; 5.2, UC-82, DBR-34).** "Thông tin chăm sóc cuối đời" ở FR-017, FR-023 thành phiếu khảo sát nguyện vọng có phiên bản: (a) chuyển bệnh viện điều trị tích cực, (b) đưa về nhà, (c) ở lại viện chăm sóc giảm nhẹ. Phiếu ghi người trả lời, bản ký scan. Người cao tuổi còn đủ năng lực tự ký, không còn thì người đại diện ký; ý kiến khác nhau thì theo ý người cao tuổi. Bác sĩ hoặc Điều dưỡng ghi phiếu. Chưa có phiếu không chặn Hoàn tất tiếp nhận nhưng có cảnh báo và nhắc theo CFG-M01-06. Hành chính chỉ thấy "đã có / chưa có".

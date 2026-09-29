@@ -72,6 +72,10 @@ Spec 016 và tài liệu nguồn (9.2, 18.3, 19.3, Q-199, Q-202) đã chốt:
 
 FR-081 được bổ sung định nghĩa "lần đo" (bản ghi đã xác nhận; bản ghi "chờ đo lại" được thay thì tính lần đo lại), "vượt ngưỡng" hai mức theo ngưỡng hiệu lực lúc đo, và mức dùng để xếp (số lượng theo mức hiện hành; thời gian tiếp nhận theo mức lúc tiếp nhận). Đây là căn cứ cho feature 016 FR-040 → FR-042. Không có thay đổi về hành vi của spec này.
 
+### Cập nhật 2026-09-28 (đồng bộ với góp ý nghiệp vụ Q-213, Q-216, Q-218)
+
+Tài liệu nguồn (5.2, 9.5, BR-M05-15, 16, UC-83, 84, Phụ lục 27 dòng "Dấu nguy kịch, xác nhận lại nguyện vọng", DBR-34, BF-17) đã chốt quy trình khi người cao tuổi nguy kịch. Spec này thêm: Phạm vi 12; User Story 11; mục G1 (FR-050a → FR-050g); bảng trạng thái dấu nguy kịch; dòng phân nhóm dữ liệu; dòng quyền ở FR-080; dòng giao tiếp ở FR-083; Key Entities; SC-015. FR-028 (khóa loại "nguy kịch" không gộp) và FR-048 (thẻ hiển thị phiếu nguyện vọng có cấu trúc của feature 001 FR-023a) được sửa.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 05 mục 9.1 → 9.7; Module 06 mục 10.1 → 10.5; UC-16 phần khởi phát từ sự cố, UC-32 → UC-38):
@@ -87,6 +91,7 @@ FR-081 được bổ sung định nghĩa "lần đo" (bản ghi đã xác nhận
 9. Sự cố ngã kéo theo yêu cầu đánh giá lại, yêu cầu xem xét kế hoạch chăm sóc và lịch theo dõi sau ngã (BR-M05-07).
 10. Sự cố lây nhiễm: danh sách tiếp xúc tự đề xuất, xác nhận, theo dõi người tiếp xúc; khoanh vùng và gỡ khoanh vùng (9.6, UC-37, BR-M05-10 → 12).
 11. Phạm vi y tế: giấy phép hoạt động của cơ sở làm căn cứ cho BR-M06-05; ghi nhận khám và điều trị theo phạm vi được phép (10.2, 10.4).
+12. Nguy kịch: dấu nguy kịch, cảnh báo "nguy kịch – thực hiện nguyện vọng cuối đời", xác nhận lại nguyện vọng với gia đình, thực hiện lựa chọn (9.5, UC-83, UC-84, BR-M05-15, 16, Q-213, Q-218; bổ sung 2026-09-28).
 
 **Ngoài phạm vi** (spec này chỉ **cung cấp** dữ liệu hoặc **được kích hoạt** bởi feature sở hữu):
 
@@ -311,6 +316,26 @@ Bản ghi chỉ số và sự cố không bao giờ bị sửa hay xóa. Khi ghi
 
 ---
 
+### User Story 11 - Người cao tuổi nguy kịch: báo gia đình, xác nhận lại và thực hiện nguyện vọng cuối đời (Priority: P1) *(bổ sung 2026-09-28)*
+
+Bác sĩ nhận định người cao tuổi nguy kịch và ghi dấu nguy kịch (không có Bác sĩ trực thì Điều dưỡng ghi dấu tạm). Hệ thống tạo ngay cảnh báo Khẩn cấp hiển thị nguyện vọng cuối đời, báo đội ngũ và gia đình, và tạo yêu cầu gọi điện để xác nhận lại nguyện vọng. Sau khi có kết quả, người xử lý thực hiện lựa chọn: chuyển bệnh viện điều trị tích cực, đưa về nhà, hoặc ở lại viện chăm sóc giảm nhẹ.
+
+**Why this priority**: Góp ý nghiệp vụ Q-213: quyết định lúc nguy kịch có ý nghĩa pháp lý và không đảo ngược được; hệ thống phải bảo đảm nhân viên thấy nguyện vọng và đã hỏi lại gia đình.
+
+**Independent Test**: Cho A có nguyện vọng "đưa về nhà", B chưa có nguyện vọng. Ghi dấu nguy kịch cho cả hai, thử đóng cảnh báo khi chưa xác nhận lại, ghi các kết quả xác nhận khác nhau và kiểm tra lệnh được thực hiện.
+
+**Acceptance Scenarios**:
+
+1. **Given** A có nguyện vọng Hiệu lực "đưa về nhà", **When** Bác sĩ BS1 ghi dấu nguy kịch cho A kèm nhận định, **Then** trong cùng lần: có đúng một cảnh báo Khẩn cấp "nguy kịch – thực hiện nguyện vọng cuối đời" hiển thị nguyện vọng; Bác sĩ trực, Điều dưỡng phụ trách, Trưởng tầng, Quản lý viện được báo; người liên hệ chính và người đại diện nhận thông báo Khẩn cấp không có nội dung nguyện vọng; có một yêu cầu gọi điện xác nhận lại bắt đầu từ người đại diện (FR-050b).
+2. **Given** 23:00 không có Bác sĩ trực, **When** điều dưỡng D ghi dấu tạm cho A, **Then** cảnh báo được tạo như kịch bản 1 và mọi Bác sĩ đang hoạt động được báo để xác nhận dấu (FR-050a, Q-218).
+3. **Given** cảnh báo nguy kịch của A đang xử lý và chưa có kết quả xác nhận lại, **When** D tìm cách đóng cảnh báo, **Then** hệ thống chặn (FR-050d).
+4. **Given** D gọi được người đại diện P và P muốn đổi sang "chuyển bệnh viện điều trị tích cực", **When** D ghi kết quả "nguyện vọng mới" với người trả lời P, **Then** feature 001 ghi phiên bản nguyện vọng mới, phiên bản cũ Được thay thế; **When** D ghi lựa chọn "chuyển bệnh viện", **Then** lệnh Chuyển viện được thực hiện kèm bản tóm tắt; dấu nguy kịch tự gỡ; cảnh báo đóng được (FR-050c, FR-050d, FR-049).
+5. **Given** giữ nguyện vọng "đưa về nhà", **When** D ghi lựa chọn, **Then** feature 004 nhận yêu cầu Cho tạm vắng lý do "về nhà theo nguyện vọng cuối đời" để Hành chính hoặc Trưởng tầng thực hiện qua quy trình đón (FR-050d, Q-218).
+6. **Given** B chưa có nguyện vọng Hiệu lực và không liên lạc được ai trong thứ tự gọi, **When** BS1 ghi "không liên lạc được" và quyết định "ở lại viện chăm sóc giảm nhẹ" kèm lý do, **Then** feature 005 nhận yêu cầu xem xét kế hoạch chăm sóc; khi thiếu lý do, hệ thống chặn (FR-050c, FR-050d, BR-M05-16).
+7. **Given** A có dấu nguy kịch, **When** tình trạng ổn định và BS1 gỡ dấu có lý do, **Then** dấu chuyển Đã gỡ; ghi dấu lại sau đó tạo cảnh báo mới (bảng trạng thái dấu nguy kịch).
+
+---
+
 ### Edge Cases
 
 - **Người ghi sự cố ngoài phạm vi và thẻ thông tin khẩn cấp**: nhân viên ngoài phạm vi (ví dụ nhân viên bếp) kích hoạt được khẩn cấp nhưng chỉ thấy thông tin nhận dạng (feature 002 FR-044a); thẻ thông tin khẩn cấp chỉ hiển thị cho người có quyền xem sức khỏe của người cao tuổi đó (người xử lý được thông báo). Vì vậy người ngoài phạm vi không ghi được biện pháp hồi sức khi người cao tuổi có nguyện vọng cuối đời; họ ghi hành động khác (gọi hỗ trợ, sơ cứu không phải hồi sức) và người xử lý có quyền ghi phần còn lại (FR-048, FR-048a).
@@ -354,6 +379,8 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Danh sách tiếp xúc | 2 | Chỉ qua lệnh ở bảng FR-061 |
 | Khoanh vùng | 2 | Chỉ qua lệnh ở bảng FR-064 |
 | Bản ghi khám và điều trị | 3 | Chỉ ghi thêm; sai sót xử lý bằng đính chính |
+| Dấu nguy kịch *(bổ sung 2026-09-28)* | 2 | Chỉ qua lệnh ở bảng trạng thái dấu nguy kịch (FR-050a) |
+| Kết quả xác nhận lại nguyện vọng, quyết định thực hiện lựa chọn | 3 | Chỉ ghi thêm (BR-M05-16) |
 
 #### A. Danh mục chỉ số và lịch đo
 
@@ -415,7 +442,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 - **FR-026**: Cảnh báo MUST được tạo từ: (a) spec này — vượt ngưỡng (FR-014), quy tắc xu hướng (mục E); (b) yêu cầu của feature khác — công việc Bắt buộc quá hạn, uống nước thiếu, ăn kém kéo dài, tâm trạng tiêu cực (feature 005); liều Bỏ lỡ, phản ứng thuốc, từ chối thuốc liên tiếp, xung đột dị ứng với đơn, chưa đối chiếu thuốc, lần dùng PRN vượt giới hạn (feature 006); xung đột dị ứng với chế độ ăn, thực đơn (feature 011); (c) Trưởng tầng, Bác sĩ, Điều dưỡng tạo thủ công (ví dụ hành vi bất thường), bắt buộc mô tả. Yêu cầu từ feature khác MUST nêu người cao tuổi, loại, mức, bản ghi nguồn, thời điểm. *(Nguồn: 9.1, 4.4 dòng "Xử lý cảnh báo", feature 005 FR-044, 006 FR-052)*
 - **FR-027**: Mỗi cảnh báo MUST gồm: người cao tuổi, loại, khóa loại (FR-028), mức (Nhẹ / Trung bình / Khẩn cấp), danh sách bản ghi nguồn, số lần (bắt đầu 1), thời điểm lần đầu và lần gần nhất, trạng thái, cấp leo thang hiện tại, người phụ trách, hạn tiếp nhận, người tiếp nhận và thời điểm, kết quả xử lý, người đóng (người hoặc Hệ thống), sự cố được chuyển thành (nếu có). *(Nguồn: 9.4, CANH_BAO)*
-- **FR-028**: "Cùng loại" (BR-M05-02, DBR-18) MUST xác định theo khóa loại gồm người cao tuổi, nguồn và đối tượng: vượt ngưỡng → chỉ số; xu hướng → quy tắc; công việc quá hạn → loại công việc (trừ công việc đo từ lịch đo, dùng khóa "bỏ lỡ lần đo theo lịch: <chỉ số>" theo FR-039b); thuốc → loại cảnh báo thuốc và đơn thuốc (xung đột dị ứng, từ chối liên tiếp: theo thuốc); uống nước, ăn kém, tâm trạng, chưa đối chiếu thuốc, nguy cơ cô lập (feature 014) → loại cảnh báo; thủ công → danh mục loại do người tạo chọn. *(Nguồn: BR-M05-02; cách xác định khóa là giả định, xem Điểm cần báo lại 5)*
+- **FR-028**: "Cùng loại" (BR-M05-02, DBR-18) MUST xác định theo khóa loại gồm người cao tuổi, nguồn và đối tượng: vượt ngưỡng → chỉ số; xu hướng → quy tắc; công việc quá hạn → loại công việc (trừ công việc đo từ lịch đo, dùng khóa "bỏ lỡ lần đo theo lịch: <chỉ số>" theo FR-039b); thuốc → loại cảnh báo thuốc và đơn thuốc (xung đột dị ứng, từ chối liên tiếp: theo thuốc); uống nước, ăn kém, tâm trạng, chưa đối chiếu thuốc, nguy cơ cô lập (feature 014) → loại cảnh báo; thủ công → danh mục loại do người tạo chọn. **(Bổ sung 2026-09-28)** Cảnh báo "nguy kịch – thực hiện nguyện vọng cuối đời" MUST NOT gộp theo BR-M05-02: mỗi lần ghi dấu nguy kịch tạo đúng một cảnh báo riêng (FR-050b, BR-M05-15). *(Nguồn: BR-M05-02, BR-M05-15; cách xác định khóa là giả định, xem Điểm cần báo lại 5)*
 - **FR-029**: Vòng đời cảnh báo MUST theo bảng dưới; không có chuyển nào khác. "Đang mở" là Mới, Leo thang, Đã tiếp nhận, Đang xử lý. *(Nguồn: 9.4, BR-M05-01 → 03, 05, UC-34, UC-38, DBR-18, constitution IV)*
 
 | Trạng thái hiện tại | Lệnh / sự kiện | Trạng thái mới | Người thực hiện | Điều kiện | Tác động |
@@ -495,11 +522,34 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 - **FR-047**: Quy trình khẩn cấp MUST được kích hoạt khi một sự cố ở mức Khẩn cấp được tạo (từ bất kỳ nguồn nào) hoặc được nâng lên Khẩn cấp. Khi kích hoạt, trong cùng lúc hệ thống MUST: (a) phát thông báo khẩn cấp song song (không tuần tự) cho Bác sĩ trực, Trưởng tầng của tầng người cao tuổi, Quản lý viện, người liên hệ chính (BR-M05-06), điều dưỡng phụ trách và Người phụ trách ca; (b) hiển thị thẻ thông tin khẩn cấp (FR-048); (c) lưu bản chụp nội dung thẻ tại thời điểm kích hoạt vào sự cố. Thông báo cho người liên hệ chính MUST chỉ gồm "có tình huống khẩn cấp liên quan [họ tên người cao tuổi], đề nghị liên hệ viện", thời điểm và số liên hệ của viện, trừ khi người đó nằm trong bản đồng ý chia sẻ dữ liệu đang hiệu lực (khi đó MAY kèm loại sự cố và mô tả ngắn); MUST NOT chứa chẩn đoán, chỉ số, thuốc hay nguyện vọng cuối đời. Nếu tại thời điểm kích hoạt không có Bác sĩ trực, hệ thống MUST áp FR-047b. Kích hoạt khẩn cấp MUST thực hiện trực tuyến, MUST NOT lưu tạm trên thiết bị (8.6, Q-01). *(Nguồn: 9.5, BR-M05-06, BR-M05-13, BR-M13-01, NFR-03, DBR-03; Clarification 2026-09-26 lượt 2, đề xuất Q-72)*
 - **FR-047a**: Cảnh báo mức Khẩn cấp (vượt ngưỡng nguy hiểm, nâng mức, gộp) MUST NOT tự tạo sự cố hay kích hoạt quy trình khẩn cấp. Khi cảnh báo được tạo hoặc nâng lên Khẩn cấp, hệ thống MUST thông báo đồng thời (mọi kênh, song song, BR-M13-01) cho Điều dưỡng phụ trách, Người phụ trách ca, Bác sĩ trực và Trưởng tầng của tầng người cao tuổi; MUST NOT thông báo người liên hệ chính hay Quản lý viện ở bước này. Nếu không có Bác sĩ trực, hệ thống MUST áp FR-047b. Quy trình khẩn cấp (FR-047) chỉ bắt đầu khi người có quyền chọn "Kích hoạt khẩn cấp từ cảnh báo" (bảng FR-029). *(Nguồn: 9.1, 9.3, BR-M06-03, BR-M05-06; Clarification 2026-09-26, đề xuất Q-67)*
 - **FR-047b**: Khi thông báo Khẩn cấp (sự cố theo FR-047 hoặc cảnh báo theo FR-047a) cần gửi Bác sĩ trực mà trong ca hiện tại không có bác sĩ nào giữ nhiệm vụ Bác sĩ trực (2.4), hệ thống MUST gửi song song cho mọi Bác sĩ đang hoạt động của cơ sở, MUST gắn dấu "không có Bác sĩ trực tại thời điểm" vào sự cố hoặc cảnh báo, và MUST báo Quản lý viện (kể cả với cảnh báo, như ngoại lệ của FR-047a). Quy tắc này không áp cho leo thang cấp 1 của cảnh báo Trung bình (FR-033 bỏ qua người nhận vắng). *(Nguồn: BR-M05-06, 2.4 "Bác sĩ trực"; Clarification 2026-09-26 lượt 2, đề xuất Q-74)*
-- **FR-048**: Thẻ thông tin khẩn cấp MUST gồm: họ tên, ảnh, ngày sinh, phòng/giường; nguyện vọng chăm sóc cuối đời (nội dung, hoặc "chưa ghi nhận nguyện vọng cuối đời"); dị ứng Hiệu lực kèm mức độ; thuốc đang dùng (feature 006 FR-050); bệnh nền Hiệu lực; cờ nguy cơ (BR-M01-10); người liên hệ chính và số điện thoại. Thẻ MUST hiển thị cho người kích hoạt và người xử lý có quyền xem thông tin sức khỏe của người cao tuổi đó (theo feature 002); người kích hoạt ngoài phạm vi MUST chỉ thấy thông tin nhận dạng và thông điệp "đã thông báo người xử lý" (feature 002 FR-044a). *(Nguồn: 9.5, BR-M05-13, BR-M01-10, feature 001 FR-023, FR-038; xem Điểm cần báo lại 6)*
+- **FR-048**: Thẻ thông tin khẩn cấp MUST gồm: họ tên, ảnh, ngày sinh, phòng/giường; nguyện vọng cuối đời theo phiên bản Hiệu lực của feature 001 FR-023a (lựa chọn khi nguy kịch: chuyển bệnh viện điều trị tích cực / đưa về nhà / ở lại viện chăm sóc giảm nhẹ; người cần liên hệ trước; ghi chú; người ký, thời điểm), hoặc "chưa ghi nhận nguyện vọng cuối đời"; dấu nguy kịch nếu đang có (FR-050a); dị ứng Hiệu lực kèm mức độ; thuốc đang dùng (feature 006 FR-050); bệnh nền Hiệu lực; cờ nguy cơ (BR-M01-10); người liên hệ chính và số điện thoại. Thẻ MUST hiển thị cho người kích hoạt và người xử lý có quyền xem thông tin sức khỏe của người cao tuổi đó (theo feature 002); người kích hoạt ngoài phạm vi MUST chỉ thấy thông tin nhận dạng và thông điệp "đã thông báo người xử lý" (feature 002 FR-044a). *(Nguồn: 9.5, BR-M05-13, BR-M01-10, feature 001 FR-023, FR-038; xem Điểm cần báo lại 6)*
 - **FR-048a**: Nếu người cao tuổi có nguyện vọng cuối đời đã ghi nhận, hệ thống MUST chặn ghi diễn biến loại "biện pháp hồi sức" cho tới khi sự cố có xác nhận "đã đối chiếu nguyện vọng" (người xác nhận, thời điểm) của người đã được hiển thị thẻ; lúc xác nhận, hệ thống MUST hiển thị lại nội dung nguyện vọng. Không có nguyện vọng đã ghi nhận thì MUST NOT yêu cầu xác nhận. *(Nguồn: BR-M05-13, DBR-19)*
 - **FR-048b**: Hồ sơ sự cố Khẩn cấp MUST cho ghi được và hiển thị được: thời điểm phát hiện, người xử lý (mọi người đã ghi diễn biến hoặc tham gia), hành động đã thực hiện (theo thời gian), thời điểm gọi hỗ trợ và thời điểm gọi cấp cứu, kết quả, người được thông báo kèm thời điểm gửi và thời điểm đã xem (từ feature 009). *(Nguồn: 9.5)*
 - **FR-049**: Điều dưỡng hoặc Bác sĩ MUST thực hiện được "Chuyển viện" từ một sự cố Mới hoặc Đang xử lý, kèm cơ sở tiếp nhận và thời điểm. Trong cùng một lệnh hệ thống MUST: thực hiện lệnh Chuyển viện của feature 001/004 với căn cứ là sự cố này (điều kiện 5.6); và tạo bản tóm tắt chuyển viện (FR-050). Nếu lệnh Chuyển viện bị từ chối (ví dụ trạng thái hiện tại không cho phép), không phần nào được áp dụng và sự cố ghi lại lần thử kèm lý do bị từ chối. *(Nguồn: BR-M05-14, 5.6, UC-16, feature 000)*
 - **FR-050**: Bản tóm tắt chuyển viện MUST gồm: thông tin nhận dạng, dị ứng Hiệu lực, thuốc đang dùng (feature 006 FR-050), giá trị hiện hành gần nhất của từng chỉ số kèm thời điểm đo, diễn biến sự cố tới thời điểm chuyển, nguyện vọng cuối đời (nếu có), cơ sở tiếp nhận, người lập, thời điểm. Bản tóm tắt MUST in được và xem được bởi Bác sĩ, Điều dưỡng, Trưởng tầng trong phạm vi và Quản lý viện. *(Nguồn: BR-M05-14; nguyện vọng cuối đời là bổ sung, xem Điểm cần báo lại 8)*
+
+#### G1. Nguy kịch và thực hiện nguyện vọng cuối đời *(bổ sung 2026-09-28)*
+
+- **FR-050a**: Bác sĩ MUST ghi được **dấu nguy kịch** cho người cao tuổi đang Đang lưu trú, Tạm vắng hoặc Hoạt động bên ngoài, bắt buộc nhận định. Khi trong ca không có Bác sĩ trực, Điều dưỡng MUST ghi được **dấu tạm**, bắt buộc nhận định; hệ thống báo mọi Bác sĩ đang hoạt động để xác nhận thành dấu chính thức hoặc gỡ. Mỗi người cao tuổi có tối đa một dấu nguy kịch đang mở (DBR-34). Dấu nguy kịch không phải trạng thái ở 5.5. *(Nguồn: 9.5, UC-83, Q-218)*
+
+**Bảng trạng thái dấu nguy kịch** *(9.5, BR-M05-15, Q-218)*:
+
+| Trạng thái hiện tại | Lệnh / sự kiện | Trạng thái mới | Người thực hiện | Điều kiện | Tác động |
+| --- | --- | --- | --- | --- | --- |
+| — | Ghi dấu nguy kịch | Đang mở | Bác sĩ | Có nhận định; chưa có dấu đang mở | Tạo cảnh báo nguy kịch (FR-050b) |
+| — | Ghi dấu tạm | Tạm | Điều dưỡng | Không có Bác sĩ trực trong ca; có nhận định | Tạo cảnh báo nguy kịch (FR-050b); báo mọi Bác sĩ đang hoạt động xác nhận |
+| Tạm | Xác nhận | Đang mở | Bác sĩ | — | Ghi người xác nhận, thời điểm |
+| Đang mở, Tạm | Gỡ dấu | Đã gỡ | Bác sĩ | Bắt buộc lý do | Ghi lịch sử; cảnh báo nguy kịch còn mở vẫn phải đóng theo FR-050d |
+| Đang mở, Tạm | Người cao tuổi chuyển Điều trị tại bệnh viện hoặc trạng thái cuối | Đã gỡ | Hệ thống | — | Lý do "tự gỡ theo trạng thái" |
+
+Đã gỡ là trạng thái cuối; ghi dấu mới tạo dấu và cảnh báo mới.
+
+- **FR-050b**: Khi dấu nguy kịch (kể cả dấu tạm) được ghi, trong cùng một lần hệ thống MUST: (a) tạo cảnh báo mức Khẩn cấp loại "nguy kịch – thực hiện nguyện vọng cuối đời", không gộp (FR-028), hiển thị phiên bản nguyện vọng Hiệu lực (feature 001 FR-023a) hoặc dấu "chưa có nguyện vọng"; (b) thông báo đồng thời Bác sĩ trực (không có thì theo FR-047b), Điều dưỡng phụ trách, Trưởng tầng, Quản lý viện; (c) thông báo người liên hệ chính và mọi người đại diện ở mức Khẩn cấp, nội dung tối thiểu như FR-047 với người không thuộc bản đồng ý (Q-72), MUST NOT chứa nội dung nguyện vọng; (d) tạo **yêu cầu xác nhận lại nguyện vọng** qua cơ chế yêu cầu gọi điện của feature 009, bắt đầu từ người đại diện, theo thứ tự gọi của BR-M13-02. Cảnh báo này không tự kích hoạt quy trình khẩn cấp (FR-047a); nếu có sự cố khẩn cấp cùng lúc thì FR-047, FR-048a vẫn áp dụng. *(Nguồn: BR-M05-15, BR-M05-16, BR-M13-02, 9.5)*
+- **FR-050c**: Bác sĩ hoặc Điều dưỡng MUST ghi được **kết quả xác nhận lại**: "giữ nguyện vọng", "nguyện vọng mới" (hệ thống yêu cầu feature 001 ghi phiên bản mới theo FR-023b, người trả lời và người ký theo FR-023c), hoặc "không liên lạc được". Mỗi kết quả ghi: người được liên hệ, kênh (gọi điện, trực tiếp), thời điểm, người ghi. Khi "không liên lạc được" với mọi người trong thứ tự gọi: có nguyện vọng Hiệu lực thì làm theo nguyện vọng đó; chưa có thì Bác sĩ quyết định theo chuyên môn và bắt buộc lý do. *(Nguồn: BR-M05-16)*
+- **FR-050d**: Người xử lý MUST ghi **lựa chọn được thực hiện** và thực hiện lệnh tương ứng: "chuyển bệnh viện điều trị tích cực" → Chuyển viện (FR-049, kèm bản tóm tắt FR-050); "đưa về nhà" → yêu cầu feature 004 Cho tạm vắng với lý do "về nhà theo nguyện vọng cuối đời" (Hành chính hoặc Trưởng tầng thực hiện qua quy trình đón; Hành chính lập hồ sơ kết thúc lưu trú khi gia đình quyết định, Q-218); "ở lại viện chăm sóc giảm nhẹ" → yêu cầu feature 005 tạo yêu cầu xem xét kế hoạch chăm sóc (BR-M04-20). Cảnh báo nguy kịch MUST chỉ được đóng khi đã có kết quả xác nhận lại (FR-050c) và lựa chọn đã ghi; đóng bắt buộc kết quả. *(Nguồn: 9.5, BR-M05-15, UC-84)*
+- **FR-050e**: Cảnh báo nguy kịch theo vòng đời FR-029 (tiếp nhận, xử lý, đóng), với điều kiện đóng bổ sung của FR-050d. Leo thang theo mức Khẩn cấp (mọi người nhận được báo đồng thời, không leo thang theo cấp). *(Nguồn: 9.3, 9.4)*
+- **FR-050f**: Thẻ thông tin khẩn cấp và danh sách người cao tuổi của Bác sĩ, Điều dưỡng, Trưởng tầng MUST hiển thị dấu nguy kịch đang mở. Nội dung nguyện vọng chỉ hiện với người có quyền xem sức khỏe (feature 001 FR-023e). *(Nguồn: 9.5, 19.3)*
+- **FR-050g**: Mọi kết quả xác nhận lại và lựa chọn thực hiện là bản ghi nhóm 3, gắn với cảnh báo nguy kịch; sai sót xử lý bằng đính chính. *(Nguồn: BR-M05-16, 1.5)*
 
 #### H. Sự cố ngã
 
@@ -555,8 +605,9 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Danh sách tiếp xúc | Xem | Xem trong phạm vi | Xác nhận | Xác nhận trong phạm vi | — | — | — | — |
 | Giấy phép cơ sở | Cấu hình | — | Xem | — | — | — | — | — |
 | Khám và điều trị | Xem | Xem trong phạm vi | Ghi (FR-073) | Ghi (FR-072), xem trong phạm vi | — | — | — | Xem khi có bản đồng ý (¹) |
+| Dấu nguy kịch, xác nhận lại nguyện vọng (UC-83, UC-84; bổ sung 2026-09-28) | Xem | Xem trong phạm vi | Ghi, gỡ dấu; xác nhận lại; thực hiện lựa chọn | Dấu tạm khi không có Bác sĩ trực (Q-218); xác nhận lại, thực hiện lựa chọn trong phạm vi | — | — | — | Nhận thông báo; xem khi có bản đồng ý (¹) |
 
-- **FR-081**: Hệ thống MUST cung cấp cho báo cáo sức khỏe và dashboard (18.3, 18.5, feature 016): chỉ số theo thời gian; số cảnh báo, sự cố theo mức, loại, tầng; thời gian trung bình từ tạo cảnh báo đến tiếp nhận theo mức (mốc tạo là lần tạo đầu tiên, không đặt lại khi gộp; mốc tiếp nhận với cảnh báo kích hoạt khẩn cấp là thời điểm kích hoạt, với cảnh báo Quản lý viện tiếp nhận ở cấp 2 là thời điểm Quản lý viện tiếp nhận); số lần leo thang của cảnh báo; **số lần leo thang của sự cố và thời điểm sự cố được tiếp nhận xử lý (chuyển Đang xử lý), theo mức (Q-199)**; trường hợp đang theo dõi (lịch theo dõi sau ngã, theo dõi tiếp xúc Hiệu lực); khu đang khoanh vùng; cảnh báo "đã leo thang tối đa"; dấu "không thuộc sức khỏe" của từng loại sự cố (FR-042). Định nghĩa là căn cứ cho feature 016:
+- **FR-081**: Hệ thống MUST cung cấp cho báo cáo sức khỏe và dashboard (18.3, 18.5, feature 016): *(bổ sung 2026-09-29)* người cao tuổi đang mang dấu nguy kịch (Đang mở, Tạm) kèm tầng; chỉ số theo thời gian; số cảnh báo, sự cố theo mức, loại, tầng; thời gian trung bình từ tạo cảnh báo đến tiếp nhận theo mức (mốc tạo là lần tạo đầu tiên, không đặt lại khi gộp; mốc tiếp nhận với cảnh báo kích hoạt khẩn cấp là thời điểm kích hoạt, với cảnh báo Quản lý viện tiếp nhận ở cấp 2 là thời điểm Quản lý viện tiếp nhận); số lần leo thang của cảnh báo; **số lần leo thang của sự cố và thời điểm sự cố được tiếp nhận xử lý (chuyển Đang xử lý), theo mức (Q-199)**; trường hợp đang theo dõi (lịch theo dõi sau ngã, theo dõi tiếp xúc Hiệu lực); khu đang khoanh vùng; cảnh báo "đã leo thang tối đa"; dấu "không thuộc sức khỏe" của từng loại sự cố (FR-042). Định nghĩa là căn cứ cho feature 016:
   - **lần đo** là bản ghi chỉ số đã xác nhận; bản ghi "chờ đo lại" đã được thay bằng lần đo lại không được tính (tính lần đo lại); bản ghi "chờ đo lại" tự xác nhận sau CFG-M06-04 được tính;
   - **vượt ngưỡng** chia hai mức, cảnh báo và nguy hiểm, theo ngưỡng đang hiệu lực lúc đo (ngưỡng cá nhân nếu có, không thì ngưỡng mặc định); chỉ số nhiều thành phần (ví dụ huyết áp) tính một lần ở mức cao nhất của các thành phần;
   - **mức dùng để xếp:** số cảnh báo, sự cố theo mức dùng mức hiện hành; thời gian từ tạo đến tiếp nhận theo mức dùng mức tại thời điểm tiếp nhận, vì hạn tiếp nhận và leo thang chạy theo mức lúc đó.
@@ -567,7 +618,10 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 | Chiều | Feature | Sự kiện / dữ liệu |
 | --- | --- | --- |
-| Nhận | 001 | Nguyện vọng cuối đời, dị ứng, bệnh nền, cờ nguy cơ (FR-048); trạng thái người cao tuổi; kết quả lệnh Chuyển viện |
+| Nhận | 001 | Nguyện vọng cuối đời (phiên bản Hiệu lực, feature 001 FR-023a), dị ứng, bệnh nền, cờ nguy cơ (FR-048); trạng thái người cao tuổi; kết quả lệnh Chuyển viện |
+| Cung cấp | 001 | *(bổ sung 2026-09-28)* Yêu cầu ghi phiên bản nguyện vọng mới khi kết quả xác nhận lại là "nguyện vọng mới" (FR-050c, feature 001 FR-023b) |
+| Cung cấp | 004, 005 | *(bổ sung 2026-09-28)* Lựa chọn "đưa về nhà": yêu cầu Cho tạm vắng lý do "về nhà theo nguyện vọng cuối đời" (feature 004); lựa chọn "chăm sóc giảm nhẹ": yêu cầu xem xét kế hoạch chăm sóc (feature 005) (FR-050d) |
+| Cung cấp | 009 | *(bổ sung 2026-09-28)* Thông báo nguy kịch và yêu cầu xác nhận lại nguyện vọng theo cơ chế yêu cầu gọi điện (FR-050b) |
 | Cung cấp | 001 | Yêu cầu đánh giá lại sau sự cố ngã hoặc Trung bình trở lên (FR-043, FR-051); căn cứ sự cố cho lệnh Chuyển viện (FR-049) |
 | Nhận | 002 | Quyền, phạm vi, ngoại lệ FR-044a, kiểm tra nghiệp vụ chuyên môn |
 | Cung cấp | 002 | Giấy phép cơ sở và phạm vi (FR-071) |
@@ -595,6 +649,8 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 - **Cảnh báo (CANH_BAO)** – nhóm 2: người cao tuổi, loại, khóa loại, mức, bản ghi nguồn, số lần, thời điểm đầu và gần nhất, trạng thái (Mới / Leo thang / Đã tiếp nhận / Đang xử lý / Đã đóng / Chuyển sự cố), cấp leo thang, người phụ trách, hạn tiếp nhận, người và thời điểm tiếp nhận, kết quả, người đóng, sự cố liên kết, đề xuất nâng mức và quyết định; lịch sử (nhóm 3).
 - **Quy tắc xu hướng (danh mục)** – nhóm 1: tên, bật/tắt, mã tham số, mức cảnh báo.
 - **Sự cố (SU_CO)** – nhóm 3 cho nội dung: người cao tuổi, loại, nguồn phát sinh, thời điểm xảy ra và phát hiện, địa điểm, hoạt động, người phát hiện, mô tả, mức (và lịch sử đổi mức), xử lý ban đầu, cảnh báo nguồn, diễn biến (đánh giá, hành động, biện pháp hồi sức, thông báo, theo dõi), xác nhận đã đối chiếu nguyện vọng, bản chụp thẻ thông tin khẩn cấp, kết quả xử lý, người đóng; trạng thái xử lý (Mới / Đang xử lý / Đang theo dõi / Đã đóng / Đã hủy), cấp leo thang.
+- **Dấu nguy kịch (DAU_NGUY_KICH)** *(bổ sung 2026-09-28)* – nhóm 2: người cao tuổi, loại (chính thức / tạm), nhận định, người ghi, thời điểm, Bác sĩ xác nhận, trạng thái (Tạm / Đang mở / Đã gỡ), lý do gỡ, cảnh báo nguy kịch liên kết.
+- **Kết quả xác nhận lại nguyện vọng, lựa chọn thực hiện** *(bổ sung 2026-09-28)* – nhóm 3: cảnh báo nguy kịch, người được liên hệ, kênh, thời điểm, kết quả (giữ / mới / không liên lạc được), phiên bản nguyện vọng mới nếu có, lựa chọn thực hiện, lệnh đã thực hiện, người ghi.
 - **Bản tóm tắt chuyển viện** – nhóm 3: sự cố, người cao tuổi, cơ sở tiếp nhận, dị ứng, thuốc đang dùng, chỉ số gần nhất, diễn biến, nguyện vọng cuối đời, người lập, thời điểm.
 - **Danh sách tiếp xúc** – nhóm 2: sự cố lây nhiễm, trạng thái (Đề xuất / Đã xác nhận / Đã kết thúc), từng người (loại: người cao tuổi / nhân viên / người thân; nguồn; khoảng tiếp xúc; thêm thủ công hay đề xuất; bị loại và lý do), người xác nhận, thời điểm.
 - **Khoanh vùng (KHOANH_VUNG)** – nhóm 2: vùng (danh sách tầng, hoặc một khu vực), sự cố gắn, bắt đầu, kết thúc, người khoanh, người gỡ, lý do, trạng thái (Đang khoanh vùng / Đã gỡ).
@@ -619,6 +675,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 - **SC-012**: 0 lần người ghi sự cố ngoài phạm vi thấy thông tin sức khỏe của người cao tuổi; 100% lần như vậy có nhật ký "ngoài phạm vi".
 - **SC-013**: Báo cáo thời gian trung bình từ tạo cảnh báo đến tiếp nhận và số lần leo thang khớp 100% số tính tay trên bộ kiểm thử 50 cảnh báo.
 - **SC-014**: Trong bộ kiểm thử thông báo khẩn cấp và thông báo tiếp xúc, 0 thông báo gửi người không có bản đồng ý chia sẻ dữ liệu chứa thông tin sức khỏe, và 0 thông báo tiếp xúc nêu danh tính người nghi nhiễm (FR-047, FR-062, Q-72).
+- **SC-015** *(bổ sung 2026-09-28)*: 100% lần ghi dấu nguy kịch tạo đúng một cảnh báo nguy kịch và một yêu cầu xác nhận lại trong cùng lần; thông báo tới Bác sĩ trực, Điều dưỡng phụ trách, Trưởng tầng, Quản lý viện, người đại diện đến thiết bị trong không quá 10 giây (NFR-03); 0 cảnh báo nguy kịch được đóng khi thiếu kết quả xác nhận lại hoặc lựa chọn thực hiện; 0 thông báo tới người thân chứa nội dung nguyện vọng.
 
 ## Assumptions
 
@@ -641,7 +698,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nhận.
 
-1. **Chuỗi leo thang BR-M05-01 bắt đầu từ "nhân viên"**, nhưng Permission Matrix 4.4 chỉ cho Nhân viên chăm sóc quyền X ở dòng "Xử lý cảnh báo" và UC-34 có actor là Điều dưỡng. Spec bắt đầu chuỗi từ Điều dưỡng phụ trách, nhân viên thực hiện công việc nguồn chỉ được thông báo (FR-031, FR-033). Cần sửa BR-M05-01.
+1. **Chuỗi leo thang BR-M05-01 bắt đầu từ "nhân viên"**, nhưng Permission Matrix 4.4 chỉ cho Nhân viên chăm sóc quyền X ở dòng "Xử lý cảnh báo" và UC-34 có actor là Điều dưỡng. Spec bắt đầu chuỗi từ Điều dưỡng phụ trách, nhân viên thực hiện công việc nguồn chỉ được thông báo (FR-031, FR-033). Cần sửa BR-M05-01. **Đã xử lý (2026-09-28):** BR-M05-01 trong docs/nghiep-vu.md đã được bổ sung đoạn "Làm rõ, spec 007" theo FR-031, FR-033.
 2. **Cấp cuối của chuỗi leo thang là "quản lý"**, nhưng 4.4 cho Quản lý viện quyền X ở dòng "Xử lý cảnh báo" và X ở dòng "Sự cố, khẩn cấp"; trong khi 4.1 xếp Quản lý viện (AC-01) là con của AC-00 "Nhân viên" có quyền "ghi nhận sự cố". Đã chốt khi clarify (FR-029, FR-036, FR-041): Quản lý viện tiếp nhận được cảnh báo ở Leo thang cấp 2 và giao người phụ trách; ghi nhận được sự cố, kích hoạt được khẩn cấp; không xử lý, không đóng. Cần sửa hai dòng "Xử lý cảnh báo", "Sự cố, khẩn cấp" của 4.4 và thêm Q-71 vào mục 24.2.
 3. **Không có tham số cho thời gian chờ đo lại** giá trị nguy hiểm (BR-M06-04); spec đề xuất CFG-M06-04 \[10 phút\] (FR-017) cần thêm vào Phụ lục 25.
 4. **Sơ đồ vòng đời cảnh báo 9.4** không có: chuyển tự đóng khi nguồn đã được xử lý (feature 005, 006 đã dựa vào); Leo thang → Leo thang (lên cấp tiếp); lệnh nâng/hạ mức; chuyển người phụ trách sau bàn giao; lệnh "Kích hoạt khẩn cấp từ cảnh báo" đi thẳng từ Mới/Leo thang. Spec thêm các chuyển này (FR-029).
@@ -657,3 +714,11 @@ Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nh�
 14. **Các quyết định clarify lượt 2 (2026-09-26, sau checklist business-rules)** cần phản ánh vào tài liệu nguồn và thêm vào mục 24.2: Q-72 giới hạn nội dung thông báo cho người liên hệ chính không có bản đồng ý và cho người tiếp xúc (FR-047, FR-062; bổ sung BR-M05-06, BR-M05-11, 9.6); Q-73 hủy hoặc đổi loại sự cố không tự thu hồi tác động, sự cố hủy chuyển Đã hủy (FR-045, FR-046a; bổ sung 9.4); Q-74 không có Bác sĩ trực thì báo mọi Bác sĩ và Quản lý viện (FR-047b; bổ sung BR-M05-06, 2.4); Q-75 một lần đo bị bỏ chỉ sinh một cảnh báo "bỏ lỡ lần đo theo lịch" (FR-039b; bổ sung BR-M05-04, BR-M04-06); Q-76 cảnh báo đã chuyển sự cố mà nguồn được xử lý thì ghi diễn biến vào sự cố, không tự đóng (FR-032; bổ sung 9.4).
 
 **(2026-09-27)** Các quyết định Q-67 → Q-76 của spec này đã được phản ánh vào `docs/nghiep-vu.md` (9.3 → 9.6, BR-M05-02) và `docs/phan-tich-yeu-cau.md` (dòng "Danh sách tiếp xúc", chú thích ²³, ²⁴ của 4.4), và nằm ở mục 24.2.
+
+**(2026-09-28, checklist cross-feature CHK018, CHK024, CHK030)** Đã phản ánh vào `docs/nghiep-vu.md`: điểm 3 (CFG-M06-04 ở Phụ lục 25 và BR-M06-04); điểm 4, 7 (bảng bổ sung vòng đời cảnh báo và bảng vòng đời sự cố ở 9.4); điểm 10 (BR-M05-10 và mô tả CFG-M05-07: khoảng truy vết áp cho mọi nguồn).
+
+**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
+
+1. **[Đã xử lý 2026-09-28: Phạm vi 12, User Story 11, mục G1 FR-050a → FR-050g, FR-028, FR-080, FR-083, Key Entities, SC-015]** **Dấu nguy kịch và cảnh báo "nguy kịch – thực hiện nguyện vọng cuối đời" (Q-213, Q-218; 9.5, BR-M05-15, 16, UC-83, 84, BF-17, DBR-34).** Chức năng mới: Bác sĩ ghi, gỡ dấu (Điều dưỡng ghi dấu tạm khi không có Bác sĩ trực). Hệ thống tạo cảnh báo Khẩn cấp không gộp, báo gia đình, tạo yêu cầu xác nhận lại nguyện vọng theo thứ tự gọi của BR-M13-02, rồi thực hiện lựa chọn (chuyển viện / tạm vắng về nhà / chăm sóc giảm nhẹ). Cảnh báo chỉ đóng khi đã có kết quả xác nhận và lựa chọn. Đề xuất thêm một User Story.
+2. **[Đã xử lý 2026-09-28: FR-048, FR-083]** **Nguyện vọng cuối đời có cấu trúc (Q-213, Q-216; 5.2).** Thẻ thông tin khẩn cấp (User Story 5) hiển thị phiên bản nguyện vọng Hiệu lực với ba lựa chọn đã chuẩn hóa, không còn là văn bản tự do.
+3. **[Không cần sửa]** **Chỉ số thuộc nhóm "Chăm sóc" (Q-207; 1.6).** Không đổi ranh giới spec.
