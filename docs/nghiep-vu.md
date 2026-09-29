@@ -254,7 +254,7 @@ Mức độ chăm sóc được xác định từ quá trình đánh giá và c�
 
 ### 5.1. Hồ sơ cá nhân
 
-Quản lý: họ tên; ngày sinh; giới tính; CCCD/giấy tờ định danh; ảnh; địa chỉ; thông tin liên hệ; thông tin đặc biệt. Thông tin người thân được quản lý tại Module 10.
+Quản lý: họ tên; ngày sinh; giới tính; CCCD/giấy tờ định danh; ảnh; địa chỉ; thông tin liên hệ; thông tin đặc biệt. **(Sửa, 2026-09-29, Q-244)** "Địa chỉ" tách thành hai trường: địa chỉ thường trú (theo giấy tờ định danh) và địa chỉ liên hệ. Địa chỉ thường trú là căn cứ để Hành chính xác nhận "thường trú cùng xã/phường với viện" khi khai báo cư trú (6.10). Thông tin người thân được quản lý tại Module 10.
 
 **(Bổ sung) Đồng ý xử lý và chia sẻ dữ liệu.** Khi tiếp nhận, hệ thống ghi nhận bản đồng ý gồm: người đồng ý (người cao tuổi, hoặc người đại diện hợp pháp khi người cao tuổi không đủ khả năng); phạm vi (chia sẻ thông tin sức khỏe cho những người thân nào, sử dụng hình ảnh, nhận thông báo); thời điểm; bằng chứng (bản ký được scan); trạng thái Hiệu lực / Đã rút lại. Căn cứ: quy định bảo vệ dữ liệu cá nhân hiện hành (Nghị định 13/2023/NĐ-CP và các văn bản thay thế, cần đối chiếu bản mới nhất khi triển khai).
 
@@ -2375,6 +2375,7 @@ Các quyết định dưới đây đã được chốt khi làm rõ spec của 
 | Q-241 | **(Bổ sung, 2026-09-29)** "Hợp đồng đầu tiên" khi tính mốc khai báo tạm trú | Đầu chuỗi hợp đồng nối tiếp không gián đoạn trong cùng hồ sơ; có khoảng trống hoặc hồ sơ mới (Q-12) thì tính lại | 6.10, BR-M02-11 | 018, 004 |
 | Q-242 | **(Bổ sung, 2026-09-29)** Lệnh "Đưa vào sử dụng tại vị trí" với tài sản loại giường | Không áp; tài sản giường chỉ có Sẵn sàng, Hỏng, Đang bảo trì, Đã thanh lý; việc có người lấy theo phân bổ | 7.7 | 019, 003 |
 | Q-243 | **(Bổ sung, 2026-09-29)** Chuyển giường đã có lịch sử sang phòng khác | Vị trí tài sản giường luôn là phòng của giường; chỉ đổi khi giường chưa từng có phân bổ; có lịch sử thì tạo giường mới và Thanh lý giường cũ | 7.7, 7.1 | 019, 003 |
+| Q-244 | **(Bổ sung, 2026-09-29)** Hồ sơ cá nhân có tách địa chỉ thường trú không | Tách hai trường: địa chỉ thường trú (theo giấy tờ định danh) và địa chỉ liên hệ; địa chỉ thường trú là căn cứ xác nhận "thường trú cùng xã/phường" (6.10) | 5.1, 6.10 | 001, 018 |
 
 ### 24.3. Quyết định đã chốt ở spec, chưa phản ánh vào thân tài liệu (bổ sung)
 
@@ -2664,7 +2665,7 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Yêu cầu thay đổi lưu trú            | UC-13, 14         | D    | —    | T    | —   | —   | —   | —   | —   | T   | T²  | —   |
 | Tạm vắng, trở về                    | UC-15             | D⁸   | T    | —    | X   | —   | —   | —   | —   | T   | X   | —   |
 | Kết thúc lưu trú, qua đời           | UC-17, 18         | D    | —    | T    | —   | —   | —   | —   | —   | T   | X   | —   |
-| Cấu hình phòng, giường              | UC-19             | C    | X    | —    | —   | —   | —   | —   | —   | X   | —   | —   |
+| Cấu hình phòng, giường              | UC-19             | C³⁵  | X    | —    | —   | —   | —   | —   | —   | X   | —   | —   |
 | Đặt, gỡ cách ly phòng (bổ sung)     | UC-19, 37         | T    | X    | T    | X   | —   | —   | —   | —   | X   | —   | —   |
 | Dịch vụ, đơn giá (bổ sung)          | 6.4               | C    | —    | —    | —   | —   | —   | —   | —   | X   | —   | —   |
 | Phân bổ, chuyển giường              | UC-20, 21         | X    | T    | —    | —   | —   | —   | —   | —   | T   | —   | —   |
@@ -2754,6 +2755,7 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 - ³² Quản lý viện duyệt hoàn tiền, điều chỉnh, cặp điều chỉnh chuyển tiền, giao dịch đảo (BR-M11-10, 12, 14), ghi "dừng nhắc" còn nợ (BR-M11-13) và xem số dư toàn viện. **(Bổ sung, Q-226)** Dòng "Chốt quỹ ngày": Kế toán lập, Quản lý viện xác nhận hoặc trả lại (BR-M11-16).
 - ³³ Trưởng tầng báo hỏng, đưa vào bảo trì tài sản trong tầng mình và đặt lịch xe; Hành chính chỉ đặt lịch xe (7.7).
 - ³⁴ Nhân viên bếp lập phiếu xuất cho bữa ăn, đề nghị nhập và phiếu kiểm kê; không lập phiếu nhập, không duyệt kiểm kê (Q-220; **sửa 2026-09-29, Q-233**).
+- ³⁵ **(Bổ sung, 2026-09-29, Q-234, Q-237)** "C" ở dòng này gồm tạo, sửa cơ cấu và Ngừng hiệu lực khu vực, tầng, phòng; không gồm đổi trạng thái giường. Đang bảo trì, Không sử dụng của giường chỉ đổi qua lệnh trên tài sản (dòng "Tài sản, lịch xe"); giường không có Ngừng hiệu lực riêng.
 
 ## 28. Phụ lục – Quy tắc dữ liệu (DBR)
 

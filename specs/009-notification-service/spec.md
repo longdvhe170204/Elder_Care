@@ -371,6 +371,9 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 | 011 | Mọi thông báo của feature 011 (chế độ ăn, thực đơn, chốt suất, phát sinh, phiếu bữa ăn, đồ ăn gia đình, yêu cầu xem lại chế độ ăn — gồm cả thông báo tới Dinh dưỡng viên khi ăn kém kéo dài, thay cho nhắc cũ của feature 005 FR-040) | Theo bảng FR-065 của spec 011 | Theo bảng FR-065 của spec 011 (FR-043a) |
 | 013 | Mọi thông báo của feature 013 (thất lạc, hư hỏng, tìm thấy; tiếp nhận, trả đồ; xác nhận người nhận khác và duyệt thay; đồng ý cho tự giữ; nhắc đồ chưa trả sau trạng thái cuối; đề nghị xử lý đồ không người nhận; phiếu kiểm kê; đồ có giá trị khi hết ca; đính chính) | Theo bảng FR-032 của spec 013 | Theo bảng FR-032 của spec 013 (FR-043a); thông báo tới người thân chỉ loại "chung", nội dung chỉ loại đồ và sự kiện |
 | 014 | Mọi thông báo của feature 014 (buổi hoạt động bị hủy, dời, đăng ký hủy tự động; điểm danh chưa hoàn tất, "Không ghi nhận"; chuẩn bị thuốc mang theo, Nhận lại thuốc; chỉ định hạn chế và chỉ định tạm; đồng ý về muộn của bán trú; quá giờ về, báo Quản lý viện; chuyển trưởng đoàn; kiểm tra chất lượng) | Theo bảng FR-071 của spec 014 | Theo bảng FR-071 của spec 014 (FR-043a); cảnh báo "nguy cơ cô lập" và sự cố thiếu người đi qua feature 007 |
+| 017 | *(bổ sung 2026-09-29)* Mọi thông báo của feature 017 (sắp hết tiền, còn nợ và nhắc lại theo CFG-M11-05; còn nợ kéo dài; dòng sao kê chưa khớp; giao dịch cần duyệt, bị từ chối; chốt quỹ ngày chưa lập, chưa xác nhận, bị trả lại; tiền cọc, số dư còn lại sau hủy hợp đồng hoặc trạng thái cuối) | Theo bảng FR-030 của spec 017 | Theo bảng FR-030 của spec 017 (FR-043a); người đại diện không có quyền xem chi phí chỉ nhận phần "chung" (Q-228) |
+| 018 | *(bổ sung 2026-09-29)* Mọi thông báo của feature 018 (khai báo mới cần làm, quá hạn khai báo, nhắc gia hạn, Hết hạn, nhắc khai báo xóa) | Hành chính; Quản lý viện | Nhẹ (feature 018 FR-010) |
+| 019 | *(bổ sung 2026-09-29)* Mọi thông báo của feature 019 (lô sắp hết hạn, dưới tồn tối thiểu, kiểm kê, đề nghị nhập; tài sản bị báo hỏng, nhắc hạn bảo trì, dấu "chờ chuyển người" và nhắc báo hỏng lại (Q-235); lịch xe bị hủy, dời, quá giờ trả, chồng lịch do gia hạn (Q-236)) | Theo FR-021 của spec 019 | Nhẹ (feature 019 FR-021) |
 
   *(Nguồn: 17 "mức độ thông báo phụ thuộc vào mức độ nghiệp vụ", BR-M13-01; Clarification 2026-09-26 lượt 5, đề xuất Q-113)*
 
@@ -433,7 +436,7 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nhận.
+*(Câu mở đầu lúc lập spec: "Chưa sửa `docs/`".)* **(2026-09-29, checklist cross-feature CHK026)** Tình trạng hiện tại của từng điểm ghi ở các đoạn có ngày bên dưới; điểm không được nhắc ở đoạn nào vẫn là "còn chờ chủ tài liệu xác nhận" (xem CHK027).
 
 1. **Permission Matrix 4.4 không có dòng** cho thông báo (nhận, xác nhận, tra cứu lịch sử, thực hiện yêu cầu gọi điện, liên hệ trực tiếp, cấu hình kênh). Spec đề xuất bảng FR-039; cần thêm dòng tương ứng vào 4.4, và thêm use case vào 4.2 cho các chức năng ngoài UC-66: thực hiện yêu cầu gọi điện (Người phụ trách ca, Trưởng tầng, Quản lý viện; Bộ lập lịch tạo và chuyển), liên hệ trực tiếp người thân (Hành chính), tra cứu lịch sử và danh sách lỗi gửi (Quản lý viện, Trưởng tầng), cấu hình kênh và CFG-M13-xx (Quản lý viện, có thể gộp vào UC-69). Actor AC-13 "Nhà cung cấp SMS" (4.1) nên đổi thành "Nhà cung cấp kênh ngoài ứng dụng" để bao cả "kênh khác được cấu hình" (17, FR-016).
 2. **Mục 23 dùng "nhiệm vụ gọi"**, trùng thuật ngữ "Nhiệm vụ" (2.4: trách nhiệm gán cho nhân viên trong ca). Spec dùng "yêu cầu gọi điện"; nên sửa câu chữ ở mục 23 và bổ sung thuật ngữ vào 2.4.

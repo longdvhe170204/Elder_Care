@@ -624,6 +624,6 @@ Ngừng, Từ chối, Đã hủy là trạng thái cuối. Không có lệnh Ng�
     - BR-M08-08: lệnh Đổi món có hiệu lực ngay khi có lý do, không cần duyệt (FR-031); không áp cho bữa đã qua giờ bữa; bị chặn nếu làm mất độ phủ (FR-032).
     - BR-M08-05: hạn xử lý yêu cầu xem lại không dừng khi người cao tuổi vắng mặt (FR-059).
 
-**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
+**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** *(2026-09-29: mọi điểm dưới đây đã xử lý, xem nhãn "Đã xử lý" từng điểm.)* Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
 
 1. **[Đã xử lý 2026-09-28: mục Ngoài phạm vi; nội dung chờ spec kho nguyên liệu]** **Kho nguyên liệu nấu ăn (Q-210, Q-220; 12.7, BR-M08-17 → 20, UC-91, 92, DBR-31).** Chức năng mới thuộc Module 08: danh mục nguyên liệu, phiếu nhập (có kiểm tra đầu vào), phiếu xuất theo lô, kiểm kê. Quản lý viện quản lý; Nhân viên bếp lập phiếu xuất cho bữa và đề nghị nhập; Dinh dưỡng viên xem tồn. Không tự trừ kho theo định lượng món. Đề xuất viết spec riêng (cùng tài sản 7.7) thay vì mở rộng spec này.

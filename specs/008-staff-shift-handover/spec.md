@@ -479,7 +479,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nhận.
+*(Câu mở đầu lúc lập spec: "Chưa sửa `docs/`".)* **(2026-09-29, checklist cross-feature CHK026)** Tình trạng hiện tại của từng điểm ghi ở các đoạn có ngày bên dưới; điểm không được nhắc ở đoạn nào vẫn là "còn chờ chủ tài liệu xác nhận" (xem CHK027).
 
 1. **BR-M09-08 chuyển trách nhiệm cảnh báo cho "người phụ trách ca mới"**, còn feature 007 FR-037 (theo BR-M05-05) chuyển cho Điều dưỡng phụ trách người cao tuổi trong ca mới, nếu không có mới tới Người phụ trách ca. Spec này theo feature 007 (FR-044). Cần sửa câu chữ BR-M09-08.
 2. **BR-M09-06 không liệt kê** liều Mang theo chờ ghi nhận (feature 006 FR-028) và yêu cầu vệ sinh Gấp chưa xong (feature 003 FR-049), nhưng hai feature đó đã dựa vào bàn giao. Spec thêm vào (FR-039 (b), (f)).
@@ -502,7 +502,7 @@ Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nh�
 
 **(2026-09-28, Q-205)** Điểm 8 đã được xử lý: CFG-M09-01 chỉ còn là ngưỡng tỷ lệ phục vụ theo mẫu ca (nghĩa spec này đang dùng); trọng số chăm sóc theo mức chuyển sang CFG-M09-12 (mục 4, Phụ lục 25).
 
-**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
+**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** *(2026-09-29: mọi điểm dưới đây đã xử lý, xem nhãn "Đã xử lý" từng điểm.)* Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
 
 1. **[Đã xử lý 2026-09-28: FR-028a]** **Điều dưỡng làm việc của Nhân viên chăm sóc (Q-214, Q-221; 2.4).** Điều dưỡng được phân loại công việc chăm sóc (13.4). Điều dưỡng **không** được tính vào dòng phủ tối thiểu của Nhân viên chăm sóc; tỷ lệ phục vụ (BR-M09-02) không đổi.
 2. **[Đã xử lý 2026-09-28: Assumptions]** **Vai trò Kế toán (Q-212).** Là vai trò không xếp ca, được coi là trong ca theo giờ hành chính CFG-M13-06 như Hành chính; cột KT đã thêm vào Phụ lục 27 (dòng "Lịch ca, phân công" và "Yêu cầu đổi ca" là "—").

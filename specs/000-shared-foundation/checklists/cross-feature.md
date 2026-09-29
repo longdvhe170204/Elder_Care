@@ -107,9 +107,13 @@ Checklist được lập ngày 2026-09-28 bằng cách rà mục "Điểm cần 
   - 003 "Còn mở 1, 2, 3, 6" đã được giải quyết một phần (Q-69, BR-M03-13, dòng UC-74).
   
   [Traceability]
+  - **Đã sửa một phần (2026-09-29), chờ reviewer đánh giá:** câu mở đầu "Chưa sửa `docs/`" của 005, 006, 007, 008, 009, 012 được thay bằng câu chỉ dẫn tới các đoạn có ngày; khối "Tài liệu nguồn đã thay đổi" ở 10 spec ghi đã xử lý hết; 000 điểm "Còn mở 1" và 003 "Còn mở 1 → 6" được đánh dấu từng điểm. Chưa gắn nhãn cho từng điểm của 005 → 012; tình trạng của chúng vẫn đọc theo đoạn có ngày.
 - [ ] CHK027 - Nhiều spec có danh sách "bổ sung không có trong tài liệu nguồn, cần chủ tài liệu xác nhận": 005 điểm 13, 006 điểm 12, 007 điểm 12, 008 điểm 9 và 17, 009 điểm 8, 13, 16, 012 điểm 6. Có danh sách tập trung các mặc định suy ra còn chờ xác nhận không? Hay chúng được coi là đã chốt? [Assumption, Gap]
+  - **Đã sửa (2026-09-29), chờ reviewer đánh giá:** các mặc định suy ra được gom thành danh sách câu hỏi cho buổi rà với người vận hành: [docs/cau-hoi-ra-soat-van-hanh.md](../../../docs/cau-hoi-ra-soat-van-hanh.md). Chúng vẫn coi là mặc định (chưa chốt) cho tới khi có kết quả buổi rà.
 - [ ] CHK028 - Có bảng tập trung các loại yêu cầu phê duyệt (loại, người lập, người duyệt, vòng đời chung hay riêng) ở 6.6 hoặc spec 000 không? 004 còn mở 2 nêu thiếu bảng này. Ví dụ loại: duyệt điều khoản hợp đồng, quyết định giữ giường, điều chỉnh điểm, ngoại lệ kết thúc, nhập bù phân bổ, đính chính. [Gap, Spec §6.6, Spec 000 §FR-031]
+  - **Đã sửa (2026-09-29), chờ reviewer đánh giá:** spec 000 thêm "Danh mục loại yêu cầu phê duyệt" sau FR-051a: 9 loại dùng vòng đời chung, 4 nhóm có vòng đời riêng, kèm spec sở hữu, người lập, người duyệt.
 - [ ] CHK029 - Quyết định Q-108 yêu cầu module nguồn nêu mức cho từng thông báo. Spec 000, 001, 003, 004, 005, 006 đã nêu mức cho mọi thông báo mà chúng phát ra chưa, hay còn dựa vào dấu "thiếu mức" của spec 009 (điểm báo lại 14 của 009)? [Completeness, Q-108, Spec 009 §FR-043a]
+  - **Đã giải quyết từ trước, ghi nhận 2026-09-29, chờ reviewer đánh giá:** bảng FR-043b của spec 009 (Q-113) đã nêu mức cho các thông báo của 000 → 006; spec nguồn chỉ cần ghi khi ghi đè. Spec 009 điểm báo lại 18 đã ghi điểm 14 được giải quyết.
 
 ## Tham số CFG và mã Q
 
@@ -157,7 +161,9 @@ Phần này được thêm ngày 2026-09-29, sau khi chốt Q-215 (spec 018), Q-
 - [ ] CHK044 - Với tài sản loại giường, lệnh "Đưa vào sử dụng tại vị trí" (Sẵn sàng → Đang sử dụng, 7.7) có ý nghĩa gì khi trạng thái giường do phân bổ quyết định (spec 019 FR-015 ánh xạ cả Sẵn sàng và Đang sử dụng về "giường theo phân bổ")? Có cần nêu lệnh này không áp cho giường, hoặc áp với nghĩa nào? [Clarity, §7.7, Spec 019 §FR-015]
   - **Đã chốt (2026-09-29), chờ reviewer đánh giá:** Q-242: lệnh không áp cho tài sản loại giường; tài sản giường chỉ có Sẵn sàng, Hỏng, Đang bảo trì, Đã thanh lý. Sửa 7.7; spec 019 FR-013, FR-015, Clarifications.
 - [ ] CHK045 - Phụ lục 27 dòng "Cấu hình phòng, giường" (QL C, TT X, HC X) và dòng "Tài sản, lịch xe" (QL C, T; TT T³³) cùng chạm tới giường. Có ghi rõ quyền đổi trạng thái giường (Đang bảo trì, Không sử dụng) nay chỉ thuộc dòng "Tài sản, lịch xe" theo Q-234, và "C" ở dòng cấu hình không còn gồm đổi trạng thái không? [Clarity, Phụ lục 27, Q-234]
+  - **Đã sửa (2026-09-29), chờ reviewer đánh giá:** Phụ lục 27 dòng "Cấu hình phòng, giường" thêm chú thích ³⁵: "C" không gồm đổi trạng thái giường (Q-234, Q-237).
 - [ ] CHK046 - Spec 016 User Story (phân bố giường) kịch bản 3 tính "tổng giường có thể dùng" và nhận số theo từng trạng thái giường của feature 003. Giường Trống mang dấu "chờ chuyển người" (không nhận phân bổ, Q-235) được đếm ở đâu: "Trống", "có thể dùng" hay một nhóm riêng? [Gap, Spec 016 §User Story 3 kịch bản 3, Q-235]
+  - **Đã sửa (2026-09-29), chờ reviewer đánh giá:** spec 016 chỉ tiêu "Tình trạng phòng/giường": giường mang dấu vẫn đếm trong Trống, hiện kèm số riêng "Trống – chờ xử lý hư hỏng". Đây là cách hiển thị suy ra, không có quyết định riêng.
 
 ### Lịch xe và chuyến đi (Q-231, Q-236)
 
@@ -166,6 +172,7 @@ Phần này được thêm ngày 2026-09-29, sau khi chốt Q-215 (spec 018), Q-
 - [ ] CHK048 - Spec 014 FR-031a (b) cho "Hủy ghi nhận" bản ghi rời viện khi chuyến chưa Đã về. Nếu mọi bản ghi rời viện đều bị hủy (người đầu tiên bị ghi nhầm), chuyến vẫn Đang đi và lịch xe vẫn Đang dùng (Q-231). Việc lịch xe quay về Đã đặt, hoặc chuyến quay về Đã lên lịch, có được nêu không? [Edge Case, Gap, Spec 014 §FR-031a, Spec 019 §FR-018]
   - **Đã chốt (2026-09-29), chờ reviewer đánh giá:** Q-240: chuyến quay về Đã lên lịch, lịch xe về Đã đặt. Sửa 7.7, 8.9, BF-15; spec 014 FR-031a và bảng trạng thái chuyến đi; spec 019 FR-018.
 - [ ] CHK049 - Spec 014 dòng "Gia hạn giờ về" ghi báo feature 019. Tác động này có được giới hạn cho chuyến dùng xe của viện (FR-034, FR-040) không, để không gửi sự kiện cho chuyến không có lịch xe? [Clarity, Spec 014 §FR-034, Q-236]
+  - **Đã sửa (2026-09-29), chờ reviewer đánh giá:** spec 014 FR-040 giới hạn mọi sự kiện gửi feature 019 cho chuyến có phương tiện là xe của viện.
 
 ### Khai báo tạm trú (Q-215) và các spec nhận sự kiện
 
@@ -175,10 +182,12 @@ Phần này được thêm ngày 2026-09-29, sau khi chốt Q-215 (spec 018), Q-
 - [ ] CHK051 - Spec 018 FR-001 tính mốc cộng dồn "từ ngày bắt đầu hợp đồng đầu tiên". Khi người quay lại có hồ sơ mới (Q-12), hoặc hợp đồng bị Chấm dứt rồi lập hợp đồng mới trong cùng hồ sơ, "hợp đồng đầu tiên" được xác định thế nào? Spec 004 có định nghĩa chuỗi hợp đồng liên tục không? [Ambiguity, Spec 018 §FR-001, Q-12, Q-215]
   - **Đã chốt (2026-09-29), chờ reviewer đánh giá:** Q-241: đầu chuỗi hợp đồng nối tiếp không gián đoạn trong cùng hồ sơ; có khoảng trống hoặc hồ sơ mới (Q-12) thì tính lại. Sửa BR-M02-11, BF-01 bước 15a; spec 018 Clarifications, FR-001, Edge Cases; spec 004 FR-033b.
 - [ ] CHK052 - Hồ sơ cá nhân ở 5.1 chỉ có một trường "địa chỉ". Spec 018 FR-001 dựa vào việc Hành chính xác nhận "thường trú cùng xã/phường với viện" (Q-215) trên khai báo. Có cần phân biệt địa chỉ thường trú với địa chỉ liên hệ trong 5.1 hoặc spec 001 để xác nhận này có căn cứ không, hay ghi chú căn cứ trên khai báo là đủ? [Assumption, §5.1, Spec 018 §FR-001]
+  - **Đã chốt (2026-09-29), chờ reviewer đánh giá:** Q-244: tách địa chỉ thường trú (theo giấy tờ định danh) và địa chỉ liên hệ. Sửa 5.1; spec 001 FR-001, User Story 1, Key Entities; spec 018 FR-001.
 
 ### Thông báo và báo cáo cho spec mới
 
 - [ ] CHK053 - Bảng nguồn thông báo của spec 009 (các dòng "| 003 |" → "| 014 |") không có dòng cho 017, 018, 019, trong khi các spec này phát nhiều thông báo (017 báo sắp hết tiền; 018 FR-010; 019 FR-021; nay thêm nhắc báo hỏng lại, gỡ dấu Q-235, lịch xe chồng do gia hạn Q-236). Spec 009 có cần bổ sung dòng, hoặc ghi rằng bảng không liệt kê hết và FR-043a là căn cứ không? [Completeness, Spec 009 §FR-043a, Q-108]
+  - **Đã sửa (2026-09-29), chờ reviewer đánh giá:** spec 009 bảng nguồn thông báo thêm dòng 017, 018, 019. Dòng 010, 012, 015, 016 cũng chưa có trong bảng; chưa thêm vì ngoài phạm vi mục này.
 - [ ] CHK054 - Spec 018 FR-011 và spec 019 (dòng "Gửi 016") cam kết cung cấp số liệu cho dashboard 18.5: khai báo tạm trú cần làm, Hết hạn, việc khai báo xóa; tài sản quá hạn bảo trì, đăng kiểm, bảo hiểm; nguyên liệu dưới tồn tối thiểu, lô sắp hết hạn. Spec 016 chưa nhắc 018, 019 ở chỉ tiêu, quyền hay bảng giao tiếp. Các chỉ tiêu này có được thêm vào spec 016 FR-010 với vai trò xem tương ứng không? [Gap, Spec 016 §FR-010, Spec 018 §FR-011, Spec 019 §Giao tiếp]
   - **Đã sửa (2026-09-29), chờ reviewer đánh giá:** spec 016 thêm ba nhóm chỉ tiêu (khai báo tạm trú; tài sản quá hạn; nguyên liệu dưới tồn tối thiểu) ở FR-010, định nghĩa chỉ tiêu, bảng giao tiếp (018, 019) và User Story 2 kịch bản 15.
 
