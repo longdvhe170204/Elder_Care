@@ -516,7 +516,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nhận.
+*(Câu mở đầu lúc lập spec: "Chưa sửa `docs/`".)* **(2026-09-29, checklist cross-feature CHK026)** Tình trạng hiện tại của từng điểm ghi ở các đoạn có ngày bên dưới; điểm không được nhắc ở đoạn nào vẫn là "còn chờ chủ tài liệu xác nhận" (xem CHK027).
 
 1. **Sơ đồ vòng đời liều 11.2 không có trạng thái Hủy**, trong khi BR-M07-07 nói liều "bị hủy và sinh lại" khi ngừng hoặc đổi liều; spec thêm trạng thái Đã hủy (FR-021). Sơ đồ cũng không có chuyển nào khi người cao tuổi chuyển trạng thái cuối.
 2. **Sơ đồ 11.2 chỉ cho Trễ → Đã dùng / Bỏ lỡ**; spec thêm Trễ → Từ chối / Không thực hiện, vì điều dưỡng tới muộn vẫn có thể gặp người cao tuổi từ chối, và thêm Mang theo → Chưa đến giờ / Đến giờ khi trở về trước cuối cửa sổ. Sơ đồ cũng không có chuyển ra khỏi Tạm dừng khi cửa sổ đã qua; spec coi đó là kết thúc (FR-022).

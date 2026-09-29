@@ -696,7 +696,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nhận.
+*(Câu mở đầu lúc lập spec: "Chưa sửa `docs/`".)* **(2026-09-29, checklist cross-feature CHK026)** Tình trạng hiện tại của từng điểm ghi ở các đoạn có ngày bên dưới; điểm không được nhắc ở đoạn nào vẫn là "còn chờ chủ tài liệu xác nhận" (xem CHK027).
 
 1. **Chuỗi leo thang BR-M05-01 bắt đầu từ "nhân viên"**, nhưng Permission Matrix 4.4 chỉ cho Nhân viên chăm sóc quyền X ở dòng "Xử lý cảnh báo" và UC-34 có actor là Điều dưỡng. Spec bắt đầu chuỗi từ Điều dưỡng phụ trách, nhân viên thực hiện công việc nguồn chỉ được thông báo (FR-031, FR-033). Cần sửa BR-M05-01. **Đã xử lý (2026-09-28):** BR-M05-01 trong docs/nghiep-vu.md đã được bổ sung đoạn "Làm rõ, spec 007" theo FR-031, FR-033.
 2. **Cấp cuối của chuỗi leo thang là "quản lý"**, nhưng 4.4 cho Quản lý viện quyền X ở dòng "Xử lý cảnh báo" và X ở dòng "Sự cố, khẩn cấp"; trong khi 4.1 xếp Quản lý viện (AC-01) là con của AC-00 "Nhân viên" có quyền "ghi nhận sự cố". Đã chốt khi clarify (FR-029, FR-036, FR-041): Quản lý viện tiếp nhận được cảnh báo ở Leo thang cấp 2 và giao người phụ trách; ghi nhận được sự cố, kích hoạt được khẩn cấp; không xử lý, không đóng. Cần sửa hai dòng "Xử lý cảnh báo", "Sự cố, khẩn cấp" của 4.4 và thêm Q-71 vào mục 24.2.
@@ -717,7 +717,7 @@ Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nh�
 
 **(2026-09-28, checklist cross-feature CHK018, CHK024, CHK030)** Đã phản ánh vào `docs/nghiep-vu.md`: điểm 3 (CFG-M06-04 ở Phụ lục 25 và BR-M06-04); điểm 4, 7 (bảng bổ sung vòng đời cảnh báo và bảng vòng đời sự cố ở 9.4); điểm 10 (BR-M05-10 và mô tả CFG-M05-07: khoảng truy vết áp cho mọi nguồn).
 
-**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
+**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** *(2026-09-29: mọi điểm dưới đây đã xử lý, xem nhãn "Đã xử lý" từng điểm.)* Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
 
 1. **[Đã xử lý 2026-09-28: Phạm vi 12, User Story 11, mục G1 FR-050a → FR-050g, FR-028, FR-080, FR-083, Key Entities, SC-015]** **Dấu nguy kịch và cảnh báo "nguy kịch – thực hiện nguyện vọng cuối đời" (Q-213, Q-218; 9.5, BR-M05-15, 16, UC-83, 84, BF-17, DBR-34).** Chức năng mới: Bác sĩ ghi, gỡ dấu (Điều dưỡng ghi dấu tạm khi không có Bác sĩ trực). Hệ thống tạo cảnh báo Khẩn cấp không gộp, báo gia đình, tạo yêu cầu xác nhận lại nguyện vọng theo thứ tự gọi của BR-M13-02, rồi thực hiện lựa chọn (chuyển viện / tạm vắng về nhà / chăm sóc giảm nhẹ). Cảnh báo chỉ đóng khi đã có kết quả xác nhận và lựa chọn. Đề xuất thêm một User Story.
 2. **[Đã xử lý 2026-09-28: FR-048, FR-083]** **Nguyện vọng cuối đời có cấu trúc (Q-213, Q-216; 5.2).** Thẻ thông tin khẩn cấp (User Story 5) hiển thị phiên bản nguyện vọng Hiệu lực với ba lựa chọn đã chuẩn hóa, không còn là văn bản tự do.

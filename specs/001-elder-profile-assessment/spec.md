@@ -93,7 +93,7 @@ Khi một gia đình đăng ký, nhân viên hành chính tạo hồ sơ cá nh�
 
 **Acceptance Scenarios**:
 
-1. **Given** nhân viên hành chính có quyền tạo hồ sơ, **When** nhập họ tên, ngày sinh, giới tính, giấy tờ định danh, ảnh, địa chỉ, thông tin liên hệ, thông tin đặc biệt và lưu, **Then** hệ thống cấp một mã hồ sơ duy nhất, hồ sơ ở trạng thái Đang tiếp nhận, lịch sử trạng thái có bản ghi đầu tiên kèm người tạo và thời điểm.
+1. **Given** nhân viên hành chính có quyền tạo hồ sơ, **When** nhập họ tên, ngày sinh, giới tính, giấy tờ định danh, ảnh, địa chỉ thường trú, địa chỉ liên hệ, thông tin liên hệ, thông tin đặc biệt và lưu, **Then** hệ thống cấp một mã hồ sơ duy nhất, hồ sơ ở trạng thái Đang tiếp nhận, lịch sử trạng thái có bản ghi đầu tiên kèm người tạo và thời điểm.
 2. **Given** đã có hồ sơ chưa ở trạng thái cuối mang CCCD X, **When** hành chính tạo hồ sơ mới với cùng CCCD X, **Then** hệ thống từ chối và chỉ ra hồ sơ đang mang CCCD đó (DBR-01).
 3. **Given** hồ sơ H1 mang CCCD X đang ở Kết thúc lưu trú (hoặc Hủy tiếp nhận), **When** hành chính tạo hồ sơ mới với cùng CCCD X, **Then** hệ thống tạo hồ sơ H2 ở Đang tiếp nhận với mã hồ sơ mới, liên kết H2 với H1; H1 giữ nguyên chỉ đọc; người được xem H2 xem được H1 qua liên kết theo quyền của họ trên H1 (FR-004).
 4. **Given** hồ sơ mới không có CCCD và đã có hồ sơ trùng họ tên và ngày sinh, **When** lưu, **Then** hệ thống cảnh báo khả năng trùng và yêu cầu hành chính xác nhận trước khi tạo.
@@ -274,7 +274,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 #### A. Hồ sơ cá nhân
 
-- **FR-001**: Hệ thống MUST cho phép nhân viên hành chính tạo hồ sơ người cao tuổi gồm: họ tên, ngày sinh, giới tính, giấy tờ định danh (CCCD hoặc giấy tờ khác), ảnh, địa chỉ, thông tin liên hệ, thông tin đặc biệt. Họ tên, ngày sinh, giới tính là bắt buộc. Thông tin người thân không thuộc hồ sơ này (Module 10, feature 012). *(Nguồn: 5.1, UC-01, Permission Matrix "Hồ sơ người cao tuổi": HC T)*
+- **FR-001**: Hệ thống MUST cho phép nhân viên hành chính tạo hồ sơ người cao tuổi gồm: họ tên, ngày sinh, giới tính, giấy tờ định danh (CCCD hoặc giấy tờ khác), ảnh, địa chỉ thường trú (theo giấy tờ định danh), địa chỉ liên hệ, thông tin liên hệ, thông tin đặc biệt. Họ tên, ngày sinh, giới tính là bắt buộc. Thông tin người thân không thuộc hồ sơ này (Module 10, feature 012). *(Nguồn: 5.1, UC-01, Permission Matrix "Hồ sơ người cao tuổi": HC T; hai trường địa chỉ: Q-244)*
 - **FR-002**: Hồ sơ mới MUST ở trạng thái Đang tiếp nhận và MUST có bản ghi lịch sử trạng thái đầu tiên. *(Nguồn: 5.5, BR-M01-04)*
 - **FR-003**: Mã hồ sơ MUST duy nhất và do hệ thống cấp; CCCD, nếu có, MUST duy nhất trong các hồ sơ chưa ở trạng thái cuối (Kết thúc lưu trú, Qua đời, Hủy tiếp nhận); mỗi hồ sơ MUST có đúng một trạng thái hiện tại. *(Nguồn: DBR-01; Clarification 2026-09-25)*
 - **FR-004**: Khi một người đã có hồ sơ ở trạng thái Kết thúc lưu trú hoặc Hủy tiếp nhận đăng ký tiếp nhận lại, hệ thống MUST tạo hồ sơ mới (mã hồ sơ mới, trạng thái Đang tiếp nhận) và liên kết với hồ sơ cũ; hồ sơ cũ MUST giữ nguyên chỉ đọc (BR-M01-05). Người được xem hồ sơ mới MUST xem được hồ sơ cũ qua liên kết, trong giới hạn quyền của họ trên hồ sơ cũ. Hồ sơ mới MUST NOT kế thừa tự động trạng thái, bản đồng ý, đánh giá hay cờ nguy cơ của hồ sơ cũ; mục sức khỏe Hiệu lực của hồ sơ cũ MAY được hiển thị làm tham khảo khi ghi mục sức khỏe cho hồ sơ mới. Hồ sơ Qua đời MUST NOT được dùng làm căn cứ tạo hồ sơ mới. *(Nguồn: DBR-01, BR-M01-05, 5.5, 6.2; Clarification 2026-09-25, đề xuất Q-12)*
@@ -382,7 +382,7 @@ Kết thúc lưu trú, Qua đời, Hủy tiếp nhận là trạng thái cuối;
 
 ### Key Entities *(include if feature involves data)*
 
-- **Người cao tuổi (NGUOI_CAO_TUOI)** – nhóm 2: mã hồ sơ, hồ sơ trước (liên kết tới hồ sơ ở trạng thái cuối của cùng người, nếu có), họ tên, ngày sinh, giới tính, giấy tờ định danh, ảnh, địa chỉ, liên hệ, thông tin đặc biệt, trạng thái hiện tại, loại hình lưu trú hiện hành, mức chăm sóc hiện hành.
+- **Người cao tuổi (NGUOI_CAO_TUOI)** – nhóm 2: mã hồ sơ, hồ sơ trước (liên kết tới hồ sơ ở trạng thái cuối của cùng người, nếu có), họ tên, ngày sinh, giới tính, giấy tờ định danh, ảnh, địa chỉ thường trú, địa chỉ liên hệ, liên hệ, thông tin đặc biệt, trạng thái hiện tại, loại hình lưu trú hiện hành, mức chăm sóc hiện hành.
 - **Lịch sử trạng thái (LICH_SU_TRANG_THAI)** – nhóm 3: trạng thái từ, đến, lệnh, thời điểm, người thực hiện, lý do, căn cứ.
 - **Bản đồng ý (BAN_DONG_Y)** – nhóm 2: người đồng ý, là người đại diện hay không, lý do đại diện, phạm vi (người thân được xem sức khỏe, hình ảnh, thông báo), thời điểm, bằng chứng, trạng thái, bản thay thế.
 - **Hồ sơ sức khỏe ban đầu** – nhóm 3 sau xác nhận: các thông tin ở FR-017, người ghi, người xác nhận.
@@ -448,6 +448,6 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep
 1. **Bảng 5.3, dòng Barthel 21–60** ghi "mức chăm sóc thường xuyên trở lên" — không phải một mức cụ thể; spec giả định đề xuất "Chăm sóc thường xuyên" (đã ghi tạm vào cột Mặc định của Q-02, mục 24.1). Chờ bác sĩ của cơ sở chốt Q-02.
 2. **Q-03** (căn cứ pháp lý và mẫu bản đồng ý) vẫn mở.
 
-**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
+**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** *(2026-09-29: mọi điểm dưới đây đã xử lý, xem nhãn "Đã xử lý" từng điểm.)* Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
 
 1. **[Đã xử lý 2026-09-28: Phạm vi 7, User Story 7, FR-017, FR-023, FR-023a → FR-023f, bảng phân nhóm dữ liệu, Key Entities, SC-011]** **Nguyện vọng cuối đời (Q-213, Q-216, Q-217; 5.2, UC-82, DBR-34).** "Thông tin chăm sóc cuối đời" ở FR-017, FR-023 thành phiếu khảo sát nguyện vọng có phiên bản: (a) chuyển bệnh viện điều trị tích cực, (b) đưa về nhà, (c) ở lại viện chăm sóc giảm nhẹ. Phiếu ghi người trả lời, bản ký scan. Người cao tuổi còn đủ năng lực tự ký, không còn thì người đại diện ký; ý kiến khác nhau thì theo ý người cao tuổi. Bác sĩ hoặc Điều dưỡng ghi phiếu. Chưa có phiếu không chặn Hoàn tất tiếp nhận nhưng có cảnh báo và nhắc theo CFG-M01-06. Hành chính chỉ thấy "đã có / chưa có".

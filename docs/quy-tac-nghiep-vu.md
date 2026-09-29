@@ -543,7 +543,7 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Yêu cầu thay đổi lưu trú            | UC-13, 14         | D    | —    | T    | —   | —   | —   | —   | —   | T   | T²  | —   |
 | Tạm vắng, trở về                    | UC-15             | D⁸   | T    | —    | X   | —   | —   | —   | —   | T   | X   | —   |
 | Kết thúc lưu trú, qua đời           | UC-17, 18         | D    | —    | T    | —   | —   | —   | —   | —   | T   | X   | —   |
-| Cấu hình phòng, giường              | UC-19             | C    | X    | —    | —   | —   | —   | —   | —   | X   | —   | —   |
+| Cấu hình phòng, giường              | UC-19             | C³⁵  | X    | —    | —   | —   | —   | —   | —   | X   | —   | —   |
 | Đặt, gỡ cách ly phòng (bổ sung)     | UC-19, 37         | T    | X    | T    | X   | —   | —   | —   | —   | X   | —   | —   |
 | Dịch vụ, đơn giá (bổ sung)          | 6.4               | C    | —    | —    | —   | —   | —   | —   | —   | X   | —   | —   |
 | Phân bổ, chuyển giường              | UC-20, 21         | X    | T    | —    | —   | —   | —   | —   | —   | T   | —   | —   |
@@ -633,10 +633,11 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 - ³² Quản lý viện duyệt hoàn tiền, điều chỉnh, cặp điều chỉnh chuyển tiền, giao dịch đảo (BR-M11-10, 12, 14), ghi "dừng nhắc" còn nợ (BR-M11-13) và xem số dư toàn viện. **(Bổ sung, Q-226)** Dòng "Chốt quỹ ngày": Kế toán lập, Quản lý viện xác nhận hoặc trả lại (BR-M11-16).
 - ³³ Trưởng tầng báo hỏng, đưa vào bảo trì tài sản trong tầng mình và đặt lịch xe; Hành chính chỉ đặt lịch xe (7.7).
 - ³⁴ Nhân viên bếp lập phiếu xuất cho bữa ăn, đề nghị nhập và phiếu kiểm kê; không lập phiếu nhập, không duyệt kiểm kê (Q-220; **sửa 2026-09-29, Q-233**).
+- ³⁵ **(Bổ sung, 2026-09-29, Q-234, Q-237)** "C" ở dòng này gồm tạo, sửa cơ cấu và Ngừng hiệu lực khu vực, tầng, phòng; không gồm đổi trạng thái giường. Đang bảo trì, Không sử dụng của giường chỉ đổi qua lệnh trên tài sản (dòng "Tài sản, lịch xe"); giường không có Ngừng hiệu lực riêng.
 
 ## H. Quyết định còn mở (mục 24.1)
 
-Quyết định đã chốt (Q-01 → Q-243, gồm Q-215 chốt 2026-09-29) nằm ở mục 24.2 của docs/nghiep-vu.md và đã được phản ánh vào các quy tắc ở trên.
+Quyết định đã chốt (Q-01 → Q-244, gồm Q-215 chốt 2026-09-29) nằm ở mục 24.2 của docs/nghiep-vu.md và đã được phản ánh vào các quy tắc ở trên.
 
 
 Những điểm dưới đây cần được chốt trước hoặc trong bước làm rõ (clarify) của từng feature. Cột Mặc định là giá trị sẽ dùng nếu chưa có quyết định. **(Bổ sung, Q-204)** Spec dùng một quyết định ở bảng này thì ghi "theo mặc định Q-xx" và viết yêu cầu, tiêu chí kiểm thử theo giá trị Mặc định; nhãn `[NEEDS CLARIFICATION]` (Q-xx) chỉ dùng khi quyết định chưa có Mặc định. Đây là cách hiểu "không tự đoán" của constitution VII: giá trị Mặc định đã được ghi sẵn ở đây, không do người viết spec tự nghĩ ra. Khi quyết định được chốt khác Mặc định, mọi spec ghi "theo mặc định Q-xx" phải được rà lại.

@@ -541,7 +541,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nhận.
+*(Câu mở đầu lúc lập spec: "Chưa sửa `docs/`".)* **(2026-09-29, checklist cross-feature CHK026)** Tình trạng hiện tại của từng điểm ghi ở các đoạn có ngày bên dưới; điểm không được nhắc ở đoạn nào vẫn là "còn chờ chủ tài liệu xác nhận" (xem CHK027).
 
 1. **UC-28 (Điểm danh bán trú đến/về) không có dòng trong Permission Matrix 4.4**; spec lấy actor của UC-28 (Hành chính, Nhân viên chăm sóc) làm người thực hiện, Trưởng tầng xem (FR-049).
 2. **Vòng đời phiên bản kế hoạch ở 8.1** chỉ có Nháp → Hiệu lực → Hết hiệu lực, không có bước chờ duyệt, trả lại, thu hồi dù BR-M04-19 yêu cầu duyệt; spec bổ sung Chờ duyệt, Chờ hiệu lực, Đã hủy (FR-003).
@@ -561,7 +561,7 @@ Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nh�
 
 **(2026-09-28, checklist cross-feature CHK013, CHK014)** Điểm 2 và 3 đã được phản ánh vào `docs/nghiep-vu.md`: bảng vòng đời phiên bản kế hoạch ở 8.1 (theo FR-003, FR-004) và bảng trạng thái công việc ở 8.3 (theo FR-026). Hai bảng là căn cứ khi khác sơ đồ hoặc câu gốc.
 
-**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
+**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** *(2026-09-29: mọi điểm dưới đây đã xử lý, xem nhãn "Đã xử lý" từng điểm.)* Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
 
 1. **[Không cần sửa: FR-041 đã coi đo chỉ số là công việc, chuyển kết quả cho feature 007]** **Nhóm chức năng "Chăm sóc" (Q-207; 1.6, 10.1).** Đo chỉ số theo lịch là công việc chăm sóc, ghi trong checklist (UC-26); quy tắc ngưỡng vẫn thuộc feature 007. Không đổi ranh giới spec; chỉ cần kiểm tra lại cách diễn đạt nếu spec đang coi đo chỉ số là việc riêng.
 2. **[Đã xử lý 2026-09-28: FR-049, bảng trạng thái có mặt bán trú]** **Điều dưỡng làm việc của Nhân viên chăm sóc (Q-214; 2.4, 19.3, Phụ lục 27 ²⁷).** Điều dưỡng được điểm danh bán trú đến/về (UC-28) và được phân mọi loại công việc chăm sóc. Rà FR-049 và bảng quyền của spec.

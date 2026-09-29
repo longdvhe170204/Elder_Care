@@ -573,7 +573,7 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep
 
 **(2026-09-28, checklist cross-feature CHK012)** Kịch bản 4 của User Story kết thúc lưu trú đã được sửa: giường chuyển Chờ vệ sinh, chỉ về Trống khi vệ sinh trả giường Hoàn thành (BR-M03-09), khớp FR-012, FR-070.
 
-**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
+**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** *(2026-09-29: mọi điểm dưới đây đã xử lý, xem nhãn "Đã xử lý" từng điểm.)* Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
 
 1. **[Đã xử lý 2026-09-28, đồng bộ spec 017]** **Đặt cọc do Kế toán thu và ghi nhận (Q-211, Q-212, Q-219; 6.5, UC-12).** User Story 4 ("không thu tiền"), mục Phạm vi dòng 73 và dòng 88 ("Thu tiền, hoàn cọc: hệ thống kế toán") không còn đúng. Kế toán ghi từng lần thu cọc (tiền mặt hoặc chuyển khoản đã đối soát). Đặt cọc tự chuyển Đã đáp ứng khi tổng tiền đã thu đủ. Tiền cọc theo dõi riêng, không vào số dư.
 2. **[Đã xử lý 2026-09-28: FR-063 (h), FR-064, FR-065, FR-071, SC-007]** **Điều kiện kết thúc lưu trú mới (Q-222; 5.6, 6.8).** Thêm điều kiện "số dư và tiền cọc đã quyết toán" (Kế toán thực hiện, Quản lý viện được duyệt ngoại lệ). Khi qua đời, đây là một mục của danh sách việc sau qua đời.

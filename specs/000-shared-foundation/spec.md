@@ -295,6 +295,24 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 - **FR-051**: Việc thay đổi CFG-M15-03 hoặc CFG-M15-04 MUST tuân theo mục B như mọi tham số khác. Dữ liệu và nhật ký đã hết thời hạn lưu giữ MUST chỉ được loại bỏ bởi Bộ lập lịch hệ thống (AC-11), không có thao tác loại bỏ cho người dùng. Mỗi đợt loại bỏ MUST thỏa FR-050 theo giá trị tham số hiện hành tại thời điểm loại bỏ và MUST ghi một bản nhật ký tóm tắt gồm: loại dữ liệu, số lượng bản ghi, khoảng thời gian của dữ liệu bị loại bỏ, căn cứ (mã CFG và giá trị áp dụng), thời điểm thực hiện. Bản nhật ký tóm tắt này MUST NOT bị loại bỏ. *(Clarification 2026-09-25)*
 - **FR-051a**: Bản ghi đã hết thời hạn lưu giữ nhưng còn được một bản ghi khác chưa hết hạn tham chiếu tới (ví dụ chi phí trỏ về liều thuốc, bản đính chính trỏ về bản gốc, yêu cầu phê duyệt trỏ về kết quả áp dụng) MUST được giữ lại cho tới khi mọi bản ghi tham chiếu tới nó cũng hết hạn. Khi đó cả chuỗi (bản ghi gốc, các bản đính chính, nhật ký liên quan) MUST được loại bỏ trong cùng một đợt; không đợt loại bỏ nào được để lại bản ghi trỏ tới bản ghi đã bị loại bỏ. *(Nguồn: mục 1.3, DBR-15, DBR-23; Clarification 2026-09-25)*
 
+
+**Danh mục loại yêu cầu phê duyệt** *(tổng hợp 2026-09-29, checklist cross-feature CHK028)*. Bảng chỉ để tra cứu; khi khác nhau, spec sở hữu là căn cứ.
+
+| Loại | Spec sở hữu (căn cứ) | Người lập | Người duyệt | Vòng đời |
+| --- | --- | --- | --- | --- |
+| Thay đổi lưu trú (gồm đổi mức chăm sóc, gia hạn, đổi phòng/giường khác giá) | 004 FR-037, FR-039, FR-043; 001; 003 FR-030 | Hành chính; Bác sĩ (chỉ đổi mức chăm sóc); Hệ thống (đánh giá lại, chuyển giường gấp, Q-52) | Quản lý viện | Chung (FR-031) |
+| Điều chỉnh điểm ưu tiên danh sách chờ | 004 FR-011 | Hành chính | Quản lý viện | Chung |
+| Duyệt điều khoản hợp đồng khác chuẩn | 004 FR-025a | Hành chính | Quản lý viện | Chung |
+| Quyết định giữ giường khi vắng | 004 (bảng phân nhóm dữ liệu) | Hệ thống | Quản lý viện | Chung |
+| Ngoại lệ điều kiện kết thúc lưu trú | 004 User Story 7, FR-063 → FR-065 | Hành chính | Quản lý viện | Chung |
+| Nhập bù phân bổ giường lùi quá CFG-M03-07 | 003 FR-027 (Q-43) | Hành chính, Trưởng tầng | Quản lý viện | Chung |
+| Xử lý đồ không người nhận | 013 FR-027a (Q-152) | Hành chính | Quản lý viện (không tự duyệt) | Chung |
+| Yêu cầu đổi ca; yêu cầu nghỉ đột xuất | 015 (bảng FR-022, FR-031) | Nhân viên; người lập thay | Trưởng tầng (tầng được giao); Quản lý viện (ca toàn viện, Q-177) | Chung, có ngoại lệ khai báo ở 015 |
+| Hoàn tiền, hoàn cọc, điều chỉnh, giao dịch đảo | 017 FR-013 | Kế toán | Quản lý viện | Chung, trạng thái Chờ duyệt → Đã xác nhận / Từ chối / Đã hủy (Q-229) |
+| Thay đổi quyền người thân, danh sách được phép đón, ngoại lệ đón, dấu "được tự về" | 012 FR-020, FR-024 (Q-118, Q-125) | Người đại diện, Hành chính | Theo 012 | Riêng: Chờ xác nhận → Hiệu lực / Từ chối / Hủy |
+| Đề nghị mua hộ | 010 (BR-M11-07, UC-79) | Theo 010 | Người đại diện hoặc Quản lý viện, theo 010 | Riêng (FR-031 ghi rõ không dùng vòng đời chung) |
+| Xác nhận người nhận khác; đồng ý cho tự giữ | 013 FR-017b | Theo 013 | Theo 013 | Riêng |
+| Phiếu kiểm kê kho; chốt quỹ ngày | 019 FR-010 (Q-233); 017 (Q-226) | Nhân viên bếp; Kế toán | Quản lý viện | Riêng (bảng trạng thái của spec sở hữu) |
 ### Key Entities *(include if feature involves data)*
 
 - **Tham số (THAM_SO)** – nhóm 1: mã CFG, mô tả, kiểu giá trị, khoảng hợp lệ, giá trị mặc định, giá trị hiện hành, danh sách quy tắc sử dụng. Mỗi mã có đúng một giá trị hiện hành (DBR-24).
@@ -344,4 +362,4 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep
 
 **Còn mở**
 
-1. **Vòng đời yêu cầu phê duyệt và BR-M10-07**: đã chốt ở spec 012 (Q-118) — yêu cầu của BR-M10-07 dùng vòng đời riêng "Chờ xác nhận → Hiệu lực / Từ chối / Hủy", là ngoại lệ của FR-031. Cần ghi ngoại lệ vào 6.6 và thêm trạng thái Hủy vào BR-M10-07.
+1. **[Đã xử lý: Q-118, 24.2]** **Vòng đời yêu cầu phê duyệt và BR-M10-07**: đã chốt ở spec 012 (Q-118) — yêu cầu của BR-M10-07 dùng vòng đời riêng "Chờ xác nhận → Hiệu lực / Từ chối / Hủy", là ngoại lệ của FR-031. Cần ghi ngoại lệ vào 6.6 và thêm trạng thái Hủy vào BR-M10-07.
