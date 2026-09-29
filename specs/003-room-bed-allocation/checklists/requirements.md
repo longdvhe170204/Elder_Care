@@ -47,3 +47,4 @@
 - Có 10 điểm cần báo lại về tài liệu nguồn, ghi ở cuối spec.md; không sửa docs.
 - Vòng kiểm tra 1: sửa một tham chiếu CFG không tồn tại (US5 kịch bản 3) và gom 6 marker trùng thành 3.
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`
+- Lượt rà 2026-09-29 (đồng bộ spec 019, Q-234, Q-235): bỏ lệnh Đặt bảo trì, Ngừng sử dụng, Sẵn sàng; bảng trạng thái giường nhận yêu cầu từ feature 019; thêm FR-013b, FR-018 (i), User Story 4 #12. Mọi mục vẫn đạt; không thêm marker.
