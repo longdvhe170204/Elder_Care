@@ -1,10 +1,15 @@
 # Hệ thống quản lý viện dưỡng lão
 
-## Giai đoạn hiện tại: PHÂN TÍCH
+## Giai đoạn hiện tại: PHÂN TÍCH (đã đóng 2026-10-01, chờ chủ dự án mở giai đoạn kế tiếp)
 
-- Chỉ tạo và chỉnh sửa spec (specify, clarify, checklist).
-- KHÔNG chạy /speckit.plan, /speckit.tasks, /speckit.implement.
+- Trạng thái: cả 20 spec (000 → 019) không còn mục checklist mở và không còn nhãn [NEEDS CLARIFICATION]; mục 24.1 docs/nghiep-vu.md không còn quyết định mở.
+- Chỉ sửa spec khi được yêu cầu, hoặc để đồng bộ khi tài liệu nguồn thay đổi; không tự mở thêm lượt clarify hay checklist mới.
+- KHÔNG chạy /speckit.plan, /speckit.tasks, /speckit.implement cho tới khi chủ dự án mở giai đoạn kế tiếp và sửa mục này.
 - KHÔNG tạo mã nguồn, thư mục src/, file cấu hình build hay schema dữ liệu.
+- Việc còn treo, cần xử lý trước khi triển khai:
+  - Các đề xuất ghi ngày 2026-10-01 ở mục "Điểm cần báo lại" của spec 000 → 008 chưa được phản ánh vào docs/nghiep-vu.md (chỉ làm khi được yêu cầu sửa nguồn).
+  - Hai điểm lệch trong tài liệu nguồn chờ chủ tài liệu chốt: Phụ lục 27 dòng "Ngưỡng cảnh báo" (Trưởng tầng "—") khác mục 19.3 (spec 007 điểm báo lại 17); câu chữ mục 2.4 dòng "Người phụ trách ca" và BR-M09-02 (spec 008 điểm báo lại 19).
+  - Bảng 24.4 docs/nghiep-vu.md: các điểm cần người vận hành, chuyên môn đối chiếu.
 
 ## Nguồn tài liệu
 

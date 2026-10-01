@@ -10,104 +10,104 @@
 
 ## Requirement Completeness
 
-- [ ] CHK001 - Spec có định nghĩa "được tham chiếu" ở FR-002 không (bản nháp, bản ghi đã hủy, hay nhật ký có tính là tham chiếu)? [Clarity, Spec §FR-002]
-- [ ] CHK002 - "Người có quyền cấu hình" danh mục ở FR-002/FR-003 có được gắn với vai trò cụ thể theo Permission Matrix 4.4 không (ví dụ món ăn do Dinh dưỡng viên, phòng/giường do Quản lý viện)? [Completeness, Spec §FR-002, Constitution VI]
-- [ ] CHK003 - FR-026 (b) chỉ nêu người phụ trách ca / trưởng tầng của "tầng/khu vực"; spec có xác định ai đính chính bản ghi không gắn với tầng (chi phí đã chốt, bàn giao đồ gửi, bản ghi do Hành chính ghi) không? [Gap, Spec §FR-026]
-- [ ] CHK004 - Người được tạo bản đính chính loại "Hủy ghi nhận" có được quy định riêng không, hay áp dụng nguyên FR-026? [Gap, Spec §FR-029]
-- [ ] CHK005 - Spec có quy định yêu cầu nằm lâu ở Chờ duyệt (không ai quyết định) thì có nhắc, hết hạn hay leo thang không? [Gap, Spec §FR-031]
-- [ ] CHK006 - Spec có quy định trường hợp người duyệt mất quyền hoặc người yêu cầu bị khóa tài khoản trong khi yêu cầu còn ở Chờ duyệt / Đã duyệt (chờ hiệu lực) không? [Gap, Spec §FR-034]
-- [ ] CHK007 - Danh sách tham số dạng bảng ở FR-022 có đầy đủ không (CFG-M09-01, CFG-M04-03, CFG-M10-01 cũng có nhiều thành phần)? [Completeness, Spec §FR-022]
-- [ ] CHK008 - FR-050 chỉ nêu thời hạn lưu cho hồ sơ, sức khỏe, thuốc, sự cố; thời hạn lưu của hợp đồng, chi phí, bàn giao, đồ gửi và yêu cầu phê duyệt có được xác định không? [Gap, Spec §FR-050]
-- [ ] CHK009 - Key Entities có ghi nhóm dữ liệu (1/2/3) cho "Lịch sử giá trị tham số" như các thực thể còn lại không? [Completeness, Spec §Key Entities, Constitution III]
-- [ ] CHK010 - Nội dung "báo" cho người duyệt và người yêu cầu ở FR-038 có được liên kết với feature 009 như phần Assumptions đã nêu không? [Dependency, Spec §FR-038]
+- [x] CHK001 - Spec có định nghĩa "được tham chiếu" ở FR-002 không (bản nháp, bản ghi đã hủy, hay nhật ký có tính là tham chiếu)? [Clarity, Spec §FR-002] — *Đạt (2026-10-01): FR-002.*
+- [x] CHK002 - "Người có quyền cấu hình" danh mục ở FR-002/FR-003 có được gắn với vai trò cụ thể theo Permission Matrix 4.4 không (ví dụ món ăn do Dinh dưỡng viên, phòng/giường do Quản lý viện)? [Completeness, Spec §FR-002, Constitution VI] — *Đạt (2026-10-01): FR-002.*
+- [x] CHK003 - FR-026 (b) chỉ nêu người phụ trách ca / trưởng tầng của "tầng/khu vực"; spec có xác định ai đính chính bản ghi không gắn với tầng (chi phí đã chốt, bàn giao đồ gửi, bản ghi do Hành chính ghi) không? [Gap, Spec §FR-026] — *Đạt (2026-10-01): FR-026 (c).*
+- [x] CHK004 - Người được tạo bản đính chính loại "Hủy ghi nhận" có được quy định riêng không, hay áp dụng nguyên FR-026? [Gap, Spec §FR-029] — *Đạt (2026-10-01): FR-029.*
+- [x] CHK005 - Spec có quy định yêu cầu nằm lâu ở Chờ duyệt (không ai quyết định) thì có nhắc, hết hạn hay leo thang không? [Gap, Spec §FR-031] — *Đạt (2026-10-01): FR-031a.*
+- [x] CHK006 - Spec có quy định trường hợp người duyệt mất quyền hoặc người yêu cầu bị khóa tài khoản trong khi yêu cầu còn ở Chờ duyệt / Đã duyệt (chờ hiệu lực) không? [Gap, Spec §FR-034] — *Đạt (2026-10-01): FR-034a.*
+- [x] CHK007 - Danh sách tham số dạng bảng ở FR-022 có đầy đủ không (CFG-M09-01, CFG-M04-03, CFG-M10-01 cũng có nhiều thành phần)? [Completeness, Spec §FR-022] — *Đạt (2026-10-01): FR-022.*
+- [x] CHK008 - FR-050 chỉ nêu thời hạn lưu cho hồ sơ, sức khỏe, thuốc, sự cố; thời hạn lưu của hợp đồng, chi phí, bàn giao, đồ gửi và yêu cầu phê duyệt có được xác định không? [Gap, Spec §FR-050] — *Đạt (2026-10-01): FR-050.*
+- [x] CHK009 - Key Entities có ghi nhóm dữ liệu (1/2/3) cho "Lịch sử giá trị tham số" như các thực thể còn lại không? [Completeness, Spec §Key Entities, Constitution III] — *Đạt (2026-10-01): Key Entities.*
+- [x] CHK010 - Nội dung "báo" cho người duyệt và người yêu cầu ở FR-038 có được liên kết với feature 009 như phần Assumptions đã nêu không? [Dependency, Spec §FR-038] — *Đạt (2026-10-01): FR-038, Assumptions.*
 
 ## Requirement Clarity
 
-- [ ] CHK011 - Đơn vị thời gian của "ngày hiệu lực" có nhất quán không: FR-037 dùng "ngày", FR-038 dùng "thời điểm áp dụng", bảng trạng thái dùng "đến ngày hiệu lực"; spec có nêu giờ nào trong ngày yêu cầu được áp dụng không? [Ambiguity, Spec §FR-037, §FR-038]
-- [ ] CHK012 - Khoảng hiệu lực của phiên bản nhóm 2 ở FR-008 tính theo ngày hay theo thời điểm, và biên đầu/cuối có tính vào không? [Clarity, Spec §FR-008]
-- [ ] CHK013 - "Lần lưu dựa trên giá trị đã cũ" ở FR-021 có được định nghĩa đủ để kiểm tra khách quan không? [Clarity, Spec §FR-021]
-- [ ] CHK014 - "Gần như đồng thời" ở FR-040 có cần định lượng, hay chỉ cần quy tắc "quyết định ghi nhận trước thắng" là đủ và nên bỏ cụm từ mơ hồ này? [Ambiguity, Spec §FR-040]
-- [ ] CHK015 - "Loại khỏi thống kê và tính toán từ đó về sau" ở FR-029/FR-030 có nói rõ báo cáo đã xuất, kỳ đã chốt trước thời điểm hủy bị ảnh hưởng thế nào không? [Clarity, Spec §FR-029, §FR-030]
-- [ ] CHK016 - "Căn cứ" trong nhật ký cho thay đổi tự động (FR-045) có được nêu gồm những thông tin tối thiểu nào (mã BR, mã yêu cầu, lần chạy lịch) không? [Clarity, Spec §FR-045]
-- [ ] CHK017 - FR-013 viết "Chỉ Quản lý viện MUST được thay đổi"; câu có nên viết lại thành "Chỉ Quản lý viện được thay đổi; hệ thống MUST từ chối vai trò khác" để tránh hiểu sai phạm vi MUST không? [Clarity, Spec §FR-013]
+- [x] CHK011 - Đơn vị thời gian của "ngày hiệu lực" có nhất quán không: FR-037 dùng "ngày", FR-038 dùng "thời điểm áp dụng", bảng trạng thái dùng "đến ngày hiệu lực"; spec có nêu giờ nào trong ngày yêu cầu được áp dụng không? [Ambiguity, Spec §FR-037, §FR-038] — *Đạt (2026-10-01): FR-037.*
+- [x] CHK012 - Khoảng hiệu lực của phiên bản nhóm 2 ở FR-008 tính theo ngày hay theo thời điểm, và biên đầu/cuối có tính vào không? [Clarity, Spec §FR-008] — *Đạt (2026-10-01): FR-008.*
+- [x] CHK013 - "Lần lưu dựa trên giá trị đã cũ" ở FR-021 có được định nghĩa đủ để kiểm tra khách quan không? [Clarity, Spec §FR-021] — *Đạt (2026-10-01): FR-021.*
+- [x] CHK014 - "Gần như đồng thời" ở FR-040 có cần định lượng, hay chỉ cần quy tắc "quyết định ghi nhận trước thắng" là đủ và nên bỏ cụm từ mơ hồ này? [Ambiguity, Spec §FR-040] — *Đạt (2026-10-01): FR-040.*
+- [x] CHK015 - "Loại khỏi thống kê và tính toán từ đó về sau" ở FR-029/FR-030 có nói rõ báo cáo đã xuất, kỳ đã chốt trước thời điểm hủy bị ảnh hưởng thế nào không? [Clarity, Spec §FR-029, §FR-030] — *Đạt (2026-10-01): FR-029.*
+- [x] CHK016 - "Căn cứ" trong nhật ký cho thay đổi tự động (FR-045) có được nêu gồm những thông tin tối thiểu nào (mã BR, mã yêu cầu, lần chạy lịch) không? [Clarity, Spec §FR-045] — *Đạt (2026-10-01): FR-045.*
+- [x] CHK017 - FR-013 viết "Chỉ Quản lý viện MUST được thay đổi"; câu có nên viết lại thành "Chỉ Quản lý viện được thay đổi; hệ thống MUST từ chối vai trò khác" để tránh hiểu sai phạm vi MUST không? [Clarity, Spec §FR-013] — *Đạt (2026-10-01): FR-013.*
 
 ## Requirement Consistency
 
-- [ ] CHK018 - FR-048 (nhật ký MUST NOT xóa cho bất kỳ vai trò nào) có mâu thuẫn với FR-050/FR-051 (loại bỏ dữ liệu hết hạn lưu) không; spec có nói rõ việc loại bỏ theo thời hạn là ngoại lệ của FR-048 và ai/cái gì thực hiện không? [Conflict, Spec §FR-048, §FR-051]
-- [ ] CHK019 - FR-044 bắt buộc lý do khi "hủy", nhưng bảng trạng thái ghi Nháp → Hủy không cần lý do; hai chỗ có thống nhất không? [Conflict, Spec §FR-044, Bảng trạng thái]
-- [ ] CHK020 - SC-008 liệt kê các hành động bắt buộc lý do có khớp đủ danh sách ở FR-044 không (thiếu hủy, tự duyệt)? [Consistency, Spec §SC-008, §FR-044]
-- [ ] CHK021 - FR-010 dùng danh sách bảo vệ của BR-M15-03 ("sự cố khẩn cấp"), trong khi mục 1.5 xếp mọi "sự cố" vào nhóm 3; spec có nói rõ sự cố không khẩn cấp cũng theo FR-009 không? [Consistency, Spec §FR-009, §FR-010]
-- [ ] CHK022 - Việc Trưởng tầng được đính chính (FR-026 b) có phù hợp với 19.3 "Trưởng tầng không duyệt thay đổi lưu trú hay chi phí" khi bản ghi thuộc chi phí không? [Consistency, Spec §FR-026]
-- [ ] CHK023 - Vòng đời yêu cầu phê duyệt chung (bảng trạng thái) và BR-M10-07 ("Chờ xác nhận → Hiệu lực / Từ chối") đã được đối chiếu và ghi thành điểm cần chốt chưa? [Conflict, Spec §Điểm cần báo lại 1]
-- [ ] CHK024 - Thuật ngữ trong spec (Lệnh nghiệp vụ, Đính chính, Phiên bản, Người phụ trách ca) có dùng đúng định nghĩa mục 2.4 ở mọi chỗ không? [Consistency, Constitution II]
+- [x] CHK018 - FR-048 (nhật ký MUST NOT xóa cho bất kỳ vai trò nào) có mâu thuẫn với FR-050/FR-051 (loại bỏ dữ liệu hết hạn lưu) không; spec có nói rõ việc loại bỏ theo thời hạn là ngoại lệ của FR-048 và ai/cái gì thực hiện không? [Conflict, Spec §FR-048, §FR-051] — *Đạt (2026-10-01): FR-048 nêu ngoại lệ; FR-051 nêu Bộ lập lịch thực hiện.*
+- [x] CHK019 - FR-044 bắt buộc lý do khi "hủy", nhưng bảng trạng thái ghi Nháp → Hủy không cần lý do; hai chỗ có thống nhất không? [Conflict, Spec §FR-044, Bảng trạng thái] — *Đạt (2026-10-01): bảng trạng thái dòng Nháp → Hủy nay cần lý do, khớp FR-044.*
+- [x] CHK020 - SC-008 liệt kê các hành động bắt buộc lý do có khớp đủ danh sách ở FR-044 không (thiếu hủy, tự duyệt)? [Consistency, Spec §SC-008, §FR-044] — *Đạt (2026-10-01): SC-008.*
+- [x] CHK021 - FR-010 dùng danh sách bảo vệ của BR-M15-03 ("sự cố khẩn cấp"), trong khi mục 1.5 xếp mọi "sự cố" vào nhóm 3; spec có nói rõ sự cố không khẩn cấp cũng theo FR-009 không? [Consistency, Spec §FR-009, §FR-010] — *Đạt (2026-10-01): FR-010.*
+- [x] CHK022 - Việc Trưởng tầng được đính chính (FR-026 b) có phù hợp với 19.3 "Trưởng tầng không duyệt thay đổi lưu trú hay chi phí" khi bản ghi thuộc chi phí không? [Consistency, Spec §FR-026] — *Đạt (2026-10-01): FR-026 (c): trưởng tầng không đính chính bản ghi không gắn tầng; chi phí đã chốt không có bản đính chính.*
+- [x] CHK023 - Vòng đời yêu cầu phê duyệt chung (bảng trạng thái) và BR-M10-07 ("Chờ xác nhận → Hiệu lực / Từ chối") đã được đối chiếu và ghi thành điểm cần chốt chưa? [Conflict, Spec §Điểm cần báo lại 1] — *Đạt (2026-10-01): FR-031; Điểm cần báo lại "Còn mở" 1 (Q-118).*
+- [x] CHK024 - Thuật ngữ trong spec (Lệnh nghiệp vụ, Đính chính, Phiên bản, Người phụ trách ca) có dùng đúng định nghĩa mục 2.4 ở mọi chỗ không? [Consistency, Constitution II] — *Đạt (2026-10-01): đã rà toàn văn, thuật ngữ dùng đúng mục 2.4.*
 
 ## Acceptance Criteria Quality
 
-- [ ] CHK025 - Mỗi FR có ít nhất một kịch bản Given/When/Then không; đặc biệt FR-003 (kích hoạt lại), FR-021 (đổi tham số đồng thời), FR-022 (tham số dạng bảng), FR-046 (múi giờ, ngoại tuyến), FR-050/FR-051 (lưu giữ) hiện chỉ có ở Edge Cases hoặc chưa có? [Acceptance Criteria, Constitution IV]
-- [ ] CHK026 - SC-006 và SC-007 ("không quá 1 phút") có nêu điều kiện đo (quy mô dữ liệu theo NFR-01, số bản ghi nhật ký, người đo) không? [Measurability, Spec §SC-006, §SC-007]
-- [ ] CHK027 - Có tiêu chí thành công đo được cho phân quyền (duyệt ngoài quyền, đính chính của người không được phép, người thân xem nhật ký) không? [Gap, Spec §Success Criteria]
-- [ ] CHK028 - Có tiêu chí thành công cho thao tác nhóm 1 (xóa bị chặn khi đã tham chiếu, ngừng hiệu lực) không? [Gap, Spec §Success Criteria]
-- [ ] CHK029 - "Independent Test" của User Story 1 dựa vào đối tượng của module khác (dịch vụ, hợp đồng, liều thuốc); spec có nêu cách kiểm tra khi các module đó chưa được đặc tả không? [Assumption, Spec §User Story 1]
+- [x] CHK025 - Mỗi FR có ít nhất một kịch bản Given/When/Then không; đặc biệt FR-003 (kích hoạt lại), FR-021 (đổi tham số đồng thời), FR-022 (tham số dạng bảng), FR-046 (múi giờ, ngoại tuyến), FR-050/FR-051 (lưu giữ) hiện chỉ có ở Edge Cases hoặc chưa có? [Acceptance Criteria, Constitution IV] — *Đạt (2026-10-01): User Story 1 kịch bản 8; User Story 3 kịch bản 4, 5, 12; User Story 4 kịch bản 9, 10.*
+- [x] CHK026 - SC-006 và SC-007 ("không quá 1 phút") có nêu điều kiện đo (quy mô dữ liệu theo NFR-01, số bản ghi nhật ký, người đo) không? [Measurability, Spec §SC-006, §SC-007] — *Đạt (2026-10-01): SC-006, SC-007.*
+- [x] CHK027 - Có tiêu chí thành công đo được cho phân quyền (duyệt ngoài quyền, đính chính của người không được phép, người thân xem nhật ký) không? [Gap, Spec §Success Criteria] — *Đạt (2026-10-01): SC-009.*
+- [x] CHK028 - Có tiêu chí thành công cho thao tác nhóm 1 (xóa bị chặn khi đã tham chiếu, ngừng hiệu lực) không? [Gap, Spec §Success Criteria] — *Đạt (2026-10-01): SC-010.*
+- [x] CHK029 - "Independent Test" của User Story 1 dựa vào đối tượng của module khác (dịch vụ, hợp đồng, liều thuốc); spec có nêu cách kiểm tra khi các module đó chưa được đặc tả không? [Assumption, Spec §User Story 1] — *Đạt (2026-10-01): Independent Test của User Story 1.*
 
 ## Scenario Coverage
 
-- [ ] CHK030 - Spec có quy định khi Bộ lập lịch không chạy vào ngày hiệu lực (gián đoạn, bảo trì) thì yêu cầu đã duyệt được áp dụng bù thế nào và ngày hiệu lực ghi nhận là ngày nào không? [Gap, Recovery, Spec §FR-037]
-- [ ] CHK031 - Spec có quy định khi áp dụng một yêu cầu thất bại giữa chừng (một phần tác động đã ghi) thì trạng thái cuối và dữ liệu ra sao không? [Gap, Exception Flow, Spec §FR-037, §FR-038]
-- [ ] CHK032 - Spec có quy định trường hợp kích hoạt lại mục danh mục đã Ngừng hiệu lực mà trùng tên/mã với mục đang hiệu lực không? [Edge Case, Spec §FR-003]
-- [ ] CHK033 - Spec có quy định trường hợp đính chính khi bản ghi gốc do người đã nghỉ việc ghi và tầng đó không có người phụ trách ca tại thời điểm cần đính chính không? [Edge Case, Spec §FR-026]
-- [ ] CHK034 - Spec có quy định trường hợp tham số bị đổi trong lúc một yêu cầu phê duyệt đang chờ áp dụng mà điều kiện áp dụng phụ thuộc tham số đó không? [Edge Case, Spec §FR-017, §FR-038]
+- [x] CHK030 - Spec có quy định khi Bộ lập lịch không chạy vào ngày hiệu lực (gián đoạn, bảo trì) thì yêu cầu đã duyệt được áp dụng bù thế nào và ngày hiệu lực ghi nhận là ngày nào không? [Gap, Recovery, Spec §FR-037] — *Đạt (2026-10-01): FR-037a.*
+- [x] CHK031 - Spec có quy định khi áp dụng một yêu cầu thất bại giữa chừng (một phần tác động đã ghi) thì trạng thái cuối và dữ liệu ra sao không? [Gap, Exception Flow, Spec §FR-037, §FR-038] — *Đạt (2026-10-01): FR-037b.*
+- [x] CHK032 - Spec có quy định trường hợp kích hoạt lại mục danh mục đã Ngừng hiệu lực mà trùng tên/mã với mục đang hiệu lực không? [Edge Case, Spec §FR-003] — *Đạt (2026-10-01): FR-003.*
+- [x] CHK033 - Spec có quy định trường hợp đính chính khi bản ghi gốc do người đã nghỉ việc ghi và tầng đó không có người phụ trách ca tại thời điểm cần đính chính không? [Edge Case, Spec §FR-026] — *Đạt (2026-10-01): FR-026.*
+- [x] CHK034 - Spec có quy định trường hợp tham số bị đổi trong lúc một yêu cầu phê duyệt đang chờ áp dụng mà điều kiện áp dụng phụ thuộc tham số đó không? [Edge Case, Spec §FR-017, §FR-038] — *Đạt (2026-10-01): Edge Cases.*
 
 ## Non-Functional Requirements
 
-- [ ] CHK035 - FR-049 cho nhân viên xem lịch sử đối tượng trong phạm vi; spec có quy định giá trị trước/sau trong nhật ký cũng bị lọc theo quyền xem trường dữ liệu (ví dụ Dinh dưỡng viên không thấy giá trị sức khỏe cũ ngoài phạm vi) không? [Gap, Security, Spec §FR-049, 19.3]
-- [ ] CHK036 - Spec có quy định việc tra cứu, xuất nhật ký cũng được ghi lại (ai đã xem nhật ký) không, hay cố ý để ngoài phạm vi? [Gap, Security, Spec §FR-049]
-- [ ] CHK037 - Yêu cầu múi giờ và nguồn thời gian (FR-046) có được áp dụng thống nhất cho mốc thời gian của yêu cầu phê duyệt, lịch sử tham số và bản đính chính, không chỉ nhật ký, không? [Consistency, Spec §FR-046, DBR-25]
-- [ ] CHK038 - Khả năng kiểm thử quy tắc theo thời gian bằng đồng hồ giả lập (NFR-13) có được nêu cho FR-037, FR-019 không? [Gap, Spec §FR-019, §FR-037]
+- [x] CHK035 - FR-049 cho nhân viên xem lịch sử đối tượng trong phạm vi; spec có quy định giá trị trước/sau trong nhật ký cũng bị lọc theo quyền xem trường dữ liệu (ví dụ Dinh dưỡng viên không thấy giá trị sức khỏe cũ ngoài phạm vi) không? [Gap, Security, Spec §FR-049, 19.3] — *Đạt (2026-10-01): FR-049.*
+- [x] CHK036 - Spec có quy định việc tra cứu, xuất nhật ký cũng được ghi lại (ai đã xem nhật ký) không, hay cố ý để ngoài phạm vi? [Gap, Security, Spec §FR-049] — *Đạt (2026-10-01): FR-049, FR-043a.*
+- [x] CHK037 - Yêu cầu múi giờ và nguồn thời gian (FR-046) có được áp dụng thống nhất cho mốc thời gian của yêu cầu phê duyệt, lịch sử tham số và bản đính chính, không chỉ nhật ký, không? [Consistency, Spec §FR-046, DBR-25] — *Đạt (2026-10-01): FR-046.*
+- [x] CHK038 - Khả năng kiểm thử quy tắc theo thời gian bằng đồng hồ giả lập (NFR-13) có được nêu cho FR-037, FR-019 không? [Gap, Spec §FR-019, §FR-037] — *Đạt (2026-10-01): Assumptions.*
 
 ## Dependencies & Assumptions
 
-- [ ] CHK039 - Phụ thuộc vào feature 002 (BR-M15-01) và feature 009 (thông báo) có được ghi rõ là điều kiện tiên quyết hay có thể làm song song không? [Dependency, Spec §Assumptions]
-- [ ] CHK040 - FR-046 phụ thuộc Q-01 (ghi nhận ngoại tuyến) vẫn còn mở; spec có đánh dấu sự phụ thuộc này là chưa chốt không? [Dependency, Spec §FR-046, Q-01]
-- [ ] CHK041 - Giả định "mục Ngừng hiệu lực có thể kích hoạt lại" và "lý do bắt buộc khi đổi tham số" đã được người nghiệp vụ xác nhận chưa, hay cần đưa vào mục 24? [Assumption, Spec §Assumptions]
+- [x] CHK039 - Phụ thuộc vào feature 002 (BR-M15-01) và feature 009 (thông báo) có được ghi rõ là điều kiện tiên quyết hay có thể làm song song không? [Dependency, Spec §Assumptions] — *Đạt (2026-10-01): Assumptions.*
+- [x] CHK040 - FR-046 phụ thuộc Q-01 (ghi nhận ngoại tuyến) vẫn còn mở; spec có đánh dấu sự phụ thuộc này là chưa chốt không? [Dependency, Spec §FR-046, Q-01] — *Đạt (2026-10-01): FR-046; Q-01 đã chốt ở mục 24.2.*
+- [x] CHK041 - Giả định "mục Ngừng hiệu lực có thể kích hoạt lại" và "lý do bắt buộc khi đổi tham số" đã được người nghiệp vụ xác nhận chưa, hay cần đưa vào mục 24? [Assumption, Spec §Assumptions] — *Đạt (2026-10-01): Assumptions; Điểm cần báo lại (2026-10-01) 2.*
 
 ## Traceability (Constitution I, V, VII)
 
-- [ ] CHK042 - Các FR chưa có tham chiếu nguồn (FR-015, FR-017 → FR-022, FR-027 → FR-029, FR-033, FR-036, FR-040, FR-047) có được ghi nguồn hoặc ghi rõ là suy ra từ nguyên tắc nào không? [Traceability, Constitution I]
-- [ ] CHK043 - Các mã đề xuất (Q-10, Q-11, CFG-M15-03, CFG-M15-04) có được đánh dấu rõ là "đề xuất, chưa có trong docs" ở mọi chỗ dùng không, để tránh hiểu là mã đã ban hành? [Traceability, Constitution VII]
-- [ ] CHK044 - Spec có còn giá trị số nào viết như hằng số mà lẽ ra phải là tham số CFG không (ví dụ "1 phút" ở SC là chỉ tiêu nghiệm thu, không phải tham số)? [Consistency, Constitution V]
-- [ ] CHK045 - Mỗi FR có tham chiếu UC tương ứng như constitution I yêu cầu không (hiện chủ yếu dẫn mục và BR; chỉ FR-013, FR-031 có UC)? [Traceability, Constitution I]
+- [x] CHK042 - Các FR chưa có tham chiếu nguồn (FR-015, FR-017 → FR-022, FR-027 → FR-029, FR-033, FR-036, FR-040, FR-047) có được ghi nguồn hoặc ghi rõ là suy ra từ nguyên tắc nào không? [Traceability, Constitution I] — *Đạt (2026-10-01): các FR nêu trong mục đã ghi nguồn hoặc "Suy ra từ".*
+- [x] CHK043 - Các mã đề xuất (Q-10, Q-11, CFG-M15-03, CFG-M15-04) có được đánh dấu rõ là "đề xuất, chưa có trong docs" ở mọi chỗ dùng không, để tránh hiểu là mã đã ban hành? [Traceability, Constitution VII] — *Đạt (2026-10-01): Assumptions; các mã đã có ở mục 24.2 và Phụ lục 25.*
+- [x] CHK044 - Spec có còn giá trị số nào viết như hằng số mà lẽ ra phải là tham số CFG không (ví dụ "1 phút" ở SC là chỉ tiêu nghiệm thu, không phải tham số)? [Consistency, Constitution V] — *Đạt (2026-10-01): đã rà: các số còn lại ở Success Criteria là chỉ tiêu nghiệm thu, không phải tham số.*
+- [x] CHK045 - Mỗi FR có tham chiếu UC tương ứng như constitution I yêu cầu không (hiện chủ yếu dẫn mục và BR; chỉ FR-013, FR-031 có UC)? [Traceability, Constitution I] — *Đạt (2026-10-01): đoạn "Truy vết use case".*
 
 ## Requirement Completeness (bổ sung sau clarify 2026-09-25, lượt 2)
 
-- [ ] CHK046 - FR-031a có quy định trường hợp không còn ai có quyền duyệt loại yêu cầu trong phạm vi (người nhận nhắc rỗng) không? [Gap, Spec §FR-031a]
-- [ ] CHK047 - FR-037a có quy định việc xử lý các kết quả đã sinh trong khoảng từ ngày hiệu lực đến ngày áp dụng bù (ví dụ chi phí đã tính theo giá cũ) không, hay giao rõ cho module sở hữu (Module 11, khoản điều chỉnh)? [Gap, Spec §FR-037a, DBR-17]
-- [ ] CHK048 - FR-051 có quy định việc loại bỏ dữ liệu nhóm 3 khi dữ liệu đó còn được bản ghi khác đang trong thời hạn tham chiếu (ví dụ chi phí trỏ về liều thuốc, bản đính chính trỏ về bản gốc) không? [Gap, Spec §FR-051, DBR-15, DBR-23]
-- [ ] CHK049 - Quyền xem theo từng trường mà FR-049 dựa vào có được xác định ở đâu (feature 002, mục 19.3) và có được ghi là phụ thuộc không? [Dependency, Spec §FR-049]
-- [ ] CHK050 - FR-049 có quy định việc ẩn thông tin nhạy cảm trong trường "lý do" của nhật ký (lý do có thể chứa thông tin sức khỏe) không? [Gap, Security, Spec §FR-049]
+- [x] CHK046 - FR-031a có quy định trường hợp không còn ai có quyền duyệt loại yêu cầu trong phạm vi (người nhận nhắc rỗng) không? [Gap, Spec §FR-031a] — *Đạt (2026-10-01): FR-031a.*
+- [x] CHK047 - FR-037a có quy định việc xử lý các kết quả đã sinh trong khoảng từ ngày hiệu lực đến ngày áp dụng bù (ví dụ chi phí đã tính theo giá cũ) không, hay giao rõ cho module sở hữu (Module 11, khoản điều chỉnh)? [Gap, Spec §FR-037a, DBR-17] — *Đạt (2026-10-01): FR-037a.*
+- [x] CHK048 - FR-051 có quy định việc loại bỏ dữ liệu nhóm 3 khi dữ liệu đó còn được bản ghi khác đang trong thời hạn tham chiếu (ví dụ chi phí trỏ về liều thuốc, bản đính chính trỏ về bản gốc) không? [Gap, Spec §FR-051, DBR-15, DBR-23] — *Đạt (2026-10-01): FR-051a.*
+- [x] CHK049 - Quyền xem theo từng trường mà FR-049 dựa vào có được xác định ở đâu (feature 002, mục 19.3) và có được ghi là phụ thuộc không? [Dependency, Spec §FR-049] — *Đạt (2026-10-01): FR-049.*
+- [x] CHK050 - FR-049 có quy định việc ẩn thông tin nhạy cảm trong trường "lý do" của nhật ký (lý do có thể chứa thông tin sức khỏe) không? [Gap, Security, Spec §FR-049] — *Đạt (2026-10-01): FR-049.*
 
 ## Requirement Clarity (bổ sung)
 
-- [ ] CHK051 - FR-026 có định nghĩa tiêu chí phân biệt "bản ghi gắn tầng/khu vực" và "không gắn tầng/khu vực", và ai (module nào) khai báo điều đó không? [Clarity, Spec §FR-026]
-- [ ] CHK052 - Thời hạn CFG-M15-05 ở FR-031a được tính theo giờ liên tục hay có trừ giờ yên tĩnh / ngoài giờ hành chính không? [Clarity, Spec §FR-031a]
-- [ ] CHK053 - FR-037a nói điều kiện áp dụng "được kiểm tra tại thời điểm áp dụng bù", nhưng tác động "tính từ ngày hiệu lực"; spec có nói rõ vì sao điều kiện không kiểm tra theo ngày hiệu lực, và trường hợp điều kiện thỏa tại ngày D nhưng không thỏa lúc áp dụng bù không? [Ambiguity, Spec §FR-037a, §FR-038]
-- [ ] CHK054 - Khi yêu cầu được duyệt sau khi ngày hiệu lực mong muốn đã qua, tác động tính từ ngày hiệu lực mong muốn hay từ ngày duyệt? FR-037 và FR-037a có thống nhất điểm này không? [Ambiguity, Spec §FR-037, §FR-037a]
+- [x] CHK051 - FR-026 có định nghĩa tiêu chí phân biệt "bản ghi gắn tầng/khu vực" và "không gắn tầng/khu vực", và ai (module nào) khai báo điều đó không? [Clarity, Spec §FR-026] — *Đạt (2026-10-01): FR-026.*
+- [x] CHK052 - Thời hạn CFG-M15-05 ở FR-031a được tính theo giờ liên tục hay có trừ giờ yên tĩnh / ngoài giờ hành chính không? [Clarity, Spec §FR-031a] — *Đạt (2026-10-01): FR-031a.*
+- [x] CHK053 - FR-037a nói điều kiện áp dụng "được kiểm tra tại thời điểm áp dụng bù", nhưng tác động "tính từ ngày hiệu lực"; spec có nói rõ vì sao điều kiện không kiểm tra theo ngày hiệu lực, và trường hợp điều kiện thỏa tại ngày D nhưng không thỏa lúc áp dụng bù không? [Ambiguity, Spec §FR-037a, §FR-038] — *Đạt (2026-10-01): FR-037a.*
+- [x] CHK054 - Khi yêu cầu được duyệt sau khi ngày hiệu lực mong muốn đã qua, tác động tính từ ngày hiệu lực mong muốn hay từ ngày duyệt? FR-037 và FR-037a có thống nhất điểm này không? [Ambiguity, Spec §FR-037, §FR-037a] — *Đạt (2026-10-01): FR-037.*
 
 ## Requirement Consistency (bổ sung)
 
-- [ ] CHK055 - Hệ số "gấp đôi thời hạn" ở FR-031a có phải là giá trị cố định trái nguyên tắc V (ngưỡng phải là tham số CFG) không? [Conflict, Spec §FR-031a, Constitution V]
-- [ ] CHK056 - FR-009 (nhóm 3 không có thao tác xóa) đã được ghi ngoại lệ loại bỏ theo thời hạn ở FR-051 như FR-048 đã làm chưa? [Conflict, Spec §FR-009, §FR-051]
-- [ ] CHK057 - "Bản nhật ký tóm tắt MUST NOT bị loại bỏ" (FR-051) có nhất quán với thời hạn CFG-M15-04 áp dụng cho mọi nhật ký ở FR-050 không? [Consistency, Spec §FR-050, §FR-051]
-- [ ] CHK058 - Việc Quản lý viện đính chính bản ghi không gắn tầng (FR-026) có khớp với Permission Matrix 4.4, nơi Quản lý viện chỉ có X/D (không có T) với chi phí và đồ gửi, không? [Conflict, Spec §FR-026, Constitution VI]
-- [ ] CHK059 - Câu cuối FR-026 "bản ghi do Bộ lập lịch tạo chỉ nhóm (b) được đính chính" còn đúng sau khi nhóm (b) được tách thành hai trường hợp không? [Consistency, Spec §FR-026]
-- [ ] CHK060 - Các mã hậu tố "FR-031a", "FR-037a" có phù hợp với cách đánh mã yêu cầu của dự án không, hay cần đánh số lại để truy vết ổn định? [Traceability, Spec §FR-031a, §FR-037a]
+- [x] CHK055 - Hệ số "gấp đôi thời hạn" ở FR-031a có phải là giá trị cố định trái nguyên tắc V (ngưỡng phải là tham số CFG) không? [Conflict, Spec §FR-031a, Constitution V] — *Đạt (2026-10-01): FR-031a dùng tham số CFG-M15-06 thay cho "gấp đôi".*
+- [x] CHK056 - FR-009 (nhóm 3 không có thao tác xóa) đã được ghi ngoại lệ loại bỏ theo thời hạn ở FR-051 như FR-048 đã làm chưa? [Conflict, Spec §FR-009, §FR-051] — *Đạt (2026-10-01): FR-009.*
+- [x] CHK057 - "Bản nhật ký tóm tắt MUST NOT bị loại bỏ" (FR-051) có nhất quán với thời hạn CFG-M15-04 áp dụng cho mọi nhật ký ở FR-050 không? [Consistency, Spec §FR-050, §FR-051] — *Đạt (2026-10-01): FR-050.*
+- [x] CHK058 - Việc Quản lý viện đính chính bản ghi không gắn tầng (FR-026) có khớp với Permission Matrix 4.4, nơi Quản lý viện chỉ có X/D (không có T) với chi phí và đồ gửi, không? [Conflict, Spec §FR-026, Constitution VI] — *Đạt (2026-10-01): FR-026 (c): nhân viên lập (T), Quản lý viện duyệt (D).*
+- [x] CHK059 - Câu cuối FR-026 "bản ghi do Bộ lập lịch tạo chỉ nhóm (b) được đính chính" còn đúng sau khi nhóm (b) được tách thành hai trường hợp không? [Consistency, Spec §FR-026] — *Đạt (2026-10-01): FR-026, câu về bản ghi do Bộ lập lịch tạo.*
+- [x] CHK060 - Các mã hậu tố "FR-031a", "FR-037a" có phù hợp với cách đánh mã yêu cầu của dự án không, hay cần đánh số lại để truy vết ổn định? [Traceability, Spec §FR-031a, §FR-037a] — *Đạt (2026-10-01): Assumptions.*
 
 ## Acceptance Criteria & Scenario Coverage (bổ sung)
 
-- [ ] CHK061 - Có tiêu chí thành công đo được cho các yêu cầu mới: nhắc và báo khi quá hạn duyệt (FR-031a), áp dụng bù đúng ngày hiệu lực (FR-037a), ẩn giá trị theo trường (FR-049), loại bỏ theo thời hạn (FR-051) không? [Gap, Spec §Success Criteria]
-- [ ] CHK062 - Có kịch bản cho trường hợp nhiều yêu cầu cùng tác động lên một đối tượng đều chờ áp dụng bù sau gián đoạn nhiều ngày (thứ tự áp dụng) không? [Edge Case, Gap, Spec §FR-037a]
-- [ ] CHK063 - Có kịch bản cho yêu cầu đang Chờ duyệt mà ngày hiệu lực mong muốn đã qua (tương tác FR-031a và FR-037) không? [Coverage, Gap, Spec §FR-031a, §FR-037]
-- [ ] CHK064 - Có kịch bản cho đợt loại bỏ dữ liệu bị gián đoạn giữa chừng (một phần đã loại bỏ) và nhật ký tóm tắt phản ánh thế nào không? [Recovery, Gap, Spec §FR-051]
-- [ ] CHK065 - Mục "Điểm cần báo lại" có liệt kê đủ mọi đề xuất phát sinh từ lượt clarify 2 (CFG-M15-05; ngoại lệ loại bỏ theo thời hạn; Quản lý viện đính chính bản ghi không gắn tầng; ẩn giá trị theo trường) để cập nhật docs không? [Traceability, Spec §Điểm cần báo lại]
+- [x] CHK061 - Có tiêu chí thành công đo được cho các yêu cầu mới: nhắc và báo khi quá hạn duyệt (FR-031a), áp dụng bù đúng ngày hiệu lực (FR-037a), ẩn giá trị theo trường (FR-049), loại bỏ theo thời hạn (FR-051) không? [Gap, Spec §Success Criteria] — *Đạt (2026-10-01): SC-011.*
+- [x] CHK062 - Có kịch bản cho trường hợp nhiều yêu cầu cùng tác động lên một đối tượng đều chờ áp dụng bù sau gián đoạn nhiều ngày (thứ tự áp dụng) không? [Edge Case, Gap, Spec §FR-037a] — *Đạt (2026-10-01): FR-037a, Edge Cases.*
+- [x] CHK063 - Có kịch bản cho yêu cầu đang Chờ duyệt mà ngày hiệu lực mong muốn đã qua (tương tác FR-031a và FR-037) không? [Coverage, Gap, Spec §FR-031a, §FR-037] — *Đạt (2026-10-01): Edge Cases; User Story 5 kịch bản 6.*
+- [x] CHK064 - Có kịch bản cho đợt loại bỏ dữ liệu bị gián đoạn giữa chừng (một phần đã loại bỏ) và nhật ký tóm tắt phản ánh thế nào không? [Recovery, Gap, Spec §FR-051] — *Đạt (2026-10-01): FR-051, Edge Cases.*
+- [x] CHK065 - Mục "Điểm cần báo lại" có liệt kê đủ mọi đề xuất phát sinh từ lượt clarify 2 (CFG-M15-05; ngoại lệ loại bỏ theo thời hạn; Quản lý viện đính chính bản ghi không gắn tầng; ẩn giá trị theo trường) để cập nhật docs không? [Traceability, Spec §Điểm cần báo lại] — *Đạt (2026-10-01): Điểm cần báo lại "Đã phản ánh" 2, 5, 6.*
 
 ## Notes
 
@@ -116,3 +116,5 @@
 - `/speckit-implement` reads checklist checkbox state as a gate and must not modify markers
 - `checklists/requirements.md` has a separate built-in lifecycle maintained by `/speckit-specify` and `/speckit-clarify`
 - Nhiều mục (CHK003, CHK018, CHK019, CHK020, CHK030, CHK035) là lỗ hổng hoặc mâu thuẫn thật trong spec hiện tại; nên xử lý bằng `/speckit-clarify` hoặc sửa spec trước khi chốt.
+
+- **Đánh giá 2026-10-01 (theo yêu cầu của người dùng):** cả 65 mục được đối chiếu với toàn văn spec. 16 mục spec đã đáp ứng từ trước; 49 mục được bổ sung vào spec cùng ngày (xem "Session 2026-10-01 (đánh giá checklist business-rules)" và điểm (2026-10-01) 2 của mục "Điểm cần báo lại"). Căn cứ của từng mục ghi ngay cuối dòng.
