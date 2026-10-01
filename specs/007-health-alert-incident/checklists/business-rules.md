@@ -58,7 +58,7 @@
 
 - [x] CHK035 - Luồng khôi phục khi Bộ lập lịch ngừng chạy một thời gian (leo thang, hết hạn đo lại, nhắc ngưỡng, hết hạn lịch đo bị trễ) có được mô tả không: chạy bù thế nào, có leo thang dồn nhiều cấp cùng lúc không? [Gap, Recovery, Spec §FR-017, §FR-033] — *Đạt (2026-10-01): FR-084.*
 - [x] CHK036 - Khi feature nguồn yêu cầu đóng cảnh báo đã Chuyển sự cố (ví dụ liều được đính chính Đã dùng sau khi cảnh báo Bỏ lỡ đã thành sự cố), spec quy định gì? FR-032 chỉ áp cho cảnh báo "đang mở". [Gap, Exception Flow, Spec §FR-032] — *Đạt (2026-10-01): FR-032 (Q-76).*
-- [x] CHK037 - Có kịch bản cho sự cố lây nhiễm có người nghi nhiễm là nhân viên hoặc người thân (không phải người cao tuổi) không? Assumptions chỉ nói mỗi sự cố gắn tối đa một người cao tuổi. [Coverage, Gap, Spec §FR-060, Assumptions] — *Đạt (2026-10-01): FR-040, FR-060.*
+- [x] CHK037 - Có kịch bản cho sự cố lây nhiễm có người nghi nhiễm là nhân viên hoặc người thân (không phải người cao tuổi) không? Assumptions chỉ nói mỗi sự cố gắn tối đa một người cao tuổi. [Coverage, Gap, Spec §FR-060, Assumptions] — *Đạt (2026-10-01): Assumptions ghi rõ trường hợp này ngoài phạm vi (chủ dự án chốt).*
 - [x] CHK038 - Người cao tuổi vừa là người nghi nhiễm của một sự cố vừa là người tiếp xúc của sự cố khác có được xử lý (dấu, lịch đo) không? [Coverage, Edge Case, Spec §FR-060, §FR-062] — *Đạt (2026-10-01): Edge Cases.*
 - [x] CHK039 - Cảnh báo, sự cố đang mở của người cao tuổi chuyển viện rồi trở về: hạn tiếp nhận, leo thang và người phụ trách khi người đó vắng mặt có được quy định không (FR-038 chỉ nói trạng thái cuối)? [Coverage, Gap, Spec §FR-038] — *Đạt (2026-10-01): FR-031.*
 

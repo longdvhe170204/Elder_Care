@@ -7,9 +7,8 @@
 - KHÔNG chạy /speckit.plan, /speckit.tasks, /speckit.implement cho tới khi chủ dự án mở giai đoạn kế tiếp và sửa mục này.
 - KHÔNG tạo mã nguồn, thư mục src/, file cấu hình build hay schema dữ liệu.
 - Việc còn treo, cần xử lý trước khi triển khai:
-  - Các đề xuất ghi ngày 2026-10-01 ở mục "Điểm cần báo lại" của spec 000 → 008 chưa được phản ánh vào docs/nghiep-vu.md (chỉ làm khi được yêu cầu sửa nguồn).
-  - Hai điểm lệch trong tài liệu nguồn chờ chủ tài liệu chốt: Phụ lục 27 dòng "Ngưỡng cảnh báo" (Trưởng tầng "—") khác mục 19.3 (spec 007 điểm báo lại 17); câu chữ mục 2.4 dòng "Người phụ trách ca" và BR-M09-02 (spec 008 điểm báo lại 19).
   - Bảng 24.4 docs/nghiep-vu.md: các điểm cần người vận hành, chuyên môn đối chiếu.
+- Đã xử lý 2026-10-01: các đề xuất của spec 000 → 008 đã vào docs/nghiep-vu.md thành Q-271 → Q-279 (24.2) và được đánh mã BR mới trong mục "Quy tắc nghiệp vụ" của các module 01, 02, 03, 04, 05, 07, 09, 15 (63 quy tắc; tổng 240 BR); hai điểm lệch của nguồn (Phụ lục 27 dòng "Ngưỡng cảnh báo"; mục 2.4 và BR-M09-02) đã sửa.
 
 ## Nguồn tài liệu
 
@@ -19,6 +18,7 @@
 - Hai file dẫn xuất, chỉ để đọc nhanh, **không phải nguồn**; không trích dẫn chúng trong spec, luôn trích docs/nghiep-vu.md hoặc docs/luong-nghiep-vu.md:
   - docs/tom-tat-nghiep-vu.md: tóm tắt nghiệp vụ, vai trò, nhóm chức năng và các luồng chính.
   - docs/quy-tac-nghiep-vu.md: bản chép nguyên văn BR, DBR, CFG, yêu cầu phi chức năng, tích hợp, quyền, quyết định còn mở từ docs/nghiep-vu.md.
+  - docs/business-rule.md: danh sách toàn bộ quy tắc BR-Mxx-yy theo module, chép nguyên văn từ docs/nghiep-vu.md (cũng là file dẫn xuất, cập nhật cùng lượt).
 - Khi hai file nguồn thay đổi (thêm BR, CFG, DBR, Q, luồng hoặc vai trò), cập nhật lại hai file dẫn xuất trong cùng lượt sửa; khi khác nhau, file nguồn là căn cứ.
 
 ## Quy ước

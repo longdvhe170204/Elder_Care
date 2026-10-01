@@ -233,7 +233,7 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 | 2 | Bộ lập lịch | Quá [48 giờ] chưa duyệt: nhắc người duyệt. Quá [96 giờ]: báo Quản lý viện. Không tự hủy | — | 6.6, CFG-M15-05, 06 |
 | 3 | Quản lý viện | Duyệt hoặc từ chối | Đã duyệt (chờ hiệu lực), tạo phụ lục Chờ hiệu lực / Từ chối | UC-14, spec 004 FR-042 |
 | 4 | Bộ lập lịch | Tới ngày hiệu lực: áp dụng, gồm đổi mức chăm sóc hiện hành, đổi đơn giá, chuyển giường, đổi ngày kết thúc, đổi dịch vụ; **kích hoạt xem xét kế hoạch chăm sóc**. Điều kiện không còn thỏa thì chuyển Áp dụng không thành | Yêu cầu: Đã áp dụng / Áp dụng không thành. Phụ lục: Đã áp dụng | BR-M02-04, Q-11, spec 004 FR-042 |
-| 5 | Hệ thống | Tạo yêu cầu xem xét kế hoạch chăm sóc cho Điều dưỡng phụ trách, hạn [48 giờ] | — | BR-M04-20, spec 005 FR-011 |
+| 5 | Hệ thống | Tạo yêu cầu xem xét kế hoạch chăm sóc cho Điều dưỡng phụ trách, hạn [48 giờ] | — | BR-M04-20 (Q-276), spec 005 FR-011 |
 | 6 | Điều dưỡng; người có quyền Duyệt kế hoạch chăm sóc | Điều dưỡng lập phiên bản mới; người có quyền duyệt | Kế hoạch: Nháp → Chờ duyệt → Hiệu lực, từ ngày hôm sau ngày duyệt | BR-M04-19, Q-34 |
 
 **Điểm đã làm rõ**
