@@ -17,6 +17,14 @@
 - Q: Kế toán có được thu tiền cọc khi hợp đồng còn "Chờ ký" không? → A: Có. Sổ số dư, sổ tiền cọc và mã nộp tiền được mở khi hợp đồng đầu tiên chuyển Chờ ký; hợp đồng bị hủy trước khi Hiệu lực (hoặc Hủy tiếp nhận) thì Kế toán lập hoàn cọc, Quản lý viện duyệt.
 - Q: Phiếu thu tiền mặt của Kế toán có cần bước kiểm soát thứ hai không? → A: Phiếu thu có hiệu lực ngay, có số phiếu liên tục; cuối ngày Kế toán lập chốt quỹ ngày (thu, chi tiền mặt, tiền thực có, chênh lệch) và Quản lý viện xác nhận; lệch thì ghi lý do, không đổi số dư của người cao tuổi.
 
+### Session 2026-09-30 (rà soát vận hành)
+
+- Q: Gia đình đã nộp đủ sau khi bị báo "sắp hết tiền", "còn nợ" có được báo không? → A: Có. Khi một giao dịch nộp tiền (phiếu thu tiền mặt, chuyển khoản đã đối soát) làm tình trạng về Bình thường, hệ thống tính lại ngay lúc ghi, dừng nhắc và báo người đại diện mức Nhẹ "đã ghi nhận khoản nộp, số dư đã đủ" (người không có quyền xem chi phí chỉ nhận phần "chung"). Các biến động tốt lên khác vẫn không báo ngay. Sửa một phần Q-228 (Q-252).
+
+### Session 2026-10-01 (/speckit-clarify, checklist cross-feature)
+
+- Q: Gia đình nộp tiền nhưng chưa đủ để tình trạng về Bình thường thì người đại diện có được báo không? → A: Có. Mọi giao dịch nộp tiền của người đang ở Sắp hết tiền hoặc Còn nợ đều gửi người đại diện thông báo mức Nhẹ "đã ghi nhận khoản nộp" kèm tình trạng sau khi nộp; chưa đủ thì chu kỳ nhắc giữ nguyên; người đang Bình thường nộp tiền thì không gửi (Q-257).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 11, mục 15.9; 6.5; 6.8 phần quyết toán; UC-12, UC-85 → UC-88; BF-16):
@@ -224,7 +232,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu 
 | Mã nộp tiền | 1 | Do hệ thống cấp, không đổi, không cấp lại cho người khác |
 | Giao dịch số dư, giao dịch tiền cọc | 2 khi Chờ duyệt → 3 khi Đã xác nhận | Theo bảng mục C; giao dịch Đã xác nhận chỉ ghi thêm giao dịch đảo |
 | Lần nhập sao kê, dòng sao kê | 3 (nội dung dòng); 2 (trạng thái khớp) | Nội dung dòng không sửa; trạng thái theo bảng mục B |
-| Tình trạng số dư (Bình thường / Sắp hết tiền / Còn nợ) | 2 – bản ghi dẫn xuất | Theo bảng chuyển tình trạng số dư; chỉ Bộ lập lịch đổi, trừ "dừng nhắc" của Quản lý viện |
+| Tình trạng số dư (Bình thường / Sắp hết tiền / Còn nợ) | 2 – bản ghi dẫn xuất | Theo bảng chuyển tình trạng số dư; chỉ Bộ lập lịch đổi, trừ "dừng nhắc" của Quản lý viện và (bổ sung, Q-252) tính lại khi ghi giao dịch nộp tiền |
 | Lịch sử tình trạng và lần báo | 3 | Chỉ ghi thêm |
 | Lần xuất sao kê, báo cáo | 3 | Chỉ ghi thêm |
 | Chốt quỹ ngày | 2 → 3 khi Đã xác nhận | Theo bảng trạng thái chốt quỹ ngày (FR-005a) |
@@ -300,7 +308,7 @@ Quá hạn duyệt được nhắc theo CFG-M15-05 mặc định \[48 giờ\], C
 
 - **FR-016**: Hằng ngày, sau khi Bộ lập lịch của feature 010 đã sinh phí của ngày vừa kết thúc, Bộ lập lịch MUST tính cho mỗi hồ sơ có hợp đồng Hiệu lực và chưa ở trạng thái cuối: **số ngày còn đủ tiền** = (số dư − **tổng chi phí chưa chốt**) ÷ phí lưu trú một ngày, làm tròn xuống. Tổng chi phí chưa chốt là tổng các khoản của mọi bảng chi phí chưa Đã chốt của hồ sơ (bảng thường của kỳ hiện tại và kỳ trước còn Đang mở hoặc Chờ chốt, bảng bổ sung), lấy theo thành phần của Q-136, do feature 010 cung cấp (feature 010 FR-038a). Với hợp đồng tính theo tháng, phí lưu trú một ngày là phí ngày cơ sở của tháng hiện tại (feature 010 FR-009); với hợp đồng tính theo ngày là đơn giá ngày; với hợp đồng bán trú giá tháng là giá tháng ÷ số ngày của tháng hiện tại, với hợp đồng bán trú giá buổi là giá buổi × số buổi có lịch trong 7 ngày tới ÷ 7 (Q-223, Clarification 2026-09-28). *(Nguồn: BR-M11-13, Q-136)*
 - **FR-017**: Tình trạng số dư MUST là: "Còn nợ" khi số dư − tổng chi phí chưa chốt < 0; "Sắp hết tiền" khi không còn nợ và số ngày còn đủ tiền < CFG-M11-04 mặc định \[15 ngày\]; "Bình thường" trong trường hợp còn lại. Khi phí lưu trú một ngày bằng 0, chỉ xét "Còn nợ". *(Nguồn: BR-M11-13, CFG-M11-04)*
-- **FR-018**: Khi tình trạng chuyển sang "Sắp hết tiền" hoặc "Còn nợ", và mỗi CFG-M11-05 mặc định \[7 ngày\] sau lần báo trước trong khi tình trạng vẫn không phải Bình thường, hệ thống MUST gửi qua feature 009: mọi người đại diện có quan hệ Hiệu lực, mức Trung bình; Kế toán, mức Nhẹ, kèm danh sách. Nội dung gửi người thân chia phần theo loại thông tin (Q-105): phần "chung" là "có thông báo về tài chính của [họ tên], vui lòng liên hệ Kế toán"; phần "chi phí" gồm tình trạng, số dư, tổng chi phí chưa chốt, thông tin nộp tiền. Người đại diện không có quyền xem chi phí chỉ nhận phần "chung" (BR-M13-04). Chiều xấu đi ("Sắp hết tiền" → "Còn nợ") là một lần chuyển mới: báo ngay và đặt lại chu kỳ CFG-M11-05. Chiều tốt lên ("Còn nợ" → "Sắp hết tiền") không báo ngay và giữ chu kỳ cũ. *(Nguồn: BR-M11-13, BR-M13-04, Q-105, Q-211)*
+- **FR-018**: Khi tình trạng chuyển sang "Sắp hết tiền" hoặc "Còn nợ", và mỗi CFG-M11-05 mặc định \[7 ngày\] sau lần báo trước trong khi tình trạng vẫn không phải Bình thường, hệ thống MUST gửi qua feature 009: mọi người đại diện có quan hệ Hiệu lực, mức Trung bình; Kế toán, mức Nhẹ, kèm danh sách. Nội dung gửi người thân chia phần theo loại thông tin (Q-105): phần "chung" là "có thông báo về tài chính của [họ tên], vui lòng liên hệ Kế toán"; phần "chi phí" gồm tình trạng, số dư, tổng chi phí chưa chốt, thông tin nộp tiền. Người đại diện không có quyền xem chi phí chỉ nhận phần "chung" (BR-M13-04). Chiều xấu đi ("Sắp hết tiền" → "Còn nợ") là một lần chuyển mới: báo ngay và đặt lại chu kỳ CFG-M11-05. Chiều tốt lên ("Còn nợ" → "Sắp hết tiền") không báo ngay và giữ chu kỳ cũ. **(Bổ sung, 2026-09-30, Q-252)** Ngoại lệ: giao dịch nộp tiền đưa tình trạng về Bình thường thì báo ngay theo bảng chuyển tình trạng số dư. **(Bổ sung, 2026-10-01, Q-257)** Giao dịch nộp tiền chưa đưa tình trạng về Bình thường cũng MUST được báo "đã ghi nhận khoản nộp" kèm tình trạng sau khi nộp; thông báo này MUST NOT thay hay đặt lại lần nhắc theo chu kỳ. *(Nguồn: BR-M11-13, BR-M13-04, Q-105, Q-211, Q-252)*
 - **FR-019**: Khi hồ sơ ở "Còn nợ" liên tục từ CFG-M11-05 trở lên, Quản lý viện MUST được báo thêm ở mỗi lần nhắc lại. *(Nguồn: BR-M11-13)*
 - **FR-020**: Tình trạng "Sắp hết tiền" hay "Còn nợ" MUST NOT chặn bất kỳ lệnh chăm sóc, thuốc, suất ăn, hoạt động nào. Hồ sơ đã kết thúc lưu trú mà số dư còn âm (ngoại lệ ở FR-022) vẫn được báo "còn nợ" cho người đại diện và Kế toán theo FR-018 cho tới khi số dư bằng 0 hoặc Quản lý viện ghi "dừng nhắc" kèm lý do. *(Nguồn: Q-219)*
 - **FR-021**: Khi đề nghị mua hộ được gửi (feature 010) mà số dư − tổng chi phí chưa chốt nhỏ hơn số tiền dự kiến, hệ thống MUST cung cấp cho feature 010 dấu "số dư không đủ" cho đề nghị; dấu không chặn. Dấu MUST được tính lại mỗi khi số dư hoặc tổng chi phí chưa chốt của hồ sơ đổi, cho tới khi đề nghị được đồng ý, từ chối hoặc hủy, để người đại diện hay Quản lý viện thấy giá trị mới nhất khi quyết định. *(Nguồn: BR-M11-15, Q-219)*
@@ -313,6 +321,8 @@ Quá hạn duyệt được nhắc theo CFG-M15-05 mặc định \[48 giờ\], C
 | Bình thường, Sắp hết tiền | Số dư − tổng chi phí chưa chốt < 0 | Còn nợ | Báo ngay; đặt lại chu kỳ; bắt đầu đếm cho FR-019 |
 | Còn nợ | Hết nợ nhưng số ngày còn đủ tiền < CFG-M11-04 | Sắp hết tiền | Không báo ngay; giữ chu kỳ |
 | Sắp hết tiền, Còn nợ | Số ngày còn đủ tiền ≥ CFG-M11-04 và không nợ | Bình thường | Dừng nhắc |
+| Sắp hết tiền, Còn nợ | **(Bổ sung, 2026-09-30, Q-252)** Ghi một giao dịch nộp tiền (phiếu thu tiền mặt, hoặc xác nhận đối soát chuyển khoản) mà sau khi tính lại ngay, số ngày còn đủ tiền ≥ CFG-M11-04 và không nợ | Bình thường | Dừng nhắc; báo người đại diện "đã ghi nhận khoản nộp, số dư đã đủ" (FR-030) |
+| Sắp hết tiền, Còn nợ | **(Bổ sung, 2026-10-01, Q-257)** Ghi một giao dịch nộp tiền mà sau khi tính lại ngay, tình trạng vẫn là Sắp hết tiền hoặc Còn nợ (kể cả Còn nợ → Sắp hết tiền) | Tình trạng tính được | Báo người đại diện "đã ghi nhận khoản nộp" kèm tình trạng sau khi nộp (FR-030); chu kỳ CFG-M11-05 giữ nguyên, không đặt lại |
 | Sắp hết tiền, Còn nợ | Chưa đổi và đã qua CFG-M11-05 kể từ lần báo trước | Giữ nguyên | Nhắc lại theo FR-018, FR-019 |
 | Còn nợ (hồ sơ trạng thái cuối) | Quản lý viện ghi "dừng nhắc", có lý do | Giữ nguyên, mang dấu "dừng nhắc" | Không nhắc nữa (FR-020) |
 
@@ -343,6 +353,8 @@ Hồ sơ không có hợp đồng Hiệu lực và chưa ở trạng thái cuố
 | --- | --- | --- | --- |
 | Tình trạng chuyển Sắp hết tiền hoặc Còn nợ; nhắc lại mỗi CFG-M11-05 | Mọi người đại diện (phần "chung"; phần "chi phí" nếu có quyền) | Trung bình | FR-018 |
 | Như trên | Kế toán (kèm danh sách) | Nhẹ | FR-018 |
+| *(Bổ sung, 2026-09-30)* Giao dịch nộp tiền đưa tình trạng Sắp hết tiền, Còn nợ về Bình thường | Mọi người đại diện (phần "chung": "đã ghi nhận khoản nộp, số dư đã đủ"; phần "chi phí" nếu có quyền) | Nhẹ | Bảng chuyển tình trạng số dư, Q-252 |
+| *(Bổ sung, 2026-10-01)* Giao dịch nộp tiền của người đang Sắp hết tiền, Còn nợ mà tình trạng chưa về Bình thường | Mọi người đại diện (phần "chung": "đã ghi nhận khoản nộp, [tình trạng sau khi nộp]"; phần "chi phí" nếu có quyền) | Nhẹ | Bảng chuyển tình trạng số dư, Q-257 |
 | Còn nợ liên tục từ CFG-M11-05 | Quản lý viện | Nhẹ | FR-019 |
 | Có dòng sao kê Chưa khớp sau lần nhập | Kế toán | Nhẹ | Bảng trạng thái dòng sao kê |
 | Giao dịch cần duyệt được lập; chốt quỹ ngày được lập | Quản lý viện | Nhẹ | FR-013, FR-005a |
@@ -424,3 +436,7 @@ Hồ sơ không có hợp đồng Hiệu lực và chưa ở trạng thái cuố
 9. **Bảng chuyển tình trạng số dư và nội dung chia phần của thông báo (FR-018, checklist CHK006, CHK007, CHK021)** – BR-M11-13 không nêu chiều "Còn nợ → Sắp hết tiền", cũng không nêu người đại diện không có quyền xem chi phí nhận gì. Spec chọn: không báo ngay khi tình trạng tốt lên; người không có quyền xem chi phí chỉ nhận phần "chung" (Q-105). Đề nghị ghi rõ ở BR-M11-13.
 10. **Giới hạn hoàn tiền giữa kỳ (FR-014, checklist CHK030)** – spec giới hạn bằng số dư − tổng chi phí chưa chốt khi hồ sơ chưa ở trạng thái cuối. Đề nghị ghi rõ ở BR-M11-14.
 11. **Đồng bộ spec 004, 010 (checklist CHK009 → CHK019)** – ngày 2026-09-28 đã sửa spec 004 (đặt cọc dẫn xuất từ spec này, điều kiện quyết toán, sự kiện hợp đồng) và spec 010 (FR-038a, người xuất file là Kế toán, ranh giới FR-042, bảng giao tiếp "Gửi 017", dấu "số dư không đủ").
+
+**(2026-09-30)** 12. **Rà soát vận hành (B10.5)** – báo người đại diện khi giao dịch nộp tiền đưa số dư về Bình thường (Q-252, sửa một phần Q-228). *(Đã xử lý 2026-09-30: BR-M11-13, 17, Q-252 ở 24.2, BF-16 bước 8; bảng chuyển tình trạng số dư, FR-018, FR-030.)*
+
+**(2026-10-01)** 13. **Checklist cross-feature CHK087** – khoản nộp chưa đủ cũng báo người đại diện "đã ghi nhận khoản nộp" kèm tình trạng sau khi nộp (Q-257, bổ sung Q-252). *(Đã xử lý 2026-10-01: BR-M11-13, 17, Q-257 ở 24.2, BF-16 bước 8; bảng chuyển tình trạng số dư, FR-018, FR-030.)*

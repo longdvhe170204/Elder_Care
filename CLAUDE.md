@@ -23,5 +23,5 @@
 - Điểm chưa rõ: không tự đoán; luôn tham chiếu mã Q-xx ở mục 24 docs/nghiep-vu.md. Quyết định còn mở đã có Mặc định ở 24.1 thì ghi "theo mặc định Q-xx" và viết yêu cầu theo giá trị đó; chưa có Mặc định (hoặc chưa có mã Q) thì đánh dấu [NEEDS CLARIFICATION] kèm mã Q-xx (Q-204).
 - Không đưa diagram vào spec ở giai đoạn này; trạng thái thể hiện bằng bảng.
 - Khi một quyết định Q-xx được chốt: chuyển dòng từ 24.1 sang 24.2, rồi cập nhật thân tài liệu, Phụ lục 26 → 28 nếu liên quan, docs/luong-nghiep-vu.md và mục "Điểm cần báo lại" của spec liên quan (theo 24.2).
-- Sau khi hoàn thành 1 bước spec nào đó, hãy gợi ý cho tôi bước tiếp theo nên làm gì sao cho phù hợp nhất.
+- Sau khi hoàn thành 1 bước spec nào đó, nếu yêu cầu còn quá mơ hồ thì hãy gợi ý các bước tôi nên làm tiếp theo, còn không thì hãy ghi hoàn thành để tránh việc tìm hiểu quá sâu, dễ bị bất đồng bộ với các spec khác.
 - docs/phan-tich-yeu-cau.md đã bỏ (2026-09-28); các tham chiếu "4.1", "4.2", "4.4", "DBR" cũ trong spec tra theo bảng ánh xạ ở đầu Phụ lục 26 docs/nghiep-vu.md.

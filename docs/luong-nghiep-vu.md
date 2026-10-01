@@ -20,7 +20,7 @@ Quy ước:
 | Hoạt động, chuyến đi ngoài viện, kiểm tra chất lượng | BF-15 | 014 | 8.8 → 8.10, BR-M04-23 |
 | **(Bổ sung, 2026-09-28)** Số dư, thu chi, đối soát chuyển khoản, chốt quỹ ngày, báo sắp hết tiền | BF-16 | 017 | 6.5, 15.9 |
 | **(Bổ sung, 2026-09-28)** Nguy kịch và thực hiện nguyện vọng cuối đời | BF-17 | 007, 004 (Q-213) | 5.2, 9.5 |
-| **(Bổ sung, 2026-09-28)** Khai báo tạm trú, tài sản của viện, kho nguyên liệu | Không có BF riêng; mô tả bằng bảng trạng thái ở mục nghiệp vụ | 018 (tạm trú), 019 (tài sản, kho) | 6.10, 7.7, 12.7 |
+| **(Bổ sung, 2026-09-28)** Khai báo tạm trú, tài sản của viện, kho nguyên liệu | Không có BF riêng; mô tả bằng bảng trạng thái ở mục nghiệp vụ. **(Cập nhật 2026-09-29)** 7.7 có bảng trạng thái tài sản và lịch xe (Q-231, Q-236, Q-240, Q-242, Q-243); 12.7 có bảng đề nghị nhập và phiếu kiểm kê (Nhân viên bếp lập, Quản lý viện duyệt, Q-233); giường tạo kèm tài sản và chỉ ngừng dùng bằng Thanh lý (7.1, Q-237, Q-238) | 018 (tạm trú), 019 (tài sản, kho) | 6.10, 7.7, 12.7 |
 | Thông báo và yêu cầu gọi điện | Không có BF (dịch vụ) | 009 | 17 |
 | Báo cáo và dashboard | Không có BF (dịch vụ) | 016 | 18 |
 
@@ -32,13 +32,13 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 
 | Bước | Vai trò | Hoạt động | Trạng thái / kết quả | Căn cứ |
 | ---- | ------- | --------- | -------------------- | ------ |
-| 1 | Hành chính | Tạo hồ sơ người cao tuổi; lập lượt đăng ký tiếp nhận (ngày đăng ký, người liên hệ, nhu cầu, loại lưu trú mong muốn, mức chăm sóc dự kiến, ngày mong muốn vào) | Hồ sơ: Đang tiếp nhận. Lượt đăng ký: Đang xử lý | UC-01, UC-09, 6.1, spec 004 FR-002 |
+| 1 | Hành chính | Tạo hồ sơ người cao tuổi (gồm địa chỉ thường trú theo giấy tờ định danh và địa chỉ liên hệ, Q-244); lập lượt đăng ký tiếp nhận (ngày đăng ký, người liên hệ, nhu cầu, loại lưu trú mong muốn, mức chăm sóc dự kiến, ngày mong muốn vào) | Hồ sơ: Đang tiếp nhận. Lượt đăng ký: Đang xử lý | UC-01, UC-09, 6.1, spec 004 FR-002 |
 | 2 | Hành chính | Ghi nhận bản đồng ý chia sẻ dữ liệu (không chặn tiếp nhận) | Bản đồng ý: Hiệu lực | UC-03, 5.1 |
 | 3 | Bác sĩ, Điều dưỡng | Ghi hồ sơ sức khỏe ban đầu, gồm dị ứng, bệnh nền, tiền sử (từng mục) và thuốc đang dùng khi tiếp nhận | Hồ sơ sức khỏe: Nháp → Bác sĩ xác nhận | UC-04, 5.2, spec 001 FR-017 |
 | 3a | Bác sĩ hoặc Điều dưỡng (Q-217) | **(Bổ sung, 2026-09-28)** Ghi phiếu khảo sát nguyện vọng cuối đời: chuyển bệnh viện điều trị tích cực / đưa về nhà / ở lại viện chăm sóc giảm nhẹ; người trả lời; bản ký scan (người cao tuổi ký nếu còn đủ năng lực, không thì người đại diện). Không chặn tiếp nhận | Nguyện vọng: Hiệu lực | UC-82, 5.2, Q-213, Q-216 |
 | 4 | Bác sĩ (Điều dưỡng hỗ trợ) | Đánh giá đầu vào bằng thang điểm | — | UC-05, 5.3 |
 | 5 | Hệ thống | Quy đổi điểm; đề xuất mức chăm sóc, cờ nguy cơ, hoạt động mẫu | — | 5.3 |
-| 6 | Bác sĩ | Chấp nhận hoặc điều chỉnh đề xuất (bắt buộc lý do khi khác đề xuất; không bỏ cờ đề xuất) | Hoạt động mẫu chép vào bản nháp kế hoạch chăm sóc | BR-M01-09, Q-13 |
+| 6 | Bác sĩ | Chấp nhận hoặc điều chỉnh đề xuất (bắt buộc lý do khi khác đề xuất; **sửa, 2026-09-30:** được bỏ cờ đề xuất, bắt buộc lý do) | Hoạt động mẫu chép vào bản nháp kế hoạch chăm sóc; lưu cả cờ đề xuất và cờ được chấp nhận | BR-M01-09, Q-250 |
 | 7a | Hành chính | Có giường phù hợp: sang bước 8 | — | 6.1 |
 | 7b | Hành chính, Hệ thống | Không có giường: đưa vào danh sách chờ. Hệ thống tính điểm ưu tiên hằng ngày; khi giường về Trống thì đề xuất [3] hồ sơ; hành chính liên hệ, giữ chỗ [48 giờ] | Hồ sơ chờ: Đang chờ → Đã liên hệ → Đã tiếp nhận (khi được phân bổ giường) | 6.2, BR-M02-01, 02, 10, Q-29 |
 | 8 | Hành chính (hoặc Trưởng tầng trong phạm vi tầng) | Phân bổ giường, có thể đặt trước cho ngày vào | Phân bổ tương lai; giường bị giữ | UC-20, BR-M03-01, Q-42 |
@@ -49,7 +49,7 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 | 13 | Hành chính | Thực hiện lệnh Hoàn tất tiếp nhận | Hệ thống kiểm tra điều kiện ở bước 14 | UC-08, BR-M01-06 |
 | 14 | Hệ thống | Kiểm tra điều kiện: đánh giá đầu vào chưa quá [90 ngày]; hợp đồng Hiệu lực và thời điểm tiếp nhận không sớm hơn ngày bắt đầu hợp đồng; đặt cọc đạt; nội trú có giường, và giường đó đã về Trống. Thiếu điều kiện nào thì từ chối và liệt kê mọi điều kiện chưa đạt | Hồ sơ: Đang lưu trú. Lượt đăng ký: Đã tiếp nhận. Phân bổ bắt đầu thực tế | 5.6, Q-22, Q-50, spec 004 FR-004 |
 | 15 | Hệ thống | Đơn thuốc từ phiếu đối chiếu có hiệu lực; sinh liều, lịch cá nhân, suất ăn | — | 5.6, Q-57, BR-M07-01 |
-| 15a | Hệ thống; Hành chính | **(Bổ sung, 2026-09-28)** Với nội trú: tạo khai báo tạm trú "Cần khai báo" (đăng ký tạm trú hoặc thông báo lưu trú theo CFG-M02-11, tính cộng dồn cả gia hạn; người thường trú cùng xã/phường với viện luôn thông báo lưu trú, Q-215; cộng dồn theo chuỗi hợp đồng nối tiếp trong cùng hồ sơ, Q-241). Hành chính khai báo với công an trong CFG-M02-12, rồi ghi đã nộp và kết quả | Khai báo: Cần khai báo → Đã nộp → Đã xác nhận | UC-80, 6.10, BR-M02-11, Q-215 |
+| 15a | Hệ thống; Hành chính | **(Bổ sung, 2026-09-28)** Với nội trú: tạo khai báo tạm trú "Cần khai báo" (đăng ký tạm trú hoặc thông báo lưu trú theo CFG-M02-11, tính cộng dồn cả gia hạn; người thường trú cùng xã/phường với viện, do Hành chính xác nhận theo địa chỉ thường trú trên hồ sơ, luôn thông báo lưu trú, Q-215, Q-244; cộng dồn theo chuỗi hợp đồng nối tiếp trong cùng hồ sơ, Q-241). Hành chính khai báo với công an trong CFG-M02-12, rồi ghi đã nộp và kết quả | Khai báo: Cần khai báo → Đã nộp → Đã xác nhận | UC-80, 6.10, BR-M02-11, Q-215 |
 | 16 | Điều dưỡng; người có quyền Duyệt kế hoạch chăm sóc (mặc định Bác sĩ) | Điều dưỡng hoàn thiện phiên bản kế hoạch chăm sóc; người có quyền duyệt | Kế hoạch: Nháp → Chờ duyệt → Hiệu lực, sớm nhất từ ngày hôm sau ngày duyệt | UC-22, UC-23, BR-M04-19, Q-34 |
 | 17 | — | Chuyển sang vòng ca hằng ngày (BF-02) | — | — |
 
@@ -149,7 +149,7 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 | 2 | Hành chính (hoặc Trưởng tầng) | Có thể tạo phân bổ tương lai cho giường Chờ vệ sinh, bắt đầu không sớm hơn hạn vệ sinh | — | 7.2, Q-40 |
 | 3 | Nhân viên vệ sinh | Ghi kết quả từng hạng mục Đạt / Không đạt, hư hỏng, ghi chú | Công việc: Hoàn thành | 7.5, spec 003 FR-048 |
 | 4 | Hệ thống | Vệ sinh trả giường Hoàn thành | Giường: Chờ vệ sinh → Trống; kích hoạt BR-M02-01 | BR-M03-09, BR-M03-06 |
-| 5 | Hệ thống; Trưởng tầng hoặc Quản lý viện | Có hạng mục Không đạt hoặc hư hỏng: báo Trưởng tầng. Hư hỏng liên quan giường: Trưởng tầng hoặc Quản lý viện gắn hư hỏng với tài sản của giường rồi Báo hỏng hoặc Đưa vào bảo trì (7.7, Q-234); giường đang có người thì hư hỏng mang dấu "chờ chuyển người" (Q-232, Q-235) | Tài sản: Hỏng / Đang bảo trì; giường: Đang bảo trì (nếu không có người; phân bổ tương lai chuyển Đã hủy) | BR-M03-13, BR-M03-05, BR-M03-15, BR-M03-18, Q-51, Q-234 |
+| 5 | Hệ thống; Trưởng tầng hoặc Quản lý viện | Có hạng mục Không đạt hoặc hư hỏng: báo Trưởng tầng. Hư hỏng liên quan giường: Trưởng tầng hoặc Quản lý viện gắn hư hỏng với tài sản của giường rồi Báo hỏng hoặc Đưa vào bảo trì (7.7, Q-234); giường đang có người thì hư hỏng mang dấu "chờ chuyển người" (Q-232, Q-235); **(bổ sung, 2026-09-30)** người báo chọn mức ảnh hưởng, mức "mất an toàn" thì báo Khẩn cấp cho Trưởng tầng và Người phụ trách ca để chuyển giường gấp (Q-245); tầng hết giường Trống phù hợp thì báo thêm Quản lý viện và Hành chính kèm giường Trống ở tầng khác (Q-256) | Tài sản: Hỏng / Đang bảo trì; giường: Đang bảo trì (nếu không có người; phân bổ tương lai chuyển Đã hủy) | BR-M03-13, BR-M03-05, BR-M03-15, BR-M03-18, Q-51, Q-234 |
 | 6 | Hệ thống | Vệ sinh trả giường bị hủy hoặc Không thực hiện: sinh ngay công việc thay thế, hạn tính lại, báo Trưởng tầng | — | Q-41 |
 | 7 | Bác sĩ hoặc Quản lý viện | Đặt khoanh vùng lây nhiễm (một hoặc nhiều tầng, hoặc cả khu vực) | Vùng: Đang khoanh vùng | UC-37, 9.6, Q-69, spec 007 bảng trạng thái vùng |
 | 8 | Hệ thống | Chặn thăm mới, hoạt động chung, phân bổ giường mới trong khu; sinh khử khuẩn [2 lần/ngày] (CFG-M03-05) cho phòng và khu vực chung trong vùng | — | BR-M05-11, BR-M03-11 |
@@ -159,6 +159,8 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 
 - **Hạng mục Không đạt không liên quan giường**: hệ thống chỉ báo Trưởng tầng. Kết quả Không đạt không tự đổi trạng thái công việc và không tự sinh việc làm lại. Việc làm lại chỉ sinh khi kiểm tra chất lượng cho kết quả Không đạt (spec 003 FR-048, FR-049a). Trưởng tầng có thể tự tạo yêu cầu vệ sinh đột xuất (BR-M03-12).
 - **Trả giường có hạng mục Không đạt**: công việc vẫn Hoàn thành và giường về Trống. Chỉ khi có hư hỏng liên quan giường và Trưởng tầng quyết định (lệnh trên tài sản, Q-234) thì giường mới vào bảo trì. Giường mang dấu "chờ chuyển người" về Trống thì không được phân bổ, không kích hoạt BR-M02-01 cho tới khi báo hỏng lại hoặc gỡ dấu (Q-235).
+- **(Bổ sung, 2026-09-30, Q-245)** Hư hỏng nhẹ đã sửa tại chỗ: Trưởng tầng (tầng mình) hoặc Quản lý viện gỡ dấu "chờ chuyển người" với lý do "đã sửa tại chỗ", kể cả khi giường vẫn có người.
+- **(Bổ sung, 2026-09-30, Q-246)** Tạm đóng giường không vì hỏng (mùa thấp điểm, thiếu nhân sự): Quản lý viện đặt giường Trống sang Tạm ngừng sử dụng, có lý do; giường không nhận phân bổ, không tính vào giường có thể dùng; Sử dụng lại thì giường qua Chờ vệ sinh, vệ sinh trả giường xong mới về Trống và đề xuất hồ sơ chờ (BR-M02-01, Q-261).
 - Người đặt khoanh vùng và người gỡ khoanh vùng là cùng hai vai trò: Bác sĩ, Quản lý viện.
 - Q-40 đã chốt (24.2).
 
@@ -188,6 +190,7 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 | Nguồn của cảnh báo đã Chuyển sự cố được xử lý | Hệ thống | Cảnh báo giữ Chuyển sự cố; hệ thống thêm diễn biến "nguồn đã được xử lý" vào sự cố và báo người xử lý; sự cố không tự đóng | Q-76 |
 | Cảnh báo mức Khẩn cấp | Hệ thống; người tiếp nhận | Không tự tạo sự cố; báo đồng thời Điều dưỡng phụ trách, Người phụ trách ca, Bác sĩ trực, Trưởng tầng. Người tiếp nhận chọn "Kích hoạt khẩn cấp từ cảnh báo" khi cần | 9.4, Q-67 |
 | Cảnh báo Trung bình lặp lại [3] lần trong 24 giờ | Hệ thống | Đề xuất nâng lên mức Khẩn cấp | BR-M05-03 |
+| **(Bổ sung, 2026-09-30)** Cảnh báo ở cấp 2 vẫn chưa ai tiếp nhận ("đã leo thang tối đa") | Hệ thống | Không leo thang thêm; nhắc lại mức Trung bình cho Quản lý viện và Trưởng tầng của tầng, mỗi khoảng bằng hạn tiếp nhận của mức (CFG-M05-01; mức Nhẹ là hết ca), tới khi có người tiếp nhận | 9.4, Q-248 |
 | Sự cố bị "Hủy ghi nhận" | Người được đính chính | Sự cố chuyển Đã hủy. Tác động tự động đã tạo không tự thu hồi; Điều dưỡng phụ trách và Bác sĩ nhận danh sách để đóng bằng lệnh riêng | 9.4, Q-73 |
 | Đổi loại sự cố sang Ngã (hoặc lây nhiễm) / khỏi Ngã | Người được đính chính | Sang Ngã: tạo ngay tác động của loại mới. Khỏi Ngã: xử lý như hủy | Q-73 |
 | Người cao tuổi chuyển trạng thái cuối khi cảnh báo còn mở | Hệ thống | Dừng leo thang và nhắc; cảnh báo được liệt kê để đóng | spec 007 FR-038 |
@@ -207,6 +210,7 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 | ---- | ------- | --------- | -------------------- | ------ |
 | 1 | Bác sĩ (kê đơn nội bộ khi có giấy phép); Bác sĩ hoặc Điều dưỡng (nhập đơn kê bên ngoài) | Nhập đơn. Hệ thống kiểm tra trùng hoạt chất và dị ứng; có vấn đề thì cảnh báo, chỉ tiếp tục khi có lý do | Đơn: Hiệu lực | UC-39, BR-M07-05, 06, BR-M06-05 |
 | 2 | Điều dưỡng | Tiếp nhận thuốc gia đình gửi | Thuốc gia đình gửi: Chờ đối chiếu → Được sử dụng / Chỉ giữ hộ | UC-44, 11.4 |
+| 2a | Hệ thống | **(Bổ sung, 2026-09-30)** Thuốc gia đình gửi còn dưới [5 ngày] dùng (CFG-M07-06): báo người thân. Còn dưới [2 ngày] (CFG-M07-07): nhắc lần hai cho người thân và báo Điều dưỡng phụ trách | — | BR-M07-11, Q-247 |
 | 3 | Bộ lập lịch | Sinh liều cho [2 ngày] tới | Liều: Chưa đến giờ | BR-M07-01 |
 | 4 | Điều dưỡng (liều chung của tầng: mọi Điều dưỡng có ca tại tầng) | Xác nhận liều | Đến giờ → Đã dùng / Từ chối / Không thực hiện | UC-41, Q-61 |
 | 5 | Hệ thống | Quá cửa sổ: chuyển Trễ, nhắc. Quá thêm [30 phút]: chuyển Bỏ lỡ, tạo cảnh báo mức Trung bình (BF-06) | Trễ → Bỏ lỡ | BR-M07-02 |
@@ -258,6 +262,7 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 
 - Người "Chốt" là **Quản lý viện** (Q-131, chú thích ¹⁷ của 4.4).
 - **(Đã chỉnh sửa, Q-212)** Chỉ **Kế toán** tải file cho kế toán; Hành chính vẫn kiểm tra và gửi chốt.
+- **(Bổ sung, 2026-09-30, Q-251)** Khoản mua hộ có số tiền thực tế vượt số người đại diện đã đồng ý: vượt không quá [10%] (CFG-M11-06), hoặc số thực tế không quá CFG-M11-02, thì ghi được đã mua, Quản lý viện duyệt kèm lý do, người đại diện được báo; vượt hơn thì Hành chính xin đồng ý bổ sung, phải có đồng ý của người đại diện hoặc Quản lý viện duyệt trước khi ghi đã mua, trừ thuốc, vật tư y tế mua gấp.
 
 ---
 
@@ -324,7 +329,7 @@ Khởi phát: Hành chính lập quan hệ người thân cho một người cao
 | 2 | Hành chính | Ghi nhận phiếu đăng ký người thân có chữ ký người đại diện, kèm bản scan. Mỗi quyền ghi trên phiếu có hiệu lực ngay. Quyền xem sức khỏe chỉ bật khi bản đồng ý chia sẻ dữ liệu bao gồm người thân đó | Quyền: bật theo phiếu | 14.1, Q-126, BR-M01-08 |
 | 3 | Hành chính (hoặc Quản lý viện) | Tạo tài khoản cổng sau khi xác minh danh tính trực tiếp hoặc gọi lại số đã đăng ký | Tài khoản người thân: hoạt động | 19.1, Q-16 |
 | 4 | Người đại diện (qua cổng); Hành chính | Lập yêu cầu: thêm/bỏ người được phép đón, đổi quyền của một người thân, bật/tắt dấu "được tự về", thêm/thôi người đại diện | Yêu cầu: Chờ xác nhận; quyền cũ vẫn áp dụng, riêng yêu cầu **bỏ** người được phép đón có hiệu lực ngay | BR-M10-07, Q-118 |
-| 5 | Người đại diện khác người bị tác động (qua cổng hoặc bản ký); hoặc Quản lý viện | Xác nhận hoặc duyệt. Yêu cầu chờ lâu được nhắc theo CFG-M10-11 | Chờ xác nhận → Hiệu lực / Từ chối / Hủy | BR-M10-07, Q-127 |
+| 5 | Người đại diện khác người bị tác động (qua cổng hoặc bản ký); hoặc Quản lý viện | Xác nhận hoặc duyệt. Yêu cầu chờ lâu được nhắc theo CFG-M10-11. **(Bổ sung, 2026-09-30)** Khi yêu cầu có hiệu lực, các người đại diện còn lại được báo mức Nhẹ | Chờ xác nhận → Hiệu lực / Từ chối / Hủy | BR-M10-07, Q-127, Q-249 |
 | 6 | Người thân có quyền "đăng ký thăm" (qua cổng); Hành chính (tại quầy) | Đăng ký thăm: ngày, khung giờ, người đi cùng (tối đa CFG-M10-06). Hệ thống kiểm tra khung giờ và sức chứa (CFG-M10-04), thời hạn đăng ký trước (CFG-M10-05), khoanh vùng, trạng thái người cao tuổi | Đạt: lượt thăm **Đã duyệt** ngay, giữ chỗ. Không đạt: từ chối kèm lý do, không tạo lượt | 14.2, BR-M10-02, Q-119 |
 | 7 | Hành chính | Ghi Vào: kiểm tra lại khoanh vùng và trạng thái người cao tuổi; ghi danh sách người thực tế vào (không vượt số đã đăng ký) | Đã duyệt → Đã vào | 14.2, spec 012 FR-033 |
 | 8 | Hành chính | Ghi Ra; quá giờ kết thúc khung cộng CFG-M10-07 mà chưa ghi thì được nhắc. Giờ ra thực tế không muộn hơn thời điểm ghi | Đã vào → Đã ra | 14.2, spec 012 FR-034 |
@@ -429,7 +434,8 @@ Khởi phát: gia đình giao đồ cho viện. Kết thúc: mọi đồ gửi �
 
 | Tình huống | Vai trò | Xử lý | Căn cứ |
 | ---------- | ------- | ----- | ------ |
-| Người nhận không có quyền nhận, kể cả chính người cao tuổi | Hành chính; Người đại diện; Quản lý viện | Hành chính lập yêu cầu xác nhận người nhận khác cho đúng người và đúng đồ. Người đại diện xác nhận qua cổng hoặc bản ký. Không liên hệ được sau CFG-M12-05, hoặc không còn người đại diện Hiệu lực: Quản lý viện duyệt thay kèm lý do và bằng chứng liên hệ; không duyệt thay khi người đại diện đã từ chối. Xác nhận dùng một lần trong CFG-M10-08 | 16.4, BR-M12-04, Q-149, Q-150, Q-157 |
+| Người nhận không có quyền nhận, kể cả chính người cao tuổi (**sửa, 2026-09-30, Q-253:** trừ trường hợp ở dòng dưới) | Hành chính; Người đại diện; Quản lý viện | Hành chính lập yêu cầu xác nhận người nhận khác cho đúng người và đúng đồ. Người đại diện xác nhận qua cổng hoặc bản ký. Không liên hệ được sau CFG-M12-05, hoặc không còn người đại diện Hiệu lực: Quản lý viện duyệt thay kèm lý do và bằng chứng liên hệ; không duyệt thay khi người đại diện đã từ chối. Xác nhận dùng một lần trong CFG-M10-08 | 16.4, BR-M12-04, Q-149, Q-150, Q-157 |
+| **(Bổ sung, 2026-09-30)** Người cao tuổi không có cờ nguy cơ đi lạc tự nhận lại đồ của chính mình, đồ không thuộc loại "cần đồng ý khi giao sử dụng" (tiền mặt, trang sức) | Hành chính (mọi đồ), Điều dưỡng (đồ không có giá trị) | Trả thẳng, không cần xác nhận người nhận khác; tiền mặt, trang sức vẫn theo BR-M12-06 | 16.4, BR-M12-04, Q-253 |
 | Đồng ý cho tự giữ bị rút, hoặc cờ đi lạc được gắn khi đồ đang được sử dụng | Hệ thống; Hành chính, Điều dưỡng phụ trách | Báo Hành chính và điều dưỡng phụ trách để thu lại | BR-M12-06 |
 | Đếm thiếu khi bàn giao | Người ghi | Phần thiếu được tách và ghi Báo thất lạc trong cùng lệnh | 16.3 |
 | Người giữ vắng mặt | Hành chính | Hành chính bàn giao thay theo điều kiện Q-158 | 16.3, Q-158 |
@@ -467,7 +473,7 @@ Khởi phát: Trưởng tầng khai báo hoạt động. Luồng gồm ba phần
 | 11 | Trưởng đoàn, Trưởng tầng | Gia hạn giờ về (có lý do); điểm danh về từng người | Người cao tuổi: Hoạt động bên ngoài → Đang lưu trú; công việc được sinh lại | 8.9, BR-M04-17 |
 | 12 | Trưởng đoàn, Trưởng tầng | Kết thúc điểm danh về | Chuyến: Đang đi → Đã về | spec 014 bảng trạng thái chuyến đi |
 | 13 | Hệ thống | Mỗi ca, xét chọn ngẫu nhiên [5%] (CFG-M04-11) công việc Hoàn thành hoặc Hoàn thành trễ, kể cả công việc vệ sinh gắn tầng; bổ sung tại mốc CFG-M09-04 nếu chưa đủ | Danh sách kiểm tra chất lượng | BR-M04-23, Q-163 |
-| 14 | Trưởng tầng được giao của tầng | Ghi Đạt / Không đạt kèm ghi chú trước hết ca. Không đạt tạo công việc làm lại trong chính ca; không tự đổi trạng thái giường | Tỷ lệ Đạt vào báo cáo chất lượng theo nhân viên (18.2) | BR-M04-23, Q-168, Q-174 |
+| 14 | Trưởng tầng được giao của tầng; **(bổ sung, 2026-09-30, Q-254)** Người phụ trách ca của tầng khi Trưởng tầng được giao không có tên trong ca | Ghi Đạt / Không đạt kèm ghi chú trước hết ca. Không đạt tạo công việc làm lại trong chính ca; không tự đổi trạng thái giường | Tỷ lệ Đạt vào báo cáo chất lượng theo nhân viên (18.2) | BR-M04-23, Q-168, Q-174, Q-254 |
 | 15 | Hệ thống | 00:00 mỗi ngày, xét chuỗi [7] ngày tính không có lượt Có mặt ở hoạt động nhóm | Cảnh báo nhẹ "nguy cơ cô lập" cho Trưởng tầng, kèm hoạt động gợi ý | BR-M04-22, Q-173 |
 
 **Nhánh ngoại lệ**
@@ -492,7 +498,7 @@ Khởi phát: Trưởng tầng khai báo hoạt động. Luồng gồm ba phần
 - Trưởng đoàn và người đi cùng giữ nhiệm vụ tới khi chuyến về, kể cả khi hết ca (Q-161).
 - **(Đã chỉnh sửa, 2026-09-28, Q-214)** Điều dưỡng được làm Trưởng đoàn, người phụ trách buổi, đăng ký và điểm danh như Nhân viên chăm sóc. Chỉ người đi cùng không có vai trò Trưởng tầng, Nhân viên chăm sóc hoặc Điều dưỡng mới bị giới hạn ở lệnh "Báo thiếu người". Liều Mang theo vẫn chỉ do Điều dưỡng ghi (Q-54).
 - Lượt "bỏ giữa chừng" vẫn là Có mặt: tính phí và tính tham gia (Q-173).
-- Chỉ Trưởng tầng được giao của tầng ghi kết quả kiểm tra chất lượng; Người phụ trách ca không có quyền này (BR-M04-23).
+- Chỉ Trưởng tầng được giao của tầng ghi kết quả kiểm tra chất lượng; Người phụ trách ca không có quyền này (BR-M04-23). **(Sửa, 2026-09-30, Q-254)** Ngoại lệ: ca mà Trưởng tầng được giao không có tên trong ca (ví dụ ca đêm) thì Người phụ trách ca của tầng cũng ghi được; công việc do chính Người phụ trách ca làm không được chọn vào mẫu. Ca không có Trưởng tầng gồm cả ca mà Trưởng tầng có tên nhưng đã được ghi nhận vắng ca hoặc nghỉ đột xuất đã duyệt (Q-262).
 - **(Bổ sung, 2026-09-28, Q-220)** Chuyến đi dùng xe của viện phải có lịch xe (UC-90, 7.7) trước khi điểm danh rời viện.
 - **(Bổ sung, 2026-09-29, Q-231)** Lịch xe của chuyến đi theo chuyến: người đầu tiên được điểm danh rời viện thì lịch chuyển Đang dùng; "Kết thúc điểm danh về" thì Đã hoàn thành; chuyến hủy thì lịch Đã hủy; chuyến đổi giờ thì lịch dời theo (7.7). **(Bổ sung, 2026-09-29, Q-236)** Chuyến đang đi được gia hạn giờ về thì giờ về của lịch xe dời theo; chồng lịch kế tiếp của cùng xe không chặn gia hạn, Quản lý viện và người đặt lịch kế tiếp được báo. **(Bổ sung, 2026-09-29, Q-239, Q-240)** Dời chuyến bị chặn nếu lịch xe ở giờ mới chồng lịch khác của cùng xe. Mọi bản ghi rời viện bị Hủy ghi nhận thì chuyến quay về Đã lên lịch và lịch xe về Đã đặt.
 
@@ -512,7 +518,7 @@ Khởi phát: hợp đồng đầu tiên của người cao tuổi chuyển Hi�
 | 5 | Hệ thống | Khớp từng dòng theo mã nộp tiền trong nội dung. Dòng không khớp hoặc khớp nhiều mã vào danh sách "chưa khớp" | Dòng: Đã khớp / Chưa khớp | BR-M11-12 |
 | 6 | Kế toán | Xác nhận dòng đã khớp vào số dư hoặc sổ cọc; gán thủ công dòng chưa khớp (có lý do) hoặc đánh dấu "không thuộc người cao tuổi". Chuyển khoản gộp nhiều khoản: ghi toàn bộ vào một sổ rồi lập cặp điều chỉnh chuyển tiền (Q-227) | Giao dịch nộp tiền: Đã xác nhận; số dư hoặc sổ cọc tăng | BR-M11-12 |
 | 7 | Hệ thống | Bảng chi phí Đã chốt (BF-09 bước 7): tạo giao dịch thanh toán bằng tổng bảng | Số dư giảm; số dư âm hiện "còn nợ" | BR-M11-11, DBR-30 |
-| 8 | Bộ lập lịch | Hằng ngày tính số ngày còn đủ tiền = (số dư − chi phí chưa chốt của mọi bảng chưa chốt) ÷ phí lưu trú ngày (Q-228, Q-223). Dưới [15 ngày] (CFG-M11-04) hoặc số dư âm: báo người đại diện mức Trung bình (người không có quyền xem chi phí chỉ nhận phần "chung") và Kế toán mức Nhẹ; nhắc lại mỗi [7 ngày] (CFG-M11-05); chiều tốt lên không báo ngay; còn nợ quá CFG-M11-05 thì báo thêm Quản lý viện | Thông báo "sắp hết tiền" / "còn nợ" | UC-87, BR-M11-13 |
+| 8 | Bộ lập lịch | Hằng ngày tính số ngày còn đủ tiền = (số dư − chi phí chưa chốt của mọi bảng chưa chốt) ÷ phí lưu trú ngày (Q-228, Q-223). Dưới [15 ngày] (CFG-M11-04) hoặc số dư âm: báo người đại diện mức Trung bình (người không có quyền xem chi phí chỉ nhận phần "chung") và Kế toán mức Nhẹ; nhắc lại mỗi [7 ngày] (CFG-M11-05); chiều tốt lên không báo ngay (**trừ, 2026-09-30, Q-252:** giao dịch nộp tiền làm số ngày vượt ngưỡng thì tính lại ngay, dừng nhắc và báo người đại diện mức Nhẹ "đã ghi nhận khoản nộp"; nộp chưa đủ thì vẫn báo "đã ghi nhận khoản nộp" kèm tình trạng, chu kỳ nhắc giữ nguyên, Q-257); còn nợ quá CFG-M11-05 thì báo thêm Quản lý viện | Thông báo "sắp hết tiền" / "còn nợ" / "đã ghi nhận khoản nộp" | UC-87, BR-M11-13, Q-252, Q-257 |
 | 9 | Kế toán | Theo dõi danh sách số dư thấp và liên hệ gia đình | — | 15.9 |
 | 10 | Kế toán; Quản lý viện | Lập hoàn tiền (giữa kỳ không vượt số dư − chi phí chưa chốt), điều chỉnh, cặp điều chỉnh chuyển tiền, giao dịch đảo (bắt buộc lý do); Quản lý viện duyệt, lúc duyệt kiểm tra lại số tiền và người nhận | Giao dịch: Chờ duyệt → Đã xác nhận / Từ chối / Đã hủy | BR-M11-10, 14, Q-229 |
 | 11 | Kế toán | Xuất sao kê số dư, báo cáo thu chi, sổ tiền cọc ra Excel | — | UC-88, 15.9 |

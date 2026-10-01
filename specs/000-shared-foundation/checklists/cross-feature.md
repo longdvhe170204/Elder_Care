@@ -202,6 +202,93 @@ Phần này được thêm ngày 2026-09-29, sau khi chốt Q-215 (spec 018), Q-
 - [ ] CHK058 - 7.7 cho "chuyển vị trí giường" khi giường không có phân bổ hiện tại hay tương lai, còn spec 003 FR-007 cấm đổi đối tượng cha (phòng) của giường đã có lịch sử phân bổ, và yêu cầu tổ chức lại bằng tạo giường mới. Hai quy tắc có mâu thuẫn với giường đã từng có người nằm không? "Vị trí" của tài sản giường ở 7.7 có phải là phòng của giường ở 7.1 không? Tìm thấy khi xử lý CHK042. [Conflict, §7.7, Spec 003 §FR-007, Spec 019 §FR-012]
   - **Đã chốt (2026-09-29), chờ reviewer đánh giá:** Q-243: vị trí tài sản giường luôn là phòng của giường, chỉ đổi khi giường chưa từng có phân bổ; có lịch sử thì tạo giường mới và Thanh lý giường cũ. Sửa 7.7; spec 019 FR-012, Clarifications; spec 003 FR-007.
 
+## Rà chéo 2026-10-01: quyết định Q-245 → Q-254 (rà soát vận hành)
+
+Phạm vi: các thay đổi ngày 2026-09-30 ở docs/nghiep-vu.md (7.2, 9.4, 16.4, 17, 18.5, 19.3, BR-M01-09, BR-M03-01, 08, 15, BR-M04-23, BR-M05-01, BR-M07-11, BR-M10-07, BR-M11-07, 13, BR-M12-04, Phụ lục 25, 27) và ở spec 001, 003, 006, 007, 009, 010, 012, 013, 014, 016, 017, 019; đối chiếu với các spec chưa sửa trong lượt đó (002, 005, 008).
+
+### Giường: mức ảnh hưởng khi báo hỏng và Tạm ngừng sử dụng (Q-245, Q-246)
+
+- [ ] CHK059 - Spec 019 FR-021 nêu mọi thông báo của feature 019 ở mức Nhẹ, gồm "hư hỏng giường chờ chuyển người"; spec 019 FR-015 và spec 009 FR-043b (dòng bổ sung 2026-09-30) lại nêu báo hỏng mức "mất an toàn" là Khẩn cấp. FR-021 có được sửa để hai nơi khớp nhau không? [Conflict, Spec 019 §FR-021, §FR-015, Spec 009 §FR-043b, Q-245]
+  - **Đã xử lý (2026-10-01), chờ reviewer đánh giá:** spec 019 FR-021 nêu ngoại lệ Khẩn cấp cho báo hỏng mức "mất an toàn" (FR-015, Q-245).
+- [ ] CHK060 - "Mức ảnh hưởng" của một lần báo hỏng có được nêu là một trường của bản ghi hư hỏng trong Key Entities của spec 019 ("Lịch sử vị trí, lần bảo trì, hư hỏng") và trong DBR-32 không, hay mới chỉ có ở FR-015? [Completeness, Gap, Spec 019 §Key Entities, DBR-32]
+- [ ] CHK061 - Tiêu chí phân biệt "mất an toàn" và "không mất an toàn" có đủ rõ để hai Trưởng tầng chọn giống nhau không? BR-M03-15 chỉ nêu ba ví dụ (gãy khung, hỏng thành giường, hỏng cơ cấu nâng hạ). [Clarity, Ambiguity, BR-M03-15, Q-245]
+- [ ] CHK062 - Yêu cầu có nêu cách xử lý khi báo hỏng mức "mất an toàn" mà tầng không còn giường Trống phù hợp để chuyển người (lệnh chuyển giường lý do "y tế/an toàn" của spec 003 FR-032 không thực hiện được) không? [Coverage, Edge Case, Gap, Spec 003 §FR-013b, §FR-032]
+  - **Đã chốt (2026-10-01), chờ reviewer đánh giá:** Q-256: báo thêm Quản lý viện và Hành chính kèm giường Trống phù hợp ở tầng khác. Sửa BR-M03-15, 17, BF-05; spec 019 FR-015, FR-021; spec 003 FR-013b; spec 009 FR-043b.
+- [ ] CHK063 - Điều kiện gỡ dấu "chờ chuyển người" với lý do "đã sửa tại chỗ" có khác nhau giữa hai mức không? Với mức "mất an toàn", yêu cầu có đòi bằng chứng sửa (ảnh, người sửa) trước khi gỡ, hay chỉ cần lý do như mức còn lại? [Clarity, Gap, BR-M03-15, Spec 019 §FR-015]
+- [ ] CHK064 - Thông báo Khẩn cấp của Q-245 có kéo theo yêu cầu gọi điện khi chưa được xác nhận (spec 009 FR-027, FR-028) không, và spec 019 có nêu điều này hay để mặc định theo spec 009? [Clarity, Spec 009 §FR-027, Spec 019 §FR-015]
+- [ ] CHK065 - Phần mô tả, User Story 4 và dòng "Trạng thái giường" ở bảng phân loại dữ liệu của spec 003 vẫn liệt kê sáu trạng thái, trong khi FR-011 đã có bảy (thêm Tạm ngừng sử dụng). Các chỗ liệt kê có được sửa cho khớp không? [Consistency, Spec 003 §FR-011, §User Story 4]
+  - **Đã xử lý (2026-10-01), chờ reviewer đánh giá:** spec 003 phần mô tả User Story 4 và kịch bản 10 liệt kê đủ bảy trạng thái; dòng "Trạng thái giường" ở bảng phân loại dữ liệu chỉ dẫn tới bảng trạng thái nên không cần sửa.
+- [ ] CHK066 - Spec 003 có kịch bản chấp nhận cho ba lệnh mới (Tạm ngừng sử dụng, Sử dụng lại, và các trường hợp bị chặn: giường có phân bổ tương lai, giường mang dấu) không? Hiện chỉ có dòng trong bảng trạng thái và một kịch bản chặn phân bổ. [Coverage, Gap, Spec 003 §bảng trạng thái giường, Q-246]
+- [ ] CHK067 - Bảng trạng thái giường của spec 003 ghi "Ghi nhớ trạng thái trước là Tạm ngừng sử dụng" khi giường vào bảo trì. Yêu cầu có nêu trạng thái trước được lưu ở đâu, và giường về đâu khi kết quả bảo trì "Không đạt" rồi lần sau mới "Đạt" không? [Clarity, Spec 003 §bảng trạng thái giường, Spec 019 §FR-013]
+- [ ] CHK068 - Điều kiện Ngừng hiệu lực phòng (7.1, Q-237: mọi giường đã Không sử dụng) có nêu cách xử lý giường Tạm ngừng sử dụng không? Phòng có mọi giường Tạm ngừng sử dụng được hay không được Ngừng hiệu lực? [Coverage, Gap, 7.1, Spec 003 §FR-005]
+  - **Đã chốt (2026-10-01), chờ reviewer đánh giá:** Q-260: không được; giữ Q-237. Sửa 7.1; spec 003 FR-005.
+- [ ] CHK069 - Phòng mà mọi giường Tạm ngừng sử dụng không sinh vệ sinh định kỳ (BR-M03-08). Yêu cầu có nêu việc vệ sinh trước khi "Sử dụng lại" một giường đã tạm ngừng lâu ngày không, hay giường về thẳng Trống và nhận người ngay? [Coverage, Gap, BR-M03-08, Spec 003 §FR-044]
+  - **Đã chốt (2026-10-01), chờ reviewer đánh giá:** Q-261: Sử dụng lại đưa giường sang Chờ vệ sinh, sinh vệ sinh trả giường. Sửa 7.2, BR-M03-09, BF-05; spec 003 bảng trạng thái giường.
+- [ ] CHK070 - Dòng UC-19 và UC-89 ở Phụ lục 26 có được bổ sung lệnh Tạm ngừng sử dụng (Q-246) và mức ảnh hưởng khi báo hỏng (Q-245) không? Hiện hai dòng chỉ dẫn Q-237, Q-238 và Q-232. [Traceability, Phụ lục 26]
+  - **Đã xử lý (2026-10-01), chờ reviewer đánh giá:** Phụ lục 26 dòng UC-19 thêm 7.2, Q-246; dòng UC-89 thêm Q-245.
+
+### Kiểm tra chất lượng bởi Người phụ trách ca (Q-254)
+
+- [ ] CHK071 - Spec 002 FR-019 nêu nhiệm vụ không tạo thêm quyền thao tác, ngoại lệ "chỉ gồm FR-019a → FR-019d"; phần Clarifications của spec 002 ghi "chỉ Trưởng tầng được giao ghi kết quả kiểm tra chất lượng". Quyền ghi kết quả kiểm tra của Người phụ trách ca (Q-254) có được thêm thành ngoại lệ thứ năm ở spec 002 không? [Conflict, Spec 002 §FR-019, Spec 014 §FR-066]
+  - **Đã xử lý (2026-10-01), chờ reviewer đánh giá:** spec 002 thêm FR-019e (ngoại lệ quyền theo nhiệm vụ thứ năm), sửa FR-019, phần Clarifications và mục "Điểm cần báo lại".
+- [ ] CHK072 - Spec 014 FR-061 và FR-062 vẫn viết "trưởng tầng MUST ghi"; FR-066 đã cho Người phụ trách ca ghi. Chủ thể ở FR-061, FR-062 có được viết lại cho khớp FR-066 không? [Consistency, Spec 014 §FR-061, §FR-062, §FR-066]
+  - **Đã xử lý (2026-10-01), chờ reviewer đánh giá:** spec 014 FR-061, FR-062 đổi chủ thể thành "người kiểm tra (FR-066)".
+- [ ] CHK073 - Spec 014 FR-059 chỉ nêu "Trưởng tầng MUST được báo khi danh sách có mục đầu tiên". Với ca không có Trưởng tầng được giao, yêu cầu có nêu Người phụ trách ca được báo không? [Completeness, Gap, Spec 014 §FR-059]
+  - **Đã xử lý (2026-10-01), chờ reviewer đánh giá:** spec 014 FR-059 nêu Người phụ trách ca được báo thay khi ca không có Trưởng tầng được giao.
+- [ ] CHK074 - "Ca mà Trưởng tầng được giao không có tên trong ca" có được định nghĩa đo được không (xét theo lịch ca đã công bố, theo điểm danh thực tế, hay theo thời điểm ghi kết quả)? Trường hợp Trưởng tầng có tên nhưng vắng ca thì ai kiểm tra? [Clarity, Ambiguity, BR-M04-23, Spec 014 §FR-066]
+  - **Đã chốt (2026-10-01), chờ reviewer đánh giá:** Q-262: theo lịch ca đã công bố, cộng vắng ca và nghỉ đột xuất đã duyệt. Sửa BR-M04-23, BF-15; spec 014 FR-066; spec 002 FR-019e.
+- [ ] CHK075 - Yêu cầu có nêu cách xử lý khi Người phụ trách ca bị đổi giữa ca (spec 008 FR-019) không: công việc do người phụ trách mới đã làm trước đó và đã vào mẫu, hoặc công việc của người phụ trách cũ đã bị loại khỏi mẫu? [Coverage, Edge Case, Gap, Spec 014 §FR-060, Spec 008 §FR-019]
+  - **Xử lý một phần (2026-10-01), chờ reviewer đánh giá:** Q-262 nêu Người phụ trách ca không ghi kết quả cho công việc của chính mình, kể cả mục đã vào mẫu trước đó (spec 014 FR-066). Trường hợp đổi Người phụ trách ca giữa ca với công việc của người cũ đã bị loại khỏi mẫu vẫn chưa nêu.
+- [ ] CHK076 - Ca vừa không có Trưởng tầng được giao vừa mang dấu "thiếu người phụ trách" (Q-187) thì mẫu kiểm tra có được lập không, và mục quá hạn có được tách riêng trong báo cáo không? [Coverage, Edge Case, Gap, Spec 014 §FR-063]
+- [ ] CHK077 - Spec 016 FR-037 chỉ nêu công việc do Trưởng tầng thực hiện là "ngoài phạm vi kiểm tra" và chưa có chỉ tiêu theo người kiểm tra; phạm vi mục 3 của spec 016 và spec 014 FR-066 đã nêu. FR-037 và spec 014 FR-065 có được sửa để nêu cả công việc của Người phụ trách ca và số mục theo vai trò kiểm tra không? [Consistency, Spec 016 §FR-037, Spec 014 §FR-065]
+  - **Đã xử lý (2026-10-01), chờ reviewer đánh giá:** spec 016 FR-037 và spec 014 FR-065 nêu số mục theo vai trò kiểm tra và công việc của Người phụ trách ca "ngoài phạm vi kiểm tra".
+- [ ] CHK078 - Spec 016 User Story 1 kịch bản 10 nêu Người phụ trách ca "không thấy nhóm kiểm tra chất lượng" trên dashboard. Điều này có còn đúng khi họ là người ghi kết quả kiểm tra trong ca không có Trưởng tầng không? [Conflict, Spec 016 §User Story 1, Q-195, Q-254]
+  - **Đã chốt (2026-10-01), chờ reviewer đánh giá:** Q-263: chỉ danh sách của ca và số mục còn chờ; giữ Q-195. Sửa 18.7; spec 016 FR-012, User Story 1 kịch bản 10; spec 014 FR-066.
+- [ ] CHK079 - Dòng UC-31 ở Phụ lục 26 vẫn ghi actor là "Trưởng tầng". Actor có được bổ sung Người phụ trách ca theo chú thích ³⁶ của Phụ lục 27 không? [Traceability, Phụ lục 26, Phụ lục 27 ³⁶]
+  - **Đã xử lý (2026-10-01), chờ reviewer đánh giá:** Phụ lục 26 dòng UC-31 thêm actor Người phụ trách ca (Q-254).
+
+### Thông báo mới và nhắc lặp (Q-247, Q-248, Q-249, Q-252)
+
+- [ ] CHK080 - Spec 009 FR-005 đòi mỗi lần nhắc lặp có khóa sự kiện riêng. Spec 007 FR-034 (nhắc lại cảnh báo "đã leo thang tối đa") và spec 006 FR-046 (nhắc lần hai) có nêu khóa sự kiện hoặc số thứ tự lần nhắc không? [Completeness, Gap, Spec 009 §FR-005, Spec 007 §FR-034, Spec 006 §FR-046]
+- [ ] CHK081 - Lần nhắc lại của Q-248 có được tính là một lần "leo thang" trong lịch sử cảnh báo và trong chỉ tiêu "số lần leo thang" của báo cáo (18.3, spec 016 FR-041) không? Yêu cầu có nói rõ là không tính không? [Clarity, Gap, Spec 007 §FR-034, Spec 016 §FR-041]
+- [ ] CHK082 - Với cảnh báo mức Nhẹ, chu kỳ nhắc lại là "hết ca của tầng". Yêu cầu có nêu ai nhận khi ca sau không có Trưởng tầng, và quan hệ giữa lần nhắc này với việc cảnh báo đã được đưa vào bản nháp bàn giao (BR-M05-05) không? [Clarity, Spec 007 §FR-034, BR-M05-01]
+- [ ] CHK083 - Khi một lần tiếp nhận thuốc gia đình gửi có số ngày dùng còn lại đã dưới cả hai mốc (CFG-M07-06 và CFG-M07-07), hoặc số ngày rơi qua cả hai mốc trong một biến động, yêu cầu có nêu gửi một hay hai thông báo không? [Coverage, Edge Case, Gap, Spec 006 §FR-046]
+  - **Đã chốt (2026-10-01), chờ reviewer đánh giá:** Q-264: một thông báo theo mốc CFG-M07-07. Sửa BR-M07-11; spec 006 FR-046.
+- [ ] CHK084 - Spec 006 FR-046 gửi nhắc lần hai cho "Điều dưỡng phụ trách". Yêu cầu có nêu cách thay người nhận khi người cao tuổi chưa có Điều dưỡng phụ trách (spec 006 FR-026a, spec 009 FR-010) không? [Coverage, Spec 006 §FR-046, Spec 009 §FR-010]
+- [ ] CHK085 - Thông báo của Q-249 chưa có trong danh sách thông báo do spec 012 phát ra (FR-069), dù đã có ở spec 009 FR-043b. Hai nơi có khớp nhau không? [Consistency, Spec 012 §FR-069, §FR-016, Spec 009 §FR-043b]
+  - **Đã xử lý (2026-10-01), chờ reviewer đánh giá:** spec 012 FR-069 thêm dòng thông báo của Q-249.
+- [ ] CHK086 - Với yêu cầu "thôi người đại diện", người bị thôi có nằm trong "các người đại diện Hiệu lực khác" được báo không? Yêu cầu có nêu thời điểm xét tập người nhận (trước hay sau khi yêu cầu có hiệu lực) không? [Clarity, Ambiguity, BR-M10-07, Spec 012 §FR-016]
+- [ ] CHK087 - Khi gia đình nộp tiền nhưng chưa đủ để tình trạng về Bình thường, yêu cầu có nêu người đại diện nhận được gì không? Spec 017 FR-030 không có thông báo "đã ghi nhận khoản nộp" cho trường hợp này, nên mục tiêu của Q-252 (gia đình không phải gọi hỏi) chỉ đạt khi nộp đủ. [Coverage, Gap, Spec 017 §FR-030, Q-252]
+  - **Đã chốt (2026-10-01), chờ reviewer đánh giá:** Q-257: mọi khoản nộp của người đang bị nhắc đều báo "đã ghi nhận khoản nộp" kèm tình trạng. Sửa BR-M11-13, 17, BF-16; spec 017 bảng chuyển tình trạng số dư, FR-018, FR-030; spec 009 FR-043b.
+- [ ] CHK088 - Với chuyển khoản, "thời điểm ghi giao dịch nộp tiền" trong Q-252 là lúc xác nhận đối soát. Yêu cầu có nêu rõ điều này và cách xử lý khi giao dịch nộp tiền bị đảo sau khi đã gửi "số dư đã đủ" không? [Clarity, Edge Case, Spec 017 §bảng chuyển tình trạng số dư, BR-M11-10]
+- [ ] CHK089 - Người cao tuổi đang ở chế độ "dừng nhắc" do Quản lý viện đặt (BR-M11-13, Phụ lục 27 ³²) thì thông báo "đã ghi nhận khoản nộp" có gửi không? [Coverage, Gap, Spec 017 §FR-018, §FR-019]
+
+### Mua hộ, đồ gửi, cờ nguy cơ (Q-250, Q-251, Q-253)
+
+- [ ] CHK090 - Dấu "mua gấp vượt số tiền đã đồng ý" (spec 010 FR-024) chưa có trong danh sách dấu của khoản chi phí ở spec 010 FR-014. Danh sách dấu có được bổ sung không? [Completeness, Gap, Spec 010 §FR-014, §FR-024]
+  - **Đã xử lý (2026-10-01), chờ reviewer đánh giá:** spec 010 FR-014 thêm dấu "mua gấp vượt số tiền đã đồng ý".
+- [ ] CHK091 - Bảng trạng thái đề nghị mua hộ của spec 010 có hai dòng cùng là "Chờ đồng ý → Từ chối" với đích khác nhau (Từ chối; Được phép mua với số cũ). Yêu cầu có nêu thuộc tính phân biệt một lần "đồng ý bổ sung" với lần đồng ý đầu, và áp FR-023a (người đại diện thay đổi trong lúc chờ), lệnh Hủy, nhắc chờ lâu cho lần bổ sung không? [Clarity, Ambiguity, Spec 010 §bảng trạng thái đề nghị mua hộ, §FR-023a]
+- [ ] CHK092 - "Thuốc, vật tư y tế mua gấp" là lý do Hành chính tự chọn khi ghi đã mua, không dựa trên một trường loại hàng của đề nghị. Yêu cầu có nêu căn cứ kiểm tra được cho ngoại lệ này, để nó không thành lối đi vòng qua bước xin đồng ý bổ sung, không? [Measurability, Spec 010 §FR-024, BR-M11-07]
+- [ ] CHK093 - Tỷ lệ CFG-M11-06 tính trên số được phép nào khi đề nghị đã có một lần đồng ý bổ sung (số ban đầu hay số mới nhất)? BR-M11-07 và spec 010 FR-024 có nêu không? [Clarity, Spec 010 §FR-024, CFG-M11-06]
+  - **Đã chốt (2026-10-01), chờ reviewer đánh giá:** Q-259: tính trên số được đồng ý gần nhất, không giới hạn số lần bổ sung. Sửa BR-M11-07; spec 010 FR-024.
+- [ ] CHK094 - Dòng UC-79 ở Phụ lục 26 và BR-M10-10 có được bổ sung "xin đồng ý bổ sung" (Q-251) không? Hiện UC-79 chỉ dẫn Q-137, Q-139. [Traceability, Phụ lục 26, BR-M10-10]
+  - **Đã xử lý (2026-10-01), chờ reviewer đánh giá:** Phụ lục 26 dòng UC-79 thêm Q-251; BR-M10-10 nêu yêu cầu đồng ý bổ sung (đồng bộ docs/quy-tac-nghiep-vu.md).
+- [ ] CHK095 - Theo Q-253, Điều dưỡng có được trả đồ không có giá trị thẳng cho chính người cao tuổi không? BR-M12-04 và 16.4 nêu "người trả vẫn theo BR-M12-04", còn bảng trạng thái đồ gửi của spec 013 giới hạn Điều dưỡng ở "người nhận là người có quyền nhận" (FR-016a). Người cao tuổi thuộc ngoại lệ FR-016 có được coi là "người có quyền nhận" không? [Ambiguity, Spec 013 §FR-016, §FR-016a, BR-M12-04]
+  - **Đã chốt (2026-10-01), chờ reviewer đánh giá:** Q-258: Điều dưỡng trả được đồ không có giá trị cho người cao tuổi thuộc ngoại lệ Q-253. Sửa BR-M12-04; spec 013 FR-016a, bảng trạng thái đồ gửi.
+- [ ] CHK096 - Bảng truy vết của spec 013 (dòng Q-149) có được thêm Q-253 và kịch bản mới của User Story 3 không? Điều kiện "không có cờ nguy cơ đi lạc" có nêu nguồn dữ liệu (spec 001) trong bảng giao tiếp với feature khác không? [Traceability, Spec 013 §bảng truy vết, §giao tiếp]
+  - **Đã xử lý (2026-10-01), chờ reviewer đánh giá:** spec 013 bảng truy vết thêm dòng Q-253; dòng nhận từ feature 001 ở bảng giao tiếp dẫn thêm FR-016.
+- [ ] CHK097 - Khi người cao tuổi đang có cờ nguy cơ từ lần đánh giá trước, lần đánh giá lại vẫn đề xuất cờ đó nhưng bác sĩ bỏ cờ đề xuất (Q-250), cờ đang gắn được giữ hay gỡ? Spec 001 FR-030 nói cờ đang gắn "không bị ảnh hưởng", FR-037 và BR-M01-10 chỉ cho gỡ khi thang điểm không còn cho kết quả nguy cơ. Ba yêu cầu có cho cùng một kết quả không? [Conflict, Spec 001 §FR-030, §FR-037, BR-M01-10]
+  - **Đã chốt (2026-10-01), chờ reviewer đánh giá:** Q-255: cờ đang gắn cùng loại được gỡ, bắt buộc lý do. Sửa BR-M01-10; spec 001 FR-030, FR-037, Clarifications.
+- [ ] CHK098 - Việc bỏ cờ nguy cơ đi lạc làm đổi điều kiện ở các spec khác (tự giữ tiền, trang sức và tự nhận lại đồ ở spec 013; dấu "được tự về" ở spec 012; người đi cùng kèm riêng ở spec 014). Các spec này có nêu chúng đọc cờ "được chấp nhận" chứ không phải cờ "đề xuất" không? [Consistency, Dependency, Spec 001 §FR-030, Spec 013 §FR-015a, Spec 014 §FR-036]
+
+### Truy vết quyết định
+
+- [ ] CHK099 - Mười dòng Q-245 → Q-254 nằm ở mục 24.2 "Quyết định đã chốt", trong khi các quyết định này mới là đề xuất của nhóm phân tích, chưa được người vận hành xác nhận. Trạng thái "chờ xác nhận" có được ghi ở chính các dòng đó (hoặc ở đầu 24.2) không, hay chỉ có ở docs/cau-hoi-ra-soat-van-hanh.md, là tài liệu không phải nguồn? [Traceability, Gap, mục 24.2]
+  - **Đã xử lý (2026-10-01), chờ reviewer đánh giá:** đầu mục 24.2 ghi Q-245 → Q-254 và hai tham số mới chưa được người vận hành xác nhận. Phần "căn cứ của giá trị mặc định" ở CHK100 vẫn mở.
+- [ ] CHK100 - Hai tham số mới CFG-M07-07 (2 ngày) và CFG-M11-06 (10%) có căn cứ cho giá trị mặc định không, và có được đánh dấu là giá trị cần người vận hành xác nhận không? [Assumption, Phụ lục 25]
+- [ ] CHK101 - Các dòng Q cũ bị sửa (Q-13, Q-137, Q-149, Q-163, Q-168, Q-228, Q-232, Q-234, Q-237) được ghi chú "sửa theo Q-…" ở cột "Phản ánh tại". Câu trả lời cũ trong Clarifications của spec 014 (Q-168), 017 (Q-228), 003 (Q-234, Q-237) có ghi chú tương ứng như ở spec 001, 010, 013, 019 không? [Consistency, mục 24.2, Clarifications của các spec]
+  - **Đã xử lý (2026-10-01), chờ reviewer đánh giá:** thêm ghi chú ở Clarifications của spec 014 (Q-168) và spec 003 (Q-237). Spec 017 không có câu Clarification cũ về Q-228 nên không có gì để ghi chú; mục "Điểm cần báo lại" 9 và 12 của spec 017 đã nêu.
+
 ## Notes
 
 - Mark items `[x]` only after review confirms the requirement-quality criterion is satisfied
@@ -211,3 +298,4 @@ Phần này được thêm ngày 2026-09-29, sau khi chốt Q-215 (spec 018), Q-
 - Checklist này đặt ở spec 000 vì phạm vi là liên feature. Khi một mục dẫn tới sửa tài liệu nguồn, ghi nơi đã sửa ngay dưới mục đó, rồi cập nhật mục "Điểm cần báo lại" của spec liên quan.
 - Đầu vào của lần rà 2026-09-28: không có mã Q nào spec dùng mà mục 24 thiếu; chỉ CFG-M06-04 thiếu trong Phụ lục 25.
 - Đầu vào của lần rà 2026-09-29: các thay đổi cùng ngày ở 6.10, 7.2, 7.7, 12.7, BR-M02-11, 14, BR-M03-01, 06, 13, 15, 16, BR-M08-19, DBR-32, Q-215, Q-231 → Q-236; đối chiếu với spec 001, 004, 009, 016 (chưa sửa trong lượt đó) và các chỗ nối giữa 003, 014, 018, 019.
+- Đầu vào của lần rà 2026-10-01: các thay đổi ngày 2026-09-30 theo Q-245 → Q-254 (rà soát vận hành); đối chiếu 12 spec đã sửa với spec 002, 005, 008 chưa sửa và với Phụ lục 26. Các mục CHK059 → CHK101 nêu độ lệch hoặc khoảng trống tìm được; 14 mục đồng bộ câu chữ đã được sửa cùng ngày (CHK059, 065, 070, 071, 072, 073, 077, 079, 085, 090, 094, 096, 099, 101) và có ghi chú ngay dưới mục; các mục còn lại cần quyết định hoặc bổ sung yêu cầu. Phiên /speckit-clarify cùng ngày chốt thêm Q-255 → Q-259 cho CHK097, CHK062, CHK087, CHK095, CHK093. Lượt /speckit-clarify thứ hai chốt Q-260 → Q-264 cho CHK068, CHK069, CHK074 (và một phần CHK075), CHK078, CHK083.
