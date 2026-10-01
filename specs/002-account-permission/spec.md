@@ -460,7 +460,7 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep
 
 **Còn mở**
 
-1. **Q-01** (ghi nhận khi mất kết nối) và **Q-06** (nhà cung cấp SMS, ảnh hưởng tự đặt lại mật khẩu) vẫn mở.
-2. **Q-03** (Nghị định 13/2023) vẫn mở: nếu đòi ghi nhật ký lần nhân viên xem dữ liệu sức khỏe, cần bổ sung cơ chế ở spec này và feature 016 FR-062.
+1. **Q-01** (ghi nhận khi mất kết nối) và **Q-06** (nhà cung cấp SMS, ảnh hưởng tự đặt lại mật khẩu) vẫn mở. **(Cập nhật, 2026-10-01)** Q-01 và Q-06 đã chốt theo mặc định và chuyển sang 24.2; spec không đổi.
+2. **Q-03** (Nghị định 13/2023) vẫn mở: nếu đòi ghi nhật ký lần nhân viên xem dữ liệu sức khỏe, cần bổ sung cơ chế ở spec này và feature 016 FR-062. **(Cập nhật, 2026-10-01)** Q-03 đã chốt theo mặc định: không bổ sung nhật ký lần nhân viên xem dữ liệu sức khỏe ở giai đoạn này; đây là điểm cần tư vấn pháp lý đối chiếu trước khi triển khai (24.4).
 
 **(2026-10-01)** 12. **Checklist cross-feature CHK071** – thêm ngoại lệ quyền theo nhiệm vụ thứ năm: Người phụ trách ca ghi kết quả kiểm tra chất lượng khi ca không có Trưởng tầng được giao (FR-019e, Q-254). *(Đã có ở tài liệu nguồn từ 2026-09-30: BR-M04-23, 19.3, Phụ lục 27 ³⁶.)*

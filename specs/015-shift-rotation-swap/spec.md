@@ -389,7 +389,7 @@ Thuật ngữ dùng trong spec: **Nghỉ có duyệt** là tình trạng của m
 ## Assumptions
 
 - Số feature `015` theo bản đồ feature ở mục 4.2 `docs/phan-tich-yeu-cau.md` (UC-50 phần sinh lịch, UC-54) và ranh giới đã chốt Q-77.
-- Q-09 (còn mở) được dùng theo mặc định: cấu hình tham chiếu hai ca ngày/đêm; spec không giả định mẫu xoay ca cụ thể, mọi chu kỳ đều cấu hình được (FR-001).
+- Q-09 (đã chốt theo mặc định ngày 2026-10-01, xem 24.2) được dùng: cấu hình tham chiếu hai ca ngày/đêm; spec không giả định mẫu xoay ca cụ thể, mọi chu kỳ đều cấu hình được (FR-001).
 - Mỗi ngày trong mẫu xoay ca có tối đa một mẫu ca; chu kỳ có nhiều ca trong một ngày (ví dụ ca gãy) không được hỗ trợ ở giai đoạn này.
 - Một nhân viên thuộc tối đa một nhóm xoay ca tại một thời điểm; ca ngoài chu kỳ (bổ sung, trực thay) được xếp tay trên lịch Nháp hoặc bằng lệnh của feature 008.
 - Mặc định phủ tối thiểu \[≥ 1 Điều dưỡng / tầng / ca\] (CFG-M09-07) áp cho ca phạm vi tầng/khu vực; ca toàn viện chỉ có yêu cầu khi Quản lý viện khai báo.

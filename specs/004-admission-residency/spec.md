@@ -568,7 +568,7 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep
 
 **Còn mở**
 
-1. **Q-08 (giá trị bảng chính sách phí khi vắng)** vẫn mở ở mục 24.1; spec dùng bảng ví dụ 6.7 làm mặc định (FR-050). Quản lý viện cần chốt giá trị, gồm dòng cho "Đi khám trong ngày", "Lý do khác" và thời hạn giữ giường của dòng "Về nhà, đi chơi".
+1. **Q-08 (giá trị bảng chính sách phí khi vắng)** vẫn mở ở mục 24.1; spec dùng bảng ví dụ 6.7 làm mặc định (FR-050). Quản lý viện cần chốt giá trị, gồm dòng cho "Đi khám trong ngày", "Lý do khác" và thời hạn giữ giường của dòng "Về nhà, đi chơi". **(Cập nhật, 2026-10-01)** Q-08 đã chốt theo mặc định và chuyển sang 24.2: bảng 6.7 là giá trị khởi tạo, viện nhập bảng thật qua cấu hình; trường hợp chưa có dòng chính sách vẫn xử lý bằng dấu "không có dòng chính sách". Cần Kế toán, Quản lý viện đối chiếu khi triển khai (24.4). Spec không đổi.
 2. **Mã yêu cầu phê duyệt riêng của feature này** ("Duyệt điều khoản hợp đồng", "Quyết định giữ giường khi vắng", đề nghị điều chỉnh điểm, ngoại lệ kết thúc) chưa được liệt kê tập trung trong tài liệu nguồn; có thể bổ sung một bảng loại yêu cầu phê duyệt ở 6.6 khi các module khác cũng có đủ loại yêu cầu.
 
 **(2026-09-28, checklist cross-feature CHK012)** Kịch bản 4 của User Story kết thúc lưu trú đã được sửa: giường chuyển Chờ vệ sinh, chỉ về Trống khi vệ sinh trả giường Hoàn thành (BR-M03-09), khớp FR-012, FR-070.

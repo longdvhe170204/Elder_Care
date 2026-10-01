@@ -141,4 +141,4 @@ Bác sĩ ghi dấu nguy kịch → cảnh báo khẩn cấp hiển thị nguyệ
 
 ## 6. Việc còn mở
 
-Các quyết định còn mở (hiện gồm Q-01 → Q-03, Q-05 → Q-09, Q-63) nằm ở mục H của docs/quy-tac-nghiep-vu.md. Các chức năng mới thêm ngày 2026-09-28 có spec: số dư và thu chi (017), khai báo tạm trú (018), kho nguyên liệu và tài sản (019).
+Không còn quyết định mở (2026-10-01): Q-01 → Q-03, Q-05 → Q-09, Q-63 đã được chủ dự án chốt theo giá trị mặc định, cùng Q-245 → Q-270 sau rà soát vận hành. Các quyết định này chưa có xác nhận của người vận hành viện hay người có chuyên môn; danh sách cần đối chiếu trước khi triển khai nằm ở mục 24.4 của docs/nghiep-vu.md (tóm tắt ở mục H của docs/quy-tac-nghiep-vu.md). Các chức năng mới thêm ngày 2026-09-28 có spec: số dư và thu chi (017), khai báo tạm trú (018), kho nguyên liệu và tài sản (019).
