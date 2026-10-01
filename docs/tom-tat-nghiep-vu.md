@@ -21,7 +21,7 @@ Tiếp nhận → Đánh giá → Lưu trú → Kế hoạch chăm sóc → Phâ
 
 | Vai trò | Việc chính |
 | --- | --- |
-| Quản lý viện | Cấu hình, phê duyệt (thay đổi lưu trú, chi phí, ngoại lệ), chốt chi phí, xem báo cáo; quản lý kho nguyên liệu và tài sản |
+| Quản lý viện | Cấu hình, phê duyệt (thay đổi lưu trú, chi phí, ngoại lệ), chốt chi phí, xem báo cáo; quản lý kho nguyên liệu (duyệt phiếu kiểm kê) và tài sản |
 | Trưởng tầng | Điều phối tầng: phân công, xử lý việc quá hạn, kiểm tra chất lượng, lập lịch ca, duyệt đổi ca |
 | Bác sĩ | Đánh giá, thiết lập ngưỡng, kê đơn (trong phạm vi giấy phép), duyệt kế hoạch chăm sóc, ghi dấu nguy kịch |
 | Điều dưỡng | Thuốc, cảnh báo, kế hoạch chăm sóc, bàn giao ca; làm được mọi việc của nhân viên chăm sóc |
@@ -62,15 +62,15 @@ Tiếp nhận → Đánh giá → Lưu trú → Kế hoạch chăm sóc → Phâ
 
 | Nhóm | Nội dung chính |
 | --- | --- |
-| **Hồ sơ và đánh giá** (M01) | Hồ sơ cá nhân, bản đồng ý chia sẻ dữ liệu, hồ sơ sức khỏe ban đầu (dị ứng, bệnh nền ghi từng mục, không xóa), phiếu nguyện vọng cuối đời, đánh giá đầu vào và đánh giá lại, cờ nguy cơ (ngã, loét, đi lạc) |
-| **Lưu trú và tạm trú** (M02, M03) | Đăng ký tiếp nhận, danh sách chờ có điểm ưu tiên, hợp đồng (Nháp → Chờ ký → Hiệu lực → Kết thúc/Chấm dứt; sửa bằng phụ lục), đặt cọc, thay đổi lưu trú có duyệt, tạm vắng với bảng chính sách phí vắng, kết thúc lưu trú, khai báo tạm trú với công an; cấu trúc khu – tầng – phòng – giường, phân bổ và chuyển giường, vệ sinh phòng và trả giường |
+| **Hồ sơ và đánh giá** (M01) | Hồ sơ cá nhân, bản đồng ý chia sẻ dữ liệu, hồ sơ sức khỏe ban đầu (dị ứng, bệnh nền ghi từng mục, không xóa), phiếu nguyện vọng cuối đời, đánh giá đầu vào và đánh giá lại, cờ nguy cơ (ngã, loét, đi lạc; bác sĩ được thêm hoặc bỏ cờ đề xuất, bắt buộc lý do) |
+| **Lưu trú và tạm trú** (M02, M03) | Đăng ký tiếp nhận, danh sách chờ có điểm ưu tiên, hợp đồng (Nháp → Chờ ký → Hiệu lực → Kết thúc/Chấm dứt; sửa bằng phụ lục), đặt cọc, thay đổi lưu trú có duyệt, tạm vắng với bảng chính sách phí vắng, kết thúc lưu trú, khai báo tạm trú với công an (từ 30 ngày cộng dồn theo chuỗi hợp đồng thì đăng ký tạm trú, dưới đó hoặc thường trú cùng phường thì thông báo lưu trú; gia hạn thì khai báo lại); cấu trúc khu – tầng – phòng – giường, phân bổ và chuyển giường, vệ sinh phòng và trả giường |
 | **Chăm sóc** (M04, M06 phần chỉ số, M10) | Kế hoạch chăm sóc theo phiên bản có duyệt; công việc tự sinh theo ca (gồm đo chỉ số), checklist, ghi nhận kết quả, việc quá hạn; hoạt động trong và ngoài viện; theo dõi tinh thần; người thân (quyền, thăm, đón, ở lại, phản hồi, bản tin) |
 | **Thuốc** (M07) | Đơn thuốc (định kỳ, khi cần), lịch liều tự sinh, xác nhận liều, thuốc gia đình gửi, đối chiếu thuốc khi tiếp nhận và khi trở về từ bệnh viện |
 | **Sự cố và cảnh báo** (M05, M06) | Ngưỡng chỉ số theo từng người, cảnh báo tự động và leo thang, sự cố và quy trình khẩn cấp (thẻ thông tin khẩn cấp), khoanh vùng lây nhiễm, dấu nguy kịch và thực hiện nguyện vọng cuối đời |
 | **Dinh dưỡng và kho bếp** (M08) | Chế độ ăn gán cho từng người, thực đơn tuần, chốt suất, phiếu bữa ăn theo tầng, suất đặc biệt, đồ ăn gia đình mang vào, lưu mẫu; kho nguyên liệu (nhập, xuất theo lô, kiểm kê) |
 | **Nhân sự và ca trực** (M09) | Hồ sơ nhân viên và giấy phép, lịch ca xoay vòng, phủ tối thiểu, phân công, đổi ca, nghỉ đột xuất, bàn giao ca tự lập |
 | **Tài chính** (M11) | Chi phí tự sinh từ sự kiện nguồn, kiểm tra – duyệt – chốt bảng chi phí theo tháng, khoản điều chỉnh, mua hộ; số dư và thu chi của từng người (sổ mở khi hợp đồng Chờ ký), chốt quỹ ngày, đối soát chuyển khoản, báo sắp hết tiền, quyết toán |
-| **Tài sản và đồ gửi** (M03 phần tài sản, M12) | Tài sản của viện (xe, giường, thiết bị lớn; bảo trì; lịch xe); đồ gửi của người cao tuổi (tiếp nhận, bàn giao, trả, kiểm kê) |
+| **Tài sản và đồ gửi** (M03 phần tài sản, M12) | Tài sản của viện (xe, giường, thiết bị lớn; bảo trì; lịch xe tự chuyển theo chuyến đi). Giường tạo kèm tài sản; trạng thái bảo trì, ngừng dùng của giường chỉ đổi qua lệnh tài sản; ngừng dùng vĩnh viễn bằng thanh lý; tạm đóng giường không vì hỏng bằng trạng thái Tạm ngừng sử dụng (Quản lý viện); đồ gửi của người cao tuổi (tiếp nhận, bàn giao, trả, kiểm kê) |
 | **Dịch vụ chung** (M13, M14, M15) | Thông báo 3 mức (Nhẹ, Trung bình, Khẩn cấp) qua ứng dụng, tin nhắn, gọi điện; báo cáo và dashboard chỉ đọc; tài khoản, phân quyền 3 lớp (vai trò ∩ phạm vi phân công ∩ điều kiện pháp lý), nhật ký, tham số |
 
 ## 5. Luồng nghiệp vụ chính
@@ -101,10 +101,10 @@ Dinh dưỡng viên lập thực đơn (món và món thay thế theo chế đ�
 Trước bữa, hệ thống chốt số suất và sinh phiếu bữa ăn theo tầng → bếp chuẩn bị, dán nhãn suất đặc biệt, ghi lưu mẫu → giao → người nhận tại tầng kiểm đếm, xác nhận hoặc báo sai lệch → nhân viên chăm sóc xác nhận đúng người, đúng suất khi phục vụ.
 
 ### BF-05 – Vệ sinh trả giường và khử khuẩn khoanh vùng
-Phân bổ giường kết thúc → giường Chờ vệ sinh, sinh công việc trả giường (hoặc khử khuẩn nếu nghi nhiễm) → hoàn thành thì giường Trống. Khoanh vùng lây nhiễm → chặn thăm, hoạt động chung, phân bổ mới; khử khuẩn định kỳ tới khi gỡ.
+Phân bổ giường kết thúc → giường Chờ vệ sinh, sinh công việc trả giường (hoặc khử khuẩn nếu nghi nhiễm) → hoàn thành thì giường Trống. Hư hỏng liên quan giường → báo hỏng tài sản của giường; giường trống thì vào bảo trì, giường đang có người thì mang dấu "chờ chuyển người" và không được xếp người mới tới khi báo hỏng lại hoặc gỡ dấu; hỏng mức "mất an toàn" thì báo khẩn để chuyển giường gấp, hỏng nhẹ sửa tại chỗ thì gỡ dấu ngay. Quản lý viện tạm đóng giường không vì hỏng bằng trạng thái Tạm ngừng sử dụng. Khoanh vùng lây nhiễm → chặn thăm, hoạt động chung, phân bổ mới; khử khuẩn định kỳ tới khi gỡ.
 
 ### BF-06 – Cảnh báo, leo thang và sự cố
-Cảnh báo tạo từ chỉ số vượt ngưỡng, việc bắt buộc quá hạn, liều bỏ lỡ… → Điều dưỡng phụ trách tiếp nhận → quá hạn leo thang lên Trưởng tầng và Bác sĩ trực, rồi Quản lý viện → xử lý, đóng hoặc chuyển sự cố. Sự cố khẩn cấp báo đồng thời mọi bên, hiển thị thẻ thông tin khẩn cấp, có thể chuyển viện.
+Cảnh báo tạo từ chỉ số vượt ngưỡng, việc bắt buộc quá hạn, liều bỏ lỡ… → Điều dưỡng phụ trách tiếp nhận → quá hạn leo thang lên Trưởng tầng và Bác sĩ trực, rồi Quản lý viện; sau đó không leo thang thêm nhưng nhắc lại theo chu kỳ tới khi có người tiếp nhận → xử lý, đóng hoặc chuyển sự cố. Sự cố khẩn cấp báo đồng thời mọi bên, hiển thị thẻ thông tin khẩn cấp, có thể chuyển viện.
 
 ### BF-07 – Thuốc: đơn, liều và đối chiếu
 Nhập đơn (kiểm tra trùng hoạt chất, dị ứng) → sinh liều → Điều dưỡng xác nhận liều → quá giờ thì Trễ, Bỏ lỡ và cảnh báo. Trở về từ bệnh viện: tạm dừng đơn cũ, đối chiếu thuốc hai người xác nhận.
@@ -128,13 +128,13 @@ Hành chính lập quan hệ và quyền → tạo tài khoản cổng → ngư�
 Sinh lịch tháng từ mẫu xoay ca → kiểm tra phủ tối thiểu, tỷ lệ phục vụ → công bố → đổi ca, nghỉ đột xuất qua yêu cầu có Trưởng tầng duyệt, gợi ý người thay → bàn giao cuối ca, ca sau xác nhận.
 
 ### BF-14 – Đồ gửi
-Tiếp nhận (đồ có giá trị bắt buộc ảnh) → bàn giao giữa người giữ → trả cho người có quyền nhận → kiểm kê định kỳ; đồ không người nhận xử lý qua đề nghị có duyệt.
+Tiếp nhận (đồ có giá trị bắt buộc ảnh) → bàn giao giữa người giữ → trả cho người có quyền nhận (người cao tuổi không có cờ đi lạc tự nhận lại đồ của mình, trừ tiền mặt, trang sức, không cần người đại diện xác nhận) → kiểm kê định kỳ; đồ không người nhận xử lý qua đề nghị có duyệt.
 
 ### BF-15 – Hoạt động, chuyến đi ngoài viện, kiểm tra chất lượng
-Khai báo hoạt động và mẫu lặp → đăng ký, điểm danh → chuyến đi: phân công trưởng đoàn, xử lý thuốc mang theo, đặt xe, điểm danh rời/về, báo thiếu người → cảnh báo nguy cơ cô lập khi không tham gia hoạt động nhóm.
+Khai báo hoạt động và mẫu lặp → đăng ký, điểm danh → chuyến đi: phân công trưởng đoàn, xử lý thuốc mang theo, đặt xe (lịch xe tự chuyển Đang dùng, Đã hoàn thành, Đã hủy theo chuyến; dời chuyến bị chặn nếu xe đã có lịch khác), điểm danh rời/về, báo thiếu người → kiểm tra chất lượng ngẫu nhiên (Trưởng tầng; ca không có Trưởng tầng thì Người phụ trách ca) → cảnh báo nguy cơ cô lập khi không tham gia hoạt động nhóm.
 
 ### BF-16 – Số dư, thu chi và báo sắp hết tiền
-Hợp đồng Chờ ký thì mở sổ số dư, sổ tiền cọc và cấp mã nộp tiền → gia đình nộp tiền mặt (phiếu thu có số liên tục) hoặc chuyển khoản (mã QR) → cuối ngày Kế toán lập chốt quỹ, Quản lý viện xác nhận → Kế toán đối soát sao kê, xác nhận (chuyển khoản gộp nhiều khoản thì dùng cặp điều chỉnh chuyển tiền) → chốt bảng chi phí tự trừ số dư → hằng ngày hệ thống tính số ngày còn đủ tiền, báo "sắp hết tiền" hoặc "còn nợ" cho người đại diện và Kế toán → hoàn tiền, điều chỉnh có Quản lý viện duyệt → quyết toán khi kết thúc lưu trú → xuất sao kê, báo cáo thu chi.
+Hợp đồng Chờ ký thì mở sổ số dư, sổ tiền cọc và cấp mã nộp tiền → gia đình nộp tiền mặt (phiếu thu có số liên tục) hoặc chuyển khoản (mã QR) → cuối ngày Kế toán lập chốt quỹ, Quản lý viện xác nhận → Kế toán đối soát sao kê, xác nhận (chuyển khoản gộp nhiều khoản thì dùng cặp điều chỉnh chuyển tiền) → chốt bảng chi phí tự trừ số dư → hằng ngày hệ thống tính số ngày còn đủ tiền, báo "sắp hết tiền" hoặc "còn nợ" cho người đại diện và Kế toán; gia đình nộp đủ thì báo "đã ghi nhận khoản nộp" → hoàn tiền, điều chỉnh có Quản lý viện duyệt → quyết toán khi kết thúc lưu trú → xuất sao kê, báo cáo thu chi.
 
 ### BF-17 – Nguy kịch và nguyện vọng cuối đời
 Bác sĩ ghi dấu nguy kịch → cảnh báo khẩn cấp hiển thị nguyện vọng, báo gia đình → gọi xác nhận lại nguyện vọng → thực hiện lựa chọn: chuyển viện điều trị tích cực, đưa về nhà (tạm vắng), hoặc ở lại viện chăm sóc giảm nhẹ → đóng cảnh báo.
