@@ -47,4 +47,5 @@
 - Có 10 điểm cần báo lại về tài liệu nguồn, ghi ở cuối spec.md; không sửa docs.
 - Vòng kiểm tra 1: sửa một tham chiếu CFG không tồn tại (US5 kịch bản 3) và gom 6 marker trùng thành 3.
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`
+- Cập nhật 2026-10-01 (business-rules CHK049): các ghi chú "còn 3" ở mục "No [NEEDS CLARIFICATION] markers remain", "chờ người dùng trả lời" ở mục VII và "10 điểm cần báo lại" ở trên là trạng thái của ngày 2026-09-25. Hiện spec không còn marker nào; Q-17 → Q-19 và Q-40 → Q-53 đã chốt và nằm ở mục 24.2 của docs/nghiep-vu.md; mục "Điểm cần báo lại" của spec có 24 điểm.
 - Lượt rà 2026-09-29 (đồng bộ spec 019, Q-234, Q-235): bỏ lệnh Đặt bảo trì, Ngừng sử dụng, Sẵn sàng; bảng trạng thái giường nhận yêu cầu từ feature 019; thêm FR-013b, FR-018 (i), User Story 4 #12. Mọi mục vẫn đạt; không thêm marker.

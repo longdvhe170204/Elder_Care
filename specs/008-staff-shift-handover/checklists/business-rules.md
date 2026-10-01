@@ -20,15 +20,15 @@
 - [x] CHK008 - Cảnh báo sắp hết hạn (FR-008) chỉ áp cho đào tạo "bắt buộc với vai trò". Đào tạo không bắt buộc với vai trò nhưng được loại công việc hoặc nhiệm vụ phân công yêu cầu (FR-030, FR-031) có được cảnh báo trước không? [Gap, Spec §FR-008, §FR-030, BR-M09-05]
 - [x] CHK009 - Spec có định nghĩa bước tạo bản nháp bàn giao làm gì khi bị trễ (hệ thống gián đoạn qua mốc CFG-M09-04): tạo bù ngay khi khôi phục, và ca có vào Chờ bàn giao đúng giờ không? [Gap, Recovery, Spec §FR-039, NFR-04]
 - [x] CHK010 - Spec có giới hạn số lượt "Gửi ý kiến ↔ Bổ sung và gửi lại", hoặc có nhắc riêng khi bàn giao ở Có ý kiến quá lâu không? Hay FR-043 (nhắc sau CFG-M09-05) được hiểu là áp luôn cho Có ý kiến? [Gap, Spec §FR-042, §FR-043]
-- [ ] CHK011 - Hồ sơ nhân viên có thông tin cá nhân và bản scan giấy phép. Spec có quy định giới hạn trường khi Trưởng tầng xem (quyền X toàn viện) không, ví dụ Trưởng tầng có xem bản scan và thông tin liên hệ của nhân viên tầng khác không? [Gap, Privacy, Spec §FR-001, §FR-048]
-- [ ] CHK012 - Quyết định hoàn tất và xác nhận bàn giao phải trực tuyến chỉ nằm ở Assumptions. Có cần thành yêu cầu chức năng có kịch bản (Q-01) không? [Gap, Assumption, Spec §Assumptions, Q-01]
+- [x] CHK011 - Hồ sơ nhân viên có thông tin cá nhân và bản scan giấy phép. Spec có quy định giới hạn trường khi Trưởng tầng xem (quyền X toàn viện) không, ví dụ Trưởng tầng có xem bản scan và thông tin liên hệ của nhân viên tầng khác không? [Gap, Privacy, Spec §FR-001, §FR-048] — *Đạt (2026-10-01): FR-052.*
+- [x] CHK012 - Quyết định hoàn tất và xác nhận bàn giao phải trực tuyến chỉ nằm ở Assumptions. Có cần thành yêu cầu chức năng có kịch bản (Q-01) không? [Gap, Assumption, Spec §Assumptions, Q-01] — *Đạt (2026-10-01): FR-060; User Story 1 kịch bản 13.*
 
 ## Requirement Clarity
 
 - [x] CHK013 - FR-040 cho bản nháp tự bỏ "mục đã được xử lý xong". "Xử lý xong" có được định nghĩa cho từng loại mục ở FR-039 (a)–(f) không? Ví dụ một chỉ số vượt ngưỡng khi nào được coi là xử lý xong: khi cảnh báo liên quan đóng, hay không bao giờ? [Ambiguity, Spec §FR-039, §FR-040]
 - [x] CHK014 - FR-039 (e) "đang vắng trong ca" có nghĩa là mọi người đang Tạm vắng hoặc nằm viện đều xuất hiện ở mọi bàn giao tới khi họ trở về, hay chỉ người bắt đầu vắng trong ca? [Ambiguity, Spec §FR-039, BR-M09-06]
 - [x] CHK015 - "Người cao tuổi dự kiến có mặt" ở FR-034 loại người "vắng suốt ca". Người vắng một phần ca được tính đủ trọng số, theo tỷ lệ thời gian, hay không tính? Điều này có được nêu rõ không? [Ambiguity, Spec §FR-034]
-- [ ] CHK016 - Khi giấy phép hết hạn lúc hết ngày giữa một ca qua đêm, FR-009 kết thúc phân công "hiện tại" từ thời điểm hết hiệu lực (giữa ca). Thời điểm kết thúc và việc chuyển công việc, liều giữa ca có được mô tả rõ, nhất quán với FR-030 (kiểm tra cho toàn bộ khoảng) không? [Clarity, Spec §FR-009, §FR-030]
+- [x] CHK016 - Khi giấy phép hết hạn lúc hết ngày giữa một ca qua đêm, FR-009 kết thúc phân công "hiện tại" từ thời điểm hết hiệu lực (giữa ca). Thời điểm kết thúc và việc chuyển công việc, liều giữa ca có được mô tả rõ, nhất quán với FR-030 (kiểm tra cho toàn bộ khoảng) không? [Clarity, Spec §FR-009, §FR-030] — *Đạt (2026-10-01): FR-009; User Story 3 kịch bản 9.*
 - [x] CHK017 - Thứ tự ưu tiên ở FR-028 (đối tượng cụ thể hơn thắng; cùng mức thì phân công có giới hạn loại công việc thắng) đã xác định đúng một kết quả khi người cao tuổi vừa có phân công chính theo phòng có giới hạn loại công việc, vừa có phân công chính theo người cao tuổi không giới hạn chưa? [Clarity, Spec §FR-028]
 - [x] CHK018 - "Lịch ca theo phạm vi toàn viện" do ai lập và công bố, khi FR-016 chỉ nêu "Trưởng tầng được giao tầng/khu vực của lịch hoặc Quản lý viện"? [Clarity, Spec §FR-012, §FR-016]
 - [x] CHK019 - Thuật ngữ "khu", "khu vực", "phạm vi", "tầng/khu vực" có được dùng thống nhất không (ví dụ FR-036 "khu dưới ngưỡng" so với FR-034 "ca phạm vi tầng/khu vực")? [Terminology, Spec §FR-034, §FR-036, 2.2]
@@ -40,7 +40,7 @@
 - [x] CHK022 - FR-036 dùng mốc "ca bắt đầu trong vòng 24 giờ" và FR-038 dùng "trong vòng 24 giờ" như hằng số. Hai giá trị này có cần mã CFG kèm mặc định không (Constitution V)? [Conflict, Constitution V, Spec §FR-036, §FR-038]
 - [x] CHK023 - FR-021 chỉ cho Quản lý viện "Hủy ca", trong khi Permission Matrix 4.4 cho Trưởng tầng quyền T, D ở dòng "Lịch ca, phân công". Việc thu hẹp này đã có lý do và có trong Điểm báo lại chưa? [Consistency, Spec §FR-021, §FR-048, 4.4]
 - [x] CHK024 - FR-016 cho người lập lịch "tự công bố theo Q-10". Q-10 yêu cầu lý do bắt buộc và nhật ký đánh dấu "tự duyệt"; FR-016 có nêu hai điều kiện này không? [Consistency, Spec §FR-016, Q-10]
-- [ ] CHK025 - FR-010 cho xếp ca khi đào tạo bắt buộc với vai trò hết hiệu lực (chỉ cảnh báo), còn FR-030 chặn phân công. Hai quy tắc có dẫn tới trạng thái nhân viên có ca nhưng không nhận được phân công nào hợp lệ không, và trạng thái đó có được tính vào tỷ lệ phục vụ (FR-034) không? [Consistency, Spec §FR-010, §FR-030, §FR-034]
+- [x] CHK025 - FR-010 cho xếp ca khi đào tạo bắt buộc với vai trò hết hiệu lực (chỉ cảnh báo), còn FR-030 chặn phân công. Hai quy tắc có dẫn tới trạng thái nhân viên có ca nhưng không nhận được phân công nào hợp lệ không, và trạng thái đó có được tính vào tỷ lệ phục vụ (FR-034) không? [Consistency, Spec §FR-010, §FR-030, §FR-034] — *Đạt (2026-10-01): FR-034.*
 - [x] CHK026 - SC-001 yêu cầu bản nháp sẵn sàng trong 1 phút sau mốc CFG-M09-04, trong khi NFR-04 cho tác vụ định kỳ toàn viện tới 5 phút. Hai mục tiêu có nhất quán khi mọi tầng cùng kết ca một lúc không? [Consistency, Spec §SC-001, NFR-04]
 - [x] CHK027 - FR-044a chuyển tạm sang "Người phụ trách ca sau", còn feature 007 FR-037 chuyển chính thức sang "Điều dưỡng phụ trách". Spec có nêu rõ người tạm nhận có thể khác người nhận chính thức, và thông báo cho cả hai không? [Consistency, Spec §FR-044, §FR-044a, feature 007 FR-037]
 - [x] CHK028 - Bảng FR-022 cho ca Đã đóng khi bàn giao ở "Có ý kiến". Điều này có mâu thuẫn với BR-M09-07 ("không thể đóng ca khi chưa lập bàn giao") khi Có ý kiến nghĩa là bàn giao bị trả lại vì thiếu không? [Consistency, Spec §FR-022, §FR-042, BR-M09-07]
@@ -50,23 +50,23 @@
 
 - [x] CHK030 - Mỗi quy tắc BR-M09-01 → 08 và DBR-20, DBR-21 có ít nhất một kịch bản Given/When/Then (Constitution IV) chưa? BR-M09-05 (cảnh báo 60 ngày) và BR-M09-04 (nghỉ việc) có kịch bản riêng; BR-M09-02 chỉ có dạng "chỉ cảnh báo, không chặn" trong kịch bản 1 của User Story 5. [Acceptance Criteria, Constitution IV]
 - [x] CHK031 - FR-044a (chuyển tạm) có kịch bản cho trường hợp ca sau không có người phụ trách lúc bắt đầu (Trưởng tầng tạm nhận), không chỉ trường hợp có E? [Acceptance Criteria, Spec §FR-044a, User Story 1 kịch bản 12]
-- [ ] CHK032 - SC-002 ("10 phút cho tầng khoảng 30 người") và SC-010 ("5 phút lập phân công") có nêu điều kiện đo (số mục trong bản nháp, số nhân viên, người đo) đủ để lặp lại được không? [Measurability, Spec §SC-002, §SC-010]
-- [ ] CHK033 - SC-003 (90% bàn giao được xác nhận trong CFG-M09-05 sau một tháng) có nêu mẫu đo (mọi tầng, mọi ca, loại trừ ca không yêu cầu bàn giao) không? [Measurability, Spec §SC-003]
+- [x] CHK032 - SC-002 ("10 phút cho tầng khoảng 30 người") và SC-010 ("5 phút lập phân công") có nêu điều kiện đo (số mục trong bản nháp, số nhân viên, người đo) đủ để lặp lại được không? [Measurability, Spec §SC-002, §SC-010] — *Đạt (2026-10-01): SC-002, SC-010.*
+- [x] CHK033 - SC-003 (90% bàn giao được xác nhận trong CFG-M09-05 sau một tháng) có nêu mẫu đo (mọi tầng, mọi ca, loại trừ ca không yêu cầu bàn giao) không? [Measurability, Spec §SC-003] — *Đạt (2026-10-01): SC-003.*
 - [x] CHK034 - Có tiêu chí thành công cho quy tắc "tối đa một nhân viên chính cho mỗi vai trò" (FR-028) và "tối đa một Trưởng tầng mỗi tầng" (FR-024, Q-84) không, tương tự SC-005 cho chồng giờ? [Gap, Measurability, Spec §FR-024, §FR-028]
 
 ## Scenario Coverage
 
-- [ ] CHK035 - Luồng thay thế "Có ý kiến" có kịch bản cho trường hợp người bàn giao đã hết phạm vi ca và Trưởng tầng bổ sung thay (FR-041) không? [Coverage, Alternate Flow, Spec §FR-041, §FR-042]
-- [ ] CHK036 - Có kịch bản cho "Chuyển người phụ trách ca" khi bàn giao của ca đang ở Bản nháp (người bàn giao đổi theo) không? [Coverage, Spec §FR-019, §FR-039]
-- [ ] CHK037 - Có kịch bản cho việc feature 015 đưa lịch Nháp (sinh từ mẫu xoay ca) hoặc kết quả đổi ca đã duyệt vào 008, và các kiểm tra FR-013, FR-014, FR-030 áp dụng ra sao (Q-77) không? [Coverage, Spec §FR-049, Q-77]
-- [ ] CHK038 - Có kịch bản cho "Nhận lại làm việc" (FR-003) và việc xếp lại ca, phân công sau đó không? [Coverage, Spec §FR-003]
-- [ ] CHK039 - Có kịch bản cho "Sao chép phân công" khi người cao tuổi ở ca đích đã khác ca nguồn (người mới, người đã chuyển tầng) không? [Coverage, Spec §FR-032, §FR-026]
+- [x] CHK035 - Luồng thay thế "Có ý kiến" có kịch bản cho trường hợp người bàn giao đã hết phạm vi ca và Trưởng tầng bổ sung thay (FR-041) không? [Coverage, Alternate Flow, Spec §FR-041, §FR-042] — *Đạt (2026-10-01): User Story 1 kịch bản 14.*
+- [x] CHK036 - Có kịch bản cho "Chuyển người phụ trách ca" khi bàn giao của ca đang ở Bản nháp (người bàn giao đổi theo) không? [Coverage, Spec §FR-019, §FR-039] — *Đạt (2026-10-01): FR-019; User Story 2 kịch bản 10.*
+- [x] CHK037 - Có kịch bản cho việc feature 015 đưa lịch Nháp (sinh từ mẫu xoay ca) hoặc kết quả đổi ca đã duyệt vào 008, và các kiểm tra FR-013, FR-014, FR-030 áp dụng ra sao (Q-77) không? [Coverage, Spec §FR-049, Q-77] — *Đạt (2026-10-01): User Story 2 kịch bản 11.*
+- [x] CHK038 - Có kịch bản cho "Nhận lại làm việc" (FR-003) và việc xếp lại ca, phân công sau đó không? [Coverage, Spec §FR-003] — *Đạt (2026-10-01): User Story 4 kịch bản 8.*
+- [x] CHK039 - Có kịch bản cho "Sao chép phân công" khi người cao tuổi ở ca đích đã khác ca nguồn (người mới, người đã chuyển tầng) không? [Coverage, Spec §FR-032, §FR-026] — *Đạt (2026-10-01): User Story 3 kịch bản 10.*
 
 ## Edge Case Coverage
 
 - [x] CHK040 - Spec có xử lý tranh chấp khi hai người (Trưởng tầng và Quản lý viện, hoặc Trưởng tầng và Người phụ trách ca) cùng lập phân công chính cho cùng đối tượng, hoặc cùng xác nhận và gửi ý kiến một bàn giao, gần như đồng thời không? [Edge Case, Concurrency, Spec §FR-028, §FR-042]
 - [x] CHK041 - Khi lịch Nháp bị sửa (xóa ca, gỡ nhân viên) sau khi đã soạn phân công Nháp, phân công Nháp của ca hoặc nhân viên đó xử lý thế nào (Q-82)? [Edge Case, Spec §FR-025, §FR-027, Q-82]
-- [ ] CHK042 - Ca ngắn hơn CFG-M09-04 và ca kéo dài hơn một ngày đã được đề cập; spec có đề cập ca có giờ bắt đầu bằng giờ kết thúc hoặc mẫu ca 24 giờ không? [Edge Case, Spec §FR-011, §Edge Cases]
+- [x] CHK042 - Ca ngắn hơn CFG-M09-04 và ca kéo dài hơn một ngày đã được đề cập; spec có đề cập ca có giờ bắt đầu bằng giờ kết thúc hoặc mẫu ca 24 giờ không? [Edge Case, Spec §FR-011, §Edge Cases] — *Đạt (2026-10-01): FR-011, Edge Cases.*
 - [x] CHK043 - Khi người cao tuổi chuyển trạng thái cuối (Kết thúc lưu trú, Qua đời) giữa ca, các mục bàn giao, phân công theo người cao tuổi và trọng số trong tỷ lệ phục vụ có được xử lý rõ không? [Edge Case, Gap, Spec §FR-026, §FR-034, §FR-039]
 
 ## Non-Functional Requirements
@@ -78,12 +78,12 @@
 ## Dependencies & Assumptions
 
 - [x] CHK047 - Các yêu cầu spec 008 gửi sang feature khác đã được liệt kê đủ ở Điểm báo lại 11 chưa: feature 002 thêm FR-019d (Q-80); feature 007 sửa FR-037 (Q-78); feature 005 FR-032 và feature 006 FR-026a áp cho vắng ca chỉ trong khoảng của Q-81; feature 003 FR-005 dùng danh sách phân công còn hiệu lực? [Dependency, Spec §Điểm cần báo lại 11, §FR-049]
-- [ ] CHK048 - Giả định "trạng thái làm việc chỉ có Đang làm việc và Nghỉ việc" đã được kiểm với trường hợp nghỉ dài ngày (thai sản, ốm dài) chưa: khi đó tài khoản, cảnh báo đào tạo và giao trưởng tầng xử lý ra sao? [Assumption, Spec §Assumptions, §FR-003]
-- [ ] CHK049 - Giả định trọng số chăm sóc lấy theo "mức chăm sóc hiện hành" (feature 001) có xét tới trường hợp yêu cầu đổi mức đang chờ duyệt không? [Assumption, Spec §FR-034, §FR-035]
+- [x] CHK048 - Giả định "trạng thái làm việc chỉ có Đang làm việc và Nghỉ việc" đã được kiểm với trường hợp nghỉ dài ngày (thai sản, ốm dài) chưa: khi đó tài khoản, cảnh báo đào tạo và giao trưởng tầng xử lý ra sao? [Assumption, Spec §Assumptions, §FR-003] — *Đạt (2026-10-01): Assumptions; Điểm cần báo lại 19.*
+- [x] CHK049 - Giả định trọng số chăm sóc lấy theo "mức chăm sóc hiện hành" (feature 001) có xét tới trường hợp yêu cầu đổi mức đang chờ duyệt không? [Assumption, Spec §FR-034, §FR-035] — *Đạt (2026-10-01): FR-034.*
 
 ## Traceability
 
-- [ ] CHK050 - Mỗi FR có tham chiếu nguồn (BR/DBR/UC/mục/Q) chưa; FR-026, FR-029, FR-033 hiện chỉ dẫn mục, không có BR. Như vậy có đủ theo Constitution I không? [Traceability, Constitution I]
+- [x] CHK050 - Mỗi FR có tham chiếu nguồn (BR/DBR/UC/mục/Q) chưa; FR-026, FR-029, FR-033 hiện chỉ dẫn mục, không có BR. Như vậy có đủ theo Constitution I không? [Traceability, Constitution I] — *Đạt (2026-10-01): FR-026, FR-033; đoạn "Truy vết use case".*
 - [x] CHK051 - Các quyết định Q-77 → Q-84 đã được đưa đủ vào Điểm báo lại 10 và 12, kèm mục tài liệu nguồn cần sửa (2.4, 4.2, 4.4, 13.2 → 13.5, BR-M09-02, BR-M09-06, BR-M09-08, CFG-M09-01) chưa? [Traceability, Constitution VII, Spec §Điểm cần báo lại 10, 12]
 - [x] CHK052 - Các lệnh và trạng thái spec tự thêm (Nhận lại làm việc, Ghi nhận thu hồi, Chờ bàn giao, phân công Nháp, "Phát sinh sau khi lập", tạm nhận) đã được liệt kê trong Điểm báo lại để chủ tài liệu xác nhận chưa? Hiện Điểm báo lại 9 chưa có phân công Nháp và tạm nhận. [Traceability, Constitution I, Spec §Điểm cần báo lại 9]
 
@@ -96,3 +96,5 @@
 - Một số mục là lỗ hổng hoặc mâu thuẫn thật trong spec hiện tại, nên sửa spec hoặc chạy lại `/speckit-clarify` trước khi chốt: CHK001 (công việc tồn không người giữ trong khoảng chờ xác nhận), CHK002 (tầng chưa có Trưởng tầng thì không ai hoàn tất hoặc xác nhận bàn giao), CHK022 (hằng số 24 giờ vi phạm Constitution V), CHK028 (ca Đã đóng khi bàn giao Có ý kiến), CHK013 (định nghĩa "xử lý xong" của mục bàn giao).
 - Bổ sung 2026-09-26 (sau clarify lượt 3, Q-85 → Q-89): nội dung của CHK001, CHK002, CHK013, CHK022, CHK028 đã được xử lý trong spec (FR-022, FR-024, FR-036, FR-038, FR-040, FR-044a); người review tự đánh giá lại và đánh dấu. Mục đáng ưu tiên còn lại: CHK003 (người xác nhận nghỉ việc), CHK004 (ca qua tháng), CHK014 (người đang vắng lặp ở mọi bàn giao), CHK029 (Người phụ trách ca hủy phân công Tương lai khi ghi vắng ca).
 - Đánh giá 2026-09-26 (Claude, theo yêu cầu của người review): 37/52 mục đạt sau khi sửa spec (FR-004, FR-008, FR-011, FR-012, FR-016, FR-023, FR-027, FR-028, FR-039, FR-041, FR-042, FR-044a, FR-047, SC-001, SC-006, SC-011, Edge Cases, Điểm báo lại 9, 11, 14). 15 mục chưa đạt, chủ yếu là thiếu kịch bản hoặc giả định chưa kiểm: CHK011 (Trưởng tầng xem hồ sơ nhân viên tầng khác), CHK012 (yêu cầu trực tuyến khi hoàn tất/xác nhận mới ở Assumptions), CHK016 (kết thúc phân công giữa ca qua đêm), CHK025 (nhân viên có ca nhưng không có phân công hợp lệ có được tính tỷ lệ), CHK032, CHK033 (điều kiện đo SC-002, SC-003, SC-010), CHK035 → CHK039, CHK042 (thiếu kịch bản), CHK048, CHK049 (giả định), CHK050 (FR-026, FR-033 chưa có mã BR). Người review xem lại các mục đã đánh dấu.
+
+- **Đánh giá 2026-10-01 (theo yêu cầu của người dùng):** 15 mục còn mở sau lượt đánh giá 2026-09-26 được đối chiếu lại với toàn văn spec. 2 mục spec đã đáp ứng từ các lượt sửa sau đó (CHK011 nhờ FR-052, CHK012 nhờ FR-060, nay thêm kịch bản); 13 mục được bổ sung vào spec cùng ngày (xem "Session 2026-10-01 (đánh giá checklist business-rules và consistency)" và điểm 19 của mục "Điểm cần báo lại"). Cả 52 mục nay đã đạt. Căn cứ của từng mục mới đánh dấu ghi ngay cuối dòng.

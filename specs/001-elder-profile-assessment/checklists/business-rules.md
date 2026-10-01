@@ -10,78 +10,78 @@
 
 ## Requirement Completeness
 
-- [ ] CHK001 - Constitution IV yêu cầu mọi thực thể có vòng đời phải có bảng trạng thái; spec đã có bảng cho Bản đồng ý (Hiệu lực / Đã rút lại), Mục sức khỏe (Hiệu lực / Đã loại trừ), Lần đánh giá (Nháp / Đã xác nhận), Cờ nguy cơ và Yêu cầu đánh giá lại (Đang mở / Đã hoàn thành / Đã đóng) chưa, hay mới chỉ có bảng cho trạng thái người cao tuổi? [Gap, Constitution IV, Spec §Key Entities]
-- [ ] CHK002 - Spec có quy định thời hạn hiệu lực của đánh giá đầu vào không, ví dụ hồ sơ nằm danh sách chờ lâu hơn CFG-M01-02 thì có phải đánh giá lại trước khi Hoàn tất tiếp nhận không? [Gap, Spec §FR-034, §FR-035, Bảng trạng thái]
-- [ ] CHK003 - Hồ sơ sức khỏe ban đầu (FR-017) có phải đã được xác nhận thì mới Hoàn tất tiếp nhận được không, hay cố ý để ngoài điều kiện chặn của 5.6? [Gap, Spec §FR-017, Bảng trạng thái]
-- [ ] CHK004 - Spec có quy định lần đánh giá Nháp bị bỏ dở (hủy nháp, nhiều bản nháp cùng lúc cho một người cao tuổi) không? [Gap, Spec §FR-026, §FR-032]
-- [ ] CHK005 - Với yêu cầu thay đổi lưu trú tạo từ đánh giá lại (FR-036), spec có nêu người yêu cầu được ghi là ai (bác sĩ chấp nhận hay Bộ lập lịch) và người duyệt theo Permission Matrix (Quản lý viện, dòng "Yêu cầu thay đổi lưu trú") không? [Gap, Spec §FR-036, Constitution VI]
-- [ ] CHK006 - Phạm vi "sử dụng hình ảnh" và "nhận thông báo" trong bản đồng ý (FR-010) có được nêu là feature nào dùng và tác động khi rút lại không, như đã làm với quyền xem sức khỏe (FR-015)? [Gap, Spec §FR-010, §FR-015]
-- [ ] CHK007 - Spec có xác định ai được xem giấy tờ định danh (CCCD) và ảnh trong hồ sơ, hay mọi vai trò được xem hồ sơ đều thấy toàn bộ thông tin cá nhân? [Gap, Security, Spec §FR-007]
-- [ ] CHK008 - Có trường hợp người cao tuổi Đang tiếp nhận qua đời hoặc phải nhập viện trước khi Hoàn tất tiếp nhận không; spec có nói rõ khi đó chỉ dùng "Hủy tiếp nhận" kèm lý do (vì 5.5 không có chuyển khác) không? [Edge Case, Gap, Spec §Bảng trạng thái]
-- [ ] CHK009 - Spec có quy định người cao tuổi xuất viện nhưng về thẳng nhà (không về viện) thì trạng thái chuyển thế nào, khi bảng 5.5 chỉ cho Điều trị tại bệnh viện → Đang lưu trú / Kết thúc lưu trú / Qua đời? [Edge Case, Gap, Spec §Bảng trạng thái]
-- [ ] CHK010 - Các trường "thông tin đặc biệt", "nguồn thông tin" và "mức độ" của dị ứng có được liệt kê giá trị hoặc danh mục không? [Completeness, Spec §FR-001, §FR-018]
+- [x] CHK001 - Constitution IV yêu cầu mọi thực thể có vòng đời phải có bảng trạng thái; spec đã có bảng cho Bản đồng ý (Hiệu lực / Đã rút lại), Mục sức khỏe (Hiệu lực / Đã loại trừ), Lần đánh giá (Nháp / Đã xác nhận), Cờ nguy cơ và Yêu cầu đánh giá lại (Đang mở / Đã hoàn thành / Đã đóng) chưa, hay mới chỉ có bảng cho trạng thái người cao tuổi? [Gap, Constitution IV, Spec §Key Entities] — *Đạt (2026-10-01): bảng trạng thái các thực thể khác (sau bảng trạng thái người cao tuổi).*
+- [x] CHK002 - Spec có quy định thời hạn hiệu lực của đánh giá đầu vào không, ví dụ hồ sơ nằm danh sách chờ lâu hơn CFG-M01-02 thì có phải đánh giá lại trước khi Hoàn tất tiếp nhận không? [Gap, Spec §FR-034, §FR-035, Bảng trạng thái] — *Đạt (2026-10-01): FR-034a.*
+- [x] CHK003 - Hồ sơ sức khỏe ban đầu (FR-017) có phải đã được xác nhận thì mới Hoàn tất tiếp nhận được không, hay cố ý để ngoài điều kiện chặn của 5.6? [Gap, Spec §FR-017, Bảng trạng thái] — *Đạt (2026-10-01): FR-017.*
+- [x] CHK004 - Spec có quy định lần đánh giá Nháp bị bỏ dở (hủy nháp, nhiều bản nháp cùng lúc cho một người cao tuổi) không? [Gap, Spec §FR-026, §FR-032] — *Đạt (2026-10-01): FR-026, bảng trạng thái lần đánh giá.*
+- [x] CHK005 - Với yêu cầu thay đổi lưu trú tạo từ đánh giá lại (FR-036), spec có nêu người yêu cầu được ghi là ai (bác sĩ chấp nhận hay Bộ lập lịch) và người duyệt theo Permission Matrix (Quản lý viện, dòng "Yêu cầu thay đổi lưu trú") không? [Gap, Spec §FR-036, Constitution VI] — *Đạt (2026-10-01): FR-036.*
+- [x] CHK006 - Phạm vi "sử dụng hình ảnh" và "nhận thông báo" trong bản đồng ý (FR-010) có được nêu là feature nào dùng và tác động khi rút lại không, như đã làm với quyền xem sức khỏe (FR-015)? [Gap, Spec §FR-010, §FR-015] — *Đạt (2026-10-01): FR-010.*
+- [x] CHK007 - Spec có xác định ai được xem giấy tờ định danh (CCCD) và ảnh trong hồ sơ, hay mọi vai trò được xem hồ sơ đều thấy toàn bộ thông tin cá nhân? [Gap, Security, Spec §FR-007] — *Đạt (2026-10-01): FR-007.*
+- [x] CHK008 - Có trường hợp người cao tuổi Đang tiếp nhận qua đời hoặc phải nhập viện trước khi Hoàn tất tiếp nhận không; spec có nói rõ khi đó chỉ dùng "Hủy tiếp nhận" kèm lý do (vì 5.5 không có chuyển khác) không? [Edge Case, Gap, Spec §Bảng trạng thái] — *Đạt (2026-10-01): Edge Cases.*
+- [x] CHK009 - Spec có quy định người cao tuổi xuất viện nhưng về thẳng nhà (không về viện) thì trạng thái chuyển thế nào, khi bảng 5.5 chỉ cho Điều trị tại bệnh viện → Đang lưu trú / Kết thúc lưu trú / Qua đời? [Edge Case, Gap, Spec §Bảng trạng thái] — *Đạt (2026-10-01): Edge Cases, bảng trạng thái.*
+- [x] CHK010 - Các trường "thông tin đặc biệt", "nguồn thông tin" và "mức độ" của dị ứng có được liệt kê giá trị hoặc danh mục không? [Completeness, Spec §FR-001, §FR-018] — *Đạt (2026-10-01): FR-018.*
 
 ## Requirement Clarity
 
-- [ ] CHK011 - "Nội dung trùng" ở FR-021 và việc kiểm tra dị ứng với đơn thuốc (FR-020, BR-M07-06) có yêu cầu dị ứng được ghi theo danh mục dị nguyên/hoạt chất, hay chấp nhận văn bản tự do? Nếu tự do thì việc so khớp có kiểm chứng khách quan được không? [Ambiguity, Spec §FR-018, §FR-020, §FR-021]
-- [ ] CHK012 - FR-005 "trùng họ tên và ngày sinh" có nói rõ cách so khớp (có dấu/không dấu, khoảng trắng, chữ hoa) không? [Clarity, Spec §FR-005]
-- [ ] CHK013 - "Ngày hiệu lực" dùng để sinh lịch sau Hoàn tất tiếp nhận là ngày bắt đầu hợp đồng hay thời điểm thực hiện lệnh? [Ambiguity, Spec §Bảng trạng thái]
-- [ ] CHK014 - Mốc tính CFG-M01-02 (90 ngày) là thời điểm bác sĩ chấp nhận lần đánh giá gần nhất hay ngày đánh giá; đơn vị là ngày lịch hay 24 giờ? [Clarity, Spec §FR-039]
-- [ ] CHK015 - FR-009 "trừ người thân với cờ nguy cơ, vốn là kết quả đánh giá" có được diễn đạt thành một quy tắc hiển thị rõ ràng cho từng vai trò không? [Clarity, Spec §FR-009]
-- [ ] CHK016 - Điều kiện "Có sự cố hoặc chỉ định chuyển viện" cho lệnh Chuyển viện khi người cao tuổi đang Tạm vắng (ở nhà) có được làm rõ là sự cố nào ghi nhận ở đâu không? [Ambiguity, Spec §Bảng trạng thái]
-- [ ] CHK017 - "Gần như đồng thời" ở FR-048 có cần thiết không, hay chỉ cần quy tắc "lệnh được ghi nhận trước thắng" như đã nêu ở feature 000 (CHK014 của 000)? [Ambiguity, Spec §FR-048]
-- [ ] CHK018 - Khi điều dưỡng nhập điểm và bác sĩ chấp nhận, "người thực hiện" của lần đánh giá (FR-025) là ai, và có lưu cả hai người không? [Clarity, Spec §FR-025, §FR-026]
-- [ ] CHK019 - Trước khi có hợp đồng (trạng thái Đang tiếp nhận), "loại hình lưu trú hiện hành" (FR-052) có giá trị gì, và điều kiện "nếu nội trú" của Hoàn tất tiếp nhận lấy loại hình từ đâu? [Clarity, Spec §FR-052, Bảng trạng thái]
+- [x] CHK011 - "Nội dung trùng" ở FR-021 và việc kiểm tra dị ứng với đơn thuốc (FR-020, BR-M07-06) có yêu cầu dị ứng được ghi theo danh mục dị nguyên/hoạt chất, hay chấp nhận văn bản tự do? Nếu tự do thì việc so khớp có kiểm chứng khách quan được không? [Ambiguity, Spec §FR-018, §FR-020, §FR-021] — *Đạt (2026-10-01): FR-018a, FR-020.*
+- [x] CHK012 - FR-005 "trùng họ tên và ngày sinh" có nói rõ cách so khớp (có dấu/không dấu, khoảng trắng, chữ hoa) không? [Clarity, Spec §FR-005] — *Đạt (2026-10-01): FR-005.*
+- [x] CHK013 - "Ngày hiệu lực" dùng để sinh lịch sau Hoàn tất tiếp nhận là ngày bắt đầu hợp đồng hay thời điểm thực hiện lệnh? [Ambiguity, Spec §Bảng trạng thái] — *Đạt (2026-10-01): bảng trạng thái dòng Hoàn tất tiếp nhận.*
+- [x] CHK014 - Mốc tính CFG-M01-02 (90 ngày) là thời điểm bác sĩ chấp nhận lần đánh giá gần nhất hay ngày đánh giá; đơn vị là ngày lịch hay 24 giờ? [Clarity, Spec §FR-039] — *Đạt (2026-10-01): FR-034a, FR-039.*
+- [x] CHK015 - FR-009 "trừ người thân với cờ nguy cơ, vốn là kết quả đánh giá" có được diễn đạt thành một quy tắc hiển thị rõ ràng cho từng vai trò không? [Clarity, Spec §FR-009] — *Đạt (2026-10-01): FR-009.*
+- [x] CHK016 - Điều kiện "Có sự cố hoặc chỉ định chuyển viện" cho lệnh Chuyển viện khi người cao tuổi đang Tạm vắng (ở nhà) có được làm rõ là sự cố nào ghi nhận ở đâu không? [Ambiguity, Spec §Bảng trạng thái] — *Đạt (2026-10-01): bảng trạng thái dòng Chuyển viện.*
+- [x] CHK017 - "Gần như đồng thời" ở FR-048 có cần thiết không, hay chỉ cần quy tắc "lệnh được ghi nhận trước thắng" như đã nêu ở feature 000 (CHK014 của 000)? [Ambiguity, Spec §FR-048] — *Đạt (2026-10-01): FR-048 nêu quy tắc lệnh đầu tiên được áp dụng.*
+- [x] CHK018 - Khi điều dưỡng nhập điểm và bác sĩ chấp nhận, "người thực hiện" của lần đánh giá (FR-025) là ai, và có lưu cả hai người không? [Clarity, Spec §FR-025, §FR-026] — *Đạt (2026-10-01): FR-025 lưu cả người thực hiện và người chấp nhận.*
+- [x] CHK019 - Trước khi có hợp đồng (trạng thái Đang tiếp nhận), "loại hình lưu trú hiện hành" (FR-052) có giá trị gì, và điều kiện "nếu nội trú" của Hoàn tất tiếp nhận lấy loại hình từ đâu? [Clarity, Spec §FR-052, Bảng trạng thái] — *Đạt (2026-10-01): FR-052.*
 
 ## Requirement Consistency
 
-- [ ] CHK020 - FR-036 và Edge Cases cho hệ thống tự hủy yêu cầu đổi mức chăm sóc chưa áp dụng; bảng trạng thái yêu cầu phê duyệt của feature 000 chỉ cho người yêu cầu hoặc người có quyền duyệt hủy. Hai spec có mâu thuẫn không? [Conflict, Spec §FR-036, Spec 000 §FR-031]
-- [ ] CHK021 - FR-049 chặn mọi thao tác ghi trên hồ sơ trạng thái cuối, nhưng feature 000 cho phép đính chính bản ghi đã xác nhận (ví dụ lần đánh giá, lịch sử trạng thái ghi sai sau khi qua đời). Spec có nói rõ đính chính có bị chặn hay là ngoại lệ không? [Conflict, Spec §FR-049, Spec 000 §FR-023]
-- [ ] CHK022 - FR-047 yêu cầu chuyển trạng thái và tác động của feature khác "cùng thành công hoặc không có gì thay đổi"; điều này có nhất quán với FR-047a/lệnh Kết thúc lưu trú, nơi tác động khóa tài khoản xảy ra sau CFG-M01-04 (trễ 30 ngày) không? [Consistency, Spec §FR-047, Bảng trạng thái]
-- [ ] CHK023 - Người thực hiện "Ghi nhận qua đời" chỉ là Bác sĩ trong bảng, trong khi Permission Matrix dòng "Kết thúc lưu trú, qua đời" cho cả HC là T. Spec có giải thích lý do khác biệt không? [Conflict, Spec §Bảng trạng thái, Constitution VI]
-- [ ] CHK024 - Lệnh Chuyển viện gán cho Điều dưỡng và Bác sĩ, nhưng Permission Matrix không có dòng riêng cho UC-16; nguồn quyền này có được ghi rõ không? [Traceability, Spec §Bảng trạng thái, Constitution VI]
-- [ ] CHK025 - Thang điểm do "Quản lý viện, sau khi bác sĩ cơ sở thống nhất" cấu hình; Permission Matrix không có dòng cho danh mục thang điểm. Việc gán quyền này có khớp 4.4 dòng "Tài khoản, phân quyền, tham số" không? [Consistency, Spec §Bảng phân nhóm dữ liệu, Constitution VI]
-- [ ] CHK026 - FR-008 nói nhân viên chăm sóc không xem kết quả đánh giá, nhưng FR-009/FR-038 cho họ thấy cờ nguy cơ (vốn là kết quả đánh giá). Ranh giới giữa "kết quả đánh giá" và "cờ nguy cơ" đã được nói rõ chưa? [Consistency, Spec §FR-008, §FR-009, §FR-038]
-- [ ] CHK027 - FR-051 "mọi tổ hợp loại hình lưu trú × mức chăm sóc MUST được chấp nhận" có nhất quán với BR-M03-01 (phòng phải khớp mức chăm sóc) và trọng số chăm sóc (mục 4) không; spec có nói rõ "độc lập" chỉ ở cấp thuộc tính người cao tuổi, không ở cấp phòng/giường? [Consistency, Spec §FR-051]
-- [ ] CHK028 - 5.6 dùng "Đánh giá đầu vào hoàn tất", spec dùng "Đã xác nhận" và "bác sĩ chấp nhận". Ba cách gọi có được thống nhất về một thuật ngữ không? [Consistency, Terminology, Spec §FR-029, Bảng trạng thái]
-- [ ] CHK029 - Scenario 1 của User Story 5 yêu cầu hồ sơ chưa ở trạng thái cuối để ghi nhận bản đồng ý; FR-010 không nêu điều kiện này, chỉ FR-014a nêu. Điều kiện có được đặt ở FR-010 không? [Consistency, Spec §FR-010, §FR-014a]
+- [x] CHK020 - FR-036 và Edge Cases cho hệ thống tự hủy yêu cầu đổi mức chăm sóc chưa áp dụng; bảng trạng thái yêu cầu phê duyệt của feature 000 chỉ cho người yêu cầu hoặc người có quyền duyệt hủy. Hai spec có mâu thuẫn không? [Conflict, Spec §FR-036, Spec 000 §FR-031] — *Đạt (2026-10-01): FR-036a (trạng thái Được thay thế).*
+- [x] CHK021 - FR-049 chặn mọi thao tác ghi trên hồ sơ trạng thái cuối, nhưng feature 000 cho phép đính chính bản ghi đã xác nhận (ví dụ lần đánh giá, lịch sử trạng thái ghi sai sau khi qua đời). Spec có nói rõ đính chính có bị chặn hay là ngoại lệ không? [Conflict, Spec §FR-049, Spec 000 §FR-023] — *Đạt (2026-10-01): FR-049a.*
+- [x] CHK022 - FR-047 yêu cầu chuyển trạng thái và tác động của feature khác "cùng thành công hoặc không có gì thay đổi"; điều này có nhất quán với FR-047a/lệnh Kết thúc lưu trú, nơi tác động khóa tài khoản xảy ra sau CFG-M01-04 (trễ 30 ngày) không? [Consistency, Spec §FR-047, Bảng trạng thái] — *Đạt (2026-10-01): FR-047.*
+- [x] CHK023 - Người thực hiện "Ghi nhận qua đời" chỉ là Bác sĩ trong bảng, trong khi Permission Matrix dòng "Kết thúc lưu trú, qua đời" cho cả HC là T. Spec có giải thích lý do khác biệt không? [Conflict, Spec §Bảng trạng thái, Constitution VI] — *Đạt (2026-10-01): FR-047b.*
+- [x] CHK024 - Lệnh Chuyển viện gán cho Điều dưỡng và Bác sĩ, nhưng Permission Matrix không có dòng riêng cho UC-16; nguồn quyền này có được ghi rõ không? [Traceability, Spec §Bảng trạng thái, Constitution VI] — *Đạt (2026-10-01): bảng trạng thái dòng Chuyển viện (UC-16, BR-M01-06).*
+- [x] CHK025 - Thang điểm do "Quản lý viện, sau khi bác sĩ cơ sở thống nhất" cấu hình; Permission Matrix không có dòng cho danh mục thang điểm. Việc gán quyền này có khớp 4.4 dòng "Tài khoản, phân quyền, tham số" không? [Consistency, Spec §Bảng phân nhóm dữ liệu, Constitution VI] — *Đạt (2026-10-01): bảng phân nhóm dữ liệu; Phụ lục 27 dòng tham số.*
+- [x] CHK026 - FR-008 nói nhân viên chăm sóc không xem kết quả đánh giá, nhưng FR-009/FR-038 cho họ thấy cờ nguy cơ (vốn là kết quả đánh giá). Ranh giới giữa "kết quả đánh giá" và "cờ nguy cơ" đã được nói rõ chưa? [Consistency, Spec §FR-008, §FR-009, §FR-038] — *Đạt (2026-10-01): FR-008.*
+- [x] CHK027 - FR-051 "mọi tổ hợp loại hình lưu trú × mức chăm sóc MUST được chấp nhận" có nhất quán với BR-M03-01 (phòng phải khớp mức chăm sóc) và trọng số chăm sóc (mục 4) không; spec có nói rõ "độc lập" chỉ ở cấp thuộc tính người cao tuổi, không ở cấp phòng/giường? [Consistency, Spec §FR-051] — *Đạt (2026-10-01): FR-051.*
+- [x] CHK028 - 5.6 dùng "Đánh giá đầu vào hoàn tất", spec dùng "Đã xác nhận" và "bác sĩ chấp nhận". Ba cách gọi có được thống nhất về một thuật ngữ không? [Consistency, Terminology, Spec §FR-029, Bảng trạng thái] — *Đạt (2026-10-01): bảng trạng thái dùng "Đã xác nhận"; "chấp nhận" là tên lệnh.*
+- [x] CHK029 - Scenario 1 của User Story 5 yêu cầu hồ sơ chưa ở trạng thái cuối để ghi nhận bản đồng ý; FR-010 không nêu điều kiện này, chỉ FR-014a nêu. Điều kiện có được đặt ở FR-010 không? [Consistency, Spec §FR-010, §FR-014a] — *Đạt (2026-10-01): FR-014a.*
 
 ## Acceptance Criteria Quality
 
-- [ ] CHK030 - Có tiêu chí thành công đo được cho phân quyền và lọc theo vai trò (FR-007, FR-008: bếp/vệ sinh bị chặn, dinh dưỡng viên chỉ thấy dị ứng) không? [Gap, Spec §Success Criteria]
-- [ ] CHK031 - Có tiêu chí thành công cho cảnh báo tạm vắng quá hạn (BR-M01-01, FR-050) và cho việc nhắc thiếu bản đồng ý (FR-012) không? [Gap, Spec §Success Criteria]
-- [ ] CHK032 - SC-005 (10 phút) và SC-006 (5 phút) có nêu điều kiện đo (người đo, số lượng mẫu, có tính thời gian chờ tải ảnh/scan không) không? [Measurability, Spec §SC-005, §SC-006]
-- [ ] CHK033 - Có kịch bản Given/When/Then cho FR-004 phần "hồ sơ Qua đời không được dùng làm căn cứ tạo hồ sơ mới" và "chuỗi nhiều hồ sơ cũ" không? [Acceptance Criteria, Spec §FR-004, Constitution IV]
-- [ ] CHK034 - FR-042 (gộp căn cứ, lấy hạn sớm hơn), FR-043 (đóng yêu cầu khi trạng thái cuối) và FR-053 (tra cứu giá trị tại một ngày) có kịch bản chấp nhận riêng không? [Acceptance Criteria, Constitution IV]
-- [ ] CHK035 - "Independent Test" của User Story 4 cần hợp đồng, đặt cọc, giường, đồ gửi, chi phí từ các feature 003, 004, 006, 007, 010, 013 chưa đặc tả; spec có nêu cách kiểm thử độc lập (giả lập kết quả kiểm tra điều kiện) không? [Assumption, Spec §User Story 4]
+- [x] CHK030 - Có tiêu chí thành công đo được cho phân quyền và lọc theo vai trò (FR-007, FR-008: bếp/vệ sinh bị chặn, dinh dưỡng viên chỉ thấy dị ứng) không? [Gap, Spec §Success Criteria] — *Đạt (2026-10-01): SC-012.*
+- [x] CHK031 - Có tiêu chí thành công cho cảnh báo tạm vắng quá hạn (BR-M01-01, FR-050) và cho việc nhắc thiếu bản đồng ý (FR-012) không? [Gap, Spec §Success Criteria] — *Đạt (2026-10-01): SC-013.*
+- [x] CHK032 - SC-005 (10 phút) và SC-006 (5 phút) có nêu điều kiện đo (người đo, số lượng mẫu, có tính thời gian chờ tải ảnh/scan không) không? [Measurability, Spec §SC-005, §SC-006] — *Đạt (2026-10-01): SC-005, SC-006.*
+- [x] CHK033 - Có kịch bản Given/When/Then cho FR-004 phần "hồ sơ Qua đời không được dùng làm căn cứ tạo hồ sơ mới" và "chuỗi nhiều hồ sơ cũ" không? [Acceptance Criteria, Spec §FR-004, Constitution IV] — *Đạt (2026-10-01): User Story 1 kịch bản 10.*
+- [x] CHK034 - FR-042 (gộp căn cứ, lấy hạn sớm hơn), FR-043 (đóng yêu cầu khi trạng thái cuối) và FR-053 (tra cứu giá trị tại một ngày) có kịch bản chấp nhận riêng không? [Acceptance Criteria, Constitution IV] — *Đạt (2026-10-01): User Story 6 kịch bản 3, 10, 11.*
+- [x] CHK035 - "Independent Test" của User Story 4 cần hợp đồng, đặt cọc, giường, đồ gửi, chi phí từ các feature 003, 004, 006, 007, 010, 013 chưa đặc tả; spec có nêu cách kiểm thử độc lập (giả lập kết quả kiểm tra điều kiện) không? [Assumption, Spec §User Story 4] — *Đạt (2026-10-01): Independent Test của User Story 4.*
 
 ## Scenario Coverage
 
-- [ ] CHK036 - Có yêu cầu cho trường hợp kiểm tra dị ứng (FR-020) không chạy được vì feature 006/011 chưa sẵn sàng hoặc lỗi: mục dị ứng vẫn lưu hay bị hủy theo nguyên tắc "hoặc toàn bộ, hoặc không"? [Exception Flow, Gap, Spec §FR-020, §FR-047]
-- [ ] CHK037 - Có kịch bản cho đánh giá lại được chấp nhận khi người cao tuổi đang Tạm vắng hoặc Hoạt động bên ngoài và mức chăm sóc thay đổi (yêu cầu thay đổi lưu trú tạo lúc vắng mặt) không? [Coverage, Spec §FR-035, §FR-036]
-- [ ] CHK038 - Có kịch bản cho đính chính lần đánh giá khi cờ nguy cơ đã được gỡ hoặc mức chăm sóc đã đổi sau đó (đính chính một lần đánh giá cũ) không? [Edge Case, Spec §FR-032]
-- [ ] CHK039 - Có kịch bản cho việc cấu hình thang điểm hoặc CFG-M01-05 thay đổi khi đang có lần đánh giá Nháp (dùng bảng quy đổi nào) không? [Edge Case, Gap, Spec §FR-027, Spec 000 §FR-018]
-- [ ] CHK040 - Có kịch bản cho người đại diện ký bản đồng ý rồi sau đó thôi là người đại diện (feature 012) — bản đồng ý còn hiệu lực không? [Edge Case, Gap, Spec §FR-011]
+- [x] CHK036 - Có yêu cầu cho trường hợp kiểm tra dị ứng (FR-020) không chạy được vì feature 006/011 chưa sẵn sàng hoặc lỗi: mục dị ứng vẫn lưu hay bị hủy theo nguyên tắc "hoặc toàn bộ, hoặc không"? [Exception Flow, Gap, Spec §FR-020, §FR-047] — *Đạt (2026-10-01): Edge Cases.*
+- [x] CHK037 - Có kịch bản cho đánh giá lại được chấp nhận khi người cao tuổi đang Tạm vắng hoặc Hoạt động bên ngoài và mức chăm sóc thay đổi (yêu cầu thay đổi lưu trú tạo lúc vắng mặt) không? [Coverage, Spec §FR-035, §FR-036] — *Đạt (2026-10-01): User Story 6 kịch bản 12.*
+- [x] CHK038 - Có kịch bản cho đính chính lần đánh giá khi cờ nguy cơ đã được gỡ hoặc mức chăm sóc đã đổi sau đó (đính chính một lần đánh giá cũ) không? [Edge Case, Spec §FR-032] — *Đạt (2026-10-01): Edge Cases.*
+- [x] CHK039 - Có kịch bản cho việc cấu hình thang điểm hoặc CFG-M01-05 thay đổi khi đang có lần đánh giá Nháp (dùng bảng quy đổi nào) không? [Edge Case, Gap, Spec §FR-027, Spec 000 §FR-018] — *Đạt (2026-10-01): Edge Cases.*
+- [x] CHK040 - Có kịch bản cho người đại diện ký bản đồng ý rồi sau đó thôi là người đại diện (feature 012) — bản đồng ý còn hiệu lực không? [Edge Case, Gap, Spec §FR-011] — *Đạt (2026-10-01): Edge Cases.*
 
 ## Non-Functional Requirements
 
-- [ ] CHK041 - Yêu cầu ghi nhật ký lượt xem dữ liệu sức khỏe (NFR-08) được giao cho feature 012 chỉ với người thân; spec có nêu có ghi lượt xem của nhân viên với dữ liệu sức khỏe hay cố ý để ngoài phạm vi không? [Gap, Security, Spec §Assumptions]
-- [ ] CHK042 - Căn cứ pháp lý (Q-03) có được liệt kê các yêu cầu tuân thủ cụ thể liên quan tới spec (lưu bằng chứng, quyền rút lại, dữ liệu nhạy cảm) thay vì chỉ dẫn chung "Nghị định 13/2023/NĐ-CP" không? [Compliance, Spec §FR-012]
-- [ ] CHK043 - Múi giờ và nguồn thời gian (DBR-25, NFR-09) có được nêu cho các hạn CFG-M01-01, CFG-M01-03, CFG-M01-06 và khả năng kiểm thử bằng đồng hồ giả lập (NFR-13) cho BR-M01-01 không? [Gap, Spec §FR-041, §FR-050]
+- [x] CHK041 - Yêu cầu ghi nhật ký lượt xem dữ liệu sức khỏe (NFR-08) được giao cho feature 012 chỉ với người thân; spec có nêu có ghi lượt xem của nhân viên với dữ liệu sức khỏe hay cố ý để ngoài phạm vi không? [Gap, Security, Spec §Assumptions] — *Đạt (2026-10-01): Assumptions.*
+- [x] CHK042 - Căn cứ pháp lý (Q-03) có được liệt kê các yêu cầu tuân thủ cụ thể liên quan tới spec (lưu bằng chứng, quyền rút lại, dữ liệu nhạy cảm) thay vì chỉ dẫn chung "Nghị định 13/2023/NĐ-CP" không? [Compliance, Spec §FR-012] — *Đạt (2026-10-01): FR-010, FR-014, FR-014a, FR-022.*
+- [x] CHK043 - Múi giờ và nguồn thời gian (DBR-25, NFR-09) có được nêu cho các hạn CFG-M01-01, CFG-M01-03, CFG-M01-06 và khả năng kiểm thử bằng đồng hồ giả lập (NFR-13) cho BR-M01-01 không? [Gap, Spec §FR-041, §FR-050] — *Đạt (2026-10-01): Assumptions.*
 
 ## Dependencies & Assumptions
 
-- [ ] CHK044 - Giả định "các mức chăm sóc chuyên biệt chỉ được bác sĩ chọn thủ công" và "mọi lần đánh giá phải có đủ thang bắt buộc" đã được bác sĩ cơ sở xác nhận chưa, hay cần đưa vào Q-02? [Assumption, Spec §Assumptions]
-- [ ] CHK045 - Phụ thuộc của từng điều kiện chặn và tác động trong bảng trạng thái vào feature khác (003, 004, 005, 006, 007, 009, 010, 011, 012, 013, 014) có được ghi là điều kiện tiên quyết hay có thể làm song song không? [Dependency, Spec §Bảng trạng thái]
-- [ ] CHK046 - Giả định "hai chuyển do điểm danh chuyến đi, người thực hiện là người điểm danh" có mâu thuẫn với FR-046 (lý do bắt buộc với mọi lệnh người dùng thực hiện) không? [Assumption, Conflict, Spec §FR-046, §Assumptions]
+- [x] CHK044 - Giả định "các mức chăm sóc chuyên biệt chỉ được bác sĩ chọn thủ công" và "mọi lần đánh giá phải có đủ thang bắt buộc" đã được bác sĩ cơ sở xác nhận chưa, hay cần đưa vào Q-02? [Assumption, Spec §Assumptions] — *Đạt (2026-10-01): Assumptions; mục 24.4 của docs/nghiep-vu.md.*
+- [x] CHK045 - Phụ thuộc của từng điều kiện chặn và tác động trong bảng trạng thái vào feature khác (003, 004, 005, 006, 007, 009, 010, 011, 012, 013, 014) có được ghi là điều kiện tiên quyết hay có thể làm song song không? [Dependency, Spec §Bảng trạng thái] — *Đạt (2026-10-01): Assumptions.*
+- [x] CHK046 - Giả định "hai chuyển do điểm danh chuyến đi, người thực hiện là người điểm danh" có mâu thuẫn với FR-046 (lý do bắt buộc với mọi lệnh người dùng thực hiện) không? [Assumption, Conflict, Spec §FR-046, §Assumptions] — *Đạt (2026-10-01): Assumptions.*
 
 ## Traceability (Constitution I, V, VII)
 
-- [ ] CHK047 - Các FR chưa có tham chiếu nguồn (FR-005, FR-021, FR-042, FR-048) có được ghi nguồn hoặc ghi rõ là suy ra từ nguyên tắc nào không? [Traceability, Constitution I]
-- [ ] CHK048 - Mỗi FR có tham chiếu UC tương ứng (UC-01 → UC-08) như constitution I yêu cầu không; hiện nhiều FR ở mục C, D, F chỉ dẫn mục và BR? [Traceability, Constitution I]
-- [ ] CHK049 - Các mã đề xuất (Q-12, Q-13, CFG-M01-06) có được đánh dấu "đề xuất, chưa có trong docs" ở mọi chỗ dùng không? [Traceability, Constitution VII]
-- [ ] CHK050 - Hoạt động mẫu "xoay trở 2 giờ/lần", "kiểm tra da mỗi ca" ở User Story 3 có chứa giá trị cần là tham số (thuộc CFG-M01-05) và có được ghi là giá trị mặc định không? [Consistency, Constitution V, Spec §User Story 3]
-- [ ] CHK051 - DBR-01, DBR-03, DBR-04, DBR-05 đều có yêu cầu và kịch bản chấp nhận tương ứng như mục 3.3 `phan-tich-yeu-cau.md` yêu cầu chưa? [Traceability, Spec §FR-003, §FR-019, §FR-022, §FR-029]
+- [x] CHK047 - Các FR chưa có tham chiếu nguồn (FR-005, FR-021, FR-042, FR-048) có được ghi nguồn hoặc ghi rõ là suy ra từ nguyên tắc nào không? [Traceability, Constitution I] — *Đạt (2026-10-01): FR-005, FR-021, FR-042, FR-048.*
+- [x] CHK048 - Mỗi FR có tham chiếu UC tương ứng (UC-01 → UC-08) như constitution I yêu cầu không; hiện nhiều FR ở mục C, D, F chỉ dẫn mục và BR? [Traceability, Constitution I] — *Đạt (2026-10-01): đoạn "Truy vết use case".*
+- [x] CHK049 - Các mã đề xuất (Q-12, Q-13, CFG-M01-06) có được đánh dấu "đề xuất, chưa có trong docs" ở mọi chỗ dùng không? [Traceability, Constitution VII] — *Đạt (2026-10-01): Q-12, Q-13, CFG-M01-06 đã có ở mục 24.2 và Phụ lục 25.*
+- [x] CHK050 - Hoạt động mẫu "xoay trở 2 giờ/lần", "kiểm tra da mỗi ca" ở User Story 3 có chứa giá trị cần là tham số (thuộc CFG-M01-05) và có được ghi là giá trị mặc định không? [Consistency, Constitution V, Spec §User Story 3] — *Đạt (2026-10-01): User Story 3 kịch bản 2 ghi "CFG-M01-05 đang ở giá trị mặc định".*
+- [x] CHK051 - DBR-01, DBR-03, DBR-04, DBR-05 đều có yêu cầu và kịch bản chấp nhận tương ứng như mục 3.3 `phan-tich-yeu-cau.md` yêu cầu chưa? [Traceability, Spec §FR-003, §FR-019, §FR-022, §FR-029] — *Đạt (2026-10-01): User Story 1 kịch bản 2; User Story 5 kịch bản 4; User Story 2 kịch bản 4; User Story 3 kịch bản 5.*
 
 ## Notes
 
@@ -90,3 +90,5 @@
 - `/speckit-implement` reads checklist checkbox state as a gate and must not modify markers
 - `checklists/requirements.md` has a separate built-in lifecycle maintained by `/speckit-specify` and `/speckit-clarify`
 - Một số mục là lỗ hổng hoặc mâu thuẫn thật trong spec hiện tại, nên xử lý bằng `/speckit-clarify` hoặc sửa spec trước khi chốt: CHK001 (thiếu bảng trạng thái, constitution IV), CHK020 (hủy yêu cầu tự động trái vòng đời 000), CHK021 (đính chính trên hồ sơ trạng thái cuối), CHK022 (tác động trễ và nguyên tắc "hoặc toàn bộ"), CHK023 (quyền Ghi nhận qua đời).
+
+- **Đánh giá 2026-10-01 (theo yêu cầu của người dùng):** cả 51 mục được đối chiếu với toàn văn spec. 23 mục spec đã đáp ứng từ trước; 28 mục được bổ sung vào spec cùng ngày (xem "Session 2026-10-01 (đánh giá checklist business-rules)" và điểm 13 của mục "Điểm cần báo lại"). Căn cứ của từng mục ghi ngay cuối dòng.
