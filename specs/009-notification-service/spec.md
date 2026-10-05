@@ -468,3 +468,8 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 19. **(2026-09-27)** Q-95 → Q-117 đã được phản ánh vào tài liệu nguồn (mục 17 và 17.1 BR-M13-01 → 05, 14.1, dòng "Nhà cung cấp SMS", "Gọi điện" của mục 23 với thuật ngữ "yêu cầu gọi điện", CFG-M13-03 → 06 ở Phụ lục 25) và nằm ở mục 24.2. Các điểm 2, 3, 9, 10, 11, 12, 15, 18 được giải quyết; điểm 1, 4 (mục "đồng ý nhận thông báo" của 5.1), 5 → 8, 13, 14, 16 vẫn mở.
 
 **(2026-09-30)** 20. **Rà soát vận hành 2026-09-30** – thêm mức cho năm thông báo mới ở FR-043b (Q-245, Q-247, Q-248, Q-249, Q-252). *(Đã xử lý 2026-09-30: 17 "Mức cụ thể đã chốt", các Q ở 24.2; FR-043b.)*
+
+**(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** Tài liệu nguồn đã được sửa (docs/nghiep-vu.md 24.2, thân tài liệu, Phụ lục 25 → 28; docs/luong-nghiep-vu.md). Spec này **chưa** viết lại các yêu cầu bị ảnh hưởng; khi có sai khác, tài liệu nguồn là căn cứ. Cần cập nhật spec khi chủ dự án yêu cầu.
+
+- **Q-283** – gộp Dinh dưỡng viên vào Bác sĩ; bản gán chế độ ăn do Bác sĩ lập nên không còn bước duyệt riêng (BR-M08-03); cột DDV của Phụ lục 27 gộp vào cột BS. Ảnh hưởng: User Story 3, FR-016a (vai trò không xếp ca, Q-111).
+- **Q-284** – kho, tài sản do bộ phận tự quản lý qua Phụ trách bộ phận (13.1a); Quản lý viện chỉ duyệt chi phí qua yêu cầu mua sắm và duyệt thanh lý; bộ phận tự mua, Kế toán đối chiếu chứng từ (15.10, BR-M11-17 → 20, CFG-M11-07 → 09, UC-94, UC-95, DBR-36, BF-18). Ảnh hưởng: FR-030a (nhắc nguyên liệu, tài sản gửi Phụ trách bộ phận thay Quản lý viện); thêm thông báo của yêu cầu mua sắm (BR-M11-20).

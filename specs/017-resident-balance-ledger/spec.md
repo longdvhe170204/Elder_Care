@@ -443,3 +443,8 @@ Hồ sơ không có hợp đồng Hiệu lực và chưa ở trạng thái cuố
 **(2026-10-01)** 13. **Checklist cross-feature CHK087** – khoản nộp chưa đủ cũng báo người đại diện "đã ghi nhận khoản nộp" kèm tình trạng sau khi nộp (Q-257, bổ sung Q-252). *(Đã xử lý 2026-10-01: BR-M11-13, 17, Q-257 ở 24.2, BF-16 bước 8; bảng chuyển tình trạng số dư, FR-018, FR-030.)*
 
 **(2026-10-01)** 14. **Checklist cross-feature CHK088, CHK089** – thời điểm với chuyển khoản, người đang "dừng nhắc", giao dịch nộp bị đảo (Q-268, làm rõ Q-252, Q-257). *(Đã xử lý 2026-10-01: BR-M11-13, Q-268 ở 24.2; FR-018.)*
+
+**(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** Tài liệu nguồn đã được sửa (docs/nghiep-vu.md 24.2, thân tài liệu, Phụ lục 25 → 28; docs/luong-nghiep-vu.md). Spec này **chưa** viết lại các yêu cầu bị ảnh hưởng; khi có sai khác, tài liệu nguồn là căn cứ. Cần cập nhật spec khi chủ dự án yêu cầu.
+
+- **Q-285** – không dùng cổng thanh toán; Kế toán xác nhận chuyển khoản thủ công theo sao kê; VietQR chỉ là ảnh chứa số tài khoản và nội dung (giữ nguyên Q-211). Ảnh hưởng: không đổi yêu cầu; xác nhận chuyển khoản thủ công.
+- **Q-284** – kho, tài sản do bộ phận tự quản lý qua Phụ trách bộ phận (13.1a); Quản lý viện chỉ duyệt chi phí qua yêu cầu mua sắm và duyệt thanh lý; bộ phận tự mua, Kế toán đối chiếu chứng từ (15.10, BR-M11-17 → 20, CFG-M11-07 → 09, UC-94, UC-95, DBR-36, BF-18). Ảnh hưởng: Kế toán có thêm việc đối chiếu chứng từ mua sắm (15.10); không ghi vào sổ số dư người cao tuổi.

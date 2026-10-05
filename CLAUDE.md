@@ -1,32 +1,67 @@
 # Hệ thống quản lý viện dưỡng lão
 
-## Giai đoạn hiện tại: PHÂN TÍCH (đã đóng 2026-10-01, chờ chủ dự án mở giai đoạn kế tiếp)
+Đồ án phân tích nghiệp vụ, viết spec theo Spec Kit (thư mục specs/, .specify/). Hiện chưa có mã nguồn.
 
-- Trạng thái: cả 20 spec (000 → 019) không còn mục checklist mở và không còn nhãn [NEEDS CLARIFICATION]; mục 24.1 docs/nghiep-vu.md không còn quyết định mở.
-- Chỉ sửa spec khi được yêu cầu, hoặc để đồng bộ khi tài liệu nguồn thay đổi; không tự mở thêm lượt clarify hay checklist mới.
+## Giai đoạn hiện tại: PHÂN TÍCH
+
+- Đóng lần đầu 2026-10-01. Ngày 2026-10-05, chủ dự án sửa phạm vi (Q-280 → Q-286); giai đoạn kế tiếp vẫn chưa mở.
 - KHÔNG chạy /speckit.plan, /speckit.tasks, /speckit.implement cho tới khi chủ dự án mở giai đoạn kế tiếp và sửa mục này.
 - KHÔNG tạo mã nguồn, thư mục src/, file cấu hình build hay schema dữ liệu.
-- Việc còn treo, cần xử lý trước khi triển khai:
-  - Bảng 24.4 docs/nghiep-vu.md: các điểm cần người vận hành, chuyên môn đối chiếu.
-- Đã xử lý 2026-10-01: các đề xuất của spec 000 → 008 đã vào docs/nghiep-vu.md thành Q-271 → Q-279 (24.2) và được đánh mã BR mới trong mục "Quy tắc nghiệp vụ" của các module 01, 02, 03, 04, 05, 07, 09, 15 (63 quy tắc; tổng 240 BR); hai điểm lệch của nguồn (Phụ lục 27 dòng "Ngưỡng cảnh báo"; mục 2.4 và BR-M09-02) đã sửa.
+- Chỉ sửa spec khi được yêu cầu, hoặc để đồng bộ khi tài liệu nguồn thay đổi. Không tự mở thêm lượt clarify hay checklist mới.
+- Việc còn treo:
+  - Có 20 spec bị ảnh hưởng bởi Q-280 → Q-286 nhưng chưa viết lại yêu cầu; việc cần sửa ghi ở cuối mục "Điểm cần báo lại" của từng spec. Nặng nhất là 001, 003, 011, 019.
+  - Bảng 24.4 docs/nghiep-vu.md: các điểm cần người vận hành và người có chuyên môn đối chiếu trước khi triển khai.
+  - App cho người cao tuổi (gọi hỗ trợ/khẩn cấp, nhắc lịch bằng âm thanh, xem lịch hoạt động) đang cân nhắc, chưa có mã Q và chưa có spec.
+
+## Phạm vi nghiệp vụ (tóm tắt, căn cứ là docs/nghiep-vu.md)
+
+- Vai trò (2.3): Quản lý viện, Trưởng tầng, Bác sĩ (kiêm dinh dưỡng), Điều dưỡng, Nhân viên chăm sóc, Nhân viên bếp, Hành chính, Kế toán, Người thân.
+- Đã bỏ từ 2026-10-05:
+  - Bỏ hai vai trò Dinh dưỡng viên và Nhân viên vệ sinh, cùng nghiệp vụ vệ sinh. Nhân viên không dùng hệ thống chỉ có hồ sơ nhân viên, không có tài khoản.
+  - Bỏ thang điểm và quy đổi tự động: Bác sĩ đánh giá bằng nhận xét rồi chọn mức chăm sóc.
+  - Bỏ cờ nguy cơ.
+  - Không dùng cổng thanh toán.
+- Kho và tài sản: mỗi bộ phận tự quản lý (13.1a). Quản lý viện chỉ duyệt chi phí qua yêu cầu mua sắm (15.10). Kế toán đối chiếu chứng từ.
+- Bán trú không qua đêm. Ở lại qua đêm thì thuê giường theo nội trú ngắn ngày.
+- Quy mô mã hiện có:
+  - 244 BR (BR-Mxx-yy).
+  - Quyết định Q-01 → Q-286.
+  - Luồng BF-01 → BF-18.
+  - Use case UC-01 → UC-95.
+  - Quy tắc dữ liệu DBR-01 → DBR-36.
 
 ## Nguồn tài liệu
 
-- docs/nghiep-vu.md: quy tắc nghiệp vụ (BR, CFG, quyết định Q-xx ở mục 24); actor và use case (Phụ lục 26), ma trận quyền (Phụ lục 27, mục 19.3 là căn cứ khi khác), quy tắc dữ liệu DBR (Phụ lục 28).
-- docs/luong-nghiep-vu.md: mô tả các luồng nghiệp vụ chính (BF-01 → BF-17) theo từng bước: ai thực hiện, làm gì, trạng thái thay đổi thế nào và căn cứ.
-- Không sửa hai file trên trừ khi được yêu cầu rõ ràng; nếu phát hiện mâu thuẫn, báo lại thay vì tự sửa.
-- Hai file dẫn xuất, chỉ để đọc nhanh, **không phải nguồn**; không trích dẫn chúng trong spec, luôn trích docs/nghiep-vu.md hoặc docs/luong-nghiep-vu.md:
-  - docs/tom-tat-nghiep-vu.md: tóm tắt nghiệp vụ, vai trò, nhóm chức năng và các luồng chính.
-  - docs/quy-tac-nghiep-vu.md: bản chép nguyên văn BR, DBR, CFG, yêu cầu phi chức năng, tích hợp, quyền, quyết định còn mở từ docs/nghiep-vu.md.
-  - docs/business-rule.md: danh sách toàn bộ quy tắc BR-Mxx-yy theo module, chép nguyên văn từ docs/nghiep-vu.md (cũng là file dẫn xuất, cập nhật cùng lượt).
-- Khi hai file nguồn thay đổi (thêm BR, CFG, DBR, Q, luồng hoặc vai trò), cập nhật lại hai file dẫn xuất trong cùng lượt sửa; khi khác nhau, file nguồn là căn cứ.
+- docs/nghiep-vu.md là nguồn duy nhất về quy tắc nghiệp vụ:
+  - BR, CFG (Phụ lục 25);
+  - quyết định Q-xx (mục 24: 24.1 còn mở, 24.2 đã chốt, 24.4 cần đối chiếu);
+  - actor và use case (Phụ lục 26);
+  - ma trận quyền (Phụ lục 27; khi khác thì mục 19.3 là căn cứ);
+  - DBR (Phụ lục 28).
+- docs/luong-nghiep-vu.md mô tả các luồng BF-01 → BF-18 theo từng bước: ai làm, làm gì, trạng thái đổi thế nào, căn cứ.
+- Không sửa hai file trên trừ khi được yêu cầu rõ ràng. Phát hiện mâu thuẫn thì báo lại, không tự sửa.
+- Không có file dẫn xuất. Các file tom-tat-nghiep-vu.md, quy-tac-nghiep-vu.md, business-rule.md, cau-hoi-ra-soat-van-hanh.md đã xoá ngày 2026-10-05; không tạo lại. Tham chiếu tới chúng trong checklist cũ chỉ là lịch sử.
+- docs/phan-tich-yeu-cau.md đã bỏ ngày 2026-09-28. Các tham chiếu cũ "4.1", "4.2", "4.4", "DBR" trong spec tra theo bảng ánh xạ ở đầu Phụ lục 26.
 
 ## Quy ước
 
 - Viết spec bằng tiếng Việt; thuật ngữ theo mục 2.4 docs/nghiep-vu.md.
-- Giữ nguyên mã BR, DBR, UC, CFG, Q khi trích dẫn.
-- Điểm chưa rõ: không tự đoán; luôn tham chiếu mã Q-xx ở mục 24 docs/nghiep-vu.md. Quyết định còn mở đã có Mặc định ở 24.1 thì ghi "theo mặc định Q-xx" và viết yêu cầu theo giá trị đó; chưa có Mặc định (hoặc chưa có mã Q) thì đánh dấu [NEEDS CLARIFICATION] kèm mã Q-xx (Q-204).
+- Giữ nguyên mã BR, DBR, UC, CFG, Q, BF khi trích dẫn. Mã bị bỏ không đánh lại số: giữ dòng và ghi "(Bỏ, ngày, Q-xx)" hoặc "Không còn áp dụng".
+- Đánh dấu thay đổi trong tài liệu nguồn bằng "**(Bổ sung/Sửa/Bỏ, YYYY-MM-DD, Q-xx)**" như các đoạn đã có.
+- Điểm chưa rõ: không tự đoán; luôn tham chiếu mã Q-xx ở mục 24.
+  - Quyết định còn mở đã có Mặc định ở 24.1: ghi "theo mặc định Q-xx" và viết yêu cầu theo giá trị đó.
+  - Chưa có Mặc định hoặc chưa có mã Q: đánh dấu [NEEDS CLARIFICATION] kèm mã Q-xx (Q-204).
+- Khi chốt một quyết định (từ 24.1, hoặc chủ dự án quyết trực tiếp), làm theo thứ tự:
+  1. Ghi dòng vào 24.2, kèm các Q cũ bị thay hoặc sửa.
+  2. Đánh dấu các dòng Q cũ đó.
+  3. Cập nhật thân tài liệu và Phụ lục 25 → 28 nếu liên quan.
+  4. Cập nhật docs/luong-nghiep-vu.md.
+  5. Cập nhật bảng 24.4 nếu cần đối chiếu.
+  6. Cập nhật mục "Điểm cần báo lại" của các spec liên quan.
 - Không đưa diagram vào spec ở giai đoạn này; trạng thái thể hiện bằng bảng.
-- Khi một quyết định Q-xx được chốt: chuyển dòng từ 24.1 sang 24.2, rồi cập nhật thân tài liệu, Phụ lục 26 → 28 nếu liên quan, docs/luong-nghiep-vu.md và mục "Điểm cần báo lại" của spec liên quan (theo 24.2).
-- Sau khi hoàn thành 1 bước spec nào đó, nếu yêu cầu còn quá mơ hồ thì hãy gợi ý các bước tôi nên làm tiếp theo, còn không thì hãy ghi hoàn thành để tránh việc tìm hiểu quá sâu, dễ bị bất đồng bộ với các spec khác.
-- docs/phan-tich-yeu-cau.md đã bỏ (2026-09-28); các tham chiếu "4.1", "4.2", "4.4", "DBR" cũ trong spec tra theo bảng ánh xạ ở đầu Phụ lục 26 docs/nghiep-vu.md.
+- Sau mỗi bước spec: nếu yêu cầu còn mơ hồ thì gợi ý bước tiếp theo; nếu không thì ghi hoàn thành, tránh đào quá sâu làm lệch với các spec khác.
+
+## Ghi chú công cụ
+
+- Môi trường không có Python; dùng node cho script sửa file hàng loạt.
+- Trong lệnh Bash (kể cả heredoc), chuỗi `\\` có thể bị rút thành `\`. Không dựng regex từ chuỗi có backslash; dùng regex literal hoặc `split`/`startsWith`. Script sửa file phải kiểm tra số lần khớp trước khi ghi.
