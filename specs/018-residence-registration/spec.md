@@ -197,3 +197,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 1. **Gia hạn hợp đồng ngắn ngày mà vẫn dưới ngưỡng (FR-007, Assumptions)** – 6.10 và BR-M02-14 chỉ nêu trường hợp vượt ngưỡng. Người dùng chốt ở Clarification 2026-09-29: tạo khai báo Thông báo lưu trú mới cho ngày kết thúc mới. *(Đã xử lý 2026-09-29: 6.10, BR-M02-11, BR-M02-14, BF-01 bước 15a; Q-215 chuyển sang 24.2.)*
 2. **Báo Quản lý viện khi quá hạn khai báo (FR-002)** – BR-M02-11 ghi "báo Quản lý viện" nhưng không nêu tần suất; spec chọn một lần vào ngày quá hạn đầu tiên. *(Đã xử lý 2026-09-29: ghi vào BR-M02-11.)*
 3. **Khai báo Hết hạn khi người cao tuổi kết thúc lưu trú (FR-008)** – 6.10 cho Đã xác nhận, Hết hạn → Đã xóa; spec tạo việc khai báo xóa cho cả khai báo Hết hạn. Khớp bảng 6.10.
+
+**(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** Tài liệu nguồn đã được sửa (docs/nghiep-vu.md 24.2, thân tài liệu, Phụ lục 25 → 28; docs/luong-nghiep-vu.md). Spec này **chưa** viết lại các yêu cầu bị ảnh hưởng; khi có sai khác, tài liệu nguồn là căn cứ. Cần cập nhật spec khi chủ dự án yêu cầu.
+
+- **Q-286** – bán trú không qua đêm; người cần ở lại qua đêm phải thuê giường bằng nội trú ngắn ngày; giá bán trú theo dịch vụ đăng ký (3.3). Ảnh hưởng: người bán trú ở lại qua đêm được ghi là nội trú ngắn ngày, nên áp quy tắc thông báo lưu trú.

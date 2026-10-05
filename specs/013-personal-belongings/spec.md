@@ -530,3 +530,9 @@ Hoàn thành và Đã hủy là trạng thái cuối. Đề nghị "Xử lý đ�
 **(2026-09-30)** 17. **Rà soát vận hành (B12.2)** – người cao tuổi không có cờ nguy cơ đi lạc tự nhận lại đồ không thuộc loại "cần đồng ý khi giao sử dụng" thì không cần xác nhận người nhận khác (Q-253, sửa Q-149). *(Đã xử lý 2026-09-30: 2.4, 16.4, BR-M12-04, Q-253 ở 24.2, BF-14; FR-016, FR-018, User Story 3 kịch bản 10, SC-004.)*
 
 **(2026-10-01)** 18. **Checklist cross-feature CHK095** – Điều dưỡng trả được đồ không có giá trị thẳng cho người cao tuổi thuộc ngoại lệ Q-253 (Q-258). *(Đã xử lý 2026-10-01: BR-M12-04, Q-258 ở 24.2; FR-016a, bảng trạng thái đồ gửi.)*
+
+**(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** Tài liệu nguồn đã được sửa (docs/nghiep-vu.md 24.2, thân tài liệu, Phụ lục 25 → 28; docs/luong-nghiep-vu.md). Spec này **chưa** viết lại các yêu cầu bị ảnh hưởng; khi có sai khác, tài liệu nguồn là căn cứ. Cần cập nhật spec khi chủ dự án yêu cầu.
+
+- **Q-281** – bỏ cờ nguy cơ (ngã, loét, đi lạc); phần "lưu ý chăm sóc" của nhận xét đánh giá gần nhất hiện trên checklist và thẻ thông tin khẩn cấp; bỏ mọi điều kiện dựa vào cờ đi lạc (BR-M01-10). Ảnh hưởng: User Story 3, FR-015a, FR-016, SC-011 (tự giữ, tự nhận lại đồ không còn điều kiện cờ đi lạc).
+- **Q-282** – bỏ vai trò Nhân viên vệ sinh và nghiệp vụ vệ sinh (7.5, BR-M03-08, 11, 12, 14, UC-71 → 73); giường kết thúc phân bổ chuyển "Chờ sẵn sàng", Trưởng tầng hoặc Người phụ trách ca "Xác nhận giường sẵn sàng" (nghi nhiễm thì bắt buộc xác nhận đã khử khuẩn) (BR-M03-09, 10, UC-74); nhân viên không dùng hệ thống chỉ có hồ sơ nhân viên. Ảnh hưởng: FR-029 (danh sách vai trò).
+- **Q-283** – gộp Dinh dưỡng viên vào Bác sĩ; bản gán chế độ ăn do Bác sĩ lập nên không còn bước duyệt riêng (BR-M08-03); cột DDV của Phụ lục 27 gộp vào cột BS. Ảnh hưởng: FR-029 (danh sách vai trò).

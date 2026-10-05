@@ -720,3 +720,9 @@ Chuyến đi có bảng trạng thái riêng ở mục H.
 **(2026-10-01)** 19. **Checklist cross-feature CHK074** – định nghĩa "ca không có Trưởng tầng được giao" theo lịch ca đã công bố, cộng vắng ca và nghỉ đột xuất đã duyệt; Người phụ trách ca không tự ghi kết quả cho công việc của mình (Q-262, làm rõ Q-254). *(Đã xử lý 2026-10-01: BR-M04-23, Q-262 ở 24.2, BF-15; FR-066.)*
 
 **(2026-10-01)** 20. **Checklist cross-feature CHK075, CHK076** – đổi Người phụ trách ca giữa ca và ca không có người kiểm tra (Q-270, làm rõ Q-254, Q-262). *(Đã xử lý 2026-10-01: BR-M04-23, Q-270 ở 24.2; FR-060, FR-063.)*
+
+**(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** Tài liệu nguồn đã được sửa (docs/nghiep-vu.md 24.2, thân tài liệu, Phụ lục 25 → 28; docs/luong-nghiep-vu.md). Spec này **chưa** viết lại các yêu cầu bị ảnh hưởng; khi có sai khác, tài liệu nguồn là căn cứ. Cần cập nhật spec khi chủ dự án yêu cầu.
+
+- **Q-281** – bỏ cờ nguy cơ (ngã, loét, đi lạc); phần "lưu ý chăm sóc" của nhận xét đánh giá gần nhất hiện trên checklist và thẻ thông tin khẩn cấp; bỏ mọi điều kiện dựa vào cờ đi lạc (BR-M01-10). Ảnh hưởng: FR-018, FR-036, FR-039 (người đi cùng kèm riêng theo cờ đi lạc thay bằng ghi chú "cần người đi cùng kèm riêng" của Trưởng tầng).
+- **Q-282** – bỏ vai trò Nhân viên vệ sinh và nghiệp vụ vệ sinh (7.5, BR-M03-08, 11, 12, 14, UC-71 → 73); giường kết thúc phân bổ chuyển "Chờ sẵn sàng", Trưởng tầng hoặc Người phụ trách ca "Xác nhận giường sẵn sàng" (nghi nhiễm thì bắt buộc xác nhận đã khử khuẩn) (BR-M03-09, 10, UC-74); nhân viên không dùng hệ thống chỉ có hồ sơ nhân viên. Ảnh hưởng: FR-060, FR-064 (kiểm tra chất lượng không còn công việc vệ sinh).
+- **Q-286** – bán trú không qua đêm; người cần ở lại qua đêm phải thuê giường bằng nội trú ngắn ngày; giá bán trú theo dịch vụ đăng ký (3.3). Ảnh hưởng: giờ về muộn vì hoạt động của người bán trú không vượt qua đêm.

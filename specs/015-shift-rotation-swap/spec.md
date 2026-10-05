@@ -425,3 +425,8 @@ Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nh�
 **(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** *(2026-09-29: mọi điểm dưới đây đã xử lý, xem nhãn "Đã xử lý" từng điểm.)* Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
 
 1. **[Đã xử lý 2026-09-28: FR-006b]** **Phủ tối thiểu không tính Điều dưỡng cho dòng Nhân viên chăm sóc (Q-221, Q-214).** FR-005, FR-007 giữ nguyên cách tính theo vai trò hệ thống; cần ghi rõ để không hiểu nhầm rằng Q-214 cho Điều dưỡng lấp dòng Nhân viên chăm sóc. Đổi ca giữa Điều dưỡng và Nhân viên chăm sóc vẫn theo Q-191.
+
+**(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** Tài liệu nguồn đã được sửa (docs/nghiep-vu.md 24.2, thân tài liệu, Phụ lục 25 → 28; docs/luong-nghiep-vu.md). Spec này **chưa** viết lại các yêu cầu bị ảnh hưởng; khi có sai khác, tài liệu nguồn là căn cứ. Cần cập nhật spec khi chủ dự án yêu cầu.
+
+- **Q-282** – bỏ vai trò Nhân viên vệ sinh và nghiệp vụ vệ sinh (7.5, BR-M03-08, 11, 12, 14, UC-71 → 73); giường kết thúc phân bổ chuyển "Chờ sẵn sàng", Trưởng tầng hoặc Người phụ trách ca "Xác nhận giường sẵn sàng" (nghi nhiễm thì bắt buộc xác nhận đã khử khuẩn) (BR-M03-09, 10, UC-74); nhân viên không dùng hệ thống chỉ có hồ sơ nhân viên. Ảnh hưởng: phủ tối thiểu và ứng viên thay không còn vai trò Nhân viên vệ sinh.
+- **Q-283** – gộp Dinh dưỡng viên vào Bác sĩ; bản gán chế độ ăn do Bác sĩ lập nên không còn bước duyệt riêng (BR-M08-03); cột DDV của Phụ lục 27 gộp vào cột BS. Ảnh hưởng: phủ tối thiểu không còn vai trò Dinh dưỡng viên.

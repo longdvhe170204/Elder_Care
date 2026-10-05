@@ -618,3 +618,8 @@ Nội dung gốc của từng điểm được giữ dưới đây để truy v�
 **(2026-10-01)** 18. **Checklist cross-feature CHK093** – CFG-M11-06 tính trên số được đồng ý gần nhất; không giới hạn số lần xin đồng ý bổ sung (Q-259, làm rõ Q-251). *(Đã xử lý 2026-10-01: BR-M11-07, Q-259 ở 24.2; FR-024.)*
 
 **(2026-10-01)** 19. **Checklist cross-feature CHK091, CHK092** – căn cứ của ngoại lệ mua gấp; vòng đời lần đồng ý bổ sung và lệnh rút yêu cầu bổ sung (Q-269, làm rõ Q-251). *(Đã xử lý 2026-10-01: BR-M11-07, Q-269 ở 24.2; FR-024, bảng trạng thái đề nghị mua hộ.)*
+
+**(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** Tài liệu nguồn đã được sửa (docs/nghiep-vu.md 24.2, thân tài liệu, Phụ lục 25 → 28; docs/luong-nghiep-vu.md). Spec này **chưa** viết lại các yêu cầu bị ảnh hưởng; khi có sai khác, tài liệu nguồn là căn cứ. Cần cập nhật spec khi chủ dự án yêu cầu.
+
+- **Q-284** – kho, tài sản do bộ phận tự quản lý qua Phụ trách bộ phận (13.1a); Quản lý viện chỉ duyệt chi phí qua yêu cầu mua sắm và duyệt thanh lý; bộ phận tự mua, Kế toán đối chiếu chứng từ (15.10, BR-M11-17 → 20, CFG-M11-07 → 09, UC-94, UC-95, DBR-36, BF-18). Ảnh hưởng: FR-015 (phân biệt đề nghị mua hộ với yêu cầu mua sắm của bộ phận; yêu cầu mua sắm không sinh chi phí cho người cao tuổi).
+- **Q-286** – bán trú không qua đêm; người cần ở lại qua đêm phải thuê giường bằng nội trú ngắn ngày; giá bán trú theo dịch vụ đăng ký (3.3). Ảnh hưởng: phí bán trú theo dịch vụ đăng ký; buổi phát sinh không qua đêm.

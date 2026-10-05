@@ -648,3 +648,9 @@ Khi người thân được phép ở lại với người cao tuổi (ví dụ 
 **(2026-09-30)** 18. **Rà soát vận hành (B6.1, B9.4)** – cổng hiển thị số cũ và số mới khi có yêu cầu đồng ý bổ sung mua hộ (Q-251, FR-046a); giữ "một người đại diện là đủ" (FR-016, đã xác nhận); bổ sung thông báo mức Nhẹ cho các người đại diện còn lại khi yêu cầu có hiệu lực (Q-249). Các điểm khác ở điểm 6 (FR-015, FR-018, FR-014) được xác nhận giữ nguyên qua rà soát vận hành B6.2, B6.3. *(Đã xử lý 2026-09-30: BR-M10-07, 17, Q-249 ở 24.2, BF-12 bước 5; FR-016.)*
 
 **(2026-10-01)** 19. **Checklist cross-feature CHK086** – thời điểm xét tập người đại diện được báo (Q-267, làm rõ Q-249). *(Đã xử lý 2026-10-01: BR-M10-07, Q-267 ở 24.2; FR-016.)*
+
+**(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** Tài liệu nguồn đã được sửa (docs/nghiep-vu.md 24.2, thân tài liệu, Phụ lục 25 → 28; docs/luong-nghiep-vu.md). Spec này **chưa** viết lại các yêu cầu bị ảnh hưởng; khi có sai khác, tài liệu nguồn là căn cứ. Cần cập nhật spec khi chủ dự án yêu cầu.
+
+- **Q-281** – bỏ cờ nguy cơ (ngã, loét, đi lạc); phần "lưu ý chăm sóc" của nhận xét đánh giá gần nhất hiện trên checklist và thẻ thông tin khẩn cấp; bỏ mọi điều kiện dựa vào cờ đi lạc (BR-M01-10). Ảnh hưởng: User Story 2, FR-013, FR-021 (dấu "được tự về" không còn điều kiện cờ đi lạc).
+- **Q-285** – không dùng cổng thanh toán; Kế toán xác nhận chuyển khoản thủ công theo sao kê; VietQR chỉ là ảnh chứa số tài khoản và nội dung (giữ nguyên Q-211). Ảnh hưởng: cổng hiển thị số tài khoản và mã VietQR; không có thanh toán trực tuyến.
+- **Q-286** – bán trú không qua đêm; người cần ở lại qua đêm phải thuê giường bằng nội trú ngắn ngày; giá bán trú theo dịch vụ đăng ký (3.3). Ảnh hưởng: người bán trú không ở lại qua đêm.
