@@ -55,14 +55,20 @@
 - **Q-284**: báo cáo chi phí (18.4) có thêm tổng chi mua sắm theo bộ phận, theo trạng thái (BR-M11-20); đây không phải chi phí của người cao tuổi. Thêm FR-055a và một dòng ở bảng FR-010.
 - **Q-287**: bỏ câu về lý do chỉ định hạn chế ở FR-014.
 
+### Cập nhật 2026-10-06, lượt 2 (đồng bộ Q-306, Q-307)
+
+- **Q-306**: báo cáo chi phí (18.4) đổi "tỷ lệ chi phí tự sinh so với nhập tay" thành "tỷ lệ khoản lập theo sự kiện so với nhập tay". Khoản theo sự kiện và khoản mua hộ tính là theo sự kiện. Chỉ "Khoản khác (nhập tay)" là nhập tay. Khoản điều chỉnh không vào tỷ lệ mà đếm riêng ở "số khoản điều chỉnh sau chốt", vì mọi khoản điều chỉnh nay do Hành chính lập (feature 010 FR-027). Lịch ca được lập bằng lệnh (feature 015), nên "báo cáo sinh lịch" đổi thành "báo cáo lập lịch".
+- **Q-307**: báo cáo sức khỏe đổi "yêu cầu đánh giá lại quá hạn" thành "đánh giá lại quá hạn", là trạng thái do feature 001 xác định, không có yêu cầu (18.3). Không thêm chỉ tiêu "số sự kiện được đánh dấu không tính" mà bản đầu của Q-306 nêu, vì Q-307 đã bỏ dấu này. Báo cáo nhân sự không có danh sách gợi ý người thay (18.6). Kiểm tra chất lượng nay do người kiểm tra tự chọn mẫu (feature 014), nên bỏ chữ "ngẫu nhiên".
+- Viết lại: Phạm vi mục 3, 4; Ngoài phạm vi; User Story 5 (mô tả); User Story 6 (mô tả, kịch bản 4, 6); bảng nhóm chỉ tiêu (dòng đánh giá lại); FR-044, FR-053; bảng giao tiếp (001, 010).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 14, mục 18; UC-67):
 
 1. Báo cáo người cao tuổi: số lượng, loại lưu trú, mức chăm sóc, trạng thái, phân bố phòng/giường, danh sách chờ (18.1).
 2. Báo cáo chăm sóc: công việc theo trạng thái, nhân viên, ca, tầng; ghi nhận muộn; thời gian giường Chờ sẵn sàng (sửa, 2026-10-06, Q-282: bỏ vệ sinh); phiếu bữa ăn; hoạt động và tỷ lệ tham gia; nguy cơ cô lập (18.2).
-3. Báo cáo chất lượng: tỷ lệ Đạt của kiểm tra chất lượng ngẫu nhiên theo nhân viên và theo tầng (18.2, BR-M04-23); *(bổ sung 2026-09-30, Q-254)* số mục theo người kiểm tra (Trưởng tầng / Người phụ trách ca).
-4. Báo cáo sức khỏe và thuốc: chỉ số, cảnh báo, sự cố, trường hợp cần theo dõi, tình trạng dùng thuốc, yêu cầu đánh giá lại và đối chiếu thuốc quá hạn (18.3).
+3. Báo cáo chất lượng: tỷ lệ Đạt của kiểm tra chất lượng theo nhân viên và theo tầng (18.2, BR-M04-23); *(bổ sung 2026-09-30, Q-254)* số mục theo người kiểm tra (Trưởng tầng / Người phụ trách ca).
+4. Báo cáo sức khỏe và thuốc: chỉ số, cảnh báo, sự cố, trường hợp cần theo dõi, tình trạng dùng thuốc, đánh giá lại và đối chiếu thuốc quá hạn (18.3; **sửa, 2026-10-06, Q-307**).
 5. Báo cáo chi phí phát sinh của người cao tuổi (18.4).
 6. Dashboard theo vai trò với số liệu trong ngày và ca hiện tại (18.5).
 7. Áp phạm vi dữ liệu và giới hạn trường của người xem cho mọi số liệu, danh sách và lần mở chi tiết (18.5 "(Bổ sung)", 19.3, BR-M15-01).
@@ -72,11 +78,11 @@
 
 **Ngoài phạm vi**:
 
-- Mọi dữ liệu nghiệp vụ và mọi quy tắc sinh ra chúng: feature sở hữu (000 → 015). Spec này chỉ đọc, không tính lại quy tắc nghiệp vụ (ví dụ không tự xác định công việc Quá hạn, không tự sinh cảnh báo).
+- Mọi dữ liệu nghiệp vụ và mọi quy tắc sinh ra chúng: feature sở hữu (000 → 015). Spec này chỉ đọc, không tính lại quy tắc nghiệp vụ (ví dụ không tự xác định công việc Quá hạn, không tạo cảnh báo).
 - Gửi thông báo, nhắc hạn, leo thang: feature 009 và feature nguồn. Dashboard chỉ hiển thị.
 - Phạm vi dữ liệu, giới hạn trường, quyền ba lớp: feature 002. Spec này **dùng** kết quả tính quyền, không định nghĩa lại.
 - Báo cáo tài chính của viện, thu tiền, công nợ: hệ thống kế toán (1.2, 18.4). File chi phí cho kế toán: feature 010 (UC-64).
-- Báo cáo sinh lịch ca của từng lần sinh: feature 015 (FR-012 của 015). Bàn giao ca: feature 008.
+- Báo cáo lập lịch ca của từng lần lập lịch từ mẫu: feature 015 (FR-012 của 015). Bàn giao ca: feature 008.
 - Số liệu thăm, phản hồi (feature 012), đồ gửi thất lạc, hư hỏng (feature 013), thống kê thông báo (feature 009): giai đoạn sau (Q-194).
 - Số suất theo bữa, theo chế độ ăn (feature 011 bảng giao tiếp): mục 18 không nêu; giai đoạn sau. Spec này chỉ dùng số phiếu giao trễ, có sai lệch của feature 011.
 - Cổng người thân: người thân không có quyền ở dòng "Dashboard, báo cáo" (4.4). Số liệu cho người thân thuộc feature 012.
@@ -170,7 +176,7 @@ Quản lý viện và trưởng tầng xem kết quả chăm sóc trong một kh
 
 ### User Story 5 - Báo cáo sức khỏe và thuốc (Priority: P2)
 
-Quản lý viện, bác sĩ, trưởng tầng và điều dưỡng (trong phạm vi) xem: số lần đo và số lần vượt ngưỡng theo loại chỉ số; cảnh báo theo mức, loại, tầng; thời gian trung bình từ khi tạo cảnh báo đến khi tiếp nhận, theo mức; số lần leo thang; sự cố theo mức, loại, tầng; trường hợp cần theo dõi; tỷ lệ liều Bỏ lỡ, Từ chối theo người cao tuổi và theo ca; yêu cầu đánh giá lại quá hạn; phiếu đối chiếu thuốc quá hạn.
+Quản lý viện, bác sĩ, trưởng tầng và điều dưỡng (trong phạm vi) xem: số lần đo và số lần vượt ngưỡng theo loại chỉ số; cảnh báo theo mức, loại, tầng; thời gian trung bình từ khi tạo cảnh báo đến khi tiếp nhận, theo mức; số lần leo thang; sự cố theo mức, loại, tầng; trường hợp cần theo dõi; tỷ lệ liều Bỏ lỡ, Từ chối theo người cao tuổi và theo ca; đánh giá lại quá hạn; phiếu đối chiếu thuốc quá hạn.
 
 **Why this priority**: Phục vụ giám sát y tế và an toàn thuốc (18.3). Có thể làm độc lập với báo cáo chăm sóc.
 
@@ -188,7 +194,7 @@ Quản lý viện, bác sĩ, trưởng tầng và điều dưỡng (trong phạm
 
 ### User Story 6 - Báo cáo chi phí phát sinh (Priority: P3)
 
-Quản lý viện và hành chính xem chi phí phát sinh của người cao tuổi theo người, theo kỳ (tháng), theo loại, theo dịch vụ, theo hoạt động, theo thuốc, theo vật phẩm; tỷ lệ chi phí tự sinh so với nhập tay; số khoản điều chỉnh sau chốt. Người xem chọn xem số đã chốt hoặc số tạm tính gồm cả khoản chưa chốt.
+Quản lý viện và hành chính xem chi phí phát sinh của người cao tuổi theo người, theo kỳ (tháng), theo loại, theo dịch vụ, theo hoạt động, theo thuốc, theo vật phẩm; tỷ lệ khoản lập theo sự kiện so với nhập tay; số khoản điều chỉnh sau chốt. Người xem chọn xem số đã chốt hoặc số tạm tính gồm cả khoản chưa chốt.
 
 **Why this priority**: Dữ liệu chi phí có ở feature 010 và đã có bảng chi phí cho từng người; báo cáo tổng hợp là bổ trợ, nên xếp sau.
 
@@ -199,9 +205,9 @@ Quản lý viện và hành chính xem chi phí phát sinh của người cao tu
 1. **Given** dữ liệu trên, **When** Quản lý viện xem chế độ "đã chốt" tháng 10, **Then** báo cáo chỉ gồm 3 bảng đã chốt, tổng khớp tổng của 3 bảng và dòng tổng kiểm soát của file kế toán tháng 10 (feature 010 FR-039, FR-041); báo cáo nêu 1 người có bảng chưa chốt.
 2. **Given** như trên, **When** chuyển sang chế độ "tạm tính", **Then** báo cáo cộng thêm khoản chưa hủy của bảng chưa chốt, trừ khoản nhập tay và mua hộ chưa Đã duyệt, gắn nhãn "tạm tính, chưa chốt"; khoản thiếu đơn giá không được cộng và được đếm riêng (feature 010 FR-038, Q-136).
 3. **Given** khoản điều chỉnh của tháng 9 nằm trong bảng tháng 10, **When** xem báo cáo tháng 10, **Then** khoản được tính vào tháng 10, có cột kỳ gốc "tháng 9", và được đếm ở chỉ tiêu "số khoản điều chỉnh sau chốt"; tổng tháng 9 đã chốt không đổi (DBR-17, FR-052).
-4. **Given** tháng 10 có 1.000 khoản, 980 do hệ thống tự sinh và 20 nhập tay, **When** xem "tỷ lệ chi phí tự sinh so với nhập tay", **Then** báo cáo nêu 98% theo số khoản và tỷ lệ tương ứng theo số tiền (18.4).
+4. **Given** tháng 10 có 1.000 khoản không phải điều chỉnh, 980 lập theo sự kiện (gồm mua hộ) và 20 nhập tay, **When** xem "tỷ lệ khoản lập theo sự kiện so với nhập tay", **Then** báo cáo nêu 98% theo số khoản và tỷ lệ tương ứng theo số tiền (18.4).
 5. **Given** trưởng tầng, bác sĩ hoặc điều dưỡng, **When** mở báo cáo chi phí, **Then** hệ thống từ chối (4.4 dòng "Chi phí, khoản điều chỉnh").
-6. **Given** tháng 11 có 900 khoản nguồn sinh "tự động", 5 khoản "mua hộ", 3 khoản điều chỉnh do hệ thống tạo sau đính chính liều, 10 khoản "nhập tay" và 2 khoản miễn giảm do Hành chính lập, **When** xem tỷ lệ tự sinh so với nhập tay theo số khoản, **Then** tự sinh là 908 và nhập tay là 12 (FR-053); khoản miễn giảm có số tiền âm được tính theo giá trị tuyệt đối trong tỷ lệ theo số tiền.
+6. **Given** tháng 11 có 900 khoản nguồn sinh "theo sự kiện", 5 khoản "mua hộ", 10 khoản "nhập tay", 3 khoản điều chỉnh sau đính chính liều và 2 khoản miễn giảm do Hành chính lập, **When** xem tỷ lệ theo sự kiện so với nhập tay theo số khoản, **Then** theo sự kiện là 905 và nhập tay là 10; 5 khoản điều chỉnh không vào tỷ lệ mà nằm ở "số khoản điều chỉnh sau chốt" (nếu thuộc kỳ gốc đã chốt) hoặc đếm riêng (FR-053).
 
 ---
 
@@ -315,7 +321,7 @@ Người có quyền xem một báo cáo xuất được báo cáo đó ra file 
 | Kiểm tra chất lượng | Toàn viện | Tầng được giao | — | — | — | **Kiểm tra chất lượng** |
 | Chỉ số, cảnh báo, sự cố, trường hợp cần theo dõi | Toàn viện | Tầng được giao | Toàn viện | Phạm vi phân công | — | **Chỉ số sức khỏe**; Xử lý cảnh báo; Sự cố, khẩn cấp; Danh sách tiếp xúc |
 | Sự cố thuộc loại mang dấu "không thuộc sức khỏe" (FR-042a) | (như dòng trên) | (như dòng trên) | (như dòng trên) | (như dòng trên) | Toàn viện, không có mô tả, diễn biến | **Sự cố, khẩn cấp** (HC "T¹⁰"); 19.3 giới hạn trường của Hành chính |
-| Yêu cầu đánh giá lại quá hạn | Toàn viện | Tầng được giao | Toàn viện | Phạm vi phân công | — | **Đánh giá, mức chăm sóc** (sửa, Q-280) |
+| Đánh giá lại quá hạn | Toàn viện | Tầng được giao | Toàn viện | Phạm vi phân công | — | **Đánh giá, mức chăm sóc** (sửa, Q-280) |
 | Liều thuốc (tỷ lệ Bỏ lỡ, Từ chối) | Toàn viện | Tầng được giao | Toàn viện | Phạm vi phân công | — | **Phát thuốc, thuốc khi cần** |
 | Phiếu đối chiếu thuốc quá hạn | Toàn viện | — | Toàn viện | Phạm vi phân công | — | **Đối chiếu thuốc, thuốc gia đình gửi** |
 | Khu đang khoanh vùng | Toàn viện | Tầng được giao | Toàn viện | Tầng/khu của phân công | Toàn viện | **Khoanh vùng lây nhiễm** |
@@ -335,7 +341,7 @@ Người có quyền xem một báo cáo xuất được báo cáo đó ra file 
   **Kế toán** *(bổ sung 2026-09-28, Q-212; Phụ lục 27 cột KT, dòng "Dashboard, báo cáo" P²⁹)*: chỉ thấy hai nhóm "Chi phí phát sinh" và "Số dư, thu chi", phạm vi toàn viện, giới hạn trường như Hành chính (FR-014); mọi nhóm khác MUST bị từ chối. Báo cáo thu chi, sao kê, sổ tiền cọc chi tiết thuộc feature 017 (UC-88), không lặp lại ở spec này.
 
 - **FR-010a**: Quản lý viện MUST thu hẹp được quyền ở FR-010 theo vai trò hoặc theo tài khoản, theo từng nhóm chỉ tiêu và riêng giữa dashboard và báo cáo, qua cơ chế thu hẹp của feature 002 FR-025; MUST NOT mở rộng quá bảng FR-010 (Q-15). Quyền xuất đi theo quyền xem báo cáo, không có quyền xuất riêng. *(Nguồn: 19.2 "(Bổ sung, Q-15)"; feature 002 FR-025)*
-- **FR-011**: Mỗi bản ghi MUST được xếp vào tầng/khu vực mà nó gắn tại thời điểm phát sinh (công việc: tầng/khu khi sinh hoặc khi chuyển thành việc chung; cảnh báo, sự cố: tầng/khu của người cao tuổi lúc tạo; liều: tầng của người cao tuổi tại thời điểm dự kiến; buổi hoạt động trong viện: tầng của địa điểm, Q-175; lượt đăng ký, lượt điểm danh, tỷ lệ tham gia, sự cố thiếu người: tầng của người cao tuổi lúc buổi bắt đầu; chuyến đi: phạm vi của hoạt động, một tầng hoặc toàn viện — trưởng tầng thấy chuyến có người tầng mình tham gia nhưng chỉ các lượt của người tầng mình; theo feature 014 FR-070). Báo cáo "theo tầng" MUST dùng cách xếp này. Trong spec này, "tầng/khu" là một tầng hoặc một khu vực theo cấu trúc cơ sở (2.2) và đối tượng phân công (13.4); "khu" trong tỷ lệ phục vụ là phạm vi tính của feature 008 (BR-M09-02); khu vực khoanh vùng theo Q-69. *(Suy ra từ 1.3 "gắn với người cao tuổi, thời gian"; 2.2, 13.4)*
+- **FR-011**: Mỗi bản ghi MUST được xếp vào tầng/khu vực mà nó gắn tại thời điểm phát sinh (công việc: tầng/khu khi lập hoặc khi chuyển thành việc chung; cảnh báo, sự cố: tầng/khu của người cao tuổi lúc tạo; liều: tầng của người cao tuổi tại thời điểm dự kiến; buổi hoạt động trong viện: tầng của địa điểm, Q-175; lượt đăng ký, lượt điểm danh, tỷ lệ tham gia, sự cố thiếu người: tầng của người cao tuổi lúc buổi bắt đầu; chuyến đi: phạm vi của hoạt động, một tầng hoặc toàn viện — trưởng tầng thấy chuyến có người tầng mình tham gia nhưng chỉ các lượt của người tầng mình; theo feature 014 FR-070). Báo cáo "theo tầng" MUST dùng cách xếp này. Trong spec này, "tầng/khu" là một tầng hoặc một khu vực theo cấu trúc cơ sở (2.2) và đối tượng phân công (13.4); "khu" trong tỷ lệ phục vụ là phạm vi tính của feature 008 (BR-M09-02); khu vực khoanh vùng theo Q-69. *(Suy ra từ 1.3 "gắn với người cao tuổi, thời gian"; 2.2, 13.4)*
 - **FR-012**: Phạm vi khi báo cáo MUST tính như sau:
   - **Dashboard** (trong ngày, ca hiện tại): phạm vi hiện hành theo feature 002, kể cả khoảng CFG-M15-07 (mặc định \[2 giờ\]) trước và sau ca.
   - **Trưởng tầng, báo cáo mọi khoảng**: các tầng/khu mà người xem đang được giao tại lúc xem (13.3, kể cả giao tạm có thời hạn còn hiệu lực); số liệu gồm mọi bản ghi gắn tầng/khu đó theo FR-011, kể cả bản ghi phát sinh trước khi được giao. Tầng đã thôi giao không còn xem được.
@@ -407,18 +413,19 @@ Người có quyền xem một báo cáo xuất được báo cáo đó ra file 
 - **FR-042a**: Hành chính MUST thấy chỉ tiêu sự cố (dashboard và báo cáo, toàn viện) chỉ với các loại sự cố mang dấu "không thuộc sức khỏe" trên danh mục loại sự cố của feature 007 (mặc định: đồ gửi thất lạc, đồ gửi hư hỏng, cơ sở vật chất). Hành chính chỉ thấy số lượng theo loại, mức, trạng thái và danh sách gồm người cao tuổi, loại, mức, trạng thái, thời điểm; MUST NOT thấy mô tả, xử lý ban đầu, diễn biến. Khi một sự cố đổi loại sang loại không mang dấu (Q-73), sự cố đó MUST rời khỏi số liệu của Hành chính từ lần lấy số kế tiếp. Dấu do Quản lý viện đặt trên danh mục loại sự cố (nhóm 1, feature 007); mỗi lần đổi dấu MUST được ghi nhật ký với giá trị trước/sau (19.4). Số liệu của Hành chính, kể cả cho khoảng đã qua, MUST luôn tính theo dấu hiện hành, giống cách hiển thị theo quyền hiện hành ở Q-99. *(Nguồn: 19.3; feature 002 FR-035 "sự cố y tế"; Clarification 2026-09-27, Q-202)*
 - **FR-042**: Báo cáo sự cố MUST nêu số sự cố theo mức, loại, tầng; mức dùng để đếm là mức hiện hành; sự cố Đã hủy MUST NOT vào bất kỳ chỉ tiêu, tử số hay mẫu số nào (kể cả leo thang, thời gian tiếp nhận) và chỉ hiện thành dòng tham khảo "số sự cố đã hủy ghi nhận" (FR-007, feature 000 FR-029); "sự cố chưa đóng" là sự cố ở Mới, Đang xử lý, Đang theo dõi. Báo cáo MUST nêu, tính riêng với cảnh báo: số lần leo thang của sự cố (sự cố Mới quá hạn tiếp nhận, feature 007) theo cấp và theo mức, và thời gian trung bình từ khi tạo đến khi tiếp nhận xử lý (chuyển Đang xử lý) theo mức tại thời điểm tiếp nhận (feature 007 FR-081); sự cố chưa được tiếp nhận tính riêng (Q-199). Danh sách "trường hợp cần theo dõi" MUST gồm lịch theo dõi sau ngã và theo dõi tiếp xúc đang Hiệu lực tại ngày xem. *(Nguồn: 18.3; Q-73, Q-199; feature 000 FR-029; feature 007 FR-081)*
 - **FR-043**: Tỷ lệ liều Bỏ lỡ và tỷ lệ liều Từ chối MUST tính theo định nghĩa của feature 006 FR-051 (căn cứ theo FR-002): số liều ở trạng thái đó ÷ số liều có trạng thái cuối Đã dùng, Từ chối, Không thực hiện hoặc Bỏ lỡ, có thời điểm dự kiến trong khoảng; liều Mang theo đã ghi có vào mẫu số; liều Đã hủy, liều kết thúc ở Tạm dừng và liều Không thực hiện do người cao tuổi chuyển trạng thái cuối không vào mẫu số, loại cuối được đếm riêng; liều "dùng trễ" đếm riêng. Tỷ lệ MUST chia được theo người cao tuổi và theo ca (ca của liều theo feature 006 FR-051, cùng cách FR-006). *(Nguồn: 18.3; feature 006 FR-021, FR-022, FR-047, FR-051)*
-- **FR-044**: Báo cáo MUST nêu yêu cầu đánh giá lại đang quá hạn CFG-M01-03 (mặc định \[48 giờ\]) và phiếu đối chiếu thuốc đang quá hạn CFG-M07-05 (mặc định \[4 giờ\]), mỗi loại có số lượng và danh sách. Tình trạng "quá hạn" MUST lấy từ feature sở hữu (FR-002): phiếu đối chiếu từ feature 006 FR-051; yêu cầu đánh giá lại từ trạng thái hoặc dấu quá hạn do feature 001 xác định. *(Nguồn: 18.3 "(Bổ sung)"; BR-M01-02, BR-M07-09; feature 001, 006 FR-051)*
+- **FR-044**: **(Sửa, 2026-10-06, Q-307)** Báo cáo MUST nêu người cao tuổi đang ở trạng thái "quá hạn đánh giá lại" (quá CFG-M01-03, mặc định \[48 giờ\], kể từ lúc hệ thống báo cần đánh giá lại mà chưa có lần đánh giá lại Đã xác nhận) và phiếu đối chiếu thuốc đang quá hạn CFG-M07-05 (mặc định \[4 giờ\]), mỗi loại có số lượng và danh sách. Tình trạng "quá hạn" MUST lấy từ feature sở hữu (FR-002): phiếu đối chiếu từ feature 006 FR-051; đánh giá lại quá hạn từ trạng thái do feature 001 xác định (không có yêu cầu đánh giá lại). *(Nguồn: 18.3; BR-M01-02, BR-M07-09; feature 001, 006 FR-051; Q-307)*
 
 #### G. Báo cáo chi phí phát sinh (18.4)
 
 - **FR-050**: Báo cáo chi phí MUST tổng hợp khoản chi phí của feature 010 theo người cao tuổi, theo kỳ (tháng dương lịch, Q-132), theo loại chi phí (danh sách chuẩn ở feature 010 FR-014a), theo dịch vụ, hoạt động, thuốc, vật phẩm; kèm số lượng và thành tiền. Báo cáo MUST ghi rõ "chi phí phát sinh của người cao tuổi, không phải báo cáo tài chính của viện" và MUST NOT có số đã thu, công nợ hay đặt cọc. *(Nguồn: 18.4; 1.2; feature 010 FR-042)*
 - **FR-051**: Người xem MUST chọn một trong hai chế độ: (a) **đã chốt** — chỉ khoản thuộc bảng chi phí Đã chốt, là chế độ mặc định; (b) **tạm tính** — thêm các khoản chưa hủy của bảng chưa chốt theo đúng thành phần của feature 010 FR-038 (Q-136), nhãn "tạm tính, chưa chốt". Ở cả hai chế độ, báo cáo MUST nêu số người cao tuổi có bảng chưa chốt trong kỳ, tính cả bảng thường và bảng bổ sung (feature 010 FR-002a), và số khoản "thiếu đơn giá" không được cộng. *(Nguồn: 15.6; feature 010 FR-002a, FR-038)*
 - **FR-052**: Khoản điều chỉnh MUST được tính vào kỳ của bảng chứa nó, có cột kỳ gốc, để số của mỗi kỳ khớp bảng đã chốt và file kế toán; số của kỳ gốc đã chốt MUST NOT thay đổi. Báo cáo MUST nêu "số khoản điều chỉnh sau chốt" theo kỳ chứa và theo kỳ gốc. *(Nguồn: 18.4 "(Bổ sung)"; DBR-17; feature 010 FR-027, FR-028)*
-- **FR-053**: Tỷ lệ chi phí tự sinh so với nhập tay MUST tính theo trường **nguồn sinh** của feature 010 FR-014 (tự động / nhập tay / mua hộ / điều chỉnh) và người lập khoản điều chỉnh:
-  - **tự sinh** = khoản nguồn sinh "tự động", "mua hộ" (nguồn là đề nghị mua hộ, DBR-15), và khoản điều chỉnh do hệ thống tạo (feature 010 FR-027);
-  - **nhập tay** = khoản nguồn sinh "nhập tay", và khoản điều chỉnh do Hành chính lập (miễn giảm, sửa sai; UC-63).
+- **FR-053**: **(Sửa, 2026-10-06, Q-306, Q-307)** Tỷ lệ khoản lập theo sự kiện so với nhập tay MUST tính theo trường **nguồn sinh** của feature 010 FR-014 (theo sự kiện / nhập tay / mua hộ / điều chỉnh):
+  - **theo sự kiện** = khoản nguồn sinh "theo sự kiện" và "mua hộ" (nguồn là đề nghị mua hộ, DBR-15);
+  - **nhập tay** = khoản nguồn sinh "nhập tay" (loại "Khoản khác (nhập tay)");
+  - khoản nguồn sinh "điều chỉnh" MUST NOT vào tỷ lệ; chúng được đếm ở "số khoản điều chỉnh sau chốt" (khoản có kỳ gốc đã chốt) và số khoản điều chỉnh khác, tách theo loại điều chỉnh (feature 010 FR-025).
 
-  Tỷ lệ MUST được nêu cả theo số khoản và theo số tiền; khoản có số tiền âm tính theo giá trị tuyệt đối. *(Nguồn: 18.4 "(Bổ sung)"; DBR-15; feature 010 FR-014, FR-027)*
+  Tỷ lệ MUST được nêu cả theo số khoản và theo số tiền; khoản có số tiền âm tính theo giá trị tuyệt đối. *(Nguồn: 18.4; DBR-15; feature 010 FR-014, FR-025, FR-027)*
 - **FR-054**: Tên thuốc, hàm lượng trong báo cáo "theo thuốc" MUST chỉ hiện với người có quyền xem thuốc của người cao tuổi đó; người khác thấy mã vật phẩm (Q-133). *(Nguồn: Q-133; 19.3)*
 - **FR-055**: Ở chế độ "đã chốt", tổng của một kỳ MUST khớp tổng các bảng Đã chốt của kỳ đó và dòng tổng kiểm soát của file kế toán cùng phạm vi (feature 010 FR-041). *(Nguồn: 23; feature 010 FR-039, FR-041)*
 - **FR-055a** *(bổ sung, 2026-10-06, Q-284)*: Báo cáo chi phí MUST có phần riêng "tổng chi mua sắm" theo bộ phận và theo trạng thái của yêu cầu mua sắm (feature 019, 15.10), tách khỏi chi phí của người cao tuổi; phần này MUST NOT cộng vào tổng chi phí phát sinh hay vào file kế toán của feature 010. *(Nguồn: BR-M11-20, 18.4)*
@@ -439,7 +446,7 @@ Người có quyền xem một báo cáo xuất được báo cáo đó ra file 
 
 - **FR-070**: Báo cáo MUST nêu, cho từng ca đã diễn ra trong khoảng: tỷ lệ phục vụ theo khu, số nhân viên được tính, tổng trọng số và tình trạng đạt/không đạt theo lần tính cuối cùng trước khi ca kết thúc do feature 008 lưu (BR-M09-02, Q-79, CFG-M09-01), kèm dấu "từng không đạt" nếu có bất kỳ lần tính nào trong thời gian ca cho kết quả không đạt; tổng hợp theo tầng, mẫu ca, tháng: số ca không đạt, đếm theo dấu "từng không đạt". *(Nguồn: 18.2 "theo ca", 18.5; feature 008 FR-037; Clarification 2026-09-27, đề xuất Q-200)*
 - **FR-071**: Báo cáo MUST nêu theo tầng, vai trò của dòng phủ, tháng: số ca thiếu phủ (CFG-M09-07, mặc định \[≥ 1 điều dưỡng / tầng / ca\]), tổng thời gian ca chạy thiếu phủ, số mục "thiếu ca" đã công bố (Q-189). Ca toàn viện được nêu riêng, chỉ với Quản lý viện. *(Nguồn: BR-M09-11; feature 015 FR-042)*
-- **FR-072**: Báo cáo MUST nêu số yêu cầu đổi ca, yêu cầu nghỉ đột xuất theo trạng thái cuối (của feature 015) và thời gian trung bình từ lập tới quyết định; số lời mời nhận ca thay và số được nhận. Lý do nghỉ, lý do đổi ca, danh sách gợi ý người thay MUST NOT hiện trong báo cáo, danh sách chi tiết hay file xuất; số liệu MUST NOT được chia theo loại nghỉ hay lý do nghỉ, để không lộ gián tiếp thông tin sức khỏe của nhân viên. *(Nguồn: BR-M09-10, BR-M09-11; 19.3 "(Bổ sung, spec 015)"; feature 015 FR-042)*
+- **FR-072**: Báo cáo MUST nêu số yêu cầu đổi ca, yêu cầu nghỉ đột xuất theo trạng thái cuối (của feature 015) và thời gian trung bình từ lập tới quyết định; số lời mời nhận ca thay và số được nhận. Lý do nghỉ, lý do đổi ca, kết quả tra cứu người thay (feature 015 FR-033; không có danh sách gợi ý, Q-307) MUST NOT hiện trong báo cáo, danh sách chi tiết hay file xuất; số liệu MUST NOT được chia theo loại nghỉ hay lý do nghỉ, để không lộ gián tiếp thông tin sức khỏe của nhân viên. *(Nguồn: BR-M09-10, BR-M09-11; 19.3 "(Bổ sung, spec 015)"; feature 015 FR-042)*
 - **FR-073**: Báo cáo MUST nêu phân bố số giờ làm trong tháng theo nhân viên: giờ đã làm và giờ đã xếp còn lại tách riêng (Q-180); số lần vượt số giờ làm liên tục CFG-M09-02 (mặc định \[16 giờ\]). Chỉ Quản lý viện và trưởng tầng được giao xem được chỉ tiêu này. Căn cứ: 19.3 "(Bổ sung, spec 015)" chỉ cho người nhận cảnh báo thiếu phủ và Quản lý viện xem số giờ làm của người khác, và trưởng tầng được giao là người nhận cố định cảnh báo thiếu phủ của tầng mình (Q-178, BR-M09-11). Người phụ trách ca không phải trưởng tầng MUST NOT xem. Trưởng tầng chỉ thấy nhân viên có phân công tại tầng mình; giờ ở ca của tầng khác của cùng nhân viên chỉ hiện tổng, không hiện chi tiết ca; giờ ở ca toàn viện chỉ Quản lý viện xem chi tiết. Chỉ Quản lý viện được xuất chỉ tiêu này ra file (FR-061). *(Nguồn: BR-M09-03, BR-M09-11; Q-178, Q-180; 19.3; feature 015 FR-042)*
 
 ### Giao tiếp với feature khác
@@ -451,14 +458,14 @@ Feature này chỉ **nhận** dữ liệu; yêu cầu duy nhất gửi đi là g
 | Nhận | 000 | Giá trị hiện hành sau đính chính; bản ghi Hủy ghi nhận (để loại khỏi chỉ tiêu); tham số hiện hành; nhật ký tóm tắt các đợt loại bỏ dữ liệu (FR-051 của 000) | Bản ghi, bản đính chính, giá trị tham số, loại và khoảng dữ liệu đã loại bỏ |
 | Gửi | 000 | Bản ghi nhật ký hành động "Xuất báo cáo" (FR-062; FR-043a của 000) | Người thực hiện, vai trò, thời điểm, báo cáo, lý do (mục đích), chi tiết lần xuất |
 | Nhận | 002 | Phạm vi hiện hành và giới hạn trường của người xem; kết quả "không xác định được quyền" | Tài khoản, vai trò, phạm vi, nhóm trường được xem |
-| Nhận | 001 | Trạng thái người cao tuổi và lịch sử chuyển; mức chăm sóc theo phiên bản; yêu cầu đánh giá lại, hạn và tình trạng quá hạn do 001 xác định (FR-044) | Người cao tuổi, trạng thái, thời điểm, mức, hạn |
+| Nhận | 001 | Trạng thái người cao tuổi và lịch sử chuyển; mức chăm sóc theo phiên bản; trạng thái "cần đánh giá lại", "quá hạn đánh giá lại" do 001 xác định (FR-044) | Người cao tuổi, trạng thái, thời điểm, mức, hạn |
 | Nhận | 003 | Trạng thái giường, phòng cách ly theo thời gian; thời gian Chờ sẵn sàng (sửa, Q-282) | Giường, phòng, tầng, trạng thái, thời điểm |
 | Nhận | 004 | Loại lưu trú theo hợp đồng hiệu lực; danh sách chờ; lượt tạm vắng; điều trị tại bệnh viện | Hồ sơ chờ, trạng thái, loại lưu trú, thời điểm |
 | Nhận | 005 | Công việc, trạng thái, mức quan trọng, người thực hiện, người đóng và quy tắc đóng (FR-028 của 005), nhãn ghi nhận muộn, bản ghi "chờ xem lại"; trạng thái có mặt bán trú theo ngày | Như dòng "Gửi 016" của feature 005 |
 | Nhận | 006 | Liều và trạng thái cuối; phiếu đối chiếu quá hạn (feature 006 FR-051) | Liều, người cao tuổi, ca, trạng thái |
 | Nhận | 007 | Chỉ số, cảnh báo, sự cố, leo thang của cảnh báo và của sự cố, thời điểm tiếp nhận, theo dõi, khoanh vùng (feature 007 FR-081); dấu "không thuộc sức khỏe" của từng loại sự cố trên danh mục loại sự cố (FR-042a); *(bổ sung 2026-09-29)* dấu nguy kịch đang mở, tạm, kèm tầng của người cao tuổi | Như FR-081 của 007; loại sự cố, dấu |
 | Nhận | 008 | Ca, lịch đã công bố, tỷ lệ phục vụ theo lần tính (feature 008 FR-037), bàn giao chưa xác nhận, giấy phép và chứng chỉ nhân viên; **lịch sử** để tính phạm vi theo thời gian (FR-012): phân công theo ca, giao trưởng tầng (kể cả giao tạm có thời hạn), bổ sung và gỡ nhân viên khỏi ca, vắng ca, người phụ trách ca | Ca, tầng/khu, nhân viên, vai trò trong ca, thời điểm bắt đầu/kết thúc, tỷ lệ, tình trạng |
-| Nhận | 010 | Khoản chi phí (loại, nguồn sinh, người lập khoản điều chỉnh), bảng thường và bảng bổ sung, kỳ, điều chỉnh sau chốt | Như dòng "Gửi 016" của feature 010 |
+| Nhận | 010 | Khoản chi phí (loại, nguồn sinh, người lập, loại điều chỉnh), bảng thường và bảng bổ sung, kỳ, điều chỉnh sau chốt | Như dòng "Gửi 016" của feature 010 |
 | Nhận | 011 | Phiếu bữa ăn giao trễ, có sai lệch (FR-034); số suất theo bữa, chế độ ăn không dùng ở giai đoạn này | Phiếu, bữa, giờ bữa, tầng/khu, thời điểm Đã giao, lịch sử trạng thái Có sai lệch |
 | Nhận | 014 | Tỷ lệ tham gia, "Không ghi nhận", nguy cơ cô lập, kiểm tra chất lượng, chuyến quá giờ, sự cố thiếu người, cách xếp tầng (feature 014 FR-058, FR-065, FR-070) | Như dòng "Gửi Module 14 (feature 016)" của feature 014 |
 | Nhận | 017 | *(bổ sung 2026-09-28)* Tình trạng số dư theo lần tính hằng ngày, số dư, số ngày còn đủ tiền, số tiền còn nợ (feature 017 mục H, dòng "Gửi 016") | Hồ sơ, tình trạng, số dư, số ngày còn đủ tiền, thời điểm tính |
@@ -564,3 +571,11 @@ Nội dung gốc của từng điểm được giữ dưới đây để truy v�
 **(2026-10-06) Cập nhật căn cứ pháp lý (rà bảng 24.4).** Chỉ đổi trích dẫn, không đổi quy tắc; nội dung cần tư vấn pháp lý xác nhận ở 24.4.
 
 - **Q-03** – Nghị định 13/2023/NĐ-CP hết hiệu lực từ 01/01/2026, thay bằng Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 và Nghị định 356/2025/NĐ-CP. Tài liệu nguồn (5.1, Q-03, 24.4) đã đổi trích dẫn. Cần tư vấn pháp lý xác nhận theo luật mới: mẫu bản đồng ý, và có bắt buộc ghi nhật ký mỗi lần nhân viên xem dữ liệu sức khỏe không (Q-03 hiện chọn không). Spec này đổi trích dẫn ở Assumptions; FR-062 cần bổ sung nếu luật mới đòi ghi nhật ký lần xem.
+
+**(2026-10-06) Thay đổi do chủ dự án chốt Q-306 (hệ thống không tự sinh dữ liệu, công việc).** *(Đã xử lý 2026-10-06: spec đã viết lại, xem mục "Cập nhật 2026-10-06, lượt 2" ở Clarifications.)*
+
+- **Q-306** – Báo cáo chi phí (18.4) đổi chỉ tiêu "tỷ lệ chi phí tự sinh so với nhập tay" thành tỷ lệ khoản lập theo sự kiện so với nhập tay, thêm số sự kiện "không tính". NFR-04 đổi thành tác vụ theo thời gian (chuyển Quá hạn, leo thang, nhắc). Nguyên tắc chung: mọi bản ghi do actor lập bằng lệnh; hệ thống chỉ gợi ý từ dữ liệu đã có, tự chuyển trạng thái theo thời gian, cảnh báo, leo thang, nhắc, kiểm tra và thực hiện tác động kèm theo lệnh (1.3, 24.2). FR cần rà (dò theo từ khóa, chưa đối chiếu từng FR): FR-053.
+
+**(2026-10-06) Thay đổi do chủ dự án chốt Q-307 (bỏ gợi ý, đề xuất, yêu cầu và sự cố do hệ thống tự tạo).** *(Đã xử lý 2026-10-06: spec đã viết lại, xem mục "Cập nhật 2026-10-06, lượt 2" ở Clarifications.)*
+
+- **Q-307** – Báo cáo sức khỏe đổi "yêu cầu đánh giá lại quá hạn" thành "đánh giá lại quá hạn" (18.3); báo cáo chi phí bỏ "số sự kiện được đánh dấu không tính" (18.4); báo cáo nhân sự bỏ "danh sách gợi ý người thay" (18.6). Giữ: cảnh báo do hệ thống tạo và leo thang, nhắc, thông báo; bản ghi kèm lệnh của actor; số liệu tính để hiển thị (24.2).

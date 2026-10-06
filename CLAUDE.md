@@ -28,14 +28,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Mức chăm sóc chỉ còn 3 mức (cơ bản, thường xuyên, đặc biệt); các nhu cầu cụ thể (hỗ trợ vận động, phục hồi…) là danh mục nhu cầu chăm sóc riêng (Q-291, 2026-10-06).
   - Bỏ mọi cờ gắn cho người cao tuổi: cờ nguy cơ, chỉ định hạn chế hoạt động (Q-287).
   - Không dùng cổng thanh toán.
+- Hệ thống không tự sinh, tự tạo hay tự gợi ý (Q-306, Q-307, 2026-10-06): mọi bản ghi do actor lập bằng lệnh; không gợi ý, đề xuất, không tự tạo yêu cầu hay sự cố, không tự thực hiện lệnh thay actor. Vẫn giữ: tự chuyển trạng thái theo giờ, cảnh báo do hệ thống tạo và leo thang, nhắc, thông báo, kiểm tra và chặn, bản ghi và tác động kèm theo lệnh của actor, số liệu tính để hiển thị.
 - Kho và tài sản: mỗi bộ phận tự quản lý (13.1a). Quản lý viện không vận hành kho, tài sản; chỉ thực hiện quyền phê duyệt cấp viện (yêu cầu mua sắm 15.10, thanh lý và chuyển tài sản 7.7, xử lý lệch). Kế toán đối chiếu chứng từ.
 - Bán trú không qua đêm. Ở lại qua đêm thì thuê giường theo nội trú ngắn ngày.
 - Quy mô mã hiện có:
   - 241 BR (BR-Mxx-yy; đã xóa BR-M03-08, 11, 12, 14).
-  - Quyết định Q-01 → Q-305.
+  - Quyết định Q-01 → Q-308.
   - Luồng BF-01 → BF-18.
   - Use case UC-01 → UC-95, trừ UC-71 → 73 (92 UC); actor AC-00 → AC-15, trừ AC-06, AC-08.
-  - 120 tham số CFG.
+  - 115 tham số CFG (đã xóa CFG-M04-08, 09, CFG-M07-03 theo Q-306; CFG-M02-01, CFG-M08-02 theo Q-307).
   - Quy tắc dữ liệu DBR-01 → DBR-36.
 
 ## Nguồn tài liệu
