@@ -100,6 +100,12 @@ Các điểm dưới đây do nhóm phân tích quyết định khi đánh giá 
 - **Q-296**: nguồn thứ nhất của yêu cầu xem xét kế hoạch chăm sóc thu hẹp: chỉ tạo khi lần đánh giá lại được xác nhận có mức chăm sóc hoặc tập nhu cầu chăm sóc khác lần Đã xác nhận trước đó (kể cả chỉ đổi nhu cầu); lần đánh giá lại không đổi mức và nhu cầu không tạo yêu cầu. Sửa FR-011.
 - **Q-295**: điểm danh về có thêm trường hợp viện đưa về (bản ghi đón loại "Viện đưa về" của feature 012, ghi tại nơi bàn giao); trước khi ghi bàn giao người bán trú vẫn "Có mặt". Sửa bảng FR-013.
 
+### Cập nhật 2026-10-06, lượt 3 (rà tham chiếu tới tài liệu nguồn)
+
+- User Story 4: căn cứ sửa "BF-02 bước 3" (điểm danh bán trú đến) thành "BF-02 bước 4" (nhận checklist, ghi nhận thực hiện).
+- User Story 6: căn cứ sửa "BF-02 bước 5" (chuyển Quá hạn) thành "BF-02 bước 4, BF-06 bước 1" (ghi nhận, tạo cảnh báo từ ăn kém, xu hướng). Không đổi yêu cầu.
+- Bổ sung mã truy vết UC-77 ở FR-040a. Không đổi yêu cầu.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 04, mục 8.1 → 8.7; UC-22 → UC-28):
@@ -198,7 +204,7 @@ Mỗi ngày có lịch đến, người bán trú có trạng thái có mặt. C
 
 Đầu ca, mỗi nhân viên thấy checklist gồm công việc chăm sóc, công việc chuyên môn, công việc phát sinh, công việc tồn từ ca trước, và công việc chung của tầng; điều dưỡng thấy thêm liều thuốc, nhận bàn giao, xử lý cảnh báo, lập bàn giao. Nhân viên mở công việc, thực hiện, nhập kết quả đúng loại (ml, mức ăn, giá trị đo, mức vận động…) và hoàn thành.
 
-**Why this priority**: Đây là thao tác hằng ngày của phần lớn nhân viên (BF-02 bước 3); ghi nhận là đầu vào của mọi quy tắc cảnh báo, chi phí và bàn giao.
+**Why this priority**: Đây là thao tác hằng ngày của phần lớn nhân viên (BF-02 bước 4); ghi nhận là đầu vào của mọi quy tắc cảnh báo, chi phí và bàn giao.
 
 **Independent Test**: Đăng nhập với một nhân viên chăm sóc được phân công 5 người trong ca ngày; kiểm tra checklist hiển thị đúng các công việc của 5 người đó cùng công việc chung của tầng; ghi nhận một công việc uống nước 200 ml và một công việc ăn "một phần"; kiểm tra trạng thái và dữ liệu lưu.
 
@@ -245,7 +251,7 @@ Hết khung thời gian mà chưa đóng, công việc chuyển Quá hạn và n
 
 Hệ thống tự đánh giá kết quả đã ghi: đến mốc kiểm tra CFG-M04-03, người có tổng lượng nước trong ngày dưới ngưỡng so với mục tiêu thì có cảnh báo nhẹ và thêm công việc "hỗ trợ uống nước"; người có CFG-M04-04 bữa ăn kém liên tiếp thì điều dưỡng được cảnh báo và feature 011 tạo yêu cầu dinh dưỡng viên xem lại chế độ ăn; tâm trạng tiêu cực kéo dài tạo cảnh báo nhẹ.
 
-**Why this priority**: Đây là phần hệ thống "chủ động" phát hiện nguy cơ từ dữ liệu ghi hằng ngày (BF-02 bước 5), nhưng phụ thuộc story 4 đã có dữ liệu ghi nhận.
+**Why this priority**: Đây là phần hệ thống "chủ động" phát hiện nguy cơ từ dữ liệu ghi hằng ngày (BF-02 bước 4, BF-06 bước 1), nhưng phụ thuộc story 4 đã có dữ liệu ghi nhận.
 
 **Independent Test**: Với A có mục tiêu 1.500 ml, ghi tổng 800 ml trước 16:00; kiểm tra lúc 16:00 có cảnh báo nhẹ và công việc bổ sung. Với B, ghi 3 bữa liên tiếp "một phần", "bỏ bữa", "không ăn"; kiểm tra điều dưỡng có cảnh báo và feature 011 nhận sự kiện "ăn kém kéo dài".
 
@@ -485,7 +491,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 - **FR-039**: Mục tiêu lượng nước MUST là mục tiêu ml/ngày của mục kế hoạch loại "hỗ trợ uống nước" trong phiên bản kế hoạch Hiệu lực của ngày đó; người cao tuổi không có mục tiêu này MUST NOT bị kiểm tra. Mục tiêu dùng để so MUST là mục tiêu điều chỉnh = mục tiêu × (số giờ người đó có mặt từ 00:00 tới mốc kiểm tra) ÷ (số giờ từ 00:00 tới mốc kiểm tra); với người có mặt suốt khoảng này, mục tiêu điều chỉnh bằng mục tiêu. Thời gian có mặt của bán trú tính từ giờ điểm danh đến; của nội trú loại trừ khoảng Tạm vắng, Điều trị tại bệnh viện, Hoạt động bên ngoài. Tại mốc giờ của CFG-M04-03 (mặc định \[16:00 / 60% mục tiêu\]) mỗi ngày, với mỗi người cao tuổi có mục tiêu và đang có mặt tại mốc đó, nếu tổng lượng nước hiện hành (sau đính chính) ghi trong ngày dưới tỷ lệ ngưỡng của mục tiêu điều chỉnh thì hệ thống MUST yêu cầu feature 007 tạo cảnh báo nhẹ "uống nước thiếu" (gộp theo BR-M05-02) và sinh thêm một công việc phát sinh "hỗ trợ uống nước" mức Quan trọng, thời điểm dự kiến là mốc kiểm tra, khung thời gian theo loại công việc (hoặc CFG-M04-02), cho người thực hiện theo FR-024; mỗi người cao tuổi có tối đa một công việc bổ sung như vậy mỗi ngày (FR-021). Số giờ có mặt tính tới phút, không làm tròn; mục tiêu điều chỉnh làm tròn xuống tới ml. Với người bán trú, công thức chia đều mục tiêu ngày cho khoảng từ 00:00 tới mốc kiểm tra là chủ ý của Q-30 (so theo tỷ lệ thời gian có mặt); cơ sở thấy ngưỡng quá thấp với bán trú thì đặt mục tiêu ml/ngày của mục kế hoạch cho phù hợp, không đổi công thức (CHK015). *(Nguồn: UC-26, BR-M04-08, CFG-M04-03; Clarification 2026-09-25, đề xuất Q-30)*
 - **FR-040**: Khi một bữa được ghi, hệ thống MUST đếm số bữa liên tiếp gần nhất có kết quả "Một phần", "Không ăn" hoặc "Bỏ bữa" (tính qua các ngày; bữa bị Hủy vì vắng mặt hoặc không có kết quả không tính và không làm đứt chuỗi; một bữa có kết quả khác đặt chuỗi về 0). Khi chuỗi đạt CFG-M04-04 (mặc định \[3\]), hệ thống MUST yêu cầu feature 007 tạo cảnh báo nhẹ "ăn kém kéo dài" cho Điều dưỡng phụ trách (gộp theo BR-M05-02) và gửi sự kiện "ăn kém kéo dài" kèm các bữa trong chuỗi cho feature 011 để tạo (hoặc gộp nguồn vào) yêu cầu xem lại chế độ ăn (feature 011 FR-058, BR-M08-05). Spec này MUST NOT gửi nhắc riêng tới Bác sĩ; thông báo tới Bác sĩ do feature 011 gửi (sửa, 2026-10-06, Q-283: trước đây là Dinh dưỡng viên). *(Nguồn: UC-26, BR-M04-09 (làm rõ, spec 011), BR-M08-05, CFG-M04-04, 9.3 mức Nhẹ)*
-- **FR-040a**: Với người cao tuổi có suất đặc biệt ở một bữa, hoặc thuộc danh sách cần đối chiếu khi phục vụ của bữa đó (feature 011 FR-036a), công việc "hỗ trợ ăn" của bữa MUST NOT ghi được kết quả khi chưa có xác nhận phục vụ thành công do feature 011 ghi nhận (feature 011 FR-049, FR-050). Công việc của bữa bị feature 011 báo là bỏ vì vắng mặt MUST chuyển Hủy theo FR-022. *(Nguồn: BR-M08-14 "trước khi ghi nhận kết quả ăn uống (8.6)"; đồng bộ spec 011)*
+- **FR-040a**: Với người cao tuổi có suất đặc biệt ở một bữa, hoặc thuộc danh sách cần đối chiếu khi phục vụ của bữa đó (feature 011 FR-036a), công việc "hỗ trợ ăn" của bữa MUST NOT ghi được kết quả khi chưa có xác nhận phục vụ thành công do feature 011 ghi nhận (feature 011 FR-049, FR-050). Công việc của bữa bị feature 011 báo là bỏ vì vắng mặt MUST chuyển Hủy theo FR-022. *(Nguồn: BR-M08-14 "trước khi ghi nhận kết quả ăn uống (8.6)", UC-77; đồng bộ spec 011)*
 - **FR-041**: Kết quả đo chỉ số MUST được chuyển ngay cho feature 007 để so ngưỡng; spec này không tạo cảnh báo chỉ số. *(Nguồn: UC-26, BR-M04-10)*
 - **FR-042**: Khi tâm trạng thuộc nhóm "tiêu cực" hoặc hành vi bất thường được ghi CFG-M04-05 (mặc định \[3\]) ngày liên tiếp, hệ thống MUST yêu cầu feature 007 tạo cảnh báo nhẹ và đính kèm danh sách hoạt động gợi ý theo sở thích do feature 014 cung cấp. Ngày không có ghi nhận tâm trạng làm đứt chuỗi. Cách đếm này khác chuỗi bữa ăn ở FR-040 một cách có chủ ý: bữa ăn là sự kiện có lịch, bữa thiếu kết quả là thiếu dữ liệu nên được bỏ qua; còn BR-M04-11 đòi tâm trạng tiêu cực được ghi "N ngày liên tiếp", nên ngày không có ghi nhận không được tính là ngày tiêu cực (CHK023). *(Nguồn: UC-26, BR-M04-11, CFG-M04-05)*
 
