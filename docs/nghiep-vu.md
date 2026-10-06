@@ -250,7 +250,7 @@ Mỗi người cao tuổi có đúng một mức chăm sóc hiện hành. Các n
 
 Ví dụ: Nội trú dài hạn + Chăm sóc đặc biệt; Nội trú ngắn ngày + Chăm sóc đặc biệt, nhu cầu Phục hồi sau tai biến; Bán trú + Chăm sóc thường xuyên, nhu cầu Hỗ trợ vận động.
 
-Mức độ chăm sóc được xác định từ quá trình đánh giá và có thể thay đổi khi tình trạng người cao tuổi thay đổi.
+Mức độ chăm sóc được xác định từ quá trình đánh giá và có thể thay đổi khi tình trạng người cao tuổi thay đổi. Khi tiếp nhận, gia đình chọn mức chăm sóc trong hợp đồng (6.3); mức đó phải trùng mức Bác sĩ chọn khi đánh giá đầu vào thì mới Hoàn tất tiếp nhận được (BR-M02-22).
 
 Mỗi mức chăm sóc có một **trọng số chăm sóc** (cấu hình CFG-M09-12, ví dụ cơ bản = 1, đặc biệt = 2,5). Trọng số được dùng để tính tỷ lệ phục vụ khi lập ca (BR-M09-02). Việc kiểm tra loại phòng phù hợp (BR-M03-01) dùng danh sách mức chăm sóc được phép của phòng (7.1), không dùng trọng số.
 
@@ -283,7 +283,7 @@ Các quy tắc chi tiết của mục này mang mã BR-M01-11 → BR-M01-12 (5.7
 
 ### 5.3. Đánh giá đầu vào
 
-Khi tiếp nhận, bác sĩ thực hiện đánh giá với sự hỗ trợ của điều dưỡng khi cần. Đánh giá nhằm xác định: mức độ chăm sóc + nhu cầu dịch vụ + nhu cầu chăm sóc, và đề xuất loại hình lưu trú phù hợp. Loại hình lưu trú chính thức do gia đình lựa chọn và được xác định trong hợp đồng (6.3). Mức độ chăm sóc là một trong ba mức ở mục 4; nhu cầu chăm sóc chọn từ danh mục nhu cầu chăm sóc ở mục 4, có thể nhiều giá trị.
+Khi tiếp nhận, bác sĩ thực hiện đánh giá với sự hỗ trợ của điều dưỡng khi cần. Đánh giá nhằm xác định: mức độ chăm sóc + nhu cầu dịch vụ + nhu cầu chăm sóc, và đề xuất loại hình lưu trú phù hợp. Loại hình lưu trú chính thức do gia đình lựa chọn và được xác định trong hợp đồng (6.3). Mức chăm sóc của hợp đồng cũng do gia đình chọn khi lập hợp đồng; đánh giá đầu vào có thể làm trước hoặc sau khi lập hợp đồng, nhưng mức Bác sĩ chọn phải trùng mức của hợp đồng trước khi Hoàn tất tiếp nhận (BR-M02-22). Mức độ chăm sóc là một trong ba mức ở mục 4; nhu cầu chăm sóc chọn từ danh mục nhu cầu chăm sóc ở mục 4, có thể nhiều giá trị.
 
 Kết quả đánh giá: được ghi nhận; có người thực hiện; có thời gian; có kết quả/phân loại; được lưu lịch sử; được sử dụng làm cơ sở lập kế hoạch chăm sóc.
 
@@ -353,7 +353,7 @@ Sơ đồ trên thể hiện cùng bảng chuyển trạng thái; hồ sơ ở t
 
 | Chuyển                                | Điều kiện (chặn nếu không đạt)                                                                                                                                                                                                                           | Hệ thống tự động                                                                                                                                                                   |
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Đang tiếp nhận → Đang lưu trú         | Đánh giá đầu vào hoàn tất và lần đánh giá gần nhất chưa quá \[90 ngày\] (CFG-M01-02); hợp đồng có hiệu lực và thời điểm tiếp nhận không sớm hơn ngày bắt đầu hợp đồng (Q-22); đặt cọc đạt (6.5); nội trú đã có giường. Bản đồng ý không chặn (5.1)       | Sinh lịch cá nhân, lịch thuốc, suất ăn từ ngày hiệu lực                                                                                                                            |
+| Đang tiếp nhận → Đang lưu trú         | Đánh giá đầu vào hoàn tất và lần đánh giá gần nhất chưa quá \[90 ngày\] (CFG-M01-02); hợp đồng có hiệu lực và thời điểm tiếp nhận không sớm hơn ngày bắt đầu hợp đồng (Q-22); mức chăm sóc của hợp đồng trùng mức chăm sóc hiện hành (BR-M02-22); đặt cọc đạt (6.5); nội trú đã có giường. Bản đồng ý không chặn (5.1)       | Sinh lịch cá nhân, lịch thuốc, suất ăn từ ngày hiệu lực                                                                                                                            |
 | Đang lưu trú → Tạm vắng               | Người đón thuộc danh sách được phép đón (14.3)                                                                                                                                                                                                           | Hủy công việc và suất ăn trong thời gian vắng; liều thuốc chuyển "Mang theo" hoặc "Tạm dừng"; giường chuyển Giữ chỗ hoặc Trống theo chính sách; áp chính sách phí vắng (BR-M02-06) |
 | Đang lưu trú → Hoạt động bên ngoài    | Điểm danh rời viện của chuyến đi (8.9); do trưởng đoàn hoặc trưởng tầng thay, chỉ từ Đang lưu trú; ngược lại khi điểm danh về                                                                                                    | Hủy công việc Chưa đến hạn trong khoảng thời gian đi theo BR-M04-04 (không "tạm dừng"), sinh lại khi trở về; liều thuốc chuyển "Mang theo"            |
 | → Điều trị tại bệnh viện              | Có sự cố hoặc chỉ định chuyển viện                                                                                                                                                                                                                       | Như Tạm vắng; thông báo người liên hệ chính                                                                                                                                        |
@@ -374,7 +374,7 @@ Sơ đồ trên thể hiện cùng bảng chuyển trạng thái; hồ sơ ở t
 - **BR-M01-07:** Dị ứng và bệnh nền không được xóa; chỉ bác sĩ hoặc điều dưỡng được chuyển một mục sang Đã loại trừ, bắt buộc có lý do. Khi thêm dị ứng mới, hệ thống kiểm tra lại toàn bộ đơn thuốc đang hiệu lực (BR-M07-06) và chế độ ăn, thực đơn đang phân bổ (BR-M08-02), tạo cảnh báo nếu có xung đột.
 - **BR-M01-08:** Người thân chỉ xem được thông tin sức khỏe khi có bản đồng ý còn hiệu lực bao gồm người đó. Khi đồng ý bị rút lại, quyền xem sức khỏe tương ứng ở cổng người thân tự động bị tắt (liên kết 14.1).
 
-- **BR-M01-09:** Lần đánh giá (đầu vào hoặc đánh giá lại) gồm nhận xét đánh giá và mức chăm sóc do Bác sĩ ghi, sau khi xem hồ sơ sức khỏe ban đầu và chỉ số đo (5.3). Bác sĩ hoặc Điều dưỡng lập bản nháp; chỉ Bác sĩ xác nhận. Không xác nhận được khi thiếu nhận xét hoặc mức chăm sóc. Bác sĩ chọn đúng một mức chăm sóc và không, một hoặc nhiều nhu cầu chăm sóc (mục 4); chỉ việc đổi mức chăm sóc mới tạo yêu cầu thay đổi lưu trú (BR-M01-03), đổi nhu cầu thì không. Hệ thống không đề xuất mức chăm sóc, không chép hoạt động mẫu vào kế hoạch chăm sóc. Lần đánh giá đã xác nhận chỉ sửa bằng đính chính.
+- **BR-M01-09:** Lần đánh giá (đầu vào hoặc đánh giá lại) gồm nhận xét đánh giá và mức chăm sóc do Bác sĩ ghi, sau khi xem hồ sơ sức khỏe ban đầu và chỉ số đo (5.3). Bác sĩ hoặc Điều dưỡng lập bản nháp; chỉ Bác sĩ xác nhận. Không xác nhận được khi thiếu nhận xét hoặc mức chăm sóc. Bác sĩ chọn đúng một mức chăm sóc và không, một hoặc nhiều nhu cầu chăm sóc (mục 4); chỉ việc đổi mức chăm sóc mới tạo yêu cầu thay đổi lưu trú (BR-M01-03), đổi nhu cầu thì không. Với đánh giá đầu vào, mức Bác sĩ chọn là mức chăm sóc hiện hành; nếu khác mức của hợp đồng đang có thì Hành chính được báo (BR-M02-22). Hệ thống không đề xuất mức chăm sóc, không chép hoạt động mẫu vào kế hoạch chăm sóc. Lần đánh giá đã xác nhận chỉ sửa bằng đính chính.
 - **BR-M01-10:** Hệ thống không có cờ nguy cơ. Phần "lưu ý chăm sóc" trong nhận xét của lần đánh giá Đã xác nhận gần nhất hiện trên thẻ người cao tuổi trong checklist và trên thẻ thông tin khẩn cấp (9.5).
 - **BR-M01-11:** Mức độ dị ứng và nguồn thông tin của mỗi mục dị ứng, bệnh nền, tiền sử bệnh chọn từ danh mục cấu hình được (nhóm 1); giá trị khởi tạo: mức độ Nhẹ / Trung bình / Nặng; nguồn thông tin Người cao tuổi / Người thân / Hồ sơ y tế kèm theo / Bác sĩ khám.
 - **BR-M01-12:** Khi việc kiểm tra dị ứng với đơn thuốc (11.1) hoặc thực đơn (12.1) chưa chạy được, mục dị ứng vẫn được lưu và mang dấu "chờ kiểm tra"; hệ thống thử lại tới khi cả hai kiểm tra chạy xong rồi gỡ dấu; trong lúc đó mục vẫn hiện trên hồ sơ và thẻ thông tin khẩn cấp.
@@ -384,7 +384,7 @@ Sơ đồ trên thể hiện cùng bảng chuyển trạng thái; hồ sơ ở t
 
 ### 6.1. Đăng ký tiếp nhận
 
-Quy trình: Đăng ký → Thu thập thông tin → Đánh giá → Xác định lưu trú → Xác định chăm sóc → Xác định dịch vụ → Kiểm tra điều kiện → Tiếp nhận.
+Quy trình: Đăng ký → Thu thập thông tin → Đánh giá → Lập hợp đồng (gia đình chọn loại lưu trú, mức chăm sóc, dịch vụ) → Đặt cọc → Kiểm tra điều kiện → Tiếp nhận. Đánh giá có thể làm trước hoặc sau khi lập hợp đồng; mức chăm sóc của hợp đồng phải trùng mức Bác sĩ chọn trước khi tiếp nhận (BR-M02-22).
 
 ### 6.2. Danh sách chờ
 
@@ -403,7 +403,7 @@ Trạng thái hồ sơ chờ: Đang chờ → Đã liên hệ (đang giữ chỗ
 
 ### 6.3. Hợp đồng lưu trú
 
-Hợp đồng xác định: loại lưu trú; thời hạn; mức chăm sóc; dịch vụ; phòng/giường nếu có; người đại diện; chính sách chi phí; điều kiện đặt cọc; chính sách giữ giường; chính sách khi tạm vắng; điều kiện chấm dứt.
+Hợp đồng xác định: loại lưu trú; thời hạn; mức chăm sóc; dịch vụ; phòng/giường nếu có; người đại diện; chính sách chi phí; điều kiện đặt cọc; chính sách giữ giường; chính sách khi tạm vắng; điều kiện chấm dứt. Loại lưu trú, mức chăm sóc và dịch vụ do Hành chính chọn theo thỏa thuận với gia đình khi lập hợp đồng (Q-300); mức chăm sóc của hợp đồng phải trùng mức chăm sóc hiện hành khi Hoàn tất tiếp nhận (BR-M02-22).
 
 Trạng thái hợp đồng: Nháp → Chờ ký → Hiệu lực → Kết thúc / Chấm dứt. Hợp đồng chỉ sửa được ở trạng thái Nháp. Từ khi Hiệu lực, hợp đồng bị khóa; mọi thay đổi đi qua yêu cầu thay đổi (6.6) và trở thành phụ lục gắn với hợp đồng gốc, có ngày hiệu lực riêng.
 
@@ -423,7 +423,7 @@ Dịch vụ có thể gồm: chăm sóc; phục hồi; hoạt động; đưa đi
 
 Mỗi dịch vụ có: tên; đơn vị tính; đơn giá; ngày hiệu lực; trạng thái. Khi thay đổi giá phải tạo phiên bản đơn giá mới, không sửa lịch sử đã áp dụng.
 
-**Dịch vụ chăm sóc theo mức.** Danh mục dịch vụ có dịch vụ "chăm sóc" riêng cho từng mức chăm sóc (Chăm sóc cơ bản, Chăm sóc thường xuyên, Chăm sóc đặc biệt; mục 4), mỗi dịch vụ có đơn giá theo phiên bản như trên. Hợp đồng đăng ký dịch vụ chăm sóc ứng với mức chăm sóc hiện hành của người cao tuổi. Đổi mức chăm sóc thì phụ lục thay đổi lưu trú đổi luôn dịch vụ chăm sóc sang dịch vụ của mức mới (6.6, BR-M02-04). Nhu cầu chăm sóc không có giá; dịch vụ đi kèm như phục hồi được đăng ký riêng.
+**Dịch vụ chăm sóc theo mức.** Danh mục dịch vụ có dịch vụ "chăm sóc" riêng cho từng mức chăm sóc (Chăm sóc cơ bản, Chăm sóc thường xuyên, Chăm sóc đặc biệt; mục 4), mỗi dịch vụ có đơn giá theo phiên bản như trên. Hợp đồng đăng ký dịch vụ chăm sóc ứng với mức chăm sóc của hợp đồng (6.3); từ khi Hoàn tất tiếp nhận, mức này trùng mức chăm sóc hiện hành của người cao tuổi (BR-M02-22). Đổi mức chăm sóc thì phụ lục thay đổi lưu trú đổi luôn dịch vụ chăm sóc sang dịch vụ của mức mới (6.6, BR-M02-04). Nhu cầu chăm sóc không có giá; dịch vụ đi kèm như phục hồi được đăng ký riêng.
 
 Danh mục có đơn giá gồm cả vật phẩm, thuốc nguồn viện, phí "buổi bán trú" (dùng cho buổi phát sinh ngoài lịch), phí "người thân ở lại" và suất ăn ngoài hợp đồng. Quản lý viện được tạo phiên bản đơn giá có ngày hiệu lực trong quá khứ, nhưng chỉ cho khoảng thời gian mục đó chưa có phiên bản nào (không chồng khoảng, DBR-08). Phiên bản đã có không bị sửa hay rút ngắn. Cách này dùng để bổ sung giá cho khoản chi phí "thiếu đơn giá" (15.3).
 
@@ -554,6 +554,7 @@ Các quy tắc chi tiết của mục này mang mã BR-M02-15 → BR-M02-20 (6.9
 - **BR-M02-19:** Các việc hằng ngày của Bộ lập lịch (nhắc, đếm ngày vắng, hết hạn hợp đồng) được chạy bù khi Bộ lập lịch gián đoạn, mỗi việc ghi thời điểm dự kiến và thời điểm thực tế.
 - **BR-M02-20:** "Lượt trống hiện tại" của danh sách chờ là một giường Trống hoặc Chờ sẵn sàng chưa có giữ chỗ, phù hợp loại hình và mức chăm sóc của hồ sơ chờ; chu kỳ chờ tính từ ngày đăng ký.
 - **BR-M02-21:** Thông tin nguyên nhân tử vong trong bản ghi qua đời là thông tin sức khỏe: Quản lý viện, Bác sĩ, và Điều dưỡng, Trưởng tầng trong phạm vi xem được; Hành chính và Kế toán không xem lại trường này, kể cả khi chính Hành chính đã ghi nhận lệnh; người thân chỉ xem khi có bản đồng ý Hiệu lực bao gồm mình (BR-M01-08).
+- **BR-M02-22:** Mức chăm sóc của hợp đồng do Hành chính chọn theo thỏa thuận với gia đình khi lập hợp đồng, cùng loại lưu trú và dịch vụ; hợp đồng đăng ký dịch vụ chăm sóc ứng với mức đó (6.4). Mức chăm sóc hiện hành vẫn lấy từ lần đánh giá Đã xác nhận gần nhất (BR-M01-09). Hoàn tất tiếp nhận bị chặn khi mức của hợp đồng Hiệu lực khác mức chăm sóc hiện hành; Hành chính sửa hợp đồng (Nháp; Chờ ký thì Trả về nháp) hoặc, khi hợp đồng đã Hiệu lực, lập yêu cầu đổi mức chăm sóc (6.6) và chờ phụ lục được áp dụng. Khi Bác sĩ xác nhận đánh giá đầu vào có mức khác mức của hợp đồng Nháp, Chờ ký hoặc Hiệu lực của người đó, hệ thống báo Hành chính (Q-300).
 
 ### 6.10. Khai báo tạm trú, lưu trú
 
@@ -2513,9 +2514,10 @@ Các quyết định dưới đây đã được chốt và phản ánh vào cá
 | Q-294 | Kế toán đối chiếu yêu cầu mua sắm loại tài sản thế nào khi nguyên giá không bắt buộc (7.7, BR-M11-19) | Ghi tăng tài sản gắn yêu cầu mua sắm (BR-M11-17) bắt buộc nhập nguyên giá; tổng nguyên giá các tài sản gắn yêu cầu là số đối chiếu với chứng từ, như tổng tiền phiếu nhập với nguyên liệu. Tài sản được tặng, chuyển từ nơi khác vẫn không bắt buộc nguyên giá. Sửa Q-284 | 7.7, BR-M11-19 | 019 |
 | Q-295 | Trường hợp "viện đưa về" người bán trú (14.3) | Có. Bản ghi đón có thêm loại "Viện đưa về". Người đưa về là người có quyền Điểm danh về bán trú (Hành chính, Nhân viên chăm sóc, Q-121; Điều dưỡng, Q-214) và thực hiện quy trình đón tại nơi bàn giao: chọn người nhận thuộc danh sách được phép đón (hoặc có ngoại lệ đón Hiệu lực, BR-M10-03), xác minh danh tính, ghi thời điểm bàn giao. Trạng thái có mặt chuyển Đã về khi ghi bàn giao; chưa bàn giao được thì vẫn Có mặt, và các quy tắc chặn đón, ngoại lệ đón, quên điểm danh về áp như khi đón tại viện. Dùng xe của viện thì có lịch xe (7.7). Phí (nếu có) theo dịch vụ đăng ký trong hợp đồng (6.4) | 3.4, 14.3, UC-58, BF-02, BF-12 | 012, 005, 019 |
 | Q-296 | Đánh giá lại chỉ đổi nhu cầu chăm sóc (mức giữ nguyên) có tạo yêu cầu xem xét kế hoạch chăm sóc không | Có. Lần đánh giá lại được xác nhận có mức chăm sóc hoặc tập nhu cầu chăm sóc khác lần đánh giá Đã xác nhận trước đó thì tạo yêu cầu xem xét kế hoạch chăm sóc \[48 giờ\] (BR-M04-20). Chỉ đổi mức mới tạo yêu cầu thay đổi lưu trú (BR-M01-03). Sửa Q-291 | 5.4, BR-M01-09, BR-M04-20, BF-08 | 001, 005 |
-| Q-297 | Q-291 nói mức chăm sóc dùng cho giá, nhưng 6.4 chưa có giá theo mức | Danh mục dịch vụ có dịch vụ "chăm sóc" riêng cho từng mức (cơ bản, thường xuyên, đặc biệt), mỗi dịch vụ có đơn giá theo phiên bản (6.4). Hợp đồng đăng ký dịch vụ chăm sóc ứng với mức chăm sóc hiện hành; đổi mức thì phụ lục đổi luôn dịch vụ chăm sóc theo mức mới (6.6, BR-M02-04). Nhu cầu chăm sóc không có giá; dịch vụ đi kèm (phục hồi…) đăng ký riêng. Sửa Q-291 | 6.4, 6.6, BR-M02-04, BF-08 | 004, 010 |
+| Q-297 | Q-291 nói mức chăm sóc dùng cho giá, nhưng 6.4 chưa có giá theo mức | Danh mục dịch vụ có dịch vụ "chăm sóc" riêng cho từng mức (cơ bản, thường xuyên, đặc biệt), mỗi dịch vụ có đơn giá theo phiên bản (6.4). Hợp đồng đăng ký dịch vụ chăm sóc ứng với mức chăm sóc của hợp đồng (Q-300); đổi mức thì phụ lục đổi luôn dịch vụ chăm sóc theo mức mới (6.6, BR-M02-04). Nhu cầu chăm sóc không có giá; dịch vụ đi kèm (phục hồi…) đăng ký riêng. Sửa Q-291 | 6.4, 6.6, BR-M02-04, BF-08 | 004, 010 |
 | Q-298 | Lịch xe "báo người lái" khi hủy, dời lịch, nhưng lái xe có thể không có tài khoản (13.1) | Người lái là hồ sơ nhân viên, có thể không có tài khoản. Hủy, dời lịch thì hệ thống báo người đặt lịch và Phụ trách bộ phận quản lý xe; người lái có tài khoản thì được báo thêm. Người lái không có tài khoản do viện báo ngoài hệ thống | 7.7 | 019 |
 | Q-299 | Quản lý viện thuộc bộ phận nào (13.1a ghi mỗi tài khoản nhân viên thuộc đúng một bộ phận) | Quản lý viện không thuộc bộ phận nào và không được giao Phụ trách bộ phận. Tài khoản nhân viên của các vai trò khác thuộc đúng một bộ phận tại một thời điểm | 13.1a | 019, 002 |
+| Q-300 | Thực tế gia đình chọn mức chăm sóc cùng loại lưu trú và dịch vụ khi lập hợp đồng, trong khi tài liệu cho Bác sĩ chọn mức khi đánh giá đầu vào | Mức chăm sóc của hợp đồng do Hành chính chọn theo thỏa thuận với gia đình khi lập hợp đồng; hợp đồng đăng ký dịch vụ chăm sóc ứng với mức đó. Bác sĩ vẫn đánh giá đầu vào, chọn mức và nhu cầu chăm sóc (BR-M01-09); đánh giá làm trước hay sau khi lập hợp đồng đều được. Mức chăm sóc hiện hành vẫn lấy từ lần đánh giá Đã xác nhận gần nhất. Hoàn tất tiếp nhận bị chặn khi mức của hợp đồng Hiệu lực khác mức hiện hành; Hành chính sửa hợp đồng (Nháp; Chờ ký thì Trả về nháp) hoặc, khi hợp đồng đã Hiệu lực, lập yêu cầu đổi mức và chờ phụ lục được áp dụng. Bác sĩ xác nhận đánh giá đầu vào có mức khác mức của hợp đồng đang có thì Hành chính được báo. Nhu cầu chăm sóc vẫn chỉ do Bác sĩ chọn. Sửa Q-297 | Mục 4, 5.3, 5.6, 6.1, 6.3, 6.4, BR-M01-09, BR-M02-22, BF-01 | 004, 001 |
 
 ### 24.4. Điểm cần đối chiếu trước khi triển khai
 
@@ -2719,10 +2721,10 @@ Tên use case là **lệnh nghiệp vụ** (động từ + đối tượng), kh�
 | UC-05 | Đánh giá đầu vào (nhận xét và mức chăm sóc, không thang điểm)                      | Bác sĩ                                  | 001      | 5.3, BR-M01-09, 10  |
 | UC-06 | Đánh giá lại                          | Bác sĩ                                  | 001      | 5.4, BR-M01-03      |
 | UC-07 | Tạo yêu cầu đánh giá lại              | Bộ lập lịch                             | 001      | BR-M01-02           |
-| UC-08 | Hoàn tất / hủy tiếp nhận              | Hành chính                              | 001, 004 | 5.6, BR-M01-06      |
+| UC-08 | Hoàn tất / hủy tiếp nhận              | Hành chính                              | 001, 004 | 5.6, BR-M01-06, BR-M02-22 |
 | UC-09 | Đăng ký tiếp nhận                     | Hành chính                              | 004      | 6.1                 |
 | UC-10 | Đề xuất hồ sơ chờ khi có giường trống | Bộ lập lịch, Hành chính                 | 004      | BR-M02-01, 02, 10   |
-| UC-11 | Lập hợp đồng lưu trú                  | Hành chính                              | 004      | 6.3, BR-M02-08      |
+| UC-11 | Lập hợp đồng lưu trú                  | Hành chính                              | 004      | 6.3, BR-M02-08, 22  |
 | UC-12 | Xác nhận đặt cọc                      | Kế toán  | 004      | 6.5                 |
 | UC-13 | Yêu cầu thay đổi lưu trú              | Hành chính, Bác sĩ                      | 004      | 6.6                 |
 | UC-14 | Duyệt yêu cầu                         | Quản lý viện                            | 000, 004 | 1.5, BR-M02-04      |
