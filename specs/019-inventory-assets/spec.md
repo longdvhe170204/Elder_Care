@@ -208,7 +208,7 @@ Khi bộ phận cần chi tiền (mua nguyên liệu, mua tài sản, thuê sử
 - Lịch xe quá giờ về dự kiến mà chưa trả xe: nhắc người đặt; không chặn lịch kế tiếp đã đặt nhưng báo xung đột cho Quản lý viện.
 - **(Bổ sung, 2026-10-06, Q-284)** Hàng được tặng hoặc chuyển từ nơi khác: nhập kho, ghi tăng tài sản không cần yêu cầu mua sắm nhưng phải ghi nguồn; không có chứng từ mua (BR-M11-17).
 - **(Bổ sung, 2026-10-06, Q-284)** Một yêu cầu mua sắm được thực hiện bằng nhiều phiếu nhập: tổng tiền các phiếu nhập gắn yêu cầu là số đã mua của yêu cầu; Kế toán đối chiếu với tổng này (BR-M11-19).
-- **(Bổ sung, 2026-10-06, Q-284)** Yêu cầu Đã duyệt nhưng bộ phận không mua nữa: Phụ trách bộ phận Hủy kèm lý do; phiếu nhập đã gắn yêu cầu thì không hủy được yêu cầu, phải ghi đã mua cho phần đã nhập. *(Suy ra từ BR-M11-17, BR-M11-19.)*
+- **(Bổ sung, 2026-10-06, Q-284)** Yêu cầu Đã duyệt nhưng bộ phận không mua nữa: Phụ trách bộ phận Hủy kèm lý do; phiếu nhập đã gắn yêu cầu thì không hủy được yêu cầu, phải ghi đã mua cho phần đã nhập. *(Q-290)*
 
 ## Requirements *(mandatory)*
 
@@ -248,7 +248,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 | Chờ duyệt | Duyệt, có thể giảm số tiền được duyệt | Đã duyệt | Quản lý viện | Bắt buộc lý do khi giảm | Báo người lập |
 | Chờ duyệt | Từ chối | Từ chối | Quản lý viện | Có lý do | Báo người lập |
 | Đã duyệt | Ghi đã mua: số tiền thực tế, ngày mua, nhà cung cấp, chứng từ | Chờ đối chiếu | Phụ trách bộ phận | FR-008a | Báo Kế toán |
-| Đã duyệt | Hủy (không mua nữa) | Đã hủy | Phụ trách bộ phận | Có lý do | — |
+| Đã duyệt | Hủy (không mua nữa) | Đã hủy | Phụ trách bộ phận | Có lý do; chưa có phiếu nhập, tài sản hoặc kết quả bảo trì gắn với yêu cầu (Q-290) | — |
 | Chờ đối chiếu | Xác nhận khớp | Đã đối chiếu | Kế toán | FR-008b | — |
 | Chờ đối chiếu | Trả lại (thiếu hoặc sai chứng từ) | Đã duyệt | Kế toán | Có lý do | Báo người lập |
 | Chờ đối chiếu | Ghi lệch | Lệch | Kế toán | Có lý do và số tiền lệch | Báo Quản lý viện |

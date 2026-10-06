@@ -549,7 +549,7 @@ Trường hợp qua đời, ghi nhận: thời điểm; địa điểm; người
 
 **Khai báo tạm trú (bổ sung, 2026-09-28)**
 
-- **BR-M02-11:** Khi lệnh Hoàn tất tiếp nhận của người nội trú thành công, hệ thống tạo một khai báo tạm trú ở "Cần khai báo". Loại khai báo lấy theo thời gian lưu trú dự kiến của hợp đồng so với CFG-M02-11. Hạn khai báo là CFG-M02-12; quá hạn thì nhắc Hành chính mỗi ngày và báo Quản lý viện một lần vào ngày quá hạn đầu tiên (bổ sung, 2026-09-29, spec 018). Khai báo tạm trú không chặn Hoàn tất tiếp nhận (Q-215). **(Bổ sung, 2026-09-29, Q-215)** Thời gian lưu trú dự kiến tính cộng dồn từ ngày bắt đầu hợp đồng đầu tiên, gồm cả gia hạn. **(Bổ sung, 2026-09-29, Q-241)** "Hợp đồng đầu tiên" là hợp đồng đầu của chuỗi hợp đồng nối tiếp không gián đoạn trong cùng hồ sơ (hợp đồng mới bắt đầu ngay ngày sau khi hợp đồng trước kết thúc). Có khoảng trống, hoặc hồ sơ mới theo Q-12, thì tính lại từ đầu. Người thường trú cùng xã/phường với viện, khi Hành chính xác nhận, luôn dùng loại thông báo lưu trú.
+- **BR-M02-11:** Khi lệnh Hoàn tất tiếp nhận của người nội trú thành công, hệ thống tạo một khai báo tạm trú ở "Cần khai báo". Loại khai báo lấy theo thời gian lưu trú dự kiến của hợp đồng so với CFG-M02-11. Hạn khai báo là CFG-M02-12; quá hạn thì nhắc Hành chính mỗi ngày và báo Quản lý viện một lần vào ngày quá hạn đầu tiên (bổ sung, 2026-09-29, spec 018). Khai báo tạm trú không chặn Hoàn tất tiếp nhận (Q-215). **(Bổ sung, 2026-09-29, Q-215)** Thời gian lưu trú dự kiến tính cộng dồn từ ngày bắt đầu hợp đồng đầu tiên, gồm cả gia hạn. **(Bổ sung, 2026-09-29, Q-241)** "Hợp đồng đầu tiên" là hợp đồng đầu của chuỗi hợp đồng nối tiếp không gián đoạn trong cùng hồ sơ (hợp đồng mới bắt đầu ngay ngày sau khi hợp đồng trước kết thúc). Có khoảng trống, hoặc hồ sơ mới theo Q-12, thì tính lại từ đầu. Người thường trú cùng xã/phường với viện, khi Hành chính xác nhận, luôn dùng loại thông báo lưu trú. **(Bổ sung, 2026-10-06, Q-289)** Người bán trú chuyển sang nội trú (gồm nội trú ngắn ngày để ở lại qua đêm, 3.3) bằng hợp đồng mới hoặc phụ lục đổi loại lưu trú: khi phần nội trú có hiệu lực, hệ thống tạo khai báo như trên, thời gian lưu trú dự kiến tính từ ngày hiệu lực của phần nội trú.
 - **BR-M02-12:** Khai báo tạm trú Đã xác nhận mà còn CFG-M02-13 tới ngày hết hạn, trong khi người cao tuổi vẫn lưu trú, thì hệ thống nhắc Hành chính gia hạn. Qua ngày hết hạn mà chưa có khai báo mới thì khai báo chuyển Hết hạn và Quản lý viện được báo.
 - **BR-M02-13:** Khi người cao tuổi Kết thúc lưu trú hoặc Qua đời mà có khai báo tạm trú Đã xác nhận, hệ thống tạo việc "khai báo xóa tạm trú" cho Hành chính. Việc này được thực hiện cả khi hồ sơ đã ở trạng thái cuối (ngoại lệ (3) của BR-M01-05).
 - **BR-M02-14:** Hợp đồng nội trú ngắn ngày được gia hạn làm tổng thời gian lưu trú vượt CFG-M02-11 thì hệ thống nhắc Hành chính chuyển từ thông báo lưu trú sang đăng ký tạm trú. **(Bổ sung, 2026-09-29, Q-215)** Gia hạn mà tổng thời gian vẫn dưới CFG-M02-11, hoặc gia hạn của người thường trú cùng xã/phường với viện, thì hệ thống tạo khai báo thông báo lưu trú mới cho ngày kết thúc mới. Đã có khai báo đang xử lý thì không tạo thêm (DBR-33), chỉ nhắc Hành chính. Khai báo mới Đã xác nhận thì khai báo cũ chuyển Được thay thế.
@@ -572,7 +572,7 @@ Người cao tuổi vào ở nội trú tại viện phải được khai báo c
 | Đăng ký tạm trú | Nội trú có tổng thời gian lưu trú dự kiến từ \[30 ngày\] (CFG-M02-11) trở lên, tính cộng dồn từ ngày bắt đầu hợp đồng đầu tiên của chuỗi hợp đồng nối tiếp không gián đoạn trong cùng hồ sơ (Q-241) tới ngày kết thúc dự kiến mới nhất, gồm cả gia hạn; trừ người thường trú cùng xã/phường với viện | Theo ngày hết hạn tạm trú do cơ quan công an xác nhận; gia hạn bằng khai báo mới |
 | Thông báo lưu trú | Nội trú có tổng thời gian lưu trú dự kiến dưới CFG-M02-11; hoặc người thường trú cùng xã/phường với viện (Hành chính xác nhận theo địa chỉ thường trú trên hồ sơ, 5.1, Q-244, khi khai báo còn Cần khai báo), bất kể thời gian | Tới ngày kết thúc lưu trú dự kiến; hợp đồng được gia hạn thì thông báo lại (BR-M02-14) |
 
-Người bán trú không cần khai báo.
+Người bán trú không cần khai báo. **(Bổ sung, 2026-10-06, Q-289)** Khi người bán trú chuyển sang nội trú, kể cả nội trú ngắn ngày để ở lại qua đêm (3.3), phần nội trú được khai báo như người vào ở nội trú (BR-M02-11).
 
 **Nội dung ghi nhận:** loại; ngày nộp; kênh nộp (Cổng dịch vụ công hoặc trực tiếp); cơ quan tiếp nhận; mã hồ sơ; ngày hết hạn (với đăng ký tạm trú); bằng chứng (bản scan hoặc ảnh màn hình kết quả); người thực hiện. Hành chính thực hiện.
 
@@ -1893,7 +1893,7 @@ Bộ phận cần chi tiền (mua nguyên liệu, mua tài sản, thuê sửa ch
 | Chờ duyệt | Từ chối, bắt buộc lý do | Từ chối | Quản lý viện |
 | Chờ duyệt | Rút lại | Nháp | Người lập |
 | Đã duyệt | Ghi đã mua: số tiền thực tế, ngày mua, nhà cung cấp, chứng từ (BR-M11-18) | Chờ đối chiếu | Phụ trách bộ phận |
-| Đã duyệt | Hủy (không mua nữa), bắt buộc lý do | Đã hủy | Phụ trách bộ phận |
+| Đã duyệt | Hủy (không mua nữa), bắt buộc lý do; **(bổ sung, 2026-10-06, Q-290)** chỉ khi chưa có phiếu nhập, tài sản hoặc kết quả bảo trì nào gắn với yêu cầu | Đã hủy | Phụ trách bộ phận |
 | Chờ đối chiếu | Xác nhận khớp (BR-M11-19) | Đã đối chiếu | Kế toán |
 | Chờ đối chiếu | Trả lại, bắt buộc lý do (thiếu hoặc sai chứng từ) | Đã duyệt | Kế toán |
 | Chờ đối chiếu | Ghi lệch, bắt buộc lý do và số tiền lệch | Lệch | Kế toán |
@@ -2558,6 +2558,8 @@ Các quyết định dưới đây đã được chốt khi làm rõ spec của 
 | Q-286 | **(Bổ sung, 2026-10-05, chủ dự án)** Bán trú có được ở lại qua đêm không; giá bán trú | Không. Bán trú đến và về trong cùng ngày. Người cần ở lại qua đêm phải thuê giường bằng nội trú ngắn ngày (hợp đồng hoặc phụ lục riêng, phân bổ giường), không ghi là bán trú. Giá bán trú theo dịch vụ đăng ký trong hợp đồng. Người thân ở lại (14.4) không đổi loại hình lưu trú của người cao tuổi | 3.3 | 003, 004, 010 |
 | Q-287 | **(Bổ sung, 2026-10-05, chủ dự án)** Có giữ cờ "không đủ điều kiện" (chỉ định hạn chế hoạt động, chỉ định tạm) không | Không. Bỏ mọi loại cờ gắn cho người cao tuổi. Đăng ký hoạt động chỉ bị chặn theo số lượng tối đa, khoanh vùng và dấu "nghi nhiễm"; hạn chế hoạt động Bác sĩ ghi trong nhận xét đánh giá. Bỏ CFG-M04-14; thay Q-162. Các dấu trạng thái (nghi nhiễm, nguy kịch, chờ chuyển người…) không phải cờ, giữ nguyên | 2.4, 8.8, 8.9, BR-M04-15, 22, 19.3, Phụ lục 25 | 014, 005 |
 | Q-288 | **(Bổ sung, 2026-10-05, chủ dự án)** Có làm ứng dụng cho người cao tuổi (gọi hỗ trợ, nhắc lịch bằng âm thanh, vị trí, hoạt động trí não) không | Không. Người cao tuổi không là người dùng của hệ thống | — | — |
+| Q-289 | **(Bổ sung, 2026-10-06, chủ dự án)** Người bán trú chuyển sang nội trú (gồm nội trú ngắn ngày để ở lại qua đêm, Q-286) có phải khai báo tạm trú, lưu trú không | Có. Khi hợp đồng mới hoặc phụ lục đổi loại lưu trú sang nội trú được áp dụng, hệ thống tạo khai báo ở "Cần khai báo" như khi Hoàn tất tiếp nhận nội trú; thời gian lưu trú dự kiến tính từ ngày hiệu lực của phần nội trú. Bổ sung BR-M02-11 | 6.10, BR-M02-11, 3.3, BF-08 | 018, 004 |
+| Q-290 | **(Bổ sung, 2026-10-06, chủ dự án)** Yêu cầu mua sắm Đã duyệt mà đã có phiếu nhập, tài sản hoặc kết quả bảo trì gắn vào thì có được Hủy không | Không. Phải ghi đã mua cho phần đã thực hiện để Kế toán đối chiếu tiền với hàng; chỉ Hủy được khi chưa có bản ghi nào gắn với yêu cầu | 15.10, BR-M11-17, 19, BF-18 | 019 |
 
 ### 24.3. Quyết định đã chốt ở spec, chưa phản ánh vào thân tài liệu (bổ sung)
 
@@ -2598,7 +2600,7 @@ Các quyết định dưới đây đã chốt để viết spec, nhưng dựa t
 | Vận hành | Q-271, Q-274, Q-275, Q-276 | Các quy tắc bổ sung khi đóng giai đoạn phân tích (trở về khi giường đã giải phóng, hai chế độ sinh công việc, chạy bù) | Quản lý viện, Trưởng tầng | Mở Q mới |
 | Vận hành **(bổ sung, 2026-10-05)** | Q-282 | Bỏ nghiệp vụ vệ sinh: xác nhận giường sẵn sàng do Trưởng tầng làm có đủ kiểm soát lây nhiễm không; hạn 4 giờ | Quản lý viện, Trưởng tầng, Bác sĩ | Mở Q mới |
 | Vận hành **(bổ sung, 2026-10-05)** | Q-284 | Người phụ trách từng bộ phận, hạn đối chiếu (danh mục 4 bộ phận và mức vượt 10%, CFG-M11-07, chủ dự án đã chốt 2026-10-05) | Quản lý viện, Kế toán | Sửa danh mục, tham số; mở Q mới nếu đổi quy tắc |
-| Vận hành **(bổ sung, 2026-10-05)** | Q-286 | Bán trú không qua đêm; cách thuê giường qua đêm cho người bán trú | Hành chính, Quản lý viện | Mở Q mới |
+| Vận hành **(bổ sung, 2026-10-05)** | Q-286, Q-289 | Bán trú không qua đêm; cách thuê giường qua đêm cho người bán trú; khai báo tạm trú, lưu trú cho phần nội trú (**bổ sung, 2026-10-06, Q-289**) | Hành chính, Quản lý viện | Mở Q mới |
 
 Căn cứ của hai tham số mới: CFG-M07-07 (2 ngày) là khoảng đủ để gia đình mang thuốc tới hoặc Bác sĩ kê thay trước khi hết thuốc, sau mốc đầu 5 ngày; CFG-M11-06 (10%) là biên chênh giá thông thường giữa lúc đề nghị và lúc mua, đủ nhỏ để không cần hỏi lại gia đình. Cả hai là tham số, đổi được qua màn hình cấu hình.
 

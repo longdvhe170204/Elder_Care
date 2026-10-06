@@ -243,6 +243,7 @@ Hệ thống không còn quản lý vệ sinh (7.5): không có Nhân viên vệ
 **Điểm đã làm rõ**
 
 - "Đổi kế hoạch chăm sóc" ở BR-M02-04 **không** tạo phiên bản kế hoạch tự động. Khi áp dụng thay đổi, hệ thống chỉ đổi mức chăm sóc hiện hành và tạo yêu cầu xem xét cho Điều dưỡng phụ trách. Phiên bản mới vẫn do Điều dưỡng lập và người có quyền duyệt (BR-M04-19, 20). Cho tới lúc đó, kế hoạch cũ vẫn áp dụng (BR-M01-03).
+- **(Bổ sung, 2026-10-06, Q-289)** Đổi loại lưu trú từ bán trú sang nội trú (kể cả nội trú ngắn ngày để ở lại qua đêm, Q-286): khi phần nội trú có hiệu lực, hệ thống tạo khai báo tạm trú, lưu trú "Cần khai báo" như bước 15a của BF-01 (BR-M02-11, spec 018 FR-001a).
 
 ---
 
@@ -582,4 +583,5 @@ Khởi phát: một bộ phận cần mua nguyên liệu, tài sản hoặc thu�
 - Quản lý viện không quản lý kho, tài sản; chỉ duyệt chi phí, duyệt thanh lý tài sản và xử lý lệch (Q-284).
 - Yêu cầu mua sắm không sinh chi phí cho người cao tuổi. Mua hộ cho người cao tuổi vẫn theo đề nghị mua hộ (BF-09, BR-M11-07).
 - Hàng được tặng hoặc chuyển từ nơi khác nhập không cần yêu cầu mua sắm, nhưng phải ghi nguồn.
+- **(Bổ sung, 2026-10-06, Q-290)** Yêu cầu Đã duyệt chỉ Hủy được khi chưa có phiếu nhập, tài sản hoặc kết quả bảo trì gắn vào; đã có thì phải ghi đã mua cho phần đã thực hiện (bước 6).
 - Kế toán không lập, không duyệt yêu cầu; người ghi đã mua không tự đối chiếu.
