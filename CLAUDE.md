@@ -13,6 +13,7 @@
   - (Đã xong 2026-10-06) Q-292 → Q-299 (chốt sau rà soát tài liệu nguồn) đã vào tài liệu nguồn; 9 spec bị ảnh hưởng (001, 002, 004, 005, 008, 010, 012, 017, 019) đã viết lại (mục "Cập nhật 2026-10-06, lượt 2" ở Clarifications).
   - Bảng 24.4 docs/nghiep-vu.md: các điểm cần người vận hành và người có chuyên môn đối chiếu trước khi triển khai.
   - (Đã đóng 2026-10-05, Q-288: không làm app cho người cao tuổi.)
+  - (Đã xong 2026-10-06) Làm sạch hai tài liệu nguồn: bỏ mọi ghi chú thay đổi và nội dung gạch; xóa hẳn mã đã bỏ. Bản còn ghi chú nằm ở commit 3543384. Spec vẫn có thể nhắc mã đã xóa (AC-06, AC-08, UC-71 → 73, BR-M03-08, 11, 12, 14, CFG-M01-05, CFG-M03-03, 05, 06, CFG-M04-14) trong phần lịch sử; đó không phải lỗi.
 
 ## Phạm vi nghiệp vụ (tóm tắt, căn cứ là docs/nghiep-vu.md)
 
@@ -26,10 +27,11 @@
 - Kho và tài sản: mỗi bộ phận tự quản lý (13.1a). Quản lý viện không vận hành kho, tài sản; chỉ thực hiện quyền phê duyệt cấp viện (yêu cầu mua sắm 15.10, thanh lý và chuyển tài sản 7.7, xử lý lệch). Kế toán đối chiếu chứng từ.
 - Bán trú không qua đêm. Ở lại qua đêm thì thuê giường theo nội trú ngắn ngày.
 - Quy mô mã hiện có:
-  - 244 BR (BR-Mxx-yy).
+  - 240 BR (BR-Mxx-yy; đã xóa BR-M03-08, 11, 12, 14).
   - Quyết định Q-01 → Q-299.
   - Luồng BF-01 → BF-18.
-  - Use case UC-01 → UC-95.
+  - Use case UC-01 → UC-95, trừ UC-71 → 73 (92 UC); actor AC-00 → AC-15, trừ AC-06, AC-08.
+  - 120 tham số CFG.
   - Quy tắc dữ liệu DBR-01 → DBR-36.
 
 ## Nguồn tài liệu
@@ -48,14 +50,14 @@
 ## Quy ước
 
 - Viết spec bằng tiếng Việt; thuật ngữ theo mục 2.4 docs/nghiep-vu.md.
-- Giữ nguyên mã BR, DBR, UC, CFG, Q, BF khi trích dẫn. Mã bị bỏ không đánh lại số: giữ dòng và ghi "(Bỏ, ngày, Q-xx)" hoặc "Không còn áp dụng".
-- Đánh dấu thay đổi trong tài liệu nguồn bằng "**(Bổ sung/Sửa/Bỏ, YYYY-MM-DD, Q-xx)**" như các đoạn đã có.
+- Giữ nguyên mã BR, DBR, UC, CFG, Q, BF khi trích dẫn. Mã bị bỏ thì xóa khỏi tài liệu nguồn; không đánh lại số và không dùng lại mã đó. Riêng mã Q bị bỏ vẫn giữ một dòng ở 24.2: "Không còn áp dụng, thay bằng Q-xx".
+- Tài liệu nguồn chỉ ghi nội dung hiện hành (từ 2026-10-06): sửa thẳng nội dung, không đánh dấu "(Bổ sung/Sửa/Bỏ…)", không giữ nội dung gạch. Lịch sử thay đổi tra theo git và dòng Q ở 24.2. Số mục và số bước của luồng giữ cố định để spec tham chiếu.
 - Điểm chưa rõ: không tự đoán; luôn tham chiếu mã Q-xx ở mục 24.
   - Quyết định còn mở đã có Mặc định ở 24.1: ghi "theo mặc định Q-xx" và viết yêu cầu theo giá trị đó.
   - Chưa có Mặc định hoặc chưa có mã Q: đánh dấu [NEEDS CLARIFICATION] kèm mã Q-xx (Q-204).
 - Khi chốt một quyết định (từ 24.1, hoặc chủ dự án quyết trực tiếp), làm theo thứ tự:
-  1. Ghi dòng vào 24.2, kèm các Q cũ bị thay hoặc sửa.
-  2. Đánh dấu các dòng Q cũ đó.
+  1. Ghi dòng vào 24.2 (theo thứ tự số Q), kèm các Q cũ bị thay hoặc sửa.
+  2. Viết lại các dòng Q cũ đó theo nội dung hiện hành, hoặc đổi thành "Không còn áp dụng, thay bằng Q-xx".
   3. Cập nhật thân tài liệu và Phụ lục 25 → 28 nếu liên quan.
   4. Cập nhật docs/luong-nghiep-vu.md.
   5. Cập nhật bảng 24.4 nếu cần đối chiếu.
