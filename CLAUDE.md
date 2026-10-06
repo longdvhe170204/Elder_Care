@@ -4,14 +4,14 @@
 
 ## Giai đoạn hiện tại: PHÂN TÍCH
 
-- Đóng lần đầu 2026-10-01. Ngày 2026-10-05, chủ dự án sửa phạm vi (Q-280 → Q-286); giai đoạn kế tiếp vẫn chưa mở.
+- Đóng lần đầu 2026-10-01. Ngày 2026-10-05, chủ dự án sửa phạm vi (Q-280 → Q-288); giai đoạn kế tiếp vẫn chưa mở.
 - KHÔNG chạy /speckit.plan, /speckit.tasks, /speckit.implement cho tới khi chủ dự án mở giai đoạn kế tiếp và sửa mục này.
 - KHÔNG tạo mã nguồn, thư mục src/, file cấu hình build hay schema dữ liệu.
 - Chỉ sửa spec khi được yêu cầu, hoặc để đồng bộ khi tài liệu nguồn thay đổi. Không tự mở thêm lượt clarify hay checklist mới.
 - Việc còn treo:
-  - Có 20 spec bị ảnh hưởng bởi Q-280 → Q-286 nhưng chưa viết lại yêu cầu; việc cần sửa ghi ở cuối mục "Điểm cần báo lại" của từng spec. Nặng nhất là 001, 003, 011, 019.
+  - (Đã xong 2026-10-06) 20 spec bị ảnh hưởng bởi Q-280 → Q-288 đã viết lại; mỗi spec có mục "Cập nhật 2026-10-06" ở Clarifications. Còn một điểm báo lại: spec 018 FR-001a (khai báo khi bán trú chuyển sang nội trú ngắn ngày) suy ra từ 6.10, chưa có trong BR-M02-11; chờ chủ dự án quyết có bổ sung vào nguồn không.
   - Bảng 24.4 docs/nghiep-vu.md: các điểm cần người vận hành và người có chuyên môn đối chiếu trước khi triển khai.
-  - App cho người cao tuổi (gọi hỗ trợ/khẩn cấp, nhắc lịch bằng âm thanh, xem lịch hoạt động) đang cân nhắc, chưa có mã Q và chưa có spec.
+  - (Đã đóng 2026-10-05, Q-288: không làm app cho người cao tuổi.)
 
 ## Phạm vi nghiệp vụ (tóm tắt, căn cứ là docs/nghiep-vu.md)
 
@@ -19,13 +19,13 @@
 - Đã bỏ từ 2026-10-05:
   - Bỏ hai vai trò Dinh dưỡng viên và Nhân viên vệ sinh, cùng nghiệp vụ vệ sinh. Nhân viên không dùng hệ thống chỉ có hồ sơ nhân viên, không có tài khoản.
   - Bỏ thang điểm và quy đổi tự động: Bác sĩ đánh giá bằng nhận xét rồi chọn mức chăm sóc.
-  - Bỏ cờ nguy cơ.
+  - Bỏ mọi cờ gắn cho người cao tuổi: cờ nguy cơ, chỉ định hạn chế hoạt động (Q-287).
   - Không dùng cổng thanh toán.
 - Kho và tài sản: mỗi bộ phận tự quản lý (13.1a). Quản lý viện chỉ duyệt chi phí qua yêu cầu mua sắm (15.10). Kế toán đối chiếu chứng từ.
 - Bán trú không qua đêm. Ở lại qua đêm thì thuê giường theo nội trú ngắn ngày.
 - Quy mô mã hiện có:
   - 244 BR (BR-Mxx-yy).
-  - Quyết định Q-01 → Q-286.
+  - Quyết định Q-01 → Q-288.
   - Luồng BF-01 → BF-18.
   - Use case UC-01 → UC-95.
   - Quy tắc dữ liệu DBR-01 → DBR-36.

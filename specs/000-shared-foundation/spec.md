@@ -67,6 +67,11 @@ Các điểm dưới đây do nhóm phân tích quyết định khi đánh giá 
 - Q: Thời hạn lưu của hợp đồng, chi phí, bàn giao, đồ gửi, yêu cầu phê duyệt? → A: Dữ liệu gắn với một hồ sơ người cao tuổi lưu theo CFG-M15-03 cùng hồ sơ; dữ liệu không gắn hồ sơ nào lưu tối thiểu theo CFG-M15-04 (CHK008).
 - Q: Đợt loại bỏ dữ liệu bị gián đoạn giữa chừng? → A: Mỗi chuỗi bản ghi được loại bỏ trọn vẹn hoặc không; bản nhật ký tóm tắt ghi đúng phần đã loại; phần còn lại thuộc đợt sau (CHK064).
 
+### Cập nhật 2026-10-06 (đồng bộ Q-280 → Q-288, quyết định của chủ dự án)
+
+- **Q-282, Q-283**: bỏ vai trò Nhân viên vệ sinh và Dinh dưỡng viên. Ví dụ về người cấu hình danh mục món ăn (FR-002) đổi thành Bác sĩ; kịch bản nhật ký ẩn trường sức khỏe (User Story 3 kịch bản 8) đổi sang Hành chính, vai trò chỉ xem mức chăm sóc (19.3).
+- **Q-280**: bảng quy đổi CFG-M01-05 không còn áp dụng; bỏ khỏi ví dụ tham số dạng bảng (FR-022, Edge Cases).
+
 ## Phạm vi
 
 **Trong phạm vi**: các quy tắc mà mọi module (001–016) kế thừa, không lặp lại trong spec của module:
@@ -145,7 +150,7 @@ Quản lý viện (hoặc người có quyền xem đối tượng) tra cứu đ
 5. **Given** một liều thuốc đã quá CFG-M15-03 nhưng còn một khoản chi phí chưa hết hạn trỏ tới nó, **When** Bộ lập lịch thực hiện đợt loại bỏ, **Then** liều thuốc và các bản đính chính, nhật ký liên quan được giữ lại; chúng chỉ bị loại bỏ, cùng một đợt, khi khoản chi phí cũng hết hạn.
 6. **Given** nhật ký không ghi được vì bất kỳ lý do gì, **When** người dùng thực hiện thay đổi, **Then** thay đổi không được lưu và người dùng nhận thông báo lỗi; không tồn tại thay đổi nhóm 2/3 nào mà không có nhật ký tương ứng.
 7. **Given** một nhân viên đang có quyền xem một đối tượng trong phạm vi được phân công, **When** mở lịch sử thay đổi của đối tượng đó, **Then** thấy các bản ghi nhật ký của đối tượng; với đối tượng ngoài phạm vi hiện tại, hệ thống từ chối.
-8. **Given** Dinh dưỡng viên xem lịch sử thay đổi của hồ sơ một người cao tuổi, trong đó có lần sửa cả dị ứng và một trường sức khỏe ngoài phạm vi của Dinh dưỡng viên, **When** mở bản ghi nhật ký đó, **Then** thấy giá trị trước/sau của dị ứng, còn trường sức khỏe kia chỉ hiện "đã thay đổi".
+8. **Given** Hành chính xem lịch sử thay đổi của hồ sơ một người cao tuổi, trong đó có lần sửa cả địa chỉ liên hệ và dị ứng, **When** mở bản ghi nhật ký đó, **Then** thấy giá trị trước/sau của địa chỉ, còn dị ứng chỉ hiện "đã thay đổi" (19.3). *(Sửa 2026-10-06, Q-283: trước đây là Dinh dưỡng viên.)*
 9. **Given** người thân được cấp quyền xem một dữ liệu đã được đính chính, **When** xem dữ liệu đó trên cổng người thân, **Then** chỉ thấy giá trị hiện hành, không thấy nhật ký hay giá trị trước.
 10. **Given** quản lý viện cần điều tra, **When** tra cứu nhật ký theo đối tượng, người thực hiện, loại hành động hoặc khoảng thời gian, **Then** hệ thống trả về các bản ghi phù hợp, sắp xếp theo thời điểm.
 11. **Given** Quản lý viện xuất một báo cáo có định danh người cao tuổi với mục đích "họp giao ban" (feature 016), **When** lần xuất hoàn tất, **Then** có đúng một bản ghi nhật ký hành động "Xuất báo cáo" với lý do là mục đích xuất, dữ liệu trước/sau để trống và phần chi tiết của lần xuất; không có bản ghi nghiệp vụ nào khác được tạo; **When** việc lưu bản ghi nhật ký thất bại, **Then** file không được giao (FR-043a, FR-044, FR-047); **When** một nhân viên chỉ xem báo cáo trên hệ thống, **Then** không có bản ghi nhật ký nào được tạo.
@@ -207,7 +212,7 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 
 - Mục danh mục đang Ngừng hiệu lực nhưng vẫn được một đối tượng nhóm 2 đang hiệu lực tham chiếu (ví dụ dịch vụ trong hợp đồng hiện hành): đối tượng nhóm 2 giữ nguyên tham chiếu; chỉ nghiệp vụ mới không chọn được mục đó.
 - Hai quản lý viện cùng mở và đổi một tham số: người lưu sau phải thấy giá trị đã bị đổi và xác nhận lại trên giá trị mới; không được ghi đè âm thầm.
-- Tham số dạng bảng (ví dụ CFG-M02-05, CFG-M01-05, CFG-M09-07): thay đổi một dòng được ghi lịch sử như thay đổi cả tham số, có đủ giá trị trước/sau.
+- Tham số dạng bảng (ví dụ CFG-M02-05, CFG-M09-07): thay đổi một dòng được ghi lịch sử như thay đổi cả tham số, có đủ giá trị trước/sau.
 - Tham số đổi đúng lúc một quy tắc đang được kiểm tra: mỗi lần kiểm tra dùng trọn vẹn một giá trị (trước hoặc sau), không trộn.
 - Đính chính một bản ghi đã bị "Hủy ghi nhận": không cho phép đính chính nội dung nữa; nếu hủy nhầm thì phải ghi nhận lại thành bản ghi mới.
 - Bản ghi thuộc danh sách bảo vệ (BR-M15-03) trong một kỳ chi phí đã chốt: đính chính vẫn được ghi, còn tác động tới chi phí do Module 11 xử lý bằng khoản điều chỉnh (DBR-17).
@@ -230,7 +235,7 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 #### A. Phân loại dữ liệu và thao tác được phép
 
 - **FR-001**: Mỗi loại dữ liệu nghiệp vụ MUST thuộc đúng một trong ba nhóm: (1) Danh mục, (2) Nghiệp vụ có trạng thái, (3) Ghi nhận đã xác nhận. Spec của từng module MUST khai báo nhóm của mỗi loại dữ liệu nó sở hữu. *(Nguồn: mục 1.5; constitution III)*
-- **FR-002**: Với nhóm 1, hệ thống MUST cho phép người có quyền cấu hình tạo, sửa và Ngừng hiệu lực; MUST chỉ cho xóa khi mục đó chưa từng được bản ghi nào tham chiếu. "Được tham chiếu" nghĩa là có ít nhất một bản ghi nhóm 2 hoặc nhóm 3 trỏ tới mục đó, ở bất kỳ trạng thái nào (kể cả Nháp, Hủy); bản ghi nhật ký của chính mục đó không tính (CHK001). "Người có quyền cấu hình" một danh mục là vai trò có quyền thực hiện (T) ở dòng tương ứng của Phụ lục 27 (ví dụ món ăn: Dinh dưỡng viên; phòng, giường, tham số: Quản lý viện); spec module sở hữu danh mục MUST nêu rõ vai trò này (CHK002). *(Nguồn: mục 1.5, Phụ lục 27)*
+- **FR-002**: Với nhóm 1, hệ thống MUST cho phép người có quyền cấu hình tạo, sửa và Ngừng hiệu lực; MUST chỉ cho xóa khi mục đó chưa từng được bản ghi nào tham chiếu. "Được tham chiếu" nghĩa là có ít nhất một bản ghi nhóm 2 hoặc nhóm 3 trỏ tới mục đó, ở bất kỳ trạng thái nào (kể cả Nháp, Hủy); bản ghi nhật ký của chính mục đó không tính (CHK001). "Người có quyền cấu hình" một danh mục là vai trò có quyền thực hiện (T) ở dòng tương ứng của Phụ lục 27 (ví dụ món ăn: Bác sĩ (sửa, 2026-10-06, Q-283); phòng, giường, tham số: Quản lý viện); spec module sở hữu danh mục MUST nêu rõ vai trò này (CHK002). *(Nguồn: mục 1.5, Phụ lục 27)*
 - **FR-003**: Mục danh mục Ngừng hiệu lực MUST không được chọn cho nghiệp vụ mới, MUST vẫn hiển thị đúng trong mọi bản ghi đã tham chiếu nó, và MAY được kích hoạt lại bởi người có quyền cấu hình. Việc kích hoạt lại MUST bị từ chối khi trong cùng danh mục đã có mục khác đang Hiệu lực trùng tên; người cấu hình đổi tên một trong hai mục trước (CHK032). *(Nguồn: mục 1.5)*
 - **FR-004**: Với thuộc tính danh mục ảnh hưởng tới lịch sử đã phát sinh (ví dụ đơn giá), thay đổi MUST được thực hiện bằng phiên bản mới có ngày hiệu lực, không sửa phiên bản đã áp dụng; module sở hữu chỉ định thuộc tính nào theo phiên bản. *(Nguồn: mục 1.5, 6.4, DBR-08)*
 - **FR-005**: Với nhóm 2, hệ thống MUST NOT cung cấp thao tác sửa trực tiếp nội dung hay trạng thái; mọi thay đổi MUST đi qua một lệnh nghiệp vụ có điều kiện hoặc tạo phiên bản mới có ngày hiệu lực. *(Nguồn: mục 1.5, 2.4 "Lệnh nghiệp vụ"; constitution III)*
@@ -253,7 +258,7 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 - **FR-019**: Hệ thống MUST cho phép tra cứu giá trị hiện hành của một mã tham số tại một thời điểm quá khứ bất kỳ. *(Suy ra từ DBR-24, BR-M15-04: giá trị trước được lưu lịch sử)*
 - **FR-020**: "Khôi phục mặc định" MUST được ghi như một lần thay đổi giá trị bình thường (có lý do, có lịch sử, có nhật ký). *(Suy ra từ BR-M15-04)*
 - **FR-021**: Khi hai người cùng đổi một tham số, lần lưu dựa trên giá trị đã cũ MUST bị từ chối và người đó MUST được hiển thị giá trị hiện hành mới trước khi lưu lại. "Dựa trên giá trị đã cũ" nghĩa là giá trị hiện hành tại lúc lưu khác giá trị hiện hành mà người đó được hiển thị khi mở tham số (CHK013). *(Suy ra từ DBR-24, BR-M15-04: nhật ký ghi đúng giá trị trước/sau)*
-- **FR-022**: Với tham số dạng bảng (ví dụ CFG-M01-05, CFG-M02-05, CFG-M02-08, CFG-M09-07), thay đổi bất kỳ phần nào MUST được ghi như một lần thay đổi của cả tham số, có đủ nội dung trước/sau. Các mã nêu trên là ví dụ; quy tắc áp cho mọi tham số ở Phụ lục 25 có giá trị gồm nhiều thành phần (CHK007). *(Suy ra từ BR-M15-04, DBR-24)*
+- **FR-022**: Với tham số dạng bảng (ví dụ CFG-M02-05, CFG-M02-08, CFG-M09-07), thay đổi bất kỳ phần nào MUST được ghi như một lần thay đổi của cả tham số, có đủ nội dung trước/sau. Các mã nêu trên là ví dụ; quy tắc áp cho mọi tham số ở Phụ lục 25 có giá trị gồm nhiều thành phần (CHK007). *(Suy ra từ BR-M15-04, DBR-24)*
 
 #### C. Đính chính bản ghi đã xác nhận
 
@@ -403,7 +408,7 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep
 
 **(2026-10-01)** 2. **Đánh giá checklist business-rules** – 65 mục được đối chiếu; phần lớn chỉ làm rõ điều tài liệu nguồn đã có (nguồn của FR, kịch bản, tiêu chí thành công, giả định). Sáu điểm là đề xuất mới chưa có trong tài liệu nguồn, cần ghi vào 1.5, 6.6, 19.4, NFR-07 khi rà lại nguồn: (a) mục danh mục Ngừng hiệu lực được kích hoạt lại, trừ khi trùng tên với mục đang Hiệu lực (FR-003); (b) ngày hiệu lực là ngày lịch, có hiệu lực từ 00:00 (FR-008, FR-037); (c) không còn ai có quyền duyệt thì báo Quản lý viện ngay ở mốc CFG-M15-05 (FR-031a); (d) trường "lý do" trong nhật ký bị ẩn khi bản ghi có trường người xem không được xem (FR-049); (e) dữ liệu gắn hồ sơ lưu theo CFG-M15-03, dữ liệu không gắn hồ sơ lưu tối thiểu theo CFG-M15-04 (FR-050); (f) thứ tự áp dụng bù và đợt loại bỏ bị gián đoạn (FR-037a, FR-051). Hủy yêu cầu ở Nháp nay cần lý do, cho khớp mục 1.5 và 19.4 (bảng trạng thái). *(Đã xử lý 2026-10-01: Q-271 ở 24.2, các quy tắc mang mã BR-M15-06 → BR-M15-13; cuối các mục 1.5, 6.6, 19.4.)*
 
-**(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** Tài liệu nguồn đã được sửa (docs/nghiep-vu.md 24.2, thân tài liệu, Phụ lục 25 → 28; docs/luong-nghiep-vu.md). Spec này **chưa** viết lại các yêu cầu bị ảnh hưởng; khi có sai khác, tài liệu nguồn là căn cứ. Cần cập nhật spec khi chủ dự án yêu cầu.
+**(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** *(Đã xử lý 2026-10-06: spec đã sửa theo các quyết định dưới đây, xem mục "Cập nhật 2026-10-06" ở Clarifications)*
 
 - **Q-283** – gộp Dinh dưỡng viên vào Bác sĩ; bản gán chế độ ăn do Bác sĩ lập nên không còn bước duyệt riêng (BR-M08-03); cột DDV của Phụ lục 27 gộp vào cột BS. Ảnh hưởng: FR-002 (danh sách vai trò).
 - **Q-282** – bỏ vai trò Nhân viên vệ sinh và nghiệp vụ vệ sinh (7.5, BR-M03-08, 11, 12, 14, UC-71 → 73); giường kết thúc phân bổ chuyển "Chờ sẵn sàng", Trưởng tầng hoặc Người phụ trách ca "Xác nhận giường sẵn sàng" (nghi nhiễm thì bắt buộc xác nhận đã khử khuẩn) (BR-M03-09, 10, UC-74); nhân viên không dùng hệ thống chỉ có hồ sơ nhân viên. Ảnh hưởng: FR-002 (danh sách vai trò).
