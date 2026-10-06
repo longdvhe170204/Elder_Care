@@ -78,6 +78,10 @@ Theo Q-194, báo cáo thống kê thông báo thuộc giai đoạn sau; dòng "C
 - **Q-284**: nhắc về nguyên liệu, tài sản của feature 019 gửi Phụ trách bộ phận thay Quản lý viện; thêm thông báo của yêu cầu mua sắm (BR-M11-20) vào dòng 019 của bảng FR-043. Ghi chú: "FR-030a" trong danh sách ảnh hưởng ở cuối spec là nhầm số; FR-030a là hạn của yêu cầu gọi điện, không đổi.
 - **Q-287**: dòng 014 bỏ "chỉ định hạn chế và chỉ định tạm".
 
+### Cập nhật 2026-10-06, lượt 3 (đồng bộ Q-302)
+
+- **Q-302**: thêm dòng vào bảng mức của FR-043b: feature 004 báo Hành chính khi đánh giá đầu vào có mức chăm sóc khác mức của hợp đồng (feature 004 FR-025b), mức Trung bình.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 13 mục 17, 17.1; BR-M13-01 → 05; UC-66; mục 23 dòng "Nhà cung cấp SMS", "Gọi điện"; CFG-M13-01, CFG-M13-02, CFG-M13-03 → CFG-M13-06 (đề xuất); thực thể THONG_BAO):
@@ -370,6 +374,7 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 | 004 | Đề xuất hồ sơ chờ khi có giường trống (FR-013) | Hành chính | Nhẹ |
 | 004 | Nhắc chu kỳ danh sách việc sau qua đời (CFG-M02-09) | Hành chính, người đại diện | Nhẹ |
 | 004 | Hợp đồng quá hạn quá CFG-M02-10 | Quản lý viện | Trung bình |
+| 004 | *(bổ sung 2026-10-06)* Đánh giá đầu vào có mức chăm sóc khác mức của hợp đồng (FR-025b) | Hành chính | Trung bình (Q-302) |
 | 005 | Nhắc công việc quá hạn (FR-043) | Người thực hiện (hoặc mọi nhân viên đủ điều kiện của tầng với công việc chung) | Nhẹ (Q-117) |
 | 005 | Báo leo thang công việc Thường, Quan trọng quá hạn (FR-044) | Người phụ trách ca, Trưởng tầng | Trung bình |
 | 005 | Người bán trú vẫn "Có mặt" lúc hết ngày (FR-019) | Người phụ trách ca đang diễn ra của tầng; Trưởng tầng | Trung bình; Nhẹ (Q-115). Nếu xác minh là mất dấu, người kiểm tra ghi sự cố đi lạc theo feature 007 (mức Khẩn cấp) |
@@ -480,3 +485,7 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 
 - **Q-283** – gộp Dinh dưỡng viên vào Bác sĩ; bản gán chế độ ăn do Bác sĩ lập nên không còn bước duyệt riêng (BR-M08-03); cột DDV của Phụ lục 27 gộp vào cột BS. Ảnh hưởng: User Story 3, FR-016a (vai trò không xếp ca, Q-111).
 - **Q-284** – kho, tài sản do bộ phận tự quản lý qua Phụ trách bộ phận (13.1a); Quản lý viện chỉ duyệt chi phí qua yêu cầu mua sắm và duyệt thanh lý; bộ phận tự mua, Kế toán đối chiếu chứng từ (15.10, BR-M11-17 → 20, CFG-M11-07 → 09, UC-94, UC-95, DBR-36, BF-18). Ảnh hưởng: FR-030a (nhắc nguyên liệu, tài sản gửi Phụ trách bộ phận thay Quản lý viện); thêm thông báo của yêu cầu mua sắm (BR-M11-20).
+
+**(2026-10-06) Quyết định Q-302.** *(Đã xử lý 2026-10-06: xem mục "Cập nhật 2026-10-06, lượt 3" ở Clarifications.)*
+
+- **Q-302** – thông báo lệch mức chăm sóc giữa đánh giá đầu vào và hợp đồng: Trung bình cho Hành chính (17, BR-M02-22). Ảnh hưởng: bảng mức của FR-043b.
