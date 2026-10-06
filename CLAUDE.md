@@ -9,7 +9,7 @@
 - KHÔNG tạo mã nguồn, thư mục src/, file cấu hình build hay schema dữ liệu.
 - Chỉ sửa spec khi được yêu cầu, hoặc để đồng bộ khi tài liệu nguồn thay đổi. Không tự mở thêm lượt clarify hay checklist mới.
 - Việc còn treo:
-  - (Đã xong 2026-10-06) 20 spec bị ảnh hưởng bởi Q-280 → Q-288 đã viết lại; mỗi spec có mục "Cập nhật 2026-10-06" ở Clarifications. Còn một điểm báo lại: spec 018 FR-001a (khai báo khi bán trú chuyển sang nội trú ngắn ngày) suy ra từ 6.10, chưa có trong BR-M02-11; chờ chủ dự án quyết có bổ sung vào nguồn không.
+  - (Đã xong 2026-10-06) 20 spec bị ảnh hưởng bởi Q-280 → Q-288 đã viết lại; mỗi spec có mục "Cập nhật 2026-10-06" ở Clarifications. Các điểm suy ra khi viết lại đã được chủ dự án chốt: Q-289 (khai báo khi bán trú chuyển nội trú), Q-290 (không hủy yêu cầu mua sắm đã có hàng gắn vào).
   - Bảng 24.4 docs/nghiep-vu.md: các điểm cần người vận hành và người có chuyên môn đối chiếu trước khi triển khai.
   - (Đã đóng 2026-10-05, Q-288: không làm app cho người cao tuổi.)
 
@@ -25,7 +25,7 @@
 - Bán trú không qua đêm. Ở lại qua đêm thì thuê giường theo nội trú ngắn ngày.
 - Quy mô mã hiện có:
   - 244 BR (BR-Mxx-yy).
-  - Quyết định Q-01 → Q-288.
+  - Quyết định Q-01 → Q-290.
   - Luồng BF-01 → BF-18.
   - Use case UC-01 → UC-95.
   - Quy tắc dữ liệu DBR-01 → DBR-36.

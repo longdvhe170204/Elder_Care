@@ -328,7 +328,7 @@ Người có quyền xem một báo cáo xuất được báo cáo đó ra file 
 | Số dư, thu chi: số người Sắp hết tiền, Còn nợ (bổ sung 2026-09-28, feature 017) | Toàn viện | — | — | — | Toàn viện | **Số dư, thu chi, đối soát** (QL "D", HC "X"); Sao kê, báo cáo thu chi |
 | Khai báo tạm trú cần làm (bổ sung 2026-09-29, feature 018) | Toàn viện | — | — | — | Toàn viện | **Khai báo tạm trú, lưu trú** (QL "X", HC "T") |
 | Tài sản quá hạn bảo trì, kiểm định, đăng kiểm, bảo hiểm (bổ sung 2026-09-29, feature 019) | Toàn viện | Tầng được giao (tài sản có vị trí trong tầng) | — | — | Toàn viện | **Tài sản, lịch xe** (QL "C, T"; TT, HC "T³³") |
-| Nguyên liệu dưới tồn tối thiểu, lô sắp hết hạn (bổ sung 2026-09-29, feature 019) | Toàn viện | — | Toàn viện | — | — | **Kho nguyên liệu** (**sửa, 2026-10-06, Q-283, Q-284:** QL "X, D"; Bác sĩ "X"; Nhân viên bếp "T" nhưng không có dashboard) |
+| Nguyên liệu dưới tồn tối thiểu, lô sắp hết hạn (bổ sung 2026-09-29, feature 019) | Toàn viện | — | Toàn viện | — | — | **Kho nguyên liệu** (**sửa, 2026-10-06, Q-283, Q-284:** QL "X, D"; Bác sĩ "X"; Nhân viên bếp "T" nhưng không có dashboard; ô Bác sĩ chủ dự án xác nhận 2026-10-06) |
 | Người đang mang dấu nguy kịch (bổ sung 2026-09-29, feature 007) | Toàn viện | Tầng được giao | Toàn viện | Phạm vi phân công | — | **Dấu nguy kịch, xác nhận lại nguyện vọng** (QL, TT "X"; BS "T"; ĐD "T³¹"; HC "—") |
 | Nhân sự và ca trực (mục I) | Toàn viện | Tầng được giao; nhân viên có phân công tại tầng | — | — | — | **Lịch ca, phân công** (QL, TT "T, D"; vai trò khác "P" là lịch của chính mình, quy tắc 3); Yêu cầu đổi ca; Hồ sơ nhân viên, chứng chỉ |
 
