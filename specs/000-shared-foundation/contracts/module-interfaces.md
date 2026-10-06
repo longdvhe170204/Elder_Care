@@ -65,7 +65,7 @@ GiaTriThamSo docTaiThoiDiem(MaThamSo ma, Instant t);   // FR-019
 ### 1.5. `m15.pheduyet.api.YeuCauPheDuyetApi`
 
 ```java
-YeuCauView lap(LapYeuCau lenh);                 // dùng khi module tự lập yêu cầu (người lập là "Hệ thống", ví dụ 004 Q-52)
+YeuCauView lap(LapYeuCau lenh);                 // dùng khi lệnh của một actor ở module khác lập kèm yêu cầu; người lập là actor đó (FR-010a, Q-307)
 Optional<YeuCauView> xem(long id);
 Optional<KetQuaApDung> ketQuaCua(long yeuCauId); // FR-039
 ```
@@ -147,8 +147,8 @@ Job `LoaiBoDuLieuHetHan` của 000 dùng các provider này để dựng chuỗi
 | Giao diện | Module cung cấp (feature) | Dùng cho | Khi chưa có |
 | --- | --- | --- | --- |
 | `NguoiDungHienTai` (id, vai trò AC-xx, `laBoLapLich`) | M15 tài khoản (002) | Mọi lệnh và nhật ký (FR-045) | Bản giả trong test |
-| `QuyenApi.coQuyen(nd, KhoaQuyen, PhamVi)`: ba lớp BR-M15-01 | 002 | FR-013, FR-034, FR-034a | Bản giả: bảng vai trò → quyền tối thiểu |
+| `QuyenApi.coQuyen(nd, KhoaQuyen, PhamVi)`: ba lớp BR-M15-01. Plan 002 mở rộng tham số thứ ba thành `DoiTuong`, có `DoiTuong.tuPhamVi(phamVi)` | 002 | FR-013, FR-034, FR-034a | Bản giả: bảng vai trò → quyền tối thiểu |
 | `PhamViApi.trongPhamVi(nd, doiTuong)`; `nguoiPhuTrachCa(tang, thoiDiem)`; `truongTangDuocGiao(tang)` | 002, 008 | FR-026 (b), CHK033, FR-049 | Bản giả |
-| `QuyenXemTruongApi.duocXem(nd, NhomThongTin)` | 002 (19.3) | FR-049, BR-M15-11 | Bản giả: Quản lý viện xem hết |
+| `QuyenXemTruongApi.duocXem(nd, NhomThongTin)`. Plan 002 thêm tham số `DoiTuong` (FR-034 của 002); bản không đối tượng dùng cho nhật ký toàn viện | 002 (19.3) | FR-049, BR-M15-11 | Bản giả: Quản lý viện xem hết |
 | `NguoiDuyetApi.coNguoiCoQuyen(KhoaQuyen, PhamVi)`; `danhSach(...)` | 002 | FR-031a, BR-M15-09 | Bản giả |
 | Lắng nghe sự kiện mục 1.5 và gửi thông báo | M13 thông báo (009) | FR-031a, FR-038 | Sự kiện vẫn được lưu ở `event_publication`; không có người nghe thì không gửi |

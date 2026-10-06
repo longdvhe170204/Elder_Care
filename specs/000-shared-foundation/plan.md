@@ -58,6 +58,7 @@ Plan này cũng chốt các quyết định nền cho mọi feature sau (R-01 �
 - Mọi thay đổi nhóm 2, 3 có nhật ký trong cùng transaction (FR-047).
 - Không có `UPDATE` hay `DELETE` trên bản ghi nhóm 3 đã xác nhận (constitution XII).
 - Tham số không viết cứng (XIII).
+- Hệ thống không tự sinh dữ liệu nghiệp vụ (FR-010a, Q-306, Q-307). Bộ lập lịch của 000 chỉ có ba job: áp dụng yêu cầu đã duyệt đến hạn, nhắc yêu cầu chờ duyệt, loại bỏ dữ liệu hết hạn. Job của các module khác chỉ được chuyển trạng thái theo thời gian, cảnh báo, leo thang, nhắc; không được `INSERT` bản ghi nghiệp vụ ngoài nhật ký, lần chạy, thông báo.
 - Thời gian lấy từ một `Clock` (NFR-09).
 - Lệnh của 000 chỉ chạy trực tuyến; 000 chỉ cung cấp khung ngoại tuyến cho module ghi nhận (R-13).
 
