@@ -31,6 +31,10 @@
 - **Q-285**: không dùng cổng thanh toán; spec đã theo cách này từ Q-211 (tiền mặt, chuyển khoản, Kế toán xác nhận theo sao kê, VietQR chỉ là ảnh chứa số tài khoản và nội dung). Không đổi yêu cầu.
 - **Q-284**: Kế toán có thêm việc đối chiếu chứng từ của yêu cầu mua sắm (15.10, feature 019). Việc này không ghi vào sổ số dư của người cao tuổi; thêm vào Ngoài phạm vi.
 
+### Cập nhật 2026-10-06, lượt 2 (đồng bộ Q-292 → Q-299, quyết định của chủ dự án sau rà soát tài liệu nguồn)
+
+- **Q-293**: Kế toán không được giao nhiệm vụ Phụ trách bộ phận, nên không lập yêu cầu mua sắm trong mọi trường hợp; chỉ đối chiếu chứng từ (feature 019 FR-008b). Sửa dòng Ngoài phạm vi về đối chiếu mua sắm.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 11, mục 15.9; 6.5; 6.8 phần quyết toán; UC-12, UC-85 → UC-88; BF-16):
@@ -52,7 +56,7 @@
 - Khoản chi phí, bảng chi phí, chốt bảng, chi phí tạm tính (Q-136), đề nghị mua hộ, file kế toán (UC-64): feature 010. Người xuất file kế toán đổi từ Hành chính sang Kế toán theo Q-212; việc này thuộc spec 010.
 - Hiển thị trên cổng người thân và quyền xem chi phí của từng người thân: feature 012. Gửi thông báo: feature 009. Báo cáo, dashboard chung: feature 016.
 - Hạch toán, báo cáo tài chính của viện, hóa đơn, thanh toán trực tuyến, kết nối trực tiếp với ngân hàng (1.2, 15.1, 23). Xử lý khoản thiếu hoặc thừa quỹ tiền mặt phát hiện ở chốt quỹ ngày (bồi hoàn, hạch toán) cũng thuộc kế toán của viện; spec này chỉ ghi nhận chênh lệch và lý do.
-- **(Bổ sung, 2026-10-06, Q-284)** Đối chiếu chứng từ của yêu cầu mua sắm do Kế toán thực hiện (15.10, BR-M11-19): feature 019. Yêu cầu mua sắm không tạo giao dịch trong sổ số dư của người cao tuổi.
+- **(Bổ sung, 2026-10-06, Q-284)** Đối chiếu chứng từ của yêu cầu mua sắm do Kế toán thực hiện (15.10, BR-M11-19): feature 019. Yêu cầu mua sắm không tạo giao dịch trong sổ số dư của người cao tuổi. **(Sửa, 2026-10-06, Q-293)** Kế toán không lập yêu cầu mua sắm và không được giao nhiệm vụ Phụ trách bộ phận.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -454,3 +458,7 @@ Hồ sơ không có hợp đồng Hiệu lực và chưa ở trạng thái cuố
 
 - **Q-285** – không dùng cổng thanh toán; Kế toán xác nhận chuyển khoản thủ công theo sao kê; VietQR chỉ là ảnh chứa số tài khoản và nội dung (giữ nguyên Q-211). Ảnh hưởng: không đổi yêu cầu; xác nhận chuyển khoản thủ công.
 - **Q-284** – kho, tài sản do bộ phận tự quản lý qua Phụ trách bộ phận (13.1a); Quản lý viện chỉ duyệt chi phí qua yêu cầu mua sắm và duyệt thanh lý; bộ phận tự mua, Kế toán đối chiếu chứng từ (15.10, BR-M11-17 → 20, CFG-M11-07 → 09, UC-94, UC-95, DBR-36, BF-18). Ảnh hưởng: Kế toán có thêm việc đối chiếu chứng từ mua sắm (15.10); không ghi vào sổ số dư người cao tuổi.
+
+**(2026-10-06) Thay đổi do chủ dự án chốt Q-292 → Q-299 (rà soát tài liệu nguồn).** *(Đã xử lý 2026-10-06: spec đã viết lại, xem mục "Cập nhật 2026-10-06, lượt 2" ở Clarifications.)*
+
+- **Q-293** – Kế toán không được giao nhiệm vụ Phụ trách bộ phận; Phụ trách bộ phận Hành chính – Kế toán là Hành chính; giữ BR-M11-19, bỏ phần "Kế toán đang là Phụ trách bộ phận" ở chú thích ³⁸ (13.1a, Phụ lục 27 ³⁸, BF-18). Ảnh hưởng: Kế toán không lập yêu cầu mua sắm trong mọi trường hợp.
