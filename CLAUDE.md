@@ -10,6 +10,7 @@
 - Chỉ sửa spec khi được yêu cầu, hoặc để đồng bộ khi tài liệu nguồn thay đổi. Không tự mở thêm lượt clarify hay checklist mới.
 - Việc còn treo:
   - (Đã xong 2026-10-06) 20 spec bị ảnh hưởng bởi Q-280 → Q-288 đã viết lại; mỗi spec có mục "Cập nhật 2026-10-06" ở Clarifications. Các điểm suy ra khi viết lại đã được chủ dự án chốt: Q-289 (khai báo khi bán trú chuyển nội trú), Q-290 (không hủy yêu cầu mua sắm đã có hàng gắn vào).
+  - (Đã xong 2026-10-06) Q-292 → Q-299 (chốt sau rà soát tài liệu nguồn) đã vào tài liệu nguồn; 9 spec bị ảnh hưởng (001, 002, 004, 005, 008, 010, 012, 017, 019) đã viết lại (mục "Cập nhật 2026-10-06, lượt 2" ở Clarifications).
   - Bảng 24.4 docs/nghiep-vu.md: các điểm cần người vận hành và người có chuyên môn đối chiếu trước khi triển khai.
   - (Đã đóng 2026-10-05, Q-288: không làm app cho người cao tuổi.)
 
@@ -19,13 +20,14 @@
 - Đã bỏ từ 2026-10-05:
   - Bỏ hai vai trò Dinh dưỡng viên và Nhân viên vệ sinh, cùng nghiệp vụ vệ sinh. Nhân viên không dùng hệ thống chỉ có hồ sơ nhân viên, không có tài khoản.
   - Bỏ thang điểm và quy đổi tự động: Bác sĩ đánh giá bằng nhận xét rồi chọn mức chăm sóc.
+  - Mức chăm sóc chỉ còn 3 mức (cơ bản, thường xuyên, đặc biệt); các nhu cầu cụ thể (hỗ trợ vận động, phục hồi…) là danh mục nhu cầu chăm sóc riêng (Q-291, 2026-10-06).
   - Bỏ mọi cờ gắn cho người cao tuổi: cờ nguy cơ, chỉ định hạn chế hoạt động (Q-287).
   - Không dùng cổng thanh toán.
-- Kho và tài sản: mỗi bộ phận tự quản lý (13.1a). Quản lý viện chỉ duyệt chi phí qua yêu cầu mua sắm (15.10). Kế toán đối chiếu chứng từ.
+- Kho và tài sản: mỗi bộ phận tự quản lý (13.1a). Quản lý viện không vận hành kho, tài sản; chỉ thực hiện quyền phê duyệt cấp viện (yêu cầu mua sắm 15.10, thanh lý và chuyển tài sản 7.7, xử lý lệch). Kế toán đối chiếu chứng từ.
 - Bán trú không qua đêm. Ở lại qua đêm thì thuê giường theo nội trú ngắn ngày.
 - Quy mô mã hiện có:
   - 244 BR (BR-Mxx-yy).
-  - Quyết định Q-01 → Q-290.
+  - Quyết định Q-01 → Q-299.
   - Luồng BF-01 → BF-18.
   - Use case UC-01 → UC-95.
   - Quy tắc dữ liệu DBR-01 → DBR-36.
