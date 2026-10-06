@@ -76,6 +76,11 @@ Các điểm dưới đây do nhóm phân tích quyết định khi đánh giá 
 
 - FR-049: nhóm Nhân viên sửa từ "AC-02 → AC-09" thành "AC-02 → AC-05, AC-07, AC-09, AC-14" theo 26.1 (bỏ AC-06, AC-08 theo Q-282, Q-283; thêm Kế toán theo Q-212). Không đổi yêu cầu.
 
+### Cập nhật 2026-10-06, lượt 4 (đồng bộ Q-306, Q-307: hệ thống không tự sinh dữ liệu nghiệp vụ)
+
+- Thêm FR-010a ghi nguyên tắc chung mà mọi spec module kế thừa. Mọi bản ghi nghiệp vụ do actor lập bằng lệnh. Hệ thống không gợi ý, không đề xuất, không tự tạo yêu cầu hay sự cố, không tự thực hiện lệnh thay actor. Bộ lập lịch chỉ làm những việc nguyên tắc cho phép: chuyển trạng thái theo thời gian, cảnh báo, leo thang, nhắc, áp dụng yêu cầu đã duyệt tới ngày hiệu lực, loại bỏ dữ liệu hết hạn lưu giữ.
+- Các việc Bộ lập lịch đang làm trong spec này (áp dụng yêu cầu đã duyệt, nhắc yêu cầu chờ lâu, loại bỏ dữ liệu hết hạn) đều thuộc phần được giữ, nên không đổi. Sửa các ví dụ còn nhắc "sinh công việc": User Story 3 kịch bản 4, Edge Cases, FR-017.
+
 ## Phạm vi
 
 **Trong phạm vi**: các quy tắc mà mọi module (001–016) kế thừa, không lặp lại trong spec của module:
@@ -175,7 +180,7 @@ Quản lý viện xem danh sách tham số ở Phụ lục 25 cùng giá trị h
 1. **Given** quản lý viện đang xem danh sách tham số, **When** mở một tham số, **Then** thấy mã CFG, mô tả, giá trị hiện hành, giá trị mặc định, quy tắc sử dụng (cột "Dùng tại" của Phụ lục 25) và lịch sử thay đổi.
 2. **Given** quản lý viện nhập giá trị mới hợp lệ và lý do, **When** lưu, **Then** giá trị mới thành giá trị hiện hành duy nhất của mã đó (DBR-24), giá trị cũ vào lịch sử, nhật ký ghi giá trị trước/sau, người, thời điểm, lý do.
 3. **Given** giá trị mới vừa được lưu, **When** hệ thống kiểm tra quy tắc dùng tham số đó ở bất kỳ thời điểm nào sau thời điểm lưu, **Then** hệ thống dùng giá trị mới.
-4. **Given** một kết quả đã sinh trước khi đổi tham số (ví dụ cảnh báo đã tạo, công việc đã sinh), **When** tham số thay đổi, **Then** kết quả đó không bị tính lại.
+4. **Given** một kết quả đã có trước khi đổi tham số (ví dụ cảnh báo đã tạo, hạn nhắc đã tính, công việc đã lập), **When** tham số thay đổi, **Then** kết quả đó không bị tính lại.
 5. **Given** giá trị nhập sai kiểu hoặc ngoài khoảng hợp lệ của tham số, **When** lưu, **Then** hệ thống từ chối và giữ nguyên giá trị hiện hành.
 6. **Given** một người dùng không phải quản lý viện, **When** cố thay đổi tham số, **Then** hệ thống từ chối (BR-M15-04).
 7. **Given** quản lý viện chọn "Khôi phục mặc định", **When** xác nhận kèm lý do, **Then** việc khôi phục được ghi như một lần thay đổi mới trong lịch sử và nhật ký.
@@ -222,7 +227,7 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 - Bản ghi thuộc danh sách bảo vệ (BR-M15-03) trong một kỳ chi phí đã chốt: đính chính vẫn được ghi, còn tác động tới chi phí do Module 11 xử lý bằng khoản điều chỉnh (DBR-17).
 - Người yêu cầu muốn đổi nội dung sau khi đã gửi duyệt: phải hủy yêu cầu và lập yêu cầu mới.
 - Yêu cầu Đã duyệt (chờ hiệu lực) nhưng đến ngày hiệu lực thì điều kiện áp dụng không còn thỏa (ví dụ giường đã có người): yêu cầu chuyển "Áp dụng không thành", không tạo tác động, người liên quan được báo; muốn tiếp tục phải lập yêu cầu mới (FR-038).
-- Thay đổi do hệ thống tự thực hiện (sinh công việc, áp dụng yêu cầu, leo thang): nhật ký vẫn phải có người thực hiện là Bộ lập lịch hệ thống, không để trống.
+- Thay đổi do hệ thống tự thực hiện (chuyển trạng thái theo thời gian, áp dụng yêu cầu đã duyệt, leo thang, nhắc): nhật ký vẫn phải có người thực hiện là Bộ lập lịch hệ thống, không để trống.
 - Nhật ký đã quá CFG-M15-04 nhưng hồ sơ liên quan vẫn còn trong thời hạn CFG-M15-03: nhật ký phải được giữ tiếp (FR-050).
 - Dữ liệu đã hết thời hạn lưu giữ: chỉ Bộ lập lịch hệ thống loại bỏ, kèm nhật ký tóm tắt không bị loại bỏ; người dùng, kể cả Quản lý viện, không có thao tác xóa (FR-048, FR-051).
 - Bản ghi đã hết hạn lưu nhưng còn được bản ghi chưa hết hạn tham chiếu (ví dụ liều thuốc được chi phí trỏ tới): được giữ tới khi cả chuỗi hết hạn, rồi loại bỏ cùng một đợt (FR-051a).
@@ -248,6 +253,7 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 - **FR-008**: Các phiên bản của cùng một đối tượng nhóm 2 MUST NOT chồng khoảng hiệu lực; tại một ngày bất kỳ, đối tượng có tối đa một phiên bản hiệu lực. Khoảng hiệu lực tính theo ngày lịch (múi giờ theo FR-046), gồm cả ngày bắt đầu và ngày kết thúc; phiên bản có hiệu lực từ 00:00 của ngày bắt đầu, và phiên bản kế tiếp bắt đầu sớm nhất vào ngày sau ngày kết thúc của phiên bản trước. Module sở hữu MAY quy định hiệu lực theo thời điểm cho đối tượng của mình (CHK012). *(Nguồn: mục 2.4 "Phiên bản"; khái quát từ DBR-08, DBR-11)*
 - **FR-009**: Với nhóm 3, sau khi bản ghi được xác nhận, hệ thống MUST NOT cung cấp thao tác sửa hay xóa cho bất kỳ vai trò nào, kể cả quản lý viện; chỉ cho phép ghi thêm bản ghi mới và đính chính (mục C). Ngoại lệ duy nhất là việc Bộ lập lịch hệ thống loại bỏ dữ liệu đã hết thời hạn lưu giữ theo FR-051 (CHK056). *(Nguồn: mục 1.3, 1.5, 19.4; constitution III)*
 - **FR-010**: Các bản ghi thuộc danh sách bảo vệ — liều thuốc đã xác nhận, sự cố khẩn cấp, chi phí đã chốt, bàn giao đã xác nhận, bàn giao đồ gửi — MUST được xử lý theo FR-009, và module sở hữu MUST NOT nới lỏng quy tắc này. Danh sách này là mức tối thiểu không được nới; mọi bản ghi nhóm 3 khác, gồm sự cố không khẩn cấp (mục 1.5 xếp mọi sự cố vào nhóm 3), vẫn theo FR-009 (CHK021). *(Nguồn: BR-M15-03, 19.4)*
+- **FR-010a**: **(Mới, 2026-10-06, Q-306, Q-307)** Mọi bản ghi nghiệp vụ (nhóm 2, 3) MUST do một actor lập bằng lệnh, hoặc là tác động kèm theo lệnh của actor (ví dụ bản ghi nhật ký, phát sinh suất ăn, hủy công việc khi người cao tuổi chuyển trạng thái cuối). Hệ thống, kể cả Bộ lập lịch hệ thống (AC-11), MUST NOT: tự sinh công việc, liều, khoản chi phí, lịch ca, buổi, bàn giao, bản tin, phiếu, khai báo hay bất kỳ bản ghi nghiệp vụ nào; gợi ý hay đề xuất nội dung, người, món, khoản; tự tạo yêu cầu hay sự cố; tự thực hiện lệnh thay actor. Hệ thống MAY: tự chuyển trạng thái theo thời gian; tạo cảnh báo, leo thang, nhắc, thông báo; kiểm tra và chặn lệnh; thực hiện tác động kèm theo lệnh; áp dụng yêu cầu đã duyệt khi tới ngày hiệu lực (FR-037); loại bỏ dữ liệu hết hạn lưu giữ (FR-051); tính số liệu để hiển thị (không lưu thành bản ghi nghiệp vụ). Ngoại lệ chỉ được có khi tài liệu nguồn quy định riêng và spec module nêu rõ căn cứ. *(Nguồn: 1.3, 24.2 Q-306, Q-307)*
 
 #### B. Tham số cấu hình
 
@@ -257,7 +263,7 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 - **FR-014**: Mỗi lần thay đổi tham số MUST kèm lý do và MUST được ghi nhật ký với giá trị trước, giá trị sau, người thực hiện, thời điểm. *(Nguồn: BR-M15-04, 19.4)*
 - **FR-015**: Hệ thống MUST kiểm tra giá trị mới theo kiểu và khoảng hợp lệ của tham số; giá trị không hợp lệ MUST bị từ chối và giá trị hiện hành giữ nguyên. *(Suy ra từ DBR-24, BR-M15-04: giá trị hiện hành luôn là một giá trị dùng được)*
 - **FR-016**: Giá trị mới MUST có hiệu lực ngay từ thời điểm lưu cho mọi lần kiểm tra quy tắc sau đó, không cần triển khai lại hệ thống. *(Nguồn: NFR-12, Phụ lục 25)*
-- **FR-017**: Việc đổi tham số MUST NOT tính lại các kết quả đã sinh trước thời điểm đổi (công việc, cảnh báo, liều, chi phí…), trừ khi spec module quy định khác cho một tham số cụ thể. *(Suy ra từ mục 1.3, 1.5: kết quả đã ghi nhận không bị sửa)*
+- **FR-017**: Việc đổi tham số MUST NOT tính lại các kết quả đã có trước thời điểm đổi (công việc, cảnh báo, liều, chi phí đã lập; hạn nhắc đã tính…), trừ khi spec module quy định khác cho một tham số cụ thể. *(Suy ra từ mục 1.3, 1.5: kết quả đã ghi nhận không bị sửa)*
 - **FR-018**: Mỗi lần kiểm tra quy tắc MUST dùng trọn vẹn một giá trị của tham số (giá trị hiện hành tại thời điểm kiểm tra). *(Suy ra từ DBR-24)*
 - **FR-019**: Hệ thống MUST cho phép tra cứu giá trị hiện hành của một mã tham số tại một thời điểm quá khứ bất kỳ. *(Suy ra từ DBR-24, BR-M15-04: giá trị trước được lưu lịch sử)*
 - **FR-020**: "Khôi phục mặc định" MUST được ghi như một lần thay đổi giá trị bình thường (có lý do, có lịch sử, có nhật ký). *(Suy ra từ BR-M15-04)*

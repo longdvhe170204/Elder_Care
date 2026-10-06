@@ -266,6 +266,7 @@ Feature 009 (M13) lắng nghe các sự kiện này và gửi thông báo (const
   - "Áp dụng bù" là yêu cầu có ngày hiệu lực thực tế trước ngày chạy. Nhật ký mang dấu `apDungBu = true` cùng cả hai mốc;
   - job `NhacYeuCauChoDuyet` chạy mỗi 15 phút (chu kỳ kỹ thuật, không phải tham số nghiệp vụ). Hai cột `da_nhac_luc` và `da_bao_qlv_luc` chống nhắc lặp. Cách tính theo giờ liên tục từ `thoi_diem_gui_duyet`. Khi không còn người duyệt thì báo Quản lý viện ngay ở mốc CFG-M15-05 (BR-M15-09).
   - Hai job dùng ShedLock (bảng `shedlock`) để không chạy chồng khi kích hoạt tay hoặc khi khởi động lại.
+  - Giới hạn chung cho mọi job (FR-010a, Q-306, Q-307): job chỉ chuyển trạng thái theo thời gian, cảnh báo, leo thang, nhắc, áp dụng yêu cầu đã duyệt và loại bỏ dữ liệu hết hạn; job không tạo bản ghi nghiệp vụ, không gợi ý. Kiểm tra bằng một quy tắc ArchUnit: lớp trong gói `..lich..` chỉ được gọi các cổng chuyển trạng thái, nhắc, cảnh báo đã khai báo, không gọi trực tiếp repository tạo bản ghi nghiệp vụ.
 - **Ngày hiệu lực thực tế (FR-037)**: `max(ngayHieuLucMongMuon, ngàyDuyệt)`, tính khi duyệt. Nếu kết quả ≤ hôm nay thì áp dụng ngay trong transaction riêng sau khi quyết định đã commit. Quyết định duyệt không bị rollback vì áp dụng lỗi; yêu cầu nằm lại `DA_DUYET` và job xử lý ở lần sau, đúng FR-037b.
 - **Đồng thời (FR-040)**: cột `phien_ban` (khóa lạc quan) cùng `If-Match`. Quyết định đến sau trả 409 `DA_DUOC_XU_LY`.
 - **Quyền xét lúc quyết định (FR-034a)**: không lưu sẵn danh sách người duyệt. Mỗi lần quyết định đều gọi `QuyenApi` (002).
