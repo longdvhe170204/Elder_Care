@@ -5,13 +5,15 @@
 ## Giai đoạn hiện tại: PHÂN TÍCH
 
 - Đóng lần đầu 2026-10-01. Ngày 2026-10-05, chủ dự án sửa phạm vi (Q-280 → Q-288); giai đoạn kế tiếp vẫn chưa mở.
+- Ngày 2026-10-06: phân tích hoàn tất theo hướng đồ án (Q-300 → Q-304), không còn việc treo; chờ chủ dự án mở giai đoạn thiết kế.
 - KHÔNG chạy /speckit.plan, /speckit.tasks, /speckit.implement cho tới khi chủ dự án mở giai đoạn kế tiếp và sửa mục này.
 - KHÔNG tạo mã nguồn, thư mục src/, file cấu hình build hay schema dữ liệu.
 - Chỉ sửa spec khi được yêu cầu, hoặc để đồng bộ khi tài liệu nguồn thay đổi. Không tự mở thêm lượt clarify hay checklist mới.
 - Việc còn treo:
   - (Đã xong 2026-10-06) 20 spec bị ảnh hưởng bởi Q-280 → Q-288 đã viết lại; mỗi spec có mục "Cập nhật 2026-10-06" ở Clarifications. Các điểm suy ra khi viết lại đã được chủ dự án chốt: Q-289 (khai báo khi bán trú chuyển nội trú), Q-290 (không hủy yêu cầu mua sắm đã có hàng gắn vào).
   - (Đã xong 2026-10-06) Q-292 → Q-299 (chốt sau rà soát tài liệu nguồn) đã vào tài liệu nguồn; 9 spec bị ảnh hưởng (001, 002, 004, 005, 008, 010, 012, 017, 019) đã viết lại (mục "Cập nhật 2026-10-06, lượt 2" ở Clarifications).
-  - Bảng 24.4 docs/nghiep-vu.md: các điểm cần người vận hành và người có chuyên môn đối chiếu trước khi triển khai.
+  - (Đã đóng trong phạm vi đồ án 2026-10-06, Q-304) Bảng 24.4 docs/nghiep-vu.md: các dòng được chấp nhận là giả định của đồ án, chỉ đối chiếu khi triển khai tại viện thật. Q-63 (thuốc gây nghiện, hướng thần) là giả định có rủi ro pháp lý.
+  - (Đã xong 2026-10-06) Q-300 → Q-302: quy trình tiếp nhận thực tế (gia đình chọn mức chăm sóc và giường khi lập hợp đồng, Bác sĩ xác nhận); spec 001, 003, 004, 009 đã đồng bộ. Căn cứ pháp lý đã cập nhật theo văn bản hiện hành và gom vào Phụ lục 29 (Q-303).
   - (Đã đóng 2026-10-05, Q-288: không làm app cho người cao tuổi.)
   - (Đã xong 2026-10-06) Làm sạch hai tài liệu nguồn: bỏ mọi ghi chú thay đổi và nội dung gạch; xóa hẳn mã đã bỏ. Bản còn ghi chú nằm ở commit 3543384. Spec vẫn có thể nhắc mã đã xóa (AC-06, AC-08, UC-71 → 73, BR-M03-08, 11, 12, 14, CFG-M01-05, CFG-M03-03, 05, 06, CFG-M04-14) trong phần lịch sử; đó không phải lỗi.
 
@@ -28,7 +30,7 @@
 - Bán trú không qua đêm. Ở lại qua đêm thì thuê giường theo nội trú ngắn ngày.
 - Quy mô mã hiện có:
   - 241 BR (BR-Mxx-yy; đã xóa BR-M03-08, 11, 12, 14).
-  - Quyết định Q-01 → Q-302.
+  - Quyết định Q-01 → Q-304.
   - Luồng BF-01 → BF-18.
   - Use case UC-01 → UC-95, trừ UC-71 → 73 (92 UC); actor AC-00 → AC-15, trừ AC-06, AC-08.
   - 120 tham số CFG.
@@ -41,7 +43,8 @@
   - quyết định Q-xx (mục 24: 24.1 còn mở, 24.2 đã chốt, 24.4 cần đối chiếu);
   - actor và use case (Phụ lục 26);
   - ma trận quyền (Phụ lục 27; khi khác thì mục 19.3 là căn cứ);
-  - DBR (Phụ lục 28).
+  - DBR (Phụ lục 28);
+  - căn cứ pháp lý (Phụ lục 29): văn bản thay đổi thì rà các mục ở cột "Quy tắc dựa vào", đổi quy tắc thì mở Q mới.
 - docs/luong-nghiep-vu.md mô tả các luồng BF-01 → BF-18 theo từng bước: ai làm, làm gì, trạng thái đổi thế nào, căn cứ.
 - Không sửa hai file trên trừ khi được yêu cầu rõ ràng. Phát hiện mâu thuẫn thì báo lại, không tự sửa.
 - Không có file dẫn xuất. Các file tom-tat-nghiep-vu.md, quy-tac-nghiep-vu.md, business-rule.md, cau-hoi-ra-soat-van-hanh.md đã xoá ngày 2026-10-05; không tạo lại. Tham chiếu tới chúng trong checklist cũ chỉ là lịch sử.
