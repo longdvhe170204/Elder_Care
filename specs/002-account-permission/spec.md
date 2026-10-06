@@ -532,3 +532,7 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep
 **(2026-10-06) Cập nhật căn cứ pháp lý (rà bảng 24.4).** Chỉ đổi trích dẫn, không đổi quy tắc; nội dung cần tư vấn pháp lý xác nhận ở 24.4.
 
 - **Q-03** – Nghị định 13/2023/NĐ-CP hết hiệu lực từ 01/01/2026, thay bằng Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 và Nghị định 356/2025/NĐ-CP. Tài liệu nguồn (5.1, Q-03, 24.4) đã đổi trích dẫn. Cần tư vấn pháp lý xác nhận theo luật mới: mẫu bản đồng ý, và có bắt buộc ghi nhật ký mỗi lần nhân viên xem dữ liệu sức khỏe không (Q-03 hiện chọn không). Nếu luật mới đòi ghi nhật ký lần xem, spec này cần bổ sung cơ chế (24.4).
+
+**(2026-10-06) Quyết định Q-305 (kênh truy cập khi chọn công nghệ).**
+
+- **Q-305** – nhân viên dùng web và ứng dụng di động nhân viên; người thân dùng cổng qua web và ứng dụng di động người thân. Một tài khoản dùng chung cho mọi kênh, quyền không đổi theo kênh (NFR-10, Phụ lục 26.1). Không đổi FR.

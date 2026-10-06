@@ -489,3 +489,7 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 **(2026-10-06) Quyết định Q-302.** *(Đã xử lý 2026-10-06: xem mục "Cập nhật 2026-10-06, lượt 3" ở Clarifications.)*
 
 - **Q-302** – thông báo lệch mức chăm sóc giữa đánh giá đầu vào và hợp đồng: Trung bình cho Hành chính (17, BR-M02-22). Ảnh hưởng: bảng mức của FR-043b.
+
+**(2026-10-06) Quyết định Q-305 (kênh truy cập khi chọn công nghệ).**
+
+- **Q-305** – kênh "thông báo trong ứng dụng" (Q-06) gồm thông báo đẩy trên ứng dụng di động nhân viên và người thân (17). Không đổi FR; cách gửi đẩy thuộc giai đoạn thiết kế.
