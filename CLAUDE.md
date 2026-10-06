@@ -28,7 +28,7 @@
 - Bán trú không qua đêm. Ở lại qua đêm thì thuê giường theo nội trú ngắn ngày.
 - Quy mô mã hiện có:
   - 241 BR (BR-Mxx-yy; đã xóa BR-M03-08, 11, 12, 14).
-  - Quyết định Q-01 → Q-300.
+  - Quyết định Q-01 → Q-302.
   - Luồng BF-01 → BF-18.
   - Use case UC-01 → UC-95, trừ UC-71 → 73 (92 UC); actor AC-00 → AC-15, trừ AC-06, AC-08.
   - 120 tham số CFG.

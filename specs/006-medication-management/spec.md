@@ -597,3 +597,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 - **Q-282** – bỏ vai trò Nhân viên vệ sinh và nghiệp vụ vệ sinh (7.5, BR-M03-08, 11, 12, 14, UC-71 → 73); giường kết thúc phân bổ chuyển "Chờ sẵn sàng", Trưởng tầng hoặc Người phụ trách ca "Xác nhận giường sẵn sàng" (nghi nhiễm thì bắt buộc xác nhận đã khử khuẩn) (BR-M03-09, 10, UC-74); nhân viên không dùng hệ thống chỉ có hồ sơ nhân viên. Ảnh hưởng: FR-049 (danh sách vai trò).
 - **Q-283** – gộp Dinh dưỡng viên vào Bác sĩ; bản gán chế độ ăn do Bác sĩ lập nên không còn bước duyệt riêng (BR-M08-03); cột DDV của Phụ lục 27 gộp vào cột BS. Ảnh hưởng: FR-049 (danh sách vai trò).
+
+**(2026-10-06) Cập nhật căn cứ pháp lý (rà bảng 24.4).** Chỉ đổi trích dẫn, không đổi quy tắc; nội dung cần tư vấn pháp lý xác nhận ở 24.4.
+
+- **Q-63** – Thông tư 20/2017/TT-BYT đã được sửa đổi bởi Thông tư 27/2024/TT-BYT (hiệu lực 30/01/2025); Luật Dược sửa đổi số 44/2024/QH15. Thông tư 27/2024 yêu cầu sổ nhập, xuất, tồn và biên bản nhận lại thuốc gây nghiện, hướng thần, khác với Q-63 (không đếm số lượng còn, không người chứng kiến). 24.4 đã đổi trích dẫn. Cần dược sĩ, tư vấn pháp lý xác nhận viện có thuộc diện áp dụng không; nếu có, phải mở Q mới và bổ sung yêu cầu ở spec này.

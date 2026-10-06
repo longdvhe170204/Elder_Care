@@ -192,7 +192,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 ## Assumptions
 
 - Số feature `018` là số kế tiếp sau spec 017; người dùng chọn tách khai báo tạm trú thành spec riêng (2026-09-28).
-- Mốc 30 ngày (cộng dồn cả gia hạn), khai báo lại khi gia hạn dưới ngưỡng, người thường trú cùng xã/phường dùng Thông báo lưu trú: chốt ở Clarification 2026-09-29 (Q-215). Hạn 1 ngày và việc không chặn Hoàn tất tiếp nhận: chốt theo mặc định đề xuất cùng Q-215. Vẫn nên nhờ tư vấn pháp lý đối chiếu Luật Cư trú 2020 và văn bản hướng dẫn trước khi vận hành.
+- Mốc 30 ngày (cộng dồn cả gia hạn), khai báo lại khi gia hạn dưới ngưỡng, người thường trú cùng xã/phường dùng Thông báo lưu trú: chốt ở Clarification 2026-09-29 (Q-215). Hạn 1 ngày và việc không chặn Hoàn tất tiếp nhận: chốt theo mặc định đề xuất cùng Q-215. Vẫn nên nhờ tư vấn pháp lý đối chiếu Luật Cư trú 2020 (Luật số 68/2020/QH14, sửa đổi bởi Luật số 118/2025/QH15 từ 01/7/2026) và văn bản hướng dẫn trước khi vận hành.
 - Thông báo lưu trú có hiệu lực tới ngày kết thúc dự kiến, không có ngày hết hạn riêng; khi hợp đồng ngắn ngày được gia hạn, kể cả khi vẫn dưới ngưỡng, viện thông báo lưu trú lại (FR-007; Clarification 2026-09-29, Q-215).
 - Người đang Tạm vắng hoặc Điều trị tại bệnh viện vẫn giữ khai báo.
 - Quản lý viện được báo khi quá hạn khai báo: một lần vào ngày quá hạn đầu tiên, để không nhắc lặp tới người duyệt.
@@ -206,3 +206,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 **(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** *(Đã xử lý 2026-10-06: spec đã sửa theo quyết định dưới đây, xem mục "Cập nhật 2026-10-06" ở Clarifications. Điểm báo lại về FR-001a đã xử lý 2026-10-06: chủ dự án chốt Q-289, đã ghi vào 24.2, BR-M02-11, 6.10, 24.4, BF-08)*
 
 - **Q-286** – bán trú không qua đêm; người cần ở lại qua đêm phải thuê giường bằng nội trú ngắn ngày; giá bán trú theo dịch vụ đăng ký (3.3). Ảnh hưởng: người bán trú ở lại qua đêm được ghi là nội trú ngắn ngày, nên áp quy tắc thông báo lưu trú.
+
+**(2026-10-06) Cập nhật căn cứ pháp lý (rà bảng 24.4).** Chỉ đổi trích dẫn, không đổi quy tắc; nội dung cần tư vấn pháp lý xác nhận ở 24.4.
+
+- **Q-215** – Luật Cư trú 2020 đã được sửa đổi bởi Luật số 118/2025/QH15, hiệu lực từ 01/7/2026: mở rộng nghĩa vụ thông báo lưu trú qua đêm cho "cơ sở lưu trú khác", thẩm quyền đăng ký cư trú chuyển về Công an cấp xã; ngưỡng 30 ngày đăng ký tạm trú không đổi theo các nguồn đã tra. Tài liệu nguồn (6.10, Q-215, 24.4) và Assumptions của spec này đã đổi trích dẫn. Cần tư vấn pháp lý xác nhận viện có thuộc "cơ sở lưu trú khác" không và hạn thông báo (CFG-M02-12).
