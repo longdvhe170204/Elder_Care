@@ -41,6 +41,10 @@ Các mục khác của checklist consistency được sửa theo đề xuất gh
 
 Các mục khác của checklist business-rules được sửa theo đề xuất ghi trong checklist: FR-003 (ngừng hiệu lực nhóm), FR-005 (dòng toàn viện), FR-006 (phân dòng duy nhất), FR-008 (đổi tham số, sinh lỗi), FR-025 (nhắc ngay), FR-026a (tách theo nhóm, ngày nghỉ, rời ngày), FR-031 (nghỉ việc), FR-033, FR-034 (cùng phạm vi, ca qua tháng), FR-037 (lời mời), FR-039 (người gửi mất quyền), FR-043 (ngoại tuyến), FR-046 (thời hạn lưu), các kịch bản mới và SC-002, SC-003, SC-006, SC-007.
 
+### Cập nhật 2026-10-06 (đồng bộ Q-280 → Q-288, quyết định của chủ dự án)
+
+- **Q-282, Q-283**: bỏ vai trò Nhân viên vệ sinh và Dinh dưỡng viên; nhân viên không có tài khoản không có trong lịch ca, nên không là ứng viên thay và không tính vào phủ tối thiểu (13.1). Kịch bản 13 của User Story nhận thay đổi sang ví dụ Hành chính; bảng quyền bỏ hai vai trò.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 09 mục 13.2 phần "Lịch ca xoay vòng"; BR-M09-09, BR-M09-10, BR-M09-11; UC-50 phần sinh lịch từ mẫu xoay ca; UC-54; CFG-M09-06, CFG-M09-07; ranh giới theo Q-77):
@@ -129,7 +133,7 @@ Quản lý viện khai báo yêu cầu phủ tối thiểu, ví dụ mỗi tần
 10. **Given** A và B khác vai trò (A là Điều dưỡng, B chỉ là Nhân viên chăm sóc), **When** A lập yêu cầu đổi với B, **Then** hệ thống từ chối vì B không có vai trò mà A được tính trong phủ ca X.
 11. **Given** A có ca X và B không có ca nào chồng giờ với X, **When** A lập yêu cầu "nhận thay" cho B (không chọn ca Y) và B đồng ý, trưởng tầng duyệt, **Then** A rời X, B vào X, phân công của A trong X chuyển cho B theo FR-024; A không nhận ca nào để bù, và số giờ đã xếp trong tháng của A giảm, của B tăng tương ứng (Q-179).
 12. **Given** ca X thuộc tầng 2 và ca Y của B thuộc tầng 3, **When** A lập yêu cầu đổi X ↔ Y, **Then** hệ thống từ chối vì hai ca khác phạm vi; trưởng tầng dùng "Bổ sung nhân viên vào ca" của feature 008 nếu cần điều người giữa hai tầng (Q-179).
-13. **Given** ca bếp toàn viện X không có dòng yêu cầu phủ nào, A chỉ có vai trò Nhân viên bếp, B1 là Nhân viên bếp, B2 chỉ là Nhân viên vệ sinh, **When** A lập yêu cầu nhận thay cho B1, **Then** yêu cầu được lập và chờ Quản lý viện duyệt (Q-177); **When** A lập yêu cầu cho B2, **Then** hệ thống từ chối vì A và B2 không có vai trò hệ thống chung (Q-191).
+13. **Given** ca bếp toàn viện X không có dòng yêu cầu phủ nào, A chỉ có vai trò Nhân viên bếp, B1 là Nhân viên bếp, B2 chỉ là Hành chính (sửa, 2026-10-06, Q-282: trước đây là Nhân viên vệ sinh), **When** A lập yêu cầu nhận thay cho B1, **Then** yêu cầu được lập và chờ Quản lý viện duyệt (Q-177); **When** A lập yêu cầu cho B2, **Then** hệ thống từ chối vì A và B2 không có vai trò hệ thống chung (Q-191).
 14. **Given** yêu cầu ở "Chờ duyệt", **When** B rút đồng ý, **Then** yêu cầu chuyển "Người nhận từ chối", A và trưởng tầng được báo, lịch giữ nguyên.
 15. **Given** B vừa hết ca 07:00 và X bắt đầu 07:00 cùng ngày, **When** A lập yêu cầu nhận thay cho B, **Then** B và người duyệt thấy cảnh báo "vượt giờ làm liên tục"; trưởng tầng chỉ duyệt được khi xác nhận kèm lý do (FR-021 (b)).
 16. **Given** X và Y cùng ngày, cùng giờ, thuộc hai nhóm của tầng 2, **When** A lập yêu cầu đổi X ↔ Y với B, **Then** hệ thống kiểm tra trạng thái sau đổi (A chỉ còn Y, B chỉ còn X), không có chồng giờ nên yêu cầu được lập.
@@ -332,7 +336,7 @@ Thuật ngữ dùng trong spec: **Nghỉ có duyệt** là tình trạng của m
 
 - **FR-040**: Quyền của feature này MUST theo Permission Matrix 4.4 và mục 19.3 (19.3 là căn cứ khi khác nhau):
 
-| Chức năng | Quản lý viện | Trưởng tầng | Bác sĩ, Điều dưỡng, Nhân viên chăm sóc, Dinh dưỡng viên, Bếp, Vệ sinh, Hành chính | Người thân |
+| Chức năng | Quản lý viện | Trưởng tầng | Bác sĩ, Điều dưỡng, Nhân viên chăm sóc, Bếp, Hành chính (sửa, Q-282, Q-283) | Người thân |
 | --- | --- | --- | --- | --- |
 | Mẫu xoay ca, yêu cầu phủ tối thiểu (CFG-M09-07) | Cấu hình | Xem | — | — |
 | Nhóm xoay ca | Thực hiện (mọi phạm vi) | Thực hiện (tầng được giao) | — | — |
@@ -426,7 +430,7 @@ Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nh�
 
 1. **[Đã xử lý 2026-09-28: FR-006b]** **Phủ tối thiểu không tính Điều dưỡng cho dòng Nhân viên chăm sóc (Q-221, Q-214).** FR-005, FR-007 giữ nguyên cách tính theo vai trò hệ thống; cần ghi rõ để không hiểu nhầm rằng Q-214 cho Điều dưỡng lấp dòng Nhân viên chăm sóc. Đổi ca giữa Điều dưỡng và Nhân viên chăm sóc vẫn theo Q-191.
 
-**(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** Tài liệu nguồn đã được sửa (docs/nghiep-vu.md 24.2, thân tài liệu, Phụ lục 25 → 28; docs/luong-nghiep-vu.md). Spec này **chưa** viết lại các yêu cầu bị ảnh hưởng; khi có sai khác, tài liệu nguồn là căn cứ. Cần cập nhật spec khi chủ dự án yêu cầu.
+**(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** *(Đã xử lý 2026-10-06: spec đã sửa theo các quyết định dưới đây, xem mục "Cập nhật 2026-10-06" ở Clarifications)*
 
 - **Q-282** – bỏ vai trò Nhân viên vệ sinh và nghiệp vụ vệ sinh (7.5, BR-M03-08, 11, 12, 14, UC-71 → 73); giường kết thúc phân bổ chuyển "Chờ sẵn sàng", Trưởng tầng hoặc Người phụ trách ca "Xác nhận giường sẵn sàng" (nghi nhiễm thì bắt buộc xác nhận đã khử khuẩn) (BR-M03-09, 10, UC-74); nhân viên không dùng hệ thống chỉ có hồ sơ nhân viên. Ảnh hưởng: phủ tối thiểu và ứng viên thay không còn vai trò Nhân viên vệ sinh.
 - **Q-283** – gộp Dinh dưỡng viên vào Bác sĩ; bản gán chế độ ăn do Bác sĩ lập nên không còn bước duyệt riêng (BR-M08-03); cột DDV của Phụ lục 27 gộp vào cột BS. Ảnh hưởng: phủ tối thiểu không còn vai trò Dinh dưỡng viên.

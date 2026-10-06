@@ -26,6 +26,11 @@
 - Q: Gia đình nộp tiền nhưng chưa đủ để tình trạng về Bình thường thì người đại diện có được báo không? → A: Có. Mọi giao dịch nộp tiền của người đang ở Sắp hết tiền hoặc Còn nợ đều gửi người đại diện thông báo mức Nhẹ "đã ghi nhận khoản nộp" kèm tình trạng sau khi nộp; chưa đủ thì chu kỳ nhắc giữ nguyên; người đang Bình thường nộp tiền thì không gửi (Q-257).
 - Q: Thông báo "đã ghi nhận khoản nộp" xử lý thế nào với chuyển khoản, với người đang "dừng nhắc", và khi giao dịch nộp bị đảo? → A: Chuyển khoản tính lúc xác nhận đối soát; vẫn gửi khi đang "dừng nhắc"; giao dịch bị đảo thì tính lại ngay, tình trạng xấu đi báo như một lần chuyển mới theo bảng, không gửi thông báo thu hồi (Q-268).
 
+### Cập nhật 2026-10-06 (đồng bộ Q-280 → Q-288, quyết định của chủ dự án)
+
+- **Q-285**: không dùng cổng thanh toán; spec đã theo cách này từ Q-211 (tiền mặt, chuyển khoản, Kế toán xác nhận theo sao kê, VietQR chỉ là ảnh chứa số tài khoản và nội dung). Không đổi yêu cầu.
+- **Q-284**: Kế toán có thêm việc đối chiếu chứng từ của yêu cầu mua sắm (15.10, feature 019). Việc này không ghi vào sổ số dư của người cao tuổi; thêm vào Ngoài phạm vi.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 11, mục 15.9; 6.5; 6.8 phần quyết toán; UC-12, UC-85 → UC-88; BF-16):
@@ -47,6 +52,7 @@
 - Khoản chi phí, bảng chi phí, chốt bảng, chi phí tạm tính (Q-136), đề nghị mua hộ, file kế toán (UC-64): feature 010. Người xuất file kế toán đổi từ Hành chính sang Kế toán theo Q-212; việc này thuộc spec 010.
 - Hiển thị trên cổng người thân và quyền xem chi phí của từng người thân: feature 012. Gửi thông báo: feature 009. Báo cáo, dashboard chung: feature 016.
 - Hạch toán, báo cáo tài chính của viện, hóa đơn, thanh toán trực tuyến, kết nối trực tiếp với ngân hàng (1.2, 15.1, 23). Xử lý khoản thiếu hoặc thừa quỹ tiền mặt phát hiện ở chốt quỹ ngày (bồi hoàn, hạch toán) cũng thuộc kế toán của viện; spec này chỉ ghi nhận chênh lệch và lý do.
+- **(Bổ sung, 2026-10-06, Q-284)** Đối chiếu chứng từ của yêu cầu mua sắm do Kế toán thực hiện (15.10, BR-M11-19): feature 019. Yêu cầu mua sắm không tạo giao dịch trong sổ số dư của người cao tuổi.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -444,7 +450,7 @@ Hồ sơ không có hợp đồng Hiệu lực và chưa ở trạng thái cuố
 
 **(2026-10-01)** 14. **Checklist cross-feature CHK088, CHK089** – thời điểm với chuyển khoản, người đang "dừng nhắc", giao dịch nộp bị đảo (Q-268, làm rõ Q-252, Q-257). *(Đã xử lý 2026-10-01: BR-M11-13, Q-268 ở 24.2; FR-018.)*
 
-**(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** Tài liệu nguồn đã được sửa (docs/nghiep-vu.md 24.2, thân tài liệu, Phụ lục 25 → 28; docs/luong-nghiep-vu.md). Spec này **chưa** viết lại các yêu cầu bị ảnh hưởng; khi có sai khác, tài liệu nguồn là căn cứ. Cần cập nhật spec khi chủ dự án yêu cầu.
+**(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** *(Đã xử lý 2026-10-06: không đổi yêu cầu ngoài một dòng Ngoài phạm vi, xem mục "Cập nhật 2026-10-06" ở Clarifications)*
 
 - **Q-285** – không dùng cổng thanh toán; Kế toán xác nhận chuyển khoản thủ công theo sao kê; VietQR chỉ là ảnh chứa số tài khoản và nội dung (giữ nguyên Q-211). Ảnh hưởng: không đổi yêu cầu; xác nhận chuyển khoản thủ công.
 - **Q-284** – kho, tài sản do bộ phận tự quản lý qua Phụ trách bộ phận (13.1a); Quản lý viện chỉ duyệt chi phí qua yêu cầu mua sắm và duyệt thanh lý; bộ phận tự mua, Kế toán đối chiếu chứng từ (15.10, BR-M11-17 → 20, CFG-M11-07 → 09, UC-94, UC-95, DBR-36, BF-18). Ảnh hưởng: Kế toán có thêm việc đối chiếu chứng từ mua sắm (15.10); không ghi vào sổ số dư người cao tuổi.
