@@ -6,11 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Đồ án phân tích nghiệp vụ, viết spec theo Spec Kit (thư mục specs/, .specify/). Hiện chưa có mã nguồn, không có lệnh build, lint hay test.
 
-## Giai đoạn hiện tại: PHÂN TÍCH
+## Giai đoạn hiện tại: THIẾT KẾ
 
-- Phân tích hoàn tất ngày 2026-10-06 (Q-01 → Q-304). Không còn việc treo; chờ chủ dự án mở giai đoạn thiết kế.
-- KHÔNG chạy /speckit.plan, /speckit.tasks, /speckit.implement cho tới khi chủ dự án mở giai đoạn kế tiếp và sửa mục này.
-- KHÔNG tạo mã nguồn, thư mục src/, file cấu hình build hay schema dữ liệu.
+- Phân tích hoàn tất ngày 2026-10-06. Chủ dự án mở giai đoạn thiết kế cùng ngày, chốt công nghệ (Q-305, constitution 2.1.0, nguyên tắc X–XV):
+  - backend Spring Boot, RESTful API `/api/v1`, MySQL; một khối chia gói theo module M01–M15;
+  - web React (TypeScript) có mọi chức năng, gồm quản trị và cổng người thân trên trình duyệt;
+  - app Flutter nhân viên (ghi ngoại tuyến theo Q-01) và app Flutter người thân;
+  - phiên bản mặc định: Java 21 LTS, Spring Boot 3.x, MySQL 8.x, Flutter stable; ghi cụ thể ở plan.
+- Được chạy /speckit-plan, /speckit-tasks, /speckit-analyze. Làm plan theo thứ tự phụ thuộc: 000 → 002 → 001 → 003 → 004 → các feature còn lại; trước mỗi lần chạy kiểm tra .specify/feature.json.
+- KHÔNG chạy /speckit-implement cho tới khi chủ dự án mở giai đoạn triển khai và sửa mục này.
+- KHÔNG tạo mã nguồn, thư mục src/, file cấu hình build hay script SQL. Tài liệu thiết kế do plan sinh ra (plan.md, research.md, data-model.md, contracts/, quickstart.md trong thư mục spec) thì được phép.
+- Plan không được đổi nghiệp vụ: thiếu sót nghiệp vụ phát hiện khi thiết kế thì báo lại để sửa docs/nghiep-vu.md và spec trước (constitution I, IX).
 - Chỉ sửa spec khi được yêu cầu, hoặc để đồng bộ khi tài liệu nguồn thay đổi. Không tự mở thêm lượt clarify hay checklist mới.
 
 ## Phạm vi nghiệp vụ (tóm tắt, căn cứ là docs/nghiep-vu.md)
@@ -26,7 +32,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Bán trú không qua đêm. Ở lại qua đêm thì thuê giường theo nội trú ngắn ngày.
 - Quy mô mã hiện có:
   - 241 BR (BR-Mxx-yy; đã xóa BR-M03-08, 11, 12, 14).
-  - Quyết định Q-01 → Q-304.
+  - Quyết định Q-01 → Q-305.
   - Luồng BF-01 → BF-18.
   - Use case UC-01 → UC-95, trừ UC-71 → 73 (92 UC); actor AC-00 → AC-15, trừ AC-06, AC-08.
   - 120 tham số CFG.
@@ -45,11 +51,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Không sửa hai file trên trừ khi được yêu cầu rõ ràng. Phát hiện mâu thuẫn thì báo lại, không tự sửa.
 - Không có file dẫn xuất. Các file tom-tat-nghiep-vu.md, quy-tac-nghiep-vu.md, business-rule.md, cau-hoi-ra-soat-van-hanh.md đã xoá ngày 2026-10-05; không tạo lại. Tham chiếu tới chúng trong checklist cũ chỉ là lịch sử.
 - docs/phan-tich-yeu-cau.md đã bỏ ngày 2026-09-28. Các tham chiếu cũ "4.1", "4.2", "4.4", "DBR" trong spec tra theo bảng ánh xạ ở đầu Phụ lục 26.
-- .specify/memory/constitution.md: 9 nguyên tắc (I–IX) mà spec và checklist phải tuân thủ; spec trích dẫn dạng "constitution I". Sửa constitution phải ghi Sync Impact Report và tăng phiên bản. Mục "Tài liệu nguồn" của constitution chưa nhắc Phụ lục 29.
+- .specify/memory/constitution.md (2.1.0): nguyên tắc I–IX cho spec, X–XV là nguyên tắc kỹ thuật cho plan, tasks, mã; spec trích dẫn dạng "constitution I". Sửa constitution phải ghi Sync Impact Report và tăng phiên bản.
 
 ## Spec Kit và cấu trúc spec
 
-- Lệnh dùng qua skill `/speckit-*` (specify, clarify, checklist, analyze, plan, tasks…); script hỗ trợ ở .specify/scripts/powershell. Ở giai đoạn này chỉ dùng specify, clarify, checklist (constitution IX).
+- Lệnh dùng qua skill `/speckit-*` (specify, clarify, checklist, analyze, plan, tasks…); script hỗ trợ ở .specify/scripts/powershell. Phạm vi lệnh được dùng theo constitution IX và mục "Giai đoạn hiện tại".
 - .specify/feature.json chỉ feature mà các lệnh `/speckit-*` đang làm việc; kiểm tra hoặc đổi trước khi chạy lệnh cho một spec khác.
 - specs/NNN-ten/spec.md, số NNN là cột Feature của Phụ lục 26.2 (bảng UC → feature). 000 là nền tảng dùng chung (yêu cầu phê duyệt, đính chính, nhật ký, tham số) mà các spec khác gọi là "feature 000 FR-xx".
 - Mỗi spec gồm:

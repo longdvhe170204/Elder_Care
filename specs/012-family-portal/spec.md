@@ -675,3 +675,7 @@ Khi người thân được phép ở lại với người cao tuổi (ví dụ 
 **(2026-10-06) Thay đổi do chủ dự án chốt Q-292 → Q-299 (rà soát tài liệu nguồn).** *(Đã xử lý 2026-10-06: spec đã viết lại, xem mục "Cập nhật 2026-10-06, lượt 2" ở Clarifications.)*
 
 - **Q-295** – thêm loại bản ghi đón "Viện đưa về" cho người bán trú: người đưa về (Hành chính, Nhân viên chăm sóc) làm quy trình đón tại nơi bàn giao; trạng thái có mặt chuyển Đã về khi ghi bàn giao; chưa bàn giao được thì vẫn Có mặt; dùng xe của viện thì có lịch xe (3.4, 14.3, UC-58, BF-02 bước 9, BF-12 bước 10). Ảnh hưởng: FR-021 → FR-026 và giả định "viện đưa về chưa được hỗ trợ ở giai đoạn đầu" (không còn đúng).
+
+**(2026-10-06) Quyết định Q-305 (kênh truy cập khi chọn công nghệ).**
+
+- **Q-305** – cổng người thân có hai kênh cùng chức năng: web trên trình duyệt và ứng dụng di động người thân, cùng tài khoản và quyền (14.6, NFR-10, AC-10). Mọi FR nói "cổng" áp cho cả hai kênh. Không đổi FR.
