@@ -21,6 +21,7 @@ Chữ ký viết dạng Java rút gọn, chỉ để mô tả hợp đồng; mã
 | `Clock` (bean), `ThoiGianNghiepVu` | `homNay()`, `bayGio()`, `batDauNgay(LocalDate)`, `trongKhoang(LocalDate, tu, den)` (gồm cả hai đầu) | FR-008, FR-046, BR-M15-07 |
 | `LoiNghiepVu` | `DieuKienChuaThoa(List<DieuKien>)` → 409; `KhongCoQuyen` → 403; `DaDuocXuLy` → 409; `SaiPhienBan(giaTriHienHanh)` → 412 | FR-006, FR-021, FR-040 |
 | `PhongBiNgoaiTuyen` | `idempotencyKey`, `thoiDiemThietBi`; `KetQuaDongBo` gồm `CHAP_NHAN`, `CHAP_NHAN_KEM_NHAN`, `CHO_XEM_LAI`, `TU_CHOI` kèm lý do | FR-046, DBR-25, BR-M15-20 |
+| `TepApi` (`common.tep`; bổ sung theo plan 001, research H-13) | `taiLen(...)` trả `tepId`; `gan(tepId, loaiChuSoHuu, idChuSoHuu)` trong transaction của lệnh (MANDATORY), tệp đã gắn không gắn lại; SPI `QuyenTepProvider` của module sở hữu quyết quyền tải xuống | NFR-08 |
 
 ### 1.2. `m15.nhatky.api.NhatKyApi`
 
@@ -68,6 +69,14 @@ GiaTriThamSo docTaiThoiDiem(MaThamSo ma, Instant t);   // FR-019
 YeuCauView lap(LapYeuCau lenh);                 // dùng khi lệnh của một actor ở module khác lập kèm yêu cầu; người lập là actor đó (FR-010a, Q-307)
 Optional<YeuCauView> xem(long id);
 Optional<KetQuaApDung> ketQuaCua(long yeuCauId); // FR-039
+void chuyenMoRong(long yeuCauId, String maChuyen, CanCu canCu);
+    // bổ sung theo plan 001: chuyển mở rộng do hệ thống thực hiện kèm lệnh của actor ở module khác
+    // (ví dụ DUOC_THAY_THE của M02.THAY_DOI_LUU_TRU khi bác sĩ xác nhận đánh giá lại, 001 FR-036a);
+    // Propagation.MANDATORY; chỉ chuyển đã khai báo trong chuyenMoRong() của handler; ghi nhật ký kèm căn cứ
+void dongDoTrangThaiCuoi(long yeuCauId, CanCu canCu);
+    // bổ sung theo plan 004 (research T-06): Propagation.MANDATORY, kèm lệnh làm người cao tuổi sang trạng thái cuối
+    // (004 FR-065, FR-070); Nháp, Chờ duyệt → Hủy; Đã duyệt (chờ hiệu lực) → Áp dụng không thành; trạng thái cuối thì không làm gì;
+    // người thực hiện là hệ thống, căn cứ là lệnh; phát YeuCauDaHuy / YeuCauApDungKhongThanh
 ```
 
 **SPI `LoaiYeuCauHandler`**: mỗi loại yêu cầu do module sở hữu cài một handler.
@@ -82,7 +91,12 @@ List<DieuKien> kiemTraDieuKienApDung(YeuCauView yc); // rỗng = thỏa (FR-038)
 ThamChieu apDung(YeuCauView yc, LocalDate ngayHieuLucThucTe); // trong transaction; ném lỗi = rollback (FR-037b)
 default boolean choTuDuyet() { return true; }        // 013 FR-027a: false
 default Optional<MaThamSo> thamSoNhacRieng() { return Optional.empty(); } // FR-031a "MAY ngắn hơn"
-default BangChuyenMoRong chuyenMoRong() { return BangChuyenMoRong.KHONG; } // 001, 015
+default BangChuyenMoRong chuyenMoRong() { return BangChuyenMoRong.KHONG; } // 004 (DUOC_THAY_THE, kích hoạt từ 001), 015
+default List<DieuKien> kiemTraKhiDuyet(YeuCauView yc) { return List.of(); }
+    // bổ sung theo plan 003 (research G-07, G-13): gọi khi lệnh Duyệt, trước khi đổi trạng thái; không rỗng → 409, yêu cầu giữ Chờ duyệt
+default void khiDuyet(YeuCauView yc, LocalDate ngayHieuLucThucTe) {}
+    // bổ sung theo plan 003: Propagation.MANDATORY, trong transaction của lệnh Duyệt; tác động kèm quyết định
+    // (ví dụ 004 giữ giường bằng phân bổ tương lai cho chuyển giường theo lịch, 003 FR-029); không gọi khi Từ chối
 ```
 
 **`NhacQuaHan`**: dùng lại cho các vòng đời riêng (010, 012, 013, 017, 019). Module tự gọi nó từ job của mình, với mốc lấy từ CFG của module (FR-031a; đối chiếu Q-130).

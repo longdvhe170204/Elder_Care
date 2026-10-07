@@ -182,7 +182,7 @@ Cài đặt đúng bảng trạng thái của spec (FR-031). Mã trạng thái:
 Mỗi lệnh chuyển trạng thái kiểm `phien_ban`. Quyết định đến sau trên yêu cầu đã rời `CHO_DUYET` bị trả 409 `DA_DUOC_XU_LY` (FR-040).
 
 Một loại yêu cầu có thể khai báo thêm trạng thái và chuyển (`LoaiYeuCauHandler.chuyenMoRong()`):
-- 001: `DUOC_THAY_THE`;
+- `M02.THAY_DOI_LUU_TRU` (004): `DUOC_THAY_THE`, do hệ thống chuyển kèm lệnh xác nhận đánh giá lại của 001 qua `YeuCauPheDuyetApi.chuyenMoRong` (plan 001, research H-10);
 - 015: `CHO_NGUOI_NHAN_DONG_Y`, `NGUOI_NHAN_TU_CHOI`, `DA_AP_DUNG_MOT_PHAN`, `HET_HIEU_LUC`; yêu cầu đổi ca không có `NHAP`.
 
 Phần mở rộng không được bỏ các kiểm tra chung: lý do, nhật ký, khóa lạc quan, quyền tại lúc quyết định. Plan 001 và 015 chi tiết phần mở rộng.
