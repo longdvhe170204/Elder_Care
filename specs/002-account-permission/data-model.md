@@ -98,7 +98,7 @@ Trạng thái tại thời điểm `t` là dòng có `hieu_luc_tu` lớn nhất 
 | `tai_khoan_id` | |
 | `ma_thiet_bi` | `CHAR(36)`; chỉ mục `(ma_thiet_bi, ket_thuc_luc)` |
 | `kenh` | `ENUM('WEB','APP_NHAN_VIEN','APP_NGUOI_THAN')` (Q-305) |
-| `bat_dau_luc`, `hoat_dong_cuoi_luc`, `ket_thuc_luc NULL`, `ly_do_ket_thuc` | `ly_do_ket_thuc`: `DANG_XUAT`, `TAI_KHOAN_ROI_HOAT_DONG`, `THIET_BI_DANG_NHAP_KHAC`, `HET_THOI_GIAN` |
+| `bat_dau_luc`, `hoat_dong_cuoi_luc`, `ket_thuc_luc NULL`, `ly_do_ket_thuc` | `ly_do_ket_thuc`: `DANG_XUAT`, `TAI_KHOAN_ROI_HOAT_DONG`, `THIET_BI_DANG_NHAP_KHAC`, `HET_THOI_GIAN` (quá CFG-M15-10 của kênh, FR-013a) |
 
 - Đăng nhập: trong một transaction, đặt `ket_thuc_luc` cho mọi phiên đang mở có cùng `ma_thiet_bi` (BR-M15-15), rồi thêm phiên mới.
 - Phiên đang mở của một thiết bị: tối đa một; bảo đảm bằng cột sinh `thiet_bi_dang_mo = IF(ket_thuc_luc IS NULL, ma_thiet_bi, NULL)` có `UNIQUE`.
@@ -285,6 +285,8 @@ Mọi lệnh ghi `nhat_ky` của 000 trong cùng transaction (000 FR-047). Các 
 | BR-M15-18 | Thứ tự tính ở A-05; lệnh thu hẹp chặn vượt ma trận | `ThuTuThuHepTest`, `ThuHepKhongVuotIT` |
 | BR-M15-19 | `nghiep_vu_chuyen_mon_pham_vi` dùng danh mục của 008 | `PhamViHanhNgheIT` |
 | BR-M15-20 | Kết quả từng bản ghi trong phản hồi đồng bộ; hiển thị ở app | `DongBoKetQuaIT`, `ket_qua_dong_bo_test.dart` |
+| BR-M15-21 | Kiểm CFG-M15-09 khi đổi mật khẩu; so `hoat_dong_cuoi_luc` với CFG-M15-10 ở mỗi lần tra phiên | `DoManhMatKhauIT`, `TuDangXuatIT` |
+| BR-M15-22 | Lệnh `khoi-tao-quan-ly-vien` chỉ chạy khi chưa có AC-01 | `KhoiTaoQuanLyVienIT` |
 | BR-M06-05 | `nghiep_vu_chuyen_mon` cùng `GiayPhepApi`, `GiayPhepCoSoApi` theo ngày | `DieuKienPhapLyIT` |
 | BR-M09-04 | `TaiKhoanApi.khoaDoNghiViec` trong transaction của 008 | `NghiViecKhoaTaiKhoanIT` |
 | BR-M01-08, DBR-03 | Điều kiện chú thích ¹ do 001 cài, kiểm mỗi lần xem | `NguoiThanSucKhoeIT` |

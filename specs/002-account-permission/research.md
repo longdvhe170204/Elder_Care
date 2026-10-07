@@ -33,7 +33,7 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
 - Kênh gửi token:
   - web: cookie `HttpOnly`, `Secure`, `SameSite=Strict`, cộng header `X-Yeu-Cau-Tu: web` bắt buộc với mọi lệnh ghi, để chặn CSRF;
   - hai app Flutter: header `Authorization: Bearer <token>`, token lưu bằng `flutter_secure_storage`.
-- Phiên hết hạn khi không hoạt động quá thời gian tự đăng xuất. Giá trị này chưa có mã CFG, xem A-13 và "Điểm cần báo lại" ở plan.
+- Tự đăng xuất (FR-013a, BR-M15-21): mỗi lần tra phiên so `hoat_dong_cuoi_luc` với CFG-M15-10 của kênh của phiên; quá hạn thì đặt `ket_thuc_luc`, `ly_do_ket_thuc = HET_THOI_GIAN` và trả 401 `PHIEN_HET_HAN`; còn hạn thì cập nhật `hoat_dong_cuoi_luc`. Không cần job. Trạng thái tài khoản không đổi.
 - Kết thúc phiên ngay (FR-013): lệnh làm tài khoản rời Hoạt động (khóa, khóa tạm, Không hoạt động, Nghỉ việc) đặt `ket_thuc_luc` cho mọi phiên của tài khoản **trong cùng transaction**. Yêu cầu tới sau commit đọc thấy phiên đã kết thúc và bị từ chối 401.
 - Một thiết bị một phiên (FR-014a, BR-M15-15):
   - client gửi `X-Thiet-Bi` là mã thiết bị (UUID sinh lần đầu cài app, hoặc lần đầu mở web trên trình duyệt);
@@ -53,7 +53,8 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
 **Quyết định**:
 - Băm mật khẩu bằng Argon2id (`Argon2PasswordEncoder` của Spring Security, tham số theo khuyến nghị OWASP hiện hành).
 - Mật khẩu tạm khi tạo tài khoản hoặc cấp lại: 12 ký tự ngẫu nhiên, chỉ trả về một lần trong phản hồi của lệnh, để người thực hiện giao trực tiếp cho người đã xác minh (FR-052). Tài khoản mang cờ `buoc_doi_mat_khau`. Phiên của tài khoản mang cờ này chỉ gọi được `doi-mat-khau` và `dang-xuat` (FR-006).
-- Độ mạnh mật khẩu: chưa có mã CFG (spec Assumptions, CHK039). Tạm dùng cấu hình ứng dụng: tối thiểu 8 ký tự, có chữ và số, khác mật khẩu tạm. Xem "Điểm cần báo lại" ở plan.
+- Độ mạnh mật khẩu (FR-006a, BR-M15-21): kiểm theo CFG-M15-09 (dạng `BANG` `{doDaiToiThieu, batBuocChu, batBuocSo}`, mặc định 8, có, có), thêm điều kiện kỹ thuật "khác mật khẩu tạm"; không đạt trả 422 `MAT_KHAU_KHONG_DAT` kèm yêu cầu. Mật khẩu tạm sinh ra cũng đạt mức này.
+- Khởi tạo Quản lý viện đầu tiên (FR-004b, BR-M15-22): lệnh dòng lệnh `khoi-tao-quan-ly-vien` của ứng dụng backend, chỉ chạy khi chưa có dòng `gan_vai_tro` còn hiệu lực với AC-01 (kiểm dưới khóa bảng). Lệnh gọi `HoSoNhanVienApi` của 008 tạo hồ sơ tối thiểu, tạo tài khoản AC-01 buộc đổi mật khẩu, in mật khẩu tạm ra màn hình một lần, ghi nhật ký với `nguoi_thuc_hien_loai = KHOI_TAO`. Không có endpoint REST cho việc này.
 - Đếm sai (FR-008, BR-M15-05):
   - cột `so_lan_sai_lien_tiep` trên `tai_khoan`, tăng bằng `UPDATE … SET so_lan_sai = so_lan_sai + 1` để không mất lần đếm khi đăng nhập đồng thời;
   - đủ ngưỡng của CFG-M15-01 thì đặt `khoa_tam_den = bây giờ + thời gian khóa`, chuyển Khóa tạm, kết thúc phiên;
@@ -243,15 +244,11 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
 
 ---
 
-## A-13. Thông số chưa có mã CFG
+## A-13. Độ mạnh mật khẩu và tự đăng xuất (Q-309)
 
-**Quyết định**: Hai thông số spec ghi "cần mã CFG khi thiết kế" (Assumptions, điểm báo lại 13) chưa có trong Phụ lục 25:
-- độ mạnh mật khẩu (A-03);
-- thời gian tự đăng xuất khi không hoạt động (A-02).
+**Quyết định**: Hai thông số đã có mã sau Q-309 (2026-10-07): CFG-M15-09 độ mạnh mật khẩu, CFG-M15-10 thời gian không thao tác thì tự đăng xuất theo kênh (dạng `BANG` `{WEB, APP_NHAN_VIEN, APP_NGUOI_THAN}`, mặc định 30 phút, 12 giờ, 30 ngày). Cả hai đọc qua `ThamSoApi` như mọi CFG (000 R-07). Cách áp ở A-02 và A-03. Web hiện cảnh báo trước khi hết giờ (khoảng 2 phút, thông số giao diện, không phải quy tắc); bấm "Tiếp tục làm việc" gửi một yêu cầu nhẹ để đếm lại.
 
-Plan không tự thêm mã CFG vì đó là sửa tài liệu nguồn (constitution I, IX). Tạm đặt trong cấu hình ứng dụng (`eldercare.xac-thuc.*`), giá trị đề nghị: tối thiểu 8 ký tự có chữ và số; tự đăng xuất sau 30 phút không hoạt động ở web, 12 giờ ở app nhân viên (thiết bị dùng chung trong ca), 30 ngày ở app người thân. Khi chủ dự án chốt bằng mã Q và thêm mã CFG, chuyển sang `ThamSoApi` mà không đổi thiết kế.
-
-**Lý do**: Không chặn thiết kế; ghi rõ là điểm cần báo lại.
+**Lý do**: Chủ dự án chốt ở Q-309; trước đó plan tạm đặt ở cấu hình ứng dụng.
 
 ---
 
