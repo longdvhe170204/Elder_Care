@@ -92,6 +92,11 @@ Các điểm dưới đây do nhóm phân tích quyết định khi đánh giá 
 - **Q-292**: Quản lý viện không làm thay quyền T³⁷ khi bộ phận chưa có Phụ trách bộ phận. Khóa tài khoản của người đang là Phụ trách bộ phận MUST chỉ định người thay trong cùng lệnh (feature 008 FR-001a). Sửa FR-019f, bảng vòng đời tài khoản (dòng Khóa tài khoản).
 - **Q-293, Q-299**: tài khoản vai trò Kế toán hoặc Quản lý viện MUST NOT giữ nhiệm vụ Phụ trách bộ phận; Kế toán không có quyền ³⁷ trong mọi trường hợp (Phụ lục 27 ³⁸ đã sửa). Sửa FR-019f.
 
+### Cập nhật 2026-10-07 (đồng bộ Q-309, Q-310, quyết định của chủ dự án khi làm plan)
+
+- **Q-309**: độ mạnh mật khẩu theo CFG-M15-09 (mặc định \[tối thiểu 8 ký tự, có cả chữ và số\]); phiên tự kết thúc khi không thao tác quá CFG-M15-10 (mặc định \[web 30 phút / ứng dụng nhân viên 12 giờ / ứng dụng người thân 30 ngày\]), mỗi thao tác đếm lại từ đầu, không đổi trạng thái tài khoản (BR-M15-21). Thêm FR-006a, FR-013a và User Story 3 kịch bản 10, 11; sửa Assumptions.
+- **Q-310**: tài khoản Quản lý viện đầu tiên do công cụ khởi tạo tạo một lần khi cài đặt (BR-M15-22). Thêm FR-004b, User Story 2 kịch bản 10.
+
 ## Phạm vi
 
 **Trong phạm vi**:
@@ -161,6 +166,7 @@ Khi có nhân viên mới, quản lý viện tạo tài khoản liên kết vớ
 7. **Given** một tài khoản đã từng thực hiện thao tác, **When** bất kỳ ai, kể cả quản lý viện, yêu cầu xóa tài khoản, **Then** hệ thống không có thao tác xóa; các bản ghi cũ vẫn hiển thị đúng người thực hiện.
 8. **Given** quản lý viện gán thêm hoặc gỡ một vai trò, **When** lưu kèm lý do, **Then** quyền mới có hiệu lực ngay ở thao tác kế tiếp của người dùng đó và nhật ký ghi vai trò trước/sau (BR-M15-04).
 9. **Given** viện chỉ còn một tài khoản Hoạt động có vai trò Quản lý viện, **When** tài khoản đó bị gỡ vai trò Quản lý viện hoặc bị khóa bởi thao tác người dùng, **Then** hệ thống từ chối.
+10. **(Bổ sung, 2026-10-07, Q-310)** **Given** hệ thống vừa cài đặt, chưa có tài khoản nào, **When** chạy công cụ khởi tạo với họ tên và tên đăng nhập của Quản lý viện, **Then** có một hồ sơ nhân viên và một tài khoản Quản lý viện Hoạt động, buộc đổi mật khẩu lần đầu, nhật ký ghi "khởi tạo hệ thống"; **When** chạy lại công cụ khi đã có tài khoản Quản lý viện, **Then** công cụ từ chối (FR-004b).
 
 ---
 
@@ -183,6 +189,8 @@ Nhân viên và người thân đăng nhập bằng tài khoản của mình. H�
 7. **Given** tài khoản nhân viên không đăng nhập quá CFG-M15-02, **When** Bộ lập lịch kiểm tra, **Then** tài khoản không bị chuyển Không hoạt động (BR-M15-05 chỉ áp dụng cho người thân).
 8. **Given** tài khoản Đã khóa hoặc Không hoạt động, **When** đăng nhập đúng mật khẩu, **Then** hệ thống từ chối; thông báo không tiết lộ tài khoản có tồn tại hay mật khẩu có đúng hay không ngoài thông tin cần thiết để liên hệ viện.
 9. **Given** tài khoản vừa được tạo hoặc vừa được cấp lại mật khẩu, **When** người dùng đăng nhập lần đầu, **Then** hệ thống buộc đổi mật khẩu trước khi dùng chức năng khác.
+10. **(Bổ sung, 2026-10-07, Q-309)** **Given** CFG-M15-09 mặc định \[tối thiểu 8 ký tự, có cả chữ và số\], **When** người dùng đổi mật khẩu thành "abcdefgh", **Then** hệ thống từ chối và nêu yêu cầu cần đạt; **When** đổi thành "abcd1234", **Then** được chấp nhận (FR-006a).
+11. **(Bổ sung, 2026-10-07, Q-309)** **Given** CFG-M15-10 mặc định với web là \[30 phút\], hành chính thao tác lần cuối trên web lúc 09:40, **When** bấm tiếp lúc 10:20, **Then** phiên đã kết thúc, hành chính được đưa về màn hình đăng nhập, tài khoản vẫn Hoạt động; **Given** điều dưỡng ghi nhận trên ứng dụng nhân viên lần cuối lúc 15:00 với mặc định \[12 giờ\], **When** mở lại ứng dụng lúc 17:30, **Then** vẫn dùng tiếp được (FR-013a).
 
 ---
 
@@ -311,8 +319,10 @@ Quản lý viện xem được quyền của từng vai trò (theo Permission Ma
 - **FR-003**: Một tài khoản MUST NOT đồng thời liên kết cả hồ sơ nhân viên và hồ sơ người thân. Tài khoản nhân viên MUST chỉ được gán vai trò trong AC-01 → AC-05, AC-07, AC-09 và AC-14 (Kế toán, Q-212; **sửa 2026-10-06, Q-282, Q-283:** bỏ AC-06, AC-08); tài khoản người thân MUST chỉ có vai trò Người thân (AC-10). *(Nguồn: 2.3, 4.1)*
 - **FR-004**: Chỉ Quản lý viện MUST được tạo tài khoản nhân viên. Khi tạo, tài khoản MUST có ít nhất một vai trò, và hồ sơ nhân viên liên kết MUST không ở trạng thái Nghỉ việc. *(Nguồn: UC-68, Permission Matrix dòng "Tài khoản, phân quyền, tham số")*
 - **FR-004a**: *(Bổ sung, 2026-10-06, Q-282)* Hồ sơ nhân viên MUST tồn tại được mà không có tài khoản. Quản lý viện MUST chỉ tạo tài khoản cho hồ sơ nhân viên có chức danh ứng với một trong 9 vai trò hệ thống (FR-016); nhân viên không dùng hệ thống (vệ sinh, bảo vệ, lái xe…) chỉ có hồ sơ nhân viên (feature 008). *(Nguồn: 13.1, 2.3)*
+- **FR-004b**: *(Bổ sung, 2026-10-07, Q-310)* Tài khoản Quản lý viện đầu tiên MUST chỉ được tạo bằng công cụ khởi tạo khi cài đặt, và MUST chỉ khi hệ thống chưa có tài khoản nào có vai trò Quản lý viện; công cụ tạo cùng hồ sơ nhân viên tối thiểu của người đó (feature 008), tài khoản MUST buộc đổi mật khẩu ở lần đăng nhập đầu, và nhật ký MUST ghi người thực hiện là "khởi tạo hệ thống". Đây không phải ngoại lệ của FR-004: sau khi có Quản lý viện, mọi tài khoản nhân viên do Quản lý viện tạo. *(Nguồn: 19.1, BR-M15-22)*
 - **FR-005**: Tài khoản MUST NOT bị xóa bởi bất kỳ vai trò nào; tài khoản không còn dùng được khóa (FR-009). Mọi bản ghi lịch sử MUST tiếp tục hiển thị đúng người thực hiện. *(Nguồn: 1.3, 1.5 "không xóa đối tượng đã được lịch sử tham chiếu")*
 - **FR-006**: Khi tạo tài khoản hoặc cấp lại mật khẩu, người dùng MUST đổi mật khẩu ở lần đăng nhập đầu tiên trước khi dùng chức năng khác. Cấp lại mật khẩu cho tài khoản nhân viên MUST do Quản lý viện thực hiện; cho tài khoản người thân MUST do Nhân viên hành chính hoặc Quản lý viện thực hiện (FR-051); mỗi lần cấp lại MUST được ghi nhật ký. *(Giả định, xem Assumptions; Clarification 2026-09-25)*
+- **FR-006a**: *(Bổ sung, 2026-10-07, Q-309)* Mật khẩu mới (khi người dùng tự đổi, kể cả ở lần đăng nhập đầu) MUST đạt độ mạnh tối thiểu CFG-M15-09 (mặc định \[tối thiểu 8 ký tự, có cả chữ và số\]); không đạt thì MUST bị từ chối kèm yêu cầu cần đạt. Mật khẩu tạm do hệ thống cấp cũng MUST đạt mức này. *(Nguồn: 19.1, BR-M15-21)*
 
 #### B. Trạng thái tài khoản và đăng nhập
 
@@ -323,6 +333,7 @@ Quản lý viện xem được quyền của từng vai trò (theo Permission Ma
 - **FR-011**: Quản lý viện MUST được khóa và mở khóa tài khoản kèm lý do bắt buộc. Mở khóa MUST bị từ chối khi nguyên nhân khóa tự động còn tồn tại (hồ sơ nhân viên vẫn Nghỉ việc; người thân không còn người cao tuổi nào chưa quá CFG-M01-04 sau kết thúc). Điều kiện với tài khoản người thân là một, dùng chung cho "Mở khóa" (lệnh này) và "Kích hoạt lại" (FR-051, bảng trạng thái): người thân còn ít nhất một quan hệ Hiệu lực với người cao tuổi chưa ở trạng thái cuối, hoặc ở trạng thái cuối chưa quá CFG-M01-04 (CHK025). *(Nguồn: 19.1, 1.5)*
 - **FR-012**: Hệ thống MUST luôn có ít nhất một tài khoản Hoạt động có vai trò Quản lý viện; thao tác người dùng làm vi phạm điều này MUST bị từ chối. *(Suy ra từ BR-M15-04: thay đổi phân quyền và tham số chỉ do Quản lý viện thực hiện, nên luôn phải còn người làm được)*
 - **FR-013**: Khi tài khoản rời trạng thái Hoạt động, mọi phiên đăng nhập đang mở của tài khoản MUST bị chấm dứt ngay: không yêu cầu nào của các phiên đó được chấp nhận nếu hệ thống nhận nó sau thời điểm chuyển trạng thái (CHK013). *(Nguồn: 19.1 "phải bị khóa khi nhân viên không còn được phép sử dụng hệ thống")*
+- **FR-013a**: *(Bổ sung, 2026-10-07, Q-309)* Phiên đăng nhập không có thao tác nào quá CFG-M15-10 của kênh đó (mặc định \[web 30 phút / ứng dụng nhân viên 12 giờ / ứng dụng người thân 30 ngày\]) MUST tự kết thúc; mỗi thao tác của người dùng trong phiên MUST đếm lại khoảng này từ đầu. Tự đăng xuất MUST NOT đổi trạng thái tài khoản; người dùng đăng nhập lại để dùng tiếp. Dữ liệu đã lưu MUST giữ nguyên; bản ghi ngoại tuyến chưa đồng bộ trên ứng dụng nhân viên MUST được giữ trên thiết bị và đồng bộ sau khi đăng nhập lại theo FR-041a. *(Nguồn: 19.1, BR-M15-21)*
 - **FR-014**: Thông báo từ chối đăng nhập MUST NOT tiết lộ tên đăng nhập có tồn tại hay không; MUST cho biết tài khoản đang bị khóa tạm hoặc cần liên hệ viện khi đăng nhập đúng nhưng tài khoản không ở Hoạt động. *(Suy ra từ NFR-08 và mục tiêu chống dò mật khẩu của BR-M15-05)*
 - **FR-014a** *(bổ sung, CHK040)*: Trên một thiết bị, tại một thời điểm MUST chỉ có một phiên đăng nhập; khi một tài khoản khác đăng nhập trên thiết bị đó, phiên của tài khoản trước MUST kết thúc. Mọi bản ghi MUST mang người thực hiện là tài khoản của phiên gửi nó. *(Suy ra từ mục 1.3 "mọi thông tin gắn với người thực hiện", NFR-10 thiết bị dùng chung tại tầng)*
 - **FR-015**: Mỗi lần chuyển trạng thái tài khoản và mỗi lần đăng nhập (thành công hay thất bại) MUST được ghi nhật ký với thời điểm và kết quả; thay đổi do hệ thống thực hiện ghi người thực hiện là Bộ lập lịch hệ thống kèm căn cứ. *(Nguồn: 19.4, FR-045 của 000)*
@@ -471,7 +482,7 @@ Ký hiệu "T" của Nhân viên hành chính ở dòng "Chốt kỳ, xuất k�
 
 - Thư mục feature dùng số `002` theo bản đồ feature ở 4.2 (UC-68, UC-70 ghi feature 002), trùng với số tuần tự kế tiếp.
 - Một tài khoản chỉ phục vụ một loại người dùng; người vừa là nhân viên vừa là người thân có hai tài khoản riêng, để quyền nhân viên không lọt sang cổng người thân và ngược lại (FR-003).
-- Đăng nhập bằng tên đăng nhập và mật khẩu; buộc đổi mật khẩu lần đầu và cấp lại mật khẩu là thực hành chuẩn, tài liệu nguồn không nêu (FR-006). Chính sách độ mạnh mật khẩu và thời gian tự đăng xuất để giai đoạn thiết kế, và nếu cần giá trị thì bổ sung mã CFG.
+- Đăng nhập bằng tên đăng nhập và mật khẩu; buộc đổi mật khẩu lần đầu và cấp lại mật khẩu là thực hành chuẩn, tài liệu nguồn không nêu (FR-006). Độ mạnh mật khẩu và thời gian tự đăng xuất theo CFG-M15-09, CFG-M15-10 (**sửa, 2026-10-07, Q-309**).
 - Tài khoản người thân Không hoạt động không tự trở lại Hoạt động khi đăng nhập đúng, mà phải được kích hoạt lại (bảng mục B); nếu không, BR-M15-05 không có tác dụng.
 - Danh mục nghiệp vụ chuyên môn mặc định chỉ gồm những thao tác mà tài liệu nêu rõ cần giấy phép (chẩn đoán, kê đơn nội bộ, phát thuốc/xác nhận liều); các thao tác khác (đánh giá đầu vào, thiết lập ngưỡng, duyệt kế hoạch chăm sóc) không bị giới hạn bởi giấy phép trừ khi Quản lý viện bổ sung vào danh mục.
 - Giấy phép còn hiệu lực đến hết ngày hết hạn (FR-038).
@@ -481,7 +492,7 @@ Ký hiệu "T" của Nhân viên hành chính ở dòng "Chốt kỳ, xuất k�
 - Người bán trú không có giường thuộc phạm vi qua phân công theo người cao tuổi (FR-030); spec này không coi khu nghỉ ban ngày (7.1) là một cấp phạm vi riêng (CHK001).
 - Việc kiểm tra quyền nằm trong thời gian phản hồi của NFR-02 (95% thao tác ghi nhận dưới 2 giây); spec này không đặt chỉ tiêu thời gian riêng cho bước kiểm tra quyền (CHK037).
 - Rủi ro người khác cố ý đăng nhập sai để khóa tạm tài khoản của một nhân viên giữa ca được chấp nhận ở giai đoạn này; cách giảm là mở khóa sớm tại tầng (FR-019c) và nhật ký đăng nhập thất bại (FR-015) (CHK038).
-- Chính sách độ mạnh mật khẩu và thời gian tự đăng xuất chưa có giá trị trong tài liệu nguồn; đây là hai điểm cần mã CFG khi thiết kế, đã ghi ở "Điểm cần báo lại" (CHK039).
+- Chính sách độ mạnh mật khẩu và thời gian tự đăng xuất đã có mã CFG-M15-09, CFG-M15-10 (CHK039; **đã chốt 2026-10-07, Q-309**).
 - Danh mục nghiệp vụ chuyên môn mặc định chưa được bác sĩ hay tư vấn pháp lý của cơ sở xác nhận; cần đối chiếu trước khi triển khai, cùng nhóm với Q-03 ở mục 24.4 (CHK041).
 - Spec này viết song song được với feature 008 và 012. Nghiệm thu đầu–cuối cần: từ feature 008, trạng thái làm việc, giấy phép (loại, số, phạm vi hành nghề, ngày cấp, ngày hết hạn, thu hồi) và phân công (đối tượng, ca, khoảng hiệu lực); từ feature 012, quan hệ người thân và quyền theo từng người thân; từ feature 001, bản đồng ý; từ feature 003, phân bổ giường (CHK042).
 - "Nhân viên không còn được phép sử dụng hệ thống" ở 19.1 được hiểu là Nghỉ việc (BR-M09-04); nghỉ phép, tạm nghỉ không tự khóa tài khoản, nhưng Quản lý viện khóa tay được theo FR-011. Cách hiểu này chưa được Quản lý viện của cơ sở xác nhận (CHK043).
@@ -536,3 +547,8 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep
 **(2026-10-06) Quyết định Q-305 (kênh truy cập khi chọn công nghệ).**
 
 - **Q-305** – nhân viên dùng web và ứng dụng di động nhân viên; người thân dùng cổng qua web và ứng dụng di động người thân. Một tài khoản dùng chung cho mọi kênh, quyền không đổi theo kênh (NFR-10, Phụ lục 26.1). Không đổi FR.
+
+**(2026-10-07) Quyết định Q-309, Q-310 (phát sinh khi làm plan 002).** *(Đã xử lý 2026-10-07: tài liệu nguồn 19.1, BR-M15-21, 22, Phụ lục 25, 26, 24.2; spec đã cập nhật, xem mục "Cập nhật 2026-10-07" ở Clarifications.)*
+
+- **Q-309** – độ mạnh mật khẩu CFG-M15-09 và tự đăng xuất theo kênh CFG-M15-10. Ảnh hưởng: FR-006a, FR-013a (mới).
+- **Q-310** – tài khoản Quản lý viện đầu tiên do công cụ khởi tạo tạo khi cài đặt. Ảnh hưởng: FR-004b (mới).

@@ -13,7 +13,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
   - ca ngày 07:00–18:00 T1, có Người phụ trách ca là Điều dưỡng N; Trưởng tầng H được giao T1;
   - bác sĩ BS có giấy phép đúng phạm vi, hết hạn ngày D cấu hình được; giấy phép cơ sở có phạm vi khám chữa bệnh;
   - người thân R (người đại diện của A, có quyền xem sức khỏe, nằm trong bản đồng ý), M (quyền xem chi phí), cả hai chưa có tài khoản.
-- Tài khoản Quản lý viện đầu tiên của môi trường thật được tạo bằng công cụ khởi tạo một lần (xem plan, "Điểm cần báo lại" 2).
+- Tài khoản Quản lý viện đầu tiên của môi trường thật được tạo bằng lệnh `khoi-tao-quan-ly-vien` một lần khi cài đặt (FR-004b, BR-M15-22, research A-03).
 
 ## 2. Chạy
 
@@ -54,6 +54,9 @@ Kết quả mong đợi: `verify` xanh, gồm `MaTranQuyenKhopNguonTest` (ma tr�
 | K21 | Hành chính tạo tài khoản cho R với `GOI_LAI_SO_DA_DANG_KY` và số khác số đã đăng ký; rồi số đúng | 409 `XAC_MINH_KHONG_HOP_LE`; 201 | US6 #8, #9, FR-052 |
 | K22 | R và M đăng nhập app người thân, xem A | R thấy sức khỏe; M chỉ thấy chi phí. Rút bản đồng ý của R: lần xem kế tiếp R không thấy sức khỏe | US6 #1 → #3 |
 | K23 | Tua đồng hồ quá CFG-M15-02 không đăng nhập; chạy job | Tài khoản người thân `KHONG_HOAT_DONG`; tài khoản nhân viên không đổi | US3 #6, #7 |
+| K25 | Đổi mật khẩu thành "abcdefgh", rồi "abcd1234" | 422 `MAT_KHAU_KHONG_DAT`; 204 | US3 #10, FR-006a |
+| K26 | Web: thao tác lúc 09:40, tua đồng hồ tới 10:20, bấm tiếp; app nhân viên: thao tác 15:00, tua tới 17:30 | Web 401 `PHIEN_HET_HAN`, tài khoản vẫn Hoạt động; app vẫn dùng được | US3 #11, FR-013a |
+| K27 | Chạy `khoi-tao-quan-ly-vien` trên cơ sở dữ liệu trống, rồi chạy lại | Lần đầu tạo hồ sơ và tài khoản AC-01 buộc đổi mật khẩu; lần sau từ chối | US2 #10, FR-004b |
 | K24 | A Kết thúc lưu trú; tua quá CFG-M01-04; chạy job | Tài khoản R, M `DA_KHOA` (nếu không còn người cao tuổi khác) | US6 #5, #6 |
 
 ## 4. Test tự động: truy vết kịch bản → test

@@ -250,7 +250,7 @@ Với bản ghi không gắn tầng, Trưởng tầng và người phụ trách 
 | `id` | `BIGINT` | Khóa chính `(id, thoi_diem)` | |
 | `thoi_diem` | `DATETIME(6)` | Giờ máy chủ; khóa phân vùng | FR-046 |
 | `thoi_diem_thiet_bi` | `DATETIME(6) NULL` | Bản ghi ngoại tuyến | DBR-25 |
-| `nguoi_thuc_hien_loai` | `ENUM('NGUOI_DUNG','BO_LAP_LICH')` | | FR-045 |
+| `nguoi_thuc_hien_loai` | `ENUM('NGUOI_DUNG','BO_LAP_LICH','KHOI_TAO')` | `KHOI_TAO` chỉ dùng cho lệnh khởi tạo Quản lý viện đầu tiên (BR-M15-22, plan 002) | FR-045 |
 | `nguoi_thuc_hien_id` | `BIGINT NULL` | `NOT NULL` khi `NGUOI_DUNG` | |
 | `vai_tro` | `VARCHAR(10)` | Vai trò tại lúc thực hiện (AC-xx) | 19.4 (xuất báo cáo) |
 | `hanh_dong` | `VARCHAR(40)` | Ví dụ `YC_DUYET`, `THAM_SO_DOI`, `DINH_CHINH_THEM`, `DANG_NHAP_THAT_BAI`, `XUAT_BAO_CAO`, `LOAI_BO_DU_LIEU_HET_HAN` | |
