@@ -4,28 +4,56 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # Hệ thống quản lý viện dưỡng lão
 
-Đồ án phân tích nghiệp vụ, viết spec theo Spec Kit (thư mục specs/, .specify/). Hiện chưa có mã nguồn, không có lệnh build, lint hay test.
+Đồ án quản lý viện dưỡng lão: nghiệp vụ và spec viết theo Spec Kit (thư mục specs/, .specify/); mã nguồn triển khai theo plan và tasks của từng feature.
 
-## Giai đoạn hiện tại: THIẾT KẾ
+## Giai đoạn hiện tại: TRIỂN KHAI
 
-- Phân tích hoàn tất ngày 2026-10-06. Chủ dự án mở giai đoạn thiết kế cùng ngày, chốt công nghệ (Q-305, constitution 2.1.0, nguyên tắc X–XV):
+- Lịch sử:
+  - phân tích xong ngày 2026-10-06;
+  - thiết kế từ 2026-10-06 tới 2026-10-10: cả 20 feature (000 → 019) có plan, tasks và đã qua /speckit-analyze; điểm báo lại của plan chốt bằng Q-311 → Q-336;
+  - chủ dự án mở giai đoạn triển khai ngày 2026-10-10.
+- Công nghệ (Q-305, constitution 2.1.0, nguyên tắc X–XV):
   - backend Spring Boot, RESTful API `/api/v1`, MySQL; một khối chia gói theo module M01–M15;
   - web React (TypeScript) có mọi chức năng, gồm quản trị và cổng người thân trên trình duyệt;
   - app Flutter nhân viên (ghi ngoại tuyến theo Q-01) và app Flutter người thân;
-  - phiên bản mặc định: Java 21 LTS, Spring Boot 3.x, MySQL 8.x, Flutter stable; ghi cụ thể ở plan.
-- Được chạy /speckit-plan, /speckit-tasks, /speckit-analyze. Làm plan theo thứ tự phụ thuộc: 000 → 002 → 001 → 003 → 004 → các feature còn lại; trước mỗi lần chạy kiểm tra .specify/feature.json.
-- Tình trạng (2026-10-10): cả 20 feature (000 → 019) đã có plan, tasks và đã qua /speckit-analyze một lượt. Các điểm báo lại của plan đã chốt bằng Q-311 → Q-336; còn mở 3 điểm chờ tư vấn pháp lý (24.4: Q-03, Thông tư 27/2024/TT-BYT, Luật Cư trú 118/2025/QH15).
-- Chạy lại /speckit-analyze theo cùng thứ tự với plan, đổi feature.json trước mỗi feature. Analyze chỉ đọc, kết quả trả trong hội thoại, không ghi file trừ khi chủ dự án yêu cầu.
+  - phiên bản: Java 21 LTS, Spring Boot 3.5.x, MySQL 8.4 LTS, TypeScript 5.x, Flutter stable 3.x (research R-01 của 000); thư viện cụ thể ghi ở plan và tasks.
+- Lệnh được dùng:
+  - /speckit-implement, /speckit-analyze, /speckit-converge;
+  - /speckit-plan, /speckit-tasks chỉ để sửa plan, tasks khi spec hoặc tài liệu nguồn thay đổi;
+  - /speckit-taskstoissues chỉ khi chủ dự án yêu cầu (đẩy dữ liệu lên GitHub).
+- Thứ tự triển khai theo phụ thuộc: 000 → 002 → 001 → 003 → 004 → 005 → … → 019; điều kiện của từng feature ghi ở dòng "Prerequisites" đầu tasks.md. Đổi .specify/feature.json trước mỗi feature.
+- Cách làm mỗi feature:
+  - làm trên nhánh riêng `impl/NNN-ten` tách từ `develop`, gộp về `develop` khi feature xong;
+  - làm lần lượt từng phase của tasks.md; hết mỗi phase chạy test, đánh dấu `[x]` các task đã xong và đề nghị chủ dự án commit;
+  - phần phụ thuộc feature chưa làm thì dùng bản giả như tasks ghi, không bỏ qua task.
+- Mã nguồn:
+  - theo constitution X–XV: nghiệp vụ, quyền và điều kiện kiểm ở backend; mỗi lệnh nhóm 2 là một endpoint riêng; bản ghi nhóm 3 chỉ thêm, sai sót dùng đính chính; mọi CFG đọc qua `ThamSoApi`; mọi thông báo qua 009; module gọi nhau qua giao diện ở contracts/module-interfaces.md; mỗi BR có test tự động;
+  - tên gói, lớp, bảng, endpoint theo plan, data-model, contracts; tên test gắn mã (ví dụ `BR_M02_11_KhaiBaoIT`, `FR_076_…IT`);
+  - không đổi nghiệp vụ trong mã. Gặp thiếu sót nghiệp vụ hoặc lệch giữa spec, plan, tasks thì dừng task đó và báo lại; sửa theo thứ tự docs/nghiep-vu.md → spec → plan → tasks rồi mới viết mã (constitution I, IX);
+  - lệch kỹ thuật (tên lớp, thư viện, cách cài) thì sửa plan, tasks cùng lúc với mã và ghi lý do ở plan.
+- Còn mở 3 điểm chờ tư vấn pháp lý (24.4): Q-03, Thông tư 27/2024/TT-BYT, Luật Cư trú 118/2025/QH15. Các ngưỡng liên quan là tham số nên không chặn việc viết mã; cần chốt trước khi vận hành.
+- Chạy /speckit-analyze theo cùng thứ tự, đổi feature.json trước mỗi feature; analyze chỉ đọc, kết quả trả trong hội thoại, không ghi file trừ khi chủ dự án yêu cầu. Sau analyze từng feature, rà thêm giao diện giữa các feature (mục "bổ sung theo plan này" phải có ở feature cung cấp).
 - Xử lý kết quả analyze (sau khi chủ dự án duyệt):
   - lệch ở plan, tasks: sửa plan, tasks;
   - spec lệch tài liệu nguồn: đồng bộ spec, ghi mục "Cập nhật <ngày>" ở Clarifications và một dòng "(Đã xử lý …)" ở "Điểm cần báo lại";
   - thiếu sót nghiệp vụ: báo lại để sửa docs/nghiep-vu.md trước;
   - xung đột constitution (CRITICAL): sửa spec, plan hoặc tasks, không sửa constitution trong analyze.
-- Analyze xét từng feature; sau đó rà thêm giao diện giữa các feature (contracts/module-interfaces.md, mục "bổ sung theo plan này" phải có ở feature cung cấp).
-- KHÔNG chạy /speckit-implement cho tới khi chủ dự án mở giai đoạn triển khai và sửa mục này.
-- KHÔNG tạo mã nguồn, thư mục src/, file cấu hình build hay script SQL. Tài liệu thiết kế do plan sinh ra (plan.md, research.md, data-model.md, contracts/, quickstart.md trong thư mục spec) thì được phép.
-- Plan không được đổi nghiệp vụ: thiếu sót nghiệp vụ phát hiện khi thiết kế thì báo lại để sửa docs/nghiep-vu.md và spec trước (constitution I, IX).
 - Chỉ sửa spec khi được yêu cầu, hoặc để đồng bộ khi tài liệu nguồn thay đổi. Không tự mở thêm lượt clarify hay checklist mới.
+
+## Môi trường, cấu trúc mã và lệnh
+
+- Cần cài: JDK 21, Node.js và npm, Flutter stable, Docker (Testcontainers chạy MySQL 8.4 cho test `*IT`). Maven dùng qua `./mvnw` của dự án.
+- Một kho mã, bốn thư mục gốc (plan 000 mục Project Structure, research R-02):
+  - `backend/`: `src/main/java/vn/eldercare/{common, m01 … m15}`, Flyway ở `src/main/resources/db/migration/`, test ở `src/test/java/vn/eldercare/` (`*Test` đơn vị, `*IT` tích hợp, `*ArchTest` kiến trúc);
+  - `web/`: `src/{api, chung, tinh-nang}`;
+  - `app-nhan-vien/`, `app-nguoi-than/`: `lib/{chung, tinh-nang}`.
+- Các thư mục và file build được tạo ở Phase 1 của tasks 000; trước đó các lệnh dưới chưa chạy được.
+- Lệnh (quickstart 000):
+  - `backend/`: `./mvnw verify` chạy test đơn vị, tích hợp, kiến trúc và so hợp đồng; `./mvnw spring-boot:run -Dspring-boot.run.profiles=demo` chạy với dữ liệu mẫu;
+  - `web/`: `npm ci && npm test && npm run dev`;
+  - `app-nhan-vien/`, `app-nguoi-than/`: `flutter test`.
+- Profile `test` và `demo` có đồng hồ giả lập để kiểm quy tắc theo thời gian (NFR-13; task T012 của 000).
+- Khi lệnh thực tế khác (ví dụ cách chạy một lớp test), cập nhật mục này.
 
 ## Phạm vi nghiệp vụ (tóm tắt, căn cứ là docs/nghiep-vu.md)
 
@@ -92,7 +120,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   4. Cập nhật docs/luong-nghiep-vu.md.
   5. Cập nhật bảng 24.4 nếu cần đối chiếu.
   6. Cập nhật mục "Điểm cần báo lại" của các spec liên quan.
-- Không đưa diagram vào spec ở giai đoạn này; trạng thái thể hiện bằng bảng.
+- Không đưa diagram vào spec; trạng thái thể hiện bằng bảng.
 - Sau mỗi bước spec: nếu yêu cầu còn mơ hồ thì gợi ý bước tiếp theo; nếu không thì ghi hoàn thành, tránh đào quá sâu làm lệch với các spec khác.
 
 ## Ghi chú công cụ
