@@ -64,7 +64,7 @@ Plan này cũng chốt các quyết định nền cho mọi feature sau (R-01 �
 
 **Scale/Scope**:
 - NFR-01: 300 người cao tuổi, 100 nhân viên, 60 người dùng đồng thời, 600 tài khoản người thân.
-- 120 mã CFG; 13 loại yêu cầu phê duyệt đã biết (bảng ở spec); khoảng 10 loại bản ghi nhóm 3 có đính chính.
+- 117 mã CFG (Phụ lục 25 hiện hành); 13 loại yêu cầu phê duyệt đã biết (bảng ở spec); khoảng 10 loại bản ghi nhóm 3 có đính chính.
 - Một instance backend.
 
 Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chốt ở [research.md](research.md). Hai điểm về tài liệu nguồn được ghi ở mục "Điểm cần báo lại" bên dưới; chúng không chặn thiết kế.

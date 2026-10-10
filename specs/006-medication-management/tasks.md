@@ -226,7 +226,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 - [ ] T056 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/006-medication-management/contracts/api-006.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 006
 - [ ] T057 Khi 008, 010, 014 có bản thật, chạy lại test US2, US5, US7 với bean thật thay T002
 - [ ] T058 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T059 Rà truy vết data-model mục 14: DBR-03, 13, 14, 15, 17, 23, 25 và BR-M07-01 → 22 có test (BR-M07-23 ngoài phạm vi, không có chức năng)
+- [ ] T059 Rà truy vết data-model mục 14: DBR-03, 13, 14, 15, 17, 23, 25 và BR-M07-01 → 22 có test (BR-M07-23 ngoài phạm vi, không có chức năng); FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-034a, FR-050, FR-051, FR-052 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

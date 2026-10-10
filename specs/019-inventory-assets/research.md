@@ -59,7 +59,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 **Quyết định**:
 - `nguyen_lieu` (nhóm 1; thành phần dị ứng là danh sách `di_nguyen_id`), `lo_nguyen_lieu` (nhóm 2 dẫn xuất: `ton`), `phieu_kho` (nhóm 3: `NHAP`, `XUAT`, `DAO`, `DIEU_CHINH`), `phieu_kho_dong`.
 - Phiếu nhập hàng mua: `YeuCauMuaSamApi.kiemTraDuocDung(yeuCauId, boPhanBep, NGUYEN_LIEU)` (Đã duyệt, cùng bộ phận) rồi `ganNguon(yeuCauId, PHIEU_NHAP, phieuId, tongTien)` trong cùng transaction (FR-008c); hàng tặng/chuyển ghi nguồn. Dòng Không đạt không vào tồn.
-- Phiếu xuất: hàm thuần `GoiYLo(nguyenLieu, lo[], ngay)` trả lô hạn sớm nhất còn tồn; chọn lô khác cần lý do (lưu trên dòng). Lô quá hạn chỉ xuất mục đích "hủy" (FR-005). Mục đích "cho bữa" chọn bữa ngày từ `LichBuaApi`.
+- Phiếu xuất: hàm thuần `ThuTuLoTheoHan(nguyenLieu, lo[], ngay)` trả các lô còn tồn theo thứ tự hạn dùng để hiển thị (không chọn sẵn, Q-307); dòng xuất từ lô không phải lô hạn sớm nhất còn tồn cần lý do (lưu trên dòng; FR-003). Lô quá hạn chỉ xuất mục đích "hủy" (FR-005). Mục đích "cho bữa" chọn bữa ngày từ `LichBuaApi`.
 - Phiếu đảo: trỏ đúng một phiếu gốc (toàn bộ hoặc một số dòng), người lập có quyền lập loại phiếu gốc.
 - Không tự trừ kho theo thực đơn, suất (FR-007).
 - **Kiểm kê** (FR-010): `phieu_kiem_ke_kho` `CHO_DUYET | DA_DUYET | BI_TRA_LAI | DA_HUY`; người duyệt = Phụ trách bộ phận Bếp, hoặc Quản lý viện khi người lập là Phụ trách bộ phận Bếp; người duyệt ≠ người lập. Duyệt tạo phiếu `DIEU_CHINH` cho dòng lệch.
@@ -131,7 +131,7 @@ Quyền theo nhiệm vụ Phụ trách bộ phận do 002 FR-019f cấp (nhiệm
 - **Job**: `ViecHangNgayM08Kho` 05:00; `ViecHangNgayM11MuaSam` 07:00; `ViecHangNgayM03TaiSan` 06:00; `ViecTheoPhutM03LichXe`. Cột "đã làm lúc" theo ngày; chạy bù. Không tạo yêu cầu, phiếu, lịch, tài sản (Q-306) — ngoài tài sản giường kèm lệnh Tạo giường.
 - **Lưu giữ**: `KHONG_GAN_HO_SO`, ≥ CFG-M15-04 (nhật ký); chứng từ ở kho tệp.
 - **Kiểm thử**:
-  - test bảng `GoiYLo`, `KiemTraVuot`, `KhopChungTu`, `AnhXaTrangThaiGiuong`, `KiemTraDatLich`;
+  - test bảng `ThuTuLoTheoHan`, `KiemTraVuot`, `KhopChungTu`, `AnhXaTrangThaiGiuong`, `KiemTraDatLich`;
   - SC-001: bộ 200 phiếu; SC-004: bất biến giường ↔ tài sản sau mọi lệnh (003 + 019); SC-005: bất biến không chồng lịch xe;
   - Testcontainers: `UNIQUE` lô, một kiểm kê chờ mỗi kỳ, một vị trí mở, giường ↔ tài sản; trigger nhóm 3;
   - test đồng thời: hai phiếu xuất cùng lô chỗ cuối; hai lịch xe cùng giờ; báo hỏng giường cùng lúc với phân bổ;

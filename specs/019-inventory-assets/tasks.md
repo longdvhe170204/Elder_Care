@@ -83,17 +83,17 @@ description: "Danh sách task triển khai feature 019 – Kho nguyên liệu, m
 
 ## Phase 5: User Story 2 – Xuất nguyên liệu cho bữa (Priority: P1)
 
-**Goal**: Phiếu xuất cho bữa (bữa ngày qua `LichBuaApi`) với lô gợi ý theo hạn dùng (hiển thị, không tự trừ); lô quá hạn chỉ xuất hủy; không tự trừ kho (FR-005, FR-006, BR-M08-18).
+**Goal**: Phiếu xuất cho bữa (bữa ngày qua `LichBuaApi`) với lô hiển thị theo thứ tự hạn dùng (không chọn sẵn, Q-307), chọn lô khác lô hạn sớm nhất cần lý do; lô quá hạn chỉ xuất hủy; không tự trừ kho (FR-005, FR-006, BR-M08-18).
 
 **Independent Test**: Lô thịt L1 (hạn 03/10), L3 (hạn 06/10); xuất cho bữa trưa 02/10; thử xuất lô quá hạn cho bữa (bị chặn).
 
 ### Tests cho User Story 2
 
-- [ ] T012 [P] [US2] Test đơn vị `BT/m08/GoiYLoTest.java` và `BT/m08/BR_M08_18_HanDungIT.java` (hai phiếu xuất chỗ cuối đồng thời) (Q10 → Q12)
+- [ ] T012 [P] [US2] Test đơn vị `BT/m08/ThuTuLoTheoHanTest.java`, `BT/m08/BR_M08_17_LyDoChonLoIT.java` và `BT/m08/BR_M08_18_HanDungIT.java` (hai phiếu xuất chỗ cuối đồng thời) (Q10 → Q12)
 
 ### Implementation cho User Story 2
 
-- [ ] T013 [US2] Cài `GoiYLo` và phiếu xuất (cho bữa, hủy, khác) trong `KhoService.java`; endpoint `GET /kho/goi-y-lo`; màn xuất kho hiện lô gợi ý với test Vitest
+- [ ] T013 [US2] Cài `ThuTuLoTheoHan` và phiếu xuất (cho bữa, hủy, khác; kiểm lý do chọn lô, FR-003) trong `KhoService.java`; endpoint `GET /kho/lo-theo-han`; màn xuất kho hiện lô theo thứ tự hạn dùng, không chọn sẵn, với test Vitest
 
 **Checkpoint**: P1 hoàn tất.
 
@@ -171,7 +171,7 @@ description: "Danh sách task triển khai feature 019 – Kho nguyên liệu, m
 - [ ] T023 [P] Cài `TaiSanThongKeApi`, `MuaSamThongKeApi` (016); mở rộng `BT/common/HopDongApiTest.java` với `specs/019-inventory-assets/contracts/api-019.yaml`; mở rộng `NhomGhiNhanCoTriggerIT`
 - [ ] T024 Thay bản giả `TaiSanGiuongPort` (003 T002), `TonKhoNguyenLieuPort` (011 T002) bằng bản cài của 019 và chạy lại test 003, 011, 014 (lịch xe)
 - [ ] T025 Chạy `./mvnw verify`, `npm test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T026 Rà truy vết: DBR-31, 32, 36 và BR-M03-15 → 18, BR-M08-17 → 20, BR-M11-17 → 20 có test
+- [ ] T026 Rà truy vết: DBR-31, 32, 36 và BR-M03-15 → 18, BR-M08-17 → 20, BR-M11-17 → 20 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-019, FR-020, FR-021 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

@@ -48,6 +48,10 @@
 - **Q-298**: hủy, dời lịch xe thì báo người đặt lịch và Phụ trách bộ phận quản lý xe; người lái chỉ được báo khi có tài khoản. Sửa FR-017, bảng FR-018, FR-021; thêm User Story 6 kịch bản 7.
 - **Q-299**: Quản lý viện không thuộc bộ phận, không được giao Phụ trách bộ phận (feature 008 FR-001a). Sửa FR-020.
 
+### Cập nhật 2026-10-10 (đồng bộ Q-307 cho phiếu xuất, sau /speckit-analyze)
+
+- **Q-307, BR-M08-17**: hệ thống không đề xuất lô. Người xuất tự chọn lô; hệ thống hiển thị các lô còn tồn theo thứ tự hạn dùng (số liệu hiển thị, Q-307 (e)) và chặn dòng xuất từ lô hạn muộn hơn khi còn lô hạn sớm hơn, trừ khi có lý do. Sửa User Story 2 (mô tả, kịch bản 1), FR-003.
+
 ## Phạm vi
 
 **Trong phạm vi** (nhóm chức năng "Dinh dưỡng và kho bếp" và "Tài sản và đồ gửi", 1.6; UC-89 → UC-92, UC-94, UC-95):
@@ -93,7 +97,7 @@ Nhân viên bếp lập phiếu nhập gắn với một yêu cầu mua sắm Đ
 
 ### User Story 2 - Nhân viên bếp xuất nguyên liệu cho bữa (Priority: P1) *(sửa 2026-10-06, Q-284: bỏ đề nghị nhập)*
 
-Nhân viên bếp lập phiếu xuất cho một bữa hoặc xuất hủy. Hệ thống đề xuất lô có hạn dùng sớm nhất trước; chọn lô khác phải có lý do. Lô quá hạn chỉ được xuất hủy. Khi thiếu nguyên liệu, Phụ trách bộ phận Bếp lập yêu cầu mua sắm (User Story 7).
+Nhân viên bếp lập phiếu xuất cho một bữa hoặc xuất hủy. Lô có hạn dùng sớm nhất phải được xuất trước: hệ thống hiển thị các lô còn tồn theo thứ tự hạn dùng, người xuất tự chọn lô; chọn lô khác lô hạn sớm nhất phải có lý do. Lô quá hạn chỉ được xuất hủy. Khi thiếu nguyên liệu, Phụ trách bộ phận Bếp lập yêu cầu mua sắm (User Story 7).
 
 **Why this priority**: Xuất kho hằng ngày là thao tác thường xuyên nhất của kho bếp.
 
@@ -101,7 +105,7 @@ Nhân viên bếp lập phiếu xuất cho một bữa hoặc xuất hủy. Hệ
 
 **Acceptance Scenarios**:
 
-1. **Given** tồn thịt L1 20 kg hạn 03/10 và L3 10 kg hạn 06/10, **When** bếp lập phiếu xuất 8 kg thịt cho bữa trưa 02/10, **Then** hệ thống đề xuất lô L1; tồn L1 còn 12 kg (BR-M08-17).
+1. **Given** tồn thịt L1 20 kg hạn 03/10 và L3 10 kg hạn 06/10, **When** bếp mở phiếu xuất thịt cho bữa trưa 02/10, chọn lô L1 và xuất 8 kg, **Then** danh sách lô hiện L1 trước L3, phiếu được ghi không cần lý do; tồn L1 còn 12 kg (BR-M08-17).
 2. **Given** như trên, **When** bếp chọn lô L3 thay cho L1 mà không nhập lý do, **Then** hệ thống chặn; có lý do thì được.
 3. **Given** lô L1 đã quá hạn ngày 04/10, **When** bếp xuất L1 cho bữa sáng 04/10, **Then** hệ thống chặn; **When** bếp xuất hủy L1 kèm lý do "hết hạn", **Then** được (BR-M08-18).
 4. **Given** bếp xuất 30 kg khi tồn chỉ 22 kg, **When** lưu, **Then** hệ thống chặn (BR-M08-17).
@@ -244,7 +248,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 
 - **FR-001**: Phụ trách bộ phận Bếp (sửa, 2026-10-06, Q-284) MUST quản lý danh mục nguyên liệu: tên, nhóm, đơn vị tính, thành phần gây dị ứng (chọn từ danh mục dị nguyên của feature 001), mức tồn tối thiểu, trạng thái Đang dùng / Ngừng hiệu lực. Nguyên liệu Ngừng hiệu lực MUST NOT được nhập thêm nhưng vẫn xuất được tới hết tồn. *(Nguồn: 12.7)*
 - **FR-002**: Nhân viên bếp (sửa, 2026-10-06, Q-284) MUST lập được phiếu nhập gồm: ngày nhập, nhà cung cấp (văn bản), yêu cầu mua sắm Đã duyệt của bộ phận Bếp mà phiếu thực hiện hoặc nguồn "được tặng" / "chuyển từ nơi khác" (ghi nguồn), chứng từ mua (hóa đơn, phiếu bán hàng, ảnh chụp; với hàng mua), các dòng (nguyên liệu, số lượng > 0, đơn giá, số lô, hạn dùng, kết quả kiểm tra đầu vào Đạt / Không đạt, ghi chú). Dòng Không đạt MUST có lý do và MUST NOT vào tồn. Phiếu có hiệu lực khi lưu (nhóm 3). Phiếu nhập hàng mua không gắn yêu cầu mua sắm Đã duyệt của bộ phận Bếp MUST NOT lưu được (FR-008c). *(Nguồn: 12.7; BR-M11-17, DBR-36)*
-- **FR-003**: Nhân viên bếp MUST lập được phiếu xuất (sửa, 2026-10-06, Q-284: Quản lý viện không thực hiện lệnh kho) gồm: ngày, mục đích (cho bữa: ngày, bữa; hủy do hết hạn hoặc hỏng; khác, bắt buộc ghi chú), các dòng (nguyên liệu, lô, số lượng), người xuất. Hệ thống MUST đề xuất lô có hạn dùng sớm nhất còn tồn; chọn lô khác MUST có lý do. *(Nguồn: 12.7, BR-M08-17, Q-220)*
+- **FR-003**: Nhân viên bếp MUST lập được phiếu xuất (sửa, 2026-10-06, Q-284: Quản lý viện không thực hiện lệnh kho) gồm: ngày, mục đích (cho bữa: ngày, bữa; hủy do hết hạn hoặc hỏng; khác, bắt buộc ghi chú), các dòng (nguyên liệu, lô, số lượng), người xuất. **(Sửa, 2026-10-10, Q-307)** Người xuất tự chọn lô; hệ thống MUST hiển thị các lô còn tồn theo thứ tự hạn dùng (số liệu hiển thị) và MUST chặn dòng xuất từ lô có hạn muộn hơn khi còn lô hạn sớm hơn, trừ khi người xuất ghi lý do. Hệ thống MUST NOT tự chọn hay đề xuất lô. *(Nguồn: 12.7, BR-M08-17, Q-220, Q-307)*
 - **FR-004**: Tồn của mỗi lô MUST bằng nhập − xuất ± điều chỉnh đã duyệt, và MUST NOT âm; phiếu hoặc phiếu đảo làm một lô âm MUST bị chặn toàn bộ (feature 000 "hoặc toàn bộ, hoặc không"). Hai phiếu đồng thời trên cùng lô MUST cho kết quả như khi lưu lần lượt. *(Nguồn: BR-M08-17, DBR-31)*
 - **FR-005**: Lô đã quá hạn dùng MUST NOT được xuất cho bữa; chỉ được xuất với mục đích "hủy". *(Nguồn: BR-M08-18)*
 - **FR-006**: Phiếu nhập, phiếu xuất MUST NOT bị sửa hay xóa. Sai sót MUST xử lý bằng phiếu đảo trỏ đúng một phiếu gốc (toàn bộ hoặc một số dòng), có lý do, do người có quyền lập loại phiếu gốc lập. *(Nguồn: BR-M08-20, 1.5)*
@@ -399,3 +403,5 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 - **Q-295** – thêm loại bản ghi đón "Viện đưa về" cho người bán trú: người đưa về (Hành chính, Nhân viên chăm sóc) làm quy trình đón tại nơi bàn giao; trạng thái có mặt chuyển Đã về khi ghi bàn giao; chưa bàn giao được thì vẫn Có mặt; dùng xe của viện thì có lịch xe (3.4, 14.3, UC-58, BF-02 bước 9, BF-12 bước 10). Ảnh hưởng: FR-017 (lịch xe cho việc đưa người bán trú về).
 - **Q-298** – hủy, dời lịch xe thì báo người đặt lịch và Phụ trách bộ phận quản lý xe; người lái có tài khoản thì được báo thêm; người lái không có tài khoản do viện báo ngoài hệ thống (7.7). Ảnh hưởng: FR-017, bảng trạng thái lịch xe (cột "Báo người lái").
 - **Q-299** – Quản lý viện không thuộc bộ phận nào và không được giao Phụ trách bộ phận; tài khoản các vai trò khác thuộc đúng một bộ phận (13.1a). Ảnh hưởng: FR-020.
+
+**(2026-10-10) FR-003 "hệ thống MUST đề xuất lô" trái Q-307 (a)** (plan 019, Điểm cần báo lại 1). *(Đã xử lý 2026-10-10: FR-003 viết theo BR-M08-17 — hiển thị lô theo hạn dùng, chặn khi chọn lô hạn muộn hơn mà không có lý do; không đổi nghiệp vụ, không cần Q mới.)*

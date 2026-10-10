@@ -196,7 +196,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 - [ ] T026 [P] Cài `SoDuThongKeApi` (016); mở rộng `BT/common/HopDongApiTest.java` với `specs/017-resident-balance-ledger/contracts/api-017.yaml`; mở rộng `NhomGhiNhanCoTriggerIT`
 - [ ] T027 Thay bản giả `TrangThaiDatCocPort`, `MucViecSauQuaDoiPort` `QUYET_TOAN` (004) và `SoDuMuaHoPort` (010) bằng bản cài của 017; chạy lại test 004, 010
 - [ ] T028 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T029 Rà truy vết: DBR-17, 28, 29, 30, 35 và BR-M11-10 → 16 có test
+- [ ] T029 Rà truy vết: DBR-17, 28, 29, 30, 35 và BR-M11-10 → 16 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-028, FR-029, FR-030 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

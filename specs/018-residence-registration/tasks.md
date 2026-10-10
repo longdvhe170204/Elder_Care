@@ -118,7 +118,7 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 - [ ] T015 [P] Cài `KhaiBaoThongKeApi.tongHop()` (016); mở rộng `BT/common/HopDongApiTest.java` với `specs/018-residence-registration/contracts/api-018.yaml`
 - [ ] T016 Chạy `./mvnw verify`, `npm test` và kịch bản quickstart.md mục 3
-- [ ] T017 Rà truy vết: DBR-25, 33 và BR-M02-11 → 14 có test
+- [ ] T017 Rà truy vết: DBR-25, 33 và BR-M02-11 → 14 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-009, FR-010, FR-011 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

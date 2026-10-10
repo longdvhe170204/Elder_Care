@@ -68,6 +68,24 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 
 **Kiểm lại sau Phase 1**: Đạt.
 
+### Đáp ứng yêu cầu phi chức năng (constitution X)
+
+| NFR | 016 chịu ảnh hưởng | Cách đáp ứng |
+| --- | --- | --- |
+| NFR-01 Quy mô | Có | 60 người dùng đồng thời mở dashboard; số liệu 300 người cao tuổi, 12 tháng |
+| NFR-02 Hiệu năng | Có | Dashboard ≤ 3 giây ở 95% lần mở, báo cáo 12 tháng ≤ 30 giây (SC-002, SC-003); truy vấn song song qua `*ThongKeApi`; đo bằng test hiệu năng |
+| NFR-03 Thông báo khẩn cấp | Không | 016 không gửi thông báo |
+| NFR-04 Tác vụ định kỳ | Không | Không có job; số liệu tính khi xem |
+| NFR-05 Khả dụng | Gián tiếp | Chỉ đọc; không lưu bản sao nên không có dữ liệu phải đồng bộ lại |
+| NFR-06 Sao lưu | Gián tiếp | Không có bảng riêng; nhật ký lần xuất và tệp xuất theo sao lưu của 000 |
+| NFR-07 Lưu trữ | Gián tiếp | Không lưu bản sao số liệu; tệp xuất ở kho tệp của 000 |
+| NFR-08 Bảo mật | Có | Phạm vi và giới hạn trường kiểm ở backend (FR-013, FR-014) |
+| NFR-09 Thời gian | Có | `Clock`; khoảng ngày, "hôm nay" theo Asia/Ho_Chi_Minh (FR-005, FR-006, DBR-25) |
+| NFR-10 Thiết bị | Có | Màn trên web; không có màn trên app di động (spec không yêu cầu) |
+| NFR-11 Ngôn ngữ | Có | Nhãn tiếng Việt; ngày dd/MM/yyyy, tiền VND trên màn và file XLSX |
+| NFR-12 Cấu hình | Có | CFG-M14-01, CFG-M15-07 đọc qua `ThamSoApi` |
+| NFR-13 Kiểm thử | Có | Đồng hồ giả lập cho "hôm nay" và ngày chưa kết thúc; bản giả mọi `*ThongKeApi` |
+
 ## Project Structure
 
 ### Documentation (this feature)

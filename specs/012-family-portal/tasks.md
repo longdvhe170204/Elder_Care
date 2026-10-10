@@ -172,11 +172,11 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ### Tests cho User Story 7
 
-- [ ] T031 [P] [US7] Test đơn vị `BT/m10/NguoiDuyetBanTinTest.java` và `BT/m10/BR_M10_08_BanTinIT.java`, `BR_M10_09_GiaiThichSuCoIT.java`, `FR_056_DinhChinhIT.java` (Q37 → Q42)
+- [ ] T031 [P] [US7] Test đơn vị `BT/m10/NguoiDuyetBanTinTest.java` và `BT/m10/BR_M10_08_BanTinIT.java`, `BR_M10_09_GiaiThichSuCoIT.java`, `FR_056_DinhChinhIT.java`, `FR_073_BaoBanTinChuaLapIT.java` (tới mốc kỳ kế tiếp, bản tin kỳ trước chưa lập hoặc chuyển Không gửi vì quá kỳ → báo Quản lý viện mức Nhẹ kèm tình trạng và các lần nhắc đã gửi; đồng hồ giả lập) (Q37 → Q42)
 
 ### Implementation cho User Story 7
 
-- [ ] T032 [US7] Tạo bảng `ban_tin` (`trang_thai` `CHO_DUYET|DA_GUI|KHONG_GUI`; cột sinh `khoa_ky` `UNIQUE`; `ban_goc_id`), `ban_tin_phan`, `ban_tin_so_lieu`, `ban_tin_nhan_xet` trong `MIG/V012_08__ban_tin.sql`; cài `BE/m10/bantin/internal/BanTinService.java` (số liệu từ `KetQuaChamSocCongApi.tongHop`, `ChiSoApi`, `SuCoApi`, `ChiPhiCongNguoiThanApi`, `HoatDongBanTinPort`; gửi qua 009; `ThongBaoTraCuuApi.xemLuc`; `ViecBanTinM10` nhắc và báo duyệt thay) (research F-12)
+- [ ] T032 [US7] Tạo bảng `ban_tin` (`trang_thai` `CHO_DUYET|DA_GUI|KHONG_GUI`; cột sinh `khoa_ky` `UNIQUE`; `ban_goc_id`), `ban_tin_phan`, `ban_tin_so_lieu`, `ban_tin_nhan_xet` trong `MIG/V012_08__ban_tin.sql`; cài `BE/m10/bantin/internal/BanTinService.java` (báo Quản lý viện theo FR-073 trong `ViecBanTinM10`; số liệu từ `KetQuaChamSocCongApi.tongHop`, `ChiSoApi`, `SuCoApi`, `ChiPhiCongNguoiThanApi`, `HoatDongBanTinPort`; gửi qua 009; `ThongBaoTraCuuApi.xemLuc`; `ViecBanTinM10` nhắc và báo duyệt thay) (research F-12)
 - [ ] T033 [US7] Tạo endpoint `/ban-tin`, `/{id}`, `/{id}/so-lieu`, `/{id}/{lenh}`, `/{id}/dinh-chinh`; màn web `web/src/tinh-nang/nguoi-than/ban-tin/` (không có nội dung soạn sẵn) với test Vitest; app nhân viên phần bản tin
 
 **Checkpoint**: Bản tin chạy độc lập.
@@ -207,7 +207,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 - [ ] T037 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/012-family-portal/contracts/api-012.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 012
 - [ ] T038 Thay bản giả của 002 (`QuanHeNguoiThanApi`), 004 (`NguoiDaiDienPort`, `BanGhiDonPort`), 005 (`BanGhiDonBanTruPort`), 007 (`NguoiThanKhanCapPort`), 009 (`NguoiThanNhanThongBaoPort`), 011 (`LuotOLaiAnPort`) bằng bản cài của 012 và chạy lại test các feature đó
 - [ ] T039 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T040 Rà truy vết: DBR-02, 03, 25 và BR-M10-01 → 09 có test
+- [ ] T040 Rà truy vết: DBR-02, 03, 25 và BR-M10-01 → 09 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-067, FR-068, FR-069, FR-070, FR-071, FR-072, FR-074, FR-075 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

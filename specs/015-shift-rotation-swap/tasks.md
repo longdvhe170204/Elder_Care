@@ -150,7 +150,7 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 - [ ] T028 [P] Cài `XoayCaThongKeApi` (016); mở rộng `BT/common/HopDongApiTest.java` với `specs/015-shift-rotation-swap/contracts/api-015.yaml`
 - [ ] T029 Thay bản giả `KiemTraCongBoMoRong` ở test 008 (008 T002) bằng bản cài của 015 và chạy lại
 - [ ] T030 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC-001, SC-004, SC-006 theo quickstart mục 5
-- [ ] T031 Rà truy vết: DBR-21 (qua 008), DBR-25 và BR-M09-09 → 11 có test
+- [ ] T031 Rà truy vết: DBR-21 (qua 008), DBR-25 và BR-M09-09 → 11 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-040, FR-041, FR-042, FR-043, FR-044, FR-045, FR-046 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

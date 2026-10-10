@@ -246,7 +246,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 - [ ] T060 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/005-daily-care-tasks/contracts/api-005.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 005
 - [ ] T061 Khi 006, 007, 008, 011, 012, 014 có bản thật, chạy lại test US2, US4, US5, US9 với bean thật thay T002
 - [ ] T062 Đo NFR-02 (mở checklist 3 giây) và khối lượng 7.500 công việc/ngày với dữ liệu sinh; chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3
-- [ ] T063 Rà truy vết data-model mục 12: DBR-11, 12, 15, 17, 23, 25 và BR-M04-01 → 14, 19, 20, 24 → 29, BR-M09-01, 08 (phần 005), BR-M15-20 (phần 005) có test
+- [ ] T063 Rà truy vết data-model mục 12: DBR-11, 12, 15, 17, 23, 25 và BR-M04-01 → 14, 19, 20, 24 → 29, BR-M09-01, 08 (phần 005), BR-M15-20 (phần 005) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-009, FR-010, FR-049, FR-050 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

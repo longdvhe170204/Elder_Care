@@ -52,19 +52,19 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 
 ## Phase 3: User Story 1 – Đăng ký tiếp nhận và danh sách điều kiện tiếp nhận (Priority: P1) 🎯 MVP
 
-**Goal**: Lượt đăng ký, tiến trình, danh sách điều kiện tiếp nhận khớp lệnh Hoàn tất tiếp nhận của 001 (FR-001 → FR-006, BR-M02-15, BR-M02-22).
+**Goal**: Lượt đăng ký, tiến trình, danh sách điều kiện tiếp nhận khớp lệnh Hoàn tất tiếp nhận của 001 (FR-001 → FR-006, FR-076, BR-M02-15, BR-M02-22).
 
 **Independent Test**: 3 lượt đăng ký (đủ điều kiện; thiếu cọc; nội trú chưa có giường); kiểm danh sách điều kiện và kết quả Hoàn tất tiếp nhận.
 
 ### Tests cho User Story 1
 
 - [ ] T013 [P] [US1] Test `BT/m02/LuotDangKyIT.java`, `CapNhatLuotDangKyIT.java`, `TienTrinhIT.java`: một lượt mở mỗi người (`UNIQUE nct_dang_mo`); cập nhật có `If-Match` và lý do; `ngay_dang_ky` không đổi khi đã có hồ sơ chờ (BR-M02-15)
-- [ ] T014 [P] [US1] Test `BT/m02/FR_004_DanhSachKhopLenhIT.java`, `BR_M02_22_MucHopDongIT.java`: danh sách điều kiện bằng `xemDieuKien` của 001 khớp kết quả lệnh; mức hợp đồng khác mức hiện hành chặn Hoàn tất tiếp nhận (FR-004, FR-025b)
+- [ ] T014 [P] [US1] Test `BT/m02/FR_004_DanhSachKhopLenhIT.java`, `BR_M02_22_MucHopDongIT.java`, `FR_076_CanhBaoChuaVaoOIT.java` (cảnh báo hằng ngày "phí đang tính cho ngày chưa vào ở" khi nội trú chưa Hoàn tất tiếp nhận sau ngày bắt đầu hợp đồng; dừng khi Hoàn tất tiếp nhận, Hủy tiếp nhận hoặc phụ lục đổi ngày bắt đầu; không báo Quản lý viện): danh sách điều kiện bằng `xemDieuKien` của 001 khớp kết quả lệnh; mức hợp đồng khác mức hiện hành chặn Hoàn tất tiếp nhận (FR-004, FR-025b)
 
 ### Implementation cho User Story 1
 
 - [ ] T015 [US1] Tạo `MIG/V004_03__luot_dang_ky.sql`: `luot_dang_ky` (`loai_luu_tru_mong_muon ENUM('NOI_TRU_DAI_HAN','NOI_TRU_NGAN_NGAY','BAN_TRU')`, `muc_du_kien`, `trang_thai ENUM('DANG_XU_LY','DANG_CHO','DA_TIEP_NHAN','DA_HUY')`, cột sinh `nct_dang_mo` `UNIQUE`) (data-model mục 3)
-- [ ] T016 [US1] Cài `BE/m02/dangky/internal/LuotDangKyService.java` (lập khi người Đang tiếp nhận, cập nhật, tiến trình) và `DieuKienTiepNhanService.java` (`DieuKienTiepNhanApi` qua `TrangThaiNguoiCaoTuoiApi.xemDieuKien`) (research T-09)
+- [ ] T016 [US1] Cài `BE/m02/dangky/internal/LuotDangKyService.java` (lập khi người Đang tiếp nhận, cập nhật, tiến trình) và `DieuKienTiepNhanService.java` (`DieuKienTiepNhanApi` qua `TrangThaiNguoiCaoTuoiApi.xemDieuKien`; cảnh báo FR-076 trên danh sách và nhắc hằng ngày qua việc `NHAC` của `ViecHangNgayM02.java`) (research T-09)
 - [ ] T017 [US1] Cài trong `ThamGiaM02.java` phần `HOAN_TAT_TIEP_NHAN` (điều kiện 004: hợp đồng Hiệu lực, không sớm hơn ngày bắt đầu, mức trùng, đặt cọc qua `TrangThaiDatCocPort`; tác động: lượt `DA_TIEP_NHAN`, phát `TiepNhanHoanTat`) và `HUY_TIEP_NHAN` (lượt `DA_HUY`, hợp đồng Nháp/Chờ ký → `DA_HUY`, đóng hồ sơ chờ) (FR-002, FR-004)
 - [ ] T018 [US1] Tạo `BE/m02/dangky/web/LuotDangKyController.java`: `POST/GET /luot-dang-ky`, `GET /luot-dang-ky/{id}`, `POST …/{id}/cap-nhat`, `GET …/{id}/dieu-kien-tiep-nhan`, `…/tien-trinh`
 - [ ] T019 [P] [US1] Tạo màn web `web/src/tinh-nang/dang-ky-tiep-nhan/` và test `DieuKienTiepNhan.test.tsx`; app người thân `app-nguoi-than/lib/tinh-nang/luu-tru/` (tiến trình tiếp nhận)
@@ -257,7 +257,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 - [ ] T071 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/004-admission-residency/contracts/api-004.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 004
 - [ ] T072 Khi 005, 006, 007, 010, 012, 013, 017 có bản thật, chạy lại test US1, US4, US6, US7, US8 với bean thật thay T002
 - [ ] T073 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T074 Rà truy vết data-model mục 15: DBR-02, 06, 07, 08, 23, 25 và BR-M02-01 → 10, 15 → 22 có test
+- [ ] T074 Rà truy vết data-model mục 15: DBR-02, 06, 07, 08, 23, 25 và BR-M02-01 → 10, 15 → 22 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-074, FR-075, FR-075a — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

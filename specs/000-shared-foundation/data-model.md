@@ -104,7 +104,7 @@ Bản ghi không có cột "đã đính chính" hay "đã hủy". Hai thông tin
 
 **Kiểm tra giá trị (FR-015)**: `KiemTraThamSo` đọc `kieu` và `rang_buoc`, rồi kiểm tham chiếu chéo. Ví dụ CFG-M15-06 > CFG-M15-05: đổi một mã thì kiểm lại ràng buộc của mã kia. Vi phạm thì trả 422 `GIA_TRI_KHONG_HOP_LE`.
 
-**Nguồn dữ liệu nạp**: 120 mã ở Phụ lục 25. Giá trị mặc định chuyển sang kiểu có cấu trúc, ví dụ "48 giờ" thành `{"giaTri":48,"donVi":"GIO"}`, còn "5 lần / khóa 15 phút" thành một đối tượng hai trường. Việc chuyển đổi được rà tay trong task. Phụ lục 25 không ghi khoảng hợp lệ (xem plan, "Điểm cần báo lại").
+**Nguồn dữ liệu nạp**: 117 mã ở Phụ lục 25. Giá trị mặc định chuyển sang kiểu có cấu trúc, ví dụ "48 giờ" thành `{"giaTri":48,"donVi":"GIO"}`, còn "5 lần / khóa 15 phút" thành một đối tượng hai trường. Việc chuyển đổi được rà tay trong task. Phụ lục 25 không ghi khoảng hợp lệ (xem plan, "Điểm cần báo lại").
 
 ---
 

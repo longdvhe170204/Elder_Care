@@ -232,7 +232,7 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 - [ ] T062 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/003-room-bed-allocation/contracts/api-003.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 003
 - [ ] T063 Khi 004, 007, 008, 019 có bản thật, chạy lại test của US2, US4, US7, US8 với bean thật thay T002
 - [ ] T064 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC-005 (danh sách giường < 1 giây) theo quickstart mục 5
-- [ ] T065 Rà truy vết data-model mục 11: DBR-09, 10, 23, 25, 26, 32 (phần 003) và BR-M03-01 → 07, 09, 10, 13, 15, 19 → 25 có test
+- [ ] T065 Rà truy vết data-model mục 11: DBR-09, 10, 23, 25, 26, 32 (phần 003) và BR-M03-01 → 07, 09, 10, 13, 15, 19 → 25 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-024, FR-025 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 
