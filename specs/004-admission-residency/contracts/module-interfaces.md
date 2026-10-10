@@ -76,6 +76,13 @@ TienTrinhView tienTrinh(long luotDangKyId);              // FR-003
 DanhSachDieuKienView dieuKienKetThuc(long hoSoKetThucId); // FR-063, kèm ngoại lệ (012 FR-068)
 ```
 
+### 1.5a. `LuuTruThongKeApi` (016; bổ sung theo plan 016, research O-10)
+
+```java
+Stream<LoaiLuuTruTaiNgayView> loaiLuuTruTaiNgay(PhamViLoc phamVi, LocalDate ngay);  // 016 FR-022: hợp đồng hiệu lực (kể cả quá hạn), chờ hiệu lực, chưa xác định
+Stream<HoSoChoView> danhSachCho(LocalDate tu, LocalDate den);                       // 016 FR-025: trạng thái, loại lưu trú, mức dự kiến, thời gian chờ, lý do rời
+```
+
 ### 1.6. `DanhSachViecSauQuaDoiApi`
 
 ```java
@@ -115,6 +122,7 @@ DanhSachViecView xem(long nctId);
 | `HoSoKetThucDaLap`, `…DaDoiNgay`, `…DaHuy`, `…HoanTat` (`hoSoKetThucId`, `nctId`, ngày) | 010, 017, 018, 012 | FR-033a, FR-066 |
 | `QuaDoiDaGhiNhan(nctId, thoiDiem, banGhiId)` | 017, 018, 012 | FR-033a, FR-070 |
 | `NgayNghiBanTruDaDoi(ngay, hieuLuc)`; `BaoVangBanTruDaGhi(nctId, ngay, buoi, duHan)` | 005, 010, 011 | FR-060, FR-060a |
+| `PhienBanDonGiaDaTao(dichVuId, hieuLucTu, hieuLucDen)` (bổ sung theo plan 010): khi tạo phiên bản đơn giá, kể cả hiệu lực lùi cho khoảng chưa có phiên bản (DBR-08) | 010 (tính lại khoản thiếu đơn giá, 010 FR-012) | FR-034 → FR-036 |
 
 ---
 
@@ -129,10 +137,14 @@ interface NguoiDaiDienPort {          // 012 cài
 }
 interface BanGhiDonPort {             // 012 cài
   Optional<BanGhiDonView> banGhiDonHopLe(long nctId, long nguoiDonId, Instant thoiDiem); // FR-048; 012 FR-021, FR-024, FR-026
+  void daDung(long banGhiDonId, String lenhNguon, long nguonId);
+      // bổ sung theo plan 012: MANDATORY, trong lệnh Cho tạm vắng và bàn giao khi Kết thúc lưu trú; lần hai → BAN_GHI_DON_DA_DUNG
 }
 interface TrangThaiDatCocPort {       // 017 cài
   TrangThaiDatCoc trangThai(long hopDongId);   // CHUA_DAP_UNG | DA_DAP_UNG | KHONG_YEU_CAU, kèm căn cứ (FR-031)
 }
+    // bổ sung theo plan 017: 017 phát m11.api.TrangThaiDatCocDaDoi và DieuKienQuyetToanDaDoi khi kết quả đổi;
+    // 004 dùng để làm mới màn điều kiện, giá trị vẫn đọc qua port
 interface KyCuoiPort {                // 010 cài; mọi hàm MANDATORY
   long taoKyCuoiNhap(long nctId, LocalDate ngayKetThucDuKien);   // FR-066 (1): tác động kèm lệnh lập hồ sơ kết thúc
   void tinhLai(long nctId, LocalDate ngayMoi);                   // đổi ngày, quá ngày dự kiến
