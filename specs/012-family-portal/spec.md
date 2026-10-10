@@ -102,6 +102,12 @@ Theo Q-194, báo cáo thăm, phản hồi, bản tin thuộc giai đoạn sau; d
 - Bỏ gợi ý khung thăm còn chỗ; người đăng ký xem được số chỗ còn lại của các khung (số liệu tính để hiển thị).
 - Viết lại: Phạm vi mục 8; User Story 2 kịch bản 2; User Story 7; FR-042, FR-043, FR-045 (dòng Kết thúc ở lại), FR-046c (b); mục H (FR-051 → FR-055, FR-057); FR-072, FR-073; bảng thông báo; Key Entities; SC-006; Assumptions.
 
+### Cập nhật 2026-10-10, lượt 2 (đồng bộ câu chữ sau rà soát điểm báo lại của plan)
+
+- FR-046c thứ hai (đồng ý về muộn) đổi mã thành FR-046d.
+- Bảng FR-067 dòng "Quy trình đón": Điều dưỡng có T như FR-022 (Q-214).
+- Bảng FR-057: Trưởng tầng nhận xét sau CFG-M10-12 theo FR-053 (CFG-M10-11 là tham số của yêu cầu thay đổi quyền).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 10 mục 14.1 → 14.8; BR-M10-01 → 09, BR-M10-10 phần cổng; DBR-02, DBR-03; UC-55 → UC-60; NFR-08 phần lượt xem của người thân; CFG-M10-01 → 03, CFG-M10-04 → 12 (đề xuất); thực thể NGUOI_THAN, QUAN_HE_NGUOI_THAN, LUOT_THAM, PHAN_HOI, BAN_TIN):
@@ -456,7 +462,7 @@ Khi người thân được phép ở lại với người cao tuổi (ví dụ 
 - **FR-046c** *(bổ sung 2026-09-28, Q-211, Q-213)*: Người thân nhận thêm các thông báo sau, chia phần theo loại thông tin (feature 009, Q-105): (a) mọi người đại diện nhận thông báo "sắp hết tiền" hoặc "còn nợ" mức Trung bình; phần có số tiền chỉ tới người có quyền xem chi phí (feature 017 FR-018); (b) người liên hệ chính và mọi người đại diện nhận thông báo Khẩn cấp khi người cao tuổi có dấu nguy kịch, với nội dung tối thiểu nếu không thuộc bản đồng ý (Q-72), không chứa nội dung nguyện vọng, và nhân viên được nhắc gọi điện để xác nhận lại nguyện vọng (feature 007 FR-050b; Q-307). Kết quả xác nhận lại được nhân viên ghi ở feature 007; cổng không có lệnh tự đổi nguyện vọng. *(Nguồn: BR-M11-13, BR-M05-15, 16)*
 - **FR-046b**: Ngoài bốn loại ở FR-046, cổng MUST hiển thị mục **đồ gửi** do feature 013 cung cấp (danh sách đồ gửi, trạng thái, lịch sử bàn giao, ảnh) chỉ cho người đại diện và người thân có quyền "được phép đón" đang hiệu lực của người cao tuổi đó, xét tại thời điểm xem; người thân khác MUST NOT thấy mục này. Cổng MUST cho người đại diện: xác nhận hoặc từ chối (kèm lý do) yêu cầu xác nhận người nhận khác; ghi hoặc rút (kèm lý do) đồng ý cho tự giữ tiền mặt, trang sức. Vòng đời, điều kiện và thông báo của hai thao tác này do feature 013 định nghĩa (feature 013 FR-015a, FR-017, FR-017b, FR-030). *(Nguồn: 14.6, BR-M12-04, BR-M12-06, BR-M12-09; đồng bộ spec 013)*
 - **FR-046a**: Cổng MUST cho người đại diện có quan hệ Hiệu lực xem và quyết định (Đồng ý / Từ chối kèm lý do) các đề nghị mua hộ ở trạng thái Chờ đồng ý của người cao tuổi mình đại diện. Đề nghị hiển thị mục cần mua, số lượng, số tiền dự kiến, lý do, người yêu cầu. Với thuốc, chỉ hiện tên thuốc khi người đại diện có quyền xem sức khỏe có tác dụng (Q-133). Vòng đời, việc nhắc và quy tắc "quyết định đầu tiên được ghi nhận" do feature 010 định nghĩa (feature 010 FR-023, FR-023a). Yêu cầu này không đi qua vòng đời "Chờ xác nhận" của FR-020. Người đại diện cũng MUST xem được, trên phần chi phí, khoản mua hộ đã duyệt có phần vượt số đã đồng ý, kèm lý do của Quản lý viện (Q-137). **(Bổ sung, 2026-09-30, Q-251)** Đề nghị quay lại Chờ đồng ý do Hành chính "Xin đồng ý bổ sung" (feature 010 FR-024) MUST hiển thị cả số tiền đã đồng ý trước và số tiền mới, cùng lý do; từ chối thì đề nghị giữ số đã đồng ý trước. Người thân chưa lập đề nghị mua hộ qua cổng ở giai đoạn này. *(Nguồn: BR-M11-07, BR-M10-10, UC-79; đồng bộ spec 010; Q-251)*
-- **FR-046c**: **(Đồng bộ spec 014, Q-167, Q-176)** Người đại diện MUST ghi được "đồng ý về muộn" cho người bán trú vào một buổi hoạt động hoặc chuyến đi cụ thể kết thúc sau giờ về theo lịch, và rút được đồng ý trước giờ bắt đầu của buổi; bản ghi gửi cho feature 014 (FR-016a). Người đại diện được báo khi giờ về dự kiến của ngày được dời. Mục hoạt động trên cổng (loại "chung") gồm buổi đã đăng ký, chuyến đi (điểm đến, giờ rời, giờ về dự kiến) và số hoạt động đã tham gia theo feature 014 FR-033; không gồm mức độ tham gia, cảnh báo cô lập (feature 014 FR-068). *(Nguồn: 3.4, 14.6; feature 014 FR-016a, FR-068)*
+- **FR-046d** *(đổi mã từ FR-046c thứ hai, 2026-10-10)*: **(Đồng bộ spec 014, Q-167, Q-176)** Người đại diện MUST ghi được "đồng ý về muộn" cho người bán trú vào một buổi hoạt động hoặc chuyến đi cụ thể kết thúc sau giờ về theo lịch, và rút được đồng ý trước giờ bắt đầu của buổi; bản ghi gửi cho feature 014 (FR-016a). Người đại diện được báo khi giờ về dự kiến của ngày được dời. Mục hoạt động trên cổng (loại "chung") gồm buổi đã đăng ký, chuyến đi (điểm đến, giờ rời, giờ về dự kiến) và số hoạt động đã tham gia theo feature 014 FR-033; không gồm mức độ tham gia, cảnh báo cô lập (feature 014 FR-068). *(Nguồn: 3.4, 14.6; feature 014 FR-016a, FR-068)*
 - **FR-047**: Người thân MUST chỉ thấy giá trị hiện hành, không thấy nhật ký hay giá trị trước đính chính (feature 000). *(Nguồn: 19.4)*
 - **FR-048**: Mỗi lần người thân mở một phần thuộc loại sức khỏe MUST được ghi nhật ký gồm: người thân, người cao tuổi, phần đã xem, nguồn (cổng / bản tin / thông báo), thời điểm. Với bản tin và thông báo gửi qua feature 009, lần xem được ghi khi người thân mở bản tin hoặc thông báo có phần sức khỏe mà người đó được thấy (feature 009 FR-034), mỗi lần mở một bản ghi. Quản lý viện MUST tra cứu được nhật ký này; người thân MUST NOT xem nhật ký. *(Nguồn: NFR-08, 19.4)*
 - **FR-049**: Chỉ người đại diện có quyền "được yêu cầu thay đổi dịch vụ" MUST thấy và dùng được thao tác gửi yêu cầu thay đổi dịch vụ; yêu cầu MUST được chuyển cho feature 004 (FR-039). *(Nguồn: BR-M10-01)*
@@ -475,7 +481,7 @@ Khi người thân được phép ở lại với người cao tuổi (ví dụ 
 | Từ | Lệnh | Đến | Ai | Điều kiện | Tác động |
 | --- | --- | --- | --- | --- | --- |
 | (chưa có) | Lập bản tin | Chờ duyệt | Điều dưỡng (FR-053) | FR-051: đã qua mốc của kỳ; chưa có bản tin cho (người cao tuổi, kỳ) | Hiển thị số liệu tổng hợp (FR-052) |
-| Chờ duyệt | Soạn nội dung, nhận xét | Chờ duyệt | Điều dưỡng; Trưởng tầng sau mốc báo của CFG-M10-11 | FR-053 | Lưu nhận xét, người, thời điểm |
+| Chờ duyệt | Soạn nội dung, nhận xét | Chờ duyệt | Điều dưỡng; Trưởng tầng sau CFG-M10-12 kể từ mốc của kỳ (sửa 2026-10-10) | FR-053 | Lưu nhận xét, người, thời điểm |
 | Chờ duyệt | Duyệt | Đã gửi | Điều dưỡng; Trưởng tầng được giao sau CFG-M10-12 (duyệt thay) | FR-053, BR-M10-09 | Gửi qua 009 (FR-054); ghi dấu "duyệt thay" nếu có |
 | Chờ duyệt | Tới mốc của kỳ kế tiếp | Không gửi | Hệ thống (theo lịch) | — | Báo Quản lý viện (FR-073) |
 | Chờ duyệt | (Hệ thống) Người cao tuổi qua đời | Không gửi | Hệ thống | feature 004 FR-073 | — |
@@ -509,7 +515,7 @@ Khi người thân được phép ở lại với người cao tuổi (ví dụ 
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Hồ sơ, quan hệ, vai trò người thân | X, D (đặt/thôi người đại diện khi đã có người đại diện, FR-005) | — | — | — | T (gồm phiếu đăng ký người thân, FR-008) | X (của mình), xác nhận đặt/thôi người đại diện khác | X (của mình) |
 | Yêu cầu thay đổi quyền, danh sách đón, dấu "được tự về" | D | — | — | — | T | T, xác nhận | T (chỉ với chính mình, FR-014) |
-| Quy trình đón, ngoại lệ đón | D (ngoại lệ) | T (Cho tạm vắng) | — | T (Điểm danh về, gồm "Tự về") | T (mọi loại, gồm "Tự về") | Xác nhận ngoại lệ | — |
+| Quy trình đón, ngoại lệ đón | D (ngoại lệ) | T (Cho tạm vắng) | T (Điểm danh về, gồm "Tự về"; FR-022, Q-214; sửa 2026-10-10) | T (Điểm danh về, gồm "Tự về") | T (mọi loại, gồm "Tự về") | Xác nhận ngoại lệ | — |
 | Đăng ký thăm | X | X | — | — | T | T (nếu có quyền) | T (nếu có quyền) |
 | Vào/ra lượt thăm | X | X | — | — | T | — | — |
 | Người thân ở lại | X, xác nhận khi tầng không có Trưởng tầng | T (xác nhận, từ chối, bắt đầu, kết thúc) | — | — | T (đăng ký, bắt đầu, gia hạn, kết thúc, hủy) | X | X |
@@ -695,3 +701,5 @@ Khi người thân được phép ở lại với người cao tuổi (ví dụ 
 **(2026-10-06) Thay đổi do chủ dự án chốt Q-307 (bỏ gợi ý, đề xuất, yêu cầu và sự cố do hệ thống tự tạo).** *(Đã xử lý 2026-10-06: spec đã viết lại, xem mục "Cập nhật 2026-10-06, lượt 4" ở Clarifications.)*
 
 - **Q-307** – Bản tin do Điều dưỡng phụ trách tự soạn; hệ thống chỉ tính sẵn số liệu tổng hợp để xem, không gợi ý nội dung (14.5, BR-M10-08). Giữ: cảnh báo do hệ thống tạo và leo thang, nhắc, thông báo; bản ghi kèm lệnh của actor; số liệu tính để hiển thị (24.2).
+
+**(2026-10-10) Plan 012, điểm báo lại 1 → 5.** *(Đã xử lý 2026-10-10: sửa bảng FR-067, bảng FR-057; FR-046c thứ hai thành FR-046d; spec 014 FR-016a ghi hai nguồn ghi đồng ý về muộn. Dẫn chiếu "4.4", mục 4.2 tra qua bảng ánh xạ ở Phụ lục 26.)*

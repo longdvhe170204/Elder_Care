@@ -64,7 +64,7 @@ Plan này cũng chốt các quyết định nền cho mọi feature sau (R-01 �
 
 **Scale/Scope**:
 - NFR-01: 300 người cao tuổi, 100 nhân viên, 60 người dùng đồng thời, 600 tài khoản người thân.
-- 117 mã CFG (Phụ lục 25 hiện hành); 13 loại yêu cầu phê duyệt đã biết (bảng ở spec); khoảng 10 loại bản ghi nhóm 3 có đính chính.
+- 118 mã CFG (Phụ lục 25 hiện hành, gồm CFG-M11-10 theo Q-335); 13 loại yêu cầu phê duyệt đã biết (bảng ở spec); khoảng 10 loại bản ghi nhóm 3 có đính chính.
 - Một instance backend.
 
 Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chốt ở [research.md](research.md). Hai điểm về tài liệu nguồn được ghi ở mục "Điểm cần báo lại" bên dưới; chúng không chặn thiết kế.
@@ -180,10 +180,10 @@ app-nguoi-than/
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới, rồi sửa `docs/nghiep-vu.md` và spec 000.
 
-1. **Phụ lục 25 không có kiểu và khoảng hợp lệ của tham số.** FR-011 và FR-015 đòi mỗi tham số có "kiểu giá trị, khoảng hợp lệ", và giá trị ngoài khoảng bị từ chối. Phụ lục 25 chỉ có mã, mô tả, mặc định, nơi dùng. Plan tự đặt kiểu (suy từ đơn vị của giá trị mặc định) và ràng buộc kỹ thuật hiển nhiên (thời lượng > 0, tỷ lệ 0–100, số lượng ≥ 0). Plan chỉ dùng ràng buộc nghiệp vụ khi nguồn có ghi, ví dụ CFG-M15-06 > CFG-M15-05. Cận trên và cận dưới nghiệp vụ (ví dụ CFG-M05-01 không được dài quá bao nhiêu) chưa có nguồn. Đề nghị: thêm cột "Khoảng hợp lệ" vào Phụ lục 25, hoặc chốt bằng Q rằng chỉ áp ràng buộc kỹ thuật.
-2. **BR-M15-07 và FR-016 khác nhau về thời điểm hiệu lực của tham số.**
+1. **Phụ lục 25 không có kiểu và khoảng hợp lệ của tham số.** FR-011 và FR-015 đòi mỗi tham số có "kiểu giá trị, khoảng hợp lệ", và giá trị ngoài khoảng bị từ chối. Phụ lục 25 chỉ có mã, mô tả, mặc định, nơi dùng. Plan tự đặt kiểu (suy từ đơn vị của giá trị mặc định) và ràng buộc kỹ thuật hiển nhiên (thời lượng > 0, tỷ lệ 0–100, số lượng ≥ 0). Plan chỉ dùng ràng buộc nghiệp vụ khi nguồn có ghi, ví dụ CFG-M15-06 > CFG-M15-05. Cận trên và cận dưới nghiệp vụ (ví dụ CFG-M05-01 không được dài quá bao nhiêu) chưa có nguồn. Đề nghị: thêm cột "Khoảng hợp lệ" vào Phụ lục 25, hoặc chốt bằng Q rằng chỉ áp ràng buộc kỹ thuật. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
+2. **BR-M15-07 và FR-016 khác nhau về thời điểm hiệu lực của tham số.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - BR-M15-07 ghi "Ngày hiệu lực của phiên bản, **tham số** và yêu cầu là ngày lịch, có hiệu lực từ 00:00 của ngày đó".
    - FR-016, NFR-12 và US4 #3 ghi giá trị mới "có hiệu lực ngay từ thời điểm lưu".
    - Plan theo FR-016 và US4 #3: hiệu lực ngay, lịch sử theo thời điểm (R-07), vì đó là hành vi spec đã viết kịch bản kiểm thử.
    - Đề nghị chốt bằng Q: bỏ chữ "tham số" khỏi BR-M15-07, hoặc nếu muốn tham số có ngày hiệu lực tương lai thì bổ sung lệnh "đặt giá trị từ ngày".
-3. **(Nhỏ, đồng bộ câu chữ spec)** Mục "Phạm vi" của spec 000 ghi "mọi module (001–016)". Hiện đã có feature 017–019 cũng dùng 000 (bảng loại yêu cầu ở FR-031 có 017, 019). Đề nghị sửa thành "mọi feature 001–019" khi đồng bộ spec lần sau. Không ảnh hưởng thiết kế.
+3. **(Nhỏ, đồng bộ câu chữ spec)** Mục "Phạm vi" của spec 000 ghi "mọi module (001–016)". Hiện đã có feature 017–019 cũng dùng 000 (bảng loại yêu cầu ở FR-031 có 017, 019). Đề nghị sửa thành "mọi feature 001–019" khi đồng bộ spec lần sau. Không ảnh hưởng thiết kế. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*

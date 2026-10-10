@@ -207,7 +207,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 - [ ] T037 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/012-family-portal/contracts/api-012.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 012
 - [ ] T038 Thay bản giả của 002 (`QuanHeNguoiThanApi`), 004 (`NguoiDaiDienPort`, `BanGhiDonPort`), 005 (`BanGhiDonBanTruPort`), 007 (`NguoiThanKhanCapPort`), 009 (`NguoiThanNhanThongBaoPort`), 011 (`LuotOLaiAnPort`) bằng bản cài của 012 và chạy lại test các feature đó
 - [ ] T039 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T040 Rà truy vết: DBR-02, 03, 25 và BR-M10-01 → 09 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-067, FR-068, FR-069, FR-070, FR-071, FR-072, FR-074, FR-075 — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T040 Rà truy vết: DBR-02, 03, 25 và BR-M10-01 → 09 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-067, FR-068, FR-069, FR-070, FR-071, FR-072, FR-074, FR-075, FR-046d (bổ sung 2026-10-10) — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

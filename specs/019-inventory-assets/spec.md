@@ -52,6 +52,11 @@
 
 - **Q-307, BR-M08-17**: hệ thống không đề xuất lô. Người xuất tự chọn lô; hệ thống hiển thị các lô còn tồn theo thứ tự hạn dùng (số liệu hiển thị, Q-307 (e)) và chặn dòng xuất từ lô hạn muộn hơn khi còn lô hạn sớm hơn, trừ khi có lý do. Sửa User Story 2 (mô tả, kịch bản 1), FR-003.
 
+### Cập nhật 2026-10-10, lượt 2 (đồng bộ Q-313, Q-314)
+
+- **Q-314**: thanh lý tài sản đi qua yêu cầu phê duyệt chung. Sửa bảng FR-013.
+- **Q-313**: Trưởng tầng chỉ báo hỏng tài sản có vị trí thuộc tầng mình. Sửa bảng FR-013.
+
 ## Phạm vi
 
 **Trong phạm vi** (nhóm chức năng "Dinh dưỡng và kho bếp" và "Tài sản và đồ gửi", 1.6; UC-89 → UC-92, UC-94, UC-95):
@@ -299,11 +304,11 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 | (chưa có) | Ghi tăng tài sản | Sẵn sàng | Phụ trách bộ phận | Không phải loại giường; tài sản mua mới gắn yêu cầu mua sắm Đã duyệt của cùng bộ phận và có nguyên giá (Q-294), hàng tặng hoặc chuyển thì ghi nguồn (FR-008c) | Vị trí mặc định "kho tài sản" |
 | (chưa có) | Feature 003 tạo giường (Q-238) | Sẵn sàng | Hệ thống | — | Loại giường; vị trí là phòng của giường |
 | Sẵn sàng | Đưa vào sử dụng tại vị trí | Đang sử dụng | Phụ trách bộ phận | Vị trí hợp lệ; không phải loại giường (Q-242) | Ghi lịch sử vị trí |
-| Sẵn sàng, Đang sử dụng | Báo hỏng | Hỏng | Phụ trách bộ phận; Trưởng tầng (tài sản trong tầng mình) | Có mô tả; FR-015 với giường | Ghi hư hỏng; báo Phụ trách bộ phận |
+| Sẵn sàng, Đang sử dụng | Báo hỏng | Hỏng | Phụ trách bộ phận; Trưởng tầng (tài sản có vị trí thuộc tầng mình; tài sản ở kho tài sản, bãi xe chỉ Phụ trách bộ phận báo, Q-313) | Có mô tả; FR-015 với giường | Ghi hư hỏng; báo Phụ trách bộ phận |
 | Sẵn sàng, Đang sử dụng, Hỏng | Đưa vào bảo trì | Đang bảo trì | Phụ trách bộ phận; Trưởng tầng (tầng mình) | FR-015 với giường | Mở lần bảo trì |
 | Đang bảo trì | Ghi kết quả bảo trì: Đạt | Sẵn sàng | Phụ trách bộ phận | Có ngày, nội dung, đơn vị thực hiện; bảo trì thuê ngoài có chi phí: gắn yêu cầu mua sắm Đã duyệt (FR-008c) | Đóng lần bảo trì; FR-015 với giường |
 | Đang bảo trì | Ghi kết quả bảo trì: Không đạt | Hỏng | Phụ trách bộ phận | Như trên | Đóng lần bảo trì |
-| Mọi trạng thái trừ Đã thanh lý | Thanh lý | Đã thanh lý | Phụ trách bộ phận lập yêu cầu, Quản lý viện duyệt | Có lý do; FR-015 với giường | — |
+| Mọi trạng thái trừ Đã thanh lý | Thanh lý | Đã thanh lý | Phụ trách bộ phận lập yêu cầu, Quản lý viện duyệt | Có lý do; FR-015 với giường; yêu cầu thanh lý theo vòng đời yêu cầu phê duyệt chung (feature 000, 6.6; Q-314) | Tài sản chuyển Đã thanh lý khi yêu cầu được duyệt |
 | Mọi trạng thái trừ Đã thanh lý | Chuyển bộ phận quản lý (bổ sung, Q-284) | Giữ nguyên | Quản lý viện | Có lý do | Ghi lịch sử bộ phận |
 
 Đã thanh lý là trạng thái cuối. **(Sửa, 2026-10-06, Q-284)** "Phụ trách bộ phận" ở bảng trên là Phụ trách của bộ phận quản lý tài sản; ~~bộ phận chưa có người phụ trách thì Quản lý viện thực hiện thay (13.1a)~~ (**sửa, 2026-10-06, Q-292:** bộ phận chưa có người phụ trách thì lệnh bị chặn, FR-008).
@@ -405,3 +410,5 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 - **Q-299** – Quản lý viện không thuộc bộ phận nào và không được giao Phụ trách bộ phận; tài khoản các vai trò khác thuộc đúng một bộ phận (13.1a). Ảnh hưởng: FR-020.
 
 **(2026-10-10) FR-003 "hệ thống MUST đề xuất lô" trái Q-307 (a)** (plan 019, Điểm cần báo lại 1). *(Đã xử lý 2026-10-10: FR-003 viết theo BR-M08-17 — hiển thị lô theo hạn dùng, chặn khi chọn lô hạn muộn hơn mà không có lý do; không đổi nghiệp vụ, không cần Q mới.)*
+
+**(2026-10-10) Plan 019, điểm báo lại 2, 3.** *(Đã xử lý 2026-10-10: Q-313, Q-314; sửa bảng FR-013.)*

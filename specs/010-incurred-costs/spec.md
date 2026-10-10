@@ -82,6 +82,12 @@ Tài liệu nguồn (1.2, 15.1, 15.6, 15.9, BR-M11-11, BR-M11-13, BR-M11-15) và
 - Kỳ cuối: Hành chính lập trước phí lưu trú tới ngày kết thúc dự kiến (dấu "lập trước"). Điều kiện "chi phí kỳ cuối đã chốt" thêm vế kiểm tra mọi ngày tới ngày kết thúc dự kiến, và mọi ngày đã qua khi quá ngày dự kiến, đều có khoản trong bảng đã chốt. Có thêm lời nhắc cho người có thời gian tính phí mà chưa có bảng thường sau ngày cuối kỳ.
 - Viết lại: Phạm vi mục 2; User Story 1; các kịch bản của User Story 2 → 6 có Bộ lập lịch hoặc khoản tự sinh; Edge Cases; bảng nhóm dữ liệu; ba bảng trạng thái; FR-002, FR-004, FR-005 → 007, FR-011 → 014, FR-016, FR-020, FR-024, FR-027, FR-029, FR-031, FR-034 → 036, FR-043, FR-044; bảng giao tiếp; Key Entities; SC-001, 005, 006, 008, 010; Assumptions.
 
+### Cập nhật 2026-10-10, lượt 2 (đồng bộ Q-311, Q-333 sau rà soát điểm báo lại của plan)
+
+- **Q-333**: kỳ chi phí của viện chuyển Đang mở vào ngày 1 là chuyển trạng thái theo giờ, không lập bảng hay khoản. Ghi ở bảng trạng thái kỳ.
+- **Q-311**: mức nhắc đề nghị mua hộ chờ đồng ý là Trung bình (bảng FR-044).
+- User Story 5: kịch bản 7 đặt lại trước kịch bản 8, 9.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 11, mục 15; UC-61 → UC-64, UC-79):
@@ -213,9 +219,9 @@ Lệnh lập hồ sơ kết thúc lưu trú với ngày kết thúc dự kiến 
 4. **Given** kỳ cuối của A đã chốt đến 20/11, **When** ngày kết thúc dự kiến đổi sang 22/11, **Then** Hành chính được báo; điều kiện chi phí của feature 004 trở về Chưa đạt. **When** Hành chính lập khoản cho hai ngày 21/11, 22/11, **Then** đó là khoản điều chỉnh bổ sung ở bảng bổ sung, mang dấu "ảnh hưởng kết thúc lưu trú"; điều kiện về Đạt khi bảng chứa hai khoản đó được chốt (FR-034a, feature 004 FR-066).
 5. **Given** hết ngày 20/11 mà lệnh Kết thúc lưu trú chưa thực hiện, **When** ngày 21/11 kết thúc, **Then** Hành chính được báo, điều kiện chi phí của feature 004 về Chưa đạt, và Hành chính lập được phí ngày 21/11 cùng các ngày tiếp theo cho tới khi có ngày mới. Nếu kỳ cuối đã chốt, các khoản này là khoản điều chỉnh bổ sung mang dấu "ảnh hưởng kết thúc lưu trú" (BR-M11-08, Q-26, FR-035).
 6. **Given** kỳ cuối của A đã chốt ngày 18/11, **When** ngày 20/11 A dùng một liều thuốc nguồn viện trước lệnh Kết thúc lưu trú và Hành chính lập khoản cho liều đó, **Then** khoản đó là khoản điều chỉnh bổ sung ở bảng bổ sung của A, không mang dấu "ảnh hưởng kết thúc lưu trú". Điều kiện chi phí của feature 004 vẫn Đạt. Hành chính được nhắc cho tới khi bảng đó được chốt (FR-029, FR-034a).
+7. **Given** B qua đời lúc 10:00 ngày 15/11, **When** ghi nhận qua đời thành công, **Then** Hành chính không lập được khoản nào cho sự kiện có thời điểm sau 10:00 ngày 15/11 hoặc cho ngày sau 15/11. Ngày 15/11 vẫn lập được phí lưu trú. Một liều lúc 08:00 được ghi muộn lúc 11:00 vẫn lập được khoản. Mục "chốt chi phí kỳ cuối" trong danh sách việc sau qua đời chuyển Hoàn thành khi kỳ cuối của B Đã chốt (feature 004 FR-070, FR-071).
 8. **Given** A đã Kết thúc lưu trú ngày 20/11, bảng tháng 11 và bảng bổ sung tháng 11 đều Đã chốt, **When** ngày 03/12 một liều thuốc ngày 20/11 bị đính chính "Hủy ghi nhận", **Then** Hành chính được báo. **When** Hành chính lập khoản điều chỉnh âm, **Then** khoản vào bảng bổ sung tháng 12 của A (lập cùng lệnh), và hành chính được nhắc mỗi CFG-M02-09 cho tới khi bảng được chốt (FR-002a, FR-029).
 9. **Given** hồ sơ kết thúc của A có ngày dự kiến 20/11, **When** Hành chính lập khoản cho một liều nguồn viện có thời điểm 21/11 08:00, **Then** hệ thống chặn với lý do "ngoài thời gian tính phí". **When** ngày kết thúc dự kiến đổi sang 22/11, **Then** khoản cho liều đó lập được (FR-011).
-7. **Given** B qua đời lúc 10:00 ngày 15/11, **When** ghi nhận qua đời thành công, **Then** Hành chính không lập được khoản nào cho sự kiện có thời điểm sau 10:00 ngày 15/11 hoặc cho ngày sau 15/11. Ngày 15/11 vẫn lập được phí lưu trú. Một liều lúc 08:00 được ghi muộn lúc 11:00 vẫn lập được khoản. Mục "chốt chi phí kỳ cuối" trong danh sách việc sau qua đời chuyển Hoàn thành khi kỳ cuối của B Đã chốt (feature 004 FR-070, FR-071).
 
 ---
 
@@ -329,7 +335,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 | Trạng thái hiện tại | Lệnh / sự kiện | Trạng thái kế tiếp | Ai thực hiện | Điều kiện | Tác động |
 | --- | --- | --- | --- | --- | --- |
-| (chưa có) | Tới ngày 1 của tháng | Đang mở | Hệ thống (theo lịch) | — | — |
+| (chưa có) | Tới ngày 1 của tháng | Đang mở | Hệ thống (theo lịch; chuyển trạng thái theo giờ, không lập bảng hay khoản, Q-333) | — | — |
 | Đang mở | Hết ngày cuối tháng | Chờ chốt | Bộ lập lịch | — | Bắt đầu tính hạn chốt CFG-M11-01 (FR-031) |
 | Chờ chốt | Bảng cuối cùng của kỳ Đã chốt | Đã chốt | Hệ thống | Mọi bảng thường và bảng bổ sung thuộc kỳ Đã chốt; mọi người có thời gian tính phí trong kỳ đã có bảng thường (FR-002) | Kỳ sẵn sàng xuất trọn vẹn (FR-039) |
 
@@ -490,7 +496,7 @@ Từ chối, Hủy, Đã mua là trạng thái cuối. Đề nghị mua hộ là
 | Đề nghị mua hộ được đồng ý hoặc bị từ chối; không còn người đại diện có tài khoản | Hành chính | Nhẹ | Bảng đề nghị mua hộ, FR-023a |
 | Đề nghị mua hộ bị hủy sau khi đã được đồng ý | Người đã đồng ý | Nhẹ | Bảng đề nghị mua hộ |
 | Khoản mua hộ vượt số đã đồng ý được duyệt | Người đại diện | Nhẹ | FR-024 |
-| Đề nghị Chờ đồng ý quá CFG-M15-05 (mặc định \[48 giờ\]) / CFG-M15-06 (mặc định \[96 giờ\]) | Người có quyền quyết định / Quản lý viện | Theo feature 000 FR-031a | Bảng đề nghị mua hộ |
+| Đề nghị Chờ đồng ý quá CFG-M15-05 (mặc định \[48 giờ\]) / CFG-M15-06 (mặc định \[96 giờ\]) | Người có quyền quyết định / Quản lý viện | Trung bình (Q-311) | Bảng đề nghị mua hộ |
 
 ### Giao tiếp với feature khác
 
@@ -662,3 +668,5 @@ Nội dung gốc của từng điểm được giữ dưới đây để truy v�
 **(2026-10-06) Thay đổi do chủ dự án chốt Q-307 (bỏ gợi ý, đề xuất, yêu cầu và sự cố do hệ thống tự tạo).** *(Đã xử lý 2026-10-06: spec đã viết lại, xem mục "Cập nhật 2026-10-06, lượt 4" ở Clarifications.)*
 
 - **Q-307** – Hành chính tự lập từng khoản, mỗi khoản tham chiếu một sự kiện tính phí; bỏ danh sách sự kiện gợi ý, đánh dấu "không tính" và điều kiện chặn chốt bảng khi còn sự kiện chưa lập khoản (15.1 → 15.3, BR-M11-01, 06, 08). Khoản điều chỉnh sau chốt: hệ thống chỉ báo, không gợi ý số chênh lệch (BR-M11-05). Giữ: cảnh báo do hệ thống tạo và leo thang, nhắc, thông báo; bản ghi kèm lệnh của actor; số liệu tính để hiển thị (24.2).
+
+**(2026-10-10) Plan 010, điểm báo lại 1 → 4.** *(Đã xử lý 2026-10-10: Q-333, Q-311; sửa bảng trạng thái kỳ, bảng FR-044, thứ tự kịch bản User Story 5. BR-M11-05 ở tài liệu nguồn đã viết theo Q-307 (hệ thống báo Hành chính); điểm báo lại 13 giữ làm lịch sử.)*

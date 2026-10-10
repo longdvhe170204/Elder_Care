@@ -59,7 +59,7 @@ Không có SPI 017 khai cho module sau (016 đọc API).
 **Quyết định**:
 - Listener `HopDongDaDoiTrangThai(… den = CHO_KY)` (004): nếu hồ sơ chưa có sổ → mở `so_du` (số dư 0, số dư cọc 0) và cấp `ma_nop_tien` (tác động kèm lệnh gửi ký của 004; idempotent theo hồ sơ). Hồ sơ mới của người quay lại có sổ mới (khóa theo `nct_id`).
 - `ma_nop_tien`: chuỗi ngắn có chữ số kiểm tra (ví dụ `NCT` + 6 ký tự Base32 Crockford + 1 ký tự kiểm tra), `UNIQUE`, không dùng lại; sinh ngẫu nhiên và thử lại khi trùng. Chữ số kiểm tra giảm khớp nhầm khi gõ sai.
-- Thông tin nộp tiền: số tài khoản thu, tên ngân hàng, mã BIN (VietQR) của viện chưa có mã CFG ở Phụ lục 25; plan đặt chúng ở cấu hình triển khai của backend (biến môi trường, đọc lúc khởi động, Quản lý viện xem được trên màn cấu hình), không tự tạo mã CFG mới (plan, điểm báo lại 2). Mã QR theo chuẩn VietQR (EMVCo, không số tiền, nội dung = mã nộp tiền) dựng ở backend thành chuỗi payload; client vẽ ảnh QR. Không có thanh toán trực tuyến (Q-285).
+- Thông tin nộp tiền: số tài khoản thu, tên ngân hàng, mã BIN (VietQR) của viện đọc từ tham số CFG-M11-10 qua `ThamSoApi` (Q-335, sửa 2026-10-10); Quản lý viện đổi trên màn cấu hình, có lịch sử (BR-M15-04). Mã QR theo chuẩn VietQR (EMVCo, không số tiền, nội dung = mã nộp tiền) dựng ở backend thành chuỗi payload; client vẽ ảnh QR. Không có thanh toán trực tuyến (Q-285).
 - REST cổng `/cong/nguoi-cao-tuoi/{nctId}/so-du` (số dư, cọc, giao dịch Đã xác nhận, thông tin nộp tiền) và tải sao kê; kiểm `QuyenNguoiThanApi.quyenCoTacDung(XEM_CHI_PHI)` mỗi lần gọi (SC-010). Giao dịch thanh toán bảng chỉ hiện tổng (Q-133).
 
 ---

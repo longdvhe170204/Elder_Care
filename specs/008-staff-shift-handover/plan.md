@@ -195,19 +195,19 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
 
-1. **Nhật ký mỗi lần xem bàn giao.** Spec 008 FR-047 ("Mọi lần xem, hoàn tất, xác nhận, gửi ý kiến MUST ghi nhật ký") và FR-056 ("Nhật ký xem bàn giao MUST chỉ Quản lý viện xem được") trái 000 FR-043a ("Việc xem dữ liệu… MUST NOT được ghi nhật ký, trừ lần người thân xem hồ sơ sức khỏe") và Q-03 ("Không bổ sung nhật ký lần nhân viên xem dữ liệu sức khỏe ở giai đoạn này"). Plan theo Q-03 và 000: không ghi lần xem; hoàn tất, xác nhận, gửi ý kiến, bổ sung có nhật ký như mọi lệnh. Đề nghị bỏ chữ "xem" ở FR-047 và câu về nhật ký xem ở FR-056, hoặc mở Q mới nếu viện muốn ghi lần xem bàn giao.
+1. **Nhật ký mỗi lần xem bàn giao.** Spec 008 FR-047 ("Mọi lần xem, hoàn tất, xác nhận, gửi ý kiến MUST ghi nhật ký") và FR-056 ("Nhật ký xem bàn giao MUST chỉ Quản lý viện xem được") trái 000 FR-043a ("Việc xem dữ liệu… MUST NOT được ghi nhật ký, trừ lần người thân xem hồ sơ sức khỏe") và Q-03 ("Không bổ sung nhật ký lần nhân viên xem dữ liệu sức khỏe ở giai đoạn này"). Plan theo Q-03 và 000: không ghi lần xem; hoàn tất, xác nhận, gửi ý kiến, bổ sung có nhật ký như mọi lệnh. Đề nghị bỏ chữ "xem" ở FR-047 và câu về nhật ký xem ở FR-056, hoặc mở Q mới nếu viện muốn ghi lần xem bàn giao. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-2. **Câu chữ còn sót trước Q-307 trong spec 008.**
+2. **Câu chữ còn sót trước Q-307 trong spec 008.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - FR-055 còn "Thay đổi do hệ thống (tự lập, tự cập nhật bản nháp bàn giao, …)", trái FR-039, FR-040 sau Q-307.
    - Bảng FR-027 ghi người thực hiện "Hệ thống khi sao chép"; sao chép là lệnh của Trưởng tầng (FR-032). Plan ghi người thực hiện là Trưởng tầng, nguồn phân công `SAO_CHEP`.
    - Đề nghị sửa hai chỗ trên.
 
-3. **Danh sách bản ghi nguồn nhóm (f) "giường Chờ sẵn sàng quá hạn"**: 003 module-interfaces mục 1.9 ghi "Giường Chờ sẵn sàng quá hạn không có ở đây: người bàn giao tự ghi (FR-044, Q-307)", trong khi spec 008 FR-039 (f) yêu cầu người lập xem được danh sách này. Plan thêm hàm đọc `TinhTrangGiuongApi.choSanSangQuaHan` ở 003 (mục Đồng bộ 2): chỉ hiển thị, không lập mục. Không đổi nghiệp vụ; ghi lại để thống nhất cách hiểu "người bàn giao tự ghi".
+3. **Danh sách bản ghi nguồn nhóm (f) "giường Chờ sẵn sàng quá hạn"**: 003 module-interfaces mục 1.9 ghi "Giường Chờ sẵn sàng quá hạn không có ở đây: người bàn giao tự ghi (FR-044, Q-307)", trong khi spec 008 FR-039 (f) yêu cầu người lập xem được danh sách này. Plan thêm hàm đọc `TinhTrangGiuongApi.choSanSangQuaHan` ở 003 (mục Đồng bộ 2): chỉ hiển thị, không lập mục. Không đổi nghiệp vụ; ghi lại để thống nhất cách hiểu "người bàn giao tự ghi". *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-4. **Mức thông báo "bộ phận chưa có Phụ trách bộ phận"** (FR-001a) không có trong FR-058. Plan xếp Trung bình theo nguyên tắc 3 bậc (research N-14) vì lệnh của bộ phận bị chặn. Đề nghị ghi vào FR-058 và bảng 009 FR-043b.
+4. **Mức thông báo "bộ phận chưa có Phụ trách bộ phận"** (FR-001a) không có trong FR-058. Plan xếp Trung bình theo nguyên tắc 3 bậc (research N-14) vì lệnh của bộ phận bị chặn. Đề nghị ghi vào FR-058 và bảng 009 FR-043b. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-5. **Vai trò được tính phủ và tỷ lệ của Điều dưỡng làm việc chăm sóc** (FR-028a, FR-034): spec rõ; không cần đổi. Ghi lại: plan tính Điều dưỡng một lần trong tỷ lệ phục vụ và để 015 loại khỏi dòng phủ Nhân viên chăm sóc (Q-221).
+5. **Vai trò được tính phủ và tỷ lệ của Điều dưỡng làm việc chăm sóc** (FR-028a, FR-034): spec rõ; không cần đổi. Ghi lại: plan tính Điều dưỡng một lần trong tỷ lệ phục vụ và để 015 loại khỏi dòng phủ Nhân viên chăm sóc (Q-221). *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-6. **(Đồng bộ câu chữ spec 008, không đổi nghiệp vụ)**
+6. **(Đồng bộ câu chữ spec 008, không đổi nghiệp vụ)** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Assumptions còn câu dẫn `docs/phan-tich-yeu-cau.md` mục 4.2 (đã bỏ); có thể giữ làm lịch sử.
    - FR-036, FR-038 còn chữ "đề xuất" với CFG-M09-08, CFG-M09-09 dù đã có ở Phụ lục 25.

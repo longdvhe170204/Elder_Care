@@ -182,12 +182,12 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
 
-1. **Vai trò không xếp ca ở FR-016a** chỉ nêu Quản lý viện, Hành chính; Q-212 (spec 008 Assumptions) xếp Kế toán là vai trò không xếp ca, "trong ca" theo CFG-M13-06. Plan áp cho cả Kế toán. Đề nghị bổ sung Kế toán vào FR-016a.
-2. **Câu chữ còn sót trước Q-307 trong spec 009.**
+1. **Vai trò không xếp ca ở FR-016a** chỉ nêu Quản lý viện, Hành chính; Q-212 (spec 008 Assumptions) xếp Kế toán là vai trò không xếp ca, "trong ca" theo CFG-M13-06. Plan áp cho cả Kế toán. Đề nghị bổ sung Kế toán vào FR-016a. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
+2. **Câu chữ còn sót trước Q-307 trong spec 009.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Bảng FR-043b dòng 004 "Đề xuất hồ sơ chờ khi có giường trống (FR-013)": sau Q-307 không còn đề xuất; nên đổi thành "Báo có giường trống phù hợp" theo spec 004 hiện hành.
    - Key Entities "Lượt nhắc gọi *(sửa 2026-10-06, Q-307: thay "Lượt nhắc gọi")*" tự thay chính nó; nên ghi "thay Yêu cầu gọi điện".
    - Điểm báo lại 1, 2, 7 của spec còn dùng "yêu cầu gọi điện".
-3. **Danh mục trường thông tin sức khỏe dùng để chặn nội dung rút gọn** (FR-020): spec đòi "kiểm tra nội dung rút gọn theo các trường thuộc danh mục". Plan kiểm theo khóa tham số hiển thị mà module nguồn dùng để dựng nội dung rút gọn (research B-05), không phân tích văn bản tự do. Không đổi nghiệp vụ; ghi lại để chủ dự án biết giới hạn của cách kiểm.
-4. **(Đồng bộ câu chữ spec 009, không đổi nghiệp vụ)**
+3. **Danh mục trường thông tin sức khỏe dùng để chặn nội dung rút gọn** (FR-020): spec đòi "kiểm tra nội dung rút gọn theo các trường thuộc danh mục". Plan kiểm theo khóa tham số hiển thị mà module nguồn dùng để dựng nội dung rút gọn (research B-05), không phân tích văn bản tự do. Không đổi nghiệp vụ; ghi lại để chủ dự án biết giới hạn của cách kiểm. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
+4. **(Đồng bộ câu chữ spec 009, không đổi nghiệp vụ)** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Assumptions còn câu dẫn `docs/phan-tich-yeu-cau.md` mục 4.2 (đã bỏ); có thể giữ làm lịch sử.
    - Phạm vi còn "CFG-M13-03 → CFG-M13-06 (đề xuất)" và FR-016a, FR-016b, FR-018 còn "đề xuất" dù các mã đã ở Phụ lục 25.

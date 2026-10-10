@@ -199,36 +199,36 @@ app-nguoi-than/lib/tinh-nang/
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
 
-1. **BR-M02-20 tính giường "Chờ sẵn sàng" vào "lượt trống hiện tại".**
+1. **BR-M02-20 tính giường "Chờ sẵn sàng" vào "lượt trống hiện tại".** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - BR-M02-20 ghi lượt trống là "một giường Trống hoặc Chờ sẵn sàng chưa có giữ chỗ".
    - Spec 004 FR-012 ghi rõ "giường Chờ sẵn sàng chưa được tính là Trống". BR-M02-01, BR-M03-06, BR-M03-09 cũng chỉ kích hoạt danh sách chờ khi giường về Trống.
    - Plan theo FR-012: lượt trống bắt đầu khi giường về Trống (003 `batDauLuotTrong`).
    - Đề nghị sửa BR-M02-20 bỏ chữ "hoặc Chờ sẵn sàng" (có thể là dấu vết của Q-282).
 
-2. **Nhắc lập yêu cầu thay đổi lưu trú bị mô tả ở ba nơi.**
+2. **Nhắc lập yêu cầu thay đổi lưu trú bị mô tả ở ba nơi.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - 004 FR-039 ghi "chưa có yêu cầu thì nhắc Hành chính mỗi CFG-M03-02" cho cả đổi mức và chuyển giường gấp.
    - 001 FR-036 đã có nhắc đổi mức (job của 001); 003 FR-030 đã có nhắc sau chuyển gấp (job của 003).
    - Plan không thêm job ở 004 để tránh nhắc trùng. 004 chỉ cài `coYeuCauDoiMucChuaKetThuc` và báo 003 khi yêu cầu được lập.
    - Không đổi nghiệp vụ; đề nghị ghi ở FR-039 rằng việc nhắc do 001, 003 thực hiện.
 
-3. **(Đồng bộ câu chữ spec 004, không đổi nghiệp vụ)**
+3. **(Đồng bộ câu chữ spec 004, không đổi nghiệp vụ)** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - User Story 8 (đoạn mô tả) còn "dừng sinh chi phí"; US8 kịch bản 1 còn "sinh chi phí tự động dừng từ thời điểm qua đời", là cách nói trước Q-306. FR-070 đã viết đúng: các ngày sau ngày qua đời không là sự kiện tính phí.
    - Câu dưới bảng loại yêu cầu "Hai loại sau có ngày hiệu lực là ngày duyệt" không còn rõ là hai loại nào sau khi bỏ "Quyết định giữ giường" (Q-307). Plan hiểu là "Điều chỉnh điểm ưu tiên" và "Ngoại lệ điều kiện kết thúc".
    - Assumptions còn câu dẫn `docs/phan-tich-yeu-cau.md` mục 4.2 (đã bỏ); có thể giữ làm lịch sử.
 
-4. **Lệnh nào của 004 là "đăng ký lịch đến" để kiểm sức chứa khu nghỉ (003 FR-039, BR-M03-03)?**
+4. **Lệnh nào của 004 là "đăng ký lịch đến" để kiểm sức chứa khu nghỉ (003 FR-039, BR-M03-03)?** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Spec 003 viết "khi đăng ký hoặc thay đổi lịch đến (feature 004/005)". Spec 004 coi lịch đến là nội dung hợp đồng (FR-019) và chỉ nêu việc kiểm khi duyệt yêu cầu thay đổi (FR-037, FR-041).
    - Plan kiểm ở "Ghi nhận đã ký" hợp đồng bán trú và khi duyệt yêu cầu đổi lịch đến hoặc đổi sang bán trú.
    - Số đăng ký của một buổi gồm lịch trong hợp đồng Hiệu lực và lịch của phụ lục chờ hiệu lực (research T-10).
    - Đề nghị xác nhận, hoặc chốt bằng Q nếu muốn kiểm sớm hơn (ví dụ lúc Gửi ký).
 
-5. **Liên quan điểm báo lại 3 của plan 003.** Chuyển giường theo lịch bị hoãn vì giường chưa sẵn sàng làm yêu cầu thay đổi lưu trú đã "Đã áp dụng" (đơn giá mới) trong khi người cao tuổi chưa chuyển. Nếu sau đó việc chuyển không còn hợp lệ, 004 không có trạng thái nào cho phụ lục ngoài Đã áp dụng. Plan 004 giữ cách của plan 003 (Hành chính lập yêu cầu mới); cần chốt chung một mã Q.
+5. **Liên quan điểm báo lại 3 của plan 003.** Chuyển giường theo lịch bị hoãn vì giường chưa sẵn sàng làm yêu cầu thay đổi lưu trú đã "Đã áp dụng" (đơn giá mới) trong khi người cao tuổi chưa chuyển. Nếu sau đó việc chuyển không còn hợp lệ, 004 không có trạng thái nào cho phụ lục ngoài Đã áp dụng. Plan 004 giữ cách của plan 003 (Hành chính lập yêu cầu mới); cần chốt chung một mã Q. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-6. **Quyền Kế toán lập ngoại lệ điều kiện (h).** FR-064 cho Kế toán lập yêu cầu ngoại lệ cho điều kiện (h) (Q-222). Nhưng Phụ lục 27 dòng "Kết thúc lưu trú, qua đời" có ô Kế toán là "—", và 19.3 chỉ ghi "quyết toán khi kết thúc lưu trú". Plan cài theo FR-064 bằng một dòng điều chỉnh theo 19.3 trong ma trận của 002. Test `MaTranQuyenKhopNguonTest` của 002 sẽ báo lệch tới khi nguồn có quyền này. Đề nghị thêm chú thích cho ô Kế toán của dòng này ở Phụ lục 27, hoặc ghi vào 19.3.
+6. **Quyền Kế toán lập ngoại lệ điều kiện (h).** FR-064 cho Kế toán lập yêu cầu ngoại lệ cho điều kiện (h) (Q-222). Nhưng Phụ lục 27 dòng "Kết thúc lưu trú, qua đời" có ô Kế toán là "—", và 19.3 chỉ ghi "quyết toán khi kết thúc lưu trú". Plan cài theo FR-064 bằng một dòng điều chỉnh theo 19.3 trong ma trận của 002. Test `MaTranQuyenKhopNguonTest` của 002 sẽ báo lệch tới khi nguồn có quyền này. Đề nghị thêm chú thích cho ô Kế toán của dòng này ở Phụ lục 27, hoặc ghi vào 19.3. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-7. **Spec 004 chưa nêu mức của phần lớn thông báo (009 FR-043a, Q-108).** Chỉ FR-025b có mức (Trung bình, Q-302). Plan áp nguyên tắc 3 bậc (research T-12): báo cần quyết định giữ giường, hợp đồng quá hạn báo Quản lý viện, đặt cọc về Chưa đáp ứng khi đã lưu trú, không có dòng chính sách ở mức Trung bình; báo giường Trống và các lần nhắc ở mức Nhẹ. Đề nghị ghi vào spec 004 và bảng 009 FR-043b khi đồng bộ.
+7. **Spec 004 chưa nêu mức của phần lớn thông báo (009 FR-043a, Q-108).** Chỉ FR-025b có mức (Trung bình, Q-302). Plan áp nguyên tắc 3 bậc (research T-12): báo cần quyết định giữ giường, hợp đồng quá hạn báo Quản lý viện, đặt cọc về Chưa đáp ứng khi đã lưu trú, không có dòng chính sách ở mức Trung bình; báo giường Trống và các lần nhắc ở mức Nhẹ. Đề nghị ghi vào spec 004 và bảng 009 FR-043b khi đồng bộ. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-8. **(Đồng bộ với plan 000, 001, 002, 003, đã sửa trong plan này)**
+8. **(Đồng bộ với plan 000, 001, 002, 003, đã sửa trong plan này)** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - [../000-shared-foundation/contracts/module-interfaces.md](../000-shared-foundation/contracts/module-interfaces.md): thêm `YeuCauPheDuyetApi.dongDoTrangThaiCuoi`.
    - [../001-elder-profile-assessment/contracts/module-interfaces.md](../001-elder-profile-assessment/contracts/module-interfaces.md):
      - thêm 004 (`HUY_TIEP_NHAN`) vào bảng người gọi `TrangThaiNguoiCaoTuoiApi.thucHien`;

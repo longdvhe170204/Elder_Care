@@ -179,9 +179,9 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
 
-1. **Việc hệ thống tự làm theo giờ ở mục E** (FR-037a món an toàn tại mốc CFG-M08-05, FR-040a phát sinh "−1" ghi nhận suất giữ tại giờ bữa): mục Actor của spec cho phép rõ, plan làm theo. Tuy vậy danh sách "vẫn giữ" của Q-306, Q-307 (tự chuyển trạng thái theo giờ, cảnh báo, nhắc, kiểm tra, tác động kèm lệnh, số liệu hiển thị) không nêu "đổi nội dung suất theo giờ". Đề nghị ghi hai ngoại lệ này vào dòng Q-307 ở 24.2 hoặc BR-M08-01, để các feature khác không hiểu Q-307 chặt hơn.
+1. **Việc hệ thống tự làm theo giờ ở mục E** (FR-037a món an toàn tại mốc CFG-M08-05, FR-040a phát sinh "−1" ghi nhận suất giữ tại giờ bữa): mục Actor của spec cho phép rõ, plan làm theo. Tuy vậy danh sách "vẫn giữ" của Q-306, Q-307 (tự chuyển trạng thái theo giờ, cảnh báo, nhắc, kiểm tra, tác động kèm lệnh, số liệu hiển thị) không nêu "đổi nội dung suất theo giờ". Đề nghị ghi hai ngoại lệ này vào dòng Q-307 ở 24.2 hoặc BR-M08-01, để các feature khác không hiểu Q-307 chặt hơn. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-2. **Phát sinh "kèm lệnh của actor gây thay đổi"** khi actor thuộc module khác (chuyển giường, trở về, vắng, điểm danh chuyến, ở lại): plan tạo phát sinh ngay sau commit của lệnh đó qua sự kiện (vài giây, trong SC-002 5 phút), không cùng transaction. Kết quả nghiệp vụ không đổi; ghi lại cách hiểu "kèm lệnh" giống plan 010 điểm 1.
+2. **Phát sinh "kèm lệnh của actor gây thay đổi"** khi actor thuộc module khác (chuyển giường, trở về, vắng, điểm danh chuyến, ở lại): plan tạo phát sinh ngay sau commit của lệnh đó qua sự kiện (vài giây, trong SC-002 5 phút), không cùng transaction. Kết quả nghiệp vụ không đổi; ghi lại cách hiểu "kèm lệnh" giống plan 010 điểm 1. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-3. **Câu chữ còn lẫn trong spec 011** (không đổi nghiệp vụ):
+3. **Câu chữ còn lẫn trong spec 011** (không đổi nghiệp vụ): *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - FR-048, mục F, FR-063 còn dẫn "4.4" (Permission Matrix của `docs/phan-tich-yeu-cau.md` đã bỏ); plan tra theo Phụ lục 27 qua bảng ánh xạ của Phụ lục 26.

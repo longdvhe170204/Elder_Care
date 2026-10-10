@@ -70,10 +70,8 @@ long ghiNhan(GhiNhanSuCo lenh, NguoiDungHienTai nd);
     // Lệnh của actor ở module khác ghi nhận sự cố (Q-307): 011 "đã ăn" khi phục vụ suất bị chặn do dị ứng (loại PHUC_VU_SAI_SUAT_AN, nguồn AN_UONG; 011 FR-049); 013 "đồ gửi thất lạc/hư hỏng" (FR-040), 014 "Báo thiếu người"
     // (loại DI_LAC_KHONG_TRO_VE, nguồn HOAT_DONG_NGOAI_VIEN). Người ghi là nd; mọi kiểm tra và tác động FR-043 như lệnh REST
 void themDienBien(long suCoId, String maLoaiDienBien, String noiDung, NguoiDungHienTai nd);   // 013: DA_TIM_THAY
-void huyDoNguonDoGui(long suCoId, long dinhChinhDoGuiId);
-    // FR-046b: sự cố đồ gửi → DA_HUY, lý do "ghi nhầm đồ gửi"; thông báo đã gửi không thu hồi
-    // theo plan 013: 013 KHÔNG gọi hàm này vì 013 FR-011a (Q-307) cấm tự hủy sự cố, chỉ báo người xử lý;
-    // giữ chữ ký chờ chủ dự án quyết lệch 007 FR-046b ↔ 013 FR-011a (plan 013, điểm báo lại 1)
+    // FR-046b (sửa 2026-10-10, Q-307): không có hàm hủy sự cố theo nguồn đồ gửi; 013 chỉ báo người xử lý,
+    // người xử lý đóng hoặc đính chính sự cố bằng lệnh (FR-045, FR-046)
 void tiepNhan(long suCoId, NguoiDungHienTai nd);
     // bổ sung theo plan 009 (009 FR-026a "Xác nhận và tiếp nhận"): cùng kiểm tra quyền, trạng thái và tác động
     // như POST /su-co/{id}/tiep-nhan; transaction riêng của 009; từ chối thì ném lỗi có maLoi (DA_CO_NGUOI_TIEP_NHAN…)

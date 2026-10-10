@@ -226,7 +226,7 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 - [ ] T072 [P] Màn danh mục `web/src/tinh-nang/danh-muc-m01/` (dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc)
 - [ ] T073 Khi plan của 003, 004, 005, 006, 007, 010, 011, 012, 013 cài bean `ThamGiaChuyenTrangThai` thật, chạy lại `FR_045_LietKeDieuKienIT`, `FR_047_RollbackTacDongIT` với bean thật (research H-02 mục 4)
 - [ ] T074 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T075 Rà truy vết data-model mục 12: DBR-01 → 05, 23, 25, 34 và BR-M01-01 → 13 có test
+- [ ] T075 Rà truy vết data-model mục 12: DBR-01 → 05, 23, 25, 34 và BR-M01-01 → 13 có test; FR bổ sung 2026-10-10: FR-054 — có task hoặc test tương ứng (constitution XV)
 
 ---
 
