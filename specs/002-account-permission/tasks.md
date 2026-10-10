@@ -142,14 +142,14 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 ### Tests cho User Story 4
 
 - [ ] T048 [P] [US4] Test `BT/m15/taikhoan/PhamViTheoCaIT.java`, `PhamViDoiPhanCongIT.java`, `PhamViHopPhanCongIT.java`: khoảng CFG-M15-07 quanh ca; đổi phân công có hiệu lực ở yêu cầu kế tiếp; nhiều phân công thì hợp (BR-M15-02)
-- [ ] T049 [P] [US4] Test `BT/m15/taikhoan/QuyenTheoNhiemVuIT.java`: sáu ngoại lệ FR-019a → f (người phụ trách ca, trưởng tầng tạm, Phụ trách bộ phận, trưởng đoàn, người đi cùng, người nhận tại tầng), nhật ký có `canCu` nhiệm vụ
+- [ ] T049 [P] [US4] Test `BT/m15/taikhoan/QuyenTheoNhiemVuIT.java`: bảy ngoại lệ FR-019a → g, gồm FR-019g Người phụ trách ca Xác nhận giường sẵn sàng (Q-313) (người phụ trách ca, trưởng tầng tạm, Phụ trách bộ phận, trưởng đoàn, người đi cùng, người nhận tại tầng), nhật ký có `canCu` nhiệm vụ
 - [ ] T050 [P] [US4] Test `BT/m15/taikhoan/DongBoKetQuaIT.java` và `NgoaiTuyenChoXemLaiIT.java`: kiểm quyền theo `thoiDiemThietBi`; mất quyền sau khi ghi → `CHAP_NHAN_KEM_NHAN` và sự kiện `BanGhiDongBoSauMatQuyen`; thời điểm thiết bị muộn hơn đồng bộ, sớm hơn lần kết nối cuối, hoặc quá CFG-M15-08 → `CHO_XEM_LAI`; `batBuocTrucTuyen()` → `TU_CHOI`; trùng `Idempotency-Key` không ghi hai lần (BR-M15-20, FR-041a, FR-041c)
 - [ ] T051 [P] [US4] Test `BT/m15/taikhoan/DuLieuNguonLoiIT.java`: lỗi dữ liệu nguồn gộp theo `(nguon, ban_ghi_id, loai_loi)`, báo Quản lý viện lần đầu, đánh dấu khắc phục (FR-041b)
 
 ### Implementation cho User Story 4
 
 - [ ] T052 [US4] Cài `BE/m15/taikhoan/phamvi/internal/PhamViService.java` (`PhamViApi`): `trongPhamVi`, `boLoc`, `boLocLichSu`, `nguoiPhuTrachCa`, `truongTangDuocGiao`, `nguoiQuyetDinhXemLai` từ `PhanCongApi`, `NhiemVuApi`, `PhanBoGiuongApi` tính trong từng yêu cầu, không đệm (research A-07)
-- [ ] T053 [US4] Cài quyền theo nhiệm vụ `BE/m15/taikhoan/quyen/internal/QuyenTheoNhiemVu.java` (FR-019a → f; research A-06) và nối vào bước 2 của `QuyenService`
+- [ ] T053 [US4] Cài quyền theo nhiệm vụ `BE/m15/taikhoan/quyen/internal/QuyenTheoNhiemVu.java` (FR-019a → g; research A-06) và nối vào bước 2 của `QuyenService`
 - [ ] T054 [US4] Cài `NguoiDuyetApi` trong `BE/m15/taikhoan/quyen/internal/NguoiDuyetService.java`: tài khoản Hoạt động có quyền vai trò, nhiệm vụ, phạm vi bao đối tượng tại lúc hỏi (BR-M15-09 của 000)
 - [ ] T055 [US4] Tạo `MIG/V002_06__ban_ghi_cho_xem_lai.sql`: bảng `ban_ghi_cho_xem_lai` theo data-model mục 5 (`idempotency_key` `UNIQUE` cùng `nguoi_ghi_id`; `ly_do_cho` `MUON_HON_DONG_BO|SOM_HON_KET_NOI_CUOI|QUA_CFG_M15_08`; `trang_thai` `CHO_XEM_LAI → DA_CHAP_NHAN/DA_TU_CHOI`; `ly_do_tu_choi` bắt buộc khi từ chối; `phien_ban`)
 - [ ] T056 [US4] Cài điều phối đồng bộ `BE/m15/taikhoan/ngoaituyen/internal/DongBoService.java`: nhận lô phong bì, đối chiếu `lan_ket_noi_cuoi` trước khi cập nhật, tra `NgoaiTuyenHandler` theo `loaiBanGhi`, kiểm quyền `coQuyenTaiThoiDiem(thoiDiemThietBi)`, trả `KetQuaDongBo` từng bản ghi (research A-11)

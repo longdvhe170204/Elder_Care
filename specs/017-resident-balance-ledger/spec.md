@@ -35,6 +35,12 @@
 
 - **Q-293**: Kế toán không được giao nhiệm vụ Phụ trách bộ phận, nên không lập yêu cầu mua sắm trong mọi trường hợp; chỉ đối chiếu chứng từ (feature 019 FR-008b). Sửa dòng Ngoài phạm vi về đối chiếu mua sắm.
 
+### Cập nhật 2026-10-10, lượt 2 (đồng bộ Q-334, Q-335)
+
+- **Q-334**: số ngày còn đủ tiền chỉ tính trên khoản đã lập. Sửa FR-016.
+- **Q-335**: tài khoản thu của viện là tham số CFG-M11-10. Sửa FR-003.
+- Phạm vi mục 4: giao dịch thanh toán được tạo kèm lệnh chốt bảng (Q-306).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 11, mục 15.9; 6.5; 6.8 phần quyết toán; UC-12, UC-85 → UC-88; BF-16):
@@ -42,7 +48,7 @@
 1. Sổ số dư và sổ tiền cọc của từng người cao tuổi; mã nộp tiền; thông tin nộp tiền (số tài khoản của viện, mã QR theo chuẩn VietQR) cung cấp cho cổng người thân (15.9, DBR-28, DBR-29).
 2. Ghi thu tiền mặt (có số phiếu) vào số dư hoặc vào sổ tiền cọc; xác định trạng thái đặt cọc cho feature 004; chốt quỹ tiền mặt cuối ngày có Quản lý viện xác nhận (6.5, UC-12, UC-85; Clarification 2026-09-28).
 3. Nhập sao kê ngân hàng, khớp tự động theo mã nộp tiền, gán thủ công, xác nhận thành giao dịch nộp chuyển khoản (BR-M11-12, UC-86).
-4. Tự tạo giao dịch "thanh toán bảng chi phí" khi bảng chi phí Đã chốt (BR-M11-11, DBR-30).
+4. Giao dịch "thanh toán bảng chi phí" được tạo kèm lệnh chốt bảng chi phí (BR-M11-11, DBR-30; Q-306).
 5. Hoàn tiền, cấn trừ tiền cọc, điều chỉnh, giao dịch đảo; Quản lý viện duyệt. Hoàn cọc khi hợp đồng bị hủy trước khi Hiệu lực hoặc Hủy tiếp nhận (BR-M11-10, BR-M11-14; Clarification 2026-09-28).
 6. Tính số ngày còn đủ tiền hằng ngày; báo "sắp hết tiền" và "còn nợ" (BR-M11-13, UC-87, CFG-M11-04, CFG-M11-05).
 7. Điều kiện "số dư và tiền cọc đã quyết toán" khi kết thúc lưu trú, và mục tương ứng trong danh sách việc sau qua đời (6.8, Q-222).
@@ -253,7 +259,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu 
 
 - **FR-001**: Khi hợp đồng đầu tiên của một hồ sơ người cao tuổi chuyển Chờ ký (Clarification 2026-09-28), hệ thống MUST mở đúng một sổ số dư và một sổ tiền cọc với số dư 0, và cấp một mã nộp tiền duy nhất, không đổi, không dùng lại cho hồ sơ khác. Hồ sơ mới của người quay lại (Q-12) MUST có sổ và mã mới. *(Nguồn: 15.9, DBR-28, DBR-29, UC-85)*
 - **FR-002**: Số dư MUST luôn bằng tổng các giao dịch số dư Đã xác nhận; số dư cọc MUST luôn bằng tổng các giao dịch tiền cọc Đã xác nhận. Số dư được phép âm; số dư âm MUST hiển thị là "còn nợ" kèm số tiền. *(Nguồn: BR-M11-10, BR-M11-11, DBR-28)*
-- **FR-003**: Hệ thống MUST cung cấp cho feature 012: số dư, số dư cọc, lịch sử giao dịch Đã xác nhận, số tài khoản thu của viện, mã nộp tiền, mã QR theo chuẩn VietQR có nội dung chuyển khoản chứa mã nộp tiền (không kèm số tiền), sao kê tải được. Mọi thông tin này thuộc loại thông tin **"chi phí"** trong bốn loại của cổng (feature 012 FR-046); chỉ người thân có quyền xem chi phí được thấy. *(Nguồn: 15.9, 23, 19.3, Phụ lục 27 dòng "Số dư, thu chi, đối soát")*
+- **FR-003**: Hệ thống MUST cung cấp cho feature 012: số dư, số dư cọc, lịch sử giao dịch Đã xác nhận, số tài khoản thu của viện (CFG-M11-10, Q-335), mã nộp tiền, mã QR theo chuẩn VietQR có nội dung chuyển khoản chứa mã nộp tiền (không kèm số tiền), sao kê tải được. Mọi thông tin này thuộc loại thông tin **"chi phí"** trong bốn loại của cổng (feature 012 FR-046); chỉ người thân có quyền xem chi phí được thấy. *(Nguồn: 15.9, 23, 19.3, Phụ lục 27 dòng "Số dư, thu chi, đối soát")*
 - **FR-004**: Số dư MUST hiển thị trên hồ sơ người cao tuổi cho Kế toán, Hành chính, Quản lý viện; MUST NOT hiển thị cho vai trò khác. Giao dịch loại thanh toán bảng chi phí chỉ hiện tổng bảng, không hiện tên thuốc (Q-133). *(Nguồn: 15.9, 19.3)*
 
 #### B. Thu tiền và đối soát
@@ -317,7 +323,7 @@ Quá hạn duyệt được nhắc theo CFG-M15-05 mặc định \[48 giờ\], C
 
 #### D. Báo sắp hết tiền và còn nợ
 
-- **FR-016**: Hằng ngày, sau khi Bộ lập lịch của feature 010 đã sinh phí của ngày vừa kết thúc, Bộ lập lịch MUST tính cho mỗi hồ sơ có hợp đồng Hiệu lực và chưa ở trạng thái cuối: **số ngày còn đủ tiền** = (số dư − **tổng chi phí chưa chốt**) ÷ phí lưu trú một ngày, làm tròn xuống. Tổng chi phí chưa chốt là tổng các khoản của mọi bảng chi phí chưa Đã chốt của hồ sơ (bảng thường của kỳ hiện tại và kỳ trước còn Đang mở hoặc Chờ chốt, bảng bổ sung), lấy theo thành phần của Q-136, do feature 010 cung cấp (feature 010 FR-038a). Với hợp đồng tính theo tháng, phí lưu trú một ngày là phí ngày cơ sở của tháng hiện tại (feature 010 FR-009); với hợp đồng tính theo ngày là đơn giá ngày; với hợp đồng bán trú giá tháng là giá tháng ÷ số ngày của tháng hiện tại, với hợp đồng bán trú giá buổi là giá buổi × số buổi có lịch trong 7 ngày tới ÷ 7 (Q-223, Clarification 2026-09-28). *(Nguồn: BR-M11-13, Q-136)*
+- **FR-016**: **(Sửa, 2026-10-10, Q-334)** Hằng ngày, Bộ lập lịch MUST tính cho mỗi hồ sơ có hợp đồng Hiệu lực và chưa ở trạng thái cuối: **số ngày còn đủ tiền** = (số dư − **tổng chi phí chưa chốt**) ÷ phí lưu trú một ngày, làm tròn xuống. "Tổng chi phí chưa chốt" chỉ gồm các khoản Hành chính đã lập ở feature 010 (Q-306); hệ thống không ước tính phí của ngày chưa lập khoản (Q-334). Tổng chi phí chưa chốt là tổng các khoản của mọi bảng chi phí chưa Đã chốt của hồ sơ (bảng thường của kỳ hiện tại và kỳ trước còn Đang mở hoặc Chờ chốt, bảng bổ sung), lấy theo thành phần của Q-136, do feature 010 cung cấp (feature 010 FR-038a). Với hợp đồng tính theo tháng, phí lưu trú một ngày là phí ngày cơ sở của tháng hiện tại (feature 010 FR-009); với hợp đồng tính theo ngày là đơn giá ngày; với hợp đồng bán trú giá tháng là giá tháng ÷ số ngày của tháng hiện tại, với hợp đồng bán trú giá buổi là giá buổi × số buổi có lịch trong 7 ngày tới ÷ 7 (Q-223, Clarification 2026-09-28). *(Nguồn: BR-M11-13, Q-136)*
 - **FR-017**: Tình trạng số dư MUST là: "Còn nợ" khi số dư − tổng chi phí chưa chốt < 0; "Sắp hết tiền" khi không còn nợ và số ngày còn đủ tiền < CFG-M11-04 mặc định \[15 ngày\]; "Bình thường" trong trường hợp còn lại. Khi phí lưu trú một ngày bằng 0, chỉ xét "Còn nợ". *(Nguồn: BR-M11-13, CFG-M11-04)*
 - **FR-018**: Khi tình trạng chuyển sang "Sắp hết tiền" hoặc "Còn nợ", và mỗi CFG-M11-05 mặc định \[7 ngày\] sau lần báo trước trong khi tình trạng vẫn không phải Bình thường, hệ thống MUST gửi qua feature 009: mọi người đại diện có quan hệ Hiệu lực, mức Trung bình; Kế toán, mức Nhẹ, kèm danh sách. Nội dung gửi người thân chia phần theo loại thông tin (Q-105): phần "chung" là "có thông báo về tài chính của [họ tên], vui lòng liên hệ Kế toán"; phần "chi phí" gồm tình trạng, số dư, tổng chi phí chưa chốt, thông tin nộp tiền. Người đại diện không có quyền xem chi phí chỉ nhận phần "chung" (BR-M13-04). Chiều xấu đi ("Sắp hết tiền" → "Còn nợ") là một lần chuyển mới: báo ngay và đặt lại chu kỳ CFG-M11-05. Chiều tốt lên ("Còn nợ" → "Sắp hết tiền") không báo ngay và giữ chu kỳ cũ. **(Bổ sung, 2026-09-30, Q-252)** Ngoại lệ: giao dịch nộp tiền đưa tình trạng về Bình thường thì báo ngay theo bảng chuyển tình trạng số dư. **(Bổ sung, 2026-10-01, Q-257)** Giao dịch nộp tiền chưa đưa tình trạng về Bình thường cũng MUST được báo "đã ghi nhận khoản nộp" kèm tình trạng sau khi nộp; thông báo này MUST NOT thay hay đặt lại lần nhắc theo chu kỳ. **(Làm rõ, 2026-10-01, Q-268)** Với chuyển khoản, thời điểm tính là lúc Kế toán xác nhận đối soát dòng sao kê. Thông báo "đã ghi nhận khoản nộp" MUST vẫn gửi khi người cao tuổi đang ở chế độ "dừng nhắc" (FR-019). Khi giao dịch nộp tiền bị đảo, hệ thống MUST tính lại tình trạng ngay; nếu tình trạng xấu đi thì áp các dòng "báo ngay" của bảng chuyển tình trạng số dư; MUST NOT gửi thông báo thu hồi riêng. *(Nguồn: BR-M11-13, BR-M13-04, Q-105, Q-211, Q-252)*
 - **FR-019**: Khi hồ sơ ở "Còn nợ" liên tục từ CFG-M11-05 trở lên, Quản lý viện MUST được báo thêm ở mỗi lần nhắc lại. *(Nguồn: BR-M11-13)*
@@ -462,3 +468,5 @@ Hồ sơ không có hợp đồng Hiệu lực và chưa ở trạng thái cuố
 **(2026-10-06) Thay đổi do chủ dự án chốt Q-292 → Q-299 (rà soát tài liệu nguồn).** *(Đã xử lý 2026-10-06: spec đã viết lại, xem mục "Cập nhật 2026-10-06, lượt 2" ở Clarifications.)*
 
 - **Q-293** – Kế toán không được giao nhiệm vụ Phụ trách bộ phận; Phụ trách bộ phận Hành chính – Kế toán là Hành chính; giữ BR-M11-19, bỏ phần "Kế toán đang là Phụ trách bộ phận" ở chú thích ³⁸ (13.1a, Phụ lục 27 ³⁸, BF-18). Ảnh hưởng: Kế toán không lập yêu cầu mua sắm trong mọi trường hợp.
+
+**(2026-10-10) Plan 017, điểm báo lại 1 → 3.** *(Đã xử lý 2026-10-10: Q-334, Q-335; sửa FR-003, FR-016, Phạm vi.)*

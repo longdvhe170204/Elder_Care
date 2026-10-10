@@ -179,32 +179,32 @@ app-nguoi-than/lib/tinh-nang/ho-so/
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec 001.
 
-1. **Phụ lục 27 không có dòng cho Chuyển viện (UC-16).** UC-16 ghi actor "Điều dưỡng, Bác sĩ" (feature 004, 007), BR-M01-06 cũng ghi vậy. Nhưng ma trận quyền không có dòng nào để 002 nạp khóa quyền. Plan tạm dùng khóa `CHUYEN_VIEN` với T cho AC-03, AC-04 (research H-05). Test `MaTranQuyenKhopNguonTest` của 002 sẽ báo lệch tới khi Phụ lục 27 có dòng này. Đề nghị: thêm dòng "Chuyển viện | UC-16" vào Phụ lục 27.
+1. **Phụ lục 27 không có dòng cho Chuyển viện (UC-16).** UC-16 ghi actor "Điều dưỡng, Bác sĩ" (feature 004, 007), BR-M01-06 cũng ghi vậy. Nhưng ma trận quyền không có dòng nào để 002 nạp khóa quyền. Plan tạm dùng khóa `CHUYEN_VIEN` với T cho AC-03, AC-04 (research H-05). Test `MaTranQuyenKhopNguonTest` của 002 sẽ báo lệch tới khi Phụ lục 27 có dòng này. Đề nghị: thêm dòng "Chuyển viện | UC-16" vào Phụ lục 27. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-2. **Bảng trạng thái của spec 001 thiếu điều kiện so với 5.6.**
+2. **Bảng trạng thái của spec 001 thiếu điều kiện so với 5.6.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Dòng "→ Kết thúc lưu trú" của 5.6 có thêm "đã bàn giao người cao tuổi" và "số dư và tiền cọc đã quyết toán (15.9), được quản lý duyệt ngoại lệ". Spec 001 không có hai điều kiện này (spec 004 có trình tự 6.8).
    - Dòng "Đang tiếp nhận → Đang lưu trú" của 5.6 có "thời điểm tiếp nhận không sớm hơn ngày bắt đầu hợp đồng (Q-22)". Spec 004 FR-075 đã có, spec 001 chưa nhắc.
    - Thiết kế không bị ảnh hưởng, vì điều kiện do bean của 004, 017 cung cấp qua SPI. Đề nghị: khi đồng bộ spec 001, bổ sung các điều kiện này vào bảng trạng thái, ghi rõ feature cung cấp.
 
-3. **Người cấu hình một số danh mục chưa có nguồn.**
+3. **Người cấu hình một số danh mục chưa có nguồn.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - 006 FR-002 và 011 FR-003 nêu người ghi dị nguyên nhóm thuốc và thực phẩm.
    - Chưa có nguồn cho dị nguyên nhóm "khác", danh mục mức độ dị ứng, nguồn thông tin (BR-M01-11) và nhu cầu chăm sóc (Q-291).
    - Plan tạm cho Quản lý viện theo quyền cấu hình chung (UC-69). Đề nghị chốt bằng Q và thêm dòng vào Phụ lục 27.
 
-4. **Spec 001 chưa nêu mức của phần lớn thông báo (009 FR-043a, Q-108).** Bảng 009 FR-043b chỉ có hai dòng của 001. Plan áp nguyên tắc 3 bậc cho các thông báo còn lại (research H-14):
+4. **Spec 001 chưa nêu mức của phần lớn thông báo (009 FR-043a, Q-108).** Bảng 009 FR-043b chỉ có hai dòng của 001. Plan áp nguyên tắc 3 bậc cho các thông báo còn lại (research H-14): *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - báo cần đánh giá lại, nhắc thiếu bản đồng ý, nhắc thiếu nguyện vọng, nhắc lập yêu cầu: Nhẹ;
    - quá hạn đánh giá lại, tạm vắng quá hạn, báo Hành chính lần đầu khi mức đổi: Trung bình.
    - Người nhận "bác sĩ" của BR-M01-02 chưa rõ là bác sĩ nào; plan chọn bác sĩ trực theo phân công của 008, không có thì mọi bác sĩ.
 
    Đề nghị: ghi các mức và người nhận này vào spec 001 (và bảng 009 FR-043b) khi đồng bộ.
 
-5. **Nhắc lập yêu cầu đổi mức sau khi yêu cầu bị Từ chối.** FR-036 và BR-M01-03 ghi "chưa có yêu cầu đổi mức chưa kết thúc thì nhắc". Theo đúng chữ, khi Quản lý viện Từ chối yêu cầu, mức hiện hành vẫn khác mức đánh giá, nên Hành chính lại được nhắc mỗi CFG-M03-02 cho tới khi có yêu cầu mới hoặc lần đánh giá lại mới. Plan làm đúng như chữ. Đề nghị xác nhận đây là ý định, hay Từ chối thì dừng nhắc.
+5. **Nhắc lập yêu cầu đổi mức sau khi yêu cầu bị Từ chối.** FR-036 và BR-M01-03 ghi "chưa có yêu cầu đổi mức chưa kết thúc thì nhắc". Theo đúng chữ, khi Quản lý viện Từ chối yêu cầu, mức hiện hành vẫn khác mức đánh giá, nên Hành chính lại được nhắc mỗi CFG-M03-02 cho tới khi có yêu cầu mới hoặc lần đánh giá lại mới. Plan làm đúng như chữ. Đề nghị xác nhận đây là ý định, hay Từ chối thì dừng nhắc. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-6. **Người quay lại không có CCCD.** FR-004 tạo hồ sơ mới liên kết hồ sơ cũ, nhưng không nói nhận ra "cùng người" bằng gì khi không có CCCD. Plan chỉ tự liên kết khi trùng CCCD. Không có CCCD thì chỉ có cảnh báo trùng họ tên và ngày sinh (FR-005) và không liên kết. Đề nghị: chốt có cho Hành chính chọn hồ sơ trước bằng tay hay không.
+6. **Người quay lại không có CCCD.** FR-004 tạo hồ sơ mới liên kết hồ sơ cũ, nhưng không nói nhận ra "cùng người" bằng gì khi không có CCCD. Plan chỉ tự liên kết khi trùng CCCD. Không có CCCD thì chỉ có cảnh báo trùng họ tên và ngày sinh (FR-005) và không liên kết. Đề nghị: chốt có cho Hành chính chọn hồ sơ trước bằng tay hay không. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-7. **Lý do ở bản ghi lịch sử đầu tiên.** FR-046 bắt buộc lý do "với mọi lệnh do người dùng thực hiện". Plan coi Tạo hồ sơ không phải chuyển trạng thái (không có trạng thái "từ"), nên không bắt lý do (data-model mục 2). Kịch bản US1 #1 cũng không nêu lý do. Đề nghị ghi rõ trong spec.
+7. **Lý do ở bản ghi lịch sử đầu tiên.** FR-046 bắt buộc lý do "với mọi lệnh do người dùng thực hiện". Plan coi Tạo hồ sơ không phải chuyển trạng thái (không có trạng thái "từ"), nên không bắt lý do (data-model mục 2). Kịch bản US1 #1 cũng không nêu lý do. Đề nghị ghi rõ trong spec. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-8. **(Đồng bộ câu chữ spec 001, không đổi nghiệp vụ)**
+8. **(Đồng bộ câu chữ spec 001, không đổi nghiệp vụ)** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Bảng phân nhóm dữ liệu ở đầu mục Requirements còn dòng "Yêu cầu đánh giá lại | 2", đã bỏ theo Q-307.
    - Dòng "Lịch sử trạng thái | 3" bị tách ra ngoài bảng bởi câu ghi chú in nghiêng.
    - Assumptions còn câu "Yêu cầu đánh giá lại có tối đa một yêu cầu mở mỗi người", trái Q-307.
@@ -212,7 +212,7 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 
    Plan theo FR-039 → FR-043 và Key Entities (không có thực thể yêu cầu).
 
-9. **(Đồng bộ với plan 000, đã sửa trong plan này)**
+9. **(Đồng bộ với plan 000, đã sửa trong plan này)** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Hợp đồng của 000 thêm `TepApi` (H-13) và `YeuCauPheDuyetApi.chuyenMoRong` (H-10).
    - Data-model của 000 ghi trạng thái mở rộng `DUOC_THAY_THE` "của 001"; đã sửa thành của loại `M02.THAY_DOI_LUU_TRU` (004), do 001 kích hoạt.
    - Đã sửa ở [../000-shared-foundation/contracts/module-interfaces.md](../000-shared-foundation/contracts/module-interfaces.md) và [../000-shared-foundation/data-model.md](../000-shared-foundation/data-model.md).

@@ -194,31 +194,31 @@ app-nhan-vien/lib/tinh-nang/
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
 
-1. **BR-M04-07 còn câu "tự động đưa vào bản nháp bàn giao".**
+1. **BR-M04-07 còn câu "tự động đưa vào bản nháp bàn giao".** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - BR-M09-06 (Q-307) ghi "bàn giao do người bàn giao tự ghi … Hệ thống không lập sẵn mục"; spec 005 FR-046 cũng vậy.
    - Plan theo FR-046 và BR-M09-06: 005 chỉ cung cấp danh sách công việc chưa đóng (`CongViecBanGiaoApi.chuaDong`).
    - Đề nghị sửa BR-M04-07 thành "Công việc chưa đóng khi kết thúc ca được người lập bàn giao xem và ghi vào bàn giao (BR-M09-06)".
 
-2. **DBR-12 hẹp hơn FR-021.**
+2. **DBR-12 hẹp hơn FR-021.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - DBR-12: "duy nhất theo (mục kế hoạch, thời điểm dự kiến)". FR-021 mở rộng cho mọi căn cứ (lần đo, bữa, buổi, việc theo dõi) và chỉ xét công việc chưa Hủy (CHK040).
    - Plan cài theo FR-021 (cột sinh `khoa_trung`).
    - Đề nghị ghi DBR-12 theo FR-021.
 
-3. **BR-M04-02, BR-M04-04 nói công việc "trong khoảng vắng" / "sau giờ về" tự động chuyển Hủy**, trong khi bảng 8.3 và FR-027 chỉ cho Hủy từ Chưa đến hạn. Plan theo bảng 8.3 (spec điểm báo lại 3, câu cuối, vẫn còn chờ). Đề nghị thêm "Chưa đến hạn" vào hai BR.
+3. **BR-M04-02, BR-M04-04 nói công việc "trong khoảng vắng" / "sau giờ về" tự động chuyển Hủy**, trong khi bảng 8.3 và FR-027 chỉ cho Hủy từ Chưa đến hạn. Plan theo bảng 8.3 (spec điểm báo lại 3, câu cuối, vẫn còn chờ). Đề nghị thêm "Chưa đến hạn" vào hai BR. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-4. **Mức của các thông báo spec 005 chưa nêu (009 FR-043a, Q-108).** Plan áp nguyên tắc 3 bậc (research C-13): ca chưa có công việc lúc bắt đầu ca ở mức Trung bình; xem xét kế hoạch (FR-011), kế hoạch hoặc nguồn đã đổi, cần lập công việc (điểm danh đến, trở về, Hoàn tất tiếp nhận, đính chính chuyến đi), Vắng không báo, gửi duyệt / trả lại / thu hồi phiên bản ở mức Nhẹ. Đề nghị ghi vào spec 005 và bảng 009 FR-043b khi đồng bộ.
+4. **Mức của các thông báo spec 005 chưa nêu (009 FR-043a, Q-108).** Plan áp nguyên tắc 3 bậc (research C-13): ca chưa có công việc lúc bắt đầu ca ở mức Trung bình; xem xét kế hoạch (FR-011), kế hoạch hoặc nguồn đã đổi, cần lập công việc (điểm danh đến, trở về, Hoàn tất tiếp nhận, đính chính chuyến đi), Vắng không báo, gửi duyệt / trả lại / thu hồi phiên bản ở mức Nhẹ. Đề nghị ghi vào spec 005 và bảng 009 FR-043b khi đồng bộ. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-5. **Phụ lục 27 dòng "Lập công việc của ca" cho ĐD "T"**, trong khi 19.3 ghi "Điều dưỡng không giữ nhiệm vụ Người phụ trách ca chỉ tạo công việc phát sinh". Plan theo 19.3 (ô T của ĐD hiểu là công việc phát sinh). Đề nghị thêm chú thích cho ô này.
+5. **Phụ lục 27 dòng "Lập công việc của ca" cho ĐD "T"**, trong khi 19.3 ghi "Điều dưỡng không giữ nhiệm vụ Người phụ trách ca chỉ tạo công việc phát sinh". Plan theo 19.3 (ô T của ĐD hiểu là công việc phát sinh). Đề nghị thêm chú thích cho ô này. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-6. **Buổi phát sinh của bán trú và sức chứa khu nghỉ.** Điểm danh đến ngày không có lịch tạo một buổi phát sinh (Q-140), nhưng 003 FR-039 chỉ kiểm sức chứa "khi đăng ký hoặc thay đổi lịch đến". Plan không kiểm sức chứa khi điểm danh buổi phát sinh. Đề nghị xác nhận, hoặc chốt bằng Q nếu buổi phát sinh phải chịu giới hạn CFG-M03-01.
+6. **Buổi phát sinh của bán trú và sức chứa khu nghỉ.** Điểm danh đến ngày không có lịch tạo một buổi phát sinh (Q-140), nhưng 003 FR-039 chỉ kiểm sức chứa "khi đăng ký hoặc thay đổi lịch đến". Plan không kiểm sức chứa khi điểm danh buổi phát sinh. Đề nghị xác nhận, hoặc chốt bằng Q nếu buổi phát sinh phải chịu giới hạn CFG-M03-01. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-7. **Người thực hiện: FR-024 "lấy theo phân công" và FR-017 "người lập nhập".** Plan hiểu: người lập chọn; backend chỉ chấp nhận người có trong phân công chăm sóc của người cao tuổi ở ca đó với vai trò khớp (chính hoặc hỗ trợ), và chỉ cho "công việc chung" khi không có ai khớp. Hệ thống không điền sẵn (Q-307). Đề nghị ghi rõ ở FR-024 rằng nhân viên hỗ trợ cũng được chọn, hoặc chỉ nhân viên phụ trách chính.
+7. **Người thực hiện: FR-024 "lấy theo phân công" và FR-017 "người lập nhập".** Plan hiểu: người lập chọn; backend chỉ chấp nhận người có trong phân công chăm sóc của người cao tuổi ở ca đó với vai trò khớp (chính hoặc hỗ trợ), và chỉ cho "công việc chung" khi không có ai khớp. Hệ thống không điền sẵn (Q-307). Đề nghị ghi rõ ở FR-024 rằng nhân viên hỗ trợ cũng được chọn, hoặc chỉ nhân viên phụ trách chính. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-8. **Lập công việc tương lai cho người đang vắng.** FR-017 chặn khi người cao tuổi "đang vắng mặt tại thời điểm dự kiến". Với ca lập trước, chưa biết người đó có về kịp không; plan chặn mọi thời điểm khi người đó đang vắng lúc lập, và dựa vào thông báo `CanLapCongViec` khi trở về (FR-020). Đề nghị xác nhận.
+8. **Lập công việc tương lai cho người đang vắng.** FR-017 chặn khi người cao tuổi "đang vắng mặt tại thời điểm dự kiến". Với ca lập trước, chưa biết người đó có về kịp không; plan chặn mọi thời điểm khi người đó đang vắng lúc lập, và dựa vào thông báo `CanLapCongViec` khi trở về (FR-020). Đề nghị xác nhận. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-9. **(Đồng bộ câu chữ spec 005, không đổi nghiệp vụ)**
+9. **(Đồng bộ câu chữ spec 005, không đổi nghiệp vụ)** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Assumptions còn câu dẫn `docs/phan-tich-yeu-cau.md` mục 4.2 (đã bỏ); có thể giữ làm lịch sử.
    - FR-038, FR-048 ghi "mục 4.2 chưa có UC riêng, xem điểm báo lại 12": tham chiếu cũ; plan coi hai chức năng là cấu hình danh mục (quyền C của Quản lý viện) và màn xem, không thêm UC.
    - Edge Case "Bộ lập lịch bỏ lỡ lần chạy" và FR-052 (a) đã đúng sau Q-306; không cần sửa.
 
-10. **Sự kiện của 007 mà 005 nghe chưa có tên trong plan nào** (`SuCoNgaDaGhiNhan`, `LuaChonChamSocGiamNheDaGhi`, `LichDoDaDoi`). Tên trong [contracts/module-interfaces.md](contracts/module-interfaces.md) mục 2.2 là đề xuất; plan 007, 008, 011, 012, 014 giữ đúng chữ ký các SPI ở mục 2.1 hoặc ghi rõ thay đổi.
+10. **Sự kiện của 007 mà 005 nghe chưa có tên trong plan nào** (`SuCoNgaDaGhiNhan`, `LuaChonChamSocGiamNheDaGhi`, `LichDoDaDoi`). Tên trong [contracts/module-interfaces.md](contracts/module-interfaces.md) mục 2.2 là đề xuất; plan 007, 008, 011, 012, 014 giữ đúng chữ ký các SPI ở mục 2.1 hoặc ghi rõ thay đổi. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*

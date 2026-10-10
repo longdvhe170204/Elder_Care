@@ -58,7 +58,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 ### Implementation cho User Story 1
 
-- [ ] T010 [US1] Cài listener `HopDongDaDoiTrangThai` mở sổ, `BE/m11/sodu/so/internal/SoDuService.java` (`SoDuApi`, thông tin nộp tiền, VietQR) và endpoint `GET /nguoi-cao-tuoi/{nctId}/so-du`, `/giao-dich`, `/cong/nguoi-cao-tuoi/{nctId}/so-du`, `/sao-ke`; màn web `web/src/tinh-nang/so-du/so-du/`, `web/src/tinh-nang/cong-nguoi-than/so-du/`; app `app-nguoi-than/lib/tinh-nang/so-du/` (research E-04)
+- [ ] T010 [US1] Cài listener `HopDongDaDoiTrangThai` mở sổ, `BE/m11/sodu/so/internal/SoDuService.java` (`SoDuApi`, thông tin nộp tiền đọc CFG-M11-10 qua `ThamSoApi` (Q-335), VietQR) và endpoint `GET /nguoi-cao-tuoi/{nctId}/so-du`, `/giao-dich`, `/cong/nguoi-cao-tuoi/{nctId}/so-du`, `/sao-ke`; màn web `web/src/tinh-nang/so-du/so-du/`, `web/src/tinh-nang/cong-nguoi-than/so-du/`; app `app-nguoi-than/lib/tinh-nang/so-du/` (research E-04)
 
 **Checkpoint**: Sổ mở được.
 
@@ -234,4 +234,4 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8; mỗi bước chạ
 
 - 017 không tự tạo giao dịch ngoài thanh toán bảng; không tự hoàn, cấn trừ, đối soát (Q-306, Q-307)
 - Không có thanh toán trực tuyến; VietQR chỉ hiển thị
-- Mọi mốc đọc `ThamSoApi` (CFG-M11-04, 05, CFG-M02-09, CFG-M14-01, CFG-M15-03 → 06)
+- Mọi mốc đọc `ThamSoApi` (CFG-M11-04, 05, 10, CFG-M02-09, CFG-M14-01, CFG-M15-03 → 06)

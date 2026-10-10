@@ -81,9 +81,15 @@ Các điểm dưới đây do nhóm phân tích quyết định khi đánh giá 
 - Thêm FR-010a ghi nguyên tắc chung mà mọi spec module kế thừa. Mọi bản ghi nghiệp vụ do actor lập bằng lệnh. Hệ thống không gợi ý, không đề xuất, không tự tạo yêu cầu hay sự cố, không tự thực hiện lệnh thay actor. Bộ lập lịch chỉ làm những việc nguyên tắc cho phép: chuyển trạng thái theo thời gian, cảnh báo, leo thang, nhắc, áp dụng yêu cầu đã duyệt tới ngày hiệu lực, loại bỏ dữ liệu hết hạn lưu giữ.
 - Các việc Bộ lập lịch đang làm trong spec này (áp dụng yêu cầu đã duyệt, nhắc yêu cầu chờ lâu, loại bỏ dữ liệu hết hạn) đều thuộc phần được giữ, nên không đổi. Sửa các ví dụ còn nhắc "sinh công việc": User Story 3 kịch bản 4, Edge Cases, FR-017.
 
+### Cập nhật 2026-10-10, lượt 2 (đồng bộ Q-315, Q-316 sau rà soát điểm báo lại của plan)
+
+- **Q-315**: khoảng hợp lệ của tham số chỉ gồm ràng buộc kỹ thuật và ràng buộc ghi ở Phụ lục 25. Sửa FR-015.
+- **Q-316**: giá trị tham số mới có hiệu lực ngay từ lúc lưu; BR-M15-07 bỏ chữ "tham số". Sửa FR-016.
+- Phạm vi: "mọi module (001–016)" thành "mọi feature (001–019)".
+
 ## Phạm vi
 
-**Trong phạm vi**: các quy tắc mà mọi module (001–016) kế thừa, không lặp lại trong spec của module:
+**Trong phạm vi**: các quy tắc mà mọi feature (001–019) kế thừa, không lặp lại trong spec của module:
 
 1. Phân loại dữ liệu thành 3 nhóm và thao tác được phép với từng nhóm (mục 1.5).
 2. Tham số cấu hình (Phụ lục 25, BR-M15-04, DBR-24, UC-69).
@@ -261,8 +267,8 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 - **FR-012**: Mỗi mã tham số MUST có đúng một giá trị hiện hành tại mọi thời điểm; mọi giá trị trước đó MUST được lưu lịch sử. *(Nguồn: DBR-24)*
 - **FR-013**: Chỉ Quản lý viện được thay đổi giá trị tham số; hệ thống MUST từ chối mọi vai trò khác (CHK017). *(Nguồn: BR-M15-04, UC-69, Permission Matrix dòng "Tài khoản, phân quyền, tham số")*
 - **FR-014**: Mỗi lần thay đổi tham số MUST kèm lý do và MUST được ghi nhật ký với giá trị trước, giá trị sau, người thực hiện, thời điểm. *(Nguồn: BR-M15-04, 19.4)*
-- **FR-015**: Hệ thống MUST kiểm tra giá trị mới theo kiểu và khoảng hợp lệ của tham số; giá trị không hợp lệ MUST bị từ chối và giá trị hiện hành giữ nguyên. *(Suy ra từ DBR-24, BR-M15-04: giá trị hiện hành luôn là một giá trị dùng được)*
-- **FR-016**: Giá trị mới MUST có hiệu lực ngay từ thời điểm lưu cho mọi lần kiểm tra quy tắc sau đó, không cần triển khai lại hệ thống. *(Nguồn: NFR-12, Phụ lục 25)*
+- **FR-015**: Hệ thống MUST kiểm tra giá trị mới theo kiểu và khoảng hợp lệ của tham số; giá trị không hợp lệ MUST bị từ chối và giá trị hiện hành giữ nguyên. *(Bổ sung, 2026-10-10, Q-315)* Kiểu suy từ đơn vị của giá trị mặc định; khoảng hợp lệ chỉ gồm ràng buộc kỹ thuật (thời lượng > 0, tỷ lệ 0–100, số lượng ≥ 0) và ràng buộc ghi ở Phụ lục 25 (ví dụ CFG-M15-06 lớn hơn CFG-M15-05). *(Suy ra từ DBR-24, BR-M15-04: giá trị hiện hành luôn là một giá trị dùng được)*
+- **FR-016**: Giá trị mới MUST có hiệu lực ngay từ thời điểm lưu cho mọi lần kiểm tra quy tắc sau đó, không cần triển khai lại hệ thống. Tham số không có ngày hiệu lực tương lai; ngày hiệu lực theo ngày lịch của BR-M15-07 chỉ áp cho phiên bản và yêu cầu (Q-316). *(Nguồn: NFR-12, Phụ lục 25)*
 - **FR-017**: Việc đổi tham số MUST NOT tính lại các kết quả đã có trước thời điểm đổi (công việc, cảnh báo, liều, chi phí đã lập; hạn nhắc đã tính…), trừ khi spec module quy định khác cho một tham số cụ thể. *(Suy ra từ mục 1.3, 1.5: kết quả đã ghi nhận không bị sửa)*
 - **FR-018**: Mỗi lần kiểm tra quy tắc MUST dùng trọn vẹn một giá trị của tham số (giá trị hiện hành tại thời điểm kiểm tra). *(Suy ra từ DBR-24)*
 - **FR-019**: Hệ thống MUST cho phép tra cứu giá trị hiện hành của một mã tham số tại một thời điểm quá khứ bất kỳ. *(Suy ra từ DBR-24, BR-M15-04: giá trị trước được lưu lịch sử)*
@@ -423,3 +429,5 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep
 - **Q-283** – gộp Dinh dưỡng viên vào Bác sĩ; bản gán chế độ ăn do Bác sĩ lập nên không còn bước duyệt riêng (BR-M08-03); cột DDV của Phụ lục 27 gộp vào cột BS. Ảnh hưởng: FR-002 (danh sách vai trò).
 - **Q-282** – bỏ vai trò Nhân viên vệ sinh và nghiệp vụ vệ sinh (7.5, BR-M03-08, 11, 12, 14, UC-71 → 73); giường kết thúc phân bổ chuyển "Chờ sẵn sàng", Trưởng tầng hoặc Người phụ trách ca "Xác nhận giường sẵn sàng" (nghi nhiễm thì bắt buộc xác nhận đã khử khuẩn) (BR-M03-09, 10, UC-74); nhân viên không dùng hệ thống chỉ có hồ sơ nhân viên. Ảnh hưởng: FR-002 (danh sách vai trò).
 - **Q-280** – bỏ thang điểm (Barthel, MMSE, Morse, Braden), bảng quy đổi CFG-M01-05 và hoạt động mẫu; Bác sĩ đánh giá bằng nhận xét dựa trên hồ sơ sức khỏe ban đầu và chỉ số đo, rồi chọn mức chăm sóc (5.3, BR-M01-09). Ảnh hưởng: FR-022 (ví dụ bảng quy đổi là dữ liệu cấu hình có phiên bản).
+
+**(2026-10-10) Plan 000, điểm báo lại 1 → 3** (khoảng hợp lệ tham số, thời điểm hiệu lực tham số, phạm vi 001–016). *(Đã xử lý 2026-10-10: Q-315, Q-316; sửa FR-015, FR-016 và Phạm vi.)*

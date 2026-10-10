@@ -209,7 +209,7 @@ Hệ thống không quản lý vệ sinh. Việc dọn giường, phòng và kh�
 **Điểm đã làm rõ**
 
 - Bước leo thang "trưởng tầng hoặc bác sĩ" không cần quy tắc chọn người: cả hai được báo cùng lúc, ai tiếp nhận trước là đủ (spec 007 FR-033).
-- Cảnh báo mức Nhẹ chưa tiếp nhận khi hết ca: vào bản nháp bàn giao (BR-M05-05) và lên một cấp.
+- Cảnh báo mức Nhẹ chưa tiếp nhận khi hết ca: người lập bàn giao ghi vào bàn giao (BR-M05-05, Q-312) và lên một cấp.
 - Cảnh báo mức Khẩn cấp không leo thang theo cấp: mọi người nhận được báo đồng thời (Q-67).
 
 ---
@@ -260,7 +260,7 @@ Hệ thống không quản lý vệ sinh. Việc dọn giường, phòng và kh�
 
 - "Đổi kế hoạch chăm sóc" ở BR-M02-04 **không** tạo phiên bản kế hoạch tự động. Khi áp dụng thay đổi, hệ thống chỉ đổi mức chăm sóc hiện hành và báo Điều dưỡng phụ trách xem xét kế hoạch. Phiên bản mới vẫn do Điều dưỡng lập và người có quyền duyệt (BR-M04-19, 20). Cho tới lúc đó, kế hoạch cũ vẫn áp dụng (BR-M01-03).
 - Đánh giá lại chỉ đổi nhu cầu chăm sóc (mức giữ nguyên) không đi qua luồng này: không tạo yêu cầu thay đổi lưu trú, nhưng Điều dưỡng phụ trách vẫn được báo như bước 5 (BR-M04-20).
-- Đổi loại lưu trú từ bán trú sang nội trú (kể cả nội trú ngắn ngày để ở lại qua đêm, Q-286): khi phần nội trú có hiệu lực, Hành chính được nhắc lập khai báo tạm trú, lưu trú "Cần khai báo" như bước 15a của BF-01 (BR-M02-11, spec 018 FR-001a).
+- Đổi loại lưu trú từ bán trú sang nội trú (kể cả nội trú ngắn ngày để ở lại qua đêm, Q-286): khi phần nội trú có hiệu lực (ngày hiệu lực của phụ lục đổi loại lưu trú hoặc ngày bắt đầu hợp đồng nội trú mới, Q-336), Hành chính được nhắc lập khai báo tạm trú, lưu trú "Cần khai báo" như bước 15a của BF-01 (BR-M02-11, spec 018 FR-001a).
 
 ---
 
@@ -541,7 +541,7 @@ Khởi phát: hợp đồng đầu tiên của người cao tuổi chuyển Ch�
 | 5 | Hệ thống | Khớp từng dòng theo mã nộp tiền trong nội dung. Dòng không khớp hoặc khớp nhiều mã vào danh sách "chưa khớp" | Dòng: Đã khớp / Chưa khớp | BR-M11-12 |
 | 6 | Kế toán | Xác nhận dòng đã khớp vào số dư hoặc sổ cọc; gán thủ công dòng chưa khớp (có lý do) hoặc đánh dấu "không thuộc người cao tuổi". Chuyển khoản gộp nhiều khoản: ghi toàn bộ vào một sổ rồi lập cặp điều chỉnh chuyển tiền (Q-227) | Giao dịch nộp tiền: Đã xác nhận; số dư hoặc sổ cọc tăng | BR-M11-12 |
 | 7 | Hệ thống | Bảng chi phí Đã chốt (BF-09 bước 7): tạo giao dịch thanh toán bằng tổng bảng | Số dư giảm; số dư âm hiện "còn nợ" | BR-M11-11, DBR-30 |
-| 8 | Bộ lập lịch | Hằng ngày tính số ngày còn đủ tiền = (số dư − chi phí chưa chốt của mọi bảng chưa chốt) ÷ phí lưu trú ngày (Q-228, Q-223). Dưới [15 ngày] (CFG-M11-04) hoặc số dư âm: báo người đại diện mức Trung bình (người không có quyền xem chi phí chỉ nhận phần "chung") và Kế toán mức Nhẹ; nhắc lại mỗi [7 ngày] (CFG-M11-05); chiều tốt lên không báo ngay, trừ khi có giao dịch nộp tiền (Q-252): nộp làm số ngày vượt ngưỡng thì tính lại ngay, dừng nhắc và báo người đại diện mức Nhẹ "đã ghi nhận khoản nộp"; nộp chưa đủ thì vẫn báo "đã ghi nhận khoản nộp" kèm tình trạng, chu kỳ nhắc giữ nguyên (Q-257). Chuyển khoản tính tại lúc xác nhận đối soát; thông báo này vẫn gửi khi đang dừng nhắc; giao dịch nộp bị đảo thì tính lại ngay, tình trạng xấu đi thì báo như lần chuyển mới (Q-268). Còn nợ quá CFG-M11-05 thì báo thêm Quản lý viện | Thông báo "sắp hết tiền" / "còn nợ" / "đã ghi nhận khoản nộp" | UC-87, BR-M11-13, Q-252, Q-257, Q-268 |
+| 8 | Bộ lập lịch | Hằng ngày tính số ngày còn đủ tiền = (số dư − chi phí chưa chốt của mọi bảng chưa chốt) ÷ phí lưu trú ngày (Q-228, Q-223); chi phí chưa chốt chỉ gồm các khoản Hành chính đã lập, không ước tính (Q-334). Dưới [15 ngày] (CFG-M11-04) hoặc số dư âm: báo người đại diện mức Trung bình (người không có quyền xem chi phí chỉ nhận phần "chung") và Kế toán mức Nhẹ; nhắc lại mỗi [7 ngày] (CFG-M11-05); chiều tốt lên không báo ngay, trừ khi có giao dịch nộp tiền (Q-252): nộp làm số ngày vượt ngưỡng thì tính lại ngay, dừng nhắc và báo người đại diện mức Nhẹ "đã ghi nhận khoản nộp"; nộp chưa đủ thì vẫn báo "đã ghi nhận khoản nộp" kèm tình trạng, chu kỳ nhắc giữ nguyên (Q-257). Chuyển khoản tính tại lúc xác nhận đối soát; thông báo này vẫn gửi khi đang dừng nhắc; giao dịch nộp bị đảo thì tính lại ngay, tình trạng xấu đi thì báo như lần chuyển mới (Q-268). Còn nợ quá CFG-M11-05 thì báo thêm Quản lý viện | Thông báo "sắp hết tiền" / "còn nợ" / "đã ghi nhận khoản nộp" | UC-87, BR-M11-13, Q-252, Q-257, Q-268 |
 | 9 | Kế toán | Theo dõi danh sách số dư thấp và liên hệ gia đình | — | 15.9 |
 | 10 | Kế toán; Quản lý viện | Lập hoàn tiền (giữa kỳ không vượt số dư − chi phí chưa chốt), điều chỉnh, cặp điều chỉnh chuyển tiền, giao dịch đảo (bắt buộc lý do); Quản lý viện duyệt, lúc duyệt kiểm tra lại số tiền và người nhận | Giao dịch: Chờ duyệt → Đã xác nhận / Từ chối / Đã hủy | BR-M11-10, 14, Q-229 |
 | 11 | Kế toán | Xuất sao kê số dư, báo cáo thu chi, sổ tiền cọc ra Excel | — | UC-88; 15.9 |

@@ -184,38 +184,38 @@ app-nhan-vien/lib/tinh-nang/
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
 
-1. **Người phụ trách ca Xác nhận giường sẵn sàng chưa có ngoại lệ quyền ở 002.**
+1. **Người phụ trách ca Xác nhận giường sẵn sàng chưa có ngoại lệ quyền ở 002.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Spec 003 FR-044, UC-74 và chú thích ¹⁵ Phụ lục 27 cho Người phụ trách ca của tầng thực hiện lệnh này.
    - Spec 002 FR-019 ghi nhiệm vụ không tạo quyền thao tác, trừ đúng sáu ngoại lệ FR-019a → FR-019f. Không ngoại lệ nào nói về Xác nhận giường sẵn sàng.
    - Người phụ trách ca thường có vai trò Điều dưỡng hoặc Nhân viên chăm sóc. Hai vai trò này có "—" ở dòng "Xử lý hư hỏng, đưa giường vào bảo trì", nên `QuyenApi` sẽ từ chối họ.
    - Đề nghị: thêm FR-019g vào spec 002 (Người phụ trách ca được Xác nhận giường sẵn sàng cho giường thuộc tầng/khu vực của ca, trong khoảng phạm vi của ca), kèm Q mới. Plan 002 chỉ cần thêm một dòng vào `QuyenTheoNhiemVu`; 003 không cần sửa.
    - Cùng dòng Phụ lục 27 có QL "T". Chú thích ¹⁵ cho thấy chữ T đó chỉ áp cho phần xử lý hư hỏng, nên plan loại Quản lý viện khỏi Xác nhận giường sẵn sàng theo FR-044 và US4 #11. Đề nghị tách dòng Phụ lục 27 thành hai dòng ("Xác nhận giường sẵn sàng" và "Xử lý hư hỏng giường") cho rõ.
 
-2. **Chuyển giường theo lịch khi người cao tuổi đang Điều trị tại bệnh viện: spec tự mâu thuẫn.**
+2. **Chuyển giường theo lịch khi người cao tuổi đang Điều trị tại bệnh viện: spec tự mâu thuẫn.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Edge Case "Chuyển giường theo lịch không thực hiện được" lấy "người cao tuổi đang Điều trị tại bệnh viện" làm ví dụ của "Áp dụng không thành".
    - Edge Case "Người cao tuổi đang Tạm vắng hoặc Điều trị tại bệnh viện có giường giữ chỗ" lại ghi chuyển giường vẫn thực hiện được (FR-032).
    - FR-029 chỉ cho "Áp dụng không thành" khi FR-018 không thỏa, mà FR-018 không có điều kiện về việc đang nằm viện.
    - Plan theo FR-029 và FR-032: chuyển theo lịch vẫn thực hiện, giường mới nhận giữ chỗ với hạn còn lại. Đề nghị sửa ví dụ ở Edge Case, hoặc nếu muốn chặn thì thêm điều kiện vào FR-029 bằng Q mới.
 
-3. **Chuyển theo lịch bị hoãn vì giường chưa sẵn sàng, rồi không còn thỏa FR-018 lúc giường về Trống.**
+3. **Chuyển theo lịch bị hoãn vì giường chưa sẵn sàng, rồi không còn thỏa FR-018 lúc giường về Trống.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Theo FR-011a, yêu cầu được áp dụng vào ngày hiệu lực (đơn giá mới tính từ ngày đó theo FR-016a), còn việc chuyển chờ tới khi giường về Trống.
    - Nếu lúc đó phòng mới vừa bị cách ly hoặc người cao tuổi đổi mức, FR-018 không còn thỏa. Yêu cầu đã "Đã áp dụng" nên không chuyển "Áp dụng không thành" được.
    - Plan hủy phân bổ tương lai, người cao tuổi ở lại giường cũ, báo Hành chính, Trưởng tầng và Quản lý viện. Đơn giá đã áp dụng thì Hành chính xử lý bằng một yêu cầu thay đổi lưu trú mới.
    - Đề nghị chốt bằng Q: giữ cách này, hay hoãn cả việc áp dụng yêu cầu tới lúc chuyển thực hiện.
 
-4. **BR-M03-06 ghi "hết hạn giữ chỗ cho người đang vắng … giường chuyển Chờ sẵn sàng"**, trong khi BR-M02-07 và spec 003 FR-015 ghi hết hạn thì không tự giải phóng mà chuyển cho Quản lý viện chọn. Plan theo BR-M02-07 và FR-015. Đề nghị sửa câu của BR-M03-06 thành "khi giường giữ cho người vắng được giải phóng".
+4. **BR-M03-06 ghi "hết hạn giữ chỗ cho người đang vắng … giường chuyển Chờ sẵn sàng"**, trong khi BR-M02-07 và spec 003 FR-015 ghi hết hạn thì không tự giải phóng mà chuyển cho Quản lý viện chọn. Plan theo BR-M02-07 và FR-015. Đề nghị sửa câu của BR-M03-06 thành "khi giường giữ cho người vắng được giải phóng". *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-5. **Hai feature cùng nhận job hết hạn giữ chỗ cho hồ sơ chờ.** 003 FR-015 và 004 FR-015 đều ghi Bộ lập lịch của mình xử lý. Plan đặt một job ở 003, vì hạn giữ là dữ liệu của giường. Job gọi SPI của 004 để trả hồ sơ về Đang chờ trong cùng transaction (research G-09). Plan 004 không thêm job thứ hai. Không đổi nghiệp vụ; đề nghị ghi rõ ở spec 004 FR-015 rằng việc trả giường do 003 làm.
+5. **Hai feature cùng nhận job hết hạn giữ chỗ cho hồ sơ chờ.** 003 FR-015 và 004 FR-015 đều ghi Bộ lập lịch của mình xử lý. Plan đặt một job ở 003, vì hạn giữ là dữ liệu của giường. Job gọi SPI của 004 để trả hồ sơ về Đang chờ trong cùng transaction (research G-09). Plan 004 không thêm job thứ hai. Không đổi nghiệp vụ; đề nghị ghi rõ ở spec 004 FR-015 rằng việc trả giường do 003 làm. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-6. **Spec 003 chưa nêu mức của phần lớn thông báo (009 FR-043a, Q-108).** Chỉ "trở về phòng đang cách ly" có mức Khẩn cấp (7.4, Q-114). Plan áp nguyên tắc 3 bậc như 001 (research G-12): nhắc theo chu kỳ và báo bác sĩ chỉ định ở mức Nhẹ; báo giường hỏng có phân bổ tương lai, chuyển theo lịch chờ giường, việc lịch trễ, chuyển gấp khác giá, phòng không còn phù hợp, quá thời điểm bắt đầu dự kiến, khu nghỉ vượt sức chứa ở mức Trung bình. Đề nghị ghi vào spec 003 và bảng 009 FR-043b khi đồng bộ.
+6. **Spec 003 chưa nêu mức của phần lớn thông báo (009 FR-043a, Q-108).** Chỉ "trở về phòng đang cách ly" có mức Khẩn cấp (7.4, Q-114). Plan áp nguyên tắc 3 bậc như 001 (research G-12): nhắc theo chu kỳ và báo bác sĩ chỉ định ở mức Nhẹ; báo giường hỏng có phân bổ tương lai, chuyển theo lịch chờ giường, việc lịch trễ, chuyển gấp khác giá, phòng không còn phù hợp, quá thời điểm bắt đầu dự kiến, khu nghỉ vượt sức chứa ở mức Trung bình. Đề nghị ghi vào spec 003 và bảng 009 FR-043b khi đồng bộ. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-7. **(Đồng bộ câu chữ spec 003, không đổi nghiệp vụ)**
+7. **(Đồng bộ câu chữ spec 003, không đổi nghiệp vụ)** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - US3 kịch bản 6 còn ghi "kích hoạt đề xuất hồ sơ chờ BR-M02-01", trái Q-307 và FR-014 ("báo Hành chính, không đề xuất").
    - Key Entities còn "Khu vực chung". Sau Q-282 không FR nào dùng thực thể này, nên plan không mô hình hóa nó.
    - Assumptions còn câu dẫn `docs/phan-tich-yeu-cau.md` mục 4.2 (đã bỏ); có thể giữ làm lịch sử.
    - US4 kịch bản 3 còn cụm "hư hỏng phát hiện khi dọn giường" theo nghĩa cũ; vẫn đúng với FR-013a.
 
-8. **(Đồng bộ với plan 000, 001, 002, đã sửa trong plan này)** Các bổ sung ở research G-13 đã được ghi vào:
+8. **(Đồng bộ với plan 000, 001, 002, đã sửa trong plan này)** Các bổ sung ở research G-13 đã được ghi vào: *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - [../000-shared-foundation/contracts/module-interfaces.md](../000-shared-foundation/contracts/module-interfaces.md): `LoaiYeuCauHandler.kiemTraKhiDuyet`, `khiDuyet`;
    - [../001-elder-profile-assessment/contracts/module-interfaces.md](../001-elder-profile-assessment/contracts/module-interfaces.md): `ThamGiaChuyenTrangThai.canhBao`, `TrangThaiNguoiCaoTuoiApi.khoangTrangThai`, sự kiện `ThongTinCaNhanDaCapNhat`;
    - [../002-account-permission/contracts/module-interfaces.md](../002-account-permission/contracts/module-interfaces.md): `PhanBoGiuongApi` là SPI khai báo ở `m15.taikhoan.api`, M03 cài.

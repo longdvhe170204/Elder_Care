@@ -449,3 +449,5 @@ Chưa sửa `docs/`. Các điểm dưới đây cần chủ tài liệu xác nh�
 **(2026-10-06) Thay đổi do chủ dự án chốt Q-307 (bỏ gợi ý, đề xuất, yêu cầu và sự cố do hệ thống tự tạo).** *(Đã xử lý 2026-10-06: spec đã viết lại, xem mục "Cập nhật 2026-10-06, lượt 2" ở Clarifications.)*
 
 - **Q-307** – Bỏ gợi ý người thay ca: hệ thống cảnh báo thiếu phủ, Trưởng tầng tự chọn người đang không có ca để mời; số giờ đã làm trong tháng vẫn hiển thị (BR-M09-11, 13.2, 19.3). Người phụ trách ca do người lập lịch chọn (BR-M09-09). Giữ: cảnh báo do hệ thống tạo và leo thang, nhắc, thông báo; bản ghi kèm lệnh của actor; số liệu tính để hiển thị (24.2).
+
+**(2026-10-10) Plan 015, điểm báo lại 1.** *(Đã xử lý 2026-10-10: không cần sửa: dẫn chiếu "4.4", mục 4.2 tra qua bảng ánh xạ ở Phụ lục 26; điểm báo lại 1 nhắc "vệ sinh" là lịch sử trước Q-282.)*

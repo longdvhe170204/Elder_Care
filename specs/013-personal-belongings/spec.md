@@ -45,6 +45,11 @@ Theo Q-194, báo cáo đồ gửi (số đồ thất lạc, hư hỏng, đồ ch
 - **Q-306, Q-307**: Hành chính lập phiếu kiểm kê cho từng vị trí theo chu kỳ CFG-M12-04. Hệ thống không gợi ý vị trí. Phiếu gồm mọi đồ có giá trị Đang giữ tại vị trí lúc lập, đó là phạm vi kiểm kê của Q-154. Tới kỳ mà chưa lập thì hệ thống nhắc Hành chính (BR-M12-07). Đồ có giá trị do nhân viên hết ca đang giữ: hệ thống nhắc; người lập bàn giao ghi mục "đồ gửi đang giữ" vào bàn giao ca (16.6, feature 008), hệ thống không tự đưa vào.
 - Viết lại: Phạm vi mục 5; User Story 2 kịch bản 9; User Story 4; Edge Cases (đồ mất khi Hoạt động bên ngoài); FR-011a, FR-014a, FR-021 → FR-024, FR-028a → FR-028c; bảng trạng thái đồ gửi (Báo thất lạc, Ghi hư hỏng, Tìm thấy); bảng phiếu kiểm kê; bảng thông báo; bảng giao tiếp; Key Entities; SC-005, SC-009.
 
+### Cập nhật 2026-10-10, lượt 2 (đồng bộ với spec 007 và câu chữ sau rà soát điểm báo lại của plan)
+
+- Spec 007 FR-046b sửa theo FR-011a của spec này: sự cố đồ gửi không tự chuyển Đã hủy khi bản ghi bàn giao bị Hủy ghi nhận (Q-307).
+- Bảng FR-032: cột mức của nhắc đề nghị xử lý chỉ ghi "Nhẹ".
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 12, mục 16; UC-65; DBR-22):
@@ -398,7 +403,7 @@ Hoàn thành và Đã hủy là trạng thái cuối. Đề nghị "Xử lý đ�
 | Hồ sơ kết thúc lưu trú được lập khi còn đồ chưa trả | Người đại diện | Nhẹ | FR-025 |
 | Còn đồ chưa trả sau trạng thái cuối, theo chu kỳ CFG-M12-02 | Hành chính | Nhẹ | FR-027 |
 | Đồ đủ CFG-M12-03, được lập đề nghị xử lý | Hành chính | Nhẹ | FR-027a |
-| Đề nghị "Xử lý đồ không người nhận" Chờ duyệt (nhắc theo feature 000 FR-031a) | Quản lý viện | Nhẹ; theo feature 000 FR-031a | FR-027a |
+| Đề nghị "Xử lý đồ không người nhận" Chờ duyệt (nhắc theo feature 000 FR-031a) | Quản lý viện | Nhẹ | FR-027a |
 | Đề nghị được duyệt, từ chối hoặc áp dụng không thành | Hành chính (người lập) | Nhẹ | FR-027a |
 | Đồ gửi chuyển Đã xử lý | Người đại diện (nếu còn quan hệ Hiệu lực) | Nhẹ | FR-027a |
 | Lệnh bàn giao do Hành chính thực hiện thay người giữ vắng mặt | Người giữ cũ | Nhẹ | FR-014 |
@@ -555,3 +560,5 @@ Hoàn thành và Đã hủy là trạng thái cuối. Đề nghị "Xử lý đ�
 **(2026-10-06) Thay đổi do chủ dự án chốt Q-307 (bỏ gợi ý, đề xuất, yêu cầu và sự cố do hệ thống tự tạo).** *(Đã xử lý 2026-10-06: spec đã viết lại, xem mục "Cập nhật 2026-10-06, lượt 2" ở Clarifications.)*
 
 - **Q-307** – Thất lạc, hư hỏng không còn tự tạo sự cố: hệ thống báo người liên hệ chính và Hành chính, người ghi lệnh quyết định ghi nhận sự cố và liên kết với đồ (BR-M12-02, 03). Phiếu kiểm kê không có danh sách gợi ý (BR-M12-07). Đồ do nhân viên hết ca đang giữ do người bàn giao ghi vào bàn giao (16.6). Giữ: cảnh báo do hệ thống tạo và leo thang, nhắc, thông báo; bản ghi kèm lệnh của actor; số liệu tính để hiển thị (24.2).
+
+**(2026-10-10) Plan 013, điểm báo lại 1 → 3.** *(Đã xử lý 2026-10-10: spec 007 FR-046b sửa theo FR-011a; bảng FR-032. Điểm báo lại 16 (sự kiện cờ đi lạc) không còn đúng sau Q-281, giữ làm lịch sử.)*

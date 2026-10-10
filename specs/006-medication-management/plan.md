@@ -203,26 +203,26 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
 
-1. **Số ngày dùng còn lại khi một lô gắn nhiều đơn.**
+1. **Số ngày dùng còn lại khi một lô gắn nhiều đơn.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - FR-046 ghi "số ngày còn lại của mỗi đơn = tổng số lượng còn của các lô gắn đơn ÷ lượng dùng mỗi ngày của đơn"; FR-043 và BR-M07-18 ghi "tính trên tổng lượng dùng mỗi ngày của các đơn dùng chung lô".
    - Với một lô gắn cả đơn định kỳ và đơn PRN, công thức "của mỗi đơn" đếm cùng số thuốc hai lần và có thể gửi hai thông báo cho một thuốc.
    - Plan tính trên nhóm dùng chung (lô và đơn liên thông qua liên kết), một thông báo mỗi nhóm (research D-14). Khi không có lô dùng chung, kết quả trùng FR-046. Đề nghị sửa câu FR-046 theo BR-M07-18.
 
-2. **"Đánh dấu dòng của thuốc đã bỏ" (BR-M07-22, FR-034a) chưa nói ai đánh dấu.** Q-307 cấm hệ thống tự sửa phiếu. Plan hiển thị dấu "thuốc đã bỏ khỏi hồ sơ" tính lúc đọc, không ghi vào dòng; người thực hiện tự sửa dòng. Đề nghị ghi rõ ở BR-M07-22.
+2. **"Đánh dấu dòng của thuốc đã bỏ" (BR-M07-22, FR-034a) chưa nói ai đánh dấu.** Q-307 cấm hệ thống tự sửa phiếu. Plan hiển thị dấu "thuốc đã bỏ khỏi hồ sơ" tính lúc đọc, không ghi vào dòng; người thực hiện tự sửa dòng. Đề nghị ghi rõ ở BR-M07-22. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-3. **Bỏ lỡ → Đã dùng khi đồng bộ muộn.** FR-029 cho liều "đã Trễ/Bỏ lỡ do mất kết nối nhưng thời điểm dùng trong cửa sổ thì chuyển Đã dùng"; bảng FR-021 và 11.2 coi Bỏ lỡ là trạng thái cuối, không có chuyển Bỏ lỡ → Đã dùng. Plan làm phần Bỏ lỡ bằng bản đính chính tạo kèm bản ghi đồng bộ (người tạo là người ghi; trạng thái hiện hành Đã dùng), giữ trạng thái cuối (research D-11). Đề nghị ghi cách này vào FR-029 hoặc thêm dòng vào bảng FR-021.
+3. **Bỏ lỡ → Đã dùng khi đồng bộ muộn.** FR-029 cho liều "đã Trễ/Bỏ lỡ do mất kết nối nhưng thời điểm dùng trong cửa sổ thì chuyển Đã dùng"; bảng FR-021 và 11.2 coi Bỏ lỡ là trạng thái cuối, không có chuyển Bỏ lỡ → Đã dùng. Plan làm phần Bỏ lỡ bằng bản đính chính tạo kèm bản ghi đồng bộ (người tạo là người ghi; trạng thái hiện hành Đã dùng), giữ trạng thái cuối (research D-11). Đề nghị ghi cách này vào FR-029 hoặc thêm dòng vào bảng FR-021. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-4. **SC-012 "100% bản ghi ghi sau mất kết nối có kết quả xem lại trước khi bàn giao ca kế tiếp được xác nhận"** không có quy tắc chặn tương ứng ở spec 006 hay 008. Plan đưa bản ghi chờ xem lại vào `LieuBanGiaoApi` và thông báo người xem lại; không chặn xác nhận bàn giao. Đề nghị chốt (Q mới) bàn giao có bị chặn khi còn bản ghi chờ xem lại không, hoặc sửa SC-012 thành chỉ tiêu theo dõi.
+4. **SC-012 "100% bản ghi ghi sau mất kết nối có kết quả xem lại trước khi bàn giao ca kế tiếp được xác nhận"** không có quy tắc chặn tương ứng ở spec 006 hay 008. Plan đưa bản ghi chờ xem lại vào `LieuBanGiaoApi` và thông báo người xem lại; không chặn xác nhận bàn giao. Đề nghị chốt (Q mới) bàn giao có bị chặn khi còn bản ghi chờ xem lại không, hoặc sửa SC-012 thành chỉ tiêu theo dõi. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-5. **Mức của các thông báo spec 006 chưa nêu (009 FR-043a, Q-108).** Plan áp nguyên tắc 3 bậc (research D-17): thuốc gia đình gửi hết hạn dùng, hết thuốc gia đình gửi khi đến liều, cần nhận lại thuốc mang theo ở mức Trung bình; phiếu gửi xác nhận / trả lại, thuốc gửi đã dùng hết, chuyển Chỉ giữ hộ do đơn ngừng, thuốc đang dùng khi tiếp nhận đã đổi ở mức Nhẹ. Đề nghị ghi vào spec 006 và bảng 009 FR-043b khi đồng bộ.
+5. **Mức của các thông báo spec 006 chưa nêu (009 FR-043a, Q-108).** Plan áp nguyên tắc 3 bậc (research D-17): thuốc gia đình gửi hết hạn dùng, hết thuốc gia đình gửi khi đến liều, cần nhận lại thuốc mang theo ở mức Trung bình; phiếu gửi xác nhận / trả lại, thuốc gửi đã dùng hết, chuyển Chỉ giữ hộ do đơn ngừng, thuốc đang dùng khi tiếp nhận đã đổi ở mức Nhẹ. Đề nghị ghi vào spec 006 và bảng 009 FR-043b khi đồng bộ. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-6. **Edge Case "Người cao tuổi chuyển lại bệnh viện khi phiếu đối chiếu chưa xác nhận … khi trở về, phiếu mới được tạo"** còn câu chữ trước Q-306 (hệ thống tạo phiếu). Plan theo FR-034: hệ thống báo, Bác sĩ hoặc Điều dưỡng lập phiếu mới. Đề nghị sửa câu Edge Case thành "người thực hiện lập phiếu mới".
+6. **Edge Case "Người cao tuổi chuyển lại bệnh viện khi phiếu đối chiếu chưa xác nhận … khi trở về, phiếu mới được tạo"** còn câu chữ trước Q-306 (hệ thống tạo phiếu). Plan theo FR-034: hệ thống báo, Bác sĩ hoặc Điều dưỡng lập phiếu mới. Đề nghị sửa câu Edge Case thành "người thực hiện lập phiếu mới". *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-7. **Liều đã xác nhận sau thời điểm qua đời ghi trong quá khứ** (Edge Case, "đánh dấu cần rà soát", feature 004): spec không nói ai rà soát và kết thúc rà soát thế nào. Plan hiển thị dấu tính lúc đọc, không đổi bản ghi, không thông báo. Đề nghị xác nhận, hoặc giao người rà soát bằng Q mới.
+7. **Liều đã xác nhận sau thời điểm qua đời ghi trong quá khứ** (Edge Case, "đánh dấu cần rà soát", feature 004): spec không nói ai rà soát và kết thúc rà soát thế nào. Plan hiển thị dấu tính lúc đọc, không đổi bản ghi, không thông báo. Đề nghị xác nhận, hoặc giao người rà soát bằng Q mới. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-8. **(Đồng bộ câu chữ spec 006, không đổi nghiệp vụ)**
+8. **(Đồng bộ câu chữ spec 006, không đổi nghiệp vụ)** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - FR-026 có hai cụm "(Nguồn: …)" nối nhau; nên gộp.
    - Assumptions còn câu dẫn `docs/phan-tich-yeu-cau.md` mục 4.2 (đã bỏ); có thể giữ làm lịch sử.
    - Điểm báo lại 12 của spec còn nêu "đề xuất lô hạn dùng sớm nhất (FR-044)", đã bỏ theo Q-307.
 
-9. **Q-63 và Thông tư 27/2024/TT-BYT** (spec điểm báo lại 2026-10-06, Q-304): thiết kế giữ phạm vi hiện tại (bắt buộc trực tuyến, xem lại khi mất kết nối), không có sổ nhập–xuất–tồn hay người chứng kiến cho thuốc gây nghiện, hướng thần. Nếu tư vấn pháp lý xác nhận viện thuộc diện áp dụng thì cần Q mới và thêm bảng sổ theo dõi ở `m07`; cấu trúc gói hiện tại không chặn việc bổ sung này.
+9. **Q-63 và Thông tư 27/2024/TT-BYT** (spec điểm báo lại 2026-10-06, Q-304): thiết kế giữ phạm vi hiện tại (bắt buộc trực tuyến, xem lại khi mất kết nối), không có sổ nhập–xuất–tồn hay người chứng kiến cho thuốc gây nghiện, hướng thần. Nếu tư vấn pháp lý xác nhận viện thuộc diện áp dụng thì cần Q mới và thêm bảng sổ theo dõi ở `m07`; cấu trúc gói hiện tại không chặn việc bổ sung này. *(Còn mở 2026-10-10: chờ tư vấn pháp lý, mục 24.4.)*

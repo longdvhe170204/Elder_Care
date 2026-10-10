@@ -257,7 +257,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 - [ ] T071 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/004-admission-residency/contracts/api-004.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 004
 - [ ] T072 Khi 005, 006, 007, 010, 012, 013, 017 có bản thật, chạy lại test US1, US4, US6, US7, US8 với bean thật thay T002
 - [ ] T073 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T074 Rà truy vết data-model mục 15: DBR-02, 06, 07, 08, 23, 25 và BR-M02-01 → 10, 15 → 22 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-074, FR-075, FR-075a — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T074 Rà truy vết data-model mục 15: DBR-02, 06, 07, 08, 23, 25 và BR-M02-01 → 10, 15 → 22 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-074, FR-075, FR-075a, FR-078 (bổ sung 2026-10-10) — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

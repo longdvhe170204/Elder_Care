@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - app Flutter nhân viên (ghi ngoại tuyến theo Q-01) và app Flutter người thân;
   - phiên bản mặc định: Java 21 LTS, Spring Boot 3.x, MySQL 8.x, Flutter stable; ghi cụ thể ở plan.
 - Được chạy /speckit-plan, /speckit-tasks, /speckit-analyze. Làm plan theo thứ tự phụ thuộc: 000 → 002 → 001 → 003 → 004 → các feature còn lại; trước mỗi lần chạy kiểm tra .specify/feature.json.
-- Tình trạng (2026-10-10): cả 20 feature (000 → 019) đã có plan, tasks và đã qua /speckit-analyze một lượt.
+- Tình trạng (2026-10-10): cả 20 feature (000 → 019) đã có plan, tasks và đã qua /speckit-analyze một lượt. Các điểm báo lại của plan đã chốt bằng Q-311 → Q-336; còn mở 3 điểm chờ tư vấn pháp lý (24.4: Q-03, Thông tư 27/2024/TT-BYT, Luật Cư trú 118/2025/QH15).
 - Chạy lại /speckit-analyze theo cùng thứ tự với plan, đổi feature.json trước mỗi feature. Analyze chỉ đọc, kết quả trả trong hội thoại, không ghi file trừ khi chủ dự án yêu cầu.
 - Xử lý kết quả analyze (sau khi chủ dự án duyệt):
   - lệch ở plan, tasks: sửa plan, tasks;
@@ -41,10 +41,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Bán trú không qua đêm. Ở lại qua đêm thì thuê giường theo nội trú ngắn ngày.
 - Quy mô mã hiện có:
   - 243 BR (BR-Mxx-yy; đã xóa BR-M03-08, 11, 12, 14).
-  - Quyết định Q-01 → Q-310.
+  - Quyết định Q-01 → Q-336.
   - Luồng BF-01 → BF-18.
   - Use case UC-01 → UC-95, trừ UC-71 → 73 (92 UC); actor AC-00 → AC-15, trừ AC-06, AC-08.
-  - 117 tham số CFG (đã xóa CFG-M04-08, 09, CFG-M07-03 theo Q-306; CFG-M02-01, CFG-M08-02 theo Q-307).
+  - 118 tham số CFG (đã xóa CFG-M04-08, 09, CFG-M07-03 theo Q-306; CFG-M02-01, CFG-M08-02 theo Q-307; thêm CFG-M11-10 theo Q-335).
   - Quy tắc dữ liệu DBR-01 → DBR-36.
 
 ## Nguồn tài liệu

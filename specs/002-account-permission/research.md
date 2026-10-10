@@ -123,7 +123,7 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
 - Nhiệm vụ không phải vai trò; 002 không lưu nhiệm vụ. 002 hỏi module sở hữu tại thời điểm kiểm tra:
   - Người phụ trách ca, Trưởng tầng được giao (kể cả giao tạm), Trưởng đoàn, Người đi cùng, Người nhận tại tầng, Phụ trách bộ phận: `NhiemVuApi` của feature 008 (Phụ trách bộ phận theo 008 FR-001a; Trưởng đoàn, Người đi cùng 008 lấy từ 014);
   - "ca không có Trưởng tầng được giao" (FR-019e): `NhiemVuApi.caKhongCoTruongTang(ca)` của 008 theo 014 FR-066, Q-262.
-- Bảng cố định trong mã `QuyenTheoNhiemVu` liệt kê đúng sáu ngoại lệ FR-019a → FR-019f: nhiệm vụ, khóa quyền được thêm, giới hạn (tầng/khu của ca, khoảng FR-032, loại bản ghi gắn tầng, bộ phận). Không có ngoại lệ nào khác (FR-019). ArchUnit cấm nơi khác thêm quyền.
+- Bảng cố định trong mã `QuyenTheoNhiemVu` liệt kê đúng bảy ngoại lệ FR-019a → FR-019g (FR-019g: Người phụ trách ca Xác nhận giường sẵn sàng, Q-313): nhiệm vụ, khóa quyền được thêm, giới hạn (tầng/khu của ca, khoảng FR-032, loại bản ghi gắn tầng, bộ phận). Không có ngoại lệ nào khác (FR-019). ArchUnit cấm nơi khác thêm quyền.
 - Nhật ký của lệnh dùng quyền theo nhiệm vụ ghi `can_cu.nhiemVu` (FR-019a → FR-019f "nhật ký ghi căn cứ nhiệm vụ"). `QuyenApi.coQuyen` trả `KetQuaQuyen` gồm `duocPhep`, `lopKhongThoa`, `canCu` (vai trò / nhiệm vụ / ngoại lệ); module chép `canCu` vào nhật ký.
 - FR-019f ràng buộc: tài khoản có vai trò AC-01 hoặc AC-14 không giữ được nhiệm vụ Phụ trách bộ phận; kiểm tra nằm ở lệnh chỉ định của 008, 002 cung cấp `TaiKhoanApi.coVaiTro(tk, AC_01|AC_14)`.
 

@@ -175,18 +175,18 @@ Plan này bổ sung các điểm dưới đây vào hợp đồng của feature 
 3. **005**: `BanGhiDonBanTruPort.daDung(banGhiDonId, diemDanhId)` (MANDATORY) gọi trong lệnh Điểm danh về; thêm `KetQuaChamSocCongApi` (`ketQua`, `tongHop`) cho cổng và bản tin.
 4. **006, 007**: chú thích "ghi nhật ký xem" của `ThuocCongNguoiThanApi`, `SucKhoeCongNguoiThanApi` sửa thành "012 ghi nhật ký lượt xem".
 5. **009, 010, 011**: cài `NguoiThanNhanThongBaoPort`, `LuotOLaiAnPort`, phát `SuKienTinhPhiNguon(DEM_O_LAI)` và `LuotOLaiDaDoi` đúng chữ ký đã khai báo. Không đổi.
-6. **013, 014, 016, 017, 018** (làm plan sau): dùng `m10.api.QuyenNguoiThanApi` để phục vụ phần cổng của mình; **014** cài `HoatDongBanTinPort` và giữ bản ghi "đồng ý về muộn" (FR-046c thứ hai) ở REST của 014 với người đại diện kiểm qua `QuyenNguoiThanApi.laNguoiDaiDien`.
+6. **013, 014, 016, 017, 018** (làm plan sau): dùng `m10.api.QuyenNguoiThanApi` để phục vụ phần cổng của mình; **014** cài `HoatDongBanTinPort` và giữ bản ghi "đồng ý về muộn" (FR-046d) ở REST của 014 với người đại diện kiểm qua `QuyenNguoiThanApi.laNguoiDaiDien`.
 
 ## Điểm cần báo lại về tài liệu nguồn
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
 
-1. **Bảng quyền FR-067 thiếu Điều dưỡng ở dòng "Quy trình đón"**: FR-022 (Q-214) cho Điều dưỡng thực hiện quy trình đón cho Điểm danh về của bán trú, nhưng ô ĐD của dòng này ghi "—". Plan làm theo FR-022 (quyền theo lệnh nguồn). Đề nghị sửa ô ĐD của FR-067 và đối chiếu Phụ lục 27 chú thích ²⁷.
+1. **Bảng quyền FR-067 thiếu Điều dưỡng ở dòng "Quy trình đón"**: FR-022 (Q-214) cho Điều dưỡng thực hiện quy trình đón cho Điểm danh về của bán trú, nhưng ô ĐD của dòng này ghi "—". Plan làm theo FR-022 (quyền theo lệnh nguồn). Đề nghị sửa ô ĐD của FR-067 và đối chiếu Phụ lục 27 chú thích ²⁷. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-2. **Hai FR cùng mã FR-046c**: một FR-046c về thông báo số dư, nguy kịch (Q-211, Q-213), một FR-046c về đồng ý về muộn (Q-167, Q-176). Plan gọi FR thứ hai là "FR-046c (đồng ý về muộn)". Đề nghị đánh lại mã một FR (ví dụ FR-046d) khi sửa spec.
+2. **Hai FR cùng mã FR-046c**: một FR-046c về thông báo số dư, nguy kịch (Q-211, Q-213), một FR-046c về đồng ý về muộn (Q-167, Q-176). Plan gọi FR thứ hai là "FR-046c (đồng ý về muộn)". Đề nghị đánh lại mã một FR (ví dụ FR-046d) khi sửa spec. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-3. **Mốc Trưởng tầng nhận xét bản tin**: bảng FR-057 ghi Trưởng tầng nhận xét "sau mốc báo của CFG-M10-11", trong khi FR-053 cho Trưởng tầng nhận xét và duyệt thay sau CFG-M10-12 kể từ mốc của kỳ (CFG-M10-11 là tham số của yêu cầu thay đổi quyền). Plan dùng CFG-M10-12 theo FR-053. Đề nghị sửa dòng của FR-057.
+3. **Mốc Trưởng tầng nhận xét bản tin**: bảng FR-057 ghi Trưởng tầng nhận xét "sau mốc báo của CFG-M10-11", trong khi FR-053 cho Trưởng tầng nhận xét và duyệt thay sau CFG-M10-12 kể từ mốc của kỳ (CFG-M10-11 là tham số của yêu cầu thay đổi quyền). Plan dùng CFG-M10-12 theo FR-053. Đề nghị sửa dòng của FR-057. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-4. **Đồng ý về muộn trên cổng** (FR-046c thứ hai): spec 012 cho người đại diện ghi trên cổng, spec 014 FR-016a cho Hành chính ghi nhận đồng ý qua bản ký. Plan để bản ghi thuộc 014, người đại diện ghi qua REST của 014 (kiểm người đại diện qua 012). Đề nghị ghi rõ ở 014 FR-016a rằng có hai nguồn ghi (cổng, bản ký).
+4. **Đồng ý về muộn trên cổng** (FR-046c thứ hai): spec 012 cho người đại diện ghi trên cổng, spec 014 FR-016a cho Hành chính ghi nhận đồng ý qua bản ký. Plan để bản ghi thuộc 014, người đại diện ghi qua REST của 014 (kiểm người đại diện qua 012). Đề nghị ghi rõ ở 014 FR-016a rằng có hai nguồn ghi (cổng, bản ký). *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-5. **Câu chữ còn lẫn trong spec 012** (không đổi nghiệp vụ): FR-014, FR-015, FR-059, FR-060, FR-067 dẫn "4.4" (Permission Matrix của `docs/phan-tich-yeu-cau.md` đã bỏ; tra Phụ lục 27); Assumptions dòng đầu dẫn mục 4.2 của tài liệu đã bỏ.
+5. **Câu chữ còn lẫn trong spec 012** (không đổi nghiệp vụ): FR-014, FR-015, FR-059, FR-060, FR-067 dẫn "4.4" (Permission Matrix của `docs/phan-tich-yeu-cau.md` đã bỏ; tra Phụ lục 27); Assumptions dòng đầu dẫn mục 4.2 của tài liệu đã bỏ. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*

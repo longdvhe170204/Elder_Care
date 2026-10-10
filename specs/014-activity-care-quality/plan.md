@@ -166,14 +166,14 @@ app-nguoi-than/lib/tinh-nang/hoat-dong/  # buổi, chuyến, đồng ý về mu�
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
 
-1. **Câu chữ trước Q-306 còn sót trong spec 014**:
+1. **Câu chữ trước Q-306 còn sót trong spec 014**: *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - bảng trạng thái buổi dòng "Hoàn tất điểm danh" và bảng đăng ký dòng "Ghi kết quả điểm danh" ghi tác động "Chi phí nháp cho lượt có mặt" (FR-032 đã sửa: chỉ là bản ghi nguồn, Hành chính lập khoản);
    - SC-003 ghi "có đúng một chi phí nháp trỏ về lượt đó";
    - bảng trạng thái chuyến đi dòng đầu ghi "Sinh từ mẫu / Hệ thống" (FR-006 đã sửa: Trưởng tầng tạo buổi từ mẫu bằng lệnh).
    Plan làm theo FR-006, FR-032. Đề nghị sửa các dòng trên và SC-003 thành "đúng một bản ghi nguồn ở feature 010".
 
-2. **Ghi diễn biến vào cảnh báo**: FR-047 (người Thiếu khi về chưa có sự cố mà trở về) và FR-056 (cô lập) yêu cầu 007 "nhận diễn biến" vào cảnh báo; spec 007 chưa có yêu cầu tương ứng cho diễn biến cảnh báo từ module khác. Plan thêm sự kiện kỹ thuật `YeuCauGhiDienBienCanhBao` vào hợp đồng 007; đề nghị ghi một FR ở spec 007 để khớp.
+2. **Ghi diễn biến vào cảnh báo**: FR-047 (người Thiếu khi về chưa có sự cố mà trở về) và FR-056 (cô lập) yêu cầu 007 "nhận diễn biến" vào cảnh báo; spec 007 chưa có yêu cầu tương ứng cho diễn biến cảnh báo từ module khác. Plan thêm sự kiện kỹ thuật `YeuCauGhiDienBienCanhBao` vào hợp đồng 007; đề nghị ghi một FR ở spec 007 để khớp. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-3. **Dấu nghi nhiễm**: FR-021a cần sự kiện khi dấu "nghi nhiễm" được gắn hoặc gỡ; bảng giao tiếp của 007 chưa liệt kê việc cung cấp sự kiện này cho 014. Plan thêm `DauNghiNhiemDaDoi` vào hợp đồng 007; đề nghị bổ sung dòng ở bảng giao tiếp của spec 007.
+3. **Dấu nghi nhiễm**: FR-021a cần sự kiện khi dấu "nghi nhiễm" được gắn hoặc gỡ; bảng giao tiếp của 007 chưa liệt kê việc cung cấp sự kiện này cho 014. Plan thêm `DauNghiNhiemDaDoi` vào hợp đồng 007; đề nghị bổ sung dòng ở bảng giao tiếp của spec 007. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
-4. **Câu chữ còn lẫn** (không đổi nghiệp vụ): FR-002, FR-017, FR-027, FR-066, FR-067 và tiêu đề bảng trạng thái dẫn "4.4" (Permission Matrix của `docs/phan-tich-yeu-cau.md` đã bỏ; tra Phụ lục 27).
+4. **Câu chữ còn lẫn** (không đổi nghiệp vụ): FR-002, FR-017, FR-027, FR-066, FR-067 và tiêu đề bảng trạng thái dẫn "4.4" (Permission Matrix của `docs/phan-tich-yeu-cau.md` đã bỏ; tra Phụ lục 27). *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*

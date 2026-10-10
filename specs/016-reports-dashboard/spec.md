@@ -579,3 +579,5 @@ Nội dung gốc của từng điểm được giữ dưới đây để truy v�
 **(2026-10-06) Thay đổi do chủ dự án chốt Q-307 (bỏ gợi ý, đề xuất, yêu cầu và sự cố do hệ thống tự tạo).** *(Đã xử lý 2026-10-06: spec đã viết lại, xem mục "Cập nhật 2026-10-06, lượt 2" ở Clarifications.)*
 
 - **Q-307** – Báo cáo sức khỏe đổi "yêu cầu đánh giá lại quá hạn" thành "đánh giá lại quá hạn" (18.3); báo cáo chi phí bỏ "số sự kiện được đánh dấu không tính" (18.4); báo cáo nhân sự bỏ "danh sách gợi ý người thay" (18.6). Giữ: cảnh báo do hệ thống tạo và leo thang, nhắc, thông báo; bản ghi kèm lệnh của actor; số liệu tính để hiển thị (24.2).
+
+**(2026-10-10) Plan 016, điểm báo lại 1, 2.** *(Đã xử lý 2026-10-10: điểm 1 không cần sửa (lịch sử, dẫn chiếu qua Phụ lục 26); điểm 2 (Q-03, ghi nhật ký lần nhân viên xem dữ liệu sức khỏe) vẫn chờ tư vấn pháp lý ở 24.4.)*
