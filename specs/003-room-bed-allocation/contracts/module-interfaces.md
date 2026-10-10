@@ -100,9 +100,20 @@ Optional<Instant> batDauLuotTrong(long giuongId);
     // bổ sung theo plan 004 (004 FR-012, CHK015): thời điểm giường về Trống gần nhất mà sau đó chưa có phân bổ bắt đầu,
     // chưa vào Đang bảo trì, Tạm ngừng sử dụng, Không sử dụng; khoảng Đang giữ chỗ (hồ sơ chờ) rồi về Trống vẫn cùng lượt.
     // Tính từ lich_su_trang_thai_giuong; rỗng khi giường không Trống
+List<GiuongView> choSanSangQuaHan(long tangId, Instant t);
+    // bổ sung theo plan 008 (008 FR-039 f): giường Chờ sẵn sàng của tầng đã quá CFG-M03-04; chỉ để hiển thị trong danh sách
+    // bản ghi nguồn của bàn giao, không lập mục (Q-307)
 ```
 
 `TAM_NGUNG` không tính vào giường có thể dùng (Q-246).
+
+### 1.8a. `GiuongThongKeApi` (016; bổ sung theo plan 016, research O-10)
+
+```java
+Stream<TrangThaiGiuongTaiNgayView> trangThaiTaiNgay(PhamViLoc phamVi, Instant t);   // 016 FR-024 (ngày đã qua)
+Stream<KhoangChoSanSangView> choSanSang(PhamViLoc phamVi, Instant tu, Instant den); // 016 FR-033: khoảng Chờ sẵn sàng, vượt CFG-M03-04
+Stream<PhongCachLyView> phongCachLy(PhamViLoc phamVi, Instant t);                   // 016 FR-020
+```
 
 ### 1.9. `CanhBaoBanGiaoApi` (008)
 

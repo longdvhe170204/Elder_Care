@@ -107,6 +107,16 @@ Optional<NguyenVongView> hieuLuc(long nctId);                  // 007: thẻ kh�
 long ghiPhienBan(GhiNguyenVong lenh, NguonNguyenVong nguon);   // 007: XAC_NHAN_LAI_NGUY_KICH (BR-M05-16); MANDATORY
 ```
 
+### 1.8a. `NguoiCaoTuoiThongKeApi` (016; bổ sung theo plan 016, research O-10)
+
+```java
+Stream<TrangThaiTaiNgayView> trangThaiTaiNgay(PhamViLoc phamVi, LocalDate ngay);   // trạng thái 5.5, mức chăm sóc hiệu lực tại ngày (016 FR-022)
+Stream<BienDongView> bienDong(PhamViLoc phamVi, Instant tu, Instant den);         // lệnh trạng thái, đổi mức theo thời điểm hiệu lực (016 FR-023)
+Stream<DanhGiaQuaHanView> danhGiaLaiQuaHan(PhamViLoc phamVi);                      // trạng thái "quá hạn đánh giá lại" do 001 xác định (016 FR-044)
+```
+
+Chỉ đọc, không khóa; không trả bản ghi Hủy ghi nhận (016 FR-007).
+
 ### 1.9. SPI M01 cài cho 000, 002 và `common`
 
 | SPI | Loại | Ghi chú |
@@ -128,6 +138,7 @@ long ghiPhienBan(GhiNguyenVong lenh, NguonNguyenVong nguon);   // 007: XAC_NHAN_
 | `DiUngDaGhiNhan(mucId, nctId, diNguyenId)` | 006, 011 (kiểm tra; idempotent theo `mucId`) | FR-020, BR-M01-12 |
 | `DiUngKhacDaGhiNhan(mucId, nctId)` | 011 (011 FR-036a) | FR-020 |
 | `DiUngDaLoaiTru(mucId, nctId)` | 011, 007 | FR-020 |
+| `HoSoSucKhoeBanDauDaDoi(nctId)` (bổ sung theo plan 006): "thuốc đang sử dụng khi tiếp nhận" đổi, khi sửa lúc Đang tiếp nhận hoặc đính chính `M01.HO_SO_SUC_KHOE_BAN_DAU` | 006 (006 FR-034a, BR-M07-22) | FR-017 |
 | `DanhGiaDauVaoDaXacNhan(nctId, danhGiaId, mucChamSoc)` | 004 (004 FR-025b) | FR-033 |
 | `DanhGiaDaDoiMucHoacNhuCau(nctId, danhGiaId, mucTruoc, mucSau, nhuCauTruoc, nhuCauSau)` | 005 (BR-M04-20) | FR-043 |
 | `CanDanhGiaLai(nctId, lanBaoId, canCu)`; `QuaHanDanhGiaLai(nctId, hanLuc)` | 009 | FR-039 → FR-041 |
@@ -151,9 +162,9 @@ Mỗi sự kiện gửi 009 mang mức, nhóm người nhận, loại thông tin
 | `LuotVangApi.dangMo()` trả mốc dự kiến trở lại | 004 (FR-048, FR-049) | FR-050 | Bản giả |
 
 Ba giao diện trên được khai báo trong `m01.api` dưới dạng SPI, M02 cài, để không có vòng M01 ↔ M02 (bổ sung theo plan 004, research T-02); chữ ký giữ nguyên.
-| `QuanHeNguoiThanApi.laNguoiDaiDienHieuLuc(nguoiThanId, nctId, t)`; `thuocNguoiCaoTuoi(nguoiThanId, nctId)` | M10 (012) | FR-011, FR-023c, phạm vi bản đồng ý | Bản giả |
+| `QuanHeNguoiThanApi.laNguoiDaiDienHieuLuc(nguoiThanId, nctId, t)`; `thuocNguoiCaoTuoi(nguoiThanId, nctId)` (SPI khai báo ở `m15.taikhoan.api`, M10 cài; theo plan 012) | M10 (012) | FR-011, FR-023c, phạm vi bản đồng ý | Bản giả |
 | `ChiSoApi.ganNhat(nctId)` | M06 (007) | FR-024 | Bản giả trả rỗng |
-| Sự kiện `SuCoDaGhiNhan(suCoId, nctId, loai, muc)` | M05 (007) | FR-040 | Không có thì không báo căn cứ sau sự cố |
+| Sự kiện `SuCoDaGhiNhan(suCoId, nctId, loai, muc, canDanhGiaLai)` (thêm `canDanhGiaLai` theo plan 007: Trung bình trở lên hoặc Ngã, trừ đồ gửi; phát lại khi sự cố nâng lên Trung bình hoặc đổi loại sang Ngã). 001 chỉ báo đánh giá lại khi `canDanhGiaLai = true`, khóa bỏ trùng `(suCoId, mốc)` | M05 (007) | FR-040 | Không có thì không báo căn cứ sau sự cố |
 | `NhiemVuApi`: bác sĩ trực, Điều dưỡng phụ trách, Trưởng tầng của tầng | M09 (008) qua 002 | Người nhận ở research H-14 | Bản giả |
 | `QuyenApi`, `PhamViApi`, `QuyenXemTruongApi`, `NguoiDungHienTai` | M15 (002) | Mọi lệnh, tra cứu | Có sẵn sau 002 |
 | `NhatKyApi`, `ThamSoApi`, `DinhChinhApi`, `YeuCauPheDuyetApi`, `common` | M15 (000) | Mọi lệnh | Có sẵn sau 000 |

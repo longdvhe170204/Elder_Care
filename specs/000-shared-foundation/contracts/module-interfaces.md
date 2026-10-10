@@ -21,6 +21,7 @@ Chữ ký viết dạng Java rút gọn, chỉ để mô tả hợp đồng; mã
 | `Clock` (bean), `ThoiGianNghiepVu` | `homNay()`, `bayGio()`, `batDauNgay(LocalDate)`, `trongKhoang(LocalDate, tu, den)` (gồm cả hai đầu) | FR-008, FR-046, BR-M15-07 |
 | `LoiNghiepVu` | `DieuKienChuaThoa(List<DieuKien>)` → 409; `KhongCoQuyen` → 403; `DaDuocXuLy` → 409; `SaiPhienBan(giaTriHienHanh)` → 412 | FR-006, FR-021, FR-040 |
 | `PhongBiNgoaiTuyen` | `idempotencyKey`, `thoiDiemThietBi`; `KetQuaDongBo` gồm `CHAP_NHAN`, `CHAP_NHAN_KEM_NHAN`, `CHO_XEM_LAI`, `TU_CHOI` kèm lý do | FR-046, DBR-25, BR-M15-20 |
+| `common.thongbao` (bổ sung theo plan 009, research B-02) | `YeuCauThongBao`, `CoYeuCauThongBao`, `NhomNhan`, `CachThay`, `MucThongBao`, `LoaiThongTin`, `TRUONG_SUC_KHOE`: khuôn yêu cầu thông báo duy nhất; mọi sự kiện gửi 009 (kể cả các sự kiện của 000 ở mục 1.5) cài `CoYeuCauThongBao` | 009 FR-001, FR-043a |
 | `TepApi` (`common.tep`; bổ sung theo plan 001, research H-13) | `taiLen(...)` trả `tepId`; `gan(tepId, loaiChuSoHuu, idChuSoHuu)` trong transaction của lệnh (MANDATORY), tệp đã gắn không gắn lại; SPI `QuyenTepProvider` của module sở hữu quyết quyền tải xuống | NFR-08 |
 
 ### 1.2. `m15.nhatky.api.NhatKyApi`

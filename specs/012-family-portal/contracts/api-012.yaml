@@ -1,0 +1,527 @@
+openapi: 3.1.0
+info:
+  title: Elder Care – Feature 012 (người thân và cổng thông tin gia đình)
+  version: 1.0.0-design
+  description: |
+    Hợp đồng REST của feature 012 (module M10). Quy ước chung theo research R-03 của 000:
+    tiền tố /api/v1, lỗi RFC 9457 có maLoi và dieuKienChuaThoa[], Idempotency-Key cho mọi lệnh ghi.
+    Lệnh trên yêu cầu, ngoại lệ, lượt thăm, lượt ở lại, phản hồi khóa dòng và kiểm tra lại (research F-03); sửa hồ sơ người thân,
+    soạn bản tin dùng If-Match.
+    Quy trình đón chỉ trực tuyến (FR-028). Người thân dùng các đường dẫn /cong/** và các lệnh được đánh dấu x-nguoi-than;
+    backend kiểm quan hệ Hiệu lực và quyền có tác dụng tại thời điểm gọi. Chi phí, mua hộ (010), số dư (017), đồ gửi (013),
+    hoạt động và đồng ý về muộn (014), thông báo (009) do REST của feature sở hữu phục vụ.
+    Truy vết: mỗi operation có x-fr (FR của spec 012) và x-br khi có.
+servers:
+  - url: /api/v1
+security:
+  - phien: []
+tags:
+  - { name: nguoi-than, description: 'UC-55; mục A, B' }
+  - { name: yeu-cau-quyen, description: 'UC-55; mục C' }
+  - { name: don, description: 'UC-58; mục D' }
+  - { name: tham, description: 'UC-57; mục E' }
+  - { name: o-lai, description: 'Mục F' }
+  - { name: cong, description: 'UC-56; mục G' }
+  - { name: ban-tin, description: 'UC-60; mục H' }
+  - { name: phan-hoi, description: 'UC-59; mục I' }
+
+paths:
+  /nguoi-than:
+    get:
+      tags: [nguoi-than]
+      summary: Tìm hồ sơ người thân theo họ tên, số điện thoại, số giấy tờ (Hành chính)
+      x-fr: [FR-001]
+      parameters: [ { name: q, in: query, schema: { type: string } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/NguoiThan' } } } } } }
+    post:
+      tags: [nguoi-than]
+      summary: Lập hồ sơ người thân (Hành chính)
+      x-fr: [FR-001]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NguoiThan' } } } }
+      responses: { '201': { description: OK }, '422': { $ref: '#/components/responses/Loi' } }
+  /nguoi-than/{id}:
+    get:
+      tags: [nguoi-than]
+      summary: Hồ sơ người thân và các quan hệ
+      x-fr: [FR-001, FR-002]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } } } }
+    put:
+      tags: [nguoi-than]
+      summary: Sửa thông tin liên hệ (nhật ký trước/sau); bỏ giấy tờ bị chặn khi đang có quyền được phép đón
+      x-fr: [FR-001, FR-007]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NguoiThan' } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '412': { $ref: '#/components/responses/Loi' } }
+  /nguoi-cao-tuoi/{nctId}/quan-he:
+    get:
+      tags: [nguoi-than]
+      summary: Quan hệ của người cao tuổi, vai trò, quyền đang bật và quyền có tác dụng
+      x-fr: [FR-002, FR-007, FR-011]
+      x-br: [DBR-02, DBR-03]
+      parameters: [ { $ref: '#/components/parameters/NctId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/QuanHe' } } } } } }
+    post:
+      tags: [nguoi-than]
+      summary: Lập quan hệ (mọi quyền tắt, trừ FR-009, FR-010); tùy chọn đặt liên hệ chính, người đại diện đầu tiên
+      x-fr: [FR-002, FR-003, FR-005, FR-008]
+      x-br: [DBR-02]
+      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LapQuanHe' } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /quan-he/{id}/{lenh}:
+    post:
+      tags: [nguoi-than]
+      summary: Lệnh trên quan hệ
+      description: |
+        doi-lien-he-chinh (lý do; chuyển vai trò trong cùng lệnh); dat-dai-dien-dau-tien (lý do, bằng chứng; chỉ khi chưa có người đại diện);
+        doi-thu-tu (lý do; FR-012); ket-thuc (lý do; FR-006 tác động kèm). Vi phạm DBR-02 → VI_PHAM_DBR_02.
+        Đặt/thôi người đại diện khi đã có người đại diện dùng POST /yeu-cau-quyen.
+      x-fr: [FR-004, FR-005, FR-006, FR-012]
+      x-br: [DBR-02]
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+        - { name: lenh, in: path, required: true, schema: { type: string, enum: [doi-lien-he-chinh, dat-dai-dien-dau-tien, doi-thu-tu, ket-thuc] } }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' }, tepBangChungId: { type: integer, format: int64 }, thuTu: { type: integer } } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /nguoi-cao-tuoi/{nctId}/phieu-dang-ky:
+    post:
+      tags: [nguoi-than]
+      summary: Ghi phiếu đăng ký người thân (bản scan bắt buộc); mỗi quyền thành một yêu cầu Hiệu lực cách "bản ký"
+      x-fr: [FR-008]
+      x-br: [BR-M10-07]
+      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/PhieuDangKy' } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /nguoi-cao-tuoi/{nctId}/danh-sach-don:
+    get:
+      tags: [nguoi-than]
+      summary: Danh sách được phép đón tại một thời điểm (mặc định hiện tại); lịch sử cho nhân viên
+      x-fr: [FR-007, FR-068]
+      parameters: [ { $ref: '#/components/parameters/NctId' }, { name: t, in: query, schema: { type: string, format: date-time } } ]
+      responses: { '200': { description: OK } }
+
+  /yeu-cau-quyen:
+    get:
+      tags: [yeu-cau-quyen]
+      summary: Yêu cầu thay đổi quyền (lọc người cao tuổi, trạng thái); người đại diện thấy yêu cầu cần mình xác nhận
+      x-fr: [FR-013, FR-050]
+      x-nguoi-than: true
+      parameters:
+        - { name: nctId, in: query, schema: { type: integer, format: int64 } }
+        - { name: trangThai, in: query, schema: { type: string, enum: [CHO_XAC_NHAN, HIEU_LUC, TU_CHOI, HUY] } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/YeuCauQuyen' } } } } } }
+    post:
+      tags: [yeu-cau-quyen]
+      summary: Lập yêu cầu thay đổi quyền, danh sách đón, dấu được tự về, đặt/thôi người đại diện
+      description: |
+        Người đại diện qua cổng hoặc Hành chính kèm bản ký → Hiệu lực ngay (FR-015 a, b). Tắt được phép đón / tắt tự về áp ngay khi lập (FR-017).
+        Chặn TRUNG_YEU_CAU_CHO (FR-018), THIEU_GIAY_TO (FR-007), KHONG_CO_BAN_DONG_Y (FR-011), KHONG_DUOC_LAP (FR-014).
+      x-fr: [FR-013, FR-014, FR-015, FR-016, FR-017, FR-018]
+      x-br: [BR-M10-07]
+      x-nguoi-than: true
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LapYeuCauQuyen' } } } }
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/YeuCauQuyen' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /yeu-cau-quyen/{id}/{lenh}:
+    post:
+      tags: [yeu-cau-quyen]
+      summary: "Xác nhận (người đại diện), duyệt (Quản lý viện, lý do), từ chối (lý do), hủy (người lập, lý do)"
+      x-fr: [FR-005, FR-015, FR-016, FR-017, FR-020]
+      x-br: [BR-M10-07]
+      x-nguoi-than: true
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+        - { name: lenh, in: path, required: true, schema: { type: string, enum: [xac-nhan, duyet, tu-choi, huy] } }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody: { content: { application/json: { schema: { type: object, properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+
+  /nguoi-cao-tuoi/{nctId}/don:
+    post:
+      tags: [don]
+      summary: Ghi đón (chỉ trực tuyến); không đạt thì ghi lần chặn và trả CHAN_DON
+      description: |
+        Loại TAM_VANG, DI_CHOI_GIA_DINH, BAN_TRU_VE, TU_VE, VIEN_DUA_VE, KET_THUC_LUU_TRU. Người thực hiện có quyền lệnh nguồn (FR-022).
+        VIEN_DUA_VE ghi điểm danh về của 005 trong cùng lệnh (Q-295). Bản ghi trả về dùng làm banGhiDonId của lệnh nguồn trong CFG-M10-09.
+      x-fr: [FR-021, FR-022, FR-023, FR-026, FR-027, FR-028]
+      x-br: [BR-M10-03]
+      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/GhiDon' } } } }
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/BanGhiDon' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /nguoi-cao-tuoi/{nctId}/ban-ghi-don:
+    get:
+      tags: [don]
+      summary: Bản ghi đón, lần chặn đón của người cao tuổi (nhân viên)
+      x-fr: [FR-023, FR-026]
+      parameters: [ { $ref: '#/components/parameters/NctId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BanGhiDon' } } } } } }
+  /nguoi-cao-tuoi/{nctId}/ngoai-le-don:
+    post:
+      tags: [don]
+      summary: Lập yêu cầu ngoại lệ đón cho người ngoài danh sách
+      x-fr: [FR-024, FR-025]
+      x-br: [BR-M10-03]
+      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [hoTen, soGiayTo, quanHe, lyDo], properties: { hoTen: { type: string }, soGiayTo: { type: string }, quanHe: { type: string }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /ngoai-le-don/{id}/{lenh}:
+    post:
+      tags: [don]
+      summary: "Xác nhận (người đại diện qua cổng), duyệt (Quản lý viện), từ chối, hủy (lý do)"
+      x-fr: [FR-024]
+      x-nguoi-than: true
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+        - { name: lenh, in: path, required: true, schema: { type: string, enum: [xac-nhan, duyet, tu-choi, huy] } }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody: { content: { application/json: { schema: { type: object, properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+
+  /khung-tham:
+    get:
+      tags: [tham]
+      summary: Khung thăm của một ngày và số chỗ còn (CFG-M10-04)
+      x-fr: [FR-030]
+      x-nguoi-than: true
+      parameters: [ { name: ngay, in: query, required: true, schema: { type: string, format: date } } ]
+      responses: { '200': { description: OK } }
+  /luot-tham:
+    get:
+      tags: [tham]
+      summary: Lượt thăm theo ngày, người cao tuổi; người thân chỉ thấy lượt của mình
+      x-fr: [FR-039, FR-046]
+      x-nguoi-than: true
+      parameters:
+        - { name: ngay, in: query, schema: { type: string, format: date } }
+        - { name: nctId, in: query, schema: { type: integer, format: int64 } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LuotTham' } } } } } }
+    post:
+      tags: [tham]
+      summary: Đăng ký thăm; đạt FR-030 thì Đã duyệt ngay và giữ chỗ, không đạt thì 422 kèm mọi lý do, không tạo lượt
+      x-fr: [FR-029, FR-030, FR-031]
+      x-br: [BR-M10-02]
+      x-nguoi-than: true
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DangKyTham' } } } }
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/LuotTham' } } } }, '403': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
+  /luot-tham/{id}/{lenh}:
+    post:
+      tags: [tham]
+      summary: "Hủy (người đăng ký trước giờ bắt đầu; Hành chính có lý do), vào (Hành chính, kiểm lại (c)(d), người thực tế), ra (giờ ra thực tế)"
+      x-fr: [FR-033, FR-034, FR-035]
+      x-nguoi-than: true
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+        - { name: lenh, in: path, required: true, schema: { type: string, enum: [huy, vao, ra] } }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody: { content: { application/json: { schema: { type: object, properties: { lyDo: { $ref: '#/components/schemas/LyDo' }, nguoiThucTe: { type: array, items: { $ref: '#/components/schemas/NguoiDiCung' } }, gioRa: { type: string, format: date-time } } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+
+  /luot-o-lai:
+    get:
+      tags: [o-lai]
+      summary: Lượt ở lại theo người cao tuổi, trạng thái
+      x-fr: [FR-045]
+      parameters: [ { name: nctId, in: query, schema: { type: integer, format: int64 } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LuotOLai' } } } } } }
+    post:
+      tags: [o-lai]
+      summary: Đăng ký ở lại (Hành chính); chặn chồng thời gian theo CFG-M10-10, khoanh vùng, trạng thái
+      x-fr: [FR-040, FR-041]
+      x-br: [BR-M10-04]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DangKyOLai' } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /luot-o-lai/{id}/{lenh}:
+    post:
+      tags: [o-lai]
+      summary: Lệnh trên lượt ở lại theo bảng FR-045
+      description: |
+        xac-nhan, tu-choi (Trưởng tầng được giao; không có thì Quản lý viện; xác nhận cần ý kiến người cùng phòng khi phòng có ≥ 2 giường đang dùng);
+        bat-dau (Hành chính, Trưởng tầng); huy, gia-han (Hành chính, lý do); ket-thuc (Hành chính, Trưởng tầng; thời điểm kết thúc thực tế).
+      x-fr: [FR-040, FR-041, FR-042, FR-043, FR-045]
+      x-br: [BR-M10-04]
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+        - { name: lenh, in: path, required: true, schema: { type: string, enum: [xac-nhan, tu-choi, bat-dau, huy, gia-han, ket-thuc] } }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody: { content: { application/json: { schema: { type: object, properties: { lyDo: { $ref: '#/components/schemas/LyDo' }, yKienCungPhong: { type: object }, ketThucDuKienMoi: { type: string, format: date-time }, thoiDiem: { type: string, format: date-time } } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+
+  /cong/nguoi-cao-tuoi:
+    get:
+      tags: [cong]
+      summary: Người cao tuổi mà người thân đang đăng nhập có quan hệ Hiệu lực, kèm quyền có tác dụng
+      x-fr: [FR-046]
+      x-br: [BR-M10-01]
+      x-nguoi-than: true
+      responses: { '200': { description: OK } }
+  /cong/nguoi-cao-tuoi/{nctId}/chung:
+    get:
+      tags: [cong]
+      summary: "Thông tin chung: họ tên, ảnh, phòng, trạng thái, lượt vắng, lịch đến/về, lượt thăm và phản hồi của mình, bản tin, thực đơn chung"
+      x-fr: [FR-046, FR-047]
+      x-nguoi-than: true
+      parameters: [ { $ref: '#/components/parameters/NctId' } ]
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
+  /cong/nguoi-cao-tuoi/{nctId}/suc-khoe/{phan}:
+    get:
+      tags: [cong]
+      summary: Phần sức khỏe (chỉ khi quyền xem sức khỏe có tác dụng); mỗi lần mở ghi nhật ký lượt xem
+      x-fr: [FR-046, FR-047, FR-048]
+      x-br: [BR-M10-01, DBR-03]
+      x-nguoi-than: true
+      parameters:
+        - { $ref: '#/components/parameters/NctId' }
+        - { name: phan, in: path, required: true, schema: { type: string, enum: [di-ung-benh-nen, chi-so, can-nang, thuoc, su-co, ket-qua-cham-soc, an-uong, che-do-an, lich-kham] } }
+        - { name: tu, in: query, schema: { type: string, format: date } }
+        - { name: den, in: query, schema: { type: string, format: date } }
+      responses: { '200': { description: OK }, '403': { description: 'KHONG_CO_QUYEN_XEM_SUC_KHOE hoặc QUYEN_KHONG_CO_TAC_DUNG', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } } }
+  /cong/nguoi-cao-tuoi/{nctId}/hop-dong:
+    get:
+      tags: [cong]
+      summary: Hợp đồng, phụ lục, đặt cọc, tiến trình kết thúc lưu trú (chỉ người đại diện)
+      x-fr: [FR-046]
+      x-nguoi-than: true
+      parameters: [ { $ref: '#/components/parameters/NctId' } ]
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
+  /nhat-ky-xem-suc-khoe:
+    get:
+      tags: [cong]
+      summary: Tra cứu nhật ký lượt xem sức khỏe (Quản lý viện)
+      x-fr: [FR-048]
+      parameters:
+        - { name: nctId, in: query, schema: { type: integer, format: int64 } }
+        - { name: nguoiThanId, in: query, schema: { type: integer, format: int64 } }
+        - { name: tu, in: query, schema: { type: string, format: date-time } }
+        - { name: den, in: query, schema: { type: string, format: date-time } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
+
+  /ban-tin:
+    get:
+      tags: [ban-tin]
+      summary: Bản tin theo kỳ, trạng thái; danh sách người cần lập của Điều dưỡng; người thân thấy bản đã gửi tới mình
+      x-fr: [FR-051, FR-057]
+      x-nguoi-than: true
+      parameters:
+        - { name: nctId, in: query, schema: { type: integer, format: int64 } }
+        - { name: kyTu, in: query, schema: { type: string, format: date } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BanTin' } } } } } }
+    post:
+      tags: [ban-tin]
+      summary: Lập bản tin cho (người cao tuổi, kỳ) đã qua mốc (Điều dưỡng); trùng kỳ → DA_CO_BAN_TIN
+      x-fr: [FR-051, FR-053]
+      x-br: [BR-M10-08]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nctId, kyTu], properties: { nctId: { type: integer, format: int64 }, kyTu: { type: string, format: date } } } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /ban-tin/{id}:
+    get:
+      tags: [ban-tin]
+      summary: Chi tiết bản tin
+      x-fr: [FR-052, FR-057]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } } } }
+    put:
+      tags: [ban-tin]
+      summary: Soạn nội dung các phần và chọn số liệu tổng hợp (Chờ duyệt); số liệu chi phí chỉ vào phần chi phí
+      x-fr: [FR-052, FR-053]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NoiDungBanTin' } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '412': { $ref: '#/components/responses/Loi' } }
+  /ban-tin/{id}/so-lieu:
+    get:
+      tags: [ban-tin]
+      summary: Số liệu tổng hợp của kỳ tính tại lúc gọi, chia theo loại thông tin; thiếu dữ liệu ghi "không có dữ liệu trong kỳ"
+      x-fr: [FR-052]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK } }
+  /ban-tin/{id}/{lenh}:
+    post:
+      tags: [ban-tin]
+      summary: "Nhận xét; duyệt (gửi qua 009; bắt buộc giải thích khi có sự cố mức Trung bình trở lên; Trưởng tầng duyệt thay sau CFG-M10-12)"
+      x-fr: [FR-053, FR-054]
+      x-br: [BR-M10-06, BR-M10-08, BR-M10-09]
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+        - { name: lenh, in: path, required: true, schema: { type: string, enum: [nhan-xet, duyet] } }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody: { content: { application/json: { schema: { type: object, properties: { noiDung: { type: string }, giaiThichSuCo: { type: string } } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /ban-tin/{id}/dinh-chinh:
+    post:
+      tags: [ban-tin]
+      summary: Lập bản tin đính chính trỏ về bản đã gửi (nội dung đúng, lý do); duyệt như bản thường
+      x-fr: [FR-056]
+      x-br: [BR-M10-08]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+
+  /phan-hoi:
+    get:
+      tags: [phan-hoi]
+      summary: Phản hồi (người phụ trách, Quản lý viện gồm danh sách quá hạn; người thân thấy phản hồi của mình)
+      x-fr: [FR-058, FR-063]
+      x-nguoi-than: true
+      parameters:
+        - { name: trangThai, in: query, schema: { type: string } }
+        - { name: quaHan, in: query, schema: { type: boolean } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PhanHoi' } } } } } }
+    post:
+      tags: [phan-hoi]
+      summary: Gửi phản hồi (người thân qua cổng; Hành chính ghi thay); đặt người phụ trách, mức, hạn
+      x-fr: [FR-058, FR-059, FR-061, FR-062]
+      x-br: [BR-M10-05]
+      x-nguoi-than: true
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/GuiPhanHoi' } } } }
+      responses: { '201': { description: OK } }
+  /phan-hoi/{id}:
+    get:
+      tags: [phan-hoi]
+      summary: Chi tiết phản hồi; bản cho người gửi chỉ có phần trả lời mà họ được thấy (FR-058)
+      x-fr: [FR-058, FR-065]
+      x-nguoi-than: true
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK } }
+  /phan-hoi/{id}/{lenh}:
+    post:
+      tags: [phan-hoi]
+      summary: Lệnh trên phản hồi theo bảng FR-066
+      description: |
+        nhan-xu-ly, tra-loi (hướng xử lý và nội dung; cảnh báo khi người gửi không có quyền sức khỏe có tác dụng), ghi-chu (người phụ trách);
+        giao-lai (Trưởng tầng, Hành chính, Quản lý viện; lý do); doi-muc (người phụ trách; lý do; tính lại hạn);
+        dong-y-dong, mo-lai (người gửi; mở lại có lý do).
+      x-fr: [FR-059, FR-060, FR-061, FR-062, FR-064, FR-065, FR-066]
+      x-br: [BR-M10-05]
+      x-nguoi-than: true
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+        - { name: lenh, in: path, required: true, schema: { type: string, enum: [nhan-xu-ly, tra-loi, ghi-chu, giao-lai, doi-muc, dong-y-dong, mo-lai] } }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody: { content: { application/json: { schema: { type: object, properties: { lyDo: { $ref: '#/components/schemas/LyDo' }, huongXuLy: { type: string }, noiDung: { type: string }, nguoiPhuTrachId: { type: integer, format: int64 }, muc: { type: string, enum: [CAO, THUONG] }, tepIds: { type: array, items: { type: integer, format: int64 } } } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+
+components:
+  securitySchemes:
+    phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+    NctId: { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } }
+    IfMatch: { name: If-Match, in: header, required: true, schema: { type: string } }
+    IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
+  headers:
+    ETag: { schema: { type: string } }
+  requestBodies:
+    LyDo:
+      required: true
+      content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } }
+  responses:
+    Loi:
+      description: Lỗi theo RFC 9457 (research R-03 của 000)
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
+    LoiChan:
+      description: 'TRANG_THAI_DA_DOI, VI_PHAM_DBR_02, DA_CO_NGUOI_DAI_DIEN, LA_NGUOI_DONG_Y, TRUNG_YEU_CAU_CHO, THIEU_GIAY_TO, KHONG_CO_BAN_DONG_Y, KHONG_DUOC_LAP, NGUOI_DUOC_DE_NGHI_KHONG_XAC_NHAN, CHAN_DON, BAN_GHI_DON_DA_DUNG, NGOAI_LE_HET_HAN, KHONG_CO_QUYEN_LENH_NGUON, NGOAI_KHUNG, HET_CHO, KHOANH_VUNG, NCT_KHONG_CO_MAT, QUA_SO_NGUOI, NGOAI_THOI_HAN_DANG_KY, DA_QUA_GIO_BAT_DAU, CHONG_LUOT_O_LAI, THIEU_Y_KIEN_CUNG_PHONG, DA_CO_BAN_TIN, CHUA_QUA_MOC, THIEU_GIAI_THICH_SU_CO, CHUA_TOI_MOC_DUYET_THAY'
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
+  schemas:
+    LyDo: { type: string, minLength: 1, maxLength: 2000 }
+    Loi:
+      type: object
+      properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, maLoi: { type: string }, dieuKienChuaThoa: { type: array, items: { type: object } } }
+    Quyen: { type: string, enum: [XEM_SUC_KHOE, XEM_CHI_PHI, NHAN_KHAN, DANG_KY_THAM, DUOC_PHEP_DON, YEU_CAU_DICH_VU] }
+    NguoiThan:
+      type: object
+      required: [hoTen, soDienThoai]
+      properties: { id: { type: integer, format: int64, readOnly: true }, hoTen: { type: string }, soDienThoai: { type: string }, loaiGiayTo: { type: string }, soGiayTo: { type: string }, diaChi: { type: string }, phienBan: { type: integer, readOnly: true } }
+    LapQuanHe:
+      type: object
+      required: [nguoiThanId, quanHe]
+      properties: { nguoiThanId: { type: integer, format: int64 }, quanHe: { type: string, enum: [VO_CHONG, CON, CHAU, ANH_CHI_EM, KHAC] }, laLienHeChinh: { type: boolean }, datDaiDienDauTien: { type: boolean }, tepBangChungId: { type: integer, format: int64 }, lyDo: { type: string } }
+    QuanHe:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        nguoiThan: { $ref: '#/components/schemas/NguoiThan' }
+        quanHe: { type: string }
+        laDaiDien: { type: boolean }
+        laLienHeChinh: { type: boolean }
+        thuTuLienHe: { type: integer }
+        quyen: { type: object, additionalProperties: { type: object, properties: { dangBat: { type: boolean }, coTacDung: { type: boolean } } } }
+        trangThai: { type: string, enum: [HIEU_LUC, DA_KET_THUC] }
+    PhieuDangKy:
+      type: object
+      required: [nguoiDaiDienId, tepScanId, dong]
+      properties: { nguoiDaiDienId: { type: integer, format: int64 }, tepScanId: { type: integer, format: int64 }, dong: { type: array, items: { type: object, required: [quanHeId, quyen], properties: { quanHeId: { type: integer, format: int64 }, quyen: { $ref: '#/components/schemas/Quyen' } } } } }
+    LapYeuCauQuyen:
+      type: object
+      required: [nctId, loai, lyDo]
+      properties:
+        nctId: { type: integer, format: int64 }
+        loai: { type: string, enum: [QUYEN, TU_VE, DAT_DAI_DIEN, THOI_DAI_DIEN] }
+        quanHeId: { type: integer, format: int64 }
+        quyen: { $ref: '#/components/schemas/Quyen' }
+        giaTriMoi: { type: boolean }
+        nguoiDonMoi: { type: object, properties: { hoTen: { type: string }, soGiayTo: { type: string }, quanHe: { type: string } } }
+        kemBanKy: { type: boolean }
+        tepBangChungId: { type: integer, format: int64 }
+        lyDo: { $ref: '#/components/schemas/LyDo' }
+    YeuCauQuyen:
+      allOf:
+        - { $ref: '#/components/schemas/LapYeuCauQuyen' }
+        - type: object
+          properties: { id: { type: integer, format: int64 }, trangThai: { type: string, enum: [CHO_XAC_NHAN, HIEU_LUC, TU_CHOI, HUY] }, cachXacNhan: { type: string, enum: [CONG, BAN_KY, QL_DUYET] }, nguon: { type: string, enum: [QUAY, CONG, PHIEU_DANG_KY] }, apNgayKhiLap: { type: boolean } }
+    GhiDon:
+      type: object
+      required: [loai, nhanVienBanGiaoId]
+      properties:
+        loai: { type: string, enum: [TAM_VANG, DI_CHOI_GIA_DINH, BAN_TRU_VE, TU_VE, VIEN_DUA_VE, KET_THUC_LUU_TRU] }
+        nguoiThanId: { type: integer, format: int64 }
+        ngoaiLeId: { type: integer, format: int64 }
+        giayToXuatTrinh: { type: object, properties: { loai: { type: string }, so: { type: string } } }
+        nhanVienBanGiaoId: { type: integer, format: int64 }
+    BanGhiDon:
+      type: object
+      properties: { id: { type: integer, format: int64 }, loai: { type: string }, nguoiThanId: { type: integer, format: int64 }, canCu: { type: string, enum: [DANH_SACH, NGOAI_LE_DAI_DIEN, NGOAI_LE_QL, TU_VE] }, thoiDiem: { type: string, format: date-time }, trangThai: { type: string, enum: [CHUA_DUNG, DA_DUNG, KHONG_DUNG] }, hetHieuLucLuc: { type: string, format: date-time } }
+    NguoiDiCung:
+      type: object
+      required: [hoTen, quanHe]
+      properties: { hoTen: { type: string }, quanHe: { type: string }, soDienThoai: { type: string } }
+    DangKyTham:
+      type: object
+      required: [nctId, ngay, gioBatDau, gioKetThuc]
+      properties: { nctId: { type: integer, format: int64 }, nguoiThanId: { type: integer, format: int64, description: 'Hành chính đăng ký thay' }, ngay: { type: string, format: date }, gioBatDau: { type: string }, gioKetThuc: { type: string }, diCung: { type: array, items: { $ref: '#/components/schemas/NguoiDiCung' } } }
+    LuotTham:
+      allOf:
+        - { $ref: '#/components/schemas/DangKyTham' }
+        - type: object
+          properties: { id: { type: integer, format: int64 }, soNguoi: { type: integer }, trangThai: { type: string, enum: [DA_DUYET, DA_VAO, DA_RA, KHONG_DEN, HUY] }, vaoLuc: { type: string, format: date-time }, raLuc: { type: string, format: date-time }, lyDoHuy: { type: string } }
+    DangKyOLai:
+      type: object
+      required: [nguoiThanId, nctId, batDauDuKien, ketThucDuKien, viTri, lyDo, dangKyAn]
+      properties: { nguoiThanId: { type: integer, format: int64 }, nctId: { type: integer, format: int64 }, batDauDuKien: { type: string, format: date-time }, ketThucDuKien: { type: string, format: date-time }, viTri: { type: string }, lyDo: { type: string }, dangKyAn: { type: boolean } }
+    LuotOLai:
+      allOf:
+        - { $ref: '#/components/schemas/DangKyOLai' }
+        - type: object
+          properties: { id: { type: integer, format: int64 }, trangThai: { type: string, enum: [CHO_XAC_NHAN, DA_XAC_NHAN, TU_CHOI, DANG_O_LAI, DA_KET_THUC, HUY] }, batDauThucTe: { type: string, format: date-time }, ketThucThucTe: { type: string, format: date-time }, soDem: { type: integer, readOnly: true } }
+    BanTin:
+      type: object
+      properties: { id: { type: integer, format: int64 }, nctId: { type: integer, format: int64 }, kyTu: { type: string, format: date }, kyDen: { type: string, format: date }, trangThai: { type: string, enum: [CHO_DUYET, DA_GUI, KHONG_GUI] }, banGocId: { type: integer, format: int64 }, duyetThay: { type: boolean }, daDinhChinh: { type: boolean } }
+    NoiDungBanTin:
+      type: object
+      properties:
+        phan: { type: array, items: { type: object, required: [loai, noiDung], properties: { loai: { type: string, enum: [CHUNG, SUC_KHOE, CHI_PHI] }, noiDung: { type: string } } } }
+        soLieuChon: { type: array, items: { type: object, required: [ma, loaiPhan], properties: { ma: { type: string }, loaiPhan: { type: string, enum: [CHUNG, SUC_KHOE, CHI_PHI] } } } }
+    GuiPhanHoi:
+      type: object
+      required: [nctId, loai, nhom, noiDung]
+      properties: { nctId: { type: integer, format: int64 }, nguoiThanId: { type: integer, format: int64, description: 'Hành chính ghi thay' }, loai: { type: string, enum: [GOP_Y, KHIEU_NAI, HOI_DAP] }, nhom: { type: string, enum: [CHAM_SOC, SUC_KHOE_THUOC, AN_UONG, CHI_PHI_HOP_DONG, KHAC] }, noiDung: { type: string }, tepIds: { type: array, items: { type: integer, format: int64 } } }
+    PhanHoi:
+      allOf:
+        - { $ref: '#/components/schemas/GuiPhanHoi' }
+        - type: object
+          properties: { id: { type: integer, format: int64 }, trangThai: { type: string, enum: [MOI, DANG_XU_LY, DA_PHAN_HOI, MO_LAI, DONG] }, muc: { type: string, enum: [CAO, THUONG] }, hanXuLy: { type: string, format: date-time }, quaHan: { type: boolean }, nguoiPhuTrach: { type: string } }
