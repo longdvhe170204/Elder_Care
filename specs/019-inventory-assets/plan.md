@@ -73,13 +73,31 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-007 ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; hợp đồng 014 được sửa (mục "Đồng bộ") |
 | X. Kiến trúc | Đạt | Gói trong ba module theo mục nguồn; không có vòng (W-02) |
-| XI. Nghiệp vụ ở backend | Đạt | Tồn, gợi ý lô, vượt, khớp chứng từ, lịch xe ở backend |
+| XI. Nghiệp vụ ở backend | Đạt | Tồn, kiểm lý do chọn lô (FR-003), vượt, khớp chứng từ, lịch xe ở backend |
 | XII. Dữ liệu | Đạt | DBR-31, 32, 36 ở data-model mục 6 |
 | XIII. Tham số | Đạt | Như V |
 | XIV. Ngoại tuyến, thông báo | Đạt | Không ngoại tuyến; thông báo FR-021 |
 | XV. Truy vết, kiểm thử | Đạt | Test theo BR-M03-15 → 18, BR-M08-17 → 20, BR-M11-17 → 20 |
 
 **Kiểm lại sau Phase 1**: Đạt.
+
+### Đáp ứng yêu cầu phi chức năng (constitution X)
+
+| NFR | 019 chịu ảnh hưởng | Cách đáp ứng |
+| --- | --- | --- |
+| NFR-01 Quy mô | Có | Kho bếp và tài sản của một viện; vài trăm phiếu mỗi tháng |
+| NFR-02 Hiệu năng | Có | Phiếu xuất 10 dòng lưu ≤ 1 giây; khóa theo lô, theo xe |
+| NFR-03 Thông báo khẩn cấp | Có | Báo hỏng giường có người ở mức "mất an toàn" gửi mức Khẩn cấp qua 009 (FR-021) |
+| NFR-04 Tác vụ định kỳ | Có | 4 job (kho, mua sắm, tài sản hằng ngày; lịch xe theo phút), mỗi phần ≤ 1 phút; khóa nhắc chống trùng; chạy bù |
+| NFR-05 Khả dụng | Gián tiếp | Listener idempotent; lệnh kèm theo lệnh của 014 trong cùng transaction |
+| NFR-06 Sao lưu | Có | Phiếu, lịch sử tài sản ở MySQL; chứng từ ở kho tệp |
+| NFR-07 Lưu trữ | Có | Phiếu kho, chứng từ mua sắm theo CFG-M15-03, CFG-M15-04 |
+| NFR-08 Bảo mật | Có | Quyền theo bộ phận và nhiệm vụ Phụ trách bộ phận (FR-020), kiểm ở backend |
+| NFR-09 Thời gian | Có | `Clock`; hạn dùng, lịch xe theo Asia/Ho_Chi_Minh |
+| NFR-10 Thiết bị | Có | Màn trên web; chưa có màn trên app di động ở giai đoạn này |
+| NFR-11 Ngôn ngữ | Có | Nhãn tiếng Việt; ngày dd/MM/yyyy, tiền VND |
+| NFR-12 Cấu hình | Có | CFG-M03-02, 09, CFG-M08-08, 09, CFG-M11-07 → 09 đọc qua `ThamSoApi` |
+| NFR-13 Kiểm thử | Có | Đồng hồ giả lập cho hạn dùng, nhắc, lịch xe |
 
 ## Project Structure
 
@@ -98,7 +116,7 @@ Cấu trúc dự kiến cho giai đoạn triển khai; giai đoạn thiết kế
 
 ```text
 backend/src/main/java/vn/eldercare/
-├── m08/kho/        {internal, web, lich}   # nguyên liệu, lô, phiếu, GoiYLo, kiểm kê, TonKhoNguyenLieuPort
+├── m08/kho/        {internal, web, lich}   # nguyên liệu, lô, phiếu, ThuTuLoTheoHan, kiểm kê, TonKhoNguyenLieuPort
 ├── m08/api/        # (bổ sung) KhoThongKeApi
 ├── m11/muasam/     {internal, web, lich}   # yêu cầu mua sắm, gắn nguồn, KiemTraVuot, KhopChungTu, YeuCauMuaSamPort (cài)
 ├── m11/api/        # (bổ sung) YeuCauMuaSamApi, MuaSamThongKeApi
@@ -129,7 +147,7 @@ web/src/tinh-nang/kho/  web/src/tinh-nang/mua-sam/  web/src/tinh-nang/tai-san/  
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX).
 
-1. **"Hệ thống MUST đề xuất lô có hạn dùng sớm nhất"** (FR-003, BR-M08-17) so với Q-307 (bỏ mọi gợi ý, đề xuất của hệ thống): spec 019 chưa được rà theo Q-307 ở điểm này. Plan làm theo FR-003 (chọn sẵn lô hạn sớm nhất, đổi lô cần lý do) vì đây là quy tắc xuất kho (FEFO) chứ không phải gợi ý nội dung nghiệp vụ. Đề nghị chủ dự án xác nhận và ghi ngoại lệ vào dòng Q-307 ở 24.2, hoặc đổi FR-003 thành "chặn xuất lô có hạn muộn hơn khi còn lô hạn sớm hơn trừ khi có lý do".
+1. **"Hệ thống MUST đề xuất lô có hạn dùng sớm nhất"** (FR-003, BR-M08-17) so với Q-307 (bỏ mọi gợi ý, đề xuất của hệ thống): spec 019 chưa được rà theo Q-307 ở điểm này. Plan làm theo FR-003 (chọn sẵn lô hạn sớm nhất, đổi lô cần lý do) vì đây là quy tắc xuất kho (FEFO) chứ không phải gợi ý nội dung nghiệp vụ. Đề nghị chủ dự án xác nhận và ghi ngoại lệ vào dòng Q-307 ở 24.2, hoặc đổi FR-003 thành "chặn xuất lô có hạn muộn hơn khi còn lô hạn sớm hơn trừ khi có lý do". *(Đã xử lý 2026-10-10: FR-003 sửa theo cách thứ hai; hệ thống hiển thị lô theo hạn dùng, không chọn sẵn; `GoiYLo` đổi thành `ThuTuLoTheoHan`.)*
 
 2. **Thanh lý tài sản không có bảng trạng thái riêng** (FR-013 ghi "Phụ trách bộ phận lập yêu cầu, Quản lý viện duyệt"): plan dùng yêu cầu phê duyệt chung của 000 (`M03.THANH_LY_TAI_SAN`). Đề nghị ghi rõ ở 7.7 rằng thanh lý đi qua vòng đời yêu cầu phê duyệt chung (6.6).
 

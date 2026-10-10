@@ -227,7 +227,7 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 - [ ] T041 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/011-nutrition-management/contracts/api-011.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 011
 - [ ] T042 Khi 012, 014, 019 có bản thật, chạy lại test US4 với bean thật thay T002; thay bản giả `NguonCongViecPort` `BUA` ở test 005
 - [ ] T043 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC-001, SC-002 theo quickstart mục 5
-- [ ] T044 Rà truy vết: BR-M08-01 → 16, DBR-15 (phần 011), DBR-25, DBR-27 có test
+- [ ] T044 Rà truy vết: BR-M08-01 → 16, DBR-15 (phần 011), DBR-25, DBR-27 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-057, FR-063, FR-064, FR-065 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

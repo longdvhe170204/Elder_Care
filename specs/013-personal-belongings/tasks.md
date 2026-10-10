@@ -167,7 +167,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 - [ ] T029 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/013-personal-belongings/contracts/api-013.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho `ban_giao_do_gui`, `lan_tra` (BR-M15-03)
 - [ ] T030 Thay bản giả `DoGuiBanGiaoPort` (008), `MucViecSauQuaDoiPort` `DO_GUI` (004) bằng bản cài của 013 và chạy lại test 004, 008
 - [ ] T031 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T032 Rà truy vết: DBR-22, 23, 25 và BR-M12-01 → 09 có test
+- [ ] T032 Rà truy vết: DBR-22, 23, 25 và BR-M12-01 → 09 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-001, FR-001a, FR-002, FR-026, FR-026a, FR-027, FR-027a, FR-028a, FR-028c, FR-029, FR-031, FR-031a, FR-032 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

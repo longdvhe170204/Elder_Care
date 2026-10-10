@@ -62,6 +62,24 @@ Không còn mục NEEDS CLARIFICATION.
 
 **Kiểm lại sau Phase 1**: Đạt.
 
+### Đáp ứng yêu cầu phi chức năng (constitution X)
+
+| NFR | 018 chịu ảnh hưởng | Cách đáp ứng |
+| --- | --- | --- |
+| NFR-01 Quy mô | Có | 300 hồ sơ; vài chục khai báo mỗi tháng |
+| NFR-02 Hiệu năng | Có | Mỗi lệnh ghi một khai báo dưới khóa `khai_bao_nct`; ghi nộp, kết quả ≤ 2 phút thao tác (SC-005) |
+| NFR-03 Thông báo khẩn cấp | Không | Thông báo mức Nhẹ (FR-010) |
+| NFR-04 Tác vụ định kỳ | Có | Job hằng ngày cho 300 hồ sơ ≤ 1 phút; `nhac_khai_bao` `UNIQUE (loai, nct_id, ngay)` chống nhắc trùng; chạy bù (research Z-06) |
+| NFR-05 Khả dụng | Gián tiếp | Listener sự kiện của 004 idempotent theo mốc nghĩa vụ |
+| NFR-06 Sao lưu | Có | Bảng khai báo ở MySQL; bằng chứng ở kho tệp của 000 |
+| NFR-07 Lưu trữ | Có | Theo hồ sơ (CFG-M15-03, `LuuTruProvider`) |
+| NFR-08 Bảo mật | Có | Chỉ Hành chính, Quản lý viện; tệp bằng chứng `M02.BANG_CHUNG_KHAI_BAO` |
+| NFR-09 Thời gian | Có | `Clock`; hạn khai báo theo ngày Asia/Ho_Chi_Minh |
+| NFR-10 Thiết bị | Có | Màn trên web; không có màn trên app di động |
+| NFR-11 Ngôn ngữ | Có | Nhãn tiếng Việt; ngày dd/MM/yyyy |
+| NFR-12 Cấu hình | Có | CFG-M02-09, 11 → 13 đọc qua `ThamSoApi` |
+| NFR-13 Kiểm thử | Có | Đồng hồ giả lập cho hạn, nhắc, hết hạn |
+
 ## Project Structure
 
 ### Documentation (this feature)

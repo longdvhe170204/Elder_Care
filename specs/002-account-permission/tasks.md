@@ -233,7 +233,7 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 - [ ] T079 [P] Ghi vào `backend/docs/van-hanh.md`: phiên khôi phục từ bản sao lưu bị kết thúc khi khởi động; HTTPS bắt buộc (NFR-06, NFR-08)
 - [ ] T080 Cập nhật `BT/support/QuyenGia.java` thành tiện ích dựng người dùng thật cho test của 001, 003–019
 - [ ] T081 Chạy `./mvnw verify`, `npm test`, `flutter test` hai app và kịch bản quickstart.md mục 3; đo SC-005, SC-008 theo quickstart mục 5
-- [ ] T082 Rà truy vết data-model mục 7: mỗi BR-M15-01, 02, 04, 05, 14 → 22, BR-M06-05, BR-M09-04 có test tương ứng
+- [ ] T082 Rà truy vết data-model mục 7: mỗi BR-M15-01, 02, 04, 05, 14 → 22, BR-M06-05, BR-M09-04 có test tương ứng; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-006a, FR-023 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

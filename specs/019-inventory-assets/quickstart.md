@@ -37,7 +37,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M03 không ph
 | Q7 | KT ghi lệch; QL chấp nhận lệch | Lệch → Đã đối chiếu; PB, KT được báo | FR-008 |
 | Q8 | PB hủy yêu cầu Đã duyệt đã có phiếu nhập gắn | 409 `DA_CO_NGUON_GAN` | Q-290 |
 | Q9 | Bộ phận Kỹ thuật (chưa có Phụ trách) lập yêu cầu | Chặn `BO_PHAN_CHUA_CO_PHU_TRACH`; QL được nhắc chỉ định | Q-292 |
-| Q10 | B2 xuất Gạo cho bữa trưa: hệ thống gợi ý L1; chọn L2 không lý do | Gợi ý L1; 409 `THIEU_LY_DO_CHON_LO` | US2, FR-003, SC-002 |
+| Q10 | B2 xuất Gạo cho bữa trưa: danh sách lô hiện L1 trước L2; chọn L2 không lý do | L1 đứng đầu, không lô nào được chọn sẵn; 409 `THIEU_LY_DO_CHON_LO` | US2, FR-003, SC-002 |
 | Q11 | Xuất cho bữa từ lô quá hạn | 409 `LO_QUA_HAN`; mục đích Hủy được | FR-005 |
 | Q12 | Hai phiếu xuất đồng thời lấy hết lô L1 | Một thành công, một 409 `TON_AM` | FR-004, SC-001 |
 | Q13 | Đảo phiếu nhập sai một dòng | Phiếu đảo trỏ gốc; tồn giảm đúng | FR-006 |
@@ -66,14 +66,14 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M03 không ph
 
 | Nhóm | Test | Kịch bản |
 | --- | --- | --- |
-| Hàm thuần | `GoiYLoTest`, `KiemTraVuotTest`, `KhopChungTuTest`, `AnhXaTrangThaiGiuongTest`, `KiemTraDatLichTest` | Q4, Q5, Q10, Q20, Q27 |
+| Hàm thuần | `ThuTuLoTheoHanTest`, `KiemTraVuotTest`, `KhopChungTuTest`, `AnhXaTrangThaiGiuongTest`, `KiemTraDatLichTest` | Q4, Q5, Q10, Q20, Q27 |
 | Kho | `BR_M08_17_TonKhoIT`, `BR_M08_18_HanDungIT`, `BR_M08_19_KiemKeIT`, `BR_M08_20_PhieuDaoIT`, `DBR_31_TonKhongAmIT` (SC-001: 200 phiếu) | Q10 → Q17 |
 | Mua sắm | `BR_M11_17_MuaSamIT`, `BR_M11_18_VuotIT`, `BR_M11_19_DoiChieuIT`, `BR_M11_20_NhacIT`, `DBR_36_GanNguonIT` | Q1 → Q9 |
 | Tài sản | `BR_M03_15_GiuongTaiSanIT` (SC-004), `BR_M03_17_HanBaoTriIT`, `BR_M03_18_HuHongIT`, `DBR_32_TaiSanGiuongIT` | Q18 → Q26 |
 | Lịch xe | `BR_M03_16_LichXeIT` (SC-005), `FR_018_TheoChuyenIT` | Q27 → Q32 |
 | Đồng thời | Hai phiếu xuất chỗ cuối; hai lịch xe cùng giờ; báo hỏng cùng lúc với phân bổ | Q12, Q27 |
 | Kiến trúc | `ApplicationModules.verify()`; ArchUnit: chỉ `m03.taisan` dùng port giường; job không tạo phiếu, yêu cầu, lịch (Q-306) | |
-| Web (Vitest) | Màn xuất kho hiện lô gợi ý; màn báo hỏng giường hiện tiêu chí "mất an toàn" | Q10, Q21 |
+| Web (Vitest) | Màn xuất kho hiện lô theo thứ tự hạn dùng, không chọn sẵn; màn báo hỏng giường hiện tiêu chí "mất an toàn" | Q10, Q21 |
 
 ## 5. Tiêu chí hoàn tất
 

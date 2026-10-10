@@ -14,6 +14,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - app Flutter nhân viên (ghi ngoại tuyến theo Q-01) và app Flutter người thân;
   - phiên bản mặc định: Java 21 LTS, Spring Boot 3.x, MySQL 8.x, Flutter stable; ghi cụ thể ở plan.
 - Được chạy /speckit-plan, /speckit-tasks, /speckit-analyze. Làm plan theo thứ tự phụ thuộc: 000 → 002 → 001 → 003 → 004 → các feature còn lại; trước mỗi lần chạy kiểm tra .specify/feature.json.
+- Tình trạng (2026-10-10): cả 20 feature (000 → 019) đã có plan, tasks và đã qua /speckit-analyze một lượt.
+- Chạy lại /speckit-analyze theo cùng thứ tự với plan, đổi feature.json trước mỗi feature. Analyze chỉ đọc, kết quả trả trong hội thoại, không ghi file trừ khi chủ dự án yêu cầu.
+- Xử lý kết quả analyze (sau khi chủ dự án duyệt):
+  - lệch ở plan, tasks: sửa plan, tasks;
+  - spec lệch tài liệu nguồn: đồng bộ spec, ghi mục "Cập nhật <ngày>" ở Clarifications và một dòng "(Đã xử lý …)" ở "Điểm cần báo lại";
+  - thiếu sót nghiệp vụ: báo lại để sửa docs/nghiep-vu.md trước;
+  - xung đột constitution (CRITICAL): sửa spec, plan hoặc tasks, không sửa constitution trong analyze.
+- Analyze xét từng feature; sau đó rà thêm giao diện giữa các feature (contracts/module-interfaces.md, mục "bổ sung theo plan này" phải có ở feature cung cấp).
 - KHÔNG chạy /speckit-implement cho tới khi chủ dự án mở giai đoạn triển khai và sửa mục này.
 - KHÔNG tạo mã nguồn, thư mục src/, file cấu hình build hay script SQL. Tài liệu thiết kế do plan sinh ra (plan.md, research.md, data-model.md, contracts/, quickstart.md trong thư mục spec) thì được phép.
 - Plan không được đổi nghiệp vụ: thiếu sót nghiệp vụ phát hiện khi thiết kế thì báo lại để sửa docs/nghiep-vu.md và spec trước (constitution I, IX).

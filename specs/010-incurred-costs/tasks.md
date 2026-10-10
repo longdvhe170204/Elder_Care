@@ -150,7 +150,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 ### Tests cho User Story 6
 
-- [ ] T025 [P] [US6] Test `BT/m11/BR_M11_04_NhapTayIT.java`, `BR_M11_07_MuaHoIT.java`, `FR_023a_NguoiDaiDienIT.java`, `FR_024_VuotSoDongYIT.java`, `Q139_ThuocMuaHoIT.java`: hai người đại diện quyết định đồng thời chỉ một thắng; dấu số dư không đủ qua `SoDuMuaHoPort`; nhắc chờ đồng ý CFG-M15-05, 06 (Q34 → Q37)
+- [ ] T025 [P] [US6] Test `BT/m11/BR_M11_04_NhapTayIT.java`, `BR_M11_07_MuaHoIT.java`, `FR_023a_NguoiDaiDienIT.java` (gồm BR-M10-10: người đại diện đồng ý hoặc từ chối qua cổng, 012 FR-046a), `FR_024_VuotSoDongYIT.java`, `Q139_ThuocMuaHoIT.java`: hai người đại diện quyết định đồng thời chỉ một thắng; dấu số dư không đủ qua `SoDuMuaHoPort`; nhắc chờ đồng ý CFG-M15-05, 06 (Q34 → Q37)
 
 ### Implementation cho User Story 6
 
@@ -186,7 +186,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 - [ ] T032 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/010-incurred-costs/contracts/api-010.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 010
 - [ ] T033 Thay bản giả `KyCuoiPort`, `DeNghiMuaHoPort`, `MucViecSauQuaDoiPort` ở test của 004, 006 bằng bản cài của 010 và chạy lại; khi 011, 012, 014, 017 có bản thật chạy lại US1, US6
 - [ ] T034 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T035 Rà truy vết data-model mục 11: DBR-15, 16, 17, 23 và BR-M11-01 → 09, BR-M02-06 (phần 010) có test
+- [ ] T035 Rà truy vết data-model mục 11: DBR-15, 16, 17, 23 và BR-M11-01 → 09, BR-M02-06 (phần 010), BR-M10-10 (phần 010) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-028, FR-043, FR-044 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

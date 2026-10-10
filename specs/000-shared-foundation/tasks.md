@@ -86,7 +86,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 ### Tham số – phần đọc (R-07; lệnh đổi ở US4)
 
 - [ ] T029 Tạo bảng `tham_so` và `lich_su_tham_so` trong `MIG/V000_03__tham_so.sql` theo data-model mục 2: `tham_so.ma VARCHAR(16)` khóa chính, `kieu ENUM('THOI_LUONG','SO_NGUYEN','TY_LE','SO_TIEN','GIO_TRONG_NGAY','BANG')`, `rang_buoc JSON`, `gia_tri_mac_dinh JSON`, `gia_tri_hien_hanh JSON NOT NULL`, `phien_ban INT`; `lich_su_tham_so` có `UNIQUE (ma, hieu_luc_tu)`, `ly_do VARCHAR(1000)` `NOT NULL` trừ lần nạp ban đầu, `la_khoi_phuc_mac_dinh BOOLEAN`; trigger chỉ thêm cho `lich_su_tham_so` (DBR-24)
-- [ ] T030 Tạo enum `BE/m15/thamso/api/MaThamSo.java` đủ 117 mã CFG hiện hành của Phụ lục 25 `docs/nghiep-vu.md` (đối chiếu lại số lượng với Phụ lục 25 lúc triển khai; plan ghi 120 trước khi xóa CFG theo Q-306, Q-307)
+- [ ] T030 Tạo enum `BE/m15/thamso/api/MaThamSo.java` đủ 117 mã CFG hiện hành của Phụ lục 25 `docs/nghiep-vu.md` (đối chiếu lại số lượng với Phụ lục 25 lúc triển khai)
 - [ ] T031 Tạo migration nạp `MIG/V000_04__tham_so_nap_ban_dau.sql`: một dòng `tham_so` và một dòng `lich_su_tham_so` (người thực hiện Bộ lập lịch, `hieu_luc_tu` là thời điểm khởi tạo) cho mỗi mã; chuyển giá trị mặc định sang JSON có cấu trúc (ví dụ "48 giờ" → `{"giaTri":48,"donVi":"GIO"}`), rà tay từng mã; `rang_buoc` chỉ gồm ràng buộc kỹ thuật (thời lượng > 0, số nguyên ≥ 0, tỷ lệ 0–100) và ràng buộc có nguồn (CFG-M15-06 > CFG-M15-05) (plan "Điểm cần báo lại" #1)
 - [ ] T032 Cài `BE/m15/thamso/api/ThamSoApi.java`, `GiaTriThamSo` bất biến (`asDuration()`, `asInt()`, `asPercent()`, `asMoney()`, `asLocalTime()`, `asTable(Class<T>)`) và `BE/m15/thamso/internal/ThamSoService.java` với `doc(MaThamSo)` có bộ đệm trong tiến trình và `docTaiThoiDiem(ma, Instant)` (FR-018, FR-019)
 
@@ -253,7 +253,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 - [ ] T101 [P] Công cụ sinh dữ liệu quy mô NFR-01 với 1 năm nhật ký (~22 triệu dòng) `backend/tools/sinh-du-lieu/` để đo SC-006 (quickstart mục 5)
 - [ ] T102 Viết quy trình vận hành `backend/docs/van-hanh.md`: sao lưu hằng ngày giữ 30 ngày, bản khôi phục không làm sống lại dữ liệu đã loại bỏ, bảo trì ngoài khung giao ca (NFR-05, NFR-06)
 - [ ] T103 Chạy `./mvnw verify` và toàn bộ quickstart.md mục 3 (K1–K20) ở profile `demo`; đo SC-006, SC-007 theo quickstart mục 5
-- [ ] T104 Rà truy vết: mỗi BR-M15-03, 04, 06 → 13 và DBR-23, 24, 25 có test theo bảng data-model mục 7; cập nhật bảng nếu tên lớp test đổi
+- [ ] T104 Rà truy vết: mỗi BR-M15-03, 04, 06 → 13 và DBR-23, 24, 25 có test theo bảng data-model mục 7; cập nhật bảng nếu tên lớp test đổi; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-010a — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

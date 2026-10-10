@@ -49,14 +49,14 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 ## Phase 3: User Story 2 – Lập, công bố lịch ca và chỉ định người phụ trách ca (Priority: P1) 🎯 MVP
 
-**Goal**: Mẫu ca, lịch tháng Nháp → Đã công bố, kiểm chồng ca và chuỗi ca liên tục, người phụ trách ca, Bác sĩ trực, bản công bố; vòng đời ca theo giờ (FR-011 → FR-016, FR-022, FR-023, FR-055, BR-M09-03).
+**Goal**: Mẫu ca, lịch tháng Nháp → Đã công bố, kiểm chồng ca và chuỗi ca liên tục, người phụ trách ca, Bác sĩ trực, bản công bố; vòng đời ca theo giờ (FR-011 → FR-016, FR-022, FR-023, FR-055, BR-M09-03, 12).
 
 **Independent Test**: Hai mẫu ca; lịch tháng 10 cho tầng 2 có một trường hợp chồng giờ, một trường hợp liên tục 22 giờ, một ca trống người phụ trách → công bố bị chặn với đủ lý do; sửa xong công bố được.
 
 ### Tests cho User Story 2
 
 - [ ] T010 [P] [US2] Test đơn vị `BT/m09/ChuoiCaLienTucTest.java`
-- [ ] T011 [P] [US2] Test `BT/m09/BR_M09_03_ChongCaIT.java`, `ChongCaDongThoiIT.java`, `FR_016_CongBoIT.java`, `FR_022_TrangThaiCaIT.java`: chồng giờ bị chặn dưới khóa `nhan_vien`; liên tục vượt CFG-M09-* cảnh báo/chặn theo FR-016; công bố cần mọi ca có người phụ trách; trạng thái ca theo giờ (Đang diễn ra, Đã đóng hoặc Chờ bàn giao); trigger chặn đổi giờ khi khác `NHAP` (Q1 → Q8)
+- [ ] T011 [P] [US2] Test `BT/m09/BR_M09_03_ChongCaIT.java`, `ChongCaDongThoiIT.java`, `FR_016_CongBoIT.java`, `FR_022_TrangThaiCaIT.java`, `BR_M09_12_Ca24GioIT.java` (giờ bắt đầu bằng giờ kết thúc là ca 24 giờ, kết thúc hôm sau; ca dài 0 bị chặn): chồng giờ bị chặn dưới khóa `nhan_vien`; liên tục vượt CFG-M09-* cảnh báo/chặn theo FR-016; công bố cần mọi ca có người phụ trách; trạng thái ca theo giờ (Đang diễn ra, Đã đóng hoặc Chờ bàn giao); trigger chặn đổi giờ khi khác `NHAP` (Q1 → Q8)
 
 ### Implementation cho User Story 2
 
@@ -79,7 +79,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 ### Tests cho User Story 3
 
 - [ ] T017 [P] [US3] Test đơn vị `BT/m09/XacDinhNhanVienChinhTest.java`, `SC_005_XepCaPhanCongTest.java` (200 lần)
-- [ ] T018 [P] [US3] Test `BT/m09/DBR_21_ChungChiPhanCongIT.java`, `BR_M09_01_ChanThieuChungChiIT.java`, `FR_028_NhanVienChinhIT.java`, `PhanCongDongThoiIT.java`, `FR_032_SaoChepIT.java`, `FR_024_GiaoTruongTangIT.java`, `FR_028a_DieuDuongViecChamSocIT.java`, `NhiemVuApiIT.java`, `ThamChieuViTriIT.java`: hai phân công chính cùng đối tượng chồng thời gian bị chặn dưới khóa `tang_ca_khoa`; sao chép kiểm lại từng dòng; Trưởng tầng chồng bị chặn (SC-011) (Q10 → Q13, Q24, Q26)
+- [ ] T018 [P] [US3] Test `BT/m09/DBR_21_ChungChiPhanCongIT.java`, `BR_M09_01_ChanThieuChungChiIT.java`, `FR_028_NhanVienChinhIT.java`, `PhanCongDongThoiIT.java`, `FR_032_SaoChepIT.java`, `FR_024_GiaoTruongTangIT.java`, `BR_M09_15_PhamViPhanCongIT.java` (phân công Nháp, đã kết thúc, đã hủy không tạo phạm vi dữ liệu), `BR_M09_16_ConPhanCongIT.java` (danh sách "còn phân công" cho 003 gồm phân công Nháp, giao Trưởng tầng còn hiệu lực, ca chưa đóng), `BR_M09_17_NghiDaiNgayIT.java` (không xếp ca không khóa tài khoản; cảnh báo giấy phép vẫn chạy; rút ngắn giao Trưởng tầng và giao có thời hạn cho người thay), `FR_028a_DieuDuongViecChamSocIT.java`, `NhiemVuApiIT.java`, `ThamChieuViTriIT.java`: hai phân công chính cùng đối tượng chồng thời gian bị chặn dưới khóa `tang_ca_khoa`; sao chép kiểm lại từng dòng; Trưởng tầng chồng bị chặn (SC-011) (Q10 → Q13, Q24, Q26)
 
 ### Implementation cho User Story 3
 
@@ -145,7 +145,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 ### Tests cho User Story 5
 
-- [ ] T036 [P] [US5] Test đơn vị `BT/m09/TinhTyLePhucVuTest.java` và `BT/m09/BR_M09_02_TyLePhucVuIT.java`, `FR_036_CanhBaoMotLanIT.java` (Q20, Q21)
+- [ ] T036 [P] [US5] Test đơn vị `BT/m09/TinhTyLePhucVuTest.java` và `BT/m09/BR_M09_02_TyLePhucVuIT.java`, `FR_036_CanhBaoMotLanIT.java`, `BR_M09_14_TinhTheoCaIT.java` (người có ca chưa có phân công vẫn được tính; yêu cầu đổi mức chăm sóc đang chờ duyệt không tính trước) (Q20, Q21)
 
 ### Implementation cho User Story 5
 
@@ -164,7 +164,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 ### Tests cho User Story 6
 
-- [ ] T039 [P] [US6] Test `BT/m09/FR_020_VangCaIT.java`, `FR_020_NgoaiKhoangIT.java`, `FR_019_ChuyenNguoiPhuTrachIT.java`, `FR_021_HuyCaIT.java`, `FR_053_LyDoVangIT.java`, `FR_052_GioiHanTruongNhanVienIT.java`, `SC_012_ThongBaoNgoaiUngDungIT.java`: vắng ca gọi `CongViecCaApi.khiVangCa` cùng transaction; vắng của người phụ trách ca chuyển người phụ trách; bàn giao Bản nháp đổi người bàn giao; lý do vắng chỉ người có quyền thấy (Q22, Q23, Q25, Q40, Q41)
+- [ ] T039 [P] [US6] Test `BT/m09/FR_020_VangCaIT.java`, `FR_020_NgoaiKhoangIT.java`, `FR_019_ChuyenNguoiPhuTrachIT.java` (gồm BR-M09-13: người bàn giao của bàn giao đang dở đổi theo), `FR_021_HuyCaIT.java`, `FR_053_LyDoVangIT.java`, `FR_052_GioiHanTruongNhanVienIT.java`, `SC_012_ThongBaoNgoaiUngDungIT.java`: vắng ca gọi `CongViecCaApi.khiVangCa` cùng transaction; vắng của người phụ trách ca chuyển người phụ trách; bàn giao Bản nháp đổi người bàn giao; lý do vắng chỉ người có quyền thấy (Q22, Q23, Q25, Q40, Q41)
 
 ### Implementation cho User Story 6
 
@@ -180,7 +180,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 - [ ] T042 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/008-staff-shift-handover/contracts/api-008.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 008
 - [ ] T043 Thay bản giả của 002 (002 T003), 005 → 007 (`NhanSuCaPort`, `DieuDuongCaPort`, `NhanSuCanhBaoPort`) bằng bản cài của 008 và chạy lại test của các feature đó
 - [ ] T044 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T045 Rà truy vết data-model mục 11: DBR-20, 21, 23, 25, 36 và BR-M09-01 → 08, BR-M04-13, BR-M05-05 (phần 008) có test
+- [ ] T045 Rà truy vết data-model mục 11: DBR-20, 21, 23, 25, 36 và BR-M09-01 → 08, 12 → 17, BR-M04-13, BR-M05-05 (phần 008) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-048, FR-049, FR-050, FR-051, FR-052, FR-053, FR-054, FR-056, FR-057, FR-058, FR-059, FR-060 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

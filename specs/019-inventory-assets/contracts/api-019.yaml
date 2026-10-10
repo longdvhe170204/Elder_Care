@@ -44,17 +44,17 @@ paths:
       summary: Lập phiếu nhập, xuất hoặc đảo (Nhân viên bếp); có hiệu lực khi lưu
       description: |
         NHAP hàng mua gắn yêu cầu mua sắm Đã duyệt của bộ phận Bếp (FR-008c); dòng Không đạt không vào tồn.
-        XUAT: lô gợi ý hạn sớm nhất, chọn lô khác cần lý do; lô quá hạn chỉ mục đích HUY. DAO trỏ một phiếu gốc.
+        XUAT: người xuất chọn lô; dòng từ lô không phải lô hạn sớm nhất còn tồn cần lý do (THIEU_LY_DO_CHON_LO); lô quá hạn chỉ mục đích HUY. DAO trỏ một phiếu gốc.
         Tồn âm → chặn toàn bộ (TON_AM).
       x-fr: [FR-002, FR-003, FR-004, FR-005, FR-006, FR-007, FR-008c]
       x-br: [BR-M08-17, BR-M08-18, BR-M08-20, DBR-31, DBR-36]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/PhieuKho' } } } }
       responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /kho/goi-y-lo:
+  /kho/lo-theo-han:
     get:
       tags: [kho]
-      summary: Lô gợi ý (hạn dùng sớm nhất còn tồn) cho một nguyên liệu và mục đích
+      summary: Các lô còn tồn của một nguyên liệu theo thứ tự hạn dùng (hiển thị; không chọn sẵn, Q-307)
       x-fr: [FR-003]
       parameters: [ { name: nguyenLieuId, in: query, required: true, schema: { type: integer, format: int64 } }, { name: mucDich, in: query, schema: { type: string } } ]
       responses: { '200': { description: OK } }

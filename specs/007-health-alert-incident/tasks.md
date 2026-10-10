@@ -280,7 +280,7 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 - [ ] T062 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/007-health-alert-incident/contracts/api-007.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 007
 - [ ] T063 Khi 008, 009, 012, 014 có bản thật, chạy lại test US3, US5, US8 với bean thật thay T002
 - [ ] T064 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo NFR-03 (thông báo khẩn cấp) và SC theo quickstart mục 5
-- [ ] T065 Rà truy vết data-model mục 15: DBR-18, 19, 23, 25, 34 và BR-M05-01 → 26, BR-M06-01 → 06, BR-M04-10 (phần 007) có test
+- [ ] T065 Rà truy vết data-model mục 15: DBR-18, 19, 23, 25, 34 và BR-M05-01 → 26, BR-M06-01 → 06, BR-M04-10 (phần 007) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-001, FR-002, FR-080, FR-081, FR-082, FR-083, FR-084 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 
