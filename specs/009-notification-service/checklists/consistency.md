@@ -1,6 +1,6 @@
 # Consistency Checklist: Dịch vụ thông báo dùng chung
 
-**Purpose**: Kiểm tra sự nhất quán giữa yêu cầu của spec 009 và những gì các spec 000 → 008 đã giao cho 009 (người nhận, mức, người thay, tạm nhận, giới hạn nội dung, dữ liệu trả lại), cùng với tài liệu nguồn (`docs/nghiep-vu.md` mục 17, 23, 24, Phụ lục 25; `docs/phan-tich-yeu-cau.md` 3.2, 4.1, 4.2, 4.4) và thuật ngữ mục 2.4. Chỉ đánh giá cách viết yêu cầu, không đánh giá cách hiện thực.
+**Purpose**: Kiểm tra sự nhất quán giữa yêu cầu của spec 009 và những gì các spec 000 → 008 đã giao cho 009 (người nhận, mức, người thay, tạm nhận, giới hạn nội dung, dữ liệu trả lại), cùng với tài liệu nguồn (`docs/business/nghiep-vu.md` mục 17, 23, 24, Phụ lục 25; `docs/phan-tich-yeu-cau.md` 3.2, 4.1, 4.2, 4.4) và thuật ngữ mục 2.4. Chỉ đánh giá cách viết yêu cầu, không đánh giá cách hiện thực.
 **Created**: 2026-09-26
 **Feature**: [spec.md](../spec.md)
 

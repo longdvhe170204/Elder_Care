@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Quản lý dinh dưỡng theo docs/nghiep-vu.md Module 08 (mục 12): chế độ ăn gán cho người cao tuổi có luồng duyệt với chế độ bệnh lý; món ăn gắn thành phần gây dị ứng; thực đơn tuần có vòng đời và kiểm tra độ phủ, lặp món, dị ứng trước khi công bố; hệ thống chốt số suất trước mỗi bữa theo người thực tế có mặt; đồ ăn gia đình mang vào được đối chiếu với dị ứng và hạn chế."
+**Input**: User description: "Quản lý dinh dưỡng theo docs/business/nghiep-vu.md Module 08 (mục 12): chế độ ăn gán cho người cao tuổi có luồng duyệt với chế độ bệnh lý; món ăn gắn thành phần gây dị ứng; thực đơn tuần có vòng đời và kiểm tra độ phủ, lặp món, dị ứng trước khi công bố; hệ thống chốt số suất trước mỗi bữa theo người thực tế có mặt; đồ ăn gia đình mang vào được đối chiếu với dị ứng và hạn chế."
 
 ## Clarifications
 
@@ -628,9 +628,9 @@ Ngừng, Đã hủy là trạng thái cuối. *(Trạng thái Chờ duyệt, T�
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-**Trạng thái (2026-09-27):** theo yêu cầu của người dùng, `docs/nghiep-vu.md` đã được cập nhật cho các quyết định Q-39, Q-142 → Q-147 (nằm ở mục 24.2; Q-39 được bỏ khỏi 24.1; 24.3 không còn dòng nào) và cho điểm 3, 4, 5, 6, 7, 9 dưới đây, tại 2.4 (thuật ngữ mới), 12.1, 12.2, 12.5, 19.3 (giới hạn quyền của dòng "Chế độ ăn, thực đơn" và người nhận tại tầng), BR-M08-01, 02, 03, 11, 15, BR-M08-16 mới và CFG-M08-07 ở Phụ lục 25. **Không sửa theo quyết định của người dùng (2026-09-27):** `docs/phan-tich-yeu-cau.md` giữ nguyên; điểm 2, 8 và phần của điểm 1 thuộc tài liệu này được giữ ở đây làm ghi chú lệch đã biết; 19.3 của tài liệu nghiệp vụ và spec này là căn cứ cho các điểm đó. **Còn mở:** chỉ phần feature 014 (chưa viết) ở điểm 10.
+**Trạng thái (2026-09-27):** theo yêu cầu của người dùng, `docs/business/nghiep-vu.md` đã được cập nhật cho các quyết định Q-39, Q-142 → Q-147 (nằm ở mục 24.2; Q-39 được bỏ khỏi 24.1; 24.3 không còn dòng nào) và cho điểm 3, 4, 5, 6, 7, 9 dưới đây, tại 2.4 (thuật ngữ mới), 12.1, 12.2, 12.5, 19.3 (giới hạn quyền của dòng "Chế độ ăn, thực đơn" và người nhận tại tầng), BR-M08-01, 02, 03, 11, 15, BR-M08-16 mới và CFG-M08-07 ở Phụ lục 25. **Không sửa theo quyết định của người dùng (2026-09-27):** `docs/phan-tich-yeu-cau.md` giữ nguyên; điểm 2, 8 và phần của điểm 1 thuộc tài liệu này được giữ ở đây làm ghi chú lệch đã biết; 19.3 của tài liệu nghiệp vụ và spec này là căn cứ cho các điểm đó. **Còn mở:** chỉ phần feature 014 (chưa viết) ở điểm 10.
 
-1. **Quyết định đã chốt khi clarify ngày 2026-09-27** — *đã phản ánh vào `docs/nghiep-vu.md` (thân tài liệu và mục 24.2; Q-39 đã bỏ khỏi 24.1)*; các ghi chú "cần …" dưới đây chỉ còn đúng với `docs/phan-tich-yeu-cau.md` và các spec khác:
+1. **Quyết định đã chốt khi clarify ngày 2026-09-27** — *đã phản ánh vào `docs/business/nghiep-vu.md` (thân tài liệu và mục 24.2; Q-39 đã bỏ khỏi 24.1)*; các ghi chú "cần …" dưới đây chỉ còn đúng với `docs/phan-tich-yeu-cau.md` và các spec khác:
    - Q-39 (đã chốt 2026-09-27): có lưu mẫu bằng bản ghi đơn giản, chặn giao phiếu khi chưa lưu mẫu (FR-060). Cần chuyển Q-39 từ 24.1 sang 24.3 và bỏ chữ "cần xác nhận" ở 12.5, BR-M08-15, UC-78, LUU_MAU_THUC_AN.
    - Q-142 (đã chốt 2026-09-27): dinh dưỡng viên tự công bố thực đơn sau kiểm tra tự động (FR-029). Cần ghi vào 12.2, chú thích dòng "Chế độ ăn, thực đơn" của 4.4 rằng quyền D của Bác sĩ chỉ áp cho UC-45, và thêm Q-142 vào mục 24.3.
    - Q-143 (đã chốt 2026-09-27): người nhận tại tầng là Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc trong phạm vi phân công (FR-048). Cần bỏ chữ "tạm" ở chú thích ¹⁵ của 4.4, ghi vai trò vào BR-M08-11 và thêm Q-143 vào mục 24.3.
@@ -662,7 +662,7 @@ Ngừng, Đã hủy là trạng thái cuối. *(Trạng thái Chờ duyệt, T�
     - BR-M08-08: lệnh Đổi món có hiệu lực ngay khi có lý do, không cần duyệt (FR-031); không áp cho bữa đã qua giờ bữa; bị chặn nếu làm mất độ phủ (FR-032).
     - BR-M08-05: hạn xử lý yêu cầu xem lại không dừng khi người cao tuổi vắng mặt (FR-059).
 
-**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** *(2026-09-29: mọi điểm dưới đây đã xử lý, xem nhãn "Đã xử lý" từng điểm.)* Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
+**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** *(2026-09-29: mọi điểm dưới đây đã xử lý, xem nhãn "Đã xử lý" từng điểm.)* Các điểm dưới đây đã có trong `docs/business/nghiep-vu.md` và `docs/business/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
 
 1. **[Đã xử lý 2026-09-28: mục Ngoài phạm vi; nội dung chờ spec kho nguyên liệu]** **Kho nguyên liệu nấu ăn (Q-210, Q-220; 12.7, BR-M08-17 → 20, UC-91, 92, DBR-31).** Chức năng mới thuộc Module 08: danh mục nguyên liệu, phiếu nhập (có kiểm tra đầu vào), phiếu xuất theo lô, kiểm kê. Quản lý viện quản lý; Nhân viên bếp lập phiếu xuất cho bữa và đề nghị nhập; Dinh dưỡng viên xem tồn. Không tự trừ kho theo định lượng món. Đề xuất viết spec riêng (cùng tài sản 7.7) thay vì mở rộng spec này.
 

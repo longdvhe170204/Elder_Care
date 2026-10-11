@@ -164,7 +164,7 @@ app-nguoi-than/lib/tinh-nang/hoat-dong/  # buổi, chuyến, đồng ý về mu�
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
+Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
 1. **Câu chữ trước Q-306 còn sót trong spec 014**: *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - bảng trạng thái buổi dòng "Hoàn tất điểm danh" và bảng đăng ký dòng "Ghi kết quả điểm danh" ghi tác động "Chi phí nháp cho lượt có mặt" (FR-032 đã sửa: chỉ là bản ghi nguồn, Hành chính lập khoản);

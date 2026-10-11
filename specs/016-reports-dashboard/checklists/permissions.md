@@ -75,7 +75,7 @@
 - Leave items unchecked when they still require clarification, correction, or reviewer evaluation
 - `/speckit-implement` reads checklist checkbox state as a gate and must not modify markers
 - `checklists/requirements.md` has a separate built-in lifecycle maintained by `/speckit-specify` and `/speckit-clarify`
-- Nguồn đối chiếu: `docs/phan-tich-yeu-cau.md` mục 4.4 (dòng và chú thích ⁵, ⁹, ¹¹, ¹⁵, ²²), `docs/nghiep-vu.md` 2.4, 13.3, 19.2, 19.3, NFR-07, NFR-08; feature 002 FR-022, FR-025, FR-034, FR-035, FR-041b.
+- Nguồn đối chiếu: `docs/phan-tich-yeu-cau.md` mục 4.4 (dòng và chú thích ⁵, ⁹, ¹¹, ¹⁵, ²²), `docs/business/nghiep-vu.md` 2.4, 13.3, 19.2, 19.3, NFR-07, NFR-08; feature 002 FR-022, FR-025, FR-034, FR-035, FR-041b.
 
 ## Kết quả rà soát (2026-09-27)
 

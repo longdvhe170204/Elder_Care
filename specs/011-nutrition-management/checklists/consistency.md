@@ -1,6 +1,6 @@
 # Consistency Checklist: Quản lý dinh dưỡng và suất ăn
 
-**Purpose**: Kiểm tra spec 011 có nhất quán không: giữa các phần của chính spec, với `docs/nghiep-vu.md` và `docs/phan-tich-yeu-cau.md` (Permission Matrix 4.4, ERD, DBR), với các spec đã viết 000 → 010, 012, và với constitution I–IX.
+**Purpose**: Kiểm tra spec 011 có nhất quán không: giữa các phần của chính spec, với `docs/business/nghiep-vu.md` và `docs/phan-tich-yeu-cau.md` (Permission Matrix 4.4, ERD, DBR), với các spec đã viết 000 → 010, 012, và với constitution I–IX.
 
 **Created**: 2026-09-27
 **Feature**: [spec.md](../spec.md)
@@ -67,7 +67,7 @@
 - [x] CHK042 - Bảng trạng thái đồ ăn gia đình có dòng "Tới hạn dùng" do Hệ thống thực hiện. Tập lệnh ở FR-063 và phần "Hệ thống / Bộ lập lịch" có liệt kê việc tự chuyển này không? [Consistency, Spec §FR-063, §Bảng trạng thái đồ ăn gia đình]
 - [x] CHK043 - FR-054 thêm điểm nghi vấn "người dùng chế độ ăn liên quan điều trị". User Story 7 kịch bản 3 (R tiểu đường, chè có đường → Không sử dụng) vẫn đúng, nhưng có kịch bản nào cho đồ ăn không vi phạm của người dùng chế độ điều trị (phải Cần xác nhận) không? SC-007 có còn đo đủ nhóm này không? [Coverage, Spec §FR-054, §User Story 7, §SC-007]
 
-## Rà vòng 2 – Khớp với `docs/nghiep-vu.md` đã cập nhật (2026-09-27)
+## Rà vòng 2 – Khớp với `docs/business/nghiep-vu.md` đã cập nhật (2026-09-27)
 
 - [x] CHK044 - 12.5 định nghĩa suất đặc biệt, danh sách cần đối chiếu khi phục vụ, phần bổ sung, cách xử lý sau Đã nhận. Mỗi nội dung có khớp từng ý với FR-036, FR-036a, FR-048b của spec không (ví dụ: 12.5 có nêu người trong danh sách cần đối chiếu được xác nhận phục vụ như suất đặc biệt, FR-050 có ràng buộc feature 005 tương ứng)? [Consistency, Spec §FR-036, §FR-036a, §FR-048b, §FR-050, 12.5]
 - [x] CHK045 - BR-M08-02 (bổ sung) ghi "bếp không chuẩn bị suất đó cho tới khi có món thay thế", còn FR-037 cho thêm đường dinh dưỡng viên xác nhận món gốc được chế biến không có thành phần xung đột. Hai chỗ có khớp không? [Conflict, Spec §FR-037, BR-M08-02]
@@ -89,8 +89,8 @@
 - CHK017 → CHK026 có thể phải sửa spec khác (005, 007, 008, 009, 010, 012) hoặc tài liệu nguồn, không chỉ spec này; theo CLAUDE.md, ghi vào điểm báo lại thay vì tự sửa.
 - `/speckit-implement` reads checklist checkbox state as a gate and must not modify markers.
 - `checklists/requirements.md` has a separate built-in lifecycle maintained by `/speckit-specify` and `/speckit-clarify`.
-- Rà vòng 2 (2026-09-27): thêm CHK030 → CHK051, để trống `[ ]`. Phạm vi: các FR mới hoặc viết lại sau lượt rà 1 và Q-146, Q-147, cùng độ khớp với `docs/nghiep-vu.md` sau khi cập nhật 12.1, 12.2, 12.5, BR-M08-01, 02, 03, 11, 15, 24.3, Phụ lục 25. Mục có thẻ [Conflict] (CHK032, CHK045, CHK047, CHK048) nên xử lý trước. CHK047 → CHK050 là điểm của tài liệu nguồn; theo CLAUDE.md chỉ sửa khi người dùng yêu cầu.
+- Rà vòng 2 (2026-09-27): thêm CHK030 → CHK051, để trống `[ ]`. Phạm vi: các FR mới hoặc viết lại sau lượt rà 1 và Q-146, Q-147, cùng độ khớp với `docs/business/nghiep-vu.md` sau khi cập nhật 12.1, 12.2, 12.5, BR-M08-01, 02, 03, 11, 15, 24.3, Phụ lục 25. Mục có thẻ [Conflict] (CHK032, CHK045, CHK047, CHK048) nên xử lý trước. CHK047 → CHK050 là điểm của tài liệu nguồn; theo CLAUDE.md chỉ sửa khi người dùng yêu cầu.
 - Lượt rà vòng 2 (2026-09-27, theo yêu cầu của người dùng): 22/22 mục CHK030 → CHK051 đạt; tổng 51/51.
   - **Sửa spec:** CHK030 (bảng nhóm dữ liệu, FR-027, Assumptions bỏ chữ "đề xuất"); CHK031 (điểm báo lại 1, 3 → 7, 9 được đánh dấu đã phản ánh); CHK032 (FR-044: tổng DBR-27 tính theo phát sinh cần giao, "số suất được phục vụ" tính riêng); CHK033, CHK037 (FR-061: món an toàn, món Đổi món, tuần chưa có thực đơn); CHK034 (FR-001, FR-004: món an toàn bắt buộc, không ngừng khi đang dùng); CHK035, CHK036 (FR-037a: thêm mốc CFG-M08-05 và trường hợp không có món, suy ra từ Q-147); CHK038, CHK043 (kịch bản US4 #14, #15, US7 #8, #9, US9 #3); CHK039 (SC-012, SC-013); CHK040 (mục "Thuật ngữ của spec"); CHK041 (bảng FR-065); CHK042 (FR-063); CHK051 (điểm báo lại 11).
-  - **Sửa `docs/nghiep-vu.md` theo yêu cầu của người dùng:** CHK045 (BR-M08-02 thêm đường xác nhận món gốc và mốc CFG-M08-05); CHK046 (BR-M08-11 thêm người nhận thay ở khu bán trú và phần bổ sung); CHK047 (19.3 thêm giới hạn quyền dòng "Chế độ ăn, thực đơn" và người nhận tại tầng); CHK048 (chuyển Q-39, Q-142 → Q-147 từ 24.3 lên 24.2; 24.3 ghi rõ tab Phân tích yêu cầu không sửa theo quyết định của người dùng); CHK049 (thêm 8 thuật ngữ vào 2.4); CHK050 (thêm BR-M08-16, CFG-M08-07 trỏ về BR-M08-16). Ngoài ra 12.1 ghi món an toàn là bắt buộc, 12.2 trỏ BR-M08-16 và 19.3.
+  - **Sửa `docs/business/nghiep-vu.md` theo yêu cầu của người dùng:** CHK045 (BR-M08-02 thêm đường xác nhận món gốc và mốc CFG-M08-05); CHK046 (BR-M08-11 thêm người nhận thay ở khu bán trú và phần bổ sung); CHK047 (19.3 thêm giới hạn quyền dòng "Chế độ ăn, thực đơn" và người nhận tại tầng); CHK048 (chuyển Q-39, Q-142 → Q-147 từ 24.3 lên 24.2; 24.3 ghi rõ tab Phân tích yêu cầu không sửa theo quyết định của người dùng); CHK049 (thêm 8 thuật ngữ vào 2.4); CHK050 (thêm BR-M08-16, CFG-M08-07 trỏ về BR-M08-16). Ngoài ra 12.1 ghi món an toàn là bắt buộc, 12.2 trỏ BR-M08-16 và 19.3.
   - **Không cần sửa:** CHK044.

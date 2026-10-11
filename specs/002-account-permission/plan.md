@@ -37,7 +37,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307): 002 không tự sinh bản ghi
 
 **Storage**: MySQL 8.4 LTS (000 R-01). Bảng ở [data-model.md](data-model.md). Tham chiếu tới hồ sơ nhân viên, người thân, phân công là định danh logic, không khóa ngoại chéo module (constitution X).
 
-**Testing**: như 000 R-14. Thêm `MaTranQuyenKhopNguonTest` đọc Phụ lục 27 từ `docs/nghiep-vu.md` để đối chiếu ma trận đã nạp. Bản giả cho 008, 003, 012, 001, 004, 007 theo chữ ký ở [contracts/module-interfaces.md](contracts/module-interfaces.md) mục 2.
+**Testing**: như 000 R-14. Thêm `MaTranQuyenKhopNguonTest` đọc Phụ lục 27 từ `docs/business/nghiep-vu.md` để đối chiếu ma trận đã nạp. Bản giả cho 008, 003, 012, 001, 004, 007 theo chữ ký ở [contracts/module-interfaces.md](contracts/module-interfaces.md) mục 2.
 
 **Target Platform**: như 000. Đăng nhập ở cả ba kênh (Q-305); quản trị tài khoản và phân quyền ở web; mở khóa sớm và duyệt bản ghi chờ xem lại có ở web và app nhân viên.
 
@@ -159,7 +159,7 @@ app-nguoi-than/lib/
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới, rồi sửa `docs/nghiep-vu.md` và spec 002.
+Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới, rồi sửa `docs/business/nghiep-vu.md` và spec 002.
 
 1. *(Đã xử lý 2026-10-07: Q-309, CFG-M15-09, CFG-M15-10, BR-M15-21; spec FR-006a, FR-013a.)* **Độ mạnh mật khẩu và thời gian tự đăng xuất chưa có mã CFG.** Spec ghi "cần mã CFG khi thiết kế" (Assumptions; điểm báo lại 13, đã xử lý 2026-10-01 nhưng để lại hai mã này). Plan tạm đặt ở cấu hình ứng dụng với giá trị đề nghị: tối thiểu 8 ký tự có chữ và số; tự đăng xuất sau 30 phút ở web, 12 giờ ở app nhân viên, 30 ngày ở app người thân (research A-13). Đề nghị: mở Q và thêm hai mã CFG-M15-09, CFG-M15-10 vào Phụ lục 25.
 2. *(Đã xử lý 2026-10-07: Q-310, BR-M15-22; spec FR-004b.)* **Tài khoản Quản lý viện đầu tiên.** FR-004 chỉ cho Quản lý viện tạo tài khoản nhân viên, FR-012 đòi luôn có một Quản lý viện; nguồn không nói ai tạo tài khoản Quản lý viện đầu tiên khi hệ thống mới cài. Plan dùng một công cụ khởi tạo chạy một lần lúc cài đặt (tạo hồ sơ nhân viên qua API của 008 và tài khoản AC-01, buộc đổi mật khẩu, ghi nhật ký người thực hiện là "khởi tạo hệ thống"). Đề nghị ghi việc này vào 19.1 bằng một Q, để không coi là ngoại lệ của FR-004.

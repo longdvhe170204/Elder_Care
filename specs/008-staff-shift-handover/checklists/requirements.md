@@ -43,5 +43,5 @@
 - Sau checklist privacy-audit (2026-09-26): thêm nhóm G (FR-050 → FR-060) và SC-012; không có dấu [NEEDS CLARIFICATION] mới; mọi mục vẫn đạt.
 - Tuân thủ constitution: mỗi FR có tham chiếu nguồn (BR/DBR/UC/mục); giá trị cấu hình gọi bằng mã CFG kèm mặc định (CFG-M09-01 → 05, CFG-M06-02, CFG-M15-07); dữ liệu phân theo 3 nhóm của mục 1.5 (bảng đầu mục Requirements); vòng đời thể hiện bằng bảng (trạng thái làm việc, ca, phân công, bàn giao); không có diagram; actor và quyền theo 4.1, 4.4, 19.3 (FR-048).
 - DBR-20 (FR-022, FR-038, FR-039, FR-046; User Story 1 kịch bản 6, 10, 11) và DBR-21 (FR-013, FR-030; User Story 2 kịch bản 2, User Story 3 kịch bản 1, 2) có kịch bản chấp nhận.
-- 16 điểm mâu thuẫn hoặc thiếu trong tài liệu nguồn được báo lại ở cuối spec; `docs/nghiep-vu.md` đã được cập nhật tới Q-89 (điểm 15), các quyết định lượt 4 (Q-90 → Q-94, điểm 16) và `docs/phan-tich-yeu-cau.md` chưa được sửa.
+- 16 điểm mâu thuẫn hoặc thiếu trong tài liệu nguồn được báo lại ở cuối spec; `docs/business/nghiep-vu.md` đã được cập nhật tới Q-89 (điểm 15), các quyết định lượt 4 (Q-90 → Q-94, điểm 16) và `docs/phan-tich-yeu-cau.md` chưa được sửa.
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`

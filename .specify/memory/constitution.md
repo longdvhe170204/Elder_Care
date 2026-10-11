@@ -4,7 +4,7 @@
 
 ### I. Nguồn gốc và truy vết
 
-- Quy tắc nghiệp vụ MUST nằm ở `docs/nghiep-vu.md`; spec của từng feature là nguồn gốc hành vi
+- Quy tắc nghiệp vụ MUST nằm ở `docs/business/nghiep-vu.md`; spec của từng feature là nguồn gốc hành vi
   của feature đó.
 - Mỗi yêu cầu chức năng trong spec MUST tham chiếu mã quy tắc (BR-Mxx-yy, DBR-xx) và use case
   (UC-xx) tương ứng; mã tham số (CFG-Mxx-yy) MUST được giữ nguyên khi trích dẫn.
@@ -16,14 +16,14 @@ Lý do: mọi hành vi của hệ thống phải truy ngược được về m�
 
 - Spec MUST NOT nêu ngôn ngữ lập trình, framework, cơ sở dữ liệu, API, bảng hay màn hình cụ thể.
 - Spec MUST viết cho người nghiệp vụ đọc hiểu được; thuật ngữ MUST theo mục 2.4 của
-  `docs/nghiep-vu.md`.
+  `docs/business/nghiep-vu.md`.
 
 Lý do: spec là thỏa thuận với người nghiệp vụ, không phải bản thiết kế kỹ thuật. Quyết định công
 nghệ nằm ở plan theo các nguyên tắc X–XV.
 
 ### III. Không mặc định CRUD
 
-- Dữ liệu MUST được phân theo 3 nhóm ở mục 1.5 `docs/nghiep-vu.md`: (1) danh mục; (2) nghiệp vụ
+- Dữ liệu MUST được phân theo 3 nhóm ở mục 1.5 `docs/business/nghiep-vu.md`: (1) danh mục; (2) nghiệp vụ
   có trạng thái; (3) ghi nhận đã xác nhận.
 - Với nhóm 2, spec MUST mô tả các lệnh nghiệp vụ và điều kiện của chúng; MUST NOT mô tả thao tác
   "sửa trạng thái".
@@ -49,13 +49,13 @@ Lý do: các giá trị này do viện cấu hình và có thể thay đổi mà
 ### VI. Vai trò và quyền
 
 - Actor và quyền trong spec MUST khớp danh sách actor (Phụ lục 26.1), ma trận quyền (Phụ lục 27)
-  và mục 19.3 của `docs/nghiep-vu.md`; khi Phụ lục 27 khác 19.3, 19.3 là căn cứ.
+  và mục 19.3 của `docs/business/nghiep-vu.md`; khi Phụ lục 27 khác 19.3, 19.3 là căn cứ.
 
 Lý do: tránh phát sinh vai trò hoặc quyền ngoài mô hình phân quyền đã thống nhất.
 
 ### VII. Điểm chưa rõ
 
-- Điểm chưa chốt MUST tham chiếu mã quyết định (Q-xx) ở mục 24 `docs/nghiep-vu.md`; MUST NOT tự
+- Điểm chưa chốt MUST tham chiếu mã quyết định (Q-xx) ở mục 24 `docs/business/nghiep-vu.md`; MUST NOT tự
   đoán.
 - Quyết định còn mở đã có giá trị Mặc định ở mục 24.1: spec MUST ghi "theo mặc định Q-xx" và viết
   yêu cầu, tiêu chí kiểm thử theo giá trị đó (Q-204).
@@ -75,7 +75,7 @@ Lý do: giả định ngầm là nguồn lỗi nghiệp vụ khó phát hiện n
   của `CLAUDE.md`; chỉ chủ dự án được chuyển giai đoạn.
 - Implement (viết mã) MUST NOT bắt đầu cho tới khi chủ dự án mở giai đoạn triển khai ở mục đó.
 - Plan, tasks MUST NOT làm thay đổi nghiệp vụ: phát hiện thiếu sót nghiệp vụ khi thiết kế thì sửa
-  `docs/nghiep-vu.md` và spec trước (I), không tự giải quyết trong plan.
+  `docs/business/nghiep-vu.md` và spec trước (I), không tự giải quyết trong plan.
 
 Lý do: thiết kế dựa trên nghiệp vụ đã chốt; viết mã khi thiết kế chưa ổn định gây làm lại.
 
@@ -88,11 +88,11 @@ Lý do: thiết kế dựa trên nghiệp vụ đã chốt; viết mã khi thi�
   - app Flutter người thân (Q-305).
 - Cơ sở dữ liệu MUST là MySQL.
 - Backend MUST là một khối (không tách microservice), chia gói theo module nghiệp vụ M01–M15 của
-  `docs/nghiep-vu.md`; module gọi nhau qua giao diện của module, không truy cập trực tiếp dữ liệu
+  `docs/business/nghiep-vu.md`; module gọi nhau qua giao diện của module, không truy cập trực tiếp dữ liệu
   của module khác.
 - Phiên bản cụ thể (mặc định Java 21 LTS, Spring Boot 3.x, MySQL 8.x, React với TypeScript, Flutter
   bản stable) MUST được ghi ở plan.
-- Plan MUST nêu cách đáp ứng từng yêu cầu phi chức năng ở mục 22 `docs/nghiep-vu.md` (NFR) mà
+- Plan MUST nêu cách đáp ứng từng yêu cầu phi chức năng ở mục 22 `docs/business/nghiep-vu.md` (NFR) mà
   feature chịu ảnh hưởng, gồm hiệu năng, thiết bị, thời gian.
 
 Lý do: một backend và một nguồn quy tắc cho ba client; một khối chia module vừa quy mô đồ án mà
@@ -151,14 +151,14 @@ Lý do: giữ chuỗi truy vết từ quy tắc tới mã (I) và nghiệm thu �
 
 ## Tài liệu nguồn
 
-- `docs/nghiep-vu.md`: quy tắc nghiệp vụ (BR, CFG), phân loại dữ liệu (mục 1.5), thuật ngữ
+- `docs/business/nghiep-vu.md`: quy tắc nghiệp vụ (BR, CFG), phân loại dữ liệu (mục 1.5), thuật ngữ
   (mục 2.4), quyết định Q-xx (mục 24), actor và use case (Phụ lục 26), ma trận quyền (Phụ lục 27),
   quy tắc dữ liệu DBR (Phụ lục 28), căn cứ pháp lý (Phụ lục 29).
-- `docs/luong-nghiep-vu.md`: luồng nghiệp vụ chính BF-xx, nguồn duy nhất của mã BF.
+- `docs/business/luong-nghiep-vu.md`: luồng nghiệp vụ chính BF-xx, nguồn duy nhất của mã BF.
 - Hai tài liệu trên MUST NOT bị sửa khi làm spec hay plan trừ khi được yêu cầu rõ ràng; mâu thuẫn
   phát hiện được MUST được báo lại thay vì tự sửa.
 - `docs/phan-tich-yeu-cau.md` đã bỏ ngày 2026-09-28; nội dung còn dùng được chuyển vào Phụ lục
-  26 → 28 của `docs/nghiep-vu.md`.
+  26 → 28 của `docs/business/nghiep-vu.md`.
 
 ## Quy trình làm spec và thiết kế
 

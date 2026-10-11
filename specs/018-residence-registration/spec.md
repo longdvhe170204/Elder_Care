@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Khai báo tạm trú, thông báo lưu trú cho người cao tuổi nội trú theo docs/nghiep-vu.md mục 6.10 (Module 02, BR-M02-11 → BR-M02-14), 6.8 (khai báo xóa tạm trú khi kết thúc lưu trú, qua đời), mục 23 (cơ quan công an, không tích hợp), BF-01 bước 15a, BF-10 bước 6b; quyết định Q-208, Q-215 (chốt 2026-09-29); UC-80, UC-81; DBR-33; CFG-M02-11 → CFG-M02-13. Hành chính ghi nhận việc khai báo với công an; hệ thống xác định loại khai báo, nhắc hạn, gia hạn và khai báo xóa; không nộp hồ sơ thay, không kết nối Cổng dịch vụ công."
+**Input**: User description: "Khai báo tạm trú, thông báo lưu trú cho người cao tuổi nội trú theo docs/business/nghiep-vu.md mục 6.10 (Module 02, BR-M02-11 → BR-M02-14), 6.8 (khai báo xóa tạm trú khi kết thúc lưu trú, qua đời), mục 23 (cơ quan công an, không tích hợp), BF-01 bước 15a, BF-10 bước 6b; quyết định Q-208, Q-215 (chốt 2026-09-29); UC-80, UC-81; DBR-33; CFG-M02-11 → CFG-M02-13. Hành chính ghi nhận việc khai báo với công an; hệ thống xác định loại khai báo, nhắc hạn, gia hạn và khai báo xóa; không nộp hồ sơ thay, không kết nối Cổng dịch vụ công."
 
 ## Clarifications
 

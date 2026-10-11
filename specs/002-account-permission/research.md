@@ -83,7 +83,7 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
 - **19.3 là căn cứ khi khác Phụ lục 27** (FR-018): các điều chỉnh của 19.3 được nạp cùng migration như dòng có `nguon = '19.3'`. Ví dụ quyền Quản lý viện duyệt, lập thay yêu cầu đổi ca, nghỉ đột xuất của ca toàn viện (Q-177), dù ô Phụ lục 27 là X. Danh sách điều chỉnh nằm ở [data-model.md](data-model.md) mục 3.
 - **Chú thích có điều kiện** (¹ bản đồng ý, ² người đại diện, ¹⁰ ngoài phạm vi…): ma trận chỉ ghi mã chú thích. Mỗi chú thích được kiểm bởi một `DieuKienChuThich` do module sở hữu điều kiện cài đặt (ví dụ ¹ do 001 cài qua bản đồng ý, ² do 012 cài qua người đại diện). `QuyenApi` gọi các điều kiện này như một phần của lớp vai trò. Chú thích chỉ mô tả, không thêm điều kiện, thì không cần cài.
 - **Lệnh của module**: mỗi lệnh khai báo khóa quyền bằng chú thích `@CanQuyen(chucNang, thaoTac)` trên phương thức service. Một interceptor gọi `QuyenApi.coQuyen` trước khi lệnh chạy. ArchUnit bắt mọi `@LenhNghiepVu` phải có `@CanQuyen` (FR-041).
-- **Kiểm thử khớp ma trận (SC-001)**: một test tham số hóa đọc bảng Phụ lục 27 trong `docs/nghiep-vu.md` (phân tích bảng Markdown) cộng danh sách điều chỉnh 19.3, rồi so với `ma_tran_quyen` đã nạp. Lệch thì test lỗi. Nhờ vậy khi tài liệu nguồn đổi mà migration chưa đổi, bộ test báo ngay.
+- **Kiểm thử khớp ma trận (SC-001)**: một test tham số hóa đọc bảng Phụ lục 27 trong `docs/business/nghiep-vu.md` (phân tích bảng Markdown) cộng danh sách điều chỉnh 19.3, rồi so với `ma_tran_quyen` đã nạp. Lệch thì test lỗi. Nhờ vậy khi tài liệu nguồn đổi mà migration chưa đổi, bộ test báo ngay.
 
 **Lý do**: Constitution VI, FR-018. Một nguồn quy đổi duy nhất cho 9 vai trò × khoảng 70 chức năng, kiểm được tự động.
 

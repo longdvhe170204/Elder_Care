@@ -1,6 +1,6 @@
 # Consistency Checklist: Quản lý đồ gửi của người cao tuổi
 
-**Purpose**: Kiểm tra spec 013 có nhất quán không: giữa các phần của chính spec (sau các vòng clarify Q-148 → Q-155 và lần sửa theo checklist business-rules), với `docs/nghiep-vu.md` và `docs/phan-tich-yeu-cau.md` (mục 1.5, 2.4, 5.6, 6.8, 14, 16, 19, Permission Matrix 4.4, ERD, DBR-22), với các spec đã viết 000 → 012, và với constitution I–IX.
+**Purpose**: Kiểm tra spec 013 có nhất quán không: giữa các phần của chính spec (sau các vòng clarify Q-148 → Q-155 và lần sửa theo checklist business-rules), với `docs/business/nghiep-vu.md` và `docs/phan-tich-yeu-cau.md` (mục 1.5, 2.4, 5.6, 6.8, 14, 16, 19, Permission Matrix 4.4, ERD, DBR-22), với các spec đã viết 000 → 012, và với constitution I–IX.
 
 **Created**: 2026-09-27
 **Feature**: [spec.md](../spec.md)
@@ -66,5 +66,5 @@
   - Với tài liệu nguồn (chỉ ghi vào "Điểm cần báo lại", không sửa `docs/`): điểm 1, 5 (CHK009, CHK021), 10 với chú thích 4.4 đề xuất (CHK010 → CHK012), 12 DBR-22 (CHK008), 13 thuật ngữ 2.4 (CHK013), 14 ERD (CHK014), 15 BR-M01-05 (CHK015); FR-031a nêu danh sách bảo vệ (CHK017).
   - Với spec khác: FR-027a ghi thu hẹp feature 000 FR-035 (CHK018); FR-017b và hai bảng trạng thái mới cho xác nhận người nhận khác, đồng ý cho tự giữ (CHK019); FR-011a ghi thu hẹp feature 000 FR-026 (CHK020); quy tắc chung FR-032 cho người nhận sau qua đời, khóa sự kiện, nội dung rút gọn, loại "chung" (CHK023 → CHK025); điểm 6 đề xuất quy tắc hiển thị riêng ở feature 012 (CHK026); FR-016 khi hồ sơ người thân chưa có giấy tờ (CHK027); FR-014a và dòng giao tiếp với feature 008 (CHK028); Edge Cases về hư hỏng phát hiện khi vệ sinh (CHK029); điểm 16 liệt kê đồng bộ 001, 004, 007, 008, 009, 012 (CHK030).
   - Constitution: câu "mọi FR thuộc UC-65" (CHK032); bỏ "màn hình", "trên thiết bị" ở SC-008, FR-019 (CHK033); FR-001a danh mục mức tình trạng, CFG-M12-06, CFG-M12-07, bỏ "1 phút" khỏi FR-025 (CHK034); đề xuất Q-156 → Q-160 ở điểm 11 cho các mặc định tự đặt (CHK035); bảng trạng thái phiếu kiểm kê và câu dẫn bảng chung của feature 000 cho đề nghị xử lý đồ (CHK036); bảng truy vết thêm BR-M15-03, 19.4, 1.3, FR mới (CHK037).
-- Đính chính khi đồng bộ `docs/nghiep-vu.md` (2026-09-27): tiền đề của CHK015 sai, vì BR-M01-05 đã có ngoại lệ (3) cho việc kết thúc trên đối tượng của module khác (đồ gửi, thuốc gửi, chi phí, sự cố). Điểm báo lại 15 của spec đã được sửa thành "không cần sửa"; FR-027 dẫn đúng ngoại lệ (3).
+- Đính chính khi đồng bộ `docs/business/nghiep-vu.md` (2026-09-27): tiền đề của CHK015 sai, vì BR-M01-05 đã có ngoại lệ (3) cho việc kết thúc trên đối tượng của module khác (đồ gửi, thuốc gửi, chi phí, sự cố). Điểm báo lại 15 của spec đã được sửa thành "không cần sửa"; FR-027 dẫn đúng ngoại lệ (3).
 - Các mục gắn [Conflict] với tài liệu nguồn hoặc spec khác không được sửa bằng cách đổi `docs/`; kết quả xử lý ghi ở mục "Điểm cần báo lại về tài liệu nguồn" của spec (CLAUDE.md).

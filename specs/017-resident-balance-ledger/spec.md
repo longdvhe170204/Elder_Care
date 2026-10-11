@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Quản lý số dư và thu chi của người cao tuổi theo docs/nghiep-vu.md mục 15.9 (Module 11, BR-M11-10 → BR-M11-15), 6.5 (đặt cọc do Kế toán thu), 6.8 (quyết toán số dư và tiền cọc khi kết thúc lưu trú, Q-222), mục 23 (ngân hàng, sao kê), luồng BF-16 ở docs/luong-nghiep-vu.md; quyết định Q-211, Q-212, Q-219, Q-222; UC-12, UC-64, UC-85 → UC-88; actor Kế toán (AC-14), Ngân hàng (AC-15); DBR-28 → DBR-30; CFG-M11-04, CFG-M11-05. Gồm: sổ số dư và sổ tiền cọc; mã nộp tiền, mã QR VietQR; ghi nộp tiền mặt; nhập sao kê và đối soát chuyển khoản; tự trừ số dư khi bảng chi phí Đã chốt (sự kiện từ feature 010); hoàn tiền, điều chỉnh, giao dịch đảo có Quản lý viện duyệt; báo sắp hết tiền/còn nợ cho người đại diện và Kế toán; quyết toán khi kết thúc lưu trú và qua đời; xuất sao kê, báo cáo thu chi, sổ tiền cọc ra Excel; người thân xem số dư trên cổng."
+**Input**: User description: "Quản lý số dư và thu chi của người cao tuổi theo docs/business/nghiep-vu.md mục 15.9 (Module 11, BR-M11-10 → BR-M11-15), 6.5 (đặt cọc do Kế toán thu), 6.8 (quyết toán số dư và tiền cọc khi kết thúc lưu trú, Q-222), mục 23 (ngân hàng, sao kê), luồng BF-16 ở docs/business/luong-nghiep-vu.md; quyết định Q-211, Q-212, Q-219, Q-222; UC-12, UC-64, UC-85 → UC-88; actor Kế toán (AC-14), Ngân hàng (AC-15); DBR-28 → DBR-30; CFG-M11-04, CFG-M11-05. Gồm: sổ số dư và sổ tiền cọc; mã nộp tiền, mã QR VietQR; ghi nộp tiền mặt; nhập sao kê và đối soát chuyển khoản; tự trừ số dư khi bảng chi phí Đã chốt (sự kiện từ feature 010); hoàn tiền, điều chỉnh, giao dịch đảo có Quản lý viện duyệt; báo sắp hết tiền/còn nợ cho người đại diện và Kế toán; quyết toán khi kết thúc lưu trú và qua đời; xuất sao kê, báo cáo thu chi, sổ tiền cọc ra Excel; người thân xem số dư trên cổng."
 
 ## Clarifications
 
@@ -440,7 +440,7 @@ Hồ sơ không có hợp đồng Hiệu lực và chưa ở trạng thái cuố
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-**Trạng thái (2026-09-28):** theo yêu cầu của người dùng, các điểm 1 → 4 và 6 → 10 đã được đưa vào docs/nghiep-vu.md (2.4, 6.5, 6.8, BR-M11-12 → 14, BR-M11-16 mới, 15.9, 24.2 Q-223 → Q-230, UC-93, Phụ lục 27 dòng "Chốt quỹ ngày" và chú thích ³², DBR-28, DBR-35) và docs/luong-nghiep-vu.md (BF-01 bước 11, BF-16); hai file dẫn xuất đã cập nhật. Điểm 5 đã xử lý ở spec 016 (FR-010, FR-020, dòng "Nhận 017"). Điểm 11 đã xử lý ở spec 004, 010.
+**Trạng thái (2026-09-28):** theo yêu cầu của người dùng, các điểm 1 → 4 và 6 → 10 đã được đưa vào docs/business/nghiep-vu.md (2.4, 6.5, 6.8, BR-M11-12 → 14, BR-M11-16 mới, 15.9, 24.2 Q-223 → Q-230, UC-93, Phụ lục 27 dòng "Chốt quỹ ngày" và chú thích ³², DBR-28, DBR-35) và docs/business/luong-nghiep-vu.md (BF-01 bước 11, BF-16); hai file dẫn xuất đã cập nhật. Điểm 5 đã xử lý ở spec 016 (FR-010, FR-020, dòng "Nhận 017"). Điểm 11 đã xử lý ở spec 004, 010.
 
 1. **Q-223** – phí lưu trú một ngày của hợp đồng bán trú khi tính số ngày còn đủ tiền (FR-016): người dùng chốt theo Mặc định ở Clarification 2026-09-28; cần chuyển dòng Q-223 từ 24.1 sang 24.2.
 2. **Q-224** – số dư khác 0 sau khi hồ sơ đã ở trạng thái cuối (FR-024, User Story 7 kịch bản 6): người dùng chốt theo Mặc định ở Clarification 2026-09-28; cần chuyển dòng Q-224 từ 24.1 sang 24.2.

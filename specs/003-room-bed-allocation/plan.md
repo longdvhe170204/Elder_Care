@@ -182,7 +182,7 @@ app-nhan-vien/lib/tinh-nang/
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
+Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
 1. **Người phụ trách ca Xác nhận giường sẵn sàng chưa có ngoại lệ quyền ở 002.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Spec 003 FR-044, UC-74 và chú thích ¹⁵ Phụ lục 27 cho Người phụ trách ca của tầng thực hiện lệnh này.

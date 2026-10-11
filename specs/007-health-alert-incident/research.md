@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## S-01. Vị trí trong backend
 
-**Quyết định**: Feature 007 trải trên hai module của `docs/nghiep-vu.md`: M06 – Sức khỏe (mục 10) và M05 – Sự cố và cảnh báo (mục 9). Theo 000 R-02, mỗi module là một gói Modulith riêng:
+**Quyết định**: Feature 007 trải trên hai module của `docs/business/nghiep-vu.md`: M06 – Sức khỏe (mục 10) và M05 – Sự cố và cảnh báo (mục 9). Theo 000 R-02, mỗi module là một gói Modulith riêng:
 
 | Gói | Nội dung | Mục spec |
 | --- | --- | --- |

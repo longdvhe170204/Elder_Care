@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Quản lý tài khoản và phân quyền theo docs/nghiep-vu.md Module 15 (mục 19) và mục 2.3–2.4: tài khoản nhân viên và người thân; vai trò hệ thống; quyền theo thao tác (xem, tạo, sửa, xác nhận, duyệt, chốt, nghiệp vụ chuyên môn); phạm vi dữ liệu theo khu vực, tầng, phòng, nhóm người cao tuổi được phân công; quyền chuyên môn phụ thuộc giấy phép còn hiệu lực. Quyền hiệu lực = vai trò ∩ phạm vi được phân công ∩ điều kiện pháp lý."
+**Input**: User description: "Quản lý tài khoản và phân quyền theo docs/business/nghiep-vu.md Module 15 (mục 19) và mục 2.3–2.4: tài khoản nhân viên và người thân; vai trò hệ thống; quyền theo thao tác (xem, tạo, sửa, xác nhận, duyệt, chốt, nghiệp vụ chuyên môn); phạm vi dữ liệu theo khu vực, tầng, phòng, nhóm người cao tuổi được phân công; quyền chuyên môn phụ thuộc giấy phép còn hiệu lực. Quyền hiệu lực = vai trò ∩ phạm vi được phân công ∩ điều kiện pháp lý."
 
 ## Clarifications
 
@@ -100,6 +100,13 @@ Các điểm dưới đây do nhóm phân tích quyết định khi đánh giá 
 ### Cập nhật 2026-10-10, lượt 2 (đồng bộ Q-313)
 
 - **Q-313**: Phụ lục 27 tách dòng "Xác nhận giường sẵn sàng"; thêm FR-019g, sửa FR-019 (bảy ngoại lệ).
+
+### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
+
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+
+- **Q-337**: vai trò Điều dưỡng có quyền T với yêu cầu mua sắm loại "thuốc" (Phụ lục 27 ⁴⁴) và ghi lần tiếp nhận thuốc cung ứng; ghi đã mua vẫn chỉ do Phụ trách bộ phận (FR-019f).
+- Edge Cases: bỏ cụm "nhóm chứa người đó" còn sót sau Q-92.
 
 ## Phạm vi
 
@@ -295,7 +302,7 @@ Quản lý viện xem được quyền của từng vai trò (theo Permission Ma
 - Nhân viên có nhiều vai trò (ví dụ Trưởng tầng kiêm Điều dưỡng): quyền của vai trò là hợp quyền các vai trò; phạm vi và điều kiện pháp lý vẫn áp dụng cho từng thao tác (FR-017). Hai vai trò cùng cho một quyền với phạm vi khác nhau (ví dụ Hành chính toàn viện, Điều dưỡng theo phân công) thì áp phạm vi rộng hơn, trừ khi quyền đã bị thu hẹp theo tài khoản (FR-034, FR-025).
 - Nhiệm vụ (Người phụ trách ca, Bác sĩ trực, Điều dưỡng phụ trách, Trưởng đoàn) không phải vai trò: không tạo thêm quyền thao tác, chỉ xác định phạm vi và người nhận nhắc việc/thông báo (mục 2.4, FR-019); ngoại lệ: Người phụ trách ca được xử lý việc quá hạn (FR-019a), tạo bản đính chính (FR-019b) , mở khóa sớm tài khoản nhân viên bị Khóa tạm (FR-019c) và ghi nhận vắng ca (FR-019d, spec 008 Q-80) trong tầng/khu vực và thời gian của ca.
 - Phân công thay đổi ngay khi người dùng đang mở một màn hình: dữ liệu đã hiển thị không bị thu hồi trên màn hình, nhưng mọi lần tải lại và mọi thao tác gửi đi được kiểm tra theo phạm vi mới (FR-041).
-- Người cao tuổi Tạm vắng, Điều trị tại bệnh viện hoặc bán trú không có giường cố định: không có phân bổ giường đang mở thì chỉ thuộc phạm vi của nhân viên được phân công trực tiếp cho người đó hoặc nhóm chứa người đó, cùng các vai trò có quyền "X" (FR-030).
+- Người cao tuổi Tạm vắng, Điều trị tại bệnh viện hoặc bán trú không có giường cố định: không có phân bổ giường đang mở thì chỉ thuộc phạm vi của nhân viên được phân công trực tiếp cho người đó, cùng các vai trò có quyền "X" (FR-030) (sửa câu 2026-10-11: bỏ "nhóm chứa người đó" theo Q-92).
 - Người cao tuổi ở trạng thái cuối (Kết thúc lưu trú, Qua đời, Hủy tiếp nhận): hồ sơ chỉ đọc (BR-M01-05); vẫn tra cứu được bởi vai trò có quyền "X" và theo FR-030 với vai trò có quyền "P".
 - Giấy phép hết hạn giữa lúc người hành nghề đang soạn một thao tác chuyên môn: kiểm tra tại thời điểm gửi, không tại thời điểm mở (FR-041).
 - Bản ghi ngoại tuyến ghi lúc còn quyền nhưng đồng bộ sau khi tài khoản bị khóa, hết ca hoặc giấy phép hết hạn: chấp nhận theo thời điểm trên thiết bị, gắn nhãn "đồng bộ sau khi mất quyền" và báo trưởng tầng; ghi lúc đã mất quyền thì từ chối (FR-041a).
@@ -370,7 +377,7 @@ Không có trạng thái kết thúc: tài khoản Đã khóa được giữ vĩ
 - **FR-019c**: Trưởng tầng, và nhân viên đang giữ nhiệm vụ Người phụ trách ca, MUST được mở khóa sớm tài khoản nhân viên đang Khóa tạm (FR-008) khi chủ tài khoản thuộc cùng tầng/khu vực và có ca trùng với ca đang diễn ra; MUST xác minh trực tiếp người đó và nhập lý do. Quyền này MUST NOT áp dụng cho tài khoản Đã khóa, Không hoạt động, tài khoản người thân, hay tài khoản ngoài tầng/ca. Mỗi lần mở khóa MUST được ghi nhật ký kèm căn cứ (vai trò Trưởng tầng hoặc nhiệm vụ Người phụ trách ca). *(Nguồn: BR-M15-05, 2.4; Clarification 2026-09-25)*
 - **FR-019d**: Nhân viên đang giữ nhiệm vụ Người phụ trách ca MUST được "Ghi nhận vắng ca" (spec 008 FR-020) cho nhân viên có tên trong ca mình đang phụ trách, dù vai trò của họ không có quyền này; MUST chỉ trong khoảng thời gian phạm vi của ca theo FR-032 và MUST mất khi nhiệm vụ kết thúc hoặc được chuyển. Quyền này MUST NOT mở rộng sang các lệnh khác trên lịch ca (bổ sung nhân viên, chuyển người phụ trách ca, hủy ca). Nhật ký MUST ghi căn cứ là nhiệm vụ Người phụ trách ca. *(Nguồn: 2.4, BR-M04-13; spec 008 FR-020, Q-80, Q-81)*
 - **FR-019e**: *(Bổ sung, 2026-10-01, Q-254)* Nhân viên đang giữ nhiệm vụ Người phụ trách ca của một tầng/khu vực MUST ghi được kết quả kiểm tra chất lượng (UC-31, spec 014 FR-066) cho danh sách của ca đó, dù vai trò của họ không có quyền này, và MUST chỉ khi ca là "ca không có Trưởng tầng được giao" theo spec 014 FR-066 (không có tên trong lịch ca đã công bố, hoặc đã được ghi nhận vắng ca / nghỉ đột xuất đã duyệt, Q-262); MUST chỉ trong khoảng thời gian phạm vi của ca theo FR-032 và MUST mất khi nhiệm vụ kết thúc hoặc được chuyển. Nhật ký MUST ghi căn cứ là nhiệm vụ Người phụ trách ca. *(Nguồn: BR-M04-23, 19.3, Phụ lục 27 ³⁶; spec 014 FR-066, Q-254)*
-- **FR-019f**: *(Bổ sung, 2026-10-06, Q-284)* Nhân viên đang giữ nhiệm vụ Phụ trách bộ phận (do Quản lý viện chỉ định, 13.1a; chỉ giao được cho nhân viên có tài khoản đang Hoạt động, bổ sung 2026-10-06) MUST có quyền thực hiện (T) với tài sản và yêu cầu mua sắm của **bộ phận mình**, dù vai trò của họ không có quyền này: ghi tăng, đưa vào sử dụng, bảo trì, chuyển vị trí, lập yêu cầu thanh lý tài sản (7.7); lập, gửi, rút lại, hủy yêu cầu mua sắm và ghi đã mua (15.10); với bộ phận Bếp, duyệt phiếu kiểm kê kho nguyên liệu (12.7). Quyền MUST chỉ trong phạm vi bộ phận đó và chỉ khi nhiệm vụ còn hiệu lực; mất nhiệm vụ thì mất quyền ngay ở thao tác kế tiếp. Người lập không tự duyệt phiếu kiểm kê, không tự đối chiếu yêu cầu mua sắm của chính mình. **(Sửa, 2026-10-06, Q-292, Q-293, Q-299)** Nhiệm vụ MUST NOT giao cho tài khoản có vai trò Quản lý viện hoặc Kế toán. Quản lý viện MUST NOT có quyền T³⁷ thay cho bộ phận chưa có Phụ trách bộ phận; các quyền duyệt của Quản lý viện (yêu cầu mua sắm, thanh lý, chuyển tài sản, xử lý Lệch, duyệt kiểm kê khi người lập là Phụ trách bộ phận Bếp) giữ nguyên. *(Nguồn: 2.4, 13.1a, Phụ lục 27 chú thích ³⁷, ³⁸; Q-292, Q-293, Q-299)*
+- **FR-019f**: *(Bổ sung, 2026-10-06, Q-284)* Nhân viên đang giữ nhiệm vụ Phụ trách bộ phận (do Quản lý viện chỉ định, 13.1a; chỉ giao được cho nhân viên có tài khoản đang Hoạt động, bổ sung 2026-10-06) MUST có quyền thực hiện (T) với tài sản và yêu cầu mua sắm của **bộ phận mình**, dù vai trò của họ không có quyền này: ghi tăng, đưa vào sử dụng, bảo trì, chuyển vị trí, lập yêu cầu thanh lý tài sản (7.7); lập, gửi, rút lại, hủy yêu cầu mua sắm và ghi đã mua (15.10); với bộ phận Bếp, duyệt phiếu kiểm kê kho nguyên liệu (12.7). Quyền MUST chỉ trong phạm vi bộ phận đó và chỉ khi nhiệm vụ còn hiệu lực; mất nhiệm vụ thì mất quyền ngay ở thao tác kế tiếp. Người lập không tự duyệt phiếu kiểm kê, không tự đối chiếu yêu cầu mua sắm của chính mình. **(Sửa, 2026-10-06, Q-292, Q-293, Q-299)** Nhiệm vụ MUST NOT giao cho tài khoản có vai trò Quản lý viện hoặc Kế toán. Quản lý viện MUST NOT có quyền T³⁷ thay cho bộ phận chưa có Phụ trách bộ phận; các quyền duyệt của Quản lý viện (yêu cầu mua sắm, thanh lý, chuyển tài sản, xử lý Lệch, duyệt kiểm kê khi người lập là Phụ trách bộ phận Bếp) giữ nguyên. **(Bổ sung, 2026-10-11, Q-337)** Ngoài nhiệm vụ này, vai trò Điều dưỡng có quyền T với yêu cầu mua sắm loại "thuốc" của bộ phận mình (lập, gửi, rút lại, hủy; Phụ lục 27 ⁴⁴) và ghi lần tiếp nhận thuốc cung ứng; "Ghi đã mua" loại này vẫn chỉ do Phụ trách bộ phận. *(Nguồn: 2.4, 13.1a, Phụ lục 27 chú thích ³⁷, ³⁸, ⁴⁴; Q-292, Q-293, Q-299, Q-337)*
 - **FR-019g**: *(Bổ sung, 2026-10-10, Q-313)* Nhân viên đang giữ nhiệm vụ Người phụ trách ca của một tầng/khu vực MUST thực hiện được lệnh "Xác nhận giường sẵn sàng" (spec 003 FR-044, UC-74) cho giường thuộc tầng/khu vực của ca, trong khoảng phạm vi của ca, dù vai trò của họ không có quyền này; mất nhiệm vụ thì mất quyền ở thao tác kế tiếp. *(Nguồn: Phụ lục 27 dòng "Xác nhận giường sẵn sàng", chú thích ⁴⁰; Q-313)*
 - **FR-020**: Mỗi quyền MUST là một cặp (chức năng nghiệp vụ, loại thao tác), với loại thao tác thuộc tập của mục 19.2 và được hiểu theo bảng dưới đây. Ký hiệu của Permission Matrix 4.4 được quy đổi sang loại thao tác theo cùng bảng. *(Nguồn: 19.2, 4.4)*
 - **FR-021**: Với dữ liệu nhóm 2 và nhóm 3 (mục 1.5), quyền "Sửa" MUST chỉ áp dụng cho bản nháp chưa gửi/chưa xác nhận; quyền thay đổi đối tượng đã có hiệu lực MUST là quyền thực hiện từng lệnh nghiệp vụ cụ thể, không có quyền "sửa trạng thái". *(Nguồn: 1.5; constitution III; FR-005 của 000)*
@@ -505,7 +512,7 @@ Ký hiệu "T" của Nhân viên hành chính ở dòng "Chốt kỳ, xuất k�
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep-vu.md` và `docs/phan-tich-yeu-cau.md` theo yêu cầu. Danh sách dưới đây ghi nơi đã phản ánh và các điểm còn mở.
+Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/business/nghiep-vu.md` và `docs/phan-tich-yeu-cau.md` theo yêu cầu. Danh sách dưới đây ghi nơi đã phản ánh và các điểm còn mở.
 
 **Đã phản ánh vào tài liệu nguồn**
 
@@ -559,3 +566,5 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep
 - **Q-310** – tài khoản Quản lý viện đầu tiên do công cụ khởi tạo tạo khi cài đặt. Ảnh hưởng: FR-004b (mới).
 
 **(2026-10-10) Plan 003, điểm báo lại 1: Người phụ trách ca Xác nhận giường sẵn sàng chưa có ngoại lệ quyền.** *(Đã xử lý 2026-10-10: Q-313; thêm FR-019g.)*
+
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-019f, Edge Cases; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*

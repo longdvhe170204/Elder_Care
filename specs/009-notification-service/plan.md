@@ -180,7 +180,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
+Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
 1. **Vai trò không xếp ca ở FR-016a** chỉ nêu Quản lý viện, Hành chính; Q-212 (spec 008 Assumptions) xếp Kế toán là vai trò không xếp ca, "trong ca" theo CFG-M13-06. Plan áp cho cả Kế toán. Đề nghị bổ sung Kế toán vào FR-016a. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 2. **Câu chữ còn sót trước Q-307 trong spec 009.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*

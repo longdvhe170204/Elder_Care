@@ -1,6 +1,6 @@
 # Consistency Checklist: Lịch ca xoay vòng, phủ ca tối thiểu, đổi ca và nghỉ đột xuất
 
-**Purpose**: Kiểm tra tính nhất quán của yêu cầu giữa spec 015 (sau clarify Q-177 → Q-184), tài liệu nguồn (`docs/nghiep-vu.md` mục 2.4, 13.2, BR-M09-09 → 11, Phụ lục 25; `docs/phan-tich-yeu-cau.md` 3.2, 4.2, 4.4) và các spec 000, 002, 005, 006, 007, 008, 009, 014. Trọng tâm: ranh giới với feature 008 (Q-77), quyền (Permission Matrix, Q-15), vòng đời yêu cầu phê duyệt dùng chung, tác động dây chuyền khi nhân viên rời ca, tính nhất quán nội bộ và thuật ngữ.
+**Purpose**: Kiểm tra tính nhất quán của yêu cầu giữa spec 015 (sau clarify Q-177 → Q-184), tài liệu nguồn (`docs/business/nghiep-vu.md` mục 2.4, 13.2, BR-M09-09 → 11, Phụ lục 25; `docs/phan-tich-yeu-cau.md` 3.2, 4.2, 4.4) và các spec 000, 002, 005, 006, 007, 008, 009, 014. Trọng tâm: ranh giới với feature 008 (Q-77), quyền (Permission Matrix, Q-15), vòng đời yêu cầu phê duyệt dùng chung, tác động dây chuyền khi nhân viên rời ca, tính nhất quán nội bộ và thuật ngữ.
 **Created**: 2026-09-27
 **Feature**: [spec.md](../spec.md)
 
@@ -83,7 +83,7 @@
   - → Chưa đạt. Mới chỉ ở Assumptions; cần thêm vào điểm báo lại. **Lượt 2: Đạt** — đã sửa theo đề xuất hoặc quyết định Q-185 → Q-188.
 - [x] CHK029 - CFG-M09-07 có mặc định "≥ 1 điều dưỡng / tầng / ca". FR-005 áp mặc định cho cả khu vực và cho mọi mẫu ca, còn Assumptions nói ca toàn viện không có yêu cầu mặc định. Ba chỗ có diễn đạt cùng một phạm vi áp dụng không? [Consistency, Spec §FR-005, §Assumptions, CFG-M09-07]
   - → Chưa đạt. FR-005 chỉ ghi giá trị mặc định mà không nói dòng mặc định áp phạm vi nào. Đề xuất ghi trong FR-005: dòng mặc định là "mọi tầng/khu vực, mọi mẫu ca, Điều dưỡng, 1"; không có dòng mặc định cho toàn viện. **Lượt 2: Đạt** — đã sửa theo đề xuất hoặc quyết định Q-185 → Q-188.
-- [x] CHK030 - Hai tham số đề xuất CFG-M09-10, CFG-M09-11 và các quyết định Q-177 → Q-184 có trùng mã với tham số hoặc quyết định đã có trong `docs/nghiep-vu.md` hay spec khác đang chờ phản ánh không? [Traceability, Spec §Assumptions, §Điểm cần báo lại 8, 11, Phụ lục 25, 24.3]
+- [x] CHK030 - Hai tham số đề xuất CFG-M09-10, CFG-M09-11 và các quyết định Q-177 → Q-184 có trùng mã với tham số hoặc quyết định đã có trong `docs/business/nghiep-vu.md` hay spec khác đang chờ phản ánh không? [Traceability, Spec §Assumptions, §Điểm cần báo lại 8, 11, Phụ lục 25, 24.3]
   - → Đạt. Tài liệu nguồn dừng ở Q-176 và CFG-M09-09, bảng 24.3 trống; không spec nào khác dùng các mã này.
 - [x] CHK031 - Nghỉ đột xuất không có UC trong 4.2, và FR-026 → FR-031 chỉ trích 13.2, Q-81. Theo nguyên tắc I của constitution (mỗi FR tham chiếu BR và UC), phần nghỉ đột xuất có truy vết đủ không, hay cần một UC mới trong điểm báo lại 2? [Traceability, Spec §FR-026 → FR-031, Constitution I]
   - → Đạt. Điểm báo lại 2 đã nêu cần thêm UC cho nghỉ đột xuất; truy vết tạm theo 13.2 và UC-54 (cùng dòng quyền) được ghi nhận.
@@ -116,5 +116,5 @@
 - `/speckit-implement` reads checklist checkbox state as a gate and must not modify markers
 - `checklists/requirements.md` has a separate built-in lifecycle maintained by `/speckit-specify` and `/speckit-clarify`
 - Các mục có nhãn [Conflict] liên quan spec khác (CHK003 → CHK008, CHK013, CHK015, CHK019) cần sửa đồng bộ ở cả spec 015 và spec liên quan, theo cách các spec trước ghi mục "Cập nhật … (đồng bộ với spec 015)".
-- Không sửa `docs/nghiep-vu.md`, `docs/phan-tich-yeu-cau.md` khi xử lý checklist này, trừ khi người dùng yêu cầu rõ ràng.
+- Không sửa `docs/business/nghiep-vu.md`, `docs/phan-tich-yeu-cau.md` khi xử lý checklist này, trừ khi người dùng yêu cầu rõ ràng.
 - Mục cần người dùng quyết định: CHK022 (Trưởng đoàn, người đi cùng bị gỡ khỏi ca), CHK024 (lời mời gửi nhân viên ngoài ca không có tin nhắn), CHK033 (người phụ trách ca khi đổi ca và khi nghỉ), CHK035 (giấy phép trong phủ tối thiểu). Các mục còn lại sửa được theo đề xuất ghi dưới từng mục. Đã chốt ngày 2026-09-27: Q-185 (CHK022), Q-186 (CHK024), Q-187 (CHK033), Q-188 (CHK035), đều theo phương án A.

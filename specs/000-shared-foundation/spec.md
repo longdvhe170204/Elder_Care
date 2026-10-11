@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Mô tả các quy tắc nghiệp vụ dùng chung cho mọi module của hệ thống quản lý viện dưỡng lão, theo docs/nghiep-vu.md mục 1.3–1.5, 19.4 và Phụ lục 25: (1) phân loại dữ liệu thành danh mục, nghiệp vụ có trạng thái và ghi nhận đã xác nhận, cùng thao tác được phép với từng nhóm; (2) tham số cấu hình do quản lý viện thay đổi, có hiệu lực ngay và lưu lịch sử; (3) yêu cầu phê duyệt dùng chung: tạo, duyệt, từ chối, áp dụng đúng một lần; (4) bản ghi đã xác nhận chỉ được đính chính bằng bản ghi mới có lý do; (5) nhật ký thay đổi ghi người thực hiện, thời điểm, giá trị trước/sau và lý do. Chưa bao gồm nghiệp vụ của module cụ thể nào."
+**Input**: User description: "Mô tả các quy tắc nghiệp vụ dùng chung cho mọi module của hệ thống quản lý viện dưỡng lão, theo docs/business/nghiep-vu.md mục 1.3–1.5, 19.4 và Phụ lục 25: (1) phân loại dữ liệu thành danh mục, nghiệp vụ có trạng thái và ghi nhận đã xác nhận, cùng thao tác được phép với từng nhóm; (2) tham số cấu hình do quản lý viện thay đổi, có hiệu lực ngay và lưu lịch sử; (3) yêu cầu phê duyệt dùng chung: tạo, duyệt, từ chối, áp dụng đúng một lần; (4) bản ghi đã xác nhận chỉ được đính chính bằng bản ghi mới có lý do; (5) nhật ký thay đổi ghi người thực hiện, thời điểm, giá trị trước/sau và lý do. Chưa bao gồm nghiệp vụ của module cụ thể nào."
 
 ## Clarifications
 
@@ -86,6 +86,13 @@ Các điểm dưới đây do nhóm phân tích quyết định khi đánh giá 
 - **Q-315**: khoảng hợp lệ của tham số chỉ gồm ràng buộc kỹ thuật và ràng buộc ghi ở Phụ lục 25. Sửa FR-015.
 - **Q-316**: giá trị tham số mới có hiệu lực ngay từ lúc lưu; BR-M15-07 bỏ chữ "tham số". Sửa FR-016.
 - Phạm vi: "mọi module (001–016)" thành "mọi feature (001–019)".
+
+### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
+
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+
+- **Q-338**: loại yêu cầu "Thay đổi lưu trú" có thêm người duyệt Hành chính cho thay đổi nhỏ (chỉ thêm/bớt dịch vụ thuộc gói), theo 004 FR-043.
+- **Q-345**: danh mục loại yêu cầu phê duyệt bỏ "Hệ thống" khỏi người lập yêu cầu thay đổi lưu trú (Hành chính lập sau đánh giá lại, chuyển giường gấp, Q-52, Q-306); dòng "Quyết định giữ giường khi vắng" không còn là yêu cầu phê duyệt mà là lệnh của Quản lý viện ở 004 (BR-M02-07, Q-307).
 
 ## Phạm vi
 
@@ -347,10 +354,10 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 
 | Loại | Spec sở hữu (căn cứ) | Người lập | Người duyệt | Vòng đời |
 | --- | --- | --- | --- | --- |
-| Thay đổi lưu trú (gồm đổi mức chăm sóc, gia hạn, đổi phòng/giường khác giá) | 004 FR-037, FR-039, FR-043; 001; 003 FR-030 | Hành chính; Bác sĩ (chỉ đổi mức chăm sóc); Hệ thống (đánh giá lại, chuyển giường gấp, Q-52) | Quản lý viện | Chung (FR-031) |
+| Thay đổi lưu trú (gồm đổi mức chăm sóc, gia hạn, đổi phòng/giường khác giá) | 004 FR-037, FR-039, FR-043; 001; 003 FR-030 | Hành chính (kể cả sau đánh giá lại và chuyển giường gấp, Q-52, Q-306); Bác sĩ (chỉ đổi mức chăm sóc); hệ thống không tự lập (sửa câu 2026-10-11, Q-345) | Quản lý viện; Hành chính với thay đổi nhỏ (004 FR-043, Q-338) | Chung (FR-031) |
 | Điều chỉnh điểm ưu tiên danh sách chờ | 004 FR-011 | Hành chính | Quản lý viện | Chung |
 | Duyệt điều khoản hợp đồng khác chuẩn | 004 FR-025a | Hành chính | Quản lý viện | Chung |
-| Quyết định giữ giường khi vắng | 004 (bảng phân nhóm dữ liệu) | Hệ thống | Quản lý viện | Chung |
+| ~~Quyết định giữ giường khi vắng~~ | 004 (bảng phân nhóm dữ liệu) | Không còn là yêu cầu phê duyệt: Quản lý viện được báo và thực hiện lệnh "Quyết định giữ giường" của 004 (BR-M02-07, Q-307; sửa 2026-10-11, Q-345) | — | — |
 | Ngoại lệ điều kiện kết thúc lưu trú | 004 User Story 7, FR-063 → FR-065 | Hành chính | Quản lý viện | Chung |
 | Nhập bù phân bổ giường lùi quá CFG-M03-07 | 003 FR-027 (Q-43) | Hành chính, Trưởng tầng | Quản lý viện | Chung |
 | Xử lý đồ không người nhận | 013 FR-027a (Q-152) | Hành chính | Quản lý viện (không tự duyệt) | Chung |
@@ -407,7 +414,7 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep-vu.md` và `docs/phan-tich-yeu-cau.md` theo yêu cầu. Danh sách dưới đây ghi nơi đã phản ánh và các điểm còn mở.
+Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/business/nghiep-vu.md` và `docs/phan-tich-yeu-cau.md` theo yêu cầu. Danh sách dưới đây ghi nơi đã phản ánh và các điểm còn mở.
 
 **Đã phản ánh vào tài liệu nguồn**
 
@@ -431,3 +438,5 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/nghiep
 - **Q-280** – bỏ thang điểm (Barthel, MMSE, Morse, Braden), bảng quy đổi CFG-M01-05 và hoạt động mẫu; Bác sĩ đánh giá bằng nhận xét dựa trên hồ sơ sức khỏe ban đầu và chỉ số đo, rồi chọn mức chăm sóc (5.3, BR-M01-09). Ảnh hưởng: FR-022 (ví dụ bảng quy đổi là dữ liệu cấu hình có phiên bản).
 
 **(2026-10-10) Plan 000, điểm báo lại 1 → 3** (khoảng hợp lệ tham số, thời điểm hiệu lực tham số, phạm vi 001–016). *(Đã xử lý 2026-10-10: Q-315, Q-316; sửa FR-015, FR-016 và Phạm vi.)*
+
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa danh mục loại yêu cầu phê duyệt (dòng "Thay đổi lưu trú", "Quyết định giữ giường khi vắng"); xem mục "Cập nhật 2026-10-11" ở Clarifications.)*

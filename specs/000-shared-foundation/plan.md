@@ -178,7 +178,7 @@ app-nguoi-than/
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới, rồi sửa `docs/nghiep-vu.md` và spec 000.
+Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới, rồi sửa `docs/business/nghiep-vu.md` và spec 000.
 
 1. **Phụ lục 25 không có kiểu và khoảng hợp lệ của tham số.** FR-011 và FR-015 đòi mỗi tham số có "kiểu giá trị, khoảng hợp lệ", và giá trị ngoài khoảng bị từ chối. Phụ lục 25 chỉ có mã, mô tả, mặc định, nơi dùng. Plan tự đặt kiểu (suy từ đơn vị của giá trị mặc định) và ràng buộc kỹ thuật hiển nhiên (thời lượng > 0, tỷ lệ 0–100, số lượng ≥ 0). Plan chỉ dùng ràng buộc nghiệp vụ khi nguồn có ghi, ví dụ CFG-M15-06 > CFG-M15-05. Cận trên và cận dưới nghiệp vụ (ví dụ CFG-M05-01 không được dài quá bao nhiêu) chưa có nguồn. Đề nghị: thêm cột "Khoảng hợp lệ" vào Phụ lục 25, hoặc chốt bằng Q rằng chỉ áp ràng buộc kỹ thuật. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 2. **BR-M15-07 và FR-016 khác nhau về thời điểm hiệu lực của tham số.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*

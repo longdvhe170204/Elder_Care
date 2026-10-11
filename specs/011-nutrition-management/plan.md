@@ -177,7 +177,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
+Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
 1. **Việc hệ thống tự làm theo giờ ở mục E** (FR-037a món an toàn tại mốc CFG-M08-05, FR-040a phát sinh "−1" ghi nhận suất giữ tại giờ bữa): mục Actor của spec cho phép rõ, plan làm theo. Tuy vậy danh sách "vẫn giữ" của Q-306, Q-307 (tự chuyển trạng thái theo giờ, cảnh báo, nhắc, kiểm tra, tác động kèm lệnh, số liệu hiển thị) không nêu "đổi nội dung suất theo giờ". Đề nghị ghi hai ngoại lệ này vào dòng Q-307 ở 24.2 hoặc BR-M08-01, để các feature khác không hiểu Q-307 chặt hơn. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 

@@ -71,7 +71,7 @@
 
 ## Dependencies & Assumptions
 
-- [x] CHK044 - Giả định "các mức chăm sóc chuyên biệt chỉ được bác sĩ chọn thủ công" và "mọi lần đánh giá phải có đủ thang bắt buộc" đã được bác sĩ cơ sở xác nhận chưa, hay cần đưa vào Q-02? [Assumption, Spec §Assumptions] — *Đạt (2026-10-01): Assumptions; mục 24.4 của docs/nghiep-vu.md.*
+- [x] CHK044 - Giả định "các mức chăm sóc chuyên biệt chỉ được bác sĩ chọn thủ công" và "mọi lần đánh giá phải có đủ thang bắt buộc" đã được bác sĩ cơ sở xác nhận chưa, hay cần đưa vào Q-02? [Assumption, Spec §Assumptions] — *Đạt (2026-10-01): Assumptions; mục 24.4 của docs/business/nghiep-vu.md.*
 - [x] CHK045 - Phụ thuộc của từng điều kiện chặn và tác động trong bảng trạng thái vào feature khác (003, 004, 005, 006, 007, 009, 010, 011, 012, 013, 014) có được ghi là điều kiện tiên quyết hay có thể làm song song không? [Dependency, Spec §Bảng trạng thái] — *Đạt (2026-10-01): Assumptions.*
 - [x] CHK046 - Giả định "hai chuyển do điểm danh chuyến đi, người thực hiện là người điểm danh" có mâu thuẫn với FR-046 (lý do bắt buộc với mọi lệnh người dùng thực hiện) không? [Assumption, Conflict, Spec §FR-046, §Assumptions] — *Đạt (2026-10-01): Assumptions.*
 

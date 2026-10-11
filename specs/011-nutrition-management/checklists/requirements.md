@@ -45,4 +45,4 @@
 
 - Lần kiểm tra 1: sửa lỗi lặp "MUST MUST NOT" ở FR-031, đổi số FR-049a → FR-048a và FR-068 → FR-065 cho đúng thứ tự, sửa tham chiếu sai ở User Story 2 kịch bản 4, 5 và User Story 3 kịch bản 10.
 - Còn 3 điểm `[NEEDS CLARIFICATION]` theo quy ước dự án (CLAUDE.md: không tự đoán, đánh dấu kèm Q-xx). Cần chốt qua `/speckit-clarify` hoặc trả lời trực tiếp trước khi coi spec là sẵn sàng.
-- Mục "Điểm cần báo lại về tài liệu nguồn" liệt kê 10 điểm cần phản ánh vào `docs/nghiep-vu.md`, `docs/phan-tich-yeu-cau.md` và các spec 001, 005, 007, 009, 010, 012, 014.
+- Mục "Điểm cần báo lại về tài liệu nguồn" liệt kê 10 điểm cần phản ánh vào `docs/business/nghiep-vu.md`, `docs/phan-tich-yeu-cau.md` và các spec 001, 005, 007, 009, 010, 012, 014.

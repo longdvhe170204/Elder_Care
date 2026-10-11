@@ -192,7 +192,7 @@ app-nhan-vien/lib/tinh-nang/
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
+Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
 1. **BR-M04-07 còn câu "tự động đưa vào bản nháp bàn giao".** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - BR-M09-06 (Q-307) ghi "bàn giao do người bàn giao tự ghi … Hệ thống không lập sẵn mục"; spec 005 FR-046 cũng vậy.
