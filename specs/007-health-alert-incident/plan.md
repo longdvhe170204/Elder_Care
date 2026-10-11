@@ -221,7 +221,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
+Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
 1. **Câu chữ còn sót trước Q-307 trong spec 007.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Bảng FR-045 còn dòng "— | Hệ thống tạo (thiếu người khi trở về từ hoạt động ngoài viện, phục vụ suất có thành phần gây dị ứng) | Mới | Hệ thống", trái FR-040 ("Hệ thống MUST NOT tự tạo sự cố") và Q-307.

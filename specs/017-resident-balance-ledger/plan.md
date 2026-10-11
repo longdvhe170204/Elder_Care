@@ -166,7 +166,7 @@ app-nguoi-than/lib/tinh-nang/so-du/   # số dư, mã QR, sao kê
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
+Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
 1. **FR-016 dựa vào "Bộ lập lịch của feature 010 đã sinh phí của ngày vừa kết thúc"**: sau Q-306, 010 không tự sinh khoản; khoản do Hành chính lập từ bản ghi nguồn (010 FR-005, plan 010). "Tổng chi phí chưa chốt" vì vậy chỉ gồm khoản Hành chính đã lập, có thể chậm hơn thực tế vài ngày, làm số ngày còn đủ tiền cao hơn. Plan chạy job lúc 02:00 với dữ liệu hiện có, không chờ 010. Đề nghị sửa câu đầu FR-016 và xác nhận cách tính (có cần cộng phần phí lưu trú ước tính của các ngày chưa lập khoản hay không; nếu cần thì phải có Q mới vì đổi nghiệp vụ). *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 

@@ -61,7 +61,7 @@
 - Leave items unchecked when they still require clarification, correction, or reviewer evaluation
 - `/speckit-implement` reads checklist checkbox state as a gate and must not modify markers
 - `checklists/requirements.md` has a separate built-in lifecycle maintained by `/speckit-specify` and `/speckit-clarify`
-- Nguồn đối chiếu: bảng trạng thái giường (003), hồ sơ chờ (004), công việc (005 FR-028, bản ghi ngoại tuyến), liều (006 FR-021, FR-022, FR-051), cảnh báo và sự cố (007 FR-034, FR-081), bàn giao và tỷ lệ phục vụ (008 FR-037), chi phí (010 FR-014a, FR-038), phiếu bữa ăn (011), hoạt động và chất lượng (014 FR-058, FR-065, FR-070), ca xoay vòng (015 FR-042); `docs/nghiep-vu.md` 2.2, 2.4, 5.5, Phụ lục 25.
+- Nguồn đối chiếu: bảng trạng thái giường (003), hồ sơ chờ (004), công việc (005 FR-028, bản ghi ngoại tuyến), liều (006 FR-021, FR-022, FR-051), cảnh báo và sự cố (007 FR-034, FR-081), bàn giao và tỷ lệ phục vụ (008 FR-037), chi phí (010 FR-014a, FR-038), phiếu bữa ăn (011), hoạt động và chất lượng (014 FR-058, FR-065, FR-070), ca xoay vòng (015 FR-042); `docs/business/nghiep-vu.md` 2.2, 2.4, 5.5, Phụ lục 25.
 
 ## Kết quả rà soát (2026-09-27)
 

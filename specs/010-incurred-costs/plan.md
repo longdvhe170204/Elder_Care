@@ -183,7 +183,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
+Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
 1. **Tính lại khoản thiếu đơn giá "kèm lệnh tạo phiên bản đơn giá"** (FR-012): lệnh tạo phiên bản thuộc 004; plan làm việc tính lại ngay sau commit của lệnh đó qua sự kiện `PhienBanDonGiaDaTao` (vài giây), không trong cùng transaction. Kết quả nghiệp vụ không đổi (khoản chưa chốt được tính lại, gỡ dấu); ghi lại để chủ dự án biết "kèm lệnh" được hiểu là "do lệnh đó kích hoạt". *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
@@ -191,7 +191,7 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 
 3. **Câu chữ còn lẫn trong spec 010** (không đổi nghiệp vụ): *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - User Story 5 đánh số kịch bản 1 → 6, 8, 9, 7 (kịch bản 8, 9 đứng trước 7).
-   - Điểm báo lại 13 còn nêu BR-M11-05 "hệ thống tạo khoản Điều chỉnh chờ duyệt"; sau Q-307 hệ thống chỉ báo (FR-027). Đề nghị xác nhận BR-M11-05 ở `docs/nghiep-vu.md` đã viết theo Q-307.
+   - Điểm báo lại 13 còn nêu BR-M11-05 "hệ thống tạo khoản Điều chỉnh chờ duyệt"; sau Q-307 hệ thống chỉ báo (FR-027). Đề nghị xác nhận BR-M11-05 ở `docs/business/nghiep-vu.md` đã viết theo Q-307.
    - Assumptions còn câu dẫn `docs/phan-tich-yeu-cau.md` mục 4.2 (đã bỏ).
 
 4. **Mức thông báo nhắc đề nghị mua hộ chờ đồng ý** (bảng FR-044 ghi "Theo feature 000 FR-031a"): plan dùng Trung bình như dòng 000 của bảng 009 FR-043b. Đề nghị ghi mức cụ thể vào FR-044. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*

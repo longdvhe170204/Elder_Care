@@ -108,4 +108,4 @@ Không lặp lại các mục đã đạt ở `consistency.md` (ranh giới vớ
 - `/speckit-implement` reads checklist checkbox state as a gate and must not modify markers
 - `checklists/requirements.md` has a separate built-in lifecycle maintained by `/speckit-specify` and `/speckit-clarify`
 - Mục có ảnh hưởng lớn nhất: CHK001 (ca rỗng không được báo thiếu phủ), CHK004 (điều kiện vai trò khi đổi ca ở ca không có dòng phủ), CHK002 (đổi mẫu xoay ca làm đứt chu kỳ).
-- Không sửa `docs/nghiep-vu.md`, `docs/phan-tich-yeu-cau.md` khi xử lý checklist này, trừ khi người dùng yêu cầu rõ ràng.
+- Không sửa `docs/business/nghiep-vu.md`, `docs/phan-tich-yeu-cau.md` khi xử lý checklist này, trừ khi người dùng yêu cầu rõ ràng.

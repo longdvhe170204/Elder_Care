@@ -193,7 +193,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
+Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
 1. **Nhật ký mỗi lần xem bàn giao.** Spec 008 FR-047 ("Mọi lần xem, hoàn tất, xác nhận, gửi ý kiến MUST ghi nhật ký") và FR-056 ("Nhật ký xem bàn giao MUST chỉ Quản lý viện xem được") trái 000 FR-043a ("Việc xem dữ liệu… MUST NOT được ghi nhật ký, trừ lần người thân xem hồ sơ sức khỏe") và Q-03 ("Không bổ sung nhật ký lần nhân viên xem dữ liệu sức khỏe ở giai đoạn này"). Plan theo Q-03 và 000: không ghi lần xem; hoàn tất, xác nhận, gửi ý kiến, bổ sung có nhật ký như mọi lệnh. Đề nghị bỏ chữ "xem" ở FR-047 và câu về nhật ký xem ở FR-056, hoặc mở Q mới nếu viện muốn ghi lần xem bàn giao. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 

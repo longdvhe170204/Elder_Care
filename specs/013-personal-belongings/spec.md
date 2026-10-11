@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Quản lý đồ gửi của người cao tuổi theo docs/nghiep-vu.md Module 12 (mục 16): tiếp nhận có vị trí lưu giữ và hình ảnh với đồ có giá trị; mọi lần bàn giao ghi ai giao, ai nhận, khi nào, tình trạng; trạng thái đồ gửi; thất lạc hoặc hư hỏng tự tạo sự cố; chặn kết thúc lưu trú khi còn đồ chưa trả; chỉ trả cho người có quyền."
+**Input**: User description: "Quản lý đồ gửi của người cao tuổi theo docs/business/nghiep-vu.md Module 12 (mục 16): tiếp nhận có vị trí lưu giữ và hình ảnh với đồ có giá trị; mọi lần bàn giao ghi ai giao, ai nhận, khi nào, tình trạng; trạng thái đồ gửi; thất lạc hoặc hư hỏng tự tạo sự cố; chặn kết thúc lưu trú khi còn đồ chưa trả; chỉ trả cho người có quyền."
 
 ## Clarifications
 
@@ -49,6 +49,13 @@ Theo Q-194, báo cáo đồ gửi (số đồ thất lạc, hư hỏng, đồ ch
 
 - Spec 007 FR-046b sửa theo FR-011a của spec này: sự cố đồ gửi không tự chuyển Đã hủy khi bản ghi bàn giao bị Hủy ghi nhận (Q-307).
 - Bảng FR-032: cột mức của nhắc đề nghị xử lý chỉ ghi "Nhẹ".
+
+### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
+
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+
+- **Q-344**: FR-019 chỉ dùng bản ký scan trên phiếu trả, bỏ "chữ ký điện tử" (16.4).
+- Assumptions: tham số CFG-M12-02 → 07 đã có ở Phụ lục 25, bỏ câu "cần bổ sung".
 
 ## Phạm vi
 
@@ -334,7 +341,7 @@ Từ chối, Hủy, Đã dùng, Hết hạn là trạng thái cuối. Đồ tron
 
 Đã rút và Hết hiệu lực là trạng thái cuối; đồ được tìm thấy sau Thất lạc cần đồng ý mới.
 - **FR-018**: Lệnh "Trả" từ trạng thái Đang được người cao tuổi sử dụng MUST ghi người bàn giao là nhân viên thực hiện và ghi chú "thu từ người cao tuổi". Khi người nhận là chính người cao tuổi, lệnh "Trả" MUST có xác nhận người nhận khác theo FR-017 hoặc FR-017a, trừ ngoại lệ của FR-016 (Q-253); bản ghi ghi người nhận là người cao tuổi. Việc đưa đồ cho người cao tuổi dùng trong viện vẫn là lệnh "Giao sử dụng", không phải "Trả". *(Nguồn: 16.4 "người bàn giao"; Clarification 2026-09-27, Q-149)*
-- **FR-019**: Lệnh "Trả" MUST có xác nhận của người nhận (chữ ký điện tử hoặc bản ký scan). Trả nhiều đồ cho cùng người nhận trong một lần MUST tạo mỗi đồ một bản ghi, dùng chung người nhận, thời điểm và chữ ký. Khi người nhận là người cao tuổi (FR-018), người cao tuổi ký nếu còn khả năng; nếu không, xác nhận người nhận khác của người đại diện thay cho chữ ký và nhân viên ghi lý do. Lệnh Giao sử dụng và Thu lại, nơi người cao tuổi là người nhận hoặc người giao, MUST NOT yêu cầu chữ ký của người cao tuổi; nhân viên thực hiện là người chứng. *(Nguồn: 16.4; suy ra từ 16.3)*
+- **FR-019**: Lệnh "Trả" MUST có xác nhận của người nhận: người nhận ký trên phiếu trả và hệ thống lưu bản ký scan; không dùng chữ ký điện tử (sửa, 2026-10-11, Q-344). Trả nhiều đồ cho cùng người nhận trong một lần MUST tạo mỗi đồ một bản ghi, dùng chung người nhận, thời điểm và chữ ký. Khi người nhận là người cao tuổi (FR-018), người cao tuổi ký nếu còn khả năng; nếu không, xác nhận người nhận khác của người đại diện thay cho chữ ký và nhân viên ghi lý do. Lệnh Giao sử dụng và Thu lại, nơi người cao tuổi là người nhận hoặc người giao, MUST NOT yêu cầu chữ ký của người cao tuổi; nhân viên thực hiện là người chứng. *(Nguồn: 16.4; suy ra từ 16.3)*
 - **FR-020**: Lệnh "Trả" MUST ghi tình trạng lúc trả và MUST hiển thị cho người nhận tình trạng lúc tiếp nhận để đối chiếu; người nhận MAY ghi ý kiến không đồng ý về tình trạng, và ý kiến đó được lưu trong bản ghi. *(Suy ra từ 16.4 "tình trạng")*
 
 #### F. Thất lạc, hư hỏng và sự cố liên kết
@@ -493,7 +500,7 @@ Hoàn thành và Đã hủy là trạng thái cuối. Đề nghị "Xử lý đ�
 - Người giao ở lệnh Tiếp nhận có thể không có tài khoản (người thân chưa có quan hệ trong hệ thống, người vận chuyển); hệ thống ghi họ tên và giấy tờ.
 - Trong lệnh Báo thất lạc, trường "người nhận" để trống vì không có người nhận thực tế; người ghi nhận thay vào. Tương tự, lệnh Tìm thấy để trống "người giao" và người ghi nhận là người nhận. Đây là cách hiểu BR-M12-01 cho trường hợp này (điểm báo lại 2).
 - Thời hạn hiệu lực của xác nhận người nhận khác dùng lại CFG-M10-08 (hiệu lực ngoại lệ đón) vì cùng nghĩa "thời hạn dùng một lần của một sự cho phép người đại diện cấp". Thời gian chờ trước khi Quản lý viện được duyệt thay có nghĩa khác nên dùng tham số riêng CFG-M12-05, cùng mặc định \[4 giờ\] như lựa chọn Q-150.
-- Tham số mới của spec (cần bổ sung vào Phụ lục 25, điểm báo lại 8):
+- Tham số riêng của spec (đã có ở Phụ lục 25; sửa câu 2026-10-11):
   - CFG-M12-02: chu kỳ nhắc đồ chưa trả sau khi hồ sơ ở trạng thái cuối, mặc định \[7 ngày\];
   - CFG-M12-03: thời gian tối thiểu từ khi hồ sơ ở trạng thái cuối tới khi được lập đề nghị xử lý đồ không người nhận, mặc định \[90 ngày\] (Q-152);
   - CFG-M12-04: chu kỳ và hạn kiểm kê đồ có giá trị, mặc định \[hằng tháng, hạn 3 ngày\] (Q-154);
@@ -507,7 +514,7 @@ Hoàn thành và Đã hủy là trạng thái cuối. Đề nghị "Xử lý đ�
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-**Trạng thái (2026-09-27):** theo yêu cầu của người dùng, `docs/nghiep-vu.md` đã được đồng bộ: Q-148 → Q-155 ở mục 24.2; Q-156 → Q-160 ở mục 24.2 (chốt theo mặc định đề xuất); thuật ngữ mới ở 2.4; 5.6 và 6.8 (tập trạng thái chặn, mục "xử lý đồ gửi"); nguồn "đồ gửi" ở 9.1; đồ gửi trên cổng ở 14.6; phần bổ sung của 16.1 → 16.4; BR-M12-01 → 05 được làm rõ hoặc chỉnh sửa, BR-M12-06 → 09 mới; mục 16.6 mới (kiểm kê, đồ không người nhận, đồ khi hết ca); quyền đồ gửi ở 19.3; CFG-M12-02 → 07 ở Phụ lục 25 và CFG-M10-08 thêm nơi dùng 16.4. Như vậy điểm 1, 2, 4, 7, 8, 13 và phần tài liệu nghiệp vụ của điểm 3 (9.1), 6 (14.6), 10 (19.3) đã được phản ánh. **Không sửa:** `docs/phan-tich-yeu-cau.md` (4.4, UC-65, ERD, DBR-22 ở điểm 10, 12, 14), theo CLAUDE.md; 19.3 là căn cứ khi 4.4 khác. Các spec 001, 004, 007, 008, 009, 012 đã được đồng bộ (điểm 16). **Còn mở:** không còn điểm nào thuộc tài liệu nghiệp vụ; các lệch với `docs/phan-tich-yeu-cau.md` được giữ làm ghi chú đã biết.
+**Trạng thái (2026-09-27):** theo yêu cầu của người dùng, `docs/business/nghiep-vu.md` đã được đồng bộ: Q-148 → Q-155 ở mục 24.2; Q-156 → Q-160 ở mục 24.2 (chốt theo mặc định đề xuất); thuật ngữ mới ở 2.4; 5.6 và 6.8 (tập trạng thái chặn, mục "xử lý đồ gửi"); nguồn "đồ gửi" ở 9.1; đồ gửi trên cổng ở 14.6; phần bổ sung của 16.1 → 16.4; BR-M12-01 → 05 được làm rõ hoặc chỉnh sửa, BR-M12-06 → 09 mới; mục 16.6 mới (kiểm kê, đồ không người nhận, đồ khi hết ca); quyền đồ gửi ở 19.3; CFG-M12-02 → 07 ở Phụ lục 25 và CFG-M10-08 thêm nơi dùng 16.4. Như vậy điểm 1, 2, 4, 7, 8, 13 và phần tài liệu nghiệp vụ của điểm 3 (9.1), 6 (14.6), 10 (19.3) đã được phản ánh. **Không sửa:** `docs/phan-tich-yeu-cau.md` (4.4, UC-65, ERD, DBR-22 ở điểm 10, 12, 14), theo CLAUDE.md; 19.3 là căn cứ khi 4.4 khác. Các spec 001, 004, 007, 008, 009, 012 đã được đồng bộ (điểm 16). **Còn mở:** không còn điểm nào thuộc tài liệu nghiệp vụ; các lệch với `docs/phan-tich-yeu-cau.md` được giữ làm ghi chú đã biết.
 
 1. **Vòng đời đồ gửi (16.4 "(Bổ sung)")** chỉ nêu Đang giữ ↔ Đang được sử dụng → Đã trả; hoặc Thất lạc / Hư hỏng. Đã chốt khi clarify (Q-148): Thất lạc → Đang giữ (Tìm thấy); Hư hỏng → Đã trả; Hư hỏng chặn kết thúc lưu trú, Thất lạc không chặn. Cần bổ sung vào 16.4, sửa BR-M12-03 thành "còn đồ gửi ở trạng thái Đang giữ, Đang được sử dụng hoặc Hư hỏng", và thêm Q-148 vào mục 24.2. Ngoài ra 16.4 chưa có lệnh Chuyển giữ và việc tách đồ khi bàn giao một phần (FR-012). Cùng theo Q-148, 5.6 (dòng "→ Kết thúc lưu trú": "không còn đồ gửi/thuốc gửi đang giữ") và 6.8 ("không còn đồ gửi") cần ghi rõ tập trạng thái chặn là Đang giữ, Đang được sử dụng, Hư hỏng.
 2. **BR-M12-01** yêu cầu mọi lần chuyển trạng thái có người nhận; với Thất lạc không có người nhận thực tế. Spec dùng người ghi nhận thay (Assumptions).
@@ -562,3 +569,5 @@ Hoàn thành và Đã hủy là trạng thái cuối. Đề nghị "Xử lý đ�
 - **Q-307** – Thất lạc, hư hỏng không còn tự tạo sự cố: hệ thống báo người liên hệ chính và Hành chính, người ghi lệnh quyết định ghi nhận sự cố và liên kết với đồ (BR-M12-02, 03). Phiếu kiểm kê không có danh sách gợi ý (BR-M12-07). Đồ do nhân viên hết ca đang giữ do người bàn giao ghi vào bàn giao (16.6). Giữ: cảnh báo do hệ thống tạo và leo thang, nhắc, thông báo; bản ghi kèm lệnh của actor; số liệu tính để hiển thị (24.2).
 
 **(2026-10-10) Plan 013, điểm báo lại 1 → 3.** *(Đã xử lý 2026-10-10: spec 007 FR-046b sửa theo FR-011a; bảng FR-032. Điểm báo lại 16 (sự kiện cờ đi lạc) không còn đúng sau Q-281, giữ làm lịch sử.)*
+
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-019, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*

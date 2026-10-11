@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Quản lý chăm sóc hằng ngày theo docs/nghiep-vu.md Module 04 mục 8.1–8.7: kế hoạch chăm sóc theo phiên bản có ngày hiệu lực và phải được duyệt; hệ thống tự sinh công việc theo ca từ kế hoạch, lịch đo, lịch ăn, hoạt động; mỗi công việc có khung thời gian, mức quan trọng và vòng đời trạng thái; checklist theo ca cho từng nhân viên; ghi nhận kết quả theo loại công việc; công việc quá hạn được nhắc, leo thang và đưa vào bàn giao; kết quả ghi nhận kích hoạt quy tắc (uống nước thiếu, ăn kém kéo dài). Bán trú chỉ sinh công việc khi có mặt."
+**Input**: User description: "Quản lý chăm sóc hằng ngày theo docs/business/nghiep-vu.md Module 04 mục 8.1–8.7: kế hoạch chăm sóc theo phiên bản có ngày hiệu lực và phải được duyệt; hệ thống tự sinh công việc theo ca từ kế hoạch, lịch đo, lịch ăn, hoạt động; mỗi công việc có khung thời gian, mức quan trọng và vòng đời trạng thái; checklist theo ca cho từng nhân viên; ghi nhận kết quả theo loại công việc; công việc quá hạn được nhắc, leo thang và đưa vào bàn giao; kết quả ghi nhận kích hoạt quy tắc (uống nước thiếu, ăn kém kéo dài). Bán trú chỉ sinh công việc khi có mặt."
 
 ## Clarifications
 
@@ -611,11 +611,11 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 12. **Mục 4.2 chưa có use case** cho cấu hình danh mục loại công việc (FR-038) và xem thời khóa biểu cá nhân (FR-048, 8.2); cần bổ sung UC hoặc ghi rõ hai chức năng này thuộc UC nào.
 13. **Các bổ sung của spec không có trong tài liệu nguồn**, cần chủ tài liệu xác nhận: mỗi người cao tuổi tối đa một phiên bản kế hoạch đang soạn/chờ (FR-004); người duyệt không sửa ngày hiệu lực mà phải Trả lại (FR-004); bảng trạng thái yêu cầu xem xét kế hoạch và việc yêu cầu không mở lại khi phiên bản bị Trả lại (FR-011); điều kiện "đang có mặt tại mốc kiểm tra" và tối đa một công việc bổ sung nước mỗi ngày (FR-039); giới hạn thời điểm, vai trò và gợi ý tránh trùng của "Ghi nhận phát sinh" (FR-025); cập nhật bản nháp bàn giao khi người cao tuổi chuyển trạng thái cuối (FR-010); sửa loại công việc chỉ áp cho mục và công việc tạo sau (FR-038).
 
-**(2026-09-27)** Các quyết định Q-30 → Q-38 của spec này đã được phản ánh vào `docs/nghiep-vu.md` (8.1, 8.3, 8.7, 19.3; CFG-M04-12 ở Phụ lục 25) và `docs/phan-tich-yeu-cau.md` (chú thích ²² của 4.4, quyền xem của Bác sĩ, Dinh dưỡng viên), và nằm ở mục 24.2.
+**(2026-09-27)** Các quyết định Q-30 → Q-38 của spec này đã được phản ánh vào `docs/business/nghiep-vu.md` (8.1, 8.3, 8.7, 19.3; CFG-M04-12 ở Phụ lục 25) và `docs/phan-tich-yeu-cau.md` (chú thích ²² của 4.4, quyền xem của Bác sĩ, Dinh dưỡng viên), và nằm ở mục 24.2.
 
-**(2026-09-28, checklist cross-feature CHK013, CHK014)** Điểm 2 và 3 đã được phản ánh vào `docs/nghiep-vu.md`: bảng vòng đời phiên bản kế hoạch ở 8.1 (theo FR-003, FR-004) và bảng trạng thái công việc ở 8.3 (theo FR-026). Hai bảng là căn cứ khi khác sơ đồ hoặc câu gốc.
+**(2026-09-28, checklist cross-feature CHK013, CHK014)** Điểm 2 và 3 đã được phản ánh vào `docs/business/nghiep-vu.md`: bảng vòng đời phiên bản kế hoạch ở 8.1 (theo FR-003, FR-004) và bảng trạng thái công việc ở 8.3 (theo FR-026). Hai bảng là căn cứ khi khác sơ đồ hoặc câu gốc.
 
-**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** *(2026-09-29: mọi điểm dưới đây đã xử lý, xem nhãn "Đã xử lý" từng điểm.)* Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
+**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** *(2026-09-29: mọi điểm dưới đây đã xử lý, xem nhãn "Đã xử lý" từng điểm.)* Các điểm dưới đây đã có trong `docs/business/nghiep-vu.md` và `docs/business/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
 
 1. **[Không cần sửa: FR-041 đã coi đo chỉ số là công việc, chuyển kết quả cho feature 007]** **Nhóm chức năng "Chăm sóc" (Q-207; 1.6, 10.1).** Đo chỉ số theo lịch là công việc chăm sóc, ghi trong checklist (UC-26); quy tắc ngưỡng vẫn thuộc feature 007. Không đổi ranh giới spec; chỉ cần kiểm tra lại cách diễn đạt nếu spec đang coi đo chỉ số là việc riêng.
 2. **[Đã xử lý 2026-09-28: FR-049, bảng trạng thái có mặt bán trú]** **Điều dưỡng làm việc của Nhân viên chăm sóc (Q-214; 2.4, 19.3, Phụ lục 27 ²⁷).** Điều dưỡng được điểm danh bán trú đến/về (UC-28) và được phân mọi loại công việc chăm sóc. Rà FR-049 và bảng quyền của spec.

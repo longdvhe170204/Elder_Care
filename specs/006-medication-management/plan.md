@@ -201,7 +201,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
+Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
 1. **Số ngày dùng còn lại khi một lô gắn nhiều đơn.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - FR-046 ghi "số ngày còn lại của mỗi đơn = tổng số lượng còn của các lô gắn đơn ÷ lượng dùng mỗi ngày của đơn"; FR-043 và BR-M07-18 ghi "tính trên tổng lượng dùng mỗi ngày của các đơn dùng chung lô".

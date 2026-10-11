@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Quản lý chi phí phát sinh của người cao tuổi theo docs/nghiep-vu.md Module 11 (mục 15): chi phí nháp được tự sinh từ sự kiện của các module khác (ngày lưu trú theo chính sách vắng, buổi bán trú, dịch vụ tính phí hoàn thành, vật phẩm tiêu hao, hoạt động có phí, liều thuốc nguồn viện, người thân ở lại) và luôn trỏ về bản ghi nguồn; đơn giá theo phiên bản tại ngày phát sinh; chi phí trong gói ghi số tiền 0; vòng đời Nháp → Đã kiểm tra → Đã duyệt → Đã chốt; sai sót sau chốt bằng khoản điều chỉnh; chia phí tháng theo ngày; xuất dữ liệu kỳ đã chốt cho kế toán. Không thu tiền, không hạch toán."
+**Input**: User description: "Quản lý chi phí phát sinh của người cao tuổi theo docs/business/nghiep-vu.md Module 11 (mục 15): chi phí nháp được tự sinh từ sự kiện của các module khác (ngày lưu trú theo chính sách vắng, buổi bán trú, dịch vụ tính phí hoàn thành, vật phẩm tiêu hao, hoạt động có phí, liều thuốc nguồn viện, người thân ở lại) và luôn trỏ về bản ghi nguồn; đơn giá theo phiên bản tại ngày phát sinh; chi phí trong gói ghi số tiền 0; vòng đời Nháp → Đã kiểm tra → Đã duyệt → Đã chốt; sai sót sau chốt bằng khoản điều chỉnh; chia phí tháng theo ngày; xuất dữ liệu kỳ đã chốt cho kế toán. Không thu tiền, không hạch toán."
 
 ## Clarifications
 
@@ -87,6 +87,13 @@ Tài liệu nguồn (1.2, 15.1, 15.6, 15.9, BR-M11-11, BR-M11-13, BR-M11-15) và
 - **Q-333**: kỳ chi phí của viện chuyển Đang mở vào ngày 1 là chuyển trạng thái theo giờ, không lập bảng hay khoản. Ghi ở bảng trạng thái kỳ.
 - **Q-311**: mức nhắc đề nghị mua hộ chờ đồng ý là Trung bình (bảng FR-044).
 - User Story 5: kịch bản 7 đặt lại trước kịch bản 8, 9.
+
+### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
+
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+
+- FR-013: nguồn không còn dẫn câu cũ "nhân viên chủ yếu xác nhận" của 1.3.
+- **Q-341**: người thân không gửi yêu cầu mua hộ qua cổng; gia đình yêu cầu trực tiếp, Hành chính lập đề nghị (Assumptions).
 
 ## Phạm vi
 
@@ -375,7 +382,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 - **FR-010**: Khi dịch vụ hoặc vật phẩm của khoản nằm trong gói của hợp đồng hiệu lực tại ngày phát sinh, khoản MUST được tạo với dấu "thuộc gói" và số tiền 0. Khoản vẫn giữ số lượng, đơn vị, nguồn, và được kiểm tra, duyệt, chốt như mọi khoản khác. *(Nguồn: BR-M11-03, DBR-16)*
 - **FR-011**: Thời gian tính phí của một người cao tuổi MUST: bắt đầu từ ngày bắt đầu hợp đồng với nội trú, kể cả khi vào ở muộn (các ngày trước ngày Hoàn tất tiếp nhận mang dấu "chưa vào ở" và có hệ số 100%, vì Q-22 tính phí đầy đủ từ ngày bắt đầu hợp đồng); bắt đầu từ buổi có lịch đầu tiên từ ngày bắt đầu hợp đồng với bán trú; kết thúc sau ngày kết thúc dự kiến của hồ sơ kết thúc lưu trú (FR-034), sau ngày Hủy tiếp nhận (feature 004 FR-075a), hoặc tại thời điểm qua đời (FR-036). **(Sửa, 2026-10-06, Q-306, Q-307)** Lệnh lập khoản cho sự kiện nguồn ngoài thời gian tính phí MUST bị chặn kèm lý do "ngoài thời gian tính phí". Khi thời gian tính phí thay đổi làm sự kiện rơi vào trong thời gian tính phí (ví dụ hồ sơ kết thúc bị hủy, ngày kết thúc dự kiến dời muộn hơn), Hành chính lập được khoản cho sự kiện đó và MUST được thông báo về thay đổi thời gian tính phí; hệ thống không lập khoản và không giữ danh sách sự kiện bị chặn. Nếu thời gian tính phí sai, phải sửa ở feature 004. *(Nguồn: Q-22, Q-27, BR-M11-08, feature 004 FR-074)*
 - **FR-012**: Khi không xác định được đơn giá (không có phiên bản đơn giá hiệu lực tại ngày phát sinh, hoặc hợp đồng không ghi đơn giá cho khoản thuộc hợp đồng), khoản MUST vẫn được tạo ở Nháp với dấu "thiếu đơn giá" và chưa có số tiền. Hành chính MUST được thông báo (mức Nhẹ, feature 009). Quản lý viện MUST tạo được phiên bản đơn giá có ngày hiệu lực trong quá khứ, chỉ cho khoảng thời gian mà dịch vụ/vật phẩm đó chưa có phiên bản nào (không chồng khoảng, DBR-08); phiên bản đã có MUST NOT bị sửa hay rút ngắn. Khi có phiên bản bao trùm ngày phát sinh, hệ thống MUST tính lại khoản thiếu đơn giá chưa chốt (tác động kèm lệnh tạo phiên bản đơn giá). Khoản đã được lập bằng đơn giá khác thì không tính lại (feature 000 FR-017). Đơn giá của khoản theo sự kiện MUST NOT do người dùng nhập. Quy tắc này không áp cho khoản nhập tay (FR-021) và khoản mua hộ (FR-024), vốn do Hành chính nhập. *(Nguồn: BR-M11-01, BR-M11-02, 6.4; Clarification 2026-09-27, đề xuất Q-135)*
-- **FR-013**: Mọi số tiền MUST tính bằng đồng, là số nguyên (NFR-11). Mọi phép "làm tròn tới đồng" trong spec MUST làm tròn nửa lên: phần lẻ từ 0,5 đồng trở lên làm tròn lên, dưới 0,5 đồng bỏ; với số âm, làm tròn theo giá trị tuyệt đối. Số tiền của khoản theo sự kiện MUST NOT được người dùng nhập hay sửa. Số tiền của khoản nhập tay, khoản mua hộ và khoản điều chỉnh do Hành chính nhập (**sửa, 2026-10-06, Q-307**). *(Nguồn: 1.3 "nhân viên chủ yếu xác nhận")*
+- **FR-013**: Mọi số tiền MUST tính bằng đồng, là số nguyên (NFR-11). Mọi phép "làm tròn tới đồng" trong spec MUST làm tròn nửa lên: phần lẻ từ 0,5 đồng trở lên làm tròn lên, dưới 0,5 đồng bỏ; với số âm, làm tròn theo giá trị tuyệt đối. Số tiền của khoản theo sự kiện MUST NOT được người dùng nhập hay sửa. Số tiền của khoản nhập tay, khoản mua hộ và khoản điều chỉnh do Hành chính nhập (**sửa, 2026-10-06, Q-307**). *(Nguồn: NFR-11, 15.2, Q-306, Q-307; sửa nguồn 2026-10-11 vì câu cũ "nhân viên chủ yếu xác nhận" của 1.3 đã bỏ)*
 
 #### D. Vòng đời khoản chi phí
 
@@ -561,7 +568,7 @@ Từ chối, Hủy, Đã mua là trạng thái cuối. Đề nghị mua hộ là
 - Cảnh báo biến động (BR-M11-07) tính theo từng người cao tuổi, chỉ khi tổng tăng, và bỏ qua khi một trong hai bảng không đủ tháng (FR-032).
 - Đơn giá thuốc nguồn viện nằm trong danh mục vật phẩm, phiên bản đơn giá do Quản lý viện quản lý (feature 004 FR-034, feature 006 FR-003).
 - Đặt cọc không được khấu trừ hay hiển thị trong bảng chi phí; tiền cọc và cấn trừ cọc thuộc feature 017 (6.5, 15.9, đã chỉnh sửa 2026-09-28).
-- Người thân chưa gửi yêu cầu mua hộ qua cổng ở giai đoạn này (FR-023); cổng chỉ nhận yêu cầu đồng ý. Có thể mở rộng khi làm lại feature 012.
+- Người thân không gửi yêu cầu mua hộ qua cổng (FR-023): gia đình yêu cầu trực tiếp, Hành chính lập đề nghị; cổng chỉ nhận yêu cầu đồng ý (Q-341; sửa câu 2026-10-11).
 - Làm tròn nửa lên (FR-013) là cách làm tròn thông dụng cho tiền đồng; tài liệu nguồn không quy định.
 - Không đề xuất tham số mới. Chu kỳ nhắc bảng bổ sung dùng lại CFG-M02-09.
 - **(Bổ sung, 2026-10-06, Q-306, Q-307)** Lập hàng loạt theo kết quả tra cứu do Hành chính chọn là lệnh của actor, không phải gợi ý; vì hệ thống không đối chiếu sự kiện chưa lập khoản, việc lập đủ khoản là trách nhiệm của Hành chính (bước kiểm tra) và Quản lý viện (bước duyệt).
@@ -639,7 +646,7 @@ Nội dung gốc của từng điểm được giữ dưới đây để truy v�
     - **005**: điểm danh đến bán trú vào ngày không có lịch phải được phép và gửi sự kiện cho feature này; buổi trùng ngày khu nghỉ không chuyển Vắng không báo (Q-140).
 16. **Mục 23 (tích hợp kế toán)** ghi "file tải về sau khi chốt kỳ". Spec cho xuất từng bảng đã chốt trước khi cả kỳ của viện Đã chốt, và có phạm vi "chỉ bảng chưa từng xuất" (FR-039, FR-041, Q-131). Cần sửa mục 23 thành "sau khi bảng chi phí được chốt", kèm yêu cầu dòng tổng kiểm soát. Việc này cần kế toán của cơ sở xác nhận cùng Q-05.
 
-**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** *(2026-09-29: mọi điểm dưới đây đã xử lý, xem nhãn "Đã xử lý" từng điểm.)* Các điểm dưới đây đã có trong `docs/nghiep-vu.md` và `docs/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
+**(2026-09-28, góp ý nghiệp vụ Q-207 → Q-222) Tài liệu nguồn đã thay đổi, spec cần rà lại.** *(2026-09-29: mọi điểm dưới đây đã xử lý, xem nhãn "Đã xử lý" từng điểm.)* Các điểm dưới đây đã có trong `docs/business/nghiep-vu.md` và `docs/business/luong-nghiep-vu.md`; spec **chưa** được sửa theo, và cần chạy `/speckit-clarify` hoặc cập nhật FR tương ứng.
 
 1. **[Đã xử lý 2026-09-28: FR-039, FR-041, FR-043, User Story 7]** **Xuất file kế toán chuyển sang Kế toán (Q-212; UC-64, 15.6, Phụ lục 27 ²⁸).** Mọi chỗ "hành chính xuất kỳ" (User Story xuất dữ liệu, FR-039 → FR-041, bảng quyền "Chốt kỳ, xuất kế toán") đổi người thực hiện thành Kế toán. Hành chính vẫn kiểm tra và gửi chốt.
 2. **[Đã xử lý 2026-09-28: bảng giao tiếp "Gửi 017", FR-042, FR-038a]** **Chốt bảng tự trừ số dư (Q-211; BR-M11-11, DBR-30).** Khi bảng (thường hoặc bổ sung) Đã chốt, hệ thống tạo đúng một giao dịch "thanh toán bảng chi phí". Đây là sự kiện feature này phải phát ra cho chức năng số dư (spec 017).
@@ -670,3 +677,5 @@ Nội dung gốc của từng điểm được giữ dưới đây để truy v�
 - **Q-307** – Hành chính tự lập từng khoản, mỗi khoản tham chiếu một sự kiện tính phí; bỏ danh sách sự kiện gợi ý, đánh dấu "không tính" và điều kiện chặn chốt bảng khi còn sự kiện chưa lập khoản (15.1 → 15.3, BR-M11-01, 06, 08). Khoản điều chỉnh sau chốt: hệ thống chỉ báo, không gợi ý số chênh lệch (BR-M11-05). Giữ: cảnh báo do hệ thống tạo và leo thang, nhắc, thông báo; bản ghi kèm lệnh của actor; số liệu tính để hiển thị (24.2).
 
 **(2026-10-10) Plan 010, điểm báo lại 1 → 4.** *(Đã xử lý 2026-10-10: Q-333, Q-311; sửa bảng trạng thái kỳ, bảng FR-044, thứ tự kịch bản User Story 5. BR-M11-05 ở tài liệu nguồn đã viết theo Q-307 (hệ thống báo Hành chính); điểm báo lại 13 giữ làm lịch sử.)*
+
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-013, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*

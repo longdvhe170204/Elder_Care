@@ -170,7 +170,7 @@ app-nguoi-than/lib/tinh-nang/do-gui/     # xem, xác nhận, đồng ý
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
+Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
 1. **Hủy sự cố đồ gửi khi bản ghi bàn giao bị Hủy ghi nhận — 007 và 013 nói ngược nhau**: 007 FR-046b (và bảng trạng thái sự cố dòng "Nguồn đồ gửi bị Hủy ghi nhận → Đã hủy, Hệ thống") cho 007 tự chuyển sự cố Đã hủy theo yêu cầu của 013; 013 FR-011a (sửa theo Q-307) cấm tự hủy, chỉ báo người xử lý sự cố. Plan làm theo 013 (quyết định mới hơn, khớp Q-307): không gọi `huyDoNguonDoGui`. Đề nghị sửa 007 FR-046b, bảng trạng thái sự cố và mục Clarifications của 007 theo Q-307, rồi bỏ hàm khỏi hợp đồng 007. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 

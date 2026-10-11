@@ -179,7 +179,7 @@ Plan này bổ sung các điểm dưới đây vào hợp đồng của feature 
 
 ## Điểm cần báo lại về tài liệu nguồn
 
-Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/nghiep-vu.md` và spec liên quan.
+Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
 1. **Bảng quyền FR-067 thiếu Điều dưỡng ở dòng "Quy trình đón"**: FR-022 (Q-214) cho Điều dưỡng thực hiện quy trình đón cho Điểm danh về của bán trú, nhưng ô ĐD của dòng này ghi "—". Plan làm theo FR-022 (quyền theo lệnh nguồn). Đề nghị sửa ô ĐD của FR-067 và đối chiếu Phụ lục 27 chú thích ²⁷. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 

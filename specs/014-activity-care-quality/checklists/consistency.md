@@ -1,7 +1,7 @@
 # Consistency Checklist: Quản lý hoạt động và chất lượng chăm sóc
 
 **Purpose**: Kiểm tra spec 014 có khớp với tài liệu nguồn và các spec đã viết không, trước khi đồng bộ. Trọng tâm:
-- `docs/nghiep-vu.md`: 2.4, 3.3/3.4, 5.5, 5.6, 8.8 → 8.10, BR-M04-04, 15 → 18, 21 → 23, BR-M05-10, 11, 18.2, mục 24, Phụ lục 25;
+- `docs/business/nghiep-vu.md`: 2.4, 3.3/3.4, 5.5, 5.6, 8.8 → 8.10, BR-M04-04, 15 → 18, 21 → 23, BR-M05-10, 11, 18.2, mục 24, Phụ lục 25;
 - `docs/phan-tich-yeu-cau.md`: UC-29 → 31, Permission Matrix 4.4, ERD, DBR (chỉ đối chiếu; không sửa file này);
 - các spec 000, 001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011, 012;
 - constitution I–IX.
@@ -13,7 +13,7 @@
 **Review Ownership**: This checklist is a reviewer-owned requirements-quality review artifact. Mark an item `[x]` only when the reviewer determines the requirements-quality criterion is satisfied.
 **Marker Semantics**: `[x]` means the criterion has been reviewed and satisfied for requirements quality. It does not mean implementation work is complete.
 
-## Tài liệu nghiệp vụ (docs/nghiep-vu.md)
+## Tài liệu nghiệp vụ (docs/business/nghiep-vu.md)
 
 - [x] CHK001 - Công việc trong khoảng Hoạt động bên ngoài: spec theo BR-M04-04 (Hủy), còn 5.6 ghi "Tạm dừng". Mâu thuẫn này có được ghi ở điểm báo lại kèm đề xuất sửa 5.6 không? [Conflict, Spec §Assumptions, Điểm báo lại 1, 5.6, BR-M04-04]
 - [x] CHK002 - BR-M04-16 ("giao cho người đi cùng ghi nhận") và Q-54 (chỉ Điều dưỡng ghi) có được đối chiếu, và spec có theo Q-54 ở mọi chỗ nhắc liều Mang theo không? [Conflict, Spec §FR-041, Điểm báo lại 3, Q-54]
@@ -74,8 +74,8 @@
 
 Người dùng yêu cầu Claude đánh giá và sửa spec. Kết quả:
 
-- Sai khác với `docs/nghiep-vu.md` (CHK001 → 010) được ghi ở điểm báo lại 1 → 8, 11, 13 → 15, 17; FR-041 (c) theo Q-54; phần dùng lại CFG-M09-04, CFG-M04-06 được giải thích ở điểm 6.
+- Sai khác với `docs/business/nghiep-vu.md` (CHK001 → 010) được ghi ở điểm báo lại 1 → 8, 11, 13 → 15, 17; FR-041 (c) theo Q-54; phần dùng lại CFG-M09-04, CFG-M04-06 được giải thích ở điểm 6.
 - Sai khác với phân tích yêu cầu (CHK011 → 017) được ghi ở điểm 2, 4, 7, 15; FR-032 nêu bản ghi nguồn của chuyến đi. `docs/phan-tich-yeu-cau.md` không sửa.
 - Đồng bộ với spec khác (CHK018 → 033) được liệt kê theo từng feature ở điểm báo lại 11 và 16 (chưa sửa các spec đó); FR-016a, bảng giao tiếp 004/005 chốt feature 005 sở hữu giờ về theo ngày của bán trú (Q-176); FR-032 chốt ngày tính phí của chuyến là ngày rời thực tế; FR-034 gửi người tham gia ở mọi lần thay đổi; FR-071 thêm cách thay và quy tắc cho người thân; Assumptions ghi lý do đếm ngày khác feature 005.
 - Constitution (CHK034 → 036): thêm bảng trạng thái cho đăng ký, đồng ý về muộn, sở thích, mục kiểm tra chất lượng; FR-036 bỏ mốc "24 giờ" viết cứng.
-- Q-169 → Q-176 đã được người dùng chốt ngày 2026-09-27. Còn chờ: đồng bộ `docs/nghiep-vu.md` và các spec 001, 002, 003, 005, 006, 007, 008, 009, 010, 011, 012.
+- Q-169 → Q-176 đã được người dùng chốt ngày 2026-09-27. Còn chờ: đồng bộ `docs/business/nghiep-vu.md` và các spec 001, 002, 003, 005, 006, 007, 008, 009, 010, 011, 012.
