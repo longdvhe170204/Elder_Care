@@ -1,0 +1,249 @@
+openapi: 3.1.0
+info:
+  title: Elder Care – Feature 009 (dịch vụ thông báo)
+  version: 1.0.0-design
+  description: |
+    Hợp đồng REST của feature 009 (module M13). Quy ước chung theo research R-03 của 000:
+    tiền tố /api/v1, lỗi RFC 9457 có maLoi, If-Match cho cấu hình kênh, Idempotency-Key cho mọi lệnh ghi.
+    Module nguồn không gọi REST để gửi thông báo: yêu cầu thông báo đi bằng sự kiện cài CoYeuCauThongBao (module-interfaces mục 1.1).
+    Xác nhận thông báo Khẩn cấp, ghi kết quả gọi, ghi kết quả liên hệ bắt buộc trực tuyến (Q-01); hộp thông báo xem được ngoại tuyến ở app.
+    Nội dung trả về theo quyền hiện hành của người xem (FR-034, Q-99): phần không còn quyền bị bỏ, liệt kê trong phanBiAn.
+    Thông báo đẩy tới app qua FCM theo token đăng ký ở /thiet-bi-day; web nhận luồng SSE ở /thong-bao/luong.
+    Đính chính kết quả gọi, kết quả liên hệ đi qua khung của api-000 với loại M13.KET_QUA_GOI, M13.KET_QUA_LIEN_HE.
+    Truy vết: mỗi operation có x-fr (FR của spec 009) và x-br khi có.
+servers:
+  - url: /api/v1
+security:
+  - phien: []
+tags:
+  - { name: hop-thu, description: 'UC-66; mục F' }
+  - { name: khan-cap, description: 'BR-M13-02; mục E' }
+  - { name: lien-he, description: 'FR-021' }
+  - { name: tra-cuu, description: 'FR-035 → FR-038' }
+  - { name: cau-hinh, description: 'FR-016, FR-039, FR-040' }
+
+paths:
+  /toi/thong-bao:
+    get:
+      tags: [hop-thu]
+      summary: Hộp thông báo của tôi (Khẩn cấp chưa xác nhận lên đầu; lọc mức, chưa xem, loại sự kiện, người cao tuổi)
+      x-fr: [FR-033, FR-034]
+      parameters:
+        - { name: muc, in: query, schema: { $ref: '#/components/schemas/Muc' } }
+        - { name: chuaXem, in: query, schema: { type: boolean } }
+        - { name: loaiSuKien, in: query, schema: { type: string } }
+        - { name: nctId, in: query, schema: { type: integer, format: int64 } }
+        - { name: sau, in: query, description: 'Khóa phân trang (guiLuc, id)', schema: { type: string } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { soChuaXem: { type: integer }, soKhanCapChuaXacNhan: { type: integer }, muc: { type: array, items: { $ref: '#/components/schemas/ThongBao' } }, tiep: { type: string } } } } } } }
+  /toi/thong-bao/{id}:
+    get:
+      tags: [hop-thu]
+      summary: Mở thông báo (ghi thời điểm xem lần đầu; nội dung theo quyền hiện hành)
+      x-fr: [FR-034, FR-044]
+      x-br: [BR-M13-05, BR-M10-06]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ThongBao' } } } }, '404': { $ref: '#/components/responses/Loi' } }
+  /toi/thong-bao/{id}/an:
+    post:
+      tags: [hop-thu]
+      summary: Ẩn thông báo đã xem khỏi danh sách của tôi (bản ghi vẫn còn)
+      x-fr: [FR-036]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: OK } }
+  /thong-bao/luong:
+    get:
+      tags: [hop-thu]
+      summary: Luồng SSE thông báo mới cho web (nhân viên và cổng người thân)
+      x-fr: [FR-016, FR-017]
+      responses: { '200': { description: 'text/event-stream', content: { text/event-stream: { schema: { type: string } } } } }
+  /thiet-bi-day:
+    post:
+      tags: [hop-thu]
+      summary: Đăng ký hoặc cập nhật token FCM của thiết bị đang đăng nhập (app nhân viên, app người thân)
+      x-fr: [FR-016]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ungDung, fcmToken], properties: { ungDung: { type: string, enum: [APP_NHAN_VIEN, APP_NGUOI_THAN] }, fcmToken: { type: string } } } } } }
+      responses: { '200': { description: OK } }
+
+  # ---------------- Khẩn cấp ----------------
+  /thong-bao/{id}/xac-nhan:
+    post:
+      tags: [khan-cap]
+      summary: Xác nhận đã nhận thông báo Khẩn cấp (trực tuyến); dừng lượt nhắc gọi khi mọi thông báo của lượt đã xác nhận
+      description: 'Mở thông báo không phải xác nhận (FR-026). Thông báo đang "Không liên lạc được" ghi xác nhận muộn (Q-104). Không đổi trạng thái bản ghi nguồn (FR-026a).'
+      x-fr: [FR-026, FR-026a, FR-030, FR-044]
+      x-br: [BR-M13-02]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: OK }, '404': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /thong-bao/{id}/xac-nhan-va-tiep-nhan:
+    post:
+      tags: [khan-cap]
+      summary: Xác nhận và tiếp nhận cảnh báo/sự cố nguồn trong một thao tác (hai bản ghi riêng)
+      description: 'Xác nhận ghi trước và luôn còn; tiếp nhận do 007 kiểm. Bị 007 từ chối thì 200 với tiepNhan.ketQua = TU_CHOI và lý do (ví dụ DA_CO_NGUOI_TIEP_NHAN kèm người, thời điểm).'
+      x-fr: [FR-026a]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { xacNhan: { type: string, enum: [DA_XAC_NHAN] }, tiepNhan: { type: object, properties: { ketQua: { type: string, enum: [THANH_CONG, TU_CHOI] }, maLoi: { type: string }, chiTiet: { type: object } } } } } } } } }
+  /toi/luot-nhac-goi:
+    get:
+      tags: [khan-cap]
+      summary: Lượt nhắc gọi tôi đang được nhắc hoặc có quyền ghi kết quả (Người phụ trách ca, Trưởng tầng, Quản lý viện)
+      x-fr: [FR-027, FR-029]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LuotNhacGoi' } } } } } }
+  /luot-nhac-goi/{id}:
+    get:
+      tags: [khan-cap]
+      summary: Chi tiết lượt nhắc gọi (số điện thoại hiện hành lúc mở, nội dung cần báo, thông báo gộp, lịch sử chuyển nhắc, kết quả)
+      x-fr: [FR-027, FR-027a, FR-030a]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/LuotNhacGoi' } } } } }
+  /luot-nhac-goi/{id}/ket-qua:
+    post:
+      tags: [khan-cap]
+      summary: Ghi kết quả gọi (người có quyền gọi; trực tuyến); sau "Không liên lạc được" MAY ghi lần gọi bổ sung
+      description: 'Người không có quyền gọi: 403. Đã liên lạc: mọi thông báo gộp Đã xác nhận qua cuộc gọi. Không liên lạc: nhắc người thân kế tiếp của chuỗi gọi hoặc báo Quản lý viện (FR-029a).'
+      x-fr: [FR-029, FR-029a, FR-030, FR-031]
+      x-br: [BR-M13-02]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaGoi' } } } }
+      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
+
+  # ---------------- Liên hệ trực tiếp ----------------
+  /lien-he-truc-tiep:
+    get:
+      tags: [lien-he]
+      summary: Danh sách "cần liên hệ trực tiếp" (Hành chính thực hiện; Quản lý viện xem)
+      x-fr: [FR-021, FR-038]
+      parameters: [ { name: trangThai, in: query, schema: { type: string, enum: [CHO_LIEN_HE, DA_LIEN_HE, KHONG_LIEN_HE_DUOC] } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LienHeTrucTiep' } } } } } }
+  /lien-he-truc-tiep/{id}/ket-qua:
+    post:
+      tags: [lien-he]
+      summary: Ghi kết quả liên hệ (Hành chính); Không liên hệ được bắt buộc lý do
+      x-fr: [FR-021, FR-031]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ketQua, thoiDiem], properties: { ketQua: { type: string, enum: [DA_LIEN_HE, KHONG_LIEN_HE_DUOC] }, thoiDiem: { type: string, format: date-time }, lyDo: { type: string }, ghiChu: { type: string } } } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
+
+  # ---------------- Tra cứu ----------------
+  /lich-su-thong-bao:
+    get:
+      tags: [tra-cuu]
+      summary: Lịch sử thông báo (Quản lý viện toàn viện; Trưởng tầng tầng được giao)
+      x-fr: [FR-037]
+      x-br: [BR-M13-05]
+      parameters:
+        - { name: loaiBanGhiNguon, in: query, schema: { type: string } }
+        - { name: idBanGhiNguon, in: query, schema: { type: string } }
+        - { name: nguoiNhanId, in: query, schema: { type: integer, format: int64 } }
+        - { name: tangKhuVucId, in: query, schema: { type: integer, format: int64 } }
+        - { name: tu, in: query, schema: { type: string, format: date-time } }
+        - { name: den, in: query, schema: { type: string, format: date-time } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DongLichSu' } } } } }, '403': { $ref: '#/components/responses/Loi' } }
+  /loi-gui:
+    get:
+      tags: [tra-cuu]
+      summary: Danh sách lỗi gửi (Quản lý viện)
+      x-fr: [FR-038, FR-003, FR-011, FR-020]
+      parameters: [ { name: loai, in: query, schema: { type: string, enum: [BI_TU_CHOI, THIEU_MUC, THIEU_LOAI_THONG_TIN, KHONG_CO_NGUOI_NHAN, GUI_THAT_BAI, NOI_DUNG_KHONG_HOP_LE] } } ]
+      responses: { '200': { description: OK } }
+
+  # ---------------- Cấu hình ----------------
+  /kenh-thong-bao:
+    get:
+      tags: [cau-hinh]
+      summary: Kênh thông báo
+      x-fr: [FR-016, FR-039]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Kenh' } } } } } }
+  /kenh-thong-bao/{ma}:
+    put:
+      tags: [cau-hinh]
+      summary: Bật/tắt kênh, gắn kênh khác vào mức (Quản lý viện; lý do; nhật ký)
+      x-fr: [FR-016, FR-040]
+      parameters: [ { name: ma, in: path, required: true, schema: { type: string } }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { allOf: [ { $ref: '#/components/schemas/Kenh' }, { type: object, required: [lyDo], properties: { lyDo: { type: string, minLength: 1 } } } ] } } } }
+      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Loi' } }
+
+components:
+  securitySchemes:
+    phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+    IfMatch: { name: If-Match, in: header, required: true, schema: { type: string } }
+    IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
+  responses:
+    Loi:
+      description: Lỗi theo RFC 9457 (research R-03 của 000)
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
+    LoiChan:
+      description: 'KHONG_PHAI_KHAN_CAP, DA_XAC_NHAN, LUOT_DA_KET_THUC, KHONG_CO_QUYEN_GOI, TRANG_THAI_CUOI, BAT_BUOC_TRUC_TUYEN'
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
+  schemas:
+    Muc: { type: string, enum: [NHE, TRUNG_BINH, KHAN_CAP] }
+    Loi:
+      type: object
+      properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, maLoi: { type: string } }
+    ThongBao:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        muc: { $ref: '#/components/schemas/Muc' }
+        loaiSuKien: { type: string }
+        tieuDe: { type: string }
+        noiDung: { type: array, items: { type: object, properties: { loaiThongTin: { type: string, enum: [CHUNG, SUC_KHOE, CHI_PHI, THAM_NOM, HOP_DONG] }, noiDung: { type: string } } } }
+        phanBiAn: { type: array, items: { type: string } }
+        chiNhanDang: { type: boolean }
+        trangThai: { type: string, enum: [CHO_HET_GIO_YEN_TINH, KHONG_GUI, DA_GUI, GUI_THAT_BAI, DA_XEM, DA_XAC_NHAN, KHONG_LIEN_LAC_DUOC] }
+        guiLuc: { type: string, format: date-time }
+        xemLuc: { type: string, format: date-time }
+        xacNhanLuc: { type: string, format: date-time }
+        cachXacNhan: { type: string, enum: [TRONG_UNG_DUNG, QUA_CUOC_GOI, XAC_NHAN_MUON, XAC_NHAN_MUON_QUA_CUOC_GOI] }
+        banGhiNguon: { type: object, properties: { loai: { type: string }, id: { type: string }, moDuoc: { type: boolean } } }
+        coTheXacNhanVaTiepNhan: { type: boolean }
+    LuotNhacGoi:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        chuoiGoiId: { type: integer, format: int64 }
+        nguoiCanGoi: { type: object, properties: { loai: { type: string, enum: [NHAN_VIEN, NGUOI_THAN] }, hoTen: { type: string }, quanHe: { type: string }, soDienThoai: { type: string, description: 'Số hiện hành lúc mở (FR-027)' } } }
+        nctId: { type: integer, format: int64 }
+        noiDungCanBao: { type: array, items: { type: object, properties: { thoiDiem: { type: string, format: date-time }, noiDung: { type: string } } } }
+        nguoiDuocNhacHienTai: { type: string }
+        hanLuc: { type: string, format: date-time }
+        trangThai: { type: string, enum: [CHO_KET_QUA, DA_CO_KET_QUA, DA_DUNG] }
+        lyDoDung: { type: string }
+        chuyenNhac: { type: array, items: { type: object } }
+        ketQua: { type: array, items: { $ref: '#/components/schemas/KetQuaGoi' } }
+        coQuyenGhiKetQua: { type: boolean }
+    KetQuaGoi:
+      type: object
+      required: [ketQua, goiLuc]
+      properties:
+        ketQua: { type: string, enum: [DA_LIEN_LAC, KHONG_LIEN_LAC] }
+        goiLuc: { type: string, format: date-time }
+        soDaGoi: { type: string }
+        lyDo: { type: string, enum: [KHONG_NGHE_MAY, SAI_SO, KHONG_CO_SO, KHAC] }
+        nguoiNgheMay: { type: string }
+        ghiChu: { type: string, description: 'Bắt buộc khi DA_LIEN_LAC (FR-030)' }
+        boSung: { type: boolean, readOnly: true }
+    LienHeTrucTiep:
+      type: object
+      properties: { id: { type: integer, format: int64 }, hoTen: { type: string }, quanHe: { type: string }, soDienThoai: { type: string }, noiDungRutGon: { type: string }, trangThai: { type: string, enum: [CHO_LIEN_HE, DA_LIEN_HE, KHONG_LIEN_HE_DUOC] }, taoLuc: { type: string, format: date-time } }
+    DongLichSu:
+      type: object
+      properties:
+        yeuCauId: { type: integer, format: int64 }
+        nguonKichHoat: { type: string }
+        banGhiNguon: { type: object }
+        muc: { $ref: '#/components/schemas/Muc' }
+        nguoiNhan: { type: string }
+        canCu: { type: array, items: { type: string } }
+        tiepNhanLuc: { type: string, format: date-time }
+        guiLuc: { type: string, format: date-time }
+        kenh: { type: array, items: { type: object, properties: { kenh: { type: string }, ketQua: { type: string }, thoiDiem: { type: string, format: date-time } } } }
+        xemLuc: { type: string, format: date-time }
+        xacNhanLuc: { type: string, format: date-time }
+        luotNhacGoi: { type: array, items: { type: object } }
+        dau: { type: array, items: { type: string } }
+    Kenh:
+      type: object
+      properties: { ma: { type: string }, ten: { type: string }, bat: { type: boolean }, mucGan: { type: array, items: { $ref: '#/components/schemas/Muc' } } }

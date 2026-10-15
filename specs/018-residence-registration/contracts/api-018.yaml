@@ -1,0 +1,99 @@
+openapi: 3.1.0
+info:
+  title: Elder Care – Feature 018 (khai báo tạm trú, lưu trú)
+  version: 1.0.0-design
+  description: |
+    Hợp đồng REST của feature 018 (module M02, gói m02.khaibao). Quy ước chung theo research R-03 của 000:
+    tiền tố /api/v1, lỗi RFC 9457 có maLoi và dieuKienChuaThoa[], Idempotency-Key cho mọi lệnh ghi.
+    Hệ thống không tự tạo khai báo (Q-306); không nộp hồ sơ thay, không kết nối Cổng dịch vụ công.
+    Đính chính kết quả ghi nhầm dùng endpoint đính chính chung của 000 với loại M02.KHAI_BAO.
+    Truy vết: mỗi operation có x-fr (FR của spec 018) và x-br khi có.
+servers:
+  - url: /api/v1
+security:
+  - phien: []
+tags:
+  - { name: khai-bao, description: 'UC-80, UC-81' }
+
+paths:
+  /khai-bao/can-lam:
+    get:
+      tags: [khai-bao]
+      summary: Người cần khai báo (gồm chưa lập), quá hạn, sắp hết hạn, cần khai báo xóa (Hành chính, Quản lý viện)
+      x-fr: [FR-001, FR-002, FR-006, FR-008, FR-011]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ViecKhaiBao' } } } } } }
+  /nguoi-cao-tuoi/{nctId}/khai-bao:
+    get:
+      tags: [khai-bao]
+      summary: Khai báo của người cao tuổi và lịch sử
+      x-fr: [FR-003]
+      parameters: [ { $ref: '#/components/parameters/NctId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/KhaiBao' } } } } } }
+    post:
+      tags: [khai-bao]
+      summary: Lập khai báo (hoặc khai báo gia hạn) ở Cần khai báo; loại xác định khi lập; hạn theo mốc nghĩa vụ
+      x-fr: [FR-001, FR-001a, FR-002, FR-004, FR-006, FR-007]
+      x-br: [BR-M02-11, BR-M02-12, BR-M02-14, DBR-33]
+      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { giaHan: { type: boolean, default: false } } } } } }
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KhaiBao' } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /khai-bao/{id}/{lenh}:
+    post:
+      tags: [khai-bao]
+      summary: Lệnh trên khai báo theo bảng FR-005
+      description: |
+        xac-nhan-thuong-tru-cung-xa (ghi chú căn cứ; khi Cần khai báo), ghi-da-nop (ngày, kênh, cơ quan, mã hồ sơ),
+        ghi-chap-nhan (bằng chứng; ngày hết hạn với Đăng ký tạm trú), ghi-tu-choi (lý do),
+        ghi-da-khai-bao-xoa (bằng chứng; người đã Kết thúc lưu trú hoặc Qua đời; được khi hồ sơ ở trạng thái cuối).
+      x-fr: [FR-001, FR-003, FR-005, FR-008]
+      x-br: [BR-M02-11, BR-M02-13]
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+        - { name: lenh, in: path, required: true, schema: { type: string, enum: [xac-nhan-thuong-tru-cung-xa, ghi-da-nop, ghi-chap-nhan, ghi-tu-choi, ghi-da-khai-bao-xoa] } }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LenhKhaiBao' } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+
+components:
+  securitySchemes:
+    phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+    NctId: { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } }
+    IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
+  responses:
+    Loi:
+      description: Lỗi theo RFC 9457 (research R-03 của 000)
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
+    LoiChan:
+      description: 'TRANG_THAI_DA_DOI, KHONG_PHAI_NOI_TRU, CHUA_PHAT_SINH_NGHIA_VU, DA_CO_KHAI_BAO_DANG_XU_LY, CHUA_CO_DANG_KY_TAM_TRU_DA_XAC_NHAN, CHUA_GHI_NOP, THIEU_BANG_CHUNG, THIEU_NGAY_HET_HAN, CHUA_KET_THUC_LUU_TRU'
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
+  schemas:
+    Loi:
+      type: object
+      properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, maLoi: { type: string }, dieuKienChuaThoa: { type: array, items: { type: object } } }
+    KhaiBao:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        nctId: { type: integer, format: int64 }
+        loai: { type: string, enum: [DANG_KY_TAM_TRU, THONG_BAO_LUU_TRU] }
+        laGiaHan: { type: boolean }
+        hanKhaiBao: { type: string, format: date-time }
+        trangThai: { type: string, enum: [CAN_KHAI_BAO, DA_NOP, DA_XAC_NHAN, HET_HAN, DA_XOA, DUOC_THAY_THE, DA_HUY] }
+        ngayHetHan: { type: string, format: date }
+        thuongTruCungXa: { type: boolean }
+    ViecKhaiBao:
+      type: object
+      properties: { nctId: { type: integer, format: int64 }, hoTen: { type: string }, loaiViec: { type: string, enum: [CAN_LAP, QUA_HAN, SAP_HET_HAN, HET_HAN, CAN_KHAI_BAO_XOA] }, han: { type: string, format: date-time }, khaiBaoId: { type: integer, format: int64 } }
+    LenhKhaiBao:
+      type: object
+      properties:
+        ghiChuCanCu: { type: string }
+        ngayNop: { type: string, format: date }
+        kenh: { type: string, enum: [CONG_DICH_VU_CONG, TRUC_TIEP] }
+        coQuan: { type: string }
+        maHoSo: { type: string }
+        tepBangChungId: { type: integer, format: int64 }
+        ngayHetHan: { type: string, format: date }
+        lyDo: { type: string }

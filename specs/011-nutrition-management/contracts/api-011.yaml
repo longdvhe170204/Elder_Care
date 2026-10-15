@@ -1,0 +1,585 @@
+openapi: 3.1.0
+info:
+  title: Elder Care – Feature 011 (dinh dưỡng và suất ăn)
+  version: 1.0.0-design
+  description: |
+    Hợp đồng REST của feature 011 (module M08). Quy ước chung theo research R-03 của 000:
+    tiền tố /api/v1, lỗi RFC 9457 có maLoi và dieuKienChuaThoa[], Idempotency-Key cho mọi lệnh ghi.
+    Sửa nội dung Nháp (món, thực đơn) dùng If-Match; lệnh chuyển trạng thái khóa dòng và kiểm tra lại (research M-03).
+    Hệ thống không tự chốt suất, không tự lập phiếu (Q-306): lệnh Chốt suất của Nhân viên bếp tính lại tại lúc lệnh,
+    không tin số đã xem ở màn tính sẵn.
+    Phản hồi cho Nhân viên bếp dùng DTO riêng (PhieuChoBep, CanhBaoThucDonChoBep) không có dị ứng, bệnh lý,
+    tên người trong cảnh báo dị ứng (FR-025 c, FR-046, SC-008).
+    Truy vết: mỗi operation có x-fr (FR của spec 011) và x-br khi có.
+servers:
+  - url: /api/v1
+security:
+  - phien: []
+tags:
+  - { name: danh-muc, description: 'UC-45; mục A' }
+  - { name: che-do-an, description: 'UC-45; mục B, C' }
+  - { name: thuc-don, description: 'UC-46; mục D' }
+  - { name: chot-suat, description: 'UC-47; mục E' }
+  - { name: phieu, description: 'UC-47, UC-48; mục F, G' }
+  - { name: do-an-gia-dinh, description: 'UC-75, UC-76; mục H' }
+  - { name: xem-lai-luu-mau, description: 'UC-77, UC-78; mục I, J' }
+
+paths:
+  /dinh-duong/che-do-an:
+    get:
+      tags: [danh-muc]
+      summary: Danh mục chế độ ăn (hạn chế, món an toàn, mặc định)
+      x-fr: [FR-001]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CheDoAn' } } } } } }
+    post:
+      tags: [danh-muc]
+      summary: Tạo chế độ ăn (Bác sĩ); bắt buộc món an toàn hợp lệ theo FR-005
+      x-fr: [FR-001, FR-005, FR-037a]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CheDoAnLenh' } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
+  /dinh-duong/che-do-an/{id}:
+    put:
+      tags: [danh-muc]
+      summary: Sửa chế độ ăn; đổi hạn chế chạy lại FR-005 với thực đơn chưa hết tuần, báo Bác sĩ và Bếp
+      x-fr: [FR-001, FR-005]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CheDoAnLenh' } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /dinh-duong/che-do-an/{id}/ngung-hieu-luc:
+    post:
+      tags: [danh-muc]
+      summary: Ngừng chế độ ăn; chặn CON_BAN_GAN, CON_TRONG_THUC_DON
+      x-fr: [FR-002]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /dinh-duong/thanh-phan-thuc-pham:
+    post:
+      tags: [danh-muc]
+      summary: Bác sĩ thêm thành phần thực phẩm vào danh mục dị nguyên (qua 001 DiNguyenApi.themDiNguyen)
+      x-fr: [FR-003]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ten], properties: { ten: { type: string }, moTa: { type: string } } } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /dinh-duong/mon-an:
+    get:
+      tags: [danh-muc]
+      summary: Danh mục món (lọc trạng thái, chế độ ăn phù hợp); kèm bản sửa chờ nếu có
+      x-fr: [FR-004, FR-004a]
+      parameters:
+        - { name: trangThai, in: query, schema: { $ref: '#/components/schemas/TrangThaiMon' } }
+        - { name: cheDoAnId, in: query, schema: { type: integer, format: int64 } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MonAn' } } } } } }
+    post:
+      tags: [danh-muc]
+      summary: Tạo món Nháp (Nhân viên bếp)
+      x-fr: [FR-004]
+      x-br: [BR-M08-02]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/MonAnLenh' } } } }
+      responses: { '201': { description: OK }, '422': { $ref: '#/components/responses/Loi' } }
+  /dinh-duong/mon-an/{id}:
+    put:
+      tags: [danh-muc]
+      summary: Sửa món Nháp; với món Hiệu lực chỉ sửa tên, ghi chú (nội dung đổi qua bản sửa)
+      x-fr: [FR-004, FR-004a]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/MonAnLenh' } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /dinh-duong/mon-an/{id}/{lenh}:
+    post:
+      tags: [danh-muc]
+      summary: Lệnh trên món theo bảng trạng thái
+      description: |
+        gui-xac-nhan, rut-lai, huy (Nhân viên bếp); xac-nhan, tra-lai (Bác sĩ, tra-lai cần lý do);
+        gui-ban-sua (kèm nội dung), xac-nhan-ban-sua, tra-lai-ban-sua, rut-ban-sua; ngung-hieu-luc (Nhân viên bếp, Bác sĩ; lý do;
+        chặn LA_MON_AN_TOAN). Xác nhận bản sửa chạy lại kiểm tra thực đơn chưa hết tuần (FR-004a).
+      x-fr: [FR-004, FR-004a]
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+        - { name: lenh, in: path, required: true, schema: { type: string, enum: [gui-xac-nhan, rut-lai, huy, xac-nhan, tra-lai, gui-ban-sua, xac-nhan-ban-sua, tra-lai-ban-sua, rut-ban-sua, ngung-hieu-luc] } }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody: { content: { application/json: { schema: { type: object, properties: { lyDo: { $ref: '#/components/schemas/LyDo' }, noiDung: { $ref: '#/components/schemas/MonAnLenh' } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaKiemTra' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /dinh-duong/bua-an:
+    get:
+      tags: [danh-muc]
+      summary: Danh mục bữa ăn (giờ dự kiến, ngưỡng giao trễ từ CFG-M08-04)
+      x-fr: [FR-006]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BuaAn' } } } } } }
+    post:
+      tags: [danh-muc]
+      summary: Tạo bữa (Quản lý viện)
+      x-fr: [FR-006]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/BuaAn' } } } }
+      responses: { '201': { description: OK } }
+  /dinh-duong/bua-an/{id}:
+    put:
+      tags: [danh-muc]
+      summary: Sửa, ngừng bữa; bữa đã có lần chốt không xóa được
+      x-fr: [FR-006]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/BuaAn' } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /dinh-duong/loai-do-an-cam:
+    get:
+      tags: [danh-muc]
+      summary: Danh mục loại đồ ăn bị cấm
+      x-fr: [FR-007]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [danh-muc]
+      summary: Thêm, ngừng loại đồ ăn bị cấm (Quản lý viện)
+      x-fr: [FR-007]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ten], properties: { ten: { type: string }, moTa: { type: string }, trangThai: { type: string, enum: [HIEU_LUC, NGUNG_HIEU_LUC] } } } } } }
+      responses: { '201': { description: OK } }
+
+  /nguoi-cao-tuoi/{nctId}/ban-gan-che-do-an:
+    get:
+      tags: [che-do-an]
+      summary: Bản gán hiện hành và lịch sử (Bác sĩ, Điều dưỡng, Quản lý viện)
+      x-fr: [FR-010, FR-014]
+      parameters: [ { $ref: '#/components/parameters/NctId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BanGan' } } } } }, '403': { $ref: '#/components/responses/Loi' } }
+    post:
+      tags: [che-do-an]
+      summary: Lập đề xuất bản gán (Bác sĩ); trả kết quả đối chiếu FR-016 và có cần lý do chuyên môn
+      x-fr: [FR-010, FR-012, FR-013, FR-016]
+      x-br: [BR-M08-03]
+      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/BanGanLenh' } } } }
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaKiemTra' } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /ban-gan-che-do-an/{id}/ap-dung:
+    post:
+      tags: [che-do-an]
+      summary: Áp dụng bản gán; Hiệu lực ngay hoặc Chờ hiệu lực (FR-017); bản cũ Ngừng cùng lệnh
+      description: Chặn CAN_LY_DO_CHUYEN_MON khi thuộc FR-013 (a)–(d); CANH_BAO_CHUA_XAC_NHAN khi chưa gửi danh sách cảnh báo đã xem.
+      x-fr: [FR-011, FR-013, FR-016, FR-017, FR-039]
+      x-br: [BR-M08-03]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { lyDoChuyenMon: { type: string }, canhBaoDaXacNhan: { type: array, items: { type: string } } } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /ban-gan-che-do-an/{id}/huy:
+    post:
+      tags: [che-do-an]
+      summary: Hủy bản gán Đề xuất hoặc Chờ hiệu lực (lý do)
+      x-fr: [FR-012]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /nguoi-cao-tuoi/{nctId}/doi-chieu-mon:
+    get:
+      tags: [che-do-an]
+      summary: Kết quả đối chiếu xung đột của một người với thực đơn chưa hết tuần (Bác sĩ)
+      x-fr: [FR-020, FR-022]
+      x-br: [BR-M08-02, BR-M01-07]
+      parameters: [ { $ref: '#/components/parameters/NctId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/XungDot' } } } } } }
+
+  /thuc-don:
+    get:
+      tags: [thuc-don]
+      summary: Thực đơn theo tuần
+      x-fr: [FR-023]
+      parameters: [ { name: tuan, in: query, schema: { type: string, format: date } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ThucDon' } } } } } }
+    post:
+      tags: [thuc-don]
+      summary: Tạo thực đơn Nháp, tùy chọn sao chép từ thực đơn trước (Nhân viên bếp)
+      x-fr: [FR-023, FR-024]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ngayDauTuan], properties: { ngayDauTuan: { type: string, format: date }, saoChepTuId: { type: integer, format: int64 } } } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /thuc-don/{id}:
+    get:
+      tags: [thuc-don]
+      summary: Chi tiết thực đơn (nội dung, kết quả kiểm tra, lịch sử đổi món)
+      x-fr: [FR-024, FR-031]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } } } }
+    put:
+      tags: [thuc-don]
+      summary: Sửa nội dung thực đơn Nháp
+      x-fr: [FR-024]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NoiDungThucDon' } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '412': { $ref: '#/components/responses/Loi' } }
+  /thuc-don/{id}/truoc-khi-gui:
+    get:
+      tags: [thuc-don]
+      summary: "Thông tin trước khi gửi: tồn kho nguyên liệu (019), số người theo chế độ ăn (không tên)"
+      x-fr: [FR-025a]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK } }
+  /thuc-don/{id}/kiem-tra:
+    post:
+      tags: [thuc-don]
+      summary: Chạy kiểm tra độ phủ, lặp món, dị ứng trong một lần (không đổi trạng thái)
+      x-fr: [FR-025, FR-026, FR-027]
+      x-br: [BR-M08-06, BR-M08-07, BR-M08-08]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: 'Bếp nhận CanhBaoThucDonChoBep; Bác sĩ nhận kèm tên người', content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaKiemTra' } } } } }
+  /thuc-don/{id}/{lenh}:
+    post:
+      tags: [thuc-don]
+      summary: Lệnh trên thực đơn theo bảng trạng thái
+      description: |
+        gui-kiem-tra (Nhân viên bếp; xacNhanKiemTraCheBien bắt buộc; chặn THIEU_DO_PHU, MON_CHUA_HIEU_LUC, CANH_BAO_CHUA_XAC_NHAN);
+        rut-lai, huy (Nhân viên bếp; huy cần lý do); tra-lai (Bác sĩ, lý do); cong-bo (Bác sĩ; chạy lại kiểm tra, tuần đã bắt đầu thì Đã áp dụng).
+      x-fr: [FR-025, FR-025a, FR-028, FR-029]
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+        - { name: lenh, in: path, required: true, schema: { type: string, enum: [gui-kiem-tra, rut-lai, huy, tra-lai, cong-bo] } }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody: { content: { application/json: { schema: { type: object, properties: { lyDo: { $ref: '#/components/schemas/LyDo' }, xacNhanKiemTraCheBien: { type: boolean }, ghiChuCheBien: { type: string }, canhBaoDaXacNhan: { type: array, items: { type: string } } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaKiemTra' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /thuc-don/{id}/doi-mon:
+    post:
+      tags: [thuc-don]
+      summary: Đổi món trên thực đơn Công bố hoặc Đã áp dụng (Nhân viên bếp; lý do); sau chốt tạo phát sinh
+      x-fr: [FR-031, FR-032, FR-039]
+      x-br: [BR-M08-08, BR-M08-13]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DoiMon' } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaKiemTra' } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
+
+  /bua-ngay:
+    get:
+      tags: [chot-suat]
+      summary: Các bữa trong ngày, đã chốt chưa, mốc mở chốt (giờ bữa − CFG-M08-01)
+      x-fr: [FR-033]
+      parameters: [ { name: ngay, in: query, required: true, schema: { type: string, format: date } } ]
+      responses: { '200': { description: OK } }
+  /bua-ngay/{id}/tinh-san:
+    get:
+      tags: [chot-suat]
+      summary: Tính sẵn người được tính, số suất theo tầng và chế độ ăn, suất đặc biệt (chỉ xem; không lưu)
+      x-fr: [FR-034, FR-035, FR-036, FR-036a, FR-038]
+      x-br: [BR-M08-01]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaChot' } } } } }
+  /bua-ngay/{id}/chot-suat:
+    post:
+      tags: [chot-suat]
+      summary: Chốt suất (Nhân viên bếp); tính lại tại lúc lệnh, lập phiếu mỗi tầng/khu và suất ăn người thân trong cùng lệnh
+      description: Chặn CHUA_TOI_MOC_CHOT (trước giờ bữa − CFG-M08-01), DA_CHOT. Chốt sau giờ bữa được phép, mang dấu CHOT_SAU_GIO_BUA.
+      x-fr: [FR-033, FR-035, FR-037a, FR-038, FR-043, FR-044]
+      x-br: [BR-M08-01, BR-M08-09]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaChot' } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /bua-ngay/{id}/phat-sinh:
+    get:
+      tags: [chot-suat]
+      summary: Danh sách phát sinh của bữa (bếp thấy dạng không có thông tin sức khỏe)
+      x-fr: [FR-039, FR-041]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PhatSinh' } } } } } }
+  /phat-sinh/{id}/xac-nhan:
+    post:
+      tags: [chot-suat]
+      summary: Bếp xác nhận phát sinh; phát sinh "+" của tầng/khu chưa có phiếu lập phiếu cùng lệnh
+      x-fr: [FR-039, FR-041, FR-044]
+      x-br: [BR-M08-13]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /bua-ngay/{id}/suat-bo-sung:
+    post:
+      tags: [chot-suat]
+      summary: Người nhận tại tầng yêu cầu suất bổ sung sau giờ bữa, trong ngưỡng giao trễ
+      x-fr: [FR-040]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nctId, tangKhuVucId, lyDo], properties: { nctId: { type: integer, format: int64 }, tangKhuVucId: { type: integer, format: int64 }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /suat-dac-biet/{id}/phuc-vu-suat-giu:
+    post:
+      tags: [chot-suat]
+      summary: Phục vụ suất giữ cho người trở về trong ngưỡng (tạo phát sinh "+1" không cần giao)
+      x-fr: [FR-040a]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /suat-dac-biet/{id}/huy-suat-giu:
+    post:
+      tags: [chot-suat]
+      summary: Ghi hủy bỏ suất giữ khi hết ngưỡng
+      x-fr: [FR-040a]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /suat-dac-biet/{id}/chi-dinh-mon:
+    post:
+      tags: [chot-suat]
+      summary: Bác sĩ chỉ định món thay thế riêng cho bữa chưa qua giờ; sau chốt tạo phát sinh đổi suất
+      x-fr: [FR-037, FR-039]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [monAnId], properties: { monAnId: { type: integer, format: int64 }, ghiChu: { type: string } } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+
+  /phieu-bua-an:
+    get:
+      tags: [phieu]
+      summary: Phiếu theo bữa ngày, tầng/khu (bếp nhận PhieuChoBep; tầng nhận PhieuChoTang trong phạm vi)
+      x-fr: [FR-044, FR-045, FR-046]
+      x-br: [BR-M08-09, BR-M08-10]
+      parameters:
+        - { name: buaNgayId, in: query, schema: { type: integer, format: int64 } }
+        - { name: tangKhuVucId, in: query, schema: { type: integer, format: int64 } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { oneOf: [ { type: array, items: { $ref: '#/components/schemas/PhieuChoBep' } }, { type: array, items: { $ref: '#/components/schemas/PhieuChoTang' } } ] } } } } }
+  /suat-dac-biet/{id}/da-chuan-bi:
+    post:
+      tags: [phieu]
+      summary: Bếp đánh dấu suất đặc biệt đã chuẩn bị
+      x-fr: [FR-045]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /phieu-bua-an/{id}/{lenh}:
+    post:
+      tags: [phieu]
+      summary: Lệnh trên phiếu theo bảng trạng thái
+      description: |
+        chuan-bi-xong, giao (Nhân viên bếp; giao chặn theo FR-047: CHUA_CHUAN_BI, THIEU_MON_THAY_THE, PHAT_SINH_CHUA_XAC_NHAN, CHUA_LUU_MAU);
+        nhan, bao-sai-lech (người nhận tại tầng, FR-048; bao-sai-lech cần nội dung); xu-ly-sai-lech (Nhân viên bếp; cách xử lý).
+      x-fr: [FR-047, FR-048]
+      x-br: [BR-M08-10, BR-M08-11, BR-M08-15]
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+        - { name: lenh, in: path, required: true, schema: { type: string, enum: [chuan-bi-xong, giao, nhan, bao-sai-lech, xu-ly-sai-lech] } }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody: { content: { application/json: { schema: { type: object, properties: { noiDung: { type: string }, cachXuLy: { type: string, enum: [BO_SUNG_SUAT, DOI_SUAT, KHAC] }, moTa: { type: string } } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /phan-bo-sung/{id}/{lenh}:
+    post:
+      tags: [phieu]
+      summary: Giao (bếp), nhận (người nhận tại tầng) phần bổ sung của phiếu
+      x-fr: [FR-048b]
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+        - { name: lenh, in: path, required: true, schema: { type: string, enum: [giao, nhan] } }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /suat-dac-biet/{id}/xac-nhan-phuc-vu:
+    post:
+      tags: [phieu]
+      summary: Xác nhận phục vụ suất đặc biệt (Nhân viên chăm sóc, Điều dưỡng); ghi ngoại tuyến được
+      description: |
+        SUAT_KHONG_DUNG_NGUOI: chặn, không sự cố. SUAT_CO_THANH_PHAN_DI_UNG: chặn, cảnh báo 007 mức Trung bình đã được tạo,
+        yêu cầu gửi lại với daAn. daAn = true bắt buộc suCo (triệu chứng, xử trí); 011 gọi 007 ghi nhận sự cố trong cùng lệnh.
+        SUAT_TRAI_HAN_CHE: chặn khi chỉ xung đột hạn chế.
+      x-fr: [FR-049, FR-050, FR-051]
+      x-br: [BR-M08-14]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/XacNhanPhucVu' } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+
+  /nguoi-cao-tuoi/{nctId}/do-an-gia-dinh:
+    get:
+      tags: [do-an-gia-dinh]
+      summary: Đồ ăn gia đình của một người
+      x-fr: [FR-052]
+      parameters: [ { $ref: '#/components/parameters/NctId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DoAnGiaDinh' } } } } } }
+    post:
+      tags: [do-an-gia-dinh]
+      summary: Ghi nhận đồ ăn gia đình; hệ thống gán trạng thái theo đối chiếu (FR-053)
+      x-fr: [FR-052, FR-053, FR-054, FR-057]
+      x-br: [BR-M08-04]
+      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DoAnGiaDinhLenh' } } } }
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/DoAnGiaDinh' } } } }, '422': { $ref: '#/components/responses/Loi' } }
+  /do-an-gia-dinh/{id}/{lenh}:
+    post:
+      tags: [do-an-gia-dinh]
+      summary: "Lệnh: xac-nhan-cho-dung (ghi chú), khong-cho-dung (lý do), ghi-xu-ly, ket-thuc"
+      x-fr: [FR-055, FR-057]
+      parameters:
+        - { $ref: '#/components/parameters/Id' }
+        - { name: lenh, in: path, required: true, schema: { type: string, enum: [xac-nhan-cho-dung, khong-cho-dung, ghi-xu-ly, ket-thuc] } }
+        - { $ref: '#/components/parameters/IdempotencyKey' }
+      requestBody: { content: { application/json: { schema: { type: object, properties: { ghiChu: { type: string }, lyDo: { $ref: '#/components/schemas/LyDo' }, cach: { type: string, enum: [TRA_LAI, HUY_BO, DA_DUNG_HET] }, nguoiNhanLai: { type: string } } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+
+  /dinh-duong/thong-bao-xem-lai:
+    get:
+      tags: [xem-lai-luu-mau]
+      summary: Thông báo xem lại chế độ ăn đã gửi Bác sĩ (để chọn căn cứ khi lập bản gán)
+      x-fr: [FR-058, FR-059]
+      x-br: [BR-M08-05]
+      parameters: [ { name: nctId, in: query, schema: { type: integer, format: int64 } } ]
+      responses: { '200': { description: OK } }
+  /bua-ngay/{id}/luu-mau:
+    get:
+      tags: [xem-lai-luu-mau]
+      summary: Món cần lưu mẫu và bản ghi lưu mẫu
+      x-fr: [FR-060, FR-061]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK } }
+    post:
+      tags: [xem-lai-luu-mau]
+      summary: Ghi lưu mẫu (Nhân viên bếp); gọi lại để thêm món mới sau phát sinh
+      x-fr: [FR-060, FR-061]
+      x-br: [BR-M08-15]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LuuMauLenh' } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /luu-mau/{id}/huy-mau:
+    post:
+      tags: [xem-lai-luu-mau]
+      summary: Ghi thời điểm hủy mẫu
+      x-fr: [FR-062]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+
+components:
+  securitySchemes:
+    phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+    NctId: { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } }
+    IfMatch: { name: If-Match, in: header, required: true, schema: { type: string } }
+    IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
+  headers:
+    ETag: { schema: { type: string } }
+  requestBodies:
+    LyDo:
+      required: true
+      content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } }
+  responses:
+    Loi:
+      description: Lỗi theo RFC 9457 (research R-03 của 000)
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
+    LoiChan:
+      description: 'TRANG_THAI_DA_DOI, DIEU_KIEN_CHUA_THOA, CON_BAN_GAN, CON_TRONG_THUC_DON, LA_MON_AN_TOAN, DA_CO_BAN_SUA, MON_KHONG_PHU_HOP, CAN_LY_DO_CHUYEN_MON, CANH_BAO_CHUA_XAC_NHAN, DA_CO_THUC_DON_TUAN, THIEU_DO_PHU, MON_CHUA_HIEU_LUC, QUA_GIO_BUA, CHUA_TOI_MOC_CHOT, DA_CHOT, CHUA_CHUAN_BI, THIEU_MON_THAY_THE, PHAT_SINH_CHUA_XAC_NHAN, CHUA_LUU_MAU, NGOAI_PHAM_VI_NHAN, QUA_NGUONG_GIAO_TRE, SUAT_KHONG_DUNG_NGUOI, SUAT_CO_THANH_PHAN_DI_UNG, SUAT_TRAI_HAN_CHE, KHONG_CHO_DUNG_LAI'
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
+  schemas:
+    LyDo: { type: string, minLength: 1, maxLength: 2000 }
+    Loi:
+      type: object
+      properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, maLoi: { type: string }, dieuKienChuaThoa: { type: array, items: { type: object } } }
+    KetCau: { type: string, enum: [THUONG, MEM, XAY_NHUYEN] }
+    TrangThaiMon: { type: string, enum: [NHAP, CHO_XAC_NHAN, HIEU_LUC, NGUNG_HIEU_LUC, DA_HUY] }
+    CheDoAn:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        ten: { type: string }
+        moTa: { type: string }
+        lienQuanDieuTri: { type: boolean }
+        macDinh: { type: boolean }
+        hanChe: { type: array, items: { type: integer, format: int64 }, description: 'Id dị nguyên' }
+        monAnToanId: { type: integer, format: int64 }
+        trangThai: { type: string, enum: [HIEU_LUC, NGUNG_HIEU_LUC] }
+    CheDoAnLenh:
+      type: object
+      required: [ten, monAnToanId]
+      properties: { ten: { type: string }, moTa: { type: string }, lienQuanDieuTri: { type: boolean }, macDinh: { type: boolean }, hanChe: { type: array, items: { type: integer, format: int64 } }, monAnToanId: { type: integer, format: int64 } }
+    MonAnLenh:
+      type: object
+      required: [ten, cheDoAnPhuHop, ketCau]
+      properties:
+        ten: { type: string }
+        ghiChu: { type: string }
+        thanhPhan: { type: array, items: { type: integer, format: int64 } }
+        khongCoThanhPhanTrongDanhMuc: { type: boolean }
+        cheDoAnPhuHop: { type: array, minItems: 1, items: { type: integer, format: int64 } }
+        ketCau: { $ref: '#/components/schemas/KetCau' }
+    MonAn:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        ten: { type: string }
+        trangThai: { $ref: '#/components/schemas/TrangThaiMon' }
+        hieuLuc: { $ref: '#/components/schemas/MonAnLenh' }
+        banSuaCho: { $ref: '#/components/schemas/MonAnLenh' }
+        phienBan: { type: integer }
+    BuaAn:
+      type: object
+      required: [ma, ten]
+      properties: { id: { type: integer, format: int64 }, ma: { type: string }, ten: { type: string }, phucVuNoiTru: { type: boolean }, phucVuBanTru: { type: boolean }, thuTu: { type: integer }, gioDuKien: { type: string, readOnly: true }, nguongGiaoTrePhut: { type: integer, readOnly: true }, trangThai: { type: string } }
+    BanGanLenh:
+      type: object
+      required: [cheDoAnId, ketCau, canCu, hieuLucTu]
+      properties:
+        cheDoAnId: { type: integer, format: int64 }
+        ketCau: { $ref: '#/components/schemas/KetCau' }
+        hanCheRieng: { type: array, items: { type: integer, format: int64 } }
+        chiDinhRieng: { type: string }
+        canCu: { type: string, enum: [DANH_GIA, XEM_LAI, KHAC] }
+        canCuId: { type: integer, format: int64 }
+        thongBaoXemLaiId: { type: integer, format: int64 }
+        hieuLucTu: { type: string, format: date-time }
+    BanGan:
+      allOf:
+        - { $ref: '#/components/schemas/BanGanLenh' }
+        - type: object
+          properties: { id: { type: integer, format: int64 }, trangThai: { type: string, enum: [DE_XUAT, CHO_HIEU_LUC, HIEU_LUC, NGUNG, DA_HUY] }, hieuLucThucTe: { type: string, format: date-time }, lyDoChuyenMon: { type: string }, macDinh: { type: boolean, description: 'Chế độ ăn mặc định do chưa gán (FR-014)' } }
+    XungDot:
+      type: object
+      properties: { ngay: { type: string, format: date }, buaAnId: { type: integer, format: int64 }, monAnId: { type: integer, format: int64 }, thanhPhan: { type: array, items: { type: integer, format: int64 } }, loai: { type: string, enum: [DI_UNG, HAN_CHE_RIENG, HAN_CHE_CHE_DO] }, coMonThayThePhuHop: { type: boolean } }
+    KetQuaKiemTra:
+      type: object
+      properties:
+        doPhuThieu: { type: array, items: { type: object, properties: { cheDoAnId: { type: integer, format: int64 }, ngay: { type: string, format: date }, buaAnId: { type: integer, format: int64 } } } }
+        lapMon: { type: array, items: { type: object } }
+        diUng: { type: array, items: { type: object, description: 'Bếp: soNguoi; Bác sĩ: kèm tên người' } }
+        canLyDoChuyenMon: { type: boolean }
+        maCanhBao: { type: array, items: { type: string } }
+    NoiDungThucDon:
+      type: object
+      properties:
+        mon: { type: array, items: { type: object, required: [ngay, buaAnId, cheDoAnId, monAnId], properties: { ngay: { type: string, format: date }, buaAnId: { type: integer, format: int64 }, cheDoAnId: { type: integer, format: int64 }, monAnId: { type: integer, format: int64 }, thayThe: { type: array, items: { type: integer, format: int64 } } } } }
+    ThucDon:
+      type: object
+      properties: { id: { type: integer, format: int64 }, ngayDauTuan: { type: string, format: date }, trangThai: { type: string, enum: [NHAP, CHO_CONG_BO, CONG_BO, DA_AP_DUNG, DA_HUY] }, phienBan: { type: integer } }
+    DoiMon:
+      type: object
+      required: [ngay, buaAnId, cheDoAnId, monCuId, monMoiId, lyDo]
+      properties: { ngay: { type: string, format: date }, buaAnId: { type: integer, format: int64 }, cheDoAnId: { type: integer, format: int64 }, monCuId: { type: integer, format: int64 }, monMoiId: { type: integer, format: int64 }, lyDo: { $ref: '#/components/schemas/LyDo' }, canhBaoDaXacNhan: { type: array, items: { type: string } } }
+    KetQuaChot:
+      type: object
+      properties:
+        buaNgayId: { type: integer, format: int64 }
+        suatTheoTang: { type: array, items: { type: object, properties: { tangKhuVucId: { type: integer, format: int64 }, cheDoAnId: { type: integer, format: int64 }, soSuat: { type: integer } } } }
+        suatDacBiet: { type: integer }
+        suatNguoiThan: { type: integer }
+        dau: { type: array, items: { type: string, enum: [CHUA_CO_THUC_DON, CHOT_SAU_GIO_BUA, THIEU_MON_THAY_THE, CHUA_GAN_CHE_DO_AN] } }
+        chuaCoDuLieu: { type: array, items: { type: string, enum: [O_LAI, CHUYEN_DI] } }
+    PhatSinh:
+      type: object
+      properties: { id: { type: integer, format: int64 }, tangKhuVucId: { type: integer, format: int64 }, cheDoAnId: { type: integer, format: int64 }, soSuat: { type: integer }, loaiThayDoi: { type: string }, canGiao: { type: boolean }, bepXacNhanLuc: { type: string, format: date-time } }
+    PhieuChoBep:
+      type: object
+      description: 'Chỉ trường FR-046; không có dị ứng, bệnh lý, thành phần xung đột'
+      properties:
+        id: { type: integer, format: int64 }
+        tangKhuVuc: { type: string }
+        bua: { type: string }
+        suatTheoCheDo: { type: array, items: { type: object, properties: { cheDoAn: { type: string }, soSuat: { type: integer } } } }
+        nhan: { type: array, items: { type: object, properties: { hoTen: { type: string }, phong: { type: string }, cheDoAn: { type: string }, ketCau: { $ref: '#/components/schemas/KetCau' }, mon: { type: string }, dau: { type: array, items: { type: string } }, daChuanBi: { type: boolean } } } }
+        trangThai: { type: string, enum: [DA_CHOT, DA_CHUAN_BI, DA_GIAO, CO_SAI_LECH, DA_NHAN] }
+    PhieuChoTang:
+      allOf:
+        - { $ref: '#/components/schemas/PhieuChoBep' }
+        - type: object
+          properties: { canDoiChieu: { type: array, items: { type: integer, format: int64 }, description: 'Người có dị ứng loại khác (FR-036a)' }, diUng: { type: array, items: { type: object }, description: 'Chỉ khi có quyền xem dị ứng' } }
+    XacNhanPhucVu:
+      type: object
+      required: [nctId]
+      properties:
+        nctId: { type: integer, format: int64, description: Người đang được phục vụ }
+        daAn: { type: boolean, description: 'Chỉ gửi sau khi bị chặn SUAT_CO_THANH_PHAN_DI_UNG' }
+        suCo: { type: object, properties: { mucDo: { type: string }, trieuChung: { type: string }, xuTri: { type: string } } }
+        thoiDiemThietBi: { type: string, format: date-time }
+    DoAnGiaDinhLenh:
+      type: object
+      required: [nguoiGuiTen, loai, moTa, hanDung, cachBaoQuan]
+      properties: { nguoiGuiTen: { type: string }, nguoiThanId: { type: integer, format: int64 }, loai: { type: string }, moTa: { type: string }, thanhPhan: { type: array, items: { type: integer, format: int64 } }, thanhPhanKhongRo: { type: boolean }, hanDung: { type: string, format: date-time }, cachBaoQuan: { type: string } }
+    DoAnGiaDinh:
+      allOf:
+        - { $ref: '#/components/schemas/DoAnGiaDinhLenh' }
+        - type: object
+          properties: { id: { type: integer, format: int64 }, trangThai: { type: string, enum: [KHONG_SU_DUNG, CAN_XAC_NHAN, DUOC_SU_DUNG, DA_KET_THUC] }, lyDoHeThong: { type: array, items: { type: string } } }
+    LuuMauLenh:
+      type: object
+      required: [mon]
+      properties: { viTriLuu: { type: string }, mon: { type: array, items: { type: object, required: [monAnId, daLuu], properties: { monAnId: { type: integer, format: int64 }, daLuu: { type: boolean }, lyDoKhongLuu: { type: string } } } } }
