@@ -76,7 +76,7 @@ Tài liệu nguồn (7.7, BR-M03-16, DBR-32, BF-15) đã chốt Q-231 và Q-236 
 
 ### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
 
-Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với tài liệu gốc DOCX "nghiep-vu-quan-ly-vien-duong-lao.docx" (lưu ngoài kho mã từ 2026-10-15; bản cũ ở commit a2ff357); các Q đã chốt trước được giữ. Thay đổi ở spec này:
 
 - **Q-306**: bỏ các câu "feature 005 sinh / sinh lại công việc" còn sót ở Phạm vi, User Story 2 kịch bản 2, User Story 5 kịch bản 3, bảng trạng thái đăng ký, FR-031a, FR-044, Assumptions; thay bằng "căn cứ để Người phụ trách ca lập công việc" (005 FR-017, FR-020).
 - **Q-163, Q-254, Q-307**: Assumptions về kiểm tra chất lượng viết lại (người kiểm tra tự chọn, Người phụ trách ca kiểm tra khi Trưởng tầng được giao không có tên trong ca); User Story 7 kịch bản 10 thêm điều kiện để không mâu thuẫn kịch bản 11, FR-066.
@@ -754,4 +754,4 @@ Chuyến đi có bảng trạng thái riêng ở mục H.
 
 **(2026-10-10) Plan 014, điểm báo lại 1 → 4.** *(Đã xử lý 2026-10-10: sửa User Story, bảng trạng thái, SC-003, FR-016a; spec 007 thêm FR-086 và dòng giao tiếp. Dẫn chiếu "4.4" tra qua bảng ánh xạ ở Phụ lục 26.)*
 
-**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa Phạm vi, User Story 2 kịch bản 2, User Story 5 kịch bản 3, User Story 7 kịch bản 10, bảng trạng thái đăng ký, FR-031a, FR-044, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa Phạm vi, User Story 2 kịch bản 2, User Story 5 kịch bản 3, User Story 7 kịch bản 10, bảng trạng thái đăng ký, FR-031a, FR-044, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*

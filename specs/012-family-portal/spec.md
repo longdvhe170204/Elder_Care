@@ -110,7 +110,7 @@ Theo Q-194, báo cáo thăm, phản hồi, bản tin thuộc giai đoạn sau; d
 
 ### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
 
-Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với tài liệu gốc DOCX "nghiep-vu-quan-ly-vien-duong-lao.docx" (lưu ngoài kho mã từ 2026-10-15; bản cũ ở commit a2ff357); các Q đã chốt trước được giữ. Thay đổi ở spec này:
 
 - **Q-344**: FR-044 (nhắc kết thúc lượt ở lại khi người cao tuổi rời viện, lượt không tự kết thúc) nay có ở 14.4; bỏ nhãn "(Đề xuất)". FR-027 bỏ nhãn "(Đề xuất)" vì CFG-M10-09 và Q-295 đã chốt.
 - **Q-341**: cổng người thân không có đăng ký tiếp nhận, ký hợp đồng, lập đề nghị mua hộ; người thân làm các việc này trực tiếp, Hành chính ghi (14.6).
@@ -712,4 +712,4 @@ Khi người thân được phép ở lại với người cao tuổi (ví dụ 
 
 **(2026-10-10) Plan 012, điểm báo lại 1 → 5.** *(Đã xử lý 2026-10-10: sửa bảng FR-067, bảng FR-057; FR-046c thứ hai thành FR-046d; spec 014 FR-016a ghi hai nguồn ghi đồng ý về muộn. Dẫn chiếu "4.4", mục 4.2 tra qua bảng ánh xạ ở Phụ lục 26.)*
 
-**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-027, FR-044, FR-046a, User Story 2 (đánh số); xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-027, FR-044, FR-046a, User Story 2 (đánh số); xem mục "Cập nhật 2026-10-11" ở Clarifications.)*

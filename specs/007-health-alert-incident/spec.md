@@ -129,7 +129,7 @@ Các điểm dưới đây do nhóm phân tích quyết định khi đánh giá 
 
 ### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
 
-Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với tài liệu gốc DOCX "nghiep-vu-quan-ly-vien-duong-lao.docx" (lưu ngoài kho mã từ 2026-10-15; bản cũ ở commit a2ff357); các Q đã chốt trước được giữ. Thay đổi ở spec này:
 
 - **Q-339**: thêm lệnh "Giao người xử lý" cho sự cố (tài liệu gốc 20.1 "Phân công người xử lý"): Trưởng tầng, Bác sĩ, Quản lý viện giao sự cố Mới cho Điều dưỡng, Trưởng tầng hoặc Bác sĩ có quyền (chuyển Đang xử lý, dừng leo thang); giao lại khi Đang xử lý, Đang theo dõi (FR-045a, bảng FR-045, FR-041, bảng quyền, bảng giao tiếp 009, User Story 4 kịch bản 11, Key Entities). Quản lý viện vẫn không xử lý, không đóng (Q-71).
 - **Q-307**: FR-039a không còn "tạo (hoặc gộp nguồn vào) yêu cầu Bác sĩ xem lại chế độ ăn"; feature 011 chỉ thông báo Bác sĩ (011 FR-058, SC-010).
@@ -829,4 +829,4 @@ Thuật ngữ (CHK015): "người phụ trách" của một cảnh báo hay sự
 
 **(2026-10-10) Plan 007, điểm báo lại 1 → 7; plan 013 điểm 1; plan 014 điểm 2, 3.** *(Đã xử lý 2026-10-10: sửa bảng FR-006, FR-045, bảng trạng thái sự cố, FR-017, FR-025, FR-046b, bảng FR-083, Key Entities; thêm FR-085, FR-086 (Q-307, Q-311, Q-330).)*
 
-**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-039a, FR-041, bảng FR-045, FR-045a, bảng nhóm dữ liệu, bảng quyền, bảng giao tiếp, User Story 4 kịch bản 11, Key Entities; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-039a, FR-041, bảng FR-045, FR-045a, bảng nhóm dữ liệu, bảng quyền, bảng giao tiếp, User Story 4 kịch bản 11, Key Entities; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*

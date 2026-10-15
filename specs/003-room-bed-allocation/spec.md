@@ -111,7 +111,7 @@ Các điểm dưới đây do nhóm phân tích quyết định khi đánh giá 
 
 ### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
 
-Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với tài liệu gốc DOCX "nghiep-vu-quan-ly-vien-duong-lao.docx" (lưu ngoài kho mã từ 2026-10-15; bản cũ ở commit a2ff357); các Q đã chốt trước được giữ. Thay đổi ở spec này:
 
 - **Q-345**: FR-015 và bảng trạng thái giường dùng lệnh "Quyết định giữ giường" của Quản lý viện ở 004 thay cho "yêu cầu Quản lý viện chọn" (BR-M02-07, Q-307); không đổi nghiệp vụ.
 
@@ -624,4 +624,4 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/busine
 
 **(2026-10-10) Plan 003, điểm báo lại 1 → 7.** *(Đã xử lý 2026-10-10: Q-313 (dòng "Xác nhận giường sẵn sàng", spec 002 FR-019g), Q-312 (BR-M03-06), Q-311, Q-321 → Q-324; sửa FR-029, FR-039, Edge Case, US3 kịch bản 6, Key Entities; thêm FR-051. Spec 004 FR-015 ghi việc trả giường do 003 làm.)*
 
-**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-015, bảng trạng thái giường; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-015, bảng trạng thái giường; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*

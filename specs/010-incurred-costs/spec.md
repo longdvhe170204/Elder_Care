@@ -90,7 +90,7 @@ Tài liệu nguồn (1.2, 15.1, 15.6, 15.9, BR-M11-11, BR-M11-13, BR-M11-15) và
 
 ### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
 
-Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với tài liệu gốc DOCX "nghiep-vu-quan-ly-vien-duong-lao.docx" (lưu ngoài kho mã từ 2026-10-15; bản cũ ở commit a2ff357); các Q đã chốt trước được giữ. Thay đổi ở spec này:
 
 - FR-013: nguồn không còn dẫn câu cũ "nhân viên chủ yếu xác nhận" của 1.3.
 - **Q-341**: người thân không gửi yêu cầu mua hộ qua cổng; gia đình yêu cầu trực tiếp, Hành chính lập đề nghị (Assumptions).
@@ -678,4 +678,4 @@ Nội dung gốc của từng điểm được giữ dưới đây để truy v�
 
 **(2026-10-10) Plan 010, điểm báo lại 1 → 4.** *(Đã xử lý 2026-10-10: Q-333, Q-311; sửa bảng trạng thái kỳ, bảng FR-044, thứ tự kịch bản User Story 5. BR-M11-05 ở tài liệu nguồn đã viết theo Q-307 (hệ thống báo Hành chính); điểm báo lại 13 giữ làm lịch sử.)*
 
-**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-013, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-013, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*

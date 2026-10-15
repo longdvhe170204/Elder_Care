@@ -59,7 +59,7 @@
 
 ### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
 
-Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với tài liệu gốc DOCX "nghiep-vu-quan-ly-vien-duong-lao.docx" (lưu ngoài kho mã từ 2026-10-15; bản cũ ở commit a2ff357); các Q đã chốt trước được giữ. Thay đổi ở spec này:
 
 - **Q-337**: yêu cầu mua sắm có thêm loại "thuốc" cho thuốc do viện cung cấp của từng người cao tuổi; Điều dưỡng lập, gửi, rút lại, hủy (FR-008d, bảng FR-008, FR-020); dòng gắn đơn thuốc nguồn viện (feature 006); lần tiếp nhận do feature 006 ghi; không tồn kho thuốc, không sinh chi phí cho người cao tuổi. Phạm vi, User Story 7 kịch bản 8, bảng giao tiếp (006), Key Entities, SC-007 sửa theo.
 
@@ -422,4 +422,4 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 
 **(2026-10-10) Plan 019, điểm báo lại 2, 3.** *(Đã xử lý 2026-10-10: Q-313, Q-314; sửa bảng FR-013.)*
 
-**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa Phạm vi, User Story 7 kịch bản 8, FR-008, bảng FR-008, FR-008d, FR-020, bảng giao tiếp, Key Entities, SC-007; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa Phạm vi, User Story 7 kịch bản 8, FR-008, bảng FR-008, FR-008d, FR-020, bảng giao tiếp, Key Entities, SC-007; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
