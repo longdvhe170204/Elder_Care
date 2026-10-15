@@ -1,0 +1,570 @@
+# Feature Specification: Tài khoản và phân quyền
+
+**Feature Branch**: `002-account-permission`
+
+**Created**: 2026-09-25
+
+**Status**: Draft
+
+**Input**: User description: "Quản lý tài khoản và phân quyền theo docs/business/nghiep-vu.md Module 15 (mục 19) và mục 2.3–2.4: tài khoản nhân viên và người thân; vai trò hệ thống; quyền theo thao tác (xem, tạo, sửa, xác nhận, duyệt, chốt, nghiệp vụ chuyên môn); phạm vi dữ liệu theo khu vực, tầng, phòng, nhóm người cao tuổi được phân công; quyền chuyên môn phụ thuộc giấy phép còn hiệu lực. Quyền hiệu lực = vai trò ∩ phạm vi được phân công ∩ điều kiện pháp lý."
+
+## Clarifications
+
+### Session 2026-09-25
+
+- Q: Nhân viên được phân công theo ca có còn xem được người cao tuổi mình phụ trách sau khi ca kết thúc không? → A: Có, trong giờ ca cộng một khoảng trước và sau ca theo tham số mới CFG-M15-07 (mặc định 2 giờ, bằng CFG-M04-06); ngoài khoảng đó thì mất phạm vi (đề xuất Q-14).
+- Q: Ngoài quyền Duyệt kế hoạch chăm sóc, Quản lý viện có được điều chỉnh quyền của vai trò/tài khoản khác với Permission Matrix 4.4 không? → A: Chỉ được thu hẹp so với ma trận (theo vai trò hoặc từng tài khoản); ngoại lệ duy nhất được thêm vượt ma trận là quyền Duyệt kế hoạch chăm sóc cho điều dưỡng (đề xuất Q-15).
+- Q: Ai tạo, kích hoạt lại và cấp lại mật khẩu cho tài khoản người thân? → A: Nhân viên hành chính thực hiện; Quản lý viện cũng được thực hiện (đề xuất Q-16).
+- Q: Nhân viên phát hiện sự cố của người cao tuổi ngoài phạm vi phân công có được ghi nhận sự cố/kích hoạt khẩn cấp không? → A: Được; hai thao tác này miễn kiểm tra phạm vi, người ghi chỉ thấy thông tin nhận dạng (họ tên, ảnh, phòng), không thấy thông tin sức khỏe.
+- Q: Điều dưỡng giữ nhiệm vụ Người phụ trách ca có được xử lý việc quá hạn (UC-27) không? → A: Được; nhiệm vụ Người phụ trách ca mang quyền UC-27, chỉ trong tầng/khu vực và thời gian của ca; là ngoại lệ duy nhất của quy tắc "nhiệm vụ không tạo quyền". *(Đã được mở rộng bằng câu trả lời về đính chính bên dưới.)*
+- Q: Quyền "T"/"D" trong Permission Matrix áp dụng toàn viện hay chỉ trong phạm vi phân công? → A: Theo vai trò: Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc, Nhân viên vệ sinh trong phạm vi phân công; Quản lý viện, Bác sĩ, Hành chính, Dinh dưỡng viên, Nhân viên bếp toàn viện (19.3). *(Sửa 2026-10-06, Q-282, Q-283: bỏ Nhân viên vệ sinh, Dinh dưỡng viên.)*
+- Q: Spec 000 (FR-026 b) cho Người phụ trách ca tạo bản đính chính trực tiếp; spec 002 có chấp nhận đây là quyền thứ hai phát sinh từ nhiệm vụ không? → A: Có; thêm FR-019b, giới hạn trong tầng/khu vực và khoảng thời gian của ca (FR-032), giữ nguyên spec 000.
+- Q: Bản ghi nhận ngoại tuyến đồng bộ sau khi người ghi đã mất quyền có được chấp nhận không? → A: Kiểm tra ba lớp quyền theo thời điểm ghi trên thiết bị; hợp lệ thì chấp nhận; nếu lúc đồng bộ đã mất quyền thì gắn nhãn "đồng bộ sau khi mất quyền" và báo trưởng tầng.
+- Q: Khi không xác định được quyền do dữ liệu nguồn thiếu hoặc lỗi, hệ thống từ chối hay cho phép? → A: Từ chối mặc định; riêng ghi nhận sự cố và kích hoạt khẩn cấp (FR-044a) vẫn được thực hiện; hệ thống báo Quản lý viện về lỗi dữ liệu.
+- Q: Hành chính và Trưởng tầng được xem thông tin sức khỏe đến mức nào? → A: Hành chính chỉ xem mức chăm sóc và cờ nguy cơ *(sửa 2026-10-06, Q-281: chỉ còn mức chăm sóc)* (không dị ứng, bệnh nền, chỉ số, thuốc, đánh giá); Trưởng tầng xem đầy đủ hồ sơ sức khỏe trong phạm vi.
+- Q: Bác sĩ và Hành chính (ký hiệu "P" ở dòng "Dashboard, báo cáo" nhưng thường không có phân công theo tầng) xem dashboard, báo cáo toàn viện hay theo phân công? → A: Toàn viện, vẫn áp giới hạn trường của FR-022 (Hành chính không thấy chỉ số sức khỏe).
+- Q: Khi thiết bị ngoại tuyến quá lâu hoặc đồng hồ thiết bị sai lệch rõ, có còn tin thời điểm trên thiết bị để kiểm tra quyền không? → A: Tham số mới CFG-M15-08 (thời gian ngoại tuyến tối đa, mặc định 24 giờ); bản ghi vượt giới hạn hoặc có thời điểm thiết bị bất hợp lý không được tự động chấp nhận mà chuyển "chờ xem lại" cho trưởng tầng.
+- Q: Tài khoản nhiều vai trò mà hai vai trò cùng đem lại một quyền với phạm vi khác nhau thì áp phạm vi nào? → A: Phạm vi rộng hơn (hợp các phạm vi), nhất quán với FR-017; muốn hẹp hơn thì Quản lý viện thu hẹp theo tài khoản (FR-025).
+- Q: Trước khi cấp lại mật khẩu hoặc kích hoạt lại tài khoản người thân, xác minh danh tính thế nào; người thân có tự đặt lại mật khẩu được không? → A: Xác minh trực tiếp tại viện bằng giấy tờ tùy thân hoặc gọi lại số điện thoại đã đăng ký trong hồ sơ người thân; ghi cách xác minh; giai đoạn đầu không có tự đặt lại mật khẩu.
+- Q: Tài khoản nhân viên bị Khóa tạm giữa ca thì ai được mở khóa sớm? → A: Ngoài Quản lý viện, Trưởng tầng hoặc Người phụ trách ca được mở khóa sớm cho nhân viên cùng tầng/khu vực và cùng ca, sau khi xác minh trực tiếp; bắt buộc lý do, ghi nhật ký.
+
+### Cập nhật 2026-09-26 (làm rõ quyền của nhân viên bếp ở 19.3)
+
+Tài liệu nguồn làm rõ ở 19.3: với suất đặc biệt trên phiếu bữa ăn (12.5), nhân viên bếp xem họ tên, phòng, chế độ ăn, món thay thế và kết cấu thức ăn; không xem dị ứng, bệnh lý hay thông tin sức khỏe khác. Spec cập nhật: User Story 1 kịch bản 6, FR-022.
+
+### Cập nhật 2026-09-26 (đồng bộ với spec 008)
+
+Spec 008 đã chốt khi clarify (Q-80): Người phụ trách ca được "Ghi nhận vắng ca" cho nhân viên trong ca mình phụ trách. Đây là ngoại lệ quyền theo nhiệm vụ thứ tư, thêm FR-019d và sửa FR-019 cho khớp. Khi tầng chưa có Trưởng tầng được giao, spec 008 (Q-90, thay phần làm thay của Q-86) không cho Quản lý viện làm thay các lệnh bàn giao (giữ đúng quyền "X" ở 4.4 và Q-15); các lệnh đó chuyển cho Người phụ trách ca đang diễn ra của tầng, trong phạm vi ca, như một phần của quyền "T" ở dòng "Bàn giao ca" mà vai trò Điều dưỡng/Trưởng tầng đã có. Theo spec 008 Q-92, đối tượng phân công chỉ gồm khu vực, tầng, phòng, người cao tuổi; FR-028 bỏ "nhóm người cao tuổi".
+
+### Cập nhật 2026-09-27 (đồng bộ với spec 010)
+
+Spec 010 và tài liệu nguồn (19.3, chú thích ¹⁶ ¹⁷ của 4.4) đã chốt:
+- **Q-133:** tên thuốc trên khoản chi phí chỉ hiện với người có quyền xem thuốc. FR-022 được bổ sung cho khoản chi phí loại Thuốc.
+- **Ma trận 4.4:** thêm dòng "Đề nghị mua hộ" (UC-79): QL D, HC T, NT T² (chỉ người đại diện).
+- **Chốt theo bảng chi phí từng người (Q-131):** hành chính gửi chốt, Quản lý viện chốt; chỉ hành chính xuất kế toán.
+
+### Cập nhật 2026-09-27 (đồng bộ với spec 014)
+
+Spec 014 và tài liệu nguồn (2.4, 8.9, 19.3, Q-161, Q-162, Q-167, Q-168) đã chốt:
+- Trưởng đoàn phải có vai trò Trưởng tầng hoặc Nhân viên chăm sóc; người đi cùng là nhân viên bất kỳ có ca chồng thời gian chuyến. Người đi cùng cũng có phạm vi dữ liệu là người tham gia chuyến trong thời gian chuyến (FR-031 được sửa).
+- Điều dưỡng đi cùng chỉ có lệnh "Báo thiếu người"; đây là quyền ghi sự cố của mọi nhân viên, không phải quyền do nhiệm vụ, nên danh sách ngoại lệ của FR-019 không đổi.
+- Quyền mới theo 19.3: ~~Bác sĩ gắn chỉ định hạn chế hoạt động; Điều dưỡng gắn chỉ định tạm~~ *(bỏ 2026-10-06, Q-287)*; Hành chính ghi đồng ý về muộn của bán trú; chỉ Trưởng tầng được giao ghi kết quả kiểm tra chất lượng (Người phụ trách ca không có; **sửa, 2026-10-01, Q-254:** trừ ca không có Trưởng tầng được giao, FR-019e). 
+
+### Cập nhật 2026-09-27 (đồng bộ với spec 015)
+
+Spec 015 đã chốt (Q-177): ca phạm vi toàn viện (Bác sĩ trực, bếp, hành chính; vệ sinh đã bỏ theo Q-282) không có trưởng tầng, nên Quản lý viện duyệt và lập thay yêu cầu đổi ca, nghỉ đột xuất của các ca này. Đây là ngoại lệ vượt Permission Matrix 4.4 thứ hai của Q-15, được ghi ở FR-025. Spec 015 không thêm quyền theo nhiệm vụ nào, nên danh sách ngoại lệ FR-019a → FR-019d giữ nguyên. Trưởng tầng lập thay yêu cầu nghỉ đột xuất cho nhân viên tầng mình là quyền vai trò theo dòng mới cho nghỉ đột xuất (spec 015 điểm báo lại 2).
+
+### Cập nhật 2026-09-28 (đồng bộ với spec 005, 012, 013, 016; rà chéo)
+
+Rà chéo các spec sau cho thấy những quyết định sau chưa được phản ánh vào spec này:
+- **Spec 016 (Q-192, Q-195, Q-196, Q-202; 18.7, 19.3):** phạm vi của báo cáo cho khoảng đã qua tính theo lịch sử phân công, là ngoại lệ mới của FR-032 (FR-035a mới, FR-034 và FR-044a được sửa); FR-035 viết lại theo quy tắc "dòng nguồn chính", Người phụ trách ca, sự cố "không thuộc sức khỏe" cho Hành chính, Bác sĩ không có giới hạn trường riêng; FR-025 cho thu hẹp theo nhóm chỉ tiêu (feature 016 FR-010a).
+- **Spec 005 (Q-33):** Dinh dưỡng viên xem kết quả ghi nhận ăn uống và lượng nước (FR-022). *(Không còn áp dụng 2026-10-06, Q-283.)*
+- **Spec 010, 012, 013, 014 (BR-M10-07, BR-M10-10, Q-127, Q-149, Q-155, Q-167):** danh sách việc chỉ người đại diện được làm (FR-047).
+- **Spec 008 (Q-92), mục 2.4:** bỏ các chỗ còn sót "nhóm người cao tuổi" (Phạm vi, FR-029, FR-030); danh sách nhiệm vụ ở FR-019 thêm Người đi cùng, Người nhận tại tầng.
+
+### Session 2026-10-01 (checklist cross-feature CHK071)
+
+- Q: Người phụ trách ca có được ghi kết quả kiểm tra chất lượng không? → A: Có, chỉ trong ca mà Trưởng tầng được giao của tầng không có tên trong ca; đây là ngoại lệ quyền theo nhiệm vụ thứ năm (FR-019e), theo BR-M04-23, Phụ lục 27 chú thích ³⁶ và spec 014 FR-066 (Q-254).
+
+### Session 2026-10-01 (đánh giá checklist business-rules)
+
+Các điểm dưới đây do nhóm phân tích quyết định khi đánh giá checklist business-rules; không đổi quy tắc ở tài liệu nguồn, trừ các đề xuất nêu ở mục "Điểm cần báo lại".
+
+- Q: Spec ghi 10 vai trò, tài liệu nguồn nay có thêm Kế toán (2.3, AC-14, Q-212)? → A: Sửa spec thành 11 vai trò; Kế toán làm việc toàn viện, giới hạn trường như Hành chính (19.3).
+- Q: Nhiệm vụ Bác sĩ trực, Điều dưỡng phụ trách có tạo phạm vi dữ liệu không? → A: Bác sĩ trực không thêm phạm vi (Bác sĩ đã toàn viện); Điều dưỡng phụ trách chính là phân công theo ca cho người cao tuổi, phạm vi theo FR-032 (CHK003).
+- Q: Quan hệ người thân – người cao tuổi chấm dứt thì sao? → A: Người cao tuổi đó ra khỏi phạm vi của người thân từ lần xem kế tiếp, không chờ CFG-M01-04; không còn quan hệ Hiệu lực nào thì tài khoản chuyển Đã khóa (CHK005).
+- Q: Hành chính có mở khóa sớm tài khoản người thân Khóa tạm không? → A: Không; chỉ Quản lý viện, hoặc chờ hết thời gian khóa (CHK008).
+- Q: Thay đổi vai trò, quyền có đặt ngày hiệu lực tương lai không? → A: Không; chỉ có hiệu lực ngay (CHK009).
+- Q: CFG-M15-02 tính từ đâu với tài khoản chưa từng đăng nhập? → A: Từ lúc tạo, hoặc lúc kích hoạt lại, mở khóa gần nhất (CHK015).
+- Q: Thu hẹp quyền áp trước hay sau khi hợp quyền nhiều vai trò? → A: Thu hẹp theo vai trò áp trước khi hợp; thu hẹp theo tài khoản áp sau khi hợp (CHK017).
+- Q: Thiết bị dùng chung giữa các ca? → A: Mỗi thiết bị tại một thời điểm chỉ có một phiên; đăng nhập tài khoản khác kết thúc phiên trước (CHK040).
+- Q: Tầng của bản ghi khi Người phụ trách ca đính chính tính theo đâu? → A: Theo tầng/khu vực nơi bản ghi gốc được ghi, không theo vị trí hiện tại của người cao tuổi (CHK051).
+- Q: Ai nhận báo "xem lại" khi tầng không có Trưởng tầng hoặc bản ghi không gắn tầng? → A: Người phụ trách ca đang diễn ra của tầng (Q-90); bản ghi không gắn tầng thì Quản lý viện (CHK056).
+
+### Cập nhật 2026-10-06 (đồng bộ Q-280 → Q-288, quyết định của chủ dự án)
+
+- **Q-282, Q-283**: bỏ hai vai trò Nhân viên vệ sinh (AC-08) và Dinh dưỡng viên (AC-06); hệ thống còn **9 vai trò** (AC-01 → AC-05, AC-07, AC-09, AC-10, AC-14). Quyền của Dinh dưỡng viên gộp vào Bác sĩ; Bác sĩ xem đầy đủ hồ sơ sức khỏe. Nhân viên không dùng hệ thống (vệ sinh, bảo vệ, lái xe) chỉ có hồ sơ nhân viên, không được cấp tài khoản (13.1).
+- **Q-281, Q-287**: không còn cờ nguy cơ, chỉ định hạn chế hoạt động hay chỉ định tạm. Hành chính xem mức chăm sóc (không còn "cờ nguy cơ"); quyền gắn chỉ định của Bác sĩ, Điều dưỡng bỏ.
+- **Q-284**: thêm nhiệm vụ **Phụ trách bộ phận** (2.4, 13.1a) là ngoại lệ mới của quy tắc "nhiệm vụ không tạo quyền" (FR-019f); Kế toán đối chiếu yêu cầu mua sắm (Phụ lục 27 chú thích ³⁷, ³⁸).
+
+### Cập nhật 2026-10-06, lượt 2 (đồng bộ Q-292 → Q-299, quyết định của chủ dự án sau rà soát tài liệu nguồn)
+
+- **Q-292**: Quản lý viện không làm thay quyền T³⁷ khi bộ phận chưa có Phụ trách bộ phận. Khóa tài khoản của người đang là Phụ trách bộ phận MUST chỉ định người thay trong cùng lệnh (feature 008 FR-001a). Sửa FR-019f, bảng vòng đời tài khoản (dòng Khóa tài khoản).
+- **Q-293, Q-299**: tài khoản vai trò Kế toán hoặc Quản lý viện MUST NOT giữ nhiệm vụ Phụ trách bộ phận; Kế toán không có quyền ³⁷ trong mọi trường hợp (Phụ lục 27 ³⁸ đã sửa). Sửa FR-019f.
+
+### Cập nhật 2026-10-07 (đồng bộ Q-309, Q-310, quyết định của chủ dự án khi làm plan)
+
+- **Q-309**: độ mạnh mật khẩu theo CFG-M15-09 (mặc định \[tối thiểu 8 ký tự, có cả chữ và số\]); phiên tự kết thúc khi không thao tác quá CFG-M15-10 (mặc định \[web 30 phút / ứng dụng nhân viên 12 giờ / ứng dụng người thân 30 ngày\]), mỗi thao tác đếm lại từ đầu, không đổi trạng thái tài khoản (BR-M15-21). Thêm FR-006a, FR-013a và User Story 3 kịch bản 10, 11; sửa Assumptions.
+- **Q-310**: tài khoản Quản lý viện đầu tiên do công cụ khởi tạo tạo một lần khi cài đặt (BR-M15-22). Thêm FR-004b, User Story 2 kịch bản 10.
+
+### Cập nhật 2026-10-10, lượt 2 (đồng bộ Q-313)
+
+- **Q-313**: Phụ lục 27 tách dòng "Xác nhận giường sẵn sàng"; thêm FR-019g, sửa FR-019 (bảy ngoại lệ).
+
+### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
+
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với tài liệu gốc DOCX "nghiep-vu-quan-ly-vien-duong-lao.docx" (lưu ngoài kho mã từ 2026-10-15; bản cũ ở commit a2ff357); các Q đã chốt trước được giữ. Thay đổi ở spec này:
+
+- **Q-337**: vai trò Điều dưỡng có quyền T với yêu cầu mua sắm loại "thuốc" (Phụ lục 27 ⁴⁴) và ghi lần tiếp nhận thuốc cung ứng; ghi đã mua vẫn chỉ do Phụ trách bộ phận (FR-019f).
+- Edge Cases: bỏ cụm "nhóm chứa người đó" còn sót sau Q-92.
+
+## Phạm vi
+
+**Trong phạm vi**:
+
+1. Tài khoản nhân viên và tài khoản người thân: tạo, liên kết, trạng thái, khóa/mở khóa (mục 19.1, UC-68).
+2. Đăng nhập và bảo vệ tài khoản (UC-70, BR-M15-05).
+3. Vai trò hệ thống (bảng 2.3) và quyền theo loại thao tác (mục 19.2), giới hạn bởi Permission Matrix 4.4 và mục 19.3.
+4. Phạm vi dữ liệu theo khu vực, tầng, phòng, người cao tuổi (Q-92), suy ra từ phân công (BR-M15-02).
+5. Điều kiện pháp lý cho nghiệp vụ chuyên môn (BR-M06-05, mục 10.4, 13.4).
+6. Quy tắc tính quyền hiệu lực áp dụng cho mọi lần xem và mọi thao tác (BR-M15-01).
+
+**Ngoài phạm vi**:
+
+- Hồ sơ nhân viên, giấy phép hành nghề, đào tạo và trạng thái làm việc (feature 008, UC-49). Spec này chỉ **dùng** trạng thái làm việc và hiệu lực giấy phép.
+- Lập lịch ca và phân công (feature 008, UC-50, UC-51). Spec này chỉ **dùng** kết quả phân công để xác định phạm vi dữ liệu.
+- Giấy phép hoạt động của cơ sở (mục 10.4, Module 06). Spec này chỉ **dùng** hiệu lực và phạm vi của giấy phép cơ sở.
+- Hồ sơ người thân, quan hệ, quyền theo từng người thân và danh sách được phép đón (feature 012, UC-55, BR-M10-07); bản đồng ý chia sẻ dữ liệu (feature 001, UC-03). Spec này chỉ **dùng** các quyền đó và bản đồng ý khi tính quyền hiệu lực của người thân.
+- Nhật ký lượt xem hồ sơ sức khỏe của người thân (NFR-08, feature 012).
+- Nội dung, kênh gửi thông báo và cảnh báo (feature 009).
+- Vòng đời nhật ký, tham số cấu hình, yêu cầu phê duyệt dùng chung (feature 000). Spec này kế thừa các quy tắc đó.
+- Quyền cụ thể của từng nghiệp vụ (ai được lập đơn thuốc, ai được chốt kỳ…): do spec module sở hữu quy định theo Permission Matrix 4.4; spec này chỉ quy định cơ chế.
+
+## User Scenarios & Testing *(mandatory)*
+
+### User Story 1 - Mọi lần xem và thao tác đều bị giới hạn bởi quyền hiệu lực (Priority: P1)
+
+Mỗi khi một người dùng xem dữ liệu hoặc thực hiện một thao tác, hệ thống tính quyền hiệu lực của họ bằng giao của ba lớp: quyền của vai trò, phạm vi dữ liệu được phân công và điều kiện pháp lý còn hiệu lực. Chỉ khi cả ba lớp cùng cho phép thì hệ thống mới hiển thị dữ liệu hoặc chấp nhận thao tác.
+
+**Why this priority**: BR-M15-01 là nền của toàn bộ hệ thống; mọi module khác (001, 005, 006, 007…) đều dẫn chiếu quy tắc này. Thiếu nó, dữ liệu sức khỏe người cao tuổi lộ ra ngoài phạm vi chuyên môn, vi phạm nguyên tắc mục 1.3.
+
+**Independent Test**: Chuẩn bị một viện có hai tầng, mỗi vai trò có một tài khoản được phân công vào tầng 1. Với mỗi dòng của Permission Matrix 4.4, thử xem và thực hiện thao tác trên một người cao tuổi ở tầng 1 và một người ở tầng 2; đối chiếu kết quả với ma trận và mục 19.3.
+
+**Acceptance Scenarios**:
+
+1. **Given** vai trò của người dùng không có quyền một thao tác theo Permission Matrix 4.4 (ô "—"), **When** người dùng thực hiện thao tác đó trên bất kỳ đối tượng nào, **Then** hệ thống từ chối, và thao tác không có trong danh sách thao tác mà người dùng nhìn thấy.
+2. **Given** vai trò có quyền "P" với một chức năng và người dùng được phân công tầng 1, **When** xem dữ liệu của người cao tuổi ở tầng 1, **Then** được xem; **When** xem dữ liệu của người cao tuổi ở tầng 2, **Then** hệ thống từ chối và không tiết lộ nội dung.
+3. **Given** vai trò có quyền "X" với một chức năng (ví dụ Quản lý viện với hồ sơ người cao tuổi), **When** xem dữ liệu ở bất kỳ tầng nào, **Then** được xem, không phụ thuộc phân công.
+4. **Given** bác sĩ có vai trò và phạm vi hợp lệ nhưng giấy phép hành nghề đã hết hạn, **When** thực hiện nghiệp vụ chuyên môn cần giấy phép (ví dụ kê đơn nội bộ), **Then** hệ thống từ chối và nêu lý do là điều kiện pháp lý không còn hiệu lực; bác sĩ vẫn xem được dữ liệu theo quyền "X" của vai trò.
+5. *(Bỏ 2026-10-06, Q-283: không còn vai trò Dinh dưỡng viên.)*
+6. **Given** nhân viên bếp, **When** tìm cách xem hồ sơ sức khỏe của bất kỳ người cao tuổi nào, **Then** hệ thống từ chối; nhân viên bếp chỉ thấy số suất và yêu cầu đặc biệt theo chế độ ăn, và với suất đặc biệt trên phiếu bữa ăn thì thấy họ tên, phòng, chế độ ăn, món thay thế, kết cấu thức ăn, không thấy dị ứng hay bệnh lý (mục 19.3, 12.5).
+7. **Given** danh sách người cao tuổi hoặc báo cáo tổng hợp, **When** người dùng có quyền "P" mở danh sách, **Then** danh sách chỉ gồm người cao tuổi trong phạm vi của họ, và số liệu tổng không tính người ngoài phạm vi.
+8. **Given** người dùng đã mở một màn hình khi còn quyền, **When** quyền bị thu hồi rồi người dùng gửi thao tác, **Then** hệ thống kiểm tra lại tại thời điểm gửi và từ chối.
+9. **Given** nhân viên bếp không có phân công nào bao gồm người cao tuổi A, **When** ghi nhận sự cố ngã cho A, **Then** hệ thống cho chọn A qua họ tên, ảnh, phòng/giường, không hiển thị thông tin sức khỏe của A, lưu sự cố và ghi nhật ký đánh dấu "ngoài phạm vi"; **When** sau đó nhân viên bếp mở hồ sơ A, **Then** hệ thống từ chối.
+10. **Given** nhân viên chăm sóc (quyền "T" với "Checklist, ghi nhận công việc") được phân công tầng 1, **When** ghi nhận công việc cho người cao tuổi ở tầng 2, **Then** hệ thống từ chối; **Given** nhân viên hành chính (quyền "T" với "Tạm vắng, trở về"), **When** cho tạm vắng người cao tuổi ở bất kỳ tầng nào, **Then** thao tác được xét tiếp theo điều kiện nghiệp vụ, không bị chặn vì phạm vi (FR-034).
+11. **Given** nhân viên hành chính mở hồ sơ người cao tuổi A ở bất kỳ tầng nào, **When** xem phần sức khỏe, **Then** chỉ thấy mức chăm sóc (**sửa 2026-10-06, Q-281**), không thấy dị ứng, bệnh nền, chỉ số, thuốc hay kết quả đánh giá; **Given** trưởng tầng được phân công tầng của A, **When** xem phần sức khỏe của A, **Then** thấy đầy đủ (FR-022).
+12. **Given** nhân viên hành chính và bác sĩ không có phân công theo tầng, **When** mở dashboard, **Then** cả hai thấy số liệu toàn viện; bác sĩ thấy chỉ tiêu sức khỏe, nhân viên hành chính chỉ thấy chỉ tiêu không thuộc sức khỏe (số người, giường trống, tạm vắng, chi phí); **Given** trưởng tầng được phân công tầng 1, **When** mở dashboard, **Then** chỉ thấy số liệu tầng 1 (FR-035).
+13. **Given** điều dưỡng D làm ca ngày tầng 1 các ngày 03/10 và 04/10, ngoài ra không có ca nào trong tháng 10, **When** ngày 06/11 D xem báo cáo liều tháng 10, **Then** số liệu chỉ gồm liều thuộc phân công của D trong giờ ca ± CFG-M15-07 của hai ca đó, dù phân công đã hết hiệu lực (FR-035a); **When** D cố mở hồ sơ hiện tại của một người trong danh sách đã chuyển sang tầng 2, **Then** hệ thống từ chối; **When** D cố đính chính một liều từ báo cáo, **Then** hệ thống từ chối vì FR-035a chỉ cho xem.
+
+---
+
+### User Story 2 - Quản lý viện cấp và thu hồi tài khoản nhân viên (Priority: P1)
+
+Khi có nhân viên mới, quản lý viện tạo tài khoản liên kết với hồ sơ nhân viên và gán một hoặc nhiều vai trò hệ thống. Khi nhân viên nghỉ việc, tài khoản bị khóa ngay. Quản lý viện có thể khóa hoặc mở khóa tài khoản có lý do. Tài khoản không bao giờ bị xóa vì lịch sử còn tham chiếu người thực hiện.
+
+**Why this priority**: Không có tài khoản thì không ai dùng được hệ thống; không khóa kịp thời thì người đã nghỉ việc vẫn truy cập được hồ sơ sức khỏe (mục 19.1, BR-M09-04).
+
+**Independent Test**: Tạo tài khoản cho một hồ sơ nhân viên, gán vai trò Điều dưỡng, đăng nhập thử; sau đó chuyển nhân viên sang Nghỉ việc ở feature 008 và kiểm tra tài khoản bị khóa, phiên đang mở bị chấm dứt, lịch sử vẫn hiển thị đúng tên người thực hiện.
+
+**Acceptance Scenarios**:
+
+1. **Given** một hồ sơ nhân viên đang làm việc chưa có tài khoản, **When** quản lý viện tạo tài khoản, gán ít nhất một vai trò nhân viên (AC-01 → AC-05, AC-07, AC-09, AC-14; **sửa 2026-10-06**), **Then** tài khoản ở trạng thái Hoạt động, liên kết đúng một hồ sơ nhân viên, và nhật ký ghi lần tạo.
+2. **Given** một hồ sơ nhân viên đã có tài khoản, **When** quản lý viện tạo thêm tài khoản thứ hai cho cùng hồ sơ, **Then** hệ thống từ chối.
+3. **Given** quản lý viện tạo tài khoản, **When** không gán vai trò nào, hoặc gán vai trò Người thân cho tài khoản nhân viên, **Then** hệ thống từ chối.
+4. **Given** một tài khoản nhân viên đang Hoạt động, **When** nhân viên chuyển trạng thái Nghỉ việc, **Then** tài khoản chuyển Đã khóa ngay, mọi phiên đăng nhập đang mở bị chấm dứt, và nhật ký ghi người thực hiện là Bộ lập lịch hệ thống kèm căn cứ BR-M09-04.
+5. **Given** quản lý viện khóa một tài khoản, **When** không nhập lý do, **Then** hệ thống từ chối; khi có lý do, tài khoản chuyển Đã khóa và phiên đang mở bị chấm dứt.
+6. **Given** tài khoản Đã khóa vì nhân viên Nghỉ việc, **When** quản lý viện mở khóa trong khi hồ sơ nhân viên vẫn ở Nghỉ việc, **Then** hệ thống từ chối.
+7. **Given** một tài khoản đã từng thực hiện thao tác, **When** bất kỳ ai, kể cả quản lý viện, yêu cầu xóa tài khoản, **Then** hệ thống không có thao tác xóa; các bản ghi cũ vẫn hiển thị đúng người thực hiện.
+8. **Given** quản lý viện gán thêm hoặc gỡ một vai trò, **When** lưu kèm lý do, **Then** quyền mới có hiệu lực ngay ở thao tác kế tiếp của người dùng đó và nhật ký ghi vai trò trước/sau (BR-M15-04).
+9. **Given** viện chỉ còn một tài khoản Hoạt động có vai trò Quản lý viện, **When** tài khoản đó bị gỡ vai trò Quản lý viện hoặc bị khóa bởi thao tác người dùng, **Then** hệ thống từ chối.
+10. **(Bổ sung, 2026-10-07, Q-310)** **Given** hệ thống vừa cài đặt, chưa có tài khoản nào, **When** chạy công cụ khởi tạo với họ tên và tên đăng nhập của Quản lý viện, **Then** có một hồ sơ nhân viên và một tài khoản Quản lý viện Hoạt động, buộc đổi mật khẩu lần đầu, nhật ký ghi "khởi tạo hệ thống"; **When** chạy lại công cụ khi đã có tài khoản Quản lý viện, **Then** công cụ từ chối (FR-004b).
+
+---
+
+### User Story 3 - Đăng nhập an toàn cho nhân viên và người thân (Priority: P1)
+
+Nhân viên và người thân đăng nhập bằng tài khoản của mình. Hệ thống khóa tạm khi đăng nhập sai nhiều lần liên tiếp, chuyển tài khoản người thân lâu không dùng sang Không hoạt động, và chỉ cho đăng nhập khi tài khoản đang Hoạt động.
+
+**Why this priority**: UC-70 là cửa vào duy nhất của mọi use case khác; BR-M15-05 bảo vệ dữ liệu sức khỏe khỏi dò mật khẩu.
+
+**Independent Test**: Với một tài khoản nhân viên và một tài khoản người thân, thử đăng nhập đúng, sai liên tiếp tới ngưỡng, chờ hết thời gian khóa, và giả lập đồng hồ vượt CFG-M15-02 với tài khoản người thân.
+
+**Acceptance Scenarios**:
+
+1. **Given** tài khoản Hoạt động, **When** đăng nhập đúng, **Then** người dùng vào hệ thống, bộ đếm đăng nhập sai về 0, và thời điểm đăng nhập được lưu.
+2. **Given** tài khoản Hoạt động, **When** đăng nhập sai liên tiếp đủ số lần theo CFG-M15-01 (mặc định \[5 lần\]), **Then** tài khoản chuyển Khóa tạm trong thời gian theo CFG-M15-01 (mặc định \[15 phút\]); mọi lần đăng nhập trong thời gian đó bị từ chối kể cả khi đúng mật khẩu.
+3. **Given** tài khoản Khóa tạm, **When** hết thời gian khóa, **Then** tài khoản tự trở về Hoạt động với bộ đếm về 0.
+4. **Given** tài khoản Khóa tạm, **When** quản lý viện mở khóa sớm kèm lý do, **Then** tài khoản trở về Hoạt động và nhật ký ghi lại.
+5. **Given** tài khoản điều dưỡng D ở tầng 2 bị Khóa tạm giữa ca đêm, **When** Người phụ trách ca đêm tầng 2 mở khóa sớm kèm lý do sau khi gặp trực tiếp D, **Then** tài khoản trở về Hoạt động và nhật ký ghi căn cứ nhiệm vụ; **When** Người phụ trách ca tầng 1 cố mở khóa cho D, hoặc cố mở khóa một tài khoản người thân, **Then** hệ thống từ chối (FR-019c).
+6. **Given** tài khoản người thân không đăng nhập quá CFG-M15-02 (mặc định \[180 ngày\]), **When** Bộ lập lịch kiểm tra, **Then** tài khoản chuyển Không hoạt động; lần đăng nhập sau đó bị từ chối với hướng dẫn liên hệ viện để kích hoạt lại.
+7. **Given** tài khoản nhân viên không đăng nhập quá CFG-M15-02, **When** Bộ lập lịch kiểm tra, **Then** tài khoản không bị chuyển Không hoạt động (BR-M15-05 chỉ áp dụng cho người thân).
+8. **Given** tài khoản Đã khóa hoặc Không hoạt động, **When** đăng nhập đúng mật khẩu, **Then** hệ thống từ chối; thông báo không tiết lộ tài khoản có tồn tại hay mật khẩu có đúng hay không ngoài thông tin cần thiết để liên hệ viện.
+9. **Given** tài khoản vừa được tạo hoặc vừa được cấp lại mật khẩu, **When** người dùng đăng nhập lần đầu, **Then** hệ thống buộc đổi mật khẩu trước khi dùng chức năng khác.
+10. **(Bổ sung, 2026-10-07, Q-309)** **Given** CFG-M15-09 mặc định \[tối thiểu 8 ký tự, có cả chữ và số\], **When** người dùng đổi mật khẩu thành "abcdefgh", **Then** hệ thống từ chối và nêu yêu cầu cần đạt; **When** đổi thành "abcd1234", **Then** được chấp nhận (FR-006a).
+11. **(Bổ sung, 2026-10-07, Q-309)** **Given** CFG-M15-10 mặc định với web là \[30 phút\], hành chính thao tác lần cuối trên web lúc 09:40, **When** bấm tiếp lúc 10:20, **Then** phiên đã kết thúc, hành chính được đưa về màn hình đăng nhập, tài khoản vẫn Hoạt động; **Given** điều dưỡng ghi nhận trên ứng dụng nhân viên lần cuối lúc 15:00 với mặc định \[12 giờ\], **When** mở lại ứng dụng lúc 17:30, **Then** vẫn dùng tiếp được (FR-013a).
+
+---
+
+### User Story 4 - Phạm vi dữ liệu tự cập nhật theo phân công (Priority: P2)
+
+Phạm vi dữ liệu của nhân viên không được cấp tay mà suy ra từ phân công: khu vực, tầng, phòng, hoặc từng người cao tuổi được giao (không có đối tượng "nhóm người cao tuổi", Q-92). Khi phân công thay đổi (chuyển tầng, đổi ca), phạm vi thay đổi ngay mà quản lý viện không phải cấp lại quyền.
+
+**Why this priority**: BR-M15-02 giúp phân quyền theo kịp vận hành hằng ngày (đổi ca, chuyển tầng, nhân viên hỗ trợ chung). Có thể chạy trước với phạm vi toàn viện cho vai trò "X", nên xếp sau P1.
+
+**Independent Test**: Phân công một nhân viên chăm sóc cho người cao tuổi A ở tầng 1; kiểm tra thấy A, không thấy B ở tầng 2; đổi phân công sang tầng 2 và kiểm tra ngay thao tác kế tiếp thấy B, không thấy A; chuyển A sang phòng thuộc tầng 2 và kiểm tra phạm vi đi theo A.
+
+**Acceptance Scenarios**:
+
+1. **Given** nhân viên được phân công theo tầng, **When** xem danh sách người cao tuổi, **Then** thấy mọi người cao tuổi đang có phân bổ giường mở ở các phòng thuộc tầng đó.
+2. **Given** nhân viên được phân công theo khu vực, **When** xem dữ liệu, **Then** phạm vi bao gồm mọi tầng, phòng và người cao tuổi thuộc khu vực đó.
+3. **Given** nhân viên được phân công theo người cao tuổi cho ba người cụ thể (ba phân công riêng), **When** xem dữ liệu, **Then** phạm vi chỉ gồm đúng ba người đó, không mở rộng ra cả phòng hay tầng (Q-92).
+4. **Given** phân công của nhân viên đổi từ tầng 1 sang tầng 2, **When** nhân viên thực hiện thao tác kế tiếp, **Then** phạm vi đã là tầng 2, không cần quản lý viện thao tác gì.
+5. **Given** người cao tuổi A chuyển giường từ tầng 1 sang tầng 2, **When** lệnh chuyển giường hoàn tất, **Then** A rời khỏi phạm vi của nhân viên chỉ được phân công tầng 1 và vào phạm vi của nhân viên được phân công tầng 2 (mục 7.4).
+6. **Given** nhân viên có nhiều phân công cùng hiệu lực (ví dụ phụ trách chính phòng 101, hỗ trợ chung tầng 2), **When** xem dữ liệu, **Then** phạm vi là hợp của các phân công.
+7. **Given** nhân viên không có phân công nào đang hiệu lực, **When** mở chức năng có quyền "P", **Then** không thấy người cao tuổi nào.
+8. **Given** nhân viên chăm sóc được phân công người cao tuổi A trong ca kết thúc lúc 18:00 và CFG-M15-07 là \[2 giờ\], **When** xem hoặc ghi nhận muộn cho A lúc 19:30, **Then** được chấp nhận; **When** xem A lúc 20:30 mà không có phân công khác bao gồm A, **Then** hệ thống từ chối.
+9. **Given** ca bắt đầu lúc 07:00 và CFG-M15-07 là \[2 giờ\], **When** nhân viên xem người cao tuổi của ca đó lúc 05:30, **Then** được xem (chuẩn bị nhận ca); **When** xem lúc 04:30, **Then** hệ thống từ chối.
+10. **Given** điều dưỡng N (vai trò không có quyền UC-27) được chỉ định Người phụ trách ca đêm tầng 2, **When** N phân lại một công việc quá hạn ở tầng 2 trong ca, **Then** được chấp nhận và nhật ký ghi căn cứ nhiệm vụ; **When** N xử lý việc quá hạn ở tầng 1, hoặc ở tầng 2 sau khi hết khoảng thời gian của ca theo FR-032, **Then** hệ thống từ chối.
+11. **Given** điều dưỡng N là Người phụ trách ca đêm tầng 2, **When** N tạo bản đính chính kèm lý do cho một chỉ số do nhân viên chăm sóc khác ghi ở tầng 2 trong ca, **Then** được chấp nhận và nhật ký ghi căn cứ nhiệm vụ (FR-019b); **When** N đính chính một bàn giao đồ gửi (không gắn tầng), **Then** hệ thống từ chối.
+12. **Given** nhân viên chăm sóc ghi nhận ngoại tuyến cho người cao tuổi A lúc 17:00 trong ca của mình, và tài khoản bị khóa lúc 18:30, **When** thiết bị đồng bộ lúc 19:00, **Then** bản ghi được chấp nhận, gắn nhãn "đồng bộ sau khi mất quyền" và trưởng tầng được báo; **Given** bản ghi ngoại tuyến có thời điểm trên thiết bị sau 18:30, **When** đồng bộ, **Then** hệ thống từ chối (FR-041a).
+13. **Given** phân công của nhân viên trỏ tới một tầng đã ngừng hiệu lực nên không xác định được phạm vi, **When** nhân viên xem hồ sơ người cao tuổi hoặc ghi nhận công việc, **Then** hệ thống từ chối và Quản lý viện được báo lỗi dữ liệu; **When** nhân viên đó ghi nhận sự cố cho một người cao tuổi, **Then** được thực hiện theo FR-044a (FR-041b).
+14. **Given** CFG-M15-08 là \[24 giờ\] và thiết bị kết nối lần cuối lúc 07:00 ngày D, **When** đồng bộ lúc 09:00 ngày D+1 các bản ghi ngoại tuyến, **Then** các bản ghi chuyển "chờ xem lại" và trưởng tầng được báo; **When** trưởng tầng từ chối một bản ghi mà không nhập lý do, **Then** hệ thống không cho từ chối; **Given** một bản ghi có thời điểm thiết bị muộn hơn thời điểm đồng bộ, **When** đồng bộ trong giới hạn, **Then** bản ghi đó cũng chuyển "chờ xem lại" (FR-041c).
+15. **Given** tài khoản có hai vai trò Nhân viên hành chính và Điều dưỡng, được phân công điều dưỡng ở tầng 1, **When** ghi nhận tạm vắng cho người cao tuổi ở tầng 3, **Then** được chấp nhận vì vai trò Hành chính cho phạm vi toàn viện; **Given** Quản lý viện đã thu hẹp quyền đó của tài khoản xuống theo phân công, **When** thực hiện lại, **Then** hệ thống từ chối (FR-034).
+16. **(Bổ sung, CHK030)** **Given** nhân viên chăm sóc được phân công theo phòng 101 (tầng 1), **When** xem danh sách, **Then** thấy đúng những người cao tuổi đang có phân bổ giường mở tại phòng 101, không thấy người ở phòng 102 cùng tầng (FR-029).
+
+---
+
+### User Story 5 - Nghiệp vụ chuyên môn chỉ bật khi giấy phép còn hiệu lực (Priority: P2)
+
+Một số thao tác là nghiệp vụ chuyên môn (chẩn đoán, kê đơn, phát thuốc…) và chỉ được thực hiện khi điều kiện pháp lý thỏa: cơ sở có phạm vi hoạt động phù hợp còn hiệu lực và người thực hiện có giấy phép/đào tạo còn hiệu lực đúng phạm vi. Khi một điều kiện hết hạn, quyền tự tắt; khi được gia hạn, quyền tự bật lại.
+
+**Why this priority**: BR-M06-05 và mục 10.4 cấm mặc định "có bác sĩ = được khám chữa bệnh". Rủi ro pháp lý cao, nhưng chỉ áp dụng cho một tập thao tác hẹp nên xếp P2.
+
+**Independent Test**: Cho một bác sĩ có giấy phép hết hạn vào ngày D; giả lập đồng hồ ngày D và D+1, thử kê đơn nội bộ; lặp lại với giấy phép cơ sở hết hạn trong khi giấy phép bác sĩ còn hạn; gia hạn và thử lại.
+
+**Acceptance Scenarios**:
+
+1. **Given** cơ sở có phạm vi khám chữa bệnh còn hiệu lực và bác sĩ có giấy phép còn hiệu lực đúng phạm vi, **When** bác sĩ kê đơn nội bộ, **Then** thao tác được chấp nhận.
+2. **Given** giấy phép hành nghề của bác sĩ hết hạn vào ngày D, **When** bác sĩ kê đơn nội bộ trong ngày D, **Then** được chấp nhận; **When** kê đơn vào ngày D+1, **Then** hệ thống từ chối, nêu giấy phép đã hết hạn, và chỉ còn cho phép nhập đơn từ cơ sở bên ngoài nếu vai trò có quyền đó (Permission Matrix 4.4, chú thích ³).
+3. **Given** giấy phép bác sĩ còn hiệu lực nhưng phạm vi hoạt động khám chữa bệnh của cơ sở đã hết hạn hoặc không có, **When** bác sĩ chẩn đoán hoặc kê đơn nội bộ, **Then** hệ thống từ chối (BR-M06-05).
+4. **Given** giấy phép có phạm vi hành nghề không bao gồm một nghiệp vụ chuyên môn, **When** người hành nghề thực hiện nghiệp vụ đó, **Then** hệ thống từ chối dù giấy phép còn hạn.
+5. **Given** điều dưỡng có giấy phép hết hạn, **When** xác nhận liều thuốc, **Then** hệ thống từ chối (mục 13.4); điều dưỡng vẫn thực hiện được các thao tác không yêu cầu giấy phép.
+6. **Given** giấy phép hết hạn đã được cập nhật gia hạn ở hồ sơ nhân viên (feature 008), **When** người hành nghề thực hiện lại nghiệp vụ chuyên môn, **Then** được chấp nhận mà quản lý viện không cần cấp lại quyền.
+7. **Given** giấy phép cơ sở hoặc giấy phép người hành nghề sẽ hết hạn trong vòng CFG-M06-02 (mặc định \[60 ngày\]), **When** Bộ lập lịch kiểm tra hằng ngày, **Then** quản lý viện nhận cảnh báo nêu giấy phép, người liên quan, ngày hết hạn và các nghiệp vụ chuyên môn sẽ bị tắt.
+8. **Given** một bản ghi chuyên môn được xác nhận khi giấy phép còn hiệu lực, **When** giấy phép sau đó hết hạn, **Then** bản ghi đó vẫn hợp lệ và không bị ảnh hưởng.
+
+---
+
+### User Story 6 - Người thân chỉ xem được đúng những gì được cấp (Priority: P2)
+
+Người thân đăng nhập cổng người thân và chỉ thấy người cao tuổi mà mình có quan hệ; trong đó chỉ thấy các loại thông tin được cấp riêng cho mình (xem sức khỏe, xem chi phí…), và thông tin sức khỏe chỉ khi có bản đồng ý còn hiệu lực bao gồm mình. Sau khi người cao tuổi kết thúc lưu trú, tài khoản người thân bị khóa sau một thời gian cấu hình.
+
+**Why this priority**: 600 tài khoản người thân (NFR-01) là nhóm người dùng lớn nhất và nằm ngoài viện; lộ dữ liệu sức khỏe cho người không được đồng ý là rủi ro pháp lý (mục 5.1, BR-M01-08). Xếp P2 vì phụ thuộc feature 012 và 001.
+
+**Independent Test**: Tạo hai người thân của cùng một người cao tuổi, chỉ một người nằm trong bản đồng ý; kiểm tra phần sức khỏe hiện với người này, ẩn với người kia; rút lại đồng ý và kiểm tra lại; kết thúc lưu trú và giả lập đồng hồ vượt CFG-M01-04.
+
+**Acceptance Scenarios**:
+
+1. **Given** người thân có quan hệ với người cao tuổi A, không có quan hệ với B, **When** đăng nhập cổng, **Then** chỉ thấy A.
+2. **Given** người thân có quyền xem chi phí nhưng không có quyền xem sức khỏe, **When** xem thông tin của A, **Then** thấy chi phí, không thấy thông tin sức khỏe.
+3. **Given** người thân được cấp quyền xem sức khỏe, **When** bản đồng ý chia sẻ dữ liệu bao gồm người đó bị rút lại, **Then** ở lần xem kế tiếp người thân không còn thấy thông tin sức khỏe (BR-M01-08, DBR-03).
+4. **Given** người thân không phải người đại diện, **When** gửi yêu cầu thay đổi dịch vụ, **Then** hệ thống từ chối (BR-M10-01).
+5. **Given** mọi người cao tuổi có quan hệ với một người thân đều đã Kết thúc lưu trú hoặc Qua đời, **When** đã qua CFG-M01-04 (mặc định \[30 ngày\]) kể từ thời điểm muộn nhất trong các thời điểm kết thúc đó, **Then** tài khoản người thân chuyển Đã khóa (mục 5.6).
+6. **Given** người thân có quan hệ với hai người cao tuổi, một người đã Kết thúc lưu trú quá CFG-M01-04 và một người còn Đang lưu trú, **When** Bộ lập lịch kiểm tra, **Then** tài khoản vẫn Hoạt động, nhưng người thân không còn thấy người cao tuổi đã kết thúc quá hạn.
+7. **Given** người thân có quan hệ với người cao tuổi đã Kết thúc lưu trú nhưng chưa quá CFG-M01-04, **When** đăng nhập, **Then** vẫn xem được thông tin được cấp (ví dụ chi phí đã chốt) ở chế độ chỉ đọc.
+8. **Given** một hồ sơ người thân chưa có tài khoản và có quan hệ với người cao tuổi Đang lưu trú, **When** nhân viên hành chính tạo tài khoản, **Then** tài khoản ở Hoạt động với vai trò Người thân và buộc đổi mật khẩu lần đầu; **When** một điều dưỡng hoặc trưởng tầng cố tạo tài khoản đó, **Then** hệ thống từ chối.
+9. **Given** tài khoản người thân Không hoạt động, **When** nhân viên hành chính kích hoạt lại kèm lý do và ghi cách xác minh "gọi lại số đã đăng ký", **Then** tài khoản về Hoạt động; **When** kích hoạt lại mà không ghi cách xác minh, hoặc xác minh bằng số điện thoại người yêu cầu vừa đọc, **Then** hệ thống từ chối (FR-052); **When** nhân viên hành chính cố gán thêm vai trò khác cho tài khoản người thân hoặc thao tác trên tài khoản nhân viên, **Then** hệ thống từ chối.
+
+---
+
+### User Story 7 - Quản lý viện điều chỉnh quyền của vai trò trong giới hạn cho phép (Priority: P3)
+
+Quản lý viện xem được quyền của từng vai trò (theo Permission Matrix 4.4) và điều chỉnh trong giới hạn cho phép, ví dụ gán quyền Duyệt kế hoạch chăm sóc cho điều dưỡng có đủ chuyên môn (mục 2.4). Mọi thay đổi có lý do, có hiệu lực ngay và được ghi nhật ký trước/sau.
+
+**Why this priority**: Hệ thống chạy được với ma trận mặc định; điều chỉnh chỉ cần khi viện có mô hình vận hành khác (mục 1.3 "hỗ trợ nhiều mô hình vận hành").
+
+**Independent Test**: Gán quyền Duyệt kế hoạch chăm sóc cho một điều dưỡng; kiểm tra điều dưỡng đó duyệt được còn điều dưỡng khác không; thu hồi và kiểm tra lại; tra nhật ký.
+
+**Acceptance Scenarios**:
+
+1. **Given** quản lý viện mở cấu hình quyền, **When** chọn một vai trò, **Then** thấy danh sách chức năng, loại thao tác được phép (FR-020) và phạm vi (X hoặc P) của vai trò đó, khớp Permission Matrix 4.4.
+2. **Given** quản lý viện gán quyền Duyệt kế hoạch chăm sóc cho điều dưỡng N kèm lý do, **When** lưu, **Then** N duyệt được kế hoạch chăm sóc trong phạm vi dữ liệu của N; điều dưỡng khác không có quyền này (Q-07).
+3. **Given** vai trò Nhân viên chăm sóc không có quyền với "Đơn thuốc" theo Permission Matrix 4.4, **When** quản lý viện cố thêm quyền xem đơn thuốc cho vai trò đó hoặc cho một tài khoản nhân viên chăm sóc, **Then** hệ thống từ chối vì vượt quyền tối đa của vai trò.
+4. **Given** vai trò Hành chính có quyền "T" với "Chi phí, khoản điều chỉnh", **When** quản lý viện bỏ quyền tạo khoản điều chỉnh của một tài khoản Hành chính cụ thể kèm lý do, **Then** thay đổi được lưu, tài khoản đó không tạo được khoản điều chỉnh từ thao tác kế tiếp, các tài khoản Hành chính khác không bị ảnh hưởng.
+5. **Given** một quyền đã bị thu hẹp, **When** quản lý viện khôi phục quyền đó về mức của ma trận kèm lý do, **Then** quyền có hiệu lực lại và nhật ký ghi trước/sau.
+6. **Given** một vai trò khác Quản lý viện, **When** người dùng cố thay đổi quyền của bất kỳ vai trò hay tài khoản nào, **Then** hệ thống từ chối (BR-M15-04).
+7. **Given** một lần thay đổi quyền đã lưu, **When** quản lý viện tra nhật ký, **Then** thấy người thực hiện, thời điểm, vai trò/tài khoản bị ảnh hưởng, quyền trước, quyền sau và lý do.
+
+---
+
+### Edge Cases
+
+- Nhân viên có nhiều vai trò (ví dụ Trưởng tầng kiêm Điều dưỡng): quyền của vai trò là hợp quyền các vai trò; phạm vi và điều kiện pháp lý vẫn áp dụng cho từng thao tác (FR-017). Hai vai trò cùng cho một quyền với phạm vi khác nhau (ví dụ Hành chính toàn viện, Điều dưỡng theo phân công) thì áp phạm vi rộng hơn, trừ khi quyền đã bị thu hẹp theo tài khoản (FR-034, FR-025).
+- Nhiệm vụ (Người phụ trách ca, Bác sĩ trực, Điều dưỡng phụ trách, Trưởng đoàn) không phải vai trò: không tạo thêm quyền thao tác, chỉ xác định phạm vi và người nhận nhắc việc/thông báo (mục 2.4, FR-019); ngoại lệ: Người phụ trách ca được xử lý việc quá hạn (FR-019a), tạo bản đính chính (FR-019b) , mở khóa sớm tài khoản nhân viên bị Khóa tạm (FR-019c) và ghi nhận vắng ca (FR-019d, spec 008 Q-80) trong tầng/khu vực và thời gian của ca.
+- Phân công thay đổi ngay khi người dùng đang mở một màn hình: dữ liệu đã hiển thị không bị thu hồi trên màn hình, nhưng mọi lần tải lại và mọi thao tác gửi đi được kiểm tra theo phạm vi mới (FR-041).
+- Người cao tuổi Tạm vắng, Điều trị tại bệnh viện hoặc bán trú không có giường cố định: không có phân bổ giường đang mở thì chỉ thuộc phạm vi của nhân viên được phân công trực tiếp cho người đó, cùng các vai trò có quyền "X" (FR-030) (sửa câu 2026-10-11: bỏ "nhóm chứa người đó" theo Q-92).
+- Người cao tuổi ở trạng thái cuối (Kết thúc lưu trú, Qua đời, Hủy tiếp nhận): hồ sơ chỉ đọc (BR-M01-05); vẫn tra cứu được bởi vai trò có quyền "X" và theo FR-030 với vai trò có quyền "P".
+- Giấy phép hết hạn giữa lúc người hành nghề đang soạn một thao tác chuyên môn: kiểm tra tại thời điểm gửi, không tại thời điểm mở (FR-041).
+- Bản ghi ngoại tuyến ghi lúc còn quyền nhưng đồng bộ sau khi tài khoản bị khóa, hết ca hoặc giấy phép hết hạn: chấp nhận theo thời điểm trên thiết bị, gắn nhãn "đồng bộ sau khi mất quyền" và báo trưởng tầng; ghi lúc đã mất quyền thì từ chối (FR-041a).
+- Thiết bị ngoại tuyến quá CFG-M15-08, hoặc thời điểm trên thiết bị muộn hơn lúc đồng bộ / sớm hơn lần kết nối gần nhất: bản ghi chuyển "chờ xem lại", trưởng tầng chấp nhận hoặc từ chối có lý do (FR-041c).
+- Dữ liệu nguồn để tính quyền bị thiếu hoặc lỗi (ví dụ giấy phép không có ngày hết hạn, phân công trỏ tới tầng không tồn tại): từ chối mặc định, trừ sự cố/khẩn cấp; Quản lý viện được báo (FR-041b).
+- Kế hoạch chăm sóc đang Chờ duyệt mà người duyệt duy nhất trong phạm vi mất quyền (giấy phép hết hạn, chuyển tầng): yêu cầu giữ nguyên trạng thái chờ và được nhắc theo quy tắc của feature 000 (FR-031a của 000), không tự chuyển cho người khác.
+- Một người vừa là nhân viên vừa là người thân của một người cao tuổi trong viện: dùng hai tài khoản riêng; quyền của tài khoản nhân viên không cộng vào tài khoản người thân và ngược lại (FR-003).
+- Tài khoản quản lý viện cuối cùng: không được khóa hay gỡ vai trò Quản lý viện bởi thao tác người dùng (FR-012).
+- Nhân viên nghỉ việc rồi được tuyển lại: hồ sơ nhân viên ở feature 008 trở lại trạng thái làm việc; quản lý viện mở khóa tài khoản cũ, không tạo tài khoản mới, để lịch sử liền mạch (FR-011).
+- Nhiều người thân dùng chung một số điện thoại hoặc email: mỗi người thân vẫn có tài khoản riêng; thông tin liên hệ trùng không được dùng làm tên đăng nhập chung (FR-001).
+- Ghi nhận sự cố và kích hoạt khẩn cấp cho người cao tuổi ngoài phạm vi (ví dụ nhân viên bếp thấy người ngã ở hành lang): được phép, chỉ thấy thông tin nhận dạng, có nhật ký đánh dấu "ngoài phạm vi" (FR-044a).
+- Người dùng bắt đầu ghi nhận khi còn trong khoảng FR-032 nhưng gửi đi sau khi khoảng đó đã hết (trực tuyến) (CHK032): kiểm tra tại thời điểm hệ thống nhận yêu cầu, nên bị từ chối (FR-041); bản ghi ngoại tuyến thì theo thời điểm trên thiết bị (FR-041a).
+- Hai Quản lý viện cùng đổi vai trò hoặc quyền của một tài khoản (CHK034): lần lưu dựa trên trạng thái quyền đã cũ bị từ chối, người lưu sau thấy trạng thái mới rồi mới lưu lại (FR-026).
+- Nhân viên đổi vai trò khi còn việc đang dở (CHK035): quyền mới áp từ thao tác kế tiếp (FR-027); công việc đã phân công được xử lý theo phân công của feature 005, 008; yêu cầu phê duyệt người đó đã lập giữ nguyên trạng thái và vẫn được xử lý (feature 000 FR-034a).
+- Tài khoản người thân Không hoạt động hoặc Đã khóa nhưng người đó là người liên hệ chính (CHK036): trạng thái tài khoản chỉ chặn đăng nhập; việc gửi thông báo qua kênh ngoài ứng dụng (tin nhắn, gọi điện) do feature 009 quyết định theo hồ sơ người thân, không theo trạng thái tài khoản.
+
+## Requirements *(mandatory)*
+
+### Functional Requirements
+
+#### A. Tài khoản
+
+- **FR-001**: Hệ thống MUST quản lý tài khoản với các thông tin: tên đăng nhập duy nhất, loại tài khoản (nhân viên / người thân), liên kết, vai trò, trạng thái, thời điểm đăng nhập gần nhất, số lần đăng nhập sai liên tiếp. *(Nguồn: 19.1, 3.2 TAI_KHOAN)*
+- **FR-002**: Tài khoản nhân viên MUST liên kết đúng một hồ sơ nhân viên; mỗi hồ sơ nhân viên MUST có tối đa một tài khoản. Tài khoản người thân MUST liên kết đúng một hồ sơ người thân; mỗi hồ sơ người thân MUST có tối đa một tài khoản. *(Nguồn: 19.1; ERD miền D NHAN_VIEN ||--o| TAI_KHOAN, NGUOI_THAN ||--o| TAI_KHOAN)*
+- **FR-003**: Một tài khoản MUST NOT đồng thời liên kết cả hồ sơ nhân viên và hồ sơ người thân. Tài khoản nhân viên MUST chỉ được gán vai trò trong AC-01 → AC-05, AC-07, AC-09 và AC-14 (Kế toán, Q-212; **sửa 2026-10-06, Q-282, Q-283:** bỏ AC-06, AC-08); tài khoản người thân MUST chỉ có vai trò Người thân (AC-10). *(Nguồn: 2.3, 4.1)*
+- **FR-004**: Chỉ Quản lý viện MUST được tạo tài khoản nhân viên. Khi tạo, tài khoản MUST có ít nhất một vai trò, và hồ sơ nhân viên liên kết MUST không ở trạng thái Nghỉ việc. *(Nguồn: UC-68, Permission Matrix dòng "Tài khoản, phân quyền, tham số")*
+- **FR-004a**: *(Bổ sung, 2026-10-06, Q-282)* Hồ sơ nhân viên MUST tồn tại được mà không có tài khoản. Quản lý viện MUST chỉ tạo tài khoản cho hồ sơ nhân viên có chức danh ứng với một trong 9 vai trò hệ thống (FR-016); nhân viên không dùng hệ thống (vệ sinh, bảo vệ, lái xe…) chỉ có hồ sơ nhân viên (feature 008). *(Nguồn: 13.1, 2.3)*
+- **FR-004b**: *(Bổ sung, 2026-10-07, Q-310)* Tài khoản Quản lý viện đầu tiên MUST chỉ được tạo bằng công cụ khởi tạo khi cài đặt, và MUST chỉ khi hệ thống chưa có tài khoản nào có vai trò Quản lý viện; công cụ tạo cùng hồ sơ nhân viên tối thiểu của người đó (feature 008), tài khoản MUST buộc đổi mật khẩu ở lần đăng nhập đầu, và nhật ký MUST ghi người thực hiện là "khởi tạo hệ thống". Đây không phải ngoại lệ của FR-004: sau khi có Quản lý viện, mọi tài khoản nhân viên do Quản lý viện tạo. *(Nguồn: 19.1, BR-M15-22)*
+- **FR-005**: Tài khoản MUST NOT bị xóa bởi bất kỳ vai trò nào; tài khoản không còn dùng được khóa (FR-009). Mọi bản ghi lịch sử MUST tiếp tục hiển thị đúng người thực hiện. *(Nguồn: 1.3, 1.5 "không xóa đối tượng đã được lịch sử tham chiếu")*
+- **FR-006**: Khi tạo tài khoản hoặc cấp lại mật khẩu, người dùng MUST đổi mật khẩu ở lần đăng nhập đầu tiên trước khi dùng chức năng khác. Cấp lại mật khẩu cho tài khoản nhân viên MUST do Quản lý viện thực hiện; cho tài khoản người thân MUST do Nhân viên hành chính hoặc Quản lý viện thực hiện (FR-051); mỗi lần cấp lại MUST được ghi nhật ký. *(Giả định, xem Assumptions; Clarification 2026-09-25)*
+- **FR-006a**: *(Bổ sung, 2026-10-07, Q-309)* Mật khẩu mới (khi người dùng tự đổi, kể cả ở lần đăng nhập đầu) MUST đạt độ mạnh tối thiểu CFG-M15-09 (mặc định \[tối thiểu 8 ký tự, có cả chữ và số\]); không đạt thì MUST bị từ chối kèm yêu cầu cần đạt. Mật khẩu tạm do hệ thống cấp cũng MUST đạt mức này. *(Nguồn: 19.1, BR-M15-21)*
+
+#### B. Trạng thái tài khoản và đăng nhập
+
+- **FR-007**: Tài khoản MUST có một trong bốn trạng thái: Hoạt động, Khóa tạm, Không hoạt động, Đã khóa, và chỉ chuyển trạng thái theo bảng dưới đây. Chỉ tài khoản Hoạt động MUST được đăng nhập. *(Nguồn: 19.1, BR-M15-05, BR-M09-04, 5.6)*
+- **FR-008**: Khi đăng nhập sai liên tiếp đủ số lần theo CFG-M15-01 (mặc định \[5 lần\]), tài khoản MUST chuyển Khóa tạm trong thời gian theo CFG-M15-01 (mặc định \[15 phút\]) rồi tự trở về Hoạt động. Đăng nhập đúng MUST đưa bộ đếm sai về 0. CFG-M15-01 là một mã ở Phụ lục 25 với hai thành phần (số lần sai, thời gian khóa); mỗi thành phần đổi được riêng, và mỗi lần đổi ghi như một lần thay đổi của cả tham số (feature 000 FR-022) (CHK047). *(Nguồn: BR-M15-05)*
+- **FR-009**: Khi hồ sơ nhân viên chuyển trạng thái Nghỉ việc, tài khoản liên kết MUST chuyển Đã khóa ngay trong cùng lần thay đổi đó. *(Nguồn: BR-M09-04, 19.1)*
+- **FR-010**: Tài khoản người thân không đăng nhập quá CFG-M15-02 (mặc định \[180 ngày\]) MUST chuyển Không hoạt động. Quy tắc này MUST NOT áp dụng cho tài khoản nhân viên. Với tài khoản chưa từng đăng nhập, khoảng CFG-M15-02 tính từ lúc tạo; sau khi kích hoạt lại hoặc mở khóa, tính từ thời điểm đó nếu chưa có lần đăng nhập nào muộn hơn (CHK015). *(Nguồn: BR-M15-05)*
+- **FR-011**: Quản lý viện MUST được khóa và mở khóa tài khoản kèm lý do bắt buộc. Mở khóa MUST bị từ chối khi nguyên nhân khóa tự động còn tồn tại (hồ sơ nhân viên vẫn Nghỉ việc; người thân không còn người cao tuổi nào chưa quá CFG-M01-04 sau kết thúc). Điều kiện với tài khoản người thân là một, dùng chung cho "Mở khóa" (lệnh này) và "Kích hoạt lại" (FR-051, bảng trạng thái): người thân còn ít nhất một quan hệ Hiệu lực với người cao tuổi chưa ở trạng thái cuối, hoặc ở trạng thái cuối chưa quá CFG-M01-04 (CHK025). *(Nguồn: 19.1, 1.5)*
+- **FR-012**: Hệ thống MUST luôn có ít nhất một tài khoản Hoạt động có vai trò Quản lý viện; thao tác người dùng làm vi phạm điều này MUST bị từ chối. *(Suy ra từ BR-M15-04: thay đổi phân quyền và tham số chỉ do Quản lý viện thực hiện, nên luôn phải còn người làm được)*
+- **FR-013**: Khi tài khoản rời trạng thái Hoạt động, mọi phiên đăng nhập đang mở của tài khoản MUST bị chấm dứt ngay: không yêu cầu nào của các phiên đó được chấp nhận nếu hệ thống nhận nó sau thời điểm chuyển trạng thái (CHK013). *(Nguồn: 19.1 "phải bị khóa khi nhân viên không còn được phép sử dụng hệ thống")*
+- **FR-013a**: *(Bổ sung, 2026-10-07, Q-309)* Phiên đăng nhập không có thao tác nào quá CFG-M15-10 của kênh đó (mặc định \[web 30 phút / ứng dụng nhân viên 12 giờ / ứng dụng người thân 30 ngày\]) MUST tự kết thúc; mỗi thao tác của người dùng trong phiên MUST đếm lại khoảng này từ đầu. Tự đăng xuất MUST NOT đổi trạng thái tài khoản; người dùng đăng nhập lại để dùng tiếp. Dữ liệu đã lưu MUST giữ nguyên; bản ghi ngoại tuyến chưa đồng bộ trên ứng dụng nhân viên MUST được giữ trên thiết bị và đồng bộ sau khi đăng nhập lại theo FR-041a. *(Nguồn: 19.1, BR-M15-21)*
+- **FR-014**: Thông báo từ chối đăng nhập MUST NOT tiết lộ tên đăng nhập có tồn tại hay không; MUST cho biết tài khoản đang bị khóa tạm hoặc cần liên hệ viện khi đăng nhập đúng nhưng tài khoản không ở Hoạt động. *(Suy ra từ NFR-08 và mục tiêu chống dò mật khẩu của BR-M15-05)*
+- **FR-014a** *(bổ sung, CHK040)*: Trên một thiết bị, tại một thời điểm MUST chỉ có một phiên đăng nhập; khi một tài khoản khác đăng nhập trên thiết bị đó, phiên của tài khoản trước MUST kết thúc. Mọi bản ghi MUST mang người thực hiện là tài khoản của phiên gửi nó. *(Suy ra từ mục 1.3 "mọi thông tin gắn với người thực hiện", NFR-10 thiết bị dùng chung tại tầng)*
+- **FR-015**: Mỗi lần chuyển trạng thái tài khoản và mỗi lần đăng nhập (thành công hay thất bại) MUST được ghi nhật ký với thời điểm và kết quả; thay đổi do hệ thống thực hiện ghi người thực hiện là Bộ lập lịch hệ thống kèm căn cứ. *(Nguồn: 19.4, FR-045 của 000)*
+
+**Bảng trạng thái tài khoản**:
+
+| Trạng thái hiện tại | Lệnh / sự kiện | Trạng thái kế tiếp | Ai thực hiện | Điều kiện | Tác động |
+| --- | --- | --- | --- | --- | --- |
+| (chưa có) | Tạo tài khoản | Hoạt động | Quản lý viện (nhân viên); Nhân viên hành chính hoặc Quản lý viện (người thân) | FR-002 → FR-004; FR-050 với người thân | Buộc đổi mật khẩu lần đầu; ghi nhật ký |
+| Hoạt động | Đăng nhập sai đủ ngưỡng | Khóa tạm | Hệ thống | Sai liên tiếp đủ CFG-M15-01 | Từ chối mọi đăng nhập trong thời gian khóa |
+| Khóa tạm | Hết thời gian khóa | Hoạt động | Hệ thống | Đủ thời gian theo CFG-M15-01 | Bộ đếm sai về 0 |
+| Khóa tạm | Mở khóa sớm | Hoạt động | Quản lý viện; hoặc Trưởng tầng / Người phụ trách ca với tài khoản nhân viên cùng tầng/khu vực và cùng ca (FR-019c) | Có lý do; với Trưởng tầng / Người phụ trách ca: đã xác minh trực tiếp | Bộ đếm sai về 0; ghi nhật ký |
+| Hoạt động | Hết hạn không sử dụng | Không hoạt động | Bộ lập lịch | Chỉ tài khoản người thân; không đăng nhập quá CFG-M15-02 | Chấm dứt phiên |
+| Không hoạt động | Kích hoạt lại | Hoạt động | Nhân viên hành chính hoặc Quản lý viện | Có lý do; người thân còn ít nhất một quan hệ với người cao tuổi chưa quá CFG-M01-04 sau kết thúc | Buộc đổi mật khẩu; ghi nhật ký |
+| Hoạt động / Khóa tạm / Không hoạt động | Khóa tài khoản | Đã khóa | Quản lý viện | Có lý do; FR-012; người đang là Phụ trách bộ phận thì chỉ định người thay trong cùng lệnh (feature 008 FR-001a, Q-292) | Chấm dứt phiên |
+| Hoạt động / Khóa tạm / Không hoạt động | Nhân viên Nghỉ việc | Đã khóa | Hệ thống | Hồ sơ nhân viên chuyển Nghỉ việc (BR-M09-04) | Chấm dứt phiên ngay |
+| Hoạt động / Khóa tạm / Không hoạt động | Hết hạn sau kết thúc lưu trú | Đã khóa | Bộ lập lịch | Tài khoản người thân; mọi người cao tuổi có quan hệ đã ở trạng thái cuối quá CFG-M01-04 (5.6) | Chấm dứt phiên |
+| Đã khóa | Mở khóa | Hoạt động | Quản lý viện | Có lý do; nguyên nhân khóa tự động không còn (FR-011) | Buộc đổi mật khẩu; ghi nhật ký |
+
+Không có trạng thái kết thúc: tài khoản Đã khóa được giữ vĩnh viễn để lịch sử tham chiếu (FR-005).
+
+#### C. Vai trò và quyền theo thao tác
+
+- **FR-016**: **(Sửa 2026-10-06, Q-282, Q-283)** Hệ thống MUST có đúng 9 vai trò hệ thống theo bảng 2.3: AC-01 → AC-05, AC-07, AC-09, AC-10 và AC-14 Kế toán (Q-212). AC-06 Dinh dưỡng viên và AC-08 Nhân viên vệ sinh đã bỏ. Vai trò MUST NOT được tạo mới hay xóa qua thao tác người dùng. *(Nguồn: 2.3, 2.4, 4.1; constitution VI)*
+- **FR-017**: Một tài khoản nhân viên MAY có nhiều vai trò; quyền của vai trò cho tài khoản đó MUST là hợp các quyền của những vai trò được gán. *(Nguồn: ERD miền D TAI_KHOAN }o--|{ VAI_TRO)*
+- **FR-018**: Quyền tối đa của mỗi vai trò MUST khớp Permission Matrix 4.4; khi 4.4 khác mục 19.3, mục 19.3 là căn cứ. *(Nguồn: 4.4, 19.3)*
+- **FR-019**: Nhiệm vụ (Người phụ trách ca, Bác sĩ trực, Điều dưỡng phụ trách, Trưởng đoàn, Người đi cùng, Người nhận tại tầng — mục 2.4) MUST NOT tạo thêm vai trò hay quyền thao tác; nhiệm vụ chỉ góp vào phạm vi dữ liệu (mục D) và xác định người nhận nhắc việc/thông báo theo quy tắc của module sở hữu. Ngoại lệ chỉ gồm FR-019a, FR-019b, FR-019c, FR-019d, FR-019e, FR-019f và FR-019g. *(Nguồn: 2.4; spec 008 Q-80; Q-254; Q-284; Q-313)*
+- **FR-019a**: Nhân viên đang giữ nhiệm vụ Người phụ trách ca MUST có quyền "Xử lý việc quá hạn" (UC-27) như Trưởng tầng, dù vai trò của họ không có quyền này, nhưng MUST chỉ với công việc thuộc tầng/khu vực của ca đó và chỉ trong khoảng thời gian phạm vi của ca theo FR-032. Quyền này MUST mất khi nhiệm vụ kết thúc hoặc được chuyển cho người khác, và MUST NOT mở rộng sang quyền khác của Trưởng tầng (duyệt đổi ca…) ngoài các quyền nêu riêng ở FR-019b → FR-019e (đính chính, mở khóa sớm, ghi nhận vắng ca, và kiểm tra chất lượng khi ca không có Trưởng tầng được giao) *(làm rõ 2026-10-01, spec 008 checklist consistency CHK003)*. Mỗi lần dùng quyền này, nhật ký MUST ghi căn cứ là nhiệm vụ Người phụ trách ca. *(Nguồn: 2.4, 8.7, UC-27; Clarification 2026-09-25)*
+- **FR-019b**: Nhân viên đang giữ nhiệm vụ Người phụ trách ca MUST được tạo trực tiếp bản đính chính cho bản ghi nhóm 3 đã xác nhận gắn với tầng/khu vực của ca đó, theo spec 000 FR-026 (b), dù vai trò của họ không có quyền này; MUST chỉ trong khoảng thời gian phạm vi của ca theo FR-032 và MUST mất khi nhiệm vụ kết thúc hoặc được chuyển. Quyền này MUST NOT áp dụng cho bản ghi không gắn tầng/khu vực (spec 000 FR-026 c). Tầng/khu vực của bản ghi là nơi bản ghi gốc được ghi (vị trí của người cao tuổi lúc ghi), không phải vị trí hiện tại sau khi người đó chuyển giường (CHK051). Giới hạn thời gian theo FR-032 là cách hiểu của "trong phạm vi dữ liệu hiện tại" ở spec 000 FR-026 (b) đối với Người phụ trách ca; Trưởng tầng được giao tầng không bị giới hạn theo ca (CHK052). Nhật ký MUST ghi căn cứ là nhiệm vụ Người phụ trách ca. *(Nguồn: 2.4, spec 000 FR-026; Clarification 2026-09-25)*
+- **FR-019c**: Trưởng tầng, và nhân viên đang giữ nhiệm vụ Người phụ trách ca, MUST được mở khóa sớm tài khoản nhân viên đang Khóa tạm (FR-008) khi chủ tài khoản thuộc cùng tầng/khu vực và có ca trùng với ca đang diễn ra; MUST xác minh trực tiếp người đó và nhập lý do. Quyền này MUST NOT áp dụng cho tài khoản Đã khóa, Không hoạt động, tài khoản người thân, hay tài khoản ngoài tầng/ca. Mỗi lần mở khóa MUST được ghi nhật ký kèm căn cứ (vai trò Trưởng tầng hoặc nhiệm vụ Người phụ trách ca). *(Nguồn: BR-M15-05, 2.4; Clarification 2026-09-25)*
+- **FR-019d**: Nhân viên đang giữ nhiệm vụ Người phụ trách ca MUST được "Ghi nhận vắng ca" (spec 008 FR-020) cho nhân viên có tên trong ca mình đang phụ trách, dù vai trò của họ không có quyền này; MUST chỉ trong khoảng thời gian phạm vi của ca theo FR-032 và MUST mất khi nhiệm vụ kết thúc hoặc được chuyển. Quyền này MUST NOT mở rộng sang các lệnh khác trên lịch ca (bổ sung nhân viên, chuyển người phụ trách ca, hủy ca). Nhật ký MUST ghi căn cứ là nhiệm vụ Người phụ trách ca. *(Nguồn: 2.4, BR-M04-13; spec 008 FR-020, Q-80, Q-81)*
+- **FR-019e**: *(Bổ sung, 2026-10-01, Q-254)* Nhân viên đang giữ nhiệm vụ Người phụ trách ca của một tầng/khu vực MUST ghi được kết quả kiểm tra chất lượng (UC-31, spec 014 FR-066) cho danh sách của ca đó, dù vai trò của họ không có quyền này, và MUST chỉ khi ca là "ca không có Trưởng tầng được giao" theo spec 014 FR-066 (không có tên trong lịch ca đã công bố, hoặc đã được ghi nhận vắng ca / nghỉ đột xuất đã duyệt, Q-262); MUST chỉ trong khoảng thời gian phạm vi của ca theo FR-032 và MUST mất khi nhiệm vụ kết thúc hoặc được chuyển. Nhật ký MUST ghi căn cứ là nhiệm vụ Người phụ trách ca. *(Nguồn: BR-M04-23, 19.3, Phụ lục 27 ³⁶; spec 014 FR-066, Q-254)*
+- **FR-019f**: *(Bổ sung, 2026-10-06, Q-284)* Nhân viên đang giữ nhiệm vụ Phụ trách bộ phận (do Quản lý viện chỉ định, 13.1a; chỉ giao được cho nhân viên có tài khoản đang Hoạt động, bổ sung 2026-10-06) MUST có quyền thực hiện (T) với tài sản và yêu cầu mua sắm của **bộ phận mình**, dù vai trò của họ không có quyền này: ghi tăng, đưa vào sử dụng, bảo trì, chuyển vị trí, lập yêu cầu thanh lý tài sản (7.7); lập, gửi, rút lại, hủy yêu cầu mua sắm và ghi đã mua (15.10); với bộ phận Bếp, duyệt phiếu kiểm kê kho nguyên liệu (12.7). Quyền MUST chỉ trong phạm vi bộ phận đó và chỉ khi nhiệm vụ còn hiệu lực; mất nhiệm vụ thì mất quyền ngay ở thao tác kế tiếp. Người lập không tự duyệt phiếu kiểm kê, không tự đối chiếu yêu cầu mua sắm của chính mình. **(Sửa, 2026-10-06, Q-292, Q-293, Q-299)** Nhiệm vụ MUST NOT giao cho tài khoản có vai trò Quản lý viện hoặc Kế toán. Quản lý viện MUST NOT có quyền T³⁷ thay cho bộ phận chưa có Phụ trách bộ phận; các quyền duyệt của Quản lý viện (yêu cầu mua sắm, thanh lý, chuyển tài sản, xử lý Lệch, duyệt kiểm kê khi người lập là Phụ trách bộ phận Bếp) giữ nguyên. **(Bổ sung, 2026-10-11, Q-337)** Ngoài nhiệm vụ này, vai trò Điều dưỡng có quyền T với yêu cầu mua sắm loại "thuốc" của bộ phận mình (lập, gửi, rút lại, hủy; Phụ lục 27 ⁴⁴) và ghi lần tiếp nhận thuốc cung ứng; "Ghi đã mua" loại này vẫn chỉ do Phụ trách bộ phận. *(Nguồn: 2.4, 13.1a, Phụ lục 27 chú thích ³⁷, ³⁸, ⁴⁴; Q-292, Q-293, Q-299, Q-337)*
+- **FR-019g**: *(Bổ sung, 2026-10-10, Q-313)* Nhân viên đang giữ nhiệm vụ Người phụ trách ca của một tầng/khu vực MUST thực hiện được lệnh "Xác nhận giường sẵn sàng" (spec 003 FR-044, UC-74) cho giường thuộc tầng/khu vực của ca, trong khoảng phạm vi của ca, dù vai trò của họ không có quyền này; mất nhiệm vụ thì mất quyền ở thao tác kế tiếp. *(Nguồn: Phụ lục 27 dòng "Xác nhận giường sẵn sàng", chú thích ⁴⁰; Q-313)*
+- **FR-020**: Mỗi quyền MUST là một cặp (chức năng nghiệp vụ, loại thao tác), với loại thao tác thuộc tập của mục 19.2 và được hiểu theo bảng dưới đây. Ký hiệu của Permission Matrix 4.4 được quy đổi sang loại thao tác theo cùng bảng. *(Nguồn: 19.2, 4.4)*
+- **FR-021**: Với dữ liệu nhóm 2 và nhóm 3 (mục 1.5), quyền "Sửa" MUST chỉ áp dụng cho bản nháp chưa gửi/chưa xác nhận; quyền thay đổi đối tượng đã có hiệu lực MUST là quyền thực hiện từng lệnh nghiệp vụ cụ thể, không có quyền "sửa trạng thái". *(Nguồn: 1.5; constitution III; FR-005 của 000)*
+- **FR-022**: Quyền "Xem" MUST có thể giới hạn tới mức nhóm trường thông tin của một đối tượng *(sửa 2026-10-06, Q-281, Q-282, Q-283: bỏ giới hạn của Dinh dưỡng viên, Nhân viên vệ sinh và trường "cờ nguy cơ")*: nhân viên bếp chỉ xem số suất và yêu cầu đặc biệt theo chế độ ăn, với suất đặc biệt trên phiếu bữa ăn thì xem họ tên, phòng, chế độ ăn, món thay thế và kết cấu thức ăn, MUST NOT xem dị ứng, bệnh lý hay hồ sơ sức khỏe; nhân viên hành chính chỉ xem mức chăm sóc, MUST NOT xem dị ứng, bệnh nền, tiền sử, chỉ số, thuốc, kết quả đánh giá; trưởng tầng xem đầy đủ hồ sơ sức khỏe của người cao tuổi trong phạm vi. Giới hạn này áp dụng cả với nhật ký (spec 000 FR-049). Giới hạn "không xem thuốc" của nhân viên hành chính áp cả cho khoản chi phí loại Thuốc: hành chính chỉ thấy mã vật phẩm, số lượng, đơn giá, thành tiền, kể cả trong lịch sử tính lại, thông báo, bộ lọc và file kế toán (feature 010 FR-019, Q-133). Kế toán có giới hạn trường như nhân viên hành chính (19.3, Q-212). Với các loại dữ liệu khác (sự cố, cảnh báo, bàn giao ca, chế độ ăn, kế hoạch chăm sóc), nhân viên hành chính xem hay không theo đúng ô của vai trò ở từng dòng Phụ lục 27; riêng nguyện vọng cuối đời chỉ thấy "đã có / chưa có", số liệu sự cố chỉ với loại mang dấu "không thuộc sức khỏe" (19.3, Q-202) (CHK053). Giới hạn này không cản các lệnh hành chính thực hiện (tạm vắng, kết thúc lưu trú, quy trình đón): các lệnh đó chỉ cần trạng thái và mức chăm sóc, là những trường hành chính xem được; chuyển viện do Điều dưỡng, Bác sĩ thực hiện (CHK054). *(Nguồn: 1.3, 13.3, 19.3; Clarification 2026-09-25; đồng bộ spec 010)*
+- **FR-023**: Trưởng tầng MUST NOT có quyền duyệt thay đổi lưu trú hay chi phí, và MUST NOT mặc định có quyền thay đổi y lệnh hoặc kê đơn. *(Nguồn: 19.3, 13.3)*
+- **FR-024**: Quyền Duyệt kế hoạch chăm sóc MUST mặc định thuộc vai trò Bác sĩ; Quản lý viện MAY gán thêm quyền này cho từng tài khoản Điều dưỡng cụ thể kèm lý do. Điều dưỡng được gán quyền duyệt phiên bản do chính mình lập thì theo quy tắc tự duyệt của feature 000 FR-035 (lý do bắt buộc, nhật ký đánh dấu "tự duyệt"; feature 005 User Story 1, Q-10) (CHK023). *(Nguồn: 2.4; Q-07)*
+- **FR-025**: Ngoài FR-024, Quản lý viện MUST chỉ được thu hẹp quyền so với Permission Matrix 4.4, theo vai trò hoặc theo từng tài khoản: bỏ một loại thao tác, hoặc hạ phạm vi từ toàn viện ("X") xuống theo phân công ("P"). Mọi điều chỉnh làm quyền vượt ô tương ứng của ma trận (thêm chức năng, thêm loại thao tác, mở rộng phạm vi) MUST bị từ chối. Quyền đã thu hẹp MAY được khôi phục tới đúng mức của ma trận. Việc thu hẹp MUST NOT làm vi phạm FR-012 (luôn còn Quản lý viện có quyền cấu hình tài khoản và phân quyền). Ngoại lệ vượt ma trận thứ hai, ngoài FR-024: Quản lý viện có quyền duyệt và lập thay yêu cầu đổi ca, yêu cầu nghỉ đột xuất của ca phạm vi toàn viện (spec 015 FR-023, FR-026, Q-177), dù dòng "Yêu cầu đổi ca" của 4.4 ghi Quản lý viện "X"; quyền này là quyền của vai trò, không phải điều chỉnh của Quản lý viện theo FR-025. Với dòng "Dashboard, báo cáo", việc thu hẹp MAY chi tiết hơn một dòng của ma trận: theo từng nhóm chỉ tiêu và riêng giữa dashboard với báo cáo (feature 016 FR-010a); quyền xuất đi theo quyền xem báo cáo. Thứ tự áp dụng: thu hẹp theo vai trò áp lên quyền của vai trò đó trước khi hợp quyền các vai trò (FR-017), nên tài khoản có vai trò khác cùng đem lại quyền ấy vẫn giữ quyền; thu hẹp theo tài khoản áp sau khi hợp, nên quyền bị bỏ dù vai trò nào đem lại (CHK017). *(Nguồn: 4.4 "quyền tối đa của vai trò", 2.4; constitution VI; Clarification 2026-09-25, đề xuất Q-15; đồng bộ spec 015, Q-177)*
+- **FR-026**: Chỉ Quản lý viện MUST được gán/gỡ vai trò và thay đổi quyền; mỗi thay đổi MUST có lý do và được ghi nhật ký với quyền trước/sau. Khi hai Quản lý viện cùng thay đổi vai trò hoặc quyền của một tài khoản hay một vai trò, lần lưu dựa trên trạng thái quyền đã cũ MUST bị từ chối và người đó MUST thấy trạng thái hiện hành trước khi lưu lại, như feature 000 FR-021 (CHK034). *(Nguồn: BR-M15-04)*
+- **FR-026a** *(bổ sung, CHK010)*: Quản lý viện MUST tra cứu được, cho một tài khoản bất kỳ, tập quyền hiện hành (vai trò đang gán, quyền bị thu hẹp theo vai trò và theo tài khoản, quyền Duyệt kế hoạch chăm sóc được gán thêm) và tập quyền tại một thời điểm quá khứ, dựng từ lịch sử gán vai trò và nhật ký thay đổi quyền. *(Suy ra từ BR-M15-04, 19.4: thay đổi phân quyền được ghi nhật ký trước/sau)*
+- **FR-027**: Thay đổi vai trò hoặc quyền MUST có hiệu lực từ thao tác kế tiếp của mọi người dùng bị ảnh hưởng, kể cả người đang đăng nhập: mọi yêu cầu hệ thống nhận sau thời điểm lưu thay đổi MUST được kiểm tra theo quyền mới (CHK013). Thay đổi vai trò, quyền MUST NOT đặt được ngày hiệu lực trong tương lai; muốn đổi vào một ngày thì Quản lý viện thực hiện vào ngày đó (CHK009). *(Suy ra từ BR-M15-02, quy tắc "cập nhật ngay" áp tương tự cho vai trò và quyền; BR-M15-04)*
+
+**Bảng loại thao tác** *(mục 19.2, quy đổi ký hiệu 4.4)*:
+
+| Loại thao tác | Ý nghĩa | Nhóm dữ liệu áp dụng (mục 1.5) | Ký hiệu 4.4 tương ứng |
+| --- | --- | --- | --- |
+| Xem | Đọc dữ liệu, danh sách, lịch sử trong phạm vi | Cả ba nhóm | X (toàn viện), P (trong phạm vi được phân công) |
+| Tạo | Tạo đối tượng mới, lập bản nháp, ghi thêm bản ghi | Cả ba nhóm | C (nhóm 1), T |
+| Sửa | Sửa danh mục; sửa bản nháp trước khi gửi/xác nhận | Nhóm 1; bản nháp nhóm 2/3 | C, T |
+| Xác nhận | Xác nhận một ghi nhận làm nó trở thành bản ghi nhóm 3; xác nhận bàn giao, xác nhận liều | Nhóm 3 | T |
+| Duyệt | Duyệt hoặc từ chối yêu cầu phê duyệt (feature 000) | Nhóm 2 | D |
+| Chốt | Khóa một kỳ hoặc tập dữ liệu để các bản ghi trong đó chuyển nhóm 3 (ví dụ chốt kỳ chi phí) | Nhóm 2 → 3 | D (dòng "Chốt kỳ, xuất kế toán") |
+| Thực hiện nghiệp vụ chuyên môn | Thao tác thuộc danh mục nghiệp vụ chuyên môn (mục E); ngoài quyền vai trò còn cần điều kiện pháp lý | Nhóm 2, 3 | T³, T⁴ và T trên các dòng chuyên môn |
+
+Lệnh nghiệp vụ của nhóm 2 (ví dụ Chuyển giường, Ngừng đơn) được phân quyền như một quyền "Tạo" hoặc "Thực hiện nghiệp vụ chuyên môn" riêng cho từng lệnh, do spec module sở hữu khai báo.
+
+Ký hiệu "T" của Nhân viên hành chính ở dòng "Chốt kỳ, xuất kế toán" là loại thao tác "Tạo": gửi chốt bảng chi phí để Quản lý viện chốt (Q-131); việc xuất file kế toán thuộc ô "T" của Kế toán (Q-212, Phụ lục 27) (CHK014). "Xác nhận" trong bảng trên là việc biến một ghi nhận thành bản ghi nhóm 3. Việc người đại diện "xác nhận" một yêu cầu (FR-047) là quyết định trên yêu cầu theo vòng đời riêng của feature 012, 013; nó thuộc ô "T²" của cột Người thân và không phải loại thao tác "Xác nhận" này (CHK021).
+
+#### D. Phạm vi dữ liệu
+
+- **FR-028**: Với quyền ký hiệu "P", phạm vi dữ liệu của nhân viên MUST được suy ra từ phân công đang hiệu lực (feature 008), không được cấp tay. Phân công MAY theo khu vực, tầng, phòng hoặc người cao tuổi (spec 008 Q-92: không có đối tượng "nhóm người cao tuổi"). *(Nguồn: 19.2, 13.4, BR-M15-02)*
+- **FR-029**: Phạm vi theo cấp MUST bao hàm cấp dưới: khu vực bao gồm mọi tầng, phòng, giường trong khu vực; tầng bao gồm mọi phòng trong tầng; phòng bao gồm mọi người cao tuổi đang có phân bổ giường mở tại phòng đó. Phân công theo người cao tuổi MUST chỉ bao gồm đúng người được nêu (không có đối tượng "nhóm người cao tuổi", Q-92). *(Nguồn: 2.2, 7.3)*
+- **FR-030**: Vị trí của người cao tuổi khi tính phạm vi MUST là phân bổ giường đang mở tại thời điểm kiểm tra; người cao tuổi không có phân bổ giường đang mở chỉ thuộc phạm vi qua phân công theo người cao tuổi. *(Nguồn: 7.3, 7.4)*
+- **FR-031**: Phạm vi của một nhân viên MUST là hợp của mọi phân công đang hiệu lực của họ, kể cả phạm vi phát sinh từ nhiệm vụ (ví dụ người phụ trách ca có phạm vi là tầng/khu vực của ca đó; trưởng đoàn có phạm vi là người tham gia chuyến đi trong thời gian chuyến đi; **(đồng bộ spec 014, Q-161)** người đi cùng cũng có phạm vi này; lệnh "Báo thiếu người" của người đi cùng không phải Trưởng tầng hay Nhân viên chăm sóc là quyền ghi sự cố vốn có của mọi nhân viên, không phải quyền do nhiệm vụ). Nhiệm vụ Bác sĩ trực không thêm phạm vi, vì vai trò Bác sĩ đã có phạm vi toàn viện (FR-034); nhiệm vụ chỉ xác định người nhận thông báo khẩn cấp. Nhiệm vụ Điều dưỡng phụ trách chính là phân công điều dưỡng cho người cao tuổi trong ca (2.4), nên phạm vi của nó là phạm vi của phân công đó theo FR-032, không có phạm vi riêng (CHK003). *(Nguồn: 2.4, 8.4, 13.4)*
+- **FR-032**: Phân công theo ca MUST tạo phạm vi từ giờ bắt đầu ca trừ CFG-M15-07 tới giờ kết thúc ca cộng CFG-M15-07 (đề xuất, mặc định \[2 giờ\], bằng ngưỡng ghi nhận muộn CFG-M04-06); ngoài khoảng này phân công đó MUST NOT góp vào phạm vi. Phân công không gắn ca (ví dụ trưởng tầng được giao tầng) MUST tạo phạm vi trong suốt thời gian phân công còn hiệu lực. *(Nguồn: 2.4, BR-M04-12, BR-M15-02; Clarification 2026-09-25, đề xuất Q-14)*
+- **FR-033**: Khi phân công thay đổi (chuyển tầng, đổi ca, đổi người phụ trách) hoặc người cao tuổi chuyển giường, phạm vi MUST được cập nhật ngay và áp dụng từ thao tác kế tiếp, không cần Quản lý viện thao tác. *(Nguồn: BR-M15-02, 7.4)*
+- **FR-034**: Phạm vi của quyền ký hiệu "T" và "D" MUST theo vai trò: với Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc, phạm vi MUST là phạm vi theo phân công (mục D, như "P"); với Quản lý viện, Bác sĩ, Nhân viên hành chính, Kế toán, Nhân viên bếp, phạm vi MUST là toàn viện (**sửa 2026-10-06, Q-282, Q-283**). Với đối tượng không gắn người cao tuổi (lịch ca, yêu cầu đổi ca, nghỉ đột xuất), "phạm vi theo phân công" của Trưởng tầng là tầng/khu vực được giao và nhân viên có ca tại đó (feature 008, 015); với phản hồi của người thân, phạm vi theo người cao tuổi mà phản hồi nhắc tới (feature 012); spec sở hữu đối tượng khai báo cách gắn này (CHK049). Quyền "X" và "C" MUST có phạm vi toàn viện. Khi một tài khoản có nhiều vai trò, phạm vi của mỗi quyền MUST lấy theo vai trò đem lại quyền đó (FR-017); nếu nhiều vai trò cùng đem lại một quyền, phạm vi MUST là hợp các phạm vi (toàn viện nếu có một vai trò toàn viện), trừ khi Quản lý viện đã thu hẹp quyền đó theo tài khoản (FR-025). Giới hạn trường của FR-022 MUST xét theo từng cặp (nhóm trường, phạm vi) của từng vai trò rồi mới hợp lại; ví dụ tài khoản Hành chính kiêm Điều dưỡng xem đầy đủ sức khỏe chỉ trong phạm vi phân công điều dưỡng, còn ngoài phạm vi đó chỉ thấy mức chăm sóc. Spec module sở hữu MAY thu hẹp thêm; ngoại lệ về phạm vi chỉ gồm FR-019a, FR-019b, FR-019f, FR-035a và FR-044a. *(Nguồn: 4.4 ký hiệu, 19.3; Clarification 2026-09-25)*
+- **FR-035**: Danh sách, tìm kiếm, báo cáo và số liệu tổng hợp MUST chỉ gồm dữ liệu trong phạm vi của người xem; hệ thống MUST NOT tiết lộ sự tồn tại hay số lượng bản ghi ngoài phạm vi. Riêng với dashboard và báo cáo (UC-67):
+  - ký hiệu "P" của Bác sĩ và Nhân viên hành chính MUST được hiểu là toàn viện, nhất quán với FR-034; Trưởng tầng và Điều dưỡng giữ "P" theo phân công, Người phụ trách ca theo tầng/khu của ca (FR-031, Q-195);
+  - một vai trò chỉ thấy một nhóm chỉ tiêu khi có quyền ở dòng "Dashboard, báo cáo" và ở dòng nguồn chính của nhóm; "P" ở dòng "Lịch ca, phân công" chỉ là lịch của chính mình (18.7, feature 016 FR-010);
+  - số liệu MUST chỉ gồm các chỉ tiêu dựng từ trường mà vai trò đó được xem theo FR-022: Hành chính không thấy chỉ số, cảnh báo, thuốc, sự cố thuộc loại không mang dấu "không thuộc sức khỏe" (Q-202); trạng thái người cao tuổi theo 5.5, kể cả Điều trị tại bệnh viện, không phải trường sức khỏe. Giới hạn trường ở chú thích ¹¹ của 4.4 chỉ áp cho Hành chính; Bác sĩ không có giới hạn trường riêng.
+
+  *(Nguồn: BR-M15-01; UC-67 dòng "Dashboard, báo cáo"; 18.7, 19.3; Clarification 2026-09-25; đồng bộ spec 016)*
+- **FR-035a**: Với báo cáo cho khoảng thời gian đã qua (feature 016), phạm vi MUST tính theo lịch sử phân công (feature 008 FR-037a) thay vì chỉ phân công đang hiệu lực: Trưởng tầng theo các tầng/khu đang được giao tại lúc xem, gồm cả bản ghi phát sinh trước khi được giao; Điều dưỡng theo phân công trong các ca mình thật sự thuộc về (giờ ca ± CFG-M15-07); Người phụ trách ca theo cả tầng/khu trong các ca mình phụ trách (Q-192, Q-195). Đây là ngoại lệ của FR-032 và FR-033 chỉ cho việc xem số liệu và danh sách của báo cáo; với người cao tuổi không còn trong phạm vi hiện hành, danh sách chỉ hiện họ tên, phòng/giường lúc phát sinh và nội dung bản ghi theo FR-022, không mở hồ sơ hiện tại; mở bản ghi đầy đủ chỉ khi quyền hiện hành cho phép (Q-196). Ngoại lệ này MUST NOT cho thao tác, ghi hay đính chính. *(Nguồn: 18.7; feature 016 FR-012; Q-192, Q-195, Q-196)*
+
+#### E. Điều kiện pháp lý
+
+- **FR-036**: Hệ thống MUST có danh mục nghiệp vụ chuyên môn; mỗi mục MUST khai báo: loại giấy phép/đào tạo cá nhân yêu cầu, phạm vi hành nghề yêu cầu, và có yêu cầu phạm vi hoạt động của cơ sở hay không. Danh mục mặc định MUST gồm ít nhất: chẩn đoán và kê đơn nội bộ (bác sĩ có giấy phép đúng phạm vi và cơ sở có phạm vi khám chữa bệnh); phát thuốc và xác nhận liều (điều dưỡng có giấy phép còn hiệu lực). Chỉ Quản lý viện MUST được thêm, sửa, ngừng hiệu lực mục của danh mục, kèm lý do và ghi nhật ký; các mục mặc định trên MUST NOT bị ngừng hiệu lực. Thêm một mục làm thao tác đó cần thêm điều kiện, tức là thu hẹp quyền, nên không trái FR-025 (CHK004). *(Nguồn: 10.4, 13.4, BR-M06-05)*
+- **FR-037**: Một thao tác thuộc danh mục nghiệp vụ chuyên môn MUST chỉ được chấp nhận khi, tại thời điểm thực hiện: (a) người thực hiện có giấy phép/đào tạo yêu cầu còn hiệu lực; (b) phạm vi hành nghề trên giấy phép bao gồm nghiệp vụ đó; (c) nếu mục yêu cầu, cơ sở có phạm vi hoạt động phù hợp còn hiệu lực. Điều kiện (b) được đối chiếu theo mục chọn, không theo văn bản tự do: "phạm vi hành nghề yêu cầu" của danh mục nghiệp vụ chuyên môn (FR-036) và "phạm vi hành nghề" trên giấy phép của nhân viên (feature 008 FR-006) dùng chung một danh mục phạm vi hành nghề; (b) thỏa khi giấy phép có mục mà nghiệp vụ yêu cầu (CHK011). *(Nguồn: BR-M06-05, BR-M09-01, 10.4)*
+- **FR-038**: Giấy phép MUST được coi là còn hiệu lực đến hết ngày hết hạn ghi trên giấy phép, theo múi giờ Asia/Ho_Chi_Minh. Khi hết hạn, quyền chuyên môn tương ứng MUST tự tắt; khi hồ sơ giấy phép được cập nhật gia hạn, quyền MUST tự bật lại, không cần Quản lý viện cấp lại. *(Nguồn: BR-M06-05, NFR-09)*
+- **FR-039**: Hệ thống MUST cảnh báo Quản lý viện khi giấy phép hoạt động của cơ sở hoặc giấy phép của người hành nghề sẽ hết hạn trong vòng CFG-M06-02 (mặc định \[60 ngày\]); cảnh báo MUST nêu các nghiệp vụ chuyên môn sẽ bị tắt và người bị ảnh hưởng. Cảnh báo đào tạo bắt buộc (CFG-M09-03) thuộc feature 008. *(Nguồn: BR-M06-05, BR-M09-05)*
+- **FR-040**: Điều kiện pháp lý MUST chỉ giới hạn thao tác chuyên môn; MUST NOT giới hạn quyền xem hoặc thao tác không thuộc danh mục nghiệp vụ chuyên môn của cùng người dùng. Bản ghi đã xác nhận khi điều kiện còn hiệu lực MUST giữ nguyên giá trị sau khi điều kiện hết hiệu lực. *(Nguồn: BR-M06-05 chỉ nêu "quyền chẩn đoán và kê đơn")*
+
+#### F. Kiểm tra quyền hiệu lực
+
+- **FR-041**: Mọi lần xem và mọi thao tác của người dùng MUST được kiểm tra đủ ba lớp — quyền vai trò (mục C), phạm vi dữ liệu (mục D), điều kiện pháp lý (mục E) — tại thời điểm hệ thống nhận yêu cầu; thiếu bất kỳ lớp nào thì từ chối. *(Nguồn: BR-M15-01)*
+- **FR-041a**: Với bản ghi nhận ngoại tuyến được đồng bộ sau (Q-01, 8.6), khi thời điểm trên thiết bị hợp lý theo FR-041c, ba lớp quyền MUST được kiểm tra theo trạng thái tại thời điểm ghi trên thiết bị (trạng thái tài khoản, vai trò, phân công và khoảng thời gian FR-032, giấy phép), nhất quán với BR-M04-12. Bản ghi không hợp lệ tại thời điểm đó MUST bị từ chối khi đồng bộ. Bản ghi hợp lệ tại thời điểm đó MUST được chấp nhận; nếu tại thời điểm đồng bộ người ghi đã mất một trong ba lớp, bản ghi MUST được gắn nhãn "đồng bộ sau khi mất quyền" và hệ thống MUST báo trưởng tầng của tầng/khu vực liên quan để xem lại. Thao tác bắt buộc trực tuyến theo Q-01 (kích hoạt khẩn cấp, xác nhận liều thuốc có kiểm soát đặc biệt) không thuộc quy tắc này. Khi thiết bị kết nối lại, hệ thống MUST báo cho người dùng kết quả của từng bản ghi đã đồng bộ (chấp nhận, chấp nhận kèm nhãn, chờ xem lại, từ chối kèm lý do); nếu tài khoản đã rời trạng thái Hoạt động thì phiên kết thúc (FR-013), nếu phạm vi đã hết thì thiết bị MUST ngừng nhận ghi nhận mới cho người cao tuổi ngoài phạm vi (CHK057). *(Nguồn: 8.6, BR-M04-12, DBR-25, Q-01; Clarification 2026-09-25)*
+- **FR-041c**: Thời điểm trên thiết bị MUST chỉ được dùng cho FR-041a khi hợp lý: (a) không muộn hơn thời điểm đồng bộ; (b) không sớm hơn lần kết nối gần nhất của thiết bị với hệ thống trước khi ngoại tuyến; (c) khoảng từ lần kết nối gần nhất tới lúc đồng bộ không vượt CFG-M15-08 (đề xuất, mặc định \[24 giờ\]). Bản ghi không thỏa MUST NOT được tự động chấp nhận hay từ chối, mà MUST chuyển trạng thái "chờ xem lại" và báo trưởng tầng của tầng/khu vực liên quan. Trưởng tầng MUST chấp nhận (bản ghi có hiệu lực từ thời điểm chấp nhận, giữ thời điểm thiết bị để tham khảo) hoặc từ chối kèm lý do (bản ghi được lưu nhưng không có hiệu lực); mỗi quyết định MUST được ghi nhật ký. Bản ghi gắn nhãn "đồng bộ sau khi mất quyền" (FR-041a) đã có hiệu lực, trưởng tầng xử lý sai sót nếu có bằng đính chính theo spec 000 (giữ nguyên, đính chính nội dung, hoặc Hủy ghi nhận). Khi tầng/khu vực chưa có Trưởng tầng được giao, người được báo và người quyết định ở FR-041a, FR-041c là Người phụ trách ca đang diễn ra của tầng đó (Q-90); với bản ghi không gắn tầng/khu vực, là Quản lý viện (CHK056). *(Nguồn: 8.6, DBR-25, NFR-09, Q-01; Clarification 2026-09-25)*
+- **FR-041b**: Khi không xác định được một trong ba lớp quyền vì dữ liệu nguồn thiếu, mâu thuẫn hoặc không đọc được (phân công, giấy phép, bản đồng ý, quan hệ người thân…), hệ thống MUST từ chối lần xem hoặc thao tác đó như khi lớp đó không thỏa. Ngoại lệ duy nhất: ghi nhận sự cố và kích hoạt khẩn cấp theo FR-044a MUST vẫn được thực hiện, với giới hạn hiển thị của FR-044a. Mỗi lần từ chối vì lý do này MUST được ghi nhật ký kèm dữ liệu nguồn bị lỗi, và hệ thống MUST báo Quản lý viện; các lần cùng lỗi dữ liệu MUST được gộp thành một báo cáo cho tới khi lỗi được khắc phục. "Thiếu" là trường bắt buộc của dữ liệu nguồn để trống; "mâu thuẫn" là dữ liệu vi phạm ràng buộc của feature sở hữu (ví dụ ngày hết hạn trước ngày cấp, phân công trỏ tới tầng, phòng đã Ngừng hiệu lực hoặc không tồn tại); hai phân công chồng nhau không phải mâu thuẫn mà được hợp lại (FR-031) (CHK058). "Cùng lỗi" là cùng bản ghi nguồn và cùng loại lỗi; lỗi được coi là đã khắc phục khi lần kiểm tra quyền kế tiếp đọc được dữ liệu đó hợp lệ, không cần ai xác nhận (CHK059). Khi lỗi nằm ở phân bổ giường, người ghi sự cố chọn người cao tuổi bằng họ tên và ảnh; phần phòng/giường để trống (CHK060). *(Nguồn: BR-M15-01, 19.3, NFR-08; Clarification 2026-09-25)*
+- **FR-042**: Thao tác mà người dùng không có quyền hiệu lực MUST không xuất hiện trong danh sách thao tác của họ; nếu vẫn được gửi tới, hệ thống MUST từ chối. *(Nguồn: BR-M15-01)*
+- **FR-043**: Khi từ chối, hệ thống MUST nêu lớp nào không thỏa (không có quyền / ngoài phạm vi / điều kiện pháp lý hết hiệu lực kèm tên giấy phép), trừ trường hợp nêu lý do sẽ tiết lộ dữ liệu ngoài phạm vi. Tiêu chí: khi người dùng không được xem chính đối tượng đó (đối tượng ngoài phạm vi xem, hoặc không tồn tại), hệ thống trả một thông báo chung "không tìm thấy hoặc không có quyền", không nêu lớp; khi người dùng xem được đối tượng nhưng thiếu quyền thao tác hoặc điều kiện pháp lý, hệ thống nêu lớp không thỏa (CHK012). *(Suy ra từ BR-M15-01 và FR-035: không tiết lộ sự tồn tại của dữ liệu ngoài phạm vi)*
+- **FR-044**: Thao tác do Bộ lập lịch hệ thống (AC-11) thực hiện MUST NOT bị giới hạn bởi phạm vi dữ liệu hay điều kiện pháp lý của người dùng, nhưng MUST chỉ thực hiện các tác động mà quy tắc nghiệp vụ nguồn quy định. *(Nguồn: 4.1 AC-11)*
+- **FR-044a**: Ghi nhận sự cố (UC-35) và kích hoạt khẩn cấp (UC-36) MUST được miễn lớp phạm vi dữ liệu (ngoại lệ phạm vi còn lại là quyền từ nhiệm vụ ở FR-019a, FR-019b và phạm vi báo cáo ở FR-035a): mọi tài khoản nhân viên có quyền vai trò "T" với "Sự cố, khẩn cấp" MUST thực hiện được cho bất kỳ người cao tuổi nào chưa ở trạng thái cuối, không phụ thuộc phân công. Để chọn đúng người, người ghi nhận MUST chỉ thấy thông tin nhận dạng của người ngoài phạm vi, gồm đúng ba mục: họ tên, ảnh, phòng/giường hiện tại (người không có phân bổ giường đang mở thì mục này để trống; CHK016); MUST NOT thấy thông tin sức khỏe hay các phần hồ sơ khác. Sau khi tạo, việc xem và xử lý tiếp sự cố đó theo phạm vi thông thường, trừ việc xem lại chính bản ghi mình đã tạo. Mỗi lần dùng ngoại lệ MUST được ghi nhật ký kèm đánh dấu "ngoài phạm vi". *(Nguồn: 4.4 dòng "Sự cố, khẩn cấp", UC-35, UC-36, BR-M15-01; Clarification 2026-09-25)*
+
+#### G. Tài khoản và quyền hiệu lực của người thân
+
+- **FR-045**: Với tài khoản người thân, ba lớp của BR-M15-01 MUST được hiểu là: (1) vai trò — quyền tối đa của cột "NT" trong Permission Matrix 4.4; (2) phạm vi — những người cao tuổi có quan hệ người thân còn hiệu lực với người đó; (3) điều kiện — quyền được cấp riêng cho người thân đó (xem sức khỏe, xem chi phí, nhận thông báo khẩn, đăng ký thăm, được phép đón, được yêu cầu thay đổi dịch vụ) và bản đồng ý chia sẻ dữ liệu còn hiệu lực bao gồm người đó cho phần sức khỏe. *(Nguồn: 14.1, BR-M10-01, BR-M01-08, DBR-03, 4.4 chú thích ¹ ²)*
+- **FR-046**: Thông tin sức khỏe MUST chỉ hiện với người thân khi đồng thời có quyền xem sức khỏe (14.1) và bản đồng ý còn hiệu lực bao gồm người đó; khi đồng ý bị rút lại, phần này MUST ẩn từ lần xem kế tiếp. *(Nguồn: BR-M01-08, DBR-03)*
+- **FR-047**: Chỉ người thân là người đại diện (quan hệ Hiệu lực) MUST được thực hiện các thao tác sau; mỗi spec sở hữu quy định chi tiết:
+  - gửi yêu cầu thay đổi dịch vụ (khi có quyền "được yêu cầu thay đổi dịch vụ", feature 012 FR-010, FR-049);
+  - xác nhận thay đổi danh sách người được phép đón, thay đổi quyền người thân, thêm hoặc thôi người đại diện (BR-M10-07, Q-118, Q-127; feature 012);
+  - đồng ý hoặc từ chối đề nghị mua hộ vượt hạn mức (BR-M10-10, BR-M11-07; feature 010);
+  - xác nhận người nhận khác khi trả đồ gửi, đồng ý cho người cao tuổi tự giữ đồ có giá trị (BR-M12-04, BR-M12-06, Q-149, Q-155; feature 013);
+  - ghi, rút "đồng ý về muộn" cho người bán trú (3.4, Q-167; feature 014);
+  - xác nhận ngoại lệ đón (BR-M10-03; feature 012).
+
+  Mọi người thân vẫn tự bỏ được mình khỏi danh sách đón hoặc tắt quyền của chính mình (chú thích ¹⁸ của 4.4). *(Nguồn: BR-M10-01, 19.3, 4.4 chú thích ² ¹⁸ ¹⁹; đồng bộ spec 010, 012, 013, 014)*
+- **FR-048**: Người thân MUST NOT xem nhật ký thay đổi; chỉ thấy giá trị hiện hành của dữ liệu được cấp. *(Nguồn: FR-049 của 000)*
+- **FR-049**: Sau khi người cao tuổi chuyển Kết thúc lưu trú hoặc Qua đời, người thân MUST còn xem được thông tin được cấp của người đó ở chế độ chỉ đọc trong CFG-M01-04 (mặc định \[30 ngày\]); sau thời hạn đó người cao tuổi đó MUST ra khỏi phạm vi của người thân. Khi mọi người cao tuổi có quan hệ đều đã ra khỏi phạm vi theo quy tắc này, tài khoản MUST chuyển Đã khóa. Khi quan hệ giữa người thân và một người cao tuổi chấm dứt (feature 012), người cao tuổi đó MUST ra khỏi phạm vi của người thân từ lần xem kế tiếp, không chờ CFG-M01-04; khi người thân không còn quan hệ Hiệu lực nào, tài khoản MUST chuyển Đã khóa, người thực hiện ghi là hệ thống, căn cứ là lần chấm dứt quan hệ (CHK005). *(Nguồn: 5.6, 14.1)*
+- **FR-050**: Tài khoản người thân MUST chỉ được tạo cho hồ sơ người thân có ít nhất một quan hệ với người cao tuổi chưa ở trạng thái cuối. *(Nguồn: 14.1)*
+- **FR-051**: Nhân viên hành chính và Quản lý viện MUST được tạo, kích hoạt lại và cấp lại mật khẩu cho tài khoản người thân, không cần yêu cầu phê duyệt; tài khoản tạo ra MUST chỉ có vai trò Người thân. Nhân viên hành chính MUST NOT tạo hay thay đổi tài khoản nhân viên, gán vai trò khác, hay thay đổi quyền (FR-026). Khóa và mở khóa tài khoản Đã khóa vẫn do Quản lý viện (FR-011). Nhân viên hành chính MUST NOT mở khóa sớm tài khoản người thân đang Khóa tạm; việc này chỉ Quản lý viện làm, hoặc người thân chờ hết thời gian khóa (CHK008). Mỗi thao tác MUST có lý do (trừ tạo mới) và được ghi nhật ký. *(Nguồn: UC-55, NFR-01; Clarification 2026-09-25, đề xuất Q-16)*
+- **FR-052**: Trước khi tạo, cấp lại mật khẩu hoặc kích hoạt lại tài khoản người thân, người thực hiện MUST xác minh danh tính bằng một trong hai cách: (a) người thân có mặt tại viện, đối chiếu giấy tờ tùy thân với hồ sơ người thân; (b) gọi lại số điện thoại đã đăng ký trong hồ sơ người thân (không dùng số do người yêu cầu cung cấp lúc yêu cầu). Cách xác minh MUST được ghi vào nhật ký của thao tác; thao tác không có cách xác minh MUST bị từ chối. Mật khẩu tạm MUST chỉ giao trực tiếp cho người đã được xác minh. Giai đoạn đầu MUST NOT có chức năng người thân tự đặt lại mật khẩu; bổ sung sau khi chốt Q-06 (nhà cung cấp SMS). *(Nguồn: 5.1, 14.1, Q-06; Clarification 2026-09-25)*
+
+**Truy vết use case** *(constitution I; bổ sung 2026-10-01, CHK045)*: mục A (FR-001 → FR-006) — UC-68; mục B (FR-007 → FR-015) — UC-68, UC-70; mục C (FR-016 → FR-027) — UC-68; mục G (FR-045 → FR-052) — UC-68, và UC-55 của feature 012 cho hồ sơ và quyền của người thân. Mục D, E, F (FR-028 → FR-044a) không có UC riêng: chúng là ràng buộc của BR-M15-01, BR-M15-02, BR-M06-05 áp lên use case của mọi module.
+
+### Key Entities *(include if feature involves data)*
+
+- **Tài khoản (TAI_KHOAN)** – nhóm 1 theo 3.2, có trạng thái theo bảng ở mục B: tên đăng nhập, loại (nhân viên / người thân), liên kết đúng một hồ sơ nhân viên hoặc một hồ sơ người thân, trạng thái, thời điểm đăng nhập gần nhất, số lần đăng nhập sai liên tiếp, cờ buộc đổi mật khẩu. Không xóa. Không có thao tác "Sửa" trực tiếp trên tài khoản: tên đăng nhập, loại và liên kết không đổi sau khi tạo; vai trò đổi bằng gán, gỡ (FR-026); trạng thái đổi bằng lệnh ở bảng mục B; mật khẩu đổi bằng cấp lại hoặc người dùng tự đổi (CHK024).
+- **Vai trò (VAI_TRO)** – nhóm 1, cố định 9 vai trò theo bảng 2.3 (**sửa 2026-10-06, Q-282, Q-283**); mỗi vai trò có tập quyền tối đa theo Permission Matrix 4.4.
+- **Quyền**: cặp (chức năng nghiệp vụ, loại thao tác) kèm phạm vi mặc định (toàn viện hoặc theo phân công); gắn với vai trò, hoặc với tài khoản khi được gán thêm (FR-024, FR-025).
+- **Gán vai trò**: tài khoản, vai trò, người gán, thời điểm, lý do; lịch sử gán/gỡ được giữ.
+- **Phạm vi dữ liệu** (khái niệm, không lưu tay): suy ra từ Phân công (PHAN_CONG, feature 008) và phân bổ giường (PHAN_BO_GIUONG, feature 003) tại thời điểm kiểm tra.
+- **Danh mục nghiệp vụ chuyên môn** – nhóm 1: nghiệp vụ, loại giấy phép/đào tạo cá nhân yêu cầu, phạm vi hành nghề yêu cầu, có yêu cầu phạm vi hoạt động của cơ sở.
+- **Giấy phép** (dùng, không sở hữu): CHUNG_CHI của nhân viên (feature 008) và giấy phép hoạt động của cơ sở (mục 10.4): loại, số, phạm vi, ngày cấp, ngày hết hạn.
+- **Quan hệ người thân, quyền theo người thân, bản đồng ý** (dùng, không sở hữu): QUAN_HE_NGUOI_THAN, BAN_DONG_Y (feature 012, 001).
+
+## Success Criteria *(mandatory)*
+
+### Measurable Outcomes
+
+- **SC-001**: Trong bộ kiểm thử gồm mọi ô của Permission Matrix 4.4 (9 vai trò × mọi chức năng; **sửa 2026-10-06**), 100% kết quả cho/từ chối khớp ma trận và mục 19.3, cho cả người cao tuổi trong và ngoài phạm vi. Mỗi ô có chú thích điều kiện (bản đồng ý, người đại diện, giấy phép…) được kiểm ở cả hai nhánh: điều kiện thỏa và không thỏa; ô bị mục 19.3 thu hẹp được kiểm theo 19.3 (CHK026).
+- **SC-002**: 0 lần xem hoặc thao tác nào thành công trên dữ liệu ngoài phạm vi (trừ ghi nhận sự cố/kích hoạt khẩn cấp theo FR-044a, khi đó 0 lần lộ thông tin sức khỏe), hoặc thao tác chuyên môn nào thành công khi thiếu điều kiện pháp lý, trong toàn bộ kịch bản kiểm thử.
+- **SC-003**: Sau khi phân công hoặc quyền thay đổi, thao tác đầu tiên của người dùng bị ảnh hưởng đã theo quyền mới trong 100% lần thử; quản lý viện không phải thực hiện thêm bước cấp quyền nào.
+- **SC-004**: 0 lần đăng nhập thành công bằng tài khoản của nhân viên đã chuyển Nghỉ việc, tính từ thời điểm chuyển trạng thái.
+- **SC-005**: Quản lý viện tạo xong một tài khoản nhân viên có vai trò trong không quá 3 phút.
+- **SC-006**: Vào ngày sau ngày hết hạn giấy phép, 100% thao tác chuyên môn phụ thuộc giấy phép đó bị từ chối; vào ngày sau khi cập nhật gia hạn, 100% được chấp nhận lại mà không cần cấp quyền.
+- **SC-007**: 100% thay đổi vai trò, quyền và trạng thái tài khoản có bản ghi nhật ký đủ người thực hiện, thời điểm, giá trị trước/sau và lý do.
+- **SC-008**: Người dùng bị từ chối hiểu được lý do (không có quyền / ngoài phạm vi / giấy phép hết hạn) mà không cần hỏi quản lý viện, trong ít nhất 90% lần thử với người dùng thật; đo với ít nhất 10 người thuộc ít nhất 3 vai trò, mỗi người gặp ba tình huống bị từ chối (mỗi lớp một tình huống); "hiểu được" là người đó nói đúng lớp bị từ chối và việc cần làm tiếp (CHK028).
+- **SC-009**: Trong bộ kiểm thử bản ghi ngoại tuyến, 100% bản ghi được xử lý đúng một trong ba kết quả theo FR-041a, FR-041c (chấp nhận, chấp nhận kèm nhãn "đồng bộ sau khi mất quyền", "chờ xem lại") hoặc bị từ chối, và 0 bản ghi có thời điểm thiết bị bất hợp lý được tự động chấp nhận.
+- **SC-010**: 0 lần nhân viên hành chính thấy trường sức khỏe bị cấm theo FR-022, kể cả qua dashboard, báo cáo và nhật ký; 100% trường hợp thiếu dữ liệu nguồn để tính quyền bị từ chối, trừ ghi nhận sự cố/kích hoạt khẩn cấp (FR-041b).
+- **SC-011**: 100% lần cấp lại mật khẩu, kích hoạt lại tài khoản người thân và mở khóa sớm bởi trưởng tầng/người phụ trách ca có ghi cách xác minh và lý do trong nhật ký (FR-052, FR-019c).
+- **SC-012** *(bổ sung, CHK027)*: 0 lần người thân thấy thông tin sức khỏe khi thiếu quyền xem sức khỏe hoặc thiếu bản đồng ý Hiệu lực bao gồm mình; 0 lần người thân thấy người cao tuổi mình không có quan hệ Hiệu lực; 100% thao tác chỉ dành cho người đại diện bị từ chối với người thân khác (FR-045 → FR-047).
+
+## Assumptions
+
+- Thư mục feature dùng số `002` theo bản đồ feature ở 4.2 (UC-68, UC-70 ghi feature 002), trùng với số tuần tự kế tiếp.
+- Một tài khoản chỉ phục vụ một loại người dùng; người vừa là nhân viên vừa là người thân có hai tài khoản riêng, để quyền nhân viên không lọt sang cổng người thân và ngược lại (FR-003).
+- Đăng nhập bằng tên đăng nhập và mật khẩu; buộc đổi mật khẩu lần đầu và cấp lại mật khẩu là thực hành chuẩn, tài liệu nguồn không nêu (FR-006). Độ mạnh mật khẩu và thời gian tự đăng xuất theo CFG-M15-09, CFG-M15-10 (**sửa, 2026-10-07, Q-309**).
+- Tài khoản người thân Không hoạt động không tự trở lại Hoạt động khi đăng nhập đúng, mà phải được kích hoạt lại (bảng mục B); nếu không, BR-M15-05 không có tác dụng.
+- Danh mục nghiệp vụ chuyên môn mặc định chỉ gồm những thao tác mà tài liệu nêu rõ cần giấy phép (chẩn đoán, kê đơn nội bộ, phát thuốc/xác nhận liều); các thao tác khác (đánh giá đầu vào, thiết lập ngưỡng, duyệt kế hoạch chăm sóc) không bị giới hạn bởi giấy phép trừ khi Quản lý viện bổ sung vào danh mục.
+- Giấy phép còn hiệu lực đến hết ngày hết hạn (FR-038).
+- Nhật ký đăng nhập (thành công và thất bại) được ghi để phục vụ điều tra an ninh (FR-015), dù mục 19.4 chỉ liệt kê "phân quyền".
+- Trạng thái làm việc của nhân viên ngoài Nghỉ việc (nghỉ phép, tạm nghỉ) không khóa tài khoản; nhân viên không có phân công thì phạm vi "P" rỗng (US4 kịch bản 7).
+- Hiển thị dữ liệu đã tải trên màn hình không bị thu hồi khi quyền đổi; mọi lần tải lại và thao tác gửi đi được kiểm tra lại (FR-041).
+- Người bán trú không có giường thuộc phạm vi qua phân công theo người cao tuổi (FR-030); spec này không coi khu nghỉ ban ngày (7.1) là một cấp phạm vi riêng (CHK001).
+- Việc kiểm tra quyền nằm trong thời gian phản hồi của NFR-02 (95% thao tác ghi nhận dưới 2 giây); spec này không đặt chỉ tiêu thời gian riêng cho bước kiểm tra quyền (CHK037).
+- Rủi ro người khác cố ý đăng nhập sai để khóa tạm tài khoản của một nhân viên giữa ca được chấp nhận ở giai đoạn này; cách giảm là mở khóa sớm tại tầng (FR-019c) và nhật ký đăng nhập thất bại (FR-015) (CHK038).
+- Chính sách độ mạnh mật khẩu và thời gian tự đăng xuất đã có mã CFG-M15-09, CFG-M15-10 (CHK039; **đã chốt 2026-10-07, Q-309**).
+- Danh mục nghiệp vụ chuyên môn mặc định chưa được bác sĩ hay tư vấn pháp lý của cơ sở xác nhận; cần đối chiếu trước khi triển khai, cùng nhóm với Q-03 ở mục 24.4 (CHK041).
+- Spec này viết song song được với feature 008 và 012. Nghiệm thu đầu–cuối cần: từ feature 008, trạng thái làm việc, giấy phép (loại, số, phạm vi hành nghề, ngày cấp, ngày hết hạn, thu hồi) và phân công (đối tượng, ca, khoảng hiệu lực); từ feature 012, quan hệ người thân và quyền theo từng người thân; từ feature 001, bản đồng ý; từ feature 003, phân bổ giường (CHK042).
+- "Nhân viên không còn được phép sử dụng hệ thống" ở 19.1 được hiểu là Nghỉ việc (BR-M09-04); nghỉ phép, tạm nghỉ không tự khóa tài khoản, nhưng Quản lý viện khóa tay được theo FR-011. Cách hiểu này chưa được Quản lý viện của cơ sở xác nhận (CHK043).
+- Q-14, Q-15, Q-16 và CFG-M15-07, CFG-M15-08 được ghi "đề xuất" ở phần Clarifications và một số FR vì khi đó chưa có trong tài liệu nguồn; nay đã có ở mục 24.2 và Phụ lục 25. Các quyết định không có mã Q riêng (sự cố ngoài phạm vi, quyền của Người phụ trách ca, phạm vi "T"/"D" theo vai trò, giới hạn xem của Hành chính, từ chối khi thiếu dữ liệu nguồn) đã nằm ở thân tài liệu nguồn (BR-M15-01, BR-M15-05, 2.4, 19.3), nên không cần mã Q (CHK046, CHK062).
+
+## Điểm cần báo lại về tài liệu nguồn
+
+Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/business/nghiep-vu.md` và `docs/phan-tich-yeu-cau.md` theo yêu cầu. Danh sách dưới đây ghi nơi đã phản ánh và các điểm còn mở.
+
+**Đã phản ánh vào tài liệu nguồn**
+
+1. TAI_KHOAN có vòng đời trạng thái: cột Nhóm ở 3.2 ghi "1 (vai trò); 2 (trạng thái tài khoản)".
+2. Hành chính (và Quản lý viện) quản lý tài khoản người thân, xác minh danh tính, chưa có tự đặt lại mật khẩu (Q-16): 19.1, chú thích ¹² của Permission Matrix 4.4, mục 24.2.
+3. Phạm vi theo ca ± CFG-M15-07 (Q-14): BR-M15-02, Phụ lục 25, mục 24.2. Thời gian ngoại tuyến tối đa CFG-M15-08 và trạng thái "chờ xem lại": cột Mặc định của Q-01, Phụ lục 25.
+4. Quản lý viện chỉ được thu hẹp quyền, ngoại lệ là quyền Duyệt kế hoạch chăm sóc (Q-15); hợp phạm vi khi nhiều vai trò: 19.2, đoạn bổ sung dưới Permission Matrix 4.4, mục 24.2.
+5. Ghi nhận sự cố / kích hoạt khẩn cấp ngoài phạm vi: BR-M15-01, chú thích ¹⁰ của 4.4.
+6. Hai tham số cảnh báo giấy phép: Phụ lục 25 — CFG-M06-02 cho giấy phép hành nghề, CFG-M09-03 cho chứng chỉ đào tạo.
+7. Người phụ trách ca xử lý việc quá hạn, đính chính, mở khóa sớm: 2.4, chú thích ⁹ của 4.4, BR-M15-05.
+8. Nhật ký ghi cả đăng nhập: 19.4.
+9. Hành chính chỉ xem mức chăm sóc (**sửa 2026-10-06, Q-281:** bỏ cờ nguy cơ); phạm vi T/D theo vai trò; từ chối mặc định khi thiếu dữ liệu nguồn; dashboard của Bác sĩ, Hành chính là toàn viện: 19.3, chú thích ⁵ và ¹¹ của 4.4.
+
+10. **(Rà chéo 2026-09-28)** Ngoại lệ ghi nhận sự cố ngoài phạm vi (FR-044a) đã có trong spec 007 (Phạm vi, User Story, Edge Cases); quyền của Người phụ trách ca (FR-019a, FR-019b) đã có trong spec 005; FR-019d (Q-80) đã có ở định nghĩa "Người phụ trách ca" mục 2.4. Chú thích ⁹ của 4.4 không được sửa theo quyết định của người dùng; 2.4 và 19.3 là căn cứ.
+11. **(Rà chéo 2026-09-28)** Phạm vi báo cáo cho khoảng đã qua (FR-035a), nhóm chỉ tiêu theo dòng nguồn chính, sự cố "không thuộc sức khỏe" cho Hành chính: 18.7, 19.3 (Q-192 → Q-203).
+
+**Còn mở**
+
+1. **Q-01** (ghi nhận khi mất kết nối) và **Q-06** (nhà cung cấp SMS, ảnh hưởng tự đặt lại mật khẩu) vẫn mở. **(Cập nhật, 2026-10-01)** Q-01 và Q-06 đã chốt theo mặc định và chuyển sang 24.2; spec không đổi.
+2. **Q-03** (Nghị định 13/2023) vẫn mở: nếu đòi ghi nhật ký lần nhân viên xem dữ liệu sức khỏe, cần bổ sung cơ chế ở spec này và feature 016 FR-062. **(Cập nhật, 2026-10-01)** Q-03 đã chốt theo mặc định: không bổ sung nhật ký lần nhân viên xem dữ liệu sức khỏe ở giai đoạn này; đây là điểm cần tư vấn pháp lý đối chiếu trước khi triển khai (24.4).
+
+**(2026-10-01)** 12. **Checklist cross-feature CHK071** – thêm ngoại lệ quyền theo nhiệm vụ thứ năm: Người phụ trách ca ghi kết quả kiểm tra chất lượng khi ca không có Trưởng tầng được giao (FR-019e, Q-254). *(Đã có ở tài liệu nguồn từ 2026-09-30: BR-M04-23, 19.3, Phụ lục 27 ³⁶.)*
+
+**(2026-10-01)** 13. **Đánh giá checklist business-rules** – 62 mục được đối chiếu. Spec được sửa cho khớp tài liệu nguồn ở một điểm: số vai trò là 11, có Kế toán (2.3, AC-14, Q-212), trước đó spec còn ghi 10. Bảy điểm là đề xuất mới chưa có trong tài liệu nguồn, cần ghi vào 19.1, 19.2, 19.3 khi rà lại nguồn: (a) quan hệ người thân chấm dứt thì mất phạm vi ngay, hết quan hệ thì khóa tài khoản (FR-049); (b) một thiết bị một phiên (FR-014a); (c) tra cứu quyền của tài khoản tại một thời điểm (FR-026a); (d) thay đổi quyền không đặt ngày hiệu lực tương lai, và chống hai người cùng sửa (FR-026, FR-027); (e) thứ tự áp dụng thu hẹp theo vai trò và theo tài khoản (FR-025); (f) phạm vi hành nghề đối chiếu theo danh mục dùng chung với feature 008 (FR-037); (g) báo kết quả đồng bộ cho người dùng khi thiết bị kết nối lại (FR-041a). Hai điểm cần mã CFG khi thiết kế: độ mạnh mật khẩu, thời gian tự đăng xuất. Danh mục nghiệp vụ chuyên môn mặc định nên được thêm vào bảng 24.4 (người đối chiếu: Bác sĩ của cơ sở, tư vấn pháp lý). *(Đã xử lý 2026-10-01: Q-273 ở 24.2, các quy tắc mang mã BR-M15-14 → BR-M15-20; cuối mục 19.2; danh mục nghiệp vụ chuyên môn đã thêm vào 24.4. Hai mã CFG (độ mạnh mật khẩu, thời gian tự đăng xuất) để lại cho bước thiết kế.)*
+
+**(2026-10-05) Thay đổi do chủ dự án chốt Q-280 → Q-286.** *(Đã xử lý 2026-10-06: spec đã viết lại theo các quyết định dưới đây và Q-287, xem mục "Cập nhật 2026-10-06" ở Clarifications.)*
+
+- **Q-282** – bỏ vai trò Nhân viên vệ sinh và nghiệp vụ vệ sinh (7.5, BR-M03-08, 11, 12, 14, UC-71 → 73); giường kết thúc phân bổ chuyển "Chờ sẵn sàng", Trưởng tầng hoặc Người phụ trách ca "Xác nhận giường sẵn sàng" (nghi nhiễm thì bắt buộc xác nhận đã khử khuẩn) (BR-M03-09, 10, UC-74); nhân viên không dùng hệ thống chỉ có hồ sơ nhân viên. Ảnh hưởng: FR-022, FR-034 (vai trò Nhân viên vệ sinh); chỉ cấp tài khoản cho chức danh có nghiệp vụ trên hệ thống (13.1).
+- **Q-283** – gộp Dinh dưỡng viên vào Bác sĩ; bản gán chế độ ăn do Bác sĩ lập nên không còn bước duyệt riêng (BR-M08-03); cột DDV của Phụ lục 27 gộp vào cột BS. Ảnh hưởng: FR-022, FR-034 (vai trò Dinh dưỡng viên).
+- **Q-281** – bỏ cờ nguy cơ (ngã, loét, đi lạc); phần "lưu ý chăm sóc" của nhận xét đánh giá gần nhất hiện trên checklist và thẻ thông tin khẩn cấp; bỏ mọi điều kiện dựa vào cờ đi lạc (BR-M01-10). Ảnh hưởng: FR-022 (Hành chính xem cờ nguy cơ).
+- **Q-280** – bỏ thang điểm (Barthel, MMSE, Morse, Braden), bảng quy đổi CFG-M01-05 và hoạt động mẫu; Bác sĩ đánh giá bằng nhận xét dựa trên hồ sơ sức khỏe ban đầu và chỉ số đo, rồi chọn mức chăm sóc (5.3, BR-M01-09). Ảnh hưởng: FR-020 (ví dụ quyền "Đánh giá, quy đổi").
+- **Q-284** – kho, tài sản do bộ phận tự quản lý qua Phụ trách bộ phận (13.1a); Quản lý viện chỉ duyệt chi phí qua yêu cầu mua sắm và duyệt thanh lý; bộ phận tự mua, Kế toán đối chiếu chứng từ (15.10, BR-M11-17 → 20, CFG-M11-07 → 09, UC-94, UC-95, DBR-36, BF-18). Ảnh hưởng: User Story 2, FR-004, FR-006, FR-025, FR-034, SC-005 (quyền kho, tài sản; nhiệm vụ Phụ trách bộ phận, chú thích ³⁷, ³⁸ Phụ lục 27).
+
+**(2026-10-06) Thay đổi do chủ dự án chốt Q-292 → Q-299 (rà soát tài liệu nguồn).** *(Đã xử lý 2026-10-06: spec đã viết lại, xem mục "Cập nhật 2026-10-06, lượt 2" ở Clarifications.)*
+
+- **Q-292** – mỗi bộ phận luôn có đúng một Phụ trách bộ phận; bỏ quyền Quản lý viện làm thay. Đổi Phụ trách bộ phận, Cho nghỉ việc, khóa tài khoản hoặc chuyển bộ phận của người đang là Phụ trách bộ phận phải chỉ định người thay trong cùng lệnh; bộ phận mới tạo chưa có Phụ trách bộ phận thì lệnh kho, tài sản, mua sắm bị chặn và Quản lý viện được nhắc (13.1a, 19.3, Phụ lục 27 ³⁷, BF-18). Ảnh hưởng: FR-019f (không còn quyền làm thay của Quản lý viện).
+- **Q-293** – Kế toán không được giao nhiệm vụ Phụ trách bộ phận; Phụ trách bộ phận Hành chính – Kế toán là Hành chính; giữ BR-M11-19, bỏ phần "Kế toán đang là Phụ trách bộ phận" ở chú thích ³⁸ (13.1a, Phụ lục 27 ³⁸, BF-18). Ảnh hưởng: FR-019f, quyền của Kế toán ở dòng "Yêu cầu mua sắm".
+- **Q-299** – Quản lý viện không thuộc bộ phận nào và không được giao Phụ trách bộ phận; tài khoản các vai trò khác thuộc đúng một bộ phận (13.1a). Ảnh hưởng: FR-019f (Quản lý viện không giữ nhiệm vụ Phụ trách bộ phận).
+
+**(2026-10-06) Cập nhật căn cứ pháp lý (rà bảng 24.4).** Chỉ đổi trích dẫn, không đổi quy tắc; nội dung cần tư vấn pháp lý xác nhận ở 24.4.
+
+- **Q-03** – Nghị định 13/2023/NĐ-CP hết hiệu lực từ 01/01/2026, thay bằng Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 và Nghị định 356/2025/NĐ-CP. Tài liệu nguồn (5.1, Q-03, 24.4) đã đổi trích dẫn. Cần tư vấn pháp lý xác nhận theo luật mới: mẫu bản đồng ý, và có bắt buộc ghi nhật ký mỗi lần nhân viên xem dữ liệu sức khỏe không (Q-03 hiện chọn không). Nếu luật mới đòi ghi nhật ký lần xem, spec này cần bổ sung cơ chế (24.4).
+
+**(2026-10-06) Quyết định Q-305 (kênh truy cập khi chọn công nghệ).**
+
+- **Q-305** – nhân viên dùng web và ứng dụng di động nhân viên; người thân dùng cổng qua web và ứng dụng di động người thân. Một tài khoản dùng chung cho mọi kênh, quyền không đổi theo kênh (NFR-10, Phụ lục 26.1). Không đổi FR.
+
+**(2026-10-07) Quyết định Q-309, Q-310 (phát sinh khi làm plan 002).** *(Đã xử lý 2026-10-07: tài liệu nguồn 19.1, BR-M15-21, 22, Phụ lục 25, 26, 24.2; spec đã cập nhật, xem mục "Cập nhật 2026-10-07" ở Clarifications.)*
+
+- **Q-309** – độ mạnh mật khẩu CFG-M15-09 và tự đăng xuất theo kênh CFG-M15-10. Ảnh hưởng: FR-006a, FR-013a (mới).
+- **Q-310** – tài khoản Quản lý viện đầu tiên do công cụ khởi tạo tạo khi cài đặt. Ảnh hưởng: FR-004b (mới).
+
+**(2026-10-10) Plan 003, điểm báo lại 1: Người phụ trách ca Xác nhận giường sẵn sàng chưa có ngoại lệ quyền.** *(Đã xử lý 2026-10-10: Q-313; thêm FR-019g.)*
+
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-019f, Edge Cases; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
