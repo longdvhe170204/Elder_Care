@@ -7,11 +7,11 @@
 ## Summary
 
 Feature 004 là module M02 (mục 6). Nó cung cấp:
-1. Lượt đăng ký tiếp nhận, tiến trình và danh sách điều kiện tiếp nhận (mục A; UC-09, UC-08 phần điều kiện).
+1. Lượt đăng ký tiếp nhận, tiến trình và danh sách điều kiện tiếp nhận (mục A; UC-09, UC-08 phần điều kiện); từ 2026-10-11 có sáu điều kiện, thêm (f) DBR-02 (Q-343).
 2. Danh sách chờ có điểm ưu tiên tự tính. Khi giường về Trống, Hành chính được báo và tự chọn hồ sơ; hệ thống giữ chỗ tạm cho hồ sơ được liên hệ (mục B; UC-10).
 3. Hợp đồng: khóa khi Hiệu lực, không chồng thời gian, duyệt điều khoản khác chuẩn, quá hạn hợp đồng; khoản cần đặt cọc lấy trạng thái từ 017 (mục C, D; UC-11, UC-12).
 4. Danh mục dịch vụ và phiên bản đơn giá (mục E).
-5. Yêu cầu thay đổi lưu trú thành phụ lục có ngày hiệu lực (mục F; UC-13, UC-14).
+5. Yêu cầu thay đổi lưu trú thành phụ lục có ngày hiệu lực (mục F; UC-13, UC-14). Từ 2026-10-11 Hành chính duyệt được thay đổi nhỏ (FR-043, Q-338) qua `gioiHanVaiTroDuyet` bổ sung vào SPI của 000 (research T-06).
 6. Lượt vắng, bảng chính sách phí khi vắng, quyết định giữ giường; báo vắng và ngày nghỉ bán trú (mục G; UC-15, UC-16).
 7. Kết thúc lưu trú với danh sách điều kiện, bàn giao, ngoại lệ (mục H; UC-17).
 8. Ghi nhận qua đời và danh sách việc sau qua đời (mục I; UC-18).

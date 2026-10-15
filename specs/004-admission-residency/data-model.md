@@ -230,7 +230,7 @@ Nội dung tại ngày D: phiên bản `hieu_luc_tu` lớn nhất `<= D` của h
 
 `yeu_cau_phe_duyet_id`, `nct_id`, `thuoc_tinh` (một dòng mỗi loại thay đổi), `cho_hieu_luc BOOLEAN`, cột sinh `khoa = IF(cho_hieu_luc, CONCAT(nct_id,':',thuoc_tinh), NULL)` có `UNIQUE`. Đặt `cho_hieu_luc = true` trong `khiDuyet`, `false` khi phụ lục rời `CHO_HIEU_LUC`. Duyệt yêu cầu thứ hai cùng thuộc tính vi phạm `UNIQUE`; backend kiểm trước để trả 409 có mô tả.
 
-Nội dung của yêu cầu (giá trị trước/sau, ảnh hưởng chi phí, tham chiếu đánh giá hoặc lệnh chuyển giường) nằm trong JSON của `yeu_cau_phe_duyet` (000), theo `kieuNoiDung()` của handler.
+Nội dung của yêu cầu (giá trị trước/sau, ảnh hưởng chi phí, tham chiếu đánh giá hoặc lệnh chuyển giường) nằm trong JSON của `yeu_cau_phe_duyet` (000), theo `kieuNoiDung()` của handler. *(Bổ sung 2026-10-11, FR-043, Q-338)* `thayDoiNho` (boolean) là số liệu tính lúc đọc bằng `LaThayDoiNho` trên hợp đồng hiện hành (research T-06), không lưu trong nội dung JSON; không có cột hay bảng mới.
 
 ---
 
@@ -392,7 +392,7 @@ Dịch vụ, phiên bản đơn giá là danh mục, không bị loại bỏ.
 
 | Mã | Bảo đảm (mục) | Test (quickstart mục 4) |
 | --- | --- | --- |
-| DBR-02 (phần 004) | `NguoiDaiDienPort` khi Ghi nhận đã ký | `FR_021_GhiNhanDaKyIT` |
+| DBR-02 (phần 004) | `NguoiDaiDienPort` khi Ghi nhận đã ký; điều kiện (f) của danh sách tiếp nhận đọc từ `xemDieuKien` (FR-004, Q-343) | `FR_021_GhiNhanDaKyIT`, `FR_004_DanhSachKhopLenhIT` |
 | DBR-06 | Mục 5, 12 | `DBR_06_HopDongKhongChongIT`, `HopDongKhoaNoiDungDbIT` |
 | DBR-07 | Mục 7 | `DBR_07_PhuLucIT` |
 | DBR-08 | Mục 6 | `DBR_08_PhienBanDonGiaIT` |
@@ -412,5 +412,6 @@ Dịch vụ, phiên bản đơn giá là danh mục, không bị loại bỏ.
 | BR-M02-20 | Lượt trống theo FR-012 (plan, điểm báo lại 1) | `FR_012_LuotTrongIT` |
 | BR-M02-21 | `@NhomTruong(SUC_KHOE)` | `BR_M02_21_NguyenNhanTuVongIT` |
 | BR-M02-22 | FR-004 (e), FR-025, FR-025b | `BR_M02_22_MucHopDongIT` |
+| FR-043 (Q-338) | `LaThayDoiNho`; `gioiHanVaiTroDuyet` của handler `M02.THAY_DOI_LUU_TRU` (research T-06) | `FR_043_ThayDoiNhoIT`, `LaThayDoiNhoTest` |
 
 BR-M02-11 → 14 (khai báo tạm trú) thuộc feature 018; 004 chỉ phát sự kiện (FR-033b).

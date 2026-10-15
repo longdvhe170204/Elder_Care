@@ -12,9 +12,10 @@ Feature 006 là module M07 (mục 11, UC-39 → UC-44). Nó cung cấp:
 3. Lịch thuốc tính từ đơn, không lập sẵn bản ghi liều; vòng đời liều theo giờ (mục C).
 4. Thuốc khi cần với khoảng cách tối thiểu và số lần trong 24 giờ trượt (mục D; UC-42).
 5. Xác nhận liều, liều chung của tầng, thuốc kiểm soát đặc biệt, ngoại tuyến, cảnh báo, đính chính, sự kiện tính phí (mục E; UC-41).
-6. Phiếu đối chiếu do Bác sĩ, Điều dưỡng lập; quy tắc hai người; tạm dừng đơn khi tiếp nhận, trở về từ bệnh viện (mục F; UC-43).
+6. Phiếu đối chiếu do Bác sĩ, Điều dưỡng lập; quy tắc hai người; tạm dừng đơn khi tiếp nhận, trở về từ bệnh viện; từ 2026-10-11 có phiếu "theo yêu cầu chuyên môn" không tạm dừng đơn, không hạn (FR-034b, BR-M07-25, Q-340) (mục F; UC-43).
 7. Thuốc gia đình gửi: lô, biến động số lượng, mốc nhắc sắp hết, hoàn trả, hủy (mục G; UC-44).
-8. Vắng mặt, thuốc mang theo, giao và nhận lại; tác động của trạng thái cuối; quyền xem; dữ liệu cung cấp cho 004, 005, 007, 008, 010, 012, 014, 016 (mục H).
+8. Vắng mặt, thuốc mang theo, giao và nhận lại; tác động của trạng thái cuối; quyền xem; dữ liệu cung cấp cho 004, 005, 007, 008, 010, 012, 014, 016, 019 (mục H).
+9. *(Bổ sung 2026-10-11, Q-337)* Lần tiếp nhận thuốc cung ứng theo yêu cầu mua sắm loại "thuốc" của 019: Đạt / Không đạt, không tồn kho, không tính phí (mục I; User Story 9; research D-21).
 
 Hướng kỹ thuật:
 - Lịch thuốc là hàm thuần tính từ đơn và khoảng vắng. Dòng `lieu_thuoc` chỉ được thêm khi liều tới đầu cửa sổ (job theo phút), hoặc kèm lệnh của Điều dưỡng (ghi nhận, gắn lần giao). Không có bản ghi liều cho ngày tới (Q-306, SC-001; research D-06). Liều được định danh bằng `lieuKey = {donThuocId}-{thời điểm dự kiến}`.
@@ -153,6 +154,7 @@ backend/src/main/java/vn/eldercare/m07/
 ├── doichieu/      {internal, web}   # phiếu, dòng, xác nhận hai người, đề nghị đính chính phiếu
 ├── thuocgui/      {internal, web}   # lô, biến động, TinhSoNgayConLai, mốc nhắc, MucViecSauQuaDoiPort
 ├── mangtheo/      {internal, web}   # khoảng vắng, lần giao, nhận lại, không mang thuốc
+├── tiepnhanthuoc/ {internal, web}   # lần tiếp nhận thuốc cung ứng (mục I, D-21; bổ sung 2026-10-11)
 ├── trangthai/     {internal}        # bean ThamGiaChuyenTrangThai; cài LieuThuocChecklistPort, ThoiKhoaBieuNguonPort
 └── lich/                            # ViecTheoPhutM07, ViecHangNgayM07
 

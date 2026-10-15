@@ -19,7 +19,7 @@ Hướng kỹ thuật:
 - Bảo đảm nhóm dữ liệu bằng ba lớp: mã, API, cơ sở dữ liệu (trigger, quyền tài khoản MySQL; R-05).
 - Nhật ký ghi trong cùng transaction với thay đổi (R-06).
 - Tham số đọc lúc chạy; bộ đệm bị xóa sau commit (R-07).
-- Yêu cầu phê duyệt có SPI `LoaiYeuCauHandler`. Mỗi lần áp dụng là một transaction riêng, có ràng buộc duy nhất chống áp dụng hai lần (R-10).
+- Yêu cầu phê duyệt có SPI `LoaiYeuCauHandler`. Mỗi lần áp dụng là một transaction riêng, có ràng buộc duy nhất chống áp dụng hai lần (R-10). *(Bổ sung theo plan 004, 2026-10-11, Q-338)* SPI có thêm `gioiHanVaiTroDuyet` (mặc định không giới hạn); 000 áp giới hạn này nhất quán ở lệnh Duyệt, Từ chối, `lenhDuocPhep`, nhắc và BR-M15-09, danh sách người nhận khi gửi duyệt (R-10, task T105).
 - Đính chính dùng một bảng chung với SPI `DinhChinhDuocProvider` (R-08).
 - Thông báo đi qua sự kiện có outbox tới feature 009 (R-09).
 

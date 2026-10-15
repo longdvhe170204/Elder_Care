@@ -88,6 +88,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (chiều `m05 
 | Q56 | Lựa chọn "về nhà"; lựa chọn giảm nhẹ khi không liên lạc được, không lý do | `CanChoTamVangVeNha` cho H, T, không có lượt vắng tự tạo; 422 | US11 #5, #6 |
 | Q57 | Kết thúc lưu trú A khi còn cảnh báo mở | 409 `KT_D_CANH_BAO_SU_CO` (miễn được); ghi nhận qua đời: cảnh báo, sự cố dừng leo thang, lịch đo Đã ngừng, ngưỡng cá nhân Hết hiệu lực | Edge Case, FR-038 |
 | Q58 | Dừng backend 1 giờ (đồng hồ giả lập) khi có ba cảnh báo Trung bình chưa nhận | Mỗi cảnh báo lên đúng một cấp, hạn mới tính từ lúc chạy lại; nhắc bị lỡ gửi một lần | FR-084, BR-M05-25 |
+| Q59 | *(Bổ sung 2026-10-11, Q-339)* S (chăm sóc) ghi sự cố Trung bình cho A; T (Trưởng tầng của tầng A) giao cho D kèm ghi chú; QL giao lại cho Bác sĩ B; QL thử đóng; K (bếp) thử giao | `DANG_XU_LY`, D nhận thông báo Trung bình, leo thang dừng; giao lại 200, trạng thái giữ; QL đóng 403; K 403 | US4 #11, FR-045a |
 
 ## 4. Test tự động: truy vết kịch bản → test
 
@@ -98,7 +99,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (chiều `m05 
 | Ngưỡng, lịch đo | `BR_M06_01_NguongApDungIT`, `FR_022_PhienBanNguongIT`, `BR_M06_02_NhacThieuNguongIT`, `FR_004_LichDoCanCuIT`, `FR_005_ThayDoiLichDoIT`, `NguongTriggerIT` | Q7 → Q11 |
 | Cảnh báo | `BR_M05_01_LeoThangIT`, `FR_034_NhacToiDaIT`, `BR_M05_02_GopCanhBaoIT`, `DBR_18_GopDongThoiIT`, `BR_M05_03_BaoLapLaiIT`, `FR_036_QuyenQuanLyVienIT`, `FR_032_NguonDaXuLyIT`, `BR_M05_19_NguoiVangMatIT` | Q12 → Q17, Q20 → Q22 |
 | Bàn giao | `BR_M05_05_BanGiaoIT`, `FR_037_TamNhanIT` | Q18, Q19 |
-| Sự cố | `FR_041_NgoaiPhamViIT`, `BR_M05_09_DongSuCoIT`, `FR_045_VongDoiSuCoIT`, `BR_M05_17_SuCoCoSoVatChatIT`, `BR_M05_21_HuySuCoKhanCapIT`, `SuCoTriggerIT` | Q23 → Q26, Q39 |
+| Sự cố | `FR_041_NgoaiPhamViIT`, `BR_M05_09_DongSuCoIT`, `FR_045_VongDoiSuCoIT`, `FR_045a_GiaoNguoiXuLyIT`, `BR_M05_17_SuCoCoSoVatChatIT`, `BR_M05_21_HuySuCoKhanCapIT`, `SuCoTriggerIT` | Q23 → Q26, Q39, Q59 |
 | Khẩn cấp | `BR_M05_13_TheKhanCapIT`, `DBR_19_DoiChieuNguyenVongIT`, `BR_M05_14_ChuyenVienIT`, `FR_047b_KhongCoBacSiTrucIT`, `BR_M05_06_ThongBaoKhanCapIT`, `KichHoatDongThoiIT`, `BR_M05_22_HaMucDungGoiIT` | Q27 → Q34 |
 | Ngã | `BR_M05_07_NgaIT`, `FR_052_NgaLaiIT` | Q35 → Q38 |
 | Xu hướng | `BR_M05_04_BoLoLanDoIT`, `FR_039a_SutCanIT`, `FR_039c_MatNguIT`, `QuyTacTatIT` | Q40 → Q43 |

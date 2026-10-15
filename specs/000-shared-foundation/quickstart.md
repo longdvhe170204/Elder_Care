@@ -50,6 +50,7 @@ Kết quả mong đợi: `verify` xanh, gồm các nhóm test ở mục 4. Khở
 | K18 | Hành chính xem nhật ký của hồ sơ mẫu có đổi `diaChi` và `diUng` | `diaChi` hiện giá trị; `diUng` hiện `{"daThayDoi": true}`; `lyDo` là `null` và `lyDoBiAn = true` | US3 #8, BR-M15-11 |
 | K19 | QLV tra `/nhat-ky?hanhDong=YC_DUYET&tuDuyet=true` | Thấy lần tự duyệt ở K13 | US3 #10 |
 | K20 | Danh mục mẫu: xóa mục chưa dùng; xóa mục đã dùng; ngừng hiệu lực rồi kích hoạt lại khi đã có mục trùng tên | 204; 409 `DANH_MUC_DA_DUOC_THAM_CHIEU`; 409 khi trùng tên | US1 #1, #2, #8 |
+| K21 | *(Bổ sung theo plan 004, Q-338)* Bật "giới hạn vai trò duyệt" = Quản lý viện ở handler mẫu. Hành chính có quyền duyệt `M15.MAU` lập và gửi một yêu cầu; xem chi tiết; thử Duyệt, Từ chối; tua quá CFG-M15-05 | `lenhDuocPhep` không có `duyet`, `tu-choi`; Duyệt, Từ chối 403; `YeuCauDaGuiDuyet`, `YeuCauCanNhacNguoiDuyet` chỉ có Quản lý viện; quá CFG-M15-06 không phát `YeuCauCanBaoQuanLyVien` vì người duyệt đều là Quản lý viện; tắt giới hạn thì Hành chính duyệt được như cũ | FR-034, FR-031a, BR-M15-09 |
 
 ## 4. Test tự động: truy vết kịch bản → test
 
@@ -61,7 +62,7 @@ Mỗi kịch bản Given/When/Then của spec có ít nhất một test (constit
 | US2 #1–8, FR-023 → FR-030 | `DinhChinhChonCachTest` (bảng quyết định A/B/C, CHK033), `DinhChinhIT`, `DinhChinhDongThoiIT`, `DinhChinhHienHanhViewIT` | Đơn vị, tích hợp |
 | US3 #1–12, FR-042 → FR-051a | `NhatKyDayDuIT` (SC-001), `NhatKyNguyenTuIT` (#6), `NhatKyCheTruongIT`, `NhatKyPhamViIT`, `NhatKyNgoaiTuyenIT` (#12), `NhatKyXuatBaoCaoIT` (#11), `LoaiBoDuLieuIT` (#4, #5, gián đoạn) | Tích hợp, đồng hồ giả lập |
 | US4 #1–10, FR-011 → FR-022 | `ThamSoIT`, `ThamSoQuyenIT`, `KiemTraThamSoTest`, `ThamSoBoDemSauCommitIT` (SC-004), `ThamSoTaiThoiDiemIT` (SC-005), `ThamSoBangIT` | Đơn vị, tích hợp |
-| US5 #1–14, FR-031 → FR-041 | `BangChuyenTrangThaiTest`, `YeuCauVongDoiIT`, `ApDungMotLanIT` (SC-003), `ApDungBuIT` (BR-M15-10), `ApDungLoiIT`, `NhacYeuCauIT` (BR-M15-09), `QuyetDinhDongThoiIT`, `TuDuyetIT` | Đơn vị, tích hợp |
+| US5 #1–14, FR-031 → FR-041 | `BangChuyenTrangThaiTest`, `YeuCauVongDoiIT`, `ApDungMotLanIT` (SC-003), `ApDungBuIT` (BR-M15-10), `ApDungLoiIT`, `NhacYeuCauIT` (BR-M15-09), `QuyetDinhDongThoiIT`, `TuDuyetIT`, `GioiHanVaiTroDuyetIT` (bổ sung theo plan 004) | Đơn vị, tích hợp |
 | Edge Cases | Gộp vào các lớp trên, mỗi gạch đầu dòng một phương thức test | |
 | Kiến trúc | `ModuleBoundaryTest` (`ApplicationModules.verify()`), `ThoiGianArchTest` (cấm `now()`), `HopDongApiTest` (so springdoc với `contracts/api-000.yaml`) | Kiến trúc |
 | Client web | `ThamSoForm.test.tsx` (412 hiện giá trị mới), `NhatKyBang.test.tsx` ("đã thay đổi"), `HopDuyet.test.tsx` | Vitest |

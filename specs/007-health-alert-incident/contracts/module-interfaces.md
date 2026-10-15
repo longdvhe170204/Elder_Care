@@ -142,6 +142,7 @@ Stream<ChiSoBaoCaoView> chiSo(PhamViLoc phamVi, Instant tu, Instant den);
 | `NguonCanhBaoDaDinhChinh(canhBaoId)`; `NguoiPhuTrachDaDoi(loai, id, nguoiMoi)` | 009 (Nhẹ) | FR-019, FR-037 |
 | `SuCoDaGhiNhan(suCoId, nctId, loai, muc, canDanhGiaLai)` (thêm `canDanhGiaLai` so với hợp đồng 001; plan, mục Đồng bộ 1) | 001, 012, 016 | FR-043 (b) |
 | `SuCoDaTaoThongBao(suCoId, muc, nhom[])` | 009 | FR-043 (a) |
+| `SuCoDaGiaoNguoiXuLy(suCoId, nguoiGiaoId, nguoiDuocGiaoId, muc)` *(bổ sung 2026-10-11, Q-339)* | 009 (mức theo mức hiện hành của sự cố; người nhận là người được giao) | FR-045a |
 | `SuCoKhanCapDaKichHoat(suCoId, nctId, nhom[], noiDungNguoiThan, khongCoBacSiTruc)` | 009 (Khẩn cấp, song song) | FR-047 |
 | `YeuCauDungNhacGoiDien(nguonLoai, nguonId)` | 009 | FR-044, BR-M05-22 |
 | `SuCoNgaDaGhiNhan(nctId, suCoId)` | 005 (xem xét kế hoạch) | FR-051 |
@@ -229,6 +230,6 @@ Bean thiếu thì mặc định an toàn: không có `NhanSuCanhBaoPort` thì ng
 | `DanhSachViecSauQuaDoiApi.capNhat` | M02 (004) | S-17 | Có sẵn |
 | `CongViecDoChiSoApi.daXacNhan`, `NguonCongViecApi.nguonBiHuy`, `nguonDaDoi`, `CongViecThongKeApi.ketQuaTheoKhoang`; `CongViecThongKeApi.nguoiDaGhiKetQua(nctId, tu, den)` (bổ sung theo plan này) | M04 (005) | FR-018, FR-006, FR-052, FR-061, FR-039c, FR-060 (c) | Hàm cuối: bản giả |
 | `DonThuocApi.thuocDangDung`; `LichThuocApi.nguoiDaGhiLieu(nctId, tu, den)` (bổ sung theo plan này) | M07 (006) | FR-048, FR-050, FR-060 (c) | Hàm cuối: bản giả |
-| `QuyenApi` (gồm khóa `CHUYEN_MON`), `PhamViApi` (`boLoc`, `nguoiPhuTrachCa`, `truongTangDuocGiao`), `QuyenXemTruongApi`, `NguoiDungHienTai`, ngoại lệ ghi sự cố ngoài phạm vi (002 FR-044a) | M15 (002) | Research S-20 | Có sẵn |
+| `QuyenApi` (gồm khóa `CHUYEN_MON`), `PhamViApi` (`boLoc`, `nguoiPhuTrachCa`, `truongTangDuocGiao`), `QuyenXemTruongApi`, `NguoiDungHienTai`, `TaiKhoanApi.coVaiTro` và `NguoiDuyetApi.danhSach` (Giao người xử lý, FR-045a, Q-339; bổ sung 2026-10-11), ngoại lệ ghi sự cố ngoài phạm vi (002 FR-044a) | M15 (002) | Research S-20 | Có sẵn |
 | `NhatKyApi`, `ThamSoApi`, `DinhChinhApi`, `TepApi`, `common` | M15 (000) | Mọi lệnh | Có sẵn |
 | Bản cài các SPI mục 2.1 | 008, 009, 012, 014 | | Bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}` |

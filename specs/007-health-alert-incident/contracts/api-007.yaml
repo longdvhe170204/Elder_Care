@@ -345,6 +345,15 @@ paths:
       x-fr: [FR-044, FR-045]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiTiepNhan' } }
+  /su-co/{id}/giao-nguoi-xu-ly:
+    post:
+      tags: [su-co]
+      summary: Giao người xử lý (Mới → Đang xử lý; hoặc giao lại khi Đang xử lý, Đang theo dõi)
+      description: 'Trưởng tầng trong phạm vi, Bác sĩ, Quản lý viện; người xử lý hiện tại được giao lại. Người được giao là Điều dưỡng, Trưởng tầng, Bác sĩ có quyền xử lý sự cố với đối tượng. Ghi chú bắt buộc. Không dùng ngoại lệ phạm vi của lệnh ghi nhận (bổ sung 2026-10-11, Q-339).'
+      x-fr: [FR-045, FR-045a, FR-044]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nguoiDuocGiaoId, ghiChu], properties: { nguoiDuocGiaoId: { type: integer, format: int64 }, ghiChu: { type: string, minLength: 1 } } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
   /su-co/{id}/tham-gia-xu-ly:
     post:
       tags: [su-co]

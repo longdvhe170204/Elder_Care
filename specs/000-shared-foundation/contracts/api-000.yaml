@@ -178,6 +178,7 @@ paths:
     post:
       tags: [yeu-cau-phe-duyet]
       summary: Duyệt (Chờ duyệt → Đã duyệt (chờ hiệu lực)); áp dụng ngay nếu ngày hiệu lực ≤ hôm nay
+      description: Quyền, phạm vi và giới hạn vai trò của loại yêu cầu (`gioiHanVaiTroDuyet`, bổ sung theo plan 004) xét tại lúc quyết định; không đạt thì 403.
       x-fr: [FR-034, FR-034a, FR-035, FR-037, FR-040]
       x-br: [BR-M15-01]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
@@ -198,6 +199,7 @@ paths:
     post:
       tags: [yeu-cau-phe-duyet]
       summary: Từ chối
+      description: Cùng điều kiện người duyệt như lệnh Duyệt (kể cả `gioiHanVaiTroDuyet`); không đạt thì 403.
       x-fr: [FR-034, FR-036, FR-040]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
       requestBody:
@@ -409,7 +411,7 @@ components:
         thoiDiemApDung: { type: [string, 'null'], format: date-time }
         apDungBu: { type: boolean }
         ketQuaApDung: { type: [object, 'null'], properties: { loai: { type: string }, id: { type: string } } }
-        lenhDuocPhep: { type: array, items: { type: string }, description: 'Lệnh người xem hiện được làm, để client ẩn/hiện nút (kiểm tra thật vẫn ở backend)' }
+        lenhDuocPhep: { type: array, items: { type: string }, description: 'Lệnh người xem hiện được làm, để client ẩn/hiện nút (kiểm tra thật vẫn ở backend); duyet, tu-choi xét cả gioiHanVaiTroDuyet của loại yêu cầu' }
         phienBan: { type: integer }
     TrangYeuCau:
       type: object

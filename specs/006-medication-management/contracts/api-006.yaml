@@ -288,11 +288,27 @@ paths:
       tags: [doi-chieu]
       summary: Lập phiếu (Bác sĩ, Điều dưỡng)
       description: 'lyDo TIEP_NHAN được lập khi hồ sơ Đang tiếp nhận (lập trước, chưa có hạn) hoặc sau Hoàn tất tiếp nhận; TRO_VE_BENH_VIEN sau Ghi nhận trở về. Đã có phiếu mở thì 409 DA_CO_PHIEU_MO.'
-      x-fr: [FR-034, FR-034a, FR-035]
-      x-br: [BR-M07-09]
+      x-fr: [FR-034, FR-034a, FR-034b, FR-035]
+      x-br: [BR-M07-09, BR-M07-25]
       parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { type: string, enum: [TIEP_NHAN, TRO_VE_BENH_VIEN] } } } } } }
-      responses: { '201': { description: Mở, headers: { ETag: { $ref: '#/components/headers/ETag' } } }, '409': { $ref: '#/components/responses/LoiChan' } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { type: string, enum: [TIEP_NHAN, TRO_VE_BENH_VIEN, THEO_YEU_CAU_CHUYEN_MON] }, lyDoLap: { type: string, description: 'Bắt buộc khi lyDo = THEO_YEU_CAU_CHUYEN_MON (FR-034b): không tạm dừng đơn, không có hạn' } } } } } }
+      responses: { '201': { description: Mở, headers: { ETag: { $ref: '#/components/headers/ETag' } } }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
+  /tiep-nhan-thuoc-cung-ung:
+    post:
+      tags: [tiep-nhan-thuoc]
+      summary: Ghi lần tiếp nhận thuốc cung ứng (Điều dưỡng) cho một dòng của yêu cầu mua sắm loại "thuốc" đã ghi đã mua
+      description: 'Không đạt bắt buộc saiLech, lyDo. Không tạo tồn kho, không tính phí, không đổi đơn hay liều (FR-054, BR-M07-24). Yêu cầu chưa ghi đã mua: 409.'
+      x-fr: [FR-054, FR-055]
+      x-br: [BR-M07-24, BR-M11-17]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LanTiepNhanThuocGhi' } } } }
+      responses: { '201': { description: Đã ghi }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
+    get:
+      tags: [tiep-nhan-thuoc]
+      summary: Các lần tiếp nhận theo yêu cầu mua sắm, kèm daNhan
+      x-fr: [FR-054]
+      parameters: [ { name: yeuCauMuaSamId, in: query, required: true, schema: { type: integer, format: int64 } } ]
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
   /phieu-doi-chieu/{id}:
     get:
       tags: [doi-chieu]
@@ -701,12 +717,28 @@ components:
         daNgungNgoaiPhieu: { type: boolean, readOnly: true }
         thuocDaBoKhoiHoSo: { type: boolean, readOnly: true, description: 'Tính lúc đọc (BR-M07-22)' }
         donTaoId: { type: integer, format: int64, readOnly: true }
+    LanTiepNhanThuocGhi:
+      type: object
+      required: [dongYeuCauId, hamLuong, dangThuoc, soLuongNhan, donVi, hanDung, tinhTrang, ketQua, nguoiGiao]
+      properties:
+        dongYeuCauId: { type: integer, format: int64 }
+        hamLuong: { type: string }
+        dangThuoc: { type: string }
+        soLuongNhan: { type: number }
+        donVi: { type: string }
+        hanDung: { type: string, format: date }
+        tinhTrang: { type: string }
+        ketQua: { type: string, enum: [DAT, KHONG_DAT] }
+        saiLech: { type: string }
+        lyDo: { type: string }
+        nguoiGiao: { type: string }
     PhieuDoiChieu:
       type: object
       properties:
         id: { type: integer, format: int64 }
         nctId: { type: integer, format: int64 }
-        lyDo: { type: string, enum: [TIEP_NHAN, TRO_VE_BENH_VIEN] }
+        lyDo: { type: string, enum: [TIEP_NHAN, TRO_VE_BENH_VIEN, THEO_YEU_CAU_CHUYEN_MON] }
+        lyDoLap: { type: string }
         trangThai: { type: string, enum: [MO, CHO_XAC_NHAN, DA_XAC_NHAN, DA_HUY] }
         hanLuc: { type: string, format: date-time }
         quaHan: { type: boolean }

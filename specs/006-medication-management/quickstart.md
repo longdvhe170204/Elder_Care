@@ -70,6 +70,10 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Q37 | Liều nguồn viện đã có khoản (bản giả 010) bị đính chính khỏi Đã dùng | 010 nhận `SuKienTinhPhiThuocDaDinhChinh` | US8 #3, DBR-17 |
 | Q38 | A qua đời 09:10 có liều Đến giờ 09:00, Tạm dừng, phiếu Mở, lô Chỉ giữ hộ, lần giao Chờ nhận lại | Cùng lệnh: đơn Đã ngừng; Đến giờ → Không thực hiện (Hệ thống); Tạm dừng → Đã hủy; phiếu Đã hủy; lô, lần giao giữ nguyên; `THUOC_GUI` Chưa hoàn thành; không có trong `LieuBanGiaoApi` | Edge Case, FR-047, SC-010 |
 | Q39 | Dừng backend 3 giờ (đồng hồ giả lập) rồi khởi động | Liều trong khoảng được vật hóa với mốc dự kiến; Trễ, Bỏ lỡ bù; nhắc Trễ gộp một lần mỗi người | D-19, NFR-04 |
+| Q40 | *(Bổ sung 2026-10-11, Q-340)* A Đang lưu trú có hai đơn Hiệu lực; D lập phiếu "theo yêu cầu chuyên môn" không lý do, rồi có lý do; ghi Ngừng một đơn, Tiếp tục đơn kia, gửi; B xác nhận | 422; rồi `MO`, không đơn nào `TAM_DUNG`, `hanLuc` rỗng; xác nhận: một đơn `DA_NGUNG`, đơn kia giữ `HIEU_LUC` | US4 #11, FR-034b, BR-M07-25 |
+| Q41 | *(Bổ sung 2026-10-11, Q-337)* Bản giả 019 trả dòng Amlodipin đã ghi đã mua; D ghi tiếp nhận Đạt | 201; đơn, liều không đổi; không có `SuKienTinhPhiThuoc`; `daNhan` khi mọi dòng Đạt | US9 #1, FR-054 |
+| Q42 | Dòng thứ hai: D ghi Không đạt thiếu sai lệch; đủ sai lệch, lý do; ghi lần giao bù Đạt | 422; 201 và `TiepNhanThuocKhongDat` cho người lập và Phụ trách bộ phận hiện tại của bộ phận của yêu cầu (đổi Phụ trách bộ phận sau khi ghi đã mua thì người mới nhận); 201 lần mới | US9 #2, FR-055 |
+| Q43 | Bản giả trả rỗng (yêu cầu chưa ghi đã mua); D ghi tiếp nhận; D xác nhận liều của đơn chưa có lần tiếp nhận | 409; xác nhận liều 200 | US9 #3, BR-M11-17 |
 
 ## 4. Test tự động: truy vết kịch bản → test
 
@@ -79,7 +83,8 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Đơn thuốc | `BR_M07_05_QuyenKeDonIT`, `FR_012_DiUngMoiIT`, `DBR_14_DonThayTheIT`, `BR_M07_07_DoiLieuIT`, `BR_M07_15_HuyDoiLieuIT`, `BR_M07_16_CanCuCoSoKeIT`, `BR_M07_08_HetHanDonIT`, `DonThuocTriggerIT` | Q1 → Q5, Q16 → Q20 |
 | Lịch, liều | `SC_001_BayNgayIT`, `DBR_13_LieuDuyNhatIT`, `BR_M07_02_TreBoLoIT`, `BR_M07_12_XacNhanMotLanIT`, `FR_026_QuyenXacNhanIT`, `FR_026a_LieuChungTangIT`, `BR_M07_21_TangKhongDieuDuongIT`, `PhanUngIT`, `LieuDongThoiIT` | Q6 → Q13 |
 | Ngoại tuyến, kiểm soát đặc biệt | `FR_029_KsdbGhiSauMatKetNoiIT`, `FR_029_DongBoMuonIT`, `FR_029_HaiBanNgoaiTuyenIT` | Q14, Q15 |
-| Đối chiếu | `BR_M07_09_DoiChieuIT`, `FR_034a_PhieuTiepNhanTruocIT`, `FR_038_HaiNguoiIT`, `FR_037_ChanNgoaiPhieuIT`, `ThuocDangDungDoiIT`, `BR_M07_17_DinhChinhPhieuIT` | Q21 → Q25 |
+| Đối chiếu | `BR_M07_09_DoiChieuIT`, `FR_034a_PhieuTiepNhanTruocIT`, `FR_038_HaiNguoiIT`, `FR_037_ChanNgoaiPhieuIT`, `ThuocDangDungDoiIT`, `BR_M07_17_DinhChinhPhieuIT`, `BR_M07_25_DoiChieuChuyenMonIT` | Q21 → Q25, Q40 |
+| Tiếp nhận thuốc cung ứng *(bổ sung 2026-10-11)* | `BR_M07_24_TiepNhanThuocCungUngIT` | Q41 → Q43 |
 | Vắng, mang theo | `BR_M07_03_VangMatIT`, `FR_027_MangTheoBaoLaiIT`, `FR_048a_GiaoNhanLaiIT`, `FR_048a_TroVeSomIT`, `FR_048b_KhongMangThuocIT`, `BR_M07_22_NhieuLanGiaoIT` | Q26 → Q29 |
 | PRN | `PrnDongThoiIT`, `FR_027_PrnVuotGioiHanIT` | Q30, Q31 |
 | Thuốc gửi | `BR_M07_10_ThuocGuiChuaDoiChieuIT`, `ThuocGuiSapHetIT`, `BR_M07_19_HoanTraIT`, `ThuocGuiSoLuongTriggerIT`, `ThuocMuaHoIT` | Q32 → Q34 |
@@ -88,7 +93,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Trạng thái cuối | `FR_047_TrangThaiCuoiIT`, `KT_C_ThuocGuiIT` | Q34, Q38 |
 | Bộ lập lịch | `ChayBuM07IT` | Q39 |
 | Cơ sở dữ liệu | `DonThuocTriggerIT`, `LieuTrangThaiCuoiTriggerIT`, `PhieuDoiChieuTriggerIT`, `ThuocGuiSoLuongTriggerIT`, `NhomBaTriggerIT` (000) mở rộng | Q16 |
-| Kiến trúc | `ApplicationModules.verify()`, ArchUnit cấm gọi API của 007, 008, 010, 014 trực tiếp từ `m07` (chỉ qua SPI mục 2.1) | |
+| Kiến trúc | `ApplicationModules.verify()`, ArchUnit cấm gọi API của 007, 008, 010, 014, 019 (M11) trực tiếp từ `m07` (chỉ qua SPI mục 2.1) | |
 | Web (Vitest) | Màn nhập đơn hiện vấn đề cần lý do; phiếu đối chiếu không có nút chép sẵn, lỗi thiếu dòng; thuốc gửi không chọn sẵn lô | Q3, Q22, Q32 |
 | App (`flutter_test`) | `XacNhanLieuNgoaiTuyenTest`, `KsdbKhongVaoHangDoiTest`, `ChonLoThuocGuiTest`, `KetQuaDongBoThuocTest` (BR-M15-20), `BanGhiLieuBiTuChoiTest` | Q14, Q15, Q32 |
 

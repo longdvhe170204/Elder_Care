@@ -29,6 +29,7 @@ Bảng thuộc hai module: tiền tố mục "M06" là gói `m06`, "M05" là gó
 | `su_co` | M05 | 3 | F (nội dung) |
 | `su_co_xu_ly` | M05 | 2 | F (trạng thái xử lý) |
 | `dien_bien_su_co`, `doi_muc_su_co`, `nguoi_xu_ly_su_co` | M05 | 3 | F, G |
+| `phan_cong_su_co` *(bổ sung 2026-10-11, Q-339)* | M05 | 3 | F (FR-045a) |
 | `ban_chup_the_khan_cap`, `xac_nhan_doi_chieu`, `ban_tom_tat_chuyen_vien` | M05 | 3 | G |
 | `dau_nguy_kich` | M05 | 2 | G1 |
 | `ket_qua_xac_nhan_lai`, `lua_chon_thuc_hien` | M05 | 3 | G1 |
@@ -313,6 +314,8 @@ Trigger: chặn mọi đổi khi `OLD.trang_thai IN ('DA_DONG','DA_HUY')`, trừ
 | — | Chuyển sự cố / Kích hoạt khẩn cấp từ cảnh báo | `DANG_XU_LY` | ĐD, TT, BS | FR-029 |
 | `MOI` | Tiếp nhận xử lý | `DANG_XU_LY` | ĐD, TT, BS | — |
 | `MOI` | Quá hạn | `MOI` (`cap_leo_thang` + 1) | Bộ lập lịch | FR-044 |
+| `MOI` | Giao người xử lý *(FR-045a)* | `DANG_XU_LY` | TT trong phạm vi, BS, QL | Ghi chú; người được giao có `SU_CO, XU_LY` với đối tượng; dừng leo thang |
+| `DANG_XU_LY`, `DANG_THEO_DOI` | Giao người xử lý khác *(FR-045a)* | Giữ (đổi `nguoi_phu_trach_id`) | Người xử lý hiện tại, TT trong phạm vi, BS, QL | Như trên; khác người xử lý hiện tại |
 | `MOI`, `DANG_XU_LY`, `DANG_THEO_DOI` | Ghi diễn biến; Nâng / Hạ mức | Giữ | FR-045 | Lý do khi đổi mức |
 | `DANG_XU_LY` | Chuyển theo dõi | `DANG_THEO_DOI` | ĐD, TT, BS | ≥ 1 diễn biến `DANH_GIA` và ≥ 1 `HANH_DONG` |
 | `DANG_THEO_DOI` | Mở lại xử lý | `DANG_XU_LY` | ĐD, TT, BS | Lý do |
@@ -330,6 +333,10 @@ Bảng FR-045 có dòng "Hệ thống tạo (thiếu người khi trở về, ph
 ### `doi_muc_su_co` – nhóm 3
 
 `su_co_id`, `muc_cu`, `muc_moi`, `ly_do`, `nguoi_id`, `thoi_diem`.
+
+### `phan_cong_su_co` – nhóm 3 *(bổ sung 2026-10-11, FR-045a, Q-339)*
+
+`id`, `su_co_id`, `nguoi_giao_id`, `nguoi_duoc_giao_id`, `ghi_chu` (`NOT NULL`), `trang_thai_luc_giao`, `thoi_diem`. Chỉ mục `(su_co_id, thoi_diem)`. Trigger nhóm 3 chặn `UPDATE`, `DELETE`. Mỗi lệnh giao một dòng; người xử lý hiện tại vẫn ở `su_co_xu_ly.nguoi_phu_trach_id`.
 
 ### `nguoi_xu_ly_su_co` – nhóm 3
 
@@ -500,6 +507,7 @@ Một dòng: `so_dien_thoai`, `ghi_chu`, `phien_ban`. Đổi ghi nhật ký (FR-
 | BR-M05-07 | S-14 | `BR_M05_07_NgaIT`, `MocTheoDoiSauNgaTest` |
 | BR-M05-08 | Mục 8, 12 | `SuCoTriggerIT` |
 | BR-M05-09 | S-11 | `BR_M05_09_DongSuCoIT` |
+| FR-045a (Q-339) | `phan_cong_su_co`; bảng chuyển `su_co_xu_ly`; research mục sự cố | `FR_045a_GiaoNguoiXuLyIT` |
 | BR-M05-10, 11, 12 | S-15 | `BR_M05_10_TraCuuTiepXucIT` (SC-008), `BR_M05_11_KhoanhVungIT`, `BR_M05_12_GoKhoanhVungIT` |
 | BR-M05-13 | S-12 | `BR_M05_13_TheKhanCapIT` |
 | BR-M05-14 | S-12 | `BR_M05_14_ChuyenVienIT` |

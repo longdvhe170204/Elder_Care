@@ -84,7 +84,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
   | --- | --- | --- |
   | (a) nhiệm vụ | `DIEU_DUONG_PHU_TRACH(nct)`, `NHAN_VIEN_PHAN_CONG(nct \| phong, vaiTro?)`, `NHAN_VIEN_CO_CA(tang, vaiTro[], chungChi[])`, `NGUOI_PHU_TRACH_CA(tang)`, `BAC_SI_TRUC`, `TRUONG_TANG(tang)`, `TRUONG_DOAN(chuyen)`, `PHU_TRACH_BO_PHAN(boPhan)` | `NhiemVuApi`, `PhanCongApi` (`m15.taikhoan.api`, 008 cài); `NhanSuCanhBaoPort`/`CaTrucApi` (008) |
   | (b) vai trò toàn viện | `VAI_TRO(QUAN_LY_VIEN \| HANH_CHINH \| BAC_SI \| NHAN_VIEN_BEP \| KE_TOAN)` | `TaiKhoanApi` (002): tài khoản Hoạt động có vai trò |
-  | (c) người có quyền | `NGUOI_CO_QUYEN_DUYET(loaiYeuCau, doiTuong)` | `NguoiDuyetApi.danhSach` (002) |
+  | (c) người có quyền | `NGUOI_CO_QUYEN_DUYET(loaiYeuCau, taiKhoanIds)` | Danh sách tài khoản do 000 tính sẵn khi phát sự kiện, đã lọc theo `gioiHanVaiTroDuyet` (sửa theo plan 004, Q-338: trước đây 009 tự gọi `NguoiDuyetApi.danhSach`) |
   | (d) gắn bản ghi nguồn | `NHAN_VIEN(id)`, `NGUOI_THAN(id)` (mang căn cứ: người lập, người thực hiện, người tạm nhận…) | Module nguồn đã phân giải |
   | (e) quan hệ người thân | `NGUOI_LIEN_HE_CHINH(nct)`, `NGUOI_DAI_DIEN(nct)`, `NGUOI_THAN_CO_QUYEN(nct, quyen)` | `NguoiThanNhanThongBaoPort` (012 cài) |
 

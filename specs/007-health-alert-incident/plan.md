@@ -13,6 +13,7 @@ Feature 007 gồm module M06 – Sức khỏe (mục 10) và M05 – Sự cố v
 4. Cảnh báo từ mọi nguồn: khóa loại, gộp (DBR-18), hạn tiếp nhận theo mức, leo thang ba cấp, nhắc khi đã leo thang tối đa, báo lặp lại, tự đóng khi nguồn đã xử lý, chuyển người phụ trách theo bàn giao (mục D).
 5. Quy tắc xu hướng: sụt cân, bỏ lỡ lần đo theo lịch, mất ngủ kéo dài, từ chối thuốc (mục E).
 6. Sự cố ba mức: ghi nhận (kể cả ngoài phạm vi), diễn biến, đổi mức, theo dõi, đóng, hủy và đổi loại bằng đính chính (mục F).
+   *(Bổ sung 2026-10-11, FR-045a, Q-339)* Lệnh "Giao người xử lý" với khóa riêng `SU_CO, GIAO`, kiểm phạm vi của người giao và người được giao; lịch sử ở `phan_cong_su_co`.
 7. Quy trình khẩn cấp: thẻ thông tin khẩn cấp, đối chiếu nguyện vọng trước biện pháp hồi sức, thông báo song song, chuyển viện kèm bản tóm tắt (mục G).
 8. Nguy kịch: dấu nguy kịch, cảnh báo không gộp, xác nhận lại nguyện vọng, lựa chọn thực hiện (mục G1).
 9. Sự cố ngã và khoảng theo dõi sau ngã (mục H); sự cố lây nhiễm, tra cứu truy vết, danh sách tiếp xúc, khoanh vùng (mục I).

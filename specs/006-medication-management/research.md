@@ -20,6 +20,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 | `doichieu` | Phiếu đối chiếu, dòng, xác nhận hai người, đính chính phiếu | F |
 | `thuocgui` | Lô thuốc gia đình gửi, biến động số lượng, mốc nhắc, hoàn trả, hủy | G |
 | `mangtheo` | Khoảng vắng của thuốc, lần giao và nhận lại thuốc mang theo, lệnh "Không mang thuốc" | H (FR-048 → FR-048b) |
+| `tiepnhanthuoc` | Lần tiếp nhận thuốc cung ứng theo yêu cầu mua sắm loại "thuốc" (bổ sung 2026-10-11, D-21) | I (FR-054, FR-055) |
 | `trangthai` | Bean `ThamGiaChuyenTrangThai` của 001; listener sự kiện của 001, 003, 004 | H (FR-034, FR-047) |
 | `lich` | Job theo phút và job hằng ngày (D-19) | C, F, G |
 | `api` | Giao diện, DTO, sự kiện, SPI công khai | FR-050 → FR-052 |
@@ -43,6 +44,7 @@ Bảng `thuoc_nct` (một dòng mỗi hồ sơ người cao tuổi) là đích k
 | 006 → 005 | 006 cài SPI của 005 | `LieuThuocChecklistPort`, `ThoiKhoaBieuNguonPort` (005 module-interfaces mục 2.1; giữ đúng chữ ký) |
 | 006 ↔ 007, 008, 010, 012, 014, 016 | Các module này → 006 | Họ làm plan sau. 006 cần dữ liệu của 008 (ca, phân công điều dưỡng, Người phụ trách ca, bàn giao đã xác nhận), 014 (chuyến đi), 010 (đề nghị mua hộ) qua SPI khai báo ở `m07.api`: `DieuDuongCaPort` (008), `ChuyenDiThuocPort` (014), `DeNghiMuaHoPort` (010). 007, 008, 012, 016 đọc API của 006; 014 gọi `MangThuocChuyenDiApi` (MANDATORY) |
 | 006 → 007, 009, 010 | Sự kiện | Yêu cầu tạo/đóng cảnh báo, thông báo, sự kiện tính phí đi qua outbox ghi cùng transaction (D-17) |
+| 006 ↔ 019 (M11) *(bổ sung 2026-10-11, Q-337)* | M11 → M07 | 019 cài SPI `YeuCauThuocCungUngPort` khai báo ở `m07.api` (cùng chiều với `DeNghiMuaHoPort` mà 010, cùng M11, đã cài) để 006 đọc dòng của yêu cầu mua sắm loại "thuốc" đã ghi đã mua; 019 đọc `DonThuocApi.donNguonVienChuaKetThuc` và `TiepNhanThuocCungUngApi` của `m07.api`. M07 không gọi `m11.api`, nên không có vòng (D-21) |
 
 **Lý do**: Modulith `verify()` từ chối vòng (000 R-02). 007 cần "thuốc đang dùng" cho thẻ khẩn cấp (FR-050) nên phụ thuộc 006; nếu 006 gọi đồng bộ 007 để tạo cảnh báo thì có vòng.
 
@@ -259,6 +261,7 @@ Bảng `thuoc_nct` (một dòng mỗi hồ sơ người cao tuổi) là đích k
 - **Chặn lệnh ngoài phiếu** (FR-037): khi có phiếu mở, Nhập đơn, Tiếp tục, Đổi liều trả 409 `DANG_CO_PHIEU_DOI_CHIEU`; Ngừng đơn được và đặt `da_ngung_ngoai_phieu` của dòng tương ứng.
 - **Hồ sơ ban đầu đổi sau khi lập phiếu** (BR-M07-22, CHK008): cần sự kiện `HoSoSucKhoeBanDauDaDoi(nctId)` từ 001; 001 chưa khai báo nên plan bổ sung vào hợp đồng 001 (plan, mục "Đồng bộ"). Listener của 006: phiếu `MO` thì phát `ThuocDangDungTiepNhanDaDoi` cho người thực hiện; phiếu `CHO_XAC_NHAN`, `DA_XAC_NHAN` thì báo người thực hiện và người xác nhận. Không đổi phiếu. Dấu "thuốc đã bỏ khỏi hồ sơ" trên dòng được tính lúc đọc (so `muc_thuoc_dang_dung_id` với danh sách hiện hành), không ghi vào dòng.
 - **Hủy** (bảng FR-035): bean cho `CHUYEN_VIEN` (phiếu mở → `DA_HUY` "chuyển viện lại"; chỉ người đã lưu trú, CHK034), trạng thái cuối và `HUY_TIEP_NHAN` (FR-034a, FR-047).
+- **Phiếu theo yêu cầu chuyên môn** *(bổ sung 2026-10-11, FR-034b, BR-M07-25, Q-340)*: `ly_do = THEO_YEU_CAU_CHUYEN_MON`, cột `ly_do_lap` bắt buộc; lập bằng cùng `POST /nguoi-cao-tuoi/{nctId}/phieu-doi-chieu` khi người cao tuổi Đang lưu trú, Tạm vắng hoặc Hoạt động bên ngoài (409 với trạng thái khác). Không có bean tham gia lệnh trạng thái cho loại này, nên không tạm dừng đơn, không đặt `thuoc_nct.han_doi_chieu` (cột và `ly_do_doi_chieu` chỉ dùng cho hai lý do có hạn), `han_luc` rỗng, job quá hạn không xét. `mo_nct` vẫn chặn phiếu mở thứ hai; FR-037 (chặn lệnh đơn ngoài phiếu) áp như phiếu khác. Gửi xác nhận chặn `THIEU_DONG` khi còn đơn `HIEU_LUC`, `TAM_DUNG`, `CHO_HIEU_LUC` của người đó chưa có dòng. Xác nhận áp FR-036 như phiếu khác; dòng "Tiếp tục" với đơn đang `HIEU_LUC` không đổi đơn. Hệ thống không tự lập, không nhắc lập (Q-307). Hủy theo bảng FR-035 (chuyển viện, trạng thái cuối) như phiếu khác.
 
 **Lý do**: Bảng FR-035 và Q-306: phiếu do actor lập; hạn tính từ lệnh tiếp nhận/trở về nên phải giữ ở `thuoc_nct`, không ở phiếu.
 
@@ -356,6 +359,7 @@ Gửi 010: `SuKienTinhPhiThuoc(nguon: LIEU | LAN_DUNG_PRN | LAN_GIAO, id, nctId,
 | `DON_THUOC` | "Đơn thuốc" (³ ⁴) | `CHUYEN_MON` cho đơn nội bộ (Bác sĩ); `TAO`, `SUA` cho đơn bên ngoài (BS, ĐD); NT `XEM` với chú thích ¹; TT không có |
 | `PHAT_THUOC` | "Phát thuốc, thuốc khi cần" | ĐD `CHUYEN_MON` + D-08 bước 1 → 3; QL, TT, BS `XEM` (TT chỉ liều, không đơn) |
 | `DOI_CHIEU_THUOC` | "Đối chiếu thuốc, thuốc gia đình gửi" | BS, ĐD `TAO`, `XAC_NHAN`; NT `XEM` phiếu Đã xác nhận với chú thích ¹ (Q-59); NT `XEM` thuốc gia đình gửi không cần chú thích; TT không có |
+| `TIEP_NHAN_THUOC_CUNG_UNG` *(bổ sung 2026-10-11, Q-337)* | "Tiếp nhận thuốc cung ứng" (⁴⁴) | ĐD `TAO` trong phạm vi phân công với người cao tuổi của dòng (002 A-04, NV 19.3); QL, BS, KT `XEM`; chú thích ⁴⁴ chỉ mô tả, kiểm ở 006 (002 A-04, U2) |
 
 - Trường tên thuốc, hoạt chất, liều, phản ứng, lý do mang `@NhomTruong(SUC_KHOE)` (002 A-08); Nhân viên chăm sóc, Bếp, Hành chính không thấy (FR-049, 19.3). Thông báo nêu tên thuốc chỉ gửi người có quyền xem; thông báo cho người thân chia phần `CHUNG` và `SUC_KHOE` (009, Q-116).
 - Cổng người thân (012 đọc `ThuocCongNguoiThanApi`): thuốc gia đình gửi (tên, trạng thái, số lượng còn, hạn dùng) cho mọi người thân có quan hệ Hiệu lực và tài khoản (CHK051); đơn và phiếu Đã xác nhận khi `BanDongYApi.baoGom(nctId, nguoiThanId)`; không có liều. Lần xem ghi nhật ký (NFR-08).
@@ -392,3 +396,18 @@ Gửi 010: `SuKienTinhPhiThuoc(nguon: LIEU | LAN_DUNG_PRN | LAN_GIAO, id, nctId,
   - đồng hồ giả lập: 20 người × 60 đơn × 7 ngày (SC-001), chạy bù sau 3 giờ dừng;
   - bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}` cho `DieuDuongCaPort` (008), `ChuyenDiThuocPort` (014), `DeNghiMuaHoPort` (010), `QuanHeNguoiThanApi`, `NguoiDaiDienPort` (012);
   - client: Vitest cho màn nhập đơn (danh sách vấn đề cần lý do), phiếu đối chiếu (không có nút chép sẵn), thuốc gia đình gửi; `flutter_test` cho xác nhận liều ngoại tuyến, chặn liều kiểm soát đặc biệt khỏi hàng đợi, chọn lô, kết quả đồng bộ (BR-M15-20, constitution XV).
+
+---
+
+## D-21. Tiếp nhận thuốc cung ứng (mục I, FR-054, FR-055, BR-M07-24, Q-337) *(bổ sung 2026-10-11)*
+
+**Quyết định**:
+- **Bảng** `lan_tiep_nhan_thuoc_cung_ung` (nhóm 3, data-model mục 9a): mỗi lần kiểm một dòng của yêu cầu mua sắm loại "thuốc" (019) là một bản ghi Đạt hoặc Không đạt; giao nhiều đợt, giao bù là nhiều bản ghi. Không có số lượng tồn, không đổi đơn, liều, không phát `SuKienTinhPhiThuoc` (chi phí cho người cao tuổi vẫn theo liều, BR-M07-14).
+- **Dữ liệu yêu cầu**: đọc qua SPI `YeuCauThuocCungUngPort` ở `m07.api`, 019 (M11) cài. Port chỉ trả dòng khi yêu cầu đã ghi đã mua (Chờ đối chiếu, Đã đối chiếu, Lệch; BR-M11-17); rỗng thì 409. Bảng của 006 không khóa ngoại sang bảng của M11.
+- **Quyền**: khóa `(TIEP_NHAN_THUOC_CUNG_UNG, TAO)` cho Điều dưỡng; phạm vi là người cao tuổi của dòng, theo quy tắc phạm vi T của Điều dưỡng (19.3: Điều dưỡng thực hiện trong phạm vi phân công; BR-M15-01; 002 A-04). Quyết định của chủ dự án 2026-10-11; không phải quy tắc mới. Chú thích ⁴⁴ chỉ mô tả, kiểm ở 006 (U2).
+- **Không đạt** (FR-055): phát `TiepNhanThuocKhongDat` cho 009, mức Nhẹ, người nhận là người lập yêu cầu (`NhanVien`) và Phụ trách bộ phận hiện tại của bộ phận của yêu cầu (`PhuTrachBoPhan(boPhanId)` của 009, `boPhanId` lấy từ port là bộ phận gắn với yêu cầu lúc lập; sửa 2026-10-11, lượt 3). 006 chỉ phát một sự kiện; xác định người, người thay và gộp người trùng do 009 (FR-012), 006 không tự gửi. Hệ thống không lập yêu cầu mới, không hủy yêu cầu (Q-307).
+- **"Đã nhận"** là số liệu tính khi đọc (`TiepNhanThuocCungUngApi.theoYeuCau`): mọi dòng có ít nhất một lần Đạt.
+
+**Lý do**: Giữ một chiều M11 → M07 như `DeNghiMuaHoPort` (D-02); không tạo kho thuốc (1.2, Q-337).
+
+**Phương án đã cân nhắc**: Đặt lần tiếp nhận ở 019 (M11): 019 không có quyền và dữ liệu thuốc của người cao tuổi, và Điều dưỡng ghi nhận trong luồng thuốc; 006 gọi `m11.api` để đọc yêu cầu: tạo vòng M07 ↔ M11 vì M11 đã phụ thuộc M07.

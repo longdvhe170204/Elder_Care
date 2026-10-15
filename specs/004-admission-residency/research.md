@@ -113,6 +113,7 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 **Quyết định**:
 - **Một loại yêu cầu** `M02.THAY_DOI_LUU_TRU` (000) với nội dung JSON gồm tập loại thay đổi (loại lưu trú, mức, dịch vụ, thời gian, giường, lịch đến), giá trị trước (hệ thống điền từ phiên bản nội dung hiện hành), giá trị sau, ảnh hưởng chi phí (hệ thống tính), tham chiếu (lần đánh giá, lệnh chuyển giường). Chuyển mở rộng `DUOC_THAY_THE` theo plan 001.
 - **Người lập** (FR-039): Hành chính; Bác sĩ chỉ loại đổi mức; người đại diện tạo ở Nháp qua cổng (kiểm `NguoiDaiDienPort`), Hành chính được báo để hoàn thiện. Hệ thống không tự lập. Không có job nhắc ở 004: việc nhắc lập yêu cầu đổi mức là job `NhacLapYeuCauDoiMuc` của 001 (dùng `coYeuCauDoiMucChuaKetThuc` do 004 cài), việc nhắc sau chuyển gấp là job của 003. Khi Hành chính lập yêu cầu tham chiếu một lệnh chuyển giường, 004 gọi `PhanBoGiuongLenhApi.daLapYeuCauSauChuyenGap` trong cùng transaction.
+- **Thay đổi nhỏ** *(bổ sung 2026-10-11, FR-043, Q-338)*: `thayDoiNho` là số liệu tính lúc đọc, không lưu trong nội dung JSON (sửa 2026-10-11 sau audit). Lý do: nội dung khóa từ Chờ duyệt (000 FR-033) và SPI của 000 không có điểm gắn lúc gửi duyệt; nếu điền lúc lập, sửa Nháp thì hợp đồng đổi giữa lần sửa cuối và lúc gửi duyệt làm dấu lưu sai, và lệnh `sua-noi-dung` chung của 000 có thể ghi đè trường này. Tính lúc đọc trên hợp đồng hiện hành nên dấu hiển thị ở mọi thời điểm (gồm lúc gửi duyệt, FR-043) luôn trùng với kết quả kiểm lúc duyệt. Hàm thuần `LaThayDoiNho(noiDung, noiDungHopDongHienHanh)` đúng khi tập loại thay đổi chỉ có `DICH_VU`, mọi dịch vụ được thêm hoặc bớt mang dấu thuộc gói (`hop_dong_dich_vu.thuoc_goi`, FR-019) và ảnh hưởng chi phí bằng 0 ở mọi khoản. Handler cài `gioiHanVaiTroDuyet(yc)` (000, bổ sung theo plan 004): tính lại `LaThayDoiNho` trên hợp đồng hiện hành; đúng thì trả rỗng (Quản lý viện, Hành chính đều duyệt được theo Phụ lục 27 ô D và D⁴²), sai thì trả `{QUAN_LY_VIEN}`. Kiểm lại lúc duyệt là bước "kiểm tra lại khi duyệt" của FR-043: dấu lúc gửi là đúng mà nay sai thì Hành chính bị chặn. 000 dùng cùng giới hạn cho `lenhDuocPhep`, nhắc và người nhận thông báo, nên Hành chính không được nhắc với yêu cầu không phải thay đổi nhỏ.
 - **Lúc duyệt** (hai hàm bổ sung vào `LoaiYeuCauHandler` theo plan 003):
   - `kiemTraKhiDuyet` chạy FR-041, FR-046 (`UNIQUE` theo cột sinh trên bảng chỉ mục `yeu_cau_thay_doi_thuoc_tinh`), FR-022 với ngày kết thúc mới, FR-040. Vi phạm thì 409 liệt kê đủ;
   - `khiDuyet` tạo `phu_luc_hop_dong` ở `CHO_HIEU_LUC` (DBR-07), gọi `datTruocChuyenTheoLich` của 003 khi có đổi giường, và giữ chỗ sức chứa khi có lịch đến mới.
@@ -175,7 +176,7 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 - **Ngưỡng giữ giường** (FR-055): ngày đầu tiên có giữ giường "Không" hoặc "Quản lý quyết định" trong khi giường đang giữ.
   - Tới ngưỡng thì phát `CanQuyetDinhGiuGiuong` cho Quản lý viện một lần, cột `da_bao_nguong_luc`. Không tạo yêu cầu (Q-307).
   - Dòng ngưỡng là "Không": quy tắc FR-055 cũng áp dụng. Giường vẫn giữ tới khi Quản lý viện quyết, không tự giải phóng (003 FR-015).
-- **Quyết định giữ giường** `POST /luot-vang/{id}/quyet-dinh-giu-giuong` (AC-01, quyền D⁸): thêm bản ghi `quyet_dinh_giu_giuong` (nhóm 3), tính lại các ngày "chờ quyết định".
+- **Quyết định giữ giường** `POST /luot-vang/{id}/quyet-dinh-giu-giuong` (AC-01; Phụ lục 27 ô T⁸ của Quản lý viện, sửa 2026-10-11 theo Q-345: đây là lệnh, không phải quyền duyệt): thêm bản ghi `quyet_dinh_giu_giuong` (nhóm 3), tính lại các ngày "chờ quyết định".
   - "Giải phóng" gọi `giaiPhongGiuongKhiVang` (003) trong cùng transaction.
   - "Giữ tiếp" lưu ngày xem xét lại; job báo lại Quản lý viện vào ngày đó.
   - Lượt vắng đã đóng (đính chính vượt ngưỡng, FR-061): quyết định chỉ đặt hệ số, không gọi 003.
@@ -191,14 +192,15 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 ## T-09. Danh sách điều kiện tiếp nhận và kết thúc lưu trú (FR-004, FR-063 → FR-068)
 
 **Quyết định**:
-- **Điều kiện tiếp nhận** `GET /luot-dang-ky/{id}/dieu-kien-tiep-nhan` dựng đủ năm điều kiện với Đạt / Chưa đạt / Không áp dụng và căn cứ:
+- **Điều kiện tiếp nhận** `GET /luot-dang-ky/{id}/dieu-kien-tiep-nhan` dựng đủ sáu điều kiện với Đạt / Chưa đạt / Không áp dụng và căn cứ (sửa 2026-10-11, Q-343):
   - (a) `DanhGiaApi.xacNhanGanNhat` (001) và CFG-M01-02;
   - (b) hợp đồng Hiệu lực, thời điểm tiếp nhận không sớm hơn ngày bắt đầu (FR-075);
   - (c) `TrangThaiDatCocPort` (017);
   - (d) `ViTriApi` (003), "Không áp dụng" với bán trú;
-  - (e) mức của phiên bản nội dung hiện hành so với `MucChamSocApi.hienHanh`.
+  - (e) mức của phiên bản nội dung hiện hành so với `MucChamSocApi.hienHanh`;
+  - (f) đúng một người liên hệ chính và ít nhất một người đại diện có quan hệ Hiệu lực (DBR-02): lấy kết quả điều kiện `DBR_02` do bean 012 trả trong `xemDieuKien` của 001; 004 không đọc dữ liệu người thân và không thêm hàm vào `NguoiDaiDienPort`.
 
-  Bean `ThamGiaChuyenTrangThai` của 004 cho `HOAN_TAT_TIEP_NHAN` kiểm (b), (c), (e) bằng cùng các hàm. (a) do 001, (d) do 003 kiểm. Test `FR_004_DanhSachKhopLenhIT` so danh sách với kết quả `xemDieuKien` của 001 trên cùng dữ liệu.
+  Bean `ThamGiaChuyenTrangThai` của 004 cho `HOAN_TAT_TIEP_NHAN` kiểm (b), (c), (e) bằng cùng các hàm. (a) do 001, (d) do 003, (f) do 012 kiểm (bean `ThamGiaChuyenTrangThai` của 012, `coTheMien = false`). Test `FR_004_DanhSachKhopLenhIT` so danh sách với kết quả `xemDieuKien` của 001 trên cùng dữ liệu.
 - **Tiến trình** (FR-003) suy từ dữ liệu, không lưu: đánh giá (001), hợp đồng, dịch vụ, điều kiện.
 - **Điều kiện kết thúc** `GET /ho-so-ket-thuc/{id}/dieu-kien` hiển thị (a) → (h) theo mã cố định:
 
@@ -301,9 +303,9 @@ Sự kiện không gửi thông báo, dành cho module khác: `HopDongDaDoiTrang
 | Lượt đăng ký, hợp đồng | `TIEP_NHAN_HOP_DONG_DAT_COC, TAO/SUA` | Chỉ AC-09 (²⁶); Kế toán chỉ thu cọc ở 017 |
 | Duyệt điều khoản khác chuẩn | `TIEP_NHAN_HOP_DONG_DAT_COC, DUYET` | AC-01 (⁶) |
 | Danh sách chờ | `DANH_SACH_CHO_DIEM_UU_TIEN, TAO` / `DUYET` | Hành chính / Quản lý viện; vai trò khác không xem (FR-018) |
-| Yêu cầu thay đổi lưu trú | `YEU_CAU_THAY_DOI_LUU_TRU, TAO` / `DUYET` | Bác sĩ chỉ loại đổi mức; người thân chỉ người đại diện (²), tạo ở Nháp |
+| Yêu cầu thay đổi lưu trú | `YEU_CAU_THAY_DOI_LUU_TRU, TAO` / `DUYET` | Bác sĩ chỉ loại đổi mức; người thân chỉ người đại diện (²), tạo ở Nháp; `DUYET` của Hành chính (D⁴²) chỉ với thay đổi nhỏ, kiểm qua `gioiHanVaiTroDuyet` (FR-043, Q-338) |
 | Gia hạn dự kiến trở lại | `TAM_VANG_TRO_VE, TAO` | Hành chính, Trưởng tầng (phạm vi) |
-| Quyết định giữ giường | `TAM_VANG_TRO_VE, DUYET` | AC-01 (⁸) |
+| Quyết định giữ giường | `TAM_VANG_TRO_VE, TAO` | Chỉ AC-01 (⁸), kiểm thêm `TaiKhoanApi.coVaiTro(QUAN_LY_VIEN)` trong service (chú thích ⁸ chỉ mô tả, U2); Trưởng tầng, Hành chính có T ở dòng này nhưng không được lệnh này (sửa 2026-10-11, Q-345: Phụ lục 27 đổi D⁸ thành T⁸) |
 | Báo vắng bán trú, ngày nghỉ khu bán trú | `TAM_VANG_TRO_VE, TAO` | Hành chính |
 | Hồ sơ kết thúc, bàn giao | `KET_THUC_LUU_TRU_QUA_DOI, TAO` | Hành chính; Bác sĩ chỉ trường hợp Xuất viện, Chuyển cơ sở |
 | Ngoại lệ kết thúc | `KET_THUC_LUU_TRU_QUA_DOI, TAO` / `DUYET` | Thêm Kế toán với (h) (Q-222, 19.3) |
