@@ -52,7 +52,7 @@ Theo Q-194, báo cáo đồ gửi (số đồ thất lạc, hư hỏng, đồ ch
 
 ### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
 
-Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với tài liệu gốc DOCX "nghiep-vu-quan-ly-vien-duong-lao.docx" (lưu ngoài kho mã từ 2026-10-15; bản cũ ở commit a2ff357); các Q đã chốt trước được giữ. Thay đổi ở spec này:
 
 - **Q-344**: FR-019 chỉ dùng bản ký scan trên phiếu trả, bỏ "chữ ký điện tử" (16.4).
 - Assumptions: tham số CFG-M12-02 → 07 đã có ở Phụ lục 25, bỏ câu "cần bổ sung".
@@ -570,4 +570,4 @@ Hoàn thành và Đã hủy là trạng thái cuối. Đề nghị "Xử lý đ�
 
 **(2026-10-10) Plan 013, điểm báo lại 1 → 3.** *(Đã xử lý 2026-10-10: spec 007 FR-046b sửa theo FR-011a; bảng FR-032. Điểm báo lại 16 (sự kiện cờ đi lạc) không còn đúng sau Q-281, giữ làm lịch sử.)*
 
-**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-019, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-019, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*

@@ -94,7 +94,7 @@ Theo Q-194, báo cáo thống kê thông báo thuộc giai đoạn sau; dòng "C
 
 ### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
 
-Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với tài liệu gốc DOCX "nghiep-vu-quan-ly-vien-duong-lao.docx" (lưu ngoài kho mã từ 2026-10-15; bản cũ ở commit a2ff357); các Q đã chốt trước được giữ. Thay đổi ở spec này:
 
 - **Q-344**: chốt các quy tắc trước đây ghi "mặc định đề xuất": thứ tự người thay (FR-010), người nhận thay khi Khẩn cấp không có người nhận (FR-011), không báo người gây ra sự kiện ở mức Nhẹ (FR-012), danh sách "cần liên hệ trực tiếp" (FR-021), nhắc gọi ngay khi Khẩn cấp gửi thất bại mọi kênh (FR-028), danh sách lỗi gửi (FR-003, FR-038). Các quy tắc đã ghi vào BR-M13-04, BR-M13-05.
 - SC-002 sửa câu: không có yêu cầu gọi điện do hệ thống tạo (lượt nhắc gọi là thông báo, FR-027). Bảng FR-043b dòng 005 đổi tên "Yêu cầu xem xét kế hoạch" thành "Báo xem xét kế hoạch chăm sóc" (Q-306).
@@ -525,4 +525,4 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 
 **(2026-10-10) Plan 009, điểm báo lại 1, 2, 4.** *(Đã xử lý 2026-10-10: Q-332, Q-311; sửa FR-016a, bảng FR-043b, Key Entities, Phạm vi. Các điểm báo lại cũ còn dùng "yêu cầu gọi điện" giữ làm lịch sử.)*
 
-**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-003, FR-010, FR-011, FR-012, FR-021, FR-028, FR-038, bảng FR-043b, SC-002, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-003, FR-010, FR-011, FR-012, FR-021, FR-028, FR-038, bảng FR-043b, SC-002, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*

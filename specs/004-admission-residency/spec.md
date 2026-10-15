@@ -130,7 +130,7 @@ Các điểm dưới đây do nhóm phân tích quyết định khi đánh giá 
 
 ### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
 
-Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với tài liệu gốc DOCX "nghiep-vu-quan-ly-vien-duong-lao.docx" (lưu ngoài kho mã từ 2026-10-15; bản cũ ở commit a2ff357); các Q đã chốt trước được giữ. Thay đổi ở spec này:
 
 - **Q-343**: danh sách điều kiện tiếp nhận có thêm điều kiện (f): đúng một người liên hệ chính và ít nhất một người đại diện có quan hệ Hiệu lực (DBR-02); hồ sơ cơ bản đầy đủ bảo đảm bằng trường bắt buộc khi lập hồ sơ (FR-004, User Story 1 kịch bản 3).
 - **Q-338**: thay đổi nhỏ (chỉ thêm/bớt dịch vụ thuộc gói, ảnh hưởng chi phí bằng 0) do Hành chính hoặc Quản lý viện duyệt; mọi yêu cầu khác chỉ Quản lý viện duyệt (FR-043, User Story 5 kịch bản 6, 9, Assumptions).
@@ -729,4 +729,4 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/busine
 
 **(2026-10-10) Plan 004, điểm báo lại 1 → 7.** *(Đã xử lý 2026-10-10: Q-312 (BR-M02-20), Q-313, Q-311, Q-322, Q-323; sửa FR-015, FR-039, FR-064, User Story 8, câu dưới bảng loại yêu cầu; thêm FR-078. Câu dẫn `docs/phan-tich-yeu-cau.md` giữ làm lịch sử.)*
 
-**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-004, FR-043, User Story 1 kịch bản 3, User Story 5 (đoạn mô tả, kịch bản 6, 9), Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-004, FR-043, User Story 1 kịch bản 3, User Story 5 (đoạn mô tả, kịch bản 6, 9), Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*

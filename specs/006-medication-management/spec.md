@@ -107,7 +107,7 @@ Các điểm dưới đây do nhóm phân tích quyết định khi đánh giá 
 
 ### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
 
-Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với tài liệu gốc DOCX "nghiep-vu-quan-ly-vien-duong-lao.docx" (lưu ngoài kho mã từ 2026-10-15; bản cũ ở commit a2ff357); các Q đã chốt trước được giữ. Thay đổi ở spec này:
 
 - **Q-337**: thêm mục I (FR-054, FR-055): Điều dưỡng ghi lần tiếp nhận thuốc cung ứng theo yêu cầu mua sắm loại "thuốc" của feature 019 (Đạt / Không đạt kèm sai lệch); không tồn kho, không tính phí, không đổi đơn, liều. Phạm vi, bảng nhóm dữ liệu, bảng giao tiếp (019), FR-053, Key Entities, SC-015 sửa theo.
 - **Q-340**: thêm phiếu đối chiếu lý do "theo yêu cầu chuyên môn" (FR-034b, bảng FR-035, User Story 4 kịch bản 11): bắt buộc lý do, không tạm dừng đơn, không có hạn, hệ thống không tự lập.
@@ -676,7 +676,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 **(2026-10-10) Plan 006, điểm báo lại 1 → 8.** *(Đã xử lý 2026-10-10: Q-311, Q-312, Q-327 → Q-329; sửa FR-029, FR-034a, FR-046, Edge Cases, SC-012; thêm FR-053. Điểm 9 (Thông tư 27/2024/TT-BYT) vẫn chờ tư vấn pháp lý ở 24.4.)*
 
-**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa Phạm vi, User Story 4 kịch bản 11, FR-034b, bảng FR-035, bảng nhóm dữ liệu, FR-052, FR-053, mục I (FR-054, FR-055), truy vết use case, Key Entities, SC-015, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa Phạm vi, User Story 4 kịch bản 11, FR-034b, bảng FR-035, bảng nhóm dữ liệu, FR-052, FR-053, mục I (FR-054, FR-055), truy vết use case, Key Entities, SC-015, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
 
 **(2026-10-11, lượt 2) Mục I chưa có kịch bản Given/When/Then cho BR-M07-24.** *(Đã xử lý 2026-10-11: thêm User Story 9 từ FR-054, FR-055 theo cho phép của chủ dự án; xem mục "Cập nhật 2026-10-11, lượt 2" ở Clarifications.)*
 

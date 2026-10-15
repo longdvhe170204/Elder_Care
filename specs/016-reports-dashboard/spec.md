@@ -63,7 +63,7 @@
 
 ### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
 
-Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với tài liệu gốc DOCX "nghiep-vu-quan-ly-vien-duong-lao.docx" (lưu ngoài kho mã từ 2026-10-15; bản cũ ở commit a2ff357); các Q đã chốt trước được giữ. Thay đổi ở spec này:
 
 - **Q-307**: "lịch theo dõi sau ngã" đổi thành "khoảng theo dõi sau ngã" (feature 007 FR-051), vì hệ thống không tạo lịch đo (User Story 5 kịch bản 5 và FR về danh sách "trường hợp cần theo dõi").
 
@@ -588,4 +588,4 @@ Nội dung gốc của từng điểm được giữ dưới đây để truy v�
 
 **(2026-10-10) Plan 016, điểm báo lại 1, 2.** *(Đã xử lý 2026-10-10: điểm 1 không cần sửa (lịch sử, dẫn chiếu qua Phụ lục 26); điểm 2 (Q-03, ghi nhật ký lần nhân viên xem dữ liệu sức khỏe) vẫn chờ tư vấn pháp lý ở 24.4.)*
 
-**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa User Story 5 kịch bản 5, FR danh sách "trường hợp cần theo dõi"; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa User Story 5 kịch bản 5, FR danh sách "trường hợp cần theo dõi"; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*

@@ -114,7 +114,7 @@ Các Clarification, cập nhật và mục "Điểm cần báo lại" trước �
 
 ### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
 
-Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với tài liệu gốc DOCX "nghiep-vu-quan-ly-vien-duong-lao.docx" (lưu ngoài kho mã từ 2026-10-15; bản cũ ở commit a2ff357); các Q đã chốt trước được giữ. Thay đổi ở spec này:
 
 - **Q-342**: lệnh Ghi nhận qua đời ngoài viện do Hành chính thực hiện kèm giấy tờ do cơ sở y tế hoặc cơ quan có thẩm quyền cấp; giấy tờ này là xác nhận chuyên môn về tử vong theo tài liệu gốc 30.2 (FR-047b).
 - **Q-343**: điều kiện DBR-02 của Hoàn tất tiếp nhận nay có trong 5.6 và 004 FR-004 (f); bảng trạng thái dẫn chiếu thêm 004 FR-004 (f).
@@ -577,4 +577,4 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/busine
 
 **(2026-10-10) Plan 001, điểm báo lại 1 → 8.** *(Đã xử lý 2026-10-10: Q-311, Q-313 (dòng "Chuyển viện" ở Phụ lục 27), Q-317 (danh mục do Quản lý viện cấu hình), Q-318 → Q-320; sửa FR-005, FR-036, FR-046, bảng trạng thái, bảng nhóm dữ liệu, Assumptions; thêm FR-054. Câu dẫn `docs/phan-tich-yeu-cau.md` giữ làm lịch sử.)*
 
-**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-047b, bảng trạng thái người cao tuổi (dòng Hoàn tất tiếp nhận); xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-047b, bảng trạng thái người cao tuổi (dòng Hoàn tất tiếp nhận); xem mục "Cập nhật 2026-10-11" ở Clarifications.)*

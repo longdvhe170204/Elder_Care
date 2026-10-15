@@ -89,7 +89,7 @@ Các điểm dưới đây do nhóm phân tích quyết định khi đánh giá 
 
 ### Cập nhật 2026-10-11 (đồng bộ Q-337 → Q-345 sau đối chiếu tài liệu gốc DOCX)
 
-Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với docs/reference/nghiep-vu-quan-ly-vien-duong-lao.docx; các Q đã chốt trước được giữ. Thay đổi ở spec này:
+Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi đối chiếu với tài liệu gốc DOCX "nghiep-vu-quan-ly-vien-duong-lao.docx" (lưu ngoài kho mã từ 2026-10-15; bản cũ ở commit a2ff357); các Q đã chốt trước được giữ. Thay đổi ở spec này:
 
 - **Q-338**: loại yêu cầu "Thay đổi lưu trú" có thêm người duyệt Hành chính cho thay đổi nhỏ (chỉ thêm/bớt dịch vụ thuộc gói), theo 004 FR-043.
 - **Q-345**: danh mục loại yêu cầu phê duyệt bỏ "Hệ thống" khỏi người lập yêu cầu thay đổi lưu trú (Hành chính lập sau đánh giá lại, chuyển giường gấp, Q-52, Q-306); dòng "Quyết định giữ giường khi vắng" không còn là yêu cầu phê duyệt mà là lệnh của Quản lý viện ở 004 (BR-M02-07, Q-307).
@@ -439,4 +439,4 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/busine
 
 **(2026-10-10) Plan 000, điểm báo lại 1 → 3** (khoảng hợp lệ tham số, thời điểm hiệu lực tham số, phạm vi 001–016). *(Đã xử lý 2026-10-10: Q-315, Q-316; sửa FR-015, FR-016 và Phạm vi.)*
 
-**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa danh mục loại yêu cầu phê duyệt (dòng "Thay đổi lưu trú", "Quyết định giữ giường khi vắng"); xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+**(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa danh mục loại yêu cầu phê duyệt (dòng "Thay đổi lưu trú", "Quyết định giữ giường khi vắng"); xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
