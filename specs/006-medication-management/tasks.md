@@ -17,14 +17,14 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 ## Quy ước đường dẫn
 
 - `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
-- Module M07: `BE/m07/{api,danhmuc,donthuoc,lichthuoc,lieu,prn,doichieu,thuocgui,mangtheo,trangthai,lich}/`
+- Module M07: `BE/m07/{api,danhmuc,donthuoc,lichthuoc,lieu,prn,doichieu,thuocgui,mangtheo,tiepnhanthuoc,trangthai,lich}/`
 - Web `web/src/tinh-nang/{danh-muc-thuoc,don-thuoc,lich-thuoc,doi-chieu-thuoc,thuoc-gia-dinh-gui,thuoc-mang-theo,cong-nguoi-than/thuoc}/`; app nhân viên `app-nhan-vien/lib/tinh-nang/{vong-phat-thuoc,xac-nhan-lieu,dong-bo,thuoc-mang-theo,thuoc-gia-dinh-gui,xem-lai-lieu}/`; app người thân `app-nguoi-than/lib/tinh-nang/thuoc/`
 
 ---
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo khung gói `BE/m07/{api,danhmuc,donthuoc,lichthuoc,lieu,prn,doichieu,thuocgui,mangtheo,trangthai,lich}/` với `package-info.java` (research D-01)
+- [ ] T001 Tạo khung gói `BE/m07/{api,danhmuc,donthuoc,lichthuoc,lieu,prn,doichieu,thuocgui,mangtheo,tiepnhanthuoc,trangthai,lich}/` với `package-info.java` (research D-01)
 - [ ] T002 [P] Tạo bản giả SPI 006 khai báo trong `BT/support/gia006/`: `DieuDuongCaPort` (008), `ChuyenDiThuocPort` (014), `DeNghiMuaHoPort` (010); công tắc `/api/v1/kiem-thu/gia-lap/{module}` (contracts mục 2.1)
 
 ---
@@ -37,7 +37,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 
 - [ ] T003 [P] Tạo giao diện công khai `BE/m07/api/`: `DonThuocApi`, `LichThuocApi`, `LieuBanGiaoApi`, `MangThuocChuyenDiApi`, `ThuocGiaDinhGuiApi`, `ThuocCongNguoiThanApi`, `ThuocThongKeApi` (contracts mục 1.2 → 1.8) và SPI `DieuDuongCaPort`, `ChuyenDiThuocPort`, `DeNghiMuaHoPort` (mục 2.1) (research D-02)
 - [ ] T004 [P] Tạo sự kiện `BE/m07/api/sukien/` theo contracts mục 1.9 (yêu cầu cảnh báo, nhắc, thông báo, `SuKienTinhPhiThuoc` mang loại nguồn và id); sự kiện gửi 009 cài `CoYeuCauThongBao` (research D-17)
-- [ ] T005 Tạo `MIG/V006_01__nen_m07.sql`: `thuoc_nct` (`nct_id` khóa chính; `han_doi_chieu`; `ly_do_doi_chieu ENUM('TIEP_NHAN','TRO_VE_BENH_VIEN') NULL`; `da_canh_bao_doi_chieu_luc`; `phien_ban`), `lan_chay_m07 (viec, moc)` khóa chính hai cột, `thuoc` (mẫu nhóm 1; `UNIQUE (ten, ham_luong, dang_bao_che)`; `cua_so_truoc_phut`, `cua_so_sau_phut SMALLINT NULL` – rỗng dùng CFG-M07-01; `kiem_soat_dac_biet BOOLEAN`), `thuoc_hoat_chat (thuoc_id, di_nguyen_id)` khóa chính hai cột (data-model mục 2, 3)
+- [ ] T005 Tạo `MIG/V006_01__nen_m07.sql`: `thuoc_nct` (`nct_id` khóa chính; `han_doi_chieu`; `ly_do_doi_chieu ENUM('TIEP_NHAN','TRO_VE_BENH_VIEN') NULL` (chỉ hai lý do có hạn; phiếu theo yêu cầu chuyên môn không dùng, Q-340); `da_canh_bao_doi_chieu_luc`; `phien_ban`), `lan_chay_m07 (viec, moc)` khóa chính hai cột, `thuoc` (mẫu nhóm 1; `UNIQUE (ten, ham_luong, dang_bao_che)`; `cua_so_truoc_phut`, `cua_so_sau_phut SMALLINT NULL` – rỗng dùng CFG-M07-01; `kiem_soat_dac_biet BOOLEAN`), `thuoc_hoat_chat (thuoc_id, di_nguyen_id)` khóa chính hai cột (data-model mục 2, 3)
 - [ ] T006 Cài danh mục thuốc (AC-01; tạo, sửa, ngừng hiệu lực; xóa bị chặn khi có đơn bằng `ON DELETE RESTRICT`; dấu "chưa có mục vật phẩm" qua `DonGiaApi.thuocNguonVien`) trong `BE/m07/danhmuc/internal/ThuocService.java` và `BE/m07/danhmuc/web/ThuocController.java` (`/thuoc`, `/{id}`, `/{id}/ngung-hieu-luc`) (FR-001 → FR-003; research D-04)
 - [ ] T007 Cài `BE/m07/trangthai/internal/KhoaThuoc.java` (khóa `thuoc_nct` theo research D-03) và khung job `BE/m07/lich/ViecTheoPhutM07.java` (mỗi phút, ShedLock, chạy bù) và `ViecHangNgayM07.java` (`lan_chay_m07`) – việc đăng ký ở các story (research D-19)
 - [ ] T008 [P] Cài provider cho 000/002 trong `BE/m07/trangthai/internal/`: `PhanLoaiTruongProvider` (`SUC_KHOE` cho thuốc, hoạt chất, liều, đường dùng, ghi chú, phản ứng, lý do, vấn đề, dòng phiếu, tên thuốc gửi), `LuuTruProvider` theo data-model mục 13, `GanPhamViProvider`, `QuyenTepProvider` (`M07.ANH_DON_THUOC`, `M07.ANH_CAN_CU`, `M07.ANH_THUOC_GUI`)
@@ -128,11 +128,12 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 ### Tests cho User Story 4
 
 - [ ] T034 [P] [US4] Test `BT/m07/BR_M07_09_DoiChieuIT.java`, `BR_M07_17_DinhChinhPhieuIT.java`, `BR_M07_22_NhieuLanGiaoIT.java` (phần phiếu), `ThuocDangDungDoiIT.java`: một phiếu mở mỗi người; người xác nhận ≠ người gửi và ≠ người ghi dòng (SC-014); xác nhận áp quyết định từng dòng (Tiếp tục, Ngừng, Thay đổi liều, Thêm mới); quá hạn cảnh báo một lần; phiếu lập trước tiếp nhận tạo đơn `CHO_HIEU_LUC` + `dau_cho_tiep_nhan`; `HoSoSucKhoeBanDauDaDoi` báo người thực hiện
+- [ ] T060 [P] [US4] Test `BT/m07/BR_M07_25_DoiChieuChuyenMonIT.java`: lập phiếu theo yêu cầu chuyên môn thiếu lý do → 422; có lý do → `MO`, không đơn nào tạm dừng, liều vẫn chạy, không hạn, job quá hạn không cảnh báo; người cao tuổi Đang tiếp nhận hoặc Điều trị tại bệnh viện → 409; gửi thiếu dòng cho đơn Hiệu lực → 409 `THIEU_DONG`; xác nhận: Ngừng → Đã ngừng, Tiếp tục với đơn Hiệu lực giữ nguyên; tự xác nhận bị chặn (Q-55); hệ thống không tự lập, không nhắc (spec 006 US4 #11; FR-034b, BR-M07-25, Q-340)
 
 ### Implementation cho User Story 4
 
-- [ ] T035 [US4] Tạo `MIG/V006_04__doi_chieu.sql`: `phieu_doi_chieu` (`ly_do ENUM('TIEP_NHAN','TRO_VE_BENH_VIEN')`; `trang_thai ENUM('MO','CHO_XAC_NHAN','DA_XAC_NHAN','DA_HUY')`; cột sinh `mo_nct`, `tiep_nhan_nct` `UNIQUE`; `CHECK (nguoi_xac_nhan_id IS NULL OR nguoi_xac_nhan_id <> nguoi_gui_id)`; trigger `trg_phieu_doi_chieu_khoa`), `dong_doi_chieu` (`nguon` `DON_HIEN_CO|DON_RA_VIEN|THUOC_DANG_DUNG_TIEP_NHAN`; `quyet_dinh` `TIEP_TUC|NGUNG|THAY_DOI_LIEU|THEM_MOI`), `de_nghi_dinh_chinh_phieu` (`trang_thai` `CHO_XAC_NHAN|DA_XAC_NHAN|TRA_LAI`; người xác nhận ≠ người lập) (data-model mục 7)
-- [ ] T036 [US4] Cài `BE/m07/doichieu/internal/PhieuDoiChieuService.java`: lập, thay dòng (`If-Match`), gửi, trả lại, xác nhận (kiểm vấn đề đơn qua `KiemTraDonMoi` trên dòng; áp quyết định tạo/ngừng/thay đơn trong một transaction; xóa `han_doi_chieu`), đề nghị đính chính phiếu và xác nhận; `DinhChinhDuocProvider` `M07.PHIEU_DOI_CHIEU`; listener `HoSoSucKhoeBanDauDaDoi` (research D-13)
+- [ ] T035 [US4] Tạo `MIG/V006_04__doi_chieu.sql`: `phieu_doi_chieu` (`ly_do ENUM('TIEP_NHAN','TRO_VE_BENH_VIEN','THEO_YEU_CAU_CHUYEN_MON')`; `ly_do_lap` có `CHECK` bắt buộc với lý do thứ ba (FR-034b); `trang_thai ENUM('MO','CHO_XAC_NHAN','DA_XAC_NHAN','DA_HUY')`; cột sinh `mo_nct`, `tiep_nhan_nct` `UNIQUE`; `CHECK (nguoi_xac_nhan_id IS NULL OR nguoi_xac_nhan_id <> nguoi_gui_id)`; trigger `trg_phieu_doi_chieu_khoa`), `dong_doi_chieu` (`nguon` `DON_HIEN_CO|DON_RA_VIEN|THUOC_DANG_DUNG_TIEP_NHAN`; `quyet_dinh` `TIEP_TUC|NGUNG|THAY_DOI_LIEU|THEM_MOI`), `de_nghi_dinh_chinh_phieu` (`trang_thai` `CHO_XAC_NHAN|DA_XAC_NHAN|TRA_LAI`; người xác nhận ≠ người lập) (data-model mục 7)
+- [ ] T036 [US4] Cài `BE/m07/doichieu/internal/PhieuDoiChieuService.java`: lập (kể cả phiếu theo yêu cầu chuyên môn: trạng thái người cao tuổi hợp lệ, lý do lập bắt buộc, không tạm dừng đơn, không đặt hạn; research D-13, FR-034b), thay dòng (`If-Match`), gửi (với phiếu chuyên môn: đủ dòng cho đơn Hiệu lực, Tạm dừng, Chờ hiệu lực), trả lại, xác nhận (kiểm vấn đề đơn qua `KiemTraDonMoi` trên dòng; áp quyết định tạo/ngừng/thay đơn trong một transaction; xóa `han_doi_chieu`), đề nghị đính chính phiếu và xác nhận; `DinhChinhDuocProvider` `M07.PHIEU_DOI_CHIEU`; listener `HoSoSucKhoeBanDauDaDoi` (research D-13)
 - [ ] T037 [US4] Cài phần đối chiếu của bean `BE/m07/trangthai/internal/ThamGiaM07.java`: `HOAN_TAT_TIEP_NHAN` (đơn → `TAM_DUNG` `CHO_DOI_CHIEU`, đơn "chờ tiếp nhận" → `HIEU_LUC`, đặt `han_doi_chieu`, đặt `han_luc` phiếu lập trước), `GHI_NHAN_TRO_VE` từ bệnh viện, `HUY_TIEP_NHAN` (hủy phiếu); việc theo phút đặt `qua_han_luc` và cảnh báo (research D-16)
 - [ ] T038 [US4] Tạo `BE/m07/doichieu/web/DoiChieuController.java`: `POST/GET /nguoi-cao-tuoi/{nctId}/phieu-doi-chieu`, `GET /phieu-doi-chieu/{id}`, `PUT …/{id}/dong`, `POST …/gui-xac-nhan`, `/tra-lai`, `/xac-nhan`, `/de-nghi-dinh-chinh`, `POST /de-nghi-dinh-chinh-phieu/{id}/xac-nhan`, `/tra-lai`; màn web `web/src/tinh-nang/doi-chieu-thuoc/`
 
@@ -220,13 +221,34 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 
 ---
 
+## Phase 10b: User Story 9 – Tiếp nhận thuốc cung ứng (Priority: P3) *(bổ sung 2026-10-11, Q-337)*
+
+**Goal**: Điều dưỡng ghi lần tiếp nhận Đạt / Không đạt cho dòng của yêu cầu mua sắm loại "thuốc" đã ghi đã mua; không tồn kho, không tính phí, không đổi đơn, liều (FR-054, FR-055, BR-M07-24).
+
+**Independent Test**: spec 006 User Story 9 với bản giả `YeuCauThuocCungUngPort`.
+
+### Tests cho User Story 9
+
+- [ ] T061 [P] [US9] Test `BT/m07/BR_M07_24_TiepNhanThuocCungUngIT.java`: Đạt lưu gắn dòng, không đổi đơn, liều, không phát `SuKienTinhPhiThuoc`; Không đạt thiếu sai lệch hoặc lý do → 422, đủ thì lưu và phát `TiepNhanThuocKhongDat` (Nhẹ) mang `boPhanId` của yêu cầu, người nhận là người lập và `PhuTrachBoPhan(boPhanId)`; đổi Phụ trách bộ phận sau khi ghi đã mua thì người mới nhận, người cũ không nhận; người lập chuyển bộ phận thì vẫn dùng bộ phận của yêu cầu; giao bù là lần mới; yêu cầu chưa ghi đã mua (port trả rỗng) → 409; `daNhan` khi mọi dòng có lần Đạt; xác nhận liều của đơn chưa có lần tiếp nhận không bị chặn; trigger chặn `UPDATE`, `DELETE`; Điều dưỡng ngoài phạm vi phân công của người cao tuổi của dòng → 403 (spec 006 US9 #1 → #3; FR-054, FR-055, BR-M07-24, BR-M11-17)
+
+### Implementation cho User Story 9
+
+- [ ] T062 [US9] Khai báo SPI `YeuCauThuocCungUngPort` và giao diện `TiepNhanThuocCungUngApi`, bổ sung `DonThuocApi.donNguonVienChuaKetThuc` trong `BE/m07/api/` (contracts mục 1.2, 1.8a, 2.1); bản giả có công tắc trong `BT/support/gia006/` cho port
+- [ ] T063 [US9] Tạo `MIG/V006_08__tiep_nhan_thuoc_cung_ung.sql`: `lan_tiep_nhan_thuoc_cung_ung` theo data-model mục 9a (`ket_qua ENUM('DAT','KHONG_DAT')`, `CHECK` sai lệch và lý do khi Không đạt, `CHECK (so_luong_nhan > 0)`, trigger nhóm 3)
+- [ ] T064 [US9] Cài `BE/m07/tiepnhanthuoc/internal/TiepNhanThuocCungUngService.java` (kiểm dòng qua port, quyền `TIEP_NHAN_THUOC_CUNG_UNG, TAO` và phạm vi theo người cao tuổi của dòng, phát `TiepNhanThuocKhongDat` cho 009 với nhóm `NhanVien`, `PhuTrachBoPhan(boPhanId)`, không tự gửi thông báo; không tự lập hay hủy yêu cầu, Q-307), `DinhChinhDuocProvider` `M07.LAN_TIEP_NHAN_THUOC`, bản cài `TiepNhanThuocCungUngApi`, `donNguonVienChuaKetThuc`
+- [ ] T065 [US9] Tạo `BE/m07/tiepnhanthuoc/web/TiepNhanThuocController.java` (`POST`, `GET /tiep-nhan-thuoc-cung-ung`), màn web `web/src/tinh-nang/tiep-nhan-thuoc/` và app `app-nhan-vien/lib/tinh-nang/tiep-nhan-thuoc/`
+
+**Checkpoint**: Tiếp nhận thuốc cung ứng chạy độc lập với bản giả 019.
+
+---
+
 ## Phase 11: Polish & Cross-Cutting
 
 - [ ] T055 [P] Cài `LieuBanGiaoApi` (008; liều chưa đóng của ca, BR-M09-06) trong `BE/m07/lieu/internal/`
 - [ ] T056 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/006-medication-management/contracts/api-006.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 006
-- [ ] T057 Khi 008, 010, 014 có bản thật, chạy lại test US2, US5, US7 với bean thật thay T002
+- [ ] T057 Khi 008, 010, 014 có bản thật, chạy lại test US2, US5, US7 với bean thật thay T002; khi 019 có bản thật `YeuCauThuocCungUngPort`, chạy lại test US9 thay bản giả của T062 (bổ sung 2026-10-11)
 - [ ] T058 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T059 Rà truy vết data-model mục 14: DBR-03, 13, 14, 15, 17, 23, 25 và BR-M07-01 → 22 có test (BR-M07-23 ngoài phạm vi, không có chức năng); FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-034a, FR-050, FR-051, FR-052, FR-053 (bổ sung 2026-10-10) — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T059 Rà truy vết data-model mục 14: DBR-03, 13, 14, 15, 17, 23, 25 và BR-M07-01 → 22, BR-M07-24, 25 có test (BR-M07-23 ngoài phạm vi, không có chức năng); FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-034a, FR-050, FR-051, FR-052, FR-053 (bổ sung 2026-10-10) — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 
@@ -241,6 +263,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 - **US6 (P2)**: sau US1
 - **US7 (P2)**: sau US2 (trừ lô khi xác nhận)
 - **US8 (P3)**: sau US2
+- **US9 (P3)** *(bổ sung 2026-10-11)*: sau US1 (đơn nguồn viện); 019 cài `YeuCauThuocCungUngPort` sau khi 006 xong
 
 ### Parallel Opportunities
 
@@ -267,7 +290,7 @@ Task: "T021 ngoại tuyến IT"
 
 ### Incremental Delivery
 
-US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8; mỗi bước chạy `./mvnw verify` và kịch bản quickstart tương ứng.
+US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8 → US9; mỗi bước chạy `./mvnw verify` và kịch bản quickstart tương ứng.
 
 ## Notes
 

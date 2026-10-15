@@ -37,7 +37,9 @@ sealed interface NhomNhan {                        // research B-04; mỗi nhóm
   record TruongDoan(long chuyenId, CachThay cachThay) implements NhomNhan {}
   record PhuTrachBoPhan(long boPhanId, CachThay cachThay) implements NhomNhan {}
   record VaiTroToanVien(VaiTro vaiTro) implements NhomNhan {}                 // QUAN_LY_VIEN, HANH_CHINH, BAC_SI, NHAN_VIEN_BEP, KE_TOAN
-  record NguoiCoQuyenDuyet(String loaiYeuCau, DoiTuong doiTuong) implements NhomNhan {}
+  record NguoiCoQuyenDuyet(String loaiYeuCau, List<Long> taiKhoanIds) implements NhomNhan {}
+      // sửa theo plan 004, Q-338 (2026-10-11): 000 tính sẵn danh sách người duyệt đã lọc theo gioiHanVaiTroDuyet
+      // (000 contracts mục 1.5 "Danh sách người duyệt"); 009 chỉ gửi cho các tài khoản này, không tự tra NguoiDuyetApi
   record NhanVien(long nhanVienId, String canCu) implements NhomNhan {}       // (d), kể cả người tạm nhận (căn cứ TAM_NHAN)
   record NguoiThan(long nguoiThanId, String canCu) implements NhomNhan {}     // (d): chỉ phần CHUNG khi không có quan hệ (Q-112)
   record NguoiLienHeChinh(long nctId) implements NhomNhan {}
@@ -111,7 +113,7 @@ Bean thiếu thì nhóm (e) trả rỗng và nhóm (d) người thân không có
 | Giao diện | Module (feature) | Dùng cho | Khi chưa có |
 | --- | --- | --- | --- |
 | `NhiemVuApi`, `PhanCongApi` (`m15.taikhoan.api`, 008 cài); `CaTrucApi.dangTrongCa`, `caDangDienRa` | M09 (008) | Nhóm (a), FR-016a, FR-029, FR-030a | Có sẵn |
-| `TaiKhoanApi` (trạng thái, vai trò, `theoNguoiThan`), `NguoiDuyetApi.danhSach`, `QuyenApi`, `PhamViApi`, `QuyenXemTruongApi`, `NguoiDungHienTai`; mã thiết bị (A-02) | M15 (002) | Nhóm (b), (c), FR-008, FR-034 | Có sẵn |
+| `TaiKhoanApi` (trạng thái, vai trò, `theoNguoiThan`), `QuyenApi`, `PhamViApi`, `QuyenXemTruongApi`, `NguoiDungHienTai`; mã thiết bị (A-02) | M15 (002) | Nhóm (b), (c), FR-008, FR-034 | Có sẵn |
 | `BanDongYApi.baoGom`, `NguoiCaoTuoiApi.trangThai`, `thoiDiemTrangThaiCuoi`, `nhanDang` | M01 (001) | FR-013, FR-015, FR-011 | Có sẵn |
 | `CanhBaoLenhApi.tiepNhan(canhBaoId, nd)`, `SuCoLenhApi.tiepNhan(suCoId, nd)` (bổ sung theo plan này vào `m05.api`; cùng kiểm tra và tác động như REST của 007) | M05 (007) | FR-026a | Nút "Xác nhận và tiếp nhận" không hiện |
 | `SoLienHeVienApi.hienHanh` | M06 (007) | Nội dung mặc định, nội dung Q-72 | Có sẵn |

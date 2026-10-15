@@ -270,6 +270,7 @@ Feature 009 (M13) lắng nghe các sự kiện này và gửi thông báo (const
 - **Ngày hiệu lực thực tế (FR-037)**: `max(ngayHieuLucMongMuon, ngàyDuyệt)`, tính khi duyệt. Nếu kết quả ≤ hôm nay thì áp dụng ngay trong transaction riêng sau khi quyết định đã commit. Quyết định duyệt không bị rollback vì áp dụng lỗi; yêu cầu nằm lại `DA_DUYET` và job xử lý ở lần sau, đúng FR-037b.
 - **Đồng thời (FR-040)**: cột `phien_ban` (khóa lạc quan) cùng `If-Match`. Quyết định đến sau trả 409 `DA_DUOC_XU_LY`.
 - **Quyền xét lúc quyết định (FR-034a)**: không lưu sẵn danh sách người duyệt. Mỗi lần quyết định đều gọi `QuyenApi` (002).
+- **Giới hạn vai trò người duyệt** *(bổ sung theo plan 004, Q-338)*: SPI có `default Optional<Set<VaiTro>> gioiHanVaiTroDuyet(yc)` trả rỗng. Loại `M02.THAY_DOI_LUU_TRU` trả `{QUAN_LY_VIEN}` khi yêu cầu không phải thay đổi nhỏ (004 FR-043), vì Phụ lục 27 cho Hành chính quyền D có chú thích ⁴² trên cả dòng. 000 áp giới hạn ở lệnh Duyệt, Từ chối (kể cả tự duyệt), `lenhDuocPhep`, danh sách người duyệt của nhắc và BR-M15-09, danh sách người nhận khi gửi duyệt; mọi chỗ dùng cùng một hàm tính danh sách (contracts mục 1.5). Vai trò kiểm bằng `TaiKhoanApi.coVaiTro` (cùng module M15). Phương án bỏ: chú thích có điều kiện `DieuKienChuThich` của 002 cho ⁴² (002 research A-04: chú thích chỉ mô tả, kiểm ở module, U2), và tách thành hai loại yêu cầu (đổi FR-037 của 004).
 
 **Lý do**: Áp dụng ngay sau commit tách được quyết định khỏi tác động, đúng bảng trạng thái của spec: lỗi áp dụng giữ "Đã duyệt (chờ hiệu lực)".
 

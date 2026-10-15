@@ -71,7 +71,7 @@ Optional<LocalDate> mocDungTinhPhi(long nctId);   // ngày kết thúc dự ki�
 ### 1.5. `DieuKienTiepNhanApi` (012 cổng người thân; 016)
 
 ```java
-DanhSachDieuKienView dieuKienTiepNhan(long nctId);       // FR-004 (a) → (e), Đạt / Chưa đạt / Không áp dụng, căn cứ
+DanhSachDieuKienView dieuKienTiepNhan(long nctId);       // FR-004 (a) → (f) (thêm (f) DBR-02, Q-343), Đạt / Chưa đạt / Không áp dụng, căn cứ
 TienTrinhView tienTrinh(long luotDangKyId);              // FR-003
 DanhSachDieuKienView dieuKienKetThuc(long hoSoKetThucId); // FR-063, kèm ngoại lệ (012 FR-068)
 ```
@@ -94,7 +94,7 @@ DanhSachViecView xem(long nctId);
 
 | SPI | Loại / đối tượng | Ghi chú |
 | --- | --- | --- |
-| `LoaiYeuCauHandler` (000) | `M02.THAY_DOI_LUU_TRU` | Research T-06; cài `kiemTraKhiDuyet`, `khiDuyet`; chuyển mở rộng `DUOC_THAY_THE` |
+| `LoaiYeuCauHandler` (000) | `M02.THAY_DOI_LUU_TRU` | Research T-06; cài `kiemTraKhiDuyet`, `khiDuyet`, `gioiHanVaiTroDuyet` (thay đổi nhỏ, FR-043, Q-338; hàm này bổ sung vào SPI của 000 theo plan này); chuyển mở rộng `DUOC_THAY_THE` |
 | | `M02.DIEU_CHINH_DIEM` | `apDung` thêm điều chỉnh, tính lại điểm (FR-011) |
 | | `M02.DUYET_DIEU_KHOAN_HOP_DONG` | `kiemTraDieuKienApDung`: hợp đồng còn Nháp, băm nội dung khớp (FR-025a) |
 | | `M02.NGOAI_LE_KET_THUC` | `quyenTao` gồm Kế toán khi điều kiện là `KT_H_QUYET_TOAN`; `apDung` thêm `ngoai_le_dieu_kien` (FR-064) |
@@ -169,5 +169,5 @@ Sự kiện 004 nghe: `NguoiCaoTuoiDaChuyenTrangThai`, `DanhGiaDauVaoDaXacNhan`,
 | --- | --- | --- | --- |
 | `NguoiCaoTuoiApi`, `MucChamSocApi` (`hienHanh`, `apDungThayDoi`), `DanhGiaApi.xacNhanGanNhat`, `TrangThaiNguoiCaoTuoiApi` (`thucHien` với `HUY_TIEP_NHAN`, `xemDieuKien`, `khoangTrangThai`) | M01 (001) | FR-002, FR-004, FR-008, FR-042, FR-063, FR-074 | Có sẵn sau 001; 004 được thêm vào bảng người gọi của `thucHien` (bổ sung theo plan này) |
 | `PhanBoGiuongLenhApi`, `SucChuaBanTruApi`, `ViTriApi`, `PhongChoPhepApi.thuocTinhPhanBo`, `TinhTrangGiuongApi.batDauLuotTrong` | M03 (003) | FR-012 → FR-016, FR-021, FR-041, FR-054 → FR-059, FR-065, FR-070 | Hai hàm cuối bổ sung theo plan này |
-| `QuyenApi`, `PhamViApi`, `QuyenXemTruongApi`, `NguoiDungHienTai` | M15 (002) | Research T-14 | Có sẵn |
+| `QuyenApi`, `PhamViApi`, `QuyenXemTruongApi`, `NguoiDungHienTai`; `TaiKhoanApi.coVaiTro` (Quyết định giữ giường chỉ Quản lý viện, chú thích ⁸, Q-345; bổ sung 2026-10-11) | M15 (002) | Research T-14 | Có sẵn |
 | `NhatKyApi`, `ThamSoApi`, `DinhChinhApi`, `YeuCauPheDuyetApi` (gồm `lap`, `chuyenMoRong`, `dongDoTrangThaiCuoi`), `LoaiYeuCauHandler` (gồm `kiemTraKhiDuyet`, `khiDuyet`), `TepApi` | M15 (000), `common` | Mọi lệnh | `dongDoTrangThaiCuoi` bổ sung theo plan này |

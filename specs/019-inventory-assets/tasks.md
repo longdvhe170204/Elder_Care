@@ -6,7 +6,7 @@ description: "Danh sách task triển khai feature 019 – Kho nguyên liệu, m
 
 **Input**: Tài liệu thiết kế ở `specs/019-inventory-assets/` (plan.md, spec.md, research.md W-01 → W-09, data-model.md, contracts/api-019.yaml, contracts/module-interfaces.md, quickstart.md)
 
-**Prerequisites**: 000, 002 đã xong Phase 2; 003 (port `GiuongTheoTaiSanPort`, khai báo `TaiSanGiuongPort`), 008 (`NhiemVuApi.boPhanCua`, `laPhuTrachBoPhan`, bộ phận), 010 (gói `m11`), 011 (port `TonKhoNguyenLieuPort`, `LichBuaApi`), 014 (lệnh chuyến đi gọi `LichXeLenhApi`) đã có `api`.
+**Prerequisites**: 000, 002 đã xong Phase 2; 003 (port `GiuongTheoTaiSanPort`, khai báo `TaiSanGiuongPort`), 008 (`NhiemVuApi.boPhanCua`, `laPhuTrachBoPhan`, bộ phận), 010 (gói `m11`), 011 (port `TonKhoNguyenLieuPort`, `LichBuaApi`), 014 (lệnh chuyến đi gọi `LichXeLenhApi`), 006 (`DonThuocApi.donNguonVienChuaKetThuc`, `TiepNhanThuocCungUngApi`, SPI `YeuCauThuocCungUngPort` ở `m07.api`; bổ sung 2026-10-11, Q-337) đã có `api`.
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4.
 
@@ -54,8 +54,10 @@ description: "Danh sách task triển khai feature 019 – Kho nguyên liệu, m
 
 ### Implementation cho User Story 7
 
-- [ ] T006 [US7] Tạo `MIG/V019_02__mua_sam.sql`: `yeu_cau_mua_sam` (`loai` `NGUYEN_LIEU|TAI_SAN|DICH_VU|KHAC`; `trang_thai` `NHAP|CHO_DUYET|DA_DUYET|TU_CHOI|CHO_DOI_CHIEU|LECH|DA_DOI_CHIEU|DA_HUY`), `yeu_cau_mua_sam_dong`, `mua_sam_gan_nguon` (nhóm 3; `loai_nguon` `PHIEU_NHAP|TAI_SAN|BAO_TRI`; `UNIQUE (loai_nguon, nguon_id)`) (data-model mục 3)
-- [ ] T007 [US7] Cài `BE/m11/muasam/internal/MuaSamService.java` (bảng chuyển data-model mục 3; quyền Phụ trách bộ phận qua `NhiemVuApi`; Kế toán không lập, người đối chiếu ≠ người ghi đã mua), `YeuCauMuaSamApi` cho M08, `YeuCauMuaSamPortImpl` cho M03 (kiểm yêu cầu Đã duyệt cùng bộ phận khi gắn nguồn); nhắc trong job (research W-05)
+- [ ] T006 [US7] Tạo `MIG/V019_02__mua_sam.sql`: `yeu_cau_mua_sam` (`loai` `NGUYEN_LIEU|TAI_SAN|DICH_VU|THUOC|KHAC`; `muc_uu_tien`, `thoi_diem_can` (`CHECK` bắt buộc khi `THUOC`), `tep_lien_quan_ids` (không bắt buộc); dòng thêm `nct_id`, `don_thuoc_id`, `hoat_chat`, `ham_luong`, `dang_thuoc`, `don_vi` (FR-008d, Q-337); `trang_thai` `NHAP|CHO_DUYET|DA_DUYET|TU_CHOI|CHO_DOI_CHIEU|LECH|DA_DOI_CHIEU|DA_HUY`), `yeu_cau_mua_sam_dong`, `mua_sam_gan_nguon` (nhóm 3; `loai_nguon` `PHIEU_NHAP|TAI_SAN|BAO_TRI`; `UNIQUE (loai_nguon, nguon_id)`) (data-model mục 3)
+- [ ] T007 [US7] Cài `BE/m11/muasam/internal/MuaSamService.java` (bảng chuyển data-model mục 3; quyền Phụ trách bộ phận qua `NhiemVuApi`; Điều dưỡng chỉ lập, gửi, rút lại, hủy loại `THUOC`, dòng gắn đơn qua `DonThuocApi.donNguonVienChuaKetThuc` và người cao tuổi trong phạm vi phân công; mọi người lập loại `THUOC` phải xem được `SUC_KHOE` của người cao tuổi của dòng (`QuyenXemTruongApi`) mới gắn được đơn (research W-05); Kế toán không lập, người đối chiếu ≠ người ghi đã mua; loại `THUOC` đối chiếu chỉ chứng từ với số thực tế), `YeuCauMuaSamApi` cho M08, `YeuCauMuaSamPortImpl` cho M03 (kiểm yêu cầu Đã duyệt cùng bộ phận khi gắn nguồn); nhắc trong job (research W-05)
+- [ ] T027 [US7] Cài `BE/m11/muasam/internal/YeuCauThuocCungUngPortImpl.java` (SPI `m07.api.YeuCauThuocCungUngPort`, research W-05) và hiển thị "Đã nhận" từ `TiepNhanThuocCungUngApi.theoYeuCau` trên chi tiết yêu cầu (bổ sung 2026-10-11, Q-337)
+- [ ] T028 [P] [US7] Test `BT/m11/FR_008d_YeuCauThuocIT.java`: Điều dưỡng không là Phụ trách bộ phận lập yêu cầu `THUOC` gắn đơn nguồn viện Hiệu lực của người cao tuổi trong phạm vi → 201, gửi duyệt → Chờ duyệt và báo Quản lý viện; dòng gắn đơn gia đình gửi hoặc đơn Đã ngừng → 409; người cao tuổi ngoài phạm vi phân công → 403; thiếu mức ưu tiên hoặc thời điểm cần → 422; Điều dưỡng lập loại `NGUYEN_LIEU` → 403; Điều dưỡng ghi đã mua → 403; Phụ trách bộ phận Bếp (không xem được `SUC_KHOE`) lập yêu cầu `THUOC` gắn đơn → 403 và không được cấp thêm quyền xem; Phụ trách bộ phận Y tế xem được thì lập được; dòng thiếu `nctId` hoặc `donThuocId` → 422; đơn không thuộc người cao tuổi của dòng → 409; `YeuCauThuocCungUngPort` trả `boPhanId` của yêu cầu, không đổi khi người lập chuyển bộ phận; sau khi Phụ trách bộ phận ghi đã mua, `YeuCauThuocCungUngPort` trả dòng; trước đó trả rỗng; không có khoản chi phí người cao tuổi (spec 019 US7 #8; FR-008d, BR-M11-17, Q-337)
 - [ ] T008 [US7] Tạo endpoint `/mua-sam`, `/mua-sam/{id}`, `/mua-sam/{id}/{lenh}`; màn web `web/src/tinh-nang/mua-sam/`
 
 **Checkpoint**: Mua sắm chạy độc lập.
@@ -169,9 +171,9 @@ description: "Danh sách task triển khai feature 019 – Kho nguyên liệu, m
 ## Phase 10: Polish & Cross-Cutting
 
 - [ ] T023 [P] Cài `TaiSanThongKeApi`, `MuaSamThongKeApi` (016); mở rộng `BT/common/HopDongApiTest.java` với `specs/019-inventory-assets/contracts/api-019.yaml`; mở rộng `NhomGhiNhanCoTriggerIT`
-- [ ] T024 Thay bản giả `TaiSanGiuongPort` (003 T002), `TonKhoNguyenLieuPort` (011 T002) bằng bản cài của 019 và chạy lại test 003, 011, 014 (lịch xe)
+- [ ] T024 Thay bản giả `TaiSanGiuongPort` (003 T002), `TonKhoNguyenLieuPort` (011 T002), `YeuCauThuocCungUngPort` (006 T062, bổ sung 2026-10-11) bằng bản cài của 019 và chạy lại test 003, 011, 014 (lịch xe), 006 US9
 - [ ] T025 Chạy `./mvnw verify`, `npm test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T026 Rà truy vết: DBR-31, 32, 36 và BR-M03-15 → 18, BR-M08-17 → 20, BR-M11-17 → 20 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-019, FR-020, FR-021 — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T026 Rà truy vết: DBR-31, 32, 36 và BR-M03-15 → 18, BR-M08-17 → 20, BR-M11-17 → 20, FR-008d (bổ sung 2026-10-11) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-019, FR-020, FR-021 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

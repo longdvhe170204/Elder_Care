@@ -98,6 +98,13 @@ default List<DieuKien> kiemTraKhiDuyet(YeuCauView yc) { return List.of(); }
 default void khiDuyet(YeuCauView yc, LocalDate ngayHieuLucThucTe) {}
     // bổ sung theo plan 003: Propagation.MANDATORY, trong transaction của lệnh Duyệt; tác động kèm quyết định
     // (ví dụ 004 giữ giường bằng phân bổ tương lai cho chuyển giường theo lịch, 003 FR-029); không gọi khi Từ chối
+default Optional<Set<VaiTro>> gioiHanVaiTroDuyet(YeuCauView yc) { return Optional.empty(); }
+    // bổ sung theo plan 004 (Q-338, 004 FR-043): rỗng = không giới hạn thêm (hành vi cũ của mọi loại khác).
+    // Có giá trị thì người duyệt, ngoài quyenDuyet() và phạm vi (FR-034), MUST có ít nhất một vai trò trong tập
+    // (kiểm bằng TaiKhoanApi.coVaiTro). Tính lại ở mỗi lần xét, không lưu (FR-034a). 000 áp nhất quán ở bốn chỗ:
+    // lệnh Duyệt và Từ chối (kể cả tự duyệt, FR-035), lenhDuocPhep, danh sách người duyệt cho nhắc và BR-M15-09,
+    // danh sách người nhận khi gửi duyệt. Chỉ dùng cho loại có người duyệt theo vai trò; loại có người duyệt
+    // theo nhiệm vụ (Phụ trách bộ phận, Người phụ trách ca) hoặc theo dòng 19.3 giữ Optional.empty()
 ```
 
 **`NhacQuaHan`**: dùng lại cho các vòng đời riêng (010, 012, 013, 017, 019). Module tự gọi nó từ job của mình, với mốc lấy từ CFG của module (FR-031a; đối chiếu Q-130).
@@ -107,13 +114,15 @@ KetQuaNhac kiemTra(Instant moc, Instant daNhacLuc, Instant daBaoLuc, MaThamSo nh
 ```
 
 Sự kiện phát sau commit:
-- `YeuCauDaLap`, `YeuCauDaGuiDuyet`;
+- `YeuCauDaLap`; `YeuCauDaGuiDuyet(yc, danhSachNguoiDuyet)` (bổ sung theo plan 004: mang danh sách đã lọc);
 - `YeuCauCanNhacNguoiDuyet(yc, danhSachNguoiDuyet)`;
 - `YeuCauCanBaoQuanLyVien(yc, lyDo: QUA_CFG_M15_06 | KHONG_CON_NGUOI_DUYET)`;
 - `YeuCauDaQuyetDinh(yc, ketQua)`;
 - `YeuCauDaApDung(yc, ketQua)`;
 - `YeuCauApDungKhongThanh(yc, dieuKien)`;
 - `YeuCauDaHuy`.
+
+**Danh sách người duyệt** *(bổ sung theo plan 004, Q-338)*: `danhSachNguoiDuyet` là danh sách tài khoản do 000 tính tại thời điểm phát sự kiện: `NguoiDuyetApi.danhSach(handler.quyenDuyet(), DoiTuong.tuPhamVi(handler.phamVi(yc)))`, rồi nếu `gioiHanVaiTroDuyet(yc)` có giá trị thì giữ tài khoản có ít nhất một vai trò trong tập (`TaiKhoanApi.coVaiTro`). Cùng danh sách này quyết định `conNguoiDuyet` của `NhacQuaHan` (BR-M15-09) và điều kiện "người duyệt không phải Quản lý viện" ở mốc CFG-M15-06 (FR-031a): mọi tài khoản trong danh sách đều là Quản lý viện thì không phát `YeuCauCanBaoQuanLyVien(QUA_CFG_M15_06)`. Yêu cầu thông báo của các sự kiện trên dùng nhóm `NguoiCoQuyenDuyet` mang sẵn danh sách này (009 contracts mục 1.1); 009 không tự tra lại `NguoiDuyetApi` cho yêu cầu của 000.
 
 ### 1.6. `m15.dinhchinh.api.DinhChinhApi`
 
@@ -166,4 +175,5 @@ Job `LoaiBoDuLieuHetHan` của 000 dùng các provider này để dựng chuỗi
 | `PhamViApi.trongPhamVi(nd, doiTuong)`; `nguoiPhuTrachCa(tang, thoiDiem)`; `truongTangDuocGiao(tang)` | 002, 008 | FR-026 (b), CHK033, FR-049 | Bản giả |
 | `QuyenXemTruongApi.duocXem(nd, NhomThongTin)`. Plan 002 thêm tham số `DoiTuong` (FR-034 của 002); bản không đối tượng dùng cho nhật ký toàn viện | 002 (19.3) | FR-049, BR-M15-11 | Bản giả: Quản lý viện xem hết |
 | `NguoiDuyetApi.coNguoiCoQuyen(KhoaQuyen, PhamVi)`; `danhSach(...)` | 002 | FR-031a, BR-M15-09 | Bản giả |
+| `TaiKhoanApi.coVaiTro(taiKhoanId, VaiTro...)` *(bổ sung theo plan 004, Q-338)* | 002 | Lọc người duyệt theo `gioiHanVaiTroDuyet` (FR-034, FR-031a, BR-M15-09) | Bản giả: theo vai trò của tài khoản giả |
 | Lắng nghe sự kiện mục 1.5 và gửi thông báo | M13 thông báo (009) | FR-031a, FR-038 | Sự kiện vẫn được lưu ở `event_publication`; không có người nghe thì không gửi |

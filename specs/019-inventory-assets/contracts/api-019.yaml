@@ -94,8 +94,8 @@ paths:
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/YeuCauMuaSam' } } } } } }
     post:
       tags: [mua-sam]
-      summary: Lập yêu cầu mua sắm Nháp (Phụ trách bộ phận); yêu cầu bổ sung tham chiếu yêu cầu gốc
-      x-fr: [FR-008, FR-008a]
+      summary: Lập yêu cầu mua sắm Nháp (Phụ trách bộ phận; Điều dưỡng chỉ loại THUOC, FR-008d); yêu cầu bổ sung tham chiếu yêu cầu gốc
+      x-fr: [FR-008, FR-008a, FR-008d]
       x-br: [BR-M11-17]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LapMuaSam' } } } }
@@ -250,12 +250,12 @@ components:
     LapMuaSam:
       type: object
       required: [boPhanId, loai, dong, lyDo]
-      properties: { boPhanId: { type: integer, format: int64 }, loai: { type: string, enum: [NGUYEN_LIEU, TAI_SAN, DICH_VU, KHAC] }, dong: { type: array, minItems: 1, items: { type: object, required: [ten, soLuong, donGiaDuKien], properties: { ten: { type: string }, soLuong: { type: number }, donGiaDuKien: { type: integer, format: int64 } } } }, lyDo: { type: string }, ngayCan: { type: string, format: date }, thamChieu: { type: object }, yeuCauGocId: { type: integer, format: int64 } }
+      properties: { boPhanId: { type: integer, format: int64 }, loai: { type: string, enum: [NGUYEN_LIEU, TAI_SAN, DICH_VU, THUOC, KHAC] }, mucUuTien: { type: string, enum: [THUONG, GAP], description: 'Bắt buộc khi loai = THUOC (FR-008d)' }, thoiDiemCan: { type: string, format: date-time, description: 'Bắt buộc khi loai = THUOC' }, tepLienQuanIds: { type: array, items: { type: integer, format: int64 }, description: 'Tài liệu liên quan, không bắt buộc (FR-008d)' }, dong: { type: array, minItems: 1, items: { type: object, required: [ten, soLuong, donGiaDuKien], properties: { ten: { type: string }, soLuong: { type: number }, donGiaDuKien: { type: integer, format: int64 }, nctId: { type: integer, format: int64 }, donThuocId: { type: integer, format: int64 }, hoatChat: { type: string }, hamLuong: { type: string }, dangThuoc: { type: string }, donVi: { type: string } }, description: 'Với THUOC: nctId, donThuocId (đơn nguồn viện chưa kết thúc), hoatChat, hamLuong, dangThuoc, donVi bắt buộc' } }, lyDo: { type: string }, ngayCan: { type: string, format: date }, thamChieu: { type: object }, yeuCauGocId: { type: integer, format: int64 } }
     YeuCauMuaSam:
       allOf:
         - { $ref: '#/components/schemas/LapMuaSam' }
         - type: object
-          properties: { id: { type: integer, format: int64 }, tongDuKien: { type: integer, format: int64 }, soDuocDuyet: { type: integer, format: int64 }, soTienThucTe: { type: integer, format: int64 }, trangThai: { type: string, enum: [NHAP, CHO_DUYET, DA_DUYET, CHO_DOI_CHIEU, LECH, DA_DOI_CHIEU, TU_CHOI, DA_HUY] }, tongNguonGan: { type: integer, format: int64 } }
+          properties: { id: { type: integer, format: int64 }, tongDuKien: { type: integer, format: int64 }, soDuocDuyet: { type: integer, format: int64 }, soTienThucTe: { type: integer, format: int64 }, trangThai: { type: string, enum: [NHAP, CHO_DUYET, DA_DUYET, CHO_DOI_CHIEU, LECH, DA_DOI_CHIEU, TU_CHOI, DA_HUY] }, tongNguonGan: { type: integer, format: int64 }, daNhan: { type: [boolean, 'null'], readOnly: true, description: 'Chỉ loại THUOC: mọi dòng có lần tiếp nhận Đạt, đọc từ TiepNhanThuocCungUngApi của 006 (FR-008d, 11.7)' } }
     LenhMuaSam:
       type: object
       properties: { lyDo: { type: string }, soDuocDuyet: { type: integer, format: int64 }, soTienThucTe: { type: integer, format: int64 }, ngayMua: { type: string, format: date }, nhaCungCap: { type: string }, tepChungTuIds: { type: array, items: { type: integer, format: int64 } }, soLech: { type: integer, format: int64 }, cachXuLy: { type: string, enum: [CHAP_NHAN_LECH, YEU_CAU_HOAN_TIEN] } }

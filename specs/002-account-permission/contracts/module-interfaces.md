@@ -70,6 +70,8 @@ MucXem duocXem(NguoiDungHienTai nd, NhomThongTin nhom, DoiTuong doiTuong);   // 
 ```java
 boolean coNguoiCoQuyen(KhoaQuyen khoa, DoiTuong doiTuong);   // BR-M15-09
 List<Long> danhSach(KhoaQuyen khoa, DoiTuong doiTuong);      // để gửi nhắc (000 FR-031a)
+                                                             // bổ sung theo plan 007 (Q-339): 007 kiểm người được giao xử lý sự cố có (SU_CO, XU_LY) với đối tượng (FR-045a);
+                                                             // danhSach luôn xét phạm vi, không áp ngoại lệ ghi nhận sự cố FR-044a; trả id tài khoản
 ```
 
 Duyệt danh sách tài khoản Hoạt động có quyền vai trò, nhiệm vụ và phạm vi bao đối tượng tại thời điểm hỏi.
@@ -81,7 +83,9 @@ void khoaDoNghiViec(long nhanVienId, CanCu canCu);         // gọi trong transa
 void xetLaiNguoiThan(long nguoiThanId, CanCu canCu);       // gọi trong transaction lệnh chấm dứt quan hệ của 012 (FR-049, BR-M15-14)
 Optional<TaiKhoanView> theoNhanVien(long nhanVienId);      // 008: vai trò hệ thống để xếp ca (008 FR-002)
 Optional<TaiKhoanView> theoNguoiThan(long nguoiThanId);    // 009: trạng thái tài khoản không chặn gửi ngoài ứng dụng (CHK036)
-boolean coVaiTro(long taiKhoanId, VaiTro... vaiTro);       // 008: chặn giao Phụ trách bộ phận cho AC-01, AC-14 (FR-019f)
+boolean coVaiTro(long taiKhoanId, VaiTro... vaiTro);       // 008: chặn giao Phụ trách bộ phận cho AC-01, AC-14 (FR-019f);
+                                                          // bổ sung theo plan 004 (Q-338): 000 lọc người duyệt theo gioiHanVaiTroDuyet;
+                                                          // bổ sung theo plan 007 (Q-339): 007 kiểm vai trò người giao, người được giao sự cố (FR-045a)
 ```
 
 Hai lệnh đầu dùng `Propagation.MANDATORY`. Chúng không tạo bản ghi nghiệp vụ mới ngoài chuyển trạng thái tài khoản và nhật ký, đúng FR-010a của 000.

@@ -113,6 +113,14 @@ Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi 
 - **Q-340**: thêm phiếu đối chiếu lý do "theo yêu cầu chuyên môn" (FR-034b, bảng FR-035, User Story 4 kịch bản 11): bắt buộc lý do, không tạm dừng đơn, không có hạn, hệ thống không tự lập.
 - Assumptions: câu "Q-63 là quyết định còn mở" sửa thành Q-63 đã chốt và nằm ở 24.4.
 
+### Cập nhật 2026-10-11, lượt 2 (User Story 9 cho mục I)
+
+Chủ dự án cho phép bổ sung User Story 9 từ FR-054, FR-055 để mục I có kịch bản Given/When/Then cho kiểm thử BR-M07-24 (constitution XV). Ba kịch bản chỉ diễn đạt lại FR-054, FR-055 và BR-M11-17; không thêm quy tắc nghiệp vụ.
+
+### Cập nhật 2026-10-11, lượt 3 (người nhận khi tiếp nhận Không đạt)
+
+Đồng bộ với 11.7 theo quyết định của chủ dự án: khi lần tiếp nhận Không đạt, người được báo là người lập yêu cầu và Phụ trách bộ phận **hiện tại** của bộ phận của yêu cầu (bộ phận gắn với yêu cầu lúc lập, feature 019 FR-008d), không cố định là người đã ghi đã mua. Sửa FR-055, User Story 9 kịch bản 2 và bảng giao tiếp (019). Không thêm quy tắc nghiệp vụ.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 07, mục 11.1 → 11.7; UC-39 → UC-44):
@@ -315,6 +323,22 @@ Liều đã xác nhận không sửa hay xóa. Khi xác nhận nhầm, người 
 4. **Given** liều Bỏ lỡ do hệ thống chuyển, nhưng D thực tế đã cho A uống lúc 08:20 mà quên ghi, **When** D (điều dưỡng phụ trách A trong ca của liều) tạo đính chính "Đã dùng lúc 08:20" có lý do, **Then** trạng thái hiện hành là Đã dùng kèm nhãn "dùng trễ" hoặc đúng giờ theo thời điểm dùng, và feature 007 nhận yêu cầu đóng cảnh báo bỏ lỡ liên quan.
 5. **Given** nhân viên chăm sóc hoặc trưởng tầng, **When** tạo đính chính cho liều, **Then** hệ thống chặn (FR-030).
 6. **Given** đơn Amlodipin 10 mg thay thế cho 5 mg, 5 mg thay thế cho 2,5 mg, **When** bác sĩ mở lịch sử đơn của A, **Then** thấy chuỗi thay thế theo thời gian, người kê, lý do từng lần.
+
+---
+
+### User Story 9 - Tiếp nhận thuốc cung ứng theo yêu cầu mua sắm loại "thuốc" (Priority: P3) *(bổ sung 2026-10-11, Q-337)*
+
+Khi thuốc do viện cung cấp được giao theo một yêu cầu mua sắm loại "thuốc" đã ghi đã mua (feature 019), Điều dưỡng kiểm tra và ghi lần tiếp nhận cho từng dòng: Đạt, hoặc Không đạt kèm sai lệch và lý do. Lần tiếp nhận chỉ là bản ghi kiểm tra: không tạo tồn kho, không tính phí, không đổi đơn hay liều (11.7, BR-M07-24).
+
+**Why this priority**: Giữ truy vết rằng thuốc viện cung cấp đã được kiểm khi nhận; không chặn việc phát thuốc nên ưu tiên thấp.
+
+**Independent Test**: Bản giả 019 trả một yêu cầu loại "thuốc" đã ghi đã mua có hai dòng cho A; ghi Đạt dòng 1; ghi Không đạt dòng 2 khi thiếu rồi đủ sai lệch, lý do; ghi lần giao bù Đạt; kiểm tra đơn, liều, chi phí không đổi, thông báo và hiển thị "Đã nhận"; thử ghi cho yêu cầu Đã duyệt chưa ghi đã mua.
+
+**Acceptance Scenarios**:
+
+1. **Given** yêu cầu loại "thuốc" của A đã ghi đã mua có dòng Amlodipin 5 mg viên nén × 30 gắn đơn Amlodipin nguồn viện Hiệu lực, **When** điều dưỡng D ghi lần tiếp nhận dòng đó: đúng thuốc, hàm lượng, dạng, 30 viên, hạn dùng, tình trạng, kết quả Đạt, **Then** bản ghi được lưu gắn dòng đó và chỉ ghi thêm; đơn và liều của A không đổi; không có sự kiện tính phí; khi mọi dòng của yêu cầu đã có lần tiếp nhận Đạt, yêu cầu hiển thị "Đã nhận" (FR-054).
+2. **Given** dòng thứ hai của yêu cầu được giao thiếu 10 viên, **When** D ghi Không đạt mà không mô tả sai lệch hoặc không có lý do, **Then** hệ thống chặn; **When** D ghi đủ sai lệch "thiếu 10 viên" và lý do, **Then** bản ghi được lưu, người lập yêu cầu và Phụ trách bộ phận hiện tại của bộ phận của yêu cầu nhận thông báo mức Nhẹ, hệ thống không tự lập yêu cầu mới hay tự hủy yêu cầu; **When** thuốc được giao bù, **Then** D ghi một lần tiếp nhận mới cho cùng dòng (FR-054, FR-055).
+3. **Given** yêu cầu loại "thuốc" ở Đã duyệt, chưa ghi đã mua, **When** D ghi lần tiếp nhận, **Then** hệ thống chặn (BR-M11-17); **Given** đơn nguồn viện của A chưa có lần tiếp nhận nào, **When** D xác nhận liều của đơn đó, **Then** việc xác nhận không bị chặn (FR-054).
 
 ---
 
@@ -539,14 +563,14 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Cung cấp | 016 | Dữ liệu cho báo cáo sức khỏe 18.3 theo FR-051: liều (người cao tuổi, tầng, thời điểm dự kiến, trạng thái cuối, người đóng và quy tắc đóng, nhãn "dùng trễ", căn cứ "mang theo", dấu "chờ xem lại"/"ghi sau mất kết nối"); phiếu đối chiếu (người cao tuổi, lý do, trạng thái, hạn, dấu quá hạn) |
 | Nhận | 010 | Đề nghị mua hộ thuốc đã Đã mua, để tiếp nhận với nguồn "gia đình gửi" (FR-040, Q-139) |
 | Cung cấp | 019 | *(bổ sung, 2026-10-11, Q-337)* Đơn thuốc nguồn "viện cung cấp" Hiệu lực, Tạm dừng, Chờ hiệu lực của người cao tuổi để gắn dòng yêu cầu mua sắm loại "thuốc"; kết quả tiếp nhận từng dòng (Đạt / Không đạt) để hiển thị yêu cầu "Đã nhận" (FR-054) |
-| Nhận | 019 | *(bổ sung, 2026-10-11, Q-337)* Yêu cầu mua sắm loại "thuốc" đã ghi đã mua (Chờ đối chiếu, Đã đối chiếu, Lệch): dòng, người cao tuổi, đơn thuốc, thuốc, số lượng, người lập, Phụ trách bộ phận (FR-054) |
+| Nhận | 019 | *(bổ sung, 2026-10-11, Q-337)* Yêu cầu mua sắm loại "thuốc" đã ghi đã mua (Chờ đối chiếu, Đã đối chiếu, Lệch): dòng, người cao tuổi, đơn thuốc, thuốc, số lượng, người lập, bộ phận của yêu cầu (FR-054, FR-055) |
 
 - **FR-053**: *(Bổ sung, 2026-10-10, Q-311)* Mức của các thông báo spec này chưa nêu mức (feature 009 FR-043a, FR-043b): **Trung bình** — thuốc gia đình gửi hết hạn dùng, hết thuốc gia đình gửi khi đến liều, cần nhận lại thuốc mang theo; **Nhẹ** — phiếu gửi xác nhận hoặc trả lại, thuốc gửi đã dùng hết, chuyển Chỉ giữ hộ do đơn ngừng, thuốc đang dùng khi tiếp nhận đã đổi, lần tiếp nhận thuốc cung ứng Không đạt (FR-055; bổ sung 2026-10-11, Q-337). *(Nguồn: Q-311, 17.1)*
 
 #### I. Tiếp nhận thuốc cung ứng *(bổ sung 2026-10-11, Q-337)*
 
 - **FR-054**: Điều dưỡng MUST ghi được lần tiếp nhận thuốc cung ứng gắn một dòng của yêu cầu mua sắm loại "thuốc" đã ghi đã mua (feature 019): thuốc, hàm lượng, dạng, số lượng nhận, hạn dùng, tình trạng, người giao, người nhận, thời điểm; kết quả kiểm tra Đạt hoặc Không đạt; Không đạt MUST có mô tả sai lệch và lý do. Một dòng có thể có nhiều lần tiếp nhận (giao nhiều đợt, giao bù). Lần tiếp nhận là nhóm 3 (sai sót bằng đính chính), MUST NOT tạo tồn kho, MUST NOT là sự kiện tính phí và MUST NOT đổi trạng thái đơn hay liều; đơn nguồn viện MUST NOT bị chặn khi chưa có lần tiếp nhận (BR-M07-14, BR-M07-24). Yêu cầu có lần tiếp nhận Đạt cho mọi dòng được hiển thị "Đã nhận". *(Nguồn: 11.7, BR-M07-24, BR-M11-17, Q-337)*
-- **FR-055**: Lần tiếp nhận Không đạt MUST yêu cầu feature 009 báo người lập yêu cầu và Phụ trách bộ phận đã ghi đã mua, mức Nhẹ, kèm sai lệch; hệ thống MUST NOT tự lập yêu cầu mới hay tự hủy yêu cầu (Q-307). Việc đổi, trả, giao bù làm theo quy trình của viện và được ghi bằng lần tiếp nhận mới. *(Nguồn: 11.7, Q-337, Q-307)*
+- **FR-055**: Lần tiếp nhận Không đạt MUST yêu cầu feature 009 báo người lập yêu cầu và Phụ trách bộ phận hiện tại của bộ phận của yêu cầu (sửa 2026-10-11, lượt 3: không cố định là người đã ghi đã mua), mức Nhẹ, kèm sai lệch; hệ thống MUST NOT tự lập yêu cầu mới hay tự hủy yêu cầu (Q-307). Việc đổi, trả, giao bù làm theo quy trình của viện và được ghi bằng lần tiếp nhận mới. *(Nguồn: 11.7, Q-337, Q-307)*
 
 **Truy vết use case** *(constitution I; bổ sung 2026-10-01)*: mục B (FR-004 → FR-017) — UC-39, UC-40; mục C và E (FR-018 → FR-023, FR-026 → FR-033) — UC-41; mục D (FR-024 → FR-025a) — UC-42; mục F (FR-034 → FR-039) — UC-43; mục G (FR-040 → FR-046) — UC-44; mục I (FR-054, FR-055) không có UC riêng, gắn UC-94, UC-95 của feature 019 (cung ứng qua yêu cầu mua sắm) và 11.7. Mục A (FR-001 → FR-003) và mục H (FR-047 → FR-052) không có UC riêng: mục A là danh mục của 11.1 (nhóm 1), mục H là ràng buộc của 5.6, 8.9, 19.3 áp lên các use case trên.
 
@@ -653,3 +677,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 **(2026-10-10) Plan 006, điểm báo lại 1 → 8.** *(Đã xử lý 2026-10-10: Q-311, Q-312, Q-327 → Q-329; sửa FR-029, FR-034a, FR-046, Edge Cases, SC-012; thêm FR-053. Điểm 9 (Thông tư 27/2024/TT-BYT) vẫn chờ tư vấn pháp lý ở 24.4.)*
 
 **(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (docs/audit/2026-10-11-audit-bo-sung-doi-chieu-q-va-spec.md).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa Phạm vi, User Story 4 kịch bản 11, FR-034b, bảng FR-035, bảng nhóm dữ liệu, FR-052, FR-053, mục I (FR-054, FR-055), truy vết use case, Key Entities, SC-015, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+
+**(2026-10-11, lượt 2) Mục I chưa có kịch bản Given/When/Then cho BR-M07-24.** *(Đã xử lý 2026-10-11: thêm User Story 9 từ FR-054, FR-055 theo cho phép của chủ dự án; xem mục "Cập nhật 2026-10-11, lượt 2" ở Clarifications.)*
+
+**(2026-10-11, lượt 3) FR-055 thu hẹp người nhận thành "Phụ trách bộ phận đã ghi đã mua", khác 11.7 ("Phụ trách bộ phận").** *(Đã xử lý 2026-10-11: đồng bộ theo 11.7 và quyết định của chủ dự án, báo Phụ trách bộ phận hiện tại của bộ phận của yêu cầu; xem mục "Cập nhật 2026-10-11, lượt 3" ở Clarifications.)*

@@ -63,7 +63,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 ### Implementation cho User Story 2
 
-- [ ] T015 [US2] Cài `BE/m13/nguoinhan/internal/XacDinhNguoiNhan.java` (biến thể `NhomNhan` qua `NhiemVuApi`, `CaTrucApi`, `PhamViApi`, `NguoiThanNhanThongBaoPort`), `ChuoiThay.java`, `LocPhanNoiDung.java` (`QuyenXemTruongApi`, bản đồng ý) và nối vào `TiepNhanListener` để thêm `thong_bao` + `lan_gui` dự kiến (research B-04)
+- [ ] T015 [US2] Cài `BE/m13/nguoinhan/internal/XacDinhNguoiNhan.java` (biến thể `NhomNhan` qua `NhiemVuApi`, `CaTrucApi`, `PhamViApi`, `NguoiThanNhanThongBaoPort`; `NguoiCoQuyenDuyet` dùng thẳng danh sách tài khoản 000 truyền, không tra lại `NguoiDuyetApi`, sửa theo plan 004), `ChuoiThay.java`, `LocPhanNoiDung.java` (`QuyenXemTruongApi`, bản đồng ý) và nối vào `TiepNhanListener` để thêm `thong_bao` + `lan_gui` dự kiến (research B-04)
 
 **Checkpoint**: Người nhận đúng theo phân công.
 

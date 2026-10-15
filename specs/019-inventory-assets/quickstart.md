@@ -61,6 +61,8 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M03 không ph
 | Q31 | Hủy lịch có người lái không có tài khoản | Báo người đặt, Phụ trách bộ phận quản lý xe; không báo người lái | Q-298 |
 | Q32 | 014 dời chuyến sang giờ xe đã có lịch khác | `kiemTraDoi` trả "xe đã có lịch khác"; 014 chặn | Q-239 |
 | Q33 | QL thực hiện phiếu kho; Bác sĩ xem tồn | 403; xem được | FR-020 |
+| Q34 | *(Bổ sung 2026-10-11, Q-337)* Điều dưỡng D lập yêu cầu `THUOC` cho A (đơn Amlodipin nguồn viện), mức Gấp, gửi duyệt; thử gắn đơn gia đình gửi; thử lập loại nguyên liệu; QL duyệt; Phụ trách bộ phận Y tế ghi đã mua; gọi `YeuCauThuocCungUngPort` | Chờ duyệt, QL được báo; 409; 403; Chờ đối chiếu; port trả dòng kèm `boPhanId` của yêu cầu | US7 #8, FR-008d |
+| Q35 | *(Bổ sung 2026-10-15, quyết định của chủ dự án)* Phụ trách bộ phận Bếp (không xem được `SUC_KHOE`) lập yêu cầu `THUOC` gắn đơn của A; Phụ trách bộ phận Y tế lập cùng yêu cầu; gửi dòng thiếu `donThuocId`; Điều dưỡng D lập cho người cao tuổi ngoài phạm vi phân công | 403, không được cấp thêm quyền xem; 201; 422; 403 | US7 #8, FR-008d, 19.3, BR-M15-01 |
 
 ## 4. Nhóm test tự động
 
@@ -68,7 +70,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M03 không ph
 | --- | --- | --- |
 | Hàm thuần | `ThuTuLoTheoHanTest`, `KiemTraVuotTest`, `KhopChungTuTest`, `AnhXaTrangThaiGiuongTest`, `KiemTraDatLichTest` | Q4, Q5, Q10, Q20, Q27 |
 | Kho | `BR_M08_17_TonKhoIT`, `BR_M08_18_HanDungIT`, `BR_M08_19_KiemKeIT`, `BR_M08_20_PhieuDaoIT`, `DBR_31_TonKhongAmIT` (SC-001: 200 phiếu) | Q10 → Q17 |
-| Mua sắm | `BR_M11_17_MuaSamIT`, `BR_M11_18_VuotIT`, `BR_M11_19_DoiChieuIT`, `BR_M11_20_NhacIT`, `DBR_36_GanNguonIT` | Q1 → Q9 |
+| Mua sắm | `BR_M11_17_MuaSamIT`, `BR_M11_18_VuotIT`, `BR_M11_19_DoiChieuIT`, `BR_M11_20_NhacIT`, `DBR_36_GanNguonIT`, `FR_008d_YeuCauThuocIT` | Q1 → Q9, Q34, Q35 |
 | Tài sản | `BR_M03_15_GiuongTaiSanIT` (SC-004), `BR_M03_17_HanBaoTriIT`, `BR_M03_18_HuHongIT`, `DBR_32_TaiSanGiuongIT` | Q18 → Q26 |
 | Lịch xe | `BR_M03_16_LichXeIT` (SC-005), `FR_018_TheoChuyenIT` | Q27 → Q32 |
 | Đồng thời | Hai phiếu xuất chỗ cuối; hai lịch xe cùng giờ; báo hỏng cùng lúc với phân bổ | Q12, Q27 |

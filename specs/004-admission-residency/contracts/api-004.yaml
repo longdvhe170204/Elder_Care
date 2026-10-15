@@ -77,11 +77,11 @@ paths:
   /luot-dang-ky/{id}/dieu-kien-tiep-nhan:
     get:
       tags: [dang-ky]
-      summary: Danh sách điều kiện tiếp nhận (a) → (e)
+      summary: Danh sách điều kiện tiếp nhận (a) → (f)
       description: |
         Mỗi điều kiện Đạt / Chưa đạt / Không áp dụng kèm căn cứ; cảnh báo lệch mức, lệch loại lưu trú (FR-005),
         cảnh báo "phí đang tính cho ngày chưa vào ở" (FR-076), "cần phân bổ lại giường" (FR-021).
-        Cùng nguồn với điều kiện của lệnh Hoàn tất tiếp nhận (research T-09).
+        Cùng nguồn với điều kiện của lệnh Hoàn tất tiếp nhận (research T-09). (f) người liên hệ chính, người đại diện (DBR-02, Q-343) lấy từ điều kiện của 012.
       x-fr: [FR-004, FR-005, FR-021, FR-075, FR-076]
       x-br: [BR-M02-22]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
@@ -447,7 +447,8 @@ paths:
         Giá trị trước và ảnh hưởng chi phí do hệ thống điền (FR-038). Ngày hiệu lực mong muốn sớm hơn ngày bắt đầu hợp đồng: 422 (FR-040).
         thamChieu là lần đánh giá (BR-M01-03) hoặc lệnh chuyển giường gấp (003 FR-030). Hệ thống không tự lập yêu cầu (Q-306).
         Gửi duyệt, duyệt, từ chối, hủy qua api-000; khi duyệt, kiểm FR-041, FR-046 và tạo phụ lục (FR-042).
-      x-fr: [FR-037, FR-038, FR-039, FR-040]
+        thayDoiNho do hệ thống tính (FR-043): Quản lý viện duyệt mọi yêu cầu, Hành chính chỉ duyệt yêu cầu là thay đổi nhỏ; kiểm lại lúc duyệt.
+      x-fr: [FR-037, FR-038, FR-039, FR-040, FR-043]
       x-br: [BR-M01-03, BR-M02-16]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/YeuCauThayDoiGhi' } } } }
@@ -959,6 +960,7 @@ components:
             yeuCauPheDuyetId: { type: integer, format: int64 }
             giaTriTruoc: { type: object }
             anhHuongChiPhi: { type: array, items: { type: object, properties: { khoan: { type: string }, donGiaTruoc: { type: integer }, donGiaSau: { type: integer } } } }
+            thayDoiNho: { type: boolean, readOnly: true, description: 'Hệ thống tính lúc đọc trên hợp đồng hiện hành, không lưu (FR-043, Q-338; research T-06): chỉ thêm/bớt dịch vụ thuộc gói, ảnh hưởng chi phí bằng 0' }
             trangThai: { type: string }
             phuLucId: { type: integer, format: int64 }
             nguoiYeuCau: { type: string }

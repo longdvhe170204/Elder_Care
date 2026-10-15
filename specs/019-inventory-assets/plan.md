@@ -9,6 +9,7 @@
 Feature 019 gồm bốn phần thuộc ba module (UC-89 → UC-92, UC-94, UC-95):
 1. Kho nguyên liệu của bộ phận Bếp: danh mục, phiếu nhập theo lô có kiểm tra đầu vào, phiếu xuất cho bữa và xuất hủy, phiếu đảo, kiểm kê có duyệt, cảnh báo hạn dùng và tồn tối thiểu (M08; BR-M08-17 → 20, DBR-31).
 2. Yêu cầu mua sắm của bộ phận: lập, Quản lý viện duyệt chi phí, ghi đã mua, Kế toán đối chiếu, xử lý lệch; gắn phiếu nhập, tài sản, bảo trì thuê ngoài (M11; BR-M11-17 → 20, DBR-36, Q-284).
+   *(Bổ sung 2026-10-11, FR-008d, Q-337)* Loại `THUOC` cho thuốc do viện cung cấp: Điều dưỡng lập được, dòng gắn đơn nguồn viện của người cao tuổi (đọc `m07.api`); 019 cài `YeuCauThuocCungUngPort` cho 006 ghi lần tiếp nhận; không có kho thuốc (research W-02, W-05).
 3. Tài sản theo bộ phận: trạng thái, vị trí, bảo trì, kiểm định, đăng kiểm, bảo hiểm, báo hỏng; giường là tài sản đồng bộ với trạng thái giường (M03; BR-M03-15, 17, 18, DBR-32).
 4. Lịch xe, điều kiện "có lịch xe" cho chuyến đi (M03; BR-M03-16).
 

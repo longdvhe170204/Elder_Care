@@ -29,7 +29,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 
 | # | Thao tác | Kết quả mong đợi | Spec |
 | --- | --- | --- | --- |
-| Q1 | HC lập lượt đăng ký cho A (nội trú dài hạn, Thường xuyên, vào 15/10); lập lượt thứ hai | 201 `DANG_XU_LY`, năm điều kiện "Chưa đạt"; 409 `DA_CO_LUOT_DANG_KY` | US1 #1, #2, FR-001, FR-004 |
+| Q1 | HC lập lượt đăng ký cho A (nội trú dài hạn, Thường xuyên, vào 15/10); lập lượt thứ hai | 201 `DANG_XU_LY`, sáu điều kiện "Chưa đạt" (thêm (f) DBR-02, Q-343); 409 `DA_CO_LUOT_DANG_KY` | US1 #1, #2, FR-001, FR-004 |
 | Q2 | Trưởng tầng, Bác sĩ lập lượt đăng ký | 403 | US1 #8 |
 | Q3 | HC lập hợp đồng Nháp cho A khi chưa có đánh giá; sửa giá tháng thấp hơn phiên bản; Gửi ký | 201 kèm "chưa đánh giá"; Gửi ký 409 vì điều khoản khác chuẩn chưa duyệt | US3 #1, #9, FR-025, FR-025a |
 | Q4 | Gửi duyệt điều khoản; QL duyệt (api-000); Gửi ký; Trả về nháp, sửa giá lần nữa; Gửi ký | Duyệt xong Gửi ký được; sau khi sửa: 409, phải duyệt lại | US3 #2, #9, SC-011 |
@@ -69,6 +69,8 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Q38 | QL tạo phiên bản đơn giá mới từ 01/12; tạo phiên bản chồng khoảng; sửa phiên bản đã tham chiếu; tạo phiên bản hiệu lực lùi cho khoảng trống | Phiên bản cũ kết thúc 30/11; 409; trigger chặn; được, cắt trước phiên bản kế tiếp | US9 #1 → #3, #6, DBR-08 |
 | Q39 | Hợp đồng ngắn ngày kết thúc 20/10, tua tới 21/10 và 29/10 | 20/10 nhắc; 21/10 dấu "quá hạn hợp đồng", nhắc hằng ngày; quá 7 ngày: báo QL đúng một lần | US3 #8, FR-029, SC-011 |
 | Q40 | Dừng Bộ lập lịch 3 ngày khi C đang vắng; khởi động lại | Ba ngày vắng được tra và ghi theo thứ tự; dấu đặt đúng ngày; nhắc gộp một lần | FR-077, BR-M02-19 |
+| Q41 | *(Bổ sung 2026-10-11, Q-343)* A có hợp đồng Hiệu lực, cọc đạt, giường, đánh giá, mức trùng nhưng chưa có người đại diện (bản giả 012); xem điều kiện tiếp nhận; Hoàn tất tiếp nhận; thêm người đại diện rồi làm lại | (f) "Chưa đạt", lệnh 409 liệt kê (f); sau khi thêm thì sáu điều kiện "Đạt", 200 | US1 #3, FR-004 (f), DBR-02 |
+| Q42 | *(Bổ sung 2026-10-11, Q-338)* HC lập yêu cầu chỉ bớt và thêm dịch vụ thuộc gói, rồi tự duyệt có lý do; HC lập yêu cầu thêm dịch vụ ngoài gói và thử duyệt; QL duyệt yêu cầu đó | Yêu cầu 1: `thayDoiNho = true`, 200, nhật ký `tuDuyet`; yêu cầu 2: `thayDoiNho = false`, HC 403, `lenhDuocPhep` của HC không có `duyet`; QL 200 | US5 #6, #9, FR-043 |
 
 ## 4. Test tự động: truy vết kịch bản → test
 
@@ -78,7 +80,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | US2, FR-007 → FR-018 | `BR_M02_10_DiemUuTienTest`, `DiemHangNgayIT`, `DieuChinhDiemIT`, `BR_M02_01_DanhSachPhuHopIT`, `FR_012_LuotTrongIT`, `BR_M02_02_GiuChoIT`, `FR_002_TuChoiHuyTiepNhanIT`, `BR_M02_03_NhacHoSoChoIT`, `GhiNhanLienHeDongThoiIT` | Đơn vị, tích hợp, đồng thời |
 | US3, FR-019 → FR-029 | `HopDongVongDoiIT`, `HopDongKhoaNoiDungDbIT`, `DBR_06_HopDongKhongChongIT`, `FR_021_GhiNhanDaKyIT`, `XacDinhKhacChuanTest`, `DuyetDieuKhoanIT`, `BR_M02_09_NoiDungTaiNgayIT`, `BR_M02_05_NhacHopDongIT`, `FR_029_QuaHanHopDongIT` | Đơn vị, tích hợp, cơ sở dữ liệu |
 | US4, FR-030 → FR-033b | `DatCocDieuKienIT`, `FR_032_DatCocSauLuuTruIT`, `SuKien017018IT` | Tích hợp |
-| US5, FR-037 → FR-047 | `BR_M02_04_ApDungPhuLucIT`, `DBR_07_PhuLucIT`, `FR_041_KiemTraKhiDuyetIT`, `FR_046_TrungThuocTinhIT`, `ApDungKhongThanhIT`, `YeuCauNguoiDaiDienIT` | Tích hợp, đồng hồ giả lập |
+| US5, FR-037 → FR-047 | `BR_M02_04_ApDungPhuLucIT`, `DBR_07_PhuLucIT`, `FR_041_KiemTraKhiDuyetIT`, `FR_046_TrungThuocTinhIT`, `ApDungKhongThanhIT`, `YeuCauNguoiDaiDienIT`, `LaThayDoiNhoTest`, `FR_043_ThayDoiNhoIT` | Tích hợp, đồng hồ giả lập |
 | US6, FR-048 → FR-061 | `BR_M02_06_TraChinhSachTest` (phủ bảng 6.7), `NgayVangIT`, `BR_M02_07_QuyetDinhGiuGiuongIT`, `BR_M02_17_QuanLyQuyetDinhNgay1Test`, `BR_M02_18_DinhChinhVuotNguongIT`, `FR_057_ChuyenVienKhiTamVangIT`, `BanTruHeSoIT`, `NgayNghiBanTruIT` | Đơn vị, tích hợp |
 | US7, FR-062 → FR-068 | `HoSoKetThucIT`, `DieuKienKetThucIT`, `NgoaiLeKetThucIT`, `FR_066_KyCuoiIT`, `FR_066a_QuaNgayDuKienIT` | Tích hợp |
 | US8, FR-069 → FR-073 | `GhiNhanQuaDoiIT`, `DanhSachViecSauQuaDoiIT`, `BR_M02_21_NguyenNhanTuVongIT` | Tích hợp |

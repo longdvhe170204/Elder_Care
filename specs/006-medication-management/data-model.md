@@ -19,6 +19,7 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | `xem_lai_lieu` | 2 | E (FR-029) |
 | `lan_dung_prn` | 3 | D |
 | `phieu_doi_chieu`, `dong_doi_chieu` | 2 khi Mở, Chờ xác nhận; 3 khi Đã xác nhận | F |
+| `lan_tiep_nhan_thuoc_cung_ung` *(bổ sung 2026-10-11, Q-337)* | 3 | I (FR-054, FR-055) |
 | `de_nghi_dinh_chinh_phieu` | 2 | F (FR-039) |
 | `thuoc_gia_dinh_gui` | 2 | G |
 | `thuoc_gui_don` | 2 (liên kết) | G (FR-043) |
@@ -38,7 +39,7 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | --- | --- | --- | --- |
 | `nct_id` | `BIGINT` | Khóa chính; tạo khi lần đầu có lệnh 006 cho người đó, hoặc trong bean Hoàn tất tiếp nhận | D-01 |
 | `han_doi_chieu` | `DATETIME(6) NULL` | Thời điểm Hoàn tất tiếp nhận / Ghi nhận trở về + CFG-M07-05; xóa khi phiếu Đã xác nhận hoặc trạng thái cuối | FR-034, BR-M07-09 |
-| `ly_do_doi_chieu` | `ENUM('TIEP_NHAN','TRO_VE_BENH_VIEN') NULL` | | FR-034 |
+| `ly_do_doi_chieu` | `ENUM('TIEP_NHAN','TRO_VE_BENH_VIEN') NULL` | Chỉ hai lý do có hạn; phiếu `THEO_YEU_CAU_CHUYEN_MON` không dùng cột này (FR-034b, Q-340) | FR-034 |
 | `da_canh_bao_doi_chieu_luc` | `DATETIME(6) NULL` | Một cảnh báo mỗi hạn | FR-034 |
 | `phien_ban` | `INT` | | |
 
@@ -213,9 +214,10 @@ Chỉ mục: `(trang_thai, cua_so_tu)`, `(trang_thai, cua_so_den)`, `(trang_thai
 | Cột | Kiểu | Ghi chú | Nguồn |
 | --- | --- | --- | --- |
 | `id`, `nct_id` | `BIGINT` | | FR-038 |
-| `ly_do` | `ENUM('TIEP_NHAN','TRO_VE_BENH_VIEN')` | | FR-034 |
+| `ly_do` | `ENUM('TIEP_NHAN','TRO_VE_BENH_VIEN','THEO_YEU_CAU_CHUYEN_MON')` | Giá trị thứ ba bổ sung 2026-10-11 (FR-034b, Q-340) | FR-034, FR-034b |
+| `ly_do_lap` | `VARCHAR(2000) NULL` | `CHECK (ly_do <> 'THEO_YEU_CAU_CHUYEN_MON' OR ly_do_lap IS NOT NULL)` | FR-034b |
 | `trang_thai` | `ENUM('MO','CHO_XAC_NHAN','DA_XAC_NHAN','DA_HUY')` | | FR-035 |
-| `han_luc`, `qua_han_luc` | `DATETIME(6) NULL` | `han_luc` rỗng khi lập trước tiếp nhận | FR-035 |
+| `han_luc`, `qua_han_luc` | `DATETIME(6) NULL` | `han_luc` rỗng khi lập trước tiếp nhận và luôn rỗng với `THEO_YEU_CAU_CHUYEN_MON` | FR-035, FR-034b |
 | `nguoi_lap_id`, `lap_luc`, `nguoi_gui_id`, `gui_luc`, `nguoi_xac_nhan_id`, `xac_nhan_luc` | | | FR-038 |
 | `ly_do_tra_lai`, `ly_do_huy` | `VARCHAR(2000) NULL` | `ly_do_huy`: chuyển viện lại, trạng thái cuối, Hủy tiếp nhận | FR-035 |
 | `mo_nct` | Cột sinh `IF(trang_thai IN ('MO','CHO_XAC_NHAN'), nct_id, NULL)` | `UNIQUE` | FR-035 |
@@ -229,6 +231,7 @@ Chỉ mục: `(trang_thai, cua_so_tu)`, `(trang_thai, cua_so_den)`, `(trang_thai
 | Từ | Lệnh / sự kiện | Đến | Nơi thực hiện |
 | --- | --- | --- | --- |
 | — | Lập phiếu | `MO` | `POST /nguoi-cao-tuoi/{nctId}/phieu-doi-chieu` |
+| — | Lập phiếu theo yêu cầu chuyên môn (lý do lập bắt buộc; không tạm dừng đơn, không hạn) | `MO` | Cùng endpoint, `lyDo = THEO_YEU_CAU_CHUYEN_MON` (FR-034b) |
 | `MO` | Thay dòng, ghi quyết định | `MO` | `PUT /phieu-doi-chieu/{id}/dong` |
 | `MO` | Gửi xác nhận | `CHO_XAC_NHAN` | `POST /phieu-doi-chieu/{id}/gui-xac-nhan` |
 | `CHO_XAC_NHAN` | Trả lại | `MO` | `POST /phieu-doi-chieu/{id}/tra-lai` |
@@ -315,6 +318,26 @@ Trigger `trg_tgdg_so_luong` (`BEFORE UPDATE`): chặn đổi `so_luong_con` tr�
 
 ---
 
+## 9a. Tiếp nhận thuốc cung ứng (mục I) *(bổ sung 2026-10-11, Q-337)*
+
+### `lan_tiep_nhan_thuoc_cung_ung` – nhóm 3
+
+| Cột | Kiểu | Ghi chú | Nguồn |
+| --- | --- | --- | --- |
+| `id` | `BIGINT` | | |
+| `yeu_cau_mua_sam_id`, `dong_yeu_cau_id` | `BIGINT` | Dòng của yêu cầu loại "thuốc" (019); không khóa ngoại sang bảng của M11, kiểm qua `YeuCauThuocCungUngPort` khi ghi | FR-054, BR-M11-17 |
+| `nct_id`, `don_thuoc_id` | `BIGINT` | Chép từ `DongYeuCauThuocView` lúc ghi | FR-054 |
+| `thuoc_id` | `BIGINT` | Lấy từ `don_thuoc.thuoc_id` của `don_thuoc_id` (006 tự tra; dòng yêu cầu của 019 không có id thuốc) | FR-054 |
+| `ham_luong`, `dang_thuoc`, `don_vi` | `VARCHAR` | Điều dưỡng ghi khi kiểm (giá trị thực nhận, so với dòng yêu cầu) | FR-054 |
+| `so_luong_nhan` | `DECIMAL(12,3)` | `CHECK (so_luong_nhan > 0)` | FR-054 |
+| `han_dung` | `DATE` | | FR-054 |
+| `tinh_trang` | `VARCHAR(500)` | | FR-054 |
+| `ket_qua` | `ENUM('DAT','KHONG_DAT')` | | FR-054 |
+| `sai_lech`, `ly_do` | `VARCHAR(2000) NULL` | `CHECK (ket_qua = 'DAT' OR (sai_lech IS NOT NULL AND ly_do IS NOT NULL))` | FR-054 |
+| `nguoi_giao`, `nguoi_nhan_id`, `thoi_diem` | | | FR-054 |
+
+Trigger nhóm 3 của 000 chặn `UPDATE`, `DELETE`; sai sót sửa bằng đính chính `M07.LAN_TIEP_NHAN_THUOC`. Bảng không có số lượng tồn, không phát sự kiện tính phí, không đổi `don_thuoc`, `lieu_thuoc` (FR-054, BR-M07-24). "Đã nhận" của yêu cầu là số liệu tính: mọi dòng có ít nhất một lần `DAT`.
+
 ## 10. Bảng kỹ thuật
 
 - `lan_chay_m07 (viec, moc)`: khóa chính hai cột; `viec` ∈ `NCT_CHUA_PHU_TRACH` (mốc = `caId:nctId`), `TANG_KHONG_DIEU_DUONG` (mốc = `tang:caId`), `HET_HAN_DON`, `NHAC_HET_HAN_DON`, `HET_HAN_DUNG` (mốc = ngày); `ket_qua`, `lan_chay_lich_id` (000). Bảo đảm mỗi việc mỗi mốc một lần, kể cả chạy bù.
@@ -335,6 +358,7 @@ Trigger `trg_tgdg_so_luong` (`BEFORE UPDATE`): chặn đổi `so_luong_con` tr�
 | Một khoảng vắng mở mỗi người | Cột sinh `mo_nct` `UNIQUE` | FR-048 |
 | Kết quả, lần dùng PRN, biến động, lần giao, lần nhận lại, căn cứ chỉ thêm; đính chính trỏ đúng một bản gốc | Trigger nhóm 3 của 000; `dinh_chinh` của 000 | DBR-23, FR-030 |
 | Chi phí có nguồn | Sự kiện `SuKienTinhPhiThuoc` mang loại nguồn và id; 010 giữ DBR-15 | DBR-15, FR-033 |
+| Lần tiếp nhận thuốc cung ứng chỉ thêm; Không đạt có sai lệch, lý do; chỉ gắn yêu cầu đã ghi đã mua | Trigger nhóm 3; `CHECK` ở mục 9a; backend kiểm trạng thái yêu cầu qua `YeuCauThuocCungUngPort` | FR-054, BR-M07-24, BR-M11-17 |
 | Thời gian | `Clock` của 000; `thoi_diem_thiet_bi` cho ngoại tuyến | DBR-25 |
 
 ---
@@ -391,6 +415,8 @@ Danh mục thuốc không bị loại bỏ.
 | BR-M07-21 | Job đầu ca | `BR_M07_21_TangKhongDieuDuongIT` |
 | BR-M07-22 | Nhiều lần giao; listener hồ sơ ban đầu | `BR_M07_22_NhieuLanGiaoIT`, `ThuocDangDungDoiIT` |
 | BR-M07-23 | Không kiểm tra tương tác, liều tối đa (ngoài phạm vi) | Không có test (không có chức năng) |
+| BR-M07-24 *(bổ sung 2026-10-11)* | Mục 9a; research D-21 | `BR_M07_24_TiepNhanThuocCungUngIT` |
+| BR-M07-25 *(bổ sung 2026-10-11)* | Mục 7 (`ly_do = THEO_YEU_CAU_CHUYEN_MON`); research D-13 | `BR_M07_25_DoiChieuChuyenMonIT` |
 | BR-M04-16 (phần 006) | Chỉ Điều dưỡng ghi liều Mang theo | `FR_027_MangTheoBaoLaiIT` |
 | BR-M06-05 (phần 006) | `QuyenApi` khóa `CHUYEN_MON` | `BR_M07_05_QuyenKeDonIT`, `FR_026_QuyenXacNhanIT` |
 | BR-M15-20 (phần 006) | Kết quả đồng bộ từng bản ghi | Test Flutter `KetQuaDongBoThuocTest` |

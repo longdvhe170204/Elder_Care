@@ -26,9 +26,11 @@ Chiều phụ thuộc theo research D-02: 006 phụ thuộc 000, 001, 002, 003, 
 
 **Kiểu `chiTiet` 006 đọc** (do module khác sở hữu): `CHO_TAM_VANG.mangThuoc`, `duKienTroLai` (004); `GHI_NHAN_TRO_VE.thoiDiemVe` (004); `GHI_NHAN_QUA_DOI.thoiDiemQuaDoi` (004); `DIEM_DANH_ROI_VIEN.chuyenId` (014; đề xuất, plan 014 giữ hoặc ghi thay đổi).
 
-### 1.2. `DonThuocApi` (đọc; 007, 016)
+### 1.2. `DonThuocApi` (đọc; 007, 016, 019)
 
 ```java
+List<DonThuocView> donNguonVienChuaKetThuc(long nctId);
+    // bổ sung theo plan 019 (Q-337, 019 FR-008d): đơn nguồn "viện cung cấp" Hiệu lực, Tạm dừng, Chờ hiệu lực để gắn dòng yêu cầu loại "thuốc"
 List<ThuocDangDungView> thuocDangDung(long nctId);
     // FR-050: đơn Hiệu lực và Tạm dừng, kèm thuốc, liều, đường dùng, mốc giờ hoặc giới hạn PRN, nguồn; 007 thẻ khẩn cấp, tóm tắt chuyển viện
 List<DonThuocView> lichSu(long nctId);   // FR-016a: chuỗi thay thế theo thời gian
@@ -96,6 +98,12 @@ Stream<LieuBaoCaoView> lieuTheoKhoang(PhamViLoc phamVi, Instant tu, Instant den)
 Stream<PhieuDoiChieuBaoCaoView> phieuTheoKhoang(PhamViLoc phamVi, Instant tu, Instant den);  // lý do, trạng thái, hạn, dấu quá hạn
 ```
 
+### 1.8a. `TiepNhanThuocCungUngApi` (019; FR-054) *(bổ sung 2026-10-11, Q-337)*
+
+```java
+List<KetQuaTiepNhanView> theoYeuCau(long yeuCauMuaSamId);   // mỗi dòng: các lần tiếp nhận, kết quả; daNhan = mọi dòng có ít nhất một lần Đạt
+```
+
 ### 1.9. Sự kiện 006 phát (sau commit, qua outbox của 000)
 
 | Sự kiện | Người nghe | FR |
@@ -111,6 +119,7 @@ Stream<PhieuDoiChieuBaoCaoView> phieuTheoKhoang(PhamViLoc phamVi, Instant tu, In
 | `ThuocGuiSapHet(khoaNhom, moc, soThuTu, soNgayConLai)` | 009 (Trung bình; người liên hệ chính, người đại diện; thêm Điều dưỡng phụ trách với CFG-M07-07; nội dung chia phần `CHUNG`, `SUC_KHOE`) | FR-046 |
 | `ThuocGuiHetHanDung(loId)`; `ThuocGuiDaDungHet(loId)`; `ThuocGuiChuyenChiGiuHo(loId, lyDo)`; `HetThuocGuiKhiDenLieu(lieuKey)` | 009 | FR-041, US7 #8 |
 | `CanNhanLaiThuocMangTheo(lanGiaoId)` | 009 (Điều dưỡng phụ trách) | FR-048b, Q-58 |
+| `TiepNhanThuocKhongDat(lanTiepNhanId, yeuCauMuaSamId, nguoiLapNhanVienId, boPhanId, saiLech)` *(bổ sung 2026-10-11; sửa lượt 3)* | 009 (Nhẹ; `NhanVien(nguoiLapNhanVienId)` và `PhuTrachBoPhan(boPhanId)`: Phụ trách bộ phận hiện tại của bộ phận của yêu cầu; 009 gộp người trùng, 006 không tự gửi) | FR-055, Q-337 |
 | `SuKienTinhPhiThuoc(nguon: LIEU \| LAN_DUNG_PRN \| LAN_GIAO, id, nctId, thuocId, soLuong, thoiDiem)` | 010 | FR-025a, FR-033, FR-048a, BR-M07-14 |
 | `SuKienTinhPhiThuocDaDieuChinh(nguon, id, soLuongMoi, lyDo: DINH_CHINH \| NHAN_LAI)` | 010 | FR-030, FR-048a, DBR-17 |
 
@@ -139,6 +148,20 @@ interface ChuyenDiThuocPort {               // 014 cài; chỉ đọc
 interface DeNghiMuaHoPort {                 // 010 cài; chỉ đọc
   Optional<DeNghiMuaHoView> daMua(long deNghiId, long nctId);             // FR-040, Q-139: đề nghị ở Đã mua, thuốc, số lượng, nhân viên mua
 }
+
+interface YeuCauThuocCungUngPort {          // 019 (M11) cài; chỉ đọc; bổ sung 2026-10-11 (Q-337, FR-054)
+  Optional<DongYeuCauThuocView> dongDaGhiDaMua(long dongYeuCauId);
+      // dòng của yêu cầu loại "thuốc" ở Chờ đối chiếu, Đã đối chiếu hoặc Lệch (BR-M11-17); rỗng nếu không thỏa
+}
+
+record DongYeuCauThuocView(                 // bổ sung 2026-10-11 sau audit: kiểu đầy đủ
+  long dongYeuCauId, long yeuCauMuaSamId, long nctId, long donThuocId,
+  String tenThuoc, String hoatChat, String hamLuong, String dangThuoc,
+  BigDecimal soLuong, String donVi,
+  long nguoiLapNhanVienId, long boPhanId) {}
+  // không có thuocId: 006 lấy thuoc_id từ don_thuoc_id của chính mình khi ghi lần tiếp nhận
+  // nguoiLapNhanVienId: id nhân viên của người lập (nhóm NhanVien của 009);
+  // boPhanId: yeu_cau_mua_sam.bo_phan_id gắn lúc lập, không suy từ hồ sơ hiện tại của người lập (FR-055, sửa 2026-10-11 lượt 3)
 ```
 
 Bean thiếu thì lệnh cần nó bị chặn (mặc định an toàn): không xác định được người phụ trách thì mọi liều là liều chung của tầng và chỉ Người phụ trách ca xác nhận được; thiếu `ChuyenDiThuocPort` thì lệnh "Không mang thuốc" trả 409; thiếu `DeNghiMuaHoPort` thì tiếp nhận thuốc mua hộ trả 409.

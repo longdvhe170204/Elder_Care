@@ -41,14 +41,14 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ## 3. Yêu cầu mua sắm (M11)
 
-`yeu_cau_mua_sam`: `id`, `bo_phan_id`, `lap_boi_id`, `loai` (`NGUYEN_LIEU`, `TAI_SAN`, `DICH_VU`, `KHAC`), `tong_du_kien`, `so_duoc_duyet`, `ly_do_giam`, `ly_do`, `ngay_can`, `tham_chieu` `JSON`, `yeu_cau_goc_id NULL`, `so_tien_thuc_te`, `ngay_mua`, `nha_cung_cap`, `tep_chung_tu_ids`, `ghi_da_mua_boi_id`, `ket_qua_doi_chieu`, `so_lech`, `cach_xu_ly_lech`, `doi_chieu_boi_id`, `trang_thai` (`NHAP`, `CHO_DUYET`, `DA_DUYET`, `CHO_DOI_CHIEU`, `LECH`, `DA_DOI_CHIEU`, `TU_CHOI`, `DA_HUY`), `da_nhac_mua_luc`, `da_nhac_doi_chieu_luc`, `phien_ban`. Dòng: tên, số lượng, đơn giá dự kiến, thành tiền. Trigger: nội dung khóa khi rời `NHAP`.
+`yeu_cau_mua_sam`: `id`, `bo_phan_id`, `lap_boi_id`, `loai` (`NGUYEN_LIEU`, `TAI_SAN`, `DICH_VU`, `THUOC`, `KHAC`; `THUOC` bổ sung 2026-10-11, Q-337), `muc_uu_tien NULL` (`THUONG`, `GAP`), `thoi_diem_can NULL`, `tep_lien_quan_ids NULL` (bắt buộc hai cột đầu khi `THUOC`, `CHECK`), `tong_du_kien`, `so_duoc_duyet`, `ly_do_giam`, `ly_do`, `ngay_can`, `tham_chieu` `JSON`, `yeu_cau_goc_id NULL`, `so_tien_thuc_te`, `ngay_mua`, `nha_cung_cap`, `tep_chung_tu_ids`, `ghi_da_mua_boi_id`, `ket_qua_doi_chieu`, `so_lech`, `cach_xu_ly_lech`, `doi_chieu_boi_id`, `trang_thai` (`NHAP`, `CHO_DUYET`, `DA_DUYET`, `CHO_DOI_CHIEU`, `LECH`, `DA_DOI_CHIEU`, `TU_CHOI`, `DA_HUY`), `da_nhac_mua_luc`, `da_nhac_doi_chieu_luc`, `phien_ban`. Dòng: tên, số lượng, đơn giá dự kiến, thành tiền; với `THUOC` thêm `nct_id`, `don_thuoc_id`, `hoat_chat`, `ham_luong`, `dang_thuoc`, `don_vi` (bắt buộc, kiểm ở backend vì phụ thuộc loại của yêu cầu cha; FR-008d). Trigger: nội dung khóa khi rời `NHAP`. Không có `mua_sam_gan_nguon` cho `THUOC` (lần tiếp nhận ở 006).
 
 `mua_sam_gan_nguon` (nhóm 3): `yeu_cau_id`, `loai_nguon` (`PHIEU_NHAP`, `TAI_SAN`, `BAO_TRI`), `nguon_id`, `so_tien`, `luc`; `UNIQUE (loai_nguon, nguon_id)` (một nguồn gắn đúng một yêu cầu, DBR-36).
 
 | Từ | Lệnh | Đến | Người |
 | --- | --- | --- | --- |
-| — | Lập | `NHAP` | Phụ trách bộ phận |
-| `NHAP` | Gửi duyệt / Hủy | `CHO_DUYET` / `DA_HUY` | Phụ trách bộ phận / người lập |
+| — | Lập | `NHAP` | Phụ trách bộ phận; Điều dưỡng chỉ loại `THUOC` (FR-008d) |
+| `NHAP` | Gửi duyệt / Hủy | `CHO_DUYET` / `DA_HUY` | Người lập |
 | `CHO_DUYET` | Rút lại | `NHAP` | Người lập |
 | `CHO_DUYET` | Duyệt (có thể giảm) / Từ chối | `DA_DUYET` / `TU_CHOI` | Quản lý viện |
 | `DA_DUYET` | Ghi đã mua | `CHO_DOI_CHIEU` | Phụ trách bộ phận |
