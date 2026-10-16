@@ -27,16 +27,16 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
 **Primary Dependencies**: Như 000 → 014. Không thêm thư viện (luồng cực đại viết trong mã, đồ thị nhỏ).
 
-**Storage**: MySQL 8.4 LTS. Bảng ở [data-model.md](data-model.md), cùng schema M09 với 008.
+**Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md), cùng schema M09 với 008.
 
 **Testing**:
 - Như 000 R-14.
 - Test bảng cho bảy hàm thuần (research X-13); SC-001 với 3 mẫu × 4 tháng; bộ 200 yêu cầu (SC-004).
-- Testcontainers cho `UNIQUE` (cảnh báo mở, lời mời chờ, yêu cầu mở mỗi ca) và trigger nhóm 3.
+- Test tích hợp MySQL cho `UNIQUE` (cảnh báo mở, lời mời chờ, yêu cầu mở mỗi ca) và trigger nhóm 3.
 - Test đồng thời: hai lệnh lập lịch cùng phạm vi; duyệt đổi ca và ghi vắng ca; hai người nhận lời mời.
 - Đồng hồ giả lập cho CFG-M09-02, 06, 10, 11, CFG-M15-05, 06.
 - Bản giả `CongViecCaApi` (005), `ChuyenDiNhiemVuLenhApi` (014).
@@ -131,16 +131,16 @@ specs/015-shift-rotation-swap/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m09/
+backend/src/main/java/com/cambae/backend/m09/
 ├── api/           # (bổ sung) XoayCaThongKeApi
 ├── xoayca/        {internal, web, lich}   # mẫu, nhóm, MauCaTaiNgay, LapLichThang, lập lịch, lập lại
 ├── phuca/         {internal, web}         # DongApDung, TinhPhu, lần tính, cảnh báo thiếu phủ, KiemTraCongBoMoRong
 └── doica/         {internal, web, lich}   # đổi ca, nghỉ đột xuất, NghiCoDuyetPort, tra cứu người thay, lời mời
 
-web/src/tinh-nang/lich-ca/
+frontend/src/tinh-nang/lich-ca/
 ├── xoay-ca/  ├── phu-ca/  ├── doi-ca/  ├── nghi/  └── loi-moi/
 
-app-nhan-vien/lib/tinh-nang/lich-ca/   # đổi ca, nghỉ, lời mời
+mobile/lib/nhan-vien/lich-ca/   # đổi ca, nghỉ, lời mời
 ```
 
 **Structure Decision**: Theo R-02 của 000 và 008 N-01: 015 thêm ba gói con vào `backend/…/m09`.

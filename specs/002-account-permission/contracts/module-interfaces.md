@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-07 | **Plan**: [../plan.md](../plan.md)
 
-Hợp đồng trong backend, ở gói `vn.eldercare.m15.taikhoan.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của 002 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
+Hợp đồng trong backend, ở gói `com.cambae.backend.m15.taikhoan.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của 002 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
 
 Mục 1 giữ đúng chữ ký mà feature 000 đã khai báo trước ([../../000-shared-foundation/contracts/module-interfaces.md](../../000-shared-foundation/contracts/module-interfaces.md) mục 2) và bổ sung phần còn thiếu. Chỗ khác với 000 được ghi rõ.
 

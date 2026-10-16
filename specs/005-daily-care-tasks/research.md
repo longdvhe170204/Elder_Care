@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## C-01. Vị trí trong backend
 
-**Quyết định**: Feature 005 là module M04 (mục 8, phần 8.1 → 8.7). Gói `vn.eldercare.m04` có các gói con:
+**Quyết định**: Feature 005 là module M04 (mục 8, phần 8.1 → 8.7). Gói `com.cambae.backend.m04` có các gói con:
 
 | Gói | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -353,7 +353,7 @@ Kết quả ghi nhận, lưu ý chăm sóc mang `@NhomTruong(SUC_KHOE)` theo 002
 - **Nhật ký**: hành động `M04_KE_HOACH_*`, `M04_CONG_VIEC_LAP`, `M04_CONG_VIEC_CHUYEN`, `M04_CONG_VIEC_DONG`, `M04_CONG_VIEC_HUY`, `M04_PHAN_LAI`, `M04_NHAN_VIEC`, `M04_GHI_NHAN`, `M04_DIEM_DANH_*`, `M04_LOAI_CONG_VIEC_*`, `M04_NHAC`, `M04_BAO`; dấu "chạy bù" khi có.
 - **Kiểm thử** (000 R-14):
   - hàm thuần có test bảng: `ChuoiThoiDiemMuc`, `KiemTraLapCongViec`, `BangChuyenCongViec`, `XacDinhTrangThaiDong` (Hoàn thành / Hoàn thành trễ / nhãn ghi muộn), `DanhGiaNuocUong`, `DemChuoiBuaKem`, `DemNgayTamTrang`, `SoSanhPhienBan`;
-  - Testcontainers: trigger mục kế hoạch, trigger trạng thái cuối công việc, cột sinh `UNIQUE` (DBR-11, DBR-12, một phiên bản mở);
+  - Test tích hợp MySQL: trigger mục kế hoạch, trigger trạng thái cuối công việc, cột sinh `UNIQUE` (DBR-11, DBR-12, một phiên bản mở);
   - đồng thời: hai lần ghi nhận một công việc; ghi nhận và job Quá hạn cùng lúc; lập trùng hai lô;
   - đồng hồ giả lập: 7 ngày × 20 người (SC-001), leo thang CFG-M04-12, chạy bù sau 3 giờ dừng;
   - bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}` cho mọi SPI 005 khai báo (006, 007, 008, 011, 012, 014);

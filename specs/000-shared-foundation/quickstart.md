@@ -6,7 +6,7 @@ Hướng dẫn này dùng để chạy và kiểm chứng ở giai đoạn tri�
 
 ## 1. Điều kiện cần
 
-- JDK 21, Docker (cho Testcontainers MySQL 8.4), Node.js LTS (web), Flutter stable.
+- JDK 25, MySQL 8.0 cài trên máy (test tích hợp theo research R-14), Node.js LTS (web), Flutter stable.
 - Profile `demo` cho chạy tay: đồng hồ giả lập bật, có endpoint `/api/v1/kiem-thu/dong-ho` (research R-04).
 - Dữ liệu mẫu của profile `demo`:
   - các tài khoản QLV (AC-01), Trưởng tầng tầng 2, Điều dưỡng tầng 2, hai Hành chính;
@@ -19,7 +19,7 @@ Hướng dẫn này dùng để chạy và kiểm chứng ở giai đoạn tri�
 ## 2. Chạy
 
 ```text
-backend/  ./mvnw verify                  # test đơn vị, tích hợp (Testcontainers), kiến trúc, so hợp đồng
+backend/  ./mvnw verify                  # test đơn vị, tích hợp (MySQL trên máy), kiến trúc, so hợp đồng
 backend/  ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
 web/      npm ci && npm test && npm run dev
 ```
@@ -56,7 +56,7 @@ Kết quả mong đợi: `verify` xanh, gồm các nhóm test ở mục 4. Khở
 
 Mỗi kịch bản Given/When/Then của spec có ít nhất một test (constitution XV). Tên lớp test theo data-model mục 7.
 
-| Spec | Lớp test (backend, `vn.eldercare.m15…`) | Loại |
+| Spec | Lớp test (backend, `com.cambae.backend.m15…`) | Loại |
 | --- | --- | --- |
 | US1 #1–8, FR-001 → FR-010 | `DanhMucMauIT`, `NhomDuLieuArchTest`, `NhomGhiNhanCoTriggerIT`, `PhienBanKhongChongKhoangIT`, `LenhNghiepVuLyDoTest` | Tích hợp, kiến trúc |
 | US2 #1–8, FR-023 → FR-030 | `DinhChinhChonCachTest` (bảng quyết định A/B/C, CHK033), `DinhChinhIT`, `DinhChinhDongThoiIT`, `DinhChinhHienHanhViewIT` | Đơn vị, tích hợp |
@@ -70,6 +70,6 @@ Mỗi kịch bản Given/When/Then của spec có ít nhất một test (constit
 
 ## 5. Tiêu chí hoàn tất (đối chiếu SC)
 
-- SC-001, SC-002, SC-003, SC-005, SC-008, SC-009, SC-010, SC-011 được chứng minh bằng test tự động ở mục 4, chạy trên MySQL thật qua Testcontainers.
+- SC-001, SC-002, SC-003, SC-005, SC-008, SC-009, SC-010, SC-011 được chứng minh bằng test tự động ở mục 4, chạy trên MySQL thật (R-14).
 - SC-004: `ThamSoBoDemSauCommitIT` đổi tham số rồi kiểm tra quy tắc ngay sau commit, không khởi động lại.
 - SC-006 và SC-007 đo bằng người dùng (10 lần, lấy trung vị) trên profile `demo`. SC-006 cần dữ liệu sinh ở quy mô NFR-01 với 1 năm nhật ký (khoảng 22 triệu dòng, research R-06), tạo bằng công cụ sinh dữ liệu của task.

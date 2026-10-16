@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## K-01. Vị trí trong backend
 
-**Quyết định**: Feature 013 là module M12 – Đồ gửi (mục 16), gói `vn.eldercare.m12`.
+**Quyết định**: Feature 013 là module M12 – Đồ gửi (mục 16), gói `com.cambae.backend.m12`.
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -183,7 +183,7 @@ Bác sĩ, Nhân viên chăm sóc, Nhân viên bếp, Kế toán: không có quy�
 - **Kiểm thử**:
   - test bảng `KiemTraLenhBanGiao`, `TachDo`, `NguoiNhanHopLe`, `DieuKienDoGui`, `DuBangChungLienHe`, mục `DO_GUI`;
   - SC-001: bất biến tách và trạng thái = bản ghi gần nhất sau mọi kịch bản, kể cả đính chính;
-  - Testcontainers: trigger nhóm 3, `UNIQUE` phiếu theo (vị trí, kỳ), một đồng ý Hiệu lực mỗi đồ;
+  - Test tích hợp MySQL: trigger nhóm 3, `UNIQUE` phiếu theo (vị trí, kỳ), một đồng ý Hiệu lực mỗi đồ;
   - test đồng thời: hai nhân viên bàn giao cùng đồ; Trả trong lúc Kết thúc lưu trú;
   - đồng hồ giả lập cho CFG-M10-08, CFG-M12-02 → 07;
   - bản giả 007 `SuCoLenhApi`, 012 `QuyenNguoiThanApi`.

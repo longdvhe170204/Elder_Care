@@ -6,7 +6,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 
 ## 1. Điều kiện cần
 
-- Như quickstart của 000 → 014: JDK 21, Docker (Testcontainers MySQL 8.4), Node.js LTS, Flutter stable; profile `demo` có đồng hồ giả lập.
+- Như quickstart của 000 → 014: JDK 25, MySQL 8.0 cài trên máy (000 R-14), Node.js LTS, Flutter stable; profile `demo` có đồng hồ giả lập.
 - Dữ liệu mẫu của profile `demo`:
   - tài khoản: Quản lý viện QL; Trưởng tầng TT2 (được giao tầng 2); Điều dưỡng D1, D2, D3; Nhân viên chăm sóc C1 → C6; Bác sĩ BS1, BS2 (ca toàn viện);
   - mẫu ca "Ngày" 07:00–19:00, "Đêm" 19:00–07:00; mẫu xoay ca "2N-2Đ-2Nghỉ" (L = 6);
@@ -20,7 +20,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 backend/  ./mvnw verify
 backend/  ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
 web/      npm ci && npm test && npm run dev
-app-nhan-vien/  flutter test
+mobile/  flutter test
 ```
 
 Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()`, ArchUnit (chỉ `m09.xoayca`, `m09.doica` dùng port `m09.*.port`), test cơ sở dữ liệu (data-model mục 7) và các nhóm test ở mục 4.

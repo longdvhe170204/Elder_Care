@@ -10,7 +10,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 **Tests**: Bắt buộc. Constitution XV yêu cầu mỗi BR có ít nhất một kiểm thử tự động dựng từ kịch bản Given/When/Then; tên lớp test theo quickstart.md mục 4 và data-model.md mục 7. Tên phương thức test theo R-14 (`BR_M15_09_...`, `FR_037_...`).
 
-**Giai đoạn**: Task này dùng ở giai đoạn triển khai. CLAUDE.md hiện chặn `/speckit-implement`; không tạo mã cho tới khi chủ dự án mở giai đoạn triển khai.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 **Organization**: Task nhóm theo user story của spec 000 (US1–US5).
 
@@ -21,9 +21,9 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 ## Quy ước đường dẫn (research R-02)
 
-- Backend: `backend/src/main/java/vn/eldercare/` (viết tắt `BE/`), test `backend/src/test/java/vn/eldercare/` (viết tắt `BT/`), migration `backend/src/main/resources/db/migration/` (viết tắt `MIG/`)
-- Web: `web/src/`; app nhân viên: `app-nhan-vien/lib/`, test `app-nhan-vien/test/`
-- Feature 000 nằm ở `BE/common/` và `BE/m15/{thamso,nhatky,pheduyet,dinhchinh,luutru}/`, mỗi gói con chia `api/`, `internal/`, `web/` (và `lich/` cho job)
+- Backend: `backend/src/main/java/com/cambae/backend/` (viết tắt `BE/`), test `backend/src/test/java/com/cambae/backend/` (viết tắt `BT/`), migration `backend/src/main/resources/db/migration/` (viết tắt `MIG/`)
+- Web: `frontend/src/`; app nhân viên: `mobile/lib/`, test `mobile/test/nhan-vien/`
+- Feature 000 nằm ở `BE/common/` và `BE/m15/{thamso,nhatky,pheduyet,dinhchinh,luutru}/`, mỗi gói con chia `api/`, `internal/`, `frontend/` (và `lich/` cho job)
 
 ---
 
@@ -31,16 +31,16 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 **Purpose**: Dựng bốn thư mục gốc và bộ công cụ mà mọi feature 001–019 dùng lại (R-01, R-02)
 
-- [ ] T001 Tạo bốn thư mục gốc `backend/`, `web/`, `app-nhan-vien/`, `app-nguoi-than/` và `README.md` gốc mô tả cấu trúc theo research R-02
-- [ ] T002 Khởi tạo dự án Spring Boot 3.5.x, Java 21 trong `backend/pom.xml` với Web MVC, Data JPA (Hibernate 6.6), Security, Validation, Spring Modulith 1.4.x, Flyway 11.x, springdoc-openapi 2.8.x, ShedLock, driver MySQL; test: JUnit 5, AssertJ, Testcontainers MySQL 8.4, ArchUnit, openapi-diff (R-01)
-- [ ] T003 [P] Tạo lớp khởi động `BE/EldercareApplication.java` và các gói rỗng `BE/common/`, `BE/m01/` … `BE/m15/` mỗi gói có `package-info.java` khai báo `@ApplicationModule` (R-02)
+- [ ] T001 Dùng ba thư mục gốc đã khởi tạo `backend/`, `frontend/`, `mobile/` (R-02); viết `README.md` gốc mô tả cấu trúc, và `.gitignore` gốc bỏ qua kết quả build và file IDE (`backend/target/`, `frontend/node_modules/`, `frontend/dist/`, `mobile/.dart_tool/`, `mobile/build/`, `.idea/` ở mọi cấp); gỡ `backend/.idea/`, `mobile/.idea/`, `mobile/mobile.iml` khỏi phần commit
+- [ ] T002 Hoàn thiện dự án đã khởi tạo trong `backend/pom.xml` (Spring Boot 4.1.x, Java 25, gói gốc `com.cambae.backend`): giữ Web MVC, Data JPA (Hibernate 7), Security, Validation, Lombok; thêm Spring Modulith 2.x, Flyway (`spring-boot-starter-flyway`, `flyway-mysql`), springdoc-openapi 3.x, ShedLock, driver MySQL; test: JUnit 5, AssertJ, ArchUnit, openapi-diff. Đổi `application.properties` sang Flyway (`ddl-auto=validate`), bỏ `spring-boot-devtools` khỏi profile `prod` (R-01)
+- [ ] T003 [P] Giữ lớp khởi động `BE/BackendApplication.java` và tạo các gói rỗng `BE/common/`, `BE/m01/` … `BE/m15/` mỗi gói có `package-info.java` khai báo `@ApplicationModule` (R-02)
 - [ ] T004 [P] Cấu hình `backend/src/main/resources/application.yml` với ba profile `prod`, `test`, `demo`; `spring.jpa.properties.hibernate.jdbc.time_zone=UTC`, JDBC `connectionTimeZone=UTC`, MySQL `utf8mb4_0900_ai_ci`; hai datasource `eldercare_app` (chính) và `eldercare_luu_tru` (job loại bỏ) (R-04, R-05)
-- [ ] T005 [P] Khởi tạo web React 19 + TypeScript 5 + Vite trong `web/package.json`, cài TanStack Query, React Router, Vitest, React Testing Library; tạo `web/src/main.tsx`, `web/src/App.tsx` (R-01)
-- [ ] T006 [P] Khởi tạo app Flutter stable `app-nhan-vien/pubspec.yaml` có drift, http client, flutter_test; tạo `app-nhan-vien/lib/main.dart` (R-01, R-13)
-- [ ] T007 [P] Khởi tạo app Flutter stable `app-nguoi-than/pubspec.yaml` và `app-nguoi-than/lib/main.dart` (không có màn hình của 000)
-- [ ] T008 [P] Cấu hình lint/format: Checkstyle hoặc Spotless trong `backend/pom.xml`, ESLint + Prettier trong `web/.eslintrc.cjs`, `analysis_options.yaml` ở hai app Flutter
-- [ ] T009 [P] Dựng lớp cơ sở test tích hợp `BT/support/MySqlTestcontainersBase.java` chạy MySQL 8.4 thật, tạo hai tài khoản `eldercare_app` và `eldercare_luu_tru` với quyền đúng R-05 trước khi Flyway chạy (R-14)
-- [ ] T010 [P] Thiết lập sinh client API: script `web/scripts/gen-api.mjs` sinh `web/src/api/` từ `specs/*/contracts/api-*.yaml`; script tương tự cho `app-nhan-vien/lib/chung/api/`
+- [ ] T005 [P] Chuyển `frontend/` (React 19 + Vite, đang là JavaScript) sang TypeScript 5: thêm `typescript`, `tsconfig.json`, đổi `main.jsx`, `App.jsx` thành `frontend/src/main.tsx`, `frontend/src/App.tsx`, `vite.config.ts`, bỏ file mẫu của Vite; cài TanStack Query, React Router, Vitest, React Testing Library (R-01)
+- [ ] T006 [P] Hoàn thiện app Flutter chung `mobile/pubspec.yaml` (đã có http, flutter_test): thêm drift; `mobile/lib/main.dart` mở màn đăng nhập rồi chuyển sang phần nhân viên hoặc phần người thân theo loại tài khoản (Q-346; R-01, R-13)
+- [ ] T007 [P] Tạo khung thư mục hai phần của app chung: `mobile/lib/nhan-vien/`, `mobile/lib/nguoi-than/` (tên logic, dịch theo glossary), dùng chung `mobile/lib/chung/` (phần người thân không có màn hình của 000)
+- [ ] T008 [P] Cấu hình lint/format: Checkstyle hoặc Spotless trong `backend/pom.xml`, ESLint (`frontend/eslint.config.js` đã có, bổ sung cho TypeScript) + Prettier, `mobile/analysis_options.yaml`
+- [ ] T009 [P] Dựng lớp cơ sở test tích hợp `BT/support/MySqlIntegrationTestBase.java` chạy trên MySQL 8.0 cài trên máy (schema `eldercare_test`, kết nối từ biến môi trường `TEST_DB_URL`, `TEST_DB_ADMIN_USER`, `TEST_DB_ADMIN_PASSWORD`), xóa và tạo lại schema, tạo hai tài khoản `eldercare_app` và `eldercare_luu_tru` với quyền đúng R-05 trước khi Flyway chạy (R-14)
+- [ ] T010 [P] Thiết lập sinh client API: script `frontend/scripts/gen-api.mjs` sinh `frontend/src/api/` từ `specs/*/contracts/api-*.yaml` (bản đã dịch tiếng Anh, R-03); script tương tự cho `mobile/lib/chung/api/`
 
 ---
 
@@ -115,7 +115,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 ### Tests cho User Story 1
 
-- [ ] T040 [P] [US1] Test `BT/m15/NhomDuLieuArchTest.java`: mọi `@Entity` có đúng một `@NhomDuLieu`; entity nhóm 2, 3 không có setter trạng thái công khai; phương thức `@LenhNghiepVu(batBuocLyDo=true)` có tham số `LyDo` (FR-001, FR-005, FR-007)
+- [ ] T040 [P] [US1] Test `BT/m15/NhomDuLieuArchTest.java`: mọi `@Entity` có đúng một `@NhomDuLieu`; entity nhóm 2, 3 không có setter trạng thái công khai và không mang Lombok `@Data`, `@Setter` (R-05); phương thức `@LenhNghiepVu(batBuocLyDo=true)` có tham số `LyDo` (FR-001, FR-005, FR-007)
 - [ ] T041 [P] [US1] Test `BT/m15/DanhMucMauIT.java`: xóa mục chưa dùng → 204; xóa mục đã được bản ghi nhóm 2/3 (kể cả Nháp, Hủy) tham chiếu → 409 `DANH_MUC_DA_DUOC_THAM_CHIEU`; nhật ký của chính mục không tính; mục Ngừng hiệu lực không chọn được cho nghiệp vụ mới nhưng vẫn hiển thị trong bản ghi cũ; kích hoạt lại khi có mục Hiệu lực trùng tên → 409 (US1 #1, #2, #8; FR-002, FR-003, BR-M15-06)
 - [ ] T042 [P] [US1] Test `BT/m15/PhienBanKhongChongKhoangIT.java`: hai luồng đồng thời thêm phiên bản giao khoảng hiệu lực, chỉ một thành công (FR-008, BR-M15-07)
 - [ ] T043 [P] [US1] Test `BT/m15/NhomGhiNhanCoTriggerIT.java`: đối chiếu danh sách entity `@NhomDuLieu(GHI_NHAN)` với `information_schema.TRIGGERS`; `UPDATE`/`DELETE` trực tiếp bằng `eldercare_app` trên bảng mẫu nhóm 3 bị MySQL chặn (thiếu quyền hoặc `SQLSTATE 45000`) (US1 #7, SC-002, FR-009, FR-010, BR-M15-03)
@@ -183,7 +183,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 - [ ] T070 [P] [US3] Tạo SPI `BE/m15/luutru/api/LuuTruProvider.java` (`loaiDuLieu`, `loaiHan` `THEO_HO_SO`/`KHONG_GAN_HO_SO`/`DAI_HON(MaThamSo)`, `ungVienHetHan`, `thamChieuToi`, `xoa`) (contracts mục 1.7)
 - [ ] T071 [US3] Cài job `BE/m15/luutru/lich/LoaiBoDuLieuHetHan.java` chạy hằng tháng bằng datasource `eldercare_luu_tru`: tính ứng viên theo CFG-M15-03, CFG-M15-04 đọc lúc chạy, dựng chuỗi (gốc, đính chính, nhật ký, bản ghi tham chiếu), loại chuỗi còn phần tử chưa hết hạn, xóa từng chuỗi một transaction, ghi tóm tắt `LOAI_BO_DU_LIEU_HET_HAN` bằng `ghiNgoaiTransaction` (R-11)
 - [ ] T072 [P] [US3] Cài `LuuTruProvider` cho `nhat_ky`, `dinh_chinh`, `yeu_cau_phe_duyet` trong `BE/m15/luutru/internal/` (nhật ký gắn hồ sơ theo `nguoi_cao_tuoi_id`, FR-050)
-- [ ] T073 [P] [US3] Tạo màn tra nhật ký `web/src/tinh-nang/nhat-ky/NhatKyBang.tsx` (lọc đối tượng, người, thời gian; hiển thị "đã thay đổi" cho trường bị che; ngày dd/MM/yyyy) và test `web/src/tinh-nang/nhat-ky/NhatKyBang.test.tsx` (NFR-10, NFR-11)
+- [ ] T073 [P] [US3] Tạo màn tra nhật ký `frontend/src/tinh-nang/nhat-ky/NhatKyBang.tsx` (lọc đối tượng, người, thời gian; hiển thị "đã thay đổi" cho trường bị che; ngày dd/MM/yyyy) và test `frontend/src/tinh-nang/nhat-ky/NhatKyBang.test.tsx` (NFR-10, NFR-11)
 
 **Checkpoint**: Nhật ký tra cứu, che trường và loại bỏ dữ liệu hoạt động.
 
@@ -207,7 +207,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 - [ ] T079 [US4] Cài `BE/m15/thamso/internal/KiemTraThamSo.java` và lệnh `doiGiaTri` trong `ThamSoService.java`: `UPDATE tham_so … WHERE ma=? AND phien_ban=?` → 0 dòng thì 412; `INSERT lich_su_tham_so`; `INSERT nhat_ky` cùng transaction; khóa quyền `THAM_SO_DOI` qua `QuyenApi`; phát `ThamSoDaDoi` và xóa bộ đệm ở pha `AFTER_COMMIT` (FR-014 → FR-018, FR-020, FR-021)
 - [ ] T080 [US4] Tạo controller `BE/m15/thamso/web/ThamSoController.java` cho `GET /tham-so`, `GET /tham-so/{ma}` (ETag), `POST /tham-so/{ma}/doi-gia-tri`, `GET /tham-so/{ma}/lich-su?taiThoiDiem=` theo contracts/api-000.yaml; không có API tạo hay xóa mã (FR-011)
-- [ ] T081 [P] [US4] Tạo màn `web/src/tinh-nang/tham-so/ThamSoDanhSach.tsx`, `ThamSoForm.tsx` (lý do bắt buộc; 412 hiện giá trị mới), `ThamSoLichSu.tsx`, và test `web/src/tinh-nang/tham-so/ThamSoForm.test.tsx`
+- [ ] T081 [P] [US4] Tạo màn `frontend/src/tinh-nang/tham-so/ThamSoDanhSach.tsx`, `ThamSoForm.tsx` (lý do bắt buộc; 412 hiện giá trị mới), `ThamSoLichSu.tsx`, và test `frontend/src/tinh-nang/tham-so/ThamSoForm.test.tsx`
 
 **Checkpoint**: Tham số đổi được qua màn hình, có hiệu lực ngay.
 
@@ -240,8 +240,8 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 - [ ] T094 [US5] Cài job `BE/m15/pheduyet/lich/NhacYeuCauChoDuyet.java` và `BE/m15/pheduyet/internal/NhacQuaHanImpl.java`: mốc CFG-M15-05, CFG-M15-06 (hoặc `thamSoNhacRieng()`); danh sách người duyệt, `conNguoiDuyet` và điều kiện "người duyệt không phải Quản lý viện" của mốc CFG-M15-06 tính theo contracts mục 1.5 "Danh sách người duyệt" (lọc `gioiHanVaiTroDuyet`); đặt `da_nhac_luc`, `da_bao_qlv_luc`, ghi `YC_NHAC`, `YC_BAO_QLV` có căn cứ CFG (BR-M15-09, FR-031a)
 - [ ] T095 [US5] Tạo controller `BE/m15/pheduyet/web/YeuCauPheDuyetController.java`: `POST/GET /yeu-cau-phe-duyet`, `GET /yeu-cau-phe-duyet/{id}` (kèm `lenhDuocPhep`, tính cùng điều kiện quyền, phạm vi, `gioiHanVaiTroDuyet` như lệnh), `POST …/{id}/sua-noi-dung`, `…/gui-duyet`, `…/duyet`, `…/tu-choi`, `…/huy` với `If-Match` theo contracts/api-000.yaml
 - [ ] T096 [P] [US5] Cài handler mẫu `BT/m15/mau/YeuCauMauHandler.java` cho `M15.MAU` (bật/tắt "điều kiện không thỏa", "lỗi khi áp dụng", "giới hạn vai trò duyệt") dùng cho T083–T088, T105 và quickstart K6–K13, K21
-- [ ] T097 [P] [US5] Tạo hộp duyệt web `web/src/tinh-nang/yeu-cau-phe-duyet/HopDuyet.tsx`, `ChiTietYeuCau.tsx` (nút theo `lenhDuocPhep`, ý kiến bắt buộc khi từ chối hoặc tự duyệt, xử lý 409/412) và test `HopDuyet.test.tsx`
-- [ ] T098 [P] [US5] Tạo hộp duyệt app nhân viên `app-nhan-vien/lib/tinh-nang/yeu-cau-phe-duyet/hop_duyet.dart` (chỉ trực tuyến, R-13) và test `app-nhan-vien/test/hop_duyet_test.dart`
+- [ ] T097 [P] [US5] Tạo hộp duyệt web `frontend/src/tinh-nang/yeu-cau-phe-duyet/HopDuyet.tsx`, `ChiTietYeuCau.tsx` (nút theo `lenhDuocPhep`, ý kiến bắt buộc khi từ chối hoặc tự duyệt, xử lý 409/412) và test `HopDuyet.test.tsx`
+- [ ] T098 [P] [US5] Tạo hộp duyệt app nhân viên `mobile/lib/nhan-vien/yeu-cau-phe-duyet/hop_duyet.dart` (chỉ trực tuyến, R-13) và test `mobile/test/nhan-vien/hop_duyet_test.dart`
 
 **Checkpoint**: Mọi user story của 000 chạy độc lập; module khác đăng ký handler và provider.
 
@@ -249,8 +249,8 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 ## Phase 8: Polish & Cross-Cutting
 
-- [ ] T099 [P] Xử lý chung trên web `web/src/chung/loi.ts`: hiển thị Problem Details, `dieuKienChuaThoa[]`, 412 hiện giá trị mới; định dạng ngày dd/MM/yyyy, giao diện tiếng Việt (NFR-11)
-- [ ] T100 [P] Hàng đợi ngoại tuyến dùng chung `app-nhan-vien/lib/chung/ngoai_tuyen/hang_doi.dart` (drift): phong bì `Idempotency-Key`, `thoiDiemThietBi`, nhận `KetQuaDongBo`; chi tiết quy tắc ở plan 002, 005 (R-13)
+- [ ] T099 [P] Xử lý chung trên web `frontend/src/chung/loi.ts`: hiển thị Problem Details, `dieuKienChuaThoa[]`, 412 hiện giá trị mới; định dạng ngày dd/MM/yyyy, giao diện tiếng Việt (NFR-11)
+- [ ] T100 [P] Hàng đợi ngoại tuyến dùng chung `mobile/lib/chung/ngoai_tuyen/hang_doi.dart` (drift): phong bì `Idempotency-Key`, `thoiDiemThietBi`, nhận `KetQuaDongBo`; chi tiết quy tắc ở plan 002, 005 (R-13)
 - [ ] T101 [P] Công cụ sinh dữ liệu quy mô NFR-01 với 1 năm nhật ký (~22 triệu dòng) `backend/tools/sinh-du-lieu/` để đo SC-006 (quickstart mục 5)
 - [ ] T102 Viết quy trình vận hành `backend/docs/van-hanh.md`: sao lưu hằng ngày giữ 30 ngày, bản khôi phục không làm sống lại dữ liệu đã loại bỏ, bảo trì ngoài khung giao ca (NFR-05, NFR-06)
 - [ ] T103 Chạy `./mvnw verify` và toàn bộ quickstart.md mục 3 (K1–K20) ở profile `demo`; đo SC-006, SC-007 theo quickstart mục 5

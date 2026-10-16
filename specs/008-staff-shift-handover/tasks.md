@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4 và data-model.md mục 11.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Module M09: `BE/m09/{api,nhanvien,giayphep,lichca,phancong,tyle,bangiao,nhiemvu,lich}/`; port nội bộ cho 015 ở `BE/m09/lichca/port/`, `BE/m09/phancong/port/`
-- Web `web/src/tinh-nang/{nhan-vien,lich-ca,phan-cong,ty-le-phuc-vu,ban-giao}/`; app nhân viên `app-nhan-vien/lib/tinh-nang/{ca-cua-toi,ban-giao,vang-ca,phan-cong}/`
+- Web `frontend/src/tinh-nang/{nhan-vien,lich-ca,phan-cong,ty-le-phuc-vu,ban-giao}/`; app nhân viên `mobile/lib/nhan-vien/{ca-cua-toi,ban-giao,vang-ca,phan-cong}/`
 
 ---
 
@@ -64,7 +64,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 - [ ] T013 [US2] Cài `BE/m09/lichca/internal/LichCaService.java`: mẫu ca (AC-01), lịch Nháp, thêm ca và nhân viên (khóa `nhan_vien`, chồng giờ, `ChuoiCaLienTuc`, chứng chỉ), người phụ trách ca, Bác sĩ trực, xem trước công bố, công bố (tự duyệt, lý do; `KiemTraCongBoMoRong` của 015; lưu `ban_cong_bo_lich`; phân công Nháp → Tương lai/Hiệu lực) (research N-06)
 - [ ] T014 [US2] Đăng ký việc theo phút: ca `DA_CONG_BO → DANG_DIEN_RA → DA_DONG/CHO_BAN_GIAO`
 - [ ] T015 [US2] Cài `CaTrucApi`, `NhanSuCaPort` (005), `DieuDuongCaPort` (006), `NhanSuCanhBaoPort` (007), `ThamChieuViTri` (003) trong `BE/m09/nhiemvu/internal/TraCuuCaService.java` (người phụ trách ca theo thời điểm, Bác sĩ trực nhiều người, có tên trong ca) (research N-11)
-- [ ] T016 [US2] Tạo `BE/m09/lichca/web/LichCaController.java`: `/mau-ca`, `/{id}`, `/lich-ca`, `/lich-ca/{id}/ca`, `/ca/{id}`, `/lich-ca/{id}/xem-truoc-cong-bo`, `/cong-bo`, `GET /toi/ca`, `GET /bac-si-truc`; màn web `web/src/tinh-nang/lich-ca/` (cảnh báo xác nhận, danh sách chặn công bố) với test Vitest; app `app-nhan-vien/lib/tinh-nang/ca-cua-toi/`
+- [ ] T016 [US2] Tạo `BE/m09/lichca/web/LichCaController.java`: `/mau-ca`, `/{id}`, `/lich-ca`, `/lich-ca/{id}/ca`, `/ca/{id}`, `/lich-ca/{id}/xem-truoc-cong-bo`, `/cong-bo`, `GET /toi/ca`, `GET /bac-si-truc`; màn web `frontend/src/tinh-nang/lich-ca/` (cảnh báo xác nhận, danh sách chặn công bố) với test Vitest; app `mobile/lib/nhan-vien/ca-cua-toi/`
 
 **Checkpoint**: Lịch ca chạy độc lập.
 
@@ -86,7 +86,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 - [ ] T019 [US3] Tạo `MIG/V008_03__phan_cong.sql`: `tang_ca_khoa` (`tang_khu_vuc_id` khóa chính), `giao_truong_tang` (`trang_thai` `HIEU_LUC|DA_KET_THUC`), `phan_cong` (`loai_doi_tuong` `TANG|KHU_VUC|PHONG|NGUOI_CAO_TUOI`; `chinh_ho_tro`; `dieu_duong_phu_trach`; `trang_thai ENUM('NHAP','TUONG_LAI','HIEU_LUC','DA_KET_THUC','DA_HUY')`; `nguon` `LAP_TAY|SAO_CHEP|DOI_CA_015`; ba chỉ mục) (data-model mục 5)
 - [ ] T020 [US3] Cài `BE/m09/phancong/internal/PhanCongService.java`: giao/kết thúc Trưởng tầng, lập (yêu cầu loại công việc qua `LoaiCongViecApi.yeuCau`; nghiệp vụ "phát thuốc" qua `NghiepVuChuyenMonApi.loaiYeuCau`), hủy, kết thúc (gọi `CongViecCaApi.khiKetThucPhanCong`), sao chép; nhắc người cao tuổi chưa có người phụ trách; việc theo phút chuyển trạng thái phân công (research N-08)
 - [ ] T021 [US3] Cài `PhanCongApi`, `NhiemVuApi` (002; gồm `nguoiThayTruongTang`, `boPhanCua`, `laPhuTrachBoPhan`) trong `BE/m09/nhiemvu/internal/`
-- [ ] T022 [US3] Tạo `BE/m09/phancong/web/PhanCongController.java`: `/giao-truong-tang`, `/{id}/ket-thuc`, `/ca/{id}/phan-cong`, `/phan-cong/{id}`, `/huy`, `/ket-thuc`, `/ca/{id}/sao-chep-phan-cong`; màn web `web/src/tinh-nang/phan-cong/`, app `app-nhan-vien/lib/tinh-nang/phan-cong/`
+- [ ] T022 [US3] Tạo `BE/m09/phancong/web/PhanCongController.java`: `/giao-truong-tang`, `/{id}/ket-thuc`, `/ca/{id}/phan-cong`, `/phan-cong/{id}`, `/huy`, `/ket-thuc`, `/ca/{id}/sao-chep-phan-cong`; màn web `frontend/src/tinh-nang/phan-cong/`, app `mobile/lib/nhan-vien/phan-cong/`
 
 **Checkpoint**: Phân công chạy độc lập.
 
@@ -109,8 +109,8 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 - [ ] T026 [US1] Tạo `MIG/V008_04__ban_giao.sql`: `ban_giao` (`ca_id UNIQUE`; `trang_thai ENUM('BAN_NHAP','DA_LAP','CO_Y_KIEN','DA_XAC_NHAN')`; trigger chặn đổi khi `DA_XAC_NHAN`, chặn đổi `chot_luc` đã có), `muc_ban_giao` (nhóm 3 có bản nháp; `nhom` 9 giá trị ở data-model mục 7; trigger khóa sau `chot_luc`), `nhan_dinh_ban_giao` (`loai` `CHUNG|THEO_NGUOI_CAO_TUOI`), `y_kien_ban_giao`, `phan_hoi_y_kien` (chỉ thêm)
 - [ ] T027 [US1] Cài `BE/m09/bangiao/internal/BanGhiNguonBanGiaoService.java`: đọc song song `CongViecBanGiaoApi`, `LieuBanGiaoApi`, `ChiSoApi.vuotNguongTrongKhoang`, `CanhBaoBanGiaoApi.dangMo`, `LuotVangApi`, `TrangThaiNguoiCaoTuoiApi.khoangTrangThai`, `TinhTrangGiuongApi.choSanSangQuaHan`, `DoGuiBanGiaoPort`, `ChuyenDiNhiemVuPort` (research N-10; Q-307)
 - [ ] T028 [US1] Cài `BE/m09/bangiao/internal/BanGiaoService.java`: lập (người phụ trách ca hoặc Trưởng tầng từ mốc FR-039), thêm/xóa mục ở Bản nháp (`If-Match`), nhận định, hoàn tất (`chot_luc`; ca `CHO_BAN_GIAO → DA_DONG`), xác nhận (`XacDinhCaSau`; nguyên tử với 005, 007), ý kiến, bổ sung gửi lại; `DinhChinhDuocProvider` `M09.BAN_GIAO`; nhắc trong việc theo phút
-- [ ] T029 [US1] Tạo `BE/m09/bangiao/web/BanGiaoController.java`: `POST/GET /ca/{id}/ban-giao`, `GET /ban-giao/{id}`, `/ban-ghi-nguon`, `/muc`, `/muc/{mucId}`, `/nhan-dinh`, `POST /hoan-tat`, `/xac-nhan`, `/y-kien`, `/bo-sung-gui-lai`; màn web `web/src/tinh-nang/ban-giao/` với test Vitest (không có nút "chép tất cả", mục không bỏ được, lỗi thiếu ghi chú)
-- [ ] T030 [P] [US1] Tạo app `app-nhan-vien/lib/tinh-nang/ban-giao/` (xem ngoại tuyến trong phạm vi ca; lệnh chỉ trực tuyến) và test `app-nhan-vien/test/ban_giao_ngoai_tuyen_chi_xem_test.dart`, `xoa_ban_giao_khi_het_pham_vi_ca_test.dart`
+- [ ] T029 [US1] Tạo `BE/m09/bangiao/web/BanGiaoController.java`: `POST/GET /ca/{id}/ban-giao`, `GET /ban-giao/{id}`, `/ban-ghi-nguon`, `/muc`, `/muc/{mucId}`, `/nhan-dinh`, `POST /hoan-tat`, `/xac-nhan`, `/y-kien`, `/bo-sung-gui-lai`; màn web `frontend/src/tinh-nang/ban-giao/` với test Vitest (không có nút "chép tất cả", mục không bỏ được, lỗi thiếu ghi chú)
+- [ ] T030 [P] [US1] Tạo app `mobile/lib/nhan-vien/ban-giao/` (xem ngoại tuyến trong phạm vi ca; lệnh chỉ trực tuyến) và test `mobile/test/nhan-vien/ban_giao_ngoai_tuyen_chi_xem_test.dart`, `xoa_ban_giao_khi_het_pham_vi_ca_test.dart`
 
 **Checkpoint**: P1 hoàn tất: lịch ca → phân công → bàn giao.
 
@@ -131,7 +131,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 - [ ] T033 [US4] Cài lệnh Cho nghỉ việc (hiệu lực ngay hoặc tương lai qua việc theo phút), Nhận lại làm việc, đổi bộ phận, chỉ định Phụ trách bộ phận trong `NhanVienService.java` (research N-04)
 - [ ] T034 [US4] Cài gia hạn, thu hồi, sửa sai chứng chỉ trong `ChungChiService.java`; việc theo phút chứng chỉ hết hiệu lực theo mốc; việc hằng ngày cảnh báo đào tạo sắp hết hạn (CFG-M09-03), bộ phận chưa có Phụ trách (research N-05)
-- [ ] T035 [US4] Bổ sung endpoint `POST /nhan-vien/{id}/cho-nghi-viec`, `/nhan-lai-lam-viec`, `/doi-bo-phan`, `GET /bo-phan`, `POST /bo-phan/{id}/chi-dinh-phu-trach`, `POST /chung-chi/{id}/gia-han`, `/thu-hoi`, `/sua-sai`; màn web `web/src/tinh-nang/nhan-vien/`
+- [ ] T035 [US4] Bổ sung endpoint `POST /nhan-vien/{id}/cho-nghi-viec`, `/nhan-lai-lam-viec`, `/doi-bo-phan`, `GET /bo-phan`, `POST /bo-phan/{id}/chi-dinh-phu-trach`, `POST /chung-chi/{id}/gia-han`, `/thu-hoi`, `/sua-sai`; màn web `frontend/src/tinh-nang/nhan-vien/`
 
 **Checkpoint**: Hồ sơ nhân viên đầy đủ.
 
@@ -150,7 +150,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 ### Implementation cho User Story 5
 
 - [ ] T037 [US5] Tạo bảng `lan_tinh_ty_le` (nhóm 3; `su_kien` 10 giá trị; `tong_trong_so DECIMAL(8,2)`) trong `MIG/V008_05__ty_le.sql`; cài `BE/m09/tyle/internal/TyLePhucVuService.java` (`TinhTyLePhucVu`; listener `MucChamSocDaDoi`, `NguoiCaoTuoiDaChuyenTrangThai`, `PhanBoDaBatDau`, `PhanBoDaDong`, `DaChuyenGiuong`; cảnh báo một lần qua `dang_duoi_nguong`), việc hằng giờ ca sắp bắt đầu dưới ngưỡng (CFG-M09-08); `NhanSuThongKeApi` (016) (research N-09)
-- [ ] T038 [US5] Tạo endpoint `GET /ca/{id}/ty-le-phuc-vu` và màn web `web/src/tinh-nang/ty-le-phuc-vu/`
+- [ ] T038 [US5] Tạo endpoint `GET /ca/{id}/ty-le-phuc-vu` và màn web `frontend/src/tinh-nang/ty-le-phuc-vu/`
 
 **Checkpoint**: Tỷ lệ phục vụ chạy độc lập.
 
@@ -169,7 +169,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 ### Implementation cho User Story 6
 
 - [ ] T040 [US6] Cài lệnh bổ sung nhân viên, chuyển người phụ trách ca, ghi nhận vắng, hủy ca trong `BE/m09/lichca/internal/LenhSauCongBoService.java`; port `BE/m09/lichca/port/CaLenhPort.java` và `BE/m09/phancong/port/PhanCongLenhPort.java` cho 015 (research N-07)
-- [ ] T041 [US6] Bổ sung endpoint `POST /ca/{id}/bo-sung-nhan-vien`, `/chuyen-nguoi-phu-trach`, `/ghi-nhan-vang`, `/huy`, `GET /nhat-ky-can-cu-nhiem-vu`; app `app-nhan-vien/lib/tinh-nang/vang-ca/` và test `app-nhan-vien/test/ghi_nhan_vang_ca_test.dart`
+- [ ] T041 [US6] Bổ sung endpoint `POST /ca/{id}/bo-sung-nhan-vien`, `/chuyen-nguoi-phu-trach`, `/ghi-nhan-vang`, `/huy`, `GET /nhat-ky-can-cu-nhiem-vu`; app `mobile/lib/nhan-vien/vang-ca/` và test `mobile/test/nhan-vien/ghi_nhan_vang_ca_test.dart`
 
 **Checkpoint**: Mọi user story của 008 chạy độc lập.
 

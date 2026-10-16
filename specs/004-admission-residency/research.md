@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## T-01. Vị trí trong backend
 
-**Quyết định**: Feature 004 là module M02 (mục 6). Gói `vn.eldercare.m02` có các gói con:
+**Quyết định**: Feature 004 là module M02 (mục 6). Gói `com.cambae.backend.m02` có các gói con:
 
 | Gói | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -329,7 +329,7 @@ Nội dung tài chính của hợp đồng (FR-028) mang `@NhomTruong(TAI_CHINH)
 
 **Quyết định** (theo 000 R-14):
 - **Hàm thuần có test đơn vị bảng**: `TinhDiemUuTien`, `TraChinhSachVang` (phủ mọi dòng 6.7, ghi đè, "Theo hợp đồng", "Quản lý quyết định" ngày 1, không có dòng — SC-006), `XacDinhKhacChuan`, `NoiDungTaiNgay`.
-- **Cơ sở dữ liệu** (Testcontainers): trigger chống chồng hợp đồng và phiên bản đơn giá; trigger khóa nội dung hợp đồng ngoài Nháp; bất biến lượt vắng đã đóng; cột sinh `UNIQUE`.
+- **Cơ sở dữ liệu** (tích hợp MySQL): trigger chống chồng hợp đồng và phiên bản đơn giá; trigger khóa nội dung hợp đồng ngoài Nháp; bất biến lượt vắng đã đóng; cột sinh `UNIQUE`.
 - **Đồng thời**: hai lệnh "Ghi nhận đã ký" chồng thời gian; hai lệnh duyệt yêu cầu cùng thuộc tính; hai Hành chính cùng "Đã liên hệ" (SC-001).
 - **Đồng hồ giả lập**: 30 ngày điểm ưu tiên (SC-004); lượt vắng 35 ngày; quá hạn hợp đồng; quá ngày dự kiến; chạy bù khi bỏ lỡ 3 ngày (FR-077).
 - **Bản giả** cho các SPI 004 khai báo (010, 017, 012, 005 và năm bên cài `MucViecSauQuaDoiPort`), và cho bean `ThamGiaChuyenTrangThai` của 006, 007, 010, 013, 017 khi kiểm danh sách kết thúc. Công tắc qua `/api/v1/kiem-thu/gia-lap/{module}` như 001, 003.

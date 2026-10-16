@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## O-01. Vị trí trong backend
 
-**Quyết định**: Feature 016 là module M14 – Báo cáo (mục 18), gói `vn.eldercare.m14`, chỉ đọc. Gói con:
+**Quyết định**: Feature 016 là module M14 – Báo cáo (mục 18), gói `com.cambae.backend.m14`, chỉ đọc. Gói con:
 
 | Gói con | Nội dung |
 | --- | --- |
@@ -89,7 +89,7 @@ Giao diện dùng (đã khai ở hợp đồng các feature):
 ## O-06. Dashboard (FR-020, FR-021; SC-002, SC-009)
 
 **Quyết định**:
-- `GET /dashboard` trả các khối được phép theo vai trò và phạm vi hiện hành; mỗi khối một lời gọi API thống kê "đếm theo nhóm" (không tải bản ghi), chạy song song bằng virtual threads (Java 21) với thời hạn chung 2,5 giây; khối quá hạn trả "đang cập nhật" thay vì chặn cả trang.
+- `GET /dashboard` trả các khối được phép theo vai trò và phạm vi hiện hành; mỗi khối một lời gọi API thống kê "đếm theo nhóm" (không tải bản ghi), chạy song song bằng virtual threads (Java 25) với thời hạn chung 2,5 giây; khối quá hạn trả "đang cập nhật" thay vì chặn cả trang.
 - Làm mới: web gọi lại mỗi 30 giây với `If-None-Match` (ETag là băm kết quả); không đổi → 304. Đáp ứng "≤ 1 phút" (SC-002) mà không cần kênh đẩy riêng.
 - Bộ đệm phía máy chủ 20 giây, khóa theo (khối, băm phạm vi) — không chia sẻ giữa người có phạm vi khác nhau.
 - Không có lệnh xuất từ dashboard.

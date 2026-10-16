@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Đây 
 
 ## H-01. Vị trí trong backend
 
-**Quyết định**: Feature 001 là module **M01** (`vn.eldercare.m01`). Gói con:
+**Quyết định**: Feature 001 là module **M01** (`com.cambae.backend.m01`). Gói con:
 
 | Gói | Nội dung | FR |
 | --- | --- | --- |
@@ -331,7 +331,7 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
 
 ## H-13. Tệp đính kèm (dùng chung)
 
-**Quyết định**: Plan 000 chưa có cơ chế tệp. 001 là feature đầu tiên cần tệp: ảnh người cao tuổi, bản scan bản đồng ý, bằng chứng rút lại, phiếu nguyện vọng, giấy tờ qua đời. Vì vậy 001 chốt một thành phần kỹ thuật dùng chung `vn.eldercare.common.tep`; đã ghi bổ sung vào hợp đồng của 000.
+**Quyết định**: Plan 000 chưa có cơ chế tệp. 001 là feature đầu tiên cần tệp: ảnh người cao tuổi, bản scan bản đồng ý, bằng chứng rút lại, phiếu nguyện vọng, giấy tờ qua đời. Vì vậy 001 chốt một thành phần kỹ thuật dùng chung `com.cambae.backend.common.tep`; đã ghi bổ sung vào hợp đồng của 000.
 
 - **Lưu nội dung** trên ổ đĩa của máy chủ, trong một thư mục cấu hình được (volume của container). Tên tệp là UUID. Thư mục này được sao lưu cùng MySQL theo NFR-06.
 - **Bảng `tep`** (kỹ thuật, ghi một lần): `id`, `uuid`, `ten_goc`, `kieu_mime`, `kich_thuoc`, `sha256`, `tai_len_boi`, `tai_len_luc`, `chu_so_huu_loai`, `chu_so_huu_id`, `gan_luc`.
@@ -376,7 +376,7 @@ Nội dung cho kênh ngoài ứng dụng không chứa họ tên hay thông tin 
 **Quyết định**: Theo 000 R-14 và 002 A-14.
 - **Tên test** theo BR hoặc FR, ví dụ `BR_M01_04_chuyenNgoaiBang_tuChoi`, `FR_045_thieuNhieuDieuKien_lietKeDu`.
 - **Bean giả** cho mọi `ThamGiaChuyenTrangThai` của 003, 004, 005, 006, 007, 010, 011, 012, 013, 014. Mỗi bean giả trả Đạt hoặc Chưa đạt theo cấu hình test (spec CHK035, CHK045). Có thêm một bean giả ném lỗi ở `thucHienTacDong` để chứng minh rollback (FR-047).
-- **Testcontainers MySQL 8.4**: chạy cột sinh, `UNIQUE`, `CHECK` và trigger của data-model mục 9. Gồm test chứng minh DBR-01, 03, 04, 05, 34 ở tầng cơ sở dữ liệu.
+- **Test tích hợp MySQL (000 R-14)**: chạy cột sinh, `UNIQUE`, `CHECK` và trigger của data-model mục 9. Gồm test chứng minh DBR-01, 03, 04, 05, 34 ở tầng cơ sở dữ liệu.
 - **Đồng thời**: hai luồng gửi Cho tạm vắng và Chuyển viện trên cùng hồ sơ (FR-048); hai luồng ghi bản đồng ý (FR-013).
 - **Đồng hồ giả lập** cho CFG-M01-01, 02, 03, 06, CFG-M03-02 (SC-007, SC-013).
 - **Client**:

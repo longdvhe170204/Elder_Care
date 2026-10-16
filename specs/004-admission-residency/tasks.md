@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4 và data-model.md mục 15.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Module M02: `BE/m02/{api,dangky,danhsachcho,hopdong,dichvu,thaydoi,vang,ketthuc,quadoi,tinhphi,trangthai,lich}/`
-- Web `web/src/tinh-nang/{dang-ky-tiep-nhan,danh-sach-cho,hop-dong,dich-vu-don-gia,yeu-cau-thay-doi,vang-mat,ket-thuc-luu-tru,qua-doi}/`; app nhân viên `app-nhan-vien/lib/tinh-nang/vang-mat/`; app người thân `app-nguoi-than/lib/tinh-nang/{hop-dong,yeu-cau-thay-doi,luu-tru}/`
+- Web `frontend/src/tinh-nang/{dang-ky-tiep-nhan,danh-sach-cho,hop-dong,dich-vu-don-gia,yeu-cau-thay-doi,vang-mat,ket-thuc-luu-tru,qua-doi}/`; app nhân viên `mobile/lib/nhan-vien/vang-mat/`; app người thân `mobile/lib/nguoi-than/{hop-dong,yeu-cau-thay-doi,luu-tru}/`
 
 ---
 
@@ -67,7 +67,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 - [ ] T016 [US1] Cài `BE/m02/dangky/internal/LuotDangKyService.java` (lập khi người Đang tiếp nhận, cập nhật, tiến trình) và `DieuKienTiepNhanService.java` (`DieuKienTiepNhanApi` qua `TrangThaiNguoiCaoTuoiApi.xemDieuKien`, đủ (a) → (f), (f) lấy điều kiện `DBR_02` của 012; cảnh báo FR-076 trên danh sách và nhắc hằng ngày qua việc `NHAC` của `ViecHangNgayM02.java`) (research T-09)
 - [ ] T017 [US1] Cài trong `ThamGiaM02.java` phần `HOAN_TAT_TIEP_NHAN` (điều kiện 004: hợp đồng Hiệu lực, không sớm hơn ngày bắt đầu, mức trùng, đặt cọc qua `TrangThaiDatCocPort`; tác động: lượt `DA_TIEP_NHAN`, phát `TiepNhanHoanTat`) và `HUY_TIEP_NHAN` (lượt `DA_HUY`, hợp đồng Nháp/Chờ ký → `DA_HUY`, đóng hồ sơ chờ) (FR-002, FR-004)
 - [ ] T018 [US1] Tạo `BE/m02/dangky/web/LuotDangKyController.java`: `POST/GET /luot-dang-ky`, `GET /luot-dang-ky/{id}`, `POST …/{id}/cap-nhat`, `GET …/{id}/dieu-kien-tiep-nhan`, `…/tien-trinh`
-- [ ] T019 [P] [US1] Tạo màn web `web/src/tinh-nang/dang-ky-tiep-nhan/` và test `DieuKienTiepNhan.test.tsx`; app người thân `app-nguoi-than/lib/tinh-nang/luu-tru/` (tiến trình tiếp nhận)
+- [ ] T019 [P] [US1] Tạo màn web `frontend/src/tinh-nang/dang-ky-tiep-nhan/` và test `DieuKienTiepNhan.test.tsx`; app người thân `mobile/lib/nguoi-than/luu-tru/` (tiến trình tiếp nhận)
 
 **Checkpoint**: Đăng ký và điều kiện tiếp nhận chạy được.
 
@@ -92,7 +92,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 - [ ] T025 [US2] Cài `BE/m02/danhsachcho/internal/HoSoChoService.java`: đưa vào danh sách, cập nhật tình huống, đề nghị điều chỉnh điểm (handler `M02.DIEU_CHINH_DIEM`), ghi nhận đã liên hệ (`giuChoHoSoCho` của 003), từ chối giường (`huyGiuCho`), từ chối/hủy chờ qua 001, xác nhận còn nhu cầu; listener `GiuongDaTrong` phát `GiuongTrongCanChonHoSo`; cài `hoSoChoHetHanGiuCho`, `daPhanBo` của `NguonLuuTruChoPhanBo`
 - [ ] T026 [US2] Tạo `BE/m02/danhsachcho/web/HoSoChoController.java`: `/ho-so-cho`, `/{id}`, `/{id}/lich-su-diem`, `/{id}/cap-nhat-tinh-huong`, `/{id}/de-nghi-dieu-chinh-diem`, `GET /giuong/{giuongId}/ho-so-phu-hop`, `/{id}/ghi-nhan-da-lien-he`, `/tu-choi-giuong`, `/tu-choi`, `/huy-cho`, `/xac-nhan-con-nhu-cau`
 - [ ] T027 [US2] Đăng ký phần nhắc hồ sơ chờ (CFG-M02-03, `HO_SO_CHO_CAP_NHAT`, `PHAN_BO_LAI`) vào việc `NHAC` của `ViecHangNgayM02.java`
-- [ ] T028 [P] [US2] Tạo màn web `web/src/tinh-nang/danh-sach-cho/` và test `HoSoPhuHop.test.tsx` (không chọn sẵn, lý do khi bỏ qua thứ tự)
+- [ ] T028 [P] [US2] Tạo màn web `frontend/src/tinh-nang/danh-sach-cho/` và test `HoSoPhuHop.test.tsx` (không chọn sẵn, lý do khi bỏ qua thứ tự)
 
 **Checkpoint**: Danh sách chờ chạy độc lập.
 
@@ -118,7 +118,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 - [ ] T035 [US3] Cài `HopDongDocApi` và `HopDongApi` (001) trên `phien_ban_noi_dung_hop_dong` (nội dung tại D: `hieu_luc_tu` lớn nhất `<= D`) trong `BE/m02/hopdong/internal/HopDongDocService.java`
 - [ ] T036 [US3] Đăng ký việc `HOP_DONG` (dấu quá hạn, báo CFG-M02-10) và nhắc `HOP_DONG_SAP_HET`, `HOP_DONG_NGAN_NGAY`, `QUA_HAN_HOP_DONG` vào `ViecHangNgayM02.java` (FR-026, FR-029)
 - [ ] T037 [US3] Tạo `BE/m02/hopdong/web/HopDongController.java`: `/hop-dong`, `/{id}`, `/{id}/dieu-khoan-khac-chuan`, `/gui-duyet-dieu-khoan`, `/gui-ky`, `/tra-ve-nhap`, `/ghi-nhan-da-ky`, `/huy`, `GET /{id}/noi-dung?ngay=`, `GET /{id}/phu-luc`
-- [ ] T038 [P] [US3] Tạo màn web `web/src/tinh-nang/hop-dong/` và test `HopDong.test.tsx` (`truongBiAn` tài chính); app người thân `app-nguoi-than/lib/tinh-nang/hop-dong/` (người đại diện xem hợp đồng, phụ lục, đặt cọc)
+- [ ] T038 [P] [US3] Tạo màn web `frontend/src/tinh-nang/hop-dong/` và test `HopDong.test.tsx` (`truongBiAn` tài chính); app người thân `mobile/lib/nguoi-than/hop-dong/` (người đại diện xem hợp đồng, phụ lục, đặt cọc)
 
 **Checkpoint**: Hợp đồng chạy độc lập.
 
@@ -160,7 +160,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 - [ ] T044 [US5] Tạo `MIG/V004_06__phu_luc.sql`: `phu_luc_hop_dong` (`yeu_cau_phe_duyet_id NOT NULL UNIQUE`; `loai_thay_doi SET('LOAI_LUU_TRU','MUC_CHAM_SOC','DICH_VU','THOI_GIAN','GIUONG','LICH_DEN')`; `trang_thai ENUM('CHO_HIEU_LUC','DA_AP_DUNG','KHONG_AP_DUNG')`; `CHECK` có `phien_ban_noi_dung_id` khi `DA_AP_DUNG`; trigger chặn sửa nội dung) và `yeu_cau_thay_doi_thuoc_tinh` (cột sinh `khoa = IF(cho_hieu_luc, CONCAT(nct_id,':',thuoc_tinh), NULL)` `UNIQUE`) (data-model mục 7)
 - [ ] T045 [US5] Cài handler `BE/m02/thaydoi/internal/ThayDoiLuuTruHandler.java` cho `M02.THAY_DOI_LUU_TRU`: `kiemTraNoiDung`, `kiemTraKhiDuyet`, `khiDuyet` (tạo phụ lục, đặt `cho_hieu_luc`, giữ giường), `kiemTraDieuKienApDung`, `apDung` (phiên bản nội dung mới, `ngay_ket_thuc_hien_hanh`, mức qua 001, giường qua 003, phát `LoaiLuuTruDaDoi`), `chuyenMoRong` `DUOC_THAY_THE`, `gioiHanVaiTroDuyet` (thay đổi nhỏ, FR-043, Q-338; hàm thuần `LaThayDoiNho`), `thayDoiNho` tính lúc đọc, không lưu trong nội dung (research T-06)
 - [ ] T046 [US5] Cài `YeuCauDoiMucApi.thayTheBoiDanhGia` (MANDATORY, qua `YeuCauPheDuyetApi.chuyenMoRong`) và `coYeuCauDoiMucChuaKetThuc`; listener `YeuCauApDungKhongThanh`, `YeuCauDaHuy` đặt phụ lục `KHONG_AP_DUNG` trong `BE/m02/thaydoi/internal/`
-- [ ] T047 [US5] Tạo `BE/m02/thaydoi/web/YeuCauThayDoiController.java` (`/yeu-cau-thay-doi-luu-tru`, `/{id}`), màn web `web/src/tinh-nang/yeu-cau-thay-doi/` và app người thân `app-nguoi-than/lib/tinh-nang/yeu-cau-thay-doi/`
+- [ ] T047 [US5] Tạo `BE/m02/thaydoi/web/YeuCauThayDoiController.java` (`/yeu-cau-thay-doi-luu-tru`, `/{id}`), màn web `frontend/src/tinh-nang/yeu-cau-thay-doi/` và app người thân `mobile/lib/nguoi-than/yeu-cau-thay-doi/`
 
 **Checkpoint**: Phụ lục có ngày hiệu lực chạy độc lập.
 
@@ -185,7 +185,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 - [ ] T053 [US6] Cài phần vắng của `ThamGiaM02.java`: `CHO_TAM_VANG` (bản ghi đón qua `BanGhiDonPort` và `daDung`; mở lượt vắng), `CHUYEN_VIEN` (mở/đổi lượt loại `BENH_VIEN`), `GHI_NHAN_TRO_VE` (đóng lượt); cài `giuGiuongKhiVang`, `LuotVangApi.dangMo`
 - [ ] T054 [US6] Cài `BE/m02/vang/internal/LuotVangService.java`: gia hạn dự kiến trở lại, quyết định giữ giường (khóa `TAM_VANG_TRO_VE, TAO` cộng kiểm `TaiKhoanApi.coVaiTro(QUAN_LY_VIEN)` trong service vì Trưởng tầng, Hành chính cũng có T ở dòng này, chú thích ⁸, Q-345; `giaiPhongGiuongKhiVang` của 003), báo vắng bán trú, ngày nghỉ bán trú; `DinhChinhDuocProvider` cho `M02.LUOT_VANG` (tính lại ngày vắng), `M02.QUYET_DINH_GIU_GIUONG`; `TrangThaiCoMatBanTruPort` dùng cho ngày bán trú
 - [ ] T055 [US6] Tạo `BE/m02/vang/web/VangController.java`: `/luot-vang`, `/{id}`, `/{id}/gia-han-du-kien`, `/{id}/quyet-dinh-giu-giuong`, `/{id}/dinh-chinh`, `/bao-vang-ban-tru`, `/ngay-nghi-ban-tru`, `/{id}/huy`
-- [ ] T056 [P] [US6] Tạo màn web `web/src/tinh-nang/vang-mat/` và app `app-nhan-vien/lib/tinh-nang/vang-mat/` (Cho tạm vắng, Gia hạn, Ghi nhận trở về; chỉ trực tuyến) với test `app-nhan-vien/test/cho_tam_vang_test.dart`, `gia_han_du_kien_test.dart`
+- [ ] T056 [P] [US6] Tạo màn web `frontend/src/tinh-nang/vang-mat/` và app `mobile/lib/nhan-vien/vang-mat/` (Cho tạm vắng, Gia hạn, Ghi nhận trở về; chỉ trực tuyến) với test `mobile/test/nhan-vien/cho_tam_vang_test.dart`, `gia_han_du_kien_test.dart`
 
 **Checkpoint**: Vắng mặt và chính sách phí chạy độc lập.
 
@@ -206,7 +206,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 - [ ] T058 [US7] Tạo `MIG/V004_08__ket_thuc.sql`: `ho_so_ket_thuc` (`truong_hop ENUM('HET_HOP_DONG','XUAT_VIEN','CHUYEN_CO_SO','CHAM_DUT_HOP_DONG')`; `CHECK (truong_hop <> 'CHUYEN_CO_SO' OR noi_chuyen_den IS NOT NULL)`; `trang_thai ENUM('DANG_CHUAN_BI','HOAN_TAT','DA_HUY')`; cột sinh `nct_dang_mo` `UNIQUE`), `ban_giao_nct` (nhóm 3; `loai_nguoi_nhan ENUM('NGUOI_THAN','CO_SO_TIEP_NHAN')`), `ngoai_le_dieu_kien` (nhóm 3; `ma_dieu_kien ENUM('KT_A_CHI_PHI','KT_B_DO_GUI','KT_C_THUOC_GUI','KT_D_CANH_BAO_SU_CO','KT_H_QUYET_TOAN')`; `yeu_cau_phe_duyet_id UNIQUE`) (data-model mục 9)
 - [ ] T059 [US7] Cài `BE/m02/ketthuc/internal/HoSoKetThucService.java` (lập, đổi ngày, hủy, bàn giao qua `BanGhiDonPort.daDung`; `DinhChinhDuocProvider` cho `M02.BAN_GIAO_NCT`) và handler `M02.NGOAI_LE_KET_THUC` (`quyenTao` gồm Kế toán khi `KT_H_QUYET_TOAN`; `apDung` thêm `ngoai_le_dieu_kien`) (research T-09)
 - [ ] T060 [US7] Cài phần `KET_THUC_LUU_TRU` của `ThamGiaM02.java`: điều kiện (e) bàn giao; `mienDieuKien` từ `ngoai_le_dieu_kien`; tác động: hợp đồng `KET_THUC`/`CHAM_DUT`, hồ sơ `HOAN_TAT`, `luu_tru_nct.da_dong_luc`, phụ lục `KHONG_AP_DUNG`, `dongDoTrangThaiCuoi` cho yêu cầu mở (000); cài `KetThucLuuTruApi`; việc `KET_THUC` và nhắc `QUA_NGAY_DU_KIEN` của job
-- [ ] T061 [US7] Tạo `BE/m02/ketthuc/web/KetThucController.java`: `/ho-so-ket-thuc`, `/{id}`, `/{id}/dieu-kien`, `/doi-ngay`, `/huy`, `/ban-giao`, `/yeu-cau-ngoai-le`; màn web `web/src/tinh-nang/ket-thuc-luu-tru/` và test `DieuKienKetThuc.test.tsx`
+- [ ] T061 [US7] Tạo `BE/m02/ketthuc/web/KetThucController.java`: `/ho-so-ket-thuc`, `/{id}`, `/{id}/dieu-kien`, `/doi-ngay`, `/huy`, `/ban-giao`, `/yeu-cau-ngoai-le`; màn web `frontend/src/tinh-nang/ket-thuc-luu-tru/` và test `DieuKienKetThuc.test.tsx`
 
 **Checkpoint**: Kết thúc lưu trú chạy với bean giả của module khác.
 
@@ -226,7 +226,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 
 - [ ] T063 [US8] Tạo `MIG/V004_09__qua_doi.sql`: `ban_ghi_qua_doi` (nhóm 3; `nct_id UNIQUE`; `nguyen_nhan VARCHAR(2000) NULL`) và `muc_viec_sau_qua_doi` (khóa chính `(ban_ghi_qua_doi_id, ma_muc)`; `ma_muc ENUM('DO_GUI','THUOC_GUI','CHI_PHI_KY_CUOI','CANH_BAO_SU_CO','QUYET_TOAN')`; `trang_thai ENUM('CHUA_HOAN_THANH','HOAN_THANH','KHONG_AP_DUNG')`) (data-model mục 10)
 - [ ] T064 [US8] Cài phần `GHI_NHAN_QUA_DOI` của `ThamGiaM02.java` (bản ghi qua đời, hợp đồng `CHAM_DUT`, `dongDoTrangThaiCuoi`) và `BE/m02/quadoi/internal/ViecSauQuaDoiService.java` (`DanhSachViecSauQuaDoiApi`; tính lại theo `MucViecSauQuaDoiPort`; đóng hồ sơ khi đủ; nhắc CFG-M02-09) và `DinhChinhDuocProvider` `M02.BAN_GHI_QUA_DOI` (research T-13)
-- [ ] T065 [US8] Tạo `BE/m02/quadoi/web/QuaDoiController.java`: `GET /nguoi-cao-tuoi/{nctId}/ban-ghi-qua-doi`, `POST /ban-ghi-qua-doi/{id}/dinh-chinh`, `GET /nguoi-cao-tuoi/{nctId}/viec-sau-qua-doi`; màn web `web/src/tinh-nang/qua-doi/`
+- [ ] T065 [US8] Tạo `BE/m02/quadoi/web/QuaDoiController.java`: `GET /nguoi-cao-tuoi/{nctId}/ban-ghi-qua-doi`, `POST /ban-ghi-qua-doi/{id}/dinh-chinh`, `GET /nguoi-cao-tuoi/{nctId}/viec-sau-qua-doi`; màn web `frontend/src/tinh-nang/qua-doi/`
 
 **Checkpoint**: Qua đời chạy độc lập.
 
@@ -245,7 +245,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 ### Implementation cho User Story 9
 
 - [ ] T067 [US9] Cài lệnh dịch vụ (tạo, sửa, ngừng hiệu lực) và phiên bản đơn giá (thêm dưới khóa `dich_vu`, đóng khoảng) trong `BE/m02/dichvu/internal/DichVuService.java` (research T-05)
-- [ ] T068 [US9] Tạo `BE/m02/dichvu/web/DichVuController.java`: `/dich-vu`, `/{id}`, `/{id}/ngung-hieu-luc`, `/{id}/phien-ban-don-gia`, `/{id}/hop-dong-lech-gia`; màn web `web/src/tinh-nang/dich-vu-don-gia/`
+- [ ] T068 [US9] Tạo `BE/m02/dichvu/web/DichVuController.java`: `/dich-vu`, `/{id}`, `/{id}/ngung-hieu-luc`, `/{id}/phien-ban-don-gia`, `/{id}/hop-dong-lech-gia`; màn web `frontend/src/tinh-nang/dich-vu-don-gia/`
 
 **Checkpoint**: Mọi user story của 004 chạy độc lập.
 

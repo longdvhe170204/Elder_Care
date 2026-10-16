@@ -35,16 +35,16 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
-**Primary Dependencies**: Như 000 → 006: Spring Boot 3.5.x, Spring Modulith 1.4.x, Flyway 11.x, springdoc-openapi 2.8.x, ShedLock, Spring Security 6.5. Web: React 19, TanStack Query. App nhân viên: Flutter, drift (hàng đợi ngoại tuyến, 000 R-13). App người thân: Flutter. Không thêm thư viện mới.
+**Primary Dependencies**: Như 000 → 006: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7. Web: React 19, TanStack Query. App nhân viên: Flutter, drift (hàng đợi ngoại tuyến, 000 R-13). App người thân: Flutter. Không thêm thư viện mới.
 
-**Storage**: MySQL 8.4 LTS. Bảng ở [data-model.md](data-model.md).
+**Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md).
 
 **Testing**:
 - Như 000 R-14.
 - Test bảng cho mười hàm thuần: `SoNguong`, `KiemTraNguong`, `KhoaLoai`, `DemLap24h`, `SutCan`, `DemDemMatNgu`, `MocTheoDoiSauNga`, `ChuoiMocDo`, `ChuoiLeoThang`, chọn phiên bản ngưỡng áp dụng.
-- Testcontainers cho cột sinh `UNIQUE` và trigger nhóm 3 có bản nháp.
+- Test tích hợp MySQL cho cột sinh `UNIQUE` và trigger nhóm 3 có bản nháp.
 - Test đồng thời: 10 phát sinh cùng khóa (SC-003); đo lại và job hết hạn; hai lần kích hoạt khẩn cấp; hai lần tiếp nhận.
 - Đồng hồ giả lập cho mọi CFG-M05, CFG-M06 theo thời gian, gồm chạy bù (FR-084).
 - Bản giả cho mọi SPI 007 khai báo (research S-22).
@@ -54,7 +54,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - App nhân viên: ghi chỉ số (có ngoại tuyến) và đo lại; nhận, tiếp nhận, xử lý cảnh báo; ghi sự cố, kích hoạt khẩn cấp (bắt buộc trực tuyến), thẻ khẩn cấp, diễn biến; dấu nguy kịch, ghi kết quả xác nhận lại.
 - App người thân: xem sự cố, chỉ số khi có bản đồng ý (qua 012); nhận thông báo khẩn cấp, tiếp xúc, nguy kịch (qua 009).
 
-**Project Type**: Web service (REST `/api/v1`), một web client và hai mobile client.
+**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung (Q-346).
 
 **Performance Goals**:
 - Ghi chỉ số ≤ 2 giây p95 (SC-002, NFR-02): đọc CFG-M06-03 một lần, một truy vấn phiên bản ngưỡng theo chỉ mục `(nct_id, chi_so_id, hieu_luc_tu)`, thêm bản ghi.
@@ -93,7 +93,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ. Mức các thông báo spec chưa nêu: plan áp nguyên tắc 3 bậc và báo lại (điểm 5). Ba chỗ spec mâu thuẫn được chọn theo FR mới hơn và báo lại (điểm 1 → 3) |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-016 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 001, 005, 006 được bổ sung (mục "Đồng bộ"), không đổi hành vi đã thiết kế |
-| X. Kiến trúc | Đạt | Một khối; gói `m05`, `m06`; module khác chỉ dùng `m05.api`, `m06.api`. Không có vòng phụ thuộc (S-02). REST `/api/v1`; MySQL; ba client. NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `m05`, `m06`; module khác chỉ dùng `m05.api`, `m06.api`. Không có vòng phụ thuộc (S-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | So ngưỡng, gộp, leo thang, chặn hồi sức, quyền ngoài phạm vi, kiểm tra giấy phép ở backend. Mỗi lệnh có `POST …/{id}/<lenh>` riêng; chuyển viện dùng lệnh của 001 |
 | XII. Dữ liệu | Đạt | DBR-18, 19, 34 bằng `UNIQUE` cột sinh và trigger; nhóm 3 theo mẫu 000; nhật ký trong transaction; `Clock`; `thoi_diem_thiet_bi` cho ngoại tuyến (DBR-25) |
 | XIII. Tham số | Đạt | Như V. Đổi khoảng vật lý, ngưỡng không đổi kết quả so đã lưu (FR-002, FR-023) |
@@ -147,7 +147,7 @@ specs/007-health-alert-incident/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m06/
+backend/src/main/java/com/cambae/backend/m06/
 ├── api/           # ChiSoApi, LichDoApi, SoLienHeVienApi, ChiSoThongKeApi, sự kiện
 ├── danhmuc/       {internal, web}   # chỉ số, thành phần
 ├── lichdo/        {internal, web}   # lịch đo, ChuoiMocDo, NguonCongViecPort LAN_DO
@@ -158,7 +158,7 @@ backend/src/main/java/vn/eldercare/m06/
 ├── trangthai/     {internal}        # bean ThamGiaChuyenTrangThai
 └── lich/                            # ViecTheoPhutM06, ViecHangNgayM06
 
-backend/src/main/java/vn/eldercare/m05/
+backend/src/main/java/com/cambae/backend/m05/
 ├── api/           # CanhBaoBanGiaoApi, SuCoLenhApi, SuCoApi, KhoanhVungApi, SucKhoeCongNguoiThanApi,
 │                  # CanhBaoThongKeApi, SPI (NhanSuCanhBaoPort, NguoiThanKhanCapPort, DiemDanhTruyVetPort, NhatKyThongBaoPort), sự kiện
 ├── canhbao/       {internal, web}   # KhoaLoai, gộp, vòng đời, ChuoiLeoThang, DemLap24h, listener yêu cầu, CanhBaoDocPort
@@ -171,7 +171,7 @@ backend/src/main/java/vn/eldercare/m05/
 ├── trangthai/     {internal}        # bean ThamGiaChuyenTrangThai, MucViecSauQuaDoiPort
 └── lich/                            # ViecTheoPhutM05
 
-web/src/tinh-nang/
+frontend/src/tinh-nang/
 ├── danh-muc-suc-khoe/       # chỉ số, loại sự cố, quy tắc xu hướng, loại diễn biến, số liên hệ
 ├── nguong-lich-do/
 ├── chi-so/                  # ghi, đo lại, lịch sử kèm ngưỡng áp dụng
@@ -181,14 +181,14 @@ web/src/tinh-nang/
 ├── lay-nhiem/               # tra cứu, danh sách tiếp xúc, khoanh vùng, người thân cần liên hệ (Hành chính)
 └── giay-phep-kham/
 
-app-nhan-vien/lib/tinh-nang/
+mobile/lib/nhan-vien/
 ├── ghi-chi-so/              # ngoại tuyến, đo lại, kết quả so
 ├── canh-bao/                # nhận, tiếp nhận, xử lý
 ├── su-co/                   # ghi nhận, kích hoạt khẩn cấp (chặn khi mất kết nối), thẻ khẩn cấp, diễn biến
 ├── nguy-kich/
 └── dong-bo/                 # kết quả đồng bộ chỉ số (BR-M15-20)
 
-app-nguoi-than/lib/tinh-nang/suc-khoe/   # sự cố, chỉ số khi có bản đồng ý (dữ liệu qua 012)
+mobile/lib/nguoi-than/suc-khoe/   # sự cố, chỉ số khi có bản đồng ý (dữ liệu qua 012)
 ```
 
 **Structure Decision**: Theo R-02 của 000. Feature 007 nằm ở hai module `backend/…/m06` và `backend/…/m05`, mỗi module có gói `api`, gói `trangthai` (SPI cài cho module thấp hơn) và gói `lich`. Web có đủ chức năng. App nhân viên có ghi chỉ số ngoại tuyến, xử lý cảnh báo, ghi sự cố và kích hoạt khẩn cấp trực tuyến. App người thân chỉ xem và nhận thông báo.

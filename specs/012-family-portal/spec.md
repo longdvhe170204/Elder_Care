@@ -713,3 +713,5 @@ Khi người thân được phép ở lại với người cao tuổi (ví dụ 
 **(2026-10-10) Plan 012, điểm báo lại 1 → 5.** *(Đã xử lý 2026-10-10: sửa bảng FR-067, bảng FR-057; FR-046c thứ hai thành FR-046d; spec 014 FR-016a ghi hai nguồn ghi đồng ý về muộn. Dẫn chiếu "4.4", mục 4.2 tra qua bảng ánh xạ ở Phụ lục 26.)*
 
 **(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-027, FR-044, FR-046a, User Story 2 (đánh số); xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+
+**(2026-10-16) Q-346: một ứng dụng di động chung cho nhân viên và người thân.** *(Đã xử lý 2026-10-16: Q-346 sửa Q-305; "app nhân viên", "app người thân" trong spec là ứng dụng chung khi dùng bằng tài khoản nhân viên, người thân; FR không đổi.)*

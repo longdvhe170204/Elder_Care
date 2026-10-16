@@ -27,18 +27,18 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307): 003 không tự lập yêu c�
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
-**Primary Dependencies**: Như 000, 001, 002: Spring Boot 3.5.x, Spring Modulith 1.4.x, Flyway 11.x, springdoc-openapi 2.8.x, ShedLock, Spring Security 6.5. Web: React 19, TanStack Query. App: Flutter. Không thêm thư viện mới. Thử lại khi deadlock dùng `@Retryable` của Spring Retry, đã có trong Spring Boot.
+**Primary Dependencies**: Như 000, 001, 002: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7. Web: React 19, TanStack Query. App: Flutter. Không thêm thư viện mới. Thử lại khi deadlock dùng `@Retryable` của Spring Retry, đã có trong Spring Boot.
 
 **Storage**:
-- MySQL 8.4 LTS. Bảng ở [data-model.md](data-model.md).
+- MySQL 8.0. Bảng ở [data-model.md](data-model.md).
 - Cột sinh có `UNIQUE` (`giuong_dang_hieu_luc`, `nct_dang_hieu_luc`, `nct_tuong_lai`, `hieu_luc_duy_nhat`); trigger chống chồng, bất biến, chỉ thêm; view `v_phan_bo_hien_hanh` áp đính chính.
 
 **Testing**:
 - Như 000 R-14 và 001 H-15.
 - Test đồng thời: 10 luồng trên một giường (SC-001), hai lệnh chuyển cùng người.
-- Testcontainers cho trigger, cột sinh, `CHECK`.
+- Test tích hợp MySQL cho trigger, cột sinh, `CHECK`.
 - Đồng hồ giả lập cho CFG-M02-02, CFG-M03-02, 04, 07, 08.
 - Bản giả cho SPI của 004, 007, 008, 019 (research G-16).
 
@@ -52,7 +52,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307): 003 không tự lập yêu c�
 - App người thân: không có màn của 003. Phòng, giường của người cao tuổi hiện trên hồ sơ (001, 012).
 - Lệnh của 003 chỉ chạy trực tuyến. Mục 8.6 chỉ cho ghi tạm với "ghi nhận thực hiện", không có lệnh nào của 003.
 
-**Project Type**: Web service (REST `/api/v1`), một web client và hai mobile client.
+**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung (Q-346).
 
 **Performance Goals**:
 - Lệnh phân bổ, chuyển giường nằm trong 2 giây của NFR-02. Mỗi lệnh khóa 1 dòng người và 1–2 dòng giường, gọi vài API có chỉ mục.
@@ -90,7 +90,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ. Ba chỗ spec mâu thuẫn hoặc thiếu được báo lại (điểm 2, 3, 4); thiết kế theo FR, không theo ví dụ |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-014 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng của 000, 001, 002 được bổ sung giao diện (G-13), không đổi hành vi đã thiết kế |
-| X. Kiến trúc | Đạt | Một khối; gói `m03`; module khác chỉ dùng `m03.api`. Không có vòng phụ thuộc: module thấp khai báo SPI (G-02). REST `/api/v1`; MySQL; ba client. NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `m03`; module khác chỉ dùng `m03.api`. Không có vòng phụ thuộc: module thấp khai báo SPI (G-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | FR-018, bảng chuyển, quyền, phạm vi đều ở backend. `lenhDuocPhep` chỉ để hiển thị. Mỗi lệnh có `POST …/{id}/<lenh>` riêng, kể cả hai kiểu chuyển giường |
 | XII. Dữ liệu | Đạt | DBR-09 có `UNIQUE` trên cột sinh, trigger và khóa; DBR-26 có bảng chuyển và `CHECK`; BR-M03-10 có `CHECK`; nhóm 3 theo mẫu trigger của 000; nhật ký trong transaction; thời gian theo `Clock` (data-model mục 8) |
 | XIII. Tham số | Đạt | Như V. Sức chứa khu nghỉ không lưu riêng, luôn là CFG-M03-01 |
@@ -142,7 +142,7 @@ specs/003-room-bed-allocation/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m03/
+backend/src/main/java/com/cambae/backend/m03/
 ├── api/                       # PhanBoGiuongLenhApi, ViTriApi, LichSuViTriApi, SucChuaBanTruApi, CoCauViTriApi,
 │                              # PhongChoPhepApi, TinhTrangGiuongApi, CanhBaoBanGiaoApi, SPI 003 khai báo, sự kiện
 ├── cocau/      {internal, web}     # khu vực, tầng, loại phòng, phòng, giường (danh mục), lý do chuyển
@@ -153,7 +153,7 @@ backend/src/main/java/vn/eldercare/m03/
 ├── lich/                           # 4 job (G-09)
 └── taisan/                         # feature 019 (plan sau)
 
-web/src/tinh-nang/
+frontend/src/tinh-nang/
 ├── co-cau-phong-giuong/       # khu vực, tầng, loại phòng, phòng, giường, lý do chuyển
 ├── bang-giuong/               # trạng thái, dấu, tạm ngừng, xác nhận sẵn sàng
 ├── phan-bo-giuong/            # chọn giường, phân bổ, chuyển giường, nhập bù, hủy phân bổ tương lai
@@ -161,7 +161,7 @@ web/src/tinh-nang/
 ├── cach-ly-phong/
 └── khu-nghi-ban-tru/
 
-app-nhan-vien/lib/tinh-nang/
+mobile/lib/nhan-vien/
 ├── bang-giuong-tang/          # Xác nhận giường sẵn sàng, dấu
 ├── chuyen-giuong/
 └── cach-ly-phong/             # Bác sĩ: đặt, gỡ, xác nhận ở lại

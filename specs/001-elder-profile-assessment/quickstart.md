@@ -6,7 +6,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 
 ## 1. Điều kiện cần
 
-- Như quickstart của 000 và 002: JDK 21, Docker (Testcontainers MySQL 8.4), Node.js LTS, Flutter stable; profile `demo` có đồng hồ giả lập.
+- Như quickstart của 000 và 002: JDK 25, MySQL 8.0 cài trên máy (000 R-14), Node.js LTS, Flutter stable; profile `demo` có đồng hồ giả lập.
 - Dữ liệu mẫu của profile `demo`:
   - các tài khoản của quickstart 002 (một tài khoản cho mỗi vai trò, tầng T1, T2, ca ngày T1 có Người phụ trách ca N, Trưởng tầng H, bác sĩ BS);
   - danh mục dị nguyên có "Penicillin" (thuốc/hoạt chất) và "Tôm" (thực phẩm); mức độ, nguồn thông tin, nhu cầu chăm sóc theo giá trị khởi tạo;
@@ -21,7 +21,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 backend/  ./mvnw verify
 backend/  ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
 web/      npm ci && npm test && npm run dev
-app-nhan-vien/   flutter test
+mobile/   flutter test
 ```
 
 Kết quả mong đợi: `verify` xanh, gồm test kiến trúc (`HoSoMoGuardArchTest`, Modulith `verify()`), test cơ sở dữ liệu cho trigger và cột sinh (data-model mục 9), và các nhóm test ở mục 4.
@@ -65,7 +65,7 @@ Kết quả mong đợi: `verify` xanh, gồm test kiến trúc (`HoSoMoGuardArc
 
 ## 4. Test tự động: truy vết kịch bản → test
 
-| Spec | Lớp test (backend, `vn.eldercare.m01…`) | Loại |
+| Spec | Lớp test (backend, `com.cambae.backend.m01…`) | Loại |
 | --- | --- | --- |
 | US1 #1–10, FR-001 → FR-009 | `TaoHoSoIT`, `HoSoCccdIT`, `HoSoTrungTenIT`, `HoSoLienKetIT`, `CapNhatThongTinIT`, `TraCuuPhamViIT`, `GioiHanTruongHoSoIT` | Tích hợp |
 | US2 #1–8, FR-017 → FR-023 | `MucSucKhoeBatBienIT`, `BR_M01_07_DiUngIT`, `BR_M01_12_ChoKiemTraIT`, `MucSucKhoeTrungIT`, `HoSoSucKhoeBanDauIT`, `BR_M01_11_DanhMucIT` | Tích hợp, cơ sở dữ liệu |

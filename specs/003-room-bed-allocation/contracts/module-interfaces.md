@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-07 | **Plan**: [../plan.md](../plan.md)
 
-Hợp đồng trong backend, ở gói `vn.eldercare.m03.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của 003 (constitution X). Ngoại lệ: báo cáo (016) và 007 được `JOIN` view `v_phan_bo_hien_hanh` (data-model mục 4), như 000 cho view đính chính. Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
+Hợp đồng trong backend, ở gói `com.cambae.backend.m03.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của 003 (constitution X). Ngoại lệ: báo cáo (016) và 007 được `JOIN` view `v_phan_bo_hien_hanh` (data-model mục 4), như 000 cho view đính chính. Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
 
 Chiều phụ thuộc theo research G-02: 003 phụ thuộc 000, 001, 002; 004, 005, 007, 008, 011, 016 phụ thuộc 003. Chỗ 003 cần dữ liệu của module phụ thuộc nó thì 003 khai báo SPI (mục 2), module đó cài.
 

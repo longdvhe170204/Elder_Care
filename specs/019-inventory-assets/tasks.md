@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 019 – Kho nguyên liệu, m
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Bốn gói: `BE/m08/kho/`, `BE/m11/muasam/`, `BE/m03/taisan/`, `BE/m03/lichxe/` (mỗi gói `{internal, web, lich}`); bổ sung `BE/m03/api/`, `BE/m08/api/`, `BE/m11/api/`
-- Web `web/src/tinh-nang/{kho,mua-sam,tai-san,lich-xe}/`
+- Web `frontend/src/tinh-nang/{kho,mua-sam,tai-san,lich-xe}/`
 
 ---
 
@@ -58,7 +58,7 @@ description: "Danh sách task triển khai feature 019 – Kho nguyên liệu, m
 - [ ] T007 [US7] Cài `BE/m11/muasam/internal/MuaSamService.java` (bảng chuyển data-model mục 3; quyền Phụ trách bộ phận qua `NhiemVuApi`; Điều dưỡng chỉ lập, gửi, rút lại, hủy loại `THUOC`, dòng gắn đơn qua `DonThuocApi.donNguonVienChuaKetThuc` và người cao tuổi trong phạm vi phân công; mọi người lập loại `THUOC` phải xem được `SUC_KHOE` của người cao tuổi của dòng (`QuyenXemTruongApi`) mới gắn được đơn (research W-05); Kế toán không lập, người đối chiếu ≠ người ghi đã mua; loại `THUOC` đối chiếu chỉ chứng từ với số thực tế), `YeuCauMuaSamApi` cho M08, `YeuCauMuaSamPortImpl` cho M03 (kiểm yêu cầu Đã duyệt cùng bộ phận khi gắn nguồn); nhắc trong job (research W-05)
 - [ ] T027 [US7] Cài `BE/m11/muasam/internal/YeuCauThuocCungUngPortImpl.java` (SPI `m07.api.YeuCauThuocCungUngPort`, research W-05) và hiển thị "Đã nhận" từ `TiepNhanThuocCungUngApi.theoYeuCau` trên chi tiết yêu cầu (bổ sung 2026-10-11, Q-337)
 - [ ] T028 [P] [US7] Test `BT/m11/FR_008d_YeuCauThuocIT.java`: Điều dưỡng không là Phụ trách bộ phận lập yêu cầu `THUOC` gắn đơn nguồn viện Hiệu lực của người cao tuổi trong phạm vi → 201, gửi duyệt → Chờ duyệt và báo Quản lý viện; dòng gắn đơn gia đình gửi hoặc đơn Đã ngừng → 409; người cao tuổi ngoài phạm vi phân công → 403; thiếu mức ưu tiên hoặc thời điểm cần → 422; Điều dưỡng lập loại `NGUYEN_LIEU` → 403; Điều dưỡng ghi đã mua → 403; Phụ trách bộ phận Bếp (không xem được `SUC_KHOE`) lập yêu cầu `THUOC` gắn đơn → 403 và không được cấp thêm quyền xem; Phụ trách bộ phận Y tế xem được thì lập được; dòng thiếu `nctId` hoặc `donThuocId` → 422; đơn không thuộc người cao tuổi của dòng → 409; `YeuCauThuocCungUngPort` trả `boPhanId` của yêu cầu, không đổi khi người lập chuyển bộ phận; sau khi Phụ trách bộ phận ghi đã mua, `YeuCauThuocCungUngPort` trả dòng; trước đó trả rỗng; không có khoản chi phí người cao tuổi (spec 019 US7 #8; FR-008d, BR-M11-17, Q-337)
-- [ ] T008 [US7] Tạo endpoint `/mua-sam`, `/mua-sam/{id}`, `/mua-sam/{id}/{lenh}`; màn web `web/src/tinh-nang/mua-sam/`
+- [ ] T008 [US7] Tạo endpoint `/mua-sam`, `/mua-sam/{id}`, `/mua-sam/{id}/{lenh}`; màn web `frontend/src/tinh-nang/mua-sam/`
 
 **Checkpoint**: Mua sắm chạy độc lập.
 
@@ -77,7 +77,7 @@ description: "Danh sách task triển khai feature 019 – Kho nguyên liệu, m
 ### Implementation cho User Story 1
 
 - [ ] T010 [US1] Tạo `MIG/V019_03__kho.sql`: `nguyen_lieu` (`trang_thai` `DANG_DUNG|NGUNG_HIEU_LUC`; `ton_toi_thieu`), `nguyen_lieu_di_nguyen`, `lo_nguyen_lieu` (`ton CHECK >= 0`; `UNIQUE (nguyen_lieu_id, so_lo, han_dung)`), `phieu_kho` (nhóm 3; `loai` `NHAP|XUAT|DAO|DIEU_CHINH`; `muc_dich` `CHO_BUA|HUY|KHAC`), `phieu_kho_dong` (data-model mục 2)
-- [ ] T011 [US1] Cài `BE/m08/kho/internal/KhoService.java` (danh mục; phiếu nhập gắn yêu cầu qua `YeuCauMuaSamApi`; phiếu đảo; khóa lô; `TonKhoNguyenLieuPort` cho 011) và endpoint `/kho/nguyen-lieu`, `/kho/phieu`; màn web `web/src/tinh-nang/kho/` (research W-04)
+- [ ] T011 [US1] Cài `BE/m08/kho/internal/KhoService.java` (danh mục; phiếu nhập gắn yêu cầu qua `YeuCauMuaSamApi`; phiếu đảo; khóa lô; `TonKhoNguyenLieuPort` cho 011) và endpoint `/kho/nguyen-lieu`, `/kho/phieu`; màn web `frontend/src/tinh-nang/kho/` (research W-04)
 
 **Checkpoint**: Nhập kho chạy độc lập.
 
@@ -130,7 +130,7 @@ description: "Danh sách task triển khai feature 019 – Kho nguyên liệu, m
 ### Implementation cho User Story 4
 
 - [ ] T017 [US4] Tạo `MIG/V019_05__tai_san.sql`: `loai_tai_san`, `tai_san` (`ma UNIQUE`; `nguon` `MUA|TANG|CHUYEN|GIUONG_003`; `giuong_id NULL UNIQUE`; `trang_thai` `SAN_SANG|DANG_SU_DUNG|HONG|DANG_BAO_TRI|DA_THANH_LY`; dấu quá hạn), `tai_san_vi_tri` (nhóm 3; cột sinh `khoa_mo` `UNIQUE`), `tai_san_bo_phan`, `tai_san_bao_tri` (`loai` `BAO_TRI|KIEM_DINH|DANG_KIEM|BAO_HIEM`; `ket_qua` `DAT|KHONG_DAT` đặt một lần), `tai_san_hu_hong` (`muc_anh_huong` `MAT_AN_TOAN|KHONG_MAT_AN_TOAN`) (data-model mục 4)
-- [ ] T018 [US4] Cài `BE/m03/taisan/internal/TaiSanService.java` (bảng chuyển; gắn nguồn mua sắm qua `YeuCauMuaSamPort`; bảo trì thuê ngoài gắn yêu cầu), handler `M03.THANH_LY_TAI_SAN` (`choTuDuyet = false`), `DinhChinhDuocProvider` `M03.TAI_SAN_LICH_SU`, job dấu quá hạn; endpoint `/tai-san`, `/tai-san/loai`, `/tai-san/{id}`, `/tai-san/{id}/{lenh}`; màn web `web/src/tinh-nang/tai-san/` (research W-06)
+- [ ] T018 [US4] Cài `BE/m03/taisan/internal/TaiSanService.java` (bảng chuyển; gắn nguồn mua sắm qua `YeuCauMuaSamPort`; bảo trì thuê ngoài gắn yêu cầu), handler `M03.THANH_LY_TAI_SAN` (`choTuDuyet = false`), `DinhChinhDuocProvider` `M03.TAI_SAN_LICH_SU`, job dấu quá hạn; endpoint `/tai-san`, `/tai-san/loai`, `/tai-san/{id}`, `/tai-san/{id}/{lenh}`; màn web `frontend/src/tinh-nang/tai-san/` (research W-06)
 
 ---
 
@@ -162,7 +162,7 @@ description: "Danh sách task triển khai feature 019 – Kho nguyên liệu, m
 
 ### Implementation cho User Story 6
 
-- [ ] T022 [US6] Tạo bảng `lich_xe` (`muc_dich` `CHUYEN_DI|DI_KHAM|CHUYEN_VIEN_KHONG_CAP_CUU|KHAC`; `trang_thai` `DA_DAT|DANG_DUNG|DA_HOAN_THANH|DA_HUY`) trong `MIG/V019_06__lich_xe.sql`; cài `BE/m03/lichxe/internal/LichXeService.java` (`KiemTraDatLich`; `LichXeApi`, `LichXeLenhApi`; báo người lái có tài khoản; `DinhChinhDuocProvider` `M03.LICH_XE`) và endpoint `/lich-xe`, `/lich-xe/{id}/{lenh}`; màn web `web/src/tinh-nang/lich-xe/` (research W-07)
+- [ ] T022 [US6] Tạo bảng `lich_xe` (`muc_dich` `CHUYEN_DI|DI_KHAM|CHUYEN_VIEN_KHONG_CAP_CUU|KHAC`; `trang_thai` `DA_DAT|DANG_DUNG|DA_HOAN_THANH|DA_HUY`) trong `MIG/V019_06__lich_xe.sql`; cài `BE/m03/lichxe/internal/LichXeService.java` (`KiemTraDatLich`; `LichXeApi`, `LichXeLenhApi`; báo người lái có tài khoản; `DinhChinhDuocProvider` `M03.LICH_XE`) và endpoint `/lich-xe`, `/lich-xe/{id}/{lenh}`; màn web `frontend/src/tinh-nang/lich-xe/` (research W-07)
 
 **Checkpoint**: Mọi user story của 019 chạy độc lập.
 

@@ -526,3 +526,5 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 **(2026-10-10) Plan 009, điểm báo lại 1, 2, 4.** *(Đã xử lý 2026-10-10: Q-332, Q-311; sửa FR-016a, bảng FR-043b, Key Entities, Phạm vi. Các điểm báo lại cũ còn dùng "yêu cầu gọi điện" giữ làm lịch sử.)*
 
 **(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-003, FR-010, FR-011, FR-012, FR-021, FR-028, FR-038, bảng FR-043b, SC-002, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+
+**(2026-10-16) Q-346: một ứng dụng di động chung cho nhân viên và người thân.** *(Đã xử lý 2026-10-16: Q-346 sửa Q-305; "app nhân viên", "app người thân" trong spec là ứng dụng chung khi dùng bằng tài khoản nhân viên, người thân; FR không đổi.)*

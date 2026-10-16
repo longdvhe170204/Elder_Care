@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo data-model.md mục 14 và quickstart.md mục 4.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Module M07: `BE/m07/{api,danhmuc,donthuoc,lichthuoc,lieu,prn,doichieu,thuocgui,mangtheo,tiepnhanthuoc,trangthai,lich}/`
-- Web `web/src/tinh-nang/{danh-muc-thuoc,don-thuoc,lich-thuoc,doi-chieu-thuoc,thuoc-gia-dinh-gui,thuoc-mang-theo,cong-nguoi-than/thuoc}/`; app nhân viên `app-nhan-vien/lib/tinh-nang/{vong-phat-thuoc,xac-nhan-lieu,dong-bo,thuoc-mang-theo,thuoc-gia-dinh-gui,xem-lai-lieu}/`; app người thân `app-nguoi-than/lib/tinh-nang/thuoc/`
+- Web `frontend/src/tinh-nang/{danh-muc-thuoc,don-thuoc,lich-thuoc,doi-chieu-thuoc,thuoc-gia-dinh-gui,thuoc-mang-theo,cong-nguoi-than/thuoc}/`; app nhân viên `mobile/lib/nhan-vien/{vong-phat-thuoc,xac-nhan-lieu,dong-bo,thuoc-mang-theo,thuoc-gia-dinh-gui,xem-lai-lieu}/`; app người thân `mobile/lib/nguoi-than/thuoc/`
 
 ---
 
@@ -41,7 +41,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 - [ ] T006 Cài danh mục thuốc (AC-01; tạo, sửa, ngừng hiệu lực; xóa bị chặn khi có đơn bằng `ON DELETE RESTRICT`; dấu "chưa có mục vật phẩm" qua `DonGiaApi.thuocNguonVien`) trong `BE/m07/danhmuc/internal/ThuocService.java` và `BE/m07/danhmuc/web/ThuocController.java` (`/thuoc`, `/{id}`, `/{id}/ngung-hieu-luc`) (FR-001 → FR-003; research D-04)
 - [ ] T007 Cài `BE/m07/trangthai/internal/KhoaThuoc.java` (khóa `thuoc_nct` theo research D-03) và khung job `BE/m07/lich/ViecTheoPhutM07.java` (mỗi phút, ShedLock, chạy bù) và `ViecHangNgayM07.java` (`lan_chay_m07`) – việc đăng ký ở các story (research D-19)
 - [ ] T008 [P] Cài provider cho 000/002 trong `BE/m07/trangthai/internal/`: `PhanLoaiTruongProvider` (`SUC_KHOE` cho thuốc, hoạt chất, liều, đường dùng, ghi chú, phản ứng, lý do, vấn đề, dòng phiếu, tên thuốc gửi), `LuuTruProvider` theo data-model mục 13, `GanPhamViProvider`, `QuyenTepProvider` (`M07.ANH_DON_THUOC`, `M07.ANH_CAN_CU`, `M07.ANH_THUOC_GUI`)
-- [ ] T009 [P] Tạo màn web `web/src/tinh-nang/danh-muc-thuoc/`
+- [ ] T009 [P] Tạo màn web `frontend/src/tinh-nang/danh-muc-thuoc/`
 
 **Checkpoint**: Nền 006 sẵn sàng.
 
@@ -65,7 +65,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 - [ ] T014 [US1] Cài `BE/m07/donthuoc/internal/KiemTraDonMoi.java` (hoạt chất chép vào `don_thuoc_hoat_chat`; đối chiếu đơn Hiệu lực, Tạm dừng, Chờ hiệu lực và `MucSucKhoeApi.hieuLuc`) và `DonThuocService.java` (nhập đơn `HIEU_LUC`/`CHO_HIEU_LUC`, sửa ghi chú hướng dẫn với `If-Match`; ảnh đơn qua `TepApi`) với `BangChuyenDon` (research D-05)
 - [ ] T015 [US1] Cài listener `DiUngDaGhiNhan` (idempotent theo `mucId`) trong `BE/m07/donthuoc/internal/KiemTraDiUngMoi.java`: `YeuCauCanhBao(XUNG_DOT_DI_UNG)`, `MucSucKhoeApi.daKiemTra(mucId, THUOC)` (FR-012)
 - [ ] T016 [US1] Tạo `BE/m07/donthuoc/web/DonThuocController.java`: `POST/GET /nguoi-cao-tuoi/{nctId}/don-thuoc`, `POST …/don-thuoc/kiem-tra`, `GET /don-thuoc/{id}`, `POST /don-thuoc/{id}/ghi-chu`; cài `DonThuocApi`
-- [ ] T017 [P] [US1] Tạo màn web `web/src/tinh-nang/don-thuoc/` (nhập đơn, vấn đề cần lý do)
+- [ ] T017 [P] [US1] Tạo màn web `frontend/src/tinh-nang/don-thuoc/` (nhập đơn, vấn đề cần lý do)
 
 **Checkpoint**: Nhập đơn chạy độc lập.
 
@@ -92,8 +92,8 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 - [ ] T025 [US2] Cài `BE/m07/lieu/internal/XacDinhNguoiPhuTrachLieu.java` (tính lúc đọc và ghi từ `DieuDuongCaPort`; liều chung của tầng; research D-09) và `XacNhanLieuService.java` (Đã dùng, Từ chối, Không thực hiện; vật hóa khi lệnh trước đầu cửa sổ; `DemTuChoiLienTiep`; phản ứng → yêu cầu cảnh báo; nguồn viện → `SuKienTinhPhiThuoc`; lô thuốc gửi trừ qua biến động) (research D-08)
 - [ ] T026 [US2] Cài `NgoaiTuyenHandler` `M07.KET_QUA_LIEU` (từ chối thuốc kiểm soát đặc biệt; trùng liều → `xem_lai_lieu`) và xem lại liều trong `BE/m07/lieu/internal/` (research D-11)
 - [ ] T027 [US2] Tạo `BE/m07/lichthuoc/web/LichThuocController.java` (`GET /nguoi-cao-tuoi/{nctId}/lich-thuoc`, `GET /lieu-thuoc/vong-phat-thuoc`, `GET /lieu-thuoc/{lieuKey}`) và `BE/m07/lieu/web/LieuController.java` (`POST /lieu-thuoc/{lieuKey}/da-dung`, `/tu-choi`, `/khong-thuc-hien`, `GET /xem-lai-lieu`, `POST /xem-lai-lieu/{id}/ket-qua`); cài `LichThuocApi`, `LieuThuocChecklistPort` (005), `ThoiKhoaBieuNguonPort` (005)
-- [ ] T028 [P] [US2] Tạo app `app-nhan-vien/lib/tinh-nang/vong-phat-thuoc/` (tải, lưu ngoại tuyến, dấu "chưa cập nhật", chặn kiểm soát đặc biệt), `xac-nhan-lieu/`, `dong-bo/`, `xem-lai-lieu/` và test `app-nhan-vien/test/ket_qua_dong_bo_thuoc_test.dart` (BR-M15-20), `vong_phat_thuoc_ngoai_tuyen_test.dart`
-- [ ] T029 [P] [US2] Tạo màn web `web/src/tinh-nang/lich-thuoc/` (lịch người cao tuổi, vòng phát thuốc web)
+- [ ] T028 [P] [US2] Tạo app `mobile/lib/nhan-vien/vong-phat-thuoc/` (tải, lưu ngoại tuyến, dấu "chưa cập nhật", chặn kiểm soát đặc biệt), `xac-nhan-lieu/`, `dong-bo/`, `xem-lai-lieu/` và test `mobile/test/nhan-vien/ket_qua_dong_bo_thuoc_test.dart` (BR-M15-20), `vong_phat_thuoc_ngoai_tuyen_test.dart`
+- [ ] T029 [P] [US2] Tạo màn web `frontend/src/tinh-nang/lich-thuoc/` (lịch người cao tuổi, vòng phát thuốc web)
 
 **Checkpoint**: Phát thuốc và xác nhận chạy độc lập, kể cả ngoại tuyến.
 
@@ -113,7 +113,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 
 - [ ] T031 [US3] Cài các lệnh tạm dừng, tiếp tục, ngừng (ngay hoặc `ngung_tu`), đổi liều (ngay hoặc tương lai; `thay_the_cho_id`; chuyển liên kết thuốc gửi sang đơn mới), gia hạn trong `DonThuocService.java`; ghi `can_cu_co_so_ke` khi đơn bên ngoài; hủy liều đã vật hóa của đơn kết thúc (research D-05)
 - [ ] T032 [US3] Đăng ký việc theo phút `ngung_tu` và việc hằng ngày `HET_HAN_DON`, `NHAC_HET_HAN_DON` (`da_nhac_het_han_luc`) (FR-017)
-- [ ] T033 [US3] Bổ sung endpoint `POST /don-thuoc/{id}/tam-dung`, `/tiep-tuc`, `/ngung`, `/doi-lieu`, `/gia-han` vào `DonThuocController.java`; màn web chuỗi thay thế trong `web/src/tinh-nang/don-thuoc/`
+- [ ] T033 [US3] Bổ sung endpoint `POST /don-thuoc/{id}/tam-dung`, `/tiep-tuc`, `/ngung`, `/doi-lieu`, `/gia-han` vào `DonThuocController.java`; màn web chuỗi thay thế trong `frontend/src/tinh-nang/don-thuoc/`
 
 **Checkpoint**: Vòng đời đơn đầy đủ.
 
@@ -135,7 +135,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 - [ ] T035 [US4] Tạo `MIG/V006_04__doi_chieu.sql`: `phieu_doi_chieu` (`ly_do ENUM('TIEP_NHAN','TRO_VE_BENH_VIEN','THEO_YEU_CAU_CHUYEN_MON')`; `ly_do_lap` có `CHECK` bắt buộc với lý do thứ ba (FR-034b); `trang_thai ENUM('MO','CHO_XAC_NHAN','DA_XAC_NHAN','DA_HUY')`; cột sinh `mo_nct`, `tiep_nhan_nct` `UNIQUE`; `CHECK (nguoi_xac_nhan_id IS NULL OR nguoi_xac_nhan_id <> nguoi_gui_id)`; trigger `trg_phieu_doi_chieu_khoa`), `dong_doi_chieu` (`nguon` `DON_HIEN_CO|DON_RA_VIEN|THUOC_DANG_DUNG_TIEP_NHAN`; `quyet_dinh` `TIEP_TUC|NGUNG|THAY_DOI_LIEU|THEM_MOI`), `de_nghi_dinh_chinh_phieu` (`trang_thai` `CHO_XAC_NHAN|DA_XAC_NHAN|TRA_LAI`; người xác nhận ≠ người lập) (data-model mục 7)
 - [ ] T036 [US4] Cài `BE/m07/doichieu/internal/PhieuDoiChieuService.java`: lập (kể cả phiếu theo yêu cầu chuyên môn: trạng thái người cao tuổi hợp lệ, lý do lập bắt buộc, không tạm dừng đơn, không đặt hạn; research D-13, FR-034b), thay dòng (`If-Match`), gửi (với phiếu chuyên môn: đủ dòng cho đơn Hiệu lực, Tạm dừng, Chờ hiệu lực), trả lại, xác nhận (kiểm vấn đề đơn qua `KiemTraDonMoi` trên dòng; áp quyết định tạo/ngừng/thay đơn trong một transaction; xóa `han_doi_chieu`), đề nghị đính chính phiếu và xác nhận; `DinhChinhDuocProvider` `M07.PHIEU_DOI_CHIEU`; listener `HoSoSucKhoeBanDauDaDoi` (research D-13)
 - [ ] T037 [US4] Cài phần đối chiếu của bean `BE/m07/trangthai/internal/ThamGiaM07.java`: `HOAN_TAT_TIEP_NHAN` (đơn → `TAM_DUNG` `CHO_DOI_CHIEU`, đơn "chờ tiếp nhận" → `HIEU_LUC`, đặt `han_doi_chieu`, đặt `han_luc` phiếu lập trước), `GHI_NHAN_TRO_VE` từ bệnh viện, `HUY_TIEP_NHAN` (hủy phiếu); việc theo phút đặt `qua_han_luc` và cảnh báo (research D-16)
-- [ ] T038 [US4] Tạo `BE/m07/doichieu/web/DoiChieuController.java`: `POST/GET /nguoi-cao-tuoi/{nctId}/phieu-doi-chieu`, `GET /phieu-doi-chieu/{id}`, `PUT …/{id}/dong`, `POST …/gui-xac-nhan`, `/tra-lai`, `/xac-nhan`, `/de-nghi-dinh-chinh`, `POST /de-nghi-dinh-chinh-phieu/{id}/xac-nhan`, `/tra-lai`; màn web `web/src/tinh-nang/doi-chieu-thuoc/`
+- [ ] T038 [US4] Tạo `BE/m07/doichieu/web/DoiChieuController.java`: `POST/GET /nguoi-cao-tuoi/{nctId}/phieu-doi-chieu`, `GET /phieu-doi-chieu/{id}`, `PUT …/{id}/dong`, `POST …/gui-xac-nhan`, `/tra-lai`, `/xac-nhan`, `/de-nghi-dinh-chinh`, `POST /de-nghi-dinh-chinh-phieu/{id}/xac-nhan`, `/tra-lai`; màn web `frontend/src/tinh-nang/doi-chieu-thuoc/`
 
 **Checkpoint**: P1 hoàn tất.
 
@@ -156,7 +156,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 - [ ] T040 [US5] Tạo `MIG/V006_05__vang_mang_theo.sql`: `khoang_vang_thuoc` (`loai` 5 giá trị ở data-model mục 9; cột sinh một khoảng mở mỗi người `UNIQUE`), `lan_giao_thuoc` (nhóm 3, chỉ cột `trang_thai` `DANG_MANG_THEO|CHO_NHAN_LAI|DA_NHAN_LAI` đổi), `lan_giao_thuoc_dong`, `lan_giao_lieu`, `lan_nhan_lai_thuoc` (`lan_giao_id UNIQUE`), `lan_nhan_lai_thuoc_dong` (`so_luong CHECK >= 0`), `lenh_khong_mang_thuoc` (`UNIQUE (nct_id, chuyen_id)`)
 - [ ] T041 [US5] Cài `BE/m07/mangtheo/internal/MangTheoService.java`: thuốc cần mang, lần giao (gắn liều, vật hóa trước đầu cửa sổ), nhận lại (biến động thuốc gửi), không mang thuốc (`ChuyenDiThuocPort.danhGiaDat`); `MangThuocChuyenDiApi` (014); `DinhChinhDuocProvider` `M07.LAN_GIAO_THUOC`, `M07.LAN_NHAN_LAI_THUOC`; listener `LuotVangDaGiaHan` (research D-15)
 - [ ] T042 [US5] Cài phần vắng và trạng thái cuối của `ThamGiaM07.java`: `CHO_TAM_VANG` (`chiTiet.mangThuoc`), `CHUYEN_VIEN`, `DIEM_DANH_ROI_VIEN` (khoảng đi qua `ChuyenDiThuocPort`), `GHI_NHAN_TRO_VE`, `DIEM_DANH_VE`, `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI` (đơn → `DA_NGUNG`, liều → `DA_HUY`/`KHONG_THUC_HIEN` Hệ thống) (research D-16)
-- [ ] T043 [US5] Tạo `BE/m07/mangtheo/web/MangTheoController.java` (`GET /nguoi-cao-tuoi/{nctId}/thuoc-can-mang`, `POST/GET …/lan-giao-thuoc`, `POST /lan-giao-thuoc/{id}/nhan-lai`, `POST /nguoi-cao-tuoi/{nctId}/khong-mang-thuoc`); màn web `web/src/tinh-nang/thuoc-mang-theo/`, app `app-nhan-vien/lib/tinh-nang/thuoc-mang-theo/`
+- [ ] T043 [US5] Tạo `BE/m07/mangtheo/web/MangTheoController.java` (`GET /nguoi-cao-tuoi/{nctId}/thuoc-can-mang`, `POST/GET …/lan-giao-thuoc`, `POST /lan-giao-thuoc/{id}/nhan-lai`, `POST /nguoi-cao-tuoi/{nctId}/khong-mang-thuoc`); màn web `frontend/src/tinh-nang/thuoc-mang-theo/`, app `mobile/lib/nhan-vien/thuoc-mang-theo/`
 
 **Checkpoint**: Vắng mặt chạy độc lập.
 
@@ -175,7 +175,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 ### Implementation cho User Story 6
 
 - [ ] T045 [US6] Tạo `MIG/V006_06__prn.sql`: `lan_dung_prn` (nhóm 3; `CHECK (lieu_dung > 0)`; `ly_do` bắt buộc) và cài `BE/m07/prn/internal/KiemTraGioiHanPrn.java`, `PrnService.java` (không vượt liều đơn; trừ lô thuốc gửi; sự kiện tính phí nguồn viện; `DinhChinhDuocProvider` `M07.LAN_DUNG_PRN`), `NgoaiTuyenHandler` `M07.LAN_DUNG_PRN` (research D-10)
-- [ ] T046 [US6] Tạo endpoint `POST/GET /don-thuoc/{id}/lan-dung-prn` trong `BE/m07/prn/web/PrnController.java`; app xác nhận PRN trong `app-nhan-vien/lib/tinh-nang/xac-nhan-lieu/`
+- [ ] T046 [US6] Tạo endpoint `POST/GET /don-thuoc/{id}/lan-dung-prn` trong `BE/m07/prn/web/PrnController.java`; app xác nhận PRN trong `mobile/lib/nhan-vien/xac-nhan-lieu/`
 
 **Checkpoint**: PRN chạy độc lập.
 
@@ -196,7 +196,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 
 - [ ] T049 [US7] Tạo `MIG/V006_07__thuoc_gui.sql`: `thuoc_gia_dinh_gui` (`so_luong_ban_dau`, `so_luong_con DECIMAL(10,2)` với `CHECK (so_luong_con >= 0)`; `nguoi_giao_loai ENUM('NGUOI_THAN','TU_DO','NHAN_VIEN_MUA_HO')`; `trang_thai ENUM('CHO_DOI_CHIEU','DUOC_SU_DUNG','CHI_GIU_HO','DA_DUNG_HET','DA_HOAN_TRA','DA_HUY_THEO_YEU_CAU')`; trigger `trg_tgdg_so_luong` chỉ cho đổi khi `@m07_bien_dong = 1`), `thuoc_gui_don` (`lo_id`, `don_thuoc_id`, `tu`, `den`), `bien_dong_thuoc_gui` (nhóm 3; `loai` 9 giá trị; trigger đặt `@m07_bien_dong` và cập nhật `so_luong_con`), `moc_nhac_thuoc_gui` (khóa chính `(khoa_nhom, moc, so_thu_tu)`) (data-model mục 8)
 - [ ] T050 [US7] Cài `BE/m07/thuocgui/internal/ThuocGuiService.java`: tiếp nhận (ảnh qua `TepApi`), xác nhận sử dụng (gắn đơn cùng thuốc cùng người), chỉ giữ hộ, ngừng sử dụng, kiểm kê điều chỉnh, hoàn trả, hủy (người thân hoặc người đại diện qua 012); `TinhSoNgayConLai`, mốc nhắc; việc hằng ngày `HET_HAN_DUNG`; `ThuocGiaDinhGuiApi`; `MucViecSauQuaDoiPort` `THUOC_GUI`; điều kiện `KT_C_THUOC_GUI` trong `ThamGiaM07.java` (research D-14)
-- [ ] T051 [US7] Tạo `BE/m07/thuocgui/web/ThuocGuiController.java`: `POST/GET /nguoi-cao-tuoi/{nctId}/thuoc-gia-dinh-gui`, `GET /thuoc-gia-dinh-gui/{id}`, `POST …/xac-nhan-su-dung`, `/chi-giu-ho`, `/ngung-su-dung`, `/kiem-ke-dieu-chinh`, `/hoan-tra`, `/huy`; màn web `web/src/tinh-nang/thuoc-gia-dinh-gui/`, app `app-nhan-vien/lib/tinh-nang/thuoc-gia-dinh-gui/`
+- [ ] T051 [US7] Tạo `BE/m07/thuocgui/web/ThuocGuiController.java`: `POST/GET /nguoi-cao-tuoi/{nctId}/thuoc-gia-dinh-gui`, `GET /thuoc-gia-dinh-gui/{id}`, `POST …/xac-nhan-su-dung`, `/chi-giu-ho`, `/ngung-su-dung`, `/kiem-ke-dieu-chinh`, `/hoan-tra`, `/huy`; màn web `frontend/src/tinh-nang/thuoc-gia-dinh-gui/`, app `mobile/lib/nhan-vien/thuoc-gia-dinh-gui/`
 
 **Checkpoint**: Thuốc gửi chạy độc lập.
 
@@ -215,7 +215,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 ### Implementation cho User Story 8
 
 - [ ] T053 [US8] Cài `DinhChinhDuocProvider` `M07.KET_QUA_LIEU` trong `BE/m07/lieu/internal/KetQuaLieuDinhChinhProvider.java` (`tangKhuVuc` = `tang_khu_vuc_id` lúc đóng; `sauKhiDinhChinh` phát sự kiện tính phí điều chỉnh và cập nhật biến động thuốc gửi) (research D-12)
-- [ ] T054 [US8] Cài `ThuocCongNguoiThanApi` (012; thuốc gửi luôn; đơn, phiếu khi `BanDongYApi.baoGom`) và `ThuocThongKeApi` (016) trong `BE/m07/trangthai/internal/`; màn `web/src/tinh-nang/cong-nguoi-than/thuoc/` và app `app-nguoi-than/lib/tinh-nang/thuoc/` (research D-18)
+- [ ] T054 [US8] Cài `ThuocCongNguoiThanApi` (012; thuốc gửi luôn; đơn, phiếu khi `BanDongYApi.baoGom`) và `ThuocThongKeApi` (016) trong `BE/m07/trangthai/internal/`; màn `frontend/src/tinh-nang/cong-nguoi-than/thuoc/` và app `mobile/lib/nguoi-than/thuoc/` (research D-18)
 
 **Checkpoint**: Mọi user story của 006 chạy độc lập.
 
@@ -236,7 +236,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 - [ ] T062 [US9] Khai báo SPI `YeuCauThuocCungUngPort` và giao diện `TiepNhanThuocCungUngApi`, bổ sung `DonThuocApi.donNguonVienChuaKetThuc` trong `BE/m07/api/` (contracts mục 1.2, 1.8a, 2.1); bản giả có công tắc trong `BT/support/gia006/` cho port
 - [ ] T063 [US9] Tạo `MIG/V006_08__tiep_nhan_thuoc_cung_ung.sql`: `lan_tiep_nhan_thuoc_cung_ung` theo data-model mục 9a (`ket_qua ENUM('DAT','KHONG_DAT')`, `CHECK` sai lệch và lý do khi Không đạt, `CHECK (so_luong_nhan > 0)`, trigger nhóm 3)
 - [ ] T064 [US9] Cài `BE/m07/tiepnhanthuoc/internal/TiepNhanThuocCungUngService.java` (kiểm dòng qua port, quyền `TIEP_NHAN_THUOC_CUNG_UNG, TAO` và phạm vi theo người cao tuổi của dòng, phát `TiepNhanThuocKhongDat` cho 009 với nhóm `NhanVien`, `PhuTrachBoPhan(boPhanId)`, không tự gửi thông báo; không tự lập hay hủy yêu cầu, Q-307), `DinhChinhDuocProvider` `M07.LAN_TIEP_NHAN_THUOC`, bản cài `TiepNhanThuocCungUngApi`, `donNguonVienChuaKetThuc`
-- [ ] T065 [US9] Tạo `BE/m07/tiepnhanthuoc/web/TiepNhanThuocController.java` (`POST`, `GET /tiep-nhan-thuoc-cung-ung`), màn web `web/src/tinh-nang/tiep-nhan-thuoc/` và app `app-nhan-vien/lib/tinh-nang/tiep-nhan-thuoc/`
+- [ ] T065 [US9] Tạo `BE/m07/tiepnhanthuoc/web/TiepNhanThuocController.java` (`POST`, `GET /tiep-nhan-thuoc-cung-ung`), màn web `frontend/src/tinh-nang/tiep-nhan-thuoc/` và app `mobile/lib/nhan-vien/tiep-nhan-thuoc/`
 
 **Checkpoint**: Tiếp nhận thuốc cung ứng chạy độc lập với bản giả 019.
 

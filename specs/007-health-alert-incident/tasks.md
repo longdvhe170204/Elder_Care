@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo data-model.md mục 15 và quickstart.md mục 4.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Module M06: `BE/m06/{api,danhmuc,lichdo,chiso,nguong,giayphep,kham,trangthai,lich}/`; module M05: `BE/m05/{api,canhbao,xuhuong,suco,khancap,nguykich,nga,laynhiem,trangthai,lich}/`; phụ thuộc một chiều `m05 → m06` (research S-01)
-- Web `web/src/tinh-nang/{danh-muc-suc-khoe,nguong-lich-do,chi-so,canh-bao,su-co,nguy-kich,lay-nhiem,giay-phep-kham}/`; app nhân viên `app-nhan-vien/lib/tinh-nang/{ghi-chi-so,canh-bao,su-co,nguy-kich,dong-bo}/`; app người thân `app-nguoi-than/lib/tinh-nang/suc-khoe/`
+- Web `frontend/src/tinh-nang/{danh-muc-suc-khoe,nguong-lich-do,chi-so,canh-bao,su-co,nguy-kich,lay-nhiem,giay-phep-kham}/`; app nhân viên `mobile/lib/nhan-vien/{ghi-chi-so,canh-bao,su-co,nguy-kich,dong-bo}/`; app người thân `mobile/lib/nguoi-than/suc-khoe/`
 
 ---
 
@@ -41,7 +41,7 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 - [ ] T006 Cài danh mục trong `BE/m06/danhmuc/internal/ChiSoDanhMucService.java` và `BE/m05/canhbao/internal/DanhMucM05Service.java` (mã có quy tắc riêng không Ngừng hiệu lực được; đổi `khong_thuoc_suc_khoe` ghi nhật ký); controller `/chi-so-danh-muc`, `/{id}`, `/{id}/ngung-hieu-luc`, `/quy-tac-xu-huong`, `/{ma}`, `/loai-su-co`, `/{id}`, `/loai-dien-bien` (research S-04)
 - [ ] T007 Cài khóa `BE/m06/trangthai/internal/KhoaChiSo.java`, `BE/m05/trangthai/internal/KhoaTheoDoi.java` (research S-03) và khung job `BE/m06/lich/ViecTheoPhutM06.java`, `ViecHangNgayM06.java`, `BE/m05/lich/ViecTheoPhutM05.java` (ShedLock, chạy bù một cấp mỗi lần; research S-21)
 - [ ] T008 [P] Cài provider cho 000/002 ở hai module: `PhanLoaiTruongProvider` (`SUC_KHOE` cho giá trị, mức, mô tả, diễn biến, thẻ khẩn cấp, nguyện vọng, nhận định; `LIEN_HE` cho số điện thoại người tiếp xúc), `LuuTruProvider` theo data-model mục 14, `GanPhamViProvider`, `QuyenTepProvider` (`M06.SCAN_GIAY_PHEP_CO_SO`, `M06.TEP_KHAM`, `M05.TEP_SU_CO`) (research S-20, S-22)
-- [ ] T009 [P] Tạo màn web `web/src/tinh-nang/danh-muc-suc-khoe/`
+- [ ] T009 [P] Tạo màn web `frontend/src/tinh-nang/danh-muc-suc-khoe/`
 
 **Checkpoint**: Nền 007 sẵn sàng.
 
@@ -66,7 +66,7 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 - [ ] T015 [US1] Tạo `MIG/V007_03__canh_bao.sql`: `canh_bao` (`muc ENUM('NHE','TRUNG_BINH','KHAN_CAP')`; `trang_thai ENUM('MOI','LEO_THANG','DA_TIEP_NHAN','DANG_XU_LY','DA_DONG','CHUYEN_SU_CO')`; `cap_leo_thang TINYINT` 0..2; cột sinh `khoa_mo` với `UNIQUE (nct_id, khoa_mo)`; bốn chỉ mục; trigger chặn đổi `nct_id`, `khoa_loai`), `nguon_canh_bao` (nhóm 3; cột xử lý đặt một lần), `lich_su_canh_bao`, `lan_nhac_canh_bao` (`UNIQUE (loai, canh_bao_id, su_co_id, so_thu_tu)`) (data-model mục 7)
 - [ ] T016 [US1] Cài `BE/m05/canhbao/internal/CanhBaoService.java` phần tạo: `KhoaLoai.tu`, khóa `theo_doi_nct`, gộp vào cảnh báo mở cùng khóa (tăng `so_lan`, nâng mức nếu cao hơn), người phụ trách ban đầu (`NhanSuCanhBaoPort.dieuDuongPhuTrach`), hạn tiếp nhận theo mức; bỏ qua khi người cao tuổi ở trạng thái cuối (research S-08)
 - [ ] T017 [US1] Cài listener `BE/m05/canhbao/internal/YeuCauCanhBaoListener.java` cho `ChiSoDaXacNhan`, `ChiSoDaDinhChinh` (m06), `m04.api.YeuCauCanhBao`/`YeuCauDongCanhBao` (005), `m07.api.YeuCauCanhBao`/`YeuCauDongCanhBao` (006), `m05.api.YeuCauTaoCanhBao`/`YeuCauDongCanhBaoNguon`; chống trùng bằng `su_kien_canh_bao_da_nhan`; yêu cầu đóng đóng cảnh báo khi mọi nguồn đã xử lý, hoặc thêm diễn biến `NGUON_DA_XU_LY` khi đã chuyển sự cố (research S-09)
-- [ ] T018 [US1] Tạo `BE/m06/chiso/web/ChiSoController.java` (`POST/GET /nguoi-cao-tuoi/{nctId}/chi-so`, `POST /ban-ghi-chi-so/{id}/do-lai`); app `app-nhan-vien/lib/tinh-nang/ghi-chi-so/` (ngoại tuyến, đo lại, kết quả so) và `dong-bo/` với test `app-nhan-vien/test/ket_qua_dong_bo_chi_so_test.dart` (BR-M15-20); màn web `web/src/tinh-nang/chi-so/`
+- [ ] T018 [US1] Tạo `BE/m06/chiso/web/ChiSoController.java` (`POST/GET /nguoi-cao-tuoi/{nctId}/chi-so`, `POST /ban-ghi-chi-so/{id}/do-lai`); app `mobile/lib/nhan-vien/ghi-chi-so/` (ngoại tuyến, đo lại, kết quả so) và `dong-bo/` với test `mobile/test/nhan-vien/ket_qua_dong_bo_chi_so_test.dart` (BR-M15-20); màn web `frontend/src/tinh-nang/chi-so/`
 
 **Checkpoint**: Ghi chỉ số tạo cảnh báo đúng.
 
@@ -88,7 +88,7 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 - [ ] T021 [US2] Tạo `MIG/V007_04__nguong_lich_do.sql`: `nguong_khoa` (`chi_so_id` khóa chính), `nguong_phien_ban` (`pham_vi ENUM('CO_SO','CA_NHAN')`; `nct_id` bắt buộc khi `CA_NHAN` (`CHECK`); `trang_thai ENUM('CHO_HIEU_LUC','HIEU_LUC','HET_HIEU_LUC','DA_HUY')`; cột sinh `khoa_pham_vi`, `khoa_hieu_luc` `UNIQUE`, `khoa_cho` `UNIQUE`; trigger), `nguong_thanh_phan` (`duoi_nguy_hiem`, `duoi_canh_bao`, `tren_canh_bao`, `tren_nguy_hiem DECIMAL(7,2) NULL`; trigger chặn `UPDATE`), `lich_do` (`kieu_tan_suat ENUM('MOC_GIO','MOI_N_GIO','THEO_THU')`; `muc_quan_trong` mặc định `BAT_BUOC`; `nguon ENUM('CHI_DINH_BAC_SI')`; `trang_thai ENUM('CHO_HIEU_LUC','HIEU_LUC','DA_NGUNG','HET_HAN')`; trigger), `lich_do_chi_so` (data-model mục 4, 6)
 - [ ] T022 [US2] Cài `BE/m06/nguong/internal/NguongService.java` (`KiemTraNguong`; thiết lập, hủy, ngừng; khóa `nguong_khoa` hoặc `chi_so_nct`) và việc hằng ngày nhắc thiếu ngưỡng; việc theo phút `CHO_HIEU_LUC → HIEU_LUC` (research S-07)
 - [ ] T023 [US2] Cài `BE/m06/lichdo/internal/LichDoService.java` (`ChuoiMocDo`; tạo, thay đổi, ngừng; `LichDoApi`; `NguonCongViecPort` `LAN_DO`) (research S-05)
-- [ ] T024 [US2] Tạo controller `/nguoi-cao-tuoi/{nctId}/lich-do`, `/lich-do/{id}/moc-do`, `/thay-doi`, `/ngung`, `/nguong`, `/nguong/{id}/huy`, `/ngung`, `/chi-so/chua-co-nguong-ca-nhan`; màn web `web/src/tinh-nang/nguong-lich-do/`
+- [ ] T024 [US2] Tạo controller `/nguoi-cao-tuoi/{nctId}/lich-do`, `/lich-do/{id}/moc-do`, `/thay-doi`, `/ngung`, `/nguong`, `/nguong/{id}/huy`, `/ngung`, `/chi-so/chua-co-nguong-ca-nhan`; màn web `frontend/src/tinh-nang/nguong-lich-do/`
 
 **Checkpoint**: Ngưỡng và lịch đo chạy độc lập.
 
@@ -111,7 +111,7 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 - [ ] T028 [US3] Hoàn thiện `CanhBaoService.java` với `BangChuyenCanhBao` (bảng FR-029): tiếp nhận, giao người phụ trách, bắt đầu xử lý, đổi mức (hạ từ Khẩn cấp chỉ Bác sĩ), đóng (lý do với quá hạn Bắt buộc), chuyển sự cố, tạo thủ công (mô tả bắt buộc); `DemLap24h`; trạng thái cuối đặt `dung_leo_thang`
 - [ ] T029 [US3] Đăng ký việc theo phút M05: quá hạn → leo thang một cấp (`NhanSuCanhBaoPort.truongTangDuocGiao`, Quản lý viện cấp 2), nhắc khi tối đa, ca đã bắt đầu chưa xác nhận bàn giao → tạm nhận (research S-08, S-18, S-21)
 - [ ] T030 [US3] Cài `CanhBaoBanGiaoApi` (008) và `CanhBaoDocPort` (005) trong `BE/m05/canhbao/internal/`
-- [ ] T031 [US3] Tạo `BE/m05/canhbao/web/CanhBaoController.java`: `GET/POST /canh-bao`, `GET /canh-bao/{id}` (kèm `lenhDuocPhep`), `POST …/tiep-nhan`, `/giao-nguoi-phu-trach`, `/bat-dau-xu-ly`, `/doi-muc`, `/dong`; màn web `web/src/tinh-nang/canh-bao/`, app `app-nhan-vien/lib/tinh-nang/canh-bao/`
+- [ ] T031 [US3] Tạo `BE/m05/canhbao/web/CanhBaoController.java`: `GET/POST /canh-bao`, `GET /canh-bao/{id}` (kèm `lenhDuocPhep`), `POST …/tiep-nhan`, `/giao-nguoi-phu-trach`, `/bat-dau-xu-ly`, `/doi-muc`, `/dong`; màn web `frontend/src/tinh-nang/canh-bao/`, app `mobile/lib/nhan-vien/canh-bao/`
 
 **Checkpoint**: Vòng đời cảnh báo đầy đủ.
 
@@ -134,7 +134,7 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 - [ ] T034 [US4] Tạo `MIG/V007_05__su_co.sql`: `su_co` (nhóm 3; `nguon_phat_sinh ENUM` 10 giá trị; `ngoai_pham_vi`; `thoi_diem_xac_nhan` ngay khi lưu), `su_co_xu_ly` (`su_co_id` khóa chính; `trang_thai ENUM('MOI','DANG_XU_LY','DANG_THEO_DOI','DA_DONG','DA_HUY')`; `ket_qua_lay_nhiem` `XAC_NHAN_NHIEM|LOAI_TRU|KHONG_XAC_DINH`; cột sinh `khoa_khan_cap_mo` không `UNIQUE`; trigger chặn đổi khi `DA_DONG`/`DA_HUY` trừ `DA_DONG → DA_HUY` và đổi loại kèm đính chính), `dien_bien_su_co`, `doi_muc_su_co`, `nguoi_xu_ly_su_co` (`UNIQUE (su_co_id, nhan_vien_id, vai_tro_tham_gia)`), `phan_cong_su_co` (nhóm 3, tạo sau `su_co`; FR-045a, bổ sung 2026-10-11) (data-model mục 8)
 - [ ] T035 [US4] Cài `BE/m05/suco/internal/SuCoService.java` với `BangChuyenSuCo` (bảng FR-045, gồm hai dòng "Giao người xử lý" của FR-045a: khóa `SU_CO, GIAO`, không dùng ngoại lệ phạm vi; người giao kiểm `TaiKhoanApi.coVaiTro(TT, BS, QL)` hoặc là người xử lý hiện tại, cộng `PhamViApi.trongPhamVi` với Trưởng tầng và người xử lý hiện tại; người được giao thuộc `NguoiDuyetApi.danhSach((SU_CO, XU_LY), doiTuong)` và `coVaiTro(ĐD, TT, BS)`; giao từ Mới đặt `tiep_nhan_luc`, `nguoi_tiep_nhan_id` = người giao; phát `SuCoDaGiaoNguoiXuLy`; research mục sự cố "Cách kiểm cụ thể"): ghi nhận (ngoại lệ phạm vi 002 FR-044a; mức thấp hơn mặc định cần lý do; phát `SuCoDaGhiNhan` có `canDanhGiaLai`, `SuCoDaTaoThongBao`), tiếp nhận, tham gia, diễn biến, đổi mức, chuyển theo dõi, mở lại, đóng; leo thang sự cố trong việc theo phút; `SuCoLenhApi` cho 011, 013, 014 (research S-11)
 - [ ] T036 [US4] Cài `DinhChinhDuocProvider` `M05.SU_CO` (hủy ghi nhận, đổi loại; `choPhep` BR-M05-21) và `M05.DIEN_BIEN_SU_CO` trong `BE/m05/suco/internal/`
-- [ ] T037 [US4] Tạo `BE/m05/suco/web/SuCoController.java`: `/su-co`, `/{id}`, `/{id}/tiep-nhan`, `/giao-nguoi-xu-ly` (FR-045a), `/tham-gia-xu-ly`, `/dien-bien`, `/doi-muc`, `/chuyen-theo-doi`, `/mo-lai-xu-ly`, `/dong`; `POST /canh-bao/{id}/chuyen-su-co`; màn web `web/src/tinh-nang/su-co/`, app `app-nhan-vien/lib/tinh-nang/su-co/`
+- [ ] T037 [US4] Tạo `BE/m05/suco/web/SuCoController.java`: `/su-co`, `/{id}`, `/{id}/tiep-nhan`, `/giao-nguoi-xu-ly` (FR-045a), `/tham-gia-xu-ly`, `/dien-bien`, `/doi-muc`, `/chuyen-theo-doi`, `/mo-lai-xu-ly`, `/dong`; `POST /canh-bao/{id}/chuyen-su-co`; màn web `frontend/src/tinh-nang/su-co/`, app `mobile/lib/nhan-vien/su-co/`
 
 **Checkpoint**: Sự cố ba mức chạy độc lập.
 
@@ -175,7 +175,7 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 
 - [ ] T044 [US11] Tạo `MIG/V007_07__nguy_kich.sql`: `dau_nguy_kich` (`loai` `CHINH_THUC|TAM`; `trang_thai ENUM('TAM','DANG_MO','DA_GO')`; `canh_bao_id NOT NULL UNIQUE`; cột sinh `khoa_mo` `UNIQUE`; trigger), `ket_qua_xac_nhan_lai` (nhóm 3; `kenh` `GOI_DIEN|TRUC_TIEP`; `ket_qua` `GIU|MOI|KHONG_LIEN_LAC_DUOC`), `lua_chon_thuc_hien` (nhóm 3; `lua_chon` `CHUYEN_BENH_VIEN|VE_NHA|GIAM_NHE`) (data-model mục 9)
 - [ ] T045 [US11] Cài `BE/m05/nguykich/internal/NguyKichService.java` (ghi dấu, dấu tạm, xác nhận, gỡ; cảnh báo nguy kịch không gộp; kết quả xác nhận lại; lựa chọn; chuyển bệnh viện dùng luồng chuyển viện của US5; `DinhChinhDuocProvider` `M05.KET_QUA_XAC_NHAN_LAI`, `M05.LUA_CHON_THUC_HIEN`) (research S-13)
-- [ ] T046 [US11] Tạo endpoint `/nguoi-cao-tuoi/{nctId}/dau-nguy-kich`, `/dau-nguy-kich/{id}/xac-nhan`, `/go`, `/canh-bao/{id}/ket-qua-xac-nhan-lai`, `/lua-chon-thuc-hien`; màn web `web/src/tinh-nang/nguy-kich/`, app `app-nhan-vien/lib/tinh-nang/nguy-kich/`
+- [ ] T046 [US11] Tạo endpoint `/nguoi-cao-tuoi/{nctId}/dau-nguy-kich`, `/dau-nguy-kich/{id}/xac-nhan`, `/go`, `/canh-bao/{id}/ket-qua-xac-nhan-lai`, `/lua-chon-thuc-hien`; màn web `frontend/src/tinh-nang/nguy-kich/`, app `mobile/lib/nhan-vien/nguy-kich/`
 
 **Checkpoint**: P1 hoàn tất.
 
@@ -231,7 +231,7 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 
 - [ ] T052 [US8] Tạo `MIG/V007_09__lay_nhiem.sql`: `danh_sach_tiep_xuc` (`su_co_id UNIQUE`; `trang_thai` `NHAP|DA_XAC_NHAN|DA_KET_THUC`), `nguoi_tiep_xuc` (`loai` `NGUOI_CAO_TUOI|NHAN_VIEN|NGUOI_THAN|NGUOI_DI_CUNG`), `khoanh_vung` (`trang_thai` `DANG_KHOANH_VUNG|DA_GO`; trigger), `khoanh_vung_pham_vi` (`loai` `TANG|KHU_VUC`), `khoanh_vung_su_co` (data-model mục 10)
 - [ ] T053 [US8] Cài `BE/m05/laynhiem/internal/TruyVetService.java` (`LichSuViTriApi`, `DiemDanhTruyVetPort`, `NhanSuCanhBaoPort.phanCongTrongKhoang`, `NguoiThanKhanCapPort.luotThamTrongKhoang`), `DanhSachTiepXucService.java` (lập, thêm, bỏ, xác nhận, loại; phát `DaThemVaoDanhSachTiepXuc`, `CanLapCongViecDoNhietDo`, `ThongBaoTiepXuc`; `NguonCongViecPort` `THEO_DOI_TIEP_XUC`), `KhoanhVungService.java` (`KhoanhVungApi`; phát `KhoanhVungDaTao`/`DaGo`), `TinhTrangLayNhiemChoPhanBo` cho 003, `DauNghiNhiemDaDoi` cho 014 (research S-15)
-- [ ] T054 [US8] Tạo endpoint `/su-co/{id}/tra-cuu-tiep-xuc`, `/su-co/{id}/danh-sach-tiep-xuc`, `/danh-sach-tiep-xuc/{id}/nguoi`, `/nguoi/{nguoiId}/bo`, `/nguoi/{nguoiId}/loai`, `/danh-sach-tiep-xuc/{id}/xac-nhan`, `/su-co/{id}/nguoi-than-can-lien-he`, `/khoanh-vung`, `/{id}/gan-su-co`, `/{id}/go`; màn web `web/src/tinh-nang/lay-nhiem/`
+- [ ] T054 [US8] Tạo endpoint `/su-co/{id}/tra-cuu-tiep-xuc`, `/su-co/{id}/danh-sach-tiep-xuc`, `/danh-sach-tiep-xuc/{id}/nguoi`, `/nguoi/{nguoiId}/bo`, `/nguoi/{nguoiId}/loai`, `/danh-sach-tiep-xuc/{id}/xac-nhan`, `/su-co/{id}/nguoi-than-can-lien-he`, `/khoanh-vung`, `/{id}/gan-su-co`, `/{id}/go`; màn web `frontend/src/tinh-nang/lay-nhiem/`
 
 **Checkpoint**: Lây nhiễm chạy độc lập.
 
@@ -250,7 +250,7 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 ### Implementation cho User Story 9
 
 - [ ] T056 [US9] Tạo `MIG/V007_10__giay_phep_kham.sql`: `giay_phep_co_so` (không `UPDATE`, không `DELETE`; `thay_the_cho`, `thay_the_do_sai_sot`), `giay_phep_co_so_pham_vi`, `so_lien_he_vien` (một dòng), `ban_ghi_kham` (nhóm 3; `loai` `KHAM|DANH_GIA|CHAN_DOAN|CHI_DINH|DIEU_TRI|KET_QUA`)
-- [ ] T057 [US9] Cài `BE/m06/giayphep/internal/GiayPhepCoSoService.java` (`GiayPhepCoSoApi` cho 002; `SoLienHeVienApi`) và `BE/m06/kham/internal/KhamService.java` (khóa `CHUYEN_MON` tại viện; `DinhChinhDuocProvider` `M06.BAN_GHI_KHAM`); endpoint `/giay-phep-co-so`, `/so-lien-he-vien`, `/nguoi-cao-tuoi/{nctId}/kham-dieu-tri`; màn web `web/src/tinh-nang/giay-phep-kham/` (research S-16)
+- [ ] T057 [US9] Cài `BE/m06/giayphep/internal/GiayPhepCoSoService.java` (`GiayPhepCoSoApi` cho 002; `SoLienHeVienApi`) và `BE/m06/kham/internal/KhamService.java` (khóa `CHUYEN_MON` tại viện; `DinhChinhDuocProvider` `M06.BAN_GHI_KHAM`); endpoint `/giay-phep-co-so`, `/so-lien-he-vien`, `/nguoi-cao-tuoi/{nctId}/kham-dieu-tri`; màn web `frontend/src/tinh-nang/giay-phep-kham/` (research S-16)
 
 **Checkpoint**: Giấy phép và khám chạy độc lập.
 
@@ -277,7 +277,7 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 ## Phase 14: Polish & Cross-Cutting
 
 - [ ] T060 [P] Cài bean `ThamGiaChuyenTrangThai` hai module (`@Order` sau 006: `m06` rồi `m05`): điều kiện `KT_D_CANH_BAO_SU_CO` (`coTheMien = true`); trạng thái cuối dừng leo thang, kết thúc lịch đo, ngưỡng cá nhân, gỡ dấu nguy kịch; `canhBao` vùng khoanh (BR-M05-23); `MucViecSauQuaDoiPort` `CANH_BAO_SU_CO` (research S-17)
-- [ ] T061 [P] Cài `SucKhoeCongNguoiThanApi`, `BanTinSucKhoeApi` (012), `CanhBaoThongKeApi`, `ChiSoThongKeApi` (016); app `app-nguoi-than/lib/tinh-nang/suc-khoe/`
+- [ ] T061 [P] Cài `SucKhoeCongNguoiThanApi`, `BanTinSucKhoeApi` (012), `CanhBaoThongKeApi`, `ChiSoThongKeApi` (016); app `mobile/lib/nguoi-than/suc-khoe/`
 - [ ] T062 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/007-health-alert-incident/contracts/api-007.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 007
 - [ ] T063 Khi 008, 009, 012, 014 có bản thật, chạy lại test US3, US5, US8 với bean thật thay T002
 - [ ] T064 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo NFR-03 (thông báo khẩn cấp) và SC theo quickstart mục 5

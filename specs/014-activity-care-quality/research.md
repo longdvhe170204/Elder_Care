@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## L-01. Vị trí trong backend
 
-**Quyết định**: Feature 014 là phần 8.8 → 8.10 và BR-M04-23 của module M04, thêm gói con vào `vn.eldercare.m04` (plan 005, Structure Decision).
+**Quyết định**: Feature 014 là phần 8.8 → 8.10 và BR-M04-23 của module M04, thêm gói con vào `com.cambae.backend.m04` (plan 005, Structure Decision).
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -181,7 +181,7 @@ Nhiệm vụ trưởng đoàn, người đi cùng chỉ mở các lệnh của c
 - **Nhật ký** (FR-069): mọi lệnh.
 - **Kiểm thử**:
   - test bảng `BuoiTheoMau`, `DieuKienDangKy`, `NgayTinh`, `CapNhatChuoi`, `CongViecDuDieuKien`, `SoMucToiThieu`, `NguoiKiemTra`, công thức tỷ lệ tham gia (FR-070);
-  - Testcontainers: `UNIQUE` buổi theo (hoạt động, bắt đầu), danh sách theo (ca, tầng), mục theo công việc, sở thích hiện hành; trigger nhóm 3;
+  - Test tích hợp MySQL: `UNIQUE` buổi theo (hoạt động, bắt đầu), danh sách theo (ca, tầng), mục theo công việc, sở thích hiện hành; trigger nhóm 3;
   - test đồng thời: hai đăng ký chỗ cuối; điểm danh rời viện của hai thiết bị; hai lệnh Báo thiếu người;
   - đồng hồ giả lập cho CFG-M04-06, 07, 10, 11, 13, CFG-M09-04, nửa đêm;
   - bản giả `LichXeApi`/`LichXeLenhApi` (019), 006 `MangThuocChuyenDiApi`, 007 `SuCoLenhApi`.

@@ -136,7 +136,7 @@ Quyền theo nhiệm vụ Phụ trách bộ phận do 002 FR-019f cấp (nhiệm
 - **Kiểm thử**:
   - test bảng `ThuTuLoTheoHan`, `KiemTraVuot`, `KhopChungTu`, `AnhXaTrangThaiGiuong`, `KiemTraDatLich`;
   - SC-001: bộ 200 phiếu; SC-004: bất biến giường ↔ tài sản sau mọi lệnh (003 + 019); SC-005: bất biến không chồng lịch xe;
-  - Testcontainers: `UNIQUE` lô, một kiểm kê chờ mỗi kỳ, một vị trí mở, giường ↔ tài sản; trigger nhóm 3;
+  - Test tích hợp MySQL: `UNIQUE` lô, một kiểm kê chờ mỗi kỳ, một vị trí mở, giường ↔ tài sản; trigger nhóm 3;
   - test đồng thời: hai phiếu xuất cùng lô chỗ cuối; hai lịch xe cùng giờ; báo hỏng giường cùng lúc với phân bổ;
   - đồng hồ giả lập cho CFG-M03-02, 09, CFG-M08-08, 09, CFG-M11-07 → 09;
   - bản giả `NhiemVuApi` (bộ phận), 014 gọi `LichXeLenhApi`.

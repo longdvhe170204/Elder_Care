@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Module M09 (phần 015): `BE/m09/{xoayca,phuca,doica}/`; port bổ sung ở `BE/m09/lichca/port/`
-- Web `web/src/tinh-nang/lich-ca/{xoay-ca,phu-ca,doi-ca,nghi,loi-moi}/`; app nhân viên `app-nhan-vien/lib/tinh-nang/lich-ca/`
+- Web `frontend/src/tinh-nang/lich-ca/{xoay-ca,phu-ca,doi-ca,nghi,loi-moi}/`; app nhân viên `mobile/lib/nhan-vien/lich-ca/`
 
 ---
 
@@ -60,7 +60,7 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 - [ ] T010 [US1] Tạo bảng `lan_lap_lich`, `bao_cao_lap_lich_muc` (nhóm 3; `loai` `LAP|LAP_LAI`; `ket_qua` `THANH_CONG|LOI`) trong `MIG/V015_02__lap_lich.sql`
 - [ ] T011 [US1] Cài `BE/m09/xoayca/internal/XoayCaService.java` (mẫu, nhóm, thành viên; Trưởng tầng, Quản lý viện) và `LapLichService.java` (lập, xem trước lập lại, lập lại qua `LichNhapLenhPort`, `CaLenhPort.themVaoCa`; báo cáo; nhắc lập) (research X-05)
-- [ ] T012 [US1] Tạo endpoint `/xoay-ca/mau`, `/xoay-ca/nhom`, `/{id}`, `/{id}/thanh-vien`, `/xoay-ca/lap-lich`, `/lap-lai/xem-truoc`, `/lap-lai`, `/lan-lap-lich`; màn web `web/src/tinh-nang/lich-ca/xoay-ca/`
+- [ ] T012 [US1] Tạo endpoint `/xoay-ca/mau`, `/xoay-ca/nhom`, `/{id}`, `/{id}/thanh-vien`, `/xoay-ca/lap-lich`, `/lap-lai/xem-truoc`, `/lap-lai`, `/lan-lap-lich`; màn web `frontend/src/tinh-nang/lich-ca/xoay-ca/`
 
 **Checkpoint**: Lập lịch từ mẫu chạy độc lập.
 
@@ -80,7 +80,7 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 - [ ] T014 [US2] Tạo bảng `muc_thieu_ca` (`UNIQUE (lich_ca_id, ngay, mau_ca_id)`; `trang_thai` `MO|DA_CO_CA|DA_CONG_BO`), `lan_tinh_phu`, `lan_tinh_phu_dong` (nhóm 3; `su_kien` nhiều giá trị) trong `MIG/V015_03__phu_ca.sql`
 - [ ] T015 [US2] Cài `BE/m09/phuca/internal/PhuCaService.java` (listener `LichNhapDaLuu`, `LichCaDaCongBo`, `CaDaThayDoi`, `CaDaHuy`, `NhanVienDaBoSungVaoCa`, `NhanVienDaNghiViec`, `GiayPhepDaDoiHieuLuc`, `DaoTaoDaDoiHieuLuc`; ghi `lan_tinh_phu`) và `KiemTraCongBoMoRongImpl.java` (research X-06, X-07)
-- [ ] T016 [US2] Tạo endpoint `GET /ca/{id}/phu`, `/lich-ca/{id}/phu`; màn web `web/src/tinh-nang/lich-ca/phu-ca/` và màn công bố hiển thị hai danh sách với test Vitest
+- [ ] T016 [US2] Tạo endpoint `GET /ca/{id}/phu`, `/lich-ca/{id}/phu`; màn web `frontend/src/tinh-nang/lich-ca/phu-ca/` và màn công bố hiển thị hai danh sách với test Vitest
 
 **Checkpoint**: P1 hoàn tất.
 
@@ -100,7 +100,7 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 - [ ] T018 [US3] Tạo bảng `yeu_cau_doi_ca` (`yeu_cau_id` khóa chính trỏ `yeu_cau_phe_duyet`; `dang` `HAI_CHIEU|NHAN_THAY`; `trang_thai` 7 giá trị đồng bộ qua `chuyenMoRong`), `yeu_cau_ca_mo` (`UNIQUE (ca_id, nhan_vien_id)`) trong `MIG/V015_04__doi_ca.sql`
 - [ ] T019 [US3] Cài handler `BE/m09/doica/internal/DoiCaHandler.java` cho `M09.DOI_CA` (`chuyenMoRong` cho `CHO_NGUOI_NHAN_DONG_Y`, `NGUOI_NHAN_TU_CHOI`, `HET_HIEU_LUC`; không có `NHAP`; `kiemTraKhiDuyet`; `khiDuyet` hoặc `apDung` gọi `CaLenhPort`, `PhanCongLenhPort`, `CongViecCaApi.khiKetThucPhanCong`, `ChuyenDiNhiemVuLenhApi.goNhiemVu`; tự duyệt Q-10) và `DoiCaService.java` (lập, đồng ý, từ chối, rút, hủy) (research X-08)
-- [ ] T020 [US3] Tạo endpoint `/doi-ca`, `/doi-ca/ca-cua-nguoi-nhan`, `/{id}/kiem-tra`, `/{id}/{lenh}`; màn web `web/src/tinh-nang/lich-ca/doi-ca/`; app `app-nhan-vien/lib/tinh-nang/lich-ca/` (SC-006 ≤ 2 phút) với test flutter
+- [ ] T020 [US3] Tạo endpoint `/doi-ca`, `/doi-ca/ca-cua-nguoi-nhan`, `/{id}/kiem-tra`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/lich-ca/doi-ca/`; app `mobile/lib/nhan-vien/lich-ca/` (SC-006 ≤ 2 phút) với test flutter
 
 **Checkpoint**: Đổi ca chạy độc lập.
 
@@ -120,7 +120,7 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 - [ ] T022 [US4] Tạo bảng `yeu_cau_nghi` (`dang` `THEO_CA|THEO_NGAY`; `lap_thay`), `yeu_cau_nghi_muc` (`ket_qua` `CHO|DUYET|TU_CHOI|DA_TACH|DA_ROI`), `nghi_theo_ngay` (nhóm 3; `UNIQUE (nhan_vien_id, ngay)`) trong `MIG/V015_05__nghi.sql`
 - [ ] T023 [US4] Cài handler `BE/m09/doica/internal/NghiDotXuatHandler.java` (`DA_AP_DUNG_MOT_PHAN`, `HET_HIEU_LUC`; tác động qua `NghiCoDuyetPort`, `CaLenhPort`) và `NghiService.java` (tác động trước duyệt; tách ca theo giờ trong job; listener `LichCaDaCongBo`) (research X-09)
-- [ ] T024 [US4] Tạo endpoint `/nghi-dot-xuat`, `/{id}/truoc-khi-duyet`, `/{id}/{lenh}`; màn web `web/src/tinh-nang/lich-ca/nghi/`; app phần nghỉ
+- [ ] T024 [US4] Tạo endpoint `/nghi-dot-xuat`, `/{id}/truoc-khi-duyet`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/lich-ca/nghi/`; app phần nghỉ
 
 **Checkpoint**: Nghỉ đột xuất chạy độc lập.
 
@@ -139,7 +139,7 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 ### Implementation cho User Story 5
 
 - [ ] T026 [US5] Tạo bảng `canh_bao_thieu_phu` (`trang_thai` `DANG_MO|DONG_DU_PHU|DONG_HET_CA`), `loi_moi_nhan_ca` (`trang_thai` `CHO_TRA_LOI|DA_NHAN|DA_TU_CHOI|DA_RUT|HET_HIEU_LUC`) trong `MIG/V015_06__thieu_phu.sql`; cài `BE/m09/phuca/internal/ThieuPhuService.java` (mở/cập nhật/đóng; phát `CaThieuPhuDaMo/DaDong`) và `BE/m09/doica/internal/LoiMoiService.java` (gửi, nhận → `CaLenhPort.themVaoCa`, từ chối, rút, hết hiệu lực) (research X-10)
-- [ ] T027 [US5] Tạo endpoint `/canh-bao-thieu-phu`, `/ca/{id}/tra-cuu-nguoi-thay`, `/loi-moi`, `/loi-moi/{id}/{lenh}`; màn web `web/src/tinh-nang/lich-ca/loi-moi/` (sắp theo họ tên, không cột xếp hạng) với test Vitest; app trả lời lời mời
+- [ ] T027 [US5] Tạo endpoint `/canh-bao-thieu-phu`, `/ca/{id}/tra-cuu-nguoi-thay`, `/loi-moi`, `/loi-moi/{id}/{lenh}`; màn web `frontend/src/tinh-nang/lich-ca/loi-moi/` (sắp theo họ tên, không cột xếp hạng) với test Vitest; app trả lời lời mời
 
 **Checkpoint**: Mọi user story của 015 chạy độc lập.
 

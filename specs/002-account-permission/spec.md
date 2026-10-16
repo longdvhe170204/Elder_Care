@@ -568,3 +568,5 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/busine
 **(2026-10-10) Plan 003, điểm báo lại 1: Người phụ trách ca Xác nhận giường sẵn sàng chưa có ngoại lệ quyền.** *(Đã xử lý 2026-10-10: Q-313; thêm FR-019g.)*
 
 **(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-019f, Edge Cases; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+
+**(2026-10-16) Q-346: một ứng dụng di động chung cho nhân viên và người thân.** *(Đã xử lý 2026-10-16: Q-346 sửa Q-305; "app nhân viên", "app người thân" trong spec là ứng dụng chung khi dùng bằng tài khoản nhân viên, người thân; FR không đổi.)*

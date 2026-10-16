@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## E-01. Vị trí trong backend
 
-**Quyết định**: Feature 017 là phần 15.9 của module M11, thêm gói `vn.eldercare.m11.sodu` (010 P-01).
+**Quyết định**: Feature 017 là phần 15.9 của module M11, thêm gói `com.cambae.backend.m11.sodu` (010 P-01).
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -147,7 +147,7 @@ Kế toán không xem sức khỏe; khoản thuốc chỉ mã vật phẩm (010 
 - **Kiểm thử**:
   - test bảng `TrangThaiDatCoc`, `KhopMa`, `GioiHanHoan`, `PhiMotNgay`, `TinhTrang`, `QuyetDinhBao`, `DieuKienQuyetToan`, `TongQuyNgay`, `SaoKe`;
   - SC-001: bộ 3 tháng × 50 hồ sơ; SC-003: nhập cùng file 3 lần; SC-004: 200 dòng;
-  - Testcontainers: `UNIQUE` dòng sao kê, thanh toán bảng, đảo, chốt quỹ ngày; trigger nhóm 3; dãy số phiếu không khoảng trống khi rollback;
+  - Test tích hợp MySQL: `UNIQUE` dòng sao kê, thanh toán bảng, đảo, chốt quỹ ngày; trigger nhóm 3; dãy số phiếu không khoảng trống khi rollback;
   - test đồng thời: hai Kế toán ghi phiếu cùng lúc (số liên tục); duyệt hoàn tiền cùng lúc với thanh toán bảng;
   - đồng hồ giả lập cho CFG-M11-04, 05, CFG-M02-09, CFG-M13-06, CFG-M15-05, 06;
   - bản giả `ChiPhiChoSoDuPort`, 004 sự kiện, 012 `QuyenNguoiThanApi`.

@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Module M12: `BE/m12/{api,danhmuc,dogui,tra,dongy,suco,ketthuc,kiemke,lich}/`
-- Web `web/src/tinh-nang/do-gui/{danh-muc,tiep-nhan,ban-giao,tra,kiem-ke,xu-ly-do}/`, `web/src/tinh-nang/cong-nguoi-than/do-gui/`; app nhân viên `app-nhan-vien/lib/tinh-nang/do-gui/`; app người thân `app-nguoi-than/lib/tinh-nang/do-gui/`
+- Web `frontend/src/tinh-nang/do-gui/{danh-muc,tiep-nhan,ban-giao,tra,kiem-ke,xu-ly-do}/`, `frontend/src/tinh-nang/cong-nguoi-than/do-gui/`; app nhân viên `mobile/lib/nhan-vien/do-gui/`; app người thân `mobile/lib/nguoi-than/do-gui/`
 
 ---
 
@@ -59,7 +59,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 - [ ] T009 [US1] Tạo bảng `dong_y_tu_giu` (`cach` `CONG|BAN_KY|TRONG_LENH_TIEP_NHAN`; `trang_thai` `HIEU_LUC|DA_RUT|HET_HIEU_LUC`; cột sinh `khoa_hieu_luc` `UNIQUE`) trong `MIG/V013_02__dong_y.sql`
 - [ ] T010 [US1] Cài `BE/m12/dogui/internal/TiepNhanService.java` (Tiếp nhận, Tiếp nhận và giao ngay; người thực hiện Hành chính hoặc Điều dưỡng trong phạm vi; ảnh qua `TepApi`; đồ có giá trị theo CFG-M12-01 lúc lệnh) và `BE/m12/dongy/internal/DongYTuGiuService.java` (người đại diện qua cổng hoặc bản ký) (research K-04, K-06)
-- [ ] T011 [US1] Tạo endpoint `/nguoi-cao-tuoi/{nctId}/do-gui`, `/do-gui/{id}`, `/dong-y-tu-giu`, `/dong-y-tu-giu/{id}/rut`, `/cong/dong-y-tu-giu`, `/cong/dong-y-tu-giu/{id}/rut`; màn web `web/src/tinh-nang/do-gui/tiep-nhan/`; app `app-nhan-vien/lib/tinh-nang/do-gui/` (ảnh, chặn thao tác khi mất mạng) với test flutter
+- [ ] T011 [US1] Tạo endpoint `/nguoi-cao-tuoi/{nctId}/do-gui`, `/do-gui/{id}`, `/dong-y-tu-giu`, `/dong-y-tu-giu/{id}/rut`, `/cong/dong-y-tu-giu`, `/cong/dong-y-tu-giu/{id}/rut`; màn web `frontend/src/tinh-nang/do-gui/tiep-nhan/`; app `mobile/lib/nhan-vien/do-gui/` (ảnh, chặn thao tác khi mất mạng) với test flutter
 
 **Checkpoint**: Tiếp nhận chạy độc lập.
 
@@ -79,7 +79,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 - [ ] T013 [US2] Cài `BE/m12/dogui/internal/BanGiaoService.java` (lệnh bàn giao theo bảng chuyển data-model mục 3; cập nhật cột suy ra cùng transaction; `TachDo`) và `DinhChinhDuocProvider` `M12.BAN_GIAO_DO_GUI` (không gắn tầng; giới hạn FR-011a; `sauKhiDinhChinh` tính lại đồ) (research K-04, K-05)
 - [ ] T014 [US2] Cài `DoGuiBanGiaoPort` (`dangGiu`, `conDangGiu`) cho 008 và listener `CaDaKetThuc` (008), `DaChuyenGiuong` (003) nhắc trong `BE/m12/dogui/internal/` (research K-11)
-- [ ] T015 [US2] Tạo endpoint `POST /do-gui/ban-giao`, `GET /nhan-vien/{nhanVienId}/do-gui-dang-giu`; màn web `web/src/tinh-nang/do-gui/ban-giao/` (hiển thị chênh lệch tình trạng) với test Vitest
+- [ ] T015 [US2] Tạo endpoint `POST /do-gui/ban-giao`, `GET /nhan-vien/{nhanVienId}/do-gui-dang-giu`; màn web `frontend/src/tinh-nang/do-gui/ban-giao/` (hiển thị chênh lệch tình trạng) với test Vitest
 
 **Checkpoint**: Bàn giao chạy độc lập.
 
@@ -99,7 +99,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 - [ ] T017 [US3] Tạo `MIG/V013_03__tra.sql`: `lan_tra` (nhóm 3; `nguoi_nhan_loai` `NGUOI_THAN|NGUOI_CAO_TUOI|NGUOI_KHAC`), `lan_chan_tra` (nhóm 3; `ly_do` 4 giá trị), `xac_nhan_nguoi_nhan` (`trang_thai` `CHO_XAC_NHAN|HIEU_LUC|TU_CHOI|HUY|DA_DUNG|HET_HAN`; `cach` `CONG|BAN_KY|QL_DUYET_THAY`; khóa sau khi lập), `xac_nhan_nguoi_nhan_do`, `bang_chung_lien_he` (nhóm 3) (data-model mục 5)
 - [ ] T018 [US3] Cài `BE/m12/tra/internal/TraService.java` (lệnh Trả theo `NguoiNhanHopLe` qua `QuyenNguoiThanApi`; lần chặn) và `XacNhanNguoiNhanService.java` (lập, xác nhận, từ chối, duyệt thay, hủy; việc theo phút Hết hạn; báo Quản lý viện khi đủ điều kiện duyệt thay) (research K-06)
-- [ ] T019 [US3] Tạo endpoint `POST /do-gui/tra`, `/xac-nhan-nguoi-nhan`, `/{id}/bang-chung-lien-he`, `/{id}/{lenh}`, `/cong/xac-nhan-nguoi-nhan/{id}/{lenh}`; màn web `web/src/tinh-nang/do-gui/tra/`; app người thân xác nhận người nhận khác với test flutter
+- [ ] T019 [US3] Tạo endpoint `POST /do-gui/tra`, `/xac-nhan-nguoi-nhan`, `/{id}/bang-chung-lien-he`, `/{id}/{lenh}`, `/cong/xac-nhan-nguoi-nhan/{id}/{lenh}`; màn web `frontend/src/tinh-nang/do-gui/tra/`; app người thân xác nhận người nhận khác với test flutter
 
 **Checkpoint**: Trả đồ an toàn.
 
@@ -138,7 +138,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 - [ ] T024 [US5] Cài `BE/m12/ketthuc/internal/DieuKienDoGui.java`, bean `ThamGiaChuyenTrangThai` (`@Order` sau 012; `KT_B_DO_GUI` `coTheMien = true`), `MucViecSauQuaDoiPort` `DO_GUI`, handler `M12.XU_LY_DO_KHONG_NGUOI_NHAN` (`choTuDuyet = false`; `apDung` ghi bản ghi `XU_LY`); listener `HoSoKetThucDaLap`, `NguoiCaoTuoiDaChuyenTrangThai`; nhắc CFG-M12-02 (research K-08, K-09)
 - [ ] T025 [US5] Tạo bảng `phieu_kiem_ke` (`trang_thai` `CHO_KIEM_KE|HOAN_THANH|DA_HUY`; `UNIQUE (vi_tri_id, ma_ky)`), `phieu_kiem_ke_dong`, `do_khong_ro_chu` trong `MIG/V013_04__kiem_ke.sql`; cài `BE/m12/kiemke/internal/KiemKeService.java` (Hành chính lập; hoàn thành phát sinh bản ghi; `DinhChinhDuocProvider` `M12.PHIEU_KIEM_KE`; nhắc chu kỳ) (research K-10)
-- [ ] T026 [US5] Tạo endpoint `GET /nguoi-cao-tuoi/{nctId}/do-gui/dieu-kien-ket-thuc`, `/kiem-ke`, `/{id}`, `/{id}/{lenh}`; màn web `web/src/tinh-nang/do-gui/kiem-ke/`, `web/src/tinh-nang/do-gui/xu-ly-do/`
+- [ ] T026 [US5] Tạo endpoint `GET /nguoi-cao-tuoi/{nctId}/do-gui/dieu-kien-ket-thuc`, `/kiem-ke`, `/{id}`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/do-gui/kiem-ke/`, `frontend/src/tinh-nang/do-gui/xu-ly-do/`
 
 **Checkpoint**: Kết thúc và kiểm kê chạy độc lập.
 
@@ -156,7 +156,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 ### Implementation cho User Story 6
 
-- [ ] T028 [US6] Tạo endpoint `GET /cong/nguoi-cao-tuoi/{nctId}/do-gui` trong `BE/m12/dogui/web/CongDoGuiController.java`; màn web `web/src/tinh-nang/cong-nguoi-than/do-gui/`, app `app-nguoi-than/lib/tinh-nang/do-gui/` (research K-12)
+- [ ] T028 [US6] Tạo endpoint `GET /cong/nguoi-cao-tuoi/{nctId}/do-gui` trong `BE/m12/dogui/web/CongDoGuiController.java`; màn web `frontend/src/tinh-nang/cong-nguoi-than/do-gui/`, app `mobile/lib/nguoi-than/do-gui/` (research K-12)
 
 **Checkpoint**: Mọi user story của 013 chạy độc lập.
 

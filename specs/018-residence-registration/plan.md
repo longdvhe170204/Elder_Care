@@ -18,13 +18,13 @@ Plan tuân theo FR-010a của 000 (Q-306): hệ thống không tạo khai báo, 
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x (000 R-01). Không có màn trên app di động.
+**Language/Version**: Java 25; TypeScript 5.x (000 R-01). Không có màn trên app di động.
 
 **Primary Dependencies**: Như 000 → 017. Không thêm thư viện.
 
-**Storage**: MySQL 8.4 LTS, schema M02. Bảng ở [data-model.md](data-model.md).
+**Storage**: MySQL 8.0, schema M02. Bảng ở [data-model.md](data-model.md).
 
-**Testing**: Như 000 R-14; test bảng hai hàm thuần; Testcontainers cho DBR-33; đồng hồ giả lập cho CFG-M02-09, 11 → 13.
+**Testing**: Như 000 R-14; test bảng hai hàm thuần; Test tích hợp MySQL cho DBR-33; đồng hồ giả lập cho CFG-M02-09, 11 → 13.
 
 **Target Platform**: Web (Hành chính, Quản lý viện).
 
@@ -96,9 +96,9 @@ specs/018-residence-registration/
 Cấu trúc dự kiến cho giai đoạn triển khai; giai đoạn thiết kế không tạo (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m02/khaibao/   {internal, web, lich}   # nghĩa vụ, khai báo, TongThoiGianLuuTru, LoaiKhaiBao, bean trạng thái
-backend/src/main/java/vn/eldercare/m02/api/       # (bổ sung) KhaiBaoThongKeApi
-web/src/tinh-nang/khai-bao-tam-tru/
+backend/src/main/java/com/cambae/backend/m02/khaibao/   {internal, web, lich}   # nghĩa vụ, khai báo, TongThoiGianLuuTru, LoaiKhaiBao, bean trạng thái
+backend/src/main/java/com/cambae/backend/m02/api/       # (bổ sung) KhaiBaoThongKeApi
+frontend/src/tinh-nang/khai-bao-tam-tru/
 ```
 
 **Structure Decision**: Theo R-02 của 000 và 004: 018 thêm gói `m02.khaibao`.

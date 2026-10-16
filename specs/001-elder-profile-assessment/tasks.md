@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4 và data-model.md mục 12.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Module M01: `BE/m01/{api,hoso,trangthai,dongy,suckhoe,nguyenvong,danhgia,lich}/`; tệp dùng chung `BE/common/tep/`
-- Web `web/src/tinh-nang/{ho-so-nguoi-cao-tuoi,ban-dong-y,suc-khoe,nguyen-vong,danh-gia,danh-muc-m01}/`; app nhân viên `app-nhan-vien/lib/tinh-nang/{tra-cuu-nguoi-cao-tuoi,suc-khoe,danh-gia,trang-thai}/`; app người thân `app-nguoi-than/lib/tinh-nang/ho-so/`
+- Web `frontend/src/tinh-nang/{ho-so-nguoi-cao-tuoi,ban-dong-y,suc-khoe,nguyen-vong,danh-gia,danh-muc-m01}/`; app nhân viên `mobile/lib/nhan-vien/{tra-cuu-nguoi-cao-tuoi,suc-khoe,danh-gia,trang-thai}/`; app người thân `mobile/lib/nguoi-than/ho-so/`
 
 ---
 
@@ -70,8 +70,8 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 - [ ] T019 [US1] Cài tra cứu `BE/m01/hoso/internal/TraCuuNguoiCaoTuoi.java` dùng `PhamViApi.boLoc` và chỉ mục `(ho_ten_so_khop, ngay_sinh)`, `ma_ho_so`, `cccd_dang_mo`; DTO có `@NhomTruong` (research H-05; NFR-02)
 - [ ] T020 [US1] Tạo `BE/m01/hoso/web/NguoiCaoTuoiController.java`: `POST/GET /nguoi-cao-tuoi`, `GET /nguoi-cao-tuoi/{id}` (kèm `lenhDuocPhep`), `POST …/{id}/cap-nhat-thong-tin`, `GET …/{id}/ho-so-lien-ket` theo contracts/api-001.yaml
 - [ ] T021 [US1] Cài `NguoiCaoTuoiApi` (`trangThai`, `nhanDang`, …) trong `BE/m01/hoso/internal/NguoiCaoTuoiApiImpl.java` cho 002 và các module khác
-- [ ] T022 [P] [US1] Tạo màn web `web/src/tinh-nang/ho-so-nguoi-cao-tuoi/TraCuu.tsx`, `TaoHoSo.tsx`, `ChiTietHoSo.tsx` (hiển thị `truongBiAn`, xác nhận trùng) và test `HoSo.test.tsx`, `XacNhanTrung.test.tsx`
-- [ ] T023 [P] [US1] Tạo `app-nhan-vien/lib/tinh-nang/tra-cuu-nguoi-cao-tuoi/` (tra cứu, thẻ người cao tuổi) và `app-nguoi-than/lib/tinh-nang/ho-so/` (xem hồ sơ, phần sức khỏe theo chú thích ¹)
+- [ ] T022 [P] [US1] Tạo màn web `frontend/src/tinh-nang/ho-so-nguoi-cao-tuoi/TraCuu.tsx`, `TaoHoSo.tsx`, `ChiTietHoSo.tsx` (hiển thị `truongBiAn`, xác nhận trùng) và test `HoSo.test.tsx`, `XacNhanTrung.test.tsx`
+- [ ] T023 [P] [US1] Tạo `mobile/lib/nhan-vien/tra-cuu-nguoi-cao-tuoi/` (tra cứu, thẻ người cao tuổi) và `mobile/lib/nguoi-than/ho-so/` (xem hồ sơ, phần sức khỏe theo chú thích ¹)
 
 **Checkpoint**: Tạo và tra cứu hồ sơ chạy độc lập.
 
@@ -97,7 +97,7 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 - [ ] T030 [US2] Cài `BE/m01/suckhoe/internal/MucSucKhoeService.java`: ghi nhận (danh mục `HIEU_LUC`, trùng, `HoSoMoGuard`), loại trừ có lý do; đặt cờ chờ kiểm tra và phát `DiUngDaGhiNhan`/`DiUngKhacDaGhiNhan`/`DiUngDaLoaiTru` sau commit; nhận kết quả kiểm tra thì ghi `MSK_DA_KIEM_TRA` (research H-07)
 - [ ] T031 [US2] Cài job `BE/m01/lich/ThuLaiKiemTraDiUng.java` (15 phút, ShedLock): phát lại `DiUngDaGhiNhan` cho mục còn cờ quá 15 phút (BR-M01-12; research H-12)
 - [ ] T032 [US2] Tạo `BE/m01/suckhoe/web/SucKhoeController.java`: `PUT /nguoi-cao-tuoi/{id}/ho-so-suc-khoe-ban-dau`, `POST …/xac-nhan`, `POST /ho-so-suc-khoe-ban-dau/{id}/dinh-chinh`, `POST/GET /nguoi-cao-tuoi/{id}/muc-suc-khoe`, `POST /muc-suc-khoe/{id}/loai-tru`; cài `MucSucKhoeApi`, `HoSoSucKhoeApi`, `DiNguyenApi`
-- [ ] T033 [P] [US2] Tạo màn web `web/src/tinh-nang/suc-khoe/HoSoBanDau.tsx`, `MucSucKhoe.tsx` và app `app-nhan-vien/lib/tinh-nang/suc-khoe/` (ghi mục sức khỏe trực tuyến)
+- [ ] T033 [P] [US2] Tạo màn web `frontend/src/tinh-nang/suc-khoe/HoSoBanDau.tsx`, `MucSucKhoe.tsx` và app `mobile/lib/nhan-vien/suc-khoe/` (ghi mục sức khỏe trực tuyến)
 
 **Checkpoint**: Sức khỏe ban đầu và dị ứng chạy độc lập.
 
@@ -122,7 +122,7 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 - [ ] T039 [US3] Cài `BE/m01/danhgia/internal/DanhGiaService.java`: tạo (`DAU_VAO` chỉ khi `DANG_TIEP_NHAN` và chưa có đầu vào xác nhận; `DANH_GIA_LAI` theo FR-035), sửa nháp, hủy nháp, xác nhận với tác động cùng transaction theo research H-10 (đặt mức hiện hành, `lich_su_muc_cham_soc`, `MUC_CS_DOI`, gọi `YeuCauDoiMucApi.thayTheBoiDanhGia` MANDATORY, đáp ứng lần báo đánh giá lại, phát `DanhGiaDauVaoDaXacNhan`, `DanhGiaDaDoiMucHoacNhuCau`, `MucChamSocDaDoi`); gợi ý chỉ số gần nhất qua `ChiSoApi.ganNhat` để hiển thị
 - [ ] T040 [US3] Cài `MucChamSocApi`, `DanhGiaApi` (`luuYHienHanh` theo lô) và `DinhChinhDuocProvider` cho `M01.DANH_GIA` trong `BE/m01/danhgia/internal/`
 - [ ] T041 [US3] Tạo `BE/m01/danhgia/web/DanhGiaController.java`: `POST /nguoi-cao-tuoi/{id}/danh-gia`, `GET/PUT /danh-gia/{id}`, `POST /danh-gia/{id}/xac-nhan`, `/huy-nhap`, `/dinh-chinh`, `GET /nguoi-cao-tuoi/{id}/muc-cham-soc`, `/lich-su-muc-cham-soc`
-- [ ] T042 [P] [US3] Tạo màn web `web/src/tinh-nang/danh-gia/LapDanhGia.tsx` (không có ô điểm, không có mức đề xuất) và test `DanhGia.test.tsx`; app `app-nhan-vien/lib/tinh-nang/danh-gia/` (lập nháp); thẻ người cao tuổi hiển thị lưu ý chăm sóc và test `app-nhan-vien/test/the_nguoi_cao_tuoi_test.dart`
+- [ ] T042 [P] [US3] Tạo màn web `frontend/src/tinh-nang/danh-gia/LapDanhGia.tsx` (không có ô điểm, không có mức đề xuất) và test `DanhGia.test.tsx`; app `mobile/lib/nhan-vien/danh-gia/` (lập nháp); thẻ người cao tuổi hiển thị lưu ý chăm sóc và test `mobile/test/nhan-vien/the_nguoi_cao_tuoi_test.dart`
 
 **Checkpoint**: Đánh giá đầu vào và mức chăm sóc chạy độc lập.
 
@@ -148,7 +148,7 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 - [ ] T049 [US4] Cài `TrangThaiNguoiCaoTuoiApi` trong `BE/m01/trangthai/internal/TrangThaiApiImpl.java`: `DIEM_DANH_ROI_VIEN`, `DIEM_DANH_VE`, `HUY_GHI_NHAN_ROI_VIEN` cho 014 (`do_he_thong`), `CHUYEN_VIEN` cho 007, `xemDieuKien` cho 004 (research H-03)
 - [ ] T050 [US4] Tạo `BE/m01/trangthai/web/TrangThaiController.java`: `GET /nguoi-cao-tuoi/{id}/lich-su-trang-thai`, `GET …/dieu-kien/{lenh}`, `POST …/hoan-tat-tiep-nhan`, `/huy-tiep-nhan`, `/cho-tam-vang`, `/ghi-nhan-tro-ve`, `/chuyen-vien`, `/ket-thuc-luu-tru`, `/ghi-nhan-qua-doi` (thân `lyDo`, `chiTiet`) theo contracts/api-001.yaml; `DinhChinhDuocProvider` cho `M01.LICH_SU_TRANG_THAI`
 - [ ] T051 [US4] Tạo `MIG/V001_06__canh_bao_tro_lai.sql` (`(luot_vang_id, moc_du_kien)` khóa chính, `canh_bao_luc`) và cài job `BE/m01/lich/CanhBaoQuaHanTroLai.java` dùng `LuotVangApi.dangMo()` và CFG-M01-01, phát `TamVangQuaHan` (BR-M01-01, FR-050)
-- [ ] T052 [P] [US4] Tạo màn web lệnh trạng thái trong `web/src/tinh-nang/ho-so-nguoi-cao-tuoi/LenhTrangThai.tsx` (xem trước điều kiện, hiển thị `dieuKienChuaThoa[]`, cảnh báo) và test `DieuKienChuaThoa.test.tsx`; app `app-nhan-vien/lib/tinh-nang/trang-thai/` (Cho tạm vắng, Ghi nhận trở về, Chuyển viện, Ghi nhận qua đời; chỉ trực tuyến)
+- [ ] T052 [P] [US4] Tạo màn web lệnh trạng thái trong `frontend/src/tinh-nang/ho-so-nguoi-cao-tuoi/LenhTrangThai.tsx` (xem trước điều kiện, hiển thị `dieuKienChuaThoa[]`, cảnh báo) và test `DieuKienChuaThoa.test.tsx`; app `mobile/lib/nhan-vien/trang-thai/` (Cho tạm vắng, Ghi nhận trở về, Chuyển viện, Ghi nhận qua đời; chỉ trực tuyến)
 
 **Checkpoint**: Máy trạng thái chạy với bean giả; P1 hoàn tất.
 
@@ -171,7 +171,7 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 - [ ] T056 [US5] Cài `BE/m01/dongy/internal/BanDongYService.java` (ghi nhận, thay thế, rút lại; `BanDongYApi`; phát `BanDongYDaDoi`) và `DieuKienChuThich("1")` trong `BE/m01/dongy/internal/DieuKienDongY.java` (research H-06)
 - [ ] T057 [US5] Tạo `BE/m01/dongy/web/BanDongYController.java`: `POST/GET /nguoi-cao-tuoi/{id}/ban-dong-y`, `POST /ban-dong-y/{id}/rut-lai`
 - [ ] T058 [US5] Cài job `BE/m01/lich/NhacThieuDongYNguyenVong.java` (phần bản đồng ý: trạng thái Đang lưu trú, Tạm vắng, Hoạt động bên ngoài, Điều trị tại bệnh viện; mỗi CFG-M01-06; dòng `nhac_chu_ky` thêm khi Hoàn tất tiếp nhận thiếu bản đồng ý) (FR-012, SC-013)
-- [ ] T059 [P] [US5] Tạo màn web `web/src/tinh-nang/ban-dong-y/BanDongY.tsx`
+- [ ] T059 [P] [US5] Tạo màn web `frontend/src/tinh-nang/ban-dong-y/BanDongY.tsx`
 
 **Checkpoint**: Bản đồng ý điều khiển quyền xem sức khỏe của người thân.
 
@@ -194,7 +194,7 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 - [ ] T063 [US6] Cài `BE/m01/danhgia/internal/BaoDanhGiaLaiService.java` ("cần đánh giá lại" tính từ lần báo chưa được đáp ứng; Q-307, research H-11), listener `SuCoDaGhiNhan` (khi `canDanhGiaLai`), `DanhGiaLaiApi`
 - [ ] T064 [US6] Cài job `BE/m01/lich/BaoDanhGiaLaiDinhKy.java`, `CanhBaoQuaHanDanhGiaLai.java`, `NhacLapYeuCauDoiMuc.java` (ShedLock, 15 phút; CFG-M01-02, CFG-M01-03, CFG-M03-02 đọc mỗi lần chạy; `lan_chay_lich`) (research H-12)
 - [ ] T065 [US6] Cài lệnh ghi mức từ yêu cầu thay đổi lưu trú (004 gọi khi áp dụng, `MANDATORY`) trong `MucChamSocApi` và cập nhật `lich_su_muc_cham_soc` (FR-052, FR-053)
-- [ ] T066 [US6] Tạo endpoint `GET /nguoi-cao-tuoi/{id}/danh-gia-lai`, `GET /danh-gia-lai/can-thuc-hien` trong `BE/m01/danhgia/web/DanhGiaLaiController.java` và màn web `web/src/tinh-nang/danh-gia/CanDanhGiaLai.tsx`
+- [ ] T066 [US6] Tạo endpoint `GET /nguoi-cao-tuoi/{id}/danh-gia-lai`, `GET /danh-gia-lai/can-thuc-hien` trong `BE/m01/danhgia/web/DanhGiaLaiController.java` và màn web `frontend/src/tinh-nang/danh-gia/CanDanhGiaLai.tsx`
 
 **Checkpoint**: Vòng đánh giá lại chạy với đồng hồ giả lập.
 
@@ -214,7 +214,7 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 
 - [ ] T068 [US7] Tạo `MIG/V001_09__nguyen_vong.sql`: `nguyen_vong_cuoi_doi` theo data-model mục 6 (`lua_chon ENUM('CHUYEN_BENH_VIEN','DUA_VE_NHA','O_LAI_GIAM_NHE')`; `nguoi_ky_loai ENUM('NGUOI_CAO_TUOI','NGUOI_DAI_DIEN')`; `ban_ky_tep_id NOT NULL`; `nguon ENUM('TIEP_NHAN','YEU_CAU_GIA_DINH','XAC_NHAN_LAI_NGUY_KICH')`; `trang_thai ENUM('HIEU_LUC','DUOC_THAY_THE')`; cột sinh `dang_hieu_luc` `UNIQUE`; trigger chỉ cho `HIEU_LUC → DUOC_THAY_THE`)
 - [ ] T069 [US7] Cài `BE/m01/nguyenvong/internal/NguyenVongService.java` (ghi phiên bản mới; `NguyenVongApi.ghiPhienBan` cho 007; bác sĩ nhận định có AC-03 lúc ghi; `NV_GHI`) và phần nguyện vọng của job `NhacThieuDongYNguyenVong` (research H-09)
-- [ ] T070 [US7] Tạo `BE/m01/nguyenvong/web/NguyenVongController.java` cho `POST/GET /nguoi-cao-tuoi/{id}/nguyen-vong` và màn web `web/src/tinh-nang/nguyen-vong/NguyenVong.tsx`
+- [ ] T070 [US7] Tạo `BE/m01/nguyenvong/web/NguyenVongController.java` cho `POST/GET /nguoi-cao-tuoi/{id}/nguyen-vong` và màn web `frontend/src/tinh-nang/nguyen-vong/NguyenVong.tsx`
 
 **Checkpoint**: Mọi user story của 001 chạy độc lập.
 
@@ -223,7 +223,7 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 ## Phase 10: Polish & Cross-Cutting
 
 - [ ] T071 [P] Mở rộng `BT/common/HopDongApiTest.java` so springdoc với `specs/001-elder-profile-assessment/contracts/api-001.yaml`
-- [ ] T072 [P] Màn danh mục `web/src/tinh-nang/danh-muc-m01/` (dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc)
+- [ ] T072 [P] Màn danh mục `frontend/src/tinh-nang/danh-muc-m01/` (dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc)
 - [ ] T073 Khi plan của 003, 004, 005, 006, 007, 010, 011, 012, 013 cài bean `ThamGiaChuyenTrangThai` thật, chạy lại `FR_045_LietKeDieuKienIT`, `FR_047_RollbackTacDongIT` với bean thật (research H-02 mục 4)
 - [ ] T074 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
 - [ ] T075 Rà truy vết data-model mục 12: DBR-01 → 05, 23, 25, 34 và BR-M01-01 → 13 có test; FR bổ sung 2026-10-10: FR-054 — có task hoặc test tương ứng (constitution XV)

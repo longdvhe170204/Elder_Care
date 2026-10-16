@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Gói `BE/m02/khaibao/{internal,web,lich}/`; bổ sung `BE/m02/api/KhaiBaoThongKeApi.java`
-- Web `web/src/tinh-nang/khai-bao-tam-tru/`
+- Web `frontend/src/tinh-nang/khai-bao-tam-tru/`
 
 ---
 
@@ -56,7 +56,7 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 ### Implementation cho User Story 1
 
 - [ ] T007 [US1] Cài listener `TiepNhanHoanTat`, `HopDongDaDoiTrangThai` ghi `nghia_vu_khai_bao` trong `BE/m02/khaibao/internal/NghiaVuService.java`; nhắc lập, quá hạn theo CFG-M02-12 trong job (research Z-03)
-- [ ] T008 [US1] Cài `BE/m02/khaibao/internal/KhaiBaoService.java` (lập, xác nhận thường trú cùng xã/phường; khóa `khai_bao_nct`) và `BE/m02/khaibao/web/KhaiBaoController.java` (`GET /khai-bao/can-lam`, `POST/GET /nguoi-cao-tuoi/{nctId}/khai-bao`, `POST /khai-bao/{id}/{lenh}`); màn web `web/src/tinh-nang/khai-bao-tam-tru/`
+- [ ] T008 [US1] Cài `BE/m02/khaibao/internal/KhaiBaoService.java` (lập, xác nhận thường trú cùng xã/phường; khóa `khai_bao_nct`) và `BE/m02/khaibao/web/KhaiBaoController.java` (`GET /khai-bao/can-lam`, `POST/GET /nguoi-cao-tuoi/{nctId}/khai-bao`, `POST /khai-bao/{id}/{lenh}`); màn web `frontend/src/tinh-nang/khai-bao-tam-tru/`
 
 **Checkpoint**: Lập khai báo chạy độc lập.
 

@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Module M10: `BE/m10/{api,nguoithan,quyen,don,tham,olai,cong,bantin,phanhoi,lich}/`
-- Web `web/src/tinh-nang/nguoi-than/{ho-so,yeu-cau-quyen,don,tham,o-lai,ban-tin,phan-hoi,cong-nguoi-than}/`; app nhân viên `app-nhan-vien/lib/tinh-nang/nguoi-than/`; app người thân `app-nguoi-than/lib/tinh-nang/`
+- Web `frontend/src/tinh-nang/nguoi-than/{ho-so,yeu-cau-quyen,don,tham,o-lai,ban-tin,phan-hoi,cong-nguoi-than}/`; app nhân viên `mobile/lib/nhan-vien/nguoi-than/`; app người thân `mobile/lib/nguoi-than/`
 
 ---
 
@@ -61,7 +61,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 - [ ] T010 [US1] Tạo bảng `phieu_dang_ky_nguoi_than`, `phieu_dang_ky_dong` (nhóm 3; tệp scan bắt buộc) trong `MIG/V012_02__phieu_dang_ky.sql`
 - [ ] T011 [US1] Cài `BE/m10/nguoithan/internal/NguoiThanService.java`: hồ sơ, lập quan hệ, đổi liên hệ chính, đặt người đại diện đầu tiên (lý do, bằng chứng), đổi thứ tự liên hệ, kết thúc quan hệ (không kích hoạt lại), phiếu đăng ký; khóa `nguoi_than_nct`; `KiemTraDbr02`; ghi `lich_su_quyen` (research F-04, F-05)
 - [ ] T012 [US1] Cài bean `ThamGiaChuyenTrangThai` của 012 (`@Order` sau 010, trước 013; điều kiện `DBR_02` `coTheMien = false` cho `HOAN_TAT_TIEP_NHAN`; tác động vắng, trạng thái cuối) trong `BE/m10/nguoithan/internal/ThamGiaM10.java`
-- [ ] T013 [US1] Tạo endpoint `/nguoi-than`, `/{id}`, `/nguoi-cao-tuoi/{nctId}/quan-he`, `/quan-he/{id}/{lenh}`, `/nguoi-cao-tuoi/{nctId}/phieu-dang-ky`; màn web `web/src/tinh-nang/nguoi-than/ho-so/`
+- [ ] T013 [US1] Tạo endpoint `/nguoi-than`, `/{id}`, `/nguoi-cao-tuoi/{nctId}/quan-he`, `/quan-he/{id}/{lenh}`, `/nguoi-cao-tuoi/{nctId}/phieu-dang-ky`; màn web `frontend/src/tinh-nang/nguoi-than/ho-so/`
 
 **Checkpoint**: Quan hệ người thân chạy độc lập.
 
@@ -81,7 +81,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 - [ ] T015 [US3] Tạo `MIG/V012_03__yeu_cau_quyen.sql`: `yeu_cau_quyen` (`loai` `QUYEN|TU_VE|DAT_DAI_DIEN|THOI_DAI_DIEN`; `nguon` `QUAY|CONG|PHIEU_DANG_KY`; `trang_thai` `CHO_XAC_NHAN|HIEU_LUC|TU_CHOI|HUY`; `cach_xac_nhan` `CONG|BAN_KY|QL_DUYET`; cột sinh `khoa_cho` `UNIQUE`), `dau_tu_ve` (`nct_id` khóa chính)
 - [ ] T016 [US3] Cài `BE/m10/quyen/internal/YeuCauQuyenService.java` (lập, xác nhận, duyệt, từ chối, hủy; áp ngay khi tắt đón hoặc tắt tự về; người đón mới chưa có hồ sơ thì lập kèm; nhắc trong `ViecHangGioM10`) (research F-06)
-- [ ] T017 [US3] Tạo endpoint `/yeu-cau-quyen`, `/yeu-cau-quyen/{id}/{lenh}`, `GET /nguoi-cao-tuoi/{nctId}/danh-sach-don`; màn web `web/src/tinh-nang/nguoi-than/yeu-cau-quyen/`; app người thân xác nhận yêu cầu
+- [ ] T017 [US3] Tạo endpoint `/yeu-cau-quyen`, `/yeu-cau-quyen/{id}/{lenh}`, `GET /nguoi-cao-tuoi/{nctId}/danh-sach-don`; màn web `frontend/src/tinh-nang/nguoi-than/yeu-cau-quyen/`; app người thân xác nhận yêu cầu
 
 **Checkpoint**: Thay đổi quyền chạy độc lập.
 
@@ -101,7 +101,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 - [ ] T019 [US2] Tạo `MIG/V012_04__don.sql`: `ban_ghi_don` (nhóm 3; `loai` 6 giá trị; `can_cu` `DANH_SACH|NGOAI_LE_DAI_DIEN|NGOAI_LE_QL|TU_VE`; `het_hieu_luc_luc`), `ban_ghi_don_su_kien` (`loai` `DA_DUNG|KHONG_DUNG`; cột sinh `khoa_da_dung` `UNIQUE`), `lan_chan_don` (nhóm 3), `yeu_cau_ngoai_le_don` (`trang_thai` `CHO_XAC_NHAN|HIEU_LUC|DA_DUNG|HET_HAN|TU_CHOI|HUY`)
 - [ ] T020 [US2] Cài `BE/m10/don/internal/DonService.java` (ghi đón, lần chặn, ngoại lệ; `lich_su_quyen` tại thời điểm; `DinhChinhDuocProvider` `M10.BAN_GHI_DON`), bản cài `BanGhiDonPort` (004) và `BanGhiDonBanTruPort` (005) với `daDung` MANDATORY; việc theo phút hết hiệu lực, ngoại lệ hết hạn (research F-07)
-- [ ] T021 [US2] Tạo endpoint `/nguoi-cao-tuoi/{nctId}/don`, `/ban-ghi-don`, `/ngoai-le-don`, `/ngoai-le-don/{id}/{lenh}`; màn web `web/src/tinh-nang/nguoi-than/don/`; app `app-nhan-vien/lib/tinh-nang/nguoi-than/` (ghi đón chỉ trực tuyến) với test flutter
+- [ ] T021 [US2] Tạo endpoint `/nguoi-cao-tuoi/{nctId}/don`, `/ban-ghi-don`, `/ngoai-le-don`, `/ngoai-le-don/{id}/{lenh}`; màn web `frontend/src/tinh-nang/nguoi-than/don/`; app `mobile/lib/nhan-vien/nguoi-than/` (ghi đón chỉ trực tuyến) với test flutter
 
 **Checkpoint**: P1 hoàn tất.
 
@@ -121,7 +121,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 - [ ] T023 [US4] Tạo `MIG/V012_05__tham.sql`: `khung_tham_ngay` (khóa chính `(ngay, gio_bat_dau, gio_ket_thuc)`; `so_nguoi_da_giu`), `luot_tham` (`trang_thai` `DA_DUYET|DA_VAO|DA_RA|KHONG_DEN|HUY`; `nguon` `CONG|QUAY`), `luot_tham_di_cung`
 - [ ] T024 [US4] Cài `BE/m10/tham/internal/ThamService.java` (đăng ký trả mọi lý do từ chối, hủy, vào, ra; listener `LuotVangDaMo`, `KhoanhVungDaTao`, kết thúc quan hệ; việc theo phút Không đến, nhắc ghi giờ ra; `NguoiThanKhanCapPort.luotThamTrongKhoang`; `ThoiKhoaBieuNguonPort` (005); `DinhChinhDuocProvider` `M10.LUOT_THAM`) (research F-08)
-- [ ] T025 [US4] Tạo endpoint `/khung-tham`, `/luot-tham`, `/luot-tham/{id}/{lenh}`; màn web `web/src/tinh-nang/nguoi-than/tham/` với test Vitest; app người thân đăng ký thăm (SC-004 ≤ 2 phút) với test flutter
+- [ ] T025 [US4] Tạo endpoint `/khung-tham`, `/luot-tham`, `/luot-tham/{id}/{lenh}`; màn web `frontend/src/tinh-nang/nguoi-than/tham/` với test Vitest; app người thân đăng ký thăm (SC-004 ≤ 2 phút) với test flutter
 
 **Checkpoint**: Thăm chạy độc lập.
 
@@ -140,7 +140,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 ### Implementation cho User Story 5
 
 - [ ] T027 [US5] Tạo bảng `nhat_ky_xem_suc_khoe` (nhóm 3; `phan` 11 giá trị) trong `MIG/V012_06__nhat_ky_xem.sql`; cài `BE/m10/cong/internal/CongService.java` (phần chung; phần sức khỏe gọi `KetQuaChamSocCongApi`, `ThuocCongNguoiThanApi`, `SucKhoeCongNguoiThanApi`, `CheDoAnApi` sau khi `QuyenCoTacDung` thỏa và ghi nhật ký; hợp đồng qua `HopDongDocApi`) (research F-10, F-11)
-- [ ] T028 [US5] Tạo endpoint `/cong/nguoi-cao-tuoi`, `/{nctId}/chung`, `/{nctId}/suc-khoe/{phan}`, `/{nctId}/hop-dong`, `GET /nhat-ky-xem-suc-khoe`; màn web `web/src/tinh-nang/nguoi-than/cong-nguoi-than/` (ẩn phần không có quyền) với test Vitest; app người thân phần cổng
+- [ ] T028 [US5] Tạo endpoint `/cong/nguoi-cao-tuoi`, `/{nctId}/chung`, `/{nctId}/suc-khoe/{phan}`, `/{nctId}/hop-dong`, `GET /nhat-ky-xem-suc-khoe`; màn web `frontend/src/tinh-nang/nguoi-than/cong-nguoi-than/` (ẩn phần không có quyền) với test Vitest; app người thân phần cổng
 
 **Checkpoint**: Cổng chạy độc lập.
 
@@ -158,7 +158,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ### Implementation cho User Story 6
 
-- [ ] T030 [US6] Tạo bảng `phan_hoi` (`trang_thai` `MOI|DANG_XU_LY|DA_PHAN_HOI|MO_LAI|DONG`; `muc` `CAO|THUONG`), `phan_hoi_muc` (nhóm 3) trong `MIG/V012_07__phan_hoi.sql`; cài `BE/m10/phanhoi/internal/PhanHoiService.java` (việc theo phút quá hạn, leo thang, tự đóng) và endpoint `/phan-hoi`, `/{id}`, `/{id}/{lenh}`; màn web `web/src/tinh-nang/nguoi-than/phan-hoi/`, app người thân gửi phản hồi (research F-13)
+- [ ] T030 [US6] Tạo bảng `phan_hoi` (`trang_thai` `MOI|DANG_XU_LY|DA_PHAN_HOI|MO_LAI|DONG`; `muc` `CAO|THUONG`), `phan_hoi_muc` (nhóm 3) trong `MIG/V012_07__phan_hoi.sql`; cài `BE/m10/phanhoi/internal/PhanHoiService.java` (việc theo phút quá hạn, leo thang, tự đóng) và endpoint `/phan-hoi`, `/{id}`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/nguoi-than/phan-hoi/`, app người thân gửi phản hồi (research F-13)
 
 **Checkpoint**: Phản hồi chạy độc lập.
 
@@ -177,7 +177,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 ### Implementation cho User Story 7
 
 - [ ] T032 [US7] Tạo bảng `ban_tin` (`trang_thai` `CHO_DUYET|DA_GUI|KHONG_GUI`; cột sinh `khoa_ky` `UNIQUE`; `ban_goc_id`), `ban_tin_phan`, `ban_tin_so_lieu`, `ban_tin_nhan_xet` trong `MIG/V012_08__ban_tin.sql`; cài `BE/m10/bantin/internal/BanTinService.java` (báo Quản lý viện theo FR-073 trong `ViecBanTinM10`; số liệu từ `KetQuaChamSocCongApi.tongHop`, `ChiSoApi`, `SuCoApi`, `ChiPhiCongNguoiThanApi`, `HoatDongBanTinPort`; gửi qua 009; `ThongBaoTraCuuApi.xemLuc`; `ViecBanTinM10` nhắc và báo duyệt thay) (research F-12)
-- [ ] T033 [US7] Tạo endpoint `/ban-tin`, `/{id}`, `/{id}/so-lieu`, `/{id}/{lenh}`, `/{id}/dinh-chinh`; màn web `web/src/tinh-nang/nguoi-than/ban-tin/` (không có nội dung soạn sẵn) với test Vitest; app nhân viên phần bản tin
+- [ ] T033 [US7] Tạo endpoint `/ban-tin`, `/{id}`, `/{id}/so-lieu`, `/{id}/{lenh}`, `/{id}/dinh-chinh`; màn web `frontend/src/tinh-nang/nguoi-than/ban-tin/` (không có nội dung soạn sẵn) với test Vitest; app nhân viên phần bản tin
 
 **Checkpoint**: Bản tin chạy độc lập.
 
@@ -195,7 +195,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ### Implementation cho User Story 8
 
-- [ ] T035 [US8] Tạo bảng `luot_o_lai` (`trang_thai` `CHO_XAC_NHAN|DA_XAC_NHAN|TU_CHOI|DANG_O_LAI|DA_KET_THUC|HUY`), `luot_o_lai_gia_han` (nhóm 3), `dem_o_lai` (`UNIQUE (luot_id, ngay)`) trong `MIG/V012_09__o_lai.sql`; cài `BE/m10/olai/internal/OLaiService.java` (`ViecNuaDemM10` phát đêm; phát `LuotOLaiDaDoi`; `LuotOLaiAnPort` cho 011) và endpoint `/luot-o-lai`, `/{id}/{lenh}`; màn web `web/src/tinh-nang/nguoi-than/o-lai/` (research F-09)
+- [ ] T035 [US8] Tạo bảng `luot_o_lai` (`trang_thai` `CHO_XAC_NHAN|DA_XAC_NHAN|TU_CHOI|DANG_O_LAI|DA_KET_THUC|HUY`), `luot_o_lai_gia_han` (nhóm 3), `dem_o_lai` (`UNIQUE (luot_id, ngay)`) trong `MIG/V012_09__o_lai.sql`; cài `BE/m10/olai/internal/OLaiService.java` (`ViecNuaDemM10` phát đêm; phát `LuotOLaiDaDoi`; `LuotOLaiAnPort` cho 011) và endpoint `/luot-o-lai`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/nguoi-than/o-lai/` (research F-09)
 
 **Checkpoint**: Mọi user story của 012 chạy độc lập.
 

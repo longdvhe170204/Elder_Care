@@ -30,16 +30,16 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
 **Primary Dependencies**: Như 000 → 009. Thêm thư viện ghi XLSX dạng luồng (fastexcel) cho xuất kế toán (Q-05); CSV không cần thư viện.
 
-**Storage**: MySQL 8.4 LTS. Bảng ở [data-model.md](data-model.md).
+**Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md).
 
 **Testing**:
 - Như 000 R-14.
 - Test bảng cho tám hàm thuần: `LamTronDong`, `PhiNgayLuuTru`, `PhiBuoiBanTru`, `ThoiGianTinhPhi`, `BienDongKy`, `DieuKienChiPhiKyCuoi`, `KiemTraVuot`, `TongTamTinh`; SC-002 với 12 tháng.
-- Testcontainers cho `UNIQUE` (DBR-15, bảng mỗi kỳ) và trigger đã chốt (DBR-17).
+- Test tích hợp MySQL cho `UNIQUE` (DBR-15, bảng mỗi kỳ) và trigger đã chốt (DBR-17).
 - Test đồng thời: hai lệnh lập cùng đơn vị; chốt trong lúc lập khoản; hai người đại diện quyết định.
 - Đồng hồ giả lập cho CFG-M11-01, 02, 03, 06, CFG-M15-05, 06, CFG-M02-09, chuyển kỳ.
 - Bản giả nguồn của 011, 012, 014, `NguoiDaiDienPort`, `SoDuMuaHoPort`.
@@ -49,7 +49,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - App nhân viên: không có màn của 010.
 - App người thân: bảng chi phí, tạm tính, đồng ý/từ chối đề nghị mua hộ.
 
-**Project Type**: Web service (REST `/api/v1`), một web client và hai mobile client.
+**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung (Q-346).
 
 **Performance Goals**:
 - Lập hàng loạt 30 ngày hoặc 300 nguồn ≤ 30 giây (SC-006): một transaction, đọc ngày lưu trú theo khoảng một lần, đơn giá đệm theo (dịch vụ, ngày) trong lệnh.
@@ -85,7 +85,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ; điểm còn lệch ghi ở mục báo lại |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-012 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 004 được bổ sung một sự kiện (mục "Đồng bộ") |
-| X. Kiến trúc | Đạt | Một khối; gói `m11`; module khác dùng `m11.api`. Không có vòng (P-02). REST; MySQL; ba client. NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `m11`; module khác dùng `m11.api`. Không có vòng (P-02). REST; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Đơn giá, điều kiện lập, chốt, vượt mua hộ, điều kiện kỳ cuối ở backend. Mỗi lệnh có endpoint riêng |
 | XII. Dữ liệu | Đạt | DBR-15, 17 bằng `UNIQUE` và trigger; DBR-16 bằng căn cứ đơn giá lưu theo khoản; nhật ký trong transaction; `Clock` |
 | XIII. Tham số | Đạt | Như V; CFG-M11-02 lúc gửi được lưu trên đề nghị (FR-023) |
@@ -137,7 +137,7 @@ specs/010-incurred-costs/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m11/
+backend/src/main/java/com/cambae/backend/m11/
 ├── api/           # ChiPhiCongNguoiThanApi, ChiPhiKyCuoiApi, ChiPhiThongKeApi, SuKienTinhPhiNguon*, sự kiện
 ├── ky/            {internal, web}   # kỳ, bảng, gửi chốt, chốt, BienDongKy
 ├── khoan/         {internal, web}   # vòng đời, kiểm tra, duyệt, tính lại, lịch sử
@@ -150,7 +150,7 @@ backend/src/main/java/vn/eldercare/m11/
 ├── cungcap/       {internal, web, port}   # cổng, tạm tính, thống kê, ChiPhiChoSoDuPort
 └── lich/                            # ViecHangNgayM11, ViecHangGioM11
 
-web/src/tinh-nang/chi-phi/
+frontend/src/tinh-nang/chi-phi/
 ├── tra-cuu-nguon/           # tra cứu, lập từng khoản / hàng loạt
 ├── bang-chi-phi/            # kiểm tra, duyệt, trả lại, gửi chốt, chốt
 ├── dieu-chinh/              # biến động sau chốt, lập điều chỉnh
@@ -158,7 +158,7 @@ web/src/tinh-nang/chi-phi/
 ├── xuat-ke-toan/
 └── cong-nguoi-than/chi-phi/
 
-app-nguoi-than/lib/tinh-nang/chi-phi/   # bảng, tạm tính, đồng ý mua hộ
+mobile/lib/nguoi-than/chi-phi/   # bảng, tạm tính, đồng ý mua hộ
 ```
 
 **Structure Decision**: Theo R-02 của 000. Feature 010 nằm ở `backend/…/m11` với chín gói con và gói `api`; 017 và phần mua sắm của 019 thêm gói con vào cùng `m11`. Web có đủ chức năng. App người thân có bảng, tạm tính và đồng ý mua hộ.

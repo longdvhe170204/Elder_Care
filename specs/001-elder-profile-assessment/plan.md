@@ -25,19 +25,19 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307): M01 không tự sinh bản ghi
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
-**Primary Dependencies**: Như 000 và 002: Spring Boot 3.5.x, Spring Modulith 1.4.x, Flyway 11.x, springdoc-openapi 2.8.x, ShedLock, Spring Security 6.5 (002). Web: React 19, TanStack Query. App: Flutter. Không thêm thư viện mới.
+**Primary Dependencies**: Như 000 và 002: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7 (002). Web: React 19, TanStack Query. App: Flutter. Không thêm thư viện mới.
 
 **Storage**:
-- MySQL 8.4 LTS (000 R-01). Bảng ở [data-model.md](data-model.md).
+- MySQL 8.0 (000 R-01). Bảng ở [data-model.md](data-model.md).
 - Cột so khớp họ tên dùng collation `utf8mb4_0900_as_ci` (H-04).
 - Tệp đính kèm lưu trên volume của máy chủ, siêu dữ liệu ở bảng `tep` (H-13).
 
 **Testing**:
 - Như 000 R-14 và 002 A-14.
 - Bean giả cho mọi `ThamGiaChuyenTrangThai` của module chưa có (CHK035, CHK045).
-- Testcontainers cho trigger, cột sinh và `CHECK`; đồng hồ giả lập cho CFG-M01-01, 02, 03, 06 và CFG-M03-02.
+- Test tích hợp MySQL cho trigger, cột sinh và `CHECK`; đồng hồ giả lập cho CFG-M01-01, 02, 03, 06 và CFG-M03-02.
 - Test đồng thời cho FR-013, FR-048.
 
 **Target Platform**: Như 000.
@@ -46,7 +46,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307): M01 không tự sinh bản ghi
 - App người thân: xem hồ sơ (phần sức khỏe theo chú thích ¹).
 - Lệnh của 001 chỉ chạy trực tuyến. 8.6 chỉ cho ghi tạm với "ghi nhận thực hiện", không có lệnh nào của 001.
 
-**Project Type**: Web service (REST `/api/v1`), một web client và hai mobile client.
+**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung (Q-346).
 
 **Performance Goals**:
 - Lệnh và tra cứu nằm trong 2 giây của NFR-02:
@@ -84,7 +84,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ. Chỗ nguồn còn thiếu ghi ở "Điểm cần báo lại"; thiết kế chọn cách hẹp nhất (ví dụ chỉ liên kết hồ sơ qua CCCD) |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-013 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng của 000 được bổ sung giao diện (`TepApi`, `chuyenMoRong`), không đổi hành vi đã thiết kế |
-| X. Kiến trúc | Đạt | Một khối; gói `m01`; module khác chỉ dùng `m01.api`; điều kiện, tác động chéo module đi qua SPI. REST `/api/v1`; MySQL; ba client. NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `m01`; module khác chỉ dùng `m01.api`; điều kiện, tác động chéo module đi qua SPI. REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Mọi điều kiện chặn, bảng chuyển, quyền, giới hạn trường ở backend; `lenhDuocPhep` chỉ để hiển thị; mỗi lệnh trạng thái có `POST …/{id}/<lenh>` riêng |
 | XII. Dữ liệu | Đạt | Trigger theo mẫu 000 cho mọi bảng nhóm 3 và cho nội dung mục sức khỏe; cột sinh `UNIQUE` cho DBR-01, FR-013, DBR-34, BR-M01-13; `CHECK` cho DBR-05; nhật ký trong transaction; thời gian theo `Clock` |
 | XIII. Tham số | Đạt | Như V |
@@ -132,7 +132,7 @@ specs/001-elder-profile-assessment/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/
+backend/src/main/java/com/cambae/backend/
 ├── common/tep/                    # TepApi, QuyenTepProvider, job dọn tệp chưa gắn (H-13)
 └── m01/
     ├── api/                       # NguoiCaoTuoiApi, TrangThaiNguoiCaoTuoiApi, MucChamSocApi, DanhGiaApi,
@@ -145,7 +145,7 @@ backend/src/main/java/vn/eldercare/
     ├── danhgia/     {internal, web}   # đánh giá, báo đánh giá lại, provider đính chính
     └── lich/                          # 6 job (H-12)
 
-web/src/tinh-nang/
+frontend/src/tinh-nang/
 ├── ho-so-nguoi-cao-tuoi/          # tra cứu, tạo, cập nhật, lịch sử, hồ sơ liên kết, lệnh trạng thái
 ├── ban-dong-y/
 ├── suc-khoe/                      # hồ sơ ban đầu, mục sức khỏe
@@ -153,13 +153,13 @@ web/src/tinh-nang/
 ├── danh-gia/                      # lập, xác nhận, danh sách cần đánh giá lại
 └── danh-muc-m01/
 
-app-nhan-vien/lib/tinh-nang/
+mobile/lib/nhan-vien/
 ├── tra-cuu-nguoi-cao-tuoi/        # thẻ người cao tuổi: lưu ý chăm sóc, dị ứng, dấu kiểm tra
 ├── suc-khoe/
 ├── danh-gia/
 └── trang-thai/                    # Cho tạm vắng, Ghi nhận trở về, Chuyển viện, Ghi nhận qua đời
 
-app-nguoi-than/lib/tinh-nang/ho-so/
+mobile/lib/nguoi-than/ho-so/
 ```
 
 **Structure Decision**: Theo R-02 của 000. Feature 001 nằm ở `backend/…/m01` với bảy gói con và gói `api` công khai. Thành phần tệp nằm ở `common/tep` vì mọi module có bản scan đều dùng (H-13). Web có đủ chức năng của 001. App nhân viên có các thao tác tại tầng. App người thân chỉ xem hồ sơ.

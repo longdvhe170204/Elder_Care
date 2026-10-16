@@ -6,7 +6,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 
 ## 1. Điều kiện cần
 
-- Như quickstart của 000 → 003: JDK 21, Docker (Testcontainers MySQL 8.4), Node.js LTS, Flutter stable; profile `demo` có đồng hồ giả lập.
+- Như quickstart của 000 → 003: JDK 25, MySQL 8.0 cài trên máy (000 R-14), Node.js LTS, Flutter stable; profile `demo` có đồng hồ giả lập.
 - Dữ liệu mẫu của profile `demo`:
   - tài khoản và cơ cấu của quickstart 002, 003 (Quản lý viện QL, Hành chính HC, Kế toán KT, Trưởng tầng H, Bác sĩ BS, Điều dưỡng D; phòng P201 nữ "Thường xuyên, Đặc biệt", P305 loại phòng khác đơn giá);
   - danh mục dịch vụ: ba dịch vụ chăm sóc theo mức, phí lưu trú theo hai loại phòng, phục hồi, đưa đi khám; mỗi dịch vụ một phiên bản đơn giá từ 01/01;
@@ -20,7 +20,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 backend/  ./mvnw verify
 backend/  ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
 web/      npm ci && npm test && npm run dev
-app-nhan-vien/   flutter test
+mobile/   flutter test
 ```
 
 Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có vòng 001 ↔ 004, 002 ↔ 004), test cơ sở dữ liệu (data-model mục 12), test đồng thời và các nhóm test ở mục 4.
@@ -74,7 +74,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 
 ## 4. Test tự động: truy vết kịch bản → test
 
-| Spec | Lớp test (backend, `vn.eldercare.m02…`) | Loại |
+| Spec | Lớp test (backend, `com.cambae.backend.m02…`) | Loại |
 | --- | --- | --- |
 | US1, FR-001 → FR-006 | `LuotDangKyIT`, `CapNhatLuotDangKyIT`, `FR_004_DanhSachKhopLenhIT`, `BR_M02_22_MucHopDongIT`, `TienTrinhIT` | Tích hợp |
 | US2, FR-007 → FR-018 | `BR_M02_10_DiemUuTienTest`, `DiemHangNgayIT`, `DieuChinhDiemIT`, `BR_M02_01_DanhSachPhuHopIT`, `FR_012_LuotTrongIT`, `BR_M02_02_GiuChoIT`, `FR_002_TuChoiHuyTiepNhanIT`, `BR_M02_03_NhacHoSoChoIT`, `GhiNhanLienHeDongThoiIT` | Đơn vị, tích hợp, đồng thời |

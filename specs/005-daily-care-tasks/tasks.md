@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4 và data-model.md mục 12.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Module M04 (phần 8.1 → 8.7): `BE/m04/{api,kehoach,comat,congviec,ghinhan,checklist,danhmuc,quytac,quahan,thoikhoabieu,trangthai,lich}/`; phần 8.8 → 8.10 thuộc feature 014
-- Web `web/src/tinh-nang/{ke-hoach-cham-soc,lap-cong-viec-ca,checklist,viec-qua-han,diem-danh-ban-tru,loai-cong-viec,thoi-khoa-bieu}/`; app nhân viên `app-nhan-vien/lib/tinh-nang/{checklist,ghi-nhan,dong-bo,lap-cong-viec-ca,viec-qua-han,diem-danh-ban-tru}/`
+- Web `frontend/src/tinh-nang/{ke-hoach-cham-soc,lap-cong-viec-ca,checklist,viec-qua-han,diem-danh-ban-tru,loai-cong-viec,thoi-khoa-bieu}/`; app nhân viên `mobile/lib/nhan-vien/{checklist,ghi-nhan,dong-bo,lap-cong-viec-ca,viec-qua-han,diem-danh-ban-tru}/`
 
 ---
 
@@ -65,7 +65,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 - [ ] T014 [US1] Cài `BE/m04/kehoach/internal/KeHoachService.java` với `BangChuyenKeHoach`: lập (sao chép mục từ phiên bản Hiệu lực), cập nhật mục (`If-Match`; chỉ loại công việc `HIEU_LUC`; khung lấy từ loại hoặc CFG-M04-02 và cố định khi gửi duyệt), gửi duyệt (lý do khi có phiên bản trước), duyệt (Bác sĩ; ngày hiệu lực sau ngày duyệt), trả lại, hủy, thu hồi; phát sự kiện phiên bản; nhắc qua `NhacQuaHan` (CFG-M15-05, 06) (research C-04)
 - [ ] T015 [US1] Đăng ký việc `HIEU_LUC_KE_HOACH` của `ViecHangNgayM04`: `CHO_HIEU_LUC` → `HIEU_LUC`, phiên bản cũ → `HET_HIEU_LUC` cùng transaction, phát `KeHoachDaDoi` (không hủy công việc đã lập, BR-M04-03)
 - [ ] T016 [US1] Tạo `BE/m04/kehoach/web/KeHoachController.java`: `POST/GET /nguoi-cao-tuoi/{nctId}/ke-hoach-cham-soc`, `GET /ke-hoach-cham-soc/{id}`, `PUT …/{id}/muc`, `POST …/gui-duyet`, `/duyet`, `/tra-lai`, `/huy`, `/thu-hoi`, `GET /ke-hoach-cham-soc/so-sanh`; cài `KeHoachChamSocApi`
-- [ ] T017 [P] [US1] Tạo màn web `web/src/tinh-nang/ke-hoach-cham-soc/` (phiên bản, mục, duyệt, so sánh) và `web/src/tinh-nang/loai-cong-viec/`
+- [ ] T017 [P] [US1] Tạo màn web `frontend/src/tinh-nang/ke-hoach-cham-soc/` (phiên bản, mục, duyệt, so sánh) và `frontend/src/tinh-nang/loai-cong-viec/`
 
 **Checkpoint**: Kế hoạch chăm sóc chạy độc lập.
 
@@ -90,7 +90,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 - [ ] T023 [US2] Cài `BE/m04/congviec/internal/LapCongViecService.java`: lập theo lô (Người phụ trách ca hoặc Trưởng tầng; Trưởng tầng lập trước cho ca đã công bố), công việc phát sinh, làm lại (`KetQuaKiemTraPort.khongDat`, BR-M04-23), kiểm tra đầu ca/giám sát; trạng thái lúc lập theo đồng hồ (BR-M04-26); nhật ký; không có endpoint gợi ý (Q-307)
 - [ ] T024 [US2] Đăng ký việc theo phút: chuyển `CHUA_DEN_HAN → DEN_HAN` ở `dau_khung`; nhắc `CaChuaCoCongViec` tại giờ bắt đầu ca (`lan_chay_m04` `CA_CHUA_CO_CONG_VIEC`) (FR-017)
 - [ ] T025 [US2] Tạo `BE/m04/congviec/web/CongViecController.java`: `GET /ca/{caId}/du-lieu-nguon` (dữ liệu nguồn để người lập tự nhập, không chọn sẵn), `GET /ca/{caId}/cong-viec`, `POST /ca/{caId}/cong-viec/lap`, `POST /cong-viec/phat-sinh`, `POST /cong-viec/{id}/lam-lai`, `GET /cong-viec/{id}`, `POST /cong-viec/{id}/huy`; cài `NguonCongViecApi` (MANDATORY)
-- [ ] T026 [P] [US2] Tạo màn web `web/src/tinh-nang/lap-cong-viec-ca/` (lỗi theo dòng, không có nút chép sẵn) với test Vitest, và app `app-nhan-vien/lib/tinh-nang/lap-cong-viec-ca/`
+- [ ] T026 [P] [US2] Tạo màn web `frontend/src/tinh-nang/lap-cong-viec-ca/` (lỗi theo dòng, không có nút chép sẵn) với test Vitest, và app `mobile/lib/nhan-vien/lap-cong-viec-ca/`
 
 **Checkpoint**: Lập công việc chạy độc lập.
 
@@ -111,7 +111,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 - [ ] T028 [US3] Tạo `MIG/V005_04__co_mat_ban_tru.sql`: `co_mat_ban_tru` (`UNIQUE (nct_id, ngay)`; `trang_thai ENUM('CHUA_DEN','CO_MAT','DA_VE','VANG_CO_BAO','VANG_KHONG_BAO','DA_HUY_NGAY_NGHI')`; `buoi_phat_sinh`; `gio_ve_du_kien_hien_hanh`; chỉ mục `(trang_thai, ngay, gio_den_du_kien)`, `(ngay, trang_thai)`) và `diem_danh_ban_tru` (nhóm 3; `loai` `DEN|VE`; `loai_ve` `QUA_DON|TU_VE|VIEN_DUA_VE`) (data-model mục 5)
 - [ ] T029 [US3] Cài `BE/m04/comat/internal/CoMatService.java`: điểm danh đến (phát `DaDiemDanhDen`, `CanLapCongViec`), điểm danh về (hủy công việc sau giờ về, `daDung` bản ghi đón), listener `BaoVangBanTruDaGhi`, `NgayNghiBanTruDaDoi`, `PhuLucDaApDung` (`LICH_DEN`, `LOAI_LUU_TRU`); `CoMatBanTruApi` (gồm `diemDanhVe` cho 012), `TrangThaiCoMatBanTruPort` (004); `DinhChinhDuocProvider` `M04.DIEM_DANH_BAN_TRU`; phát `TrangThaiCoMatDaXacDinh`/`DaDoi` (research C-06)
 - [ ] T030 [US3] Đăng ký việc hằng ngày `CO_MAT_DAU_NGAY` (lịch đến của 004 → `CHUA_DEN`/`VANG_CO_BAO`), `BAN_TRU_HET_NGAY` và việc theo phút Vắng không báo (CFG-M02-07, phát `VangKhongBao`)
-- [ ] T031 [US3] Tạo `BE/m04/comat/web/CoMatController.java`: `GET /co-mat-ban-tru`, `POST /co-mat-ban-tru/diem-danh-den`, `POST …/{id}/diem-danh-ve`, `POST /diem-danh-ban-tru/{id}/dinh-chinh`; màn web `web/src/tinh-nang/diem-danh-ban-tru/` và app `app-nhan-vien/lib/tinh-nang/diem-danh-ban-tru/`
+- [ ] T031 [US3] Tạo `BE/m04/comat/web/CoMatController.java`: `GET /co-mat-ban-tru`, `POST /co-mat-ban-tru/diem-danh-den`, `POST …/{id}/diem-danh-ve`, `POST /diem-danh-ban-tru/{id}/dinh-chinh`; màn web `frontend/src/tinh-nang/diem-danh-ban-tru/` và app `mobile/lib/nhan-vien/diem-danh-ban-tru/`
 
 **Checkpoint**: Bán trú chạy độc lập.
 
@@ -136,8 +136,8 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 - [ ] T037 [US4] Cài hai `NgoaiTuyenHandler` `M04.KET_QUA_CONG_VIEC`, `M04.GHI_NHAN_PHAT_SINH` trong `BE/m04/ghinhan/internal/` (BR-M04-27; research C-14)
 - [ ] T038 [US4] Cài `BE/m04/checklist/internal/ChecklistService.java`: checklist theo ca (công việc của người, công việc chung tầng/khu, liều thuốc qua `LieuThuocChecklistPort`, cảnh báo mở qua `CanhBaoDocPort`, việc bàn giao qua `NhanSuCaPort.viecBanGiao`, lưu ý chăm sóc qua `DanhGiaApi`), nhận việc chung (người có tên trong ca) (research C-10; NFR-02 mở checklist 3 giây)
 - [ ] T039 [US4] Tạo `BE/m04/ghinhan/web/GhiNhanController.java` (`POST /cong-viec/{id}/ghi-nhan`, `/khong-thuc-hien`, `POST /ghi-nhan-phat-sinh`, `GET /nguoi-cao-tuoi/{nctId}/ket-qua-ghi-nhan`) và `BE/m04/checklist/web/ChecklistController.java` (`GET /checklist`, `POST /cong-viec/{id}/nhan-viec`); cài `CongViecDoChiSoApi`, `KetQuaChamSocCongApi`
-- [ ] T040 [P] [US4] Tạo app `app-nhan-vien/lib/tinh-nang/checklist/` (tải, lưu ngoại tuyến, dấu "chưa cập nhật"), `ghi-nhan/` (theo loại kết quả, Ghi nhận phát sinh, bản ghi bị từ chối), `dong-bo/` và test `app-nhan-vien/test/checklist_ngoai_tuyen_test.dart`, `ghi_nhan_theo_loai_test.dart`, `ket_qua_dong_bo_test.dart` (BR-M15-20), `ban_ghi_bi_tu_choi_test.dart`
-- [ ] T041 [P] [US4] Tạo màn web `web/src/tinh-nang/checklist/` (công việc sắp Quá hạn lên đầu) với test Vitest
+- [ ] T040 [P] [US4] Tạo app `mobile/lib/nhan-vien/checklist/` (tải, lưu ngoại tuyến, dấu "chưa cập nhật"), `ghi-nhan/` (theo loại kết quả, Ghi nhận phát sinh, bản ghi bị từ chối), `dong-bo/` và test `mobile/test/nhan-vien/checklist_ngoai_tuyen_test.dart`, `ghi_nhan_theo_loai_test.dart`, `ket_qua_dong_bo_test.dart` (BR-M15-20), `ban_ghi_bi_tu_choi_test.dart`
+- [ ] T041 [P] [US4] Tạo màn web `frontend/src/tinh-nang/checklist/` (công việc sắp Quá hạn lên đầu) với test Vitest
 
 **Checkpoint**: Checklist và ghi nhận chạy độc lập, kể cả ngoại tuyến.
 
@@ -158,7 +158,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 
 - [ ] T044 [US5] Đăng ký việc theo phút ở `BE/m04/quahan/internal/QuaHanService.java`: `DEN_HAN → QUA_HAN` ở `cuoi_khung`; nhắc (`da_nhac_luc`); Quan trọng báo; Bắt buộc phát `YeuCauCanhBao` Trung bình; Thường quá CFG-M04-12 báo Người phụ trách ca; ghi `lich_su_xu_ly_cong_viec`; tồn chờ xác nhận tại giờ bắt đầu ca (research C-12)
 - [ ] T045 [US5] Cài `CongViecBanGiaoApi` (danh sách công việc chưa đóng của ca cho bàn giao, BR-M09-06) và `CongViecCaApi.khiXacNhanBanGiao` trong `BE/m04/quahan/internal/BanGiaoCongViec.java`
-- [ ] T046 [US5] Tạo `BE/m04/quahan/web/QuaHanController.java` (`GET /cong-viec/qua-han`) và màn web `web/src/tinh-nang/viec-qua-han/`, app `app-nhan-vien/lib/tinh-nang/viec-qua-han/`
+- [ ] T046 [US5] Tạo `BE/m04/quahan/web/QuaHanController.java` (`GET /cong-viec/qua-han`) và màn web `frontend/src/tinh-nang/viec-qua-han/`, app `mobile/lib/nhan-vien/viec-qua-han/`
 
 **Checkpoint**: P1 hoàn tất.
 
@@ -234,7 +234,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 
 - [ ] T056 [US9] Cài `CongViecCaApi` (`khiVangCa`, `khiNghiCoDuyet`, `khiNghiViec`, `khiDoiPhanCong`, `khiKetThucPhanCong`) và phân lại (Trưởng tầng; kiểm `NhanSuCaPort.duDieuKien`) trong `BE/m04/checklist/internal/CongViecChungService.java`; endpoint `POST /cong-viec/{id}/phan-lai` trong `ChecklistController.java`; listener `DaChuyenGiuong` (research C-10)
 - [ ] T057 [US9] Cài bean `ThamGiaChuyenTrangThai` của 005 trong `BE/m04/trangthai/internal/ThamGiaM04.java` (`@Order` sau 004, 003; tác động theo bảng contracts mục 1.1), `NguonCongViecApi.nguonBiHuy`, `CongViecVangMatApi.tinhLai` (research C-08)
-- [ ] T058 [US9] Cài `BE/m04/thoikhoabieu/internal/ThoiKhoaBieuService.java` (gộp công việc và `ThoiKhoaBieuNguonPort` của 006, 012, 014; chỉ xem) và endpoint `GET /nguoi-cao-tuoi/{nctId}/thoi-khoa-bieu`; màn web `web/src/tinh-nang/thoi-khoa-bieu/` (FR-048)
+- [ ] T058 [US9] Cài `BE/m04/thoikhoabieu/internal/ThoiKhoaBieuService.java` (gộp công việc và `ThoiKhoaBieuNguonPort` của 006, 012, 014; chỉ xem) và endpoint `GET /nguoi-cao-tuoi/{nctId}/thoi-khoa-bieu`; màn web `frontend/src/tinh-nang/thoi-khoa-bieu/` (FR-048)
 
 **Checkpoint**: Mọi user story của 005 chạy độc lập.
 

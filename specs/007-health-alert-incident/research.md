@@ -426,7 +426,7 @@ Mức (spec; dòng có * là plan áp nguyên tắc 3 bậc của 009 FR-043b, x
 - **Kiểm thử** (000 R-14, constitution XV):
   - test bảng cho hàm thuần: `SoNguong`, `KiemTraNguong`, `KhoaLoai`, `DemLap24h`, `SutCan`, `DemDemMatNgu`, `MocTheoDoiSauNga`, `ChuoiMocDo`, `ChuoiLeoThang` (bỏ cấp trống, một cấp mỗi lần);
   - SC-001: bộ 300 giá trị dựng từ bảng tính tay;
-  - Testcontainers cho cột sinh `UNIQUE` (DBR-18, DBR-34, ngưỡng, ngã), trigger nhóm 3, trigger nội dung lịch đo và ngưỡng;
+  - Test tích hợp MySQL cho cột sinh `UNIQUE` (DBR-18, DBR-34, ngưỡng, ngã), trigger nhóm 3, trigger nội dung lịch đo và ngưỡng;
   - test đồng thời: 10 phát sinh cùng khóa (SC-003); hai lần kích hoạt khẩn cấp; đo lại và job hết hạn; hai lần tiếp nhận;
   - đồng hồ giả lập cho CFG-M05-01, 02, 03, 05 → 08, CFG-M06-01, 04, chạy bù;
   - bản giả cho mọi SPI 007 khai báo, có công tắc `/api/v1/kiem-thu/gia-lap/{module}`;

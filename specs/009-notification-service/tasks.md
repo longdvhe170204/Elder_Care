@@ -10,21 +10,21 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4 và data-model.md mục 11.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Module M13: `BE/m13/{api,tiepnhan,nguoinhan,gui,yentinh,khancap,hopthu,lienhe,tracuu,cauhinh,lich}/`; khuôn yêu cầu ở `BE/common/thongbao/`
-- Web `web/src/tinh-nang/thong-bao/`; app nhân viên `app-nhan-vien/lib/tinh-nang/thong-bao/`; app người thân `app-nguoi-than/lib/tinh-nang/thong-bao/`
+- Web `frontend/src/tinh-nang/thong-bao/`; app nhân viên `mobile/lib/nhan-vien/thong-bao/`; app người thân `mobile/lib/nguoi-than/thong-bao/`
 
 ---
 
 ## Phase 1: Setup
 
-- [ ] T001 Thêm Firebase Admin SDK (Java) vào `backend/pom.xml`; `firebase_messaging` vào `app-nhan-vien/pubspec.yaml`, `app-nguoi-than/pubspec.yaml`; cấu hình khóa dịch vụ FCM qua biến môi trường trong `backend/src/main/resources/application.yml` (research B-05)
+- [ ] T001 Thêm Firebase Admin SDK (Java) vào `backend/pom.xml`; `firebase_messaging` vào `mobile/pubspec.yaml`, `mobile/pubspec.yaml`; cấu hình khóa dịch vụ FCM qua biến môi trường trong `backend/src/main/resources/application.yml` (research B-05)
 - [ ] T002 [P] Tạo khung gói `BE/m13/{api,tiepnhan,nguoinhan,gui,yentinh,khancap,hopthu,lienhe,tracuu,cauhinh,lich}/`; ArchUnit `BT/m13/M13ArchTest.java`: chỉ `m13` cài listener `CoYeuCauThongBao`; module khác không gọi kênh gửi trực tiếp
 - [ ] T003 [P] Tạo bản giả `NguoiThanNhanThongBaoPort` (012) trong `BT/support/gia009/` và bản giả `NhaCungCapTinNhan` ghi lại tin đã gửi (contracts mục 2.1)
 
@@ -86,7 +86,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 - [ ] T019 [US1] Cài `BE/m13/khancap/internal/KhanCapService.java`: xác nhận (bắt buộc trực tuyến), xác nhận và tiếp nhận (gọi lệnh tiếp nhận cảnh báo/sự cố của 007), lượt nhắc gọi (`NguoiNhacGoi`, gộp vào lượt Chờ), kết quả gọi (lần gọi bổ sung), chuyển nhắc, chuỗi gọi theo `thuTuGoi`; listener `YeuCauDungNhacGoiDien`, `DaCoKetQuaXacNhanLai`; `DinhChinhDuocProvider` `M13.KET_QUA_GOI` (research B-07, B-08)
 - [ ] T020 [US1] Đăng ký việc 20 giây: tạo lượt nhắc khi quá CFG-M13-04 chưa xác nhận; chuyển nhắc quá hạn hoặc hết ca; nhắc lại Quản lý viện
 - [ ] T021 [US1] Tạo `BE/m13/khancap/web/KhanCapController.java`: `POST /thong-bao/{id}/xac-nhan`, `/xac-nhan-va-tiep-nhan`, `GET /toi/luot-nhac-goi`, `GET /luot-nhac-goi/{id}`, `POST /luot-nhac-goi/{id}/ket-qua`
-- [ ] T022 [P] [US1] Tạo app `app-nhan-vien/lib/tinh-nang/thong-bao/` (nhận đẩy, xác nhận hai thao tác, xác nhận và tiếp nhận, ghi kết quả gọi) và test `app-nhan-vien/test/nhan_day_test.dart`, `xac_nhan_hai_thao_tac_test.dart` (SC-008), `xac_nhan_bat_buoc_truc_tuyen_test.dart`, `ghi_ket_qua_goi_test.dart`
+- [ ] T022 [P] [US1] Tạo app `mobile/lib/nhan-vien/thong-bao/` (nhận đẩy, xác nhận hai thao tác, xác nhận và tiếp nhận, ghi kết quả gọi) và test `mobile/test/nhan-vien/nhan_day_test.dart`, `xac_nhan_hai_thao_tac_test.dart` (SC-008), `xac_nhan_bat_buoc_truc_tuyen_test.dart`, `ghi_ket_qua_goi_test.dart`
 
 **Checkpoint**: P1 hoàn tất; đo SC-001 (≤ 10 giây).
 
@@ -108,7 +108,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 - [ ] T025 [US3] Tạo `MIG/V009_03__kenh_ngoai.sql`: `khung_gop_tin_nhan` (cột sinh `khoa_mo` `UNIQUE`), `lien_he_truc_tiep` (nhóm 2; `thong_bao_id UNIQUE`; `trang_thai` `CHO_LIEN_HE|DA_LIEN_HE|KHONG_LIEN_HE_DUOC`), `ket_qua_lien_he` (nhóm 3; `ly_do` bắt buộc khi không liên hệ được)
 - [ ] T026 [US3] Cài `BE/m13/gui/internal/ChonKenh.java`, `KhungGop.java`, `KiemTraNoiDungKenhNgoai.java`, bean `ChuaCauHinh` của `NhaCungCapTinNhan`; việc 20 giây đóng khung gộp, gửi lại kênh ngoài (research B-05)
 - [ ] T027 [US3] Cài `BE/m13/lienhe/internal/LienHeTrucTiepService.java` (`DinhChinhDuocProvider` `M13.KET_QUA_LIEN_HE`) và `BE/m13/cauhinh/internal/KenhService.java` (Quản lý viện bật/tắt, gắn kênh khác vào mức; lý do; nhật ký)
-- [ ] T028 [US3] Tạo endpoint `GET /lien-he-truc-tiep`, `POST /lien-he-truc-tiep/{id}/ket-qua`, `GET /kenh-thong-bao`, `PUT /kenh-thong-bao/{ma}`; màn web liên hệ trực tiếp và cấu hình kênh trong `web/src/tinh-nang/thong-bao/`
+- [ ] T028 [US3] Tạo endpoint `GET /lien-he-truc-tiep`, `POST /lien-he-truc-tiep/{id}/ket-qua`, `GET /kenh-thong-bao`, `PUT /kenh-thong-bao/{ma}`; màn web liên hệ trực tiếp và cấu hình kênh trong `frontend/src/tinh-nang/thong-bao/`
 
 **Checkpoint**: Kênh ngoài chạy độc lập.
 
@@ -127,7 +127,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 ### Implementation cho User Story 4
 
 - [ ] T030 [US4] Cài `BE/m13/yentinh/internal/GioYenTinh.java` (giữ trong transaction tiếp nhận, giải phóng ở việc 20 giây, kiểm lại điều kiện lúc giải phóng) và listener `ThamSoDaDoi(CFG-M13-02)`, `NguoiCaoTuoiDaChuyenTrangThai(GHI_NHAN_QUA_DOI)` (research B-06)
-- [ ] T031 [P] [US4] Tạo app `app-nguoi-than/lib/tinh-nang/thong-bao/` (nhận đẩy, hộp thông báo)
+- [ ] T031 [P] [US4] Tạo app `mobile/lib/nguoi-than/thong-bao/` (nhận đẩy, hộp thông báo)
 
 **Checkpoint**: Thông báo người thân chạy đúng.
 
@@ -147,7 +147,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 - [ ] T033 [US5] Cài `BE/m13/hopthu/internal/HopThuService.java` (danh sách, chi tiết, xem, ẩn; phát `ThongBaoDaXem`), luồng SSE `BE/m13/hopthu/web/LuongThongBaoController.java` (`GET /thong-bao/luong`), đăng ký thiết bị đẩy (`POST /thiet-bi-day`) (research B-11)
 - [ ] T034 [US5] Cài `BE/m13/tracuu/internal/TraCuuService.java` (`ThongBaoTraCuuApi`; bản cài `NhatKyThongBaoPort` của 007 ủy cho `theoNguon`; lỗi gửi) và endpoint `GET /toi/thong-bao`, `/toi/thong-bao/{id}`, `POST /toi/thong-bao/{id}/an`, `GET /lich-su-thong-bao`, `GET /loi-gui` (research B-12)
-- [ ] T035 [P] [US5] Tạo màn web `web/src/tinh-nang/thong-bao/HopThongBao.tsx` (Khẩn cấp lên đầu, xác nhận), luồng SSE (dự phòng polling), lịch sử, lỗi gửi với test Vitest
+- [ ] T035 [P] [US5] Tạo màn web `frontend/src/tinh-nang/thong-bao/HopThongBao.tsx` (Khẩn cấp lên đầu, xác nhận), luồng SSE (dự phòng polling), lịch sử, lỗi gửi với test Vitest
 
 **Checkpoint**: Mọi user story của 009 chạy độc lập.
 
