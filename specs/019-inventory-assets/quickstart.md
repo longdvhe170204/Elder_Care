@@ -19,7 +19,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 ```text
 backend/  ./mvnw verify
 backend/  ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
-web/      npm ci && npm test && npm run dev
+frontend/ npm ci && npm test && npm run dev
 ```
 
 Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M03 không phụ thuộc M04, M08, M09, M11; `YeuCauMuaSamPort` khai ở `m03.api`), ArchUnit port nội bộ M03, M08, M11, test cơ sở dữ liệu (data-model mục 6).

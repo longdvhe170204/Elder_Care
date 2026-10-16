@@ -20,7 +20,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 ```text
 backend/  ./mvnw verify
 backend/  ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
-web/      npm ci && npm test && npm run dev
+frontend/ npm ci && npm test && npm run dev
 mobile/   flutter test
 ```
 
