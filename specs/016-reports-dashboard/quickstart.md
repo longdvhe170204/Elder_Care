@@ -16,7 +16,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 ```text
 backend/  ./mvnw verify
 backend/  ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo,demo-bao-cao
-web/      npm ci && npm test && npm run dev
+frontend/ npm ci && npm test && npm run dev
 ```
 
 Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M14 chỉ phụ thuộc `*.api`), ArchUnit "M14 chỉ đọc" (research O-09).

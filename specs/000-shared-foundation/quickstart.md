@@ -21,7 +21,7 @@ Hướng dẫn này dùng để chạy và kiểm chứng ở giai đoạn tri�
 ```text
 backend/  ./mvnw verify                  # test đơn vị, tích hợp (MySQL trên máy), kiến trúc, so hợp đồng
 backend/  ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
-web/      npm ci && npm test && npm run dev
+frontend/ npm ci && npm test && npm run dev
 ```
 
 Kết quả mong đợi: `verify` xanh, gồm các nhóm test ở mục 4. Khởi động với profile `demo` thì bảng `tham_so` có đủ 118 mã của Phụ lục 25, mỗi mã có một dòng `lich_su_tham_so` ban đầu.

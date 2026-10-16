@@ -23,7 +23,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 - Backend: `backend/src/main/java/com/cambae/backend/` (viết tắt `BE/`), test `backend/src/test/java/com/cambae/backend/` (viết tắt `BT/`), migration `backend/src/main/resources/db/migration/` (viết tắt `MIG/`)
 - Web: `frontend/src/`; app nhân viên: `mobile/lib/`, test `mobile/test/nhan-vien/`
-- Feature 000 nằm ở `BE/common/` và `BE/m15/{thamso,nhatky,pheduyet,dinhchinh,luutru}/`, mỗi gói con chia `api/`, `internal/`, `frontend/` (và `lich/` cho job)
+- Feature 000 nằm ở `BE/common/` và `BE/m15/{thamso,nhatky,pheduyet,dinhchinh,luutru}/`, mỗi gói con chia `api/`, `internal/`, `web/` (và `lich/` cho job)
 
 ---
 
@@ -31,11 +31,12 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 **Purpose**: Dựng bốn thư mục gốc và bộ công cụ mà mọi feature 001–019 dùng lại (R-01, R-02)
 
-- [ ] T001 Dùng ba thư mục gốc đã khởi tạo `backend/`, `frontend/`, `mobile/` (R-02); viết `README.md` gốc mô tả cấu trúc, và `.gitignore` gốc bỏ qua kết quả build và file IDE (`backend/target/`, `frontend/node_modules/`, `frontend/dist/`, `mobile/.dart_tool/`, `mobile/build/`, `.idea/` ở mọi cấp); gỡ `backend/.idea/`, `mobile/.idea/`, `mobile/mobile.iml` khỏi phần commit
+- [x] T001 Dùng ba thư mục gốc đã khởi tạo `backend/`, `frontend/`, `mobile/` (R-02); viết `README.md` gốc mô tả cấu trúc, và `.gitignore` gốc bỏ qua kết quả build và file IDE (`backend/target/`, `frontend/node_modules/`, `frontend/dist/`, `mobile/.dart_tool/`, `mobile/build/`, `.idea/` ở mọi cấp); gỡ `backend/.idea/`, `mobile/.idea/`, `mobile/mobile.iml` khỏi phần commit
 - [ ] T002 Hoàn thiện dự án đã khởi tạo trong `backend/pom.xml` (Spring Boot 4.1.x, Java 25, gói gốc `com.cambae.backend`): giữ Web MVC, Data JPA (Hibernate 7), Security, Validation, Lombok; thêm Spring Modulith 2.x, Flyway (`spring-boot-starter-flyway`, `flyway-mysql`), springdoc-openapi 3.x, ShedLock, driver MySQL; test: JUnit 5, AssertJ, ArchUnit, openapi-diff. Đổi `application.properties` sang Flyway (`ddl-auto=validate`), bỏ `spring-boot-devtools` khỏi profile `prod` (R-01)
 - [ ] T003 [P] Giữ lớp khởi động `BE/BackendApplication.java` và tạo các gói rỗng `BE/common/`, `BE/m01/` … `BE/m15/` mỗi gói có `package-info.java` khai báo `@ApplicationModule` (R-02)
 - [ ] T004 [P] Cấu hình `backend/src/main/resources/application.yml` với ba profile `prod`, `test`, `demo`; `spring.jpa.properties.hibernate.jdbc.time_zone=UTC`, JDBC `connectionTimeZone=UTC`, MySQL `utf8mb4_0900_ai_ci`; hai datasource `eldercare_app` (chính) và `eldercare_luu_tru` (job loại bỏ) (R-04, R-05)
 - [ ] T005 [P] Hoàn thiện `frontend/` đã khởi tạo (React 19 + Vite, JavaScript, Tailwind CSS v4, shadcn/ui; giữ JavaScript, không chuyển TypeScript theo constitution X 3.1.0): bỏ file mẫu của Vite (`App.css`, `assets/hero.png`, `react.svg`, `vite.svg`); cài TanStack Query, React Router, Vitest, React Testing Library, thêm script `test` vào `frontend/package.json` (R-01)
+- [x] T005a [P] Design system web và khung ứng dụng (giai đoạn thiết kế giao diện, 2026-10-16): biến màu teal, trắng ấm, sage có chế độ tối trong `frontend/src/index.css`; khung ứng dụng và menu theo vai trò căn cứ Phụ lục 27 ở `frontend/src/common/layout/`; màn mẫu dashboard (016) và danh sách người cao tuổi (001) dùng dữ liệu minh họa `frontend/src/common/demoData.js`, xóa khi màn hình lấy dữ liệu từ API (T010)
 - [ ] T006 [P] Hoàn thiện app Flutter chung `mobile/pubspec.yaml` (đã có http, flutter_test): thêm drift; `mobile/lib/main.dart` mở màn đăng nhập rồi chuyển sang phần nhân viên hoặc phần người thân theo loại tài khoản (Q-346; R-01, R-13)
 - [ ] T007 [P] Tạo khung thư mục hai phần của app chung: `mobile/lib/nhan-vien/`, `mobile/lib/nguoi-than/` (tên logic, dịch theo glossary), dùng chung `mobile/lib/chung/` (phần người thân không có màn hình của 000)
 - [ ] T008 [P] Cấu hình lint/format: Checkstyle hoặc Spotless trong `backend/pom.xml`, ESLint (`frontend/eslint.config.js` đã có, bổ sung cho file test Vitest) + Prettier, `mobile/analysis_options.yaml`

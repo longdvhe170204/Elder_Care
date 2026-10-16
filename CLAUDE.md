@@ -8,12 +8,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Giai đoạn hiện tại: THIẾT KẾ
 
-- Từ 2026-10-16 (constitution IX). Cả 20 feature (000 → 019) đã có spec, plan, tasks và đã qua /speckit-analyze; chưa có task nào `[x]`.
+- Từ 2026-10-16 (constitution IX). Cả 20 feature (000 → 019) đã có spec, plan, tasks và đã qua /speckit-analyze.
 - Gồm hai việc: thiết kế giao diện web `frontend/`; thiết kế kỹ thuật (sửa plan, tasks, data-model, contracts khi cần).
 - Chưa viết mã nghiệp vụ (backend, gọi API, màn hình chức năng) cho tới khi chủ dự án mở giai đoạn triển khai ở mục này.
 - Lệnh: /speckit-plan, /speckit-tasks để sửa; /speckit-analyze, /speckit-converge để rà; /speckit-implement chưa dùng; /speckit-taskstoissues chỉ khi chủ dự án yêu cầu.
 - Plan, tasks không được đổi nghiệp vụ (constitution IX). Gặp thiếu sót nghiệp vụ hoặc lệch giữa spec, plan, tasks thì dừng và báo lại.
 - /speckit-analyze chạy theo thứ tự triển khai, đổi `.specify/feature.json` trước mỗi feature; chỉ đọc, không ghi file trừ khi chủ dự án yêu cầu.
+- Tiến độ (2026-10-16): xong 000 T001 (`.gitignore`, README gốc) và T005a (design system, khung ứng dụng, hai màn mẫu). Đã làm trước một phần, task chưa `[x]`: T002 (driver MySQL, `ddl-auto=validate`), T005 (bỏ file mẫu Vite), T008 (ESLint bỏ qua hai luật cho mã shadcn sinh ra).
 - Trước khi vận hành: chốt 3 điểm pháp lý ở 24.4 (Q-03, Thông tư 27/2024/TT-BYT, Luật Cư trú 118/2025/QH15); nâng MySQL 8.0 lên 8.4 LTS, nên migration chỉ dùng cú pháp có ở cả hai bản (research R-01).
 
 ### Thiết kế giao diện
@@ -67,8 +68,8 @@ Skill ở `.claude/skills/karpathy-guidelines/` (nguồn ghi ở `skills-lock.js
 - `backend/` (PowerShell dùng `.\mvnw.cmd`):
   - `./mvnw verify`: test đơn vị, tích hợp, kiến trúc, so hợp đồng; một test: `./mvnw test -Dtest=TenLopTest` hoặc `-Dtest=TenLopTest#tenPhuongThuc`;
   - `./mvnw spring-boot:run -Dspring-boot.run.profiles=demo`: chạy với dữ liệu mẫu; profile `test`, `demo` có đồng hồ giả lập (NFR-13, 000 T012);
-  - `pom.xml` chưa có driver MySQL, Flyway, failsafe (000 T002 thêm), nên `BackendApplicationTests` chưa kết nối được cơ sở dữ liệu.
-- `frontend/`: `npm ci`, `npm run lint`, `npm run build`, `npm run dev`. `npm test` (Vitest) có sau 000 T005; một file: `npx vitest run <đường dẫn>`. `npm run lint` hiện còn 6 lỗi trong `src/components/ui/` (mã shadcn sinh ra), xử lý ở 000 T008.
+  - `pom.xml` chưa có Flyway, failsafe (000 T002 thêm); `BackendApplicationTests` nạp cả context nên cần MySQL đang chạy và các biến `DB_*`.
+- `frontend/`: `npm ci`, `npm run lint`, `npm run build`, `npm run dev`. `npm test` (Vitest) có sau 000 T005; một file: `npx vitest run <đường dẫn>`. Bản mẫu giao diện: `npm run dev`, đổi vai trò ở thanh trên để xem menu từng vai trò.
 - `mobile/`: `flutter test`; một file: `flutter test test/<file>_test.dart`; lọc theo tên: `--plain-name "<tên test>"`.
 
 ## Phạm vi nghiệp vụ (tóm tắt, căn cứ là docs/business/nghiep-vu.md)
