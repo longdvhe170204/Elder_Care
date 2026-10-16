@@ -27,19 +27,19 @@ Plan này cũng chốt các quyết định nền cho mọi feature sau (R-01 �
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS (backend); TypeScript 5.x (web); Dart 3.x với Flutter stable 3.x (hai app). Chi tiết ở research R-01.
+**Language/Version**: Java 25 (backend); TypeScript 5.x (web); Dart 3.x với Flutter stable 3.x (một app chung, Q-346). Chi tiết ở research R-01.
 
 **Primary Dependencies**:
-- Backend: Spring Boot 3.5.x (Web MVC, Data JPA/Hibernate 6.6, Security, Validation), Spring Modulith 1.4.x, Flyway 11.x, springdoc-openapi 2.8.x, ShedLock.
+- Backend: Spring Boot 4.1.x (Web MVC, Data JPA/Hibernate 7, Security, Validation), Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock.
 - Web: React 19, Vite, TanStack Query, React Router.
 - App: Flutter, drift (hàng đợi ngoại tuyến của app nhân viên).
 
-**Storage**: MySQL 8.4 LTS, InnoDB, utf8mb4.
+**Storage**: MySQL 8.0 (bản cài trên máy), InnoDB, utf8mb4. MySQL 8.0 hết hỗ trợ từ 04/2026: trước khi vận hành phải nâng lên 8.4 LTS rồi chạy lại toàn bộ test tích hợp (research R-01). Migration chỉ dùng tính năng có ở cả 8.0 và 8.4.
 - Hai tài khoản: `eldercare_app` (ứng dụng) và `eldercare_luu_tru` (job loại bỏ dữ liệu hết hạn).
 - Thời điểm lưu `DATETIME(6)` UTC; ngày nghiệp vụ lưu `DATE` theo Asia/Ho_Chi_Minh (R-04).
 
 **Testing**:
-- JUnit 5, AssertJ, Testcontainers MySQL 8.4 (chạy cả trigger và quyền tài khoản);
+- JUnit 5, AssertJ, MySQL 8.0 cài trên máy cho test tích hợp (chạy cả trigger và quyền tài khoản; R-14);
 - ArchUnit, Spring Modulith `verify()`;
 - openapi-diff so mã với `contracts/`;
 - Vitest và React Testing Library (web), `flutter_test` (app).
@@ -47,7 +47,7 @@ Plan này cũng chốt các quyết định nền cho mọi feature sau (R-01 �
 
 **Target Platform**: Backend Linux server (container). Web trên trình duyệt máy tính và điện thoại. App Android, iOS trên điện thoại và máy tính bảng.
 
-**Project Type**: Web service (REST `/api/v1`), một web client và hai mobile client.
+**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung cho nhân viên và người thân (Q-346).
 
 **Performance Goals**:
 - Lệnh của 000 (đổi tham số, quyết định yêu cầu, đính chính) nằm trong ngân sách 2 giây của NFR-02. Mỗi lệnh chỉ thêm một `INSERT` nhật ký vào transaction.
@@ -84,7 +84,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ. Hai điểm lệch nguồn được báo lại, không tự giải quyết |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-011 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tạo tài liệu thiết kế. Không có mã, `src/`, cấu hình build hay SQL. Không đổi nghiệp vụ |
-| X. Kiến trúc | Đạt | Một khối Spring Boot. Gói `m01`…`m15`; 000 ở `m15`. Gói `common` chỉ chứa phần kỹ thuật. REST `/api/v1`; MySQL; ba client. Phiên bản ở R-01. NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối Spring Boot. Gói `m01`…`m15`; 000 ở `m15`. Gói `common` chỉ chứa phần kỹ thuật. REST `/api/v1`; MySQL; hai client (Q-346). Phiên bản ở R-01. NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Mọi kiểm tra BR, chuyển trạng thái, quyền ba lớp nằm ở backend. `lenhDuocPhep` trả cho client chỉ để ẩn hoặc hiện nút. Mỗi lệnh có endpoint `POST …/{id}/<lenh>` riêng |
 | XII. Dữ liệu | Đạt | Nhóm 3 chỉ thêm (trigger cùng quyền tài khoản). Nhật ký trong cùng transaction. Thời gian theo R-04. Mỗi DBR liên quan có cách bảo đảm (data-model mục 7) |
 | XIII. Tham số | Đạt | `tham_so` cùng `lich_su_tham_so`, đọc lúc chạy. Enum `MaThamSo` sinh từ Phụ lục 25; ArchUnit cấm hằng số thời lượng ở tầng service |
@@ -129,11 +129,11 @@ specs/000-shared-foundation/
 
 ### Source Code (repository root)
 
-Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
+Cấu trúc cho giai đoạn triển khai. Tên thư mục, gói dưới đây là tên logic; khi viết mã dịch sang tiếng Anh theo [glossary.md](glossary.md) (R-03). Ba thư mục gốc `backend/`, `frontend/`, `mobile/` đã được khởi tạo (sửa 2026-10-16, constitution 3.0.0).
 
 ```text
 backend/
-├── src/main/java/vn/eldercare/
+├── src/main/java/com/cambae/backend/
 │   ├── common/                  # Clock, ThoiGianNghiepVu, LyDo, @NhomDuLieu, @LenhNghiepVu,
 │   │                            # ChiThemRepository, LoiNghiepVu, Problem Details, Idempotency, PhongBiNgoaiTuyen
 │   ├── m01/ … m14/              # module nghiệp vụ (feature 001, 003–019 theo Phụ lục 26.2)
@@ -145,9 +145,9 @@ backend/
 │       ├── luutru/   {api, internal, lich}
 │       └── taikhoan/ …          # feature 002 (plan sau)
 ├── src/main/resources/db/migration/   # Flyway (giai đoạn triển khai)
-└── src/test/java/vn/eldercare/        # cùng cấu trúc; *Test (đơn vị), *IT (Testcontainers), *ArchTest
+└── src/test/java/com/cambae/backend/        # cùng cấu trúc; *Test (đơn vị), *IT (tích hợp MySQL), *ArchTest
 
-web/
+frontend/
 └── src/
     ├── api/                     # client sinh từ OpenAPI
     ├── chung/                   # xử lý Problem Details, 412, hiển thị "đã thay đổi"
@@ -156,22 +156,21 @@ web/
         ├── nhat-ky/
         └── yeu-cau-phe-duyet/
 
-app-nhan-vien/
-└── lib/
-    ├── chung/                   # API client, hàng đợi ngoại tuyến (drift), phong bì đồng bộ
-    └── tinh-nang/yeu-cau-phe-duyet/
-
-app-nguoi-than/
-└── lib/chung/                   # 000 không có màn hình cho người thân
+mobile/                          # một app chung cho nhân viên và người thân (Q-346)
+├── lib/
+│   ├── chung/                   # đăng nhập, API client, hàng đợi ngoại tuyến (drift), phong bì đồng bộ
+│   ├── nhan-vien/yeu-cau-phe-duyet/
+│   └── nguoi-than/              # 000 không có màn hình cho người thân
+└── test/{nhan-vien, nguoi-than}/
 ```
 
-**Structure Decision**: Một kho mã, bốn thư mục gốc (R-02). Feature 000 nằm ở `backend/…/m15/{thamso, nhatky, pheduyet, dinhchinh, luutru}` và `backend/…/common`. Ở web có ba màn: tham số, nhật ký, hộp duyệt yêu cầu. App nhân viên có hộp duyệt yêu cầu, cần cho Trưởng tầng duyệt yêu cầu của 015. Module khác chỉ dùng 000 qua `contracts/module-interfaces.md`.
+**Structure Decision**: Một kho mã, ba thư mục gốc (R-02). Feature 000 nằm ở `backend/…/m15/{thamso, nhatky, pheduyet, dinhchinh, luutru}` và `backend/…/common`. Ở web có ba màn: tham số, nhật ký, hộp duyệt yêu cầu. App nhân viên có hộp duyệt yêu cầu, cần cho Trưởng tầng duyệt yêu cầu của 015. Module khác chỉ dùng 000 qua `contracts/module-interfaces.md`.
 
 ## Complexity Tracking
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
-| Gói `vn.eldercare.common` ngoài M01–M15 | Cần chỗ cho thành phần kỹ thuật mọi module dùng (Clock, lỗi, chú thích nhóm dữ liệu). Gói không chứa dữ liệu nghiệp vụ, Modulith coi là gói dùng chung | Đặt trong `m15` thì mọi module phụ thuộc phần nội bộ của M15 |
+| Gói `com.cambae.backend.common` ngoài M01–M15 | Cần chỗ cho thành phần kỹ thuật mọi module dùng (Clock, lỗi, chú thích nhóm dữ liệu). Gói không chứa dữ liệu nghiệp vụ, Modulith coi là gói dùng chung | Đặt trong `m15` thì mọi module phụ thuộc phần nội bộ của M15 |
 | Bảng kỹ thuật `chuoi_dinh_chinh`, `khoa_lap_lai`, `lan_chay_lich`, `event_publication`, `shedlock` được `UPDATE` và không ghi nhật ký nghiệp vụ | Đây là dữ liệu dẫn xuất hoặc hạ tầng, không thuộc ba nhóm của mục 1.5. Mọi thay đổi nghiệp vụ tương ứng (thêm đính chính, áp dụng yêu cầu) đã có nhật ký riêng | Ghi nhật ký cho cả bảng kỹ thuật làm nhật ký phình to mà không thêm thông tin truy vết |
 | Cột `da_nhac_luc`, `da_bao_qlv_luc` trên `yeu_cau_phe_duyet` do Bộ lập lịch đặt | Chống nhắc lặp. Mỗi lần nhắc hoặc báo vẫn ghi nhật ký `YC_NHAC` / `YC_BAO_QLV`, người thực hiện là Bộ lập lịch, có căn cứ CFG (FR-045) | Suy ra từ `event_publication` thì phụ thuộc bảng của thư viện |
 | Chu kỳ chạy job và hạn giữ `Idempotency-Key` đặt trong cấu hình ứng dụng, không phải mã CFG | Đây là thông số vận hành, không có trong Phụ lục 25 và không đổi quy tắc nghiệp vụ. Mốc nghiệp vụ (CFG-M15-05, 06) vẫn đọc từ `tham_so`. Chu kỳ 15 phút làm nhắc trễ tối đa 15 phút so với mốc | Thêm mã CFG mới thì phải sửa tài liệu nguồn chỉ vì một thông số kỹ thuật |

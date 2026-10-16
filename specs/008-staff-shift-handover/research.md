@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## N-01. Vị trí trong backend
 
-**Quyết định**: Feature 008 là module M09 – Nhân sự và ca trực (mục 13), gói `vn.eldercare.m09`:
+**Quyết định**: Feature 008 là module M09 – Nhân sự và ca trực (mục 13), gói `com.cambae.backend.m09`:
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -281,7 +281,7 @@ Các hàm "tại thời điểm t" đọc dữ liệu lịch sử (`nguoi_phu_tr
 - **Kiểm thử** (000 R-14, constitution XV):
   - test bảng cho hàm thuần `HieuLucChungChi`, `ChuoiCaLienTuc`, `XacDinhNhanVienChinh`, `XacDinhCaSau`, `TinhTyLePhucVu`, `MucNghiemTrong`;
   - SC-005: bộ 200 lần xếp ca và phân công dựng từ bảng tính tay;
-  - Testcontainers cho `UNIQUE (ca_id)`, trigger bàn giao, trigger trạng thái nhân viên, `khoa_hien_hanh` bộ phận;
+  - Test tích hợp MySQL cho `UNIQUE (ca_id)`, trigger bàn giao, trigger trạng thái nhân viên, `khoa_hien_hanh` bộ phận;
   - test đồng thời: hai phân công chính cùng đối tượng; hai giao trưởng tầng chồng; xếp một nhân viên vào hai ca cùng lúc; Xác nhận và Gửi ý kiến cùng lúc;
   - đồng hồ giả lập cho CFG-M09-02 → 05, 08, 09, CFG-M15-07, ca qua đêm, ca qua tháng, hiệu lực tới hết ngày (SC-006);
   - bản giả `DoGuiBanGiaoPort`, `ChuyenDiNhiemVuPort`, `KiemTraCongBoMoRong` có công tắc `/api/v1/kiem-thu/gia-lap/{module}`;

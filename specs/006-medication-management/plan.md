@@ -33,16 +33,16 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
-**Primary Dependencies**: Như 000 → 005: Spring Boot 3.5.x, Spring Modulith 1.4.x, Flyway 11.x, springdoc-openapi 2.8.x, ShedLock, Spring Security 6.5. Web: React 19, TanStack Query. App nhân viên: Flutter, drift (hàng đợi ngoại tuyến, 000 R-13). App người thân: Flutter. Không thêm thư viện mới.
+**Primary Dependencies**: Như 000 → 005: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7. Web: React 19, TanStack Query. App nhân viên: Flutter, drift (hàng đợi ngoại tuyến, 000 R-13). App người thân: Flutter. Không thêm thư viện mới.
 
-**Storage**: MySQL 8.4 LTS. Bảng ở [data-model.md](data-model.md).
+**Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md).
 
 **Testing**:
 - Như 000 R-14.
 - Test đơn vị dạng bảng cho tám hàm thuần: chuỗi thời điểm của đơn, tính lịch, bảng chuyển liều, kiểm tra đơn mới, giới hạn PRN, đếm từ chối liên tiếp, số ngày còn lại, người phụ trách liều.
-- Testcontainers cho trigger, cột sinh.
+- Test tích hợp MySQL cho trigger, cột sinh.
 - Test đồng thời: hai lần xác nhận một liều; xác nhận và job Bỏ lỡ; hai lần dùng PRN; hai lần trừ một lô.
 - Đồng hồ giả lập cho mọi CFG-M07, gồm chạy bù.
 - Bản giả cho mọi SPI 006 khai báo (research D-20).
@@ -52,7 +52,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - App nhân viên: vòng phát thuốc, xác nhận liều và PRN (có ngoại tuyến, trừ thuốc kiểm soát đặc biệt), chọn lô, ghi theo báo lại, giao và nhận lại thuốc mang theo, tiếp nhận thuốc gia đình gửi, xem lại.
 - App người thân: xem thuốc gia đình gửi, đơn và phiếu Đã xác nhận khi có bản đồng ý; nhận thông báo sắp hết, hết hạn dùng (qua 009, 012).
 
-**Project Type**: Web service (REST `/api/v1`), một web client và hai mobile client.
+**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung (Q-346).
 
 **Performance Goals**:
 - Vòng phát thuốc 15 người ≤ 3 giây (SC-009, NFR-02): một truy vấn đơn theo `(nct_id, trang_thai)`, tính lịch trong bộ nhớ cho khoảng của ca, ghép dòng đã vật hóa theo `(nct_id, thoi_diem_du_kien)`; phân công lấy một lần theo lô.
@@ -89,7 +89,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ. Mức các thông báo spec chưa nêu: plan áp nguyên tắc 3 bậc và báo lại (điểm 5). Cách tính số ngày còn lại khi lô dùng chung: plan theo BR-M07-18 và báo lại (điểm 1) |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-014 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 001 được bổ sung một sự kiện (mục "Đồng bộ"), không đổi hành vi đã thiết kế |
-| X. Kiến trúc | Đạt | Một khối; gói `m07`; module khác chỉ dùng `m07.api`. Không có vòng phụ thuộc (D-02). REST `/api/v1`; MySQL; ba client. NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `m07`; module khác chỉ dùng `m07.api`. Không có vòng phụ thuộc (D-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Kiểm tra đơn mới, giới hạn PRN, quyền xác nhận, quy tắc hai người, số lượng ở backend. Mỗi lệnh có `POST …/{id}/<lenh>` riêng; lệnh trạng thái người cao tuổi dùng endpoint của 001 |
 | XII. Dữ liệu | Đạt | DBR-13, DBR-14 bằng `UNIQUE` và trigger; nhóm 3 theo mẫu 000; nhật ký trong transaction; `Clock`; `thoi_diem_thiet_bi` cho ngoại tuyến (DBR-25) |
 | XIII. Tham số | Đạt | Như V. Cửa sổ chốt lúc liều tới đầu cửa sổ; đổi CFG-M07-01 chỉ áp liều sau đó |
@@ -143,7 +143,7 @@ specs/006-medication-management/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m07/
+backend/src/main/java/com/cambae/backend/m07/
 ├── api/           # DonThuocApi, LichThuocApi, LieuBanGiaoApi, MangThuocChuyenDiApi, ThuocGiaDinhGuiApi,
 │                  # ThuocCongNguoiThanApi, ThuocThongKeApi, SPI (DieuDuongCaPort, ChuyenDiThuocPort, DeNghiMuaHoPort), sự kiện
 ├── danhmuc/       {internal, web}   # thuốc, hoạt chất
@@ -158,7 +158,7 @@ backend/src/main/java/vn/eldercare/m07/
 ├── trangthai/     {internal}        # bean ThamGiaChuyenTrangThai; cài LieuThuocChecklistPort, ThoiKhoaBieuNguonPort
 └── lich/                            # ViecTheoPhutM07, ViecHangNgayM07
 
-web/src/tinh-nang/
+frontend/src/tinh-nang/
 ├── danh-muc-thuoc/
 ├── don-thuoc/               # nhập đơn, vấn đề cần lý do, đổi liều, chuỗi thay thế
 ├── lich-thuoc/              # lịch người cao tuổi, vòng phát thuốc web
@@ -167,7 +167,7 @@ web/src/tinh-nang/
 ├── thuoc-mang-theo/         # giao, nhận lại, không mang thuốc
 └── cong-nguoi-than/thuoc/   # thuốc gửi; đơn, phiếu khi có bản đồng ý
 
-app-nhan-vien/lib/tinh-nang/
+mobile/lib/nhan-vien/
 ├── vong-phat-thuoc/         # tải, lưu ngoại tuyến, dấu "chưa cập nhật", chặn kiểm soát đặc biệt
 ├── xac-nhan-lieu/           # Đã dùng, Từ chối, Không thực hiện, chọn lô, ghi theo báo lại, PRN
 ├── dong-bo/                 # kết quả đồng bộ từng bản ghi (BR-M15-20)
@@ -175,7 +175,7 @@ app-nhan-vien/lib/tinh-nang/
 ├── thuoc-gia-dinh-gui/
 └── xem-lai-lieu/
 
-app-nguoi-than/lib/tinh-nang/thuoc/   # thuốc gửi; đơn, phiếu khi có bản đồng ý
+mobile/lib/nguoi-than/thuoc/   # thuốc gửi; đơn, phiếu khi có bản đồng ý
 ```
 
 **Structure Decision**: Theo R-02 của 000. Feature 006 nằm ở `backend/…/m07` với tám gói con nghiệp vụ, gói `trangthai` gom SPI cài cho module thấp hơn, gói `lich` và gói `api`. Web có đủ chức năng. App nhân viên có vòng phát thuốc, xác nhận ngoại tuyến và các thao tác tại tầng. App người thân chỉ xem.

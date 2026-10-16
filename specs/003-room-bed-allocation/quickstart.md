@@ -6,7 +6,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 
 ## 1. Điều kiện cần
 
-- Như quickstart của 000, 001, 002: JDK 21, Docker (Testcontainers MySQL 8.4), Node.js LTS, Flutter stable; profile `demo` có đồng hồ giả lập.
+- Như quickstart của 000, 001, 002: JDK 25, MySQL 8.0 cài trên máy (000 R-14), Node.js LTS, Flutter stable; profile `demo` có đồng hồ giả lập.
 - Dữ liệu mẫu của profile `demo`:
   - các tài khoản của quickstart 002: Quản lý viện QL, Hành chính HC, Trưởng tầng H được giao Tầng 1, Trưởng tầng H2 được giao Tầng 2, bác sĩ BS, Điều dưỡng D, Nhân viên chăm sóc C; ca ngày Tầng 2 có Người phụ trách ca N (vai trò Điều dưỡng);
   - cơ cấu: Khu A; Tầng 1, Tầng 2; P101 (chỉ "Chăm sóc cơ bản", Nữ), P105, P107 (Không giới hạn), P201 ("Thường xuyên", "Đặc biệt", Nữ, loại phòng 2 giường), P305 (loại phòng khác đơn giá); mỗi phòng 2 giường;
@@ -20,7 +20,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 backend/  ./mvnw verify
 backend/  ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
 web/      npm ci && npm test && npm run dev
-app-nhan-vien/   flutter test
+mobile/   flutter test
 ```
 
 Kết quả mong đợi: `verify` xanh. Bộ test gồm test kiến trúc (Modulith `verify()` không có vòng phụ thuộc; ArchUnit chỉ `GiuongTrangThaiService` ghi trạng thái giường), test cơ sở dữ liệu (data-model mục 8), test đồng thời và các nhóm test ở mục 4.
@@ -69,7 +69,7 @@ Kết quả mong đợi: `verify` xanh. Bộ test gồm test kiến trúc (Modul
 
 ## 4. Test tự động: truy vết kịch bản → test
 
-| Spec | Lớp test (backend, `vn.eldercare.m03…`) | Loại |
+| Spec | Lớp test (backend, `com.cambae.backend.m03…`) | Loại |
 | --- | --- | --- |
 | US1 #1–8, FR-001 → FR-007 | `CoCauIT`, `MaDuyNhatIT`, `NgungHieuLucCoCauIT`, `FR_006_DoiChinhSachPhongIT`, `FR_007_KhongDoiChaIT`, `BR_M03_22_SoGiuongTieuChuanIT`, `Q_238_TaoGiuongGhiTangIT` | Tích hợp |
 | US2 #1–15, FR-017 → FR-023, FR-025a | `BR_M03_01_DieuKienPhanBoIT`, `BR_M03_02_HaiNguoiCungGiuongIT`, `DBR_09_KhongChongIT`, `FR_020_PhanBoDongThoiIT`, `FR_023_PhanBoBanDauIT`, `BR_M03_20_PhamViPhanBoBanDauIT`, `FR_022_DanhSachGiuongIT`, `BR_M03_19_TroVeChuaCoGiuongIT` | Tích hợp, đồng thời |
@@ -80,7 +80,7 @@ Kết quả mong đợi: `verify` xanh. Bộ test gồm test kiến trúc (Modul
 | US7 #1–7, FR-008 → FR-010, FR-024a | `CachLyPhongIT`, `BR_M03_01_CachLyIT`, `BR_M03_21_BacSiChiDinhIT`, `FR_024a_TroVePhongCachLyIT` | Tích hợp |
 | US8 #1–7, FR-044 → FR-048 | `BR_M03_09_ChoSanSangIT`, `BR_M03_10_KhuKhuanIT`, `XacNhanSanSangQuyenIT` | Tích hợp, đồng hồ giả lập |
 | SPI 001 (G-06) | `PhanBoThamGiaChuyenTrangThaiIT` (mỗi lệnh của bảng G-06, rollback khi lỗi) | Tích hợp |
-| Cơ sở dữ liệu | `PhanBoRangBuocDbIT` (cột sinh, trigger, `CHECK`), `NhomBaTriggerIT` mở rộng | Testcontainers |
+| Cơ sở dữ liệu | `PhanBoRangBuocDbIT` (cột sinh, trigger, `CHECK`), `NhomBaTriggerIT` mở rộng | Tích hợp MySQL |
 | Edge Cases | Mỗi gạch đầu dòng một phương thức trong các lớp trên | |
 | Client web | `BangGiuong.test.tsx` (trạng thái, dấu, "đã có phân bổ từ"), `ChonGiuong.test.tsx` (không chọn sẵn), `DieuKienChuaThoa.test.tsx` | Vitest |
 | App nhân viên | `xac_nhan_san_sang_test.dart` (ô khử khuẩn bắt buộc khi `canKhuKhuan`), `chuyen_giuong_test.dart` | flutter_test |

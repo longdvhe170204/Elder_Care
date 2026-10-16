@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## D-01. Vị trí trong backend
 
-**Quyết định**: Feature 006 là module M07 (mục 11). Gói `vn.eldercare.m07` có các gói con:
+**Quyết định**: Feature 006 là module M07 (mục 11). Gói `com.cambae.backend.m07` có các gói con:
 
 | Gói | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -391,7 +391,7 @@ Gửi 010: `SuKienTinhPhiThuoc(nguon: LIEU | LAN_DUNG_PRN | LAN_GIAO, id, nctId,
 - **Nhật ký**: hành động `M07_THUOC_*`, `M07_DON_*` (nhập, tạm dừng, tiếp tục, ngừng, đổi liều, gia hạn, ghi chú, hủy thay đổi), `M07_LIEU_CHUYEN`, `M07_LIEU_XAC_NHAN`, `M07_PRN`, `M07_PHIEU_*`, `M07_THUOC_GUI_*`, `M07_GIAO_THUOC`, `M07_NHAN_LAI_THUOC`, `M07_XEM_LAI`, `M07_NHAC`, `M07_BAO`; dấu "chạy bù" khi có.
 - **Kiểm thử** (000 R-14):
   - hàm thuần có test bảng: `ChuoiThoiDiemDon`, `LichThuoc.tinh`, `BangChuyenLieu`, `KiemTraDonMoi`, `KiemTraGioiHanPrn`, `DemTuChoiLienTiep`, `TinhSoNgayConLai`, `XacDinhNguoiPhuTrachLieu`;
-  - Testcontainers: trigger khóa đơn, trigger trạng thái cuối liều, trigger số lượng thuốc gửi, cột sinh `UNIQUE` (DBR-13, một phiếu mở, một phiếu tiếp nhận, một đơn thay thế);
+  - Test tích hợp MySQL: trigger khóa đơn, trigger trạng thái cuối liều, trigger số lượng thuốc gửi, cột sinh `UNIQUE` (DBR-13, một phiếu mở, một phiếu tiếp nhận, một đơn thay thế);
   - đồng thời: hai lần xác nhận một liều; xác nhận và job Bỏ lỡ; hai lần dùng PRN gần đồng thời; hai lần trừ cùng một lô;
   - đồng hồ giả lập: 20 người × 60 đơn × 7 ngày (SC-001), chạy bù sau 3 giờ dừng;
   - bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}` cho `DieuDuongCaPort` (008), `ChuyenDiThuocPort` (014), `DeNghiMuaHoPort` (010), `QuanHeNguoiThanApi`, `NguoiDaiDienPort` (012);

@@ -30,16 +30,16 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
-**Primary Dependencies**: Như 000 → 007: Spring Boot 3.5.x, Spring Modulith 1.4.x, Flyway 11.x, springdoc-openapi 2.8.x, ShedLock, Spring Security 6.5. Web: React 19, TanStack Query. App nhân viên: Flutter, drift (lưu bản xem bàn giao). Không thêm thư viện mới.
+**Primary Dependencies**: Như 000 → 007: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7. Web: React 19, TanStack Query. App nhân viên: Flutter, drift (lưu bản xem bàn giao). Không thêm thư viện mới.
 
-**Storage**: MySQL 8.4 LTS. Bảng ở [data-model.md](data-model.md).
+**Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md).
 
 **Testing**:
 - Như 000 R-14.
 - Test bảng cho sáu hàm thuần: `HieuLucChungChi`, `ChuoiCaLienTuc`, `XacDinhNhanVienChinh`, `XacDinhCaSau`, `TinhTyLePhucVu`, `MucNghiemTrong`.
-- Testcontainers cho `UNIQUE (ca_id)`, trigger bàn giao, trigger trạng thái nhân viên, cột sinh `UNIQUE` của bộ phận và người phụ trách ca.
+- Test tích hợp MySQL cho `UNIQUE (ca_id)`, trigger bàn giao, trigger trạng thái nhân viên, cột sinh `UNIQUE` của bộ phận và người phụ trách ca.
 - Test đồng thời: xếp một nhân viên vào hai ca; hai phân công chính; hai giao Trưởng tầng; Xác nhận và Gửi ý kiến cùng lúc.
 - Đồng hồ giả lập cho CFG-M09-02 → 05, 08, 09, CFG-M15-07, ca qua đêm, ca qua tháng, hiệu lực tới hết ngày.
 - Bản giả cho `DoGuiBanGiaoPort`, `ChuyenDiNhiemVuPort`, `KiemTraCongBoMoRong`.
@@ -49,7 +49,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - App nhân viên: ca của tôi; bàn giao (lập, ghi chú, hoàn tất, xác nhận, ý kiến; xem ngoại tuyến trong phạm vi ca); ghi nhận vắng ca của Người phụ trách ca; phân công cho Trưởng tầng.
 - App người thân: không có màn của 008.
 
-**Project Type**: Web service (REST `/api/v1`), một web client và hai mobile client.
+**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung (Q-346).
 
 **Performance Goals**:
 - Tra cứu nhiệm vụ, ca, phân công theo thời điểm (gọi từ 002 mỗi yêu cầu, 005, 006, 007 trên đường nóng) ≤ vài mili giây: chỉ mục `ca (pham_vi, bat_dau, ket_thuc)`, `ca_nhan_vien (nhan_vien_id)`, `phan_cong (ca_id, trang_thai)`, `nguoi_phu_trach_ca (ca_id)`; bộ nhớ theo yêu cầu (002 A-07).
@@ -88,7 +88,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ. Mâu thuẫn về nhật ký xem bàn giao và câu chữ còn sót trước Q-307 được báo lại (điểm 1, 2) |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-012 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 002, 003, 005 được bổ sung khai báo (mục "Đồng bộ") |
-| X. Kiến trúc | Đạt | Một khối; gói `m09`; module khác chỉ dùng `m09.api` và các SPI họ khai báo. Không có vòng phụ thuộc (N-02). REST `/api/v1`; MySQL; ba client. NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `m09`; module khác chỉ dùng `m09.api` và các SPI họ khai báo. Không có vòng phụ thuộc (N-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Chồng ca, chứng chỉ, nhân viên chính, công bố, điều kiện bàn giao kiểm ở backend. Mỗi lệnh có `POST …/{id}/<lenh>` riêng |
 | XII. Dữ liệu | Đạt | DBR-20 bằng `UNIQUE`; DBR-21, DBR-36 bằng kiểm tra dưới khóa và `UNIQUE` cột sinh; nhóm 3 theo mẫu 000; nhật ký trong transaction; `Clock` |
 | XIII. Tham số | Đạt | Như V. CFG-M09-01 theo mẫu ca, CFG-M09-12 trọng số theo mức (kiểu bảng) |
@@ -141,7 +141,7 @@ specs/008-staff-shift-handover/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m09/
+backend/src/main/java/com/cambae/backend/m09/
 ├── api/           # CaTrucApi, NhanSuThongKeApi, SPI (DoGuiBanGiaoPort, ChuyenDiNhiemVuPort), sự kiện
 ├── nhanvien/      {internal, web}   # hồ sơ, trạng thái, nghỉ việc, bộ phận, Phụ trách bộ phận
 ├── giayphep/      {internal, web}   # loại, phạm vi hành nghề, chứng chỉ, HieuLucChungChi, cảnh báo
@@ -153,14 +153,14 @@ backend/src/main/java/vn/eldercare/m09/
 │                                    # ThamChieuViTri, NhanSuCaPort, DieuDuongCaPort, NhanSuCanhBaoPort
 └── lich/                            # ViecTheoPhutM09, ViecHangGioM09, ViecHangNgayM09
 
-web/src/tinh-nang/
+frontend/src/tinh-nang/
 ├── nhan-vien/               # hồ sơ, bộ phận, chứng chỉ
 ├── lich-ca/                 # mẫu ca, lịch Nháp, xem trước công bố, lệnh sau công bố
 ├── phan-cong/               # phân công, sao chép, giao Trưởng tầng
 ├── ty-le-phuc-vu/
 └── ban-giao/                # lập, danh sách nguồn, mục, hoàn tất, xác nhận, ý kiến
 
-app-nhan-vien/lib/tinh-nang/
+mobile/lib/nhan-vien/
 ├── ca-cua-toi/
 ├── ban-giao/                # xem ngoại tuyến trong phạm vi ca; lệnh chỉ trực tuyến
 ├── vang-ca/

@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4 và data-model.md mục 11.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Module M03 (phần phòng, giường): `BE/m03/{api,cocau,giuong,phanbo,cachly,bantru,lich}/`; `m03.taisan` thuộc feature 019
-- Web `web/src/tinh-nang/{co-cau-phong-giuong,bang-giuong,phan-bo-giuong,lich-su-vi-tri,cach-ly-phong,khu-nghi-ban-tru}/`; app nhân viên `app-nhan-vien/lib/tinh-nang/{bang-giuong-tang,chuyen-giuong,cach-ly-phong}/`
+- Web `frontend/src/tinh-nang/{co-cau-phong-giuong,bang-giuong,phan-bo-giuong,lich-su-vi-tri,cach-ly-phong,khu-nghi-ban-tru}/`; app nhân viên `mobile/lib/nhan-vien/{bang-giuong-tang,chuyen-giuong,cach-ly-phong}/`
 
 ---
 
@@ -66,7 +66,7 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 - [ ] T015 [US1] Cài `BE/m03/cocau/internal/CoCauService.java`: tạo, sửa, ngừng hiệu lực, kích hoạt lại, xóa (chỉ khi chưa từng tham chiếu, kể cả `ThamChieuViTri.daTungThamChieu`) cho khu vực, tầng, loại phòng, phòng, lý do chuyển; sửa chính sách phòng khóa giường và kiểm (a), (c); nhật ký `M03_CO_CAU_*` (FR-001 → FR-007)
 - [ ] T016 [US1] Cài tạo giường (`TAO_GIUONG` → `TRONG`, gọi ghi tăng tài sản 019, cảnh báo BR-M03-22) trong `BE/m03/giuong/internal/GiuongService.java`; giường không có lệnh xóa (Q-237)
 - [ ] T017 [US1] Tạo controller `BE/m03/cocau/web/CoCauController.java` và `BE/m03/giuong/web/GiuongController.java` cho `/khu-vuc`, `/tang`, `/loai-phong`, `/phong`, `/ly-do-chuyen-giuong` (kèm `/{id}`, `/ngung-hieu-luc`, `/kich-hoat-lai`), `POST/GET /giuong`, `GET /giuong/{id}` theo contracts/api-003.yaml; cài `CoCauViTriApi`, `PhongChoPhepApi`
-- [ ] T018 [P] [US1] Tạo màn web `web/src/tinh-nang/co-cau-phong-giuong/` (cây khu vực → tầng → phòng → giường, loại phòng, lý do chuyển)
+- [ ] T018 [P] [US1] Tạo màn web `frontend/src/tinh-nang/co-cau-phong-giuong/` (cây khu vực → tầng → phòng → giường, loại phòng, lý do chuyển)
 
 **Checkpoint**: Cơ cấu dựng được độc lập.
 
@@ -83,7 +83,7 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 - [ ] T019 [P] [US2] Test `BT/m03/BR_M03_01_DieuKienPhanBoIT.java`: mức (hiện hành → hợp đồng → lượt đăng ký, Q-301), loại hình, giới tính, cách ly/khoanh vùng, trạng thái giường, giữ chỗ, dấu tài sản; trả đủ điều kiện chưa thỏa (DBR-10, BR-M03-01)
 - [ ] T020 [P] [US2] Test `BT/m03/BR_M03_02_HaiNguoiCungGiuongIT.java`, `DBR_09_KhongChongIT.java`, `FR_020_PhanBoDongThoiIT.java`: 10 luồng trên một giường chỉ một thành công (SC-001); `INSERT` trực tiếp chồng khoảng bị trigger chặn; cột sinh `UNIQUE` chặn hai đang hiệu lực
 - [ ] T021 [P] [US2] Test `BT/m03/FR_023_PhanBoBanDauIT.java`, `BR_M03_20_PhamViPhanBoBanDauIT.java`, `FR_022_DanhSachGiuongIT.java`, `BR_M03_19_TroVeChuaCoGiuongIT.java`: người Đang tiếp nhận chỉ có `TUONG_LAI`; phạm vi theo giường; danh sách giường phù hợp không chọn sẵn và khớp lệnh; người trở về không có giường mang dấu "chưa có giường" và được nhắc (US2 #1–15)
-- [ ] T022 [P] [US2] Test `BT/m03/PhanBoRangBuocDbIT.java`: mọi cột sinh, trigger, `CHECK` của `phan_bo_giuong` (Testcontainers)
+- [ ] T022 [P] [US2] Test `BT/m03/PhanBoRangBuocDbIT.java`: mọi cột sinh, trigger, `CHECK` của `phan_bo_giuong` (tích hợp MySQL)
 
 ### Implementation cho User Story 2
 
@@ -92,7 +92,7 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 - [ ] T025 [US2] Cài `BE/m03/phanbo/internal/KiemTraPhanBo.java` (FR-018 (a)–(g), dùng `NguonLuuTruChoPhanBo`, `TinhTrangLayNhiemChoPhanBo`, dấu tài sản) và `KhoaTuanTu.java` (khóa người cao tuổi khi qua 001 → `vi_tri_nct` → giường theo `id`; `@Retryable` khi deadlock) (research G-03, G-05)
 - [ ] T026 [US2] Cài `BE/m03/phanbo/internal/PhanBoService.java`: phân bổ cho người Đang tiếp nhận (`TUONG_LAI`, giường `CHO_SAN_SANG` theo FR-011a, gọi `daPhanBo` kết thúc giữ chỗ hồ sơ chờ), phân bổ cho người chưa có giường (`DANG_HIEU_LUC`, gỡ dấu), hủy phân bổ tương lai có lý do; nhật ký `M03_PB_*`; cài `PhanBoGiuongApi` (002), `ViTriApi` (FR-017 → FR-023, FR-025a)
 - [ ] T027 [US2] Tạo `BE/m03/phanbo/web/PhanBoController.java`: `GET /phan-bo-giuong/giuong-phu-hop`, `POST/GET /phan-bo-giuong`, `GET /phan-bo-giuong/{id}`, `POST …/{id}/huy`, `GET /nguoi-cao-tuoi/{nctId}/vi-tri`, `GET /giuong/tong-hop`
-- [ ] T028 [P] [US2] Tạo màn web `web/src/tinh-nang/phan-bo-giuong/ChonGiuong.tsx` (không chọn sẵn), `web/src/tinh-nang/bang-giuong/BangGiuong.tsx` và test `ChonGiuong.test.tsx`, `BangGiuong.test.tsx`, `DieuKienChuaThoa.test.tsx`
+- [ ] T028 [P] [US2] Tạo màn web `frontend/src/tinh-nang/phan-bo-giuong/ChonGiuong.tsx` (không chọn sẵn), `frontend/src/tinh-nang/bang-giuong/BangGiuong.tsx` và test `ChonGiuong.test.tsx`, `BangGiuong.test.tsx`, `DieuKienChuaThoa.test.tsx`
 
 **Checkpoint**: Phân bổ an toàn đồng thời.
 
@@ -116,7 +116,7 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 - [ ] T033 [US3] Cài phần chuyển theo lịch trong `BE/m03/phanbo/internal/ChuyenTheoLich.java` (`kiemTraDatTruocChuyenTheoLich`, `datTruocChuyenTheoLich`, `kiemTraChuyenTheoLich`, `thucHienChuyenTheoLich`, `huyPhanBoTheoLich`, `daLapYeuCauSauChuyenGap`, `ketQuaYeuCauSauChuyenGap`) cài `PhanBoGiuongLenhApi` (FR-029, FR-030)
 - [ ] T034 [US3] Tạo `MIG/V003_04__yeu_cau_nhap_bu.sql` (`yeu_cau_phe_duyet_id` khóa chính, `nct_id`, `phan_bo_hien_tai_id`, `giuong_moi_id`, `thoi_diem_chuyen`; không `UPDATE`) và cài handler `BE/m03/phanbo/internal/NhapBuYeuCauHandler.java` cho `M03.NHAP_BU_PHAN_BO` (`quyenTao` = `PHAN_BO_CHUYEN_GIUONG, TAO`; duyệt AC-01; `kiemTraDieuKienApDung` chạy lại FR-018, FR-019, FR-027 (c); `apDung` chuyển giường nhập bù với `nhap_bu`, `thoi_diem_nhap_thuc`) (FR-027)
 - [ ] T035 [US3] Cài listener `MucChamSocDaDoi`, `DanhGiaDauVaoDaXacNhan`, `ThongTinCaNhanDaCapNhat`, `LoaiLuuTruDaDoi` trong `BE/m03/phanbo/internal/DanhGiaLaiPhuHop.java`: đặt/gỡ `dau_phong_khong_phu_hop`, báo phân bổ tương lai không phù hợp (BR-M03-23, FR-034)
-- [ ] T036 [US3] Bổ sung endpoint `POST /phan-bo-giuong/{id}/chuyen-giuong` (kèm nhập bù) vào `PhanBoController.java`; màn web `web/src/tinh-nang/phan-bo-giuong/ChuyenGiuong.tsx`; app `app-nhan-vien/lib/tinh-nang/chuyen-giuong/` và test `app-nhan-vien/test/chuyen_giuong_test.dart`
+- [ ] T036 [US3] Bổ sung endpoint `POST /phan-bo-giuong/{id}/chuyen-giuong` (kèm nhập bù) vào `PhanBoController.java`; màn web `frontend/src/tinh-nang/phan-bo-giuong/ChuyenGiuong.tsx`; app `mobile/lib/nhan-vien/chuyen-giuong/` và test `mobile/test/nhan-vien/chuyen_giuong_test.dart`
 
 **Checkpoint**: Chuyển giường đủ biến thể.
 
@@ -160,7 +160,7 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 - [ ] T046 [US5] Cài `BE/m03/phanbo/internal/LichSuViTriService.java` (`LichSuViTriApi`) trên `v_phan_bo_hien_hanh` (research G-10)
 - [ ] T047 [US5] Cài `DinhChinhDuocProvider` cho `M03.PHAN_BO_GIUONG` và `M03.XAC_NHAN_SAN_SANG` (`tangKhuVuc` là tầng của giường; `sauKhiDinhChinh` báo 007) trong `BE/m03/phanbo/internal/PhanBoDinhChinhProvider.java`
-- [ ] T048 [US5] Tạo `BE/m03/phanbo/web/LichSuViTriController.java`: `GET /lich-su-vi-tri/nguoi-cao-tuoi/{nctId}`, `/lich-su-vi-tri/giuong`, `/lich-su-vi-tri/cung-phong`, `POST /phan-bo-giuong/{id}/dinh-chinh`, `POST /giuong/{id}/lich-su-trang-thai/{lichSuId}/dinh-chinh`; màn web `web/src/tinh-nang/lich-su-vi-tri/`
+- [ ] T048 [US5] Tạo `BE/m03/phanbo/web/LichSuViTriController.java`: `GET /lich-su-vi-tri/nguoi-cao-tuoi/{nctId}`, `/lich-su-vi-tri/giuong`, `/lich-su-vi-tri/cung-phong`, `POST /phan-bo-giuong/{id}/dinh-chinh`, `POST /giuong/{id}/lich-su-trang-thai/{lichSuId}/dinh-chinh`; màn web `frontend/src/tinh-nang/lich-su-vi-tri/`
 
 **Checkpoint**: Truy vết vị trí chạy độc lập.
 
@@ -180,7 +180,7 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 - [ ] T050 [US6] Tạo `MIG/V003_05__ban_tru.sql`: `khu_nghi_ban_tru` (`CHECK ((tang_id IS NULL) <> (khu_vuc_id IS NULL))`, cột sinh `hieu_luc_duy_nhat` `UNIQUE`), `buoi_ban_tru` (`CHECK (gio_ket_thuc > gio_bat_dau)`, `ten_hieu_luc UNIQUE`)
 - [ ] T051 [US6] Cài `BE/m03/bantru/internal/BanTruService.java`: cấu hình khu nghỉ, buổi (không chồng khung dưới khóa khu nghỉ), `SucChuaBanTruApi` cho 004, 005, đếm lại qua `DemLichDenBanTru` khi đổi buổi hoặc `ThamSoDaDoi(CFG-M03-01)`, nhật ký `M03_BAN_TRU_CANH_BAO_VUOT` (research G-11)
-- [ ] T052 [US6] Tạo `BE/m03/bantru/web/BanTruController.java` (`/khu-nghi-ban-tru`, `/{id}`, `/{id}/ngung-hieu-luc`, `/so-dang-ky`, `/buoi-ban-tru`, `/{id}`, `/{id}/ngung-hieu-luc`) và màn web `web/src/tinh-nang/khu-nghi-ban-tru/`
+- [ ] T052 [US6] Tạo `BE/m03/bantru/web/BanTruController.java` (`/khu-nghi-ban-tru`, `/{id}`, `/{id}/ngung-hieu-luc`, `/so-dang-ky`, `/buoi-ban-tru`, `/{id}`, `/{id}/ngung-hieu-luc`) và màn web `frontend/src/tinh-nang/khu-nghi-ban-tru/`
 
 **Checkpoint**: Bán trú có sức chứa.
 
@@ -200,7 +200,7 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 - [ ] T054 [US7] Tạo `MIG/V003_06__lich_su_cach_ly_phong.sql` (`hanh_dong ENUM('DAT','GO')`, `ly_do` bắt buộc, `su_co_id NULL`; trigger chỉ thêm) và cài `BE/m03/cachly/internal/CachLyService.java` (đặt, gỡ, `M03_CACH_LY`, phát `PhongDaDatCachLy`/`PhongDaGoCachLy`, listener `KhoanhVungDaGo`, `DaThemVaoDanhSachTiepXuc`) (research G-08)
 - [ ] T055 [US7] Cài chuyển kiểm soát lây nhiễm (`bac_si_chi_dinh_id`, lý do `KIEM_SOAT_LAY_NHIEM`) và xác nhận ở lại vùng cách ly (`bs_xac_nhan_*`) trong `ChuyenGiuongService.java`
-- [ ] T056 [US7] Tạo `BE/m03/cachly/web/CachLyController.java` (`POST /phong/{id}/dat-cach-ly`, `/go-cach-ly`, `GET /phong/{id}/lich-su-cach-ly`) và endpoint `POST /phan-bo-giuong/{id}/chuyen-giuong-kiem-soat-lay-nhiem`, `/xac-nhan-o-lai-vung-cach-ly`; màn web `web/src/tinh-nang/cach-ly-phong/` và app `app-nhan-vien/lib/tinh-nang/cach-ly-phong/`
+- [ ] T056 [US7] Tạo `BE/m03/cachly/web/CachLyController.java` (`POST /phong/{id}/dat-cach-ly`, `/go-cach-ly`, `GET /phong/{id}/lich-su-cach-ly`) và endpoint `POST /phan-bo-giuong/{id}/chuyen-giuong-kiem-soat-lay-nhiem`, `/xac-nhan-o-lai-vung-cach-ly`; màn web `frontend/src/tinh-nang/cach-ly-phong/` và app `mobile/lib/nhan-vien/cach-ly-phong/`
 
 **Checkpoint**: Cách ly chạy độc lập.
 
@@ -220,7 +220,7 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 - [ ] T058 [US8] Cài `BE/m03/giuong/internal/XacNhanSanSangService.java`: `bat_buoc_khu_khuan = TinhTrangLayNhiemChoPhanBo.thuocDanhSach(nguoi của phan_bo_vua_dong_id)`; `XAC_NHAN_SAN_SANG` → `TRONG` (phát `GiuongDaTrong`) hoặc thực hiện phân bổ `cho_giuong_san_sang` (FR-011a, FR-044, FR-045)
 - [ ] T059 [US8] Cài job `BE/m03/lich/NhacGiuongChoSanSang.java` và `NhacChuKyPhanBo.java` (CFG-M03-04, CFG-M03-02; chống lặp `da_nhac_san_sang_luc`, `nhac_phan_bo`; nhật ký `M03_NHAC`) (research G-09)
-- [ ] T060 [US8] Tạo endpoint `GET /giuong/{id}/dieu-kien-xac-nhan-san-sang`, `POST /giuong/{id}/xac-nhan-san-sang` trong `GiuongController.java`; app `app-nhan-vien/lib/tinh-nang/bang-giuong-tang/` và test `app-nhan-vien/test/xac_nhan_san_sang_test.dart` (ô khử khuẩn bắt buộc khi `canKhuKhuan`)
+- [ ] T060 [US8] Tạo endpoint `GET /giuong/{id}/dieu-kien-xac-nhan-san-sang`, `POST /giuong/{id}/xac-nhan-san-sang` trong `GiuongController.java`; app `mobile/lib/nhan-vien/bang-giuong-tang/` và test `mobile/test/nhan-vien/xac_nhan_san_sang_test.dart` (ô khử khuẩn bắt buộc khi `canKhuKhuan`)
 
 **Checkpoint**: Mọi user story của 003 chạy độc lập.
 

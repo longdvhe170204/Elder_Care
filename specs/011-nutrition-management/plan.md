@@ -31,16 +31,16 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
 **Primary Dependencies**: Như 000 → 010. Không thêm thư viện.
 
-**Storage**: MySQL 8.4 LTS. Bảng ở [data-model.md](data-model.md).
+**Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md).
 
 **Testing**:
 - Như 000 R-14.
 - Test bảng cho chín hàm thuần (research M-15); SC-001 với bộ 7 ngày × 60 người.
-- Testcontainers cho `UNIQUE` (bản gán chờ và hiệu lực, lần chốt, phiếu, thực đơn mỗi tuần, chế độ mặc định) và trigger nhóm 3.
+- Test tích hợp MySQL cho `UNIQUE` (bản gán chờ và hiệu lực, lần chốt, phiếu, thực đơn mỗi tuần, chế độ mặc định) và trigger nhóm 3.
 - Test đồng thời: hai lệnh chốt; hai Bác sĩ áp dụng bản gán; xác nhận phát sinh và giao cùng lúc.
 - Đồng hồ giả lập cho CFG-M08-01, 03 → 07, giờ bữa, CFG-M13-06.
 - Bản giả `LuotOLaiAnPort`, `ChuyenDiBuaAnPort`, `TonKhoNguyenLieuPort` và bộ phát sự kiện của 001, 003, 004, 005, 007.
@@ -50,7 +50,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - App nhân viên: nhận phiếu, báo sai lệch, yêu cầu suất bổ sung, xác nhận phục vụ suất đặc biệt (ghi ngoại tuyến, Q-01), ghi đồ ăn gia đình.
 - App người thân, cổng web: thực đơn chung và chế độ ăn riêng qua 012 (FR-028).
 
-**Project Type**: Web service (REST `/api/v1`), một web client và hai mobile client.
+**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung (Q-346).
 
 **Performance Goals**:
 - Chốt suất một bữa cho 300 người ≤ 1 phút (SC-006): đọc lô vị trí, lượt vắng, lịch bán trú, dị ứng một lần; ghi lô.
@@ -86,7 +86,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ; điểm còn lệch ghi ở mục báo lại |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-014 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 007 được ghi thêm 011 là bên gọi `SuCoLenhApi` (mục "Đồng bộ") |
-| X. Kiến trúc | Đạt | Một khối; gói `m08`; module khác dùng `m08.api`. Không có vòng (M-02). REST; MySQL; ba client |
+| X. Kiến trúc | Đạt | Một khối; gói `m08`; module khác dùng `m08.api`. Không có vòng (M-02). REST; MySQL; hai client (Q-346) |
 | XI. Nghiệp vụ ở backend | Đạt | Đối chiếu, độ phủ, tính suất, phát sinh, chặn phục vụ ở backend; client chỉ hiển thị |
 | XII. Dữ liệu | Đạt | DBR-27 bằng `UNIQUE` và lệnh đổi số suất duy nhất; nhóm 3 bằng trigger; nhật ký trong transaction; `Clock` |
 | XIII. Tham số | Đạt | Như V; giờ bữa lưu trên `bua_ngay` để đổi CFG-M08-04 không làm lệch bữa đã chốt |
@@ -134,7 +134,7 @@ specs/011-nutrition-management/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m08/
+backend/src/main/java/com/cambae/backend/m08/
 ├── api/           # CheDoAnApi, ThucDonChungApi, LichBuaApi, DinhDuongThongKeApi, LuotOLaiAnPort, ChuyenDiBuaAnPort, sự kiện
 ├── danhmuc/       {internal, web}   # chế độ ăn, món và phiên bản, bữa, loại cấm
 ├── chedoan/       {internal, web}   # bản gán, CanLyDoChuyenMon, bean trạng thái
@@ -148,10 +148,10 @@ backend/src/main/java/vn/eldercare/m08/
 ├── luumau/        {internal, web}   # MonCanLuuMau
 └── lich/                            # ViecTheoPhutM08, ViecHangNgayM08
 
-web/src/tinh-nang/dinh-duong/
+frontend/src/tinh-nang/dinh-duong/
 ├── danh-muc/  ├── ban-gan/  ├── thuc-don/  ├── chot-suat/  ├── phieu/  ├── do-an-gia-dinh/  └── luu-mau/
 
-app-nhan-vien/lib/tinh-nang/dinh-duong/   # nhận phiếu, sai lệch, suất bổ sung, xác nhận phục vụ, đồ ăn gia đình
+mobile/lib/nhan-vien/dinh-duong/   # nhận phiếu, sai lệch, suất bổ sung, xác nhận phục vụ, đồ ăn gia đình
 ```
 
 **Structure Decision**: Theo R-02 của 000. Feature 011 nằm ở `backend/…/m08` với mười một gói con và gói `api`; 019 thêm `m08.kho`. Web có đủ chức năng; app nhân viên có phần việc tại tầng.

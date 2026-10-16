@@ -18,7 +18,7 @@ Hướng kỹ thuật:
 - Khuôn `YeuCauThongBao` và giao diện `CoYeuCauThongBao` ở gói kỹ thuật `common.thongbao`; sự kiện miền của module nguồn cài giao diện này; 009 có một listener duy nhất (research B-02). Nhờ vậy module làm plan trước (000 → 008) không phụ thuộc M13.
 - Đường xử lý: outbox của lệnh nguồn → listener tiếp nhận (lưu yêu cầu, xác định người nhận, tạo thông báo) → bộ phát gửi song song từng kênh, mỗi kết quả là dòng ghi thêm (B-03).
 - Thông báo, sự kiện, lần gửi, lượt nhắc, kết quả gọi là nhóm 3 ghi thêm; trạng thái theo bảng FR-044, FR-030 là hàm thuần trên sự kiện, có bảng trạng thái kỹ thuật dẫn xuất để truy vấn (B-09).
-- Kênh trong ứng dụng là hộp thông báo, đẩy tới hai app qua Firebase Cloud Messaging và tới web qua Server-Sent Events (Q-305); tin nhắn qua SPI `NhaCungCapTinNhan`, mặc định "chưa cấu hình" (Q-06) (B-05).
+- Kênh trong ứng dụng là hộp thông báo, đẩy tới app di động qua Firebase Cloud Messaging và tới web qua Server-Sent Events (Q-305); tin nhắn qua SPI `NhaCungCapTinNhan`, mặc định "chưa cấu hình" (Q-06) (B-05).
 - Bất biến FR-005, FR-012, FR-032 đưa xuống `UNIQUE` (data-model mục 8).
 - Job 20 giây cho lượt nhắc gọi, chuyển nhắc, khung gộp, giải phóng giờ yên tĩnh, gửi lại (B-10).
 
@@ -28,11 +28,11 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
-**Primary Dependencies**: Như 000 → 008: Spring Boot 3.5.x, Spring Modulith 1.4.x, Flyway 11.x, springdoc-openapi 2.8.x, ShedLock, Spring Security 6.5. Thêm cho kênh đẩy (Q-305): Firebase Admin SDK cho Java (backend), `firebase_messaging` (hai app Flutter). Web dùng `EventSource` chuẩn cho SSE. Tin nhắn: không thư viện, SPI chờ chọn nhà cung cấp (Q-06).
+**Primary Dependencies**: Như 000 → 008: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7. Thêm cho kênh đẩy (Q-305): Firebase Admin SDK cho Java (backend), `firebase_messaging` (app Flutter chung, Q-346). Web dùng `EventSource` chuẩn cho SSE. Tin nhắn: không thư viện, SPI chờ chọn nhà cung cấp (Q-06).
 
-**Storage**: MySQL 8.4 LTS. Bảng ở [data-model.md](data-model.md).
+**Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md).
 
 **Testing**:
 - Như 000 R-14.
@@ -47,7 +47,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - App nhân viên: nhận đẩy, hộp thông báo (xem ngoại tuyến), xác nhận trực tuyến, "Xác nhận và tiếp nhận", lượt nhắc gọi và ghi kết quả.
 - App người thân: nhận đẩy, hộp thông báo, xác nhận thông báo Khẩn cấp.
 
-**Project Type**: Web service (REST `/api/v1`, SSE), một web client và hai mobile client.
+**Project Type**: Web service (REST `/api/v1`, SSE), một web client và một mobile client chung (Q-346).
 
 **Performance Goals**:
 - Khẩn cấp đến thiết bị ≤ 10 giây (NFR-03, SC-001): outbox giao ngay sau commit; hàng Khẩn cấp riêng; xác định người nhận ≤ 1 giây; gửi song song trên luồng ảo.
@@ -84,11 +84,11 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ; điểm chưa khớp với Q-212, Q-307 báo lại (điểm 1, 2) |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-009 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 000 (`common`) và 007 được bổ sung (mục "Đồng bộ") |
-| X. Kiến trúc | Đạt | Một khối; gói `m13`; khuôn yêu cầu ở `common` để không có vòng (B-02). REST `/api/v1`; MySQL; ba client. NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `m13`; khuôn yêu cầu ở `common` để không có vòng (B-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Người nhận, lọc quyền, chọn kênh, giờ yên tĩnh, chặn nội dung, quyền gọi đều ở backend. Mỗi lệnh có endpoint riêng |
 | XII. Dữ liệu | Đạt | Nhóm 3 ghi thêm; bảng trạng thái là dẫn xuất kỹ thuật (như `chuoi_dinh_chinh` của 000); `Clock`; `UNIQUE` cho FR-005, FR-012, FR-032 |
 | XIII. Tham số | Đạt | Như V. Đổi CFG-M13-02 tính lại thời điểm gửi dự kiến (FR-024) |
-| XIV. Ngoại tuyến, thông báo | Đạt | 009 chính là dịch vụ chung; hai app nhận đẩy qua FCM (Q-305); xác nhận Khẩn cấp trực tuyến |
+| XIV. Ngoại tuyến, thông báo | Đạt | 009 chính là dịch vụ chung; app di động nhận đẩy qua FCM (Q-305); xác nhận Khẩn cấp trực tuyến |
 | XV. Truy vết, kiểm thử | Đạt | Tên test theo BR, FR. Mỗi BR của 009 có test; phần ở client (xác nhận hai thao tác, chặn ngoại tuyến) có test Flutter |
 
 **Kiểm lại sau Phase 1**: Đạt. Thiết kế không thêm vai trò, trạng thái hay quy tắc nghiệp vụ ngoài spec. Có năm bổ sung kỹ thuật, giải thích ở Complexity Tracking:
@@ -137,9 +137,9 @@ specs/009-notification-service/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/common/thongbao/   # YeuCauThongBao, CoYeuCauThongBao, NhomNhan, CachThay, TRUONG_SUC_KHOE
+backend/src/main/java/com/cambae/backend/common/thongbao/   # YeuCauThongBao, CoYeuCauThongBao, NhomNhan, CachThay, TRUONG_SUC_KHOE
 
-backend/src/main/java/vn/eldercare/m13/
+backend/src/main/java/com/cambae/backend/m13/
 ├── api/           # ThongBaoTraCuuApi, SPI NguoiThanNhanThongBaoPort, sự kiện
 ├── tiepnhan/      {internal}        # listener CoYeuCauThongBao, kiểm tra, chống trùng, lỗi gửi
 ├── nguoinhan/     {internal}        # XacDinhNguoiNhan, ChuoiThay, LocPhanNoiDung
@@ -152,9 +152,9 @@ backend/src/main/java/vn/eldercare/m13/
 ├── cauhinh/       {internal, web}
 └── lich/                            # ViecNhanhM13, ViecHangNgayM13
 
-web/src/tinh-nang/thong-bao/           # hộp thông báo, lượt nhắc gọi, liên hệ trực tiếp, lịch sử, lỗi gửi, cấu hình kênh
-app-nhan-vien/lib/tinh-nang/thong-bao/ # đẩy, hộp thư, xác nhận, xác nhận và tiếp nhận, ghi kết quả gọi
-app-nguoi-than/lib/tinh-nang/thong-bao/
+frontend/src/tinh-nang/thong-bao/           # hộp thông báo, lượt nhắc gọi, liên hệ trực tiếp, lịch sử, lỗi gửi, cấu hình kênh
+mobile/lib/nhan-vien/thong-bao/ # đẩy, hộp thư, xác nhận, xác nhận và tiếp nhận, ghi kết quả gọi
+mobile/lib/nguoi-than/thong-bao/
 ```
 
 **Structure Decision**: Theo R-02 của 000. Feature 009 nằm ở `backend/…/m13` với chín gói con và gói `api`; khuôn yêu cầu ở `common.thongbao`. Web, app nhân viên, app người thân đều có hộp thông báo và nhận đẩy.
@@ -165,7 +165,7 @@ app-nguoi-than/lib/tinh-nang/thong-bao/
 | --- | --- | --- |
 | Khuôn yêu cầu ở `common.thongbao` | FR-001 đòi một cách gửi; M13 cần đọc dữ liệu M01, M05, M09, M15 nên mọi module không thể phụ thuộc `m13.api` | `m13.api`: vòng phụ thuộc; 009 cài bộ chuyển cho từng kiểu sự kiện: 009 phải biết nghiệp vụ của mọi module |
 | Bảng trạng thái dẫn xuất | FR-044 đòi trạng thái suy ra từ sự kiện ghi thêm; hộp thông báo, job cần truy vấn theo trạng thái | Tính trạng thái từ sự kiện mỗi lần đọc: chậm với hàng triệu dòng; sửa dòng nhóm 3: trái FR-036 |
-| FCM, SSE | Q-305 chốt thông báo đẩy cho hai app; NFR-03 ≤ 10 giây | Chỉ hộp thư, client hỏi định kỳ: không đến thiết bị đang khóa màn hình, không đạt NFR-03 |
+| FCM, SSE | Q-305 chốt thông báo đẩy cho app di động; NFR-03 ≤ 10 giây | Chỉ hộp thư, client hỏi định kỳ: không đến thiết bị đang khóa màn hình, không đạt NFR-03 |
 | Job 20 giây | SC-002 ≤ 1 phút sau hạn, SC-003 ≤ 5 phút, khung gộp CFG-M13-03 cần đóng đúng lúc; chu kỳ là thông số vận hành | Job mỗi phút: sát giới hạn SC-002 khi có trễ outbox |
 | `thiet_bi_day` | FCM cần token theo thiết bị; 002 chỉ giữ mã thiết bị | Lưu token ở 002: 002 phải biết kênh đẩy |
 

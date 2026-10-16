@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-07 | **Plan**: [../plan.md](../plan.md)
 
-Hợp đồng trong backend, ở gói `vn.eldercare.m01.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của M01 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
+Hợp đồng trong backend, ở gói `com.cambae.backend.m01.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của M01 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
 
 Mục 1.1 giữ đúng chữ ký `NguoiCaoTuoiApi` mà plan 002 đã khai báo ([../../002-account-permission/contracts/module-interfaces.md](../../002-account-permission/contracts/module-interfaces.md) mục 2) và bổ sung phần còn thiếu.
 

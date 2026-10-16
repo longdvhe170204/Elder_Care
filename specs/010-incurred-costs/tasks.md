@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4 và data-model.md mục 11.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Module M11 (phần chi phí): `BE/m11/{api,ky,khoan,nguon,tinhgia,dieuchinh,muaho,kycuoi,xuat,cungcap,lich}/`; 017 thêm `m11.sodu`, 019 thêm `m11.muasam`
-- Web `web/src/tinh-nang/chi-phi/{tra-cuu-nguon,bang-chi-phi,dieu-chinh,mua-ho,xuat-ke-toan}/`, `web/src/tinh-nang/cong-nguoi-than/chi-phi/`; app người thân `app-nguoi-than/lib/tinh-nang/chi-phi/`
+- Web `frontend/src/tinh-nang/chi-phi/{tra-cuu-nguon,bang-chi-phi,dieu-chinh,mua-ho,xuat-ke-toan}/`, `frontend/src/tinh-nang/cong-nguoi-than/chi-phi/`; app người thân `mobile/lib/nguoi-than/chi-phi/`
 
 ---
 
@@ -60,7 +60,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 - [ ] T010 [US1] Cài listener chỉ mục `BE/m11/nguon/internal/ChiMucSuKienListener.java` cho `KetQuaCoTinhPhi` (005), `SuKienTinhPhiThuoc` (006), `SuKienTinhPhiNguon` (011, 012, 014); chống trùng `su_kien_nguon_da_xu_ly` (research P-04)
 - [ ] T011 [US1] Cài `BE/m11/nguon/internal/TraCuuNguonService.java` (gộp chỉ mục với ngày lưu trú `NgayLuuTruApi` và buổi bán trú tính lúc tra cứu; không lọc "chưa lập khoản") và `LapKhoanService.java` (từng khoản và hàng loạt; tạo bảng `DANG_MO` khi khoản đầu tiên; đơn giá qua `TinhDonGia` US2)
-- [ ] T012 [US1] Tạo `BE/m11/nguon/web/NguonController.java` (`GET /chi-phi/ban-ghi-nguon`, `POST /chi-phi/khoan/theo-su-kien`) và màn web `web/src/tinh-nang/chi-phi/tra-cuu-nguon/` (không có bộ lọc "chưa lập khoản", hiển thị nguồn bị bỏ qua) với test Vitest
+- [ ] T012 [US1] Tạo `BE/m11/nguon/web/NguonController.java` (`GET /chi-phi/ban-ghi-nguon`, `POST /chi-phi/khoan/theo-su-kien`) và màn web `frontend/src/tinh-nang/chi-phi/tra-cuu-nguon/` (không có bộ lọc "chưa lập khoản", hiển thị nguồn bị bỏ qua) với test Vitest
 
 **Checkpoint**: Lập khoản theo nguồn chạy độc lập.
 
@@ -99,7 +99,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 - [ ] T017 [US3] Cài `BE/m11/khoan/internal/KhoanService.java` (bảng chuyển khoản: kiểm tra, bỏ kiểm tra, duyệt có lý do chấp nhận vượt, trả lại, hủy) và `BE/m11/ky/internal/BangChiPhiService.java` (gửi chốt với `BienDongKy`, trả lại, chốt nguyên tử dưới khóa bảng: khoản → `DA_CHOT`, `bang_chi_phi_tong_loai`, `tong`, kỳ → `DA_CHOT` khi bảng cuối, phát `BangChiPhiDaChot`) (research P-06 → P-08)
 - [ ] T018 [US3] Đăng ký việc hằng ngày: tạo kỳ ngày 1, `DANG_MO → CHO_CHOT` hết tháng (`han_chot` CFG-M11-01), gỡ dấu lập trước, nhắc hạn chốt và người chưa có bảng thường
-- [ ] T019 [US3] Tạo `BE/m11/khoan/web/KhoanController.java` (`GET /chi-phi/khoan/{id}`, `POST /chi-phi/khoan/kiem-tra`, `/{id}/bo-kiem-tra`, `/duyet`, `/{id}/tra-lai`, `/{id}/huy`) và `BE/m11/ky/web/BangController.java` (`GET /chi-phi/bang`, `/{id}`, `POST /{id}/gui-chot`, `/tra-lai`, `/chot` với `If-Match`, `GET /chi-phi/ky`); màn web `web/src/tinh-nang/chi-phi/bang-chi-phi/`
+- [ ] T019 [US3] Tạo `BE/m11/khoan/web/KhoanController.java` (`GET /chi-phi/khoan/{id}`, `POST /chi-phi/khoan/kiem-tra`, `/{id}/bo-kiem-tra`, `/duyet`, `/{id}/tra-lai`, `/{id}/huy`) và `BE/m11/ky/web/BangController.java` (`GET /chi-phi/bang`, `/{id}`, `POST /{id}/gui-chot`, `/tra-lai`, `/chot` với `If-Match`, `GET /chi-phi/ky`); màn web `frontend/src/tinh-nang/chi-phi/bang-chi-phi/`
 
 **Checkpoint**: P1 hoàn tất.
 
@@ -118,7 +118,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 ### Implementation cho User Story 4
 
 - [ ] T021 [US4] Cài listener nguồn đổi `BE/m11/nguon/internal/NguonDoiListener.java` (`KetQuaTinhPhiDaDinhChinh`, `SuKienTinhPhiThuocDaDieuChinh/DaDinhChinh`, `NgayLuuTruDaDoi`, `TrangThaiCoMatDaDoi`, `NgayNghiBanTruDaDoi`, `BaoVangBanTruDaGhi`, `SuKienTinhPhiNguonDaDoi`): tính lại với `@tinh_lai`, về Nháp, hủy; sau chốt thêm `bien_dong_nguon_sau_chot` và báo Hành chính (research P-06)
-- [ ] T022 [US4] Tạo bảng `bien_dong_nguon_sau_chot` (nhóm 3) trong `MIG/V010_02__bien_dong.sql`; cài `BE/m11/dieuchinh/internal/DieuChinhService.java` (lập khoản điều chỉnh, bảng bổ sung khi kỳ đã chốt, kiểm tổng không âm dưới khóa bảng gốc) và endpoint `POST /chi-phi/khoan/{id}/dieu-chinh`, `GET /chi-phi/bien-dong-sau-chot`; màn web `web/src/tinh-nang/chi-phi/dieu-chinh/` (không có số chênh lệch tính sẵn)
+- [ ] T022 [US4] Tạo bảng `bien_dong_nguon_sau_chot` (nhóm 3) trong `MIG/V010_02__bien_dong.sql`; cài `BE/m11/dieuchinh/internal/DieuChinhService.java` (lập khoản điều chỉnh, bảng bổ sung khi kỳ đã chốt, kiểm tổng không âm dưới khóa bảng gốc) và endpoint `POST /chi-phi/khoan/{id}/dieu-chinh`, `GET /chi-phi/bien-dong-sau-chot`; màn web `frontend/src/tinh-nang/chi-phi/dieu-chinh/` (không có số chênh lệch tính sẵn)
 
 **Checkpoint**: Sai sót xử lý đúng.
 
@@ -156,7 +156,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 - [ ] T026 [US6] Tạo `MIG/V010_03__mua_ho.sql`: `de_nghi_mua_ho` (`trang_thai ENUM('NHAP','CHO_DONG_Y','DUOC_PHEP_MUA','TU_CHOI','HUY','DA_MUA')`; `dang_cho_bo_sung`; trigger chặn đổi khi trạng thái cuối), `de_nghi_gui_nguoi_dai_dien`, `quyet_dinh_mua_ho` (nhóm 3; `loai` `DONG_Y|TU_CHOI|RUT_BO_SUNG|XIN_BO_SUNG`)
 - [ ] T027 [US6] Cài `BE/m11/muaho/internal/DeNghiMuaHoService.java` (bảng chuyển data-model mục 6; người đại diện qua `NguoiDaiDienPort`; ghi đã mua tạo khoản `MUA_HO`, chứng từ qua `TepApi`; `DeNghiMuaHoPort` cho 006), khoản nhập tay trong `KhoanService.java`, nhắc trong `ViecHangGioM11` (research P-09)
-- [ ] T028 [US6] Tạo endpoint `POST /chi-phi/khoan/nhap-tay`, `/de-nghi-mua-ho`, `/{id}/gui`, `/dong-y`, `/tu-choi`, `/xin-bo-sung`, `/rut-bo-sung`, `/huy`, `/ghi-da-mua`; màn web `web/src/tinh-nang/chi-phi/mua-ho/`; app `app-nguoi-than/lib/tinh-nang/chi-phi/` (đồng ý/từ chối) với test flutter
+- [ ] T028 [US6] Tạo endpoint `POST /chi-phi/khoan/nhap-tay`, `/de-nghi-mua-ho`, `/{id}/gui`, `/dong-y`, `/tu-choi`, `/xin-bo-sung`, `/rut-bo-sung`, `/huy`, `/ghi-da-mua`; màn web `frontend/src/tinh-nang/chi-phi/mua-ho/`; app `mobile/lib/nguoi-than/chi-phi/` (đồng ý/từ chối) với test flutter
 
 **Checkpoint**: Mua hộ chạy độc lập.
 
@@ -175,7 +175,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 ### Implementation cho User Story 7
 
 - [ ] T030 [US7] Tạo bảng `lan_xuat_ke_toan`, `lan_xuat_bang` (nhóm 3) trong `MIG/V010_04__xuat.sql`; cài `BE/m11/xuat/internal/XuatKeToanService.java` (nhật ký hành động; đặt `lan_xuat_dau_id`) và `BE/m11/cungcap/internal/` (`ChiPhiCongNguoiThanApi`, `ChiPhiThongKeApi`, `ChiPhiChoSoDuPort`; tên thuốc đọc qua 006 khi được phép) (research P-11)
-- [ ] T031 [US7] Tạo endpoint `POST /chi-phi/ky/{id}/xuat`, `GET /nguoi-cao-tuoi/{nctId}/chi-phi/bang`, `/chi-phi/tam-tinh`; màn web `web/src/tinh-nang/chi-phi/xuat-ke-toan/`, `web/src/tinh-nang/cong-nguoi-than/chi-phi/`; app người thân phần bảng và tạm tính
+- [ ] T031 [US7] Tạo endpoint `POST /chi-phi/ky/{id}/xuat`, `GET /nguoi-cao-tuoi/{nctId}/chi-phi/bang`, `/chi-phi/tam-tinh`; màn web `frontend/src/tinh-nang/chi-phi/xuat-ke-toan/`, `frontend/src/tinh-nang/cong-nguoi-than/chi-phi/`; app người thân phần bảng và tạm tính
 
 **Checkpoint**: Mọi user story của 010 chạy độc lập.
 

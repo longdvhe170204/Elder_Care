@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Module M04 (phần 014): `BE/m04/{hoatdong,buoi,chuyendi,tinhthan,kiemtra}/`; bổ sung `BE/m04/api/`
-- Web `web/src/tinh-nang/hoat-dong/{danh-muc,buoi,chuyen-di,tinh-than,kiem-tra-chat-luong}/`, `web/src/tinh-nang/cong-nguoi-than/hoat-dong/`; app nhân viên `app-nhan-vien/lib/tinh-nang/hoat-dong/`; app người thân `app-nguoi-than/lib/tinh-nang/hoat-dong/`
+- Web `frontend/src/tinh-nang/hoat-dong/{danh-muc,buoi,chuyen-di,tinh-than,kiem-tra-chat-luong}/`, `frontend/src/tinh-nang/cong-nguoi-than/hoat-dong/`; app nhân viên `mobile/lib/nhan-vien/hoat-dong/`; app người thân `mobile/lib/nguoi-than/hoat-dong/`
 
 ---
 
@@ -57,7 +57,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 ### Implementation cho User Story 1
 
 - [ ] T008 [US1] Tạo bảng `buoi_hoat_dong` (`UNIQUE (hoat_dong_id, bat_dau)` kể cả Đã hủy; `nguon` `MAU|LE`; `trang_thai` `DA_LEN_LICH|DA_DIEM_DANH|KHONG_DIEM_DANH|DA_HUY`), `dang_ky_buoi` (`nguon` `THUONG_XUYEN|THEM_TAY|THEM_LUC_DIEM_DANH`; `trang_thai` `DA_DANG_KY|DA_HUY|DA_DIEM_DANH`) trong `MIG/V014_02__buoi.sql`
-- [ ] T009 [US1] Cài `BE/m04/buoi/internal/BuoiService.java` (tạo từ mẫu kèm đăng ký sẵn, buổi lẻ, dời, hủy; phát `BuoiDaHuy`, `BuoiDaDoi` cho phần công việc "hoạt động" của 005; việc hằng ngày hết ngày) và endpoint `/buoi`, `/buoi/{id}`, `/buoi/{id}/{lenh}`; màn web `web/src/tinh-nang/hoat-dong/buoi/` (research L-04)
+- [ ] T009 [US1] Cài `BE/m04/buoi/internal/BuoiService.java` (tạo từ mẫu kèm đăng ký sẵn, buổi lẻ, dời, hủy; phát `BuoiDaHuy`, `BuoiDaDoi` cho phần công việc "hoạt động" của 005; việc hằng ngày hết ngày) và endpoint `/buoi`, `/buoi/{id}`, `/buoi/{id}/{lenh}`; màn web `frontend/src/tinh-nang/hoat-dong/buoi/` (research L-04)
 
 **Checkpoint**: Buổi từ mẫu chạy độc lập.
 
@@ -90,11 +90,11 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ### Tests cho User Story 3
 
-- [ ] T013 [P] [US3] Test `BT/m04/BR_M04_18_SuKienTinhPhiIT.java`, `FR_031_DinhChinhIT.java`; app `app-nhan-vien/test/diem_danh_buoi_test.dart` (20 người trong thời gian SC-009) (Q13 → Q17)
+- [ ] T013 [P] [US3] Test `BT/m04/BR_M04_18_SuKienTinhPhiIT.java`, `FR_031_DinhChinhIT.java`; app `mobile/test/nhan-vien/diem_danh_buoi_test.dart` (20 người trong thời gian SC-009) (Q13 → Q17)
 
 ### Implementation cho User Story 3
 
-- [ ] T014 [US3] Tạo bảng `diem_danh_buoi` (nhóm 3; `ket_qua` `CO_MAT|VANG|KHONG_GHI_NHAN`; `ly_do_vang` 5 giá trị) trong `MIG/V014_04__diem_danh_buoi.sql`; cài `BE/m04/buoi/internal/DiemDanhBuoiService.java` (hoàn tất điểm danh; phát `SuKienTinhPhiNguon`/`DaDoi`; `NgoaiTuyenHandler` `M04.DIEM_DANH_BUOI`; `DinhChinhDuocProvider` `M04.DIEM_DANH_BUOI`; `NguonCongViecPort` `BUOI_HOAT_DONG`; `DiemDanhTruyVetPort` cho 007; `HoatDongBanTinPort` cho 012; nhắc CFG-M04-06) và endpoint `POST /buoi/{id}/diem-danh`; app `app-nhan-vien/lib/tinh-nang/hoat-dong/` (research L-06)
+- [ ] T014 [US3] Tạo bảng `diem_danh_buoi` (nhóm 3; `ket_qua` `CO_MAT|VANG|KHONG_GHI_NHAN`; `ly_do_vang` 5 giá trị) trong `MIG/V014_04__diem_danh_buoi.sql`; cài `BE/m04/buoi/internal/DiemDanhBuoiService.java` (hoàn tất điểm danh; phát `SuKienTinhPhiNguon`/`DaDoi`; `NgoaiTuyenHandler` `M04.DIEM_DANH_BUOI`; `DinhChinhDuocProvider` `M04.DIEM_DANH_BUOI`; `NguonCongViecPort` `BUOI_HOAT_DONG`; `DiemDanhTruyVetPort` cho 007; `HoatDongBanTinPort` cho 012; nhắc CFG-M04-06) và endpoint `POST /buoi/{id}/diem-danh`; app `mobile/lib/nhan-vien/hoat-dong/` (research L-06)
 
 **Checkpoint**: Điểm danh chạy độc lập.
 
@@ -114,7 +114,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 - [ ] T016 [US4] Tạo `MIG/V014_05__chuyen_di.sql`: `chuyen_di` (`buoi_id` khóa chính; `trang_thai` `DA_LEN_LICH|DANG_DI|DA_VE|DA_HUY`), `chuyen_di_gia_han` (nhóm 3), `nhiem_vu_chuyen` (`vai` `TRUONG_DOAN|DI_CUNG`), `nguoi_tham_gia` (`trang_thai` 7 giá trị), `danh_gia_kha_nang` (nhóm 3; `ket_qua` `DAT|KHONG_DAT`), `diem_danh_chuyen` (nhóm 3; `loai` `ROI_VIEN|VE`; `thoi_diem_thiet_bi`) (data-model mục 6)
 - [ ] T017 [US4] Cài `BE/m04/chuyendi/internal/ChuyenDiService.java` (phân công, đánh giá, rời viện; phát `ChuyenDiDaDoi`, `ChuyenDiThayDoi`; `ChuyenDiNhiemVuLenhApi` cho 015; `ChuyenDiThuocPort` (006), `ChuyenDiNhiemVuPort` (008), `ChuyenDiBuaAnPort` (011)) (research L-07, L-08)
-- [ ] T018 [US4] Tạo endpoint `/chuyen-di/{id}`, `/{id}/phan-cong`, `/{id}/danh-gia`, `/{id}/{lenh}`; màn web `web/src/tinh-nang/hoat-dong/chuyen-di/`; app phần chuyến đi
+- [ ] T018 [US4] Tạo endpoint `/chuyen-di/{id}`, `/{id}/phan-cong`, `/{id}/danh-gia`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/hoat-dong/chuyen-di/`; app phần chuyến đi
 
 **Checkpoint**: Chuẩn bị chuyến đi chạy độc lập.
 
@@ -150,7 +150,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ### Implementation cho User Story 6
 
-- [ ] T022 [US6] Tạo bảng `so_thich` (`muc` `THICH|KHONG_THICH`; `nguon` 3 giá trị; `trang_thai`), `chuoi_co_lap` (kỹ thuật) trong `MIG/V014_06__tinh_than.sql`; cài `BE/m04/tinhthan/internal/TinhThanService.java` (sở thích, hồ sơ tinh thần; việc 00:00 cập nhật chuỗi, `YeuCauTaoCanhBao` `NGUY_CO_CO_LAP` Nhẹ một lần mỗi chuỗi) và endpoint `/nguoi-cao-tuoi/{nctId}/so-thich`, `/so-thich/{id}/bo`, `/nguoi-cao-tuoi/{nctId}/ho-so-tinh-than`; màn web `web/src/tinh-nang/hoat-dong/tinh-than/` (research L-09)
+- [ ] T022 [US6] Tạo bảng `so_thich` (`muc` `THICH|KHONG_THICH`; `nguon` 3 giá trị; `trang_thai`), `chuoi_co_lap` (kỹ thuật) trong `MIG/V014_06__tinh_than.sql`; cài `BE/m04/tinhthan/internal/TinhThanService.java` (sở thích, hồ sơ tinh thần; việc 00:00 cập nhật chuỗi, `YeuCauTaoCanhBao` `NGUY_CO_CO_LAP` Nhẹ một lần mỗi chuỗi) và endpoint `/nguoi-cao-tuoi/{nctId}/so-thich`, `/so-thich/{id}/bo`, `/nguoi-cao-tuoi/{nctId}/ho-so-tinh-than`; màn web `frontend/src/tinh-nang/hoat-dong/tinh-than/` (research L-09)
 
 **Checkpoint**: Tinh thần chạy độc lập.
 
@@ -169,7 +169,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 ### Implementation cho User Story 7
 
 - [ ] T024 [US7] Tạo bảng `danh_sach_kiem_tra` (`UNIQUE (ca_id, tang_khu_vuc_id)`), `muc_kiem_tra` (`cong_viec_id UNIQUE`; `trang_thai` `CHO_KIEM_TRA|DAT|KHONG_DAT|KHONG_KIEM_TRA_DUOC|QUA_HAN_KIEM_TRA`), `ca_khong_danh_sach` (nhóm 3) trong `MIG/V014_07__kiem_tra.sql`; cài `BE/m04/kiemtra/internal/KiemTraChatLuongService.java` (kiểm tỷ lệ khi lập; Không đạt gọi lệnh lập công việc làm lại của 005 cùng transaction; `KetQuaKiemTraPort`; `NguonCongViecPort` `LAM_LAI`; `DinhChinhDuocProvider` `M04.KET_QUA_KIEM_TRA`; việc theo phút hết ca) (research L-10)
-- [ ] T025 [US7] Tạo endpoint `/kiem-tra-chat-luong/ca/{caId}`, `/muc-kiem-tra/{id}/ket-qua`; màn web `web/src/tinh-nang/hoat-dong/kiem-tra-chat-luong/` (không xếp hạng công việc) với test Vitest
+- [ ] T025 [US7] Tạo endpoint `/kiem-tra-chat-luong/ca/{caId}`, `/muc-kiem-tra/{id}/ket-qua`; màn web `frontend/src/tinh-nang/hoat-dong/kiem-tra-chat-luong/` (không xếp hạng công việc) với test Vitest
 
 **Checkpoint**: Mọi user story của 014 chạy độc lập.
 
@@ -177,7 +177,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ## Phase 10: Polish & Cross-Cutting
 
-- [ ] T026 [P] Cài cổng người thân `GET /cong/nguoi-cao-tuoi/{nctId}/hoat-dong` (`QuyenNguoiThanApi`) và test `BT/m04/FR_068_CongHoatDongIT.java`; app `app-nguoi-than/lib/tinh-nang/hoat-dong/` (research L-12)
+- [ ] T026 [P] Cài cổng người thân `GET /cong/nguoi-cao-tuoi/{nctId}/hoat-dong` (`QuyenNguoiThanApi`) và test `BT/m04/FR_068_CongHoatDongIT.java`; app `mobile/lib/nguoi-than/hoat-dong/` (research L-12)
 - [ ] T027 [P] Cài `HoatDongThongKeApi` (016); mở rộng `BT/common/HopDongApiTest.java` với `specs/014-activity-care-quality/contracts/api-014.yaml`
 - [ ] T028 Thay bản giả SPI 014 cài ở test 005, 006, 007, 008, 011, 012 (`NguonCongViecPort` `BUOI_HOAT_DONG`/`LAM_LAI`, `KetQuaKiemTraPort`, `ChuyenDiThuocPort`, `DiemDanhTruyVetPort`, `ChuyenDiNhiemVuPort`, `ChuyenDiBuaAnPort`, `HoatDongBanTinPort`) và chạy lại
 - [ ] T029 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5

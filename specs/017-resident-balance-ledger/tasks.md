@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Module M11 (phần 017): `BE/m11/sodu/{so,thu,saoke,giaodich,tinhtrang,quyettoan,xuat,lich}/`; bổ sung `BE/m11/api/`
-- Web `web/src/tinh-nang/so-du/{so-du,thu-chot-quy,sao-ke,giao-dich,tinh-trang,xuat}/`, `web/src/tinh-nang/cong-nguoi-than/so-du/`; app người thân `app-nguoi-than/lib/tinh-nang/so-du/`
+- Web `frontend/src/tinh-nang/so-du/{so-du,thu-chot-quy,sao-ke,giao-dich,tinh-trang,xuat}/`, `frontend/src/tinh-nang/cong-nguoi-than/so-du/`; app người thân `mobile/lib/nguoi-than/so-du/`
 
 ---
 
@@ -54,11 +54,11 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 ### Tests cho User Story 1
 
-- [ ] T009 [P] [US1] Test `BT/m11/MoSoIT.java` (mở sổ idempotent; mã duy nhất) và app `app-nguoi-than/test/so_du_test.dart` (ẩn khi không có quyền; hiện mã QR) (Q1 → Q3)
+- [ ] T009 [P] [US1] Test `BT/m11/MoSoIT.java` (mở sổ idempotent; mã duy nhất) và app `mobile/test/nguoi-than/so_du_test.dart` (ẩn khi không có quyền; hiện mã QR) (Q1 → Q3)
 
 ### Implementation cho User Story 1
 
-- [ ] T010 [US1] Cài listener `HopDongDaDoiTrangThai` mở sổ, `BE/m11/sodu/so/internal/SoDuService.java` (`SoDuApi`, thông tin nộp tiền đọc CFG-M11-10 qua `ThamSoApi` (Q-335), VietQR) và endpoint `GET /nguoi-cao-tuoi/{nctId}/so-du`, `/giao-dich`, `/cong/nguoi-cao-tuoi/{nctId}/so-du`, `/sao-ke`; màn web `web/src/tinh-nang/so-du/so-du/`, `web/src/tinh-nang/cong-nguoi-than/so-du/`; app `app-nguoi-than/lib/tinh-nang/so-du/` (research E-04)
+- [ ] T010 [US1] Cài listener `HopDongDaDoiTrangThai` mở sổ, `BE/m11/sodu/so/internal/SoDuService.java` (`SoDuApi`, thông tin nộp tiền đọc CFG-M11-10 qua `ThamSoApi` (Q-335), VietQR) và endpoint `GET /nguoi-cao-tuoi/{nctId}/so-du`, `/giao-dich`, `/cong/nguoi-cao-tuoi/{nctId}/so-du`, `/sao-ke`; màn web `frontend/src/tinh-nang/so-du/so-du/`, `frontend/src/tinh-nang/cong-nguoi-than/so-du/`; app `mobile/lib/nguoi-than/so-du/` (research E-04)
 
 **Checkpoint**: Sổ mở được.
 
@@ -77,7 +77,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 ### Implementation cho User Story 2
 
 - [ ] T012 [US2] Tạo bảng `chot_quy_ngay` (cột sinh `khoa_ngay` `UNIQUE`; `ly_do` bắt buộc khi chênh lệch ≠ 0; `trang_thai` `DA_LAP|DA_XAC_NHAN|BI_TRA_LAI`), `chot_quy_ngay_phieu` trong `MIG/V017_02__chot_quy.sql`; cài `BE/m11/sodu/thu/internal/PhieuThuService.java` (chỉ Kế toán; thu tiền mặt, thu cọc; phát `TrangThaiDatCocDaDoi`), `TrangThaiDatCocPortImpl.java` (004), `ChotQuyService.java` (research E-05)
-- [ ] T013 [US2] Tạo endpoint `POST /phieu-thu`, `/chot-quy-ngay`, `/chot-quy-ngay/{id}/{lenh}`; màn web `web/src/tinh-nang/so-du/thu-chot-quy/`
+- [ ] T013 [US2] Tạo endpoint `POST /phieu-thu`, `/chot-quy-ngay`, `/chot-quy-ngay/{id}/{lenh}`; màn web `frontend/src/tinh-nang/so-du/thu-chot-quy/`
 
 **Checkpoint**: Thu tiền mặt chạy độc lập.
 
@@ -95,7 +95,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 ### Implementation cho User Story 3
 
-- [ ] T015 [US3] Tạo bảng `lan_nhap_sao_ke` (nhóm 3), `dong_sao_ke` (`ma_giao_dich_ngan_hang UNIQUE`; `trang_thai` `DA_KHOP|CHUA_KHOP|DA_GHI_NHAN|KHONG_THUOC_NCT`) trong `MIG/V017_03__sao_ke.sql`; cài `BE/m11/sodu/saoke/internal/SaoKeService.java` (nhập, khớp không tạo giao dịch, bỏ khớp, gán, xác nhận tạo `NOP_CHUYEN_KHOAN` qua `GhiGiaoDich`) và endpoint `POST /sao-ke/nhap`, `GET /sao-ke/dong`, `POST /sao-ke/dong/{id}/{lenh}`; màn web `web/src/tinh-nang/so-du/sao-ke/` (màn đối soát) với test Vitest (research E-06)
+- [ ] T015 [US3] Tạo bảng `lan_nhap_sao_ke` (nhóm 3), `dong_sao_ke` (`ma_giao_dich_ngan_hang UNIQUE`; `trang_thai` `DA_KHOP|CHUA_KHOP|DA_GHI_NHAN|KHONG_THUOC_NCT`) trong `MIG/V017_03__sao_ke.sql`; cài `BE/m11/sodu/saoke/internal/SaoKeService.java` (nhập, khớp không tạo giao dịch, bỏ khớp, gán, xác nhận tạo `NOP_CHUYEN_KHOAN` qua `GhiGiaoDich`) và endpoint `POST /sao-ke/nhap`, `GET /sao-ke/dong`, `POST /sao-ke/dong/{id}/{lenh}`; màn web `frontend/src/tinh-nang/so-du/sao-ke/` (màn đối soát) với test Vitest (research E-06)
 
 **Checkpoint**: Đối soát chạy độc lập.
 
@@ -131,7 +131,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 ### Implementation cho User Story 5
 
-- [ ] T019 [US5] Tạo bảng `lich_su_tinh_trang` (nhóm 3) trong `MIG/V017_04__tinh_trang.sql`; cài `BE/m11/sodu/tinhtrang/internal/TinhTrangService.java` (tính sau mỗi giao dịch và hằng ngày; báo theo `QuyetDinhBao`; phát `TinhTrangSoDuDaDoi`; dừng nhắc), `SoDuMuaHoPortImpl.java` và endpoint `GET /tinh-trang-so-du`, `POST /nguoi-cao-tuoi/{nctId}/so-du/dung-nhac`; màn web `web/src/tinh-nang/so-du/tinh-trang/` (research E-08)
+- [ ] T019 [US5] Tạo bảng `lich_su_tinh_trang` (nhóm 3) trong `MIG/V017_04__tinh_trang.sql`; cài `BE/m11/sodu/tinhtrang/internal/TinhTrangService.java` (tính sau mỗi giao dịch và hằng ngày; báo theo `QuyetDinhBao`; phát `TinhTrangSoDuDaDoi`; dừng nhắc), `SoDuMuaHoPortImpl.java` và endpoint `GET /tinh-trang-so-du`, `POST /nguoi-cao-tuoi/{nctId}/so-du/dung-nhac`; màn web `frontend/src/tinh-nang/so-du/tinh-trang/` (research E-08)
 
 **Checkpoint**: P1 hoàn tất.
 
@@ -149,7 +149,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 ### Implementation cho User Story 6
 
-- [ ] T021 [US6] Cài handler `BE/m11/sodu/giaodich/internal/GiaoDichSoDuHandler.java` (`kiemTraKhiDuyet` kiểm lại giới hạn và người nhận qua `QuyenNguoiThanApi`; `apDung` qua `GhiGiaoDich`; đảo đặt `da_dao`) và `GiaoDichService.java` (lập, hủy; cấn trừ cọc của Kế toán); endpoint `/giao-dich`, `/giao-dich/can-tru-coc`, `/giao-dich/cho-duyet`, `/giao-dich/{id}/{lenh}`; màn web `web/src/tinh-nang/so-du/giao-dich/` (màn duyệt hiển thị giới hạn tính lại) (research E-07)
+- [ ] T021 [US6] Cài handler `BE/m11/sodu/giaodich/internal/GiaoDichSoDuHandler.java` (`kiemTraKhiDuyet` kiểm lại giới hạn và người nhận qua `QuyenNguoiThanApi`; `apDung` qua `GhiGiaoDich`; đảo đặt `da_dao`) và `GiaoDichService.java` (lập, hủy; cấn trừ cọc của Kế toán); endpoint `/giao-dich`, `/giao-dich/can-tru-coc`, `/giao-dich/cho-duyet`, `/giao-dich/{id}/{lenh}`; màn web `frontend/src/tinh-nang/so-du/giao-dich/` (màn duyệt hiển thị giới hạn tính lại) (research E-07)
 
 **Checkpoint**: Giao dịch có duyệt chạy độc lập.
 
@@ -185,7 +185,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 ### Implementation cho User Story 8
 
-- [ ] T025 [US8] Tạo bảng `lan_xuat_so_du` (nhóm 3; `loai` `SAO_KE|THU_CHI|SO_COC`) trong `MIG/V017_05__xuat.sql`; cài `BE/m11/sodu/xuat/internal/XuatSoDuService.java` và endpoint `POST /xuat/so-du`; màn web `web/src/tinh-nang/so-du/xuat/` (research E-10)
+- [ ] T025 [US8] Tạo bảng `lan_xuat_so_du` (nhóm 3; `loai` `SAO_KE|THU_CHI|SO_COC`) trong `MIG/V017_05__xuat.sql`; cài `BE/m11/sodu/xuat/internal/XuatSoDuService.java` và endpoint `POST /xuat/so-du`; màn web `frontend/src/tinh-nang/so-du/xuat/` (research E-10)
 
 **Checkpoint**: Mọi user story của 017 chạy độc lập.
 

@@ -6,7 +6,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 
 ## 1. Điều kiện cần
 
-- Như quickstart của 000: JDK 21, Docker (Testcontainers MySQL 8.4), Node.js LTS, Flutter stable; profile `demo` có đồng hồ giả lập.
+- Như quickstart của 000: JDK 25, MySQL 8.0 cài trên máy (000 R-14), Node.js LTS, Flutter stable; profile `demo` có đồng hồ giả lập.
 - Dữ liệu mẫu của profile `demo` (cùng bản giả cho 008, 003, 012, 001, 004, 007 khi các module đó chưa có):
   - hai tầng (T1, T2), mỗi tầng hai phòng; người cao tuổi A (T1), B (T2) có phân bổ giường mở;
   - một tài khoản cho mỗi vai trò nhân viên (AC-01 → 05, 07, 09, 14), phân công tầng 1 với vai trò theo phân công; thêm một Quản lý viện thứ hai;
@@ -21,8 +21,8 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 backend/  ./mvnw verify
 backend/  ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
 web/      npm ci && npm test && npm run dev
-app-nhan-vien/   flutter test
-app-nguoi-than/  flutter test
+mobile/   flutter test
+mobile/  flutter test
 ```
 
 Kết quả mong đợi: `verify` xanh, gồm `MaTranQuyenKhopNguonTest` (ma trận khớp Phụ lục 27 và 19.3) và các nhóm test ở mục 4.
@@ -61,7 +61,7 @@ Kết quả mong đợi: `verify` xanh, gồm `MaTranQuyenKhopNguonTest` (ma tr�
 
 ## 4. Test tự động: truy vết kịch bản → test
 
-| Spec | Lớp test (backend, `vn.eldercare.m15.taikhoan…`) | Loại |
+| Spec | Lớp test (backend, `com.cambae.backend.m15.taikhoan…`) | Loại |
 | --- | --- | --- |
 | US1 #1–13, FR-016 → FR-022, FR-041 → FR-044a | `MaTranQuyenKhopNguonTest`, `MaTranQuyenIT` (SC-001), `QuyenBaLopIT`, `GioiHanTruongIT`, `SuCoNgoaiPhamViIT`, `CanQuyenArchTest`, `PhamViBaoCaoLichSuIT` (#13) | Đơn vị, tích hợp, kiến trúc |
 | US2 #1–9, FR-001 → FR-006, FR-009, FR-011, FR-012 | `TaoTaiKhoanIT`, `NghiViecKhoaTaiKhoanIT`, `KhoaMoKhoaIT`, `LuonConQuanLyVienIT`, `KhongXoaTaiKhoanIT` | Tích hợp |

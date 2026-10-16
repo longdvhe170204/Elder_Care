@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## M-01. Vị trí trong backend
 
-**Quyết định**: Feature 011 thuộc module M08 – Dinh dưỡng (mục 12), gói `vn.eldercare.m08`. Kho nguyên liệu (12.7, BR-M08-17 → 20) thuộc M08 nhưng ở feature 019; plan 019 thêm gói `m08.kho` và cài port nội bộ `TonKhoNguyenLieuPort` (M-12).
+**Quyết định**: Feature 011 thuộc module M08 – Dinh dưỡng (mục 12), gói `com.cambae.backend.m08`. Kho nguyên liệu (12.7, BR-M08-17 → 20) thuộc M08 nhưng ở feature 019; plan 019 thêm gói `m08.kho` và cài port nội bộ `TonKhoNguyenLieuPort` (M-12).
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -225,7 +225,7 @@ Trưởng tầng không xem bản gán, thực đơn qua chức năng 011 (Phụ
 - **Kiểm thử**:
   - test bảng `CanLyDoChuyenMon`, `XungDot`, `ChonMonThayThe`, `KiemTraDoPhu`, `LapMon` (qua tuần), `CanhBaoDiUng`, `NguoiDuocTinh`, `TinhPhatSinh`, `DoiChieuDoAn`, `MonCanLuuMau`;
   - SC-001: bộ 7 ngày × 60 người dựng sẵn so tính tay; SC-002: phát sinh ≤ 5 phút và DBR-27 sau mọi kịch bản;
-  - Testcontainers: `UNIQUE` bản gán, lần chốt, phiếu, thực đơn mỗi tuần, một mặc định; trigger nhóm 3;
+  - Test tích hợp MySQL: `UNIQUE` bản gán, lần chốt, phiếu, thực đơn mỗi tuần, một mặc định; trigger nhóm 3;
   - test đồng thời: hai lệnh chốt; hai bác sĩ áp dụng; xác nhận phát sinh và giao cùng lúc;
   - SC-008: quét mọi DTO, thông báo tới bếp không có trường sức khỏe;
   - đồng hồ giả lập cho CFG-M08-01, 03 → 07, giờ bữa;

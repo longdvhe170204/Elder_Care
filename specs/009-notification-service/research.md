@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## B-01. Vị trí trong backend
 
-**Quyết định**: Feature 009 là module M13 – Thông báo (mục 17), gói `vn.eldercare.m13`:
+**Quyết định**: Feature 009 là module M13 – Thông báo (mục 17), gói `com.cambae.backend.m13`:
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -30,7 +30,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## B-02. Một khuôn yêu cầu thông báo cho mọi module (FR-001, FR-043a, 000 R-09)
 
 **Quyết định**:
-- Khuôn yêu cầu đặt ở gói kỹ thuật `vn.eldercare.common.thongbao` (bổ sung vào hợp đồng `common` của 000), không ở `m13.api`, vì mọi module (kể cả 000 → 008 đã làm plan trước, và các module mà 009 phải đọc dữ liệu) cần phát yêu cầu mà không phụ thuộc M13:
+- Khuôn yêu cầu đặt ở gói kỹ thuật `com.cambae.backend.common.thongbao` (bổ sung vào hợp đồng `common` của 000), không ở `m13.api`, vì mọi module (kể cả 000 → 008 đã làm plan trước, và các module mà 009 phải đọc dữ liệu) cần phát yêu cầu mà không phụ thuộc M13:
 
   ```java
   interface CoYeuCauThongBao {                     // sự kiện miền của module nguồn cài

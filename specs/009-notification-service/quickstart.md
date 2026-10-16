@@ -6,7 +6,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 
 ## 1. Điều kiện cần
 
-- Như quickstart của 000 → 008: JDK 21, Docker (Testcontainers MySQL 8.4), Node.js LTS, Flutter stable; profile `demo` có đồng hồ giả lập.
+- Như quickstart của 000 → 008: JDK 25, MySQL 8.0 cài trên máy (000 R-14), Node.js LTS, Flutter stable; profile `demo` có đồng hồ giả lập.
 - Dữ liệu mẫu của profile `demo` (nhân vật của spec): người cao tuổi A ở Tầng 2; D Điều dưỡng phụ trách A; P Người phụ trách ca Tầng 2; T Trưởng tầng được giao Tầng 2; B Bác sĩ trực; Q Quản lý viện; M người liên hệ chính của A (có tài khoản cổng); R người đại diện (quyền xem chi phí); N người thân khác (không quyền sức khỏe); K người thân của E (không quan hệ với A); S Nhân viên chăm sóc; H Hành chính.
 - CFG theo mặc định Phụ lục 25: CFG-M13-01 5 phút, CFG-M13-02 21:00–07:00, CFG-M13-03 5 phút, CFG-M13-04 5 phút, CFG-M13-05 1 lần, CFG-M13-06 07:30–17:00 thứ 2 → thứ 7.
 - Kênh: trong ứng dụng, cổng người thân bật; tin nhắn dùng bản giả `NhaCungCapTinNhan` bật/tắt và gây lỗi được; FCM giả ghi lại lần đẩy và thời điểm.
@@ -18,8 +18,8 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 backend/  ./mvnw verify
 backend/  ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
 web/      npm ci && npm test && npm run dev
-app-nhan-vien/   flutter test
-app-nguoi-than/  flutter test
+mobile/   flutter test
+mobile/  flutter test
 ```
 
 Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M13 không bị module nào phụ thuộc ngoài qua `m13.api`; không có vòng M13 ↔ M10), test cơ sở dữ liệu (data-model mục 8) và các nhóm test ở mục 4.

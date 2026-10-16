@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`
 - Module M14: `BE/m14/{chitieu,phamvi,dashboard,baocao,chitiet,xuat}/`; không có bảng riêng (data-model mục 1)
-- Web `web/src/tinh-nang/bao-cao/{dashboard,nguoi-cao-tuoi,cham-soc,chat-luong,suc-khoe-thuoc,chi-phi,nhan-su-ca,chi-tiet}/`
+- Web `frontend/src/tinh-nang/bao-cao/{dashboard,nguoi-cao-tuoi,cham-soc,chat-luong,suc-khoe-thuoc,chi-phi,nhan-su-ca,chi-tiet}/`
 
 ---
 
@@ -58,7 +58,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 - [ ] T008 [US1] Cài hàm tính và chi tiết cho các chỉ tiêu dashboard trong `BE/m14/chitieu/` gọi `*ThongKeApi` tương ứng (contracts/chi-tieu.md)
 - [ ] T009 [US1] Cài `BE/m14/dashboard/internal/DashboardService.java` (khối theo vai trò, song song, bộ đệm trong tiến trình 20 giây, ETag) và `BE/m14/dashboard/web/DashboardController.java` (`GET /dashboard`, `GET /chi-tieu`) (research O-06)
-- [ ] T010 [P] [US1] Tạo màn web `web/src/tinh-nang/bao-cao/dashboard/` (định nghĩa chỉ tiêu tại chỗ; "—" khi mẫu số 0; làm mới 30 giây với ETag) với test Vitest
+- [ ] T010 [P] [US1] Tạo màn web `frontend/src/tinh-nang/bao-cao/dashboard/` (định nghĩa chỉ tiêu tại chỗ; "—" khi mẫu số 0; làm mới 30 giây với ETag) với test Vitest
 
 **Checkpoint**: Dashboard chạy độc lập.
 
@@ -94,7 +94,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Implementation cho User Story 3
 
-- [ ] T014 [US3] Cài chỉ tiêu nhóm người cao tuổi, giường và `BE/m14/baocao/internal/BaoCaoService.java` + `BE/m14/baocao/web/BaoCaoController.java` (`GET /bao-cao/{nhom}`) (research O-07); màn web `web/src/tinh-nang/bao-cao/nguoi-cao-tuoi/`
+- [ ] T014 [US3] Cài chỉ tiêu nhóm người cao tuổi, giường và `BE/m14/baocao/internal/BaoCaoService.java` + `BE/m14/baocao/web/BaoCaoController.java` (`GET /bao-cao/{nhom}`) (research O-07); màn web `frontend/src/tinh-nang/bao-cao/nguoi-cao-tuoi/`
 
 ---
 
@@ -110,7 +110,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Implementation cho User Story 4
 
-- [ ] T016 [US4] Cài chỉ tiêu nhóm chăm sóc, bữa ăn, hoạt động, kiểm tra chất lượng (005, 011, 014); màn web `web/src/tinh-nang/bao-cao/cham-soc/`, `web/src/tinh-nang/bao-cao/chat-luong/`
+- [ ] T016 [US4] Cài chỉ tiêu nhóm chăm sóc, bữa ăn, hoạt động, kiểm tra chất lượng (005, 011, 014); màn web `frontend/src/tinh-nang/bao-cao/cham-soc/`, `frontend/src/tinh-nang/bao-cao/chat-luong/`
 
 ---
 
@@ -126,7 +126,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Implementation cho User Story 5
 
-- [ ] T018 [US5] Cài chỉ tiêu nhóm sức khỏe, thuốc (001, 006, 007); màn web `web/src/tinh-nang/bao-cao/suc-khoe-thuoc/`
+- [ ] T018 [US5] Cài chỉ tiêu nhóm sức khỏe, thuốc (001, 006, 007); màn web `frontend/src/tinh-nang/bao-cao/suc-khoe-thuoc/`
 
 ---
 
@@ -142,7 +142,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Implementation cho User Story 6
 
-- [ ] T020 [US6] Cài chỉ tiêu nhóm chi phí qua `ChiPhiThongKeApi` (010); màn web `web/src/tinh-nang/bao-cao/chi-phi/`
+- [ ] T020 [US6] Cài chỉ tiêu nhóm chi phí qua `ChiPhiThongKeApi` (010); màn web `frontend/src/tinh-nang/bao-cao/chi-phi/`
 
 ---
 
@@ -158,7 +158,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Implementation cho User Story 7
 
-- [ ] T022 [US7] Cài `BE/m14/chitiet/internal/ChiTietService.java` và `BE/m14/chitiet/web/ChiTietController.java` (`GET /chi-tiet/{maChiTieu}`; phân trang; giới hạn trường); màn web `web/src/tinh-nang/bao-cao/chi-tiet/`
+- [ ] T022 [US7] Cài `BE/m14/chitiet/internal/ChiTietService.java` và `BE/m14/chitiet/web/ChiTietController.java` (`GET /chi-tiet/{maChiTieu}`; phân trang; giới hạn trường); màn web `frontend/src/tinh-nang/bao-cao/chi-tiet/`
 
 ---
 
@@ -174,7 +174,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Implementation cho User Story 8
 
-- [ ] T024 [US8] Cài chỉ tiêu nhân sự, ca qua `NhanSuThongKeApi` (008), `XoayCaThongKeApi` (015); màn web `web/src/tinh-nang/bao-cao/nhan-su-ca/`
+- [ ] T024 [US8] Cài chỉ tiêu nhân sự, ca qua `NhanSuThongKeApi` (008), `XoayCaThongKeApi` (015); màn web `frontend/src/tinh-nang/bao-cao/nhan-su-ca/`
 
 ---
 

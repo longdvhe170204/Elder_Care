@@ -9,7 +9,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Các q
 ## G-01. Vị trí trong backend và ranh giới với feature 019
 
 **Quyết định**:
-- Feature 003 là phần "phòng và giường" của module M03 (mục 7). Gói `vn.eldercare.m03` có các gói con:
+- Feature 003 là phần "phòng và giường" của module M03 (mục 7). Gói `com.cambae.backend.m03` có các gói con:
   - `cocau`: khu vực, tầng, loại phòng, phòng, giường (thuộc tính danh mục), danh mục lý do chuyển giường;
   - `giuong`: trạng thái giường, bảng chuyển, lịch sử trạng thái, Xác nhận giường sẵn sàng, Tạm ngừng sử dụng;
   - `phanbo`: phân bổ, chuyển giường, nhập bù, dấu trên phân bổ, tra cứu lịch sử vị trí;
@@ -332,7 +332,7 @@ Các bổ sung đã được ghi vào file `contracts/module-interfaces.md` củ
 
 **Quyết định** (theo 000 R-14):
 - **Đồng thời** (SC-001, FR-020, FR-033): 10 luồng cùng phân bổ một giường cho 10 người trong một giây; 2 luồng chuyển cùng một người; phân bổ và lệnh tài sản đồng thời trên một giường. Kiểm sau cùng: đúng một phân bổ đang hiệu lực mỗi giường, không có khoảng chồng, không có lỗi 500.
-- **Cơ sở dữ liệu** (Testcontainers MySQL 8.4): cột sinh `UNIQUE`, trigger chống chồng, trigger bất biến, `CHECK` trạng thái giường, `UNIQUE` khu nghỉ.
+- **Cơ sở dữ liệu** (tích hợp MySQL, 000 R-14): cột sinh `UNIQUE`, trigger chống chồng, trigger bất biến, `CHECK` trạng thái giường, `UNIQUE` khu nghỉ.
 - **Bảng chuyển**: test tham số hóa đi hết mọi dòng của bảng trạng thái giường và thử mọi cặp ngoài bảng (SC-007).
 - **Đồng hồ giả lập** cho CFG-M02-02, CFG-M03-02, 04, 07, 08 và hạn giữ người vắng (SC-011, SC-013, SC-014).
 - **Bản giả**: `NguonLuuTruChoPhanBo`, `DemLichDenBanTru` (004), `TinhTrangLayNhiemChoPhanBo` (007), `ThamChieuViTri` (008), `TaiSanGiuongPort` (019), `MucChamSocApi`, `NguoiCaoTuoiApi`, `TrangThaiNguoiCaoTuoiApi` (001, khi chạy 003 độc lập). Mỗi bản giả có công tắc qua `/api/v1/kiem-thu/gia-lap/{module}` ở profile `test`, `demo` như 001.

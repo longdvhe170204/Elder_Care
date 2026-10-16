@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## X-01. Vị trí trong backend
 
-**Quyết định**: Feature 015 thuộc module M09 (mục 13.2 phần lịch ca xoay vòng; UC-50 phần lập từ mẫu, UC-54), thêm gói con vào `vn.eldercare.m09` (008 N-01).
+**Quyết định**: Feature 015 thuộc module M09 (mục 13.2 phần lịch ca xoay vòng; UC-50 phần lập từ mẫu, UC-54), thêm gói con vào `com.cambae.backend.m09` (008 N-01).
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -173,7 +173,7 @@ Riêng tư: lý do nghỉ, đổi ca mang `@NhomTruong(LY_DO_NHAN_SU)` (008), ch
 - **Kiểm thử**:
   - test bảng `MauCaTaiNgay`, `LapLichThang` (SC-001: 3 mẫu × 4 tháng, ca đêm cuối tháng), `DongApDung`, `TinhPhu` (người nhiều vai trò, tie-break), `KiemTraDoiCa`, `DieuKienNguoiThay`, `GioTrongThang`;
   - bộ 200 yêu cầu (SC-004) gồm đồng thời, ca bị hủy khi chờ, duyệt một phần, nghỉ theo ngày trước/sau công bố;
-  - Testcontainers: `UNIQUE` cảnh báo mở mỗi ca, lời mời chờ, `yeu_cau_ca_mo`; trigger nhóm 3;
+  - Test tích hợp MySQL: `UNIQUE` cảnh báo mở mỗi ca, lời mời chờ, `yeu_cau_ca_mo`; trigger nhóm 3;
   - test đồng thời: hai lệnh lập lịch cùng phạm vi; duyệt đổi ca cùng lúc với ghi vắng ca; hai người nhận lời mời cho chỗ cuối;
   - đồng hồ giả lập cho CFG-M09-02, 06, 10, 11, CFG-M15-05, 06.
 - Tên test theo BR/FR (`BR_M09_09_LapLichTuMauIT`, `BR_M09_11_ThieuPhuIT`).

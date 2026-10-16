@@ -10,21 +10,21 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4 và data-model.md mục 7.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Feature 002 ở `BE/m15/taikhoan/` với `api/`, `xacthuc/`, `quyen/`, `phamvi/`, `phaply/`, `ngoaituyen/`, `lich/` (plan "Project Structure")
-- Web `web/src/tinh-nang/{dang-nhap,tai-khoan,phan-quyen,cho-xem-lai}/`; app nhân viên `app-nhan-vien/lib/tinh-nang/{dang-nhap,mo-khoa-som,ket-qua-dong-bo,cho-xem-lai}/`; app người thân `app-nguoi-than/lib/tinh-nang/dang-nhap/`
+- Web `frontend/src/tinh-nang/{dang-nhap,tai-khoan,phan-quyen,cho-xem-lai}/`; app nhân viên `mobile/lib/nhan-vien/{dang-nhap,mo-khoa-som,ket-qua-dong-bo,cho-xem-lai}/`; app người thân `mobile/lib/nguoi-than/dang-nhap/`
 
 ---
 
 ## Phase 1: Setup
 
-- [ ] T001 Thêm Spring Security 6.5 và Bouncy Castle (cho `Argon2PasswordEncoder`) vào `backend/pom.xml`; thêm `flutter_secure_storage` vào `app-nhan-vien/pubspec.yaml` và `app-nguoi-than/pubspec.yaml` (plan Technical Context)
+- [ ] T001 Thêm Spring Security 7 và Bouncy Castle (cho `Argon2PasswordEncoder`) vào `backend/pom.xml`; thêm `flutter_secure_storage` vào `mobile/pubspec.yaml` (plan Technical Context)
 - [ ] T002 [P] Tạo khung gói `BE/m15/taikhoan/{api,xacthuc,quyen,phamvi,phaply,ngoaituyen,lich}/` với `package-info.java`; gỡ bản giả 000 T025 khỏi `BE/m15/taikhoan/api/` và chuyển bản giả test sang `BT/support/QuyenGia.java` (research A-01)
 - [ ] T003 [P] Tạo bản giả các giao diện 002 cần (contracts/module-interfaces.md mục 2) trong `BT/support/gia002/`: `HoSoNhanVienApi`, `GiayPhepApi`, `DanhMucPhamViHanhNgheApi`, `PhanCongApi`, `NhiemVuApi` (008); `PhanBoGiuongApi` (003); `NguoiCaoTuoiApi` (001); `QuanHeNguoiThanApi` (012); `KetThucLuuTruApi` (004); `GiayPhepCoSoApi` (007)
 
@@ -74,7 +74,7 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 - [ ] T023 [US1] Cài giới hạn trường `BE/m15/taikhoan/quyen/internal/GioiHanTruongSerializerModifier.java` (`BeanSerializerModifier` đọc `@NhomTruong` và `quy_tac_xem_truong`) và `QuyenXemTruongService.java` (`QuyenXemTruongApi`) (research A-08; FR-022, FR-034)
 - [ ] T024 [US1] Cài `BE/m15/taikhoan/phamvi/internal/LoiDuLieuQuyenService.java`: bảng kỹ thuật `loi_du_lieu_quyen` (`MIG/V002_05__loi_du_lieu_quyen.sql`: khóa duy nhất `(nguon, ban_ghi_id, loai_loi)`, `so_lan`, `da_khac_phuc_luc`), lần đầu phát `LoiDuLieuQuyen`, ghi `QUYEN_TU_CHOI_DU_LIEU_NGUON` (FR-041b)
 - [ ] T025 [US1] Tạo `BE/m15/taikhoan/quyen/web/ToiController.java` cho `GET /toi` và `GET /toi/quyen` theo contracts/api-002.yaml (FR-042)
-- [ ] T026 [P] [US1] Tạo hook `web/src/chung/quyen/useQuyen.ts` ẩn nút/menu theo `/toi/quyen` và `lenhDuocPhep`, test `web/src/chung/quyen/AnNutTheoQuyen.test.tsx`
+- [ ] T026 [P] [US1] Tạo hook `frontend/src/chung/quyen/useQuyen.ts` ẩn nút/menu theo `/toi/quyen` và `lenhDuocPhep`, test `frontend/src/chung/quyen/AnNutTheoQuyen.test.tsx`
 
 **Checkpoint**: Mọi module có thể bảo vệ endpoint bằng `@CanQuyen`.
 
@@ -99,7 +99,7 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 - [ ] T032 [US2] Cài `TaiKhoanApi` trong `BE/m15/taikhoan/xacthuc/internal/TaiKhoanApiImpl.java`: `khoaDoNghiViec` (`MANDATORY`), `theoNhanVien`, `theoNguoiThan`, `coVaiTro` (contracts mục 1.6)
 - [ ] T033 [US2] Cài gán/gỡ vai trò trong `BE/m15/taikhoan/quyen/internal/GanVaiTroService.java`: đóng dòng cũ và thêm dòng mới, vai trò cùng loại tài khoản, tăng `phien_ban_quyen`, `If-Match`, đếm AC-01 dưới `SELECT … FOR UPDATE` (FR-003, FR-004, FR-012, FR-026)
 - [ ] T034 [US2] Tạo `BE/m15/taikhoan/xacthuc/web/TaiKhoanController.java`: `POST/GET /tai-khoan`, `GET /tai-khoan/{id}`, `POST …/{id}/khoa`, `…/mo-khoa`, `…/cap-lai-mat-khau`, `…/gan-vai-tro`, `…/go-vai-tro` theo contracts/api-002.yaml; không có `PUT/PATCH/DELETE`
-- [ ] T035 [P] [US2] Tạo màn quản trị `web/src/tinh-nang/tai-khoan/TaiKhoanDanhSach.tsx`, `TaoTaiKhoanNhanVien.tsx`, `ChiTietTaiKhoan.tsx` (lệnh theo `lenhDuocPhep`, lý do bắt buộc)
+- [ ] T035 [P] [US2] Tạo màn quản trị `frontend/src/tinh-nang/tai-khoan/TaiKhoanDanhSach.tsx`, `TaoTaiKhoanNhanVien.tsx`, `ChiTietTaiKhoan.tsx` (lệnh theo `lenhDuocPhep`, lý do bắt buộc)
 
 **Checkpoint**: Quản lý viện cấp và thu hồi tài khoản nhân viên.
 
@@ -125,9 +125,9 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 - [ ] T042 [US3] Cài đổi mật khẩu (kiểm CFG-M15-09), đăng xuất, mở khóa sớm (FR-019c qua `NhiemVuApi`), kích hoạt lại trong `BE/m15/taikhoan/xacthuc/internal/MatKhauService.java` và `TaiKhoanService.java`
 - [ ] T043 [US3] Cài job `BE/m15/taikhoan/lich/ChuyenKhongHoatDong.java` (01:00 và 06:00, ShedLock): chỉ người thân Hoạt động có `moc_tinh_khong_hoat_dong` quá CFG-M15-02; điều kiện trên trạng thái hiện hành để chạy lại an toàn (NFR-04, NFR-05)
 - [ ] T044 [US3] Tạo `BE/m15/taikhoan/xacthuc/web/XacThucController.java` cho `POST /xac-thuc/dang-nhap`, `/xac-thuc/dang-xuat`, `/xac-thuc/doi-mat-khau` và bổ sung `POST /tai-khoan/{id}/mo-khoa-som`, `/kich-hoat-lai` vào `TaiKhoanController.java`
-- [ ] T045 [P] [US3] Tạo màn web `web/src/tinh-nang/dang-nhap/DangNhap.tsx`, `DoiMatKhau.tsx` (mã thiết bị trong `X-Thiet-Bi`) và test `DangNhap.test.tsx` (thông báo chung), `DoiMatKhau.test.tsx`
-- [ ] T046 [P] [US3] Tạo `app-nhan-vien/lib/chung/xac-thuc/` (token trong `flutter_secure_storage`, mã thiết bị UUID), `app-nhan-vien/lib/tinh-nang/dang-nhap/`, `app-nhan-vien/lib/tinh-nang/mo-khoa-som/` và test `app-nhan-vien/test/dang_nhap_thiet_bi_chung_test.dart`, `mo_khoa_som_test.dart`
-- [ ] T047 [P] [US3] Tạo `app-nguoi-than/lib/chung/xac-thuc/`, `app-nguoi-than/lib/tinh-nang/dang-nhap/` (đăng nhập, đổi mật khẩu) và test `app-nguoi-than/test/dang_nhap_nguoi_than_test.dart`
+- [ ] T045 [P] [US3] Tạo màn web `frontend/src/tinh-nang/dang-nhap/DangNhap.tsx`, `DoiMatKhau.tsx` (mã thiết bị trong `X-Thiet-Bi`) và test `DangNhap.test.tsx` (thông báo chung), `DoiMatKhau.test.tsx`
+- [ ] T046 [P] [US3] Tạo `mobile/lib/chung/xac-thuc/` (token trong `flutter_secure_storage`, mã thiết bị UUID), `mobile/lib/nhan-vien/dang-nhap/`, `mobile/lib/nhan-vien/mo-khoa-som/` và test `mobile/test/nhan-vien/dang_nhap_thiet_bi_chung_test.dart`, `mo_khoa_som_test.dart`
+- [ ] T047 [P] [US3] Tạo `mobile/lib/chung/xac-thuc/`, `mobile/lib/nguoi-than/dang-nhap/` (đăng nhập, đổi mật khẩu) và test `mobile/test/nguoi-than/dang_nhap_nguoi_than_test.dart`
 
 **Checkpoint**: Ba kênh đăng nhập được.
 
@@ -155,8 +155,8 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 - [ ] T056 [US4] Cài điều phối đồng bộ `BE/m15/taikhoan/ngoaituyen/internal/DongBoService.java`: nhận lô phong bì, đối chiếu `lan_ket_noi_cuoi` trước khi cập nhật, tra `NgoaiTuyenHandler` theo `loaiBanGhi`, kiểm quyền `coQuyenTaiThoiDiem(thoiDiemThietBi)`, trả `KetQuaDongBo` từng bản ghi (research A-11)
 - [ ] T057 [US4] Cài lệnh chấp nhận/từ chối bản ghi chờ xem lại trong `BE/m15/taikhoan/ngoaituyen/internal/ChoXemLaiService.java` (người quyết định: Trưởng tầng được giao → Người phụ trách ca → AC-01 khi không gắn tầng; quyết định đầu tiên thắng; chấp nhận gọi `handler.apDung` hiệu lực từ lúc chấp nhận; nhật ký `NT_*`)
 - [ ] T058 [US4] Tạo `BE/m15/taikhoan/ngoaituyen/web/DongBoController.java` (`POST /dong-bo`) và `ChoXemLaiController.java` (`GET /ban-ghi-cho-xem-lai`, `POST …/{id}/chap-nhan`, `…/tu-choi`) theo contracts/api-002.yaml
-- [ ] T059 [P] [US4] Tạo màn `web/src/tinh-nang/cho-xem-lai/ChoXemLai.tsx`
-- [ ] T060 [P] [US4] Tạo `app-nhan-vien/lib/tinh-nang/ket-qua-dong-bo/` (hiển thị kết quả từng bản ghi sau đồng bộ, BR-M15-20), `app-nhan-vien/lib/tinh-nang/cho-xem-lai/` và test `app-nhan-vien/test/ket_qua_dong_bo_test.dart`, `cho_xem_lai_test.dart` (constitution XV: BR-M15-20 có test ở client)
+- [ ] T059 [P] [US4] Tạo màn `frontend/src/tinh-nang/cho-xem-lai/ChoXemLai.tsx`
+- [ ] T060 [P] [US4] Tạo `mobile/lib/nhan-vien/ket-qua-dong-bo/` (hiển thị kết quả từng bản ghi sau đồng bộ, BR-M15-20), `mobile/lib/nhan-vien/cho-xem-lai/` và test `mobile/test/nhan-vien/ket_qua_dong_bo_test.dart`, `cho_xem_lai_test.dart` (constitution XV: BR-M15-20 có test ở client)
 
 **Checkpoint**: Phạm vi và ngoại tuyến chạy theo phân công.
 
@@ -200,7 +200,7 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 - [ ] T069 [US6] Cài tạo tài khoản người thân (AC-01 hoặc AC-09; hồ sơ người thân có ít nhất một quan hệ chưa ở trạng thái cuối qua `QuanHeNguoiThanApi`; vai trò duy nhất AC-10; `cachXacMinh` vào `chi_tiet` nhật ký) trong `TaiKhoanService.java` và endpoint `POST /tai-khoan-nguoi-than` trong `TaiKhoanController.java` (FR-050, FR-052)
 - [ ] T070 [US6] Cài `xetLaiNguoiThan` (`MANDATORY`) trong `TaiKhoanApiImpl.java` và job `BE/m15/taikhoan/lich/KhoaSauKetThucLuuTru.java` (dùng `KetThucLuuTruApi.thoiDiemTrangThaiCuoi` và CFG-M01-04; ShedLock) (BR-M15-14, FR-049)
 - [ ] T071 [US6] Cài phạm vi `QUAN_HE` cho AC-10 trong `PhamViService.java` và đăng ký `DieuKienChuThich` ¹, ² (bản đồng ý, người đại diện) do 001/012 cài, qua `QuanHeNguoiThanApi` (FR-045 → FR-048)
-- [ ] T072 [P] [US6] Test app `app-nguoi-than/test/an_suc_khoe_test.dart`: phần sức khỏe ẩn khi API không trả trường (giới hạn trường ở backend)
+- [ ] T072 [P] [US6] Test app `mobile/test/nguoi-than/an_suc_khoe_test.dart`: phần sức khỏe ẩn khi API không trả trường (giới hạn trường ở backend)
 
 **Checkpoint**: Người thân chỉ thấy đúng phần được cấp.
 
@@ -221,7 +221,7 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 
 - [ ] T075 [US7] Cài `BE/m15/taikhoan/quyen/internal/ThuHepQuyenService.java`: thu hẹp/khôi phục theo vai trò và theo tài khoản (đóng dòng cũ, thêm dòng mới; `nhom_chi_tieu`, `kenh` cho `DASHBOARD_BAO_CAO`), gán/gỡ `quyen_gan_them` (tài khoản phải có AC-04), kiểm không vượt ma trận, tăng `phien_ban_quyen`, nhật ký `QUYEN_*` (FR-024 → FR-027)
 - [ ] T076 [US7] Tạo `BE/m15/taikhoan/quyen/web/PhanQuyenController.java`: `GET /vai-tro`, `GET /vai-tro/{ma}/quyen`, `POST /vai-tro/{ma}/thu-hep`, `/khoi-phuc-quyen`, `GET /tai-khoan/{id}/quyen` (có `taiThoiDiem`), `POST /tai-khoan/{id}/thu-hep`, `/khoi-phuc-quyen`, `/gan-quyen-duyet-ke-hoach`, `/go-quyen-duyet-ke-hoach` theo contracts/api-002.yaml
-- [ ] T077 [P] [US7] Tạo màn `web/src/tinh-nang/phan-quyen/PhanQuyenVaiTro.tsx`, `PhanQuyenTaiKhoan.tsx`, `QuyenTaiThoiDiem.tsx` và test `PhanQuyen.test.tsx` (412, chặn vượt ma trận)
+- [ ] T077 [P] [US7] Tạo màn `frontend/src/tinh-nang/phan-quyen/PhanQuyenVaiTro.tsx`, `PhanQuyenTaiKhoan.tsx`, `QuyenTaiThoiDiem.tsx` và test `PhanQuyen.test.tsx` (412, chặn vượt ma trận)
 
 **Checkpoint**: Mọi user story của 002 chạy độc lập.
 

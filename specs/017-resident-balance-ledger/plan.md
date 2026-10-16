@@ -28,16 +28,16 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
 **Primary Dependencies**: Như 000 → 015. fastexcel (đã chọn ở 010) cả đọc sao kê lẫn ghi xuất; CSV không cần thư viện. Payload VietQR dựng trong mã (chuẩn EMVCo, có CRC16); client vẽ ảnh QR bằng thư viện vẽ QR của web/Flutter.
 
-**Storage**: MySQL 8.4 LTS. Bảng ở [data-model.md](data-model.md), cùng schema M11 với 010.
+**Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md), cùng schema M11 với 010.
 
 **Testing**:
 - Như 000 R-14.
 - Test bảng cho chín hàm thuần (research E-12); SC-001 với 3 tháng × 50 hồ sơ; SC-004 với 200 dòng sao kê.
-- Testcontainers cho `UNIQUE`, trigger nhóm 3, dãy số phiếu không khoảng trống khi rollback.
+- Test tích hợp MySQL cho `UNIQUE`, trigger nhóm 3, dãy số phiếu không khoảng trống khi rollback.
 - Test đồng thời: hai phiếu thu; duyệt hoàn tiền cùng lúc với thanh toán bảng.
 - Đồng hồ giả lập cho CFG-M11-04, 05, CFG-M02-09, CFG-M13-06, CFG-M15-05, 06.
 - Bản giả `ChiPhiChoSoDuPort`, sự kiện 004, `QuyenNguoiThanApi`.
@@ -130,7 +130,7 @@ specs/017-resident-balance-ledger/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m11/
+backend/src/main/java/com/cambae/backend/m11/
 ├── api/           # (bổ sung) SoDuApi, SoDuThongKeApi, sự kiện 017
 └── sodu/
     ├── so/          {internal, web}   # sổ, mã nộp tiền, VietQR, cổng
@@ -142,10 +142,10 @@ backend/src/main/java/vn/eldercare/m11/
     ├── xuat/        {internal, web}
     └── lich/
 
-web/src/tinh-nang/so-du/
+frontend/src/tinh-nang/so-du/
 ├── so-du/  ├── thu-chot-quy/  ├── sao-ke/  ├── giao-dich/  ├── tinh-trang/  ├── xuat/  └── cong-nguoi-than/so-du/
 
-app-nguoi-than/lib/tinh-nang/so-du/   # số dư, mã QR, sao kê
+mobile/lib/nguoi-than/so-du/   # số dư, mã QR, sao kê
 ```
 
 **Structure Decision**: Theo R-02 của 000 và 010 P-01: 017 thêm gói `m11.sodu` với tám gói con.

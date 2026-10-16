@@ -38,16 +38,16 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
-**Primary Dependencies**: Như 000 → 003: Spring Boot 3.5.x, Spring Modulith 1.4.x, Flyway 11.x, springdoc-openapi 2.8.x, ShedLock, Spring Security 6.5. Web: React 19, TanStack Query. App: Flutter. Không thêm thư viện mới.
+**Primary Dependencies**: Như 000 → 003: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7. Web: React 19, TanStack Query. App: Flutter. Không thêm thư viện mới.
 
-**Storage**: MySQL 8.4 LTS. Bảng ở [data-model.md](data-model.md). Tiền `DECIMAL(15,0)` VND. Bản scan, bằng chứng qua `common.tep` (001 H-13).
+**Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md). Tiền `DECIMAL(15,0)` VND. Bản scan, bằng chứng qua `common.tep` (001 H-13).
 
 **Testing**:
 - Như 000 R-14.
 - Test đơn vị dạng bảng cho bốn hàm thuần: điểm ưu tiên, tra chính sách vắng, điều khoản khác chuẩn, nội dung tại ngày.
-- Testcontainers cho trigger, cột sinh.
+- Test tích hợp MySQL cho trigger, cột sinh.
 - Test đồng thời cho DBR-06, FR-046 và "Đã liên hệ".
 - Đồng hồ giả lập cho mọi CFG-M02, gồm chạy bù.
 - Bản giả cho SPI của 005, 010, 012, 017 và bean điều kiện của 006, 007, 010, 013, 017 (research T-16).
@@ -58,7 +58,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - App người thân: tiến trình tiếp nhận, hợp đồng và phụ lục (người đại diện), lượt vắng, tiến trình kết thúc, gửi yêu cầu thay đổi ở Nháp.
 - Lệnh của 004 chỉ chạy trực tuyến (ngoài phạm vi 8.6).
 
-**Project Type**: Web service (REST `/api/v1`), một web client và hai mobile client.
+**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung (Q-346).
 
 **Performance Goals**:
 - Lệnh nằm trong 2 giây của NFR-02: mỗi lệnh khóa 1–3 dòng, vài truy vấn có chỉ mục.
@@ -96,7 +96,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ. BR-M02-20 lệch FR-012: plan theo FR-012, báo lại ở điểm 1. Lệnh "đăng ký lịch đến" chưa rõ: plan chọn cách hẹp, báo lại ở điểm 4 |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-012 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 000, 001, 002, 003 được bổ sung giao diện, không đổi hành vi đã thiết kế |
-| X. Kiến trúc | Đạt | Một khối; gói `m02`; module khác chỉ dùng `m02.api`. Không có vòng phụ thuộc (T-02). REST `/api/v1`; MySQL; ba client. NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `m02`; module khác chỉ dùng `m02.api`. Không có vòng phụ thuộc (T-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Điều kiện, bảng chuyển, quyền, giới hạn trường ở backend. Mỗi lệnh có `POST …/{id}/<lenh>` riêng; lệnh trạng thái người cao tuổi dùng endpoint của 001 với `chiTiet` do 004 kiểm |
 | XII. Dữ liệu | Đạt | DBR-06 có khóa và trigger; DBR-07 có `UNIQUE NOT NULL`; DBR-08 có khóa và trigger; nhóm 3 theo mẫu của 000; nhật ký trong transaction; thời gian theo `Clock` |
 | XIII. Tham số | Đạt | Như V. Bảng CFG-M02-05, CFG-M02-08 đọc giá trị hiện hành tại lúc tính (FR-052, FR-077) |
@@ -149,7 +149,7 @@ specs/004-admission-residency/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m02/
+backend/src/main/java/com/cambae/backend/m02/
 ├── api/          # HopDongDocApi, DonGiaApi, NgayLuuTruApi, DieuKienTiepNhanApi, DanhSachViecSauQuaDoiApi,
 │                 # SPI 004 khai báo (KyCuoiPort, TrangThaiDatCocPort, NguoiDaiDienPort, BanGhiDonPort,
 │                 # TrangThaiCoMatBanTruPort, MucViecSauQuaDoiPort), sự kiện
@@ -165,7 +165,7 @@ backend/src/main/java/vn/eldercare/m02/
 ├── trangthai/    {internal}        # bean ThamGiaChuyenTrangThai; cài SPI của 001, 002, 003
 └── lich/                           # ViecHangNgayM02 (T-11)
 
-web/src/tinh-nang/
+frontend/src/tinh-nang/
 ├── dang-ky-tiep-nhan/       # lượt đăng ký, tiến trình, điều kiện tiếp nhận
 ├── danh-sach-cho/           # hồ sơ chờ, điểm, hồ sơ phù hợp với giường, liên hệ
 ├── hop-dong/                # nháp, điều khoản khác chuẩn, gửi ký, ghi nhận đã ký, nội dung tại ngày, phụ lục
@@ -175,8 +175,8 @@ web/src/tinh-nang/
 ├── ket-thuc-luu-tru/
 └── qua-doi/
 
-app-nhan-vien/lib/tinh-nang/vang-mat/      # Cho tạm vắng, Gia hạn, Ghi nhận trở về
-app-nguoi-than/lib/tinh-nang/
+mobile/lib/nhan-vien/vang-mat/      # Cho tạm vắng, Gia hạn, Ghi nhận trở về
+mobile/lib/nguoi-than/
 ├── hop-dong/                # người đại diện: hợp đồng, phụ lục, đặt cọc
 ├── yeu-cau-thay-doi/        # gửi yêu cầu ở Nháp
 └── luu-tru/                 # tiến trình tiếp nhận, lượt vắng, tiến trình kết thúc

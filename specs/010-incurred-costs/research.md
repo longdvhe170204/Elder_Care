@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## P-01. Vị trí trong backend
 
-**Quyết định**: Feature 010 thuộc module M11 – Chi phí phát sinh (mục 15), gói `vn.eldercare.m11`. Feature 017 (số dư, 15.9) và phần mua sắm của 019 (15.10) cũng thuộc M11; plan của chúng thêm gói con vào cùng `m11` và dùng port nội bộ (P-12), như mẫu 003 ↔ 019 và 008 ↔ 015.
+**Quyết định**: Feature 010 thuộc module M11 – Chi phí phát sinh (mục 15), gói `com.cambae.backend.m11`. Feature 017 (số dư, 15.9) và phần mua sắm của 019 (15.10) cũng thuộc M11; plan của chúng thêm gói con vào cùng `m11` và dùng port nội bộ (P-12), như mẫu 003 ↔ 019 và 008 ↔ 015.
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -216,7 +216,7 @@ Quản lý viện không có `LAP`, `KIEM_TRA`, `GUI_CHOT`, `XUAT_KE_TOAN`; Hàn
 - **Nhật ký**: mọi lệnh có nhật ký; tính lại do hệ thống ghi người thực hiện Hệ thống và sự kiện nguồn; xuất kế toán là nhật ký hành động (000 FR-043a).
 - **Kiểm thử**:
   - test bảng `PhiNgayLuuTru` (SC-002: 12 tháng 28 → 31 ngày, có phụ lục), `PhiBuoiBanTru`, `LamTronDong`, `ThoiGianTinhPhi`, `BienDongKy`, `DieuKienChiPhiKyCuoi`, `KiemTraVuot`, `TongTamTinh`;
-  - Testcontainers: `UNIQUE khoa_don_vi_hieu_luc` (DBR-15), `UNIQUE (ky, nct, loai_bang)`, trigger khoản và bảng đã chốt (DBR-17), tổng gốc + điều chỉnh không âm (kiểm ở backend dưới khóa bảng chứa khoản gốc);
+  - Test tích hợp MySQL: `UNIQUE khoa_don_vi_hieu_luc` (DBR-15), `UNIQUE (ky, nct, loai_bang)`, trigger khoản và bảng đã chốt (DBR-17), tổng gốc + điều chỉnh không âm (kiểm ở backend dưới khóa bảng chứa khoản gốc);
   - test đồng thời: hai lệnh lập cùng đơn vị; chốt trong lúc lập khoản mới; hai người đại diện quyết định cùng lúc;
   - đồng hồ giả lập cho CFG-M11-01, 02, 03, 06, CFG-M15-05, 06, CFG-M02-09;
   - bản giả `SuKienTinhPhiNguon` của 011, 012, 014; `NguoiDaiDienPort`; `SoDuMuaHoPort`;

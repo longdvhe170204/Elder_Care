@@ -10,15 +10,15 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4.
 
-**Giai đoạn**: Dùng ở giai đoạn triển khai; CLAUDE.md hiện chặn `/speckit-implement`.
+**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/vn/eldercare/`, `BT/` = `backend/src/test/java/vn/eldercare/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Module M08 (phần dinh dưỡng): `BE/m08/{api,danhmuc,chedoan,doichieu,thucdon,chotsuat,phieu,phucvu,doangiadinh,xemlai,luumau,lich}/`; 019 thêm `m08.kho`
-- Web `web/src/tinh-nang/dinh-duong/{danh-muc,ban-gan,thuc-don,chot-suat,phieu,do-an-gia-dinh,luu-mau}/`; app nhân viên `app-nhan-vien/lib/tinh-nang/dinh-duong/`
+- Web `frontend/src/tinh-nang/dinh-duong/{danh-muc,ban-gan,thuc-don,chot-suat,phieu,do-an-gia-dinh,luu-mau}/`; app nhân viên `mobile/lib/nhan-vien/dinh-duong/`
 
 ---
 
@@ -59,7 +59,7 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 - [ ] T009 [US2] Tạo `MIG/V011_02__danh_muc_mon.sql`: `che_do_an` (`lien_quan_dieu_tri`; cột sinh `khoa_mac_dinh` `UNIQUE`; `mon_an_toan_id`), `che_do_an_han_che`, `mon_an` (`trang_thai` `NHAP|CHO_XAC_NHAN|HIEU_LUC|NGUNG_HIEU_LUC|DA_HUY`; `phien_ban_hieu_luc_id`; `tung_hieu_luc`), `mon_an_phien_ban` (nhóm 3 có bản chờ; `ket_cau` `THUONG|MEM|XAY_NHUYEN`), `mon_an_phien_ban_thanh_phan`, `mon_an_phien_ban_che_do` (data-model mục 3)
 - [ ] T010 [US2] Cài `BE/m08/danhmuc/internal/CheDoAnService.java`, `MonAnService.java` (tạo, gửi xác nhận, xác nhận/trả lại/rút, bản sửa, ngừng, hủy; Bác sĩ xác nhận, Nhân viên bếp lập; Q-283, Q-308), `BuaAnService.java`, `LoaiDoAnCamService.java` (research M-04)
-- [ ] T011 [US2] Tạo `BE/m08/danhmuc/web/DanhMucController.java`: `/dinh-duong/che-do-an`, `/{id}`, `/{id}/ngung-hieu-luc`, `/thanh-phan-thuc-pham`, `/mon-an`, `/{id}`, `/{id}/{lenh}`, `/bua-an`, `/{id}`, `/loai-do-an-cam`, `GET /nguoi-cao-tuoi/{nctId}/doi-chieu-mon`; màn web `web/src/tinh-nang/dinh-duong/danh-muc/`
+- [ ] T011 [US2] Tạo `BE/m08/danhmuc/web/DanhMucController.java`: `/dinh-duong/che-do-an`, `/{id}`, `/{id}/ngung-hieu-luc`, `/thanh-phan-thuc-pham`, `/mon-an`, `/{id}`, `/{id}/{lenh}`, `/bua-an`, `/{id}`, `/loai-do-an-cam`, `GET /nguoi-cao-tuoi/{nctId}/doi-chieu-mon`; màn web `frontend/src/tinh-nang/dinh-duong/danh-muc/`
 
 **Checkpoint**: Món và chế độ ăn chạy độc lập.
 
@@ -79,7 +79,7 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 - [ ] T013 [US1] Tạo bảng `ban_gan_che_do_an` (`trang_thai` `DE_XUAT|CHO_HIEU_LUC|HIEU_LUC|NGUNG|DA_HUY`; `can_cu` `DANH_GIA|XEM_LAI|KHAC`; cột sinh `khoa_cho`, `khoa_hieu_luc` `UNIQUE`; trigger), `ban_gan_han_che` trong `MIG/V011_03__ban_gan.sql`
 - [ ] T014 [US1] Cài `BE/m08/chedoan/internal/BanGanService.java` (lập, áp dụng có xác nhận cảnh báo, hủy; khóa `dinh_duong_nct`; chế độ mặc định khi không có bản gán), việc theo phút Chờ hiệu lực → Hiệu lực, bean `ThamGiaChuyenTrangThai` (`@Order` sau 006, trước 010; tác động trạng thái cuối), listener `DiUngDaGhiNhan`, `DiUngKhacDaGhiNhan`, `DiUngDaLoaiTru`; `CheDoAnApi` (research M-05)
-- [ ] T015 [US1] Tạo endpoint `/nguoi-cao-tuoi/{nctId}/ban-gan-che-do-an`, `/ban-gan-che-do-an/{id}/ap-dung`, `/huy`; màn web `web/src/tinh-nang/dinh-duong/ban-gan/`
+- [ ] T015 [US1] Tạo endpoint `/nguoi-cao-tuoi/{nctId}/ban-gan-che-do-an`, `/ban-gan-che-do-an/{id}/ap-dung`, `/huy`; màn web `frontend/src/tinh-nang/dinh-duong/ban-gan/`
 
 **Checkpoint**: Bản gán chạy độc lập.
 
@@ -100,7 +100,7 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 - [ ] T018 [US3] Tạo `MIG/V011_04__thuc_don.sql`: `thuc_don` (`trang_thai` `NHAP|CHO_CONG_BO|CONG_BO|DA_AP_DUNG|DA_HUY`; cột sinh `khoa_tuan` `UNIQUE`; `xac_nhan_che_bien` bắt buộc khi gửi), `thuc_don_mon`, `thuc_don_mon_thay_the` (sửa chỉ khi `NHAP`, trigger), `thuc_don_kiem_tra` (nhóm 3), `doi_mon` (nhóm 3) (data-model mục 5)
 - [ ] T019 [US3] Cài `BE/m08/thucdon/internal/ThucDonService.java` (lập, sao chép, kiểm tra một lần, gửi, công bố, trả lại, hủy, đổi món; hiển thị tồn kho qua `TonKhoNguyenLieuPort`; `ThucDonChungApi`; việc hằng ngày nhắc lập thực đơn và Đã áp dụng) (research M-07)
-- [ ] T020 [US3] Tạo endpoint `/thuc-don`, `/{id}`, `/{id}/truoc-khi-gui`, `/{id}/kiem-tra`, `/{id}/{lenh}`, `/{id}/doi-mon`; màn web `web/src/tinh-nang/dinh-duong/thuc-don/` (mọi lỗi hiện một lần) với test Vitest
+- [ ] T020 [US3] Tạo endpoint `/thuc-don`, `/{id}`, `/{id}/truoc-khi-gui`, `/{id}/kiem-tra`, `/{id}/{lenh}`, `/{id}/doi-mon`; màn web `frontend/src/tinh-nang/dinh-duong/thuc-don/` (mọi lỗi hiện một lần) với test Vitest
 
 **Checkpoint**: Thực đơn chạy độc lập.
 
@@ -123,7 +123,7 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 - [ ] T024 [US4] Cài `BE/m08/chotsuat/internal/ChotSuatService.java`: tính sẵn (`NguoiDuocTinh` từ trạng thái 001, vị trí 003, vắng 004, có mặt 005, `LuotOLaiAnPort`, `ChuyenDiBuaAnPort`), lệnh chốt dưới khóa `bua_ngay` (phiếu và suất đặc biệt US5 trong cùng transaction), suất giữ, món an toàn, suất ăn người thân (research M-08)
 - [ ] T025 [US4] Cài listener phát sinh trong `SuKienM08Listener.java` (`NguoiCaoTuoiDaChuyenTrangThai`, `DaChuyenGiuong`, `LuotVang*`, `NgayNghiBanTruDaDoi`, `BaoVangBanTruDaGhi`, `PhuLucDaApDung`, `TrangThaiCoMat*`, `LuotOLaiDaDoi`, `ChuyenDiDaDoi`, đổi bản gán, đổi món) và lệnh bếp xác nhận phát sinh; việc theo phút: nhắc chốt, món an toàn, suất giữ, nhắc phát sinh
 - [ ] T026 [US4] Cài `NguonCongViecPort` loại `BUA` (`kiemTra`, `xacNhanPhucVu`; bữa bỏ vì vắng → `nguonBiHuy`) và `LichBuaApi` trong `BE/m08/phucvu/internal/`
-- [ ] T027 [US4] Tạo endpoint `/bua-ngay`, `/{id}/tinh-san`, `/{id}/chot-suat`, `/{id}/phat-sinh`, `/phat-sinh/{id}/xac-nhan`, `/bua-ngay/{id}/suat-bo-sung`, `/suat-dac-biet/{id}/phuc-vu-suat-giu`, `/huy-suat-giu`, `/chi-dinh-mon`; màn web `web/src/tinh-nang/dinh-duong/chot-suat/` (tính sẵn chỉ xem, nút chốt tách riêng)
+- [ ] T027 [US4] Tạo endpoint `/bua-ngay`, `/{id}/tinh-san`, `/{id}/chot-suat`, `/{id}/phat-sinh`, `/phat-sinh/{id}/xac-nhan`, `/bua-ngay/{id}/suat-bo-sung`, `/suat-dac-biet/{id}/phuc-vu-suat-giu`, `/huy-suat-giu`, `/chi-dinh-mon`; màn web `frontend/src/tinh-nang/dinh-duong/chot-suat/` (tính sẵn chỉ xem, nút chốt tách riêng)
 
 **Checkpoint**: P1 hoàn tất.
 
@@ -143,7 +143,7 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 - [ ] T029 [US5] Tạo `MIG/V011_06__phieu.sql`: `phieu_bua_an` (`UNIQUE (bua_ngay_id, tang_khu_vuc_id)`; `trang_thai` `DA_CHOT|DA_CHUAN_BI|DA_GIAO|CO_SAI_LECH|DA_NHAN`), `suat_dac_biet`, `sai_lech_phieu` (nhóm 3; xử lý đặt một lần), `phan_bo_sung` (nhóm 3; đúng một nguồn khác `NULL`)
 - [ ] T030 [US5] Cài `BE/m08/phieu/internal/PhieuService.java` (chuẩn bị, giao, nhận, sai lệch, xử lý, phần bổ sung; DTO bếp và DTO tầng tách riêng; việc theo phút báo giao trễ một lần) (research M-09)
-- [ ] T031 [US5] Tạo endpoint `/phieu-bua-an`, `/suat-dac-biet/{id}/da-chuan-bi`, `/phieu-bua-an/{id}/{lenh}`, `/phan-bo-sung/{id}/{lenh}`; màn web `web/src/tinh-nang/dinh-duong/phieu/`, app `app-nhan-vien/lib/tinh-nang/dinh-duong/` (nhận phiếu, sai lệch, suất bổ sung)
+- [ ] T031 [US5] Tạo endpoint `/phieu-bua-an`, `/suat-dac-biet/{id}/da-chuan-bi`, `/phieu-bua-an/{id}/{lenh}`, `/phan-bo-sung/{id}/{lenh}`; màn web `frontend/src/tinh-nang/dinh-duong/phieu/`, app `mobile/lib/nhan-vien/dinh-duong/` (nhận phiếu, sai lệch, suất bổ sung)
 
 **Checkpoint**: Phiếu chạy độc lập.
 
@@ -157,7 +157,7 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 ### Tests cho User Story 6
 
-- [ ] T032 [P] [US6] Test `BT/m08/BR_M08_14_XacNhanPhucVuIT.java`, `FR_050_ChanKetQuaAnIT.java`; app `app-nhan-vien/test/xac_nhan_phuc_vu_test.dart` (chọn suất theo nhãn, khai đã ăn/chưa ăn, ngoại tuyến) (Q38 → Q41)
+- [ ] T032 [P] [US6] Test `BT/m08/BR_M08_14_XacNhanPhucVuIT.java`, `FR_050_ChanKetQuaAnIT.java`; app `mobile/test/nhan-vien/xac_nhan_phuc_vu_test.dart` (chọn suất theo nhãn, khai đã ăn/chưa ăn, ngoại tuyến) (Q38 → Q41)
 
 ### Implementation cho User Story 6
 
@@ -179,7 +179,7 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 ### Implementation cho User Story 7
 
-- [ ] T035 [US7] Tạo bảng `do_an_gia_dinh` (`trang_thai` `KHONG_SU_DUNG|CAN_XAC_NHAN|DUOC_SU_DUNG|DA_KET_THUC`) và bảng con thành phần trong `MIG/V011_08__do_an_gia_dinh.sql`; cài `BE/m08/doangiadinh/internal/DoAnGiaDinhService.java` (khóa `dinh_duong_nct`; việc theo phút hạn dùng; listener dị ứng mới) và endpoint `/nguoi-cao-tuoi/{nctId}/do-an-gia-dinh`, `/do-an-gia-dinh/{id}/{lenh}`; màn web `web/src/tinh-nang/dinh-duong/do-an-gia-dinh/`, app phần đồ ăn gia đình (research M-11)
+- [ ] T035 [US7] Tạo bảng `do_an_gia_dinh` (`trang_thai` `KHONG_SU_DUNG|CAN_XAC_NHAN|DUOC_SU_DUNG|DA_KET_THUC`) và bảng con thành phần trong `MIG/V011_08__do_an_gia_dinh.sql`; cài `BE/m08/doangiadinh/internal/DoAnGiaDinhService.java` (khóa `dinh_duong_nct`; việc theo phút hạn dùng; listener dị ứng mới) và endpoint `/nguoi-cao-tuoi/{nctId}/do-an-gia-dinh`, `/do-an-gia-dinh/{id}/{lenh}`; màn web `frontend/src/tinh-nang/dinh-duong/do-an-gia-dinh/`, app phần đồ ăn gia đình (research M-11)
 
 **Checkpoint**: Đồ ăn gia đình chạy độc lập.
 
@@ -215,7 +215,7 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 ### Implementation cho User Story 9
 
-- [ ] T039 [US9] Tạo bảng `luu_mau` (nhóm 3; `bua_ngay_id UNIQUE`; `het_han_luu`; hủy đặt một lần), `luu_mau_mon` trong `MIG/V011_10__luu_mau.sql`; cài `BE/m08/luumau/internal/LuuMauService.java` (`DinhChinhDuocProvider` `M08.LUU_MAU`; nhắc hủy mẫu) và endpoint `POST /bua-ngay/{id}/luu-mau`, `/luu-mau/{id}/huy-mau`; màn web `web/src/tinh-nang/dinh-duong/luu-mau/`
+- [ ] T039 [US9] Tạo bảng `luu_mau` (nhóm 3; `bua_ngay_id UNIQUE`; `het_han_luu`; hủy đặt một lần), `luu_mau_mon` trong `MIG/V011_10__luu_mau.sql`; cài `BE/m08/luumau/internal/LuuMauService.java` (`DinhChinhDuocProvider` `M08.LUU_MAU`; nhắc hủy mẫu) và endpoint `POST /bua-ngay/{id}/luu-mau`, `/luu-mau/{id}/huy-mau`; màn web `frontend/src/tinh-nang/dinh-duong/luu-mau/`
 
 **Checkpoint**: Mọi user story của 011 chạy độc lập.
 

@@ -20,7 +20,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307) và FR-001 của spec: 016 khô
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS (virtual threads cho truy vấn song song); TypeScript 5.x (000 R-01). Không có màn trên app di động (spec không yêu cầu).
+**Language/Version**: Java 25 (virtual threads cho truy vấn song song); TypeScript 5.x (000 R-01). Không có màn trên app di động (spec không yêu cầu).
 
 **Primary Dependencies**: Như 000 → 019; fastexcel (đã chọn ở 010) cho XLSX. Biểu đồ trên web dùng thư viện biểu đồ của web client (chọn ở giai đoạn triển khai, không ảnh hưởng hợp đồng).
 
@@ -102,7 +102,7 @@ specs/016-reports-dashboard/
 Cấu trúc dự kiến cho giai đoạn triển khai; giai đoạn thiết kế không tạo (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m14/
+backend/src/main/java/com/cambae/backend/m14/
 ├── chitieu/     # ChiTieu, hàm tính, hàm chi tiết
 ├── phamvi/      # PhamViBaoCao, QuyenNhomChiTieu
 ├── dashboard/   {internal, web}
@@ -110,7 +110,7 @@ backend/src/main/java/vn/eldercare/m14/
 ├── chitiet/     {internal, web}
 └── xuat/        {internal, web}
 
-web/src/tinh-nang/bao-cao/
+frontend/src/tinh-nang/bao-cao/
 ├── dashboard/  ├── nguoi-cao-tuoi/  ├── cham-soc/  ├── chat-luong/  ├── suc-khoe-thuoc/  ├── chi-phi/  ├── nhan-su-ca/  └── chi-tiet/
 ```
 

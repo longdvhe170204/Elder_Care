@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Các q
 
 ## A-01. Vị trí trong backend
 
-**Quyết định**: Feature 002 nằm ở module M15, gói `vn.eldercare.m15.taikhoan`, chia bốn gói con:
+**Quyết định**: Feature 002 nằm ở module M15, gói `com.cambae.backend.m15.taikhoan`, chia bốn gói con:
 
 | Gói con | Nội dung |
 | --- | --- |

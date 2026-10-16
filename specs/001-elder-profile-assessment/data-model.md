@@ -4,7 +4,7 @@
 
 Tài liệu mô tả bảng, trường, ràng buộc và cách bảo đảm từng quy tắc. Đây không phải script SQL; migration được viết ở giai đoạn triển khai. Quy ước kiểu dữ liệu, nhóm dữ liệu và bảo đảm ở cơ sở dữ liệu theo [../000-shared-foundation/data-model.md](../000-shared-foundation/data-model.md) mục 1.
 
-Mọi bảng thuộc module M01 (`vn.eldercare.m01`), trừ bảng `tep` thuộc `common` (research H-13). Module khác không đọc các bảng này, chỉ gọi giao diện ở [contracts/module-interfaces.md](contracts/module-interfaces.md). Tham chiếu tới người thân (012), sự cố (007), lượt vắng (004), yêu cầu phê duyệt (000) là định danh logic, không có khóa ngoại chéo module (constitution X).
+Mọi bảng thuộc module M01 (`com.cambae.backend.m01`), trừ bảng `tep` thuộc `common` (research H-13). Module khác không đọc các bảng này, chỉ gọi giao diện ở [contracts/module-interfaces.md](contracts/module-interfaces.md). Tham chiếu tới người thân (012), sự cố (007), lượt vắng (004), yêu cầu phê duyệt (000) là định danh logic, không có khóa ngoại chéo module (constitution X).
 
 ---
 

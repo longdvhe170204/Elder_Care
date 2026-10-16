@@ -1,3 +1,18 @@
+<!--
+Sync Impact Report (2026-10-16)
+- Phiên bản: 2.1.0 → 3.0.0 (MAJOR: định nghĩa lại nguyên tắc X, số client từ ba thành hai).
+- Nguyên tắc sửa:
+  - X. Kiến trúc: hai client (web React với TypeScript; một app Flutter chung cho nhân viên và người thân, Q-346);
+    phiên bản mặc định Java 25, Spring Boot 4.x, MySQL 8.0 theo môi trường của chủ dự án; tên định danh trong mã bằng tiếng Anh.
+  - XIV. Ngoại tuyến và thông báo: "hai app nhận thông báo đẩy" thành "app di động nhận thông báo đẩy".
+- Mục thêm, bỏ: không.
+- Cần cập nhật theo:
+  - ✅ specs/000-shared-foundation/research.md (R-01, R-02, R-03, R-14), plan.md (Technical Context, Project Structure).
+  - ✅ đường dẫn client trong specs/*/plan.md, tasks.md (web/ → frontend/, app-nhan-vien/, app-nguoi-than/ → mobile/).
+  - ✅ CLAUDE.md.
+  - ⚠ specs/*/contracts/api-*.yaml, data-model.md: tên vẫn là tên logic tiếng Việt; dịch theo bảng thuật ngữ khi triển khai từng feature (research R-03).
+-->
+
 # Hệ thống quản lý viện dưỡng lão – Constitution
 
 ## Core Principles
@@ -82,16 +97,18 @@ Lý do: thiết kế dựa trên nghiệp vụ đã chốt; viết mã khi thi�
 ### X. Kiến trúc
 
 - Hệ thống MUST gồm một backend Spring Boot cung cấp RESTful API (JSON, có phiên bản, tiền tố
-  `/api/v1`) và ba client dùng chung API đó:
-  - web React: mọi chức năng, gồm quản trị và cổng người thân trên trình duyệt;
-  - app Flutter nhân viên;
-  - app Flutter người thân (Q-305).
+  `/api/v1`) và hai client dùng chung API đó:
+  - web React với TypeScript: mọi chức năng, gồm quản trị và cổng người thân trên trình duyệt;
+  - một app Flutter chung cho nhân viên và người thân, chức năng theo loại tài khoản (Q-305, Q-346).
 - Cơ sở dữ liệu MUST là MySQL.
 - Backend MUST là một khối (không tách microservice), chia gói theo module nghiệp vụ M01–M15 của
   `docs/business/nghiep-vu.md`; module gọi nhau qua giao diện của module, không truy cập trực tiếp dữ liệu
   của module khác.
-- Phiên bản cụ thể (mặc định Java 21 LTS, Spring Boot 3.x, MySQL 8.x, React với TypeScript, Flutter
+- Phiên bản cụ thể (mặc định Java 25, Spring Boot 4.x, MySQL 8.0, React với TypeScript, Flutter
   bản stable) MUST được ghi ở plan.
+- Tên định danh trong mã (gói, lớp, hàm, biến, file mã, bảng, cột, đường dẫn API, trường JSON, mã lỗi)
+  MUST bằng tiếng Anh, dịch từ tên logic tiếng Việt của plan, data-model, contracts theo một bảng
+  thuật ngữ chung; mã nghiệp vụ (BR, FR, CFG, Q, UC…) giữ nguyên.
 - Plan MUST nêu cách đáp ứng từng yêu cầu phi chức năng ở mục 22 `docs/business/nghiep-vu.md` (NFR) mà
   feature chịu ảnh hưởng, gồm hiệu năng, thiết bị, thời gian.
 
@@ -135,7 +152,7 @@ Lý do: viện đổi tham số qua màn hình cấu hình mà không cần sử
 - App nhân viên MUST ghi tạm khi mất kết nối và đồng bộ sau theo Q-01, BR-M15-20, CFG-M15-08;
   thao tác khẩn cấp MUST bắt buộc trực tuyến.
 - Mọi thông báo MUST đi qua dịch vụ thông báo chung (spec 009) với mức do module nguồn nêu;
-  hai app nhận thông báo đẩy (Q-305).
+  app di động nhận thông báo đẩy (Q-305, Q-346).
 
 Lý do: chăm sóc tại giường không được dừng vì mất mạng; thông báo phân tán thì không kiểm soát được
 mức và người nhận.
@@ -177,4 +194,4 @@ Lý do: giữ chuỗi truy vết từ quy tắc tới mã (I) và nghiệm thu �
   kể; PATCH khi làm rõ câu chữ.
 - Mỗi lần clarify, checklist, plan hoặc analyze MUST kiểm tra theo constitution hiện hành.
 
-**Version**: 2.1.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-06
+**Version**: 3.0.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-16

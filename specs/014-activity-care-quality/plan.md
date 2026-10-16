@@ -27,16 +27,16 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
 **Primary Dependencies**: Như 000 → 013. Không thêm thư viện.
 
-**Storage**: MySQL 8.4 LTS. Bảng ở [data-model.md](data-model.md), cùng schema M04 với 005.
+**Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md), cùng schema M04 với 005.
 
 **Testing**:
 - Như 000 R-14.
 - Test bảng cho tám hàm thuần (research L-15); 30 kịch bản cô lập (SC-007); bộ 4 tuần tạo buổi (SC-001).
-- Testcontainers cho `UNIQUE` buổi, danh sách, mục, sở thích; trigger nhóm 3.
+- Test tích hợp MySQL cho `UNIQUE` buổi, danh sách, mục, sở thích; trigger nhóm 3.
 - Test đồng thời: hai đăng ký chỗ cuối; rời viện từ hai thiết bị; hai lệnh Báo thiếu người.
 - Đồng hồ giả lập cho CFG-M04-06, 07, 10, 11, 13, CFG-M09-04, nửa đêm.
 - Bản giả `LichXeApi`, `LichXeLenhApi` (019), `MangThuocChuyenDiApi`, `SuCoLenhApi`.
@@ -46,7 +46,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - App nhân viên: điểm danh buổi (ngoại tuyến), rời viện/về (ngoại tuyến), Báo thiếu người (trực tuyến), danh sách chuyến, kiểm tra chất lượng tại tầng.
 - App người thân: buổi, chuyến, số buổi tham gia; ghi/rút đồng ý về muộn.
 
-**Project Type**: Web service (REST `/api/v1`), một web client và hai mobile client.
+**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung (Q-346).
 
 **Performance Goals**:
 - Cảnh báo thiếu người ≤ 1 phút sau lệnh (SC-006): outbox ngay sau commit.
@@ -131,7 +131,7 @@ specs/014-activity-care-quality/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m04/
+backend/src/main/java/com/cambae/backend/m04/
 ├── api/           # (bổ sung) ChuyenDiNhiemVuLenhApi, ChuyenDiThayDoi, HoatDongThongKeApi
 ├── hoatdong/      {internal, web}   # loại, hoạt động, mẫu, người thường xuyên, BuoiTheoMau, lich/
 ├── buoi/          {internal, web}   # buổi, đăng ký, DieuKienDangKy, đồng ý về muộn, điểm danh
@@ -139,11 +139,11 @@ backend/src/main/java/vn/eldercare/m04/
 ├── tinhthan/      {internal, web}   # sở thích, hồ sơ tinh thần, NgayTinh, chuỗi cô lập
 └── kiemtra/       {internal, web}   # danh sách, mục, CongViecDuDieuKien, NguoiKiemTra
 
-web/src/tinh-nang/hoat-dong/
+frontend/src/tinh-nang/hoat-dong/
 ├── danh-muc/  ├── buoi/  ├── chuyen-di/  ├── tinh-than/  ├── kiem-tra-chat-luong/  └── cong-nguoi-than/hoat-dong/
 
-app-nhan-vien/lib/tinh-nang/hoat-dong/   # điểm danh, chuyến đi, kiểm tra tại tầng
-app-nguoi-than/lib/tinh-nang/hoat-dong/  # buổi, chuyến, đồng ý về muộn
+mobile/lib/nhan-vien/hoat-dong/   # điểm danh, chuyến đi, kiểm tra tại tầng
+mobile/lib/nguoi-than/hoat-dong/  # buổi, chuyến, đồng ý về muộn
 ```
 
 **Structure Decision**: Theo R-02 của 000 và quyết định của plan 005: 014 thêm năm gói con vào `backend/…/m04`.

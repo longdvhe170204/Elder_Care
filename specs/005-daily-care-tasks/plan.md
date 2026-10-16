@@ -31,16 +31,16 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
-**Primary Dependencies**: Như 000 → 004: Spring Boot 3.5.x, Spring Modulith 1.4.x, Flyway 11.x, springdoc-openapi 2.8.x, ShedLock, Spring Security 6.5. Web: React 19, TanStack Query. App nhân viên: Flutter, drift (hàng đợi ngoại tuyến, 000 R-13). Không thêm thư viện mới.
+**Primary Dependencies**: Như 000 → 004: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7. Web: React 19, TanStack Query. App nhân viên: Flutter, drift (hàng đợi ngoại tuyến, 000 R-13). Không thêm thư viện mới.
 
-**Storage**: MySQL 8.4 LTS. Bảng ở [data-model.md](data-model.md).
+**Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md).
 
 **Testing**:
 - Như 000 R-14.
 - Test đơn vị dạng bảng cho tám hàm thuần: chuỗi thời điểm của mục, kiểm tra lập công việc, bảng chuyển công việc, xác định trạng thái đóng và nhãn ghi muộn, nước uống, chuỗi bữa kém, chuỗi ngày tâm trạng, so sánh phiên bản.
-- Testcontainers cho trigger, cột sinh.
+- Test tích hợp MySQL cho trigger, cột sinh.
 - Test đồng thời: hai lần ghi một công việc; ghi nhận và job Quá hạn; hai lô lập trùng.
 - Đồng hồ giả lập cho mọi CFG-M04, gồm chạy bù.
 - Bản giả cho mọi SPI 005 khai báo (research C-17).
@@ -50,7 +50,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - App nhân viên: checklist, ghi nhận (có ngoại tuyến), Ghi nhận phát sinh, nhận việc, điểm danh bán trú (trực tuyến), xem kế hoạch Hiệu lực, lập công việc của ca và xử lý quá hạn cho Người phụ trách ca, Trưởng tầng.
 - App người thân: không có màn của 005 (người thân không xem kế hoạch, FR-007).
 
-**Project Type**: Web service (REST `/api/v1`), một web client và hai mobile client.
+**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung (Q-346).
 
 **Performance Goals**:
 - Mở checklist ≤ 3 giây (SC-008, NFR-02): một truy vấn có chỉ mục theo ca và người, vị trí và lưu ý lấy theo lô.
@@ -88,7 +88,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ. Mức các thông báo spec chưa nêu: plan áp nguyên tắc 3 bậc và báo lại (điểm 4). BR-M04-07 lệch BR-M09-06: plan theo spec FR-046 và BR-M09-06 (điểm 1) |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-012 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Không sửa hợp đồng của 000 → 004 |
-| X. Kiến trúc | Đạt | Một khối; gói `m04`; module khác chỉ dùng `m04.api`. Không có vòng phụ thuộc (C-02). REST `/api/v1`; MySQL; ba client. NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `m04`; module khác chỉ dùng `m04.api`. Không có vòng phụ thuộc (C-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Kiểm tra lập, quyền ghi, bảng chuyển, quy tắc mục F ở backend. Mỗi lệnh có `POST …/{id}/<lenh>` riêng; lệnh trạng thái người cao tuổi dùng endpoint của 001 |
 | XII. Dữ liệu | Đạt | DBR-11, DBR-12 bằng cột sinh `UNIQUE` và khóa; nhóm 3 theo mẫu 000; nhật ký trong transaction; `Clock`; `thoi_diem_thiet_bi` cho ngoại tuyến (DBR-25) |
 | XIII. Tham số | Đạt | Như V. Đổi CFG-M04-03 trong ngày áp từ lần kiểm tra kế tiếp |
@@ -142,7 +142,7 @@ specs/005-daily-care-tasks/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m04/
+backend/src/main/java/com/cambae/backend/m04/
 ├── api/           # KeHoachChamSocApi, CoMatBanTruApi, CongViecCaApi, CongViecBanGiaoApi, NguonCongViecApi,
 │                  # CongViecVangMatApi, CongViecDoChiSoApi, CongViecThongKeApi, ThoiKhoaBieuApi,
 │                  # SPI 005 khai báo (NhanSuCaPort, NguonCongViecPort, ChiSoPort, LieuThuocChecklistPort,
@@ -159,7 +159,7 @@ backend/src/main/java/vn/eldercare/m04/
 ├── trangthai/     {internal}        # bean ThamGiaChuyenTrangThai; cài TrangThaiCoMatBanTruPort
 └── lich/                            # ViecTheoPhutM04, ViecHangNgayM04
 
-web/src/tinh-nang/
+frontend/src/tinh-nang/
 ├── ke-hoach-cham-soc/       # phiên bản, mục, duyệt, so sánh
 ├── lap-cong-viec-ca/        # dữ liệu nguồn, nhập lô, lỗi theo dòng
 ├── checklist/               # checklist web, ghi nhận
@@ -168,7 +168,7 @@ web/src/tinh-nang/
 ├── loai-cong-viec/
 └── thoi-khoa-bieu/
 
-app-nhan-vien/lib/tinh-nang/
+mobile/lib/nhan-vien/
 ├── checklist/               # tải, lưu ngoại tuyến, dấu "chưa cập nhật"
 ├── ghi-nhan/                # theo loại kết quả, Ghi nhận phát sinh, bản ghi bị từ chối
 ├── dong-bo/                 # kết quả đồng bộ từng bản ghi (BR-M15-20)

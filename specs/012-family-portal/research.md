@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## F-01. Vị trí trong backend
 
-**Quyết định**: Feature 012 là module M10 – Người thân (mục 14), gói `vn.eldercare.m10`.
+**Quyết định**: Feature 012 là module M10 – Người thân (mục 14), gói `com.cambae.backend.m10`.
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -215,7 +215,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 - **Kiểm thử**:
   - test bảng `QuyenCoTacDung`, `KiemTraDbr02`, `KiemTraYeuCau`, `KiemTraDangKyTham`, `SoDem`, hàm hạn phản hồi, hàm người duyệt bản tin;
   - SC-001: bộ 100 lượt đón; SC-008: bộ 30 ngày ở lại so tính tay; SC-010: kiểm bất biến DBR-02 sau mọi kịch bản;
-  - Testcontainers: `UNIQUE` liên hệ chính, yêu cầu chờ, bản tin mỗi kỳ, đêm ở lại, một lần dùng bản ghi đón; trigger nhóm 3;
+  - Test tích hợp MySQL: `UNIQUE` liên hệ chính, yêu cầu chờ, bản tin mỗi kỳ, đêm ở lại, một lần dùng bản ghi đón; trigger nhóm 3;
   - test đồng thời: 20 đăng ký cho chỗ cuối; hai người đại diện xác nhận cùng lúc; yêu cầu bỏ người đón cùng lúc với ghi đón;
   - đồng hồ giả lập cho CFG-M10-01 → 12, CFG-M01-04;
   - bản giả `HoatDongBanTinPort` và API của 005, 006, 007, 010, 011.

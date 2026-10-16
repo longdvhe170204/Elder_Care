@@ -26,16 +26,16 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x (000 R-01). Không có màn trên app di động ở giai đoạn này (kho, tài sản trên web; Trưởng tầng báo hỏng qua web).
+**Language/Version**: Java 25; TypeScript 5.x (000 R-01). Không có màn trên app di động ở giai đoạn này (kho, tài sản trên web; Trưởng tầng báo hỏng qua web).
 
 **Primary Dependencies**: Như 000 → 018. Không thêm thư viện.
 
-**Storage**: MySQL 8.4 LTS, schema M03, M08, M11. Bảng ở [data-model.md](data-model.md).
+**Storage**: MySQL 8.0, schema M03, M08, M11. Bảng ở [data-model.md](data-model.md).
 
 **Testing**:
 - Như 000 R-14.
 - Test bảng cho năm hàm thuần (research W-09); bộ 200 phiếu (SC-001).
-- Testcontainers cho `CHECK ton >= 0`, `UNIQUE` (lô, nguồn gắn, giường ↔ tài sản, vị trí mở, kiểm kê chờ), trigger nhóm 3.
+- Test tích hợp MySQL cho `CHECK ton >= 0`, `UNIQUE` (lô, nguồn gắn, giường ↔ tài sản, vị trí mở, kiểm kê chờ), trigger nhóm 3.
 - Test đồng thời: hai phiếu xuất chỗ cuối; hai lịch xe cùng giờ; báo hỏng cùng lúc với phân bổ.
 - Đồng hồ giả lập cho CFG-M03-02, 09, CFG-M08-08, 09, CFG-M11-07 → 09.
 
@@ -116,7 +116,7 @@ specs/019-inventory-assets/
 Cấu trúc dự kiến cho giai đoạn triển khai; giai đoạn thiết kế không tạo (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/
+backend/src/main/java/com/cambae/backend/
 ├── m08/kho/        {internal, web, lich}   # nguyên liệu, lô, phiếu, ThuTuLoTheoHan, kiểm kê, TonKhoNguyenLieuPort
 ├── m08/api/        # (bổ sung) KhoThongKeApi
 ├── m11/muasam/     {internal, web, lich}   # yêu cầu mua sắm, gắn nguồn, KiemTraVuot, KhopChungTu, YeuCauMuaSamPort (cài)
@@ -125,7 +125,7 @@ backend/src/main/java/vn/eldercare/
 ├── m03/lichxe/     {internal, web, lich}   # lịch xe, KiemTraDatLich, LichXeApi, LichXeLenhApi
 └── m03/api/        # (bổ sung) YeuCauMuaSamPort (SPI), LichXeApi, LichXeLenhApi, TaiSanThongKeApi
 
-web/src/tinh-nang/kho/  web/src/tinh-nang/mua-sam/  web/src/tinh-nang/tai-san/  web/src/tinh-nang/lich-xe/
+frontend/src/tinh-nang/kho/  frontend/src/tinh-nang/mua-sam/  frontend/src/tinh-nang/tai-san/  frontend/src/tinh-nang/lich-xe/
 ```
 
 **Structure Decision**: Theo R-02 của 000, 003 G-01, 010 P-01, 011 M-01.

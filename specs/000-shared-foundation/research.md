@@ -12,29 +12,32 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Đây 
 
 | Thành phần | Phiên bản | Ghi chú |
 | --- | --- | --- |
-| Java | 21 LTS | Theo constitution X |
-| Spring Boot | 3.5.x (bản vá mới nhất của nhánh 3.5) | Spring Framework 6.2, Hibernate 6.6 |
-| Spring Modulith | 1.4.x | Kiểm tra ranh giới module, sự kiện có lưu trữ (R-09) |
-| MySQL | 8.4 LTS | InnoDB, `utf8mb4_0900_ai_ci` |
-| Flyway | 11.x | Migration cơ sở dữ liệu (sinh ở giai đoạn triển khai) |
-| springdoc-openapi | 2.8.x | Sinh OpenAPI 3.1 từ mã để đối chiếu với `contracts/` |
-| JUnit 5, AssertJ, Testcontainers (MySQL 8.4), ArchUnit | Bản hiện hành | Kiểm thử backend |
-| React | 19.x, TypeScript 5.x, Vite | Web |
+| Java | 25 | Theo constitution X (3.0.0); JDK cài trên máy chủ dự án |
+| Spring Boot | 4.1.x (dự án khởi tạo ở 4.1.1) | Spring Framework 7, Hibernate 7; phiên bản thư viện con do Spring Boot quản lý |
+| Spring Modulith | 2.x (bản tương thích Spring Boot 4.1) | Kiểm tra ranh giới module, sự kiện có lưu trữ (R-09) |
+| MySQL | 8.0 (bản cài trên máy) | InnoDB, `utf8mb4_0900_ai_ci` |
+| Flyway | Bản do Spring Boot 4.1 quản lý (`spring-boot-starter-flyway`, `flyway-mysql`) | Migration cơ sở dữ liệu |
+| springdoc-openapi | 3.x (dòng cho Spring Boot 4) | Sinh OpenAPI 3.1 từ mã để đối chiếu với `contracts/` |
+| JUnit 5, AssertJ, ArchUnit | Bản hiện hành | Kiểm thử backend; Testcontainers hoãn tới khi có Docker (R-14) |
+| Lombok | Bản do Spring Boot quản lý | Có sẵn trong dự án khởi tạo; chỉ dùng `@Getter`, constructor, `@Builder`; không dùng `@Data`, `@Setter` trên entity nhóm 2, 3 (R-05) |
+| React | 19.x, TypeScript 5.x, Vite | Web (`frontend/`) |
 | TanStack Query, React Router | Bản hiện hành | Gọi API, điều hướng |
-| Flutter | Kênh stable 3.x, Dart 3.x | Hai app |
-| drift (SQLite) | Bản hiện hành | Hàng đợi ngoại tuyến của app nhân viên (R-13) |
+| Flutter | Kênh stable 3.x, Dart 3.x | Một app chung (`mobile/`, Q-346) |
+| drift (SQLite) | Bản hiện hành | Hàng đợi ngoại tuyến của phần nhân viên (R-13) |
 
-**Lý do**: Constitution X đặt mặc định. Spring Boot 3.5 là nhánh 3.x mới nhất còn được hỗ trợ ở thời điểm thiết kế. MySQL 8.4 là bản LTS của dòng 8.x.
+**Lý do**: Constitution X (3.0.0) đặt mặc định theo môi trường đã cài trên máy của chủ dự án (sửa 2026-10-16): JDK 25, MySQL 8.0, dự án khởi tạo bằng Spring Boot 4.1.1.
 
-**Phương án đã cân nhắc**: Spring Boot 4.x bị loại vì constitution chốt 3.x. MySQL 8.0 bị loại vì đã hết hỗ trợ.
+**Rủi ro đã biết**: MySQL 8.0 đã hết hỗ trợ của Oracle từ 04/2026 (không còn bản vá bảo mật). Trước khi vận hành MUST nâng lên 8.4 LTS rồi chạy lại toàn bộ test tích hợp; để việc nâng không phải sửa lược đồ, migration chỉ dùng cú pháp có ở cả 8.0 và 8.4 (không dùng tính năng đã bỏ ở 8.4 như `mysql_native_password` cho tài khoản mới, `utf8mb3`). Testcontainers chưa dùng nên test tích hợp phụ thuộc MySQL cài trên máy (R-14).
+
+**Phương án đã cân nhắc**: Spring Boot 3.5 với Java 21 và MySQL 8.4 (bản thiết kế 2026-10-06): bỏ ngày 2026-10-16 để dùng đúng môi trường đã cài.
 
 ---
 
 ## R-02. Cấu trúc kho mã và gói backend
 
-**Quyết định**: Một kho mã có bốn thư mục gốc: `backend/`, `web/`, `app-nhan-vien/`, `app-nguoi-than/`. Backend là một ứng dụng Spring Boot. Mỗi module M01–M15 là một gói con trực tiếp của `vn.eldercare` (`m01` … `m15`) và được Spring Modulith coi là một application module. Mỗi module chỉ công khai gói `api` (giao diện, DTO, sự kiện), phần còn lại là nội bộ.
+**Quyết định**: Một kho mã có ba thư mục gốc: `backend/`, `frontend/` (web), `mobile/` (một app Flutter chung, Q-346; phần nhân viên và phần người thân là hai nhánh `lib/` theo loại tài khoản). Tên gói, thư mục con, file mã bằng tiếng Anh theo R-03 và bảng thuật ngữ [glossary.md](glossary.md); tên tiếng Việt trong plan, tasks là tên logic. Backend là một ứng dụng Spring Boot. Mỗi module M01–M15 là một gói con trực tiếp của `com.cambae.backend` (`m01` … `m15`) và được Spring Modulith coi là một application module. Mỗi module chỉ công khai gói `api` (giao diện, DTO, sự kiện), phần còn lại là nội bộ.
 
-Feature 000 nằm trong **M15 – Quản trị hệ thống**, vì tham số (BR-M15-04), nhật ký (19.4, BR-M15-11 → 13) và quy tắc nền (BR-M15-06 → 10) đều thuộc M15. Năm gói con: `m15.thamso`, `m15.nhatky`, `m15.pheduyet`, `m15.dinhchinh`, `m15.luutru`. Thêm một gói kỹ thuật `vn.eldercare.common`: đồng hồ, mô hình lỗi, kiểu cơ sở, chú thích phân nhóm dữ liệu. Gói này không chứa dữ liệu nghiệp vụ và không phải module nghiệp vụ.
+Feature 000 nằm trong **M15 – Quản trị hệ thống**, vì tham số (BR-M15-04), nhật ký (19.4, BR-M15-11 → 13) và quy tắc nền (BR-M15-06 → 10) đều thuộc M15. Năm gói con: `m15.thamso`, `m15.nhatky`, `m15.pheduyet`, `m15.dinhchinh`, `m15.luutru`. Thêm một gói kỹ thuật `com.cambae.backend.common`: đồng hồ, mô hình lỗi, kiểu cơ sở, chú thích phân nhóm dữ liệu. Gói này không chứa dữ liệu nghiệp vụ và không phải module nghiệp vụ.
 
 **Lý do**: Constitution X yêu cầu một khối chia gói theo M01–M15 và chặn truy cập chéo dữ liệu. `ApplicationModules.verify()` của Spring Modulith và ArchUnit kiểm tra điều này tự động trong bộ test.
 
@@ -47,7 +50,11 @@ Feature 000 nằm trong **M15 – Quản trị hệ thống**, vì tham số (BR
 ## R-03. Quy ước API
 
 **Quyết định**:
-- Tiền tố `/api/v1`. Đường dẫn là tiếng Việt không dấu, nối bằng gạch ngang, ví dụ `/api/v1/yeu-cau-phe-duyet/{id}/duyet`. Tên trường JSON là camelCase không dấu (`lyDo`, `ngayHieuLucMongMuon`).
+- **Tên tiếng Anh (sửa 2026-10-16, constitution X 3.0.0)**: mọi tên định danh trong mã bằng tiếng Anh: gói, lớp, hàm, biến, file và thư mục mã, bảng, cột, giá trị enum lưu xuống cơ sở dữ liệu, đường dẫn API, trường JSON, `maLoi` (đặt tên trường là `errorCode`). Mã nghiệp vụ (BR-, FR-, CFG-, Q-, UC-, DBR-) giữ nguyên.
+  - Tên trong plan, data-model, contracts, tasks (`tai_khoan`, `YeuCauPheDuyetController`, `/yeu-cau-phe-duyet/{id}/duyet`, `lyDo`) là **tên logic**; khi viết mã dịch theo bảng thuật ngữ [glossary.md](glossary.md). Một thuật ngữ chỉ có một bản dịch; thuật ngữ chưa có thì thêm vào bảng trong cùng thay đổi với mã.
+  - Mỗi feature, trước khi viết mã: dịch `contracts/api-NNN.yaml` sang tên tiếng Anh theo bảng thuật ngữ (test hợp đồng so springdoc với file này) và bổ sung bảng thuật ngữ cho các bảng, lớp của feature. Không đổi nghĩa, không thêm bớt endpoint hay trường.
+  - Tên lớp test vẫn gắn mã quy tắc (R-14), phần mô tả bằng tiếng Anh, ví dụ `BR_M15_09_noApproverLeft_notifiesDirectorAtReminderTime`.
+- Tiền tố `/api/v1`. Đường dẫn tiếng Anh, chữ thường, nối bằng gạch ngang, ví dụ tên logic `/api/v1/yeu-cau-phe-duyet/{id}/duyet` thành `/api/v1/approval-requests/{id}/approve`. Tên trường JSON là camelCase tiếng Anh (`lyDo` thành `reason`).
 - Nhóm 2: chỉ có `POST .../{id}/<lenh>` cho từng lệnh nghiệp vụ, không có `PUT`/`PATCH` lên trạng thái (constitution XI). Nhóm 3: chỉ có `POST` tạo và `POST .../{id}/dinh-chinh`. Nhóm 1: `POST`, `PUT`, `POST .../ngung-hieu-luc`, `POST .../kich-hoat-lai`, và `DELETE` khi chưa được tham chiếu.
 - Chống ghi đè: mọi tài nguyên sửa được đều trả `ETag` (số phiên bản). Lệnh sửa bắt buộc `If-Match`. Sai phiên bản thì trả `412 Precondition Failed` kèm giá trị hiện hành (FR-021, FR-040).
 - Lỗi theo RFC 9457 (`application/problem+json`) và thêm các trường:
@@ -102,7 +109,8 @@ Feature 000 nằm trong **M15 – Quản trị hệ thống**, vì tham số (BR
    - mỗi entity mang chú thích `@NhomDuLieu(DANH_MUC | NGHIEP_VU | GHI_NHAN)`;
    - repository của nhóm 3 kế thừa `ChiThemRepository`, chỉ có `them(...)` và các hàm đọc, không có `save` cho bản ghi đã có hay `delete`;
    - entity nhóm 3 đánh dấu `@Immutable` (Hibernate) sau khi xác nhận;
-   - ArchUnit kiểm tra mọi entity có đúng một chú thích nhóm (FR-001) và nhóm 2, 3 không có setter trạng thái công khai.
+   - ArchUnit kiểm tra mọi entity có đúng một chú thích nhóm (FR-001) và nhóm 2, 3 không có setter trạng thái công khai;
+   - vì vậy entity nhóm 2, 3 không dùng Lombok `@Data` hay `@Setter` (sinh setter công khai); trạng thái chỉ đổi qua phương thức lệnh nghiệp vụ. Entity nhóm 1 được dùng `@Setter`.
 2. **API**: không có endpoint sửa hay xóa cho nhóm 2, 3 (R-03).
 3. **Cơ sở dữ liệu**:
    - backend chạy bằng tài khoản `eldercare_app`. Tài khoản này chỉ có `SELECT, INSERT` trên các bảng nhóm 3 không có bản nháp (`nhat_ky`, `dinh_chinh`, `lich_su_tham_so`) và không có `DELETE` trên mọi bảng nhóm 3;
@@ -336,9 +344,10 @@ Hàng đợi trên thiết bị dùng drift (SQLite) trong app nhân viên. Quy 
 **Quyết định**:
 - **Backend**:
   - test đơn vị cho máy trạng thái, chọn cách đính chính, kiểm tra tham số;
-  - test tích hợp với Testcontainers MySQL 8.4 thật, có trigger, tài khoản `eldercare_app` và `eldercare_luu_tru`, để chứng minh SC-002 ở tầng cơ sở dữ liệu;
+  - test tích hợp chạy trên MySQL thật, có trigger, tài khoản `eldercare_app` và `eldercare_luu_tru`, để chứng minh SC-002 ở tầng cơ sở dữ liệu. Từ 2026-10-16 (chưa dùng Docker): dùng MySQL 8.0 cài trên máy, schema riêng cho test (mặc định `eldercare_test`, không dùng chung với schema chạy demo); địa chỉ, tài khoản quản trị đọc từ biến môi trường `TEST_DB_URL`, `TEST_DB_ADMIN_USER`, `TEST_DB_ADMIN_PASSWORD`, không ghi mật khẩu vào kho mã. Lớp cơ sở test xóa và tạo lại schema, tạo hai tài khoản trên rồi chạy Flyway. Khi có Docker thì đổi lớp cơ sở sang Testcontainers, không đổi test;
   - test kiến trúc bằng `ApplicationModules.verify()` và ArchUnit.
-- **Đặt tên test**: `BR_M15_09_khongConNguoiDuyet_baoQuanLyVienNgayMocNhac`, hoặc theo FR khi FR không có mã BR (`FR_037_apDungLap_khongTaoTacDongThuHai`). Mỗi kịch bản Given/When/Then của spec 000 có một test. Bảng truy vết nằm ở [quickstart.md](quickstart.md).
+  - Không thay MySQL bằng H2 hay cơ sở dữ liệu nhúng.
+- **Đặt tên test**: `BR_M15_09_noApproverLeft_notifiesDirectorAtReminderTime`, hoặc theo FR khi FR không có mã BR (`FR_037_repeatedApply_noSecondEffect`). Mỗi kịch bản Given/When/Then của spec 000 có một test. Bảng truy vết nằm ở [quickstart.md](quickstart.md).
 - **Đồng hồ**: `DieuKhienDongHo`. Không dùng `Thread.sleep`.
 - **Hợp đồng API**: test so `springdoc` sinh ra với `contracts/*.yaml` (bằng openapi-diff); lệch thì test lỗi.
 - **Client**:

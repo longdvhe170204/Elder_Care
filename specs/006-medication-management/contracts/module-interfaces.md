@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-10 | **Plan**: [../plan.md](../plan.md)
 
-Hợp đồng trong backend, ở gói `vn.eldercare.m07.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của 006 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
+Hợp đồng trong backend, ở gói `com.cambae.backend.m07.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của 006 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
 
 Chiều phụ thuộc theo research D-02: 006 phụ thuộc 000, 001, 002, 003, 004, 005. Các module 007, 008, 010, 012, 014, 016 phụ thuộc 006. Chỗ 006 cần dữ liệu của module phụ thuộc nó thì 006 khai báo SPI (mục 2.1), module đó cài. Plan của các module này phải giữ đúng chữ ký hoặc ghi rõ thay đổi.
 

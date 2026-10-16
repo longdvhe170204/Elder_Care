@@ -30,16 +30,16 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
 **Primary Dependencies**: Như 000 → 012. Không thêm thư viện. Ảnh, chữ ký, bản scan dùng kho tệp `common.tep` của 000.
 
-**Storage**: MySQL 8.4 LTS. Bảng ở [data-model.md](data-model.md).
+**Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md).
 
 **Testing**:
 - Như 000 R-14.
 - Test bảng cho sáu hàm thuần (research K-15); bất biến tách và trạng thái sau mọi kịch bản (SC-001).
-- Testcontainers cho trigger nhóm 3, `UNIQUE` phiếu theo (vị trí, kỳ), một đồng ý Hiệu lực mỗi đồ.
+- Test tích hợp MySQL cho trigger nhóm 3, `UNIQUE` phiếu theo (vị trí, kỳ), một đồng ý Hiệu lực mỗi đồ.
 - Test đồng thời: hai bàn giao cùng đồ; Trả trong lúc Kết thúc lưu trú.
 - Đồng hồ giả lập cho CFG-M10-08, CFG-M12-02 → 07.
 - Bản giả `SuCoLenhApi` (có chế độ lỗi), `QuyenNguoiThanApi`.
@@ -49,7 +49,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - App nhân viên: tiếp nhận, bàn giao, trả, báo thất lạc, ghi hư hỏng (chụp ảnh, chữ ký trên thiết bị); chỉ trực tuyến.
 - App người thân: đồ gửi, xác nhận người nhận khác, ghi/rút đồng ý.
 
-**Project Type**: Web service (REST `/api/v1`), một web client và hai mobile client.
+**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung (Q-346).
 
 **Performance Goals**:
 - Điều kiện (b) Đạt ≤ 1 phút sau đồ cuối được trả (SC-006): tính lúc hỏi.
@@ -133,7 +133,7 @@ specs/013-personal-belongings/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m12/
+backend/src/main/java/com/cambae/backend/m12/
 ├── api/           # DoGuiApi, DoGuiThongKeApi, sự kiện; bản cài SPI
 ├── danhmuc/       {internal, web}   # loại đồ, mức tình trạng, vị trí
 ├── dogui/         {internal, web}   # đồ, bản ghi bàn giao, KiemTraLenhBanGiao, TachDo, đính chính
@@ -144,11 +144,11 @@ backend/src/main/java/vn/eldercare/m12/
 ├── kiemke/        {internal, web}   # phiếu kiểm kê
 └── lich/                            # ViecTheoPhutM12, ViecHangNgayM12
 
-web/src/tinh-nang/do-gui/
+frontend/src/tinh-nang/do-gui/
 ├── danh-muc/  ├── tiep-nhan/  ├── ban-giao/  ├── tra/  ├── kiem-ke/  ├── xu-ly-do/  └── cong-nguoi-than/do-gui/
 
-app-nhan-vien/lib/tinh-nang/do-gui/      # tiếp nhận, bàn giao, trả (ảnh, chữ ký)
-app-nguoi-than/lib/tinh-nang/do-gui/     # xem, xác nhận, đồng ý
+mobile/lib/nhan-vien/do-gui/      # tiếp nhận, bàn giao, trả (ảnh, chữ ký)
+mobile/lib/nguoi-than/do-gui/     # xem, xác nhận, đồng ý
 ```
 
 **Structure Decision**: Theo R-02 của 000. Feature 013 nằm ở `backend/…/m12` với bảy gói con và gói `api`.

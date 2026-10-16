@@ -31,16 +31,16 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
 **Primary Dependencies**: Như 000 → 011. Không thêm thư viện.
 
-**Storage**: MySQL 8.4 LTS. Bảng ở [data-model.md](data-model.md).
+**Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md).
 
 **Testing**:
 - Như 000 R-14.
 - Test bảng cho bảy hàm thuần (research F-17); SC-001 bộ 100 lượt đón; SC-008 bộ 30 ngày ở lại.
-- Testcontainers cho `UNIQUE` (liên hệ chính, yêu cầu chờ, bản tin mỗi kỳ, đêm ở lại, một lần dùng bản ghi đón) và trigger nhóm 3.
+- Test tích hợp MySQL cho `UNIQUE` (liên hệ chính, yêu cầu chờ, bản tin mỗi kỳ, đêm ở lại, một lần dùng bản ghi đón) và trigger nhóm 3.
 - Test đồng thời: 20 đăng ký cho chỗ cuối; hai người đại diện xác nhận cùng lúc; bỏ người đón cùng lúc với ghi đón.
 - Đồng hồ giả lập cho CFG-M10-01 → 12, CFG-M01-04, mốc 00:00.
 - Bản giả `HoatDongBanTinPort` và API đọc của 005, 006, 007, 010, 011.
@@ -50,7 +50,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - App nhân viên: ghi đón (gồm Tự về, Viện đưa về), ghi vào/ra lượt thăm, soạn và duyệt bản tin, xử lý phản hồi.
 - App người thân: cổng, đăng ký thăm, xác nhận yêu cầu và ngoại lệ, phản hồi, bản tin.
 
-**Project Type**: Web service (REST `/api/v1`), một web client và hai mobile client.
+**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung (Q-346).
 
 **Performance Goals**:
 - Yêu cầu bỏ người đón có hiệu lực ≤ 1 phút (SC-003): áp trong lệnh lập.
@@ -135,7 +135,7 @@ specs/012-family-portal/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m10/
+backend/src/main/java/com/cambae/backend/m10/
 ├── api/           # QuyenNguoiThanApi, NguoiThanThongKeApi, HoatDongBanTinPort, sự kiện; bản cài SPI
 ├── nguoithan/     {internal, web}   # hồ sơ, quan hệ, KiemTraDbr02, phiếu đăng ký
 ├── quyen/         {internal, web}   # yêu cầu quyền, QuyenCoTacDung, lịch sử quyền, dấu tự về
@@ -147,14 +147,14 @@ backend/src/main/java/vn/eldercare/m10/
 ├── phanhoi/       {internal, web}   # phản hồi, hạn, leo thang
 └── lich/                            # ViecTheoPhutM10, ViecHangGioM10, ViecNuaDemM10, ViecBanTinM10
 
-web/src/tinh-nang/nguoi-than/
+frontend/src/tinh-nang/nguoi-than/
 ├── ho-so/  ├── yeu-cau-quyen/  ├── don/  ├── tham/  ├── o-lai/  ├── ban-tin/  ├── phan-hoi/  └── cong-nguoi-than/
 
-app-nhan-vien/lib/tinh-nang/nguoi-than/   # ghi đón, vào/ra, bản tin, phản hồi
-app-nguoi-than/lib/tinh-nang/             # cổng, thăm, yêu cầu, phản hồi, bản tin
+mobile/lib/nhan-vien/nguoi-than/   # ghi đón, vào/ra, bản tin, phản hồi
+mobile/lib/nguoi-than/             # cổng, thăm, yêu cầu, phản hồi, bản tin
 ```
 
-**Structure Decision**: Theo R-02 của 000. Feature 012 nằm ở `backend/…/m10` với tám gói con và gói `api`. Web có đủ chức năng; hai app chia theo người dùng.
+**Structure Decision**: Theo R-02 của 000. Feature 012 nằm ở `backend/…/m10` với tám gói con và gói `api`. Web có đủ chức năng; app di động chung (Q-346) chia phần nhân viên và phần người thân theo loại tài khoản.
 
 ## Complexity Tracking
 

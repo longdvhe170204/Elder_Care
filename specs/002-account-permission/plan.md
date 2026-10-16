@@ -28,20 +28,20 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307): 002 không tự sinh bản ghi
 
 ## Technical Context
 
-**Language/Version**: Java 21 LTS; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
 
 **Primary Dependencies**:
-- Backend: như 000 (Spring Boot 3.5.x, Spring Modulith 1.4.x, Flyway 11.x, springdoc-openapi 2.8.x, ShedLock), cùng Spring Security 6.5 (filter xác thực token phiên riêng, `Argon2PasswordEncoder`, cần thư viện Bouncy Castle).
+- Backend: như 000 (Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock), cùng Spring Security 7 (filter xác thực token phiên riêng, `Argon2PasswordEncoder`, cần thư viện Bouncy Castle).
 - Web: như 000.
 - App: như 000, cùng `flutter_secure_storage` để lưu token.
 
-**Storage**: MySQL 8.4 LTS (000 R-01). Bảng ở [data-model.md](data-model.md). Tham chiếu tới hồ sơ nhân viên, người thân, phân công là định danh logic, không khóa ngoại chéo module (constitution X).
+**Storage**: MySQL 8.0 (000 R-01). Bảng ở [data-model.md](data-model.md). Tham chiếu tới hồ sơ nhân viên, người thân, phân công là định danh logic, không khóa ngoại chéo module (constitution X).
 
 **Testing**: như 000 R-14. Thêm `MaTranQuyenKhopNguonTest` đọc Phụ lục 27 từ `docs/business/nghiep-vu.md` để đối chiếu ma trận đã nạp. Bản giả cho 008, 003, 012, 001, 004, 007 theo chữ ký ở [contracts/module-interfaces.md](contracts/module-interfaces.md) mục 2.
 
 **Target Platform**: như 000. Đăng nhập ở cả ba kênh (Q-305); quản trị tài khoản và phân quyền ở web; mở khóa sớm và duyệt bản ghi chờ xem lại có ở web và app nhân viên.
 
-**Project Type**: Web service (REST `/api/v1`), một web client và hai mobile client.
+**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung (Q-346).
 
 **Performance Goals**:
 - Kiểm tra quyền nằm trong ngân sách 2 giây của NFR-02 (spec CHK037). Mỗi yêu cầu: một lần tra phiên theo khóa chính; quyền vai trò lấy từ bộ đệm theo phiên bản (A-05); phạm vi tính bằng vài truy vấn trên chỉ mục, tập id tối đa vài trăm (NFR-01).
@@ -74,7 +74,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ; điểm thiếu ở nguồn được báo lại |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-012 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ |
-| X. Kiến trúc | Đạt | Một khối; gói `m15.taikhoan`; module khác chỉ dùng giao diện ở contracts; REST `/api/v1`; MySQL; ba client. NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `m15.taikhoan`; module khác chỉ dùng giao diện ở contracts; REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Ba lớp quyền, phạm vi, giới hạn trường, điều kiện pháp lý đều ở backend; `lenhDuocPhep` và `/toi/quyen` chỉ để hiển thị; mỗi lệnh trạng thái tài khoản có endpoint `POST …/{id}/<lenh>` |
 | XII. Dữ liệu | Đạt | `lich_su_trang_thai_tai_khoan` chỉ thêm; tài khoản không xóa (trigger theo mẫu 000); nhật ký trong transaction; thời gian theo `Clock` của 000 |
 | XIII. Tham số | Đạt | Như V |
@@ -122,7 +122,7 @@ specs/002-account-permission/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/vn/eldercare/m15/taikhoan/
+backend/src/main/java/com/cambae/backend/m15/taikhoan/
 ├── api/          # NguoiDungHienTai, QuyenApi, PhamViApi, QuyenXemTruongApi, NguoiDuyetApi, TaiKhoanApi,
 │                 # NgoaiTuyenHandler, DieuKienChuThich, GanPhamViProvider, @CanQuyen, @NhomTruong, sự kiện
 ├── xacthuc/      {internal, web}          # đăng nhập, phiên, mật khẩu, thiết bị
@@ -132,17 +132,17 @@ backend/src/main/java/vn/eldercare/m15/taikhoan/
 ├── ngoaituyen/   {internal, web}          # đồng bộ, chờ xem lại
 └── lich/                                  # job Không hoạt động, khóa sau kết thúc lưu trú
 
-web/src/tinh-nang/
+frontend/src/tinh-nang/
 ├── dang-nhap/            # đăng nhập, đổi mật khẩu
 ├── tai-khoan/            # quản trị tài khoản nhân viên (QLV), người thân (HC, QLV)
 ├── phan-quyen/           # vai trò, thu hẹp, gán thêm, tra quyền tại thời điểm
 └── cho-xem-lai/
 
-app-nhan-vien/lib/
+mobile/lib/
 ├── chung/xac-thuc/       # token trong flutter_secure_storage, mã thiết bị
 └── tinh-nang/{dang-nhap, mo-khoa-som, ket-qua-dong-bo, cho-xem-lai}/
 
-app-nguoi-than/lib/
+mobile/lib/
 ├── chung/xac-thuc/
 └── tinh-nang/dang-nhap/
 ```

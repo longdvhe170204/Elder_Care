@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## Z-01. Vị trí trong backend
 
-**Quyết định**: Feature 018 là phần 6.10 của module M02 (UC-80, UC-81; BR-M02-11 → 14), thêm gói `vn.eldercare.m02.khaibao` cạnh các gói của 004. Gói dùng dịch vụ đọc hợp đồng của 004 trong cùng M02 qua lớp nội bộ (ArchUnit cho phép giữa các gói M02), không qua `m02.api`.
+**Quyết định**: Feature 018 là phần 6.10 của module M02 (UC-80, UC-81; BR-M02-11 → 14), thêm gói `com.cambae.backend.m02.khaibao` cạnh các gói của 004. Gói dùng dịch vụ đọc hợp đồng của 004 trong cùng M02 qua lớp nội bộ (ArchUnit cho phép giữa các gói M02), không qua `m02.api`.
 
 **Lý do**: Constitution X chia gói theo M01–M15; Phụ lục 26.2 đặt UC-80, UC-81 ở 018, cùng Module 02 với 004 (mẫu 005 ↔ 014, 008 ↔ 015).
 
@@ -62,4 +62,4 @@ Khóa `(loại nhắc, nct_id, ngày)` chống trùng; chạy bù khi khởi đ�
 
 ## Z-07. Quyền, kiểm thử
 
-**Quyết định**: `ChucNang` `KHAI_BAO_TAM_TRU`: `THUC_HIEN` (Hành chính); `XEM` (Quản lý viện). Vai trò khác, người thân không có quyền (FR-009). Kiểm thử: test bảng `TongThoiGianLuuTru` (chuỗi nối tiếp, khoảng trống, hồ sơ mới Q-12, phần nội trú FR-001a, không ngày kết thúc), `LoaiKhaiBao`; Testcontainers `UNIQUE` DBR-33; đồng hồ giả lập cho CFG-M02-09, 11 → 13; test bean trạng thái không chặn Kết thúc lưu trú (SC-004). Tên test theo BR (`BR_M02_11_KhaiBaoIT`, `DBR_33_MotKhaiBaoIT`).
+**Quyết định**: `ChucNang` `KHAI_BAO_TAM_TRU`: `THUC_HIEN` (Hành chính); `XEM` (Quản lý viện). Vai trò khác, người thân không có quyền (FR-009). Kiểm thử: test bảng `TongThoiGianLuuTru` (chuỗi nối tiếp, khoảng trống, hồ sơ mới Q-12, phần nội trú FR-001a, không ngày kết thúc), `LoaiKhaiBao`; test tích hợp MySQL `UNIQUE` DBR-33; đồng hồ giả lập cho CFG-M02-09, 11 → 13; test bean trạng thái không chặn Kết thúc lưu trú (SC-004). Tên test theo BR (`BR_M02_11_KhaiBaoIT`, `DBR_33_MotKhaiBaoIT`).
