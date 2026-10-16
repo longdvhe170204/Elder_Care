@@ -35,7 +35,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).
 
 **Primary Dependencies**: Như 000 → 006: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7. Web: React 19, TanStack Query. App nhân viên: Flutter, drift (hàng đợi ngoại tuyến, 000 R-13). App người thân: Flutter. Không thêm thư viện mới.
 

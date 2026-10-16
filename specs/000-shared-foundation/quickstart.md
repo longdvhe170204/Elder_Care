@@ -65,7 +65,7 @@ Mỗi kịch bản Given/When/Then của spec có ít nhất một test (constit
 | US5 #1–14, FR-031 → FR-041 | `BangChuyenTrangThaiTest`, `YeuCauVongDoiIT`, `ApDungMotLanIT` (SC-003), `ApDungBuIT` (BR-M15-10), `ApDungLoiIT`, `NhacYeuCauIT` (BR-M15-09), `QuyetDinhDongThoiIT`, `TuDuyetIT`, `GioiHanVaiTroDuyetIT` (bổ sung theo plan 004) | Đơn vị, tích hợp |
 | Edge Cases | Gộp vào các lớp trên, mỗi gạch đầu dòng một phương thức test | |
 | Kiến trúc | `ModuleBoundaryTest` (`ApplicationModules.verify()`), `ThoiGianArchTest` (cấm `now()`), `HopDongApiTest` (so springdoc với `contracts/api-000.yaml`) | Kiến trúc |
-| Client web | `ThamSoForm.test.tsx` (412 hiện giá trị mới), `NhatKyBang.test.tsx` ("đã thay đổi"), `HopDuyet.test.tsx` | Vitest |
+| Client web | `ThamSoForm.test.jsx` (412 hiện giá trị mới), `NhatKyBang.test.jsx` ("đã thay đổi"), `HopDuyet.test.jsx` | Vitest |
 | App nhân viên | `hop_duyet_test.dart` (Trưởng tầng duyệt yêu cầu 015) | flutter_test |
 
 ## 5. Tiêu chí hoàn tất (đối chiếu SC)

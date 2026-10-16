@@ -88,7 +88,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Mục J, K | `NgayLuuTruApiIT` (chưa vào ở, mốc dừng, ngày qua đời), `BR_M02_19_ChayBuIT` | Tích hợp, đồng hồ giả lập |
 | SPI | `HopDongApiSpiIT` (bản cài cho 001), `NguonLuuTruChoPhanBoIT` (cho 003), `BeanThamGiaChuyenTrangThaiM02IT` (mỗi lệnh, rollback) | Tích hợp |
 | Edge Cases | Mỗi gạch đầu dòng một phương thức trong các lớp trên | |
-| Client web | `DieuKienTiepNhan.test.tsx`, `DieuKienKetThuc.test.tsx`, `HoSoPhuHop.test.tsx` (không chọn sẵn, lý do khi bỏ qua thứ tự), `HopDong.test.tsx` (`truongBiAn` tài chính) | Vitest |
+| Client web | `DieuKienTiepNhan.test.jsx`, `DieuKienKetThuc.test.jsx`, `HoSoPhuHop.test.jsx` (không chọn sẵn, lý do khi bỏ qua thứ tự), `HopDong.test.jsx` (`truongBiAn` tài chính) | Vitest |
 | App nhân viên | `cho_tam_vang_test.dart`, `gia_han_du_kien_test.dart` | flutter_test |
 
 ## 5. Tiêu chí hoàn tất (đối chiếu SC)

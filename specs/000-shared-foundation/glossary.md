@@ -1,6 +1,6 @@
 # Bảng thuật ngữ Việt – Anh cho mã nguồn
 
-**Ngày**: 2026-10-16 | **Căn cứ**: constitution X (3.0.0), research R-03
+**Ngày**: 2026-10-16 | **Căn cứ**: constitution X (3.1.0), research R-03
 
 Plan, data-model, contracts, tasks dùng tên logic tiếng Việt không dấu. Mã nguồn dùng tên tiếng Anh dịch theo bảng này. Một thuật ngữ chỉ có một bản dịch, dùng giống nhau ở bảng, lớp, endpoint, JSON và màn hình. Thuật ngữ chưa có thì thêm vào bảng trong cùng thay đổi với mã; đổi bản dịch đã dùng thì phải đổi cả mã đã viết.
 
@@ -18,7 +18,7 @@ Mã nghiệp vụ giữ nguyên, không dịch: BR-, FR-, CFG-, DBR-, Q-, UC-, A
 | Đường dẫn API | kebab-case, danh từ số nhiều, lệnh là động từ | `/yeu-cau-phe-duyet/{id}/duyet` → `/approval-requests/{id}/approve` |
 | Migration Flyway | `V{NNN}_{nn}__snake_case.sql` | `V000_02__nhat_ky.sql` → `V000_02__audit_log.sql` |
 | Thư mục web, app | kebab-case (web), snake_case (Dart) | `tinh-nang/tham-so/` → `features/parameters/` |
-| Component React | PascalCase `.tsx` | `ThamSoForm.tsx` → `ParameterForm.tsx` |
+| Component React | PascalCase `.jsx` | `ThamSoForm.jsx` → `ParameterForm.jsx` |
 | File Dart | snake_case | `hop_duyet.dart` → `approval_inbox.dart` |
 | Lớp, phương thức test | giữ mã quy tắc ở đầu | `BR_M15_09_noApproverLeft_notifiesDirectorAtReminderTime` |
 

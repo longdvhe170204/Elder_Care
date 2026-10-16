@@ -71,7 +71,7 @@ Kết quả mong đợi: `verify` xanh, gồm `MaTranQuyenKhopNguonTest` (ma tr�
 | US6 #1–9, FR-045 → FR-052 | `NguoiThanSucKhoeIT`, `NguoiThanPhamViIT`, `HetQuanHeKhoaTaiKhoanIT`, `XacMinhNguoiThanIT` | Tích hợp |
 | US7 #1–7, FR-024 → FR-027 | `ThuTuThuHepTest`, `ThuHepKhongVuotIT`, `DoiQuyenDongThoiIT`, `QuyenTaiThoiDiemIT`, `PhanQuyenChiQuanLyIT` | Đơn vị, tích hợp |
 | Edge Cases | Mỗi gạch đầu dòng một phương thức trong các lớp trên | |
-| Client web | `DangNhap.test.tsx` (thông báo chung), `DoiMatKhau.test.tsx`, `PhanQuyen.test.tsx` (412, chặn vượt ma trận), `AnNutTheoQuyen.test.tsx` | Vitest |
+| Client web | `DangNhap.test.jsx` (thông báo chung), `DoiMatKhau.test.jsx`, `PhanQuyen.test.jsx` (412, chặn vượt ma trận), `AnNutTheoQuyen.test.jsx` | Vitest |
 | App nhân viên | `dang_nhap_thiet_bi_chung_test.dart`, `mo_khoa_som_test.dart`, `ket_qua_dong_bo_test.dart` (BR-M15-20), `cho_xem_lai_test.dart` | flutter_test |
 | App người thân | `dang_nhap_nguoi_than_test.dart`, `an_suc_khoe_test.dart` | flutter_test |
 

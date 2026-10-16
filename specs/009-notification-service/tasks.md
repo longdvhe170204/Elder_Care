@@ -147,7 +147,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 - [ ] T033 [US5] Cài `BE/m13/hopthu/internal/HopThuService.java` (danh sách, chi tiết, xem, ẩn; phát `ThongBaoDaXem`), luồng SSE `BE/m13/hopthu/web/LuongThongBaoController.java` (`GET /thong-bao/luong`), đăng ký thiết bị đẩy (`POST /thiet-bi-day`) (research B-11)
 - [ ] T034 [US5] Cài `BE/m13/tracuu/internal/TraCuuService.java` (`ThongBaoTraCuuApi`; bản cài `NhatKyThongBaoPort` của 007 ủy cho `theoNguon`; lỗi gửi) và endpoint `GET /toi/thong-bao`, `/toi/thong-bao/{id}`, `POST /toi/thong-bao/{id}/an`, `GET /lich-su-thong-bao`, `GET /loi-gui` (research B-12)
-- [ ] T035 [P] [US5] Tạo màn web `frontend/src/tinh-nang/thong-bao/HopThongBao.tsx` (Khẩn cấp lên đầu, xác nhận), luồng SSE (dự phòng polling), lịch sử, lỗi gửi với test Vitest
+- [ ] T035 [P] [US5] Tạo màn web `frontend/src/tinh-nang/thong-bao/HopThongBao.jsx` (Khẩn cấp lên đầu, xác nhận), luồng SSE (dự phòng polling), lịch sử, lỗi gửi với test Vitest
 
 **Checkpoint**: Mọi user story của 009 chạy độc lập.
 

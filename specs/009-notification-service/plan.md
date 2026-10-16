@@ -28,7 +28,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).
 
 **Primary Dependencies**: Như 000 → 008: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7. Thêm cho kênh đẩy (Q-305): Firebase Admin SDK cho Java (backend), `firebase_messaging` (app Flutter chung, Q-346). Web dùng `EventSource` chuẩn cho SSE. Tin nhắn: không thư viện, SPI chờ chọn nhà cung cấp (Q-06).
 

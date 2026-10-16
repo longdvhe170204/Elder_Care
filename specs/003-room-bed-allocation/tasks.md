@@ -92,7 +92,7 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 - [ ] T025 [US2] Cài `BE/m03/phanbo/internal/KiemTraPhanBo.java` (FR-018 (a)–(g), dùng `NguonLuuTruChoPhanBo`, `TinhTrangLayNhiemChoPhanBo`, dấu tài sản) và `KhoaTuanTu.java` (khóa người cao tuổi khi qua 001 → `vi_tri_nct` → giường theo `id`; `@Retryable` khi deadlock) (research G-03, G-05)
 - [ ] T026 [US2] Cài `BE/m03/phanbo/internal/PhanBoService.java`: phân bổ cho người Đang tiếp nhận (`TUONG_LAI`, giường `CHO_SAN_SANG` theo FR-011a, gọi `daPhanBo` kết thúc giữ chỗ hồ sơ chờ), phân bổ cho người chưa có giường (`DANG_HIEU_LUC`, gỡ dấu), hủy phân bổ tương lai có lý do; nhật ký `M03_PB_*`; cài `PhanBoGiuongApi` (002), `ViTriApi` (FR-017 → FR-023, FR-025a)
 - [ ] T027 [US2] Tạo `BE/m03/phanbo/web/PhanBoController.java`: `GET /phan-bo-giuong/giuong-phu-hop`, `POST/GET /phan-bo-giuong`, `GET /phan-bo-giuong/{id}`, `POST …/{id}/huy`, `GET /nguoi-cao-tuoi/{nctId}/vi-tri`, `GET /giuong/tong-hop`
-- [ ] T028 [P] [US2] Tạo màn web `frontend/src/tinh-nang/phan-bo-giuong/ChonGiuong.tsx` (không chọn sẵn), `frontend/src/tinh-nang/bang-giuong/BangGiuong.tsx` và test `ChonGiuong.test.tsx`, `BangGiuong.test.tsx`, `DieuKienChuaThoa.test.tsx`
+- [ ] T028 [P] [US2] Tạo màn web `frontend/src/tinh-nang/phan-bo-giuong/ChonGiuong.jsx` (không chọn sẵn), `frontend/src/tinh-nang/bang-giuong/BangGiuong.jsx` và test `ChonGiuong.test.jsx`, `BangGiuong.test.jsx`, `DieuKienChuaThoa.test.jsx`
 
 **Checkpoint**: Phân bổ an toàn đồng thời.
 
@@ -116,7 +116,7 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 - [ ] T033 [US3] Cài phần chuyển theo lịch trong `BE/m03/phanbo/internal/ChuyenTheoLich.java` (`kiemTraDatTruocChuyenTheoLich`, `datTruocChuyenTheoLich`, `kiemTraChuyenTheoLich`, `thucHienChuyenTheoLich`, `huyPhanBoTheoLich`, `daLapYeuCauSauChuyenGap`, `ketQuaYeuCauSauChuyenGap`) cài `PhanBoGiuongLenhApi` (FR-029, FR-030)
 - [ ] T034 [US3] Tạo `MIG/V003_04__yeu_cau_nhap_bu.sql` (`yeu_cau_phe_duyet_id` khóa chính, `nct_id`, `phan_bo_hien_tai_id`, `giuong_moi_id`, `thoi_diem_chuyen`; không `UPDATE`) và cài handler `BE/m03/phanbo/internal/NhapBuYeuCauHandler.java` cho `M03.NHAP_BU_PHAN_BO` (`quyenTao` = `PHAN_BO_CHUYEN_GIUONG, TAO`; duyệt AC-01; `kiemTraDieuKienApDung` chạy lại FR-018, FR-019, FR-027 (c); `apDung` chuyển giường nhập bù với `nhap_bu`, `thoi_diem_nhap_thuc`) (FR-027)
 - [ ] T035 [US3] Cài listener `MucChamSocDaDoi`, `DanhGiaDauVaoDaXacNhan`, `ThongTinCaNhanDaCapNhat`, `LoaiLuuTruDaDoi` trong `BE/m03/phanbo/internal/DanhGiaLaiPhuHop.java`: đặt/gỡ `dau_phong_khong_phu_hop`, báo phân bổ tương lai không phù hợp (BR-M03-23, FR-034)
-- [ ] T036 [US3] Bổ sung endpoint `POST /phan-bo-giuong/{id}/chuyen-giuong` (kèm nhập bù) vào `PhanBoController.java`; màn web `frontend/src/tinh-nang/phan-bo-giuong/ChuyenGiuong.tsx`; app `mobile/lib/nhan-vien/chuyen-giuong/` và test `mobile/test/nhan-vien/chuyen_giuong_test.dart`
+- [ ] T036 [US3] Bổ sung endpoint `POST /phan-bo-giuong/{id}/chuyen-giuong` (kèm nhập bù) vào `PhanBoController.java`; màn web `frontend/src/tinh-nang/phan-bo-giuong/ChuyenGiuong.jsx`; app `mobile/lib/nhan-vien/chuyen-giuong/` và test `mobile/test/nhan-vien/chuyen_giuong_test.dart`
 
 **Checkpoint**: Chuyển giường đủ biến thể.
 

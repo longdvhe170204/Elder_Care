@@ -30,7 +30,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).
 
 **Primary Dependencies**: Như 000 → 012. Không thêm thư viện. Ảnh, chữ ký, bản scan dùng kho tệp `common.tep` của 000.
 

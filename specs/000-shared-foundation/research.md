@@ -12,7 +12,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Đây 
 
 | Thành phần | Phiên bản | Ghi chú |
 | --- | --- | --- |
-| Java | 25 | Theo constitution X (3.0.0); JDK cài trên máy chủ dự án |
+| Java | 25 | Theo constitution X (3.1.0); JDK cài trên máy chủ dự án |
 | Spring Boot | 4.1.x (dự án khởi tạo ở 4.1.1) | Spring Framework 7, Hibernate 7; phiên bản thư viện con do Spring Boot quản lý |
 | Spring Modulith | 2.x (bản tương thích Spring Boot 4.1) | Kiểm tra ranh giới module, sự kiện có lưu trữ (R-09) |
 | MySQL | 8.0 (bản cài trên máy) | InnoDB, `utf8mb4_0900_ai_ci` |
@@ -20,16 +20,20 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Đây 
 | springdoc-openapi | 3.x (dòng cho Spring Boot 4) | Sinh OpenAPI 3.1 từ mã để đối chiếu với `contracts/` |
 | JUnit 5, AssertJ, ArchUnit | Bản hiện hành | Kiểm thử backend; Testcontainers hoãn tới khi có Docker (R-14) |
 | Lombok | Bản do Spring Boot quản lý | Có sẵn trong dự án khởi tạo; chỉ dùng `@Getter`, constructor, `@Builder`; không dùng `@Data`, `@Setter` trên entity nhóm 2, 3 (R-05) |
-| React | 19.x, TypeScript 5.x, Vite | Web (`frontend/`) |
+| React | 19.x, JavaScript (JSX, ES module), Vite 8 | Web (`frontend/`); không dùng TypeScript (constitution X 3.1.0) |
+| Tailwind CSS | 4.x (`@tailwindcss/vite`) | Giao diện web; biến màu, bo góc khai báo trong `frontend/src/index.css` |
+| shadcn/ui | CLI 4.x, kiểu `base-nova` trên Base UI (`@base-ui/react`), `class-variance-authority`, `cn`, `tw-animate-css` | Component giao diện ở `frontend/src/components/ui/`, thêm bằng `npx shadcn add` |
+| lucide-react, Geist (`@fontsource-variable/geist`) | Bản hiện hành | Icon và font của web (Geist có bộ ký tự tiếng Việt) |
+| ESLint | 10.x (`eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`) | Lint web, có sẵn từ lúc khởi tạo |
 | TanStack Query, React Router | Bản hiện hành | Gọi API, điều hướng |
-| Flutter | Kênh stable 3.x, Dart 3.x | Một app chung (`mobile/`, Q-346) |
+| Flutter | Kênh stable 3.x (máy: 3.41.9), Dart 3.x (`sdk: ^3.11.5`) | Một app chung (`mobile/`, Q-346), Material; gọi API bằng `http` |
 | drift (SQLite) | Bản hiện hành | Hàng đợi ngoại tuyến của phần nhân viên (R-13) |
 
-**Lý do**: Constitution X (3.0.0) đặt mặc định theo môi trường đã cài trên máy của chủ dự án (sửa 2026-10-16): JDK 25, MySQL 8.0, dự án khởi tạo bằng Spring Boot 4.1.1.
+**Lý do**: Constitution X (3.1.0) đặt mặc định theo môi trường đã cài trên máy của chủ dự án (sửa 2026-10-16): JDK 25, MySQL 8.0, dự án khởi tạo bằng Spring Boot 4.1.1; web giữ JavaScript, Tailwind CSS v4, shadcn/ui như dự án `frontend/` đã khởi tạo (chủ dự án chốt 2026-10-16, lượt 2).
 
 **Rủi ro đã biết**: MySQL 8.0 đã hết hỗ trợ của Oracle từ 04/2026 (không còn bản vá bảo mật). Trước khi vận hành MUST nâng lên 8.4 LTS rồi chạy lại toàn bộ test tích hợp; để việc nâng không phải sửa lược đồ, migration chỉ dùng cú pháp có ở cả 8.0 và 8.4 (không dùng tính năng đã bỏ ở 8.4 như `mysql_native_password` cho tài khoản mới, `utf8mb3`). Testcontainers chưa dùng nên test tích hợp phụ thuộc MySQL cài trên máy (R-14).
 
-**Phương án đã cân nhắc**: Spring Boot 3.5 với Java 21 và MySQL 8.4 (bản thiết kế 2026-10-06): bỏ ngày 2026-10-16 để dùng đúng môi trường đã cài.
+**Phương án đã cân nhắc**: Spring Boot 3.5 với Java 21 và MySQL 8.4 (bản thiết kế 2026-10-06): bỏ ngày 2026-10-16 để dùng đúng môi trường đã cài. Web bằng TypeScript 5 (bản 2026-10-16 trước đó): bỏ cùng ngày để giữ dự án JavaScript đã khởi tạo; kiểu dữ liệu của API dựa vào hợp đồng `contracts/` và test so springdoc (R-14) thay cho kiểm kiểu lúc biên dịch.
 
 ---
 

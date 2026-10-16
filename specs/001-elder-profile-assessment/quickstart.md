@@ -76,7 +76,7 @@ Kết quả mong đợi: `verify` xanh, gồm test kiến trúc (`HoSoMoGuardArc
 | US7 #1–6, FR-023a → FR-023f | `NguyenVongPhienBanIT`, `NguyenVongNguoiKyIT`, `NguyenVongGioiHanXemIT`, `NhacThieuNguyenVongIT` | Tích hợp |
 | Mục G, FR-051 → FR-053 | `DocLapLuuTruMucChamSocIT`, `FR_053_MucTaiNgayIT` | Tích hợp |
 | Edge Cases | Mỗi gạch đầu dòng một phương thức trong các lớp trên | |
-| Client web | `HoSo.test.tsx` (`truongBiAn`), `DieuKienChuaThoa.test.tsx`, `XacNhanTrung.test.tsx`, `DanhGia.test.tsx` (không có ô điểm, mức đề xuất) | Vitest |
+| Client web | `HoSo.test.jsx` (`truongBiAn`), `DieuKienChuaThoa.test.jsx`, `XacNhanTrung.test.jsx`, `DanhGia.test.jsx` (không có ô điểm, mức đề xuất) | Vitest |
 | App nhân viên | `the_nguoi_cao_tuoi_test.dart` (lưu ý chăm sóc, dấu "không kiểm tra tự động", "chờ kiểm tra") | flutter_test |
 
 ## 5. Tiêu chí hoàn tất (đối chiếu SC)
