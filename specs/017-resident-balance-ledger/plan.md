@@ -28,7 +28,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ## Technical Context
 
-**Language/Version**: Java 25; TypeScript 5.x; Dart 3.x với Flutter stable 3.x (000 R-01).
+**Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).
 
 **Primary Dependencies**: Như 000 → 015. fastexcel (đã chọn ở 010) cả đọc sao kê lẫn ghi xuất; CSV không cần thư viện. Payload VietQR dựng trong mã (chuẩn EMVCo, có CRC16); client vẽ ảnh QR bằng thư viện vẽ QR của web/Flutter.
 

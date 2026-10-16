@@ -1,4 +1,17 @@
 <!--
+Sync Impact Report (2026-10-16, lượt 2)
+- Phiên bản: 3.0.0 → 3.1.0 (MINOR: đổi ngôn ngữ mặc định của web client trong nguyên tắc X; số client và kiến trúc giữ nguyên).
+- Nguyên tắc sửa:
+  - X. Kiến trúc: web React với JavaScript thay cho TypeScript, theo dự án `frontend/` chủ dự án đã khởi tạo và commit (b9d88d7):
+    React 19, Vite, Tailwind CSS v4, shadcn/ui. Chủ dự án chốt không chuyển sang TypeScript.
+- Mục thêm, bỏ: không.
+- Cần cập nhật theo:
+  - ✅ specs/000-shared-foundation/research.md (R-01), plan.md (Technical Context, Project Structure), tasks.md (T005, T008), glossary.md.
+  - ✅ "Language/Version" của specs/*/plan.md; đường dẫn `.tsx`, `.ts` của web trong specs/*/tasks.md, quickstart.md thành `.jsx`, `.js`.
+  - ✅ CLAUDE.md.
+-->
+
+<!--
 Sync Impact Report (2026-10-16)
 - Phiên bản: 2.1.0 → 3.0.0 (MAJOR: định nghĩa lại nguyên tắc X, số client từ ba thành hai).
 - Nguyên tắc sửa:
@@ -98,13 +111,13 @@ Lý do: thiết kế dựa trên nghiệp vụ đã chốt; viết mã khi thi�
 
 - Hệ thống MUST gồm một backend Spring Boot cung cấp RESTful API (JSON, có phiên bản, tiền tố
   `/api/v1`) và hai client dùng chung API đó:
-  - web React với TypeScript: mọi chức năng, gồm quản trị và cổng người thân trên trình duyệt;
+  - web React với JavaScript: mọi chức năng, gồm quản trị và cổng người thân trên trình duyệt;
   - một app Flutter chung cho nhân viên và người thân, chức năng theo loại tài khoản (Q-305, Q-346).
 - Cơ sở dữ liệu MUST là MySQL.
 - Backend MUST là một khối (không tách microservice), chia gói theo module nghiệp vụ M01–M15 của
   `docs/business/nghiep-vu.md`; module gọi nhau qua giao diện của module, không truy cập trực tiếp dữ liệu
   của module khác.
-- Phiên bản cụ thể (mặc định Java 25, Spring Boot 4.x, MySQL 8.0, React với TypeScript, Flutter
+- Phiên bản cụ thể (mặc định Java 25, Spring Boot 4.x, MySQL 8.0, React với JavaScript, Flutter
   bản stable) MUST được ghi ở plan.
 - Tên định danh trong mã (gói, lớp, hàm, biến, file mã, bảng, cột, đường dẫn API, trường JSON, mã lỗi)
   MUST bằng tiếng Anh, dịch từ tên logic tiếng Việt của plan, data-model, contracts theo một bảng
@@ -194,4 +207,4 @@ Lý do: giữ chuỗi truy vết từ quy tắc tới mã (I) và nghiệm thu �
   kể; PATCH khi làm rõ câu chữ.
 - Mỗi lần clarify, checklist, plan hoặc analyze MUST kiểm tra theo constitution hiện hành.
 
-**Version**: 3.0.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-16
+**Version**: 3.1.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-16

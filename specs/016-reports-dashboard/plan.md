@@ -20,7 +20,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307) và FR-001 của spec: 016 khô
 
 ## Technical Context
 
-**Language/Version**: Java 25 (virtual threads cho truy vấn song song); TypeScript 5.x (000 R-01). Không có màn trên app di động (spec không yêu cầu).
+**Language/Version**: Java 25 (virtual threads cho truy vấn song song); JavaScript (JSX) (000 R-01). Không có màn trên app di động (spec không yêu cầu).
 
 **Primary Dependencies**: Như 000 → 019; fastexcel (đã chọn ở 010) cho XLSX. Biểu đồ trên web dùng thư viện biểu đồ của web client (chọn ở giai đoạn triển khai, không ảnh hưởng hợp đồng).
 

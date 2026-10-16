@@ -82,7 +82,7 @@ Kết quả mong đợi: `verify` xanh. Bộ test gồm test kiến trúc (Modul
 | SPI 001 (G-06) | `PhanBoThamGiaChuyenTrangThaiIT` (mỗi lệnh của bảng G-06, rollback khi lỗi) | Tích hợp |
 | Cơ sở dữ liệu | `PhanBoRangBuocDbIT` (cột sinh, trigger, `CHECK`), `NhomBaTriggerIT` mở rộng | Tích hợp MySQL |
 | Edge Cases | Mỗi gạch đầu dòng một phương thức trong các lớp trên | |
-| Client web | `BangGiuong.test.tsx` (trạng thái, dấu, "đã có phân bổ từ"), `ChonGiuong.test.tsx` (không chọn sẵn), `DieuKienChuaThoa.test.tsx` | Vitest |
+| Client web | `BangGiuong.test.jsx` (trạng thái, dấu, "đã có phân bổ từ"), `ChonGiuong.test.jsx` (không chọn sẵn), `DieuKienChuaThoa.test.jsx` | Vitest |
 | App nhân viên | `xac_nhan_san_sang_test.dart` (ô khử khuẩn bắt buộc khi `canKhuKhuan`), `chuyen_giuong_test.dart` | flutter_test |
 
 ## 5. Tiêu chí hoàn tất (đối chiếu SC)

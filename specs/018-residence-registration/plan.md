@@ -18,7 +18,7 @@ Plan tuân theo FR-010a của 000 (Q-306): hệ thống không tạo khai báo, 
 
 ## Technical Context
 
-**Language/Version**: Java 25; TypeScript 5.x (000 R-01). Không có màn trên app di động.
+**Language/Version**: Java 25; JavaScript (JSX) (000 R-01). Không có màn trên app di động.
 
 **Primary Dependencies**: Như 000 → 017. Không thêm thư viện.
 
