@@ -7,6 +7,7 @@ import { ResidentListPage } from '@/features/residents/ResidentListPage'
 import { ShiftChecklistPage } from '@/features/care-tasks/ShiftChecklistPage'
 import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
 import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
+import { MedicationPage } from '@/features/medication/MedicationPage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
 
 // Bản mẫu giai đoạn thiết kế: chuyển màn bằng state, React Router thêm ở 000 T005.
@@ -15,6 +16,7 @@ const PAGES = {
   residents: ResidentListPage,
   'care-tasks': ShiftChecklistPage,
   incidents: IncidentDetailPage,
+  medication: MedicationPage,
   relatives: RelativesPage,
 }
 

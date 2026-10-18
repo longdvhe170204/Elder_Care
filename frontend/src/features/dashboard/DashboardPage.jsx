@@ -144,7 +144,7 @@ function TaskSlots({ now }) {
                   {tasks.length} việc
                 </span>
               </div>
-              <ul className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
+              <ul className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3 *:max-w-[360px]">
                 {tasks.map((task) => (
                   <TaskTile key={task.time + task.title + task.resident} task={task} />
                 ))}
@@ -194,7 +194,7 @@ function BedMap() {
 
 export function DashboardPage({ onNavigate }) {
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-6">
+    <div className="mx-auto flex max-w-[1600px] flex-col gap-6">
       <PageHeader
         title={`Tổng quan ${DEMO_SCOPE.floor.toLowerCase()}`}
         subtitle={`${DEMO_SCOPE.shift}, số liệu trong phạm vi bạn được giao. Cập nhật lúc ${DEMO_SCOPE.updatedAt}.`}

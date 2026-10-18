@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 5.9.0
+version: 5.11.0
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-10-18
@@ -98,7 +98,7 @@ spacing:
   control-height: 40px
   touch-target: 44px
   menu-width: 240px
-  content-max: 1280px
+  content-max: 1600px  # màn nhân viên; cổng người thân theo mục 2.3
 components:
   page-header: khối thẻ trắng đầu màn, tiêu đề, dòng phụ, ô phải, thanh lọc
   status-pill: Badge, biến thể urgent | attention | settled | held | occupied | neutral
@@ -309,12 +309,12 @@ Tên trạng thái lấy đúng theo `nghiep-vu.md`. `StatusBadge` ánh xạ the
 
 | Tông | Hiển thị | Trạng thái |
 | --- | --- | --- |
-| `urgent` | Chữ đỏ trên nền đỏ nhạt | Công việc Quá hạn; sự cố, cảnh báo mức Khẩn cấp; cảnh báo "đã leo thang tối đa" |
-| `attention` | Chữ hổ phách trên nền hổ phách | Công việc Đến hạn; người cao tuổi Tạm vắng, Điều trị tại bệnh viện, Đang tiếp nhận; giường Chờ sẵn sàng; phòng đang cách ly; bàn giao Có ý kiến; yêu cầu thay đổi quyền người thân Chờ xác nhận; đề nghị mua hộ Chờ đồng ý; phản hồi Đang xử lý, Mở lại; đồ gửi Thất lạc, Hư hỏng; dị ứng (`AllergyNote`, có viền và biểu tượng cảnh báo) |
-| `settled` | Chữ xanh lá trên nền xanh lá nhạt | Công việc Hoàn thành; người cao tuổi Đang lưu trú; lượt thăm Đã duyệt; phản hồi Đã phản hồi; hợp đồng Hiệu lực; quyết định của người thân Đã đồng ý, Đã xác nhận |
+| `urgent` | Chữ đỏ trên nền đỏ nhạt | Công việc Quá hạn; sự cố, cảnh báo mức Khẩn cấp; cảnh báo "đã leo thang tối đa"; liều thuốc Trễ, Bỏ lỡ |
+| `attention` | Chữ hổ phách trên nền hổ phách | Công việc Đến hạn; liều thuốc Đến giờ; người cao tuổi Tạm vắng, Điều trị tại bệnh viện, Đang tiếp nhận; giường Chờ sẵn sàng; phòng đang cách ly; bàn giao Có ý kiến; yêu cầu thay đổi quyền người thân Chờ xác nhận; đề nghị mua hộ Chờ đồng ý; phản hồi Đang xử lý, Mở lại; đồ gửi Thất lạc, Hư hỏng; dị ứng (`AllergyNote`, có viền và biểu tượng cảnh báo) |
+| `settled` | Chữ xanh lá trên nền xanh lá nhạt | Công việc Hoàn thành; liều thuốc Đã dùng; người cao tuổi Đang lưu trú; lượt thăm Đã duyệt; phản hồi Đã phản hồi; hợp đồng Hiệu lực; quyết định của người thân Đã đồng ý, Đã xác nhận |
 | `held` | Chữ xanh trời đậm, viền cùng màu, nền trong | Giường Đang giữ chỗ (ghi kèm lý do) |
 | `occupied` | Chữ xanh chàm trên nền xanh chàm | Giường Đang sử dụng; lượt thăm Đã vào |
-| `neutral` | Chữ phụ trên nền phụ | Lưu ý chăm sóc (`CareNote`, chữ chính trên nền phụ, biểu tượng thông tin); công việc Chưa đến hạn, Hoàn thành trễ, Không thực hiện, Hủy; giường Trống, Đang bảo trì, Tạm ngừng sử dụng, Không sử dụng; người cao tuổi ở trạng thái cuối; lượt thăm Đã ra, Không đến, Hủy; phản hồi Mới, Đóng; đồ gửi Đang giữ, Đang được người cao tuổi sử dụng; kỳ chi phí Tạm tính, Đã chốt; quyết định Đã từ chối |
+| `neutral` | Chữ phụ trên nền phụ | Lưu ý chăm sóc (`CareNote`, chữ chính trên nền phụ, biểu tượng thông tin); công việc Chưa đến hạn, Hoàn thành trễ, Không thực hiện, Hủy; giường Trống, Đang bảo trì, Tạm ngừng sử dụng, Không sử dụng; người cao tuổi ở trạng thái cuối; lượt thăm Đã ra, Không đến, Hủy; phản hồi Mới, Đóng; đồ gửi Đang giữ, Đang được người cao tuổi sử dụng; kỳ chi phí Tạm tính, Đã chốt; quyết định Đã từ chối; liều thuốc Chưa đến giờ, Từ chối, Không thực hiện, Tạm dừng, Mang theo, Đã hủy |
 
 ### 3.6 Ảnh đại diện
 
@@ -351,7 +351,7 @@ Bốn cặp màu: xanh trời nhạt, xanh chàm nhạt, xanh lá nhạt, xám (
 - **Khung chung** (`AppShell`): lưới hai cột, menu trái rộng 240px, nội dung bên phải (lề 16px, từ 768px là 32px; trên dưới 24px). Không có thanh trên. Căn trái toàn bộ.
 - **Menu:** logo, các nhóm mục theo vai trò (nhãn nhóm `caption`), cuối là khối người dùng: ảnh đại diện vai trò, tên vai trò, tầng và ca, nút sáng/tối. Mục menu bo tròn, cao tối thiểu 40px, biểu tượng 16px.
 - **Đầu mỗi màn:** `page-header`, khối thẻ trắng bo 16px gồm tiêu đề nói phạm vi bằng câu bình thường, dòng phụ, ô bên phải (giờ, thao tác) và thanh lọc hoặc ô tìm ở dưới. Không đặt dãy thẻ số liệu lớn ở đầu trang; số đếm nằm trên nút lọc hoặc trong dải số đếm gọn.
-- Nội dung rộng tối đa 1280px; khoảng cách giữa các khối 24px, giữa các thẻ 12px. Dùng `gap-*`, không dùng `space-x-*`/`space-y-*`.
+- Màn nhân viên rộng tối đa 1600px (cổng người thân theo mục 2.3); khoảng cách giữa các khối 24px, giữa các thẻ 12px. Dùng `gap-*`, không dùng `space-x-*`/`space-y-*`.
 - **Khung chi tiết:** `Sheet` mở bên phải, bo 20px phía trái.
 
 ### 5.1 Lưới thẻ hay bảng
@@ -362,12 +362,12 @@ Một thẻ là **một đối tượng nghiệp vụ người dùng thao tác r
 | --- | --- | --- |
 | Phòng, giường | Lưới thẻ, chia theo khu và tầng | Một phòng; giường là ô bên trong |
 | Checklist chăm sóc | Lưới thẻ, nhóm Quá hạn → Đến hạn → Chưa đến hạn → Đã xong | Một công việc chăm sóc |
-| Phát thuốc theo cữ | Lưới thẻ | Một người cao tuổi trong cữ |
+| Phát thuốc | Lưới thẻ, nhóm theo giờ dự kiến (giờ có liều Trễ, Đến giờ mở sẵn; giờ sau thu gọn; Đã xong cuối) | Một người cao tuổi trong một giờ dự kiến |
 | Cổng người thân | Thẻ | Một người cao tuổi |
 | Danh sách người cao tuổi, chi phí, số dư, nhật ký, lịch ca, tham số | Bảng | — |
 | Tổng quan | Dải số đếm, cảnh báo, lưới việc theo khung giờ, sơ đồ giường theo phòng | Một công việc (trong hàng của khung giờ); không dùng lưới thẻ số liệu |
 
-Lưới dùng `repeat(auto-fill, minmax(<min>, 1fr))`: thẻ công việc tối thiểu 280px, thẻ phòng tối thiểu 220px.
+Lưới dùng `repeat(auto-fit, minmax(<min>, 1fr))` để thẻ giãn lấp đầy hàng, kèm giới hạn rộng mỗi thẻ (`*:max-w-[480px]`) để thẻ lẻ không kéo dài cả màn: thẻ công việc, thẻ thuốc tối thiểu 280px, tối đa 480px; thẻ phòng tối thiểu 220px; thẻ việc ở Tổng quan tối thiểu 220px, tối đa 360px.
 
 ## 6. Hình khối, độ nổi
 
@@ -412,6 +412,9 @@ Nút bo tròn, cao 40px (nhỏ 32px, lớn 44px); nút trong form ghi nhận cao
 | `filter-bar` | `ToggleGroup` | Nút bo tròn nền trắng; mục đang chọn nền xanh đêm chữ trắng; nút Quá hạn nền đỏ nhạt khi số > 0 |
 | `shift-bar` | `div` | Thanh 8px bo tròn trên rãnh nền phụ, phần đã qua màu xanh thương hiệu, vạch dọc xanh đêm ở giờ hiện tại; giờ hiện tại `clock` kèm khung giờ ca ở ô phải của page-header |
 | `detail-panel` | `Sheet` có `SheetTitle` | Thông tin đối tượng, rồi các nút lệnh lấy từ danh sách lệnh được phép |
+| `dose-card` | `Card` | Hàng 1: ảnh đại diện, tên, phòng, nhãn trạng thái của thẻ (theo liều gấp nhất). Dị ứng (mọi thẻ thuốc). Mỗi liều: tên thuốc `card-title`, liều và đường dùng, nhãn nguồn ("Thuốc viện", "Gia đình gửi"), "Kiểm soát đặc biệt, phải trực tuyến", "Liều chung của tầng". Hàng cuối: nút **Phát thuốc** `tonal` khi Đến giờ, `default` khi Trễ; chỉ Điều dưỡng. Thẻ Trễ viền đỏ 1,5px. Liều Tạm dừng, Mang theo chỉ có chữ, không nút |
+| `dose-sheet` | `Sheet` | Ảnh nhận diện 64px (chưa có ảnh thì chữ cái và "Chưa có ảnh"), tên, phòng, giờ và cửa sổ, dị ứng; mỗi liều một khối: Đã dùng / Từ chối / Không thực hiện (nút chia ba); Đã dùng: chọn lô khi gia đình gửi (không chọn sẵn, lô hết hạn ghi rõ và bị chặn), thời điểm dùng (điền sẵn giờ hiện tại, sau cửa sổ ghi "dùng trễ"), phản ứng; Từ chối, Không thực hiện: lý do bắt buộc. Một nút lưu cho các liều đã chọn, mỗi liều lưu riêng |
+| `prn-card` | `Card` | Thuốc khi cần: tên thuốc, khoảng cách tối thiểu, số lần tối đa trong 24 giờ, lần gần nhất; bị chặn thì khối hổ phách "sớm nhất được dùng lúc …", không có nút vượt chặn |
 | `alert-banner` | `Alert` | `urgent` chỉ cho cảnh báo cần xử lý ngay; `attention` (hổ phách, có viền) cho điều cần chú ý mà không gấp: trái mong muốn của người cao tuổi, chưa ghi ý kiến vào ở (mục 2.2) |
 | `opinion-history` | `Sheet` (`OpinionHistorySheet`) | Mở từ nút "Lịch sử" của từng nhóm sở thích: "Đang hiệu lực" (mỗi nguồn một dòng), "Lịch sử" (chữ mức màu phụ, "thay bằng mục mới ngày …"); nút "Ghi ý kiến mới" ở chân, chỉ cho vai trò được ghi |
 | `admission-command` | `Sheet` (`CompleteAdmissionSheet`) | Thứ tự: ý kiến vào ở (khối nền phụ có `source-tag`, hoặc `Alert` `attention` khi chưa ghi), ô "Lý do của lệnh" (bắt buộc khi "Không đồng ý"), điều kiện tiếp nhận, nút chính |
@@ -463,7 +466,7 @@ Mọi trạng thái đặt trên thẻ trắng, không đặt chữ trực tiế
 
 | Bề rộng | Bố cục |
 | --- | --- |
-| ≥ 1280px | Menu trái, nội dung tối đa 1280px |
+| ≥ 1280px | Menu trái, nội dung tối đa 1600px |
 | 768–1279px | Menu trái; lưới thẻ 2–3 cột; khung chi tiết mở đè |
 | < 768px | Menu thành thanh ngang cuộn được, đường ngăn bên dưới; lưới thẻ 1 cột; không cuộn ngang trang |
 
@@ -505,10 +508,11 @@ Công nghệ: React 19, Vite 8, JavaScript, Tailwind CSS v4, shadcn/ui (Base UI)
 ## 14. Hiện trạng (web)
 
 - Đã có: khung chung (`AppShell`, menu theo vai trò, khối người dùng, nút sáng/tối), trạng thái màn chưa có và không có quyền, và ba màn mẫu: Tổng quan (dải số đếm, cảnh báo, lưới việc theo khung giờ có người phụ trách, sơ đồ giường theo phòng, thẻ bàn giao ca), Checklist ca (lưới thẻ có người phụ trách, dị ứng tách riêng, lựa chọn của người cao tuổi, loại lý do "Người cao tuổi từ chối"), Danh sách người cao tuổi (bảng kèm khung chi tiết có ảnh nhận diện, khối "Về người này" có sở thích theo nguồn và lịch sử ý kiến, lệnh Hoàn tất tiếp nhận có ý kiến vào ở khi xem bằng vai trò Hành chính). Theo mục 2.2 còn có: chi tiết sự cố hai phần (`incidents`, vai trò Người thân thấy bản cổng) và Người thân (`relatives`, mục menu mới theo dòng "Mong muốn về khách thăm, người đón" của Phụ lục 27).
-- Chưa chốt: dị ứng hiện ở những loại công việc nào ngoài ăn, uống (hiện là lựa chọn hiển thị, chưa có quy định nghiệp vụ).
+- Dị ứng hiện trên thẻ việc ăn, uống và trên mọi thẻ thuốc (chủ dự án duyệt 2026-10-18 cho màn Phát thuốc); loại công việc chăm sóc khác chưa chốt.
 - Đợt 3 (thẩm mỹ, đang trao đổi): giảm màu cho trạng thái bình thường (Đang lưu trú), bo góc thẻ, dải nền trang.
 - Đã có trang chủ giới thiệu viện trong cổng người thân (mục 2.1), màn đăng nhập `/login` và cổng người thân `/family` với 11 màn P1 → P11 (mục 2.3). Chờ: ảnh thực tế được phép sử dụng, kênh liên hệ chính thức của viện.
-- Chưa thiết kế: Phòng, giường dạng thẻ phòng; Phát thuốc; Bàn giao ca; danh sách sự cố và lệnh xử lý sự cố; cổng người thân trên app mobile (mục 15); khi người thân có quan hệ với nhiều người cao tuổi thì chọn người ở đâu.
+- Đã có màn mẫu Phát thuốc (M14): liều theo lịch nhóm theo giờ, khung xác nhận liều, thuốc khi cần.
+- Chưa thiết kế: Phòng, giường dạng thẻ phòng; Bàn giao ca; danh sách sự cố và lệnh xử lý sự cố; cổng người thân trên app mobile (mục 15); khi người thân có quan hệ với nhiều người cao tuổi thì chọn người ở đâu.
 - Mục 2.2 (4.4.0) đã duyệt 2026-10-18; bố cục màn mẫu A–D duyệt cùng ngày. Còn chưa có màn mẫu: phiếu nguyện vọng cuối đời, mục sự cố trong bản tin Điều dưỡng soạn, form ghi ý kiến và ghi mong muốn, danh sách người thân và quyền (012).
 - Chưa có `toast`: màn Checklist ca báo đã lưu bằng vùng `aria-live` và thẻ chuyển sang nhóm Đã xong.
 - Chưa có trang trình bày design system (bảng màu, mẫu chữ, ma trận trạng thái).
@@ -566,6 +570,8 @@ Mục này nói cách áp các mục chung vào `mobile/`. Màu, chữ, trạng 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 5.11.0 | 2026-10-18 | Theo góp ý chủ dự án (màn Phát thuốc thừa khoảng trống): màn nhân viên rộng tối đa 1600px thay cho 1280px; lưới thẻ dùng `auto-fit` để thẻ giãn lấp đầy hàng, mỗi thẻ rộng tối đa 480px (thẻ việc ở Tổng quan 360px) để thẻ lẻ không kéo dài cả màn |
+| 5.10.0 | 2026-10-18 | Màn mẫu Phát thuốc (spec 006): thêm `dose-card`, `dose-sheet`, `prn-card`; trạng thái liều vào mục 3.5 (Trễ, Bỏ lỡ đỏ; Đến giờ hổ phách; Đã dùng xanh lá); dị ứng hiện trên mọi thẻ thuốc; thời điểm dùng điền sẵn giờ hiện tại. Không thêm màu |
 | 5.9.0 | 2026-10-18 | Theo yêu cầu chủ dự án: đường dẫn và neo bằng tiếng Anh (`/dang-nhap` → `/login`, `/cong-nguoi-than` → `/family`, các neo của Trang chủ); thêm quy tắc ở mục 8 |
 | 5.8.0 | 2026-10-18 | Theo yêu cầu chủ dự án: trang giới thiệu chuyển vào cổng người thân làm Trang chủ sau đăng nhập, bỏ trang công khai `/nguoi-than`; sắp lại nội dung: viện trước (01 Không gian sống, 02 Đội ngũ và "Gia đình liên hệ với ai", 03 Đời sống, 04 Quy trình chăm sóc và an toàn, 05 Viện và gia đình), rồi Elder_Care; bỏ "Một tuần mẫu". Cổng: bỏ nút "Xem như" R, M, N; đầu trang chung kiểu trang chủ; bố cục máy tính rộng 960px, Hôm nay hai cột |
 | 5.7.0 | 2026-10-18 | Thêm mục 2.3 Cổng người thân: khung riêng cho điện thoại, thanh điều hướng 5 mục, hiện theo quyền, nút "Xem như" của bản mẫu; màn đăng nhập thay trang giữ chỗ. Ảnh người cao tuổi với người thân theo spec 012 FR-046. Bổ sung trạng thái lượt thăm, phản hồi, đồ gửi, kỳ chi phí, quyết định của người thân vào mục 3.5 |

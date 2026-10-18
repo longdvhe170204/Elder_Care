@@ -195,7 +195,7 @@ export function ResidentListPage({ role }) {
   const countOf = (s) => (s === 'Tất cả' ? DEMO_RESIDENTS.length : DEMO_RESIDENTS.filter((r) => r.status === s).length)
 
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-6">
+    <div className="mx-auto flex max-w-[1600px] flex-col gap-6">
       <PageHeader title="Người cao tuổi" subtitle={`${DEMO_RESIDENTS.length} hồ sơ trong phạm vi bạn được xem`}>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <InputGroup className="h-11 bg-popover lg:w-72 lg:shrink-0">

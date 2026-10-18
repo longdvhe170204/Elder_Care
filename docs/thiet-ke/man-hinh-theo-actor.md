@@ -27,7 +27,7 @@ Viết tắt: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD Điề
 | M11 | Lập công việc của ca | UC-24 | 005 | X | T | — | T⁴¹ | — | — | — | — | — | — |
 | M12 | Checklist ca, việc quá hạn | UC-25 → 27 | 005 | X | T | X²² | T | T | — | — | — | — | Có |
 | M13 | Điểm danh bán trú | UC-28 | 005 | X | X | — | T²⁷ | T | — | T | — | — | — |
-| M14 | Phát thuốc theo cữ, thuốc khi cần | UC-41, 42 | 006 | X | X | X | T | — | — | — | — | — | — |
+| M14 | Phát thuốc, thuốc khi cần | UC-41, 42 | 006 | X | X | X | T | — | — | — | — | — | Có |
 | M15 | Cảnh báo | UC-34 | 007 | X | T | T | T | X | — | — | — | — | — |
 | M16 | Sự cố, khẩn cấp (gồm khoanh vùng, danh sách tiếp xúc, dấu nguy kịch) | UC-35 → 37, 83, 84 | 007 | X, T²³ | T¹⁰ | T | T¹⁰ | T¹⁰ | T¹⁰ | T¹⁰ | T¹⁰ | X¹ (cổng) | Có (chi tiết) |
 | M17 | Bàn giao ca | UC-52, 53 | 008 | X | T | X | T | P²⁵ | — | — | — | — | Thẻ ở Tổng quan |

@@ -77,7 +77,7 @@ function TaskGroup({ label, count, defaultOpen, urgent, children }) {
         </span>
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3">{children}</div>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-3 *:max-w-[480px]">{children}</div>
       </CollapsibleContent>
     </Collapsible>
   )
@@ -107,7 +107,7 @@ export function ShiftChecklistPage({ role, initialFilter = 'all' }) {
   }
 
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-6">
+    <div className="mx-auto flex max-w-[1600px] flex-col gap-6">
       <PageHeader
         title={`Checklist ${shift.name.toLowerCase()}`}
         subtitle={`${shift.floor}, bạn phụ trách ${shift.residentsAssigned} người cao tuổi`}

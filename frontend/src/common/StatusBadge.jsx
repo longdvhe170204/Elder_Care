@@ -4,8 +4,11 @@ import { Badge } from '@/components/ui/badge'
 // Trạng thái chưa có trong bảng hiển thị tông neutral.
 const STATUS_TONE = {
   'Quá hạn': 'urgent',
+  'Trễ': 'urgent',
+  'Bỏ lỡ': 'urgent',
   'Khẩn cấp': 'urgent',
   'Đến hạn': 'attention',
+  'Đến giờ': 'attention',
   'Tạm vắng': 'attention',
   'Điều trị tại bệnh viện': 'attention',
   'Đang tiếp nhận': 'attention',
@@ -18,6 +21,7 @@ const STATUS_TONE = {
   'Thất lạc': 'attention',
   'Hư hỏng': 'attention',
   'Hoàn thành': 'settled',
+  'Đã dùng': 'settled',
   'Đang lưu trú': 'settled',
   'Đã duyệt': 'settled',
   'Đã phản hồi': 'settled',
