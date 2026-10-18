@@ -105,7 +105,7 @@ function Header({ viewer, page, badge, onNavigate }) {
             <Badge count={badge} />
           </button>
           <span className="hidden type-caption sm:inline">{viewer.name}</span>
-          <a href="/dang-nhap" aria-label="Đăng xuất" className="flex size-11 items-center justify-center rounded-full hover:bg-card/40">
+          <a href="/login" aria-label="Đăng xuất" className="flex size-11 items-center justify-center rounded-full hover:bg-card/40">
             <LogOut className="size-5" aria-hidden="true" />
           </a>
         </div>

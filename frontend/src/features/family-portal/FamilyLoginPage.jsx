@@ -18,7 +18,7 @@ export function FamilyLoginPage() {
   function submit(event) {
     event.preventDefault()
     setSubmitted(true)
-    if (!userMissing && !passwordMissing) window.location.assign('/cong-nguoi-than')
+    if (!userMissing && !passwordMissing) window.location.assign('/family')
   }
 
   return (

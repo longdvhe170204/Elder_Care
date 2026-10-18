@@ -12,7 +12,7 @@ Viết tắt: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD Điề
 | Mã | Màn | Gồm (use case, mục) | Feature | QL | TT | BS | ĐD | CS | Bếp | HC | KT | NT | Bản mẫu |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | **Chung** | | | | | | | | | | | | | |
-| M01 | Đăng nhập | UC-70 | 002 | T | T | T | T | T | T | T | T | T | Có, người thân (`/dang-nhap`) |
+| M01 | Đăng nhập | UC-70 | 002 | T | T | T | T | T | T | T | T | T | Có, người thân (`/login`) |
 | M02 | Thông báo | UC-66 | 009 | T | T | T | T | T | T | T | T | T | — |
 | M03 | Tổng quan | UC-67 | 016 | X | P | P¹¹ | P | — | — | P¹¹ | P²⁹ | — | Có |
 | M04 | Phê duyệt | UC-14 và các yêu cầu chờ duyệt (1.5) | 000 | D | D (đổi ca, lịch ca) | — | — | — | — | D⁴² | — | — | — |
@@ -56,7 +56,7 @@ Viết tắt: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD Điề
 | **Quản trị** | | | | | | | | | | | | | |
 | M36 | Tài khoản, phân quyền, tham số, danh mục | UC-68, 69, BR-M01-11, 6.4, 11.1 | 000, 002 | C | — | X (danh mục) | X (danh mục) | — | — | T¹² | — | — | — |
 | **Cổng người thân** | | | | | | | | | | | | | |
-| M37 | Cổng người thân: thẻ người cao tuổi, thông tin được phép, lịch sinh hoạt; dẫn tới M02, M09, M16, M26, M28 → M34 phần người thân | UC-56 | 012 | — | — | — | — | — | — | — | — | T | Có (`/cong-nguoi-than`, P1 → P11) |
+| M37 | Cổng người thân: thẻ người cao tuổi, thông tin được phép, lịch sinh hoạt; dẫn tới M02, M09, M16, M26, M28 → M34 phần người thân | UC-56 | 012 | — | — | — | — | — | — | — | — | T | Có (`/family`, P1 → P11) |
 | **Bổ sung sau khi rà nghiệp vụ** | | | | | | | | | | | | | |
 | M38 | Khám và điều trị: khám, chẩn đoán, chỉ định, điều trị, kết quả, cơ sở thực hiện | 10.2, 10.4 | 007 (FR-072, 073) | ? | ? | T | ? | — | — | — | — | X¹ (cổng)? | — |
 | M39 | Thời khóa biểu cá nhân theo ngày (công việc, liều thuốc, bữa ăn, hoạt động, lịch thăm; chỉ xem) | 8.2 | 005 (FR-048) | ? | P | ? | P | ? | — | — | — | — | — |
@@ -65,7 +65,7 @@ Viết tắt: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD Điề
 | M42 | Bản ghi ngoại tuyến chờ xem lại (quá CFG-M15-08 hoặc thời điểm thiết bị bất hợp lý) | Q-01, 8.6 | 002, 005, 006, 007, 012 | ? | T | — | — | — | — | — | — | — | — |
 | M43 | Tài khoản của tôi: đổi mật khẩu, buộc đổi mật khẩu lần đầu | 19.1, BR-M15-21, 22 | 002 | T | T | T | T | T | T | T | T | T | — |
 | M44 | Giấy phép hoạt động của cơ sở (số, cơ quan cấp, ngày cấp, hết hạn, phạm vi) | 10.4 | 002 (FR-039), 007 | ? (nhận cảnh báo hết hạn) | — | ? | — | — | — | ? | — | — | — |
-| M45 | Trang chủ cổng người thân: giới thiệu viện, mở ngay sau khi người thân đăng nhập (không còn trang công khai) | DESIGN.md 2.1 | — | — | — | — | — | — | — | — | — | T | Có (`/cong-nguoi-than`, Trang chủ) |
+| M45 | Trang chủ cổng người thân: giới thiệu viện, mở ngay sau khi người thân đăng nhập (không còn trang công khai) | DESIGN.md 2.1 | — | — | — | — | — | — | — | — | — | T | Có (`/family`, Trang chủ) |
 
 Ghi chú:
 - M04: Phụ lục 27 không có dòng "Phê duyệt" riêng; ô ghi theo các dòng có D. Trưởng tầng duyệt đổi ca (dòng "Yêu cầu đổi ca"), lịch ca; Hành chính duyệt thay đổi nhỏ (⁴²). Các yêu cầu D khác của QL (hợp đồng, thanh lý, mua sắm, ngoại lệ đón…) cũng vào đây.

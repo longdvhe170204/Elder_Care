@@ -137,7 +137,7 @@ export function HomePage({ onNavigate }) {
               <Button size="lg" onClick={() => onNavigate('today')}>
                 Xem thông tin của {resident.name}
               </Button>
-              <Button size="lg" variant="outline" className="border-primary" nativeButton={false} render={<a href="#khong-gian" />}>
+              <Button size="lg" variant="outline" className="border-primary" nativeButton={false} render={<a href="#living-space" />}>
                 Tìm hiểu về viện
               </Button>
             </div>
@@ -146,8 +146,8 @@ export function HomePage({ onNavigate }) {
         </div>
       </section>
 
-      <Band id="khong-gian" tone="ivory">
-        <Intro id="khong-gian" number="01" title="Không gian sống và môi trường chăm sóc">
+      <Band id="living-space" tone="ivory">
+        <Intro id="living-space" number="01" title="Không gian sống và môi trường chăm sóc">
           Gia đình cần hình dung được người thân sẽ sống ở đâu, sinh hoạt ra sao, được hỗ trợ an toàn thế nào.
         </Intro>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -159,8 +159,8 @@ export function HomePage({ onNavigate }) {
         <Points wide items={SPACE} />
       </Band>
 
-      <Band id="doi-ngu" tone="white">
-        <Intro id="doi-ngu" number="02" title="Con người và đội ngũ chăm sóc">
+      <Band id="care-team" tone="white">
+        <Intro id="care-team" number="02" title="Con người và đội ngũ chăm sóc">
           Mỗi tầng có Trưởng tầng; mỗi ca có người phụ trách ca và nhân viên được phân công cho từng người cao tuổi.
         </Intro>
         <Points wide items={TEAM} />
@@ -177,10 +177,10 @@ export function HomePage({ onNavigate }) {
         </div>
       </Band>
 
-      <Band id="doi-song" tone="beige">
+      <Band id="daily-life" tone="beige">
         <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)]">
           <div className="flex flex-col gap-12">
-            <Intro id="doi-song" number="03" title="Đời sống hằng ngày">
+            <Intro id="daily-life" number="03" title="Đời sống hằng ngày">
               Viện là một môi trường sống, không chỉ là nơi làm các việc chăm sóc. Chăm sóc giúp những việc người cao tuổi
               không còn tự làm được; phần còn lại của ngày vẫn theo thói quen và lựa chọn của họ.
             </Intro>
@@ -190,8 +190,8 @@ export function HomePage({ onNavigate }) {
         </div>
       </Band>
 
-      <Band id="quy-trinh" tone="white">
-        <Intro id="quy-trinh" number="04" title="Quy trình chăm sóc và bảo đảm an toàn">
+      <Band id="care-process" tone="white">
+        <Intro id="care-process" number="04" title="Quy trình chăm sóc và bảo đảm an toàn">
           Không nơi chăm sóc nào loại bỏ được mọi rủi ro. Điều viện làm được là ai cũng biết ai phụ trách việc gì, việc gì
           đã làm, và khi có chuyện thì ai báo cho ai.
         </Intro>
@@ -206,8 +206,8 @@ export function HomePage({ onNavigate }) {
         </ol>
       </Band>
 
-      <Band id="gia-dinh" tone="beige">
-        <Intro id="gia-dinh" number="05" title="Viện và gia đình cùng chăm sóc">
+      <Band id="family" tone="beige">
+        <Intro id="family" number="05" title="Viện và gia đình cùng chăm sóc">
           Đưa người thân vào viện không có nghĩa là gia đình thôi chăm sóc. Viện lo phần chăm sóc hằng ngày; gia đình giữ phần
           gắn bó: góp ý, đến thăm, được biết và trao đổi khi có vấn đề.
         </Intro>
@@ -244,10 +244,10 @@ export function HomePage({ onNavigate }) {
         </div>
       </Band>
 
-      <Band id="lien-he" tone="navy">
+      <Band id="contact" tone="navy">
         <div className="grid gap-10 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:items-end">
           <div className="flex flex-col gap-4">
-            <h2 id="lien-he-title" className="max-w-[22ch] type-section">
+            <h2 id="contact-title" className="max-w-[22ch] type-section">
               Cần trao đổi với viện?
             </h2>
             <p className="max-w-[48ch] type-lead">Gửi phản hồi qua cổng, hoặc liên hệ Hành chính của viện.</p>

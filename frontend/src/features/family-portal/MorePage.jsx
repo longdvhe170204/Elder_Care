@@ -26,7 +26,7 @@ export function MorePage({ viewer, onNavigate, onExit }) {
             )
           })}
           <li className="border-t">
-            <a href="/dang-nhap" className="flex min-h-12 w-full items-center gap-3 rounded-lg">
+            <a href="/login" className="flex min-h-12 w-full items-center gap-3 rounded-lg">
               <LogOut className="size-5 text-muted-foreground" aria-hidden="true" />
               <span className="flex-1 type-label">Đăng xuất</span>
             </a>
