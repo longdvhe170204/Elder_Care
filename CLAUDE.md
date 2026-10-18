@@ -14,20 +14,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Lệnh: /speckit-plan, /speckit-tasks để sửa; /speckit-analyze, /speckit-converge để rà; /speckit-implement chưa dùng; /speckit-taskstoissues chỉ khi chủ dự án yêu cầu.
 - Plan, tasks không được đổi nghiệp vụ (constitution IX). Gặp thiếu sót nghiệp vụ hoặc lệch giữa spec, plan, tasks thì dừng và báo lại.
 - /speckit-analyze chạy theo thứ tự triển khai, đổi `.specify/feature.json` trước mỗi feature; chỉ đọc, không ghi file trừ khi chủ dự án yêu cầu.
-- Tiến độ (2026-10-16): xong 000 T001 (`.gitignore`, README gốc) và T005a (design system, khung ứng dụng, hai màn mẫu). Đã làm trước một phần, task chưa `[x]`: T002 (driver MySQL, `ddl-auto=validate`), T005 (bỏ file mẫu Vite), T008 (ESLint bỏ qua hai luật cho mã shadcn sinh ra).
+- Tiến độ (2026-10-16): xong 000 T001 (`.gitignore`, README gốc) và T005a (design system, khung ứng dụng, hai màn mẫu); `DESIGN.md` (nay 5.6.0, mục 15 mobile đã duyệt, chung cho web và mobile; trước ở `frontend/`) đã duyệt và áp vào `index.css` (mục 2.2 Nhân văn trong màn nghiệp vụ, Q-347 → Q-364, duyệt 2026-10-18), thêm màn mẫu Checklist ca dạng lưới thẻ. Đã làm trước một phần, task chưa `[x]`: T002 (driver MySQL, `ddl-auto=validate`), T005 (bỏ file mẫu Vite), T008 (ESLint bỏ qua hai luật cho mã shadcn sinh ra).
 - Trước khi vận hành: chốt 3 điểm pháp lý ở 24.4 (Q-03, Thông tư 27/2024/TT-BYT, Luật Cư trú 118/2025/QH15); nâng MySQL 8.0 lên 8.4 LTS, nên migration chỉ dùng cú pháp có ở cả hai bản (research R-01).
 
 ### Thiết kế giao diện
 
-- Hướng: chuyên nghiệp, điềm tĩnh, ấm, phục vụ vận hành; không theo khuôn dashboard SaaS chung chung.
-  - Màu khởi điểm: xanh teal đậm, trắng ấm, xanh sage nhạt, xám trung tính; khai báo bằng biến CSS của shadcn trong `frontend/src/index.css`, có cả chế độ tối.
-  - Font Geist; viền nhẹ, bo góc vừa, khoảng cách nhất quán. Tránh gradient dày, glassmorphism, hiệu ứng động trang trí, thẻ số liệu quá lớn, biểu đồ không cần thiết.
-- Ưu tiên danh sách người cao tuổi, lịch chăm sóc, công việc thuốc, sự cố, bàn giao, tình trạng phòng/giường; dùng bảng, dòng thời gian, danh sách việc, khung chi tiết bên cạnh khi hợp luồng làm việc hơn thẻ.
-- Màu đỏ chỉ cho quá hạn, Khẩn cấp, "đã leo thang tối đa"; cảnh báo nổi rõ nhưng không làm cả màn hình căng thẳng.
-- Menu và nút theo vai trò, căn cứ ma trận quyền (Phụ lục 27, mục 19.3); nút lệnh lấy theo danh sách lệnh được phép do backend trả.
-- Nhãn tiếng Việt theo mục 2.4 nghiep-vu.md; ngày dd/MM/yyyy (NFR-11).
-- Không bịa quy tắc nghiệp vụ, dữ liệu người cao tuổi hay quyền; dữ liệu minh họa ghi rõ là minh họa, để trong một file riêng.
-- Quy trình: đề xuất design system và bố cục → chủ dự án duyệt → mới sửa file; cài từng bước, chạy `npm run build` sau mỗi bước.
+Mọi quy tắc giao diện cho cả web (`frontend/`) và app di động (`mobile/`) (màu, chữ, bố cục, component, trợ năng, quy trình, skill) ở [DESIGN.md](DESIGN.md) gốc kho; mục 15 riêng cho Flutter. Đọc hết file đó trước khi thiết kế hay sửa màn hình.
 
 ## Cách viết mã (bắt buộc cho mọi thành viên, skill karpathy-guidelines)
 
@@ -59,7 +51,7 @@ Skill ở `.claude/skills/karpathy-guidelines/` (nguồn ghi ở `skills-lock.js
 - Biến môi trường (không ghi mật khẩu vào kho mã): `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` cho schema `elder_care`; `TEST_DB_URL`, `TEST_DB_ADMIN_USER`, `TEST_DB_ADMIN_PASSWORD` cho schema test `eldercare_test`.
 - Một kho mã, ba thư mục gốc:
   - `backend/`: Spring Boot 4.1.x, Java 25, Maven wrapper; một khối, RESTful `/api/v1`; gói gốc `com.cambae.backend` chia `common` và `m01` … `m15` (application module của Spring Modulith, chỉ gói `api` công khai). Flyway ở `src/main/resources/db/migration/`; test `*Test` đơn vị, `*IT` tích hợp, `*ArchTest` kiến trúc, bản giả ở `…/support/`. Tasks viết tắt `BE/`, `BT/`, `MIG/`.
-  - `frontend/`: React 19, Vite 8, JavaScript (không TypeScript), Tailwind CSS v4, shadcn/ui (Base UI), lucide-react, Geist. `src/{api, common, features}`, `src/components/ui/` (thêm bằng `npx shadcn add`), `src/lib/`; alias `@/` trỏ `src/`; `src/api/` sinh từ `specs/*/contracts/api-*.yaml` (000 T010), không sửa tay. `cn` lấy từ gói npm `cn`.
+  - `frontend/`: React 19, Vite 8, JavaScript (không TypeScript), Tailwind CSS v4, shadcn/ui (Base UI), lucide-react, font Be Vietnam Pro. `src/{api, common, features}`, `src/components/ui/` (thêm bằng `npx shadcn add`), `src/lib/`; alias `@/` trỏ `src/`; `src/api/` sinh từ `specs/*/contracts/api-*.yaml` (000 T010), không sửa tay. `cn` lấy từ gói npm `cn`.
   - `mobile/`: một app Flutter chung cho nhân viên và người thân, chức năng theo loại tài khoản (Q-346); "app nhân viên", "app người thân" trong spec là app này. `lib/{common, staff, family}` (tasks ghi `chung`, `nhan-vien`, `nguoi-than`); phần nhân viên ghi ngoại tuyến (Q-01).
 - Tên trong mã bằng tiếng Anh; tên tiếng Việt trong tài liệu là tên logic, dịch theo glossary (constitution X, R-03).
 
@@ -69,7 +61,7 @@ Skill ở `.claude/skills/karpathy-guidelines/` (nguồn ghi ở `skills-lock.js
   - `./mvnw verify`: test đơn vị, tích hợp, kiến trúc, so hợp đồng; một test: `./mvnw test -Dtest=TenLopTest` hoặc `-Dtest=TenLopTest#tenPhuongThuc`;
   - `./mvnw spring-boot:run -Dspring-boot.run.profiles=demo`: chạy với dữ liệu mẫu; profile `test`, `demo` có đồng hồ giả lập (NFR-13, 000 T012);
   - `pom.xml` chưa có Flyway, failsafe (000 T002 thêm); `BackendApplicationTests` nạp cả context nên cần MySQL đang chạy và các biến `DB_*`.
-- `frontend/`: `npm ci`, `npm run lint`, `npm run build`, `npm run dev`. `npm test` (Vitest) có sau 000 T005; một file: `npx vitest run <đường dẫn>`. Bản mẫu giao diện: `npm run dev`, đổi vai trò ở thanh trên để xem menu từng vai trò.
+- `frontend/`: `npm ci`, `npm run lint`, `npm run build`, `npm run dev`. `npm test` (Vitest) có sau 000 T005; một file: `npx vitest run <đường dẫn>`. Bản mẫu giao diện: `npm run dev`, đổi vai trò ở khối người dùng cuối menu để xem menu từng vai trò.
 - `mobile/`: `flutter test`; một file: `flutter test test/<file>_test.dart`; lọc theo tên: `--plain-name "<tên test>"`.
 
 ## Phạm vi nghiệp vụ (tóm tắt, căn cứ là docs/business/nghiep-vu.md)

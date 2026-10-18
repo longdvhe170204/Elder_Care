@@ -31,7 +31,7 @@ Plan này cũng chốt các quyết định nền cho mọi feature sau (R-01 �
 
 **Primary Dependencies**:
 - Backend: Spring Boot 4.1.x (Web MVC, Data JPA/Hibernate 7, Security, Validation), Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock.
-- Web: React 19, Vite 8, Tailwind CSS v4, shadcn/ui (Base UI), lucide-react, font Geist (có sẵn từ lúc khởi tạo); TanStack Query, React Router (thêm ở T005).
+- Web: React 19, Vite 8, Tailwind CSS v4, shadcn/ui (Base UI), lucide-react, font Be Vietnam Pro (thay Geist theo frontend/DESIGN.md 2.0.0); TanStack Query, React Router (thêm ở T005).
 - App: Flutter, `http` (có sẵn), drift (hàng đợi ngoại tuyến của app nhân viên, thêm ở T006).
 
 **Storage**: MySQL 8.0 (bản cài trên máy), InnoDB, utf8mb4. MySQL 8.0 hết hỗ trợ từ 04/2026: trước khi vận hành phải nâng lên 8.4 LTS rồi chạy lại toàn bộ test tích hợp (research R-01). Migration chỉ dùng tính năng có ở cả 8.0 và 8.4.

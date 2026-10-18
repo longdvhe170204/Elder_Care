@@ -2,6 +2,8 @@
 
 A new Flutter project.
 
+Quy định giao diện (chung với web, mục 15 riêng cho Flutter): [DESIGN.md](../DESIGN.md). Đọc trước khi thiết kế hay sửa màn hình.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

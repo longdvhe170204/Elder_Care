@@ -14,3 +14,9 @@ Hệ thống quản lý viện dưỡng lão (đồ án nhóm).
 | `.specify/` | Constitution, template, script của Spec Kit |
 
 Quy ước làm việc, lệnh build và test: xem [CLAUDE.md](CLAUDE.md).
+Backend: 'cd "D:\FU learning\Fall26\Elder_Care\backend"
+            .\mvnw.cmd spring-boot:run'
+Frontend: 'cd "D:\FU learning\Fall26\Elder_Care\frontend"
+            npm run dev'
+Mobile: 'cd "D:\FU learning\Fall26\Elder_Care\mobile"
+            flutter run -d chrome'

@@ -1,122 +1,265 @@
 import { OctagonAlert } from 'lucide-react'
+import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { PageHeader } from '@/common/PageHeader'
+import { ResidentAvatar } from '@/common/ResidentAvatar'
 import { StatusBadge } from '@/common/StatusBadge'
 import {
   DEMO_BEDS,
   DEMO_ESCALATED_ALERT,
   DEMO_HANDOVER,
   DEMO_INDICATORS,
+  DEMO_RESIDENTS,
   DEMO_SCOPE,
   DEMO_TASKS,
 } from '@/common/demoData'
 import { cn } from '@/lib/utils'
 
-// Bản mẫu bố cục cho dashboard của feature 016 (mục 18.5). Chỉ tiêu, phạm vi, quyền xem
-// do 016 quy định; màn này chỉ thử cách trình bày.
+// Bản mẫu bố cục dashboard của feature 016 (mục 18.5), theo DESIGN.md 2.1.0.
+// Chỉ tiêu, phạm vi, quyền xem do 016 quy định; màn này chỉ thử cách trình bày.
 
+// Ô giường (DESIGN.md 7.2, bed-cell): màu đặc token --bed-*, mỗi màu ≥ 3:1 so với nền thẻ. Giữ chỗ là viền
+// đậm trên nền xanh trời nhạt để khác hẳn Đang sử dụng; Trống, Tạm ngừng chỉ có viền để không tranh chú ý.
 const BED_STYLE = {
-  'Đang sử dụng': 'bg-primary',
-  'Đang giữ chỗ': 'bg-accent ring-1 ring-primary ring-inset',
+  'Đang sử dụng': 'bg-bed-occupied',
+  'Đang giữ chỗ': 'bg-accent ring-2 ring-bed-held ring-inset',
   Trống: 'bg-card ring-1 ring-input ring-inset',
-  'Chờ sẵn sàng': 'bg-warning ring-1 ring-warning-foreground/40 ring-inset',
-  'Đang bảo trì': 'bg-muted-foreground/40',
-  'Tạm ngừng sử dụng': 'bg-muted ring-1 ring-input ring-inset',
+  'Chờ sẵn sàng': 'bg-bed-pending',
+  'Đang bảo trì': 'bg-bed-maintenance',
+  'Tạm ngừng sử dụng': 'bg-card border-2 border-dashed border-bed-maintenance',
+  'Không sử dụng': 'bg-card border-2 border-dashed border-bed-maintenance',
 }
 
-function Panel({ title, children, className }) {
+// Số đếm mở được danh sách bản ghi (016 US1). Bản mẫu chỉ có màn Checklist ca để mở;
+// các số khác chưa có màn đích nên chưa bấm được.
+const INDICATOR_TARGETS = {
+  'Quá hạn': ['care-tasks', { initialFilter: 'Quá hạn' }],
+}
+
+// Phòng minh họa: phòng 2xx, 4 giường A–D mỗi phòng
+const BEDS_PER_ROOM = 4
+const DEMO_ROOMS = Array.from({ length: Math.ceil(DEMO_BEDS.length / BEDS_PER_ROOM) }, (_, r) => ({
+  room: `2${String(r + 1).padStart(2, '0')}`,
+  beds: DEMO_BEDS.slice(r * BEDS_PER_ROOM, (r + 1) * BEDS_PER_ROOM),
+}))
+
+// Khung giờ của một công việc: giờ tròn chứa giờ bắt đầu (07:45 thuộc 07:00)
+const slotOf = (time) => `${time.slice(0, 2)}:00`
+const residentOf = (name) => DEMO_RESIDENTS.find((r) => r.name === name)
+
+function IndicatorStrip({ onNavigate }) {
   return (
-    <section className={cn('rounded-lg border bg-card', className)}>
-      <h2 className="border-b px-4 py-2.5 text-sm font-medium">{title}</h2>
-      {children}
-    </section>
+    <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-border sm:grid-cols-3 xl:grid-cols-6">
+      {DEMO_INDICATORS.map((ind) => {
+        const target = INDICATOR_TARGETS[ind.label]
+        const value = (
+          <>
+            {ind.value}
+            {ind.detail && <span className="ml-2 type-caption">{ind.detail}</span>}
+          </>
+        )
+        return (
+          <div key={ind.label} className="flex flex-col gap-1 bg-card px-4 py-3">
+            <dt className="type-caption text-balance text-muted-foreground">{ind.label}</dt>
+            <dd className={cn('mt-auto type-metric', ind.urgent && 'text-destructive')}>
+              {target ? (
+                <button
+                  type="button"
+                  onClick={() => onNavigate(...target)}
+                  className="rounded-md underline decoration-2 underline-offset-4 hover:decoration-current"
+                  aria-label={`${ind.label}: ${ind.value}. Mở danh sách`}
+                >
+                  {value}
+                </button>
+              ) : (
+                value
+              )}
+            </dd>
+          </div>
+        )
+      })}
+    </dl>
   )
 }
 
-export function DashboardPage() {
-  const bedCounts = DEMO_BEDS.reduce((acc, s) => ({ ...acc, [s]: (acc[s] ?? 0) + 1 }), {})
-
+// Một công việc trong lưới khung giờ: giờ, trạng thái; tên việc; người cao tuổi, phòng; người phụ trách (8.4).
+function TaskTile({ task }) {
+  const done = task.status === 'Hoàn thành'
+  const overdue = task.status === 'Quá hạn'
+  const resident = residentOf(task.resident)
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-lg font-medium">
-          {DEMO_SCOPE.floor} · {DEMO_SCOPE.shift}
-        </h1>
-        <span className="text-sm text-muted-foreground tabular-nums">Cập nhật lúc {DEMO_SCOPE.updatedAt}</span>
-      </div>
-
-      <div
-        role="alert"
-        className="flex flex-wrap items-center justify-between gap-2 border-l-4 border-destructive bg-destructive/10 px-4 py-2.5 text-sm text-destructive"
-      >
-        <span className="flex items-center gap-2">
-          <OctagonAlert className="size-4 shrink-0" aria-hidden="true" />
-          Cảnh báo {DEMO_ESCALATED_ALERT.level.toLowerCase()} · Phòng {DEMO_ESCALATED_ALERT.room} ·{' '}
-          {DEMO_ESCALATED_ALERT.note}
+    <li
+      className={cn(
+        'flex flex-col gap-2 rounded-xl border bg-card p-3',
+        overdue && 'border-transparent ring-[1.5px] ring-destructive',
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className={cn('type-label tabular-nums', overdue && 'text-destructive', done && 'text-muted-foreground')}>
+          {task.time}
         </span>
-        <button type="button" className="font-medium underline-offset-4 hover:underline">
-          Mở cảnh báo
-        </button>
+        <StatusBadge status={task.status} />
       </div>
+      <span className={cn('type-card-title', done && 'text-muted-foreground')}>
+        {task.title}
+        {task.mandatory && <span className="ml-2 type-caption text-foreground">Bắt buộc</span>}
+      </span>
+      <span className="flex items-center gap-2">
+        <ResidentAvatar name={task.resident} code={resident?.code ?? task.resident} initials={resident?.initials} className="size-7" />
+        <span className="flex min-w-0 flex-col">
+          <span className={cn('truncate type-label', done && 'text-muted-foreground')}>{task.resident}</span>
+          <span className="type-caption text-muted-foreground tabular-nums">{task.room}</span>
+        </span>
+      </span>
+      {/* Người được phân công (8.4); việc chưa ai nhận ghi rõ để người phụ trách ca phân */}
+      <span className="mt-auto border-t pt-2 type-caption text-muted-foreground">
+        {task.assignee ? `Phụ trách: ${task.assignee}` : 'Chưa phân công'}
+      </span>
+    </li>
+  )
+}
 
-      <dl className="flex flex-wrap gap-x-8 gap-y-3 border-b pb-4">
-        {DEMO_INDICATORS.map((ind) => (
-          <div key={ind.label} className="flex flex-col">
-            <dt className="text-xs text-muted-foreground">{ind.label}</dt>
-            <dd className={cn('text-xl font-medium tabular-nums', ind.urgent && 'text-destructive')}>
-              {ind.value}
-              {ind.detail && <span className="ml-1.5 text-xs font-normal">{ind.detail}</span>}
-            </dd>
-          </div>
-        ))}
-      </dl>
-
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <Panel title="Công việc trong ca theo giờ">
-          <ol>
-            {DEMO_TASKS.map((task, i) => (
-              <li
-                key={i}
-                className={cn(
-                  'grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-3 border-b px-4 py-2.5 text-sm last:border-b-0',
-                  task.status === 'Hoàn thành' && 'text-muted-foreground',
-                )}
-              >
-                <span className={cn('tabular-nums', task.status === 'Quá hạn' && 'text-destructive')}>{task.time}</span>
-                <span className="truncate">
-                  {task.title} · {task.room}
-                  {task.mandatory && <span className="ml-2 text-xs text-destructive">Bắt buộc</span>}
+// Công việc trong ca theo khung giờ (DESIGN.md 5.1): mỗi khung một hàng, trong hàng là lưới thẻ việc vì một
+// khung giờ có nhiều việc của nhiều người cao tuổi, nhiều người phụ trách. Khung đang diễn ra ghi "Bây giờ".
+function TaskSlots({ now }) {
+  const slots = Object.entries(Object.groupBy(DEMO_TASKS, (t) => slotOf(t.time)))
+  const current = slotOf(now)
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="type-title">Công việc trong ca theo giờ</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ol className="flex flex-col">
+          {slots.map(([slot, tasks]) => (
+            <li
+              key={slot}
+              className="grid gap-3 border-t py-4 first:border-t-0 first:pt-0 last:pb-0 md:grid-cols-[5.5rem_minmax(0,1fr)]"
+            >
+              <div className="flex items-baseline gap-2 md:flex-col md:gap-0.5">
+                <span className={cn('type-title tabular-nums', slot === current && 'text-accent-foreground')}>{slot}</span>
+                <span className="type-caption text-muted-foreground">
+                  {slot === current ? 'Bây giờ, ' : ''}
+                  {tasks.length} việc
                 </span>
-                <StatusBadge status={task.status} />
-              </li>
-            ))}
-          </ol>
-        </Panel>
+              </div>
+              <ul className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
+                {tasks.map((task) => (
+                  <TaskTile key={task.time + task.title + task.resident} task={task} />
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ol>
+      </CardContent>
+    </Card>
+  )
+}
 
-        <div className="flex flex-col gap-5">
-          <Panel title="Giường của tầng">
-            <div className="grid grid-cols-10 gap-1 p-4">
-              {DEMO_BEDS.map((status, i) => (
-                <span key={i} title={status} className={cn('h-4 rounded-sm', BED_STYLE[status])} />
-              ))}
-            </div>
-            <ul className="grid grid-cols-2 gap-x-4 gap-y-1 px-4 pb-4 text-xs text-muted-foreground">
-              {Object.entries(bedCounts).map(([status, count]) => (
-                <li key={status} className="flex items-center gap-2">
-                  <span className={cn('size-2.5 rounded-sm', BED_STYLE[status])} />
-                  {status} <span className="ml-auto tabular-nums text-foreground">{count}</span>
-                </li>
-              ))}
-            </ul>
-          </Panel>
+// Giường của tầng theo phòng; màu theo trạng thái, chú thích có chữ và số đếm (màu không là tín hiệu duy nhất)
+function BedMap() {
+  const bedCounts = DEMO_BEDS.reduce((acc, s) => ({ ...acc, [s]: (acc[s] ?? 0) + 1 }), {})
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="type-title">Giường của tầng</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        <ul className="grid grid-cols-[repeat(auto-fill,minmax(88px,1fr))] gap-2" aria-hidden="true">
+          {DEMO_ROOMS.map(({ room, beds }) => (
+            <li key={room} className="flex flex-col gap-1.5 rounded-lg bg-muted p-2">
+              <span className="type-caption text-muted-foreground tabular-nums">{room}</span>
+              <span className="grid grid-cols-4 gap-1">
+                {beds.map((status, i) => (
+                  <span key={i} title={`${room}-${'ABCD'[i]}, ${status}`} className={cn('h-7 rounded-md', BED_STYLE[status])} />
+                ))}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-2 type-body-sm">
+          {Object.entries(bedCounts).map(([status, count]) => (
+            <li key={status} className="flex items-center gap-2">
+              <span className={cn('size-4 shrink-0 rounded', BED_STYLE[status])} aria-hidden="true" />
+              <span className="text-muted-foreground">{status}</span>
+              <span className="ml-auto type-label tabular-nums">{count}</span>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  )
+}
 
-          <Panel title="Bàn giao ca">
-            <div className="flex items-center justify-between px-4 py-3 text-sm">
-              <span>
+export function DashboardPage({ onNavigate }) {
+  return (
+    <div className="mx-auto flex max-w-7xl flex-col gap-6">
+      <PageHeader
+        title={`Tổng quan ${DEMO_SCOPE.floor.toLowerCase()}`}
+        subtitle={`${DEMO_SCOPE.shift}, số liệu trong phạm vi bạn được giao. Cập nhật lúc ${DEMO_SCOPE.updatedAt}.`}
+      >
+        <IndicatorStrip onNavigate={onNavigate} />
+      </PageHeader>
+
+      <Alert
+        variant="urgent"
+        className="rounded-2xl px-4 py-3 has-data-[slot=alert-action]:pr-4 sm:has-data-[slot=alert-action]:pr-40"
+      >
+        <OctagonAlert aria-hidden="true" />
+        <AlertTitle>
+          Cảnh báo mức {DEMO_ESCALATED_ALERT.level.toLowerCase()}, phòng {DEMO_ESCALATED_ALERT.room}
+        </AlertTitle>
+        <AlertDescription>{DEMO_ESCALATED_ALERT.note}</AlertDescription>
+        <AlertAction className="static col-start-2 mt-2 sm:absolute sm:top-1/2 sm:right-3 sm:mt-0 sm:-translate-y-1/2">
+          <Button size="sm">Mở cảnh báo</Button>
+        </AlertAction>
+      </Alert>
+
+      <TaskSlots now={DEMO_SCOPE.updatedAt} />
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <BedMap />
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="type-title">Bàn giao ca</CardTitle>
+          </CardHeader>
+          {/* Bàn giao ca (13.5): ai bàn giao, ai xác nhận, còn gì tồn, ai phải làm tiếp */}
+          <CardContent className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="type-label">
                 {DEMO_HANDOVER.from} → {DEMO_HANDOVER.to}
               </span>
               <StatusBadge status={DEMO_HANDOVER.status} />
             </div>
-          </Panel>
-        </div>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 type-body-sm">
+              <div className="flex flex-col">
+                <dt className="text-muted-foreground">Người bàn giao</dt>
+                <dd>{DEMO_HANDOVER.giver}</dd>
+              </div>
+              <div className="flex flex-col">
+                <dt className="text-muted-foreground">Người xác nhận</dt>
+                <dd>{DEMO_HANDOVER.receiver}</dd>
+              </div>
+              <div className="flex flex-col">
+                <dt className="text-muted-foreground">Công việc tồn</dt>
+                <dd className="tabular-nums">{DEMO_HANDOVER.openTasks}</dd>
+              </div>
+              <div className="flex flex-col">
+                <dt className="text-muted-foreground">Cảnh báo chưa xử lý</dt>
+                <dd className="tabular-nums">{DEMO_HANDOVER.openAlerts}</dd>
+              </div>
+            </dl>
+            {DEMO_HANDOVER.status === 'Có ý kiến' && (
+              // Q-87: Có ý kiến quay lại người bàn giao; ca chưa đóng tới khi gửi lại
+              <p className="rounded-lg bg-muted px-3 py-2 type-body-sm">
+                <span className="font-medium">Chờ {DEMO_HANDOVER.giver} bổ sung và gửi lại. </span>
+                {DEMO_HANDOVER.comment}
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
