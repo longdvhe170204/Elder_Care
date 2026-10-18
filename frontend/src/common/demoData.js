@@ -403,3 +403,117 @@ export const DEMO_PRN_ORDERS = [
   { id: 'p1', residentCode: 'NCT-0001', drug: '[Thuốc giảm đau minh họa]', dose: '500 mg', route: 'uống', minHours: 4, maxPer24h: 4, uses: ['05:30'], source: 'Viện' },
   { id: 'p2', residentCode: 'NCT-0003', drug: '[Thuốc hạ sốt minh họa]', dose: '500 mg', route: 'uống', minHours: 6, maxPer24h: 3, uses: ['07:10'], source: 'Viện' },
 ]
+
+// ---------------------------------------------------------------------------------------------
+// Bàn giao ca (spec 008 User Story 1; FR-038 → FR-047). Bản mẫu hiện như lúc 13:40, trong khoảng được lập
+// bàn giao (CFG-M09-04, 30 phút trước kết ca 14:00). Hệ thống không lập sẵn mục; danh sách dưới là bản ghi nguồn
+// đang mở để người bàn giao tự chọn (Q-306, Q-307). serious: mục nghiêm trọng phải có ghi chú (FR-041, Q-83);
+// keep: chỉ số vượt ngưỡng, biến động người cao tuổi không bỏ được (Q-88).
+export const DEMO_HANDOVER_SCOPE = { floor: 'Tầng 2', from: 'Ca ngày', to: 'Ca chiều', end: '14:00', now: '13:40', giver: '[Điều dưỡng 1]', receiver: 'Người phụ trách ca chiều' }
+
+export const DEMO_HANDOVER_SOURCE_GROUPS = [
+  { key: 'tasks', label: 'Công việc chưa hoàn thành' },
+  { key: 'doses', label: 'Liều Trễ, Bỏ lỡ, Từ chối' },
+  { key: 'vitals', label: 'Chỉ số vượt ngưỡng trong ca' },
+  { key: 'alerts', label: 'Cảnh báo, sự cố đang mở' },
+  { key: 'changes', label: 'Người cao tuổi mới nhập, trở về, bắt đầu vắng' },
+  { key: 'beds', label: 'Giường chờ sẵn sàng quá hạn' },
+  { key: 'deposits', label: 'Đồ gửi có giá trị nhân viên trong ca đang giữ' },
+]
+
+export const DEMO_HANDOVER_SOURCES = [
+  { id: 's1', group: 'tasks', resident: '[Họ tên NCT 1]', text: 'Hỗ trợ uống nước, Bắt buộc', status: 'Quá hạn', serious: true, laterStatus: 'Hoàn thành trễ' },
+  { id: 's2', group: 'tasks', resident: '[Họ tên NCT 4]', text: 'Hỗ trợ vận động', status: 'Quá hạn', currentStatus: 'Hoàn thành' },
+  { id: 's3', group: 'doses', resident: '[Họ tên NCT 3]', text: '[Thuốc minh họa 1], 09:00', status: 'Bỏ lỡ', serious: true },
+  { id: 's4', group: 'doses', resident: '[Họ tên NCT 3]', text: '[Thuốc minh họa 6], 08:00', status: 'Từ chối', serious: true },
+  { id: 's5', group: 'vitals', resident: '[Họ tên NCT 3]', text: 'Huyết áp [180/100] mmHg lúc 08:30, ngưỡng nguy hiểm', status: 'Vượt ngưỡng', keep: true },
+  { id: 's6', group: 'alerts', resident: '[Họ tên NCT 3]', text: 'Cảnh báo huyết áp, mức Trung bình', status: 'Leo thang', serious: true },
+  { id: 's7', group: 'alerts', resident: '[Họ tên NCT 1]', text: 'Sự cố SC-0012, ngã, mức Trung bình', status: 'Đang xử lý', serious: true },
+  { id: 's8', group: 'changes', resident: '[Họ tên NCT 4]', text: 'Bắt đầu tạm vắng lúc 10:00', status: 'Tạm vắng', keep: true },
+  { id: 's9', group: 'beds', resident: null, text: 'Giường 208-C', status: 'Chờ sẵn sàng' },
+]
+
+// Bản nháp người bàn giao đã ghi trước đó (người lập tự thêm, không phải hệ thống)
+export const DEMO_HANDOVER_DRAFT_ITEMS = [
+  { sourceId: 's3', note: '' },
+  { sourceId: 's8', note: '[Ghi chú minh họa: người thân đón, dự kiến về 18:00]' },
+  { sourceId: 's2', note: '' },
+]
+
+// Phát sinh sau khi lập (chỉ hiển thị cho người xác nhận, FR-045)
+export const DEMO_HANDOVER_AFTER_LOCK = [
+  { id: 'n1', resident: '[Họ tên NCT 2]', text: 'Cảnh báo nhiệt độ, mức Nhẹ, 13:52', status: 'Mới' },
+]
+
+export const DEMO_HANDOVER_HISTORY = [
+  { id: 'h1', from: 'Ca đêm', to: 'Ca ngày', date: '18/10/2026', giver: '[Điều dưỡng 2]', receiver: '[Điều dưỡng 1]', status: 'Có ý kiến' },
+  { id: 'h2', from: 'Ca chiều', to: 'Ca đêm', date: '17/10/2026', giver: '[Điều dưỡng 3]', receiver: '[Điều dưỡng 2]', status: 'Đã xác nhận' },
+]
+
+// Cảnh báo (spec 007 User Story 3; FR-029 → FR-036). Mức Nhẹ, Trung bình, Khẩn cấp; leo thang theo hạn tiếp nhận.
+export const DEMO_ALERTS = [
+  {
+    id: 'a1',
+    residentCode: 'NCT-0003',
+    level: 'Trung bình',
+    text: 'Huyết áp vượt ngưỡng nguy hiểm',
+    source: 'Chỉ số đo lúc 08:30',
+    status: 'Leo thang',
+    escalation: 2,
+    maxEscalation: true,
+    owner: '[Trưởng tầng 1]',
+    due: 'quá hạn tiếp nhận 4 phút',
+    merged: 3,
+    history: ['08:31 tạo, giao [Điều dưỡng 1]', '08:46 leo thang cấp 1, giao [Trưởng tầng 1]', '09:16 leo thang cấp 2 (tối đa), báo Quản lý viện'],
+  },
+  {
+    id: 'a2',
+    residentCode: 'NCT-0001',
+    level: 'Trung bình',
+    text: 'Từ chối [Thuốc minh họa 3] 2 lần liên tiếp',
+    source: 'Phát thuốc',
+    status: 'Đã tiếp nhận',
+    owner: '[Điều dưỡng 1]',
+    mine: true,
+    merged: 1,
+    history: ['09:45 tạo, giao [Điều dưỡng 1]', '09:50 [Điều dưỡng 1] tiếp nhận'],
+  },
+  {
+    id: 'a3',
+    residentCode: 'NCT-0003',
+    level: 'Trung bình',
+    text: 'Công việc Bắt buộc quá hạn: Đo chỉ số sức khỏe',
+    source: 'Checklist ca',
+    status: 'Mới',
+    owner: '[Điều dưỡng 1]',
+    mine: true,
+    due: 'còn 12 phút để tiếp nhận',
+    merged: 1,
+    fromMandatoryTask: true,
+    history: ['09:30 tạo, giao [Điều dưỡng 1]'],
+  },
+  {
+    id: 'a4',
+    residentCode: 'NCT-0002',
+    level: 'Nhẹ',
+    text: 'Nhiệt độ vượt ngưỡng cảnh báo',
+    source: 'Chỉ số đo lúc 07:40',
+    status: 'Đang xử lý',
+    owner: '[Điều dưỡng 1]',
+    mine: true,
+    merged: 1,
+    history: ['07:41 tạo, giao [Điều dưỡng 1]', '07:50 tiếp nhận', '07:52 bắt đầu xử lý'],
+  },
+  {
+    id: 'a5',
+    residentCode: 'NCT-0005',
+    level: 'Nhẹ',
+    text: 'Lượng nước thấp trong ca',
+    source: 'Checklist ca',
+    status: 'Đã đóng',
+    owner: '[Điều dưỡng 1]',
+    merged: 1,
+    result: '[Kết quả xử lý minh họa]',
+    history: ['06:40 tạo', '06:45 tiếp nhận', '07:10 đóng'],
+  },
+]

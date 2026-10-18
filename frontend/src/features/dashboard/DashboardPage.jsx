@@ -212,7 +212,9 @@ export function DashboardPage({ onNavigate }) {
         </AlertTitle>
         <AlertDescription>{DEMO_ESCALATED_ALERT.note}</AlertDescription>
         <AlertAction className="static col-start-2 mt-2 sm:absolute sm:top-1/2 sm:right-3 sm:mt-0 sm:-translate-y-1/2">
-          <Button size="sm">Mở cảnh báo</Button>
+          <Button size="sm" onClick={() => onNavigate('alerts')}>
+            Mở cảnh báo
+          </Button>
         </AlertAction>
       </Alert>
 
