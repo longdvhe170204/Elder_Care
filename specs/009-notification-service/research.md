@@ -119,7 +119,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## B-05. Kênh, chọn kênh, gửi lại, gộp tin nhắn (FR-016 → FR-021)
 
 **Quyết định**:
-- **Kênh** (`kenh_thong_bao`, nhóm 1): `TRONG_UNG_DUNG` (nhân viên), `CONG_NGUOI_THAN`, `TIN_NHAN`, `KHAC_<ma>`. Bật/tắt và gắn kênh khác vào mức do Quản lý viện cấu hình (FR-016), có nhật ký.
+- **Kênh** (`kenh_thong_bao`, nhóm 1): `TRONG_UNG_DUNG` (nhân viên; người cao tuổi, bổ sung 2026-10-18, FR-022a), `CONG_NGUOI_THAN`, `TIN_NHAN`, `KHAC_<ma>`. Bật/tắt và gắn kênh khác vào mức do Quản lý viện cấu hình (FR-016), có nhật ký.
 - **Hiện thực kênh**:
   - "Trong ứng dụng" / "cổng người thân": dòng `thong_bao` là hộp thông báo; đồng thời đẩy tới thiết bị qua **Firebase Cloud Messaging** (Firebase Admin SDK cho Java; `firebase_messaging` cho hai app Flutter) theo token thiết bị đăng ký ở 002 (Q-305); web nhận qua **Server-Sent Events** (`/api/v1/thong-bao/luong`) của Spring MVC. Kết quả đẩy không quyết định "Đã gửi" của kênh trong ứng dụng (thông báo đã lưu vào hộp là đã gửi, FR-018).
   - "Tin nhắn": SPI `NhaCungCapTinNhan` (`gui(soDienThoai, noiDung) → KetQua`); mặc định bean `ChuaCauHinh` trả `KENH_CHUA_CAU_HINH` (Q-06). Bộ chuyển cho nhà cung cấp cụ thể viết khi viện chọn; không đổi nghiệp vụ.

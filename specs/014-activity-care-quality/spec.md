@@ -98,6 +98,7 @@ Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 
 
 - **Q-366**: cung cấp buổi hoạt động sắp tới cho kênh người cao tuổi, không kèm đánh giá khả năng tham gia (FR-068a); nhắc buổi trong ngày cho người cao tuổi (FR-071).
 - **Q-369**: cung cấp cho feature 007 chuyến đang diễn ra, trưởng đoàn và người đi cùng để báo cảnh báo SOS (FR-068a).
+- Kịch bản chấp nhận cho FR-068a: User Story 2 kịch bản 15, User Story 5 kịch bản 12 (bổ sung sau /speckit-analyze).
 
 ## Phạm vi
 
@@ -173,6 +174,7 @@ Trưởng tầng, nhân viên chăm sóc hoặc điều dưỡng (Q-214) đăng 
 12. *(Bỏ, 2026-10-06, Q-287)* Không còn xác nhận chỉ định tạm.
 13. **Given** K có đăng ký "Hát karaoke" (hoạt động nhóm) ngày 08/10 và "Xem TV" (cá nhân) ngày 09/10, **When** feature 007 gắn dấu "nghi nhiễm" cho K ngày 07/10, **Then** đăng ký "Hát karaoke" tự hủy lý do "nghi nhiễm", đăng ký "Xem TV" giữ nguyên; **When** S đăng ký K vào một buổi hoạt động nhóm hoặc chuyến đi, hoặc thêm K lúc điểm danh buổi nhóm, **Then** hệ thống chặn; **When** S đăng ký K vào "Đi dạo" cá nhân, **Then** hệ thống cảnh báo và cho lưu sau khi S xác nhận; các ngày K mang dấu không tính cho cảnh báo cô lập (FR-015 (g), FR-018, FR-021a, FR-054, Q-165).
 14. **Given** L là người bán trú có lịch 07:30–16:30 thứ 2 → thứ 6, **When** S đăng ký L vào chuyến "Tham quan chùa" 13:00–18:00 thứ 6 ngày 09/10, **Then** hệ thống chặn và hướng dẫn cần đồng ý về muộn của người đại diện; **When** Hành chính ghi nhận đồng ý của người đại diện R cho đúng chuyến đó qua bản ký, rồi S đăng ký lại, **Then** đăng ký được lưu và giờ về dự kiến ngày 09/10 của L thành 18:00, feature 005, 010, 011 nhận giờ mới; **When** chuyến gia hạn giờ về tới 18:30, **Then** giờ về dự kiến của L cũng thành 18:30; **When** S đăng ký L vào buổi 07:00 cùng ngày (trước giờ đến), **Then** hệ thống chặn (FR-016, FR-016a, Q-167).
+15. **(Bổ sung 2026-10-18, Q-366)** **Given** A ở Tầng 2 có tên ở buổi B1 của Tầng 2, chưa có tên ở buổi B2 toàn viện, **When** kênh người cao tuổi của 012 hỏi buổi sắp tới của A, **Then** B1 ghi đã có tên, B2 ghi chưa có tên; không có kết quả đánh giá khả năng tham gia hay lý do không được đăng ký (FR-068a).
 
 ---
 
@@ -240,6 +242,7 @@ Trong chuyến đi, trưởng đoàn xem danh sách người đang đi, người
 9. **Given** chuyến Đang đi, giờ về dự kiến 13:00, **When** tới 13:30 chưa Kết thúc điểm danh về, **Then** S1 và T được báo (FR-049); **When** tới 14:00 (giờ về dự kiến + 2 × CFG-M04-07) vẫn chưa kết thúc và chưa gia hạn, **Then** Quản lý viện được báo mức Trung bình (FR-049a).
 10. **Given** giữa chuyến trưởng đoàn S1 phải đưa B tới bệnh viện, người đi cùng còn lại là nhân viên hành chính H1 và điều dưỡng D1, **When** S1 hoặc T thực hiện "Chuyển trưởng đoàn" cho H1, **Then** hệ thống chặn vì H1 không có vai trò Trưởng tầng, Nhân viên chăm sóc hoặc Điều dưỡng; **When** chuyển cho D1, **Then** D1 thành trưởng đoàn từ thời điểm đó, S1 được ghi là người đi cùng, lịch sử lưu lại (FR-035a, Q-214). **Given** ca của D1 kết thúc lúc 14:00 khi chuyến chưa về, **When** tới 14:00, **Then** D1 vẫn là trưởng đoàn tới khi chuyến Đã về; T được báo (FR-035).
 11. **Given** H bị điểm danh rời viện nhầm (thực tế H ở lại viện), **When** T tạo đính chính "Hủy ghi nhận" cho bản ghi rời viện của H kèm lý do trong lúc chuyến chưa Đã về, **Then** H chuyển về Đang lưu trú với căn cứ "đính chính điểm danh", feature 005, 006, 010, 011 nhận sự kiện để báo lập lại công việc, tính lại liều, hủy bản ghi nguồn chi phí, tính lại suất (FR-031a; Q-306).
+12. **(Bổ sung 2026-10-18, Q-369)** **Given** A đã điểm danh rời viện trong chuyến C do trưởng đoàn L dẫn, M đi cùng, **When** 007 hỏi chuyến đang diễn ra của A, **Then** trả C, L, M; **When** A đã điểm danh về, **Then** không còn chuyến nào (FR-068a).
 
 ---
 

@@ -24,7 +24,7 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 
 **Cập nhật 2026-10-18** (plan mục "Cập nhật 2026-10-18"; Q-352, Q-354): sửa T004, T039, T041, T043, T045, T053, T061, T065; thêm T061a. Mã task cũ giữ nguyên.
 
-**Cập nhật 2026-10-18, lượt 3** (plan mục "Cập nhật 2026-10-18, lượt 3"; Q-369): thêm Phase 13a (US12, T067 → T076); sửa T065. Mã task cũ giữ nguyên.
+**Cập nhật 2026-10-18, lượt 3** (plan mục "Cập nhật 2026-10-18, lượt 3"; Q-369): thêm Phase 8a (US12, T067 → T076; đặt sau US11 vì là P1, sửa sau /speckit-analyze); sửa T065. Mã task cũ giữ nguyên.
 
 ## Phase 1: Setup
 
@@ -185,6 +185,32 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 
 ---
 
+## Phase 8a: User Story 12 – Người cao tuổi bấm nút SOS (Priority: P1) *(bổ sung 2026-10-18, Q-369)*
+
+**Goal**: Nút SOS tạo hoặc gộp cảnh báo Khẩn cấp từ thiết bị đã gắn, không cần phiên; điều kiện gửi; người nhận thêm khi ở Hoạt động bên ngoài; trạng thái cho người cao tuổi (FR-026 (d), FR-047d → FR-047g, BR-M05-27).
+
+**Independent Test**: Quickstart "Kịch bản bổ sung 2026-10-18, lượt 3" S1 → S8 với bản giả 001, 002, 014.
+
+### Tests cho User Story 12
+
+- [ ] T067 [P] [US12] Test `BT/m05/canhbao/BR_M05_27_NutSosIT.java`: tạo cảnh báo Khẩn cấp khóa `SOS` có phòng, giường; gộp lần bấm thứ hai, ba; `Idempotency-Key` lặp không tăng số lần; người nhận như FR-047a, không có người liên hệ chính, Quản lý viện (US12 #1, #3; SC-017)
+- [ ] T068 [P] [US12] Test `BT/m05/canhbao/FR_047d_DieuKienGuiSosIT.java`: Tạm vắng, Điều trị tại bệnh viện, trạng thái cuối → 409 `KHONG_O_VIEN`; bán trú không `CO_MAT` → 409 `KHONG_CO_MAT`; token sai, thiết bị gỡ, tài khoản Đã khóa → 401; mọi lỗi kèm `lienHe` (US12 #5)
+- [ ] T069 [P] [US12] Test `BT/m05/canhbao/FR_047e_SosNgoaiVienIT.java`: Hoạt động bên ngoài → thêm trưởng đoàn, người đi cùng qua `ChuyenDiSosPort`; trạng thái xét lúc nhận lệnh; thiếu bean thì chỉ nhóm FR-047a (US12 #6, edge case)
+- [ ] T070 [P] [US12] Test `BT/m05/canhbao/FR_047f_TrangThaiSosIT.java`: `GET /sos/hien-tai` trả `DA_GUI` rồi `DA_TIEP_NHAN` kèm họ tên; `noi-dang-o` đặt một lần (US12 #4)
+- [ ] T071 [P] [US12] Test `BT/m05/canhbao/SosXuLyIT.java`: đóng kèm kết quả không báo người thân; kích hoạt khẩn cấp từ cảnh báo SOS báo người liên hệ chính theo FR-047; leo thang theo BR-M05-01; không có lệnh tắt nút (US12 #7 → #10, FR-047g)
+
+### Implementation cho User Story 12
+
+- [ ] T072 [US12] Tạo `MIG/V007_11__sos.sql`: bảng `lan_bam_sos` (data-model mục 7), trigger chỉ cho đặt `noi_dang_o` một lần; loại cảnh báo `NCT_YEU_CAU_TRO_GIUP`, loại nguồn `SOS`
+- [ ] T073 [US12] Khai báo SPI `BE/m05/api/ChuyenDiSosPort.java` và bản giả `BT/support/gia007/ChuyenDiSosPortGia.java` (module-interfaces 2.1)
+- [ ] T074 [US12] Cài `BE/m05/canhbao/internal/SosService.java`: `ThietBiGanApi.xacDinh`, điều kiện qua `NguoiCaoTuoiApi.trangThai`, `CoMatBanTruApi.theoNgay`; ghi `lan_bam_sos` (vị trí từ `ViTriApi.hienTai`) và tạo hoặc gộp cảnh báo qua đường tạo sẵn có với khóa `SOS`; nhóm người nhận FR-047a cùng `TRUONG_DOAN`, `NGUOI_DI_CUNG` khi Hoạt động bên ngoài (research S-23)
+- [ ] T075 [US12] Tạo `BE/m05/canhbao/web/SosController.java`: `POST /sos`, `GET /sos/hien-tai`, `POST /sos/{id}/noi-dang-o` với lược đồ bảo mật `tokenThietBi`, đường `/sos/**` đã được 002 T011 cho qua không cần phiên; lệnh nằm trong danh sách ngoại lệ của `CanQuyenArchTest` (002 T093); lỗi `LoiSos` kèm `lienHe` từ `SoLienHeVienApi` (contracts/api-007.yaml)
+- [ ] T076 [US12] Thêm `nguon` vào `CanhBaoBaoCaoView` của `CanhBaoThongKeApi.canhBao` (FR-081, 016 FR-041)
+
+**Checkpoint**: S1 → S8 xanh; 012 gọi được `/sos` từ kênh người cao tuổi.
+
+---
+
 ## Phase 9: User Story 6 – Sự cố ngã và theo dõi sau ngã (Priority: P2)
 
 **Goal**: Ngã mặc định Khẩn cấp; khoảng theo dõi 72 giờ với khoảng đo CFG-M05-06; ba thông báo; căn cứ `THEO_DOI_SAU_NGA` cho 005; không tạo lịch đo hay công việc (FR-051, FR-052, BR-M05-07).
@@ -275,32 +301,6 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 - [ ] T059 [US10] Cài `DinhChinhDuocProvider` `M06.BAN_GHI_CHI_SO` (tầng của người lúc đo; phát `ChiSoDaDinhChinh`) và lịch sử chỉ số kèm ngưỡng áp dụng trong `ChiSoController.java`
 
 **Checkpoint**: Mọi user story của 007 chạy độc lập.
-
----
-
-## Phase 13a: User Story 12 – Người cao tuổi bấm nút SOS (Priority: P1) *(bổ sung 2026-10-18, Q-369)*
-
-**Goal**: Nút SOS tạo hoặc gộp cảnh báo Khẩn cấp từ thiết bị đã gắn, không cần phiên; điều kiện gửi; người nhận thêm khi ở Hoạt động bên ngoài; trạng thái cho người cao tuổi (FR-026 (d), FR-047d → FR-047g, BR-M05-27).
-
-**Independent Test**: Quickstart "Kịch bản bổ sung 2026-10-18, lượt 3" S1 → S8 với bản giả 001, 002, 014.
-
-### Tests cho User Story 12
-
-- [ ] T067 [P] [US12] Test `BT/m05/canhbao/BR_M05_27_NutSosIT.java`: tạo cảnh báo Khẩn cấp khóa `SOS` có phòng, giường; gộp lần bấm thứ hai, ba; `Idempotency-Key` lặp không tăng số lần; người nhận như FR-047a, không có người liên hệ chính, Quản lý viện (US12 #1, #3; SC-017)
-- [ ] T068 [P] [US12] Test `BT/m05/canhbao/FR_047d_DieuKienGuiSosIT.java`: Tạm vắng, Điều trị tại bệnh viện, trạng thái cuối → 409 `KHONG_O_VIEN`; bán trú không `CO_MAT` → 409 `KHONG_CO_MAT`; token sai, thiết bị gỡ, tài khoản Đã khóa → 401; mọi lỗi kèm `lienHe` (US12 #5)
-- [ ] T069 [P] [US12] Test `BT/m05/canhbao/FR_047e_SosNgoaiVienIT.java`: Hoạt động bên ngoài → thêm trưởng đoàn, người đi cùng qua `ChuyenDiSosPort`; trạng thái xét lúc nhận lệnh; thiếu bean thì chỉ nhóm FR-047a (US12 #6, edge case)
-- [ ] T070 [P] [US12] Test `BT/m05/canhbao/FR_047f_TrangThaiSosIT.java`: `GET /sos/hien-tai` trả `DA_GUI` rồi `DA_TIEP_NHAN` kèm họ tên; `noi-dang-o` đặt một lần (US12 #4)
-- [ ] T071 [P] [US12] Test `BT/m05/canhbao/SosXuLyIT.java`: đóng kèm kết quả không báo người thân; kích hoạt khẩn cấp từ cảnh báo SOS báo người liên hệ chính theo FR-047; leo thang theo BR-M05-01; không có lệnh tắt nút (US12 #7 → #10, FR-047g)
-
-### Implementation cho User Story 12
-
-- [ ] T072 [US12] Tạo `MIG/V007_11__sos.sql`: bảng `lan_bam_sos` (data-model mục 7), trigger chỉ cho đặt `noi_dang_o` một lần; loại cảnh báo `NCT_YEU_CAU_TRO_GIUP`, loại nguồn `SOS`
-- [ ] T073 [US12] Khai báo SPI `BE/m05/api/ChuyenDiSosPort.java` và bản giả `BT/support/gia007/ChuyenDiSosPortGia.java` (module-interfaces 2.1)
-- [ ] T074 [US12] Cài `BE/m05/canhbao/internal/SosService.java`: `ThietBiGanApi.xacDinh`, điều kiện qua `NguoiCaoTuoiApi.trangThai`, `CoMatBanTruApi.theoNgay`; ghi `lan_bam_sos` (vị trí từ `ViTriApi.hienTai`) và tạo hoặc gộp cảnh báo qua đường tạo sẵn có với khóa `SOS`; nhóm người nhận FR-047a cùng `TRUONG_DOAN`, `NGUOI_DI_CUNG` khi Hoạt động bên ngoài (research S-23)
-- [ ] T075 [US12] Tạo `BE/m05/canhbao/web/SosController.java`: `POST /sos`, `GET /sos/hien-tai`, `POST /sos/{id}/noi-dang-o` với lược đồ bảo mật `tokenThietBi`, đường `/sos/**` đã được 002 T011 cho qua không cần phiên; lệnh nằm trong danh sách ngoại lệ của `CanQuyenArchTest` (002 T093); lỗi `LoiSos` kèm `lienHe` từ `SoLienHeVienApi` (contracts/api-007.yaml)
-- [ ] T076 [US12] Thêm `nguon` vào `CanhBaoBaoCaoView` của `CanhBaoThongKeApi.canhBao` (FR-081, 016 FR-041)
-
-**Checkpoint**: S1 → S8 xanh; 012 gọi được `/sos` từ kênh người cao tuổi.
 
 ---
 
