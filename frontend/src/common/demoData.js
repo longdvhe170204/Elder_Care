@@ -141,6 +141,7 @@ export const DEMO_INCIDENT = {
   deliveries: [
     { relative: '[Người thân 1]', relation: 'Con gái', parts: 'Phần chung, phần sức khỏe', basis: 'Trong phạm vi đồng ý', at: '14:40' },
     { relative: '[Người thân 2]', relation: 'Con trai', parts: 'Phần chung', basis: 'Trong phạm vi đồng ý', at: '14:40' },
+    { relative: '[Người thân 3]', relation: 'Cháu', parts: 'Phần chung', basis: 'Trong phạm vi đồng ý', at: '14:40' },
   ],
 }
 
@@ -163,4 +164,211 @@ export const DEMO_RELATIVE_REQUEST = {
   requestedBy: '[Người thân 1], người đại diện',
   requestedAt: '14/10/2026',
   status: 'Chờ xác nhận',
+}
+
+// ---------------------------------------------------------------------------------------------
+// Cổng người thân (DESIGN.md mục 2.2, docs/thiet-ke/man-hinh-theo-actor.md M37, P1 → P11).
+// Người xem của bản mẫu: người đại diện, người liên hệ chính, có tên trong bản đồng ý và đủ quyền, để thấy mọi phần
+// của cổng. Người thân thiếu quyền thì phần tương ứng ẩn đi (DESIGN.md 2.3). Quyền thật do backend trả.
+export const DEMO_PORTAL_VIEWER = {
+  name: '[Người thân 1]',
+  relation: 'Con gái',
+  representative: true,
+  primaryContact: true,
+  perms: { health: true, costs: true, visits: true, pickup: true, serviceChange: true },
+}
+
+// Tên quyền theo 14.1; dùng ở trang Tài khoản để người thân biết mình được xem, làm gì.
+export const DEMO_PORTAL_PERMISSION_LABELS = [
+  ['health', 'Xem sức khỏe'],
+  ['costs', 'Xem chi phí'],
+  ['visits', 'Đăng ký thăm'],
+  ['pickup', 'Được phép đón'],
+  ['serviceChange', 'Được yêu cầu thay đổi dịch vụ'],
+]
+
+// Lịch hôm nay (FR-046): dòng health chỉ hiện với người có quyền xem sức khỏe.
+export const DEMO_PORTAL_TODAY = [
+  { time: '07:30', text: 'Hỗ trợ ăn bữa sáng: Phần lớn', tag: 'Chăm sóc', health: true },
+  { time: '08:00', text: 'Thuốc cữ sáng: đã dùng', tag: 'Thuốc', health: true },
+  { time: '09:30', text: '[Hoạt động minh họa 1]', tag: 'Hoạt động' },
+  { time: '15:00', text: 'Lượt thăm', tag: 'Lượt thăm' },
+]
+
+export const DEMO_PORTAL_HEALTH = {
+  allergies: ['[Dị ứng minh họa]'],
+  conditions: ['[Bệnh nền minh họa]'],
+  indicators: [
+    { name: 'Huyết áp', value: '[120/80] mmHg', at: '08:30 hôm nay' },
+    { name: 'Nhịp tim', value: '[72] lần/phút', at: '08:30 hôm nay' },
+    { name: 'Nhiệt độ', value: '[36,6] °C', at: '08:30 hôm nay' },
+  ],
+  weight: [
+    { week: '22/09', value: '[52,4] kg' },
+    { week: '29/09', value: '[52,1] kg' },
+    { week: '06/10', value: '[52,0] kg' },
+    { week: '13/10', value: '[51,8] kg' },
+  ],
+  medicines: [
+    { name: '[Tên thuốc minh họa 1]', dose: '[liều minh họa]', times: 'Sáng, tối' },
+    { name: '[Tên thuốc minh họa 2]', dose: '[liều minh họa]', times: 'Sáng' },
+  ],
+  eating: { meals: '[Phần lớn ở 17 trên 21 bữa]', water: '[1.200] ml mỗi ngày' },
+  diet: '[Chế độ ăn riêng minh họa]',
+  externalVisits: [{ date: '24/10/2026', place: '[Cơ sở khám bên ngoài minh họa]' }],
+  updatedAt: '08:30 hôm nay',
+}
+
+// Bản tin (012 FR-051 → FR-057): Điều dưỡng lập, duyệt rồi gửi; nội dung chia phần theo quyền.
+export const DEMO_PORTAL_BULLETINS = [
+  {
+    id: 'b2',
+    period: '06/10 → 12/10/2026',
+    approvedBy: '[Điều dưỡng 1]',
+    sentAt: '13/10/2026, 09:00',
+    general: {
+      activities: 4,
+      absentDays: 0,
+      incidents: ['Ngã, mức Trung bình, 12/10'],
+      comment: '[Nhận xét phần chung minh họa]',
+    },
+    health: {
+      meals: '[Phần lớn ở 17 trên 21 bữa]',
+      water: '[1.200] ml mỗi ngày',
+      weight: '[52,0] kg, [giảm 0,1] kg so với tuần trước',
+      indicators: '[Các chỉ số chính minh họa]',
+      explanation: '[Giải thích của người duyệt về sự cố mức Trung bình, minh họa]',
+    },
+    costs: [
+      { type: 'Phí lưu trú định kỳ', amount: '[7.000.000] đ' },
+      { type: 'Vật phẩm tiêu hao', amount: '[350.000] đ' },
+      { type: 'Thuốc', amount: '[210.000] đ' },
+    ],
+  },
+  {
+    id: 'b1',
+    period: '29/09 → 05/10/2026',
+    approvedBy: '[Điều dưỡng 1]',
+    sentAt: '06/10/2026, 09:00',
+    corrected: true,
+    general: { activities: 3, absentDays: 0, incidents: [], comment: '[Nhận xét phần chung minh họa]' },
+    health: {
+      meals: '[Phần lớn ở 18 trên 21 bữa]',
+      water: '[1.250] ml mỗi ngày',
+      weight: '[52,1] kg',
+      indicators: '[Các chỉ số chính minh họa]',
+    },
+    costs: [
+      { type: 'Phí lưu trú định kỳ', amount: '[7.000.000] đ' },
+      { type: 'Vật phẩm tiêu hao', amount: '[300.000] đ' },
+    ],
+  },
+]
+
+// Thăm (14.2, 012 FR-029 → FR-039): khung giờ CFG-M10-04, tối đa người mỗi lượt CFG-M10-06.
+export const DEMO_PORTAL_VISIT_SLOTS = [
+  { label: '09:00 → 11:00', left: 12 },
+  { label: '15:00 → 17:00', left: 2 },
+]
+export const DEMO_PORTAL_VISIT_MAX_PEOPLE = 3
+export const DEMO_PORTAL_VISITS = [
+  { id: 'v1', when: '15:00 → 17:00, 18/10/2026', people: 2, status: 'Đã duyệt' },
+  { id: 'v2', when: '09:00 → 11:00, 11/10/2026', people: 1, status: 'Đã ra' },
+  { id: 'v4', when: '15:00 → 17:00, 05/10/2026', people: 1, status: 'Hủy', reason: 'Khu đang khoanh vùng' },
+]
+
+// Thông báo (009, Q-353): Khẩn cấp tới người liên hệ chính, nội dung tối thiểu (Q-96, Q-72).
+export const DEMO_PORTAL_NOTIFICATIONS = [
+  {
+    id: 'n1',
+    level: 'Khẩn cấp',
+    text: 'Có tình huống khẩn cấp liên quan [Họ tên NCT 1], đề nghị liên hệ viện.',
+    at: '14:05, 12/10/2026',
+    needsAck: true,
+  },
+  { id: 'n2', text: 'Bản tin tuần 06/10 → 12/10/2026', at: '09:00, 13/10/2026' },
+  { id: 'n3', text: 'Lượt thăm 18/10/2026 đã được duyệt', at: '10:12, 10/10/2026' },
+  { id: 'n4', text: 'Lượt thăm 05/10/2026 bị hủy: khu đang khoanh vùng', at: '07:40, 05/10/2026' },
+]
+
+// Việc chờ người đại diện quyết định (012 FR-046a, FR-046b, FR-050).
+export const DEMO_PORTAL_CONFIRMATIONS = [
+  {
+    id: 'c1',
+    kind: 'Đề nghị mua hộ',
+    text: '[Vật phẩm minh họa], số lượng 1, dự kiến [450.000] đ',
+    detail: 'Lý do: [lý do minh họa]. Người yêu cầu: [Hành chính 1].',
+    status: 'Chờ đồng ý',
+    accept: 'Đồng ý',
+  },
+  {
+    id: 'c2',
+    kind: 'Xác nhận người nhận khác',
+    text: 'Trả [Kính] cho [Họ tên người nhận minh họa]',
+    detail: 'Người nhận không thuộc người được phép đón; xác nhận đúng người, đúng đồ, dùng một lần.',
+    status: 'Chờ xác nhận',
+    accept: 'Xác nhận',
+  },
+]
+
+// Chi phí, số dư (010, 017): thuốc chỉ hiện mã vật phẩm khi người xem không có quyền xem sức khỏe (chú thích 16).
+export const DEMO_PORTAL_COSTS = {
+  balance: '[3.200.000] đ',
+  periods: [
+    {
+      period: 'Tháng 10/2026',
+      status: 'Tạm tính',
+      lines: [
+        { type: 'Phí lưu trú định kỳ', amount: '[7.000.000] đ' },
+        { type: 'Vật phẩm tiêu hao', item: 'Tã', amount: '[350.000] đ' },
+        { type: 'Thuốc', item: '[Mã vật phẩm minh họa]', medicine: '[Tên thuốc minh họa 1]', amount: '[210.000] đ' },
+      ],
+      total: '[7.560.000] đ',
+    },
+    {
+      period: 'Tháng 09/2026',
+      status: 'Đã chốt',
+      lines: [
+        { type: 'Phí lưu trú định kỳ', amount: '[7.000.000] đ' },
+        { type: 'Dịch vụ', item: 'Đưa đi khám', amount: '[500.000] đ' },
+        { type: 'Vật phẩm tiêu hao', item: 'Tã', amount: '[320.000] đ' },
+      ],
+      total: '[7.820.000] đ',
+    },
+  ],
+}
+
+// Phản hồi (14.7, 012 FR-058 → FR-066).
+export const DEMO_PORTAL_FEEDBACK_TYPES = ['Góp ý', 'Khiếu nại', 'Hỏi đáp']
+export const DEMO_PORTAL_FEEDBACK_GROUPS = ['Chăm sóc, sinh hoạt', 'Sức khỏe, thuốc', 'Ăn uống', 'Chi phí, hợp đồng', 'Khác']
+export const DEMO_PORTAL_FEEDBACK = [
+  {
+    id: 'f1',
+    type: 'Hỏi đáp',
+    group: 'Ăn uống',
+    text: '[Câu hỏi minh họa về bữa ăn]',
+    sentAt: '08/10/2026',
+    status: 'Đã phản hồi',
+    reply: '[Nội dung trả lời minh họa]',
+  },
+]
+
+// Đồ gửi (16, 013): chỉ người đại diện và người được phép đón thấy (012 FR-046b).
+export const DEMO_PORTAL_DEPOSITS = [
+  { name: 'Kính', qty: 1, status: 'Đang được người cao tuổi sử dụng', lastHandover: 'Giao sử dụng, 02/10/2026' },
+  { name: 'Xe lăn', qty: 1, status: 'Đang giữ', lastHandover: 'Tiếp nhận, 01/09/2026' },
+  { name: 'Quần áo', qty: 6, status: 'Đang giữ', lastHandover: 'Tiếp nhận, 01/09/2026' },
+]
+
+// Hợp đồng, dịch vụ (6.3, 6.6): chỉ người đại diện xem, không sửa (004 chú thích 7).
+export const DEMO_PORTAL_CONTRACT = {
+  code: '[HĐ-0001]',
+  stayType: 'Nội trú dài hạn',
+  from: '01/09/2026',
+  to: '31/08/2027',
+  status: 'Hiệu lực',
+  careLevel: 'Thường xuyên',
+  deposit: 'Đã đáp ứng',
+  services: ['Chăm sóc thường xuyên', '[Dịch vụ minh họa]'],
+  annexes: [{ code: '[PL-01]', text: '[Nội dung phụ lục minh họa]', date: '15/09/2026' }],
 }

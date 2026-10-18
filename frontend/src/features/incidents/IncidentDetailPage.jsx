@@ -48,16 +48,6 @@ function Recipients({ names }) {
   )
 }
 
-// Không lộ tiêu đề hay độ dài của nội dung bị ẩn (DESIGN.md 2.2).
-function HealthLock() {
-  return (
-    <p className="flex items-start gap-2 rounded-lg bg-muted px-3 py-2 type-body-sm text-muted-foreground">
-      <LockKeyhole className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-      Phần sức khỏe chỉ hiện với người thân được người cao tuổi đồng ý chia sẻ.
-    </p>
-  )
-}
-
 // Vai trò nhân viên nào thấy phần sức khỏe theo quyền backend trả (Phụ lục 27, chú thích 10); bản mẫu hiện đủ.
 function StaffView({ incident }) {
   const h = incident.health
@@ -126,30 +116,13 @@ function StaffView({ incident }) {
   )
 }
 
-// Cổng người thân: bản mẫu xem như [Người thân 2], chưa có trong bản đồng ý chia sẻ sức khỏe.
-function FamilyView({ incident }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="type-card-title font-semibold">Phần chung</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <GeneralPart incident={incident} />
-        <HealthLock />
-        <p className="type-caption text-muted-foreground">Bản mẫu: xem như [Người thân 2], chưa có trong bản đồng ý.</p>
-      </CardContent>
-    </Card>
-  )
-}
-
-export function IncidentDetailPage({ role }) {
+export function IncidentDetailPage() {
   const incident = DEMO_INCIDENT
-  const family = role === 'FAMILY_MEMBER'
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <PageHeader
         title={`Sự cố ${incident.code}`}
-        subtitle={family ? 'Thông tin viện chia sẻ với gia đình' : 'Thông tin cho người thân, hệ thống gửi theo phạm vi đồng ý'}
+        subtitle="Thông tin cho người thân, hệ thống gửi theo phạm vi đồng ý"
         aside={
           <div className="flex items-center gap-2.5">
             <ResidentAvatar name={incident.resident} code={incident.residentCode} initials={incident.initials} />
@@ -160,7 +133,7 @@ export function IncidentDetailPage({ role }) {
           </div>
         }
       />
-      {family ? <FamilyView incident={incident} /> : <StaffView incident={incident} />}
+      <StaffView incident={incident} />
     </div>
   )
 }
