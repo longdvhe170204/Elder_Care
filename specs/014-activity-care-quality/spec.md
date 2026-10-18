@@ -82,6 +82,16 @@ Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi 
 - **Q-163, Q-254, Q-307**: Assumptions về kiểm tra chất lượng viết lại (người kiểm tra tự chọn, Người phụ trách ca kiểm tra khi Trưởng tầng được giao không có tên trong ca); User Story 7 kịch bản 10 thêm điều kiện để không mâu thuẫn kịch bản 11, FR-066.
 - Assumptions: CFG-M04-13 đã có ở Phụ lục 25.
 
+### Cập nhật 2026-10-18 (đồng bộ feature 009 FR-001a)
+
+Feature 009 FR-001a (Q-353, Q-354) yêu cầu mọi thông báo tới người thân khai đối tượng thông tin ("về người cao tuổi" hoặc "về việc của chính người thân"), và mang mã trường hợp Q-354 khi nội dung vượt phạm vi bản đồng ý. Thông báo "về người cao tuổi" chỉ tới người thân trong phạm vi "nhận thông báo" của bản đồng ý Hiệu lực (feature 009 FR-014). Thay đổi ở spec này: FR-071 khai đối tượng thông tin; không đổi người nhận, mức, loại thông tin hay nội dung.
+
+### Cập nhật 2026-10-18, lượt 2 (đồng bộ Q-357 → Q-364)
+
+Ngày 2026-10-18 chủ dự án ủy quyền chốt các điểm báo lại của lượt cập nhật nguyên tắc nhân văn; quyết định ghi ở docs/business/nghiep-vu.md 24.2 (Q-357 → Q-364). Thay đổi ở spec này:
+
+- **Q-363**: sở thích có tối đa một mục hiện hành cho mỗi (nhóm sở thích, nguồn); nguồn người thân ghi rõ người nào (feature 001 FR-023g); thói quen sinh hoạt ghi bằng mục sở thích (FR-051, FR-052, bảng trạng thái mục sở thích).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 04 mục 8.8, 8.9, 8.10; UC-29, UC-30, UC-31; BR-M04-15 → 18, BR-M04-21 → 23; BR-M04-11 phần hồ sơ tinh thần):
@@ -484,15 +494,15 @@ Chuyến đi có bảng trạng thái riêng ở mục H.
 
 #### I. Sở thích, theo dõi tinh thần và nguy cơ cô lập
 
-- **FR-051**: Hệ thống MUST quản lý danh mục nhóm sở thích (nhóm 1, ví dụ âm nhạc, cờ, làm vườn, tôn giáo, đọc sách, thể dục) liên kết với loại hoạt động, và danh sách sở thích của từng người cao tuổi gồm: nhóm sở thích, mô tả, mức ưa thích (thích / không thích), nguồn (người cao tuổi tự nói, người thân cho biết, nhân viên quan sát), người ghi, thời điểm. Thêm, bỏ sở thích MUST lưu lịch sử người thực hiện, thời điểm; bỏ sở thích MUST có lý do. Mỗi người cao tuổi có tối đa một mục hiện hành cho mỗi nhóm sở thích: ghi mục mới cho nhóm đã có (ví dụ "không thích" sau "thích") MUST hiển thị mục cũ và yêu cầu người ghi xác nhận; khi xác nhận, mục cũ chuyển "đã thay" trong lịch sử. Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc ghi được sở thích cho người cao tuổi trong phạm vi (xem Assumptions). *(Nguồn: 8.10 "sở thích", 1.3)*
-- **FR-052**: Hoạt động mà người cao tuổi có sở thích "không thích" khớp nhóm của loại hoạt động MUST được hiển thị cảnh báo khi đăng ký. *(Suy ra từ 8.10)*
+- **FR-051**: Hệ thống MUST quản lý danh mục nhóm sở thích (nhóm 1, ví dụ âm nhạc, cờ, làm vườn, tôn giáo, đọc sách, thể dục) liên kết với loại hoạt động, và danh sách sở thích của từng người cao tuổi gồm: nhóm sở thích, mô tả, mức ưa thích (thích / không thích), nguồn (người cao tuổi tự nói, người thân cho biết kèm người thân nào có quan hệ Hiệu lực, nhân viên quan sát; feature 001 FR-023g, sửa 2026-10-18), người ghi, thời điểm. Thêm, bỏ sở thích MUST lưu lịch sử người thực hiện, thời điểm; bỏ sở thích MUST có lý do. **(Sửa 2026-10-18, Q-363)** Mỗi người cao tuổi có tối đa một mục hiện hành cho mỗi nhóm sở thích và mỗi nguồn (người cao tuổi; từng người thân; nhân viên quan sát); ý kiến của người cao tuổi và của người thân về cùng nhóm là các mục riêng. Danh mục nhóm sở thích MAY có nhóm thói quen sinh hoạt (ví dụ ngủ trưa, đi lễ buổi sáng). Ghi mục mới cho nhóm và nguồn đã có (ví dụ "không thích" sau "thích") MUST hiển thị mục cũ và yêu cầu người ghi xác nhận; khi xác nhận, mục cũ chuyển "đã thay" trong lịch sử. Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc ghi được sở thích cho người cao tuổi trong phạm vi (xem Assumptions). *(Nguồn: 8.10 "sở thích", 1.3)*
+- **FR-052**: Hoạt động mà người cao tuổi có sở thích "không thích" khớp nhóm của loại hoạt động MUST được hiển thị cảnh báo khi đăng ký. **(Sửa 2026-10-18, Q-363)** Cảnh báo MUST nêu nguồn của từng mục "không thích" hiện hành; khi mục của chính người cao tuổi là "thích", cảnh báo vẫn hiện các mục "không thích" của nguồn khác kèm nguồn, không chặn. *(Suy ra từ 8.10)*
 
 **Bảng trạng thái mục sở thích** *(FR-051)*:
 
 | Trạng thái hiện tại | Lệnh / sự kiện | Trạng thái đích | Ai được thực hiện | Điều kiện (chặn nếu không đạt) | Tác động tự động |
 | --- | --- | --- | --- | --- | --- |
 | (chưa có) | Ghi sở thích | Hiện hành | Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc (trong phạm vi) | Nhóm sở thích đang hiệu lực | Nếu nhóm đã có mục Hiện hành: sau khi người ghi xác nhận, mục cũ → Đã thay |
-| Hiện hành | Ghi mục mới cùng nhóm | Đã thay | Như trên | Người ghi xác nhận | Mục mới thành Hiện hành |
+| Hiện hành | Ghi mục mới cùng nhóm và cùng nguồn (Q-363) | Đã thay | Như trên | Người ghi xác nhận | Mục mới thành Hiện hành |
 | Hiện hành | Bỏ sở thích | Đã bỏ | Như trên | Có lý do | — |
 | Đã thay; Đã bỏ | — | — | — | Trạng thái cuối; xem được trong lịch sử | — |
 - **FR-053**: Hệ thống MUST cho Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc (trong phạm vi) xem hồ sơ tinh thần của một người cao tuổi theo khoảng thời gian, tổng hợp: số buổi hoạt động nhóm có mặt theo tuần; mức độ tham gia và giao tiếp theo buổi (FR-029); tâm trạng và hành vi bất thường theo ngày (feature 005, chỉ đọc); sở thích; các cảnh báo cô lập, tâm trạng đã có và trạng thái của chúng (feature 007). Hồ sơ tinh thần chỉ để xem; dữ liệu MUST được ghi ở nguồn. *(Nguồn: 8.10 "Ghi nhận: tâm trạng; giao tiếp; mức độ tham gia; hành vi bất thường; sở thích")*
@@ -541,6 +551,7 @@ Chuyến đi có bảng trạng thái riêng ở mục H.
   - **Nội dung rút gọn cho kênh ngoài ứng dụng** (feature 009 FR-019): loại sự kiện, tên hoạt động hoặc chuyến, thời điểm; không nêu lý do sức khỏe.
   - **Cách thay khi nhóm người nhận trống** (feature 009 FR-010): Trưởng tầng trống → Người phụ trách ca đang diễn ra của tầng; trưởng đoàn trống → Trưởng tầng; người phụ trách buổi trống → Trưởng tầng; các nhóm khác "không thay".
   - **Người thân**: chỉ nhận dòng về đồng ý về muộn; nội dung chỉ nêu tên buổi, ngày, giờ về dự kiến, không nêu thông tin sức khỏe, nên không cần bản đồng ý chia sẻ dữ liệu (feature 009 FR-014).
+  - **Đối tượng thông tin** (bổ sung 2026-10-18, feature 009 FR-001a): dòng về đồng ý về muộn tới người đại diện và người đã đăng ký là "về việc của chính người thân" (đồng ý do người đại diện ghi, đăng ký do người đó lập); không mang mã Q-354.
   - Cảnh báo "nguy cơ cô lập" và sự cố thiếu người được thông báo qua feature 007, không lặp ở bảng này.
 
 | Sự kiện | Người nhận | Mức | Căn cứ |
@@ -755,3 +766,7 @@ Chuyến đi có bảng trạng thái riêng ở mục H.
 **(2026-10-10) Plan 014, điểm báo lại 1 → 4.** *(Đã xử lý 2026-10-10: sửa User Story, bảng trạng thái, SC-003, FR-016a; spec 007 thêm FR-086 và dòng giao tiếp. Dẫn chiếu "4.4" tra qua bảng ánh xạ ở Phụ lục 26.)*
 
 **(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa Phạm vi, User Story 2 kịch bản 2, User Story 5 kịch bản 3, User Story 7 kịch bản 10, bảng trạng thái đăng ký, FR-031a, FR-044, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+
+**(2026-10-18) Đồng bộ feature 009 FR-001a (đối tượng thông tin).** *(Đã xử lý 2026-10-18: Clarifications "Cập nhật 2026-10-18", FR-071.)* Còn báo lại: plan, contracts, tasks chưa cập nhật. *(Đã xử lý 2026-10-18: plan, research, data-model, contracts, tasks đã cập nhật, gồm Q-363.)*
+
+**(2026-10-18) Đồng bộ Q-357 → Q-364.** *(Đã xử lý 2026-10-18: Clarifications "Cập nhật 2026-10-18, lượt 2".)* Q-363: sở thích theo (nhóm, nguồn), cảnh báo nêu nguồn (FR-051, FR-052, bảng trạng thái). Plan, data-model, tasks cập nhật 2026-10-18.

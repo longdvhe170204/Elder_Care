@@ -46,11 +46,13 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
       Optional<String> noiDungRutGon,                                   // thuộc CHUNG (FR-019)
       Optional<String> tieuDe,                                          // không chứa sức khỏe (FR-034)
       Optional<Long> nguoiGayRa, boolean baoNguoiGayRa,                 // FR-012
-      Instant thoiDiemPhatSinh, Map<String, Object> thamSoHienThi) {}
+      Instant thoiDiemPhatSinh, Map<String, Object> thamSoHienThi,
+      Optional<DoiTuongThongTin> doiTuongThongTin,                      // bổ sung 2026-10-18 (FR-001a): VE_NGUOI_CAO_TUOI | VE_VIEC_NGUOI_THAN
+      Optional<MaTruongHopQ354> maTruongHop) {}                         // bổ sung 2026-10-18 (FR-001a, FR-014a)
   ```
 - Mỗi sự kiện mà plan 000 → 008 đã ghi "009 nghe" (mức, nhóm người nhận, loại thông tin, khóa) cài `CoYeuCauThongBao`; module nguồn tự dựng yêu cầu. 009 có **một** listener `@ApplicationModuleListener` cho kiểu `CoYeuCauThongBao` (Spring phân phát theo kiểu giao diện), nên mọi module nguồn dùng đúng một cách gửi (FR-001). Module làm plan sau cũng vậy.
 - Sự kiện chỉ để điều khiển 009 (không phải thông báo): `m05.api.YeuCauDungNhacGoiDien`, `m05.api.DaCoKetQuaXacNhanLai` (007) — listener riêng (B-08).
-- Kiểm tra (FR-003): thiếu bản ghi nguồn, khóa, nhóm người nhận hoặc nội dung đầy đủ → lưu yêu cầu với kết quả `BI_TU_CHOI` và vào danh sách lỗi gửi; thiếu mức → Nhẹ, dấu `THIEU_MUC`; thiếu loại thông tin ở một phần → coi phần đó `SUC_KHOE`, dấu `THIEU_LOAI_THONG_TIN` (FR-013); Trung bình, Khẩn cấp thiếu nội dung rút gọn → nội dung mặc định cho kênh ngoài.
+- Kiểm tra (FR-003): thiếu bản ghi nguồn, khóa, nhóm người nhận hoặc nội dung đầy đủ → lưu yêu cầu với kết quả `BI_TU_CHOI` và vào danh sách lỗi gửi; thiếu mức → Nhẹ, dấu `THIEU_MUC`; thiếu loại thông tin ở một phần → coi phần đó `SUC_KHOE`, dấu `THIEU_LOAI_THONG_TIN` (FR-013); Trung bình, Khẩn cấp thiếu nội dung rút gọn → nội dung mặc định cho kênh ngoài. Yêu cầu có nhóm người thân (loại (e), hoặc (d) `NGUOI_THAN`) mà thiếu `doiTuongThongTin` → coi là `VE_NGUOI_CAO_TUOI`, dấu `THIEU_DOI_TUONG_THONG_TIN` (FR-001a; bổ sung 2026-10-18).
 - **Chống trùng** (FR-005, NFR-04): `yeu_cau_thong_bao` có `UNIQUE (loai_ban_ghi_nguon, id_ban_ghi_nguon, khoa_su_kien)`; lần nhận trùng ghi `lan_nhan_trung` (đếm) và không tạo thông báo.
 
 **Lý do**: Một khuôn duy nhất là yêu cầu của FR-001; đặt ở `common` tránh vòng phụ thuộc (M13 cần đọc dữ liệu của M01, M05, M09, M15). 000 R-09 đã chọn sự kiện có lưu trữ (outbox) làm đường đi.
@@ -98,6 +100,14 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
   - `CHI_PHI`, `THAM_NOM`, `HOP_DONG` theo quyền tương ứng; `CHUNG` luôn;
   - người thân nhận nếu thấy được ít nhất một phần; nhóm (d) không có quan hệ với người cao tuổi chỉ phần `CHUNG` (Q-112);
   - Khẩn cấp: người liên hệ chính luôn nhận; người thân khác cần quyền "nhận thông báo khẩn" (Q-96).
+- **Phạm vi "nhận thông báo" và mã trường hợp** (bổ sung 2026-10-18; FR-001a, FR-014, FR-014a, Q-353, Q-354): hàm thuần `XetPhamViDongY(yeuCau, nguoiThan, banDongY)` chạy cho từng người thân, trước `LocPhanNoiDung`:
+  - `VE_VIEC_NGUOI_THAN`: không xét bản đồng ý; tiếp tục như trước.
+  - `VE_NGUOI_CAO_TUOI` (hoặc thiếu): người thân **trong phạm vi** khi người cao tuổi có bản đồng ý Hiệu lực với `dongYThongBao = true` (`BanDongYApi.hienHanh`; plan, điểm báo lại 5). Trong phạm vi thì gửi như trước, không ghi mã.
+  - Ngoài phạm vi, yêu cầu có `maTruongHop`: gửi (Khẩn cấp vẫn theo quy tắc Q-96), chỉ các phần người đó được thấy theo `LocPhanNoiDung`; ghi `ma_truong_hop` vào dòng `thong_bao` của người đó.
+  - Ngoài phạm vi, không có mã, mức không khẩn: không tạo thông báo cho người đó (FR-014); không phải lỗi.
+  - Ngoài phạm vi, không có mã, mức Khẩn cấp: không tạo thông báo cho người đó, ghi danh sách lỗi gửi `THIEU_MA_TRUONG_HOP` (FR-001a "từ chối … ghi vào danh sách lỗi gửi"); các nhóm nhân viên của yêu cầu vẫn gửi (plan, điểm báo lại 6).
+  - Lúc gửi thật (giải phóng giờ yên tĩnh, FR-025) hàm chạy lại với bản đồng ý hiện hành.
+- `MaTruongHopQ354` (`common.thongbao`): `KHAN_CAP_NGUOI_LIEN_HE_CHINH`, `DANH_SACH_TIEP_XUC`, `XAC_NHAN_LAI_NGUYEN_VONG`, `CHUYEN_VIEN` (chuyển viện, Điều trị tại bệnh viện), `QUA_DOI`. Trường hợp mới phải có Q mới (9.5) rồi mới thêm giá trị.
 - **Qua đời** (FR-015): yêu cầu có `thoiDiemPhatSinh` sau thời điểm qua đời (`NguoiCaoTuoiApi.thoiDiemTrangThaiCuoi` với trạng thái Qua đời) không gửi người thân, trừ dấu `VIEC_SAU_QUA_DOI` của 004.
 - Kết quả là danh sách `NguoiNhanDaXacDinh(loai, id, canCu[], phanDuocXem[], chiNhanDang)`; ghi đủ vào `thong_bao`.
 

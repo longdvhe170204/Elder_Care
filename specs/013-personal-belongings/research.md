@@ -154,6 +154,8 @@ Không có SPI 013 khai cho module sau. 016 đọc `DoGuiThongKeApi`.
 
 ## K-13. Thông báo (FR-032)
 
+**Đối tượng thông tin** (bổ sung 2026-10-18; FR-032, 009 FR-001a): mọi thông báo tới người thân, kể cả đồ thất lạc, hư hỏng, được tìm thấy và mọi thông báo sau qua đời, khai `doiTuongThongTin = VE_VIEC_NGUOI_THAN` (Q-362).
+
 **Quyết định**: Mức theo bảng FR-032 (đủ mức; dòng nhắc đề nghị Chờ duyệt dùng mức của 000 FR-031a qua `NhacQuaHan`). Khóa `(loại sự kiện, đồ gửi)` hoặc `(loại sự kiện, yêu cầu/đề nghị/phiếu)`, nhắc lặp thêm ngày. Sau khi người cao tuổi qua đời: nhóm người nhận người thân thay bằng `NhomNhan.NguoiDaiDien` và cờ "thuộc danh sách việc sau qua đời" (009 FR-015). Nội dung rút gọn: loại sự kiện, loại đồ.
 
 ---

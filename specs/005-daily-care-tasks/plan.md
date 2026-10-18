@@ -1,6 +1,6 @@
 # Implementation Plan: Chăm sóc hằng ngày
 
-**Branch**: `005-daily-care-tasks` | **Date**: 2026-10-09 | **Spec**: [spec.md](spec.md)
+**Branch**: `005-daily-care-tasks` | **Date**: 2026-10-09, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/005-daily-care-tasks/spec.md`
 
@@ -28,6 +28,12 @@ Hướng kỹ thuật:
 Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - 005 không sinh, không gợi ý công việc; không tạo yêu cầu xem xét kế hoạch; không tạo công việc "hỗ trợ uống nước" hay công việc làm lại;
 - hệ thống chỉ: chuyển trạng thái theo giờ (công việc, phiên bản kế hoạch, Vắng không báo), xác định trạng thái có mặt đầu ngày theo lịch đến, tạo yêu cầu cảnh báo, nhắc, báo, kiểm tra và chặn, tác động kèm lệnh của actor.
+
+### Cập nhật 2026-10-18 (spec mục "Cập nhật 2026-10-18": Q-347, Q-349, Q-350)
+
+- **Thỏa thuận lựa chọn có rủi ro** (FR-002a, FR-030): bảng `thoa_thuan_rui_ro` gắn phiên bản kế hoạch, kèm người tham gia và ý kiến có nguồn (dùng `NguonYKienApi` của 001); nhận định của Bác sĩ gắn với thỏa thuận; người quyết định theo BR-M01-15 tầng 2. Lệnh `PUT /ke-hoach-cham-soc/{id}/thoa-thuan`; checklist trả thỏa thuận của phiên bản Hiệu lực. Bảng riêng nên không bao giờ là căn cứ công việc (research C-18, data-model mục 3).
+- **Loại lý do Không thực hiện** (FR-028a): danh mục nhóm 1 `loai_ly_do_khong_thuc_hien` có dòng cố định "Người cao tuổi từ chối"; lệnh Không thực hiện nhận `loaiLyDoId` và `ghiChu`; app lưu danh mục để ghi ngoại tuyến (research C-14, C-18).
+- Không thêm thư viện, vai trò, trạng thái. Điểm báo lại 11, 12 bên dưới.
 
 ## Technical Context
 
@@ -222,3 +228,7 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
    - Edge Case "Bộ lập lịch bỏ lỡ lần chạy" và FR-052 (a) đã đúng sau Q-306; không cần sửa.
 
 10. **Sự kiện của 007 mà 005 nghe chưa có tên trong plan nào** (`SuCoNgaDaGhiNhan`, `LuaChonChamSocGiamNheDaGhi`, `LichDoDaDoi`). Tên trong [contracts/module-interfaces.md](contracts/module-interfaces.md) mục 2.2 là đề xuất; plan 007, 008, 011, 012, 014 giữ đúng chữ ký các SPI ở mục 2.1 hoặc ghi rõ thay đổi. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
+
+11. **(2026-10-18) Hiển thị thỏa thuận trên checklist** (spec "Điểm cần báo lại" 1 của lượt 2026-10-18): 8.1 không nêu chỗ hiển thị; plan làm theo FR-030 (checklist trả thỏa thuận của phiên bản Hiệu lực). Chờ chủ dự án xác nhận; nếu bỏ thì chỉ bỏ trường `thoaThuan` của `Checklist`. *(Đã xử lý 2026-10-18: Q-360: giữ hiển thị trên checklist)*
+
+12. **(2026-10-18) Hai "ngày xem lại" của thỏa thuận** (ngày xem lại thỏa thuận và ngày xem lại nhận định, FR-002a): spec không nói tới hạn thì làm gì. Plan chỉ lưu và hiển thị, không nhắc (Q-306). Cùng câu hỏi với plan 001 điểm báo lại 11. Ngoài ra FR-002a ghi người cao tuổi "MUST có trong danh sách khi tham gia được"; hệ thống không biết khi nào người cao tuổi tham gia được, nên plan chỉ bắt buộc khi Bác sĩ nhận định người cao tuổi tự quyết được (`CHECK (nct_tham_gia OR NOT tu_quyet_duoc)`). Đề nghị xác nhận. *(Đã xử lý 2026-10-18: Q-360: nhắc một lần mỗi ngày xem lại (research C-18); quy tắc `nct_tham_gia` giữ theo plan, chủ dự án ủy quyền chốt)*

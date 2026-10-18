@@ -258,7 +258,7 @@ Chiều mã giữa hai module: `m05 → m06` (thẻ khẩn cấp, bản tóm t�
   1. dựng **thẻ thông tin khẩn cấp** bằng `TheKhanCapService`: `NguoiCaoTuoiApi.nhanDang`, `NguyenVongApi.hieuLuc`, `MucSucKhoeApi.hieuLuc(DI_UNG, BENH_NEN)`, `DanhGiaApi.luuYHienHanh`, `DonThuocApi.thuocDangDung` (006), `ViTriApi.hienTai`, dấu nguy kịch, `NguoiThanKhanCapPort.nguoiLienHeChinh` (012). Các lời đọc chạy song song trên luồng ảo, mỗi lời có giới hạn thời gian; nguồn lỗi thì thẻ ghi "không lấy được <mục>" và vẫn lưu (SC-005 ≤ 3 giây);
   2. lưu **bản chụp** JSON vào `ban_chup_the_khan_cap` (nhóm 3) cùng danh sách người đã được hiển thị;
   3. phát `SuCoKhanCapDaKichHoat` với các nhóm người nhận của FR-047 (a); không có Bác sĩ trực (`NhanSuCanhBaoPort.bacSiTruc(t)` rỗng) thì thay nhóm `BAC_SI_TRUC` bằng `BAC_SI_TOAN_VIEN`, thêm `QUAN_LY_VIEN` nếu chưa có, đặt `khong_co_bac_si_truc = true` (FR-047b);
-  4. nội dung cho người liên hệ chính: `TOI_THIEU` (FR-047) trừ khi `BanDongYApi.baoGom(nct, nguoiLienHeChinhId)` thì `KEM_LOAI_SU_CO`; không bao giờ có chẩn đoán, chỉ số, thuốc, nguyện vọng (SC-014).
+  4. nội dung cho người liên hệ chính: `TOI_THIEU` (FR-047) trừ khi `BanDongYApi.baoGom(nct, nguoiLienHeChinhId)` thì `KEM_LOAI_SU_CO`; không bao giờ có chẩn đoán, chỉ số, thuốc, nguyện vọng (SC-014). Yêu cầu tới người liên hệ chính mang `doiTuongThongTin = VE_NGUOI_CAO_TUOI` và mã Q-354 `KHAN_CAP_NGUOI_LIEN_HE_CHINH` (FR-047c; bổ sung 2026-10-18).
 - **Bắt buộc trực tuyến** (8.6, Q-01): không có `NgoaiTuyenHandler` cho sự cố; app nhân viên chặn đưa vào hàng đợi và hiện "không gửi được – gọi trực tiếp theo quy trình của cơ sở"; backend từ chối phong bì ngoại tuyến loại sự cố bằng `TU_CHOI` `BAT_BUOC_TRUC_TUYEN`.
 - **Hiển thị thẻ** (FR-048): `GET /su-co/{id}/the-khan-cap`; người có `QuyenXemTruongApi.duocXem(SUC_KHOE, nct) = DAY_DU` thấy đủ; người khác (gồm người kích hoạt ngoài phạm vi) chỉ thấy nhận dạng và "đã thông báo người xử lý". Lần xem lại sau đó không ghi nhật ký (Q-03, CHK046).
 - **Đối chiếu nguyện vọng** (FR-048a, DBR-19): lệnh `POST /su-co/{id}/xac-nhan-doi-chieu-nguyen-vong` chỉ cho người được xem đủ thẻ; phản hồi trả lại nội dung nguyện vọng; thêm dòng `xac_nhan_doi_chieu` (nhóm 3). Lệnh ghi diễn biến loại có dấu `bien_phap_hoi_suc`: nếu `NguyenVongApi.hieuLuc(nct)` có giá trị tại thời điểm ghi và sự cố chưa có dòng xác nhận thì 409 `CHUA_DOI_CHIEU_NGUYEN_VONG` kèm nguyện vọng. Không có nguyện vọng thì không yêu cầu. Danh mục loại diễn biến khởi tạo năm biện pháp hồi sức của FR-048a (cần Bác sĩ đối chiếu, 24.4).
@@ -274,7 +274,7 @@ Chiều mã giữa hai module: `m05 → m06` (thẻ khẩn cấp, bản tóm t�
 **Quyết định**:
 - `dau_nguy_kich` (nhóm 2): loại `CHINH_THUC | TAM`, trạng thái `TAM | DANG_MO | DA_GO`, nhận định, người ghi, Bác sĩ xác nhận, lý do gỡ, `canh_bao_id`. Cột sinh `khoa_mo = IF(trang_thai <> 'DA_GO', nct_id, NULL)` `UNIQUE` (DBR-34 "tối đa một dấu đang mở").
 - **Ghi dấu** (Bác sĩ) hoặc **dấu tạm** (Điều dưỡng, chỉ khi `bacSiTruc(t)` rỗng; ngược lại 409 `DANG_CO_BAC_SI_TRUC`): người cao tuổi Đang lưu trú, Tạm vắng hoặc Hoạt động bên ngoài. Trong cùng transaction tạo cảnh báo Khẩn cấp khóa `NGUY_KICH:<dauId>` gọi trực tiếp `CanhBaoService` (không qua sự kiện), để DBR-34 "mỗi dấu đang mở có đúng một cảnh báo" đúng ngay khi commit; phát `NguyKichDaGhi` (thông báo FR-050b b, c: Khẩn cấp; người thân chỉ nội dung tối thiểu, không nguyện vọng) và `CanXacNhanLaiNguyenVong(canhBaoId, nctId)` cho Bác sĩ trực (hoặc mọi Bác sĩ), Điều dưỡng phụ trách, kèm thứ tự gọi bắt đầu từ người đại diện (BR-M13-02). Dấu tạm thêm `CanXacNhanDauTam` cho mọi Bác sĩ (Trung bình). Không tạo yêu cầu gọi điện (Q-307).
-- **Kết quả xác nhận lại** (FR-050c): `ket_qua_xac_nhan_lai` (nhóm 3): người được liên hệ, kênh, thời điểm, kết quả `GIU | MOI | KHONG_LIEN_LAC_DUOC`, người ghi. Kết quả `MOI` gọi `NguyenVongApi.ghiPhienBan(lenh, XAC_NHAN_LAI_NGUY_KICH)` trong cùng transaction (001 đặt phiên bản cũ Được thay thế). Ghi kết quả đầu tiên thì phát `DaCoKetQuaXacNhanLai(canhBaoId)` để 009 dừng nhắc gọi.
+- **Kết quả xác nhận lại** (FR-050c): `ket_qua_xac_nhan_lai` (nhóm 3): người được liên hệ, kênh, thời điểm, kết quả `GIU | MOI | KHONG_LIEN_LAC_DUOC`, người ghi. Kết quả `MOI` gọi `NguyenVongApi.ghiPhienBan(lenh, XAC_NHAN_LAI_NGUY_KICH)` trong cùng transaction (001 đặt phiên bản cũ Được thay thế); `lenh` theo thân lệnh nguyện vọng của api-001 sau cập nhật 2026-10-18 (nhận định của Bác sĩ gắn với phiếu, người ký theo 001 FR-023c, ý kiến khác có nguồn). Thông báo nguy kịch tới người thân (FR-050b c) mang mã Q-354: `KHAN_CAP_NGUOI_LIEN_HE_CHINH` với người liên hệ chính, `XAC_NHAN_LAI_NGUYEN_VONG` với người đại diện; nhắc gọi xác nhận lại của 009 gửi nhân viên, không cần mã (plan, điểm báo lại 10). Ghi kết quả đầu tiên thì phát `DaCoKetQuaXacNhanLai(canhBaoId)` để 009 dừng nhắc gọi.
 - **Lựa chọn thực hiện** (FR-050d): `lua_chon_thuc_hien` (nhóm 3): `CHUYEN_BENH_VIEN | VE_NHA | GIAM_NHE`, lý do (bắt buộc khi "không liên lạc được" mà chưa có nguyện vọng), lệnh đã thực hiện.
   - `CHUYEN_BENH_VIEN`: chạy đúng lệnh chuyển viện của S-12 (căn cứ là cảnh báo nguy kịch; nếu có sự cố Khẩn cấp đang mở thì căn cứ là sự cố) và bản tóm tắt.
   - `VE_NHA`: ghi lựa chọn; phát `CanChoTamVangVeNha(nctId, canhBaoId)` cho Hành chính, Trưởng tầng (Trung bình). Hệ thống không tự tạo lượt vắng; Hành chính hoặc Trưởng tầng thực hiện Cho tạm vắng ở 001/004 qua quy trình đón (Q-307; plan điểm báo lại 3).
@@ -375,6 +375,27 @@ Mức (spec; dòng có * là plan áp nguyên tắc 3 bậc của 009 FR-043b, x
 - Nội dung kênh ngoài ứng dụng không có họ tên, thông tin sức khỏe (009 FR-019). Nội dung cho người thân: FR-047 (tối thiểu hoặc kèm loại sự cố), FR-062 (không danh tính người nghi nhiễm), FR-050b (không nguyện vọng).
 - Ngoài thông báo, 007 phát: `YeuCauDungNhacGoiDien`, `DaCoKetQuaXacNhanLai` (009); `SuCoDaGhiNhan` (001, 012, 016); `SuCoNgaDaGhiNhan`, `LuaChonChamSocGiamNheDaGhi`, `LichDoDaDoi` (005); `SutCanPhatHien` (011); `DaThemVaoDanhSachTiepXuc`, `KhoanhVungDaTao`, `KhoanhVungDaGo` (003, 012, 014); `SuCoDaHuyTrongBanTin` (012).
 - "Người được thông báo" của sự cố (FR-040, FR-048b) đọc qua `NhatKyThongBaoPort` (009 cài) lúc hiển thị; 007 không chép.
+- **Đối tượng thông tin và mã trường hợp** (bổ sung 2026-10-18; FR-047c, 009 FR-001a, Q-354): mọi yêu cầu có nhóm người thân khai `doiTuongThongTin = VE_NGUOI_CAO_TUOI` và mang `maTruongHop`:
+
+  | Thông báo | Nhóm người thân | Mã Q-354 |
+  | --- | --- | --- |
+  | Sự cố Khẩn cấp kích hoạt (FR-047) | `NGUOI_LIEN_HE_CHINH(nct)` | `KHAN_CAP_NGUOI_LIEN_HE_CHINH` |
+  | Nguy kịch (FR-050b c) | `NGUOI_LIEN_HE_CHINH(nct)`; `NGUOI_DAI_DIEN(nct)` | `KHAN_CAP_NGUOI_LIEN_HE_CHINH`; `XAC_NHAN_LAI_NGUYEN_VONG` |
+  | Thông báo tiếp xúc (FR-062) | `NGUOI_TRONG_BAN_GHI_NGUON` | `DANH_SACH_TIEP_XUC` |
+  | Chuyển viện (FR-049) | Do 001 phát khi lệnh Chuyển viện chạy (001 research H-14) | `CHUYEN_VIEN` |
+
+  Mã đi theo yêu cầu; 009 chỉ dùng với người nhận nằm ngoài phạm vi bản đồng ý và lưu vào bản ghi gửi (009 FR-014a). 007 không gửi người thân thông báo nào khác.
+
+## S-19a. Phần chung và phần sức khỏe của sự cố *(bổ sung 2026-10-18; FR-082, Q-352)*
+
+**Quyết định**:
+- **Phần chung**: có sự cố, tên loại sự cố hiện hành (trừ loại lây nhiễm: áp Q-72, chỉ "có sự cố" và thời điểm), thời điểm xảy ra hoặc phát hiện, mức (012 FR-052 ghi "phần chung của sự cố trong kỳ kèm mức"), trạng thái xử lý rút gọn "viện đang xử lý / đang theo dõi / đã xử lý xong".
+- **Phần sức khỏe**: mô tả, xử lý ban đầu, diễn biến, kết quả, khám, chỉ số, điều trị, thuốc, nguyên nhân y tế, chuyển viện (plan, điểm báo lại 9).
+- **Giao diện**: `SuCoNguoiThanView(phanChung, Optional<phanSucKhoe>)`. `SucKhoeCongNguoiThanApi.suCo(nctId, nguoiThanId, …)` luôn trả phần chung và chỉ trả phần sức khỏe khi `BanDongYApi.baoGom(nctId, nguoiThanId)`; việc có hiển thị phần chung cho người thân hay không là quy tắc của 012. `BanTinSucKhoeApi.choBanTin` trả cả hai phần cho mỗi sự cố, 012 lọc theo từng người nhận (012 FR-052). Sự cố Đã hủy không có trong cả hai (FR-046a).
+
+**Lý do**: Q-352 tách theo loại thông tin chứ không theo người; 007 giữ danh sách trường ở một chỗ, 012 và 009 chỉ lọc theo quyền.
+
+**Phương án đã cân nhắc**: Để 012 tự chọn trường từ bản ghi sự cố: lặp quy tắc phân loại ở hai module; bị loại.
 
 **Lý do**: Constitution XIV; mẫu 001 H-14, 006 D-17.
 

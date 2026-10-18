@@ -47,7 +47,9 @@ Tài liệu mô tả bảng, cột, ràng buộc. Đây không phải script SQL
 | `nguoi_gay_ra_id`, `bao_nguoi_gay_ra` | | | FR-012 |
 | `phat_sinh_luc`, `tiep_nhan_luc` | | | FR-001, FR-004 |
 | `ket_qua_tiep_nhan` | `ENUM('HOP_LE','BI_TU_CHOI')` | Lý do khi bị từ chối | FR-003 |
-| `dau` | `SET('THIEU_MUC','THIEU_LOAI_THONG_TIN','THIEU_RUT_GON','KHONG_CO_NGUOI_NHAN','VIEC_SAU_QUA_DOI')` | Đặt lúc tiếp nhận (một lần) | FR-003, FR-011, FR-013, FR-015 |
+| `dau` | `SET('THIEU_MUC','THIEU_LOAI_THONG_TIN','THIEU_RUT_GON','KHONG_CO_NGUOI_NHAN','VIEC_SAU_QUA_DOI','THIEU_DOI_TUONG_THONG_TIN','THIEU_MA_TRUONG_HOP')` | Đặt lúc tiếp nhận (một lần) | FR-001a, FR-003, FR-011, FR-013, FR-015 |
+| `doi_tuong_thong_tin` | `ENUM('VE_NGUOI_CAO_TUOI','VE_VIEC_NGUOI_THAN') NULL` | Khai bởi module nguồn; rỗng khi yêu cầu không có nhóm người thân | FR-001a (bổ sung 2026-10-18) |
+| `ma_truong_hop` | `ENUM('KHAN_CAP_NGUOI_LIEN_HE_CHINH','DANH_SACH_TIEP_XUC','XAC_NHAN_LAI_NGUYEN_VONG','CHUYEN_VIEN','QUA_DOI') NULL` | Mã Q-354 do module nguồn khai | FR-001a, FR-014a (bổ sung 2026-10-18) |
 Lần nhận trùng (FR-005) không sửa dòng nhóm 3: mỗi lần ghi một dòng ở bảng kỹ thuật `yeu_cau_nhan_trung (yeu_cau_id, thoi_diem)`; view tra cứu đếm số dòng.
 
 ### `yeu_cau_phan_noi_dung` – nhóm 3
@@ -71,6 +73,7 @@ Lần nhận trùng (FR-005) không sửa dòng nhóm 3: mỗi lần ghi một d
 | `can_cu` `JSON` | Mọi căn cứ: nhóm, "thay <nhóm> – không có người", "tạm nhận – bàn giao chưa xác nhận", "nhận thay – không có người nhận" | FR-009 → FR-012 |
 | `phan_duoc_xem` `SET(...)` | Loại thông tin người nhận thấy lúc gửi (người thân) | FR-013 |
 | `chi_nhan_dang` | Nhận thay không có phạm vi | FR-011 |
+| `ma_truong_hop` `NULL` | Mã Q-354 áp dụng cho chính người nhận này: chỉ có khi người thân nằm ngoài phạm vi bản đồng ý lúc gửi; đây là "bản ghi gửi ghi trường hợp áp dụng" (BR-M10-06) | FR-014a (bổ sung 2026-10-18) |
 | `muc` | Chép từ yêu cầu | |
 | `tao_luc` | | |
 
@@ -210,6 +213,7 @@ Không `UPDATE`, không `DELETE` (mẫu 000).
 | BR-M13-03 | Research B-06 | `BR_M13_03_GioYenTinhIT`, `GioYenTinhTest` |
 | BR-M13-04 | Research B-04 | `BR_M13_04_NguoiNhanTheoPhanCongIT`, `SC_004_NguoiNhanTest` (200 yêu cầu) |
 | BR-M13-05 | Mục 3 → 6; B-11 | `BR_M13_05_LichSuGuiIT` |
-| BR-M10-06 (phần 009) | `XEM` gửi lại module nguồn qua `ThongBaoTraCuuApi` | `FR_035_DuLieuChoNguonIT` |
+| BR-M10-06 (phần 009) | `XEM` gửi lại module nguồn qua `ThongBaoTraCuuApi`; `thong_bao.ma_truong_hop` (bổ sung 2026-10-18) | `FR_035_DuLieuChoNguonIT`, `FR_014a_MaTruongHopIT` |
+| FR-001a, FR-014 (Q-353, sửa 2026-10-18) | `XetPhamViDongY`; `doi_tuong_thong_tin`; dấu `THIEU_DOI_TUONG_THONG_TIN`, `THIEU_MA_TRUONG_HOP` | `XetPhamViDongYTest`, `FR_014_NhanThongBaoDongYIT` |
 | DBR-03 (phần 009) | `LocPhanNoiDung` | `FR_013_LocNguoiThanTest` |
 | FR-005, FR-012, FR-032 | Mục 8 | `FR_005_ChongTrungIT`, `FR_012_GopNguoiNhanIT`, `FR_032_MotLuotIT` |

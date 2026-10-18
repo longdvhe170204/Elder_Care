@@ -1,6 +1,6 @@
 # Implementation Plan: Chi phí phát sinh
 
-**Branch**: `010-incurred-costs` | **Date**: 2026-10-10 | **Spec**: [spec.md](spec.md)
+**Branch**: `010-incurred-costs` | **Date**: 2026-10-10, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/010-incurred-costs/spec.md`
 
@@ -27,6 +27,10 @@ Hướng kỹ thuật:
 Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - 010 không lập khoản, bảng (trừ tác động kèm lệnh lập khoản và lệnh hồ sơ kết thúc), khoản điều chỉnh; không gợi ý đơn giá, không tính sẵn số chênh lệch, không có dấu "không tính";
 - hệ thống chỉ: tính đơn giá và số tiền khi Hành chính lập; tính lại, đưa về Nháp, hủy khoản chưa chốt khi nguồn đổi; chuyển trạng thái kỳ theo lịch; kiểm tra và chặn; nhắc, thông báo.
+
+### Cập nhật 2026-10-18 (spec mục "Cập nhật 2026-10-18": feature 009 FR-001a)
+
+- **Đối tượng thông tin** (FR-044, 009 FR-001a): mọi thông báo tới người thân (bảng Đã chốt, đề nghị mua hộ cần đồng ý, bị hủy sau khi đồng ý, vượt số đã đồng ý, quá hạn chờ đồng ý) khai `doiTuongThongTin = VE_VIEC_NGUOI_THAN`; không yêu cầu nào mang mã Q-354 (research P-13).
 
 ## Technical Context
 

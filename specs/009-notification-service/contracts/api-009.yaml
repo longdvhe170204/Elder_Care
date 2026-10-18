@@ -237,6 +237,8 @@ components:
         muc: { $ref: '#/components/schemas/Muc' }
         nguoiNhan: { type: string }
         canCu: { type: array, items: { type: string } }
+        doiTuongThongTin: { type: [string, 'null'], enum: [VE_NGUOI_CAO_TUOI, VE_VIEC_NGUOI_THAN, null], description: 'FR-001a (bổ sung 2026-10-18)' }
+        maTruongHop: { type: [string, 'null'], enum: [KHAN_CAP_NGUOI_LIEN_HE_CHINH, DANH_SACH_TIEP_XUC, XAC_NHAN_LAI_NGUYEN_VONG, CHUYEN_VIEN, QUA_DOI, null], description: 'Mã Q-354 áp dụng cho người nhận này; chỉ khi người thân ngoài phạm vi bản đồng ý (FR-014a, bổ sung 2026-10-18)' }
         tiepNhanLuc: { type: string, format: date-time }
         guiLuc: { type: string, format: date-time }
         kenh: { type: array, items: { type: object, properties: { kenh: { type: string }, ketQua: { type: string }, thoiDiem: { type: string, format: date-time } } } }

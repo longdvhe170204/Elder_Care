@@ -22,6 +22,8 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 ---
 
+**Cập nhật 2026-10-18** (plan mục "Cập nhật 2026-10-18"; Q-352 → Q-354): sửa T004, T006, T007, T013 → T015, T030, T034, T039; thêm T015a. Mã task cũ giữ nguyên.
+
 ## Phase 1: Setup
 
 - [ ] T001 Thêm Firebase Admin SDK (Java) vào `backend/pom.xml`; `firebase_messaging` vào `mobile/pubspec.yaml`, `mobile/pubspec.yaml`; cấu hình khóa dịch vụ FCM qua biến môi trường trong `backend/src/main/resources/application.yml` (research B-05)
@@ -36,10 +38,10 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T004 [P] Hoàn thiện khuôn `BE/common/thongbao/` (000 T034) theo contracts mục 1.1: biến thể `NhomNhan`, `CachThay` (`MAC_DINH`, `KHONG_THAY`, `NGUOI_THAY_CHI_DINH`), `LoaiThongTin` (`CHUNG`, `SUC_KHOE`, `CHI_PHI`, `THAM_NOM`, `HOP_DONG`), `TRUONG_SUC_KHOE` (research B-02)
+- [ ] T004 [P] Hoàn thiện khuôn `BE/common/thongbao/` (000 T034) theo contracts mục 1.1: biến thể `NhomNhan`, `CachThay` (`MAC_DINH`, `KHONG_THAY`, `NGUOI_THAY_CHI_DINH`), `LoaiThongTin` (`CHUNG`, `SUC_KHOE`, `CHI_PHI`, `THAM_NOM`, `HOP_DONG`), `TRUONG_SUC_KHOE`, và (bổ sung 2026-10-18) `DoiTuongThongTin` (`VE_NGUOI_CAO_TUOI`, `VE_VIEC_NGUOI_THAN`), `MaTruongHopQ354` (`KHAN_CAP_NGUOI_LIEN_HE_CHINH`, `DANH_SACH_TIEP_XUC`, `XAC_NHAN_LAI_NGUYEN_VONG`, `CHUYEN_VIEN`, `QUA_DOI`), hai trường mới của `YeuCauThongBao` (research B-02)
 - [ ] T005 [P] Tạo `BE/m13/api/`: `ThongBaoTraCuuApi` (`theoNguon`, `xemLuc`), SPI `NguoiThanNhanThongBaoPort`, `NhaCungCapTinNhan`, sự kiện `ThongBaoDaXem`, `ThongBaoKhanCapDaXacNhan`, `ThongBaoKhongLienLacDuoc` (contracts mục 1.2, 1.4, 2.1)
-- [ ] T006 Tạo `MIG/V009_01__thong_bao.sql`: `kenh_thong_bao` (nhóm 1; `ma` khóa chính `TRONG_UNG_DUNG|CONG_NGUOI_THAN|TIN_NHAN|KHAC_*`; `muc_gan SET('NHE','TRUNG_BINH','KHAN_CAP')`; `cau_hinh JSON`), `yeu_cau_thong_bao` (nhóm 3; `UNIQUE (loai_ban_ghi_nguon, id_ban_ghi_nguon, khoa_su_kien)`; `muc ENUM('NHE','TRUNG_BINH','KHAN_CAP')`; `ket_qua_tiep_nhan ENUM('HOP_LE','BI_TU_CHOI')`; `dau SET('THIEU_MUC','THIEU_LOAI_THONG_TIN','THIEU_RUT_GON','KHONG_CO_NGUOI_NHAN','VIEC_SAU_QUA_DOI')`), `yeu_cau_nhan_trung`, `yeu_cau_phan_noi_dung`, `yeu_cau_nhom_nhan`, `thong_bao` (nhóm 3; `UNIQUE (yeu_cau_id, loai_nguoi_nhan, nguoi_nhan_id)`), `su_kien_thong_bao` (nhóm 3; `loai` `GIU|TAI_DINH_THOI|GUI|KHONG_GUI|XEM|XAC_NHAN|KHONG_LIEN_LAC_DUOC|AN`; cột sinh `UNIQUE` cho xem lần đầu và xác nhận một lần), `thong_bao_trang_thai` (kỹ thuật dẫn xuất), `lan_gui` (`UNIQUE (thong_bao_id, kenh, lan_thu)`), `ket_qua_lan_gui` (`UNIQUE (lan_gui_id)`; `ket_qua` 7 giá trị), `thiet_bi_day`, `lan_chay_m13` (data-model mục 2 → 5)
-- [ ] T007 Cài listener duy nhất `BE/m13/tiepnhan/internal/TiepNhanListener.java` (`@ApplicationModuleListener` cho `CoYeuCauThongBao`): kiểm yêu cầu (thiếu mức → `NHE` và dấu; thiếu loại thông tin → `SUC_KHOE`), chống trùng (`yeu_cau_nhan_trung`), lưu yêu cầu; lỗi không làm hỏng lệnh nguồn (FR-001 → FR-006; research B-03)
+- [ ] T006 Tạo `MIG/V009_01__thong_bao.sql`: `kenh_thong_bao` (nhóm 1; `ma` khóa chính `TRONG_UNG_DUNG|CONG_NGUOI_THAN|TIN_NHAN|KHAC_*`; `muc_gan SET('NHE','TRUNG_BINH','KHAN_CAP')`; `cau_hinh JSON`), `yeu_cau_thong_bao` (nhóm 3; `UNIQUE (loai_ban_ghi_nguon, id_ban_ghi_nguon, khoa_su_kien)`; `muc ENUM('NHE','TRUNG_BINH','KHAN_CAP')`; `ket_qua_tiep_nhan ENUM('HOP_LE','BI_TU_CHOI')`; `dau SET('THIEU_MUC','THIEU_LOAI_THONG_TIN','THIEU_RUT_GON','KHONG_CO_NGUOI_NHAN','VIEC_SAU_QUA_DOI','THIEU_DOI_TUONG_THONG_TIN','THIEU_MA_TRUONG_HOP')`; `doi_tuong_thong_tin ENUM('VE_NGUOI_CAO_TUOI','VE_VIEC_NGUOI_THAN') NULL`; `ma_truong_hop ENUM('KHAN_CAP_NGUOI_LIEN_HE_CHINH','DANH_SACH_TIEP_XUC','XAC_NHAN_LAI_NGUYEN_VONG','CHUYEN_VIEN','QUA_DOI') NULL`), `yeu_cau_nhan_trung`, `yeu_cau_phan_noi_dung`, `yeu_cau_nhom_nhan`, `thong_bao` (nhóm 3; `UNIQUE (yeu_cau_id, loai_nguoi_nhan, nguoi_nhan_id)`; `ma_truong_hop` cùng enum, `NULL`), `su_kien_thong_bao` (nhóm 3; `loai` `GIU|TAI_DINH_THOI|GUI|KHONG_GUI|XEM|XAC_NHAN|KHONG_LIEN_LAC_DUOC|AN`; cột sinh `UNIQUE` cho xem lần đầu và xác nhận một lần), `thong_bao_trang_thai` (kỹ thuật dẫn xuất), `lan_gui` (`UNIQUE (thong_bao_id, kenh, lan_thu)`), `ket_qua_lan_gui` (`UNIQUE (lan_gui_id)`; `ket_qua` 7 giá trị), `thiet_bi_day`, `lan_chay_m13` (data-model mục 2 → 5)
+- [ ] T007 Cài listener duy nhất `BE/m13/tiepnhan/internal/TiepNhanListener.java` (`@ApplicationModuleListener` cho `CoYeuCauThongBao`): kiểm yêu cầu (thiếu mức → `NHE` và dấu; thiếu loại thông tin → `SUC_KHOE`; có nhóm người thân mà thiếu đối tượng → `VE_NGUOI_CAO_TUOI` và dấu `THIEU_DOI_TUONG_THONG_TIN`, FR-001a), chống trùng (`yeu_cau_nhan_trung`), lưu yêu cầu; lỗi không làm hỏng lệnh nguồn (FR-001 → FR-006; research B-03)
 - [ ] T008 Cài `BE/m13/gui/internal/BoPhatKenh.java`: gửi các `lan_gui` song song trên luồng ảo sau commit; mỗi kết quả một dòng `ket_qua_lan_gui` trong transaction ngắn; executor ưu tiên riêng cho Khẩn cấp; bộ chuyển FCM (`thiet_bi_day`; token lỗi → `vo_hieu_luc`) (research B-03, B-05; NFR-03)
 - [ ] T009 Cài `BE/m13/hopthu/internal/TrangThaiThongBao.java` (hàm thuần trên sự kiện theo bảng FR-044, cập nhật `thong_bao_trang_thai`) và test `BT/m13/TrangThaiThongBaoTest.java` (research B-09)
 - [ ] T010 Cài khung job `BE/m13/lich/ViecNhanhM13.java` (20 giây) và `ViecHangNgayM13.java` (ShedLock; `lan_chay_m13`; chạy bù) và test `BT/m13/ChayBuM13IT.java` (research B-10)
@@ -58,12 +60,13 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 ### Tests cho User Story 2
 
-- [ ] T013 [P] [US2] Test đơn vị `BT/m13/ChuoiThayTest.java`, `LocPhanNoiDungTest.java`, `SC_004_NguoiNhanTest.java` (200 yêu cầu)
-- [ ] T014 [P] [US2] Test `BT/m13/BR_M13_04_NguoiNhanTheoPhanCongIT.java`, `FR_010_CachThayIT.java`, `FR_011_KhongNguoiNhanIT.java`, `FR_012_GopNguoiNhanIT.java`, `FR_013_LocNguoiThanIT.java`, `FR_014_KhanCapNguoiThanIT.java`, `FR_015_QuaDoiIT.java`: người thân chỉ thấy phần được phép (`phan_duoc_xem`); không có người nhận → Quản lý viện nhận thay "chỉ nhận dạng"; một người một thông báo mỗi yêu cầu (Q8 → Q15, Q22 → Q25)
+- [ ] T013 [P] [US2] Test đơn vị `BT/m13/ChuoiThayTest.java`, `LocPhanNoiDungTest.java`, `XetPhamViDongYTest.java` (bổ sung 2026-10-18: bảng đối tượng × trong/ngoài phạm vi × có/không mã × mức), `SC_004_NguoiNhanTest.java` (200 yêu cầu)
+- [ ] T014 [P] [US2] Test `BT/m13/BR_M13_04_NguoiNhanTheoPhanCongIT.java`, `FR_010_CachThayIT.java`, `FR_011_KhongNguoiNhanIT.java`, `FR_012_GopNguoiNhanIT.java`, `FR_013_LocNguoiThanIT.java`, `FR_014_KhanCapNguoiThanIT.java`, `FR_014_NhanThongBaoDongYIT.java`, `FR_014a_MaTruongHopIT.java` (bổ sung 2026-10-18; Q38 → Q42), `FR_015_QuaDoiIT.java`: người thân chỉ thấy phần được phép (`phan_duoc_xem`); không có người nhận → Quản lý viện nhận thay "chỉ nhận dạng"; một người một thông báo mỗi yêu cầu (Q8 → Q15, Q22 → Q25)
 
 ### Implementation cho User Story 2
 
 - [ ] T015 [US2] Cài `BE/m13/nguoinhan/internal/XacDinhNguoiNhan.java` (biến thể `NhomNhan` qua `NhiemVuApi`, `CaTrucApi`, `PhamViApi`, `NguoiThanNhanThongBaoPort`; `NguoiCoQuyenDuyet` dùng thẳng danh sách tài khoản 000 truyền, không tra lại `NguoiDuyetApi`, sửa theo plan 004), `ChuoiThay.java`, `LocPhanNoiDung.java` (`QuyenXemTruongApi`, bản đồng ý) và nối vào `TiepNhanListener` để thêm `thong_bao` + `lan_gui` dự kiến (research B-04)
+- [ ] T015a [US2] Cài hàm thuần `BE/m13/nguoinhan/internal/XetPhamViDongY.java` (đối tượng thông tin; bản đồng ý Hiệu lực với `dongYThongBao` qua `BanDongYApi.hienHanh`; người ngoài phạm vi: có mã thì gửi và ghi `thong_bao.ma_truong_hop`, không mã thì không gửi, Khẩn cấp không mã thì lỗi gửi `THIEU_MA_TRUONG_HOP`) và gọi trước `LocPhanNoiDung` trong `XacDinhNguoiNhan` (FR-001a, FR-014, FR-014a; research B-04; bổ sung 2026-10-18)
 
 **Checkpoint**: Người nhận đúng theo phân công.
 
@@ -126,7 +129,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 ### Implementation cho User Story 4
 
-- [ ] T030 [US4] Cài `BE/m13/yentinh/internal/GioYenTinh.java` (giữ trong transaction tiếp nhận, giải phóng ở việc 20 giây, kiểm lại điều kiện lúc giải phóng) và listener `ThamSoDaDoi(CFG-M13-02)`, `NguoiCaoTuoiDaChuyenTrangThai(GHI_NHAN_QUA_DOI)` (research B-06)
+- [ ] T030 [US4] Cài `BE/m13/yentinh/internal/GioYenTinh.java` (giữ trong transaction tiếp nhận, giải phóng ở việc 20 giây, kiểm lại điều kiện lúc giải phóng, gồm `XetPhamViDongY` với bản đồng ý hiện hành) và listener `ThamSoDaDoi(CFG-M13-02)`, `NguoiCaoTuoiDaChuyenTrangThai(GHI_NHAN_QUA_DOI)` (research B-06)
 - [ ] T031 [P] [US4] Tạo app `mobile/lib/nguoi-than/thong-bao/` (nhận đẩy, hộp thông báo)
 
 **Checkpoint**: Thông báo người thân chạy đúng.
@@ -158,7 +161,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 - [ ] T036 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/009-notification-service/contracts/api-009.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 009
 - [ ] T037 Chạy kiểm thử đầu–cuối với sự kiện thật của 001 → 008 (một sự kiện mỗi module) và đo NFR-03 (Khẩn cấp ≤ 10 giây)
 - [ ] T038 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T039 Rà truy vết data-model mục 11: BR-M13-01 → 05, BR-M10-06 (phần 009), DBR-03 (phần 009), FR-005, FR-012, FR-032 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-039, FR-040, FR-041, FR-042, FR-043, FR-043a, FR-043b — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T039 Rà truy vết data-model mục 11: BR-M13-01 → 05, BR-M10-06 (phần 009), DBR-03 (phần 009), FR-005, FR-012, FR-032, FR-001a, FR-014 và FR-014a (bổ sung 2026-10-18) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-039, FR-040, FR-041, FR-042, FR-043, FR-043a, FR-043b — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

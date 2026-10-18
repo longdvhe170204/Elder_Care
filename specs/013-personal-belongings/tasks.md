@@ -22,6 +22,8 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 ---
 
+**Cập nhật 2026-10-18** (plan mục "Cập nhật 2026-10-18"; 009 FR-001a): sửa T002. Mã task cũ giữ nguyên.
+
 ## Phase 1: Setup
 
 - [ ] T001 Tạo khung gói `BE/m12/...` với `package-info.java`; ArchUnit `BT/m12/M12ArchTest.java`: gói `..lich..` không tạo phiếu kiểm kê, không gọi `SuCoLenhApi` (Q-306, Q-307) (research K-01)
@@ -34,7 +36,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T002 [P] Tạo `BE/m12/api/`: `DoGuiApi`, `DoGuiThongKeApi`, sự kiện `DoGuiDaDoiTrangThai` và thông báo (cài `CoYeuCauThongBao`) (contracts mục 1.2 → 1.4)
+- [ ] T002 [P] Tạo `BE/m12/api/`: `DoGuiApi`, `DoGuiThongKeApi`, sự kiện `DoGuiDaDoiTrangThai` và thông báo (cài `CoYeuCauThongBao`) (contracts mục 1.2 → 1.4); bổ sung 2026-10-18 (009 FR-001a): sự kiện có người nhận là người thân khai `doiTuongThongTin` theo research K-13, test hợp đồng kiểm mọi yêu cầu tới người thân có đối tượng
 - [ ] T003 Tạo `MIG/V013_01__do_gui.sql`: `do_gui_nct` (`nct_id` khóa chính), `loai_do` (`co_so_tien`, `can_dong_y_giao_su_dung`), `loai_do_lich_su_dau` (nhóm 3), `muc_tinh_trang` (`khong_dung_duoc` – đúng một mức cuối, cột sinh `UNIQUE`), `vi_tri_luu_giu`, `do_gui` (đúng một trong `so_luong`/`so_tien` theo `co_so_tien`; `trang_thai` `DANG_GIU|DANG_SU_DUNG|DA_TRA|THAT_LAC|HU_HONG|DA_XU_LY` suy ra; `ban_giao_hien_hanh_id`; `bi_loai`; `phien_ban`; ba chỉ mục), `ban_giao_do_gui` (nhóm 3; trigger chặn `UPDATE` ngoài `su_co_id` từ `NULL`, chặn `DELETE`; thuộc danh sách bảo vệ BR-M15-03), `ban_giao_anh`, `su_kien_m12_da_xu_ly`, `lan_chay_m12` (data-model mục 2 → 4)
 - [ ] T004 [P] Cài hàm thuần `BE/m12/dogui/internal/KiemTraLenhBanGiao.java`, `TachDo.java` và test `BT/m12/KiemTraLenhBanGiaoTest.java`, `TachDoTest.java` (research K-04)
 - [ ] T005 Cài `BE/m12/dogui/internal/KhoaDoGui.java` (khóa `do_gui_nct` rồi từng đồ; so `phien_ban` mỗi đồ trong lệnh; research K-03) và danh mục (Quản lý viện; loại đồ, mức tình trạng, vị trí – ngừng bị chặn khi còn đồ Đang giữ/Hư hỏng) trong `BE/m12/danhmuc/internal/DanhMucM12Service.java`, controller `/do-gui/loai-do`, `/{id}`, `/do-gui/muc-tinh-trang`, `/do-gui/vi-tri`

@@ -1,6 +1,6 @@
 # Implementation Plan: Quản lý đồ gửi của người cao tuổi
 
-**Branch**: `013-personal-belongings` | **Date**: 2026-10-10 | **Spec**: [spec.md](spec.md)
+**Branch**: `013-personal-belongings` | **Date**: 2026-10-10, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/013-personal-belongings/spec.md`
 
@@ -27,6 +27,10 @@ Hướng kỹ thuật:
 Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - 013 không tạo sự cố, không tạo phiếu kiểm kê, không gợi ý vị trí kiểm kê, không đưa mục vào bàn giao ca, không tự hủy sự cố khi bản ghi bị hủy ghi nhận;
 - hệ thống chỉ: tách đồ và ghi Báo thất lạc phần thiếu kèm lệnh; tính lại trạng thái đồ sau đính chính; chuyển Hết hạn, Hết hiệu lực; kiểm tra và chặn; nhắc, thông báo.
+
+### Cập nhật 2026-10-18 (spec mục "Cập nhật 2026-10-18": feature 009 FR-001a)
+
+- **Đối tượng thông tin** (FR-032, 009 FR-001a): mọi thông báo tới người thân, kể cả đồ thất lạc, hư hỏng, được tìm thấy và mọi thông báo sau qua đời, khai `doiTuongThongTin = VE_VIEC_NGUOI_THAN` (Q-362); không yêu cầu nào mang mã Q-354 (research K-13).
 
 ## Technical Context
 

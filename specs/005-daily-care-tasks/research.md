@@ -86,6 +86,7 @@ Bảng `cham_soc_nct` (một dòng mỗi hồ sơ người cao tuổi) là đíc
 
 - **Trạng thái cuối** (FR-003 hai dòng cuối, FR-010): bean `ThamGiaChuyenTrangThai` của 005 cho `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN` chuyển phiên bản Hiệu lực sang Hết hiệu lực (`hieu_luc_den` = ngày của lệnh) và phiên bản Nháp, Chờ duyệt, Chờ hiệu lực sang Đã hủy, trong transaction của 001.
 - **Dấu "chưa có kế hoạch chăm sóc hiệu lực"** (FR-009) suy ra lúc đọc: người Đang lưu trú không có dòng `hieu_luc_nct`.
+- **Thỏa thuận lựa chọn có rủi ro** (FR-002a, bổ sung 2026-10-18): là phần của phiên bản, cùng khóa, cùng sao chép khi lập phiên bản mới, cùng duyệt; chi tiết ở C-18.
 
 **Lý do**: Bảng trạng thái của spec là căn cứ (8.1 đã chép bảng này). Cột sinh `UNIQUE` bảo đảm hai điều "tối đa một" ở cơ sở dữ liệu.
 
@@ -222,7 +223,7 @@ Bảng `cham_soc_nct` (một dòng mỗi hồ sơ người cao tuổi) là đíc
 ## C-10. Checklist, công việc chung, nhận việc, phân lại (FR-024, FR-029 → FR-032, FR-047a, BR-M04-13, 28)
 
 **Quyết định**:
-- **Checklist** `GET /checklist?caId=` dựng từ: công việc có `nguoi_thuc_hien_id = tôi` và `ca_id` của ca, công việc mang dấu tồn (`ton_tu_ca_truoc`), công việc chung của tầng/khu mà vai trò và chứng chỉ của tôi phù hợp. Điều dưỡng có thêm phần đọc từ nguồn: liều thuốc (`LieuThuocChecklistPort`, 006), việc nhận/lập bàn giao (`NhanSuCaPort.viecBanGiao`, 008), cảnh báo đang mở (đọc từ 007 qua `CanhBaoDocPort`). Thẻ người cao tuổi gồm vị trí (`ViTriApi.hienTai`, 003) và lưu ý chăm sóc (`DanhGiaApi.luuYHienHanh`, 001). Sắp theo thời điểm dự kiến, Quá hạn lên đầu (FR-030).
+- **Checklist** `GET /checklist?caId=` dựng từ: công việc có `nguoi_thuc_hien_id = tôi` và `ca_id` của ca, công việc mang dấu tồn (`ton_tu_ca_truoc`), công việc chung của tầng/khu mà vai trò và chứng chỉ của tôi phù hợp. Điều dưỡng có thêm phần đọc từ nguồn: liều thuốc (`LieuThuocChecklistPort`, 006), việc nhận/lập bàn giao (`NhanSuCaPort.viecBanGiao`, 008), cảnh báo đang mở (đọc từ 007 qua `CanhBaoDocPort`). Thẻ người cao tuổi gồm vị trí (`ViTriApi.hienTai`, 003), lưu ý chăm sóc (`DanhGiaApi.luuYHienHanh`, 001) và thỏa thuận lựa chọn có rủi ro của phiên bản Hiệu lực (FR-030, đọc theo lô từ `thoa_thuan_rui_ro`; bổ sung 2026-10-18). Sắp theo thời điểm dự kiến, Quá hạn lên đầu (FR-030).
 - **Phạm vi hiển thị** từ đầu phạm vi dữ liệu của ca (`batDauCa − CFG-M15-07`, 002 FR-032).
 - **Hiệu năng** (SC-008, NFR-02 ≤ 3 giây): một truy vấn có chỉ mục `(ca_id, nguoi_thuc_hien_id)` và `(tang_khu_vuc_id, ca_id, nguoi_thuc_hien_id IS NULL)`; vị trí và lưu ý gọi theo lô một lần; cỡ trả về khoảng 15 người × 20 công việc.
 - **Nhận việc** `POST /cong-viec/{id}/nhan-viec`: công việc chung chưa đóng; vai trò, chứng chỉ phù hợp; nhân viên có ca trùng thời điểm dự kiến. **Phân lại** `POST /cong-viec/{id}/phan-lai` (Trưởng tầng; Người phụ trách ca trong phạm vi ca). Mỗi lần ghi dòng `lich_su_xu_ly_cong_viec` (nhóm 3: người, căn cứ, trước, sau, thời điểm, lý do).
@@ -304,7 +305,7 @@ Gửi 010: `KetQuaCoTinhPhi`, `KetQuaTinhPhiDaDinhChinh`, `TrangThaiCoMatDaXacDi
 ## C-14. Ngoại tuyến (FR-035, FR-036, BR-M04-27, Q-01, BR-M15-20)
 
 **Quyết định**:
-- **Phạm vi**: chỉ ghi nhận thực hiện (8.6): ghi nhận hoàn thành, không thực hiện, Ghi nhận phát sinh. Lệnh lập, hủy, phân lại, điểm danh bán trú, kế hoạch chỉ trực tuyến.
+- **Phạm vi**: chỉ ghi nhận thực hiện (8.6): ghi nhận hoàn thành, không thực hiện, Ghi nhận phát sinh. App lưu danh mục loại lý do Không thực hiện cùng checklist; khi đồng bộ, loại lý do được chấp nhận nếu còn hiệu lực tại `thoi_diem_thiet_bi` (FR-028a; bổ sung 2026-10-18). Lệnh lập, hủy, phân lại, điểm danh bán trú, kế hoạch chỉ trực tuyến.
 - **Hai `NgoaiTuyenHandler`** (002 A-11): `M04.KET_QUA_CONG_VIEC` và `M04.GHI_NHAN_PHAT_SINH`. `khoaQuyen` = `CHECKLIST_GHI_NHAN, THUC_HIEN`; `apDung` gọi cùng service với lệnh trực tuyến, `thoi_diem_thiet_bi` là "thời điểm ghi" cho nhãn ghi muộn (BR-M04-12).
 - **Công việc đã đóng hoặc Hủy khi đồng bộ**: `TU_CHOI` kèm `dongBoi` và nội dung để app giữ ở mục "bị từ chối" với hai lệnh: tạo đính chính (nếu là bản ghi khác cho cùng việc) hoặc chuyển thành Ghi nhận phát sinh.
 - **Công việc bị hệ thống đóng vì trạng thái cuối** (CHK056): nếu `thoi_diem_thuc_hien` trước thời điểm trạng thái cuối và quyền tại thời điểm thiết bị đạt, handler ghi như Ghi nhận phát sinh trỏ `cong_viec_goc_id`; sau thời điểm đó thì `TU_CHOI`.
@@ -339,7 +340,7 @@ Gửi 010: `KetQuaCoTinhPhi`, `KetQuaTinhPhiDaDinhChinh`, `TrangThaiCoMatDaXacDi
 | Xem kết quả ghi nhận (Bác sĩ) | `CHECKLIST_GHI_NHAN, XEM` | Bác sĩ xem mọi kết quả, không checklist, không lệnh (FR-049, chú thích ²²) |
 | Xử lý việc quá hạn, hủy, phân lại | `XU_LY_VIEC_QUA_HAN, THUC_HIEN` | Trưởng tầng; Người phụ trách ca theo chú thích ⁹ (chỉ Quá hạn, trừ hủy) |
 | Điểm danh bán trú | `DIEM_DANH_BAN_TRU, THUC_HIEN` | HC, CS, ĐD (²⁷); TT, QL xem |
-| Danh mục loại công việc | `LOAI_CONG_VIEC, CAU_HINH` | Quản lý viện |
+| Danh mục loại công việc; loại lý do Không thực hiện (FR-028a, bổ sung 2026-10-18) | `LOAI_CONG_VIEC, CAU_HINH` | Quản lý viện |
 | Xem việc quá hạn toàn viện | `XU_LY_VIEC_QUA_HAN, XEM` | Quản lý viện (FR-045) |
 
 Kết quả ghi nhận, lưu ý chăm sóc mang `@NhomTruong(SUC_KHOE)` theo 002 A-08; Bếp, Hành chính không thấy (Hành chính chỉ thấy trạng thái có mặt).
@@ -358,3 +359,21 @@ Kết quả ghi nhận, lưu ý chăm sóc mang `@NhomTruong(SUC_KHOE)` theo 002
   - đồng hồ giả lập: 7 ngày × 20 người (SC-001), leo thang CFG-M04-12, chạy bù sau 3 giờ dừng;
   - bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}` cho mọi SPI 005 khai báo (006, 007, 008, 011, 012, 014);
   - client: Vitest cho màn lập công việc (lỗi theo dòng, không có nút "chép từ kế hoạch"), checklist; `flutter_test` cho checklist ngoại tuyến, ghi nhận theo loại, danh sách kết quả đồng bộ (BR-M15-20, constitution XV).
+
+---
+
+## C-18. Thỏa thuận lựa chọn có rủi ro và loại lý do Không thực hiện *(bổ sung 2026-10-18; FR-002a, FR-028a, FR-030; Q-347, Q-349, Q-350)*
+
+**Quyết định**:
+- **Bảng riêng** `thoa_thuan_rui_ro` (cùng hai bảng con người tham gia, ý kiến) gắn với `ke_hoach_cham_soc`, không dùng `muc_ke_hoach` với cột "loại mục". Như vậy job, `KiemTraLapCongViec` và `DuLieuNguonCa` không đọc thỏa thuận, nên FR-002a "không tạo, không chặn, không đổi công việc" đúng theo cấu trúc; test vẫn kiểm.
+- **Lệnh**: `PUT /ke-hoach-cham-soc/{id}/thoa-thuan` thay toàn bộ danh sách thỏa thuận của bản Nháp (`If-Match`, cùng quyền `KE_HOACH_CHAM_SOC, THUC_HIEN` như cập nhật mục). Kiểm: bác sĩ nhận định có AC-03; người quyết định theo nhận định (người cao tuổi; người đại diện của người bệnh có quan hệ Hiệu lực qua `QuanHeNguoiThanApi.thuocNguoiCaoTuoi`; Bác sĩ, bắt buộc `lyDo` ghi căn cứ không có văn bản nguyện vọng trước và không có người đại diện của người bệnh, vì hệ thống không tự biết điều này); mỗi ý kiến qua `NguonYKienApi.kiemTra` (001); người cao tuổi tự quyết được thì phải có trong người tham gia. Gửi duyệt không đòi phải có thỏa thuận; phiên bản chỉ có thỏa thuận mà không có mục vẫn bị chặn như cũ (FR-003 "có ít nhất một mục").
+- **Vòng đời**: theo phiên bản (khóa ngoài Nháp, sao chép khi lập phiên bản mới với `thoa_thuan_goc_id`, duyệt cùng phiên bản). Ngày xem lại thỏa thuận và ngày xem lại nhận định (sửa 2026-10-18, Q-360): việc `XEM_LAI_THOA_THUAN` của `ViecHangNgayM04` (mốc = ngày) tìm thỏa thuận thuộc phiên bản Hiệu lực có `ngay_xem_lai` hoặc `ngay_xem_lai_nhan_dinh` bằng hôm nay (chạy bù thì các ngày đã lỡ) và phát `NhacXemLaiThoaThuan(thoaThuanId, loaiNgay)` mức Nhẹ cho Điều dưỡng phụ trách (`DieuDuongPhuTrach(nct)`, mặc định) và Bác sĩ đã nhận định (`NhanVien`, không thay); `lan_chay_m04` bảo đảm một lần mỗi ngày; không tạo công việc.
+- **Hiển thị** (FR-030): `GET /checklist` trả `thoaThuan` theo người cao tuổi từ phiên bản Hiệu lực; xem phiên bản trả đủ. Phân loại `SUC_KHOE`.
+- **Cảnh báo từ chối thuốc** (BR-M07-13): không liên quan tới bảng này; 006 không đọc thỏa thuận.
+- **Loại lý do Không thực hiện** (FR-028a): danh mục nhóm 1 `loai_ly_do_khong_thuc_hien` với dòng cố định "Người cao tuổi từ chối" (`co_dinh`). Lệnh `POST /cong-viec/{id}/khong-thuc-hien` nhận `loaiLyDoId` (bắt buộc, loại đang hiệu lực) và `ghiChu` (tùy chọn); thay thân lệnh `LyDo` cũ. Đóng do hệ thống (FR-010, FR-047) không có loại, giữ `quy_tac_dong`.
+
+**Lý do**: FR-002a yêu cầu thỏa thuận đi theo phiên bản nhưng không bao giờ thành công việc; bảng riêng giữ được cả hai mà không thêm điều kiện vào mọi chỗ đọc mục kế hoạch.
+
+**Phương án đã cân nhắc**:
+- Cột `loai_muc` trên `muc_ke_hoach`: mọi cột lịch phải thành `NULL` có điều kiện và mọi chỗ đọc mục (lập công việc, dữ liệu nguồn, so sánh) phải lọc; bị loại.
+- Ghi lý do Không thực hiện là chữ tự do kèm gợi ý: không đếm được "Người cao tuổi từ chối" cho 016 và không bảo đảm tên không gắn nhãn; bị loại.

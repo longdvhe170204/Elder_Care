@@ -53,7 +53,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Q21 | Ghi huyết áp: bản giả 007 trả `DA_LUU`, `BI_CHAN`, `CHO_DO_LAI` | Đóng, trỏ bản ghi chỉ số; 422, giữ trạng thái; 202, đóng khi 007 gọi `daXacNhan` | US4 #6, FR-041 |
 | Q22 | T ghi công việc của A; P ghi công việc Đến hạn của S; P ghi sau khi Quá hạn | 403; 403; 200, `canCuQuyen = NHIEM_VU_PHU_TRACH_CA` | US4 #7, SC-011 |
 | Q23 | S ghi lúc 11:30 với thời điểm thực hiện 09:00; thời điểm sau lúc ghi | Nhãn ghi muộn; 422 | US4 #8, #11, BR-M04-12 |
-| Q24 | Không thực hiện không lý do; Ghi nhận phát sinh 150 ml lúc 13:10 | 422; công việc phát sinh `HOAN_THANH`, tính vào tổng nước | US4 #10, #11 |
+| Q24 | Không thực hiện không có `loaiLyDoId`; với loại "Người cao tuổi từ chối" và ghi chú "bà muốn nghỉ sau bữa trưa"; Ghi nhận phát sinh 150 ml lúc 13:10 | 422; 200 `KHONG_THUC_HIEN` với loại lý do và ghi chú; công việc phát sinh `HOAN_THANH`, tính vào tổng nước | US4 #10, #11, FR-028a (sửa 2026-10-18) |
 | Q25 | Ba công việc Thường, Quan trọng, Bắt buộc 10:00; tua 10:15, 10:45 | 10:15: cả ba Quá hạn, nhắc S một lần; H, P nhận việc Quan trọng; 007 nhận `YeuCauCanhBao` Trung bình cho việc Bắt buộc; 10:45: P nhận việc Thường; đóng việc Thường lúc 10:30 thì không báo | US5 #1 → #3, SC-005 |
 | Q26 | P phân lại việc Quá hạn tầng 2 cho S2; việc tầng 3 | 200, căn cứ nhiệm vụ; 403 | US5 #4 |
 | Q27 | 17:30 `CongViecBanGiaoApi.chuaDong`; bản giả 008 gọi `khiXacNhanBanGiao` lúc 18:10 | Danh sách đủ trường, không lập sẵn mục; việc Thường Quá hạn → `KHONG_THUC_HIEN` (hệ thống đóng sau bàn giao); việc khác sang ca đêm với dấu tồn | US5 #5, #6, #10, SC-006 |
@@ -105,3 +105,16 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | SC-010 | Q3, Q35 |
 | SC-011 | Q22, Q23 |
 | SC-012 | Q14 |
+
+## 6. Kịch bản bổ sung 2026-10-18 (Q-347, Q-349, Q-350)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| Q39 | D thêm vào Nháp của A thỏa thuận: A chọn uống trà thường mỗi chiều, rủi ro sặc đã trao đổi, người tham gia A, con gái A, BS; Bác sĩ nhận định A tự quyết được (có cách hỗ trợ, ngày xem lại); hai ý kiến nguồn `NGUOI_CAO_TUOI` và `NGUOI_THAN` con gái; người quyết định A; ngày xem lại sau 30 ngày | 200; gửi duyệt, duyệt, tới ngày hiệu lực: không công việc nào có căn cứ là thỏa thuận; `GET /checklist` của S có `thoaThuan` cho A | US1 #10, FR-002a, FR-030 |
+| Q40 | Thỏa thuận có `tuQuyetDuoc = true` mà người quyết định là `BAC_SI`; `nctThamGia = false`; ý kiến nguồn người thân không có quan hệ Hiệu lực | 422 cho từng trường hợp (`NGUON_Y_KIEN_KHONG_HOP_LE` ở trường hợp cuối) | FR-002a, 001 FR-023g |
+| Q41 | Sửa thỏa thuận của phiên bản Hiệu lực (API và `UPDATE` trực tiếp) | 409 `PHIEN_BAN_DA_KHOA`; trigger chặn | FR-002a, BR-M04-19 |
+| Q42 | QL ngừng hiệu lực loại "Người cao tuổi từ chối"; đổi tên; tạo loại "Đang ngủ" rồi ngừng; S ghi Không thực hiện với loại đã ngừng | 409 `LOAI_LY_DO_CO_DINH` hai lần; 200; 422 | FR-028a |
+
+| Q43 | Tua tới ngày xem lại thỏa thuận ở Q39; chạy việc hằng ngày hai lần | D và BS nhận một nhắc Nhẹ; không có công việc nào được tạo | FR-002a, Q-360 |
+
+Test bổ sung: `FR_002a_NhacXemLaiIT` (Q43), `FR_002a_ThoaThuanRuiRoIT` (Q39 → Q41), `FR_028a_LoaiLyDoKhongThucHienIT` (Q24, Q42), test Flutter ghi Không thực hiện ngoại tuyến với loại lý do đã lưu.

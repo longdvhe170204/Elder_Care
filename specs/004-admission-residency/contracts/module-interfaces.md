@@ -20,7 +20,8 @@ Chiều phụ thuộc theo research T-02: 004 phụ thuộc 000, 001, 002, 003. 
 | `KetThucLuuTruApi` (`m15.taikhoan.api`) | `Optional<Instant> thoiDiemTrangThaiCuoi(long nctId)` | 002 FR-049, job `KhoaSauKetThucLuuTru` |
 | `NguonLuuTruChoPhanBo` (`m03.api`) | Theo [003 module-interfaces](../../003-room-bed-allocation/contracts/module-interfaces.md) mục 2.1 | 003 FR-018, FR-024, FR-030, FR-015, 004 FR-016 |
 | `DemLichDenBanTru` (`m03.api`) | Theo 003 mục 2.1; cách đếm ở research T-10 | 003 FR-040, Ngừng hiệu lực khu nghỉ |
-| `ThamGiaChuyenTrangThai` (`m01.api`) | Bean `@Order(1)` (chạy đầu tiên) cho `HOAN_TAT_TIEP_NHAN`, `HUY_TIEP_NHAN`, `CHO_TAM_VANG`, `CHUYEN_VIEN`, `GHI_NHAN_TRO_VE`, `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`; cài `mienDieuKien` cho `KET_THUC_LUU_TRU` | Research T-03, T-08, T-09, T-13 |
+| `NguonYKienApi` (`m01.api`) | `kiemTra(nctId, nguon)` cho ý kiến về việc vào ở (bổ sung 2026-10-18, FR-001) | 001 mục 1.8b |
+| `ThamGiaChuyenTrangThai` (`m01.api`) | Bean `@Order(1)` (chạy đầu tiên; `canhBao` cho `HOAN_TAT_TIEP_NHAN` trả `CHUA_GHI_Y_KIEN_VAO_O`, `NCT_KHONG_DONG_Y_VAO_O`, bổ sung 2026-10-18) cho `HOAN_TAT_TIEP_NHAN`, `HUY_TIEP_NHAN`, `CHO_TAM_VANG`, `CHUYEN_VIEN`, `GHI_NHAN_TRO_VE`, `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`; cài `mienDieuKien` cho `KET_THUC_LUU_TRU` | Research T-03, T-08, T-09, T-13 |
 
 **Kiểu `chiTiet` 004 sở hữu** (trường `chiTiet` của lệnh trạng thái ở api-001):
 

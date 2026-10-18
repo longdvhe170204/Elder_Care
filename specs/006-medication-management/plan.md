@@ -1,6 +1,6 @@
 # Implementation Plan: Quản lý thuốc
 
-**Branch**: `006-medication-management` | **Date**: 2026-10-10 | **Spec**: [spec.md](spec.md)
+**Branch**: `006-medication-management` | **Date**: 2026-10-10, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/006-medication-management/spec.md`
 
@@ -30,6 +30,10 @@ Hướng kỹ thuật:
 Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - 006 không lập sẵn liều, không tự tạo phiếu đối chiếu hay dòng phiếu, không tự tạo chi phí, không chọn sẵn hay đề xuất lô;
 - hệ thống chỉ: tính lịch để hiển thị và xét giờ; chuyển trạng thái theo giờ (đơn, liều, lô hết hạn dùng); tạo yêu cầu cảnh báo, nhắc, thông báo; kiểm tra và chặn; tác động kèm lệnh của actor (tạm dừng đơn chờ đối chiếu, đóng đơn và liều khi trạng thái cuối, trừ và cộng số lượng).
+
+### Cập nhật 2026-10-18 (spec mục "Cập nhật 2026-10-18": feature 009 FR-001a)
+
+- **Đối tượng thông tin** (FR-053, 009 FR-001a): thông báo tới người liên hệ chính, người đại diện về thuốc gia đình gửi (sắp hết FR-046, hết khi đến liều, hết hạn dùng BR-M07-11, cần nhận lại thuốc mang theo) khai `doiTuongThongTin = VE_VIEC_NGUOI_THAN` (Q-362); phần `SUC_KHOE` (tên thuốc, hàm lượng) giữ như cũ để 009 lọc theo bản đồng ý; không yêu cầu nào mang mã Q-354 (research D-17).
 
 ## Technical Context
 
