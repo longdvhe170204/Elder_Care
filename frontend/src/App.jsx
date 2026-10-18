@@ -5,7 +5,9 @@ import { NotDesignedState, PermissionDeniedState } from '@/common/PageState'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ResidentListPage } from '@/features/residents/ResidentListPage'
 import { ShiftChecklistPage } from '@/features/care-tasks/ShiftChecklistPage'
+import { AlertsPage } from '@/features/alerts/AlertsPage'
 import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
+import { HandoverPage } from '@/features/handover/HandoverPage'
 import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
 import { MedicationPage } from '@/features/medication/MedicationPage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
@@ -17,6 +19,8 @@ const PAGES = {
   'care-tasks': ShiftChecklistPage,
   incidents: IncidentDetailPage,
   medication: MedicationPage,
+  alerts: AlertsPage,
+  handovers: HandoverPage,
   relatives: RelativesPage,
 }
 

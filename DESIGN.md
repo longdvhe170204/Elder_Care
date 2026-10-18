@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 5.11.0
+version: 5.12.0
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-10-18
@@ -309,12 +309,12 @@ Tên trạng thái lấy đúng theo `nghiep-vu.md`. `StatusBadge` ánh xạ the
 
 | Tông | Hiển thị | Trạng thái |
 | --- | --- | --- |
-| `urgent` | Chữ đỏ trên nền đỏ nhạt | Công việc Quá hạn; sự cố, cảnh báo mức Khẩn cấp; cảnh báo "đã leo thang tối đa"; liều thuốc Trễ, Bỏ lỡ |
-| `attention` | Chữ hổ phách trên nền hổ phách | Công việc Đến hạn; liều thuốc Đến giờ; người cao tuổi Tạm vắng, Điều trị tại bệnh viện, Đang tiếp nhận; giường Chờ sẵn sàng; phòng đang cách ly; bàn giao Có ý kiến; yêu cầu thay đổi quyền người thân Chờ xác nhận; đề nghị mua hộ Chờ đồng ý; phản hồi Đang xử lý, Mở lại; đồ gửi Thất lạc, Hư hỏng; dị ứng (`AllergyNote`, có viền và biểu tượng cảnh báo) |
-| `settled` | Chữ xanh lá trên nền xanh lá nhạt | Công việc Hoàn thành; liều thuốc Đã dùng; người cao tuổi Đang lưu trú; lượt thăm Đã duyệt; phản hồi Đã phản hồi; hợp đồng Hiệu lực; quyết định của người thân Đã đồng ý, Đã xác nhận |
+| `urgent` | Chữ đỏ trên nền đỏ nhạt | Công việc Quá hạn; sự cố, cảnh báo mức Khẩn cấp; cảnh báo "đã leo thang tối đa"; liều thuốc Trễ, Bỏ lỡ; viền đỏ của thẻ cảnh báo Khẩn cấp hoặc đã leo thang tối đa |
+| `attention` | Chữ hổ phách trên nền hổ phách | Công việc Đến hạn; liều thuốc Đến giờ; cảnh báo, sự cố mức Trung bình; cảnh báo Mới, Leo thang (chưa tối đa); chỉ số Vượt ngưỡng; người cao tuổi Tạm vắng, Điều trị tại bệnh viện, Đang tiếp nhận; giường Chờ sẵn sàng; phòng đang cách ly; bàn giao Có ý kiến; yêu cầu thay đổi quyền người thân Chờ xác nhận; đề nghị mua hộ Chờ đồng ý; phản hồi Đang xử lý, Mở lại; đồ gửi Thất lạc, Hư hỏng; dị ứng (`AllergyNote`, có viền và biểu tượng cảnh báo) |
+| `settled` | Chữ xanh lá trên nền xanh lá nhạt | Công việc Hoàn thành; liều thuốc Đã dùng; cảnh báo Đã đóng; bàn giao Đã xác nhận; người cao tuổi Đang lưu trú; lượt thăm Đã duyệt; phản hồi Đã phản hồi; hợp đồng Hiệu lực; quyết định của người thân Đã đồng ý, Đã xác nhận |
 | `held` | Chữ xanh trời đậm, viền cùng màu, nền trong | Giường Đang giữ chỗ (ghi kèm lý do) |
 | `occupied` | Chữ xanh chàm trên nền xanh chàm | Giường Đang sử dụng; lượt thăm Đã vào |
-| `neutral` | Chữ phụ trên nền phụ | Lưu ý chăm sóc (`CareNote`, chữ chính trên nền phụ, biểu tượng thông tin); công việc Chưa đến hạn, Hoàn thành trễ, Không thực hiện, Hủy; giường Trống, Đang bảo trì, Tạm ngừng sử dụng, Không sử dụng; người cao tuổi ở trạng thái cuối; lượt thăm Đã ra, Không đến, Hủy; phản hồi Mới, Đóng; đồ gửi Đang giữ, Đang được người cao tuổi sử dụng; kỳ chi phí Tạm tính, Đã chốt; quyết định Đã từ chối; liều thuốc Chưa đến giờ, Từ chối, Không thực hiện, Tạm dừng, Mang theo, Đã hủy |
+| `neutral` | Chữ phụ trên nền phụ | Lưu ý chăm sóc (`CareNote`, chữ chính trên nền phụ, biểu tượng thông tin); công việc Chưa đến hạn, Hoàn thành trễ, Không thực hiện, Hủy; giường Trống, Đang bảo trì, Tạm ngừng sử dụng, Không sử dụng; người cao tuổi ở trạng thái cuối; lượt thăm Đã ra, Không đến, Hủy; phản hồi Mới, Đóng; đồ gửi Đang giữ, Đang được người cao tuổi sử dụng; kỳ chi phí Tạm tính, Đã chốt; quyết định Đã từ chối; liều thuốc Chưa đến giờ, Từ chối, Không thực hiện, Tạm dừng, Mang theo, Đã hủy; cảnh báo, sự cố mức Nhẹ; cảnh báo Đã tiếp nhận, Chuyển sự cố; bàn giao Bản nháp, Đã lập |
 
 ### 3.6 Ảnh đại diện
 
@@ -414,6 +414,9 @@ Nút bo tròn, cao 40px (nhỏ 32px, lớn 44px); nút trong form ghi nhận cao
 | `detail-panel` | `Sheet` có `SheetTitle` | Thông tin đối tượng, rồi các nút lệnh lấy từ danh sách lệnh được phép |
 | `dose-card` | `Card` | Hàng 1: ảnh đại diện, tên, phòng, nhãn trạng thái của thẻ (theo liều gấp nhất). Dị ứng (mọi thẻ thuốc). Mỗi liều: tên thuốc `card-title`, liều và đường dùng, nhãn nguồn ("Thuốc viện", "Gia đình gửi"), "Kiểm soát đặc biệt, phải trực tuyến", "Liều chung của tầng". Hàng cuối: nút **Phát thuốc** `tonal` khi Đến giờ, `default` khi Trễ; chỉ Điều dưỡng. Thẻ Trễ viền đỏ 1,5px. Liều Tạm dừng, Mang theo chỉ có chữ, không nút |
 | `dose-sheet` | `Sheet` | Ảnh nhận diện 64px (chưa có ảnh thì chữ cái và "Chưa có ảnh"), tên, phòng, giờ và cửa sổ, dị ứng; mỗi liều một khối: Đã dùng / Từ chối / Không thực hiện (nút chia ba); Đã dùng: chọn lô khi gia đình gửi (không chọn sẵn, lô hết hạn ghi rõ và bị chặn), thời điểm dùng (điền sẵn giờ hiện tại, sau cửa sổ ghi "dùng trễ"), phản ứng; Từ chối, Không thực hiện: lý do bắt buộc. Một nút lưu cho các liều đã chọn, mỗi liều lưu riêng |
+| `handover-draft` | Hai `Card` (5:7) | Màn Bàn giao ca, người bàn giao ở Bản nháp: bên trái bản ghi nguồn đang mở theo nhóm spec 008 FR-039 (a) → (g), mỗi dòng có nút "Thêm" (không lập sẵn mục); bên phải nội dung bàn giao: mỗi mục một khối có nhóm, người cao tuổi, trạng thái nguồn, "Cần ghi chú" khi nghiêm trọng, ghi chú, "Ghi đã xử lý" khi nguồn đã xong, "Bỏ mục" (mục chỉ số vượt ngưỡng, biến động người cao tuổi ghi "không bỏ được"); vấn đề cần theo dõi, nhận định chung; "Hoàn tất bàn giao" liệt kê điều còn thiếu |
+| `handover-confirm` | Hai `Card` (7:5) | Đã lập: nội dung đã chốt, mỗi mục "Lúc chốt" và "Nay" khi khác; bên phải bản ghi nguồn mới sau khi lập (chỉ xem), ô ý kiến, "Gửi ý kiến", "Xác nhận bàn giao". Có ý kiến: người bàn giao thấy ý kiến và ô phản hồi bắt buộc. Cuối màn bảng các bàn giao trước |
+| `alert-card` | `Card` | Ảnh đại diện, tên, phòng, nhãn mức; nội dung cảnh báo `card-title`; nguồn và số lần gộp; nhãn trạng thái, người phụ trách; hạn tiếp nhận; nút theo trạng thái (Tiếp nhận → Bắt đầu xử lý → Đóng cảnh báo) và "Chi tiết". Xếp Khẩn cấp trước, rồi leo thang tối đa. Khung chi tiết: lịch sử, Đóng (kết quả bắt buộc), Đổi mức (lý do bắt buộc; hạ từ Khẩn cấp chỉ Bác sĩ), Chuyển sự cố, Kích hoạt khẩn cấp |
 | `prn-card` | `Card` | Thuốc khi cần: tên thuốc, khoảng cách tối thiểu, số lần tối đa trong 24 giờ, lần gần nhất; bị chặn thì khối hổ phách "sớm nhất được dùng lúc …", không có nút vượt chặn |
 | `alert-banner` | `Alert` | `urgent` chỉ cho cảnh báo cần xử lý ngay; `attention` (hổ phách, có viền) cho điều cần chú ý mà không gấp: trái mong muốn của người cao tuổi, chưa ghi ý kiến vào ở (mục 2.2) |
 | `opinion-history` | `Sheet` (`OpinionHistorySheet`) | Mở từ nút "Lịch sử" của từng nhóm sở thích: "Đang hiệu lực" (mỗi nguồn một dòng), "Lịch sử" (chữ mức màu phụ, "thay bằng mục mới ngày …"); nút "Ghi ý kiến mới" ở chân, chỉ cho vai trò được ghi |
@@ -512,7 +515,8 @@ Công nghệ: React 19, Vite 8, JavaScript, Tailwind CSS v4, shadcn/ui (Base UI)
 - Đợt 3 (thẩm mỹ, đang trao đổi): giảm màu cho trạng thái bình thường (Đang lưu trú), bo góc thẻ, dải nền trang.
 - Đã có trang chủ giới thiệu viện trong cổng người thân (mục 2.1), màn đăng nhập `/login` và cổng người thân `/family` với 11 màn P1 → P11 (mục 2.3). Chờ: ảnh thực tế được phép sử dụng, kênh liên hệ chính thức của viện.
 - Đã có màn mẫu Phát thuốc (M14): liều theo lịch nhóm theo giờ, khung xác nhận liều, thuốc khi cần.
-- Chưa thiết kế: Phòng, giường dạng thẻ phòng; Bàn giao ca; danh sách sự cố và lệnh xử lý sự cố; cổng người thân trên app mobile (mục 15); khi người thân có quan hệ với nhiều người cao tuổi thì chọn người ở đâu.
+- Đã có màn mẫu Bàn giao ca (M17) và Cảnh báo (M15). Bản mẫu: Điều dưỡng là người bàn giao, Trưởng tầng là người xác nhận; trạng thái bàn giao giữ khi đổi vai trò để thử cả luồng.
+- Chưa thiết kế: Phòng, giường dạng thẻ phòng; danh sách sự cố và lệnh xử lý sự cố; cổng người thân trên app mobile (mục 15); khi người thân có quan hệ với nhiều người cao tuổi thì chọn người ở đâu.
 - Mục 2.2 (4.4.0) đã duyệt 2026-10-18; bố cục màn mẫu A–D duyệt cùng ngày. Còn chưa có màn mẫu: phiếu nguyện vọng cuối đời, mục sự cố trong bản tin Điều dưỡng soạn, form ghi ý kiến và ghi mong muốn, danh sách người thân và quyền (012).
 - Chưa có `toast`: màn Checklist ca báo đã lưu bằng vùng `aria-live` và thẻ chuyển sang nhóm Đã xong.
 - Chưa có trang trình bày design system (bảng màu, mẫu chữ, ma trận trạng thái).
@@ -570,6 +574,7 @@ Mục này nói cách áp các mục chung vào `mobile/`. Màu, chữ, trạng 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 5.12.0 | 2026-10-18 | Màn mẫu Bàn giao ca (spec 008) và Cảnh báo (spec 007): thêm `handover-draft`, `handover-confirm`, `alert-card`; tông mức cảnh báo, trạng thái cảnh báo, bàn giao vào mục 3.5. Nút "Mở cảnh báo" ở Tổng quan mở màn Cảnh báo. Không thêm màu |
 | 5.11.0 | 2026-10-18 | Theo góp ý chủ dự án (màn Phát thuốc thừa khoảng trống): màn nhân viên rộng tối đa 1600px thay cho 1280px; lưới thẻ dùng `auto-fit` để thẻ giãn lấp đầy hàng, mỗi thẻ rộng tối đa 480px (thẻ việc ở Tổng quan 360px) để thẻ lẻ không kéo dài cả màn |
 | 5.10.0 | 2026-10-18 | Màn mẫu Phát thuốc (spec 006): thêm `dose-card`, `dose-sheet`, `prn-card`; trạng thái liều vào mục 3.5 (Trễ, Bỏ lỡ đỏ; Đến giờ hổ phách; Đã dùng xanh lá); dị ứng hiện trên mọi thẻ thuốc; thời điểm dùng điền sẵn giờ hiện tại. Không thêm màu |
 | 5.9.0 | 2026-10-18 | Theo yêu cầu chủ dự án: đường dẫn và neo bằng tiếng Anh (`/dang-nhap` → `/login`, `/cong-nguoi-than` → `/family`, các neo của Trang chủ); thêm quy tắc ở mục 8 |
