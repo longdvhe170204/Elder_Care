@@ -1,13 +1,20 @@
 import { useState } from 'react'
 import { AppShell } from '@/common/layout/AppShell'
-import { navForRole } from '@/common/layout/navigation'
+import { NAV_GROUPS, navForRole } from '@/common/layout/navigation'
+import { NotDesignedState, PermissionDeniedState } from '@/common/PageState'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ResidentListPage } from '@/features/residents/ResidentListPage'
+import { ShiftChecklistPage } from '@/features/care-tasks/ShiftChecklistPage'
+import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
+import { RelativesPage } from '@/features/relatives/RelativesPage'
 
 // Bản mẫu giai đoạn thiết kế: chuyển màn bằng state, React Router thêm ở 000 T005.
 const PAGES = {
   dashboard: DashboardPage,
   residents: ResidentListPage,
+  'care-tasks': ShiftChecklistPage,
+  incidents: IncidentDetailPage,
+  relatives: RelativesPage,
 }
 
 function firstPage(role) {
@@ -17,21 +24,32 @@ function firstPage(role) {
 function App() {
   const [role, setRole] = useState('FLOOR_MANAGER')
   const [page, setPage] = useState('dashboard')
+  const [params, setParams] = useState({})
+
+  function navigate(nextPage, nextParams = {}) {
+    setPage(nextPage)
+    setParams(nextParams)
+  }
 
   function changeRole(nextRole) {
     setRole(nextRole)
     const allowed = navForRole(nextRole).flatMap((g) => g.items.map((i) => i.key))
-    if (!allowed.includes(page)) setPage(firstPage(nextRole))
+    if (!allowed.includes(page)) navigate(firstPage(nextRole))
   }
 
   const Page = PAGES[page]
+  const item = NAV_GROUPS.flatMap((g) => g.items).find((i) => i.key === page)
+  // Chặn hiển thị khi vai trò không có quyền (quyền thật do backend trả, backend vẫn kiểm)
+  const allowed = item?.roles.includes(role)
 
   return (
-    <AppShell role={role} onRoleChange={changeRole} page={page} onPageChange={setPage}>
-      {Page ? (
-        <Page />
+    <AppShell role={role} onRoleChange={changeRole} page={page} onPageChange={(key) => navigate(key)}>
+      {!allowed ? (
+        <PermissionDeniedState label={item?.label ?? 'màn này'} />
+      ) : Page ? (
+        <Page key={`${page}:${JSON.stringify(params)}`} role={role} onNavigate={navigate} {...params} />
       ) : (
-        <p className="text-sm text-muted-foreground">Màn này chưa có bản mẫu trong giai đoạn thiết kế.</p>
+        <NotDesignedState label={item.label} />
       )}
     </AppShell>
   )

@@ -1,13 +1,17 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "@fontsource/be-vietnam-pro/400.css";
+@import "@fontsource/be-vietnam-pro/500.css";
+@import "@fontsource/be-vietnam-pro/600.css";
 
 @custom-variant dark (&:is(.dark *));
 
+/* Giá trị lấy từ DESIGN.md 3.6.0, bảng màu Trời xanh theo letters.app (mục Màu, Chữ, Độ nổi và hình khối). */
+
 @theme inline {
     --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
+    --font-sans: 'Be Vietnam Pro', system-ui, sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -15,6 +19,7 @@
     --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
     --color-sidebar-primary: var(--sidebar-primary);
     --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
     --color-sidebar: var(--sidebar);
     --color-chart-5: var(--chart-5);
     --color-chart-4: var(--chart-4);
@@ -25,6 +30,9 @@
     --color-input: var(--input);
     --color-border: var(--border);
     --color-destructive: var(--destructive);
+    --color-destructive-subtle: var(--destructive-subtle);
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
     --color-warning: var(--warning);
     --color-warning-foreground: var(--warning-foreground);
     --color-success: var(--success);
@@ -43,90 +51,280 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+    --color-landing-sky: var(--landing-sky);
+    --color-landing-ivory: var(--landing-ivory);
+    --color-landing-beige: var(--landing-beige);
+    --color-landing-photo: var(--landing-photo);
+    --color-bed-occupied: var(--bed-occupied);
+    --color-bed-held: var(--bed-held);
+    --color-bed-pending: var(--bed-pending);
+    --color-bed-maintenance: var(--bed-maintenance);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+    --radius-3xl: 20px;
+    --radius-4xl: 9999px;
 }
 
 :root {
-    --background: oklch(0.985 0.006 85);
-    --foreground: oklch(0.24 0.015 200);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.24 0.015 200);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.24 0.015 200);
-    --primary: oklch(0.45 0.08 185);
-    --primary-foreground: oklch(0.985 0.006 85);
-    --secondary: oklch(0.95 0.02 150);
-    --secondary-foreground: oklch(0.32 0.05 160);
-    --muted: oklch(0.96 0.006 85);
-    --muted-foreground: oklch(0.5 0.012 200);
-    --accent: oklch(0.94 0.03 180);
-    --accent-foreground: oklch(0.32 0.06 185);
-    --destructive: oklch(0.55 0.2 27);
-    --warning: oklch(0.95 0.06 85);
-    --warning-foreground: oklch(0.45 0.1 65);
-    --success: oklch(0.94 0.04 145);
-    --success-foreground: oklch(0.38 0.08 145);
-    --border: oklch(0.9 0.008 85);
-    --input: oklch(0.88 0.008 85);
-    --ring: oklch(0.6 0.08 185);
-    --chart-1: oklch(0.82 0.06 180);
-    --chart-2: oklch(0.65 0.08 182);
-    --chart-3: oklch(0.52 0.08 185);
-    --chart-4: oklch(0.42 0.07 188);
-    --chart-5: oklch(0.32 0.05 190);
-    --radius: 0.5rem;
-    --sidebar: oklch(0.97 0.008 85);
-    --sidebar-foreground: oklch(0.24 0.015 200);
-    --sidebar-primary: oklch(0.45 0.08 185);
-    --sidebar-primary-foreground: oklch(0.985 0.006 85);
-    --sidebar-accent: oklch(0.93 0.035 180);
-    --sidebar-accent-foreground: oklch(0.3 0.06 185);
-    --sidebar-border: oklch(0.9 0.008 85);
-    --sidebar-ring: oklch(0.6 0.08 185);
+    /* Trang giới thiệu cổng người thân (DESIGN.md mục 2.1): nền từng section */
+    --landing-sky: #9ABFDA;
+    --landing-ivory: #FBF9F4;
+    --landing-beige: #F2EADF;
+    --landing-photo: #E4D8C6;
+    /* Nền trang (DESIGN.md 3.1): dải trời gốc #779BC1 → #9ABFDA → #CBDFEC pha 45% trắng */
+    --canvas-from: #B4C8DD;
+    --canvas-mid: #C7DCEB;
+    --canvas-to: #E2EDF5;
+    --background: #C7DCEB;
+    --foreground: #0F2235;
+    --card: #FFFFFF;
+    --card-foreground: #0F2235;
+    --popover: #FFFFFF;
+    --popover-foreground: #0F2235;
+    --primary: #24496F;
+    --primary-foreground: #FFFFFF;
+    --secondary: #F5F7FA;
+    --secondary-foreground: #0F2235;
+    --muted: #F5F7FA;
+    --muted-foreground: #50627A;
+    --accent: #C0EAFF;
+    --accent-foreground: #0B5F8A;
+    --destructive: #C9302C;
+    --destructive-subtle: #FFECEC;
+    --warning: #FFECC0;
+    --warning-foreground: #8A5300;
+    --success: #E2F4EA;
+    --success-foreground: #1F6B45;
+    --info: #C0D5FF;
+    --info-foreground: #2A4A8F;
+    --border: #EFEFF1;
+    --input: #868C98;
+    --ring: #24496F;
+    --chart-1: #C0EAFF;
+    --chart-2: #2597D0;
+    --chart-3: #0B5F8A;
+    --chart-4: #779BC1;
+    --chart-5: #0F2235;
+    --avatar-1: #C0EAFF;
+    --avatar-1-foreground: #0B5F8A;
+    --avatar-2: #C0D5FF;
+    --avatar-2-foreground: #2A4A8F;
+    --avatar-3: #E2F4EA;
+    --avatar-3-foreground: #1F6B45;
+    --avatar-4: #EFEFF1;
+    --avatar-4-foreground: #4A4A55;
+    --radius: 12px;
+    /* Menu (DESIGN.md 3.2): cùng dải trời gốc pha 15% trắng, đậm hơn nền trang một bậc; mục chọn là viên xanh đêm */
+    --sidebar: #A9C9E0;
+    --sidebar-from: #8BAACA;
+    --sidebar-mid: #A9C9E0;
+    --sidebar-to: #D3E4EF;
+    /* Chữ menu: màu chữ chính để không chìm vào nền trời; nhãn nhóm, chữ phụ nhạt hơn một bậc (DESIGN.md 3.2) */
+    --sidebar-foreground: #0F2235;
+    --sidebar-muted-foreground: #14304F;
+    --sidebar-primary: #24496F;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #24496F;
+    --sidebar-accent-foreground: #FFFFFF;
+    --sidebar-border: #0F22351F;
+    --sidebar-ring: #0F2235;
+    --sidebar-hover: #FFFFFF73;
+    /* Sơ đồ giường (DESIGN.md 3.5, bed-cell): màu đặc, mỗi màu ≥ 3:1 so với nền thẻ */
+    --bed-occupied: #4A6FD6;
+    --bed-held: #1A8CC4;
+    --bed-pending: #C77A12;
+    --bed-maintenance: #7A8699;
 }
 
 .dark {
-    --background: oklch(0.18 0.012 200);
-    --foreground: oklch(0.95 0.006 85);
-    --card: oklch(0.22 0.014 200);
-    --card-foreground: oklch(0.95 0.006 85);
-    --popover: oklch(0.22 0.014 200);
-    --popover-foreground: oklch(0.95 0.006 85);
-    --primary: oklch(0.72 0.1 180);
-    --primary-foreground: oklch(0.18 0.02 200);
-    --secondary: oklch(0.3 0.03 155);
-    --secondary-foreground: oklch(0.9 0.03 150);
-    --muted: oklch(0.26 0.012 200);
-    --muted-foreground: oklch(0.7 0.012 200);
-    --accent: oklch(0.3 0.04 185);
-    --accent-foreground: oklch(0.92 0.04 180);
-    --destructive: oklch(0.68 0.18 25);
-    --warning: oklch(0.32 0.06 75);
-    --warning-foreground: oklch(0.88 0.1 85);
-    --success: oklch(0.3 0.05 150);
-    --success-foreground: oklch(0.88 0.06 145);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.6 0.08 185);
-    --chart-1: oklch(0.82 0.06 180);
-    --chart-2: oklch(0.65 0.08 182);
-    --chart-3: oklch(0.52 0.08 185);
-    --chart-4: oklch(0.42 0.07 188);
-    --chart-5: oklch(0.32 0.05 190);
-    --sidebar: oklch(0.2 0.013 200);
-    --sidebar-foreground: oklch(0.95 0.006 85);
-    --sidebar-primary: oklch(0.72 0.1 180);
-    --sidebar-primary-foreground: oklch(0.18 0.02 200);
-    --sidebar-accent: oklch(0.3 0.04 185);
-    --sidebar-accent-foreground: oklch(0.92 0.04 180);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.6 0.08 185);
+    --landing-sky: #15233A;
+    --landing-ivory: #111B2B;
+    --landing-beige: #1D1B19;
+    --landing-photo: #2B2722;
+    --canvas-from: #0F1A2A;
+    --canvas-mid: #15233A;
+    --canvas-to: #1B2B42;
+    --background: #15233A;
+    --foreground: #E6EDF6;
+    --card: #18243A;
+    --card-foreground: #E6EDF6;
+    --popover: #1E2B44;
+    --popover-foreground: #E6EDF6;
+    --primary: #E6EDF6;
+    --primary-foreground: #0F1A2A;
+    --secondary: #1E2B44;
+    --secondary-foreground: #E6EDF6;
+    --muted: #1E2B44;
+    --muted-foreground: #9AABC2;
+    --accent: #22344F;
+    --accent-foreground: #8DB4E2;
+    --destructive: #FF7A7E;
+    --destructive-subtle: #3A1A1C;
+    --warning: #3A2C10;
+    --warning-foreground: #FFCB6B;
+    --success: #173A2A;
+    --success-foreground: #7FD3A3;
+    --info: #16273D;
+    --info-foreground: #9CC3FF;
+    --border: #2A3A52;
+    --input: #6E80A0;
+    --ring: #8DB4E2;
+    --chart-1: #22344F;
+    --chart-2: #6F9FD6;
+    --chart-3: #8DB4E2;
+    --chart-4: #B9D2F0;
+    --chart-5: #E6EDF6;
+    --avatar-1: #16273D;
+    --avatar-1-foreground: #9CC3FF;
+    --avatar-2: #2A2340;
+    --avatar-2-foreground: #C9B8FF;
+    --avatar-3: #173A2A;
+    --avatar-3-foreground: #7FD3A3;
+    --avatar-4: #2E2A20;
+    --avatar-4-foreground: #E2D3AE;
+    --sidebar: #0E1829;
+    --sidebar-from: #0B1320;
+    --sidebar-mid: #0E1829;
+    --sidebar-to: #121D2D;
+    --sidebar-foreground: #FFFFFF;
+    --sidebar-muted-foreground: #B8C6DA;
+    --sidebar-primary: #E6EDF6;
+    --sidebar-primary-foreground: #10203A;
+    --sidebar-accent: #E6EDF6;
+    --sidebar-accent-foreground: #10203A;
+    --sidebar-border: #FFFFFF26;
+    --sidebar-ring: #FFFFFF;
+    --sidebar-hover: #FFFFFF1F;
+    --bed-occupied: #7B9BF0;
+    --bed-held: #4FB6E6;
+    --bed-pending: #F2A646;
+    --bed-maintenance: #8A97AD;
+}
+
+/* Thang chữ (DESIGN.md mục Chữ). Dùng utility type-*, không dùng khóa --text-*. */
+@utility type-caption {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+}
+@utility type-body-sm {
+    font-size: 14px;
+    line-height: 20px;
+}
+/* Nhãn đậm vừa: tên người cao tuổi trong thẻ gọn, giờ trong thẻ việc, số đếm chú thích, ô chọn vai trò */
+@utility type-label {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+}
+@utility type-body {
+    font-size: 15px;
+    line-height: 22px;
+}
+@utility type-card-title {
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 600;
+}
+@utility type-title {
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 600;
+}
+/* Số liệu dashboard: nhỏ hơn tiêu đề trang để không tranh thứ bậc */
+@utility type-metric {
+    font-size: 24px;
+    line-height: 28px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+}
+@utility type-page {
+    font-size: 26px;
+    line-height: 32px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+/* Thang chữ riêng cho trang giới thiệu cổng người thân (DESIGN.md mục 2.1, 4); không dùng trong màn nghiệp vụ. */
+@utility type-display {
+    font-size: 38px;
+    line-height: 46px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    @media (width >= 768px) {
+        font-size: 56px;
+        line-height: 64px;
+    }
+}
+@utility type-section {
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    @media (width >= 768px) {
+        font-size: 28px;
+        line-height: 36px;
+    }
+}
+@utility type-lead {
+    font-size: 18px;
+    line-height: 28px;
+}
+@utility type-reading {
+    font-size: 16px;
+    line-height: 26px;
+}
+@utility type-clock {
+    font-size: 28px;
+    line-height: 32px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Focus bàn phím: viền 2px màu nút chính (xanh đêm), cách 2px (DESIGN.md mục Trợ năng). Trong menu dùng --sidebar-ring. */
+:is(
+    button,
+    a[href],
+    [role="button"],
+    [role="tab"],
+    [role="checkbox"],
+    [role="radio"],
+    [role="switch"]
+):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    --tw-ring-shadow: 0 0 #0000;
+}
+
+/* Thanh cuộn, ô chọn của trình duyệt theo đúng chế độ sáng/tối của trang */
+:root {
+    color-scheme: light;
+}
+.dark {
+    color-scheme: dark;
+}
+/* Menu vẫn cuộn được bằng chuột, bàn phím, cảm ứng nhưng không hiện thanh cuộn */
+[data-slot=sidebar] nav {
+    scrollbar-width: none;
+}
+[data-slot=sidebar] nav::-webkit-scrollbar {
+    display: none;
+}
+
+[data-slot=sidebar] :is(button, select, a[href]):focus-visible {
+    outline-color: var(--sidebar-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 @layer base {
@@ -134,7 +332,10 @@
     @apply border-border outline-ring/50;
     }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground type-body;
+    /* Dải trời xanh cho toàn trang (DESIGN.md 3.5.0); menu dùng bản đậm hơn của cùng dải */
+    background-image: linear-gradient(180deg, var(--canvas-from) 0%, var(--canvas-mid) 58%, var(--canvas-to) 100%);
+    background-attachment: fixed;
     }
   html {
     @apply font-sans;

@@ -38,7 +38,7 @@ export const NAV_GROUPS = [
     label: 'Trong ca',
     items: [
       // Dòng "Checklist, ghi nhận công việc"
-      { key: 'care-tasks', label: 'Công việc chăm sóc', icon: 'ListChecks', roles: [QL, TT, BS, DD, CS] },
+      { key: 'care-tasks', label: 'Checklist ca', icon: 'ListChecks', roles: [QL, TT, BS, DD, CS] },
       // Dòng "Phát thuốc, thuốc khi cần"
       { key: 'medication', label: 'Phát thuốc', icon: 'Pill', roles: [QL, TT, BS, DD] },
       // Dòng "Xử lý cảnh báo"
@@ -67,6 +67,8 @@ export const NAV_GROUPS = [
       { key: 'admissions', label: 'Tiếp nhận, hợp đồng', icon: 'FileSignature', roles: [QL, HC, NT, KT] },
       // Dòng "Chi phí, khoản điều chỉnh"
       { key: 'charges', label: 'Chi phí', icon: 'Receipt', roles: [QL, HC, NT, KT] },
+      // Dòng "Mong muốn về khách thăm, người đón" (Q-364); người thân và quyền (dòng "Người thân và quyền") thêm khi thiết kế 012
+      { key: 'relatives', label: 'Người thân', icon: 'HeartHandshake', roles: [QL, TT, DD, HC] },
       // Dòng "Đăng ký thăm"
       { key: 'visits', label: 'Đăng ký thăm', icon: 'CalendarCheck', roles: [QL, TT, HC, NT] },
     ],

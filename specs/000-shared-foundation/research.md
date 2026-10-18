@@ -23,7 +23,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Đây 
 | React | 19.x, JavaScript (JSX, ES module), Vite 8 | Web (`frontend/`); không dùng TypeScript (constitution X 3.1.0) |
 | Tailwind CSS | 4.x (`@tailwindcss/vite`) | Giao diện web; biến màu, bo góc khai báo trong `frontend/src/index.css` |
 | shadcn/ui | CLI 4.x, kiểu `base-nova` trên Base UI (`@base-ui/react`), `class-variance-authority`, `cn`, `tw-animate-css` | Component giao diện ở `frontend/src/components/ui/`, thêm bằng `npx shadcn add` |
-| lucide-react, Geist (`@fontsource-variable/geist`) | Bản hiện hành | Icon và font của web (Geist có bộ ký tự tiếng Việt) |
+| lucide-react, Be Vietnam Pro (`@fontsource/be-vietnam-pro`, nạp 400, 500, 600) | Bản hiện hành | Icon và font của web; font thiết kế cho tiếng Việt, thay Geist theo `frontend/DESIGN.md` 2.0.0 (2026-10-16) |
 | ESLint | 10.x (`eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`) | Lint web, có sẵn từ lúc khởi tạo |
 | TanStack Query, React Router | Bản hiện hành | Gọi API, điều hướng |
 | Flutter | Kênh stable 3.x (máy: 3.41.9), Dart 3.x (`sdk: ^3.11.5`) | Một app chung (`mobile/`, Q-346), Material; gọi API bằng `http` |

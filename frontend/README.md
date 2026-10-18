@@ -1,16 +1,31 @@
-# React + Vite
+# Elder_Care web (`frontend/`)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Giao diện web của hệ thống quản lý viện dưỡng lão: React 19, Vite, JavaScript, Tailwind CSS v4, shadcn/ui (Base UI), lucide-react, font Be Vietnam Pro.
 
-Currently, two official plugins are available:
+- Quy định thiết kế (màu, chữ, trạng thái, khi nào dùng lưới thẻ hay bảng, component): [DESIGN.md](../DESIGN.md) ở gốc kho, chung cho web và mobile. Đọc trước khi thiết kế hay sửa màn hình.
+- Quy ước chung của dự án, giai đoạn hiện tại: [CLAUDE.md](../CLAUDE.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Lệnh
 
-## React Compiler
+```bash
+npm ci          # cài đúng phiên bản trong package-lock.json
+npm run dev     # chạy thử ở http://localhost:5173
+npm run lint
+npm run build
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Thêm component shadcn: `npx shadcn@latest add <tên>` (file sinh vào `src/components/ui/`).
 
-## Expanding the ESLint configuration
+## Cấu trúc `src/`
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+| Thư mục | Nội dung |
+| --- | --- |
+| `api/` | Client sinh từ `specs/*/contracts/api-*.yaml` (task 000 T010), không sửa tay. Chưa có |
+| `common/` | Khung ứng dụng, menu theo vai trò, thành phần dùng chung, dữ liệu minh họa (`demoData.js`) |
+| `features/` | Màn hình theo chức năng |
+| `components/ui/` | Component shadcn; đổi giao diện bằng biến thể `cva` theo DESIGN.md |
+| `lib/` | Tiện ích (`cn`) |
+
+Alias `@/` trỏ `src/`.
+
+Hiện là bản mẫu của giai đoạn thiết kế: các màn dùng dữ liệu minh họa, chưa gọi API.
