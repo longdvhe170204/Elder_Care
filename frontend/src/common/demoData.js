@@ -372,3 +372,34 @@ export const DEMO_PORTAL_CONTRACT = {
   services: ['Chăm sóc thường xuyên', '[Dịch vụ minh họa]'],
   annexes: [{ code: '[PL-01]', text: '[Nội dung phụ lục minh họa]', date: '15/09/2026' }],
 }
+
+// ---------------------------------------------------------------------------------------------
+// Phát thuốc (spec 006 User Story 2, 6; FR-018 → FR-033, FR-044). Giờ hiện tại của bản mẫu là DEMO_SHIFT.now
+// (09:40). Cửa sổ mặc định ±30 phút (CFG-M07-01); Trễ sau cuối cửa sổ, Bỏ lỡ sau thêm 30 phút (CFG-M07-02).
+// Tên thuốc là minh họa; lịch thuốc thật do hệ thống tính từ đơn Hiệu lực, không lập sẵn bản ghi liều (Q-306).
+const FAMILY_LOTS = [
+  { code: '[Lô A]', expiry: '12/2026', left: 18 },
+  { code: '[Lô B]', expiry: '09/2026', left: 4, expired: true },
+]
+
+export const DEMO_DOSES = [
+  { id: 'd1', time: '08:00', residentCode: 'NCT-0001', drug: '[Thuốc minh họa 1]', dose: '5 mg', route: 'uống', source: 'Viện', status: 'Đã dùng', result: 'Đã dùng lúc 08:05' },
+  { id: 'd2', time: '08:00', residentCode: 'NCT-0002', drug: '[Thuốc minh họa 5]', dose: '1 viên', route: 'uống', source: 'Viện', status: 'Đã dùng', result: 'Đã dùng lúc 08:12' },
+  { id: 'd3', time: '08:00', residentCode: 'NCT-0003', drug: '[Thuốc minh họa 6]', dose: '1 viên', route: 'uống', source: 'Viện', status: 'Từ chối', result: 'Từ chối: [lý do minh họa]' },
+  { id: 'd4', time: '09:00', residentCode: 'NCT-0003', drug: '[Thuốc minh họa 1]', dose: '5 mg', route: 'uống', source: 'Viện', status: 'Trễ' },
+  { id: 'd5', time: '10:00', residentCode: 'NCT-0001', drug: '[Thuốc minh họa 2]', dose: '1 viên', route: 'uống', source: 'Gia đình gửi', status: 'Đến giờ', lots: FAMILY_LOTS },
+  { id: 'd6', time: '10:00', residentCode: 'NCT-0001', drug: '[Thuốc minh họa 3]', dose: '10 ml', route: 'uống', source: 'Viện', status: 'Đến giờ', refusedBefore: true },
+  { id: 'd7', time: '10:00', residentCode: 'NCT-0002', drug: '[Thuốc kiểm soát đặc biệt minh họa]', dose: '1 ống', route: 'tiêm dưới da', source: 'Viện', status: 'Đến giờ', controlled: true },
+  { id: 'd8', time: '10:00', residentCode: 'NCT-0005', drug: '[Thuốc minh họa 4]', dose: '1 viên', route: 'uống', source: 'Viện', status: 'Đến giờ', sharedFloor: true },
+  { id: 'd9', time: '12:00', residentCode: 'NCT-0001', drug: '[Thuốc minh họa 1]', dose: '5 mg', route: 'uống', source: 'Viện', status: 'Chưa đến giờ' },
+  { id: 'd10', time: '12:00', residentCode: 'NCT-0002', drug: '[Thuốc minh họa 5]', dose: '1 viên', route: 'uống', source: 'Viện', status: 'Chưa đến giờ' },
+  { id: 'd11', time: '12:00', residentCode: 'NCT-0003', drug: '[Thuốc minh họa 6]', dose: '1 viên', route: 'uống', source: 'Viện', status: 'Chưa đến giờ' },
+  { id: 'd12', time: '12:00', residentCode: 'NCT-0004', drug: '[Thuốc minh họa 7]', dose: '1 viên', route: 'uống', source: 'Viện', status: 'Tạm dừng', note: 'Người cao tuổi đang tạm vắng' },
+  { id: 'd13', time: '12:00', residentCode: 'NCT-0006', drug: '[Thuốc minh họa 8]', dose: '1 viên', route: 'uống', source: 'Viện', status: 'Tạm dừng', note: 'Đang điều trị tại bệnh viện' },
+]
+
+// Thuốc khi cần (FR-024, FR-025): khoảng cách tối thiểu và số lần tối đa trong 24 giờ trượt
+export const DEMO_PRN_ORDERS = [
+  { id: 'p1', residentCode: 'NCT-0001', drug: '[Thuốc giảm đau minh họa]', dose: '500 mg', route: 'uống', minHours: 4, maxPer24h: 4, uses: ['05:30'], source: 'Viện' },
+  { id: 'p2', residentCode: 'NCT-0003', drug: '[Thuốc hạ sốt minh họa]', dose: '500 mg', route: 'uống', minHours: 6, maxPer24h: 3, uses: ['07:10'], source: 'Viện' },
+]

@@ -4,7 +4,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/
 // Trạng thái cả màn (DESIGN.md mục 7.3): luôn đặt trên thẻ trắng, không đặt chữ phụ trên nền trời.
 function StateCard({ icon: Icon, title, description }) {
   return (
-    <Empty className="mx-auto max-w-7xl rounded-2xl border border-solid bg-card py-12">
+    <Empty className="mx-auto max-w-[1600px] rounded-2xl border border-solid bg-card py-12">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <Icon aria-hidden="true" />
