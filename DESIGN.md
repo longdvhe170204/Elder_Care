@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 5.8.0
+version: 5.9.0
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-10-18
@@ -226,7 +226,7 @@ Ba nguyên tắc đã chốt ở `nghiep-vu.md` (1.3; Q-347 → Q-364) hiện ra
 
 ### 2.3 Cổng người thân
 
-Cổng người thân là bản web (`src/features/family-portal/`, đường dẫn `/cong-nguoi-than`; đăng nhập ở `/dang-nhap`), khung riêng, không dùng `AppShell` và menu trái của nhân viên. Đăng nhập xong vào Trang chủ (mục 2.1). Trong bản mẫu nhân viên, chọn vai trò Người thân cũng mở cổng này. App người thân trên mobile làm theo mục 15. Các màn P1 → P11 ở `docs/thiet-ke/man-hinh-theo-actor.md` (M37).
+Cổng người thân là bản web (`src/features/family-portal/`, đường dẫn `/family`; đăng nhập ở `/login`), khung riêng, không dùng `AppShell` và menu trái của nhân viên. Đăng nhập xong vào Trang chủ (mục 2.1). Trong bản mẫu nhân viên, chọn vai trò Người thân cũng mở cổng này. App người thân trên mobile làm theo mục 15. Các màn P1 → P11 ở `docs/thiet-ke/man-hinh-theo-actor.md` (M37).
 
 - **Đầu trang:** cùng kiểu đầu trang của trang chủ: dải nền trời dính đầu, logo (về Trang chủ), các mục, tên người đăng nhập, nút Đăng xuất.
 - **Máy tính (từ 1024px):** 6 mục trên đầu trang dạng viên thuốc (Trang chủ, Hôm nay, Bản tin, Thăm, Thông báo, Thêm). Trang chủ rộng toàn màn như mục 2.1; các màn khác rộng tối đa 960px; Hôm nay chia hai cột, thẻ người cao tuổi chiếm cả hàng.
@@ -447,6 +447,7 @@ Mọi trạng thái đặt trên thẻ trắng, không đặt chữ trực tiế
 - Thông tin ghép viết thành câu ngắn có dấu phẩy. Không nối bằng dấu chấm giữa (·), không dùng kiểu "TỪ — mảnh câu", không thêm mũi tên vào link hay nút; mũi tên chỉ khi có nghĩa chiều ("Ca đêm → Ca ngày").
 - Lỗi nói chuyện gì xảy ra và cần làm gì; không xin lỗi, không mơ hồ.
 - Lời văn về người cao tuổi theo mục 2.2.
+- Đường dẫn URL (`/login`, `/family`), neo trong trang (`#living-space`) và `id` trong mã dùng tiếng Anh, chữ thường nối bằng gạch ngang; chữ hiển thị cho người dùng vẫn bằng tiếng Việt (constitution X, research R-03).
 - Không bịa quy tắc nghiệp vụ, quyền hay dữ liệu người cao tuổi. Dữ liệu minh họa để trong một file riêng (`src/common/demoData.js`), ghi rõ là minh họa, tên dạng `[Họ tên NCT 1]`.
 
 ## 9. Trợ năng
@@ -506,7 +507,7 @@ Công nghệ: React 19, Vite 8, JavaScript, Tailwind CSS v4, shadcn/ui (Base UI)
 - Đã có: khung chung (`AppShell`, menu theo vai trò, khối người dùng, nút sáng/tối), trạng thái màn chưa có và không có quyền, và ba màn mẫu: Tổng quan (dải số đếm, cảnh báo, lưới việc theo khung giờ có người phụ trách, sơ đồ giường theo phòng, thẻ bàn giao ca), Checklist ca (lưới thẻ có người phụ trách, dị ứng tách riêng, lựa chọn của người cao tuổi, loại lý do "Người cao tuổi từ chối"), Danh sách người cao tuổi (bảng kèm khung chi tiết có ảnh nhận diện, khối "Về người này" có sở thích theo nguồn và lịch sử ý kiến, lệnh Hoàn tất tiếp nhận có ý kiến vào ở khi xem bằng vai trò Hành chính). Theo mục 2.2 còn có: chi tiết sự cố hai phần (`incidents`, vai trò Người thân thấy bản cổng) và Người thân (`relatives`, mục menu mới theo dòng "Mong muốn về khách thăm, người đón" của Phụ lục 27).
 - Chưa chốt: dị ứng hiện ở những loại công việc nào ngoài ăn, uống (hiện là lựa chọn hiển thị, chưa có quy định nghiệp vụ).
 - Đợt 3 (thẩm mỹ, đang trao đổi): giảm màu cho trạng thái bình thường (Đang lưu trú), bo góc thẻ, dải nền trang.
-- Đã có trang chủ giới thiệu viện trong cổng người thân (mục 2.1), màn đăng nhập `/dang-nhap` và cổng người thân `/cong-nguoi-than` với 11 màn P1 → P11 (mục 2.3). Chờ: ảnh thực tế được phép sử dụng, kênh liên hệ chính thức của viện.
+- Đã có trang chủ giới thiệu viện trong cổng người thân (mục 2.1), màn đăng nhập `/login` và cổng người thân `/family` với 11 màn P1 → P11 (mục 2.3). Chờ: ảnh thực tế được phép sử dụng, kênh liên hệ chính thức của viện.
 - Chưa thiết kế: Phòng, giường dạng thẻ phòng; Phát thuốc; Bàn giao ca; danh sách sự cố và lệnh xử lý sự cố; cổng người thân trên app mobile (mục 15); khi người thân có quan hệ với nhiều người cao tuổi thì chọn người ở đâu.
 - Mục 2.2 (4.4.0) đã duyệt 2026-10-18; bố cục màn mẫu A–D duyệt cùng ngày. Còn chưa có màn mẫu: phiếu nguyện vọng cuối đời, mục sự cố trong bản tin Điều dưỡng soạn, form ghi ý kiến và ghi mong muốn, danh sách người thân và quyền (012).
 - Chưa có `toast`: màn Checklist ca báo đã lưu bằng vùng `aria-live` và thẻ chuyển sang nhóm Đã xong.
@@ -565,6 +566,7 @@ Mục này nói cách áp các mục chung vào `mobile/`. Màu, chữ, trạng 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 5.9.0 | 2026-10-18 | Theo yêu cầu chủ dự án: đường dẫn và neo bằng tiếng Anh (`/dang-nhap` → `/login`, `/cong-nguoi-than` → `/family`, các neo của Trang chủ); thêm quy tắc ở mục 8 |
 | 5.8.0 | 2026-10-18 | Theo yêu cầu chủ dự án: trang giới thiệu chuyển vào cổng người thân làm Trang chủ sau đăng nhập, bỏ trang công khai `/nguoi-than`; sắp lại nội dung: viện trước (01 Không gian sống, 02 Đội ngũ và "Gia đình liên hệ với ai", 03 Đời sống, 04 Quy trình chăm sóc và an toàn, 05 Viện và gia đình), rồi Elder_Care; bỏ "Một tuần mẫu". Cổng: bỏ nút "Xem như" R, M, N; đầu trang chung kiểu trang chủ; bố cục máy tính rộng 960px, Hôm nay hai cột |
 | 5.7.0 | 2026-10-18 | Thêm mục 2.3 Cổng người thân: khung riêng cho điện thoại, thanh điều hướng 5 mục, hiện theo quyền, nút "Xem như" của bản mẫu; màn đăng nhập thay trang giữ chỗ. Ảnh người cao tuổi với người thân theo spec 012 FR-046. Bổ sung trạng thái lượt thăm, phản hồi, đồ gửi, kỳ chi phí, quyết định của người thân vào mục 3.5 |
 | 5.6.0 | 2026-10-18 | Theo góp ý chủ dự án (chữ menu bị chìm): chữ menu `#0F2235` (màu chữ chính), mục menu 14/500 (`type-label`), nhãn nhóm `#14304F`; mục đang chọn vẫn là viên thuốc xanh đêm. Đã kiểm độ tương phản |
