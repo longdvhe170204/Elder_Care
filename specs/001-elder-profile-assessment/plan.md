@@ -32,6 +32,10 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307): M01 không tự sinh bản ghi
 - **Nhận thông báo** (Q-353): M01 không đổi cách lưu `dong_y_thong_bao`; 009 lọc người nhận (plan 009).
 - **Q-356**: điều kiện, cảnh báo và yêu cầu lý do của Hoàn tất tiếp nhận về ý kiến vào ở do bean `ThamGiaChuyenTrangThai` của 004 cung cấp qua `canhBao` (plan 004); M01 không đổi SPI (điểm báo lại 12).
 
+### Cập nhật 2026-10-18, lượt 3 (spec mục "Cập nhật 2026-10-18, lượt 3": Q-366)
+
+- **Mục ý kiến ghi từ phản hồi Mong muốn** (FR-023g): mẫu cột nguồn ý kiến (data-model mục 6a) có thêm cột tùy chọn `phan_hoi_id NULL`, chỉ bảng có lệnh ghi mục từ phản hồi mới dùng; khi lệnh ghi mục có `phanHoiId`, module ghi mục phát sự kiện chung `YKienDaGhiTuPhanHoi` khai báo ở `m01.api`; 012 nghe để gắn mục vào phản hồi (research H-17). Hiện có hai nơi ghi: 012 (mong muốn về khách thăm, người đón) và 014 (sở thích, gồm thói quen theo Q-363).
+
 ## Technical Context
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).

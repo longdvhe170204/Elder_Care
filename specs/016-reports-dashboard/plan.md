@@ -18,6 +18,10 @@ Hướng kỹ thuật:
 
 Plan tuân theo FR-010a của 000 (Q-306, Q-307) và FR-001 của spec: 016 không tạo, sửa dữ liệu nghiệp vụ, không gửi thông báo, không tính lại trạng thái của module nguồn.
 
+### Cập nhật 2026-10-18, lượt 3 (spec mục "Cập nhật 2026-10-18, lượt 3": Q-369)
+
+- **Cảnh báo SOS** (FR-041): báo cáo cảnh báo thêm dòng riêng cho cảnh báo có `nguon = SOS` của `CanhBaoThongKeApi.canhBao` (007 FR-081): số lần, thời gian trung bình và lớn nhất từ tạo đến tiếp nhận, theo tầng; vẫn đếm trong tổng theo mức (research O-12). Không thêm bảng.
+
 ## Technical Context
 
 **Language/Version**: Java 25 (virtual threads cho truy vấn song song); JavaScript (JSX) (000 R-01). Không có màn trên app di động (spec không yêu cầu).

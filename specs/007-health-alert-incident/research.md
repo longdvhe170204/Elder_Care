@@ -453,3 +453,21 @@ Mức (spec; dòng có * là plan áp nguyên tắc 3 bậc của 009 FR-043b, x
   - bản giả cho mọi SPI 007 khai báo, có công tắc `/api/v1/kiem-thu/gia-lap/{module}`;
   - Flutter: chặn kích hoạt khẩn cấp khi mất kết nối, ghi chỉ số ngoại tuyến và kết quả đồng bộ (BR-M15-20), màn đo lại.
 - Tên test theo BR/FR (`BR_M05_02_GopCanhBaoDongThoiIT`, `FR_047b_KhongCoBacSiTrucIT`). Bảng truy vết ở [quickstart.md](quickstart.md) mục 4.
+
+---
+
+## S-23. Nút SOS của người cao tuổi *(bổ sung 2026-10-18; FR-026 (d), FR-047d → FR-047g, BR-M05-27, Q-369)*
+
+**Quyết định**:
+- **Endpoint**: `POST /sos` ở `m05.canhbao.web`, không qua bộ lọc phiên; header `X-Token-Thiet-Bi` và `X-Thiet-Bi`, `Idempotency-Key` cho mỗi lần bấm (app gửi lại khi mất phản hồi không tạo hai lần bấm). Giữ 3 giây là việc của app (012 FR-085); máy chủ coi mỗi yêu cầu là một lần bấm.
+- **Xác định người**: `ThietBiGanApi.xacDinh(token)` (002); rỗng thì 401 `THIET_BI_KHONG_HOP_LE`.
+- **Điều kiện** (FR-047d), kiểm theo thứ tự, mỗi lỗi trả 409 kèm `lienHe` (số liên hệ của viện từ `SoLienHeVienApi`, số 115): Tạm vắng, Điều trị tại bệnh viện hoặc trạng thái cuối (`NguoiCaoTuoiApi.trangThai`) → `KHONG_O_VIEN`; người bán trú mà `CoMatBanTruApi.theoNgay` không phải `CO_MAT` → `KHONG_CO_MAT`. Hoạt động bên ngoài thì gửi được.
+- **Ghi nhận**: trong một transaction, thêm `lan_bam_sos` (phòng, giường lúc bấm từ `ViTriApi.hienTai`), rồi gọi đường tạo cảnh báo sẵn có (S-08) với loại `NCT_YEU_CAU_TRO_GIUP`, khóa `SOS`, mức Khẩn cấp, nguồn `SOS` = id lần bấm. Cảnh báo đang mở cùng khóa thì gộp (FR-028, FR-030), không tạo mới; mức đã Khẩn cấp nên không nâng.
+- **Người nhận** (FR-047e): nhóm như FR-047a (Điều dưỡng phụ trách, Người phụ trách ca, Bác sĩ trực, Trưởng tầng); trạng thái Hoạt động bên ngoài thì thêm `TRUONG_DOAN`, `NGUOI_DI_CUNG` lấy từ `ChuyenDiSosPort.dangDienRa(nctId)` lúc nhận lệnh. Không có nhóm người thân, không có Quản lý viện. Khi gộp, áp đúng quy tắc thông báo của gộp hiện có (S-19).
+- **Trạng thái cho người cao tuổi** (FR-047f): `GET /sos/hien-tai` (token thiết bị) trả cảnh báo SOS đang mở gần nhất: `DA_GUI` hoặc `DA_TIEP_NHAN` kèm họ tên người tiếp nhận; không có thì rỗng. App hỏi lại mỗi 5 giây khi màn trạng thái mở, dừng khi đóng màn. `POST /sos/{lanBamId}/noi-dang-o` đặt `noi_dang_o` một lần.
+- **Không tắt nút** (FR-047g): không có lệnh, cột hay tham số nào để tắt; ArchUnit không cần thêm.
+- **Báo cáo** (FR-081): `CanhBaoBaoCaoView` thêm `nguon` (`SOS` / `KHAC`).
+
+**Lý do**: Dùng lại khóa loại, gộp, leo thang, người nhận Khẩn cấp đã có, nên cảnh báo SOS được xử lý, bàn giao, báo cáo như mọi cảnh báo; chỉ thêm đường vào không qua phiên (Q-370).
+
+**Phương án đã cân nhắc**: Đẩy trạng thái tiếp nhận về app qua 009 (thêm nhóm người nhận và kênh đẩy cho một màn ngắn; hỏi lại 5 giây đủ). Tạo sự cố ngay khi bấm (trái Q-67, Q-369). Cho phép bấm khi Tạm vắng và báo nhân viên (viện không tới được; Q-369 chọn hiện số liên hệ).

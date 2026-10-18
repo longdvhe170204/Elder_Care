@@ -32,6 +32,13 @@ List<MonTheoBuaView> thucDonChung(LocalDate tuNgay, LocalDate denNgay);   // mó
 List<String> tenCheDoAn();
 ```
 
+### 1.3a. `m08.api.SuatAnDuKienApi` (012; FR-063; bổ sung 2026-10-18)
+
+```java
+List<SuatDuKienView> cuaNguoiCaoTuoi(long nctId, LocalDate tuNgay, LocalDate denNgay);
+    // ngày, bữa, tên món, laMonThayThe; không có chế độ ăn, kết cấu, dị ứng (research M-16)
+```
+
 ### 1.4. `m08.api.LichBuaApi` (005, 014)
 
 ```java

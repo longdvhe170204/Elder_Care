@@ -229,6 +229,7 @@ Chỉ mục `(nct_id, chi_so_id, hieu_luc_tu)`, `(pham_vi, chi_so_id, hieu_luc_t
 | `khong_co_bac_si_truc` | `BOOLEAN` | | FR-047b |
 | `dung_leo_thang` | `BOOLEAN` | Trạng thái cuối | FR-038 |
 | `tao_boi_id`, `mo_ta` | | Thủ công: bắt buộc mô tả | FR-026 (c) |
+| *(bổ sung 2026-10-18)* loại `NCT_YEU_CAU_TRO_GIUP`, khóa `SOS` | | Cảnh báo từ nút SOS; người tạo là người cao tuổi, ghi ở `lan_bam_sos` (`tao_boi_id` rỗng) | FR-026 (d), FR-027, FR-028 |
 | `khoa_mo` | Cột sinh `IF(trang_thai IN ('MOI','LEO_THANG','DA_TIEP_NHAN','DANG_XU_LY'), khoa_loai, NULL)`; `UNIQUE (nct_id, khoa_mo)` | DBR-18 |
 | `phien_ban` | | | |
 
@@ -236,7 +237,7 @@ Chỉ mục `(trang_thai, han_tiep_nhan)` (job), `(tang_khu_vuc_id, trang_thai)`
 
 ### `nguon_canh_bao` – nhóm 3
 
-`id`, `canh_bao_id`, `loai_nguon` (`CHI_SO`, `CONG_VIEC`, `LIEU_THUOC`, `LAN_DUNG_PRN`, `DON_THUOC`, `THUOC_NCT`, `BUA_AN`, `KET_QUA_NGU`, `HOAT_DONG`, `THU_CONG`, `DAU_NGUY_KICH`…), `nguon_id`, `muc`, `thoi_diem`, `khoa_su_kien`, `da_xu_ly_luc` `NULL`, `ly_do_xu_ly`. Chỉ mục `(loai_nguon, nguon_id)`, `(canh_bao_id, thoi_diem)`. Trigger chỉ cho đặt `da_xu_ly_luc`, `ly_do_xu_ly` một lần từ `NULL`.
+`id`, `canh_bao_id`, `loai_nguon` (`CHI_SO`, `CONG_VIEC`, `LIEU_THUOC`, `LAN_DUNG_PRN`, `DON_THUOC`, `THUOC_NCT`, `BUA_AN`, `KET_QUA_NGU`, `HOAT_DONG`, `THU_CONG`, `DAU_NGUY_KICH`, `SOS` (bổ sung 2026-10-18)…), `nguon_id`, `muc`, `thoi_diem`, `khoa_su_kien`, `da_xu_ly_luc` `NULL`, `ly_do_xu_ly`. Chỉ mục `(loai_nguon, nguon_id)`, `(canh_bao_id, thoi_diem)`. Trigger chỉ cho đặt `da_xu_ly_luc`, `ly_do_xu_ly` một lần từ `NULL`.
 
 ### `lich_su_canh_bao` – nhóm 3
 
@@ -250,11 +251,25 @@ Chỉ mục `(trang_thai, han_tiep_nhan)` (job), `(tang_khu_vuc_id, trang_thai)`
 
 `khoa` `VARCHAR(191)` khóa chính, `nhan_luc`. Chống xử lý trùng khi outbox giao lại (NFR-04).
 
+### `lan_bam_sos` – nhóm 3 *(bổ sung 2026-10-18, Q-369)*
+
+| Cột | Kiểu | Ghi chú | Nguồn |
+| --- | --- | --- | --- |
+| `id`, `nct_id`, `tai_khoan_id` | | Từ `ThietBiGanApi.xacDinh` | FR-047d |
+| `ma_thiet_bi`, `idempotency_key` | | `UNIQUE (idempotency_key)` | FR-047d |
+| `thoi_diem` | `DATETIME(6)` | Lúc máy chủ nhận | FR-047e |
+| `phong_id`, `giuong_id` | `BIGINT NULL` | Vị trí lúc bấm (`ViTriApi.hienTai`) | FR-027 |
+| `trang_thai_nct` | `VARCHAR(32)` | Trạng thái lúc bấm (Đang lưu trú, Hoạt động bên ngoài) | FR-047e |
+| `canh_bao_id` | `BIGINT` | Cảnh báo được tạo hoặc gộp | FR-028 |
+| `noi_dang_o` | `ENUM('PHONG','NHA_VE_SINH','SAN','KHAC') NULL` | Đặt một lần (trigger) | FR-047f |
+
+Lần bấm bị từ chối không ghi bảng này (không có cảnh báo); lý do từ chối chỉ trả cho app. Trigger chặn `UPDATE` trừ `noi_dang_o` từ `NULL`.
+
 **Bảng chuyển `canh_bao`** (khớp bảng FR-029):
 
 | Từ | Lệnh / sự kiện | Đến | Người | Điều kiện | Tác động |
 | --- | --- | --- | --- | --- | --- |
-| — | Tạo | `MOI` | Hệ thống; TT, BS, ĐD (thủ công) | Chưa trạng thái cuối; không có cảnh báo mở cùng khóa | Người phụ trách, hạn; thông báo |
+| — | Tạo | `MOI` | Hệ thống; TT, BS, ĐD (thủ công); người cao tuổi (nút SOS, bổ sung 2026-10-18) | Chưa trạng thái cuối; không có cảnh báo mở cùng khóa | Người phụ trách, hạn; thông báo |
 | Đang mở | Phát sinh cùng loại | Giữ | Hệ thống | — | Gộp; nâng mức nếu cao hơn |
 | `MOI`, `LEO_THANG` | Quá hạn | `LEO_THANG` | Bộ lập lịch | `cap_leo_thang < 2`, không `dung_leo_thang` | Lên một cấp, hạn mới |
 | `MOI`, `LEO_THANG` | Tiếp nhận | `DA_TIEP_NHAN` | ĐD, TT, BS; QL khi cấp 2 | — | Dừng leo thang |
@@ -529,3 +544,5 @@ Một dòng: `so_dien_thoai`, `ghi_chu`, `phien_ban`. Đổi ghi nhật ký (FR-
 | BR-M06-05 | S-16 | `BR_M06_05_PhamViKhamIT` (SC-010) |
 | BR-M06-06 | Mục 5; S-06 | `BR_M06_06_DinhChinhChiSoIT` |
 | BR-M04-10 (phần 007) | S-06 | `BR_M04_10_DoChiSoCongViecIT` |
+| BR-M05-27 *(bổ sung 2026-10-18)* | S-23; `lan_bam_sos`; khóa `SOS` | `BR_M05_27_NutSosIT`, `FR_047d_DieuKienGuiSosIT` |
+| FR-047e, FR-047f, FR-047g *(bổ sung 2026-10-18)* | S-23 | `FR_047e_SosNgoaiVienIT`, `FR_047f_TrangThaiSosIT`, `SosXuLyIT` |

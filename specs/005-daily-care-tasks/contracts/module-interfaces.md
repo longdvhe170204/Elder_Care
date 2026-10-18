@@ -47,7 +47,7 @@ Set<Long> loaiCongViecHienHanh(long nctId);
 YeuCauLoaiCongViec yeuCau(long loaiCongViecId);   // vai trò yêu cầu, loại giấy phép/đào tạo yêu cầu (FR-038; 008 FR-028a, FR-030)
 ```
 
-### 1.3. `CoMatBanTruApi` (003, 010, 011, 012, 014, 016)
+### 1.3. `CoMatBanTruApi` (003, 007, 010, 011, 012, 014, 016)
 
 ```java
 Optional<CoMatView> theoNgay(long nctId, LocalDate ngay);           // trạng thái, giờ đến/về dự kiến, giờ về hiện hành, giờ thực tế

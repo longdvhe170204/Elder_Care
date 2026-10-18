@@ -157,3 +157,10 @@ Stream<PhongCachLyView> phongCachLy(PhamViLoc phamVi, Instant t);
   - SC-014: so với trạng thái giường của 003 cùng thời điểm;
   - bản giả cho mọi `*ThongKeApi` (dữ liệu dựng sẵn) để test M14 độc lập.
 - Tên test theo FR (`FR_031_TyLeDungHanIT`, `FR_012_PhamViDieuDuongIT`).
+
+---
+
+## O-12. Cảnh báo SOS trong báo cáo cảnh báo *(bổ sung 2026-10-18; FR-041, Q-369)*
+
+**Quyết định**: Chỉ tiêu mới thuộc nhóm sức khỏe: lọc `CanhBaoBaoCaoView.nguon = SOS`; số lần là số cảnh báo (không phải số lần bấm); thời gian từ `lan_dau_luc` đến `tiep_nhan_luc`, theo mức lúc tiếp nhận như FR-041; cảnh báo chưa tiếp nhận không vào thời gian, vẫn vào số lần. Phạm vi, giới hạn trường như các chỉ tiêu cảnh báo khác.
+

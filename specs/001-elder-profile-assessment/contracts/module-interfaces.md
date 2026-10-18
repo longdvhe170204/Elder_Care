@@ -115,6 +115,8 @@ long ghiPhienBan(GhiNguyenVong lenh, NguonNguyenVong nguon);   // 007: XAC_NHAN_
 enum LoaiNguonYKien { NGUOI_CAO_TUOI, NGUOI_THAN, NHAN_VIEN_QUAN_SAT }
 record NguonYKien(LoaiNguonYKien loai, Long nguoiThanId) {}   // nguoiThanId chỉ có khi NGUOI_THAN
 void kiemTra(long nctId, NguonYKien nguon);   // NGUOI_THAN: quan hệ Hiệu lực lúc gọi; sai → 422 NGUON_Y_KIEN_KHONG_HOP_LE
+record YKienDaGhiTuPhanHoi(long phanHoiId, String moduleNguon, String loaiMuc, long mucId, long nctId, NguonYKien nguon) {}
+    // bổ sung 2026-10-18 (FR-023g, research H-17): sự kiện module ghi mục phát khi lệnh có phanHoiId; 012 nghe (012 FR-058b)
 ```
 
 Dùng bởi 004 (ý kiến về việc vào ở), 005 (thỏa thuận lựa chọn có rủi ro), 012 (mong muốn về khách thăm, người đón), 014 (sở thích). Mỗi module lưu nguồn ở bảng của mình theo data-model 001 mục 6a.

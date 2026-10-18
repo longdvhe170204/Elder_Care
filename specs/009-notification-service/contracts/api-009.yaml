@@ -62,7 +62,7 @@ paths:
       summary: Đăng ký hoặc cập nhật token FCM của thiết bị đang đăng nhập (app nhân viên, app người thân)
       x-fr: [FR-016]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ungDung, fcmToken], properties: { ungDung: { type: string, enum: [APP_NHAN_VIEN, APP_NGUOI_THAN] }, fcmToken: { type: string } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ungDung, fcmToken], properties: { ungDung: { type: string, enum: [APP_NHAN_VIEN, APP_NGUOI_THAN, APP_NGUOI_CAO_TUOI] }, fcmToken: { type: string } } } } } }
       responses: { '200': { description: OK } }
 
   # ---------------- Khẩn cấp ----------------

@@ -16,7 +16,9 @@ Mọi bảng nằm trong schema của ứng dụng, thuộc module M15 (gói `m1
 | `lich_su_trang_thai_tai_khoan` | 3, chỉ thêm | Mỗi lần chuyển trạng thái | FR-015, FR-041a |
 | `phien_dang_nhap` | Kỹ thuật | Phiên, thiết bị | FR-013, FR-014a |
 | `thiet_bi` | Kỹ thuật | Lần kết nối gần nhất của thiết bị | FR-041c |
-| `vai_tro` | 1, cố định | 9 vai trò | FR-016 |
+| `thiet_bi_gan` | 2 | *(bổ sung 2026-10-18)* Thiết bị gắn với tài khoản người cao tuổi, token thiết bị | FR-070, FR-071 |
+| `ma_qr_dang_nhap` | 2 | *(bổ sung 2026-10-18)* Mã QR đăng nhập dùng một lần | FR-069 |
+| `vai_tro` | 1, cố định | 10 vai trò (thêm AC-16, Q-365) | FR-016 |
 | `ma_tran_quyen` | 1, cố định | Quyền tối đa theo Phụ lục 27 và 19.3 | FR-018, FR-020 |
 | `gan_vai_tro` | 1 có lịch sử | Tài khoản – vai trò | FR-017, FR-026 |
 | `thu_hep_quyen` | 1 có lịch sử | Thu hẹp theo vai trò hoặc tài khoản | FR-025 |
@@ -39,11 +41,12 @@ Mọi bảng nằm trong schema của ứng dụng, thuộc module M15 (gói `m1
 | --- | --- | --- | --- |
 | `id` | `BIGINT` | Khóa chính | |
 | `ten_dang_nhap` | `VARCHAR(64)` | `UNIQUE`; không đổi sau khi tạo | FR-001, CHK024 |
-| `loai` | `ENUM('NHAN_VIEN','NGUOI_THAN')` | Không đổi | FR-001 |
+| `loai` | `ENUM('NHAN_VIEN','NGUOI_THAN','NGUOI_CAO_TUOI')` | Không đổi | FR-001 (`NGUOI_CAO_TUOI` bổ sung 2026-10-18, Q-365) |
 | `nhan_vien_id` | `BIGINT NULL` | `UNIQUE`; tham chiếu logic hồ sơ nhân viên (008) | FR-002 |
 | `nguoi_than_id` | `BIGINT NULL` | `UNIQUE`; tham chiếu logic hồ sơ người thân (012) | FR-002 |
+| `nguoi_cao_tuoi_id` | `BIGINT NULL` | `UNIQUE`; tham chiếu logic hồ sơ người cao tuổi (001); bổ sung 2026-10-18 | FR-067 |
 | `trang_thai` | `ENUM('HOAT_DONG','KHOA_TAM','KHONG_HOAT_DONG','DA_KHOA')` | | FR-007 |
-| `nguyen_nhan_khoa` | `ENUM('THU_CONG','NGHI_VIEC','HET_HAN_SAU_KET_THUC','HET_QUAN_HE') NULL` | Có khi `DA_KHOA`; dùng cho FR-011 | FR-011 |
+| `nguyen_nhan_khoa` | `ENUM('THU_CONG','NGHI_VIEC','HET_HAN_SAU_KET_THUC','HET_QUAN_HE','NCT_KET_THUC_LUU_TRU','NCT_TU_YEU_CAU','CO_LY_DO','THEO_DE_NGHI_NGUOI_THAN') NULL` | Có khi `DA_KHOA`; dùng cho FR-011, FR-073 (bốn giá trị cuối bổ sung 2026-10-18) | FR-011 |
 | `khoa_tam_den` | `DATETIME(6) NULL` | Có khi `KHOA_TAM` | FR-008 |
 | `so_lan_sai_lien_tiep` | `INT` | `>= 0` | FR-008 |
 | `mat_khau_bam` | `VARCHAR(255)` | Argon2id | A-03 |
@@ -55,9 +58,10 @@ Mọi bảng nằm trong schema của ứng dụng, thuộc module M15 (gói `m1
 | `tao_luc`, `tao_boi` | | | |
 
 Ràng buộc:
-- `CHECK ((loai='NHAN_VIEN' AND nhan_vien_id IS NOT NULL AND nguoi_than_id IS NULL) OR (loai='NGUOI_THAN' AND nguoi_than_id IS NOT NULL AND nhan_vien_id IS NULL))` (FR-002, FR-003).
+- `CHECK` mỗi loại có đúng một liên kết: `NHAN_VIEN` → `nhan_vien_id`; `NGUOI_THAN` → `nguoi_than_id`; `NGUOI_CAO_TUOI` → `nguoi_cao_tuoi_id`; hai cột còn lại `NULL` (FR-002, FR-003, FR-067).
 - Không có quyền `DELETE` cho `eldercare_app` và có trigger chặn xóa (FR-005), theo mẫu 1.4 của 000.
 - Hồ sơ nhân viên không ở Nghỉ việc, có chức danh ứng với vai trò hệ thống (FR-004, FR-004a); hồ sơ người thân có ít nhất một quan hệ với người cao tuổi chưa ở trạng thái cuối (FR-050): kiểm ở backend qua API của 008, 012 khi tạo.
+- *(Bổ sung 2026-10-18)* Tài khoản người cao tuổi: người cao tuổi Đang lưu trú qua `NguoiCaoTuoiApi.trangThai` (001); lệnh có `xacNhan` của chính người cao tuổi (A-15).
 
 ### Bảng chuyển trạng thái tài khoản
 
@@ -73,11 +77,15 @@ Ràng buộc:
 | `HOAT_DONG`, `KHOA_TAM`, `KHONG_HOAT_DONG` | `POST …/khoa` | `DA_KHOA` | AC-01; `lyDo`; FR-012; nếu đang là Phụ trách bộ phận thì có `nguoiThayPhuTrach` (gọi 008 trong cùng transaction, Q-292) | `TK_KHOA` |
 | `HOAT_DONG`, `KHOA_TAM`, `KHONG_HOAT_DONG` | `TaiKhoanApi.khoaDoNghiViec` (lệnh của 008) | `DA_KHOA` | Cùng transaction với Nghỉ việc | `TK_KHOA` (Bộ lập lịch, căn cứ BR-M09-04, lệnh nguồn) |
 | `HOAT_DONG`, `KHOA_TAM`, `KHONG_HOAT_DONG` | job `KhoaSauKetThucLuuTru`; hoặc `TaiKhoanApi.xetLaiNguoiThan` (lệnh của 012) | `DA_KHOA` | Người thân; CFG-M01-04 (5.6) hoặc hết quan hệ Hiệu lực (BR-M15-14) | `TK_KHOA` (Bộ lập lịch, căn cứ) |
+| — | `POST /tai-khoan-nguoi-cao-tuoi` *(bổ sung 2026-10-18)* | `HOAT_DONG` | AC-01 hoặc AC-09; FR-067; `xacNhan` (cách, nhân viên nghe); vai trò duy nhất AC-16 | `TK_TAO` (+`xacNhan`) |
+| `HOAT_DONG`, `KHOA_TAM` | sự kiện `NguoiCaoTuoiDaChuyenTrangThai` sang trạng thái cuối *(bổ sung 2026-10-18)* | `DA_KHOA` | Tài khoản người cao tuổi; `nguyen_nhan_khoa = NCT_KET_THUC_LUU_TRU`; gỡ thiết bị (A-16) | `TK_KHOA` (Bộ lập lịch, căn cứ sự kiện) |
+| `HOAT_DONG`, `KHOA_TAM` | `POST …/khoa-nguoi-cao-tuoi`; hoặc `apDung` của yêu cầu `M15.KHOA_TAI_KHOAN_NCT` *(bổ sung 2026-10-18)* | `DA_KHOA` | AC-01 hoặc AC-09, `canCu`, `lyDo`; yêu cầu: AC-01 duyệt (A-16) | `TK_KHOA` |
+| `DA_KHOA` | `POST …/mo-khoa-nguoi-cao-tuoi` *(bổ sung 2026-10-18)* | `HOAT_DONG` | AC-01 hoặc AC-09; `xacNhan`; `nguyen_nhan_khoa <> NCT_KET_THUC_LUU_TRU` (FR-073) | `TK_MO_KHOA` |
 | `DA_KHOA` | `POST …/mo-khoa` | `HOAT_DONG` | AC-01; `lyDo`; nguyên nhân khóa tự động không còn (FR-011) | `TK_MO_KHOA` |
 
 Mọi chuyển sang trạng thái khác `HOAT_DONG` kết thúc mọi phiên của tài khoản trong cùng transaction (FR-013). Mọi chuyển thêm một dòng `lich_su_trang_thai_tai_khoan`. Không có trạng thái kết thúc (FR-005).
 
-Lệnh không chuyển trạng thái nhưng có nhật ký: `POST …/cap-lai-mat-khau` (AC-01 với nhân viên; AC-01, AC-09 với người thân; có `cachXacMinh` với người thân; đặt `buoc_doi_mat_khau`) → `TK_CAP_LAI_MAT_KHAU`; `POST /xac-thuc/doi-mat-khau` → `TK_DOI_MAT_KHAU`; đăng nhập → `DANG_NHAP` / `DANG_NHAP_THAT_BAI`.
+Lệnh không chuyển trạng thái nhưng có nhật ký: `POST …/cap-lai-mat-khau` (AC-01 với nhân viên; AC-01, AC-09 với người thân; có `cachXacMinh` với người thân; đặt `buoc_doi_mat_khau`) → `TK_CAP_LAI_MAT_KHAU`; `POST /xac-thuc/doi-mat-khau` → `TK_DOI_MAT_KHAU`; đăng nhập → `DANG_NHAP` / `DANG_NHAP_THAT_BAI`. *(Bổ sung 2026-10-18)* `POST …/ma-qr` → `QR_TAO`; `POST /xac-thuc/dang-nhap-qr` → `QR_DUNG`, `TB_GAN` (và `TB_GO` cho thiết bị cũ); `POST …/go-thiet-bi` → `TB_GO`.
 
 ### `lich_su_trang_thai_tai_khoan` – nhóm 3, chỉ thêm
 
@@ -97,8 +105,8 @@ Trạng thái tại thời điểm `t` là dòng có `hieu_luc_tu` lớn nhất 
 | `ma_bam_token` | `BINARY(32)`, khóa chính (SHA-256 của token) |
 | `tai_khoan_id` | |
 | `ma_thiet_bi` | `CHAR(36)`; chỉ mục `(ma_thiet_bi, ket_thuc_luc)` |
-| `kenh` | `ENUM('WEB','APP_NHAN_VIEN','APP_NGUOI_THAN')` (Q-305) |
-| `bat_dau_luc`, `hoat_dong_cuoi_luc`, `ket_thuc_luc NULL`, `ly_do_ket_thuc` | `ly_do_ket_thuc`: `DANG_XUAT`, `TAI_KHOAN_ROI_HOAT_DONG`, `THIET_BI_DANG_NHAP_KHAC`, `HET_THOI_GIAN` (quá CFG-M15-10 của kênh, FR-013a) |
+| `kenh` | `ENUM('WEB','APP_NHAN_VIEN','APP_NGUOI_THAN','APP_NGUOI_CAO_TUOI')` (Q-305; kênh cuối bổ sung 2026-10-18, Q-370) |
+| `bat_dau_luc`, `hoat_dong_cuoi_luc`, `ket_thuc_luc NULL`, `ly_do_ket_thuc` | `ly_do_ket_thuc`: `DANG_XUAT`, `TAI_KHOAN_ROI_HOAT_DONG`, `THIET_BI_DANG_NHAP_KHAC`, `HET_THOI_GIAN` (quá CFG-M15-10 của kênh, FR-013a); *(bổ sung 2026-10-18)* `GO_THIET_BI`, `DOI_MAT_KHAU`; kênh `APP_NGUOI_CAO_TUOI` không có `HET_THOI_GIAN` (FR-013a) |
 
 - Đăng nhập: trong một transaction, đặt `ket_thuc_luc` cho mọi phiên đang mở có cùng `ma_thiet_bi` (BR-M15-15), rồi thêm phiên mới.
 - Phiên đang mở của một thiết bị: tối đa một; bảo đảm bằng cột sinh `thiet_bi_dang_mo = IF(ket_thuc_luc IS NULL, ma_thiet_bi, NULL)` có `UNIQUE`.
@@ -114,6 +122,32 @@ Trạng thái tại thời điểm `t` là dòng có `hieu_luc_tu` lớn nhất 
 
 Lần kết nối trước khi ngoại tuyến được app gửi kèm phong bì đồng bộ và đối chiếu với `lan_ket_noi_cuoi` trước khi cập nhật (FR-041c).
 
+### `thiet_bi_gan` – nhóm 2 *(bổ sung 2026-10-18, Q-370)*
+
+| Cột | Ghi chú |
+| --- | --- |
+| `id`, `tai_khoan_id` | Tài khoản loại `NGUOI_CAO_TUOI` |
+| `ma_thiet_bi` | `CHAR(36)`, giá trị `X-Thiet-Bi` lúc gắn |
+| `ma_bam_token_thiet_bi` | `BINARY(32)`, `UNIQUE` (SHA-256 của token thiết bị, A-15) |
+| `gan_luc`, `ma_qr_id NULL` | Mã QR đã dùng để gắn; `NULL` khi gắn bằng mật khẩu dự phòng |
+| `go_luc NULL`, `go_boi NULL`, `ly_do_go NULL` | `ly_do_go`: `GAN_MAY_MOI`, `GO_THU_CONG` (kèm `lyDo`), `TAI_KHOAN_DA_KHOA` |
+
+- Tối đa một thiết bị đang gắn cho mỗi tài khoản: cột sinh `tai_khoan_dang_gan = IF(go_luc IS NULL, tai_khoan_id, NULL)` có `UNIQUE` (FR-070).
+- Một thiết bị gắn với tối đa một tài khoản: cột sinh `thiet_bi_dang_gan = IF(go_luc IS NULL, ma_thiet_bi, NULL)` có `UNIQUE` (FR-014a).
+- Chỉ thêm và đặt `go_*` một lần; không xóa.
+
+### `ma_qr_dang_nhap` – nhóm 2 *(bổ sung 2026-10-18, Q-370)*
+
+| Cột | Ghi chú |
+| --- | --- |
+| `id`, `tai_khoan_id` | |
+| `ma_bam` | `BINARY(32)`, `UNIQUE` (SHA-256 của mã) |
+| `tao_boi`, `tao_luc`, `het_han_luc` | `het_han_luc = tao_luc + CFG-M15-11` đọc lúc tạo |
+| `dung_luc NULL`, `ma_thiet_bi_dung NULL` | Đặt một lần khi dùng |
+| `vo_hieu_luc_luc NULL` | Đặt khi có mã mới của cùng tài khoản |
+
+- Mã dùng được khi `dung_luc`, `vo_hieu_luc_luc` đều `NULL` và `het_han_luc > bây giờ`; kiểm và đánh dấu dưới khóa dòng trong transaction đăng nhập (FR-069).
+
 ---
 
 ## 3. Vai trò và quyền (mục C)
@@ -122,9 +156,9 @@ Lần kết nối trước khi ngoại tuyến được app gửi kèm phong bì
 
 | Cột | Ghi chú |
 | --- | --- |
-| `ma` | `AC-01` … `AC-05`, `AC-07`, `AC-09`, `AC-10`, `AC-14` (FR-016) |
-| `ten`, `loai_tai_khoan` | `NHAN_VIEN` hoặc `NGUOI_THAN` (AC-10) |
-| `pham_vi_thuc_hien` | `PHAN_CONG` (AC-02, 04, 05) hoặc `TOAN_VIEN` (AC-01, 03, 07, 09, 14); AC-10 theo quan hệ (FR-034, FR-045) |
+| `ma` | `AC-01` … `AC-05`, `AC-07`, `AC-09`, `AC-10`, `AC-14`, `AC-16` (FR-016; AC-16 bổ sung 2026-10-18, Q-365) |
+| `ten`, `loai_tai_khoan` | `NHAN_VIEN`, `NGUOI_THAN` (AC-10) hoặc `NGUOI_CAO_TUOI` (AC-16) |
+| `pham_vi_thuc_hien` | `PHAN_CONG` (AC-02, 04, 05) hoặc `TOAN_VIEN` (AC-01, 03, 07, 09, 14); AC-10 theo quan hệ (FR-034, FR-045); AC-16 `BAN_THAN` (FR-068) |
 | `phien_ban_quyen` | Tăng khi thu hẹp theo vai trò (A-05) |
 
 ### `ma_tran_quyen` – nhóm 1, cố định
@@ -155,7 +189,7 @@ Danh sách đầy đủ được rà và chốt ở task nạp dữ liệu; test
 | `hieu_luc_tu`, `hieu_luc_den NULL` | `DATETIME(6)`; tại một thời điểm mỗi `(tai_khoan_id, vai_tro)` có tối đa một dòng còn hiệu lực: cột sinh `con_hieu_luc = IF(hieu_luc_den IS NULL, vai_tro, NULL)` có `UNIQUE (tai_khoan_id, con_hieu_luc)` |
 | `nguoi_gan_id`, `ly_do` | `ly_do NOT NULL` (FR-026) |
 
-Kiểm ở backend: vai trò cùng loại với tài khoản (FR-003); tài khoản nhân viên luôn còn ít nhất một vai trò (FR-004).
+Kiểm ở backend: vai trò cùng loại với tài khoản (FR-003); tài khoản nhân viên luôn còn ít nhất một vai trò (FR-004). *(Bổ sung 2026-10-18)* AC-16 là vai trò duy nhất của tài khoản người cao tuổi, gán lúc tạo (FR-067); `POST …/gan-vai-tro`, `…/go-vai-tro` từ chối tài khoản loại `NGUOI_CAO_TUOI` và từ chối gán AC-16 cho loại khác.
 
 ### `thu_hep_quyen` – nhóm 1 có lịch sử
 
@@ -261,7 +295,7 @@ Lần đầu của một lỗi phát sự kiện `LoiDuLieuQuyen` tới 009 đ�
 
 ## 6. Nhật ký
 
-Mọi lệnh ghi `nhat_ky` của 000 trong cùng transaction (000 FR-047). Các `hanh_dong` của 002: `TK_TAO`, `TK_KHOA_TAM`, `TK_HET_KHOA_TAM`, `TK_MO_KHOA_SOM`, `TK_KHONG_HOAT_DONG`, `TK_KICH_HOAT_LAI`, `TK_KHOA`, `TK_MO_KHOA`, `TK_CAP_LAI_MAT_KHAU`, `TK_DOI_MAT_KHAU`, `DANG_NHAP`, `DANG_NHAP_THAT_BAI`, `VT_GAN`, `VT_GO`, `QUYEN_THU_HEP`, `QUYEN_KHOI_PHUC`, `QUYEN_GAN_THEM`, `QUYEN_GO_THEM`, `NVCM_TAO`, `NVCM_SUA`, `NVCM_NGUNG`, `NT_CHO_XEM_LAI`, `NT_CHAP_NHAN`, `NT_TU_CHOI`, `QUYEN_TU_CHOI_DU_LIEU_NGUON`.
+Mọi lệnh ghi `nhat_ky` của 000 trong cùng transaction (000 FR-047). Các `hanh_dong` của 002: `TK_TAO`, `TK_KHOA_TAM`, `TK_HET_KHOA_TAM`, `TK_MO_KHOA_SOM`, `TK_KHONG_HOAT_DONG`, `TK_KICH_HOAT_LAI`, `TK_KHOA`, `TK_MO_KHOA`, `TK_CAP_LAI_MAT_KHAU`, `TK_DOI_MAT_KHAU`, `DANG_NHAP`, `DANG_NHAP_THAT_BAI`, `VT_GAN`, `VT_GO`, `QUYEN_THU_HEP`, `QUYEN_KHOI_PHUC`, `QUYEN_GAN_THEM`, `QUYEN_GO_THEM`, `NVCM_TAO`, `NVCM_SUA`, `NVCM_NGUNG`, `NT_CHO_XEM_LAI`, `NT_CHAP_NHAN`, `NT_TU_CHOI`, `QUYEN_TU_CHOI_DU_LIEU_NGUON`; *(bổ sung 2026-10-18)* `QR_TAO`, `QR_DUNG`, `TB_GAN`, `TB_GO`.
 
 - `du_lieu_truoc`, `du_lieu_sau` của thay đổi quyền chứa tập quyền trước và sau của vai trò hoặc tài khoản (FR-026, SC-007).
 - `chi_tiet` chứa `cachXacMinh` (FR-052), `canCu` nhiệm vụ (FR-019a → f), `ngoaiPhamVi` (FR-044a).
@@ -273,7 +307,7 @@ Mọi lệnh ghi `nhat_ky` của 000 trong cùng transaction (000 FR-047). Các 
 
 | Mã | Bảo đảm bằng | Nơi kiểm thử |
 | --- | --- | --- |
-| BR-M15-01 | `QuyenApi.coQuyen` ba lớp, interceptor `@CanQuyen` (research A-10); ArchUnit bắt mọi `@LenhNghiepVu` có `@CanQuyen` | `QuyenBaLopIT`, `MaTranQuyenIT`, `CanQuyenArchTest` |
+| BR-M15-01 | `QuyenApi.coQuyen` ba lớp, interceptor `@CanQuyen` (research A-10); ArchUnit bắt mọi `@LenhNghiepVu` có `@CanQuyen`, trừ danh sách ngoại lệ có tên (lệnh SOS của 007, A-15) | `QuyenBaLopIT`, `MaTranQuyenIT`, `CanQuyenArchTest` |
 | BR-M15-01 (ngoại lệ sự cố) | Bỏ lớp phạm vi với khóa `(SU_CO_KHAN_CAP, TAO)`; nhật ký `ngoaiPhamVi` | `SuCoNgoaiPhamViIT` |
 | BR-M15-02 | Phạm vi tính trong từng yêu cầu; khoảng CFG-M15-07 | `PhamViTheoCaIT`, `PhamViDoiPhanCongIT` |
 | BR-M15-04 | Khóa `(TAI_KHOAN_PHAN_QUYEN, *)` chỉ AC-01; nhật ký trước/sau | `PhanQuyenChiQuanLyIT` |
@@ -294,3 +328,9 @@ Mọi lệnh ghi `nhat_ky` của 000 trong cùng transaction (000 FR-047). Các 
 | FR-022 | `quy_tac_xem_truong`, `BeanSerializerModifier` | `GioiHanTruongIT` |
 | FR-041b | `loi_du_lieu_quyen` | `DuLieuNguonLoiIT` |
 | FR-041c | `ban_ghi_cho_xem_lai`, `thiet_bi` | `NgoaiTuyenChoXemLaiIT` |
+| BR-M15-23 *(bổ sung 2026-10-18)* | Nghe `NguoiCaoTuoiDaChuyenTrangThai`; lệnh `khoa-nguoi-cao-tuoi`; loại yêu cầu `M15.KHOA_TAI_KHOAN_NCT`; `mo-khoa-nguoi-cao-tuoi` chặn `NCT_KET_THUC_LUU_TRU` | `KhoaTaiKhoanNguoiCaoTuoiIT` |
+| BR-M15-24 *(bổ sung 2026-10-18)* | `thiet_bi_gan` với hai cột sinh `UNIQUE`; kênh `APP_NGUOI_CAO_TUOI` bỏ CFG-M15-10; job Không hoạt động lọc người thân | `ThietBiGanIT`, `PhienNguoiCaoTuoiKhongHetIT` |
+| FR-067, FR-068 | Lệnh tạo kiểm trạng thái và `xacNhan`; phạm vi `BAN_THAN` | `TaoTaiKhoanNguoiCaoTuoiIT` |
+| FR-069 | `ma_qr_dang_nhap`, CFG-M15-11 | `MaQrDangNhapIT` |
+| FR-071 | `ThietBiGanApi.xacDinh` theo `ma_bam_token_thiet_bi` | `XacDinhThietBiSosIT` |
+| FR-075 | Không có quyền AC-10 ở dòng "Tài khoản người cao tuổi" | `NguoiThanKhongXemTaiKhoanNctIT` |

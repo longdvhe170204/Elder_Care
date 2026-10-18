@@ -37,6 +37,7 @@ Hai ranh giới trên được thu hẹp như sau:
 - Thông tin y tế phải được quản lý theo phạm vi chuyên môn và quyền được cấp.
 - Tiếng nói có chủ (Q-347): thông tin về mong muốn, sở thích, thói quen, lựa chọn và lưu ý chăm sóc của người cao tuổi luôn ghi nguồn (chính người cao tuổi, người thân nào, nhân viên quan sát), người ghi và thời điểm (BR-M01-14). Ý kiến của người cao tuổi và của gia đình là các mục riêng, không gộp; ý kiến không được chọn vẫn được giữ, không sửa hay xóa. Quyết định cuối cùng thuộc người có thẩm quyền theo loại quyết định (BR-M01-15).
 - Năng lực quyết định xét theo từng quyết định (Q-348): người cao tuổi được coi là tự quyết cho đến khi có nghi ngờ cụ thể; năng lực được xét cho từng quyết định, có hỗ trợ để người cao tuổi hiểu thông tin và có ngày xem lại. Hệ thống không có dấu hay trường năng lực cố định gắn với người cao tuổi.
+- Tự dùng hệ thống nếu muốn (Q-365): người cao tuổi đang lưu trú được có tài khoản riêng để xem thông tin của chính mình và gửi phản hồi, mong muốn (14.6a); không có tài khoản thì tiếng nói vẫn được nhân viên ghi theo Q-347.
 - Loại hình lưu trú và mức độ chăm sóc là hai thuộc tính độc lập.
 - Trạng thái lưu trú không tự động quyết định cách tính phí; chi phí phải dựa trên hợp đồng và chính sách của cơ sở.
 - Chi phí phát sinh phải truy xuất được về hoạt động/dịch vụ/vật phẩm tạo ra chi phí.
@@ -123,6 +124,7 @@ Một khu vực có thể:
 | Nhân viên hành chính       | Tiếp nhận, hợp đồng, người thân, đồ gửi, chi phí phát sinh. Khai báo tạm trú, lưu trú (6.10). Duyệt thay đổi lưu trú nhỏ (6.6, Q-338)                                          |
 | Kế toán | Thu tiền cọc và tiền gia đình nộp; ghi thu chi trên số dư người cao tuổi; đối soát chuyển khoản theo sao kê; xuất sao kê, báo cáo thu chi và file kế toán ra Excel (15.9). Đối chiếu chứng từ mua sắm của các bộ phận với số đã duyệt (15.10) |
 | Người thân                 | Xem thông tin được phép, đăng ký thăm, đón người cao tuổi, nhận thông báo, xem chi phí và gửi phản hồi. Xem số dư, lịch sử giao dịch và thông tin nộp tiền |
+| Người cao tuổi | Không bắt buộc. Khi có tài khoản người cao tuổi (Q-365): xem lịch sinh hoạt trong ngày, thực đơn và suất ăn, hoạt động sắp tới, lượt thăm, đồ gửi của mình; gửi phản hồi và mong muốn; nhận nhắc; bấm nút SOS khi cần giúp (14.6a, Q-369) |
 
 ### 2.4. Thuật ngữ vai trò và nhiệm vụ
 
@@ -138,6 +140,7 @@ Vai trò hệ thống là các vai trò ở bảng 2.3, được gán cho tài k
 | Người đại diện theo pháp luật       | Khái niệm | Người giám hộ hoặc người do Tòa án chỉ định cho người cao tuổi đã bị Tòa án tuyên mất năng lực hành vi dân sự hoặc có khó khăn trong nhận thức, làm chủ hành vi (Bộ luật Dân sự 2015 Điều 22, 23, 136). Thay người cao tuổi thực hiện hành vi pháp lý, gồm đồng ý xử lý dữ liệu cá nhân (BR-M01-15 tầng 1) |
 | Người đại diện của người bệnh       | Khái niệm | Người đại diện theo Luật Khám bệnh, chữa bệnh 2023 Điều 8: do người cao tuổi tự chọn; khi không tự chọn được và không có ủy quyền trước thì do thành viên gia đình chọn. Quyết định y tế thay người cao tuổi khi không có văn bản nguyện vọng (BR-M01-15 tầng 2) |
 | Nguồn của ý kiến                    | Khái niệm | Người nói ra một mong muốn, sở thích, thói quen, lựa chọn: người cao tuổi, một người thân cụ thể, hoặc nhân viên quan sát (Q-347, BR-M01-14) |
+| Kênh người cao tuổi | Khái niệm | Phần của ứng dụng di động chung (Q-346) dùng bằng tài khoản người cao tuổi; chỉ hiện dữ liệu của chính người cao tuổi đó (14.6a, Q-365) |
 | Thỏa thuận lựa chọn có rủi ro       | Khái niệm | Mục trong kế hoạch chăm sóc ghi một lựa chọn có rủi ro của người cao tuổi, rủi ro đã trao đổi, người tham gia và ngày xem lại (8.1, Q-349) |
 | Người liên hệ chính                 | Quan hệ   | Người thân nhận thông báo đầu tiên, đặc biệt là thông báo khẩn cấp; mỗi người cao tuổi có đúng một người                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Lệnh nghiệp vụ                      | Khái niệm | Thao tác làm thay đổi trạng thái theo quy tắc (ví dụ Cho tạm vắng), thay cho sửa dữ liệu trực tiếp                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -977,7 +980,7 @@ Tâm trạng, hành vi bất thường được ghi qua công việc chăm sóc 
 
 Sự cố có thể phát sinh từ: chăm sóc; ăn uống; thuốc; vận động; hoạt động; đi lại; điều trị; hoạt động ngoài viện; phục vụ sai suất ăn (BR-M08-14); đồ gửi (thất lạc, hư hỏng; BR-M12-02), kể cả khi đồ mất lúc người cao tuổi đang ở ngoài viện.
 
-Cảnh báo có thể được tạo tự động từ: chỉ số vượt ngưỡng; công việc quá hạn; bỏ ăn; từ chối thuốc; hành vi bất thường.
+Cảnh báo có thể được tạo tự động từ: chỉ số vượt ngưỡng; công việc quá hạn; bỏ ăn; từ chối thuốc; hành vi bất thường. Người cao tuổi tạo cảnh báo bằng nút SOS (BR-M05-27, Q-369).
 
 **Phân biệt:** Cảnh báo là tín hiệu do hệ thống hoặc nhân viên phát hiện, cần xem xét. Sự cố là sự việc đã xảy ra cần xử lý và lưu hồ sơ. Một cảnh báo có thể được chuyển thành sự cố; sự cố có thể được tạo trực tiếp.
 
@@ -1031,7 +1034,7 @@ Bảng dưới nêu lệnh, sự kiện và người thực hiện của từng 
 
 | Trạng thái | Lệnh / sự kiện | Trạng thái mới | Người thực hiện |
 | --- | --- | --- | --- |
-| — | Tạo cảnh báo; cùng khóa loại đang mở thì gộp (BR-M05-02) | Mới | Hệ thống; Trưởng tầng, Bác sĩ, Điều dưỡng |
+| — | Tạo cảnh báo; cùng khóa loại đang mở thì gộp (BR-M05-02) | Mới | Hệ thống; Trưởng tầng, Bác sĩ, Điều dưỡng; Người cao tuổi (nút SOS, BR-M05-27) |
 | Mới, Leo thang | Quá hạn tiếp nhận, chưa ở cấp cao nhất (BR-M05-01) | Leo thang (lên cấp kế tiếp) | Bộ lập lịch |
 | Mới, Leo thang | Tiếp nhận | Đã tiếp nhận | Điều dưỡng, Trưởng tầng, Bác sĩ; Quản lý viện chỉ ở Leo thang cấp 2 (Q-71) |
 | Đã tiếp nhận | Giao người phụ trách | Đã tiếp nhận | Quản lý viện, khi là người phụ trách |
@@ -1064,6 +1067,7 @@ Ghi diễn biến, nâng/hạ mức, chuyển viện và đính chính đổi lo
 **Phân công người xử lý (Q-339).** Sau khi ghi nhận và phân loại mức, sự cố được phân công theo một trong hai cách: người có quyền tự "Tiếp nhận xử lý", hoặc Trưởng tầng, Bác sĩ, Quản lý viện "Giao người xử lý". Người được giao là Điều dưỡng, Trưởng tầng hoặc Bác sĩ có quyền với người cao tuổi đó; lệnh bắt buộc ghi chú, ghi lịch sử phân công. Giao từ Mới thì sự cố chuyển Đang xử lý và dừng leo thang; giao lại khi Đang xử lý hoặc Đang theo dõi thì đổi người xử lý, trạng thái giữ nguyên. Người được giao nhận thông báo theo mức của sự cố. Giao người xử lý không phải xử lý nên Quản lý viện được thực hiện (Q-71).
 
 - **Cảnh báo Khẩn cấp không tự tạo sự cố (Q-67):** hệ thống báo đồng thời cho Điều dưỡng phụ trách, Người phụ trách ca, Bác sĩ trực và Trưởng tầng. Người tiếp nhận chọn "Kích hoạt khẩn cấp từ cảnh báo" khi cần. Người liên hệ chính chỉ được báo khi có sự cố Khẩn cấp.
+- **Nút SOS (Q-369):** người nhận như cảnh báo Khẩn cấp ở trên; khi người cao tuổi đang ở Hoạt động bên ngoài (đã điểm danh rời viện, chưa điểm danh về, 8.9) thì thêm trưởng đoàn và người đi cùng. Người thân không được báo khi người cao tuổi bấm nút; chỉ được báo khi có sự cố Khẩn cấp. Ứng dụng của người cao tuổi hiện "Đã gửi", rồi tên người đã tiếp nhận. Sau khi gửi, người cao tuổi có thể chọn nhanh nơi đang ở (phòng, nhà vệ sinh, sân, khác), không bắt buộc. Nhân viên tới nơi rồi xử lý như mọi cảnh báo: đóng kèm kết quả, chuyển sự cố hoặc kích hoạt khẩn cấp. Nút bổ sung, không thay chuông gọi đầu giường hay lịch kiểm tra phòng.
 - **Quản lý viện (Q-71):** được tiếp nhận cảnh báo ở Leo thang cấp 2 rồi giao người phụ trách; được ghi nhận sự cố, kích hoạt khẩn cấp và giao người xử lý sự cố (Q-339). Quản lý viện không xử lý, không đóng cảnh báo hay sự cố.
 - **Nguồn của cảnh báo đã Chuyển sự cố được xử lý (Q-76):** ví dụ liều được đính chính thành Đã dùng. Cảnh báo giữ trạng thái Chuyển sự cố; hệ thống thêm diễn biến "nguồn đã được xử lý" vào sự cố và báo người xử lý. Sự cố không tự đóng; người có quyền đóng kèm kết quả.
 - **Sự cố bị hủy hoặc đổi loại (Q-73):**
@@ -1152,6 +1156,7 @@ Các quy tắc chi tiết của mục này mang mã BR-M05-17 → BR-M05-26 (9.7
 - **BR-M05-24:** Hành chính chỉ thấy danh sách người thân cần liên hệ của danh sách tiếp xúc, không thấy thông tin sức khỏe; "số liên hệ của viện" dùng trong thông báo do Quản lý viện cấu hình (10.4).
 - **BR-M05-25:** Bộ lập lịch gián đoạn rồi chạy lại: mỗi cảnh báo, sự cố quá hạn chỉ lên một cấp leo thang, hạn mới tính từ lúc chạy lại.
 - **BR-M05-26:** Sự cố bị hủy mà đã nêu trong một bản tin đã gửi thì hệ thống báo để Hành chính báo lại người đã nhận (14.5).
+- **BR-M05-27:** Người cao tuổi giữ nút SOS 3 giây trên thiết bị đã gắn (BR-M15-24) thì hệ thống tạo cảnh báo mức Khẩn cấp loại "Người cao tuổi yêu cầu trợ giúp", nguồn là người cao tuổi, kèm phòng, giường hiện tại; bấm lại khi cảnh báo này đang mở thì gộp theo BR-M05-02. Nút chỉ gửi được khi người cao tuổi đang ở viện hoặc ở Hoạt động bên ngoài (chuyến đi của viện, 8.9): không ở Tạm vắng, Điều trị tại bệnh viện; người bán trú chỉ khi trạng thái có mặt trong ngày là Có mặt. Khi không gửi được (ngoài các trường hợp trên, mất kết nối, tài khoản Đã khóa, thiết bị đã bị gỡ), ứng dụng hiện số liên hệ của viện (BR-M05-24) và số cấp cứu 115 để gọi trực tiếp. Không ai tắt được nút SOS của một người cao tuổi (Q-369).
 
 ## 10. Module 06 – Sức khỏe
 
@@ -1676,14 +1681,35 @@ Người thân có thể: xem thông tin được cấp quyền; xem lịch sinh
 
 Đồ gửi: người đại diện và người có quyền "được phép đón" xem danh sách đồ gửi, lịch sử bàn giao và ảnh (BR-M12-09, Q-151); người đại diện xác nhận người nhận khác và ghi, rút đồng ý cho tự giữ (BR-M12-04, BR-M12-06). Người thân khác không thấy đồ gửi. Đây là quy tắc hiển thị riêng, không phải một loại thông tin mới của thông báo.
 
+### 14.6a. Kênh người cao tuổi
+
+Người cao tuổi đang lưu trú (nội trú, bán trú) có thể tự dùng hệ thống qua ứng dụng di động chung (Q-346) khi đăng nhập bằng tài khoản người cao tuổi; giao diện riêng, chữ lớn, ít bước; không có kênh web (Q-365). Có tài khoản hay không là việc đời sống hằng ngày (tầng (3) của BR-M01-15): chính người cao tuổi quyết định, không cần nhận định năng lực, không cần người thân đồng ý. Người cao tuổi không có tài khoản thì mọi quy trình giữ nguyên. Tài khoản, gắn thiết bị và đăng nhập bằng mã QR ở 19.1 (Q-370).
+
+Người cao tuổi có thể (Q-366):
+
+- Xem lịch sinh hoạt trong ngày của mình, cùng phạm vi lịch sinh hoạt trên cổng người thân (14.6).
+- Xem thực đơn tuần đã công bố và suất ăn dự kiến phục vụ cho mình, kể cả món thay thế; không hiện dị ứng, bệnh lý (12.5).
+- Xem hoạt động sắp tới của tầng mình và toàn viện (8.8), kèm việc mình đã có tên tham gia chưa; không hiện kết quả đánh giá khả năng tham gia.
+- Xem lượt thăm Đã duyệt của mình (14.2): ngày, khung giờ, người thăm.
+- Xem đồ gửi của mình đang ở Đang giữ hoặc Đang được sử dụng: tên đồ, ảnh. Trả đồ và xác nhận người nhận giữ nguyên (BR-M12-04, BR-M12-06).
+- Gửi phản hồi (14.7) loại Góp ý, Hỏi đáp, Khiếu nại hoặc Mong muốn.
+- Nhận thông báo mức Nhẹ (17): nhắc lượt thăm và hoạt động của mình trong ngày, phản hồi của mình đã được trả lời.
+- Bấm nút SOS khi cần giúp (9.4, BR-M05-27). Nút dùng được cả khi chưa đăng nhập, trên thiết bị đã gắn (BR-M15-24).
+
+Không có trên kênh này: thông tin sức khỏe (chỉ số, chẩn đoán, đơn thuốc, thuốc, phần sức khỏe của sự cố theo Q-352), chi phí và số dư (theo mặc định Q-367); đăng ký thăm; đăng ký tham gia hoạt động (Trưởng tầng đánh giá, 8.8); xác nhận người nhận đồ gửi. Nút SOS bổ sung, không thay chuông gọi đầu giường hay lịch kiểm tra phòng của viện (Q-369).
+
+Người thân không thấy việc người cao tuổi dùng kênh này, kể cả phản hồi người cao tuổi gửi (BR-M10-11). Nhân viên được giúp người cao tuổi thao tác trên thiết bị của người cao tuổi khi được nhờ, không đăng nhập hộ. Người cao tuổi dùng điện thoại riêng (Q-155); viện không cấp thiết bị.
+
 ### 14.7. Phản hồi và khiếu nại
 
-Ghi nhận: người gửi; người cao tuổi; nội dung; loại; mức ưu tiên; người phụ trách; hướng xử lý; kết quả; thời gian đóng.
+Ghi nhận: người gửi (người thân hoặc chính người cao tuổi, 14.6a); người cao tuổi; nội dung; loại; mức ưu tiên; người phụ trách; hướng xử lý; kết quả; thời gian đóng.
 
-Trạng thái: Mới → Đang xử lý → Đã phản hồi → Đóng (người thân xác nhận hoặc tự đóng sau \[7 ngày\]) / Mở lại.
+Trạng thái: Mới → Đang xử lý → Đã phản hồi → Đóng (người gửi xác nhận hoặc tự đóng sau \[7 ngày\]) / Mở lại.
 
 - **Giao tự động theo nhóm nội dung:** chăm sóc, sinh hoạt, ăn uống, sức khỏe, thuốc giao cho Trưởng tầng được giao của tầng (không có thì Quản lý viện); chi phí, hợp đồng, khác giao cho Hành chính.
-- **Mức ưu tiên:** Khiếu nại mặc định Cao; Góp ý và Hỏi đáp mặc định Thường. Người phụ trách đổi được mức, kèm lý do; hạn xử lý tính lại từ thời điểm gửi.
+- **Mức ưu tiên:** Khiếu nại mặc định Cao; Góp ý, Hỏi đáp và Mong muốn mặc định Thường. Người phụ trách đổi được mức, kèm lý do; hạn xử lý tính lại từ thời điểm gửi.
+- **Mong muốn (Q-366):** loại chỉ người cao tuổi gửi, về sở thích, thói quen, khách thăm, người đón. Mong muốn về khách thăm, người đón giao Hành chính; mong muốn khác theo nhóm sinh hoạt ở trên. Người phụ trách ghi mục vào hồ sơ theo BR-M01-14 với nguồn "người cao tuổi" (khách thăm, người đón theo 14.1, Q-364) rồi trả lời (BR-M10-12).
+- **Ghi thay người cao tuổi (Q-371):** Hành chính và Điều dưỡng có phạm vi ghi được phản hồi, kể cả loại Mong muốn, thay người cao tuổi khi người cao tuổi nói trực tiếp, dù có tài khoản hay không: người gửi là người cao tuổi, nguồn "ghi trực tiếp", kèm người ghi và thời điểm. Người cao tuổi có tài khoản thấy phản hồi này trên kênh của mình. Với người không có tài khoản, người phụ trách báo kết quả trực tiếp; Hành chính hoặc Điều dưỡng có phạm vi ghi thay ý kiến đóng hoặc mở lại của người cao tuổi; không ghi thì tự đóng theo CFG-M10-02.
 
 ### 14.8. Quy tắc nghiệp vụ Module 10
 
@@ -1704,6 +1730,8 @@ Trạng thái: Mới → Đang xử lý → Đã phản hồi → Đóng (ngư�
 - **BR-M10-08:** Theo lịch \[thứ 2 hằng tuần\], hệ thống nhắc Điều dưỡng phụ trách lập bản tin của kỳ. Điều dưỡng phụ trách thêm nhận xét và duyệt trong \[48 giờ\] kể từ mốc của kỳ rồi gửi; quá hạn chưa duyệt thì nhắc trưởng tầng. Quá CFG-M10-12 kể từ mốc của kỳ, Trưởng tầng được giao của tầng được duyệt thay, vẫn bắt buộc phần giải thích của BR-M10-09. Tới mốc của kỳ sau mà bản tin vẫn chưa được lập hoặc chưa duyệt, bản tin (nếu có) chuyển Không gửi và Quản lý viện được báo. Bản tin đã gửi không sửa.
 - **BR-M10-09:** Nếu trong kỳ có sự cố mức trung bình trở lên, bản tin bắt buộc có phần giải thích của điều dưỡng trước khi được duyệt. Mức được xét là mức cao nhất sự cố từng có tính tới lúc duyệt, với sự cố có thời điểm xảy ra trong kỳ; sự cố Đã hủy không tính.
 - **BR-M10-10:** Người đại diện đồng ý hoặc từ chối đề nghị mua hộ vượt hạn mức qua cổng (BR-M11-07, UC-79), kể cả yêu cầu đồng ý bổ sung khi số tiền thực tế vượt số đã đồng ý quá CFG-M11-06; cổng hiện cả số đã đồng ý trước và số mới. Người thân có quyền xem chi phí xem bảng chi phí đã chốt và chi phí tạm tính trên cổng. Tên thuốc trên khoản chi phí chỉ hiện với người thân có quyền xem sức khỏe có tác dụng (Q-133).
+- **BR-M10-11:** Kênh người cao tuổi chỉ hiển thị dữ liệu của chính người cao tuổi đăng nhập, trong phạm vi 14.6a; không hiển thị thông tin sức khỏe, chi phí, số dư (theo mặc định Q-367). Phản hồi do người cao tuổi gửi chỉ người gửi và nhân viên có quyền xử lý phản hồi xem được; người thân không thấy.
+- **BR-M10-12:** Phản hồi loại Mong muốn chỉ chuyển Đã phản hồi khi đã gắn ít nhất một mục ghi theo BR-M01-14 có nguồn "người cao tuổi"; nếu nội dung không phải mong muốn, người phụ trách đổi loại sang Góp ý hoặc Hỏi đáp, kèm lý do.
 
 ## 15. Module 11 – Chi phí phát sinh
 
@@ -2022,10 +2050,11 @@ Mức độ thông báo phụ thuộc vào mức độ nghiệp vụ.
   - **Gộp nhắc gọi (Q-100):** thông báo Khẩn cấp mới của cùng người cần gọi và cùng người cao tuổi được gộp vào lần nhắc gọi còn chờ kết quả.
   - **Không liên lạc được (Q-104):** khi mọi cuộc gọi không liên lạc được, thông báo chuyển trạng thái "Không liên lạc được"; người nhận vẫn tự xác nhận muộn được.
   - **Xác nhận khác tiếp nhận (Q-102):** "xác nhận đã nhận" không phải là tiếp nhận xử lý cảnh báo/sự cố. Người có quyền được chọn "Xác nhận và tiếp nhận" trong một thao tác, được ghi thành hai bản ghi.
-- **BR-M13-03:** Thông báo không khẩn cho người thân không được gửi trong giờ yên tĩnh \[21:00–07:00\]; được giữ lại và gửi đầu giờ sau đó. Chỉ mức Khẩn cấp được gửi ngay trong giờ yên tĩnh; module nguồn muốn báo ngay ban đêm (qua đời, chuyển viện) phải dùng mức Khẩn cấp.
+- **BR-M13-03:** Thông báo không khẩn cho người thân và người cao tuổi không được gửi trong giờ yên tĩnh \[21:00–07:00\]; được giữ lại và gửi đầu giờ sau đó. Chỉ mức Khẩn cấp được gửi ngay trong giờ yên tĩnh; module nguồn muốn báo ngay ban đêm (qua đời, chuyển viện) phải dùng mức Khẩn cấp.
 - **BR-M13-04:** Người nhận thông báo được xác định theo phân công hiện tại (ca, tầng, người cao tuổi) và quyền nhận thông tin của người thân (14.1), không cấu hình cứng theo tên người.
   - **Người thân nhận thông báo (Q-96):** người liên hệ chính luôn nhận thông báo Khẩn cấp; người thân khác nhận Khẩn cấp khi có quyền "nhận thông báo khẩn". Thông báo không khẩn được lọc theo loại thông tin. Mục "nhận thông báo" của bản đồng ý (5.1) không áp cho thông báo Khẩn cấp. Thông báo không khẩn có nội dung về người cao tuổi (chăm sóc, hoạt động, sự cố, sức khỏe, bản tin) chỉ gửi người thân nằm trong phạm vi mục này (Q-353); thông báo về việc của chính người thân (lượt thăm, yêu cầu do họ lập hoặc phải xác nhận, khoản phải trả, thuốc gia đình gửi và đồ gửi, kể cả đồ thất lạc, hư hỏng, được tìm thấy, Q-362) không phụ thuộc mục này. Q-353 chỉ áp cho việc gửi; cổng người thân vẫn hiển thị theo quan hệ và quyền (Q-357).
   - **Tài khoản khóa tạm (Q-109):** tài khoản đang Khóa tạm vẫn là người nhận ở mọi mức; chỉ tài khoản Đã khóa hoặc Không hoạt động bị loại.
+  - **Người cao tuổi nhận thông báo (Q-366):** chỉ khi có tài khoản người cao tuổi không ở Đã khóa hoặc Không hoạt động; chỉ các thông báo nêu ở 14.6a, mức Nhẹ. Người cao tuổi không nhận thông báo sự cố, cảnh báo, thuốc, chi phí về chính mình.
   - **Nhóm người nhận không có ai (Q-110):** mỗi nhóm khai cách thay: mặc định / người thay chỉ định / không thay. Thứ tự thay mặc định (Q-344): Điều dưỡng phụ trách → Người phụ trách ca của tầng → Trưởng tầng được giao → Quản lý viện; các nhóm nhân viên khác → Trưởng tầng được giao → Quản lý viện; tầng chưa có Trưởng tầng thì Người phụ trách ca đang diễn ra của tầng thay trước Quản lý viện (Q-90). Thay xong mà vẫn không có người nhận thì ghi vào danh sách lỗi gửi; với mức Khẩn cấp, mọi Quản lý viện và Trưởng tầng đang hoạt động nhận thay, người ngoài phạm vi chỉ thấy thông tin nhận dạng và loại sự kiện (BR-M15-01).
   - **Người gây ra sự kiện (Q-344):** mỗi người nhận tối đa một thông báo cho một sự kiện. Người thực hiện lệnh nguồn không nhận thông báo mức Nhẹ về chính lệnh đó, trừ khi module nguồn yêu cầu; ở mức Trung bình và Khẩn cấp vẫn nhận.
   - **Người thân được nêu trong bản ghi nguồn (Q-112):** ví dụ khách thăm trong danh sách tiếp xúc, là một nhóm người nhận riêng; họ chỉ nhận và chỉ thấy phần loại "chung".
@@ -2046,7 +2075,7 @@ Công việc hoàn thành; chưa hoàn thành; quá hạn; theo nhân viên; the
 
 ### 18.3. Báo cáo sức khỏe
 
-Chỉ số; cảnh báo; sự cố; trường hợp cần theo dõi; tình trạng dùng thuốc. Thời gian trung bình từ khi tạo cảnh báo đến khi tiếp nhận, theo mức độ; số lần leo thang; tỷ lệ liều Bỏ lỡ/Từ chối theo người cao tuổi và theo ca; đánh giá lại và đối chiếu thuốc quá hạn. Số lần leo thang và thời gian từ khi tạo đến khi tiếp nhận xử lý của **sự cố** theo mức, tính riêng với cảnh báo. Mốc "tạo" của cảnh báo là lần tạo đầu tiên (không đặt lại khi gộp, DBR-18); mốc "tiếp nhận" với cảnh báo kích hoạt khẩn cấp là thời điểm kích hoạt, với cảnh báo Quản lý viện tiếp nhận ở cấp 2 là thời điểm Quản lý viện tiếp nhận (Q-71). Tỷ lệ liều = số liều Bỏ lỡ (hoặc Từ chối) ÷ số liều có trạng thái cuối Đã dùng, Từ chối, Không thực hiện, Bỏ lỡ; liều Đã hủy, Tạm dừng và liều Không thực hiện do người cao tuổi chuyển trạng thái cuối không vào mẫu số.
+Chỉ số; cảnh báo; sự cố; trường hợp cần theo dõi; tình trạng dùng thuốc. Thời gian trung bình từ khi tạo cảnh báo đến khi tiếp nhận, theo mức độ, tách riêng cảnh báo từ nút SOS (Q-369); số lần leo thang; tỷ lệ liều Bỏ lỡ/Từ chối theo người cao tuổi và theo ca; đánh giá lại và đối chiếu thuốc quá hạn. Số lần leo thang và thời gian từ khi tạo đến khi tiếp nhận xử lý của **sự cố** theo mức, tính riêng với cảnh báo. Mốc "tạo" của cảnh báo là lần tạo đầu tiên (không đặt lại khi gộp, DBR-18); mốc "tiếp nhận" với cảnh báo kích hoạt khẩn cấp là thời điểm kích hoạt, với cảnh báo Quản lý viện tiếp nhận ở cấp 2 là thời điểm Quản lý viện tiếp nhận (Q-71). Tỷ lệ liều = số liều Bỏ lỡ (hoặc Từ chối) ÷ số liều có trạng thái cuối Đã dùng, Từ chối, Không thực hiện, Bỏ lỡ; liều Đã hủy, Tạm dừng và liều Không thực hiện do người cao tuổi chuyển trạng thái cuối không vào mẫu số.
 
 ### 18.4. Báo cáo chi phí
 
@@ -2080,11 +2109,15 @@ Số liệu thăm, phản hồi (Module 10), đồ gửi (Module 12), thống k�
 
 ### 19.1. Tài khoản
 
-Quản lý: tài khoản; trạng thái; đăng nhập; liên kết nhân viên; liên kết người thân. Tài khoản nhân viên phải bị khóa khi nhân viên không còn được phép sử dụng hệ thống.
+Quản lý: tài khoản; trạng thái; đăng nhập; liên kết nhân viên; liên kết người thân; liên kết người cao tuổi. Tài khoản nhân viên phải bị khóa khi nhân viên không còn được phép sử dụng hệ thống.
 
 Tài khoản nhân viên do Quản lý viện tạo. Tài khoản người thân do Hành chính (hoặc Quản lý viện) tạo, kích hoạt lại và cấp lại mật khẩu, sau khi xác minh danh tính trực tiếp tại viện bằng giấy tờ tùy thân hoặc gọi lại số điện thoại đã đăng ký; cách xác minh được ghi nhật ký. Giai đoạn đầu người thân chưa tự đặt lại mật khẩu (Q-06).
 
-Mật khẩu phải đạt độ mạnh tối thiểu theo CFG-M15-09. Phiên đăng nhập tự kết thúc khi người dùng không thao tác quá CFG-M15-10, tính riêng cho từng kênh (web, ứng dụng nhân viên, ứng dụng người thân); mỗi thao tác đếm lại từ đầu. Tự đăng xuất chỉ kết thúc phiên, không đổi trạng thái tài khoản (BR-M15-21, Q-309).
+Tài khoản người cao tuổi (Q-365, Q-368) do Hành chính (hoặc Quản lý viện) tạo khi chính người cao tuổi đang lưu trú yêu cầu hoặc đồng ý; nhật ký ghi người cao tuổi đã yêu cầu hay đồng ý trực tiếp với ai. Yêu cầu của người thân thay người cao tuổi không đủ. Mỗi người cao tuổi có tối đa một tài khoản, chỉ dùng ứng dụng di động. Hành chính kích hoạt lại, cấp lại mật khẩu khi người cao tuổi yêu cầu trực tiếp tại viện. Khóa tài khoản theo BR-M15-23.
+
+**Đăng nhập không cần nhớ mật khẩu (Q-370).** Người cao tuổi đăng nhập bằng cách quét trên máy của mình một mã QR dùng một lần, hết hạn sau CFG-M15-11, do Hành chính, Quản lý viện hoặc Điều dưỡng có phạm vi tạo; lần quét đó gắn máy với tài khoản (BR-M15-24). Mật khẩu vẫn có để dự phòng. Phiên trên kênh người cao tuổi không tự kết thúc theo thời gian. Người cao tuổi có thể bật mở khóa bằng vân tay hoặc khuôn mặt của máy cho các màn xem; nút SOS không cần mở khóa. Không dùng mã PIN.
+
+Mật khẩu phải đạt độ mạnh tối thiểu theo CFG-M15-09. Phiên đăng nhập tự kết thúc khi người dùng không thao tác quá CFG-M15-10, tính riêng cho từng kênh (web, ứng dụng nhân viên, ứng dụng người thân; kênh người cao tuổi không tự đăng xuất, Q-370); mỗi thao tác đếm lại từ đầu. Tự đăng xuất chỉ kết thúc phiên, không đổi trạng thái tài khoản (BR-M15-21, Q-309).
 
 Tài khoản Quản lý viện đầu tiên được tạo một lần khi cài đặt hệ thống, bằng công cụ khởi tạo, cùng hồ sơ nhân viên tối thiểu của người đó; tài khoản buộc đổi mật khẩu ở lần đăng nhập đầu và việc khởi tạo được ghi nhật ký. Công cụ không chạy được khi hệ thống đã có tài khoản Quản lý viện. Sau đó mọi tài khoản nhân viên do Quản lý viện tạo (BR-M15-22, Q-310).
 
@@ -2096,7 +2129,7 @@ Quyền được chia thành: xem; tạo; sửa; xác nhận; duyệt; chốt; t
 
 Permission Matrix (Phụ lục 27) là quyền tối đa của mỗi vai trò. Quản lý viện chỉ được thu hẹp quyền so với ma trận, theo vai trò hoặc theo từng tài khoản; ngoại lệ duy nhất được thêm vượt ma trận là quyền Duyệt kế hoạch chăm sóc cho điều dưỡng (2.4, Q-07). Khi một tài khoản có nhiều vai trò cùng đem lại một quyền, phạm vi của quyền đó là hợp các phạm vi.
 
-Các quy tắc chi tiết của mục này mang mã BR-M15-14 → BR-M15-20 (19.5); mật khẩu, tự đăng xuất và khởi tạo ở BR-M15-21, 22 (19.1).
+Các quy tắc chi tiết của mục này mang mã BR-M15-14 → BR-M15-20 (19.5); mật khẩu, tự đăng xuất và khởi tạo ở BR-M15-21, 22 (19.1); khóa tài khoản và gắn thiết bị của người cao tuổi ở BR-M15-23, 24.
 
 ### 19.3. Các quyền quan trọng
 
@@ -2107,6 +2140,7 @@ Các quy tắc chi tiết của mục này mang mã BR-M15-14 → BR-M15-20 (19.
 - Hành chính quản lý hồ sơ, hợp đồng và chi phí theo quyền.
 - Quản lý viện phê duyệt các nghiệp vụ được quy định.
 - Người thân chỉ xem dữ liệu được cấp quyền.
+- Người cao tuổi chỉ xem dữ liệu của chính mình trên kênh người cao tuổi (14.6a, BR-M10-11) và gửi phản hồi của mình; không có quyền với dữ liệu của người cao tuổi khác.
 - Bác sĩ xem đầy đủ hồ sơ sức khỏe và mọi kết quả ghi nhận chăm sóc (chỉ xem, không ghi).
 - Nhân viên bếp chỉ xem số suất và yêu cầu đặc biệt theo chế độ ăn, không xem hồ sơ sức khỏe. Với suất đặc biệt trên phiếu bữa ăn (12.5), bếp xem họ tên, phòng, chế độ ăn, món thay thế và kết cấu thức ăn; không xem dị ứng, bệnh lý hay thông tin sức khỏe khác ngoài những gì đã thể hiện qua chế độ ăn và món thay thế.
 - Bác sĩ có quyền thực hiện (T) ở dòng "Chế độ ăn": tự lập và áp dụng bản gán chế độ ăn (UC-45), không có người duyệt (BR-M08-03); danh mục chế độ ăn và món an toàn. Ở dòng "Món ăn, thực đơn" (UC-46), Nhân viên bếp thực hiện (T): lập món ăn, lập và gửi thực đơn tuần, đổi món; Bác sĩ duyệt (D): xác nhận món ăn, công bố hoặc trả lại thực đơn (Q-308). Nhân viên bếp chỉ thấy chế độ ăn và số người dùng từng chế độ ăn, không thấy bản gán của từng người ngoài nội dung trên phiếu (12.5). Người nhận phiếu bữa ăn tại tầng (UC-76) là Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc trong phạm vi phân công của tầng/khu và ca (BR-M08-11). Danh sách người có dị ứng không kiểm tra tự động (danh sách cần đối chiếu khi phục vụ, 12.5) không hiển thị cho bếp.
@@ -2174,8 +2208,10 @@ Các quy tắc chi tiết của mục này mang mã BR-M15-11 → BR-M15-13 (19.
 - **BR-M15-18:** Thu hẹp quyền áp theo thứ tự: quyền tối đa của vai trò (Phụ lục 27), rồi thu hẹp theo vai trò của cơ sở, rồi thu hẹp theo tài khoản; thu hẹp không bao giờ mở rộng quyền.
 - **BR-M15-19:** Phạm vi hành nghề của tài khoản đối chiếu theo cùng danh mục nghiệp vụ chuyên môn với hồ sơ nhân viên (13.1).
 - **BR-M15-20:** Khi thiết bị kết nối lại, người dùng được báo kết quả đồng bộ của từng bản ghi ngoại tuyến (chấp nhận, chấp nhận kèm nhãn, chờ xem lại, từ chối kèm lý do).
-- **BR-M15-21:** Mật khẩu mới (tự đổi hoặc đổi ở lần đăng nhập đầu) phải đạt độ mạnh tối thiểu CFG-M15-09, không đạt thì bị từ chối. Phiên đăng nhập không có thao tác quá CFG-M15-10 của kênh đó thì tự kết thúc; người dùng đăng nhập lại để dùng tiếp; trạng thái tài khoản không đổi (Q-309).
+- **BR-M15-21:** Mật khẩu mới (tự đổi hoặc đổi ở lần đăng nhập đầu) phải đạt độ mạnh tối thiểu CFG-M15-09, không đạt thì bị từ chối. Phiên đăng nhập không có thao tác quá CFG-M15-10 của kênh đó thì tự kết thúc (trừ kênh người cao tuổi, BR-M15-24); người dùng đăng nhập lại để dùng tiếp; trạng thái tài khoản không đổi (Q-309).
 - **BR-M15-22:** Tài khoản Quản lý viện đầu tiên chỉ được tạo bằng công cụ khởi tạo khi cài đặt, khi hệ thống chưa có tài khoản nào có vai trò Quản lý viện; tài khoản buộc đổi mật khẩu ở lần đăng nhập đầu; nhật ký ghi người thực hiện là "khởi tạo hệ thống" (Q-310).
+- **BR-M15-23:** Tài khoản người cao tuổi chuyển Đã khóa khi người cao tuổi kết thúc lưu trú (ngay, không chờ CFG-M01-04), khi chính người cao tuổi yêu cầu, hoặc khi Hành chính, Quản lý viện khóa có lý do (ví dụ người khác dùng hộ). Người thân không khóa được và không xem được việc dùng tài khoản này; người thân đề nghị khóa thì Hành chính lập yêu cầu khóa tài khoản người cao tuổi theo vòng đời yêu cầu phê duyệt chung (6.6), ghi lý do của người thân; tài khoản chỉ khóa khi Quản lý viện duyệt. Tài khoản bị khóa vì lý do khác kết thúc lưu trú được kích hoạt lại khi chính người cao tuổi yêu cầu (Q-368).
+- **BR-M15-24:** Mỗi tài khoản người cao tuổi gắn tối đa một thiết bị; gắn máy mới thì máy cũ bị gỡ và phiên trên máy cũ kết thúc. Trên thiết bị đã gắn: nút SOS gửi được mà không cần phiên đăng nhập (BR-M05-27); phiên không tự kết thúc theo thời gian, chỉ kết thúc khi tài khoản Đã khóa, đổi mật khẩu, gỡ thiết bị hoặc người cao tuổi tự đăng xuất; không đăng nhập được tài khoản khác (ngoại lệ của BR-M15-15). Hành chính, Quản lý viện gỡ thiết bị khi người cao tuổi báo mất máy hoặc có lý do. Tài khoản người cao tuổi không chuyển Không hoạt động theo BR-M15-05 (Q-370).
 
 ## 20. Luồng nghiệp vụ tổng thể
 
@@ -2234,7 +2270,7 @@ Các con số dưới đây là mục tiêu cho quy mô 100–300 người cao t
 
 | Mã     | Nhóm               | Yêu cầu                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ------ | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| NFR-01 | Quy mô             | Phục vụ tối đa 300 người cao tuổi, 100 nhân viên, 60 người dùng đồng thời trong giờ giao ca, 600 tài khoản người thân                                                                                                                                                                                                                                                                                   |
+| NFR-01 | Quy mô             | Phục vụ tối đa 300 người cao tuổi, 100 nhân viên, 60 người dùng đồng thời trong giờ giao ca, 600 tài khoản người thân, 300 tài khoản người cao tuổi                                                                                                                                                                                                                                                                                   |
 | NFR-02 | Hiệu năng          | 95% thao tác ghi nhận trên app nhân viên phản hồi dưới 2 giây; mở checklist ca dưới 3 giây                                                                                                                                                                                                                                                                                                              |
 | NFR-03 | Thông báo khẩn cấp | Đến thiết bị của người nhận trong ≤ 10 giây kể từ khi sự cố được tạo                                                                                                                                                                                                                                                                                                                                    |
 | NFR-04 | Tác vụ định kỳ     | Tác vụ theo thời gian (chuyển Quá hạn, leo thang, nhắc) cho cả viện hoàn tất trong ≤ 5 phút; chạy lại không gửi trùng thông báo                                                                                                                                                                                                                                                                                                                       |
@@ -2268,6 +2304,7 @@ Khi phát sinh điểm chưa chốt, ghi vào mục này một bảng gồm các
 | Mã | Vấn đề | Mặc định đề xuất | Người quyết định | Feature ảnh hưởng |
 | --- | --- | --- | --- | --- |
 | Q-355 | Người cao tuổi không tự ký được bản đồng ý xử lý, chia sẻ dữ liệu (5.1) nhưng chưa bị Tòa án tuyên mất năng lực hành vi dân sự hoặc có khó khăn trong nhận thức, làm chủ hành vi (thường gặp khi sa sút trí tuệ): ai đồng ý, hoặc viện xử lý dữ liệu theo căn cứ nào của Luật Bảo vệ dữ liệu cá nhân Điều 19 | Giữ quy tắc hiện có: không có bản đồng ý Hiệu lực thì người thân không xem được thông tin sức khỏe (BR-M01-08); thông tin vượt phạm vi chỉ theo Q-354. Cách lập bản đồng ý cho trường hợp này chưa có mặc định | Chủ dự án, tư vấn pháp lý | 001, 009, 012 |
+| Q-367 | Kênh người cao tuổi có hiển thị thông tin sức khỏe, thuốc, sự cố, chi phí, số dư không; bản đồng ý (5.1) có giới hạn việc người cao tuổi xem dữ liệu của chính mình không | Bản đồng ý không giới hạn chủ thể dữ liệu xem dữ liệu của mình. Giai đoạn đầu kênh này không hiển thị thông tin sức khỏe (chỉ số, chẩn đoán, đơn thuốc, phần sức khỏe của sự cố theo Q-352), chi phí và số dư, vì kết quả y tế nên được Bác sĩ, Điều dưỡng giải thích trực tiếp và tiền do gia đình nộp. Người cao tuổi muốn biết thì hỏi trực tiếp hoặc gửi Hỏi đáp; yêu cầu cung cấp dữ liệu cá nhân theo Luật Bảo vệ dữ liệu cá nhân do Hành chính tiếp nhận, ngoài hệ thống. Cần đối chiếu quyền xem dữ liệu và thời hạn trả lời của chủ thể dữ liệu (Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15, Nghị định 356/2025/NĐ-CP) | Chủ dự án, tư vấn pháp lý | 006, 007, 010, 017 |
 
 ### 24.2. Quyết định đã chốt
 
@@ -2638,6 +2675,12 @@ Các quyết định dưới đây đã được chốt và phản ánh vào cá
 | Q-362 | Thông báo về thuốc gia đình gửi và đồ gửi (kể cả thất lạc, hư hỏng, tìm thấy) là "về người cao tuổi" hay "về việc của chính người thân" (Q-353) | Về việc của chính người thân, vì người thân là người gửi, gửi thêm hoặc nhận lại; phần sức khỏe vẫn theo bản đồng ý | BR-M13-04 | 006, 009, 013 |
 | Q-363 | Sở thích "mỗi nhóm một mục hiện hành" (8.10) và "mỗi ý kiến một mục riêng" (BR-M01-14); thói quen sinh hoạt ghi ở đâu | Tối đa một mục hiện hành cho mỗi (nhóm sở thích, nguồn); nguồn người thân ghi rõ người nào. Thói quen sinh hoạt ghi bằng mục sở thích, danh mục có thể có nhóm thói quen | 8.10, BR-M01-14 | 001, 014 |
 | Q-364 | Ai ghi mong muốn của người cao tuổi về khách thăm, người đón (Q-351) | Hành chính, Trưởng tầng, Điều dưỡng có phạm vi; Quản lý viện xem; thêm dòng Phụ lục 27 | 14.1, Phụ lục 27 | 012 |
+| Q-365 | Người cao tuổi có tự dùng hệ thống không (26.1 từng ghi "không phải actor"); dùng kênh nào; ai được cấp tài khoản | Có, qua kênh hạn chế. Actor AC-16 Người cao tuổi; kênh là ứng dụng di động chung (Q-346) với tài khoản người cao tuổi, giao diện riêng; không có web. Có tài khoản là việc tầng (3) của BR-M01-15: cấp khi chính người cao tuổi đang lưu trú yêu cầu hoặc đồng ý, không cần nhận định năng lực hay người thân đồng ý; người thân yêu cầu thay không đủ. Không bắt buộc. Hành chính (và Quản lý viện) tạo, cấp lại mật khẩu. Người cao tuổi dùng điện thoại riêng; nhân viên giúp thao tác khi được nhờ, không đăng nhập hộ. Bổ sung Q-346 | 1.3, 2.3, 2.4, 14.6a, 19.1, NFR-01, 26.1, 26.2, Phụ lục 27 | 002, 012 |
+| Q-366 | Người cao tuổi làm được gì trên kênh của mình | Chỉ xem và gửi. Xem: lịch sinh hoạt trong ngày, thực đơn và suất ăn của mình, hoạt động sắp tới, lượt thăm Đã duyệt, đồ gửi Đang giữ hoặc Đang được sử dụng. Gửi phản hồi loại Góp ý, Hỏi đáp, Khiếu nại, Mong muốn (loại mới, chỉ người cao tuổi gửi; người phụ trách ghi mục theo BR-M01-14 với nguồn "người cao tuổi" rồi mới trả lời). Người thân không thấy phản hồi của người cao tuổi. Nhận thông báo Nhẹ: nhắc lượt thăm, hoạt động, phản hồi đã trả lời. Không có: đăng ký thăm, đăng ký hoạt động, xác nhận người nhận đồ gửi. Nút SOS theo Q-369 | 14.6a, 14.7, BR-M10-11, 12, 17, BR-M13-03, 04, CFG-M10-02, 19.3, Phụ lục 27 | 009, 011, 012, 013, 014 |
+| Q-368 | Đăng nhập, tự đăng xuất, khóa tài khoản người cao tuổi | Đăng nhập, tự đăng xuất theo Q-370. Khóa ngay khi kết thúc lưu trú, khi người cao tuổi tự yêu cầu, hoặc khi Hành chính, Quản lý viện khóa có lý do. Người thân không khóa được, không xem được việc dùng tài khoản; người thân đề nghị khóa thì Hành chính lập yêu cầu theo vòng đời phê duyệt chung (6.6), Quản lý viện duyệt | 19.1, BR-M15-23 | 002, 009 |
+| Q-369 | Ứng dụng người cao tuổi có nút gọi trợ giúp không; một hay hai mức | Có, một nút SOS. Giữ 3 giây thì tạo cảnh báo Khẩn cấp loại "Người cao tuổi yêu cầu trợ giúp", không tự tạo sự cố (Q-67); bấm lặp lại gộp theo BR-M05-02. Người nhận như Q-67, thêm trưởng đoàn và người đi cùng khi ở Hoạt động bên ngoài; không báo người thân khi bấm. Người cao tuổi thấy "Đã gửi" rồi tên người tiếp nhận; chọn nhanh nơi đang ở, không bắt buộc. Chỉ gửi được khi ở viện hoặc ở Hoạt động bên ngoài; khác thì hiện số liên hệ của viện và 115. Không ai tắt được nút. Nút bổ sung, không thay chuông gọi. Sửa Q-366 | 9.1, 9.4, BR-M05-27, 14.6a, 18, 26.2, Phụ lục 27 | 007, 008, 009, 012, 014, 016 |
+| Q-370 | Người cao tuổi đăng nhập thế nào để không phải đăng nhập lại nhiều lần và để nút SOS luôn dùng được | Gắn máy của người cao tuổi với tài khoản (tối đa một máy); nút SOS dùng thiết bị đã gắn, không cần phiên. Phiên trên kênh người cao tuổi không tự hết theo thời gian; tài khoản không chuyển Không hoạt động. Đăng nhập lại bằng mã QR dùng một lần (CFG-M15-11) do Hành chính, Quản lý viện hoặc Điều dưỡng có phạm vi tạo; mật khẩu để dự phòng. Tùy chọn mở khóa bằng vân tay, khuôn mặt cho màn xem; không dùng PIN. Máy đã gắn không đăng nhập được tài khoản khác. Sửa Q-368 | 14.6a, 19.1, 19.2, BR-M15-05, 21, 24, CFG-M15-02, 10, 11, 26.2, Phụ lục 27 | 002, 012 |
+| Q-371 | Người cao tuổi không có tài khoản (hoặc muốn nói trực tiếp) gửi phản hồi thế nào | Hành chính và Điều dưỡng có phạm vi ghi thay, kể cả loại Mong muốn; người gửi là người cao tuổi, nguồn "ghi trực tiếp". Người không có tài khoản được báo kết quả trực tiếp; người ghi thay ghi ý kiến đóng hoặc mở lại, không ghi thì tự đóng. Kèm: đề nghị khóa tài khoản người cao tuổi của người thân đi theo vòng đời phê duyệt chung (6.6), sửa Q-368 | 14.7, BR-M15-23 | 002, 012 |
 
 ### 24.4. Điểm cần đối chiếu trước khi triển khai
 
@@ -2674,6 +2717,7 @@ Các quyết định dưới đây đã chốt để viết spec, nhưng dựa t
 | Vận hành | Q-284, Q-292, Q-293 | Người phụ trách từng bộ phận (luôn có, không ai làm thay; Phụ trách bộ phận Hành chính – Kế toán là Hành chính), hạn đối chiếu; danh mục bốn bộ phận; mức vượt 10% (CFG-M11-07) | Quản lý viện, Kế toán | Sửa danh mục, tham số; mở Q mới nếu đổi quy tắc |
 | Vận hành | Q-286, Q-289 | Bán trú không qua đêm; cách thuê giường qua đêm cho người bán trú; khai báo tạm trú, lưu trú cho phần nội trú | Hành chính, Quản lý viện | Mở Q mới |
 | Vận hành | Q-295 | Viện có đưa người bán trú về không; ai đưa về; cách xử lý khi không bàn giao được tại nơi nhận | Hành chính, Trưởng tầng | Mở Q mới |
+| Vận hành, pháp lý | Q-365, Q-366, Q-368, Q-369, Q-370, Q-371 | Người cao tuổi tự dùng ứng dụng: bao nhiêu người muốn và dùng được; phạm vi chức năng. Nút SOS: mức Khẩn cấp có gây nhiều báo động giả không; thời gian tới nơi thực tế; trách nhiệm của viện khi nút không gửi được (viện phải nói rõ nút không thay chuông gọi). Phiên không tự hết khi người cao tuổi mất máy | Quản lý viện, Hành chính, tư vấn pháp lý | Mở Q mới |
 | Tài chính | Q-297 | Đơn giá dịch vụ chăm sóc của từng mức; dịch vụ đi kèm đăng ký riêng | Kế toán, Quản lý viện | Nhập danh mục, đơn giá; không đổi spec |
 
 Căn cứ của hai tham số: CFG-M07-07 (2 ngày) là khoảng đủ để gia đình mang thuốc tới hoặc Bác sĩ kê thay trước khi hết thuốc, sau mốc đầu 5 ngày; CFG-M11-06 (10%) là biên chênh giá thông thường giữa lúc đề nghị và lúc mua, đủ nhỏ để không cần hỏi lại gia đình. Cả hai là tham số, đổi được qua màn hình cấu hình.
@@ -2757,7 +2801,7 @@ Mọi giá trị trong ngoặc vuông ở các quy tắc nghiệp vụ được 
 | CFG-M09-11 | Nhắc yêu cầu đổi ca, nghỉ đột xuất chưa quyết định trước giờ bắt đầu ca                                                                                                                                                                                                                         | 24 giờ                                                 | BR-M09-10, BR-M09-11                                                                                   |
 | CFG-M09-12 | Trọng số chăm sóc theo từng mức chăm sóc (Q-205; ba mức ở mục 4; nhu cầu chăm sóc không có trọng số) | Theo cơ sở (ví dụ cơ bản = 1, đặc biệt = 2,5) | Mục 4, BR-M09-02 |
 | CFG-M10-01 | Hạn xử lý phản hồi                                                                                                                                                                                                                                                                                                  | Cao 24 giờ / thường 72 giờ                             | BR-M10-05                                                                                              |
-| CFG-M10-02 | Tự đóng phản hồi khi người thân không phản hồi                                                                                                                                                                                                                                                                      | 7 ngày                                                 | 14.7                                                                                                   |
+| CFG-M10-02 | Tự đóng phản hồi khi người gửi không phản hồi                                                                                                                                                                                                                                                                      | 7 ngày                                                 | 14.7                                                                                                   |
 | CFG-M10-03 | Kỳ bản tin (mốc nhắc lập) / hạn duyệt bản tin                                                                                                                                                                                                                                                                                | Thứ 2 hằng tuần / 48 giờ                               | BR-M10-08                                                                                              |
 | CFG-M10-04 | Khung giờ thăm và sức chứa mỗi khung                                                                                                                                                                                                                                                            | 09:00–11:00 và 15:00–17:00; 20 người mỗi khung         | 14.2, BR-M10-02                                                                                        |
 | CFG-M10-05 | Thời hạn đăng ký thăm trước                                                                                                                                                                                                                                                                     | Tối thiểu 2 giờ, tối đa 14 ngày                        | 14.2, BR-M10-02                                                                                        |
@@ -2801,7 +2845,8 @@ Mọi giá trị trong ngoặc vuông ở các quy tắc nghiệp vụ được 
 | CFG-M15-07 | Khoảng phạm vi dữ liệu trước và sau giờ ca                                                                                                                                                                                                                                                                          | 2 giờ                                                  | BR-M15-02                                                                                              |
 | CFG-M15-08 | Thời gian ngoại tuyến tối đa được tự động chấp nhận                                                                                                                                                                                                                                                                 | 24 giờ                                                 | 8.6, Q-01                                                                                              |
 | CFG-M15-09 | Độ mạnh tối thiểu của mật khẩu | Tối thiểu 8 ký tự, có cả chữ và số | BR-M15-21 |
-| CFG-M15-10 | Thời gian không thao tác thì tự đăng xuất, theo kênh | Web 30 phút / ứng dụng nhân viên 12 giờ / ứng dụng người thân 30 ngày | BR-M15-21 |
+| CFG-M15-10 | Thời gian không thao tác thì tự đăng xuất, theo kênh | Web 30 phút / ứng dụng nhân viên 12 giờ / ứng dụng người thân 30 ngày / ứng dụng người cao tuổi không tự đăng xuất (BR-M15-24) | BR-M15-21 |
+| CFG-M15-11 | Hiệu lực mã QR đăng nhập của người cao tuổi | 5 phút | 19.1, BR-M15-24 |
 
 ## 26. Phụ lục – Actor và use case
 
@@ -2825,10 +2870,11 @@ Phụ lục 26 → 28 gồm actor, use case, ma trận quyền và quy tắc d�
 | AC-13 | Nhà cung cấp SMS     | Phụ (bên ngoài)    | Gửi tin nhắn thông báo                                                                                               | Cổng SMS                                 |
 | AC-14 | Kế toán | Chính | Thu tiền cọc và tiền nộp, ghi thu chi, đối soát sao kê, quyết toán số dư, xuất sao kê và file kế toán. Đối chiếu chứng từ mua sắm của bộ phận | Web |
 | AC-15 | Ngân hàng | Phụ (bên ngoài) | Cung cấp sao kê tài khoản thu của viện | File Excel/CSV do Kế toán tải |
+| AC-16 | Người cao tuổi | Chính | Xem lịch sinh hoạt, thực đơn, hoạt động, lượt thăm, đồ gửi của mình; gửi phản hồi, mong muốn; nhận nhắc; bấm nút SOS. Không bắt buộc (Q-365, Q-369) | App, tài khoản người cao tuổi (Q-346) |
 
 AC-12 là phần mềm kế toán bên ngoài (nếu có), nhận file do AC-14 xuất. Theo Q-214, Điều dưỡng (AC-04) thực hiện được mọi use case của Nhân viên chăm sóc (AC-05), nhưng quan hệ này không phải kế thừa actor: AC-05 không có use case của AC-04.
 
-Người cao tuổi không phải actor vì không trực tiếp dùng hệ thống. Bộ lập lịch (AC-11) được mô hình hóa thành actor để các use case tự động (chuyển quá hạn, leo thang, nhắc…) xuất hiện rõ trên diagram; đây là phần làm hệ thống khác với CRUD.
+Người cao tuổi là actor (AC-16) khi tự dùng hệ thống bằng tài khoản người cao tuổi (Q-365); người không có tài khoản vẫn có tiếng nói qua nhân viên ghi (Q-347). Bộ lập lịch (AC-11) được mô hình hóa thành actor để các use case tự động (chuyển quá hạn, leo thang, nhắc…) xuất hiện rõ trên diagram; đây là phần làm hệ thống khác với CRUD.
 
 ### 26.2. Danh sách use case
 
@@ -2894,18 +2940,18 @@ Tên use case là **lệnh nghiệp vụ** (động từ + đối tượng), kh�
 | UC-56 | Xem thông tin trên cổng               | Người thân                              | 012      | BR-M10-01           |
 | UC-57 | Đăng ký thăm                          | Người thân                              | 012      | BR-M10-02           |
 | UC-58 | Đón người cao tuổi (gồm "Viện đưa về" người bán trú) | Hành chính; Trưởng tầng, Nhân viên chăm sóc theo lệnh nguồn (Q-121) | 012      | 14.3, BR-M10-03     |
-| UC-59 | Gửi phản hồi / khiếu nại              | Người thân                              | 012      | 14.7, BR-M10-05     |
+| UC-59 | Gửi phản hồi / khiếu nại              | Người thân, Người cao tuổi                              | 012      | 14.7, BR-M10-05     |
 | UC-60 | Duyệt và gửi bản tin                  | Điều dưỡng                              | 012      | BR-M10-08, 09       |
 | UC-61 | Kiểm tra chi phí phát sinh            | Hành chính                              | 010      | 15.6                |
 | UC-62 | Duyệt và chốt kỳ chi phí (theo bảng chi phí từng người, Q-131) | Quản lý viện (Hành chính gửi chốt) | 010      | BR-M11-06           |
 | UC-63 | Tạo khoản điều chỉnh                  | Hành chính                              | 010      | BR-M11-05           |
 | UC-64 | Xuất dữ liệu cho kế toán              | Kế toán  | 010      | 23                  |
 | UC-65 | Tiếp nhận, bàn giao, trả đồ gửi       | Hành chính                              | 013      | 16, BR-M12-01 → 05  |
-| UC-66 | Nhận và xác nhận thông báo            | Nhân viên, Người thân                   | 009      | BR-M13-01, 02       |
+| UC-66 | Nhận và xác nhận thông báo            | Nhân viên, Người thân, Người cao tuổi                   | 009      | BR-M13-01, 02       |
 | UC-67 | Xem dashboard và báo cáo              | Quản lý viện, Trưởng tầng               | 016      | 18                  |
 | UC-68 | Quản lý tài khoản và phân quyền       | Quản lý viện                            | 002      | 19.1, 19.2, BR-M15-22 |
 | UC-69 | Cấu hình tham số                      | Quản lý viện                            | 000      | BR-M15-04           |
-| UC-70 | Đăng nhập                             | Nhân viên, Người thân                   | 002      | BR-M15-05, 21       |
+| UC-70 | Đăng nhập                             | Nhân viên, Người thân, Người cao tuổi                   | 002      | BR-M15-05, 21       |
 | UC-74 | Xác nhận giường sẵn sàng; xử lý hư hỏng phát hiện khi dọn giường | Trưởng tầng, Người phụ trách ca | 003 | 7.2, BR-M03-09, 10, 13, 05 |
 | UC-75 | Chuẩn bị và giao phiếu bữa ăn | Nhân viên bếp                      | 011      | 12.5, BR-M08-10, 12, 13 |
 | UC-76 | Nhận phiếu bữa ăn / báo sai lệch | Người nhận tại tầng (Q-143)     | 011      | BR-M08-11           |
@@ -2928,6 +2974,9 @@ Tên use case là **lệnh nghiệp vụ** (động từ + đối tượng), kh�
 | UC-93 | Lập, xác nhận chốt quỹ ngày | Kế toán; Quản lý viện xác nhận | 017 | 15.9, BR-M11-16 |
 | UC-94 | Lập, duyệt yêu cầu mua sắm | Phụ trách bộ phận lập; Quản lý viện duyệt | 019 | 15.10, BR-M11-17, 18 |
 | UC-95 | Ghi đã mua, đối chiếu chứng từ mua sắm | Phụ trách bộ phận; Kế toán đối chiếu; Quản lý viện xử lý lệch | 019 | 15.10, BR-M11-18 → 20 |
+| UC-96 | Xem thông tin trên kênh người cao tuổi | Người cao tuổi | 012 | 14.6a, BR-M10-11 |
+| UC-97 | Cấp, khóa tài khoản, gắn thiết bị người cao tuổi | Hành chính; Quản lý viện; Điều dưỡng (mã QR) | 002 | 19.1, BR-M15-23, 24 |
+| UC-98 | Bấm nút SOS | Người cao tuổi | 007 | 9.4, BR-M05-27 |
 
 Người nhận tại tầng ở UC-76 là Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc (kể cả Người phụ trách ca) trong phạm vi phân công của tầng/khu và ca (BR-M08-11, 2.4).
 
@@ -2935,80 +2984,83 @@ Người nhận tại tầng ở UC-76 là Trưởng tầng, Điều dưỡng, N
 
 Ký hiệu: **C** cấu hình; **T** thực hiện; **D** duyệt; **X** xem; **P** xem trong phạm vi được phân công; **—** không có quyền. Mọi quyền của nhân viên còn bị giới hạn bởi phạm vi dữ liệu và điều kiện pháp lý (BR-M15-01); ma trận này là quyền tối đa của vai trò.
 
-Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD Điều dưỡng, CS Nhân viên chăm sóc, Bếp Nhân viên bếp, HC Hành chính, NT Người thân, KT Kế toán.
+Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD Điều dưỡng, CS Nhân viên chăm sóc, Bếp Nhân viên bếp, HC Hành chính, NT Người thân, KT Kế toán, NCT Người cao tuổi.
 
-| Chức năng | Use case | QL | TT | BS | ĐD | CS | Bếp | HC | NT | KT |
-| ----------------------------------- | ----------------- | ---- | ---- | ---- | --- | --- | --- | --- | --- | --- |
-| Hồ sơ người cao tuổi | UC-01, 02 | X | P | X | P | P | — | T⁵ | X | X⁵ |
-| Bản đồng ý chia sẻ dữ liệu | UC-03 | X | — | — | — | — | — | T | X | — |
-| Dị ứng, bệnh nền | UC-04 | X | P | T | T | P | — | — | X¹ | — |
-| Danh mục dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc | BR-M01-11, Q-291 | C | — | X | X | — | — | — | — | — |
-| Đánh giá, mức chăm sóc | UC-05, 06 | X | P | T, D | T | — | — | — | — | — |
-| Tiếp nhận, hợp đồng, đặt cọc | UC-08, 09, 11, 12 | X, D⁶ | — | — | — | — | — | T²⁶ | X⁷ | T²⁶ |
-| Danh sách chờ, điểm ưu tiên | UC-10 | D | — | — | — | — | — | T | — | — |
-| Yêu cầu thay đổi lưu trú | UC-13, 14 | D | — | T | — | — | — | T, D⁴² | T² | — |
-| Tạm vắng, trở về | UC-15 | T⁸ | T | — | X | — | — | T | X | — |
-| Kết thúc lưu trú, qua đời | UC-17, 18 | D | — | T | — | — | — | T | X | T³⁹ |
-| Chuyển viện | UC-16 | X | — | T | T | — | — | — | — | — |
-| Cấu hình phòng, giường | UC-19 | C³⁵ | X | — | — | — | — | X | — | — |
-| Đặt, gỡ cách ly phòng | UC-19, 37 | T | X | T | X | — | — | X | — | — |
-| Dịch vụ, đơn giá | 6.4 | C | — | — | — | — | — | X | — | — |
-| Phân bổ, chuyển giường | UC-20, 21 | X | T | — | — | — | — | T | — | — |
-| Xử lý hư hỏng, đưa giường vào bảo trì | UC-74 | T | T | — | — | — | — | X | — | — |
-| Xác nhận giường sẵn sàng | UC-74 | X | T | — | T⁴⁰ | T⁴⁰ | — | X | — | — |
-| Kế hoạch chăm sóc | UC-22, 23 | X | X | D | T | P | — | — | — | — |
-| Lập công việc của ca | UC-24 | X | T | — | T⁴¹ | — | — | — | — | — |
-| Checklist, ghi nhận công việc | UC-25, 26 | X | T | X²² | T | T | — | — | — | — |
-| Điểm danh bán trú đến/về | UC-28 | X | X | — | T²⁷ | T | — | T | — | — |
-| Xử lý việc quá hạn | UC-27 | X | T⁹ | — | — | — | — | — | — | — |
-| Hoạt động, ngoài viện | UC-29, 30 | X | T | — | T²⁷ | T | — | — | X | — |
-| Kiểm tra chất lượng³⁶ | UC-31 | X | T | — | — | — | — | — | — | — |
-| Chỉ số sức khỏe | UC-32 | X | P | X | T | T | — | — | X¹ | — |
-| Ngưỡng cảnh báo | UC-33 | X | P | T | X | — | — | — | — | — |
-| Xử lý cảnh báo | UC-34 | X | T | T | T | X | — | — | — | — |
-| Sự cố, khẩn cấp | UC-35, 36 | X, T²³ ⁴³ | T¹⁰ ⁴³ | T¹⁰ ⁴³ | T¹⁰ | T¹⁰ | T¹⁰ | T¹⁰ | X¹ | T¹⁰ |
-| Khoanh vùng lây nhiễm | UC-37 | T | X | T | X | — | — | X | — | — |
-| Danh sách tiếp xúc | 9.6 | X | P | T | T²⁴ | — | — | — | — | — |
-| Đơn thuốc | UC-39, 40 | X | — | T³ | T⁴ | — | — | — | X¹ | — |
-| Danh mục thuốc | 11.1 | C | — | X | X | — | — | — | — | — |
-| Phát thuốc, thuốc khi cần | UC-41, 42 | X | X | X | T | — | — | — | — | — |
-| Đối chiếu thuốc, thuốc gia đình gửi | UC-43, 44 | X | — | T | T | — | — | — | X | — |
-| Tiếp nhận thuốc cung ứng | 11.7 | X | — | X | T⁴⁴ | — | — | — | — | X |
-| Chế độ ăn | UC-45 | X | — | T | X | — | X | — | X | — |
-| Món ăn, thực đơn | UC-46 | X | — | D | X | — | T | — | X | — |
-| Suất ăn đã chốt, phiếu bữa ăn | UC-47 | X | X | X | — | — | X¹⁴ | — | — | — |
-| Chuẩn bị, giao phiếu, lưu mẫu | UC-75, 78 | X | X | X | — | — | T | — | — | — |
-| Nhận phiếu, báo sai lệch | UC-76 | X | T¹⁵ | X | T¹⁵ | T¹⁵ | X | — | — | — |
-| Xác nhận phục vụ suất đặc biệt | UC-77 | X | X | X | T²⁷ | T | — | — | — | — |
-| Đối chiếu đồ ăn gia đình | UC-48 | X | — | T | T | — | — | — | — | — |
-| Hồ sơ nhân viên, chứng chỉ | UC-49 | T | X | — | — | — | — | — | — | — |
-| Lịch ca, phân công | UC-50, 51 | T, D | T, D | P | P | P | P | P | — | — |
-| Bàn giao ca | UC-52, 53 | X | T | X | T | P²⁵ | — | — | — | — |
-| Yêu cầu đổi ca | UC-54 | X | D | T | T | T | T | T | — | — |
-| Người thân và quyền | UC-55 | D¹⁸ | — | — | — | — | — | T | T² | — |
-| Đăng ký thăm | UC-57 | X | X | — | — | — | — | T | T | — |
-| Quy trình đón, ngoại lệ đón | UC-58 | D¹⁹ | T¹⁹ | — | T²⁷ | T¹⁹ | — | T | T² | — |
-| Mong muốn về khách thăm, người đón | 14.1 | X | T | — | T | — | — | T | — | — |
-| Người thân ở lại | 14.4 | X²⁰ | T²⁰ | — | — | — | — | T | X | — |
-| Phản hồi, khiếu nại | UC-59 | D | T | — | T | — | — | T | T | — |
-| Bản tin định kỳ | UC-60 | X | X²¹ | — | T | — | — | — | X | — |
-| Chi phí, khoản điều chỉnh | UC-61, 63 | D | — | — | — | — | — | T¹⁶ | X¹⁶ | X¹⁶ |
-| Chốt kỳ, xuất kế toán | UC-62, 64 | D¹⁷ | — | — | — | — | — | T¹⁷ | — | T²⁸ |
-| Đề nghị mua hộ | UC-79 | D | — | — | — | — | — | T | T² | — |
-| Đồ gửi | UC-65 | X | X | — | T | — | — | T | X | — |
-| Dashboard, báo cáo | UC-67 | X | P | P¹¹ | P | — | — | P¹¹ | — | P²⁹ |
-| Tài khoản, phân quyền, tham số | UC-68, 69 | C | — | — | — | — | — | T¹² | — | — |
-| Nhật ký thay đổi | 19.4 | X | P | P | P | P | P | P | — | P |
-| Đính chính bản ghi không gắn tầng | 1.5 | D | T¹³ | T¹³ | T¹³ | T¹³ | T¹³ | T¹³ | — | T¹³ |
-| Khai báo tạm trú, lưu trú | UC-80, 81 | X | — | — | — | — | — | T | — | — |
-| Nguyện vọng cuối đời | UC-82 | X | P | T | T | P | — | —³⁰ | X¹ | —³⁰ |
-| Dấu nguy kịch, xác nhận lại nguyện vọng | UC-83, 84 | X | X | T | T³¹ | — | — | — | X¹ | — |
-| Số dư, thu chi, đối soát | UC-85, 86, 87 | D³² | — | — | — | — | — | X | X¹⁶ | T |
-| Sao kê, báo cáo thu chi | UC-88 | X | — | — | — | — | — | — | X¹⁶ | T |
-| Chốt quỹ ngày | UC-93 | D | — | — | — | — | — | — | — | T |
-| Tài sản, lịch xe | UC-89, 90 | C, D³⁷ | T³³ ³⁷ | T³⁷ | T³⁷ | T³⁷ | T³⁷ | T³³ ³⁷ | — | T³⁷ |
-| Kho nguyên liệu | UC-91, 92 | X, D³⁴ | — | X | — | — | T³⁴ | — | — | — |
-| Yêu cầu mua sắm | UC-94, 95 | D | T³⁷ | T³⁷ | T³⁷ ⁴⁴ | T³⁷ | T³⁷ | T³⁷ | — | T³⁸ |
+| Chức năng | Use case | QL | TT | BS | ĐD | CS | Bếp | HC | NT | KT | NCT |
+| ----------------------------------- | ----------------- | ---- | ---- | ---- | --- | --- | --- | --- | --- | --- | --- |
+| Hồ sơ người cao tuổi | UC-01, 02 | X | P | X | P | P | — | T⁵ | X | X⁵ | — |
+| Bản đồng ý chia sẻ dữ liệu | UC-03 | X | — | — | — | — | — | T | X | — | — |
+| Dị ứng, bệnh nền | UC-04 | X | P | T | T | P | — | — | X¹ | — | — |
+| Danh mục dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc | BR-M01-11, Q-291 | C | — | X | X | — | — | — | — | — | — |
+| Đánh giá, mức chăm sóc | UC-05, 06 | X | P | T, D | T | — | — | — | — | — | — |
+| Tiếp nhận, hợp đồng, đặt cọc | UC-08, 09, 11, 12 | X, D⁶ | — | — | — | — | — | T²⁶ | X⁷ | T²⁶ | — |
+| Danh sách chờ, điểm ưu tiên | UC-10 | D | — | — | — | — | — | T | — | — | — |
+| Yêu cầu thay đổi lưu trú | UC-13, 14 | D | — | T | — | — | — | T, D⁴² | T² | — | — |
+| Tạm vắng, trở về | UC-15 | T⁸ | T | — | X | — | — | T | X | — | — |
+| Kết thúc lưu trú, qua đời | UC-17, 18 | D | — | T | — | — | — | T | X | T³⁹ | — |
+| Chuyển viện | UC-16 | X | — | T | T | — | — | — | — | — | — |
+| Cấu hình phòng, giường | UC-19 | C³⁵ | X | — | — | — | — | X | — | — | — |
+| Đặt, gỡ cách ly phòng | UC-19, 37 | T | X | T | X | — | — | X | — | — | — |
+| Dịch vụ, đơn giá | 6.4 | C | — | — | — | — | — | X | — | — | — |
+| Phân bổ, chuyển giường | UC-20, 21 | X | T | — | — | — | — | T | — | — | — |
+| Xử lý hư hỏng, đưa giường vào bảo trì | UC-74 | T | T | — | — | — | — | X | — | — | — |
+| Xác nhận giường sẵn sàng | UC-74 | X | T | — | T⁴⁰ | T⁴⁰ | — | X | — | — | — |
+| Kế hoạch chăm sóc | UC-22, 23 | X | X | D | T | P | — | — | — | — | — |
+| Lập công việc của ca | UC-24 | X | T | — | T⁴¹ | — | — | — | — | — | — |
+| Checklist, ghi nhận công việc | UC-25, 26 | X | T | X²² | T | T | — | — | — | — | — |
+| Điểm danh bán trú đến/về | UC-28 | X | X | — | T²⁷ | T | — | T | — | — | — |
+| Xử lý việc quá hạn | UC-27 | X | T⁹ | — | — | — | — | — | — | — | — |
+| Hoạt động, ngoài viện | UC-29, 30 | X | T | — | T²⁷ | T | — | — | X | — | X⁴⁵ |
+| Kiểm tra chất lượng³⁶ | UC-31 | X | T | — | — | — | — | — | — | — | — |
+| Chỉ số sức khỏe | UC-32 | X | P | X | T | T | — | — | X¹ | — | — |
+| Ngưỡng cảnh báo | UC-33 | X | P | T | X | — | — | — | — | — | — |
+| Xử lý cảnh báo | UC-34 | X | T | T | T | X | — | — | — | — | — |
+| Nút SOS | UC-98 | — | — | — | — | — | — | — | — | — | T⁴⁷ |
+| Sự cố, khẩn cấp | UC-35, 36 | X, T²³ ⁴³ | T¹⁰ ⁴³ | T¹⁰ ⁴³ | T¹⁰ | T¹⁰ | T¹⁰ | T¹⁰ | X¹ | T¹⁰ | — |
+| Khoanh vùng lây nhiễm | UC-37 | T | X | T | X | — | — | X | — | — | — |
+| Danh sách tiếp xúc | 9.6 | X | P | T | T²⁴ | — | — | — | — | — | — |
+| Đơn thuốc | UC-39, 40 | X | — | T³ | T⁴ | — | — | — | X¹ | — | — |
+| Danh mục thuốc | 11.1 | C | — | X | X | — | — | — | — | — | — |
+| Phát thuốc, thuốc khi cần | UC-41, 42 | X | X | X | T | — | — | — | — | — | — |
+| Đối chiếu thuốc, thuốc gia đình gửi | UC-43, 44 | X | — | T | T | — | — | — | X | — | — |
+| Tiếp nhận thuốc cung ứng | 11.7 | X | — | X | T⁴⁴ | — | — | — | — | X | — |
+| Chế độ ăn | UC-45 | X | — | T | X | — | X | — | X | — | — |
+| Món ăn, thực đơn | UC-46 | X | — | D | X | — | T | — | X | — | X⁴⁵ |
+| Suất ăn đã chốt, phiếu bữa ăn | UC-47 | X | X | X | — | — | X¹⁴ | — | — | — | — |
+| Chuẩn bị, giao phiếu, lưu mẫu | UC-75, 78 | X | X | X | — | — | T | — | — | — | — |
+| Nhận phiếu, báo sai lệch | UC-76 | X | T¹⁵ | X | T¹⁵ | T¹⁵ | X | — | — | — | — |
+| Xác nhận phục vụ suất đặc biệt | UC-77 | X | X | X | T²⁷ | T | — | — | — | — | — |
+| Đối chiếu đồ ăn gia đình | UC-48 | X | — | T | T | — | — | — | — | — | — |
+| Hồ sơ nhân viên, chứng chỉ | UC-49 | T | X | — | — | — | — | — | — | — | — |
+| Lịch ca, phân công | UC-50, 51 | T, D | T, D | P | P | P | P | P | — | — | — |
+| Bàn giao ca | UC-52, 53 | X | T | X | T | P²⁵ | — | — | — | — | — |
+| Yêu cầu đổi ca | UC-54 | X | D | T | T | T | T | T | — | — | — |
+| Người thân và quyền | UC-55 | D¹⁸ | — | — | — | — | — | T | T² | — | — |
+| Đăng ký thăm | UC-57 | X | X | — | — | — | — | T | T | — | X⁴⁵ |
+| Quy trình đón, ngoại lệ đón | UC-58 | D¹⁹ | T¹⁹ | — | T²⁷ | T¹⁹ | — | T | T² | — | — |
+| Mong muốn về khách thăm, người đón | 14.1 | X | T | — | T | — | — | T | — | — | — |
+| Người thân ở lại | 14.4 | X²⁰ | T²⁰ | — | — | — | — | T | X | — | — |
+| Phản hồi, khiếu nại | UC-59 | D | T | — | T | — | — | T | T | — | T⁴⁶ |
+| Kênh người cao tuổi | UC-96 | — | — | — | — | — | — | — | — | — | X⁴⁵ |
+| Bản tin định kỳ | UC-60 | X | X²¹ | — | T | — | — | — | X | — | — |
+| Chi phí, khoản điều chỉnh | UC-61, 63 | D | — | — | — | — | — | T¹⁶ | X¹⁶ | X¹⁶ | — |
+| Chốt kỳ, xuất kế toán | UC-62, 64 | D¹⁷ | — | — | — | — | — | T¹⁷ | — | T²⁸ | — |
+| Đề nghị mua hộ | UC-79 | D | — | — | — | — | — | T | T² | — | — |
+| Đồ gửi | UC-65 | X | X | — | T | — | — | T | X | — | X⁴⁵ |
+| Dashboard, báo cáo | UC-67 | X | P | P¹¹ | P | — | — | P¹¹ | — | P²⁹ | — |
+| Tài khoản, phân quyền, tham số | UC-68, 69 | C | — | — | — | — | — | T¹² | — | — | — |
+| Tài khoản người cao tuổi | UC-97 | T | — | — | T⁴⁸ | — | — | T | — | — | — |
+| Nhật ký thay đổi | 19.4 | X | P | P | P | P | P | P | — | P | — |
+| Đính chính bản ghi không gắn tầng | 1.5 | D | T¹³ | T¹³ | T¹³ | T¹³ | T¹³ | T¹³ | — | T¹³ | — |
+| Khai báo tạm trú, lưu trú | UC-80, 81 | X | — | — | — | — | — | T | — | — | — |
+| Nguyện vọng cuối đời | UC-82 | X | P | T | T | P | — | —³⁰ | X¹ | —³⁰ | — |
+| Dấu nguy kịch, xác nhận lại nguyện vọng | UC-83, 84 | X | X | T | T³¹ | — | — | — | X¹ | — | — |
+| Số dư, thu chi, đối soát | UC-85, 86, 87 | D³² | — | — | — | — | — | X | X¹⁶ | T | — |
+| Sao kê, báo cáo thu chi | UC-88 | X | — | — | — | — | — | — | X¹⁶ | T | — |
+| Chốt quỹ ngày | UC-93 | D | — | — | — | — | — | — | — | T | — |
+| Tài sản, lịch xe | UC-89, 90 | C, D³⁷ | T³³ ³⁷ | T³⁷ | T³⁷ | T³⁷ | T³⁷ | T³³ ³⁷ | — | T³⁷ | — |
+| Kho nguyên liệu | UC-91, 92 | X, D³⁴ | — | X | — | — | T³⁴ | — | — | — | — |
+| Yêu cầu mua sắm | UC-94, 95 | D | T³⁷ | T³⁷ | T³⁷ ⁴⁴ | T³⁷ | T³⁷ | T³⁷ | — | T³⁸ | — |
 
 ¹ Chỉ khi có bản đồng ý chia sẻ dữ liệu đang hiệu lực bao gồm người thân đó (BR-M01-08). ² Chỉ người đại diện; thao tác là gửi yêu cầu hoặc xác nhận, không trực tiếp thay đổi. ³ Kê đơn nội bộ chỉ khi cơ sở và bác sĩ có giấy phép còn hiệu lực (BR-M06-05); nếu không, chỉ nhập đơn từ cơ sở bên ngoài. ⁴ Chỉ nhập đơn đã được kê tại cơ sở y tế bên ngoài, bắt buộc có thông tin cơ sở kê (BR-M07-05).
 
@@ -3052,6 +3104,10 @@ Cột KT (Kế toán): ô của các dòng không nêu ở đây là "—", tr�
 - ⁴² Hành chính duyệt thay đổi nhỏ (chỉ thêm/bớt dịch vụ thuộc gói, không đổi đơn giá, khoản phí); mọi yêu cầu khác chỉ Quản lý viện duyệt (6.6, Q-338).
 - ⁴³ Quản lý viện, Trưởng tầng, Bác sĩ giao người xử lý sự cố cho Điều dưỡng, Trưởng tầng hoặc Bác sĩ có quyền với người cao tuổi (9.4, Q-339); người xử lý hiện tại được giao lại cho người khác.
 - ⁴⁴ Điều dưỡng lập, gửi, rút lại, hủy yêu cầu mua sắm loại "thuốc" kể cả khi không là Phụ trách bộ phận; ghi đã mua vẫn do Phụ trách bộ phận (³⁷). Điều dưỡng ghi lần tiếp nhận thuốc cung ứng (11.7, Q-337).
+- ⁴⁵ Chỉ dữ liệu của chính người cao tuổi đó, qua kênh người cao tuổi (14.6a, BR-M10-11): lịch sinh hoạt trong ngày, thực đơn và suất ăn dự kiến của mình, hoạt động sắp tới, lượt thăm Đã duyệt của mình, đồ gửi ở Đang giữ hoặc Đang được sử dụng; không có thông tin sức khỏe, chi phí, số dư (Q-367).
+- ⁴⁶ Người cao tuổi gửi phản hồi của chính mình, kể cả loại Mong muốn, và xác nhận đóng; người thân không thấy phản hồi này (BR-M10-11, BR-M10-12).
+- ⁴⁷ Người cao tuổi bấm trên thiết bị đã gắn (BR-M05-27, BR-M15-24); cảnh báo tạo ra được xử lý theo dòng "Xử lý cảnh báo".
+- ⁴⁸ Điều dưỡng trong phạm vi chỉ tạo mã QR đăng nhập cho người cao tuổi (19.1, Q-370); tạo, khóa tài khoản và gỡ thiết bị do Hành chính, Quản lý viện.
 
 ## 28. Phụ lục – Quy tắc dữ liệu (DBR)
 

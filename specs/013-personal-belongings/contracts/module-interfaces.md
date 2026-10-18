@@ -20,6 +20,7 @@ Giao diện Java công khai ở `m12.api` và bản cài các SPI do module th�
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | data-model; bản ghi bàn giao thuộc danh sách bảo vệ BR-M15-03 | 000 |
 | `GanPhamViProvider` (002) | `M12.DO_GUI`, `M12.XAC_NHAN_NGUOI_NHAN`, `M12.DONG_Y_TU_GIU`: người cao tuổi; `M12.PHIEU_KIEM_KE`: toàn viện | 002 FR-034 |
 | `QuyenTepProvider` (`common.tep`) | `M12.ANH_DO_GUI`: Hành chính, Điều dưỡng (phạm vi), Quản lý viện, Trưởng tầng (phạm vi), người thân có `xemDoGui`; `M12.BAN_KY`, `M12.BIEN_BAN`: Hành chính, Quản lý viện | NFR-08, BR-M12-09 |
+| `DoGuiKenhNctPort` (`m10.api`) *(bổ sung 2026-10-18)* | `dangGiu(nctId)`: Đang giữ, Đang được sử dụng; tên, trạng thái, ảnh (K-16); `M12.ANH_DO_GUI` thêm người cao tuổi chủ đồ | 012 FR-083 (e) |
 
 ### 1.2. `m12.api.DoGuiApi` (đọc; 004 hiển thị căn cứ, 016)
 

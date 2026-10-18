@@ -126,11 +126,14 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 ### Tests cho User Story 4
 
 - [ ] T029 [P] [US4] Test đơn vị `BT/m13/GioYenTinhTest.java` và `BT/m13/BR_M13_03_GioYenTinhIT.java`, `FR_024_DoiThamSoIT.java`: giữ tới hết giờ yên tĩnh; khi giải phóng không còn đủ điều kiện → `KHONG_GUI`; người cao tuổi qua đời → `KHONG_GUI`; đổi CFG-M13-02 tính lại thời điểm dự kiến (Q20, Q21, Q24, Q27)
+- [ ] T040 [P] [US4] *(Bổ sung 2026-10-18, Q-366)* Test `BT/m13/FR_022a_NguoiCaoTuoiNhanIT.java`: nhóm (f) chỉ nhận Nhẹ phần `CHUNG`, sai thì `BI_TU_CHOI`; giờ yên tĩnh áp cho người cao tuổi; không có tài khoản thì không có người nhận và không vào lỗi gửi (FR-007, FR-022, FR-022a; quickstart R1 → R3)
 
 ### Implementation cho User Story 4
 
 - [ ] T030 [US4] Cài `BE/m13/yentinh/internal/GioYenTinh.java` (giữ trong transaction tiếp nhận, giải phóng ở việc 20 giây, kiểm lại điều kiện lúc giải phóng, gồm `XetPhamViDongY` với bản đồng ý hiện hành) và listener `ThamSoDaDoi(CFG-M13-02)`, `NguoiCaoTuoiDaChuyenTrangThai(GHI_NHAN_QUA_DOI)` (research B-06)
 - [ ] T031 [P] [US4] Tạo app `mobile/lib/nguoi-than/thong-bao/` (nhận đẩy, hộp thông báo)
+- [ ] T041 [US4] *(Bổ sung 2026-10-18)* Thêm `NhomNhan.NguoiCaoTuoi` vào `common.thongbao`, phân giải trong `BE/m13/nguoinhan/internal/XacDinhNguoiNhan.java` qua `TaiKhoanApi.theoNguoiCaoTuoi`; kiểm FR-022a trong kiểm tra yêu cầu; `GioYenTinh` áp cho `NGUOI_CAO_TUOI`; `thiet_bi_day.ung_dung` thêm `APP_NGUOI_CAO_TUOI` (migration `MIG/V009_04__nguoi_cao_tuoi_nhan.sql`)
+- [ ] T042 [P] [US4] *(Bổ sung 2026-10-18)* Tạo `mobile/lib/nguoi-cao-tuoi/thong-bao/` (nhận đẩy, hộp thông báo chữ lớn) và test `mobile/test/nguoi-cao-tuoi/thong_bao_test.dart`
 
 **Checkpoint**: Thông báo người thân chạy đúng.
 
@@ -161,7 +164,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 - [ ] T036 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/009-notification-service/contracts/api-009.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 009
 - [ ] T037 Chạy kiểm thử đầu–cuối với sự kiện thật của 001 → 008 (một sự kiện mỗi module) và đo NFR-03 (Khẩn cấp ≤ 10 giây)
 - [ ] T038 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T039 Rà truy vết data-model mục 11: BR-M13-01 → 05, BR-M10-06 (phần 009), DBR-03 (phần 009), FR-005, FR-012, FR-032, FR-001a, FR-014 và FR-014a (bổ sung 2026-10-18) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-039, FR-040, FR-041, FR-042, FR-043, FR-043a, FR-043b — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T039 Rà truy vết data-model mục 11: BR-M13-01 → 05, FR-007 (f), FR-022a, BR-M10-06 (phần 009), DBR-03 (phần 009), FR-005, FR-012, FR-032, FR-001a, FR-014 và FR-014a (bổ sung 2026-10-18) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-039, FR-040, FR-041, FR-042, FR-043, FR-043a, FR-043b — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

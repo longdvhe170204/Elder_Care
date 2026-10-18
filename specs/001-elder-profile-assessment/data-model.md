@@ -298,6 +298,7 @@ Trigger chỉ cho `UPDATE` hai cột `trang_thai` và `thay_the_boi_id`, theo ch
 | `nguon_loai` | `ENUM('NGUOI_CAO_TUOI','NGUOI_THAN','NHAN_VIEN_QUAN_SAT')` | `NOT NULL` |
 | `nguon_nguoi_than_id` | `BIGINT NULL` | `CHECK ((nguon_loai = 'NGUOI_THAN') = (nguon_nguoi_than_id IS NOT NULL))`; người thân có quan hệ Hiệu lực với người cao tuổi lúc ghi, kiểm bằng `NguonYKienApi.kiemTra` |
 | `nguoi_ghi_id`, `thoi_diem` | | Cột chuẩn; thời điểm từ `Clock` |
+| `phan_hoi_id` | `BIGINT NULL` | *(Bổ sung 2026-10-18, FR-023g)* Cột tùy chọn của mẫu: chỉ bảng có lệnh ghi mục từ phản hồi Mong muốn của 012 mới có (hiện là `so_thich` của 014); có giá trị thì phát `YKienDaGhiTuPhanHoi` (research H-17). `mong_muon_nct` của 012 không cần cột này vì liên kết nằm ở `phan_hoi_y_kien` cùng module; bảng của 004, 005 không có cột |
 
 Bảng dùng mẫu này không có quyền `UPDATE` trên cột nội dung và nguồn (trigger hoặc không cấp quyền); thay đổi bằng dòng mới, dòng cũ vẫn đọc được (FR-023g).
 

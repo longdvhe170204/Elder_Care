@@ -104,6 +104,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Kiến trúc | `ApplicationModules.verify()`; ArchUnit: gói `..lich..` không lập bản tin, không lập khoản (Q-306); DTO người thân không có trường nhật ký | |
 | Web (Vitest) | Cổng ẩn phần không có quyền; đăng ký thăm hiển thị mọi lý do từ chối; soạn bản tin không có nội dung soạn sẵn | Q22, Q34, Q38 |
 | App (`flutter_test`) | App người thân: đăng ký thăm ≤ 2 phút (SC-004), xác nhận yêu cầu; app nhân viên: ghi đón chỉ trực tuyến | Q8, Q20, Q21 |
+| Kênh người cao tuổi *(bổ sung 2026-10-18)* | `FR_083_KenhNguoiCaoTuoiIT`, `FR_084_KenhKhongLoIT`, `FR_058a_PhanHoiNguoiCaoTuoiIT`, `BR_M10_12_MongMuonIT`, `FR_086_NguoiThanKhongThayIT`; app `hom_nay_test.dart`, `nut_sos_test.dart` | K1 → K9 (mục bổ sung bên dưới) |
 
 ## 5. Tiêu chí hoàn tất (đối chiếu SC)
 
@@ -119,3 +120,19 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | SC-008 | Bộ 30 ngày ở lại so tính tay (Q31, Q32) |
 | SC-009 | Q28 ≤ 1 phút |
 | SC-010 | Kiểm bất biến DBR-02 sau mọi kịch bản |
+| SC-011 *(bổ sung 2026-10-18)* | K1, K2, K5; quét mọi đường dẫn `/kenh-nguoi-cao-tuoi/**` không có trường thuộc danh mục `TRUONG_SUC_KHOE`, chi phí, số dư |
+
+## Kịch bản bổ sung 2026-10-18, lượt 3 (Q-365 → Q-371)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| K1 | A (AC-16) gọi lần lượt `/kenh-nguoi-cao-tuoi/hom-nay`, `thuc-don`, `hoat-dong`, `luot-tham`, `do-gui` | Đủ năm phần của A; không có trường sức khỏe, chi phí, số dư, hợp đồng | US9 #1, FR-083, FR-084 |
+| K2 | A gọi `/cong/nguoi-cao-tuoi/{B}/chung` và `/phan-hoi?nct=B` | 403 | US9 #2, FR-084 |
+| K3 | A gửi Mong muốn "không muốn gặp ông X" chủ đề `KHACH_THAM_NGUOI_DON`; H trả lời ngay; H ghi `mong_muon_nct`, `gan-y-kien`, trả lời | Mới, Thường, phụ trách Hành chính; 409 `CHUA_GAN_Y_KIEN`; Đã phản hồi, A nhận Nhẹ | US9 #3, FR-058b |
+| K4 | A gửi Mong muốn "mấy giờ ăn tối"; T `doi-loai` không lý do; có lý do | 422; loại Hỏi đáp, mức và hạn giữ | US9 #4, FR-066 |
+| K5 | R (đại diện của A) gọi `GET /phan-hoi` | Không có phản hồi nào của A | US9 #5, FR-086 |
+| K6 | A `dong-y-dong` phản hồi Đã phản hồi | Đóng, `cach_dong = NGUOI_GUI` | US9 #6 |
+| K7 | D ghi thay Góp ý cho E (không có tài khoản); T trả lời; D `dong-y-dong` thay | Người gửi E, nguồn `GHI_TRUC_TIEP`; Đóng, `cach_dong = GHI_THAY` | US9 #7, FR-058a |
+| K8 | A gửi Hỏi đáp nhóm `SUC_KHOE_THUOC`; T soạn trả lời | T thấy nhắc trả lời trực tiếp; A thấy trả lời chỉ phần chung | US9 #8, FR-058a |
+| K9 | App: tài khoản A Đã khóa; mở app trên máy đã từng gắn, bấm SOS | Không gửi được; màn hiện số liên hệ đã lưu và 115 | US9 #9, FR-085 |
+

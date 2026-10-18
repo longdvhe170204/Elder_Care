@@ -34,6 +34,13 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - **Phần chung, phần sức khỏe của sự cố** (FR-013, Q-352): 009 không đổi cơ chế; 007, 012 khai hai `PhanNoiDung` (`CHUNG`, `SUC_KHOE`) theo 007 research S-19a.
 - Khuôn đổi nên mọi module nguồn có nhóm người thân phải khai đối tượng: 001, 004, 006, 007, 010, 011, 012, 013, 014 (điểm báo lại 7). Điểm báo lại 5 → 7 bên dưới.
 
+### Cập nhật 2026-10-18, lượt 3 (spec mục "Cập nhật 2026-10-18, lượt 3": Q-366)
+
+- **Nhóm (f) chính người cao tuổi** (FR-007): biến thể `NhomNhan.NguoiCaoTuoi(nctId)`, phân giải qua `TaiKhoanApi.theoNguoiCaoTuoi` (002): chỉ tài khoản không ở Đã khóa, Không hoạt động. Không có cách thay; rỗng thì không ghi lỗi gửi (research B-04).
+- **Kiểm yêu cầu** (FR-022a): yêu cầu có nhóm (f) phải mức Nhẹ và chỉ có phần `CHUNG`; sai thì `BI_TU_CHOI` với mã `NHOM_NGUOI_CAO_TUOI_KHONG_HOP_LE` vào danh sách lỗi gửi (research B-02).
+- **Kênh và giờ yên tĩnh**: Nhẹ chỉ trong ứng dụng (đẩy tới app chung, `thiet_bi_day.ung_dung = APP_NGUOI_CAO_TUOI`); `GioYenTinh` áp cho người nhận `NGUOI_CAO_TUOI` như người thân (research B-06). Hộp thông báo của tài khoản người cao tuổi dùng endpoint hộp thư sẵn có.
+- Người gửi yêu cầu nhóm (f): 012 (nhắc lượt thăm, phản hồi đã trả lời), 014 (nhắc hoạt động). Cảnh báo SOS (007) gửi nhân viên, không đổi gì ở 009.
+
 ## Technical Context
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).
@@ -185,6 +192,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 2. **001 → 008**: mọi sự kiện đã ghi "009 nghe" trong module-interfaces của các plan này cài `CoYeuCauThongBao` và dựng yêu cầu với mức, nhóm, loại thông tin, khóa đã nêu ở plan đó (001 H-14, 003 G-12, 004 T-12, 005 C-13, 006 D-17, 007 S-19, 008 N-14). Không đổi hành vi. Ánh xạ các tên nhóm đã dùng sang `NhomNhan` ở [contracts/module-interfaces.md](contracts/module-interfaces.md) mục 1.1.
 3. **007** (đã ghi bổ sung vào [../007-health-alert-incident/contracts/module-interfaces.md](../007-health-alert-incident/contracts/module-interfaces.md) mục 1.6): `CanhBaoLenhApi.tiepNhan`, `SuCoLenhApi.tiepNhan` cho "Xác nhận và tiếp nhận" (FR-026a). 009 cài `NhatKyThongBaoPort` qua `ThongBaoTraCuuApi.theoNguon`; nghe `YeuCauDungNhacGoiDien`, `DaCoKetQuaXacNhanLai`.
 4. **002**: mã thiết bị (A-02) dùng làm khóa `thiet_bi_day`; 009 không đổi phiên đăng nhập. **008**: `CaTrucApi.dangTrongCa`, `NhiemVuApi`, `PhanCongApi` như đã khai báo. **012** cài `NguoiThanNhanThongBaoPort`; nghe `ThongBaoDaXem` (BR-M10-06). **016** (giai đoạn sau, Q-194) đọc thống kê từ `thong_bao_trang_thai`, `ket_qua_goi`.
+5. *(Bổ sung 2026-10-18, Q-366)* **002** cung cấp `TaiKhoanApi.theoNguoiCaoTuoi` (002 module-interfaces 1.6). **012**, **014** khai nhóm `NguoiCaoTuoi` cho các thông báo ở 012 FR-069, 014 FR-071.
 
 ## Điểm cần báo lại về tài liệu nguồn
 

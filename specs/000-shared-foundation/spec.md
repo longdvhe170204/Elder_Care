@@ -94,6 +94,11 @@ Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi 
 - **Q-338**: loại yêu cầu "Thay đổi lưu trú" có thêm người duyệt Hành chính cho thay đổi nhỏ (chỉ thêm/bớt dịch vụ thuộc gói), theo 004 FR-043.
 - **Q-345**: danh mục loại yêu cầu phê duyệt bỏ "Hệ thống" khỏi người lập yêu cầu thay đổi lưu trú (Hành chính lập sau đánh giá lại, chuyển giường gấp, Q-52, Q-306); dòng "Quyết định giữ giường khi vắng" không còn là yêu cầu phê duyệt mà là lệnh của Quản lý viện ở 004 (BR-M02-07, Q-307).
 
+### Cập nhật 2026-10-18, lượt 3 (đồng bộ Q-365 → Q-371)
+
+- Danh mục loại yêu cầu phê duyệt thêm "Khóa tài khoản người cao tuổi theo đề nghị của người thân" (002 FR-072, Q-371).
+- Phụ lục 25 có thêm CFG-M15-11 (hiệu lực mã QR đăng nhập, Q-370); CFG-M15-10 thêm kênh người cao tuổi. Không đổi FR của 000.
+
 ## Phạm vi
 
 **Trong phạm vi**: các quy tắc mà mọi feature (001–019) kế thừa, không lặp lại trong spec của module:
@@ -367,6 +372,7 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 | Đề nghị mua hộ | 010 (BR-M11-07, UC-79) | Theo 010 | Người đại diện hoặc Quản lý viện, theo 010 | Riêng (FR-031 ghi rõ không dùng vòng đời chung) |
 | Xác nhận người nhận khác; đồng ý cho tự giữ | 013 FR-017b | Theo 013 | Theo 013 | Riêng |
 | Phiếu kiểm kê kho; chốt quỹ ngày | 019 FR-010 (Q-233); 017 (Q-226) | Nhân viên bếp; Kế toán | Quản lý viện | Riêng (bảng trạng thái của spec sở hữu) |
+| Khóa tài khoản người cao tuổi theo đề nghị của người thân *(bổ sung 2026-10-18)* | 002 FR-072 (Q-371) | Hành chính | Quản lý viện (không tự duyệt) | Chung |
 
 **Truy vết use case** *(constitution I; bổ sung 2026-10-01, CHK045)*: mục B (FR-011 → FR-022) — UC-69; mục D (FR-031 → FR-041) — UC-14. Mục A (FR-001 → FR-010), mục C (FR-023 → FR-030) và mục E (FR-042 → FR-051a) không có UC riêng ở Phụ lục 26: chúng là ràng buộc của mục 1.3, 1.5, 19.4, BR-M15-03, DBR-23 → DBR-25 và NFR-07, áp lên use case của mọi module.
 

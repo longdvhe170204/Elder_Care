@@ -67,6 +67,12 @@ Ngày 2026-10-18 chủ dự án ủy quyền chốt các điểm báo lại củ
 
 - **Q-362**: mọi thông báo về đồ gửi tới người thân, kể cả thất lạc, hư hỏng, tìm thấy, là "về việc của chính người thân" (FR-032).
 
+### Cập nhật 2026-10-18, lượt 3 (đồng bộ Q-365 → Q-371, người cao tuổi tự dùng hệ thống)
+
+Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định. Thay đổi ở spec này:
+
+- **Q-366**: người cao tuổi xem đồ gửi của mình đang Đang giữ hoặc Đang được sử dụng trên kênh người cao tuổi (FR-030a, kịch bản 5 của User Story 6); không đổi quy tắc trả đồ (BR-M12-04, BR-M12-06).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 12, mục 16; UC-65; DBR-22):
@@ -226,6 +232,7 @@ Người có quyền nhận (người đại diện, người thân có quyền 
 2. **Given** N là người thân có quan hệ Hiệu lực nhưng không phải người đại diện và không có quyền đón, **When** N mở cổng, **Then** N không thấy mục đồ gửi; **When** quyền đón của M chuyển tắt, **Then** M không còn thấy đồ gửi từ thời điểm đó (Q-151).
 3. **Given** có yêu cầu xác nhận người nhận khác đang chờ, **When** R (người đại diện) mở cổng, **Then** R thấy yêu cầu với người nhận, đồ gửi, người lập và có thao tác Xác nhận / Từ chối (kèm lý do).
 4. **Given** trưởng tầng T của tầng 2, **When** T xem đồ gửi, **Then** T xem được đồ gửi của người cao tuổi có giường ở tầng 2, không có thao tác ghi (4.4 TT X).
+5. **(Bổ sung 2026-10-18, Q-366)** **Given** A có tài khoản người cao tuổi và 3 đồ gửi, trong đó 1 đồ đã được trả, **When** A mở kênh người cao tuổi, **Then** A thấy 2 đồ còn lại với tên, trạng thái, ảnh; không thấy lịch sử bàn giao hay yêu cầu xác nhận (FR-030a).
 
 ---
 
@@ -394,6 +401,7 @@ Hoàn thành và Đã hủy là trạng thái cuối. Đề nghị "Xử lý đ�
 
 - **FR-029**: Quyền theo 4.4 dòng "Đồ gửi": Hành chính, Điều dưỡng (trong phạm vi) thực hiện các lệnh ở bảng trạng thái, trừ giới hạn của Điều dưỡng với lệnh "Trả" và xác nhận người nhận khác (FR-016a) lệnh lập đề nghị xử lý (chỉ Hành chính, FR-027a), và phiếu kiểm kê (chỉ Hành chính, FR-028a); Quản lý viện, Trưởng tầng (người cao tuổi của tầng mình) chỉ xem; Bác sĩ, Nhân viên chăm sóc, Nhân viên bếp không xem (sửa, 2026-10-06, Q-282, Q-283). Quản lý viện duyệt yêu cầu đính chính bản ghi bàn giao (feature 000 FR-026 (c)), duyệt thay xác nhận người nhận khác theo FR-017a, và duyệt đề nghị xử lý đồ không người nhận theo FR-027a. *(Nguồn: 4.4, 19.3; Q-150, Q-152)*
 - **FR-030**: Cổng người thân MUST hiển thị danh sách đồ gửi, trạng thái, lịch sử bàn giao và ảnh chỉ cho người có quyền nhận của người cao tuổi đó (người đại diện, người thân có quyền "được phép đón" đang hiệu lực), xét tại thời điểm xem; người thân khác MUST NOT thấy đồ gửi. Thông báo gửi người thân của spec này MUST chỉ nêu loại đồ và sự kiện, không nêu mô tả, số tiền hay ảnh, để người liên hệ chính không có quyền nhận vẫn nhận thông báo BR-M12-02 mà không thấy chi tiết tài sản; người đại diện MUST ghi hoặc rút được đồng ý cho tự giữ (FR-015a), và MUST xác nhận hoặc từ chối được yêu cầu xác nhận người nhận khác trên cổng. Người thân MUST NOT thực hiện lệnh bàn giao. *(Nguồn: 4.4 NT X, BR-M12-04; Clarification 2026-09-27, Q-151)*
+- **FR-030a** *(bổ sung 2026-10-18, Q-366)*: Kênh người cao tuổi (feature 012 FR-083) MUST hiển thị cho chính người cao tuổi danh sách đồ gửi của mình ở Đang giữ hoặc Đang được sử dụng: tên đồ, trạng thái, ảnh; MUST NOT hiển thị lịch sử bàn giao, yêu cầu xác nhận người nhận khác hay đồng ý cho tự giữ. *(Nguồn: 14.6a, Q-366)*
 - **FR-031**: Mọi lệnh ở bảng trạng thái và mọi xác nhận người nhận khác MUST thực hiện trực tuyến; hệ thống MUST NOT cho ghi tạm ngoại tuyến các lệnh này. *(Suy ra từ Q-01 "khẩn cấp bắt buộc trực tuyến" và BR-M12-04 cần kiểm tra quyền tức thời)*
 - **FR-031a**: Mọi lệnh, xác nhận và đính chính của spec này MUST được ghi nhật ký (feature 000); nhật ký đồ gửi thuộc nhóm "đặc biệt quan trọng" của 19.4. Bản ghi bàn giao thuộc danh sách bảo vệ của BR-M15-03. Phiếu kiểm kê đã Hoàn thành là nhóm 3 và được đối xử như bản ghi bàn giao (không sửa, xóa; chỉ đính chính theo FR-011a); xác nhận người nhận khác và đồng ý cho tự giữ là nhóm 2, chỉ đổi qua lệnh ở FR-017b. *(Nguồn: 19.4, DBR-23, BR-M15-03)*
 
@@ -469,6 +477,7 @@ Hoàn thành và Đã hủy là trạng thái cuối. Đề nghị "Xử lý đ�
 | Gửi | 009 | Các thông báo ở bảng FR-032 | Nguồn, mức, nhóm người nhận, loại thông tin |
 | Nhận | 012 | Người thân có quan hệ Hiệu lực, người đại diện, quyền "được phép đón", người liên hệ chính tại thời điểm lệnh | Người thân, người cao tuổi, quyền, thời điểm |
 | Cung cấp | 012 | Đồ gửi, lịch sử bàn giao, ảnh cho cổng, chỉ hiển thị cho người có quyền nhận (FR-030, Q-151); yêu cầu xác nhận người nhận khác; thao tác ghi, rút đồng ý cho tự giữ (FR-015a) | Người cao tuổi, đồ gửi, bản ghi, yêu cầu, đồng ý |
+| Cung cấp | 012 | *(bổ sung 2026-10-18, Q-366)* Đồ gửi Đang giữ, Đang được sử dụng của người cao tuổi cho kênh người cao tuổi (FR-030a) | Người cao tuổi, tên đồ, trạng thái, ảnh |
 | Nhận | 002, 008 | Trạng thái tài khoản nhân viên, ca đang diễn ra của người giữ (FR-014); sự kiện kết thúc ca | Nhân viên, ca, trạng thái tài khoản |
 | Cung cấp | 008 | Tra cứu đồ có giá trị mà một nhân viên đang giữ, để người lập bàn giao ca ghi mục "đồ gửi đang giữ" (FR-014a) | Nhân viên, tầng/khu vực, ca, danh sách đồ có giá trị (loại, người cao tuổi, vị trí) |
 | Gửi (giai đoạn sau, Q-194) | Module 14 (feature 016) | Số đồ thất lạc, hư hỏng theo kỳ; đồ chưa trả sau kết thúc lưu trú. Ở giai đoạn này feature 016 chỉ đếm sự cố đồ gửi qua feature 007 (Q-202) | Đồ gửi, trạng thái, thời điểm |

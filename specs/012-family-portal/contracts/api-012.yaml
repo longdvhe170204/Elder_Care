@@ -395,15 +395,16 @@ paths:
       description: |
         nhan-xu-ly, tra-loi (hướng xử lý và nội dung; cảnh báo khi người gửi không có quyền sức khỏe có tác dụng), ghi-chu (người phụ trách);
         giao-lai (Trưởng tầng, Hành chính, Quản lý viện; lý do); doi-muc (người phụ trách; lý do; tính lại hạn);
-        dong-y-dong, mo-lai (người gửi; mở lại có lý do).
+        dong-y-dong, mo-lai (người gửi; mở lại có lý do; với người cao tuổi: Hành chính, Điều dưỡng có phạm vi ghi thay, FR-058a).
+        doi-loai (người phụ trách; Mong muốn → Góp ý, Hỏi đáp; lý do), gan-y-kien (người phụ trách; mục ý kiến có nguồn người cao tuổi), bổ sung 2026-10-18 (FR-058b, BR-M10-12).
       x-fr: [FR-059, FR-060, FR-061, FR-062, FR-064, FR-065, FR-066]
       x-br: [BR-M10-05]
       x-nguoi-than: true
       parameters:
         - { $ref: '#/components/parameters/Id' }
-        - { name: lenh, in: path, required: true, schema: { type: string, enum: [nhan-xu-ly, tra-loi, ghi-chu, giao-lai, doi-muc, dong-y-dong, mo-lai] } }
+        - { name: lenh, in: path, required: true, schema: { type: string, enum: [nhan-xu-ly, tra-loi, ghi-chu, giao-lai, doi-muc, dong-y-dong, mo-lai, doi-loai, gan-y-kien] } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { content: { application/json: { schema: { type: object, properties: { lyDo: { $ref: '#/components/schemas/LyDo' }, huongXuLy: { type: string }, noiDung: { type: string }, nguoiPhuTrachId: { type: integer, format: int64 }, muc: { type: string, enum: [CAO, THUONG] }, tepIds: { type: array, items: { type: integer, format: int64 } } } } } } }
+      requestBody: { content: { application/json: { schema: { type: object, properties: { lyDo: { $ref: '#/components/schemas/LyDo' }, huongXuLy: { type: string }, noiDung: { type: string }, nguoiPhuTrachId: { type: integer, format: int64 }, muc: { type: string, enum: [CAO, THUONG] }, loaiMoi: { type: string, enum: [GOP_Y, HOI_DAP] }, yKien: { type: object, description: 'gan-y-kien chỉ cho mục MONG_MUON_NCT; sở thích của 014 gắn qua sự kiện', properties: { loaiMuc: { type: string, enum: [MONG_MUON_NCT] }, mucId: { type: integer, format: int64 } } }, tepIds: { type: array, items: { type: integer, format: int64 } } } } } } }
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
 
   /nguoi-cao-tuoi/{nctId}/mong-muon:
@@ -434,6 +435,58 @@ paths:
                 muon: { type: boolean }
                 nguon: { $ref: '#/components/schemas/NguonYKien' }
       responses: { '201': { description: Đã ghi, content: { application/json: { schema: { $ref: '#/components/schemas/MongMuon' } } } }, '403': { description: Ngoài phạm vi hoặc không có quyền }, '422': { description: 'Thiếu người được nói tới; NGUON_Y_KIEN_KHONG_HOP_LE' } }
+  # ---------------- Kênh người cao tuổi (bổ sung 2026-10-18; mục G2, research F-18) ----------------
+  # Chỉ tài khoản AC-16; người cao tuổi lấy từ tài khoản đăng nhập, không có nctId trong đường dẫn (FR-084).
+  /kenh-nguoi-cao-tuoi/hom-nay:
+    get:
+      tags: [kenh-nguoi-cao-tuoi]
+      summary: Lịch sinh hoạt hôm nay của chính người cao tuổi (hoạt động, lượt thăm, lịch đến/về bán trú)
+      x-fr: [FR-083]
+      x-br: [BR-M10-11]
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
+  /kenh-nguoi-cao-tuoi/thuc-don:
+    get:
+      tags: [kenh-nguoi-cao-tuoi]
+      summary: Thực đơn tuần đã công bố và suất ăn dự kiến của mình (món, món thay thế; không có chế độ ăn, dị ứng)
+      x-fr: [FR-083, FR-084]
+      x-br: [BR-M10-11]
+      parameters: [ { name: tuan, in: query, schema: { type: string, format: date } } ]
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
+  /kenh-nguoi-cao-tuoi/hoat-dong:
+    get:
+      tags: [kenh-nguoi-cao-tuoi]
+      summary: Buổi hoạt động sắp tới của tầng mình và toàn viện, kèm mình đã có tên chưa
+      x-fr: [FR-083]
+      x-br: [BR-M10-11]
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
+  /kenh-nguoi-cao-tuoi/luot-tham:
+    get:
+      tags: [kenh-nguoi-cao-tuoi]
+      summary: Lượt thăm Đã duyệt của mình: ngày, khung giờ, người thăm
+      x-fr: [FR-083]
+      x-br: [BR-M10-11]
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
+  /kenh-nguoi-cao-tuoi/do-gui:
+    get:
+      tags: [kenh-nguoi-cao-tuoi]
+      summary: Đồ gửi của mình ở Đang giữ hoặc Đang được sử dụng: tên, trạng thái, ảnh
+      x-fr: [FR-083]
+      x-br: [BR-M10-11]
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
+  /kenh-nguoi-cao-tuoi/phan-hoi:
+    get:
+      tags: [kenh-nguoi-cao-tuoi]
+      summary: Phản hồi của chính người cao tuổi (kể cả được ghi thay); trả lời nhóm sức khỏe chỉ phần chung
+      x-fr: [FR-058a, FR-086]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PhanHoi' } } } } } }
+    post:
+      tags: [kenh-nguoi-cao-tuoi]
+      summary: Người cao tuổi gửi phản hồi (Góp ý, Hỏi đáp, Khiếu nại, Mong muốn)
+      x-fr: [FR-058, FR-058a, FR-058b, FR-059, FR-062]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [loai, nhom, noiDung], properties: { loai: { type: string, enum: [GOP_Y, KHIEU_NAI, HOI_DAP, MONG_MUON] }, nhom: { type: string, enum: [CHAM_SOC, SUC_KHOE_THUOC, AN_UONG, CHI_PHI_HOP_DONG, KHAC] }, chuDeMongMuon: { type: string, enum: [KHACH_THAM_NGUOI_DON, KHAC], description: 'Bắt buộc khi loai = MONG_MUON; hệ thống đặt nhom theo FR-059' }, noiDung: { type: string } } } } } }
+      responses: { '201': { description: OK } }
+
 components:
   securitySchemes:
     phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
@@ -567,7 +620,7 @@ components:
     GuiPhanHoi:
       type: object
       required: [nctId, loai, nhom, noiDung]
-      properties: { nctId: { type: integer, format: int64 }, nguoiThanId: { type: integer, format: int64, description: 'Hành chính ghi thay' }, loai: { type: string, enum: [GOP_Y, KHIEU_NAI, HOI_DAP] }, nhom: { type: string, enum: [CHAM_SOC, SUC_KHOE_THUOC, AN_UONG, CHI_PHI_HOP_DONG, KHAC] }, noiDung: { type: string }, tepIds: { type: array, items: { type: integer, format: int64 } } }
+      properties: { nctId: { type: integer, format: int64 }, nguoiGuiLoai: { type: string, enum: [NGUOI_THAN, NGUOI_CAO_TUOI], default: NGUOI_THAN, description: 'NGUOI_CAO_TUOI: Hành chính, Điều dưỡng ghi thay (FR-058a, bổ sung 2026-10-18)' }, nguoiThanId: { type: integer, format: int64, description: 'Hành chính ghi thay người thân' }, loai: { type: string, enum: [GOP_Y, KHIEU_NAI, HOI_DAP, MONG_MUON], description: 'MONG_MUON chỉ khi người gửi là người cao tuổi (FR-058b)' }, nhom: { type: string, enum: [CHAM_SOC, SUC_KHOE_THUOC, AN_UONG, CHI_PHI_HOP_DONG, KHAC] }, chuDeMongMuon: { type: string, enum: [KHACH_THAM_NGUOI_DON, KHAC], description: 'Bắt buộc khi loai = MONG_MUON; hệ thống đặt nhom theo FR-059' }, noiDung: { type: string }, tepIds: { type: array, items: { type: integer, format: int64 } } }
     PhanHoi:
       allOf:
         - { $ref: '#/components/schemas/GuiPhanHoi' }

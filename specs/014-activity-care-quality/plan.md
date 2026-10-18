@@ -30,6 +30,13 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - **Đối tượng thông tin** (FR-071, 009 FR-001a): dòng đồng ý về muộn tới người đại diện và người đã đăng ký khai `doiTuongThongTin = VE_VIEC_NGUOI_THAN`; các thông báo khác chỉ tới nhân viên; không yêu cầu nào mang mã Q-354 (research L-13).
 - **Sở thích theo nguồn** (FR-051, FR-052, Q-363): mỗi người cao tuổi tối đa một mục hiện hành cho mỗi (nhóm sở thích, nguồn); nguồn theo mẫu 001 (`NguonYKienApi`), nguồn người thân ghi rõ người nào; cảnh báo đăng ký nêu nguồn từng mục "không thích" (research L-09).
 
+### Cập nhật 2026-10-18, lượt 3 (spec mục "Cập nhật 2026-10-18, lượt 3": Q-366, Q-369)
+
+- **Kênh người cao tuổi** (FR-068a): 014 cài SPI `m10.api.HoatDongKenhNctPort.sapToi(nctId, tu, den)`: buổi của tầng người cao tuổi và toàn viện, cờ đã có tên; không trả đánh giá khả năng tham gia, lý do không được đăng ký (research L-16).
+- **Nút SOS** (FR-068a): 014 cài SPI `m05.api.ChuyenDiSosPort.dangDienRa(nctId)`: chuyến mà người cao tuổi đã điểm danh rời viện, chưa điểm danh về; trưởng đoàn, người đi cùng hiện tại (007 research S-23).
+- **Nhắc buổi trong ngày** (FR-071): job 00:05 phát yêu cầu Nhẹ nhóm `NguoiCaoTuoi` (009 FR-007 (f)) cho buổi trong ngày mà người cao tuổi có tên; đăng ký trong ngày thì phát khi đăng ký. 009 giữ tới hết giờ yên tĩnh.
+- **Sở thích ghi từ phản hồi Mong muốn** (001 FR-023g): `so_thich` thêm `phan_hoi_id NULL`; lệnh ghi có `phanHoiId` thì phát `YKienDaGhiTuPhanHoi` (001 research H-17).
+
 ## Technical Context
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).

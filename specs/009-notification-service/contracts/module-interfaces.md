@@ -50,6 +50,7 @@ sealed interface NhomNhan {                        // research B-04; mỗi nhóm
   record NguoiLienHeChinh(long nctId) implements NhomNhan {}
   record NguoiDaiDien(long nctId) implements NhomNhan {}
   record NguoiThanCoQuyen(long nctId, QuyenNguoiThan quyen) implements NhomNhan {}  // XEM_SUC_KHOE, XEM_CHI_PHI, DANG_KY_THAM, NHAN_KHAN
+  record NguoiCaoTuoi(long nctId) implements NhomNhan {}                    // (f) bổ sung 2026-10-18 (FR-007, FR-022a): chỉ Nhẹ, chỉ phần CHUNG
 }
 sealed interface CachThay { MacDinh, KhongThay, ChiDinh(NhomNhan nguoiThay) }
 

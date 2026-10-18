@@ -100,3 +100,14 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M13 không b�
 | SC-007 | Q14, Q24 |
 | SC-008 | Đo trên app: mở và xác nhận ≤ 2 thao tác; vận hành thử: tỷ lệ xác nhận trong CFG-M13-01 từ `thong_bao_trang_thai` |
 | SC-009 | Q19 với 30 thông báo trong 60 phút |
+
+## Kịch bản bổ sung 2026-10-18, lượt 3 (Q-366)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| R1 | 012 gửi lúc 22:00 yêu cầu Nhẹ "nhắc lượt thăm" nhóm `NguoiCaoTuoi(A)`, A có tài khoản Hoạt động | `CHO_HET_GIO_YEN_TINH`, đẩy tới app của A lúc 07:00 | US4 #12, FR-022 |
+| R2 | Gửi yêu cầu Trung bình, rồi yêu cầu Nhẹ có phần `SUC_KHOE`, nhóm `NguoiCaoTuoi(A)` | Cả hai `BI_TU_CHOI` mã `NHOM_NGUOI_CAO_TUOI_KHONG_HOP_LE`, vào danh sách lỗi gửi | US4 #13, FR-022a |
+| R3 | Gửi yêu cầu Nhẹ nhóm `NguoiCaoTuoi(B)`, B không có tài khoản | Không có `thong_bao`; không có dòng `KHONG_CO_NGUOI_NHAN` | US4 #13, FR-007 |
+
+Test: `FR_022a_NguoiCaoTuoiNhanIT` (R1 → R3).
+

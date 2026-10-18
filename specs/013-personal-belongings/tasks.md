@@ -166,6 +166,8 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 ## Phase 9: Polish & Cross-Cutting
 
+- [ ] T033 [US6] *(Bổ sung 2026-10-18, Q-366)* Cài `BE/m12/dogui/internal/DoGuiKenhNctPortImpl.java` và thêm AC-16 chủ đồ vào `QuyenTepProvider` `M12.ANH_DO_GUI`; test `BT/m12/FR_030a_DoGuiKenhNguoiCaoTuoiIT.java` (quickstart G1; research K-16)
+
 - [ ] T029 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/013-personal-belongings/contracts/api-013.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho `ban_giao_do_gui`, `lan_tra` (BR-M15-03)
 - [ ] T030 Thay bản giả `DoGuiBanGiaoPort` (008), `MucViecSauQuaDoiPort` `DO_GUI` (004) bằng bản cài của 013 và chạy lại test 004, 008
 - [ ] T031 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5

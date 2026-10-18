@@ -18,6 +18,7 @@ Feature 007 gồm module M06 – Sức khỏe (mục 10) và M05 – Sự cố v
 8. Nguy kịch: dấu nguy kịch, cảnh báo không gộp, xác nhận lại nguyện vọng, lựa chọn thực hiện (mục G1).
 9. Sự cố ngã và khoảng theo dõi sau ngã (mục H); sự cố lây nhiễm, tra cứu truy vết, danh sách tiếp xúc, khoanh vùng (mục I).
 10. Giấy phép hoạt động của cơ sở làm căn cứ cho BR-M06-05; ghi khám và điều trị (mục J); dữ liệu cho 002, 003, 004, 005, 008, 012, 016 (mục K).
+11. *(Bổ sung 2026-10-18, Q-369)* Nút SOS của người cao tuổi: tạo cảnh báo Khẩn cấp từ thiết bị đã gắn, điều kiện gửi, người nhận thêm khi ở Hoạt động bên ngoài, trạng thái cho người cao tuổi (FR-047d → FR-047g).
 
 Hướng kỹ thuật:
 - Hai gói Modulith `m06` và `m05`, một chiều `m05 → m06`. Kết quả so ngưỡng sang `m05` bằng sự kiện `ChiSoDaXacNhan` sau commit (research S-01).
@@ -39,6 +40,13 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - **Phần chung và phần sức khỏe của sự cố** (FR-082, Q-352): `SucKhoeCongNguoiThanApi.suCo` và `BanTinSucKhoeApi.choBanTin` trả mỗi sự cố thành `phanChung` và `phanSucKhoe`; phần sức khỏe chỉ có khi người thân thuộc phạm vi xem sức khỏe của bản đồng ý (với `choBanTin`, 012 lọc theo người nhận). Danh sách trường ở research S-19a.
 - **Nguyện vọng mới khi xác nhận lại** (FR-050c): thân lệnh theo api-001 sau cập nhật 2026-10-18 của 001 (nhận định gắn với phiếu, người ký theo FR-023c, ý kiến khác có nguồn).
 - Không đổi bảng; điểm báo lại 8 → 10 bên dưới.
+
+### Cập nhật 2026-10-18, lượt 3 (spec mục "Cập nhật 2026-10-18, lượt 3": Q-369)
+
+- **Nút SOS** (FR-026 (d), FR-047d → FR-047g, US12): `POST /sos` ở `m05.canhbao`, không qua phiên; xác định người cao tuổi bằng token thiết bị qua `ThietBiGanApi.xacDinh` của 002. Mỗi lần bấm là một dòng `lan_bam_sos` (nhóm 3) và một dòng `nguon_canh_bao` loại `SOS`; cảnh báo Khẩn cấp loại `NCT_YEU_CAU_TRO_GIUP`, khóa loại `SOS` theo người, gộp theo đường tạo cảnh báo sẵn có (research S-23).
+- **Điều kiện gửi**: trạng thái người cao tuổi qua `NguoiCaoTuoiApi.trangThai` (001); người bán trú qua `CoMatBanTruApi.theoNgay` (005, đã có); chuyến đang diễn ra, trưởng đoàn, người đi cùng qua SPI mới `ChuyenDiSosPort` (014 cài, 014 FR-068a).
+- **Trạng thái cho người cao tuổi**: `GET /sos/hien-tai` (token thiết bị), app hỏi lại mỗi 5 giây khi màn trạng thái đang mở; lỗi từ chối trả kèm số liên hệ của viện và 115 từ `SoLienHeVienApi`.
+- FR-081: `CanhBaoThongKeApi.canhBao` thêm `nguon` để 016 tách SOS. Thêm một bảng, một SPI; không đổi vòng đời cảnh báo.
 
 ## Technical Context
 
@@ -226,6 +234,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 4. **003**: 007 cài `TinhTrangLayNhiemChoPhanBo`; phát `DaThemVaoDanhSachTiepXuc(nctId, thoiDiem)` và `KhoanhVungDaGo` (thêm `vungId` vào đầu payload, 003 bỏ qua được); nghe `PhanBoDaDinhChinh`.
 5. **004**: dùng mã điều kiện `KT_D_CANH_BAO_SU_CO`, `MucViecSauQuaDoiPort` mã `CANH_BAO_SU_CO`, `chiTiet` của `CHUYEN_VIEN` như đã khai báo; không đổi.
 6. **008** cài `NhanSuCanhBaoPort`; gọi `CanhBaoBanGiaoApi.dangMo`, `khiXacNhanBanGiao` (MANDATORY) trong lệnh xác nhận bàn giao; đọc `ChiSoApi.vuotNguongTrongKhoang`; cung cấp danh mục phạm vi hành nghề cho giấy phép cơ sở. **009** cài `NhatKyThongBaoPort`; phân giải các nhóm người nhận ở research S-19 (gồm `BAC_SI_TRUC` nhiều người, `BAC_SI_TOAN_VIEN`, `NGUOI_TRONG_BAN_GHI_NGUON`, cờ `khongThay`); nghe `YeuCauDungNhacGoiDien`, `DaCoKetQuaXacNhanLai`; đọc `SoLienHeVienApi`. **012** cài `NguoiThanKhanCapPort`; nghe `KhoanhVungDaTao`, `SuCoDaHuyTrongBanTin`; đọc `KhoanhVungApi`, `SucKhoeCongNguoiThanApi`, `BanTinSucKhoeApi`. **013** gọi `SuCoLenhApi`; đọc `SuCoApi.xem`. **014** cài `DiemDanhTruyVetPort`; phát `m05.api.YeuCauTaoCanhBao` (thiếu người: Khẩn cấp); gọi `SuCoLenhApi.ghiNhan` cho "Báo thiếu người"; đọc `KhoanhVungApi`; nghe `KhoanhVungDaTao`. **011** nghe `SutCanPhatHien`; phát `YeuCauTaoCanhBao`, `YeuCauDongCanhBaoNguon`. **016** đọc `CanhBaoThongKeApi`, `ChiSoThongKeApi`, `KhoanhVungApi`.
+7. *(Bổ sung 2026-10-18, Q-369)* **002** cung cấp `ThietBiGanApi.xacDinh` (002 module-interfaces 1.11). **005**: 007 thêm vào danh sách người dùng `CoMatBanTruApi.theoNgay` (đã ghi vào [../005-daily-care-tasks/contracts/module-interfaces.md](../005-daily-care-tasks/contracts/module-interfaces.md) mục 1.3). **014** cài `ChuyenDiSosPort` (014 FR-068a). **012** dựng nút SOS và màn trạng thái trên kênh người cao tuổi, gọi `/sos` (012 FR-085). **016** đọc `nguon` của `CanhBaoThongKeApi.canhBao`.
 
 ## Điểm cần báo lại về tài liệu nguồn
 

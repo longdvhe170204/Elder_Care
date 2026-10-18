@@ -83,10 +83,10 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
 - **19.3 là căn cứ khi khác Phụ lục 27** (FR-018): các điều chỉnh của 19.3 được nạp cùng migration như dòng có `nguon = '19.3'`. Ví dụ quyền Quản lý viện duyệt, lập thay yêu cầu đổi ca, nghỉ đột xuất của ca toàn viện (Q-177), dù ô Phụ lục 27 là X. Danh sách điều chỉnh nằm ở [data-model.md](data-model.md) mục 3.
 - **Chú thích có điều kiện** (¹ bản đồng ý, ² người đại diện, ¹⁰ ngoài phạm vi…): ma trận chỉ ghi mã chú thích. Mỗi chú thích được kiểm bởi một `DieuKienChuThich` do module sở hữu điều kiện cài đặt (ví dụ ¹ do 001 cài qua bản đồng ý, ² do 012 cài qua người đại diện). `QuyenApi` gọi các điều kiện này như một phần của lớp vai trò. Chú thích chỉ mô tả, không thêm điều kiện, thì không cần cài.
 - **Chú thích ⁴², ⁴³, ⁴⁴ và dòng "Tiếp nhận thuốc cung ứng"** *(bổ sung 2026-10-11, Q-337 → Q-339)*: ba chú thích này là loại chỉ mô tả, không có `DieuKienChuThich`; ô được quy đổi theo ký hiệu đứng trước (T, D) như mọi ô khác. Giới hạn được kiểm ở module sở hữu lệnh (U2): ⁴² (Hành chính chỉ duyệt thay đổi lưu trú nhỏ) do 000 `gioiHanVaiTroDuyet` và handler `M02.THAY_DOI_LUU_TRU` của 004; ⁴³ (giao người xử lý sự cố) do 007 bằng thao tác riêng `GIAO`, không dùng khóa `(SU_CO_KHAN_CAP, TAO)` vì khóa này được miễn lớp phạm vi (FR-044a); ⁴⁴ (Điều dưỡng với yêu cầu mua sắm loại "thuốc" và lần tiếp nhận) do 019 và 006. Phạm vi T của Điều dưỡng vẫn theo phân công như quy tắc trên. Ô T³⁷ ⁴⁴ của Điều dưỡng ở dòng "Yêu cầu mua sắm" quy đổi thành `TAO` như mọi ô T³⁷; điều kiện "đang là Phụ trách bộ phận" (³⁷) và ngoại lệ loại "thuốc" (⁴⁴) cùng do 019 kiểm (019 research W-05), không cài `DieuKienChuThich` cho ³⁷, để hai điều kiện không chặn nhau ở lớp vai trò (bổ sung 2026-10-11 sau audit). Dòng mới của Phụ lục 27 thêm một giá trị `ChucNang`; ma trận và `MaTranQuyenKhopNguonTest` đọc từ tài liệu nguồn nên không cần đổi cách nạp. Tên chức năng, thao tác ở research của từng feature (ví dụ `SU_CO`/`GIAO` ở 007, `MUA_SAM`/`LAP` ở 019) khác tên ở đây (`SU_CO_KHAN_CAP`, `TAO`…); đợt này giữ nguyên, đối chiếu khi chạy /speckit-analyze.
-- **Lệnh của module**: mỗi lệnh khai báo khóa quyền bằng chú thích `@CanQuyen(chucNang, thaoTac)` trên phương thức service. Một interceptor gọi `QuyenApi.coQuyen` trước khi lệnh chạy. ArchUnit bắt mọi `@LenhNghiepVu` phải có `@CanQuyen` (FR-041).
+- **Lệnh của module**: mỗi lệnh khai báo khóa quyền bằng chú thích `@CanQuyen(chucNang, thaoTac)` trên phương thức service. Một interceptor gọi `QuyenApi.coQuyen` trước khi lệnh chạy. ArchUnit bắt mọi `@LenhNghiepVu` phải có `@CanQuyen` (FR-041), trừ danh sách ngoại lệ có tên (lệnh SOS của 007, research A-15; bổ sung 2026-10-18).
 - **Kiểm thử khớp ma trận (SC-001)**: một test tham số hóa đọc bảng Phụ lục 27 trong `docs/business/nghiep-vu.md` (phân tích bảng Markdown) cộng danh sách điều chỉnh 19.3, rồi so với `ma_tran_quyen` đã nạp. Lệch thì test lỗi. Nhờ vậy khi tài liệu nguồn đổi mà migration chưa đổi, bộ test báo ngay.
 
-**Lý do**: Constitution VI, FR-018. Một nguồn quy đổi duy nhất cho 9 vai trò × khoảng 70 chức năng, kiểm được tự động.
+**Lý do**: Constitution VI, FR-018. Một nguồn quy đổi duy nhất cho 10 vai trò × khoảng 70 chức năng, kiểm được tự động.
 
 **Phương án đã cân nhắc**:
 - Viết quyền thẳng trong mã bằng `@PreAuthorize("hasRole…")`: không thu hẹp được lúc chạy (FR-025), không tra được quá khứ (FR-026a).
@@ -247,7 +247,7 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
 
 ## A-13. Độ mạnh mật khẩu và tự đăng xuất (Q-309)
 
-**Quyết định**: Hai thông số đã có mã sau Q-309 (2026-10-07): CFG-M15-09 độ mạnh mật khẩu, CFG-M15-10 thời gian không thao tác thì tự đăng xuất theo kênh (dạng `BANG` `{WEB, APP_NHAN_VIEN, APP_NGUOI_THAN}`, mặc định 30 phút, 12 giờ, 30 ngày). Cả hai đọc qua `ThamSoApi` như mọi CFG (000 R-07). Cách áp ở A-02 và A-03. Web hiện cảnh báo trước khi hết giờ (khoảng 2 phút, thông số giao diện, không phải quy tắc); bấm "Tiếp tục làm việc" gửi một yêu cầu nhẹ để đếm lại.
+**Quyết định**: Hai thông số đã có mã sau Q-309 (2026-10-07): CFG-M15-09 độ mạnh mật khẩu, CFG-M15-10 thời gian không thao tác thì tự đăng xuất theo kênh (dạng `BANG` `{WEB, APP_NHAN_VIEN, APP_NGUOI_THAN}`, mặc định 30 phút, 12 giờ, 30 ngày). Cả hai đọc qua `ThamSoApi` như mọi CFG (000 R-07). Cách áp ở A-02 và A-03. Web hiện cảnh báo trước khi hết giờ (khoảng 2 phút, thông số giao diện, không phải quy tắc); bấm "Tiếp tục làm việc" gửi một yêu cầu nhẹ để đếm lại. *(Bổ sung 2026-10-18, Q-370)* `BANG` của CFG-M15-10 thêm khóa `APP_NGUOI_CAO_TUOI` với giá trị "không tự đăng xuất"; CFG-M15-11 (hiệu lực mã QR, mặc định 5 phút) đọc qua `ThamSoApi` như các CFG-M15 khác.
 
 **Lý do**: Chủ dự án chốt ở Q-309; trước đó plan tạm đặt ở cấu hình ứng dụng.
 
@@ -257,9 +257,42 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
 
 **Quyết định**:
 - Test tên theo BR hoặc FR như 000 R-14, ví dụ `BR_M15_05_saiDuNguong_khoaTam`, `FR_044a_suCoNgoaiPhamVi_chiThayNhanDang`.
-- **Bộ test ma trận** `MaTranQuyenKhopNguonTest` (A-04) cùng `MaTranQuyenIT`: 9 vai trò × mọi chức năng × (trong, ngoài phạm vi) × (chú thích thỏa, không thỏa), sinh tự động từ bảng nạp (SC-001).
+- **Bộ test ma trận** `MaTranQuyenKhopNguonTest` (A-04) cùng `MaTranQuyenIT`: 10 vai trò × mọi chức năng × (trong, ngoài phạm vi) × (chú thích thỏa, không thỏa), sinh tự động từ bảng nạp (SC-001).
 - **Bản giả cho module chưa có**: 008 (phân công, nhiệm vụ, giấy phép), 003 (phân bổ giường), 012 (quan hệ), 001 (bản đồng ý, nhận dạng), 007 (giấy phép cơ sở) có bản cài giả trong test, giữ đúng chữ ký ở [contracts/module-interfaces.md](contracts/module-interfaces.md) mục 2.
 - **Client**:
   - web: màn đăng nhập (thông báo không lộ tồn tại), buộc đổi mật khẩu, quản trị tài khoản và phân quyền (412), ẩn nút theo `lenhDuocPhep`;
   - app nhân viên: đăng nhập trên thiết bị dùng chung (một thiết bị một phiên), mở khóa sớm của Trưởng tầng, hiển thị kết quả đồng bộ (BR-M15-20 có phần ở client nên bắt buộc test client, constitution XV), duyệt bản ghi chờ xem lại;
   - app người thân: đăng nhập, buộc đổi mật khẩu, ẩn phần sức khỏe khi không có quyền.
+  - *(bổ sung 2026-10-18)* app người cao tuổi: đăng nhập bằng mã QR, gắn máy mới gỡ máy cũ, mở khóa sinh trắc học tùy chọn, không có PIN.
+
+---
+
+## A-15. Tài khoản người cao tuổi, mã QR, thiết bị gắn (FR-067 → FR-071, FR-074; Q-365, Q-370)
+
+**Quyết định**:
+- `tai_khoan.loai` thêm `NGUOI_CAO_TUOI`, liên kết `nguoi_cao_tuoi_id` (`UNIQUE`, FR-067 "tối đa một tài khoản"); vai trò duy nhất AC-16; phạm vi `BAN_THAN` (chỉ người cao tuổi liên kết); không có lớp điều kiện pháp lý (FR-068). Tạo: AC-01 hoặc AC-09; `NguoiCaoTuoiApi.trangThai` phải là Đang lưu trú; lệnh bắt buộc `xacNhan` gồm `cach` (`YEU_CAU` / `DONG_Y`) và `voiNhanVienId`, ghi vào `nhat_ky.chi_tiet`. Thiếu `xacNhan` thì 422; vì vậy đề nghị chỉ từ người thân không đủ để tạo.
+- **Mã QR**: 128 bit ngẫu nhiên, chỉ lưu SHA-256 ở `ma_qr_dang_nhap`, hết hạn sau CFG-M15-11. Người tạo: AC-01, AC-09, hoặc AC-04 có phạm vi với người cao tuổi (Phụ lục 27 ⁴⁸). Tạo mã mới đặt `vo_hieu_luc_luc` cho mã chưa dùng của cùng tài khoản. `POST /xac-thuc/dang-nhap-qr` chạy trong một transaction: kiểm mã chưa dùng, chưa hết hạn, tài khoản Hoạt động hoặc Khóa tạm đã hết hạn khóa; gỡ thiết bị đang gắn (kết thúc phiên trên đó); gắn `X-Thiet-Bi` hiện tại; tạo phiên kênh `APP_NGUOI_CAO_TUOI` và một **token thiết bị**; đánh dấu mã đã dùng.
+- **Token thiết bị**: 256 bit opaque, chỉ lưu SHA-256 ở `thiet_bi_gan`, trả cho app một lần lúc gắn, app giữ trong `flutter_secure_storage`. Chỉ endpoint nút SOS của 007 nhận token này (header `X-Token-Thiet-Bi`) qua `ThietBiGanApi.xacDinh`; token không mở phiên, không gọi được endpoint khác. Hết tác dụng khi thiết bị bị gỡ hoặc tài khoản sang Đã khóa; Khóa tạm (sai mật khẩu) không làm mất tác dụng. Chuỗi bộ lọc của 002 để `/sos/**` qua không cần phiên; ngoài đăng nhập, đây là đường duy nhất như vậy.
+- **Phiên**: kênh `APP_NGUOI_CAO_TUOI` bỏ qua kiểm CFG-M15-10 ở lần tra phiên (A-02); job `ChuyenKhongHoatDong` chỉ lọc `loai = NGUOI_THAN`. Phiên kết thúc khi tài khoản rời Hoạt động hoặc Khóa tạm, đổi mật khẩu, gỡ thiết bị, người cao tuổi tự đăng xuất (FR-070).
+- **Mật khẩu dự phòng**: `POST /xac-thuc/dang-nhap` với `kenh = APP_NGUOI_CAO_TUOI` cũng gắn thiết bị và trả token thiết bị như mã QR.
+- **Ngoại lệ FR-014a**: đăng nhập tài khoản khác trên `X-Thiet-Bi` đang gắn trả 409 `THIET_BI_DA_GAN` cho tới khi thiết bị được gỡ.
+- **Sinh trắc học**: chỉ ở app (`local_auth`), khóa các màn xem; máy chủ không nhận gì thêm. Nút SOS nằm ngoài khóa. Không có PIN (FR-074).
+
+**Lý do**: Q-370 yêu cầu người cao tuổi gần như chỉ đăng nhập một lần và nút SOS luôn dùng được. Dùng lại cơ chế token opaque, chỉ lưu băm của A-02, nên không thêm thư viện bảo mật mới.
+
+**Phương án đã cân nhắc**: Bắt phiên cho SOS (trái Q-370). Ký yêu cầu bằng cặp khóa trên máy (phải quản lý khóa trên thiết bị). Dùng `X-Thiet-Bi` làm định danh (mã thiết bị không bí mật, giả được). Mã PIN (người có vấn đề trí nhớ hay quên; Q-370 đã loại).
+
+---
+
+## A-16. Khóa và mở khóa tài khoản người cao tuổi (FR-072, FR-073, FR-075; BR-M15-23; Q-368, Q-371)
+
+**Quyết định**:
+- **Kết thúc lưu trú, qua đời, hủy tiếp nhận**: 002 nghe sự kiện `NguoiCaoTuoiDaChuyenTrangThai` của 001 (đã có 002 trong danh sách người nghe) với `den` là trạng thái cuối; khóa với `nguyen_nhan_khoa = NCT_KET_THUC_LUU_TRU`, kết thúc phiên, gỡ thiết bị; bỏ trùng theo `lichSuId`. Chạy ngay khi sự kiện được phát qua outbox của 000, không chờ CFG-M01-04, không qua job.
+- **Người cao tuổi tự yêu cầu, hoặc có lý do**: `POST /tai-khoan/{id}/khoa-nguoi-cao-tuoi` với `canCu` `NCT_TU_YEU_CAU` / `CO_LY_DO` và `lyDo`; AC-01, AC-09.
+- **Người thân đề nghị**: loại yêu cầu `M15.KHOA_TAI_KHOAN_NCT` cài `LoaiYeuCauHandler` của 000: nội dung `{taiKhoanId, nguoiThanDeNghiId, lyDo}`; `quyenTao` của AC-09, `quyenDuyet` của AC-01; `choTuDuyet() = false`; `kiemTraDieuKienApDung`: tài khoản còn Hoạt động hoặc Khóa tạm; `apDung`: khóa với `THEO_DE_NGHI_NGUOI_THAN`. Người thân không có endpoint nào cho việc này.
+- **Mở khóa**: `POST /tai-khoan/{id}/mo-khoa-nguoi-cao-tuoi`, AC-01 hoặc AC-09, bắt buộc `xacNhan` của chính người cao tuổi như A-15; `NCT_KET_THUC_LUU_TRU` thì 409 `NGUYEN_NHAN_KHOA_CON_TON_TAI`. Sau mở khóa, người cao tuổi đăng nhập lại bằng mã QR.
+- **FR-075**: tài khoản AC-10 không có quyền ở dòng "Tài khoản người cao tuổi" (Phụ lục 27), nên mọi endpoint tài khoản, thiết bị, nhật ký của tài khoản người cao tuổi trả 403/404 cho người thân (A-10).
+
+**Lý do**: Gọi đồng bộ trong transaction của 004 buộc sửa 004 và tạo phụ thuộc M02 → M15 mới; sau Kết thúc lưu trú người cao tuổi không còn ở viện, nên độ trễ vài giây của outbox chấp nhận được. Yêu cầu phê duyệt chung đã có đủ lập, duyệt, nhắc, nhật ký (Q-371).
+
+**Phương án đã cân nhắc**: Job hằng ngày như `KhoaSauKetThucLuuTru` (trái "ngay" của BR-M15-23). Cho người thân tự khóa (trái BR-M15-23).

@@ -110,3 +110,15 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M04 không ph
 | SC-013 | Q8, Q9 |
 | SC-014 | Q39 và báo cáo chất lượng không hiển thị tỷ lệ của trưởng tầng |
 | SC-015 | Q16 |
+
+## 6. Kịch bản bổ sung 2026-10-18, lượt 3 (Q-366, Q-369)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| H1 | A ở Tầng 2 có tên ở buổi B1 (Tầng 2), không có tên ở buổi B2 (toàn viện); 012 gọi `sapToi` | B1 `coTen = true`, B2 `coTen = false`; không có đánh giá | FR-068a |
+| H2 | A đã điểm danh rời viện trong chuyến C do L dẫn, M đi cùng; 007 gọi `dangDienRa(A)`; sau khi điểm danh về gọi lại | Trả C, L, M; rỗng | FR-068a |
+| H3 | Tua 00:05 ngày có B1; A có tài khoản | Yêu cầu Nhẹ nhóm `NguoiCaoTuoi(A)`, chỉ phần chung | FR-071 |
+| H4 | Ghi sở thích nguồn người cao tuổi kèm `phanHoiId` | Phát `YKienDaGhiTuPhanHoi` | 001 FR-023g |
+
+Test: `FR_068a_KenhNguoiCaoTuoiIT` (H1, H2), `FR_071_NhacBuoiNguoiCaoTuoiIT` (H3), `SoThichTuPhanHoiIT` (H4).
+

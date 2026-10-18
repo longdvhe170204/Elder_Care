@@ -92,6 +92,13 @@ Ngày 2026-10-18 chủ dự án ủy quyền chốt các điểm báo lại củ
 
 - **Q-363**: sở thích có tối đa một mục hiện hành cho mỗi (nhóm sở thích, nguồn); nguồn người thân ghi rõ người nào (feature 001 FR-023g); thói quen sinh hoạt ghi bằng mục sở thích (FR-051, FR-052, bảng trạng thái mục sở thích).
 
+### Cập nhật 2026-10-18, lượt 3 (đồng bộ Q-365 → Q-371, người cao tuổi tự dùng hệ thống)
+
+Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định. Thay đổi ở spec này:
+
+- **Q-366**: cung cấp buổi hoạt động sắp tới cho kênh người cao tuổi, không kèm đánh giá khả năng tham gia (FR-068a); nhắc buổi trong ngày cho người cao tuổi (FR-071).
+- **Q-369**: cung cấp cho feature 007 chuyến đang diễn ra, trưởng đoàn và người đi cùng để báo cảnh báo SOS (FR-068a).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 04 mục 8.8, 8.9, 8.10; UC-29, UC-30, UC-31; BR-M04-15 → 18, BR-M04-21 → 23; BR-M04-11 phần hồ sơ tinh thần):
@@ -540,6 +547,7 @@ Chuyến đi có bảng trạng thái riêng ở mục H.
 
 - **FR-067**: Quyền của spec MUST theo 4.4: Quản lý viện xem mọi hoạt động, buổi, điểm danh, chuyến đi, kết quả kiểm tra; Trưởng tầng thực hiện mọi lệnh của spec trong tầng mình và với hoạt động toàn viện; Nhân viên chăm sóc đăng ký, hủy đăng ký, điểm danh, phụ trách buổi, làm trưởng đoàn, ghi sở thích trong phạm vi; Hành chính ghi nhận đồng ý về muộn của người đại diện cho bán trú (FR-016a, Q-167); Điều dưỡng có mọi lệnh của Nhân viên chăm sóc ở spec này (Q-214, Phụ lục 27 ²⁷) (sửa, 2026-10-06, Q-287: bỏ quyền gắn, xác nhận, gỡ chỉ định); quyết định "không mang thuốc" là lệnh của feature 006 (FR-038); trưởng đoàn là Trưởng tầng, Nhân viên chăm sóc hoặc Điều dưỡng, đánh giá khả năng tham gia chỉ do Trưởng tầng (FR-035, FR-036, Q-161, Q-214); người đi cùng thuộc vai trò khác chỉ "Báo thiếu người" (FR-046); lệnh trên hoạt động toàn viện theo FR-002b; Người thân chỉ xem. Nhiệm vụ Trưởng đoàn MUST NOT tạo thêm quyền ngoài các lệnh của chuyến mình dẫn (feature 002 FR-019). *(Nguồn: 4.4, 2.4; feature 002 FR-019, FR-031)*
 - **FR-068**: Trên cổng người thân, người thân có quan hệ Hiệu lực MUST thấy (loại thông tin "chung", feature 012 FR-046): các buổi người cao tuổi đã đăng ký, chuyến đi (điểm đến, giờ rời, giờ về dự kiến), số buổi đã tham gia; MUST NOT thấy mức độ tham gia, giao tiếp, tình trạng sau hoạt động, cảnh báo cô lập hay kết quả kiểm tra chất lượng. *(Nguồn: 4.4 cột NT "X"; feature 012 FR-046, FR-052)*
+- **FR-068a** *(bổ sung 2026-10-18, Q-366, Q-369)*: Spec MUST cung cấp cho kênh người cao tuổi (feature 012 FR-083) các buổi hoạt động sắp tới của tầng người cao tuổi và toàn viện, kèm người cao tuổi đã có tên đăng ký hay chưa; MUST NOT kèm kết quả đánh giá khả năng tham gia hay lý do không được đăng ký. Spec MUST cung cấp cho feature 007 chuyến đang diễn ra của người cao tuổi ở Hoạt động bên ngoài, kèm trưởng đoàn và người đi cùng hiện tại (feature 007 FR-047e). *(Nguồn: 14.6a, 9.4 "Nút SOS")*
 - **FR-069**: Mọi lệnh ở spec này MUST được ghi nhật ký với người thực hiện, thời điểm, lý do (khi bắt buộc), theo feature 000; mọi mốc thời gian theo DBR-25. *(Nguồn: DBR-23, DBR-25, 19.4)*
 - **FR-070**: Spec MUST cung cấp cho Module 14: số buổi, số lượt đăng ký, số lượt có mặt, số lượt "Không ghi nhận" và tỷ lệ tham gia theo hoạt động, theo tầng, theo khoảng thời gian; chuyến đi quá giờ về và sự cố thiếu người. Tỷ lệ tham gia = số lượt Có mặt ÷ (số lượt Có mặt + số lượt Vắng có lý do "từ chối", "sức khỏe" hoặc "khác"); lượt "Vắng – đang vắng mặt", "Vắng – không đến", "Không ghi nhận" và đăng ký Đã hủy không vào mẫu số. "Theo tầng" MUST hiểu như sau: buổi trong viện xếp theo tầng của địa điểm (Q-175); lượt đăng ký, lượt điểm danh, tỷ lệ tham gia và sự cố thiếu người xếp theo tầng của người cao tuổi tại thời điểm buổi bắt đầu; chuyến đi xếp theo phạm vi của hoạt động (một tầng hoặc toàn viện). Để feature 016 tính "chuyến quá giờ về", MUST cung cấp giờ về dự kiến, các lần gia hạn và thời điểm điểm danh về của từng người; và nhãn "ghi nhận muộn" của điểm danh buổi (CFG-M04-06). *(Nguồn: 18.2 "hoạt động; tỷ lệ tham gia", 18.5; công thức: Q-173; xếp tầng: đồng bộ spec 016)*
 
@@ -574,6 +582,7 @@ Chuyến đi có bảng trạng thái riêng ở mục H.
 | Danh sách kiểm tra chất lượng của ca có mục đầu tiên | Trưởng tầng được giao của tầng | Nhẹ | FR-059 |
 | Kết quả kiểm tra Không đạt, có công việc làm lại | Người thực hiện công việc gốc | Trung bình | FR-064 |
 | Danh sách kiểm tra có mục Quá hạn kiểm tra | Quản lý viện | Nhẹ | FR-063 |
+| *(Bổ sung 2026-10-18, Q-366)* Nhắc buổi hoạt động trong ngày mà người cao tuổi đã có tên đăng ký: lúc hết giờ yên tĩnh của ngày có buổi, hoặc khi đăng ký trong ngày | Chính người cao tuổi (nhóm (f), feature 009 FR-007) | Nhẹ | FR-068a |
 
 ### Truy vết quy tắc
 
@@ -626,6 +635,8 @@ Chuyến đi có bảng trạng thái riêng ở mục H.
 | Gửi | 011 | Chuyến đã lên lịch, người tham gia ở mọi lần thay đổi, giờ rời, giờ về dự kiến và gia hạn, thời điểm rời/về thực tế và đính chính, hủy chuyến (FR-034, Q-144) | Chuyến, người tham gia, khoảng thời gian |
 | Gửi, Nhận | 019 | Gửi: chuyến dùng xe của viện được lên lịch, dời, hủy, người đầu tiên rời viện, gia hạn giờ về, Kết thúc điểm danh về (Q-231, Q-236). Nhận: có lịch xe Đã đặt bao trùm giờ rời dự kiến (FR-040) | Chuyến, xe, giờ rời, giờ về dự kiến, thời điểm thực tế |
 | Gửi, Nhận | 012 | Gửi: buổi đã đăng ký, chuyến đi, số hoạt động đã tham gia cho cổng và bản tin (FR-033, FR-068). Nhận: đồng ý về muộn và rút đồng ý của người đại diện qua cổng (FR-016a) | Người cao tuổi, buổi, số lượt, người đại diện, đồng ý |
+| Gửi | 012 | *(bổ sung 2026-10-18, Q-366)* Buổi hoạt động sắp tới và việc đã có tên cho kênh người cao tuổi (FR-068a) | Buổi, thời gian, nơi, có tên hay chưa |
+| Gửi | 007 | *(bổ sung 2026-10-18, Q-369)* Chuyến đang diễn ra, trưởng đoàn, người đi cùng của người cao tuổi ở Hoạt động bên ngoài (FR-068a) | Người cao tuổi, chuyến, trưởng đoàn, người đi cùng |
 | Gửi | Module 14 (feature 016) | Tỷ lệ tham gia, danh sách nguy cơ cô lập, tỷ lệ Đạt kiểm tra chất lượng, chuyến quá giờ (FR-058, FR-065, FR-070) | Buổi (hoạt động, phạm vi, tầng địa điểm, trạng thái); đăng ký và kết quả điểm danh (người cao tuổi, tầng lúc buổi bắt đầu, lý do vắng, nhãn "ghi nhận muộn"); chuyến đi (giờ về dự kiến, các lần gia hạn, thời điểm điểm danh về từng người); sự cố thiếu người; mục kiểm tra chất lượng (công việc gốc, người thực hiện, tầng, kết quả, dấu "ngoài phạm vi kiểm tra"); cảnh báo cô lập (người cao tuổi, số ngày tính) |
 
 ### Key Entities *(include if feature involves data)*

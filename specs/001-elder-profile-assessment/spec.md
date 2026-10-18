@@ -139,6 +139,12 @@ Ngày 2026-10-18 chủ dự án ủy quyền chốt các điểm báo lại củ
 - **Q-360**: tới ngày xem lại nhận định, hệ thống nhắc một lần (FR-023i).
 - **Q-363**: thói quen sinh hoạt ghi bằng mục sở thích của feature 014 (FR-023g).
 
+### Cập nhật 2026-10-18, lượt 3 (đồng bộ Q-365 → Q-371, người cao tuổi tự dùng hệ thống)
+
+Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định. Thay đổi ở spec này:
+
+- **Q-366**: mục ý kiến có nguồn "người cao tuổi" có thể được ghi từ phản hồi loại Mong muốn của feature 012 và giữ liên kết tới phản hồi đó (FR-023g). Không đổi quy tắc khác.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 01, mục 5; UC-01 → UC-08):
@@ -404,7 +410,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 #### C2. Nguồn của ý kiến và năng lực quyết định *(bổ sung 2026-10-18, Q-347, Q-348)*
 
-- **FR-023g**: Spec này định nghĩa giá trị "nguồn của ý kiến" dùng chung: người cao tuổi; một người thân có quan hệ Hiệu lực (feature 012, ghi rõ người nào); nhân viên quan sát. Mỗi mục ghi mong muốn, sở thích, thói quen, lựa chọn hoặc lưu ý chăm sóc do nhân viên ghi ở feature 004 (ý kiến về việc vào ở, Q-356; bổ sung 2026-10-18), 005 (thỏa thuận lựa chọn có rủi ro), 012 (mong muốn về khách thăm, người đón), 014 (sở thích) và ghi chú ý kiến gia đình của phiếu nguyện vọng (FR-023c) MUST có nguồn, người ghi, thời điểm. Khi người cao tuổi và người thân nói khác nhau, mỗi ý kiến MUST là một mục riêng; mục đã ghi MUST NOT bị sửa nội dung, thay đổi bằng mục mới. *(Nguồn: 1.3, BR-M01-14, Q-347)*
+- **FR-023g**: Spec này định nghĩa giá trị "nguồn của ý kiến" dùng chung: người cao tuổi; một người thân có quan hệ Hiệu lực (feature 012, ghi rõ người nào); nhân viên quan sát. Mỗi mục ghi mong muốn, sở thích, thói quen, lựa chọn hoặc lưu ý chăm sóc do nhân viên ghi ở feature 004 (ý kiến về việc vào ở, Q-356; bổ sung 2026-10-18), 005 (thỏa thuận lựa chọn có rủi ro), 012 (mong muốn về khách thăm, người đón), 014 (sở thích) và ghi chú ý kiến gia đình của phiếu nguyện vọng (FR-023c) MUST có nguồn, người ghi, thời điểm. Khi người cao tuổi và người thân nói khác nhau, mỗi ý kiến MUST là một mục riêng; mục đã ghi MUST NOT bị sửa nội dung, thay đổi bằng mục mới. **(Bổ sung 2026-10-18, Q-366)** Mục có nguồn "người cao tuổi" MAY được ghi từ một phản hồi loại Mong muốn (feature 012 FR-058b); mục MUST giữ liên kết tới phản hồi đó. *(Nguồn: 1.3, BR-M01-14, Q-347)*
 - **FR-023h**: Hồ sơ người cao tuổi MUST NOT có dấu, trường hay trạng thái năng lực chung (kiểu "đủ / không đủ năng lực"). Nhận định người cao tuổi có tự quyết được hay không chỉ được ghi gắn với một quyết định tầng 2 của BR-M01-15 (phiếu nguyện vọng cuối đời ở spec này; thỏa thuận lựa chọn có rủi ro ở feature 005), do Bác sĩ ghi, kèm thời điểm, cách đã hỗ trợ người cao tuổi hiểu thông tin và ngày xem lại. Quyết định đời sống hằng ngày (tầng 3) MUST NOT đòi nhận định năng lực. Tình trạng do Tòa án tuyên (tầng 1) chỉ có tác dụng cho bản đồng ý (FR-011). *(Nguồn: 1.3, BR-M01-15, Q-348)*
 - **FR-023i**: **(Bổ sung, Q-360)** Tới ngày xem lại nhận định ghi trên phiếu nguyện vọng Hiệu lực (FR-023a), hệ thống MUST nhắc một lần, mức Nhẹ, Bác sĩ đã nhận định và Điều dưỡng phụ trách; nhắc MUST NOT chặn lệnh nào và MUST NOT đổi phiếu. Phiếu được thay bằng phiên bản mới trước ngày đó thì không nhắc. *(Nguồn: 5.2, Q-360)*
 

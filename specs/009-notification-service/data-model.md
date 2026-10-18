@@ -69,7 +69,7 @@ Lần nhận trùng (FR-005) không sửa dòng nhóm 3: mỗi lần ghi một d
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
 | `id`, `yeu_cau_id` | | |
-| `loai_nguoi_nhan` (`NHAN_VIEN`, `NGUOI_THAN`), `nguoi_nhan_id`, `tai_khoan_id NULL` | `UNIQUE (yeu_cau_id, loai_nguoi_nhan, nguoi_nhan_id)` | FR-012 |
+| `loai_nguoi_nhan` (`NHAN_VIEN`, `NGUOI_THAN`, `NGUOI_CAO_TUOI` bổ sung 2026-10-18), `nguoi_nhan_id`, `tai_khoan_id NULL` | `UNIQUE (yeu_cau_id, loai_nguoi_nhan, nguoi_nhan_id)` | FR-012 |
 | `can_cu` `JSON` | Mọi căn cứ: nhóm, "thay <nhóm> – không có người", "tạm nhận – bàn giao chưa xác nhận", "nhận thay – không có người nhận" | FR-009 → FR-012 |
 | `phan_duoc_xem` `SET(...)` | Loại thông tin người nhận thấy lúc gửi (người thân) | FR-013 |
 | `chi_nhan_dang` | Nhận thay không có phạm vi | FR-011 |
@@ -91,7 +91,7 @@ Không `UPDATE`, không `DELETE` (mẫu 000).
 
 | Từ | Sự kiện | Đến | Người | Điều kiện |
 | --- | --- | --- | --- | --- |
-| — | Xác định người nhận | `CHO_HET_GIO_YEN_TINH` | Hệ thống | Người thân, Nhẹ/Trung bình, trong giờ yên tĩnh |
+| — | Xác định người nhận | `CHO_HET_GIO_YEN_TINH` | Hệ thống | Người thân (Nhẹ/Trung bình) hoặc người cao tuổi (Nhẹ), trong giờ yên tĩnh |
 | — | Xác định người nhận | `DA_GUI` / `GUI_THAT_BAI` | Hệ thống | Còn lại |
 | `CHO_HET_GIO_YEN_TINH` | Tới `gui_du_kien` | `DA_GUI` / `GUI_THAT_BAI` | Hệ thống | Còn đủ điều kiện |
 | `CHO_HET_GIO_YEN_TINH` | Tới `gui_du_kien` | `KHONG_GUI` | Hệ thống | Không còn đủ điều kiện; người cao tuổi Qua đời |
@@ -119,7 +119,7 @@ Không `UPDATE`, không `DELETE` (mẫu 000).
 
 ### `thiet_bi_day` – kỹ thuật
 
-`tai_khoan_id`, `ma_thiet_bi` (002), `ung_dung` (`APP_NHAN_VIEN`, `APP_NGUOI_THAN`), `fcm_token`, `cap_nhat_luc`, `vo_hieu_luc`. Token hết hạn (FCM trả lỗi) thì đặt `vo_hieu_luc`.
+`tai_khoan_id`, `ma_thiet_bi` (002), `ung_dung` (`APP_NHAN_VIEN`, `APP_NGUOI_THAN`, `APP_NGUOI_CAO_TUOI` bổ sung 2026-10-18), `fcm_token`, `cap_nhat_luc`, `vo_hieu_luc`. Token hết hạn (FCM trả lỗi) thì đặt `vo_hieu_luc`.
 
 ---
 
@@ -216,4 +216,5 @@ Không `UPDATE`, không `DELETE` (mẫu 000).
 | BR-M10-06 (phần 009) | `XEM` gửi lại module nguồn qua `ThongBaoTraCuuApi`; `thong_bao.ma_truong_hop` (bổ sung 2026-10-18) | `FR_035_DuLieuChoNguonIT`, `FR_014a_MaTruongHopIT` |
 | FR-001a, FR-014 (Q-353, sửa 2026-10-18) | `XetPhamViDongY`; `doi_tuong_thong_tin`; dấu `THIEU_DOI_TUONG_THONG_TIN`, `THIEU_MA_TRUONG_HOP` | `XetPhamViDongYTest`, `FR_014_NhanThongBaoDongYIT` |
 | DBR-03 (phần 009) | `LocPhanNoiDung` | `FR_013_LocNguoiThanTest` |
+| FR-007 (f), FR-022a *(bổ sung 2026-10-18)* | B-02, B-04, B-06 | `FR_022a_NguoiCaoTuoiNhanIT` |
 | FR-005, FR-012, FR-032 | Mục 8 | `FR_005_ChongTrungIT`, `FR_012_GopNguoiNhanIT`, `FR_032_MotLuotIT` |

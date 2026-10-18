@@ -226,6 +226,8 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 
 ## Phase 10: Polish & Cross-Cutting
 
+- [ ] T076 *(Bổ sung 2026-10-18, Q-366)* Thêm `phan_hoi_id` vào mẫu cột nguồn ý kiến (data-model mục 6a) và khai báo `YKienDaGhiTuPhanHoi` ở `BE/m01/api/`; test `BT/m01/FR_023g_YKienTuPhanHoiIT.java` (quickstart Y1; research H-17)
+
 - [ ] T071 [P] Mở rộng `BT/common/HopDongApiTest.java` so springdoc với `specs/001-elder-profile-assessment/contracts/api-001.yaml`
 - [ ] T072 [P] Màn danh mục `frontend/src/tinh-nang/danh-muc-m01/` (dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc)
 - [ ] T073 Khi plan của 003, 004, 005, 006, 007, 010, 011, 012, 013 cài bean `ThamGiaChuyenTrangThai` thật, chạy lại `FR_045_LietKeDieuKienIT`, `FR_047_RollbackTacDongIT` với bean thật (research H-02 mục 4)

@@ -58,6 +58,12 @@ Spec 016 định nghĩa "phiếu giao trễ" (Đã giao sau giờ bữa + CFG-M0
 
 Feature 009 FR-001a (Q-353, Q-354) yêu cầu mọi thông báo tới người thân khai đối tượng thông tin ("về người cao tuổi" hoặc "về việc của chính người thân"), và mang mã trường hợp Q-354 khi nội dung vượt phạm vi bản đồng ý. Thông báo "về người cao tuổi" chỉ tới người thân trong phạm vi "nhận thông báo" của bản đồng ý Hiệu lực (feature 009 FR-014). Thay đổi ở spec này: FR-065 khai đối tượng thông tin; không đổi người nhận, mức, loại thông tin hay nội dung.
 
+### Cập nhật 2026-10-18, lượt 3 (đồng bộ Q-365 → Q-371, người cao tuổi tự dùng hệ thống)
+
+Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định. Thay đổi ở spec này:
+
+- **Q-366**: người cao tuổi xem thực đơn chung và suất ăn dự kiến của mình trên kênh người cao tuổi, không thấy chế độ ăn, dị ứng, bệnh lý (FR-063); bảng giao tiếp thêm dòng cung cấp cho 012.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 08, mục 12; UC-45 → UC-48, UC-75 → UC-78):
@@ -513,6 +519,7 @@ Ngừng, Đã hủy là trạng thái cuối. *(Trạng thái Chờ duyệt, T�
   - **Nhân viên bếp** (toàn viện) **(sửa, 2026-10-06, Q-308)**: dòng "Món ăn, thực đơn" (T): tạo, sửa, gửi xác nhận, rút lại, hủy, Ngừng hiệu lực món ăn (FR-004, FR-004a); tạo, sửa, sao chép, gửi kiểm tra (kèm xác nhận kiểm tra chế biến, nguyên liệu, suất ăn, FR-025a), rút lại, hủy thực đơn; Đổi món (FR-031). Xem danh mục chế độ ăn và số người dùng từng chế độ ăn, không kèm tên người (X); xem phiếu và phát sinh với giới hạn FR-046 (X¹⁴); Chốt suất (FR-033), đánh dấu chuẩn bị, giao phiếu, ghi xử lý sai lệch, xác nhận phát sinh, ghi lưu mẫu (T). MUST NOT xem bản gán chế độ ăn, dị ứng hay tên người trong cảnh báo dị ứng của thực đơn (FR-025), ngoài những gì hiện trên phiếu; MUST NOT công bố thực đơn hay xác nhận món.
   - **Quản lý viện**: xem toàn bộ (X); cấu hình danh mục bữa, loại đồ ăn bị cấm và tham số (C).
   - **Người thân**: xem thực đơn chung; xem chế độ ăn riêng của người cao tuổi khi có quyền xem sức khỏe có tác dụng (feature 012 FR-046).
+  - **Người cao tuổi** *(bổ sung 2026-10-18, Q-366)*: trên kênh người cao tuổi, xem thực đơn chung đã công bố và suất ăn dự kiến của chính mình ở từng bữa, kể cả món thay thế; không thấy tên chế độ ăn, dị ứng, bệnh lý (feature 012 FR-083, FR-084, theo mặc định Q-367).
   - **Hệ thống / Bộ lập lịch** (**sửa, 2026-10-06, Q-306, Q-307**): tính sẵn số suất khi bếp chốt; nhắc chốt; tạo phát sinh kèm lệnh của actor gây thay đổi; tự dùng món an toàn (FR-037a), tạo phát sinh chỉ để ghi nhận cho suất giữ (FR-040a), tự chuyển đồ ăn gia đình tới hạn dùng sang Không sử dụng (FR-055), và các chuyển trạng thái khác do "Hệ thống" thực hiện ở các bảng trên. Hệ thống MUST NOT chốt suất, lập phiếu ngoài lệnh của bếp, tạo yêu cầu xem lại chế độ ăn hay tạo sự cố.
 
   Nhân viên hành chính MUST NOT có quyền trong feature này. *(Nguồn: Phụ lục 27 dòng "Chế độ ăn", "Món ăn, thực đơn" (Q-308), "Suất ăn đã chốt, phiếu bữa ăn", "Chuẩn bị, giao phiếu, lưu mẫu", "Nhận phiếu, báo sai lệch", "Xác nhận phục vụ suất đặc biệt"; UC-45 → 48, UC-75 → 78; 19.3)*
@@ -569,6 +576,7 @@ Ngừng, Đã hủy là trạng thái cuối. *(Trạng thái Chờ duyệt, T�
 | Gửi | 010 | Suất ăn người thân (ghi, hủy) làm bản ghi nguồn chi phí | Suất, người thân, lượt ở lại, người cao tuổi được gắn, ngày bữa, trạng thái |
 | Nhận | 012 | Lượt người thân ở lại có đăng ký ăn (xác nhận, bắt đầu, kết thúc, hủy); người thân có quan hệ Hiệu lực (người gửi đồ ăn) | Lượt, người thân, người cao tuổi, khoảng thời gian, có đăng ký ăn |
 | Cung cấp | 012 | Thực đơn chung (FR-028); chế độ ăn riêng (loại thông tin "sức khỏe") | Tuần, ngày, bữa, món; người cao tuổi, chế độ ăn, kết cấu |
+| Cung cấp | 012 | *(bổ sung 2026-10-18, Q-366)* Suất ăn dự kiến của người cao tuổi theo bữa cho kênh người cao tuổi; không có chế độ ăn, dị ứng | Người cao tuổi, ngày, bữa, món, món thay thế |
 | Nhận | 014 | Chuyến hoạt động ngoài viện đã lên lịch, người tham gia ở mọi lần thay đổi, giờ về dự kiến và gia hạn, điểm danh rời viện và trở về, đính chính thời điểm hoặc Hủy ghi nhận (feature 014 FR-034, FR-031a), hủy chuyến; giờ về theo ngày của bán trú lấy từ feature 005 (Q-176) | Chuyến, người tham gia, khoảng thời gian |
 | Gửi | Module 14 (feature 016) | Dữ liệu cho báo cáo: số phiếu giao trễ, có sai lệch (18.2, định nghĩa ở feature 016 FR-034); số suất theo bữa, chế độ ăn (giai đoạn sau, Q-194) | Phiếu, bữa, tầng/khu, thời điểm giao, sai lệch |
 
