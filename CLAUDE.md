@@ -14,7 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Lệnh: /speckit-plan, /speckit-tasks để sửa; /speckit-analyze, /speckit-converge để rà; /speckit-implement chưa dùng; /speckit-taskstoissues chỉ khi chủ dự án yêu cầu.
 - Plan, tasks không được đổi nghiệp vụ (constitution IX). Gặp thiếu sót nghiệp vụ hoặc lệch giữa spec, plan, tasks thì dừng và báo lại.
 - /speckit-analyze chạy theo thứ tự triển khai, đổi `.specify/feature.json` trước mỗi feature; chỉ đọc, không ghi file trừ khi chủ dự án yêu cầu.
-- Tiến độ (2026-10-16): xong 000 T001 (`.gitignore`, README gốc) và T005a (design system, khung ứng dụng, hai màn mẫu); `DESIGN.md` (nay 5.12.0, mục 15 mobile đã duyệt, chung cho web và mobile; trước ở `frontend/`) đã duyệt và áp vào `index.css` (mục 2.2 Nhân văn trong màn nghiệp vụ, Q-347 → Q-364, duyệt 2026-10-18), thêm màn mẫu Checklist ca dạng lưới thẻ. Đã làm trước một phần, task chưa `[x]`: T002 (driver MySQL, `ddl-auto=validate`), T005 (bỏ file mẫu Vite), T008 (ESLint bỏ qua hai luật cho mã shadcn sinh ra).
+- Tiến độ (2026-10-16): xong 000 T001 (`.gitignore`, README gốc) và T005a (design system, khung ứng dụng, hai màn mẫu); `DESIGN.md` (nay 5.12.0, mục 15 mobile đã duyệt, chung cho web và mobile; trước ở `frontend/`) đã duyệt và áp vào `index.css` (mục 2.2 Nhân văn trong màn nghiệp vụ, Q-347 → Q-364, duyệt 2026-10-18), thêm màn mẫu Checklist ca dạng lưới thẻ, Phát thuốc, Bàn giao ca, Cảnh báo. Đã làm trước một phần, task chưa `[x]`: T002 (driver MySQL, `ddl-auto=validate`), T005 (bỏ file mẫu Vite), T008 (ESLint bỏ qua hai luật cho mã shadcn sinh ra).
+- Tiến độ (2026-10-18): người cao tuổi tự dùng hệ thống (actor AC-16; Q-365, Q-366, Q-368 → Q-371 chốt, Q-367 còn mở, cần tư vấn pháp lý): đã sửa nghiep-vu.md và spec, plan, tasks của 000, 001, 002, 007, 009, 011, 012, 013, 014, 016; đã qua /speckit-analyze; DESIGN.md mục 15 có thêm màn người cao tuổi.
 - Trước khi vận hành: chốt 3 điểm pháp lý ở 24.4 (Q-03, Thông tư 27/2024/TT-BYT, Luật Cư trú 118/2025/QH15); nâng MySQL 8.0 lên 8.4 LTS, nên migration chỉ dùng cú pháp có ở cả hai bản (research R-01).
 
 ### Thiết kế giao diện
@@ -52,7 +53,7 @@ Skill ở `.claude/skills/karpathy-guidelines/` (nguồn ghi ở `skills-lock.js
 - Một kho mã, ba thư mục gốc:
   - `backend/`: Spring Boot 4.1.x, Java 25, Maven wrapper; một khối, RESTful `/api/v1`; gói gốc `com.cambae.backend` chia `common` và `m01` … `m15` (application module của Spring Modulith, chỉ gói `api` công khai). Flyway ở `src/main/resources/db/migration/`; test `*Test` đơn vị, `*IT` tích hợp, `*ArchTest` kiến trúc, bản giả ở `…/support/`. Tasks viết tắt `BE/`, `BT/`, `MIG/`.
   - `frontend/`: React 19, Vite 8, JavaScript (không TypeScript), Tailwind CSS v4, shadcn/ui (Base UI), lucide-react, font Be Vietnam Pro. `src/{api, common, features}`, `src/components/ui/` (thêm bằng `npx shadcn add`), `src/lib/`; alias `@/` trỏ `src/`; `src/api/` sinh từ `specs/*/contracts/api-*.yaml` (000 T010), không sửa tay. `cn` lấy từ gói npm `cn`.
-  - `mobile/`: một app Flutter chung cho nhân viên và người thân, chức năng theo loại tài khoản (Q-346); "app nhân viên", "app người thân" trong spec là app này. `lib/{common, staff, family}` (tasks ghi `chung`, `nhan-vien`, `nguoi-than`); phần nhân viên ghi ngoại tuyến (Q-01).
+  - `mobile/`: một app Flutter chung cho nhân viên, người thân và người cao tuổi, chức năng theo loại tài khoản (Q-346, Q-365); "app nhân viên", "app người thân", "app người cao tuổi" trong spec là app này. `lib/{common, staff, family, resident}` (tasks ghi `chung`, `nhan-vien`, `nguoi-than`, `nguoi-cao-tuoi`); phần nhân viên ghi ngoại tuyến (Q-01).
 - Tên trong mã bằng tiếng Anh; tên tiếng Việt trong tài liệu là tên logic, dịch theo glossary (constitution X, R-03).
 
 ## Lệnh
@@ -66,7 +67,7 @@ Skill ở `.claude/skills/karpathy-guidelines/` (nguồn ghi ở `skills-lock.js
 
 ## Phạm vi nghiệp vụ (tóm tắt, căn cứ là docs/business/nghiep-vu.md)
 
-- Vai trò (2.3): Quản lý viện, Trưởng tầng, Bác sĩ (kiêm dinh dưỡng), Điều dưỡng, Nhân viên chăm sóc, Nhân viên bếp, Hành chính, Kế toán, Người thân. Nhân viên không dùng hệ thống chỉ có hồ sơ, không có tài khoản.
+- Vai trò (2.3): Quản lý viện, Trưởng tầng, Bác sĩ (kiêm dinh dưỡng), Điều dưỡng, Nhân viên chăm sóc, Nhân viên bếp, Hành chính, Kế toán, Người thân, Người cao tuổi (không bắt buộc; xem và gửi phản hồi về chính mình, nút SOS; Q-365). Nhân viên không dùng hệ thống chỉ có hồ sơ, không có tài khoản.
 - Bác sĩ đánh giá bằng nhận xét rồi chọn mức chăm sóc; không thang điểm, không quy đổi tự động.
 - Mức chăm sóc có 3 mức (cơ bản, thường xuyên, đặc biệt); nhu cầu cụ thể là danh mục riêng. Không có cờ gắn cho người cao tuổi. Không dùng cổng thanh toán.
 - Hệ thống không tự sinh, tự tạo hay tự gợi ý (Q-306, Q-307): mọi bản ghi do actor lập bằng lệnh. Vẫn giữ: tự chuyển trạng thái theo giờ, cảnh báo và leo thang, nhắc, thông báo, kiểm tra và chặn, tác động kèm lệnh của actor, số liệu tính để hiển thị.

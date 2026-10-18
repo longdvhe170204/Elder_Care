@@ -1,9 +1,9 @@
 ---
 name: Elder_Care
-version: 5.12.0
-status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18)
+version: 5.13.0
+status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 chờ duyệt)
 platforms: { web: frontend/, mobile: mobile/ }
-updated: 2026-10-18
+updated: 2026-10-19
 direction: Trời xanh theo bảng màu letters.app
 colors:
   light:
@@ -137,7 +137,7 @@ components:
 | 7. Component | Công thức 7.2, trạng thái màn 7.3, lệnh và lỗi 7.4 là chung; tên component shadcn, `cva`, `Sheet` là của web, mobile theo 15.3 |
 | 8. Câu chữ, 11. Nên và không nên | Chung |
 | 9. Trợ năng | Chung; thuộc tính `aria-*`, focus bàn phím là của web, mobile theo 15.5 |
-| 10. Co giãn theo màn hình, 12. Công cụ và skill, 14. Hiện trạng | Web; mobile theo 15.1, 15.4, 15.6 |
+| 10. Co giãn theo màn hình, 12. Công cụ và skill, 14. Hiện trạng | Web; mobile theo 15.1, 15.4, 15.7 |
 | 13. Quy trình | Chung |
 | 15. Ứng dụng di động | Mobile |
 
@@ -527,7 +527,7 @@ Mục này nói cách áp các mục chung vào `mobile/`. Màu, chữ, trạng 
 
 ### 15.1 Phạm vi và công nghệ
 
-- Một app Flutter chung cho nhân viên và người thân, chức năng theo loại tài khoản (Q-346); "app nhân viên", "app người thân" trong spec là app này. Mã ở `lib/common`, `lib/staff`, `lib/family` (research R-02 của 000).
+- Một app Flutter chung cho nhân viên, người thân và người cao tuổi, chức năng theo loại tài khoản (Q-346, Q-365); "app nhân viên", "app người thân", "app người cao tuổi" trong spec là app này. Mã ở `lib/common`, `lib/staff`, `lib/family`, `lib/resident` (research R-02 của 000; tasks ghi `nguoi-cao-tuoi`). Phần người cao tuổi theo 15.6.
 - Material 3 (`uses-material-design: true`). Phần nhân viên ghi được khi mất mạng (Q-01, 8.6).
 - Cổng người thân trên app có cùng chức năng, tài khoản và quyền với web (Q-305): màn người thân trên app và trên web theo cùng công thức.
 - Skill `frontend-design` áp cho phần thẩm mỹ; skill `shadcn` không áp cho mobile.
@@ -565,15 +565,70 @@ Mục này nói cách áp các mục chung vào `mobile/`. Màu, chữ, trạng 
 - Vùng bấm tối thiểu 48 logical px. Biểu tượng chỉ có hình có nhãn `Semantics`; biểu tượng trang trí và ảnh đại diện chữ cái loại khỏi cây trợ năng. Trạng thái luôn có chữ (mục 1 điều 6).
 - Chuyển động chỉ khi người dùng thao tác, tắt khi máy bật giảm chuyển động (mục 9).
 
-### 15.6 Hiện trạng
+### 15.6 Phần người cao tuổi
 
-- Chưa có theme và màn mẫu; `lib/main.dart` vẫn là app mẫu của Flutter.
+Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục G2, spec 007 US12, spec 002 US8). Người dùng có thể nhìn kém, tay run, ít quen điện thoại, có lúc nhầm lẫn. Các quy tắc chung của mục 15 vẫn áp; dưới đây là phần khác.
+
+**Nguyên tắc**
+
+- Chỉ thông tin của chính người cao tuổi; không có màn hay thẻ nào về sức khỏe, thuốc, chi phí, số dư, hợp đồng (Q-367, BR-M10-11).
+- Mỗi màn một việc và tối đa một nút chính. Không có thao tác vuốt, kéo hay giữ lâu, trừ nút SOS.
+- Chữ: thang mục 4 nhân 1,25 qua một `TextTheme` riêng của phần này (thân bài 15 → 19 logical px, tiêu đề màn tối thiểu 26); vẫn co giãn theo cỡ chữ của máy, dùng được ở 200%.
+- Vùng bấm tối thiểu 56 logical px; nút chính rộng hết màn, cao 56; khoảng cách giữa hai vùng bấm tối thiểu 12.
+- Tương phản chữ thân bài tối thiểu 7:1 (cao hơn mức 4,5:1 ở mục 3.4). Nhãn trạng thái luôn có chữ (mục 1 điều 6).
+- Điều hướng: không dùng `NavigationBar`. Màn đầu "Hôm nay" là nơi về; mọi màn khác có nút "Quay lại" có chữ ở góc trái thanh tiêu đề.
+- Câu ngắn, không thuật ngữ, không viết tắt. Câu không cần đại từ ("Giữ nút 3 giây để gọi người giúp"); khi cần gọi thì dùng họ tên như mục 2.2, không đoán giới tính để chọn "ông", "bà".
+- Mất mạng: màn xem hiện dữ liệu đã tải gần nhất kèm dải báo của 15.5; gửi góp ý cần mạng và nói rõ khi chưa gửi được.
+
+**Màn đầu "Hôm nay"**
+
+- Thanh tiêu đề: "Hôm nay, thứ Hai, 19/10/2026".
+- Các thẻ lớn một cột, mỗi thẻ là một nút mở màn tương ứng: "Lịch hôm nay", "Bữa ăn", "Hoạt động", "Người đến thăm", "Đồ của tôi", "Góp ý với viện". Thẻ hiện ngay việc gần nhất ("10:00 Tập dưỡng sinh ở sân", "15:00 [Họ tên người thân] đến thăm").
+- Nút SOS cố định ở đáy màn đầu, rộng hết màn, cao 72, nền `error` chữ trắng, biểu tượng lucide `siren` kèm chữ "Gọi người giúp". Đây là chỗ duy nhất màu đỏ là màu nền (mục 1 điều 4: việc gấp).
+
+**Nút SOS** (BR-M05-27, 012 FR-085)
+
+- Giữ 3 giây: một vòng tiến trình chạy quanh nút, chữ đổi thành "Giữ tiếp…"; đủ 3 giây thì rung nhẹ (nếu máy có) và gửi ngay, không hỏi lại. Thả sớm: không gửi, chữ "Chưa gửi. Giữ nút đủ 3 giây." trong 3 giây rồi trở lại.
+- Nút hiện cả khi chưa đăng nhập hay khi màn xem đang khóa bằng sinh trắc học, trên máy đã gắn (002 FR-071, FR-074).
+- Nhãn trợ năng: "Gọi người giúp. Giữ ba giây để gửi." Vòng tiến trình vẫn hiện khi máy bật giảm chuyển động, chỉ bỏ hiệu ứng rung hình.
+- Lần mở app đầu tiên: một màn giới thiệu "Nút Gọi người giúp báo nhân viên đang trực. Nút không thay chuông gọi ở đầu giường." và nút "Đã hiểu".
+
+**Sau khi gửi** (007 FR-047f)
+
+- Màn trạng thái toàn màn: "Đã gửi. Nhân viên đang được báo." (tông `neutral`); khi có người tiếp nhận: "[Họ tên nhân viên] đang đến." (tông `settled`). Màn tự cập nhật, người dùng không phải bấm gì.
+- Dưới đó, không bắt buộc: "Đang ở đâu?" với bốn nút lớn "Ở phòng", "Nhà vệ sinh", "Ngoài sân", "Chỗ khác"; chọn một lần rồi ẩn.
+- Không có nút hủy. Nút "Về màn Hôm nay" ở cuối.
+
+**Không gửi được** (007 FR-047d, 012 FR-085)
+
+- Màn toàn màn tông `urgent`: "Chưa gửi được." kèm lý do bằng câu thường ("Đang ghi là tạm vắng", "Máy chưa kết nối mạng", "Máy này chưa được gắn với tài khoản").
+- Hai nút gọi điện cao 56, rộng hết màn: "Gọi viện: [số liên hệ của viện]" (số nhận được gần nhất, lưu trên máy) và "Gọi cấp cứu 115". Bấm là mở trình gọi của máy.
+
+**Đăng nhập** (002 FR-069, FR-074)
+
+- Màn quét mã QR toàn màn: "Đặt mã QR nhân viên đưa vào trong khung." Quét được thì vào thẳng "Hôm nay". Nút phụ "Dùng mật khẩu" ở cuối.
+- Sau lần đầu, gợi ý một lần "Mở bằng vân tay hoặc khuôn mặt?" với "Có" và "Để sau". Không có mã PIN.
+
+**Các màn xem và gửi** (012 FR-083, FR-058a, FR-058b)
+
+- "Bữa ăn": theo ngày, mỗi bữa một thẻ, tên món; món thay thế ghi "Món thay thế". Không ghi tên chế độ ăn.
+- "Hoạt động": mỗi buổi một thẻ, giờ, nơi; nhãn "Đã có tên" (`settled`) hoặc "Chưa có tên" (`neutral`). Không có nút đăng ký (012 FR-084).
+- "Người đến thăm": ngày, giờ, họ tên người thăm.
+- "Đồ của tôi": ảnh lớn, tên đồ, trạng thái.
+- "Góp ý với viện": bước 1 chọn một trong bốn nút, tên theo loại của 14.7, dưới mỗi tên một dòng giải thích ("Góp ý": muốn viện làm tốt hơn; "Hỏi đáp": muốn hỏi một việc; "Khiếu nại": có việc không đúng; "Mong muốn": điều mình muốn); "Mong muốn" hỏi thêm "Về người đến thăm, người đón tôi" hay "Việc khác" (chủ đề, 012 FR-058b); bước 2 ô viết hoặc nói (nhập giọng nói của máy); nút "Gửi tới viện". Danh sách góp ý đã gửi hiện trạng thái và trả lời; trả lời về sức khỏe chỉ phần chung (012 FR-058a).
+
+**Thông báo**: chỉ nhắc mức Nhẹ (lượt thăm, hoạt động trong ngày, góp ý đã được trả lời; 009 FR-022a); chữ thông báo nói rõ việc ("15:00 hôm nay [Họ tên người thân] đến thăm"), bấm vào mở đúng màn.
+
+### 15.7 Hiện trạng
+
+- Chưa có theme và màn mẫu; `lib/main.dart` vẫn là app mẫu của Flutter. Phần người cao tuổi (15.6) chưa có màn mẫu.
 - Đã duyệt 2026-10-18: bố cục 15.4, bộ biểu tượng lucide. Cách lưu chế độ sáng tối và gói lucide cho Flutter chốt ở plan khi triển khai.
 
 ## 16. Lịch sử
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 5.13.0 | 2026-10-19 | Thêm mục 15.6 Phần người cao tuổi theo Q-365 → Q-371 (chờ duyệt): nguyên tắc chữ, vùng bấm, tương phản, điều hướng; màn Hôm nay, nút SOS giữ 3 giây, màn sau khi gửi, màn không gửi được, đăng nhập bằng mã QR, các màn xem và góp ý. Hiện trạng thành 15.7. Không thêm màu |
 | 5.12.0 | 2026-10-18 | Màn mẫu Bàn giao ca (spec 008) và Cảnh báo (spec 007): thêm `handover-draft`, `handover-confirm`, `alert-card`; tông mức cảnh báo, trạng thái cảnh báo, bàn giao vào mục 3.5. Nút "Mở cảnh báo" ở Tổng quan mở màn Cảnh báo. Không thêm màu |
 | 5.11.0 | 2026-10-18 | Theo góp ý chủ dự án (màn Phát thuốc thừa khoảng trống): màn nhân viên rộng tối đa 1600px thay cho 1280px; lưới thẻ dùng `auto-fit` để thẻ giãn lấp đầy hàng, mỗi thẻ rộng tối đa 480px (thẻ việc ở Tổng quan 360px) để thẻ lẻ không kéo dài cả màn |
 | 5.10.0 | 2026-10-18 | Màn mẫu Phát thuốc (spec 006): thêm `dose-card`, `dose-sheet`, `prn-card`; trạng thái liều vào mục 3.5 (Trễ, Bỏ lỡ đỏ; Đến giờ hổ phách; Đã dùng xanh lá); dị ứng hiện trên mọi thẻ thuốc; thời điểm dùng điền sẵn giờ hiện tại. Không thêm màu |
