@@ -459,7 +459,7 @@ Mức (spec; dòng có * là plan áp nguyên tắc 3 bậc của 009 FR-043b, x
 ## S-23. Nút SOS của người cao tuổi *(bổ sung 2026-10-18; FR-026 (d), FR-047d → FR-047g, BR-M05-27, Q-369)*
 
 **Quyết định**:
-- **Endpoint**: `POST /sos` ở `m05.canhbao.web`, không qua bộ lọc phiên; header `X-Token-Thiet-Bi` và `X-Thiet-Bi`, `Idempotency-Key` cho mỗi lần bấm (app gửi lại khi mất phản hồi không tạo hai lần bấm). Giữ 3 giây là việc của app (012 FR-085); máy chủ coi mỗi yêu cầu là một lần bấm.
+- **Endpoint**: `POST /sos` ở `m05.canhbao.web`, không qua bộ lọc phiên; header `X-Token-Thiet-Bi` và `X-Thiet-Bi`, `Idempotency-Key` cho mỗi lần bấm (app gửi lại khi mất phản hồi không tạo hai lần bấm). Đếm ngược 3 giây và nút Hủy là việc của app (012 FR-085, Q-372); Hủy thì app không gửi gì; máy chủ coi mỗi yêu cầu là một lần bấm.
 - **Xác định người**: `ThietBiGanApi.xacDinh(token)` (002); rỗng thì 401 `THIET_BI_KHONG_HOP_LE`.
 - **Điều kiện** (FR-047d), kiểm theo thứ tự, mỗi lỗi trả 409 kèm `lienHe` (số liên hệ của viện từ `SoLienHeVienApi`, số 115): Tạm vắng, Điều trị tại bệnh viện hoặc trạng thái cuối (`NguoiCaoTuoiApi.trangThai`) → `KHONG_O_VIEN`; người bán trú mà `CoMatBanTruApi.theoNgay` không phải `CO_MAT` → `KHONG_CO_MAT`. Hoạt động bên ngoài thì gửi được.
 - **Ghi nhận**: trong một transaction, thêm `lan_bam_sos` (phòng, giường lúc bấm từ `ViTriApi.hienTai`), rồi gọi đường tạo cảnh báo sẵn có (S-08) với loại `NCT_YEU_CAU_TRO_GIUP`, khóa `SOS`, mức Khẩn cấp, nguồn `SOS` = id lần bấm. Cảnh báo đang mở cùng khóa thì gộp (FR-028, FR-030), không tạo mới; mức đã Khẩn cấp nên không nâng.

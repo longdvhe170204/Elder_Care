@@ -572,12 +572,12 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 **Nguyên tắc**
 
 - Chỉ thông tin của chính người cao tuổi; không có màn hay thẻ nào về sức khỏe, thuốc, chi phí, số dư, hợp đồng (Q-367, BR-M10-11).
-- Mỗi màn một việc và tối đa một nút chính. Không có thao tác vuốt, kéo hay giữ lâu, trừ nút SOS.
+- Mỗi màn một việc và tối đa một nút chính. Không có thao tác vuốt, kéo hay giữ lâu.
 - Chữ: thang mục 4 nhân 1,25 qua một `TextTheme` riêng của phần này (thân bài 15 → 19 logical px, tiêu đề màn tối thiểu 26); vẫn co giãn theo cỡ chữ của máy, dùng được ở 200%.
 - Vùng bấm tối thiểu 56 logical px; nút chính rộng hết màn, cao 56; khoảng cách giữa hai vùng bấm tối thiểu 12.
 - Tương phản chữ thân bài tối thiểu 7:1 (cao hơn mức 4,5:1 ở mục 3.4). Nhãn trạng thái luôn có chữ (mục 1 điều 6).
 - Điều hướng: không dùng `NavigationBar`. Màn đầu "Hôm nay" là nơi về; mọi màn khác có nút "Quay lại" có chữ ở góc trái thanh tiêu đề.
-- Câu ngắn, không thuật ngữ, không viết tắt. Câu không cần đại từ ("Giữ nút 3 giây để gọi người giúp"); khi cần gọi thì dùng họ tên như mục 2.2, không đoán giới tính để chọn "ông", "bà".
+- Câu ngắn, không thuật ngữ, không viết tắt. Câu không cần đại từ ("Chạm nút để gọi người giúp"); khi cần gọi thì dùng họ tên như mục 2.2, không đoán giới tính để chọn "ông", "bà".
 - Mất mạng: màn xem hiện dữ liệu đã tải gần nhất kèm dải báo của 15.5; gửi góp ý cần mạng và nói rõ khi chưa gửi được.
 
 **Màn đầu "Hôm nay"**
@@ -588,9 +588,9 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 **Nút SOS** (BR-M05-27, 012 FR-085)
 
-- Giữ 3 giây: một vòng tiến trình chạy quanh nút, chữ đổi thành "Giữ tiếp…"; đủ 3 giây thì rung nhẹ (nếu máy có) và gửi ngay, không hỏi lại. Thả sớm: không gửi, chữ "Chưa gửi. Giữ nút đủ 3 giây." trong 3 giây rồi trở lại.
+- Chạm một lần (Q-372): màn đổi thành "Đang gọi người giúp sau 3… 2… 1" với số đếm lớn, và nút "Hủy" cao 72 rộng hết màn (tông `neutral`, viền rõ). Hết 3 giây thì rung nhẹ (nếu máy có) và gửi. Chạm nút gọi lần nữa trong lúc đếm thì gửi ngay. Bấm "Hủy" thì không gửi gì, chữ "Đã hủy, chưa gửi." trong 3 giây rồi về màn Hôm nay.
 - Nút hiện cả khi chưa đăng nhập hay khi màn xem đang khóa bằng sinh trắc học, trên máy đã gắn (002 FR-071, FR-074).
-- Nhãn trợ năng: "Gọi người giúp. Giữ ba giây để gửi." Vòng tiến trình vẫn hiện khi máy bật giảm chuyển động, chỉ bỏ hiệu ứng rung hình.
+- Nhãn trợ năng: "Gọi người giúp. Chạm để gửi, có ba giây để hủy." Trình đọc màn hình đọc số đếm; số đếm vẫn chạy khi máy bật giảm chuyển động, chỉ bỏ hiệu ứng chuyển cảnh.
 - Lần mở app đầu tiên: một màn giới thiệu "Nút Gọi người giúp báo nhân viên đang trực. Nút không thay chuông gọi ở đầu giường." và nút "Đã hiểu".
 
 **Sau khi gửi** (007 FR-047f)
@@ -628,7 +628,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
-| 5.13.0 | 2026-10-19 | Thêm mục 15.6 Phần người cao tuổi theo Q-365 → Q-371 (chờ duyệt): nguyên tắc chữ, vùng bấm, tương phản, điều hướng; màn Hôm nay, nút SOS giữ 3 giây, màn sau khi gửi, màn không gửi được, đăng nhập bằng mã QR, các màn xem và góp ý. Hiện trạng thành 15.7. Không thêm màu |
+| 5.13.0 | 2026-10-19 | Thêm mục 15.6 Phần người cao tuổi theo Q-365 → Q-371 (chờ duyệt): nguyên tắc chữ, vùng bấm, tương phản, điều hướng; màn Hôm nay, nút SOS chạm một lần, đếm ngược 3 giây có nút Hủy (Q-372), màn sau khi gửi, màn không gửi được, đăng nhập bằng mã QR, các màn xem và góp ý. Hiện trạng thành 15.7. Không thêm màu |
 | 5.12.0 | 2026-10-18 | Màn mẫu Bàn giao ca (spec 008) và Cảnh báo (spec 007): thêm `handover-draft`, `handover-confirm`, `alert-card`; tông mức cảnh báo, trạng thái cảnh báo, bàn giao vào mục 3.5. Nút "Mở cảnh báo" ở Tổng quan mở màn Cảnh báo. Không thêm màu |
 | 5.11.0 | 2026-10-18 | Theo góp ý chủ dự án (màn Phát thuốc thừa khoảng trống): màn nhân viên rộng tối đa 1600px thay cho 1280px; lưới thẻ dùng `auto-fit` để thẻ giãn lấp đầy hàng, mỗi thẻ rộng tối đa 480px (thẻ việc ở Tổng quan 360px) để thẻ lẻ không kéo dài cả màn |
 | 5.10.0 | 2026-10-18 | Màn mẫu Phát thuốc (spec 006): thêm `dose-card`, `dose-sheet`, `prn-card`; trạng thái liều vào mục 3.5 (Trễ, Bỏ lỡ đỏ; Đến giờ hổ phách; Đã dùng xanh lá); dị ứng hiện trên mọi thẻ thuốc; thời điểm dùng điền sẵn giờ hiện tại. Không thêm màu |

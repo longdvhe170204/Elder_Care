@@ -225,7 +225,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 - [ ] T068 [US9] Cài `BE/m10/kenhnct/internal/KenhNguoiCaoTuoiService.java` và `web/KenhNguoiCaoTuoiController.java` cho `/kenh-nguoi-cao-tuoi/**` (contracts/api-012.yaml), DTO riêng (research F-18)
 - [ ] T069 [US9] Thêm hai thông báo cho nhóm `NguoiCaoTuoi` (FR-069): job `BE/m10/lich/NhacLuotThamNct.java` lúc 00:05 và phát khi lượt tạo trong ngày; "phản hồi đã được trả lời" cho người gửi là người cao tuổi
 - [ ] T070 [P] [US9] Tạo `mobile/lib/nguoi-cao-tuoi/{hom-nay,thuc-don,hoat-dong,luot-tham,do-gui,phan-hoi}/` theo DESIGN.md mục 15 (chữ lớn, một việc mỗi màn) và test `mobile/test/nguoi-cao-tuoi/hom_nay_test.dart`, `phan_hoi_test.dart`
-- [ ] T071 [P] [US9] Tạo `mobile/lib/nguoi-cao-tuoi/sos/`: nút ở màn đầu, giữ 3 giây, gọi `POST /sos` bằng token thiết bị, màn trạng thái hỏi lại 5 giây, lưu `lienHe` gần nhất, thông báo lần đầu "không thay chuông gọi"; test `mobile/test/nguoi-cao-tuoi/nut_sos_test.dart` (thả sớm không gửi; mất kết nối hiện số liên hệ, không xếp hàng gửi sau) (FR-085, K9)
+- [ ] T071 [P] [US9] Tạo `mobile/lib/nguoi-cao-tuoi/sos/`: nút ở màn đầu, chạm một lần thì đếm ngược 3 giây có nút Hủy (Q-372), hết giờ hoặc chạm lần hai thì gọi `POST /sos` bằng token thiết bị, màn trạng thái hỏi lại 5 giây, lưu `lienHe` gần nhất, thông báo lần đầu "không thay chuông gọi"; test `mobile/test/nguoi-cao-tuoi/nut_sos_test.dart` (Hủy trong lúc đếm không gửi; chạm lần hai gửi ngay; mất kết nối hiện số liên hệ, không xếp hàng gửi sau) (FR-085, K9)
 - [ ] T072 [P] [US9] Màn web phản hồi: Hành chính, Điều dưỡng ghi thay cho người cao tuổi; lệnh đổi loại, gắn ý kiến trong `frontend/src/tinh-nang/phan-hoi/` và test Vitest
 
 **Checkpoint**: K1 → K9 xanh.
