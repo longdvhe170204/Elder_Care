@@ -190,3 +190,12 @@ Bác sĩ, Nhân viên chăm sóc, Nhân viên bếp, Kế toán: không có quy�
   - đồng hồ giả lập cho CFG-M10-08, CFG-M12-02 → 07;
   - bản giả 007 `SuCoLenhApi`, 012 `QuyenNguoiThanApi`.
 - Tên test theo BR/FR (`BR_M12_04_TraDoIT`, `DBR_22_TiepNhanGocIT`).
+
+---
+
+## K-16. Đồ gửi trên kênh người cao tuổi *(bổ sung 2026-10-18; FR-030a, Q-366)*
+
+**Quyết định**: Bean `DoGuiKenhNctPortImpl` đọc đồ của người cao tuổi ở trạng thái Đang giữ, Đang được sử dụng; trả tên đồ, trạng thái, mã ảnh. `QuyenTepProvider` `M12.ANH_DO_GUI` cho tài khoản AC-16 xem ảnh đồ của chính mình. Không có thao tác nào; trả đồ, xác nhận người nhận giữ nguyên (BR-M12-04, BR-M12-06).
+
+**Lý do**: SPI ở `m10.api` theo cách `HoatDongBanTinPort`, không tạo vòng M10 ↔ M12.
+

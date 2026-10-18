@@ -4,7 +4,7 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 
 # Tasks: Sức khỏe, cảnh báo và sự cố (007)
 
-**Input**: Tài liệu thiết kế ở `specs/007-health-alert-incident/` (plan.md, spec.md, research.md S-01 → S-22, data-model.md, contracts/api-007.yaml, contracts/module-interfaces.md, quickstart.md)
+**Input**: Tài liệu thiết kế ở `specs/007-health-alert-incident/` (plan.md, spec.md, research.md S-01 → S-23, data-model.md, contracts/api-007.yaml, contracts/module-interfaces.md, quickstart.md)
 
 **Prerequisites**: 000, 002 đã xong Phase 2; 001 (`TrangThaiNguoiCaoTuoiApi`, `NguyenVongApi`, `MucSucKhoeApi`, `ThamGiaChuyenTrangThai`), 003 (`TinhTrangLayNhiemChoPhanBo`, `ViTriApi`, `LichSuViTriApi`), 004 (`MucViecSauQuaDoiPort`), 005 (`NguonCongViecPort`, `ChiSoPort`, `CanhBaoDocPort`, sự kiện yêu cầu cảnh báo), 006 (`DonThuocApi`, sự kiện yêu cầu cảnh báo) đã có `api`.
 
@@ -23,6 +23,8 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 ---
 
 **Cập nhật 2026-10-18** (plan mục "Cập nhật 2026-10-18"; Q-352, Q-354): sửa T004, T039, T041, T043, T045, T053, T061, T065; thêm T061a. Mã task cũ giữ nguyên.
+
+**Cập nhật 2026-10-18, lượt 3** (plan mục "Cập nhật 2026-10-18, lượt 3"; Q-369): thêm Phase 13a (US12, T067 → T076); sửa T065. Mã task cũ giữ nguyên.
 
 ## Phase 1: Setup
 
@@ -276,6 +278,32 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 
 ---
 
+## Phase 13a: User Story 12 – Người cao tuổi bấm nút SOS (Priority: P1) *(bổ sung 2026-10-18, Q-369)*
+
+**Goal**: Nút SOS tạo hoặc gộp cảnh báo Khẩn cấp từ thiết bị đã gắn, không cần phiên; điều kiện gửi; người nhận thêm khi ở Hoạt động bên ngoài; trạng thái cho người cao tuổi (FR-026 (d), FR-047d → FR-047g, BR-M05-27).
+
+**Independent Test**: Quickstart "Kịch bản bổ sung 2026-10-18, lượt 3" S1 → S8 với bản giả 001, 002, 014.
+
+### Tests cho User Story 12
+
+- [ ] T067 [P] [US12] Test `BT/m05/canhbao/BR_M05_27_NutSosIT.java`: tạo cảnh báo Khẩn cấp khóa `SOS` có phòng, giường; gộp lần bấm thứ hai, ba; `Idempotency-Key` lặp không tăng số lần; người nhận như FR-047a, không có người liên hệ chính, Quản lý viện (US12 #1, #3; SC-017)
+- [ ] T068 [P] [US12] Test `BT/m05/canhbao/FR_047d_DieuKienGuiSosIT.java`: Tạm vắng, Điều trị tại bệnh viện, trạng thái cuối → 409 `KHONG_O_VIEN`; bán trú không `CO_MAT` → 409 `KHONG_CO_MAT`; token sai, thiết bị gỡ, tài khoản Đã khóa → 401; mọi lỗi kèm `lienHe` (US12 #5)
+- [ ] T069 [P] [US12] Test `BT/m05/canhbao/FR_047e_SosNgoaiVienIT.java`: Hoạt động bên ngoài → thêm trưởng đoàn, người đi cùng qua `ChuyenDiSosPort`; trạng thái xét lúc nhận lệnh; thiếu bean thì chỉ nhóm FR-047a (US12 #6, edge case)
+- [ ] T070 [P] [US12] Test `BT/m05/canhbao/FR_047f_TrangThaiSosIT.java`: `GET /sos/hien-tai` trả `DA_GUI` rồi `DA_TIEP_NHAN` kèm họ tên; `noi-dang-o` đặt một lần (US12 #4)
+- [ ] T071 [P] [US12] Test `BT/m05/canhbao/SosXuLyIT.java`: đóng kèm kết quả không báo người thân; kích hoạt khẩn cấp từ cảnh báo SOS báo người liên hệ chính theo FR-047; leo thang theo BR-M05-01; không có lệnh tắt nút (US12 #7 → #10, FR-047g)
+
+### Implementation cho User Story 12
+
+- [ ] T072 [US12] Tạo `MIG/V007_11__sos.sql`: bảng `lan_bam_sos` (data-model mục 7), trigger chỉ cho đặt `noi_dang_o` một lần; loại cảnh báo `NCT_YEU_CAU_TRO_GIUP`, loại nguồn `SOS`
+- [ ] T073 [US12] Khai báo SPI `BE/m05/api/ChuyenDiSosPort.java` và bản giả `BT/support/gia007/ChuyenDiSosPortGia.java` (module-interfaces 2.1)
+- [ ] T074 [US12] Cài `BE/m05/canhbao/internal/SosService.java`: `ThietBiGanApi.xacDinh`, điều kiện qua `NguoiCaoTuoiApi.trangThai`, `CoMatBanTruApi.theoNgay`; ghi `lan_bam_sos` (vị trí từ `ViTriApi.hienTai`) và tạo hoặc gộp cảnh báo qua đường tạo sẵn có với khóa `SOS`; nhóm người nhận FR-047a cùng `TRUONG_DOAN`, `NGUOI_DI_CUNG` khi Hoạt động bên ngoài (research S-23)
+- [ ] T075 [US12] Tạo `BE/m05/canhbao/web/SosController.java`: `POST /sos`, `GET /sos/hien-tai`, `POST /sos/{id}/noi-dang-o` với lược đồ bảo mật `tokenThietBi`, đường `/sos/**` đã được 002 T011 cho qua không cần phiên; lệnh nằm trong danh sách ngoại lệ của `CanQuyenArchTest` (002 T093); lỗi `LoiSos` kèm `lienHe` từ `SoLienHeVienApi` (contracts/api-007.yaml)
+- [ ] T076 [US12] Thêm `nguon` vào `CanhBaoBaoCaoView` của `CanhBaoThongKeApi.canhBao` (FR-081, 016 FR-041)
+
+**Checkpoint**: S1 → S8 xanh; 012 gọi được `/sos` từ kênh người cao tuổi.
+
+---
+
 ## Phase 14: Polish & Cross-Cutting
 
 - [ ] T060 [P] Cài bean `ThamGiaChuyenTrangThai` hai module (`@Order` sau 006: `m06` rồi `m05`): điều kiện `KT_D_CANH_BAO_SU_CO` (`coTheMien = true`); trạng thái cuối dừng leo thang, kết thúc lịch đo, ngưỡng cá nhân, gỡ dấu nguy kịch; `canhBao` vùng khoanh (BR-M05-23); `MucViecSauQuaDoiPort` `CANH_BAO_SU_CO` (research S-17)
@@ -284,7 +312,7 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 - [ ] T062 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/007-health-alert-incident/contracts/api-007.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 007
 - [ ] T063 Khi 008, 009, 012, 014 có bản thật, chạy lại test US3, US5, US8 với bean thật thay T002
 - [ ] T064 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo NFR-03 (thông báo khẩn cấp) và SC theo quickstart mục 5
-- [ ] T065 Rà truy vết data-model mục 15: DBR-18, 19, 23, 25, 34 và BR-M05-01 → 26, BR-M06-01 → 06, BR-M04-10 (phần 007), FR-045a có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-001, FR-002, FR-080, FR-081, FR-047c, FR-082 (cập nhật 2026-10-18), FR-083, FR-084, FR-085, FR-086 (bổ sung 2026-10-10) — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T065 Rà truy vết data-model mục 15: DBR-18, 19, 23, 25, 34 và BR-M05-01 → 27, BR-M06-01 → 06, BR-M04-10 (phần 007), FR-045a có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-001, FR-002, FR-080, FR-081, FR-047c, FR-082 (cập nhật 2026-10-18), FR-083, FR-084, FR-085, FR-086 (bổ sung 2026-10-10) — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 
@@ -299,6 +327,7 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 - **US11 (P1)**: sau US3; dùng chuyển viện của US5
 - **US6, US7, US8 (P2)**: sau US4 (US7 sau US1)
 - **US9, US10 (P3)**: sau US1
+- **US12 (P1)** *(bổ sung 2026-10-18)*: sau US3 (cảnh báo); cần 002 US8 (`ThietBiGanApi`); 014 cài `ChuyenDiSosPort` sau (bản giả T073)
 
 ### Parallel Opportunities
 

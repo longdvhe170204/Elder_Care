@@ -83,6 +83,7 @@ void khoaDoNghiViec(long nhanVienId, CanCu canCu);         // gọi trong transa
 void xetLaiNguoiThan(long nguoiThanId, CanCu canCu);       // gọi trong transaction lệnh chấm dứt quan hệ của 012 (FR-049, BR-M15-14)
 Optional<TaiKhoanView> theoNhanVien(long nhanVienId);      // 008: vai trò hệ thống để xếp ca (008 FR-002)
 Optional<TaiKhoanView> theoNguoiThan(long nguoiThanId);    // 009: trạng thái tài khoản không chặn gửi ngoài ứng dụng (CHK036)
+Optional<TaiKhoanView> theoNguoiCaoTuoi(long nguoiCaoTuoiId); // bổ sung 2026-10-18: 009 nhóm người nhận (f) (009 FR-007), 012 kênh người cao tuổi
 boolean coVaiTro(long taiKhoanId, VaiTro... vaiTro);       // 008: chặn giao Phụ trách bộ phận cho AC-01, AC-14 (FR-019f);
                                                           // bổ sung theo plan 004 (Q-338): 000 lọc người duyệt theo gioiHanVaiTroDuyet;
                                                           // bổ sung theo plan 007 (Q-339): 007 kiểm vai trò người giao, người được giao sự cố (FR-045a)
@@ -138,6 +139,15 @@ DoiTuong ganPhamVi(long id);                // tầng/khu, người cao tuổi, 
 
 Mức thông báo do 009 xếp theo nguyên tắc chung (009 FR-043b); 002 không tự gửi.
 
+### 1.11. `ThietBiGanApi`: nút SOS *(bổ sung 2026-10-18, Q-369, Q-370)*
+
+```java
+Optional<NguoiCaoTuoiCuaThietBi> xacDinh(String tokenThietBi); // 007 FR-047d; không cần phiên; rỗng khi token sai, thiết bị đã gỡ, tài khoản Đã khóa
+record NguoiCaoTuoiCuaThietBi(long nguoiCaoTuoiId, long taiKhoanId, String maThietBi) {}
+```
+
+Chỉ endpoint nút SOS của 007 gọi hàm này (ArchUnit kiểm). Token thiết bị không mở phiên, nên mọi endpoint khác vẫn qua bộ lọc phiên (research A-15).
+
 ---
 
 ## 2. 002 cần từ module khác
@@ -158,3 +168,5 @@ Mức thông báo do 009 xếp theo nguyên tắc chung (009 FR-043b); 002 khôn
 | `GiayPhepCoSoApi.coPhamVi(phamVi, ngay)`; `sapHetHan(trongVong)` | M06 (007, FR-070) | FR-037 (c), FR-039 | Bản giả |
 | `ThamSoApi`, `NhatKyApi`, `NhacQuaHan`, `common` | M15 (000) | Mọi lệnh | Có sẵn |
 | Lắng nghe sự kiện mục 1.10 | M13 (009) | FR-039, FR-041a → c | Sự kiện lưu ở outbox |
+| *(Bổ sung 2026-10-18)* `NguoiCaoTuoiApi.trangThai(id)` cho lệnh tạo, mở khóa tài khoản người cao tuổi; nghe `NguoiCaoTuoiDaChuyenTrangThai` sang trạng thái cuối để khóa | M01 (001) | FR-067, FR-072 (A-16) | Bản giả; sự kiện giả trong test |
+| *(Bổ sung 2026-10-18)* `LoaiYeuCauHandler` cho loại `M15.KHOA_TAI_KHOAN_NCT` (002 cài, 000 gọi) | M15 (000) | FR-072 (A-16) | Có sẵn |

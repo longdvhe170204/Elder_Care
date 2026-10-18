@@ -91,3 +91,12 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M14 chỉ ph�
 | SC-012 | Q6, Q7 |
 | SC-013 | Q25 |
 | SC-014 | Q31 |
+
+## 6. Kịch bản bổ sung 2026-10-18, lượt 3 (Q-369)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| B1 | Dữ liệu tháng 10: 12 cảnh báo SOS Tầng 2 (1 chưa tiếp nhận), thời gian đã biết; xem báo cáo cảnh báo | Dòng SOS: 12 cảnh báo; trung bình, lớn nhất trên 11 cảnh báo đã tiếp nhận; 12 cảnh báo vẫn trong tổng Khẩn cấp | US5 #6, FR-041 |
+
+Test: `ChiTieu_SK_CanhBaoSosTest`.
+

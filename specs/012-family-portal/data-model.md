@@ -27,6 +27,7 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | `ban_tin`, `ban_tin_phan`, `ban_tin_so_lieu`, `ban_tin_nhan_xet` | 2 → 3 khi đã gửi | H |
 | `phan_hoi` | 2 | I |
 | `phan_hoi_muc` | 3 | I (FR-065) |
+| `phan_hoi_y_kien` | 3 | I (FR-058b; bổ sung 2026-10-18) |
 | `su_kien_m10_da_xu_ly`, `lan_chay_m10` | Kỹ thuật | Listener, job |
 
 ---
@@ -233,14 +234,16 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
-| `id`, `nguoi_than_id`, `nct_id`, `loai` (`GOP_Y`, `KHIEU_NAI`, `HOI_DAP`), `nhom` (`CHAM_SOC`, `SUC_KHOE_THUOC`, `AN_UONG`, `CHI_PHI_HOP_DONG`, `KHAC`), `nguon`, `gui_luc` | | FR-058 |
+| `id`, `nguoi_gui_loai` (`NGUOI_THAN`, `NGUOI_CAO_TUOI`), `nguoi_than_id NULL`, `ghi_thay_boi_id NULL`, `nct_id`, `loai` (`GOP_Y`, `KHIEU_NAI`, `HOI_DAP`, `MONG_MUON`), `nhom` (`CHAM_SOC`, `SUC_KHOE_THUOC`, `AN_UONG`, `CHI_PHI_HOP_DONG`, `KHAC`), `chu_de_mong_muon` (`KHACH_THAM_NGUOI_DON`, `KHAC`) `NULL`, `nguon` (`CONG`, `QUAY`, `KENH_NGUOI_CAO_TUOI`, `GHI_TRUC_TIEP`), `gui_luc` | `CHECK`: `NGUOI_THAN` ⇒ `nguoi_than_id` có; `MONG_MUON` ⇔ có `chu_de_mong_muon`, và ⇒ `NGUOI_CAO_TUOI`; `GHI_TRUC_TIEP` ⇒ `ghi_thay_boi_id` có. Giá trị người cao tuổi, `MONG_MUON`, `chu_de_mong_muon`, hai nguồn cuối bổ sung 2026-10-18 | FR-058, FR-058a, FR-058b |
 | `muc` (`CAO`, `THUONG`), `moc_tinh_han`, `han_xu_ly` | | FR-061, FR-062 |
 | `phu_trach_vai_tro`, `phu_trach_id NULL` | Hành chính: nhóm cho tới khi có người Nhận xử lý | FR-059, FR-060 |
 | `trang_thai` (`MOI`, `DANG_XU_LY`, `DA_PHAN_HOI`, `MO_LAI`, `DONG`) | | FR-066 |
 | `qua_han`, `han_da_leo_thang NULL` | Một lần mỗi hạn | FR-063 |
-| `da_phan_hoi_luc`, `dong_luc`, `cach_dong` (`NGUOI_GUI`, `TU_DONG`) | | FR-064 |
+| `da_phan_hoi_luc`, `dong_luc`, `cach_dong` (`NGUOI_GUI`, `TU_DONG`, `GHI_THAY` bổ sung 2026-10-18) | | FR-064 |
 
-`phan_hoi_muc` (nhóm 3): `phan_hoi_id`, `loai` (`NOI_DUNG`, `TRA_LOI`, `HUONG_XU_LY`, `GHI_CHU`, `GIAO_LAI`, `DOI_MUC`, `MO_LAI`), `noi_dung`, `phan_loai_thong_tin` (`CHUNG`, `SUC_KHOE`), `tep_ids`, `boi_id`, `luc`.
+`phan_hoi_muc` (nhóm 3): `phan_hoi_id`, `loai` (`NOI_DUNG`, `TRA_LOI`, `HUONG_XU_LY`, `GHI_CHU`, `GIAO_LAI`, `DOI_MUC`, `MO_LAI`, `DOI_LOAI` bổ sung 2026-10-18), `noi_dung`, `phan_loai_thong_tin` (`CHUNG`, `SUC_KHOE`), `tep_ids`, `boi_id`, `luc`.
+
+`phan_hoi_y_kien` (nhóm 3, bổ sung 2026-10-18): `phan_hoi_id`, `loai_muc` (`MONG_MUON_NCT` của 012, `SO_THICH` của 014 qua sự kiện `YKienDaGhiTuPhanHoi`), `muc_id`, `boi_id`, `luc`; `UNIQUE (phan_hoi_id, loai_muc, muc_id)`. Lệnh Trả lời của phản hồi `MONG_MUON` kiểm có ít nhất một dòng (BR-M10-12).
 
 ---
 
@@ -263,3 +266,5 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 | FR-020a (một mong muốn Hiệu lực mỗi người, loại) | `khoa_hieu_luc` `UNIQUE`; trigger bất biến |
 | FR-020b (trái mong muốn chỉ qua Quản lý viện) | `CHECK` trên `yeu_cau_quyen`; `KiemTraYeuCau` |
 | Nhóm 3 (000) | Trigger chặn UPDATE/DELETE trên bảng nhóm 3 ngoài cột đặt một lần |
+| BR-M10-11 *(bổ sung 2026-10-18)* | `m10.kenhnct` lấy người cao tuổi từ tài khoản; DTO kênh không có trường bị cấm; ArchUnit (research F-18); truy vấn phản hồi cho AC-10 lọc `nguoi_gui_loai` |
+| BR-M10-12 *(bổ sung 2026-10-18)* | `phan_hoi_y_kien`; chặn Trả lời; lệnh `doi-loai` có lý do |

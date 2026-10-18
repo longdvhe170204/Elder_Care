@@ -142,3 +142,19 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (chiều `m05 
 | K4 | Ghi kết quả xác nhận lại `MOI` thiếu `nhanDinh` trong `nguyenVongMoi` | 422 từ 001; không có kết quả nào được ghi | FR-050c, 001 FR-023a |
 
 Test: `FR_047c_MaTruongHopIT` (K1, K2), `FR_082_PhanChungSucKhoeIT` (K3), mở rộng `BR_M05_16_XacNhanLaiIT` (K4).
+
+## Kịch bản bổ sung 2026-10-18, lượt 3 (Q-369, nút SOS)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| S1 | A (tài khoản người cao tuổi, thiết bị đã gắn) gọi `POST /sos` không có phiên lúc 14:00 | 201 `DA_GUI`; cảnh báo Khẩn cấp `NCT_YEU_CAU_TRO_GIUP` có phòng, giường; D, P, B, T nhận; người liên hệ chính và QLV không nhận | US12 #1, FR-047d, FR-047e |
+| S2 | Gọi `POST /sos` thêm hai lần (Idempotency-Key khác); gửi lại một yêu cầu với cùng Idempotency-Key | Một cảnh báo, số lần 3; yêu cầu lặp không tăng số lần | US12 #3 |
+| S3 | D tiếp nhận; A gọi `GET /sos/hien-tai`; A chọn nơi `NHA_VE_SINH` hai lần | `DA_TIEP_NHAN` kèm họ tên D; lần chọn thứ hai 409 | US12 #4, FR-047f |
+| S4 | Bản giả 001 đặt A Tạm vắng; gọi `POST /sos`; B bán trú chưa đến gọi `POST /sos` | 409 `KHONG_O_VIEN` kèm `lienHe`; 409 `KHONG_CO_MAT` | US12 #5, FR-047d |
+| S5 | A ở Hoạt động bên ngoài, bản giả 014 trả trưởng đoàn L, người đi cùng M; gọi `POST /sos` | L, M nhận thêm | US12 #6, FR-047e |
+| S6 | D đóng cảnh báo kết quả "hỗ trợ uống nước"; lần khác D kích hoạt khẩn cấp từ cảnh báo SOS | Không sự cố, người thân không được báo; sự cố Khẩn cấp và người liên hệ chính được báo theo FR-047 | US12 #7, #8 |
+| S7 | Không ai tiếp nhận quá hạn mức Khẩn cấp | Leo thang theo BR-M05-01 | US12 #9 |
+| S8 | HC gỡ thiết bị của A; gọi `POST /sos` bằng token cũ | 401 `THIET_BI_KHONG_HOP_LE` kèm `lienHe` | FR-047d |
+
+Test: `BR_M05_27_NutSosIT` (S1, S2), `FR_047f_TrangThaiSosIT` (S3), `FR_047d_DieuKienGuiSosIT` (S4, S8), `FR_047e_SosNgoaiVienIT` (S5), `SosXuLyIT` (S6, S7, US12 #10). SC-017: `BR_M05_27_NutSosIT` đếm cảnh báo mở và yêu cầu tới người liên hệ chính.
+

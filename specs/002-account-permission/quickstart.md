@@ -58,6 +58,14 @@ Kết quả mong đợi: `verify` xanh, gồm `MaTranQuyenKhopNguonTest` (ma tr�
 | K26 | Web: thao tác lúc 09:40, tua đồng hồ tới 10:20, bấm tiếp; app nhân viên: thao tác 15:00, tua tới 17:30 | Web 401 `PHIEN_HET_HAN`, tài khoản vẫn Hoạt động; app vẫn dùng được | US3 #11, FR-013a |
 | K27 | Chạy `khoi-tao-quan-ly-vien` trên cơ sở dữ liệu trống, rồi chạy lại | Lần đầu tạo hồ sơ và tài khoản AC-01 buộc đổi mật khẩu; lần sau từ chối | US2 #10, FR-004b |
 | K24 | A Kết thúc lưu trú; tua quá CFG-M01-04; chạy job | Tài khoản R, M `DA_KHOA` (nếu không còn người cao tuổi khác) | US6 #5, #6 |
+| K28 | *(Bổ sung 2026-10-18)* HC tạo tài khoản người cao tuổi cho A (Đang lưu trú) không có `xacNhan`; rồi có `xacNhan` YEU_CAU với HC; tạo lần hai | 422; 201, vai trò AC-16; 409 `DA_CO_TAI_KHOAN` | US8 #1, FR-067 |
+| K29 | Điều dưỡng D phụ trách A tạo mã QR 09:00; quét trên máy M1 lúc 09:03; quét lại cùng mã; tạo mã 09:10, tua tới 09:16 rồi quét | 201; 200 kèm `token`, `tokenThietBi`; 401 `MA_QR_KHONG_HOP_LE`; 401 | US8 #2, FR-069 |
+| K30 | Tua đồng hồ 200 ngày; A gọi `/toi`; chạy job Không hoạt động | 200, phiên còn; tài khoản vẫn Hoạt động | US8 #3, FR-010, FR-013a |
+| K31 | A quét mã mới trên M2; gọi API bằng token cũ trên M1; D đăng nhập tài khoản của mình trên M2 | Token M1 401; M2 gắn; 409 `THIET_BI_DA_GAN` | US8 #4, #5, FR-070, FR-014a |
+| K32 | Gọi `ThietBiGanApi.xacDinh` với `tokenThietBi` của M2 khi không có phiên; HC gỡ thiết bị; gọi lại | Trả A; rỗng | FR-071, SC-013 |
+| K33 | HC lập yêu cầu `M15.KHOA_TAI_KHOAN_NCT` theo đề nghị của R; QLV duyệt | Tài khoản Hoạt động tới khi duyệt; sau duyệt `DA_KHOA` `THEO_DE_NGHI_NGUOI_THAN`; R không có endpoint khóa | US8 #7, FR-072 |
+| K34 | Bản giả 001 phát `NguoiCaoTuoiDaChuyenTrangThai` A → Kết thúc lưu trú; HC thử `mo-khoa-nguoi-cao-tuoi` | `DA_KHOA` `NCT_KET_THUC_LUU_TRU`, thiết bị gỡ; 409 | US8 #6, BR-M15-23 |
+| K35 | R (AC-10) gọi `GET /tai-khoan/{id}` của tài khoản A | 403/404 | US8 #9, FR-075 |
 
 ## 4. Test tự động: truy vết kịch bản → test
 
@@ -70,12 +78,14 @@ Kết quả mong đợi: `verify` xanh, gồm `MaTranQuyenKhopNguonTest` (ma tr�
 | US5 #1–8, FR-036 → FR-040 | `DieuKienPhapLyIT`, `PhamViHanhNgheIT`, `CanhBaoGiayPhepIT` | Tích hợp, đồng hồ giả lập |
 | US6 #1–9, FR-045 → FR-052 | `NguoiThanSucKhoeIT`, `NguoiThanPhamViIT`, `HetQuanHeKhoaTaiKhoanIT`, `XacMinhNguoiThanIT` | Tích hợp |
 | US7 #1–7, FR-024 → FR-027 | `ThuTuThuHepTest`, `ThuHepKhongVuotIT`, `DoiQuyenDongThoiIT`, `QuyenTaiThoiDiemIT`, `PhanQuyenChiQuanLyIT` | Đơn vị, tích hợp |
+| US8 #1–9, FR-067 → FR-075 *(bổ sung 2026-10-18)* | `TaoTaiKhoanNguoiCaoTuoiIT`, `MaQrDangNhapIT`, `ThietBiGanIT`, `PhienNguoiCaoTuoiKhongHetIT`, `KhoaTaiKhoanNguoiCaoTuoiIT`, `XacDinhThietBiSosIT`, `NguoiThanKhongXemTaiKhoanNctIT` | Tích hợp, đồng hồ giả lập |
 | Edge Cases | Mỗi gạch đầu dòng một phương thức trong các lớp trên | |
 | Client web | `DangNhap.test.jsx` (thông báo chung), `DoiMatKhau.test.jsx`, `PhanQuyen.test.jsx` (412, chặn vượt ma trận), `AnNutTheoQuyen.test.jsx` | Vitest |
 | App nhân viên | `dang_nhap_thiet_bi_chung_test.dart`, `mo_khoa_som_test.dart`, `ket_qua_dong_bo_test.dart` (BR-M15-20), `cho_xem_lai_test.dart` | flutter_test |
 | App người thân | `dang_nhap_nguoi_than_test.dart`, `an_suc_khoe_test.dart` | flutter_test |
+| App người cao tuổi *(bổ sung 2026-10-18)* | `dang_nhap_qr_test.dart` (lưu token phiên, token thiết bị; máy mới thay máy cũ), `mo_khoa_sinh_trac_test.dart` (không có PIN; nút SOS ngoài khóa) | flutter_test |
 
 ## 5. Tiêu chí hoàn tất (đối chiếu SC)
 
-- SC-001, SC-002, SC-003, SC-004, SC-006, SC-007, SC-009, SC-010, SC-011, SC-012: test tự động ở mục 4 trên MySQL thật.
+- SC-001, SC-002, SC-003, SC-004, SC-006, SC-007, SC-009, SC-010, SC-011, SC-012, SC-013: test tự động ở mục 4 trên MySQL thật.
 - SC-005 (tạo tài khoản trong 3 phút) và SC-008 (90% người dùng hiểu lý do từ chối): đo với người dùng thật trên profile `demo`, theo cách đo ghi trong spec.

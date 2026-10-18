@@ -233,3 +233,14 @@ Trưởng tầng không xem bản gán, thực đơn qua chức năng 011 (Phụ
   - đồng hồ giả lập cho CFG-M08-01, 03 → 07, giờ bữa;
   - bản giả `LuotOLaiAnPort`, `ChuyenDiBuaAnPort`, `TonKhoNguyenLieuPort`.
 - Tên test theo BR/FR (`BR_M08_01_ChotSuatIT`, `DBR_27_TongPhieuIT`).
+
+---
+
+## M-16. Suất ăn dự kiến cho kênh người cao tuổi *(bổ sung 2026-10-18; FR-063, Q-366, Q-367)*
+
+**Quyết định**: `SuatAnDuKienApi.cuaNguoiCaoTuoi(nctId, tu, den)` tính bằng cùng cách dựng suất đặc biệt của phiếu bữa ăn (FR-036) nhưng không chốt, không ghi gì: với mỗi ngày, bữa, trả món của chế độ ăn hiện hành trên thực đơn đã Công bố hoặc Đã áp dụng, và món thay thế nếu có. DTO chỉ có ngày, bữa, tên món, cờ "món thay thế"; không có tên chế độ ăn, kết cấu, thành phần dị ứng (theo mặc định Q-367). Tuần chưa có thực đơn công bố thì trả rỗng.
+
+**Lý do**: Dùng lại quy tắc đã kiểm (FR-036) nên người cao tuổi thấy đúng món sẽ được phục vụ; DTO hẹp giữ BR-M10-11.
+
+**Phương án đã cân nhắc**: Chỉ trả thực đơn chung (người dùng chế độ ăn riêng sẽ thấy món không phải của mình). Trả cả tên chế độ ăn (là thông tin sức khỏe theo cổng người thân).
+

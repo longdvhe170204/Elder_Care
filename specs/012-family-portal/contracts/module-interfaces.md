@@ -76,6 +76,17 @@ interface HoatDongBanTinPort {     // 014 cài; chỉ đọc
 
 Bean thiếu → số liệu "không có dữ liệu trong kỳ".
 
+```java
+interface HoatDongKenhNctPort {    // 014 cài; chỉ đọc; bổ sung 2026-10-18 (FR-083 (c), 014 FR-068a)
+  List<BuoiSapToiView> sapToi(long nctId, LocalDate tu, LocalDate den);     // buổi của tầng người cao tuổi và toàn viện; coTen; không có đánh giá khả năng tham gia
+}
+interface DoGuiKenhNctPort {       // 013 cài; chỉ đọc; bổ sung 2026-10-18 (FR-083 (e), 013 FR-030a)
+  List<DoGuiDangGiuView> dangGiu(long nctId);                               // Đang giữ, Đang được sử dụng: tên, trạng thái, ảnh; không có lịch sử bàn giao
+}
+```
+
+Bean thiếu → phần tương ứng của kênh hiện "chưa có dữ liệu".
+
 ### 1.5. Sự kiện 012 phát (sau commit, qua outbox của 000)
 
 | Sự kiện | Người nghe | FR |
@@ -103,6 +114,9 @@ Bean thiếu → số liệu "không có dữ liệu trong kỳ".
 | `ThongBaoTraCuuApi.xemLuc` | 009 | FR-054 | Bản giả |
 | `ChiPhiCongNguoiThanApi.tamTinh` | 010 | FR-052 | Bản giả |
 | `CheDoAnApi.hienHanh`, `ThucDonChungApi` | 011 | FR-046 | Bản giả |
+| *(Bổ sung 2026-10-18)* `SuatAnDuKienApi.cuaNguoiCaoTuoi(nctId, tu, den)` (`m08.api`): món, món thay thế theo bữa; không có chế độ ăn, dị ứng | 011 | FR-083 (b) | Bản giả |
+| *(Bổ sung 2026-10-18)* `TaiKhoanApi.theoNguoiCaoTuoi`, phạm vi `BAN_THAN` | 002 | FR-083 → FR-086 | Có sẵn sau 002 US8 |
+| *(Bổ sung 2026-10-18)* `CoMatBanTruApi.theoNgay` | 005 | FR-083 (a) | Có sẵn |
 | `NhatKyApi`, `ThamSoApi`, `NhacQuaHan`, `DinhChinhApi` | 000 | Chung | Bản thật |
 
 `KetQuaChamSocCongApi` (bổ sung vào hợp đồng 005 theo plan này):

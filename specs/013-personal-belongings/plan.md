@@ -32,6 +32,10 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 - **Đối tượng thông tin** (FR-032, 009 FR-001a): mọi thông báo tới người thân, kể cả đồ thất lạc, hư hỏng, được tìm thấy và mọi thông báo sau qua đời, khai `doiTuongThongTin = VE_VIEC_NGUOI_THAN` (Q-362); không yêu cầu nào mang mã Q-354 (research K-13).
 
+### Cập nhật 2026-10-18, lượt 3 (spec mục "Cập nhật 2026-10-18, lượt 3": Q-366)
+
+- **Đồ gửi trên kênh người cao tuổi** (FR-030a): 013 cài SPI `m10.api.DoGuiKenhNctPort.dangGiu(nctId)` (012 module-interfaces 1.4): đồ ở Đang giữ, Đang được sử dụng, tên, trạng thái, ảnh; không có lịch sử bàn giao, yêu cầu xác nhận, đồng ý cho tự giữ (research K-16). Ảnh trả qua `QuyenTepProvider` `M12.ANH_DO_GUI` thêm người cao tuổi chủ đồ. Không thêm bảng.
+
 ## Technical Context
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).

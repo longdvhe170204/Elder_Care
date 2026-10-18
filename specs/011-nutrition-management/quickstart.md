@@ -114,3 +114,13 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | SC-012 | Q29, Q30 |
 | SC-013 | Q47 |
 | SC-014 | Q12, Q14 |
+
+## 6. Kịch bản bổ sung 2026-10-18, lượt 3 (Q-366)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| A1 | A có chế độ ăn mềm, tuần có thực đơn Công bố; 012 gọi `SuatAnDuKienApi.cuaNguoiCaoTuoi(A, thứ 2, chủ nhật)` | Món của chế độ ăn mềm, có món thay thế; không có tên chế độ ăn, thành phần dị ứng | FR-063 |
+| A2 | Tuần sau chưa có thực đơn công bố | Danh sách rỗng | FR-063 |
+
+Test: `FR_063_SuatAnDuKienNguoiCaoTuoiIT`.
+

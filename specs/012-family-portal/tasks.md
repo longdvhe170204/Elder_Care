@@ -205,13 +205,40 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ---
 
+## Phase 10a: User Story 9 – Người cao tuổi xem thông tin của mình và gửi phản hồi (Priority: P2) *(bổ sung 2026-10-18, Q-365 → Q-371)*
+
+**Goal**: Kênh người cao tuổi với năm phần thông tin, phản hồi của người cao tuổi (kể cả ghi thay, loại Mong muốn), nút SOS và trạng thái trên app (FR-058 → FR-058b, FR-066, FR-069, FR-083 → FR-086, BR-M10-11, 12).
+
+**Independent Test**: Quickstart "Kịch bản bổ sung 2026-10-18, lượt 3" K1 → K9 với bản giả 002, 007, 011, 013, 014.
+
+### Tests cho User Story 9
+
+- [ ] T062 [P] [US9] Test `BT/m10/FR_083_KenhNguoiCaoTuoiIT.java`, `FR_084_KenhKhongLoIT.java`: đủ năm phần; không có trường cấm; không mở được người khác; ArchUnit `m10.kenhnct` không gọi API sức khỏe, thuốc, chi phí, số dư (K1, K2; SC-011)
+- [ ] T063 [P] [US9] Test `BT/m10/FR_058a_PhanHoiNguoiCaoTuoiIT.java`, `BR_M10_12_MongMuonIT.java`: gửi qua kênh; ghi thay có và không có tài khoản; Mong muốn chỉ người cao tuổi; chặn Trả lời khi chưa gắn mục; `doi-loai` có lý do; ghi thay `dong-y-dong`; trả lời nhóm sức khỏe chỉ phần chung (K3, K4, K6 → K8)
+- [ ] T064 [P] [US9] Test `BT/m10/FR_086_NguoiThanKhongThayIT.java`: người thân không thấy phản hồi của người cao tuổi ở `/phan-hoi`, cổng, bản tin, thông báo (K5)
+
+### Implementation cho User Story 9
+
+- [ ] T065 [US9] Tạo `MIG/V012_10__kenh_nguoi_cao_tuoi.sql`: cột `nguoi_gui_loai`, `ghi_thay_boi_id`, cột `chu_de_mong_muon`, giá trị `MONG_MUON`, `KENH_NGUOI_CAO_TUOI`, `GHI_TRUC_TIEP`, `GHI_THAY`, `DOI_LOAI` và `CHECK` mới cho `phan_hoi`, `phan_hoi_muc`; bảng `phan_hoi_y_kien` (data-model mục 9)
+- [ ] T066 [US9] Mở rộng `BE/m10/phanhoi/internal/`: người gửi người cao tuổi, ghi thay, loại Mong muốn và người phụ trách mặc định; lệnh `doi-loai`, `gan-y-kien` (kiểm `mong_muon_nct`; nghe `YKienDaGhiTuPhanHoi` của 014); chặn Trả lời theo BR-M10-12; lọc `nguoi_gui_loai` cho AC-10 (research F-13)
+- [ ] T067 [US9] Khai báo `HoatDongKenhNctPort`, `DoGuiKenhNctPort` ở `BE/m10/api/` và bản giả trong `BT/support/gia012/`; bản giả `SuatAnDuKienApi` của 011
+- [ ] T068 [US9] Cài `BE/m10/kenhnct/internal/KenhNguoiCaoTuoiService.java` và `web/KenhNguoiCaoTuoiController.java` cho `/kenh-nguoi-cao-tuoi/**` (contracts/api-012.yaml), DTO riêng (research F-18)
+- [ ] T069 [US9] Thêm hai thông báo cho nhóm `NguoiCaoTuoi` (FR-069): job `BE/m10/lich/NhacLuotThamNct.java` lúc 00:05 và phát khi lượt tạo trong ngày; "phản hồi đã được trả lời" cho người gửi là người cao tuổi
+- [ ] T070 [P] [US9] Tạo `mobile/lib/nguoi-cao-tuoi/{hom-nay,thuc-don,hoat-dong,luot-tham,do-gui,phan-hoi}/` theo DESIGN.md mục 15 (chữ lớn, một việc mỗi màn) và test `mobile/test/nguoi-cao-tuoi/hom_nay_test.dart`, `phan_hoi_test.dart`
+- [ ] T071 [P] [US9] Tạo `mobile/lib/nguoi-cao-tuoi/sos/`: nút ở màn đầu, giữ 3 giây, gọi `POST /sos` bằng token thiết bị, màn trạng thái hỏi lại 5 giây, lưu `lienHe` gần nhất, thông báo lần đầu "không thay chuông gọi"; test `mobile/test/nguoi-cao-tuoi/nut_sos_test.dart` (thả sớm không gửi; mất kết nối hiện số liên hệ, không xếp hàng gửi sau) (FR-085, K9)
+- [ ] T072 [P] [US9] Màn web phản hồi: Hành chính, Điều dưỡng ghi thay cho người cao tuổi; lệnh đổi loại, gắn ý kiến trong `frontend/src/tinh-nang/phan-hoi/` và test Vitest
+
+**Checkpoint**: K1 → K9 xanh.
+
+---
+
 ## Phase 11: Polish & Cross-Cutting
 
 - [ ] T036 [P] Cài `NguoiThanThongKeApi` (016)
 - [ ] T037 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/012-family-portal/contracts/api-012.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 012
 - [ ] T038 Thay bản giả của 002 (`QuanHeNguoiThanApi`), 004 (`NguoiDaiDienPort`, `BanGhiDonPort`), 005 (`BanGhiDonBanTruPort`), 007 (`NguoiThanKhanCapPort`), 009 (`NguoiThanNhanThongBaoPort`), 011 (`LuotOLaiAnPort`) bằng bản cài của 012 và chạy lại test các feature đó
 - [ ] T039 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T040 Rà truy vết: DBR-02, 03, 25 và BR-M10-01 → 09 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-067, FR-068, FR-069, FR-070, FR-071, FR-072, FR-074, FR-075, FR-046d (bổ sung 2026-10-10) — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T040 Rà truy vết: DBR-02, 03, 25 và BR-M10-01 → 09, 11, 12 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-067, FR-068, FR-069, FR-070, FR-071, FR-072, FR-074, FR-075, FR-046d (bổ sung 2026-10-10) — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 

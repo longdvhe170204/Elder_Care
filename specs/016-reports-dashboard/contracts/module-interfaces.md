@@ -16,7 +16,7 @@ Module M14 chỉ đọc qua giao diện thống kê và API đọc của module 
 | `TinhTrangGiuongApi.demTheoTrangThai`, `GiuongThongKeApi` (bổ sung theo plan này) | 003 | Mục O-10 |
 | `CongViecThongKeApi`, `CoMatBanTruApi` | 005 | |
 | `ThuocThongKeApi` | 006 | |
-| `ChiSoThongKeApi`, `CanhBaoThongKeApi`, `SuCoApi`, `KhoanhVungApi`, `GiayPhepCoSoApi`, danh mục loại sự cố (dấu "không thuộc sức khỏe") | 007 | |
+| `ChiSoThongKeApi`, `CanhBaoThongKeApi`, `SuCoApi`, `KhoanhVungApi`, `GiayPhepCoSoApi`, danh mục loại sự cố (dấu "không thuộc sức khỏe") | 007 | | *(Bổ sung 2026-10-18)* `CanhBaoBaoCaoView.nguon` để tách cảnh báo SOS (FR-041, research O-12).
 | `NhanSuThongKeApi`, `CaTrucApi` | 008 | |
 | `ChiPhiThongKeApi` | 010 | |
 | `DinhDuongThongKeApi` | 011 | |

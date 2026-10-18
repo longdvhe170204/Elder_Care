@@ -4,7 +4,7 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 
 # Tasks: Tài khoản và phân quyền (002)
 
-**Input**: Tài liệu thiết kế ở `specs/002-account-permission/` (plan.md, spec.md, research.md A-01 → A-14, data-model.md, contracts/api-002.yaml, contracts/module-interfaces.md, quickstart.md)
+**Input**: Tài liệu thiết kế ở `specs/002-account-permission/` (plan.md, spec.md, research.md A-01 → A-16, data-model.md, contracts/api-002.yaml, contracts/module-interfaces.md, quickstart.md)
 
 **Prerequisites**: Feature 000 đã xong Phase 1–2 (`common`, `NhatKyApi`, `ThamSoApi`, sự kiện, ShedLock); bản giả `m15/taikhoan/api` của 000 (000 T025) được thay bằng bản thật ở đây.
 
@@ -18,7 +18,7 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 
 - `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
 - Feature 002 ở `BE/m15/taikhoan/` với `api/`, `xacthuc/`, `quyen/`, `phamvi/`, `phaply/`, `ngoaituyen/`, `lich/` (plan "Project Structure")
-- Web `frontend/src/tinh-nang/{dang-nhap,tai-khoan,phan-quyen,cho-xem-lai}/`; app nhân viên `mobile/lib/nhan-vien/{dang-nhap,mo-khoa-som,ket-qua-dong-bo,cho-xem-lai}/`; app người thân `mobile/lib/nguoi-than/dang-nhap/`
+- Web `frontend/src/tinh-nang/{dang-nhap,tai-khoan,phan-quyen,cho-xem-lai}/`; app nhân viên `mobile/lib/nhan-vien/{dang-nhap,mo-khoa-som,ket-qua-dong-bo,cho-xem-lai}/`; app người thân `mobile/lib/nguoi-than/dang-nhap/` *(Bổ sung 2026-10-18)* App người cao tuổi `mobile/lib/nguoi-cao-tuoi/dang-nhap-qr/`; màn tạo mã QR của Điều dưỡng `mobile/lib/nhan-vien/ma-qr-nguoi-cao-tuoi/`.
 
 ---
 
@@ -43,7 +43,7 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 - [ ] T008 [P] Tạo kiểu và giao diện công khai trong `BE/m15/taikhoan/api/`: `NguoiDungHienTai`, `VaiTro`, `LoaiTaiKhoan`, `KenhTruyCap`, `KhoaQuyen`, `ChucNang`, `LoaiThaoTac`, `DoiTuong` (có `tuPhamVi`, `KHONG_CU_THE`), `KetQuaQuyen` (`lopKhongThoa` `VAI_TRO|PHAM_VI|PHAP_LY|DU_LIEU_NGUON`), `QuyenApi`, `PhamViApi` (`PhamViLoc`), `QuyenXemTruongApi` (`MucXem`), `NguoiDuyetApi`, `TaiKhoanApi`, chú thích `@CanQuyen`, `@NhomTruong` đúng chữ ký contracts/module-interfaces.md mục 1.1 → 1.6
 - [ ] T009 [P] Khai báo SPI cho module khác cài trong `BE/m15/taikhoan/api/`: `PhanBoGiuongApi` (M03 cài), `QuanHeNguoiThanApi` (M10 cài), `KetThucLuuTruApi` (M02 cài), `NgoaiTuyenHandler<T>` (có `batBuocTrucTuyen()`), `DieuKienChuThich`, `GanPhamViProvider`, ngoại lệ `DuLieuQuyenKhongHopLe` (contracts mục 1.7 → 1.9, mục 2)
 - [ ] T010 [P] Tạo sự kiện `BE/m15/taikhoan/api/sukien/`: `TaiKhoanDaTao`, `TaiKhoanDoiTrangThai`, `BanGhiDongBoSauMatQuyen`, `BanGhiChoXemLai`, `LoiDuLieuQuyen`, `GiayPhepSapHetHan` (cài `CoYeuCauThongBao` với nhóm nhận ở contracts mục 1.10)
-- [ ] T011 Cài `BE/m15/taikhoan/xacthuc/internal/PhienService.java` và bộ lọc `BE/m15/taikhoan/xacthuc/web/XacThucTokenFilter.java`: token opaque 256 bit, chỉ lưu SHA-256; web dùng cookie `HttpOnly`, `Secure`, `SameSite=Strict` cùng header `X-Yeu-Cau-Tu: web` cho mọi lệnh ghi; app dùng `Authorization: Bearer`; mỗi yêu cầu tra phiên theo khóa chính, không đệm; so `hoat_dong_cuoi_luc` với CFG-M15-10 của kênh, quá hạn thì `HET_THOI_GIAN` và 401 `PHIEN_HET_HAN`; cập nhật `thiet_bi.lan_ket_noi_cuoi` (research A-02; FR-013, FR-013a, BR-M15-21)
+- [ ] T011 Cài `BE/m15/taikhoan/xacthuc/internal/PhienService.java` và bộ lọc `BE/m15/taikhoan/xacthuc/web/XacThucTokenFilter.java`: token opaque 256 bit, chỉ lưu SHA-256; web dùng cookie `HttpOnly`, `Secure`, `SameSite=Strict` cùng header `X-Yeu-Cau-Tu: web` cho mọi lệnh ghi; app dùng `Authorization: Bearer`; mỗi yêu cầu tra phiên theo khóa chính, không đệm; so `hoat_dong_cuoi_luc` với CFG-M15-10 của kênh, quá hạn thì `HET_THOI_GIAN` và 401 `PHIEN_HET_HAN`; cập nhật `thiet_bi.lan_ket_noi_cuoi` (research A-02; FR-013, FR-013a, BR-M15-21) *(Bổ sung 2026-10-18)* Ba đường không cần phiên: `/xac-thuc/dang-nhap`, `/xac-thuc/dang-nhap-qr`, `/sos/**`; `/sos/**` không tra phiên và không đòi `X-Yeu-Cau-Tu`, xác thực do 007 gọi `ThietBiGanApi.xacDinh` (research A-15).
 - [ ] T012 Cài `NguoiDungHienTai` từ phiên trong `BE/m15/taikhoan/xacthuc/internal/NguoiDungHienTaiImpl.java` và bản Bộ lập lịch (`laBoLapLich() = true`) đặt khi job chạy (FR-044; 000 FR-045)
 - [ ] T013 Cài bộ tính quyền vai trò `BE/m15/taikhoan/quyen/internal/TinhQuyenVaiTro.java` theo thứ tự A-05: ma trận trừ thu hẹp vai trò → hợp vai trò (toàn viện thắng) → trừ thu hẹp tài khoản → cộng `quyen_gan_them`; bộ đệm khóa `(tai_khoan_id, phien_ban_quyen, tổng phien_ban_quyen vai trò)`; có biến thể tại thời điểm `t` (FR-025, FR-026a, BR-M15-18)
 - [ ] T014 Cài interceptor `BE/m15/taikhoan/quyen/internal/CanQuyenInterceptor.java` gọi `QuyenApi.coQuyen` trước mọi phương thức `@CanQuyen`; ánh xạ lỗi FR-043: không xem được đối tượng → 404 chung; thiếu quyền thao tác → 403 `KHONG_CO_QUYEN` kèm `lopKhongThoa`; thiếu pháp lý → 403 `DIEU_KIEN_PHAP_LY` (research A-10)
@@ -227,13 +227,44 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 
 ---
 
+## Phase 9a: User Story 8 – Cấp tài khoản và đăng nhập cho người cao tuổi (Priority: P2) *(bổ sung 2026-10-18, Q-365, Q-368, Q-370, Q-371)*
+
+**Goal**: Tài khoản người cao tuổi tạo theo lời chính người cao tuổi, đăng nhập bằng mã QR, gắn một thiết bị, phiên không hết theo thời gian, token thiết bị cho nút SOS, khóa khi kết thúc lưu trú hoặc theo yêu cầu phê duyệt (FR-067 → FR-075, BR-M15-23, 24).
+
+**Independent Test**: Quickstart K28 → K35 bằng đồng hồ giả lập và bản giả 001.
+
+### Tests cho User Story 8
+
+- [ ] T083 [P] [US8] Test `BT/m15/taikhoan/TaoTaiKhoanNguoiCaoTuoiIT.java`: tạo khi người cao tuổi Đang lưu trú và có `xacNhan`; thiếu `xacNhan` 422; đã có tài khoản hoặc không Đang lưu trú 409; vai trò duy nhất AC-16, phạm vi `BAN_THAN` (FR-067, FR-068, US8 #1)
+- [ ] T084 [P] [US8] Test `BT/m15/taikhoan/MaQrDangNhapIT.java`: mã dùng một lần, hết hạn CFG-M15-11 (đồng hồ giả lập), mã mới vô hiệu mã cũ, Điều dưỡng ngoài phạm vi 403, dùng mã gắn thiết bị và trả `tokenThietBi` (FR-069, US8 #2)
+- [ ] T085 [P] [US8] Test `BT/m15/taikhoan/ThietBiGanIT.java`: một tài khoản một thiết bị; gắn máy mới gỡ máy cũ và kết thúc phiên trên đó; máy đã gắn không đăng nhập được tài khoản khác (409 `THIET_BI_DA_GAN`); gỡ thiết bị kèm lý do (FR-070, FR-014a, BR-M15-24, US8 #4, #5)
+- [ ] T086 [P] [US8] Test `BT/m15/taikhoan/PhienNguoiCaoTuoiKhongHetIT.java`: 200 ngày không thao tác thì phiên kênh `APP_NGUOI_CAO_TUOI` còn, tài khoản không chuyển Không hoạt động; đổi mật khẩu kết thúc phiên (FR-010, FR-013a, US8 #3, SC-013)
+- [ ] T087 [P] [US8] Test `BT/m15/taikhoan/KhoaTaiKhoanNguoiCaoTuoiIT.java`: sự kiện sang trạng thái cuối → `DA_KHOA` `NCT_KET_THUC_LUU_TRU`, thiết bị gỡ, bỏ trùng theo `lichSuId`, không mở lại; tự yêu cầu rồi mở lại; yêu cầu `M15.KHOA_TAI_KHOAN_NCT` chỉ khóa khi Quản lý viện duyệt (BR-M15-23, FR-072, FR-073, US8 #6 → #8)
+- [ ] T088 [P] [US8] Test `BT/m15/taikhoan/XacDinhThietBiSosIT.java`: `ThietBiGanApi.xacDinh` trả người cao tuổi khi không có phiên; rỗng khi token sai, thiết bị gỡ, tài khoản Đã khóa; Khóa tạm vẫn xác định được; gọi `/sos` không có phiên thì bộ lọc không trả 401, ngoài ba đường của T011 mọi đường khác vẫn đòi phiên (`DuongKhongCanPhienIT`) (FR-071, SC-013)
+- [ ] T089 [P] [US8] Test `BT/m15/taikhoan/NguoiThanKhongXemTaiKhoanNctIT.java`: tài khoản AC-10 gọi endpoint tài khoản, thiết bị, nhật ký của tài khoản người cao tuổi → 403/404 (FR-075, US8 #9)
+
+### Implementation cho User Story 8
+
+- [ ] T090 [US8] Tạo `MIG/V002_08__tai_khoan_nguoi_cao_tuoi.sql`: thêm `NGUOI_CAO_TUOI` vào `tai_khoan.loai`, cột `nguoi_cao_tuoi_id` `UNIQUE`, `CHECK` mới, giá trị `nguyen_nhan_khoa` mới, kênh `APP_NGUOI_CAO_TUOI` và lý do kết thúc phiên mới; bảng `thiet_bi_gan`, `ma_qr_dang_nhap` với cột sinh `UNIQUE`; nạp vai trò AC-16 và cột NCT của ma trận (data-model mục 2, 3; cú pháp dùng được ở cả MySQL 8.0 và 8.4)
+- [ ] T091 [US8] Cài tạo tài khoản người cao tuổi trong `TaiKhoanService.java` (`NguoiCaoTuoiApi.trangThai`, `xacNhan` vào `chi_tiet` nhật ký) và `POST /tai-khoan-nguoi-cao-tuoi` trong `TaiKhoanController.java`; phạm vi `BAN_THAN` trong `PhamViService.java`; `TaiKhoanApi.theoNguoiCaoTuoi` (FR-067, FR-068)
+- [ ] T092 [US8] Cài `BE/m15/taikhoan/xacthuc/internal/MaQrService.java`, `ThietBiGanService.java` và endpoint `POST /tai-khoan/{id}/ma-qr`, `POST /xac-thuc/dang-nhap-qr`, `POST /tai-khoan/{id}/go-thiet-bi`; đăng nhập mật khẩu kênh `APP_NGUOI_CAO_TUOI` cũng gắn thiết bị; bỏ kiểm CFG-M15-10 cho kênh này ở lần tra phiên; job `ChuyenKhongHoatDong` chỉ lọc người thân; khai báo CFG-M15-11 như các CFG-M15 khác (FR-069, FR-070, FR-010, FR-013a, FR-014a; research A-15)
+- [ ] T093 [US8] Cài `ThietBiGanApi` trong `BE/m15/taikhoan/api/` và `xacthuc/internal/ThietBiGanApiImpl.java`; ArchUnit chỉ cho endpoint SOS của 007 gọi; `CanQuyenArchTest` có danh sách ngoại lệ có tên, chỉ gồm các lệnh của `SosController` (007), vì lệnh SOS kiểm quyền bằng `ThietBiGanApi.xacDinh` thay cho `@CanQuyen` (FR-071; module-interfaces 1.11)
+- [ ] T094 [US8] Cài khóa, mở khóa tài khoản người cao tuổi: `POST /tai-khoan/{id}/khoa-nguoi-cao-tuoi`, `/mo-khoa-nguoi-cao-tuoi`; listener `BE/m15/taikhoan/lich/KhoaTaiKhoanNctKhiKetThuc.java` nghe `NguoiCaoTuoiDaChuyenTrangThai`; `LoaiYeuCauHandler` `M15.KHOA_TAI_KHOAN_NCT` (`choTuDuyet() = false`) (FR-072, FR-073, BR-M15-23; research A-16)
+- [ ] T095 [P] [US8] Tạo màn web `frontend/src/tinh-nang/tai-khoan/TaiKhoanNguoiCaoTuoi.jsx` (tạo kèm xác nhận của người cao tuổi, hiện mã QR, gỡ thiết bị, khóa, mở khóa, lập đề nghị khóa theo lời người thân) và test `TaiKhoanNguoiCaoTuoi.test.jsx`
+- [ ] T096 [P] [US8] Tạo `mobile/lib/nhan-vien/ma-qr-nguoi-cao-tuoi/` (Điều dưỡng tạo, hiện mã QR, đếm ngược hết hạn) và test `mobile/test/nhan-vien/ma_qr_nguoi_cao_tuoi_test.dart`
+- [ ] T097 [P] [US8] Thêm `mobile_scanner`, `local_auth` vào `mobile/pubspec.yaml`; tạo `mobile/lib/nguoi-cao-tuoi/dang-nhap-qr/` (quét mã, lưu token phiên và token thiết bị trong `flutter_secure_storage`, mở khóa sinh trắc học tùy chọn, không có PIN) và test `mobile/test/nguoi-cao-tuoi/dang_nhap_qr_test.dart`, `mo_khoa_sinh_trac_test.dart` (FR-074)
+
+**Checkpoint**: Quickstart K28 → K35 chạy được; 007 và 012 dùng được `ThietBiGanApi`, `TaiKhoanApi.theoNguoiCaoTuoi`.
+
+---
+
 ## Phase 10: Polish & Cross-Cutting
 
 - [ ] T078 [P] Mở rộng `BT/common/HopDongApiTest.java` (000 T038) so springdoc với `specs/002-account-permission/contracts/api-002.yaml`
 - [ ] T079 [P] Ghi vào `backend/docs/van-hanh.md`: phiên khôi phục từ bản sao lưu bị kết thúc khi khởi động; HTTPS bắt buộc (NFR-06, NFR-08)
 - [ ] T080 Cập nhật `BT/support/QuyenGia.java` thành tiện ích dựng người dùng thật cho test của 001, 003–019
 - [ ] T081 Chạy `./mvnw verify`, `npm test`, `flutter test` hai app và kịch bản quickstart.md mục 3; đo SC-005, SC-008 theo quickstart mục 5
-- [ ] T082 Rà truy vết data-model mục 7: mỗi BR-M15-01, 02, 04, 05, 14 → 22, BR-M06-05, BR-M09-04 có test tương ứng; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-006a, FR-023 — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T082 Rà truy vết data-model mục 7: mỗi BR-M15-01, 02, 04, 05, 14 → 24, BR-M06-05, BR-M09-04 có test tương ứng; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-006a, FR-023 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 
@@ -246,6 +277,7 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 - **US5 (P2)**: sau US1 (bước 4)
 - **US6 (P2)**: sau US2 (tạo tài khoản), US4 (phạm vi)
 - **US7 (P3)**: sau US1, US2
+- **US8 (P2)** *(bổ sung 2026-10-18)*: sau US2, US3 (tài khoản, phiên), US4 (phạm vi); trước nút SOS của 007 và kênh người cao tuổi của 012
 - Bản giả T003 được thay dần khi làm plan 001, 003, 004, 007, 008, 012
 
 ### Parallel Opportunities

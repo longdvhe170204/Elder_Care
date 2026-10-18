@@ -96,3 +96,12 @@ Kết quả mong đợi: `verify` xanh, gồm test kiến trúc (`HoSoMoGuardArc
 | Q37 | Phiếu của A có ngày xem lại nhận định là ngày mai; tua đồng hồ qua ngày đó; chạy job hai lần | Bác sĩ đã nhận định và Điều dưỡng phụ trách nhận một nhắc Nhẹ; lần chạy thứ hai không nhắc | FR-023i, Q-360 |
 
 Test bổ sung: `NhacXemLaiNhanDinhIT` (Q37), `FR_011_DaiDienPhapLuatIT` (Q33, Q34), `NguyenVongNguoiKyIT` mở rộng (Q29, Q35), `BR_M01_14_NguonYKienIT` (Q35, `NguonYKienApi`), `FR_023h_KhongDauNangLucArchTest` (Q36).
+
+## 7. Kịch bản bổ sung 2026-10-18, lượt 3 (Q-366)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| Y1 | 014 ghi mục sở thích của A nguồn `NGUOI_CAO_TUOI` kèm `phanHoiId` của phản hồi Mong muốn P; ghi mục nguồn `NGUOI_THAN` kèm `phanHoiId` | Sự kiện `YKienDaGhiTuPhanHoi` được phát, P có liên kết; mục thứ hai không gắn vào P | FR-023g |
+
+Test: `FR_023g_YKienTuPhanHoiIT` (dùng bản giả 012 nghe sự kiện).
+

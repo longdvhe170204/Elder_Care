@@ -52,7 +52,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
   ```
 - Mỗi sự kiện mà plan 000 → 008 đã ghi "009 nghe" (mức, nhóm người nhận, loại thông tin, khóa) cài `CoYeuCauThongBao`; module nguồn tự dựng yêu cầu. 009 có **một** listener `@ApplicationModuleListener` cho kiểu `CoYeuCauThongBao` (Spring phân phát theo kiểu giao diện), nên mọi module nguồn dùng đúng một cách gửi (FR-001). Module làm plan sau cũng vậy.
 - Sự kiện chỉ để điều khiển 009 (không phải thông báo): `m05.api.YeuCauDungNhacGoiDien`, `m05.api.DaCoKetQuaXacNhanLai` (007) — listener riêng (B-08).
-- Kiểm tra (FR-003): thiếu bản ghi nguồn, khóa, nhóm người nhận hoặc nội dung đầy đủ → lưu yêu cầu với kết quả `BI_TU_CHOI` và vào danh sách lỗi gửi; thiếu mức → Nhẹ, dấu `THIEU_MUC`; thiếu loại thông tin ở một phần → coi phần đó `SUC_KHOE`, dấu `THIEU_LOAI_THONG_TIN` (FR-013); Trung bình, Khẩn cấp thiếu nội dung rút gọn → nội dung mặc định cho kênh ngoài. Yêu cầu có nhóm người thân (loại (e), hoặc (d) `NGUOI_THAN`) mà thiếu `doiTuongThongTin` → coi là `VE_NGUOI_CAO_TUOI`, dấu `THIEU_DOI_TUONG_THONG_TIN` (FR-001a; bổ sung 2026-10-18).
+- Kiểm tra (FR-003): thiếu bản ghi nguồn, khóa, nhóm người nhận hoặc nội dung đầy đủ → lưu yêu cầu với kết quả `BI_TU_CHOI` và vào danh sách lỗi gửi; thiếu mức → Nhẹ, dấu `THIEU_MUC`; thiếu loại thông tin ở một phần → coi phần đó `SUC_KHOE`, dấu `THIEU_LOAI_THONG_TIN` (FR-013); Trung bình, Khẩn cấp thiếu nội dung rút gọn → nội dung mặc định cho kênh ngoài. Yêu cầu có nhóm người thân (loại (e), hoặc (d) `NGUOI_THAN`) mà thiếu `doiTuongThongTin` → coi là `VE_NGUOI_CAO_TUOI`, dấu `THIEU_DOI_TUONG_THONG_TIN` (FR-001a; bổ sung 2026-10-18). *(Bổ sung 2026-10-18, FR-022a)* Yêu cầu có nhóm `NGUOI_CAO_TUOI` mà mức khác Nhẹ hoặc có phần khác `CHUNG` → `BI_TU_CHOI`, mã `NHOM_NGUOI_CAO_TUOI_KHONG_HOP_LE`.
 - **Chống trùng** (FR-005, NFR-04): `yeu_cau_thong_bao` có `UNIQUE (loai_ban_ghi_nguon, id_ban_ghi_nguon, khoa_su_kien)`; lần nhận trùng ghi `lan_nhan_trung` (đếm) và không tạo thông báo.
 
 **Lý do**: Một khuôn duy nhất là yêu cầu của FR-001; đặt ở `common` tránh vòng phụ thuộc (M13 cần đọc dữ liệu của M01, M05, M09, M15). 000 R-09 đã chọn sự kiện có lưu trữ (outbox) làm đường đi.
@@ -89,6 +89,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
   | (c) người có quyền | `NGUOI_CO_QUYEN_DUYET(loaiYeuCau, taiKhoanIds)` | Danh sách tài khoản do 000 tính sẵn khi phát sự kiện, đã lọc theo `gioiHanVaiTroDuyet` (sửa theo plan 004, Q-338: trước đây 009 tự gọi `NguoiDuyetApi.danhSach`) |
   | (d) gắn bản ghi nguồn | `NHAN_VIEN(id)`, `NGUOI_THAN(id)` (mang căn cứ: người lập, người thực hiện, người tạm nhận…) | Module nguồn đã phân giải |
   | (e) quan hệ người thân | `NGUOI_LIEN_HE_CHINH(nct)`, `NGUOI_DAI_DIEN(nct)`, `NGUOI_THAN_CO_QUYEN(nct, quyen)` | `NguoiThanNhanThongBaoPort` (012 cài) |
+  | (f) chính người cao tuổi *(bổ sung 2026-10-18, Q-366)* | `NGUOI_CAO_TUOI(nct)` | `TaiKhoanApi.theoNguoiCaoTuoi` (002): tài khoản không ở Đã khóa, Không hoạt động; không có cách thay; rỗng thì không ghi `KHONG_CO_NGUOI_NHAN` |
 
 - `CachThay` mỗi nhóm (a): `MAC_DINH`, `KHONG_THAY`, `NGUOI_THAY_CHI_DINH(NhomNhan)` (FR-010, Q-110). Hàm thuần `ChuoiThay(nhom)`: Điều dưỡng phụ trách → Người phụ trách ca của tầng → Trưởng tầng được giao → Quản lý viện; nhóm (a) khác → Trưởng tầng được giao → Quản lý viện; Trưởng tầng trống → Người phụ trách ca đang diễn ra của tầng (`NhiemVuApi.nguoiThayTruongTang`, Q-90) → Quản lý viện.
 - **Tạm nhận** (FR-009): 007 và 008 đã phân giải người tạm nhận thành nhóm (d) `NHAN_VIEN(id)` kèm căn cứ `TAM_NHAN` (007 S-18), nên 009 không cần biết trạng thái tạm nhận.
@@ -140,7 +141,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 **Quyết định**:
 - Hàm thuần `GioYenTinh(cfg13_02, t)`: khoảng có thể qua nửa đêm; mốc bắt đầu thuộc, mốc kết thúc không thuộc; trả `ketThucGanNhat`.
-- Thông báo Nhẹ/Trung bình cho người thân rơi vào giờ yên tĩnh: `thong_bao` tạo với sự kiện `GIU`, `gui_du_kien = ketThucGanNhat`; không tạo `lan_gui`.
+- Thông báo Nhẹ/Trung bình cho người thân rơi vào giờ yên tĩnh: `thong_bao` tạo với sự kiện `GIU`, `gui_du_kien = ketThucGanNhat`; không tạo `lan_gui`. *(Bổ sung 2026-10-18, Q-366)* Áp như vậy cho người nhận `NGUOI_CAO_TUOI` (chỉ có mức Nhẹ).
 - Job mỗi 20 giây giải phóng thông báo có `gui_du_kien <= bây giờ` theo thứ tự `tiep_nhan_luc`: xét lại điều kiện (quan hệ, quyền, Qua đời; FR-025) → `GUI` hoặc `KHONG_GUI` kèm lý do. Tin nhắn của các thông báo giải phóng cùng lúc cho một người thân gộp một tin tổng hợp (Q-101).
 - `ThamSoDaDoi(CFG-M13-02)`: tính lại `gui_du_kien` của thông báo đang giữ theo giá trị mới (cập nhật bảng trạng thái kỹ thuật, B-09); nếu bây giờ không còn trong giờ yên tĩnh thì giải phóng ngay (FR-024).
 - Khẩn cấp không bao giờ bị giữ (FR-023). Không có giờ yên tĩnh cho nhân viên.

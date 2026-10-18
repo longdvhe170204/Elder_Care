@@ -406,3 +406,14 @@ Nội dung cho kênh ngoài ứng dụng không chứa họ tên hay thông tin 
 **Phương án đã cân nhắc**:
 - Một bảng `y_kien` chung ở M01 cho mọi module: module khác phải ghi vào bảng của M01 và M01 phải biết loại đối tượng của từng module; bị loại.
 - Chỉ ghi chữ tự do "theo lời ai" trong ghi chú: không kiểm được người thân có quan hệ Hiệu lực và không lọc được theo nguồn; bị loại.
+
+---
+
+## H-17. Liên kết mục ý kiến với phản hồi Mong muốn *(bổ sung 2026-10-18; FR-023g, Q-366)*
+
+**Quyết định**: Mẫu cột nguồn ý kiến có thêm cột tùy chọn `phan_hoi_id BIGINT NULL` (tham chiếu logic, không khóa ngoại chéo module); chỉ bảng có lệnh ghi mục từ phản hồi Mong muốn mới thêm cột (hiện là `so_thich` của 014); 012 gắn `mong_muon_nct` bằng `phan_hoi_y_kien` trong cùng module. Lệnh ghi mục của module sở hữu nhận `phanHoiId` tùy chọn; khi có, cùng transaction ghi sự kiện `YKienDaGhiTuPhanHoi(phanHoiId, moduleNguon, loaiMuc, mucId, nctId, nguon)` qua outbox. 012 nghe và thêm dòng `phan_hoi_y_kien` nếu phản hồi thuộc đúng người cao tuổi và nguồn là `NGUOI_CAO_TUOI`; sai thì bỏ qua và ghi lỗi kỹ thuật.
+
+**Lý do**: Mục nằm ở bảng của module sở hữu (001 mục 6a); 012 không đọc được bảng đó, còn module sở hữu gọi 012 sẽ tạo vòng M04 ↔ M10. Sự kiện giữ một chiều.
+
+**Phương án đã cân nhắc**: 012 gọi API đọc của từng module để kiểm mục (thêm hàm đọc ở mọi module có ý kiến). Lưu liên kết ở 001 (001 không sở hữu các mục này).
+

@@ -225,6 +225,8 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 ## Phase 12: Polish & Cross-Cutting
 
+- [ ] T045 *(Bổ sung 2026-10-18, Q-366)* Cài `BE/m08/api/SuatAnDuKienApi.java` và bản cài trong `BE/m08/phieu/internal/` theo research M-16; test `BT/m08/FR_063_SuatAnDuKienNguoiCaoTuoiIT.java` (quickstart A1, A2)
+
 - [ ] T040 [P] Cài `DinhDuongThongKeApi` (016)
 - [ ] T041 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/011-nutrition-management/contracts/api-011.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 011
 - [ ] T042 Khi 012, 014, 019 có bản thật, chạy lại test US4 với bean thật thay T002; thay bản giả `NguonCongViecPort` `BUA` ở test 005

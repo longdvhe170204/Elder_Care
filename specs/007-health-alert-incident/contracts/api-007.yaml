@@ -637,9 +637,47 @@ paths:
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/BanGhiKham' } } } }
       responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
 
+  # ---------------- Nút SOS (bổ sung 2026-10-18, Q-369) ----------------
+  /sos:
+    post:
+      tags: [canh-bao, khan-cap]
+      summary: Người cao tuổi bấm nút SOS; tạo hoặc gộp cảnh báo Khẩn cấp
+      description: |
+        Không cần phiên đăng nhập; xác định người cao tuổi bằng token thiết bị (research S-23).
+        Từ chối khi Tạm vắng, Điều trị tại bệnh viện, trạng thái cuối, hoặc người bán trú không Có mặt; lỗi kèm lienHe.
+      x-fr: [FR-026, FR-047d, FR-047e]
+      x-br: [BR-M05-27]
+      security: [ { tokenThietBi: [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses:
+        '201': { description: Đã gửi, content: { application/json: { schema: { $ref: '#/components/schemas/TrangThaiSos' } } } }
+        '401': { description: 'THIET_BI_KHONG_HOP_LE', content: { application/problem+json: { schema: { $ref: '#/components/schemas/LoiSos' } } } }
+        '409': { description: 'KHONG_O_VIEN, KHONG_CO_MAT', content: { application/problem+json: { schema: { $ref: '#/components/schemas/LoiSos' } } } }
+  /sos/hien-tai:
+    get:
+      tags: [canh-bao]
+      summary: Trạng thái cảnh báo SOS đang mở gần nhất của người cao tuổi
+      x-fr: [FR-047f]
+      security: [ { tokenThietBi: [] } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TrangThaiSos' } } } }
+        '204': { description: Không có cảnh báo SOS đang mở }
+  /sos/{id}/noi-dang-o:
+    post:
+      tags: [canh-bao]
+      summary: Người cao tuổi chọn nhanh nơi đang ở sau khi bấm (một lần)
+      x-fr: [FR-047f]
+      security: [ { tokenThietBi: [] } ]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [noi], properties: { noi: { type: string, enum: [PHONG, NHA_VE_SINH, SAN, KHAC] } } } } }
+      responses: { '204': { description: Đã ghi }, '409': { $ref: '#/components/responses/Loi' } }
+
 components:
   securitySchemes:
     phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
+    tokenThietBi: { type: apiKey, in: header, name: X-Token-Thiet-Bi, description: 'Token thiết bị của người cao tuổi (002 research A-15); chỉ dùng cho /sos' }
   parameters:
     Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
     NctId: { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } }
@@ -660,6 +698,27 @@ components:
       description: 'DA_CO_NGUOI_TIEP_NHAN: kèm người và thời điểm tiếp nhận'
       content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Loi' }, { type: object, properties: { tiepNhanBoi: { type: string }, tiepNhanLuc: { type: string, format: date-time } } } ] } } }
   schemas:
+    TrangThaiSos:
+      type: object
+      description: Bổ sung 2026-10-18 (FR-047f)
+      properties:
+        lanBamId: { type: integer, format: int64 }
+        canhBaoId: { type: integer, format: int64 }
+        trangThai: { type: string, enum: [DA_GUI, DA_TIEP_NHAN] }
+        nguoiTiepNhan: { type: string, description: Họ tên người đã tiếp nhận }
+        lienHe: { $ref: '#/components/schemas/LienHeKhiKhongGuiDuoc' }
+    LienHeKhiKhongGuiDuoc:
+      type: object
+      properties:
+        soLienHeVien: { type: string }
+        soCapCuu: { type: string, const: '115' }
+    LoiSos:
+      type: object
+      description: Lỗi RFC 9457 kèm số liên hệ để app hiện (012 FR-085)
+      properties:
+        maLoi: { type: string }
+        detail: { type: string }
+        lienHe: { $ref: '#/components/schemas/LienHeKhiKhongGuiDuoc' }
     LyDo: { type: string, minLength: 1, maxLength: 2000 }
     Muc: { type: string, enum: [NHE, TRUNG_BINH, KHAN_CAP] }
     TrangThaiCanhBao: { type: string, enum: [MOI, LEO_THANG, DA_TIEP_NHAN, DANG_XU_LY, DA_DONG, CHUYEN_SU_CO] }

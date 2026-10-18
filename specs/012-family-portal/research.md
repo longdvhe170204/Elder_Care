@@ -20,6 +20,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 | `m10.cong` | Cổng: tổng quan, các phần sức khỏe gọi module nguồn, nhật ký lượt xem sức khỏe | G |
 | `m10.bantin` | Bản tin tuần, số liệu tổng hợp, đính chính | H |
 | `m10.phanhoi` | Phản hồi, khiếu nại, hạn, leo thang | I |
+| `m10.kenhnct` *(bổ sung 2026-10-18)* | Kênh người cao tuổi: năm phần thông tin của chính người cao tuổi | G2 |
 | `m10.trangthai`, `m10.lich`, `m10.api` | Bean trạng thái; job; giao diện công khai và bản cài SPI | |
 
 ---
@@ -172,6 +173,9 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 - Hạn = `moc_tinh_han` + CFG-M10-01 theo mức (đọc lúc tính); đổi mức tính lại; hạn mới đã qua → leo thang ngay.
 - Job theo phút: quá hạn chưa Đã phản hồi → dấu quá hạn, thông báo Quản lý viện Trung bình một lần (SC-005 ≤ 5 phút); Đã phản hồi quá CFG-M10-02 → `DONG` cách "tự đóng".
 - `GanPhamViProvider` `M10.PHAN_HOI` theo người cao tuổi; Quản lý viện xem mọi phản hồi.
+- *(Bổ sung 2026-10-18, Q-366, Q-371)* Người gửi là người thân hoặc chính người cao tuổi (`nguoi_gui_loai`); người cao tuổi gửi qua `/kenh-nguoi-cao-tuoi/phan-hoi`; Hành chính, Điều dưỡng có phạm vi ghi thay qua `POST /phan-hoi` với `nguoiGuiLoai = NGUOI_CAO_TUOI`, nguồn `GHI_TRUC_TIEP`. Loại `MONG_MUON` chỉ khi người gửi là người cao tuổi; loại này bắt buộc chủ đề `chuDeMongMuon` (`KHACH_THAM_NGUOI_DON` / `KHAC`) và hệ thống đặt nhóm nội dung sẵn có theo FR-059: khách thăm, người đón → `KHAC` (Hành chính), còn lại → `CHAM_SOC` (Trưởng tầng); không thêm nhóm mới. Lệnh `gan-y-kien` thêm dòng `phan_hoi_y_kien` sau khi kiểm mục `mong_muon_nct` có nguồn người cao tuổi, cùng người; mục ở module khác (sở thích, thói quen của 014) được gắn khi 012 nghe `YKienDaGhiTuPhanHoi` (001 research H-17), với cùng điều kiện; `tra-loi` loại Mong muốn khi chưa có dòng nào → 409 `CHUA_GAN_Y_KIEN`. Lệnh `doi-loai` (Mong muốn → Góp ý, Hỏi đáp, có lý do) không đổi mức, hạn.
+- *(Bổ sung 2026-10-18)* Người cao tuổi không có tài khoản: `dong-y-dong`, `mo-lai` do Hành chính, Điều dưỡng có phạm vi ghi thay (`cach_dong = GHI_THAY`). Nhóm "sức khỏe, thuốc" của người cao tuổi: phần trả lời trên kênh chỉ `CHUNG`; người phụ trách thấy nhắc "trả lời trực tiếp" (FR-058a (b)).
+- *(Bổ sung 2026-10-18, FR-086)* Mọi truy vấn phản hồi cho tài khoản AC-10 lọc `nguoi_gui_loai = NGUOI_THAN`; bản tin và thông báo của 012 không nêu phản hồi của người cao tuổi.
 
 ---
 
@@ -196,6 +200,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 | Bản tin; bản tin đính chính | `VE_NGUOI_CAO_TUOI` (009 chỉ gửi người trong phạm vi "nhận thông báo") |
 | Yêu cầu thay đổi quyền cần xác nhận/duyệt, có kết quả, đã có hiệu lực (Q-249); đặt/thôi người đại diện; nhắc quá mốc; ngoại lệ đón cần xác nhận | `VE_VIEC_NGUOI_THAN` |
 | Lượt thăm bị hủy (Hành chính, người cao tuổi vắng, khoanh vùng); lượt ở lại được xác nhận hoặc từ chối; phản hồi đã được trả lời | `VE_VIEC_NGUOI_THAN` |
+| *(Bổ sung 2026-10-18, Q-366)* Nhắc lượt thăm trong ngày; phản hồi của người cao tuổi đã được trả lời — gửi nhóm `NguoiCaoTuoi` (009 FR-007 (f)), Nhẹ, chỉ phần `CHUNG` | Không áp: người nhận không phải người thân |
 
 Không thông báo nào của 012 cần mã Q-354. Nội dung rút gọn cho tin nhắn không có phần sức khỏe (FR-070) — 009 chọn phần `CHUNG`. "Trưởng tầng" luôn là Trưởng tầng được giao qua `NhiemVuApi.truongTangDuocGiao`; không có thì Quản lý viện (Quy ước của spec).
 
@@ -212,9 +217,10 @@ Không thông báo nào của 012 cần mã Q-354. Nội dung rút gọn cho tin
 | `QUY_TRINH_DON` | `THUC_HIEN` theo khóa của lệnh nguồn (F-07); `DUYET` ngoại lệ (Quản lý viện); `XAC_NHAN` ngoại lệ (người đại diện) |
 | `LUOT_THAM` | `DANG_KY` (Hành chính; người thân có `dang_ky_tham`); `VAO_RA` (Hành chính); `XEM` (Quản lý viện, Trưởng tầng) |
 | `LUOT_O_LAI` | `LAP` (Hành chính); `XAC_NHAN` (Trưởng tầng được giao; Quản lý viện khi tầng không có); `BAT_DAU_KET_THUC` (Hành chính, Trưởng tầng) |
-| `PHAN_HOI` | `GUI` (người thân, Hành chính); `XU_LY` (Trưởng tầng, Điều dưỡng, Hành chính trong phạm vi); `DUYET` (Quản lý viện: xem mọi, giao lại) |
+| `PHAN_HOI` | `GUI` (người thân, Hành chính; người cao tuổi, và Hành chính, Điều dưỡng ghi thay người cao tuổi, bổ sung 2026-10-18); `XU_LY` (Trưởng tầng, Điều dưỡng, Hành chính trong phạm vi); `DUYET` (Quản lý viện: xem mọi, giao lại) |
 | `BAN_TIN` | `THUC_HIEN` (Điều dưỡng có phạm vi); `DUYET_THAY` (Trưởng tầng được giao sau CFG-M10-12) |
 | `NHAT_KY_XEM_SUC_KHOE` | `XEM` (Quản lý viện) |
+| `KENH_NGUOI_CAO_TUOI` *(bổ sung 2026-10-18)* | `XEM` (AC-16, phạm vi `BAN_THAN`) |
 
 ---
 
@@ -248,3 +254,19 @@ Không thông báo nào của 012 cần mã Q-354. Nội dung rút gọn cho tin
 **Lý do**: FR-020b đặt điều kiện trên đường đi tới Hiệu lực của yêu cầu sẵn có; đặt trong `KiemTraYeuCau` giữ một chỗ kiểm cho mọi đường (cổng, quầy, phiếu).
 
 **Phương án đã cân nhắc**: Tự tắt quyền khi ghi mong muốn "không muốn": trái Q-307 và FR-020b; bị loại.
+
+---
+
+## F-18. Kênh người cao tuổi *(bổ sung 2026-10-18; mục G2, FR-083 → FR-086, BR-M10-11; Q-365, Q-366, Q-369)*
+
+**Quyết định**:
+- Gói `m10.kenhnct`, REST `/kenh-nguoi-cao-tuoi/{hom-nay | thuc-don | hoat-dong | luot-tham | do-gui | phan-hoi}`; `@CanQuyen(KENH_NGUOI_CAO_TUOI, XEM)`; người cao tuổi lấy từ tài khoản đăng nhập, không nhận `nctId` trong đường dẫn, nên không mở được dữ liệu người khác (FR-084).
+- Nguồn từng phần (FR-083): (a) hôm nay = lượt thăm Đã duyệt trong ngày (012), buổi hoạt động trong ngày (`HoatDongKenhNctPort`), lịch đến/về bán trú (`CoMatBanTruApi.theoNgay`); không gọi `KetQuaChamSocCongApi` (không có công việc chăm sóc, giờ thuốc); (b) thực đơn tuần đã công bố (`ThucDonChungApi`) và suất dự kiến (`SuatAnDuKienApi.cuaNguoiCaoTuoi`: món, món thay thế; không có tên chế độ ăn, dị ứng); (c) `HoatDongKenhNctPort.sapToi(nctId, tu, den)`: buổi của tầng và toàn viện, có tên hay chưa; (d) lượt thăm Đã duyệt: ngày, khung, họ tên người thăm; (e) `DoGuiKenhNctPort.dangGiu(nctId)`: tên, trạng thái, ảnh.
+- DTO kênh là lớp riêng; ArchUnit chặn `m10.kenhnct` gọi `SucKhoeCongNguoiThanApi`, `ThuocCongNguoiThanApi`, `ChiPhiCongNguoiThanApi` và API số dư (FR-084).
+- **Nhắc lượt thăm** (FR-069): job 00:05 phát `NhacLuotThamNct` cho mỗi lượt Đã duyệt trong ngày của người cao tuổi có tài khoản; lượt tạo trong ngày phát khi tạo. 009 giữ tới hết giờ yên tĩnh. Khóa `(luot_tham_id, NHAC_NCT)`.
+- **App** (`mobile/lib/nguoi-cao-tuoi/`): màn đầu "Hôm nay" có nút SOS; giữ 3 giây (vòng tiến trình) mới gọi `POST /sos` của 007; hỏi `GET /sos/hien-tai` mỗi 5 giây khi màn trạng thái mở; lưu `lienHe` nhận được gần nhất (cùng số mặc định 115) để hiện khi mất kết nối hay bị từ chối; lần mở đầu hiện thông báo "nút SOS không thay chuông gọi" (FR-085). Màn xem dùng phiên; nút SOS dùng token thiết bị (002 A-15).
+
+**Lý do**: Một chỗ dựng và một DTO cho cả kênh giữ chặt FR-084. SPI ở `m10.api` cho 013, 014 theo cách `HoatDongBanTinPort` đã làm, không tạo vòng M10 ↔ M12, M10 ↔ M04.
+
+**Phương án đã cân nhắc**: Mỗi feature sở hữu tự phục vụ REST cho kênh như cổng người thân (F-10): giới hạn trường rải ở năm nơi, khó kiểm FR-084. Dùng lại REST cổng người thân với vai trò mới: cổng có nhiều phần người cao tuổi không được thấy, dễ lộ.
+

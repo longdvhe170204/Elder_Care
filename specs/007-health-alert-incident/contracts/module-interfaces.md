@@ -118,7 +118,7 @@ BanTinSucKhoeView choBanTin(long nctId, LocalDate tu, LocalDate den);
 
 ```java
 Stream<CanhBaoBaoCaoView> canhBao(PhamViLoc phamVi, Instant tu, Instant den);
-    // mức hiện hành, mức lúc tiếp nhận, lan_dau_luc, tiep_nhan_luc, số lần leo thang, dấu leo thang tối đa, loại, tầng
+    // mức hiện hành, mức lúc tiếp nhận, lan_dau_luc, tiep_nhan_luc, số lần leo thang, dấu leo thang tối đa, loại, tầng; nguon (SOS / KHAC, bổ sung 2026-10-18, FR-081)
 Stream<SuCoBaoCaoView> suCo(PhamViLoc phamVi, Instant tu, Instant den);
     // mức, loại (kèm dấu khong_thuoc_suc_khoe), tầng, thời điểm tạo, tiếp nhận xử lý (Q-199), số lần leo thang; bỏ Đã hủy
 List<TheoDoiView> dangTheoDoi(PhamViLoc phamVi);        // sau ngã, tiếp xúc
@@ -206,12 +206,16 @@ interface DiemDanhTruyVetPort {                    // 014 cài; chỉ đọc
   List<BuoiCungThamGiaView> cungThamGia(long nctId, Instant tu, Instant den);   // FR-060 (b): buổi, thời điểm, người cùng điểm danh
 }
 
+interface ChuyenDiSosPort {                       // 014 cài; chỉ đọc; bổ sung 2026-10-18 (FR-047e, 014 FR-068a)
+  Optional<ChuyenDangDienRaView> dangDienRa(long nctId);           // chuyến người cao tuổi đang ở Hoạt động bên ngoài; trưởng đoàn, người đi cùng hiện tại
+}
+
 interface NhatKyThongBaoPort {                     // 009 cài; chỉ đọc
   List<DaThongBaoView> theoNguon(String nguonLoai, long nguonId);   // người nhận, kênh, gửi lúc, đã xem lúc (FR-040, FR-048b)
 }
 ```
 
-Bean thiếu thì mặc định an toàn: không có `NhanSuCanhBaoPort` thì người phụ trách ban đầu là Người phụ trách ca (`PhamViApi`), không có Bác sĩ trực (áp FR-047b), hạn Nhẹ là cuối ngày; thiếu `NguoiThanKhanCapPort` thì thẻ ghi "không lấy được người liên hệ chính"; thiếu `DiemDanhTruyVetPort`, `NguoiThanKhanCapPort` khi tra cứu thì nhóm tương ứng trả "chưa có dữ liệu" và người lập được báo.
+Bean thiếu thì mặc định an toàn: không có `NhanSuCanhBaoPort` thì người phụ trách ban đầu là Người phụ trách ca (`PhamViApi`), không có Bác sĩ trực (áp FR-047b), hạn Nhẹ là cuối ngày; thiếu `NguoiThanKhanCapPort` thì thẻ ghi "không lấy được người liên hệ chính"; thiếu `DiemDanhTruyVetPort`, `NguoiThanKhanCapPort` khi tra cứu thì nhóm tương ứng trả "chưa có dữ liệu" và người lập được báo. Thiếu `ChuyenDiSosPort` thì cảnh báo SOS khi Hoạt động bên ngoài chỉ gửi nhóm của FR-047a (bổ sung 2026-10-18).
 
 ### 2.2. Sự kiện 007 nghe
 
@@ -237,3 +241,5 @@ Bean thiếu thì mặc định an toàn: không có `NhanSuCanhBaoPort` thì ng
 | `QuyenApi` (gồm khóa `CHUYEN_MON`), `PhamViApi` (`boLoc`, `nguoiPhuTrachCa`, `truongTangDuocGiao`), `QuyenXemTruongApi`, `NguoiDungHienTai`, `TaiKhoanApi.coVaiTro` và `NguoiDuyetApi.danhSach` (Giao người xử lý, FR-045a, Q-339; bổ sung 2026-10-11), ngoại lệ ghi sự cố ngoài phạm vi (002 FR-044a) | M15 (002) | Research S-20 | Có sẵn |
 | `NhatKyApi`, `ThamSoApi`, `DinhChinhApi`, `TepApi`, `common` | M15 (000) | Mọi lệnh | Có sẵn |
 | Bản cài các SPI mục 2.1 | 008, 009, 012, 014 | | Bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}` |
+| *(Bổ sung 2026-10-18)* `ThietBiGanApi.xacDinh` | M15 (002) | FR-047d (S-23) | Bản giả |
+| *(Bổ sung 2026-10-18)* `CoMatBanTruApi.theoNgay` | M04 (005) | FR-047d (S-23) | Có sẵn |

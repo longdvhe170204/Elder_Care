@@ -16,6 +16,7 @@ Feature 012 là module M10 – Người thân (mục 14.1 → 14.8; UC-55 → UC
 7. Cổng người thân theo bốn loại thông tin, nhật ký lượt xem sức khỏe (mục G; BR-M10-01, NFR-08).
 8. Bản tin tuần do Điều dưỡng lập và duyệt, số liệu tổng hợp tính sẵn, đính chính (mục H; Q-306, Q-307).
 9. Phản hồi, khiếu nại có hạn, leo thang, tự đóng (mục I; BR-M10-05).
+10. *(Bổ sung 2026-10-18)* Kênh người cao tuổi: năm phần thông tin của chính người cao tuổi, phản hồi của người cao tuổi (kể cả ghi thay, loại Mong muốn), nút SOS và trạng thái (mục G2; Q-365, Q-366, Q-369, Q-371).
 
 Hướng kỹ thuật:
 - Gói `m10` với tám gói con (research F-01). 012 cài chín SPI do module thấp hơn khai báo; `QuanHeNguoiThanApi` được hợp nhất thành SPI ở `m15.taikhoan.api` để 001, 002, 006, 011 không phụ thuộc M10 (F-02, F-14).
@@ -37,6 +38,14 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - **Bản tin và thông báo** (FR-054, FR-069, Q-353): mọi yêu cầu tới người thân khai đối tượng thông tin theo 009 FR-001a (bảng ở research F-15); bản tin là `VE_NGUOI_CAO_TUOI`, 009 lọc theo mục "nhận thông báo".
 - **Người đại diện** (Q-348): giữ tên; `laNguoiDaiDienHieuLuc` không còn dùng cho 001 FR-011, FR-023c.
 - Điểm báo lại 6 → 9 bên dưới.
+
+### Cập nhật 2026-10-18, lượt 3 (spec mục "Cập nhật 2026-10-18, lượt 3": Q-365 → Q-371)
+
+- **Kênh người cao tuổi** (FR-083, FR-084): gói mới `m10.kenhnct`, REST `/kenh-nguoi-cao-tuoi/**` chỉ cho tài khoản AC-16, phạm vi `BAN_THAN` của 002; DTO riêng không có trường sức khỏe, chi phí, số dư, hợp đồng (research F-18). 012 dựng cả năm phần ở một chỗ: lượt thăm (012), lịch đến/về bán trú (`CoMatBanTruApi` của 005), thực đơn và suất ăn dự kiến (`ThucDonChungApi`, `SuatAnDuKienApi` mới của 011), hoạt động sắp tới (SPI mới `HoatDongKenhNctPort`, 014 cài), đồ gửi (SPI mới `DoGuiKenhNctPort`, 013 cài).
+- **Phản hồi của người cao tuổi** (FR-058, FR-058a, FR-058b, FR-066, FR-086): `phan_hoi` thêm `nguoi_gui_loai`, `ghi_thay_boi_id`, loại `MONG_MUON`, nguồn `KENH_NGUOI_CAO_TUOI`, `GHI_TRUC_TIEP`; bảng `phan_hoi_y_kien` gắn mục ý kiến; lệnh `doi-loai`, `gan-y-kien`; Trả lời loại Mong muốn bị chặn khi chưa gắn mục; mọi truy vấn của người thân lọc `nguoi_gui_loai = NGUOI_THAN` (research F-13, F-18).
+- **Thông báo** (FR-069): nhắc lượt thăm trong ngày và phản hồi đã trả lời gửi nhóm `NguoiCaoTuoi` của 009, mức Nhẹ, phần `CHUNG` (research F-15).
+- **Nút SOS** (FR-085): giao diện ở app người cao tuổi; lệnh `/sos` thuộc 007 (007 research S-23); app giữ số liên hệ nhận được gần nhất để hiện khi mất kết nối.
+- Gói, bảng, SPI mới ở trên; không đổi bảng khác. Điểm báo lại 10 bên dưới.
 
 ## Technical Context
 
@@ -185,6 +194,7 @@ Plan này bổ sung các điểm dưới đây vào hợp đồng của feature 
 4. **006, 007**: chú thích "ghi nhật ký xem" của `ThuocCongNguoiThanApi`, `SucKhoeCongNguoiThanApi` sửa thành "012 ghi nhật ký lượt xem".
 5. **009, 010, 011**: cài `NguoiThanNhanThongBaoPort`, `LuotOLaiAnPort`, phát `SuKienTinhPhiNguon(DEM_O_LAI)` và `LuotOLaiDaDoi` đúng chữ ký đã khai báo. Không đổi.
 6. **013, 014, 016, 017, 018** (làm plan sau): dùng `m10.api.QuyenNguoiThanApi` để phục vụ phần cổng của mình; **014** cài `HoatDongBanTinPort` và giữ bản ghi "đồng ý về muộn" (FR-046d) ở REST của 014 với người đại diện kiểm qua `QuyenNguoiThanApi.laNguoiDaiDien`.
+7. *(Bổ sung 2026-10-18)* **002**: `TaiKhoanApi.theoNguoiCaoTuoi`, phạm vi `BAN_THAN`. **007**: REST `/sos` cho app. **011**: hàm đọc mới `SuatAnDuKienApi.cuaNguoiCaoTuoi(nctId, tu, den)` ở `m08.api` (011 FR-063). **013** cài `DoGuiKenhNctPort` (013 FR-030a), **014** cài `HoatDongKenhNctPort` (014 FR-068a), cả hai khai báo ở `m10.api`. **009**: nhóm `NguoiCaoTuoi`. **001**, **014**: sự kiện `YKienDaGhiTuPhanHoi` (001 module-interfaces 1.8b) để gắn mục sở thích, thói quen vào phản hồi Mong muốn (FR-058b).
 
 ## Điểm cần báo lại về tài liệu nguồn
 
@@ -207,3 +217,6 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 8. **(2026-10-18) Nhận ra "cùng một người" giữa mong muốn và quyền.** FR-020a cho ghi mong muốn về người ngoài (họ tên, số giấy tờ). Plan coi yêu cầu trái mong muốn khi người được cấp quyền có quan hệ trùng `quan_he_id` hoặc hồ sơ người thân có số giấy tờ trùng số giấy tờ của mong muốn; không so họ tên. Đề nghị xác nhận. *(Đã xử lý 2026-10-18: giữ theo plan, chủ dự án ủy quyền chốt)*
 
 9. **(2026-10-18) FR-020c dựa vào quyết định của Tòa án đã ghi ở 001.** 001 chỉ lưu quyết định của Tòa án trên bản đồng ý (FR-011). Plan nhận người đại diện theo pháp luật qua bản đồng ý Hiệu lực có người ký `DAI_DIEN_PHAP_LUAT`; có quyết định mà chưa ghi bản đồng ý thì hệ thống không biết. Liên quan plan 001 điểm báo lại 10. *(Đã xử lý 2026-10-18: giữ theo plan; người đại diện ngoài gia đình theo Q-359)*
+
+10. **(2026-10-18) Màn kênh người cao tuổi là màn mới của app chung.** DESIGN.md mục 15 chưa có màn cho người cao tuổi (chữ lớn, một việc mỗi màn, nút SOS ở màn đầu). Không phải điểm nghiệp vụ; đề nghị bổ sung mục 15 trước khi dựng màn mẫu.
+

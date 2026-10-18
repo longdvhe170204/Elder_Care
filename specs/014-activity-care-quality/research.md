@@ -188,3 +188,16 @@ Nhiệm vụ trưởng đoàn, người đi cùng chỉ mở các lệnh của c
   - đồng hồ giả lập cho CFG-M04-06, 07, 10, 11, 13, CFG-M09-04, nửa đêm;
   - bản giả `LichXeApi`/`LichXeLenhApi` (019), 006 `MangThuocChuyenDiApi`, 007 `SuCoLenhApi`.
 - Tên test theo BR/FR (`BR_M04_17_ThieuNguoiIT`, `BR_M04_23_KiemTraChatLuongIT`).
+
+---
+
+## L-16. Kênh người cao tuổi, nút SOS, sở thích từ phản hồi *(bổ sung 2026-10-18; FR-068a, FR-071; Q-366, Q-369)*
+
+**Quyết định**:
+- `HoatDongKenhNctPortImpl.sapToi`: buổi Đã lên lịch trong khoảng của tầng có giường của người cao tuổi và buổi toàn viện; `coTen` khi có đăng ký còn hiệu lực; DTO không có kết quả đánh giá, lý do.
+- `ChuyenDiSosPortImpl.dangDienRa`: chuyến có người cao tuổi ở trạng thái Đã rời viện; trưởng đoàn hiện tại (sau chuyển trưởng đoàn), người đi cùng.
+- Nhắc buổi trong ngày: khóa `(dang_ky_id, NHAC_NCT)`; chỉ khi người cao tuổi có tài khoản (`TaiKhoanApi.theoNguoiCaoTuoi`).
+- `so_thich.phan_hoi_id`: nhận ở lệnh ghi sở thích; phát `YKienDaGhiTuPhanHoi` cùng transaction.
+
+**Lý do**: SPI khai báo ở module dùng (`m10.api`, `m05.api`) như các SPI 014 đang cài, không tạo vòng.
+

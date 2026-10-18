@@ -110,3 +110,12 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | SC-010 | Q34 → Q36 |
 | SC-011 | Q11, Q12 |
 | SC-012 | Q42, Q43 |
+
+## 6. Kịch bản bổ sung 2026-10-18, lượt 3 (Q-366)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| G1 | A có 3 đồ, 1 đã trả; 012 gọi `DoGuiKenhNctPort.dangGiu(A)`; A mở ảnh một đồ của mình, rồi ảnh đồ của B | 2 đồ, tên, trạng thái, ảnh; ảnh của A mở được, của B 403 | US6 #5, FR-030a |
+
+Test: `FR_030a_DoGuiKenhNguoiCaoTuoiIT`.
+

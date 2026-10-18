@@ -85,6 +85,8 @@ Mã nghiệp vụ giữ nguyên, không dịch: BR-, FR-, CFG-, DBR-, Q-, UC-, A
 | tài khoản | account |
 | vai trò, quyền, phạm vi | role, permission, scope |
 | phiên đăng nhập, thiết bị | session, device |
+| tài khoản người cao tuổi, thiết bị gắn | resident account, bound device |
+| mã QR đăng nhập | login QR code |
 | đăng nhập, đăng xuất, đổi mật khẩu | login, logout, change password |
 | khóa tạm, mở khóa sớm | temporary lock, early unlock |
 | hồ sơ nhân viên, giấy phép | staff profile, license |
@@ -96,10 +98,13 @@ Mã nghiệp vụ giữ nguyên, không dịch: BR-, FR-, CFG-, DBR-, Q-, UC-, A
 | công việc chăm sóc | care task |
 | thuốc, đơn thuốc, liều | medication, prescription, dose |
 | chỉ số, cảnh báo, sự cố | vital sign, alert, incident |
+| nút SOS, cảnh báo SOS | SOS button, SOS alert |
 | thông báo | notification |
 | chi phí phát sinh | incurred cost |
 | dinh dưỡng, thực đơn, suất ăn | nutrition, menu, meal portion |
 | cổng người thân | family portal |
+| kênh người cao tuổi | resident channel |
+| phản hồi; loại Góp ý, Hỏi đáp, Khiếu nại, Mong muốn; ghi thay | feedback; suggestion, question, complaint, wish; recorded on behalf |
 | đồ dùng cá nhân | personal belongings |
 | hoạt động | activity |
 | đổi ca | shift swap |

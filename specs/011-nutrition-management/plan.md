@@ -33,6 +33,10 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 - **Đối tượng thông tin** (FR-065, 009 FR-001a): thông báo "Đồ ăn gia đình Không sử dụng" tới người gửi khai `doiTuongThongTin = VE_VIEC_NGUOI_THAN`; lý do có nội dung sức khỏe đặt ở phần `SUC_KHOE`; các thông báo khác chỉ tới nhân viên; không yêu cầu nào mang mã Q-354 (research M-13).
 
+### Cập nhật 2026-10-18, lượt 3 (spec mục "Cập nhật 2026-10-18, lượt 3": Q-366)
+
+- **Suất ăn dự kiến cho kênh người cao tuổi** (FR-063 dòng "Người cao tuổi"): hàm đọc mới `m08.api.SuatAnDuKienApi.cuaNguoiCaoTuoi(nctId, tu, den)` cho 012: món dự kiến theo ngày, bữa từ thực đơn đã Công bố hoặc Đã áp dụng và chế độ ăn hiện hành của người cao tuổi, kèm món thay thế; chỉ trả tên món (research M-16). Không thêm bảng.
+
 ## Technical Context
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).

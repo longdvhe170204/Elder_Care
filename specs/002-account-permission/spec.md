@@ -108,11 +108,20 @@ Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi 
 - **Q-337**: vai trò Điều dưỡng có quyền T với yêu cầu mua sắm loại "thuốc" (Phụ lục 27 ⁴⁴) và ghi lần tiếp nhận thuốc cung ứng; ghi đã mua vẫn chỉ do Phụ trách bộ phận (FR-019f).
 - Edge Cases: bỏ cụm "nhóm chứa người đó" còn sót sau Q-92.
 
+### Cập nhật 2026-10-18, lượt 3 (đồng bộ Q-365 → Q-371, người cao tuổi tự dùng hệ thống)
+
+Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định. Thay đổi ở spec này:
+
+- **Q-365**: thêm loại tài khoản người cao tuổi (FR-001), chỉ tạo khi chính người cao tuổi yêu cầu hoặc đồng ý (FR-067); quyền hiệu lực theo cột NCT (FR-068).
+- **Q-370**: đăng nhập bằng mã QR dùng một lần (FR-069, CFG-M15-11), gắn tối đa một thiết bị (FR-070), nút SOS dùng thiết bị đã gắn (FR-071); phiên không tự hết, không chuyển Không hoạt động (FR-010, FR-013a, FR-014a); tùy chọn vân tay, khuôn mặt (FR-074).
+- **Q-368, Q-371**: khóa ngay khi kết thúc lưu trú; người thân đề nghị khóa đi theo yêu cầu phê duyệt chung (FR-072); kích hoạt lại khi chính người cao tuổi yêu cầu (FR-073); người thân không xem việc dùng tài khoản (FR-075).
+- Thêm User Story 8, SC-013, mục H, các dòng ở bảng trạng thái tài khoản; FR-016, thực thể Vai trò, SC-001 thành 10 vai trò (AC-16).
+
 ## Phạm vi
 
 **Trong phạm vi**:
 
-1. Tài khoản nhân viên và tài khoản người thân: tạo, liên kết, trạng thái, khóa/mở khóa (mục 19.1, UC-68).
+1. Tài khoản nhân viên, tài khoản người thân và tài khoản người cao tuổi: tạo, liên kết, trạng thái, khóa/mở khóa (mục 19.1, UC-68, UC-97); với tài khoản người cao tuổi, thêm gắn thiết bị và đăng nhập bằng mã QR (BR-M15-23, 24, Q-365, Q-370).
 2. Đăng nhập và bảo vệ tài khoản (UC-70, BR-M15-05).
 3. Vai trò hệ thống (bảng 2.3) và quyền theo loại thao tác (mục 19.2), giới hạn bởi Permission Matrix 4.4 và mục 19.3.
 4. Phạm vi dữ liệu theo khu vực, tầng, phòng, người cao tuổi (Q-92), suy ra từ phân công (BR-M15-02).
@@ -297,7 +306,32 @@ Quản lý viện xem được quyền của từng vai trò (theo Permission Ma
 
 ---
 
+### User Story 8 - Cấp tài khoản và đăng nhập cho người cao tuổi (Priority: P2) *(bổ sung 2026-10-18, Q-365, Q-370)*
+
+Người cao tuổi muốn tự dùng ứng dụng thì Hành chính tạo tài khoản theo lời chính người cao tuổi. Người cao tuổi đăng nhập một lần bằng mã QR, máy được gắn với tài khoản, sau đó không phải đăng nhập lại; nút SOS luôn dùng được trên máy đó.
+
+**Why this priority**: Là cửa vào của kênh người cao tuổi (feature 012) và điều kiện để nút SOS (feature 007) luôn gửi được; không chặn nghiệp vụ của nhân viên.
+
+**Independent Test**: Với người cao tuổi A Đang lưu trú, Hành chính H, Điều dưỡng D phụ trách A, người thân R của A và Quản lý viện Q, dùng đồng hồ giả lập để tạo tài khoản, đăng nhập bằng mã QR, để 200 ngày trôi qua, đổi máy và khóa tài khoản.
+
+**Acceptance Scenarios**:
+
+1. **Given** A nói trực tiếp với H rằng muốn dùng ứng dụng, **When** H tạo tài khoản người cao tuổi cho A và ghi "A yêu cầu trực tiếp với H", **Then** tài khoản ở Hoạt động, liên kết A; nhật ký ghi người yêu cầu (FR-067). **When** R đề nghị H tạo tài khoản cho A mà A chưa đồng ý, **Then** lệnh bị từ chối.
+2. **Given** D tạo mã QR cho A lúc 09:00, **When** A quét lúc 09:03 trên máy M1, **Then** A đăng nhập và M1 được gắn (FR-069, FR-070); **When** quét lại cùng mã, hoặc quét một mã khác lúc 09:06 sau khi tạo lúc 09:00 (quá CFG-M15-11 \[5 phút\]), **Then** bị từ chối.
+3. **Given** A đăng nhập trên M1 ngày 01/11 và không thao tác tới ngày 20/05 năm sau (200 ngày), **When** A mở ứng dụng, **Then** phiên vẫn còn; tài khoản vẫn Hoạt động, không chuyển Không hoạt động (FR-010, FR-013a).
+4. **Given** A đang dùng M1, **When** A quét mã QR mới trên máy M2, **Then** M2 được gắn, M1 bị gỡ, phiên trên M1 kết thúc (FR-070).
+5. **Given** M2 đang gắn với tài khoản của A, **When** D đăng nhập tài khoản của mình trên M2, **Then** bị từ chối (FR-014a).
+6. **Given** tài khoản của A Hoạt động, **When** A chuyển Kết thúc lưu trú, **Then** tài khoản chuyển Đã khóa ngay, phiên trên M2 kết thúc, M2 bị gỡ; **When** H cố mở khóa, **Then** bị từ chối (FR-072, FR-073).
+7. **Given** R đề nghị khóa tài khoản của A vì "mẹ hay bấm nhầm", **When** H lập yêu cầu khóa tài khoản người cao tuổi ghi R và lý do, **Then** tài khoản vẫn Hoạt động cho tới khi Q duyệt; **When** Q duyệt, **Then** tài khoản chuyển Đã khóa. **When** R cố tự khóa trên cổng, **Then** không có thao tác này (FR-072).
+8. **Given** tài khoản của A Đã khóa vì A tự yêu cầu, **When** A yêu cầu dùng lại, **Then** H mở khóa được và A đăng nhập lại bằng mã QR (FR-073).
+9. **Given** R có quan hệ Hiệu lực với A, **When** R mở cổng người thân, **Then** R không thấy nhật ký đăng nhập, thiết bị hay việc sử dụng tài khoản của A (FR-075).
+
+---
+
 ### Edge Cases
+
+- **(Bổ sung 2026-10-18)** Người cao tuổi Tạm vắng, Điều trị tại bệnh viện hoặc Hoạt động bên ngoài: tài khoản giữ Hoạt động; xem thông tin vẫn được, việc gửi SOS theo feature 007 FR-047d.
+- **(Bổ sung 2026-10-18)** Người cao tuổi báo mất máy: Hành chính gỡ thiết bị (FR-070); cho tới khi gỡ, người nhặt được máy xem được thông tin trên kênh người cao tuổi (không có thông tin sức khỏe, chi phí, feature 012 FR-084) và bấm được SOS; rủi ro này đã chấp nhận ở Q-370.
 
 - Nhân viên có nhiều vai trò (ví dụ Trưởng tầng kiêm Điều dưỡng): quyền của vai trò là hợp quyền các vai trò; phạm vi và điều kiện pháp lý vẫn áp dụng cho từng thao tác (FR-017). Hai vai trò cùng cho một quyền với phạm vi khác nhau (ví dụ Hành chính toàn viện, Điều dưỡng theo phân công) thì áp phạm vi rộng hơn, trừ khi quyền đã bị thu hẹp theo tài khoản (FR-034, FR-025).
 - Nhiệm vụ (Người phụ trách ca, Bác sĩ trực, Điều dưỡng phụ trách, Trưởng đoàn) không phải vai trò: không tạo thêm quyền thao tác, chỉ xác định phạm vi và người nhận nhắc việc/thông báo (mục 2.4, FR-019); ngoại lệ: Người phụ trách ca được xử lý việc quá hạn (FR-019a), tạo bản đính chính (FR-019b) , mở khóa sớm tài khoản nhân viên bị Khóa tạm (FR-019c) và ghi nhận vắng ca (FR-019d, spec 008 Q-80) trong tầng/khu vực và thời gian của ca.
@@ -325,7 +359,7 @@ Quản lý viện xem được quyền của từng vai trò (theo Permission Ma
 
 #### A. Tài khoản
 
-- **FR-001**: Hệ thống MUST quản lý tài khoản với các thông tin: tên đăng nhập duy nhất, loại tài khoản (nhân viên / người thân), liên kết, vai trò, trạng thái, thời điểm đăng nhập gần nhất, số lần đăng nhập sai liên tiếp. *(Nguồn: 19.1, 3.2 TAI_KHOAN)*
+- **FR-001**: Hệ thống MUST quản lý tài khoản với các thông tin: tên đăng nhập duy nhất, loại tài khoản (nhân viên / người thân / người cao tuổi), liên kết, vai trò, trạng thái, thời điểm đăng nhập gần nhất, số lần đăng nhập sai liên tiếp. *(Nguồn: 19.1, 3.2 TAI_KHOAN)*
 - **FR-002**: Tài khoản nhân viên MUST liên kết đúng một hồ sơ nhân viên; mỗi hồ sơ nhân viên MUST có tối đa một tài khoản. Tài khoản người thân MUST liên kết đúng một hồ sơ người thân; mỗi hồ sơ người thân MUST có tối đa một tài khoản. *(Nguồn: 19.1; ERD miền D NHAN_VIEN ||--o| TAI_KHOAN, NGUOI_THAN ||--o| TAI_KHOAN)*
 - **FR-003**: Một tài khoản MUST NOT đồng thời liên kết cả hồ sơ nhân viên và hồ sơ người thân. Tài khoản nhân viên MUST chỉ được gán vai trò trong AC-01 → AC-05, AC-07, AC-09 và AC-14 (Kế toán, Q-212; **sửa 2026-10-06, Q-282, Q-283:** bỏ AC-06, AC-08); tài khoản người thân MUST chỉ có vai trò Người thân (AC-10). *(Nguồn: 2.3, 4.1)*
 - **FR-004**: Chỉ Quản lý viện MUST được tạo tài khoản nhân viên. Khi tạo, tài khoản MUST có ít nhất một vai trò, và hồ sơ nhân viên liên kết MUST không ở trạng thái Nghỉ việc. *(Nguồn: UC-68, Permission Matrix dòng "Tài khoản, phân quyền, tham số")*
@@ -340,20 +374,20 @@ Quản lý viện xem được quyền của từng vai trò (theo Permission Ma
 - **FR-007**: Tài khoản MUST có một trong bốn trạng thái: Hoạt động, Khóa tạm, Không hoạt động, Đã khóa, và chỉ chuyển trạng thái theo bảng dưới đây. Chỉ tài khoản Hoạt động MUST được đăng nhập. *(Nguồn: 19.1, BR-M15-05, BR-M09-04, 5.6)*
 - **FR-008**: Khi đăng nhập sai liên tiếp đủ số lần theo CFG-M15-01 (mặc định \[5 lần\]), tài khoản MUST chuyển Khóa tạm trong thời gian theo CFG-M15-01 (mặc định \[15 phút\]) rồi tự trở về Hoạt động. Đăng nhập đúng MUST đưa bộ đếm sai về 0. CFG-M15-01 là một mã ở Phụ lục 25 với hai thành phần (số lần sai, thời gian khóa); mỗi thành phần đổi được riêng, và mỗi lần đổi ghi như một lần thay đổi của cả tham số (feature 000 FR-022) (CHK047). *(Nguồn: BR-M15-05)*
 - **FR-009**: Khi hồ sơ nhân viên chuyển trạng thái Nghỉ việc, tài khoản liên kết MUST chuyển Đã khóa ngay trong cùng lần thay đổi đó. *(Nguồn: BR-M09-04, 19.1)*
-- **FR-010**: Tài khoản người thân không đăng nhập quá CFG-M15-02 (mặc định \[180 ngày\]) MUST chuyển Không hoạt động. Quy tắc này MUST NOT áp dụng cho tài khoản nhân viên. Với tài khoản chưa từng đăng nhập, khoảng CFG-M15-02 tính từ lúc tạo; sau khi kích hoạt lại hoặc mở khóa, tính từ thời điểm đó nếu chưa có lần đăng nhập nào muộn hơn (CHK015). *(Nguồn: BR-M15-05)*
+- **FR-010**: Tài khoản người thân không đăng nhập quá CFG-M15-02 (mặc định \[180 ngày\]) MUST chuyển Không hoạt động. Quy tắc này MUST NOT áp dụng cho tài khoản nhân viên. Với tài khoản chưa từng đăng nhập, khoảng CFG-M15-02 tính từ lúc tạo; sau khi kích hoạt lại hoặc mở khóa, tính từ thời điểm đó nếu chưa có lần đăng nhập nào muộn hơn (CHK015). **(Bổ sung 2026-10-18, Q-370)** Quy tắc này MUST NOT áp dụng cho tài khoản người cao tuổi (BR-M15-24). *(Nguồn: BR-M15-05)*
 - **FR-011**: Quản lý viện MUST được khóa và mở khóa tài khoản kèm lý do bắt buộc. Mở khóa MUST bị từ chối khi nguyên nhân khóa tự động còn tồn tại (hồ sơ nhân viên vẫn Nghỉ việc; người thân không còn người cao tuổi nào chưa quá CFG-M01-04 sau kết thúc). Điều kiện với tài khoản người thân là một, dùng chung cho "Mở khóa" (lệnh này) và "Kích hoạt lại" (FR-051, bảng trạng thái): người thân còn ít nhất một quan hệ Hiệu lực với người cao tuổi chưa ở trạng thái cuối, hoặc ở trạng thái cuối chưa quá CFG-M01-04 (CHK025). *(Nguồn: 19.1, 1.5)*
 - **FR-012**: Hệ thống MUST luôn có ít nhất một tài khoản Hoạt động có vai trò Quản lý viện; thao tác người dùng làm vi phạm điều này MUST bị từ chối. *(Suy ra từ BR-M15-04: thay đổi phân quyền và tham số chỉ do Quản lý viện thực hiện, nên luôn phải còn người làm được)*
 - **FR-013**: Khi tài khoản rời trạng thái Hoạt động, mọi phiên đăng nhập đang mở của tài khoản MUST bị chấm dứt ngay: không yêu cầu nào của các phiên đó được chấp nhận nếu hệ thống nhận nó sau thời điểm chuyển trạng thái (CHK013). *(Nguồn: 19.1 "phải bị khóa khi nhân viên không còn được phép sử dụng hệ thống")*
-- **FR-013a**: *(Bổ sung, 2026-10-07, Q-309)* Phiên đăng nhập không có thao tác nào quá CFG-M15-10 của kênh đó (mặc định \[web 30 phút / ứng dụng nhân viên 12 giờ / ứng dụng người thân 30 ngày\]) MUST tự kết thúc; mỗi thao tác của người dùng trong phiên MUST đếm lại khoảng này từ đầu. Tự đăng xuất MUST NOT đổi trạng thái tài khoản; người dùng đăng nhập lại để dùng tiếp. Dữ liệu đã lưu MUST giữ nguyên; bản ghi ngoại tuyến chưa đồng bộ trên ứng dụng nhân viên MUST được giữ trên thiết bị và đồng bộ sau khi đăng nhập lại theo FR-041a. *(Nguồn: 19.1, BR-M15-21)*
+- **FR-013a**: *(Bổ sung, 2026-10-07, Q-309)* Phiên đăng nhập không có thao tác nào quá CFG-M15-10 của kênh đó (mặc định \[web 30 phút / ứng dụng nhân viên 12 giờ / ứng dụng người thân 30 ngày\]) MUST tự kết thúc; mỗi thao tác của người dùng trong phiên MUST đếm lại khoảng này từ đầu. Tự đăng xuất MUST NOT đổi trạng thái tài khoản; người dùng đăng nhập lại để dùng tiếp. Dữ liệu đã lưu MUST giữ nguyên; bản ghi ngoại tuyến chưa đồng bộ trên ứng dụng nhân viên MUST được giữ trên thiết bị và đồng bộ sau khi đăng nhập lại theo FR-041a. *(Nguồn: 19.1, BR-M15-21)* **(Bổ sung 2026-10-18, Q-370)** Phiên trên thiết bị đã gắn với tài khoản người cao tuổi MUST NOT tự kết thúc theo thời gian; chỉ kết thúc theo FR-070.
 - **FR-014**: Thông báo từ chối đăng nhập MUST NOT tiết lộ tên đăng nhập có tồn tại hay không; MUST cho biết tài khoản đang bị khóa tạm hoặc cần liên hệ viện khi đăng nhập đúng nhưng tài khoản không ở Hoạt động. *(Suy ra từ NFR-08 và mục tiêu chống dò mật khẩu của BR-M15-05)*
-- **FR-014a** *(bổ sung, CHK040)*: Trên một thiết bị, tại một thời điểm MUST chỉ có một phiên đăng nhập; khi một tài khoản khác đăng nhập trên thiết bị đó, phiên của tài khoản trước MUST kết thúc. Mọi bản ghi MUST mang người thực hiện là tài khoản của phiên gửi nó. *(Suy ra từ mục 1.3 "mọi thông tin gắn với người thực hiện", NFR-10 thiết bị dùng chung tại tầng)*
+- **FR-014a** *(bổ sung, CHK040)*: Trên một thiết bị, tại một thời điểm MUST chỉ có một phiên đăng nhập; khi một tài khoản khác đăng nhập trên thiết bị đó, phiên của tài khoản trước MUST kết thúc. Mọi bản ghi MUST mang người thực hiện là tài khoản của phiên gửi nó. *(Suy ra từ mục 1.3 "mọi thông tin gắn với người thực hiện", NFR-10 thiết bị dùng chung tại tầng)* **(Bổ sung 2026-10-18, Q-370)** Ngoại lệ: thiết bị đã gắn với một tài khoản người cao tuổi MUST NOT đăng nhập được tài khoản khác cho tới khi được gỡ (FR-070).
 - **FR-015**: Mỗi lần chuyển trạng thái tài khoản và mỗi lần đăng nhập (thành công hay thất bại) MUST được ghi nhật ký với thời điểm và kết quả; thay đổi do hệ thống thực hiện ghi người thực hiện là Bộ lập lịch hệ thống kèm căn cứ. *(Nguồn: 19.4, FR-045 của 000)*
 
 **Bảng trạng thái tài khoản**:
 
 | Trạng thái hiện tại | Lệnh / sự kiện | Trạng thái kế tiếp | Ai thực hiện | Điều kiện | Tác động |
 | --- | --- | --- | --- | --- | --- |
-| (chưa có) | Tạo tài khoản | Hoạt động | Quản lý viện (nhân viên); Nhân viên hành chính hoặc Quản lý viện (người thân) | FR-002 → FR-004; FR-050 với người thân | Buộc đổi mật khẩu lần đầu; ghi nhật ký |
+| (chưa có) | Tạo tài khoản | Hoạt động | Quản lý viện (nhân viên); Nhân viên hành chính hoặc Quản lý viện (người thân, người cao tuổi) | FR-002 → FR-004; FR-050 với người thân; FR-067 với người cao tuổi | Buộc đổi mật khẩu lần đầu; ghi nhật ký |
 | Hoạt động | Đăng nhập sai đủ ngưỡng | Khóa tạm | Hệ thống | Sai liên tiếp đủ CFG-M15-01 | Từ chối mọi đăng nhập trong thời gian khóa |
 | Khóa tạm | Hết thời gian khóa | Hoạt động | Hệ thống | Đủ thời gian theo CFG-M15-01 | Bộ đếm sai về 0 |
 | Khóa tạm | Mở khóa sớm | Hoạt động | Quản lý viện; hoặc Trưởng tầng / Người phụ trách ca với tài khoản nhân viên cùng tầng/khu vực và cùng ca (FR-019c) | Có lý do; với Trưởng tầng / Người phụ trách ca: đã xác minh trực tiếp | Bộ đếm sai về 0; ghi nhật ký |
@@ -362,13 +396,16 @@ Quản lý viện xem được quyền của từng vai trò (theo Permission Ma
 | Hoạt động / Khóa tạm / Không hoạt động | Khóa tài khoản | Đã khóa | Quản lý viện | Có lý do; FR-012; người đang là Phụ trách bộ phận thì chỉ định người thay trong cùng lệnh (feature 008 FR-001a, Q-292) | Chấm dứt phiên |
 | Hoạt động / Khóa tạm / Không hoạt động | Nhân viên Nghỉ việc | Đã khóa | Hệ thống | Hồ sơ nhân viên chuyển Nghỉ việc (BR-M09-04) | Chấm dứt phiên ngay |
 | Hoạt động / Khóa tạm / Không hoạt động | Hết hạn sau kết thúc lưu trú | Đã khóa | Bộ lập lịch | Tài khoản người thân; mọi người cao tuổi có quan hệ đã ở trạng thái cuối quá CFG-M01-04 (5.6) | Chấm dứt phiên |
+| Hoạt động / Khóa tạm | Người cao tuổi kết thúc lưu trú hoặc qua đời | Đã khóa | Hệ thống | Tài khoản người cao tuổi; nhận sự kiện từ feature 004 (BR-M15-23) | Chấm dứt phiên ngay; gỡ thiết bị |
+| Hoạt động / Khóa tạm | Khóa tài khoản người cao tuổi | Đã khóa | Nhân viên hành chính hoặc Quản lý viện; khi người thân đề nghị: Quản lý viện duyệt yêu cầu (FR-072) | Người cao tuổi tự yêu cầu, hoặc có lý do | Chấm dứt phiên ngay; nút SOS ngừng trên thiết bị đã gắn |
+| Đã khóa | Mở khóa tài khoản người cao tuổi | Hoạt động | Nhân viên hành chính hoặc Quản lý viện | Chính người cao tuổi yêu cầu; không khóa do kết thúc lưu trú (FR-073) | Đăng nhập lại bằng mã QR (FR-069) |
 | Đã khóa | Mở khóa | Hoạt động | Quản lý viện | Có lý do; nguyên nhân khóa tự động không còn (FR-011) | Buộc đổi mật khẩu; ghi nhật ký |
 
 Không có trạng thái kết thúc: tài khoản Đã khóa được giữ vĩnh viễn để lịch sử tham chiếu (FR-005).
 
 #### C. Vai trò và quyền theo thao tác
 
-- **FR-016**: **(Sửa 2026-10-06, Q-282, Q-283)** Hệ thống MUST có đúng 9 vai trò hệ thống theo bảng 2.3: AC-01 → AC-05, AC-07, AC-09, AC-10 và AC-14 Kế toán (Q-212). AC-06 Dinh dưỡng viên và AC-08 Nhân viên vệ sinh đã bỏ. Vai trò MUST NOT được tạo mới hay xóa qua thao tác người dùng. *(Nguồn: 2.3, 2.4, 4.1; constitution VI)*
+- **FR-016**: **(Sửa 2026-10-06, Q-282, Q-283)** Hệ thống MUST có đúng 10 vai trò hệ thống theo bảng 2.3: AC-01 → AC-05, AC-07, AC-09, AC-10, AC-14 Kế toán (Q-212) và AC-16 Người cao tuổi (**bổ sung 2026-10-18, Q-365**). AC-06 Dinh dưỡng viên và AC-08 Nhân viên vệ sinh đã bỏ. Vai trò MUST NOT được tạo mới hay xóa qua thao tác người dùng. *(Nguồn: 2.3, 2.4, 4.1; constitution VI)*
 - **FR-017**: Một tài khoản nhân viên MAY có nhiều vai trò; quyền của vai trò cho tài khoản đó MUST là hợp các quyền của những vai trò được gán. *(Nguồn: ERD miền D TAI_KHOAN }o--|{ VAI_TRO)*
 - **FR-018**: Quyền tối đa của mỗi vai trò MUST khớp Permission Matrix 4.4; khi 4.4 khác mục 19.3, mục 19.3 là căn cứ. *(Nguồn: 4.4, 19.3)*
 - **FR-019**: Nhiệm vụ (Người phụ trách ca, Bác sĩ trực, Điều dưỡng phụ trách, Trưởng đoàn, Người đi cùng, Người nhận tại tầng — mục 2.4) MUST NOT tạo thêm vai trò hay quyền thao tác; nhiệm vụ chỉ góp vào phạm vi dữ liệu (mục D) và xác định người nhận nhắc việc/thông báo theo quy tắc của module sở hữu. Ngoại lệ chỉ gồm FR-019a, FR-019b, FR-019c, FR-019d, FR-019e, FR-019f và FR-019g. *(Nguồn: 2.4; spec 008 Q-80; Q-254; Q-284; Q-313)*
@@ -460,12 +497,26 @@ Ký hiệu "T" của Nhân viên hành chính ở dòng "Chốt kỳ, xuất k�
 - **FR-051**: Nhân viên hành chính và Quản lý viện MUST được tạo, kích hoạt lại và cấp lại mật khẩu cho tài khoản người thân, không cần yêu cầu phê duyệt; tài khoản tạo ra MUST chỉ có vai trò Người thân. Nhân viên hành chính MUST NOT tạo hay thay đổi tài khoản nhân viên, gán vai trò khác, hay thay đổi quyền (FR-026). Khóa và mở khóa tài khoản Đã khóa vẫn do Quản lý viện (FR-011). Nhân viên hành chính MUST NOT mở khóa sớm tài khoản người thân đang Khóa tạm; việc này chỉ Quản lý viện làm, hoặc người thân chờ hết thời gian khóa (CHK008). Mỗi thao tác MUST có lý do (trừ tạo mới) và được ghi nhật ký. *(Nguồn: UC-55, NFR-01; Clarification 2026-09-25, đề xuất Q-16)*
 - **FR-052**: Trước khi tạo, cấp lại mật khẩu hoặc kích hoạt lại tài khoản người thân, người thực hiện MUST xác minh danh tính bằng một trong hai cách: (a) người thân có mặt tại viện, đối chiếu giấy tờ tùy thân với hồ sơ người thân; (b) gọi lại số điện thoại đã đăng ký trong hồ sơ người thân (không dùng số do người yêu cầu cung cấp lúc yêu cầu). Cách xác minh MUST được ghi vào nhật ký của thao tác; thao tác không có cách xác minh MUST bị từ chối. Mật khẩu tạm MUST chỉ giao trực tiếp cho người đã được xác minh. Giai đoạn đầu MUST NOT có chức năng người thân tự đặt lại mật khẩu; bổ sung sau khi chốt Q-06 (nhà cung cấp SMS). *(Nguồn: 5.1, 14.1, Q-06; Clarification 2026-09-25)*
 
-**Truy vết use case** *(constitution I; bổ sung 2026-10-01, CHK045)*: mục A (FR-001 → FR-006) — UC-68; mục B (FR-007 → FR-015) — UC-68, UC-70; mục C (FR-016 → FR-027) — UC-68; mục G (FR-045 → FR-052) — UC-68, và UC-55 của feature 012 cho hồ sơ và quyền của người thân. Mục D, E, F (FR-028 → FR-044a) không có UC riêng: chúng là ràng buộc của BR-M15-01, BR-M15-02, BR-M06-05 áp lên use case của mọi module.
+#### H. Tài khoản người cao tuổi *(bổ sung 2026-10-18, Q-365, Q-368, Q-370, Q-371)*
+
+- **FR-067**: Nhân viên hành chính và Quản lý viện MUST tạo được tài khoản người cao tuổi cho người cao tuổi Đang lưu trú (nội trú, bán trú) chưa có tài khoản, khi chính người cao tuổi yêu cầu hoặc đồng ý; lệnh MUST ghi người cao tuổi đã yêu cầu hay đồng ý trực tiếp với ai. Mỗi người cao tuổi MUST có tối đa một tài khoản. Lệnh có ghi chú là theo yêu cầu của người thân, không có xác nhận của người cao tuổi, MUST bị từ chối. Không cần nhận định năng lực (tầng (3) BR-M01-15). *(Nguồn: 19.1, Q-365)*
+- **FR-068**: Với tài khoản người cao tuổi, ba lớp của BR-M15-01 MUST được hiểu là: (1) vai trò — quyền tối đa của cột "NCT" trong Permission Matrix 4.4; (2) phạm vi — chỉ người cao tuổi liên kết với tài khoản; (3) điều kiện pháp lý — không áp dụng. Tài khoản chỉ dùng được trên ứng dụng di động. *(Nguồn: 19.3, Phụ lục 27)*
+- **FR-069**: Nhân viên hành chính, Quản lý viện và Điều dưỡng có phạm vi với người cao tuổi MUST tạo được mã QR đăng nhập dùng một lần cho tài khoản đó, hết hạn sau CFG-M15-11 (mặc định \[5 phút\]); tạo mã mới làm mã cũ chưa dùng hết hiệu lực. Quét mã còn hiệu lực trên thiết bị MUST đăng nhập và gắn thiết bị đó (FR-070); mã đã dùng hoặc hết hạn MUST bị từ chối. Mỗi lần tạo và dùng mã MUST ghi nhật ký. Mật khẩu (CFG-M15-09) vẫn dùng được để dự phòng. *(Nguồn: 19.1, Q-370)*
+- **FR-070**: Mỗi tài khoản người cao tuổi MUST gắn tối đa một thiết bị; gắn thiết bị mới thì thiết bị cũ bị gỡ và phiên trên đó kết thúc. Phiên trên thiết bị đã gắn chỉ kết thúc khi tài khoản rời Hoạt động hoặc Khóa tạm, đổi mật khẩu, gỡ thiết bị hoặc người cao tuổi tự đăng xuất. Nhân viên hành chính và Quản lý viện MUST gỡ được thiết bị kèm lý do (ví dụ người cao tuổi báo mất máy). *(Nguồn: BR-M15-24)*
+- **FR-071**: Spec MUST cung cấp cho feature 007 phép xác định người cao tuổi từ thiết bị đã gắn, không cần phiên đăng nhập, để nhận lệnh nút SOS (feature 007 FR-047d); thiết bị đã gỡ hoặc tài khoản Đã khóa thì không xác định được. *(Nguồn: BR-M05-27, BR-M15-24)*
+- **FR-072**: Tài khoản người cao tuổi MUST chuyển Đã khóa khi: (a) người cao tuổi chuyển Kết thúc lưu trú hoặc Qua đời, ngay, không chờ CFG-M01-04; (b) chính người cao tuổi yêu cầu, Nhân viên hành chính ghi; (c) Nhân viên hành chính hoặc Quản lý viện khóa kèm lý do. Người thân đề nghị khóa thì Nhân viên hành chính lập yêu cầu loại "khóa tài khoản người cao tuổi" theo vòng đời yêu cầu phê duyệt chung (feature 000 FR-031), ghi người thân đề nghị và lý do; tài khoản chỉ khóa khi Quản lý viện duyệt. Người thân MUST NOT tự khóa được. *(Nguồn: BR-M15-23, Q-368, Q-371)*
+- **FR-073**: Tài khoản người cao tuổi Đã khóa theo (b), (c) của FR-072 MUST được Nhân viên hành chính hoặc Quản lý viện mở khóa khi chính người cao tuổi yêu cầu; khóa theo (a) MUST NOT mở được. *(Nguồn: BR-M15-23)*
+- **FR-074**: Người cao tuổi MAY bật mở khóa bằng vân tay hoặc khuôn mặt của thiết bị cho các màn xem; nút SOS MUST NOT cần mở khóa. Hệ thống MUST NOT dùng mã PIN cho tài khoản người cao tuổi. *(Nguồn: 19.1, Q-370)*
+- **FR-075**: Người thân MUST NOT xem được nhật ký đăng nhập, thiết bị và việc sử dụng của tài khoản người cao tuổi. *(Nguồn: BR-M15-23)*
+
+**Truy vết use case** *(constitution I; bổ sung 2026-10-01, CHK045)*: mục A (FR-001 → FR-006) — UC-68; mục B (FR-007 → FR-015) — UC-68, UC-70; mục C (FR-016 → FR-027) — UC-68; mục G (FR-045 → FR-052) — UC-68, mục H (FR-067 → FR-075) — UC-97, UC-70, và UC-55 của feature 012 cho hồ sơ và quyền của người thân. Mục D, E, F (FR-028 → FR-044a) không có UC riêng: chúng là ràng buộc của BR-M15-01, BR-M15-02, BR-M06-05 áp lên use case của mọi module.
 
 ### Key Entities *(include if feature involves data)*
 
-- **Tài khoản (TAI_KHOAN)** – nhóm 1 theo 3.2, có trạng thái theo bảng ở mục B: tên đăng nhập, loại (nhân viên / người thân), liên kết đúng một hồ sơ nhân viên hoặc một hồ sơ người thân, trạng thái, thời điểm đăng nhập gần nhất, số lần đăng nhập sai liên tiếp, cờ buộc đổi mật khẩu. Không xóa. Không có thao tác "Sửa" trực tiếp trên tài khoản: tên đăng nhập, loại và liên kết không đổi sau khi tạo; vai trò đổi bằng gán, gỡ (FR-026); trạng thái đổi bằng lệnh ở bảng mục B; mật khẩu đổi bằng cấp lại hoặc người dùng tự đổi (CHK024).
-- **Vai trò (VAI_TRO)** – nhóm 1, cố định 9 vai trò theo bảng 2.3 (**sửa 2026-10-06, Q-282, Q-283**); mỗi vai trò có tập quyền tối đa theo Permission Matrix 4.4.
+- **Tài khoản (TAI_KHOAN)** – nhóm 1 theo 3.2, có trạng thái theo bảng ở mục B: tên đăng nhập, loại (nhân viên / người thân / người cao tuổi), liên kết đúng một hồ sơ nhân viên, một hồ sơ người thân hoặc một hồ sơ người cao tuổi, trạng thái, thời điểm đăng nhập gần nhất, số lần đăng nhập sai liên tiếp, cờ buộc đổi mật khẩu. Không xóa. Không có thao tác "Sửa" trực tiếp trên tài khoản: tên đăng nhập, loại và liên kết không đổi sau khi tạo; vai trò đổi bằng gán, gỡ (FR-026); trạng thái đổi bằng lệnh ở bảng mục B; mật khẩu đổi bằng cấp lại hoặc người dùng tự đổi (CHK024).
+- **Thiết bị gắn** *(bổ sung 2026-10-18, Q-370)* – nhóm 2: tài khoản người cao tuổi, mã thiết bị, thời điểm gắn, người tạo mã QR đã dùng, thời điểm gỡ, người gỡ, lý do; tối đa một thiết bị đang gắn cho mỗi tài khoản.
+- **Mã QR đăng nhập** *(bổ sung 2026-10-18, Q-370)* – nhóm 2: tài khoản người cao tuổi, người tạo, thời điểm tạo, hạn (CFG-M15-11), thời điểm dùng, thiết bị dùng.
+- **Vai trò (VAI_TRO)** – nhóm 1, cố định 10 vai trò theo bảng 2.3 (**sửa 2026-10-06, Q-282, Q-283; thêm AC-16 2026-10-18, Q-365**); mỗi vai trò có tập quyền tối đa theo Permission Matrix 4.4.
 - **Quyền**: cặp (chức năng nghiệp vụ, loại thao tác) kèm phạm vi mặc định (toàn viện hoặc theo phân công); gắn với vai trò, hoặc với tài khoản khi được gán thêm (FR-024, FR-025).
 - **Gán vai trò**: tài khoản, vai trò, người gán, thời điểm, lý do; lịch sử gán/gỡ được giữ.
 - **Phạm vi dữ liệu** (khái niệm, không lưu tay): suy ra từ Phân công (PHAN_CONG, feature 008) và phân bổ giường (PHAN_BO_GIUONG, feature 003) tại thời điểm kiểm tra.
@@ -477,7 +528,7 @@ Ký hiệu "T" của Nhân viên hành chính ở dòng "Chốt kỳ, xuất k�
 
 ### Measurable Outcomes
 
-- **SC-001**: Trong bộ kiểm thử gồm mọi ô của Permission Matrix 4.4 (9 vai trò × mọi chức năng; **sửa 2026-10-06**), 100% kết quả cho/từ chối khớp ma trận và mục 19.3, cho cả người cao tuổi trong và ngoài phạm vi. Mỗi ô có chú thích điều kiện (bản đồng ý, người đại diện, giấy phép…) được kiểm ở cả hai nhánh: điều kiện thỏa và không thỏa; ô bị mục 19.3 thu hẹp được kiểm theo 19.3 (CHK026).
+- **SC-001**: Trong bộ kiểm thử gồm mọi ô của Permission Matrix 4.4 (10 vai trò × mọi chức năng; **sửa 2026-10-06, 2026-10-18**), 100% kết quả cho/từ chối khớp ma trận và mục 19.3, cho cả người cao tuổi trong và ngoài phạm vi. Mỗi ô có chú thích điều kiện (bản đồng ý, người đại diện, giấy phép…) được kiểm ở cả hai nhánh: điều kiện thỏa và không thỏa; ô bị mục 19.3 thu hẹp được kiểm theo 19.3 (CHK026).
 - **SC-002**: 0 lần xem hoặc thao tác nào thành công trên dữ liệu ngoài phạm vi (trừ ghi nhận sự cố/kích hoạt khẩn cấp theo FR-044a, khi đó 0 lần lộ thông tin sức khỏe), hoặc thao tác chuyên môn nào thành công khi thiếu điều kiện pháp lý, trong toàn bộ kịch bản kiểm thử.
 - **SC-003**: Sau khi phân công hoặc quyền thay đổi, thao tác đầu tiên của người dùng bị ảnh hưởng đã theo quyền mới trong 100% lần thử; quản lý viện không phải thực hiện thêm bước cấp quyền nào.
 - **SC-004**: 0 lần đăng nhập thành công bằng tài khoản của nhân viên đã chuyển Nghỉ việc, tính từ thời điểm chuyển trạng thái.
@@ -489,6 +540,7 @@ Ký hiệu "T" của Nhân viên hành chính ở dòng "Chốt kỳ, xuất k�
 - **SC-010**: 0 lần nhân viên hành chính thấy trường sức khỏe bị cấm theo FR-022, kể cả qua dashboard, báo cáo và nhật ký; 100% trường hợp thiếu dữ liệu nguồn để tính quyền bị từ chối, trừ ghi nhận sự cố/kích hoạt khẩn cấp (FR-041b).
 - **SC-011**: 100% lần cấp lại mật khẩu, kích hoạt lại tài khoản người thân và mở khóa sớm bởi trưởng tầng/người phụ trách ca có ghi cách xác minh và lý do trong nhật ký (FR-052, FR-019c).
 - **SC-012** *(bổ sung, CHK027)*: 0 lần người thân thấy thông tin sức khỏe khi thiếu quyền xem sức khỏe hoặc thiếu bản đồng ý Hiệu lực bao gồm mình; 0 lần người thân thấy người cao tuổi mình không có quan hệ Hiệu lực; 100% thao tác chỉ dành cho người đại diện bị từ chối với người thân khác (FR-045 → FR-047).
+- **SC-013** *(bổ sung 2026-10-18, Q-370)*: 0 lần người cao tuổi phải đăng nhập lại khi chưa đổi máy, chưa đổi mật khẩu và tài khoản chưa bị khóa; 100% lệnh SOS từ thiết bị đã gắn của tài khoản Hoạt động được nhận khi không có phiên đăng nhập.
 
 ## Assumptions
 

@@ -24,7 +24,7 @@ backend/  ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
 frontend/ npm ci && npm test && npm run dev
 ```
 
-Kết quả mong đợi: `verify` xanh, gồm các nhóm test ở mục 4. Khởi động với profile `demo` thì bảng `tham_so` có đủ 118 mã của Phụ lục 25, mỗi mã có một dòng `lich_su_tham_so` ban đầu.
+Kết quả mong đợi: `verify` xanh, gồm các nhóm test ở mục 4. Khởi động với profile `demo` thì bảng `tham_so` có đủ 119 mã của Phụ lục 25, mỗi mã có một dòng `lich_su_tham_so` ban đầu.
 
 ## 3. Kịch bản kiểm chứng đầu–cuối (chạy tay ở profile demo)
 
