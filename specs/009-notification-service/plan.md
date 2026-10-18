@@ -38,7 +38,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 - **Nhóm (f) chính người cao tuổi** (FR-007): biến thể `NhomNhan.NguoiCaoTuoi(nctId)`, phân giải qua `TaiKhoanApi.theoNguoiCaoTuoi` (002): chỉ tài khoản không ở Đã khóa, Không hoạt động. Không có cách thay; rỗng thì không ghi lỗi gửi (research B-04).
 - **Kiểm yêu cầu** (FR-022a): yêu cầu có nhóm (f) phải mức Nhẹ và chỉ có phần `CHUNG`; sai thì `BI_TU_CHOI` với mã `NHOM_NGUOI_CAO_TUOI_KHONG_HOP_LE` vào danh sách lỗi gửi (research B-02).
-- **Kênh và giờ yên tĩnh**: Nhẹ chỉ trong ứng dụng (đẩy tới app chung, `thiet_bi_day.ung_dung = APP_NGUOI_CAO_TUOI`); `GioYenTinh` áp cho người nhận `NGUOI_CAO_TUOI` như người thân (research B-06). Hộp thông báo của tài khoản người cao tuổi dùng endpoint hộp thư sẵn có.
+- **Kênh và giờ yên tĩnh**: Nhẹ chỉ trong ứng dụng, kênh `TRONG_UNG_DUNG` (đẩy tới app chung, `thiet_bi_day.ung_dung = APP_NGUOI_CAO_TUOI`); `GioYenTinh` áp cho người nhận `NGUOI_CAO_TUOI` như người thân (research B-06). Hộp thông báo của tài khoản người cao tuổi dùng endpoint hộp thư sẵn có.
 - Người gửi yêu cầu nhóm (f): 012 (nhắc lượt thăm, phản hồi đã trả lời), 014 (nhắc hoạt động). Cảnh báo SOS (007) gửi nhân viên, không đổi gì ở 009.
 
 ## Technical Context
