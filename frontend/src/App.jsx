@@ -5,6 +5,7 @@ import { NotDesignedState, PermissionDeniedState } from '@/common/PageState'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ResidentListPage } from '@/features/residents/ResidentListPage'
 import { ShiftChecklistPage } from '@/features/care-tasks/ShiftChecklistPage'
+import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
 import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
 
@@ -36,6 +37,8 @@ function App() {
     const allowed = navForRole(nextRole).flatMap((g) => g.items.map((i) => i.key))
     if (!allowed.includes(page)) navigate(firstPage(nextRole))
   }
+
+  if (role === 'FAMILY_MEMBER') return <FamilyPortal onExit={() => changeRole('FLOOR_MANAGER')} />
 
   const Page = PAGES[page]
   const item = NAV_GROUPS.flatMap((g) => g.items).find((i) => i.key === page)
