@@ -22,6 +22,8 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ---
 
+**Cập nhật 2026-10-18** (plan mục "Cập nhật 2026-10-18"; 009 FR-001a, Q-363): sửa T002, T003, T021, T022. Mã task cũ giữ nguyên.
+
 ## Phase 1: Setup
 
 - [ ] T001 Tạo năm gói con `BE/m04/{hoatdong,buoi,chuyendi,tinhthan,kiemtra}/`; ArchUnit `BT/m04/M04HoatDongArchTest.java`: gói `..lich..` không tạo buổi, danh sách, mục, công việc làm lại, sự cố (Q-306, Q-307) (research L-01)
@@ -34,7 +36,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T002 [P] Bổ sung `BE/m04/api/`: `ChuyenDiNhiemVuLenhApi`, `ChuyenDiThayDoi`, `HoatDongThongKeApi`, sự kiện `BuoiDaHuy`, `BuoiDaDoi`, `BuoiDaKetThuc`; khai báo sự kiện phát cho module khác (`m05.api.YeuCauTaoCanhBao`, `YeuCauGhiDienBienCanhBao`, `m11.api.SuKienTinhPhiNguon`, `m08.api.ChuyenDiDaDoi`) (contracts mục 1.2, 1.3; research L-11)
+- [ ] T002 [P] Bổ sung `BE/m04/api/`: `ChuyenDiNhiemVuLenhApi`, `ChuyenDiThayDoi`, `HoatDongThongKeApi`, sự kiện `BuoiDaHuy`, `BuoiDaDoi`, `BuoiDaKetThuc`; khai báo sự kiện phát cho module khác (`m05.api.YeuCauTaoCanhBao`, `YeuCauGhiDienBienCanhBao`, `m11.api.SuKienTinhPhiNguon`, `m08.api.ChuyenDiDaDoi`) (contracts mục 1.2, 1.3; research L-11); bổ sung 2026-10-18 (009 FR-001a): sự kiện có người nhận là người thân khai `doiTuongThongTin` theo research L-13, test hợp đồng kiểm mọi yêu cầu tới người thân có đối tượng
 - [ ] T003 Tạo `MIG/V014_01__hoat_dong.sql`: `hoat_dong_nct` (`nct_id` khóa chính), `loai_hoat_dong` (`hoat_dong_nhom`, `ngoai_vien`), `nhom_so_thich`, `loai_hoat_dong_nhom_so_thich`, `hoat_dong` (`pham_vi` `TANG|TOAN_VIEN`; giới hạn số lượng; thu phí – dịch vụ 004), `mau_lap_phien_ban` (có lịch sử), `nguoi_thuong_xuyen` (cột sinh `UNIQUE` bản đang hiệu lực), `su_kien_m04hd_da_xu_ly`, `lan_chay_m04hd` (data-model mục 2)
 - [ ] T004 Cài danh mục và hoạt động (Trưởng tầng lập; mẫu đổi theo phiên bản) trong `BE/m04/hoatdong/internal/HoatDongService.java` và controller `/hoat-dong/loai`, `/hoat-dong`, `/{id}`, `/{id}/{lenh}` (research L-04)
 - [ ] T005 Cài khung job `BE/m04/hoatdong/lich/ViecTheoPhutM04HoatDong.java`, `ViecHangNgayM04HoatDong.java` (00:00; ShedLock, chạy bù) và test `BT/m04/ChayBuM04HoatDongIT.java` (research L-15)
@@ -146,11 +148,11 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ### Tests cho User Story 6
 
-- [ ] T021 [P] [US6] Test đơn vị `BT/m04/NgayTinhTest.java`, `CapNhatChuoiTest.java`, `TyLeThamGiaTest.java` và `BT/m04/BR_M04_22_CoLapIT.java` (30 kịch bản, SC-007), `FR_051_SoThichIT.java` (Q34 → Q36)
+- [ ] T021 [P] [US6] Test đơn vị `BT/m04/NgayTinhTest.java`, `CapNhatChuoiTest.java`, `TyLeThamGiaTest.java` và `BT/m04/BR_M04_22_CoLapIT.java` (30 kịch bản, SC-007), `FR_051_SoThichIT.java` (Q34 → Q36; bổ sung 2026-10-18, Q-363: mục của người cao tuổi và của người thân cùng nhóm cùng hiện hành, mục mới cùng nhóm cùng nguồn cần xác nhận thay, nguồn người thân không có quan hệ Hiệu lực → 422, cảnh báo đăng ký nêu nguồn)
 
 ### Implementation cho User Story 6
 
-- [ ] T022 [US6] Tạo bảng `so_thich` (`muc` `THICH|KHONG_THICH`; `nguon` 3 giá trị; `trang_thai`), `chuoi_co_lap` (kỹ thuật) trong `MIG/V014_06__tinh_than.sql`; cài `BE/m04/tinhthan/internal/TinhThanService.java` (sở thích, hồ sơ tinh thần; việc 00:00 cập nhật chuỗi, `YeuCauTaoCanhBao` `NGUY_CO_CO_LAP` Nhẹ một lần mỗi chuỗi) và endpoint `/nguoi-cao-tuoi/{nctId}/so-thich`, `/so-thich/{id}/bo`, `/nguoi-cao-tuoi/{nctId}/ho-so-tinh-than`; màn web `frontend/src/tinh-nang/hoat-dong/tinh-than/` (research L-09)
+- [ ] T022 [US6] Tạo bảng `so_thich` (`muc` `THICH|KHONG_THICH`; `nguon_loai ENUM('NGUOI_CAO_TUOI','NGUOI_THAN','NHAN_VIEN_QUAN_SAT')`, `nguon_nguoi_than_id BIGINT NULL` với `CHECK ((nguon_loai = 'NGUOI_THAN') = (nguon_nguoi_than_id IS NOT NULL))` theo mẫu 001; cột sinh `khoa_hien_hanh` theo (nhóm, nguồn) `UNIQUE`; `trang_thai`; sửa 2026-10-18, Q-363), `chuoi_co_lap` (kỹ thuật) trong `MIG/V014_06__tinh_than.sql`; cài `BE/m04/tinhthan/internal/TinhThanService.java` (sở thích, hồ sơ tinh thần; việc 00:00 cập nhật chuỗi, `YeuCauTaoCanhBao` `NGUY_CO_CO_LAP` Nhẹ một lần mỗi chuỗi) và endpoint `/nguoi-cao-tuoi/{nctId}/so-thich`, `/so-thich/{id}/bo`, `/nguoi-cao-tuoi/{nctId}/ho-so-tinh-than`; màn web `frontend/src/tinh-nang/hoat-dong/tinh-than/` (research L-09)
 
 **Checkpoint**: Tinh thần chạy độc lập.
 

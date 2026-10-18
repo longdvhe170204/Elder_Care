@@ -82,6 +82,8 @@ Lệnh: Lập quan hệ, Đổi liên hệ chính (lý do), Đặt người đ�
 | `ap_ngay_khi_lap` | Tắt `duoc_phep_don`, tắt `TU_VE` | FR-017 |
 | `khoa_cho` sinh `IF(trang_thai = 'CHO_XAC_NHAN', CONCAT(nct_id, ':', IFNULL(quan_he_id, 0), ':', IFNULL(quyen, loai)), NULL)` `UNIQUE` | | FR-018 |
 | `lan_nhac`, `da_bao_ql_luc` | CFG-M10-11 | FR-019 |
+| `trai_mong_muon_id NULL` | Mong muốn bị trái, đặt khi kiểm lúc lập hoặc lúc xác nhận | FR-020b (bổ sung 2026-10-18) |
+| `trao_doi_voi_nct` `VARCHAR(2000) NULL` | Bắt buộc khi Quản lý viện duyệt yêu cầu có `trai_mong_muon_id` (`CHECK (trai_mong_muon_id IS NULL OR trang_thai <> 'HIEU_LUC' OR ap_ngay_khi_lap OR (cach_xac_nhan = 'QL_DUYET' AND trao_doi_voi_nct IS NOT NULL))`) | FR-020b |
 
 | Từ | Lệnh | Đến | Người |
 | --- | --- | --- | --- |
@@ -91,6 +93,23 @@ Lệnh: Lập quan hệ, Đổi liên hệ chính (lý do), Đặt người đ�
 | `CHO_XAC_NHAN` | Duyệt | `HIEU_LUC` | Quản lý viện (lý do) |
 | `CHO_XAC_NHAN` | Từ chối | `TU_CHOI` | Người đại diện, Quản lý viện (lý do) |
 | `CHO_XAC_NHAN` | Hủy | `HUY` | Người lập (lý do); Hệ thống (yêu cầu bỏ thay thế, FR-018; kết thúc quan hệ; trạng thái cuối, FR-075) |
+
+---
+
+## 3a. `mong_muon_nct` – nhóm 2 *(bổ sung 2026-10-18; FR-020a, Q-351; research F-06a)*
+
+| Cột | Ghi chú | Nguồn |
+| --- | --- | --- |
+| `id`, `nct_id` | | FR-020a |
+| `quan_he_id NULL`; `ho_ten NULL`, `so_giay_to NULL` | Có `quan_he_id` hoặc có cả họ tên và số giấy tờ (`CHECK`) | FR-020a |
+| `loai` | `ENUM('THAM','DON')` | FR-020a |
+| `muon` | `BOOLEAN` | FR-020a |
+| `nguon_loai`, `nguon_nguoi_than_id`, `nguoi_ghi_id`, `thoi_diem` | Mẫu cột nguồn 001 data-model mục 6a | FR-020a, 001 FR-023g |
+| `trang_thai` | `ENUM('HIEU_LUC','DUOC_THAY_THE')` | FR-020a |
+| `thay_the_boi_id NULL` | | FR-020a |
+| `khoa_hieu_luc` | Cột sinh `IF(trang_thai = 'HIEU_LUC', CONCAT(nct_id, ':', loai, ':', IFNULL(quan_he_id, CONCAT('G', so_giay_to))), NULL)` `UNIQUE` | FR-020a |
+
+Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LUC → DUOC_THAY_THE`; không xóa. Phân loại trường: `so_giay_to` → `CA_NHAN`; còn lại `CONG_KHAI_NOI_BO`. Lưu giữ `THEO_HO_SO`.
 
 ---
 
@@ -241,4 +260,6 @@ Lệnh: Lập quan hệ, Đổi liên hệ chính (lý do), Đặt người đ�
 | BR-M10-03 (một lần dùng) | `khoa_da_dung` `UNIQUE`; ngoại lệ `ban_ghi_don_id` đặt một lần |
 | BR-M10-08 (một bản tin mỗi kỳ) | `khoa_ky` `UNIQUE` |
 | BR-M10-04 (đêm) | `dem_o_lai` `UNIQUE (luot_id, ngay)` |
+| FR-020a (một mong muốn Hiệu lực mỗi người, loại) | `khoa_hieu_luc` `UNIQUE`; trigger bất biến |
+| FR-020b (trái mong muốn chỉ qua Quản lý viện) | `CHECK` trên `yeu_cau_quyen`; `KiemTraYeuCau` |
 | Nhóm 3 (000) | Trigger chặn UPDATE/DELETE trên bảng nhóm 3 ngoài cột đặt một lần |

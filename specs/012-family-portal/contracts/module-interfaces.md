@@ -30,7 +30,7 @@ Giao diện Java công khai ở `m10.api`, và bản cài các SPI do module th�
 interface QuanHeNguoiThanApi {     // m15.taikhoan.api; M10 cài
   List<QuanHeView> hieuLuc(long nguoiThanId);                                   // 002 phạm vi người thân (FR-045)
   Optional<String> soDienThoaiDaDangKy(long nguoiThanId);                       // 002 FR-050 (gọi lại số đã đăng ký)
-  boolean laNguoiDaiDienHieuLuc(long nguoiThanId, long nctId, Instant t);      // 001 FR-011, FR-023c; 006
+  boolean laNguoiDaiDienHieuLuc(long nguoiThanId, long nctId, Instant t);      // 006; từ 2026-10-18 (Q-348) 001 không dùng cho FR-011, FR-023c
   boolean thuocNguoiCaoTuoi(long nguoiThanId, long nctId);                      // quan hệ Hiệu lực; 001, 006, 011
   boolean quyenDangBat(long nguoiThanId, long nctId, QuyenNguoiThan quyen, Instant t);   // lớp quyền của 002 FR-046
 }
@@ -98,7 +98,8 @@ Bean thiếu → số liệu "không có dữ liệu trong kỳ".
 | `HopDongDocApi`, `LuotVangApi`, `DieuKienTiepNhanApi` | 004 | FR-030 (d), FR-046 (4) | Bản giả |
 | `CoMatBanTruApi.theoNgay`, `diemDanhVe` (MANDATORY); `KetQuaChamSocCongApi` (bổ sung theo plan này) | 005 | FR-021 Viện đưa về, FR-030 (d), FR-046 (2), FR-052 | Bản giả |
 | `ThuocCongNguoiThanApi` | 006 | FR-046 (2) | Bản giả |
-| `SucKhoeCongNguoiThanApi`, `BanTinSucKhoeApi`, `KhoanhVungApi.dangChiuTheoNguoi`, `SuCoApi.theoNguoi` | 007 | FR-030 (c), FR-041, FR-046, FR-052, FR-053 | Bản giả |
+| `SucKhoeCongNguoiThanApi`, `BanTinSucKhoeApi`, `KhoanhVungApi.dangChiuTheoNguoi`, `SuCoApi.theoNguoi` | 007 | FR-030 (c), FR-041, FR-046, FR-052, FR-053; sự cố tách `phanChung` / `phanSucKhoe` (007 research S-19a, sửa 2026-10-18) | Bản giả |
+| `NguonYKienApi.kiemTra`; `BanDongYApi.daiDienPhapLuat` | 001 | FR-020a, FR-020c (bổ sung 2026-10-18) | Có sẵn sau 001 |
 | `ThongBaoTraCuuApi.xemLuc` | 009 | FR-054 | Bản giả |
 | `ChiPhiCongNguoiThanApi.tamTinh` | 010 | FR-052 | Bản giả |
 | `CheDoAnApi.hienHanh`, `ThucDonChungApi` | 011 | FR-046 | Bản giả |

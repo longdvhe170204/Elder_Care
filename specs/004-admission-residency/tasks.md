@@ -22,6 +22,8 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 
 ---
 
+**Cập nhật 2026-10-18** (plan mục "Cập nhật 2026-10-18"; Q-356, 009 FR-001a): sửa T011, T013, T015 → T019; thêm T016a. Mã task cũ giữ nguyên. Phụ thuộc mới: `NguonYKienApi` (001 T012a).
+
 ## Phase 1: Setup
 
 - [ ] T001 Tạo khung gói `BE/m02/{api,dangky,danhsachcho,hopdong,dichvu,thaydoi,vang,ketthuc,quadoi,tinhphi,trangthai,lich}/` với `package-info.java` (research T-01)
@@ -43,7 +45,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 - [ ] T008 Cài `BE/m02/dichvu/internal/DonGiaService.java` (`DonGiaApi`: đơn giá tại ngày, đánh dấu `da_tham_chieu`) (research T-05)
 - [ ] T009 Cài khung bean `BE/m02/trangthai/internal/ThamGiaM02.java` (`@Order(1)`, `lenhQuanTam` gồm 7 lệnh; `kiemTraChiTiet` cho các kiểu `chiTiet` ở contracts mục 1.1) và khung job `BE/m02/lich/ViecHangNgayM02.java` (00:15 và khi khởi động, ShedLock; chạy bù từng ngày D theo `lan_chay_theo_ngay`; năm việc `TINH_DIEM`, `NGAY_VANG`, `HOP_DONG`, `KET_THUC`, `NHAC` đăng ký dần ở các story) (research T-11; FR-077, BR-M02-19)
 - [ ] T010 [P] Cài SPI M02 cài cho module thấp hơn trong `BE/m02/trangthai/internal/`: `HopDongApi`, `LuotVangApi`, `YeuCauDoiMucApi` (001); `KetThucLuuTruApi` (002); `NguonLuuTruChoPhanBo`, `DemLichDenBanTru` (003) – khung trả dữ liệu từ bảng của các story, hoàn thiện ở story tương ứng (contracts mục 1.1)
-- [ ] T011 [P] Cài provider cho 000/002 trong `BE/m02/trangthai/internal/`: `PhanLoaiTruongProvider` (`TAI_CHINH` cho giá, cọc, dòng ghi đè; `SUC_KHOE` cho `nguyenNhan` qua đời), `LuuTruProvider` theo data-model mục 14, `GanPhamViProvider`, `QuyenTepProvider` (`M02.BAN_SCAN_HOP_DONG`, `M02.BANG_CHUNG_QUA_DOI`)
+- [ ] T011 [P] Cài provider cho 000/002 trong `BE/m02/trangthai/internal/`: `PhanLoaiTruongProvider` (`TAI_CHINH` cho giá, cọc, dòng ghi đè; `SUC_KHOE` cho `nguyenNhan` qua đời; `y_kien_vao_o` là `CONG_KHAI_NOI_BO`), `LuuTruProvider` theo data-model mục 14, `GanPhamViProvider`, `QuyenTepProvider` (`M02.BAN_SCAN_HOP_DONG`, `M02.BANG_CHUNG_QUA_DOI`)
 - [ ] T012 [P] Test `BT/m02/BR_M02_19_ChayBuIT.java` (đồng hồ giả lập): tắt job 3 ngày rồi chạy → mỗi việc mỗi ngày chạy đúng một lần; chạy lại không trùng
 
 **Checkpoint**: Nền 004 sẵn sàng.
@@ -58,16 +60,17 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 
 ### Tests cho User Story 1
 
-- [ ] T013 [P] [US1] Test `BT/m02/LuotDangKyIT.java`, `CapNhatLuotDangKyIT.java`, `TienTrinhIT.java`: một lượt mở mỗi người (`UNIQUE nct_dang_mo`); cập nhật có `If-Match` và lý do; `ngay_dang_ky` không đổi khi đã có hồ sơ chờ (BR-M02-15)
+- [ ] T013 [P] [US1] Test `BT/m02/LuotDangKyIT.java`, `CapNhatLuotDangKyIT.java`, `TienTrinhIT.java`: một lượt mở mỗi người (`UNIQUE nct_dang_mo`); cập nhật có `If-Match` và lý do; `ngay_dang_ky` không đổi khi đã có hồ sơ chờ (BR-M02-15); bổ sung 2026-10-18 `FR_004a_YKienVaoOIT.java`: ghi ý kiến (thiếu nguồn, nguồn người thân không có quan hệ Hiệu lực → 422), ý kiến mới thay thế, cũ vẫn tra được, `UPDATE` trực tiếp bị trigger chặn; Hoàn tất tiếp nhận khi chưa có ý kiến → 200 kèm cảnh báo `CHUA_GHI_Y_KIEN_VAO_O`; khi "Không đồng ý" → cảnh báo `NCT_KHONG_DONG_Y_VAO_O`, lý do lưu ở lịch sử trạng thái của 001, `y_kien_luc_tiep_nhan_id` được đặt (Q1a → Q1c)
 - [ ] T014 [P] [US1] Test `BT/m02/FR_004_DanhSachKhopLenhIT.java`, `BR_M02_22_MucHopDongIT.java`, `FR_076_CanhBaoChuaVaoOIT.java` (cảnh báo hằng ngày "phí đang tính cho ngày chưa vào ở" khi nội trú chưa Hoàn tất tiếp nhận sau ngày bắt đầu hợp đồng; dừng khi Hoàn tất tiếp nhận, Hủy tiếp nhận hoặc phụ lục đổi ngày bắt đầu; không báo Quản lý viện): danh sách điều kiện bằng `xemDieuKien` của 001 khớp kết quả lệnh, gồm (f) DBR-02 do bean 012 giả trả Chưa đạt khi thiếu người đại diện (Q-343); mức hợp đồng khác mức hiện hành chặn Hoàn tất tiếp nhận (FR-004, FR-025b)
 
 ### Implementation cho User Story 1
 
-- [ ] T015 [US1] Tạo `MIG/V004_03__luot_dang_ky.sql`: `luot_dang_ky` (`loai_luu_tru_mong_muon ENUM('NOI_TRU_DAI_HAN','NOI_TRU_NGAN_NGAY','BAN_TRU')`, `muc_du_kien`, `trang_thai ENUM('DANG_XU_LY','DANG_CHO','DA_TIEP_NHAN','DA_HUY')`, cột sinh `nct_dang_mo` `UNIQUE`) (data-model mục 3)
+- [ ] T015 [US1] Tạo `MIG/V004_03__luot_dang_ky.sql`: `luot_dang_ky` (`loai_luu_tru_mong_muon ENUM('NOI_TRU_DAI_HAN','NOI_TRU_NGAN_NGAY','BAN_TRU')`, `muc_du_kien`, `trang_thai ENUM('DANG_XU_LY','DANG_CHO','DA_TIEP_NHAN','DA_HUY')`, cột sinh `nct_dang_mo` `UNIQUE`; `y_kien_luc_tiep_nhan_id BIGINT NULL`) và `y_kien_vao_o` (bổ sung 2026-10-18: `y_kien ENUM('DONG_Y','KHONG_DONG_Y','KHONG_BAY_TO_DUOC') NOT NULL`; mẫu cột nguồn 001 data-model mục 6a; `ghi_chu VARCHAR(2000) NULL`; `trang_thai ENUM('HIEU_LUC','DUOC_THAY_THE')`; cột sinh `luot_hieu_luc` `UNIQUE`; trigger chỉ cho `HIEU_LUC → DUOC_THAY_THE`, không xóa) (data-model mục 3)
 - [ ] T016 [US1] Cài `BE/m02/dangky/internal/LuotDangKyService.java` (lập khi người Đang tiếp nhận, cập nhật, tiến trình) và `DieuKienTiepNhanService.java` (`DieuKienTiepNhanApi` qua `TrangThaiNguoiCaoTuoiApi.xemDieuKien`, đủ (a) → (f), (f) lấy điều kiện `DBR_02` của 012; cảnh báo FR-076 trên danh sách và nhắc hằng ngày qua việc `NHAC` của `ViecHangNgayM02.java`) (research T-09)
-- [ ] T017 [US1] Cài trong `ThamGiaM02.java` phần `HOAN_TAT_TIEP_NHAN` (điều kiện 004: hợp đồng Hiệu lực, không sớm hơn ngày bắt đầu, mức trùng, đặt cọc qua `TrangThaiDatCocPort`; tác động: lượt `DA_TIEP_NHAN`, phát `TiepNhanHoanTat`) và `HUY_TIEP_NHAN` (lượt `DA_HUY`, hợp đồng Nháp/Chờ ký → `DA_HUY`, đóng hồ sơ chờ) (FR-002, FR-004)
-- [ ] T018 [US1] Tạo `BE/m02/dangky/web/LuotDangKyController.java`: `POST/GET /luot-dang-ky`, `GET /luot-dang-ky/{id}`, `POST …/{id}/cap-nhat`, `GET …/{id}/dieu-kien-tiep-nhan`, `…/tien-trinh`
-- [ ] T019 [P] [US1] Tạo màn web `frontend/src/tinh-nang/dang-ky-tiep-nhan/` và test `DieuKienTiepNhan.test.jsx`; app người thân `mobile/lib/nguoi-than/luu-tru/` (tiến trình tiếp nhận)
+- [ ] T016a [US1] Cài `BE/m02/dangky/internal/YKienVaoOService.java`: ghi ý kiến dưới khóa `luu_tru_nct`, kiểm `NguonYKienApi.kiemTra`, thay thế dòng Hiệu lực cũ; đưa ý kiến hiện hành vào `DanhSachDieuKien.yKienVaoO` (FR-001, FR-004a; research T-09a)
+- [ ] T017 [US1] Cài trong `ThamGiaM02.java` phần `HOAN_TAT_TIEP_NHAN` (điều kiện 004: hợp đồng Hiệu lực, không sớm hơn ngày bắt đầu, mức trùng, đặt cọc qua `TrangThaiDatCocPort`; `canhBao`: `CHUA_GHI_Y_KIEN_VAO_O`, `NCT_KHONG_DONG_Y_VAO_O`, không chặn; tác động: lượt `DA_TIEP_NHAN`, đặt `y_kien_luc_tiep_nhan_id`, phát `TiepNhanHoanTat`) và `HUY_TIEP_NHAN` (lượt `DA_HUY`, hợp đồng Nháp/Chờ ký → `DA_HUY`, đóng hồ sơ chờ) (FR-002, FR-004)
+- [ ] T018 [US1] Tạo `BE/m02/dangky/web/LuotDangKyController.java`: `POST/GET /luot-dang-ky`, `GET /luot-dang-ky/{id}`, `POST …/{id}/cap-nhat`, `POST …/{id}/y-kien-vao-o` (bổ sung 2026-10-18), `GET …/{id}/dieu-kien-tiep-nhan`, `…/tien-trinh`
+- [ ] T019 [P] [US1] Tạo màn web `frontend/src/tinh-nang/dang-ky-tiep-nhan/` (gồm khối ý kiến của người cao tuổi về việc vào ở: ghi, lịch sử, nguồn; danh sách điều kiện hiện ý kiến hiện hành tách khỏi các điều kiện) và test `DieuKienTiepNhan.test.jsx`; app người thân `mobile/lib/nguoi-than/luu-tru/` (tiến trình tiếp nhận)
 
 **Checkpoint**: Đăng ký và điều kiện tiếp nhận chạy được.
 

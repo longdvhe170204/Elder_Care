@@ -202,10 +202,10 @@ paths:
       responses: { '200': { description: OK } }
     post:
       tags: [tinh-than]
-      summary: Ghi sở thích; nhóm đã có mục hiện hành cần xacNhanThay
+      summary: Ghi sở thích; nhóm và nguồn đã có mục hiện hành cần xacNhanThay (sửa 2026-10-18, Q-363)
       x-fr: [FR-051]
       parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nhomId, muc, nguon], properties: { nhomId: { type: integer, format: int64 }, moTa: { type: string }, muc: { type: string, enum: [THICH, KHONG_THICH] }, nguon: { type: string, enum: [NCT_TU_NOI, NGUOI_THAN, NHAN_VIEN_QUAN_SAT] }, xacNhanThay: { type: boolean } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nhomId, muc, nguon], properties: { nhomId: { type: integer, format: int64 }, moTa: { type: string }, muc: { type: string, enum: [THICH, KHONG_THICH] }, nguon: { $ref: '#/components/schemas/NguonYKien' }, xacNhanThay: { type: boolean } } } } } }
       responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
   /so-thich/{id}/bo:
     post:
@@ -291,6 +291,13 @@ components:
       description: 'TRANG_THAI_DA_DOI, DA_CO_BUOI, SAU_NGAY_KET_THUC_MAU, DU_SO_LUONG, KHOANH_VUNG, NCT_TRANG_THAI_KHONG_HOP_LE, BUOI_DA_BAT_DAU, CHONG_THOI_GIAN, NGOAI_LICH_BAN_TRU, CAN_DONG_Y_VE_MUON, NGHI_NHIEM, CAN_XAC_NHAN_CANH_BAO, CHUA_TOI_GIO_BAT_DAU, CON_DANG_KY_CHUA_CO_KET_QUA, DA_CO_DIEM_DANH, CHUA_CO_TRUONG_DOAN, KHONG_DU_VAI_TRO, KHONG_CO_TEN_TRONG_CA, CHUA_DANH_GIA_DAT, CHUA_XU_LY_THUOC, CHUA_CO_LICH_XE, XE_DA_CO_LICH_KHAC, QUA_SOM_ROI_VIEN, DA_CO_SU_CO_THIEU_NGUOI, YEU_CAU_TRUC_TUYEN, CHUA_DU_TY_LE, DA_CO_DANH_SACH, CONG_VIEC_KHONG_DU_DIEU_KIEN, THIEU_CONG_VIEC_LAM_LAI, TU_KIEM_TRA_CONG_VIEC_CUA_MINH, NGOAI_THOI_GIAN_CA, CAN_XAC_NHAN_THAY_SO_THICH'
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
   schemas:
+    NguonYKien:
+      type: object
+      description: Như api-001.yaml NguonYKien (001 FR-023g); bổ sung 2026-10-18, Q-363
+      required: [loai]
+      properties:
+        loai: { type: string, enum: [NGUOI_CAO_TUOI, NGUOI_THAN, NHAN_VIEN_QUAN_SAT] }
+        nguoiThanId: { type: [integer, 'null'], format: int64 }
     LyDo: { type: string, minLength: 1, maxLength: 2000 }
     Loi:
       type: object

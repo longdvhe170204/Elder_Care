@@ -95,7 +95,9 @@ long themDiNguyen(TaoDiNguyen lenh);                         // 011 FR-003 (Bác
 
 ```java
 Optional<BanDongYView> hienHanh(long nctId);   // phạm vi người thân, dongYHinhAnh, dongYThongBao; 009, 012
+                                               // dongYThongBao: thông báo không khẩn về người cao tuổi (Q-353)
 boolean baoGom(long nctId, long nguoiThanId);  // dùng trong DieuKienChuThich "1"
+Optional<Long> daiDienPhapLuat(long nctId);    // bổ sung 2026-10-18 (012 FR-020c): người thân ký bản đồng ý Hiệu lực với DAI_DIEN_PHAP_LUAT
 ```
 
 M01 cài `DieuKienChuThich` với `maChuThich() = "1"` cho 002 (BR-M01-08, DBR-03).
@@ -106,6 +108,16 @@ M01 cài `DieuKienChuThich` với `maChuThich() = "1"` cho 002 (BR-M01-08, DBR-0
 Optional<NguyenVongView> hieuLuc(long nctId);                  // 007: thẻ khẩn cấp, cảnh báo nguy kịch (FR-023)
 long ghiPhienBan(GhiNguyenVong lenh, NguonNguyenVong nguon);   // 007: XAC_NHAN_LAI_NGUY_KICH (BR-M05-16); MANDATORY
 ```
+
+### 1.8b. `NguonYKienApi` và kiểu `NguonYKien` *(bổ sung 2026-10-18; FR-023g, research H-16)*
+
+```java
+enum LoaiNguonYKien { NGUOI_CAO_TUOI, NGUOI_THAN, NHAN_VIEN_QUAN_SAT }
+record NguonYKien(LoaiNguonYKien loai, Long nguoiThanId) {}   // nguoiThanId chỉ có khi NGUOI_THAN
+void kiemTra(long nctId, NguonYKien nguon);   // NGUOI_THAN: quan hệ Hiệu lực lúc gọi; sai → 422 NGUON_Y_KIEN_KHONG_HOP_LE
+```
+
+Dùng bởi 004 (ý kiến về việc vào ở), 005 (thỏa thuận lựa chọn có rủi ro), 012 (mong muốn về khách thăm, người đón), 014 (sở thích). Mỗi module lưu nguồn ở bảng của mình theo data-model 001 mục 6a.
 
 ### 1.8a. `NguoiCaoTuoiThongKeApi` (016; bổ sung theo plan 016, research O-10)
 
@@ -143,7 +155,7 @@ Chỉ đọc, không khóa; không trả bản ghi Hủy ghi nhận (016 FR-007)
 | `DanhGiaDaDoiMucHoacNhuCau(nctId, danhGiaId, mucTruoc, mucSau, nhuCauTruoc, nhuCauSau)` | 005 (BR-M04-20) | FR-043 |
 | `CanDanhGiaLai(nctId, lanBaoId, canCu)`; `QuaHanDanhGiaLai(nctId, hanLuc)` | 009 | FR-039 → FR-041 |
 | `CanLapYeuCauDoiMuc(nctId, danhGiaId, mucMoi)`; `NhacLapYeuCauDoiMuc(…, lanNhac)` | 009 | FR-036 |
-| `NhacThieuBanDongY(nctId, lanNhac)`; `NhacThieuNguyenVong(nctId, lanNhac)` | 009 | FR-012, FR-023d |
+| `NhacThieuBanDongY(nctId, lanNhac)`; `NhacThieuNguyenVong(nctId, lanNhac)`; `NhacXemLaiNhanDinh(nctId, nguyenVongId)` (bổ sung 2026-10-18, FR-023i) | 009 | FR-012, FR-023d |
 | `TamVangQuaHan(nctId, luotVangId, mocDuKien)` | 009 | FR-050 |
 | `MucChamSocDaDoi(nctId, mucTruoc, mucSau, hieuLucTu, canCu)` | 003, 008, 010, 016 | FR-052 |
 | `ThongTinCaNhanDaCapNhat(nctId, truongDaDoi)` (bổ sung theo plan 003) | 003 (giới tính đổi: dấu "phòng không còn phù hợp", 003 FR-034) | FR-006 |
@@ -162,7 +174,7 @@ Mỗi sự kiện gửi 009 mang mức, nhóm người nhận, loại thông tin
 | `LuotVangApi.dangMo()` trả mốc dự kiến trở lại | 004 (FR-048, FR-049) | FR-050 | Bản giả |
 
 Ba giao diện trên được khai báo trong `m01.api` dưới dạng SPI, M02 cài, để không có vòng M01 ↔ M02 (bổ sung theo plan 004, research T-02); chữ ký giữ nguyên.
-| `QuanHeNguoiThanApi.laNguoiDaiDienHieuLuc(nguoiThanId, nctId, t)`; `thuocNguoiCaoTuoi(nguoiThanId, nctId)` (SPI khai báo ở `m15.taikhoan.api`, M10 cài; theo plan 012) | M10 (012) | FR-011, FR-023c, phạm vi bản đồng ý | Bản giả |
+| `QuanHeNguoiThanApi.thuocNguoiCaoTuoi(nguoiThanId, nctId)` (SPI khai báo ở `m15.taikhoan.api`, M10 cài; theo plan 012). Từ 2026-10-18 (Q-348) 001 không dùng `laNguoiDaiDienHieuLuc` cho FR-011, FR-023c | M10 (012) | FR-011, FR-023c, FR-023g, phạm vi bản đồng ý | Bản giả |
 | `ChiSoApi.ganNhat(nctId)` | M06 (007) | FR-024 | Bản giả trả rỗng |
 | Sự kiện `SuCoDaGhiNhan(suCoId, nctId, loai, muc, canDanhGiaLai)` (thêm `canDanhGiaLai` theo plan 007: Trung bình trở lên hoặc Ngã, trừ đồ gửi; phát lại khi sự cố nâng lên Trung bình hoặc đổi loại sang Ngã). 001 chỉ báo đánh giá lại khi `canDanhGiaLai = true`, khóa bỏ trùng `(suCoId, mốc)` | M05 (007) | FR-040 | Không có thì không báo căn cứ sau sự cố |
 | `NhiemVuApi`: bác sĩ trực, Điều dưỡng phụ trách, Trưởng tầng của tầng | M09 (008) qua 002 | Người nhận ở research H-14 | Bản giả |

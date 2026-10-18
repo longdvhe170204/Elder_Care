@@ -121,6 +121,16 @@ Chủ dự án cho phép bổ sung User Story 9 từ FR-054, FR-055 để mục 
 
 Đồng bộ với 11.7 theo quyết định của chủ dự án: khi lần tiếp nhận Không đạt, người được báo là người lập yêu cầu và Phụ trách bộ phận **hiện tại** của bộ phận của yêu cầu (bộ phận gắn với yêu cầu lúc lập, feature 019 FR-008d), không cố định là người đã ghi đã mua. Sửa FR-055, User Story 9 kịch bản 2 và bảng giao tiếp (019). Không thêm quy tắc nghiệp vụ.
 
+### Cập nhật 2026-10-18 (đồng bộ feature 009 FR-001a)
+
+Feature 009 FR-001a (Q-353, Q-354) yêu cầu mọi thông báo tới người thân khai đối tượng thông tin ("về người cao tuổi" hoặc "về việc của chính người thân"), và mang mã trường hợp Q-354 khi nội dung vượt phạm vi bản đồng ý. Thông báo "về người cao tuổi" chỉ tới người thân trong phạm vi "nhận thông báo" của bản đồng ý Hiệu lực (feature 009 FR-014). Thay đổi ở spec này: FR-053 khai đối tượng thông tin; không đổi người nhận, mức, loại thông tin hay nội dung.
+
+### Cập nhật 2026-10-18, lượt 2 (đồng bộ Q-357 → Q-364)
+
+Ngày 2026-10-18 chủ dự án ủy quyền chốt các điểm báo lại của lượt cập nhật nguyên tắc nhân văn; quyết định ghi ở docs/business/nghiep-vu.md 24.2 (Q-357 → Q-364). Thay đổi ở spec này:
+
+- **Q-362**: thông báo về thuốc gia đình gửi là "về việc của chính người thân" (FR-053), như đã khai.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 07, mục 11.1 → 11.7; UC-39 → UC-44):
@@ -565,7 +575,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Cung cấp | 019 | *(bổ sung, 2026-10-11, Q-337)* Đơn thuốc nguồn "viện cung cấp" Hiệu lực, Tạm dừng, Chờ hiệu lực của người cao tuổi để gắn dòng yêu cầu mua sắm loại "thuốc"; kết quả tiếp nhận từng dòng (Đạt / Không đạt) để hiển thị yêu cầu "Đã nhận" (FR-054) |
 | Nhận | 019 | *(bổ sung, 2026-10-11, Q-337)* Yêu cầu mua sắm loại "thuốc" đã ghi đã mua (Chờ đối chiếu, Đã đối chiếu, Lệch): dòng, người cao tuổi, đơn thuốc, thuốc, số lượng, người lập, bộ phận của yêu cầu (FR-054, FR-055) |
 
-- **FR-053**: *(Bổ sung, 2026-10-10, Q-311)* Mức của các thông báo spec này chưa nêu mức (feature 009 FR-043a, FR-043b): **Trung bình** — thuốc gia đình gửi hết hạn dùng, hết thuốc gia đình gửi khi đến liều, cần nhận lại thuốc mang theo; **Nhẹ** — phiếu gửi xác nhận hoặc trả lại, thuốc gửi đã dùng hết, chuyển Chỉ giữ hộ do đơn ngừng, thuốc đang dùng khi tiếp nhận đã đổi, lần tiếp nhận thuốc cung ứng Không đạt (FR-055; bổ sung 2026-10-11, Q-337). *(Nguồn: Q-311, 17.1)*
+- **FR-053**: *(Bổ sung, 2026-10-10, Q-311)* Mức của các thông báo spec này chưa nêu mức (feature 009 FR-043a, FR-043b): **Trung bình** — thuốc gia đình gửi hết hạn dùng, hết thuốc gia đình gửi khi đến liều, cần nhận lại thuốc mang theo; **Nhẹ** — phiếu gửi xác nhận hoặc trả lại, thuốc gửi đã dùng hết, chuyển Chỉ giữ hộ do đơn ngừng, thuốc đang dùng khi tiếp nhận đã đổi, lần tiếp nhận thuốc cung ứng Không đạt (FR-055; bổ sung 2026-10-11, Q-337). *(Nguồn: Q-311, 17.1)* **(Bổ sung 2026-10-18, feature 009 FR-001a)** Thông báo tới người liên hệ chính, người đại diện về thuốc gia đình gửi (sắp hết theo FR-046, hết khi đến liều, hết hạn dùng theo BR-M07-11, cần nhận lại thuốc mang theo) là "về việc của chính người thân", vì người thân là người gửi thuốc và phải gửi thêm hoặc nhận lại; phần "sức khỏe" (tên thuốc, hàm lượng) vẫn chỉ tới người có quyền xem sức khỏe theo bản đồng ý (feature 009 FR-013). Không thông báo nào của spec này cần mã Q-354.
 
 #### I. Tiếp nhận thuốc cung ứng *(bổ sung 2026-10-11, Q-337)*
 
@@ -681,3 +691,5 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 **(2026-10-11, lượt 2) Mục I chưa có kịch bản Given/When/Then cho BR-M07-24.** *(Đã xử lý 2026-10-11: thêm User Story 9 từ FR-054, FR-055 theo cho phép của chủ dự án; xem mục "Cập nhật 2026-10-11, lượt 2" ở Clarifications.)*
 
 **(2026-10-11, lượt 3) FR-055 thu hẹp người nhận thành "Phụ trách bộ phận đã ghi đã mua", khác 11.7 ("Phụ trách bộ phận").** *(Đã xử lý 2026-10-11: đồng bộ theo 11.7 và quyết định của chủ dự án, báo Phụ trách bộ phận hiện tại của bộ phận của yêu cầu; xem mục "Cập nhật 2026-10-11, lượt 3" ở Clarifications.)*
+
+**(2026-10-18) Đồng bộ feature 009 FR-001a (đối tượng thông tin).** *(Đã xử lý 2026-10-18: Clarifications "Cập nhật 2026-10-18", FR-053.)* Cách xếp thông báo thuốc gia đình gửi đã được chốt ở Q-362. Plan, tasks đã khai (2026-10-18).

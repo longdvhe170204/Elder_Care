@@ -22,6 +22,8 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 
 ---
 
+**Cập nhật 2026-10-18** (plan mục "Cập nhật 2026-10-18"; 009 FR-001a): sửa T004. Mã task cũ giữ nguyên.
+
 ## Phase 1: Setup
 
 - [ ] T001 Tạo khung gói `BE/m07/{api,danhmuc,donthuoc,lichthuoc,lieu,prn,doichieu,thuocgui,mangtheo,tiepnhanthuoc,trangthai,lich}/` với `package-info.java` (research D-01)
@@ -36,7 +38,7 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
 - [ ] T003 [P] Tạo giao diện công khai `BE/m07/api/`: `DonThuocApi`, `LichThuocApi`, `LieuBanGiaoApi`, `MangThuocChuyenDiApi`, `ThuocGiaDinhGuiApi`, `ThuocCongNguoiThanApi`, `ThuocThongKeApi` (contracts mục 1.2 → 1.8) và SPI `DieuDuongCaPort`, `ChuyenDiThuocPort`, `DeNghiMuaHoPort` (mục 2.1) (research D-02)
-- [ ] T004 [P] Tạo sự kiện `BE/m07/api/sukien/` theo contracts mục 1.9 (yêu cầu cảnh báo, nhắc, thông báo, `SuKienTinhPhiThuoc` mang loại nguồn và id); sự kiện gửi 009 cài `CoYeuCauThongBao` (research D-17)
+- [ ] T004 [P] Tạo sự kiện `BE/m07/api/sukien/` theo contracts mục 1.9 (yêu cầu cảnh báo, nhắc, thông báo, `SuKienTinhPhiThuoc` mang loại nguồn và id); sự kiện gửi 009 cài `CoYeuCauThongBao` (research D-17); bổ sung 2026-10-18 (009 FR-001a): sự kiện có người nhận là người thân khai `doiTuongThongTin` theo research D-17, test hợp đồng kiểm mọi yêu cầu tới người thân có đối tượng
 - [ ] T005 Tạo `MIG/V006_01__nen_m07.sql`: `thuoc_nct` (`nct_id` khóa chính; `han_doi_chieu`; `ly_do_doi_chieu ENUM('TIEP_NHAN','TRO_VE_BENH_VIEN') NULL` (chỉ hai lý do có hạn; phiếu theo yêu cầu chuyên môn không dùng, Q-340); `da_canh_bao_doi_chieu_luc`; `phien_ban`), `lan_chay_m07 (viec, moc)` khóa chính hai cột, `thuoc` (mẫu nhóm 1; `UNIQUE (ten, ham_luong, dang_bao_che)`; `cua_so_truoc_phut`, `cua_so_sau_phut SMALLINT NULL` – rỗng dùng CFG-M07-01; `kiem_soat_dac_biet BOOLEAN`), `thuoc_hoat_chat (thuoc_id, di_nguyen_id)` khóa chính hai cột (data-model mục 2, 3)
 - [ ] T006 Cài danh mục thuốc (AC-01; tạo, sửa, ngừng hiệu lực; xóa bị chặn khi có đơn bằng `ON DELETE RESTRICT`; dấu "chưa có mục vật phẩm" qua `DonGiaApi.thuocNguonVien`) trong `BE/m07/danhmuc/internal/ThuocService.java` và `BE/m07/danhmuc/web/ThuocController.java` (`/thuoc`, `/{id}`, `/{id}/ngung-hieu-luc`) (FR-001 → FR-003; research D-04)
 - [ ] T007 Cài `BE/m07/trangthai/internal/KhoaThuoc.java` (khóa `thuoc_nct` theo research D-03) và khung job `BE/m07/lich/ViecTheoPhutM07.java` (mỗi phút, ShedLock, chạy bù) và `ViecHangNgayM07.java` (`lan_chay_m07`) – việc đăng ký ở các story (research D-19)

@@ -95,6 +95,10 @@ Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi 
 - FR-013: nguồn không còn dẫn câu cũ "nhân viên chủ yếu xác nhận" của 1.3.
 - **Q-341**: người thân không gửi yêu cầu mua hộ qua cổng; gia đình yêu cầu trực tiếp, Hành chính lập đề nghị (Assumptions).
 
+### Cập nhật 2026-10-18 (đồng bộ feature 009 FR-001a)
+
+Feature 009 FR-001a (Q-353, Q-354) yêu cầu mọi thông báo tới người thân khai đối tượng thông tin ("về người cao tuổi" hoặc "về việc của chính người thân"), và mang mã trường hợp Q-354 khi nội dung vượt phạm vi bản đồng ý. Thông báo "về người cao tuổi" chỉ tới người thân trong phạm vi "nhận thông báo" của bản đồng ý Hiệu lực (feature 009 FR-014). Thay đổi ở spec này: FR-044 khai đối tượng thông tin; không đổi người nhận, mức, loại thông tin hay nội dung.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 11, mục 15; UC-61 → UC-64, UC-79):
@@ -484,7 +488,7 @@ Từ chối, Hủy, Đã mua là trạng thái cuối. Đề nghị mua hộ là
 
 #### J. Thông báo
 
-- **FR-044**: Feature này MUST yêu cầu feature 009 gửi đúng các thông báo ở bảng dưới, theo khuôn chung của feature 009 FR-001. Mọi thông báo tới người thân mang loại thông tin "chi phí", nên chỉ tới người có quyền xem chi phí (feature 009 FR-013). Nội dung thông báo MUST NOT chứa tên thuốc (FR-019). Thông báo không khẩn tới người thân chịu giờ yên tĩnh do feature 009 áp dụng (BR-M13-03); spec này không đặt ngoại lệ. Mọi "báo", "thông báo", "nhắc" trong FR và bảng trạng thái của spec này MUST có dòng tương ứng ở bảng dưới. *(Nguồn: 17, BR-M13-01, BR-M13-03, BR-M13-04, feature 009)*
+- **FR-044**: Feature này MUST yêu cầu feature 009 gửi đúng các thông báo ở bảng dưới, theo khuôn chung của feature 009 FR-001. Mọi thông báo tới người thân mang loại thông tin "chi phí", nên chỉ tới người có quyền xem chi phí (feature 009 FR-013). Nội dung thông báo MUST NOT chứa tên thuốc (FR-019). Thông báo không khẩn tới người thân chịu giờ yên tĩnh do feature 009 áp dụng (BR-M13-03); spec này không đặt ngoại lệ. Mọi "báo", "thông báo", "nhắc" trong FR và bảng trạng thái của spec này MUST có dòng tương ứng ở bảng dưới. *(Nguồn: 17, BR-M13-01, BR-M13-03, BR-M13-04, feature 009)* **(Bổ sung 2026-10-18, feature 009 FR-001a)** Mọi thông báo tới người thân ở bảng dưới (bảng Đã chốt, đề nghị mua hộ cần đồng ý, bị hủy sau khi đã đồng ý, khoản mua hộ vượt số đã đồng ý, đề nghị Chờ đồng ý quá hạn) là "về việc của chính người thân" (khoản phải trả, việc người thân phải quyết định); không thông báo nào cần mã Q-354.
 
 | Sự kiện | Người nhận | Mức | Căn cứ |
 | --- | --- | --- | --- |
@@ -679,3 +683,5 @@ Nội dung gốc của từng điểm được giữ dưới đây để truy v�
 **(2026-10-10) Plan 010, điểm báo lại 1 → 4.** *(Đã xử lý 2026-10-10: Q-333, Q-311; sửa bảng trạng thái kỳ, bảng FR-044, thứ tự kịch bản User Story 5. BR-M11-05 ở tài liệu nguồn đã viết theo Q-307 (hệ thống báo Hành chính); điểm báo lại 13 giữ làm lịch sử.)*
 
 **(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-013, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+
+**(2026-10-18) Đồng bộ feature 009 FR-001a (đối tượng thông tin).** *(Đã xử lý 2026-10-18: Clarifications "Cập nhật 2026-10-18", FR-044.)* Còn báo lại: plan, contracts, tasks chưa cập nhật. *(Đã xử lý 2026-10-18: plan, research, tasks đã khai.)*

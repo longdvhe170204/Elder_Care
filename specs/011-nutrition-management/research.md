@@ -194,6 +194,8 @@ Bean thiếu: `LuotOLaiAnPort` → không tính người thân (và báo "chưa 
 
 ## M-13. Sự kiện và thông báo (FR-065)
 
+**Đối tượng thông tin** (bổ sung 2026-10-18; FR-065, 009 FR-001a): thông báo "Đồ ăn gia đình Không sử dụng" tới người gửi khai `doiTuongThongTin = VE_VIEC_NGUOI_THAN`; lý do có nội dung sức khỏe đặt ở phần `SUC_KHOE`; các thông báo khác chỉ tới nhân viên.
+
 **Quyết định**: Mức theo bảng FR-065 của spec (đủ mức). Mọi thông báo cài `CoYeuCauThongBao` (009 B-02); thông báo tới bếp không có dị ứng, bệnh lý, thành phần xung đột (nội dung dựng từ DTO bếp). Sự kiện khác: `SuKienTinhPhiNguon*` (010), `YeuCauTaoCanhBao`, `YeuCauDongCanhBaoNguon` (007), `PhieuDaGiao`, `PhieuCoSaiLech` (016).
 
 ---

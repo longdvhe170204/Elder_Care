@@ -406,6 +406,34 @@ paths:
       requestBody: { content: { application/json: { schema: { type: object, properties: { lyDo: { $ref: '#/components/schemas/LyDo' }, huongXuLy: { type: string }, noiDung: { type: string }, nguoiPhuTrachId: { type: integer, format: int64 }, muc: { type: string, enum: [CAO, THUONG] }, tepIds: { type: array, items: { type: integer, format: int64 } } } } } } }
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
 
+  /nguoi-cao-tuoi/{nctId}/mong-muon:
+    get:
+      tags: [nguoi-than]
+      summary: Mong muốn của người cao tuổi về khách thăm, người đón (Hiệu lực và lịch sử) kèm quyền trái mong muốn đang hiệu lực (bổ sung 2026-10-18)
+      x-fr: [FR-020a, FR-020b]
+      parameters: [ { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { hieuLuc: { type: array, items: { $ref: '#/components/schemas/MongMuon' } }, lichSu: { type: array, items: { $ref: '#/components/schemas/MongMuon' } }, quyenTraiMongMuon: { type: array, items: { type: object, properties: { quanHeId: { type: integer, format: int64 }, quyen: { type: string, enum: [DANG_KY_THAM, DUOC_PHEP_DON] }, mongMuonId: { type: integer, format: int64 } } } } } } } } } }
+    post:
+      tags: [nguoi-than]
+      summary: Ghi mong muốn (Hành chính, Trưởng tầng, Điều dưỡng có phạm vi); mong muốn Hiệu lực cùng người, cùng loại chuyển Được thay thế
+      x-fr: [FR-020a]
+      x-br: [BR-M01-14]
+      parameters: [ { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [loai, muon, nguon]
+              properties:
+                quanHeId: { type: integer, format: int64 }
+                hoTen: { type: string }
+                soGiayTo: { type: string }
+                loai: { type: string, enum: [THAM, DON] }
+                muon: { type: boolean }
+                nguon: { $ref: '#/components/schemas/NguonYKien' }
+      responses: { '201': { description: Đã ghi, content: { application/json: { schema: { $ref: '#/components/schemas/MongMuon' } } } }, '403': { description: Ngoài phạm vi hoặc không có quyền }, '422': { description: 'Thiếu người được nói tới; NGUON_Y_KIEN_KHONG_HOP_LE' } }
 components:
   securitySchemes:
     phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
@@ -428,6 +456,26 @@ components:
       description: 'TRANG_THAI_DA_DOI, VI_PHAM_DBR_02, DA_CO_NGUOI_DAI_DIEN, LA_NGUOI_DONG_Y, TRUNG_YEU_CAU_CHO, THIEU_GIAY_TO, KHONG_CO_BAN_DONG_Y, KHONG_DUOC_LAP, NGUOI_DUOC_DE_NGHI_KHONG_XAC_NHAN, CHAN_DON, BAN_GHI_DON_DA_DUNG, NGOAI_LE_HET_HAN, KHONG_CO_QUYEN_LENH_NGUON, NGOAI_KHUNG, HET_CHO, KHOANH_VUNG, NCT_KHONG_CO_MAT, QUA_SO_NGUOI, NGOAI_THOI_HAN_DANG_KY, DA_QUA_GIO_BAT_DAU, CHONG_LUOT_O_LAI, THIEU_Y_KIEN_CUNG_PHONG, DA_CO_BAN_TIN, CHUA_QUA_MOC, THIEU_GIAI_THICH_SU_CO, CHUA_TOI_MOC_DUYET_THAY'
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
   schemas:
+    NguonYKien:
+      type: object
+      description: Như api-001.yaml NguonYKien (001 FR-023g); bổ sung 2026-10-18
+      required: [loai]
+      properties:
+        loai: { type: string, enum: [NGUOI_CAO_TUOI, NGUOI_THAN, NHAN_VIEN_QUAN_SAT] }
+        nguoiThanId: { type: [integer, 'null'], format: int64 }
+    MongMuon:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        quanHeId: { type: [integer, 'null'], format: int64 }
+        hoTen: { type: [string, 'null'] }
+        loai: { type: string, enum: [THAM, DON] }
+        muon: { type: boolean }
+        nguon: { $ref: '#/components/schemas/NguonYKien' }
+        nguoiGhi: { type: string }
+        thoiDiem: { type: string, format: date-time }
+        trangThai: { type: string, enum: [HIEU_LUC, DUOC_THAY_THE] }
+        thayTheBoiId: { type: [integer, 'null'], format: int64 }
     LyDo: { type: string, minLength: 1, maxLength: 2000 }
     Loi:
       type: object

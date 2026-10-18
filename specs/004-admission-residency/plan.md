@@ -1,6 +1,6 @@
 # Implementation Plan: Tiếp nhận và lưu trú
 
-**Branch**: `004-admission-residency` | **Date**: 2026-10-07 | **Spec**: [spec.md](spec.md)
+**Branch**: `004-admission-residency` | **Date**: 2026-10-07, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/004-admission-residency/spec.md`
 
@@ -35,6 +35,13 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - không đề xuất hồ sơ chờ, không tạo yêu cầu quyết định giữ giường;
 - job hằng ngày chỉ tính điểm, tính ngày vắng, đặt dấu theo thời gian, nhắc, báo;
 - tạo bảng kỳ cuối nháp ở 010 là tác động kèm lệnh lập hồ sơ kết thúc (FR-066).
+
+### Cập nhật 2026-10-18 (spec mục "Cập nhật 2026-10-18" và "Cập nhật 2026-10-18, lượt 2": Q-356, 009 FR-001a)
+
+- **Ý kiến của người cao tuổi về việc vào ở** (FR-001, Q-356): bảng con `y_kien_vao_o` của lượt đăng ký (nhóm 2, nội dung bất biến, thay thế bằng bản mới) có nguồn theo mẫu 001 (`NguonYKienApi`); lệnh `POST /luot-dang-ky/{id}/y-kien-vao-o` của Hành chính (research T-09a, data-model mục 3).
+- **Hoàn tất tiếp nhận** (FR-004a): ý kiến không là điều kiện. Danh sách điều kiện trả `yKienVaoO` hiện hành kèm nguồn; bean `ThamGiaM02` trả `canhBao` `CHUA_GHI_Y_KIEN_VAO_O` khi chưa có ý kiến và `NCT_KHONG_DONG_Y_VAO_O` khi ý kiến hiện hành là "Không đồng ý"; lý do của lệnh đã bắt buộc theo 001 FR-046 và lưu ở lịch sử trạng thái của 001 (plan 001, điểm báo lại 12). Tác động của lệnh ghi lại ý kiến hiện hành lúc tiếp nhận lên lượt đăng ký.
+- **Đối tượng thông tin** (FR-078, 009 FR-001a): 004 không tự gửi thông báo nào tới người thân; thông báo qua đời do 001 phát (mã Q-354 `QUA_DOI`); dấu `viecSauQuaDoi` cho module khác giữ nguyên (research T-12).
+- Không thêm thư viện, vai trò, trạng thái. Điểm báo lại 9 bên dưới.
 
 ## Technical Context
 
@@ -235,3 +242,5 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
      - ghi `YeuCauDoiMucApi`, `HopDongApi`, `LuotVangApi` là SPI khai báo ở `m01.api`, M02 cài.
    - [../002-account-permission/contracts/module-interfaces.md](../002-account-permission/contracts/module-interfaces.md): ghi `KetThucLuuTruApi` là SPI khai báo ở `m15.taikhoan.api`, M02 cài.
    - [../003-room-bed-allocation/contracts/module-interfaces.md](../003-room-bed-allocation/contracts/module-interfaces.md): thêm `PhongChoPhepApi.thuocTinhPhanBo`, `TinhTrangGiuongApi.batDauLuotTrong`, `ViTriApi.phanBoHienHanhHoacTuongLai`.
+
+9. **(2026-10-18) Q-356 "bắt buộc lý do" đã có sẵn ở 001 FR-046.** Mọi lệnh chuyển trạng thái do người dùng thực hiện, gồm Hoàn tất tiếp nhận, đã bắt buộc lý do. Plan không thêm trường lý do riêng; cảnh báo `NCT_KHONG_DONG_Y_VAO_O` hiện ý kiến để người thực hiện ghi lý do nói tới nó. Nếu ý định là một lý do riêng cho ý kiến "Không đồng ý", cần sửa FR-004a cho rõ (cùng nội dung plan 001 điểm báo lại 12). *(Đã xử lý 2026-10-18: Q-361: lý do của lệnh; thiết kế giữ nguyên, spec FR-004a đã làm rõ)*

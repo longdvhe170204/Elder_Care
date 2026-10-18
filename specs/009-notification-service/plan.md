@@ -1,6 +1,6 @@
 # Implementation Plan: Dịch vụ thông báo
 
-**Branch**: `009-notification-service` | **Date**: 2026-10-10 | **Spec**: [spec.md](spec.md)
+**Branch**: `009-notification-service` | **Date**: 2026-10-10, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/009-notification-service/spec.md`
 
@@ -25,6 +25,14 @@ Hướng kỹ thuật:
 Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - 009 không tạo yêu cầu gọi điện hay việc giao; lượt nhắc gọi là một thông báo Khẩn cấp, trạng thái tính được từ kết quả gọi và xác nhận;
 - 009 không tự nâng, hạ mức hay quyết định sự kiện nào cần thông báo (FR-002); chỉ gửi, nhắc, giữ và giải phóng, chặn nội dung không hợp lệ.
+
+### Cập nhật 2026-10-18 (spec mục "Cập nhật 2026-10-18": Q-352 → Q-354)
+
+- **Khuôn yêu cầu** (FR-001a): `YeuCauThongBao` thêm `doiTuongThongTin` (`VE_NGUOI_CAO_TUOI` | `VE_VIEC_NGUOI_THAN`) và `maTruongHop` (mã Q-354); thiếu đối tượng thì coi là về người cao tuổi và gắn dấu (research B-02, contracts mục 1.1).
+- **Phạm vi "nhận thông báo"** (FR-014, Q-353): hàm thuần `XetPhamViDongY` chạy cho từng người thân trước `LocPhanNoiDung`, cả lúc tiếp nhận và lúc giải phóng giờ yên tĩnh (research B-04).
+- **Mã trường hợp** (FR-014a, Q-354): lưu ở yêu cầu (mã khai) và ở dòng `thong_bao` của người nhận ngoài phạm vi (mã áp dụng); hiện trong lịch sử gửi (`DongLichSu`).
+- **Phần chung, phần sức khỏe của sự cố** (FR-013, Q-352): 009 không đổi cơ chế; 007, 012 khai hai `PhanNoiDung` (`CHUNG`, `SUC_KHOE`) theo 007 research S-19a.
+- Khuôn đổi nên mọi module nguồn có nhóm người thân phải khai đối tượng: 001, 004, 006, 007, 010, 011, 012, 013, 014 (điểm báo lại 7). Điểm báo lại 5 → 7 bên dưới.
 
 ## Technical Context
 
@@ -191,3 +199,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 4. **(Đồng bộ câu chữ spec 009, không đổi nghiệp vụ)** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Assumptions còn câu dẫn `docs/phan-tich-yeu-cau.md` mục 4.2 (đã bỏ); có thể giữ làm lịch sử.
    - Phạm vi còn "CFG-M13-03 → CFG-M13-06 (đề xuất)" và FR-016a, FR-016b, FR-018 còn "đề xuất" dù các mã đã ở Phụ lục 25.
+
+5. **(2026-10-18) "Phạm vi nhận thông báo" là cờ hay danh sách người.** 009 FR-014, 012 FR-054 nói "người thân nằm trong phạm vi 'nhận thông báo' của bản đồng ý", nhưng 001 FR-010 và 5.1 chỉ có một mục "đồng ý nhận thông báo" (data-model 001: `dong_y_thong_bao BOOLEAN`), không có danh sách người như phạm vi xem sức khỏe. Plan hiểu: cờ bật thì mọi người thân có quan hệ Hiệu lực (và đúng nhóm, đúng quyền) đều trong phạm vi; cờ tắt hoặc chưa có bản đồng ý Hiệu lực thì không ai. Nếu ý định là danh sách người thân, cần Q mới và sửa 001 FR-010 (thêm danh sách), 001 data-model và hàm `XetPhamViDongY`. *(Đã xử lý 2026-10-18: Q-357: một mục chung; thiết kế giữ nguyên, spec FR-014 đã làm rõ)*
+
+6. **(2026-10-18) Yêu cầu Khẩn cấp thiếu mã trường hợp.** FR-001a bắt từ chối yêu cầu gửi người thân nội dung vượt phạm vi mà không có mã; FR-014 bắt người liên hệ chính luôn nhận Khẩn cấp. Hai quy tắc chỉ va nhau khi module nguồn quên mã. Plan: không gửi người thân ngoài phạm vi đó, ghi lỗi gửi `THIEU_MA_TRUONG_HOP`, vẫn gửi các nhóm nhân viên; test hợp đồng của 001, 007 kiểm mọi yêu cầu tới người thân có mã. Đề nghị xác nhận. *(Đã xử lý 2026-10-18: giữ theo plan, chủ dự án ủy quyền chốt)*
+
+7. **(2026-10-18) Module nguồn cần khai đối tượng thông tin.** Spec 009 "Điểm cần báo lại" 1 của lượt 2026-10-18 đã nêu. Plan 001, 007 đã khai (cập nhật 2026-10-18); 012 khai khi cập nhật plan 012; 004, 006, 010, 011, 013, 014 cần khai ở spec rồi plan. Tới khi khai, yêu cầu của các module đó bị coi là về người cao tuổi và lọc theo bản đồng ý. *(Đã xử lý 2026-10-18: spec 004, 006, 010, 011, 013, 014 và plan của chúng đã khai; Q-362 chốt thuốc gửi, đồ gửi)*

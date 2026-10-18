@@ -65,6 +65,11 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M13 không b�
 | Q35 | 007 hạ sự cố khỏi Khẩn cấp khi lượt gọi đang Chờ | Lượt `DA_DUNG` "sự cố đã hạ mức"; không lượt mới | FR-029a, BR-M05-22 |
 | Q36 | Yêu cầu thiếu mức; thiếu loại thông tin; thiếu bản ghi nguồn | Nhẹ + dấu; phần coi là sức khỏe + dấu; `BI_TU_CHOI`; cả ba vào lỗi gửi | FR-003, FR-013 |
 | Q37 | Dừng backend 10 phút có thông báo Khẩn cấp quá hạn, khung gộp hết hạn, thông báo giữ hết giờ | Khởi động: lượt nhắc tạo một lần, tin tổng hợp gửi một lần, thông báo giải phóng | NFR-04, FR-042 |
+| Q38 | 012 gửi Nhẹ "A đã tham gia buổi sinh hoạt" (`VE_NGUOI_CAO_TUOI`, `CHUNG`) tới mọi người thân của A; bản đồng ý A có `dongYThongBao = true`; rồi bản mới `false` | Lần đầu M, R nhận; lần sau không ai nhận, không vào lỗi gửi | US4 #10, FR-014, Q-353 |
+| Q39 | 010 gửi "bảng chi phí đã chốt" (`VE_VIEC_NGUOI_THAN`, `CHI_PHI`) khi `dongYThongBao = false` | R (có quyền xem chi phí) nhận | US4 #10, FR-001a |
+| Q40 | 012 gửi sự cố ngã gồm phần `CHUNG` và `SUC_KHOE`; M có quyền xem sức khỏe và trong bản đồng ý, N chỉ trong phạm vi nhận thông báo | M thấy hai phần, N chỉ phần chung | US4 #11, FR-013, Q-352 |
+| Q41 | 007 gửi Khẩn cấp tới người liên hệ chính M (ngoài phạm vi) có mã `KHAN_CAP_NGUOI_LIEN_HE_CHINH`; một yêu cầu Khẩn cấp khác thiếu mã | M nhận, dòng `thong_bao` của M có mã, lịch sử gửi hiện mã; yêu cầu thiếu mã: M không nhận, lỗi gửi `THIEU_MA_TRUONG_HOP`, nhân viên vẫn nhận | FR-001a, FR-014a, Q-354 |
+| Q42 | Yêu cầu tới người thân thiếu `doiTuongThongTin` | Coi là về người cao tuổi; dấu `THIEU_DOI_TUONG_THONG_TIN` trong lỗi gửi | FR-001a |
 
 ## 4. Test tự động: truy vết kịch bản → test
 

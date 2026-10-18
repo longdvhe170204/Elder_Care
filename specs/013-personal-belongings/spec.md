@@ -57,6 +57,16 @@ Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi 
 - **Q-344**: FR-019 chỉ dùng bản ký scan trên phiếu trả, bỏ "chữ ký điện tử" (16.4).
 - Assumptions: tham số CFG-M12-02 → 07 đã có ở Phụ lục 25, bỏ câu "cần bổ sung".
 
+### Cập nhật 2026-10-18 (đồng bộ feature 009 FR-001a)
+
+Feature 009 FR-001a (Q-353, Q-354) yêu cầu mọi thông báo tới người thân khai đối tượng thông tin ("về người cao tuổi" hoặc "về việc của chính người thân"), và mang mã trường hợp Q-354 khi nội dung vượt phạm vi bản đồng ý. Thông báo "về người cao tuổi" chỉ tới người thân trong phạm vi "nhận thông báo" của bản đồng ý Hiệu lực (feature 009 FR-014). Thay đổi ở spec này: FR-032 khai đối tượng thông tin; không đổi người nhận, mức, loại thông tin hay nội dung.
+
+### Cập nhật 2026-10-18, lượt 2 (đồng bộ Q-357 → Q-364)
+
+Ngày 2026-10-18 chủ dự án ủy quyền chốt các điểm báo lại của lượt cập nhật nguyên tắc nhân văn; quyết định ghi ở docs/business/nghiep-vu.md 24.2 (Q-357 → Q-364). Thay đổi ở spec này:
+
+- **Q-362**: mọi thông báo về đồ gửi tới người thân, kể cả thất lạc, hư hỏng, tìm thấy, là "về việc của chính người thân" (FR-032).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 12, mục 16; UC-65; DBR-22):
@@ -391,6 +401,7 @@ Hoàn thành và Đã hủy là trạng thái cuối. Đề nghị "Xử lý đ�
 
 - **FR-032**: Feature này MUST yêu cầu feature 009 gửi đúng các thông báo ở bảng dưới, theo khuôn chung của feature 009 FR-001, FR-043a và nguyên tắc xếp mức FR-043b. Mọi "báo", "thông báo", "nhắc" trong FR và bảng trạng thái của spec này MUST có dòng tương ứng ở bảng dưới. Các quy tắc chung cho mọi dòng, thay cho các cột mà feature 009 FR-043a yêu cầu: *(Nguồn: 17, BR-M13-01, feature 009)*
   - **Người nhận là người thân** được xác định bằng nhóm người nhận của từng dòng (người đại diện, người liên hệ chính), không bằng loại thông tin. Nội dung mang loại thông tin "chung" và chỉ nêu loại đồ và sự kiện (FR-030, Q-151), nên người liên hệ chính không có quyền nhận vẫn nhận được mà không thấy chi tiết tài sản; điều này không mở quyền xem đồ gửi trên cổng.
+  - **Đối tượng thông tin** (bổ sung 2026-10-18, feature 009 FR-001a): mọi dòng tới người thân (đồ thất lạc, hư hỏng, được tìm thấy và dòng Hủy ghi nhận tương ứng; tiếp nhận đồ có giá trị, đồ được trả, xác nhận người nhận khác, Quản lý viện duyệt thay, hồ sơ kết thúc lưu trú còn đồ, đồ Đã xử lý, đồng ý cho tự giữ) và mọi thông báo sau qua đời là "về việc của chính người thân", vì người thân là người gửi và nhận lại đồ (Q-362). Không dòng nào mang mã Q-354.
   - **Sau khi người cao tuổi qua đời**: mọi thông báo tới người thân của spec này MUST chỉ gửi người đại diện và MUST được đánh dấu thuộc danh sách việc sau qua đời (feature 009 FR-015, feature 004 FR-073); dòng nào ghi "người liên hệ chính" thì thay bằng người đại diện.
   - **Khóa sự kiện** (feature 009 FR-005): (loại sự kiện, đồ gửi) cho sự kiện của một đồ; (loại sự kiện, yêu cầu / đề nghị / phiếu) cho sự kiện của các đối tượng đó; với nhắc lặp thêm ngày nhắc.
   - **Nội dung rút gọn cho kênh ngoài ứng dụng** (feature 009 FR-019): loại sự kiện và loại đồ; không nêu mô tả, số tiền, ảnh, vị trí lưu giữ.
@@ -571,3 +582,5 @@ Hoàn thành và Đã hủy là trạng thái cuối. Đề nghị "Xử lý đ�
 **(2026-10-10) Plan 013, điểm báo lại 1 → 3.** *(Đã xử lý 2026-10-10: spec 007 FR-046b sửa theo FR-011a; bảng FR-032. Điểm báo lại 16 (sự kiện cờ đi lạc) không còn đúng sau Q-281, giữ làm lịch sử.)*
 
 **(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-019, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+
+**(2026-10-18) Đồng bộ feature 009 FR-001a (đối tượng thông tin).** *(Đã xử lý 2026-10-18: Clarifications "Cập nhật 2026-10-18", FR-032.)* Cách xếp đã chốt ở Q-362 (mọi dòng là "về việc của chính người thân"). Plan, tasks đã khai (2026-10-18).

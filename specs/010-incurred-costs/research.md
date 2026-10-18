@@ -190,6 +190,8 @@ Sự kiện `BangChiPhiDaChot`, `DeNghiMuaHo*` là sự kiện thường của `
 
 ## P-13. Sự kiện và thông báo (FR-044)
 
+**Đối tượng thông tin** (bổ sung 2026-10-18; FR-044, 009 FR-001a): mọi thông báo tới người thân (bảng Đã chốt, đề nghị mua hộ cần đồng ý, bị hủy sau khi đồng ý, vượt số đã đồng ý, quá hạn chờ đồng ý) khai `doiTuongThongTin = VE_VIEC_NGUOI_THAN`.
+
 **Quyết định**: Mức theo bảng FR-044 của spec (đủ mức). Mọi sự kiện thông báo cài `CoYeuCauThongBao` (009 B-02), loại thông tin `CHI_PHI` với người thân, không có tên thuốc. Nhắc chờ đồng ý quá CFG-M15-05 / 06 theo mức của 009 FR-043b dòng 000 (Trung bình). Sự kiện khác: `BangChiPhiDaChot`, `DeNghiMuaHo*` (017), `KhoanChiPhiDaDoi` (016, 012 tạm tính — tùy chọn, 012 có thể đọc lại).
 
 ---

@@ -10,7 +10,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 - Dữ liệu mẫu của profile `demo`:
   - các tài khoản của quickstart 002 (một tài khoản cho mỗi vai trò, tầng T1, T2, ca ngày T1 có Người phụ trách ca N, Trưởng tầng H, bác sĩ BS);
   - danh mục dị nguyên có "Penicillin" (thuốc/hoạt chất) và "Tôm" (thực phẩm); mức độ, nguồn thông tin, nhu cầu chăm sóc theo giá trị khởi tạo;
-  - người thân R (người đại diện của A), M (người thân khác của A);
+  - người thân R (người đại diện của A ở 012), M (người thân khác của A), P (người thân của B, là người đại diện theo pháp luật theo quyết định của Tòa án, có bản scan mẫu);
   - bean giả `ThamGiaChuyenTrangThai` cho 003, 004, 005, 006, 007, 010, 011, 012, 013. Mỗi bean có công tắc Đạt / Chưa đạt qua `/api/v1/kiem-thu/gia-lap/{module}` (chỉ profile `test`, `demo`);
   - bản giả `ChiSoApi` (007) trả hai chỉ số gần nhất;
   - bản giả 006 có đơn amoxicillin Hiệu lực cho A.
@@ -58,7 +58,7 @@ Kết quả mong đợi: `verify` xanh, gồm test kiến trúc (`HoSoMoGuardArc
 | Q26 | Bản giả 004 áp dụng yêu cầu đổi mức ngày 15/06; tra mức ngày 01/06 và 20/06 | `CO_BAN` (căn cứ đánh giá) và `DAC_BIET` (căn cứ yêu cầu) | US6 #11, FR-053 |
 | Q27 | A Điều trị tại bệnh viện khi đến hạn định kỳ; Ghi nhận trở về sau 5 ngày | Báo định kỳ khi đang nằm viện, chưa tính hạn; khi trở về báo thêm "trở về từ bệnh viện", hạn tính từ lúc trở về | Edge Case, FR-041 |
 | Q28 | Cho tạm vắng A với dự kiến trở lại 17:00; tua tới 19:01; chạy job hai lần; gia hạn tới 21:00; tua tới 23:01 | Một cảnh báo cho Trưởng tầng và Hành chính; không cảnh báo lặp; cảnh báo mới cho mốc 21:00 | US4 #9, FR-050, SC-013 |
-| Q29 | Điều dưỡng ghi nguyện vọng cho B (Bác sĩ nhận định không đủ năng lực) với người ký là B; rồi người ký R; Hành chính xem | 409 `NGUOI_KY_KHONG_HOP_LE`; 201; Hành chính chỉ thấy `coNguyenVong = true` | US7 #2, #6, FR-023c, FR-023e |
+| Q29 | Điều dưỡng ghi nguyện vọng cho B (Bác sĩ nhận định B không tự quyết được, có cách hỗ trợ và ngày xem lại) với người ký là B; rồi người ký là con của B, `DAI_DIEN_NGUOI_BENH`, `cachChonDaiDien = NCT_DA_CHON`; Hành chính xem | 409 `NGUOI_KY_KHONG_HOP_LE`; 201; Hành chính chỉ thấy `coNguyenVong = true` | US7 #2, #6, FR-023c, FR-023e (sửa 2026-10-18) |
 | Q30 | Ghi phiên bản nguyện vọng mới cho A | Phiên bản cũ `DUOC_THAY_THE`; tối đa một phiên bản Hiệu lực | US7 #5, DBR-34 |
 | Q31 | Hồ sơ A1 (CCCD Y) Kết thúc lưu trú 2025, A2 Kết thúc lưu trú 2026; tạo hồ sơ mới CCCD Y; tạo hồ sơ CCCD Z trùng hồ sơ Qua đời | Hồ sơ mới liên kết A2, chuỗi xem được A2, A1; hồ sơ Z không liên kết, cảnh báo `CCCD_TRUNG_HO_SO_QUA_DOI` | US1 #3, #10, FR-004 |
 | Q32 | Bác sĩ chọn mức `DAC_BIET` cho người có hợp đồng Bán trú | Chấp nhận; loại lưu trú không đổi | US3 #8, FR-051, SC-010 |
@@ -83,3 +83,16 @@ Kết quả mong đợi: `verify` xanh, gồm test kiến trúc (`HoSoMoGuardArc
 
 - SC-001, SC-002, SC-003, SC-004, SC-007, SC-008, SC-009, SC-010, SC-011, SC-012, SC-013: test tự động ở mục 4, chạy trên MySQL thật và đồng hồ giả lập.
 - SC-005 (đánh giá đầu vào trong 10 phút) và SC-006 (tạo hồ sơ trong 5 phút): đo với người dùng đã được hướng dẫn trên profile `demo`, lấy trung vị của ít nhất 10 lần, theo cách đo ghi trong spec.
+
+## 6. Kịch bản bổ sung 2026-10-18 (Q-347, Q-348)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| Q33 | Hành chính ghi bản đồng ý cho A với `DAI_DIEN_PHAP_LUAT` là R (người đại diện ở 012), không có `quyetDinhToaAn` | 422 `THIEU_QUYET_DINH_TOA_AN` | US5 #3, #10, FR-011 |
+| Q34 | Ghi bản đồng ý cho B với `DAI_DIEN_PHAP_LUAT` là P, đủ số, ngày, Tòa án, tệp | 201; bản đồng ý mang `quyetDinhToaAn` | US5 #3, FR-011 |
+| Q35 | Ghi nguyện vọng cho A: Bác sĩ nhận định A tự quyết được, thiếu `cachHoTroHieu`; rồi đủ, kèm ý kiến khác của R (nguồn `NGUOI_THAN` R) và của một người thân không có quan hệ Hiệu lực | 422; 422 `NGUON_Y_KIEN_KHONG_HOP_LE`; bỏ ý kiến sai thì 201, phiếu có nhận định, ngày xem lại và một ý kiến khác có nguồn R | US7 #3, #7, FR-023a, FR-023c, FR-023g |
+| Q36 | Đọc hồ sơ A qua API và schema cơ sở dữ liệu | Không có trường hay cột năng lực chung nào; `FR_023h_KhongDauNangLucArchTest` xanh | US7 #7, FR-023h |
+
+| Q37 | Phiếu của A có ngày xem lại nhận định là ngày mai; tua đồng hồ qua ngày đó; chạy job hai lần | Bác sĩ đã nhận định và Điều dưỡng phụ trách nhận một nhắc Nhẹ; lần chạy thứ hai không nhắc | FR-023i, Q-360 |
+
+Test bổ sung: `NhacXemLaiNhanDinhIT` (Q37), `FR_011_DaiDienPhapLuatIT` (Q33, Q34), `NguyenVongNguoiKyIT` mở rộng (Q29, Q35), `BR_M01_14_NguonYKienIT` (Q35, `NguonYKienApi`), `FR_023h_KhongDauNangLucArchTest` (Q36).
