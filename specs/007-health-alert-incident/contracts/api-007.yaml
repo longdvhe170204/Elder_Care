@@ -865,7 +865,7 @@ components:
         kenh: { type: string, enum: [GOI_DIEN, TRUC_TIEP] }
         thoiDiem: { type: string, format: date-time }
         ketQua: { type: string, enum: [GIU, MOI, KHONG_LIEN_LAC_DUOC] }
-        nguyenVongMoi: { type: object, description: 'Bắt buộc khi MOI; theo 001 FR-023b, FR-023c' }
+        nguyenVongMoi: { type: object, description: 'Bắt buộc khi MOI; cùng thân lệnh POST /nguoi-cao-tuoi/{id}/nguyen-vong của api-001 sau cập nhật 2026-10-18 (nhanDinh, nguoiKyLoai, cachChonDaiDien, quyetDinhToaAn, yKienKhac); theo 001 FR-023b, FR-023c, FR-023g' }
     KetQuaTraCuuTiepXuc:
       type: object
       properties:

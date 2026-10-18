@@ -1,6 +1,6 @@
 # Implementation Plan: Quản lý hoạt động và chất lượng chăm sóc
 
-**Branch**: `014-activity-care-quality` | **Date**: 2026-10-10 | **Spec**: [spec.md](spec.md)
+**Branch**: `014-activity-care-quality` | **Date**: 2026-10-10, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/014-activity-care-quality/spec.md`
 
@@ -24,6 +24,11 @@ Hướng kỹ thuật:
 Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - 014 không tạo buổi, danh sách kiểm tra, mục kiểm tra, công việc làm lại, sự cố, khoản chi phí; không gợi ý người tham gia, hoạt động, công việc cần kiểm tra;
 - hệ thống chỉ: đăng ký sẵn người thường xuyên kèm lệnh tạo buổi; hủy tự động kèm sự kiện (đổi mẫu, khoanh vùng, nghi nhiễm, trạng thái cuối); gán "Không ghi nhận" hết ngày; cảnh báo cô lập, thiếu người qua 007; kiểm tra tỷ lệ; nhắc, thông báo.
+
+### Cập nhật 2026-10-18 (spec mục "Cập nhật 2026-10-18": feature 009 FR-001a; Q-363)
+
+- **Đối tượng thông tin** (FR-071, 009 FR-001a): dòng đồng ý về muộn tới người đại diện và người đã đăng ký khai `doiTuongThongTin = VE_VIEC_NGUOI_THAN`; các thông báo khác chỉ tới nhân viên; không yêu cầu nào mang mã Q-354 (research L-13).
+- **Sở thích theo nguồn** (FR-051, FR-052, Q-363): mỗi người cao tuổi tối đa một mục hiện hành cho mỗi (nhóm sở thích, nguồn); nguồn theo mẫu 001 (`NguonYKienApi`), nguồn người thân ghi rõ người nào; cảnh báo đăng ký nêu nguồn từng mục "không thích" (research L-09).
 
 ## Technical Context
 

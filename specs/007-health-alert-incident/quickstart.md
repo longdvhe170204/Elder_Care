@@ -131,3 +131,14 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (chiều `m05 
 | SC-014 | Q27, Q45: kiểm nội dung sự kiện gửi người thân |
 | SC-015 | Q53 → Q55 |
 | SC-016 | Q2, Q13, Q32, Q42 và test quyền Điều dưỡng ngoài phạm vi xác nhận danh sách tiếp xúc (403) |
+
+## Kịch bản bổ sung 2026-10-18 (Q-352, Q-354)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| K1 | Sự cố Khẩn cấp cho A; người liên hệ chính M không có trong bản đồng ý | Yêu cầu tới M mang `doiTuongThongTin = VE_NGUOI_CAO_TUOI`, mã `KHAN_CAP_NGUOI_LIEN_HE_CHINH`; bản ghi gửi của 009 (bản giả) lưu mã | FR-047, FR-047c |
+| K2 | Xác nhận danh sách tiếp xúc có người thân P; ghi dấu nguy kịch cho B có người đại diện R | Yêu cầu tới P mang `DANH_SACH_TIEP_XUC`; tới R mang `XAC_NHAN_LAI_NGUYEN_VONG` | FR-047c, FR-050b, FR-062 |
+| K3 | A bị ngã Trung bình, đã khám; người thân M có quyền xem sức khỏe, N không; 012 gọi `suCo` và `choBanTin` | M: phần chung và phần sức khỏe; N: chỉ phần chung (loại, thời điểm, mức, "viện đã xử lý"), không có mô tả, khám, điều trị | FR-082, Q-352 |
+| K4 | Ghi kết quả xác nhận lại `MOI` thiếu `nhanDinh` trong `nguyenVongMoi` | 422 từ 001; không có kết quả nào được ghi | FR-050c, 001 FR-023a |
+
+Test: `FR_047c_MaTruongHopIT` (K1, K2), `FR_082_PhanChungSucKhoeIT` (K3), mở rộng `BR_M05_16_XacNhanLaiIT` (K4).

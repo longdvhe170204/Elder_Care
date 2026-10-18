@@ -1,6 +1,6 @@
 # Implementation Plan: Sức khỏe, cảnh báo và sự cố
 
-**Branch**: `007-health-alert-incident` | **Date**: 2026-10-10 | **Spec**: [spec.md](spec.md)
+**Branch**: `007-health-alert-incident` | **Cập nhật**: 2026-10-18 | **Date**: 2026-10-10 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/007-health-alert-incident/spec.md`
 
@@ -32,6 +32,13 @@ Hướng kỹ thuật:
 Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - 007 không sinh công việc đo, lịch đo theo dõi, sự cố, danh sách tiếp xúc, yêu cầu gọi điện hay lượt vắng; không đề xuất nâng mức hay người tiếp xúc;
 - hệ thống chỉ: tính chuỗi mốc đo để kiểm căn cứ và hiển thị; so ngưỡng; tạo, gộp, leo thang, nhắc, đóng cảnh báo theo quy tắc; chuyển trạng thái theo giờ; kiểm tra và chặn; tác động kèm lệnh của actor (bản tóm tắt, khoảng theo dõi sau ngã, tác động trạng thái cuối, hủy công việc khi nguồn bị hủy).
+
+### Cập nhật 2026-10-18 (spec mục "Cập nhật 2026-10-18": Q-352, Q-354)
+
+- **Mã trường hợp Q-354** (FR-047, FR-047c): mọi yêu cầu thông báo tới người thân của 007 khai `doiTuongThongTin = VE_NGUOI_CAO_TUOI` (009 FR-001a) và mang mã trường hợp: `KHAN_CAP_NGUOI_LIEN_HE_CHINH` (FR-047, FR-050b c), `DANH_SACH_TIEP_XUC` (FR-062), `XAC_NHAN_LAI_NGUYEN_VONG` (FR-050b d, nhắc gọi của 009), `CHUYEN_VIEN` (thông báo do 001 phát khi lệnh Chuyển viện của FR-049 chạy). 009 chỉ dùng mã với người nhận nằm ngoài phạm vi bản đồng ý và lưu vào bản ghi gửi (research S-19).
+- **Phần chung và phần sức khỏe của sự cố** (FR-082, Q-352): `SucKhoeCongNguoiThanApi.suCo` và `BanTinSucKhoeApi.choBanTin` trả mỗi sự cố thành `phanChung` và `phanSucKhoe`; phần sức khỏe chỉ có khi người thân thuộc phạm vi xem sức khỏe của bản đồng ý (với `choBanTin`, 012 lọc theo người nhận). Danh sách trường ở research S-19a.
+- **Nguyện vọng mới khi xác nhận lại** (FR-050c): thân lệnh theo api-001 sau cập nhật 2026-10-18 của 001 (nhận định gắn với phiếu, người ký theo FR-023c, ý kiến khác có nguồn).
+- Không đổi bảng; điểm báo lại 8 → 10 bên dưới.
 
 ## Technical Context
 
@@ -242,3 +249,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 7. **(Đồng bộ câu chữ spec 007, không đổi nghiệp vụ)** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Assumptions còn câu dẫn `docs/phan-tich-yeu-cau.md` mục 4.2 (đã bỏ); có thể giữ làm lịch sử.
    - FR-017 còn chữ "(đề xuất, mặc định \[10 phút\])" và "tham số mới, xem Điểm cần báo lại 3" dù CFG-M06-04 đã có ở Phụ lục 25.
+
+8. **(2026-10-18) FR-047 dẫn nhầm FR-047c.** Câu "Nếu tại thời điểm kích hoạt không có Bác sĩ trực, hệ thống MUST áp FR-047c" của FR-047 trước đây là FR-047b; lần sửa 2026-10-18 đổi thành FR-047c (nay là quy tắc Q-354). Plan theo FR-047b (research S-12). Đề nghị sửa lại chữ trong spec 007. *(Đã xử lý 2026-10-18: spec 007 FR-047 đã sửa về FR-047b)*
+
+9. **(2026-10-18) Mức sự cố và mô tả tự do thuộc phần nào (Q-352).** Q-352 (9.5, 14.5) liệt kê phần chung: có sự cố, loại, thời điểm, viện đã xử lý; không nêu mức. Spec 012 FR-052 lại ghi "phần chung của sự cố trong kỳ kèm mức". Plan theo spec 012: mức thuộc phần chung. `mo_ta`, `xu_ly_ban_dau`, diễn biến xếp vào phần sức khỏe (hạn chế hơn) vì có thể chứa tổn thương hoặc điều trị; "viện đã xử lý" là trạng thái xử lý (Đang xử lý, Đang theo dõi, Đã đóng). Đề nghị chủ dự án xác nhận mức thuộc phần chung và ghi vào Q-352. Loại sự cố tự nêu bệnh: cùng câu hỏi với spec "Điểm cần báo lại" 1; plan hiện xếp tên loại vào phần chung, trừ loại lây nhiễm theo Q-72. *(Đã xử lý 2026-10-18: Q-358: mức thuộc phần chung; thiết kế giữ nguyên)*
+
+10. **(2026-10-18) Mã trường hợp của thông báo nguy kịch tới người thân.** FR-050b (c) gửi người liên hệ chính và mọi người đại diện nội dung tối thiểu. Q-354 có "khẩn cấp tới người liên hệ chính" và "xác nhận lại nguyện vọng khi nguy kịch". Plan gắn `XAC_NHAN_LAI_NGUYEN_VONG` cho thông báo tới người đại diện (vì họ được báo để chuẩn bị xác nhận lại) và `KHAN_CAP_NGUOI_LIEN_HE_CHINH` cho người liên hệ chính. Đề nghị xác nhận. *(Đã xử lý 2026-10-18: giữ theo plan, chủ dự án ủy quyền chốt)*

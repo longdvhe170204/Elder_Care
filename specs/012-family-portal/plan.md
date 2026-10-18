@@ -1,6 +1,6 @@
 # Implementation Plan: Người thân và cổng thông tin gia đình
 
-**Branch**: `012-family-portal` | **Date**: 2026-10-10 | **Spec**: [spec.md](spec.md)
+**Branch**: `012-family-portal` | **Date**: 2026-10-10, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/012-family-portal/spec.md`
 
@@ -28,6 +28,15 @@ Hướng kỹ thuật:
 Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - 012 không tạo bản tin, không soạn sẵn nội dung, không tạo khoản chi phí, không tự Từ chối yêu cầu, không tự kết thúc lượt ở lại, không tự gửi bản tin đính chính;
 - hệ thống chỉ: tính sẵn số liệu khi Điều dưỡng soạn; tự duyệt hoặc từ chối đăng ký thăm theo điều kiện (FR-031); chuyển trạng thái theo giờ (Không đến, Hết hạn, Không dùng, Không gửi, tự đóng); tác động kèm lệnh (bỏ khỏi danh sách đón, hủy lượt thăm khi kết thúc quan hệ, khi vắng, khi khoanh vùng); nhắc, leo thang, thông báo.
+
+### Cập nhật 2026-10-18 (spec mục "Cập nhật 2026-10-18": Q-347, Q-348, Q-351 → Q-353)
+
+- **Mong muốn về khách thăm, người đón** (FR-020a): bảng `mong_muon_nct` (nhóm 2, nội dung bất biến, thay thế bằng bản mới) có nguồn theo mẫu 001 (`NguonYKienApi`); ghi bởi Hành chính, Trưởng tầng, Điều dưỡng có phạm vi (research F-06a, data-model mục 3a).
+- **Yêu cầu trái mong muốn** (FR-020b, FR-020c): `KiemTraYeuCau` thêm kiểm trái mong muốn; yêu cầu hoặc dòng phiếu trái mong muốn chỉ Hiệu lực qua Quản lý viện duyệt kèm lý do và nội dung đã trao đổi với người cao tuổi; bỏ người đón vẫn hiệu lực ngay; người đại diện theo pháp luật (đọc qua `BanDongYApi.daiDienPhapLuat` của 001) không bị chặn. Cảnh báo "quyền trái mong muốn đang hiệu lực" tính lúc đọc, không job.
+- **Sự cố trên cổng và bản tin** (FR-046, FR-052, Q-352): dùng `SuCoNguoiThanView` của 007 (phần chung kèm mức cho mọi người thân có quan hệ; phần sức khỏe khi có quyền xem sức khỏe).
+- **Bản tin và thông báo** (FR-054, FR-069, Q-353): mọi yêu cầu tới người thân khai đối tượng thông tin theo 009 FR-001a (bảng ở research F-15); bản tin là `VE_NGUOI_CAO_TUOI`, 009 lọc theo mục "nhận thông báo".
+- **Người đại diện** (Q-348): giữ tên; `laNguoiDaiDienHieuLuc` không còn dùng cho 001 FR-011, FR-023c.
+- Điểm báo lại 6 → 9 bên dưới.
 
 ## Technical Context
 
@@ -190,3 +199,11 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 4. **Đồng ý về muộn trên cổng** (FR-046c thứ hai): spec 012 cho người đại diện ghi trên cổng, spec 014 FR-016a cho Hành chính ghi nhận đồng ý qua bản ký. Plan để bản ghi thuộc 014, người đại diện ghi qua REST của 014 (kiểm người đại diện qua 012). Đề nghị ghi rõ ở 014 FR-016a rằng có hai nguồn ghi (cổng, bản ký). *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
 5. **Câu chữ còn lẫn trong spec 012** (không đổi nghiệp vụ): FR-014, FR-015, FR-059, FR-060, FR-067 dẫn "4.4" (Permission Matrix của `docs/phan-tich-yeu-cau.md` đã bỏ; tra Phụ lục 27); Assumptions dòng đầu dẫn mục 4.2 của tài liệu đã bỏ. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
+
+6. **(2026-10-18) FR-071 của spec 012 còn dòng "Cung cấp 001: Người đại diện hợp lệ để làm người đồng ý (FR-011 của 001)".** Sau Q-348, 001 FR-011 chỉ nhận người đại diện theo pháp luật kèm quyết định của Tòa án; 012 chỉ cung cấp "người thân có quan hệ Hiệu lực". Đề nghị sửa dòng này khi đồng bộ spec 012. *(Đã xử lý 2026-10-18: spec FR-071 đã sửa)*
+
+7. **(2026-10-18) Bảng FR-069 chưa có cột đối tượng thông tin (009 FR-001a).** Plan khai theo cách hiểu ở research F-15 (bản tin, bản tin đính chính: về người cao tuổi; còn lại: về việc của chính người thân). Đề nghị thêm cột vào FR-069 khi cập nhật spec 012 (cùng việc với các spec 004, 006, 010, 011, 013, 014). *(Đã xử lý 2026-10-18: spec FR-069 đã khai đối tượng, khớp research F-15)*
+
+8. **(2026-10-18) Nhận ra "cùng một người" giữa mong muốn và quyền.** FR-020a cho ghi mong muốn về người ngoài (họ tên, số giấy tờ). Plan coi yêu cầu trái mong muốn khi người được cấp quyền có quan hệ trùng `quan_he_id` hoặc hồ sơ người thân có số giấy tờ trùng số giấy tờ của mong muốn; không so họ tên. Đề nghị xác nhận. *(Đã xử lý 2026-10-18: giữ theo plan, chủ dự án ủy quyền chốt)*
+
+9. **(2026-10-18) FR-020c dựa vào quyết định của Tòa án đã ghi ở 001.** 001 chỉ lưu quyết định của Tòa án trên bản đồng ý (FR-011). Plan nhận người đại diện theo pháp luật qua bản đồng ý Hiệu lực có người ký `DAI_DIEN_PHAP_LUAT`; có quyết định mà chưa ghi bản đồng ý thì hệ thống không biết. Liên quan plan 001 điểm báo lại 10. *(Đã xử lý 2026-10-18: giữ theo plan; người đại diện ngoài gia đình theo Q-359)*

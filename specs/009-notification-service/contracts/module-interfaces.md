@@ -20,7 +20,12 @@ record YeuCauThongBao(String moduleNguon, String loaiSuKien, NhomNguon nhomNguon
                       Optional<String> noiDungRutGon, Optional<String> tieuDe,
                       Optional<Long> nguoiGayRa, boolean baoNguoiGayRa,
                       Instant thoiDiemPhatSinh, Map<String, Object> thamSoHienThi,
-                      boolean viecSauQuaDoi) {}       // viecSauQuaDoi: dấu của 004 (FR-015)
+                      boolean viecSauQuaDoi,          // viecSauQuaDoi: dấu của 004 (FR-015)
+                      Optional<DoiTuongThongTin> doiTuongThongTin,   // bổ sung 2026-10-18 (FR-001a); bắt buộc khai khi có nhóm người thân
+                      Optional<MaTruongHopQ354> maTruongHop) {}      // bổ sung 2026-10-18 (FR-001a, FR-014a); chỉ khi nội dung có thể vượt phạm vi đồng ý
+
+enum DoiTuongThongTin { VE_NGUOI_CAO_TUOI, VE_VIEC_NGUOI_THAN }
+enum MaTruongHopQ354 { KHAN_CAP_NGUOI_LIEN_HE_CHINH, DANH_SACH_TIEP_XUC, XAC_NHAN_LAI_NGUYEN_VONG, CHUYEN_VIEN, QUA_DOI }
 
 enum MucThongBao { NHE, TRUNG_BINH, KHAN_CAP }
 enum LoaiThongTin { CHUNG, SUC_KHOE, CHI_PHI, THAM_NOM, HOP_DONG }

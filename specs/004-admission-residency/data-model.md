@@ -57,6 +57,7 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | `ngay_mong_muon_vao` | `DATE` | | FR-001 |
 | `trang_thai` | `ENUM('DANG_XU_LY','DANG_CHO','DA_TIEP_NHAN','DA_HUY')` | | FR-002 |
 | `nct_dang_mo` | Cột sinh `IF(trang_thai IN ('DANG_XU_LY','DANG_CHO'), nct_id, NULL)` | `UNIQUE` | FR-001 |
+| `y_kien_luc_tiep_nhan_id` | `BIGINT NULL` | Đặt một lần bởi tác động Hoàn tất tiếp nhận; trỏ `y_kien_vao_o.id` | FR-004a (bổ sung 2026-10-18) |
 
 | Từ | Lệnh / sự kiện | Đến | Gọi từ | Điều kiện | Tác động |
 | --- | --- | --- | --- | --- | --- |
@@ -64,8 +65,25 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | `DANG_XU_LY`, `DANG_CHO` | Cập nhật lượt đăng ký | không đổi | `POST …/{id}/cap-nhat` (`If-Match`, lý do) | FR-001 | Nhật ký trước/sau |
 | `DANG_XU_LY` | Đưa vào danh sách chờ | `DANG_CHO` | `POST /ho-so-cho` | FR-007 | Tạo hồ sơ chờ |
 | `DANG_CHO` | Hồ sơ chờ Đã tiếp nhận | `DANG_XU_LY` | `daPhanBo` (003) | — | — |
-| `DANG_XU_LY` | Hoàn tất tiếp nhận (001) | `DA_TIEP_NHAN` | Bean 004 | FR-004 | Sự kiện `TiepNhanHoanTat` (018) |
+| `DANG_XU_LY` | Hoàn tất tiếp nhận (001) | `DA_TIEP_NHAN` | Bean 004 | FR-004; ý kiến vào ở chỉ cảnh báo (FR-004a) | Sự kiện `TiepNhanHoanTat` (018); đặt `y_kien_luc_tiep_nhan_id` |
+| `DANG_XU_LY`, `DANG_CHO` | Ghi ý kiến về việc vào ở | không đổi | `POST …/{id}/y-kien-vao-o` (AC-09) | FR-001 | Dòng `y_kien_vao_o` mới; dòng Hiệu lực cũ `DUOC_THAY_THE` |
 | `DANG_XU_LY`, `DANG_CHO` | Hủy tiếp nhận (001) | `DA_HUY` | Bean 004 | — | FR-002 |
+
+---
+
+### `y_kien_vao_o` – nhóm 2, nội dung bất biến *(bổ sung 2026-10-18; FR-001, FR-004a, Q-356; research T-09a)*
+
+| Cột | Kiểu | Ràng buộc | Nguồn |
+| --- | --- | --- | --- |
+| `id`, `luot_dang_ky_id` | `BIGINT` | Khóa ngoại tới `luot_dang_ky` | FR-001 |
+| `y_kien` | `ENUM('DONG_Y','KHONG_DONG_Y','KHONG_BAY_TO_DUOC')` | `NOT NULL` | FR-001, Q-356 |
+| `nguon_loai`, `nguon_nguoi_than_id`, `nguoi_ghi_id`, `thoi_diem` | Mẫu cột nguồn 001 data-model mục 6a | | FR-001, 001 FR-023g |
+| `ghi_chu` | `VARCHAR(2000) NULL` | | FR-001 |
+| `trang_thai` | `ENUM('HIEU_LUC','DUOC_THAY_THE')` | | FR-001 |
+| `thay_the_boi_id` | `BIGINT NULL` | | FR-001 |
+| `luot_hieu_luc` | Cột sinh `IF(trang_thai = 'HIEU_LUC', luot_dang_ky_id, NULL)` | `UNIQUE` | FR-001 |
+
+Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LUC → DUOC_THAY_THE`; không xóa. Phân loại trường `CONG_KHAI_NOI_BO`; lưu giữ `THEO_HO_SO` cùng `luot_dang_ky`.
 
 ---
 
@@ -412,6 +430,7 @@ Dịch vụ, phiên bản đơn giá là danh mục, không bị loại bỏ.
 | BR-M02-20 | Lượt trống theo FR-012 (plan, điểm báo lại 1) | `FR_012_LuotTrongIT` |
 | BR-M02-21 | `@NhomTruong(SUC_KHOE)` | `BR_M02_21_NguyenNhanTuVongIT` |
 | BR-M02-22 | FR-004 (e), FR-025, FR-025b | `BR_M02_22_MucHopDongIT` |
+| FR-001, FR-004a (Q-356) | `y_kien_vao_o`, `luot_hieu_luc` `UNIQUE`; cảnh báo của bean | `FR_004a_YKienVaoOIT` |
 | FR-043 (Q-338) | `LaThayDoiNho`; `gioiHanVaiTroDuyet` của handler `M02.THAY_DOI_LUU_TRU` (research T-06) | `FR_043_ThayDoiNhoIT`, `LaThayDoiNhoTest` |
 
 BR-M02-11 → 14 (khai báo tạm trú) thuộc feature 018; 004 chỉ phát sự kiện (FR-033b).

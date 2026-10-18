@@ -104,10 +104,14 @@ List<VungView> dangKhoanh();                                // dashboard (18.5)
 ### 1.9. `m05.api.SucKhoeCongNguoiThanApi`, `BanTinSucKhoeApi` (012)
 
 ```java
-List<SuCoNguoiThanView> suCo(long nctId, long nguoiThanId, Instant tu, Instant den);   // chỉ khi BanDongYApi.baoGom; 012 ghi nhật ký lượt xem (NFR-08, 012 FR-048)
+List<SuCoNguoiThanView> suCo(long nctId, long nguoiThanId, Instant tu, Instant den);
+    // sửa 2026-10-18 (Q-352, research S-19a): mỗi sự cố có phanChung; phanSucKhoe chỉ khi BanDongYApi.baoGom;
+    // 012 ghi nhật ký lượt xem phần sức khỏe (NFR-08, 012 FR-048)
+record SuCoNguoiThanView(long suCoId, PhanChungSuCo phanChung, Optional<PhanSucKhoeSuCo> phanSucKhoe) {}
 List<ChiSoNguoiThanView> chiSo(long nctId, long nguoiThanId, Instant tu, Instant den);
 BanTinSucKhoeView choBanTin(long nctId, LocalDate tu, LocalDate den);
     // FR-082: cân nặng và xu hướng, chỉ số chính, sự cố trong kỳ kèm mức (bỏ sự cố Đã hủy, FR-046a)
+    // sửa 2026-10-18 (Q-352): mỗi sự cố gồm phanChung (kèm mức, 012 FR-052) và phanSucKhoe; 012 lọc theo người nhận
 ```
 
 ### 1.10. `m05.api.CanhBaoThongKeApi`, `m06.api.ChiSoThongKeApi` (016; FR-081)

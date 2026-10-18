@@ -54,6 +54,10 @@ Spec 016 định nghĩa "phiếu giao trễ" (Đã giao sau giờ bữa + CFG-M0
 
 - **Q-333**: áp món an toàn tại mốc CFG-M08-05 và phát sinh "−1" tại giờ bữa là chuyển trạng thái theo giờ, ghi rõ trong Q-307. Sửa FR-037a, FR-040a.
 
+### Cập nhật 2026-10-18 (đồng bộ feature 009 FR-001a)
+
+Feature 009 FR-001a (Q-353, Q-354) yêu cầu mọi thông báo tới người thân khai đối tượng thông tin ("về người cao tuổi" hoặc "về việc của chính người thân"), và mang mã trường hợp Q-354 khi nội dung vượt phạm vi bản đồng ý. Thông báo "về người cao tuổi" chỉ tới người thân trong phạm vi "nhận thông báo" của bản đồng ý Hiệu lực (feature 009 FR-014). Thay đổi ở spec này: FR-065 khai đối tượng thông tin; không đổi người nhận, mức, loại thông tin hay nội dung.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 08, mục 12; UC-45 → UC-48, UC-75 → UC-78):
@@ -516,7 +520,7 @@ Ngừng, Đã hủy là trạng thái cuối. *(Trạng thái Chờ duyệt, T�
 
 #### L. Thông báo
 
-- **FR-065**: Feature này MUST yêu cầu feature 009 gửi đúng các thông báo ở bảng dưới, theo khuôn chung của feature 009 FR-001 và nguyên tắc xếp mức FR-043b. Thông báo tới bếp MUST NOT chứa dị ứng, bệnh lý hay thành phần xung đột (FR-046). Mọi "báo", "thông báo", "nhắc" trong FR và bảng trạng thái của spec này MUST có dòng tương ứng ở bảng dưới. *(Nguồn: 17, BR-M13-01, feature 009)*
+- **FR-065**: Feature này MUST yêu cầu feature 009 gửi đúng các thông báo ở bảng dưới, theo khuôn chung của feature 009 FR-001 và nguyên tắc xếp mức FR-043b. Thông báo tới bếp MUST NOT chứa dị ứng, bệnh lý hay thành phần xung đột (FR-046). Mọi "báo", "thông báo", "nhắc" trong FR và bảng trạng thái của spec này MUST có dòng tương ứng ở bảng dưới. *(Nguồn: 17, BR-M13-01, feature 009)* **(Bổ sung 2026-10-18, feature 009 FR-001a)** Thông báo "Đồ ăn gia đình Không sử dụng" tới người gửi là "về việc của chính người thân" (đồ do chính người đó gửi); lý do có nội dung sức khỏe theo loại thông tin của feature 009 FR-013. Các dòng khác không gửi người thân. Không thông báo nào cần mã Q-354.
 
 | Sự kiện | Người nhận | Mức | Căn cứ |
 | --- | --- | --- | --- |
@@ -684,3 +688,5 @@ Ngừng, Đã hủy là trạng thái cuối. *(Trạng thái Chờ duyệt, T�
 - **Q-308** – Bác sĩ xác định yêu cầu dinh dưỡng (bản gán chế độ ăn), danh mục chế độ ăn và món an toàn. Nhân viên bếp tạo món ăn, Bác sĩ xác nhận thành phần và chế độ ăn phù hợp trước khi món được dùng. Nhân viên bếp lập thực đơn tuần, tự xác nhận đã kiểm tra khả năng chế biến, nguyên liệu, suất ăn (hệ thống hiển thị tồn kho và số người theo chế độ ăn, không đối chiếu định lượng, Q-220), gửi kiểm tra; Bác sĩ Công bố hoặc Trả lại kèm lý do. Nhân viên bếp đổi món sau công bố, Bác sĩ được báo. Nhắc thực đơn tuần kế tiếp gửi Nhân viên bếp (12.1, 12.2, BR-M08-08, 16, 19.3, Phụ lục 26, 27, BF-03; sửa Q-142, Q-283). FR cần rà: mục A (FR-001 → FR-005), mục D (FR-023 → FR-032), FR-063, bảng FR-065, User Story 2, 3.
 
 **(2026-10-10) Plan 011, điểm báo lại 1 → 3.** *(Đã xử lý 2026-10-10: Q-333; sửa FR-037a, FR-040a. Dẫn chiếu "4.4" tra qua bảng ánh xạ ở Phụ lục 26, không phải lỗi.)*
+
+**(2026-10-18) Đồng bộ feature 009 FR-001a (đối tượng thông tin).** *(Đã xử lý 2026-10-18: Clarifications "Cập nhật 2026-10-18", FR-065.)* Còn báo lại: plan, contracts, tasks chưa cập nhật. *(Đã xử lý 2026-10-18: plan, research, tasks đã khai.)*

@@ -1,6 +1,6 @@
 # Implementation Plan: Hồ sơ và đánh giá người cao tuổi
 
-**Branch**: `001-elder-profile-assessment` | **Date**: 2026-10-07 | **Spec**: [spec.md](spec.md)
+**Branch**: `001-elder-profile-assessment` | **Date**: 2026-10-07, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/001-elder-profile-assessment/spec.md`
 
@@ -21,7 +21,16 @@ Hướng kỹ thuật:
 - "Cần đánh giá lại" là trạng thái tính được từ lần báo; không có bản ghi yêu cầu (Q-307, H-11).
 - Thêm thành phần tệp đính kèm dùng chung `common.tep` cho ảnh và bản scan (H-13).
 
-Plan tuân theo FR-010a của 000 (Q-306, Q-307): M01 không tự sinh bản ghi nghiệp vụ, không gợi ý. Sáu job chỉ báo, nhắc, cảnh báo theo thời gian. Mọi thay đổi khác là lệnh của actor, hoặc tác động kèm lệnh đó.
+Plan tuân theo FR-010a của 000 (Q-306, Q-307): M01 không tự sinh bản ghi nghiệp vụ, không gợi ý. Bảy job chỉ báo, nhắc, cảnh báo theo thời gian. Mọi thay đổi khác là lệnh của actor, hoặc tác động kèm lệnh đó.
+
+### Cập nhật 2026-10-18 (spec mục "Cập nhật 2026-10-18": Q-347, Q-348, Q-353, Q-355, Q-356)
+
+- **Bản đồng ý** (FR-010, FR-011, FR-014): người ký thay chỉ là người đại diện theo pháp luật, kèm số, ngày, Tòa án và bản scan quyết định của Tòa án; bỏ `ly_do_dai_dien` và lời gọi `laNguoiDaiDienHieuLuc` (research H-06, data-model mục 4). Q-355 còn mở: không có đường ký thay khi chưa có quyết định của Tòa án.
+- **Phiếu nguyện vọng** (FR-023a → FR-023c): `du_nang_luc` thay bằng nhận định gắn với phiếu (`tu_quyet_duoc`, thời điểm, cách hỗ trợ hiểu, ngày xem lại); người ký thay là người đại diện của người bệnh (kèm cách chọn) hoặc người đại diện theo pháp luật; ý kiến khác lựa chọn là bảng con `nguyen_vong_y_kien` có nguồn (research H-09, data-model mục 6).
+- **Nguồn của ý kiến dùng chung** (FR-023g): `NguonYKien`, `NguonYKienApi.kiemTra` ở `m01.api`, mẫu cột ở data-model mục 6a, schema `NguonYKien` ở api-001.yaml; 004, 005, 012, 014 dùng lại (research H-16).
+- **Không có dấu năng lực** (FR-023h): test kiến trúc quét schema và OpenAPI (research H-16).
+- **Nhận thông báo** (Q-353): M01 không đổi cách lưu `dong_y_thong_bao`; 009 lọc người nhận (plan 009).
+- **Q-356**: điều kiện, cảnh báo và yêu cầu lý do của Hoàn tất tiếp nhận về ý kiến vào ở do bean `ThamGiaChuyenTrangThai` của 004 cung cấp qua `canhBao` (plan 004); M01 không đổi SPI (điểm báo lại 12).
 
 ## Technical Context
 
@@ -64,7 +73,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307): M01 không tự sinh bản ghi
 **Scale/Scope**:
 - 300 người cao tuổi đang ở (NFR-01).
 - 8 trạng thái, 11 lệnh chuyển; 9 module tham gia chuyển trạng thái.
-- 6 job.
+- 7 job (thêm `NhacXemLaiNhanDinh` 2026-10-18, Q-360).
 - Khoảng 35 endpoint (contracts/api-001.yaml).
 
 Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chốt ở [research.md](research.md). Các điểm về tài liệu nguồn ghi ở "Điểm cần báo lại"; chúng không chặn thiết kế.
@@ -75,7 +84,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 
 | Nguyên tắc | Đánh giá | Bằng chứng |
 | --- | --- | --- |
-| I. Nguồn gốc, truy vết | Đạt | Mọi quyết định dẫn FR, BR, DBR; data-model mục 12 là bảng truy vết DBR-01 → 05, 23, 25, 34 và BR-M01-01 → 13 |
+| I. Nguồn gốc, truy vết | Đạt | Mọi quyết định dẫn FR, BR, DBR; data-model mục 12 là bảng truy vết DBR-01 → 05, 23, 25, 34 và BR-M01-01 → 15 (BR-M01-14, 15 phần của 001, bổ sung 2026-10-18) |
 | II. Spec không nêu công nghệ | Đạt | Spec không đổi; công nghệ chỉ ở plan, research |
 | III. Không mặc định CRUD | Đạt | Nhóm 2 (hồ sơ, bản đồng ý, mục sức khỏe, nguyện vọng) chỉ có lệnh. Nhóm 3 (lịch sử, đánh giá, hồ sơ sức khỏe ban đầu sau xác nhận) chỉ thêm và đính chính. "Sửa nháp" chỉ khi chưa xác nhận. Danh mục theo mẫu nhóm 1 |
 | IV. Trạng thái kiểm tra được | Đạt | Bảng chuyển ở data-model mục 2, 4 → 7 khớp hai bảng trạng thái của spec; mỗi kịch bản có test (quickstart mục 4) |
@@ -91,6 +100,8 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | XIV. Ngoại tuyến, thông báo | Đạt | Lệnh của 001 chỉ trực tuyến (ngoài phạm vi 8.6). Mọi thông báo là sự kiện tới 009, có mức, người nhận, khóa sự kiện (H-14) |
 | XV. Truy vết, kiểm thử | Đạt | Tên test theo BR, FR; mỗi BR-M01-01 → 13 có test tích hợp (data-model mục 12). Không có BR nào của 001 thực hiện ở client |
 
+**Kiểm lại sau Phase 1 (2026-10-18)**: Đạt. Cập nhật Q-347, Q-348 chỉ đổi trường của bản đồng ý và phiếu nguyện vọng, thêm bảng con chỉ thêm `nguyen_vong_y_kien` và giao diện `NguonYKienApi` theo FR-023g; không thêm vai trò, trạng thái hay lệnh. Các điểm còn thiếu ở nguồn ghi ở điểm báo lại 10 → 12.
+
 **Kiểm lại sau Phase 1**: Đạt. Thiết kế không thêm vai trò, trạng thái hay quy tắc nghiệp vụ ngoài spec. Có ba bổ sung kỹ thuật. Thứ nhất, hai giao diện mới trên hợp đồng của 000: `TepApi`, `YeuCauPheDuyetApi.chuyenMoRong`. Thứ hai, bảng kỹ thuật `lan_bao_danh_gia_lai` lưu lần thông báo, không phải yêu cầu. Thứ ba, lệnh trạng thái không dùng `If-Match`. Cả ba được giải thích ở Complexity Tracking.
 
 ### Đáp ứng yêu cầu phi chức năng (constitution X)
@@ -100,7 +111,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | NFR-01 Quy mô | Có | 300 hồ sơ đang ở, vài nghìn hồ sơ cũ; chỉ mục ở data-model |
 | NFR-02 Hiệu năng | Có | Lệnh trạng thái khóa một dòng và gọi bean có chỉ mục; lưu ý chăm sóc lấy theo lô cho checklist |
 | NFR-03 Thông báo khẩn cấp | Có | Chuyển viện, qua đời phát sự kiện sau commit ngay trong lệnh; 009 gửi Khẩn cấp. Kiểm tra dị ứng không chặn đường ghi |
-| NFR-04 Tác vụ định kỳ | Có | Sáu job chống lặp bằng khóa duy nhất hoặc cột "đã cảnh báo"; khóa sự kiện cho 009 (H-12, H-14) |
+| NFR-04 Tác vụ định kỳ | Có | Bảy job chống lặp bằng khóa duy nhất hoặc cột "đã cảnh báo"; khóa sự kiện cho 009 (H-12, H-14) |
 | NFR-05 Khả dụng | Gián tiếp | Job chạy lại khi khởi động; không phụ thuộc giờ giao ca |
 | NFR-06 Sao lưu | Có | Thư mục tệp được sao lưu cùng MySQL (H-13) |
 | NFR-07 Lưu trữ | Có | `LuuTruProvider` theo hồ sơ cho mọi bảng và tệp (data-model mục 11) |
@@ -118,13 +129,13 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 ```text
 specs/001-elder-profile-assessment/
 ├── plan.md                      # File này
-├── research.md                  # Phase 0: H-01 → H-15
+├── research.md                  # Phase 0: H-01 → H-16
 ├── data-model.md                # Phase 1: bảng, bảng chuyển, bảo đảm ở cơ sở dữ liệu, truy vết
 ├── quickstart.md                # Phase 1: kịch bản kiểm chứng, truy vết kịch bản → test
 ├── contracts/
-│   ├── api-001.yaml             # OpenAPI 3.1: hồ sơ, trạng thái, bản đồng ý, sức khỏe, nguyện vọng, đánh giá, danh mục, tệp
-│   └── module-interfaces.md     # Giao diện Java: 001 cung cấp / 001 cần; SPI ThamGiaChuyenTrangThai
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+│   ├── api-001.yaml             # OpenAPI 3.1: hồ sơ, trạng thái, bản đồng ý, sức khỏe, nguyện vọng, đánh giá, danh mục, tệp; schema NguonYKien dùng chung
+│   └── module-interfaces.md     # Giao diện Java: 001 cung cấp / 001 cần; SPI ThamGiaChuyenTrangThai; NguonYKienApi
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)
@@ -143,7 +154,7 @@ backend/src/main/java/com/cambae/backend/
     ├── suckhoe/     {internal, web}   # hồ sơ ban đầu, mục sức khỏe, danh mục
     ├── nguyenvong/  {internal, web}
     ├── danhgia/     {internal, web}   # đánh giá, báo đánh giá lại, provider đính chính
-    └── lich/                          # 6 job (H-12)
+    └── lich/                          # 7 job (H-12)
 
 frontend/src/tinh-nang/
 ├── ho-so-nguoi-cao-tuoi/          # tra cứu, tạo, cập nhật, lịch sử, hồ sơ liên kết, lệnh trạng thái
@@ -216,3 +227,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
    - Hợp đồng của 000 thêm `TepApi` (H-13) và `YeuCauPheDuyetApi.chuyenMoRong` (H-10).
    - Data-model của 000 ghi trạng thái mở rộng `DUOC_THAY_THE` "của 001"; đã sửa thành của loại `M02.THAY_DOI_LUU_TRU` (004), do 001 kích hoạt.
    - Đã sửa ở [../000-shared-foundation/contracts/module-interfaces.md](../000-shared-foundation/contracts/module-interfaces.md) và [../000-shared-foundation/data-model.md](../000-shared-foundation/data-model.md).
+
+10. **(2026-10-18) Người đại diện theo pháp luật không phải người thân.** Spec 001 "Điểm cần báo lại" 2 đã nêu. Plan chỉ cho người ký thay (FR-011, FR-023c) là người thân có quan hệ Hiệu lực ở 012, vì không có chỗ lưu người khác. Người do Tòa án chỉ định ngoài gia đình chưa ghi được. Đề nghị chốt bằng Q mới: thêm loại quan hệ ở 012, hay lưu họ tên, giấy tờ ngay trên bản đồng ý. *(Đã xử lý 2026-10-18: Q-359: người đại diện ngoài gia đình được lập là người thân quan hệ "Khác" ở 012; thiết kế giữ nguyên)*
+
+11. **(2026-10-18) Ngày xem lại nhận định của Bác sĩ.** FR-023a, FR-023h bắt buộc ghi ngày xem lại nhưng không nói đến hạn thì làm gì. Plan chỉ lưu và hiển thị, không nhắc (Q-306: không tự sinh; nhắc thì cần FR). Đề nghị xác nhận, hoặc thêm FR nhắc Bác sĩ khi tới ngày xem lại. *(Đã xử lý 2026-10-18: Q-360, FR-023i: thêm job `NhacXemLaiNhanDinh` (research H-12))*
+
+12. **(2026-10-18) Q-356 "bắt buộc lý do" trùng FR-046.** FR-046 đã bắt lý do với mọi lệnh chuyển trạng thái do người dùng thực hiện, gồm Hoàn tất tiếp nhận; `LenhTrangThai.lyDo` luôn bắt buộc. Nên khi ý kiến là "Không đồng ý", điều mới chỉ là hệ thống hiện ý kiến đó (cảnh báo của bean 004) để lý do nói tới nó. Plan không thêm cơ chế riêng. Đề nghị: nếu ý định là lý do phải nói riêng về ý kiến của người cao tuổi (ví dụ trường lý do riêng), ghi rõ ở 004 FR-004a. *(Đã xử lý 2026-10-18: Q-361: dùng lý do của lệnh; thiết kế giữ nguyên)*

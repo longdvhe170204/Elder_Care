@@ -332,6 +332,8 @@ Qua đời với thời điểm trong quá khứ (Edge Case): 006 không sửa b
 
 ## D-17. Sự kiện và thông báo
 
+**Đối tượng thông tin** (bổ sung 2026-10-18; FR-053, 009 FR-001a): thông báo tới người liên hệ chính, người đại diện về thuốc gia đình gửi (sắp hết FR-046, hết khi đến liều, hết hạn dùng BR-M07-11, cần nhận lại thuốc mang theo) khai `doiTuongThongTin = VE_VIEC_NGUOI_THAN` (Q-362); phần `SUC_KHOE` (tên thuốc, hàm lượng) giữ như cũ để 009 lọc theo bản đồng ý.
+
 **Quyết định**: Mọi yêu cầu tới 007, 009, 010 là sự kiện ghi cùng transaction qua outbox của 000 (R-09), mang khóa `loại + id + mốc` để bên nghe bỏ trùng (NFR-04). Không có lời gọi đồng bộ tới module làm plan sau, trừ các SPI đọc ở D-02.
 
 Mức thông báo (spec, 009 FR-043b; dòng có dấu * là plan áp nguyên tắc 3 bậc, xem plan điểm báo lại 5):

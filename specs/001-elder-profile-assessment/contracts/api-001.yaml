@@ -270,6 +270,9 @@ paths:
       tags: [ban-dong-y]
       summary: Ghi nhận bản đồng ý (Hành chính); thay thế bản Hiệu lực cũ trong cùng lệnh
       x-fr: [FR-010, FR-011, FR-013, FR-014a]
+      description: |
+        Sửa 2026-10-18 (Q-348): người ký thay chỉ là người đại diện theo pháp luật, kèm đủ quyetDinhToaAn.
+        Vai trò "người đại diện" của 012 không cho quyền ký thay. dongYThongBao áp cho thông báo không khẩn về người cao tuổi (Q-353).
       x-br: [BR-M01-08]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody:
@@ -280,9 +283,9 @@ paths:
               type: object
               required: [nguoiDongYLoai, nguoiThanDuocXemSucKhoe, dongYHinhAnh, dongYThongBao, thoiDiemDongY, bangChungTepId]
               properties:
-                nguoiDongYLoai: { type: string, enum: [NGUOI_CAO_TUOI, NGUOI_DAI_DIEN] }
-                nguoiDongYNguoiThanId: { type: integer, format: int64 }
-                lyDoDaiDien: { type: string }
+                nguoiDongYLoai: { type: string, enum: [NGUOI_CAO_TUOI, DAI_DIEN_PHAP_LUAT] }
+                nguoiDongYNguoiThanId: { type: integer, format: int64, description: Bắt buộc khi DAI_DIEN_PHAP_LUAT }
+                quyetDinhToaAn: { $ref: '#/components/schemas/QuyetDinhToaAn' }
                 nguoiThanDuocXemSucKhoe: { type: array, items: { type: integer, format: int64 } }
                 dongYHinhAnh: { type: boolean }
                 dongYThongBao: { type: boolean }
@@ -290,7 +293,7 @@ paths:
                 bangChungTepId: { type: integer, format: int64 }
       responses:
         '201': { description: Đã ghi nhận, content: { application/json: { schema: { $ref: '#/components/schemas/BanDongY' } } } }
-        '409': { description: 'HO_SO_DA_DONG, KHONG_PHAI_NGUOI_DAI_DIEN', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
+        '409': { description: 'HO_SO_DA_DONG, NGUOI_KY_KHONG_HOP_LE', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
         '422': { $ref: '#/components/responses/Loi' }
   /ban-dong-y/{id}/rut-lai:
     post:
@@ -409,7 +412,7 @@ paths:
     post:
       tags: [nguyen-vong]
       summary: Ghi phiên bản mới (Bác sĩ, Điều dưỡng); phiên bản cũ chuyển Được thay thế
-      x-fr: [FR-023a, FR-023b, FR-023c]
+      x-fr: [FR-023a, FR-023b, FR-023c, FR-023g, FR-023h]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody:
         required: true
@@ -417,23 +420,35 @@ paths:
           application/json:
             schema:
               type: object
-              required: [luaChon, nguoiLienHeTruoc, nguoiTraLoiLoai, bacSiNhanDinhId, duNangLuc, nguoiKyLoai, thoiDiemKy, banKyTepId, nguon]
+              required: [luaChon, nguoiLienHeTruoc, nguoiTraLoiLoai, bacSiNhanDinhId, nhanDinh, nguoiKyLoai, thoiDiemKy, banKyTepId, nguon]
               properties:
                 luaChon: { type: string, enum: [CHUYEN_BENH_VIEN, DUA_VE_NHA, O_LAI_GIAM_NHE] }
                 nguoiLienHeTruoc: { type: string }
                 ghiChu: { type: string }
-                nguoiTraLoiLoai: { type: string, enum: [NGUOI_CAO_TUOI, NGUOI_DAI_DIEN] }
+                nguoiTraLoiLoai: { type: string, enum: [NGUOI_CAO_TUOI, DAI_DIEN_NGUOI_BENH, DAI_DIEN_PHAP_LUAT] }
                 nguoiTraLoiNguoiThanId: { type: integer, format: int64 }
                 quanHe: { type: string }
                 bacSiNhanDinhId: { type: integer, format: int64 }
-                duNangLuc: { type: boolean }
-                nguoiKyLoai: { type: string, enum: [NGUOI_CAO_TUOI, NGUOI_DAI_DIEN] }
+                nhanDinh: { $ref: '#/components/schemas/NhanDinhTuQuyet' }
+                nguoiKyLoai: { type: string, enum: [NGUOI_CAO_TUOI, DAI_DIEN_NGUOI_BENH, DAI_DIEN_PHAP_LUAT] }
                 nguoiKyNguoiThanId: { type: integer, format: int64 }
+                cachChonDaiDien: { type: string, enum: [NCT_DA_CHON, GIA_DINH_CHON], description: Bắt buộc khi DAI_DIEN_NGUOI_BENH }
+                quyetDinhToaAn: { $ref: '#/components/schemas/QuyetDinhToaAn' }
+                yKienKhac:
+                  type: array
+                  description: Ý kiến khác với lựa chọn (thường của gia đình), mỗi ý kiến một mục có nguồn (FR-023c, FR-023g)
+                  items:
+                    type: object
+                    required: [nguon, noiDung]
+                    properties:
+                      nguon: { $ref: '#/components/schemas/NguonYKien' }
+                      noiDung: { type: string }
                 thoiDiemKy: { type: string, format: date-time }
                 banKyTepId: { type: integer, format: int64 }
                 nguon: { type: string, enum: [TIEP_NHAN, YEU_CAU_GIA_DINH] }
       responses:
         '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/NguyenVong' } } } }
+        '422': { description: 'NGUON_Y_KIEN_KHONG_HOP_LE, THIEU_QUYET_DINH_TOA_AN, thiếu nhanDinh', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
         '409': { description: 'NGUOI_KY_KHONG_HOP_LE, HO_SO_DA_DONG', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
 
   /nguoi-cao-tuoi/{id}/danh-gia:
@@ -787,7 +802,8 @@ components:
       type: object
       properties:
         id: { type: integer, format: int64 }
-        nguoiDongYLoai: { type: string }
+        nguoiDongYLoai: { type: string, enum: [NGUOI_CAO_TUOI, DAI_DIEN_PHAP_LUAT] }
+        quyetDinhToaAn: { oneOf: [ { $ref: '#/components/schemas/QuyetDinhToaAn' }, { type: 'null' } ] }
         nguoiThanDuocXemSucKhoe: { type: array, items: { type: integer, format: int64 } }
         dongYHinhAnh: { type: boolean }
         dongYThongBao: { type: boolean }
@@ -841,11 +857,49 @@ components:
         luaChon: { type: string }
         nguoiLienHeTruoc: { type: string }
         ghiChu: { type: string }
-        duNangLuc: { type: boolean }
+        nhanDinh: { $ref: '#/components/schemas/NhanDinhTuQuyet' }
         nguoiKy: { type: string }
+        nguoiKyLoai: { type: string, enum: [NGUOI_CAO_TUOI, DAI_DIEN_NGUOI_BENH, DAI_DIEN_PHAP_LUAT] }
+        cachChonDaiDien: { type: [string, 'null'], enum: [NCT_DA_CHON, GIA_DINH_CHON, null] }
+        yKienKhac:
+          type: array
+          items:
+            type: object
+            properties:
+              nguon: { $ref: '#/components/schemas/NguonYKien' }
+              noiDung: { type: string }
+              nguoiGhi: { type: string }
+              thoiDiem: { type: string, format: date-time }
         thoiDiemKy: { type: string, format: date-time }
         nguon: { type: string }
         trangThai: { type: string, enum: [HIEU_LUC, DUOC_THAY_THE] }
+    NguonYKien:
+      type: object
+      description: |
+        Nguồn của ý kiến dùng chung (001 FR-023g, BR-M01-14); 004, 005, 012, 014 chép đúng schema này vào hợp đồng của mình.
+        nguoiThanId bắt buộc khi loai = NGUOI_THAN và phải là người thân có quan hệ Hiệu lực; rỗng khi loại khác.
+      required: [loai]
+      properties:
+        loai: { type: string, enum: [NGUOI_CAO_TUOI, NGUOI_THAN, NHAN_VIEN_QUAN_SAT] }
+        nguoiThanId: { type: [integer, 'null'], format: int64 }
+    NhanDinhTuQuyet:
+      type: object
+      description: Nhận định của Bác sĩ gắn với chính quyết định này, không phải dấu của người cao tuổi (FR-023h)
+      required: [tuQuyetDuoc, cachHoTroHieu, ngayXemLai]
+      properties:
+        tuQuyetDuoc: { type: boolean }
+        thoiDiem: { type: string, format: date-time, readOnly: true }
+        cachHoTroHieu: { type: string, minLength: 1 }
+        ngayXemLai: { type: string, format: date }
+    QuyetDinhToaAn:
+      type: object
+      description: Bằng chứng quyết định của Tòa án tuyên mất năng lực hành vi dân sự hoặc khó khăn trong nhận thức, làm chủ hành vi (FR-011)
+      required: [so, ngay, toaAn, tepId]
+      properties:
+        so: { type: string }
+        ngay: { type: string, format: date }
+        toaAn: { type: string }
+        tepId: { type: integer, format: int64 }
     NguyenVongTongHop:
       type: object
       properties:

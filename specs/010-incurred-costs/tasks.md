@@ -22,6 +22,8 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 ---
 
+**Cập nhật 2026-10-18** (plan mục "Cập nhật 2026-10-18"; 009 FR-001a): sửa T003. Mã task cũ giữ nguyên.
+
 ## Phase 1: Setup
 
 - [ ] T001 Tạo khung gói `BE/m11/{api,ky,khoan,nguon,tinhgia,dieuchinh,muaho,kycuoi,xuat,cungcap,lich}/` với `package-info.java`; ArchUnit `BT/m11/M11ArchTest.java`: chỉ `m11.sodu`, `m11.muasam` dùng port nội bộ; gói `..lich..` không lập khoản, bảng (trừ kỳ của viện) (research P-01; Q-306)
@@ -35,7 +37,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T003 [P] Tạo `BE/m11/api/`: `ChiPhiCongNguoiThanApi`, `ChiPhiKyCuoiApi`, `ChiPhiThongKeApi`, record `SuKienTinhPhiNguon`, `SuKienTinhPhiNguonDaDoi` (cho 011, 012, 014 phát) và sự kiện `BangChiPhiDaChot`, `DeNghiMuaHoDaGui/DaQuyetDinh/DaHuy/DaMua`, `KhoanChiPhiDaDoi` (thông báo cài `CoYeuCauThongBao`, loại `CHI_PHI`, không tên thuốc) (contracts mục 1.2 → 1.6)
+- [ ] T003 [P] Tạo `BE/m11/api/`: `ChiPhiCongNguoiThanApi`, `ChiPhiKyCuoiApi`, `ChiPhiThongKeApi`, record `SuKienTinhPhiNguon`, `SuKienTinhPhiNguonDaDoi` (cho 011, 012, 014 phát) và sự kiện `BangChiPhiDaChot`, `DeNghiMuaHoDaGui/DaQuyetDinh/DaHuy/DaMua`, `KhoanChiPhiDaDoi` (thông báo cài `CoYeuCauThongBao`, loại `CHI_PHI`, không tên thuốc) (contracts mục 1.2 → 1.6); bổ sung 2026-10-18 (009 FR-001a): sự kiện có người nhận là người thân khai `doiTuongThongTin` theo research P-13, test hợp đồng kiểm mọi yêu cầu tới người thân có đối tượng
 - [ ] T004 [P] Tạo port nội bộ `BE/m11/cungcap/port/ChiPhiChoSoDuPort.java` (`tongChuaChot`, `phiNgayCoSo`) và `BE/m11/muaho/port/SoDuMuaHoPort.java` (`soDuKhongDu`; không có bean thì không đặt dấu) (research P-12)
 - [ ] T005 Tạo `MIG/V010_01__chi_phi.sql`: `chi_phi_nct` (`nct_id` khóa chính, `mien_hoan_thanh_tu`), `ky_chi_phi` (`thang` `UNIQUE`; `trang_thai` `DANG_MO|CHO_CHOT|DA_CHOT`; `han_chot`), `bang_chi_phi` (`UNIQUE (ky_id, nct_id, loai_bang)`; `loai_bang` `THUONG|BO_SUNG`; `trang_thai` `DANG_MO|CHO_CHOT|DA_CHOT`; trigger sau chốt chỉ cho đặt `lan_xuat_dau_id` từ `NULL`), `bang_chi_phi_tong_loai` (nhóm 3), `khoan_chi_phi` (`loai_chi_phi ENUM` 10 loại FR-014a; `nguon_sinh ENUM('THEO_SU_KIEN','NHAP_TAY','MUA_HO','DIEU_CHINH')`; `so_tien NULL` khi `THIEU_DON_GIA`; `dau SET(...)` 10 giá trị ở data-model mục 4; `trang_thai ENUM('NHAP','DA_KIEM_TRA','DA_DUYET','DA_CHOT','DA_HUY')`; cột sinh `khoa_don_vi_hieu_luc` `UNIQUE`; năm chỉ mục; trigger chặn đổi khi `DA_CHOT`/`DA_HUY` và chặn đổi số tiền khi không có `@tinh_lai`), `lich_su_tinh_lai` (nhóm 3), `su_kien_tinh_phi` (khóa chính `(loai_nguon, nguon_id, don_vi)`), `su_kien_nguon_da_xu_ly`, `lan_chay_m11` (data-model mục 2 → 5)
 - [ ] T006 [P] Cài hàm thuần `BE/m11/tinhgia/internal/LamTronDong.java`, `PhiNgayLuuTru.java` (chia giá tháng), `PhiBuoiBanTru.java`, `ThoiGianTinhPhi.java` và test `BT/m11/LamTronDongTest.java`, `BR_M11_09_ChiaGiaThangTest.java` (12 tháng, SC-002), `PhiBuoiBanTruTest.java`, `ThoiGianTinhPhiTest.java` (research P-05)

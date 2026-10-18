@@ -140,7 +140,7 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 ## 7. Tinh thần (mục I)
 
 - `hoat_dong_nct`: `nct_id`, `phien_ban`.
-- `so_thich` (nhóm 2): `id`, `nct_id`, `nhom_id`, `mo_ta`, `muc` (`THICH`, `KHONG_THICH`), `nguon` (`NCT_TU_NOI`, `NGUOI_THAN`, `NHAN_VIEN_QUAN_SAT`), `trang_thai` (`HIEN_HANH`, `DA_THAY`, `DA_BO`), `boi_id`, `luc`, `ly_do_bo`, `thay_boi_id NULL`; cột sinh `khoa_hien_hanh` `UNIQUE` (L-09).
+- `so_thich` (nhóm 2): `id`, `nct_id`, `nhom_id`, `mo_ta`, `muc` (`THICH`, `KHONG_THICH`), `nguon_loai` (`NGUOI_CAO_TUOI`, `NGUOI_THAN`, `NHAN_VIEN_QUAN_SAT`), `nguon_nguoi_than_id NULL` (mẫu cột nguồn 001 data-model mục 6a; sửa 2026-10-18, Q-363), `trang_thai` (`HIEN_HANH`, `DA_THAY`, `DA_BO`), `boi_id`, `luc`, `ly_do_bo`, `thay_boi_id NULL`; cột sinh `khoa_hien_hanh` theo (người cao tuổi, nhóm, nguồn) `UNIQUE` (L-09).
 - `chuoi_co_lap` (kỹ thuật): `nct_id`, `so_ngay_tinh`, `ngay_bat_dau_chuoi`, `ngay_xet_cuoi`, `da_yeu_cau_canh_bao_cho_chuoi`.
 
 ---

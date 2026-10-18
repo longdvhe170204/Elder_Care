@@ -22,6 +22,8 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 ---
 
+**Cập nhật 2026-10-18** (plan mục "Cập nhật 2026-10-18"; 009 FR-001a): sửa T003. Mã task cũ giữ nguyên.
+
 ## Phase 1: Setup
 
 - [ ] T001 Tạo khung gói `BE/m08/...` với `package-info.java`; ArchUnit `BT/m08/M08ArchTest.java`: gói `..lich..` không gọi lệnh chốt, không lập phiếu (Q-306); DTO bếp không tham chiếu kiểu sức khỏe (research M-01, M-09)
@@ -35,7 +37,7 @@ description: "Danh sách task triển khai feature 011 – Quản lý dinh dư�
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T003 [P] Tạo `BE/m08/api/`: `CheDoAnApi`, `ThucDonChungApi`, `LichBuaApi`, `DinhDuongThongKeApi`, SPI `LuotOLaiAnPort`, `ChuyenDiBuaAnPort`, record `LuotOLaiDaDoi`, `ChuyenDiDaDoi`, port `TonKhoNguyenLieuPort` và sự kiện mục 1.8 (cài `CoYeuCauThongBao`) (contracts mục 1.2 → 1.8)
+- [ ] T003 [P] Tạo `BE/m08/api/`: `CheDoAnApi`, `ThucDonChungApi`, `LichBuaApi`, `DinhDuongThongKeApi`, SPI `LuotOLaiAnPort`, `ChuyenDiBuaAnPort`, record `LuotOLaiDaDoi`, `ChuyenDiDaDoi`, port `TonKhoNguyenLieuPort` và sự kiện mục 1.8 (cài `CoYeuCauThongBao`) (contracts mục 1.2 → 1.8); bổ sung 2026-10-18 (009 FR-001a): sự kiện có người nhận là người thân khai `doiTuongThongTin` theo research M-13, test hợp đồng kiểm mọi yêu cầu tới người thân có đối tượng
 - [ ] T004 Tạo `MIG/V011_01__nen_m08.sql`: `dinh_duong_nct` (`nct_id` khóa chính), `bua_an` (`ma` khóa của CFG-M08-04; `phuc_vu_noi_tru`, `phuc_vu_ban_tru`), `loai_do_an_cam`, `su_kien_m08_da_xu_ly` (`khoa_su_kien UNIQUE`), `lan_chay_m08` (data-model mục 2, 3, 11)
 - [ ] T005 [P] Cài hàm thuần `BE/m08/doichieu/internal/XungDot.java`, `ChonMonThayThe.java` và test `BT/m08/XungDotTest.java`, `ChonMonThayTheTest.java` (dị ứng và hạn chế, BR-M08-02, BR-M01-07; research M-06)
 - [ ] T006 Cài khung job `BE/m08/lich/ViecTheoPhutM08.java`, `ViecHangNgayM08.java` (ShedLock, `lan_chay_m08`, chạy bù) và test `BT/m08/ChayBuM08IT.java`; khung listener idempotent `BE/m08/doichieu/internal/SuKienM08Listener.java` (chỉ xét bữa đã chốt chưa tới giờ) (research M-08, M-15)
