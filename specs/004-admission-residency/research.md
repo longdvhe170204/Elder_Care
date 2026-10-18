@@ -225,6 +225,8 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 - **Bàn giao** `POST /ho-so-ket-thuc/{id}/ban-giao` (nhóm 3): người nhận (người thân hoặc cơ sở tiếp nhận), thời điểm, nhân viên bàn giao.
 - **Ngoại lệ** là loại yêu cầu `M02.NGOAI_LE_KET_THUC`, lập bởi Hành chính, hoặc Kế toán với (h); `apDung` thêm dòng `ngoai_le_dieu_kien`.
 
+- **Ý kiến về việc vào ở** (FR-004a, bổ sung 2026-10-18): xem T-09a.
+
 **Lý do**: Điều kiện (a) → (d), (h) đã thuộc bean của module sở hữu (001 H-02). Đọc lại qua 001 tránh 004 phụ thuộc năm module và giữ một nguồn kết quả cho cả lệnh lẫn màn hình.
 
 ---
@@ -265,6 +267,8 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 ---
 
 ## T-12. Sự kiện và thông báo
+
+**Đối tượng thông tin** (bổ sung 2026-10-18; FR-078, 009 FR-001a): plan 004 không có thông báo nào gửi người thân (mọi thông báo ở bảng dưới gửi nhân viên). Thông báo qua đời tới người liên hệ chính do 001 phát với `VE_NGUOI_CAO_TUOI` và mã `QUA_DOI` (001 research H-14). Nếu sau này 004 gửi người đại diện về hợp đồng, phụ lục, đặt cọc, yêu cầu do họ lập, tiến trình kết thúc, danh sách việc sau qua đời, yêu cầu khai `VE_VIEC_NGUOI_THAN`.
 
 **Quyết định**: Sự kiện phát sau commit qua outbox (000 R-09). Mức thông báo: FR-025b là Trung bình (Q-302); thông báo qua đời Khẩn cấp do 001, 009 gửi (Q-97); các thông báo khác theo nguyên tắc 3 bậc như 001 H-14, 003 G-12:
 
@@ -334,3 +338,17 @@ Nội dung tài chính của hợp đồng (FR-028) mang `@NhomTruong(TAI_CHINH)
 - **Đồng hồ giả lập**: 30 ngày điểm ưu tiên (SC-004); lượt vắng 35 ngày; quá hạn hợp đồng; quá ngày dự kiến; chạy bù khi bỏ lỡ 3 ngày (FR-077).
 - **Bản giả** cho các SPI 004 khai báo (010, 017, 012, 005 và năm bên cài `MucViecSauQuaDoiPort`), và cho bean `ThamGiaChuyenTrangThai` của 006, 007, 010, 013, 017 khi kiểm danh sách kết thúc. Công tắc qua `/api/v1/kiem-thu/gia-lap/{module}` như 001, 003.
 - **Client**: Vitest cho danh sách điều kiện tiếp nhận và kết thúc (Đạt, Chưa đạt, Không áp dụng, ngoại lệ), danh sách hồ sơ phù hợp (không chọn sẵn, bắt buộc lý do khi bỏ qua thứ tự), màn hợp đồng ẩn trường tài chính. `flutter_test` cho Cho tạm vắng và Gia hạn ở app nhân viên (Trưởng tầng).
+
+---
+
+## T-09a. Ý kiến của người cao tuổi về việc vào ở *(bổ sung 2026-10-18; FR-001, FR-004a; Q-356, Q-347)*
+
+**Quyết định**:
+- **Bảng** `y_kien_vao_o` (data-model mục 3): mỗi lần ghi một dòng gắn `luot_dang_ky`; `y_kien` `DONG_Y | KHONG_DONG_Y | KHONG_BAY_TO_DUOC`; nguồn theo mẫu cột 001 data-model mục 6a, kiểm bằng `NguonYKienApi.kiemTra`; ghi chú; `HIEU_LUC | DUOC_THAY_THE`. Tối đa một dòng Hiệu lực mỗi lượt (cột sinh `UNIQUE`); ghi mới thì dòng cũ chuyển Được thay thế trong cùng transaction dưới khóa `luu_tru_nct`. Nội dung không sửa, không xóa (trigger).
+- **Lệnh** `POST /luot-dang-ky/{id}/y-kien-vao-o`: Hành chính (khóa `TIEP_NHAN_HOP_DONG_DAT_COC, TAO` như lập lượt đăng ký, T-14); lượt ở `DANG_XU_LY` hoặc `DANG_CHO`. `GET /luot-dang-ky/{id}` trả ý kiến hiện hành và lịch sử.
+- **Danh sách điều kiện** (FR-004a): `DanhSachDieuKien.yKienVaoO` (hiện hành kèm nguồn, hoặc rỗng); không phải một dòng điều kiện, không ảnh hưởng Đạt / Chưa đạt.
+- **Lệnh Hoàn tất tiếp nhận**: `ThamGiaM02.canhBao(nc)` cho `HOAN_TAT_TIEP_NHAN` trả `CHUA_GHI_Y_KIEN_VAO_O` hoặc `NCT_KHONG_DONG_Y_VAO_O` (kèm nguồn, người ghi, thời điểm); 001 trả cảnh báo trong `GET …/dieu-kien/{lenh}` và trong phản hồi lệnh (001 SPI `canhBao`). Lệnh vẫn thực hiện được. Lý do bắt buộc theo 001 FR-046 (`LenhTrangThai.lyDo`), lưu ở `lich_su_trang_thai_nct`. `thucHienTacDong` đặt `luot_dang_ky.y_kien_luc_tiep_nhan_id` = dòng Hiệu lực lúc đó (rỗng nếu chưa có) để tra cứu sau.
+
+**Lý do**: Q-356 cho ý kiến không chặn; cảnh báo qua SPI sẵn có của 001 không cần đổi 001.
+
+**Phương án đã cân nhắc**: Một cột `y_kien` trên `luot_dang_ky` sửa tại chỗ: mất ý kiến cũ, trái "ý kiến cũ vẫn tra cứu được"; bị loại.

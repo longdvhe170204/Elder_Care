@@ -79,6 +79,12 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Q47 | A Qua đời | Lượt thăm tương lai Hủy; bản tin Chờ duyệt Không gửi; yêu cầu, ngoại lệ chờ Hủy; phản hồi tiếp tục | FR-075 |
 | Q48 | CS gọi lệnh lượt ở lại; HC gọi nhật ký xem | 403 | FR-067 |
 | Q49 | Khởi động lại sau khi tắt qua 00:00 và mốc kỳ | Đêm ở lại và nhắc bản tin chạy bù đúng một lần | NFR-04 |
+| Q50 | D ghi mong muốn của A "không muốn X đón", nguồn `NGUOI_CAO_TUOI`; X đang có `duoc_phep_don` | 201; quyền X không đổi; HC, TT thấy `quyenTraiMongMuon` | US3 #9, FR-020a, FR-020b (bổ sung 2026-10-18) |
+| Q51 | R (người đại diện) gửi qua cổng yêu cầu thêm X vào danh sách đón; R xác nhận; QL duyệt thiếu `traoDoiVoiNguoiCaoTuoi`; đủ | `CHO_XAC_NHAN`; 409 `CAN_QUAN_LY_DUYET_TRAI_MONG_MUON`; 422; `HIEU_LUC` | US3 #10, FR-020b |
+| Q52 | Lập yêu cầu bỏ X khỏi danh sách đón; A đổi ý, D ghi mong muốn mới | Áp ngay; mong muốn cũ `DUOC_THAY_THE`, vẫn xem được | US3 #11, FR-017, FR-020a |
+| Q53 | Phiếu đăng ký có hai dòng: Y đăng ký thăm (không trái), X được phép đón (trái) | Dòng Y Hiệu lực; dòng X thành yêu cầu Chờ xác nhận | Edge Case, FR-008, FR-020b |
+| Q54 | Bản đồng ý A có `dongYThongBao = false`; duyệt bản tin | Yêu cầu gửi khai `VE_NGUOI_CAO_TUOI`; 009 không gửi ai; bản tin `DA_GUI`, người thân vẫn xem trên cổng | FR-054, Q-353 |
+| Q55 | N (không quyền xem sức khỏe) mở cổng khi A có sự cố ngã Trung bình | Thấy phần chung (loại, thời điểm, mức, đã xử lý); không thấy phần sức khỏe; không có dòng nhật ký xem | FR-046, Q-352 |
 
 ## 4. Nhóm test tự động
 

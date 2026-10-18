@@ -67,7 +67,7 @@ Gói của 014 dùng dịch vụ nội bộ của 005 trong cùng `m04` (công v
 ## L-05. Đăng ký, đồng ý về muộn (mục D; BR-M04-15, BR-M05-11, Q-165, Q-167, Q-176, Q-287)
 
 **Quyết định**:
-- Hàm thuần `DieuKienDangKy(buoi, nct, dangKyKhac, lichBanTru, vung, dauNghiNhiem, dongYVeMuon, t)` trả lỗi chặn (FR-015 (a), (c) → (g), FR-016) và cảnh báo không chặn (FR-018, FR-052). Dữ liệu: `KhoanhVungApi.dangChiuTheoNguoi` và theo phòng của địa điểm; `SuCoApi.dau(nctId, t).nghiNhiem`; `CoMatBanTruApi`, `HopDongDocApi.lichDenTaiNgay`; lưu ý chăm sóc từ `DanhGiaApi` (001); sở thích "không thích".
+- Hàm thuần `DieuKienDangKy(buoi, nct, dangKyKhac, lichBanTru, vung, dauNghiNhiem, dongYVeMuon, t)` trả lỗi chặn (FR-015 (a), (c) → (g), FR-016) và cảnh báo không chặn (FR-018, FR-052). Dữ liệu: `KhoanhVungApi.dangChiuTheoNguoi` và theo phòng của địa điểm; `SuCoApi.dau(nctId, t).nghiNhiem`; `CoMatBanTruApi`, `HopDongDocApi.lichDenTaiNgay`; lưu ý chăm sóc từ `DanhGiaApi` (001); sở thích "không thích" (sửa 2026-10-18, Q-363: cảnh báo liệt kê từng mục "không thích" hiện hành kèm nguồn, kể cả khi mục của chính người cao tuổi là "thích").
 - Cảnh báo: lệnh không có `xacNhanCanhBao = true` → 409 `CAN_XAC_NHAN_CANH_BAO` kèm danh sách; có → lưu dấu và danh sách đã hiển thị. Thông tin sức khỏe chi tiết qua giới hạn trường của 002.
 - `dang_ky_buoi` (nhóm 2): `DA_DANG_KY | DA_HUY | DA_DIEM_DANH`, nguồn (`THUONG_XUYEN`, `THEM_TAY`, `THEM_LUC_DIEM_DANH`), cảnh báo đã xác nhận. Đăng ký mới → bean `NguonCongViecPort` (`BUOI_HOAT_DONG`) cho 005 lập công việc "hoạt động" (005 tự lập theo kế hoạch; 014 chỉ trả căn cứ); hủy → `NguonCongViecApi.nguonBiHuy(BUOI_HOAT_DONG, dangKyId, …)` (MANDATORY).
 - **Đồng ý về muộn** (FR-016a): `dong_y_ve_muon` (nhóm 2) `HIEU_LUC | DA_RUT | DA_DUNG | HET_HIEU_LUC`; ghi bởi Hành chính (bản ký) hoặc người đại diện qua REST cổng của 014 (`QuyenNguoiThanApi.laNguoiDaiDien`). Khi đăng ký được lưu: `CoMatBanTruApi.doiGioVe(nct, ngay, gioKetThuc hoặc gioVeDuKien, dangKyId)` (MANDATORY); gia hạn chuyến → gọi lại với giờ mới; rút hoặc hủy → `traGioVe` (MANDATORY). Job theo phút: tới giờ bắt đầu → `DA_DUNG`.
@@ -117,7 +117,7 @@ Gói của 014 dùng dịch vụ nội bộ của 005 trong cùng `m04` (công v
 ## L-09. Sở thích, hồ sơ tinh thần, nguy cơ cô lập (mục I; BR-M04-22, Q-165, Q-169, Q-173, Q-307)
 
 **Quyết định**:
-- `so_thich` (nhóm 2): `HIEN_HANH | DA_THAY | DA_BO`; cột sinh `khoa_hien_hanh = IF(trang_thai = 'HIEN_HANH', CONCAT(nct_id, ':', nhom_id), NULL)` `UNIQUE`; ghi mục mới cùng nhóm cần `xacNhanThay = true`.
+- `so_thich` (nhóm 2): `HIEN_HANH | DA_THAY | DA_BO`; cột sinh `khoa_hien_hanh = IF(trang_thai = 'HIEN_HANH', CONCAT(nct_id, ':', nhom_id, ':', nguon_loai, ':', IFNULL(nguon_nguoi_than_id, 0)), NULL)` `UNIQUE` (sửa 2026-10-18, Q-363: một mục hiện hành mỗi nhóm và mỗi nguồn); nguồn theo mẫu cột 001 data-model mục 6a, kiểm bằng `NguonYKienApi.kiemTra`; ghi mục mới cùng nhóm và cùng nguồn cần `xacNhanThay = true`. Thói quen sinh hoạt là nhóm sở thích trong danh mục (Q-363).
 - Hồ sơ tinh thần (FR-053): đọc tổng hợp từ điểm danh, `KetQuaTheoKhoang` của 005 (tâm trạng, hành vi), sở thích, `SuCoApi`/`CanhBaoApi` của 007. Không lưu.
 - **Chuỗi cô lập** (FR-054 → FR-056): hàm thuần `NgayTinh(nct, ngay, khoangVang, nghiNhiem, khongGhiNhan, banTruDen)` và `CapNhatChuoi(chuoiCu, ngay, coMatNhom, laNgayTinh)`. `chuoi_co_lap` (kỹ thuật: `nct_id`, số ngày tính, ngày cuối xét, đã gửi cảnh báo cho chuỗi). Job 00:00 xét ngày vừa kết thúc; đạt CFG-M04-10 → `YeuCauTaoCanhBao(NGUY_CO_CO_LAP, NHE, loaiNguon CO_LAP, nguonId = nctId)` (007 gộp theo DBR-18). Lượt Có mặt hoạt động nhóm → đếm lại và `YeuCauGhiDienBienCanhBao(CO_LAP, nctId, DA_THAM_GIA_HOAT_DONG_NHOM)`; không đóng cảnh báo. Đính chính điểm danh ngày cũ → xét lại chuỗi từ ngày đó (job chạy lại theo ngày bị ảnh hưởng).
 - Không có danh sách gợi ý (Q-307).
@@ -151,6 +151,8 @@ Gói của 014 dùng dịch vụ nội bộ của 005 trong cùng `m04` (công v
 ---
 
 ## L-13. Thông báo (FR-071)
+
+**Đối tượng thông tin** (bổ sung 2026-10-18; FR-071, 009 FR-001a): dòng đồng ý về muộn tới người đại diện và người đã đăng ký khai `doiTuongThongTin = VE_VIEC_NGUOI_THAN`; các thông báo khác chỉ tới nhân viên.
 
 **Quyết định**: Mức theo bảng FR-071 (đủ mức). Khóa `(loại, buổi[, người cao tuổi])`, `(loại, danh sách)`, thêm mốc với nhắc theo mốc. Cách thay khi nhóm trống: `CachThay.ChiDinh` theo quy tắc FR-071 (Trưởng tầng → Người phụ trách ca đang diễn ra; trưởng đoàn → Trưởng tầng; người phụ trách buổi → Trưởng tầng). Cảnh báo cô lập, thiếu người đi qua 007.
 

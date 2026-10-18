@@ -30,6 +30,9 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | # | Thao tác | Kết quả mong đợi | Spec |
 | --- | --- | --- | --- |
 | Q1 | HC lập lượt đăng ký cho A (nội trú dài hạn, Thường xuyên, vào 15/10); lập lượt thứ hai | 201 `DANG_XU_LY`, sáu điều kiện "Chưa đạt" (thêm (f) DBR-02, Q-343); 409 `DA_CO_LUOT_DANG_KY` | US1 #1, #2, FR-001, FR-004 |
+| Q1a | HC ghi ý kiến của A "Không bày tỏ được" nguồn `NHAN_VIEN_QUAN_SAT`; rồi "Đồng ý" nguồn `NGUOI_CAO_TUOI`; ghi ý kiến nguồn người thân không có quan hệ Hiệu lực | 201, 201 (ý kiến đầu `DUOC_THAY_THE`, vẫn xem được); 422 `NGUON_Y_KIEN_KHONG_HOP_LE` | FR-001, Q-356 (bổ sung 2026-10-18) |
+| Q1b | Hoàn tất tiếp nhận B khi lượt chưa có ý kiến (mọi điều kiện Đạt) | 200 kèm cảnh báo `CHUA_GHI_Y_KIEN_VAO_O`; danh sách điều kiện có `yKienVaoO = null`, không có dòng điều kiện mới | FR-004a |
+| Q1c | C có ý kiến "Không đồng ý"; Hoàn tất tiếp nhận không lý do; có lý do | 422 (thiếu `lyDo`, 001 FR-046); 200 kèm cảnh báo `NCT_KHONG_DONG_Y_VAO_O`, lịch sử trạng thái lưu lý do, `yKienLucTiepNhanId` trỏ ý kiến đó | FR-004a |
 | Q2 | Trưởng tầng, Bác sĩ lập lượt đăng ký | 403 | US1 #8 |
 | Q3 | HC lập hợp đồng Nháp cho A khi chưa có đánh giá; sửa giá tháng thấp hơn phiên bản; Gửi ký | 201 kèm "chưa đánh giá"; Gửi ký 409 vì điều khoản khác chuẩn chưa duyệt | US3 #1, #9, FR-025, FR-025a |
 | Q4 | Gửi duyệt điều khoản; QL duyệt (api-000); Gửi ký; Trả về nháp, sửa giá lần nữa; Gửi ký | Duyệt xong Gửi ký được; sau khi sửa: 409, phải duyệt lại | US3 #2, #9, SC-011 |

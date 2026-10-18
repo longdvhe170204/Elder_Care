@@ -74,6 +74,26 @@ paths:
                 - $ref: '#/components/schemas/LuotDangKyGhi'
                 - { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } }
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '412': { $ref: '#/components/responses/Loi' } }
+  /luot-dang-ky/{id}/y-kien-vao-o:
+    post:
+      tags: [dang-ky]
+      summary: Ghi ý kiến của người cao tuổi về việc vào ở (Hành chính); ý kiến Hiệu lực cũ chuyển Được thay thế (bổ sung 2026-10-18)
+      description: 'Chỉ khi lượt Đang xử lý hoặc Đang chờ. Ý kiến không là điều kiện tiếp nhận (FR-004a, Q-356).'
+      x-fr: [FR-001, FR-004a]
+      x-br: [BR-M01-14]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [yKien, nguon]
+              properties:
+                yKien: { type: string, enum: [DONG_Y, KHONG_DONG_Y, KHONG_BAY_TO_DUOC] }
+                nguon: { $ref: '#/components/schemas/NguonYKien' }
+                ghiChu: { type: string, maxLength: 2000 }
+      responses: { '201': { description: Đã ghi, content: { application/json: { schema: { $ref: '#/components/schemas/YKienVaoO' } } } }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
   /luot-dang-ky/{id}/dieu-kien-tiep-nhan:
     get:
       tags: [dang-ky]
@@ -82,7 +102,8 @@ paths:
         Mỗi điều kiện Đạt / Chưa đạt / Không áp dụng kèm căn cứ; cảnh báo lệch mức, lệch loại lưu trú (FR-005),
         cảnh báo "phí đang tính cho ngày chưa vào ở" (FR-076), "cần phân bổ lại giường" (FR-021).
         Cùng nguồn với điều kiện của lệnh Hoàn tất tiếp nhận (research T-09). (f) người liên hệ chính, người đại diện (DBR-02, Q-343) lấy từ điều kiện của 012.
-      x-fr: [FR-004, FR-005, FR-021, FR-075, FR-076]
+        yKienVaoO: ý kiến hiện hành của người cao tuổi kèm nguồn, không phải điều kiện; canhBao có CHUA_GHI_Y_KIEN_VAO_O hoặc NCT_KHONG_DONG_Y_VAO_O (FR-004a, bổ sung 2026-10-18).
+      x-fr: [FR-004, FR-004a, FR-005, FR-021, FR-075, FR-076]
       x-br: [BR-M02-22]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/DanhSachDieuKien' } } } } }
@@ -799,6 +820,24 @@ components:
       properties:
         dieuKien: { type: array, items: { $ref: '#/components/schemas/DongDieuKien' } }
         canhBao: { type: array, items: { $ref: '#/components/schemas/CanhBao' } }
+        yKienVaoO: { oneOf: [ { $ref: '#/components/schemas/YKienVaoO' }, { type: 'null' } ], description: 'Chỉ có ở danh sách điều kiện tiếp nhận (FR-004a)' }
+    NguonYKien:
+      type: object
+      description: Như api-001.yaml NguonYKien (001 FR-023g); bổ sung 2026-10-18
+      required: [loai]
+      properties:
+        loai: { type: string, enum: [NGUOI_CAO_TUOI, NGUOI_THAN, NHAN_VIEN_QUAN_SAT] }
+        nguoiThanId: { type: [integer, 'null'], format: int64 }
+    YKienVaoO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        yKien: { type: string, enum: [DONG_Y, KHONG_DONG_Y, KHONG_BAY_TO_DUOC] }
+        nguon: { $ref: '#/components/schemas/NguonYKien' }
+        ghiChu: { type: string }
+        nguoiGhi: { type: string }
+        thoiDiem: { type: string, format: date-time }
+        trangThai: { type: string, enum: [HIEU_LUC, DUOC_THAY_THE] }
     TienTrinh:
       type: object
       properties:
@@ -823,6 +862,8 @@ components:
             id: { type: integer, format: int64 }
             trangThai: { $ref: '#/components/schemas/TrangThaiLuotDangKy' }
             hoSoChoId: { type: integer, format: int64 }
+            yKienVaoO: { type: array, description: 'Ý kiến về việc vào ở, hiện hành trước rồi lịch sử (FR-001, bổ sung 2026-10-18)', items: { $ref: '#/components/schemas/YKienVaoO' } }
+            yKienLucTiepNhanId: { type: [integer, 'null'], format: int64 }
     HoSoCho:
       type: object
       properties:

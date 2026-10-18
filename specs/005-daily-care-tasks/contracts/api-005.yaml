@@ -64,6 +64,18 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MucKeHoach' } } } } }
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '412': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
+  /ke-hoach-cham-soc/{id}/thoa-thuan:
+    put:
+      tags: [ke-hoach]
+      summary: Thay toàn bộ danh sách thỏa thuận lựa chọn có rủi ro của bản Nháp (bổ sung 2026-10-18)
+      description: |
+        Chỉ khi Nháp; phiên bản khác 409 PHIEN_BAN_DA_KHOA. Thỏa thuận không tạo, không chặn công việc (FR-002a).
+        Người quyết định khớp nhanDinh.tuQuyetDuoc; ý kiến có nguồn (001 FR-023g); người cao tuổi tự quyết được thì nctThamGia = true.
+      x-fr: [FR-002a, FR-004]
+      x-br: [BR-M04-19, BR-M01-14, BR-M01-15]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ThoaThuanRuiRo' } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '412': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
   /ke-hoach-cham-soc/{id}/gui-duyet:
     post:
       tags: [ke-hoach]
@@ -274,10 +286,11 @@ paths:
   /cong-viec/{id}/khong-thuc-hien:
     post:
       tags: [checklist]
-      summary: Ghi nhận không thực hiện (bắt buộc lý do)
-      x-fr: [FR-026, FR-027, FR-033, FR-044]
+      summary: Ghi nhận không thực hiện (bắt buộc loại lý do; ghi chú tùy chọn)
+      description: 'Sửa 2026-10-18 (Q-350): loaiLyDoId là loại đang hiệu lực của danh mục loai-ly-do-khong-thuc-hien; "Người cao tuổi từ chối" luôn có.'
+      x-fr: [FR-026, FR-027, FR-028a, FR-033, FR-044]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [loaiLyDoId], properties: { loaiLyDoId: { type: integer, format: int64 }, ghiChu: { type: string, maxLength: 2000 } } } } } }
       responses: { '200': { description: Không thực hiện }, '409': { $ref: '#/components/responses/LoiDaDong' } }
   /ghi-nhan-phat-sinh:
     post:
@@ -356,6 +369,35 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/LyDo' }
       responses: { '200': { description: OK } }
+  /loai-ly-do-khong-thuc-hien:
+    get:
+      tags: [danh-muc]
+      summary: Danh mục loại lý do Không thực hiện (bổ sung 2026-10-18)
+      x-fr: [FR-028a]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LoaiLyDoKhongThucHien' } } } } } }
+    post:
+      tags: [danh-muc]
+      summary: Tạo loại lý do (Quản lý viện)
+      x-fr: [FR-028a]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ten], properties: { ten: { type: string, maxLength: 200 } } } } } }
+      responses: { '201': { description: Đã tạo }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /loai-ly-do-khong-thuc-hien/{id}:
+    put:
+      tags: [danh-muc]
+      summary: Sửa tên loại lý do; loại cố định 409 LOAI_LY_DO_CO_DINH
+      x-fr: [FR-028a]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ten], properties: { ten: { type: string, maxLength: 200 } } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '412': { $ref: '#/components/responses/Loi' } }
+  /loai-ly-do-khong-thuc-hien/{id}/ngung-hieu-luc:
+    post:
+      tags: [danh-muc]
+      summary: Ngừng hiệu lực loại lý do; loại cố định 409 LOAI_LY_DO_CO_DINH
+      x-fr: [FR-028a]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
   /danh-muc-gia-tri-ket-qua:
     get:
       tags: [danh-muc]
@@ -454,6 +496,41 @@ components:
         mucQuanTrong: { $ref: '#/components/schemas/MucQuanTrong' }
         coTinhPhi: { type: boolean }
         mucTieuMl: { type: integer }
+    ThoaThuanRuiRo:
+      type: object
+      description: Thỏa thuận lựa chọn có rủi ro (FR-002a, bổ sung 2026-10-18)
+      required: [luaChon, ruiRoDaTraoDoi, nctThamGia, bacSiNhanDinhId, nhanDinh, nguoiQuyetDinh, ngayXemLai]
+      properties:
+        id: { type: integer, format: int64 }
+        thoaThuanGocId: { type: integer, format: int64 }
+        luaChon: { type: string, maxLength: 2000 }
+        ruiRoDaTraoDoi: { type: string, maxLength: 2000 }
+        nctThamGia: { type: boolean }
+        nguoiThamGia: { type: array, items: { type: object, required: [loai, id], properties: { loai: { type: string, enum: [NGUOI_THAN, NHAN_VIEN] }, id: { type: integer, format: int64 } } } }
+        bacSiNhanDinhId: { type: integer, format: int64 }
+        nhanDinh: { $ref: '#/components/schemas/NhanDinhTuQuyet' }
+        nguoiQuyetDinh:
+          type: object
+          required: [loai]
+          properties:
+            loai: { type: string, enum: [NGUOI_CAO_TUOI, DAI_DIEN_NGUOI_BENH, BAC_SI] }
+            nguoiThanId: { type: integer, format: int64 }
+            bacSiId: { type: integer, format: int64 }
+            lyDo: { type: string, maxLength: 1000, description: 'Bắt buộc khi BAC_SI: căn cứ không có văn bản nguyện vọng trước và không có người đại diện của người bệnh (bổ sung 2026-10-18)' }
+        yKien:
+          type: array
+          items:
+            type: object
+            required: [nguon, noiDung]
+            properties:
+              nguon: { $ref: '#/components/schemas/NguonYKien' }
+              noiDung: { type: string, maxLength: 2000 }
+              nguoiGhi: { type: string, readOnly: true }
+              thoiDiem: { type: string, format: date-time, readOnly: true }
+        ngayXemLai: { type: string, format: date }
+    LoaiLyDoKhongThucHien:
+      type: object
+      properties: { id: { type: integer, format: int64 }, ten: { type: string }, coDinh: { type: boolean }, trangThai: { type: string, enum: [HIEU_LUC, NGUNG_HIEU_LUC] } }
     PhienBanKeHoach:
       type: object
       properties:
@@ -469,6 +546,7 @@ components:
         tuDuyet: { type: boolean }
         lyDoThayDoi: { type: string }
         muc: { type: array, items: { $ref: '#/components/schemas/MucKeHoach' } }
+        thoaThuan: { type: array, items: { $ref: '#/components/schemas/ThoaThuanRuiRo' } }
         chuaCoKeHoachHieuLuc: { type: boolean }
         lenhDuocPhep: { type: array, items: { type: string } }
     SoSanhPhienBan:
@@ -571,6 +649,8 @@ components:
         caId: { type: integer, format: int64 }
         taiLuc: { type: string, format: date-time }
         congViec: { type: array, items: { $ref: '#/components/schemas/CongViec' } }
+        thoaThuan: { type: array, description: 'Thỏa thuận lựa chọn có rủi ro của phiên bản Hiệu lực, theo người cao tuổi (FR-030, bổ sung 2026-10-18)', items: { type: object, properties: { nctId: { type: integer, format: int64 }, thoaThuan: { type: array, items: { $ref: '#/components/schemas/ThoaThuanRuiRo' } } } } }
+        loaiLyDoKhongThucHien: { type: array, description: 'Để app ghi ngoại tuyến (FR-028a)', items: { $ref: '#/components/schemas/LoaiLyDoKhongThucHien' } }
         lieuThuoc: { type: array, items: { type: object, additionalProperties: true }, description: 'Chỉ điều dưỡng; từ 006, chỉ hiển thị' }
         canhBaoDangMo: { type: array, items: { type: object, additionalProperties: true } }
         viecBanGiao: { type: object, additionalProperties: true }

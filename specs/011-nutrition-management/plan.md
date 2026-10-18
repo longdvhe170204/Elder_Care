@@ -1,6 +1,6 @@
 # Implementation Plan: Quản lý dinh dưỡng và suất ăn
 
-**Branch**: `011-nutrition-management` | **Date**: 2026-10-10 | **Spec**: [spec.md](spec.md)
+**Branch**: `011-nutrition-management` | **Date**: 2026-10-10, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/011-nutrition-management/spec.md`
 
@@ -28,6 +28,10 @@ Hướng kỹ thuật:
 Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - 011 không tự chốt suất, không lập phiếu ngoài lệnh của bếp, không tạo yêu cầu xem lại chế độ ăn, không tự tạo sự cố;
 - hệ thống chỉ: tính sẵn khi bếp mở lệnh; tạo phát sinh kèm thay đổi do actor gây ra; các việc spec cho phép ở mục Actor (tự dùng món an toàn FR-037a, phát sinh ghi nhận suất giữ FR-040a, chuyển đồ ăn tới hạn dùng FR-055); chuyển trạng thái theo giờ; kiểm tra và chặn; nhắc, thông báo, cảnh báo qua 007.
+
+### Cập nhật 2026-10-18 (spec mục "Cập nhật 2026-10-18": feature 009 FR-001a)
+
+- **Đối tượng thông tin** (FR-065, 009 FR-001a): thông báo "Đồ ăn gia đình Không sử dụng" tới người gửi khai `doiTuongThongTin = VE_VIEC_NGUOI_THAN`; lý do có nội dung sức khỏe đặt ở phần `SUC_KHOE`; các thông báo khác chỉ tới nhân viên; không yêu cầu nào mang mã Q-354 (research M-13).
 
 ## Technical Context
 

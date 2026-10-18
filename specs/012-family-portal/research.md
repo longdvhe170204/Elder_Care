@@ -90,6 +90,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 - Lập bởi người đại diện qua cổng hoặc Hành chính kèm bản ký → thẳng `HIEU_LUC` (FR-015 a, b). Yêu cầu tắt `duoc_phep_don` hoặc tắt `TU_VE`: áp ngay khi lập (quyền về false, bản ghi đón chưa dùng của người đó → Không dùng), trạng thái yêu cầu vẫn Chờ xác nhận; Từ chối/Hủy → khôi phục từ thời điểm có kết quả (ghi `lich_su_quyen` mới, không hồi tố).
 - Áp khi Hiệu lực: cập nhật cột quyền, ghi `lich_su_quyen`; giá trị hiện hành là của yêu cầu có thời điểm Hiệu lực muộn nhất (khóa `nguoi_than_nct` bảo đảm thứ tự). Thông báo Q-249 tính tập người đại diện **sau** khi áp (Q-267).
 - **Phiếu đăng ký người thân** (FR-008): `phieu_dang_ky_nguoi_than` (nhóm 3: bản scan bắt buộc, người đại diện ký, danh sách (người thân, quyền)); lệnh ghi phiếu tạo mỗi quyền một yêu cầu `HIEU_LUC` cách xác nhận `BAN_KY`, vẫn qua `KiemTraYeuCau`; một quyền không đạt → cả phiếu bị chặn kèm danh sách lý do.
+- **Trái mong muốn** (FR-020b, bổ sung 2026-10-18): F-06a.
 - **Nhắc** (FR-019): job hằng giờ, `NhacQuaHan` của 000 với mốc CFG-M10-11 (nhắc người đại diện + Quản lý viện; báo Quản lý viện); không tự Từ chối.
 
 ---
@@ -137,6 +138,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
   - 012 phục vụ: danh sách người cao tuổi của người thân, thẻ **chung** (họ tên, ảnh, phòng, trạng thái, lượt vắng, lịch đến/về bán trú, lượt thăm, phản hồi, bản tin của mình, thực đơn chung qua `ThucDonChungApi`), phần **sức khỏe** (cổng trung gian, F-11), phần **hợp đồng** (`HopDongDocApi`, `DieuKienTiepNhanApi`; chỉ người đại diện).
   - REST của feature sở hữu: chi phí, mua hộ (010); số dư (017); đồ gửi (013); hoạt động, đồng ý về muộn (014); thông báo (009). Các feature đó kiểm quyền qua `m10.api.QuyenNguoiThanApi`.
 - Kiểm quyền người thân ở backend theo `QuyenCoTacDung` tại thời điểm xem; client chỉ ẩn nút. DTO trả cho người thân là lớp riêng, chỉ giá trị hiện hành (FR-047).
+- **Sự cố trên cổng** (FR-046, Q-352, bổ sung 2026-10-18): thẻ chung gồm phần chung của sự cố (kèm mức) cho mọi người thân có quan hệ, lấy từ `SucKhoeCongNguoiThanApi.suCo` của 007 (`phanChung`); phần sức khỏe của sự cố đi qua F-11 như các mục sức khỏe khác và chỉ khi có quyền xem sức khỏe có tác dụng; nhật ký xem chỉ ghi cho phần sức khỏe.
 - Mục đồ gửi (FR-046b): `QuyenNguoiThanApi.xemDoGui(nguoiThanId, nctId, t)` = người đại diện hoặc `duoc_phep_don` đang bật; 013 dùng.
 - Yêu cầu thay đổi dịch vụ (FR-049): chỉ người đại diện có `yeu_cau_dich_vu`; REST của 004 kiểm qua `NguoiDaiDienPort` và `QuyenNguoiThanApi`.
 
@@ -155,8 +157,8 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 **Quyết định**:
 - `ban_tin` (nhóm 2 khi `CHO_DUYET`, nhóm 3 khi `DA_GUI` / `KHONG_GUI`): người cao tuổi, kỳ (`ky_tu`, `ky_den`, `moc`), `ban_goc_id NULL`; cột sinh `khoa_ky = IF(ban_goc_id IS NULL, CONCAT(nct_id, ':', ky_tu), NULL)` `UNIQUE` (lệnh lập trùng bị chặn). `ban_tin_phan` (loại `CHUNG`, `SUC_KHOE`, `CHI_PHI`; nội dung), `ban_tin_so_lieu` (mã số liệu, giá trị lưu lúc duyệt, phần), `ban_tin_nhan_xet` (nhóm 3), `giai_thich_su_co`, người duyệt, `duyet_thay`.
-- **Số liệu tổng hợp** (FR-052): `GET /ban-tin/{id}/so-lieu` tính lúc gọi từ 005 (`KetQuaChamSocCongApi.tongHop`), 007 (`BanTinSucKhoeApi.choBanTin`), 010 (`ChiPhiCongNguoiThanApi.tamTinh` dạng tổng theo loại), 014 (số hoạt động đã tham gia qua SPI `HoatDongBanTinPort` khai ở `m10.api`, 014 cài vì làm plan sau; bean thiếu → "không có dữ liệu trong kỳ"). Không soạn sẵn nội dung (Q-307).
-- **Duyệt** (FR-053, BR-M10-09): người duyệt là Điều dưỡng có phạm vi lúc thao tác, hoặc Trưởng tầng được giao sau CFG-M10-12 kể từ mốc (dấu `duyet_thay`). Mức sự cố cao nhất trong kỳ theo `SuCoApi.theoNguoi(…, chiChuaHuy = true)` mức cao nhất từng có (Q-129) ≥ Trung bình → bắt buộc `giai_thich_su_co`. Duyệt → `DA_GUI`, phát `YeuCauThongBao` mức Nhẹ tới mọi người thân có quan hệ Hiệu lực, phần theo loại thông tin; 009 lọc theo quyền từng người (SC-007), ghi thời điểm gửi và xem (BR-M10-06).
+- **Số liệu tổng hợp** (FR-052): `GET /ban-tin/{id}/so-lieu` tính lúc gọi từ 005 (`KetQuaChamSocCongApi.tongHop`), 007 (`BanTinSucKhoeApi.choBanTin`; sửa 2026-10-18 theo Q-352: phần chung của mỗi sự cố, kèm mức, vào nhóm số liệu `CHUNG`, phần sức khỏe vào nhóm `SUC_KHOE`), 010 (`ChiPhiCongNguoiThanApi.tamTinh` dạng tổng theo loại), 014 (số hoạt động đã tham gia qua SPI `HoatDongBanTinPort` khai ở `m10.api`, 014 cài vì làm plan sau; bean thiếu → "không có dữ liệu trong kỳ"). Không soạn sẵn nội dung (Q-307).
+- **Duyệt** (FR-053, BR-M10-09): người duyệt là Điều dưỡng có phạm vi lúc thao tác, hoặc Trưởng tầng được giao sau CFG-M10-12 kể từ mốc (dấu `duyet_thay`). Mức sự cố cao nhất trong kỳ theo `SuCoApi.theoNguoi(…, chiChuaHuy = true)` mức cao nhất từng có (Q-129) ≥ Trung bình → bắt buộc `giai_thich_su_co`. Duyệt → `DA_GUI`, phát `YeuCauThongBao` mức Nhẹ tới mọi người thân có quan hệ Hiệu lực, `doiTuongThongTin = VE_NGUOI_CAO_TUOI`, phần theo loại thông tin; 009 lọc theo mục "nhận thông báo" của bản đồng ý (FR-054, Q-353; sửa 2026-10-18) rồi theo quyền từng người (SC-007), ghi thời điểm gửi và xem (BR-M10-06). Người cao tuổi chưa có bản đồng ý Hiệu lực thì không người thân nào nhận; bản tin vẫn ở `DA_GUI` và xem được trên cổng theo quan hệ (spec "Điểm cần báo lại" 2, 3 của lượt 2026-10-18).
 - **Đính chính** (FR-056): bản mới `ban_goc_id` trỏ bản gốc, lý do; người nhận theo quan hệ, quyền hiện hành. Listener `SuCoDaHuyTrongBanTin` (007) → báo Hành chính và người đã duyệt; không tự gửi.
 - **Job** (theo lịch CFG-M10-03, đầu ngày mốc): nhắc lập cho người đủ điều kiện (FR-051, loại trừ người vắng cả kỳ); bản tin `CHO_DUYET` kỳ trước → `KHONG_GUI`; báo Quản lý viện danh sách chưa lập / Không gửi (FR-073). Job theo giờ: mốc 48 giờ (nhắc Trưởng tầng), mốc CFG-M10-12 (báo Trưởng tầng có thể duyệt thay). Hệ thống không tạo bản tin (SC-006).
 
@@ -185,7 +187,17 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## F-15. Thông báo (FR-069)
 
-**Quyết định**: Mức, người nhận, loại thông tin theo bảng FR-069 (đủ mức). Mọi thông báo cài `CoYeuCauThongBao` (009 B-02), khóa `(bản ghi nguồn, loại sự kiện[, lần nhắc])`. Nội dung rút gọn cho tin nhắn không có phần sức khỏe (FR-070) — 009 chọn phần `CHUNG`. "Trưởng tầng" luôn là Trưởng tầng được giao qua `NhiemVuApi.truongTangDuocGiao`; không có thì Quản lý viện (Quy ước của spec).
+**Quyết định**: Mức, người nhận, loại thông tin theo bảng FR-069 (đủ mức). Mọi thông báo cài `CoYeuCauThongBao` (009 B-02), khóa `(bản ghi nguồn, loại sự kiện[, lần nhắc])`.
+
+**Đối tượng thông tin** (bổ sung 2026-10-18; 009 FR-001a, FR-054, Q-353; plan, điểm báo lại 7): yêu cầu có người nhận là người thân khai:
+
+| Thông báo (FR-069) | Đối tượng |
+| --- | --- |
+| Bản tin; bản tin đính chính | `VE_NGUOI_CAO_TUOI` (009 chỉ gửi người trong phạm vi "nhận thông báo") |
+| Yêu cầu thay đổi quyền cần xác nhận/duyệt, có kết quả, đã có hiệu lực (Q-249); đặt/thôi người đại diện; nhắc quá mốc; ngoại lệ đón cần xác nhận | `VE_VIEC_NGUOI_THAN` |
+| Lượt thăm bị hủy (Hành chính, người cao tuổi vắng, khoanh vùng); lượt ở lại được xác nhận hoặc từ chối; phản hồi đã được trả lời | `VE_VIEC_NGUOI_THAN` |
+
+Không thông báo nào của 012 cần mã Q-354. Nội dung rút gọn cho tin nhắn không có phần sức khỏe (FR-070) — 009 chọn phần `CHUNG`. "Trưởng tầng" luôn là Trưởng tầng được giao qua `NhiemVuApi.truongTangDuocGiao`; không có thì Quản lý viện (Quy ước của spec).
 
 ---
 
@@ -220,3 +232,19 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
   - đồng hồ giả lập cho CFG-M10-01 → 12, CFG-M01-04;
   - bản giả `HoatDongBanTinPort` và API của 005, 006, 007, 010, 011.
 - Tên test theo BR/FR (`BR_M10_07_YeuCauQuyenIT`, `DBR_02_LienHeChinhIT`).
+
+---
+
+## F-06a. Mong muốn về khách thăm, người đón và yêu cầu trái mong muốn *(bổ sung 2026-10-18; FR-020a → FR-020c; Q-347, Q-348, Q-351)*
+
+**Quyết định**:
+- **Bảng** `mong_muon_nct` (nhóm 2; data-model mục 3a): người được nói tới là quan hệ (`quan_he_id`) hoặc người ngoài (họ tên, số giấy tờ); loại `THAM | DON`; `muon BOOLEAN`; nguồn theo mẫu 001 (`NguonYKienApi.kiemTra`); người ghi, thời điểm; `HIEU_LUC | DUOC_THAY_THE`. Tối đa một mong muốn Hiệu lực mỗi (người cao tuổi, người được nói tới, loại): cột sinh `UNIQUE`. Ghi mới cho cùng khóa thì bản cũ chuyển Được thay thế trong cùng transaction; nội dung không sửa (trigger).
+- **Lệnh**: `POST /nguoi-cao-tuoi/{nctId}/mong-muon` (Hành chính, Trưởng tầng, Điều dưỡng có phạm vi; khóa quyền `MONG_MUON_NCT` theo dòng Phụ lục 27 "Mong muốn về khách thăm, người đón": TAO cho HC, TT, ĐD; XEM cho QL; Q-364); `GET` trả danh sách Hiệu lực và lịch sử. Người thân không có lệnh này.
+- **Kiểm trái mong muốn** trong `KiemTraYeuCau` (lúc lập, lúc xác nhận, lúc duyệt, và cho từng dòng phiếu): yêu cầu bật `dang_ky_tham` / `duoc_phep_don` cho người có mong muốn Hiệu lực nguồn `NGUOI_CAO_TUOI` `muon = false` cùng loại, hoặc tắt hai quyền đó của người có mong muốn `muon = true`, là "trái mong muốn". Khi đó: không có hiệu lực bằng cổng hay bản ký; xác nhận của người đại diện bị từ chối 409 `CAN_QUAN_LY_DUYET_TRAI_MONG_MUON`; Quản lý viện duyệt phải có `lyDo` và `traoDoiVoiNguoiCaoTuoi`. Ngoại lệ: tắt `duoc_phep_don` vẫn áp ngay (FR-017). Yêu cầu do người đại diện theo pháp luật lập (`BanDongYApi.daiDienPhapLuat(nctId)` của 001 trả đúng người lập) không bị coi là trái (FR-020c); mong muốn vẫn hiển thị.
+- **Phiếu đăng ký** (FR-008): dòng trái mong muốn tạo yêu cầu `CHO_XAC_NHAN` (đánh dấu `trai_mong_muon_id`) thay vì `HIEU_LUC`; dòng khác vẫn Hiệu lực. Thay quy tắc cũ "một quyền không đạt → cả phiếu bị chặn" chỉ cho trường hợp trái mong muốn; lỗi khác vẫn chặn cả phiếu.
+- **Cảnh báo** (FR-020b câu cuối): `GET /nguoi-cao-tuoi/{nctId}/quan-he` và màn mong muốn trả `quyenTraiMongMuon` tính lúc đọc cho Hành chính, Trưởng tầng. Không tự đổi quyền, không job (Q-307).
+- **Nhận ra cùng người**: theo `quan_he_id`, hoặc số giấy tờ của hồ sơ người thân trùng số giấy tờ của mong muốn (plan, điểm báo lại 8).
+
+**Lý do**: FR-020b đặt điều kiện trên đường đi tới Hiệu lực của yêu cầu sẵn có; đặt trong `KiemTraYeuCau` giữ một chỗ kiểm cho mọi đường (cổng, quầy, phiếu).
+
+**Phương án đã cân nhắc**: Tự tắt quyền khi ghi mong muốn "không muốn": trái Q-307 và FR-020b; bị loại.

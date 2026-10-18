@@ -238,6 +238,7 @@ Bean `NguonCongViecPort` thiếu cho một loại căn cứ thì lệnh lập c�
 | Giao diện | Module (feature) | Dùng cho | Khi chưa có |
 | --- | --- | --- | --- |
 | `NguoiCaoTuoiApi.trangThai`, `theoTrangThai`; `DanhGiaApi.luuYHienHanh`; `TrangThaiNguoiCaoTuoiApi.khoangTrangThai` | M01 (001) | FR-017, FR-025, FR-030, FR-039 | Có sẵn |
+| `NguonYKienApi.kiemTra` (001 mục 1.8b); `QuanHeNguoiThanApi.thuocNguoiCaoTuoi` (012) | M01 (001), M10 (012) | FR-002a: nguồn ý kiến, người đại diện của người bệnh (bổ sung 2026-10-18) | Có sẵn sau 001; bản giả cho 012 |
 | `ViTriApi.hienTai`, `CoCauViTriApi` | M03 (003) | Thẻ người cao tuổi, tầng của người (FR-030) | Có sẵn |
 | `HopDongDocApi.lichDenTaiNgay`, `noiDungTaiNgay` (loại lưu trú) | M02 (004) | FR-012 | Có sẵn |
 | `QuyenApi`, `PhamViApi` (`boLoc`, `nguoiPhuTrachCa`, `truongTangDuocGiao`), `NguoiDuyetApi`, `NguoiDungHienTai` | M15 (002) | Research C-16 | Có sẵn |
