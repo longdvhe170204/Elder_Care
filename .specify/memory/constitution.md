@@ -1,4 +1,15 @@
 <!--
+Sync Impact Report (2026-10-19)
+- Phiên bản: 3.1.0 → 3.1.1 (PATCH: đồng bộ nguyên tắc X với Q-365; số client và kiến trúc giữ nguyên).
+- Nguyên tắc sửa:
+  - X. Kiến trúc: app Flutter chung phục vụ cả người cao tuổi (actor AC-16, kênh duy nhất của người cao tuổi, không có web), theo Q-365 đã chốt 2026-10-18.
+- Mục thêm, bỏ: không.
+- Cần cập nhật theo:
+  - ✅ specs/000-shared-foundation/tasks.md (T006, T007), plan.md (Project Type, Project Structure), research.md (R-02), glossary.md (`nguoi-cao-tuoi` → `resident`).
+  - ✅ CLAUDE.md.
+-->
+
+<!--
 Sync Impact Report (2026-10-16, lượt 2)
 - Phiên bản: 3.0.0 → 3.1.0 (MINOR: đổi ngôn ngữ mặc định của web client trong nguyên tắc X; số client và kiến trúc giữ nguyên).
 - Nguyên tắc sửa:
@@ -112,7 +123,8 @@ Lý do: thiết kế dựa trên nghiệp vụ đã chốt; viết mã khi thi�
 - Hệ thống MUST gồm một backend Spring Boot cung cấp RESTful API (JSON, có phiên bản, tiền tố
   `/api/v1`) và hai client dùng chung API đó:
   - web React với JavaScript: mọi chức năng, gồm quản trị và cổng người thân trên trình duyệt;
-  - một app Flutter chung cho nhân viên và người thân, chức năng theo loại tài khoản (Q-305, Q-346).
+  - một app Flutter chung cho nhân viên, người thân và người cao tuổi, chức năng theo loại tài khoản
+    (Q-305, Q-346, Q-365).
 - Cơ sở dữ liệu MUST là MySQL.
 - Backend MUST là một khối (không tách microservice), chia gói theo module nghiệp vụ M01–M15 của
   `docs/business/nghiep-vu.md`; module gọi nhau qua giao diện của module, không truy cập trực tiếp dữ liệu
@@ -207,4 +219,4 @@ Lý do: giữ chuỗi truy vết từ quy tắc tới mã (I) và nghiệm thu �
   kể; PATCH khi làm rõ câu chữ.
 - Mỗi lần clarify, checklist, plan hoặc analyze MUST kiểm tra theo constitution hiện hành.
 
-**Version**: 3.1.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-16
+**Version**: 3.1.1 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-19

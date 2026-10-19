@@ -30,6 +30,7 @@ Mã nghiệp vụ giữ nguyên, không dịch: BR-, FR-, CFG-, DBR-, Q-, UC-, A
 | `tinh-nang` | `features` |
 | `nhan-vien` (phần nhân viên của app) | `staff` |
 | `nguoi-than` (phần người thân của app) | `family` |
+| `nguoi-cao-tuoi` (phần người cao tuổi của app) | `resident` |
 | `api`, `internal`, `web` | giữ nguyên |
 | `lich` (job định kỳ) | `scheduling` |
 | `support` (test) | giữ nguyên |
