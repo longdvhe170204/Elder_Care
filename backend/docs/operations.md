@@ -58,7 +58,7 @@ Bản sao lưu có thể chứa dữ liệu đã bị loại bỏ sau thời đi
    ```
 
 3. Kiểm trigger và tài khoản: `SHOW TRIGGERS FROM elder_care;` có đủ trigger chỉ ghi thêm; `eldercare_app` vẫn không có `DELETE` trên bảng nhóm 3.
-4. Trước khi mở cho người dùng, chạy một đợt loại bỏ dữ liệu hết hạn `PURGE_EXPIRED_DATA` (job tính hạn theo CFG-M15-03, CFG-M15-04 hiện hành và ngày hôm nay, nên xóa lại đúng phần đã bị loại bỏ), rồi kiểm bản nhật ký tóm tắt `EXPIRED_DATA_PURGED` mới và `scheduler_run`. Hiện chưa có cách chạy tay job này ở profile `prod` (chỉ `test`, `demo` qua `POST /api/v1/testing/clock`); cần bổ sung lệnh chạy tay cho quản trị trước khi vận hành (plan 000, "Điểm cần báo lại" mục 5). Với giá trị mặc định 10 năm của CFG-M15-03, CFG-M15-04, trong thời gian đồ án job chưa xóa gì nên bước này chưa ảnh hưởng.
+4. Trước khi mở cho người dùng, chạy một đợt loại bỏ dữ liệu hết hạn `PURGE_EXPIRED_DATA` (job tính hạn theo CFG-M15-03, CFG-M15-04 hiện hành và ngày hôm nay, nên xóa lại đúng phần đã bị loại bỏ), rồi kiểm bản nhật ký tóm tắt `EXPIRED_DATA_PURGED` mới và `scheduler_run`. Cách chạy: mở ứng dụng một lần với `--eldercare.jobs.purge-expired-data.run-once=true`, chưa mở cho người dùng; job chạy một đợt khi ứng dụng sẵn sàng. Kiểm xong thì dừng ứng dụng và bỏ tham số này (để lại thì mỗi lần khởi động chạy thêm một đợt, chỉ xóa dữ liệu đã hết hạn nên không hại nhưng tốn thời gian khởi động).
 5. Đối chiếu bản tóm tắt các đợt loại bỏ sau thời điểm sao lưu (lưu ngoài cơ sở dữ liệu, mục 6) với bản tóm tắt vừa ghi.
 6. Mở ứng dụng. Lúc khởi động, `APPLY_DUE_REQUESTS` tự áp dụng bù yêu cầu đã đến hạn.
 7. Báo người dùng: dữ liệu nhập sau thời điểm sao lưu bị mất (tối đa 24 giờ) và cần nhập lại; ghi biên bản sự cố.

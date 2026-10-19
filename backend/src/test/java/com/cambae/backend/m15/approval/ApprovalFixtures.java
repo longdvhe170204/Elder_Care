@@ -10,6 +10,7 @@ import com.cambae.backend.m15.approval.api.ApprovalRequestView;
 import com.cambae.backend.m15.approval.api.RequestTypeHandler;
 import com.cambae.backend.m15.approval.api.ResultRef;
 import com.cambae.backend.m15.auditlog.api.AuditLogPermissions;
+import com.cambae.backend.m15.parameter.api.ParameterPermissions;
 import com.cambae.backend.support.FakePermissions;
 import com.cambae.backend.support.SwitchableUser;
 import java.time.LocalDate;
@@ -149,6 +150,9 @@ public class ApprovalFixtures {
                 .grant(Role.NURSING_HOME_MANAGER, CREATE)
                 .grant(Role.NURSING_HOME_MANAGER, APPROVE)
                 .grant(Role.NURSING_HOME_MANAGER, AuditLogPermissions.VIEW_FACILITY)
+                // Đổi CFG-M15-05 giữa test (FR-017, ParameterChangeNoRecalculationIT)
+                .grant(Role.NURSING_HOME_MANAGER, ParameterPermissions.VIEW)
+                .grant(Role.NURSING_HOME_MANAGER, ParameterPermissions.CHANGE)
                 .grant(Role.OFFICE_STAFF, CREATE)
                 .grant(Role.OFFICE_STAFF, APPROVE)
                 .account(MANAGER)
