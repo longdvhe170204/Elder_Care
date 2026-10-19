@@ -6,16 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Đồ án nhóm quản lý viện dưỡng lão: nghiệp vụ và spec viết theo Spec Kit (`specs/`, `.specify/`); mã nguồn triển khai theo plan và tasks của từng feature.
 
-## Giai đoạn hiện tại: THIẾT KẾ
+## Giai đoạn hiện tại: TRIỂN KHAI BACKEND VÀ WEB
 
-- Từ 2026-10-16 (constitution IX). Cả 20 feature (000 → 019) đã có spec, plan, tasks và đã qua /speckit-analyze.
-- Gồm hai việc: thiết kế giao diện web `frontend/`; thiết kế kỹ thuật (sửa plan, tasks, data-model, contracts khi cần).
-- Chưa viết mã nghiệp vụ (backend, gọi API, màn hình chức năng) cho tới khi chủ dự án mở giai đoạn triển khai ở mục này.
-- Lệnh: /speckit-plan, /speckit-tasks để sửa; /speckit-analyze, /speckit-converge để rà; /speckit-implement chưa dùng; /speckit-taskstoissues chỉ khi chủ dự án yêu cầu.
+- Từ 2026-10-19 (constitution IX), chủ dự án mở triển khai cho `backend/` và `frontend/`, làm theo mục "Khi vào triển khai", bắt đầu từ 000. Trước đó (2026-10-16 → 2026-10-19) là giai đoạn thiết kế; cả 20 feature (000 → 019) đã có spec, plan, tasks và đã qua /speckit-analyze.
+- `mobile/` chưa viết mã chức năng: chỉ thiết kế giao diện theo DESIGN.md mục 15 (màn mẫu, dữ liệu giả). Task của `mobile/` trong tasks.md để chưa `[x]` cho tới khi chủ dự án mở phần này; phần backend, web của một feature không chờ task mobile.
+- Thiết kế vẫn làm song song: giao diện web, mobile; sửa plan, tasks, data-model, contracts khi cần.
+- Lệnh: /speckit-implement từng phase của feature đang làm; /speckit-plan, /speckit-tasks để sửa; /speckit-analyze, /speckit-converge để rà; /speckit-taskstoissues chỉ khi chủ dự án yêu cầu.
 - Plan, tasks không được đổi nghiệp vụ (constitution IX). Gặp thiếu sót nghiệp vụ hoặc lệch giữa spec, plan, tasks thì dừng và báo lại.
 - /speckit-analyze chạy theo thứ tự triển khai, đổi `.specify/feature.json` trước mỗi feature; chỉ đọc, không ghi file trừ khi chủ dự án yêu cầu.
 - Tiến độ (2026-10-16): xong 000 T001 (`.gitignore`, README gốc) và T005a (design system, khung ứng dụng, hai màn mẫu); `DESIGN.md` (nay 5.14.0, mục 15 mobile đã duyệt, gồm 15.6 người cao tuổi duyệt 2026-10-19, chung cho web và mobile; trước ở `frontend/`) đã duyệt và áp vào `index.css` (mục 2.2 Nhân văn trong màn nghiệp vụ, Q-347 → Q-364, duyệt 2026-10-18), thêm màn mẫu Checklist ca dạng lưới thẻ, Phát thuốc, Bàn giao ca, Cảnh báo. Đã làm trước một phần, task chưa `[x]`: T002 (driver MySQL, `ddl-auto=validate`), T005 (bỏ file mẫu Vite), T008 (ESLint bỏ qua hai luật cho mã shadcn sinh ra).
 - Tiến độ (2026-10-18): người cao tuổi tự dùng hệ thống (actor AC-16; Q-365 → Q-372 chốt; Q-355, Q-367 chốt 2026-10-19 theo tư vấn pháp lý, phần mở rộng ghi ở 24.4): đã sửa nghiep-vu.md và spec, plan, tasks của 000, 001, 002, 007, 009, 011, 012, 013, 014, 016; đã qua /speckit-analyze; DESIGN.md mục 15.6 người cao tuổi đã duyệt; nút SOS chạm một lần, đếm ngược 3 giây có nút Hủy (Q-372).
+- Tiến độ (2026-10-19): constitution 3.1.1 (app chung có phần người cao tuổi, `mobile/lib/nguoi-cao-tuoi/`); 000 sửa sau /speckit-analyze (thêm T106 component đính chính dùng chung cho SC-007); spec, plan, tasks của 20 feature đồng bộ Q-355, Q-367, Q-372. Việc tiếp theo: 000 bước 1 → 5 của "Khi vào triển khai" (nhánh `impl/000-shared-foundation`, dịch `contracts/api-000.yaml`, xin duyệt, rồi Phase 1).
 - Trước khi vận hành: chốt 3 điểm pháp lý ở 24.4 (Q-03, Thông tư 27/2024/TT-BYT, Luật Cư trú 118/2025/QH15); nâng MySQL 8.0 lên 8.4 LTS, nên migration chỉ dùng cú pháp có ở cả hai bản (research R-01).
 
 ### Thiết kế giao diện
