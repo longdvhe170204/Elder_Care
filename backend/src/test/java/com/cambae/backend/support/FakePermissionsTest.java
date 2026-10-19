@@ -3,6 +3,8 @@ package com.cambae.backend.support;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.cambae.backend.common.Role;
+import com.cambae.backend.m15.account.api.Function;
+import com.cambae.backend.m15.account.api.Operation;
 import com.cambae.backend.m15.account.api.PermissionKey;
 import com.cambae.backend.m15.account.api.Target;
 import com.cambae.backend.m15.account.api.Visibility;
@@ -12,7 +14,8 @@ import org.junit.jupiter.api.Test;
 /** 000 T025: bản giả quyền của 002 theo bảng vai trò → quyền tối thiểu. */
 class FakePermissionsTest {
 
-    private static final PermissionKey CHANGE_PARAMETER = new PermissionKey("PARAMETER", "CHANGE");
+    private static final PermissionKey CHANGE_PARAMETER =
+            new PermissionKey(Function.ACCOUNT_PERMISSION_PARAMETER, Operation.UPDATE);
 
     @Test
     void grantedRole_hasPermission_otherRoleDoesNot() {

@@ -32,6 +32,7 @@ import java.util.Set;
 public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibilityApi, ApproverApi, AccountApi {
 
     private final Map<Role, Set<PermissionKey>> grants = new EnumMap<>(Role.class);
+    private final Map<Role, Set<PermissionKey>> assignedGrants = new EnumMap<>(Role.class);
     private final Map<Long, CurrentUser> accounts = new LinkedHashMap<>();
     private final Map<Long, Long> shiftLeads = new HashMap<>();
     private final Map<Long, Long> floorManagers = new HashMap<>();
@@ -44,8 +45,15 @@ public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibility
         return new FakeUser(accountId, Set.copyOf(set), scheduler);
     }
 
+    /** Quyền toàn viện (ô X, C, T, D phạm vi toàn viện của Phụ lục 27). */
     public FakePermissions grant(Role role, PermissionKey key) {
         grants.computeIfAbsent(role, r -> new HashSet<>()).add(key);
+        return this;
+    }
+
+    /** Quyền theo phân công (ô P; T của Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc): không đạt với {@code Target.UNSPECIFIED}. */
+    public FakePermissions grantAssigned(Role role, PermissionKey key) {
+        assignedGrants.computeIfAbsent(role, r -> new HashSet<>()).add(key);
         return this;
     }
 
@@ -76,8 +84,11 @@ public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibility
 
     @Override
     public PermissionResult hasPermission(CurrentUser user, PermissionKey key, Target target) {
+        boolean specific = !Target.UNSPECIFIED.equals(target);
         return new PermissionResult(user.roles().stream()
-                .anyMatch(role -> grants.getOrDefault(role, Set.of()).contains(key)));
+                .anyMatch(role -> grants.getOrDefault(role, Set.of()).contains(key)
+                        || (specific
+                                && assignedGrants.getOrDefault(role, Set.of()).contains(key))));
     }
 
     @Override

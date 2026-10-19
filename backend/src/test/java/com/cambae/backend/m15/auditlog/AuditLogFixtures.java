@@ -48,11 +48,11 @@ public class AuditLogFixtures {
     @Bean
     FakePermissions permissions() {
         FakePermissions fake = new FakePermissions()
-                .grant(Role.NURSING_HOME_MANAGER, AuditLogPermissions.VIEW_FACILITY)
                 .grant(Role.NURSING_HOME_MANAGER, AuditLogPermissions.VIEW)
                 .visibility(Role.OFFICE_STAFF, InfoGroup.CONTACT, Visibility.FULL);
         for (Role role : STAFF) {
-            fake.grant(role, AuditLogPermissions.VIEW).visibility(role, InfoGroup.INTERNAL_PUBLIC, Visibility.FULL);
+            fake.grantAssigned(role, AuditLogPermissions.VIEW)
+                    .visibility(role, InfoGroup.INTERNAL_PUBLIC, Visibility.FULL);
         }
         return fake;
     }
