@@ -194,6 +194,14 @@ mobile/                          # một app chung cho nhân viên, người th�
 - `TimeArchTest` cấm thêm `LocalTime.now()`, `ZonedDateTime.now()`, `OffsetDateTime.now()` (R-04 "không mã nào gọi now()"). Thêm `TestClockControllerIT` để kiểm T012 (tasks không ghi test riêng).
 - Surefire loại `**/*IT.java` (tên `TestClockControllerIT` khớp mẫu `Test*` của surefire).
 
+**Nhóm Lỗi, API, chống lặp (T015 → T021, 2026-10-19)**:
+- Lỗi nghiệp vụ là `common.error.BusinessException` (có `status`, `errorCode`) và sáu lớp con theo T015, thêm `NotFoundException` (404 "Không tìm thấy", không lộ tồn tại, cho T016). Module cần mã riêng (`RECORD_VOIDED`, `CATALOG_ITEM_IN_USE`…) dùng thẳng `BusinessException`.
+- `ProblemDetailsHandler` kế thừa `ResponseEntityExceptionHandler`: lỗi của framework (400, 404, 405…) cũng là problem+json có `errorCode` bằng tên trạng thái HTTP.
+- `VersionEtag`: ETag dạng `"3"`; If-Match nhận `"3"`, `W/"3"`, `3`; If-Match không đọc được coi như sai phiên bản (412). Thiếu If-Match thì controller khai `@RequestHeader` bắt buộc nên Spring trả 400.
+- `IdempotencyFilter` (bộ lọc servlet chạy sau Spring Security) áp cho POST, PUT, PATCH, DELETE có header: khóa theo (khóa, tên đăng nhập) thay cho `nguoi_dung_id` vì `common` không được phụ thuộc `m15` (Modulith cấm vòng phụ thuộc) và 002 chưa có; chỉ lưu kết quả 2xx (lệnh lỗi thì bỏ khóa để gửi lại được); cùng khóa khác nội dung thì 422 `IDEMPOTENCY_KEY_REUSED`, lần đầu đang chạy thì 409 `IDEMPOTENCY_IN_PROGRESS`; trả lại cả header `ETag`, `Location`.
+- Migration `V000_01__idempotency_key.sql` cấp `INSERT, UPDATE, DELETE` trên bảng này cho `eldercare_app` (bảng kỹ thuật).
+- Test thêm ngoài tasks để kiểm nhóm này: `ReasonTest`, `VersionEtagTest`, `ProblemDetailsHandlerIT`, `IdempotencyFilterIT`; controller mẫu cho test ở gói `com.testsupport` (ngoài vùng quét bean, nạp bằng `@Import`).
+
 ## Điểm cần báo lại về tài liệu nguồn
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới, rồi sửa `docs/business/nghiep-vu.md` và spec 000.

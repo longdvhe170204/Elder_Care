@@ -277,7 +277,7 @@ Bảo đảm:
 | Bảng | Mục đích | Ghi chú |
 | --- | --- | --- |
 | `lan_chay_lich` | Định danh lần chạy job (FR-045): `id`, `job`, `bat_dau`, `ket_thuc`, `ket_qua`, `so_xu_ly` | Dữ liệu kỹ thuật |
-| `khoa_lap_lai` | `Idempotency-Key`: `(khoa, nguoi_dung_id)` là khóa chính, cùng `ma_bam_yeu_cau`, `ket_qua_json`, `het_han_luc` | Giữ 7 ngày (kỹ thuật, không phải CFG) |
+| `khoa_lap_lai` | `Idempotency-Key`: `(khoa, nguoi_dung_id)` là khóa chính, cùng `ma_bam_yeu_cau`, `ket_qua_json`, `het_han_luc` | Giữ 7 ngày (kỹ thuật, không phải CFG). *(Sửa khi cài 2026-10-19)* Người gửi lưu bằng tên đăng nhập (`username`) thay cho `nguoi_dung_id`, vì gói `common` không được phụ thuộc M15 (xem plan, Ghi chú triển khai) |
 | `event_publication` | Event Publication Registry của Spring Modulith (R-09) | Do thư viện quản lý |
 | `shedlock` | Khóa job (R-10) | Do thư viện quản lý |
 
