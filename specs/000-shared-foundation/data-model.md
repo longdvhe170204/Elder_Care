@@ -62,7 +62,7 @@ Bản ghi không có cột "đã đính chính" hay "đã hủy". Hai thông tin
 | Bảo đảm | Cách làm | DBR / FR |
 | --- | --- | --- |
 | Không sửa bản ghi nhóm 3 đã xác nhận | Trigger `trg_<bang>_khong_sua` `BEFORE UPDATE`: `SIGNAL SQLSTATE '45000'` khi `OLD.thoi_diem_xac_nhan IS NOT NULL`. Bảng không có nháp thì tài khoản `eldercare_app` không có quyền `UPDATE` | DBR-23, FR-009 |
-| Không xóa nhóm 3 và nhật ký | Trigger `trg_<bang>_khong_xoa` `BEFORE DELETE`: `SIGNAL` trừ khi `SUBSTRING_INDEX(CURRENT_USER(),'@',1) = 'eldercare_luu_tru'`. Tài khoản `eldercare_app` không có quyền `DELETE` trên các bảng này | FR-009, FR-048, FR-051 |
+| Không xóa nhóm 3 và nhật ký | Trigger `trg_<bang>_khong_xoa` `BEFORE DELETE`: `SIGNAL` trừ khi `SUBSTRING_INDEX(USER(),'@',1) = 'eldercare_luu_tru'`. *(Sửa khi cài 2026-10-19: trong trigger, `CURRENT_USER()` là tài khoản tạo trigger nên điều kiện cũ luôn chặn; `USER()` là tài khoản đang kết nối. `MESSAGE_TEXT` viết ASCII vì chữ có dấu bị thành `?`.)* Tài khoản `eldercare_app` không có quyền `DELETE` trên các bảng này | FR-009, FR-048, FR-051 |
 | Danh sách bảo vệ BR-M15-03 | Cùng hai trigger trên, bắt buộc với: liều thuốc đã xác nhận, sự cố khẩn cấp, chi phí đã chốt, bàn giao đã xác nhận, bàn giao đồ gửi. Test tích hợp riêng cho từng bảng ở plan module sở hữu | FR-010 |
 | Danh sách bảng nhóm 3 | ArchUnit đọc `@NhomDuLieu(GHI_NHAN)`. Một test tích hợp đối chiếu danh sách này với `information_schema.TRIGGERS`; bảng nhóm 3 thiếu trigger thì test lỗi | FR-001 |
 

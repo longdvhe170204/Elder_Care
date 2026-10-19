@@ -82,9 +82,9 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 ### Nhật ký – phần ghi (R-06, FR-042 → FR-047)
 
-- [ ] T026 Tạo bảng `nhat_ky` trong `MIG/V000_02__nhat_ky.sql` phân vùng theo năm trên `thoi_diem`, khóa chính `(id, thoi_diem)`, cột theo data-model mục 5: `nguoi_thuc_hien_loai ENUM('NGUOI_DUNG','BO_LAP_LICH','KHOI_TAO')`, `nguoi_thuc_hien_id` "`NOT NULL` khi `NGUOI_DUNG`", `vai_tro VARCHAR(10)`, `hanh_dong VARCHAR(40)`, `doi_tuong_loai VARCHAR(40)`, `doi_tuong_id VARCHAR(64)`, `nguoi_cao_tuoi_id BIGINT NULL`, `du_lieu_truoc/du_lieu_sau JSON NULL`, `ly_do VARCHAR(2000) NULL`, `can_cu JSON NULL`, `chi_tiet JSON NULL`, `khong_loai_bo BOOLEAN`, `thoi_diem_thiet_bi DATETIME(6) NULL`; chỉ mục `(doi_tuong_loai, doi_tuong_id, thoi_diem)`, `(nguoi_thuc_hien_id, thoi_diem)`, `(hanh_dong, thoi_diem)`, `(nguoi_cao_tuoi_id)`; trigger `trg_nhat_ky_khong_sua`, `trg_nhat_ky_khong_xoa` theo data-model mục 1.4
-- [ ] T027 Tạo `BE/m15/nhatky/api/NhatKyApi.java` và `BanGhiNhatKy` (builder: `hanhDong`, `doiTuong`, `nguoiCaoTuoi`, `truoc`, `sau`, `lyDo`, `canCu`, `chiTiet`, `thoiDiemThietBi`); `build()` lỗi khi hành động thuộc tập bắt buộc lý do mà thiếu `lyDo`, hoặc người thực hiện là Bộ lập lịch mà thiếu `canCu` (FR-044, FR-045)
-- [ ] T028 Cài `BE/m15/nhatky/internal/NhatKyService.java`: `ghi()` với `Propagation.MANDATORY` (FR-047); `ghiNgoaiTransaction()` với `REQUIRES_NEW` chỉ cho FR-037b và FR-051; thời điểm từ `Clock` (FR-046); vai trò lấy từ `NguoiDungHienTai`
+- [x] T026 Tạo bảng `nhat_ky` trong `MIG/V000_02__nhat_ky.sql` phân vùng theo năm trên `thoi_diem`, khóa chính `(id, thoi_diem)`, cột theo data-model mục 5: `nguoi_thuc_hien_loai ENUM('NGUOI_DUNG','BO_LAP_LICH','KHOI_TAO')`, `nguoi_thuc_hien_id` "`NOT NULL` khi `NGUOI_DUNG`", `vai_tro VARCHAR(10)`, `hanh_dong VARCHAR(40)`, `doi_tuong_loai VARCHAR(40)`, `doi_tuong_id VARCHAR(64)`, `nguoi_cao_tuoi_id BIGINT NULL`, `du_lieu_truoc/du_lieu_sau JSON NULL`, `ly_do VARCHAR(2000) NULL`, `can_cu JSON NULL`, `chi_tiet JSON NULL`, `khong_loai_bo BOOLEAN`, `thoi_diem_thiet_bi DATETIME(6) NULL`; chỉ mục `(doi_tuong_loai, doi_tuong_id, thoi_diem)`, `(nguoi_thuc_hien_id, thoi_diem)`, `(hanh_dong, thoi_diem)`, `(nguoi_cao_tuoi_id)`; trigger `trg_nhat_ky_khong_sua`, `trg_nhat_ky_khong_xoa` theo data-model mục 1.4
+- [x] T027 Tạo `BE/m15/nhatky/api/NhatKyApi.java` và `BanGhiNhatKy` (builder: `hanhDong`, `doiTuong`, `nguoiCaoTuoi`, `truoc`, `sau`, `lyDo`, `canCu`, `chiTiet`, `thoiDiemThietBi`); `build()` lỗi khi hành động thuộc tập bắt buộc lý do mà thiếu `lyDo`, hoặc người thực hiện là Bộ lập lịch mà thiếu `canCu` (FR-044, FR-045)
+- [x] T028 Cài `BE/m15/nhatky/internal/NhatKyService.java`: `ghi()` với `Propagation.MANDATORY` (FR-047); `ghiNgoaiTransaction()` với `REQUIRES_NEW` chỉ cho FR-037b và FR-051; thời điểm từ `Clock` (FR-046); vai trò lấy từ `NguoiDungHienTai`
 
 ### Tham số – phần đọc (R-07; lệnh đổi ở US4)
 
@@ -104,7 +104,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 - [ ] T037 [P] Test `BT/ModuleBoundaryTest.java` gọi `ApplicationModules.of(BackendApplication.class).verify()` (constitution X)
 - [ ] T038 [P] Test `BT/common/HopDongApiTest.java` so OpenAPI sinh bởi springdoc với `specs/000-shared-foundation/contracts/api-000.yaml` bằng openapi-diff; mở rộng dần cho `api-001.yaml` … `api-019.yaml` (R-14)
-- [ ] T039 Test `BT/m15/nhatky/NhatKyNguyenTuIT.java`: lệnh lỗi sau khi ghi nhật ký thì cả thay đổi và nhật ký cùng rollback; gọi `ghi()` ngoài transaction thì lỗi (US3 #6, FR-047)
+- [x] T039 Test `BT/m15/nhatky/NhatKyNguyenTuIT.java`: lệnh lỗi sau khi ghi nhật ký thì cả thay đổi và nhật ký cùng rollback; gọi `ghi()` ngoài transaction thì lỗi (US3 #6, FR-047)
 
 **Checkpoint**: Nền sẵn sàng – các user story của 000 và plan của 002 bắt đầu được.
 

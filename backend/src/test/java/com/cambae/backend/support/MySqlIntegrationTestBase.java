@@ -47,6 +47,18 @@ public abstract class MySqlIntegrationTestBase {
         registry.add("eldercare.datasource.retention.password", db::retentionPassword);
     }
 
+    /** Kết nối bằng tài khoản quản trị, để test thao tác mà tài khoản ứng dụng không có quyền. */
+    protected static Connection adminConnection() throws SQLException {
+        TestDatabase db = prepareDatabase();
+        return DriverManager.getConnection(db.schemaUrl(), db.adminUser(), db.adminPassword());
+    }
+
+    /** Kết nối bằng tài khoản {@code eldercare_retention} của job loại bỏ dữ liệu (R-05). */
+    protected static Connection retentionConnection() throws SQLException {
+        TestDatabase db = prepareDatabase();
+        return DriverManager.getConnection(db.schemaUrl(), RETENTION_USER, db.retentionPassword());
+    }
+
     private static synchronized TestDatabase prepareDatabase() {
         if (database == null) {
             database = TestDatabase.fromEnvironment();
