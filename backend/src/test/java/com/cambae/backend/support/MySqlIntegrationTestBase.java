@@ -17,8 +17,8 @@ import org.springframework.test.context.DynamicPropertySource;
  * <p>Đọc {@code TEST_DB_URL} (ví dụ {@code jdbc:mysql://localhost:3306/eldercare_test}), {@code TEST_DB_ADMIN_USER},
  * {@code TEST_DB_ADMIN_PASSWORD}. Mỗi lần chạy JVM: xóa và tạo lại schema test, tạo lại hai tài khoản
  * {@code eldercare_app} và {@code eldercare_retention} (R-05) với mật khẩu ngẫu nhiên, rồi để Flyway chạy bằng tài
- * khoản quản trị. Quyền theo bảng của hai tài khoản nằm trong migration của bảng đó; ứng dụng kết nối bằng
- * {@code eldercare_app}.
+ * khoản quản trị. Hai tài khoản có {@code SELECT} trên cả schema; quyền ghi theo bảng nằm trong migration của bảng
+ * đó. Ứng dụng kết nối bằng {@code eldercare_app}.
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -94,6 +94,8 @@ public abstract class MySqlIntegrationTestBase {
                 s.execute("CREATE DATABASE `" + schema + "` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci");
                 recreateUser(s, APP_USER, appPassword);
                 recreateUser(s, RETENTION_USER, retentionPassword);
+                // Mức schema chỉ cấp SELECT; INSERT, UPDATE, DELETE cấp theo bảng trong migration của bảng (R-05)
+                s.execute("GRANT SELECT ON `" + schema + "`.* TO '" + APP_USER + "'@'%', '" + RETENTION_USER + "'@'%'");
             } catch (SQLException e) {
                 throw new IllegalStateException("Không dựng được schema test " + schema + ": " + e.getMessage(), e);
             }
