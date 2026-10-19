@@ -120,7 +120,7 @@ specs/002-account-permission/
 ├── contracts/
 │   ├── api-002.yaml             # OpenAPI 3.1: xác thực, tài khoản, phân quyền, nghiệp vụ chuyên môn, ngoại tuyến
 │   └── module-interfaces.md     # Giao diện Java: 002 cung cấp / 002 cần
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

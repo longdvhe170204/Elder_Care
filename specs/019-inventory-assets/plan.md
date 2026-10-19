@@ -108,7 +108,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 specs/019-inventory-assets/
 ├── plan.md  ├── research.md (W-01 → W-09)  ├── data-model.md  ├── quickstart.md (Q1 → Q33)
 ├── contracts/ (api-019.yaml, module-interfaces.md)
-└── tasks.md   # Phase 2 (chưa tạo)
+└── tasks.md   # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

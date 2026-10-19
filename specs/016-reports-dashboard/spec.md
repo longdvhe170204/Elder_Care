@@ -69,7 +69,7 @@ Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi 
 
 ### Cập nhật 2026-10-18, lượt 3 (đồng bộ Q-365 → Q-371, người cao tuổi tự dùng hệ thống)
 
-Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định. Thay đổi ở spec này:
+Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định *(Q-367 chốt 2026-10-19 giữ mặc định, chuyển sang 24.2)*. Thay đổi ở spec này:
 
 - **Q-369**: báo cáo cảnh báo tách riêng cảnh báo từ nút SOS (FR-041, kịch bản 6 của User Story 5).
 

@@ -134,7 +134,7 @@ specs/003-room-bed-allocation/
 ├── contracts/
 │   ├── api-003.yaml             # OpenAPI 3.1: cơ cấu, giường, cách ly, phân bổ, tra cứu, bán trú
 │   └── module-interfaces.md     # Giao diện Java: 003 cung cấp / 003 cần; port nội bộ M03 với 019
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

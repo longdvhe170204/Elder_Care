@@ -148,10 +148,10 @@ Feature 000 nằm trong **M15 – Quản trị hệ thống**, vì tham số (BR
 - **Phạm vi xem**:
   - Quản lý viện xem toàn viện.
   - Nhân viên chỉ xem lịch sử của một đối tượng cụ thể, sau khi `PhamViApi` (feature 002) xác nhận họ đang có quyền xem đối tượng đó. Nhân viên không có tra cứu toàn viện.
-  - Người thân bị chặn ở tầng xác thực, theo vai trò AC-10.
+  - Người thân và người cao tuổi bị chặn ở tầng xác thực, theo vai trò AC-10, AC-16 (FR-049, Phụ lục 27).
 - **Hiệu năng (SC-006, NFR-01)**:
   - Ước lượng khoảng 300 người cao tuổi, khoảng 200 bản ghi nhật ký mỗi người mỗi ngày (công việc, liều, chỉ số, cộng thêm thao tác nhân viên). Như vậy khoảng 60 nghìn bản ghi một ngày, khoảng 22 triệu một năm.
-  - Chỉ mục `(loai_doi_tuong, id_doi_tuong, thoi_diem)`, `(nguoi_thuc_hien_id, thoi_diem)`, `(hanh_dong, thoi_diem)`.
+  - Chỉ mục `(doi_tuong_loai, doi_tuong_id, thoi_diem)`, `(nguoi_thuc_hien_id, thoi_diem)`, `(hanh_dong, thoi_diem)`.
   - Phân vùng `RANGE` theo năm của `thoi_diem`, nên khóa chính là `(id, thoi_diem)` và bảng không có khóa ngoại. Tham chiếu tới đối tượng là định danh logic.
   - Tra cứu dùng phân trang theo khóa (`thoi_diem`, `id`), không dùng `OFFSET`.
 - **Bản tóm tắt đợt loại bỏ**: ghi vào chính bảng `nhat_ky`, `hanh_dong = LOAI_BO_DU_LIEU_HET_HAN`, `khong_loai_bo = true`. Job loại bỏ bỏ qua các dòng này (FR-050, FR-051).

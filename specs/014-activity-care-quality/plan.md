@@ -135,7 +135,7 @@ specs/014-activity-care-quality/
 ├── contracts/
 │   ├── api-014.yaml             # OpenAPI 3.1: hoạt động, buổi, đăng ký, điểm danh, chuyến đi, tinh thần, kiểm tra, cổng
 │   └── module-interfaces.md     # SPI 014 cài, giao diện mới ở m04.api, sự kiện
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

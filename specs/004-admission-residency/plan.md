@@ -148,7 +148,7 @@ specs/004-admission-residency/
 ├── contracts/
 │   ├── api-004.yaml             # OpenAPI 3.1: đăng ký, danh sách chờ, hợp đồng, dịch vụ, thay đổi, vắng, kết thúc, qua đời
 │   └── module-interfaces.md     # Giao diện Java: 004 cung cấp / 004 cần; chiTiet của lệnh trạng thái; mã điều kiện kết thúc
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

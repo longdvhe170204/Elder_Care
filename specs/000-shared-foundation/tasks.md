@@ -10,7 +10,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 **Tests**: Bắt buộc. Constitution XV yêu cầu mỗi BR có ít nhất một kiểm thử tự động dựng từ kịch bản Given/When/Then; tên lớp test theo quickstart.md mục 4 và data-model.md mục 7. Tên phương thức test theo R-14 (`BR_M15_09_...`, `FR_037_...`).
 
-**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
+**Giai đoạn**: Theo mục "Giai đoạn hiện tại" của CLAUDE.md (constitution IX). Từ 2026-10-16 là giai đoạn thiết kế; task chỉ được làm khi chủ dự án mở giai đoạn triển khai, trừ task thiết kế giao diện (T005a).
 
 **Organization**: Task nhóm theo user story của spec 000 (US1–US5).
 
@@ -22,14 +22,14 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 ## Quy ước đường dẫn (research R-02)
 
 - Backend: `backend/src/main/java/com/cambae/backend/` (viết tắt `BE/`), test `backend/src/test/java/com/cambae/backend/` (viết tắt `BT/`), migration `backend/src/main/resources/db/migration/` (viết tắt `MIG/`)
-- Web: `frontend/src/`; app nhân viên: `mobile/lib/`, test `mobile/test/nhan-vien/`
+- Web: `frontend/src/`; app chung: `mobile/lib/{chung, nhan-vien, nguoi-than, nguoi-cao-tuoi}/`, test `mobile/test/` cùng cấu trúc
 - Feature 000 nằm ở `BE/common/` và `BE/m15/{thamso,nhatky,pheduyet,dinhchinh,luutru}/`, mỗi gói con chia `api/`, `internal/`, `web/` (và `lich/` cho job)
 
 ---
 
 ## Phase 1: Setup (hạ tầng kho mã chung)
 
-**Purpose**: Dựng bốn thư mục gốc và bộ công cụ mà mọi feature 001–019 dùng lại (R-01, R-02)
+**Purpose**: Dùng ba thư mục gốc và bộ công cụ mà mọi feature 001–019 dùng lại (R-01, R-02)
 
 - [x] T001 Dùng ba thư mục gốc đã khởi tạo `backend/`, `frontend/`, `mobile/` (R-02); viết `README.md` gốc mô tả cấu trúc, và `.gitignore` gốc bỏ qua kết quả build và file IDE (`backend/target/`, `frontend/node_modules/`, `frontend/dist/`, `mobile/.dart_tool/`, `mobile/build/`, `.idea/` ở mọi cấp); gỡ `backend/.idea/`, `mobile/.idea/`, `mobile/mobile.iml` khỏi phần commit
 - [ ] T002 Hoàn thiện dự án đã khởi tạo trong `backend/pom.xml` (Spring Boot 4.1.x, Java 25, gói gốc `com.cambae.backend`): giữ Web MVC, Data JPA (Hibernate 7), Security, Validation, Lombok; thêm Spring Modulith 2.x, Flyway (`spring-boot-starter-flyway`, `flyway-mysql`), springdoc-openapi 3.x, ShedLock, driver MySQL; test: JUnit 5, AssertJ, ArchUnit, openapi-diff. Đổi `application.properties` sang Flyway (`ddl-auto=validate`), bỏ `spring-boot-devtools` khỏi profile `prod` (R-01)
@@ -100,7 +100,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 ### Kiến trúc
 
-- [ ] T037 [P] Test `BT/ModuleBoundaryTest.java` gọi `ApplicationModules.of(EldercareApplication.class).verify()` (constitution X)
+- [ ] T037 [P] Test `BT/ModuleBoundaryTest.java` gọi `ApplicationModules.of(BackendApplication.class).verify()` (constitution X)
 - [ ] T038 [P] Test `BT/common/HopDongApiTest.java` so OpenAPI sinh bởi springdoc với `specs/000-shared-foundation/contracts/api-000.yaml` bằng openapi-diff; mở rộng dần cho `api-001.yaml` … `api-019.yaml` (R-14)
 - [ ] T039 Test `BT/m15/nhatky/NhatKyNguyenTuIT.java`: lệnh lỗi sau khi ghi nhật ký thì cả thay đổi và nhật ký cùng rollback; gọi `ghi()` ngoài transaction thì lỗi (US3 #6, FR-047)
 
@@ -117,7 +117,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 ### Tests cho User Story 1
 
 - [ ] T040 [P] [US1] Test `BT/m15/NhomDuLieuArchTest.java`: mọi `@Entity` có đúng một `@NhomDuLieu`; entity nhóm 2, 3 không có setter trạng thái công khai và không mang Lombok `@Data`, `@Setter` (R-05); phương thức `@LenhNghiepVu(batBuocLyDo=true)` có tham số `LyDo` (FR-001, FR-005, FR-007)
-- [ ] T041 [P] [US1] Test `BT/m15/DanhMucMauIT.java`: xóa mục chưa dùng → 204; xóa mục đã được bản ghi nhóm 2/3 (kể cả Nháp, Hủy) tham chiếu → 409 `DANH_MUC_DA_DUOC_THAM_CHIEU`; nhật ký của chính mục không tính; mục Ngừng hiệu lực không chọn được cho nghiệp vụ mới nhưng vẫn hiển thị trong bản ghi cũ; kích hoạt lại khi có mục Hiệu lực trùng tên → 409 (US1 #1, #2, #8; FR-002, FR-003, BR-M15-06)
+- [ ] T041 [P] [US1] Test `BT/m15/DanhMucMauIT.java`: xóa mục chưa dùng → 204; xóa mục đã được bản ghi nhóm 2/3 (kể cả Nháp, Hủy) tham chiếu → 409 `DANH_MUC_DA_DUOC_THAM_CHIEU`; nhật ký của chính mục không tính; mục Ngừng hiệu lực không chọn được cho nghiệp vụ mới nhưng vẫn hiển thị trong bản ghi cũ; kích hoạt lại khi có mục Hiệu lực trùng tên → 409; mỗi thao tác thành công có đúng một bản ghi nhật ký (US1 #1, #2, #8; FR-002, FR-003, FR-043, BR-M15-06)
 - [ ] T042 [P] [US1] Test `BT/m15/PhienBanKhongChongKhoangIT.java`: hai luồng đồng thời thêm phiên bản giao khoảng hiệu lực, chỉ một thành công (FR-008, BR-M15-07)
 - [ ] T043 [P] [US1] Test `BT/m15/NhomGhiNhanCoTriggerIT.java`: đối chiếu danh sách entity `@NhomDuLieu(GHI_NHAN)` với `information_schema.TRIGGERS`; `UPDATE`/`DELETE` trực tiếp bằng `eldercare_app` trên bảng mẫu nhóm 3 bị MySQL chặn (thiếu quyền hoặc `SQLSTATE 45000`) (US1 #7, SC-002, FR-009, FR-010, BR-M15-03)
 - [ ] T044 [P] [US1] Test `BT/m15/LenhNghiepVuLyDoTest.java`: lệnh nhóm 2 thiếu lý do → 422 `THIEU_LY_DO` trước khi chạm dữ liệu; không có endpoint `PUT/PATCH/DELETE` cho tài nguyên nhóm 2, 3 (FR-005, FR-007, SC-008)
@@ -125,7 +125,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 ### Implementation cho User Story 1
 
 - [ ] T045 [P] [US1] Viết mẫu migration và tài liệu quy ước `backend/docs/quy-uoc-nhom-du-lieu.md`: cột chuẩn nhóm 1 (`trang_thai ENUM('HIEU_LUC','NGUNG_HIEU_LUC')`, cột sinh `ten_hieu_luc = IF(trang_thai='HIEU_LUC', ten, NULL)` có `UNIQUE`, `phien_ban`), nhóm 2 (`trang_thai`, `phien_ban`, `tao_luc`, `tao_boi`; bảng phiên bản `hieu_luc_tu DATE`, `hieu_luc_den DATE NULL`, `CHECK (hieu_luc_den IS NULL OR hieu_luc_den >= hieu_luc_tu)`), nhóm 3 (`thoi_diem`, `thoi_diem_thiet_bi`, `nguoi_thuc_hien_id`, `thoi_diem_xac_nhan`, `tang_khu_vuc_id`) và hai trigger `trg_<bang>_khong_sua`, `trg_<bang>_khong_xoa` (data-model mục 1)
-- [ ] T046 [P] [US1] Tạo lớp cơ sở `BE/common/dulieu/DanhMucCoSo.java` (trạng thái, ngừng hiệu lực, kích hoạt lại có kiểm trùng tên) và ánh xạ vi phạm khóa ngoại `ON DELETE RESTRICT` thành 409 `DANH_MUC_DA_DUOC_THAM_CHIEU` trong `BE/common/loi/web/ProblemDetailsHandler.java` (FR-002, FR-003)
+- [ ] T046 [P] [US1] Tạo lớp cơ sở `BE/common/dulieu/DanhMucCoSo.java` (trạng thái, ngừng hiệu lực, kích hoạt lại có kiểm trùng tên; mỗi lần tạo, sửa, ngừng hiệu lực, kích hoạt lại, xóa ghi nhật ký qua `NhatKyApi` cùng transaction, tên hành động theo danh mục hành động của module sở hữu) và ánh xạ vi phạm khóa ngoại `ON DELETE RESTRICT` thành 409 `DANH_MUC_DA_DUOC_THAM_CHIEU` trong `BE/common/loi/web/ProblemDetailsHandler.java` (FR-002, FR-003, FR-043)
 - [ ] T047 [P] [US1] Tạo tiện ích `BE/common/dulieu/PhienBanHieuLuc.java`: khóa dòng cha `SELECT … FOR UPDATE`, kiểm `NOT EXISTS` phiên bản giao khoảng, rồi thêm (FR-004, FR-008)
 - [ ] T048 [US1] Tạo dữ liệu mẫu kiểm thử (chỉ profile `test`, `demo`) `BT/m15/mau/` và `MIG/demo/V000_90__du_lieu_mau.sql`: danh mục mẫu, bản ghi nhóm 3 `M15.GHI_NHAN_MAU` gắn tầng và một loại không gắn tầng, có trigger theo T045 (CHK029; quickstart mục 1)
 
@@ -156,6 +156,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 - [ ] T058 [US2] Cài handler `BE/m15/dinhchinh/internal/DinhChinhYeuCauHandler.java` cho loại `M15.DINH_CHINH`: người duyệt Quản lý viện; áp dụng thì thêm `dinh_chinh` với `cach_tao='C'` và `yeu_cau_phe_duyet_id` (FR-026 c; phụ thuộc T090–T092)
 - [ ] T059 [US2] Tạo controller `BE/m15/dinhchinh/web/DinhChinhController.java`: `GET /dinh-chinh/{loaiBanGhi}/{idBanGhiGoc}` (chuỗi, `daDinhChinh`, giá trị hiện hành) và `POST` (201 cho A/B, 202 kèm yêu cầu cho C) theo contracts/api-000.yaml
 - [ ] T060 [US2] Cài provider mẫu `BT/m15/mau/GhiNhanMauProvider.java` cho `M15.GHI_NHAN_MAU` để chạy T049–T052 và quickstart K14, K16, K17
+- [ ] T106 [P] [US2] Tạo component web dùng chung `frontend/src/chung/dinh-chinh/`: nhãn "Đã đính chính", danh sách các lần đính chính, form đính chính (lý do bắt buộc; cách C hiện "đã gửi duyệt") theo `GET/POST /dinh-chinh/…`; test `DinhChinh.test.jsx`; dùng cho bản ghi mẫu `M15.GHI_NHAN_MAU` ở profile `demo` để đo SC-007 (FR-028, SC-007)
 
 **Checkpoint**: Đính chính chạy được trên bản ghi mẫu; module khác chỉ cần cài provider.
 
@@ -171,7 +172,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 - [ ] T061 [P] [US3] Test `BT/m15/nhatky/NhatKyDayDuIT.java`: proxy đếm câu lệnh xác nhận mỗi lệnh thay đổi nhóm 2, 3 có đúng một `INSERT nhat_ky` cùng transaction (SC-001, DBR-23)
 - [ ] T062 [P] [US3] Test `BT/m15/nhatky/NhatKyCheTruongIT.java`: Hành chính xem nhật ký hồ sơ mẫu có đổi `diaChi` và `diUng` → `diaChi` hiện giá trị, `diUng` hiện `{"daThayDoi": true}`, `lyDo` `null` và `lyDoBiAn = true`; thiếu `PhanLoaiTruongProvider` thì chỉ Quản lý viện xem (US3 #8, BR-M15-11, FR-049)
-- [ ] T063 [P] [US3] Test `BT/m15/nhatky/NhatKyPhamViIT.java`: người ngoài phạm vi không thấy nhật ký đối tượng; người thân bị chặn khỏi nhật ký (FR-049, NFR-08)
+- [ ] T063 [P] [US3] Test `BT/m15/nhatky/NhatKyPhamViIT.java`: người ngoài phạm vi không thấy nhật ký đối tượng; người thân (AC-10) và người cao tuổi (AC-16, Phụ lục 27 cột NCT "—") bị chặn khỏi nhật ký (FR-049, NFR-08)
 - [ ] T064 [P] [US3] Test `BT/m15/nhatky/NhatKyNgoaiTuyenIT.java`: bản ghi đồng bộ ngoại tuyến lưu cả `thoi_diem` máy chủ và `thoi_diem_thiet_bi` (US3 #12, DBR-25)
 - [ ] T065 [P] [US3] Test `BT/m15/nhatky/NhatKyXuatBaoCaoIT.java`: lần xuất báo cáo ghi `XUAT_BAO_CAO` với `truoc`/`sau` rỗng và bộ lọc trong `chi_tiet` (US3 #11, FR-043a)
 - [ ] T066 [P] [US3] Test `BT/m15/luutru/LoaiBoDuLieuIT.java` (đồng hồ giả lập): chỉ xóa chuỗi đã hết hạn toàn bộ; chuỗi còn phần tử chưa hết hạn được giữ; mỗi chuỗi một transaction; dừng giữa chừng vẫn ghi bản tóm tắt với số đếm thực tế, `khong_loai_bo = true`; `eldercare_app` xóa thì bị trigger chặn (US3 #4, #5; BR-M15-12, BR-M15-13; FR-050, FR-051, FR-051a)
@@ -254,7 +255,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 - [ ] T100 [P] Hàng đợi ngoại tuyến dùng chung `mobile/lib/chung/ngoai_tuyen/hang_doi.dart` (drift): phong bì `Idempotency-Key`, `thoiDiemThietBi`, nhận `KetQuaDongBo`; chi tiết quy tắc ở plan 002, 005 (R-13)
 - [ ] T101 [P] Công cụ sinh dữ liệu quy mô NFR-01 với 1 năm nhật ký (~22 triệu dòng) `backend/tools/sinh-du-lieu/` để đo SC-006 (quickstart mục 5)
 - [ ] T102 Viết quy trình vận hành `backend/docs/van-hanh.md`: sao lưu hằng ngày giữ 30 ngày, bản khôi phục không làm sống lại dữ liệu đã loại bỏ, bảo trì ngoài khung giao ca (NFR-05, NFR-06)
-- [ ] T103 Chạy `./mvnw verify` và toàn bộ quickstart.md mục 3 (K1–K20) ở profile `demo`; đo SC-006, SC-007 theo quickstart mục 5
+- [ ] T103 Chạy `./mvnw verify` và toàn bộ quickstart.md mục 3 (K1–K21) ở profile `demo`; đo SC-006, SC-007 theo quickstart mục 5 (SC-007 đo trên T106)
 - [ ] T104 Rà truy vết: mỗi BR-M15-03, 04, 06 → 13 và DBR-23, 24, 25 có test theo bảng data-model mục 7; cập nhật bảng nếu tên lớp test đổi; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-010a — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---

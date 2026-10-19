@@ -133,7 +133,7 @@ specs/008-staff-shift-handover/
 ├── contracts/
 │   ├── api-008.yaml             # OpenAPI 3.1: nhân viên, bộ phận, chứng chỉ, mẫu ca, lịch ca, ca, phân công, tỷ lệ, bàn giao
 │   └── module-interfaces.md     # Giao diện Java: SPI 008 cài, API cung cấp, SPI khai báo, port cho 015, sự kiện
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

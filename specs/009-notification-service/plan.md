@@ -144,7 +144,7 @@ specs/009-notification-service/
 ├── contracts/
 │   ├── api-009.yaml             # OpenAPI 3.1: hộp thông báo, khẩn cấp, lượt nhắc gọi, liên hệ, tra cứu, kênh
 │   └── module-interfaces.md     # Khuôn yêu cầu ở common, API tra cứu, SPI, sự kiện
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

@@ -69,7 +69,7 @@ Ngày 2026-10-18 chủ dự án ủy quyền chốt các điểm báo lại củ
 
 ### Cập nhật 2026-10-18, lượt 3 (đồng bộ Q-365 → Q-371, người cao tuổi tự dùng hệ thống)
 
-Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định. Thay đổi ở spec này:
+Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định *(Q-367 chốt 2026-10-19 giữ mặc định, chuyển sang 24.2)*. Thay đổi ở spec này:
 
 - **Q-366**: người cao tuổi xem đồ gửi của mình đang Đang giữ hoặc Đang được sử dụng trên kênh người cao tuổi (FR-030a, kịch bản 5 của User Story 6); không đổi quy tắc trả đồ (BR-M12-04, BR-M12-06).
 

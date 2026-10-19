@@ -154,7 +154,7 @@ specs/007-health-alert-incident/
 ├── contracts/
 │   ├── api-007.yaml             # OpenAPI 3.1: danh mục, lịch đo, chỉ số, ngưỡng, cảnh báo, sự cố, khẩn cấp, nguy kịch, lây nhiễm, giấy phép, khám
 │   └── module-interfaces.md     # Giao diện Java: 007 cung cấp / 007 cần; sự kiện; bean trạng thái
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

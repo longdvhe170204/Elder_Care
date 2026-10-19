@@ -123,7 +123,7 @@ specs/015-shift-rotation-swap/
 ├── contracts/
 │   ├── api-015.yaml             # OpenAPI 3.1: xoay ca, lập lịch, phủ, đổi ca, nghỉ, lời mời
 │   └── module-interfaces.md     # Port nội bộ M09, SPI 015 cài, giao diện cho 016
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

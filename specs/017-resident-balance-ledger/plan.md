@@ -122,7 +122,7 @@ specs/017-resident-balance-ledger/
 ├── contracts/
 │   ├── api-017.yaml             # OpenAPI 3.1: số dư, thu, chốt quỹ, sao kê, giao dịch, tình trạng, quyết toán, xuất, cổng
 │   └── module-interfaces.md     # Port P-12, SPI 017 cài, API, sự kiện
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

@@ -140,7 +140,7 @@ specs/005-daily-care-tasks/
 ├── contracts/
 │   ├── api-005.yaml             # OpenAPI 3.1: kế hoạch, có mặt, lập công việc, checklist, ghi nhận, danh mục, thời khóa biểu
 │   └── module-interfaces.md     # Giao diện Java: 005 cung cấp / 005 cần; sự kiện; tác động của bean trạng thái
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

@@ -98,7 +98,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 specs/016-reports-dashboard/
 ├── plan.md  ├── research.md (O-01 → O-11)  ├── data-model.md  ├── quickstart.md (Q1 → Q32)
 ├── contracts/ (api-016.yaml, module-interfaces.md, chi-tieu.md)
-└── tasks.md   # Phase 2 (chưa tạo)
+└── tasks.md   # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)
