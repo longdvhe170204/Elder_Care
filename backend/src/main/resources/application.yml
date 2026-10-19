@@ -1,0 +1,102 @@
+# Cấu hình chung; ba profile prod, test, demo ở cuối file (research R-01, R-04, R-05).
+# Mật khẩu chỉ đọc từ biến môi trường, không ghi vào kho mã.
+spring:
+  application:
+    name: backend
+  datasource:
+    # Tài khoản eldercare_app (R-05): không có DELETE trên bảng nhóm 3.
+    url: ${DB_URL:jdbc:mysql://localhost:3306/elder_care}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      data-source-properties:
+        # Lưu thời điểm theo UTC, phiên MySQL cũng ở UTC (R-04)
+        connectionTimeZone: UTC
+        forceConnectionTimeZoneToSession: true
+        characterEncoding: UTF-8
+        connectionCollation: utf8mb4_0900_ai_ci
+  jpa:
+    open-in-view: false
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    locations: classpath:db/migration
+    # Tài khoản có quyền DDL và tạo tài khoản (eldercare_app không có); thiếu thì dùng DB_* (000 T024)
+    user: ${DB_MIGRATION_USERNAME:${DB_USERNAME}}
+    password: ${DB_MIGRATION_PASSWORD:${DB_PASSWORD}}
+    placeholders:
+      appPassword: ${DB_PASSWORD}
+      retentionPassword: ${DB_RETENTION_PASSWORD}
+  jackson:
+    # API trả thời điểm ISO-8601 offset +07:00 (R-03)
+    time-zone: Asia/Ho_Chi_Minh
+  modulith:
+    events:
+      # Bảng EVENT_PUBLICATION do Flyway tạo (V000_05); giao lại sự kiện chưa xong khi khởi động (R-09, 000 T033)
+      jdbc:
+        schema-initialization:
+          enabled: false
+      republish-outstanding-events-on-restart: true
+
+server:
+  port: 8080
+
+springdoc:
+  # Mọi API trả JSON; OpenAPI sinh ra so với contracts/ bằng ApiContractIT (R-14)
+  default-produces-media-type: application/json
+
+eldercare:
+  datasource:
+    # Tài khoản eldercare_retention (glossary: eldercare_luu_tru), chỉ job loại bỏ dữ liệu hết hạn dùng (R-05, R-11).
+    # Bean DataSource tạo ở task của job (000 T071).
+    retention:
+      url: ${DB_URL:jdbc:mysql://localhost:3306/elder_care}
+      username: ${DB_RETENTION_USERNAME}
+      password: ${DB_RETENTION_PASSWORD}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+# prod: dùng cấu hình chung; đồng hồ giả lập không nạp (000 T012).
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  # Mỗi lớp test có context riêng, Spring giữ lại nhiều context: pool nhỏ, không giữ kết nối rảnh, để tổng kết nối
+  # không vượt max_connections mặc định 151 của MySQL ("Too many connections").
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 0
+      idle-timeout: 10000
+# test: datasource do lớp cơ sở test tích hợp đặt (schema eldercare_test, 000 T009); có đồng hồ giả lập (NFR-13).
+# Job phê duyệt không chạy theo lịch hay lúc khởi động; test gọi job trực tiếp (000 T093, T094).
+eldercare:
+  jobs:
+    apply-due-requests:
+      cron: "-"
+      on-startup: false
+    remind-pending-requests:
+      cron: "-"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: demo
+  flyway:
+    # Dữ liệu mẫu chỉ nạp ở demo và test (000 T048). V000_90 có trước các migration V000_06… của 000 làm sau,
+    # nên schema demo đã có cho phép áp migration số nhỏ hơn đến sau.
+    locations: classpath:db/migration,classpath:db/migration/demo
+    out-of-order: true
+  jpa:
+    show-sql: true

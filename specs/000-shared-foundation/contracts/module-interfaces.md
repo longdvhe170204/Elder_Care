@@ -144,6 +144,7 @@ boolean coQuyenGhiNhan(NguoiDung nd);        // FR-026 (a), (c)
 void kiemTraNoiDung(Object noiDungDung);
 default boolean choPhep(NguoiDung nd, CachTao cach, long id) { return true; } // module thu hẹp thêm
 default void sauKhiDinhChinh(DinhChinhView dc) {}  // tác động dây chuyền do module (ví dụ 010 lập khoản điều chỉnh)
+Object noiDungGoc(long id);                  // bổ sung khi cài 000 (2026-10-19): API GET /corrections trả originalContent
 ```
 
 Sự kiện: `DaDinhChinh(loaiBanGhi, idGoc, kieu, dinhChinhId)`.

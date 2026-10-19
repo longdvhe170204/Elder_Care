@@ -28,12 +28,12 @@ export function NotDesignedState({ label }) {
 }
 
 // Không có quyền xem (theo quyền backend trả, feature 002). Nói rõ cần làm gì tiếp.
-export function PermissionDeniedState({ label }) {
+export function PermissionDeniedState({ label, description }) {
   return (
     <StateCard
       icon={LockKeyhole}
       title={`Bạn không có quyền xem ${label.toLowerCase()}`}
-      description="Quyền theo vai trò của bạn. Cần xem thì liên hệ Quản lý viện để được cấp quyền."
+      description={description ?? 'Quyền theo vai trò của bạn. Cần xem thì liên hệ Quản lý viện để được cấp quyền.'}
     />
   )
 }
