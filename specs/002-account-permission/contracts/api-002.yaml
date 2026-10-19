@@ -4,48 +4,49 @@ info:
   version: 1.0.0-design
   description: |
     Hợp đồng REST của feature 002. Quy ước chung theo research R-03 của feature 000:
-    tiền tố /api/v1, lỗi RFC 9457 có maLoi, If-Match cho lệnh sửa, Idempotency-Key cho lệnh ghi.
-    Xác thực: token phiên opaque (research A-02). Web gửi bằng cookie HttpOnly kèm header X-Yeu-Cau-Tu;
-    app gửi Authorization: Bearer. Mọi yêu cầu gửi X-Thiet-Bi.
+    tiền tố /api/v1, lỗi RFC 9457 có errorCode, If-Match cho lệnh sửa, Idempotency-Key cho lệnh ghi.
+    Tên định danh tiếng Anh theo glossary.md của 000, mục 7 (dịch 2026-10-19; bản tên logic tiếng Việt ở lịch sử git).
+    Xác thực: token phiên opaque (research A-02). Web gửi bằng cookie HttpOnly kèm header X-Requested-From;
+    app gửi Authorization: Bearer. Mọi yêu cầu gửi X-Device-Id.
     Truy vết: mỗi operation có x-fr (FR của spec 002) và x-br khi có.
 servers:
   - url: /api/v1
 tags:
-  - name: xac-thuc
+  - name: auth
     description: UC-70; mục B
-  - name: tai-khoan
+  - name: accounts
     description: UC-68; mục A, B, G
-  - name: phan-quyen
+  - name: permissions
     description: UC-68; mục C
-  - name: nghiep-vu-chuyen-mon
+  - name: professional-activities
     description: Mục E
-  - name: ngoai-tuyen
+  - name: offline
     description: Mục F (FR-041a, FR-041c)
 
 paths:
-  /xac-thuc/dang-nhap:
+  /auth/login:
     post:
-      tags: [xac-thuc]
+      tags: [auth]
       summary: Đăng nhập
       description: |
-        Sai tên đăng nhập và sai mật khẩu trả cùng mã DANG_NHAP_KHONG_THANH (FR-014).
-        Mật khẩu đúng nhưng tài khoản không Hoạt động: TAI_KHOAN_KHOA_TAM (kèm moKhoaLuc) hoặc TAI_KHOAN_CAN_LIEN_HE_VIEN.
+        Sai tên đăng nhập và sai mật khẩu trả cùng mã LOGIN_FAILED (FR-014).
+        Mật khẩu đúng nhưng tài khoản không Hoạt động: ACCOUNT_TEMPORARILY_LOCKED (kèm unlocksAt) hoặc ACCOUNT_CONTACT_FACILITY.
         Đăng nhập kết thúc mọi phiên đang mở trên cùng thiết bị (FR-014a, BR-M15-15).
       x-fr: [FR-007, FR-008, FR-010, FR-014, FR-014a, FR-015]
       x-br: [BR-M15-05, BR-M15-15]
       security: []
-      parameters: [ { $ref: '#/components/parameters/ThietBi' } ]
+      parameters: [ { $ref: '#/components/parameters/DeviceId' } ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [tenDangNhap, matKhau, kenh]
+              required: [username, password, channel]
               properties:
-                tenDangNhap: { type: string }
-                matKhau: { type: string, format: password }
-                kenh: { type: string, enum: [WEB, APP_NHAN_VIEN, APP_NGUOI_THAN, APP_NGUOI_CAO_TUOI], description: 'APP_NGUOI_CAO_TUOI gắn thiết bị và trả thêm tokenThietBi (FR-069, FR-070)' }
+                username: { type: string }
+                password: { type: string, format: password }
+                channel: { type: string, enum: [WEB, STAFF_APP, FAMILY_APP, RESIDENT_APP], description: 'RESIDENT_APP gắn thiết bị và trả thêm deviceToken (FR-069, FR-070)' }
       responses:
         '200':
           description: Đăng nhập thành công. Web nhận cookie phiên; app nhận token trong body.
@@ -55,20 +56,20 @@ paths:
                 type: object
                 properties:
                   token: { type: string, description: 'Chỉ trả cho kênh app' }
-                  tokenThietBi: { type: string, description: 'Chỉ kênh APP_NGUOI_CAO_TUOI, trả một lần khi gắn thiết bị (A-15)' }
-                  buocDoiMatKhau: { type: boolean }
-                  nguoiDung: { $ref: '#/components/schemas/NguoiDung' }
-        '401': { $ref: '#/components/responses/Loi' }
-        '423': { description: 'TAI_KHOAN_KHOA_TAM hoặc TAI_KHOAN_CAN_LIEN_HE_VIEN', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-  /xac-thuc/dang-xuat:
+                  deviceToken: { type: string, description: 'Chỉ kênh RESIDENT_APP, trả một lần khi gắn thiết bị (A-15)' }
+                  mustChangePassword: { type: boolean }
+                  user: { $ref: '#/components/schemas/UserInfo' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '423': { description: 'ACCOUNT_TEMPORARILY_LOCKED hoặc ACCOUNT_CONTACT_FACILITY', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /auth/logout:
     post:
-      tags: [xac-thuc]
+      tags: [auth]
       summary: Kết thúc phiên hiện tại
       x-fr: [FR-013]
       responses: { '204': { description: Đã đăng xuất } }
-  /xac-thuc/doi-mat-khau:
+  /auth/change-password:
     post:
-      tags: [xac-thuc]
+      tags: [auth]
       summary: Người dùng tự đổi mật khẩu (bắt buộc ở lần đầu, FR-006)
       x-fr: [FR-006]
       requestBody:
@@ -77,22 +78,22 @@ paths:
           application/json:
             schema:
               type: object
-              required: [matKhauHienTai, matKhauMoi]
+              required: [currentPassword, newPassword]
               properties:
-                matKhauHienTai: { type: string, format: password }
-                matKhauMoi: { type: string, format: password }
+                currentPassword: { type: string, format: password }
+                newPassword: { type: string, format: password }
       responses:
         '204': { description: Đã đổi; cờ buộc đổi mật khẩu được gỡ }
-        '422': { description: 'MAT_KHAU_KHONG_DAT (research A-03, A-13)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-  /toi:
+        '422': { description: 'PASSWORD_POLICY_NOT_MET (research A-03, A-13)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /me:
     get:
-      tags: [xac-thuc]
+      tags: [auth]
       summary: Thông tin người dùng hiện tại
       responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/NguoiDung' } } } }
-  /toi/quyen:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/UserInfo' } } } }
+  /me/permissions:
     get:
-      tags: [xac-thuc]
+      tags: [auth]
       summary: Tập khóa quyền hiện hành của người dùng, để client ẩn hiện chức năng
       description: Chỉ dùng cho hiển thị; backend luôn kiểm tra lại (FR-042, constitution XI).
       x-fr: [FR-042]
@@ -101,22 +102,22 @@ paths:
           description: OK
           content:
             application/json:
-              schema: { type: array, items: { $ref: '#/components/schemas/QuyenHieuLuc' } }
+              schema: { type: array, items: { $ref: '#/components/schemas/EffectivePermission' } }
 
-  /tai-khoan:
+  /accounts:
     get:
-      tags: [tai-khoan]
+      tags: [accounts]
       summary: Danh sách tài khoản (Quản lý viện; Hành chính chỉ thấy tài khoản người thân)
       x-fr: [FR-001, FR-051]
       parameters:
-        - { name: loai, in: query, schema: { type: string, enum: [NHAN_VIEN, NGUOI_THAN] } }
-        - { name: trangThai, in: query, schema: { type: string, enum: [HOAT_DONG, KHOA_TAM, KHONG_HOAT_DONG, DA_KHOA] } }
+        - { name: type, in: query, schema: { type: string, enum: [STAFF, FAMILY_MEMBER] } }
+        - { name: status, in: query, schema: { type: string, enum: [ACTIVE, TEMPORARILY_LOCKED, INACTIVE, LOCKED] } }
         - { name: q, in: query, schema: { type: string } }
-        - { $ref: '#/components/parameters/Sau' }
+        - { $ref: '#/components/parameters/Cursor' }
       responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TrangTaiKhoan' } } } }
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/AccountPage' } } } }
     post:
-      tags: [tai-khoan]
+      tags: [accounts]
       summary: Tạo tài khoản nhân viên (chỉ Quản lý viện)
       x-fr: [FR-002, FR-003, FR-004, FR-004a, FR-006]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -126,20 +127,20 @@ paths:
           application/json:
             schema:
               type: object
-              required: [nhanVienId, tenDangNhap, vaiTro]
+              required: [staffId, username, roles]
               properties:
-                nhanVienId: { type: integer, format: int64 }
-                tenDangNhap: { type: string }
-                vaiTro: { type: array, minItems: 1, items: { $ref: '#/components/schemas/MaVaiTroNhanVien' } }
+                staffId: { type: integer, format: int64 }
+                username: { type: string }
+                roles: { type: array, minItems: 1, items: { $ref: '#/components/schemas/StaffRoleCode' } }
       responses:
         '201':
           description: Đã tạo; mật khẩu tạm chỉ trả một lần
-          content: { application/json: { schema: { $ref: '#/components/schemas/TaiKhoanVaMatKhauTam' } } }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { description: 'HO_SO_DA_CO_TAI_KHOAN, NHAN_VIEN_NGHI_VIEC, CHUC_DANH_KHONG_DUNG_HE_THONG', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-  /tai-khoan-nguoi-than:
+          content: { application/json: { schema: { $ref: '#/components/schemas/AccountWithTemporaryPassword' } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { description: 'PROFILE_ALREADY_HAS_ACCOUNT, STAFF_RESIGNED, POSITION_NOT_SYSTEM_USER', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /family-accounts:
     post:
-      tags: [tai-khoan]
+      tags: [accounts]
       summary: Tạo tài khoản người thân (Hành chính hoặc Quản lý viện)
       x-fr: [FR-050, FR-051, FR-052]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -149,30 +150,30 @@ paths:
           application/json:
             schema:
               type: object
-              required: [nguoiThanId, tenDangNhap, xacMinh]
+              required: [familyMemberId, username, verification]
               properties:
-                nguoiThanId: { type: integer, format: int64 }
-                tenDangNhap: { type: string }
-                xacMinh: { $ref: '#/components/schemas/XacMinh' }
+                familyMemberId: { type: integer, format: int64 }
+                username: { type: string }
+                verification: { $ref: '#/components/schemas/Verification' }
       responses:
-        '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/TaiKhoanVaMatKhauTam' } } } }
-        '409': { description: 'KHONG_CON_QUAN_HE, XAC_MINH_KHONG_HOP_LE', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-  /tai-khoan/{id}:
+        '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/AccountWithTemporaryPassword' } } } }
+        '409': { description: 'RELATIONSHIP_ENDED, INVALID_VERIFICATION', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /accounts/{id}:
     get:
-      tags: [tai-khoan]
-      summary: Chi tiết tài khoản, kèm lenhDuocPhep
+      tags: [accounts]
+      summary: Chi tiết tài khoản, kèm allowedCommands
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses:
         '200':
           description: OK
           headers: { ETag: { $ref: '#/components/headers/ETag' } }
-          content: { application/json: { schema: { $ref: '#/components/schemas/TaiKhoan' } } }
-        '404': { $ref: '#/components/responses/Loi' }
-  /tai-khoan/{id}/khoa:
+          content: { application/json: { schema: { $ref: '#/components/schemas/Account' } } }
+        '404': { $ref: '#/components/responses/Problem' }
+  /accounts/{id}/lock:
     post:
-      tags: [tai-khoan]
+      tags: [accounts]
       summary: Khóa tài khoản (Quản lý viện)
-      description: Từ chối nếu làm viện không còn Quản lý viện Hoạt động (FR-012). Người đang là Phụ trách bộ phận phải có nguoiThayPhuTrach (Q-292).
+      description: Từ chối nếu làm viện không còn Quản lý viện Hoạt động (FR-012). Người đang là Phụ trách bộ phận phải có replacementDepartmentLead (Q-292).
       x-fr: [FR-011, FR-012, FR-013]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
       requestBody:
@@ -181,27 +182,27 @@ paths:
           application/json:
             schema:
               type: object
-              required: [lyDo]
+              required: [reason]
               properties:
-                lyDo: { $ref: '#/components/schemas/LyDo' }
-                nguoiThayPhuTrach: { type: integer, format: int64 }
+                reason: { $ref: '#/components/schemas/Reason' }
+                replacementDepartmentLead: { type: integer, format: int64 }
       responses:
-        '200': { $ref: '#/components/responses/TaiKhoanOk' }
-        '409': { description: 'KHONG_CON_QUAN_LY_VIEN, CAN_NGUOI_THAY_PHU_TRACH', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-        '412': { $ref: '#/components/responses/Loi' }
-  /tai-khoan/{id}/mo-khoa:
+        '200': { $ref: '#/components/responses/AccountOk' }
+        '409': { description: 'NO_MANAGER_LEFT, REPLACEMENT_LEAD_REQUIRED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '412': { $ref: '#/components/responses/Problem' }
+  /accounts/{id}/unlock:
     post:
-      tags: [tai-khoan]
+      tags: [accounts]
       summary: Mở khóa tài khoản Đã khóa (Quản lý viện)
       x-fr: [FR-011]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/ReasonBody' }
       responses:
-        '200': { $ref: '#/components/responses/TaiKhoanOk' }
-        '409': { description: 'NGUYEN_NHAN_KHOA_CON_TON_TAI', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-  /tai-khoan/{id}/mo-khoa-som:
+        '200': { $ref: '#/components/responses/AccountOk' }
+        '409': { description: 'LOCK_CAUSE_STILL_EXISTS', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /accounts/{id}/early-unlock:
     post:
-      tags: [tai-khoan]
+      tags: [accounts]
       summary: Mở khóa sớm tài khoản đang Khóa tạm
       description: Quản lý viện; hoặc Trưởng tầng, Người phụ trách ca với tài khoản nhân viên cùng tầng/khu và cùng ca, sau khi xác minh trực tiếp (FR-019c). Hành chính không được (CHK008).
       x-fr: [FR-019c]
@@ -213,16 +214,16 @@ paths:
           application/json:
             schema:
               type: object
-              required: [lyDo, daXacMinhTrucTiep]
+              required: [reason, verifiedInPerson]
               properties:
-                lyDo: { $ref: '#/components/schemas/LyDo' }
-                daXacMinhTrucTiep: { type: boolean, const: true }
+                reason: { $ref: '#/components/schemas/Reason' }
+                verifiedInPerson: { type: boolean, const: true }
       responses:
-        '200': { $ref: '#/components/responses/TaiKhoanOk' }
-        '403': { $ref: '#/components/responses/Loi' }
-  /tai-khoan/{id}/kich-hoat-lai:
+        '200': { $ref: '#/components/responses/AccountOk' }
+        '403': { $ref: '#/components/responses/Problem' }
+  /accounts/{id}/reactivate:
     post:
-      tags: [tai-khoan]
+      tags: [accounts]
       summary: Kích hoạt lại tài khoản người thân Không hoạt động
       x-fr: [FR-011, FR-051, FR-052]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
@@ -232,16 +233,16 @@ paths:
           application/json:
             schema:
               type: object
-              required: [lyDo, xacMinh]
+              required: [reason, verification]
               properties:
-                lyDo: { $ref: '#/components/schemas/LyDo' }
-                xacMinh: { $ref: '#/components/schemas/XacMinh' }
+                reason: { $ref: '#/components/schemas/Reason' }
+                verification: { $ref: '#/components/schemas/Verification' }
       responses:
-        '200': { $ref: '#/components/responses/TaiKhoanOk' }
-        '409': { $ref: '#/components/responses/Loi' }
-  /tai-khoan/{id}/cap-lai-mat-khau:
+        '200': { $ref: '#/components/responses/AccountOk' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /accounts/{id}/reset-password:
     post:
-      tags: [tai-khoan]
+      tags: [accounts]
       summary: Cấp lại mật khẩu (nhân viên - Quản lý viện; người thân - Hành chính, Quản lý viện)
       x-fr: [FR-006, FR-051, FR-052]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
@@ -251,203 +252,203 @@ paths:
           application/json:
             schema:
               type: object
-              required: [lyDo]
+              required: [reason]
               properties:
-                lyDo: { $ref: '#/components/schemas/LyDo' }
-                xacMinh: { $ref: '#/components/schemas/XacMinh' }
+                reason: { $ref: '#/components/schemas/Reason' }
+                verification: { $ref: '#/components/schemas/Verification' }
       responses:
-        '200': { description: 'Mật khẩu tạm, chỉ trả một lần', content: { application/json: { schema: { type: object, properties: { matKhauTam: { type: string } } } } } }
-  /tai-khoan/{id}/gan-vai-tro:
+        '200': { description: 'Mật khẩu tạm, chỉ trả một lần', content: { application/json: { schema: { type: object, properties: { temporaryPassword: { type: string } } } } } }
+  /accounts/{id}/assign-role:
     post:
-      tags: [phan-quyen]
+      tags: [permissions]
       summary: Gán thêm vai trò (Quản lý viện)
       x-fr: [FR-017, FR-026, FR-027]
       x-br: [BR-M15-04, BR-M15-17]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatchQuyen' } ]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatchPermission' } ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [vaiTro, lyDo]
+              required: [role, reason]
               properties:
-                vaiTro: { $ref: '#/components/schemas/MaVaiTroNhanVien' }
-                lyDo: { $ref: '#/components/schemas/LyDo' }
+                role: { $ref: '#/components/schemas/StaffRoleCode' }
+                reason: { $ref: '#/components/schemas/Reason' }
       responses:
-        '200': { $ref: '#/components/responses/QuyenTaiKhoanOk' }
-        '409': { description: 'KHONG_GAN_VAI_TRO_CHO_TAI_KHOAN_NGUOI_CAO_TUOI (bổ sung 2026-10-18)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-        '412': { $ref: '#/components/responses/Loi' }
-  /tai-khoan/{id}/go-vai-tro:
+        '200': { $ref: '#/components/responses/AccountPermissionsOk' }
+        '409': { description: 'RESIDENT_ACCOUNT_HAS_NO_ROLES (bổ sung 2026-10-18)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '412': { $ref: '#/components/responses/Problem' }
+  /accounts/{id}/remove-role:
     post:
-      tags: [phan-quyen]
-      summary: Gỡ vai trò (Quản lý viện); không gỡ vai trò cuối cùng; không làm mất Quản lý viện cuối cùng; tài khoản người cao tuổi: 409 KHONG_GAN_VAI_TRO_CHO_TAI_KHOAN_NGUOI_CAO_TUOI (bổ sung 2026-10-18)
+      tags: [permissions]
+      summary: 'Gỡ vai trò (Quản lý viện); không gỡ vai trò cuối cùng; không làm mất Quản lý viện cuối cùng; tài khoản người cao tuổi: 409 RESIDENT_ACCOUNT_HAS_NO_ROLES (bổ sung 2026-10-18)'
       x-fr: [FR-004, FR-012, FR-026, FR-027]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatchQuyen' } ]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatchPermission' } ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [vaiTro, lyDo]
+              required: [role, reason]
               properties:
-                vaiTro: { $ref: '#/components/schemas/MaVaiTroNhanVien' }
-                lyDo: { $ref: '#/components/schemas/LyDo' }
+                role: { $ref: '#/components/schemas/StaffRoleCode' }
+                reason: { $ref: '#/components/schemas/Reason' }
       responses:
-        '200': { $ref: '#/components/responses/QuyenTaiKhoanOk' }
-        '409': { $ref: '#/components/responses/Loi' }
-  /tai-khoan/{id}/quyen:
+        '200': { $ref: '#/components/responses/AccountPermissionsOk' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /accounts/{id}/permissions:
     get:
-      tags: [phan-quyen]
+      tags: [permissions]
       summary: Tập quyền của tài khoản, hiện hành hoặc tại một thời điểm quá khứ (Quản lý viện)
       x-fr: [FR-026a]
       x-br: [BR-M15-16]
       parameters:
         - { $ref: '#/components/parameters/Id' }
-        - { name: taiThoiDiem, in: query, schema: { type: string, format: date-time } }
+        - { name: asOf, in: query, schema: { type: string, format: date-time } }
       responses:
         '200':
           description: OK
           headers: { ETag: { $ref: '#/components/headers/ETag' } }
-          content: { application/json: { schema: { $ref: '#/components/schemas/QuyenTaiKhoan' } } }
-  /tai-khoan/{id}/thu-hep:
+          content: { application/json: { schema: { $ref: '#/components/schemas/AccountPermissions' } } }
+  /accounts/{id}/restrict:
     post:
-      tags: [phan-quyen]
+      tags: [permissions]
       summary: Thu hẹp quyền theo tài khoản
       x-fr: [FR-025, FR-026]
       x-br: [BR-M15-18]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatchQuyen' } ]
-      requestBody: { $ref: '#/components/requestBodies/ThuHep' }
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatchPermission' } ]
+      requestBody: { $ref: '#/components/requestBodies/RestrictBody' }
       responses:
-        '200': { $ref: '#/components/responses/QuyenTaiKhoanOk' }
-        '409': { description: 'VUOT_QUYEN_TOI_DA, KHONG_CON_QUAN_LY_VIEN', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-  /tai-khoan/{id}/khoi-phuc-quyen:
+        '200': { $ref: '#/components/responses/AccountPermissionsOk' }
+        '409': { description: 'EXCEEDS_MAXIMUM_PERMISSION, NO_MANAGER_LEFT', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /accounts/{id}/restore-permission:
     post:
-      tags: [phan-quyen]
+      tags: [permissions]
       summary: Khôi phục một quyền đã thu hẹp theo tài khoản về mức ma trận
       x-fr: [FR-025]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatchQuyen' } ]
-      requestBody: { $ref: '#/components/requestBodies/KhoiPhuc' }
-      responses: { '200': { $ref: '#/components/responses/QuyenTaiKhoanOk' } }
-  /tai-khoan/{id}/gan-quyen-duyet-ke-hoach:
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatchPermission' } ]
+      requestBody: { $ref: '#/components/requestBodies/RestoreBody' }
+      responses: { '200': { $ref: '#/components/responses/AccountPermissionsOk' } }
+  /accounts/{id}/grant-care-plan-approval:
     post:
-      tags: [phan-quyen]
+      tags: [permissions]
       summary: Gán quyền Duyệt kế hoạch chăm sóc cho tài khoản Điều dưỡng (ngoại lệ duy nhất vượt ma trận, Q-07)
       x-fr: [FR-024]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatchQuyen' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { $ref: '#/components/responses/QuyenTaiKhoanOk' } }
-  /tai-khoan/{id}/go-quyen-duyet-ke-hoach:
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatchPermission' } ]
+      requestBody: { $ref: '#/components/requestBodies/ReasonBody' }
+      responses: { '200': { $ref: '#/components/responses/AccountPermissionsOk' } }
+  /accounts/{id}/revoke-care-plan-approval:
     post:
-      tags: [phan-quyen]
+      tags: [permissions]
       summary: Gỡ quyền Duyệt kế hoạch chăm sóc đã gán thêm
       x-fr: [FR-024]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatchQuyen' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { $ref: '#/components/responses/QuyenTaiKhoanOk' } }
-  /vai-tro:
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatchPermission' } ]
+      requestBody: { $ref: '#/components/requestBodies/ReasonBody' }
+      responses: { '200': { $ref: '#/components/responses/AccountPermissionsOk' } }
+  /roles:
     get:
-      tags: [phan-quyen]
+      tags: [permissions]
       summary: Danh sách 9 vai trò
       x-fr: [FR-016]
       responses:
-        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/VaiTro' } } } } }
-  /vai-tro/{ma}/quyen:
+        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/RoleInfo' } } } } }
+  /roles/{code}/permissions:
     get:
-      tags: [phan-quyen]
+      tags: [permissions]
       summary: Quyền tối đa (ma trận) và quyền hiện hành của vai trò sau thu hẹp
       x-fr: [FR-018, FR-020]
-      parameters: [ { $ref: '#/components/parameters/MaVaiTro' } ]
+      parameters: [ { $ref: '#/components/parameters/RoleCode' } ]
       responses:
         '200':
           description: OK
           headers: { ETag: { $ref: '#/components/headers/ETag' } }
-          content: { application/json: { schema: { $ref: '#/components/schemas/QuyenVaiTro' } } }
-  /vai-tro/{ma}/thu-hep:
+          content: { application/json: { schema: { $ref: '#/components/schemas/RolePermissions' } } }
+  /roles/{code}/restrict:
     post:
-      tags: [phan-quyen]
+      tags: [permissions]
       summary: Thu hẹp quyền theo vai trò
       x-fr: [FR-025, FR-026]
       x-br: [BR-M15-18]
-      parameters: [ { $ref: '#/components/parameters/MaVaiTro' }, { $ref: '#/components/parameters/IfMatchQuyen' } ]
-      requestBody: { $ref: '#/components/requestBodies/ThuHep' }
+      parameters: [ { $ref: '#/components/parameters/RoleCode' }, { $ref: '#/components/parameters/IfMatchPermission' } ]
+      requestBody: { $ref: '#/components/requestBodies/RestrictBody' }
       responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/QuyenVaiTro' } } } }
-        '409': { $ref: '#/components/responses/Loi' }
-        '412': { $ref: '#/components/responses/Loi' }
-  /vai-tro/{ma}/khoi-phuc-quyen:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/RolePermissions' } } } }
+        '409': { $ref: '#/components/responses/Problem' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /roles/{code}/restore-permission:
     post:
-      tags: [phan-quyen]
+      tags: [permissions]
       summary: Khôi phục quyền đã thu hẹp theo vai trò
       x-fr: [FR-025]
-      parameters: [ { $ref: '#/components/parameters/MaVaiTro' }, { $ref: '#/components/parameters/IfMatchQuyen' } ]
-      requestBody: { $ref: '#/components/requestBodies/KhoiPhuc' }
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/QuyenVaiTro' } } } } }
+      parameters: [ { $ref: '#/components/parameters/RoleCode' }, { $ref: '#/components/parameters/IfMatchPermission' } ]
+      requestBody: { $ref: '#/components/requestBodies/RestoreBody' }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/RolePermissions' } } } } }
 
-  /nghiep-vu-chuyen-mon:
+  /professional-activities:
     get:
-      tags: [nghiep-vu-chuyen-mon]
+      tags: [professional-activities]
       summary: Danh mục nghiệp vụ chuyên môn
       x-fr: [FR-036]
       responses:
-        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/NghiepVuChuyenMon' } } } } }
+        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ProfessionalActivity' } } } } }
     post:
-      tags: [nghiep-vu-chuyen-mon]
+      tags: [professional-activities]
       summary: Thêm mục (Quản lý viện)
       x-fr: [FR-036]
       requestBody:
         required: true
-        content: { application/json: { schema: { $ref: '#/components/schemas/NghiepVuChuyenMonGhi' } } }
+        content: { application/json: { schema: { $ref: '#/components/schemas/ProfessionalActivityInput' } } }
       responses: { '201': { description: Đã tạo } }
-  /nghiep-vu-chuyen-mon/{id}:
+  /professional-activities/{id}:
     put:
-      tags: [nghiep-vu-chuyen-mon]
+      tags: [professional-activities]
       summary: Sửa mục (Quản lý viện)
       x-fr: [FR-036]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
       requestBody:
         required: true
-        content: { application/json: { schema: { $ref: '#/components/schemas/NghiepVuChuyenMonGhi' } } }
+        content: { application/json: { schema: { $ref: '#/components/schemas/ProfessionalActivityInput' } } }
       responses: { '200': { description: OK } }
-  /nghiep-vu-chuyen-mon/{id}/ngung-hieu-luc:
+  /professional-activities/{id}/deactivate:
     post:
-      tags: [nghiep-vu-chuyen-mon]
+      tags: [professional-activities]
       summary: Ngừng hiệu lực; mục mặc định không ngừng được
       x-fr: [FR-036]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/ReasonBody' }
       responses:
         '200': { description: OK }
-        '409': { description: 'MUC_MAC_DINH', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
+        '409': { description: 'DEFAULT_ITEM', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
 
-  /dong-bo:
+  /sync:
     post:
-      tags: [ngoai-tuyen]
+      tags: [offline]
       summary: Đồng bộ lô bản ghi ngoại tuyến của app nhân viên
-      description: Kết quả từng bản ghi theo research A-11 (BR-M15-20). Nếu tài khoản không còn Hoạt động, phản hồi kèm phienKetThuc = true.
+      description: Kết quả từng bản ghi theo research A-11 (BR-M15-20). Nếu tài khoản không còn Hoạt động, phản hồi kèm sessionEnded = true.
       x-fr: [FR-041a, FR-041c]
       x-br: [BR-M15-20]
-      parameters: [ { $ref: '#/components/parameters/ThietBi' } ]
+      parameters: [ { $ref: '#/components/parameters/DeviceId' } ]
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [lanKetNoiCuoi, banGhi]
+              required: [lastConnectedAt, records]
               properties:
-                lanKetNoiCuoi: { type: string, format: date-time }
-                banGhi:
+                lastConnectedAt: { type: string, format: date-time }
+                records:
                   type: array
                   items:
                     type: object
-                    required: [idempotencyKey, loaiBanGhi, thoiDiemThietBi, noiDung]
+                    required: [idempotencyKey, recordType, deviceTime, content]
                     properties:
                       idempotencyKey: { type: string, format: uuid }
-                      loaiBanGhi: { type: string, example: M04.KET_QUA_CONG_VIEC }
-                      thoiDiemThietBi: { type: string, format: date-time }
-                      noiDung: { type: object }
+                      recordType: { type: string, example: M04.CARE_TASK_RESULT }
+                      deviceTime: { type: string, format: date-time }
+                      content: { type: object }
       responses:
         '200':
           description: Kết quả từng bản ghi
@@ -456,48 +457,48 @@ paths:
               schema:
                 type: object
                 properties:
-                  phienKetThuc: { type: boolean }
-                  nguoiCaoTuoiTrongPhamVi: { type: array, items: { type: integer, format: int64 } }
-                  ketQua:
+                  sessionEnded: { type: boolean }
+                  residentsInScope: { type: array, items: { type: integer, format: int64 } }
+                  results:
                     type: array
                     items:
                       type: object
                       properties:
                         idempotencyKey: { type: string, format: uuid }
-                        ketQua: { type: string, enum: [CHAP_NHAN, CHAP_NHAN_KEM_NHAN, CHO_XEM_LAI, TU_CHOI] }
-                        lyDo: { type: string }
-                        thamChieu: { type: string }
-  /ban-ghi-cho-xem-lai:
+                        result: { type: string, enum: [ACCEPTED, ACCEPTED_WITH_FLAG, PENDING_REVIEW, REJECTED] }
+                        reason: { type: string }
+                        reference: { type: string }
+  /pending-review-records:
     get:
-      tags: [ngoai-tuyen]
+      tags: [offline]
       summary: Bản ghi chờ xem lại thuộc quyền quyết định của người dùng
       x-fr: [FR-041c]
-      parameters: [ { $ref: '#/components/parameters/Sau' } ]
+      parameters: [ { $ref: '#/components/parameters/Cursor' } ]
       responses: { '200': { description: OK } }
-  /ban-ghi-cho-xem-lai/{id}/chap-nhan:
+  /pending-review-records/{id}/accept:
     post:
-      tags: [ngoai-tuyen]
+      tags: [offline]
       summary: Chấp nhận; bản ghi có hiệu lực từ lúc chấp nhận
       x-fr: [FR-041c]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
       responses:
         '200': { description: OK }
-        '409': { description: 'DA_DUOC_XU_LY', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-  /ban-ghi-cho-xem-lai/{id}/tu-choi:
+        '409': { description: 'ALREADY_PROCESSED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /pending-review-records/{id}/reject:
     post:
-      tags: [ngoai-tuyen]
+      tags: [offline]
       summary: Từ chối, lý do bắt buộc; bản ghi được lưu nhưng không có hiệu lực
       x-fr: [FR-041c]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/ReasonBody' }
       responses: { '200': { description: OK } }
 
   # --- Bổ sung 2026-10-18: tài khoản người cao tuổi (mục H; Q-365, Q-368, Q-370, Q-371) ---
-  /tai-khoan-nguoi-cao-tuoi:
+  /resident-accounts:
     post:
-      tags: [tai-khoan]
+      tags: [accounts]
       summary: Tạo tài khoản người cao tuổi theo lời chính người cao tuổi (Hành chính hoặc Quản lý viện)
-      description: Người cao tuổi phải Đang lưu trú và chưa có tài khoản. Không có xacNhan thì 422 (FR-067).
+      description: Người cao tuổi phải Đang lưu trú và chưa có tài khoản. Không có consent thì 422 (FR-067).
       x-fr: [FR-067, FR-068]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody:
@@ -506,18 +507,18 @@ paths:
           application/json:
             schema:
               type: object
-              required: [nguoiCaoTuoiId, tenDangNhap, xacNhan]
+              required: [residentId, username, consent]
               properties:
-                nguoiCaoTuoiId: { type: integer, format: int64 }
-                tenDangNhap: { type: string }
-                xacNhan: { $ref: '#/components/schemas/XacNhanNguoiCaoTuoi' }
+                residentId: { type: integer, format: int64 }
+                username: { type: string }
+                consent: { $ref: '#/components/schemas/ResidentConsent' }
       responses:
-        '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/TaiKhoanVaMatKhauTam' } } } }
-        '409': { description: 'DA_CO_TAI_KHOAN, KHONG_DANG_LUU_TRU', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-        '422': { $ref: '#/components/responses/Loi' }
-  /tai-khoan/{id}/ma-qr:
+        '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/AccountWithTemporaryPassword' } } } }
+        '409': { description: 'ALREADY_HAS_ACCOUNT, NOT_IN_RESIDENCE', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '422': { $ref: '#/components/responses/Problem' }
+  /accounts/{id}/login-qr-code:
     post:
-      tags: [tai-khoan]
+      tags: [accounts]
       summary: Tạo mã QR đăng nhập dùng một lần (Hành chính, Quản lý viện, Điều dưỡng có phạm vi)
       description: Mã hết hạn sau CFG-M15-11; tạo mã mới làm mã cũ chưa dùng hết hiệu lực. Chỉ tài khoản người cao tuổi.
       x-fr: [FR-069]
@@ -525,23 +526,23 @@ paths:
       responses:
         '201':
           description: Mã chỉ trả một lần
-          content: { application/json: { schema: { type: object, properties: { ma: { type: string }, hetHanLuc: { type: string, format: date-time } } } } }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { description: 'KHONG_PHAI_TAI_KHOAN_NGUOI_CAO_TUOI, TAI_KHOAN_DA_KHOA', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-  /xac-thuc/dang-nhap-qr:
+          content: { application/json: { schema: { type: object, properties: { code: { type: string }, expiresAt: { type: string, format: date-time } } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { description: 'NOT_RESIDENT_ACCOUNT, ACCOUNT_LOCKED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /auth/qr-login:
     post:
-      tags: [xac-thuc]
+      tags: [auth]
       summary: Người cao tuổi đăng nhập bằng mã QR; gắn thiết bị
       description: |
-        Một transaction: kiểm mã, gỡ thiết bị đang gắn (kết thúc phiên trên đó), gắn X-Thiet-Bi, tạo phiên kênh APP_NGUOI_CAO_TUOI
+        Một transaction: kiểm mã, gỡ thiết bị đang gắn (kết thúc phiên trên đó), gắn X-Device-Id, tạo phiên kênh RESIDENT_APP
         (không hết theo thời gian) và token thiết bị cho nút SOS (research A-15).
       x-fr: [FR-069, FR-070, FR-013a]
       x-br: [BR-M15-24]
       security: []
-      parameters: [ { $ref: '#/components/parameters/ThietBi' } ]
+      parameters: [ { $ref: '#/components/parameters/DeviceId' } ]
       requestBody:
         required: true
-        content: { application/json: { schema: { type: object, required: [ma], properties: { ma: { type: string } } } } }
+        content: { application/json: { schema: { type: object, required: [code], properties: { code: { type: string } } } } }
       responses:
         '200':
           description: Đã đăng nhập và gắn thiết bị
@@ -551,27 +552,27 @@ paths:
                 type: object
                 properties:
                   token: { type: string }
-                  tokenThietBi: { type: string, description: Trả một lần; app lưu trong kho an toàn }
-                  nguoiDung: { $ref: '#/components/schemas/NguoiDung' }
-        '401': { description: 'MA_QR_KHONG_HOP_LE (đã dùng, hết hạn, đã vô hiệu)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-        '409': { description: 'THIET_BI_DA_GAN (thiết bị đang gắn với tài khoản người cao tuổi khác)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-        '423': { $ref: '#/components/responses/Loi' }
-  /tai-khoan/{id}/go-thiet-bi:
+                  deviceToken: { type: string, description: Trả một lần; app lưu trong kho an toàn }
+                  user: { $ref: '#/components/schemas/UserInfo' }
+        '401': { description: 'INVALID_QR_CODE (đã dùng, hết hạn, đã vô hiệu)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '409': { description: 'DEVICE_ALREADY_BOUND (thiết bị đang gắn với tài khoản người cao tuổi khác)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '423': { $ref: '#/components/responses/Problem' }
+  /accounts/{id}/unbind-device:
     post:
-      tags: [tai-khoan]
+      tags: [accounts]
       summary: Gỡ thiết bị đang gắn (Hành chính hoặc Quản lý viện), ví dụ khi người cao tuổi báo mất máy
       x-fr: [FR-070]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/ReasonBody' }
       responses:
-        '200': { $ref: '#/components/responses/TaiKhoanOk' }
-        '409': { description: 'KHONG_CO_THIET_BI_GAN', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-  /tai-khoan/{id}/khoa-nguoi-cao-tuoi:
+        '200': { $ref: '#/components/responses/AccountOk' }
+        '409': { description: 'NO_BOUND_DEVICE', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /accounts/{id}/lock-resident:
     post:
-      tags: [tai-khoan]
+      tags: [accounts]
       summary: Khóa tài khoản người cao tuổi theo yêu cầu của chính người cao tuổi hoặc có lý do (Hành chính, Quản lý viện)
       description: |
-        Người thân đề nghị khóa thì Hành chính lập yêu cầu loại M15.KHOA_TAI_KHOAN_NCT qua API yêu cầu phê duyệt của 000;
+        Người thân đề nghị khóa thì Hành chính lập yêu cầu loại M15.RESIDENT_ACCOUNT_LOCK qua API yêu cầu phê duyệt của 000;
         tài khoản chỉ khóa khi Quản lý viện duyệt (research A-16). Khóa do kết thúc lưu trú không qua endpoint này.
       x-fr: [FR-072]
       x-br: [BR-M15-23]
@@ -582,209 +583,209 @@ paths:
           application/json:
             schema:
               type: object
-              required: [canCu, lyDo]
+              required: [basis, reason]
               properties:
-                canCu: { type: string, enum: [NCT_TU_YEU_CAU, CO_LY_DO] }
-                lyDo: { $ref: '#/components/schemas/LyDo' }
+                basis: { type: string, enum: [RESIDENT_REQUESTED, WITH_REASON] }
+                reason: { $ref: '#/components/schemas/Reason' }
       responses:
-        '200': { $ref: '#/components/responses/TaiKhoanOk' }
-        '412': { $ref: '#/components/responses/Loi' }
-  /tai-khoan/{id}/mo-khoa-nguoi-cao-tuoi:
+        '200': { $ref: '#/components/responses/AccountOk' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /accounts/{id}/unlock-resident:
     post:
-      tags: [tai-khoan]
+      tags: [accounts]
       summary: Mở khóa tài khoản người cao tuổi khi chính người cao tuổi yêu cầu
       x-fr: [FR-073]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
       requestBody:
         required: true
-        content: { application/json: { schema: { type: object, required: [xacNhan], properties: { xacNhan: { $ref: '#/components/schemas/XacNhanNguoiCaoTuoi' } } } } }
+        content: { application/json: { schema: { type: object, required: [consent], properties: { consent: { $ref: '#/components/schemas/ResidentConsent' } } } } }
       responses:
-        '200': { $ref: '#/components/responses/TaiKhoanOk' }
-        '409': { description: 'NGUYEN_NHAN_KHOA_CON_TON_TAI (khóa do kết thúc lưu trú)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
+        '200': { $ref: '#/components/responses/AccountOk' }
+        '409': { description: 'LOCK_CAUSE_STILL_EXISTS (khóa do kết thúc lưu trú)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
 
 components:
   securitySchemes:
-    phien:
+    session:
       type: http
       scheme: bearer
-      description: Token phiên opaque (research A-02). Web dùng cookie phien cùng header X-Yeu-Cau-Tu.
+      description: Token phiên opaque (research A-02). Web dùng cookie session cùng header X-Requested-From.
   parameters:
     Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
-    MaVaiTro: { name: ma, in: path, required: true, schema: { type: string, enum: [AC-01, AC-02, AC-03, AC-04, AC-05, AC-07, AC-09, AC-10, AC-14, AC-16] } }
+    RoleCode: { name: code, in: path, required: true, schema: { type: string, enum: [AC-01, AC-02, AC-03, AC-04, AC-05, AC-07, AC-09, AC-10, AC-14, AC-16] } }
     IfMatch: { name: If-Match, in: header, required: true, schema: { type: string } }
-    IfMatchQuyen: { name: If-Match, in: header, required: true, description: 'phien_ban_quyen của tài khoản hoặc vai trò (FR-026)', schema: { type: string } }
+    IfMatchPermission: { name: If-Match, in: header, required: true, description: 'permission_version của tài khoản hoặc vai trò (FR-026)', schema: { type: string } }
     IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
-    ThietBi: { name: X-Thiet-Bi, in: header, required: true, schema: { type: string, format: uuid } }
-    Sau: { name: sau, in: query, description: Khóa trang kế tiếp, schema: { type: string } }
+    DeviceId: { name: X-Device-Id, in: header, required: true, schema: { type: string, format: uuid } }
+    Cursor: { name: cursor, in: query, description: Khóa trang kế tiếp, schema: { type: string } }
   headers:
     ETag: { schema: { type: string } }
   requestBodies:
-    LyDo:
+    ReasonBody:
       required: true
-      content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } }
-    ThuHep:
-      required: true
-      content:
-        application/json:
-          schema:
-            type: object
-            required: [chucNang, loaiThaoTac, kieu, lyDo]
-            properties:
-              chucNang: { type: string, description: 'Mã dòng Phụ lục 27, ví dụ CHI_PHI_DIEU_CHINH' }
-              loaiThaoTac: { $ref: '#/components/schemas/LoaiThaoTac' }
-              kieu: { type: string, enum: [BO_THAO_TAC, HA_PHAM_VI] }
-              nhomChiTieu: { type: string, description: 'Chỉ với DASHBOARD_BAO_CAO (feature 016 FR-010a)' }
-              kenh: { type: string, enum: [DASHBOARD, BAO_CAO] }
-              lyDo: { $ref: '#/components/schemas/LyDo' }
-    KhoiPhuc:
+      content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { $ref: '#/components/schemas/Reason' } } } } }
+    RestrictBody:
       required: true
       content:
         application/json:
           schema:
             type: object
-            required: [thuHepId, lyDo]
+            required: [function, operation, kind, reason]
             properties:
-              thuHepId: { type: integer, format: int64 }
-              lyDo: { $ref: '#/components/schemas/LyDo' }
+              function: { type: string, description: 'Mã dòng Phụ lục 27, ví dụ COST_ADJUSTMENT' }
+              operation: { $ref: '#/components/schemas/Operation' }
+              kind: { type: string, enum: [REMOVE_OPERATION, LOWER_SCOPE] }
+              metricGroup: { type: string, description: 'Chỉ với DASHBOARD_REPORT (feature 016 FR-010a)' }
+              channel: { type: string, enum: [DASHBOARD, REPORT] }
+              reason: { $ref: '#/components/schemas/Reason' }
+    RestoreBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [restrictionId, reason]
+            properties:
+              restrictionId: { type: integer, format: int64 }
+              reason: { $ref: '#/components/schemas/Reason' }
   responses:
-    Loi:
+    Problem:
       description: Lỗi theo RFC 9457 (research R-03 của 000)
-      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
-    TaiKhoanOk:
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    AccountOk:
       description: OK
       headers: { ETag: { $ref: '#/components/headers/ETag' } }
-      content: { application/json: { schema: { $ref: '#/components/schemas/TaiKhoan' } } }
-    QuyenTaiKhoanOk:
+      content: { application/json: { schema: { $ref: '#/components/schemas/Account' } } }
+    AccountPermissionsOk:
       description: OK
       headers: { ETag: { $ref: '#/components/headers/ETag' } }
-      content: { application/json: { schema: { $ref: '#/components/schemas/QuyenTaiKhoan' } } }
+      content: { application/json: { schema: { $ref: '#/components/schemas/AccountPermissions' } } }
   schemas:
-    LyDo: { type: string, minLength: 1, maxLength: 2000 }
-    LoaiThaoTac: { type: string, enum: [XEM, TAO, SUA, XAC_NHAN, DUYET, CHOT, CHUYEN_MON] }
-    MaVaiTroNhanVien: { type: string, enum: [AC-01, AC-02, AC-03, AC-04, AC-05, AC-07, AC-09, AC-14] }
-    XacMinh:
+    Reason: { type: string, minLength: 1, maxLength: 2000 }
+    Operation: { type: string, enum: [VIEW, CREATE, UPDATE, CONFIRM, APPROVE, FINALIZE, PROFESSIONAL] }
+    StaffRoleCode: { type: string, enum: [AC-01, AC-02, AC-03, AC-04, AC-05, AC-07, AC-09, AC-14] }
+    Verification:
       type: object
-      required: [cach]
-      description: FR-052. GOI_LAI_SO_DA_DANG_KY phải trùng số trong hồ sơ người thân (012).
+      required: [method]
+      description: FR-052. CALLBACK_REGISTERED_NUMBER phải trùng số trong hồ sơ người thân (012).
       properties:
-        cach: { type: string, enum: [TRUC_TIEP_GIAY_TO, GOI_LAI_SO_DA_DANG_KY] }
-        soGiayTo: { type: string }
-        soDienThoaiDaGoi: { type: string }
-    XacNhanNguoiCaoTuoi:
+        method: { type: string, enum: [IN_PERSON_ID_DOCUMENT, CALLBACK_REGISTERED_NUMBER] }
+        idDocumentNumber: { type: string }
+        calledPhoneNumber: { type: string }
+    ResidentConsent:
       type: object
-      required: [cach, voiNhanVienId]
+      required: [method, withStaffId]
       description: Bổ sung 2026-10-18 (FR-067, FR-073). Người cao tuổi yêu cầu hoặc đồng ý trực tiếp với nhân viên nào.
       properties:
-        cach: { type: string, enum: [YEU_CAU, DONG_Y] }
-        voiNhanVienId: { type: integer, format: int64 }
-    NguoiDung:
+        method: { type: string, enum: [REQUESTED, AGREED] }
+        withStaffId: { type: integer, format: int64 }
+    UserInfo:
       type: object
       properties:
-        taiKhoanId: { type: integer, format: int64 }
-        loai: { type: string, enum: [NHAN_VIEN, NGUOI_THAN, NGUOI_CAO_TUOI] }
-        hoTen: { type: string }
-        vaiTro: { type: array, items: { type: string } }
-        buocDoiMatKhau: { type: boolean }
-    TaiKhoan:
+        accountId: { type: integer, format: int64 }
+        type: { type: string, enum: [STAFF, FAMILY_MEMBER, RESIDENT] }
+        fullName: { type: string }
+        roles: { type: array, items: { type: string } }
+        mustChangePassword: { type: boolean }
+    Account:
       type: object
       properties:
         id: { type: integer, format: int64 }
-        tenDangNhap: { type: string }
-        loai: { type: string, enum: [NHAN_VIEN, NGUOI_THAN, NGUOI_CAO_TUOI] }
-        nhanVienId: { type: integer, format: int64 }
-        nguoiThanId: { type: integer, format: int64 }
-        nguoiCaoTuoiId: { type: integer, format: int64 }
-        thietBiGan: { type: object, description: 'Chỉ với tài khoản người cao tuổi (FR-070)', properties: { ganLuc: { type: string, format: date-time }, maThietBi: { type: string } } }
-        trangThai: { type: string, enum: [HOAT_DONG, KHOA_TAM, KHONG_HOAT_DONG, DA_KHOA] }
-        nguyenNhanKhoa: { type: string }
-        khoaTamDen: { type: string, format: date-time }
-        lanDangNhapCuoi: { type: string, format: date-time }
-        vaiTro: { type: array, items: { type: string } }
-        lenhDuocPhep: { type: array, items: { type: string } }
-    TaiKhoanVaMatKhauTam:
+        username: { type: string }
+        type: { type: string, enum: [STAFF, FAMILY_MEMBER, RESIDENT] }
+        staffId: { type: integer, format: int64 }
+        familyMemberId: { type: integer, format: int64 }
+        residentId: { type: integer, format: int64 }
+        boundDevice: { type: object, description: 'Chỉ với tài khoản người cao tuổi (FR-070)', properties: { boundAt: { type: string, format: date-time }, deviceId: { type: string } } }
+        status: { type: string, enum: [ACTIVE, TEMPORARILY_LOCKED, INACTIVE, LOCKED] }
+        lockCause: { type: string }
+        lockedUntil: { type: string, format: date-time }
+        lastLoginAt: { type: string, format: date-time }
+        roles: { type: array, items: { type: string } }
+        allowedCommands: { type: array, items: { type: string } }
+    AccountWithTemporaryPassword:
       allOf:
-        - { $ref: '#/components/schemas/TaiKhoan' }
-        - { type: object, properties: { matKhauTam: { type: string } } }
-    TrangTaiKhoan:
+        - { $ref: '#/components/schemas/Account' }
+        - { type: object, properties: { temporaryPassword: { type: string } } }
+    AccountPage:
       type: object
       properties:
-        muc: { type: array, items: { $ref: '#/components/schemas/TaiKhoan' } }
-        sau: { type: string }
-    VaiTro:
+        items: { type: array, items: { $ref: '#/components/schemas/Account' } }
+        nextCursor: { type: string }
+    RoleInfo:
       type: object
       properties:
-        ma: { type: string }
-        ten: { type: string }
-        loaiTaiKhoan: { type: string }
-        phamViThucHien: { type: string, enum: [PHAN_CONG, TOAN_VIEN, QUAN_HE] }
-    QuyenHieuLuc:
+        code: { type: string }
+        name: { type: string }
+        accountType: { type: string }
+        executionScope: { type: string, enum: [ASSIGNED, FACILITY, RELATIONSHIP] }
+    EffectivePermission:
       type: object
       properties:
-        chucNang: { type: string }
-        loaiThaoTac: { $ref: '#/components/schemas/LoaiThaoTac' }
-        phamVi: { type: string, enum: [TOAN_VIEN, PHAN_CONG, QUAN_HE] }
-        maChuThich: { type: array, items: { type: string } }
-        nguon: { type: string, enum: [VAI_TRO, NHIEM_VU, GAN_THEM] }
-    QuyenVaiTro:
+        function: { type: string }
+        operation: { $ref: '#/components/schemas/Operation' }
+        scope: { type: string, enum: [FACILITY, ASSIGNED, RELATIONSHIP] }
+        footnoteCodes: { type: array, items: { type: string } }
+        source: { type: string, enum: [ROLE, DUTY, ADDITIONAL_GRANT] }
+    RolePermissions:
       type: object
       properties:
-        vaiTro: { type: string }
-        toiDa: { type: array, items: { $ref: '#/components/schemas/QuyenHieuLuc' } }
-        thuHep: { type: array, items: { $ref: '#/components/schemas/ThuHep' } }
-        hienHanh: { type: array, items: { $ref: '#/components/schemas/QuyenHieuLuc' } }
-    QuyenTaiKhoan:
+        role: { type: string }
+        maximum: { type: array, items: { $ref: '#/components/schemas/EffectivePermission' } }
+        restrictions: { type: array, items: { $ref: '#/components/schemas/Restriction' } }
+        current: { type: array, items: { $ref: '#/components/schemas/EffectivePermission' } }
+    AccountPermissions:
       type: object
       properties:
-        taiKhoanId: { type: integer, format: int64 }
-        taiThoiDiem: { type: string, format: date-time }
-        trangThai: { type: string }
-        vaiTro: { type: array, items: { type: string } }
-        thuHepTheoVaiTro: { type: array, items: { $ref: '#/components/schemas/ThuHep' } }
-        thuHepTheoTaiKhoan: { type: array, items: { $ref: '#/components/schemas/ThuHep' } }
-        ganThem: { type: array, items: { $ref: '#/components/schemas/QuyenHieuLuc' } }
-        hienHanh: { type: array, items: { $ref: '#/components/schemas/QuyenHieuLuc' } }
-    ThuHep:
-      type: object
-      properties:
-        id: { type: integer, format: int64 }
-        chucNang: { type: string }
-        loaiThaoTac: { $ref: '#/components/schemas/LoaiThaoTac' }
-        kieu: { type: string, enum: [BO_THAO_TAC, HA_PHAM_VI] }
-        hieuLucTu: { type: string, format: date-time }
-        lyDo: { type: string }
-    NghiepVuChuyenMon:
+        accountId: { type: integer, format: int64 }
+        asOf: { type: string, format: date-time }
+        status: { type: string }
+        roles: { type: array, items: { type: string } }
+        roleRestrictions: { type: array, items: { $ref: '#/components/schemas/Restriction' } }
+        accountRestrictions: { type: array, items: { $ref: '#/components/schemas/Restriction' } }
+        additionalGrants: { type: array, items: { $ref: '#/components/schemas/EffectivePermission' } }
+        current: { type: array, items: { $ref: '#/components/schemas/EffectivePermission' } }
+    Restriction:
       type: object
       properties:
         id: { type: integer, format: int64 }
-        ma: { type: string }
-        ten: { type: string }
-        chucNang: { type: string }
-        loaiGiayPhepYeuCau: { type: string }
-        phamViHanhNgheYeuCau: { type: array, items: { type: integer, format: int64 } }
-        canPhamViCoSo: { type: boolean }
-        macDinh: { type: boolean }
-        trangThai: { type: string, enum: [HIEU_LUC, NGUNG_HIEU_LUC] }
-    NghiepVuChuyenMonGhi:
+        function: { type: string }
+        operation: { $ref: '#/components/schemas/Operation' }
+        kind: { type: string, enum: [REMOVE_OPERATION, LOWER_SCOPE] }
+        effectiveFrom: { type: string, format: date-time }
+        reason: { type: string }
+    ProfessionalActivity:
       type: object
-      required: [ten, chucNang, loaiGiayPhepYeuCau, canPhamViCoSo, lyDo]
       properties:
-        ten: { type: string }
-        chucNang: { type: string }
-        loaiGiayPhepYeuCau: { type: string }
-        phamViHanhNgheYeuCau: { type: array, items: { type: integer, format: int64 } }
-        canPhamViCoSo: { type: boolean }
-        lyDo: { $ref: '#/components/schemas/LyDo' }
-    Loi:
+        id: { type: integer, format: int64 }
+        code: { type: string }
+        name: { type: string }
+        function: { type: string }
+        requiredLicenseType: { type: string }
+        requiredPracticeScopes: { type: array, items: { type: integer, format: int64 } }
+        requiresFacilityScope: { type: boolean }
+        isDefault: { type: boolean }
+        status: { type: string, enum: [ACTIVE, INACTIVE] }
+    ProfessionalActivityInput:
       type: object
-      description: RFC 9457 cùng maLoi (000 R-03). Với 403 có lopKhongThoa (FR-043).
+      required: [name, function, requiredLicenseType, requiresFacilityScope, reason]
+      properties:
+        name: { type: string }
+        function: { type: string }
+        requiredLicenseType: { type: string }
+        requiredPracticeScopes: { type: array, items: { type: integer, format: int64 } }
+        requiresFacilityScope: { type: boolean }
+        reason: { $ref: '#/components/schemas/Reason' }
+    Problem:
+      type: object
+      description: RFC 9457 cùng errorCode (000 R-03). Với 403 có failedLayer (FR-043).
       properties:
         type: { type: string }
         title: { type: string }
         status: { type: integer }
-        maLoi: { type: string }
-        lopKhongThoa: { type: string, enum: [VAI_TRO, PHAM_VI, PHAP_LY, DU_LIEU_NGUON] }
-        giayPhep: { type: object, properties: { ten: { type: string }, ngayHetHan: { type: string, format: date } } }
-        dieuKienChuaThoa: { type: array, items: { type: object } }
-        giaTriHienHanh: { type: object }
+        errorCode: { type: string }
+        failedLayer: { type: string, enum: [ROLE, SCOPE, LEGAL, SOURCE_DATA] }
+        license: { type: object, properties: { name: { type: string }, expiryDate: { type: string, format: date } } }
+        unmetConditions: { type: array, items: { type: object } }
+        currentValue: { type: object }
 security:
-  - phien: []
+  - session: []
