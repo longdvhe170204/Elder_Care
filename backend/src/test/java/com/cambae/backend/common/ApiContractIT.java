@@ -54,10 +54,12 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             "POST /api/v1/approval-requests/{id}/approve",
             "POST /api/v1/approval-requests/{id}/reject",
             "POST /api/v1/approval-requests/{id}/cancel",
-            "GET /api/v1/corrections/{recordType}/{originalRecordId}",
-            "POST /api/v1/corrections/{recordType}/{originalRecordId}",
             "GET /api/v1/audit-logs",
             "GET /api/v1/audit-logs/entities/{entityType}/{entityId}");
+
+    /** Phản hồi của hợp đồng chưa cài (ví dụ 202 của cách C chờ yêu cầu phê duyệt, US5); phải rỗng khi xong 000. */
+    private static final Set<String> PENDING_RESPONSES =
+            Set.of("POST /api/v1/corrections/{recordType}/{originalRecordId} 202");
 
     @Autowired
     MockMvc mvc;
@@ -100,7 +102,9 @@ class ApiContractIT extends MySqlIntegrationTestBase {
         }
         ChangedApiResponse responses = op.getApiResponses();
         if (responses != null) {
-            responses.getMissing().keySet().forEach(code -> out.add(at + " thiếu phản hồi " + code));
+            responses.getMissing().keySet().stream()
+                    .filter(code -> !PENDING_RESPONSES.contains(at + " " + code))
+                    .forEach(code -> out.add(at + " thiếu phản hồi " + code));
             responses.getIncreased().keySet().forEach(code -> out.add(at + " thừa phản hồi " + code));
             responses.getChanged().forEach((code, r) -> content(at + " phản hồi " + code, r.getContent(), out));
         }
@@ -121,8 +125,8 @@ class ApiContractIT extends MySqlIntegrationTestBase {
         }
         s.getMissingProperties().keySet().forEach(p -> out.add(at + " thiếu trường " + p));
         s.getIncreasedProperties().keySet().forEach(p -> out.add(at + " thừa trường " + p));
-        if (s.isChangedType()) {
-            out.add(at + " đổi kiểu");
+        if (s.isChangedType() && !baseType(s.getOldSchema()).equals(baseType(s.getNewSchema()))) {
+            out.add(at + " đổi kiểu " + baseType(s.getOldSchema()) + " → " + baseType(s.getNewSchema()));
         }
         if (s.getEnumeration() != null
                 && (!s.getEnumeration().getMissing().isEmpty()
@@ -136,6 +140,25 @@ class ApiContractIT extends MySqlIntegrationTestBase {
         }
         schema(at + "[]", s.getItems(), out);
         s.getChangedProperties().forEach((name, p) -> schema(at + "." + name, p, out));
+    }
+
+    /**
+     * Kiểu gốc của schema, bỏ {@code format} (int32, int64…) và {@code null} của OpenAPI 3.1: hợp đồng ghi
+     * {@code integer} hay {@code [integer, 'null']}, springdoc ghi {@code integer} kèm format, cùng một kiểu.
+     */
+    private static Set<String> baseType(io.swagger.v3.oas.models.media.Schema<?> schema) {
+        Set<String> types = new TreeSet<>();
+        if (schema == null) {
+            return types;
+        }
+        if (schema.getTypes() != null) {
+            types.addAll(schema.getTypes());
+        }
+        if (schema.getType() != null) {
+            types.add(schema.getType());
+        }
+        types.remove("null");
+        return types;
     }
 
     /** Hợp đồng ghi đường dẫn tương đối với server {@code /api/v1}; mã có đủ tiền tố. */

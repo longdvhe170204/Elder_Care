@@ -211,7 +211,11 @@ Vòng đời riêng của 012 (Chờ xác nhận → Hiệu lực / Từ chối 
 
 `id_ban_ghi_goc` là khóa logic, không có khóa ngoại cứng vì bảng gốc thay đổi theo loại. Khi thêm, `DinhChinhService` gọi `provider.daXacNhan(id)` để kiểm bản gốc tồn tại và đã xác nhận (US2 kịch bản 8).
 
+*(Cài 2026-10-19: bảng `correction`, cột theo glossary mục 6; khóa ngoại `approval_request_id` thêm ở V000_07.)*
+
 ### `chuoi_dinh_chinh` – dữ liệu kỹ thuật, không thuộc nhóm nghiệp vụ
+
+*(Cài 2026-10-19: bảng `correction_chain` gồm `correction_count`, `voided`; tuần tự hóa bằng khóa dòng `SELECT … FOR UPDATE` thay cho cột `phien_ban` khóa lạc quan, nên không cần thử lại.)*
 
 | Cột | Ý nghĩa |
 | --- | --- |
