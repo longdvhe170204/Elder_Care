@@ -127,7 +127,7 @@ Chủ dự án chốt ba nguyên tắc (tiếng nói có chủ, năng lực xét
 - **Q-348 (nguyện vọng cuối đời)**: người ký thay là người đại diện của người bệnh (Luật Khám bệnh, chữa bệnh Điều 8); nhận định của Bác sĩ gắn với chính quyết định, kèm cách đã hỗ trợ người cao tuổi hiểu thông tin và ngày xem lại (User Story 7, FR-023a → FR-023c).
 - **Q-347, Q-348 (dùng chung)**: spec này định nghĩa giá trị "nguồn của ý kiến" và quy tắc không có dấu năng lực cố định, các feature 005, 012, 014 dùng lại (FR-023g, FR-023h).
 - **Q-353**: mục "nhận thông báo" của bản đồng ý có tác dụng với thông báo không khẩn về người cao tuổi; feature 009 dùng giá trị hiện hành (FR-010).
-- **Q-355 (còn mở)**: người cao tuổi không tự ký được bản đồng ý mà chưa có quyết định của Tòa án. Theo mặc định Q-355: không ghi được bản đồng ý thay; người thân không xem được thông tin sức khỏe (FR-022) trừ các trường hợp Q-354 (Edge Cases).
+- **Q-355** *(chốt 2026-10-19 giữ mặc định, 24.2)*: người cao tuổi không tự ký được bản đồng ý mà chưa có quyết định của Tòa án. Theo Q-355: không ghi được bản đồng ý thay; người thân không xem được thông tin sức khỏe (FR-022) trừ các trường hợp Q-354 (Edge Cases).
 - **Sửa câu chữ BR-M01-15 tầng 1 (2026-10-18, không đổi nghiệp vụ)**: tầng 1 chỉ gồm giao dịch mà người cao tuổi là một bên và bản đồng ý dữ liệu; hợp đồng lưu trú do người thân ký với tư cách một bên (6.3) không thuộc tầng này. FR-011, FR-023h giữ nguyên vì chỉ nói tới bản đồng ý.
 - **Q-356**: lệnh "Hoàn tất tiếp nhận" cảnh báo khi lượt đăng ký chưa ghi ý kiến của người cao tuổi về việc vào ở, và bắt buộc lý do khi ý kiến hiện hành là "Không đồng ý" (feature 004 FR-004a). Lý do này ghi vào lịch sử trạng thái (FR-046).
 
@@ -141,7 +141,7 @@ Ngày 2026-10-18 chủ dự án ủy quyền chốt các điểm báo lại củ
 
 ### Cập nhật 2026-10-18, lượt 3 (đồng bộ Q-365 → Q-371, người cao tuổi tự dùng hệ thống)
 
-Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định. Thay đổi ở spec này:
+Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định *(Q-367 chốt 2026-10-19 giữ mặc định, chuyển sang 24.2)*. Thay đổi ở spec này:
 
 - **Q-366**: mục ý kiến có nguồn "người cao tuổi" có thể được ghi từ phản hồi loại Mong muốn của feature 012 và giữ liên kết tới phản hồi đó (FR-023g). Không đổi quy tắc khác.
 
@@ -335,7 +335,7 @@ Khi tiếp nhận, bác sĩ hoặc điều dưỡng khảo sát và ghi nguyện
 - **Người cao tuổi xuất viện nhưng về thẳng nhà, không quay lại viện** (CHK009): dùng lệnh "Kết thúc lưu trú" từ Điều trị tại bệnh viện với đủ điều kiện của lệnh; không cần "Ghi nhận trở về" trước.
 - **Kiểm tra dị ứng không chạy được** (feature 006 hoặc 011 lỗi, CHK036): mục dị ứng vẫn được lưu và mang dấu "chờ kiểm tra"; hệ thống thử lại tới khi cả hai kiểm tra chạy xong rồi gỡ dấu; trong lúc đó mục vẫn hiện trên hồ sơ và thẻ thông tin khẩn cấp. Đây là ngoại lệ có chủ ý của nguyên tắc "hoặc toàn bộ, hoặc không": mất mục dị ứng nguy hiểm hơn chậm kiểm tra.
 - **Người đại diện theo pháp luật đã ký bản đồng ý rồi không còn là người đại diện theo pháp luật** (CHK040, sửa 2026-10-18, Q-348; ví dụ Tòa án hủy quyết định hoặc thay người giám hộ): bản đồng ý vẫn Hiệu lực vì nó có hiệu lực theo thời điểm ký; chỉ lệnh "Rút lại đồng ý" hoặc bản thay thế mới làm nó hết hiệu lực. Khi Tòa án hủy quyết định, người cao tuổi tự ký bản mới.
-- **Người cao tuổi không tự ký được bản đồng ý mà chưa có quyết định của Tòa án** (bổ sung 2026-10-18): theo Q-355 (24.2, chốt 2026-10-19), không ghi được bản đồng ý thay; người thân không xem được thông tin sức khỏe (FR-022). Thông tin vượt phạm vi đồng ý chỉ gửi theo các trường hợp Q-354 (feature 007, 009). Khi Q-355 được chốt, spec cập nhật FR-011.
+- **Người cao tuổi không tự ký được bản đồng ý mà chưa có quyết định của Tòa án** (bổ sung 2026-10-18): theo Q-355 (24.2, chốt 2026-10-19), không ghi được bản đồng ý thay; người thân không xem được thông tin sức khỏe (FR-022). Thông tin vượt phạm vi đồng ý chỉ gửi theo các trường hợp Q-354 (feature 007, 009).
 - **Người cao tuổi đang Điều trị tại bệnh viện khi đến hạn đánh giá định kỳ**: bác sĩ vẫn được báo căn cứ định kỳ, nhưng hạn CFG-M01-03 chỉ bắt đầu tính từ khi Ghi nhận trở về, cùng với căn cứ "trở về từ bệnh viện".
 - **Tạm vắng dài vượt dự kiến**: BR-M01-01 cảnh báo đúng một lần mỗi mốc dự kiến trở lại; nếu thời điểm dự kiến được gia hạn (feature 004), mốc cảnh báo tính lại theo thời điểm mới.
 - **Hoạt động bên ngoài không trở về đúng kế hoạch**: trạng thái giữ nguyên Hoạt động bên ngoài; feature 014 tạo cảnh báo Khẩn cấp và trưởng đoàn hoặc trưởng tầng ghi nhận sự cố (BR-M04-17, Q-307); trạng thái sau đó chuyển bằng lệnh phù hợp (Ghi nhận trở về, Chuyển viện, Ghi nhận qua đời).
@@ -623,4 +623,4 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/busine
 3. **Q-355** *(Đã xử lý 2026-10-19: chốt giữ mặc định theo tư vấn pháp lý; mở rộng tư cách đại diện ghi ở 24.4.)*
 4. **Plan, data-model, tasks chưa cập nhật** theo các FR sửa ở đây (ví dụ data-model trường `nguoi_ky_nguoi_than_id` "bắt buộc khi người đại diện ký"); cần /speckit-plan và /speckit-tasks. *(Đã xử lý 2026-10-18: plan, research, data-model, contracts, quickstart, tasks đã cập nhật.)*
 
-**(2026-10-18) Đồng bộ Q-357 → Q-364.** *(Đã xử lý 2026-10-18: Clarifications "Cập nhật 2026-10-18, lượt 2".)* Đã xử lý điểm 1 (thói quen sinh hoạt, Q-363) và điểm 2 (người đại diện theo pháp luật không phải người thân, Q-359) của lượt 2026-10-18; thêm FR-023i (Q-360). Còn Q-355 (24.1).
+**(2026-10-18) Đồng bộ Q-357 → Q-364.** *(Đã xử lý 2026-10-18: Clarifications "Cập nhật 2026-10-18, lượt 2".)* Đã xử lý điểm 1 (thói quen sinh hoạt, Q-363) và điểm 2 (người đại diện theo pháp luật không phải người thân, Q-359) của lượt 2026-10-18; thêm FR-023i (Q-360). Còn Q-355 (24.1). *(Q-355 chốt 2026-10-19, xem điểm 3 ở trên.)*

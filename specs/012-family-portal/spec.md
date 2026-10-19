@@ -138,7 +138,7 @@ Ngày 2026-10-18 chủ dự án ủy quyền chốt các điểm báo lại củ
 
 ### Cập nhật 2026-10-18, lượt 3 (đồng bộ Q-365 → Q-371, kênh người cao tuổi)
 
-Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định. Thay đổi ở spec này:
+Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định *(Q-367 chốt 2026-10-19 giữ mặc định, chuyển sang 24.2)*. Thay đổi ở spec này:
 
 - **Q-365, Q-366**: thêm kênh người cao tuổi (mục G2, FR-083 → FR-086, UC-96, 14.6a, BR-M10-11): năm phần thông tin của chính người cao tuổi; theo Q-367 không có sức khỏe, chi phí, số dư.
 - **Q-369**: kênh hiển thị nút SOS và trạng thái của nó (FR-085); cảnh báo do feature 007 sở hữu.

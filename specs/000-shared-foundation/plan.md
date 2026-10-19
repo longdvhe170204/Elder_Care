@@ -31,7 +31,7 @@ Plan này cũng chốt các quyết định nền cho mọi feature sau (R-01 �
 
 **Primary Dependencies**:
 - Backend: Spring Boot 4.1.x (Web MVC, Data JPA/Hibernate 7, Security, Validation), Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock.
-- Web: React 19, Vite 8, Tailwind CSS v4, shadcn/ui (Base UI), lucide-react, font Be Vietnam Pro (thay Geist theo frontend/DESIGN.md 2.0.0); TanStack Query, React Router (thêm ở T005).
+- Web: React 19, Vite 8, Tailwind CSS v4, shadcn/ui (Base UI), lucide-react, font Be Vietnam Pro (thay Geist theo DESIGN.md gốc kho); TanStack Query, React Router (thêm ở T005).
 - App: Flutter, `http` (có sẵn), drift (hàng đợi ngoại tuyến của app nhân viên, thêm ở T006).
 
 **Storage**: MySQL 8.0 (bản cài trên máy), InnoDB, utf8mb4. MySQL 8.0 hết hỗ trợ từ 04/2026: trước khi vận hành phải nâng lên 8.4 LTS rồi chạy lại toàn bộ test tích hợp (research R-01). Migration chỉ dùng tính năng có ở cả 8.0 và 8.4.
@@ -51,7 +51,7 @@ Plan này cũng chốt các quyết định nền cho mọi feature sau (R-01 �
 
 **Performance Goals**:
 - Lệnh của 000 (đổi tham số, quyết định yêu cầu, đính chính) nằm trong ngân sách 2 giây của NFR-02. Mỗi lệnh chỉ thêm một `INSERT` nhật ký vào transaction.
-- Tra lịch sử một đối tượng (SC-006) dùng chỉ mục `(loai_doi_tuong, id_doi_tuong, thoi_diem)` và phân trang theo khóa, trên khoảng 22 triệu dòng mỗi năm.
+- Tra lịch sử một đối tượng (SC-006) dùng chỉ mục `(doi_tuong_loai, doi_tuong_id, thoi_diem)` và phân trang theo khóa, trên khoảng 22 triệu dòng mỗi năm.
 - Job áp dụng yêu cầu đến hạn nằm trong NFR-04 (5 phút).
 
 **Constraints**:
@@ -106,7 +106,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | NFR-07 Lưu trữ | Có | Job loại bỏ theo chuỗi, tài khoản riêng, nhật ký tóm tắt (R-11) |
 | NFR-08 Bảo mật | Có | Che trường nhật ký ở backend (R-06); người thân bị chặn khỏi nhật ký. HTTPS và băm mật khẩu ở 002 |
 | NFR-09 Thời gian | Có | Một `Clock`, múi giờ Asia/Ho_Chi_Minh; ArchUnit cấm `now()` (R-04) |
-| NFR-10 Thiết bị | Có | Màn tham số và tra nhật ký ở web. Màn duyệt yêu cầu ở web và app nhân viên. Người thân không dùng chức năng nào của 000 |
+| NFR-10 Thiết bị | Có | Màn tham số và tra nhật ký ở web. Màn duyệt yêu cầu ở web và app nhân viên. Người thân và người cao tuổi không dùng chức năng nào của 000 |
 | NFR-11 Ngôn ngữ | Có | API trả ISO-8601; client hiển thị dd/MM/yyyy, giao diện tiếng Việt |
 | NFR-12 Cấu hình | Có | Đổi tham số không cần triển khai lại (R-07, SC-004) |
 | NFR-13 Kiểm thử | Có | `DieuKhienDongHo`, endpoint chỉ ở profile test và demo (R-04) |
@@ -124,7 +124,7 @@ specs/000-shared-foundation/
 ├── contracts/
 │   ├── api-000.yaml             # OpenAPI 3.1: tham số, yêu cầu phê duyệt, đính chính, nhật ký, đồng hồ kiểm thử
 │   └── module-interfaces.md     # Giao diện Java giữa module: 000 cung cấp / 000 cần
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)
@@ -152,7 +152,8 @@ frontend/
     ├── api/                     # client sinh từ OpenAPI
     ├── components/ui/           # component shadcn/ui (thêm bằng `npx shadcn add`)
     ├── lib/                     # tiện ích dùng chung (`cn`)
-    ├── chung/                   # xử lý Problem Details, 412, hiển thị "đã thay đổi"
+    ├── chung/                   # xử lý Problem Details, 412, hiển thị "đã thay đổi";
+    │                            # dinh-chinh/: component đính chính dùng chung (T106, FR-028, SC-007)
     └── tinh-nang/
         ├── tham-so/
         ├── nhat-ky/

@@ -10,7 +10,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4 và data-model.md mục 11.
 
-**Giai đoạn**: Triển khai (chủ dự án mở ngày 2026-10-10); cách làm theo mục "Giai đoạn hiện tại" của CLAUDE.md.
+**Giai đoạn**: Theo mục "Giai đoạn hiện tại" của CLAUDE.md (constitution IX). Từ 2026-10-16 là giai đoạn thiết kế; task chỉ được làm khi chủ dự án mở giai đoạn triển khai.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 

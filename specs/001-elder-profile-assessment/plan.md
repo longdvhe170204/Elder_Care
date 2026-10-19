@@ -25,7 +25,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307): M01 không tự sinh bản ghi
 
 ### Cập nhật 2026-10-18 (spec mục "Cập nhật 2026-10-18": Q-347, Q-348, Q-353, Q-355, Q-356)
 
-- **Bản đồng ý** (FR-010, FR-011, FR-014): người ký thay chỉ là người đại diện theo pháp luật, kèm số, ngày, Tòa án và bản scan quyết định của Tòa án; bỏ `ly_do_dai_dien` và lời gọi `laNguoiDaiDienHieuLuc` (research H-06, data-model mục 4). Q-355 còn mở: không có đường ký thay khi chưa có quyết định của Tòa án.
+- **Bản đồng ý** (FR-010, FR-011, FR-014): người ký thay chỉ là người đại diện theo pháp luật, kèm số, ngày, Tòa án và bản scan quyết định của Tòa án; bỏ `ly_do_dai_dien` và lời gọi `laNguoiDaiDienHieuLuc` (research H-06, data-model mục 4). Q-355 (chốt 2026-10-19): không có đường ký thay khi chưa có quyết định của Tòa án.
 - **Phiếu nguyện vọng** (FR-023a → FR-023c): `du_nang_luc` thay bằng nhận định gắn với phiếu (`tu_quyet_duoc`, thời điểm, cách hỗ trợ hiểu, ngày xem lại); người ký thay là người đại diện của người bệnh (kèm cách chọn) hoặc người đại diện theo pháp luật; ý kiến khác lựa chọn là bảng con `nguyen_vong_y_kien` có nguồn (research H-09, data-model mục 6).
 - **Nguồn của ý kiến dùng chung** (FR-023g): `NguonYKien`, `NguonYKienApi.kiemTra` ở `m01.api`, mẫu cột ở data-model mục 6a, schema `NguonYKien` ở api-001.yaml; 004, 005, 012, 014 dùng lại (research H-16).
 - **Không có dấu năng lực** (FR-023h): test kiến trúc quét schema và OpenAPI (research H-16).

@@ -60,7 +60,7 @@ Feature 009 FR-001a (Q-353, Q-354) yêu cầu mọi thông báo tới người t
 
 ### Cập nhật 2026-10-18, lượt 3 (đồng bộ Q-365 → Q-371, người cao tuổi tự dùng hệ thống)
 
-Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định. Thay đổi ở spec này:
+Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định *(Q-367 chốt 2026-10-19 giữ mặc định, chuyển sang 24.2)*. Thay đổi ở spec này:
 
 - **Q-366**: người cao tuổi xem thực đơn chung và suất ăn dự kiến của mình trên kênh người cao tuổi, không thấy chế độ ăn, dị ứng, bệnh lý (FR-063); bảng giao tiếp thêm dòng cung cấp cho 012.
 

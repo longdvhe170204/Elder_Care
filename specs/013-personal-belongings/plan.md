@@ -133,7 +133,7 @@ specs/013-personal-belongings/
 ├── contracts/
 │   ├── api-013.yaml             # OpenAPI 3.1: danh mục, tiếp nhận, bàn giao, trả, xác nhận, kiểm kê, cổng
 │   └── module-interfaces.md     # SPI 013 cài, API cung cấp, sự kiện
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

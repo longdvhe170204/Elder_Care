@@ -139,7 +139,7 @@ specs/006-medication-management/
 ├── contracts/
 │   ├── api-006.yaml             # OpenAPI 3.1: danh mục, đơn, lịch, liều, PRN, đối chiếu, thuốc gửi, mang theo
 │   └── module-interfaces.md     # Giao diện Java: 006 cung cấp / 006 cần; sự kiện; tác động của bean trạng thái
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

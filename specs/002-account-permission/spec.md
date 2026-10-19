@@ -110,7 +110,7 @@ Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi 
 
 ### Cập nhật 2026-10-18, lượt 3 (đồng bộ Q-365 → Q-371, người cao tuổi tự dùng hệ thống)
 
-Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định. Thay đổi ở spec này:
+Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 24.2); Q-367 còn mở, spec dùng theo mặc định *(Q-367 chốt 2026-10-19 giữ mặc định, chuyển sang 24.2)*. Thay đổi ở spec này:
 
 - **Q-365**: thêm loại tài khoản người cao tuổi (FR-001), chỉ tạo khi chính người cao tuổi yêu cầu hoặc đồng ý (FR-067); quyền hiệu lực theo cột NCT (FR-068).
 - **Q-370**: đăng nhập bằng mã QR dùng một lần (FR-069, CFG-M15-11), gắn tối đa một thiết bị (FR-070), nút SOS dùng thiết bị đã gắn (FR-071); phiên không tự hết, không chuyển Không hoạt động (FR-010, FR-013a, FR-014a); tùy chọn vân tay, khuôn mặt (FR-074).

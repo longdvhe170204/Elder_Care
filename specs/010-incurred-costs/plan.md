@@ -133,7 +133,7 @@ specs/010-incurred-costs/
 ├── contracts/
 │   ├── api-010.yaml             # OpenAPI 3.1: tra cứu nguồn, khoản, bảng, mua hộ, cổng, xuất kế toán
 │   └── module-interfaces.md     # SPI 010 cài, API cung cấp, sự kiện, port nội bộ M11
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

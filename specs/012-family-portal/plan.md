@@ -145,7 +145,7 @@ specs/012-family-portal/
 ├── contracts/
 │   ├── api-012.yaml             # OpenAPI 3.1: người thân, yêu cầu quyền, đón, thăm, ở lại, cổng, bản tin, phản hồi
 │   └── module-interfaces.md     # SPI 012 cài, API cung cấp, SPI cho 014, sự kiện
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

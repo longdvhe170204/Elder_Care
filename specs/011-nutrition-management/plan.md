@@ -134,7 +134,7 @@ specs/011-nutrition-management/
 ├── contracts/
 │   ├── api-011.yaml             # OpenAPI 3.1: danh mục, bản gán, thực đơn, chốt suất, phiếu, phục vụ, đồ ăn gia đình, lưu mẫu
 │   └── module-interfaces.md     # SPI 011 cài, API cung cấp, SPI cho 012, 014, port nội bộ cho 019, sự kiện
-└── tasks.md                     # Phase 2 (/speckit-tasks; chưa tạo)
+└── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

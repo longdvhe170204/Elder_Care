@@ -88,7 +88,7 @@ Không còn mục NEEDS CLARIFICATION.
 specs/018-residence-registration/
 ├── plan.md  ├── research.md (Z-01 → Z-07)  ├── data-model.md  ├── quickstart.md (Q1 → Q20)
 ├── contracts/ (api-018.yaml, module-interfaces.md)
-└── tasks.md   # Phase 2 (chưa tạo)
+└── tasks.md   # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)
