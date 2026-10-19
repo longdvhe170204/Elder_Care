@@ -50,7 +50,14 @@ public class TestClockController {
         return new ClockResponse(OffsetDateTime.ofInstant(clock.instant(), clock.getZone()), clock.isSimulated());
     }
 
-    public record ClockRequest(OffsetDateTime setTo, String advanceBy, List<String> runJobs) {}
+    public record ClockRequest(OffsetDateTime setTo, String advanceBy, List<TestJob> runJobs) {}
+
+    /** Job chạy ngay theo yêu cầu của test (contracts/api-000.yaml). */
+    public enum TestJob {
+        APPLY_DUE_REQUESTS,
+        REMIND_PENDING_REQUESTS,
+        PURGE_EXPIRED_DATA
+    }
 
     public record ClockResponse(OffsetDateTime now, boolean simulated) {}
 }

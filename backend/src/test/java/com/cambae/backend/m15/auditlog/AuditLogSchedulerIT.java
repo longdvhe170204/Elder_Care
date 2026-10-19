@@ -3,8 +3,8 @@ package com.cambae.backend.m15.auditlog;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.cambae.backend.common.Role;
 import com.cambae.backend.m15.account.api.CurrentUser;
-import com.cambae.backend.m15.account.api.Role;
 import com.cambae.backend.m15.auditlog.api.AuditAction;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;

@@ -224,6 +224,14 @@ mobile/                          # một app chung cho nhân viên, người th�
 - Bộ đệm `read()` chưa có đường xóa; T079 (đổi giá trị) xóa ở pha AFTER_COMMIT.
 - Nạp ban đầu ghi `effective_from = UTC_TIMESTAMP(6)` của MySQL (lúc cài), không đi qua `Clock` của ứng dụng.
 
+**Nhóm Sự kiện, lịch, tệp, kiến trúc (T033 → T038, 2026-10-19)**:
+- `Role` chuyển từ `m15.account.api` sang `common`: khuôn thông báo ở `common` (009 B-02) dùng vai trò; để ở `m15` thì `common` ↔ `m15` thành vòng, `ModuleBoundaryTest` chặn.
+- T033: thêm `spring-modulith-starter-jdbc`; bảng `EVENT_PUBLICATION` lấy nguyên schema v2 MySQL của thư viện (giữ tên viết hoa cho MySQL trên Linux); cấu hình ở `application.yml` (không cần lớp `SuKienConfig`), giao lại sự kiện chưa xong khi khởi động. `EventPublicationIT` kiểm lưu và giao sau commit, không giao khi rollback.
+- T035: `EVENT_PUBLICATION`, `shedlock`, `scheduler_run` cùng ở `V000_05__scheduling.sql`, để không chiếm số `V000_06`, `V000_07` đã dành cho đính chính và yêu cầu phê duyệt (Flyway không áp được bản số nhỏ hơn sau bản số lớn). ShedLock dùng giờ MySQL (thông số kỹ thuật). `SchedulerRuns.start/finish` cấp `schedulerRunId` cho `Basis`.
+- T034: `common.notification` dựng phần khung của 009 contracts mục 1.1 (yêu cầu, mức, loại thông tin, nhóm nguồn, Q-354) và hai nhóm người nhận 000 dùng (`FacilityRole`, `Approvers`); các biến thể khác của `RecipientGroup` và `TRUONG_SUC_KHOE` do 009 T004 làm.
+- T036: chỉ giao diện `FileApi`, `FilePermissionProvider` ở `common.file`; bảng `tep`, dịch vụ, controller thuộc 001 T003, T004. `canDownload(ownerId)` không nhận người dùng vì `common` không phụ thuộc `m15`; module cài tự lấy người dùng hiện tại.
+- T038 thành `ApiContractIT` (cần context và MySQL): so OpenAPI của springdoc với hợp đồng sau khi thêm tiền tố `/api/v1`; endpoint chưa cài ghi ở `PENDING` (phải rỗng khi xong 000). openapi-diff chỉ báo thay đổi "không tương thích" nên test tự kiểm cấu trúc (trường, kiểu, enum, trường bắt buộc, mã phản hồi, kiểu nội dung); đã thử đổi tên một trường để chắc test bắt được. springdoc đặt `default-produces-media-type: application/json`; `runJobs` của đồng hồ giả lập đổi sang enum cho khớp hợp đồng.
+
 ## Điểm cần báo lại về tài liệu nguồn
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới, rồi sửa `docs/business/nghiep-vu.md` và spec 000.
