@@ -1,0 +1,68 @@
+# Cấu hình chung; ba profile prod, test, demo ở cuối file (research R-01, R-04, R-05).
+# Mật khẩu chỉ đọc từ biến môi trường, không ghi vào kho mã.
+spring:
+  application:
+    name: backend
+  datasource:
+    # Tài khoản eldercare_app (R-05): không có DELETE trên bảng nhóm 3.
+    url: ${DB_URL:jdbc:mysql://localhost:3306/elder_care}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      data-source-properties:
+        # Lưu thời điểm theo UTC, phiên MySQL cũng ở UTC (R-04)
+        connectionTimeZone: UTC
+        forceConnectionTimeZoneToSession: true
+        characterEncoding: UTF-8
+        connectionCollation: utf8mb4_0900_ai_ci
+  jpa:
+    open-in-view: false
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    locations: classpath:db/migration
+  jackson:
+    # API trả thời điểm ISO-8601 offset +07:00 (R-03)
+    time-zone: Asia/Ho_Chi_Minh
+
+server:
+  port: 8080
+
+eldercare:
+  datasource:
+    # Tài khoản eldercare_retention (glossary: eldercare_luu_tru), chỉ job loại bỏ dữ liệu hết hạn dùng (R-05, R-11).
+    # Bean DataSource tạo ở task của job (000 T071).
+    retention:
+      url: ${DB_URL:jdbc:mysql://localhost:3306/elder_care}
+      username: ${DB_RETENTION_USERNAME}
+      password: ${DB_RETENTION_PASSWORD}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+# prod: dùng cấu hình chung; đồng hồ giả lập không nạp (000 T012).
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+# test: datasource do lớp cơ sở test tích hợp đặt (schema eldercare_test, 000 T009); có đồng hồ giả lập (NFR-13).
+
+---
+spring:
+  config:
+    activate:
+      on-profile: demo
+  flyway:
+    # Dữ liệu mẫu chỉ nạp ở demo (000 T048)
+    locations: classpath:db/migration,classpath:db/migration/demo
+  jpa:
+    show-sql: true

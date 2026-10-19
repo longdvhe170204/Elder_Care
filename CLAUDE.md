@@ -16,7 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - /speckit-analyze chạy theo thứ tự triển khai, đổi `.specify/feature.json` trước mỗi feature; chỉ đọc, không ghi file trừ khi chủ dự án yêu cầu.
 - Tiến độ (2026-10-16): xong 000 T001 (`.gitignore`, README gốc) và T005a (design system, khung ứng dụng, hai màn mẫu); `DESIGN.md` (nay 5.14.0, mục 15 mobile đã duyệt, gồm 15.6 người cao tuổi duyệt 2026-10-19, chung cho web và mobile; trước ở `frontend/`) đã duyệt và áp vào `index.css` (mục 2.2 Nhân văn trong màn nghiệp vụ, Q-347 → Q-364, duyệt 2026-10-18), thêm màn mẫu Checklist ca dạng lưới thẻ, Phát thuốc, Bàn giao ca, Cảnh báo. Đã làm trước một phần, task chưa `[x]`: T002 (driver MySQL, `ddl-auto=validate`), T005 (bỏ file mẫu Vite), T008 (ESLint bỏ qua hai luật cho mã shadcn sinh ra).
 - Tiến độ (2026-10-18): người cao tuổi tự dùng hệ thống (actor AC-16; Q-365 → Q-372 chốt; Q-355, Q-367 chốt 2026-10-19 theo tư vấn pháp lý, phần mở rộng ghi ở 24.4): đã sửa nghiep-vu.md và spec, plan, tasks của 000, 001, 002, 007, 009, 011, 012, 013, 014, 016; đã qua /speckit-analyze; DESIGN.md mục 15.6 người cao tuổi đã duyệt; nút SOS chạm một lần, đếm ngược 3 giây có nút Hủy (Q-372).
-- Tiến độ (2026-10-19): constitution 3.1.1 (app chung có phần người cao tuổi, `mobile/lib/nguoi-cao-tuoi/`); 000 sửa sau /speckit-analyze (thêm T106 component đính chính dùng chung cho SC-007); spec, plan, tasks của 20 feature đồng bộ Q-355, Q-367, Q-372. Việc tiếp theo: 000 bước 1 → 5 của "Khi vào triển khai" (nhánh `impl/000-shared-foundation`, dịch `contracts/api-000.yaml`, xin duyệt, rồi Phase 1).
+- Tiến độ (2026-10-19): constitution 3.1.1 (app chung có phần người cao tuổi, `mobile/lib/nguoi-cao-tuoi/`); 000 sửa sau /speckit-analyze (thêm T106 component đính chính dùng chung cho SC-007); spec, plan, tasks của 20 feature đồng bộ Q-355, Q-367, Q-372. 000 trên nhánh `impl/000-shared-foundation`: `contracts/api-000.yaml` đã dịch tiếng Anh, glossary mục 6 (chủ dự án duyệt); Phase 1 xong T002 → T005, T008, T010 (phần backend, web; phần mobile tách thành T008b, T010b); T009 đã viết nhưng chưa chạy vì máy chưa đặt biến `TEST_DB_*`. Ghi chú triển khai ở plan 000. Việc tiếp theo: đặt biến `TEST_DB_*`, chạy `./mvnw verify`, rồi Phase 2 của 000.
 - Trước khi vận hành: chốt 3 điểm pháp lý ở 24.4 (Q-03, Thông tư 27/2024/TT-BYT, Luật Cư trú 118/2025/QH15); nâng MySQL 8.0 lên 8.4 LTS, nên migration chỉ dùng cú pháp có ở cả hai bản (research R-01).
 
 ### Thiết kế giao diện
@@ -50,7 +50,7 @@ Skill ở `.claude/skills/karpathy-guidelines/` (nguồn ghi ở `skills-lock.js
 
 - Constitution 3.1.1 (nguyên tắc X–XV), research R-01, R-02 của 000. Thư viện cụ thể ghi ở plan và tasks.
 - Yêu cầu môi trường: JDK 25, MySQL 8.0, Node 24 + npm, Flutter stable 3.x. Chưa dùng Docker, Testcontainers; không thay MySQL bằng H2 hay cơ sở dữ liệu nhúng (R-14 cần trigger và quyền tài khoản MySQL).
-- Biến môi trường (không ghi mật khẩu vào kho mã): `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` cho schema `elder_care`; `TEST_DB_URL`, `TEST_DB_ADMIN_USER`, `TEST_DB_ADMIN_PASSWORD` cho schema test `eldercare_test`.
+- Biến môi trường (không ghi mật khẩu vào kho mã): `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` cho schema `elder_care`; `DB_RETENTION_USERNAME`, `DB_RETENTION_PASSWORD` cho tài khoản `eldercare_retention` của job loại bỏ dữ liệu (000 T004); `TEST_DB_URL` (ghi cả schema, ví dụ `jdbc:mysql://localhost:3306/eldercare_test`), `TEST_DB_ADMIN_USER`, `TEST_DB_ADMIN_PASSWORD` cho schema test.
 - Một kho mã, ba thư mục gốc:
   - `backend/`: Spring Boot 4.1.x, Java 25, Maven wrapper; một khối, RESTful `/api/v1`; gói gốc `com.cambae.backend` chia `common` và `m01` … `m15` (application module của Spring Modulith, chỉ gói `api` công khai). Flyway ở `src/main/resources/db/migration/`; test `*Test` đơn vị, `*IT` tích hợp, `*ArchTest` kiến trúc, bản giả ở `…/support/`. Tasks viết tắt `BE/`, `BT/`, `MIG/`.
   - `frontend/`: React 19, Vite 8, JavaScript (không TypeScript), Tailwind CSS v4, shadcn/ui (Base UI), lucide-react, font Be Vietnam Pro. `src/{api, common, features}`, `src/components/ui/` (thêm bằng `npx shadcn add`), `src/lib/`; alias `@/` trỏ `src/`; `src/api/` sinh từ `specs/*/contracts/api-*.yaml` (000 T010), không sửa tay. `cn` lấy từ gói npm `cn`.
@@ -62,8 +62,9 @@ Skill ở `.claude/skills/karpathy-guidelines/` (nguồn ghi ở `skills-lock.js
 - `backend/` (PowerShell dùng `.\mvnw.cmd`):
   - `./mvnw verify`: test đơn vị, tích hợp, kiến trúc, so hợp đồng; một test: `./mvnw test -Dtest=TenLopTest` hoặc `-Dtest=TenLopTest#tenPhuongThuc`;
   - `./mvnw spring-boot:run -Dspring-boot.run.profiles=demo`: chạy với dữ liệu mẫu; profile `test`, `demo` có đồng hồ giả lập (NFR-13, 000 T012);
-  - `pom.xml` chưa có Flyway, failsafe (000 T002 thêm); `BackendApplicationTests` nạp cả context nên cần MySQL đang chạy và các biến `DB_*`.
-- `frontend/`: `npm ci`, `npm run lint`, `npm run build`, `npm run dev`. `npm test` (Vitest) có sau 000 T005; một file: `npx vitest run <đường dẫn>`. Bản mẫu giao diện: `npm run dev`, đổi vai trò ở khối người dùng cuối menu để xem menu từng vai trò.
+  - `./mvnw spotless:apply`: định dạng Java (verify kiểm tra định dạng); test `*IT` chạy bằng failsafe ở verify;
+  - test nạp context (`BackendApplicationTests`, mọi `*IT`) kế thừa `support/MySqlIntegrationTestBase`, cần MySQL đang chạy và các biến `TEST_DB_*`.
+- `frontend/`: `npm ci`, `npm run lint`, `npm run build`, `npm run dev`. `npm test` (Vitest); một file: `npx vitest run <đường dẫn>`. `npm run gen:api` sinh `src/api/` từ hợp đồng đã dịch; `npm run format` (Prettier, chưa áp cho mã cũ). Bản mẫu giao diện: `npm run dev`, đổi vai trò ở khối người dùng cuối menu để xem menu từng vai trò.
 - `mobile/`: `flutter test`; một file: `flutter test test/<file>_test.dart`; lọc theo tên: `--plain-name "<tên test>"`.
 
 ## Phạm vi nghiệp vụ (tóm tắt, căn cứ là docs/business/nghiep-vu.md)
