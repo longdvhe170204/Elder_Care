@@ -24,11 +24,16 @@ class ParameterIT extends MySqlIntegrationTestBase {
     JdbcTemplate jdbc;
 
     @Test
-    void FR_011_allCodesLoaded_eachWithOneHistoryRow() {
+    void FR_011_allCodesLoaded_eachWithInitialHistoryRow() {
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM parameter", Integer.class))
                 .isEqualTo(ParameterCode.values().length);
+        // Lần nạp ban đầu: một dòng cho mỗi mã, người thực hiện là Bộ lập lịch (actor_id NULL). Test đổi tham số (T075)
+        // thêm dòng lịch sử, nên chỉ đếm mã, không đếm dòng.
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM parameter p JOIN parameter_history h ON h.code = p.code"
+                        "SELECT COUNT(DISTINCT code) FROM parameter_history WHERE actor_id IS NULL", Integer.class))
+                .isEqualTo(ParameterCode.values().length);
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(DISTINCT p.code) FROM parameter p JOIN parameter_history h ON h.code = p.code"
                                 + " WHERE JSON_CONTAINS(h.value, p.current_value) AND JSON_CONTAINS(p.current_value, h.value)",
                         Integer.class))
                 .isEqualTo(ParameterCode.values().length);
