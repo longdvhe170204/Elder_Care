@@ -1,4 +1,4 @@
-# Chủ module theo docs/team-plan.md mục 1. Thay @TEN_GITHUB_B … @TEN_GITHUB_E bằng tên GitHub thật rồi bỏ dấu # ở đầu dòng.
+# Chủ module theo docs/team-plan.md mục 1.
 # Dòng sau ghi đè dòng trước; mặc định A review mọi thứ chưa có chủ.
 
 *                                                   @longdvhe170204
@@ -13,37 +13,37 @@
 /CLAUDE.md                                          @longdvhe170204
 
 # B: người cao tuổi, lưu trú, đồ dùng
-# /backend/src/main/java/com/cambae/backend/m01/    @TEN_GITHUB_B
-# /backend/src/main/java/com/cambae/backend/m02/    @TEN_GITHUB_B
-# /backend/src/main/java/com/cambae/backend/m12/    @TEN_GITHUB_B
-# /specs/001-elder-profile-assessment/              @TEN_GITHUB_B
-# /specs/004-admission-residency/                   @TEN_GITHUB_B
-# /specs/013-personal-belongings/                   @TEN_GITHUB_B
-# /specs/018-residence-registration/                @TEN_GITHUB_B
+/backend/src/main/java/com/cambae/backend/m01/      @AAnh004
+/backend/src/main/java/com/cambae/backend/m02/      @AAnh004
+/backend/src/main/java/com/cambae/backend/m12/      @AAnh004
+/specs/001-elder-profile-assessment/                @AAnh004
+/specs/004-admission-residency/                     @AAnh004
+/specs/013-personal-belongings/                     @AAnh004
+/specs/018-residence-registration/                  @AAnh004
 
 # C: phòng giường, chăm sóc, hoạt động, kho
-# /backend/src/main/java/com/cambae/backend/m03/    @TEN_GITHUB_C
-# /backend/src/main/java/com/cambae/backend/m04/    @TEN_GITHUB_C
-# /specs/003-room-bed-allocation/                   @TEN_GITHUB_C
-# /specs/005-daily-care-tasks/                      @TEN_GITHUB_C
-# /specs/014-activity-care-quality/                 @TEN_GITHUB_C
-# /specs/019-inventory-assets/                      @TEN_GITHUB_C
+/backend/src/main/java/com/cambae/backend/m03/      @HungNX-nguyen
+/backend/src/main/java/com/cambae/backend/m04/      @HungNX-nguyen
+/specs/003-room-bed-allocation/                     @HungNX-nguyen
+/specs/005-daily-care-tasks/                        @HungNX-nguyen
+/specs/014-activity-care-quality/                   @HungNX-nguyen
+/specs/019-inventory-assets/                        @HungNX-nguyen
 
 # D: y tế
-# /backend/src/main/java/com/cambae/backend/m05/    @TEN_GITHUB_D
-# /backend/src/main/java/com/cambae/backend/m06/    @TEN_GITHUB_D
-# /backend/src/main/java/com/cambae/backend/m07/    @TEN_GITHUB_D
-# /backend/src/main/java/com/cambae/backend/m08/    @TEN_GITHUB_D
-# /specs/006-medication-management/                 @TEN_GITHUB_D
-# /specs/007-health-alert-incident/                 @TEN_GITHUB_D
-# /specs/011-nutrition-management/                  @TEN_GITHUB_D
+/backend/src/main/java/com/cambae/backend/m05/      @03coc08
+/backend/src/main/java/com/cambae/backend/m06/      @03coc08
+/backend/src/main/java/com/cambae/backend/m07/      @03coc08
+/backend/src/main/java/com/cambae/backend/m08/      @03coc08
+/specs/006-medication-management/                   @03coc08
+/specs/007-health-alert-incident/                   @03coc08
+/specs/011-nutrition-management/                    @03coc08
 
 # E: nhân sự, ca, người thân, tài chính
-# /backend/src/main/java/com/cambae/backend/m09/    @TEN_GITHUB_E
-# /backend/src/main/java/com/cambae/backend/m10/    @TEN_GITHUB_E
-# /backend/src/main/java/com/cambae/backend/m11/    @TEN_GITHUB_E
-# /specs/008-staff-shift-handover/                  @TEN_GITHUB_E
-# /specs/010-incurred-costs/                        @TEN_GITHUB_E
-# /specs/012-family-portal/                         @TEN_GITHUB_E
-# /specs/015-shift-rotation-swap/                   @TEN_GITHUB_E
-# /specs/017-resident-balance-ledger/               @TEN_GITHUB_E
+/backend/src/main/java/com/cambae/backend/m09/      @ptlog18
+/backend/src/main/java/com/cambae/backend/m10/      @ptlog18
+/backend/src/main/java/com/cambae/backend/m11/      @ptlog18
+/specs/008-staff-shift-handover/                    @ptlog18
+/specs/010-incurred-costs/                          @ptlog18
+/specs/012-family-portal/                           @ptlog18
+/specs/015-shift-rotation-swap/                     @ptlog18
+/specs/017-resident-balance-ledger/                 @ptlog18
