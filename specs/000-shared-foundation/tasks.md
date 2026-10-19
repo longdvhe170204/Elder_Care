@@ -55,10 +55,10 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 ### Thời gian (R-04, NFR-09, DBR-25, BR-M15-07)
 
-- [ ] T011 [P] Tạo bean `Clock` múi giờ `Asia/Ho_Chi_Minh` trong `BE/common/thoigian/DongHoConfig.java` và tiện ích `BE/common/thoigian/ThoiGianNghiepVu.java` với `homNay()`, `bayGio()`, `batDauNgay(LocalDate)` (00:00 +07:00), `trongKhoang(LocalDate, tu, den)` gồm cả hai đầu (FR-008, FR-046, BR-M15-07)
-- [ ] T012 [P] Tạo `BE/common/thoigian/DieuKhienDongHo.java` (đặt, tua) chỉ nạp ở profile `test`, `demo`, và controller `BE/common/thoigian/web/DongHoKiemThuController.java` cho `GET/POST /api/v1/kiem-thu/dong-ho` theo contracts/api-000.yaml (NFR-13)
-- [ ] T013 [P] Test kiến trúc `BT/common/ThoiGianArchTest.java`: cấm `Instant.now()`, `LocalDate.now()`, `LocalDateTime.now()` ngoài `DongHoConfig`; cấm hằng số `Duration` trong gói `service`/`internal` của module (DBR-25, constitution XIII)
-- [ ] T014 [P] Test đơn vị `BT/common/NgayHieuLucTest.java` cho `batDauNgay` và `trongKhoang` (BR-M15-07)
+- [x] T011 [P] Tạo bean `Clock` múi giờ `Asia/Ho_Chi_Minh` trong `BE/common/thoigian/DongHoConfig.java` và tiện ích `BE/common/thoigian/ThoiGianNghiepVu.java` với `homNay()`, `bayGio()`, `batDauNgay(LocalDate)` (00:00 +07:00), `trongKhoang(LocalDate, tu, den)` gồm cả hai đầu (FR-008, FR-046, BR-M15-07)
+- [x] T012 [P] Tạo `BE/common/thoigian/DieuKhienDongHo.java` (đặt, tua) chỉ nạp ở profile `test`, `demo`, và controller `BE/common/thoigian/web/DongHoKiemThuController.java` cho `GET/POST /api/v1/kiem-thu/dong-ho` theo contracts/api-000.yaml (NFR-13)
+- [x] T013 [P] Test kiến trúc `BT/common/ThoiGianArchTest.java`: cấm `Instant.now()`, `LocalDate.now()`, `LocalDateTime.now()` ngoài `DongHoConfig`; cấm hằng số `Duration` trong gói `service`/`internal` của module (DBR-25, constitution XIII)
+- [x] T014 [P] Test đơn vị `BT/common/NgayHieuLucTest.java` cho `batDauNgay` và `trongKhoang` (BR-M15-07)
 
 ### Lỗi, API, chống lặp (R-03)
 
