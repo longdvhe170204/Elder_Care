@@ -3,14 +3,27 @@ package com.cambae.backend.m15.account.api;
 import java.time.Instant;
 import java.util.Optional;
 
-/** Phạm vi dữ liệu; người phụ trách ca, trưởng tầng được giao lấy từ 008 (FR-026 b, CHK033, FR-049). 000 khai báo trước (000 T025, contracts/module-interfaces.md mục 2); feature 002 cài bản thật. */
+/**
+ * Phạm vi dữ liệu, tính trong từng yêu cầu (FR-028 → FR-035a; 002 research A-07). Người phụ trách ca, trưởng tầng được
+ * giao lấy từ 008. 000 khai báo trước (000 T025); 002 thêm các hàm còn lại của contracts/module-interfaces.md mục 1.3
+ * (T008).
+ */
 public interface ScopeApi {
 
     boolean inScope(CurrentUser user, Target target);
+
+    /** Bộ lọc phạm vi hiện hành của khóa quyền (FR-035). */
+    ScopeFilter filter(CurrentUser user, PermissionKey key);
+
+    /** Bộ lọc dựng từ lịch sử phân công trong khoảng đã qua, chỉ để đọc (FR-035a); không gọi từ lệnh nghiệp vụ. */
+    ScopeFilter historyFilter(CurrentUser user, PermissionKey key, Instant from, Instant to);
 
     /** Tài khoản người phụ trách ca của tầng/khu vực tại thời điểm đã cho. */
     Optional<Long> shiftLead(long floorAreaId, Instant at);
 
     /** Tài khoản trưởng tầng được giao của tầng/khu vực. */
     Optional<Long> assignedFloorManager(long floorAreaId);
+
+    /** Người quyết định xem lại; rỗng tầng/khu vực là bản ghi không gắn tầng (FR-041c, CHK056). */
+    ReviewRecipient reviewDecider(Optional<Long> floorAreaId);
 }
