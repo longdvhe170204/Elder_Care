@@ -246,7 +246,15 @@ mobile/                          # một app chung cho nhân viên, người th�
 - SPI thêm `originalContent(id)` (hợp đồng trả `originalContent`); module-interfaces mục 1.6 đã ghi bổ sung. `Actor.fullName` trả `null` cho tới khi 002 có hồ sơ tài khoản.
 - `CorrectionService` lấy `CurrentUser`, `ScopeApi`, `AccountApi` qua `ObjectProvider` (002 chưa có); test nạp `CorrectionFixtures` (bản giả quyền, `SwitchableUser`). Provider mẫu `SampleFloorRecordProvider` (`M15.SAMPLE_RECORD`, gắn tầng) và `SampleOfficeRecordProvider` (không gắn tầng) ở mã test.
 - `ApiContractIT`: thêm `ProblemBody` mô tả schema `Problem` cho annotation phản hồi lỗi; kiểm "đổi kiểu" so kiểu gốc, bỏ qua `format` (int32, int64) và `null` của OpenAPI 3.1. Hai lệch thật đã sửa: `actor.type` là enum, header `Idempotency-Key` kiểu UUID.
-- T106 (component web đính chính) chưa làm.
+- T106 (component web đính chính): xem mục "T106" bên dưới.
+
+**T106 – component web đính chính (2026-10-19, chủ dự án duyệt bố cục)**:
+- Đặt ở `frontend/src/common/correction/` (tasks ghi `src/chung/dinh-chinh/`; DESIGN.md mục 7 và glossary đặt phần dùng chung ở `src/common/`): `CorrectionBadge` ("Đã đính chính", "Đã hủy ghi nhận"), `CorrectionHistorySheet` (giá trị hiện hành, các lần đính chính xếp theo `sequenceNo` tăng dần, nội dung gốc nguyên văn), `CorrectionForm`. Dùng client sinh `getCorrectionsBy…`, `postCorrectionsBy…`; không đổi hợp đồng.
+- `CorrectionChain` không có lệnh được phép, nên màn của module truyền `canCorrect` (mặc định `false`, form ẩn) theo lệnh được phép của chính bản ghi; đây không là cơ chế bảo mật, backend vẫn kiểm (403 `CORRECTION_NOT_ALLOWED`).
+- Schema của `correctedContent` do provider từng loại quyết, nên màn của module truyền `fields: [{ name, label }]`; form gửi `correctedContent` gồm đúng các trường đó, "Hủy ghi nhận" không gửi `correctedContent`. `M15.SAMPLE_RECORD` dùng `note`, nhãn "Ghi chú".
+- Phản hồi: 201 tải lại chuỗi và gọi `onChanged(chain)` để màn cập nhật nhãn; 202 (cách C) báo "Đã gửi duyệt, mã yêu cầu …", không gọi `onChanged`; 403, 409 và lỗi mạng hiện `Alert` trong form kèm `unmetConditions`; 422 báo tại ô (`REASON_REQUIRED` ở ô Lý do, còn lại ở ô nội dung). Lý do trống hoặc chỉ khoảng trắng báo tại ô, không gọi API.
+- Test `CorrectionSheet.test.jsx` (Vitest, giả `fetch`), 17 trường hợp. Thêm `afterEach(cleanup)` vào `frontend/src/test/setup.js` vì Vitest không bật `globals` nên Testing Library không tự dọn DOM. Dùng `fireEvent`, không thêm `@testing-library/user-event`.
+- Chưa xong (T106 giữ `[ ]`): profile `demo` chưa có `CurrentUser`, Security (002) và provider mẫu chỉ ở mã test, nên chưa gắn component vào màn nào và chưa chạy đầu-cuối; SC-007 chưa đo (T103). Không làm bản giả quyền cho `demo` khi chưa được duyệt.
 
 **Dịch vụ ngoài (2026-10-19)**: chủ dự án chọn AWS S3 cho tệp, FCM cho thông báo đẩy, dịch vụ SMS bên ngoài. Giao diện của 000 không đổi: `FileApi`, `FilePermissionProvider` (T036) giữ nguyên, 001 cài bằng S3 (001 research H-13); khuôn thông báo `common.notification` (T034) không phụ thuộc kênh, 009 gửi qua FCM và bộ chuyển SMS (009 research B-05). Region S3, nghĩa vụ chuyển dữ liệu ra nước ngoài và nhà cung cấp SMS chờ chủ dự án chốt (plan 001, 009).
 
