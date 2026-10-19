@@ -6,6 +6,8 @@ import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ResidentListPage } from '@/features/residents/ResidentListPage'
 import { ShiftChecklistPage } from '@/features/care-tasks/ShiftChecklistPage'
 import { AlertsPage } from '@/features/alerts/AlertsPage'
+import { AdminPage } from '@/features/admin/AdminPage'
+import { ApprovalInbox } from '@/features/approval-requests/ApprovalInbox'
 import { AuditLogTable } from '@/features/audit-log/AuditLogTable'
 import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
 import { HandoverPage } from '@/features/handover/HandoverPage'
@@ -24,6 +26,8 @@ const PAGES = {
   handovers: HandoverPage,
   relatives: RelativesPage,
   'audit-log': AuditLogTable,
+  admin: AdminPage,
+  'approval-requests': ApprovalInbox,
 }
 
 function firstPage(role) {
