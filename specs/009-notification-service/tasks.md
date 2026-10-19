@@ -110,6 +110,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 - [ ] T025 [US3] Tạo `MIG/V009_03__kenh_ngoai.sql`: `khung_gop_tin_nhan` (cột sinh `khoa_mo` `UNIQUE`), `lien_he_truc_tiep` (nhóm 2; `thong_bao_id UNIQUE`; `trang_thai` `CHO_LIEN_HE|DA_LIEN_HE|KHONG_LIEN_HE_DUOC`), `ket_qua_lien_he` (nhóm 3; `ly_do` bắt buộc khi không liên hệ được)
 - [ ] T026 [US3] Cài `BE/m13/gui/internal/ChonKenh.java`, `KhungGop.java`, `KiemTraNoiDungKenhNgoai.java`, bean `ChuaCauHinh` của `NhaCungCapTinNhan`; việc 20 giây đóng khung gộp, gửi lại kênh ngoài (research B-05)
+- [ ] T026a [US3] *(Bổ sung 2026-10-19; chờ chủ dự án chốt nhà cung cấp SMS, Q-06)* Cài bộ chuyển `BE/m13/gui/internal/NhaCungCapTinNhanSms.java` gọi API nhà cung cấp, đổi phản hồi thành `KetQua` (thành công, lỗi tạm gửi lại, lỗi vĩnh viễn, mã lỗi nhà cung cấp), khóa API từ biến môi trường, chỉ nạp khi có cấu hình; test đơn vị với máy chủ HTTP giả cho phản hồi thành công và lỗi (research B-05)
 - [ ] T027 [US3] Cài `BE/m13/lienhe/internal/LienHeTrucTiepService.java` (`DinhChinhDuocProvider` `M13.KET_QUA_LIEN_HE`) và `BE/m13/cauhinh/internal/KenhService.java` (Quản lý viện bật/tắt, gắn kênh khác vào mức; lý do; nhật ký)
 - [ ] T028 [US3] Tạo endpoint `GET /lien-he-truc-tiep`, `POST /lien-he-truc-tiep/{id}/ket-qua`, `GET /kenh-thong-bao`, `PUT /kenh-thong-bao/{ma}`; màn web liên hệ trực tiếp và cấu hình kênh trong `frontend/src/tinh-nang/thong-bao/`
 
