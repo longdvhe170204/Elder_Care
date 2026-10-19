@@ -179,6 +179,15 @@ mobile/                          # một app chung cho nhân viên, người th�
 | Cột `da_nhac_luc`, `da_bao_qlv_luc` trên `yeu_cau_phe_duyet` do Bộ lập lịch đặt | Chống nhắc lặp. Mỗi lần nhắc hoặc báo vẫn ghi nhật ký `YC_NHAC` / `YC_BAO_QLV`, người thực hiện là Bộ lập lịch, có căn cứ CFG (FR-045) | Suy ra từ `event_publication` thì phụ thuộc bảng của thư viện |
 | Chu kỳ chạy job và hạn giữ `Idempotency-Key` đặt trong cấu hình ứng dụng, không phải mã CFG | Đây là thông số vận hành, không có trong Phụ lục 25 và không đổi quy tắc nghiệp vụ. Mốc nghiệp vụ (CFG-M15-05, 06) vẫn đọc từ `tham_so`. Chu kỳ 15 phút làm nhắc trễ tối đa 15 phút so với mốc | Thêm mã CFG mới thì phải sửa tài liệu nguồn chỉ vì một thông số kỹ thuật |
 
+## Ghi chú triển khai *(2026-10-19, Phase 1)*
+
+- Phiên bản đã chốt (R-01): Spring Boot 4.1.1, Spring Modulith 2.1.1, springdoc-openapi 3.1.1 (`webmvc-api`, không kèm giao diện), ShedLock 7.10.1, ArchUnit 1.5.1, openapi-diff 2.1.7; Flyway, JUnit, AssertJ, Lombok theo Spring Boot. Web: TanStack Query 5, React Router 8, Vitest 5, Testing Library, Prettier.
+- Gói `common` khai báo `@ApplicationModule(type = OPEN)` để mọi module dùng trực tiếp (khớp Complexity Tracking).
+- Tài khoản `eldercare_retention` (tên logic `eldercare_luu_tru`) đọc từ hai biến môi trường mới `DB_RETENTION_USERNAME`, `DB_RETENTION_PASSWORD` (khóa `eldercare.datasource.retention.*`); bean DataSource tạo ở T071.
+- `TEST_DB_URL` ghi cả tên schema (ví dụ `jdbc:mysql://localhost:3306/eldercare_test`, thiếu thì dùng `eldercare_test`). Lớp cơ sở T009 tạo lại hai tài khoản với mật khẩu ngẫu nhiên mỗi lần chạy; Flyway chạy bằng tài khoản quản trị, nên quyền theo bảng của hai tài khoản nằm trong migration của chính bảng đó. `BackendApplicationTests` kế thừa lớp này để không cần CSDL thật.
+- Định dạng: backend dùng Spotless (palantir-java-format), `./mvnw verify` kiểm tra. Web có Prettier (`npm run format`) nhưng chưa định dạng lại mã cũ (37/65 file lệch), chờ chủ dự án quyết để tránh xung đột với nhánh khác.
+- Client web sinh bằng `npm run gen:api` (`frontend/scripts/gen-api.mjs`): chỉ đọc hợp đồng của feature có trong danh sách `TRANSLATED`; tên hàm suy từ phương thức và đường dẫn vì hợp đồng không có `operationId` (ví dụ `postApprovalRequestsByIdApprove`).
+
 ## Điểm cần báo lại về tài liệu nguồn
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới, rồi sửa `docs/business/nghiep-vu.md` và spec 000.

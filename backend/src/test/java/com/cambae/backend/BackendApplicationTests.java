@@ -1,13 +1,10 @@
 package com.cambae.backend;
 
+import com.cambae.backend.support.MySqlIntegrationTestBase;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class BackendApplicationTests {
+class BackendApplicationTests extends MySqlIntegrationTestBase {
 
     @Test
-    void contextLoads() {
-    }
-
+    void contextLoads() {}
 }

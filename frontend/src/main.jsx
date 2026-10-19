@@ -9,7 +9,7 @@ import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
 applyTheme(readTheme())
 
 // Bản mẫu: đăng nhập người thân ở /login, cổng người thân ở /family (trang chủ là trang giới thiệu viện);
-// chưa có React Router (000 T005).
+// React Router đã cài (000 T005), chuyển sang khi làm màn hình chức năng.
 const path = window.location.pathname
 let page = <App />
 if (path.startsWith('/login')) page = <FamilyLoginPage />
