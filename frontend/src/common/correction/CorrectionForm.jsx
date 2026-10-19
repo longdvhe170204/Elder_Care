@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { ApiError, postCorrectionsByRecordTypeByOriginalRecordId } from '@/api'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { problemOf } from '@/common/problem'
+import { ProblemAlert } from '@/common/ProblemAlert'
 
 // Form tạo bản đính chính (000 FR-023 → FR-026, FR-029; hợp đồng POST /corrections/{recordType}/{originalRecordId}).
 // Kiểm tra trên màn chỉ để báo lỗi tại ô; quyền, cách tạo A/B/C và nội dung do backend kiểm.
@@ -66,8 +67,7 @@ export function CorrectionForm({ recordType, recordId, fields, onSaved }) {
     } catch (error) {
       const atField = error instanceof ApiError ? fieldErrorOf(error, type) : null
       if (atField) setFieldErrors(atField)
-      // Lỗi mạng hay lỗi không có problem thì vẫn báo bằng tiêu đề chung
-      else setFailure((error instanceof ApiError && error.problem) || {})
+      else setFailure(problemOf(error))
     } finally {
       setSubmitting(false)
     }
@@ -133,23 +133,7 @@ export function CorrectionForm({ recordType, recordId, fields, onSaved }) {
         </Field>
       </FieldGroup>
 
-      {failure && (
-        <Alert variant="attention">
-          <AlertTitle>{failure.title || 'Không lưu được bản đính chính'}</AlertTitle>
-          {(failure.detail || failure.unmetConditions?.length > 0) && (
-            <AlertDescription>
-              {failure.detail && <p>{failure.detail}</p>}
-              {failure.unmetConditions?.length > 0 && (
-                <ul className="ml-4 list-disc">
-                  {failure.unmetConditions.map((c) => (
-                    <li key={c.code}>{c.description}</li>
-                  ))}
-                </ul>
-              )}
-            </AlertDescription>
-          )}
-        </Alert>
-      )}
+      <ProblemAlert problem={failure} />
 
       <p role="status" className="type-body-sm">
         {notice}

@@ -256,7 +256,8 @@ describe('CorrectionHistorySheet – tạo đính chính', () => {
   it('409_hienDieuKienChuaThoa', async () => {
     fetchMock.mockReturnValueOnce(json(200, chain())).mockReturnValueOnce(
       problem(409, 'CONDITION_NOT_MET', {
-        title: 'Điều kiện chưa thỏa',
+        title: 'Conflict',
+        detail: 'Điều kiện chưa thỏa',
         unmetConditions: [{ code: 'BR-M05-21', description: 'Sự cố khẩn cấp chỉ Bác sĩ được hủy ghi nhận' }],
       }),
     )
@@ -265,19 +266,29 @@ describe('CorrectionHistorySheet – tạo đính chính', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Lưu đính chính' }))
 
     const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Chưa thực hiện được')
     expect(alert).toHaveTextContent('Điều kiện chưa thỏa')
+    expect(alert).not.toHaveTextContent('Conflict')
     expect(alert).toHaveTextContent('Sự cố khẩn cấp chỉ Bác sĩ được hủy ghi nhận')
   })
 
   it('403_hienKhongDuocDinhChinh', async () => {
     fetchMock
       .mockReturnValueOnce(json(200, chain()))
-      .mockReturnValueOnce(problem(403, 'CORRECTION_NOT_ALLOWED', { title: 'Không được đính chính bản ghi này' }))
+      .mockReturnValueOnce(
+        problem(403, 'CORRECTION_NOT_ALLOWED', {
+          title: 'Forbidden',
+          detail: 'Không được đính chính bản ghi này (FR-026)',
+        }),
+      )
     await openForm()
     type(screen.getByLabelText('Lý do'), 'Ghi nhầm')
     fireEvent.click(screen.getByRole('button', { name: 'Lưu đính chính' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Không được đính chính bản ghi này')
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Không có quyền thực hiện')
+    expect(alert).toHaveTextContent('Không được đính chính bản ghi này')
+    expect(alert).not.toHaveTextContent('Forbidden')
   })
 
   it('422_lyDo_baoTaiOLyDo', async () => {

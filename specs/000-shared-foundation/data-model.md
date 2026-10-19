@@ -291,18 +291,20 @@ Các bảng kỹ thuật không thuộc ba nhóm nghiệp vụ, nên không ghi 
 
 ## 7. Bảng truy vết DBR, BR do feature 000 bảo đảm
 
+Cột "Nơi kiểm thử" ghi tên lớp test trong mã (tiếng Anh, glossary mục 6.5); rà lại 2026-10-19 (000 T104).
+
 | Mã | Bảo đảm bằng | Nơi kiểm thử |
 | --- | --- | --- |
-| DBR-23 (nhật ký cho mọi thay đổi) | Ghi trong cùng transaction (R-06); proxy đếm câu lệnh | `NhatKyDayDuIT` |
-| DBR-23 (đính chính trỏ đúng một gốc) | Cột `id_ban_ghi_goc NOT NULL`; luôn là bản gốc ban đầu; `provider.daXacNhan` | `DinhChinhIT` |
-| DBR-24 | Khóa chính `tham_so.ma`; `UNIQUE (ma, hieu_luc_tu)` | `ThamSoIT` |
-| DBR-25 | `Clock` duy nhất (ArchUnit); `thoi_diem_thiet_bi` | `ThoiGianArchTest`, `NhatKyNgoaiTuyenIT` |
-| BR-M15-03 | Trigger mục 1.4 cho năm loại bản ghi bảo vệ (bảng thuộc module khác; 000 cung cấp mẫu và test đối chiếu `information_schema`) | `NhomGhiNhanCoTriggerIT` |
-| BR-M15-04 | `QuyenApi` với khóa `THAM_SO_DOI` (chỉ AC-01); nhật ký trước/sau | `ThamSoQuyenIT` |
-| BR-M15-06 | Cột sinh `ten_hieu_luc` `UNIQUE` | `DanhMucMauIT` |
-| BR-M15-07 | `ThoiGianNghiepVu.batDauNgay` | `NgayHieuLucTest` |
-| BR-M15-08 | Bảng chuyển: `huy` bắt buộc `lyDo` | `YeuCauHuyTest` |
-| BR-M15-09 | `NhacYeuCauChoDuyet` | `NhacYeuCauIT` (đồng hồ giả lập) |
-| BR-M15-10 | Thứ tự `(ngay_hieu_luc_thuc_te, thoi_diem_quyet_dinh)` | `ApDungBuIT` |
-| BR-M15-11 | `NhatKyQueryService` che `lyDo` | `NhatKyCheTruongIT` |
-| BR-M15-12, 13 | `LoaiBoDuLieuHetHan` theo chuỗi | `LoaiBoDuLieuIT` |
+| DBR-23 (nhật ký cho mọi thay đổi) | Ghi trong cùng transaction (R-06); proxy đếm câu lệnh | `AuditLogCompletenessIT`, `AuditLogAtomicityIT` |
+| DBR-23 (đính chính trỏ đúng một gốc) | Cột `id_ban_ghi_goc NOT NULL`; luôn là bản gốc ban đầu; `provider.daXacNhan` | `CorrectionIT`, `CorrectionApprovalIT` |
+| DBR-24 | Khóa chính `tham_so.ma`; `UNIQUE (ma, hieu_luc_tu)` | `ParameterIT`, `ParameterChangeIT` |
+| DBR-25 | `Clock` duy nhất (ArchUnit); `thoi_diem_thiet_bi` | `TimeArchTest`, `AuditLogOfflineIT` |
+| BR-M15-03 | Trigger mục 1.4 cho năm loại bản ghi bảo vệ (bảng thuộc module khác; 000 cung cấp mẫu và test đối chiếu `information_schema`) | `RecordGroupTriggerIT` |
+| BR-M15-04 | `QuyenApi` với khóa `THAM_SO_DOI` (chỉ AC-01); nhật ký trước/sau | `ParameterPermissionIT`, `ParameterChangeIT` |
+| BR-M15-06 | Cột sinh `ten_hieu_luc` `UNIQUE` | `CatalogSampleIT` |
+| BR-M15-07 | `ThoiGianNghiepVu.batDauNgay` | `EffectiveDateTest`, `EffectiveVersionNoOverlapIT` |
+| BR-M15-08 | Bảng chuyển: `huy` bắt buộc `lyDo` | `RequestTransitionTableTest`, `ApprovalLifecycleIT` |
+| BR-M15-09 | `NhacYeuCauChoDuyet` | `PendingReminderIT` (đồng hồ giả lập) |
+| BR-M15-10 | Thứ tự `(ngay_hieu_luc_thuc_te, thoi_diem_quyet_dinh)` | `CatchUpApplyIT` |
+| BR-M15-11 | `NhatKyQueryService` che `lyDo` | `AuditLogFieldMaskingIT` |
+| BR-M15-12, 13 | `LoaiBoDuLieuHetHan` theo chuỗi | `ExpiredDataPurgeIT` |
