@@ -10,7 +10,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4.
 
-**Giai đoạn**: Theo mục "Giai đoạn hiện tại" của CLAUDE.md (constitution IX). Từ 2026-10-16 là giai đoạn thiết kế; task chỉ được làm khi chủ dự án mở giai đoạn triển khai.
+**Giai đoạn**: Theo mục "Giai đoạn hiện tại" của CLAUDE.md (constitution IX); task của `mobile/` chỉ làm khi mục đó mở phần mobile, trừ màn mẫu thiết kế.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 

@@ -10,7 +10,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 **Tests**: Bắt buộc. Constitution XV yêu cầu mỗi BR có ít nhất một kiểm thử tự động dựng từ kịch bản Given/When/Then; tên lớp test theo quickstart.md mục 4 và data-model.md mục 7. Tên phương thức test theo R-14 (`BR_M15_09_...`, `FR_037_...`).
 
-**Giai đoạn**: Theo mục "Giai đoạn hiện tại" của CLAUDE.md (constitution IX). Từ 2026-10-16 là giai đoạn thiết kế; task chỉ được làm khi chủ dự án mở giai đoạn triển khai, trừ task thiết kế giao diện (T005a).
+**Giai đoạn**: Theo mục "Giai đoạn hiện tại" của CLAUDE.md (constitution IX); task của `mobile/` chỉ làm khi mục đó mở phần mobile, trừ màn mẫu thiết kế.
 
 **Organization**: Task nhóm theo user story của spec 000 (US1–US5).
 
