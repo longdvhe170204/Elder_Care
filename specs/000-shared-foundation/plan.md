@@ -188,6 +188,12 @@ mobile/                          # một app chung cho nhân viên, người th�
 - Định dạng: backend dùng Spotless (palantir-java-format), `./mvnw verify` kiểm tra. Web có Prettier (`npm run format`) nhưng chưa định dạng lại mã cũ (37/65 file lệch), chờ chủ dự án quyết để tránh xung đột với nhánh khác.
 - Client web sinh bằng `npm run gen:api` (`frontend/scripts/gen-api.mjs`): chỉ đọc hợp đồng của feature có trong danh sách `TRANSLATED`; tên hàm suy từ phương thức và đường dẫn vì hợp đồng không có `operationId` (ví dụ `postApprovalRequestsByIdApprove`).
 
+**Nhóm Thời gian (T011 → T014, 2026-10-19)**:
+- `TestClockControl` là bean `Clock` ở profile test, demo: chạy theo đồng hồ máy cộng độ lệch; `setTo`, `advanceBy` đổi độ lệch, `simulated` là có độ lệch khác 0. `BusinessTime.isWithin` nhận `to = null` là khoảng còn mở (khớp `hieu_luc_den NULL`).
+- `POST /testing/clock` với `runJobs` trả 422 cho tới khi T071, T093, T094 đăng ký job của mình vào controller.
+- `TimeArchTest` cấm thêm `LocalTime.now()`, `ZonedDateTime.now()`, `OffsetDateTime.now()` (R-04 "không mã nào gọi now()"). Thêm `TestClockControllerIT` để kiểm T012 (tasks không ghi test riêng).
+- Surefire loại `**/*IT.java` (tên `TestClockControllerIT` khớp mẫu `Test*` của surefire).
+
 ## Điểm cần báo lại về tài liệu nguồn
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới, rồi sửa `docs/business/nghiep-vu.md` và spec 000.
