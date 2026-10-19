@@ -34,9 +34,9 @@ Skill ở `.claude/skills/karpathy-guidelines/` (nguồn ghi ở `skills-lock.js
 
 ## Khi vào triển khai
 
-- Thứ tự: 000 → 002 → 001 → 003 → 004 → 005 → … → 019; điều kiện từng feature ở dòng "Prerequisites" đầu tasks.md.
+- Thứ tự (sửa 2026-10-19, nhóm 5 người): 000 xong; 002 công bố gói `api` trước, sau đó các feature làm song song theo [docs/team-plan.md](docs/team-plan.md) (chủ module, đợt, luật bản giả, file dùng chung); điều kiện từng feature ở dòng "Prerequisites" đầu tasks.md, phụ thuộc chưa xong thì dùng bản giả do người khai báo interface viết (`support/fake/<module>/`).
 - Mỗi feature:
-  1. Từ `develop` mới nhất tạo nhánh `impl/NNN-ten`.
+  1. Từ `develop` mới nhất tạo nhánh `impl/NNN-ten`; chỉ sửa module, thư mục, migration, mục glossary của mình (docs/team-plan.md mục 3, `.github/CODEOWNERS`).
   2. Đặt `.specify/feature.json` thành `{"feature_directory": "specs/NNN-ten"}` (file bị `.gitignore` bỏ qua, mỗi máy tự tạo).
   3. Phụ thuộc feature chưa làm thì dùng bản giả như tasks ghi (thường ở `BT/support/`).
   4. Trước khi viết mã: dịch `contracts/api-NNN.yaml` sang tên tiếng Anh, bổ sung [glossary.md](specs/000-shared-foundation/glossary.md) (research R-03); không thêm bớt endpoint hay trường; xin chủ dự án duyệt.
@@ -47,6 +47,8 @@ Skill ở `.claude/skills/karpathy-guidelines/` (nguồn ghi ở `skills-lock.js
 - Lệch kỹ thuật (tên lớp, thư viện, cách cài) thì sửa plan, tasks cùng lúc với mã và ghi lý do ở plan.
 
 ## Công nghệ và cấu trúc mã
+
+- Luật chung cho mọi công cụ AI ở [AGENTS.md](AGENTS.md) (Cursor, Copilot trỏ về đó); cấu trúc và luật thư mục web, mobile ở [frontend/README.md](frontend/README.md), [mobile/README.md](mobile/README.md).
 
 - Constitution 3.1.1 (nguyên tắc X–XV), research R-01, R-02 của 000. Thư viện cụ thể ghi ở plan và tasks.
 - Yêu cầu môi trường: JDK 25, MySQL 8.0, Node 24 + npm, Flutter stable 3.x. Chưa dùng Docker, Testcontainers; không thay MySQL bằng H2 hay cơ sở dữ liệu nhúng (R-14 cần trigger và quyền tài khoản MySQL).
