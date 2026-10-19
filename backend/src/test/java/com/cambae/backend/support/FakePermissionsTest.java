@@ -2,8 +2,8 @@ package com.cambae.backend.support;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.cambae.backend.common.Role;
 import com.cambae.backend.m15.account.api.PermissionKey;
-import com.cambae.backend.m15.account.api.Role;
 import com.cambae.backend.m15.account.api.Target;
 import com.cambae.backend.m15.account.api.Visibility;
 import java.util.Set;

@@ -1,6 +1,6 @@
-package com.cambae.backend.m15.account.api;
+package com.cambae.backend.common;
 
-/** Vai trò người dùng (mục 2.3, Phụ lục 26.1), kèm mã actor AC-xx. 000 khai báo trước (000 T025, contracts/module-interfaces.md mục 2); feature 002 cài bản thật. */
+/** Vai trò người dùng (mục 2.3, Phụ lục 26.1), kèm mã actor AC-xx. Đặt ở common (không ở m15.account.api) vì khuôn thông báo của common và mọi module dùng chung (000 T034). */
 public enum Role {
     NURSING_HOME_MANAGER("AC-01"),
     FLOOR_MANAGER("AC-02"),

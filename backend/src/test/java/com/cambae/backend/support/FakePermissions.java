@@ -1,5 +1,6 @@
 package com.cambae.backend.support;
 
+import com.cambae.backend.common.Role;
 import com.cambae.backend.m15.account.api.AccountApi;
 import com.cambae.backend.m15.account.api.ApproverApi;
 import com.cambae.backend.m15.account.api.CurrentUser;
@@ -8,7 +9,6 @@ import com.cambae.backend.m15.account.api.InfoGroup;
 import com.cambae.backend.m15.account.api.PermissionApi;
 import com.cambae.backend.m15.account.api.PermissionKey;
 import com.cambae.backend.m15.account.api.PermissionResult;
-import com.cambae.backend.m15.account.api.Role;
 import com.cambae.backend.m15.account.api.ScopeApi;
 import com.cambae.backend.m15.account.api.Target;
 import com.cambae.backend.m15.account.api.Visibility;

@@ -95,15 +95,15 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 ### Sự kiện và bộ lập lịch (R-09, R-10)
 
-- [ ] T033 [P] Cấu hình Event Publication Registry của Spring Modulith lưu MySQL (bảng `event_publication`) trong `BE/common/sukien/SuKienConfig.java`; sự kiện chỉ giao sau commit, giao lại khi tiến trình chết (R-09)
-- [ ] T034 [P] Tạo `BE/common/thongbao/` theo plan 009 (research B-02): `YeuCauThongBao`, `CoYeuCauThongBao`, `NhomNhan`, `CachThay`, `MucThongBao`, `LoaiThongTin`, `TRUONG_SUC_KHOE` (contracts/module-interfaces.md mục 1.1)
-- [ ] T035 [P] Cấu hình ShedLock (bảng `shedlock`) và bảng `lan_chay_lich` (`id`, `job`, `bat_dau`, `ket_thuc`, `ket_qua`, `so_xu_ly`) trong `MIG/V000_05__lich.sql` và `BE/common/lich/LichConfig.java`; tiện ích `BE/common/lich/LanChayLich.java` cấp `lanChayLichId` cho `canCu` (FR-045)
-- [ ] T036 [P] Tạo `BE/common/tep/TepApi.java` (`taiLen(...)` trả `tepId`; `gan(tepId, loaiChuSoHuu, idChuSoHuu)` `MANDATORY`, tệp đã gắn không gắn lại) và SPI `QuyenTepProvider` (bổ sung theo plan 001, H-13; NFR-08)
+- [x] T033 [P] Cấu hình Event Publication Registry của Spring Modulith lưu MySQL (bảng `event_publication`) trong `BE/common/sukien/SuKienConfig.java`; sự kiện chỉ giao sau commit, giao lại khi tiến trình chết (R-09)
+- [x] T034 [P] Tạo `BE/common/thongbao/` theo plan 009 (research B-02): `YeuCauThongBao`, `CoYeuCauThongBao`, `NhomNhan`, `CachThay`, `MucThongBao`, `LoaiThongTin`, `TRUONG_SUC_KHOE` (contracts/module-interfaces.md mục 1.1)
+- [x] T035 [P] Cấu hình ShedLock (bảng `shedlock`) và bảng `lan_chay_lich` (`id`, `job`, `bat_dau`, `ket_thuc`, `ket_qua`, `so_xu_ly`) trong `MIG/V000_05__lich.sql` và `BE/common/lich/LichConfig.java`; tiện ích `BE/common/lich/LanChayLich.java` cấp `lanChayLichId` cho `canCu` (FR-045)
+- [x] T036 [P] Tạo `BE/common/tep/TepApi.java` (`taiLen(...)` trả `tepId`; `gan(tepId, loaiChuSoHuu, idChuSoHuu)` `MANDATORY`, tệp đã gắn không gắn lại) và SPI `QuyenTepProvider` (bổ sung theo plan 001, H-13; NFR-08)
 
 ### Kiến trúc
 
-- [ ] T037 [P] Test `BT/ModuleBoundaryTest.java` gọi `ApplicationModules.of(BackendApplication.class).verify()` (constitution X)
-- [ ] T038 [P] Test `BT/common/HopDongApiTest.java` so OpenAPI sinh bởi springdoc với `specs/000-shared-foundation/contracts/api-000.yaml` bằng openapi-diff; mở rộng dần cho `api-001.yaml` … `api-019.yaml` (R-14)
+- [x] T037 [P] Test `BT/ModuleBoundaryTest.java` gọi `ApplicationModules.of(BackendApplication.class).verify()` (constitution X)
+- [x] T038 [P] Test `BT/common/HopDongApiTest.java` so OpenAPI sinh bởi springdoc với `specs/000-shared-foundation/contracts/api-000.yaml` bằng openapi-diff; mở rộng dần cho `api-001.yaml` … `api-019.yaml` (R-14)
 - [x] T039 Test `BT/m15/nhatky/NhatKyNguyenTuIT.java`: lệnh lỗi sau khi ghi nhật ký thì cả thay đổi và nhật ký cùng rollback; gọi `ghi()` ngoài transaction thì lỗi (US3 #6, FR-047)
 
 **Checkpoint**: Nền sẵn sàng – các user story của 000 và plan của 002 bắt đầu được.

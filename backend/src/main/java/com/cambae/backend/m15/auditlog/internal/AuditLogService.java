@@ -1,8 +1,8 @@
 package com.cambae.backend.m15.auditlog.internal;
 
+import com.cambae.backend.common.Role;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m15.account.api.CurrentUser;
-import com.cambae.backend.m15.account.api.Role;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
 import java.time.Instant;

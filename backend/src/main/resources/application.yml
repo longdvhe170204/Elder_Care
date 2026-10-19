@@ -35,9 +35,20 @@ spring:
   jackson:
     # API trả thời điểm ISO-8601 offset +07:00 (R-03)
     time-zone: Asia/Ho_Chi_Minh
+  modulith:
+    events:
+      # Bảng EVENT_PUBLICATION do Flyway tạo (V000_05); giao lại sự kiện chưa xong khi khởi động (R-09, 000 T033)
+      jdbc:
+        schema-initialization:
+          enabled: false
+      republish-outstanding-events-on-restart: true
 
 server:
   port: 8080
+
+springdoc:
+  # Mọi API trả JSON; OpenAPI sinh ra so với contracts/ bằng ApiContractIT (R-14)
+  default-produces-media-type: application/json
 
 eldercare:
   datasource:
