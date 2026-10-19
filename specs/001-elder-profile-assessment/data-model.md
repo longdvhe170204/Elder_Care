@@ -380,7 +380,7 @@ Khóa chính `(loai, nguoi_cao_tuoi_id, moc_id)`. Dòng được thêm khi đi�
 
 | Cột | Ghi chú |
 | --- | --- |
-| `id`, `uuid` | `uuid` là tên tệp trên đĩa |
+| `id`, `uuid` | `uuid` là khóa đối tượng trong bucket S3 (sửa 2026-10-19) |
 | `ten_goc`, `kieu_mime`, `kich_thuoc`, `sha256` | Kiểm kiểu và kích thước khi tải lên |
 | `tai_len_boi`, `tai_len_luc` | |
 | `chu_so_huu_loai`, `chu_so_huu_id`, `gan_luc` | `NULL` tới khi gắn. Trigger chặn đổi khi đã gắn |

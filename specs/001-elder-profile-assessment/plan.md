@@ -40,12 +40,12 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307): M01 không tự sinh bản ghi
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).
 
-**Primary Dependencies**: Như 000 và 002: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7 (002). Web: React 19, TanStack Query. App: Flutter. Không thêm thư viện mới.
+**Primary Dependencies**: Như 000 và 002: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7 (002). Web: React 19, TanStack Query. App: Flutter. Thêm AWS SDK for Java v2 (`software.amazon.awssdk:s3`) cho tệp đính kèm *(Sửa 2026-10-19, chủ dự án chọn AWS S3)*.
 
 **Storage**:
 - MySQL 8.0 (000 R-01). Bảng ở [data-model.md](data-model.md).
 - Cột so khớp họ tên dùng collation `utf8mb4_0900_as_ci` (H-04).
-- Tệp đính kèm lưu trên volume của máy chủ, siêu dữ liệu ở bảng `tep` (H-13).
+- Tệp đính kèm lưu trong bucket AWS S3 riêng tư, siêu dữ liệu ở bảng `tep` của MySQL (H-13) *(Sửa 2026-10-19, chủ dự án chọn AWS S3)*.
 
 **Testing**:
 - Như 000 R-14 và 002 A-14.
@@ -117,7 +117,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | NFR-03 Thông báo khẩn cấp | Có | Chuyển viện, qua đời phát sự kiện sau commit ngay trong lệnh; 009 gửi Khẩn cấp. Kiểm tra dị ứng không chặn đường ghi |
 | NFR-04 Tác vụ định kỳ | Có | Bảy job chống lặp bằng khóa duy nhất hoặc cột "đã cảnh báo"; khóa sự kiện cho 009 (H-12, H-14) |
 | NFR-05 Khả dụng | Gián tiếp | Job chạy lại khi khởi động; không phụ thuộc giờ giao ca |
-| NFR-06 Sao lưu | Có | Thư mục tệp được sao lưu cùng MySQL (H-13) |
+| NFR-06 Sao lưu | Có | Tệp ở S3 có versioning (giữ bản cũ khi ghi đè, xóa nhầm); siêu dữ liệu `tep` sao lưu cùng MySQL (H-13) |
 | NFR-07 Lưu trữ | Có | `LuuTruProvider` theo hồ sơ cho mọi bảng và tệp (data-model mục 11) |
 | NFR-08 Bảo mật | Có | Giới hạn trường ở backend; tệp chỉ tải được khi có quyền xem bản ghi chủ sở hữu; nhật ký lượt người thân xem sức khỏe thuộc 012 (Assumptions của spec) |
 | NFR-09 Thời gian | Có | Mọi mốc từ `Clock`; ngày hiệu lực của mức chăm sóc theo BR-M15-07 |
@@ -191,6 +191,8 @@ mobile/lib/nguoi-than/ho-so/
 | Chu kỳ job 15 phút, giới hạn tệp (10 MB; PDF, JPEG, PNG), hạn dọn tệp chưa gắn 24 giờ đặt trong cấu hình ứng dụng, không phải mã CFG | Thông số vận hành, không có trong Phụ lục 25, không đổi quy tắc nghiệp vụ. Cùng cách xử lý như plan 000 | Thêm mã CFG thì phải sửa tài liệu nguồn chỉ vì thông số kỹ thuật |
 
 ## Điểm cần báo lại về tài liệu nguồn
+
+**(2026-10-19) Lưu tệp trên AWS S3: region và nghĩa vụ chuyển dữ liệu ra nước ngoài — chờ chủ dự án chốt.** Bucket ở region nước ngoài (AWS chưa có region ở Việt Nam) chứa bản scan bản đồng ý, giấy tờ sức khỏe, ảnh người cao tuổi. Cần đối chiếu Luật 91/2025/QH15 và Nghị định 356/2025/NĐ-CP (hồ sơ đánh giá tác động chuyển dữ liệu ra nước ngoài) và chọn region; đề xuất ghi một dòng vào 24.4 của tài liệu nghiệp vụ cạnh Q-03. Không chặn thiết kế, chặn trước khi vận hành.
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec 001.
 

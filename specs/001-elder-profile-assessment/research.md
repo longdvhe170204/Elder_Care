@@ -338,20 +338,25 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
 
 **Quyết định**: Plan 000 chưa có cơ chế tệp. 001 là feature đầu tiên cần tệp: ảnh người cao tuổi, bản scan bản đồng ý, bằng chứng rút lại, phiếu nguyện vọng, giấy tờ qua đời. Vì vậy 001 chốt một thành phần kỹ thuật dùng chung `com.cambae.backend.common.tep`; đã ghi bổ sung vào hợp đồng của 000.
 
-- **Lưu nội dung** trên ổ đĩa của máy chủ, trong một thư mục cấu hình được (volume của container). Tên tệp là UUID. Thư mục này được sao lưu cùng MySQL theo NFR-06.
+- **Lưu nội dung** *(Sửa 2026-10-19, chủ dự án chọn AWS S3)*: trong bucket AWS S3 riêng tư (chặn mọi truy cập công khai, mã hóa phía máy chủ SSE-S3, bật versioning), khóa đối tượng là UUID; MySQL chỉ giữ siêu dữ liệu ở bảng `tep`. Dịch vụ tệp gọi S3 qua AWS SDK for Java v2 (`software.amazon.awssdk:s3`, bean `S3Client`) để tải lên, tải xuống, xóa và xử lý kết quả hoặc lỗi trả về. Tên bucket, region đọc từ cấu hình (`AWS_REGION`, `ELDERCARE_S3_BUCKET`); thông tin đăng nhập theo chuỗi mặc định của SDK (biến môi trường, hồ sơ AWS hoặc IAM role), không ghi vào kho mã.
+  - **Region và pháp lý: chờ chủ dự án chốt.** AWS chưa có region ở Việt Nam; lưu bản scan, ảnh, giấy tờ sức khỏe ở region nước ngoài là chuyển dữ liệu cá nhân nhạy cảm ra nước ngoài theo Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15 và Nghị định 356/2025/NĐ-CP (cùng nhóm Q-03, 24.4). Xem plan, "Điểm cần báo lại".
+  - Tải xuống vẫn đi qua backend (`GET /tep/{id}`): kiểm quyền bằng `QuyenTepProvider` mỗi lần rồi chuyển nội dung từ S3; không phát URL ký sẵn (presigned) vì URL dùng lại được sau khi người xem mất quyền.
+  - Test không cần tài khoản AWS: test dùng bản giả của interface `S3Client` (lưu trong bộ nhớ) đặt ở `BT/support/`; chưa dùng Docker nên không chạy LocalStack, MinIO (000 R-14).
 - **Bảng `tep`** (kỹ thuật, ghi một lần): `id`, `uuid`, `ten_goc`, `kieu_mime`, `kich_thuoc`, `sha256`, `tai_len_boi`, `tai_len_luc`, `chu_so_huu_loai`, `chu_so_huu_id`, `gan_luc`.
   - Tệp vừa tải lên chưa có chủ sở hữu.
   - Lệnh nghiệp vụ gắn tệp vào bản ghi trong transaction của lệnh (`TepApi.gan(tepId, loai, id)`). Tệp đã gắn không gắn lại được.
-  - Tệp không được gắn sau 24 giờ bị job dọn xóa. Đây là dữ liệu tạm, không phải bản ghi nghiệp vụ.
+  - Tệp không được gắn sau 24 giờ bị job dọn xóa (xóa đối tượng S3 rồi dòng `tep`). Đây là dữ liệu tạm, không phải bản ghi nghiệp vụ.
 - **Giới hạn**: PDF, JPEG, PNG; tối đa 10 MB. Đây là thông số kỹ thuật, không phải mã CFG (cùng lý do với chu kỳ job ở plan 000).
-- **Tải xuống**: `GET /tep/{id}` chỉ trả nội dung khi người xem có quyền xem bản ghi chủ sở hữu. Quyền kiểm qua SPI `QuyenTepProvider` do module sở hữu cài. Ví dụ M01 cài cho `M01.BAN_DONG_Y`, `M01.NGUYEN_VONG`, `M01.ANH_NGUOI_CAO_TUOI`.
+- **Tải xuống**: `GET /tep/{id}` chỉ trả nội dung (đọc từ S3) khi người xem có quyền xem bản ghi chủ sở hữu. Quyền kiểm qua SPI `QuyenTepProvider` do module sở hữu cài. Ví dụ M01 cài cho `M01.BAN_DONG_Y`, `M01.NGUYEN_VONG`, `M01.ANH_NGUOI_CAO_TUOI`.
 - **Lưu giữ**: tệp theo hạn của bản ghi chủ sở hữu, qua `LuuTruProvider` của module (000 R-11).
 
 **Lý do**: Spec bắt buộc bằng chứng scan ở nhiều lệnh (FR-010, FR-014, FR-023a, FR-047b). Dữ liệu sức khỏe trong tệp phải chịu cùng quyền như bản ghi (NFR-08).
 
 **Phương án đã cân nhắc**:
 - `BLOB` trong MySQL: làm phình bản sao lưu và nhật ký nhị phân.
-- Object storage (MinIO, S3): thừa với một instance; có thể thay sau mà không đổi `TepApi`.
+- Lưu trên ổ đĩa máy chủ (volume của container): phương án của bản trước, thay bằng S3 *(Sửa 2026-10-19, chủ dự án chọn AWS S3)*; `TepApi` của 000 không đổi.
+- MinIO tự dựng: phải tự vận hành, sao lưu; chủ dự án chọn dịch vụ S3 của AWS.
+- URL ký sẵn để client tải thẳng từ S3: giảm tải backend nhưng bỏ qua kiểm quyền tại lúc tải (NFR-08).
 
 ---
 

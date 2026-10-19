@@ -45,7 +45,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).
 
-**Primary Dependencies**: Như 000 → 008: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7. Thêm cho kênh đẩy (Q-305): Firebase Admin SDK cho Java (backend), `firebase_messaging` (app Flutter chung, Q-346). Web dùng `EventSource` chuẩn cho SSE. Tin nhắn: không thư viện, SPI chờ chọn nhà cung cấp (Q-06).
+**Primary Dependencies**: Như 000 → 008: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7. Thêm cho kênh đẩy (Q-305): Firebase Admin SDK cho Java (backend), `firebase_messaging` (app Flutter chung, Q-346). Web dùng `EventSource` chuẩn cho SSE. Tin nhắn: SPI `NhaCungCapTinNhan` cùng bộ chuyển gọi API của nhà cung cấp SMS bên ngoài *(bổ sung 2026-10-19)*; nhà cung cấp và thư viện (HTTP client của Spring hay SDK của nhà cung cấp) chờ chủ dự án chốt (Q-06).
 
 **Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md).
 
@@ -195,6 +195,8 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 5. *(Bổ sung 2026-10-18, Q-366)* **002** cung cấp `TaiKhoanApi.theoNguoiCaoTuoi` (002 module-interfaces 1.6). **012**, **014** khai nhóm `NguoiCaoTuoi` cho các thông báo ở 012 FR-069, 014 FR-071.
 
 ## Điểm cần báo lại về tài liệu nguồn
+
+**(2026-10-19) Nhà cung cấp SMS — chờ chủ dự án chốt.** Chủ dự án chọn dùng dịch vụ SMS bên ngoài; Q-06 ở 24.2 của tài liệu nghiệp vụ vẫn ghi "chưa chọn; giai đoạn đầu chỉ thông báo trong ứng dụng; kênh tin nhắn là cấu hình bật sau". Khi chốt nhà cung cấp cần sửa Q-06 (chủ dự án yêu cầu sửa tài liệu nghiệp vụ), đăng ký brandname nếu nhà cung cấp trong nước yêu cầu, rồi làm T026a. Nội dung tin nhắn đã không chứa thông tin sức khỏe (FR-020), nên rủi ro dữ liệu ra nước ngoài thấp hơn tệp ở S3.
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
