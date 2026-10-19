@@ -4,6 +4,8 @@ import com.cambae.backend.common.Role;
 import com.cambae.backend.common.error.InvalidValueException;
 import com.cambae.backend.common.error.UnmetCondition;
 import com.cambae.backend.m15.account.api.CurrentUser;
+import com.cambae.backend.m15.account.api.Function;
+import com.cambae.backend.m15.account.api.Operation;
 import com.cambae.backend.m15.account.api.PermissionKey;
 import com.cambae.backend.m15.account.api.Target;
 import com.cambae.backend.m15.approval.api.ApprovalRequestView;
@@ -30,8 +32,8 @@ import tools.jackson.databind.JsonNode;
 public class ApprovalFixtures {
 
     public static final String TYPE = "M15.SAMPLE";
-    public static final PermissionKey CREATE = new PermissionKey(TYPE, "CREATE");
-    public static final PermissionKey APPROVE = new PermissionKey(TYPE, "APPROVE");
+    public static final PermissionKey CREATE = new PermissionKey(Function.RESIDENCY_CHANGE_REQUEST, Operation.CREATE);
+    public static final PermissionKey APPROVE = new PermissionKey(Function.RESIDENCY_CHANGE_REQUEST, Operation.APPROVE);
 
     public static final CurrentUser MANAGER = FakePermissions.user(1, Role.NURSING_HOME_MANAGER);
     public static final CurrentUser MANAGER_2 = FakePermissions.user(2, Role.NURSING_HOME_MANAGER);
@@ -149,7 +151,7 @@ public class ApprovalFixtures {
         return new FakePermissions()
                 .grant(Role.NURSING_HOME_MANAGER, CREATE)
                 .grant(Role.NURSING_HOME_MANAGER, APPROVE)
-                .grant(Role.NURSING_HOME_MANAGER, AuditLogPermissions.VIEW_FACILITY)
+                .grant(Role.NURSING_HOME_MANAGER, AuditLogPermissions.VIEW)
                 // Đổi CFG-M15-05 giữa test (FR-017, ParameterChangeNoRecalculationIT)
                 .grant(Role.NURSING_HOME_MANAGER, ParameterPermissions.VIEW)
                 .grant(Role.NURSING_HOME_MANAGER, ParameterPermissions.CHANGE)

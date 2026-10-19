@@ -118,7 +118,7 @@ public class AuditLogQueryService {
         CurrentUser user = currentUser.getObject();
         if (!permissions
                 .getObject()
-                .hasPermission(user, AuditLogPermissions.VIEW_FACILITY, Target.UNSPECIFIED)
+                .hasPermission(user, AuditLogPermissions.VIEW, Target.UNSPECIFIED)
                 .allowed()) {
             throw new PermissionDeniedException("Chỉ Quản lý viện tra cứu nhật ký toàn viện");
         }
@@ -164,7 +164,7 @@ public class AuditLogQueryService {
         Target target = new Target(entityType, entityId, null, null);
         boolean facility = permissions
                 .getObject()
-                .hasPermission(user, AuditLogPermissions.VIEW_FACILITY, Target.UNSPECIFIED)
+                .hasPermission(user, AuditLogPermissions.VIEW, Target.UNSPECIFIED)
                 .allowed();
         // Loại đối tượng chưa phân loại trường thì chỉ Quản lý viện xem (contracts/module-interfaces.md mục 1.3)
         if (!facility
