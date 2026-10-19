@@ -9,9 +9,12 @@ import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m15.account.api.AccountApi;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.ScopeApi;
+import com.cambae.backend.m15.approval.api.ApprovalRequestApi;
+import com.cambae.backend.m15.approval.api.CreateRequest;
 import com.cambae.backend.m15.auditlog.api.AuditAction;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
+import com.cambae.backend.m15.auditlog.api.Basis;
 import com.cambae.backend.m15.correction.api.CorrectableRecordProvider;
 import com.cambae.backend.m15.correction.api.CorrectionApi;
 import com.cambae.backend.m15.correction.api.CorrectionChainView;
@@ -26,6 +29,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.ObjectProvider;
@@ -56,6 +60,8 @@ class CorrectionService implements CorrectionApi {
     private final ObjectProvider<CurrentUser> currentUser;
     private final ObjectProvider<ScopeApi> scope;
     private final ObjectProvider<AccountApi> accounts;
+    /** Lấy lúc dùng: handler {@code M15.CORRECTION} của yêu cầu phê duyệt lại phụ thuộc service này. */
+    private final ObjectProvider<ApprovalRequestApi> approvals;
 
     CorrectionService(
             List<CorrectableRecordProvider> providers,
@@ -67,7 +73,8 @@ class CorrectionService implements CorrectionApi {
             JsonMapper json,
             ObjectProvider<CurrentUser> currentUser,
             ObjectProvider<ScopeApi> scope,
-            ObjectProvider<AccountApi> accounts) {
+            ObjectProvider<AccountApi> accounts,
+            ObjectProvider<ApprovalRequestApi> approvals) {
         this.providers = providers.stream()
                 .collect(Collectors.toMap(CorrectableRecordProvider::recordType, Function.identity()));
         this.corrections = corrections;
@@ -79,6 +86,7 @@ class CorrectionService implements CorrectionApi {
         this.currentUser = currentUser;
         this.scope = scope;
         this.accounts = accounts;
+        this.approvals = approvals;
     }
 
     @Override
@@ -110,20 +118,95 @@ class CorrectionService implements CorrectionApi {
                 .orElseThrow(() -> new BusinessException(
                         HttpStatus.FORBIDDEN, "CORRECTION_NOT_ALLOWED", "Không được đính chính bản ghi này (FR-026)"));
         if (method == CreationMethod.C) {
-            // Cách C lập yêu cầu phê duyệt M15.CORRECTION: làm cùng yêu cầu phê duyệt (000 T057 phần C, T058; US5)
-            throw new IllegalStateException("Cách C chưa cài: cần yêu cầu phê duyệt của US5");
+            // Cách C: lập và gửi duyệt yêu cầu M15.CORRECTION; bản đính chính thêm khi yêu cầu được áp dụng (T058)
+            CorrectionRequestHandler.Content content =
+                    new CorrectionRequestHandler.Content(recordType, originalRecordId, type, correctedContent);
+            return new CorrectionResult.PendingApproval(approvals
+                    .getObject()
+                    .create(new CreateRequest(
+                            CorrectionRequestHandler.TYPE, json.valueToTree(content), time.today(), reason, true)));
         }
-        Correction saved = append(recordType, originalRecordId, type, correctedContent, reason, user, method);
+        return new CorrectionResult.Saved(record(
+                provider,
+                recordType,
+                originalRecordId,
+                type,
+                correctedContent,
+                reason,
+                user.accountId(),
+                method,
+                null));
+    }
+
+    /**
+     * Thêm bản đính chính cách C khi yêu cầu {@code requestId} được áp dụng (T058), trong transaction áp dụng; người
+     * thực hiện là người lập yêu cầu.
+     */
+    CorrectionView applyApproved(
+            CorrectionRequestHandler.Content content, Reason reason, long requesterId, long requestId) {
+        CorrectableRecordProvider provider = provider(content.recordType());
+        return record(
+                provider,
+                content.recordType(),
+                content.originalRecordId(),
+                content.type(),
+                content.correctedContent(),
+                reason,
+                requesterId,
+                CreationMethod.C,
+                requestId);
+    }
+
+    /** Bản gốc còn đính chính được không, xét tại lúc áp dụng yêu cầu (FR-029, FR-038). */
+    boolean isVoided(String recordType, long originalRecordId) {
+        return Boolean.TRUE.equals(jdbc.query(
+                "SELECT voided FROM correction_chain WHERE record_type = ? AND original_record_id = ?",
+                rs -> rs.next() ? rs.getBoolean(1) : null,
+                recordType,
+                originalRecordId));
+    }
+
+    boolean isConfirmed(String recordType, long originalRecordId) {
+        return provider(recordType).isConfirmed(originalRecordId);
+    }
+
+    void validate(String recordType, CorrectionType type, Object correctedContent) {
+        CorrectableRecordProvider provider = provider(recordType);
+        if (type == CorrectionType.AMEND_CONTENT) {
+            if (correctedContent == null) {
+                throw new InvalidValueException("Sửa nội dung cần nội dung đúng (FR-024)");
+            }
+            provider.validateContent(correctedContent);
+        }
+    }
+
+    Optional<Long> floorArea(String recordType, long originalRecordId) {
+        return provider(recordType).floorArea(originalRecordId);
+    }
+
+    private CorrectionView record(
+            CorrectableRecordProvider provider,
+            String recordType,
+            long originalRecordId,
+            CorrectionType type,
+            Object correctedContent,
+            Reason reason,
+            long actorId,
+            CreationMethod method,
+            Long approvalRequestId) {
+        Correction saved = append(
+                recordType, originalRecordId, type, correctedContent, reason, actorId, method, approvalRequestId);
         CorrectionView view = view(saved);
         auditLog.write(AuditLogEntry.builder()
                 .action(CORRECTION_ADDED)
                 .entity(recordType, originalRecordId)
                 .after(afterOf(view))
                 .reason(reason)
+                .basis(approvalRequestId == null ? null : new Basis(null, approvalRequestId, null, null))
                 .build());
         provider.afterCorrection(view);
         events.publishEvent(new CorrectionMade(recordType, originalRecordId, type, view.id()));
-        return new CorrectionResult.Saved(view);
+        return view;
     }
 
     /** Khóa chuỗi của bản gốc rồi cấp số thứ tự kế tiếp; bản gốc đã Hủy ghi nhận thì từ chối (FR-027 → FR-029). */
@@ -133,8 +216,9 @@ class CorrectionService implements CorrectionApi {
             CorrectionType type,
             Object correctedContent,
             Reason reason,
-            CurrentUser user,
-            CreationMethod method) {
+            long actorId,
+            CreationMethod method,
+            Long approvalRequestId) {
         jdbc.update(
                 "INSERT IGNORE INTO correction_chain (record_type, original_record_id) VALUES (?, ?)",
                 recordType,
@@ -145,8 +229,7 @@ class CorrectionService implements CorrectionApi {
                 recordType,
                 originalRecordId);
         if (Boolean.TRUE.equals(chain.get("voided"))) {
-            throw new BusinessException(
-                    HttpStatus.CONFLICT, "RECORD_VOIDED", "Bản ghi đã Hủy ghi nhận, không đính chính thêm (FR-029)");
+            throw voided();
         }
         int sequenceNo = ((Number) chain.get("correction_count")).intValue() + 1;
         jdbc.update(
@@ -161,9 +244,9 @@ class CorrectionService implements CorrectionApi {
                 type,
                 correctedContent == null ? null : json.writeValueAsString(correctedContent),
                 reason.value(),
-                user.accountId(),
+                actorId,
                 method,
-                null,
+                approvalRequestId,
                 time.now(),
                 sequenceNo));
     }
@@ -222,6 +305,11 @@ class CorrectionService implements CorrectionApi {
                 original,
                 current.content() == null ? original : current.content(),
                 list);
+    }
+
+    private static BusinessException voided() {
+        return new BusinessException(
+                HttpStatus.CONFLICT, "RECORD_VOIDED", "Bản ghi đã Hủy ghi nhận, không đính chính thêm (FR-029)");
     }
 
     private CorrectableRecordProvider provider(String recordType) {

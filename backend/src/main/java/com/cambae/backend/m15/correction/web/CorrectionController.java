@@ -2,6 +2,8 @@ package com.cambae.backend.m15.correction.web;
 
 import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.error.web.ProblemBody;
+import com.cambae.backend.m15.approval.internal.ApprovalRequestService;
+import com.cambae.backend.m15.approval.web.ApprovalRequestController.ApprovalRequestBody;
 import com.cambae.backend.m15.correction.api.CorrectionApi;
 import com.cambae.backend.m15.correction.api.CorrectionChainView;
 import com.cambae.backend.m15.correction.api.CorrectionResult;
@@ -31,9 +33,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class CorrectionController {
 
     private final CorrectionApi corrections;
+    private final ApprovalRequestService approvals;
 
-    public CorrectionController(CorrectionApi corrections) {
+    public CorrectionController(CorrectionApi corrections, ApprovalRequestService approvals) {
         this.corrections = corrections;
+        this.approvals = approvals;
     }
 
     @GetMapping
@@ -66,7 +70,12 @@ public class CorrectionController {
                         @Content(
                                 mediaType = "application/json",
                                 schema = @Schema(implementation = CorrectionBody.class))),
-        // 202 kèm ApprovalRequest (cách C) khai khi có yêu cầu phê duyệt (US5); ApiContractIT ghi chờ
+        @ApiResponse(
+                responseCode = "202",
+                content =
+                        @Content(
+                                mediaType = "application/json",
+                                schema = @Schema(implementation = ApprovalRequestBody.class))),
         @ApiResponse(
                 responseCode = "403",
                 content =
@@ -97,7 +106,9 @@ public class CorrectionController {
             case CorrectionResult.Saved saved ->
                 ResponseEntity.status(HttpStatus.CREATED).body(CorrectionBody.of(saved.correction()));
             case CorrectionResult.PendingApproval pending ->
-                ResponseEntity.status(HttpStatus.ACCEPTED).body(pending);
+                ResponseEntity.status(HttpStatus.ACCEPTED)
+                        .body(ApprovalRequestBody.of(
+                                approvals.detail(pending.request().id())));
         };
     }
 

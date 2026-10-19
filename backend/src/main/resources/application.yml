@@ -72,6 +72,14 @@ spring:
     activate:
       on-profile: test
 # test: datasource do lớp cơ sở test tích hợp đặt (schema eldercare_test, 000 T009); có đồng hồ giả lập (NFR-13).
+# Job phê duyệt không chạy theo lịch hay lúc khởi động; test gọi job trực tiếp (000 T093, T094).
+eldercare:
+  jobs:
+    apply-due-requests:
+      cron: "-"
+      on-startup: false
+    remind-pending-requests:
+      cron: "-"
 
 ---
 spring:

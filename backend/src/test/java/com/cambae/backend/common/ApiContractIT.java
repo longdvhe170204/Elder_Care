@@ -41,23 +41,10 @@ class ApiContractIT extends MySqlIntegrationTestBase {
     private static final Path CONTRACT = Path.of("..", "specs", "000-shared-foundation", "contracts", "api-000.yaml");
 
     /** Endpoint của hợp đồng 000 chưa cài; xóa dòng tương ứng khi cài controller. */
-    private static final Set<String> PENDING = Set.of(
-            "GET /api/v1/parameters",
-            "GET /api/v1/parameters/{code}",
-            "POST /api/v1/parameters/{code}/change-value",
-            "GET /api/v1/parameters/{code}/history",
-            "POST /api/v1/approval-requests",
-            "GET /api/v1/approval-requests",
-            "GET /api/v1/approval-requests/{id}",
-            "POST /api/v1/approval-requests/{id}/edit-content",
-            "POST /api/v1/approval-requests/{id}/submit",
-            "POST /api/v1/approval-requests/{id}/approve",
-            "POST /api/v1/approval-requests/{id}/reject",
-            "POST /api/v1/approval-requests/{id}/cancel");
+    private static final Set<String> PENDING = Set.of();
 
     /** Phản hồi của hợp đồng chưa cài (ví dụ 202 của cách C chờ yêu cầu phê duyệt, US5); phải rỗng khi xong 000. */
-    private static final Set<String> PENDING_RESPONSES =
-            Set.of("POST /api/v1/corrections/{recordType}/{originalRecordId} 202");
+    private static final Set<String> PENDING_RESPONSES = Set.of();
 
     @Autowired
     MockMvc mvc;
