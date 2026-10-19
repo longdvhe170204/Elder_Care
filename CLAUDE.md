@@ -47,7 +47,7 @@ Skill ở `.claude/skills/karpathy-guidelines/` (nguồn ghi ở `skills-lock.js
 
 ## Công nghệ và cấu trúc mã
 
-- Constitution 3.1.0 (nguyên tắc X–XV), research R-01, R-02 của 000. Thư viện cụ thể ghi ở plan và tasks.
+- Constitution 3.1.1 (nguyên tắc X–XV), research R-01, R-02 của 000. Thư viện cụ thể ghi ở plan và tasks.
 - Yêu cầu môi trường: JDK 25, MySQL 8.0, Node 24 + npm, Flutter stable 3.x. Chưa dùng Docker, Testcontainers; không thay MySQL bằng H2 hay cơ sở dữ liệu nhúng (R-14 cần trigger và quyền tài khoản MySQL).
 - Biến môi trường (không ghi mật khẩu vào kho mã): `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` cho schema `elder_care`; `TEST_DB_URL`, `TEST_DB_ADMIN_USER`, `TEST_DB_ADMIN_PASSWORD` cho schema test `eldercare_test`.
 - Một kho mã, ba thư mục gốc:
@@ -79,7 +79,7 @@ Skill ở `.claude/skills/karpathy-guidelines/` (nguồn ghi ở `skills-lock.js
 - `docs/business/nghiep-vu.md`: nguồn duy nhất về quy tắc nghiệp vụ — BR, CFG (Phụ lục 25), quyết định Q-xx (mục 24: 24.1 còn mở, 24.2 đã chốt, 24.4 cần đối chiếu), actor và use case (Phụ lục 26), ma trận quyền (Phụ lục 27; khác thì mục 19.3 là căn cứ), DBR (Phụ lục 28), căn cứ pháp lý (Phụ lục 29).
 - `docs/business/luong-nghiep-vu.md`: luồng BF-01 → BF-18 theo từng bước.
 - Không sửa hai file trên trừ khi được yêu cầu rõ ràng; thấy mâu thuẫn thì báo lại.
-- `.specify/memory/constitution.md` (3.1.0): I–IX cho spec, X–XV cho plan, tasks, mã; sửa phải ghi Sync Impact Report và tăng phiên bản.
+- `.specify/memory/constitution.md` (3.1.1): I–IX cho spec, X–XV cho plan, tasks, mã; sửa phải ghi Sync Impact Report và tăng phiên bản.
 - `specs/NNN-ten/`: spec, plan, research, data-model, contracts, quickstart, tasks; NNN theo cột Feature của Phụ lục 26.2. 000 là nền tảng dùng chung (phê duyệt, đính chính, nhật ký, tham số). Chỉ sửa spec khi được yêu cầu; không tự mở lượt clarify hay checklist mới.
 - Điểm chưa rõ: không đoán; tra Q-xx ở mục 24 và báo lại. Đọc dải mã: "BR-M01-09, 10" là BR-M01-09 và BR-M01-10; "UC-71 → 73" là dải.
 - Script sửa file hàng loạt dùng node (có sẵn vì frontend cần); kiểm tra số lần khớp trước khi ghi.

@@ -47,7 +47,7 @@ Plan này cũng chốt các quyết định nền cho mọi feature sau (R-01 �
 
 **Target Platform**: Backend Linux server (container). Web trên trình duyệt máy tính và điện thoại. App Android, iOS trên điện thoại và máy tính bảng.
 
-**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung cho nhân viên và người thân (Q-346).
+**Project Type**: Web service (REST `/api/v1`), một web client và một mobile client chung cho nhân viên, người thân và người cao tuổi (Q-346, Q-365).
 
 **Performance Goals**:
 - Lệnh của 000 (đổi tham số, quyết định yêu cầu, đính chính) nằm trong ngân sách 2 giây của NFR-02. Mỗi lệnh chỉ thêm một `INSERT` nhật ký vào transaction.
@@ -158,12 +158,13 @@ frontend/
         ├── nhat-ky/
         └── yeu-cau-phe-duyet/
 
-mobile/                          # một app chung cho nhân viên và người thân (Q-346)
+mobile/                          # một app chung cho nhân viên, người thân, người cao tuổi (Q-346, Q-365)
 ├── lib/
 │   ├── chung/                   # đăng nhập, API client, hàng đợi ngoại tuyến (drift), phong bì đồng bộ
 │   ├── nhan-vien/yeu-cau-phe-duyet/
-│   └── nguoi-than/              # 000 không có màn hình cho người thân
-└── test/{nhan-vien, nguoi-than}/
+│   ├── nguoi-than/              # 000 không có màn hình cho người thân
+│   └── nguoi-cao-tuoi/          # 000 không có màn hình cho người cao tuổi (bổ sung 2026-10-19)
+└── test/{nhan-vien, nguoi-than, nguoi-cao-tuoi}/
 ```
 
 **Structure Decision**: Một kho mã, ba thư mục gốc (R-02). Feature 000 nằm ở `backend/…/m15/{thamso, nhatky, pheduyet, dinhchinh, luutru}` và `backend/…/common`. Ở web có ba màn: tham số, nhật ký, hộp duyệt yêu cầu. App nhân viên có hộp duyệt yêu cầu, cần cho Trưởng tầng duyệt yêu cầu của 015. Module khác chỉ dùng 000 qua `contracts/module-interfaces.md`.
