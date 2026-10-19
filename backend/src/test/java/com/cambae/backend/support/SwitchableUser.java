@@ -1,7 +1,10 @@
 package com.cambae.backend.support;
 
 import com.cambae.backend.common.Role;
+import com.cambae.backend.m15.account.api.AccessChannel;
+import com.cambae.backend.m15.account.api.AccountType;
 import com.cambae.backend.m15.account.api.CurrentUser;
+import java.util.Optional;
 import java.util.Set;
 
 /** Người dùng hiện tại đổi được giữa các bước của test (bản giả của 002 {@code CurrentUser}). */
@@ -19,6 +22,26 @@ public class SwitchableUser implements CurrentUser {
     }
 
     @Override
+    public AccountType type() {
+        return delegate.type();
+    }
+
+    @Override
+    public Optional<Long> staffId() {
+        return delegate.staffId();
+    }
+
+    @Override
+    public Optional<Long> familyMemberId() {
+        return delegate.familyMemberId();
+    }
+
+    @Override
+    public Optional<Long> residentId() {
+        return delegate.residentId();
+    }
+
+    @Override
     public Set<Role> roles() {
         return delegate.roles();
     }
@@ -26,5 +49,15 @@ public class SwitchableUser implements CurrentUser {
     @Override
     public boolean isScheduler() {
         return delegate.isScheduler();
+    }
+
+    @Override
+    public String deviceId() {
+        return delegate.deviceId();
+    }
+
+    @Override
+    public AccessChannel channel() {
+        return delegate.channel();
     }
 }
