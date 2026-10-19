@@ -3,11 +3,14 @@ package com.cambae.backend.common.error.web;
 import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.error.ConditionNotMetException;
 import com.cambae.backend.common.error.VersionMismatchException;
+import java.sql.SQLException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -21,6 +24,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class ProblemDetailsHandler extends ResponseEntityExceptionHandler {
 
     static final String ERROR_CODE = "errorCode";
+    private static final int MYSQL_ROW_IS_REFERENCED = 1451;
 
     @ExceptionHandler(BusinessException.class)
     ResponseEntity<ProblemDetail> handle(BusinessException e) {
@@ -34,6 +38,34 @@ public class ProblemDetailsHandler extends ResponseEntityExceptionHandler {
             problem.setProperty("currentValue", v.currentValue());
         }
         return ResponseEntity.status(e.status()).body(problem);
+    }
+
+    /**
+     * Xóa mục danh mục đã được bản ghi khác tham chiếu: MySQL chặn bằng khóa ngoại RESTRICT (lỗi 1451), trả 409
+     * {@code CATALOG_ITEM_IN_USE} (FR-002). Vi phạm ràng buộc khác vẫn là lỗi hệ thống.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ResponseEntity<ProblemDetail> handle(DataIntegrityViolationException e) {
+        if (e.getMostSpecificCause() instanceof SQLException sql && sql.getErrorCode() == MYSQL_ROW_IS_REFERENCED) {
+            return handle(new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "CATALOG_ITEM_IN_USE",
+                    "Mục đã được bản ghi khác tham chiếu, chỉ ngừng hiệu lực được"));
+        }
+        throw e;
+    }
+
+    /** Lỗi nghiệp vụ ném khi đọc thân request (ví dụ lý do chỉ có khoảng trắng) trả đúng mã của nó, không phải 400. */
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+            if (cause instanceof BusinessException business) {
+                return ResponseEntity.status(business.status())
+                        .body(handle(business).getBody());
+            }
+        }
+        return super.handleHttpMessageNotReadable(ex, headers, status, request);
     }
 
     @Override

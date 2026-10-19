@@ -17,7 +17,7 @@ import org.springframework.test.context.DynamicPropertySource;
  * <p>Đọc {@code TEST_DB_URL} (ví dụ {@code jdbc:mysql://localhost:3306/eldercare_test}), {@code TEST_DB_ADMIN_USER},
  * {@code TEST_DB_ADMIN_PASSWORD}. Mỗi lần chạy JVM: xóa và tạo lại schema test, tạo lại hai tài khoản
  * {@code eldercare_app} và {@code eldercare_retention} (R-05) với mật khẩu ngẫu nhiên, rồi để Flyway chạy bằng tài
- * khoản quản trị (thêm migration chỉ có ở test, {@code db/test-migration}). Quyền của hai tài khoản do migration cấp
+ * khoản quản trị (thêm dữ liệu mẫu {@code db/migration/demo} như profile demo, 000 T048). Quyền của hai tài khoản do migration cấp
  * ({@code V000_00} và migration của từng bảng). Ứng dụng kết nối bằng {@code eldercare_app}.
  */
 @SpringBootTest
@@ -41,7 +41,7 @@ public abstract class MySqlIntegrationTestBase {
         registry.add("spring.flyway.password", db::adminPassword);
         registry.add("spring.flyway.placeholders.appPassword", db::appPassword);
         registry.add("spring.flyway.placeholders.retentionPassword", db::retentionPassword);
-        registry.add("spring.flyway.locations", () -> "classpath:db/migration,classpath:db/test-migration");
+        registry.add("spring.flyway.locations", () -> "classpath:db/migration,classpath:db/migration/demo");
         registry.add("eldercare.datasource.retention.url", db::schemaUrl);
         registry.add("eldercare.datasource.retention.username", () -> RETENTION_USER);
         registry.add("eldercare.datasource.retention.password", db::retentionPassword);
