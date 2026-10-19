@@ -239,6 +239,15 @@ mobile/                          # một app chung cho nhân viên, người th�
 - T047: `EffectiveVersioning.addVersion` khóa dòng cha `SELECT … FOR UPDATE` (tài khoản ứng dụng cần `UPDATE` trên bảng cha), kiểm giao khoảng (ngày lịch, gồm hai đầu, `to` null là mở), trùng thì 409 `CONDITION_NOT_MET` (`BR-M15-07`). `EffectiveVersionNoOverlapIT` chạy hai luồng đồng thời.
 - T040 dùng ArchUnit quét cả mã test (để có entity mẫu). T043 đọc `information_schema.TRIGGERS` bằng tài khoản quản trị vì `eldercare_app` không có quyền `TRIGGER` nên không thấy trigger. Quy ước và mẫu migration ở `backend/docs/data-group-conventions.md` (T045).
 
+**Phase 4 – US2 đính chính (T049 → T060, 2026-10-19)**:
+- Xong cách A, B; cách C (bản ghi không gắn tầng, hoặc gắn tầng mà không có người phụ trách ca, trưởng tầng) được `CorrectionMethodSelector` nhận ra nhưng `CorrectionService` chưa lập yêu cầu phê duyệt (ném lỗi rõ ràng) cho tới T090 → T092; T057 phần C và T058 làm sau US5. Phản hồi 202 của `POST /corrections` ghi ở `PENDING_RESPONSES` của `ApiContractIT`.
+- Bộ chọn: A khi là người ghi gốc và còn quyền ghi nhận; B khi là người phụ trách ca hoặc trưởng tầng được giao của tầng và trong phạm vi (gồm CHK033: không có người phụ trách ca thì trưởng tầng được giao); C khi cùng vai trò với người ghi gốc, có quyền ghi nhận, và bản ghi không gắn tầng hoặc tầng không có ai cho B; còn lại 403 `CORRECTION_NOT_ALLOWED`. "Cùng vai trò" kiểm bằng `AccountApi.hasRole`.
+- Chuỗi đính chính tuần tự bằng khóa dòng `correction_chain` (`INSERT IGNORE` rồi `SELECT … FOR UPDATE`), không dùng khóa lạc quan có thử lại; `CorrectionConcurrencyIT` chứng minh số thứ tự liên tiếp.
+- SPI thêm `originalContent(id)` (hợp đồng trả `originalContent`); module-interfaces mục 1.6 đã ghi bổ sung. `Actor.fullName` trả `null` cho tới khi 002 có hồ sơ tài khoản.
+- `CorrectionService` lấy `CurrentUser`, `ScopeApi`, `AccountApi` qua `ObjectProvider` (002 chưa có); test nạp `CorrectionFixtures` (bản giả quyền, `SwitchableUser`). Provider mẫu `SampleFloorRecordProvider` (`M15.SAMPLE_RECORD`, gắn tầng) và `SampleOfficeRecordProvider` (không gắn tầng) ở mã test.
+- `ApiContractIT`: thêm `ProblemBody` mô tả schema `Problem` cho annotation phản hồi lỗi; kiểm "đổi kiểu" so kiểu gốc, bỏ qua `format` (int32, int64) và `null` của OpenAPI 3.1. Hai lệch thật đã sửa: `actor.type` là enum, header `Idempotency-Key` kiểu UUID.
+- T106 (component web đính chính) chưa làm.
+
 **Dịch vụ ngoài (2026-10-19)**: chủ dự án chọn AWS S3 cho tệp, FCM cho thông báo đẩy, dịch vụ SMS bên ngoài. Giao diện của 000 không đổi: `FileApi`, `FilePermissionProvider` (T036) giữ nguyên, 001 cài bằng S3 (001 research H-13); khuôn thông báo `common.notification` (T034) không phụ thuộc kênh, 009 gửi qua FCM và bộ chuyển SMS (009 research B-05). Region S3, nghĩa vụ chuyển dữ liệu ra nước ngoài và nhà cung cấp SMS chờ chủ dự án chốt (plan 001, 009).
 
 ## Điểm cần báo lại về tài liệu nguồn

@@ -1,0 +1,41 @@
+package com.cambae.backend.m15.sample;
+
+import com.cambae.backend.common.Role;
+import com.cambae.backend.m15.account.api.CurrentUser;
+import com.cambae.backend.support.FakePermissions;
+import com.cambae.backend.support.SwitchableUser;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+
+/**
+ * Người dùng và bản giả quyền cho test đính chính: tầng 2 có người phụ trách ca (12) và trưởng tầng được giao (13).
+ */
+@TestConfiguration
+public class CorrectionFixtures {
+
+    public static final long FLOOR = 2;
+    public static final CurrentUser NURSE_A = FakePermissions.user(10, Role.NURSING_STAFF);
+    public static final CurrentUser NURSE_B = FakePermissions.user(11, Role.NURSING_STAFF);
+    public static final CurrentUser SHIFT_LEAD = FakePermissions.user(12, Role.NURSING_STAFF);
+    public static final CurrentUser FLOOR_MANAGER = FakePermissions.user(13, Role.FLOOR_MANAGER);
+    public static final CurrentUser OFFICE_A = FakePermissions.user(20, Role.OFFICE_STAFF);
+    public static final CurrentUser OFFICE_B = FakePermissions.user(21, Role.OFFICE_STAFF);
+
+    @Bean
+    SwitchableUser currentUser() {
+        return new SwitchableUser();
+    }
+
+    @Bean
+    FakePermissions permissions() {
+        return new FakePermissions()
+                .account(NURSE_A)
+                .account(NURSE_B)
+                .account(SHIFT_LEAD)
+                .account(FLOOR_MANAGER)
+                .account(OFFICE_A)
+                .account(OFFICE_B)
+                .shiftLead(FLOOR, SHIFT_LEAD.accountId())
+                .floorManager(FLOOR, FLOOR_MANAGER.accountId());
+    }
+}
