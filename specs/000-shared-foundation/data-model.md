@@ -29,7 +29,7 @@ Spec 000 mục A quy định khung cho mọi loại dữ liệu. Plan của từ
 Các ràng buộc:
 - **Tham chiếu và xóa (FR-002)**: mọi bảng nhóm 2, 3 tham chiếu danh mục bằng khóa ngoại `ON DELETE RESTRICT`. Lệnh xóa vi phạm khóa ngoại được ánh xạ thành 409 `DANH_MUC_DA_DUOC_THAM_CHIEU`, và mục đó chỉ còn lệnh Ngừng hiệu lực. Bảng `nhat_ky` không có khóa ngoại, nên nhật ký của chính mục không tính là tham chiếu (CHK001).
 - **Ngừng hiệu lực (FR-003)**: dữ liệu mới chỉ được chọn mục `HIEU_LUC`. Kiểm tra ở backend, trong lệnh của module dùng danh mục. Bản ghi cũ vẫn trỏ khóa ngoại nên hiển thị đúng.
-- **Thuộc tính theo phiên bản (FR-004)**: tách thành bảng phiên bản theo mẫu 1.2, ví dụ phiên bản đơn giá (DBR-08, do plan 004 hoặc 010 mô tả).
+- **Thuộc tính theo phiên bản (FR-004)**: tách thành bảng phiên bản theo mẫu 1.2, ví dụ phiên bản đơn giá (DBR-08, do plan 004 hoặc 010 mô tả). Đổi giá trị bằng phiên bản mới còn mở từ ngày hiệu lực sau hôm nay; phiên bản đang mở được đóng ở ngày trước đó trong cùng transaction (`EffectiveVersioning.addVersionFrom`). Tài khoản ứng dụng có `INSERT` và `UPDATE (effective_to)` trên bảng phiên bản, không sửa được cột khác (chủ dự án chốt 2026-10-19).
 
 ### 1.2. Nhóm 2 – Nghiệp vụ có trạng thái (FR-005 → FR-008)
 
@@ -62,7 +62,7 @@ Bản ghi không có cột "đã đính chính" hay "đã hủy". Hai thông tin
 | Bảo đảm | Cách làm | DBR / FR |
 | --- | --- | --- |
 | Không sửa bản ghi nhóm 3 đã xác nhận | Trigger `trg_<bang>_khong_sua` `BEFORE UPDATE`: `SIGNAL SQLSTATE '45000'` khi `OLD.thoi_diem_xac_nhan IS NOT NULL`. Bảng không có nháp thì tài khoản `eldercare_app` không có quyền `UPDATE` | DBR-23, FR-009 |
-| Không xóa nhóm 3 và nhật ký | Trigger `trg_<bang>_khong_xoa` `BEFORE DELETE`: `SIGNAL` trừ khi `SUBSTRING_INDEX(CURRENT_USER(),'@',1) = 'eldercare_luu_tru'`. Tài khoản `eldercare_app` không có quyền `DELETE` trên các bảng này | FR-009, FR-048, FR-051 |
+| Không xóa nhóm 3 và nhật ký | Trigger `trg_<bang>_khong_xoa` `BEFORE DELETE`: `SIGNAL` trừ khi `SUBSTRING_INDEX(USER(),'@',1) = 'eldercare_luu_tru'`. *(Sửa khi cài 2026-10-19: trong trigger, `CURRENT_USER()` là tài khoản tạo trigger nên điều kiện cũ luôn chặn; `USER()` là tài khoản đang kết nối. `MESSAGE_TEXT` viết ASCII vì chữ có dấu bị thành `?`.)* Tài khoản `eldercare_app` không có quyền `DELETE` trên các bảng này | FR-009, FR-048, FR-051 |
 | Danh sách bảo vệ BR-M15-03 | Cùng hai trigger trên, bắt buộc với: liều thuốc đã xác nhận, sự cố khẩn cấp, chi phí đã chốt, bàn giao đã xác nhận, bàn giao đồ gửi. Test tích hợp riêng cho từng bảng ở plan module sở hữu | FR-010 |
 | Danh sách bảng nhóm 3 | ArchUnit đọc `@NhomDuLieu(GHI_NHAN)`. Một test tích hợp đối chiếu danh sách này với `information_schema.TRIGGERS`; bảng nhóm 3 thiếu trigger thì test lỗi | FR-001 |
 
@@ -104,7 +104,7 @@ Bản ghi không có cột "đã đính chính" hay "đã hủy". Hai thông tin
 
 **Kiểm tra giá trị (FR-015)**: `KiemTraThamSo` đọc `kieu` và `rang_buoc`, rồi kiểm tham chiếu chéo. Ví dụ CFG-M15-06 > CFG-M15-05: đổi một mã thì kiểm lại ràng buộc của mã kia. Vi phạm thì trả 422 `GIA_TRI_KHONG_HOP_LE`.
 
-**Nguồn dữ liệu nạp**: 119 mã ở Phụ lục 25. Giá trị mặc định chuyển sang kiểu có cấu trúc, ví dụ "48 giờ" thành `{"giaTri":48,"donVi":"GIO"}`, còn "5 lần / khóa 15 phút" thành một đối tượng hai trường. Việc chuyển đổi được rà tay trong task. Phụ lục 25 không ghi khoảng hợp lệ (xem plan, "Điểm cần báo lại"). *(Bổ sung 2026-10-18)* CFG-M15-10 dạng bảng theo kênh; khóa `APP_NGUOI_CAO_TUOI` có giá trị `{"khongGioiHan":true}` (không tự đăng xuất, Q-370).
+*(Cài 2026-10-19: tên bảng, cột, giá trị theo glossary mục 6; khóa JSON tiếng Anh, ví dụ `{"value":48,"unit":"HOURS"}`; giá trị "Theo cơ sở", "Viện nhập khi cài đặt" nạp `null` = chưa đặt; `parameter_history.actor_id` `NULL` là Bộ lập lịch ở lần nạp ban đầu. Xem plan, Ghi chú triển khai.)* **Nguồn dữ liệu nạp**: 119 mã ở Phụ lục 25. Giá trị mặc định chuyển sang kiểu có cấu trúc, ví dụ "48 giờ" thành `{"giaTri":48,"donVi":"GIO"}`, còn "5 lần / khóa 15 phút" thành một đối tượng hai trường. Việc chuyển đổi được rà tay trong task. Phụ lục 25 không ghi khoảng hợp lệ (xem plan, "Điểm cần báo lại"). *(Bổ sung 2026-10-18)* CFG-M15-10 dạng bảng theo kênh; khóa `APP_NGUOI_CAO_TUOI` có giá trị `{"khongGioiHan":true}` (không tự đăng xuất, Q-370).
 
 ---
 
@@ -211,7 +211,11 @@ Vòng đời riêng của 012 (Chờ xác nhận → Hiệu lực / Từ chối 
 
 `id_ban_ghi_goc` là khóa logic, không có khóa ngoại cứng vì bảng gốc thay đổi theo loại. Khi thêm, `DinhChinhService` gọi `provider.daXacNhan(id)` để kiểm bản gốc tồn tại và đã xác nhận (US2 kịch bản 8).
 
+*(Cài 2026-10-19: bảng `correction`, cột theo glossary mục 6; khóa ngoại `approval_request_id` thêm ở V000_07.)*
+
 ### `chuoi_dinh_chinh` – dữ liệu kỹ thuật, không thuộc nhóm nghiệp vụ
+
+*(Cài 2026-10-19: bảng `correction_chain` gồm `correction_count`, `voided`; tuần tự hóa bằng khóa dòng `SELECT … FOR UPDATE` thay cho cột `phien_ban` khóa lạc quan, nên không cần thử lại.)*
 
 | Cột | Ý nghĩa |
 | --- | --- |
@@ -277,7 +281,7 @@ Bảo đảm:
 | Bảng | Mục đích | Ghi chú |
 | --- | --- | --- |
 | `lan_chay_lich` | Định danh lần chạy job (FR-045): `id`, `job`, `bat_dau`, `ket_thuc`, `ket_qua`, `so_xu_ly` | Dữ liệu kỹ thuật |
-| `khoa_lap_lai` | `Idempotency-Key`: `(khoa, nguoi_dung_id)` là khóa chính, cùng `ma_bam_yeu_cau`, `ket_qua_json`, `het_han_luc` | Giữ 7 ngày (kỹ thuật, không phải CFG) |
+| `khoa_lap_lai` | `Idempotency-Key`: `(khoa, nguoi_dung_id)` là khóa chính, cùng `ma_bam_yeu_cau`, `ket_qua_json`, `het_han_luc` | Giữ 7 ngày (kỹ thuật, không phải CFG). *(Sửa khi cài 2026-10-19)* Người gửi lưu bằng tên đăng nhập (`username`) thay cho `nguoi_dung_id`, vì gói `common` không được phụ thuộc M15 (xem plan, Ghi chú triển khai) |
 | `event_publication` | Event Publication Registry của Spring Modulith (R-09) | Do thư viện quản lý |
 | `shedlock` | Khóa job (R-10) | Do thư viện quản lý |
 
@@ -287,18 +291,20 @@ Các bảng kỹ thuật không thuộc ba nhóm nghiệp vụ, nên không ghi 
 
 ## 7. Bảng truy vết DBR, BR do feature 000 bảo đảm
 
+Cột "Nơi kiểm thử" ghi tên lớp test trong mã (tiếng Anh, glossary mục 6.5); rà lại 2026-10-19 (000 T104).
+
 | Mã | Bảo đảm bằng | Nơi kiểm thử |
 | --- | --- | --- |
-| DBR-23 (nhật ký cho mọi thay đổi) | Ghi trong cùng transaction (R-06); proxy đếm câu lệnh | `NhatKyDayDuIT` |
-| DBR-23 (đính chính trỏ đúng một gốc) | Cột `id_ban_ghi_goc NOT NULL`; luôn là bản gốc ban đầu; `provider.daXacNhan` | `DinhChinhIT` |
-| DBR-24 | Khóa chính `tham_so.ma`; `UNIQUE (ma, hieu_luc_tu)` | `ThamSoIT` |
-| DBR-25 | `Clock` duy nhất (ArchUnit); `thoi_diem_thiet_bi` | `ThoiGianArchTest`, `NhatKyNgoaiTuyenIT` |
-| BR-M15-03 | Trigger mục 1.4 cho năm loại bản ghi bảo vệ (bảng thuộc module khác; 000 cung cấp mẫu và test đối chiếu `information_schema`) | `NhomGhiNhanCoTriggerIT` |
-| BR-M15-04 | `QuyenApi` với khóa `THAM_SO_DOI` (chỉ AC-01); nhật ký trước/sau | `ThamSoQuyenIT` |
-| BR-M15-06 | Cột sinh `ten_hieu_luc` `UNIQUE` | `DanhMucMauIT` |
-| BR-M15-07 | `ThoiGianNghiepVu.batDauNgay` | `NgayHieuLucTest` |
-| BR-M15-08 | Bảng chuyển: `huy` bắt buộc `lyDo` | `YeuCauHuyTest` |
-| BR-M15-09 | `NhacYeuCauChoDuyet` | `NhacYeuCauIT` (đồng hồ giả lập) |
-| BR-M15-10 | Thứ tự `(ngay_hieu_luc_thuc_te, thoi_diem_quyet_dinh)` | `ApDungBuIT` |
-| BR-M15-11 | `NhatKyQueryService` che `lyDo` | `NhatKyCheTruongIT` |
-| BR-M15-12, 13 | `LoaiBoDuLieuHetHan` theo chuỗi | `LoaiBoDuLieuIT` |
+| DBR-23 (nhật ký cho mọi thay đổi) | Ghi trong cùng transaction (R-06); proxy đếm câu lệnh | `AuditLogCompletenessIT`, `AuditLogAtomicityIT` |
+| DBR-23 (đính chính trỏ đúng một gốc) | Cột `id_ban_ghi_goc NOT NULL`; luôn là bản gốc ban đầu; `provider.daXacNhan` | `CorrectionIT`, `CorrectionApprovalIT` |
+| DBR-24 | Khóa chính `tham_so.ma`; `UNIQUE (ma, hieu_luc_tu)` | `ParameterIT`, `ParameterChangeIT` |
+| DBR-25 | `Clock` duy nhất (ArchUnit); `thoi_diem_thiet_bi` | `TimeArchTest`, `AuditLogOfflineIT` |
+| BR-M15-03 | Trigger mục 1.4 cho năm loại bản ghi bảo vệ (bảng thuộc module khác; 000 cung cấp mẫu và test đối chiếu `information_schema`) | `RecordGroupTriggerIT` |
+| BR-M15-04 | `QuyenApi` với khóa `THAM_SO_DOI` (chỉ AC-01); nhật ký trước/sau | `ParameterPermissionIT`, `ParameterChangeIT` |
+| BR-M15-06 | Cột sinh `ten_hieu_luc` `UNIQUE` | `CatalogSampleIT` |
+| BR-M15-07 | `ThoiGianNghiepVu.batDauNgay` | `EffectiveDateTest`, `EffectiveVersionNoOverlapIT` |
+| BR-M15-08 | Bảng chuyển: `huy` bắt buộc `lyDo` | `RequestTransitionTableTest`, `ApprovalLifecycleIT` |
+| BR-M15-09 | `NhacYeuCauChoDuyet` | `PendingReminderIT` (đồng hồ giả lập) |
+| BR-M15-10 | Thứ tự `(ngay_hieu_luc_thuc_te, thoi_diem_quyet_dinh)` | `CatchUpApplyIT` |
+| BR-M15-11 | `NhatKyQueryService` che `lyDo` | `AuditLogFieldMaskingIT` |
+| BR-M15-12, 13 | `LoaiBoDuLieuHetHan` theo chuỗi | `ExpiredDataPurgeIT` |

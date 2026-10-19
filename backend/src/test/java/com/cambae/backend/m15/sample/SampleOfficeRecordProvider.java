@@ -1,0 +1,63 @@
+package com.cambae.backend.m15.sample;
+
+import com.cambae.backend.common.Role;
+import com.cambae.backend.common.error.InvalidValueException;
+import com.cambae.backend.m15.account.api.CurrentUser;
+import com.cambae.backend.m15.correction.api.CorrectableRecordProvider;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+/** Provider đính chính cho bản ghi mẫu không gắn tầng (000 T060). Bản ghi mẫu không có bản nháp nên tồn tại là đã xác nhận. */
+@Component
+public class SampleOfficeRecordProvider implements CorrectableRecordProvider {
+
+    public static final String TYPE = "M15.SAMPLE_OFFICE_RECORD";
+
+    private final JdbcTemplate jdbc;
+
+    public SampleOfficeRecordProvider(JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
+    }
+
+    @Override
+    public String recordType() {
+        return TYPE;
+    }
+
+    @Override
+    public boolean isConfirmed(long id) {
+        return !jdbc.queryForList("SELECT id FROM sample_office_record WHERE id = ?", Long.class, id)
+                .isEmpty();
+    }
+
+    @Override
+    public long originalRecorder(long id) {
+        return jdbc.queryForObject("SELECT actor_id FROM sample_office_record WHERE id = ?", Long.class, id);
+    }
+
+    @Override
+    public Optional<Long> floorArea(long id) {
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean canRecord(CurrentUser user) {
+        return user.roles().stream().anyMatch(r -> List.of(Role.OFFICE_STAFF).contains(r));
+    }
+
+    @Override
+    public void validateContent(Object content) {
+        if (!(content instanceof Map<?, ?> map) || !(map.get("note") instanceof String)) {
+            throw new InvalidValueException("Nội dung đúng cần trường note");
+        }
+    }
+
+    @Override
+    public Object originalContent(long id) {
+        return Map.of(
+                "note", jdbc.queryForObject("SELECT note FROM sample_office_record WHERE id = ?", String.class, id));
+    }
+}
