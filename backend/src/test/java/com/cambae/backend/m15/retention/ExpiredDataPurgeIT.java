@@ -43,6 +43,7 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
 
     private static final String FLOOR = SampleFloorRecordProvider.TYPE;
     private static final String OFFICE = SampleOfficeRecordProvider.TYPE;
+    private static final String REQUEST = "M15.APPROVAL_REQUEST";
     private static final AuditAction RECORDED = new AuditAction("SAMPLE_RECORDED", false);
     private static final CurrentUser NURSE = FakePermissions.user(10, Role.NURSING_STAFF);
     private static final CurrentUser SCHEDULER = FakePermissions.user(0, Role.SCHEDULER);
@@ -152,6 +153,20 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
         return correctionId;
     }
 
+    private long request(String status, Instant at, Long residentId) {
+        LocalDateTime time = LocalDateTime.ofInstant(at, ZoneOffset.UTC);
+        jdbc.update(
+                "INSERT INTO approval_request (type, status, content, resident_id, requester_id, created_at, reason,"
+                        + " requested_effective_date, decided_at) VALUES ('M15.SAMPLE', ?, '{}', ?, ?, ?, 'đề nghị', ?, ?)",
+                status,
+                residentId,
+                NURSE.accountId(),
+                time,
+                time.toLocalDate(),
+                status.equals("PENDING_APPROVAL") ? null : time);
+        return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+    }
+
     private boolean exists(String table, long id) {
         return jdbc.queryForObject("SELECT COUNT(*) FROM " + table + " WHERE id = ?", Integer.class, id) > 0;
     }
@@ -248,6 +263,60 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
         assertThat(exists("sample_office_record", recentReferrer)).isTrue();
         assertThat(exists("sample_floor_record", target2)).isFalse();
         assertThat(exists("sample_office_record", oldReferrer)).isFalse();
+    }
+
+    @Test
+    void T072_finishedRequestExpired_isPurgedWithItsLogs_openRecentOrResidentRequests_areKept() {
+        long old = request("REJECTED", expired, null);
+        logFor(REQUEST, old, expired, null);
+        long recentRequest = request("REJECTED", recent, null);
+        long open = request("PENDING_APPROVAL", expired, null);
+        long ofResident = request("CANCELLED", expired, 99L);
+
+        runJob();
+
+        assertThat(exists("approval_request", old)).isFalse();
+        assertThat(logsOf(REQUEST, old)).isZero();
+        assertThat(exists("approval_request", recentRequest)).isTrue();
+        assertThat(exists("approval_request", open)).isTrue();
+        // Gắn hồ sơ: hạn tính từ ngày kết thúc lưu trú (001), chưa có thì giữ (plan 000, D5)
+        assertThat(exists("approval_request", ofResident)).isTrue();
+    }
+
+    @Test
+    void T072_FR_051a_requestWithApplicationResult_isKept_whileItsCorrectionExists() {
+        long original = officeRecord(recent);
+        long requestId = request("APPLIED", expired, null);
+        jdbc.update(
+                "INSERT INTO correction (record_type, original_record_id, type, corrected_content, reason, actor_id,"
+                        + " creation_method, approval_request_id, recorded_at, sequence_no)"
+                        + " VALUES (?, ?, 'AMEND_CONTENT', '{\"note\":\"đúng\"}', 'ghi nhầm', ?, 'C', ?, ?, 1)",
+                OFFICE,
+                original,
+                NURSE.accountId(),
+                requestId,
+                LocalDateTime.ofInstant(expired, ZoneOffset.UTC));
+        long correctionId = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        jdbc.update(
+                "INSERT INTO correction_chain (record_type, original_record_id, correction_count) VALUES (?, ?, 1)",
+                OFFICE,
+                original);
+        jdbc.update(
+                "INSERT INTO application_result (approval_request_id, result_type, result_id, recorded_at)"
+                        + " VALUES (?, 'M15.CORRECTION', ?, ?)",
+                requestId,
+                String.valueOf(correctionId),
+                LocalDateTime.ofInstant(expired, ZoneOffset.UTC));
+
+        runJob();
+
+        assertThat(exists("approval_request", requestId)).isTrue();
+        assertThat(exists("correction", correctionId)).isTrue();
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM application_result WHERE approval_request_id = ?",
+                        Integer.class,
+                        requestId))
+                .isEqualTo(1);
     }
 
     @Test
