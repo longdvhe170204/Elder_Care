@@ -4,6 +4,7 @@ import { Alert, AlertAction, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { formatDateTime } from '@/common/dateTime'
 import { CorrectionBadge } from './CorrectionBadge'
 import { CorrectionForm } from './CorrectionForm'
 
@@ -13,22 +14,6 @@ import { CorrectionForm } from './CorrectionForm'
 //   quyền thật do backend kiểm (403 CORRECTION_NOT_ALLOWED). Mặc định không hiện.
 
 const TYPE_LABEL = { AMEND_CONTENT: 'Sửa nội dung', VOID: 'Hủy ghi nhận' }
-
-// dd/MM/yyyy HH:mm theo Asia/Ho_Chi_Minh (NFR-11)
-const DATE_TIME = new Intl.DateTimeFormat('en-GB', {
-  timeZone: 'Asia/Ho_Chi_Minh',
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  hourCycle: 'h23',
-})
-
-function formatDateTime(iso) {
-  const p = Object.fromEntries(DATE_TIME.formatToParts(new Date(iso)).map((part) => [part.type, part.value]))
-  return `${p.day}/${p.month}/${p.year} ${p.hour}:${p.minute}`
-}
 
 function ContentList({ content, fields }) {
   return (

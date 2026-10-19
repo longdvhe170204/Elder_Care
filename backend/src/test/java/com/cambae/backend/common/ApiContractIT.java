@@ -53,9 +53,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             "POST /api/v1/approval-requests/{id}/submit",
             "POST /api/v1/approval-requests/{id}/approve",
             "POST /api/v1/approval-requests/{id}/reject",
-            "POST /api/v1/approval-requests/{id}/cancel",
-            "GET /api/v1/audit-logs",
-            "GET /api/v1/audit-logs/entities/{entityType}/{entityId}");
+            "POST /api/v1/approval-requests/{id}/cancel");
 
     /** Phản hồi của hợp đồng chưa cài (ví dụ 202 của cách C chờ yêu cầu phê duyệt, US5); phải rỗng khi xong 000. */
     private static final Set<String> PENDING_RESPONSES =
