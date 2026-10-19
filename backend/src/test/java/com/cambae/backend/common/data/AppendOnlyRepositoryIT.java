@@ -3,8 +3,11 @@ package com.cambae.backend.common.data;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.cambae.backend.m15.sample.SampleFloorRecord;
+import com.cambae.backend.m15.sample.SampleFloorRecordRepository;
 import com.cambae.backend.support.MySqlIntegrationTestBase;
 import java.lang.reflect.Method;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -19,14 +22,18 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class AppendOnlyRepositoryIT extends MySqlIntegrationTestBase {
 
     @Autowired
-    SampleRecordRepository records;
+    SampleFloorRecordRepository records;
 
     @Autowired
     JdbcTemplate jdbc;
 
+    private static SampleFloorRecord record(Long id, String note) {
+        return new SampleFloorRecord(id, Instant.parse("2026-10-19T01:00:00Z"), 1, 2, note);
+    }
+
     @Test
     void FR_009_repository_exposesNoSaveOrDelete() {
-        List<String> names = Arrays.stream(SampleRecordRepository.class.getMethods())
+        List<String> names = Arrays.stream(SampleFloorRecordRepository.class.getMethods())
                 .map(Method::getName)
                 .toList();
 
@@ -36,31 +43,31 @@ class AppendOnlyRepositoryIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_009_append_persistsNewRecord() {
-        SampleRecord saved = records.append(new SampleRecord("đo huyết áp"));
+        SampleFloorRecord saved = records.append(record(null, "đo huyết áp"));
 
         assertThat(records.findById(saved.getId()))
                 .get()
-                .extracting(SampleRecord::getNote)
+                .extracting(SampleFloorRecord::getNote)
                 .isEqualTo("đo huyết áp");
     }
 
     @Test
     void FR_009_append_rejectsExistingRecord() {
-        SampleRecord saved = records.append(new SampleRecord("bản gốc"));
-        SampleRecord copy = new SampleRecord(saved.getId(), "sửa đè");
+        SampleFloorRecord saved = records.append(record(null, "bản gốc"));
 
-        assertThatThrownBy(() -> records.append(copy)).isInstanceOf(DataAccessException.class);
+        assertThatThrownBy(() -> records.append(record(saved.getId(), "sửa đè")))
+                .isInstanceOf(DataAccessException.class);
         assertThat(records.findById(saved.getId()))
                 .get()
-                .extracting(SampleRecord::getNote)
+                .extracting(SampleFloorRecord::getNote)
                 .isEqualTo("bản gốc");
     }
 
     @Test
     void R_05_appAccount_cannotDeleteWithoutTableGrant() {
-        records.append(new SampleRecord("không được xóa"));
+        records.append(record(null, "không được xóa"));
 
-        assertThatThrownBy(() -> jdbc.update("DELETE FROM sample_record"))
+        assertThatThrownBy(() -> jdbc.update("DELETE FROM sample_floor_record"))
                 .isInstanceOf(DataAccessException.class)
                 .rootCause()
                 .hasMessageContaining("DELETE command denied");

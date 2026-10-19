@@ -79,7 +79,9 @@ spring:
     activate:
       on-profile: demo
   flyway:
-    # Dữ liệu mẫu chỉ nạp ở demo (000 T048)
+    # Dữ liệu mẫu chỉ nạp ở demo và test (000 T048). V000_90 có trước các migration V000_06… của 000 làm sau,
+    # nên schema demo đã có cho phép áp migration số nhỏ hơn đến sau.
     locations: classpath:db/migration,classpath:db/migration/demo
+    out-of-order: true
   jpa:
     show-sql: true
