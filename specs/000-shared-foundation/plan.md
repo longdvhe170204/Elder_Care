@@ -256,6 +256,10 @@ mobile/                          # một app chung cho nhân viên, người th�
 - Test `CorrectionSheet.test.jsx` (Vitest, giả `fetch`), 17 trường hợp. Thêm `afterEach(cleanup)` vào `frontend/src/test/setup.js` vì Vitest không bật `globals` nên Testing Library không tự dọn DOM. Dùng `fireEvent`, không thêm `@testing-library/user-event`.
 - Chưa xong (T106 giữ `[ ]`): profile `demo` chưa có `CurrentUser`, Security (002) và provider mẫu chỉ ở mã test, nên chưa gắn component vào màn nào và chưa chạy đầu-cuối; SC-007 chưa đo (T103). Không làm bản giả quyền cho `demo` khi chưa được duyệt.
 
+**Phase 5 – US3, thứ tự và phần dời (2026-10-19, chủ dự án duyệt)**:
+- T072: provider lưu trữ cho `yeu_cau_phe_duyet` cần bảng của T089 (US5, Phase 7), nên dời sau T089; Phase 5 làm provider cho `audit_log` và `correction`. T072 giữ `[ ]` cho tới khi đủ ba provider và `LoaiBoDuLieuIT` có trường hợp yêu cầu phê duyệt.
+- Cloud session không có JDK 25 nên không chạy được test backend; test backend của Phase 5 chạy trên máy chủ dự án (Windows, JDK 25, MySQL 8.0.45) trước khi đánh dấu `[x]`.
+
 **Dịch vụ ngoài (2026-10-19)**: chủ dự án chọn AWS S3 cho tệp, FCM cho thông báo đẩy, dịch vụ SMS bên ngoài. Giao diện của 000 không đổi: `FileApi`, `FilePermissionProvider` (T036) giữ nguyên, 001 cài bằng S3 (001 research H-13); khuôn thông báo `common.notification` (T034) không phụ thuộc kênh, 009 gửi qua FCM và bộ chuyển SMS (009 research B-05). Region S3, nghĩa vụ chuyển dữ liệu ra nước ngoài và nhà cung cấp SMS chờ chủ dự án chốt (plan 001, 009).
 
 ## Điểm cần báo lại về tài liệu nguồn

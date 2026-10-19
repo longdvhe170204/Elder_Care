@@ -186,7 +186,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 - [ ] T069 [US3] Tạo controller `BE/m15/nhatky/web/NhatKyController.java` cho `GET /nhat-ky` và `GET /nhat-ky/doi-tuong/{doiTuongLoai}/{doiTuongId}` theo contracts/api-000.yaml
 - [ ] T070 [P] [US3] Tạo SPI `BE/m15/luutru/api/LuuTruProvider.java` (`loaiDuLieu`, `loaiHan` `THEO_HO_SO`/`KHONG_GAN_HO_SO`/`DAI_HON(MaThamSo)`, `ungVienHetHan`, `thamChieuToi`, `xoa`) (contracts mục 1.7)
 - [ ] T071 [US3] Cài job `BE/m15/luutru/lich/LoaiBoDuLieuHetHan.java` chạy hằng tháng bằng datasource `eldercare_luu_tru`: tính ứng viên theo CFG-M15-03, CFG-M15-04 đọc lúc chạy, dựng chuỗi (gốc, đính chính, nhật ký, bản ghi tham chiếu), loại chuỗi còn phần tử chưa hết hạn, xóa từng chuỗi một transaction, ghi tóm tắt `LOAI_BO_DU_LIEU_HET_HAN` bằng `ghiNgoaiTransaction` (R-11)
-- [ ] T072 [P] [US3] Cài `LuuTruProvider` cho `nhat_ky`, `dinh_chinh`, `yeu_cau_phe_duyet` trong `BE/m15/luutru/internal/` (nhật ký gắn hồ sơ theo `nguoi_cao_tuoi_id`, FR-050)
+- [ ] T072 *(2026-10-19, chủ dự án duyệt: phần `yeu_cau_phe_duyet` dời sau T089; làm trước provider cho `nhat_ky`, `dinh_chinh`)* [P] [US3] Cài `LuuTruProvider` cho `nhat_ky`, `dinh_chinh`, `yeu_cau_phe_duyet` trong `BE/m15/luutru/internal/` (nhật ký gắn hồ sơ theo `nguoi_cao_tuoi_id`, FR-050). Điều kiện xong: có đủ ba provider; provider `yeu_cau_phe_duyet` (gồm tham chiếu tới `ket_qua_ap_dung`, FR-051a) làm khi bảng của T089 đã có, kèm trường hợp test trong `LoaiBoDuLieuIT` (T066)
 - [ ] T073 [P] [US3] Tạo màn tra nhật ký `frontend/src/tinh-nang/nhat-ky/NhatKyBang.jsx` (lọc đối tượng, người, thời gian; hiển thị "đã thay đổi" cho trường bị che; ngày dd/MM/yyyy) và test `frontend/src/tinh-nang/nhat-ky/NhatKyBang.test.jsx` (NFR-10, NFR-11)
 
 **Checkpoint**: Nhật ký tra cứu, che trường và loại bỏ dữ liệu hoạt động.
@@ -270,7 +270,7 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 - **Foundational (Phase 2)**: sau Setup; chặn mọi user story của 000 và mọi feature khác
 - **US1 (Phase 3)**: sau Phase 2
 - **US2 (Phase 4)**: sau Phase 2 và US1 (dùng mẫu nhóm 3, T045, T048); cách C (T057, T058) cần T090–T092 của US5
-- **US3 (Phase 5)**: sau Phase 2; test đầy đủ cần dữ liệu do US1, US2, US4 sinh
+- **US3 (Phase 5)**: sau Phase 2; test đầy đủ cần dữ liệu do US1, US2, US4 sinh; T072 phần `yeu_cau_phe_duyet` cần T089 (US5)
 - **US4 (Phase 6)**: sau Phase 2 (bảng và đọc tham số đã có ở T029–T032)
 - **US5 (Phase 7)**: sau Phase 2 và US4 cho mốc CFG-M15-05/06 đổi được (đọc mặc định thì không cần US4)
 - **Polish (Phase 8)**: sau các user story cần thiết
