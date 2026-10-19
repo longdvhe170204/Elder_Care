@@ -26,6 +26,12 @@ spring:
           time_zone: UTC
   flyway:
     locations: classpath:db/migration
+    # Tài khoản có quyền DDL và tạo tài khoản (eldercare_app không có); thiếu thì dùng DB_* (000 T024)
+    user: ${DB_MIGRATION_USERNAME:${DB_USERNAME}}
+    password: ${DB_MIGRATION_PASSWORD:${DB_PASSWORD}}
+    placeholders:
+      appPassword: ${DB_PASSWORD}
+      retentionPassword: ${DB_RETENTION_PASSWORD}
   jackson:
     # API trả thời điểm ISO-8601 offset +07:00 (R-03)
     time-zone: Asia/Ho_Chi_Minh

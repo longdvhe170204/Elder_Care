@@ -202,6 +202,13 @@ mobile/                          # một app chung cho nhân viên, người th�
 - Migration `V000_01__idempotency_key.sql` cấp `INSERT, UPDATE, DELETE` trên bảng này cho `eldercare_app` (bảng kỹ thuật).
 - Test thêm ngoài tasks để kiểm nhóm này: `ReasonTest`, `VersionEtagTest`, `ProblemDetailsHandlerIT`, `IdempotencyFilterIT`; controller mẫu cho test ở gói `com.testsupport` (ngoài vùng quét bean, nạp bằng `@Import`).
 
+**Nhóm Khung nhóm dữ liệu, bản giả quyền (T022 → T025, 2026-10-19)**:
+- `AppendOnlyRepository` (chỉ `append`, `findById`, `existsById`) chạy nhờ lớp cơ sở `BaseJpaRepository` khai cho mọi repository ở `common.data.JpaConfig` (`@EnableJpaRepositories(repositoryBaseClass = …)`). `append` dùng `persist` nên bản ghi đã có bị từ chối, không bị `merge` đè.
+- T024 thành migration Flyway `V000_00__database_accounts.sql` chạy mọi môi trường: `CREATE USER IF NOT EXISTS` hai tài khoản (mật khẩu từ placeholder `appPassword` = `DB_PASSWORD`, `retentionPassword` = `DB_RETENTION_PASSWORD`) và cấp `SELECT` mức schema; ở test tài khoản đã do lớp cơ sở tạo nên không đổi. Quyền `INSERT`, `UPDATE`, `DELETE` (danh sách của T024) cấp trong migration của từng bảng (T026, T029, T053…), vì bảng chưa có lúc chạy `V000_00`.
+- Flyway chạy bằng tài khoản riêng `DB_MIGRATION_USERNAME`, `DB_MIGRATION_PASSWORD` (thiếu thì dùng `DB_*`), vì `eldercare_app` không có quyền DDL và tạo tài khoản.
+- Test có thêm thư mục migration `db/test-migration` (bảng `sample_record`, chỉ cấp `INSERT`) để kiểm `AppendOnlyRepositoryIT`, gồm trường hợp `eldercare_app` bị MySQL chặn `DELETE`.
+- T025: giao diện đặt ở `m15.account.api` theo chữ ký 002 đã chốt (tham số đối tượng là `Target`, tương ứng `DoiTuong`), chỉ phần 000 dùng; `PermissionKey` tạm dùng hai chuỗi, 002 đổi sang enum. Thêm `Role.RESIDENT` (AC-16) theo Q-365. Bản giả `support/FakePermissions` và `FakePermissionsTest`.
+
 ## Điểm cần báo lại về tài liệu nguồn
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới, rồi sửa `docs/business/nghiep-vu.md` và spec 000.

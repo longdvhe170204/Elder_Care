@@ -72,13 +72,13 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 ### Nhóm dữ liệu – phần khung (R-05)
 
-- [ ] T022 [P] Tạo chú thích `BE/common/dulieu/NhomDuLieu.java` (`DANH_MUC | NGHIEP_VU | GHI_NHAN`) và `BE/common/dulieu/LenhNghiepVu.java` (`batBuocLyDo = true`) (FR-001, FR-005, FR-007)
-- [ ] T023 [P] Tạo `BE/common/dulieu/ChiThemRepository.java` chỉ có `them(T)`, `timTheoId`, truy vấn đọc; không có `save` cho bản ghi đã có, không có `delete` (FR-009)
-- [ ] T024 Tạo migration quyền tài khoản `MIG/V000_00__tai_khoan_csdl.sql` (chỉ chạy ở môi trường dựng sẵn; test dùng T009): `eldercare_app` không có `DELETE` trên bảng nhóm 3, chỉ `SELECT, INSERT` trên `nhat_ky`, `dinh_chinh`, `lich_su_tham_so`; `eldercare_luu_tru` có `DELETE` (R-05)
+- [x] T022 [P] Tạo chú thích `BE/common/dulieu/NhomDuLieu.java` (`DANH_MUC | NGHIEP_VU | GHI_NHAN`) và `BE/common/dulieu/LenhNghiepVu.java` (`batBuocLyDo = true`) (FR-001, FR-005, FR-007)
+- [x] T023 [P] Tạo `BE/common/dulieu/ChiThemRepository.java` chỉ có `them(T)`, `timTheoId`, truy vấn đọc; không có `save` cho bản ghi đã có, không có `delete` (FR-009)
+- [x] T024 Tạo migration quyền tài khoản `MIG/V000_00__tai_khoan_csdl.sql` (chỉ chạy ở môi trường dựng sẵn; test dùng T009): `eldercare_app` không có `DELETE` trên bảng nhóm 3, chỉ `SELECT, INSERT` trên `nhat_ky`, `dinh_chinh`, `lich_su_tham_so`; `eldercare_luu_tru` có `DELETE` (R-05)
 
 ### Bản giả giao diện của 002 (R-12; thay bằng bản thật khi làm 002)
 
-- [ ] T025 [P] Khai báo giao diện tạm `NguoiDungHienTai`, `QuyenApi.coQuyen(nd, KhoaQuyen, DoiTuong)`, `PhamViApi`, `QuyenXemTruongApi`, `NguoiDuyetApi`, `TaiKhoanApi.coVaiTro` (bổ sung theo plan 004, Q-338) trong `BE/m15/taikhoan/api/` đúng chữ ký ở contracts/module-interfaces.md mục 2, và bản giả `BT/support/QuyenGia.java` (bảng vai trò → quyền tối thiểu)
+- [x] T025 [P] Khai báo giao diện tạm `NguoiDungHienTai`, `QuyenApi.coQuyen(nd, KhoaQuyen, DoiTuong)`, `PhamViApi`, `QuyenXemTruongApi`, `NguoiDuyetApi`, `TaiKhoanApi.coVaiTro` (bổ sung theo plan 004, Q-338) trong `BE/m15/taikhoan/api/` đúng chữ ký ở contracts/module-interfaces.md mục 2, và bản giả `BT/support/QuyenGia.java` (bảng vai trò → quyền tối thiểu)
 
 ### Nhật ký – phần ghi (R-06, FR-042 → FR-047)
 
