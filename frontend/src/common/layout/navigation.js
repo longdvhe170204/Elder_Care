@@ -30,6 +30,13 @@ export const NAV_GROUPS = [
     items: [
       // Dòng "Dashboard, báo cáo"
       { key: 'dashboard', label: 'Tổng quan', icon: 'LayoutDashboard', roles: [QL, TT, BS, DD, HC, KT] },
+      // Yêu cầu phê duyệt (000 US5): mọi vai trò nhân viên lập hoặc duyệt được tùy loại yêu cầu; danh sách do backend lọc theo phạm vi
+      {
+        key: 'approval-requests',
+        label: 'Yêu cầu phê duyệt',
+        icon: 'ClipboardCheck',
+        roles: [QL, TT, BS, DD, CS, BEP, HC, KT],
+      },
       // Dòng "Hồ sơ người cao tuổi"
       { key: 'residents', label: 'Người cao tuổi', icon: 'Users', roles: [QL, TT, BS, DD, CS, HC, NT, KT] },
     ],
