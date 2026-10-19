@@ -1,7 +1,7 @@
 ---
 name: Elder_Care
-version: 5.13.0
-status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 chờ duyệt)
+version: 5.14.0
+status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-10-19
 direction: Trời xanh theo bảng màu letters.app
@@ -621,13 +621,14 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 ### 15.7 Hiện trạng
 
-- Chưa có theme và màn mẫu; `lib/main.dart` vẫn là app mẫu của Flutter. Phần người cao tuổi (15.6) chưa có màn mẫu.
+- Chưa có theme và màn mẫu; `lib/main.dart` vẫn là app mẫu của Flutter. Phần người cao tuổi (15.6, duyệt 2026-10-19) chưa có màn mẫu.
 - Đã duyệt 2026-10-18: bố cục 15.4, bộ biểu tượng lucide. Cách lưu chế độ sáng tối và gói lucide cho Flutter chốt ở plan khi triển khai.
 
 ## 16. Lịch sử
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 5.14.0 | 2026-10-19 | Chủ dự án duyệt mục 15.6 Phần người cao tuổi (gồm nút SOS theo Q-372) |
 | 5.13.0 | 2026-10-19 | Thêm mục 15.6 Phần người cao tuổi theo Q-365 → Q-371 (chờ duyệt): nguyên tắc chữ, vùng bấm, tương phản, điều hướng; màn Hôm nay, nút SOS chạm một lần, đếm ngược 3 giây có nút Hủy (Q-372), màn sau khi gửi, màn không gửi được, đăng nhập bằng mã QR, các màn xem và góp ý. Hiện trạng thành 15.7. Không thêm màu |
 | 5.12.0 | 2026-10-18 | Màn mẫu Bàn giao ca (spec 008) và Cảnh báo (spec 007): thêm `handover-draft`, `handover-confirm`, `alert-card`; tông mức cảnh báo, trạng thái cảnh báo, bàn giao vào mục 3.5. Nút "Mở cảnh báo" ở Tổng quan mở màn Cảnh báo. Không thêm màu |
 | 5.11.0 | 2026-10-18 | Theo góp ý chủ dự án (màn Phát thuốc thừa khoảng trống): màn nhân viên rộng tối đa 1600px thay cho 1280px; lưới thẻ dùng `auto-fit` để thẻ giãn lấp đầy hàng, mỗi thẻ rộng tối đa 480px (thẻ việc ở Tổng quan 360px) để thẻ lẻ không kéo dài cả màn |
