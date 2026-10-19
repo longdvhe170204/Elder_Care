@@ -42,6 +42,7 @@ Mã nghiệp vụ giữ nguyên, không dịch: BR-, FR-, CFG-, DBR-, Q-, UC-, A
 | `m15.luutru` | `m15.retention` |
 | `m15.taikhoan` | `m15.account` |
 | `common.thoigian` | `common.time` |
+| `common.loi`, `common.web`, `common.ngoaituyen`, `common.dulieu` | `common.error`, `common.web`, `common.offline`, `common.data` |
 
 ## 3. Vai trò (mục 2.3)
 
@@ -134,6 +135,10 @@ Mã nghiệp vụ giữ nguyên, không dịch: BR-, FR-, CFG-, DBR-, Q-, UC-, A
 | `BAN_GHI_DA_HUY_GHI_NHAN` | `RECORD_VOIDED` |
 | `BAN_GHI_CHUA_XAC_NHAN` | `RECORD_NOT_CONFIRMED` |
 | `DANH_MUC_DA_DUOC_THAM_CHIEU` | `CATALOG_ITEM_IN_USE` |
+| `KHONG_TIM_THAY` (404, không lộ tồn tại) | `NOT_FOUND` |
+| `KHOA_LAP_LAI_DA_DUNG` (cùng khóa, nội dung khác) | `IDEMPOTENCY_KEY_REUSED` |
+| `KHOA_LAP_LAI_DANG_XU_LY` | `IDEMPOTENCY_IN_PROGRESS` |
+| lỗi của framework | tên trạng thái HTTP, ví dụ `BAD_REQUEST`, `NOT_FOUND`, `METHOD_NOT_ALLOWED` |
 
 Bổ sung theo từng feature khi dịch `contracts/api-NNN.yaml` (R-03).
 
@@ -202,7 +207,7 @@ Loại yêu cầu, loại bản ghi của module khác (ví dụ `M02.THAY_DOI_L
 | `nhat_ky` | `audit_log` |
 | `yeu_cau_phe_duyet`, `ket_qua_ap_dung` | `approval_request`, `application_result` |
 | `dinh_chinh`, `chuoi_dinh_chinh` | `correction`, `correction_chain` |
-| `khoa_lap_lai` | `idempotency_key` |
+| `khoa_lap_lai` (`khoa`, `nguoi_dung_id`, `ma_bam_yeu_cau`, `ket_qua_json`, `het_han_luc`) | `idempotency_key` (`key_value`, `username`, `request_hash`, `result_json`, `expires_at`) |
 | `lan_chay_lich` | `scheduler_run` |
 | `event_publication`, `shedlock` | giữ nguyên (Spring Modulith, ShedLock) |
 | `v_dinh_chinh_moi_nhat`, `v_ban_ghi_da_huy` | `v_latest_correction`, `v_voided_record` |
@@ -220,7 +225,9 @@ Loại yêu cầu, loại bản ghi của module khác (ví dụ `M02.THAY_DOI_L
 | `DieuKhienDongHo`, `DongHoKiemThuController` | `TestClockControl`, `TestClockController` |
 | `LoiNghiepVu` (`DieuKienChuaThoa`, `KhongCoQuyen`, `DaDuocXuLy`, `SaiPhienBan`, `ThieuLyDo`, `GiaTriKhongHopLe`) | `BusinessException` (`ConditionNotMetException`, `PermissionDeniedException`, `AlreadyProcessedException`, `VersionMismatchException`, `ReasonRequiredException`, `InvalidValueException`) |
 | `ProblemDetailsHandler`, `PhienBanEtag`, `IdempotencyFilter` | `ProblemDetailsHandler`, `VersionEtag`, `IdempotencyFilter` |
-| `PhongBiNgoaiTuyen`, `KetQuaDongBo` | `OfflineEnvelope`, `SyncResult` |
+| `PhongBiNgoaiTuyen` (`idempotencyKey`, `thoiDiemThietBi`, `ngoaiTuyen`), `KetQuaDongBo` kèm lý do | `OfflineEnvelope` (`idempotencyKey`, `deviceTime`, `offline`), `SyncResult`, `SyncOutcome` (`result`, `reason`) |
+| `DieuKien` (mã BR, mô tả) | `UnmetCondition` (`code`, `description`) |
+| `LyDo` | `Reason` |
 | `@NhomDuLieu`, `@LenhNghiepVu`, `ChiThemRepository`, `DanhMucCoSo`, `PhienBanHieuLuc` | `@DataGroup`, `@BusinessCommand`, `AppendOnlyRepository`, `CatalogBase`, `EffectiveVersioning` |
 | `NhatKyApi`, `BanGhiNhatKy`, `NhatKyService`, `NhatKyQueryService`, `PhanLoaiTruongProvider` | `AuditLogApi`, `AuditLogEntry`, `AuditLogService`, `AuditLogQueryService`, `FieldClassificationProvider` |
 | `ThamSoApi`, `MaThamSo`, `GiaTriThamSo`, `ThamSoService`, `KiemTraThamSo` | `ParameterApi`, `ParameterCode`, `ParameterValue`, `ParameterService`, `ParameterValidator` |

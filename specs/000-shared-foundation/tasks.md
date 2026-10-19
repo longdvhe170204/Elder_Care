@@ -62,13 +62,13 @@ description: "Danh sách task triển khai feature 000 – Nền tảng quy tắ
 
 ### Lỗi, API, chống lặp (R-03)
 
-- [ ] T015 [P] Tạo phân cấp `BE/common/loi/LoiNghiepVu.java` gồm `DieuKienChuaThoa(List<DieuKien>)`→409, `KhongCoQuyen`→403, `DaDuocXuLy`→409, `SaiPhienBan(giaTriHienHanh)`→412, `ThieuLyDo`→422, `GiaTriKhongHopLe`→422 (FR-006, FR-021, FR-040)
-- [ ] T016 Tạo `BE/common/loi/web/ProblemDetailsHandler.java` (`@RestControllerAdvice`) trả `application/problem+json` có `maLoi`, `dieuKienChuaThoa[]` (mã BR, mô tả), `giaTriHienHanh`; 404 cho đối tượng ngoài phạm vi không lộ tồn tại (R-03)
-- [ ] T017 [P] Tạo value object `BE/common/LyDo.java`: "Không rỗng, không chỉ có khoảng trắng, tối đa 2000 ký tự; sai thì `422 THIEU_LY_DO`" (FR-044, SC-008)
-- [ ] T018 [P] Tạo hỗ trợ ETag/`If-Match` trong `BE/common/web/PhienBanEtag.java`: trả `ETag` = `phien_ban`, bắt buộc `If-Match` cho lệnh sửa, sai thì `SaiPhienBan` (FR-021, FR-040)
-- [ ] T019 Tạo bảng kỹ thuật `khoa_lap_lai` trong `MIG/V000_01__khoa_lap_lai.sql`: khóa chính `(khoa, nguoi_dung_id)`, cột `ma_bam_yeu_cau`, `ket_qua_json`, `het_han_luc` (giữ 7 ngày, thông số kỹ thuật) (data-model mục 6)
-- [ ] T020 Tạo bộ lọc `BE/common/web/IdempotencyFilter.java`: cùng `Idempotency-Key` cùng người dùng trả lại kết quả lần đầu, không tạo bản ghi thứ hai (R-03)
-- [ ] T021 [P] Tạo `BE/common/ngoaituyen/PhongBiNgoaiTuyen.java` (`idempotencyKey`, `thoiDiemThietBi`, `ngoaiTuyen`) và enum `KetQuaDongBo` `CHAP_NHAN`, `CHAP_NHAN_KEM_NHAN`, `CHO_XEM_LAI`, `TU_CHOI` kèm lý do (FR-046, DBR-25, BR-M15-20; R-13)
+- [x] T015 [P] Tạo phân cấp `BE/common/loi/LoiNghiepVu.java` gồm `DieuKienChuaThoa(List<DieuKien>)`→409, `KhongCoQuyen`→403, `DaDuocXuLy`→409, `SaiPhienBan(giaTriHienHanh)`→412, `ThieuLyDo`→422, `GiaTriKhongHopLe`→422 (FR-006, FR-021, FR-040)
+- [x] T016 Tạo `BE/common/loi/web/ProblemDetailsHandler.java` (`@RestControllerAdvice`) trả `application/problem+json` có `maLoi`, `dieuKienChuaThoa[]` (mã BR, mô tả), `giaTriHienHanh`; 404 cho đối tượng ngoài phạm vi không lộ tồn tại (R-03)
+- [x] T017 [P] Tạo value object `BE/common/LyDo.java`: "Không rỗng, không chỉ có khoảng trắng, tối đa 2000 ký tự; sai thì `422 THIEU_LY_DO`" (FR-044, SC-008)
+- [x] T018 [P] Tạo hỗ trợ ETag/`If-Match` trong `BE/common/web/PhienBanEtag.java`: trả `ETag` = `phien_ban`, bắt buộc `If-Match` cho lệnh sửa, sai thì `SaiPhienBan` (FR-021, FR-040)
+- [x] T019 Tạo bảng kỹ thuật `khoa_lap_lai` trong `MIG/V000_01__khoa_lap_lai.sql`: khóa chính `(khoa, nguoi_dung_id)`, cột `ma_bam_yeu_cau`, `ket_qua_json`, `het_han_luc` (giữ 7 ngày, thông số kỹ thuật) (data-model mục 6)
+- [x] T020 Tạo bộ lọc `BE/common/web/IdempotencyFilter.java`: cùng `Idempotency-Key` cùng người dùng trả lại kết quả lần đầu, không tạo bản ghi thứ hai (R-03)
+- [x] T021 [P] Tạo `BE/common/ngoaituyen/PhongBiNgoaiTuyen.java` (`idempotencyKey`, `thoiDiemThietBi`, `ngoaiTuyen`) và enum `KetQuaDongBo` `CHAP_NHAN`, `CHAP_NHAN_KEM_NHAN`, `CHO_XEM_LAI`, `TU_CHOI` kèm lý do (FR-046, DBR-25, BR-M15-20; R-13)
 
 ### Nhóm dữ liệu – phần khung (R-05)
 
