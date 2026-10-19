@@ -209,6 +209,12 @@ mobile/                          # một app chung cho nhân viên, người th�
 - Test có thêm thư mục migration `db/test-migration` (bảng `sample_record`, chỉ cấp `INSERT`) để kiểm `AppendOnlyRepositoryIT`, gồm trường hợp `eldercare_app` bị MySQL chặn `DELETE`.
 - T025: giao diện đặt ở `m15.account.api` theo chữ ký 002 đã chốt (tham số đối tượng là `Target`, tương ứng `DoiTuong`), chỉ phần 000 dùng; `PermissionKey` tạm dùng hai chuỗi, 002 đổi sang enum. Thêm `Role.RESIDENT` (AC-16) theo Q-365. Bản giả `support/FakePermissions` và `FakePermissionsTest`.
 
+**Nhóm Nhật ký – phần ghi (T026 → T028, T039, 2026-10-19)**:
+- `V000_02__audit_log.sql`: phân vùng `RANGE COLUMNS(occurred_at)` theo năm (2026 → 2030 và `p_max`; T102 ghi việc thêm phân vùng hằng năm), `CHECK` `actor_id` khi `USER`, hai trigger mẫu nhóm 3. Trigger xóa dùng `USER()` thay `CURRENT_USER()` (data-model mục 1.4 đã sửa) và không cho xóa dòng `exempt_from_purge`. Cấp `INSERT` cho `eldercare_app`, `DELETE` cho `eldercare_retention`.
+- Hành động là `AuditAction(code, requiresReason)` do module khai, để `build()` kiểm được lý do (FR-044). Kiểm "Bộ lập lịch phải có `basis`" (FR-045) đặt ở `write()` vì builder chưa biết người thực hiện.
+- `AuditLogService` ghi bằng JDBC trong transaction của lệnh; người thực hiện lấy từ bean `CurrentUser` qua `ObjectProvider` (002 cung cấp; chưa có thì `write` lỗi). Cột `role` lưu một mã AC: tài khoản nhiều vai trò lấy vai trò đầu theo thứ tự enum, 002 có thể đổi. Thời điểm truyền dạng `LocalDateTime` UTC (không dùng `Timestamp`, vì `Timestamp` bị driver đổi múi giờ theo JVM).
+- T039 làm cùng nhóm này (`AuditLogAtomicityIT`); thêm `AuditLogTableIT` (phân vùng, quyền, trigger), `AuditLogSchedulerIT` (FR-045), `AuditLogEntryTest`.
+
 ## Điểm cần báo lại về tài liệu nguồn
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới, rồi sửa `docs/business/nghiep-vu.md` và spec 000.
