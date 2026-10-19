@@ -6,6 +6,12 @@ package com.cambae.backend.m15.auditlog.api;
  */
 public record AuditAction(String code, boolean requiresReason) {
 
+    /**
+     * Bản tóm tắt một đợt loại bỏ dữ liệu hết hạn (FR-051). Nhật ký ghi bản này với {@code exempt_from_purge = TRUE}:
+     * job không loại bỏ nó và trigger chặn xóa.
+     */
+    public static final AuditAction EXPIRED_DATA_PURGED = new AuditAction("EXPIRED_DATA_PURGED", false);
+
     public AuditAction {
         if (code == null || code.isBlank() || code.length() > 40) {
             throw new IllegalArgumentException("Mã hành động 1–40 ký tự");

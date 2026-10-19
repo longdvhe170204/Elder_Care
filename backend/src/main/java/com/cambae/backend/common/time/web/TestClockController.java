@@ -1,8 +1,10 @@
 package com.cambae.backend.common.time.web;
 
+import com.cambae.backend.common.scheduling.ScheduledJob;
 import com.cambae.backend.common.time.TestClockControl;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
@@ -20,9 +22,11 @@ import org.springframework.web.server.ResponseStatusException;
 public class TestClockController {
 
     private final TestClockControl clock;
+    private final List<ScheduledJob> jobs;
 
-    public TestClockController(TestClockControl clock) {
+    public TestClockController(TestClockControl clock, List<ScheduledJob> jobs) {
         this.clock = clock;
+        this.jobs = jobs;
     }
 
     @GetMapping
@@ -32,10 +36,16 @@ public class TestClockController {
 
     @PostMapping
     public ClockResponse change(@RequestBody ClockRequest request) {
-        if (request.runJobs() != null && !request.runJobs().isEmpty()) {
-            // Job áp dụng yêu cầu, nhắc, loại bỏ dữ liệu chưa có (000 T071, T093, T094 sẽ đăng ký vào đây)
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_CONTENT, "Job chưa được cài: " + request.runJobs());
+        List<ScheduledJob> toRun = new ArrayList<>();
+        if (request.runJobs() != null) {
+            for (TestJob requested : request.runJobs()) {
+                // Job áp dụng yêu cầu, nhắc yêu cầu (000 T093, T094) đăng ký khi cài; chưa có thì 422
+                toRun.add(jobs.stream()
+                        .filter(job -> job.name().equals(requested.name()))
+                        .findFirst()
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.UNPROCESSABLE_CONTENT, "Job chưa được cài: " + requested)));
+            }
         }
         if (request.setTo() != null) {
             clock.setTo(request.setTo().toInstant());
@@ -43,6 +53,8 @@ public class TestClockController {
         if (request.advanceBy() != null) {
             clock.advanceBy(Duration.parse(request.advanceBy()));
         }
+        // Chạy sau khi đặt giờ, theo thứ tự yêu cầu
+        toRun.forEach(ScheduledJob::runNow);
         return current();
     }
 

@@ -13,6 +13,7 @@ import com.cambae.backend.m15.account.api.ScopeApi;
 import com.cambae.backend.m15.account.api.Target;
 import com.cambae.backend.m15.account.api.Visibility;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -24,8 +25,9 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Bản giả quyền của 002 cho test của 000 (000 T025): bảng vai trò → quyền tối thiểu. Mọi đối tượng trong phạm vi;
- * chỉ Quản lý viện xem đủ mọi nhóm thông tin. Thay bằng bản thật khi làm 002.
+ * Bản giả quyền của 002 cho test của 000 (000 T025): bảng vai trò → quyền tối thiểu. Mặc định mọi đối tượng trong phạm
+ * vi và chỉ Quản lý viện xem đủ mọi nhóm thông tin; test đặt thêm mức xem theo vai trò, đối tượng ngoài phạm vi (000
+ * T062, T063). Thay bằng bản thật khi làm 002.
  */
 public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibilityApi, ApproverApi, AccountApi {
 
@@ -33,6 +35,8 @@ public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibility
     private final Map<Long, CurrentUser> accounts = new LinkedHashMap<>();
     private final Map<Long, Long> shiftLeads = new HashMap<>();
     private final Map<Long, Long> floorManagers = new HashMap<>();
+    private final Map<Role, Map<InfoGroup, Visibility>> visibility = new EnumMap<>(Role.class);
+    private final Set<String> outOfScope = new HashSet<>();
 
     public static CurrentUser user(long accountId, Role... roles) {
         Set<Role> set = roles.length == 0 ? EnumSet.noneOf(Role.class) : EnumSet.of(roles[0], roles);
@@ -60,6 +64,16 @@ public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibility
         return this;
     }
 
+    public FakePermissions visibility(Role role, InfoGroup group, Visibility level) {
+        visibility.computeIfAbsent(role, r -> new EnumMap<>(InfoGroup.class)).put(group, level);
+        return this;
+    }
+
+    public FakePermissions outOfScope(String type, String id) {
+        outOfScope.add(type + "/" + id);
+        return this;
+    }
+
     @Override
     public PermissionResult hasPermission(CurrentUser user, PermissionKey key, Target target) {
         return new PermissionResult(user.roles().stream()
@@ -68,7 +82,7 @@ public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibility
 
     @Override
     public boolean inScope(CurrentUser user, Target target) {
-        return true;
+        return !outOfScope.contains(target.type() + "/" + target.id());
     }
 
     @Override
@@ -83,7 +97,19 @@ public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibility
 
     @Override
     public Visibility canView(CurrentUser user, InfoGroup group, Target target) {
-        return user.roles().contains(Role.NURSING_HOME_MANAGER) ? Visibility.FULL : Visibility.NONE;
+        if (user.roles().contains(Role.NURSING_HOME_MANAGER)) {
+            return Visibility.FULL;
+        }
+        // Tài khoản nhiều vai trò lấy mức cao nhất (FULL đứng đầu enum)
+        return user.roles().stream()
+                .map(role -> {
+                    Map<InfoGroup, Visibility> byGroup = visibility.get(role);
+                    return byGroup == null || group == null
+                            ? Visibility.NONE
+                            : byGroup.getOrDefault(group, Visibility.NONE);
+                })
+                .min(Comparator.naturalOrder())
+                .orElse(Visibility.NONE);
     }
 
     @Override

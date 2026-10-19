@@ -33,6 +33,7 @@
         <shedlock.version>7.10.1</shedlock.version>
         <archunit.version>1.5.1</archunit.version>
         <openapi-diff.version>2.1.7</openapi-diff.version>
+        <datasource-proxy.version>1.11.0</datasource-proxy.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -146,6 +147,13 @@
             <groupId>org.openapitools.openapidiff</groupId>
             <artifactId>openapi-diff-core</artifactId>
             <version>${openapi-diff.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- đếm câu lệnh SQL theo transaction cho test nhật ký đầy đủ (000 T061, research R-06) -->
+            <groupId>net.ttddyy</groupId>
+            <artifactId>datasource-proxy</artifactId>
+            <version>${datasource-proxy.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -3,6 +3,7 @@ package com.cambae.backend.m15.auditlog.internal;
 import com.cambae.backend.common.Role;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m15.account.api.CurrentUser;
+import com.cambae.backend.m15.auditlog.api.AuditAction;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
 import java.time.Instant;
@@ -25,7 +26,7 @@ class AuditLogService implements AuditLogApi {
 
     private static final String INSERT = "INSERT INTO audit_log (occurred_at, device_time, actor_type, actor_id, role,"
             + " action, entity_type, entity_id, resident_id, data_before, data_after, reason, basis, details,"
-            + " exempt_from_purge) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, FALSE)";
+            + " exempt_from_purge) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private final JdbcTemplate jdbc;
     private final BusinessTime time;
@@ -71,7 +72,9 @@ class AuditLogService implements AuditLogApi {
                 toJson(entry.after()),
                 entry.reason(),
                 toJson(entry.basis()),
-                toJson(entry.details()));
+                toJson(entry.details()),
+                // Chỉ bản tóm tắt đợt loại bỏ không bị loại bỏ (FR-051); module khác không tự đánh dấu được
+                entry.action().equals(AuditAction.EXPIRED_DATA_PURGED));
     }
 
     /** Vai trò tại lúc thực hiện; tài khoản nhiều vai trò lấy vai trò đầu theo thứ tự enum (002 có thể đổi). */
