@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 5.14.0
+version: 5.15.0
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-10-19
@@ -314,7 +314,7 @@ Tên trạng thái lấy đúng theo `nghiep-vu.md`. `StatusBadge` ánh xạ the
 | `settled` | Chữ xanh lá trên nền xanh lá nhạt | Công việc Hoàn thành; liều thuốc Đã dùng; cảnh báo Đã đóng; bàn giao Đã xác nhận; người cao tuổi Đang lưu trú; lượt thăm Đã duyệt; phản hồi Đã phản hồi; hợp đồng Hiệu lực; quyết định của người thân Đã đồng ý, Đã xác nhận |
 | `held` | Chữ xanh trời đậm, viền cùng màu, nền trong | Giường Đang giữ chỗ (ghi kèm lý do) |
 | `occupied` | Chữ xanh chàm trên nền xanh chàm | Giường Đang sử dụng; lượt thăm Đã vào |
-| `neutral` | Chữ phụ trên nền phụ | Lưu ý chăm sóc (`CareNote`, chữ chính trên nền phụ, biểu tượng thông tin); công việc Chưa đến hạn, Hoàn thành trễ, Không thực hiện, Hủy; giường Trống, Đang bảo trì, Tạm ngừng sử dụng, Không sử dụng; người cao tuổi ở trạng thái cuối; lượt thăm Đã ra, Không đến, Hủy; phản hồi Mới, Đóng; đồ gửi Đang giữ, Đang được người cao tuổi sử dụng; kỳ chi phí Tạm tính, Đã chốt; quyết định Đã từ chối; liều thuốc Chưa đến giờ, Từ chối, Không thực hiện, Tạm dừng, Mang theo, Đã hủy; cảnh báo, sự cố mức Nhẹ; cảnh báo Đã tiếp nhận, Chuyển sự cố; bàn giao Bản nháp, Đã lập |
+| `neutral` | Chữ phụ trên nền phụ | Lưu ý chăm sóc (`CareNote`, chữ chính trên nền phụ, biểu tượng thông tin); công việc Chưa đến hạn, Hoàn thành trễ, Không thực hiện, Hủy; giường Trống, Đang bảo trì, Tạm ngừng sử dụng, Không sử dụng; người cao tuổi ở trạng thái cuối; lượt thăm Đã ra, Không đến, Hủy; phản hồi Mới, Đóng; đồ gửi Đang giữ, Đang được người cao tuổi sử dụng; kỳ chi phí Tạm tính, Đã chốt; quyết định Đã từ chối; liều thuốc Chưa đến giờ, Từ chối, Không thực hiện, Tạm dừng, Mang theo, Đã hủy; cảnh báo, sự cố mức Nhẹ; cảnh báo Đã tiếp nhận, Chuyển sự cố; bàn giao Bản nháp, Đã lập; bản ghi Đã đính chính, Đã hủy ghi nhận (`CorrectionBadge`) |
 
 ### 3.6 Ảnh đại diện
 
@@ -423,6 +423,7 @@ Nút bo tròn, cao 40px (nhỏ 32px, lớn 44px); nút trong form ghi nhận cao
 | `admission-command` | `Sheet` (`CompleteAdmissionSheet`) | Thứ tự: ý kiến vào ở (khối nền phụ có `source-tag`, hoặc `Alert` `attention` khi chưa ghi), ô "Lý do của lệnh" (bắt buộc khi "Không đồng ý"), điều kiện tiếp nhận, nút chính |
 | `incident-parts` | Hai `Card` + bảng | "Phần chung", "Phần sức khỏe" (biểu tượng khóa), mỗi phần ghi "Người thân nhận: …"; bảng "Bản ghi gửi" (giờ, người thân, phần đã gửi, căn cứ). Cổng người thân chỉ có Phần chung và dòng khóa |
 | `visit-wishes` | `Card`, bảng, `Card` yêu cầu | Khối "Mong muốn của người cao tuổi"; bảng người thân có cột mong muốn kèm `source-tag`; thẻ yêu cầu trái mong muốn: nhãn trạng thái, `Alert` `attention`, khung duyệt (lý do, ô "Đã trao đổi với người cao tuổi") chỉ cho Quản lý viện |
+| `correction-sheet` | `CorrectionBadge`, `CorrectionHistorySheet` (`src/common/correction/`) | Đính chính dùng chung (000 FR-028, FR-029): nhãn "Đã đính chính" hoặc "Đã hủy ghi nhận" đặt cạnh bản ghi trên màn của module. Khung chi tiết: giá trị hiện hành; các lần đính chính theo thứ tự tăng dần (lần, loại "Sửa nội dung"/"Hủy ghi nhận", nội dung đúng, lý do, "Ghi bởi …, dd/MM/yyyy HH:mm, cách A/B/C"); nội dung gốc nguyên văn, không gạch, không làm mờ. Form ở chân khung chỉ khi màn truyền `canCorrect` theo lệnh được phép của bản ghi (mặc định ẩn; quyền thật ở backend): loại đính chính, ô nội dung do module khai (`fields`), lý do bắt buộc, nút "Lưu đính chính"; cách C báo "Đã gửi duyệt, mã yêu cầu …". Bản ghi đã Hủy ghi nhận không có form |
 | Form ghi nhận | `FieldGroup`, `Field`, `ToggleGroup` | Kiểu nhập theo loại công việc (ml, mức ăn, giá trị đo, số lượng); "Không thực hiện" bắt buộc loại lý do (danh sách nút, "Người cao tuổi từ chối" đứng đầu), ghi chú tùy chọn (Q-350); ô và nút cao 44px |
 | Trống | `Empty` | Nói rõ vì sao trống và làm gì tiếp |
 | Đang tải | `Skeleton` | Không tự viết hiệu ứng nhấp nháy |
@@ -520,6 +521,7 @@ Công nghệ: React 19, Vite 8, JavaScript, Tailwind CSS v4, shadcn/ui (Base UI)
 - Mục 2.2 (4.4.0) đã duyệt 2026-10-18; bố cục màn mẫu A–D duyệt cùng ngày. Còn chưa có màn mẫu: phiếu nguyện vọng cuối đời, mục sự cố trong bản tin Điều dưỡng soạn, form ghi ý kiến và ghi mong muốn, danh sách người thân và quyền (012).
 - Chưa có `toast`: màn Checklist ca báo đã lưu bằng vùng `aria-live` và thẻ chuyển sang nhóm Đã xong.
 - Chưa có trang trình bày design system (bảng màu, mẫu chữ, ma trận trạng thái).
+- Đã có component đính chính dùng chung `correction-sheet` (000 T106), chưa gắn vào màn nào: chờ màn của module sở hữu bản ghi và profile `demo` có người dùng (002).
 
 ## 15. Ứng dụng di động (Flutter)
 
@@ -628,6 +630,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 5.15.0 | 2026-10-19 | Chủ dự án duyệt bố cục đính chính dùng chung (000 T106): thêm công thức `correction-sheet` ở mục 7.2; trạng thái bản ghi Đã đính chính, Đã hủy ghi nhận vào tông `neutral` ở mục 3.5. Không thêm màu |
 | 5.14.0 | 2026-10-19 | Chủ dự án duyệt mục 15.6 Phần người cao tuổi (gồm nút SOS theo Q-372) |
 | 5.13.0 | 2026-10-19 | Thêm mục 15.6 Phần người cao tuổi theo Q-365 → Q-371 (chờ duyệt): nguyên tắc chữ, vùng bấm, tương phản, điều hướng; màn Hôm nay, nút SOS chạm một lần, đếm ngược 3 giây có nút Hủy (Q-372), màn sau khi gửi, màn không gửi được, đăng nhập bằng mã QR, các màn xem và góp ý. Hiện trạng thành 15.7. Không thêm màu |
 | 5.12.0 | 2026-10-18 | Màn mẫu Bàn giao ca (spec 008) và Cảnh báo (spec 007): thêm `handover-draft`, `handover-confirm`, `alert-card`; tông mức cảnh báo, trạng thái cảnh báo, bàn giao vào mục 3.5. Nút "Mở cảnh báo" ở Tổng quan mở màn Cảnh báo. Không thêm màu |
