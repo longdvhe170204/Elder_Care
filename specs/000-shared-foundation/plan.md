@@ -239,6 +239,8 @@ mobile/                          # một app chung cho nhân viên, người th�
 - T047: `EffectiveVersioning.addVersion` khóa dòng cha `SELECT … FOR UPDATE` (tài khoản ứng dụng cần `UPDATE` trên bảng cha), kiểm giao khoảng (ngày lịch, gồm hai đầu, `to` null là mở), trùng thì 409 `CONDITION_NOT_MET` (`BR-M15-07`). `EffectiveVersionNoOverlapIT` chạy hai luồng đồng thời.
 - T040 dùng ArchUnit quét cả mã test (để có entity mẫu). T043 đọc `information_schema.TRIGGERS` bằng tài khoản quản trị vì `eldercare_app` không có quyền `TRIGGER` nên không thấy trigger. Quy ước và mẫu migration ở `backend/docs/data-group-conventions.md` (T045).
 
+**Dịch vụ ngoài (2026-10-19)**: chủ dự án chọn AWS S3 cho tệp, FCM cho thông báo đẩy, dịch vụ SMS bên ngoài. Giao diện của 000 không đổi: `FileApi`, `FilePermissionProvider` (T036) giữ nguyên, 001 cài bằng S3 (001 research H-13); khuôn thông báo `common.notification` (T034) không phụ thuộc kênh, 009 gửi qua FCM và bộ chuyển SMS (009 research B-05). Region S3, nghĩa vụ chuyển dữ liệu ra nước ngoài và nhà cung cấp SMS chờ chủ dự án chốt (plan 001, 009).
+
 ## Điểm cần báo lại về tài liệu nguồn
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới, rồi sửa `docs/business/nghiep-vu.md` và spec 000.
