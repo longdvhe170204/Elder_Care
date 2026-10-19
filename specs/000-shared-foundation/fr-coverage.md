@@ -8,21 +8,21 @@ Quy ước: "(phạm vi)" = task ghi dải, ví dụ "FR-023 → FR-030"; "(mụ
 | FR-001 | Ba nhóm dữ liệu | T022, T040; mục tiêu phase US1 | m15/DataGroupArchTest#FR_001_everyEntity_declaresDataGroup | COVERED |
 | FR-002 | Danh mục: chỉ xóa khi chưa tham chiếu | T041, T046 | m15/CatalogSampleIT#US1_1_deleteUnusedItem_returns204_andIsLogged, #US1_2_deleteReferencedItem_returns409_evenIfReferencedByCancelledCase | COVERED |
 | FR-003 | Ngừng hiệu lực, kích hoạt lại | T041, T046 | m15/CatalogSampleIT#US1_2_deactivatedItem_notSelectableForNewCase_butStillShownInOldCase, #US1_8_reactivate_whenNoActiveDuplicate_succeeds_otherwise409 | COVERED |
-| FR-004 | Thuộc tính danh mục theo phiên bản | T047; mục tiêu phase US1 | Không test nào ghi FR-004. EffectiveVersionNoOverlapIT dùng cùng tiện ích T047 nhưng chỉ kiểm chồng khoảng (FR-008), không kiểm "không sửa phiên bản đã áp dụng" | TASK_ONLY |
+| FR-004 | Thuộc tính danh mục theo phiên bản | T047; mục tiêu phase US1 | m15/VersionedAttributeIT (3 FR_004_*: phiên bản mới đóng phiên bản đang mở, ngày hiệu lực không sau hôm nay bị chặn, tài khoản ứng dụng chỉ sửa được `effective_to`); thêm 2026-10-19 theo chủ dự án | COVERED |
 | FR-005 | Nhóm 2 không sửa trực tiếp | T022, T040, T044 | m15/DataGroupArchTest; m15/BusinessCommandReasonIT#FR_005_businessAndRecordResources_haveNoPutPatchDelete | COVERED |
 | FR-006 | Từ chối lệnh, nêu điều kiện | T015 | common/error/web/ProblemDetailsHandlerIT#FR_006_unmetConditions_listBrCodeAndDescription | COVERED |
 | FR-007 | Lệnh nhóm 2 bắt buộc lý do | T022, T040, T044 | m15/DataGroupArchTest#FR_007_businessCommandRequiringReason_takesReason; m15/BusinessCommandReasonIT#SC_008_commandWithoutReason_isRejectedBeforeTouchingData | COVERED |
 | FR-008 | Phiên bản không chồng khoảng | T011, T042, T047 | m15/EffectiveVersionNoOverlapIT#FR_008_overlappingVersion_isRejected_adjacentIsAccepted, #FR_008_concurrentOverlappingVersions_onlyOneSucceeds; common/time/EffectiveDateTest#BR_M15_07_isWithin_includesBothEnds (gián tiếp) | COVERED |
 | FR-009 | Nhóm 3 không sửa, không xóa | T023, T043 | common/data/AppendOnlyRepositoryIT (3 phương thức FR_009_*); m15/RecordGroupTriggerIT | COVERED |
 | FR-010 | Danh sách bản ghi bảo vệ | T043 | m15/RecordGroupTriggerIT#FR_010_everyRecordGroupTable_hasBothTriggers | COVERED |
-| FR-010a | Hệ thống không tự sinh bản ghi | T104 (task rà truy vết, chỉ nêu tên) | Không có | TASK_ONLY |
+| FR-010a | Hệ thống không tự sinh bản ghi | T104 (task rà truy vết, chỉ nêu tên) | common/scheduling/SchedulerScopeArchTest (2 FR_010a_*: việc theo lịch chỉ nằm trong `ScheduledJob`, mỗi job có trong danh sách loại việc được phép); thêm 2026-10-19 | COVERED |
 | FR-011 | Tập tham số Phụ lục 25 | T080; T029–T031 (gián tiếp, ghi DBR-24) | m15/parameter/ParameterIT#FR_011_allCodesLoaded_eachWithInitialHistoryRow, #FR_011_appAccount_cannotAddOrRemoveCodes_norRewriteHistory; m15/parameter/api/ParameterCodeTest#FR_011_enum_matchesAppendix25; m15/parameter/ParameterPermissionIT#FR_011_unknownCode_isNotFound | COVERED |
 | FR-012 | Một giá trị hiện hành, có lịch sử | Không task nào ghi số; mục tiêu phase US4 (FR-011 → FR-022); T029, T075 ghi DBR-24 | m15/parameter/ParameterIT#FR_011_allCodesLoaded_eachWithInitialHistoryRow, m15/parameter/ParameterChangeIT#US4_2_change_updatesCurrentValue_addsHistory_andAuditBeforeAfter (gián tiếp) | COVERED |
 | FR-013 | Chỉ Quản lý viện đổi tham số | Không task nào ghi số; T076 (BR-M15-04), T079 (khóa quyền THAM_SO_DOI) | m15/parameter/ParameterPermissionIT#US4_6_nonManager_cannotChange_norBrowseParameters (javadoc ghi FR-013) | COVERED |
 | FR-014 | Đổi tham số: lý do, nhật ký | T079 (phạm vi) | m15/parameter/ParameterChangeIT#FR_014_missingReason_isRejectedBeforeAnyChange, #US4_2_… | COVERED |
 | FR-015 | Kiểm kiểu, khoảng hợp lệ | T074, T079 | m15/parameter/ParameterValidatorTest (4 FR_015_*); ParameterChangeIT#US4_5_…, #FR_015_K3_…; ParameterIT#FR_015_crossConstraint_isLoaded; ParameterCacheAfterCommitIT#FR_015_rejectedChange_leavesCachedValue | COVERED |
 | FR-016 | Hiệu lực ngay, không triển khai lại | T077, T079 | m15/parameter/ParameterCacheAfterCommitIT#SC_004_ruleReadsNewValueRightAfterCommit_withoutRestart | COVERED |
-| FR-017 | Không tính lại kết quả cũ | T079 (phạm vi FR-014 → FR-018) | Không có | TASK_ONLY |
+| FR-017 | Không tính lại kết quả cũ | T079 (phạm vi FR-014 → FR-018) | m15/approval/ParameterChangeNoRecalculationIT#FR_017_changingReminderMark_keepsExistingReminder_noRecalculation; thêm 2026-10-19 | COVERED |
 | FR-018 | Mỗi lần kiểm dùng một giá trị | T032, T079 | m15/parameter/ParameterIT#FR_018_read_returnsCurrentValueByKind; m15/parameter/api/ParameterValueTest | COVERED |
 | FR-019 | Tra giá trị tại thời điểm quá khứ | T032, T078 | m15/parameter/ParameterAsOfIT#US4_8_valueAtPastInstant_isTheValueCurrentThen; ParameterIT#FR_019_readAt_usesHistory | COVERED |
 | FR-020 | Khôi phục mặc định là thay đổi | T075, T079 | m15/parameter/ParameterChangeIT#US4_7_restoreDefault_isAnOrdinaryChange_markedAsRestore | COVERED |
@@ -66,8 +66,8 @@ Quy ước: "(phạm vi)" = task ghi dải, ví dụ "FR-023 → FR-030"; "(mụ
 
 ## Tổng
 
-- COVERED: 55 (FR-034a chỉ có test một phần)
-- TASK_ONLY: 3 (FR-004, FR-010a, FR-017)
+- COVERED: 58 (FR-034a chỉ có test một phần; FR-004, FR-010a, FR-017 thêm test 2026-10-19 theo chủ dự án)
+- TASK_ONLY: 0
 - DELEGATED: 0 (không FR nào giao trọn cho feature khác; phần giao một phần ghi trong cột Test: FR-031a, FR-038 cho 009; FR-034, FR-034a, FR-043, FR-049 cho 002; FR-043a cho 002, 016)
 - GAP: 0
 

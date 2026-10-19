@@ -29,7 +29,7 @@ GRANT INSERT, UPDATE, DELETE ON <catalog> TO 'eldercare_app'@'%';
 - Cột chuẩn: `status`, `version` (khóa lạc quan, đi với `If-Match`), `created_at`, `created_by`.
 - Phương thức lệnh ở service mang `@BusinessCommand` và nhận `Reason`; thiếu lý do thì `BusinessCommandAspect` trả 422 `REASON_REQUIRED` trước khi mở transaction (FR-007, SC-008).
 - API chỉ có `POST …/{id}/<lệnh>`, không có `PUT`, `PATCH`, `DELETE` (R-03).
-- Phiên bản có hiệu lực: bảng phiên bản có `effective_from DATE`, `effective_to DATE NULL` và `CHECK (effective_to IS NULL OR effective_to >= effective_from)`; thêm phiên bản qua `EffectiveVersioning.addVersion(...)` (khóa dòng cha, kiểm không chồng khoảng; FR-008). Tài khoản ứng dụng cần `UPDATE` trên bảng cha để `SELECT … FOR UPDATE`.
+- Phiên bản có hiệu lực: bảng phiên bản có `effective_from DATE`, `effective_to DATE NULL` và `CHECK (effective_to IS NULL OR effective_to >= effective_from)`; thêm phiên bản qua `EffectiveVersioning.addVersion(...)` (khóa dòng cha, kiểm không chồng khoảng; FR-008). Đổi thuộc tính theo phiên bản (FR-004) qua `EffectiveVersioning.addVersionFrom(...)`: ngày hiệu lực mới phải sau hôm nay, phiên bản đang mở được đóng ở ngày trước đó. Tài khoản ứng dụng cần `UPDATE` trên bảng cha để `SELECT … FOR UPDATE`.
 
 ```sql
 CREATE TABLE <entity>_version (
@@ -41,6 +41,8 @@ CREATE TABLE <entity>_version (
     CONSTRAINT chk_<entity>_version_range CHECK (effective_to IS NULL OR effective_to >= effective_from)
 );
 GRANT INSERT ON <entity>_version TO 'eldercare_app'@'%';
+-- Chỉ để đóng phiên bản đang mở (FR-004); các cột khác không sửa được
+GRANT UPDATE (effective_to) ON <entity>_version TO 'eldercare_app'@'%';
 ```
 
 ## Nhóm 3 – Ghi nhận đã xác nhận

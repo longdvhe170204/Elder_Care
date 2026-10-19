@@ -136,6 +136,24 @@ public class SampleService {
                 .build());
     }
 
+    /** Đổi thuộc tính theo phiên bản: đóng phiên bản đang mở, thêm phiên bản mới mở từ {@code from} (FR-004). */
+    @BusinessCommand
+    @Transactional
+    public void addCaseVersionFrom(long caseId, LocalDate from, Reason reason) {
+        versioning.addVersionFrom(
+                CASE_VERSIONS,
+                caseId,
+                from,
+                () -> jdbc.update(
+                        "INSERT INTO sample_case_version (case_id, effective_from) VALUES (?, ?)", caseId, from));
+        auditLog.write(AuditLogEntry.builder()
+                .action(CASE_VERSION_ADDED)
+                .entity(CASE, caseId)
+                .after(Map.of("effectiveFrom", from.toString(), "effectiveTo", "null"))
+                .reason(reason)
+                .build());
+    }
+
     /** Nghiệp vụ cũ vẫn hiển thị đúng mục danh mục đã ngừng hiệu lực (FR-003). */
     @Transactional(readOnly = true)
     public Map<String, Object> readCase(long id) {

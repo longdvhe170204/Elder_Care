@@ -29,7 +29,7 @@ Spec 000 mục A quy định khung cho mọi loại dữ liệu. Plan của từ
 Các ràng buộc:
 - **Tham chiếu và xóa (FR-002)**: mọi bảng nhóm 2, 3 tham chiếu danh mục bằng khóa ngoại `ON DELETE RESTRICT`. Lệnh xóa vi phạm khóa ngoại được ánh xạ thành 409 `DANH_MUC_DA_DUOC_THAM_CHIEU`, và mục đó chỉ còn lệnh Ngừng hiệu lực. Bảng `nhat_ky` không có khóa ngoại, nên nhật ký của chính mục không tính là tham chiếu (CHK001).
 - **Ngừng hiệu lực (FR-003)**: dữ liệu mới chỉ được chọn mục `HIEU_LUC`. Kiểm tra ở backend, trong lệnh của module dùng danh mục. Bản ghi cũ vẫn trỏ khóa ngoại nên hiển thị đúng.
-- **Thuộc tính theo phiên bản (FR-004)**: tách thành bảng phiên bản theo mẫu 1.2, ví dụ phiên bản đơn giá (DBR-08, do plan 004 hoặc 010 mô tả).
+- **Thuộc tính theo phiên bản (FR-004)**: tách thành bảng phiên bản theo mẫu 1.2, ví dụ phiên bản đơn giá (DBR-08, do plan 004 hoặc 010 mô tả). Đổi giá trị bằng phiên bản mới còn mở từ ngày hiệu lực sau hôm nay; phiên bản đang mở được đóng ở ngày trước đó trong cùng transaction (`EffectiveVersioning.addVersionFrom`). Tài khoản ứng dụng có `INSERT` và `UPDATE (effective_to)` trên bảng phiên bản, không sửa được cột khác (chủ dự án chốt 2026-10-19).
 
 ### 1.2. Nhóm 2 – Nghiệp vụ có trạng thái (FR-005 → FR-008)
 

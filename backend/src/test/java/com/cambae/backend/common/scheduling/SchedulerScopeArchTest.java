@@ -1,0 +1,53 @@
+package com.cambae.backend.common.scheduling;
+
+import static com.tngtech.archunit.lang.conditions.ArchConditions.be;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchRule;
+import java.util.Map;
+import org.springframework.scheduling.annotation.Scheduled;
+
+/**
+ * FR-010a (Q-306, Q-307): Bộ lập lịch chỉ làm việc nguyên tắc cho phép, không tự sinh bản ghi nghiệp vụ. Mọi việc chạy
+ * theo lịch nằm trong một {@link ScheduledJob}, và mỗi job phải có trong {@link #ALLOWED} kèm loại việc được phép.
+ * Module thêm job thì thêm dòng ở đây; người xem lại kiểm job đó thuộc loại nào của FR-010a.
+ */
+@AnalyzeClasses(packages = "com.cambae.backend", importOptions = ImportOption.DoNotIncludeTests.class)
+class SchedulerScopeArchTest {
+
+    /** Job → loại việc FR-010a cho phép. */
+    static final Map<String, String> ALLOWED = Map.of(
+            "com.cambae.backend.m15.approval.scheduling.ApplyDueRequestsJob",
+                    "áp dụng yêu cầu đã duyệt khi tới ngày hiệu lực (FR-037)",
+            "com.cambae.backend.m15.approval.scheduling.RemindPendingRequestsJob", "nhắc, báo (FR-031a)",
+            "com.cambae.backend.m15.retention.scheduling.ExpiredDataPurgeJob",
+                    "loại bỏ dữ liệu hết hạn lưu giữ (FR-051)");
+
+    private static final DescribedPredicate<JavaClass> LISTED = DescribedPredicate.describe(
+            "có trong danh sách job được phép của FR-010a", c -> ALLOWED.containsKey(c.getName()));
+
+    @ArchTest
+    static final ArchRule FR_010a_scheduledWorkOnlyInScheduledJobs = methods()
+            .that()
+            .areAnnotatedWith(Scheduled.class)
+            .should()
+            .beDeclaredInClassesThat()
+            .implement(ScheduledJob.class)
+            .because("việc chạy theo lịch phải là một job được xem xét theo FR-010a")
+            .allowEmptyShould(true);
+
+    @ArchTest
+    static final ArchRule FR_010a_everyJobIsAnAllowedKind = classes()
+            .that()
+            .implement(ScheduledJob.class)
+            .and()
+            .areNotInterfaces()
+            .should(be(LISTED))
+            .because("Bộ lập lịch không tự sinh bản ghi nghiệp vụ (FR-010a); job mới phải ghi loại việc được phép");
+}
