@@ -176,8 +176,8 @@ Quy đổi ký hiệu theo research A-04. Các dòng `nguon = '19.3'` (điều c
 | --- | --- |
 | Quản lý viện: `DUYET`, `TAO` (lập thay) với yêu cầu đổi ca, nghỉ đột xuất của ca phạm vi toàn viện | 19.3, Q-177; spec FR-025 |
 | Trưởng tầng: `TAO` (lập thay) yêu cầu nghỉ đột xuất cho nhân viên tầng mình | 19.3; spec 015 |
-| Điều dưỡng: mọi `TAO` của Nhân viên chăm sóc trong phạm vi | 2.4, Q-214, chú thích ²⁷ |
-| Bác sĩ, Hành chính: phạm vi dashboard, báo cáo toàn viện | 19.3, chú thích ¹¹; spec FR-035 |
+| Điều dưỡng: mọi `TAO` của Nhân viên chăm sóc trong phạm vi (Phụ lục 27 đã ghi bằng ²⁷, ⁴⁰, ¹⁵…; khi nạp không còn ô nào thiếu nên không có dòng `19.3`, plan Ghi chú T007) | 2.4, Q-214, chú thích ²⁷ |
+| Bác sĩ, Hành chính (¹¹), Kế toán (²⁹): phạm vi dashboard, báo cáo toàn viện (chú thích của chính Phụ lục 27 ghi "toàn viện", nên nạp như dòng `PL27` phạm vi `TOAN_VIEN`, plan Ghi chú T007) | 19.3, chú thích ¹¹, ²⁹; spec FR-035 |
 
 Danh sách đầy đủ được rà và chốt ở task nạp dữ liệu; test `MaTranQuyenKhopNguonTest` đối chiếu với tài liệu nguồn (research A-04).
 
