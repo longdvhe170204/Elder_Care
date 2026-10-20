@@ -20,6 +20,18 @@
 
 Mật khẩu chỉ đặt bằng biến môi trường hoặc kho bí mật của máy chủ, không ghi vào kho mã.
 
+## 2a. Khởi tạo Quản lý viện đầu tiên
+
+Làm một lần khi cài đặt, sau khi migration đã chạy (BR-M15-22, Q-310). Mở ứng dụng kèm ba tham số:
+
+```bash
+java -jar backend.jar --eldercare.bootstrap-manager.run-once=true --eldercare.bootstrap-manager.username=<tên đăng nhập> "--eldercare.bootstrap-manager.full-name=<họ tên>"
+```
+
+- Ứng dụng tạo hồ sơ nhân viên tối thiểu, tài khoản Hoạt động có vai trò Quản lý viện, rồi in mật khẩu tạm ra màn hình một lần. Chép mật khẩu giao trực tiếp cho người nhận; người đó buộc đổi mật khẩu ở lần đăng nhập đầu. Nhật ký ghi người thực hiện là khởi tạo hệ thống (`actor_type = BOOTSTRAP`).
+- Hệ thống đã có tài khoản đang giữ vai trò Quản lý viện thì lệnh bị từ chối (`CONDITION_NOT_MET`, BR-M15-22), không tạo gì thêm.
+- Các lần mở sau không truyền `run-once`. Không có endpoint REST cho việc này.
+
 ## 3. Job theo lịch (giờ Việt Nam)
 
 | Job | Lịch | Ghi chú |
