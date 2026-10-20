@@ -175,6 +175,60 @@ public class AccountService implements AccountApi {
         return new Created(details(store.find(accountId).orElseThrow(), user), temporaryPassword);
     }
 
+    /**
+     * Tạo tài khoản người thân (002 T069; FR-050 → FR-052; US6 #8): Hành chính hoặc Quản lý viện; xác minh danh tính
+     * bắt buộc; hồ sơ có ít nhất một quan hệ Hiệu lực với người cao tuổi chưa ở trạng thái cuối; vai trò duy nhất Người
+     * thân; buộc đổi mật khẩu; nhật ký ghi cách xác minh, không ghi số.
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.ACCOUNT_PERMISSION_PARAMETER, operation = Operation.CREATE)
+    @Transactional
+    public Created createFamily(
+            long familyMemberId,
+            String username,
+            String verificationMethod,
+            String idDocumentNumber,
+            String calledPhoneNumber) {
+        CurrentUser user = currentUser.getObject();
+        requireFamilyAccountOperator(user);
+        requireVerification(familyMemberId, verificationMethod, idDocumentNumber, calledPhoneNumber);
+        if (store.byFamilyMember(familyMemberId).isPresent()) {
+            throw conflict("PROFILE_ALREADY_HAS_ACCOUNT", "Hồ sơ người thân đã có tài khoản");
+        }
+        ResidencyEndApi ends = residencyEnds.getIfAvailable();
+        boolean related = familyRelationships.getObject().active(familyMemberId).stream()
+                .anyMatch(
+                        r -> ends == null || ends.finalStatusAt(r.residentId()).isEmpty());
+        if (!related) {
+            throw conflict(
+                    "RELATIONSHIP_ENDED",
+                    "Người thân không có quan hệ với người cao tuổi chưa ở trạng thái cuối (FR-050)");
+        }
+        String temporaryPassword = TemporaryPasswords.generate();
+        long accountId;
+        try {
+            accountId =
+                    store.insertFamily(familyMemberId, username, passwords.encode(temporaryPassword), user.accountId());
+        } catch (DuplicateKeyException e) {
+            throw new ConditionNotMetException(List.of(new UnmetCondition("FR-001", "Tên đăng nhập đã được dùng")));
+        }
+        store.history(accountId, AccountStatus.ACTIVE, null, user.accountId());
+        store.addRole(accountId, Role.FAMILY_MEMBER, user.accountId(), "Tạo tài khoản");
+        Map<String, Object> after = new LinkedHashMap<>();
+        after.put("username", username);
+        after.put("type", AccountType.FAMILY_MEMBER.name());
+        after.put("familyMemberId", familyMemberId);
+        after.put("status", AccountStatus.ACTIVE.name());
+        after.put("roles", List.of(Role.FAMILY_MEMBER.code()));
+        auditLog.write(AuditLogEntry.builder()
+                .action(AccountAuditActions.ACCOUNT_CREATED)
+                .entity(AccountAuditActions.ENTITY, accountId)
+                .after(after)
+                .details(Map.of("verificationMethod", verificationMethod))
+                .build());
+        return new Created(details(store.find(accountId).orElseThrow(), user), temporaryPassword);
+    }
+
     @BusinessCommand
     @RequiresPermission(function = Function.ACCOUNT_PERMISSION_PARAMETER, operation = Operation.UPDATE)
     @Transactional
@@ -211,8 +265,8 @@ public class AccountService implements AccountApi {
     }
 
     /**
-     * Mở khóa tài khoản Đã khóa; từ chối khi nguyên nhân khóa tự động còn (FR-011): Nghỉ việc mà hồ sơ vẫn Nghỉ việc.
-     * Nguyên nhân của tài khoản người thân (hết hạn sau kết thúc lưu trú, hết quan hệ) xét ở US6; tới đó coi là còn.
+     * Mở khóa tài khoản Đã khóa; từ chối khi nguyên nhân khóa tự động còn (FR-011): Nghỉ việc mà hồ sơ vẫn Nghỉ việc;
+     * hết hạn sau kết thúc lưu trú, hết quan hệ mà người thân vẫn không còn người cao tuổi nào trong phạm vi (CHK025).
      */
     @BusinessCommand
     @RequiresPermission(function = Function.ACCOUNT_PERMISSION_PARAMETER, operation = Operation.UPDATE)
@@ -229,6 +283,7 @@ public class AccountService implements AccountApi {
             case "MANUAL" -> false;
             case "RESIGNATION" ->
                 staffProfiles.getObject().status(account.staffId(), time.today()) == StaffStatus.RESIGNED;
+            case "EXPIRED_AFTER_RESIDENCY_END", "RELATIONSHIP_ENDED" -> !stillRelated(account.familyMemberId());
             default -> true;
         };
         if (causeRemains) {
@@ -245,22 +300,40 @@ public class AccountService implements AccountApi {
         return details(store.find(accountId).orElseThrow(), user);
     }
 
-    /** Cấp lại mật khẩu tài khoản nhân viên (FR-006); người thân kèm xác minh ở US6 (FR-051, FR-052). */
+    /**
+     * Cấp lại mật khẩu (FR-006): tài khoản nhân viên chỉ Quản lý viện; tài khoản người thân Hành chính hoặc Quản lý
+     * viện, kèm xác minh danh tính, nhật ký ghi cách xác minh (FR-051, FR-052). Hành chính với tài khoản khác: 404 chung.
+     */
     @BusinessCommand
     @RequiresPermission(function = Function.ACCOUNT_PERMISSION_PARAMETER, operation = Operation.UPDATE)
     @Transactional
-    public String resetPassword(long accountId, Reason reason) {
+    public String resetPassword(
+            long accountId,
+            Reason reason,
+            String verificationMethod,
+            String idDocumentNumber,
+            String calledPhoneNumber) {
         CurrentUser user = currentUser.getObject();
-        requireManager(user);
-        store.lock(accountId).orElseThrow(NotFoundException::new);
+        requireFamilyAccountOperator(user);
+        AccountRow account = store.lock(accountId).orElseThrow(NotFoundException::new);
+        boolean family = account.type() == AccountType.FAMILY_MEMBER;
+        if (!family && !user.roles().contains(Role.NURSING_HOME_MANAGER)) {
+            throw new NotFoundException();
+        }
+        if (family) {
+            requireVerification(account.familyMemberId(), verificationMethod, idDocumentNumber, calledPhoneNumber);
+        }
         String temporaryPassword = TemporaryPasswords.generate();
         store.resetPassword(accountId, passwords.encode(temporaryPassword));
-        auditLog.write(AuditLogEntry.builder()
+        AuditLogEntry.Builder entry = AuditLogEntry.builder()
                 .action(AccountAuditActions.PASSWORD_RESET)
                 .entity(AccountAuditActions.ENTITY, accountId)
                 .after(Map.of("mustChangePassword", true))
-                .reason(reason)
-                .build());
+                .reason(reason);
+        if (family) {
+            entry.details(Map.of("verificationMethod", verificationMethod));
+        }
+        auditLog.write(entry.build());
         return temporaryPassword;
     }
 
@@ -313,36 +386,19 @@ public class AccountService implements AccountApi {
             String idDocumentNumber,
             String calledPhoneNumber) {
         CurrentUser user = currentUser.getObject();
-        boolean manager = user.roles().contains(Role.NURSING_HOME_MANAGER);
-        if (!manager && !user.roles().contains(Role.OFFICE_STAFF)) {
-            throw new PermissionDeniedException(
-                    "PERMISSION_DENIED", "Chỉ Hành chính, Quản lý viện kích hoạt lại", Map.of("failedLayer", "ROLE"));
-        }
+        requireFamilyAccountOperator(user);
         if (verificationMethod == null) {
             throw new InvalidValueException("Cần ghi cách xác minh (FR-052)");
         }
         AccountRow account = store.lock(accountId).orElseThrow(NotFoundException::new);
-        if (!manager && account.type() != AccountType.FAMILY_MEMBER) {
+        if (!user.roles().contains(Role.NURSING_HOME_MANAGER) && account.type() != AccountType.FAMILY_MEMBER) {
             throw new NotFoundException();
         }
         VersionEtag.requireMatch(ifMatch, account.version(), details(account, user));
         if (account.type() != AccountType.FAMILY_MEMBER || account.status() != AccountStatus.INACTIVE) {
             throw conflict("INVALID_STATE", "Chỉ kích hoạt lại tài khoản người thân Không hoạt động");
         }
-        boolean verified = switch (verificationMethod) {
-            case "CALLBACK_REGISTERED_NUMBER" ->
-                calledPhoneNumber != null
-                        && familyRelationships
-                                .getObject()
-                                .registeredPhoneNumber(account.familyMemberId())
-                                .map(n -> digits(n).equals(digits(calledPhoneNumber)))
-                                .orElse(false);
-            case "IN_PERSON_ID_DOCUMENT" -> idDocumentNumber != null && !idDocumentNumber.isBlank();
-            default -> false;
-        };
-        if (!verified) {
-            throw conflict("INVALID_VERIFICATION", "Xác minh không hợp lệ: phải gọi lại đúng số đã đăng ký (FR-052)");
-        }
+        requireVerification(account.familyMemberId(), verificationMethod, idDocumentNumber, calledPhoneNumber);
         if (!stillRelated(account.familyMemberId())) {
             throw conflict("RELATIONSHIP_ENDED", "Người thân không còn quan hệ Hiệu lực với người cao tuổi (FR-011)");
         }
@@ -392,7 +448,42 @@ public class AccountService implements AccountApi {
                 Map.of("failedLayer", "SCOPE"));
     }
 
-    /** Điều kiện người thân của FR-011 (CHK025), dùng chung cho kích hoạt lại và mở khóa người thân (US6). */
+    /** Lệnh trên tài khoản người thân: Hành chính hoặc Quản lý viện (FR-051, chú thích ¹²). */
+    private static void requireFamilyAccountOperator(CurrentUser user) {
+        if (!user.roles().contains(Role.NURSING_HOME_MANAGER) && !user.roles().contains(Role.OFFICE_STAFF)) {
+            throw new PermissionDeniedException(
+                    "PERMISSION_DENIED",
+                    "Chỉ Hành chính, Quản lý viện thao tác tài khoản người thân",
+                    Map.of("failedLayer", "ROLE"));
+        }
+    }
+
+    /**
+     * Xác minh danh tính trước khi tạo, cấp lại mật khẩu, kích hoạt lại tài khoản người thân (FR-052): thiếu thì 422;
+     * gọi lại phải đúng số đã đăng ký trong hồ sơ người thân, có mặt phải ghi số giấy tờ, không thì 409.
+     */
+    private void requireVerification(
+            long familyMemberId, String method, String idDocumentNumber, String calledPhoneNumber) {
+        if (method == null) {
+            throw new InvalidValueException("Cần ghi cách xác minh (FR-052)");
+        }
+        boolean verified = switch (method) {
+            case "CALLBACK_REGISTERED_NUMBER" ->
+                calledPhoneNumber != null
+                        && familyRelationships
+                                .getObject()
+                                .registeredPhoneNumber(familyMemberId)
+                                .map(n -> digits(n).equals(digits(calledPhoneNumber)))
+                                .orElse(false);
+            case "IN_PERSON_ID_DOCUMENT" -> idDocumentNumber != null && !idDocumentNumber.isBlank();
+            default -> false;
+        };
+        if (!verified) {
+            throw conflict("INVALID_VERIFICATION", "Xác minh không hợp lệ: phải gọi lại đúng số đã đăng ký (FR-052)");
+        }
+    }
+
+    /** Điều kiện người thân của FR-011 (CHK025), dùng chung cho kích hoạt lại, mở khóa và khóa tự động (US6). */
     private boolean stillRelated(long familyMemberId) {
         ResidencyEndApi ends = residencyEnds.getIfAvailable();
         Instant now = time.now();
@@ -455,10 +546,16 @@ public class AccountService implements AccountApi {
                 commands.add("early-unlock");
             }
         }
-        if (account.type() == AccountType.FAMILY_MEMBER
-                && account.status() == AccountStatus.INACTIVE
-                && (manager || user.roles().contains(Role.OFFICE_STAFF))) {
-            commands.add("reactivate");
+        if (account.type() == AccountType.FAMILY_MEMBER) {
+            if (manager) {
+                commands.add(account.status() == AccountStatus.LOCKED ? "unlock" : "lock");
+            }
+            if (manager || user.roles().contains(Role.OFFICE_STAFF)) {
+                commands.add("reset-password");
+                if (account.status() == AccountStatus.INACTIVE) {
+                    commands.add("reactivate");
+                }
+            }
         }
         return new AccountDetails(account, store.roles(account.id()), List.copyOf(commands));
     }
@@ -514,10 +611,59 @@ public class AccountService implements AccountApi {
                 .build()));
     }
 
-    /** Người thân: US6 (T070). */
+    /**
+     * Xét lại tài khoản người thân trong transaction lệnh chấm dứt quan hệ của 012 (002 T070; FR-049, BR-M15-14): không
+     * còn quan hệ Hiệu lực thì Đã khóa nguyên nhân hết quan hệ; còn quan hệ mà mọi người cao tuổi đã quá CFG-M01-04 sau
+     * trạng thái cuối thì nguyên nhân hết hạn. Nhật ký người thực hiện Bộ lập lịch kèm căn cứ của 012.
+     */
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void recheckFamilyMember(long familyMemberId, Basis basis) {
-        throw new UnsupportedOperationException("Cài ở 002 T070 (US6)");
+        Optional<AccountRow> found = store.byFamilyMember(familyMemberId);
+        if (found.isEmpty() || stillRelated(familyMemberId)) {
+            return;
+        }
+        String cause = familyRelationships.getObject().active(familyMemberId).isEmpty()
+                ? "RELATIONSHIP_ENDED"
+                : "EXPIRED_AFTER_RESIDENCY_END";
+        lockFamily(found.get().id(), cause, basis);
+    }
+
+    /**
+     * Job khóa sau kết thúc lưu trú (T070; FR-049, US6 #5): người thân còn quan hệ Hiệu lực mà mọi người cao tuổi đã
+     * quá CFG-M01-04 sau trạng thái cuối thì Đã khóa nguyên nhân hết hạn. Không còn quan hệ nào thì để lệnh của 012
+     * ({@link #recheckFamilyMember}) khóa với căn cứ lần chấm dứt. Trả {@code true} khi đã khóa.
+     */
+    @Transactional
+    public boolean lockIfResidenciesExpired(long accountId, Basis basis) {
+        AccountRow account = store.find(accountId).orElseThrow();
+        if (account.type() != AccountType.FAMILY_MEMBER
+                || familyRelationships
+                        .getObject()
+                        .active(account.familyMemberId())
+                        .isEmpty()
+                || stillRelated(account.familyMemberId())) {
+            return false;
+        }
+        return lockFamily(accountId, "EXPIRED_AFTER_RESIDENCY_END", basis);
+    }
+
+    /** Khóa tự động tài khoản người thân dưới khóa dòng; đã Đã khóa thì giữ nguyên nguyên nhân cũ. */
+    private boolean lockFamily(long accountId, String cause, Basis basis) {
+        AccountRow account = store.lock(accountId).orElseThrow();
+        if (account.status() == AccountStatus.LOCKED) {
+            return false;
+        }
+        store.changeStatus(accountId, AccountStatus.LOCKED, cause, null);
+        store.endSessions(accountId, "ACCOUNT_LEFT_ACTIVE");
+        SchedulerUserAspect.runAsScheduler(() -> auditLog.write(AuditLogEntry.builder()
+                .action(AccountAuditActions.ACCOUNT_LOCKED)
+                .entity(AccountAuditActions.ENTITY, accountId)
+                .before(Map.of("status", account.status().name()))
+                .after(Map.of("status", AccountStatus.LOCKED.name(), "lockCause", cause))
+                .basis(basis)
+                .build()));
+        return true;
     }
 
     @Override

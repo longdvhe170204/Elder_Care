@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * {@code /api/v1/accounts} cho tài khoản nhân viên (002 T034; contracts/api-002.yaml): tạo, danh sách, chi tiết, khóa,
  * mở khóa, cấp lại mật khẩu, gán và gỡ vai trò. Không có {@code PUT}, {@code PATCH}, {@code DELETE} (FR-005,
- * constitution XI). Tài khoản người thân, người cao tuổi ở US6, US8.
+ * constitution XI). Tạo tài khoản người thân ở {@code FamilyAccountController} (US6); người cao tuổi ở US8.
  */
 @RestController
 @RequestMapping("/api/v1/accounts")
@@ -147,7 +147,28 @@ class AccountController {
             Instant lastLoginAt,
             List<String> roles,
             List<String> allowedCommands,
-            String temporaryPassword) {}
+            String temporaryPassword) {
+
+        static AccountWithTemporaryPassword of(AccountService.Created created, String fullName) {
+            AccountBody a = AccountBody.of(created.details(), fullName);
+            return new AccountWithTemporaryPassword(
+                    a.id(),
+                    a.username(),
+                    a.fullName(),
+                    a.type(),
+                    a.staffId(),
+                    a.familyMemberId(),
+                    a.residentId(),
+                    a.boundDevice(),
+                    a.status(),
+                    a.lockCause(),
+                    a.lockedUntil(),
+                    a.lastLoginAt(),
+                    a.roles(),
+                    a.allowedCommands(),
+                    created.temporaryPassword());
+        }
+    }
 
     @Schema(name = "AccountPage")
     record AccountPage(List<AccountBody> items, String nextCursor) {}
@@ -256,25 +277,11 @@ class AccountController {
                 body.staffId(),
                 body.username().strip(),
                 body.roles().stream().map(r -> r.role).distinct().toList());
-        AccountBody a = body(created.details());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .eTag(VersionEtag.of(created.details().account().version()))
-                .body(new AccountWithTemporaryPassword(
-                        a.id(),
-                        a.username(),
-                        a.fullName(),
-                        a.type(),
-                        a.staffId(),
-                        a.familyMemberId(),
-                        a.residentId(),
-                        a.boundDevice(),
-                        a.status(),
-                        a.lockCause(),
-                        a.lockedUntil(),
-                        a.lastLoginAt(),
-                        a.roles(),
-                        a.allowedCommands(),
-                        created.temporaryPassword()));
+                .body(AccountWithTemporaryPassword.of(
+                        created,
+                        accounts.fullName(created.details().account().id()).orElse(null)));
     }
 
     @GetMapping("/{id}")
@@ -376,7 +383,13 @@ class AccountController {
     @Tag(name = "accounts")
     @ApiResponse(responseCode = "200", description = "Mật khẩu tạm, chỉ trả một lần")
     TemporaryPassword resetPassword(@PathVariable long id, @RequestBody ResetPasswordBody body) {
-        return new TemporaryPassword(accounts.resetPassword(id, body.reason()));
+        Verification v = body.verification();
+        return new TemporaryPassword(accounts.resetPassword(
+                id,
+                body.reason(),
+                v == null || v.method() == null ? null : v.method().name(),
+                v == null ? null : v.idDocumentNumber(),
+                v == null ? null : v.calledPhoneNumber()));
     }
 
     /** Phần hiện hành (T076 kéo lên cho màn T035); {@code asOf} làm ở T076. */

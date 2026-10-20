@@ -52,7 +52,6 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             new Contract(
                     Path.of("..", "specs", "002-account-permission", "contracts", "api-002.yaml"),
                     Set.of(
-                            "GET /api/v1/professional-activities",
                             "GET /api/v1/roles",
                             "GET /api/v1/roles/{code}/permissions",
                             "POST /api/v1/accounts/{id}/grant-care-plan-approval",
@@ -64,13 +63,9 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "POST /api/v1/accounts/{id}/unbind-device",
                             "POST /api/v1/accounts/{id}/unlock-resident",
                             "POST /api/v1/auth/qr-login",
-                            "POST /api/v1/family-accounts",
-                            "POST /api/v1/professional-activities",
-                            "POST /api/v1/professional-activities/{id}/deactivate",
                             "POST /api/v1/resident-accounts",
                             "POST /api/v1/roles/{code}/restore-permission",
-                            "POST /api/v1/roles/{code}/restrict",
-                            "PUT /api/v1/professional-activities/{id}"),
+                            "POST /api/v1/roles/{code}/restrict"),
                     Set.of()));
 
     @Autowired

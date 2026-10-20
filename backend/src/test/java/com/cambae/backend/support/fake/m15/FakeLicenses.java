@@ -39,6 +39,15 @@ public class FakeLicenses implements LicenseApi {
                 .findFirst();
     }
 
+    /** Bản đặt sau cùng của loại thắng (gia hạn là đặt bản mới). */
+    @Override
+    public Optional<LicenseValidity> latest(long staffId, String licenseType) {
+        return licenses.reversed().stream()
+                .filter(e -> e.staffId() == staffId && e.licenseType().equals(licenseType))
+                .map(Entry::license)
+                .findFirst();
+    }
+
     @Override
     public List<ExpiringLicense> expiringWithin(Period within) {
         return List.copyOf(expiring);

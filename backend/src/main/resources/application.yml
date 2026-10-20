@@ -89,6 +89,10 @@ eldercare:
       cron: "-"
     mark-inactive-accounts:
       cron: "-"
+    warn-expiring-licenses:
+      cron: "-"
+    lock-after-residency-end:
+      cron: "-"
 
 ---
 spring:

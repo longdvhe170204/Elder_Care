@@ -29,7 +29,11 @@ class SchedulerScopeArchTest {
             "com.cambae.backend.m15.retention.scheduling.ExpiredDataPurgeJob",
                     "loại bỏ dữ liệu hết hạn lưu giữ (FR-051)",
             "com.cambae.backend.m15.account.scheduling.MarkInactiveAccountsJob",
-                    "tự chuyển trạng thái theo giờ: tài khoản người thân Không hoạt động (002 FR-010)");
+                    "tự chuyển trạng thái theo giờ: tài khoản người thân Không hoạt động (002 FR-010)",
+            "com.cambae.backend.m15.account.scheduling.WarnExpiringLicensesJob",
+                    "cảnh báo giấy phép sắp hết hạn; chỉ ghi bảng kỹ thuật chống lặp (002 FR-039)",
+            "com.cambae.backend.m15.account.scheduling.LockAfterResidencyEndJob",
+                    "tự chuyển trạng thái theo giờ: khóa tài khoản người thân sau CFG-M01-04 (002 FR-049)");
 
     private static final DescribedPredicate<JavaClass> LISTED = DescribedPredicate.describe(
             "có trong danh sách job được phép của FR-010a", c -> ALLOWED.containsKey(c.getName()));

@@ -76,6 +76,11 @@ public class RequiresPermissionAspect {
                                     "expiryDate",
                                     result.license().get().expiryDate())));
         }
+        // Giấy phép cơ sở, loại giấy phép chưa cấu hình: vẫn là lỗi pháp lý, không có giấy phép để nêu (T064)
+        if (layer == FailedLayer.LEGAL) {
+            throw new PermissionDeniedException(
+                    "LEGAL_CONDITION_NOT_MET", "Thiếu điều kiện pháp lý", Map.of("failedLayer", layer.name()));
+        }
         throw new PermissionDeniedException("PERMISSION_DENIED", "Không có quyền", Map.of("failedLayer", layer.name()));
     }
 

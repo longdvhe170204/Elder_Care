@@ -11,8 +11,10 @@ import com.cambae.backend.m15.account.api.PermissionApi;
 import com.cambae.backend.m15.account.api.PermissionBasis;
 import com.cambae.backend.m15.account.api.PermissionKey;
 import com.cambae.backend.m15.account.api.PermissionResult;
+import com.cambae.backend.m15.account.api.ResidencyEndApi;
 import com.cambae.backend.m15.account.api.ScopeApi;
 import com.cambae.backend.m15.account.api.Target;
+import com.cambae.backend.m15.account.legal.internal.LegalConditionService;
 import com.cambae.backend.m15.account.scope.internal.PermissionDataErrors;
 import java.time.Instant;
 import java.util.LinkedHashSet;
@@ -34,8 +36,10 @@ import org.springframework.stereotype.Service;
  *   <li>phạm vi: phương án toàn viện thì qua; theo phân công, theo quan hệ thì đối tượng phải cụ thể và
  *       {@code ScopeApi.inScope}; trượt thì lớp {@code SCOPE}. {@code (INCIDENT_EMERGENCY, CREATE)} trên một người cao
  *       tuổi được miễn lớp này (FR-044a); căn cứ là ngoài phạm vi khi người ghi không xem được hồ sơ người đó
- *       ({@code (RESIDENT_PROFILE, VIEW)} theo vai trò ∩ phạm vi; chủ dự án chọn 2026-10-20, US1 #9);
- *   <li>pháp lý: thao tác {@code PROFESSIONAL} bị từ chối lớp {@code LEGAL} cho tới khi T064 (US5) nối kiểm giấy phép.
+ *       ({@code (RESIDENT_PROFILE, VIEW)} theo vai trò ∩ phạm vi; chủ dự án chọn 2026-10-20, US1 #9). Người thân với
+ *       người cao tuổi đã ở trạng thái cuối (còn trong phạm vi tới hết CFG-M01-04) chỉ có {@code VIEW} (FR-049, US6 #7);
+ *   <li>pháp lý ({@code LegalConditionService}, T064): thao tác {@code PROFESSIONAL} kiểm giấy phép người hành nghề và
+ *       phạm vi hoạt động của cơ sở theo ngày của thời điểm kiểm.
  * </ol>
  *
  * Bộ lập lịch được phép, căn cứ Bộ lập lịch (FR-044). Module nguồn ném {@link InvalidPermissionDataException} thì lớp
@@ -55,7 +59,10 @@ class PermissionService implements PermissionApi {
     private final ObjectProvider<FootnoteCondition> conditions;
     private final PermissionDataErrors dataErrors;
     private final DutyPermissions duties;
+    private final LegalConditionService legal;
     private final BusinessTime time;
+    // 004 cài
+    private final ObjectProvider<ResidencyEndApi> residencyEnds;
 
     PermissionService(
             RolePermissionCalculator roles,
@@ -63,13 +70,17 @@ class PermissionService implements PermissionApi {
             ObjectProvider<FootnoteCondition> conditions,
             PermissionDataErrors dataErrors,
             DutyPermissions duties,
-            BusinessTime time) {
+            LegalConditionService legal,
+            BusinessTime time,
+            ObjectProvider<ResidencyEndApi> residencyEnds) {
         this.roles = roles;
         this.scope = scope;
         this.conditions = conditions;
         this.dataErrors = dataErrors;
         this.duties = duties;
+        this.legal = legal;
         this.time = time;
+        this.residencyEnds = residencyEnds;
     }
 
     @Override
@@ -135,17 +146,17 @@ class PermissionService implements PermissionApi {
             if (!inScope(passing, user, target, at)) {
                 return byDuty(user, key, target, at, FailedLayer.SCOPE);
             }
+            if (user.familyMemberId().isPresent() && key.operation() != Operation.VIEW && ended(target, at)) {
+                return PermissionResult.denied(FailedLayer.SCOPE);
+            }
         } catch (InvalidPermissionDataException e) {
             dataErrors.record(e);
             return key.equals(INCIDENT_CREATE) && target.residentId() != null
                     ? PermissionResult.allowed(PermissionBasis.OUT_OF_SCOPE)
                     : PermissionResult.denied(FailedLayer.SOURCE_DATA);
         }
-        // 4. Pháp lý: T064 nối kiểm giấy phép
-        if (key.operation() == Operation.PROFESSIONAL) {
-            return PermissionResult.denied(FailedLayer.LEGAL);
-        }
-        return PermissionResult.allowed(PermissionBasis.ROLE);
+        // 4. Pháp lý (T064)
+        return legal.denial(user, key, at).orElseGet(() -> PermissionResult.allowed(PermissionBasis.ROLE));
     }
 
     /** Quyền theo nhiệm vụ (FR-019a → g); không nhiệm vụ nào thỏa thì từ chối ở lớp đã trượt. */
@@ -169,6 +180,16 @@ class PermissionService implements PermissionApi {
             dataErrors.markFixed(target.residentId());
         }
         return in;
+    }
+
+    /** Người cao tuổi của đối tượng đã ở trạng thái cuối tại {@code at} (004). */
+    private boolean ended(Target target, Instant at) {
+        ResidencyEndApi ends = residencyEnds.getIfAvailable();
+        return target.residentId() != null
+                && ends != null
+                && ends.finalStatusAt(target.residentId())
+                        .filter(end -> !end.isAfter(at))
+                        .isPresent();
     }
 
     private static boolean satisfied(

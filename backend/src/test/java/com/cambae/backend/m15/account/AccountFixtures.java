@@ -97,6 +97,20 @@ class AccountFixtures {
                 AccessChannel.STAFF_APP);
     }
 
+    /** Người dùng của tài khoản người thân fixture, như phiên app người thân (002 US6). */
+    ActiveSession familyUser(long accountId) {
+        long familyMemberId =
+                jdbc.queryForObject("SELECT family_member_id FROM account WHERE id = ?", Long.class, accountId);
+        return new ActiveSession(
+                accountId,
+                AccountType.FAMILY_MEMBER,
+                Optional.empty(),
+                Optional.of(familyMemberId),
+                EnumSet.of(Role.FAMILY_MEMBER),
+                "fixture-device",
+                AccessChannel.FAMILY_APP);
+    }
+
     long staffId(long accountId) {
         return jdbc.queryForObject("SELECT staff_id FROM account WHERE id = ?", Long.class, accountId);
     }

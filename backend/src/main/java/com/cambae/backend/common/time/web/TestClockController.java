@@ -69,7 +69,9 @@ public class TestClockController {
         APPLY_DUE_REQUESTS,
         REMIND_PENDING_REQUESTS,
         PURGE_EXPIRED_DATA,
-        MARK_INACTIVE_ACCOUNTS
+        MARK_INACTIVE_ACCOUNTS,
+        WARN_EXPIRING_LICENSES,
+        LOCK_AFTER_RESIDENCY_END
     }
 
     public record ClockResponse(OffsetDateTime now, boolean simulated) {}
