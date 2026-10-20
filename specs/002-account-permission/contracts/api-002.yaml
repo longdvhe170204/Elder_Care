@@ -474,7 +474,8 @@ paths:
       summary: Bản ghi chờ xem lại thuộc quyền quyết định của người dùng
       x-fr: [FR-041c]
       parameters: [ { $ref: '#/components/parameters/Cursor' } ]
-      responses: { '200': { description: OK } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PendingReviewRecordPage' } } } }
   /pending-review-records/{id}/accept:
     post:
       tags: [offline]
@@ -482,7 +483,7 @@ paths:
       x-fr: [FR-041c]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
       responses:
-        '200': { description: OK }
+        '200': { $ref: '#/components/responses/PendingReviewRecordOk' }
         '409': { description: 'ALREADY_PROCESSED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
   /pending-review-records/{id}/reject:
     post:
@@ -491,7 +492,7 @@ paths:
       x-fr: [FR-041c]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
       requestBody: { $ref: '#/components/requestBodies/ReasonBody' }
-      responses: { '200': { description: OK } }
+      responses: { '200': { $ref: '#/components/responses/PendingReviewRecordOk' } }
 
   # --- Bổ sung 2026-10-18: tài khoản người cao tuổi (mục H; Q-365, Q-368, Q-370, Q-371) ---
   /resident-accounts:
@@ -659,6 +660,10 @@ components:
       description: OK
       headers: { ETag: { $ref: '#/components/headers/ETag' } }
       content: { application/json: { schema: { $ref: '#/components/schemas/AccountPermissions' } } }
+    PendingReviewRecordOk:
+      description: OK
+      headers: { ETag: { $ref: '#/components/headers/ETag' } }
+      content: { application/json: { schema: { $ref: '#/components/schemas/PendingReviewRecord' } } }
   schemas:
     Reason: { type: string, minLength: 1, maxLength: 2000 }
     Operation: { type: string, enum: [VIEW, CREATE, UPDATE, CONFIRM, APPROVE, FINALIZE, PROFESSIONAL] }
@@ -776,6 +781,29 @@ components:
         requiredPracticeScopes: { type: array, items: { type: integer, format: int64 } }
         requiresFacilityScope: { type: boolean }
         reason: { $ref: '#/components/schemas/Reason' }
+    # Bổ sung 2026-10-20 (T058): hợp đồng chưa có schema phản hồi của bản ghi chờ xem lại; cột theo data-model mục 5
+    PendingReviewRecord:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        recordType: { type: string, example: M04.CARE_TASK_RESULT }
+        content: { type: object, description: Nội dung gốc từ thiết bị }
+        recorderId: { type: integer, format: int64, description: Tài khoản người ghi }
+        deviceTime: { type: string, format: date-time }
+        syncedAt: { type: string, format: date-time }
+        lastConnectedAt: { type: string, format: date-time }
+        pendingReason: { type: string, enum: [LATER_THAN_SYNC, EARLIER_THAN_LAST_CONNECTION, EXCEEDS_CFG_M15_08] }
+        floorAreaId: { type: integer, format: int64, description: 'Rỗng: không gắn tầng, Quản lý viện quyết định' }
+        status: { type: string, enum: [PENDING_REVIEW, ACCEPTED, REJECTED] }
+        decidedBy: { type: integer, format: int64 }
+        decidedAt: { type: string, format: date-time }
+        rejectionReason: { type: string }
+        reference: { type: string, description: Tham chiếu bản ghi thật khi đã chấp nhận }
+    PendingReviewRecordPage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/PendingReviewRecord' } }
+        nextCursor: { type: string }
     Problem:
       type: object
       description: RFC 9457 cùng errorCode (000 R-03), giống schema Problem của api-000. Với 403 có failedLayer, license (FR-043).

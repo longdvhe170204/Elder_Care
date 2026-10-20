@@ -1,69 +1,93 @@
 package com.cambae.backend.m15.account.scope.internal;
 
+import com.cambae.backend.common.Role;
 import com.cambae.backend.common.time.BusinessTime;
-import com.cambae.backend.m15.account.api.AssignmentApi;
+import com.cambae.backend.m15.account.api.AssignmentKind;
 import com.cambae.backend.m15.account.api.AssignmentView;
 import com.cambae.backend.m15.account.api.BedAllocationApi;
 import com.cambae.backend.m15.account.api.BedAllocationView;
 import com.cambae.backend.m15.account.api.CurrentUser;
+import com.cambae.backend.m15.account.api.DutyApi;
 import com.cambae.backend.m15.account.api.PermissionKey;
 import com.cambae.backend.m15.account.api.ReviewRecipient;
 import com.cambae.backend.m15.account.api.ScopeApi;
 import com.cambae.backend.m15.account.api.ScopeFilter;
 import com.cambae.backend.m15.account.api.Target;
+import com.cambae.backend.m15.account.permission.internal.FootnoteRules;
+import com.cambae.backend.m15.account.permission.internal.PermissionScope;
+import com.cambae.backend.m15.account.permission.internal.RolePermissionCalculator;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Fallback;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 /**
- * Phạm vi dữ liệu (002 research A-07). Phần đã cài (kéo lên US1 cho T018, chủ dự án đồng ý 2026-10-20):
- * {@link #inScope} của nhân viên, tính trong từng lần gọi từ phân công đang hiệu lực (008) và phân bổ giường đang mở
- * (003): đối tượng trong phạm vi khi một phân công trùng người cao tuổi, phòng hoặc tầng/khu vực của đối tượng. Còn lại
- * ở T052 (US4): khoảng CFG-M15-07 quanh ca, {@code filter}, {@code historyFilter}, người phụ trách ca, trưởng tầng được
- * giao, người quyết định xem lại; phạm vi theo quan hệ của người thân ở T071 (US6), của người cao tuổi ở T091 (US8).
+ * Phạm vi dữ liệu (002 T052; research A-07; FR-028 → FR-035a), tính trong từng lần gọi từ phân công của 008 (khoảng
+ * CFG-M15-07 quanh ca, {@link ActiveAssignments}) và phân bổ giường đang mở của 003; không đệm giữa các yêu cầu
+ * (FR-033). Đối tượng trong phạm vi khi một phân công trùng người cao tuổi, phòng hoặc tầng/khu vực của đối tượng; người
+ * phụ trách ca có phạm vi là tầng/khu của ca qua phân công {@code SHIFT_LEAD} (FR-031). Người phụ trách ca, trưởng tầng
+ * được giao lấy từ {@code DutyApi} và trả id tài khoản. Chưa có: phạm vi người tham gia chuyến của Trưởng đoàn, Người đi
+ * cùng (FR-031; cần SPI của 014), phạm vi theo quan hệ của người thân (T071, US6), của người cao tuổi (T091, US8).
  */
 @Service
 @Fallback
 class ScopeService implements ScopeApi {
 
-    private static final String LATER = "Cài ở 002 T052 (US4)";
-
     private final BusinessTime time;
+    private final ActiveAssignments assignments;
+    private final RolePermissionCalculator roles;
+    private final JdbcTemplate jdbc;
     // ObjectProvider: 008, 003 cài; trước đó chỉ test khai bản giả
-    private final ObjectProvider<AssignmentApi> assignments;
     private final ObjectProvider<BedAllocationApi> bedAllocations;
+    private final ObjectProvider<DutyApi> duties;
 
     ScopeService(
             BusinessTime time,
-            ObjectProvider<AssignmentApi> assignments,
-            ObjectProvider<BedAllocationApi> bedAllocations) {
+            ActiveAssignments assignments,
+            RolePermissionCalculator roles,
+            JdbcTemplate jdbc,
+            ObjectProvider<BedAllocationApi> bedAllocations,
+            ObjectProvider<DutyApi> duties) {
         this.time = time;
         this.assignments = assignments;
+        this.roles = roles;
+        this.jdbc = jdbc;
         this.bedAllocations = bedAllocations;
+        this.duties = duties;
     }
 
     @Override
     public boolean inScope(CurrentUser user, Target target) {
+        return inScope(user, target, time.now());
+    }
+
+    @Override
+    public boolean inScope(CurrentUser user, Target target, Instant at) {
         if (user.isScheduler()) {
             return true;
         }
         if (user.staffId().isEmpty()) {
             return false;
         }
-        Instant now = time.now();
         Long floorAreaId = target.floorAreaId();
         Long roomId = null;
         if (target.residentId() != null) {
-            Optional<BedAllocationView> bed = bedAllocations.getObject().openAt(target.residentId(), now);
+            Optional<BedAllocationView> bed = assignments.bedOf(target.residentId(), at);
             if (bed.isPresent()) {
                 floorAreaId = floorAreaId != null ? floorAreaId : bed.get().floorAreaId();
                 roomId = bed.get().roomId();
             }
         }
-        for (AssignmentView a : assignments.getObject().activeAt(user.staffId().get(), now)) {
+        for (AssignmentView a : assignments.at(user.staffId().get(), at)) {
             if (matches(a.residentId(), target.residentId())
                     || matches(a.roomId(), roomId)
                     || matches(a.floorAreaId(), floorAreaId)) {
@@ -77,28 +101,137 @@ class ScopeService implements ScopeApi {
         return assigned != null && Objects.equals(assigned, ofTarget);
     }
 
+    /**
+     * Toàn viện khi một vai trò cho khóa phạm vi toàn viện (FR-034); không thì tầng, phòng, người cao tuổi của phân công
+     * hiện hành, {@code residentIds} gồm cả người đang có phân bổ giường mở trong các tầng, phòng đó (FR-029).
+     */
     @Override
     public ScopeFilter filter(CurrentUser user, PermissionKey key) {
-        throw new UnsupportedOperationException(LATER);
+        if (user.isScheduler() || facilityWide(user, key)) {
+            return ScopeFilter.FACILITY;
+        }
+        if (user.staffId().isEmpty()) {
+            return empty();
+        }
+        Instant now = time.now();
+        return of(assignments.at(user.staffId().get(), now), now);
     }
 
+    /**
+     * Bộ lọc báo cáo khoảng đã qua (FR-035a; Q-192, Q-195): giao trưởng tầng theo các tầng đang được giao lúc xem, gồm
+     * cả bản ghi trước khi được giao; phân công khác theo các khoảng góp giao với {@code [from, to)}. {@code residentIds}
+     * chỉ gồm người được phân công trực tiếp; module so tầng, phòng của bản ghi lúc phát sinh. Chỉ để đọc (luật kiến
+     * trúc trong {@code RequiresPermissionArchTest}).
+     */
     @Override
     public ScopeFilter historyFilter(CurrentUser user, PermissionKey key, Instant from, Instant to) {
-        throw new UnsupportedOperationException(LATER);
+        if (user.isScheduler() || facilityWide(user, key)) {
+            return ScopeFilter.FACILITY;
+        }
+        if (user.staffId().isEmpty()) {
+            return empty();
+        }
+        long staffId = user.staffId().get();
+        List<AssignmentView> current = assignments.at(staffId, time.now()).stream()
+                .filter(a -> a.kind() == AssignmentKind.FLOOR_MANAGER)
+                .toList();
+        List<AssignmentView> past = assignments.during(staffId, from, to).stream()
+                .filter(a -> a.kind() != AssignmentKind.FLOOR_MANAGER)
+                .toList();
+        Set<Long> floors = new HashSet<>();
+        Set<Long> rooms = new HashSet<>();
+        Set<Long> residents = new HashSet<>();
+        collect(current, floors, rooms, residents);
+        collect(past, floors, rooms, residents);
+        return new ScopeFilter(false, Set.copyOf(floors), Set.copyOf(rooms), Set.copyOf(residents));
     }
 
     @Override
     public Optional<Long> shiftLead(long floorAreaId, Instant at) {
-        throw new UnsupportedOperationException(LATER);
+        DutyApi api = duties.getIfAvailable();
+        return api == null ? Optional.empty() : api.shiftLead(floorAreaId, at).flatMap(this::accountOfStaff);
     }
 
+    /** Giao trưởng tầng đang hiệu lực, kể cả giao tạm (Q-84). */
     @Override
     public Optional<Long> assignedFloorManager(long floorAreaId) {
-        throw new UnsupportedOperationException(LATER);
+        DutyApi api = duties.getIfAvailable();
+        return api == null
+                ? Optional.empty()
+                : api.assignedFloorManager(floorAreaId, time.now()).flatMap(this::accountOfStaff);
     }
 
+    /**
+     * Trưởng tầng được giao của tầng; tầng chưa có thì Người phụ trách ca đang diễn ra (Q-90); bản ghi không gắn tầng
+     * thì Quản lý viện (CHK056). Tầng không có cả hai thì Quản lý viện, để bản ghi không bị bỏ lơ (plan 002 ghi chú
+     * Phase 6, chờ chủ dự án xác nhận).
+     */
     @Override
     public ReviewRecipient reviewDecider(Optional<Long> floorAreaId) {
-        throw new UnsupportedOperationException(LATER);
+        if (floorAreaId.isPresent()) {
+            long floor = floorAreaId.get();
+            Optional<Long> decider = assignedFloorManager(floor)
+                    .or(() -> Optional.ofNullable(duties.getIfAvailable())
+                            .flatMap(api -> api.floorManagerSubstitute(floor, time.now()))
+                            .flatMap(this::accountOfStaff));
+            if (decider.isPresent()) {
+                return new ReviewRecipient(Set.of(decider.get()));
+            }
+        }
+        return new ReviewRecipient(Set.copyOf(jdbc.queryForList(
+                "SELECT a.id FROM account a JOIN role_assignment r ON r.account_id = a.id"
+                        + " WHERE r.role = ? AND r.effective_from <= ? AND (r.effective_to IS NULL OR r.effective_to > ?)"
+                        + " AND a.status = 'ACTIVE'",
+                Long.class,
+                Role.NURSING_HOME_MANAGER.code(),
+                utc(time.now()),
+                utc(time.now()))));
+    }
+
+    /** Có phương án toàn viện không vướng chú thích chặn ở lớp vai trò (FR-034). */
+    private boolean facilityWide(CurrentUser user, PermissionKey key) {
+        return roles.current(user.accountId()).getOrDefault(key, Set.of()).stream()
+                .anyMatch(g -> g.scope() == PermissionScope.FACILITY
+                        && !FootnoteRules.blockedAtRoleLayer(g.footnotes(), Set.of()));
+    }
+
+    private ScopeFilter of(Collection<AssignmentView> active, Instant at) {
+        Set<Long> floors = new HashSet<>();
+        Set<Long> rooms = new HashSet<>();
+        Set<Long> residents = new HashSet<>();
+        collect(active, floors, rooms, residents);
+        BedAllocationApi beds = bedAllocations.getIfAvailable();
+        if (beds != null && (!floors.isEmpty() || !rooms.isEmpty())) {
+            residents.addAll(beds.residentsIn(new ScopeFilter(false, floors, rooms, Set.of()), at));
+        }
+        return new ScopeFilter(false, Set.copyOf(floors), Set.copyOf(rooms), Set.copyOf(residents));
+    }
+
+    private static void collect(
+            Collection<AssignmentView> from, Set<Long> floors, Set<Long> rooms, Set<Long> residents) {
+        for (AssignmentView a : from) {
+            if (a.floorAreaId() != null) {
+                floors.add(a.floorAreaId());
+            }
+            if (a.roomId() != null) {
+                rooms.add(a.roomId());
+            }
+            if (a.residentId() != null) {
+                residents.add(a.residentId());
+            }
+        }
+    }
+
+    private static ScopeFilter empty() {
+        return new ScopeFilter(false, Set.of(), Set.of(), Set.of());
+    }
+
+    private Optional<Long> accountOfStaff(long staffId) {
+        return jdbc.queryForList("SELECT id FROM account WHERE staff_id = ?", Long.class, staffId).stream()
+                .findFirst();
+    }
+
+    private static LocalDateTime utc(Instant instant) {
+        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }
 }

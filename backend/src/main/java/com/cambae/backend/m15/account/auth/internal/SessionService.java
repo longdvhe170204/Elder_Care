@@ -46,6 +46,60 @@ public class SessionService {
         return resolveRequest(token).map(Resolved::session);
     }
 
+    /**
+     * Phiên của token cho {@code POST /sync} (FR-041a, BR-M15-20; plan 002 ghi chú Phase 6): nhận cả phiên đã kết thúc
+     * (trừ đăng xuất) vì bản ghi được ghi khi phiên còn mở, phản hồi báo phiên đã kết thúc. Phiên còn mở thì đếm lại giờ
+     * như {@link #resolveRequest}; không ghi lần kết nối của thiết bị để lệnh đồng bộ đối chiếu lần kết nối trước khi
+     * ngoại tuyến rồi mới cập nhật (T056).
+     */
+    public Optional<ActiveSession> resolveForSync(String token) {
+        byte[] hash = SessionTokens.hash(token);
+        Optional<SyncRow> row = jdbc
+                .query(
+                        "SELECT s.account_id, s.device_id, s.channel, s.last_active_at, a.type, a.staff_id,"
+                                + " a.family_member_id, a.must_change_password, s.ended_at IS NULL FROM login_session s"
+                                + " JOIN account a ON a.id = s.account_id"
+                                + " WHERE s.token_hash = ? AND (s.end_reason IS NULL OR s.end_reason <> 'LOGOUT')",
+                        (rs, i) -> new SyncRow(
+                                new OpenRow(
+                                        rs.getLong(1),
+                                        rs.getString(2),
+                                        AccessChannel.valueOf(rs.getString(3)),
+                                        rs.getObject(4, LocalDateTime.class).toInstant(ZoneOffset.UTC),
+                                        AccountType.valueOf(rs.getString(5)),
+                                        Optional.ofNullable(rs.getObject(6, Long.class)),
+                                        Optional.ofNullable(rs.getObject(7, Long.class)),
+                                        rs.getBoolean(8)),
+                                rs.getBoolean(9)),
+                        hash)
+                .stream()
+                .findFirst();
+        if (row.isEmpty()) {
+            return Optional.empty();
+        }
+        OpenRow found = row.get().session();
+        Instant now = time.now();
+        if (row.get().open()) {
+            Optional<Duration> limit = idleLimit(found.channel());
+            String column = limit.isPresent()
+                            && Duration.between(found.lastActiveAt(), now).compareTo(limit.get()) > 0
+                    ? "ended_at = ?, end_reason = 'TIMED_OUT'"
+                    : "last_active_at = ?";
+            jdbc.update(
+                    "UPDATE login_session SET " + column + " WHERE token_hash = ? AND ended_at IS NULL",
+                    utc(now),
+                    hash);
+        }
+        return Optional.of(new ActiveSession(
+                found.accountId(),
+                found.type(),
+                found.staffId(),
+                found.familyMemberId(),
+                roles(found.accountId(), now),
+                found.deviceId(),
+                found.channel()));
+    }
+
     /** Như {@link #resolve} kèm cờ buộc đổi mật khẩu cho bộ lọc phiên. */
     public Optional<Resolved> resolveRequest(String token) {
         byte[] hash = SessionTokens.hash(token);
@@ -148,4 +202,6 @@ public class SessionService {
             Optional<Long> staffId,
             Optional<Long> familyMemberId,
             boolean mustChangePassword) {}
+
+    private record SyncRow(OpenRow session, boolean open) {}
 }
