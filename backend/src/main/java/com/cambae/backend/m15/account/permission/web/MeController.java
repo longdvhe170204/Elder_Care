@@ -3,12 +3,12 @@ package com.cambae.backend.m15.account.permission.web;
 import com.cambae.backend.common.Role;
 import com.cambae.backend.m15.account.api.AccountApi;
 import com.cambae.backend.m15.account.api.CurrentUser;
+import com.cambae.backend.m15.account.auth.internal.AccountService;
 import com.cambae.backend.m15.account.permission.internal.AccountPermissionsQuery;
 import com.cambae.backend.m15.account.permission.internal.PermissionViews.EffectivePermission;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,30 +26,29 @@ class MeController {
     private final ObjectProvider<CurrentUser> currentUser;
     private final AccountApi accounts;
     private final AccountPermissionsQuery permissions;
-    private final JdbcTemplate jdbc;
+    private final AccountService accountService;
 
     MeController(
             ObjectProvider<CurrentUser> currentUser,
             AccountApi accounts,
             AccountPermissionsQuery permissions,
-            JdbcTemplate jdbc) {
+            AccountService accountService) {
         this.currentUser = currentUser;
         this.accounts = accounts;
         this.permissions = permissions;
-        this.jdbc = jdbc;
+        this.accountService = accountService;
     }
 
     @GetMapping
     UserInfo me() {
         CurrentUser user = currentUser.getObject();
-        Boolean mustChange = jdbc.queryForObject(
-                "SELECT must_change_password FROM account WHERE id = ?", Boolean.class, user.accountId());
+        boolean mustChange = accountService.mustChangePassword(user.accountId());
         return new UserInfo(
                 user.accountId(),
                 user.type(),
                 accounts.fullName(user.accountId()).orElse(null),
                 user.roles().stream().map(Role::code).sorted().toList(),
-                Boolean.TRUE.equals(mustChange));
+                mustChange);
     }
 
     @GetMapping("/permissions")

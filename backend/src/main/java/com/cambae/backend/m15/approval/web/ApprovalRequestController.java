@@ -4,22 +4,20 @@ import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.web.VersionEtag;
 import com.cambae.backend.m15.account.api.AccountApi;
+import com.cambae.backend.m15.approval.api.ApprovalRequestDetails;
 import com.cambae.backend.m15.approval.api.ApprovalRequestView;
 import com.cambae.backend.m15.approval.api.CreateRequest;
-import com.cambae.backend.m15.approval.api.ResultRef;
+import com.cambae.backend.m15.approval.api.dto.ApprovalRequestBody;
 import com.cambae.backend.m15.approval.internal.ApprovalRequestService;
 import com.cambae.backend.m15.approval.internal.ApprovalRequestService.Inbox;
 import com.cambae.backend.m15.approval.internal.ApprovalRequestService.Page;
-import com.cambae.backend.m15.approval.internal.ApprovalRequestService.Viewed;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.LongFunction;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -153,7 +151,7 @@ public class ApprovalRequestController {
         return withEtag(HttpStatus.OK, requests.detail(id));
     }
 
-    private ResponseEntity<ApprovalRequestBody> withEtag(HttpStatus status, Viewed viewed) {
+    private ResponseEntity<ApprovalRequestBody> withEtag(HttpStatus status, ApprovalRequestDetails viewed) {
         return ResponseEntity.status(status)
                 .eTag(VersionEtag.of(viewed.request().version()))
                 .body(ApprovalRequestBody.of(viewed, this::fullName));
@@ -198,86 +196,5 @@ public class ApprovalRequestController {
     /** Họ tên theo hồ sơ tài khoản (002 T032a); không có thì {@code null}. */
     String fullName(long accountId) {
         return accounts.getObject().fullName(accountId).orElse(null);
-    }
-
-    /** Người thực hiện là người dùng hay Bộ lập lịch (schema {@code Actor}). */
-    public enum ActorType {
-        USER,
-        SCHEDULER,
-        // Công cụ khởi tạo Quản lý viện đầu tiên (002 BR-M15-22); chỉ nhật ký có
-        BOOTSTRAP,
-        // Lần đăng nhập thất bại, chưa xác định người (002 FR-015); chỉ nhật ký có
-        ANONYMOUS
-    }
-
-    /** Người thực hiện theo schema {@code Actor}; họ tên theo hồ sơ tài khoản (002 T032a). */
-    public record ActorBody(ActorType type, Long id, String fullName, String role) {
-
-        static ActorBody user(Long id, LongFunction<String> names) {
-            return id == null ? null : new ActorBody(ActorType.USER, id, names.apply(id), null);
-        }
-    }
-
-    /** Yêu cầu theo schema {@code ApprovalRequest}. */
-    public record ApprovalRequestBody(
-            long id,
-            String displayCode,
-            String type,
-
-            @Schema(
-                    allowableValues = {
-                        "DRAFT",
-                        "PENDING_APPROVAL",
-                        "APPROVED",
-                        "APPLIED",
-                        "APPLY_FAILED",
-                        "REJECTED",
-                        "CANCELLED"
-                    })
-            String status,
-
-            @Schema(implementation = Object.class) JsonNode content,
-            ActorBody requester,
-            Instant createdAt,
-            String reason,
-            LocalDate requestedEffectiveDate,
-            LocalDate actualEffectiveDate,
-            Instant submittedAt,
-            ActorBody decidedBy,
-            Instant decidedAt,
-            String decisionComment,
-            boolean selfApproved,
-            String closingReason,
-            Instant appliedAt,
-            boolean catchUpApplied,
-            ResultRef applicationResult,
-            List<String> allowedCommands,
-            int version) {
-
-        public static ApprovalRequestBody of(Viewed viewed, LongFunction<String> names) {
-            ApprovalRequestView r = viewed.request();
-            return new ApprovalRequestBody(
-                    r.id(),
-                    r.displayCode(),
-                    r.type(),
-                    r.status(),
-                    r.content(),
-                    ActorBody.user(r.requesterId(), names),
-                    r.createdAt(),
-                    r.reason(),
-                    r.requestedEffectiveDate(),
-                    r.actualEffectiveDate(),
-                    r.submittedAt(),
-                    ActorBody.user(r.decidedBy(), names),
-                    r.decidedAt(),
-                    r.decisionComment(),
-                    r.selfApproved(),
-                    r.closingReason(),
-                    r.appliedAt(),
-                    r.catchUpApplied(),
-                    r.applicationResult(),
-                    viewed.allowedCommands(),
-                    r.version());
-        }
     }
 }

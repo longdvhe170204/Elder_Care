@@ -17,6 +17,7 @@ import com.cambae.backend.m15.account.api.PermissionApi;
 import com.cambae.backend.m15.account.api.Target;
 import com.cambae.backend.m15.approval.api.ApprovalCommands;
 import com.cambae.backend.m15.approval.api.ApprovalRequestApi;
+import com.cambae.backend.m15.approval.api.ApprovalRequestDetails;
 import com.cambae.backend.m15.approval.api.ApprovalRequestView;
 import com.cambae.backend.m15.approval.api.ApprovalStatus;
 import com.cambae.backend.m15.approval.api.CreateRequest;
@@ -107,9 +108,7 @@ public class ApprovalRequestService implements ApprovalRequestApi {
     }
 
     /** Yêu cầu kèm lệnh người xem hiện được làm. */
-    public record Viewed(ApprovalRequestView request, List<String> allowedCommands) {}
-
-    public record Page(List<Viewed> items, String nextCursor) {}
+    public record Page(List<ApprovalRequestDetails> items, String nextCursor) {}
 
     // ---- ApprovalRequestApi -------------------------------------------------------------------------------------
 
@@ -366,15 +365,16 @@ public class ApprovalRequestService implements ApprovalRequestApi {
     // ---- Truy vấn qua HTTP --------------------------------------------------------------------------------------
 
     /** Chi tiết; người không xem được thì 404, không lộ tồn tại. */
+    @Override
     @Transactional(readOnly = true)
-    public Viewed detail(long id) {
+    public ApprovalRequestDetails detail(long id) {
         CurrentUser user = currentUser.getObject();
         ApprovalRequestView request = store.find(id).orElseThrow(NotFoundException::new);
         RequestTypeHandler handler = directory.handler(request.type());
         if (!directory.canView(user, request, handler)) {
             throw new NotFoundException();
         }
-        return new Viewed(request, allowedCommands(user, request, handler));
+        return new ApprovalRequestDetails(request, allowedCommands(user, request, handler));
     }
 
     /** Danh sách theo hộp, mới nhất trước; quyền xét từng dòng nên quét theo lô cho tới khi đủ trang. */
@@ -401,7 +401,7 @@ public class ApprovalRequestService implements ApprovalRequestApi {
             args.add(type);
         }
         long before = cursor == null ? Long.MAX_VALUE : parseCursor(cursor);
-        List<Viewed> items = new ArrayList<>();
+        List<ApprovalRequestDetails> items = new ArrayList<>();
         while (items.size() < PAGE_SIZE) {
             List<Object> batchArgs = new ArrayList<>(args);
             batchArgs.add(before);
@@ -418,7 +418,7 @@ public class ApprovalRequestService implements ApprovalRequestApi {
                     case ALL_IN_SCOPE -> directory.canView(user, request, handler);
                 };
                 if (shown) {
-                    items.add(new Viewed(request, allowedCommands(user, request, handler)));
+                    items.add(new ApprovalRequestDetails(request, allowedCommands(user, request, handler)));
                     if (items.size() == PAGE_SIZE) {
                         return new Page(items, String.valueOf(request.id()));
                     }

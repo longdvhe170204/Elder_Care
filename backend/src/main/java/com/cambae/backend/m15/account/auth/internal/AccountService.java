@@ -682,6 +682,11 @@ public class AccountService implements AccountApi {
         return Optional.empty();
     }
 
+    /** Cờ buộc đổi mật khẩu của tài khoản, cho {@code GET /me} (FR-006). */
+    public boolean mustChangePassword(long accountId) {
+        return store.mustChangePassword(accountId);
+    }
+
     @Override
     public boolean hasRole(long accountId, Role... roles) {
         Set<Role> assigned = store.roles(accountId);

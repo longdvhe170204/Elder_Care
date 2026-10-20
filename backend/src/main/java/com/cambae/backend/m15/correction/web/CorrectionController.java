@@ -3,8 +3,8 @@ package com.cambae.backend.m15.correction.web;
 import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.m15.account.api.AccountApi;
-import com.cambae.backend.m15.approval.internal.ApprovalRequestService;
-import com.cambae.backend.m15.approval.web.ApprovalRequestController.ApprovalRequestBody;
+import com.cambae.backend.m15.approval.api.ApprovalRequestApi;
+import com.cambae.backend.m15.approval.api.dto.ApprovalRequestBody;
 import com.cambae.backend.m15.correction.api.CorrectionApi;
 import com.cambae.backend.m15.correction.api.CorrectionChainView;
 import com.cambae.backend.m15.correction.api.CorrectionResult;
@@ -36,11 +36,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class CorrectionController {
 
     private final CorrectionApi corrections;
-    private final ApprovalRequestService approvals;
+    private final ApprovalRequestApi approvals;
     private final ObjectProvider<AccountApi> accounts;
 
     public CorrectionController(
-            CorrectionApi corrections, ApprovalRequestService approvals, ObjectProvider<AccountApi> accounts) {
+            CorrectionApi corrections, ApprovalRequestApi approvals, ObjectProvider<AccountApi> accounts) {
         this.accounts = accounts;
         this.corrections = corrections;
         this.approvals = approvals;
