@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.cambae.backend.common.Role;
 import com.cambae.backend.common.time.BusinessTime;
-import com.cambae.backend.m15.account.api.StaffStatus;
+import com.cambae.backend.m15.account.api.spi.StaffStatus;
 import com.cambae.backend.support.MySqlIntegrationTestBase;
 import com.cambae.backend.support.fake.m15.FakeM15Config;
 import com.cambae.backend.support.fake.m15.FakeStaffProfiles;

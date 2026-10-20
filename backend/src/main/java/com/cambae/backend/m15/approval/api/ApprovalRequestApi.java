@@ -11,6 +11,9 @@ public interface ApprovalRequestApi {
 
     Optional<ApprovalRequestView> find(long id);
 
+    /** Chi tiết kèm lệnh người dùng hiện tại được phép; không xem được thì 404 (FR-042). */
+    ApprovalRequestDetails detail(long id);
+
     /** Kết quả áp dụng (FR-039). */
     Optional<ResultRef> applicationResult(long requestId);
 

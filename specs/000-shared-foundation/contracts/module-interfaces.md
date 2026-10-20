@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-06 | **Plan**: [../plan.md](../plan.md)
 
-Đây là hợp đồng trong backend, ở gói `com.cambae.backend.m15.<goi>.api` và `com.cambae.backend.common`. Module khác chỉ được dùng các giao diện này, không đọc bảng của 000 (constitution X). Ngoại lệ duy nhất: báo cáo được `JOIN` hai view `v_dinh_chinh_moi_nhat` và `v_ban_ghi_da_huy` (data-model mục 4).
+Đây là hợp đồng trong backend, ở gói `com.cambae.backend.m15.<goi>.api` và `com.cambae.backend.common`. *(Sửa 2026-10-21, research R-02)* SPI module khác cài nằm ở `api.spi`: `RequestTypeHandler` (`approval`), `FieldClassificationProvider` (`auditlog`), `CorrectableRecordProvider` (`correction`), `RetentionProvider` (`retention`); DTO phản hồi yêu cầu phê duyệt dùng chung ở `approval.api.dto`. Module khác chỉ được dùng các giao diện này, không đọc bảng của 000 (constitution X). Ngoại lệ duy nhất: báo cáo được `JOIN` hai view `v_dinh_chinh_moi_nhat` và `v_ban_ghi_da_huy` (data-model mục 4).
 
 Chữ ký viết dạng Java rút gọn, chỉ để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
 

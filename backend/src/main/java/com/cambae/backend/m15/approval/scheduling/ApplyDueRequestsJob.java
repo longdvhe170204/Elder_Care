@@ -1,7 +1,7 @@
 package com.cambae.backend.m15.approval.scheduling;
 
 import com.cambae.backend.common.scheduling.ScheduledJob;
-import com.cambae.backend.m15.approval.internal.DueRequestApplication;
+import com.cambae.backend.m15.approval.internal.service.DueRequestApplication;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;

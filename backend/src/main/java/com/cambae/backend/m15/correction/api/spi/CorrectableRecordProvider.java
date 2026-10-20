@@ -1,0 +1,42 @@
+package com.cambae.backend.m15.correction.api.spi;
+
+import com.cambae.backend.m15.account.api.CurrentUser;
+import com.cambae.backend.m15.correction.api.CorrectionView;
+import com.cambae.backend.m15.correction.api.CreationMethod;
+import java.util.Optional;
+
+/**
+ * SPI do module sở hữu một loại bản ghi nhóm 3 cài (contracts/module-interfaces.md mục 1.6). Loại không có provider thì
+ * không có đính chính (chi phí đã chốt, giao dịch số dư): 409 {@code CORRECTION_NOT_SUPPORTED}.
+ */
+public interface CorrectableRecordProvider {
+
+    /** Mã loại bản ghi, ví dụ {@code M07.MEDICATION_DOSE}. */
+    String recordType();
+
+    /** Bản gốc tồn tại và đã xác nhận (US2 #8). */
+    boolean isConfirmed(long id);
+
+    /** Tài khoản đã ghi bản gốc (FR-026 a). */
+    long originalRecorder(long id);
+
+    /** Tầng/khu vực của bản gốc; rỗng là loại không gắn tầng (FR-026 c, CHK051). */
+    Optional<Long> floorArea(long id);
+
+    /** Người dùng có quyền ghi nhận loại bản ghi này (FR-026 a, c). */
+    boolean canRecord(CurrentUser user);
+
+    /** Kiểm nội dung đúng; sai thì ném {@code InvalidValueException}. */
+    void validateContent(Object correctedContent);
+
+    /** Nội dung bản gốc để hiển thị chuỗi đính chính (contracts/api-000.yaml {@code originalContent}). */
+    Object originalContent(long id);
+
+    /** Module thu hẹp thêm người được đính chính (FR-026 "module MAY thu hẹp"). */
+    default boolean allows(CurrentUser user, CreationMethod method, long id) {
+        return true;
+    }
+
+    /** Tác động dây chuyền do module (ví dụ 010 lập khoản điều chỉnh), chạy trong transaction của lệnh. */
+    default void afterCorrection(CorrectionView correction) {}
+}

@@ -142,20 +142,20 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 
 ### Tests cho User Story 4
 
-- [ ] T048 [P] [US4] Test `BT/m15/taikhoan/PhamViTheoCaIT.java`, `PhamViDoiPhanCongIT.java`, `PhamViHopPhanCongIT.java`: khoảng CFG-M15-07 quanh ca; đổi phân công có hiệu lực ở yêu cầu kế tiếp; nhiều phân công thì hợp (BR-M15-02)
-- [ ] T049 [P] [US4] Test `BT/m15/taikhoan/QuyenTheoNhiemVuIT.java`: bảy ngoại lệ FR-019a → g, gồm FR-019g Người phụ trách ca Xác nhận giường sẵn sàng (Q-313) (người phụ trách ca, trưởng tầng tạm, Phụ trách bộ phận, trưởng đoàn, người đi cùng, người nhận tại tầng), nhật ký có `canCu` nhiệm vụ
-- [ ] T050 [P] [US4] Test `BT/m15/taikhoan/DongBoKetQuaIT.java` và `NgoaiTuyenChoXemLaiIT.java`: kiểm quyền theo `thoiDiemThietBi`; mất quyền sau khi ghi → `CHAP_NHAN_KEM_NHAN` và sự kiện `BanGhiDongBoSauMatQuyen`; thời điểm thiết bị muộn hơn đồng bộ, sớm hơn lần kết nối cuối, hoặc quá CFG-M15-08 → `CHO_XEM_LAI`; `batBuocTrucTuyen()` → `TU_CHOI`; trùng `Idempotency-Key` không ghi hai lần (BR-M15-20, FR-041a, FR-041c)
-- [ ] T051 [P] [US4] Test `BT/m15/taikhoan/DuLieuNguonLoiIT.java`: lỗi dữ liệu nguồn gộp theo `(nguon, ban_ghi_id, loai_loi)`, báo Quản lý viện lần đầu, đánh dấu khắc phục (FR-041b)
+- [x] T048 [P] [US4] Test `BT/m15/taikhoan/PhamViTheoCaIT.java`, `PhamViDoiPhanCongIT.java`, `PhamViHopPhanCongIT.java`: khoảng CFG-M15-07 quanh ca; đổi phân công có hiệu lực ở yêu cầu kế tiếp; nhiều phân công thì hợp (BR-M15-02)
+- [ ] T049 [P] [US4] Test `BT/m15/taikhoan/QuyenTheoNhiemVuIT.java`: bảy ngoại lệ FR-019a → g, gồm FR-019g Người phụ trách ca Xác nhận giường sẵn sàng (Q-313) (người phụ trách ca, trưởng tầng tạm, Phụ trách bộ phận, trưởng đoàn, người đi cùng, người nhận tại tầng), nhật ký có `canCu` nhiệm vụ *(2026-10-20: xong trừ phạm vi trưởng đoàn, người đi cùng, chờ SPI người tham gia chuyến của 014; plan ghi chú Phase 6)*
+- [x] T050 [P] [US4] Test `BT/m15/taikhoan/DongBoKetQuaIT.java` và `NgoaiTuyenChoXemLaiIT.java`: kiểm quyền theo `thoiDiemThietBi`; mất quyền sau khi ghi → `CHAP_NHAN_KEM_NHAN` và sự kiện `BanGhiDongBoSauMatQuyen`; thời điểm thiết bị muộn hơn đồng bộ, sớm hơn lần kết nối cuối, hoặc quá CFG-M15-08 → `CHO_XEM_LAI`; `batBuocTrucTuyen()` → `TU_CHOI`; trùng `Idempotency-Key` không ghi hai lần (BR-M15-20, FR-041a, FR-041c)
+- [x] T051 [P] [US4] Test `BT/m15/taikhoan/DuLieuNguonLoiIT.java`: lỗi dữ liệu nguồn gộp theo `(nguon, ban_ghi_id, loai_loi)`, báo Quản lý viện lần đầu, đánh dấu khắc phục (FR-041b)
 
 ### Implementation cho User Story 4
 
-- [ ] T052 [US4] Cài `BE/m15/taikhoan/phamvi/internal/PhamViService.java` (`PhamViApi`): `trongPhamVi`, `boLoc`, `boLocLichSu`, `nguoiPhuTrachCa`, `truongTangDuocGiao`, `nguoiQuyetDinhXemLai` từ `PhanCongApi`, `NhiemVuApi`, `PhanBoGiuongApi` tính trong từng yêu cầu, không đệm (research A-07)
-- [ ] T053 [US4] Cài quyền theo nhiệm vụ `BE/m15/taikhoan/quyen/internal/QuyenTheoNhiemVu.java` (FR-019a → g; research A-06) và nối vào bước 2 của `QuyenService`
-- [ ] T054 [US4] Cài `NguoiDuyetApi` trong `BE/m15/taikhoan/quyen/internal/NguoiDuyetService.java`: tài khoản Hoạt động có quyền vai trò, nhiệm vụ, phạm vi bao đối tượng tại lúc hỏi (BR-M15-09 của 000)
-- [ ] T055 [US4] Tạo `MIG/V002_06__ban_ghi_cho_xem_lai.sql`: bảng `ban_ghi_cho_xem_lai` theo data-model mục 5 (`idempotency_key` `UNIQUE` cùng `nguoi_ghi_id`; `ly_do_cho` `MUON_HON_DONG_BO|SOM_HON_KET_NOI_CUOI|QUA_CFG_M15_08`; `trang_thai` `CHO_XEM_LAI → DA_CHAP_NHAN/DA_TU_CHOI`; `ly_do_tu_choi` bắt buộc khi từ chối; `phien_ban`)
-- [ ] T056 [US4] Cài điều phối đồng bộ `BE/m15/taikhoan/ngoaituyen/internal/DongBoService.java`: nhận lô phong bì, đối chiếu `lan_ket_noi_cuoi` trước khi cập nhật, tra `NgoaiTuyenHandler` theo `loaiBanGhi`, kiểm quyền `coQuyenTaiThoiDiem(thoiDiemThietBi)`, trả `KetQuaDongBo` từng bản ghi (research A-11)
-- [ ] T057 [US4] Cài lệnh chấp nhận/từ chối bản ghi chờ xem lại trong `BE/m15/taikhoan/ngoaituyen/internal/ChoXemLaiService.java` (người quyết định: Trưởng tầng được giao → Người phụ trách ca → AC-01 khi không gắn tầng; quyết định đầu tiên thắng; chấp nhận gọi `handler.apDung` hiệu lực từ lúc chấp nhận; nhật ký `NT_*`)
-- [ ] T058 [US4] Tạo `BE/m15/taikhoan/ngoaituyen/web/DongBoController.java` (`POST /dong-bo`) và `ChoXemLaiController.java` (`GET /ban-ghi-cho-xem-lai`, `POST …/{id}/chap-nhan`, `…/tu-choi`) theo contracts/api-002.yaml
+- [x] T052 [US4] Cài `BE/m15/taikhoan/phamvi/internal/PhamViService.java` (`PhamViApi`): `trongPhamVi`, `boLoc`, `boLocLichSu`, `nguoiPhuTrachCa`, `truongTangDuocGiao`, `nguoiQuyetDinhXemLai` từ `PhanCongApi`, `NhiemVuApi`, `PhanBoGiuongApi` tính trong từng yêu cầu, không đệm (research A-07)
+- [x] T053 [US4] Cài quyền theo nhiệm vụ `BE/m15/taikhoan/quyen/internal/QuyenTheoNhiemVu.java` (FR-019a → g; research A-06) và nối vào bước 2 của `QuyenService`
+- [x] T054 [US4] Cài `NguoiDuyetApi` trong `BE/m15/taikhoan/quyen/internal/NguoiDuyetService.java`: tài khoản Hoạt động có quyền vai trò, nhiệm vụ, phạm vi bao đối tượng tại lúc hỏi (BR-M15-09 của 000)
+- [x] T055 [US4] Tạo `MIG/V002_06__ban_ghi_cho_xem_lai.sql`: bảng `ban_ghi_cho_xem_lai` theo data-model mục 5 (`idempotency_key` `UNIQUE` cùng `nguoi_ghi_id`; `ly_do_cho` `MUON_HON_DONG_BO|SOM_HON_KET_NOI_CUOI|QUA_CFG_M15_08`; `trang_thai` `CHO_XEM_LAI → DA_CHAP_NHAN/DA_TU_CHOI`; `ly_do_tu_choi` bắt buộc khi từ chối; `phien_ban`)
+- [x] T056 [US4] Cài điều phối đồng bộ `BE/m15/taikhoan/ngoaituyen/internal/DongBoService.java`: nhận lô phong bì, đối chiếu `lan_ket_noi_cuoi` trước khi cập nhật, tra `NgoaiTuyenHandler` theo `loaiBanGhi`, kiểm quyền `coQuyenTaiThoiDiem(thoiDiemThietBi)`, trả `KetQuaDongBo` từng bản ghi (research A-11)
+- [x] T057 [US4] Cài lệnh chấp nhận/từ chối bản ghi chờ xem lại trong `BE/m15/taikhoan/ngoaituyen/internal/ChoXemLaiService.java` (người quyết định: Trưởng tầng được giao → Người phụ trách ca → AC-01 khi không gắn tầng; quyết định đầu tiên thắng; chấp nhận gọi `handler.apDung` hiệu lực từ lúc chấp nhận; nhật ký `NT_*`)
+- [x] T058 [US4] Tạo `BE/m15/taikhoan/ngoaituyen/web/DongBoController.java` (`POST /dong-bo`) và `ChoXemLaiController.java` (`GET /ban-ghi-cho-xem-lai`, `POST …/{id}/chap-nhan`, `…/tu-choi`) theo contracts/api-002.yaml
 - [ ] T059 [P] [US4] Tạo màn `frontend/src/tinh-nang/cho-xem-lai/ChoXemLai.jsx`
 - [ ] T060 [P] [US4] Tạo `mobile/lib/nhan-vien/ket-qua-dong-bo/` (hiển thị kết quả từng bản ghi sau đồng bộ, BR-M15-20), `mobile/lib/nhan-vien/cho-xem-lai/` và test `mobile/test/nhan-vien/ket_qua_dong_bo_test.dart`, `cho_xem_lai_test.dart` (constitution XV: BR-M15-20 có test ở client)
 
@@ -171,15 +171,15 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 
 ### Tests cho User Story 5
 
-- [ ] T061 [P] [US5] Test `BT/m15/taikhoan/DieuKienPhapLyIT.java`: giấy phép hết hạn hết ngày theo Asia/Ho_Chi_Minh; thiếu phạm vi cơ sở; 403 `DIEU_KIEN_PHAP_LY` kèm tên giấy phép, ngày hết hạn (US5 #1–8, BR-M06-05)
-- [ ] T062 [P] [US5] Test `BT/m15/taikhoan/PhamViHanhNgheIT.java` và `CanhBaoGiayPhepIT.java`: phạm vi hành nghề theo danh mục của 008; cảnh báo `GiayPhepSapHetHan` một lần cho mỗi `(loai, giay_phep_id, ngay_het_han)` (BR-M15-19, FR-039)
+- [x] T061 [P] [US5] Test `BT/m15/taikhoan/DieuKienPhapLyIT.java`: giấy phép hết hạn hết ngày theo Asia/Ho_Chi_Minh; thiếu phạm vi cơ sở; 403 `DIEU_KIEN_PHAP_LY` kèm tên giấy phép, ngày hết hạn (US5 #1–8, BR-M06-05)
+- [x] T062 [P] [US5] Test `BT/m15/taikhoan/PhamViHanhNgheIT.java` và `CanhBaoGiayPhepIT.java`: phạm vi hành nghề theo danh mục của 008; cảnh báo `GiayPhepSapHetHan` một lần cho mỗi `(loai, giay_phep_id, ngay_het_han)` (BR-M15-19, FR-039)
 
 ### Implementation cho User Story 5
 
-- [ ] T063 [US5] Tạo `MIG/V002_07__nghiep_vu_chuyen_mon.sql`: `nghiep_vu_chuyen_mon` (mẫu nhóm 1 của 000, `chuc_nang`, `loai_giay_phep_yeu_cau`, `can_pham_vi_co_so`, `mac_dinh` – `true` thì không ngừng hiệu lực được), `nghiep_vu_chuyen_mon_pham_vi` (khóa chính `(nghiep_vu_id, pham_vi_hanh_nghe_id)`), `da_canh_bao_giay_phep` (khóa chính `(loai, giay_phep_id, ngay_het_han)`); nạp hai dòng mặc định (chẩn đoán và kê đơn nội bộ; phát thuốc và xác nhận liều)
-- [ ] T064 [US5] Cài `BE/m15/taikhoan/phaply/internal/DieuKienPhapLyService.java` (gọi `GiayPhepApi.hieuLuc`, `GiayPhepCoSoApi.coPhamVi` theo ngày ở mỗi thao tác, không có job bật/tắt) và nối bước 4 của `QuyenService` (research A-09)
-- [ ] T065 [US5] Cài lệnh thêm, sửa, ngừng hiệu lực nghiệp vụ chuyên môn (chỉ AC-01, `lyDo`, nhật ký `NVCM_*`) trong `BE/m15/taikhoan/phaply/internal/NghiepVuChuyenMonService.java` và `BE/m15/taikhoan/phaply/web/NghiepVuChuyenMonController.java` (`/nghiep-vu-chuyen-mon`, `/{id}`, `/{id}/ngung-hieu-luc`) (FR-036, FR-037)
-- [ ] T066 [US5] Cài job `BE/m15/taikhoan/phaply/lich/CanhBaoGiayPhepSapHetHan.java` (06:00, ShedLock; mốc từ CFG của 008/007 qua `GiayPhepCoSoApi.sapHetHan`) phát `GiayPhepSapHetHan`, ghi `da_canh_bao_giay_phep` (FR-039)
+- [x] T063 [US5] Tạo `MIG/V002_07__nghiep_vu_chuyen_mon.sql`: `nghiep_vu_chuyen_mon` (mẫu nhóm 1 của 000, `chuc_nang`, `loai_giay_phep_yeu_cau`, `can_pham_vi_co_so`, `mac_dinh` – `true` thì không ngừng hiệu lực được), `nghiep_vu_chuyen_mon_pham_vi` (khóa chính `(nghiep_vu_id, pham_vi_hanh_nghe_id)`), `da_canh_bao_giay_phep` (khóa chính `(loai, giay_phep_id, ngay_het_han)`); nạp hai dòng mặc định (chẩn đoán và kê đơn nội bộ; phát thuốc và xác nhận liều)
+- [x] T064 [US5] Cài `BE/m15/taikhoan/phaply/internal/DieuKienPhapLyService.java` (gọi `GiayPhepApi.hieuLuc`, `GiayPhepCoSoApi.coPhamVi` theo ngày ở mỗi thao tác, không có job bật/tắt) và nối bước 4 của `QuyenService` (research A-09)
+- [x] T065 [US5] Cài lệnh thêm, sửa, ngừng hiệu lực nghiệp vụ chuyên môn (chỉ AC-01, `lyDo`, nhật ký `NVCM_*`) trong `BE/m15/taikhoan/phaply/internal/NghiepVuChuyenMonService.java` và `BE/m15/taikhoan/phaply/web/NghiepVuChuyenMonController.java` (`/nghiep-vu-chuyen-mon`, `/{id}`, `/{id}/ngung-hieu-luc`) (FR-036, FR-037)
+- [x] T066 [US5] Cài job `BE/m15/taikhoan/phaply/lich/CanhBaoGiayPhepSapHetHan.java` (06:00, ShedLock; mốc từ CFG của 008/007 qua `GiayPhepCoSoApi.sapHetHan`) phát `GiayPhepSapHetHan`, ghi `da_canh_bao_giay_phep` (FR-039)
 
 **Checkpoint**: Nghiệp vụ chuyên môn bị chặn đúng theo giấy phép.
 
@@ -193,14 +193,14 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 
 ### Tests cho User Story 6
 
-- [ ] T067 [P] [US6] Test `BT/m15/taikhoan/NguoiThanSucKhoeIT.java` và `NguoiThanPhamViIT.java`: điều kiện chú thích ¹ kiểm mỗi lần xem; rút đồng ý có hiệu lực ngay; người thân không thấy người cao tuổi khác (BR-M01-08, DBR-03, FR-045, FR-046)
-- [ ] T068 [P] [US6] Test `BT/m15/taikhoan/HetQuanHeKhoaTaiKhoanIT.java` và `XacMinhNguoiThanIT.java`: `xetLaiNguoiThan` trong transaction 012 → `DA_KHOA` `HET_QUAN_HE`; job `KhoaSauKetThucLuuTru` sau CFG-M01-04 → `HET_HAN_SAU_KET_THUC`; tạo, kích hoạt lại, cấp lại mật khẩu phải có `cachXacMinh` (BR-M15-14, FR-049, FR-052)
+- [x] T067 [P] [US6] Test `BT/m15/taikhoan/NguoiThanSucKhoeIT.java` và `NguoiThanPhamViIT.java`: điều kiện chú thích ¹ kiểm mỗi lần xem; rút đồng ý có hiệu lực ngay; người thân không thấy người cao tuổi khác (BR-M01-08, DBR-03, FR-045, FR-046)
+- [x] T068 [P] [US6] Test `BT/m15/taikhoan/HetQuanHeKhoaTaiKhoanIT.java` và `XacMinhNguoiThanIT.java`: `xetLaiNguoiThan` trong transaction 012 → `DA_KHOA` `HET_QUAN_HE`; job `KhoaSauKetThucLuuTru` sau CFG-M01-04 → `HET_HAN_SAU_KET_THUC`; tạo, kích hoạt lại, cấp lại mật khẩu phải có `cachXacMinh` (BR-M15-14, FR-049, FR-052)
 
 ### Implementation cho User Story 6
 
-- [ ] T069 [US6] Cài tạo tài khoản người thân (AC-01 hoặc AC-09; hồ sơ người thân có ít nhất một quan hệ chưa ở trạng thái cuối qua `QuanHeNguoiThanApi`; vai trò duy nhất AC-10; `cachXacMinh` vào `chi_tiet` nhật ký) trong `TaiKhoanService.java` và endpoint `POST /tai-khoan-nguoi-than` trong `TaiKhoanController.java` (FR-050, FR-052)
-- [ ] T070 [US6] Cài `xetLaiNguoiThan` (`MANDATORY`) trong `TaiKhoanApiImpl.java` và job `BE/m15/taikhoan/lich/KhoaSauKetThucLuuTru.java` (dùng `KetThucLuuTruApi.thoiDiemTrangThaiCuoi` và CFG-M01-04; ShedLock) (BR-M15-14, FR-049)
-- [ ] T071 [US6] Cài phạm vi `QUAN_HE` cho AC-10 trong `PhamViService.java` và đăng ký `DieuKienChuThich` ¹, ² (bản đồng ý, người đại diện) do 001/012 cài, qua `QuanHeNguoiThanApi` (FR-045 → FR-048)
+- [x] T069 [US6] Cài tạo tài khoản người thân (AC-01 hoặc AC-09; hồ sơ người thân có ít nhất một quan hệ chưa ở trạng thái cuối qua `QuanHeNguoiThanApi`; vai trò duy nhất AC-10; `cachXacMinh` vào `chi_tiet` nhật ký) trong `TaiKhoanService.java` và endpoint `POST /tai-khoan-nguoi-than` trong `TaiKhoanController.java` (FR-050, FR-052)
+- [x] T070 [US6] Cài `xetLaiNguoiThan` (`MANDATORY`) trong `TaiKhoanApiImpl.java` và job `BE/m15/taikhoan/lich/KhoaSauKetThucLuuTru.java` (dùng `KetThucLuuTruApi.thoiDiemTrangThaiCuoi` và CFG-M01-04; ShedLock) (BR-M15-14, FR-049)
+- [x] T071 [US6] Cài phạm vi `QUAN_HE` cho AC-10 trong `PhamViService.java` và đăng ký `DieuKienChuThich` ¹, ² (bản đồng ý, người đại diện) do 001/012 cài, qua `QuanHeNguoiThanApi` (FR-045 → FR-048) *(2026-10-21: phạm vi `QUAN_HE`, chế độ chỉ đọc, nhóm trường sức khỏe theo ¹; quyền riêng của từng người thân chờ `quyenDangBat` của 012, plan ghi chú Phase 8)*
 - [ ] T072 [P] [US6] Test app `mobile/test/nguoi-than/an_suc_khoe_test.dart`: phần sức khỏe ẩn khi API không trả trường (giới hạn trường ở backend)
 
 **Checkpoint**: Người thân chỉ thấy đúng phần được cấp.

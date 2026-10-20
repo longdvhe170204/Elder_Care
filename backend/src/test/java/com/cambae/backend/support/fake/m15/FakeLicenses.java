@@ -1,8 +1,8 @@
 package com.cambae.backend.support.fake.m15;
 
-import com.cambae.backend.m15.account.api.ExpiringLicense;
-import com.cambae.backend.m15.account.api.LicenseApi;
-import com.cambae.backend.m15.account.api.LicenseValidity;
+import com.cambae.backend.m15.account.api.spi.ExpiringLicense;
+import com.cambae.backend.m15.account.api.spi.LicenseApi;
+import com.cambae.backend.m15.account.api.spi.LicenseValidity;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
@@ -36,6 +36,15 @@ public class FakeLicenses implements LicenseApi {
                 .filter(e -> e.staffId() == staffId && e.licenseType().equals(licenseType))
                 .map(Entry::license)
                 .filter(l -> !date.isAfter(l.expiryDate()))
+                .findFirst();
+    }
+
+    /** Bản đặt sau cùng của loại thắng (gia hạn là đặt bản mới). */
+    @Override
+    public Optional<LicenseValidity> latest(long staffId, String licenseType) {
+        return licenses.reversed().stream()
+                .filter(e -> e.staffId() == staffId && e.licenseType().equals(licenseType))
+                .map(Entry::license)
                 .findFirst();
     }
 

@@ -2,11 +2,11 @@ package com.cambae.backend.support.fake.m15;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.cambae.backend.m15.account.api.AssignmentKind;
-import com.cambae.backend.m15.account.api.AssignmentView;
-import com.cambae.backend.m15.account.api.BedAllocationView;
-import com.cambae.backend.m15.account.api.LicenseValidity;
-import com.cambae.backend.m15.account.api.ScopeFilter;
+import com.cambae.backend.m15.account.api.dto.ScopeFilter;
+import com.cambae.backend.m15.account.api.spi.AssignmentKind;
+import com.cambae.backend.m15.account.api.spi.AssignmentView;
+import com.cambae.backend.m15.account.api.spi.BedAllocationView;
+import com.cambae.backend.m15.account.api.spi.LicenseValidity;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Set;

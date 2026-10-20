@@ -2,7 +2,7 @@ package com.cambae.backend.m15.approval.api;
 
 /**
  * Mã trạng thái chung của yêu cầu phê duyệt (data-model mục 3, glossary 6.3). Loại yêu cầu có thể khai báo thêm trạng
- * thái qua {@link RequestTypeHandler#extendedTransitions()}, nên trạng thái là chuỗi, không phải enum.
+ * thái qua {@link com.cambae.backend.m15.approval.api.spi.RequestTypeHandler#extendedTransitions()}, nên trạng thái là chuỗi, không phải enum.
  */
 public final class ApprovalStatus {
 

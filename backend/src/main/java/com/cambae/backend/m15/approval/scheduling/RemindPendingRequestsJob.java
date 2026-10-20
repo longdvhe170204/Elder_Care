@@ -1,7 +1,7 @@
 package com.cambae.backend.m15.approval.scheduling;
 
 import com.cambae.backend.common.scheduling.ScheduledJob;
-import com.cambae.backend.m15.approval.internal.PendingRequestReminder;
+import com.cambae.backend.m15.approval.internal.service.PendingRequestReminder;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

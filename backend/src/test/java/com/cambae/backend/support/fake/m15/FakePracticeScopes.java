@@ -1,7 +1,7 @@
 package com.cambae.backend.support.fake.m15;
 
-import com.cambae.backend.m15.account.api.PracticeScopeCatalogApi;
-import com.cambae.backend.m15.account.api.PracticeScopeView;
+import com.cambae.backend.m15.account.api.spi.PracticeScopeCatalogApi;
+import com.cambae.backend.m15.account.api.spi.PracticeScopeView;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

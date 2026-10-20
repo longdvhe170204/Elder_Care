@@ -10,7 +10,7 @@ import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.auditlog.api.AuditAction;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
-import com.cambae.backend.m15.retention.api.RetentionProvider.DataRef;
+import com.cambae.backend.m15.retention.api.spi.RetentionProvider.DataRef;
 import com.cambae.backend.m15.retention.scheduling.ExpiredDataPurgeJob;
 import com.cambae.backend.m15.sample.SampleFloorRecordProvider;
 import com.cambae.backend.m15.sample.SampleOfficeRecordProvider;
