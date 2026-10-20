@@ -39,6 +39,10 @@ const STATUS_TONE = {
   'Đã vào': 'occupied',
   'Đang giữ chỗ': 'held',
   'Đang sử dụng': 'occupied',
+  // Tài khoản (002): Không hoạt động giữ neutral, Đã khóa viền xám để phân biệt
+  'Hoạt động': 'settled',
+  'Khóa tạm': 'attention',
+  'Đã khóa': 'neutral-outline',
 }
 
 function statusTone(status) {

@@ -20,4 +20,7 @@ public interface StaffProfileApi {
      * trả id hồ sơ (002 T016; BR-M15-22, FR-004b). Chạy trong transaction của lệnh gọi.
      */
     long createMinimal(String fullName, Role positionRole);
+
+    /** Họ tên trên hồ sơ nhân viên, cho {@code AccountApi.fullName} (002 T032a). */
+    Optional<String> fullName(long staffId);
 }

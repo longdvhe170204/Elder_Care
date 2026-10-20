@@ -68,7 +68,8 @@ public class TestClockController {
     public enum TestJob {
         APPLY_DUE_REQUESTS,
         REMIND_PENDING_REQUESTS,
-        PURGE_EXPIRED_DATA
+        PURGE_EXPIRED_DATA,
+        MARK_INACTIVE_ACCOUNTS
     }
 
     public record ClockResponse(OffsetDateTime now, boolean simulated) {}

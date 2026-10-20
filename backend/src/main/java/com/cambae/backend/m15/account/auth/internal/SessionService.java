@@ -38,13 +38,21 @@ public class SessionService {
         this.parameters = parameters;
     }
 
+    /** Phiên của yêu cầu kèm cờ buộc đổi mật khẩu của tài khoản (FR-006, research A-03), đọc cùng lần tra phiên. */
+    public record Resolved(ActiveSession session, boolean mustChangePassword) {}
+
     /** Phiên đang mở của token; rỗng khi token không có, phiên đã kết thúc hoặc vừa hết thời gian không thao tác. */
     public Optional<ActiveSession> resolve(String token) {
+        return resolveRequest(token).map(Resolved::session);
+    }
+
+    /** Như {@link #resolve} kèm cờ buộc đổi mật khẩu cho bộ lọc phiên. */
+    public Optional<Resolved> resolveRequest(String token) {
         byte[] hash = SessionTokens.hash(token);
         Optional<OpenRow> row = jdbc
                 .query(
                         "SELECT s.account_id, s.device_id, s.channel, s.last_active_at, a.type, a.staff_id,"
-                                + " a.family_member_id FROM login_session s JOIN account a ON a.id = s.account_id"
+                                + " a.family_member_id, a.must_change_password FROM login_session s JOIN account a ON a.id = s.account_id"
                                 + " WHERE s.token_hash = ? AND s.ended_at IS NULL",
                         (rs, i) -> new OpenRow(
                                 rs.getLong(1),
@@ -53,7 +61,8 @@ public class SessionService {
                                 rs.getObject(4, LocalDateTime.class).toInstant(ZoneOffset.UTC),
                                 AccountType.valueOf(rs.getString(5)),
                                 Optional.ofNullable(rs.getObject(6, Long.class)),
-                                Optional.ofNullable(rs.getObject(7, Long.class))),
+                                Optional.ofNullable(rs.getObject(7, Long.class)),
+                                rs.getBoolean(8)),
                         hash)
                 .stream()
                 .findFirst();
@@ -82,14 +91,16 @@ public class SessionService {
                 open.deviceId(),
                 utc(now),
                 open.accountId());
-        return Optional.of(new ActiveSession(
-                open.accountId(),
-                open.type(),
-                open.staffId(),
-                open.familyMemberId(),
-                roles(open.accountId(), now),
-                open.deviceId(),
-                open.channel()));
+        return Optional.of(new Resolved(
+                new ActiveSession(
+                        open.accountId(),
+                        open.type(),
+                        open.staffId(),
+                        open.familyMemberId(),
+                        roles(open.accountId(), now),
+                        open.deviceId(),
+                        open.channel()),
+                open.mustChangePassword()));
     }
 
     /** Vai trò đang hiệu lực tại {@code at} (research A-05: {@code effective_from <= t < effective_to}). */
@@ -135,5 +146,6 @@ public class SessionService {
             Instant lastActiveAt,
             AccountType type,
             Optional<Long> staffId,
-            Optional<Long> familyMemberId) {}
+            Optional<Long> familyMemberId,
+            boolean mustChangePassword) {}
 }

@@ -23,4 +23,10 @@ public interface AccountApi {
     Optional<AccountView> byResident(long residentId);
 
     boolean hasRole(long accountId, Role... roles);
+
+    /**
+     * Họ tên theo hồ sơ liên kết của tài khoản (nhân viên 008, người thân 012; người cao tuổi 001 ở US8); rỗng khi chưa
+     * có (002 T032a). Dùng cho {@code Actor.fullName} của 000 và {@code UserInfo.fullName}.
+     */
+    Optional<String> fullName(long accountId);
 }

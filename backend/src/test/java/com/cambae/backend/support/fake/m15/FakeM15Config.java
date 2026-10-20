@@ -59,4 +59,10 @@ public class FakeM15Config {
     FakeResidencyEnds fakeResidencyEnds() {
         return new FakeResidencyEnds();
     }
+
+    @Bean
+    @Primary
+    FakeFacilityLicenses fakeFacilityLicenses() {
+        return new FakeFacilityLicenses();
+    }
 }

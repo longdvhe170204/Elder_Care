@@ -28,6 +28,18 @@ class FakeM15Test {
     }
 
     @Test
+    void FR_037c_facilityLicense_coversScopeThroughExpiryDay() {
+        FakeFacilityLicenses licenses = new FakeFacilityLicenses().scope("NURSING_CARE", LocalDate.of(2026, 10, 20));
+
+        assertThat(licenses.coversScope("NURSING_CARE", LocalDate.of(2026, 10, 20)))
+                .isTrue();
+        assertThat(licenses.coversScope("NURSING_CARE", LocalDate.of(2026, 10, 21)))
+                .isFalse();
+        assertThat(licenses.coversScope("REHABILITATION", LocalDate.of(2026, 10, 20)))
+                .isFalse();
+    }
+
+    @Test
     void FR_032_assignment_activeWithinWindow() {
         AssignmentView shift =
                 new AssignmentView(AssignmentKind.SHIFT_MEMBER, 10L, null, null, 3L, T, T.plusSeconds(3600));

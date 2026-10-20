@@ -9,20 +9,12 @@ import org.springframework.http.HttpStatus;
  */
 public class PermissionDeniedException extends BusinessException {
 
-    private final Map<String, Object> properties;
-
     public PermissionDeniedException(String message) {
         this("PERMISSION_DENIED", message, Map.of());
     }
 
     /** {@code errorCode}: {@code PERMISSION_DENIED} hoặc {@code LEGAL_CONDITION_NOT_MET} (glossary mục 5). */
     public PermissionDeniedException(String errorCode, String message, Map<String, Object> properties) {
-        super(HttpStatus.FORBIDDEN, errorCode, message);
-        this.properties = Map.copyOf(properties);
-    }
-
-    /** Trường thêm vào thân lỗi. */
-    public Map<String, Object> properties() {
-        return properties;
+        super(HttpStatus.FORBIDDEN, errorCode, message, properties);
     }
 }

@@ -17,4 +17,10 @@ public interface AuditLogApi {
      * tài khoản, vai trò); bắt buộc căn cứ. Chỉ công cụ khởi tạo Quản lý viện đầu tiên dùng (002 T016; BR-M15-22).
      */
     void writeAsBootstrap(AuditLogEntry entry);
+
+    /**
+     * Ghi trong transaction của lệnh với người thực hiện "chưa đăng nhập" ({@code actor_type = ANONYMOUS}, không có tài
+     * khoản, vai trò): chỉ lần đăng nhập thất bại (002 FR-015, research A-03).
+     */
+    void writeAnonymous(AuditLogEntry entry);
 }

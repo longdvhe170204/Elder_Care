@@ -6,6 +6,7 @@ import com.cambae.backend.common.error.NotFoundException;
 import com.cambae.backend.common.error.PermissionDeniedException;
 import com.cambae.backend.common.error.VersionMismatchException;
 import com.cambae.backend.common.time.BusinessTime;
+import com.cambae.backend.m15.account.api.AccountApi;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.PermissionApi;
 import com.cambae.backend.m15.account.api.PermissionKey;
@@ -64,6 +65,7 @@ public class ParameterService implements ParameterApi {
     private final ParameterValidator validator;
     private final ObjectProvider<CurrentUser> currentUser;
     private final ObjectProvider<PermissionApi> permissions;
+    private final ObjectProvider<AccountApi> accounts;
     private final Map<ParameterCode, ParameterValue> cache = new ConcurrentHashMap<>();
 
     ParameterService(
@@ -73,7 +75,8 @@ public class ParameterService implements ParameterApi {
             AuditLogApi auditLog,
             ApplicationEventPublisher events,
             ObjectProvider<CurrentUser> currentUser,
-            ObjectProvider<PermissionApi> permissions) {
+            ObjectProvider<PermissionApi> permissions,
+            ObjectProvider<AccountApi> accounts) {
         this.jdbc = jdbc;
         this.json = json;
         this.time = time;
@@ -82,6 +85,7 @@ public class ParameterService implements ParameterApi {
         this.validator = new ParameterValidator();
         this.currentUser = currentUser;
         this.permissions = permissions;
+        this.accounts = accounts;
     }
 
     /** Một tham số theo schema {@code Parameter} của contracts/api-000.yaml. */
@@ -101,7 +105,9 @@ public class ParameterService implements ParameterApi {
         USER,
         SCHEDULER,
         // Công cụ khởi tạo Quản lý viện đầu tiên (002 BR-M15-22); chỉ nhật ký có
-        BOOTSTRAP
+        BOOTSTRAP,
+        // Lần đăng nhập thất bại, chưa xác định người (002 FR-015); chỉ nhật ký có
+        ANONYMOUS
     }
 
     public record Actor(ActorType type, Long id, String fullName, String role) {}
@@ -181,7 +187,7 @@ public class ParameterService implements ParameterApi {
                         to,
                         row.actorId() == null
                                 ? new Actor(ActorType.SCHEDULER, null, null, null)
-                                : new Actor(ActorType.USER, row.actorId(), null, null),
+                                : new Actor(ActorType.USER, row.actorId(), fullName(row.actorId()), null),
                         row.reason(),
                         row.defaultRestore()));
             }
@@ -252,6 +258,13 @@ public class ParameterService implements ParameterApi {
             }
         });
         return find(code);
+    }
+
+    /** Họ tên người thực hiện theo hồ sơ tài khoản (002 T032a); không có thì {@code null}. */
+    private String fullName(Long accountId) {
+        return accountId == null
+                ? null
+                : accounts.getObject().fullName(accountId).orElse(null);
     }
 
     private CurrentUser require(PermissionKey key) {

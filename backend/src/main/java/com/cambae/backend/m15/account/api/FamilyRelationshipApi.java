@@ -20,4 +20,7 @@ public interface FamilyRelationshipApi {
 
     /** Người thân có quan hệ Hiệu lực với người cao tuổi. */
     boolean belongsToResident(long familyMemberId, long residentId);
+
+    /** Họ tên trên hồ sơ người thân, cho {@code AccountApi.fullName} (002 T032a). */
+    Optional<String> familyMemberName(long familyMemberId);
 }
