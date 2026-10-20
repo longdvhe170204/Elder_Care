@@ -74,7 +74,7 @@ Mỗi người: `api` vừa công bố hoặc đổi; bản giả sắp được
 
 ## 7. Dùng công cụ AI
 
-Luật chung cho mọi công cụ ở [AGENTS.md](../AGENTS.md): Claude Code đọc CLAUDE.md; Codex và nhiều công cụ khác đọc AGENTS.md; Cursor đọc `.cursor/rules/project.mdc`; Copilot đọc `.github/copilot-instructions.md`; ba file sau đều trỏ về AGENTS.md. Công cụ nào không tự đọc (ChatGPT, Gemini trên web…) thì dán câu mở đầu ở đầu AGENTS.md vào cuộc trò chuyện. Cấu trúc thư mục web, mobile ở `frontend/README.md`, `mobile/README.md`.
+Luật chung cho mọi công cụ ở [AGENTS.md](../AGENTS.md): Claude Code đọc CLAUDE.md; Codex và nhiều công cụ khác đọc AGENTS.md. Công cụ nào không tự đọc (Cursor, Copilot, ChatGPT, Gemini…) thì dán câu mở đầu ở đầu AGENTS.md vào cuộc trò chuyện (2026-10-21: bỏ `.cursor/rules/project.mdc`, `.github/copilot-instructions.md`, chủ dự án quyết). Cấu trúc thư mục ở `backend/README.md`, `frontend/README.md`, `mobile/README.md`.
 
 Mỗi người một phiên, trên nhánh của mình. Lệnh đầu: "Làm feature NNN theo CLAUDE.md và docs/team-plan.md; chỉ sửa trong <module, thư mục của mình>; cần module khác thì dùng bản giả trong support/fake".
 

@@ -46,12 +46,15 @@ Skill ở `.claude/skills/karpathy-guidelines/` (nguồn ghi ở `skills-lock.js
   6. Hết phase: chạy test, đánh dấu `[x]` (không đánh dấu task có test chưa chạy được), ghi tiến độ ở mục "Giai đoạn hiện tại", đề nghị commit.
   7. Xong feature: chạy đủ lệnh kiểm ở mục "Lệnh"; mở PR `impl/NNN-ten` → `develop`.
 - Thứ tự đọc khi làm task: tasks.md → plan.md → data-model.md → contracts/ → research.md → spec.md → nghiep-vu.md. Quy ước kỹ thuật chung (tên, module, API, thời gian, cơ sở dữ liệu, test, Lombok) ở research R-01 → R-14 của 000.
-- Đường dẫn file trong tasks, plan (`BE/m01/hoso/internal/HoSoService.java`, `BE/m15/taikhoan/quyen/web/…`) là tên logic, chỉ cho biết module và vai trò của lớp: đặt lớp theo research R-02 của 000 mục "Cấu trúc trong module" (`api/{dto, spi, events}`, `web/{request, response}`, `internal/…/{service, domain, persistence, config}`), không chép đường dẫn trong tasks; `LayerArchTest`, `ModuleBoundaryTest` kiểm. Xem [backend/README.md](backend/README.md).
+- Đường dẫn file trong tasks, plan là tên logic, chỉ cho biết module và vai trò của lớp; không chép, đặt file theo README của thư mục:
+  - backend (`BE/m01/hoso/internal/HoSoService.java`, `BE/m15/taikhoan/quyen/web/…`): [backend/README.md](backend/README.md), research R-02 của 000 mục "Cấu trúc trong module" (`api/{dto, spi, events}`, `web/{request, response}`, `internal/…/{service, domain, persistence, config}`); `LayerArchTest`, `ModuleBoundaryTest` kiểm;
+  - web (`frontend/src/tinh-nang/…`): [frontend/README.md](frontend/README.md) (`src/features/…`, tên tiếng Anh);
+  - mobile (`mobile/lib/nhan-vien/…`, `nguoi-than`, `nguoi-cao-tuoi`, `chung`): [mobile/README.md](mobile/README.md) (`lib/staff`, `family`, `resident`, `common`).
 - Lệch kỹ thuật (tên lớp, thư viện, cách cài) thì sửa plan, tasks cùng lúc với mã và ghi lý do ở plan.
 
 ## Công nghệ và cấu trúc mã
 
-- Luật chung cho mọi công cụ AI ở [AGENTS.md](AGENTS.md) (Cursor, Copilot trỏ về đó); cấu trúc và luật thư mục web, mobile ở [frontend/README.md](frontend/README.md), [mobile/README.md](mobile/README.md).
+- Luật chung cho mọi công cụ AI ở [AGENTS.md](AGENTS.md); cấu trúc và luật thư mục ở [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md), [mobile/README.md](mobile/README.md).
 
 - Constitution 3.1.1 (nguyên tắc X–XV), research R-01, R-02 của 000. Thư viện cụ thể ghi ở plan và tasks.
 - Yêu cầu môi trường: JDK 25, MySQL 8.0, Node 24 + npm, Flutter stable 3.x. Chưa dùng Docker, Testcontainers; không thay MySQL bằng H2 hay cơ sở dữ liệu nhúng (R-14 cần trigger và quyền tài khoản MySQL).
