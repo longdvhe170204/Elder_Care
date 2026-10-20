@@ -1,24 +1,20 @@
 package com.cambae.backend.m15.correction.web;
 
-import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.m15.account.api.AccountApi;
-import com.cambae.backend.m15.approval.internal.ApprovalRequestService;
-import com.cambae.backend.m15.approval.web.ApprovalRequestController.ApprovalRequestBody;
+import com.cambae.backend.m15.approval.api.ApprovalRequestApi;
+import com.cambae.backend.m15.approval.api.dto.ApprovalRequestBody;
 import com.cambae.backend.m15.correction.api.CorrectionApi;
 import com.cambae.backend.m15.correction.api.CorrectionChainView;
 import com.cambae.backend.m15.correction.api.CorrectionResult;
-import com.cambae.backend.m15.correction.api.CorrectionType;
-import com.cambae.backend.m15.correction.api.CorrectionView;
-import com.cambae.backend.m15.correction.api.CreationMethod;
+import com.cambae.backend.m15.correction.web.request.CreateBody;
+import com.cambae.backend.m15.correction.web.response.ChainBody;
+import com.cambae.backend.m15.correction.web.response.CorrectionBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
-import java.util.function.LongFunction;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,11 +32,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class CorrectionController {
 
     private final CorrectionApi corrections;
-    private final ApprovalRequestService approvals;
+    private final ApprovalRequestApi approvals;
     private final ObjectProvider<AccountApi> accounts;
 
     public CorrectionController(
-            CorrectionApi corrections, ApprovalRequestService approvals, ObjectProvider<AccountApi> accounts) {
+            CorrectionApi corrections, ApprovalRequestApi approvals, ObjectProvider<AccountApi> accounts) {
         this.accounts = accounts;
         this.corrections = corrections;
         this.approvals = approvals;
@@ -120,64 +116,8 @@ public class CorrectionController {
         };
     }
 
-    public record CreateBody(
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            CorrectionType type,
-
-            Object correctedContent,
-
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            Reason reason) {}
-
     /** Họ tên theo hồ sơ tài khoản (002 T032a); không có thì {@code null}. */
     String fullName(long accountId) {
         return accounts.getObject().fullName(accountId).orElse(null);
     }
-
-    /** Người thực hiện theo schema {@code Actor}; họ tên theo hồ sơ tài khoản (002 T032a). */
-    public record ActorBody(ActorType type, Long id, String fullName, String role) {}
-
-    /** Người thực hiện là người dùng hay Bộ lập lịch (schema {@code Actor}). */
-    public enum ActorType {
-        USER,
-        SCHEDULER,
-        // Công cụ khởi tạo Quản lý viện đầu tiên (002 BR-M15-22); chỉ nhật ký có
-        BOOTSTRAP,
-        // Lần đăng nhập thất bại, chưa xác định người (002 FR-015); chỉ nhật ký có
-        ANONYMOUS
-    }
-
-    public record CorrectionBody(
-            long id,
-            int sequenceNo,
-            CorrectionType type,
-            Object correctedContent,
-            String reason,
-            ActorBody actor,
-            CreationMethod creationMethod,
-            Long approvalRequestId,
-            Instant recordedAt) {
-
-        static CorrectionBody of(CorrectionView c, LongFunction<String> names) {
-            return new CorrectionBody(
-                    c.id(),
-                    c.sequenceNo(),
-                    c.type(),
-                    c.correctedContent(),
-                    c.reason(),
-                    new ActorBody(ActorType.USER, c.actorId(), names.apply(c.actorId()), null),
-                    c.creationMethod(),
-                    c.approvalRequestId(),
-                    c.recordedAt());
-        }
-    }
-
-    public record ChainBody(
-            String recordType,
-            long originalRecordId,
-            boolean corrected,
-            boolean voided,
-            Object originalContent,
-            Object currentContent,
-            List<CorrectionBody> corrections) {}
 }

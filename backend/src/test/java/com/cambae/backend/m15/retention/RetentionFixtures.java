@@ -2,7 +2,7 @@ package com.cambae.backend.m15.retention;
 
 import com.cambae.backend.m15.retention.api.RetentionDatabase;
 import com.cambae.backend.m15.retention.api.RetentionKind;
-import com.cambae.backend.m15.retention.api.RetentionProvider;
+import com.cambae.backend.m15.retention.api.spi.RetentionProvider;
 import com.cambae.backend.m15.sample.SampleFloorRecordProvider;
 import com.cambae.backend.m15.sample.SampleOfficeRecordProvider;
 import com.cambae.backend.support.SwitchableUser;

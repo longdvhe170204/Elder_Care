@@ -2,7 +2,7 @@ package com.cambae.backend.m15.account;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.cambae.backend.m15.account.auth.internal.SessionTokens;
+import com.cambae.backend.m15.account.internal.auth.service.SessionTokens;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;

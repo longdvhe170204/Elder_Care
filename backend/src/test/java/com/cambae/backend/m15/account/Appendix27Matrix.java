@@ -1,7 +1,7 @@
 package com.cambae.backend.m15.account;
 
-import com.cambae.backend.m15.account.api.Function;
-import com.cambae.backend.m15.account.api.Operation;
+import com.cambae.backend.m15.account.api.dto.Function;
+import com.cambae.backend.m15.account.api.dto.Operation;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

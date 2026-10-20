@@ -1,7 +1,7 @@
 package com.cambae.backend.support.fake.m15;
 
-import com.cambae.backend.m15.account.api.FamilyRelationshipApi;
-import com.cambae.backend.m15.account.api.FamilyRelationshipView;
+import com.cambae.backend.m15.account.api.spi.FamilyRelationshipApi;
+import com.cambae.backend.m15.account.api.spi.FamilyRelationshipView;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;

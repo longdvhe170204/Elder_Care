@@ -1,8 +1,8 @@
 package com.cambae.backend.m15.auditlog.api;
 
-import com.cambae.backend.m15.account.api.Function;
-import com.cambae.backend.m15.account.api.Operation;
-import com.cambae.backend.m15.account.api.PermissionKey;
+import com.cambae.backend.m15.account.api.dto.Function;
+import com.cambae.backend.m15.account.api.dto.Operation;
+import com.cambae.backend.m15.account.api.dto.PermissionKey;
 
 /**
  * Khóa quyền xem nhật ký theo Phụ lục 27, dòng "Nhật ký thay đổi" (FR-049): Quản lý viện X (toàn viện), vai trò khác

@@ -43,11 +43,42 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Đây 
 
 Feature 000 nằm trong **M15 – Quản trị hệ thống**, vì tham số (BR-M15-04), nhật ký (19.4, BR-M15-11 → 13) và quy tắc nền (BR-M15-06 → 10) đều thuộc M15. Năm gói con: `m15.thamso`, `m15.nhatky`, `m15.pheduyet`, `m15.dinhchinh`, `m15.luutru`. Thêm một gói kỹ thuật `com.cambae.backend.common`: đồng hồ, mô hình lỗi, kiểu cơ sở, chú thích phân nhóm dữ liệu. Gói này không chứa dữ liệu nghiệp vụ và không phải module nghiệp vụ.
 
-**Lý do**: Constitution X yêu cầu một khối chia gói theo M01–M15 và chặn truy cập chéo dữ liệu. `ApplicationModules.verify()` của Spring Modulith và ArchUnit kiểm tra điều này tự động trong bộ test.
+**Cấu trúc trong module** *(bổ sung 2026-10-21, chủ dự án duyệt; tổ chức lại backend theo Modular Monolith, package-by-feature kết hợp phân tầng)*. Áp cho mỗi module `m01` … `m14` và mỗi phần của M15 (`m15.account`, `m15.approval`, `m15.auditlog`, `m15.correction`, `m15.parameter`, `m15.retention`); chỉ tạo gói khi có lớp, không tạo gói rỗng theo sơ đồ.
+
+```
+<module hoặc phần>/
+├── api/              interface module khác gọi, chú thích dùng khi viết mã (@NamedInterface)
+│   ├── dto/          record, enum của hợp đồng trao đổi giữa module
+│   ├── spi/          interface module khác cài (kèm kiểu chỉ SPI dùng)
+│   └── events/       sự kiện công khai
+├── web/              controller (chỉ nhận yêu cầu, gọi service, trả phản hồi; không truy cập dữ liệu)
+│   ├── request/      thân yêu cầu HTTP
+│   ├── response/     phản hồi HTTP (hàm of(...) dựng từ dữ liệu nghiệp vụ)
+│   └── security/     thành phần HTTP đặc thù (chỉ account: chuỗi lọc, cấu hình bảo mật)
+├── internal/         triển khai nội bộ, luôn chia tầng
+│   ├── service/      use case, điều phối, transaction, kiểm quyền, ghi nhật ký, phát sự kiện
+│   ├── domain/       entity, value object, enum, luật thuần (chuyển trạng thái, bất biến), hằng số hành động nhật ký
+│   ├── persistence/  truy cập dữ liệu (lớp JDBC, Spring Data repository, entity ánh xạ nếu tách)
+│   └── config/       cấu hình nội bộ của module
+│   (module lớn chia theo chức năng trước, mỗi chức năng có các tầng trên: account/internal/<auth, permission, scope,
+│    legal, offline>/{service, domain, persistence, config}; truy cập dữ liệu dùng chung giữa các chức năng ở
+│    account/internal/domain/, account/internal/persistence/; lớp persistence trả record của domain)
+└── scheduling/       job theo lịch (SchedulerScopeArchTest)
+```
+
+- Không tạo interface `repository/` bọc lớp truy cập dữ liệu; giữ công nghệ đang dùng (`JdbcTemplate` hay Spring Data JPA). Tầng không có lớp thì không tạo gói (ví dụ `auditlog/internal/` chỉ có `service/`).
+- Lớp truy cập dữ liệu chỉ một chức năng dùng thì để trong `persistence/` của chức năng đó; chỉ phần dùng chung lên `account/internal/persistence/`. Lớp, thành viên chỉ dùng trong gói giữ package-private; chỉ mở `public` phần tầng khác gọi.
+- DTO chỉ phục vụ HTTP thuộc `web/`. Ngoại lệ: `m15.approval.api.dto` (`ApprovalRequestBody`, `ActorBody`, `ActorType`) vì phản hồi 202 của lệnh ở phần khác (đính chính cách C) trả yêu cầu phê duyệt.
+- Mỗi gói `api` và gói con có `package-info.java` gắn `@NamedInterface` (`ApiNamedInterfaceArchTest`). Giữa các phần của M15, `M15PartBoundaryArchTest` chỉ cho dùng gói `api` của phần khác (Modulith coi cả M15 là một module).
+- `LayerArchTest` kiểm tầng trong mọi module: lớp `internal` nằm ở `service`, `domain`, `persistence` hoặc `config`; `web` không dùng `persistence`, `JdbcTemplate`, Spring Data; `domain` không dùng tầng khác; `persistence` không dùng `service`, `web`; `service` không dùng `web`; `api` không dùng `internal`, `web`. Bảng "đặt lớp ở đâu" và ví dụ ở [backend/README.md](../../backend/README.md); đường dẫn file trong tasks, plan là tên logic, đặt lớp theo mục này.
+
+**Lý do**: Constitution X yêu cầu một khối chia gói theo M01–M15 và chặn truy cập chéo dữ liệu. `ApplicationModules.verify()` của Spring Modulith và ArchUnit kiểm tra điều này tự động trong bộ test. Cấu trúc trong module cho mọi thành viên cùng một chỗ đặt lớp và nhìn tên gói là biết tầng (chủ dự án chọn chia tầng cho mọi `internal`, 2026-10-21); chia theo chức năng trước ở module lớn để mã của một chức năng nằm gần nhau. Đổi lại, lớp dùng giữa các tầng phải `public` (khi chia M15: 10 lớp ở `domain`, `persistence` của `auth`, `legal`, `offline`, `permission`, `approval`, `correction`); ranh giới giữa module vẫn do Modulith và ArchUnit giữ.
 
 **Phương án đã cân nhắc**:
 - Tách gói `foundation` thành module thứ 16: bị loại vì sinh thêm một module ngoài M01–M15.
 - Mỗi module một Maven module: bị loại vì quá nặng cho quy mô đồ án. Modulith đủ để kiểm tra ranh giới.
+- *(2026-10-21)* Chia tầng ngay dưới `internal/` cho cả module lớn (`account/internal/{service, domain, persistence}` rồi mới tới chức năng): bị loại vì mã một chức năng rải ra nhiều gói. Để `internal/` phẳng theo chức năng: bị loại, chủ dự án muốn nhìn tên gói là biết tầng. Thêm interface `repository/` bọc lớp truy cập dữ liệu: bị loại, `JpaRepository` hay lớp JDBC đã đủ.
+- *(2026-10-21)* Tách mỗi phần của M15 thành application module riêng: bị loại vì thành 20 module, trái quyết định 15 module ở trên; dùng luật ArchUnit thay.
 
 ---
 

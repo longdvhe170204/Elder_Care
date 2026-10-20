@@ -1,6 +1,6 @@
 package com.cambae.backend.m15.approval.api;
 
-import com.cambae.backend.m15.account.api.Target;
+import com.cambae.backend.m15.account.api.dto.Target;
 import java.time.Instant;
 import java.time.LocalDate;
 import tools.jackson.databind.JsonNode;

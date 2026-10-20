@@ -4,7 +4,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.cambae.backend.m15.retention.internal.ExpiredDataPurge;
+import com.cambae.backend.m15.retention.internal.service.ExpiredDataPurge;
 import org.junit.jupiter.api.Test;
 
 /**

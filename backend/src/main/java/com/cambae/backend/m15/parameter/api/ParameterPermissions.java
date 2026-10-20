@@ -1,8 +1,8 @@
 package com.cambae.backend.m15.parameter.api;
 
-import com.cambae.backend.m15.account.api.Function;
-import com.cambae.backend.m15.account.api.Operation;
-import com.cambae.backend.m15.account.api.PermissionKey;
+import com.cambae.backend.m15.account.api.dto.Function;
+import com.cambae.backend.m15.account.api.dto.Operation;
+import com.cambae.backend.m15.account.api.dto.PermissionKey;
 
 /**
  * Khóa quyền tham số theo Phụ lục 27, dòng "Tài khoản, phân quyền, tham số": cột C chỉ Quản lý viện (chú thích ¹²:

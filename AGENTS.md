@@ -9,8 +9,8 @@ Nếu công cụ của bạn không tự đọc file này, hãy dán câu sau v�
 ## 1. Đọc gì, theo thứ tự nào
 
 1. `docs/team-plan.md`: bạn sở hữu module, thư mục, migration nào; đang ở đợt nào; **mục 8: việc người khác đang chờ bạn** (đầu mỗi phiên báo cho người dùng các dòng có tên họ; cần người khác làm gì thì thêm dòng trong PR của mình).
-2. README của phần sẽ sửa: [frontend/README.md](frontend/README.md), [mobile/README.md](mobile/README.md); backend theo mục 4 dưới đây.
-3. Khi làm một task: `specs/NNN-*/tasks.md` → `plan.md` → `data-model.md` → `contracts/` → `research.md` → `spec.md` → `docs/business/nghiep-vu.md`.
+2. README của phần sẽ sửa: [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md), [mobile/README.md](mobile/README.md).
+3. Khi làm một task: `specs/NNN-*/tasks.md` → `plan.md` → `data-model.md` → `contracts/` → `research.md` → `spec.md` → `docs/business/nghiep-vu.md`. Đường dẫn file trong tasks, plan (`BE/m01/hoso/internal/…`) là tên logic: đặt lớp theo cấu trúc ở [backend/README.md](backend/README.md) (research R-02 của 000), không chép đường dẫn trong tasks.
 4. Tên tiếng Anh: [specs/000-shared-foundation/glossary.md](specs/000-shared-foundation/glossary.md). Giao diện: [DESIGN.md](DESIGN.md).
 
 ## 2. Mười luật không được vi phạm
@@ -39,11 +39,11 @@ Nếu công cụ của bạn không tự đọc file này, hãy dán câu sau v�
 ## 4. Backend (`backend/`)
 
 - Spring Boot 4.1, Java 25, Maven wrapper, MySQL 8.0 (không dùng H2), Flyway, Spring Modulith.
-- Gói gốc `com.cambae.backend`: `common` (kỹ thuật dùng chung, A giữ) và `m01` … `m15` (mỗi module một chủ). Trong module: `api/` (công khai: interface, DTO, sự kiện), `internal/` (service, repository), `web/` (controller), `scheduling/` (job). Module khác chỉ dùng `api/` (`ModuleBoundaryTest` kiểm).
+- Gói gốc `com.cambae.backend`: `common` (kỹ thuật dùng chung, A giữ) và `m01` … `m15` (mỗi module một chủ). Trong module: `api/` (công khai: interface; `dto/`, `spi/`, `events/`), `web/` (controller; `request/`, `response/`), `internal/` (luôn chia `service/`, `domain/`, `persistence/`, `config/`; module lớn chia theo chức năng trước, mỗi chức năng có các tầng đó), `scheduling/` (job); chi tiết và luật ở research R-02 của 000, mục "Cấu trúc trong module". Module khác chỉ dùng `api/` (`ModuleBoundaryTest`); trong M15, phần này chỉ dùng `api/` của phần kia (`M15PartBoundaryArchTest`).
 - Migration: `src/main/resources/db/migration/V<NNN>_<nn>__<ten>.sql` (NNN là số feature). Không sửa migration đã merge; sửa bằng migration mới. Khóa ngoại tới bảng module khác chỉ thêm khi module đó đã vào `develop`.
 - Nhóm dữ liệu (`backend/docs/data-group-conventions.md`): danh mục, nghiệp vụ có trạng thái (chỉ đổi qua lệnh, `If-Match`), ghi nhận (chỉ thêm, sửa bằng đính chính). Mọi lệnh ghi nhật ký qua `AuditLogApi`, lệnh cần lý do dùng `@BusinessCommand` + `Reason`.
 - Lỗi theo RFC 9457 (`errorCode`, `unmetConditions`, `currentValue`); mã lỗi theo glossary.
-- Quyền: `PermissionKey(Function, Operation)`, `Function` là một dòng Phụ lục 27 (`m15.account.api.Function`). Không tự đặt khóa chuỗi.
+- Quyền: `PermissionKey(Function, Operation)`, `Function` là một dòng Phụ lục 27 (`m15.account.api.dto.Function`). Không tự đặt khóa chuỗi.
 - Test: `*Test` đơn vị, `*IT` tích hợp (kế thừa `support/MySqlIntegrationTestBase`, cần biến `TEST_DB_URL`, `TEST_DB_ADMIN_USER`, `TEST_DB_ADMIN_PASSWORD`), `*ArchTest` kiến trúc.
 
 ## 5. Web và mobile

@@ -7,17 +7,17 @@ import com.cambae.backend.common.Role;
 import com.cambae.backend.common.error.NotFoundException;
 import com.cambae.backend.common.error.PermissionDeniedException;
 import com.cambae.backend.m15.account.api.CurrentUser;
-import com.cambae.backend.m15.account.api.FailedLayer;
-import com.cambae.backend.m15.account.api.Function;
-import com.cambae.backend.m15.account.api.LicenseView;
-import com.cambae.backend.m15.account.api.Operation;
 import com.cambae.backend.m15.account.api.PermissionApi;
-import com.cambae.backend.m15.account.api.PermissionBasis;
-import com.cambae.backend.m15.account.api.PermissionKey;
-import com.cambae.backend.m15.account.api.PermissionResult;
 import com.cambae.backend.m15.account.api.RequiresPermission;
-import com.cambae.backend.m15.account.api.Target;
-import com.cambae.backend.m15.account.permission.internal.RequiresPermissionAspect;
+import com.cambae.backend.m15.account.api.dto.FailedLayer;
+import com.cambae.backend.m15.account.api.dto.Function;
+import com.cambae.backend.m15.account.api.dto.LicenseView;
+import com.cambae.backend.m15.account.api.dto.Operation;
+import com.cambae.backend.m15.account.api.dto.PermissionBasis;
+import com.cambae.backend.m15.account.api.dto.PermissionKey;
+import com.cambae.backend.m15.account.api.dto.PermissionResult;
+import com.cambae.backend.m15.account.api.dto.Target;
+import com.cambae.backend.m15.account.internal.permission.service.RequiresPermissionAspect;
 import com.cambae.backend.support.FakePermissions;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -123,6 +123,20 @@ class RequiresPermissionAspectTest {
                             .containsEntry(
                                     "license",
                                     Map.of("name", "Chứng chỉ hành nghề", "expiryDate", LocalDate.of(2026, 9, 30)));
+                });
+    }
+
+    /** 002 T064: giấy phép cơ sở không bao phạm vi, hoặc chưa cấu hình loại giấy phép: vẫn là lỗi pháp lý, không có giấy phép. */
+    @Test
+    void FR_043_legalWithoutLicense_403LegalCondition() {
+        permissions.results.put(APPROVE, PermissionResult.denied(FailedLayer.LEGAL));
+
+        assertThatThrownBy(() -> commands.approve(RESIDENT_7, "x"))
+                .isInstanceOfSatisfying(PermissionDeniedException.class, e -> {
+                    assertThat(e.errorCode()).isEqualTo("LEGAL_CONDITION_NOT_MET");
+                    assertThat(e.properties())
+                            .containsEntry("failedLayer", "LEGAL")
+                            .doesNotContainKey("license");
                 });
     }
 
