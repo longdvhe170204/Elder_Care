@@ -1,5 +1,6 @@
 package com.cambae.backend.support.fake.m15;
 
+import com.cambae.backend.common.Reason;
 import com.cambae.backend.m15.account.api.DutyApi;
 import java.time.Instant;
 import java.util.HashMap;
@@ -107,6 +108,12 @@ public class FakeDuties implements DutyApi {
     @Override
     public List<Long> companions(long tripId) {
         return companions.getOrDefault(tripId, List.of());
+    }
+
+    /** Bộ phận mà người đang giữ Phụ trách chuyển sang người thay. */
+    @Override
+    public void replaceDepartmentLead(long currentLeadStaffId, long replacementStaffId, Reason reason) {
+        departmentLeads.replaceAll((department, lead) -> lead == currentLeadStaffId ? replacementStaffId : lead);
     }
 
     @Override

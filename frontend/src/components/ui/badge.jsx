@@ -25,6 +25,7 @@ const badgeVariants = cva(
         held: "border-accent-foreground text-accent-foreground",
         occupied: "bg-info text-info-foreground",
         neutral: "bg-muted text-muted-foreground",
+        "neutral-outline": "border-input text-muted-foreground",
       },
     },
     defaultVariants: {

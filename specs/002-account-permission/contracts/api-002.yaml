@@ -691,6 +691,7 @@ components:
       properties:
         id: { type: integer, format: int64 }
         username: { type: string }
+        fullName: { type: string, description: 'Họ tên theo hồ sơ liên kết (T032a; bổ sung 2026-10-20, chủ dự án duyệt)' }
         type: { type: string, enum: [STAFF, FAMILY_MEMBER, RESIDENT] }
         staffId: { type: integer, format: int64 }
         familyMemberId: { type: integer, format: int64 }
@@ -777,15 +778,18 @@ components:
         reason: { $ref: '#/components/schemas/Reason' }
     Problem:
       type: object
-      description: RFC 9457 cùng errorCode (000 R-03). Với 403 có failedLayer (FR-043).
+      description: RFC 9457 cùng errorCode (000 R-03), giống schema Problem của api-000. Với 403 có failedLayer, license (FR-043).
+      required: [type, title, status, errorCode]
       properties:
-        type: { type: string }
+        type: { type: string, format: uri }
         title: { type: string }
         status: { type: integer }
+        detail: { type: string }
         errorCode: { type: string }
+        unmetConditions: { type: array, items: { type: object, properties: { code: { type: string }, description: { type: string } } } }
+        currentValue: { description: 'Khi 412: tài nguyên hiện hành' }
         failedLayer: { type: string, enum: [ROLE, SCOPE, LEGAL, SOURCE_DATA] }
         license: { type: object, properties: { name: { type: string }, expiryDate: { type: string, format: date } } }
-        unmetConditions: { type: array, items: { type: object } }
-        currentValue: { type: object }
+        unlocksAt: { type: string, format: date-time, description: 'Khi 423 ACCOUNT_TEMPORARILY_LOCKED (FR-014)' }
 security:
   - session: []

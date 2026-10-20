@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { PageHeader } from '@/common/PageHeader'
-import { NotDesignedState } from '@/common/PageState'
+import { AccountList } from '@/features/accounts/AccountList'
 import { ParameterList } from '@/features/parameters/ParameterList'
 
-// Màn "Tài khoản, tham số" (Phụ lục 27, dòng "Tài khoản, phân quyền, tham số"). Tab Tài khoản làm ở 002.
-// Chỉ Quản lý viện đổi tham số (BR-M15-04); quyền thật do backend trả và kiểm.
+// Màn "Tài khoản, tham số" (Phụ lục 27, dòng "Tài khoản, phân quyền, tham số"). Tab Tài khoản: 002 T035.
+// Chỉ Quản lý viện đổi tham số (BR-M15-04), tạo tài khoản nhân viên (FR-002); quyền thật do backend trả và kiểm.
 
 export function AdminPage({ role }) {
   const [tab, setTab] = useState('parameters')
@@ -13,7 +13,11 @@ export function AdminPage({ role }) {
     <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6">
       <PageHeader
         title="Tài khoản, tham số"
-        subtitle="Tham số vận hành có hiệu lực ngay khi lưu; mỗi lần đổi ghi lý do."
+        subtitle={
+          tab === 'accounts'
+            ? 'Tài khoản không xóa được; khóa, mở khóa, đổi vai trò đều ghi lý do.'
+            : 'Tham số vận hành có hiệu lực ngay khi lưu; mỗi lần đổi ghi lý do.'
+        }
       >
         <ToggleGroup
           variant="outline"
@@ -32,7 +36,7 @@ export function AdminPage({ role }) {
       {tab === 'parameters' ? (
         <ParameterList canChange={role === 'NURSING_HOME_MANAGER'} />
       ) : (
-        <NotDesignedState label="Tài khoản" />
+        <AccountList canCreate={role === 'NURSING_HOME_MANAGER'} />
       )}
     </div>
   )

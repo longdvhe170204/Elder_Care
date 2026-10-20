@@ -27,7 +27,9 @@ class SchedulerScopeArchTest {
                     "áp dụng yêu cầu đã duyệt khi tới ngày hiệu lực (FR-037)",
             "com.cambae.backend.m15.approval.scheduling.RemindPendingRequestsJob", "nhắc, báo (FR-031a)",
             "com.cambae.backend.m15.retention.scheduling.ExpiredDataPurgeJob",
-                    "loại bỏ dữ liệu hết hạn lưu giữ (FR-051)");
+                    "loại bỏ dữ liệu hết hạn lưu giữ (FR-051)",
+            "com.cambae.backend.m15.account.scheduling.MarkInactiveAccountsJob",
+                    "tự chuyển trạng thái theo giờ: tài khoản người thân Không hoạt động (002 FR-010)");
 
     private static final DescribedPredicate<JavaClass> LISTED = DescribedPredicate.describe(
             "có trong danh sách job được phép của FR-010a", c -> ALLOWED.containsKey(c.getName()));

@@ -44,6 +44,8 @@ function toQuery(filter) {
 function actorLabel(actor) {
   if (actor.type === 'SCHEDULER') return 'Bộ lập lịch hệ thống'
   if (actor.type === 'BOOTSTRAP') return 'Khởi tạo hệ thống'
+  // Lần đăng nhập thất bại (002 FR-015)
+  if (actor.type === 'ANONYMOUS') return 'Chưa đăng nhập'
   return actor.fullName ?? `Tài khoản ${actor.id}`
 }
 
