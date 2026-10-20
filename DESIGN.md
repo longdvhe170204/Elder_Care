@@ -1,9 +1,9 @@
 ---
 name: Elder_Care
-version: 5.16.0
+version: 5.17.1
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19)
 platforms: { web: frontend/, mobile: mobile/ }
-updated: 2026-10-19
+updated: 2026-10-20
 direction: Trời xanh theo bảng màu letters.app
 colors:
   light:
@@ -101,7 +101,7 @@ spacing:
   content-max: 1600px  # màn nhân viên; cổng người thân theo mục 2.3
 components:
   page-header: khối thẻ trắng đầu màn, tiêu đề, dòng phụ, ô phải, thanh lọc
-  status-pill: Badge, biến thể urgent | attention | settled | held | occupied | neutral
+  status-pill: Badge, biến thể urgent | attention | settled | held | occupied | neutral | neutral-outline
   task-card: Card, một công việc chăm sóc
   room-card: Card, một phòng, chứa các ô giường
   resident-avatar: vòng tròn chữ cái của tên gọi
@@ -226,7 +226,7 @@ Ba nguyên tắc đã chốt ở `nghiep-vu.md` (1.3; Q-347 → Q-364) hiện ra
 
 ### 2.3 Cổng người thân
 
-Cổng người thân là bản web (`src/features/family-portal/`, đường dẫn `/family`; đăng nhập ở `/login`), khung riêng, không dùng `AppShell` và menu trái của nhân viên. Đăng nhập xong vào Trang chủ (mục 2.1). Trong bản mẫu nhân viên, chọn vai trò Người thân cũng mở cổng này. App người thân trên mobile làm theo mục 15. Các màn P1 → P11 ở `docs/thiet-ke/man-hinh-theo-actor.md` (M37).
+Cổng người thân là bản web (`src/features/family-portal/`, đường dẫn `/family`; đăng nhập ở `/login`, màn chung với nhân viên từ 002 T045), khung riêng, không dùng `AppShell` và menu trái của nhân viên. Đăng nhập xong vào Trang chủ (mục 2.1). Trong bản mẫu nhân viên, chọn vai trò Người thân cũng mở cổng này. App người thân trên mobile làm theo mục 15. Các màn P1 → P11 ở `docs/thiet-ke/man-hinh-theo-actor.md` (M37).
 
 - **Đầu trang:** cùng kiểu đầu trang của trang chủ: dải nền trời dính đầu, logo (về Trang chủ), các mục, tên người đăng nhập, nút Đăng xuất.
 - **Máy tính (từ 1024px):** 6 mục trên đầu trang dạng viên thuốc (Trang chủ, Hôm nay, Bản tin, Thăm, Thông báo, Thêm). Trang chủ rộng toàn màn như mục 2.1; các màn khác rộng tối đa 960px; Hôm nay chia hai cột, thẻ người cao tuổi chiếm cả hàng.
@@ -310,11 +310,12 @@ Tên trạng thái lấy đúng theo `nghiep-vu.md`. `StatusBadge` ánh xạ the
 | Tông | Hiển thị | Trạng thái |
 | --- | --- | --- |
 | `urgent` | Chữ đỏ trên nền đỏ nhạt | Công việc Quá hạn; sự cố, cảnh báo mức Khẩn cấp; cảnh báo "đã leo thang tối đa"; liều thuốc Trễ, Bỏ lỡ; viền đỏ của thẻ cảnh báo Khẩn cấp hoặc đã leo thang tối đa |
-| `attention` | Chữ hổ phách trên nền hổ phách | Công việc Đến hạn; liều thuốc Đến giờ; cảnh báo, sự cố mức Trung bình; cảnh báo Mới, Leo thang (chưa tối đa); chỉ số Vượt ngưỡng; người cao tuổi Tạm vắng, Điều trị tại bệnh viện, Đang tiếp nhận; giường Chờ sẵn sàng; phòng đang cách ly; bàn giao Có ý kiến; yêu cầu thay đổi quyền người thân Chờ xác nhận; đề nghị mua hộ Chờ đồng ý; phản hồi Đang xử lý, Mở lại; đồ gửi Thất lạc, Hư hỏng; yêu cầu phê duyệt Chờ duyệt, Áp dụng không thành; dị ứng (`AllergyNote`, có viền và biểu tượng cảnh báo) |
-| `settled` | Chữ xanh lá trên nền xanh lá nhạt | Công việc Hoàn thành; liều thuốc Đã dùng; cảnh báo Đã đóng; bàn giao Đã xác nhận; người cao tuổi Đang lưu trú; lượt thăm Đã duyệt; phản hồi Đã phản hồi; hợp đồng Hiệu lực; quyết định của người thân Đã đồng ý, Đã xác nhận; yêu cầu phê duyệt Đã duyệt, Đã áp dụng |
+| `attention` | Chữ hổ phách trên nền hổ phách | Công việc Đến hạn; liều thuốc Đến giờ; cảnh báo, sự cố mức Trung bình; cảnh báo Mới, Leo thang (chưa tối đa); chỉ số Vượt ngưỡng; người cao tuổi Tạm vắng, Điều trị tại bệnh viện, Đang tiếp nhận; giường Chờ sẵn sàng; phòng đang cách ly; bàn giao Có ý kiến; yêu cầu thay đổi quyền người thân Chờ xác nhận; đề nghị mua hộ Chờ đồng ý; phản hồi Đang xử lý, Mở lại; đồ gửi Thất lạc, Hư hỏng; yêu cầu phê duyệt Chờ duyệt, Áp dụng không thành; tài khoản Khóa tạm; dị ứng (`AllergyNote`, có viền và biểu tượng cảnh báo) |
+| `settled` | Chữ xanh lá trên nền xanh lá nhạt | Công việc Hoàn thành; liều thuốc Đã dùng; cảnh báo Đã đóng; bàn giao Đã xác nhận; người cao tuổi Đang lưu trú; lượt thăm Đã duyệt; phản hồi Đã phản hồi; hợp đồng Hiệu lực; quyết định của người thân Đã đồng ý, Đã xác nhận; yêu cầu phê duyệt Đã duyệt, Đã áp dụng; tài khoản Hoạt động |
 | `held` | Chữ xanh trời đậm, viền cùng màu, nền trong | Giường Đang giữ chỗ (ghi kèm lý do) |
 | `occupied` | Chữ xanh chàm trên nền xanh chàm | Giường Đang sử dụng; lượt thăm Đã vào |
-| `neutral` | Chữ phụ trên nền phụ | Lưu ý chăm sóc (`CareNote`, chữ chính trên nền phụ, biểu tượng thông tin); công việc Chưa đến hạn, Hoàn thành trễ, Không thực hiện, Hủy; giường Trống, Đang bảo trì, Tạm ngừng sử dụng, Không sử dụng; người cao tuổi ở trạng thái cuối; lượt thăm Đã ra, Không đến, Hủy; phản hồi Mới, Đóng; đồ gửi Đang giữ, Đang được người cao tuổi sử dụng; kỳ chi phí Tạm tính, Đã chốt; quyết định Đã từ chối; liều thuốc Chưa đến giờ, Từ chối, Không thực hiện, Tạm dừng, Mang theo, Đã hủy; cảnh báo, sự cố mức Nhẹ; cảnh báo Đã tiếp nhận, Chuyển sự cố; bàn giao Bản nháp, Đã lập; bản ghi Đã đính chính, Đã hủy ghi nhận (`CorrectionBadge`); yêu cầu phê duyệt Nháp, Từ chối, Đã hủy |
+| `neutral` | Chữ phụ trên nền phụ | Lưu ý chăm sóc (`CareNote`, chữ chính trên nền phụ, biểu tượng thông tin); công việc Chưa đến hạn, Hoàn thành trễ, Không thực hiện, Hủy; giường Trống, Đang bảo trì, Tạm ngừng sử dụng, Không sử dụng; người cao tuổi ở trạng thái cuối; lượt thăm Đã ra, Không đến, Hủy; phản hồi Mới, Đóng; đồ gửi Đang giữ, Đang được người cao tuổi sử dụng; kỳ chi phí Tạm tính, Đã chốt; quyết định Đã từ chối; liều thuốc Chưa đến giờ, Từ chối, Không thực hiện, Tạm dừng, Mang theo, Đã hủy; cảnh báo, sự cố mức Nhẹ; cảnh báo Đã tiếp nhận, Chuyển sự cố; bàn giao Bản nháp, Đã lập; bản ghi Đã đính chính, Đã hủy ghi nhận (`CorrectionBadge`); yêu cầu phê duyệt Nháp, Từ chối, Đã hủy; tài khoản Không hoạt động |
+| `neutral-outline` | Chữ phụ, viền màu viền điều khiển (`--input`, 3,38:1 trên trắng), nền trong | Tài khoản Đã khóa (tách khỏi Không hoạt động cùng tông trung tính, chủ dự án duyệt 2026-10-20) |
 
 ### 3.6 Ảnh đại diện
 
@@ -514,7 +515,7 @@ Công nghệ: React 19, Vite 8, JavaScript, Tailwind CSS v4, shadcn/ui (Base UI)
 - Đã có: khung chung (`AppShell`, menu theo vai trò, khối người dùng, nút sáng/tối), trạng thái màn chưa có và không có quyền, và ba màn mẫu: Tổng quan (dải số đếm, cảnh báo, lưới việc theo khung giờ có người phụ trách, sơ đồ giường theo phòng, thẻ bàn giao ca), Checklist ca (lưới thẻ có người phụ trách, dị ứng tách riêng, lựa chọn của người cao tuổi, loại lý do "Người cao tuổi từ chối"), Danh sách người cao tuổi (bảng kèm khung chi tiết có ảnh nhận diện, khối "Về người này" có sở thích theo nguồn và lịch sử ý kiến, lệnh Hoàn tất tiếp nhận có ý kiến vào ở khi xem bằng vai trò Hành chính). Theo mục 2.2 còn có: chi tiết sự cố hai phần (`incidents`, vai trò Người thân thấy bản cổng) và Người thân (`relatives`, mục menu mới theo dòng "Mong muốn về khách thăm, người đón" của Phụ lục 27).
 - Dị ứng hiện trên thẻ việc ăn, uống và trên mọi thẻ thuốc (chủ dự án duyệt 2026-10-18 cho màn Phát thuốc); loại công việc chăm sóc khác chưa chốt.
 - Đợt 3 (thẩm mỹ, đang trao đổi): giảm màu cho trạng thái bình thường (Đang lưu trú), bo góc thẻ, dải nền trang.
-- Đã có trang chủ giới thiệu viện trong cổng người thân (mục 2.1), màn đăng nhập `/login` và cổng người thân `/family` với 11 màn P1 → P11 (mục 2.3). Chờ: ảnh thực tế được phép sử dụng, kênh liên hệ chính thức của viện.
+- Đã có trang chủ giới thiệu viện trong cổng người thân (mục 2.1), màn đăng nhập chung `/login` (002 T045: đăng nhập thật cho nhân viên và người thân, bố cục P1; `/change-password` khi buộc đổi mật khẩu; khung nhân viên dùng vai trò thật và nút Đăng xuất khi có phiên, không có phiên thì giữ ô đổi vai trò của bản mẫu) và cổng người thân `/family` với 11 màn P1 → P11 (mục 2.3). Chờ: ảnh thực tế được phép sử dụng, kênh liên hệ chính thức của viện.
 - Đã có màn mẫu Phát thuốc (M14): liều theo lịch nhóm theo giờ, khung xác nhận liều, thuốc khi cần.
 - Đã có màn mẫu Bàn giao ca (M17) và Cảnh báo (M15). Bản mẫu: Điều dưỡng là người bàn giao, Trưởng tầng là người xác nhận; trạng thái bàn giao giữ khi đổi vai trò để thử cả luồng.
 - Chưa thiết kế: Phòng, giường dạng thẻ phòng; danh sách sự cố và lệnh xử lý sự cố; cổng người thân trên app mobile (mục 15); khi người thân có quan hệ với nhiều người cao tuổi thì chọn người ở đâu.
@@ -522,7 +523,7 @@ Công nghệ: React 19, Vite 8, JavaScript, Tailwind CSS v4, shadcn/ui (Base UI)
 - Chưa có `toast`: màn Checklist ca báo đã lưu bằng vùng `aria-live` và thẻ chuyển sang nhóm Đã xong.
 - Chưa có trang trình bày design system (bảng màu, mẫu chữ, ma trận trạng thái).
 - Đã có component đính chính dùng chung `correction-sheet` (000 T106), chưa gắn vào màn nào: chờ màn của module sở hữu bản ghi và profile `demo` có người dùng (002).
-- Đã có màn Tham số vận hành (000 T081, tab Tham số của mục menu "Tài khoản, tham số"; tab Tài khoản chờ 002) và Yêu cầu phê duyệt (000 T097, mục menu ngay dưới Tổng quan cho mọi vai trò nhân viên). Hai màn gọi API thật, chưa có dữ liệu khi chạy `npm run dev` không có backend.
+- Đã có màn Tham số vận hành (000 T081, tab Tham số của mục menu "Tài khoản, tham số") và tab Tài khoản (002 T035: bảng lọc theo loại, trạng thái, tên đăng nhập; khung chi tiết có nút lệnh theo `allowedCommands`, form lệnh có lý do bắt buộc; tạo tài khoản nhân viên gõ mã hồ sơ tới khi 008 có danh sách hồ sơ; mật khẩu tạm hiện một lần trong khung) và Yêu cầu phê duyệt (000 T097, mục menu ngay dưới Tổng quan cho mọi vai trò nhân viên). Hai màn gọi API thật, chưa có dữ liệu khi chạy `npm run dev` không có backend.
 
 ## 15. Ứng dụng di động (Flutter)
 
@@ -631,6 +632,8 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 5.17.1 | 2026-10-20 | Chủ dự án chọn một màn đăng nhập chung (002 T045): `/login` cho nhân viên và người thân, thêm `/change-password`; khối người dùng cuối menu có họ tên, vai trò và nút Đăng xuất khi có phiên thật. Không thêm màu, không đổi công thức |
+| 5.17.0 | 2026-10-20 | Chủ dự án duyệt bố cục tab Tài khoản (002 T035) và màu trạng thái tài khoản ở mục 3.5: Hoạt động `settled`, Khóa tạm `attention`, Không hoạt động `neutral`, Đã khóa tông mới `neutral-outline` (viền `--input`, nền trong) để phân biệt với Không hoạt động. Không thêm màu |
 | 5.16.0 | 2026-10-19 | Chủ dự án duyệt bố cục màn Tham số (000 T081: bảng, khung chi tiết hai tab Đổi giá trị, Lịch sử; tham số dạng bảng sửa ngay trong bảng) và Yêu cầu phê duyệt (000 T097: ba hộp Chờ tôi duyệt, Của tôi, Trong phạm vi; nội dung hiện dạng "trường: giá trị"); mục menu "Yêu cầu phê duyệt" ngay dưới Tổng quan; trạng thái yêu cầu phê duyệt vào mục 3.5. Không thêm màu |
 | 5.15.0 | 2026-10-19 | Chủ dự án duyệt bố cục đính chính dùng chung (000 T106): thêm công thức `correction-sheet` ở mục 7.2; trạng thái bản ghi Đã đính chính, Đã hủy ghi nhận vào tông `neutral` ở mục 3.5. Không thêm màu |
 | 5.14.0 | 2026-10-19 | Chủ dự án duyệt mục 15.6 Phần người cao tuổi (gồm nút SOS theo Q-372) |

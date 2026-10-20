@@ -40,7 +40,7 @@ class MeControllerIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_042_me_returnsSessionUser() throws Exception {
-        Session nurse = signIn("AC-04");
+        Session nurse = signIn("AC-04", true);
 
         mvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + nurse.token()))
                 .andExpect(status().isOk())
@@ -52,7 +52,7 @@ class MeControllerIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_042_permissions_listsEffectiveRolePermissions() throws Exception {
-        Session nurse = signIn("AC-04");
+        Session nurse = signIn("AC-04", false);
 
         mvc.perform(get("/api/v1/me/permissions").header("Authorization", "Bearer " + nurse.token()))
                 .andExpect(status().isOk())
@@ -68,15 +68,16 @@ class MeControllerIT extends MySqlIntegrationTestBase {
         mvc.perform(get("/api/v1/me")).andExpect(status().isUnauthorized());
     }
 
-    private Session signIn(String role) {
+    /** {@code mustChange}: phiên buộc đổi mật khẩu chỉ đọc được {@code /me} trong các đường của lớp này (FR-006). */
+    private Session signIn(String role, boolean mustChange) {
         long staffId = IDS.incrementAndGet();
         LocalDateTime now = LocalDateTime.ofInstant(time.now(), ZoneOffset.UTC);
         LocalDateTime created = LocalDateTime.ofInstant(time.now().minus(Duration.ofDays(1)), ZoneOffset.UTC);
         jdbc.update("""
                 INSERT INTO account (username, type, staff_id, status, password_hash, must_change_password,
                                      inactivity_reference_at, created_at)
-                VALUES (?, 'STAFF', ?, 'ACTIVE', 'x', TRUE, ?, ?)
-                """, "me-it-" + staffId, staffId, created, created);
+                VALUES (?, 'STAFF', ?, 'ACTIVE', 'x', ?, ?, ?)
+                """, "me-it-" + staffId, staffId, mustChange, created, created);
         long accountId = jdbc.queryForObject("SELECT id FROM account WHERE staff_id = ?", Long.class, staffId);
         jdbc.update(
                 "INSERT INTO role_assignment (account_id, role, effective_from, reason) VALUES (?, ?, ?, 'Test')",

@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getMe, postAuthLogout } from '@/api'
 import { AppShell } from '@/common/layout/AppShell'
 import { NAV_GROUPS, navForRole } from '@/common/layout/navigation'
 import { NotDesignedState, PermissionDeniedState } from '@/common/PageState'
+import { homeOf, primaryRole } from '@/common/session'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ResidentListPage } from '@/features/residents/ResidentListPage'
 import { ShiftChecklistPage } from '@/features/care-tasks/ShiftChecklistPage'
@@ -38,6 +40,36 @@ function App() {
   const [role, setRole] = useState('FLOOR_MANAGER')
   const [page, setPage] = useState('dashboard')
   const [params, setParams] = useState({})
+  // Phiên thật (002 T045): có thì vai trò theo tài khoản, không có thì bản mẫu đổi vai trò
+  const [session, setSession] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    getMe()
+      .then(({ data }) => {
+        if (cancelled) return
+        const home = homeOf(data)
+        if (home !== '/') {
+          window.location.assign(home)
+          return
+        }
+        setSession(data)
+        const real = primaryRole(data.roles)
+        if (real) setRole(real)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  async function logout() {
+    try {
+      await postAuthLogout()
+    } finally {
+      window.location.assign('/login')
+    }
+  }
 
   function navigate(nextPage, nextParams = {}) {
     setPage(nextPage)
@@ -58,7 +90,14 @@ function App() {
   const allowed = item?.roles.includes(role)
 
   return (
-    <AppShell role={role} onRoleChange={changeRole} page={page} onPageChange={(key) => navigate(key)}>
+    <AppShell
+      role={role}
+      onRoleChange={changeRole}
+      session={session}
+      onLogout={logout}
+      page={page}
+      onPageChange={(key) => navigate(key)}
+    >
       {!allowed ? (
         <PermissionDeniedState label={item?.label ?? 'màn này'} />
       ) : Page ? (

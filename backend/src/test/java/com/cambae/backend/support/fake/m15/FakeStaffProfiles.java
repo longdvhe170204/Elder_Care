@@ -14,6 +14,7 @@ public class FakeStaffProfiles implements StaffProfileApi {
     private final Map<Long, StaffStatus> statuses = new HashMap<>();
     private final Map<Long, Role> positionRoles = new HashMap<>();
     private final Map<Long, String> createdMinimal = new HashMap<>();
+    private final Map<Long, String> names = new HashMap<>();
     private long nextStaffId = 5_000_000;
 
     public FakeStaffProfiles staff(long staffId, Role positionRole) {
@@ -43,6 +44,17 @@ public class FakeStaffProfiles implements StaffProfileApi {
         createdMinimal.put(staffId, fullName);
         positionRoles.put(staffId, positionRole);
         return staffId;
+    }
+
+    public FakeStaffProfiles name(long staffId, String fullName) {
+        names.put(staffId, fullName);
+        return this;
+    }
+
+    /** Họ tên đặt bằng {@link #name} hoặc khi tạo hồ sơ tối thiểu. */
+    @Override
+    public Optional<String> fullName(long staffId) {
+        return Optional.ofNullable(names.getOrDefault(staffId, createdMinimal.get(staffId)));
     }
 
     /** Hồ sơ đã tạo bằng {@link #createMinimal}: id → họ tên. */

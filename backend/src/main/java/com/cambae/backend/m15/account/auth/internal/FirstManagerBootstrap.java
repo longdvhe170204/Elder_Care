@@ -1,15 +1,14 @@
 package com.cambae.backend.m15.account.auth.internal;
 
+import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.Role;
 import com.cambae.backend.common.error.ConditionNotMetException;
 import com.cambae.backend.common.error.UnmetCondition;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m15.account.api.StaffProfileApi;
-import com.cambae.backend.m15.auditlog.api.AuditAction;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
 import com.cambae.backend.m15.auditlog.api.Basis;
-import java.security.SecureRandom;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.time.LocalDateTime;
@@ -32,12 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class FirstManagerBootstrap {
 
-    static final AuditAction ACCOUNT_CREATED = new AuditAction("ACCOUNT_CREATED", false);
-    static final AuditAction ROLE_ASSIGNED = new AuditAction("ROLE_ASSIGNED", false);
     private static final Basis BASIS = new Basis("BR-M15-22", null, null, null);
     private static final String REASON = "Khởi tạo hệ thống (BR-M15-22)";
-    private static final String PASSWORD_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
-    private static final SecureRandom RANDOM = new SecureRandom();
 
     private final JdbcTemplate jdbc;
     private final BusinessTime time;
@@ -72,7 +67,7 @@ public class FirstManagerBootstrap {
                     List.of(new UnmetCondition("BR-M15-22", "Hệ thống đã có tài khoản Quản lý viện")));
         }
         long staffId = staffProfiles.getObject().createMinimal(fullName, Role.NURSING_HOME_MANAGER);
-        String temporaryPassword = temporaryPassword();
+        String temporaryPassword = TemporaryPasswords.generate();
         LocalDateTime now = LocalDateTime.ofInstant(time.now(), ZoneOffset.UTC);
 
         GeneratedKeyHolder key = new GeneratedKeyHolder();
@@ -105,32 +100,18 @@ public class FirstManagerBootstrap {
                 REASON);
 
         auditLog.writeAsBootstrap(AuditLogEntry.builder()
-                .action(ACCOUNT_CREATED)
+                .action(AccountAuditActions.ACCOUNT_CREATED)
                 .entity("M15.ACCOUNT", accountId)
                 .after(Map.of("username", username, "type", "STAFF", "staffId", staffId, "status", "ACTIVE"))
                 .basis(BASIS)
                 .build());
         auditLog.writeAsBootstrap(AuditLogEntry.builder()
-                .action(ROLE_ASSIGNED)
+                .action(AccountAuditActions.ROLE_ASSIGNED)
                 .entity("M15.ACCOUNT", accountId)
                 .after(Map.of("role", Role.NURSING_HOME_MANAGER.code()))
+                .reason(Reason.of(REASON))
                 .basis(BASIS)
                 .build());
         return new Result(accountId, username, temporaryPassword);
-    }
-
-    /** 12 ký tự ngẫu nhiên, có cả chữ và số (CFG-M15-09: tối thiểu 8 ký tự, có chữ và số). */
-    private static String temporaryPassword() {
-        while (true) {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < 12; i++) {
-                sb.append(PASSWORD_CHARS.charAt(RANDOM.nextInt(PASSWORD_CHARS.length())));
-            }
-            String password = sb.toString();
-            if (password.chars().anyMatch(Character::isDigit)
-                    && password.chars().anyMatch(Character::isLetter)) {
-                return password;
-            }
-        }
     }
 }

@@ -61,6 +61,12 @@ class AuditLogService implements AuditLogApi {
         insert(entry, "BOOTSTRAP", null, null);
     }
 
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void writeAnonymous(AuditLogEntry entry) {
+        insert(entry, "ANONYMOUS", null, null);
+    }
+
     private void insert(AuditLogEntry entry) {
         CurrentUser user = currentUser.getObject();
         if (user.isScheduler() && entry.basis() == null) {

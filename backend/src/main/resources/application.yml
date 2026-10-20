@@ -87,6 +87,8 @@ eldercare:
       on-startup: false
     remind-pending-requests:
       cron: "-"
+    mark-inactive-accounts:
+      cron: "-"
 
 ---
 spring:

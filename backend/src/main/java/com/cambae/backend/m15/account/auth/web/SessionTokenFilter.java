@@ -1,6 +1,5 @@
 package com.cambae.backend.m15.account.auth.web;
 
-import com.cambae.backend.m15.account.auth.internal.ActiveSession;
 import com.cambae.backend.m15.account.auth.internal.SessionAuthentication;
 import com.cambae.backend.m15.account.auth.internal.SessionService;
 import com.cambae.backend.m15.account.auth.internal.SessionTokens;
@@ -39,6 +38,15 @@ class SessionTokenFilter extends OncePerRequestFilter {
             PathPatternRequestMatcher.withDefaults().matcher("/api/v1/auth/login"),
             PathPatternRequestMatcher.withDefaults().matcher("/api/v1/auth/qr-login"),
             PathPatternRequestMatcher.withDefaults().matcher("/api/v1/sos/**"));
+    /**
+     * Phiên buộc đổi mật khẩu chỉ gọi được đổi mật khẩu, đăng xuất (FR-006, research A-03) và đọc {@code GET /me} để
+     * client biết phải đổi mật khẩu ({@code UserInfo.mustChangePassword}; plan 002 ghi chú Phase 5).
+     */
+    static final RequestMatcher PASSWORD_CHANGE_PATHS = new OrRequestMatcher(
+            PathPatternRequestMatcher.withDefaults().matcher("/api/v1/auth/change-password"),
+            PathPatternRequestMatcher.withDefaults().matcher("/api/v1/auth/logout"),
+            PathPatternRequestMatcher.withDefaults().matcher(org.springframework.http.HttpMethod.GET, "/api/v1/me"));
+
     static final String REQUESTED_FROM = "X-Requested-From";
     private static final String BEARER = "Bearer ";
     private static final Set<String> SAFE_METHODS = Set.of("GET", "HEAD", "OPTIONS");
@@ -75,13 +83,21 @@ class SessionTokenFilter extends OncePerRequestFilter {
             writeProblem(response, HttpStatus.FORBIDDEN, "FORBIDDEN", "Lệnh ghi từ web phải có " + REQUESTED_FROM);
             return;
         }
-        Optional<ActiveSession> session = sessions.resolve(token);
+        Optional<SessionService.Resolved> session = sessions.resolveRequest(token);
         if (session.isEmpty()) {
             writeProblem(response, HttpStatus.UNAUTHORIZED, "SESSION_EXPIRED", "Phiên đã kết thúc, cần đăng nhập lại");
             return;
         }
+        if (session.get().mustChangePassword() && !PASSWORD_CHANGE_PATHS.matches(request)) {
+            writeProblem(
+                    response,
+                    HttpStatus.FORBIDDEN,
+                    "PASSWORD_CHANGE_REQUIRED",
+                    "Cần đổi mật khẩu trước khi dùng chức năng khác");
+            return;
+        }
         SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(new SessionAuthentication(session.get()));
+        context.setAuthentication(new SessionAuthentication(session.get().session()));
         SecurityContextHolder.setContext(context);
         chain.doFilter(request, response);
     }

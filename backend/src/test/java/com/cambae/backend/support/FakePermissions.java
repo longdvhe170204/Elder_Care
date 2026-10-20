@@ -42,6 +42,12 @@ import java.util.stream.Collectors;
  */
 public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibilityApi, ApproverApi, AccountApi {
 
+    /** Bản giả không có hồ sơ: họ tên rỗng như 000 trước 002 T032a. */
+    @Override
+    public Optional<String> fullName(long accountId) {
+        return Optional.empty();
+    }
+
     private final Map<Role, Set<PermissionKey>> grants = new EnumMap<>(Role.class);
     private final Map<Role, Set<PermissionKey>> assignedGrants = new EnumMap<>(Role.class);
     private final Map<Long, CurrentUser> accounts = new LinkedHashMap<>();

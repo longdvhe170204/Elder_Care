@@ -88,19 +88,19 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 
 ### Tests cho User Story 2
 
-- [ ] T027 [P] [US2] Test `BT/m15/taikhoan/TaoTaiKhoanIT.java`: hồ sơ Nghỉ việc hoặc chức danh không có vai trò hệ thống bị từ chối; tài khoản nhân viên phải có ít nhất một vai trò AC-01 → 05, 07, 09, 14; trùng `nhan_vien_id` bị từ chối (US2; FR-002 → FR-004a)
-- [ ] T028 [P] [US2] Test `BT/m15/taikhoan/NghiViecKhoaTaiKhoanIT.java`: `khoaDoNghiViec` trong transaction 008 → `DA_KHOA` `NGHI_VIEC`, mọi phiên kết thúc; rollback 008 thì tài khoản không đổi (BR-M09-04, FR-009, FR-013)
-- [ ] T029 [P] [US2] Test `BT/m15/taikhoan/KhoaMoKhoaIT.java`, `LuonConQuanLyVienIT.java`, `KhongXoaTaiKhoanIT.java`: mở khóa khi nguyên nhân tự động còn → 409; khóa/gỡ vai trò AC-01 cuối cùng → 409 `KHONG_CON_QUAN_LY_VIEN`; `DELETE` bị trigger chặn (FR-005, FR-011, FR-012)
+- [x] T027 [P] [US2] Test `BT/m15/taikhoan/TaoTaiKhoanIT.java`: hồ sơ Nghỉ việc hoặc chức danh không có vai trò hệ thống bị từ chối; tài khoản nhân viên phải có ít nhất một vai trò AC-01 → 05, 07, 09, 14; trùng `nhan_vien_id` bị từ chối (US2; FR-002 → FR-004a)
+- [x] T028 [P] [US2] Test `BT/m15/taikhoan/NghiViecKhoaTaiKhoanIT.java`: `khoaDoNghiViec` trong transaction 008 → `DA_KHOA` `NGHI_VIEC`, mọi phiên kết thúc; rollback 008 thì tài khoản không đổi (BR-M09-04, FR-009, FR-013)
+- [x] T029 [P] [US2] Test `BT/m15/taikhoan/KhoaMoKhoaIT.java`, `LuonConQuanLyVienIT.java`, `KhongXoaTaiKhoanIT.java`: mở khóa khi nguyên nhân tự động còn → 409; khóa/gỡ vai trò AC-01 cuối cùng → 409 `KHONG_CON_QUAN_LY_VIEN`; `DELETE` bị trigger chặn (FR-005, FR-011, FR-012)
 
 ### Implementation cho User Story 2
 
-- [ ] T030 [P] [US2] Tạo entity `BE/m15/taikhoan/xacthuc/internal/TaiKhoan.java` (`@NhomDuLieu(NGHIEP_VU)`), `LichSuTrangThaiTaiKhoan.java` (`GHI_NHAN`, `ChiThemRepository`), `GanVaiTro.java`
-- [ ] T031 [US2] Cài máy trạng thái tài khoản `BE/m15/taikhoan/xacthuc/internal/TaiKhoanService.java` đúng bảng chuyển data-model mục 2: tạo nhân viên, khóa (kèm `nguoiThayPhuTrach` gọi 008 cùng transaction khi đang là Phụ trách bộ phận, Q-292), mở khóa, cấp lại mật khẩu (`buoc_doi_mat_khau`); mỗi chuyển thêm `lich_su_trang_thai_tai_khoan`, kết thúc mọi phiên khi rời `HOAT_DONG`, ghi `TK_*`; mật khẩu và token không vào nhật ký
-- [ ] T032 [US2] Cài `TaiKhoanApi` trong `BE/m15/taikhoan/xacthuc/internal/TaiKhoanApiImpl.java`: `khoaDoNghiViec` (`MANDATORY`), `theoNhanVien`, `theoNguoiThan`, `coVaiTro` (contracts mục 1.6)
-- [ ] T032a [US2] *(Bổ sung 2026-10-20)* Họ tên người dùng: thêm `HoSoNhanVienApi.hoTen(nhanVienId)` (008 cài), `QuanHeNguoiThanApi.hoTenNguoiThan(nguoiThanId)` (012 cài) kèm bản giả trong `BT/support/fake/m15/`, và `TaiKhoanApi.hoTen(taiKhoanId)` trong `TaiKhoanApiImpl.java`; dùng cho `UserInfo.fullName` (`/me`, đăng nhập) và `Actor.fullName` của 000 (nhật ký, yêu cầu phê duyệt, đính chính, lịch sử tham số; trước đây trả `null`); tài khoản người cao tuổi lấy tên qua `NguoiCaoTuoiApi` ở T091. Test `BT/m15/taikhoan/HoTenNguoiThucHienIT.java` (contracts/module-interfaces.md mục 1.6, mục 2; PR ghi "Đổi api", báo E, B)
-- [ ] T033 [US2] Cài gán/gỡ vai trò trong `BE/m15/taikhoan/quyen/internal/GanVaiTroService.java`: đóng dòng cũ và thêm dòng mới, vai trò cùng loại tài khoản, tăng `phien_ban_quyen`, `If-Match`, đếm AC-01 dưới `SELECT … FOR UPDATE` (FR-003, FR-004, FR-012, FR-026)
-- [ ] T034 [US2] Tạo `BE/m15/taikhoan/xacthuc/web/TaiKhoanController.java`: `POST/GET /tai-khoan`, `GET /tai-khoan/{id}`, `POST …/{id}/khoa`, `…/mo-khoa`, `…/cap-lai-mat-khau`, `…/gan-vai-tro`, `…/go-vai-tro` theo contracts/api-002.yaml; không có `PUT/PATCH/DELETE`
-- [ ] T035 [P] [US2] Tạo màn quản trị `frontend/src/tinh-nang/tai-khoan/TaiKhoanDanhSach.jsx`, `TaoTaiKhoanNhanVien.jsx`, `ChiTietTaiKhoan.jsx` (lệnh theo `lenhDuocPhep`, lý do bắt buộc)
+- [x] T030 [P] [US2] Tạo entity `BE/m15/taikhoan/xacthuc/internal/TaiKhoan.java` (`@NhomDuLieu(NGHIEP_VU)`), `LichSuTrangThaiTaiKhoan.java` (`GHI_NHAN`, `ChiThemRepository`), `GanVaiTro.java`
+- [x] T031 [US2] Cài máy trạng thái tài khoản `BE/m15/taikhoan/xacthuc/internal/TaiKhoanService.java` đúng bảng chuyển data-model mục 2: tạo nhân viên, khóa (kèm `nguoiThayPhuTrach` gọi 008 cùng transaction khi đang là Phụ trách bộ phận, Q-292), mở khóa, cấp lại mật khẩu (`buoc_doi_mat_khau`); mỗi chuyển thêm `lich_su_trang_thai_tai_khoan`, kết thúc mọi phiên khi rời `HOAT_DONG`, ghi `TK_*`; mật khẩu và token không vào nhật ký
+- [x] T032 [US2] Cài `TaiKhoanApi` trong `BE/m15/taikhoan/xacthuc/internal/TaiKhoanApiImpl.java`: `khoaDoNghiViec` (`MANDATORY`), `theoNhanVien`, `theoNguoiThan`, `coVaiTro` (contracts mục 1.6)
+- [x] T032a [US2] *(Bổ sung 2026-10-20)* Họ tên người dùng: thêm `HoSoNhanVienApi.hoTen(nhanVienId)` (008 cài), `QuanHeNguoiThanApi.hoTenNguoiThan(nguoiThanId)` (012 cài) kèm bản giả trong `BT/support/fake/m15/`, và `TaiKhoanApi.hoTen(taiKhoanId)` trong `TaiKhoanApiImpl.java`; dùng cho `UserInfo.fullName` (`/me`, đăng nhập) và `Actor.fullName` của 000 (nhật ký, yêu cầu phê duyệt, đính chính, lịch sử tham số; trước đây trả `null`); tài khoản người cao tuổi lấy tên qua `NguoiCaoTuoiApi` ở T091. Test `BT/m15/taikhoan/HoTenNguoiThucHienIT.java` (contracts/module-interfaces.md mục 1.6, mục 2; PR ghi "Đổi api", báo E, B)
+- [x] T033 [US2] Cài gán/gỡ vai trò trong `BE/m15/taikhoan/quyen/internal/GanVaiTroService.java`: đóng dòng cũ và thêm dòng mới, vai trò cùng loại tài khoản, tăng `phien_ban_quyen`, `If-Match`, đếm AC-01 dưới `SELECT … FOR UPDATE` (FR-003, FR-004, FR-012, FR-026)
+- [x] T034 [US2] Tạo `BE/m15/taikhoan/xacthuc/web/TaiKhoanController.java`: `POST/GET /tai-khoan`, `GET /tai-khoan/{id}`, `POST …/{id}/khoa`, `…/mo-khoa`, `…/cap-lai-mat-khau`, `…/gan-vai-tro`, `…/go-vai-tro` theo contracts/api-002.yaml; không có `PUT/PATCH/DELETE`
+- [x] T035 [P] [US2] Tạo màn quản trị `frontend/src/tinh-nang/tai-khoan/TaiKhoanDanhSach.jsx`, `TaoTaiKhoanNhanVien.jsx`, `ChiTietTaiKhoan.jsx` (lệnh theo `lenhDuocPhep`, lý do bắt buộc)
 
 **Checkpoint**: Quản lý viện cấp và thu hồi tài khoản nhân viên.
 
@@ -114,19 +114,19 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 
 ### Tests cho User Story 3
 
-- [ ] T036 [P] [US3] Test `BT/m15/taikhoan/DangNhapKhoaTamIT.java` và `KhongHoatDongIT.java` (đồng hồ giả lập): sai đủ CFG-M15-01 → `KHOA_TAM`; hết `khoa_tam_den` tính ở yêu cầu kế tiếp; người thân quá CFG-M15-02 → `KHONG_HOAT_DONG`; job chạy lại không chuyển hai lần (BR-M15-05)
-- [ ] T037 [P] [US3] Test `BT/m15/taikhoan/MoKhoaSomIT.java`: AC-01; Trưởng tầng hoặc Người phụ trách ca cùng tầng và cùng ca mở khóa sớm nhân viên; người khác bị từ chối; `lyDo` bắt buộc (FR-019c)
-- [ ] T038 [P] [US3] Test đơn vị `BT/m15/taikhoan/DangNhapKhongLoTonTaiTest.java`: thông báo lỗi giống nhau cho tên sai, mật khẩu sai, tài khoản khóa (NFR-08)
-- [ ] T039 [P] [US3] Test `BT/m15/taikhoan/BuocDoiMatKhauIT.java`, `DoManhMatKhauIT.java`, `TuDangXuatIT.java`: cấp lại mật khẩu bắt đổi ở lần đăng nhập kế tiếp; mật khẩu không đạt CFG-M15-09 → 422; phiên quá CFG-M15-10 theo kênh → 401 (BR-M15-21)
-- [ ] T040 [P] [US3] Test `BT/m15/taikhoan/MotThietBiMotPhienIT.java` và `KetThucPhienNgayIT.java`: đăng nhập trên thiết bị đã có phiên của tài khoản khác kết thúc phiên cũ; khóa tài khoản làm yêu cầu kế tiếp bị 401 (BR-M15-15, FR-013, FR-014a)
+- [x] T036 [P] [US3] Test `BT/m15/taikhoan/DangNhapKhoaTamIT.java` và `KhongHoatDongIT.java` (đồng hồ giả lập): sai đủ CFG-M15-01 → `KHOA_TAM`; hết `khoa_tam_den` tính ở yêu cầu kế tiếp; người thân quá CFG-M15-02 → `KHONG_HOAT_DONG`; job chạy lại không chuyển hai lần (BR-M15-05)
+- [x] T037 [P] [US3] Test `BT/m15/taikhoan/MoKhoaSomIT.java`: AC-01; Trưởng tầng hoặc Người phụ trách ca cùng tầng và cùng ca mở khóa sớm nhân viên; người khác bị từ chối; `lyDo` bắt buộc (FR-019c)
+- [x] T038 [P] [US3] Test đơn vị `BT/m15/taikhoan/DangNhapKhongLoTonTaiTest.java`: thông báo lỗi giống nhau cho tên sai, mật khẩu sai, tài khoản khóa (NFR-08)
+- [x] T039 [P] [US3] Test `BT/m15/taikhoan/BuocDoiMatKhauIT.java`, `DoManhMatKhauIT.java`, `TuDangXuatIT.java`: cấp lại mật khẩu bắt đổi ở lần đăng nhập kế tiếp; mật khẩu không đạt CFG-M15-09 → 422; phiên quá CFG-M15-10 theo kênh → 401 (BR-M15-21)
+- [x] T040 [P] [US3] Test `BT/m15/taikhoan/MotThietBiMotPhienIT.java` và `KetThucPhienNgayIT.java`: đăng nhập trên thiết bị đã có phiên của tài khoản khác kết thúc phiên cũ; khóa tài khoản làm yêu cầu kế tiếp bị 401 (BR-M15-15, FR-013, FR-014a)
 
 ### Implementation cho User Story 3
 
-- [ ] T041 [US3] Cài `BE/m15/taikhoan/xacthuc/internal/DangNhapService.java`: Argon2id; đếm `so_lan_sai_lien_tiep`, khóa tạm theo CFG-M15-01 (người thực hiện Bộ lập lịch, căn cứ CFG); kết thúc phiên cùng thiết bị trong cùng transaction rồi thêm phiên; đặt `moc_tinh_khong_hoat_dong`; ghi `DANG_NHAP`/`DANG_NHAP_THAT_BAI` (research A-03)
-- [ ] T042 [US3] Cài đổi mật khẩu (kiểm CFG-M15-09), đăng xuất, mở khóa sớm (FR-019c qua `NhiemVuApi`), kích hoạt lại trong `BE/m15/taikhoan/xacthuc/internal/MatKhauService.java` và `TaiKhoanService.java`
-- [ ] T043 [US3] Cài job `BE/m15/taikhoan/lich/ChuyenKhongHoatDong.java` (01:00 và 06:00, ShedLock): chỉ người thân Hoạt động có `moc_tinh_khong_hoat_dong` quá CFG-M15-02; điều kiện trên trạng thái hiện hành để chạy lại an toàn (NFR-04, NFR-05)
-- [ ] T044 [US3] Tạo `BE/m15/taikhoan/xacthuc/web/XacThucController.java` cho `POST /xac-thuc/dang-nhap`, `/xac-thuc/dang-xuat`, `/xac-thuc/doi-mat-khau` và bổ sung `POST /tai-khoan/{id}/mo-khoa-som`, `/kich-hoat-lai` vào `TaiKhoanController.java`
-- [ ] T045 [P] [US3] Tạo màn web `frontend/src/tinh-nang/dang-nhap/DangNhap.jsx`, `DoiMatKhau.jsx` (mã thiết bị trong `X-Thiet-Bi`) và test `DangNhap.test.jsx` (thông báo chung), `DoiMatKhau.test.jsx`
+- [x] T041 [US3] Cài `BE/m15/taikhoan/xacthuc/internal/DangNhapService.java`: Argon2id; đếm `so_lan_sai_lien_tiep`, khóa tạm theo CFG-M15-01 (người thực hiện Bộ lập lịch, căn cứ CFG); kết thúc phiên cùng thiết bị trong cùng transaction rồi thêm phiên; đặt `moc_tinh_khong_hoat_dong`; ghi `DANG_NHAP`/`DANG_NHAP_THAT_BAI` (research A-03)
+- [x] T042 [US3] Cài đổi mật khẩu (kiểm CFG-M15-09), đăng xuất, mở khóa sớm (FR-019c qua `NhiemVuApi`), kích hoạt lại trong `BE/m15/taikhoan/xacthuc/internal/MatKhauService.java` và `TaiKhoanService.java`
+- [x] T043 [US3] Cài job `BE/m15/taikhoan/lich/ChuyenKhongHoatDong.java` (01:00 và 06:00, ShedLock): chỉ người thân Hoạt động có `moc_tinh_khong_hoat_dong` quá CFG-M15-02; điều kiện trên trạng thái hiện hành để chạy lại an toàn (NFR-04, NFR-05)
+- [x] T044 [US3] Tạo `BE/m15/taikhoan/xacthuc/web/XacThucController.java` cho `POST /xac-thuc/dang-nhap`, `/xac-thuc/dang-xuat`, `/xac-thuc/doi-mat-khau` và bổ sung `POST /tai-khoan/{id}/mo-khoa-som`, `/kich-hoat-lai` vào `TaiKhoanController.java`
+- [x] T045 [P] [US3] Tạo màn web `frontend/src/tinh-nang/dang-nhap/DangNhap.jsx`, `DoiMatKhau.jsx` (mã thiết bị trong `X-Thiet-Bi`) và test `DangNhap.test.jsx` (thông báo chung), `DoiMatKhau.test.jsx`
 - [ ] T046 [P] [US3] Tạo `mobile/lib/chung/xac-thuc/` (token trong `flutter_secure_storage`, mã thiết bị UUID), `mobile/lib/nhan-vien/dang-nhap/`, `mobile/lib/nhan-vien/mo-khoa-som/` và test `mobile/test/nhan-vien/dang_nhap_thiet_bi_chung_test.dart`, `mo_khoa_som_test.dart`
 - [ ] T047 [P] [US3] Tạo `mobile/lib/chung/xac-thuc/`, `mobile/lib/nguoi-than/dang-nhap/` (đăng nhập, đổi mật khẩu) và test `mobile/test/nguoi-than/dang_nhap_nguoi_than_test.dart`
 
@@ -221,7 +221,7 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 ### Implementation cho User Story 7
 
 - [ ] T075 [US7] Cài `BE/m15/taikhoan/quyen/internal/ThuHepQuyenService.java`: thu hẹp/khôi phục theo vai trò và theo tài khoản (đóng dòng cũ, thêm dòng mới; `nhom_chi_tieu`, `kenh` cho `DASHBOARD_BAO_CAO`), gán/gỡ `quyen_gan_them` (tài khoản phải có AC-04), kiểm không vượt ma trận, tăng `phien_ban_quyen`, nhật ký `QUYEN_*` (FR-024 → FR-027)
-- [ ] T076 [US7] Tạo `BE/m15/taikhoan/quyen/web/PhanQuyenController.java`: `GET /vai-tro`, `GET /vai-tro/{ma}/quyen`, `POST /vai-tro/{ma}/thu-hep`, `/khoi-phuc-quyen`, `GET /tai-khoan/{id}/quyen` (có `taiThoiDiem`), `POST /tai-khoan/{id}/thu-hep`, `/khoi-phuc-quyen`, `/gan-quyen-duyet-ke-hoach`, `/go-quyen-duyet-ke-hoach` theo contracts/api-002.yaml
+- [ ] T076 [US7] Tạo `BE/m15/taikhoan/quyen/web/PhanQuyenController.java`: `GET /vai-tro`, `GET /vai-tro/{ma}/quyen`, `POST /vai-tro/{ma}/thu-hep`, `/khoi-phuc-quyen`, `GET /tai-khoan/{id}/quyen` (có `taiThoiDiem`) *(phần hiện hành làm sớm ở T035, 2026-10-20; còn `taiThoiDiem`)*, `POST /tai-khoan/{id}/thu-hep`, `/khoi-phuc-quyen`, `/gan-quyen-duyet-ke-hoach`, `/go-quyen-duyet-ke-hoach` theo contracts/api-002.yaml
 - [ ] T077 [P] [US7] Tạo màn `frontend/src/tinh-nang/phan-quyen/PhanQuyenVaiTro.jsx`, `PhanQuyenTaiKhoan.jsx`, `QuyenTaiThoiDiem.jsx` và test `PhanQuyen.test.jsx` (412, chặn vượt ma trận)
 
 **Checkpoint**: Mọi user story của 002 chạy độc lập.

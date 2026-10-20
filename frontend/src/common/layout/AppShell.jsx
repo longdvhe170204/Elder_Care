@@ -11,6 +11,7 @@ import {
   History,
   LayoutDashboard,
   ListChecks,
+  LogOut,
   Moon,
   Pill,
   Receipt,
@@ -89,8 +90,9 @@ function ThemeToggle() {
   )
 }
 
-// Khối người dùng cuối menu (DESIGN.md 2.1.0). Ô chọn vai trò chỉ có ở bản mẫu.
-function UserBlock({ role, onRoleChange }) {
+// Khối người dùng cuối menu (DESIGN.md 2.1.0). Có phiên thật (002 T045) thì hiện họ tên, vai trò và nút Đăng xuất;
+// không có thì ô chọn vai trò của bản mẫu.
+function UserBlock({ role, onRoleChange, session, onLogout }) {
   const current = ROLES.find((r) => r.code === role)
   return (
     <div className="flex items-center gap-3 border-t border-sidebar-border px-4 pt-3 md:mt-auto">
@@ -100,6 +102,12 @@ function UserBlock({ role, onRoleChange }) {
       >
         {initialsOf(current.label)}
       </span>
+      {session ? (
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate type-label">{session.fullName ?? `Tài khoản ${session.accountId}`}</span>
+          <span className="type-caption text-sidebar-muted-foreground">{current.label}</span>
+        </div>
+      ) : (
       <div className="flex min-w-0 flex-1 flex-col">
         <label htmlFor="demo-role" className="sr-only">
           Xem với vai trò
@@ -118,12 +126,23 @@ function UserBlock({ role, onRoleChange }) {
         </select>
         <span className="type-caption text-sidebar-muted-foreground">Bản mẫu, dữ liệu minh họa</span>
       </div>
+      )}
       <ThemeToggle />
+      {session && (
+        <button
+          type="button"
+          onClick={onLogout}
+          aria-label="Đăng xuất"
+          className="flex size-10 shrink-0 items-center justify-center rounded-full text-sidebar-foreground hover:bg-(--sidebar-hover)"
+        >
+          <LogOut className="size-5" aria-hidden="true" />
+        </button>
+      )}
     </div>
   )
 }
 
-export function AppShell({ role, onRoleChange, page, onPageChange, children }) {
+export function AppShell({ role, onRoleChange, session, onLogout, page, onPageChange, children }) {
   const groups = navForRole(role)
 
   return (
@@ -165,7 +184,7 @@ export function AppShell({ role, onRoleChange, page, onPageChange, children }) {
             </div>
           ))}
         </nav>
-        <UserBlock role={role} onRoleChange={onRoleChange} />
+        <UserBlock role={role} onRoleChange={onRoleChange} session={session} onLogout={onLogout} />
       </aside>
 
       <main className="min-w-0 px-4 py-6 md:px-8">{children}</main>

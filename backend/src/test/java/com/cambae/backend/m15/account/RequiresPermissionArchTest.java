@@ -36,7 +36,10 @@ class RequiresPermissionArchTest {
             "com.cambae.backend.m15.correction.internal.CorrectionService.create",
             "quyền theo loại bản ghi gốc (CorrectableRecordProvider.canRecord, CorrectionMethodSelector); 000 FR-026",
             "com.cambae.backend.m15.parameter.internal.ParameterService.changeValue",
-            "PermissionApi.hasPermission với khóa tham số, chỉ Quản lý viện; 000 BR-M15-04");
+            "PermissionApi.hasPermission với khóa tham số, chỉ Quản lý viện; 000 BR-M15-04",
+            "com.cambae.backend.m15.account.auth.internal.AccountService.earlyUnlock",
+            "Quản lý viện, hoặc Trưởng tầng, Người phụ trách ca cùng tầng và ca theo AssignmentApi lúc chạy"
+                    + " (AccountService.earlyUnlockAuthority); 002 FR-019c");
 
     @ArchTest
     static final ArchRule BR_M15_01_everyBusinessCommandRequiresPermission = methods()
