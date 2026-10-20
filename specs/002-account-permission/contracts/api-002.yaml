@@ -400,7 +400,11 @@ paths:
       requestBody:
         required: true
         content: { application/json: { schema: { $ref: '#/components/schemas/ProfessionalActivityInput' } } }
-      responses: { '201': { description: Đã tạo } }
+      responses:
+        '201':
+          description: Đã tạo
+          headers: { ETag: { $ref: '#/components/headers/ETag' } }
+          content: { application/json: { schema: { $ref: '#/components/schemas/ProfessionalActivity' } } }
   /professional-activities/{id}:
     put:
       tags: [professional-activities]
@@ -410,7 +414,7 @@ paths:
       requestBody:
         required: true
         content: { application/json: { schema: { $ref: '#/components/schemas/ProfessionalActivityInput' } } }
-      responses: { '200': { description: OK } }
+      responses: { '200': { $ref: '#/components/responses/ProfessionalActivityOk' } }
   /professional-activities/{id}/deactivate:
     post:
       tags: [professional-activities]
@@ -419,7 +423,7 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
       requestBody: { $ref: '#/components/requestBodies/ReasonBody' }
       responses:
-        '200': { description: OK }
+        '200': { $ref: '#/components/responses/ProfessionalActivityOk' }
         '409': { description: 'DEFAULT_ITEM', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
 
   /sync:
@@ -660,6 +664,10 @@ components:
       description: OK
       headers: { ETag: { $ref: '#/components/headers/ETag' } }
       content: { application/json: { schema: { $ref: '#/components/schemas/AccountPermissions' } } }
+    ProfessionalActivityOk:
+      description: OK
+      headers: { ETag: { $ref: '#/components/headers/ETag' } }
+      content: { application/json: { schema: { $ref: '#/components/schemas/ProfessionalActivity' } } }
     PendingReviewRecordOk:
       description: OK
       headers: { ETag: { $ref: '#/components/headers/ETag' } }
@@ -771,6 +779,7 @@ components:
         requiresFacilityScope: { type: boolean }
         isDefault: { type: boolean }
         status: { type: string, enum: [ACTIVE, INACTIVE] }
+        version: { type: integer, description: 'Giá trị If-Match của lệnh sửa, ngừng hiệu lực (bổ sung 2026-10-21, chủ dự án duyệt)' }
     ProfessionalActivityInput:
       type: object
       required: [name, function, requiredLicenseType, requiresFacilityScope, reason]

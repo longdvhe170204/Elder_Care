@@ -131,17 +131,27 @@ public class AccountStore {
     }
 
     public long insertStaff(long staffId, String username, String passwordHash, Long createdBy) {
+        return insert("staff_id", "STAFF", staffId, username, passwordHash, createdBy);
+    }
+
+    /** Tài khoản người thân (FR-050), buộc đổi mật khẩu lần đầu như tài khoản nhân viên. */
+    public long insertFamily(long familyMemberId, String username, String passwordHash, Long createdBy) {
+        return insert("family_member_id", "FAMILY_MEMBER", familyMemberId, username, passwordHash, createdBy);
+    }
+
+    private long insert(
+            String linkColumn, String type, long linkId, String username, String passwordHash, Long createdBy) {
         LocalDateTime now = utc(time.now());
         GeneratedKeyHolder key = new GeneratedKeyHolder();
         jdbc.update(
                 connection -> {
                     PreparedStatement ps = connection.prepareStatement(
-                            "INSERT INTO account (username, type, staff_id, status, password_hash,"
+                            "INSERT INTO account (username, type, " + linkColumn + ", status, password_hash,"
                                     + " must_change_password, inactivity_reference_at, created_at, created_by)"
-                                    + " VALUES (?, 'STAFF', ?, 'ACTIVE', ?, TRUE, ?, ?, ?)",
+                                    + " VALUES (?, '" + type + "', ?, 'ACTIVE', ?, TRUE, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS);
                     ps.setString(1, username);
-                    ps.setLong(2, staffId);
+                    ps.setLong(2, linkId);
                     ps.setString(3, passwordHash);
                     ps.setObject(4, now);
                     ps.setObject(5, now);
@@ -311,6 +321,12 @@ public class AccountStore {
                         + " AND inactivity_reference_at < ? ORDER BY id",
                 Long.class,
                 utc(before));
+    }
+
+    /** Tài khoản người thân chưa Đã khóa (job khóa sau kết thúc lưu trú, FR-049). */
+    public List<Long> familyNotLocked() {
+        return jdbc.queryForList(
+                "SELECT id FROM account WHERE type = 'FAMILY_MEMBER' AND status <> 'LOCKED' ORDER BY id", Long.class);
     }
 
     public Instant inactivityReference(long accountId) {

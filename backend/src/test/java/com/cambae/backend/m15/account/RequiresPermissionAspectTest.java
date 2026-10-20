@@ -126,6 +126,20 @@ class RequiresPermissionAspectTest {
                 });
     }
 
+    /** 002 T064: giấy phép cơ sở không bao phạm vi, hoặc chưa cấu hình loại giấy phép: vẫn là lỗi pháp lý, không có giấy phép. */
+    @Test
+    void FR_043_legalWithoutLicense_403LegalCondition() {
+        permissions.results.put(APPROVE, PermissionResult.denied(FailedLayer.LEGAL));
+
+        assertThatThrownBy(() -> commands.approve(RESIDENT_7, "x"))
+                .isInstanceOfSatisfying(PermissionDeniedException.class, e -> {
+                    assertThat(e.errorCode()).isEqualTo("LEGAL_CONDITION_NOT_MET");
+                    assertThat(e.properties())
+                            .containsEntry("failedLayer", "LEGAL")
+                            .doesNotContainKey("license");
+                });
+    }
+
     @Configuration
     @EnableAspectJAutoProxy(proxyTargetClass = true)
     @Import(RequiresPermissionAspect.class)

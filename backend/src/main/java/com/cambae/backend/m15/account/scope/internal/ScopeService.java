@@ -8,7 +8,9 @@ import com.cambae.backend.m15.account.api.BedAllocationApi;
 import com.cambae.backend.m15.account.api.BedAllocationView;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.DutyApi;
+import com.cambae.backend.m15.account.api.FamilyRelationshipApi;
 import com.cambae.backend.m15.account.api.PermissionKey;
+import com.cambae.backend.m15.account.api.ResidencyEndApi;
 import com.cambae.backend.m15.account.api.ReviewRecipient;
 import com.cambae.backend.m15.account.api.ScopeApi;
 import com.cambae.backend.m15.account.api.ScopeFilter;
@@ -16,6 +18,9 @@ import com.cambae.backend.m15.account.api.Target;
 import com.cambae.backend.m15.account.permission.internal.FootnoteRules;
 import com.cambae.backend.m15.account.permission.internal.PermissionScope;
 import com.cambae.backend.m15.account.permission.internal.RolePermissionCalculator;
+import com.cambae.backend.m15.parameter.api.ParameterApi;
+import com.cambae.backend.m15.parameter.api.ParameterCode;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -25,6 +30,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Fallback;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -36,7 +42,8 @@ import org.springframework.stereotype.Service;
  * (FR-033). Đối tượng trong phạm vi khi một phân công trùng người cao tuổi, phòng hoặc tầng/khu vực của đối tượng; người
  * phụ trách ca có phạm vi là tầng/khu của ca qua phân công {@code SHIFT_LEAD} (FR-031). Người phụ trách ca, trưởng tầng
  * được giao lấy từ {@code DutyApi} và trả id tài khoản. Chưa có: phạm vi người tham gia chuyến của Trưởng đoàn, Người đi
- * cùng (FR-031; cần SPI của 014), phạm vi theo quan hệ của người thân (T071, US6), của người cao tuổi (T091, US8).
+ * cùng (FR-031; cần SPI của 014), của người cao tuổi (T091, US8). Người thân: người cao tuổi có quan hệ Hiệu lực
+ * (012), người đã ở trạng thái cuối còn trong phạm vi tới hết CFG-M01-04 (T071; FR-045, FR-049).
  */
 @Service
 @Fallback
@@ -49,6 +56,10 @@ class ScopeService implements ScopeApi {
     // ObjectProvider: 008, 003 cài; trước đó chỉ test khai bản giả
     private final ObjectProvider<BedAllocationApi> bedAllocations;
     private final ObjectProvider<DutyApi> duties;
+    // 012, 004 cài
+    private final ObjectProvider<FamilyRelationshipApi> familyRelationships;
+    private final ObjectProvider<ResidencyEndApi> residencyEnds;
+    private final ParameterApi parameters;
 
     ScopeService(
             BusinessTime time,
@@ -56,13 +67,19 @@ class ScopeService implements ScopeApi {
             RolePermissionCalculator roles,
             JdbcTemplate jdbc,
             ObjectProvider<BedAllocationApi> bedAllocations,
-            ObjectProvider<DutyApi> duties) {
+            ObjectProvider<DutyApi> duties,
+            ObjectProvider<FamilyRelationshipApi> familyRelationships,
+            ObjectProvider<ResidencyEndApi> residencyEnds,
+            ParameterApi parameters) {
         this.time = time;
         this.assignments = assignments;
         this.roles = roles;
         this.jdbc = jdbc;
         this.bedAllocations = bedAllocations;
         this.duties = duties;
+        this.familyRelationships = familyRelationships;
+        this.residencyEnds = residencyEnds;
+        this.parameters = parameters;
     }
 
     @Override
@@ -74,6 +91,10 @@ class ScopeService implements ScopeApi {
     public boolean inScope(CurrentUser user, Target target, Instant at) {
         if (user.isScheduler()) {
             return true;
+        }
+        if (user.familyMemberId().isPresent()) {
+            return target.residentId() != null
+                    && familyResidents(user.familyMemberId().get(), at).contains(target.residentId());
         }
         if (user.staffId().isEmpty()) {
             return false;
@@ -110,6 +131,9 @@ class ScopeService implements ScopeApi {
         if (user.isScheduler() || facilityWide(user, key)) {
             return ScopeFilter.FACILITY;
         }
+        if (user.familyMemberId().isPresent()) {
+            return family(user.familyMemberId().get(), time.now());
+        }
         if (user.staffId().isEmpty()) {
             return empty();
         }
@@ -127,6 +151,9 @@ class ScopeService implements ScopeApi {
     public ScopeFilter historyFilter(CurrentUser user, PermissionKey key, Instant from, Instant to) {
         if (user.isScheduler() || facilityWide(user, key)) {
             return ScopeFilter.FACILITY;
+        }
+        if (user.familyMemberId().isPresent()) {
+            return family(user.familyMemberId().get(), time.now());
         }
         if (user.staffId().isEmpty()) {
             return empty();
@@ -164,7 +191,7 @@ class ScopeService implements ScopeApi {
     /**
      * Trưởng tầng được giao của tầng; tầng chưa có thì Người phụ trách ca đang diễn ra (Q-90); bản ghi không gắn tầng
      * thì Quản lý viện (CHK056). Tầng không có cả hai thì Quản lý viện, để bản ghi không bị bỏ lơ (plan 002 ghi chú
-     * Phase 6, chờ chủ dự án xác nhận).
+     * Phase 6, chủ dự án duyệt 2026-10-21).
      */
     @Override
     public ReviewRecipient reviewDecider(Optional<Long> floorAreaId) {
@@ -220,6 +247,30 @@ class ScopeService implements ScopeApi {
                 residents.add(a.residentId());
             }
         }
+    }
+
+    /**
+     * Người cao tuổi có quan hệ Hiệu lực với người thân, bỏ người đã ở trạng thái cuối quá CFG-M01-04 tính tới
+     * {@code at} (FR-049). Chưa có bản cài 012 thì rỗng; chưa có bản cài 004 thì không ai coi là đã kết thúc.
+     */
+    private Set<Long> familyResidents(long familyMemberId, Instant at) {
+        FamilyRelationshipApi relationships = familyRelationships.getIfAvailable();
+        if (relationships == null) {
+            return Set.of();
+        }
+        ResidencyEndApi ends = residencyEnds.getIfAvailable();
+        Duration grace = parameters.read(ParameterCode.CFG_M01_04).asDuration();
+        return relationships.active(familyMemberId).stream()
+                .map(r -> r.residentId())
+                .filter(resident -> ends == null
+                        || ends.finalStatusAt(resident)
+                                .map(end -> !at.isAfter(end.plus(grace)))
+                                .orElse(true))
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    private ScopeFilter family(long familyMemberId, Instant at) {
+        return new ScopeFilter(false, Set.of(), Set.of(), familyResidents(familyMemberId, at));
     }
 
     private static ScopeFilter empty() {

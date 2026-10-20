@@ -14,6 +14,12 @@ public interface LicenseApi {
     /** Giấy phép loại đã cho còn hiệu lực trong ngày; rỗng khi không có. */
     Optional<LicenseValidity> valid(long staffId, String licenseType, LocalDate date);
 
+    /**
+     * Giấy phép gần nhất của loại đã cho, kể cả đã hết hạn; rỗng khi chưa từng có (bổ sung 2026-10-21, T064): để lỗi
+     * 403 nêu tên giấy phép và ngày hết hạn (FR-043, US5 #2).
+     */
+    Optional<LicenseValidity> latest(long staffId, String licenseType);
+
     /** Giấy phép hết hạn trong khoảng tới (CFG-M06-02). */
     List<ExpiringLicense> expiringWithin(Period within);
 }
