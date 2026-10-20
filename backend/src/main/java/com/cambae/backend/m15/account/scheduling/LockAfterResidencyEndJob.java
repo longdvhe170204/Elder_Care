@@ -1,7 +1,7 @@
 package com.cambae.backend.m15.account.scheduling;
 
 import com.cambae.backend.common.scheduling.ScheduledJob;
-import com.cambae.backend.m15.account.auth.internal.ResidencyEndLocks;
+import com.cambae.backend.m15.account.internal.auth.service.ResidencyEndLocks;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

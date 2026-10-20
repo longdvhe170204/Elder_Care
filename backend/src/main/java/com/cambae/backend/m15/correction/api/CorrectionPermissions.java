@@ -1,8 +1,8 @@
 package com.cambae.backend.m15.correction.api;
 
-import com.cambae.backend.m15.account.api.Function;
-import com.cambae.backend.m15.account.api.Operation;
-import com.cambae.backend.m15.account.api.PermissionKey;
+import com.cambae.backend.m15.account.api.dto.Function;
+import com.cambae.backend.m15.account.api.dto.Operation;
+import com.cambae.backend.m15.account.api.dto.PermissionKey;
 
 /**
  * Khóa quyền của yêu cầu đính chính cách C ({@code M15.CORRECTION}; FR-026 c, nghiệp vụ 1.5) theo Phụ lục 27, dòng

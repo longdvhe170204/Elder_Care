@@ -13,10 +13,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.cambae.backend.common.offline.SyncResult;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m15.account.TestOfflineHandlers.CareNotes;
-import com.cambae.backend.m15.account.api.AssignmentKind;
-import com.cambae.backend.m15.account.api.AssignmentView;
-import com.cambae.backend.m15.account.api.BedAllocationView;
 import com.cambae.backend.m15.account.api.events.RecordPendingReview;
+import com.cambae.backend.m15.account.api.spi.AssignmentKind;
+import com.cambae.backend.m15.account.api.spi.AssignmentView;
+import com.cambae.backend.m15.account.api.spi.BedAllocationView;
 import com.cambae.backend.support.MySqlIntegrationTestBase;
 import com.cambae.backend.support.fake.m15.FakeAssignments;
 import com.cambae.backend.support.fake.m15.FakeBedAllocations;

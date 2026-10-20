@@ -1,8 +1,8 @@
 package com.cambae.backend.support.fake.m15;
 
-import com.cambae.backend.m15.account.api.AssignmentApi;
-import com.cambae.backend.m15.account.api.AssignmentView;
-import com.cambae.backend.m15.account.api.InvalidPermissionDataException;
+import com.cambae.backend.m15.account.api.spi.AssignmentApi;
+import com.cambae.backend.m15.account.api.spi.AssignmentView;
+import com.cambae.backend.m15.account.api.spi.InvalidPermissionDataException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,6 +1,8 @@
 package com.cambae.backend.m15.account.api;
 
 import com.cambae.backend.common.Role;
+import com.cambae.backend.m15.account.api.dto.AccessChannel;
+import com.cambae.backend.m15.account.api.dto.AccountType;
 import java.util.Optional;
 import java.util.Set;
 

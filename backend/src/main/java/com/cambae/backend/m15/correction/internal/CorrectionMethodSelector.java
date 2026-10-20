@@ -4,7 +4,7 @@ import com.cambae.backend.common.Role;
 import com.cambae.backend.m15.account.api.AccountApi;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.ScopeApi;
-import com.cambae.backend.m15.account.api.Target;
+import com.cambae.backend.m15.account.api.dto.Target;
 import com.cambae.backend.m15.correction.api.CreationMethod;
 import java.time.Instant;
 import java.util.Optional;

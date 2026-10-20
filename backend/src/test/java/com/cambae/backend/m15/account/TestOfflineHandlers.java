@@ -2,11 +2,11 @@ package com.cambae.backend.m15.account;
 
 import com.cambae.backend.common.error.InvalidValueException;
 import com.cambae.backend.common.offline.SyncOutcome;
-import com.cambae.backend.m15.account.api.Function;
-import com.cambae.backend.m15.account.api.OfflineHandler;
-import com.cambae.backend.m15.account.api.Operation;
-import com.cambae.backend.m15.account.api.PermissionKey;
-import com.cambae.backend.m15.account.api.Target;
+import com.cambae.backend.m15.account.api.dto.Function;
+import com.cambae.backend.m15.account.api.dto.Operation;
+import com.cambae.backend.m15.account.api.dto.PermissionKey;
+import com.cambae.backend.m15.account.api.dto.Target;
+import com.cambae.backend.m15.account.api.spi.OfflineHandler;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;

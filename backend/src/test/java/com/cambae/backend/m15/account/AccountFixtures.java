@@ -2,10 +2,10 @@ package com.cambae.backend.m15.account;
 
 import com.cambae.backend.common.Role;
 import com.cambae.backend.common.time.BusinessTime;
-import com.cambae.backend.m15.account.api.AccessChannel;
-import com.cambae.backend.m15.account.api.AccountType;
-import com.cambae.backend.m15.account.auth.internal.ActiveSession;
-import com.cambae.backend.m15.account.auth.internal.SessionTokens;
+import com.cambae.backend.m15.account.api.dto.AccessChannel;
+import com.cambae.backend.m15.account.api.dto.AccountType;
+import com.cambae.backend.m15.account.internal.auth.domain.ActiveSession;
+import com.cambae.backend.m15.account.internal.auth.service.SessionTokens;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;

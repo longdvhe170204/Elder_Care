@@ -11,8 +11,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.cambae.backend.common.time.BusinessTime;
-import com.cambae.backend.m15.account.api.PracticeScopeView;
 import com.cambae.backend.m15.account.api.ProfessionalActivityApi;
+import com.cambae.backend.m15.account.api.spi.PracticeScopeView;
 import com.cambae.backend.support.MySqlIntegrationTestBase;
 import com.cambae.backend.support.fake.m15.FakeM15Config;
 import com.cambae.backend.support.fake.m15.FakePracticeScopes;

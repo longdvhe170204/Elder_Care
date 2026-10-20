@@ -1,7 +1,7 @@
 package com.cambae.backend.support.fake.m15;
 
-import com.cambae.backend.m15.account.api.ExpiringFacilityLicense;
-import com.cambae.backend.m15.account.api.FacilityLicenseApi;
+import com.cambae.backend.m15.account.api.spi.ExpiringFacilityLicense;
+import com.cambae.backend.m15.account.api.spi.FacilityLicenseApi;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;

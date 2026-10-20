@@ -7,7 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.cambae.backend.common.time.BusinessTime;
-import com.cambae.backend.m15.account.auth.internal.SessionTokens;
+import com.cambae.backend.m15.account.internal.auth.service.SessionTokens;
 import com.cambae.backend.support.MySqlIntegrationTestBase;
 import java.time.Duration;
 import java.time.LocalDateTime;

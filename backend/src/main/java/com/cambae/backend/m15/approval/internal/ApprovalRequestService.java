@@ -14,7 +14,7 @@ import com.cambae.backend.common.error.VersionMismatchException;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.PermissionApi;
-import com.cambae.backend.m15.account.api.Target;
+import com.cambae.backend.m15.account.api.dto.Target;
 import com.cambae.backend.m15.approval.api.ApprovalCommands;
 import com.cambae.backend.m15.approval.api.ApprovalRequestApi;
 import com.cambae.backend.m15.approval.api.ApprovalRequestDetails;

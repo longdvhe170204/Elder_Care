@@ -1,5 +1,8 @@
 package com.cambae.backend.m15.account.api;
 
+import com.cambae.backend.m15.account.api.dto.PermissionKey;
+import com.cambae.backend.m15.account.api.dto.PermissionResult;
+import com.cambae.backend.m15.account.api.dto.Target;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Set;

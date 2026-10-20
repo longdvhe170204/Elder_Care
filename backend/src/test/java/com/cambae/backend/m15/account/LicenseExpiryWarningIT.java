@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.cambae.backend.common.scheduling.ScheduledJob;
 import com.cambae.backend.common.time.BusinessTime;
-import com.cambae.backend.m15.account.api.ExpiringFacilityLicense;
-import com.cambae.backend.m15.account.api.ExpiringLicense;
 import com.cambae.backend.m15.account.api.events.LicenseExpiring;
+import com.cambae.backend.m15.account.api.spi.ExpiringFacilityLicense;
+import com.cambae.backend.m15.account.api.spi.ExpiringLicense;
 import com.cambae.backend.support.MySqlIntegrationTestBase;
 import com.cambae.backend.support.fake.m15.FakeFacilityLicenses;
 import com.cambae.backend.support.fake.m15.FakeLicenses;
