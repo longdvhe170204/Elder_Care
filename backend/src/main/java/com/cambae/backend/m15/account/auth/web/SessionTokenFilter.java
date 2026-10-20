@@ -1,5 +1,6 @@
 package com.cambae.backend.m15.account.auth.web;
 
+import com.cambae.backend.m15.account.auth.internal.ActiveSession;
 import com.cambae.backend.m15.account.auth.internal.SessionAuthentication;
 import com.cambae.backend.m15.account.auth.internal.SessionService;
 import com.cambae.backend.m15.account.auth.internal.SessionTokens;
@@ -47,6 +48,13 @@ class SessionTokenFilter extends OncePerRequestFilter {
             PathPatternRequestMatcher.withDefaults().matcher("/api/v1/auth/logout"),
             PathPatternRequestMatcher.withDefaults().matcher(org.springframework.http.HttpMethod.GET, "/api/v1/me"));
 
+    /**
+     * Đồng bộ ngoại tuyến nhận cả phiên đã kết thúc (trừ đăng xuất) và không bắt đổi mật khẩu: bản ghi được ghi khi phiên
+     * còn mở, phản hồi báo phiên đã kết thúc (FR-041a, BR-M15-20; {@code SessionService.resolveForSync}).
+     */
+    static final RequestMatcher SYNC =
+            PathPatternRequestMatcher.withDefaults().matcher(org.springframework.http.HttpMethod.POST, "/api/v1/sync");
+
     static final String REQUESTED_FROM = "X-Requested-From";
     private static final String BEARER = "Bearer ";
     private static final Set<String> SAFE_METHODS = Set.of("GET", "HEAD", "OPTIONS");
@@ -83,6 +91,17 @@ class SessionTokenFilter extends OncePerRequestFilter {
             writeProblem(response, HttpStatus.FORBIDDEN, "FORBIDDEN", "Lệnh ghi từ web phải có " + REQUESTED_FROM);
             return;
         }
+        if (SYNC.matches(request)) {
+            Optional<ActiveSession> syncSession = sessions.resolveForSync(token);
+            if (syncSession.isEmpty()) {
+                writeProblem(
+                        response, HttpStatus.UNAUTHORIZED, "SESSION_EXPIRED", "Phiên đã kết thúc, cần đăng nhập lại");
+                return;
+            }
+            authenticate(syncSession.get());
+            chain.doFilter(request, response);
+            return;
+        }
         Optional<SessionService.Resolved> session = sessions.resolveRequest(token);
         if (session.isEmpty()) {
             writeProblem(response, HttpStatus.UNAUTHORIZED, "SESSION_EXPIRED", "Phiên đã kết thúc, cần đăng nhập lại");
@@ -96,10 +115,14 @@ class SessionTokenFilter extends OncePerRequestFilter {
                     "Cần đổi mật khẩu trước khi dùng chức năng khác");
             return;
         }
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(new SessionAuthentication(session.get().session()));
-        SecurityContextHolder.setContext(context);
+        authenticate(session.get().session());
         chain.doFilter(request, response);
+    }
+
+    private static void authenticate(ActiveSession session) {
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(new SessionAuthentication(session));
+        SecurityContextHolder.setContext(context);
     }
 
     private static Optional<String> cookie(HttpServletRequest request) {

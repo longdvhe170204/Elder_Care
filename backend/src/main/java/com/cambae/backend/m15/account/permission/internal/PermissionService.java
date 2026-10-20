@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
  * <ol>
  *   <li>vai trò ({@link RolePermissionCalculator}) cùng chú thích ({@link FootnoteRules}): giữ các phương án của khóa
  *       có mọi chú thích thỏa; không còn phương án thì lớp {@code ROLE};
- *   <li>nhiệm vụ: nối ở T053 (US4);
+ *   <li>nhiệm vụ ({@link DutyPermissions}, T053) khi vai trò hoặc phạm vi không thỏa; căn cứ là nhiệm vụ;
  *   <li>phạm vi: phương án toàn viện thì qua; theo phân công, theo quan hệ thì đối tượng phải cụ thể và
  *       {@code ScopeApi.inScope}; trượt thì lớp {@code SCOPE}. {@code (INCIDENT_EMERGENCY, CREATE)} trên một người cao
  *       tuổi được miễn lớp này (FR-044a); căn cứ là ngoài phạm vi khi người ghi không xem được hồ sơ người đó
@@ -54,6 +54,7 @@ class PermissionService implements PermissionApi {
     private final ScopeApi scope;
     private final ObjectProvider<FootnoteCondition> conditions;
     private final PermissionDataErrors dataErrors;
+    private final DutyPermissions duties;
     private final BusinessTime time;
 
     PermissionService(
@@ -61,11 +62,13 @@ class PermissionService implements PermissionApi {
             ScopeApi scope,
             ObjectProvider<FootnoteCondition> conditions,
             PermissionDataErrors dataErrors,
+            DutyPermissions duties,
             BusinessTime time) {
         this.roles = roles;
         this.scope = scope;
         this.conditions = conditions;
         this.dataErrors = dataErrors;
+        this.duties = duties;
         this.time = time;
     }
 
@@ -77,7 +80,7 @@ class PermissionService implements PermissionApi {
         return evaluate(user, key, target, time.now(), roles.current(user.accountId()));
     }
 
-    /** Quyền vai trò tại {@code at}; phạm vi vẫn tính theo phân công hiện hành (phạm vi theo thời điểm ở T056, US4). */
+    /** Quyền vai trò, nhiệm vụ, phạm vi tại {@code at} (FR-041a); trạng thái tài khoản tại {@code at} do người gọi kiểm. */
     @Override
     public PermissionResult hasPermissionAt(CurrentUser user, PermissionKey key, Target target, Instant at) {
         if (user.isScheduler()) {
@@ -119,18 +122,18 @@ class PermissionService implements PermissionApi {
             List<RoleGrant> passing = grants.getOrDefault(key, Set.of()).stream()
                     .filter(g -> g.footnotes().stream().allMatch(c -> satisfied(c, registered, user, target, at)))
                     .toList();
+            // 2. Nhiệm vụ khi vai trò hoặc phạm vi không thỏa; giới hạn của nhiệm vụ là phạm vi của quyền đó
             if (passing.isEmpty()) {
-                return PermissionResult.denied(FailedLayer.ROLE);
+                return byDuty(user, key, target, at, FailedLayer.ROLE);
             }
-            // 2. Nhiệm vụ: T053
             // 3. Phạm vi; ghi sự cố trên một người cao tuổi được miễn (FR-044a)
             if (key.equals(INCIDENT_CREATE) && target.residentId() != null) {
                 return evaluate(user, PROFILE_VIEW, target, at, grants).allowed()
                         ? PermissionResult.allowed(PermissionBasis.ROLE)
                         : PermissionResult.allowed(PermissionBasis.OUT_OF_SCOPE);
             }
-            if (!inScope(passing, user, target)) {
-                return PermissionResult.denied(FailedLayer.SCOPE);
+            if (!inScope(passing, user, target, at)) {
+                return byDuty(user, key, target, at, FailedLayer.SCOPE);
             }
         } catch (InvalidPermissionDataException e) {
             dataErrors.record(e);
@@ -145,14 +148,22 @@ class PermissionService implements PermissionApi {
         return PermissionResult.allowed(PermissionBasis.ROLE);
     }
 
-    private boolean inScope(List<RoleGrant> passing, CurrentUser user, Target target) {
+    /** Quyền theo nhiệm vụ (FR-019a → g); không nhiệm vụ nào thỏa thì từ chối ở lớp đã trượt. */
+    private PermissionResult byDuty(
+            CurrentUser user, PermissionKey key, Target target, Instant at, FailedLayer failed) {
+        return duties.grant(user, key, target, at)
+                .map(d -> PermissionResult.allowed(PermissionBasis.duty(d)))
+                .orElseGet(() -> PermissionResult.denied(failed));
+    }
+
+    private boolean inScope(List<RoleGrant> passing, CurrentUser user, Target target, Instant at) {
         if (passing.stream().anyMatch(g -> g.scope() == PermissionScope.FACILITY)) {
             return true;
         }
         if (target.equals(Target.UNSPECIFIED)) {
             return false;
         }
-        boolean in = scope.inScope(user, target);
+        boolean in = scope.inScope(user, target, at);
         // Đọc được dữ liệu nguồn của người cao tuổi: lỗi đang mở của bản ghi đó coi là đã khắc phục (CHK059)
         if (target.residentId() != null) {
             dataErrors.markFixed(target.residentId());

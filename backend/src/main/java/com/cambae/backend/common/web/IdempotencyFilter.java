@@ -45,7 +45,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
 
     public static final String HEADER = "Idempotency-Key";
     static final int MAX_KEY_LENGTH = 100;
-    static final Duration RETENTION = Duration.ofDays(7);
+    public static final Duration RETENTION = Duration.ofDays(7);
     private static final Set<String> METHODS = Set.of("POST", "PUT", "PATCH", "DELETE");
     private static final List<String> REPLAYED_HEADERS = List.of(HttpHeaders.ETAG, HttpHeaders.LOCATION);
 

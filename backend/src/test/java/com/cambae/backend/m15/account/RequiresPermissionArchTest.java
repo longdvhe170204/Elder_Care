@@ -39,7 +39,11 @@ class RequiresPermissionArchTest {
             "PermissionApi.hasPermission với khóa tham số, chỉ Quản lý viện; 000 BR-M15-04",
             "com.cambae.backend.m15.account.auth.internal.AccountService.earlyUnlock",
             "Quản lý viện, hoặc Trưởng tầng, Người phụ trách ca cùng tầng và ca theo AssignmentApi lúc chạy"
-                    + " (AccountService.earlyUnlockAuthority); 002 FR-019c");
+                    + " (AccountService.earlyUnlockAuthority); 002 FR-019c",
+            "com.cambae.backend.m15.account.offline.internal.PendingReviewService.accept",
+            "người quyết định xem lại của tầng lúc chạy (ScopeApi.reviewDecider); 002 FR-041c, CHK056",
+            "com.cambae.backend.m15.account.offline.internal.PendingReviewService.reject",
+            "người quyết định xem lại của tầng lúc chạy (ScopeApi.reviewDecider); 002 FR-041c, CHK056");
 
     @ArchTest
     static final ArchRule BR_M15_01_everyBusinessCommandRequiresPermission = methods()

@@ -12,6 +12,15 @@ public interface ScopeApi {
 
     boolean inScope(CurrentUser user, Target target);
 
+    /**
+     * Như {@link #inScope(CurrentUser, Target)} theo phân công và phân bổ giường tại thời điểm đã cho (research A-07
+     * {@code trongPhamVi(nd, doiTuong, thoiDiem)}), cho kiểm tại thời điểm thiết bị (FR-041a). Mặc định là phạm vi hiện
+     * hành, để bản giả của test cũ không phải cài.
+     */
+    default boolean inScope(CurrentUser user, Target target, Instant at) {
+        return inScope(user, target);
+    }
+
     /** Bộ lọc phạm vi hiện hành của khóa quyền (FR-035). */
     ScopeFilter filter(CurrentUser user, PermissionKey key);
 
