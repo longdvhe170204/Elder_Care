@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.cambae.backend.common.error.InvalidValueException;
 import com.cambae.backend.m15.parameter.api.ParameterKind;
-import com.cambae.backend.m15.parameter.internal.ParameterValidator;
-import com.cambae.backend.m15.parameter.internal.ParameterValidator.Definition;
+import com.cambae.backend.m15.parameter.internal.domain.ParameterValidator;
+import com.cambae.backend.m15.parameter.internal.domain.ParameterValidator.Definition;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;

@@ -12,8 +12,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.m15.approval.api.ExtendedTransitions;
-import com.cambae.backend.m15.approval.internal.RequestTransitionTable;
-import com.cambae.backend.m15.approval.internal.RequestTransitionTable.Command;
+import com.cambae.backend.m15.approval.internal.domain.RequestTransitionTable;
+import com.cambae.backend.m15.approval.internal.domain.RequestTransitionTable.Command;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;

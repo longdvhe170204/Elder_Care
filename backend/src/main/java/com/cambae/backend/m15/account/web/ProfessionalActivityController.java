@@ -2,8 +2,8 @@ package com.cambae.backend.m15.account.web;
 
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.web.VersionEtag;
-import com.cambae.backend.m15.account.internal.legal.ProfessionalActivity;
-import com.cambae.backend.m15.account.internal.legal.ProfessionalActivityService;
+import com.cambae.backend.m15.account.internal.legal.domain.ProfessionalActivity;
+import com.cambae.backend.m15.account.internal.legal.service.ProfessionalActivityService;
 import com.cambae.backend.m15.account.web.request.DeactivateBody;
 import com.cambae.backend.m15.account.web.request.ProfessionalActivityInput;
 import com.cambae.backend.m15.account.web.response.ProfessionalActivityBody;

@@ -1,17 +1,17 @@
 package com.cambae.backend.m15.account;
 
-import static com.cambae.backend.m15.account.internal.permission.PermissionScope.ASSIGNED;
-import static com.cambae.backend.m15.account.internal.permission.PermissionScope.FACILITY;
+import static com.cambae.backend.m15.account.internal.permission.domain.PermissionScope.ASSIGNED;
+import static com.cambae.backend.m15.account.internal.permission.domain.PermissionScope.FACILITY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m15.account.api.dto.Function;
 import com.cambae.backend.m15.account.api.dto.Operation;
 import com.cambae.backend.m15.account.api.dto.PermissionKey;
-import com.cambae.backend.m15.account.internal.permission.GrantSource;
-import com.cambae.backend.m15.account.internal.permission.PermissionScope;
-import com.cambae.backend.m15.account.internal.permission.RoleGrant;
-import com.cambae.backend.m15.account.internal.permission.RolePermissionCalculator;
+import com.cambae.backend.m15.account.internal.permission.domain.GrantSource;
+import com.cambae.backend.m15.account.internal.permission.domain.PermissionScope;
+import com.cambae.backend.m15.account.internal.permission.domain.RoleGrant;
+import com.cambae.backend.m15.account.internal.permission.service.RolePermissionCalculator;
 import com.cambae.backend.support.MySqlIntegrationTestBase;
 import java.time.Duration;
 import java.time.Instant;

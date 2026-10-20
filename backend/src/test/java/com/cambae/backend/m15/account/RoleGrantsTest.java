@@ -1,14 +1,14 @@
 package com.cambae.backend.m15.account;
 
-import static com.cambae.backend.m15.account.internal.permission.GrantSource.ROLE;
-import static com.cambae.backend.m15.account.internal.permission.PermissionScope.ASSIGNED;
-import static com.cambae.backend.m15.account.internal.permission.PermissionScope.FACILITY;
-import static com.cambae.backend.m15.account.internal.permission.PermissionScope.RELATIONSHIP;
+import static com.cambae.backend.m15.account.internal.permission.domain.GrantSource.ROLE;
+import static com.cambae.backend.m15.account.internal.permission.domain.PermissionScope.ASSIGNED;
+import static com.cambae.backend.m15.account.internal.permission.domain.PermissionScope.FACILITY;
+import static com.cambae.backend.m15.account.internal.permission.domain.PermissionScope.RELATIONSHIP;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.cambae.backend.m15.account.internal.permission.PermissionScope;
-import com.cambae.backend.m15.account.internal.permission.RoleGrant;
-import com.cambae.backend.m15.account.internal.permission.RoleGrants;
+import com.cambae.backend.m15.account.internal.permission.domain.PermissionScope;
+import com.cambae.backend.m15.account.internal.permission.domain.RoleGrant;
+import com.cambae.backend.m15.account.internal.permission.domain.RoleGrants;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 

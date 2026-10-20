@@ -2,9 +2,9 @@ package com.cambae.backend.m15.parameter.web;
 
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.web.VersionEtag;
-import com.cambae.backend.m15.parameter.internal.ParameterService;
-import com.cambae.backend.m15.parameter.internal.ParameterService.HistoryEntry;
-import com.cambae.backend.m15.parameter.internal.ParameterService.ParameterView;
+import com.cambae.backend.m15.parameter.internal.service.ParameterService;
+import com.cambae.backend.m15.parameter.internal.service.ParameterService.HistoryEntry;
+import com.cambae.backend.m15.parameter.internal.service.ParameterService.ParameterView;
 import com.cambae.backend.m15.parameter.web.request.ChangeBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

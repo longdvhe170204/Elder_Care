@@ -1,7 +1,7 @@
 package com.cambae.backend.m15.account.web.response;
 
-import com.cambae.backend.m15.account.internal.offline.PendingReason;
-import com.cambae.backend.m15.account.internal.offline.ReviewStatus;
+import com.cambae.backend.m15.account.internal.offline.domain.PendingReason;
+import com.cambae.backend.m15.account.internal.offline.domain.ReviewStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.Map;

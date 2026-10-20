@@ -18,7 +18,7 @@ import com.cambae.backend.m15.account.api.spi.AssignmentKind;
 import com.cambae.backend.m15.account.api.spi.AssignmentView;
 import com.cambae.backend.m15.account.api.spi.BedAllocationView;
 import com.cambae.backend.m15.account.internal.auth.domain.ActiveSession;
-import com.cambae.backend.m15.account.internal.permission.FootnoteRules;
+import com.cambae.backend.m15.account.internal.permission.domain.FootnoteRules;
 import com.cambae.backend.support.MySqlIntegrationTestBase;
 import com.cambae.backend.support.fake.m15.FakeAssignments;
 import com.cambae.backend.support.fake.m15.FakeBedAllocations;

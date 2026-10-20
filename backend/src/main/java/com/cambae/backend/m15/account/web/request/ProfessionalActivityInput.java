@@ -1,7 +1,7 @@
 package com.cambae.backend.m15.account.web.request;
 
 import com.cambae.backend.common.Reason;
-import com.cambae.backend.m15.account.internal.legal.ProfessionalActivityService;
+import com.cambae.backend.m15.account.internal.legal.service.ProfessionalActivityService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

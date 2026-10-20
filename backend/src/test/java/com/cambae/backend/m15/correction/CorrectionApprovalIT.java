@@ -15,7 +15,7 @@ import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.error.PermissionDeniedException;
 import com.cambae.backend.m15.approval.api.ApprovalRequestView;
 import com.cambae.backend.m15.approval.api.ApprovalStatus;
-import com.cambae.backend.m15.approval.internal.ApprovalRequestService;
+import com.cambae.backend.m15.approval.internal.service.ApprovalRequestService;
 import com.cambae.backend.m15.correction.api.CorrectionApi;
 import com.cambae.backend.m15.correction.api.CorrectionResult;
 import com.cambae.backend.m15.correction.api.CorrectionType;

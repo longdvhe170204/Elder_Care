@@ -27,22 +27,22 @@ class RequiresPermissionArchTest {
 
     /** Lệnh tự kiểm quyền: {@code Lớp.phươngThức} → cách kiểm. Thêm dòng thì người xem lại kiểm lệnh có tự kiểm thật. */
     static final Map<String, String> SELF_CHECKED = Map.of(
-            "com.cambae.backend.m15.approval.internal.ApprovalRequestService.editContent",
+            "com.cambae.backend.m15.approval.internal.service.ApprovalRequestService.editContent",
             "khóa Lập theo loại yêu cầu (RequestTypeHandler.createPermission), chỉ người yêu cầu; 000 FR-034",
-            "com.cambae.backend.m15.approval.internal.ApprovalRequestService.reject",
+            "com.cambae.backend.m15.approval.internal.service.ApprovalRequestService.reject",
             "khóa Duyệt theo loại yêu cầu (ApproverDirectory.canDecide); 000 FR-034",
-            "com.cambae.backend.m15.approval.internal.ApprovalRequestService.cancel",
+            "com.cambae.backend.m15.approval.internal.service.ApprovalRequestService.cancel",
             "người yêu cầu, hoặc người duyệt khi đã Duyệt (ApproverDirectory.canDecide); 000 FR-034",
-            "com.cambae.backend.m15.correction.internal.CorrectionService.create",
+            "com.cambae.backend.m15.correction.internal.service.CorrectionService.create",
             "quyền theo loại bản ghi gốc (CorrectableRecordProvider.canRecord, CorrectionMethodSelector); 000 FR-026",
-            "com.cambae.backend.m15.parameter.internal.ParameterService.changeValue",
+            "com.cambae.backend.m15.parameter.internal.service.ParameterService.changeValue",
             "PermissionApi.hasPermission với khóa tham số, chỉ Quản lý viện; 000 BR-M15-04",
             "com.cambae.backend.m15.account.internal.auth.service.AccountService.earlyUnlock",
             "Quản lý viện, hoặc Trưởng tầng, Người phụ trách ca cùng tầng và ca theo AssignmentApi lúc chạy"
                     + " (AccountService.earlyUnlockAuthority); 002 FR-019c",
-            "com.cambae.backend.m15.account.internal.offline.PendingReviewService.accept",
+            "com.cambae.backend.m15.account.internal.offline.service.PendingReviewService.accept",
             "người quyết định xem lại của tầng lúc chạy (ScopeApi.reviewDecider); 002 FR-041c, CHK056",
-            "com.cambae.backend.m15.account.internal.offline.PendingReviewService.reject",
+            "com.cambae.backend.m15.account.internal.offline.service.PendingReviewService.reject",
             "người quyết định xem lại của tầng lúc chạy (ScopeApi.reviewDecider); 002 FR-041c, CHK056");
 
     @ArchTest
