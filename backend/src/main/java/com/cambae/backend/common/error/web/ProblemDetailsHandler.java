@@ -2,6 +2,7 @@ package com.cambae.backend.common.error.web;
 
 import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.error.ConditionNotMetException;
+import com.cambae.backend.common.error.PermissionDeniedException;
 import com.cambae.backend.common.error.VersionMismatchException;
 import java.sql.SQLException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -36,6 +37,9 @@ public class ProblemDetailsHandler extends ResponseEntityExceptionHandler {
         }
         if (e instanceof VersionMismatchException v) {
             problem.setProperty("currentValue", v.currentValue());
+        }
+        if (e instanceof PermissionDeniedException p) {
+            p.properties().forEach(problem::setProperty);
         }
         return ResponseEntity.status(e.status()).body(problem);
     }
