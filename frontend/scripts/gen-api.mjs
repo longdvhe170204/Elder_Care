@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parse } from 'yaml'
 
-const TRANSLATED = ['000']
+const TRANSLATED = ['000', '002']
 
 const root = fileURLToPath(new URL('../..', import.meta.url))
 const specsDir = join(root, 'specs')
@@ -45,7 +45,13 @@ export async function request(method, template, params = {}) {
   const response = await fetch(url, {
     method,
     credentials: 'include',
-    headers: { Accept: 'application/json', ...(body !== undefined && { 'Content-Type': 'application/json' }), ...headers },
+    headers: {
+      Accept: 'application/json',
+      ...(body !== undefined && { 'Content-Type': 'application/json' }),
+      // 002 research A-02: lệnh ghi qua cookie phiên phải kèm header này (chặn CSRF)
+      ...(!['GET', 'HEAD'].includes(method) && { 'X-Requested-From': 'web' }),
+      ...headers,
+    },
     body: body === undefined ? undefined : JSON.stringify(body),
   })
   const type = response.headers.get('Content-Type') || ''

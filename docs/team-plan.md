@@ -70,10 +70,28 @@ Tên thư mục web cụ thể do chủ feature chốt khi dịch hợp đồng 
 
 ## 6. Họp tuần (15 phút)
 
-Mỗi người: `api` vừa công bố hoặc đổi; bản giả sắp được thay bằng bản thật; đang vướng gì ở module người khác.
+Mỗi người: `api` vừa công bố hoặc đổi; bản giả sắp được thay bằng bản thật; đang vướng gì ở module người khác. Rà bảng ở mục 8: dòng nào xong, dòng nào cần thêm.
 
 ## 7. Dùng công cụ AI
 
 Luật chung cho mọi công cụ ở [AGENTS.md](../AGENTS.md): Claude Code đọc CLAUDE.md; Codex và nhiều công cụ khác đọc AGENTS.md; Cursor đọc `.cursor/rules/project.mdc`; Copilot đọc `.github/copilot-instructions.md`; ba file sau đều trỏ về AGENTS.md. Công cụ nào không tự đọc (ChatGPT, Gemini trên web…) thì dán câu mở đầu ở đầu AGENTS.md vào cuộc trò chuyện. Cấu trúc thư mục web, mobile ở `frontend/README.md`, `mobile/README.md`.
 
 Mỗi người một phiên, trên nhánh của mình. Lệnh đầu: "Làm feature NNN theo CLAUDE.md và docs/team-plan.md; chỉ sửa trong <module, thư mục của mình>; cần module khác thì dùng bản giả trong support/fake".
+
+## 8. Việc đang chờ giữa các thành viên
+
+Bảng này cho mọi người và mọi công cụ AI biết ai đang chờ ai. **Đầu mỗi phiên làm việc, xem các dòng có tên mình ở cột "Ai làm".** Khi đang làm mà cần người khác làm gì (khai báo, cài interface, bản giả, sửa hợp đồng), thêm một dòng ở đây trong PR của mình. Xong thì đổi trạng thái thành "Xong (PR, ngày)"; dòng xong quá hai tuần thì xóa. Chi tiết chữ ký ở `contracts/module-interfaces.md` của feature ghi ở cột "Căn cứ".
+
+| Ai làm | Việc | Ai đang chờ, để làm gì | Căn cứ | Trạng thái |
+| --- | --- | --- | --- | --- |
+| B | Khai báo `NguoiCaoTuoiApi` ở `m01.api` (`trangThai`, `nhanDang`, `laTrangThaiCuoi`, `thoiDiemTrangThaiCuoi`) và bản giả ở `support/fake/m01/` | A (002): FR-044a chỉ cho ghi sự cố với người chưa ở trạng thái cuối (hiện chưa kiểm, đang nới hơn spec); US8 tạo, khóa tài khoản người cao tuổi (T090, T091); họ tên người cao tuổi cho `TaiKhoanApi.hoTen` (T032a). D (007): hiện ba trường nhận dạng cho người ngoài phạm vi | 001 module-interfaces mục 1.1; 002 plan "Việc dang dở sau Phase 3" | Chờ |
+| B | Cài `FootnoteCondition` mã "1" (bản đồng ý chia sẻ dữ liệu bao gồm người thân đó, BR-M01-08) | A (002 US6): người thân xem sức khỏe; chưa có thì 002 từ chối | 002 research A-04, contracts mục 1.8; T071 | Chờ |
+| B | Cài `ResidencyEndApi` (`KetThucLuuTruApi.thoiDiemTrangThaiCuoi`, M02, feature 004) | A (002 US6): job khóa tài khoản người thân sau kết thúc lưu trú (T070) | 002 contracts mục 2 | Chờ (bản giả có sẵn) |
+| C | Cài `BedAllocationApi` (`openAt`, `residentsIn`, M03, feature 003); dữ liệu phân bổ mâu thuẫn thì ném `InvalidPermissionDataException` (nguồn `M03.BED_ALLOCATION`) | A (002): phạm vi dữ liệu theo phòng, tầng của người cao tuổi; báo lỗi dữ liệu nguồn (FR-041b) | 002 research A-07, A-10 | Chờ (bản giả có sẵn) |
+| E | Cài các SPI 002 khai báo cho M09 (feature 008): `StaffProfileApi` (cả `createMinimal` cho công cụ khởi tạo), `LicenseApi`, `PracticeScopeCatalogApi`, `AssignmentApi`, `DutyApi`; xem lại kiểu trả về tối thiểu khi dịch hợp đồng 008 (đổi theo luật "Đổi api") | A (002): phạm vi theo phân công, quyền theo nhiệm vụ (T053), điều kiện pháp lý (T064), tạo Quản lý viện đầu tiên | 002 contracts mục 2; plan 002 ghi chú T009, T016 | Chờ (bản giả có sẵn) |
+| E | Cài `FamilyRelationshipApi` (M10, feature 012) và `FootnoteCondition` mã "2", "7" (người đại diện); chốt `QuanHeNguoiThanApi.quyenDangBat` khi dịch hợp đồng 012 | A (002 US6): phạm vi và quyền của người thân | 002 contracts mục 2; research A-04 | Chờ (bản giả có sẵn) |
+| D | Lệnh ghi sự cố (007) chép `PermissionResult.basis` vào nhật ký: căn cứ `OUT_OF_SCOPE` thì ghi `ngoaiPhamVi` và chỉ hiện họ tên, ảnh, phòng/giường. Lệnh nút SOS báo A để thêm vào danh sách `SELF_CHECKED` của `RequiresPermissionArchTest` | Đúng FR-044a, BR-M15-01 | 002 plan "Phase 3", T015 | Ghi nhớ khi làm 007 |
+| A | Khai báo `GiayPhepCoSoApi` (`coPhamVi`, `sapHetHan`) ở `m15.account.api` và bản giả | D (007) cài ở M06; A (002 US5, T064) kiểm điều kiện pháp lý | 007 module-interfaces (bảng SPI); 002 contracts mục 2 | Chờ |
+| A | `ScopeApi` đầy đủ (`filter`, `historyFilter`, `shiftLead`, `assignedFloorManager`, `reviewDecider`; T052), `ApproverApi` (T054), `AccountApi` (T032); hiện bản thật mới có `inScope` | Mọi module khi chạy thật (test dùng bản giả); 000 đính chính, phê duyệt | 002 plan "Việc dang dở sau Phase 3" | Đang làm (002 US2 → US4) |
+| A | Thêm `hoTen` vào `HoSoNhanVienApi`, `QuanHeNguoiThanApi` và `TaiKhoanApi.hoTen` (T032a), báo E | 000 (`Actor.fullName`), 002 (`/me`) | 002 contracts mục 1.6, mục 2 | Chờ (002 US2) |
+| Mọi người | DTO có trường thuộc nhóm thông tin giới hạn (sức khỏe, thuốc, nguyện vọng, tài chính…): gắn `@FieldGroup`, cài `VisibilityTarget`, khai trường `hiddenFields` (tên logic `truongBiAn`). Lệnh `@BusinessCommand` phải có `@RequiresPermission`; khóa quyền chỉ biết lúc chạy thì báo A thêm vào `SELF_CHECKED` | Giới hạn trường FR-022, FR-034; kiểm quyền BR-M15-01 | 002 contracts mục 1.4; `RequiresPermissionArchTest` | Áp dụng khi viết mã |

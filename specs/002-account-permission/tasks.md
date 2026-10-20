@@ -63,18 +63,18 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 ### Tests cho User Story 1
 
 - [x] T017 [P] [US1] Test `BT/m15/taikhoan/MaTranQuyenKhopNguonTest.java`: đọc Phụ lục 27 từ `docs/business/nghiep-vu.md`, đối chiếu từng ô với `ma_tran_quyen` đã nạp (trừ dòng `nguon='19.3'` có liệt kê) (research A-04)
-- [ ] T018 [P] [US1] Test `BT/m15/taikhoan/MaTranQuyenIT.java` (SC-001) và `QuyenBaLopIT.java`: mỗi vai trò × chức năng × tầng trong/ngoài phạm vi; lớp không thỏa đúng (US1 #1–13; BR-M15-01)
-- [ ] T019 [P] [US1] Test `BT/m15/taikhoan/GioiHanTruongIT.java`: Hành chính, Kế toán không thấy trường `SUC_KHOE`, `THUOC`; nguyện vọng chỉ "có/không" (FR-022)
-- [ ] T020 [P] [US1] Test `BT/m15/taikhoan/SuCoNgoaiPhamViIT.java`: khóa `(SU_CO_KHAN_CAP, TAO)` bỏ lớp phạm vi, nhật ký có `ngoaiPhamVi`; dữ liệu nguồn lỗi vẫn cho ghi sự cố (FR-044a, FR-041b)
+- [x] T018 [P] [US1] Test `BT/m15/taikhoan/MaTranQuyenIT.java` (SC-001) và `QuyenBaLopIT.java`: mỗi vai trò × chức năng × tầng trong/ngoài phạm vi; lớp không thỏa đúng (US1 #1–13; BR-M15-01)
+- [x] T019 [P] [US1] Test `BT/m15/taikhoan/GioiHanTruongIT.java`: Hành chính, Kế toán không thấy trường `SUC_KHOE`, `THUOC`; nguyện vọng chỉ "có/không" (FR-022)
+- [x] T020 [P] [US1] Test `BT/m15/taikhoan/SuCoNgoaiPhamViIT.java`: khóa `(SU_CO_KHAN_CAP, TAO)` bỏ lớp phạm vi, nhật ký có `ngoaiPhamVi`; dữ liệu nguồn lỗi vẫn cho ghi sự cố (FR-044a, FR-041b)
 - [ ] T021 [P] [US1] Test `BT/m15/taikhoan/PhamViBaoCaoLichSuIT.java`: `boLocLichSu` chỉ dùng cho xem (US1 #13, FR-035a)
 
 ### Implementation cho User Story 1
 
-- [ ] T022 [US1] Cài `BE/m15/taikhoan/quyen/internal/QuyenService.java` (`QuyenApi`): thứ tự vai trò + chú thích → nhiệm vụ → phạm vi (trừ FR-044a) → pháp lý khi `CHUYEN_MON`; Bộ lập lịch bỏ lớp phạm vi và pháp lý; `coQuyenTaiThoiDiem`, `tapQuyen`, `lenhDuocPhep` (research A-10; FR-041 → FR-044a)
-- [ ] T023 [US1] Cài giới hạn trường `BE/m15/taikhoan/quyen/internal/GioiHanTruongSerializerModifier.java` (`BeanSerializerModifier` đọc `@NhomTruong` và `quy_tac_xem_truong`) và `QuyenXemTruongService.java` (`QuyenXemTruongApi`) (research A-08; FR-022, FR-034)
-- [ ] T024 [US1] Cài `BE/m15/taikhoan/phamvi/internal/LoiDuLieuQuyenService.java`: bảng kỹ thuật `loi_du_lieu_quyen` (`MIG/V002_05__loi_du_lieu_quyen.sql`: khóa duy nhất `(nguon, ban_ghi_id, loai_loi)`, `so_lan`, `da_khac_phuc_luc`), lần đầu phát `LoiDuLieuQuyen`, ghi `QUYEN_TU_CHOI_DU_LIEU_NGUON` (FR-041b)
-- [ ] T025 [US1] Tạo `BE/m15/taikhoan/quyen/web/ToiController.java` cho `GET /toi` và `GET /toi/quyen` theo contracts/api-002.yaml (FR-042)
-- [ ] T026 [P] [US1] Tạo hook `frontend/src/chung/quyen/useQuyen.js` ẩn nút/menu theo `/toi/quyen` và `lenhDuocPhep`, test `frontend/src/chung/quyen/AnNutTheoQuyen.test.jsx`
+- [x] T022 [US1] Cài `BE/m15/taikhoan/quyen/internal/QuyenService.java` (`QuyenApi`): thứ tự vai trò + chú thích → nhiệm vụ → phạm vi (trừ FR-044a) → pháp lý khi `CHUYEN_MON`; Bộ lập lịch bỏ lớp phạm vi và pháp lý; `coQuyenTaiThoiDiem`, `tapQuyen`, `lenhDuocPhep` (research A-10; FR-041 → FR-044a)
+- [x] T023 [US1] Cài giới hạn trường `BE/m15/taikhoan/quyen/internal/GioiHanTruongSerializerModifier.java` (`BeanSerializerModifier` đọc `@NhomTruong` và `quy_tac_xem_truong`) và `QuyenXemTruongService.java` (`QuyenXemTruongApi`) (research A-08; FR-022, FR-034)
+- [x] T024 [US1] Cài `BE/m15/taikhoan/phamvi/internal/LoiDuLieuQuyenService.java`: bảng kỹ thuật `loi_du_lieu_quyen` (`MIG/V002_05__loi_du_lieu_quyen.sql`: khóa duy nhất `(nguon, ban_ghi_id, loai_loi)`, `so_lan`, `da_khac_phuc_luc`), lần đầu phát `LoiDuLieuQuyen`, ghi `QUYEN_TU_CHOI_DU_LIEU_NGUON` (FR-041b)
+- [x] T025 [US1] Tạo `BE/m15/taikhoan/quyen/web/ToiController.java` cho `GET /toi` và `GET /toi/quyen` theo contracts/api-002.yaml (FR-042)
+- [x] T026 [P] [US1] Tạo hook `frontend/src/chung/quyen/useQuyen.js` ẩn nút/menu theo `/toi/quyen` và `lenhDuocPhep`, test `frontend/src/chung/quyen/AnNutTheoQuyen.test.jsx`
 
 **Checkpoint**: Mọi module có thể bảo vệ endpoint bằng `@CanQuyen`.
 
