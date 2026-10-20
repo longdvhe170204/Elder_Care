@@ -2,6 +2,7 @@ package com.cambae.backend.m15.correction.web;
 
 import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.error.web.ProblemBody;
+import com.cambae.backend.m15.account.api.AccountApi;
 import com.cambae.backend.m15.approval.internal.ApprovalRequestService;
 import com.cambae.backend.m15.approval.web.ApprovalRequestController.ApprovalRequestBody;
 import com.cambae.backend.m15.correction.api.CorrectionApi;
@@ -17,6 +18,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.LongFunction;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,8 +37,11 @@ public class CorrectionController {
 
     private final CorrectionApi corrections;
     private final ApprovalRequestService approvals;
+    private final ObjectProvider<AccountApi> accounts;
 
-    public CorrectionController(CorrectionApi corrections, ApprovalRequestService approvals) {
+    public CorrectionController(
+            CorrectionApi corrections, ApprovalRequestService approvals, ObjectProvider<AccountApi> accounts) {
+        this.accounts = accounts;
         this.corrections = corrections;
         this.approvals = approvals;
     }
@@ -59,7 +65,9 @@ public class CorrectionController {
                 chain.voided(),
                 chain.originalContent(),
                 chain.currentContent(),
-                chain.corrections().stream().map(CorrectionBody::of).toList());
+                chain.corrections().stream()
+                        .map(c -> CorrectionBody.of(c, this::fullName))
+                        .toList());
     }
 
     @PostMapping
@@ -104,11 +112,11 @@ public class CorrectionController {
                 corrections.create(recordType, originalRecordId, body.type(), body.correctedContent(), body.reason());
         return switch (result) {
             case CorrectionResult.Saved saved ->
-                ResponseEntity.status(HttpStatus.CREATED).body(CorrectionBody.of(saved.correction()));
+                ResponseEntity.status(HttpStatus.CREATED).body(CorrectionBody.of(saved.correction(), this::fullName));
             case CorrectionResult.PendingApproval pending ->
                 ResponseEntity.status(HttpStatus.ACCEPTED)
                         .body(ApprovalRequestBody.of(
-                                approvals.detail(pending.request().id())));
+                                approvals.detail(pending.request().id()), this::fullName));
         };
     }
 
@@ -121,7 +129,12 @@ public class CorrectionController {
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             Reason reason) {}
 
-    /** Người thực hiện theo schema {@code Actor}; họ tên có khi 002 cung cấp hồ sơ tài khoản. */
+    /** Họ tên theo hồ sơ tài khoản (002 T032a); không có thì {@code null}. */
+    String fullName(long accountId) {
+        return accounts.getObject().fullName(accountId).orElse(null);
+    }
+
+    /** Người thực hiện theo schema {@code Actor}; họ tên theo hồ sơ tài khoản (002 T032a). */
     public record ActorBody(ActorType type, Long id, String fullName, String role) {}
 
     /** Người thực hiện là người dùng hay Bộ lập lịch (schema {@code Actor}). */
@@ -129,7 +142,9 @@ public class CorrectionController {
         USER,
         SCHEDULER,
         // Công cụ khởi tạo Quản lý viện đầu tiên (002 BR-M15-22); chỉ nhật ký có
-        BOOTSTRAP
+        BOOTSTRAP,
+        // Lần đăng nhập thất bại, chưa xác định người (002 FR-015); chỉ nhật ký có
+        ANONYMOUS
     }
 
     public record CorrectionBody(
@@ -143,14 +158,14 @@ public class CorrectionController {
             Long approvalRequestId,
             Instant recordedAt) {
 
-        static CorrectionBody of(CorrectionView c) {
+        static CorrectionBody of(CorrectionView c, LongFunction<String> names) {
             return new CorrectionBody(
                     c.id(),
                     c.sequenceNo(),
                     c.type(),
                     c.correctedContent(),
                     c.reason(),
-                    new ActorBody(ActorType.USER, c.actorId(), null, null),
+                    new ActorBody(ActorType.USER, c.actorId(), names.apply(c.actorId()), null),
                     c.creationMethod(),
                     c.approvalRequestId(),
                     c.recordedAt());

@@ -103,6 +103,20 @@ describe('AuditLogTable', () => {
     expect(row).not.toHaveTextContent('Tài khoản null')
   })
 
+  it('FR_015_dangNhapThatBai_nguoiThucHienChuaDangNhap', async () => {
+    fetchMock.mockReturnValue(
+      json(200, {
+        items: [entry({ actor: { type: 'ANONYMOUS', id: null, fullName: null, role: null } })],
+        nextCursor: null,
+      }),
+    )
+    render(<AuditLogTable />)
+
+    const row = (await screen.findAllByRole('row'))[1]
+    expect(row).toHaveTextContent('Chưa đăng nhập')
+    expect(row).not.toHaveTextContent('Tài khoản null')
+  })
+
   it('FR_049_locTheoDoiTuongNguoiVaKhoangNgay_guiDungThamSo', async () => {
     fetchMock.mockReturnValue(json(200, { items: [], nextCursor: null }))
     render(<AuditLogTable />)

@@ -3,6 +3,7 @@ package com.cambae.backend.m15.auditlog.internal;
 import com.cambae.backend.common.error.InvalidValueException;
 import com.cambae.backend.common.error.NotFoundException;
 import com.cambae.backend.common.error.PermissionDeniedException;
+import com.cambae.backend.m15.account.api.AccountApi;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.FieldVisibilityApi;
 import com.cambae.backend.m15.account.api.InfoGroup;
@@ -58,6 +59,7 @@ public class AuditLogQueryService {
     private final ObjectProvider<ScopeApi> scope;
     private final ObjectProvider<FieldVisibilityApi> fieldVisibility;
     private final ObjectProvider<FieldClassificationProvider> classifications;
+    private final ObjectProvider<AccountApi> accounts;
 
     AuditLogQueryService(
             JdbcTemplate jdbc,
@@ -66,7 +68,8 @@ public class AuditLogQueryService {
             ObjectProvider<PermissionApi> permissions,
             ObjectProvider<ScopeApi> scope,
             ObjectProvider<FieldVisibilityApi> fieldVisibility,
-            ObjectProvider<FieldClassificationProvider> classifications) {
+            ObjectProvider<FieldClassificationProvider> classifications,
+            ObjectProvider<AccountApi> accounts) {
         this.jdbc = jdbc;
         this.json = json;
         this.currentUser = currentUser;
@@ -74,6 +77,7 @@ public class AuditLogQueryService {
         this.scope = scope;
         this.fieldVisibility = fieldVisibility;
         this.classifications = classifications;
+        this.accounts = accounts;
     }
 
     /** Bộ lọc tra cứu toàn viện; trường {@code null} là không lọc. */
@@ -90,7 +94,9 @@ public class AuditLogQueryService {
         USER,
         SCHEDULER,
         // Công cụ khởi tạo Quản lý viện đầu tiên (002 BR-M15-22); chỉ nhật ký có
-        BOOTSTRAP
+        BOOTSTRAP,
+        // Lần đăng nhập thất bại, chưa xác định người (002 FR-015); chỉ nhật ký có
+        ANONYMOUS
     }
 
     public record Actor(ActorType type, Long id, String fullName, String role) {}
@@ -216,7 +222,7 @@ public class AuditLogQueryService {
                 String.valueOf(row.id()),
                 row.occurredAt().toInstant(ZoneOffset.UTC),
                 row.deviceTime() == null ? null : row.deviceTime().toInstant(ZoneOffset.UTC),
-                new Actor(actorType(row.actorType()), row.actorId(), null, row.role()),
+                new Actor(actorType(row.actorType()), row.actorId(), fullName(row.actorId()), row.role()),
                 row.action(),
                 new EntityRef(row.entityType(), row.entityId()),
                 before,
@@ -236,11 +242,19 @@ public class AuditLogQueryService {
         return masked;
     }
 
+    /** Họ tên người thực hiện theo hồ sơ tài khoản (002 T032a); không có thì {@code null}. */
+    private String fullName(Long accountId) {
+        return accountId == null
+                ? null
+                : accounts.getObject().fullName(accountId).orElse(null);
+    }
+
     private static ActorType actorType(String stored) {
         return switch (stored) {
             case "USER" -> ActorType.USER;
             case "SCHEDULER" -> ActorType.SCHEDULER;
             case "BOOTSTRAP" -> ActorType.BOOTSTRAP;
+            case "ANONYMOUS" -> ActorType.ANONYMOUS;
             default -> throw new IllegalStateException("Loại người thực hiện chưa có trong hợp đồng: " + stored);
         };
     }

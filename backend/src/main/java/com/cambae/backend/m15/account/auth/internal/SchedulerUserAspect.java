@@ -20,6 +20,20 @@ class SchedulerUserAspect {
         return RUNNING.get();
     }
 
+    /**
+     * Chạy {@code work} với người dùng hiện tại là Bộ lập lịch: tác động kèm lệnh của module khác mà nhật ký ghi người
+     * thực hiện là Bộ lập lịch kèm căn cứ (002 T032 {@code lockOnResignation}; 000 FR-045).
+     */
+    static void runAsScheduler(Runnable work) {
+        boolean outer = RUNNING.get();
+        RUNNING.set(true);
+        try {
+            work.run();
+        } finally {
+            RUNNING.set(outer);
+        }
+    }
+
     @Around("@annotation(org.springframework.scheduling.annotation.Scheduled)"
             + " || execution(* com.cambae.backend.common.scheduling.ScheduledJob+.runNow())")
     public Object runAsScheduler(ProceedingJoinPoint job) throws Throwable {

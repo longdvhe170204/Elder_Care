@@ -3,6 +3,7 @@ package com.cambae.backend.m15.approval.web;
 import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.web.VersionEtag;
+import com.cambae.backend.m15.account.api.AccountApi;
 import com.cambae.backend.m15.approval.api.ApprovalRequestView;
 import com.cambae.backend.m15.approval.api.CreateRequest;
 import com.cambae.backend.m15.approval.api.ResultRef;
@@ -18,6 +19,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.LongFunction;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,9 +42,11 @@ import tools.jackson.databind.JsonNode;
 public class ApprovalRequestController {
 
     private final ApprovalRequestService requests;
+    private final ObjectProvider<AccountApi> accounts;
 
-    public ApprovalRequestController(ApprovalRequestService requests) {
+    public ApprovalRequestController(ApprovalRequestService requests, ObjectProvider<AccountApi> accounts) {
         this.requests = requests;
+        this.accounts = accounts;
     }
 
     @PostMapping
@@ -86,7 +91,10 @@ public class ApprovalRequestController {
             @RequestParam(required = false) String cursor) {
         Page page = requests.list(inbox, status, type, cursor);
         return new ApprovalRequestPageBody(
-                page.items().stream().map(ApprovalRequestBody::of).toList(), page.nextCursor());
+                page.items().stream()
+                        .map(v -> ApprovalRequestBody.of(v, this::fullName))
+                        .toList(),
+                page.nextCursor());
     }
 
     @GetMapping("/{id}")
@@ -145,10 +153,10 @@ public class ApprovalRequestController {
         return withEtag(HttpStatus.OK, requests.detail(id));
     }
 
-    private static ResponseEntity<ApprovalRequestBody> withEtag(HttpStatus status, Viewed viewed) {
+    private ResponseEntity<ApprovalRequestBody> withEtag(HttpStatus status, Viewed viewed) {
         return ResponseEntity.status(status)
                 .eTag(VersionEtag.of(viewed.request().version()))
-                .body(ApprovalRequestBody.of(viewed));
+                .body(ApprovalRequestBody.of(viewed, this::fullName));
     }
 
     public record CreateRequestBody(
@@ -187,19 +195,26 @@ public class ApprovalRequestController {
 
     public record ApprovalRequestPageBody(List<ApprovalRequestBody> items, String nextCursor) {}
 
+    /** Họ tên theo hồ sơ tài khoản (002 T032a); không có thì {@code null}. */
+    String fullName(long accountId) {
+        return accounts.getObject().fullName(accountId).orElse(null);
+    }
+
     /** Người thực hiện là người dùng hay Bộ lập lịch (schema {@code Actor}). */
     public enum ActorType {
         USER,
         SCHEDULER,
         // Công cụ khởi tạo Quản lý viện đầu tiên (002 BR-M15-22); chỉ nhật ký có
-        BOOTSTRAP
+        BOOTSTRAP,
+        // Lần đăng nhập thất bại, chưa xác định người (002 FR-015); chỉ nhật ký có
+        ANONYMOUS
     }
 
-    /** Người thực hiện theo schema {@code Actor}; họ tên, vai trò có khi 002 cung cấp hồ sơ tài khoản. */
+    /** Người thực hiện theo schema {@code Actor}; họ tên theo hồ sơ tài khoản (002 T032a). */
     public record ActorBody(ActorType type, Long id, String fullName, String role) {
 
-        static ActorBody user(Long id) {
-            return id == null ? null : new ActorBody(ActorType.USER, id, null, null);
+        static ActorBody user(Long id, LongFunction<String> names) {
+            return id == null ? null : new ActorBody(ActorType.USER, id, names.apply(id), null);
         }
     }
 
@@ -239,7 +254,7 @@ public class ApprovalRequestController {
             List<String> allowedCommands,
             int version) {
 
-        public static ApprovalRequestBody of(Viewed viewed) {
+        public static ApprovalRequestBody of(Viewed viewed, LongFunction<String> names) {
             ApprovalRequestView r = viewed.request();
             return new ApprovalRequestBody(
                     r.id(),
@@ -247,13 +262,13 @@ public class ApprovalRequestController {
                     r.type(),
                     r.status(),
                     r.content(),
-                    ActorBody.user(r.requesterId()),
+                    ActorBody.user(r.requesterId(), names),
                     r.createdAt(),
                     r.reason(),
                     r.requestedEffectiveDate(),
                     r.actualEffectiveDate(),
                     r.submittedAt(),
-                    ActorBody.user(r.decidedBy()),
+                    ActorBody.user(r.decidedBy(), names),
                     r.decidedAt(),
                     r.decisionComment(),
                     r.selfApproved(),

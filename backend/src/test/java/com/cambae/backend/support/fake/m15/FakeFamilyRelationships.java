@@ -14,6 +14,8 @@ import java.util.Set;
 /** Bản giả {@link FamilyRelationshipApi} (012 cài): quan hệ Hiệu lực test đặt sẵn, không xét thời điểm. */
 public class FakeFamilyRelationships implements FamilyRelationshipApi {
 
+    private final java.util.Map<Long, String> names = new java.util.HashMap<>();
+
     private final List<FamilyRelationshipView> relationships = new ArrayList<>();
     private final Map<Long, Long> familyMemberOf = new HashMap<>();
     private final Set<Long> representatives = new HashSet<>();
@@ -60,6 +62,16 @@ public class FakeFamilyRelationships implements FamilyRelationshipApi {
     public boolean isActiveRepresentative(long familyMemberId, long residentId, Instant at) {
         return active(familyMemberId).stream()
                 .anyMatch(r -> r.residentId() == residentId && representatives.contains(r.relationshipId()));
+    }
+
+    public FakeFamilyRelationships name(long familyMemberId, String fullName) {
+        names.put(familyMemberId, fullName);
+        return this;
+    }
+
+    @Override
+    public Optional<String> familyMemberName(long familyMemberId) {
+        return Optional.ofNullable(names.get(familyMemberId));
     }
 
     @Override

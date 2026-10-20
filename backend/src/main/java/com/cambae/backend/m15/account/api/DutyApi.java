@@ -1,5 +1,6 @@
 package com.cambae.backend.m15.account.api;
 
+import com.cambae.backend.common.Reason;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -35,4 +36,10 @@ public interface DutyApi {
 
     /** Trưởng tầng, Điều dưỡng, Nhân viên chăm sóc có phân công trong tầng và ca (011 UC-76). */
     List<Long> floorReceivers(long floorAreaId, long shiftId);
+
+    /**
+     * Thay Phụ trách bộ phận trong transaction của lệnh khóa tài khoản người đang giữ nhiệm vụ này (002 T031; Q-292,
+     * 008 FR-001a); 008 cài với {@code Propagation.MANDATORY}, kiểm người thay theo luật của 008 (Q-293, Q-299).
+     */
+    void replaceDepartmentLead(long currentLeadStaffId, long replacementStaffId, Reason reason);
 }
