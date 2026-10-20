@@ -11,4 +11,10 @@ public interface AuditLogApi {
      * lỗi (FR-037b) và bản tóm tắt đợt loại bỏ dữ liệu (FR-051).
      */
     void writeOutsideTransaction(AuditLogEntry entry);
+
+    /**
+     * Ghi trong transaction của lệnh với người thực hiện "khởi tạo hệ thống" ({@code actor_type = BOOTSTRAP}, không có
+     * tài khoản, vai trò); bắt buộc căn cứ. Chỉ công cụ khởi tạo Quản lý viện đầu tiên dùng (002 T016; BR-M15-22).
+     */
+    void writeAsBootstrap(AuditLogEntry entry);
 }

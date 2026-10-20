@@ -89,6 +89,20 @@ describe('AuditLogTable', () => {
     expect(row).toHaveTextContent('Áp dụng yêu cầu đến hạn')
   })
 
+  it('BR_M15_22_nguoiThucHienKhoiTao_hienKhoiTaoHeThong', async () => {
+    fetchMock.mockReturnValue(
+      json(200, {
+        items: [entry({ actor: { type: 'BOOTSTRAP', id: null, fullName: null, role: null } })],
+        nextCursor: null,
+      }),
+    )
+    render(<AuditLogTable />)
+
+    const row = (await screen.findAllByRole('row'))[1]
+    expect(row).toHaveTextContent('Khởi tạo hệ thống')
+    expect(row).not.toHaveTextContent('Tài khoản null')
+  })
+
   it('FR_049_locTheoDoiTuongNguoiVaKhoangNgay_guiDungThamSo', async () => {
     fetchMock.mockReturnValue(json(200, { items: [], nextCursor: null }))
     render(<AuditLogTable />)

@@ -190,7 +190,9 @@ public class ApprovalRequestController {
     /** Người thực hiện là người dùng hay Bộ lập lịch (schema {@code Actor}). */
     public enum ActorType {
         USER,
-        SCHEDULER
+        SCHEDULER,
+        // Công cụ khởi tạo Quản lý viện đầu tiên (002 BR-M15-22); chỉ nhật ký có
+        BOOTSTRAP
     }
 
     /** Người thực hiện theo schema {@code Actor}; họ tên, vai trò có khi 002 cung cấp hồ sơ tài khoản. */
