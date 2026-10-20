@@ -4,6 +4,7 @@ import com.cambae.backend.common.Role;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m15.account.api.dto.AccountStatus;
 import com.cambae.backend.m15.account.api.dto.AccountType;
+import com.cambae.backend.m15.account.internal.domain.Account;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -38,37 +39,23 @@ public class AccountStore {
         this.time = time;
     }
 
-    /** Một dòng {@code account}. */
-    public record AccountRow(
-            long id,
-            String username,
-            AccountType type,
-            Long staffId,
-            Long familyMemberId,
-            AccountStatus status,
-            String lockCause,
-            Instant lockedUntil,
-            Instant lastLoginAt,
-            int version,
-            int permissionVersion) {}
-
-    public Optional<AccountRow> find(long id) {
+    public Optional<Account> find(long id) {
         return jdbc.query("SELECT " + COLUMNS + " FROM account WHERE id = ?", AccountStore::row, id).stream()
                 .findFirst();
     }
 
     /** Khóa dòng cho lệnh trạng thái, phân quyền (kiểm lại trên trạng thái mới, 000 FR-040). */
-    public Optional<AccountRow> lock(long id) {
+    public Optional<Account> lock(long id) {
         return jdbc.query("SELECT " + COLUMNS + " FROM account WHERE id = ? FOR UPDATE", AccountStore::row, id).stream()
                 .findFirst();
     }
 
-    public Optional<AccountRow> byStaff(long staffId) {
+    public Optional<Account> byStaff(long staffId) {
         return jdbc.query("SELECT " + COLUMNS + " FROM account WHERE staff_id = ?", AccountStore::row, staffId).stream()
                 .findFirst();
     }
 
-    public Optional<AccountRow> byFamilyMember(long familyMemberId) {
+    public Optional<Account> byFamilyMember(long familyMemberId) {
         return jdbc
                 .query(
                         "SELECT " + COLUMNS + " FROM account WHERE family_member_id = ?",
@@ -79,7 +66,7 @@ public class AccountStore {
     }
 
     /** Trang theo id tăng dần; {@code afterId} là con trỏ trang trước. */
-    public List<AccountRow> page(AccountType type, AccountStatus status, String q, Long afterId, int size) {
+    public List<Account> page(AccountType type, AccountStatus status, String q, Long afterId, int size) {
         StringBuilder sql = new StringBuilder("SELECT " + COLUMNS + " FROM account WHERE 1 = 1");
         List<Object> args = new ArrayList<>();
         if (type != null) {
@@ -229,7 +216,7 @@ public class AccountStore {
     // --- Đăng nhập, mật khẩu (US3) ---------------------------------------------------------------------------
 
     /** Khóa dòng theo tên đăng nhập cho lệnh đăng nhập (đếm sai, chuyển khóa tạm trong cùng transaction). */
-    public Optional<AccountRow> lockByUsername(String username) {
+    public Optional<Account> lockByUsername(String username) {
         return jdbc
                 .query("SELECT " + COLUMNS + " FROM account WHERE username = ? FOR UPDATE", AccountStore::row, username)
                 .stream()
@@ -344,8 +331,8 @@ public class AccountStore {
         throw new IllegalStateException("Vai trò không có trong common.Role: " + code);
     }
 
-    private static AccountRow row(ResultSet rs, int i) throws SQLException {
-        return new AccountRow(
+    private static Account row(ResultSet rs, int i) throws SQLException {
+        return new Account(
                 rs.getLong("id"),
                 rs.getString("username"),
                 AccountType.valueOf(rs.getString("type")),

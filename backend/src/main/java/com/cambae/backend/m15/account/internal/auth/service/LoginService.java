@@ -13,8 +13,8 @@ import com.cambae.backend.m15.account.internal.auth.domain.AccountAuditActions;
 import com.cambae.backend.m15.account.internal.auth.domain.ActiveSession;
 import com.cambae.backend.m15.account.internal.auth.domain.LoginRules;
 import com.cambae.backend.m15.account.internal.auth.domain.LoginRules.Decision;
+import com.cambae.backend.m15.account.internal.domain.Account;
 import com.cambae.backend.m15.account.internal.persistence.AccountStore;
-import com.cambae.backend.m15.account.internal.persistence.AccountStore.AccountRow;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
 import com.cambae.backend.m15.auditlog.api.Basis;
@@ -85,7 +85,7 @@ public class LoginService {
             throw new InvalidValueException("Đăng nhập kênh người cao tuổi làm ở 002 US8 (T092)");
         }
         Instant now = time.now();
-        Optional<AccountRow> found = store.lockByUsername(username);
+        Optional<Account> found = store.lockByUsername(username);
         if (found.isEmpty()) {
             passwords.matches(password, dummyHash());
             Decision refused = LoginRules.decide(null, null, false, now);
@@ -96,7 +96,7 @@ public class LoginService {
                     .build());
             return new Refused(refused.errorCode(), refused.httpStatus(), null);
         }
-        AccountRow account = found.get();
+        Account account = found.get();
         if (LoginRules.effective(account.status(), account.lockedUntil(), now) != account.status()) {
             endTemporaryLock(account);
         }
@@ -196,7 +196,7 @@ public class LoginService {
     }
 
     /** Hết thời gian khóa tạm: về Hoạt động, bộ đếm về 0; Bộ lập lịch thực hiện, căn cứ CFG-M15-01 (research A-03). */
-    private void endTemporaryLock(AccountRow account) {
+    private void endTemporaryLock(Account account) {
         store.changeStatus(account.id(), AccountStatus.ACTIVE, null, null);
         store.resetFailedLogins(account.id());
         SchedulerUserAspect.runAsScheduler(() -> auditLog.write(AuditLogEntry.builder()
@@ -209,7 +209,7 @@ public class LoginService {
     }
 
     /** Đếm lần sai; đủ ngưỡng CFG-M15-01 thì Khóa tạm và kết thúc phiên (FR-008, FR-013). */
-    private void countFailure(AccountRow account, Instant now) {
+    private void countFailure(Account account, Instant now) {
         JsonNode rule = parameters.read(ParameterCode.CFG_M15_01).raw();
         int failures = store.recordFailedLogin(account.id());
         if (failures < rule.get("maxFailedAttempts").intValue()) {
