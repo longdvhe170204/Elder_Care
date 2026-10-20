@@ -1,7 +1,9 @@
 package com.cambae.backend.m15.account.auth.internal;
 
+import com.cambae.backend.common.Role;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m15.account.api.AccessChannel;
+import com.cambae.backend.m15.account.api.AccountType;
 import com.cambae.backend.m15.parameter.api.ParameterApi;
 import com.cambae.backend.m15.parameter.api.ParameterCode;
 import java.time.Duration;
@@ -9,7 +11,11 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
@@ -37,13 +43,17 @@ public class SessionService {
         byte[] hash = SessionTokens.hash(token);
         Optional<OpenRow> row = jdbc
                 .query(
-                        "SELECT account_id, device_id, channel, last_active_at FROM login_session"
-                                + " WHERE token_hash = ? AND ended_at IS NULL",
+                        "SELECT s.account_id, s.device_id, s.channel, s.last_active_at, a.type, a.staff_id,"
+                                + " a.family_member_id FROM login_session s JOIN account a ON a.id = s.account_id"
+                                + " WHERE s.token_hash = ? AND s.ended_at IS NULL",
                         (rs, i) -> new OpenRow(
                                 rs.getLong(1),
                                 rs.getString(2),
                                 AccessChannel.valueOf(rs.getString(3)),
-                                rs.getObject(4, LocalDateTime.class).toInstant(ZoneOffset.UTC)),
+                                rs.getObject(4, LocalDateTime.class).toInstant(ZoneOffset.UTC),
+                                AccountType.valueOf(rs.getString(5)),
+                                Optional.ofNullable(rs.getObject(6, Long.class)),
+                                Optional.ofNullable(rs.getObject(7, Long.class))),
                         hash)
                 .stream()
                 .findFirst();
@@ -72,7 +82,33 @@ public class SessionService {
                 open.deviceId(),
                 utc(now),
                 open.accountId());
-        return Optional.of(new ActiveSession(open.accountId(), open.deviceId(), open.channel()));
+        return Optional.of(new ActiveSession(
+                open.accountId(),
+                open.type(),
+                open.staffId(),
+                open.familyMemberId(),
+                roles(open.accountId(), now),
+                open.deviceId(),
+                open.channel()));
+    }
+
+    /** Vai trò đang hiệu lực tại {@code at} (research A-05: {@code effective_from <= t < effective_to}). */
+    private Set<Role> roles(long accountId, Instant at) {
+        Map<String, Role> byCode = new HashMap<>();
+        for (Role role : Role.values()) {
+            byCode.put(role.code(), role);
+        }
+        Set<Role> roles = EnumSet.noneOf(Role.class);
+        jdbc.query(
+                "SELECT role FROM role_assignment WHERE account_id = ? AND effective_from <= ?"
+                        + " AND (effective_to IS NULL OR effective_to > ?)",
+                rs -> {
+                    roles.add(byCode.get(rs.getString(1)));
+                },
+                accountId,
+                utc(at),
+                utc(at));
+        return Set.copyOf(roles);
     }
 
     /** CFG-M15-10 theo kênh: {@code {"value", "unit"}} hoặc {@code {"noLimit": true}} (kênh người cao tuổi, BR-M15-24). */
@@ -92,5 +128,12 @@ public class SessionService {
         return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }
 
-    private record OpenRow(long accountId, String deviceId, AccessChannel channel, Instant lastActiveAt) {}
+    private record OpenRow(
+            long accountId,
+            String deviceId,
+            AccessChannel channel,
+            Instant lastActiveAt,
+            AccountType type,
+            Optional<Long> staffId,
+            Optional<Long> familyMemberId) {}
 }
