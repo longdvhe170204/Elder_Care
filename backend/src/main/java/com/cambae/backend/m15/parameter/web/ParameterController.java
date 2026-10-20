@@ -1,11 +1,11 @@
 package com.cambae.backend.m15.parameter.web;
 
-import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.web.VersionEtag;
 import com.cambae.backend.m15.parameter.internal.ParameterService;
 import com.cambae.backend.m15.parameter.internal.ParameterService.HistoryEntry;
 import com.cambae.backend.m15.parameter.internal.ParameterService.ParameterView;
+import com.cambae.backend.m15.parameter.web.request.ChangeBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.JsonNode;
 
 /** {@code /api/v1/parameters} theo contracts/api-000.yaml (000 T080); không có API tạo hay xóa mã (FR-011). */
 @RestController
@@ -99,11 +98,4 @@ public class ParameterController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime asOf) {
         return parameters.history(code, asOf == null ? null : asOf.toInstant());
     }
-
-    public record ChangeBody(
-            @Schema(implementation = Object.class) JsonNode value,
-            Boolean restoreDefault,
-
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            Reason reason) {}
 }

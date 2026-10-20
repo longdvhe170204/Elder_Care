@@ -10,7 +10,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Kết nối bằng tài khoản {@code eldercare_retention}, tài khoản duy nhất được xóa bảng nhóm 3 và nhật ký (research R-05,
- * R-11; FR-051). Chỉ job loại bỏ dữ liệu hết hạn và {@link RetentionProvider#delete} dùng. Không đăng ký thành bean
+ * R-11; FR-051). Chỉ job loại bỏ dữ liệu hết hạn và {@link com.cambae.backend.m15.retention.api.spi.RetentionProvider#delete} dùng. Không đăng ký thành bean
  * {@code DataSource} để không thay DataSource chính của ứng dụng; pool chỉ mở kết nối khi job chạy.
  */
 @Component

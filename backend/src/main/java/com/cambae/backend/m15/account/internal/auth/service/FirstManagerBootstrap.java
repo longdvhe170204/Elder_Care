@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Khởi tạo tài khoản Quản lý viện đầu tiên (002 T016; BR-M15-22, FR-004b, Q-310; research A-03): chỉ khi chưa có tài
  * khoản nào đang có vai trò AC-01 (kiểm dưới khóa các dòng {@code role_assignment} của AC-01); tạo hồ sơ nhân viên tối
  * thiểu qua 008, tài khoản Hoạt động buộc đổi mật khẩu, gán AC-01; nhật ký ghi người thực hiện "khởi tạo hệ thống".
- * Không có endpoint REST: chạy bằng {@link FirstManagerBootstrapRunner}.
+ * Không có endpoint REST: chạy bằng {@link com.cambae.backend.m15.account.internal.auth.config.FirstManagerBootstrapRunner}.
  */
 @Service
 public class FirstManagerBootstrap {

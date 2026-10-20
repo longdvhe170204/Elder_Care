@@ -1,5 +1,6 @@
-package com.cambae.backend.m15.retention.api;
+package com.cambae.backend.m15.retention.api.spi;
 
+import com.cambae.backend.m15.retention.api.RetentionKind;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Set;
@@ -8,7 +9,7 @@ import java.util.stream.Stream;
 /**
  * Một loại dữ liệu được lưu giữ và loại bỏ theo thời hạn (contracts/module-interfaces.md mục 1.7, research R-11; FR-050,
  * FR-051, FR-051a). Module sở hữu loại dữ liệu cài; chỉ job loại bỏ dữ liệu hết hạn gọi {@link #delete}, qua
- * {@link RetentionDatabase} (tài khoản {@code eldercare_retention}).
+ * {@link com.cambae.backend.m15.retention.api.RetentionDatabase} (tài khoản {@code eldercare_retention}).
  */
 public interface RetentionProvider {
 

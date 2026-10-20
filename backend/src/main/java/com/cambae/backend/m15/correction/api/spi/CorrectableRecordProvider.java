@@ -1,6 +1,8 @@
-package com.cambae.backend.m15.correction.api;
+package com.cambae.backend.m15.correction.api.spi;
 
 import com.cambae.backend.m15.account.api.CurrentUser;
+import com.cambae.backend.m15.correction.api.CorrectionView;
+import com.cambae.backend.m15.correction.api.CreationMethod;
 import java.util.Optional;
 
 /**

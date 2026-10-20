@@ -12,7 +12,7 @@ import com.cambae.backend.m15.account.api.dto.InfoGroup;
 import com.cambae.backend.m15.account.api.dto.Target;
 import com.cambae.backend.m15.account.api.dto.Visibility;
 import com.cambae.backend.m15.auditlog.api.AuditLogPermissions;
-import com.cambae.backend.m15.auditlog.api.FieldClassificationProvider;
+import com.cambae.backend.m15.auditlog.api.spi.FieldClassificationProvider;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;

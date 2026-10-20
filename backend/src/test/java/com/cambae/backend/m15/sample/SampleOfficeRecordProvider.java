@@ -3,7 +3,7 @@ package com.cambae.backend.m15.sample;
 import com.cambae.backend.common.Role;
 import com.cambae.backend.common.error.InvalidValueException;
 import com.cambae.backend.m15.account.api.CurrentUser;
-import com.cambae.backend.m15.correction.api.CorrectableRecordProvider;
+import com.cambae.backend.m15.correction.api.spi.CorrectableRecordProvider;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
