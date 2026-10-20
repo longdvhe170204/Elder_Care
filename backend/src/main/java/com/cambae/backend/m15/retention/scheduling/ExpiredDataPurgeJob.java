@@ -1,7 +1,7 @@
 package com.cambae.backend.m15.retention.scheduling;
 
 import com.cambae.backend.common.scheduling.ScheduledJob;
-import com.cambae.backend.m15.retention.internal.ExpiredDataPurge;
+import com.cambae.backend.m15.retention.internal.service.ExpiredDataPurge;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;

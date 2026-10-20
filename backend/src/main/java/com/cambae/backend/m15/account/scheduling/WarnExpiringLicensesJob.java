@@ -1,7 +1,7 @@
 package com.cambae.backend.m15.account.scheduling;
 
 import com.cambae.backend.common.scheduling.ScheduledJob;
-import com.cambae.backend.m15.account.internal.legal.LicenseExpiryWarnings;
+import com.cambae.backend.m15.account.internal.legal.service.LicenseExpiryWarnings;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

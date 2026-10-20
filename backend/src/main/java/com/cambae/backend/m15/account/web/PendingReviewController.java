@@ -2,8 +2,8 @@ package com.cambae.backend.m15.account.web;
 
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.web.VersionEtag;
-import com.cambae.backend.m15.account.internal.offline.PendingReviewRecord;
-import com.cambae.backend.m15.account.internal.offline.PendingReviewService;
+import com.cambae.backend.m15.account.internal.offline.domain.PendingReviewRecord;
+import com.cambae.backend.m15.account.internal.offline.service.PendingReviewService;
 import com.cambae.backend.m15.account.web.request.PendingReviewRejectBody;
 import com.cambae.backend.m15.account.web.response.PendingReviewRecordBody;
 import com.cambae.backend.m15.account.web.response.PendingReviewRecordPage;

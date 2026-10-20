@@ -1,7 +1,7 @@
 package com.cambae.backend.m15.auditlog.web;
 
 import com.cambae.backend.common.error.web.ProblemBody;
-import com.cambae.backend.m15.auditlog.internal.AuditLogQueryService;
+import com.cambae.backend.m15.auditlog.internal.service.AuditLogQueryService;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

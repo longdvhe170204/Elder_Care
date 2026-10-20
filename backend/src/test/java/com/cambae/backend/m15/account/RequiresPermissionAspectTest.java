@@ -17,7 +17,7 @@ import com.cambae.backend.m15.account.api.dto.PermissionBasis;
 import com.cambae.backend.m15.account.api.dto.PermissionKey;
 import com.cambae.backend.m15.account.api.dto.PermissionResult;
 import com.cambae.backend.m15.account.api.dto.Target;
-import com.cambae.backend.m15.account.internal.permission.RequiresPermissionAspect;
+import com.cambae.backend.m15.account.internal.permission.service.RequiresPermissionAspect;
 import com.cambae.backend.support.FakePermissions;
 import java.time.Instant;
 import java.time.LocalDate;

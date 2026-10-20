@@ -1,7 +1,7 @@
 package com.cambae.backend.m15.account.web;
 
 import com.cambae.backend.m15.account.api.CurrentUser;
-import com.cambae.backend.m15.account.internal.offline.SyncService;
+import com.cambae.backend.m15.account.internal.offline.service.SyncService;
 import com.cambae.backend.m15.account.web.request.SyncBody;
 import com.cambae.backend.m15.account.web.response.SyncRecordResultBody;
 import com.cambae.backend.m15.account.web.response.SyncResponse;

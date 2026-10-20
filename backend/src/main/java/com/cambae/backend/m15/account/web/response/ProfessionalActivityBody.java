@@ -1,6 +1,6 @@
 package com.cambae.backend.m15.account.web.response;
 
-import com.cambae.backend.m15.account.internal.legal.ProfessionalActivity;
+import com.cambae.backend.m15.account.internal.legal.domain.ProfessionalActivity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
