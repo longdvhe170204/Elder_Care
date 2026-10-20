@@ -1,6 +1,6 @@
 package com.cambae.backend.m15.retention.internal;
 
-import com.cambae.backend.m15.retention.api.RetentionProvider;
+import com.cambae.backend.m15.retention.api.spi.RetentionProvider;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;

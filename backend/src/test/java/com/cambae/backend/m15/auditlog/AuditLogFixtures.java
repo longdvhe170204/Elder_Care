@@ -5,7 +5,7 @@ import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.dto.InfoGroup;
 import com.cambae.backend.m15.account.api.dto.Visibility;
 import com.cambae.backend.m15.auditlog.api.AuditLogPermissions;
-import com.cambae.backend.m15.auditlog.api.FieldClassificationProvider;
+import com.cambae.backend.m15.auditlog.api.spi.FieldClassificationProvider;
 import com.cambae.backend.support.FakePermissions;
 import com.cambae.backend.support.SwitchableUser;
 import java.util.List;

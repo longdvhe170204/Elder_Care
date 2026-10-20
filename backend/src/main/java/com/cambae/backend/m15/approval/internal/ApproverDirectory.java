@@ -8,7 +8,7 @@ import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.PermissionApi;
 import com.cambae.backend.m15.account.api.ScopeApi;
 import com.cambae.backend.m15.approval.api.ApprovalRequestView;
-import com.cambae.backend.m15.approval.api.RequestTypeHandler;
+import com.cambae.backend.m15.approval.api.spi.RequestTypeHandler;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

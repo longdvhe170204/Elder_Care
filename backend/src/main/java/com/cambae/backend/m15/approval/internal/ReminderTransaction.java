@@ -8,7 +8,7 @@ import com.cambae.backend.m15.approval.api.ManagerEscalationDue;
 import com.cambae.backend.m15.approval.api.OverdueReminder;
 import com.cambae.backend.m15.approval.api.OverdueReminder.Decision;
 import com.cambae.backend.m15.approval.api.OverdueReminder.EscalationReason;
-import com.cambae.backend.m15.approval.api.RequestTypeHandler;
+import com.cambae.backend.m15.approval.api.spi.RequestTypeHandler;
 import com.cambae.backend.m15.auditlog.api.AuditAction;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;

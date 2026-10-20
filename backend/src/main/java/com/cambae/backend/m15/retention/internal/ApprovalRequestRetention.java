@@ -2,7 +2,7 @@ package com.cambae.backend.m15.retention.internal;
 
 import com.cambae.backend.m15.retention.api.RetentionDatabase;
 import com.cambae.backend.m15.retention.api.RetentionKind;
-import com.cambae.backend.m15.retention.api.RetentionProvider;
+import com.cambae.backend.m15.retention.api.spi.RetentionProvider;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;

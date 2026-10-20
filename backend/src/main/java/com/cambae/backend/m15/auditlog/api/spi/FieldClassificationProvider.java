@@ -1,4 +1,4 @@
-package com.cambae.backend.m15.auditlog.api;
+package com.cambae.backend.m15.auditlog.api.spi;
 
 import com.cambae.backend.m15.account.api.dto.InfoGroup;
 import java.util.Map;

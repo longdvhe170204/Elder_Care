@@ -1,6 +1,5 @@
 package com.cambae.backend.m15.approval.web;
 
-import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.web.VersionEtag;
 import com.cambae.backend.m15.account.api.AccountApi;
@@ -11,11 +10,16 @@ import com.cambae.backend.m15.approval.api.dto.ApprovalRequestBody;
 import com.cambae.backend.m15.approval.internal.ApprovalRequestService;
 import com.cambae.backend.m15.approval.internal.ApprovalRequestService.Inbox;
 import com.cambae.backend.m15.approval.internal.ApprovalRequestService.Page;
+import com.cambae.backend.m15.approval.web.request.ApproveBody;
+import com.cambae.backend.m15.approval.web.request.CancelBody;
+import com.cambae.backend.m15.approval.web.request.CreateRequestBody;
+import com.cambae.backend.m15.approval.web.request.EditContentBody;
+import com.cambae.backend.m15.approval.web.request.RejectBody;
+import com.cambae.backend.m15.approval.web.response.ApprovalRequestPageBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.ObjectProvider;
@@ -29,7 +33,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.JsonNode;
 
 /**
  * {@code /api/v1/approval-requests} theo contracts/api-000.yaml (000 T095). Chi tiết và kết quả lệnh kèm
@@ -156,42 +159,6 @@ public class ApprovalRequestController {
                 .eTag(VersionEtag.of(viewed.request().version()))
                 .body(ApprovalRequestBody.of(viewed, this::fullName));
     }
-
-    public record CreateRequestBody(
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            String type,
-
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, implementation = Object.class)
-            JsonNode content,
-
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            LocalDate requestedEffectiveDate,
-
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            Reason reason,
-
-            Boolean submitImmediately) {}
-
-    public record EditContentBody(
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, implementation = Object.class)
-            JsonNode content,
-
-            LocalDate requestedEffectiveDate,
-
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            Reason reason) {}
-
-    public record ApproveBody(@Schema(maxLength = 2000) String comment) {}
-
-    public record RejectBody(
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            Reason comment) {}
-
-    public record CancelBody(
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            Reason reason) {}
-
-    public record ApprovalRequestPageBody(List<ApprovalRequestBody> items, String nextCursor) {}
 
     /** Họ tên theo hồ sơ tài khoản (002 T032a); không có thì {@code null}. */
     String fullName(long accountId) {
