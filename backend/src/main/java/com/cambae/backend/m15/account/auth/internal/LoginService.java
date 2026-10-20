@@ -1,11 +1,13 @@
 package com.cambae.backend.m15.account.auth.internal;
 
+import com.cambae.backend.common.Role;
 import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.error.InvalidValueException;
 import com.cambae.backend.common.error.UnmetCondition;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m15.account.api.AccessChannel;
 import com.cambae.backend.m15.account.api.AccountStatus;
+import com.cambae.backend.m15.account.api.AccountType;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.auth.internal.AccountStore.AccountRow;
 import com.cambae.backend.m15.account.auth.internal.LoginRules.Decision;
@@ -22,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -66,7 +69,9 @@ public class LoginService {
     public sealed interface Result {}
 
     /** {@code token} giao cho client (cookie với web, thân phản hồi với app). */
-    public record Success(String token, long accountId, boolean mustChangePassword) implements Result {}
+    /** Đăng nhập thành công: token và thông tin người dùng cho phản hồi (loại, vai trò đang gán). */
+    public record Success(String token, long accountId, AccountType type, Set<Role> roles, boolean mustChangePassword)
+            implements Result {}
 
     public record Refused(String errorCode, int httpStatus, Instant unlocksAt) implements Result {}
 
@@ -122,7 +127,8 @@ public class LoginService {
                         .entity(AccountAuditActions.ENTITY, account.id())
                         .details(Map.of("channel", channel.name()))
                         .build()));
-        return new Success(token, account.id(), store.mustChangePassword(account.id()));
+        return new Success(
+                token, account.id(), account.type(), store.roles(account.id()), store.mustChangePassword(account.id()));
     }
 
     /** Kết thúc phiên hiện tại ({@code LOGOUT}, FR-013). */

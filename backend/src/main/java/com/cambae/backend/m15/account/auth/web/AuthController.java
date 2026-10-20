@@ -6,8 +6,6 @@ import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.m15.account.api.AccessChannel;
 import com.cambae.backend.m15.account.api.AccountApi;
 import com.cambae.backend.m15.account.api.CurrentUser;
-import com.cambae.backend.m15.account.auth.internal.AccountStore;
-import com.cambae.backend.m15.account.auth.internal.AccountStore.AccountRow;
 import com.cambae.backend.m15.account.auth.internal.LoginService;
 import com.cambae.backend.m15.account.auth.internal.SessionTokens;
 import com.cambae.backend.m15.account.permission.web.UserInfo;
@@ -50,14 +48,11 @@ class AuthController {
 
     private final LoginService logins;
     private final AccountApi accounts;
-    private final AccountStore store;
     private final ObjectProvider<CurrentUser> currentUser;
 
-    AuthController(
-            LoginService logins, AccountApi accounts, AccountStore store, ObjectProvider<CurrentUser> currentUser) {
+    AuthController(LoginService logins, AccountApi accounts, ObjectProvider<CurrentUser> currentUser) {
         this.logins = logins;
         this.accounts = accounts;
-        this.store = store;
         this.currentUser = currentUser;
     }
 
@@ -112,12 +107,11 @@ class AuthController {
                     refused.unlocksAt() == null ? Map.of() : Map.of("unlocksAt", refused.unlocksAt()));
         }
         LoginService.Success success = (LoginService.Success) result;
-        AccountRow account = store.find(success.accountId()).orElseThrow();
         UserInfo user = new UserInfo(
-                account.id(),
-                account.type(),
-                accounts.fullName(account.id()).orElse(null),
-                store.roles(account.id()).stream().map(Role::code).sorted().toList(),
+                success.accountId(),
+                success.type(),
+                accounts.fullName(success.accountId()).orElse(null),
+                success.roles().stream().map(Role::code).sorted().toList(),
                 success.mustChangePassword());
         boolean web = body.channel() == AccessChannel.WEB;
         ResponseEntity.BodyBuilder response = ResponseEntity.ok();
