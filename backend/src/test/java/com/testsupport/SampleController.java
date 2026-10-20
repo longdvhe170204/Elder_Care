@@ -31,6 +31,15 @@ public class SampleController {
             case "condition" ->
                 new ConditionNotMetException(List.of(new UnmetCondition("BR-M03-06", "Giường chưa Trống")));
             case "permission" -> new PermissionDeniedException("Không có quyền");
+            case "legal" ->
+                new PermissionDeniedException(
+                        "LEGAL_CONDITION_NOT_MET",
+                        "Thiếu điều kiện pháp lý",
+                        Map.of(
+                                "failedLayer",
+                                "LEGAL",
+                                "license",
+                                Map.of("name", "Chứng chỉ hành nghề", "expiryDate", "2026-09-30")));
             case "processed" -> new AlreadyProcessedException("Yêu cầu đã được xử lý");
             case "version" -> new VersionMismatchException(Map.of("currentValue", 20));
             case "reason" -> new ReasonRequiredException();

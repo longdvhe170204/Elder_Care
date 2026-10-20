@@ -4,11 +4,11 @@ Dự án Elder_Care (quản lý viện dưỡng lão), nhóm 5 người làm son
 
 Nếu công cụ của bạn không tự đọc file này, hãy dán câu sau vào đầu cuộc trò chuyện:
 
-> Đọc AGENTS.md, CLAUDE.md, docs/team-plan.md và README của thư mục bạn sẽ sửa (backend/, frontend/ hoặc mobile/). Tôi là <A/B/C/D/E>, đang làm feature <NNN> trên nhánh impl/<NNN-ten>. Chỉ sửa trong phần của tôi theo docs/team-plan.md.
+> Đọc AGENTS.md, CLAUDE.md, docs/team-plan.md và README của thư mục bạn sẽ sửa (backend/, frontend/ hoặc mobile/). Tôi là <A/B/C/D/E>, đang làm feature <NNN> trên nhánh impl/<NNN-ten>. Chỉ sửa trong phần của tôi theo docs/team-plan.md. Trước khi làm, liệt kê cho tôi các dòng có tên tôi ở mục 8 của docs/team-plan.md (việc người khác đang chờ tôi).
 
 ## 1. Đọc gì, theo thứ tự nào
 
-1. `docs/team-plan.md`: bạn sở hữu module, thư mục, migration nào; đang ở đợt nào.
+1. `docs/team-plan.md`: bạn sở hữu module, thư mục, migration nào; đang ở đợt nào; **mục 8: việc người khác đang chờ bạn** (đầu mỗi phiên báo cho người dùng các dòng có tên họ; cần người khác làm gì thì thêm dòng trong PR của mình).
 2. README của phần sẽ sửa: [frontend/README.md](frontend/README.md), [mobile/README.md](mobile/README.md); backend theo mục 4 dưới đây.
 3. Khi làm một task: `specs/NNN-*/tasks.md` → `plan.md` → `data-model.md` → `contracts/` → `research.md` → `spec.md` → `docs/business/nghiep-vu.md`.
 4. Tên tiếng Anh: [specs/000-shared-foundation/glossary.md](specs/000-shared-foundation/glossary.md). Giao diện: [DESIGN.md](DESIGN.md).
@@ -34,6 +34,7 @@ Nếu công cụ của bạn không tự đọc file này, hãy dán câu sau v�
 - [ ] Đánh `[x]` task trong `tasks.md`; ghi chú triển khai, lệch kỹ thuật ở `plan.md`
 - [ ] Glossary của feature cập nhật
 - [ ] PR mô tả: phase, task, có đổi `api` không ("Đổi api" + đã báo ai), kết quả lệnh kiểm
+- [ ] `docs/team-plan.md` mục 8: đánh "Xong" dòng mình vừa làm; thêm dòng cho việc cần người khác làm
 
 ## 4. Backend (`backend/`)
 

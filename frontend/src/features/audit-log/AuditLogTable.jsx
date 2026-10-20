@@ -43,6 +43,7 @@ function toQuery(filter) {
 
 function actorLabel(actor) {
   if (actor.type === 'SCHEDULER') return 'Bộ lập lịch hệ thống'
+  if (actor.type === 'BOOTSTRAP') return 'Khởi tạo hệ thống'
   return actor.fullName ?? `Tài khoản ${actor.id}`
 }
 
