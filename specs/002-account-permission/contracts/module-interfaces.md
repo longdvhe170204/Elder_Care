@@ -64,6 +64,7 @@ MucXem duocXem(NguoiDungHienTai nd, NhomThongTin nhom, DoiTuong doiTuong);   // 
 
 - 000 khai báo `duocXem(nd, NhomThongTin)`; 002 thêm `DoiTuong` vì giới hạn trường xét theo cặp (nhóm, phạm vi) của từng vai trò (FR-034). Bản rút gọn của 000 tương đương `duocXem(nd, nhom, DoiTuong.KHONG_CU_THE)` và chỉ dùng cho nhật ký toàn viện của Quản lý viện.
 - Chú thích DTO: `@NhomTruong(NhomThongTin.SUC_KHOE)` trên trường; `BeanSerializerModifier` của 002 áp khi tuần tự hóa (research A-08).
+- *(Bổ sung 2026-10-20, T023)* DTO có trường `@NhomTruong` cài `DoiTuongXemTruong` (mã `VisibilityTarget.visibilityTarget()`) để serializer biết đối tượng, xét phạm vi từng vai trò; không cài thì đối tượng là `KHONG_CU_THE`. DTO khai trường `truongBiAn` (mã `hiddenFields`), serializer ghi lại bằng tên các trường đã bỏ. Mức `CHI_CO_HAY_KHONG` cũng bỏ trường; DTO tự mang cờ có/không (ví dụ `coNguyenVong` của 001).
 
 ### 1.5. `NguoiDuyetApi` (khai báo ở 000)
 

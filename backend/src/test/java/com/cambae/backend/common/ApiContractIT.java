@@ -31,20 +31,65 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * R-14 (000 T038): OpenAPI do springdoc sinh từ mã phải khớp contracts/api-000.yaml. Endpoint của hợp đồng chưa cài nằm
- * ở {@link #PENDING}; danh sách này phải rỗng khi xong 000 (T103). Mở rộng dần cho api-001 … api-019.
+ * R-14 (000 T038, 002 T078): OpenAPI do springdoc sinh từ mã phải khớp các hợp đồng đã dịch trong {@link #CONTRACTS};
+ * endpoint chưa cài nằm ở {@code pending} của hợp đồng, phải rỗng khi xong feature. Mở rộng dần cho api-001 … api-019.
  */
 @AutoConfigureMockMvc
 @WithMockUser
 class ApiContractIT extends MySqlIntegrationTestBase {
 
-    private static final Path CONTRACT = Path.of("..", "specs", "000-shared-foundation", "contracts", "api-000.yaml");
+    /**
+     * Một hợp đồng đã dịch: file, endpoint chưa cài (xóa dòng khi cài controller), phản hồi chưa cài (ví dụ 202 của cách
+     * C chờ yêu cầu phê duyệt của 000). Mỗi hợp đồng so riêng với phần OpenAPI sinh ra có đường dẫn của nó, vì các hợp
+     * đồng khai component cùng tên khác nội dung ({@code Problem}, {@code Reason}…).
+     */
+    private record Contract(Path file, Set<String> pending, Set<String> pendingResponses) {}
 
-    /** Endpoint của hợp đồng 000 chưa cài; xóa dòng tương ứng khi cài controller. */
-    private static final Set<String> PENDING = Set.of();
-
-    /** Phản hồi của hợp đồng chưa cài (ví dụ 202 của cách C chờ yêu cầu phê duyệt, US5); phải rỗng khi xong 000. */
-    private static final Set<String> PENDING_RESPONSES = Set.of();
+    private static final List<Contract> CONTRACTS = List.of(
+            new Contract(
+                    Path.of("..", "specs", "000-shared-foundation", "contracts", "api-000.yaml"), Set.of(), Set.of()),
+            // 002 T025 (2026-10-20): kéo một phần T078 lên để thêm /me; danh sách giảm dần theo các user story
+            new Contract(
+                    Path.of("..", "specs", "002-account-permission", "contracts", "api-002.yaml"),
+                    Set.of(
+                            "GET /api/v1/accounts",
+                            "GET /api/v1/accounts/{id}",
+                            "GET /api/v1/accounts/{id}/permissions",
+                            "GET /api/v1/pending-review-records",
+                            "GET /api/v1/professional-activities",
+                            "GET /api/v1/roles",
+                            "GET /api/v1/roles/{code}/permissions",
+                            "POST /api/v1/accounts",
+                            "POST /api/v1/accounts/{id}/assign-role",
+                            "POST /api/v1/accounts/{id}/early-unlock",
+                            "POST /api/v1/accounts/{id}/grant-care-plan-approval",
+                            "POST /api/v1/accounts/{id}/lock",
+                            "POST /api/v1/accounts/{id}/lock-resident",
+                            "POST /api/v1/accounts/{id}/login-qr-code",
+                            "POST /api/v1/accounts/{id}/reactivate",
+                            "POST /api/v1/accounts/{id}/remove-role",
+                            "POST /api/v1/accounts/{id}/reset-password",
+                            "POST /api/v1/accounts/{id}/restore-permission",
+                            "POST /api/v1/accounts/{id}/restrict",
+                            "POST /api/v1/accounts/{id}/revoke-care-plan-approval",
+                            "POST /api/v1/accounts/{id}/unbind-device",
+                            "POST /api/v1/accounts/{id}/unlock",
+                            "POST /api/v1/accounts/{id}/unlock-resident",
+                            "POST /api/v1/auth/change-password",
+                            "POST /api/v1/auth/login",
+                            "POST /api/v1/auth/logout",
+                            "POST /api/v1/auth/qr-login",
+                            "POST /api/v1/family-accounts",
+                            "POST /api/v1/pending-review-records/{id}/accept",
+                            "POST /api/v1/pending-review-records/{id}/reject",
+                            "POST /api/v1/professional-activities",
+                            "POST /api/v1/professional-activities/{id}/deactivate",
+                            "POST /api/v1/resident-accounts",
+                            "POST /api/v1/roles/{code}/restore-permission",
+                            "POST /api/v1/roles/{code}/restrict",
+                            "POST /api/v1/sync",
+                            "PUT /api/v1/professional-activities/{id}"),
+                    Set.of()));
 
     @Autowired
     MockMvc mvc;
@@ -53,20 +98,35 @@ class ApiContractIT extends MySqlIntegrationTestBase {
     void R_14_generatedApi_matchesContract() throws Exception {
         String generated =
                 mvc.perform(get("/v3/api-docs")).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        Set<String> contractPaths = new TreeSet<>();
+        for (Contract c : CONTRACTS) {
+            contractPaths.addAll(contract(c.file()).getPaths().keySet());
+        }
 
-        ChangedOpenApi diff = OpenApiCompare.fromSpecifications(contract(), parse(generated));
+        assertThat(new TreeSet<>(parse(generated).getPaths().keySet()))
+                .as("đường dẫn có trong mã nhưng không có trong hợp đồng nào")
+                .isSubsetOf(contractPaths);
+        for (Contract c : CONTRACTS) {
+            OpenAPI expected = contract(c.file());
+            OpenAPI actual = parse(generated);
+            actual.getPaths().keySet().retainAll(expected.getPaths().keySet());
+            ChangedOpenApi diff = OpenApiCompare.fromSpecifications(expected, actual);
+            String name = c.file().getFileName().toString();
 
-        assertThat(keys(diff.getNewEndpoints()))
-                .as("endpoint có trong mã nhưng không có trong hợp đồng")
-                .isEmpty();
-        Set<String> missing = keys(diff.getMissingEndpoints());
-        assertThat(missing).as("endpoint hợp đồng chưa cài và chưa ghi PENDING").isSubsetOf(PENDING);
-        assertThat(new TreeSet<>(PENDING))
-                .as("endpoint đã cài nhưng còn ở PENDING")
-                .isEqualTo(new TreeSet<>(missing));
-        List<String> mismatched = new ArrayList<>();
-        diff.getChangedOperations().forEach(op -> structuralChanges(op, mismatched));
-        assertThat(mismatched).as("operation lệch hợp đồng").isEmpty();
+            assertThat(keys(diff.getNewEndpoints()))
+                    .as(name + ": endpoint có trong mã nhưng không có trong hợp đồng")
+                    .isEmpty();
+            Set<String> missing = keys(diff.getMissingEndpoints());
+            assertThat(missing)
+                    .as(name + ": endpoint chưa cài và chưa ghi PENDING")
+                    .isSubsetOf(c.pending());
+            assertThat(new TreeSet<>(c.pending()))
+                    .as(name + ": endpoint đã cài nhưng còn ở PENDING")
+                    .isEqualTo(new TreeSet<>(missing));
+            List<String> mismatched = new ArrayList<>();
+            diff.getChangedOperations().forEach(op -> structuralChanges(op, c.pendingResponses(), mismatched));
+            assertThat(mismatched).as(name + ": operation lệch hợp đồng").isEmpty();
+        }
     }
 
     /**
@@ -74,7 +134,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
      * Ở đây mã phải khớp hợp đồng: không thiếu, thừa trường, kiểu, enum, trường bắt buộc, mã phản hồi, kiểu nội dung,
      * tham số; chữ mô tả được phép khác.
      */
-    private static void structuralChanges(ChangedOperation op, List<String> out) {
+    private static void structuralChanges(ChangedOperation op, Set<String> pendingResponses, List<String> out) {
         String at = op.getHttpMethod() + " " + op.getPathUrl();
         ChangedParameters params = op.getParameters();
         if (params != null) {
@@ -88,7 +148,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
         ChangedApiResponse responses = op.getApiResponses();
         if (responses != null) {
             responses.getMissing().keySet().stream()
-                    .filter(code -> !PENDING_RESPONSES.contains(at + " " + code))
+                    .filter(code -> !pendingResponses.contains(at + " " + code))
                     .forEach(code -> out.add(at + " thiếu phản hồi " + code));
             responses.getIncreased().keySet().forEach(code -> out.add(at + " thừa phản hồi " + code));
             responses.getChanged().forEach((code, r) -> content(at + " phản hồi " + code, r.getContent(), out));
@@ -147,8 +207,8 @@ class ApiContractIT extends MySqlIntegrationTestBase {
     }
 
     /** Hợp đồng ghi đường dẫn tương đối với server {@code /api/v1}; mã có đủ tiền tố. */
-    private static OpenAPI contract() throws IOException {
-        OpenAPI api = parse(Files.readString(CONTRACT, StandardCharsets.UTF_8));
+    private static OpenAPI contract(Path file) throws IOException {
+        OpenAPI api = parse(Files.readString(file, StandardCharsets.UTF_8));
         Paths prefixed = new Paths();
         api.getPaths().forEach((path, item) -> prefixed.addPathItem("/api/v1" + path, item));
         api.setPaths(prefixed);
