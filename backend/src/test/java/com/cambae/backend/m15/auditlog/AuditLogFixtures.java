@@ -2,8 +2,8 @@ package com.cambae.backend.m15.auditlog;
 
 import com.cambae.backend.common.Role;
 import com.cambae.backend.m15.account.api.CurrentUser;
-import com.cambae.backend.m15.account.api.InfoGroup;
-import com.cambae.backend.m15.account.api.Visibility;
+import com.cambae.backend.m15.account.api.dto.InfoGroup;
+import com.cambae.backend.m15.account.api.dto.Visibility;
 import com.cambae.backend.m15.auditlog.api.AuditLogPermissions;
 import com.cambae.backend.m15.auditlog.api.FieldClassificationProvider;
 import com.cambae.backend.support.FakePermissions;

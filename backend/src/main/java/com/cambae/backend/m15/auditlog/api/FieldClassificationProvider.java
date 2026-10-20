@@ -1,6 +1,6 @@
 package com.cambae.backend.m15.auditlog.api;
 
-import com.cambae.backend.m15.account.api.InfoGroup;
+import com.cambae.backend.m15.account.api.dto.InfoGroup;
 import java.util.Map;
 
 /**

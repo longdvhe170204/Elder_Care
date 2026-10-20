@@ -1,6 +1,6 @@
 package com.cambae.backend.m15.approval.internal;
 
-import com.cambae.backend.m15.account.api.Target;
+import com.cambae.backend.m15.account.api.dto.Target;
 import com.cambae.backend.m15.approval.api.ApprovalRequestView;
 import com.cambae.backend.m15.approval.api.ResultRef;
 import java.sql.Date;

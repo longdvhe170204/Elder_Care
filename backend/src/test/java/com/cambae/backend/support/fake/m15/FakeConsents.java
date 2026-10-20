@@ -1,8 +1,8 @@
 package com.cambae.backend.support.fake.m15;
 
 import com.cambae.backend.m15.account.api.CurrentUser;
-import com.cambae.backend.m15.account.api.FootnoteCondition;
-import com.cambae.backend.m15.account.api.Target;
+import com.cambae.backend.m15.account.api.dto.Target;
+import com.cambae.backend.m15.account.api.spi.FootnoteCondition;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;

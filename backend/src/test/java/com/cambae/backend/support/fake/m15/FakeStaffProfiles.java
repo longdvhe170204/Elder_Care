@@ -1,8 +1,8 @@
 package com.cambae.backend.support.fake.m15;
 
 import com.cambae.backend.common.Role;
-import com.cambae.backend.m15.account.api.StaffProfileApi;
-import com.cambae.backend.m15.account.api.StaffStatus;
+import com.cambae.backend.m15.account.api.spi.StaffProfileApi;
+import com.cambae.backend.m15.account.api.spi.StaffStatus;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;

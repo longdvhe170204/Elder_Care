@@ -1,5 +1,7 @@
 package com.cambae.backend.m15.account.api;
 
+import com.cambae.backend.m15.account.api.dto.Function;
+import com.cambae.backend.m15.account.api.dto.Operation;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

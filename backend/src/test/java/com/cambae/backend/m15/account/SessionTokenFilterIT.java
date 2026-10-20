@@ -11,7 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.common.time.TestClockControl;
-import com.cambae.backend.m15.account.auth.internal.SessionTokens;
+import com.cambae.backend.m15.account.internal.auth.service.SessionTokens;
 import com.cambae.backend.support.MySqlIntegrationTestBase;
 import jakarta.servlet.http.Cookie;
 import java.time.Duration;

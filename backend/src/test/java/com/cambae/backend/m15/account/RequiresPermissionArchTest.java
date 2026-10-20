@@ -37,12 +37,12 @@ class RequiresPermissionArchTest {
             "quyền theo loại bản ghi gốc (CorrectableRecordProvider.canRecord, CorrectionMethodSelector); 000 FR-026",
             "com.cambae.backend.m15.parameter.internal.ParameterService.changeValue",
             "PermissionApi.hasPermission với khóa tham số, chỉ Quản lý viện; 000 BR-M15-04",
-            "com.cambae.backend.m15.account.auth.internal.AccountService.earlyUnlock",
+            "com.cambae.backend.m15.account.internal.auth.service.AccountService.earlyUnlock",
             "Quản lý viện, hoặc Trưởng tầng, Người phụ trách ca cùng tầng và ca theo AssignmentApi lúc chạy"
                     + " (AccountService.earlyUnlockAuthority); 002 FR-019c",
-            "com.cambae.backend.m15.account.offline.internal.PendingReviewService.accept",
+            "com.cambae.backend.m15.account.internal.offline.PendingReviewService.accept",
             "người quyết định xem lại của tầng lúc chạy (ScopeApi.reviewDecider); 002 FR-041c, CHK056",
-            "com.cambae.backend.m15.account.offline.internal.PendingReviewService.reject",
+            "com.cambae.backend.m15.account.internal.offline.PendingReviewService.reject",
             "người quyết định xem lại của tầng lúc chạy (ScopeApi.reviewDecider); 002 FR-041c, CHK056");
 
     @ArchTest

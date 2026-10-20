@@ -1,7 +1,7 @@
 package com.cambae.backend.support.fake.m15;
 
 import com.cambae.backend.common.Reason;
-import com.cambae.backend.m15.account.api.DutyApi;
+import com.cambae.backend.m15.account.api.spi.DutyApi;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;

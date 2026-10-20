@@ -3,8 +3,8 @@ package com.cambae.backend.m15.account;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.cambae.backend.m15.account.Appendix27Matrix.Row;
-import com.cambae.backend.m15.account.api.Function;
-import com.cambae.backend.m15.account.api.Operation;
+import com.cambae.backend.m15.account.api.dto.Function;
+import com.cambae.backend.m15.account.api.dto.Operation;
 import com.cambae.backend.support.MySqlIntegrationTestBase;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

@@ -2,8 +2,8 @@ package com.cambae.backend.m15.approval.api;
 
 import com.cambae.backend.common.Role;
 import com.cambae.backend.common.error.UnmetCondition;
-import com.cambae.backend.m15.account.api.PermissionKey;
-import com.cambae.backend.m15.account.api.Target;
+import com.cambae.backend.m15.account.api.dto.PermissionKey;
+import com.cambae.backend.m15.account.api.dto.Target;
 import com.cambae.backend.m15.parameter.api.ParameterCode;
 import java.time.LocalDate;
 import java.util.List;

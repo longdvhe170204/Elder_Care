@@ -1,9 +1,9 @@
 package com.cambae.backend.support.fake.m15;
 
-import com.cambae.backend.m15.account.api.BedAllocationApi;
-import com.cambae.backend.m15.account.api.BedAllocationView;
-import com.cambae.backend.m15.account.api.InvalidPermissionDataException;
-import com.cambae.backend.m15.account.api.ScopeFilter;
+import com.cambae.backend.m15.account.api.dto.ScopeFilter;
+import com.cambae.backend.m15.account.api.spi.BedAllocationApi;
+import com.cambae.backend.m15.account.api.spi.BedAllocationView;
+import com.cambae.backend.m15.account.api.spi.InvalidPermissionDataException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;

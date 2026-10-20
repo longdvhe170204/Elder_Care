@@ -1,6 +1,6 @@
 package com.cambae.backend.support.fake.m15;
 
-import com.cambae.backend.m15.account.api.ResidencyEndApi;
+import com.cambae.backend.m15.account.api.spi.ResidencyEndApi;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;

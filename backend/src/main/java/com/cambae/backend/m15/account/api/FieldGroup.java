@@ -1,5 +1,6 @@
 package com.cambae.backend.m15.account.api;
 
+import com.cambae.backend.m15.account.api.dto.InfoGroup;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
