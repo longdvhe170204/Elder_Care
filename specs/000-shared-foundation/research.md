@@ -62,7 +62,7 @@ Feature 000 nằm trong **M15 – Quản trị hệ thống**, vì tham số (BR
 │   └── config/       cấu hình nội bộ của module
 │   (module lớn chia theo chức năng trước, mỗi chức năng có các tầng trên: account/internal/<auth, permission, scope,
 │    legal, offline>/{service, domain, persistence, config}; truy cập dữ liệu dùng chung giữa các chức năng ở
-│    account/internal/persistence/)
+│    account/internal/domain/, account/internal/persistence/; lớp persistence trả record của domain)
 └── scheduling/       job theo lịch (SchedulerScopeArchTest)
 ```
 
@@ -70,6 +70,7 @@ Feature 000 nằm trong **M15 – Quản trị hệ thống**, vì tham số (BR
 - Lớp truy cập dữ liệu chỉ một chức năng dùng thì để trong `persistence/` của chức năng đó; chỉ phần dùng chung lên `account/internal/persistence/`. Lớp, thành viên chỉ dùng trong gói giữ package-private; chỉ mở `public` phần tầng khác gọi.
 - DTO chỉ phục vụ HTTP thuộc `web/`. Ngoại lệ: `m15.approval.api.dto` (`ApprovalRequestBody`, `ActorBody`, `ActorType`) vì phản hồi 202 của lệnh ở phần khác (đính chính cách C) trả yêu cầu phê duyệt.
 - Mỗi gói `api` và gói con có `package-info.java` gắn `@NamedInterface` (`ApiNamedInterfaceArchTest`). Giữa các phần của M15, `M15PartBoundaryArchTest` chỉ cho dùng gói `api` của phần khác (Modulith coi cả M15 là một module).
+- `LayerArchTest` kiểm tầng trong mọi module: lớp `internal` nằm ở `service`, `domain`, `persistence` hoặc `config`; `web` không dùng `persistence`, `JdbcTemplate`, Spring Data; `domain` không dùng tầng khác; `persistence` không dùng `service`, `web`; `service` không dùng `web`; `api` không dùng `internal`, `web`. Bảng "đặt lớp ở đâu" và ví dụ ở [backend/README.md](../../backend/README.md); đường dẫn file trong tasks, plan là tên logic, đặt lớp theo mục này.
 
 **Lý do**: Constitution X yêu cầu một khối chia gói theo M01–M15 và chặn truy cập chéo dữ liệu. `ApplicationModules.verify()` của Spring Modulith và ArchUnit kiểm tra điều này tự động trong bộ test. Cấu trúc trong module cho mọi thành viên cùng một chỗ đặt lớp và nhìn tên gói là biết tầng (chủ dự án chọn chia tầng cho mọi `internal`, 2026-10-21); chia theo chức năng trước ở module lớn để mã của một chức năng nằm gần nhau. Đổi lại, lớp dùng giữa các tầng phải `public` (khi chia M15: 10 lớp ở `domain`, `persistence` của `auth`, `legal`, `offline`, `permission`, `approval`, `correction`); ranh giới giữa module vẫn do Modulith và ArchUnit giữ.
 

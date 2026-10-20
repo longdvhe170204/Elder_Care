@@ -5,8 +5,8 @@ import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m15.account.api.dto.AccountStatus;
 import com.cambae.backend.m15.account.api.dto.AccountType;
 import com.cambae.backend.m15.account.internal.auth.domain.AccountAuditActions;
+import com.cambae.backend.m15.account.internal.domain.Account;
 import com.cambae.backend.m15.account.internal.persistence.AccountStore;
-import com.cambae.backend.m15.account.internal.persistence.AccountStore.AccountRow;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
 import com.cambae.backend.m15.auditlog.api.Basis;
@@ -74,7 +74,7 @@ public class InactiveAccounts {
     }
 
     private boolean markInactive(long accountId, Instant cutoff, long runId) {
-        AccountRow account = store.lock(accountId).orElseThrow();
+        Account account = store.lock(accountId).orElseThrow();
         if (account.type() != AccountType.FAMILY_MEMBER
                 || account.status() != AccountStatus.ACTIVE
                 || !store.inactivityReference(accountId).isBefore(cutoff)) {

@@ -16,9 +16,9 @@ import com.cambae.backend.m15.account.api.dto.Function;
 import com.cambae.backend.m15.account.api.dto.Operation;
 import com.cambae.backend.m15.account.internal.auth.domain.AccountAuditActions;
 import com.cambae.backend.m15.account.internal.auth.service.AccountService;
+import com.cambae.backend.m15.account.internal.domain.Account;
 import com.cambae.backend.m15.account.internal.permission.domain.PermissionViews.AccountPermissions;
 import com.cambae.backend.m15.account.internal.persistence.AccountStore;
-import com.cambae.backend.m15.account.internal.persistence.AccountStore.AccountRow;
 import com.cambae.backend.m15.auditlog.api.AuditAction;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
@@ -66,7 +66,7 @@ public class RoleAssignmentService {
     @Transactional(readOnly = true)
     public Result current(long accountId) {
         AccountService.requireManager(currentUser.getObject());
-        AccountRow account = store.find(accountId).orElseThrow(NotFoundException::new);
+        Account account = store.find(accountId).orElseThrow(NotFoundException::new);
         return new Result(view(account), account.permissionVersion());
     }
 
@@ -75,7 +75,7 @@ public class RoleAssignmentService {
     @Transactional
     public Result assign(long accountId, String ifMatch, Role role, Reason reason) {
         CurrentUser user = currentUser.getObject();
-        AccountRow account = locked(accountId, ifMatch, user);
+        Account account = locked(accountId, ifMatch, user);
         Set<Role> before = store.roles(accountId);
         if (before.contains(role)) {
             throw new ConditionNotMetException(List.of(new UnmetCondition("FR-003", "Tài khoản đã có vai trò này")));
@@ -89,7 +89,7 @@ public class RoleAssignmentService {
     @Transactional
     public Result remove(long accountId, String ifMatch, Role role, Reason reason) {
         CurrentUser user = currentUser.getObject();
-        AccountRow account = locked(accountId, ifMatch, user);
+        Account account = locked(accountId, ifMatch, user);
         Set<Role> before = store.roles(accountId);
         if (!before.contains(role)) {
             throw new ConditionNotMetException(List.of(new UnmetCondition("FR-003", "Tài khoản không có vai trò này")));
@@ -110,9 +110,9 @@ public class RoleAssignmentService {
         return changed(account, before, AccountAuditActions.ROLE_REMOVED, reason);
     }
 
-    private AccountRow locked(long accountId, String ifMatch, CurrentUser user) {
+    private Account locked(long accountId, String ifMatch, CurrentUser user) {
         AccountService.requireManager(user);
-        AccountRow account = store.lock(accountId).orElseThrow(NotFoundException::new);
+        Account account = store.lock(accountId).orElseThrow(NotFoundException::new);
         if (account.type() != AccountType.STAFF) {
             throw new ConditionNotMetException(
                     List.of(new UnmetCondition("FR-003", "Chỉ gán, gỡ vai trò nhân viên cho tài khoản nhân viên")));
@@ -121,7 +121,7 @@ public class RoleAssignmentService {
         return account;
     }
 
-    private Result changed(AccountRow account, Set<Role> before, AuditAction action, Reason reason) {
+    private Result changed(Account account, Set<Role> before, AuditAction action, Reason reason) {
         store.bumpPermissionVersion(account.id());
         auditLog.write(AuditLogEntry.builder()
                 .action(action)
@@ -130,11 +130,11 @@ public class RoleAssignmentService {
                 .after(Map.of("roles", codes(store.roles(account.id()))))
                 .reason(reason)
                 .build());
-        AccountRow updated = store.find(account.id()).orElseThrow();
+        Account updated = store.find(account.id()).orElseThrow();
         return new Result(view(updated), updated.permissionVersion());
     }
 
-    private AccountPermissions view(AccountRow account) {
+    private AccountPermissions view(Account account) {
         return permissions.of(account.id(), account.status().name(), codes(store.roles(account.id())));
     }
 

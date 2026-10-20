@@ -4,7 +4,7 @@ import com.cambae.backend.common.Role;
 import com.cambae.backend.m15.account.api.dto.AccountStatus;
 import com.cambae.backend.m15.account.api.dto.AccountType;
 import com.cambae.backend.m15.account.internal.auth.service.AccountService.AccountDetails;
-import com.cambae.backend.m15.account.internal.persistence.AccountStore.AccountRow;
+import com.cambae.backend.m15.account.internal.domain.Account;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.List;
@@ -28,7 +28,7 @@ public record AccountBody(
 
     /** {@code fullName} theo hồ sơ liên kết (T032a), không có thì {@code null}. */
     public static AccountBody of(AccountDetails d, String fullName) {
-        AccountRow a = d.account();
+        Account a = d.account();
         return new AccountBody(
                 a.id(),
                 a.username(),

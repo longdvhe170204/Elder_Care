@@ -29,8 +29,8 @@ import com.cambae.backend.m15.account.api.spi.StaffProfileApi;
 import com.cambae.backend.m15.account.api.spi.StaffStatus;
 import com.cambae.backend.m15.account.internal.auth.domain.AccountAuditActions;
 import com.cambae.backend.m15.account.internal.auth.domain.LoginRules;
+import com.cambae.backend.m15.account.internal.domain.Account;
 import com.cambae.backend.m15.account.internal.persistence.AccountStore;
-import com.cambae.backend.m15.account.internal.persistence.AccountStore.AccountRow;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
 import com.cambae.backend.m15.auditlog.api.Basis;
@@ -116,7 +116,7 @@ public class AccountService implements AccountApi {
     }
 
     /** Tài khoản kèm vai trò đang gán và lệnh người xem được phép (FR-042). */
-    public record AccountDetails(AccountRow account, Set<Role> roles, List<String> allowedCommands) {}
+    public record AccountDetails(Account account, Set<Role> roles, List<String> allowedCommands) {}
 
     /** Tài khoản vừa tạo và mật khẩu tạm (chỉ trả một lần). */
     public record Created(AccountDetails details, String temporaryPassword) {}
@@ -238,7 +238,7 @@ public class AccountService implements AccountApi {
     public AccountDetails lock(long accountId, String ifMatch, Reason reason, Long replacementDepartmentLead) {
         CurrentUser user = currentUser.getObject();
         requireManager(user);
-        AccountRow account = store.lock(accountId).orElseThrow(NotFoundException::new);
+        Account account = store.lock(accountId).orElseThrow(NotFoundException::new);
         VersionEtag.requireMatch(ifMatch, account.version(), details(account, user));
         if (account.status() == AccountStatus.LOCKED) {
             throw conflict("INVALID_STATE", "Tài khoản đã khóa");
@@ -277,7 +277,7 @@ public class AccountService implements AccountApi {
     public AccountDetails unlock(long accountId, String ifMatch, Reason reason) {
         CurrentUser user = currentUser.getObject();
         requireManager(user);
-        AccountRow account = store.lock(accountId).orElseThrow(NotFoundException::new);
+        Account account = store.lock(accountId).orElseThrow(NotFoundException::new);
         VersionEtag.requireMatch(ifMatch, account.version(), details(account, user));
         if (account.status() != AccountStatus.LOCKED) {
             throw conflict("INVALID_STATE", "Chỉ mở khóa tài khoản Đã khóa");
@@ -318,7 +318,7 @@ public class AccountService implements AccountApi {
             String calledPhoneNumber) {
         CurrentUser user = currentUser.getObject();
         requireFamilyAccountOperator(user);
-        AccountRow account = store.lock(accountId).orElseThrow(NotFoundException::new);
+        Account account = store.lock(accountId).orElseThrow(NotFoundException::new);
         boolean family = account.type() == AccountType.FAMILY_MEMBER;
         if (!family && !user.roles().contains(Role.NURSING_HOME_MANAGER)) {
             throw new NotFoundException();
@@ -353,7 +353,7 @@ public class AccountService implements AccountApi {
         if (!Boolean.TRUE.equals(verifiedInPerson)) {
             throw new InvalidValueException("Cần xác minh trực tiếp người dùng trước khi mở khóa sớm (FR-019c)");
         }
-        AccountRow account = store.lock(accountId).orElseThrow(NotFoundException::new);
+        Account account = store.lock(accountId).orElseThrow(NotFoundException::new);
         String authority = earlyUnlockAuthority(user, account);
         VersionEtag.requireMatch(ifMatch, account.version(), details(account, user));
         if (LoginRules.effective(account.status(), account.lockedUntil(), time.now())
@@ -393,7 +393,7 @@ public class AccountService implements AccountApi {
         if (verificationMethod == null) {
             throw new InvalidValueException("Cần ghi cách xác minh (FR-052)");
         }
-        AccountRow account = store.lock(accountId).orElseThrow(NotFoundException::new);
+        Account account = store.lock(accountId).orElseThrow(NotFoundException::new);
         if (!user.roles().contains(Role.NURSING_HOME_MANAGER) && account.type() != AccountType.FAMILY_MEMBER) {
             throw new NotFoundException();
         }
@@ -419,7 +419,7 @@ public class AccountService implements AccountApi {
     }
 
     /** Căn cứ mở khóa sớm của người dùng với tài khoản (FR-019c); không đủ thì từ chối. */
-    private String earlyUnlockAuthority(CurrentUser user, AccountRow account) {
+    private String earlyUnlockAuthority(CurrentUser user, Account account) {
         if (user.roles().contains(Role.NURSING_HOME_MANAGER)) {
             return Role.NURSING_HOME_MANAGER.name();
         }
@@ -508,7 +508,7 @@ public class AccountService implements AccountApi {
     @RequiresPermission(function = Function.ACCOUNT_PERMISSION_PARAMETER, operation = Operation.VIEW)
     public AccountDetails detail(long accountId) {
         CurrentUser user = currentUser.getObject();
-        AccountRow account = store.find(accountId).orElseThrow(NotFoundException::new);
+        Account account = store.find(accountId).orElseThrow(NotFoundException::new);
         if (!user.roles().contains(Role.NURSING_HOME_MANAGER) && account.type() != AccountType.FAMILY_MEMBER) {
             throw new NotFoundException();
         }
@@ -528,16 +528,16 @@ public class AccountService implements AccountApi {
         } catch (NumberFormatException e) {
             throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_VALUE", "Con trỏ trang không hợp lệ");
         }
-        List<AccountRow> rows = store.page(visibleType, status, q, after, PAGE_SIZE + 1);
+        List<Account> rows = store.page(visibleType, status, q, after, PAGE_SIZE + 1);
         boolean more = rows.size() > PAGE_SIZE;
-        List<AccountRow> items = more ? rows.subList(0, PAGE_SIZE) : rows;
+        List<Account> items = more ? rows.subList(0, PAGE_SIZE) : rows;
         return new Page(
                 items.stream().map(a -> details(a, user)).toList(),
                 more ? String.valueOf(items.getLast().id()) : null);
     }
 
-    private AccountDetails details(AccountRow stored, CurrentUser user) {
-        AccountRow account = displayed(stored);
+    private AccountDetails details(Account stored, CurrentUser user) {
+        Account account = displayed(stored);
         boolean manager = user.roles().contains(Role.NURSING_HOME_MANAGER);
         List<String> commands = new ArrayList<>();
         if (manager && account.type() == AccountType.STAFF) {
@@ -564,11 +564,11 @@ public class AccountService implements AccountApi {
     }
 
     /** Khóa tạm đã quá thời điểm mở hiển thị là Hoạt động (research A-03: chuyển khi có lần đăng nhập kế tiếp). */
-    private AccountRow displayed(AccountRow a) {
+    private Account displayed(Account a) {
         if (LoginRules.effective(a.status(), a.lockedUntil(), time.now()) == a.status()) {
             return a;
         }
-        return new AccountRow(
+        return new Account(
                 a.id(),
                 a.username(),
                 a.type(),
@@ -595,11 +595,11 @@ public class AccountService implements AccountApi {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void lockOnResignation(long staffId, Basis basis) {
-        Optional<AccountRow> found = store.byStaff(staffId);
+        Optional<Account> found = store.byStaff(staffId);
         if (found.isEmpty()) {
             return;
         }
-        AccountRow account = store.lock(found.get().id()).orElseThrow();
+        Account account = store.lock(found.get().id()).orElseThrow();
         if (account.status() == AccountStatus.LOCKED && "RESIGNATION".equals(account.lockCause())) {
             return;
         }
@@ -622,7 +622,7 @@ public class AccountService implements AccountApi {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void recheckFamilyMember(long familyMemberId, Basis basis) {
-        Optional<AccountRow> found = store.byFamilyMember(familyMemberId);
+        Optional<Account> found = store.byFamilyMember(familyMemberId);
         if (found.isEmpty() || stillRelated(familyMemberId)) {
             return;
         }
@@ -639,7 +639,7 @@ public class AccountService implements AccountApi {
      */
     @Transactional
     public boolean lockIfResidenciesExpired(long accountId, Basis basis) {
-        AccountRow account = store.find(accountId).orElseThrow();
+        Account account = store.find(accountId).orElseThrow();
         if (account.type() != AccountType.FAMILY_MEMBER
                 || familyRelationships
                         .getObject()
@@ -653,7 +653,7 @@ public class AccountService implements AccountApi {
 
     /** Khóa tự động tài khoản người thân dưới khóa dòng; đã Đã khóa thì giữ nguyên nguyên nhân cũ. */
     private boolean lockFamily(long accountId, String cause, Basis basis) {
-        AccountRow account = store.lock(accountId).orElseThrow();
+        Account account = store.lock(accountId).orElseThrow();
         if (account.status() == AccountStatus.LOCKED) {
             return false;
         }
@@ -709,7 +709,7 @@ public class AccountService implements AccountApi {
         });
     }
 
-    private AccountView view(AccountRow account) {
+    private AccountView view(Account account) {
         return new AccountView(account.id(), account.type(), account.status(), Set.copyOf(store.roles(account.id())));
     }
 }

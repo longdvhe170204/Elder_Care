@@ -46,6 +46,7 @@ Skill ở `.claude/skills/karpathy-guidelines/` (nguồn ghi ở `skills-lock.js
   6. Hết phase: chạy test, đánh dấu `[x]` (không đánh dấu task có test chưa chạy được), ghi tiến độ ở mục "Giai đoạn hiện tại", đề nghị commit.
   7. Xong feature: chạy đủ lệnh kiểm ở mục "Lệnh"; mở PR `impl/NNN-ten` → `develop`.
 - Thứ tự đọc khi làm task: tasks.md → plan.md → data-model.md → contracts/ → research.md → spec.md → nghiep-vu.md. Quy ước kỹ thuật chung (tên, module, API, thời gian, cơ sở dữ liệu, test, Lombok) ở research R-01 → R-14 của 000.
+- Đường dẫn file trong tasks, plan (`BE/m01/hoso/internal/HoSoService.java`, `BE/m15/taikhoan/quyen/web/…`) là tên logic, chỉ cho biết module và vai trò của lớp: đặt lớp theo research R-02 của 000 mục "Cấu trúc trong module" (`api/{dto, spi, events}`, `web/{request, response}`, `internal/…/{service, domain, persistence, config}`), không chép đường dẫn trong tasks; `LayerArchTest`, `ModuleBoundaryTest` kiểm. Xem [backend/README.md](backend/README.md).
 - Lệch kỹ thuật (tên lớp, thư viện, cách cài) thì sửa plan, tasks cùng lúc với mã và ghi lý do ở plan.
 
 ## Công nghệ và cấu trúc mã
