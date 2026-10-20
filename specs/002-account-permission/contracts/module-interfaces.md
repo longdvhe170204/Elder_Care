@@ -64,6 +64,7 @@ MucXem duocXem(NguoiDungHienTai nd, NhomThongTin nhom, DoiTuong doiTuong);   // 
 
 - 000 khai báo `duocXem(nd, NhomThongTin)`; 002 thêm `DoiTuong` vì giới hạn trường xét theo cặp (nhóm, phạm vi) của từng vai trò (FR-034). Bản rút gọn của 000 tương đương `duocXem(nd, nhom, DoiTuong.KHONG_CU_THE)` và chỉ dùng cho nhật ký toàn viện của Quản lý viện.
 - Chú thích DTO: `@NhomTruong(NhomThongTin.SUC_KHOE)` trên trường; `BeanSerializerModifier` của 002 áp khi tuần tự hóa (research A-08).
+- *(Bổ sung 2026-10-20, T023)* DTO có trường `@NhomTruong` cài `DoiTuongXemTruong` (mã `VisibilityTarget.visibilityTarget()`) để serializer biết đối tượng, xét phạm vi từng vai trò; không cài thì đối tượng là `KHONG_CU_THE`. DTO khai trường `truongBiAn` (mã `hiddenFields`), serializer ghi lại bằng tên các trường đã bỏ. Mức `CHI_CO_HAY_KHONG` cũng bỏ trường; DTO tự mang cờ có/không (ví dụ `coNguyenVong` của 001).
 
 ### 1.5. `NguoiDuyetApi` (khai báo ở 000)
 
@@ -87,6 +88,8 @@ Optional<TaiKhoanView> theoNguoiCaoTuoi(long nguoiCaoTuoiId); // bổ sung 2026-
 boolean coVaiTro(long taiKhoanId, VaiTro... vaiTro);       // 008: chặn giao Phụ trách bộ phận cho AC-01, AC-14 (FR-019f);
                                                           // bổ sung theo plan 004 (Q-338): 000 lọc người duyệt theo gioiHanVaiTroDuyet;
                                                           // bổ sung theo plan 007 (Q-339): 007 kiểm vai trò người giao, người được giao sự cố (FR-045a)
+Optional<String> hoTen(long taiKhoanId);                  // bổ sung 2026-10-20 (T032a): Actor.fullName của 000, UserInfo.fullName;
+                                                          // đọc từ hồ sơ liên kết: nhân viên (008), người thân (012), người cao tuổi (001)
 ```
 
 Hai lệnh đầu dùng `Propagation.MANDATORY`. Chúng không tạo bản ghi nghiệp vụ mới ngoài chuyển trạng thái tài khoản và nhật ký, đúng FR-010a của 000.
@@ -154,7 +157,7 @@ Chỉ endpoint nút SOS của 007 gọi hàm này (ArchUnit kiểm). Token thi�
 
 | Giao diện | Module cung cấp (feature) | Dùng cho | Khi chưa có |
 | --- | --- | --- | --- |
-| `HoSoNhanVienApi.trangThai(nhanVienId, ngay)`; `chucDanhCoVaiTro(nhanVienId)` | M09 (008) | FR-004, FR-004a, FR-011 | Bản giả |
+| `HoSoNhanVienApi.trangThai(nhanVienId, ngay)`; `chucDanhCoVaiTro(nhanVienId)`; *(bổ sung 2026-10-20)* `taoHoSoToiThieu(hoTen, chucDanh)` (T016, công cụ khởi tạo, BR-M15-22), `hoTen(nhanVienId)` (T032a) | M09 (008) | FR-004, FR-004a, FR-011, FR-004b | Bản giả |
 | `GiayPhepApi.hieuLuc(nhanVienId, loai, ngay)` trả giấy phép và mục phạm vi hành nghề | 008 (FR-006) | FR-037, FR-038, A-09 | Bản giả |
 | `DanhMucPhamViHanhNgheApi` | 008 | FR-037, BR-M15-19 | Bản giả |
 | `PhanCongApi.dangHieuLuc(nhanVienId, thoiDiem)`; `lichSu(nhanVienId, tu, den)` | 008 (FR-037a) | FR-028 → FR-035a | Bản giả |
@@ -163,10 +166,10 @@ Chỉ endpoint nút SOS của 007 gọi hàm này (ArchUnit kiểm). Token thi�
 `HoSoNhanVienApi`, `GiayPhepApi`, `DanhMucPhamViHanhNgheApi`, `PhanCongApi`, `NhiemVuApi` được khai báo trong `m15.taikhoan.api` dưới dạng SPI, M09 cài, để không có vòng M15 ↔ M09 (bổ sung theo plan 008, research N-02); chữ ký giữ nguyên. 002 cung cấp thêm cho 008 hàm đọc `NghiepVuChuyenMonApi.loaiYeuCau(maNghiepVu)` (loại giấy phép/đào tạo của nghiệp vụ chuyên môn; 008 FR-030).
 | `PhanBoGiuongApi.dangMo(nguoiCaoTuoiId, thoiDiem)`; `nguoiCaoTuoiTai(phamVi, thoiDiem)`. Khai báo trong `m15.taikhoan.api` dưới dạng SPI, M03 cài, để không có vòng M15 ↔ M03 (bổ sung theo plan 003, research G-02) | M03 (003) | FR-029, FR-030 | Bản giả |
 | `NguoiCaoTuoiApi.trangThai(id)`; `nhanDang(id)`; điều kiện chú thích ¹ (bản đồng ý) | M01 (001) | FR-044a, FR-046, FR-049 | Bản giả |
-| `QuanHeNguoiThanApi.hieuLuc(nguoiThanId)`; `soDienThoaiDaDangKy(nguoiThanId)`; điều kiện chú thích ² (người đại diện) và quyền theo người thân. Khai báo trong `m15.taikhoan.api` dưới dạng SPI, M10 cài, để không có vòng M15 ↔ M10; 001, 006, 011 dùng cùng khai báo (bổ sung theo plan 012, research F-14; chữ ký hợp nhất ở hợp đồng 012 mục 1.1) | M10 (012) | FR-045 → FR-052 | Bản giả |
+| `QuanHeNguoiThanApi.hieuLuc(nguoiThanId)`; `soDienThoaiDaDangKy(nguoiThanId)`; *(bổ sung 2026-10-20)* `hoTenNguoiThan(nguoiThanId)` (T032a); điều kiện chú thích ² (người đại diện) và quyền theo người thân. Khai báo trong `m15.taikhoan.api` dưới dạng SPI, M10 cài, để không có vòng M15 ↔ M10; 001, 006, 011 dùng cùng khai báo (bổ sung theo plan 012, research F-14; chữ ký hợp nhất ở hợp đồng 012 mục 1.1) | M10 (012) | FR-045 → FR-052 | Bản giả |
 | `KetThucLuuTruApi.thoiDiemTrangThaiCuoi(nguoiCaoTuoiId)`. Khai báo trong `m15.taikhoan.api` dưới dạng SPI, M02 cài, để không có vòng M15 ↔ M02 (bổ sung theo plan 004, research T-02) | M02 (004) | FR-049, job `KhoaSauKetThucLuuTru` | Bản giả |
 | `GiayPhepCoSoApi.coPhamVi(phamVi, ngay)`; `sapHetHan(trongVong)` | M06 (007, FR-070) | FR-037 (c), FR-039 | Bản giả |
 | `ThamSoApi`, `NhatKyApi`, `NhacQuaHan`, `common` | M15 (000) | Mọi lệnh | Có sẵn |
 | Lắng nghe sự kiện mục 1.10 | M13 (009) | FR-039, FR-041a → c | Sự kiện lưu ở outbox |
-| *(Bổ sung 2026-10-18)* `NguoiCaoTuoiApi.trangThai(id)` cho lệnh tạo, mở khóa tài khoản người cao tuổi; nghe `NguoiCaoTuoiDaChuyenTrangThai` sang trạng thái cuối để khóa | M01 (001) | FR-067, FR-072 (A-16) | Bản giả; sự kiện giả trong test |
+| *(Bổ sung 2026-10-18)* `NguoiCaoTuoiApi.trangThai(id)` cho lệnh tạo, mở khóa tài khoản người cao tuổi; *(2026-10-20)* họ tên người cao tuổi cho `TaiKhoanApi.hoTen` (B khai báo trong `NguoiCaoTuoiApi`, 002 dùng ở T091); nghe `NguoiCaoTuoiDaChuyenTrangThai` sang trạng thái cuối để khóa | M01 (001) | FR-067, FR-072 (A-16) | Bản giả; sự kiện giả trong test |
 | *(Bổ sung 2026-10-18)* `LoaiYeuCauHandler` cho loại `M15.KHOA_TAI_KHOAN_NCT` (002 cài, 000 gọi) | M15 (000) | FR-072 (A-16) | Có sẵn |

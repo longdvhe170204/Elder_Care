@@ -34,6 +34,7 @@
         <archunit.version>1.5.1</archunit.version>
         <openapi-diff.version>2.1.7</openapi-diff.version>
         <datasource-proxy.version>1.11.0</datasource-proxy.version>
+        <bouncycastle.version>1.86</bouncycastle.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -54,6 +55,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <!-- Argon2PasswordEncoder của Spring Security cần Bouncy Castle (002 research A-03, T001) -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

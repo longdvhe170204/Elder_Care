@@ -4,3 +4,5 @@ alwaysApply: true
 ---
 
 Đọc và làm theo AGENTS.md ở gốc kho (bản đầy đủ: CLAUDE.md), docs/team-plan.md (ai sở hữu phần nào) và README của thư mục đang sửa (frontend/README.md, mobile/README.md) trước khi viết mã. Nghiệp vụ chỉ lấy từ docs/business/nghiep-vu.md; chỉ sửa phần của mình; test viết trước; hợp đồng API là luật; tên tiếng Anh theo specs/000-shared-foundation/glossary.md.
+
+Đầu mỗi cuộc trò chuyện: đọc docs/team-plan.md mục 8 "Việc đang chờ giữa các thành viên" và báo người dùng các dòng có tên họ ở cột "Ai làm". Cần người khác làm gì thì thêm dòng vào bảng đó trong PR.

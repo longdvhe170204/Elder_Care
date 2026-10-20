@@ -14,4 +14,10 @@ public interface StaffProfileApi {
 
     /** Vai trò hệ thống ứng với chức danh; rỗng khi chức danh không dùng hệ thống (FR-004a). */
     Optional<Role> positionRole(long staffId);
+
+    /**
+     * Tạo hồ sơ nhân viên tối thiểu (họ tên, chức danh ứng với vai trò) cho công cụ khởi tạo Quản lý viện đầu tiên;
+     * trả id hồ sơ (002 T016; BR-M15-22, FR-004b). Chạy trong transaction của lệnh gọi.
+     */
+    long createMinimal(String fullName, Role positionRole);
 }

@@ -52,6 +52,17 @@ class ProblemDetailsHandlerIT extends MySqlIntegrationTestBase {
                 .andExpect(jsonPath("$.unmetConditions[0].description").value("Giường chưa Trống"));
     }
 
+    /** 002 FR-043 (T014): lỗi quyền kèm lớp không thỏa và giấy phép. */
+    @Test
+    void FR_043_permissionDenied_carriesFailedLayerAndLicense() throws Exception {
+        mvc.perform(get("/api/v1/test-support/errors/legal"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("LEGAL_CONDITION_NOT_MET"))
+                .andExpect(jsonPath("$.failedLayer").value("LEGAL"))
+                .andExpect(jsonPath("$.license.name").value("Chứng chỉ hành nghề"))
+                .andExpect(jsonPath("$.license.expiryDate").value("2026-09-30"));
+    }
+
     @Test
     void FR_021_versionMismatch_returnsCurrentValue() throws Exception {
         mvc.perform(get("/api/v1/test-support/errors/version"))

@@ -88,7 +88,9 @@ public class AuditLogQueryService {
 
     public enum ActorType {
         USER,
-        SCHEDULER
+        SCHEDULER,
+        // Công cụ khởi tạo Quản lý viện đầu tiên (002 BR-M15-22); chỉ nhật ký có
+        BOOTSTRAP
     }
 
     public record Actor(ActorType type, Long id, String fullName, String role) {}
@@ -238,7 +240,7 @@ public class AuditLogQueryService {
         return switch (stored) {
             case "USER" -> ActorType.USER;
             case "SCHEDULER" -> ActorType.SCHEDULER;
-            // BOOTSTRAP do 002 ghi (khởi tạo Quản lý viện đầu tiên); hợp đồng 000 chưa có giá trị này
+            case "BOOTSTRAP" -> ActorType.BOOTSTRAP;
             default -> throw new IllegalStateException("Loại người thực hiện chưa có trong hợp đồng: " + stored);
         };
     }

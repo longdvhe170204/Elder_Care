@@ -52,18 +52,35 @@ class AuditLogService implements AuditLogApi {
         insert(entry);
     }
 
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void writeAsBootstrap(AuditLogEntry entry) {
+        if (entry.basis() == null) {
+            throw new IllegalStateException("Thay đổi do khởi tạo hệ thống phải có căn cứ (FR-045)");
+        }
+        insert(entry, "BOOTSTRAP", null, null);
+    }
+
     private void insert(AuditLogEntry entry) {
         CurrentUser user = currentUser.getObject();
         if (user.isScheduler() && entry.basis() == null) {
             throw new IllegalStateException("Thay đổi do Bộ lập lịch phải có căn cứ (FR-045)");
         }
+        insert(
+                entry,
+                user.isScheduler() ? "SCHEDULER" : "USER",
+                user.isScheduler() ? null : user.accountId(),
+                roleCode(user));
+    }
+
+    private void insert(AuditLogEntry entry, String actorType, Long actorId, String role) {
         jdbc.update(
                 INSERT,
                 utc(time.now()),
                 entry.deviceTime() == null ? null : utc(entry.deviceTime()),
-                user.isScheduler() ? "SCHEDULER" : "USER",
-                user.isScheduler() ? null : user.accountId(),
-                roleCode(user),
+                actorType,
+                actorId,
+                role,
                 entry.action().code(),
                 entry.entityType(),
                 entry.entityId(),

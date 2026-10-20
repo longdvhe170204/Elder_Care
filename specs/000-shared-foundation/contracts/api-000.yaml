@@ -385,7 +385,7 @@ components:
     Actor:
       type: object
       properties:
-        type: { type: string, enum: [USER, SCHEDULER] }
+        type: { type: string, enum: [USER, SCHEDULER, BOOTSTRAP] }
         id: { type: [integer, 'null'] }
         fullName: { type: string }
         role: { type: string, example: AC-01 }
