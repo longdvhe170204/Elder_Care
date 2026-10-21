@@ -66,7 +66,7 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 - [x] T018 [P] [US1] Test `BT/m15/taikhoan/MaTranQuyenIT.java` (SC-001) và `QuyenBaLopIT.java`: mỗi vai trò × chức năng × tầng trong/ngoài phạm vi; lớp không thỏa đúng (US1 #1–13; BR-M15-01)
 - [x] T019 [P] [US1] Test `BT/m15/taikhoan/GioiHanTruongIT.java`: Hành chính, Kế toán không thấy trường `SUC_KHOE`, `THUOC`; nguyện vọng chỉ "có/không" (FR-022)
 - [x] T020 [P] [US1] Test `BT/m15/taikhoan/SuCoNgoaiPhamViIT.java`: khóa `(SU_CO_KHAN_CAP, TAO)` bỏ lớp phạm vi, nhật ký có `ngoaiPhamVi`; dữ liệu nguồn lỗi vẫn cho ghi sự cố (FR-044a, FR-041b)
-- [ ] T021 [P] [US1] Test `BT/m15/taikhoan/PhamViBaoCaoLichSuIT.java`: `boLocLichSu` chỉ dùng cho xem (US1 #13, FR-035a)
+- [x] T021 [P] [US1] Test `BT/m15/taikhoan/PhamViBaoCaoLichSuIT.java`: `boLocLichSu` chỉ dùng cho xem (US1 #13, FR-035a)
 
 ### Implementation cho User Story 1
 
@@ -261,12 +261,12 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 
 ## Phase 10: Polish & Cross-Cutting
 
-- [ ] T078 [P] Mở rộng `BT/common/HopDongApiTest.java` (000 T038) so springdoc với `specs/002-account-permission/contracts/api-002.yaml`
-- [ ] T079 [P] Ghi vào `backend/docs/van-hanh.md`: phiên khôi phục từ bản sao lưu bị kết thúc khi khởi động; HTTPS bắt buộc (NFR-06, NFR-08)
-- [ ] T079a *(Bổ sung 2026-10-20)* Dữ liệu mẫu profile `demo` của 002 `backend/src/main/resources/db/migration/demo/V002_90__sample_accounts.sql`: một tài khoản cho mỗi vai trò AC-01 → 05, 07, 09, 14 và một Quản lý viện thứ hai (quickstart.md mục 1), gán vai trò, mật khẩu demo băm Argon2id (mật khẩu ghi ở quickstart, chỉ dùng cho `demo`); làm sau T032, T044. Tầng, ca, phân công, giấy phép, người thân R, M là dữ liệu demo của module chủ (003, 008, 012), thêm khi các module đó có; bản giả trong test không dùng cho `demo` (000 plan, T106). Mở khóa 000 T106, T103 cùng T022, T023, T032, T044, T052, T054
-- [ ] T080 Cập nhật `BT/support/QuyenGia.java` thành tiện ích dựng người dùng thật cho test của 001, 003–019
-- [ ] T081 Chạy `./mvnw verify`, `npm test`, `flutter test` hai app và kịch bản quickstart.md mục 3; đo SC-005, SC-008 theo quickstart mục 5
-- [ ] T082 Rà truy vết data-model mục 7: mỗi BR-M15-01, 02, 04, 05, 14 → 24, BR-M06-05, BR-M09-04 có test tương ứng; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-006a, FR-023 — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [x] T078 [P] Mở rộng `BT/common/HopDongApiTest.java` (000 T038) so springdoc với `specs/002-account-permission/contracts/api-002.yaml`
+- [x] T079 [P] Ghi vào `backend/docs/van-hanh.md`: phiên khôi phục từ bản sao lưu bị kết thúc khi khởi động; HTTPS bắt buộc (NFR-06, NFR-08)
+- [x] T079a *(Bổ sung 2026-10-20)* Dữ liệu mẫu profile `demo` của 002 `backend/src/main/resources/db/migration/demo/V002_90__sample_accounts.sql`: một tài khoản cho mỗi vai trò AC-01 → 05, 07, 09, 14 và một Quản lý viện thứ hai (quickstart.md mục 1), gán vai trò, mật khẩu demo băm Argon2id (mật khẩu ghi ở quickstart, chỉ dùng cho `demo`); làm sau T032, T044. Tầng, ca, phân công, giấy phép, người thân R, M là dữ liệu demo của module chủ (003, 008, 012), thêm khi các module đó có; bản giả trong test không dùng cho `demo` (000 plan, T106). Mở khóa 000 T106, T103 cùng T022, T023, T032, T044, T052, T054
+- [x] T080 Cập nhật `BT/support/QuyenGia.java` thành tiện ích dựng người dùng thật cho test của 001, 003–019
+- [ ] T081 *(2026-10-21: `./mvnw clean verify`, `npm test` qua; còn `flutter test` chờ mobile, kịch bản quickstart mục 3 chờ dữ liệu demo của 003, 008, 012 và 001, SC-005, SC-008 đo với người dùng thật)* Chạy `./mvnw verify`, `npm test`, `flutter test` hai app và kịch bản quickstart.md mục 3; đo SC-005, SC-008 theo quickstart mục 5
+- [x] T082 Rà truy vết data-model mục 7: mỗi BR-M15-01, 02, 04, 05, 14 → 24, BR-M06-05, BR-M09-04 có test tương ứng; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-006a, FR-023 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 
