@@ -63,15 +63,15 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 
 ### Tests cho User Story 1
 
-- [ ] T014 [P] [US1] Test `BT/m01/TaoHoSoIT.java`, `HoSoCccdIT.java`, `HoSoTrungTenIT.java`: CCCD trùng hồ sơ chưa ở trạng thái cuối → 409; trùng hồ sơ trạng thái cuối được phép; trùng họ tên + ngày sinh yêu cầu xác nhận không trùng (`NCT_XAC_NHAN_KHONG_TRUNG`) (US1 #1–5; DBR-01, FR-003, FR-005)
-- [ ] T015 [P] [US1] Test `BT/m01/HoSoLienKetIT.java` và `CapNhatThongTinIT.java`: liên kết hồ sơ trước; cập nhật với `If-Match` cũ → 412; đổi giới tính phát `ThongTinCaNhanDaCapNhat` (FR-004, FR-006)
-- [ ] T016 [P] [US1] Test `BT/m01/TraCuuPhamViIT.java` và `GioiHanTruongHoSoIT.java`: nhân viên ngoài phạm vi → 404; Hành chính không thấy trường sức khỏe (US1 #6–10; FR-007 → FR-009)
+- [x] T014 [P] [US1] Test `BT/m01/TaoHoSoIT.java`, `HoSoCccdIT.java`, `HoSoTrungTenIT.java`: CCCD trùng hồ sơ chưa ở trạng thái cuối → 409; trùng hồ sơ trạng thái cuối được phép; trùng họ tên + ngày sinh yêu cầu xác nhận không trùng (`NCT_XAC_NHAN_KHONG_TRUNG`) (US1 #1–5; DBR-01, FR-003, FR-005)
+- [x] T015 [P] [US1] Test `BT/m01/HoSoLienKetIT.java` và `CapNhatThongTinIT.java`: liên kết hồ sơ trước; cập nhật với `If-Match` cũ → 412; đổi giới tính phát `ThongTinCaNhanDaCapNhat` (FR-004, FR-006)
+- [ ] T016 [P] [US1] Test `BT/m01/TraCuuPhamViIT.java` và `GioiHanTruongHoSoIT.java`: nhân viên ngoài phạm vi → 404; Hành chính không thấy trường sức khỏe (US1 #6–10; FR-007 → FR-009) *(2026-10-22: `TraCuuPhamViIT` xong ở mức service; `GioiHanTruongHoSoIT` cần controller nên chờ T020 và BL-23.)*
 
 ### Implementation cho User Story 1
 
-- [ ] T017 [P] [US1] Tạo entity `BE/m01/hoso/internal/NguoiCaoTuoi.java` (`@NhomDuLieu(NGHIEP_VU)`, không có setter trạng thái) và `LichSuTrangThaiNct.java` (`GHI_NHAN`, `ChiThemRepository`)
-- [ ] T018 [US1] Cài `BE/m01/hoso/internal/HoSoService.java`: tạo hồ sơ (`TAO_HO_SO` → `DANG_TIEP_NHAN`, dòng lịch sử đầu, `NCT_TAO`), xác nhận không trùng, liên kết hồ sơ trước, cập nhật thông tin cá nhân (`NCT_CAP_NHAT`, `If-Match`); ảnh qua `TepApi.gan` (research H-04)
-- [ ] T019 [US1] Cài tra cứu `BE/m01/hoso/internal/TraCuuNguoiCaoTuoi.java` dùng `PhamViApi.boLoc` và chỉ mục `(ho_ten_so_khop, ngay_sinh)`, `ma_ho_so`, `cccd_dang_mo`; DTO có `@NhomTruong` (research H-05; NFR-02)
+- [x] T017 [P] [US1] Tạo entity `BE/m01/hoso/internal/NguoiCaoTuoi.java` (`@NhomDuLieu(NGHIEP_VU)`, không có setter trạng thái) và `LichSuTrangThaiNct.java` (`GHI_NHAN`, `ChiThemRepository`)
+- [ ] T018 [US1] Cài `BE/m01/hoso/internal/HoSoService.java`: tạo hồ sơ (`TAO_HO_SO` → `DANG_TIEP_NHAN`, dòng lịch sử đầu, `NCT_TAO`), xác nhận không trùng, liên kết hồ sơ trước, cập nhật thông tin cá nhân (`NCT_CAP_NHAT`, `If-Match`); ảnh qua `TepApi.gan` (research H-04) *(2026-10-22: chưa gắn ảnh qua `TepApi.gan` vì T003, T004 chờ A; service ở `ResidentProfileService`, test mức service vì controller chờ BL-23.)*
+- [ ] T019 [US1] Cài tra cứu `BE/m01/hoso/internal/TraCuuNguoiCaoTuoi.java` dùng `PhamViApi.boLoc` và chỉ mục `(ho_ten_so_khop, ngay_sinh)`, `ma_ho_so`, `cccd_dang_mo`; DTO có `@NhomTruong` (research H-05; NFR-02) *(2026-10-22: lọc theo tập hồ sơ `residentIds` của 002; lọc theo tầng, phòng chờ phân bổ giường của 003. `@NhomTruong` ở DTO làm cùng T020.)*
 - [ ] T020 [US1] Tạo `BE/m01/hoso/web/NguoiCaoTuoiController.java`: `POST/GET /nguoi-cao-tuoi`, `GET /nguoi-cao-tuoi/{id}` (kèm `lenhDuocPhep`), `POST …/{id}/cap-nhat-thong-tin`, `GET …/{id}/ho-so-lien-ket` theo contracts/api-001.yaml
 - [ ] T021 [US1] Cài `NguoiCaoTuoiApi` (`trangThai`, `nhanDang`, …) trong `BE/m01/hoso/internal/NguoiCaoTuoiApiImpl.java` cho 002 và các module khác
 - [ ] T022 [P] [US1] Tạo màn web `frontend/src/tinh-nang/ho-so-nguoi-cao-tuoi/TraCuu.jsx`, `TaoHoSo.jsx`, `ChiTietHoSo.jsx` (hiển thị `truongBiAn`, xác nhận trùng) và test `HoSo.test.jsx`, `XacNhanTrung.test.jsx`
