@@ -5,8 +5,10 @@ import com.cambae.backend.common.Role;
 import com.cambae.backend.common.data.BusinessCommand;
 import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.error.ConditionNotMetException;
+import com.cambae.backend.common.error.InvalidValueException;
 import com.cambae.backend.common.error.NotFoundException;
 import com.cambae.backend.common.error.UnmetCondition;
+import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.common.web.VersionEtag;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.RequiresPermission;
@@ -22,6 +24,7 @@ import com.cambae.backend.m15.account.internal.persistence.AccountStore;
 import com.cambae.backend.m15.auditlog.api.AuditAction;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,16 +46,19 @@ public class RoleAssignmentService {
     private final AccountPermissionsQuery permissions;
     private final ObjectProvider<CurrentUser> currentUser;
     private final AuditLogApi auditLog;
+    private final BusinessTime time;
 
     RoleAssignmentService(
             AccountStore store,
             AccountPermissionsQuery permissions,
             ObjectProvider<CurrentUser> currentUser,
-            AuditLogApi auditLog) {
+            AuditLogApi auditLog,
+            BusinessTime time) {
         this.store = store;
         this.permissions = permissions;
         this.currentUser = currentUser;
         this.auditLog = auditLog;
+        this.time = time;
     }
 
     /** Tập quyền kèm {@code permission_version} để đặt ETag. */
@@ -60,7 +66,7 @@ public class RoleAssignmentService {
 
     /**
      * Tập quyền hiện hành kèm {@code permission_version} cho {@code GET /accounts/{id}/permissions} (FR-026a; chỉ Quản
-     * lý viện). Phần {@code asOf} làm ở T076; màn T035 cần ETag này cho lệnh gán, gỡ vai trò.
+     * lý viện); màn T035 cần ETag này cho lệnh gán, gỡ vai trò.
      */
     @RequiresPermission(function = Function.ACCOUNT_PERMISSION_PARAMETER, operation = Operation.VIEW)
     @Transactional(readOnly = true)
@@ -68,6 +74,27 @@ public class RoleAssignmentService {
         AccountService.requireManager(currentUser.getObject());
         Account account = store.find(accountId).orElseThrow(NotFoundException::new);
         return new Result(view(account), account.permissionVersion());
+    }
+
+    /**
+     * Tập quyền tại thời điểm {@code asOf} (002 T076; FR-026a, BR-M15-16): vai trò, trạng thái, thu hẹp, quyền gán thêm
+     * có hiệu lực lúc đó; ETag vẫn là {@code permission_version} hiện hành. Thời điểm tương lai thì 422 vì quyền không
+     * đặt trước được (FR-027).
+     */
+    @RequiresPermission(function = Function.ACCOUNT_PERMISSION_PARAMETER, operation = Operation.VIEW)
+    @Transactional(readOnly = true)
+    public Result at(long accountId, Instant asOf) {
+        AccountService.requireManager(currentUser.getObject());
+        Account account = store.find(accountId).orElseThrow(NotFoundException::new);
+        if (asOf.isAfter(time.now())) {
+            throw new InvalidValueException("Không tra quyền tại thời điểm tương lai (FR-027)");
+        }
+        AccountPermissions permissionsAt = permissions.at(
+                accountId,
+                asOf,
+                store.statusAt(accountId, asOf, account.status()).name(),
+                codes(store.rolesAt(accountId, asOf)));
+        return new Result(permissionsAt, account.permissionVersion());
     }
 
     @BusinessCommand

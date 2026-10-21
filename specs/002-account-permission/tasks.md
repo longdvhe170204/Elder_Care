@@ -215,14 +215,14 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 
 ### Tests cho User Story 7
 
-- [ ] T073 [P] [US7] Test đơn vị `BT/m15/taikhoan/ThuTuThuHepTest.java`: thứ tự tính A-05 (BR-M15-18)
-- [ ] T074 [P] [US7] Test `BT/m15/taikhoan/ThuHepKhongVuotIT.java`, `DoiQuyenDongThoiIT.java`, `QuyenTaiThoiDiemIT.java`, `PhanQuyenChiQuanLyIT.java`: vượt ma trận → 409 `VUOT_QUYEN_TOI_DA`; `If-Match` cũ → 412 kèm tập quyền hiện hành; quyền tại `t` quá khứ đúng; chỉ AC-01 đổi quyền; nhật ký có tập quyền trước/sau (BR-M15-04, BR-M15-16, BR-M15-17, SC-007)
+- [x] T073 [P] [US7] Test đơn vị `BT/m15/taikhoan/ThuTuThuHepTest.java`: thứ tự tính A-05 (BR-M15-18)
+- [x] T074 [P] [US7] Test `BT/m15/taikhoan/ThuHepKhongVuotIT.java`, `DoiQuyenDongThoiIT.java`, `QuyenTaiThoiDiemIT.java`, `PhanQuyenChiQuanLyIT.java`: vượt ma trận → 409 `VUOT_QUYEN_TOI_DA`; `If-Match` cũ → 412 kèm tập quyền hiện hành; quyền tại `t` quá khứ đúng; chỉ AC-01 đổi quyền; nhật ký có tập quyền trước/sau (BR-M15-04, BR-M15-16, BR-M15-17, SC-007)
 
 ### Implementation cho User Story 7
 
-- [ ] T075 [US7] Cài `BE/m15/taikhoan/quyen/internal/ThuHepQuyenService.java`: thu hẹp/khôi phục theo vai trò và theo tài khoản (đóng dòng cũ, thêm dòng mới; `nhom_chi_tieu`, `kenh` cho `DASHBOARD_BAO_CAO`), gán/gỡ `quyen_gan_them` (tài khoản phải có AC-04), kiểm không vượt ma trận, tăng `phien_ban_quyen`, nhật ký `QUYEN_*` (FR-024 → FR-027)
-- [ ] T076 [US7] Tạo `BE/m15/taikhoan/quyen/web/PhanQuyenController.java`: `GET /vai-tro`, `GET /vai-tro/{ma}/quyen`, `POST /vai-tro/{ma}/thu-hep`, `/khoi-phuc-quyen`, `GET /tai-khoan/{id}/quyen` (có `taiThoiDiem`) *(phần hiện hành làm sớm ở T035, 2026-10-20; còn `taiThoiDiem`)*, `POST /tai-khoan/{id}/thu-hep`, `/khoi-phuc-quyen`, `/gan-quyen-duyet-ke-hoach`, `/go-quyen-duyet-ke-hoach` theo contracts/api-002.yaml
-- [ ] T077 [P] [US7] Tạo màn `frontend/src/tinh-nang/phan-quyen/PhanQuyenVaiTro.jsx`, `PhanQuyenTaiKhoan.jsx`, `QuyenTaiThoiDiem.jsx` và test `PhanQuyen.test.jsx` (412, chặn vượt ma trận)
+- [x] T075 [US7] Cài `BE/m15/taikhoan/quyen/internal/ThuHepQuyenService.java`: thu hẹp/khôi phục theo vai trò và theo tài khoản (đóng dòng cũ, thêm dòng mới; `nhom_chi_tieu`, `kenh` cho `DASHBOARD_BAO_CAO`), gán/gỡ `quyen_gan_them` (tài khoản phải có AC-04), kiểm không vượt ma trận, tăng `phien_ban_quyen`, nhật ký `QUYEN_*` (FR-024 → FR-027)
+- [x] T076 [US7] Tạo `BE/m15/taikhoan/quyen/web/PhanQuyenController.java`: `GET /vai-tro`, `GET /vai-tro/{ma}/quyen`, `POST /vai-tro/{ma}/thu-hep`, `/khoi-phuc-quyen`, `GET /tai-khoan/{id}/quyen` (có `taiThoiDiem`) *(phần hiện hành làm sớm ở T035, 2026-10-20; `taiThoiDiem` xong 2026-10-21)*, `POST /tai-khoan/{id}/thu-hep`, `/khoi-phuc-quyen`, `/gan-quyen-duyet-ke-hoach`, `/go-quyen-duyet-ke-hoach` theo contracts/api-002.yaml
+- [x] T077 [P] [US7] *(bố cục duyệt 2026-10-21)* Tạo màn `frontend/src/tinh-nang/phan-quyen/PhanQuyenVaiTro.jsx`, `PhanQuyenTaiKhoan.jsx`, `QuyenTaiThoiDiem.jsx` và test `PhanQuyen.test.jsx` (412, chặn vượt ma trận)
 
 **Checkpoint**: Mọi user story của 002 chạy độc lập.
 

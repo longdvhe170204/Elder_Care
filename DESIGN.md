@@ -1,9 +1,9 @@
 ---
 name: Elder_Care
-version: 5.17.1
+version: 5.18.0
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19)
 platforms: { web: frontend/, mobile: mobile/ }
-updated: 2026-10-20
+updated: 2026-10-21
 direction: Trời xanh theo bảng màu letters.app
 colors:
   light:
@@ -310,11 +310,11 @@ Tên trạng thái lấy đúng theo `nghiep-vu.md`. `StatusBadge` ánh xạ the
 | Tông | Hiển thị | Trạng thái |
 | --- | --- | --- |
 | `urgent` | Chữ đỏ trên nền đỏ nhạt | Công việc Quá hạn; sự cố, cảnh báo mức Khẩn cấp; cảnh báo "đã leo thang tối đa"; liều thuốc Trễ, Bỏ lỡ; viền đỏ của thẻ cảnh báo Khẩn cấp hoặc đã leo thang tối đa |
-| `attention` | Chữ hổ phách trên nền hổ phách | Công việc Đến hạn; liều thuốc Đến giờ; cảnh báo, sự cố mức Trung bình; cảnh báo Mới, Leo thang (chưa tối đa); chỉ số Vượt ngưỡng; người cao tuổi Tạm vắng, Điều trị tại bệnh viện, Đang tiếp nhận; giường Chờ sẵn sàng; phòng đang cách ly; bàn giao Có ý kiến; yêu cầu thay đổi quyền người thân Chờ xác nhận; đề nghị mua hộ Chờ đồng ý; phản hồi Đang xử lý, Mở lại; đồ gửi Thất lạc, Hư hỏng; yêu cầu phê duyệt Chờ duyệt, Áp dụng không thành; tài khoản Khóa tạm; dị ứng (`AllergyNote`, có viền và biểu tượng cảnh báo) |
+| `attention` | Chữ hổ phách trên nền hổ phách | Công việc Đến hạn; liều thuốc Đến giờ; cảnh báo, sự cố mức Trung bình; cảnh báo Mới, Leo thang (chưa tối đa); chỉ số Vượt ngưỡng; người cao tuổi Tạm vắng, Điều trị tại bệnh viện, Đang tiếp nhận; giường Chờ sẵn sàng; phòng đang cách ly; bàn giao Có ý kiến; yêu cầu thay đổi quyền người thân Chờ xác nhận; đề nghị mua hộ Chờ đồng ý; phản hồi Đang xử lý, Mở lại; đồ gửi Thất lạc, Hư hỏng; yêu cầu phê duyệt Chờ duyệt, Áp dụng không thành; tài khoản Khóa tạm; quyền Đã thu hẹp (lệch ma trận); dị ứng (`AllergyNote`, có viền và biểu tượng cảnh báo) |
 | `settled` | Chữ xanh lá trên nền xanh lá nhạt | Công việc Hoàn thành; liều thuốc Đã dùng; cảnh báo Đã đóng; bàn giao Đã xác nhận; người cao tuổi Đang lưu trú; lượt thăm Đã duyệt; phản hồi Đã phản hồi; hợp đồng Hiệu lực; quyết định của người thân Đã đồng ý, Đã xác nhận; yêu cầu phê duyệt Đã duyệt, Đã áp dụng; tài khoản Hoạt động |
 | `held` | Chữ xanh trời đậm, viền cùng màu, nền trong | Giường Đang giữ chỗ (ghi kèm lý do) |
 | `occupied` | Chữ xanh chàm trên nền xanh chàm | Giường Đang sử dụng; lượt thăm Đã vào |
-| `neutral` | Chữ phụ trên nền phụ | Lưu ý chăm sóc (`CareNote`, chữ chính trên nền phụ, biểu tượng thông tin); công việc Chưa đến hạn, Hoàn thành trễ, Không thực hiện, Hủy; giường Trống, Đang bảo trì, Tạm ngừng sử dụng, Không sử dụng; người cao tuổi ở trạng thái cuối; lượt thăm Đã ra, Không đến, Hủy; phản hồi Mới, Đóng; đồ gửi Đang giữ, Đang được người cao tuổi sử dụng; kỳ chi phí Tạm tính, Đã chốt; quyết định Đã từ chối; liều thuốc Chưa đến giờ, Từ chối, Không thực hiện, Tạm dừng, Mang theo, Đã hủy; cảnh báo, sự cố mức Nhẹ; cảnh báo Đã tiếp nhận, Chuyển sự cố; bàn giao Bản nháp, Đã lập; bản ghi Đã đính chính, Đã hủy ghi nhận (`CorrectionBadge`); yêu cầu phê duyệt Nháp, Từ chối, Đã hủy; tài khoản Không hoạt động |
+| `neutral` | Chữ phụ trên nền phụ | Lưu ý chăm sóc (`CareNote`, chữ chính trên nền phụ, biểu tượng thông tin); công việc Chưa đến hạn, Hoàn thành trễ, Không thực hiện, Hủy; giường Trống, Đang bảo trì, Tạm ngừng sử dụng, Không sử dụng; người cao tuổi ở trạng thái cuối; lượt thăm Đã ra, Không đến, Hủy; phản hồi Mới, Đóng; đồ gửi Đang giữ, Đang được người cao tuổi sử dụng; kỳ chi phí Tạm tính, Đã chốt; quyết định Đã từ chối; liều thuốc Chưa đến giờ, Từ chối, Không thực hiện, Tạm dừng, Mang theo, Đã hủy; cảnh báo, sự cố mức Nhẹ; cảnh báo Đã tiếp nhận, Chuyển sự cố; bàn giao Bản nháp, Đã lập; bản ghi Đã đính chính, Đã hủy ghi nhận (`CorrectionBadge`); yêu cầu phê duyệt Nháp, Từ chối, Đã hủy; tài khoản Không hoạt động; quyền Theo ma trận |
 | `neutral-outline` | Chữ phụ, viền màu viền điều khiển (`--input`, 3,38:1 trên trắng), nền trong | Tài khoản Đã khóa (tách khỏi Không hoạt động cùng tông trung tính, chủ dự án duyệt 2026-10-20) |
 
 ### 3.6 Ảnh đại diện
@@ -524,6 +524,7 @@ Công nghệ: React 19, Vite 8, JavaScript, Tailwind CSS v4, shadcn/ui (Base UI)
 - Chưa có trang trình bày design system (bảng màu, mẫu chữ, ma trận trạng thái).
 - Đã có component đính chính dùng chung `correction-sheet` (000 T106), chưa gắn vào màn nào: chờ màn của module sở hữu bản ghi và profile `demo` có người dùng (002).
 - Đã có màn Tham số vận hành (000 T081, tab Tham số của mục menu "Tài khoản, tham số") và tab Tài khoản (002 T035: bảng lọc theo loại, trạng thái, tên đăng nhập; khung chi tiết có nút lệnh theo `allowedCommands`, form lệnh có lý do bắt buộc; tạo tài khoản nhân viên gõ mã hồ sơ tới khi 008 có danh sách hồ sơ; mật khẩu tạm hiện một lần trong khung) và Yêu cầu phê duyệt (000 T097, mục menu ngay dưới Tổng quan cho mọi vai trò nhân viên). Hai màn gọi API thật, chưa có dữ liệu khi chạy `npm run dev` không có backend.
+- Đã có tab Phân quyền (002 T077, bố cục duyệt 2026-10-21): bên trái 9 vai trò, bên phải bảng quyền của vai trò theo dòng ma trận (chức năng, thao tác, tối đa, hiện hành, trạng thái Theo ma trận / Đã thu hẹp, nút Thu hẹp mở form ngay dưới dòng), dưới là danh sách thu hẹp đang hiệu lực có Khôi phục; không có lệnh thêm quyền. Khung chi tiết tài khoản thêm mục Quyền (vai trò, thu hẹp theo vai trò chỉ xem, thu hẹp theo tài khoản, quyền gán thêm, nút theo `allowedCommands`, quyền hiện hành thu gọn, "Xem tại thời điểm" chỉ xem). Gọi API thật.
 
 ## 15. Ứng dụng di động (Flutter)
 
@@ -632,6 +633,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 5.18.0 | 2026-10-21 | Chủ dự án duyệt bố cục phân quyền (002 T077): tab Phân quyền trong "Tài khoản, tham số", mục Quyền trong khung chi tiết tài khoản (mục 14). Trạng thái quyền vào mục 3.5: Đã thu hẹp `attention`, Theo ma trận `neutral`. Không thêm màu |
 | 5.17.1 | 2026-10-20 | Chủ dự án chọn một màn đăng nhập chung (002 T045): `/login` cho nhân viên và người thân, thêm `/change-password`; khối người dùng cuối menu có họ tên, vai trò và nút Đăng xuất khi có phiên thật. Không thêm màu, không đổi công thức |
 | 5.17.0 | 2026-10-20 | Chủ dự án duyệt bố cục tab Tài khoản (002 T035) và màu trạng thái tài khoản ở mục 3.5: Hoạt động `settled`, Khóa tạm `attention`, Không hoạt động `neutral`, Đã khóa tông mới `neutral-outline` (viền `--input`, nền trong) để phân biệt với Không hoạt động. Không thêm màu |
 | 5.16.0 | 2026-10-19 | Chủ dự án duyệt bố cục màn Tham số (000 T081: bảng, khung chi tiết hai tab Đổi giá trị, Lịch sử; tham số dạng bảng sửa ngay trong bảng) và Yêu cầu phê duyệt (000 T097: ba hộp Chờ tôi duyệt, Của tôi, Trong phạm vi; nội dung hiện dạng "trường: giá trị"); mục menu "Yêu cầu phê duyệt" ngay dưới Tổng quan; trạng thái yêu cầu phê duyệt vào mục 3.5. Không thêm màu |
