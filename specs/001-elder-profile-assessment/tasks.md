@@ -73,7 +73,7 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 - [ ] T018 [US1] Cài `BE/m01/hoso/internal/HoSoService.java`: tạo hồ sơ (`TAO_HO_SO` → `DANG_TIEP_NHAN`, dòng lịch sử đầu, `NCT_TAO`), xác nhận không trùng, liên kết hồ sơ trước, cập nhật thông tin cá nhân (`NCT_CAP_NHAT`, `If-Match`); ảnh qua `TepApi.gan` (research H-04) *(2026-10-22: chưa gắn ảnh qua `TepApi.gan` vì T003, T004 chờ A; service ở `ResidentProfileService`, test mức service vì controller chờ BL-23.)*
 - [ ] T019 [US1] Cài tra cứu `BE/m01/hoso/internal/TraCuuNguoiCaoTuoi.java` dùng `PhamViApi.boLoc` và chỉ mục `(ho_ten_so_khop, ngay_sinh)`, `ma_ho_so`, `cccd_dang_mo`; DTO có `@NhomTruong` (research H-05; NFR-02) *(2026-10-22: lọc theo tập hồ sơ `residentIds` của 002; lọc theo tầng, phòng chờ phân bổ giường của 003. `@NhomTruong` ở DTO làm cùng T020.)*
 - [ ] T020 [US1] Tạo `BE/m01/hoso/web/NguoiCaoTuoiController.java`: `POST/GET /nguoi-cao-tuoi`, `GET /nguoi-cao-tuoi/{id}` (kèm `lenhDuocPhep`), `POST …/{id}/cap-nhat-thong-tin`, `GET …/{id}/ho-so-lien-ket` theo contracts/api-001.yaml
-- [ ] T021 [US1] Cài `NguoiCaoTuoiApi` (`trangThai`, `nhanDang`, …) trong `BE/m01/hoso/internal/NguoiCaoTuoiApiImpl.java` cho 002 và các module khác
+- [x] T021 [US1] Cài `NguoiCaoTuoiApi` (`trangThai`, `nhanDang`, …) trong `BE/m01/hoso/internal/NguoiCaoTuoiApiImpl.java` cho 002 và các module khác
 - [ ] T022 [P] [US1] Tạo màn web `frontend/src/tinh-nang/ho-so-nguoi-cao-tuoi/TraCuu.jsx`, `TaoHoSo.jsx`, `ChiTietHoSo.jsx` (hiển thị `truongBiAn`, xác nhận trùng) và test `HoSo.test.jsx`, `XacNhanTrung.test.jsx`
 - [ ] T023 [P] [US1] Tạo `mobile/lib/nhan-vien/tra-cuu-nguoi-cao-tuoi/` (tra cứu, thẻ người cao tuổi) và `mobile/lib/nguoi-than/ho-so/` (xem hồ sơ, phần sức khỏe theo chú thích ¹)
 
