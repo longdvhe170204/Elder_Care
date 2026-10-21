@@ -5,15 +5,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.cambae.backend.m01.api.dto.CommandContext;
 import com.cambae.backend.m01.api.dto.Condition;
+import com.cambae.backend.m01.api.dto.Gender;
 import com.cambae.backend.m01.api.dto.OpenAbsence;
 import com.cambae.backend.m01.api.dto.ResidenceType;
 import com.cambae.backend.m01.api.dto.ResidenceTypePeriod;
 import com.cambae.backend.m01.api.dto.ResidentStatus;
 import com.cambae.backend.m01.api.dto.StatusCommand;
 import com.cambae.backend.m01.api.dto.TransitionResult;
+import com.cambae.backend.m01.api.events.ResidentStatusChanged;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /** 001 T002: bản giả các SPI M01 khai báo cho module khác cài. */
@@ -103,6 +108,39 @@ class FakeM01Test {
                 .contains(ResidenceType.LONG_TERM_RESIDENTIAL);
         assertThat(contracts.currentResidenceType(1, LocalDate.of(2026, 9, 30))).isEmpty();
         assertThat(contracts.residenceTypeHistory(1)).hasSize(2);
+    }
+
+    @Test
+    void FR_046_residents_finalStatusRecordsTimeAndFiltersByStatus() {
+        FakeResidents residents = new FakeResidents()
+                .resident(1, "[Họ tên NCT 1]", Gender.FEMALE, ResidentStatus.IN_RESIDENCE)
+                .resident(2, "[Họ tên NCT 2]", Gender.MALE, ResidentStatus.IN_RESIDENCE);
+
+        assertThat(residents.isFinalStatus(1)).isFalse();
+        assertThat(residents.finalStatusAt(1)).isEmpty();
+
+        residents.changeStatus(1, ResidentStatus.DECEASED, T);
+
+        assertThat(residents.isFinalStatus(1)).isTrue();
+        assertThat(residents.finalStatusAt(1)).contains(T);
+        assertThat(residents.byStatus(Set.of(ResidentStatus.IN_RESIDENCE))).containsExactly(2L);
+        assertThat(residents.identity(2).fullName()).isEqualTo("[Họ tên NCT 2]");
+        assertThat(residents.gender(2)).contains(Gender.MALE);
+    }
+
+    @Test
+    void FR_046_residentEvents_publishesStatusChangedWithIncreasingHistoryId() {
+        List<Object> published = new ArrayList<>();
+        FakeResidentEvents events = new FakeResidentEvents(published::add);
+
+        events.statusChanged(1, ResidentStatus.IN_RESIDENCE, ResidentStatus.DECEASED, StatusCommand.RECORD_DEATH, T);
+        events.statusChanged(
+                2, ResidentStatus.IN_RESIDENCE, ResidentStatus.RESIDENCY_ENDED, StatusCommand.END_RESIDENCY, T);
+
+        assertThat(published).hasSize(2).allMatch(e -> e instanceof ResidentStatusChanged);
+        assertThat(published)
+                .extracting(e -> ((ResidentStatusChanged) e).historyId())
+                .containsExactly(1L, 2L);
     }
 
     @Test
