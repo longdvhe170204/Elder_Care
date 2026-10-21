@@ -3,7 +3,7 @@
 // Nguồn: specs/002-account-permission/contracts (Elder Care – Feature 002 (tài khoản và phân quyền))
 import { request } from './client.js'
 
-/** Đăng nhập (FR-007, FR-008, FR-010, FR-014, FR-014a, FR-015, BR-M15-05, BR-M15-15) */
+/** Đăng nhập (FR-007, FR-008, FR-010, FR-014, FR-014a, FR-015, BR-M15-05, BR-M15-15, BR-M15-24) */
 export const postAuthLogin = (params) => request('POST', '/auth/login', params)
 
 /** Kết thúc phiên hiện tại (FR-013) */

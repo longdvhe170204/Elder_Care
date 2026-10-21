@@ -30,6 +30,7 @@ import com.cambae.backend.m15.account.api.spi.StaffStatus;
 import com.cambae.backend.m15.account.internal.auth.domain.AccountAuditActions;
 import com.cambae.backend.m15.account.internal.auth.domain.LoginRules;
 import com.cambae.backend.m15.account.internal.domain.Account;
+import com.cambae.backend.m15.account.internal.domain.DeviceBinding;
 import com.cambae.backend.m15.account.internal.persistence.AccountStore;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
@@ -89,6 +90,7 @@ public class AccountService implements AccountApi {
     private final ObjectProvider<AssignmentApi> assignments;
     private final ObjectProvider<ResidencyEndApi> residencyEnds;
     private final ParameterApi parameters;
+    private final ResidentDevices devices;
 
     AccountService(
             AccountStore store,
@@ -101,7 +103,8 @@ public class AccountService implements AccountApi {
             ObjectProvider<FamilyRelationshipApi> familyRelationships,
             ObjectProvider<AssignmentApi> assignments,
             ObjectProvider<ResidencyEndApi> residencyEnds,
-            ParameterApi parameters) {
+            ParameterApi parameters,
+            ResidentDevices devices) {
         this.store = store;
         this.time = time;
         this.currentUser = currentUser;
@@ -113,10 +116,12 @@ public class AccountService implements AccountApi {
         this.assignments = assignments;
         this.residencyEnds = residencyEnds;
         this.parameters = parameters;
+        this.devices = devices;
     }
 
     /** Tài khoản kèm vai trò đang gán và lệnh người xem được phép (FR-042). */
-    public record AccountDetails(Account account, Set<Role> roles, List<String> allowedCommands) {}
+    public record AccountDetails(
+            Account account, Set<Role> roles, List<String> allowedCommands, DeviceBinding boundDevice) {}
 
     /** Tài khoản vừa tạo và mật khẩu tạm (chỉ trả một lần). */
     public record Created(AccountDetails details, String temporaryPassword) {}
@@ -504,12 +509,15 @@ public class AccountService implements AccountApi {
 
     // --- Đọc --------------------------------------------------------------------------------------------------
 
-    /** Chi tiết; người không phải Quản lý viện chỉ xem tài khoản người thân (FR-051), ngoài ra 404 chung. */
+    /**
+     * Chi tiết; người không phải Quản lý viện chỉ xem tài khoản người thân (FR-051) và người cao tuổi (A-15, A-16),
+     * ngoài ra 404 chung.
+     */
     @RequiresPermission(function = Function.ACCOUNT_PERMISSION_PARAMETER, operation = Operation.VIEW)
     public AccountDetails detail(long accountId) {
         CurrentUser user = currentUser.getObject();
         Account account = store.find(accountId).orElseThrow(NotFoundException::new);
-        if (!user.roles().contains(Role.NURSING_HOME_MANAGER) && account.type() != AccountType.FAMILY_MEMBER) {
+        if (!user.roles().contains(Role.NURSING_HOME_MANAGER) && account.type() == AccountType.STAFF) {
             throw new NotFoundException();
         }
         return details(account, user);
@@ -567,7 +575,20 @@ public class AccountService implements AccountApi {
                 }
             }
         }
-        return new AccountDetails(account, store.roles(account.id()), List.copyOf(commands));
+        DeviceBinding bound = null;
+        if (account.type() == AccountType.RESIDENT) {
+            bound = devices.active(account.id())
+                    .map(b -> new DeviceBinding(b.boundAt(), b.deviceId()))
+                    .orElse(null);
+            if (manager || user.roles().contains(Role.OFFICE_STAFF)) {
+                commands.add("login-qr-code");
+                if (bound != null) {
+                    commands.add("unbind-device");
+                }
+                commands.add(account.status() == AccountStatus.LOCKED ? "unlock-resident" : "lock-resident");
+            }
+        }
+        return new AccountDetails(account, store.roles(account.id()), List.copyOf(commands), bound);
     }
 
     /** Khóa tạm đã quá thời điểm mở hiển thị là Hoạt động (research A-03: chuyển khi có lần đăng nhập kế tiếp). */
@@ -581,6 +602,7 @@ public class AccountService implements AccountApi {
                 a.type(),
                 a.staffId(),
                 a.familyMemberId(),
+                a.residentId(),
                 AccountStatus.ACTIVE,
                 null,
                 null,
@@ -689,7 +711,7 @@ public class AccountService implements AccountApi {
     /** Tài khoản người cao tuổi có từ US8 (T090). */
     @Override
     public Optional<AccountView> byResident(long residentId) {
-        return Optional.empty();
+        return store.byResident(residentId).map(this::view);
     }
 
     /** Cờ buộc đổi mật khẩu của tài khoản, cho {@code GET /me} (FR-006). */

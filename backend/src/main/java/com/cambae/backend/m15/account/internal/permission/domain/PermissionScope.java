@@ -4,7 +4,9 @@ package com.cambae.backend.m15.account.internal.permission.domain;
 public enum PermissionScope {
     FACILITY,
     ASSIGNED,
-    RELATIONSHIP;
+    RELATIONSHIP,
+    /** Chính người cao tuổi của tài khoản (AC-16, FR-068; research A-15). */
+    SELF;
 
     /** Phạm vi này phủ {@code other}: bằng nhau, hoặc toàn viện phủ theo phân công (research A-05). */
     boolean covers(PermissionScope other) {

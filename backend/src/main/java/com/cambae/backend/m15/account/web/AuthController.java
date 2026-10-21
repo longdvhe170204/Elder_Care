@@ -10,7 +10,9 @@ import com.cambae.backend.m15.account.internal.auth.service.LoginService;
 import com.cambae.backend.m15.account.internal.auth.service.SessionTokens;
 import com.cambae.backend.m15.account.web.request.ChangePasswordBody;
 import com.cambae.backend.m15.account.web.request.LoginBody;
+import com.cambae.backend.m15.account.web.request.QrLoginBody;
 import com.cambae.backend.m15.account.web.response.LoginResponse;
+import com.cambae.backend.m15.account.web.response.QrLoginResponse;
 import com.cambae.backend.m15.account.web.response.UserInfo;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -67,6 +69,13 @@ class AuthController {
                                 mediaType = "application/problem+json",
                                 schema = @Schema(implementation = ProblemBody.class))),
         @ApiResponse(
+                responseCode = "409",
+                description = "DEVICE_ALREADY_BOUND (thiết bị đang gắn với tài khoản người cao tuổi khác, FR-014a)",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
                 responseCode = "423",
                 content =
                         @Content(
@@ -86,12 +95,7 @@ class AuthController {
                     refused.unlocksAt() == null ? Map.of() : Map.of("unlocksAt", refused.unlocksAt()));
         }
         LoginService.Success success = (LoginService.Success) result;
-        UserInfo user = new UserInfo(
-                success.accountId(),
-                success.type(),
-                accounts.fullName(success.accountId()).orElse(null),
-                success.roles().stream().map(Role::code).sorted().toList(),
-                success.mustChangePassword());
+        UserInfo user = user(success);
         boolean web = body.channel() == AccessChannel.WEB;
         ResponseEntity.BodyBuilder response = ResponseEntity.ok();
         if (web) {
@@ -99,7 +103,41 @@ class AuthController {
                     HttpHeaders.SET_COOKIE,
                     SessionTokens.cookie(success.token()).toString());
         }
-        return response.body(new LoginResponse(web ? null : success.token(), null, success.mustChangePassword(), user));
+        return response.body(new LoginResponse(
+                web ? null : success.token(), success.deviceToken(), success.mustChangePassword(), user));
+    }
+
+    /** Người cao tuổi đăng nhập bằng mã QR, gắn thiết bị (002 T092; FR-069, FR-070; research A-15). */
+    @PostMapping("/qr-login")
+    @SecurityRequirements
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Đã đăng nhập và gắn thiết bị"),
+        @ApiResponse(
+                responseCode = "401",
+                description = "INVALID_QR_CODE (đã dùng, hết hạn, đã vô hiệu)",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "409",
+                description = "DEVICE_ALREADY_BOUND (thiết bị đang gắn với tài khoản người cao tuổi khác)",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "423",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemBody.class)))
+    })
+    QrLoginResponse qrLogin(
+            @RequestHeader("X-Device-Id") @Parameter(schema = @Schema(type = "string", format = "uuid")) UUID deviceId,
+            @Valid @RequestBody QrLoginBody body) {
+        LoginService.Success success = logins.qrLogin(body.code(), deviceId.toString());
+        return new QrLoginResponse(success.token(), success.deviceToken(), user(success));
     }
 
     @PostMapping("/logout")
@@ -124,11 +162,21 @@ class AuthController {
         logins.changePassword(currentUser.getObject(), body.currentPassword(), body.newPassword());
     }
 
+    private UserInfo user(LoginService.Success success) {
+        return new UserInfo(
+                success.accountId(),
+                success.type(),
+                accounts.fullName(success.accountId()).orElse(null),
+                success.roles().stream().map(Role::code).sorted().toList(),
+                success.mustChangePassword());
+    }
+
     /** Thông báo cho người dùng; không nói tên đăng nhập có tồn tại hay không (FR-014). */
     private static String message(String errorCode) {
         return switch (errorCode) {
             case "ACCOUNT_TEMPORARILY_LOCKED" -> "Tài khoản đang bị khóa tạm do đăng nhập sai nhiều lần";
             case "ACCOUNT_CONTACT_FACILITY" -> "Tài khoản không đăng nhập được, cần liên hệ viện";
+            case "DEVICE_ALREADY_BOUND" -> "Thiết bị đang gắn với tài khoản người cao tuổi khác; cần gỡ thiết bị trước";
             default -> "Tên đăng nhập hoặc mật khẩu không đúng";
         };
     }

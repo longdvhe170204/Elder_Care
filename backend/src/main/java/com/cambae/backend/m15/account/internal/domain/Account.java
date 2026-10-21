@@ -14,6 +14,7 @@ public record Account(
         AccountType type,
         Long staffId,
         Long familyMemberId,
+        Long residentId,
         AccountStatus status,
         String lockCause,
         Instant lockedUntil,

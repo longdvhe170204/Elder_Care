@@ -51,13 +51,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // 002 T025 (2026-10-20): kéo một phần T078 lên để thêm /me; danh sách giảm dần theo các user story
             new Contract(
                     Path.of("..", "specs", "002-account-permission", "contracts", "api-002.yaml"),
-                    Set.of(
-                            "POST /api/v1/accounts/{id}/lock-resident",
-                            "POST /api/v1/accounts/{id}/login-qr-code",
-                            "POST /api/v1/accounts/{id}/unbind-device",
-                            "POST /api/v1/accounts/{id}/unlock-resident",
-                            "POST /api/v1/auth/qr-login",
-                            "POST /api/v1/resident-accounts"),
+                    Set.of("POST /api/v1/resident-accounts"),
                     Set.of()));
 
     @Autowired

@@ -33,7 +33,7 @@ paths:
         Mật khẩu đúng nhưng tài khoản không Hoạt động: ACCOUNT_TEMPORARILY_LOCKED (kèm unlocksAt) hoặc ACCOUNT_CONTACT_FACILITY.
         Đăng nhập kết thúc mọi phiên đang mở trên cùng thiết bị (FR-014a, BR-M15-15).
       x-fr: [FR-007, FR-008, FR-010, FR-014, FR-014a, FR-015]
-      x-br: [BR-M15-05, BR-M15-15]
+      x-br: [BR-M15-05, BR-M15-15, BR-M15-24]
       security: []
       parameters: [ { $ref: '#/components/parameters/DeviceId' } ]
       requestBody:
@@ -60,6 +60,7 @@ paths:
                   mustChangePassword: { type: boolean }
                   user: { $ref: '#/components/schemas/UserInfo' }
         '401': { $ref: '#/components/responses/Problem' }
+        '409': { description: 'DEVICE_ALREADY_BOUND: thiết bị đang gắn với tài khoản người cao tuổi khác (FR-014a, research A-15; bổ sung 2026-10-21, chủ dự án duyệt)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
         '423': { description: 'ACCOUNT_TEMPORARILY_LOCKED hoặc ACCOUNT_CONTACT_FACILITY', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
   /auth/logout:
     post:
