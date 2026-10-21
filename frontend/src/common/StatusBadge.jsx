@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 // Ánh xạ trạng thái → tông theo DESIGN.md (mục Trạng thái → tông màu).
 // Trạng thái chưa có trong bảng hiển thị tông neutral.
 const STATUS_TONE = {
+  'Đã thu hẹp': 'attention',
   'Quá hạn': 'urgent',
   'Trễ': 'urgent',
   'Bỏ lỡ': 'urgent',

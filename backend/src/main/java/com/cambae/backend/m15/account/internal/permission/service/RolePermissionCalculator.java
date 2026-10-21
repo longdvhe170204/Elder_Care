@@ -7,7 +7,8 @@ import com.cambae.backend.m15.account.api.dto.PermissionKey;
 import com.cambae.backend.m15.account.internal.permission.domain.GrantSource;
 import com.cambae.backend.m15.account.internal.permission.domain.PermissionScope;
 import com.cambae.backend.m15.account.internal.permission.domain.RoleGrant;
-import com.cambae.backend.m15.account.internal.permission.domain.RoleGrants;
+import com.cambae.backend.m15.account.internal.permission.domain.RolePermissionRules;
+import com.cambae.backend.m15.account.internal.permission.domain.RolePermissionRules.RestrictionRule;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -25,10 +26,13 @@ import tools.jackson.databind.json.JsonMapper;
  *
  * <ol>
  *   <li>với từng vai trò đang gán: ma trận trừ thu hẹp theo vai trò;
- *   <li>hợp các vai trò; cùng khóa thì gộp phương án bằng {@link RoleGrants} (toàn viện thắng);
+ *   <li>hợp các vai trò; cùng khóa thì gộp phương án (toàn viện thắng);
  *   <li>trừ thu hẹp theo tài khoản;
- *   <li>cộng quyền gán thêm (chỉ Duyệt kế hoạch chăm sóc, theo phân công như Điều dưỡng, FR-024).
+ *   <li>cộng quyền gán thêm (chỉ Duyệt kế hoạch chăm sóc, theo phân công như Điều dưỡng, FR-024), chỉ khi tài khoản
+ *       đang có vai trò Điều dưỡng.
  * </ol>
+ *
+ * <p>Thứ tự ở {@link RolePermissionRules}; lớp này đọc các bảng.
  *
  * <p>Mọi bảng lọc theo {@code effective_from <= t < effective_to} nên tính được tại thời điểm quá khứ. Thu hẹp chi tiết
  * của {@code DASHBOARD_REPORT} (có {@code metric_group} hoặc {@code channel}, 016 FR-010a) không trừ ở mức khóa. Điều
@@ -74,8 +78,6 @@ public class RolePermissionCalculator {
     /** Quyền tại thời điểm {@code at}, không qua bộ đệm (FR-026a). */
     public Map<PermissionKey, Set<RoleGrant>> at(long accountId, Instant at) {
         LocalDateTime t = LocalDateTime.ofInstant(at, ZoneOffset.UTC);
-
-        // 1. Ma trận của từng vai trò trừ thu hẹp theo vai trò
         Map<String, Map<PermissionKey, Set<RoleGrant>>> byRole = new HashMap<>();
         jdbc.query(
                 "SELECT m.role, m.function_code, m.operation, m.scope, m.footnote_codes FROM permission_matrix m"
@@ -83,17 +85,12 @@ public class RolePermissionCalculator {
                         + effectiveAt("ra"),
                 rs -> {
                     byRole.computeIfAbsent(rs.getString(1), r -> new HashMap<>())
-                            .put(
-                                    key(rs.getString(2), rs.getString(3)),
-                                    Set.of(new RoleGrant(
-                                            PermissionScope.valueOf(rs.getString(4)),
-                                            Set.of(json.readValue(rs.getString(5), String[].class)),
-                                            GrantSource.ROLE)));
+                            .put(key(rs.getString(2), rs.getString(3)), grant(rs));
                 },
                 accountId,
                 t,
                 t);
-        for (Restriction r : restrictions(
+        List<RestrictionRule> roleRestrictions = restrictions(
                 "SELECT pr.role, pr.function_code, pr.operation, pr.kind FROM permission_restriction pr"
                         + " JOIN role_assignment ra ON ra.role = pr.role AND ra.account_id = ? AND " + effectiveAt("ra")
                         + " WHERE pr.applies_to = 'ROLE' AND pr.metric_group IS NULL AND pr.channel IS NULL AND "
@@ -102,56 +99,67 @@ public class RolePermissionCalculator {
                 t,
                 t,
                 t,
-                t)) {
-            Map<PermissionKey, Set<RoleGrant>> rolePermissions = byRole.get(r.role());
-            if (rolePermissions != null) {
-                r.applyTo(rolePermissions);
-            }
-        }
-
-        // 2. Hợp các vai trò
-        Map<PermissionKey, Set<RoleGrant>> result = new HashMap<>();
-        for (Map<PermissionKey, Set<RoleGrant>> rolePermissions : byRole.values()) {
-            rolePermissions.forEach((key, grants) -> {
-                for (RoleGrant grant : grants) {
-                    result.put(key, RoleGrants.add(result.getOrDefault(key, Set.of()), grant));
-                }
-            });
-        }
-
-        // 3. Trừ thu hẹp theo tài khoản
-        for (Restriction r : restrictions(
+                t);
+        List<RestrictionRule> accountRestrictions = restrictions(
                 "SELECT NULL, function_code, operation, kind FROM permission_restriction WHERE applies_to = 'ACCOUNT'"
                         + " AND account_id = ? AND metric_group IS NULL AND channel IS NULL AND "
                         + effectiveAt("permission_restriction"),
                 accountId,
                 t,
-                t)) {
-            r.applyTo(result);
-        }
-
-        // 4. Cộng quyền gán thêm
-        jdbc.query(
-                "SELECT function_code, operation FROM additional_grant WHERE account_id = ? AND "
-                        + effectiveAt("additional_grant"),
-                rs -> {
-                    PermissionKey key = key(rs.getString(1), rs.getString(2));
-                    result.put(
-                            key,
-                            RoleGrants.add(
-                                    result.getOrDefault(key, Set.of()),
-                                    new RoleGrant(PermissionScope.ASSIGNED, Set.of(), GrantSource.ADDITIONAL_GRANT)));
-                },
+                t);
+        // Quyền gán thêm chỉ tính khi tài khoản đang có vai trò Điều dưỡng tại t (FR-024 "tài khoản Điều dưỡng")
+        Set<PermissionKey> grants = Set.copyOf(jdbc.query(
+                "SELECT g.function_code, g.operation FROM additional_grant g WHERE g.account_id = ? AND "
+                        + effectiveAt("g")
+                        + " AND EXISTS (SELECT 1 FROM role_assignment ra WHERE ra.account_id = g.account_id"
+                        + " AND ra.role = 'AC-04' AND " + effectiveAt("ra") + ")",
+                (rs, i) -> key(rs.getString(1), rs.getString(2)),
                 accountId,
                 t,
-                t);
-        return Map.copyOf(result);
+                t,
+                t,
+                t));
+        return RolePermissionRules.combine(byRole, roleRestrictions, accountRestrictions, grants);
     }
 
-    private List<Restriction> restrictions(String sql, Object... args) {
+    /**
+     * Quyền tối đa (ma trận) và quyền hiện hành của một vai trò sau thu hẹp theo vai trò, tại {@code at} (002 T076;
+     * {@code GET /roles/{code}/permissions}, FR-018, FR-020).
+     */
+    public RolePermissions ofRole(String role, Instant at) {
+        LocalDateTime t = LocalDateTime.ofInstant(at, ZoneOffset.UTC);
+        Map<PermissionKey, Set<RoleGrant>> matrix = new HashMap<>();
+        jdbc.query(
+                "SELECT role, function_code, operation, scope, footnote_codes FROM permission_matrix WHERE role = ?",
+                rs -> {
+                    matrix.put(key(rs.getString(2), rs.getString(3)), grant(rs));
+                },
+                role);
+        List<RestrictionRule> restrictions = restrictions(
+                "SELECT role, function_code, operation, kind FROM permission_restriction WHERE applies_to = 'ROLE'"
+                        + " AND role = ? AND metric_group IS NULL AND channel IS NULL AND "
+                        + effectiveAt("permission_restriction"),
+                role,
+                t,
+                t);
+        return new RolePermissions(Map.copyOf(matrix), Map.copyOf(RolePermissionRules.ofRole(matrix, restrictions)));
+    }
+
+    /** Ma trận và quyền sau thu hẹp của một vai trò. */
+    public record RolePermissions(
+            Map<PermissionKey, Set<RoleGrant>> maximum, Map<PermissionKey, Set<RoleGrant>> current) {}
+
+    private Set<RoleGrant> grant(java.sql.ResultSet rs) throws java.sql.SQLException {
+        return Set.of(new RoleGrant(
+                PermissionScope.valueOf(rs.getString(4)),
+                Set.of(json.readValue(rs.getString(5), String[].class)),
+                GrantSource.ROLE));
+    }
+
+    private List<RestrictionRule> restrictions(String sql, Object... args) {
         return jdbc.query(
                 sql,
-                (rs, i) -> new Restriction(
+                (rs, i) -> new RestrictionRule(
                         rs.getString(1), key(rs.getString(2), rs.getString(3)), "LOWER_SCOPE".equals(rs.getString(4))),
                 args);
     }
@@ -164,18 +172,6 @@ public class RolePermissionCalculator {
 
     private static PermissionKey key(String function, String operation) {
         return new PermissionKey(Function.valueOf(function), Operation.valueOf(operation));
-    }
-
-    /** Một dòng thu hẹp: {@code REMOVE_OPERATION} bỏ khóa, {@code LOWER_SCOPE} hạ phạm vi. */
-    private record Restriction(String role, PermissionKey key, boolean lowerScope) {
-
-        void applyTo(Map<PermissionKey, Set<RoleGrant>> permissions) {
-            if (lowerScope) {
-                permissions.computeIfPresent(key, (k, grants) -> RoleGrants.lower(grants));
-            } else {
-                permissions.remove(key);
-            }
-        }
     }
 
     private record Versions(long account, long roles) {}

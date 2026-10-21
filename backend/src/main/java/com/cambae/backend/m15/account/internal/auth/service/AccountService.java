@@ -548,6 +548,13 @@ public class AccountService implements AccountApi {
             if (account.status() == AccountStatus.TEMPORARILY_LOCKED) {
                 commands.add("early-unlock");
             }
+            // Điều chỉnh quyền (US7, FR-024, FR-025): gán thêm chỉ cho tài khoản đang có vai trò Điều dưỡng
+            commands.addAll(List.of("restrict", "restore-permission"));
+            if (store.hasCarePlanApprovalGrant(account.id())) {
+                commands.add("revoke-care-plan-approval");
+            } else if (store.roles(account.id()).contains(Role.NURSING_STAFF)) {
+                commands.add("grant-care-plan-approval");
+            }
         }
         if (account.type() == AccountType.FAMILY_MEMBER) {
             if (manager) {

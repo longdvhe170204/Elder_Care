@@ -103,6 +103,54 @@ public class AccountStore {
         return roles;
     }
 
+    /** Có quyền Duyệt kế hoạch chăm sóc gán thêm đang hiệu lực (FR-024; cho {@code allowedCommands}). */
+    public boolean hasCarePlanApprovalGrant(long accountId) {
+        LocalDateTime now = utc(time.now());
+        Integer rows = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM additional_grant WHERE account_id = ? AND effective_from <= ?"
+                        + " AND (effective_to IS NULL OR effective_to > ?)",
+                Integer.class,
+                accountId,
+                now,
+                now);
+        return rows != null && rows > 0;
+    }
+
+    /** Vai trò gán tại {@code at} ({@code effective_from <= at < effective_to}; FR-026a). */
+    public Set<Role> rolesAt(long accountId, Instant at) {
+        Set<Role> roles = EnumSet.noneOf(Role.class);
+        jdbc.query(
+                "SELECT role FROM role_assignment WHERE account_id = ? AND effective_from <= ?"
+                        + " AND (effective_to IS NULL OR effective_to > ?)",
+                rs -> {
+                    roles.add(role(rs.getString(1)));
+                },
+                accountId,
+                utc(at),
+                utc(at));
+        return roles;
+    }
+
+    /**
+     * Trạng thái tại {@code at} theo {@code account_status_history} (FR-026a): dòng gần nhất không sau {@code at}; chưa
+     * có dòng nào trước {@code at} mà có dòng sau thì Hoạt động (tài khoản tạo ra ở trạng thái Hoạt động); không có
+     * lịch sử (dữ liệu trước T031) thì trạng thái hiện tại.
+     */
+    public AccountStatus statusAt(long accountId, Instant at, AccountStatus current) {
+        List<String> rows = jdbc.queryForList(
+                "SELECT status FROM account_status_history WHERE account_id = ? AND effective_from <= ?"
+                        + " ORDER BY effective_from DESC LIMIT 1",
+                String.class,
+                accountId,
+                utc(at));
+        if (!rows.isEmpty()) {
+            return AccountStatus.valueOf(rows.getFirst());
+        }
+        Integer later = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM account_status_history WHERE account_id = ?", Integer.class, accountId);
+        return later != null && later > 0 ? AccountStatus.ACTIVE : current;
+    }
+
     /**
      * Số tài khoản Hoạt động khác {@code excludedAccountId} đang có vai trò Quản lý viện; khóa các dòng đó để hai lệnh
      * đồng thời không cùng thấy "còn người khác" (FR-012; research A-05).
