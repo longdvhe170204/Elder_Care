@@ -10,6 +10,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
 - Dữ liệu mẫu của profile `demo` (cùng bản giả cho 008, 003, 012, 001, 004, 007 khi các module đó chưa có):
   - hai tầng (T1, T2), mỗi tầng hai phòng; người cao tuổi A (T1), B (T2) có phân bổ giường mở;
   - một tài khoản cho mỗi vai trò nhân viên (AC-01 → 05, 07, 09, 14), phân công tầng 1 với vai trò theo phân công; thêm một Quản lý viện thứ hai;
+    *(2026-10-21, T079a: `demo/V002_90__sample_accounts.sql`)* tên đăng nhập `demo.quanly`, `demo.quanly2` (AC-01), `demo.truongtang` (AC-02), `demo.bacsi` (AC-03), `demo.dieuduong` (AC-04), `demo.chamsoc` (AC-05), `demo.bep` (AC-07), `demo.hanhchinh` (AC-09), `demo.ketoan` (AC-14); mật khẩu chung `Demo2026!`, chỉ dùng cho `demo`; hồ sơ nhân viên id 9001 → 9009 theo thứ tự trên. Phân công tầng 1 thêm khi 008 có dữ liệu demo;
   - ca ngày 07:00–18:00 T1, có Người phụ trách ca là Điều dưỡng N; Trưởng tầng H được giao T1;
   - bác sĩ BS có giấy phép đúng phạm vi, hết hạn ngày D cấu hình được; giấy phép cơ sở có phạm vi khám chữa bệnh;
   - người thân R (người đại diện của A, có quyền xem sức khỏe, nằm trong bản đồng ý), M (quyền xem chi phí), cả hai chưa có tài khoản.
