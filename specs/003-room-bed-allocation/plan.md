@@ -1,5 +1,17 @@
 # Implementation Plan: Phòng, giường và phân bổ giường
 
+## Ghi chú triển khai Phase 1 (2026-10-22)
+
+- Phạm vi: T001–T002, không migration, controller, lệnh nghiệp vụ hay giao diện web. Dùng spec, contracts mục 2.1 và mục 3, research G-01/G-02/G-16 làm căn cứ.
+- T001 dùng tên tiếng Anh và cấu trúc mới theo backend/README.md: `api/{dto,spi}`, `internal/{structure,bed,allocation,isolation,daycare}`, `scheduling`; port giữa giường và tài sản ở `internal/bed/domain/port`. Các package-info khung được tạo theo yêu cầu tường minh của T001; lớp chức năng sẽ thêm ở phase tương ứng.
+- Phụ thuộc T002 → T004: bản giả không thể biên dịch khi chưa có SPI. Khai báo trước bốn SPI đọc/lệnh gọi lại của contracts mục 2.1, `BedAssetPort` và các kiểu tối thiểu. `BedAssetStatePort` (tên logic `GiuongTheoTaiSanPort`) cùng các API công khai/lệnh khác vẫn ở Phase 2, không đánh hoàn tất T004 trong Phase 1.
+- Bản giả do 003 sở hữu nằm ở `support/fake/m03`, được đăng ký bằng `FakeM03Config` (`@TestConfiguration`, `@Primary`), không đưa vào runtime chính. Test tiêm bản giả để đặt dữ liệu và gọi `reset()` giữa các kịch bản. Chưa thêm endpoint điều khiển giả lập: hợp đồng REST chưa có endpoint này và Phase 1 chỉ yêu cầu cấu hình test.
+- Test trước: `M03SetupTest` kiểm khung và NamedInterface; `FakeM03Test` kiểm dữ liệu rỗng/mẫu, lọc ngày/buổi, dữ liệu lây nhiễm theo thời điểm, tham chiếu lịch sử, dấu tài sản và đăng ký bean. Lần chạy đầu lỗi biên dịch vì SPI/DTO chưa tồn tại. Không tạo bản giả thứ hai cho SPI của 001/002.
+- Rà soát phát hiện luật tài sản → giường chưa chặn tài sản → phân bổ. Test hồi quy `FR_013_boundaryRejectsAssetAccessToAllocation_butAllowsTheBedPort` đã chạy lỗi trước khi mở rộng luật để bao phủ cả hai phần (research G-01). Fixture truy cập sai chỉ có trong nguồn test, không được đưa vào runtime chính.
+- `spotless:apply` và `spotless:check` đã chạy thành công, chỉ áp dụng các file Java của m03 qua bộ lọc `spotlessFiles`. Lần cuối trên JDK 25: `mvnw.cmd spotless:check -DspotlessFiles=.*m03.*\.java -Dtest=M03SetupTest,FakeM03Test,M03PartBoundaryArchTest,LayerArchTest,ApiNamedInterfaceArchTest,ModuleBoundaryTest test` xanh 22 test, không lỗi/bỏ qua (14 test mới của 003, 8 kiểm tra kiến trúc có sẵn).
+- Đã chạy `mvnw.cmd verify`: 137 test, 136 qua, 1 lỗi `BackendApplicationTests.contextLoads`; nguyên nhân gốc là thiếu `TEST_DB_URL` (cũng chưa có `TEST_DB_ADMIN_USER`, `TEST_DB_ADMIN_PASSWORD`). Build dừng ở Surefire trước các test tích hợp Failsafe; chưa thể xác nhận toàn bộ `verify` xanh. Không tắt/bỏ qua/sửa test đó.
+- Môi trường ban đầu có JDK 24; đã tải JDK 25 và Maven wrapper vào thư mục tạm để kiểm, không đổi cấu hình Java hệ thống hoặc pom.xml. Người dùng xác nhận chưa có MySQL test hay các biến `TEST_DB_*`, nên chưa chốt phase/đánh `[x]` cho tới khi kiểm chứng đầy đủ. Thay đổi đang ở working tree trên `develop`, không tạo/đổi nhánh, commit, push hay PR.
+
 **Branch**: `003-room-bed-allocation` | **Date**: 2026-10-07 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/003-room-bed-allocation/spec.md`

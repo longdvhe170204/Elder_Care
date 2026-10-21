@@ -495,7 +495,35 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 
 ## 9. Feature 003 (`003-room-bed-allocation`, C)
 
-*Chủ feature điền khi dịch `contracts/api-003.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+### 9.1. Khung backend và SPI (T001–T002, 2026-10-22)
+
+Phần này chốt tên Java cần cho Phase 1. Hợp đồng REST `api-003.yaml` chưa dịch trong phase này; không đổi endpoint, trường JSON hay mã lỗi.
+
+| Tên logic | Mã |
+| --- | --- |
+| `cocau`, `giuong`, `phanbo`, `cachly`, `bantru`, `lich` | `internal.structure`, `internal.bed`, `internal.allocation`, `internal.isolation`, `internal.daycare`, `scheduling` |
+| SPI, DTO công khai | `m03.api.spi`, `m03.api.dto` (mỗi gói có `@NamedInterface`) |
+| Port nội bộ giường ↔ tài sản | `m03.internal.bed.domain.port` (không `@NamedInterface`) |
+| `NguonLuuTruChoPhanBo` | `AllocationResidencySource` |
+| `loaiLuuTru`, `mucTheoHopDong`, `mucTheoLuotDangKy`, `ketThucDuKien` | `residencyType`, `contractCareLevel`, `registrationCareLevel`, `expectedEnd` |
+| `giuGiuongKhiVang`, `khacDonGia`, `hoSoChoHetHanGiuCho`, `daPhanBo` | `bedRetentionWhenAbsent`, `differentUnitPrice`, `waitingFileHoldExpired`, `allocated` |
+| `GiuGiuong(giu, han?)` | `AllocationResidencySource.BedRetention(retained, until)`; `until` là `Optional<Instant>` |
+| `DemLichDenBanTru.demTuNgay`, `coLichTuongLai` | `DayCareAttendanceCounter.countFrom`, `hasFutureSchedule` |
+| `BuoiNgay(ngay, buoiId)`, `BuoiBanTru(id, ten, gioBatDau, gioKetThuc)` | `SessionDate(date, sessionId)`, `DayCareSession(id, name, startsAt, endsAt)`; kiểu trao đổi nội bộ, không phải phản hồi REST |
+| `TinhTrangLayNhiemChoPhanBo.vungDangKhoanh`, `thuocDanhSach` | `AllocationInfectionStatus.restrictedZone`, `listed` |
+| `VungKhoanh(tangIds, khuVucIds)` | `AllocationInfectionStatus.RestrictedZone(floorIds, areaIds)` |
+| `ThamChieuViTri.dangThamChieu`, `daTungThamChieu` | `LocationReferences.activeReferences`, `everReferenced` |
+| `ThamChieuView(loai, id, nhan)` | `LocationReferences.ReferenceView(type, id, label)` |
+| `ViTriRef(loai, id)`; khu vực, tầng, phòng, giường | `LocationRef(type, id)`; `AREA`, `FLOOR`, `ROOM`, `BED` |
+| `MaMucChamSoc`: `CO_BAN`, `THUONG_XUYEN`, `DAC_BIET` | `CareLevel`: `BASIC`, `REGULAR`, `SPECIAL` (mã trao đổi của SPI M03) |
+| `LoaiLuuTru`: `NOI_TRU_DAI_HAN`, `NOI_TRU_NGAN_NGAY`, `BAN_TRU` | `ResidencyType`: `LONG_TERM`, `SHORT_TERM`, `DAY_CARE` |
+| `TaiSanGiuongPort.ghiTangChoGiuong`, `mangDauChoChuyenNguoi`, `giuongMangDau` | `BedAssetPort.createForBed`, `pendingResidentMove`, `flaggedBeds` |
+| `GiuongTheoTaiSanPort` (khai báo ở Phase 2) | `BedAssetStatePort` |
+| Bản giả 003 và cấu hình test | `support.fake.m03`: `FakeAllocationResidencies`, `FakeDayCareAttendances`, `FakeInfectionStatuses`, `FakeLocationReferences`, `FakeBedAssets`, `FakeM03Config` |
+
+### 9.2. Hợp đồng REST
+
+*Chủ feature điền khi dịch `contracts/api-003.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp bổ sung cùng thay đổi với mã).*
 
 ## 10. Feature 004 (`004-admission-residency`, B)
 
