@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getMe, postAuthLogout } from '@/api'
+import { ApiError, getMe, postAuthLogout } from '@/api'
 import { AppShell } from '@/common/layout/AppShell'
 import { NAV_GROUPS, navForRole } from '@/common/layout/navigation'
 import { NotDesignedState, PermissionDeniedState } from '@/common/PageState'
@@ -40,8 +40,11 @@ function App() {
   const [role, setRole] = useState('FLOOR_MANAGER')
   const [page, setPage] = useState('dashboard')
   const [params, setParams] = useState({})
-  // Phiên thật (002 T045): có thì vai trò theo tài khoản, không có thì bản mẫu đổi vai trò
+  // Phiên thật (002 T045): có thì vai trò theo tài khoản; chưa đăng nhập thì sang /login; không có backend thì bản
+  // mẫu đổi vai trò
   const [session, setSession] = useState(null)
+  // Chưa biết có phiên hay không thì chưa vẽ khung, tránh nháy bản mẫu trước khi sang /login
+  const [checking, setChecking] = useState(true)
 
   useEffect(() => {
     let cancelled = false
@@ -56,8 +59,14 @@ function App() {
         setSession(data)
         const real = primaryRole(data.roles)
         if (real) setRole(real)
+        setChecking(false)
       })
-      .catch(() => {})
+      .catch((error) => {
+        if (cancelled) return
+        // Backend trả 401 (chưa đăng nhập) thì vào màn đăng nhập; không gọi được backend thì giữ bản mẫu
+        if (error instanceof ApiError && error.status === 401) window.location.assign('/login')
+        else setChecking(false)
+      })
     return () => {
       cancelled = true
     }
@@ -82,6 +91,7 @@ function App() {
     if (!allowed.includes(page)) navigate(firstPage(nextRole))
   }
 
+  if (checking) return null
   if (role === 'FAMILY_MEMBER') return <FamilyPortal onExit={() => changeRole('FLOOR_MANAGER')} />
 
   const Page = PAGES[page]
