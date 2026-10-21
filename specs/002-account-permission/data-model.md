@@ -326,6 +326,8 @@ Mọi lệnh ghi `nhat_ky` của 000 trong cùng transaction (000 FR-047). Các 
 | BR-M01-08, DBR-03 | Điều kiện chú thích ¹ do 001 cài, kiểm mỗi lần xem | `NguoiThanSucKhoeIT` |
 | FR-012 | Đếm AC-01 Hoạt động dưới khóa dòng | `LuonConQuanLyVienIT` |
 | FR-022 | `quy_tac_xem_truong`, `BeanSerializerModifier` | `GioiHanTruongIT` |
+| FR-023 *(bổ sung 2026-10-21, T082)* | Ma trận (Phụ lục 27) không có ô của AC-02 cho duyệt thay đổi lưu trú, chi phí và kê đơn; thu hẹp không thêm được quyền (FR-025) | `FloorManagerLimitsIT` |
+| FR-035a *(bổ sung 2026-10-21, T021)* | `PhamViApi.boLocLichSu` dựng từ lịch sử phân công; ArchUnit cấm gọi từ `@LenhNghiepVu` | `PhamViBaoCaoLichSuIT` (`HistoryReportScopeIT`), `CanQuyenArchTest` |
 | FR-041b | `loi_du_lieu_quyen` | `DuLieuNguonLoiIT` |
 | FR-041c | `ban_ghi_cho_xem_lai`, `thiet_bi` | `NgoaiTuyenChoXemLaiIT` |
 | BR-M15-23 *(bổ sung 2026-10-18)* | Nghe `NguoiCaoTuoiDaChuyenTrangThai`; lệnh `khoa-nguoi-cao-tuoi`; loại yêu cầu `M15.KHOA_TAI_KHOAN_NCT`; `mo-khoa-nguoi-cao-tuoi` chặn `NCT_KET_THUC_LUU_TRU` | `KhoaTaiKhoanNguoiCaoTuoiIT` |
