@@ -119,6 +119,10 @@ public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibility
     @Override
     public PermissionResult hasPermission(CurrentUser user, PermissionKey key, Target target) {
         boolean specific = !Target.UNSPECIFIED.equals(target);
+        // Như bản thật: lớp phạm vi nằm trong hasPermission (đối tượng đặt ngoài phạm vi qua outOfScope)
+        if (specific && outOfScope.contains(target.type() + "/" + target.id())) {
+            return PermissionResult.denied(FailedLayer.SCOPE);
+        }
         boolean allowed = user.roles().stream()
                 .anyMatch(role -> grants.getOrDefault(role, Set.of()).contains(key)
                         || (specific

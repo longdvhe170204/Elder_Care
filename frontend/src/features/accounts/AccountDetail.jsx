@@ -7,6 +7,7 @@ import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
 import { problemOf } from '@/common/problem'
 import { formatDateTime } from '@/common/dateTime'
+import { AccountPermissions } from '@/features/permissions/AccountPermissions'
 import { AccountCommandForm } from './AccountCommandForm'
 import { COMMANDS, LOCK_CAUSE_LABELS, STATUS_LABELS, TYPE_LABELS, profileLabel, roleNames } from './accountLabels'
 
@@ -107,6 +108,10 @@ export function AccountDetail({ id, onChanged }) {
               ))}
             </div>
           )
+        )}
+
+        {account.allowedCommands?.includes('restrict') && (
+          <AccountPermissions accountId={account.id} allowedCommands={account.allowedCommands} onChanged={load} />
         )}
       </div>
     </>

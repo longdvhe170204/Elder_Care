@@ -6,7 +6,6 @@ import com.cambae.backend.m15.account.api.AccountApi;
 import com.cambae.backend.m15.account.api.ApproverApi;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.PermissionApi;
-import com.cambae.backend.m15.account.api.ScopeApi;
 import com.cambae.backend.m15.approval.api.ApprovalRequestView;
 import com.cambae.backend.m15.approval.api.spi.RequestTypeHandler;
 import java.util.List;
@@ -27,19 +26,16 @@ class ApproverDirectory {
 
     private final ObjectProvider<RequestTypeHandler> handlers;
     private final ObjectProvider<PermissionApi> permissions;
-    private final ObjectProvider<ScopeApi> scope;
     private final ObjectProvider<ApproverApi> approvers;
     private final ObjectProvider<AccountApi> accounts;
 
     ApproverDirectory(
             ObjectProvider<RequestTypeHandler> handlers,
             ObjectProvider<PermissionApi> permissions,
-            ObjectProvider<ScopeApi> scope,
             ObjectProvider<ApproverApi> approvers,
             ObjectProvider<AccountApi> accounts) {
         this.handlers = handlers;
         this.permissions = permissions;
-        this.scope = scope;
         this.approvers = approvers;
         this.accounts = accounts;
     }
@@ -54,13 +50,17 @@ class ApproverDirectory {
         return handler;
     }
 
-    /** Có quyền duyệt loại này, trong phạm vi, và có vai trò trong giới hạn của loại nếu có (FR-034, Q-338). */
+    /**
+     * Có quyền duyệt loại này trên đối tượng, và có vai trò trong giới hạn của loại nếu có (FR-034, Q-338). Phạm vi duyệt
+     * nằm trong lớp phạm vi của {@code hasPermission} theo đúng khóa duyệt: quyền toàn viện thì cả viện, theo phân công
+     * thì {@code ScopeApi.inScope} (sửa 2026-10-21, 002 Phase 9a: gọi thêm {@code inScope} làm Quản lý viện không duyệt
+     * được vì phạm vi theo phân công của người không có phân công là rỗng).
+     */
     boolean canDecide(CurrentUser user, ApprovalRequestView request, RequestTypeHandler handler) {
         return permissions
                         .getObject()
                         .hasPermission(user, handler.approvePermission(), request.target())
                         .allowed()
-                && scope.getObject().inScope(user, request.target())
                 && withinRestriction(user.accountId(), handler.approverRoleRestriction(request));
     }
 
@@ -76,7 +76,7 @@ class ApproverDirectory {
                 || permission
                         .hasPermission(user, handler.createPermission(), request.target())
                         .allowed();
-        return typeAccess && scope.getObject().inScope(user, request.target());
+        return typeAccess;
     }
 
     /** Danh sách tài khoản có quyền duyệt, đã lọc giới hạn vai trò (contracts mục 1.5). */

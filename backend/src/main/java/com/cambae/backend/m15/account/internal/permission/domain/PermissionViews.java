@@ -45,4 +45,19 @@ public final class PermissionViews {
             List<Restriction> accountRestrictions,
             List<EffectivePermission> additionalGrants,
             List<EffectivePermission> current) {}
+
+    /** Một vai trò ({@code GET /roles}, FR-016). */
+    @Schema(name = "RoleInfo")
+    public record RoleInfo(String code, String name, String accountType, PermissionScope executionScope) {}
+
+    /**
+     * Quyền tối đa (ma trận), thu hẹp đang hiệu lực và quyền sau thu hẹp của một vai trò (FR-018, FR-020, FR-025); ETag
+     * là {@code role.permission_version}.
+     */
+    @Schema(name = "RolePermissions")
+    public record RolePermissions(
+            String role,
+            List<EffectivePermission> maximum,
+            List<Restriction> restrictions,
+            List<EffectivePermission> current) {}
 }
