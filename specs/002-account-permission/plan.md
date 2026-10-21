@@ -302,6 +302,8 @@ Ghi khi triển khai (constitution XIV: lệch kỹ thuật ghi ở plan cùng l
   - **T081** chưa xong: `./mvnw clean verify`, `npm test` qua; `flutter test` chờ mở mobile; kịch bản quickstart mục 3 cần dữ liệu demo của 003, 008, 012 (tầng, phân công, giấy phép, người thân) và bản cài 001 (US8); SC-005, SC-008 đo với người dùng thật.
   - **T082** rà data-model mục 7: mọi BR có test; FR-023 thiếu test riêng, thêm `FloorManagerLimitsIT` (xanh ngay vì ma trận đã đúng từ T005); thêm dòng FR-023, FR-035a. Còn chờ: BR-M15-23 phần sự kiện (T087 #6, T094), FR-067, FR-068 (T083, T091) chờ 001; FR-074 (T097) chờ mobile.
 
+- **Phụ lục 27 thêm ba dòng** (2026-10-22, Q-375, Q-378, Q-379; chủ dự án sửa nghiep-vu.md): `Function` thêm `EMERGENCY_ASSIST_BUTTON` ("Nút hỗ trợ khẩn cấp", sau `SOS_BUTTON`), `PAYMENT_NOTICE` ("Phiếu báo phí"), `SETTLEMENT_RECORD` ("Biên bản quyết toán", sau `STATEMENT_REPORT`), đúng thứ tự dòng của Phụ lục 27; `V002_09__emergency_assist_payment_documents.sql` nạp các ô theo luật T007 (chú thích ⁴⁹ cho nút hỗ trợ khẩn cấp, ¹⁶ cho người thân); nhãn web ở `frontend/src/features/permissions/permissionLabels.js`. Không đổi endpoint hay hợp đồng api-002. `PermissionMatrixMatchesSourceIT`, `PermissionMatrixIT` qua trên JDK 25. Lệnh dùng các quyền này thuộc 007 (FR-047i) và 017 (FR-031 → FR-036).
+
 ### Việc dang dở sau Phase 3 và tác động khi chạy thật (2026-10-20)
 
 Test không bị ảnh hưởng: test của 000 và của module khác dùng bản giả (`support/fake`, `FakePermissions`). Tác động chỉ có khi chạy ứng dụng thật (`demo`, `prod`), hiện chưa chạy được vì chưa có đăng nhập (T044). Mọi chỗ dang dở đều nghiêng về từ chối, trừ FR-044a.

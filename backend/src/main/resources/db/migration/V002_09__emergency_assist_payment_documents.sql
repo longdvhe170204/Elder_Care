@@ -1,0 +1,40 @@
+-- Phụ lục 27 thêm ba dòng (2026-10-22): "Nút hỗ trợ khẩn cấp" (UC-99, Q-375, chú thích ⁴⁹), "Phiếu báo phí"
+-- (UC-100, Q-378), "Biên bản quyết toán" (UC-101, Q-379). Quy đổi ô như V002_04: X → VIEW, T → VIEW, CREATE, UPDATE;
+-- phạm vi T của TT, ĐD, CS là ASSIGNED, người thân RELATIONSHIP. Đối chiếu bằng PermissionMatrixMatchesSourceIT.
+-- Cú pháp dùng được ở MySQL 8.0 và 8.4 (research R-01 của 000).
+
+INSERT INTO permission_matrix (role, function_code, operation, scope, footnote_codes, source)
+VALUES ('AC-01', 'EMERGENCY_ASSIST_BUTTON', 'VIEW', 'FACILITY', '["49"]', 'APPENDIX_27'),
+       ('AC-01', 'EMERGENCY_ASSIST_BUTTON', 'CREATE', 'FACILITY', '["49"]', 'APPENDIX_27'),
+       ('AC-01', 'EMERGENCY_ASSIST_BUTTON', 'UPDATE', 'FACILITY', '["49"]', 'APPENDIX_27'),
+       ('AC-02', 'EMERGENCY_ASSIST_BUTTON', 'VIEW', 'ASSIGNED', '["49"]', 'APPENDIX_27'),
+       ('AC-02', 'EMERGENCY_ASSIST_BUTTON', 'CREATE', 'ASSIGNED', '["49"]', 'APPENDIX_27'),
+       ('AC-02', 'EMERGENCY_ASSIST_BUTTON', 'UPDATE', 'ASSIGNED', '["49"]', 'APPENDIX_27'),
+       ('AC-03', 'EMERGENCY_ASSIST_BUTTON', 'VIEW', 'FACILITY', '["49"]', 'APPENDIX_27'),
+       ('AC-03', 'EMERGENCY_ASSIST_BUTTON', 'CREATE', 'FACILITY', '["49"]', 'APPENDIX_27'),
+       ('AC-03', 'EMERGENCY_ASSIST_BUTTON', 'UPDATE', 'FACILITY', '["49"]', 'APPENDIX_27'),
+       ('AC-04', 'EMERGENCY_ASSIST_BUTTON', 'VIEW', 'ASSIGNED', '["49"]', 'APPENDIX_27'),
+       ('AC-04', 'EMERGENCY_ASSIST_BUTTON', 'CREATE', 'ASSIGNED', '["49"]', 'APPENDIX_27'),
+       ('AC-04', 'EMERGENCY_ASSIST_BUTTON', 'UPDATE', 'ASSIGNED', '["49"]', 'APPENDIX_27'),
+       ('AC-05', 'EMERGENCY_ASSIST_BUTTON', 'VIEW', 'ASSIGNED', '["49"]', 'APPENDIX_27'),
+       ('AC-05', 'EMERGENCY_ASSIST_BUTTON', 'CREATE', 'ASSIGNED', '["49"]', 'APPENDIX_27'),
+       ('AC-05', 'EMERGENCY_ASSIST_BUTTON', 'UPDATE', 'ASSIGNED', '["49"]', 'APPENDIX_27'),
+       ('AC-07', 'EMERGENCY_ASSIST_BUTTON', 'VIEW', 'FACILITY', '["49"]', 'APPENDIX_27'),
+       ('AC-07', 'EMERGENCY_ASSIST_BUTTON', 'CREATE', 'FACILITY', '["49"]', 'APPENDIX_27'),
+       ('AC-07', 'EMERGENCY_ASSIST_BUTTON', 'UPDATE', 'FACILITY', '["49"]', 'APPENDIX_27'),
+       ('AC-09', 'EMERGENCY_ASSIST_BUTTON', 'VIEW', 'FACILITY', '["49"]', 'APPENDIX_27'),
+       ('AC-09', 'EMERGENCY_ASSIST_BUTTON', 'CREATE', 'FACILITY', '["49"]', 'APPENDIX_27'),
+       ('AC-09', 'EMERGENCY_ASSIST_BUTTON', 'UPDATE', 'FACILITY', '["49"]', 'APPENDIX_27'),
+       ('AC-14', 'EMERGENCY_ASSIST_BUTTON', 'VIEW', 'FACILITY', '["49"]', 'APPENDIX_27'),
+       ('AC-14', 'EMERGENCY_ASSIST_BUTTON', 'CREATE', 'FACILITY', '["49"]', 'APPENDIX_27'),
+       ('AC-14', 'EMERGENCY_ASSIST_BUTTON', 'UPDATE', 'FACILITY', '["49"]', 'APPENDIX_27'),
+       ('AC-01', 'PAYMENT_NOTICE', 'VIEW', 'FACILITY', '[]', 'APPENDIX_27'),
+       ('AC-10', 'PAYMENT_NOTICE', 'VIEW', 'RELATIONSHIP', '["16"]', 'APPENDIX_27'),
+       ('AC-14', 'PAYMENT_NOTICE', 'VIEW', 'FACILITY', '[]', 'APPENDIX_27'),
+       ('AC-14', 'PAYMENT_NOTICE', 'CREATE', 'FACILITY', '[]', 'APPENDIX_27'),
+       ('AC-14', 'PAYMENT_NOTICE', 'UPDATE', 'FACILITY', '[]', 'APPENDIX_27'),
+       ('AC-01', 'SETTLEMENT_RECORD', 'VIEW', 'FACILITY', '[]', 'APPENDIX_27'),
+       ('AC-10', 'SETTLEMENT_RECORD', 'VIEW', 'RELATIONSHIP', '["16"]', 'APPENDIX_27'),
+       ('AC-14', 'SETTLEMENT_RECORD', 'VIEW', 'FACILITY', '[]', 'APPENDIX_27'),
+       ('AC-14', 'SETTLEMENT_RECORD', 'CREATE', 'FACILITY', '[]', 'APPENDIX_27'),
+       ('AC-14', 'SETTLEMENT_RECORD', 'UPDATE', 'FACILITY', '[]', 'APPENDIX_27');

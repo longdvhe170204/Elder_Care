@@ -118,11 +118,15 @@ Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi 
 
 - FR-032: nguồn không còn dẫn câu cũ của 1.3 ("hệ thống chủ động sinh… nhân viên chủ yếu xác nhận"), dẫn Q-306. Điểm báo lại về chữ "thường là trưởng tầng hoặc điều dưỡng" ở 2.4 đã được Q-279 xử lý.
 
+### Cập nhật 2026-10-22 (đồng bộ Q-382, import danh sách nhân viên)
+
+- **Q-382**: Quản lý viện import nhiều hồ sơ nhân viên từ file Excel theo mẫu: xem trước, còn dòng lỗi thì không nhập dòng nào, trùng theo số điện thoại (FR-001b, FR-001c; BR-M09-18, CFG-M09-13, UC-102). Thêm kịch bản 10 → 14 của User Story 4, SC-013, Key Entities "Lần import hồ sơ nhân viên".
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 09 mục 13.1 → 13.6; BR-M09-01 → 08, BR-M09-12 → 17; UC-49, UC-50 phần lập và công bố lịch ca, UC-51, UC-52, UC-53; DBR-20, DBR-21):
 
-1. Hồ sơ nhân viên và trạng thái làm việc; lệnh Cho nghỉ việc và các tác động (13.1, UC-49, BR-M09-04).
+1. Hồ sơ nhân viên và trạng thái làm việc; lệnh Cho nghỉ việc và các tác động (13.1, UC-49, BR-M09-04); *(bổ sung 2026-10-22, Q-382)* import danh sách nhân viên bằng Excel (UC-102, BR-M09-18).
 2. Danh mục loại giấy phép/đào tạo; giấy phép hành nghề có phạm vi hành nghề; đào tạo (kể cả đào tạo sơ cứu) có thời hạn; gia hạn; cảnh báo đào tạo bắt buộc sắp hết hạn (13.1, BR-M09-05, CFG-M09-03).
 3. Mẫu ca cấu hình được (tên ca, giờ bắt đầu, giờ kết thúc, phạm vi); lịch ca theo tháng ở trạng thái Nháp → Đã công bố; ca cụ thể có nhân viên, người phụ trách ca và Bác sĩ trực (13.2, UC-50, BR-M09-03).
 4. Các lệnh trên ca đã công bố do feature này sở hữu: Chuyển người phụ trách ca, Bổ sung nhân viên vào ca, Ghi nhận vắng ca, Hủy ca.
@@ -240,6 +244,11 @@ Quản lý viện lập hồ sơ nhân viên (họ tên, chức danh, chuyên m�
 7. **Given** hồ sơ nhân viên đã được ca, phân công, bàn giao tham chiếu, **When** Quản lý viện cố xóa hồ sơ, **Then** hệ thống từ chối; hồ sơ chỉ chuyển Nghỉ việc (1.5).
 8. **(Bổ sung, business-rules CHK038)** **Given** S ở trạng thái Nghỉ việc, tài khoản Đã khóa, **When** Quản lý viện "Nhận lại làm việc" cho S mà không nhập lý do, **Then** hệ thống từ chối; **When** có lý do, **Then** S về Đang làm việc, lịch sử ca và phân công cũ giữ nguyên, tài khoản vẫn Đã khóa; S chỉ xếp được vào ca sau khi Quản lý viện mở khóa tài khoản (FR-002, FR-003; feature 002 FR-011), và các ca, phân công đã giải phóng lúc nghỉ việc không tự khôi phục.
 9. **(Bổ sung, 2026-10-06, Q-292, Q-293, Q-299)** **Given** B là Phụ trách bộ phận Bếp, **When** Quản lý viện "Cho nghỉ việc" B mà không chỉ định người thay, **Then** hệ thống từ chối; **When** chỉ định Nhân viên bếp C làm người thay trong cùng lệnh, **Then** B nghỉ việc và C là Phụ trách bộ phận Bếp từ cùng thời điểm. **When** Quản lý viện tìm cách chỉ định Kế toán K làm Phụ trách bộ phận Hành chính – Kế toán, hoặc tự chỉ định mình, **Then** hệ thống từ chối (FR-001a).
+10. *(Bổ sung 2026-10-22, Q-382)* **Given** file mẫu có 40 dòng hợp lệ, **When** Quản lý viện tải file lên, **Then** hệ thống hiện xem trước 40 dòng hợp lệ và chưa tạo hồ sơ nào; **When** Quản lý viện xác nhận, **Then** 40 hồ sơ được tạo trong một lần, trạng thái Đang làm việc, nguồn "import", không có tài khoản liên kết (FR-001b).
+11. *(Bổ sung 2026-10-22, Q-382)* **Given** file 40 dòng, dòng 7 thiếu chức danh, dòng 12 có số điện thoại 9 chữ số, **When** tải lên, **Then** xem trước báo dòng 7 cột "Chức danh" thiếu, dòng 12 cột "Số điện thoại" sai định dạng; nút xác nhận không dùng được; 0 hồ sơ được tạo (FR-001b).
+12. *(Bổ sung 2026-10-22, Q-382)* **Given** đã có hồ sơ S (Nghỉ việc) số 0912345678, **When** file có dòng cùng số đó, hoặc hai dòng trong file cùng một số, **Then** các dòng đó là lỗi "trùng số điện thoại", kèm hồ sơ hoặc dòng bị trùng; S chỉ quay lại bằng "Nhận lại làm việc" (FR-001b).
+13. *(Bổ sung 2026-10-22, Q-382)* **Given** xem trước không lỗi, **When** trước khi xác nhận có người tạo tay hồ sơ trùng số điện thoại với dòng 5, **Then** lệnh xác nhận bị từ chối toàn bộ, báo dòng 5; 0 hồ sơ được tạo (FR-001b).
+14. *(Bổ sung 2026-10-22, Q-382)* **Given** file 501 dòng hoặc không đúng mẫu (thiếu cột, sai loại file), **When** tải lên, **Then** bị từ chối ngay, kèm lý do; Trưởng tầng không có thao tác import (FR-001b, FR-001c).
 
 ---
 
@@ -324,6 +333,8 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 
 - **FR-001**: Quản lý viện MUST tạo và sửa được hồ sơ nhân viên gồm: họ tên, chức danh, chuyên môn, ngày bắt đầu làm việc, thông tin liên hệ, trạng thái làm việc, tài khoản liên kết (feature 002). Hồ sơ đã được ca, phân công, công việc, bàn giao hay bất kỳ bản ghi nào tham chiếu MUST NOT bị xóa. **(Bổ sung, 2026-10-06, Q-282)** Hồ sơ MUST lập được cho mọi nhân viên, kể cả nhân viên không dùng hệ thống (ví dụ vệ sinh, bảo vệ, lái xe); hồ sơ không kéo theo tài khoản, chỉ nhân viên có chức danh ứng với một vai trò ở 2.3 mới được cấp tài khoản (feature 002). Nhân viên không có tài khoản MUST NOT có trong lịch ca, phân công hay phủ tối thiểu (FR-002). *(Nguồn: 13.1, UC-49, 1.5; Q-282)*
 - **FR-001a** *(bổ sung, 2026-10-06, Q-284)*: Quản lý viện MUST quản lý danh mục **bộ phận** (nhóm 1; khởi tạo: Y tế, Chăm sóc, Bếp, Hành chính – Kế toán). Nhân viên MAY không có tài khoản (FR-001); mỗi tài khoản nhân viên MUST thuộc đúng một bộ phận tại một thời điểm (sửa diễn đạt, 2026-10-06), trừ tài khoản Quản lý viện MUST NOT thuộc bộ phận nào (**sửa, 2026-10-06, Q-299**); đổi bộ phận MUST được ghi lịch sử. Quản lý viện MUST chỉ định được một **Phụ trách bộ phận** (nhiệm vụ, 2.4) cho mỗi bộ phận, trong số nhân viên của bộ phận đó, và người được chỉ định MUST có tài khoản đang Hoạt động (bổ sung, 2026-10-06); ~~bộ phận chưa có người phụ trách thì Quản lý viện thực hiện thay các lệnh của Phụ trách bộ phận~~. **(Sửa, 2026-10-06, Q-292, Q-293, Q-299)** Người được chỉ định MUST NOT có vai trò Quản lý viện hoặc Kế toán; Phụ trách bộ phận Hành chính – Kế toán là nhân viên vai trò Hành chính. Mỗi bộ phận MUST luôn có đúng một Phụ trách bộ phận; không ai làm thay. Lệnh đổi Phụ trách bộ phận MUST chỉ định người mới trong cùng lệnh. Lệnh Cho nghỉ việc (FR-003), khóa tài khoản (feature 002) hoặc đổi bộ phận của nhân viên đang là Phụ trách bộ phận MUST bị chặn nếu không chỉ định người thay trong cùng lệnh. Bộ phận mới tạo chưa có Phụ trách bộ phận thì Quản lý viện MUST được nhắc chỉ định (feature 019 chặn lệnh của bộ phận đó). Bộ phận không phải vai trò và MUST NOT tạo quyền ngoài các quyền nêu ở 7.7, 12.7, 15.10 (feature 002 FR-019f, feature 019). *(Nguồn: 13.1a, 2.4)*
+- **FR-001b** *(bổ sung 2026-10-22, Q-382)*: Quản lý viện MUST import được nhiều hồ sơ nhân viên từ file Excel (.xlsx) theo mẫu tải từ hệ thống, theo hai bước. (1) Tải lên: file không đúng mẫu (thiếu cột, sai loại file) hoặc quá CFG-M09-13 (mặc định \[500 dòng\]) MUST bị từ chối; ngược lại hệ thống MUST kiểm tra từng dòng và trả kết quả xem trước, MUST NOT ghi dữ liệu. Mỗi dòng gồm họ tên, chức danh, số điện thoại, ngày bắt đầu làm việc (bắt buộc), chuyên môn, email (không bắt buộc). Dòng lỗi khi: thiếu ô bắt buộc; ngày sai định dạng; số điện thoại không phải 10 chữ số bắt đầu bằng 0; email sai định dạng; số điện thoại trùng hồ sơ nhân viên đã có (mọi trạng thái làm việc) hoặc trùng dòng khác trong file. Mỗi lỗi MUST nêu số dòng, cột và lý do. (2) Xác nhận: chỉ dùng được khi xem trước không có dòng lỗi; hệ thống MUST kiểm tra lại mọi dòng và tạo mọi hồ sơ trong một lần theo "hoặc toàn bộ, hoặc không" (feature 000); có dòng lỗi mới thì từ chối toàn bộ kèm danh sách dòng lỗi. Hồ sơ tạo ra ở trạng thái Đang làm việc, mang nguồn "import" và lần import; không tài khoản liên kết, không bộ phận, không giấy phép, đào tạo; MUST NOT sửa hồ sơ đã có. *(Nguồn: 13.1, BR-M09-18, Q-382, UC-102)*
+- **FR-001c** *(bổ sung 2026-10-22, Q-382)*: Mỗi lần xác nhận import MUST ghi nhật ký (19.4): người thực hiện, thời điểm, tên file, số dòng, danh sách hồ sơ đã tạo; hệ thống MUST NOT lưu file gốc. Chỉ người có quyền T ở dòng "Hồ sơ nhân viên, chứng chỉ" (Phụ lục 27: Quản lý viện) MUST thực hiện được import. *(Nguồn: BR-M09-18, Phụ lục 27)*
 - **FR-002**: Vai trò dùng để xếp ca, phân công và tính tỷ lệ phục vụ MUST là vai trò hệ thống của tài khoản liên kết (feature 002); chức danh chỉ mang tính mô tả. Nhân viên MUST chỉ được xếp vào ca khi ở trạng thái Đang làm việc và có tài khoản liên kết không ở trạng thái Đã khóa. *(Nguồn: 2.4, 13.1)*
 - **FR-003**: Trạng thái làm việc MUST chỉ thay đổi theo bảng sau:
 
@@ -466,6 +477,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Nhận, Cung cấp | 005 | Nhận danh mục loại công việc và chứng chỉ yêu cầu, danh sách công việc chưa đóng cho người lập bàn giao; cung cấp nhân viên chính theo vai trò (FR-028), vắng ca, nghỉ việc, bàn giao đã xác nhận |
 | Nhận, Cung cấp | 006 | Nhận liều Trễ, Bỏ lỡ, Từ chối, Mang theo chờ ghi nhận; cung cấp Điều dưỡng phụ trách theo ca, bàn giao đã xác nhận |
 | Nhận, Cung cấp | 007 | Nhận chỉ số vượt ngưỡng, cảnh báo và sự cố đang mở; cung cấp Bác sĩ trực, Người phụ trách ca, Điều dưỡng phụ trách, chuyển tạm người phụ trách (FR-044a), bàn giao đã xác nhận |
+| Cung cấp | 007 | *(bổ sung 2026-10-22, Q-375)* Ca đang diễn ra và tầng của một nhân viên tại thời điểm, nhân viên có ca đang diễn ra theo tầng, Người phụ trách ca của mọi tầng đang có ca, cho nút hỗ trợ khẩn cấp (feature 007 FR-047i). Dữ liệu đã có (ca, phân công), không thêm quy tắc |
 | Nhận, Cung cấp | 013 | Nhận đồ gửi có giá trị Đang giữ do nhân viên trong ca giữ cho nhóm (g) mà người lập bàn giao xem (FR-039); cung cấp ca đang diễn ra, sự kiện kết thúc ca và trạng thái tài khoản để xác định "người giữ vắng mặt" (feature 013 FR-014, FR-014a) |
 | Cung cấp | 009 | Sự kiện thông báo, mức độ và người nhận (FR-004, FR-008, FR-009, FR-016, FR-017, FR-036, FR-039, FR-042, FR-043; mức độ và giới hạn nội dung theo FR-058, FR-059) |
 | Nhận, Cung cấp | 015 | Nhận kết quả đổi ca, nghỉ đột xuất đã duyệt (dấu "nghỉ có duyệt", căn cứ vào ca theo yêu cầu), lịch Nháp lập từ mẫu xoay ca, nghỉ theo ngày trên lịch Nháp, phần kiểm tra phủ tối thiểu của lệnh công bố; được spec 015 gọi: Bổ sung nhân viên vào ca (kể cả khi nhận lời mời), hủy và lập phân công, đổi người phụ trách ca như FR-019, gắn dấu "thiếu người phụ trách"; cung cấp kiểm tra BR-M09-01, BR-M09-03 (FR-013, FR-014, FR-015, FR-028, FR-030), giấy phép, giao trưởng tầng, tỷ lệ phục vụ (Q-77) |
@@ -504,6 +516,8 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 - **Mục bàn giao** – nhóm 3 từ khi Đã lập, do người bàn giao ghi (Q-307): bàn giao, nhóm (công việc / liều / chỉ số / cảnh báo / sự cố / biến động người cao tuổi / giường Chờ sẵn sàng quá hạn / đồ gửi / vấn đề cần theo dõi), bản ghi nguồn (nếu có), người ghi, người cao tuổi hoặc phòng, trạng thái lúc chốt, ghi chú, phần (đã chốt / phát sinh sau khi lập / đã xử lý trong ca).
 - **Ý kiến bàn giao** – nhóm 3: bàn giao, người gửi, nội dung, thời điểm, phản hồi của người bàn giao.
 
+- **Lần import hồ sơ nhân viên** *(bổ sung 2026-10-22, Q-382)* – nhóm 3: người thực hiện, thời điểm, tên file, số dòng, danh sách hồ sơ đã tạo.
+
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
@@ -520,6 +534,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 - **SC-010**: Trưởng tầng lập xong phân công cho một ca của tầng khoảng 30 người trong không quá 5 phút khi dùng sao chép phân công từ ca trước; đo từ lúc mở ca đích tới lúc lưu phân công cuối, với ca có khoảng 6 nhân viên và tối đa 3 phân công không sao chép được, trên ít nhất 10 lần của Trưởng tầng đã được hướng dẫn, lấy trung vị (business-rules CHK032).
 - **SC-011**: Với bộ kiểm thử phân công và giao trưởng tầng (có phân công chồng mức đối tượng, lệnh gửi đồng thời, giao trưởng tầng thay tạm), tại mọi thời điểm 0 người cao tuổi có hai nhân viên chính cùng vai trò và 0 tầng có hai Trưởng tầng được giao (FR-024, FR-028).
 - **SC-012**: Với bộ kiểm thử mọi loại thông báo của FR-058 gửi qua kênh ngoài ứng dụng, 0 thông báo chứa họ tên người cao tuổi, thông tin sức khỏe hay lý do vắng ca, nghỉ việc, thu hồi giấy phép; 100% lệnh thay đổi dữ liệu nhóm 2 của spec có bản ghi nhật ký với căn cứ quyền (FR-055, FR-056, FR-059).
+- **SC-013** *(bổ sung 2026-10-22, Q-382)*: Với file 500 dòng, xem trước hiện trong không quá 10 giây và xác nhận tạo xong trong không quá 10 giây; với bộ kiểm thử có dòng lỗi mọi loại, 100% dòng lỗi được báo đúng dòng, cột, lý do và 0 hồ sơ được tạo khi file còn lỗi.
 
 ## Assumptions
 
@@ -597,3 +612,5 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 **(2026-10-10) Plan 008, điểm báo lại 1 → 6.** *(Đã xử lý 2026-10-10: Q-331, Q-311; sửa FR-047, FR-055, FR-056, FR-058, bảng FR-027.)*
 
 **(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-032; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
+
+**(2026-10-22) Đồng bộ Q-382.** *(Đã xử lý 2026-10-22: Clarifications "Cập nhật 2026-10-22", Phạm vi 1, User Story 4 kịch bản 10 → 14, FR-001b, FR-001c, Key Entities, SC-013.)* Còn báo lại: plan, data-model, contracts (api-008), tasks chưa cập nhật; plan cần chọn thư viện đọc Excel và chốt bố cục file mẫu.
