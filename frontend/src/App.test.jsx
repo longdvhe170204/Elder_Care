@@ -4,7 +4,7 @@ import { json, mockRoutes, problem } from '@/test/fetchRoutes'
 import App from './App'
 
 // 002 T045 (hướng A, chủ dự án chọn 2026-10-20): có phiên thật thì khung nhân viên theo vai trò của tài khoản và có
-// nút Đăng xuất; không có phiên (chưa đăng nhập, chạy không có backend) thì giữ bản mẫu đổi vai trò.
+// nút Đăng xuất; chưa đăng nhập (401) thì sang /login; chạy không có backend thì giữ bản mẫu đổi vai trò.
 
 let api
 
@@ -40,12 +40,22 @@ describe('App', () => {
     await waitFor(() => expect(api.calls('POST', '/auth/logout')).toHaveLength(1))
   })
 
-  it('khongCoPhien_giuBanMauDoiVaiTro', async () => {
+  it('chuaDangNhap_chuyenSangManDangNhap', async () => {
+    const assign = vi.fn()
+    vi.stubGlobal('location', { ...window.location, assign })
     api.on('GET', '/me', problem(401, 'UNAUTHORIZED'))
     render(<App />)
 
-    await waitFor(() => expect(api.calls('GET', '/me')).toHaveLength(1))
-    expect(screen.getByLabelText('Xem với vai trò')).toBeInTheDocument()
+    await waitFor(() => expect(assign).toHaveBeenCalledWith('/login'))
+    expect(screen.queryByLabelText('Xem với vai trò')).toBeNull()
+  })
+
+  it('khongCoBackend_giuBanMauDoiVaiTro', async () => {
+    api.on('GET', '/me', new Response(null, { status: 500 }))
+    render(<App />)
+
+    expect(await screen.findByLabelText('Xem với vai trò')).toBeInTheDocument()
+    expect(api.calls('GET', '/me')).toHaveLength(1)
     expect(screen.queryByRole('button', { name: 'Đăng xuất' })).toBeNull()
   })
 })
