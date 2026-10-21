@@ -1,6 +1,7 @@
 package com.cambae.backend.support.fake.m01;
 
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
@@ -12,6 +13,17 @@ import org.springframework.context.annotation.Primary;
  */
 @TestConfiguration
 public class FakeM01Config {
+
+    @Bean
+    @Primary
+    FakeResidents fakeResidents() {
+        return new FakeResidents();
+    }
+
+    @Bean
+    FakeResidentEvents fakeResidentEvents(ApplicationEventPublisher publisher) {
+        return new FakeResidentEvents(publisher);
+    }
 
     @Bean
     FakeStatusTransitionParticipant fakeStatusTransitionParticipant() {
