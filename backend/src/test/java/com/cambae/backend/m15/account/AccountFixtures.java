@@ -78,6 +78,34 @@ class AccountFixtures {
         return accountId;
     }
 
+    /**
+     * Tài khoản người cao tuổi Hoạt động (vai trò AC-16, 002 US8) dựng thẳng trong cơ sở dữ liệu, không qua lệnh tạo
+     * (T091 chờ {@code NguoiCaoTuoiApi} của 001); trả id tài khoản.
+     */
+    long residentAccount(long residentId) {
+        LocalDateTime created = utc(time.now().minus(Duration.ofDays(1)));
+        jdbc.update("""
+                INSERT INTO account (username, type, resident_id, status, password_hash, must_change_password,
+                                     inactivity_reference_at, created_at)
+                VALUES (?, 'RESIDENT', ?, 'ACTIVE', 'x', FALSE, ?, ?)
+                """, "resident-" + residentId, residentId, created, created);
+        long accountId = jdbc.queryForObject("SELECT id FROM account WHERE resident_id = ?", Long.class, residentId);
+        jdbc.update(
+                "INSERT INTO role_assignment (account_id, role, effective_from, reason) VALUES (?, 'AC-16', ?, 'Test')",
+                accountId,
+                created);
+        return accountId;
+    }
+
+    /** {@code POST /auth/qr-login} trên thiết bị đã cho (002 US8). */
+    static org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder qrLogin(
+            String code, String deviceId) {
+        return org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v1/auth/qr-login")
+                .header("X-Device-Id", deviceId)
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content("{\"code\":\"" + code + "\"}");
+    }
+
     /** Người dùng của tài khoản nhân viên fixture với vai trò đang gán, như phiên app nhân viên (002 US4 trở đi). */
     ActiveSession user(long accountId) {
         Set<Role> roles = EnumSet.noneOf(Role.class);

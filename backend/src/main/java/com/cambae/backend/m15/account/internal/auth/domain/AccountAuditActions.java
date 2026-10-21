@@ -22,6 +22,12 @@ public final class AccountAuditActions {
     public static final AuditAction ACCOUNT_REACTIVATED = new AuditAction("ACCOUNT_REACTIVATED", true);
     public static final AuditAction PASSWORD_CHANGED = new AuditAction("PASSWORD_CHANGED", false);
 
+    // Tài khoản người cao tuổi (US8; data-model mục 2): QR_TAO, QR_DUNG, TB_GAN, TB_GO
+    public static final AuditAction LOGIN_QR_CREATED = new AuditAction("LOGIN_QR_CREATED", false);
+    public static final AuditAction LOGIN_QR_USED = new AuditAction("LOGIN_QR_USED", false);
+    public static final AuditAction DEVICE_BOUND = new AuditAction("DEVICE_BOUND", false);
+    public static final AuditAction DEVICE_UNBOUND = new AuditAction("DEVICE_UNBOUND", false);
+
     /** Đối tượng nhật ký của tài khoản. */
     public static final String ENTITY = "M15.ACCOUNT";
 

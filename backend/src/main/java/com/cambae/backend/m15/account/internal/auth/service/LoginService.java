@@ -13,6 +13,8 @@ import com.cambae.backend.m15.account.internal.auth.domain.AccountAuditActions;
 import com.cambae.backend.m15.account.internal.auth.domain.ActiveSession;
 import com.cambae.backend.m15.account.internal.auth.domain.LoginRules;
 import com.cambae.backend.m15.account.internal.auth.domain.LoginRules.Decision;
+import com.cambae.backend.m15.account.internal.auth.persistence.DeviceBindings;
+import com.cambae.backend.m15.account.internal.auth.persistence.DeviceBindings.QrCode;
 import com.cambae.backend.m15.account.internal.domain.Account;
 import com.cambae.backend.m15.account.internal.persistence.AccountStore;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
@@ -53,6 +55,8 @@ public class LoginService {
     private final BusinessTime time;
     private final ParameterApi parameters;
     private final AuditLogApi auditLog;
+    private final ResidentDevices devices;
+    private final DeviceBindings bindings;
     // Băm giả để tên không tồn tại tốn cùng thời gian kiểm như tên có thật (research A-03)
     private volatile String dummyHash;
 
@@ -61,8 +65,12 @@ public class LoginService {
             PasswordEncoder passwords,
             BusinessTime time,
             ParameterApi parameters,
-            AuditLogApi auditLog) {
+            AuditLogApi auditLog,
+            ResidentDevices devices,
+            DeviceBindings bindings) {
         this.store = store;
+        this.devices = devices;
+        this.bindings = bindings;
         this.passwords = passwords;
         this.time = time;
         this.parameters = parameters;
@@ -74,16 +82,19 @@ public class LoginService {
 
     /** {@code token} giao cho client (cookie với web, thân phản hồi với app). */
     /** Đăng nhập thành công: token và thông tin người dùng cho phản hồi (loại, vai trò đang gán). */
-    public record Success(String token, long accountId, AccountType type, Set<Role> roles, boolean mustChangePassword)
+    public record Success(
+            String token,
+            String deviceToken,
+            long accountId,
+            AccountType type,
+            Set<Role> roles,
+            boolean mustChangePassword)
             implements Result {}
 
     public record Refused(String errorCode, int httpStatus, Instant unlocksAt) implements Result {}
 
     @Transactional
     public Result login(String username, String password, AccessChannel channel, String deviceId) {
-        if (channel == AccessChannel.RESIDENT_APP) {
-            throw new InvalidValueException("Đăng nhập kênh người cao tuổi làm ở 002 US8 (T092)");
-        }
         Instant now = time.now();
         Optional<Account> found = store.lockByUsername(username);
         if (found.isEmpty()) {
@@ -113,9 +124,62 @@ public class LoginService {
             }
             return new Refused(decision.errorCode(), decision.httpStatus(), decision.unlocksAt());
         }
+        // Kênh người cao tuổi chỉ cho tài khoản người cao tuổi: đăng nhập là gắn thiết bị (research A-15)
+        boolean resident = channel == AccessChannel.RESIDENT_APP;
+        if (resident && account.type() != AccountType.RESIDENT) {
+            throw new InvalidValueException("Kênh người cao tuổi chỉ dùng cho tài khoản người cao tuổi");
+        }
+        if (devices.boundToOther(account.id(), deviceId)) {
+            return new Refused("DEVICE_ALREADY_BOUND", 409, null);
+        }
+        return open(account, channel, deviceId, resident, null, Map.of("channel", channel.name()));
+    }
+
+    /**
+     * Người cao tuổi đăng nhập bằng mã QR (002 T092; FR-069, FR-070, BR-M15-24; research A-15): trong một transaction
+     * kiểm mã chưa dùng, chưa vô hiệu, chưa hết hạn (sai thì 401 {@code INVALID_QR_CODE}), tài khoản Hoạt động hoặc Khóa
+     * tạm đã hết hạn (không thì 423 như đăng nhập), thiết bị không gắn với tài khoản khác (409); gắn thiết bị, mở phiên
+     * kênh RESIDENT_APP, đánh dấu mã đã dùng.
+     */
+    @Transactional
+    public Success qrLogin(String code, String deviceId) {
+        Instant now = time.now();
+        QrCode qr = (code == null ? Optional.<QrCode>empty() : bindings.lockCode(SessionTokens.hash(code)))
+                .filter(c -> c.usableAt(now))
+                .orElseThrow(LoginService::invalidQrCode);
+        Account account = store.lock(qr.accountId())
+                .filter(a -> a.type() == AccountType.RESIDENT)
+                .orElseThrow(LoginService::invalidQrCode);
+        if (LoginRules.effective(account.status(), account.lockedUntil(), now) != account.status()) {
+            endTemporaryLock(account);
+        }
+        Decision decision = LoginRules.decide(account.status(), account.lockedUntil(), true, now);
+        if (!decision.allowed()) {
+            throw new BusinessException(
+                    HttpStatus.valueOf(decision.httpStatus()),
+                    decision.errorCode(),
+                    "Tài khoản không đăng nhập được, cần liên hệ viện",
+                    decision.unlocksAt() == null ? Map.of() : Map.of("unlocksAt", decision.unlocksAt()));
+        }
+        if (devices.boundToOther(account.id(), deviceId)) {
+            throw ResidentDevices.deviceAlreadyBound();
+        }
+        bindings.markCodeUsed(qr.id(), deviceId);
+        return open(account, AccessChannel.RESIDENT_APP, deviceId, true, qr.id(), Map.of("deviceId", deviceId));
+    }
+
+    /**
+     * Mở phiên (đóng phiên đang mở khác trên thiết bị, BR-M15-15); kênh người cao tuổi thì gắn thiết bị trước để phiên
+     * mới không bị kết thúc cùng thiết bị cũ. Nhật ký ghi người thực hiện là chính tài khoản vừa đăng nhập.
+     */
+    private Success open(
+            Account account,
+            AccessChannel channel,
+            String deviceId,
+            boolean bindDevice,
+            Long qrCodeId,
+            Map<String, Object> details) {
         String token = SessionTokens.generate();
-        store.recordLogin(account.id());
-        store.openSession(SessionTokens.hash(token), account.id(), deviceId, channel.name());
         ActiveSession session = new ActiveSession(
                 account.id(),
                 account.type(),
@@ -124,15 +188,33 @@ public class LoginService {
                 store.roles(account.id()),
                 deviceId,
                 channel);
-        runAs(
-                session,
-                () -> auditLog.write(AuditLogEntry.builder()
-                        .action(AccountAuditActions.LOGIN)
-                        .entity(AccountAuditActions.ENTITY, account.id())
-                        .details(Map.of("channel", channel.name()))
-                        .build()));
+        String[] deviceToken = new String[1];
+        runAs(session, () -> {
+            if (bindDevice) {
+                deviceToken[0] = devices.bind(account.id(), deviceId, qrCodeId);
+            }
+            auditLog.write(AuditLogEntry.builder()
+                    .action(qrCodeId == null ? AccountAuditActions.LOGIN : AccountAuditActions.LOGIN_QR_USED)
+                    .entity(AccountAuditActions.ENTITY, account.id())
+                    .details(details)
+                    .build());
+        });
+        store.recordLogin(account.id());
+        store.openSession(SessionTokens.hash(token), account.id(), deviceId, channel.name());
         return new Success(
-                token, account.id(), account.type(), store.roles(account.id()), store.mustChangePassword(account.id()));
+                token,
+                deviceToken[0],
+                account.id(),
+                account.type(),
+                store.roles(account.id()),
+                store.mustChangePassword(account.id()));
+    }
+
+    private static BusinessException invalidQrCode() {
+        return new BusinessException(
+                HttpStatus.UNAUTHORIZED,
+                "INVALID_QR_CODE",
+                "Mã QR đã dùng, đã hết hạn hoặc không còn hiệu lực; nhờ nhân viên tạo mã mới");
     }
 
     /** Kết thúc phiên hiện tại ({@code LOGOUT}, FR-013). */
@@ -164,6 +246,10 @@ public class LoginService {
                     Map.of("unmetConditions", unmet));
         }
         store.changePassword(accountId, passwords.encode(newPassword));
+        // Tài khoản người cao tuổi: đổi mật khẩu kết thúc mọi phiên (FR-013a, BR-M15-24); đăng nhập lại bằng mã QR
+        if (user.type() == AccountType.RESIDENT) {
+            store.endSessions(accountId, "PASSWORD_CHANGED");
+        }
         auditLog.write(AuditLogEntry.builder()
                 .action(AccountAuditActions.PASSWORD_CHANGED)
                 .entity(AccountAuditActions.ENTITY, accountId)

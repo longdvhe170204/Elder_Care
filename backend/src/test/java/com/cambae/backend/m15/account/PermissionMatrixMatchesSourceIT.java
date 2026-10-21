@@ -61,6 +61,22 @@ class PermissionMatrixMatchesSourceIT extends MySqlIntegrationTestBase {
         assertThat(loaded("APPENDIX_27")).containsExactlyInAnyOrderElementsOf(Appendix27Matrix.rows(roles));
     }
 
+    /** 002 T090 (FR-016, FR-068; research A-15): vai trò AC-16 nạp ở V002_08, phạm vi chính mình, cột NCT của Phụ lục 27. */
+    @Test
+    void FR_068_residentRole_selfScope_matrixColumnLoaded() throws IOException {
+        assertThat(jdbc.queryForList(
+                        "SELECT CONCAT(account_type, '/', execution_scope) FROM role WHERE code = 'AC-16'",
+                        String.class))
+                .containsExactly("RESIDENT/SELF");
+        List<Row> expected = Appendix27Matrix.rows(Set.of("AC-16"));
+
+        assertThat(expected).isNotEmpty();
+        assertThat(loaded("APPENDIX_27").stream()
+                        .filter(r -> r.role().equals("AC-16"))
+                        .toList())
+                .containsExactlyInAnyOrderElementsOf(expected);
+    }
+
     @Test
     void FR_018_section19_3Adjustments_exactlyAsListed() {
         assertThat(loaded("SECTION_19_3")).containsExactlyInAnyOrderElementsOf(SECTION_19_3);

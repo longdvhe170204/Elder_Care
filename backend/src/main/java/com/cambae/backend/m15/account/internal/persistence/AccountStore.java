@@ -28,8 +28,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class AccountStore {
 
-    private static final String COLUMNS = "id, username, type, staff_id, family_member_id, status, lock_cause,"
-            + " locked_until, last_login_at, version, permission_version";
+    private static final String COLUMNS =
+            "id, username, type, staff_id, family_member_id, resident_id, status, lock_cause,"
+                    + " locked_until, last_login_at, version, permission_version";
 
     private final JdbcTemplate jdbc;
     private final BusinessTime time;
@@ -195,6 +196,19 @@ public class AccountStore {
                 },
                 key);
         return key.getKey().longValue();
+    }
+
+    /** Tăng {@code version} khi lệnh đổi phần hiển thị của tài khoản mà không đổi trạng thái (gỡ thiết bị, FR-070). */
+    public void bumpVersion(long accountId) {
+        jdbc.update("UPDATE account SET version = version + 1 WHERE id = ?", accountId);
+    }
+
+    /** Tài khoản người cao tuổi theo hồ sơ (FR-067). */
+    public Optional<Account> byResident(long residentId) {
+        return jdbc
+                .query("SELECT " + COLUMNS + " FROM account WHERE resident_id = ?", AccountStore::row, residentId)
+                .stream()
+                .findFirst();
     }
 
     /** Chuyển trạng thái, tăng {@code version}, thêm một dòng lịch sử (data-model mục 2). */
@@ -386,6 +400,7 @@ public class AccountStore {
                 AccountType.valueOf(rs.getString("type")),
                 rs.getObject("staff_id", Long.class),
                 rs.getObject("family_member_id", Long.class),
+                rs.getObject("resident_id", Long.class),
                 AccountStatus.valueOf(rs.getString("status")),
                 rs.getString("lock_cause"),
                 instant(rs, "locked_until"),
