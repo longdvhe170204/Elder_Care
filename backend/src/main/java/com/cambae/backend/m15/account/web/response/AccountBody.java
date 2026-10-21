@@ -36,8 +36,11 @@ public record AccountBody(
                 a.type(),
                 a.staffId(),
                 a.familyMemberId(),
-                null,
-                null,
+                a.residentId(),
+                d.boundDevice() == null
+                        ? null
+                        : new BoundDevice(
+                                d.boundDevice().boundAt(), d.boundDevice().deviceId()),
                 a.status(),
                 a.lockCause(),
                 a.lockedUntil(),

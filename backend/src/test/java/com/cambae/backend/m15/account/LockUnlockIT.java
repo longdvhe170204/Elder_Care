@@ -155,12 +155,24 @@ class LockUnlockIT extends MySqlIntegrationTestBase {
                 .andExpect(jsonPath("$.roles[0]").value("AC-05"))
                 .andExpect(jsonPath(
                         "$.allowedCommands",
-                        containsInAnyOrder("lock", "reset-password", "assign-role", "remove-role")));
+                        containsInAnyOrder(
+                                "lock",
+                                "reset-password",
+                                "assign-role",
+                                "remove-role",
+                                "restrict",
+                                "restore-permission")));
         mvc.perform(get("/api/v1/accounts/" + locked).header("Authorization", bearer(manager)))
                 .andExpect(header().string("ETag", "\"3\""))
                 .andExpect(jsonPath(
                         "$.allowedCommands",
-                        containsInAnyOrder("unlock", "reset-password", "assign-role", "remove-role")));
+                        containsInAnyOrder(
+                                "unlock",
+                                "reset-password",
+                                "assign-role",
+                                "remove-role",
+                                "restrict",
+                                "restore-permission")));
     }
 
     @Test

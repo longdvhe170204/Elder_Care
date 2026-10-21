@@ -28,8 +28,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class AccountStore {
 
-    private static final String COLUMNS = "id, username, type, staff_id, family_member_id, status, lock_cause,"
-            + " locked_until, last_login_at, version, permission_version";
+    private static final String COLUMNS =
+            "id, username, type, staff_id, family_member_id, resident_id, status, lock_cause,"
+                    + " locked_until, last_login_at, version, permission_version";
 
     private final JdbcTemplate jdbc;
     private final BusinessTime time;
@@ -103,6 +104,54 @@ public class AccountStore {
         return roles;
     }
 
+    /** Có quyền Duyệt kế hoạch chăm sóc gán thêm đang hiệu lực (FR-024; cho {@code allowedCommands}). */
+    public boolean hasCarePlanApprovalGrant(long accountId) {
+        LocalDateTime now = utc(time.now());
+        Integer rows = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM additional_grant WHERE account_id = ? AND effective_from <= ?"
+                        + " AND (effective_to IS NULL OR effective_to > ?)",
+                Integer.class,
+                accountId,
+                now,
+                now);
+        return rows != null && rows > 0;
+    }
+
+    /** Vai trò gán tại {@code at} ({@code effective_from <= at < effective_to}; FR-026a). */
+    public Set<Role> rolesAt(long accountId, Instant at) {
+        Set<Role> roles = EnumSet.noneOf(Role.class);
+        jdbc.query(
+                "SELECT role FROM role_assignment WHERE account_id = ? AND effective_from <= ?"
+                        + " AND (effective_to IS NULL OR effective_to > ?)",
+                rs -> {
+                    roles.add(role(rs.getString(1)));
+                },
+                accountId,
+                utc(at),
+                utc(at));
+        return roles;
+    }
+
+    /**
+     * Trạng thái tại {@code at} theo {@code account_status_history} (FR-026a): dòng gần nhất không sau {@code at}; chưa
+     * có dòng nào trước {@code at} mà có dòng sau thì Hoạt động (tài khoản tạo ra ở trạng thái Hoạt động); không có
+     * lịch sử (dữ liệu trước T031) thì trạng thái hiện tại.
+     */
+    public AccountStatus statusAt(long accountId, Instant at, AccountStatus current) {
+        List<String> rows = jdbc.queryForList(
+                "SELECT status FROM account_status_history WHERE account_id = ? AND effective_from <= ?"
+                        + " ORDER BY effective_from DESC LIMIT 1",
+                String.class,
+                accountId,
+                utc(at));
+        if (!rows.isEmpty()) {
+            return AccountStatus.valueOf(rows.getFirst());
+        }
+        Integer later = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM account_status_history WHERE account_id = ?", Integer.class, accountId);
+        return later != null && later > 0 ? AccountStatus.ACTIVE : current;
+    }
+
     /**
      * Số tài khoản Hoạt động khác {@code excludedAccountId} đang có vai trò Quản lý viện; khóa các dòng đó để hai lệnh
      * đồng thời không cùng thấy "còn người khác" (FR-012; research A-05).
@@ -147,6 +196,19 @@ public class AccountStore {
                 },
                 key);
         return key.getKey().longValue();
+    }
+
+    /** Tăng {@code version} khi lệnh đổi phần hiển thị của tài khoản mà không đổi trạng thái (gỡ thiết bị, FR-070). */
+    public void bumpVersion(long accountId) {
+        jdbc.update("UPDATE account SET version = version + 1 WHERE id = ?", accountId);
+    }
+
+    /** Tài khoản người cao tuổi theo hồ sơ (FR-067). */
+    public Optional<Account> byResident(long residentId) {
+        return jdbc
+                .query("SELECT " + COLUMNS + " FROM account WHERE resident_id = ?", AccountStore::row, residentId)
+                .stream()
+                .findFirst();
     }
 
     /** Chuyển trạng thái, tăng {@code version}, thêm một dòng lịch sử (data-model mục 2). */
@@ -338,6 +400,7 @@ public class AccountStore {
                 AccountType.valueOf(rs.getString("type")),
                 rs.getObject("staff_id", Long.class),
                 rs.getObject("family_member_id", Long.class),
+                rs.getObject("resident_id", Long.class),
                 AccountStatus.valueOf(rs.getString("status")),
                 rs.getString("lock_cause"),
                 instant(rs, "locked_until"),

@@ -36,6 +36,9 @@ final class Appendix27Matrix {
 
     static final String FAMILY_MEMBER = "AC-10";
 
+    /** Người cao tuổi (AC-16): phạm vi chính mình (research A-15, FR-068). */
+    static final String RESIDENT = "AC-16";
+
     /** Dòng có ghi nhận nhóm 3: ô T thêm CONFIRM (spec FR-020 bảng loại thao tác "Xác nhận"). */
     static final Set<Function> RECORDING_FUNCTIONS = EnumSet.of(
             Function.TASK_CHECKLIST,
@@ -137,8 +140,9 @@ final class Appendix27Matrix {
         }
         List<String> footnotes = footnotes(m.group(2));
         char symbol = m.group(1).charAt(0);
-        String executionScope =
-                FAMILY_MEMBER.equals(role) ? "RELATIONSHIP" : ASSIGNED_ROLES.contains(role) ? "ASSIGNED" : "FACILITY";
+        String executionScope = FAMILY_MEMBER.equals(role)
+                ? "RELATIONSHIP"
+                : RESIDENT.equals(role) ? "SELF" : ASSIGNED_ROLES.contains(role) ? "ASSIGNED" : "FACILITY";
         switch (symbol) {
             case 'X' -> put(result, role, function, Operation.VIEW, viewScope(role, "FACILITY"), footnotes);
             case 'P' -> {
@@ -180,7 +184,7 @@ final class Appendix27Matrix {
 
     /** Người thân luôn theo quan hệ (FR-045). */
     private static String viewScope(String role, String scope) {
-        return FAMILY_MEMBER.equals(role) ? "RELATIONSHIP" : scope;
+        return FAMILY_MEMBER.equals(role) ? "RELATIONSHIP" : RESIDENT.equals(role) ? "SELF" : scope;
     }
 
     /** Hai ký hiệu của cùng ô cho cùng thao tác: phạm vi rộng hơn thắng (FR-017), chú thích hợp lại. */

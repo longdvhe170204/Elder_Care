@@ -43,7 +43,16 @@ class RequiresPermissionArchTest {
             "com.cambae.backend.m15.account.internal.offline.service.PendingReviewService.accept",
             "người quyết định xem lại của tầng lúc chạy (ScopeApi.reviewDecider); 002 FR-041c, CHK056",
             "com.cambae.backend.m15.account.internal.offline.service.PendingReviewService.reject",
-            "người quyết định xem lại của tầng lúc chạy (ScopeApi.reviewDecider); 002 FR-041c, CHK056");
+            "người quyết định xem lại của tầng lúc chạy (ScopeApi.reviewDecider); 002 FR-041c, CHK056",
+            "com.cambae.backend.m15.account.internal.auth.service.ResidentAccountService.createLoginCode",
+            "PermissionApi.hasPermission (RESIDENT_ACCOUNT, CREATE) trên người cao tuổi của tài khoản, đọc sau khi tra"
+                    + " tài khoản; Điều dưỡng chỉ trong phạm vi (Phụ lục 27 ⁴⁸); 002 FR-069");
+
+    /**
+     * Lệnh nút SOS của 007 tự kiểm bằng {@code BoundDeviceApi.identify} (token thiết bị, không có phiên) thay cho
+     * {@code @RequiresPermission} (002 T093; FR-071, research A-15): mọi lệnh của lớp {@code SosController}.
+     */
+    static final String SOS_CONTROLLER = "SosController";
 
     @ArchTest
     static final ArchRule BR_M15_01_everyBusinessCommandRequiresPermission = methods()
@@ -53,7 +62,8 @@ class RequiresPermissionArchTest {
                 @Override
                 public void check(JavaMethod method, ConditionEvents events) {
                     boolean ok = method.isAnnotatedWith(RequiresPermission.class)
-                            || SELF_CHECKED.containsKey(method.getOwner().getName() + "." + method.getName());
+                            || SELF_CHECKED.containsKey(method.getOwner().getName() + "." + method.getName())
+                            || method.getOwner().getSimpleName().equals(SOS_CONTROLLER);
                     events.add(new SimpleConditionEvent(method, ok, method.getFullName()));
                 }
             })

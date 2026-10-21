@@ -25,6 +25,13 @@ public final class SessionTokens {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
+    /** Mã QR đăng nhập 128 bit (research A-15). */
+    public static String generateCode() {
+        byte[] bytes = new byte[16];
+        RANDOM.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
     public static byte[] hash(String token) {
         try {
             return MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.US_ASCII));

@@ -213,16 +213,13 @@ class AccountController {
                 v == null ? null : v.calledPhoneNumber()));
     }
 
-    /** Phần hiện hành (T076 kéo lên cho màn T035); {@code asOf} làm ở T076. */
+    /** Tập quyền hiện hành, hoặc tại {@code asOf} quá khứ (FR-026a; 002 T076). */
     @GetMapping("/{id}/permissions")
     @Tag(name = "permissions")
     @ApiResponse(responseCode = "200", description = "OK")
     ResponseEntity<AccountPermissions> permissions(
             @PathVariable long id, @RequestParam(required = false) Instant asOf) {
-        if (asOf != null) {
-            throw new UnsupportedOperationException("Tập quyền tại thời điểm quá khứ làm ở 002 T076");
-        }
-        return permissions(roleAssignments.current(id));
+        return permissions(asOf == null ? roleAssignments.current(id) : roleAssignments.at(id, asOf));
     }
 
     @PostMapping("/{id}/assign-role")
