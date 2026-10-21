@@ -621,6 +621,14 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 | `nguoi_cao_tuoi` (`ma_ho_so`, `ho_so_truoc_id`, `ho_ten`, `ho_ten_so_khop`, `ngay_sinh`, `gioi_tinh`, `loai_giay_to`, `so_giay_to`, `cccd_dang_mo`, `trang_thai`, `trang_thai_tu_luc`, `muc_cham_soc_hien_hanh`, `phien_ban`) | `resident` (`profile_code`, `previous_profile_id`, `full_name`, `full_name_match`, `date_of_birth`, `gender`, `id_document_type`, `id_document_number`, `open_citizen_id`, `status`, `status_since`, `current_care_level`, `version`) |
 | `lich_su_trang_thai_nct`; `muc_cham_soc`; `lich_su_muc_cham_soc` (`can_cu_loai`) | `resident_status_history`; `care_level`; `care_level_history` (`basis_type`) |
 | `di_nguyen`, `muc_do_di_ung`, `nguon_thong_tin`, `nhu_cau_cham_soc` | `allergen`, `allergy_severity`, `information_source`, `care_need` |
+| `lich_su_trang_thai_nct` (`tu_trang_thai`, `den_trang_thai`, `lenh`, `thoi_diem`, `nguoi_thuc_hien_id`, `do_he_thong`, `ly_do`, `can_cu_loai`, `can_cu_id`, `mien_dieu_kien`) | `resident_status_history` (`from_status`, `to_status`, `command`, `occurred_at`, `performed_by`, `by_system`, `reason`, `basis_type`, `basis_id`, `condition_waiver`) |
+| `muc_cham_soc` (`ma`, `ten`, `thu_tu`) | `care_level` (`code`, `name`, `display_order`) |
+| `lich_su_muc_cham_soc` (`muc_cham_soc`, `hieu_luc_tu`, `can_cu_id`, `tao_luc`, `tao_boi`) | `care_level_history` (`care_level`, `effective_from`, `basis_id`, `recorded_at`, `recorded_by`) |
+| `nguoi_cao_tuoi` còn lại: `anh_tep_id`, `dia_chi_thuong_tru`, `dia_chi_lien_he`, `lien_he`, `thong_tin_dac_biet`, `tao_luc`, `tao_boi` | `photo_file_id`, `permanent_address`, `contact_address`, `contact`, `special_notes`, `created_at`, `created_by` |
+| `di_nguyen` (`nhom`), `muc_do_di_ung` (`thu_tu`), `nguon_thong_tin`, `nhu_cau_cham_soc` | `allergen` (`allergen_group`), `allergy_severity` (`display_order`), `information_source`, `care_need` |
+| thực thể danh mục, nhật ký `DM_TAO`, `DM_SUA`, `DM_NGUNG`, `DM_KICH_HOAT_LAI` | `Allergen`, `AllergySeverity`, `InformationSource`, `CareNeed` (loại đối tượng `M01.ALLERGEN`, `M01.ALLERGY_SEVERITY`, `M01.INFORMATION_SOURCE`, `M01.CARE_NEED`); `CATALOG_CREATED`, `CATALOG_UPDATED`, `CATALOG_DEACTIVATED`, `CATALOG_REACTIVATED` |
+| lỗi mức chăm sóc cố định không sửa được; trùng tên mục Hiệu lực | `READ_ONLY_CATALOG` (405); `DUPLICATE_NAME` (409, như 002) |
+| `HoSoMoGuard`, `HoSoMoGuardArchTest`; `NguonYKienService` | `ProfileOpenGuard`, `ProfileOpenGuardArchTest`; `OpinionSourceService` |
 | các bảng còn lại của 001 (bản đồng ý, hồ sơ sức khỏe, mục sức khỏe, nguyện vọng, đánh giá…) | bổ sung vào mục này cùng migration (R-03) |
 
 ## 9. Feature 003 (`003-room-bed-allocation`, C)
