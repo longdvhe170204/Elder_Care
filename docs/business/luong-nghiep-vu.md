@@ -187,7 +187,7 @@ Hệ thống không quản lý vệ sinh. Việc dọn giường, phòng và kh�
 | 7a | Người có quyền tiếp nhận; Trưởng tầng, Bác sĩ, Quản lý viện | Phân công người xử lý: Điều dưỡng, Trưởng tầng, Bác sĩ tự "Tiếp nhận xử lý", hoặc Trưởng tầng, Bác sĩ, Quản lý viện "Giao người xử lý" cho Điều dưỡng, Trưởng tầng, Bác sĩ có quyền với người cao tuổi, bắt buộc ghi chú. Người được giao nhận thông báo theo mức sự cố. Khi Đang xử lý, Đang theo dõi, người xử lý hiện tại hoặc các vai trò trên giao lại được | Sự cố: Mới → Đang xử lý; dừng leo thang | 9.4, Q-339 |
 | 8 | Hệ thống | Sự cố Khẩn cấp: báo đồng thời Bác sĩ trực, Trưởng tầng, Quản lý viện, người liên hệ chính. Không có Bác sĩ trực: báo mọi Bác sĩ đang hoạt động | — | BR-M05-06, Q-74 |
 | 9 | Hệ thống | Sự cố ngã: báo Bác sĩ cần đánh giá lại; báo Người phụ trách ca để lập công việc theo dõi sau ngã; báo Điều dưỡng phụ trách xem xét kế hoạch chăm sóc. Không tạo yêu cầu | — | BR-M05-07, BR-M01-02, BR-M04-20, Q-306, Q-307 |
-| 10 | Điều dưỡng, Bác sĩ | Cần chuyển viện: thực hiện lệnh Chuyển viện; lệnh tạo bản tóm tắt chuyển viện | Người cao tuổi: Điều trị tại bệnh viện | BR-M05-14, Q-307 |
+| 10 | Điều dưỡng, Bác sĩ | Cần chuyển viện: xem nguyện vọng khi điều trị, thực hiện lệnh Chuyển viện; lệnh tạo bản tóm tắt chuyển viện và in phiếu tóm tắt chuyển viện (PDF) gửi kèm; đính kèm được giấy tờ của bệnh viện (Q-383, Q-384) | Người cao tuổi: Điều trị tại bệnh viện | BR-M05-14, Q-307 |
 | 11 | Điều dưỡng hoặc Bác sĩ | Đóng sự cố kèm kết quả. Sự cố mức Trung bình trở lên cần xác nhận của Điều dưỡng hoặc Bác sĩ | Sự cố: Đã đóng | BR-M05-09 |
 
 **Nhánh ngoại lệ**
@@ -197,6 +197,9 @@ Hệ thống không quản lý vệ sinh. Việc dọn giường, phòng và kh�
 | Nguồn của cảnh báo đang mở đã được xử lý (công việc hoàn thành đúng khung, liều được đính chính Đã dùng, phiếu đối chiếu được xác nhận) | Hệ thống | Cảnh báo tự chuyển Đã đóng với kết quả "nguồn đã được xử lý" | 9.4, spec 007 FR-032 |
 | Nguồn của cảnh báo đã Chuyển sự cố được xử lý | Hệ thống | Cảnh báo giữ Chuyển sự cố; hệ thống thêm diễn biến "nguồn đã được xử lý" vào sự cố và báo người xử lý; sự cố không tự đóng | Q-76 |
 | Cảnh báo mức Khẩn cấp | Hệ thống; người tiếp nhận | Không tự tạo sự cố; báo đồng thời Điều dưỡng phụ trách, Người phụ trách ca, Bác sĩ trực, Trưởng tầng. Người tiếp nhận chọn "Kích hoạt khẩn cấp từ cảnh báo" khi cần | 9.4, Q-67 |
+| Người cao tuổi bấm nút SOS | Người cao tuổi; Hệ thống; người tiếp nhận | Cảnh báo Khẩn cấp "Người cao tuổi yêu cầu trợ giúp" kèm phòng, giường, nơi tự chọn và tọa độ GPS (gửi lại mỗi [30 giây] CFG-M05-09 tới khi có người tới nơi; trong viện tọa độ chỉ tham khảo). Người tiếp nhận ghi "Đã tới nơi"; người cao tuổi thấy "đang tới", "đã tới" | BR-M05-27, 28, 30, Q-369, Q-373, Q-374 |
+| Nhân viên bấm nút hỗ trợ khẩn cấp | Nhân viên đang trong ca; Hệ thống | Cảnh báo Khẩn cấp "Nhân viên yêu cầu hỗ trợ", được không gắn người cao tuổi, kèm loại sự việc, tầng, nơi, tọa độ nếu có; báo Người phụ trách ca, Bác sĩ trực, nhân viên trong ca cùng tầng. Chuyển sự cố phải chọn người cao tuổi; không liên quan người cao tuổi thì đóng kèm kết quả | BR-M05-29, Q-375 |
+| Cần gọi cấp cứu | Người xử lý cảnh báo, sự cố Khẩn cấp | Bấm "Gọi 115": mở trình quay số, ghi mốc gọi cấp cứu và kết quả; màn hiện thông tin để đọc cho tổng đài. Gọi bằng máy khác thì ghi thời điểm bằng tay | BR-M05-31, Q-376 |
 | Cảnh báo Trung bình lặp lại [3] lần trong 24 giờ | Hệ thống; người tiếp nhận | Hệ thống báo số lần lặp; người tiếp nhận quyết định có nâng lên mức Khẩn cấp hay không | BR-M05-03, Q-307 |
 | Cảnh báo ở cấp 2 vẫn chưa ai tiếp nhận ("đã leo thang tối đa") | Hệ thống | Không leo thang thêm; nhắc lại mức Trung bình cho Quản lý viện và Trưởng tầng của tầng, mỗi khoảng bằng hạn tiếp nhận của mức (CFG-M05-01; mức Nhẹ là hết ca), tới khi có người tiếp nhận | 9.4, Q-248 |
 | Sự cố bị "Hủy ghi nhận" | Người được đính chính | Sự cố chuyển Đã hủy. Tác động tự động đã tạo không tự thu hồi; Điều dưỡng phụ trách và Bác sĩ nhận danh sách để đóng bằng lệnh riêng | 9.4, Q-73 |
@@ -284,6 +287,7 @@ Hệ thống không quản lý vệ sinh. Việc dọn giường, phòng và kh�
 | 9 | Kế toán | Tải file Excel/CSV cho kế toán: toàn bộ bảng đã chốt của kỳ, hoặc chỉ bảng chưa từng xuất | Lần xuất được ghi | UC-64, 23, spec 010 FR-039 |
 | 10 | Hệ thống; Hành chính | Sai sót sau chốt: hệ thống báo Hành chính; Hành chính lập khoản điều chỉnh ở bảng chưa chốt hoặc bảng bổ sung, đi lại vòng đời từ bước 4 | — | BR-M11-05, Q-306 |
 | 11 | Hệ thống | Ngay khi một bảng (thường hoặc bổ sung) Đã chốt: tạo giao dịch "thanh toán bảng chi phí" trừ vào số dư (BF-16) | Số dư giảm (tăng nếu tổng bảng âm) | BR-M11-11, Q-211 |
+| 12 | Kế toán | Phát hành phiếu báo phí (PDF, Excel) cho bảng Đã chốt; người thân có quyền xem chi phí được báo và tải trên cổng | Phiếu báo phí: số liên tục | UC-100, BR-M11-21, Q-378 |
 
 **Điểm đã làm rõ**
 
@@ -297,13 +301,14 @@ Hệ thống không quản lý vệ sinh. Việc dọn giường, phòng và kh�
 
 | Bước | Vai trò | Hoạt động | Trạng thái / kết quả | Căn cứ |
 | ---- | ------- | --------- | -------------------- | ------ |
-| 1 | Hành chính (hoặc Bác sĩ, với xuất viện, chuyển cơ sở vì lý do y tế) | Lập hồ sơ kết thúc lưu trú: trường hợp, ngày kết thúc dự kiến, lý do, nơi chuyển đến | Sự kiện sau ngày kết thúc dự kiến không còn là sự kiện tính phí; lệnh tạo bảng kỳ cuối nháp | 6.8 bước 1, spec 004 FR-062, BR-M11-08 |
+| 1 | Hành chính (hoặc Bác sĩ, với xuất viện, chuyển cơ sở vì lý do y tế) | Lập hồ sơ kết thúc lưu trú: trường hợp, ngày kết thúc dự kiến, lý do, nơi chuyển đến, bên đề nghị kết thúc, ngày nhận đề nghị | Sự kiện sau ngày kết thúc dự kiến không còn là sự kiện tính phí; lệnh tạo bảng kỳ cuối nháp | 6.8 bước 1, spec 004 FR-062, BR-M11-08 |
+| 1a | Hệ thống; Hành chính | Ngày kết thúc dự kiến sớm hơn ngày kết thúc hợp đồng và trước mốc đủ báo trước (CFG-M02-14 → 16): hồ sơ hiện số ngày (bán trú: số buổi) thiếu; Hành chính lập khoản "Báo trước thiếu" vào bảng kỳ cuối. Không áp khi qua đời, lý do y tế, viện đề nghị | Khoản: Nháp | BR-M02-23, Q-380 |
 | 2 | Hệ thống | Hiển thị danh sách điều kiện: chi phí kỳ cuối đã chốt; không còn đồ gửi Đang giữ, Đang được sử dụng, Hư hỏng; không còn thuốc gia đình gửi hay lần giao thuốc mang theo chưa nhận lại; không còn cảnh báo, sự cố mở; đã bàn giao người cao tuổi; số dư và tiền cọc đã quyết toán (bước 6a) | Từng điều kiện: Đạt / Chưa đạt | 6.8 bước 2, 5.6, Q-148, Q-64, Q-222 |
 | 3 | Hành chính; Quản lý viện | Hành chính kiểm tra, gửi chốt kỳ cuối; Quản lý viện duyệt và chốt (BF-09) | Điều kiện chi phí: Đạt | BR-M11-08, Q-21 |
 | 4 | Hành chính, Điều dưỡng | Trả đồ gửi (đồ không có giá trị: Điều dưỡng được trả); hoàn trả thuốc gia đình gửi; Điều dưỡng ghi Nhận lại lần giao thuốc | Điều kiện đồ, thuốc: Đạt | 16.4, 19.3, Q-64 |
 | 5 | Quản lý viện | Duyệt ngoại lệ cho bốn điều kiện đầu nếu cần. Bàn giao người cao tuổi không có ngoại lệ | — | 6.8 bước 2 |
 | 6 | Hành chính | Ghi nhận bàn giao người cao tuổi (người nhận, thời điểm, nhân viên bàn giao) | Điều kiện bàn giao: Đạt | 6.8 bước 2 |
-| 6a | Kế toán; Quản lý viện | Sau khi kỳ cuối đã chốt và trừ số dư: hoàn hoặc cấn trừ tiền cọc; hoàn số dư dương hoặc thu đủ số dư âm. Hoàn tiền có hiệu lực khi Quản lý viện duyệt. Quản lý viện được duyệt ngoại lệ | Điều kiện "số dư và tiền cọc đã quyết toán": Đạt | 6.8, BR-M11-14, Q-222 |
+| 6a | Kế toán; Quản lý viện | Sau khi kỳ cuối đã chốt và trừ số dư: hoàn hoặc cấn trừ tiền cọc; hoàn số dư dương hoặc thu đủ số dư âm. Hoàn tiền có hiệu lực khi Quản lý viện duyệt. Quản lý viện được duyệt ngoại lệ cho phần tiền. Kế toán lập biên bản quyết toán (PDF, Excel); gia đình ký bổ sung sau hoặc từ chối ký (ghi lý do) | Biên bản: Đã lập. Điều kiện "số dư và tiền cọc đã quyết toán": Đạt | 6.8, BR-M11-14, BR-M11-22, Q-222, Q-379 |
 | 6b | Hệ thống; Hành chính | Sau lệnh Kết thúc lưu trú ở bước 7: hệ thống nhắc Hành chính khai báo xóa tạm trú; không phải điều kiện kết thúc | Khai báo: Đã xác nhận → Đã xóa | BR-M02-13 |
 | 7 | Hành chính | Thực hiện lệnh Kết thúc lưu trú trong ngày kết thúc dự kiến | Người cao tuổi: Kết thúc lưu trú. Hợp đồng: Kết thúc / Chấm dứt. Giường: Chờ sẵn sàng (BF-05). Lịch tương lai bị hủy. Tài khoản người thân khóa sau [30 ngày] | UC-17, 6.8 bước 3, 5.6, BR-M03-09 |
 | 8 | Hệ thống | Quá ngày kết thúc dự kiến mà lệnh chưa thực hiện được: hồ sơ mang dấu "quá ngày dự kiến"; Hành chính lập được chi phí cho sự kiện sau ngày đó; điều kiện chi phí về Chưa đạt; Hành chính được nhắc hằng ngày đặt ngày mới | — | 6.8 bước 4, Q-26 |
@@ -540,7 +545,7 @@ Khởi phát: hợp đồng đầu tiên của người cao tuổi chuyển Ch�
 | ---- | ------- | --------- | -------------------- | ------ |
 | 1 | Hệ thống | Khi hợp đồng đầu tiên chuyển Chờ ký (Q-225): mở sổ số dư và sổ tiền cọc; cấp mã nộp tiền không đổi | Số dư: 0 | 15.9, DBR-28, 29 |
 | 2 | Người thân (qua cổng) | Xem số tài khoản của viện, mã nộp tiền, mã QR (VietQR) có sẵn nội dung; chuyển khoản | — | 15.9, 23 |
-| 3 | Kế toán | Nộp tiền mặt hoặc thu cọc tiền mặt: lập phiếu thu (số phiếu liên tục), ghi số tiền, người nộp, chứng từ | Giao dịch: Đã xác nhận; số dư hoặc sổ cọc tăng | UC-85; 15.9, BR-M11-16 |
+| 3 | Kế toán | Nộp tiền mặt hoặc thu cọc tiền mặt: lập và in phiếu thu (số phiếu liên tục, PDF), ghi số tiền, người nộp, chứng từ | Giao dịch: Đã xác nhận; số dư hoặc sổ cọc tăng | UC-85; 15.9, BR-M11-16 |
 | 3a | Kế toán; Quản lý viện | Cuối ngày có giao dịch tiền mặt: Kế toán lập chốt quỹ ngày (thu, chi, tiền thực có, chênh lệch và lý do); Quản lý viện xác nhận hoặc trả lại | Chốt quỹ: Đã lập → Đã xác nhận / Bị trả lại | UC-93, BR-M11-16, Q-226 |
 | 4 | Kế toán | Tải sao kê ngân hàng (Excel/CSV) và nhập vào hệ thống. Dòng trùng mã giao dịch ngân hàng bị bỏ qua | Dòng sao kê: đã nhập | UC-86, BR-M11-12, DBR-29 |
 | 5 | Hệ thống | Khớp từng dòng theo mã nộp tiền trong nội dung. Dòng không khớp hoặc khớp nhiều mã vào danh sách "chưa khớp" | Dòng: Đã khớp / Chưa khớp | BR-M11-12 |
@@ -549,7 +554,7 @@ Khởi phát: hợp đồng đầu tiên của người cao tuổi chuyển Ch�
 | 8 | Bộ lập lịch | Hằng ngày tính số ngày còn đủ tiền = (số dư − chi phí chưa chốt của mọi bảng chưa chốt) ÷ phí lưu trú ngày (Q-228, Q-223); chi phí chưa chốt chỉ gồm các khoản Hành chính đã lập, không ước tính (Q-334). Dưới [15 ngày] (CFG-M11-04) hoặc số dư âm: báo người đại diện mức Trung bình (người không có quyền xem chi phí chỉ nhận phần "chung") và Kế toán mức Nhẹ; nhắc lại mỗi [7 ngày] (CFG-M11-05); chiều tốt lên không báo ngay, trừ khi có giao dịch nộp tiền (Q-252): nộp làm số ngày vượt ngưỡng thì tính lại ngay, dừng nhắc và báo người đại diện mức Nhẹ "đã ghi nhận khoản nộp"; nộp chưa đủ thì vẫn báo "đã ghi nhận khoản nộp" kèm tình trạng, chu kỳ nhắc giữ nguyên (Q-257). Chuyển khoản tính tại lúc xác nhận đối soát; thông báo này vẫn gửi khi đang dừng nhắc; giao dịch nộp bị đảo thì tính lại ngay, tình trạng xấu đi thì báo như lần chuyển mới (Q-268). Còn nợ quá CFG-M11-05 thì báo thêm Quản lý viện | Thông báo "sắp hết tiền" / "còn nợ" / "đã ghi nhận khoản nộp" | UC-87, BR-M11-13, Q-252, Q-257, Q-268 |
 | 9 | Kế toán | Theo dõi danh sách số dư thấp và liên hệ gia đình | — | 15.9 |
 | 10 | Kế toán; Quản lý viện | Lập hoàn tiền (giữa kỳ không vượt số dư − chi phí chưa chốt), điều chỉnh, cặp điều chỉnh chuyển tiền, giao dịch đảo (bắt buộc lý do); Quản lý viện duyệt, lúc duyệt kiểm tra lại số tiền và người nhận | Giao dịch: Chờ duyệt → Đã xác nhận / Từ chối / Đã hủy | BR-M11-10, 14, Q-229 |
-| 11 | Kế toán | Xuất sao kê số dư, báo cáo thu chi, sổ tiền cọc ra Excel | — | UC-88; 15.9 |
+| 11 | Kế toán | Xuất sao kê số dư, báo cáo thu chi, sổ tiền cọc ra Excel hoặc PDF (Q-381) | — | UC-88; 15.9 |
 
 **Điểm đã làm rõ**
 
@@ -557,6 +562,7 @@ Khởi phát: hợp đồng đầu tiên của người cao tuổi chuyển Ch�
 - Số dư thấp hoặc âm không chặn chăm sóc, thuốc, suất ăn (Q-219).
 - Tiền cọc theo dõi riêng, không vào số dư (Q-219). Hợp đồng bị hủy trước khi Hiệu lực hoặc Hủy tiếp nhận mà còn cọc: Kế toán được nhắc lập hoàn cọc có duyệt; Hủy tiếp nhận không bị chặn (Q-225).
 - Bảng bổ sung chưa chốt không chặn điều kiện "số dư và tiền cọc đã quyết toán" (Q-230, nhất quán Q-134).
+- Phiếu báo phí, biên bản quyết toán, phiếu thu, phiếu chi là chứng từ thanh toán, không thay hóa đơn; hóa đơn lập ở phần mềm kế toán bên ngoài (15.9a, Q-377).
 - Hệ thống không kết nối trực tiếp với ngân hàng; chuyển khoản chỉ được ghi nhận qua đối soát sao kê.
 
 ---

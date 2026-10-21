@@ -41,9 +41,19 @@
 - **Q-335**: tài khoản thu của viện là tham số CFG-M11-10. Sửa FR-003.
 - Phạm vi mục 4: giao dịch thanh toán được tạo kèm lệnh chốt bảng (Q-306).
 
+### Cập nhật 2026-10-22 (đồng bộ Q-377 → Q-379, chứng từ thanh toán)
+
+Chủ dự án chốt Q-377 → Q-379 (docs/business/nghiep-vu.md 24.2, mục 15.9a, BR-M11-21 → 23, DBR-37, DBR-38, UC-100, UC-101). Thay đổi ở spec này:
+
+- **Q-377**: hệ thống không xuất hóa đơn; phát hành chứng từ thanh toán (phiếu báo phí, biên bản quyết toán dạng PDF và Excel; phiếu thu, phiếu chi dạng PDF), mỗi chứng từ ghi "Chứng từ này không thay thế hóa đơn" (mục J, FR-037). Thông tin viện trên chứng từ lấy từ CFG-M11-11.
+- **Q-378**: Kế toán phát hành phiếu báo phí cho mỗi bảng chi phí Đã chốt (FR-031, FR-032; User Story 9).
+- **Q-379**: biên bản quyết toán do Kế toán lập; điều kiện quyết toán thêm ý "biên bản Đã lập, Đã ký hoặc Từ chối ký"; ngoại lệ chỉ áp phần tiền (FR-022, FR-023, FR-034 → FR-036; User Story 7 kịch bản 3, 4, User Story 10).
+- Thêm SC-014 → SC-017; FR-028, FR-030 và bảng giao tiếp thêm dòng.
+- **Q-381**: sao kê số dư, báo cáo thu chi, sổ tiền cọc xuất được cả Excel và PDF (Phạm vi 8, User Story 8, FR-025, FR-026).
+
 ## Phạm vi
 
-**Trong phạm vi** (Module 11, mục 15.9; 6.5; 6.8 phần quyết toán; UC-12, UC-85 → UC-88; BF-16):
+**Trong phạm vi** (Module 11, mục 15.9, 15.9a; 6.5; 6.8 phần quyết toán; UC-12, UC-85 → UC-88, UC-100, UC-101; BF-16):
 
 1. Sổ số dư và sổ tiền cọc của từng người cao tuổi; mã nộp tiền; thông tin nộp tiền (số tài khoản của viện, mã QR theo chuẩn VietQR) cung cấp cho cổng người thân (15.9, DBR-28, DBR-29).
 2. Ghi thu tiền mặt (có số phiếu) vào số dư hoặc vào sổ tiền cọc; xác định trạng thái đặt cọc cho feature 004; chốt quỹ tiền mặt cuối ngày có Quản lý viện xác nhận (6.5, UC-12, UC-85; Clarification 2026-09-28).
@@ -52,8 +62,10 @@
 5. Hoàn tiền, cấn trừ tiền cọc, điều chỉnh, giao dịch đảo; Quản lý viện duyệt. Hoàn cọc khi hợp đồng bị hủy trước khi Hiệu lực hoặc Hủy tiếp nhận (BR-M11-10, BR-M11-14; Clarification 2026-09-28).
 6. Tính số ngày còn đủ tiền hằng ngày; báo "sắp hết tiền" và "còn nợ" (BR-M11-13, UC-87, CFG-M11-04, CFG-M11-05).
 7. Điều kiện "số dư và tiền cọc đã quyết toán" khi kết thúc lưu trú, và mục tương ứng trong danh sách việc sau qua đời (6.8, Q-222).
-8. Xuất sao kê số dư, báo cáo thu chi, sổ tiền cọc ra Excel (UC-88, 18.4).
+8. Xuất sao kê số dư, báo cáo thu chi, sổ tiền cọc ra Excel hoặc PDF (UC-88, 18.4; PDF bổ sung 2026-10-22, Q-381).
 9. Dấu "số dư không đủ" cho đề nghị mua hộ (BR-M11-15).
+10. *(Bổ sung 2026-10-22, Q-377, Q-378)* Phiếu báo phí cho mỗi bảng chi phí Đã chốt; in phiếu thu, phiếu chi dạng PDF (15.9a, BR-M11-21, BR-M11-23, UC-100).
+11. *(Bổ sung 2026-10-22, Q-379)* Biên bản quyết toán khi kết thúc lưu trú hoặc qua đời, biên bản bổ sung (6.8, 15.9a, BR-M11-22, UC-101).
 
 **Ngoài phạm vi** (spec này **nhận** sự kiện hoặc **cung cấp** dữ liệu cho feature sở hữu):
 
@@ -61,7 +73,7 @@
 - Hợp đồng, khoản cần đặt cọc, hồ sơ kết thúc lưu trú, danh sách việc sau qua đời, yêu cầu ngoại lệ kết thúc lưu trú: feature 004. Spec này cung cấp trạng thái đặt cọc và trạng thái điều kiện quyết toán.
 - Khoản chi phí, bảng chi phí, chốt bảng, chi phí tạm tính (Q-136), đề nghị mua hộ, file kế toán (UC-64): feature 010. Người xuất file kế toán đổi từ Hành chính sang Kế toán theo Q-212; việc này thuộc spec 010.
 - Hiển thị trên cổng người thân và quyền xem chi phí của từng người thân: feature 012. Gửi thông báo: feature 009. Báo cáo, dashboard chung: feature 016.
-- Hạch toán, báo cáo tài chính của viện, hóa đơn, thanh toán trực tuyến, kết nối trực tiếp với ngân hàng (1.2, 15.1, 23). Xử lý khoản thiếu hoặc thừa quỹ tiền mặt phát hiện ở chốt quỹ ngày (bồi hoàn, hạch toán) cũng thuộc kế toán của viện; spec này chỉ ghi nhận chênh lệch và lý do.
+- Hạch toán, báo cáo tài chính của viện, hóa đơn (chứng từ ở mục 10, 11 không thay hóa đơn, Q-377), thanh toán trực tuyến, kết nối trực tiếp với ngân hàng (1.2, 15.1, 23). Xử lý khoản thiếu hoặc thừa quỹ tiền mặt phát hiện ở chốt quỹ ngày (bồi hoàn, hạch toán) cũng thuộc kế toán của viện; spec này chỉ ghi nhận chênh lệch và lý do.
 - **(Bổ sung, 2026-10-06, Q-284)** Đối chiếu chứng từ của yêu cầu mua sắm do Kế toán thực hiện (15.10, BR-M11-19): feature 019. Yêu cầu mua sắm không tạo giao dịch trong sổ số dư của người cao tuổi. **(Sửa, 2026-10-06, Q-293)** Kế toán không lập yêu cầu mua sắm và không được giao nhiệm vụ Phụ trách bộ phận.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -199,8 +211,8 @@ Khi hồ sơ kết thúc lưu trú được lập, điều kiện "số dư và 
 
 1. **Given** hồ sơ kết thúc của A được lập, bảng kỳ cuối chưa chốt, **When** feature 004 xem danh sách điều kiện, **Then** điều kiện "số dư và tiền cọc đã quyết toán" là Chưa đạt, kèm lý do "bảng kỳ cuối chưa chốt" (6.8).
 2. **Given** bảng kỳ cuối Đã chốt, số dư −1.500.000 đồng, cọc 20.000.000 đồng, **When** Kế toán cấn trừ 1.500.000 đồng từ cọc, **Then** có hai giao dịch liên kết: sổ cọc −1.500.000 đồng, số dư +1.500.000 đồng; số dư 0, cọc 18.500.000 đồng.
-3. **Given** tiếp theo, **When** Kế toán lập hoàn cọc 18.500.000 đồng cho người đại diện và Quản lý viện duyệt, **Then** cọc 0; điều kiện chuyển Đạt; feature 004 nhận trạng thái mới.
-4. **Given** A còn nợ 3.000.000 đồng và cọc 0, gia đình hẹn nộp sau, **When** Quản lý viện duyệt ngoại lệ ở feature 004, **Then** điều kiện là "Đạt (ngoại lệ)"; số dư vẫn âm và tiếp tục được báo "còn nợ" (FR-020).
+3. **Given** tiếp theo, **When** Kế toán lập hoàn cọc 18.500.000 đồng cho người đại diện và Quản lý viện duyệt, **Then** cọc 0; ba ý tiền của điều kiện đã đạt nhưng điều kiện vẫn Chưa đạt, lý do "chưa lập biên bản quyết toán"; **When** Kế toán lập biên bản quyết toán, **Then** biên bản Đã lập, điều kiện chuyển Đạt; feature 004 nhận trạng thái mới (FR-022, FR-034; sửa 2026-10-22, Q-379).
+4. **Given** A còn nợ 3.000.000 đồng và cọc 0, gia đình hẹn nộp sau, **When** Quản lý viện duyệt ngoại lệ ở feature 004 và Kế toán lập biên bản ghi còn nợ 3.000.000 đồng, **Then** điều kiện là "Đạt (ngoại lệ)" (thiếu biên bản thì vẫn Chưa đạt, Q-379); số dư vẫn âm và tiếp tục được báo "còn nợ" (FR-020).
 5. **Given** A qua đời, **When** feature 004 mở danh sách việc sau qua đời, **Then** có mục "quyết toán số dư và tiền cọc" do Kế toán thực hiện, Chưa hoàn thành cho tới khi đạt như trên, hoặc Không áp dụng nếu sổ cọc và số dư đã bằng 0 và không còn bảng chưa chốt.
 6. **Given** điều kiện đã Đạt và lệnh Kết thúc lưu trú đã thực hiện, **When** sau đó một bảng bổ sung của A được chốt, **Then** giao dịch vẫn được tạo, số dư khác 0, Kế toán được nhắc quyết toán phần mới; hồ sơ không mở lại (Q-224, Clarification 2026-09-28).
 
@@ -208,7 +220,7 @@ Khi hồ sơ kết thúc lưu trú được lập, điều kiện "số dư và 
 
 ### User Story 8 - Xuất sao kê, báo cáo thu chi và sổ tiền cọc (Priority: P2)
 
-Kế toán xuất ra Excel: sao kê số dư của một hoặc nhiều người trong một khoảng (số dư đầu kỳ, từng giao dịch, số dư cuối kỳ); báo cáo thu chi theo khoảng (tổng nộp theo phương thức, tổng thanh toán bảng chi phí, tổng hoàn, tổng điều chỉnh, tổng số dư âm); sổ tiền cọc. Người thân có quyền xem chi phí tải được sao kê của người cao tuổi trên cổng.
+Kế toán xuất ra Excel hoặc PDF (cùng số liệu; PDF bổ sung 2026-10-22, Q-381): sao kê số dư của một hoặc nhiều người trong một khoảng (số dư đầu kỳ, từng giao dịch, số dư cuối kỳ); báo cáo thu chi theo khoảng (tổng nộp theo phương thức, tổng thanh toán bảng chi phí, tổng hoàn, tổng điều chỉnh, tổng số dư âm); sổ tiền cọc. Người thân có quyền xem chi phí tải được sao kê của người cao tuổi trên cổng.
 
 **Why this priority**: Yêu cầu trực tiếp của góp ý "xuất bản ghi excel sao kê, thu chi" (Q-212), nhưng không chặn nghiệp vụ thu hằng ngày.
 
@@ -222,6 +234,45 @@ Kế toán xuất ra Excel: sao kê số dư của một hoặc nhiều người
 4. **Given** Hành chính H, **When** H tìm cách xuất báo cáo thu chi, **Then** hệ thống chặn (Phụ lục 27, dòng "Sao kê, báo cáo thu chi").
 5. **Given** mỗi lần xuất, **When** xong, **Then** lần xuất được ghi (người xuất, thời điểm, loại, khoảng, phạm vi, số dòng); file đã xuất không đổi khi dữ liệu sau đó thay đổi.
 6. **Given** khoảng xuất dài hơn CFG-M14-01 mặc định \[12 tháng\], **When** xuất, **Then** hệ thống từ chối (18.7).
+7. *(Bổ sung 2026-10-22, Q-381)* **Given** sao kê A tháng 10 đã xuất ra Excel, **When** Kế toán xuất cùng khoảng ra PDF, **Then** PDF có thông tin viện (CFG-M11-11), cùng số dư đầu kỳ, từng giao dịch, số dư cuối kỳ như bản Excel; lần xuất PDF được ghi riêng (FR-025, FR-027).
+
+---
+
+### User Story 9 - Phiếu báo phí hằng tháng và khi ra viện (Priority: P2) *(bổ sung 2026-10-22, Q-377, Q-378)*
+
+Khi bảng chi phí của một người cao tuổi Đã chốt, Kế toán phát hành phiếu báo phí (PDF, Excel) gửi gia đình: chi tiết khoản, tổng, số dư trước và sau khi trừ, số còn nợ kèm thông tin nộp tiền. Người thân có quyền xem chi phí được báo và tải phiếu trên cổng.
+
+**Why this priority**: Gia đình cần chứng từ để đối chiếu và nộp tiền; không chặn thu chi hằng ngày.
+
+**Independent Test**: Bảng tháng 10 của A Đã chốt tổng 15.200.000 đồng, số dư trước 10.000.000 đồng; người đại diện R có quyền xem chi phí, người thân N không có.
+
+**Acceptance Scenarios**:
+
+1. **Given** bảng tháng 10 của A Đã chốt, **When** Kế toán phát hành phiếu báo phí, **Then** phiếu có số kế tiếp của dãy phiếu báo phí, thông tin viện (CFG-M11-11), từng khoản, tổng 15.200.000 đồng, số dư trước 10.000.000 đồng, sau −5.200.000 đồng, số còn nợ kèm mã nộp tiền, tài khoản thu và mã QR; dòng "Chứng từ này không thay thế hóa đơn" (FR-031, FR-032).
+2. **Given** phiếu đã phát hành, **When** Kế toán phát hành lần nữa cho cùng bảng, **Then** bị từ chối; tải lại trả đúng file đã lưu (FR-031, FR-037).
+3. **Given** bảng có khoản thuốc Amlodipin, **When** xem phiếu, **Then** khoản ghi "Thuốc" và mã vật phẩm, không có tên thuốc (FR-037, Q-133).
+4. **Given** phiếu vừa phát hành, **When** feature 009 gửi thông báo, **Then** R nhận thông báo Nhẹ và tải được phiếu trên cổng; N không nhận và không thấy phiếu (FR-030, FR-038).
+5. **Given** bảng tháng 10 Đã chốt, sau đó có bảng bổ sung tháng 11 chứa khoản điều chỉnh cho tháng 10, **When** bảng bổ sung chốt, **Then** Kế toán phát hành phiếu riêng cho bảng bổ sung; phiếu tháng 10 không đổi (FR-031).
+6. **Given** Kế toán ghi phiếu thu tiền mặt 5.200.000 đồng, **When** in phiếu, **Then** PDF có số phiếu thu; in lần hai mang dấu "Bản in lại" (FR-033).
+
+---
+
+### User Story 10 - Biên bản quyết toán khi ra viện (Priority: P2) *(bổ sung 2026-10-22, Q-379)*
+
+Khi phần tiền của điều kiện quyết toán đã đạt (hoặc có ngoại lệ), Kế toán lập biên bản quyết toán tổng hợp kỳ cuối, tiền cọc, số dư và các khoản hoàn, thu. Biên bản Đã lập là đủ để điều kiện Đạt; gia đình ký bổ sung sau.
+
+**Why this priority**: Là chứng từ cuối cùng giao gia đình khi ra viện; thiếu biên bản thì không có căn cứ đối chiếu sau này.
+
+**Independent Test**: A nội trú dài hạn, kết thúc ngày 20/10; bảng kỳ cuối 9.000.000 đồng; số dư trước quyết toán 4.000.000 đồng; cọc 20.000.000 đồng.
+
+**Acceptance Scenarios**:
+
+1. **Given** bảng kỳ cuối Đã chốt và trừ, cọc đã cấn trừ 5.000.000 đồng và hoàn 15.000.000 đồng, số dư 0, **When** Kế toán lập biên bản, **Then** biên bản Đã lập với số kế tiếp của dãy biên bản, ghi tổng kỳ cuối theo loại, số dư trước quyết toán, cọc đã thu, đã cấn trừ, đã hoàn kèm số phiếu chi, số còn phải hoàn 0 (FR-034).
+2. **Given** bảng kỳ cuối chưa chốt, **When** Kế toán lập biên bản, **Then** bị từ chối, lý do "bảng kỳ cuối chưa chốt" (FR-034).
+3. **Given** biên bản Đã lập, **When** Kế toán đính kèm bản scan có chữ ký của người đại diện, **Then** biên bản Đã ký; **When** người đại diện từ chối ký, Kế toán ghi lý do, **Then** biên bản Từ chối ký; điều kiện quyết toán vẫn Đạt (FR-035).
+4. **Given** biên bản Đã lập, hồ sơ kết thúc chưa Hoàn tất, phát hiện sai số tiền hoàn, **When** Kế toán hủy biên bản kèm lý do, **Then** biên bản Đã hủy, điều kiện về Chưa đạt; sau khi sửa giao dịch, Kế toán lập biên bản mới với số mới (FR-035).
+5. **Given** hồ sơ đã Hoàn tất, bảng bổ sung 300.000 đồng chốt muộn, **When** Kế toán thu đủ phần này và lập biên bản bổ sung, **Then** biên bản bổ sung trỏ biên bản gốc; biên bản gốc không đổi (FR-036).
+6. **Given** A qua đời, **When** mục "quyết toán số dư và tiền cọc" của danh sách việc sau qua đời được xét, **Then** mục chỉ Hoàn thành khi có biên bản Đã lập, Đã ký hoặc Từ chối ký (FR-023).
 
 ---
 
@@ -347,19 +398,19 @@ Hồ sơ không có hợp đồng Hiệu lực và chưa ở trạng thái cuố
 
 #### E. Quyết toán
 
-- **FR-022**: Hệ thống MUST cung cấp cho feature 004 điều kiện "số dư và tiền cọc đã quyết toán" của hồ sơ kết thúc lưu trú. Điều kiện Đạt khi: bảng kỳ cuối Đã chốt và đã có giao dịch thanh toán; số dư cọc bằng 0; số dư bằng 0; không còn giao dịch Chờ duyệt. Bảng bổ sung chưa chốt **không** làm điều kiện Chưa đạt, để nhất quán với Q-134 của feature 010; khi bảng đó chốt sau này, giao dịch mới được xử lý theo FR-024 (nếu hồ sơ đã ở trạng thái cuối) hoặc làm điều kiện về Chưa đạt (nếu lệnh Kết thúc lưu trú chưa thực hiện). Ngược lại Chưa đạt kèm lý do. Ngoại lệ do Quản lý viện duyệt ở feature 004 cho kết quả "Đạt (ngoại lệ)". Mỗi lần kết quả đổi, feature 004 MUST được báo. *(Nguồn: 6.8, 5.6, Q-222)*
-- **FR-023**: Khi người cao tuổi qua đời, mục "quyết toán số dư và tiền cọc" của danh sách việc sau qua đời MUST có kết quả theo cùng điều kiện FR-022: Hoàn thành khi Đạt; Không áp dụng khi sổ chưa từng có giao dịch nào khác 0 đồng. Kế toán thực hiện mục này. *(Nguồn: 6.8, Q-222)*
+- **FR-022**: Hệ thống MUST cung cấp cho feature 004 điều kiện "số dư và tiền cọc đã quyết toán" của hồ sơ kết thúc lưu trú. Điều kiện Đạt khi: bảng kỳ cuối Đã chốt và đã có giao dịch thanh toán; số dư cọc bằng 0; số dư bằng 0; không còn giao dịch Chờ duyệt; **(bổ sung 2026-10-22, Q-379)** biên bản quyết toán ở Đã lập, Đã ký hoặc Từ chối ký (FR-034). Bảng bổ sung chưa chốt **không** làm điều kiện Chưa đạt, để nhất quán với Q-134 của feature 010; khi bảng đó chốt sau này, giao dịch mới được xử lý theo FR-024 (nếu hồ sơ đã ở trạng thái cuối) hoặc làm điều kiện về Chưa đạt (nếu lệnh Kết thúc lưu trú chưa thực hiện). Ngược lại Chưa đạt kèm lý do. Ngoại lệ do Quản lý viện duyệt ở feature 004 cho kết quả "Đạt (ngoại lệ)"; **(sửa 2026-10-22, Q-379)** ngoại lệ chỉ thay bốn ý về tiền, không thay ý biên bản. Mỗi lần kết quả đổi, feature 004 MUST được báo. *(Nguồn: 6.8, 5.6, Q-222)*
+- **FR-023**: Khi người cao tuổi qua đời, mục "quyết toán số dư và tiền cọc" của danh sách việc sau qua đời MUST có kết quả theo cùng điều kiện FR-022 (kể cả ý biên bản quyết toán, Q-379): Hoàn thành khi Đạt; Không áp dụng khi sổ chưa từng có giao dịch nào khác 0 đồng. Kế toán thực hiện mục này. *(Nguồn: 6.8, Q-222)*
 - **FR-024**: Giao dịch làm số dư khác 0 sau khi hồ sơ đã ở trạng thái cuối (bảng bổ sung chốt muộn, chuyển khoản tới muộn) MUST được ghi bình thường; Kế toán MUST được nhắc mỗi CFG-M02-09 mặc định \[1 ngày\] tới khi số dư về 0; hồ sơ không mở lại (Q-224, Clarification 2026-09-28; ngoại lệ (3) của BR-M01-05). *(Nguồn: BR-M01-05, 6.8)*
 
 #### F. Xuất dữ liệu
 
-- **FR-025**: Kế toán MUST xuất được ra Excel: (a) sao kê số dư của một hoặc nhiều hồ sơ trong một khoảng, gồm số dư đầu kỳ, từng giao dịch Đã xác nhận (thời điểm, loại, số tiền, phương thức, tham chiếu), số dư cuối kỳ; (b) báo cáo thu chi theo khoảng: tổng nộp theo phương thức, tổng thanh toán bảng chi phí, tổng hoàn tiền, tổng hoàn cọc, tổng điều chỉnh, tổng số dư âm cuối khoảng, số hồ sơ còn nợ; (c) sổ tiền cọc: số dư cọc từng hồ sơ và giao dịch cọc trong khoảng. Quản lý viện xem được các nội dung này. Khoảng xuất MUST NOT dài hơn CFG-M14-01 mặc định \[12 tháng\]. *(Nguồn: 15.9, 18.4, 18.7, UC-88)*
-- **FR-026**: Người thân có quyền xem chi phí MUST tải được sao kê (a) của người cao tuổi đó qua cổng (feature 012), trong khoảng không dài hơn CFG-M14-01. *(Nguồn: 15.9)*
+- **FR-025**: Kế toán MUST xuất được ra Excel và PDF (hai định dạng cùng số liệu; PDF có thông tin viện CFG-M11-11; bổ sung 2026-10-22, Q-381): (a) sao kê số dư của một hoặc nhiều hồ sơ trong một khoảng, gồm số dư đầu kỳ, từng giao dịch Đã xác nhận (thời điểm, loại, số tiền, phương thức, tham chiếu), số dư cuối kỳ; (b) báo cáo thu chi theo khoảng: tổng nộp theo phương thức, tổng thanh toán bảng chi phí, tổng hoàn tiền, tổng hoàn cọc, tổng điều chỉnh, tổng số dư âm cuối khoảng, số hồ sơ còn nợ; (c) sổ tiền cọc: số dư cọc từng hồ sơ và giao dịch cọc trong khoảng. Quản lý viện xem được các nội dung này. Khoảng xuất MUST NOT dài hơn CFG-M14-01 mặc định \[12 tháng\]. *(Nguồn: 15.9, 18.4, 18.7, UC-88)*
+- **FR-026**: Người thân có quyền xem chi phí MUST tải được sao kê (a) dạng Excel hoặc PDF (Q-381) của người cao tuổi đó qua cổng (feature 012), trong khoảng không dài hơn CFG-M14-01. *(Nguồn: 15.9)*
 - **FR-027**: Mỗi lần xuất MUST được ghi (người xuất, vai trò, thời điểm, loại, khoảng, phạm vi, số dòng). File đã xuất không đổi khi dữ liệu nguồn đổi. *(Nguồn: 19.4, 18.7)*
 
 #### G. Quyền
 
-- **FR-028**: Quyền MUST theo Phụ lục 27 và 19.3: Kế toán thực hiện mọi lệnh của mục B, C (lập), E, F; Quản lý viện duyệt, từ chối, xác nhận hoặc trả lại chốt quỹ ngày (FR-005a), ghi "dừng nhắc", xem toàn bộ; Hành chính chỉ xem số dư, số dư cọc và trạng thái đặt cọc; người thân có quyền xem chi phí xem theo FR-003, FR-026; vai trò khác không có quyền. Kế toán xem hồ sơ người cao tuổi ở mức định danh, hợp đồng, bảng chi phí, số dư, không xem sức khỏe, khoản thuốc chỉ thấy mã vật phẩm (Q-133). *(Nguồn: 19.3, Phụ lục 27 ²⁶, ²⁹, ³²)*
+- **FR-028**: Quyền MUST theo Phụ lục 27 và 19.3: Kế toán thực hiện mọi lệnh của mục B, C (lập), E, F, J (phát hành phiếu báo phí, lập, hủy, ghi ký biên bản quyết toán; bổ sung 2026-10-22); Quản lý viện duyệt, từ chối, xác nhận hoặc trả lại chốt quỹ ngày (FR-005a), ghi "dừng nhắc", xem toàn bộ; Hành chính chỉ xem số dư, số dư cọc và trạng thái đặt cọc; người thân có quyền xem chi phí xem theo FR-003, FR-026, FR-038; Quản lý viện xem chứng từ (Phụ lục 27 dòng "Phiếu báo phí", "Biên bản quyết toán"); vai trò khác không có quyền. Kế toán xem hồ sơ người cao tuổi ở mức định danh, hợp đồng, bảng chi phí, số dư, không xem sức khỏe, khoản thuốc chỉ thấy mã vật phẩm (Q-133). *(Nguồn: 19.3, Phụ lục 27 ²⁶, ²⁹, ³²)*
 - **FR-029**: File sao kê đã nhập, lần nhập và mọi dòng sao kê (kể cả dòng "Không thuộc người cao tuổi") MUST chỉ Kế toán và Quản lý viện xem được; người thân chỉ thấy giao dịch đã ghi vào sổ của người cao tuổi mình có quyền. Giao dịch, dòng sao kê, lần nhập, chốt quỹ ngày MUST được lưu giữ theo thời hạn của chi phí đã chốt (NFR-07, CFG-M15-03 mặc định \[10 năm sau khi kết thúc lưu trú\]). Mọi lệnh của spec này được ghi nhật ký (19.4); lần người thân xem số dư không bắt buộc ghi nhật ký, vì NFR-08 chỉ đòi với hồ sơ sức khỏe. *(Nguồn: 19.3, 19.4, NFR-07, NFR-08)*
 
 #### I. Thông báo
@@ -381,18 +432,42 @@ Hồ sơ không có hợp đồng Hiệu lực và chưa ở trạng thái cuố
 | Hợp đồng bị hủy hoặc Hủy tiếp nhận khi còn tiền cọc; nhắc mỗi CFG-M02-09 | Kế toán | Nhẹ | FR-015a |
 | Số dư khác 0 sau khi hồ sơ ở trạng thái cuối; nhắc mỗi CFG-M02-09 | Kế toán | Nhẹ | FR-024 |
 | Dòng sao kê khớp hồ sơ đã ở trạng thái cuối được xác nhận | Kế toán | Nhẹ | User Story 3 kịch bản 7 |
+| *(Bổ sung 2026-10-22, Q-378)* Phiếu báo phí được phát hành | Người thân có quyền xem chi phí (phần "chi phí") | Nhẹ | FR-031 |
+| *(Bổ sung 2026-10-22, Q-379)* Biên bản quyết toán, biên bản bổ sung được lập | Người thân có quyền xem chi phí (phần "chi phí") | Nhẹ | FR-034, FR-036 |
+
+#### J. Chứng từ thanh toán *(bổ sung 2026-10-22, Q-377 → Q-379)*
+
+- **FR-031**: Khi một bảng chi phí (thường, bổ sung hoặc kỳ cuối) Đã chốt và đã có giao dịch thanh toán (FR-012), Kế toán MUST phát hành được phiếu báo phí cho bảng đó; mỗi bảng tối đa một phiếu, lệnh phát hành lần hai bị từ chối. Số phiếu MUST cấp theo dãy riêng, duy nhất, liên tục, không bỏ số trong toàn viện (DBR-37). Kế toán MUST có danh sách bảng Đã chốt chưa phát hành phiếu. *(Nguồn: BR-M11-21, DBR-37, UC-100)*
+- **FR-032**: Phiếu báo phí MUST gồm: thông tin viện (CFG-M11-11); số phiếu, ngày phát hành, người phát hành; người cao tuổi, người đại diện, kỳ, loại bảng; từng khoản Đã chốt (ngày phát sinh, loại, mô tả, số lượng, đơn giá, thành tiền) và tổng theo loại; tổng bảng; số dư ngay trước và ngay sau giao dịch thanh toán của bảng; khi số dư sau âm: số còn nợ, mã nộp tiền, tài khoản thu và mã QR VietQR (CFG-M11-10, FR-003). *(Nguồn: BR-M11-21)*
+- **FR-033**: Phiếu thu (FR-005) và phiếu chi của hoàn tiền, hoàn cọc tiền mặt MUST in được dạng PDF ngay khi giao dịch Đã xác nhận: thông tin viện, số phiếu, ngày, người nộp hoặc người nhận, số tiền bằng số và bằng chữ, nội dung, sổ (số dư hoặc cọc), người lập. Lần in thứ hai trở đi MUST mang dấu "Bản in lại". *(Nguồn: BR-M11-16, BR-M11-23)*
+- **FR-034**: Kế toán MUST lập được biên bản quyết toán khi: hồ sơ có hồ sơ kết thúc lưu trú Đang chuẩn bị hoặc danh sách việc sau qua đời đang mở; bốn ý về tiền của FR-022 đã đạt hoặc đã có ngoại lệ được duyệt; không có biên bản gốc nào khác chưa Đã hủy. Ngược lại lệnh bị từ chối kèm lý do. Biên bản MUST gồm: thông tin viện; số biên bản (dãy riêng, DBR-38), ngày lập, người lập; người cao tuổi, người đại diện, loại lưu trú, hợp đồng, ngày bắt đầu, ngày kết thúc dự kiến, trường hợp kết thúc (feature 004); tổng bảng kỳ cuối theo loại; số dư trước quyết toán; tiền cọc đã thu, đã cấn trừ, đã hoàn; các giao dịch nộp, hoàn của quyết toán kèm số phiếu; số còn nợ hoặc còn phải hoàn (khác 0 chỉ khi có ngoại lệ). Biên bản có cả bản PDF và Excel. *(Nguồn: BR-M11-22, 6.8, UC-101)*
+- **FR-035**: Vòng đời biên bản quyết toán MUST theo bảng dưới; không có chuyển nào khác. *(Nguồn: BR-M11-22)*
+
+| Trạng thái | Lệnh | Trạng thái mới | Người thực hiện | Điều kiện | Tác động |
+| --- | --- | --- | --- | --- | --- |
+| — | Lập biên bản | Đã lập | Kế toán | FR-034 | Ý biên bản của FR-022 đạt; feature 004 được báo; thông báo FR-030 |
+| Đã lập, Từ chối ký | Ghi đã ký | Đã ký | Kế toán | Bắt buộc bản scan có chữ ký người đại diện | — |
+| Đã lập | Ghi từ chối ký | Từ chối ký | Kế toán | Bắt buộc lý do | — |
+| Đã lập, Đã ký, Từ chối ký | Hủy biên bản | Đã hủy | Kế toán | Bắt buộc lý do; hồ sơ kết thúc (hoặc danh sách việc sau qua đời) chưa ở trạng thái cuối | Ý biên bản của FR-022 về Chưa đạt; feature 004 được báo |
+
+- **FR-036**: Khi hồ sơ kết thúc đã ở trạng thái cuối mà giao dịch mới làm số dư khác 0 (FR-024, Q-224), sau khi số dư về 0 Kế toán MUST lập được **biên bản bổ sung** trỏ đúng một biên bản gốc, cùng nội dung FR-034 cho phần phát sinh mới và cùng vòng đời FR-035 (hủy được khi chưa có biên bản bổ sung sau nó). Biên bản gốc MUST NOT đổi. *(Nguồn: BR-M11-22, Q-224, DBR-38)*
+- **FR-037**: Với mọi chứng từ của mục này: file PDF (và Excel nếu có) MUST dựng từ số liệu tại lúc phát hành và được lưu cùng chứng từ; tải lại MUST trả đúng file đã lưu dù dữ liệu nguồn đổi; chứng từ MUST ghi dòng "Chứng từ này không thay thế hóa đơn"; khoản thuốc chỉ ghi "Thuốc" và mã vật phẩm (Q-133); chứng từ MUST NOT sửa hay xóa; mỗi lần phát hành, tải, in MUST ghi nhật ký (19.4) như FR-027; chứng từ lưu giữ theo FR-029. *(Nguồn: BR-M11-23, 1.2, Q-377)*
+- **FR-038**: Hệ thống MUST cung cấp cho feature 012 danh sách phiếu báo phí, biên bản quyết toán (kể cả bổ sung, không gồm biên bản Đã hủy) của người cao tuổi kèm file để người thân có quyền xem chi phí tải trên cổng. *(Nguồn: 15.9)*
 
 #### H. Giao tiếp với feature khác
 
 | Hướng | Feature | Nội dung | Dữ liệu tối thiểu |
 | --- | --- | --- | --- |
 | Nhận | 004 | Hợp đồng chuyển Chờ ký, Trả về nháp, Hiệu lực, Đã hủy; Hủy tiếp nhận; khoản cần đặt cọc (hoặc "không yêu cầu") của hợp đồng Chờ ký hoặc hiệu lực, kể cả khi phụ lục đổi khoản cọc; hồ sơ kết thúc lưu trú lập, hủy; qua đời; danh sách việc sau qua đời; ngoại lệ quyết toán được duyệt | Hồ sơ, hợp đồng, số tiền cọc, trạng thái |
-| Gửi | 004 | Trạng thái đặt cọc (FR-006); điều kiện quyết toán (FR-022); kết quả mục danh sách việc sau qua đời (FR-023) | Hồ sơ, trạng thái, lý do, giao dịch nguồn |
+| Gửi | 004 | Trạng thái đặt cọc (FR-006); điều kiện quyết toán (FR-022, kể cả ý biên bản quyết toán); kết quả mục danh sách việc sau qua đời (FR-023) | Hồ sơ, trạng thái, lý do, giao dịch nguồn |
 | Nhận | 010 | Bảng chi phí Đã chốt (feature 010 bảng giao tiếp "Gửi 017"); tổng chi phí chưa chốt của hồ sơ (feature 010 FR-038a); phí ngày cơ sở (feature 010 FR-009); đề nghị mua hộ được gửi, được quyết định, bị hủy | Mã bảng (duy nhất), loại bảng, kỳ, hồ sơ, tổng có dấu; tổng chưa chốt; đề nghị, số tiền dự kiến |
 | Gửi | 010 | Dấu "số dư không đủ" cho đề nghị mua hộ, tính lại tới khi đề nghị được quyết định (FR-021) | Đề nghị, dấu |
-| Gửi | 012 | Số dư, giao dịch, thông tin nộp tiền, sao kê (FR-003, FR-026) | Theo FR-003 |
+| Gửi | 012 | Số dư, giao dịch, thông tin nộp tiền, sao kê (FR-003, FR-026); *(bổ sung 2026-10-22)* phiếu báo phí, biên bản quyết toán kèm file (FR-038) | Theo FR-003; chứng từ: loại, số, ngày, kỳ, trạng thái, file |
 | Gửi | 009 | Các thông báo ở bảng FR-030 | Nguồn, mức, nhóm người nhận, loại thông tin ("chung", "chi phí") |
 | Gửi | 016 | Số hồ sơ Sắp hết tiền, Còn nợ cho dashboard (18.5) | Hồ sơ, tình trạng, số dư |
+| Nhận | 004 | *(bổ sung 2026-10-22, Q-379)* Thông tin hồ sơ kết thúc cho biên bản: loại lưu trú, hợp đồng, ngày bắt đầu, ngày kết thúc dự kiến, trường hợp kết thúc, trạng thái hồ sơ | Hồ sơ kết thúc, trạng thái |
+| Nhận | 010 | *(bổ sung 2026-10-22, Q-378)* Chi tiết khoản Đã chốt của bảng cho phiếu báo phí (khoản thuốc chỉ mã vật phẩm) | Bảng, khoản, loại, mô tả, số lượng, đơn giá, thành tiền, ngày phát sinh |
+| Nhận | 000 | *(bổ sung 2026-10-22, Q-377)* Tham số CFG-M11-11 (thông tin viện trên chứng từ) | Tên, địa chỉ, mã số thuế, điện thoại, logo |
 
 ### Key Entities *(include if feature involves data)*
 
@@ -404,6 +479,9 @@ Hồ sơ không có hợp đồng Hiệu lực và chưa ở trạng thái cuố
 - **Lịch sử tình trạng số dư** – nhóm 3: hồ sơ, ngày, số ngày còn đủ tiền, tình trạng, lần báo.
 - **Lần xuất** – nhóm 3: theo FR-027.
 - **Chốt quỹ ngày** – nhóm 2 → 3: các trường ở FR-005a, người lập, người xác nhận, trạng thái.
+- **Phiếu báo phí** *(bổ sung 2026-10-22)* – nhóm 3: số phiếu, bảng chi phí, hồ sơ, kỳ, loại bảng, ngày phát hành, người phát hành, số dư trước và sau, file PDF, file Excel.
+- **Biên bản quyết toán** *(bổ sung 2026-10-22)* – nội dung nhóm 3, trạng thái nhóm 2: số biên bản, hồ sơ, hồ sơ kết thúc hoặc danh sách việc sau qua đời, biên bản gốc (với biên bản bổ sung), số liệu ở FR-034, trạng thái (Đã lập / Đã ký / Từ chối ký / Đã hủy), bản scan chữ ký, lý do từ chối ký hoặc hủy, người lập, file PDF, file Excel.
+- **Lần in phiếu thu, phiếu chi** *(bổ sung 2026-10-22)* – nhóm 3: giao dịch, người in, thời điểm, lần in.
 - Dùng từ feature khác: **Hợp đồng**, **Hồ sơ kết thúc lưu trú**, **Danh sách việc sau qua đời** (004); **Bảng chi phí (BANG_CHI_PHI)**, **Đề nghị mua hộ** (010); **Quan hệ người thân** (012).
 
 ## Success Criteria *(mandatory)*
@@ -423,6 +501,10 @@ Hồ sơ không có hợp đồng Hiệu lực và chưa ở trạng thái cuố
 - **SC-011**: 100% ngày có giao dịch tiền mặt trong đợt thử có chốt quỹ Đã xác nhận trong vòng 2 ngày làm việc; 0 khoảng trống hay trùng lặp trong dãy số phiếu thu.
 - **SC-012**: Bộ lập lịch tính số ngày còn đủ tiền và tình trạng số dư cho 300 hồ sơ xong trong không quá 5 phút; chạy lại cùng ngày không gửi thông báo trùng (NFR-04).
 - **SC-013**: 0 dòng sao kê sinh nhiều hơn một giao dịch; 100% cặp điều chỉnh chuyển tiền và cặp cấn trừ tiền cọc có hai giao dịch cùng số tiền, ngược dấu, cùng trạng thái.
+- **SC-014** *(bổ sung 2026-10-22, Q-378)*: 100% bảng chi phí Đã chốt trong đợt thử có tối đa một phiếu báo phí; tổng phiếu bằng tổng bảng và số dư trước, sau khớp sổ; 0 khoảng trống hay trùng lặp trong dãy số phiếu báo phí.
+- **SC-015** *(bổ sung 2026-10-22, Q-379)*: 100% lệnh Kết thúc lưu trú thành công có biên bản quyết toán Đã lập, Đã ký hoặc Từ chối ký; số liệu trên biên bản khớp 100% sổ số dư, sổ cọc và bảng kỳ cuối.
+- **SC-016** *(bổ sung 2026-10-22, Q-377)*: 100% chứng từ có dòng "Chứng từ này không thay thế hóa đơn"; 0 chứng từ có tên thuốc; tải lại sau khi dữ liệu nguồn đổi cho file giống hệt bản đã lưu.
+- **SC-017** *(bổ sung 2026-10-22)*: Phát hành một phiếu báo phí 50 khoản (PDF và Excel) xong trong không quá 5 giây; 0 lần người thân không có quyền xem chi phí thấy chứng từ.
 
 ## Assumptions
 
@@ -433,7 +515,7 @@ Hồ sơ không có hợp đồng Hiệu lực và chưa ở trạng thái cuố
 - Số ngày còn đủ tiền làm tròn xuống, để báo sớm hơn thay vì muộn hơn.
 - Người nhận thông báo "sắp hết tiền" là mọi người đại diện có quan hệ Hiệu lực (BR-M11-13 ghi "người đại diện", không giới hạn một người).
 - Thời hạn lưu giữ giao dịch và sao kê theo NFR-07, CFG-M15-03 (như chi phí đã chốt).
-- Không đề xuất tham số mới ngoài CFG-M11-04, CFG-M11-05 đã có; nhắc quyết toán muộn dùng lại CFG-M02-09.
+- Không đề xuất tham số mới ngoài CFG-M11-04, CFG-M11-05 đã có; nhắc quyết toán muộn dùng lại CFG-M02-09. *(Bổ sung 2026-10-22)* Chứng từ dùng CFG-M11-11 (thông tin viện) do nghiep-vu.md thêm theo Q-377.
 - "Excel/CSV", "VietQR", "mã giao dịch ngân hàng" là định dạng và chuẩn nghiệp vụ đã có ở mục 23 và 15.9, không phải lựa chọn công nghệ (constitution II).
 - Còn nợ → Sắp hết tiền không báo ngay, vì tình trạng đã tốt lên và gia đình vừa được báo trước đó; chu kỳ nhắc giữ nguyên (FR-018).
 - Hoàn tiền giữa kỳ bị giới hạn bởi tổng chi phí chưa chốt để không tạo nợ mới (FR-014). Nguồn không quy định; đây là cách hiểu thận trọng của "số tiền hoàn không vượt số dư hiện có" ở BR-M11-14.
@@ -470,3 +552,8 @@ Hồ sơ không có hợp đồng Hiệu lực và chưa ở trạng thái cuố
 - **Q-293** – Kế toán không được giao nhiệm vụ Phụ trách bộ phận; Phụ trách bộ phận Hành chính – Kế toán là Hành chính; giữ BR-M11-19, bỏ phần "Kế toán đang là Phụ trách bộ phận" ở chú thích ³⁸ (13.1a, Phụ lục 27 ³⁸, BF-18). Ảnh hưởng: Kế toán không lập yêu cầu mua sắm trong mọi trường hợp.
 
 **(2026-10-10) Plan 017, điểm báo lại 1 → 3.** *(Đã xử lý 2026-10-10: Q-334, Q-335; sửa FR-003, FR-016, Phạm vi.)*
+
+**(2026-10-22) Đồng bộ Q-377 → Q-379.** *(Đã xử lý 2026-10-22: Clarifications "Cập nhật 2026-10-22", Phạm vi 10, 11, User Story 7 kịch bản 3, 4, User Story 9, 10, FR-022, FR-023, FR-028, FR-030, mục J FR-031 → FR-038, bảng giao tiếp, Key Entities, SC-014 → SC-017.)* Còn báo lại:
+
+1. Plan, data-model, contracts (api-017), quickstart, tasks chưa cập nhật; cần /speckit-plan và /speckit-tasks. Plan cần chọn thư viện dựng PDF, Excel và nơi lưu file (S3 như tệp đính kèm, 001 H-13).
+2. Tên, mẫu chứng từ cần đối chiếu Nghị định 123/2020/NĐ-CP (24.4, Q-377) trước khi vận hành.
