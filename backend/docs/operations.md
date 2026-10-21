@@ -72,6 +72,13 @@ Bản sao lưu có thể chứa dữ liệu đã bị loại bỏ sau thời đi
 3. Kiểm trigger và tài khoản: `SHOW TRIGGERS FROM elder_care;` có đủ trigger chỉ ghi thêm; `eldercare_app` vẫn không có `DELETE` trên bảng nhóm 3.
 4. Trước khi mở cho người dùng, chạy một đợt loại bỏ dữ liệu hết hạn `PURGE_EXPIRED_DATA` (job tính hạn theo CFG-M15-03, CFG-M15-04 hiện hành và ngày hôm nay, nên xóa lại đúng phần đã bị loại bỏ), rồi kiểm bản nhật ký tóm tắt `EXPIRED_DATA_PURGED` mới và `scheduler_run`. Cách chạy: mở ứng dụng một lần với `--eldercare.jobs.purge-expired-data.run-once=true`, chưa mở cho người dùng; job chạy một đợt khi ứng dụng sẵn sàng. Kiểm xong thì dừng ứng dụng và bỏ tham số này (để lại thì mỗi lần khởi động chạy thêm một đợt, chỉ xóa dữ liệu đã hết hạn nên không hại nhưng tốn thời gian khởi động).
 5. Đối chiếu bản tóm tắt các đợt loại bỏ sau thời điểm sao lưu (lưu ngoài cơ sở dữ liệu, mục 6) với bản tóm tắt vừa ghi.
+5a. Kết thúc mọi phiên đăng nhập có trong bản sao lưu (002 T079, NFR-06, NFR-08): phiên đã đăng xuất, bị kết thúc vì khóa tài khoản hay gỡ thiết bị sau thời điểm sao lưu sẽ sống lại nếu để nguyên. Chạy bằng tài khoản `eldercare_app` (có `UPDATE` trên `login_session`) trước khi mở cho người dùng:
+
+   ```sql
+   UPDATE login_session SET ended_at = UTC_TIMESTAMP(6), end_reason = 'TIMED_OUT' WHERE ended_at IS NULL;
+   ```
+
+   Mọi người đăng nhập lại; người cao tuổi đăng nhập lại bằng mã QR do điều dưỡng tạo (thiết bị gắn vẫn giữ). Khóa, gỡ thiết bị, đổi quyền làm sau thời điểm sao lưu đã mất cùng dữ liệu khác, Quản lý viện làm lại theo biên bản ở bước 7.
 6. Mở ứng dụng. Lúc khởi động, `APPLY_DUE_REQUESTS` tự áp dụng bù yêu cầu đã đến hạn.
 7. Báo người dùng: dữ liệu nhập sau thời điểm sao lưu bị mất (tối đa 24 giờ) và cần nhập lại; ghi biên bản sự cố.
 
@@ -91,3 +98,9 @@ Sau mỗi đợt `PURGE_EXPIRED_DATA`, xuất bản tóm tắt (`audit_log` có 
 - `scheduler_run` có `result = 'FAILED'` hoặc job không có dòng mới quá hai chu kỳ: kiểm log ứng dụng.
 - Nhật ký `REQUEST_APPLY_ERROR`: yêu cầu áp dụng lỗi, vẫn Đã duyệt và được thử lại ở lần chạy sau; lặp lại thì báo nhóm phát triển.
 - Bảng `EVENT_PUBLICATION` có dòng chưa hoàn tất lâu: sự kiện chưa giao xong, được giao lại khi khởi động (R-09).
+
+## 9. HTTPS (002 T079, NFR-08)
+
+- Mọi kết nối của web, app di động tới `backend/` bắt buộc qua HTTPS; không mở cổng HTTP ra ngoài (chỉ chuyển hướng sang HTTPS nếu cần). Cookie phiên web có `Secure`, `HttpOnly`, `SameSite=Strict` (`SessionTokens.cookie`) nên qua HTTP trình duyệt không gửi cookie và web không đăng nhập được.
+- TLS đặt ở reverse proxy trước ứng dụng (hoặc `server.ssl.*` của Spring Boot); chứng chỉ do quản trị cấp và gia hạn, khóa riêng không ghi vào kho mã.
+- Ứng dụng chỉ nghe ở mạng nội bộ của máy chủ khi có reverse proxy.
