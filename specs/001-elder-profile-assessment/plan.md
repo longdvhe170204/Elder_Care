@@ -239,3 +239,11 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 11. **(2026-10-18) Ngày xem lại nhận định của Bác sĩ.** FR-023a, FR-023h bắt buộc ghi ngày xem lại nhưng không nói đến hạn thì làm gì. Plan chỉ lưu và hiển thị, không nhắc (Q-306: không tự sinh; nhắc thì cần FR). Đề nghị xác nhận, hoặc thêm FR nhắc Bác sĩ khi tới ngày xem lại. *(Đã xử lý 2026-10-18: Q-360, FR-023i: thêm job `NhacXemLaiNhanDinh` (research H-12))*
 
 12. **(2026-10-18) Q-356 "bắt buộc lý do" trùng FR-046.** FR-046 đã bắt lý do với mọi lệnh chuyển trạng thái do người dùng thực hiện, gồm Hoàn tất tiếp nhận; `LenhTrangThai.lyDo` luôn bắt buộc. Nên khi ý kiến là "Không đồng ý", điều mới chỉ là hệ thống hiện ý kiến đó (cảnh báo của bean 004) để lý do nói tới nó. Plan không thêm cơ chế riêng. Đề nghị: nếu ý định là lý do phải nói riêng về ý kiến của người cao tuổi (ví dụ trường lý do riêng), ghi rõ ở 004 FR-004a. *(Đã xử lý 2026-10-18: Q-361: dùng lý do của lệnh; thiết kế giữ nguyên)*
+
+## Ghi chú triển khai *(2026-10-21, CP-001-API: T001, T007, T008; T002, T009 một phần)*
+
+- Gói `m01.api` công bố theo glossary mục 8.5: giao diện ở gốc, `dto`, `spi`, `events` (`@NamedInterface` `resident`, `resident-dto`, `resident-spi`, `resident-events`). Chỉ tạo gói có lớp (backend/README.md); các gói `internal/…` tạo cùng lớp đầu tiên.
+- Lệch tên: `HealthItemApi.isChecked` (glossary cũ) thành `markChecked` vì là lệnh `void`; glossary đã sửa. `WishRecordSource` có thêm `CRITICAL_RECONFIRMATION` theo data-model (`XAC_NHAN_LAI_NGUY_KICH`).
+- Trường của các view (`HealthItemView`, `ConsentView`, `EndOfLifeWishView`, `RecordEndOfLifeWish`, `AssessmentSummary`, `ResidentChangeView`…) do 001 đặt vì module-interfaces.md chỉ nêu tên; module khác cần thêm trường thì báo B (Đổi api).
+- Bản giả ở `support/fake/m01/` (team-plan mục 3), không phải `support/gia001/`. Chưa có bản giả `ChiSoApi`, `SuCoDaGhiNhan` (D khai báo) nên T002 chưa `[x]`.
+- Sự kiện gửi 009 chưa cài `HasNotificationRequests` vì `RecipientGroup` của 000 chưa có nhóm Bác sĩ trực, Điều dưỡng phụ trách, Trưởng tầng, người liên hệ chính (009 T004); mức và người nhận theo H-14 ghi ở javadoc từng sự kiện. T009 chưa `[x]`.
