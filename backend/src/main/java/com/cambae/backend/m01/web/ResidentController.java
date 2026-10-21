@@ -1,0 +1,134 @@
+package com.cambae.backend.m01.web;
+
+import com.cambae.backend.common.error.web.ProblemBody;
+import com.cambae.backend.common.web.VersionEtag;
+import com.cambae.backend.m01.api.dto.ResidentStatus;
+import com.cambae.backend.m01.internal.profile.service.ResidentProfileService;
+import com.cambae.backend.m01.internal.profile.service.ResidentProfileService.CreateResult;
+import com.cambae.backend.m01.internal.profile.service.ResidentProfileService.LinkedProfile;
+import com.cambae.backend.m01.internal.profile.service.ResidentProfileService.ProfileView;
+import com.cambae.backend.m01.internal.profile.service.ResidentProfileService.SearchPage;
+import com.cambae.backend.m01.web.request.CreateResidentBody;
+import com.cambae.backend.m01.web.request.UpdatePersonalInfoBody;
+import com.cambae.backend.m01.web.response.CreateProfileResultBody;
+import com.cambae.backend.m01.web.response.ProfileBody;
+import com.cambae.backend.m01.web.response.ProfilePage;
+import com.cambae.backend.m15.account.api.CurrentUser;
+import com.cambae.backend.m15.account.api.PermissionApi;
+import com.cambae.backend.m15.account.api.dto.Function;
+import com.cambae.backend.m15.account.api.dto.Operation;
+import com.cambae.backend.m15.account.api.dto.PermissionKey;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * Hồ sơ người cao tuổi: tạo, tra cứu, xem, cập nhật thông tin cá nhân, chuỗi hồ sơ trước (001 T020;
+ * contracts/api-001.yaml, tag {@code profiles}). Lệnh trạng thái của hồ sơ thuộc 004.
+ */
+@RestController
+@RequestMapping("/api/v1/residents")
+class ResidentController {
+
+    private static final String PROBLEM = "application/problem+json";
+    private static final String UPDATE_PERSONAL_INFO = "UPDATE_PERSONAL_INFO";
+    private static final Map<String, PermissionKey> COMMANDS =
+            Map.of(UPDATE_PERSONAL_INFO, new PermissionKey(Function.RESIDENT_PROFILE, Operation.UPDATE));
+
+    private final ResidentProfileService profiles;
+    private final PermissionApi permissions;
+    private final CurrentUser currentUser;
+
+    ResidentController(ResidentProfileService profiles, PermissionApi permissions, CurrentUser currentUser) {
+        this.profiles = profiles;
+        this.permissions = permissions;
+        this.currentUser = currentUser;
+    }
+
+    @GetMapping
+    @Tag(name = "profiles")
+    ProfilePage search(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) List<ResidentStatus> status,
+            @RequestParam(required = false) String cursor) {
+        SearchPage page = profiles.search(q, status == null ? Set.of() : EnumSet.copyOf(status), cursor, 20);
+        return new ProfilePage(page.items().stream().map(this::body).toList(), page.nextCursor());
+    }
+
+    @PostMapping
+    @Tag(name = "profiles")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Đã tạo, trạng thái ADMISSION_IN_PROGRESS"),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "422",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    ResponseEntity<CreateProfileResultBody> create(
+            @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
+            @Valid @RequestBody CreateResidentBody body) {
+        CreateResult created = profiles.create(body.personalInfo(), body.confirmed());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .eTag(VersionEtag.of(created.profile().version()))
+                .body(new CreateProfileResultBody(body(created.profile()), created.warnings()));
+    }
+
+    @GetMapping("/{id}")
+    @Tag(name = "profiles")
+    ResponseEntity<ProfileBody> get(@PathVariable long id) {
+        ProfileView view = profiles.view(ResidentProfileService.target(id));
+        return ResponseEntity.ok().eTag(VersionEtag.of(view.version())).body(body(view));
+    }
+
+    @PostMapping("/{id}/update-personal-info")
+    @Tag(name = "profiles")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "412",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    ResponseEntity<ProfileBody> updatePersonalInfo(
+            @PathVariable long id,
+            @RequestHeader("If-Match") String ifMatch,
+            @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
+            @Valid @RequestBody UpdatePersonalInfoBody body) {
+        ProfileView updated = profiles.updatePersonalInfo(
+                ResidentProfileService.target(id), ifMatch, body.personalInfo(), body.reason());
+        return ResponseEntity.ok().eTag(VersionEtag.of(updated.version())).body(body(updated));
+    }
+
+    @GetMapping("/{id}/linked-profiles")
+    @Tag(name = "profiles")
+    List<LinkedProfile> linkedProfiles(@PathVariable long id) {
+        return profiles.linkedProfiles(ResidentProfileService.target(id));
+    }
+
+    private ProfileBody body(ProfileView view) {
+        return ProfileBody.of(
+                view, permissions.allowedCommands(currentUser, ResidentProfileService.target(view.id()), COMMANDS));
+    }
+}

@@ -14,6 +14,10 @@ import { StatusBadge } from '@/common/StatusBadge'
 import { DEMO_ADMISSION, DEMO_PREFERENCE_HISTORY, DEMO_RESIDENTS } from '@/common/demoData'
 import { CompleteAdmissionSheet } from './CompleteAdmissionSheet'
 import { OpinionHistorySheet, PreferenceList } from './OpinionHistorySheet'
+import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { CreateResident } from './CreateResident'
+import { ResidentSearch } from './ResidentSearch'
+import { PROFILE_CREATORS } from './residentLabels'
 
 // Bản mẫu bố cục danh sách hồ sơ người cao tuổi của feature 001, theo DESIGN.md 2.1.0
 // (màn cần tìm, so sánh nên dùng bảng). Trường hiển thị, phạm vi xem và các lệnh đổi trạng thái
@@ -184,6 +188,8 @@ export function ResidentListPage({ role }) {
   const [historyGroup, setHistoryGroup] = useState(null)
   const [admitting, setAdmitting] = useState(false)
   const [notice, setNotice] = useState('')
+  const [creating, setCreating] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
 
   const q = query.trim().toLowerCase()
   const rows = DEMO_RESIDENTS.filter(
@@ -196,7 +202,17 @@ export function ResidentListPage({ role }) {
 
   return (
     <div className="mx-auto flex max-w-[1600px] flex-col gap-6">
-      <PageHeader title="Người cao tuổi" subtitle={`${DEMO_RESIDENTS.length} hồ sơ trong phạm vi bạn được xem`}>
+      <PageHeader
+        title="Người cao tuổi"
+        subtitle={`${DEMO_RESIDENTS.length} hồ sơ trong phạm vi bạn được xem`}
+        aside={
+          PROFILE_CREATORS.includes(role) && (
+            <Button className="h-11" onClick={() => setCreating(true)}>
+              Tạo hồ sơ
+            </Button>
+          )
+        }
+      >
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <InputGroup className="h-11 bg-popover lg:w-72 lg:shrink-0">
             <InputGroupAddon>
@@ -225,6 +241,16 @@ export function ResidentListPage({ role }) {
           </ToggleGroup>
         </div>
       </PageHeader>
+
+      <ResidentSearch reloadKey={reloadKey} />
+
+      <Sheet open={creating} onOpenChange={setCreating}>
+        <SheetContent className="sm:max-w-lg">
+          {creating && (
+            <CreateResident onCreated={() => setReloadKey((k) => k + 1)} onClose={() => setCreating(false)} />
+          )}
+        </SheetContent>
+      </Sheet>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <Card className="h-fit py-0">
