@@ -247,3 +247,11 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - Trường của các view (`HealthItemView`, `ConsentView`, `EndOfLifeWishView`, `RecordEndOfLifeWish`, `AssessmentSummary`, `ResidentChangeView`…) do 001 đặt vì module-interfaces.md chỉ nêu tên; module khác cần thêm trường thì báo B (Đổi api).
 - Bản giả ở `support/fake/m01/` (team-plan mục 3), không phải `support/gia001/`. Chưa có bản giả `ChiSoApi`, `SuCoDaGhiNhan` (D khai báo) nên T002 chưa `[x]`.
 - Sự kiện gửi 009 chưa cài `HasNotificationRequests` vì `RecipientGroup` của 000 chưa có nhóm Bác sĩ trực, Điều dưỡng phụ trách, Trưởng tầng, người liên hệ chính (009 T004); mức và người nhận theo H-14 ghi ở javadoc từng sự kiện. T009 chưa `[x]`.
+
+## Ghi chú triển khai *(2026-10-21, CP-001-P2-IMPL: T005, T006, T010, T012a; T011, T012 một phần)*
+
+- Migration `V001_02__resident.sql` (`resident`, `resident_status_history`, `care_level`, `care_level_history`) và `V001_03__m01_catalogs.sql` (`allergen`, `allergy_severity`, `information_source`, `care_need`). `profile_code` nullable cho tới lúc đặt từ `id` trong cùng transaction (cột sinh không dùng được với AUTO_INCREMENT). `photo_file_id` chưa có khóa ngoại tới `file`; thêm bằng migration riêng sau T003.
+- (T012 chưa xong phần web: controller `/catalogs/{type}` đã viết nhưng chờ duyệt đăng ký `api-001` vào `ApiContractIT` và cách khớp schema `Problem`) Danh mục dùng JPA (`CatalogBase`) và một `CatalogService` điều phối theo `type` của đường dẫn; `care-levels` là bảng cố định đọc bằng `CareLevelStore`. Hợp đồng không có trường lý do cho tạo, sửa nên chỉ ngừng hiệu lực và kích hoạt lại là `@BusinessCommand`.
+- `ProfileOpenGuardArchTest` kiểm lệnh gọi guard trực tiếp trong phương thức; lệnh không ghi hồ sơ khai trong danh sách ngoại lệ kèm lý do. Lớp mẫu của test nằm ở `src/test/.../archfixture/m01guard`.
+- Test tích hợp chạy trên MySQL 8.4 phụ cổng 3307 (datadir riêng, không binlog, `TEST_DB_URL` trỏ cổng này), không đụng dịch vụ MySQL cổng 3306.
+- T011 mới có phân loại trường và gắn phạm vi cho `M01.RESIDENT`; phần còn lại làm cùng bảng của từng user story, riêng `FilePermissionProvider` chờ `common/tep` (T003, T004).
