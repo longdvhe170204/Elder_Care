@@ -24,8 +24,10 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo khung gói `BE/m03/{api,cocau,giuong,phanbo,cachly,bantru,lich}/` với `package-info.java`; gói `BE/m03/giuong/port/` là cổng duy nhất cho `m03.taisan` (019) gọi vào (research G-01)
-- [ ] T002 [P] Tạo bản giả SPI 003 khai báo (contracts mục 2.1) trong `BT/support/gia003/`: `NguonLuuTruChoPhanBo`, `DemLichDenBanTru` (004), `TinhTrangLayNhiemChoPhanBo` (007), `ThamChieuViTri` (008), và bản giả `TaiSanGiuongPort` (019) (research G-16)
+- [ ] T001 Tạo khung gói `BE/m03/api/`, `BE/m03/internal/{structure,bed,allocation,isolation,daycare}/`, `BE/m03/scheduling/` với `package-info.java`; `BE/m03/internal/bed/domain/port/` là cổng duy nhất cho phần tài sản 019 gọi vào (research G-01; tên và tầng theo backend/README.md, ghi chú Phase 1 trong plan)
+- [ ] T002 [P] Tạo bản giả SPI 003 khai báo (contracts mục 2.1) trong `BT/support/fake/m03/`: `NguonLuuTruChoPhanBo`, `DemLichDenBanTru` (004), `TinhTrangLayNhiemChoPhanBo` (007), `ThamChieuViTri` (008), và bản giả `TaiSanGiuongPort` (019) (research G-16). Khai báo trước phần SPI và kiểu tối thiểu của T004 cần để bản giả biên dịch; các API/lệnh còn lại giữ ở Phase 2.
+
+**Kiểm chứng 2026-10-22**: Đã có mã T001–T002; 22 test setup/bản giả/kiến trúc liên quan và kiểm định dạng xanh trên JDK 25. Giữ `[ ]` vì `mvnw.cmd verify` còn lỗi ở `BackendApplicationTests.contextLoads` do chưa có MySQL test/biến `TEST_DB_*`; xem ghi chú Phase 1 trong plan.md.
 
 ---
 
