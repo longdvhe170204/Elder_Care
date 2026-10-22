@@ -303,6 +303,7 @@ Ghi khi triển khai (constitution XIV: lệch kỹ thuật ghi ở plan cùng l
   - **T082** rà data-model mục 7: mọi BR có test; FR-023 thiếu test riêng, thêm `FloorManagerLimitsIT` (xanh ngay vì ma trận đã đúng từ T005); thêm dòng FR-023, FR-035a. Còn chờ: BR-M15-23 phần sự kiện (T087 #6, T094), FR-067, FR-068 (T083, T091) chờ 001; FR-074 (T097) chờ mobile.
 
 - **Phụ lục 27 thêm ba dòng** (2026-10-22, Q-375, Q-378, Q-379; chủ dự án sửa nghiep-vu.md): `Function` thêm `EMERGENCY_ASSIST_BUTTON` ("Nút hỗ trợ khẩn cấp", sau `SOS_BUTTON`), `PAYMENT_NOTICE` ("Phiếu báo phí"), `SETTLEMENT_RECORD` ("Biên bản quyết toán", sau `STATEMENT_REPORT`), đúng thứ tự dòng của Phụ lục 27; `V002_09__emergency_assist_payment_documents.sql` nạp các ô theo luật T007 (chú thích ⁴⁹ cho nút hỗ trợ khẩn cấp, ¹⁶ cho người thân); nhãn web ở `frontend/src/features/permissions/permissionLabels.js`. Không đổi endpoint hay hợp đồng api-002. `PermissionMatrixMatchesSourceIT`, `PermissionMatrixIT` qua trên JDK 25. Lệnh dùng các quyền này thuộc 007 (FR-047i) và 017 (FR-031 → FR-036).
+- **Phụ lục 27 theo Q-385** (2026-10-22, thu gọn tài chính): bỏ dòng "Chốt quỹ ngày" (`DAILY_CASH_CLOSING` xóa khỏi `Function`; `V002_10__remove_daily_cash_closing.sql` xóa quyền đã nạp và thu hẹp trỏ tới nó); đổi nhãn `BALANCE_LEDGER` thành "Số dư, thu chi", `SETTLEMENT_RECORD` thành "Bảng quyết toán" (mã giữ nguyên). Nhãn web sửa theo. `PermissionMatrixMatchesSourceIT`, `PermissionMatrixIT` qua trên JDK 25.
 
 ### Việc dang dở sau Phase 3 và tác động khi chạy thật (2026-10-20)
 
