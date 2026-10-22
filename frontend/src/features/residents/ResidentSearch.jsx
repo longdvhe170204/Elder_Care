@@ -22,6 +22,8 @@ export function ResidentSearch({ reloadKey }) {
   const [failure, setFailure] = useState(null)
   const [applied, setApplied] = useState('')
   const [openId, setOpenId] = useState(null)
+  // Tab Đánh giá chia hai cột (phiếu, thông tin tham khảo) nên khung chi tiết rộng hơn
+  const [wide, setWide] = useState(false)
 
   const load = useCallback(async (q, cursor) => {
     try {
@@ -114,10 +116,23 @@ export function ResidentSearch({ reloadKey }) {
           </Button>
         )}
       </CardContent>
-      <Sheet open={openId !== null} onOpenChange={(open) => !open && setOpenId(null)}>
-        <SheetContent className="sm:max-w-lg">
+      <Sheet
+        open={openId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setOpenId(null)
+            setWide(false)
+          }
+        }}
+      >
+        <SheetContent className={wide ? 'sm:max-w-5xl' : 'sm:max-w-lg'}>
           {openId !== null && (
-            <ResidentDetail residentId={openId} onChanged={() => load(applied)} onClose={() => setOpenId(null)} />
+            <ResidentDetail
+              residentId={openId}
+              onChanged={() => load(applied)}
+              onClose={() => setOpenId(null)}
+              onTabChange={(tab) => setWide(tab === 'assessment')}
+            />
           )}
         </SheetContent>
       </Sheet>
