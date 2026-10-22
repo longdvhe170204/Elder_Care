@@ -67,7 +67,7 @@ record SuKienTinhPhiNguonDaDoi(String loaiNguon, String nguonId, String donVi, O
 
 ## 2. Port nội bộ M11 (017, 019)
 
-Theo research P-12 (`ChiPhiChoSoDuPort` 010 cài; `SoDuMuaHoPort` 017 cài). Chỉ `m11.sodu`, `m11.muasam` được dùng (ArchUnit). Khi 017 chưa có, `SoDuMuaHoPort` không có bean và đề nghị không mang dấu "số dư không đủ".
+Theo research P-12 (`ChiPhiChoSoDuPort` 010 cài; `SoDuMuaHoPort` 017 cài). *(Bổ sung 2026-10-22, FR-042, Q-378)* `ChiPhiChoSoDuPort.bangDaChot(bangId)` trả chi tiết khoản Đã chốt và tổng theo loại cho phiếu báo phí, bảng quyết toán của 017 (chữ ký ở research P-12). Chỉ `m11.sodu`, `m11.muasam` được dùng (ArchUnit). Khi 017 chưa có, `SoDuMuaHoPort` không có bean và đề nghị không mang dấu "số dư không đủ".
 
 ---
 

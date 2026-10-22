@@ -22,6 +22,8 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ---
 
+**Cập nhật 2026-10-22** (plan mục "Cập nhật 2026-10-22"; Q-373, Q-374, Q-377 → Q-379): thêm T073, T074. Không đánh số lại.
+
 **Cập nhật 2026-10-18** (plan mục "Cập nhật 2026-10-18"; Q-347, Q-348, Q-351 → Q-353): sửa T003, T006, T008, T014 → T017, T026, T027, T031, T032, T040; thêm T016a, T016b. Mã task cũ giữ nguyên. Phụ thuộc mới: `NguonYKienApi`, `BanDongYApi.daiDienPhapLuat` (001), `SuCoNguoiThanView` (007 T061a).
 
 ## Phase 1: Setup
@@ -227,6 +229,8 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 - [ ] T070 [P] [US9] Tạo `mobile/lib/nguoi-cao-tuoi/{hom-nay,thuc-don,hoat-dong,luot-tham,do-gui,phan-hoi}/` theo DESIGN.md mục 15 (chữ lớn, một việc mỗi màn) và test `mobile/test/nguoi-cao-tuoi/hom_nay_test.dart`, `phan_hoi_test.dart`
 - [ ] T071 [P] [US9] Tạo `mobile/lib/nguoi-cao-tuoi/sos/`: nút ở màn đầu, chạm một lần thì đếm ngược 3 giây có nút Hủy (Q-372), hết giờ hoặc chạm lần hai thì gọi `POST /sos` bằng token thiết bị, màn trạng thái hỏi lại 5 giây, lưu `lienHe` gần nhất, thông báo lần đầu "không thay chuông gọi"; test `mobile/test/nguoi-cao-tuoi/nut_sos_test.dart` (Hủy trong lúc đếm không gửi; chạm lần hai gửi ngay; mất kết nối hiện số liên hệ, không xếp hàng gửi sau) (FR-085, K9)
 - [ ] T072 [P] [US9] Màn web phản hồi: Hành chính, Điều dưỡng ghi thay cho người cao tuổi; lệnh đổi loại, gắn ý kiến trong `frontend/src/tinh-nang/phan-hoi/` và test Vitest
+- [ ] T073 [P] [US5] *(Bổ sung 2026-10-22, FR-046 (3), Q-377 → Q-379)* Mục chứng từ trên cổng web `frontend/src/tinh-nang/cong-nguoi-than/` (phiếu báo phí PDF, Excel; bảng quyết toán; xuất sao kê Excel, PDF) gọi REST của 017 (`/cong/nguoi-cao-tuoi/{nctId}/chung-tu`, `/cong/chung-tu/{loai}/{id}/file`, `/cong/nguoi-cao-tuoi/{nctId}/sao-ke`), ẩn khi không có quyền xem chi phí; test Vitest `CongChungTu.test.jsx` (K12); app người thân tương ứng theo mục "Giai đoạn hiện tại" của CLAUDE.md. Phối hợp với 017 T036 (một màn, không làm hai lần)
+- [ ] T074 [P] [US9] *(Bổ sung 2026-10-22, FR-085, Q-373, Q-374)* Mở rộng `mobile/lib/nguoi-cao-tuoi/sos/`: hiện "đang tới", "đã tới"; nút chọn nơi thêm hành lang, phòng sinh hoạt chung; xin quyền vị trí khi đang dùng ứng dụng và gửi `POST /sos/{lanBamId}/vi-tri` theo `chuKyGuiViTriGiay`, dừng theo `guiViTri` hoặc 409; mở rộng `nut_sos_test.dart` (K10, K11) — theo mục "Giai đoạn hiện tại" của CLAUDE.md (phần mobile chờ mở)
 
 **Checkpoint**: K1 → K9 xanh.
 

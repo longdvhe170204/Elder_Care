@@ -33,7 +33,10 @@ class SchedulerScopeArchTest {
             "com.cambae.backend.m15.account.scheduling.WarnExpiringLicensesJob",
                     "cảnh báo giấy phép sắp hết hạn; chỉ ghi bảng kỹ thuật chống lặp (002 FR-039)",
             "com.cambae.backend.m15.account.scheduling.LockAfterResidencyEndJob",
-                    "tự chuyển trạng thái theo giờ: khóa tài khoản người thân sau CFG-M01-04 (002 FR-049)");
+                    "tự chuyển trạng thái theo giờ: khóa tài khoản người thân sau CFG-M01-04 (002 FR-049)",
+            "com.cambae.backend.m13.scheduling.M13FastJob",
+                    "nhắc, gửi lại, giải phóng giờ yên tĩnh, chuyển nhắc gọi (009 research B-10)",
+            "com.cambae.backend.m13.scheduling.M13DailyJob", "nhắc liên hệ trực tiếp còn chờ (009 research B-10)");
 
     private static final DescribedPredicate<JavaClass> LISTED = DescribedPredicate.describe(
             "có trong danh sách job được phép của FR-010a", c -> ALLOWED.containsKey(c.getName()));

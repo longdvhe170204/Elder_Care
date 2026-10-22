@@ -4,248 +4,249 @@ info:
   version: 1.0.0-design
   description: |
     Hợp đồng REST của feature 009 (module M13). Quy ước chung theo research R-03 của 000:
-    tiền tố /api/v1, lỗi RFC 9457 có maLoi, If-Match cho cấu hình kênh, Idempotency-Key cho mọi lệnh ghi.
-    Module nguồn không gọi REST để gửi thông báo: yêu cầu thông báo đi bằng sự kiện cài CoYeuCauThongBao (module-interfaces mục 1.1).
+    tiền tố /api/v1, lỗi RFC 9457 có errorCode, If-Match cho cấu hình kênh, Idempotency-Key cho mọi lệnh ghi.
+    Tên định danh tiếng Anh theo glossary.md của 000, mục 15 (dịch 2026-10-21; bản tên logic tiếng Việt ở lịch sử git).
+    Module nguồn không gọi REST để gửi thông báo: yêu cầu thông báo đi bằng sự kiện cài HasNotificationRequests (module-interfaces mục 1.1).
     Xác nhận thông báo Khẩn cấp, ghi kết quả gọi, ghi kết quả liên hệ bắt buộc trực tuyến (Q-01); hộp thông báo xem được ngoại tuyến ở app.
-    Nội dung trả về theo quyền hiện hành của người xem (FR-034, Q-99): phần không còn quyền bị bỏ, liệt kê trong phanBiAn.
-    Thông báo đẩy tới app qua FCM theo token đăng ký ở /thiet-bi-day; web nhận luồng SSE ở /thong-bao/luong.
-    Đính chính kết quả gọi, kết quả liên hệ đi qua khung của api-000 với loại M13.KET_QUA_GOI, M13.KET_QUA_LIEN_HE.
+    Nội dung trả về theo quyền hiện hành của người xem (FR-034, Q-99): phần không còn quyền bị bỏ, liệt kê trong hiddenParts.
+    Thông báo đẩy tới app qua FCM theo token đăng ký ở /push-devices; web nhận luồng SSE ở /notifications/stream.
+    Đính chính kết quả gọi, kết quả liên hệ đi qua khung của api-000 với loại M13.CALL_RESULT, M13.DIRECT_CONTACT_RESULT.
     Truy vết: mỗi operation có x-fr (FR của spec 009) và x-br khi có.
 servers:
   - url: /api/v1
 security:
-  - phien: []
+  - session: []
 tags:
-  - { name: hop-thu, description: 'UC-66; mục F' }
-  - { name: khan-cap, description: 'BR-M13-02; mục E' }
-  - { name: lien-he, description: 'FR-021' }
-  - { name: tra-cuu, description: 'FR-035 → FR-038' }
-  - { name: cau-hinh, description: 'FR-016, FR-039, FR-040' }
+  - { name: inbox, description: 'UC-66; mục F' }
+  - { name: urgent, description: 'BR-M13-02; mục E' }
+  - { name: direct-contact, description: 'FR-021' }
+  - { name: lookup, description: 'FR-035 → FR-038' }
+  - { name: configuration, description: 'FR-016, FR-039, FR-040' }
 
 paths:
-  /toi/thong-bao:
+  /me/notifications:
     get:
-      tags: [hop-thu]
+      tags: [inbox]
       summary: Hộp thông báo của tôi (Khẩn cấp chưa xác nhận lên đầu; lọc mức, chưa xem, loại sự kiện, người cao tuổi)
       x-fr: [FR-033, FR-034]
       parameters:
-        - { name: muc, in: query, schema: { $ref: '#/components/schemas/Muc' } }
-        - { name: chuaXem, in: query, schema: { type: boolean } }
-        - { name: loaiSuKien, in: query, schema: { type: string } }
-        - { name: nctId, in: query, schema: { type: integer, format: int64 } }
-        - { name: sau, in: query, description: 'Khóa phân trang (guiLuc, id)', schema: { type: string } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { soChuaXem: { type: integer }, soKhanCapChuaXacNhan: { type: integer }, muc: { type: array, items: { $ref: '#/components/schemas/ThongBao' } }, tiep: { type: string } } } } } } }
-  /toi/thong-bao/{id}:
+        - { name: level, in: query, schema: { $ref: '#/components/schemas/NotificationLevel' } }
+        - { name: unread, in: query, schema: { type: boolean } }
+        - { name: eventType, in: query, schema: { type: string } }
+        - { name: residentId, in: query, schema: { type: integer, format: int64 } }
+        - { name: cursor, in: query, description: 'Khóa phân trang (sentAt, id)', schema: { type: string } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { unreadCount: { type: integer }, unacknowledgedUrgentCount: { type: integer }, items: { type: array, items: { $ref: '#/components/schemas/Notification' } }, nextCursor: { type: string } } } } } } }
+  /me/notifications/{id}:
     get:
-      tags: [hop-thu]
+      tags: [inbox]
       summary: Mở thông báo (ghi thời điểm xem lần đầu; nội dung theo quyền hiện hành)
       x-fr: [FR-034, FR-044]
       x-br: [BR-M13-05, BR-M10-06]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ThongBao' } } } }, '404': { $ref: '#/components/responses/Loi' } }
-  /toi/thong-bao/{id}/an:
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Notification' } } } }, '404': { $ref: '#/components/responses/Problem' } }
+  /me/notifications/{id}/hide:
     post:
-      tags: [hop-thu]
+      tags: [inbox]
       summary: Ẩn thông báo đã xem khỏi danh sách của tôi (bản ghi vẫn còn)
       x-fr: [FR-036]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       responses: { '200': { description: OK } }
-  /thong-bao/luong:
+  /notifications/stream:
     get:
-      tags: [hop-thu]
+      tags: [inbox]
       summary: Luồng SSE thông báo mới cho web (nhân viên và cổng người thân)
       x-fr: [FR-016, FR-017]
       responses: { '200': { description: 'text/event-stream', content: { text/event-stream: { schema: { type: string } } } } }
-  /thiet-bi-day:
+  /push-devices:
     post:
-      tags: [hop-thu]
+      tags: [inbox]
       summary: Đăng ký hoặc cập nhật token FCM của thiết bị đang đăng nhập (app nhân viên, app người thân)
       x-fr: [FR-016]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ungDung, fcmToken], properties: { ungDung: { type: string, enum: [APP_NHAN_VIEN, APP_NGUOI_THAN, APP_NGUOI_CAO_TUOI] }, fcmToken: { type: string } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [app, fcmToken], properties: { app: { type: string, enum: [STAFF_APP, FAMILY_APP, RESIDENT_APP] }, fcmToken: { type: string } } } } } }
       responses: { '200': { description: OK } }
 
   # ---------------- Khẩn cấp ----------------
-  /thong-bao/{id}/xac-nhan:
+  /notifications/{id}/acknowledge:
     post:
-      tags: [khan-cap]
+      tags: [urgent]
       summary: Xác nhận đã nhận thông báo Khẩn cấp (trực tuyến); dừng lượt nhắc gọi khi mọi thông báo của lượt đã xác nhận
       description: 'Mở thông báo không phải xác nhận (FR-026). Thông báo đang "Không liên lạc được" ghi xác nhận muộn (Q-104). Không đổi trạng thái bản ghi nguồn (FR-026a).'
       x-fr: [FR-026, FR-026a, FR-030, FR-044]
       x-br: [BR-M13-02]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '200': { description: OK }, '404': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /thong-bao/{id}/xac-nhan-va-tiep-nhan:
+      responses: { '200': { description: OK }, '404': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /notifications/{id}/acknowledge-and-take-charge:
     post:
-      tags: [khan-cap]
+      tags: [urgent]
       summary: Xác nhận và tiếp nhận cảnh báo/sự cố nguồn trong một thao tác (hai bản ghi riêng)
-      description: 'Xác nhận ghi trước và luôn còn; tiếp nhận do 007 kiểm. Bị 007 từ chối thì 200 với tiepNhan.ketQua = TU_CHOI và lý do (ví dụ DA_CO_NGUOI_TIEP_NHAN kèm người, thời điểm).'
+      description: 'Xác nhận ghi trước và luôn còn; tiếp nhận do 007 kiểm. Bị 007 từ chối thì 200 với takeCharge.result = REJECTED và mã lỗi của 007 (ví dụ đã có người tiếp nhận, kèm người, thời điểm).'
       x-fr: [FR-026a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { xacNhan: { type: string, enum: [DA_XAC_NHAN] }, tiepNhan: { type: object, properties: { ketQua: { type: string, enum: [THANH_CONG, TU_CHOI] }, maLoi: { type: string }, chiTiet: { type: object } } } } } } } } }
-  /toi/luot-nhac-goi:
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { acknowledgement: { type: string, enum: [ACKNOWLEDGED] }, takeCharge: { type: object, properties: { result: { type: string, enum: [SUCCEEDED, REJECTED] }, errorCode: { type: string }, details: { type: object } } } } } } } } }
+  /me/call-reminders:
     get:
-      tags: [khan-cap]
+      tags: [urgent]
       summary: Lượt nhắc gọi tôi đang được nhắc hoặc có quyền ghi kết quả (Người phụ trách ca, Trưởng tầng, Quản lý viện)
       x-fr: [FR-027, FR-029]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LuotNhacGoi' } } } } } }
-  /luot-nhac-goi/{id}:
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CallReminder' } } } } } }
+  /call-reminders/{id}:
     get:
-      tags: [khan-cap]
+      tags: [urgent]
       summary: Chi tiết lượt nhắc gọi (số điện thoại hiện hành lúc mở, nội dung cần báo, thông báo gộp, lịch sử chuyển nhắc, kết quả)
       x-fr: [FR-027, FR-027a, FR-030a]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/LuotNhacGoi' } } } } }
-  /luot-nhac-goi/{id}/ket-qua:
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CallReminder' } } } } }
+  /call-reminders/{id}/results:
     post:
-      tags: [khan-cap]
+      tags: [urgent]
       summary: Ghi kết quả gọi (người có quyền gọi; trực tuyến); sau "Không liên lạc được" MAY ghi lần gọi bổ sung
       description: 'Người không có quyền gọi: 403. Đã liên lạc: mọi thông báo gộp Đã xác nhận qua cuộc gọi. Không liên lạc: nhắc người thân kế tiếp của chuỗi gọi hoặc báo Quản lý viện (FR-029a).'
       x-fr: [FR-029, FR-029a, FR-030, FR-031]
       x-br: [BR-M13-02]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaGoi' } } } }
-      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CallResult' } } } }
+      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
 
   # ---------------- Liên hệ trực tiếp ----------------
-  /lien-he-truc-tiep:
+  /direct-contacts:
     get:
-      tags: [lien-he]
+      tags: [direct-contact]
       summary: Danh sách "cần liên hệ trực tiếp" (Hành chính thực hiện; Quản lý viện xem)
       x-fr: [FR-021, FR-038]
-      parameters: [ { name: trangThai, in: query, schema: { type: string, enum: [CHO_LIEN_HE, DA_LIEN_HE, KHONG_LIEN_HE_DUOC] } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LienHeTrucTiep' } } } } } }
-  /lien-he-truc-tiep/{id}/ket-qua:
+      parameters: [ { name: status, in: query, schema: { type: string, enum: [PENDING, CONTACTED, UNREACHABLE] } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DirectContact' } } } } } }
+  /direct-contacts/{id}/results:
     post:
-      tags: [lien-he]
+      tags: [direct-contact]
       summary: Ghi kết quả liên hệ (Hành chính); Không liên hệ được bắt buộc lý do
       x-fr: [FR-021, FR-031]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ketQua, thoiDiem], properties: { ketQua: { type: string, enum: [DA_LIEN_HE, KHONG_LIEN_HE_DUOC] }, thoiDiem: { type: string, format: date-time }, lyDo: { type: string }, ghiChu: { type: string } } } } } }
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [result, occurredAt], properties: { result: { type: string, enum: [CONTACTED, UNREACHABLE] }, occurredAt: { type: string, format: date-time }, reason: { type: string }, note: { type: string } } } } } }
+      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
 
   # ---------------- Tra cứu ----------------
-  /lich-su-thong-bao:
+  /notification-history:
     get:
-      tags: [tra-cuu]
+      tags: [lookup]
       summary: Lịch sử thông báo (Quản lý viện toàn viện; Trưởng tầng tầng được giao)
       x-fr: [FR-037]
       x-br: [BR-M13-05]
       parameters:
-        - { name: loaiBanGhiNguon, in: query, schema: { type: string } }
-        - { name: idBanGhiNguon, in: query, schema: { type: string } }
-        - { name: nguoiNhanId, in: query, schema: { type: integer, format: int64 } }
-        - { name: tangKhuVucId, in: query, schema: { type: integer, format: int64 } }
-        - { name: tu, in: query, schema: { type: string, format: date-time } }
-        - { name: den, in: query, schema: { type: string, format: date-time } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DongLichSu' } } } } }, '403': { $ref: '#/components/responses/Loi' } }
-  /loi-gui:
+        - { name: sourceRecordType, in: query, schema: { type: string } }
+        - { name: sourceRecordId, in: query, schema: { type: string } }
+        - { name: recipientId, in: query, schema: { type: integer, format: int64 } }
+        - { name: floorAreaId, in: query, schema: { type: integer, format: int64 } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/NotificationHistoryEntry' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
+  /delivery-errors:
     get:
-      tags: [tra-cuu]
+      tags: [lookup]
       summary: Danh sách lỗi gửi (Quản lý viện)
       x-fr: [FR-038, FR-003, FR-011, FR-020]
-      parameters: [ { name: loai, in: query, schema: { type: string, enum: [BI_TU_CHOI, THIEU_MUC, THIEU_LOAI_THONG_TIN, KHONG_CO_NGUOI_NHAN, GUI_THAT_BAI, NOI_DUNG_KHONG_HOP_LE] } } ]
+      parameters: [ { name: type, in: query, schema: { type: string, enum: [REJECTED, MISSING_LEVEL, MISSING_INFORMATION_TYPE, NO_RECIPIENT, DELIVERY_FAILED, INVALID_CONTENT] } } ]
       responses: { '200': { description: OK } }
 
   # ---------------- Cấu hình ----------------
-  /kenh-thong-bao:
+  /notification-channels:
     get:
-      tags: [cau-hinh]
+      tags: [configuration]
       summary: Kênh thông báo
       x-fr: [FR-016, FR-039]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Kenh' } } } } } }
-  /kenh-thong-bao/{ma}:
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/NotificationChannel' } } } } } }
+  /notification-channels/{code}:
     put:
-      tags: [cau-hinh]
+      tags: [configuration]
       summary: Bật/tắt kênh, gắn kênh khác vào mức (Quản lý viện; lý do; nhật ký)
       x-fr: [FR-016, FR-040]
-      parameters: [ { name: ma, in: path, required: true, schema: { type: string } }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { allOf: [ { $ref: '#/components/schemas/Kenh' }, { type: object, required: [lyDo], properties: { lyDo: { type: string, minLength: 1 } } } ] } } } }
-      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Loi' } }
+      parameters: [ { name: code, in: path, required: true, schema: { type: string } }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { allOf: [ { $ref: '#/components/schemas/NotificationChannel' }, { type: object, required: [reason], properties: { reason: { type: string, minLength: 1 } } } ] } } } }
+      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Problem' } }
 
 components:
   securitySchemes:
-    phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
+    session: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
   parameters:
     Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
     IfMatch: { name: If-Match, in: header, required: true, schema: { type: string } }
     IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
   responses:
-    Loi:
+    Problem:
       description: Lỗi theo RFC 9457 (research R-03 của 000)
-      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
-    LoiChan:
-      description: 'KHONG_PHAI_KHAN_CAP, DA_XAC_NHAN, LUOT_DA_KET_THUC, KHONG_CO_QUYEN_GOI, TRANG_THAI_CUOI, BAT_BUOC_TRUC_TUYEN'
-      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Blocked:
+      description: 'NOT_URGENT, ALREADY_ACKNOWLEDGED, CALL_REMINDER_ENDED, NOT_ALLOWED_TO_CALL, FINAL_STATE, REQUIRES_ONLINE'
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
   schemas:
-    Muc: { type: string, enum: [NHE, TRUNG_BINH, KHAN_CAP] }
-    Loi:
+    NotificationLevel: { type: string, enum: [LOW, MEDIUM, URGENT] }
+    Problem:
       type: object
-      properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, maLoi: { type: string } }
-    ThongBao:
-      type: object
-      properties:
-        id: { type: integer, format: int64 }
-        muc: { $ref: '#/components/schemas/Muc' }
-        loaiSuKien: { type: string }
-        tieuDe: { type: string }
-        noiDung: { type: array, items: { type: object, properties: { loaiThongTin: { type: string, enum: [CHUNG, SUC_KHOE, CHI_PHI, THAM_NOM, HOP_DONG] }, noiDung: { type: string } } } }
-        phanBiAn: { type: array, items: { type: string } }
-        chiNhanDang: { type: boolean }
-        trangThai: { type: string, enum: [CHO_HET_GIO_YEN_TINH, KHONG_GUI, DA_GUI, GUI_THAT_BAI, DA_XEM, DA_XAC_NHAN, KHONG_LIEN_LAC_DUOC] }
-        guiLuc: { type: string, format: date-time }
-        xemLuc: { type: string, format: date-time }
-        xacNhanLuc: { type: string, format: date-time }
-        cachXacNhan: { type: string, enum: [TRONG_UNG_DUNG, QUA_CUOC_GOI, XAC_NHAN_MUON, XAC_NHAN_MUON_QUA_CUOC_GOI] }
-        banGhiNguon: { type: object, properties: { loai: { type: string }, id: { type: string }, moDuoc: { type: boolean } } }
-        coTheXacNhanVaTiepNhan: { type: boolean }
-    LuotNhacGoi:
+      properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, errorCode: { type: string } }
+    Notification:
       type: object
       properties:
         id: { type: integer, format: int64 }
-        chuoiGoiId: { type: integer, format: int64 }
-        nguoiCanGoi: { type: object, properties: { loai: { type: string, enum: [NHAN_VIEN, NGUOI_THAN] }, hoTen: { type: string }, quanHe: { type: string }, soDienThoai: { type: string, description: 'Số hiện hành lúc mở (FR-027)' } } }
-        nctId: { type: integer, format: int64 }
-        noiDungCanBao: { type: array, items: { type: object, properties: { thoiDiem: { type: string, format: date-time }, noiDung: { type: string } } } }
-        nguoiDuocNhacHienTai: { type: string }
-        hanLuc: { type: string, format: date-time }
-        trangThai: { type: string, enum: [CHO_KET_QUA, DA_CO_KET_QUA, DA_DUNG] }
-        lyDoDung: { type: string }
-        chuyenNhac: { type: array, items: { type: object } }
-        ketQua: { type: array, items: { $ref: '#/components/schemas/KetQuaGoi' } }
-        coQuyenGhiKetQua: { type: boolean }
-    KetQuaGoi:
-      type: object
-      required: [ketQua, goiLuc]
-      properties:
-        ketQua: { type: string, enum: [DA_LIEN_LAC, KHONG_LIEN_LAC] }
-        goiLuc: { type: string, format: date-time }
-        soDaGoi: { type: string }
-        lyDo: { type: string, enum: [KHONG_NGHE_MAY, SAI_SO, KHONG_CO_SO, KHAC] }
-        nguoiNgheMay: { type: string }
-        ghiChu: { type: string, description: 'Bắt buộc khi DA_LIEN_LAC (FR-030)' }
-        boSung: { type: boolean, readOnly: true }
-    LienHeTrucTiep:
-      type: object
-      properties: { id: { type: integer, format: int64 }, hoTen: { type: string }, quanHe: { type: string }, soDienThoai: { type: string }, noiDungRutGon: { type: string }, trangThai: { type: string, enum: [CHO_LIEN_HE, DA_LIEN_HE, KHONG_LIEN_HE_DUOC] }, taoLuc: { type: string, format: date-time } }
-    DongLichSu:
+        level: { $ref: '#/components/schemas/NotificationLevel' }
+        eventType: { type: string }
+        title: { type: string }
+        content: { type: array, items: { type: object, properties: { informationType: { type: string, enum: [GENERAL, HEALTH, COSTS, VISITS, CONTRACT] }, content: { type: string } } } }
+        hiddenParts: { type: array, items: { type: string } }
+        identityOnly: { type: boolean }
+        status: { type: string, enum: [HELD_FOR_QUIET_HOURS, NOT_SENT, SENT, DELIVERY_FAILED, VIEWED, ACKNOWLEDGED, UNREACHABLE] }
+        sentAt: { type: string, format: date-time }
+        viewedAt: { type: string, format: date-time }
+        acknowledgedAt: { type: string, format: date-time }
+        acknowledgementMethod: { type: string, enum: [IN_APP, BY_CALL, LATE, LATE_BY_CALL] }
+        sourceRecord: { type: object, properties: { type: { type: string }, id: { type: string }, canOpen: { type: boolean } } }
+        canAcknowledgeAndTakeCharge: { type: boolean }
+    CallReminder:
       type: object
       properties:
-        yeuCauId: { type: integer, format: int64 }
-        nguonKichHoat: { type: string }
-        banGhiNguon: { type: object }
-        muc: { $ref: '#/components/schemas/Muc' }
-        nguoiNhan: { type: string }
-        canCu: { type: array, items: { type: string } }
-        doiTuongThongTin: { type: [string, 'null'], enum: [VE_NGUOI_CAO_TUOI, VE_VIEC_NGUOI_THAN, null], description: 'FR-001a (bổ sung 2026-10-18)' }
-        maTruongHop: { type: [string, 'null'], enum: [KHAN_CAP_NGUOI_LIEN_HE_CHINH, DANH_SACH_TIEP_XUC, XAC_NHAN_LAI_NGUYEN_VONG, CHUYEN_VIEN, QUA_DOI, null], description: 'Mã Q-354 áp dụng cho người nhận này; chỉ khi người thân ngoài phạm vi bản đồng ý (FR-014a, bổ sung 2026-10-18)' }
-        tiepNhanLuc: { type: string, format: date-time }
-        guiLuc: { type: string, format: date-time }
-        kenh: { type: array, items: { type: object, properties: { kenh: { type: string }, ketQua: { type: string }, thoiDiem: { type: string, format: date-time } } } }
-        xemLuc: { type: string, format: date-time }
-        xacNhanLuc: { type: string, format: date-time }
-        luotNhacGoi: { type: array, items: { type: object } }
-        dau: { type: array, items: { type: string } }
-    Kenh:
+        id: { type: integer, format: int64 }
+        callChainId: { type: integer, format: int64 }
+        personToCall: { type: object, properties: { type: { type: string, enum: [STAFF, FAMILY_MEMBER] }, fullName: { type: string }, relationship: { type: string }, phoneNumber: { type: string, description: 'Số hiện hành lúc mở (FR-027)' } } }
+        residentId: { type: integer, format: int64 }
+        contentToReport: { type: array, items: { type: object, properties: { occurredAt: { type: string, format: date-time }, content: { type: string } } } }
+        currentlyReminded: { type: string }
+        dueAt: { type: string, format: date-time }
+        status: { type: string, enum: [AWAITING_RESULT, RESULT_RECORDED, STOPPED] }
+        stopReason: { type: string }
+        handoffs: { type: array, items: { type: object } }
+        results: { type: array, items: { $ref: '#/components/schemas/CallResult' } }
+        canRecordResult: { type: boolean }
+    CallResult:
       type: object
-      properties: { ma: { type: string }, ten: { type: string }, bat: { type: boolean }, mucGan: { type: array, items: { $ref: '#/components/schemas/Muc' } } }
+      required: [result, calledAt]
+      properties:
+        result: { type: string, enum: [REACHED, NOT_REACHED] }
+        calledAt: { type: string, format: date-time }
+        calledPhoneNumber: { type: string }
+        reason: { type: string, enum: [NO_ANSWER, WRONG_NUMBER, NO_NUMBER, OTHER] }
+        answeredBy: { type: string }
+        note: { type: string, description: 'Bắt buộc khi REACHED (FR-030)' }
+        supplementary: { type: boolean, readOnly: true }
+    DirectContact:
+      type: object
+      properties: { id: { type: integer, format: int64 }, fullName: { type: string }, relationship: { type: string }, phoneNumber: { type: string }, shortContent: { type: string }, status: { type: string, enum: [PENDING, CONTACTED, UNREACHABLE] }, createdAt: { type: string, format: date-time } }
+    NotificationHistoryEntry:
+      type: object
+      properties:
+        requestId: { type: integer, format: int64 }
+        triggerSource: { type: string }
+        sourceRecord: { type: object }
+        level: { $ref: '#/components/schemas/NotificationLevel' }
+        recipient: { type: string }
+        basis: { type: array, items: { type: string } }
+        informationSubject: { type: [string, 'null'], enum: [ABOUT_RESIDENT, ABOUT_FAMILY_MATTER, null], description: 'FR-001a (bổ sung 2026-10-18)' }
+        q354Case: { type: [string, 'null'], enum: [PRIMARY_CONTACT_EMERGENCY, CONTACT_LIST, WISH_RECONFIRMATION, TRANSFER, DEATH, null], description: 'Mã Q-354 áp dụng cho người nhận này; chỉ khi người thân ngoài phạm vi bản đồng ý (FR-014a, bổ sung 2026-10-18)' }
+        receivedAt: { type: string, format: date-time }
+        sentAt: { type: string, format: date-time }
+        channels: { type: array, items: { type: object, properties: { channel: { type: string }, result: { type: string }, occurredAt: { type: string, format: date-time } } } }
+        viewedAt: { type: string, format: date-time }
+        acknowledgedAt: { type: string, format: date-time }
+        callReminders: { type: array, items: { type: object } }
+        flags: { type: array, items: { type: string } }
+    NotificationChannel:
+      type: object
+      properties: { code: { type: string }, name: { type: string }, enabled: { type: boolean }, levels: { type: array, items: { $ref: '#/components/schemas/NotificationLevel' } } }

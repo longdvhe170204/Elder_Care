@@ -145,6 +145,11 @@ Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 
 
 - **Q-366**: mục ý kiến có nguồn "người cao tuổi" có thể được ghi từ phản hồi loại Mong muốn của feature 012 và giữ liên kết tới phản hồi đó (FR-023g). Không đổi quy tắc khác.
 
+### Cập nhật 2026-10-22 (đồng bộ Q-383, Q-384)
+
+- **Q-384**: phiếu nguyện vọng khi điều trị (mục C1a, FR-023j → FR-023m; BR-M01-16, DBR-39, UC-103); thêm User Story 7 kịch bản 9 → 11, SC-014, Key Entities; FR-023 cung cấp thêm phiếu cho feature 007.
+- **Q-383**: lệnh "Ghi nhận trở về" từ Điều trị tại bệnh viện đính kèm được giấy ra viện, đơn thuốc (FR-047c; BR-M05-32).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 01, mục 5; UC-01 → UC-08):
@@ -324,6 +329,9 @@ Khi tiếp nhận, bác sĩ hoặc điều dưỡng khảo sát và ghi nguyện
 6. **Given** hành chính H mở hồ sơ A, **When** xem mục nguyện vọng, **Then** H chỉ thấy "đã có nguyện vọng", không thấy lựa chọn hay ghi chú (FR-023e).
 7. **Given** Bác sĩ nhận định A tự quyết được, **When** D ghi phiếu, **Then** phiếu lưu nhận định gắn với phiếu này, cách đã hỗ trợ A hiểu thông tin và ngày xem lại; hồ sơ A không có dấu năng lực chung nào (FR-023a, FR-023h). **(Bổ sung 2026-10-18)**
 8. **Given** phiếu Hiệu lực của A có ngày xem lại nhận định là 20/11, **When** tới ngày 20/11, **Then** Bác sĩ đã nhận định và Điều dưỡng phụ trách nhận một nhắc mức Nhẹ; phiếu không đổi; không có nhắc lặp cho cùng phiếu (FR-023i, Q-360). **(Bổ sung 2026-10-18)**
+9. *(Bổ sung 2026-10-22, Q-384)* **Given** A Đang tiếp nhận, **When** D ghi phiếu nguyện vọng khi điều trị với bệnh viện ưu tiên "Bệnh viện X", cần hỏi trước "Có", người cần báo là con của A, người đi kèm "Gia đình", **Then** phiếu là phiên bản Hiệu lực đầu tiên; lệnh Chuyển viện của feature 007 hiện các thông tin này (FR-023j).
+10. *(Bổ sung 2026-10-22, Q-384)* **Given** A có phiếu Hiệu lực, **When** D ghi phiên bản mới đổi bệnh viện ưu tiên, **Then** phiên bản cũ Hết hiệu lực, vẫn tra được; hành chính H chỉ thấy "đã có phiếu" (FR-023k, FR-023m).
+11. *(Bổ sung 2026-10-22, Q-384)* **Given** C chưa có phiếu nguyện vọng khi điều trị, **When** hành chính Hoàn tất tiếp nhận, **Then** lệnh thành công kèm cảnh báo "chưa có nguyện vọng khi điều trị"; không có nhắc định kỳ (FR-023l).
 
 ---
 
@@ -397,7 +405,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 - **FR-020**: Khi một mục dị ứng mới được ghi nhận, hệ thống MUST kích hoạt kiểm tra lại toàn bộ đơn thuốc đang hiệu lực (BR-M07-06, feature 006) và chế độ ăn, thực đơn đang phân bổ (BR-M08-02, feature 011) của người cao tuổi đó; mỗi xung đột tạo cảnh báo (feature 007). Việc kiểm tra MUST so khớp theo mục danh mục dị nguyên; mục loại "khác" không tham gia kiểm tra tự động (FR-018a). Khi một mục dị ứng chuyển Đã loại trừ, hệ thống MUST báo feature 011 để tính lại suất đặc biệt, đối chiếu lại đồ ăn gia đình và báo feature 007 nguồn của cảnh báo xung đột tương ứng đã được xử lý (feature 011 FR-021). Mục dị ứng loại "khác" mới được ghi MUST được báo cho feature 011 để đưa người đó vào danh sách cần đối chiếu khi phục vụ (feature 011 FR-036a). *(Nguồn: BR-M01-07; đồng bộ spec 011)*
 - **FR-021**: Khi ghi một mục dị ứng cùng mục danh mục dị nguyên, hoặc một mục (bệnh nền, tiền sử, dị ứng "khác") có loại và nội dung trùng một mục đang Hiệu lực, hệ thống MUST cảnh báo trùng và yêu cầu xác nhận. *(Suy ra từ BR-M01-07: mỗi dị ứng là một mục riêng)*
 - **FR-022**: Người thân MUST chỉ xem được dị ứng, bệnh nền và thông tin sức khỏe khác khi có bản đồng ý Hiệu lực có người thân đó trong phạm vi; khi xem, chỉ thấy mục đang Hiệu lực. *(Nguồn: BR-M01-08, DBR-03, 4.4 chú thích ¹)*
-- **FR-023**: Các mục dị ứng Hiệu lực, bệnh nền Hiệu lực và phiên bản nguyện vọng cuối đời Hiệu lực (FR-023a) MUST sẵn có cho thẻ thông tin khẩn cấp (9.5) và cảnh báo nguy kịch (BR-M05-15) của feature 007.
+- **FR-023**: Các mục dị ứng Hiệu lực, bệnh nền Hiệu lực và phiên bản nguyện vọng cuối đời Hiệu lực (FR-023a) MUST sẵn có cho thẻ thông tin khẩn cấp (9.5) và cảnh báo nguy kịch (BR-M05-15) của feature 007. **(Bổ sung 2026-10-22, Q-384)** Phiên bản phiếu nguyện vọng khi điều trị Hiệu lực (FR-023j) MUST sẵn có cho thẻ thông tin khẩn cấp, lệnh Chuyển viện và phiếu tóm tắt chuyển viện của feature 007.
 
 #### C1. Nguyện vọng cuối đời *(bổ sung 2026-09-28)*
 
@@ -407,6 +415,13 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 - **FR-023d**: Chưa có phiếu Hiệu lực MUST NOT chặn "Hoàn tất tiếp nhận". Khi Hoàn tất tiếp nhận mà chưa có phiếu, hệ thống MUST hiển thị cảnh báo "chưa có nguyện vọng cuối đời" và từ đó nhắc Bác sĩ, Điều dưỡng phụ trách mỗi CFG-M01-06 (mặc định \[1 ngày\]) tới khi có phiếu, như với bản đồng ý (FR-012). *(Nguồn: 5.2, Q-217)*
 - **FR-023e**: Nội dung phiếu là thông tin sức khỏe: Bác sĩ, Điều dưỡng, Trưởng tầng, Nhân viên chăm sóc xem trong phạm vi; người thân xem khi có bản đồng ý Hiệu lực bao gồm mình (FR-022); Hành chính và Kế toán chỉ thấy "đã có / chưa có nguyện vọng", không thấy nội dung. *(Nguồn: 19.3, Phụ lục 27 dòng "Nguyện vọng cuối đời", chú thích ³⁰)*
 - **FR-023f**: Khi hồ sơ chuyển trạng thái cuối, phiên bản Hiệu lực giữ nguyên để tra cứu; việc nhắc ở FR-023d dừng. *(Suy ra từ BR-M01-05)*
+
+#### C1a. Nguyện vọng khi điều trị *(bổ sung 2026-10-22, Q-384)*
+
+- **FR-023j**: Bác sĩ hoặc Điều dưỡng MUST ghi được phiếu nguyện vọng khi điều trị cho người cao tuổi chưa ở trạng thái cuối, gồm: một hoặc hai bệnh viện ưu tiên (tên, địa chỉ); nơi đăng ký khám chữa bệnh bảo hiểm y tế ban đầu, số thẻ, hạn thẻ (không bắt buộc); cần hỏi gia đình trước khi chuyển viện không khẩn cấp (Có / Không); người cần báo (người thân có quan hệ Hiệu lực, feature 012); người đi kèm (Gia đình / Viện cử nhân viên / Tùy tình huống); ghi chú; người trả lời và nguồn ý kiến (FR-023g); bản ký (không bắt buộc). Khi ý kiến người cao tuổi tự quyết được khác ý kiến gia đình, phiếu ghi theo người cao tuổi, ý kiến gia đình là ghi chú có nguồn (BR-M01-14). *(Nguồn: 5.2, BR-M01-16, UC-103)*
+- **FR-023k**: Phiếu có phiên bản; mỗi người cao tuổi MUST có tối đa một phiên bản Hiệu lực (DBR-39); ghi phiên bản mới MUST chuyển phiên bản cũ sang Hết hiệu lực trong cùng lệnh; MUST NOT sửa, xóa phiên bản đã ghi. *(Nguồn: BR-M01-16, DBR-39)*
+- **FR-023l**: Chưa có phiếu Hiệu lực MUST NOT chặn "Hoàn tất tiếp nhận"; hệ thống MUST hiển thị cảnh báo "chưa có nguyện vọng khi điều trị" lúc Hoàn tất tiếp nhận và MUST NOT nhắc định kỳ. *(Nguồn: BR-M01-16)*
+- **FR-023m**: Nội dung phiếu là thông tin sức khỏe, quyền theo dòng "Dị ứng, bệnh nền" của Phụ lục 27 (Bác sĩ, Điều dưỡng ghi; Trưởng tầng, Nhân viên chăm sóc xem trong phạm vi; Quản lý viện xem; người thân xem khi có bản đồng ý); Hành chính chỉ thấy "đã có phiếu". *(Nguồn: BR-M01-16, 19.3)*
 
 #### C2. Nguồn của ý kiến và năng lực quyết định *(bổ sung 2026-10-18, Q-347, Q-348)*
 
@@ -454,6 +469,7 @@ Hệ thống không tạo bản ghi "yêu cầu đánh giá lại". "Cần đán
 - **FR-046**: Mỗi lần chuyển trạng thái MUST ghi lịch sử: trạng thái từ, trạng thái đến, lệnh, thời điểm, người thực hiện (hoặc Bộ lập lịch hệ thống), lý do, căn cứ (ví dụ sự cố, chuyến đi, yêu cầu ngoại lệ). Lý do MUST bắt buộc với mọi lệnh chuyển trạng thái do người dùng thực hiện; lệnh Tạo hồ sơ không có trạng thái "từ" nên không bắt lý do (Q-320). *(Nguồn: BR-M01-04, 3.2 LICH_SU_TRANG_THAI)*
 - **FR-047**: Khi chuyển trạng thái thành công, hệ thống MUST kích hoạt các tác động ở cột "Tác động" cho feature sở hữu, trong cùng một lần thực hiện với việc chuyển trạng thái: hoặc chuyển trạng thái và kích hoạt tác động cùng thành công, hoặc không có gì thay đổi. Với tác động có độ trễ theo tham số (khóa tài khoản người thân sau CFG-M01-04), phần thuộc "cùng một lần thực hiện" là việc lên lịch tác động đó; việc thực hiện khi tới hạn do Bộ lập lịch hệ thống làm (FR-049) (CHK022). *(Nguồn: 5.6; nguyên tắc "hoặc toàn bộ, hoặc không" của feature 000)*
 - **FR-047a**: "Cho tạm vắng" và "Ghi nhận trở về" MUST được hành chính hoặc trưởng tầng thực hiện trực tiếp, không qua yêu cầu phê duyệt. Quyền duyệt (D) của Quản lý viện ở dòng "Tạm vắng, trở về" của Permission Matrix MUST chỉ áp dụng cho quyết định giữ tiếp hay giải phóng giường khi thời gian vắng vượt ngưỡng giữ giường (BR-M02-07, feature 004). *(Nguồn: 5.6, 4.4; Clarification 2026-09-25)*
+- **FR-047c** *(bổ sung 2026-10-22, Q-383)*: Lệnh "Ghi nhận trở về" từ Điều trị tại bệnh viện MUST cho đính kèm ảnh hoặc bản scan giấy ra viện, đơn thuốc của bệnh viện, không bắt buộc; tệp đính kèm là căn cứ cho phiếu đối chiếu thuốc của feature 006 (BR-M07-16). *(Nguồn: BR-M05-32, 5.6)*
 - **FR-047b**: Lệnh "Ghi nhận qua đời" MUST do bác sĩ thực hiện khi người cao tuổi đang ở trạng thái Đang lưu trú (mất tại viện). Khi trạng thái hiện tại là Tạm vắng, Hoạt động bên ngoài hoặc Điều trị tại bệnh viện (mất ngoài viện), bác sĩ hoặc hành chính MAY thực hiện; nếu hành chính thực hiện, lệnh MUST kèm bản scan giấy tờ bằng chứng do cơ sở y tế hoặc cơ quan có thẩm quyền cấp (giấy báo tử, giấy chứng tử), thiếu bằng chứng thì bị từ chối. Giấy tờ này là xác nhận chuyên môn về tử vong theo tài liệu gốc (bổ sung câu, 2026-10-11, Q-342). *(Nguồn: 5.6 "có người xác nhận", 6.8, UC-18, 4.4 dòng "Kết thúc lưu trú, qua đời": BS T, HC T; Clarification 2026-09-25)*
 - **FR-048**: Khi hai lệnh được gửi gần như đồng thời trên cùng một người cao tuổi, chỉ lệnh đầu tiên MUST được áp dụng; lệnh sau MUST được kiểm tra lại trên trạng thái mới. *(Suy ra từ BR-M01-04, BR-M01-06; quy tắc "lệnh được ghi nhận trước thắng" của feature 000)*
 - **FR-049**: Hồ sơ ở trạng thái cuối (Kết thúc lưu trú, Qua đời, Hủy tiếp nhận) MUST chỉ được xem theo quyền; mọi lệnh và mọi thao tác ghi trên hồ sơ, bản đồng ý, mục sức khỏe, đánh giá của người đó MUST bị chặn, trừ hai ngoại lệ do người dùng thực hiện — lệnh "Rút lại đồng ý" (FR-014a) và đính chính theo FR-049a — và các thao tác của Bộ lập lịch hệ thống được quy định ở feature 000 (lưu giữ) và 5.6 (khóa tài khoản người thân). *(Nguồn: BR-M01-05, 5.5)*
@@ -508,6 +524,7 @@ Kết thúc lưu trú, Qua đời, Hủy tiếp nhận là trạng thái cuối;
 - **Bản đồng ý (BAN_DONG_Y)** – nhóm 2: người đồng ý, là người đại diện theo pháp luật hay không, bằng chứng quyết định của Tòa án (số, ngày, Tòa án, bản scan; sửa 2026-10-18, Q-348), phạm vi (người thân được xem sức khỏe, hình ảnh, thông báo không khẩn), thời điểm, bằng chứng, trạng thái, bản thay thế.
 - **Hồ sơ sức khỏe ban đầu** – nhóm 3 sau xác nhận: các thông tin ở FR-017, người ghi, người xác nhận.
 - **Phiếu nguyện vọng cuối đời (NGUYEN_VONG_CUOI_DOI)** – nhóm 2, có phiên bản: các trường ở FR-023a (gồm nhận định của Bác sĩ cho chính phiếu này, cách hỗ trợ, ngày xem lại; người ký và cách người đại diện của người bệnh được chọn, sửa 2026-10-18), trạng thái (Hiệu lực / Được thay thế), phiên bản thay thế, nguồn (tiếp nhận, yêu cầu của gia đình, xác nhận lại lúc nguy kịch).
+- **Phiếu nguyện vọng khi điều trị** *(bổ sung 2026-10-22, Q-384)* – nhóm 2, có phiên bản: các trường ở FR-023j, trạng thái (Hiệu lực / Hết hiệu lực), người ghi, thời điểm.
 - **Danh mục dị nguyên** – nhóm 1: tên, nhóm (thuốc/hoạt chất, thực phẩm, khác), liên kết tới hoạt chất (feature 006) hoặc thành phần món ăn (feature 011).
 - **Mục sức khỏe (MUC_SUC_KHOE)** – nhóm 2: loại, nội dung (với dị ứng: mục danh mục dị nguyên, hoặc văn bản kèm dấu "không kiểm tra tự động"), mức độ, nguồn, người ghi, ngày ghi, trạng thái, lý do và người loại trừ.
 - **Lần đánh giá (DANH_GIA)** – nhóm 3 sau xác nhận: loại, căn cứ, thời điểm, người lập, nhận xét đánh giá, lưu ý chăm sóc, mức chăm sóc, nhu cầu chăm sóc (nhiều giá trị, Q-291), loại hình lưu trú đề xuất, người xác nhận, thời điểm xác nhận, trạng thái (Nháp / Đã xác nhận / Đã hủy). *(Sửa 2026-10-06, Q-280, Q-281: bỏ thực thể Thang điểm, Kết quả thang điểm, Cờ nguy cơ.)*
@@ -531,6 +548,7 @@ Kết thúc lưu trú, Qua đời, Hủy tiếp nhận là trạng thái cuối;
 - **SC-011**: 0 người cao tuổi có hai phiên bản nguyện vọng Hiệu lực cùng lúc; 100% người Hoàn tất tiếp nhận mà chưa có phiếu được nhắc theo CFG-M01-06 tới khi có phiếu; 0 lần Hành chính, Kế toán thấy nội dung phiếu.
 - **SC-012** *(bổ sung, CHK030)*: Với mỗi vai trò ở Phụ lục 27 dòng "Hồ sơ người cao tuổi", "Dị ứng, bệnh nền" và "Đánh giá, mức chăm sóc", 100% ca kiểm thử cho kết quả đúng ma trận: 0 lần nhân viên bếp mở được hồ sơ; 0 lần nhân viên chăm sóc thấy nhận xét đánh giá (vẫn thấy lưu ý chăm sóc). *(Sửa 2026-10-06, Q-282, Q-283.)*
 - **SC-013** *(bổ sung, CHK031)*: Với đồng hồ giả lập, 100% trường hợp Tạm vắng quá mốc dự kiến cộng CFG-M01-01 có đúng một cảnh báo cho mỗi mốc (FR-050); 100% hồ sơ Đang lưu trú chưa có bản đồng ý Hiệu lực được nhắc theo CFG-M01-06 và việc nhắc dừng khi có bản đồng ý (FR-012).
+- **SC-014** *(bổ sung 2026-10-22, Q-384)*: 0 người cao tuổi có hai phiên bản phiếu nguyện vọng khi điều trị Hiệu lực; 100% lệnh Chuyển viện của người có phiếu Hiệu lực hiện đủ bệnh viện ưu tiên, người cần báo, người đi kèm.
 
 ## Assumptions
 
@@ -624,3 +642,5 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/busine
 4. **Plan, data-model, tasks chưa cập nhật** theo các FR sửa ở đây (ví dụ data-model trường `nguoi_ky_nguoi_than_id` "bắt buộc khi người đại diện ký"); cần /speckit-plan và /speckit-tasks. *(Đã xử lý 2026-10-18: plan, research, data-model, contracts, quickstart, tasks đã cập nhật.)*
 
 **(2026-10-18) Đồng bộ Q-357 → Q-364.** *(Đã xử lý 2026-10-18: Clarifications "Cập nhật 2026-10-18, lượt 2".)* Đã xử lý điểm 1 (thói quen sinh hoạt, Q-363) và điểm 2 (người đại diện theo pháp luật không phải người thân, Q-359) của lượt 2026-10-18; thêm FR-023i (Q-360). Còn Q-355 (24.1). *(Q-355 chốt 2026-10-19, xem điểm 3 ở trên.)*
+
+**(2026-10-22) Đồng bộ Q-383, Q-384.** *(Đã xử lý 2026-10-22: Clarifications "Cập nhật 2026-10-22", FR-023, mục C1a FR-023j → FR-023m, FR-047c, User Story 7 kịch bản 9 → 11, Key Entities, SC-014.)* Còn báo lại: plan, data-model, contracts (api-001), tasks chưa cập nhật; lưu số thẻ bảo hiểm y tế cần đối chiếu pháp lý (24.4, Q-384).

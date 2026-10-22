@@ -58,6 +58,10 @@ eldercare:
       url: ${DB_URL:jdbc:mysql://localhost:3306/elder_care}
       username: ${DB_RETENTION_USERNAME}
       password: ${DB_RETENTION_PASSWORD}
+  notification:
+    fcm:
+      # Tệp khóa dịch vụ Firebase (009 T001, research B-05); không ghi vào kho mã. Trống thì không đẩy FCM.
+      credentials-file: ${FIREBASE_CREDENTIALS:}
 
 ---
 spring:
@@ -93,6 +97,12 @@ eldercare:
       cron: "-"
     lock-after-residency-end:
       cron: "-"
+    # Job M13 (009 T010): test gọi M13FastJob.run(), M13DailyJob.catchUp()
+    m13-fast:
+      cron: "-"
+    m13-daily:
+      cron: "-"
+      on-startup: false
 
 ---
 spring:

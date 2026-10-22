@@ -21,12 +21,13 @@ Mọi bảng thuộc module M01 (`com.cambae.backend.m01`), trừ bảng `tep` t
 | `muc_suc_khoe` | 2, nội dung bất biến | Dị ứng, bệnh nền, tiền sử bệnh | FR-018 → FR-023 |
 | `di_nguyen`, `muc_do_di_ung`, `nguon_thong_tin` | 1 | Danh mục dùng cho mục sức khỏe | FR-018, FR-018a, BR-M01-11 |
 | `nguyen_vong_cuoi_doi`, `nguyen_vong_y_kien` | 2, có phiên bản; bảng con chỉ thêm | Phiếu nguyện vọng cuối đời; ý kiến khác có nguồn | FR-023a → FR-023f, FR-023g |
+| `nguyen_vong_dieu_tri`, `nguyen_vong_dieu_tri_nguoi_bao`, `nguyen_vong_dieu_tri_y_kien` | 2, có phiên bản; bảng con chỉ thêm | Phiếu nguyện vọng khi điều trị (bổ sung 2026-10-22) | FR-023j → FR-023m, DBR-39 |
 | `danh_gia`, `danh_gia_nhu_cau` | 3 có bản nháp | Lần đánh giá và nhu cầu chăm sóc được chọn | FR-024 → FR-038 |
 | `nhu_cau_cham_soc` | 1 | Danh mục nhu cầu chăm sóc (Q-291) | FR-025, FR-029 |
 | `lan_bao_danh_gia_lai` | Kỹ thuật | Lần hệ thống báo bác sĩ cần đánh giá lại | FR-039 → FR-043 |
 | `nhac_chu_ky` | Kỹ thuật | Lần nhắc cuối của các nhắc theo chu kỳ; nhắc ngày xem lại nhận định | FR-012, FR-023d, FR-023i, FR-036 |
 | `canh_bao_tro_lai` | Kỹ thuật | Chống cảnh báo lặp khi tạm vắng quá hạn | FR-050 |
-| `tep` (`common`) | Kỹ thuật | Tệp đính kèm | FR-010, FR-014, FR-023a, FR-047b |
+| `tep` (`common`) | Kỹ thuật | Tệp đính kèm | FR-010, FR-014, FR-023a, FR-023j, FR-047b, FR-047c |
 
 "Cố định" là nạp từ migration, không có API tạo, sửa, xóa. "Kỹ thuật" là dữ liệu hạ tầng hoặc dẫn xuất, không thuộc ba nhóm của mục 1.5 (plan, Complexity Tracking).
 
@@ -112,6 +113,8 @@ Chuyển không có trong bảng trả 409 `CHUYEN_KHONG_HOP_LE`. Điều kiện
 | `ly_do` | `VARCHAR(2000) NULL` | `CHECK (ly_do IS NOT NULL OR do_he_thong OR lenh = 'TAO_HO_SO')` (FR-046) |
 | `can_cu_loai`, `can_cu_id` | `NULL` | Sự cố, chuyến đi, chỉ định, bằng chứng |
 | `mien_dieu_kien` | `JSON NULL` | Yêu cầu ngoại lệ đã duyệt và các điều kiện được miễn (US4 #10) |
+
+*(Bổ sung 2026-10-22, FR-047c)* Giấy ra viện, đơn thuốc (lệnh `GHI_NHAN_TRO_VE` từ `DIEU_TRI_BENH_VIEN`) và giấy chuyển viện (lệnh `CHUYEN_VIEN` của 007) không thêm cột: tệp gắn vào dòng lịch sử qua `tep.chu_so_huu_loai = M01.GIAY_TO_BENH_VIEN`, `chu_so_huu_id = lich_su_trang_thai_nct.id` (research H-18).
 
 Trigger `trg_lich_su_trang_thai_nct_khong_sua` và `trg_lich_su_trang_thai_nct_khong_xoa` theo mẫu của 000. Không có cột nháp; tài khoản `eldercare_app` không có quyền `UPDATE`. Test tích hợp kiểm `nguoi_cao_tuoi.trang_thai` luôn bằng `den_trang_thai` của dòng lịch sử mới nhất.
 
@@ -289,6 +292,44 @@ Trigger chỉ cho `UPDATE` hai cột `trang_thai` và `thay_the_boi_id`, theo ch
 
 ---
 
+## 6b. Nguyện vọng khi điều trị (mục C1a) *(bổ sung 2026-10-22; FR-023j → FR-023m, BR-M01-16, DBR-39; research H-18)*
+
+### `nguyen_vong_dieu_tri` – nhóm 2, có phiên bản
+
+| Cột | Kiểu | Ràng buộc | Nguồn |
+| --- | --- | --- | --- |
+| `id`, `nguoi_cao_tuoi_id` | | | |
+| `bv1_ten`, `bv1_dia_chi` | `VARCHAR(255)`, `VARCHAR(500)` | `NOT NULL`, không rỗng | FR-023j |
+| `bv2_ten`, `bv2_dia_chi` | Như trên, `NULL` | `CHECK ((bv2_ten IS NULL) = (bv2_dia_chi IS NULL))` | FR-023j |
+| `bhyt_noi_dang_ky`, `bhyt_so_the`, `bhyt_han_the` | `VARCHAR(255) NULL`, `VARCHAR(20) NULL`, `DATE NULL` | Không bắt buộc; pháp lý chờ 24.4 (plan, điểm báo lại 13) | FR-023j |
+| `hoi_gia_dinh_truoc` | `BOOLEAN` | `NOT NULL` | FR-023j |
+| `nguoi_di_kem` | `ENUM(GIA_DINH,VIEN_CU_NHAN_VIEN,TUY_TINH_HUONG)` | `NOT NULL` | FR-023j |
+| `ghi_chu` | `TEXT NULL` | Ý kiến gia đình khác không ghi ở đây mà ở `nguyen_vong_dieu_tri_y_kien` | FR-023j |
+| `nguon_loai`, `nguon_nguoi_than_id` | Mẫu cột nguồn ý kiến (mục 6a) | Người trả lời | FR-023j, FR-023g |
+| `ban_ky_tep_id` | `BIGINT NULL` | Không bắt buộc | FR-023j |
+| `nguoi_thuc_hien_id`, `thoi_diem` | | Người ghi (AC-03, AC-04) | FR-023j |
+| `trang_thai` | `ENUM(HIEU_LUC,HET_HIEU_LUC)` | | FR-023k, DBR-39 |
+| `thay_the_boi_id` | `BIGINT NULL` | | FR-023k |
+| `dang_hieu_luc` | Cột sinh `IF(trang_thai=HIEU_LUC, nguoi_cao_tuoi_id, NULL)` | `UNIQUE` | DBR-39 |
+
+Trigger chỉ cho `UPDATE` hai cột `trang_thai` và `thay_the_boi_id`, theo chiều `HIEU_LUC → HET_HIEU_LUC`. Không xóa.
+
+### `nguyen_vong_dieu_tri_nguoi_bao` – chỉ thêm
+
+| Cột | Kiểu | Ràng buộc | Nguồn |
+| --- | --- | --- | --- |
+| `nguyen_vong_dieu_tri_id`, `nguoi_than_id` | `BIGINT` | Khóa chính ghép; người thân có quan hệ Hiệu lực lúc ghi (`QuanHeNguoiThanApi.thuocNguoiCaoTuoi`); 0..n dòng (chủ dự án chọn 2026-10-22) | FR-023j |
+
+### `nguyen_vong_dieu_tri_y_kien` – chỉ thêm
+
+Như `nguyen_vong_y_kien` (mục 6), khóa ngoại tới `nguyen_vong_dieu_tri.id`: `nguon_loai`, `nguon_nguoi_than_id` (mẫu mục 6a), `noi_dung TEXT NOT NULL`, `nguoi_ghi_id`, `thoi_diem`; không cấp `UPDATE`, `DELETE` (BR-M01-14).
+
+| Từ | Lệnh | Đến | Endpoint | Kiểm tra | Nhật ký |
+| --- | --- | --- | --- | --- | --- |
+| —, `HIEU_LUC` | Ghi phiên bản mới | `HIEU_LUC`; bản trước `HET_HIEU_LUC` | `POST /nguoi-cao-tuoi/{id}/nguyen-vong-dieu-tri` | `(DI_UNG_BENH_NEN, TAO)` (AC-03, AC-04) trong phạm vi; hồ sơ chưa ở trạng thái cuối (`HoSoMoGuard`); người cần báo và người trả lời `NGUOI_THAN` có quan hệ Hiệu lực; ý kiến khác có nguồn hợp lệ; `hoiGiaDinhTruoc` mà không có người cần báo thì cảnh báo `CHUA_CO_NGUOI_CAN_BAO` | `NVDT_GHI` |
+
+---
+
 ## 6a. Nguồn của ý kiến và không có dấu năng lực *(bổ sung 2026-10-18; FR-023g, FR-023h; research H-16)*
 
 **Mẫu cột nguồn ý kiến** (001 định nghĩa; 004, 005, 012, 014 dùng cho bảng của mình):
@@ -400,6 +441,7 @@ Khóa chính `(loai, nguoi_cao_tuoi_id, moc_id)`. Dòng được thêm khi đi�
 | Dị ứng có mức độ | `muc_suc_khoe` | `CHECK` |
 | Hồ sơ sức khỏe ban đầu không sửa sau xác nhận | `ho_so_suc_khoe_ban_dau` | `trg_…_khong_sua` |
 | Tối đa một phiên bản nguyện vọng Hiệu lực | `nguyen_vong_cuoi_doi` | Cột sinh `dang_hieu_luc` có `UNIQUE`; trigger chỉ cho chuyển sang Được thay thế |
+| Tối đa một phiên bản nguyện vọng khi điều trị Hiệu lực (DBR-39) | `nguyen_vong_dieu_tri` | Cột sinh `dang_hieu_luc` có `UNIQUE`; trigger chỉ cho chuyển sang Hết hiệu lực; bảng con không có quyền `UPDATE`, `DELETE` |
 | Người ký thay bản đồng ý có quyết định của Tòa án | `ban_dong_y` | `CHECK` bốn cột `qd_toa_*` theo `nguoi_dong_y_loai` |
 | Người ký phiếu nguyện vọng khớp nhận định của phiếu | `nguyen_vong_cuoi_doi` | `CHECK` `tu_quyet_duoc`, `nguoi_ky_loai`, `cach_chon_dai_dien`, `qd_toa_*` |
 | Ý kiến có nguồn, không sửa | `nguyen_vong_y_kien` | `CHECK` cột nguồn; không có quyền `UPDATE`, `DELETE` |
@@ -419,7 +461,7 @@ Mọi lệnh ghi `nhat_ky` của 000 trong cùng transaction (000 FR-047). `nguo
 - Hồ sơ: `NCT_TAO`, `NCT_XAC_NHAN_KHONG_TRUNG`, `NCT_CAP_NHAT`, `NCT_CHUYEN`, `MUC_CS_DOI`.
 - Bản đồng ý: `BDY_GHI_NHAN`, `BDY_THAY_THE`, `BDY_RUT_LAI`.
 - Sức khỏe: `HSSK_LAP`, `HSSK_SUA_NHAP`, `HSSK_XAC_NHAN`, `MSK_GHI_NHAN`, `MSK_XAC_NHAN_TRUNG`, `MSK_LOAI_TRU`, `MSK_DA_KIEM_TRA`.
-- Nguyện vọng: `NV_GHI` (chi tiết gồm các ý kiến khác và nguồn).
+- Nguyện vọng: `NV_GHI` (chi tiết gồm các ý kiến khác và nguồn); `NVDT_GHI` (phiếu nguyện vọng khi điều trị, bổ sung 2026-10-22).
 - Đánh giá: `DG_TAO`, `DG_SUA_NHAP`, `DG_XAC_NHAN`, `DG_HUY_NHAP`.
 - Bộ lập lịch: `DGL_BAO`, `DGL_CANH_BAO_QUA_HAN`, `NHAC_THIEU_DONG_Y`, `NHAC_THIEU_NGUYEN_VONG`, `NHAC_LAP_YEU_CAU_DOI_MUC`, `CANH_BAO_TAM_VANG_QUA_HAN`.
 - Danh mục: `DM_TAO`, `DM_SUA`, `DM_NGUNG`, `DM_KICH_HOAT_LAI`.
@@ -431,6 +473,7 @@ Mọi lệnh ghi `nhat_ky` của 000 trong cùng transaction (000 FR-047). `nguo
 | `M01.NGUOI_CAO_TUOI` | `soGiayTo`, `anh` → `NHAN_DANG`; `diaChi*`, `lienHe` → `LIEN_HE`; `mucChamSocHienHanh` → `MUC_CHAM_SOC`; còn lại → `CONG_KHAI_NOI_BO` |
 | `M01.MUC_SUC_KHOE`, `M01.HO_SO_SUC_KHOE_BAN_DAU`, `M01.DANH_GIA` | Mọi trường → `SUC_KHOE`; riêng `mucChamSoc` của đánh giá → `MUC_CHAM_SOC` |
 | `M01.NGUYEN_VONG` | Mọi trường → `NGUYEN_VONG` |
+| `M01.NGUYEN_VONG_DIEU_TRI` *(bổ sung 2026-10-22)* | Mọi trường → `SUC_KHOE` (FR-023m); cờ `coNguyenVongDieuTri` trên `M01.NGUOI_CAO_TUOI` → `CONG_KHAI_NOI_BO` nhưng chỉ đưa vào DTO cho người có `(DI_UNG_BENH_NEN, XEM)` hoặc Hành chính; Kế toán không có (research H-18; chủ dự án chọn 2026-10-22) |
 | `M01.BAN_DONG_Y` | `qdToaSo`, `qdToaNgay`, `qdToaToaAn`, `qdToaTepId` (quyết định của Tòa án về năng lực hành vi, sửa 2026-10-18) → `NHAN_DANG`, người thân không thấy; còn lại → `CONG_KHAI_NOI_BO` |
 
 Nhờ bảng này, Hành chính xem lịch sử hồ sơ thấy "đã thay đổi" ở trường sức khỏe mà không thấy giá trị (19.3, BR-M15-11).
@@ -441,7 +484,7 @@ Nhờ bảng này, Hành chính xem lịch sử hồ sơ thấy "đã thay đổ
 
 `LuuTruProvider` do M01 đăng ký. Mọi loại có `loaiHan = THEO_HO_SO` (CFG-M15-03, mốc là thời điểm trạng thái cuối):
 - `M01.NGUOI_CAO_TUOI`: gốc của chuỗi; bị tham chiếu bởi mọi bảng khác, kể cả của module khác qua `thamChieuToi`;
-- `lich_su_trang_thai_nct`, `lich_su_muc_cham_soc`, `ban_dong_y`, `ho_so_suc_khoe_ban_dau`, `muc_suc_khoe`, `nguyen_vong_cuoi_doi`, `nguyen_vong_y_kien`, `danh_gia`;
+- `lich_su_trang_thai_nct`, `lich_su_muc_cham_soc`, `ban_dong_y`, `ho_so_suc_khoe_ban_dau`, `muc_suc_khoe`, `nguyen_vong_cuoi_doi`, `nguyen_vong_y_kien`, `nguyen_vong_dieu_tri` và hai bảng con, `danh_gia`;
 - `lan_bao_danh_gia_lai`, `nhac_chu_ky`;
 - `tep` gắn với các bản ghi trên.
 
@@ -461,6 +504,7 @@ Hồ sơ có hồ sơ sau liên kết tới (FR-004) không bị loại bỏ tr�
 | DBR-23 | Nhật ký trong transaction (000) | `NhatKyDayDuM01IT` (proxy `DataSource` của 000) |
 | DBR-25 | `Clock` của 000; không có thời điểm từ client cho lệnh của 001 | ArchUnit của 000 |
 | DBR-34 | `dang_hieu_luc UNIQUE`; trigger | `NguyenVongPhienBanIT` |
+| DBR-39 | `nguyen_vong_dieu_tri.dang_hieu_luc UNIQUE`; trigger | `NguyenVongDieuTriPhienBanIT` |
 | BR-M01-01 | Job `CanhBaoQuaHanTroLai`; `canh_bao_tro_lai` | `BR_M01_01_TamVangQuaHanIT` |
 | BR-M01-02 | `lan_bao_danh_gia_lai`; hai job; listener sự cố | `BR_M01_02_BaoDanhGiaLaiIT` |
 | BR-M01-03 | Tác động xác nhận (H-10); `YeuCauDoiMucApi.thayTheBoiDanhGia`; job nhắc | `BR_M01_03_DoiMucIT` |
@@ -476,6 +520,8 @@ Hồ sơ có hồ sơ sau liên kết tới (FR-004) không bị loại bỏ tr�
 | BR-M01-13 | `nhap_dang_mo UNIQUE`; lệnh Hủy nháp | `BR_M01_13_MotBanNhapIT` |
 | BR-M01-14 (phần 001) | Mẫu cột nguồn ý kiến; `NguonYKienApi`; `nguyen_vong_y_kien` | `BR_M01_14_NguonYKienIT` |
 | BR-M01-15 (phần 001) | FR-011: `CHECK` quyết định của Tòa án; FR-023c: `CHECK` người ký; FR-023h: test kiến trúc | `FR_011_DaiDienPhapLuatIT`, `NguyenVongNguoiKyIT`, `FR_023h_KhongDauNangLucArchTest` |
+| BR-M01-16 | Mục 6b; cảnh báo `THIEU_NGUYEN_VONG_DIEU_TRI` của `ThamGiaM01`; `NguyenVongApi.dieuTriHieuLuc` | `NguyenVongDieuTriPhienBanIT`, `NguyenVongDieuTriGioiHanXemIT`, `HoanTatTiepNhanCanhBaoDieuTriIT` |
+| FR-047c (BR-M05-32) | `tepDinhKemIds` của lệnh trạng thái; `M01.GIAY_TO_BENH_VIEN` | `GiayToBenhVienIT` |
 | FR-045, FR-047 | Gộp điều kiện; tác động trong transaction (H-02) | `FR_045_LietKeDieuKienIT`, `FR_047_RollbackTacDongIT` |
 | FR-048 | `SELECT … FOR UPDATE` | `FR_048_LenhDongThoiIT` |
 | FR-053 | `lich_su_muc_cham_soc` | `FR_053_MucTaiNgayIT` |

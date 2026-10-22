@@ -22,7 +22,7 @@ tags:
   - name: health
     description: UC-04; mục C
   - name: end-of-life-wishes
-    description: UC-82; mục C1
+    description: UC-82; mục C1; UC-103, mục C1a (bổ sung 2026-10-22)
   - name: assessments
     description: UC-05 → UC-07; mục D, E
   - name: catalogs
@@ -189,8 +189,9 @@ paths:
     post:
       tags: [status]
       summary: Ghi nhận trở về (từ Tạm vắng hoặc Điều trị tại bệnh viện)
-      x-fr: [FR-040, FR-041, FR-044, FR-047a]
-      x-br: [BR-M01-02, BR-M07-09]
+      x-fr: [FR-040, FR-041, FR-044, FR-047a, FR-047c]
+      x-br: [BR-M01-02, BR-M07-09, BR-M05-32]
+      description: Từ DIEU_TRI_BENH_VIEN nhận attachmentFileIds (giấy ra viện, đơn thuốc; không bắt buộc, FR-047c).
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/StatusCommandBody' }
       responses:
@@ -452,6 +453,63 @@ paths:
         '422': { description: 'INVALID_OPINION_SOURCE, COURT_DECISION_REQUIRED, thiếu selfDeterminationAssessment', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
         '409': { description: 'INVALID_SIGNER, PROFILE_CLOSED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
 
+  /residents/{id}/treatment-wishes:
+    get:
+      tags: [end-of-life-wishes]
+      summary: Phiếu nguyện vọng khi điều trị — phiên bản Hiệu lực và lịch sử (bổ sung 2026-10-22)
+      description: Nội dung nhóm HEALTH; Hành chính, Kế toán bị chặn (dùng cờ hasTreatmentWish của Profile); người thân theo chú thích ¹ (FR-023m).
+      x-fr: [FR-023k, FR-023m]
+      x-br: [BR-M01-16]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TreatmentWishSummary' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+    post:
+      tags: [end-of-life-wishes]
+      summary: Ghi phiên bản mới (Bác sĩ, Điều dưỡng); phiên bản cũ chuyển Hết hiệu lực (bổ sung 2026-10-22)
+      x-fr: [FR-023j, FR-023k, FR-023g]
+      x-br: [BR-M01-16, BR-M01-14]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [preferredHospitals, askFamilyFirst, accompaniedBy, respondent]
+              properties:
+                preferredHospitals:
+                  type: array
+                  minItems: 1
+                  maxItems: 2
+                  items: { $ref: '#/components/schemas/PreferredHospital' }
+                healthInsurance: { $ref: '#/components/schemas/HealthInsurance' }
+                askFamilyFirst: { type: boolean, description: Cần hỏi gia đình trước khi chuyển viện không khẩn cấp }
+                notifyFamilyMemberIds:
+                  type: array
+                  description: Người thân có quan hệ Hiệu lực; 0..n (chủ dự án chọn 2026-10-22)
+                  items: { type: integer, format: int64 }
+                accompaniedBy: { type: string, enum: [FAMILY, FACILITY_STAFF, CASE_BY_CASE] }
+                note: { type: string }
+                respondent: { $ref: '#/components/schemas/OpinionSource' }
+                otherOpinions:
+                  type: array
+                  description: Ý kiến gia đình khác ý kiến người cao tuổi, mỗi ý kiến một mục có nguồn (BR-M01-14, FR-023g)
+                  items:
+                    type: object
+                    required: [source, content]
+                    properties:
+                      source: { $ref: '#/components/schemas/OpinionSource' }
+                      content: { type: string }
+                signedCopyFileId: { type: integer, format: int64, description: Không bắt buộc }
+      responses:
+        '201':
+          description: OK; warnings có NO_FAMILY_MEMBER_TO_NOTIFY khi askFamilyFirst = true mà notifyFamilyMemberIds rỗng
+          content: { application/json: { schema: { $ref: '#/components/schemas/TreatmentWishResult' } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { description: 'INVALID_OPINION_SOURCE, thiếu bệnh viện ưu tiên', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '409': { description: 'INVALID_FAMILY_MEMBER, PROFILE_CLOSED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+
   /residents/{id}/assessments:
     get:
       tags: [assessments]
@@ -656,6 +714,14 @@ components:
             required: [reason]
             properties:
               reason: { $ref: '#/components/schemas/Reason' }
+              attachmentFileIds:
+                type: array
+                maxItems: 10
+                items: { type: integer, format: int64 }
+                description: |
+                  (Bổ sung 2026-10-22, FR-047c, BR-M05-32) Ảnh hoặc bản scan giấy tờ của bệnh viện, không bắt buộc.
+                  Chỉ nhận ở RECORD_RETURN từ HOSPITALIZED (giấy ra viện, đơn thuốc) và TRANSFER_OUT (giấy chuyển viện);
+                  lệnh khác có trường này → 422 ATTACHMENTS_NOT_ACCEPTED. Tệp gắn vào dòng lịch sử trạng thái (research H-18).
               details:
                 type: object
                 description: |
@@ -714,7 +780,7 @@ components:
     Warning:
       type: object
       properties:
-        code: { type: string, enum: [MISSING_CONSENT, MISSING_END_OF_LIFE_WISH, CITIZEN_ID_MATCHES_DECEASED_PROFILE, ALLERGY_NOT_AUTO_CHECKED] }
+        code: { type: string, enum: [MISSING_CONSENT, MISSING_END_OF_LIFE_WISH, CITIZEN_ID_MATCHES_DECEASED_PROFILE, ALLERGY_NOT_AUTO_CHECKED, MISSING_TREATMENT_WISH, NO_FAMILY_MEMBER_TO_NOTIFY] }
         description: { type: string }
     PersonalInfo:
       type: object
@@ -745,6 +811,7 @@ components:
         activeHealthItems: { type: array, items: { $ref: '#/components/schemas/HealthItem' }, description: 'Nhóm HEALTH' }
         hasActiveConsent: { type: boolean }
         hasEndOfLifeWish: { type: boolean }
+        hasTreatmentWish: { type: boolean, description: 'Bổ sung 2026-10-22 (FR-023m): Hành chính chỉ thấy cờ này, không thấy nội dung phiếu; Kế toán không có trường này (hiddenFields)' }
         previousProfileId: { type: [integer, 'null'], format: int64 }
         allowedCommands: { type: array, items: { type: string }, description: 'Chỉ để client ẩn hiện nút (002 FR-042)' }
         hiddenFields: { type: array, items: { type: string } }
@@ -874,6 +941,63 @@ components:
         signedAt: { type: string, format: date-time }
         source: { type: string }
         status: { type: string, enum: [ACTIVE, SUPERSEDED] }
+    PreferredHospital:
+      type: object
+      required: [name, address]
+      properties:
+        name: { type: string, minLength: 1 }
+        address: { type: string, minLength: 1 }
+    HealthInsurance:
+      type: object
+      description: Không bắt buộc (FR-023j); căn cứ xử lý dữ liệu cá nhân chờ đối chiếu 24.4 (Q-384)
+      properties:
+        initialRegistrationPlace: { type: string }
+        cardNumber: { type: string }
+        cardExpiry: { type: string, format: date }
+    TreatmentWish:
+      type: object
+      description: Phiếu nguyện vọng khi điều trị (bổ sung 2026-10-22; FR-023j, BR-M01-16)
+      properties:
+        id: { type: integer, format: int64 }
+        preferredHospitals: { type: array, items: { $ref: '#/components/schemas/PreferredHospital' } }
+        healthInsurance: { $ref: '#/components/schemas/HealthInsurance' }
+        askFamilyFirst: { type: boolean }
+        notifyFamilyMembers:
+          type: array
+          items:
+            type: object
+            properties:
+              familyMemberId: { type: integer, format: int64 }
+              fullName: { type: string }
+              relationship: { type: string }
+              phoneNumber: { type: string }
+        accompaniedBy: { type: string, enum: [FAMILY, FACILITY_STAFF, CASE_BY_CASE] }
+        note: { type: string }
+        respondent: { $ref: '#/components/schemas/OpinionSource' }
+        otherOpinions:
+          type: array
+          items:
+            type: object
+            properties:
+              source: { $ref: '#/components/schemas/OpinionSource' }
+              content: { type: string }
+              recordedBy: { type: string }
+              at: { type: string, format: date-time }
+        signedCopyFileId: { type: [integer, 'null'], format: int64 }
+        recordedBy: { type: string }
+        at: { type: string, format: date-time }
+        status: { type: string, enum: [ACTIVE, EXPIRED] }
+    TreatmentWishSummary:
+      type: object
+      properties:
+        active: { $ref: '#/components/schemas/TreatmentWish' }
+        history: { type: array, items: { $ref: '#/components/schemas/TreatmentWish' } }
+        hiddenFields: { type: array, items: { type: string } }
+    TreatmentWishResult:
+      type: object
+      properties:
+        wish: { $ref: '#/components/schemas/TreatmentWish' }
+        warnings: { type: array, items: { $ref: '#/components/schemas/Warning' } }
     OpinionSource:
       type: object
       description: |

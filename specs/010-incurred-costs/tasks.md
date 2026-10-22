@@ -12,6 +12,8 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 **Giai đoạn**: Theo mục "Giai đoạn hiện tại" của CLAUDE.md (constitution IX); task của `mobile/` chỉ làm khi mục đó mở phần mobile, trừ màn mẫu thiết kế.
 
+**Cập nhật 2026-10-22** (plan mục "Cập nhật 2026-10-22"; Q-378, Q-380, Q-385): thêm T036, T037 (port cho phiếu báo phí của 017). Không đánh số lại.
+
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
@@ -182,6 +184,11 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 **Checkpoint**: Mọi user story của 010 chạy độc lập.
 
 ---
+
+### Bổ sung 2026-10-22 (FR-042, bảng giao tiếp "Gửi 017"; Q-378, Q-380)
+
+- [ ] T036 [P] [US7] Test `BT/m11/BangDaChotPortIT.java` (quickstart P1): đủ khoản Đã chốt, tổng theo loại khớp `bang_chi_phi_tong_loai`; khoản thuốc không có tên thuốc; khoản điều chỉnh có kỳ gốc; bảng chưa chốt trả rỗng; thêm ca phí chấm dứt sớm ngoài danh mục (P2) vào `BR_M11_04_NhapTayIT`
+- [ ] T037 [US7] Thêm `bangDaChot` vào `ChiPhiChoSoDuPort` (`BE/m11/cungcap/port/`) và cài trong `BE/m11/cungcap/internal/` (research P-12); cập nhật bản giả cho test của 017 (luật "Đổi api")
 
 ## Phase 10: Polish & Cross-Cutting
 

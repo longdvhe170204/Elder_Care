@@ -40,7 +40,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Q6 | Ghi nhận đã ký thiếu bản scan; người ký không phải người đại diện; A chưa có phân bổ giường từ 15/10; đủ điều kiện | 422; 409; 409 "chưa có giường từ ngày bắt đầu"; 200 `HIEU_LUC`, phiên bản nội dung 0 có đơn giá đã ghi | US3 #3, FR-021, FR-036 |
 | Q7 | `PUT` hợp đồng Hiệu lực; `UPDATE` trực tiếp ở cơ sở dữ liệu | 409 `HOP_DONG_DA_KHOA`; trigger chặn | US3 #4, SC-001 |
 | Q8 | Ghi nhận đã ký hợp đồng thứ hai của A từ 01/06/2027; hợp đồng kế tiếp từ 15/10/2027; hai lệnh đồng thời chồng nhau | 409 chồng thời gian; 200; đúng một lệnh thành công | US3 #5, #11, DBR-06 |
-| Q9 | Bản giả 017 trả Chưa đáp ứng, rồi Đã đáp ứng; xem điều kiện tiếp nhận | (c) "Chưa đạt", rồi "Đạt" kèm số phiếu thu; HC không có lệnh xác nhận cọc | US4 #1 → #5 |
+| Q9 | Bản giả 017 trả Chưa đáp ứng, rồi Đã đáp ứng; xem điều kiện tiếp nhận | (c) "Chưa đạt", rồi "Đạt" kèm giao dịch nguồn và Kế toán lập (sửa 2026-10-22, Q-385: không còn số phiếu thu); HC không có lệnh xác nhận cọc | US4 #1 → #5 |
 | Q10 | Bác sĩ xác nhận đánh giá đầu vào A mức Đặc biệt khi hợp đồng Hiệu lực ghi Thường xuyên; Hoàn tất tiếp nhận | HC nhận `LechMucHopDong` (Trung bình); 409 liệt kê "mức của hợp đồng khác mức hiện hành" cùng các điều kiện khác trong một lần | US1 #4, #9, FR-025b |
 | Q11 | HC lập yêu cầu đổi mức có tham chiếu đánh giá; QL duyệt với ngày hiệu lực ngày mai; tua 1 ngày | Duyệt: phụ lục `CHO_HIEU_LUC`; 00:05 hôm sau: phụ lục `DA_AP_DUNG`, mức hiện hành đổi, dịch vụ chăm sóc đổi theo mức, 005 nhận `PhuLucDaApDung`; (e) Đạt | US5 #1, #2, FR-042, BR-M02-04 |
 | Q12 | Hoàn tất tiếp nhận A trước ngày bắt đầu hợp đồng; đúng ngày | 409 (FR-075); 200, lượt đăng ký `DA_TIEP_NHAN`, 018 nhận `TiepNhanHoanTat` | US1 #7, FR-075, FR-033b |
@@ -99,3 +99,17 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 - SC-001, SC-002, SC-004 → SC-008, SC-011, SC-012: test tự động ở mục 4 trên MySQL thật và đồng hồ giả lập. Với SC-008, 004 kiểm sự kiện qua đời kèm thời điểm được phát cho 005, 006, 009, 010, 011, 012 trong cùng lệnh (qua 001 và sự kiện của 004).
 - SC-003: đo từ commit của lệnh làm giường về Trống (003) tới lúc thông báo tới Hành chính, dữ liệu quy mô NFR-01; chỉ tiêu 5 phút.
 - SC-009, SC-010: đo trên ít nhất 10 lần của Hành chính đã được hướng dẫn, dữ liệu quy mô NFR-01, lấy trung vị.
+
+## 6. Kịch bản bổ sung 2026-10-22 (Q-379, Q-385)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| Q38 | Hồ sơ kết thúc của A; bản giả 017 trả `KT_H_QUYET_TOAN` chưa đạt và `KT_H_XAC_NHAN_QUYET_TOAN` chưa đạt; xem điều kiện | Dòng (h) "Chưa đạt" kèm hai lý do | FR-063 (h) |
+| Q39 | Kế toán lập ngoại lệ (h) với `KT_H_QUYET_TOAN`, Quản lý viện duyệt; bản giả 017 vẫn trả `KT_H_XAC_NHAN_QUYET_TOAN` chưa đạt; Kết thúc lưu trú | (h) vẫn "Chưa đạt" (lý do "chưa xác nhận quyết toán"); lệnh 409; bản giả 017 nhận `NgoaiLeKetThucDaDuyet`, `coNgoaiLeQuyetToanDaDuyet` = true | FR-064 |
+| Q40 | Bản giả 017 chuyển `KT_H_XAC_NHAN_QUYET_TOAN` đạt; xem điều kiện; Kết thúc lưu trú (các điều kiện khác đạt) | (h) "Đạt (ngoại lệ)"; 200 | FR-063, FR-064, FR-065 |
+| Q41 | Lập ngoại lệ với `maDieuKien = KT_H_XAC_NHAN_QUYET_TOAN` | 422 | FR-064 |
+| Q42 | Bản giả 017 gọi `HoSoKetThucDocApi.thongTinQuyetToan(A)` khi hồ sơ kết thúc Đang chuẩn bị; rồi với người qua đời B | Trả loại lưu trú, hợp đồng, ngày bắt đầu, ngày kết thúc dự kiến, trường hợp; B trả `QUA_DOI` kèm ngày qua đời | 017 FR-034 |
+
+| Q43 | *(Q-387)* B đã qua đời, còn nợ 3.000.000; Kế toán lập ngoại lệ mục quyết toán; QL duyệt; bản giả 017 trả mục `HOAN_THANH` sau khi Kế toán xác nhận; mọi mục khác xong; lập ngoại lệ cho mục đồ gửi | Yêu cầu `KT_H_QUYET_TOAN` căn cứ danh sách sau qua đời; 017 nhận `NgoaiLeKetThucDaDuyet` với `hoSoKetThucId` rỗng; hồ sơ lưu trú Đã đóng; mục đồ gửi không có endpoint ngoại lệ | FR-071a |
+
+Test: `NgoaiLeKetThucIT` mở rộng (Q39, Q41, Q43), `DieuKienKetThucIT` mở rộng (Q38, Q40), `HoSoKetThucDocApiIT` (Q42).

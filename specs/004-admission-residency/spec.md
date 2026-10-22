@@ -67,7 +67,7 @@ Spec 006 và tài liệu nguồn (11.3, BR-M07-03, Q-58, Q-64) đã chốt nhưn
 
 Tài liệu nguồn (6.5, 6.8, 15.9, Q-211, Q-212, Q-222) và spec 017 (Clarification 2026-09-28: mở sổ khi hợp đồng Chờ ký) đã chốt, spec này được sửa theo checklist consistency của spec 017 (CHK009 → CHK013):
 - Đặt cọc không còn lệnh "Xác nhận đặt cọc" của Hành chính. Kế toán ghi thu cọc ở feature 017; trạng thái đặt cọc là dẫn xuất do feature 017 cung cấp, bắt đầu từ khi hợp đồng Chờ ký (FR-030 → FR-033, User Story 4, bảng phân nhóm dữ liệu, Key Entities).
-- Sửa sai tiền cọc bằng giao dịch đảo có duyệt của feature 017, không bằng đính chính.
+- Sửa sai tiền cọc bằng giao dịch điều chỉnh có duyệt của feature 017, không bằng đính chính (sửa 2026-10-22, Q-385).
 - Thêm điều kiện (h) "số dư và tiền cọc đã quyết toán" vào danh sách điều kiện kết thúc (FR-063 → FR-065) và mục tương ứng trong danh sách việc sau qua đời (FR-071).
 - Thêm FR-033a: các sự kiện hợp đồng gửi feature 017.
 
@@ -148,6 +148,12 @@ Feature 009 FR-001a (Q-353, Q-354) yêu cầu mọi thông báo tới người t
 Ngày 2026-10-18 chủ dự án ủy quyền chốt các điểm báo lại của lượt cập nhật nguyên tắc nhân văn; quyết định ghi ở docs/business/nghiep-vu.md 24.2 (Q-357 → Q-364). Thay đổi ở spec này:
 
 - **Q-361**: lý do bắt buộc khi người cao tuổi "Không đồng ý" là lý do của lệnh Hoàn tất tiếp nhận (feature 001 FR-046), nhập sau khi hệ thống hiển thị ý kiến; không có trường riêng (FR-004a).
+
+### Cập nhật 2026-10-22 (đồng bộ Q-379, Q-385)
+
+- **Q-379, Q-385**: điều kiện (h) thêm ý "Kế toán đã xác nhận quyết toán" (feature 017 lệnh Xác nhận quyết toán, bảng quyết toán PDF); ngoại lệ (h) chỉ áp phần tiền (FR-063, FR-064); người đại diện xem bảng quyết toán trên cổng (FR-068). Sai sót tiền cọc sửa bằng giao dịch điều chỉnh có duyệt của feature 017 (không còn giao dịch đảo, số phiếu thu).
+- **Q-387** (sau plan): người qua đời mà gia đình còn nợ thì mục quyết toán của danh sách việc sau qua đời được lập yêu cầu ngoại lệ như điều kiện (h) (FR-071a).
+- **Q-380 (sửa theo Q-385)**: không có thời hạn báo trước riêng; phí chấm dứt sớm (nếu hợp đồng quy định) là khoản nhập tay của feature 010. Spec này không đổi yêu cầu.
 
 ## Phạm vi
 
@@ -259,9 +265,9 @@ Hợp đồng xác định khoản cần đặt cọc (có thể là "không yê
 **Acceptance Scenarios**:
 
 1. **Given** hợp đồng Chờ ký của A có khoản cần đặt cọc 24.000.000 đồng, **When** chưa có giao dịch thu cọc, **Then** đặt cọc ở trạng thái "Chưa đáp ứng" và điều kiện "đặt cọc đạt" của A là "Chưa đạt".
-2. **Given** Kế toán ghi thu cọc 24.000.000 đồng ở feature 017 (phiếu thu số 1023), **When** feature 017 báo trạng thái mới, **Then** đặt cọc là "Đã đáp ứng", căn cứ hiển thị thời điểm, Kế toán lập giao dịch và số phiếu thu.
+2. **Given** Kế toán ghi thu cọc 24.000.000 đồng ở feature 017, **When** feature 017 báo trạng thái mới, **Then** đặt cọc là "Đã đáp ứng", căn cứ hiển thị thời điểm, Kế toán lập giao dịch và giao dịch nguồn.
 3. **Given** hợp đồng của B ghi "không yêu cầu đặt cọc", **When** hợp đồng chuyển Chờ ký, **Then** điều kiện "đặt cọc đạt" của B là "Đạt (không yêu cầu)".
-4. **Given** lần thu cọc của A ghi nhầm và được đảo ở feature 017 (Quản lý viện duyệt), **When** feature 017 báo trạng thái về "Chưa đáp ứng", **Then** điều kiện (c) về "Chưa đạt"; nếu A đã Đang lưu trú, trạng thái lưu trú không bị ảnh hưởng và Quản lý viện được báo.
+4. **Given** lần thu cọc của A ghi nhầm và được sửa bằng giao dịch điều chỉnh ở feature 017 (Quản lý viện duyệt; sửa 2026-10-22, Q-385: không còn giao dịch đảo), **When** feature 017 báo trạng thái về "Chưa đáp ứng", **Then** điều kiện (c) về "Chưa đạt"; nếu A đã Đang lưu trú, trạng thái lưu trú không bị ảnh hưởng và Quản lý viện được báo.
 5. **Given** Hành chính, điều dưỡng hoặc trưởng tầng, **When** cố ghi thu hoặc xác nhận đặt cọc, **Then** hệ thống từ chối; Hành chính chỉ xem trạng thái đặt cọc (Phụ lục 27 ²⁶).
 
 ---
@@ -413,7 +419,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000: nhóm dữ liệu (mục
 | Hồ sơ chờ | 2 | Chỉ qua lệnh ở bảng mục B |
 | Đề nghị điều chỉnh điểm ưu tiên | 2 – Yêu cầu phê duyệt (feature 000) | Lập, gửi, duyệt, từ chối, hủy |
 | Hợp đồng | 2 | Sửa chỉ ở Nháp; còn lại qua lệnh ở bảng mục C; không sửa khi Hiệu lực |
-| Đặt cọc | 2 – trạng thái dẫn xuất từ feature 017 | Không có lệnh ở spec này; giao dịch thu cọc và sửa sai (giao dịch đảo) thuộc feature 017 |
+| Đặt cọc | 2 – trạng thái dẫn xuất từ feature 017 | Không có lệnh ở spec này; giao dịch thu cọc và sửa sai (giao dịch điều chỉnh có duyệt, Q-385) thuộc feature 017 |
 | Yêu cầu thay đổi lưu trú | 2 – Yêu cầu phê duyệt (feature 000) | Theo bảng mục F |
 | Phụ lục hợp đồng | 2 | Chỉ phát sinh từ yêu cầu đã duyệt; không sửa |
 | Lượt vắng | 2 khi đang mở; bất biến khi đã đóng | Mở, gia hạn dự kiến trở lại, đóng qua lệnh; bản đã đóng chỉ đính chính |
@@ -567,20 +573,21 @@ Hai loại "Điều chỉnh điểm ưu tiên" và "Ngoại lệ điều kiện 
   (d) không còn cảnh báo hoặc sự cố đang mở (feature 007);
   (e) đã ghi nhận bàn giao người cao tuổi: người nhận (người thân hoặc cơ sở tiếp nhận), thời điểm, nhân viên bàn giao;
   (f) hợp đồng được xử lý và (g) giường được giải phóng — do hệ thống thực hiện khi lệnh "Kết thúc lưu trú" chạy, hiển thị "Tự động";
-  (h) *(mới 2026-09-28, Q-222)* số dư và tiền cọc đã quyết toán, theo feature 017 FR-022 (bảng kỳ cuối đã chốt và đã trừ số dư; sổ cọc và số dư bằng 0; không còn giao dịch chờ duyệt; bảng bổ sung chưa chốt không làm (h) Chưa đạt, nhất quán với Q-134, Q-230).
+  (h) *(mới 2026-09-28, Q-222)* số dư và tiền cọc đã quyết toán, theo feature 017 FR-022 (bảng kỳ cuối đã chốt và đã trừ số dư; sổ cọc và số dư bằng 0; không còn giao dịch chờ duyệt; **(bổ sung 2026-10-22, Q-379, Q-385)** Kế toán đã xác nhận quyết toán (feature 017 FR-034); bảng bổ sung chưa chốt không làm (h) Chưa đạt, nhất quán với Q-134, Q-230).
   *(Nguồn: 6.8, 5.6)*
-- **FR-064**: Với mỗi điều kiện (a) → (d) và (h), hành chính MAY lập yêu cầu ngoại lệ (yêu cầu phê duyệt, feature 000) kèm lý do; với (h), Kế toán cũng MAY lập. Điều kiện chỉ chuyển Đạt (ngoại lệ) khi Quản lý viện duyệt. Điều kiện (e) MUST NOT có ngoại lệ. *(Nguồn: 5.6 "trừ khi quản lý duyệt ngoại lệ", 6.8, Q-222; Phụ lục 27 chú thích ³⁹, Q-313)*
+- **FR-064**: Với mỗi điều kiện (a) → (d) và (h), hành chính MAY lập yêu cầu ngoại lệ (yêu cầu phê duyệt, feature 000) kèm lý do; với (h), Kế toán cũng MAY lập. Điều kiện chỉ chuyển Đạt (ngoại lệ) khi Quản lý viện duyệt. Điều kiện (e) MUST NOT có ngoại lệ. **(Bổ sung 2026-10-22, Q-379)** Ngoại lệ của (h) chỉ thay các ý về tiền; ý "đã xác nhận quyết toán" MUST NOT có ngoại lệ (Kế toán vẫn xác nhận, bảng quyết toán ghi số còn nợ hoặc còn phải hoàn). *(Nguồn: 5.6 "trừ khi quản lý duyệt ngoại lệ", 6.8, Q-222; Phụ lục 27 chú thích ³⁹, Q-313)*
 - **FR-065**: Lệnh "Kết thúc lưu trú" (feature 001) MUST chỉ thực hiện được khi mọi điều kiện (a) → (e) và (h) Đạt hoặc Đạt (ngoại lệ); nếu không, MUST từ chối và liệt kê mọi điều kiện chưa đạt. Khi thành công, trong cùng một lần: hồ sơ kết thúc chuyển Hoàn tất; hợp đồng chuyển Kết thúc hoặc Chấm dứt (FR-027); lượt vắng đang mở (nếu có) đóng; hồ sơ chờ, yêu cầu thay đổi đang mở chuyển Hủy / Áp dụng không thành; feature 003 đóng phân bổ; các tác động còn lại theo feature 001 (hủy lịch tương lai, khóa tài khoản người thân sau CFG-M01-04). *(Nguồn: 5.6, 6.8, BR-M11-08)*
 - **FR-066**: Chốt chi phí kỳ cuối MUST diễn ra trước lệnh "Kết thúc lưu trú", theo hai bước: (1) khi hồ sơ kết thúc lưu trú được lập, các ngày và sự kiện sau ngày kết thúc dự kiến MUST NOT còn là sự kiện tính phí, và lệnh lập hồ sơ MUST tạo bảng kỳ cuối nháp ở feature 010 tính đến ngày kết thúc dự kiến (tác động kèm lệnh; **sửa, 2026-10-06, Q-306**); (2) hành chính kiểm tra và gửi chốt, Quản lý viện duyệt và chốt bảng kỳ cuối theo vòng đời chi phí của feature 010. Điều kiện (a) do feature 010 FR-034a cung cấp: Đạt khi bảng kỳ cuối Đã chốt và không còn khoản điều chỉnh chưa chốt mang dấu "ảnh hưởng kết thúc lưu trú". Khoản lập cho sự kiện tính phí sau khi kỳ cuối đã chốt (ví dụ liều thuốc sáng ngày kết thúc) vào bảng bổ sung và MUST NOT làm điều kiện (a) về Chưa đạt (Q-134). Khi ngày kết thúc dự kiến thay đổi (FR-067), mốc dừng tính phí MUST dời theo ngày mới, kỳ cuối nháp MUST được tính lại. Nếu kỳ cuối đã chốt, phần chênh lệch là khoản điều chỉnh mang dấu "ảnh hưởng kết thúc lưu trú", nên điều kiện (a) về Chưa đạt tới khi khoản đó được chốt. Lệnh "Kết thúc lưu trú" MUST có thời điểm hiệu lực trong ngày kết thúc dự kiến; muốn kết thúc ngày khác thì phải đổi ngày kết thúc dự kiến trước. Nếu hồ sơ kết thúc bị hủy, các ngày sau mốc đã dừng MUST lại là sự kiện tính phí để hành chính lập khoản. *(Nguồn: 5.6, BR-M11-08, 15.7; Clarification 2026-09-25, đề xuất Q-21)*
 - **FR-066a**: Khi hết ngày kết thúc dự kiến mà lệnh "Kết thúc lưu trú" chưa được thực hiện và hồ sơ kết thúc vẫn Đang chuẩn bị, Bộ lập lịch hệ thống MUST, từ ngày liền sau: gắn dấu "quá ngày dự kiến" cho hồ sơ kết thúc; coi các ngày từ ngày liền sau ngày kết thúc dự kiến là sự kiện tính phí như khi chưa có hồ sơ kết thúc; chuyển điều kiện (a) về Chưa đạt (với kỳ cuối đã chốt, hành chính lập khoản điều chỉnh mang dấu "ảnh hưởng kết thúc lưu trú" cho các ngày này, feature 010 FR-034a, FR-035); nhắc hành chính mỗi ngày đặt ngày kết thúc dự kiến mới. Lệnh "Kết thúc lưu trú" MUST bị chặn cho tới khi có ngày kết thúc dự kiến mới không sớm hơn hôm nay; khi ngày mới được đặt, dấu được gỡ và FR-066 áp dụng lại với ngày mới. *(Clarification 2026-09-25, đề xuất Q-26)*
 - **FR-067**: Hồ sơ kết thúc lưu trú MUST có trạng thái: Đang chuẩn bị → Hoàn tất / Đã hủy (hủy bắt buộc lý do; tự hủy khi người cao tuổi qua đời, các điều kiện chưa đạt chuyển sang danh sách việc sau qua đời). Trong khi Đang chuẩn bị, ngày kết thúc dự kiến MAY được đổi kèm lý do. *(Nguồn: 6.8, UC-17)*
-- **FR-068**: Người đại diện MUST xem được tiến trình kết thúc lưu trú và các điều kiện liên quan gia đình (nhận đồ gửi, thuốc gửi, chi phí kỳ cuối, quyết toán số dư và tiền cọc) qua cổng người thân. *(Nguồn: 4.4 NT X)*
+- **FR-068**: Người đại diện MUST xem được tiến trình kết thúc lưu trú và các điều kiện liên quan gia đình (nhận đồ gửi, thuốc gửi, chi phí kỳ cuối, quyết toán số dư và tiền cọc) qua cổng người thân; **(bổ sung 2026-10-22, Q-379)** kèm bảng quyết toán (feature 017 FR-038) với người có quyền xem chi phí. *(Nguồn: 4.4 NT X)*
 
 #### I. Qua đời
 
 - **FR-069**: Lệnh "Ghi nhận qua đời" (quyền và điều kiện theo feature 001 FR-047b) MUST ghi: thời điểm, địa điểm, người phát hiện, người xác nhận, thông tin nguyên nhân nếu đã xác định, bằng chứng (bắt buộc khi hành chính thực hiện). Bản ghi qua đời là nhóm 3; bổ sung nguyên nhân hay sửa sai MUST bằng đính chính. Thông tin nguyên nhân là thông tin sức khỏe: Quản lý viện, Bác sĩ, và Điều dưỡng, Trưởng tầng trong phạm vi xem được; Hành chính và Kế toán MUST NOT xem lại trường này (feature 002 FR-022), kể cả khi chính Hành chính đã ghi nhận lệnh, và chỉ thấy thời điểm, địa điểm, người phát hiện, người xác nhận cùng bằng chứng do mình tải lên; người thân chỉ xem nguyên nhân khi có bản đồng ý Hiệu lực bao gồm mình (BR-M01-08) (CHK041). *(Nguồn: 6.8, UC-18, 19.3)*
 - **FR-070**: Lệnh "Ghi nhận qua đời" MUST NOT bị chặn bởi đồ gửi, thuốc gửi, chi phí, cảnh báo hay sự cố. Khi thành công, trong cùng một lần: hợp đồng chuyển Chấm dứt với lý do "Qua đời"; lượt vắng đang mở đóng tại thời điểm qua đời; hồ sơ kết thúc lưu trú đang mở chuyển Đã hủy; hồ sơ chờ, yêu cầu thay đổi đang mở chuyển Hủy / Áp dụng không thành; feature 003 đóng phân bổ và giải phóng giường (giường chuyển Chờ sẵn sàng, FR-011a của feature 003); sự kiện có thời điểm sau thời điểm qua đời và các ngày sau ngày qua đời MUST NOT là sự kiện tính phí; ngày qua đời vẫn được tính phí lưu trú trọn ngày (feature 010 FR-036, Q-141); các tác động còn lại theo feature 001 (hủy lịch tương lai, thông báo người liên hệ chính ở mức Khẩn cấp theo feature 009 Q-97, hồ sơ chỉ đọc). *(Nguồn: 5.6, 6.8; feature 009 Q-97)*
 - **FR-071**: Khi ghi nhận qua đời, hệ thống MUST tạo danh sách việc bắt buộc sau qua đời gồm: xử lý đồ gửi (feature 013); hoàn trả thuốc gia đình gửi và xử lý lần giao thuốc mang theo chưa nhận lại (feature 006, Q-64); chốt chi phí kỳ cuối (feature 010); xử lý cảnh báo/sự cố đang mở (feature 007); *(mới 2026-09-28, Q-222)* quyết toán số dư và tiền cọc (feature 017 FR-023, Kế toán thực hiện). Mỗi mục có trạng thái Chưa hoàn thành / Hoàn thành / Không áp dụng, được hệ thống tự cập nhật từ feature sở hữu. Mục "xử lý đồ gửi" Hoàn thành khi mọi đồ gửi ở Đã trả, Thất lạc hoặc Đã xử lý (feature 013 FR-026, đồng bộ spec 013). *(Nguồn: 6.8)*
+- **FR-071a** *(bổ sung 2026-10-22, Q-387)*: Với mục "quyết toán số dư và tiền cọc" của danh sách việc sau qua đời, Hành chính hoặc Kế toán MAY lập yêu cầu ngoại lệ (yêu cầu phê duyệt, feature 000) kèm lý do khi gia đình còn nợ; ngoại lệ có hiệu lực khi Quản lý viện duyệt và chỉ thay ba ý về tiền của điều kiện quyết toán (feature 017 FR-022), không thay ý không còn giao dịch chờ duyệt và ý Kế toán đã xác nhận quyết toán. Các mục khác của danh sách MUST NOT có ngoại lệ theo FR này. *(Nguồn: 6.8, Q-387)*
 - **FR-072**: Khi danh sách việc sau qua đời còn mục Chưa hoàn thành, hệ thống MUST nhắc hành chính theo chu kỳ CFG-M02-09 (đề xuất, mặc định \[1 ngày\]); khi mọi mục Hoàn thành hoặc Không áp dụng, hồ sơ lưu trú MUST chuyển "Đã đóng". "Hồ sơ lưu trú Đã đóng" không phải thực thể riêng: đó là dấu "đã đóng" kèm thời điểm trên lần lưu trú của hồ sơ người cao tuổi, ứng với bước "Đóng hồ sơ" của luồng mục 20. Với Kết thúc lưu trú, dấu được đặt ngay khi hồ sơ kết thúc lưu trú chuyển Hoàn tất, vì mọi điều kiện đã Đạt trước lệnh (FR-065); với qua đời, dấu được đặt theo câu trên (CHK014). Các thao tác hoàn thành những mục này MUST được phép dù hồ sơ người cao tuổi ở trạng thái cuối, vì chúng thuộc đối tượng của feature sở hữu, không sửa hồ sơ người cao tuổi. Hồ sơ đã "Đã đóng" MUST NOT mở lại khi một đồ gửi Thất lạc được tìm thấy về sau (feature 013 FR-026a, đồng bộ spec 013). *(Nguồn: 6.8, BF-01 "đóng hồ sơ"; feature 001 FR-049)*
 - **FR-073**: Nhắc việc, thông báo định kỳ và bản tin cho người thân về người đã qua đời MUST dừng từ thời điểm qua đời, trừ thông báo liên quan tới danh sách việc sau qua đời gửi người đại diện. *(Suy ra từ 6.8)*
 
@@ -755,3 +762,9 @@ Ngày 2026-09-25, các điểm đã chốt đã được đưa vào `docs/busine
 **(2026-10-18) Đồng bộ feature 009 FR-001a (đối tượng thông tin).** *(Đã xử lý 2026-10-18: Clarifications "Cập nhật 2026-10-18, lượt 2", FR-078.)* Còn báo lại: plan, contracts, tasks của 004 chưa khai đối tượng thông tin cho các sự kiện gửi người thân. *(Đã xử lý 2026-10-18: plan, research đã khai (004 không tự gửi người thân).)*
 
 **(2026-10-18) Đồng bộ Q-357 → Q-364.** *(Đã xử lý 2026-10-18: Clarifications "Cập nhật 2026-10-18, lượt 3".)* Q-361 làm rõ FR-004a (lý do của lệnh, không có trường riêng).
+
+**(2026-10-22) Đồng bộ Q-379, Q-385.** *(Đã xử lý 2026-10-22: Clarifications "Cập nhật 2026-10-22", Clarification 2026-09-28 về sửa sai tiền cọc, User Story 4 kịch bản 2, bảng nhóm dữ liệu, FR-063 (h), FR-064, FR-068.)* Còn báo lại: plan, contracts, tasks chưa cập nhật.
+
+**(2026-10-22, sau plan) Câu chữ User Story 4 kịch bản 4.** *(Đã xử lý 2026-10-22: đổi "được đảo" thành "được sửa bằng giao dịch điều chỉnh", theo Q-385; plan 004 điểm báo lại 10.)*
+
+**(2026-10-22) Q-387.** *(Đã xử lý 2026-10-22: Clarifications "Cập nhật 2026-10-22", FR-071a.)*

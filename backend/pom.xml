@@ -35,6 +35,9 @@
         <openapi-diff.version>2.1.7</openapi-diff.version>
         <datasource-proxy.version>1.11.0</datasource-proxy.version>
         <bouncycastle.version>1.86</bouncycastle.version>
+        <firebase-admin.version>9.11.0</firebase-admin.version>
+        <openpdf.version>3.0.5</openpdf.version>
+        <fastexcel.version>0.20.2</fastexcel.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -61,6 +64,36 @@
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
             <version>${bouncycastle.version}</version>
+        </dependency>
+        <!-- Đẩy thông báo tới app qua Firebase Cloud Messaging (009 research B-05, T001; Q-305) -->
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>${firebase-admin.version}</version>
+        </dependency>
+        <!-- Chứng từ PDF dùng chung ở common.document (007 research S-25, S-26; T104) -->
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>${openpdf.version}</version>
+            <!-- Nén Brotli không dùng; brotli4j kéo bản native theo hệ điều hành lúc build -->
+            <exclusions>
+                <exclusion>
+                    <groupId>com.aayushatharva.brotli4j</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Excel ghi, đọc ở common.document (007 research S-25, S-26; 008, 010, 017 dùng) -->
+        <dependency>
+            <groupId>org.dhatim</groupId>
+            <artifactId>fastexcel</artifactId>
+            <version>${fastexcel.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.dhatim</groupId>
+            <artifactId>fastexcel-reader</artifactId>
+            <version>${fastexcel.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

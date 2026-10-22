@@ -22,7 +22,8 @@ Chữ ký viết dạng Java rút gọn, chỉ để mô tả hợp đồng; mã
 | `LoiNghiepVu` | `DieuKienChuaThoa(List<DieuKien>)` → 409; `KhongCoQuyen` → 403; `DaDuocXuLy` → 409; `SaiPhienBan(giaTriHienHanh)` → 412 | FR-006, FR-021, FR-040 |
 | `PhongBiNgoaiTuyen` | `idempotencyKey`, `thoiDiemThietBi`; `KetQuaDongBo` gồm `CHAP_NHAN`, `CHAP_NHAN_KEM_NHAN`, `CHO_XEM_LAI`, `TU_CHOI` kèm lý do | FR-046, DBR-25, BR-M15-20 |
 | `common.thongbao` (bổ sung theo plan 009, research B-02) | `YeuCauThongBao`, `CoYeuCauThongBao`, `NhomNhan`, `CachThay`, `MucThongBao`, `LoaiThongTin`, `TRUONG_SUC_KHOE`: khuôn yêu cầu thông báo duy nhất; mọi sự kiện gửi 009 (kể cả các sự kiện của 000 ở mục 1.5) cài `CoYeuCauThongBao` | 009 FR-001, FR-043a |
-| `TepApi` (`common.tep`; bổ sung theo plan 001, research H-13) | `taiLen(...)` trả `tepId`; `gan(tepId, loaiChuSoHuu, idChuSoHuu)` trong transaction của lệnh (MANDATORY), tệp đã gắn không gắn lại; SPI `QuyenTepProvider` của module sở hữu quyết quyền tải xuống | NFR-08 |
+| `TepApi` (`common.tep`; bổ sung theo plan 001, research H-13) | `taiLen(...)` trả `tepId`; `gan(tepId, loaiChuSoHuu, idChuSoHuu)` trong transaction của lệnh (MANDATORY), tệp đã gắn không gắn lại; SPI `QuyenTepProvider` của module sở hữu quyết quyền tải xuống. *(Bổ sung 2026-10-22, 017 research E-11)* `taiLen` nhận PDF, JPEG, PNG và `.xlsx` cho tệp hệ thống tạo; `POST /tep` chỉ PDF, JPEG, PNG (`FileTypes`) | NFR-08 |
+| `common.bieumau` *(bổ sung 2026-10-22, 007 research S-25, T104)* | `PdfBieuMau` (A4, đầu trang thông tin viện CFG-M11-11 do module gọi truyền vào, bảng, ô ký, số trang, `dongDau`), `ExcelBieuMau` (ghi bảng có định dạng tiền, ngày; đọc `.xlsx` theo mẫu, sai mẫu 422) | 007 FR-050h; 008 FR-001b; 017 FR-025, FR-031 → FR-037 |
 
 ### 1.2. `m15.nhatky.api.NhatKyApi`
 
@@ -62,6 +63,7 @@ GiaTriThamSo docTaiThoiDiem(MaThamSo ma, Instant t);   // FR-019
 ```
 
 - Sự kiện `ThamSoDaDoi(ma, giaTriTruoc, giaTriSau, thoiDiem)` phát sau commit. Module chỉ dùng sự kiện để cập nhật bộ đệm của mình, không dùng để tính lại kết quả cũ (FR-017).
+- *(Bổ sung 2026-10-22, 017 research E-04)* SPI `KiemTraGiaTriThamSo` (`m15.thamso.api`, module sở hữu dữ liệu liên quan cài): `ma()` trả mã tham số, `kiemTra(giaTri)` ném 422 kèm lý do. Lệnh đổi giá trị gọi mọi bản cài có mã trùng sau phần kiểm chung, trước khi lưu; khôi phục về "Theo cơ sở" thì không gọi. 017 cài cho CFG-M11-10.
 - `MaThamSo` là enum của toàn bộ mã ở Phụ lục 25. Module không được viết cứng giá trị mặc định trong mã (constitution XIII); test ArchUnit cấm hằng số thời lượng trong gói `service` của module.
 
 ### 1.5. `m15.pheduyet.api.YeuCauPheDuyetApi`
