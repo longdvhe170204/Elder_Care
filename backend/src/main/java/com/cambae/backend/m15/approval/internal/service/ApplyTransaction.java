@@ -87,7 +87,8 @@ class ApplyTransaction {
                     .basis(basis)
                     .details(Map.of("unmetConditions", reasons))
                     .build());
-            events.publishEvent(new RequestApplyFailed(store.find(id).orElseThrow(), unmet, now));
+            ApprovalRequestView failed = store.find(id).orElseThrow();
+            events.publishEvent(new RequestApplyFailed(failed, unmet, now, directory.requesterStaffId(failed)));
             return Outcome.APPLY_FAILED;
         }
         LocalDate effective = request.actualEffectiveDate();

@@ -200,8 +200,11 @@ public class ApprovalRequestService implements ApprovalRequestApi {
         if (ApprovalStatus.CANCELLED.equals(to)) {
             events.publishEvent(new RequestCancelled(closed));
         } else {
-            events.publishEvent(
-                    new RequestApplyFailed(closed, List.of(new UnmetCondition("FR-031", reason)), time.now()));
+            events.publishEvent(new RequestApplyFailed(
+                    closed,
+                    List.of(new UnmetCondition("FR-031", reason)),
+                    time.now(),
+                    directory.requesterStaffId(closed)));
         }
     }
 

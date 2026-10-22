@@ -74,7 +74,8 @@ public class LicenseExpiryWarnings {
                             l.licenseId(),
                             l.expiryDate(),
                             affected(ProfessionalActivity::requiresFacilityScope),
-                            List.of()));
+                            List.of(),
+                            time.now()));
                 }
             }
         }
@@ -87,7 +88,8 @@ public class LicenseExpiryWarnings {
                             l.licenseId(),
                             l.expiryDate(),
                             affected(a -> Objects.equals(a.requiredLicenseType(), l.licenseType())),
-                            List.of(l.staffId())));
+                            List.of(l.staffId()),
+                            time.now()));
                 }
             }
         }
