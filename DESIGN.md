@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 5.18.0
+version: 5.18.1
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-10-21
@@ -525,6 +525,7 @@ Công nghệ: React 19, Vite 8, JavaScript, Tailwind CSS v4, shadcn/ui (Base UI)
 - Đã có component đính chính dùng chung `correction-sheet` (000 T106), chưa gắn vào màn nào: chờ màn của module sở hữu bản ghi và profile `demo` có người dùng (002).
 - Đã có màn Tham số vận hành (000 T081, tab Tham số của mục menu "Tài khoản, tham số") và tab Tài khoản (002 T035: bảng lọc theo loại, trạng thái, tên đăng nhập; khung chi tiết có nút lệnh theo `allowedCommands`, form lệnh có lý do bắt buộc; tạo tài khoản nhân viên gõ mã hồ sơ tới khi 008 có danh sách hồ sơ; mật khẩu tạm hiện một lần trong khung) và Yêu cầu phê duyệt (000 T097, mục menu ngay dưới Tổng quan cho mọi vai trò nhân viên). Hai màn gọi API thật, chưa có dữ liệu khi chạy `npm run dev` không có backend.
 - Đã có tab Phân quyền (002 T077, bố cục duyệt 2026-10-21): bên trái 9 vai trò, bên phải bảng quyền của vai trò theo dòng ma trận (chức năng, thao tác, tối đa, hiện hành, trạng thái Theo ma trận / Đã thu hẹp, nút Thu hẹp mở form ngay dưới dòng), dưới là danh sách thu hẹp đang hiệu lực có Khôi phục; không có lệnh thêm quyền. Khung chi tiết tài khoản thêm mục Quyền (vai trò, thu hẹp theo vai trò chỉ xem, thu hẹp theo tài khoản, quyền gán thêm, nút theo `allowedCommands`, quyền hiện hành thu gọn, "Xem tại thời điểm" chỉ xem). Gọi API thật.
+- Đã có tab Sức khỏe trong khung chi tiết hồ sơ người cao tuổi (001 T033, bố cục duyệt 2026-10-22; `src/features/residents/`): nút chuyển Thông tin | Sức khỏe, ẩn khi backend bỏ phần sức khỏe theo quyền (`hiddenFields`). Tab gồm hai khối. Hồ sơ sức khỏe ban đầu: nhãn Bản nháp hoặc Đã xác nhận (kèm Đã đính chính), tám ô theo FR-017, nút Lập hồ sơ, Sửa bản nháp, Xác nhận hồ sơ (chỉ Bác sĩ), Đính chính mở khung đính chính dùng chung. Dị ứng, bệnh nền, tiền sử bệnh: bộ lọc Hiệu lực | Đã loại trừ | Tất cả, khối dị ứng `AllergyNote` đứng trước, mục chia theo loại kèm nguồn, người ghi, ngày; "Không kiểm tra tự động" tông `attention`, "Chờ kiểm tra thuốc và chế độ ăn" tông `neutral`; nút Ghi nhận mục mở form ngay dưới (Dị ứng từ danh mục, Dị ứng khác nhập tay, Bệnh nền, Tiền sử bệnh; trùng thì hỏi "Vẫn ghi nhận mục này"); nút Loại trừ mở ô lý do bắt buộc ngay dưới mục. Mục không có nút Sửa, Xóa (DBR-04). Nút hiện theo `allowedCommands`. Gọi API thật.
 
 ## 15. Ứng dụng di động (Flutter)
 
@@ -633,6 +634,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 5.18.1 | 2026-10-22 | Chủ dự án duyệt bố cục tab Sức khỏe trong khung chi tiết hồ sơ người cao tuổi (001 T033; mục 14). Không thêm màu, không thêm quy định; "Bản nháp", "Đã loại trừ" dùng tông `neutral` mặc định của `StatusBadge` |
 | 5.18.0 | 2026-10-21 | Chủ dự án duyệt bố cục phân quyền (002 T077): tab Phân quyền trong "Tài khoản, tham số", mục Quyền trong khung chi tiết tài khoản (mục 14). Trạng thái quyền vào mục 3.5: Đã thu hẹp `attention`, Theo ma trận `neutral`. Không thêm màu |
 | 5.17.1 | 2026-10-20 | Chủ dự án chọn một màn đăng nhập chung (002 T045): `/login` cho nhân viên và người thân, thêm `/change-password`; khối người dùng cuối menu có họ tên, vai trò và nút Đăng xuất khi có phiên thật. Không thêm màu, không đổi công thức |
 | 5.17.0 | 2026-10-20 | Chủ dự án duyệt bố cục tab Tài khoản (002 T035) và màu trạng thái tài khoản ở mục 3.5: Hoạt động `settled`, Khóa tạm `attention`, Không hoạt động `neutral`, Đã khóa tông mới `neutral-outline` (viền `--input`, nền trong) để phân biệt với Không hoạt động. Không thêm màu |

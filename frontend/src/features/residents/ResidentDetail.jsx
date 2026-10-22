@@ -5,8 +5,10 @@ import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field
 import { Input } from '@/components/ui/input'
 import { SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
+import { HealthTab } from './HealthTab'
 import { GENDER_LABELS, ID_DOCUMENT_LABELS, STATUS_LABELS } from './residentLabels'
 
 // Chi tiết hồ sơ thật và cập nhật thông tin cá nhân (001 T022; US1 #6 → #9; FR-006, FR-007; hợp đồng
@@ -50,6 +52,7 @@ export function ResidentDetail({ residentId, onChanged, onClose }) {
   const [linked, setLinked] = useState([])
   const [failure, setFailure] = useState(null)
   const [editing, setEditing] = useState(false)
+  const [tab, setTab] = useState('info')
   const [form, setForm] = useState(null)
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
@@ -145,6 +148,8 @@ export function ResidentDetail({ residentId, onChanged, onClose }) {
   const info = profile?.personalInfo
   const canUpdate = profile?.allowedCommands?.includes('UPDATE_PERSONAL_INFO')
   const hidden = profile?.hiddenFields ?? []
+  // Vai trò không được xem phần sức khỏe (backend bỏ activeHealthItems) thì không có tab Sức khỏe (US2; FR-008)
+  const showHealthTab = !!profile && !hidden.includes('activeHealthItems')
 
   return (
     <>
@@ -163,7 +168,28 @@ export function ResidentDetail({ residentId, onChanged, onClose }) {
           )}
         </ProblemAlert>
 
-        {info && !editing && (
+        {showHealthTab && !editing && (
+          <ToggleGroup
+            variant="outline"
+            value={[tab]}
+            onValueChange={(next) => next[0] && setTab(next[0])}
+            aria-label="Phần của hồ sơ"
+            className="self-start"
+          >
+            <ToggleGroupItem value="info" className="h-10 px-4">
+              Thông tin
+            </ToggleGroupItem>
+            <ToggleGroupItem value="health" className="h-10 px-4">
+              Sức khỏe
+            </ToggleGroupItem>
+          </ToggleGroup>
+        )}
+
+        {info && tab === 'health' && showHealthTab && (
+          <HealthTab residentId={residentId} allowedCommands={profile.allowedCommands ?? []} />
+        )}
+
+        {info && !editing && tab === 'info' && (
           <>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
               <Row label="Ngày sinh">{info.dateOfBirth}</Row>
