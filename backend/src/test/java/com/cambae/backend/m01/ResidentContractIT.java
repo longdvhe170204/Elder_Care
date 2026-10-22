@@ -41,7 +41,16 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
             "POST /initial-health-records/{id}/correct",
             "GET /residents/{id}/health-items",
             "POST /residents/{id}/health-items",
-            "POST /health-items/{id}/exclude");
+            "POST /health-items/{id}/exclude",
+            "GET /residents/{id}/assessments",
+            "POST /residents/{id}/assessments",
+            "GET /assessments/{id}",
+            "PUT /assessments/{id}",
+            "POST /assessments/{id}/confirm",
+            "POST /assessments/{id}/discard-draft",
+            "POST /assessments/{id}/correct",
+            "GET /residents/{id}/care-level",
+            "GET /residents/{id}/care-level-history");
 
     @Autowired
     MockMvc mvc;
@@ -78,13 +87,23 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
                 mvc.perform(get("/v3/api-docs")).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8));
 
         Set<String> inCode = operations(generated, "/api/v1");
-        inCode.removeIf(op ->
-                !op.contains("/residents") && !op.contains("/initial-health-records") && !op.contains("/health-items"));
+        inCode.removeIf(op -> !op.contains("/residents")
+                && !op.contains("/initial-health-records")
+                && !op.contains("/health-items")
+                && !op.contains("/assessments"));
         assertThat(inCode).containsExactlyInAnyOrderElementsOf(IMPLEMENTED);
         assertThat(operations(contract, "")).containsAll(IMPLEMENTED);
 
         for (String schema : new String[] {
-            "Profile", "PersonalInfo", "CreateProfileResult", "HealthItem", "HealthItemResult", "CorrectionResult"
+            "Profile",
+            "PersonalInfo",
+            "CreateProfileResult",
+            "HealthItem",
+            "HealthItemResult",
+            "CorrectionResult",
+            "Assessment",
+            "ConfirmAssessmentResult",
+            "CareLevelAtDate"
         }) {
             assertThat(properties(generated, schema)).as(schema).isEqualTo(properties(contract, schema));
         }

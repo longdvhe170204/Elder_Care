@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 /** Họ tên người ghi, người xác nhận theo hồ sơ tài khoản (002); không có thì dùng mã tài khoản. */
 @Component
-class ActorNames {
+public class ActorNames {
 
     private final ObjectProvider<AccountApi> accounts;
 
@@ -14,7 +14,7 @@ class ActorNames {
         this.accounts = accounts;
     }
 
-    String of(long accountId) {
+    public String of(long accountId) {
         AccountApi api = accounts.getIfAvailable();
         return api == null ? "#" + accountId : api.fullName(accountId).orElse("#" + accountId);
     }

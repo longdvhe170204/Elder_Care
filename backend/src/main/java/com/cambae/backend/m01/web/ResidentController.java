@@ -66,7 +66,12 @@ class ResidentController {
             "WRITE_INITIAL_HEALTH_RECORD",
             WRITE_HEALTH,
             CONFIRM_INITIAL_HEALTH_RECORD,
-            WRITE_HEALTH);
+            WRITE_HEALTH,
+            // Đánh giá (US3): Bác sĩ, Điều dưỡng lập và sửa nháp; xác nhận chỉ Bác sĩ (quyền APPROVE, Phụ lục 27)
+            "CREATE_ASSESSMENT",
+            new PermissionKey(Function.ASSESSMENT_CARE_LEVEL, Operation.CREATE),
+            "CONFIRM_ASSESSMENT",
+            new PermissionKey(Function.ASSESSMENT_CARE_LEVEL, Operation.APPROVE));
 
     private final ResidentProfileService profiles;
     private final PermissionApi permissions;
