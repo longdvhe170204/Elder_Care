@@ -41,6 +41,27 @@ public class FakeAssignments implements AssignmentApi {
     }
 
     @Override
+    public List<Long> staffAssignedToResident(long residentId, Instant at) {
+        return assignedAt(at, a -> Long.valueOf(residentId).equals(a.residentId()));
+    }
+
+    @Override
+    public List<Long> staffAssignedToRoom(long roomId, Instant at) {
+        return assignedAt(at, a -> Long.valueOf(roomId).equals(a.roomId()));
+    }
+
+    // Bản giả chỉ xét phân công gắn thẳng đối tượng; bản thật của 008 tính cả phòng, tầng người cao tuổi đang ở
+    private List<Long> assignedAt(Instant at, java.util.function.Predicate<AssignmentView> target) {
+        return assignments.stream()
+                .filter(e -> target.test(e.assignment()))
+                .filter(e -> !e.assignment().from().isAfter(at)
+                        && (e.assignment().to() == null || e.assignment().to().isAfter(at)))
+                .map(Entry::staffId)
+                .distinct()
+                .toList();
+    }
+
+    @Override
     public List<AssignmentView> history(long staffId, Instant from, Instant to) {
         if (invalid.containsKey(staffId)) {
             throw invalid.get(staffId);

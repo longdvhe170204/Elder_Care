@@ -14,4 +14,14 @@ public interface AssignmentApi {
 
     /** Phân công có hiệu lực giao với khoảng đã cho (FR-035a). */
     List<AssignmentView> history(long staffId, Instant from, Instant to);
+
+    /**
+     * Nhân viên đang có phân công cho người cao tuổi tại thời điểm {@code at}, trực tiếp hoặc qua phòng, tầng người đó
+     * đang ở theo luật phân công của 008; trả id nhân viên. 009 dùng cho nhóm Điều dưỡng phụ trách, nhân viên phân công
+     * (009 FR-007 (a), BR-M13-04; "Đổi api" 2026-10-22).
+     */
+    List<Long> staffAssignedToResident(long residentId, Instant at);
+
+    /** Nhân viên đang có phân công cho phòng tại thời điểm {@code at}; trả id nhân viên (009 FR-007 (a)). */
+    List<Long> staffAssignedToRoom(long roomId, Instant at);
 }

@@ -82,6 +82,7 @@ Duyệt danh sách tài khoản Hoạt động có quyền vai trò, nhiệm v�
 ```java
 void khoaDoNghiViec(long nhanVienId, CanCu canCu);         // gọi trong transaction lệnh Cho nghỉ việc của 008 (FR-009, BR-M09-04)
 void xetLaiNguoiThan(long nguoiThanId, CanCu canCu);       // gọi trong transaction lệnh chấm dứt quan hệ của 012 (FR-049, BR-M15-14)
+List<TaiKhoanView> dangHoatDongCoVaiTro(VaiTro vaiTro); // bổ sung 2026-10-22: 009 nhóm (b); Hoạt động hoặc Khóa tạm (009 FR-008)
 Optional<TaiKhoanView> theoId(long taiKhoanId);           // bổ sung 2026-10-22: 000 báo người yêu cầu khi áp dụng không thành (000 FR-038);
                                                           // TaiKhoanView thêm nhanVienId (null với người thân, người cao tuổi)
 Optional<TaiKhoanView> theoNhanVien(long nhanVienId);      // 008: vai trò hệ thống để xếp ca (008 FR-002)
@@ -162,7 +163,7 @@ Chỉ endpoint nút SOS của 007 gọi hàm này (ArchUnit kiểm). Token thi�
 | `HoSoNhanVienApi.trangThai(nhanVienId, ngay)`; `chucDanhCoVaiTro(nhanVienId)`; *(bổ sung 2026-10-20)* `taoHoSoToiThieu(hoTen, chucDanh)` (T016, công cụ khởi tạo, BR-M15-22), `hoTen(nhanVienId)` (T032a) | M09 (008) | FR-004, FR-004a, FR-011, FR-004b | Bản giả |
 | `GiayPhepApi.hieuLuc(nhanVienId, loai, ngay)` trả giấy phép và mục phạm vi hành nghề | 008 (FR-006) | FR-037, FR-038, A-09 | Bản giả |
 | `DanhMucPhamViHanhNgheApi` | 008 | FR-037, BR-M15-19 | Bản giả |
-| `PhanCongApi.dangHieuLuc(nhanVienId, thoiDiem)`; `lichSu(nhanVienId, tu, den)` | 008 (FR-037a) | FR-028 → FR-035a | Bản giả |
+| `PhanCongApi.dangHieuLuc(nhanVienId, thoiDiem)`; `lichSu(nhanVienId, tu, den)`; *(bổ sung 2026-10-22 cho 009 FR-007 (a))* `nhanVienPhanCongChoNguoiCaoTuoi(nctId, thoiDiem)`, `nhanVienPhanCongChoPhong(phongId, thoiDiem)` (trực tiếp hoặc qua phòng, tầng theo luật 008) | 008 (FR-037a) | FR-028 → FR-035a; 009 BR-M13-04 | Bản giả |
 | `NhiemVuApi`: người phụ trách ca, trưởng tầng được giao (kể cả tạm), ca không có trưởng tầng, Phụ trách bộ phận, trưởng đoàn, người đi cùng, người nhận tại tầng. Plan 008 thêm `nguoiThayTruongTang(tang, t)` (Q-90), `boPhanCua(nv, t)`, `laPhuTrachBoPhan(nv)`; *(bổ sung 2026-10-20)* `thayPhuTrachBoPhan(nvDangGiu, nvThay, lyDo)` (T031, khóa tài khoản người đang là Phụ trách bộ phận, Q-292; `MANDATORY`, 008 kiểm người thay) | 008 (014 cho chuyến đi qua 008) | FR-019a → f, FR-031 | Bản giả |
 
 `HoSoNhanVienApi`, `GiayPhepApi`, `DanhMucPhamViHanhNgheApi`, `PhanCongApi`, `NhiemVuApi` được khai báo trong `m15.taikhoan.api` dưới dạng SPI, M09 cài, để không có vòng M15 ↔ M09 (bổ sung theo plan 008, research N-02); chữ ký giữ nguyên. 002 cung cấp thêm cho 008 hàm đọc `NghiepVuChuyenMonApi.loaiYeuCau(maNghiepVu)` (loại giấy phép/đào tạo của nghiệp vụ chuyên môn; 008 FR-030).
