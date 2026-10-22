@@ -24,8 +24,10 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo khung gói `BE/m03/{api,cocau,giuong,phanbo,cachly,bantru,lich}/` với `package-info.java`; gói `BE/m03/giuong/port/` là cổng duy nhất cho `m03.taisan` (019) gọi vào (research G-01)
-- [ ] T002 [P] Tạo bản giả SPI 003 khai báo (contracts mục 2.1) trong `BT/support/gia003/`: `NguonLuuTruChoPhanBo`, `DemLichDenBanTru` (004), `TinhTrangLayNhiemChoPhanBo` (007), `ThamChieuViTri` (008), và bản giả `TaiSanGiuongPort` (019) (research G-16)
+- [x] T001 Tạo khung tài liệu gói `BE/m03/api/`, `BE/m03/internal/{structure,bed,allocation,isolation,daycare}/`, `BE/m03/scheduling/` bằng `package-info.java` theo backend/README.md; cổng giữa giường 003 và tài sản 019 nằm ở `internal/bed/domain/`, không cho hai phần đọc trực tiếp dữ liệu của nhau (research G-01; test `FR_001_ModuleSetupTest`)
+- [x] T002 [P] Tạo bản giả trong `BT/support/fake/m03/`, nhập bằng `FakeM03Config`: `AllocationResidencySource`, `DayCareArrivalCounter` (004), `AllocationInfectionStatus` (007), `LocationReferences` (008), `BedAssetPort` (019); tên logic và chữ ký theo contracts mục 2.1, mục 3, glossary mục 9 (research G-16; test `FR_018_FakeM03Test`)
+
+**Ghi chú kỹ thuật Phase 1 (2026-10-22)**: đưa riêng khai báo bốn SPI, `BedAssetPort` và các kiểu chữ ký cần cho T002 từ T004 lên Phase 1 để bản giả biên dịch được. Không đổi thao tác trong hợp đồng, không thêm REST endpoint. T004 vẫn chưa xong: còn cổng lệnh tài sản giường, đối chiếu với API của T003 và hoàn thiện toàn bộ khai báo Phase 2. Xem plan mục "Ghi chú triển khai"; T001/T002 chỉ đánh `[x]` sau khi `clean verify` qua.
 
 ---
 
