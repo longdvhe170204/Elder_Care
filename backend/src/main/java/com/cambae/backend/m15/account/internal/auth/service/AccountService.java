@@ -699,6 +699,11 @@ public class AccountService implements AccountApi {
     }
 
     @Override
+    public List<AccountView> activeWithRole(Role role) {
+        return store.activeWithRole(role).stream().map(this::view).toList();
+    }
+
+    @Override
     public Optional<AccountView> byId(long accountId) {
         return store.find(accountId).map(this::view);
     }

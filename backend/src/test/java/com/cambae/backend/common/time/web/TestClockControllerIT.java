@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -33,6 +34,9 @@ class TestClockControllerIT extends MySqlIntegrationTestBase {
 
     @Autowired
     BusinessTime time;
+
+    @Autowired
+    JdbcTemplate jdbc;
 
     @AfterEach
     void resetClock() {
@@ -58,6 +62,30 @@ class TestClockControllerIT extends MySqlIntegrationTestBase {
         assertThat(time.today()).hasToString("2026-12-31");
         assertThat(Duration.between(Instant.parse("2026-12-31T16:59:00Z"), time.now()))
                 .isBetween(Duration.ZERO, Duration.ofSeconds(30));
+    }
+
+    @Test
+    void NFR_13_runJobs_runsM13FastAndDailyAtSimulatedTime() throws Exception {
+        // 009: hai job của M13 chạy tay được ở profile test, demo (chủ dự án duyệt thêm vào runJobs 2026-10-22)
+        int fastBefore = runs("M13_FAST");
+
+        mvc.perform(post("/api/v1/testing/clock")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"setTo\":\"2031-03-17T08:00:00+07:00\",\"runJobs\":[\"M13_FAST\",\"M13_DAILY\"]}"))
+                .andExpect(status().isOk());
+
+        assertThat(runs("M13_FAST")).isGreaterThan(fastBefore);
+        // Job hằng ngày chạy một lần mỗi ngày nghiệp vụ: đã có lần chạy cho ngày giả lập
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM scheduler_run WHERE job = 'M13_DAILY'"
+                                + " AND started_at >= '2031-03-17 00:30:00' AND started_at < '2031-03-18 00:00:00'",
+                        Integer.class))
+                .isEqualTo(1);
+    }
+
+    private int runs(String job) {
+        return jdbc.queryForObject("SELECT COUNT(*) FROM scheduler_run WHERE job = ?", Integer.class, job);
     }
 
     @Test

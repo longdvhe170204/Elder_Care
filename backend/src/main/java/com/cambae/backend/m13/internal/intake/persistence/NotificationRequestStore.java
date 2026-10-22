@@ -73,6 +73,14 @@ public class NotificationRequestStore {
 
     /** Lưu yêu cầu đã kiểm tra kèm phần nội dung và nhóm người nhận; trả id. */
     public long insert(ValidatedRequest v, Instant receivedAt) {
+        return insert(v, List.of(), receivedAt);
+    }
+
+    /**
+     * Lưu yêu cầu kèm kết quả xác định người nhận của từng nhóm theo thứ tự (FR-010); bảng chỉ cho thêm nên kết quả ghi
+     * cùng lần thêm.
+     */
+    public long insert(ValidatedRequest v, List<String> groupOutcomes, Instant receivedAt) {
         NotificationRequest r = v.request();
         GeneratedKeyHolder key = new GeneratedKeyHolder();
         jdbc.update(
@@ -130,13 +138,14 @@ public class NotificationRequestStore {
             Substitution s = g instanceof RecipientGroup.DutyGroup d ? d.substitution() : null;
             jdbc.update(
                     "INSERT INTO notification_request_recipient_group (request_id, seq, group_code, params,"
-                            + " substitution, substitute_group) VALUES (?, ?, ?, ?, ?, ?)",
+                            + " substitution, substitute_group, outcome) VALUES (?, ?, ?, ?, ?, ?, ?)",
                     id,
                     i + 1,
                     g.getClass().getSimpleName(),
                     json.writeValueAsString(g),
                     substitution(s),
-                    s instanceof Substitution.Designated des ? groupJson(des.substitute()) : null);
+                    s instanceof Substitution.Designated des ? groupJson(des.substitute()) : null,
+                    i < groupOutcomes.size() ? groupOutcomes.get(i) : null);
         }
         return id;
     }
