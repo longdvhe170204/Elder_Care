@@ -84,7 +84,8 @@ Optional<HoSoKetThucView> dangChuanBi(long nctId);              // hoSoKetThucId
 Optional<ThongTinQuyetToanView> thongTinQuyetToan(long nctId);  // 017 FR-034: loaiLuuTru, hopDongId, ngayBatDau, ngayKetThucDuKien,
     // truongHop (HET_HOP_DONG | XUAT_VIEN | CHUYEN_CO_SO | CHAM_DUT_HOP_DONG | QUA_DOI), ngayQuaDoi; rỗng khi không có hồ sơ kết thúc
     // Đang chuẩn bị, danh sách việc sau qua đời đang mở, hoặc hồ sơ đã ở trạng thái cuối
-boolean coNgoaiLeQuyetToanDaDuyet(long nctId);                  // 017 FR-034: ngoại lệ đã duyệt cho KT_H_QUYET_TOAN
+boolean coNgoaiLeQuyetToanDaDuyet(long nctId);                  // 017 FR-023, FR-034: ngoại lệ đã duyệt cho KT_H_QUYET_TOAN, căn cứ hồ sơ kết thúc
+                                                                //   Đang chuẩn bị hoặc danh sách việc sau qua đời đang mở (FR-071a, Q-387)
 ```
 
 ### 1.5a. `LuuTruThongKeApi` (016; bổ sung theo plan 016, research O-10)
@@ -132,7 +133,7 @@ DanhSachViecView xem(long nctId);
 | `YeuCauNguoiDaiDienCanHoanThien(yeuCauId)` | 009 (Hành chính) | FR-039 |
 | `HoSoKetThucDaLap`, `…DaDoiNgay`, `…DaHuy`, `…HoanTat` (`hoSoKetThucId`, `nctId`, ngày) | 010, 017, 018, 012 | FR-033a, FR-066 |
 | `QuaDoiDaGhiNhan(nctId, thoiDiem, banGhiId)` | 017, 018, 012 | FR-033a, FR-070 |
-| `NgoaiLeKetThucDaDuyet(hoSoKetThucId, nctId, maDieuKien)` (bổ sung 2026-10-22) | 017 (tính lại điều kiện quyết toán, FR-022, FR-034) | FR-064 |
+| `NgoaiLeKetThucDaDuyet(hoSoKetThucId, nctId, maDieuKien)` (bổ sung 2026-10-22; `hoSoKetThucId` rỗng khi ngoại lệ của mục quyết toán sau qua đời, Q-387) | 017 (tính lại điều kiện quyết toán, FR-022, FR-034) | FR-064 |
 | `NgayNghiBanTruDaDoi(ngay, hieuLuc)`; `BaoVangBanTruDaGhi(nctId, ngay, buoi, duHan)` | 005, 010, 011 | FR-060, FR-060a |
 | `PhienBanDonGiaDaTao(dichVuId, hieuLucTu, hieuLucDen)` (bổ sung theo plan 010): khi tạo phiên bản đơn giá, kể cả hiệu lực lùi cho khoảng chưa có phiên bản (DBR-08) | 010 (tính lại khoản thiếu đơn giá, 010 FR-012) | FR-034 → FR-036 |
 

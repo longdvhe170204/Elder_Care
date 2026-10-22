@@ -741,6 +741,15 @@ paths:
       x-fr: [FR-071, FR-072]
       parameters: [ { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/DanhSachViecSauQuaDoi' } } } } }
+  /nguoi-cao-tuoi/{nctId}/viec-sau-qua-doi/yeu-cau-ngoai-le-quyet-toan:
+    post:
+      tags: [qua-doi]
+      summary: Lập yêu cầu ngoại lệ cho mục quyết toán số dư và tiền cọc khi gia đình còn nợ (Hành chính, Kế toán; bổ sung 2026-10-22, Q-387)
+      description: 'Yêu cầu M02.NGOAI_LE_KET_THUC mã KT_H_QUYET_TOAN, căn cứ là danh sách việc sau qua đời đang mở; Quản lý viện duyệt. Chỉ thay ba ý về tiền; Kế toán vẫn phải xác nhận quyết toán (017 FR-023, FR-034). Mục khác không có ngoại lệ.'
+      x-fr: [FR-071a]
+      parameters: [ { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      responses: { '201': { description: Đã lập yêu cầu, content: { application/json: { schema: { $ref: '#/components/schemas/ThamChieuYeuCau' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/Loi' } }
 
 components:
   securitySchemes:

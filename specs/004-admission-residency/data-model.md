@@ -335,7 +335,7 @@ Bảng chuyển khớp dòng "Hồ sơ kết thúc lưu trú" của spec. Đổi
 
 ### `ngoai_le_dieu_kien` – nhóm 3
 
-`ho_so_ket_thuc_id`, `ma_dieu_kien ENUM('KT_A_CHI_PHI','KT_B_DO_GUI','KT_C_THUOC_GUI','KT_D_CANH_BAO_SU_CO','KT_H_QUYET_TOAN')`, `yeu_cau_phe_duyet_id` (`UNIQUE`), `thoi_diem`. Không có `KT_E_BAN_GIAO` (FR-064). Dòng do `apDung` của `M02.NGOAI_LE_KET_THUC` thêm.
+`ho_so_ket_thuc_id` (*sửa 2026-10-22, Q-387:* `NULL` khi căn cứ là danh sách việc sau qua đời), `nct_id` (*bổ sung 2026-10-22*), `ma_dieu_kien ENUM('KT_A_CHI_PHI','KT_B_DO_GUI','KT_C_THUOC_GUI','KT_D_CANH_BAO_SU_CO','KT_H_QUYET_TOAN')`, `yeu_cau_phe_duyet_id` (`UNIQUE`), `thoi_diem`. Không có `KT_E_BAN_GIAO` (FR-064). `CHECK (ho_so_ket_thuc_id IS NOT NULL OR ma_dieu_kien = 'KT_H_QUYET_TOAN')` (FR-071a). Dòng do `apDung` của `M02.NGOAI_LE_KET_THUC` thêm.
 
 ---
 

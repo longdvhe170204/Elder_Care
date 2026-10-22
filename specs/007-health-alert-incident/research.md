@@ -516,7 +516,7 @@ Mức (spec; dòng có * là plan áp nguyên tắc 3 bậc của 009 FR-043b, x
   - `PdfBieuMau`: khung trang A4, đầu trang thông tin viện (CFG-M11-11 qua `ThamSoApi`), chân trang số trang, bảng, ô ký, đóng dấu chữ (`dongDau(bytes, "Bản in lại")`). Font Be Vietnam Pro (OFL, cùng font của web) nhúng trong `resources/fonts/` để có đủ dấu tiếng Việt.
   - `ExcelBieuMau` (fastexcel, thư viện XLSX 010 đã chọn: `org.dhatim:fastexcel` ghi, `fastexcel-reader` đọc): ghi bảng có tiêu đề, định dạng tiền, ngày; đọc file `.xlsx` theo mẫu (dùng cho 008 import, 017 chứng từ, sao kê).
   - Lưu file: `FileApi.upload` + `attach` như trên; tệp hệ thống tạo dùng cùng giới hạn 10 MB. Kiểu `.xlsx` chưa nằm trong danh sách kiểu của `upload` (PDF, JPEG, PNG): plan 017 bổ sung kiểu này cho tệp do hệ thống tạo (không mở cho `POST /tep`).
-  - Thư viện: **OpenPDF** (`com.github.librepdf:openpdf`, LGPL 2.1 / MPL 2.0): Java thuần, bảng, nhúng font Unicode, đóng dấu lên PDF có sẵn; Excel dùng fastexcel đã chọn ở 010 (Apache 2.0), không thêm Apache POI. Bản cụ thể chốt khi thêm vào `pom.xml` (chủ dự án duyệt).
+  - Thư viện: **OpenPDF** (`com.github.librepdf:openpdf`, LGPL 2.1 / MPL 2.0): Java thuần, bảng, nhúng font Unicode, đóng dấu lên PDF có sẵn; Excel dùng fastexcel đã chọn ở 010 (Apache 2.0), không thêm Apache POI. Bản đã duyệt ở S-26: OpenPDF 3.0.5.
 - **Hiệu năng** (SC-021 ≤ 3 giây): phiếu một trang tới vài trang, dữ liệu đã có trong bộ nhớ; tải S3 một lần.
 
 **Lý do**: FR-050h đòi file lưu cùng lệnh, không sửa, tải lại đúng file; "Bản in lại" là lớp phủ lúc in nên file gốc không đổi. Một thành phần chung tránh ba cách dựng chứng từ khác nhau ở 007, 008, 017.
@@ -526,3 +526,20 @@ Mức (spec; dòng có * là plan áp nguyên tắc 3 bậc của 009 FR-043b, x
 - Apache PDFBox: giấy phép Apache 2.0 nhưng phải tự dàn bảng, ngắt trang.
 - Thư viện thương mại (iText 7+): AGPL hoặc phí.
 - Dựng PDF ở trình duyệt: không lưu được bản đã phát hành ở máy chủ, trái FR-050h.
+
+---
+
+## S-26. Bản thư viện đã duyệt *(2026-10-22)*
+
+*(Chủ dự án duyệt 2026-10-22; bản tra Maven Central, npm cùng ngày)*
+
+| Thư viện | Bản | Giấy phép | Ghi chú |
+| --- | --- | --- | --- |
+| OpenPDF `com.github.librepdf:openpdf` | 3.0.5 | LGPL 2.1 / MPL 2.0 | Dòng 3.x dùng gói `org.openpdf` (không còn `com.lowagie`). Kéo theo `brotli4j` (thư viện có phần native); khi thêm vào `pom.xml` kiểm build trên Windows và Linux, loại trừ nếu không cần nén Brotli. `icu4j`, Bouncy Castle, FOP là phụ thuộc tùy chọn, không kéo theo |
+| ZXing `com.google.zxing:core` | 3.5.4 | Apache 2.0 | Chỉ dùng `core` để tính ma trận mã QR; `PdfBieuMau` vẽ ma trận thành ô vuông trên PDF, không cần `javase`/AWT (017 research E-04) |
+| fastexcel `org.dhatim:fastexcel`, `fastexcel-reader` | 0.20.2 | Apache 2.0 | Thư viện XLSX 010 đã chọn; 008 thêm `fastexcel-reader` |
+| Leaflet (web) | 1.9.4 | BSD-2-Clause | Lớp bản đồ OpenStreetMap, ghi nguồn bản đồ trên màn; lưu lượng tải lớp bản đồ thấp (chỉ khi mở cảnh báo có vị trí ngoài viện) |
+| react-leaflet (web) | 5.0.0 | Hippocratic 2.1 | Yêu cầu React 19 (dự án dùng 19.2); nếu giấy phép này không phù hợp thì dùng Leaflet trực tiếp trong một component, không cần react-leaflet |
+| `geolocator`, `url_launcher` (app) | Chốt khi mở `mobile/` | | |
+
+Thêm vào `backend/pom.xml` và `frontend/package.json` lúc làm task (007 T104, T102; 017 T002; 008 T047), không thêm sẵn.

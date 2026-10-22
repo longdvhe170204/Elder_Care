@@ -297,6 +297,7 @@ Sự kiện không gửi thông báo, dành cho module khác: `HopDongDaDoiTrang
   Mọi mục xong thì đặt `luu_tru_nct.da_dong_luc` và dừng nhắc (FR-072). Dấu không gỡ được sau đó (FR-072 câu cuối).
 - **Giới hạn trường** (FR-069, BR-M02-21): `nguyenNhan` mang `@NhomTruong(SUC_KHOE)`. Hành chính và Kế toán không xem được, kể cả người đã ghi; người thân xem theo chú thích ¹. Bằng chứng do Hành chính tải lên thì người tải xem được (`QuyenTepProvider`).
 - **Bổ sung nguyên nhân** đi đường đính chính `M02.BAN_GHI_QUA_DOI`.
+- **Ngoại lệ mục quyết toán khi qua đời** *(bổ sung 2026-10-22, FR-071a, Q-387)*: `POST /nguoi-cao-tuoi/{nctId}/viec-sau-qua-doi/yeu-cau-ngoai-le-quyet-toan` (Hành chính, Kế toán; lý do) lập yêu cầu `M02.NGOAI_LE_KET_THUC` với `maDieuKien = KT_H_QUYET_TOAN`, căn cứ là danh sách việc sau qua đời đang mở; mục khác không lập được. `apDung` thêm `ngoai_le_dieu_kien` (`ho_so_ket_thuc_id` rỗng, `nct_id`), phát `NgoaiLeKetThucDaDuyet(null, nctId, KT_H_QUYET_TOAN)`. Mục chỉ Hoàn thành khi 017 trả `HOAN_THANH` (ba ý tiền miễn bằng ngoại lệ và Kế toán đã xác nhận quyết toán, không còn giao dịch Chờ duyệt); 004 không tự đổi trạng thái mục.
 
 ---
 

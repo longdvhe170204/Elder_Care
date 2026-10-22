@@ -29,6 +29,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()`, ArchUnit (ch�
 | # | Thao tác | Kết quả mong đợi | Spec |
 | --- | --- | --- | --- |
 | Q1 | Bản giả 004 phát `HopDongDaDoiTrangThai` → Chờ ký cho A; phát lại lần hai; trả về nháp rồi Chờ ký | Một sổ số dư 0, một sổ cọc 0, một mã nộp tiền; không mở thêm | US1 #1, #2, FR-001 |
+| Q1a | *(Bổ sung 2026-10-22)* QL mở tham số CFG-M11-10, chọn "Vietcombank" từ danh sách, nhập số tài khoản giả, tên chủ tài khoản; lưu với `maBin` không có trong danh mục; lưu với số tài khoản có chữ cái; xem số dư A | `GET /ngan-hang` trả danh sách còn hiệu lực; 422 hai lần sai; lưu đúng thì thông tin nộp tiền của A có ngân hàng, số tài khoản, chuỗi VietQR chứa `970436`. Trước khi nhập CFG-M11-10, cổng không có mục nộp tiền | FR-003 |
 | Q2 | KT, HC, DD xem số dư A; R, N mở cổng | KT, HC thấy (HC chỉ số dư, cọc, đặt cọc); DD 403; R thấy số dư, mã nộp tiền, chuỗi VietQR; N 403 | US1 #3 → #5, FR-003, FR-004 |
 | Q3 | KT ghi tiền mặt 10.000.000 đồng vào sổ cọc A; HC thử ghi | Cọc 10.000.000, đặt cọc Chưa đáp ứng; HC 403 | US2 #1, #5 |
 | Q4 | KT tìm A theo mã nộp tiền, ghi chuyển khoản 10.000.000 đồng sổ cọc mã NH001 | Cọc 20.000.000, đặt cọc Đã đáp ứng; 004 nhận `TrangThaiDatCocDaDoi` | US2 #2, US3 #1, FR-006 |
@@ -50,6 +51,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()`, ArchUnit (ch�
 | Q20 | Đính kèm bản ký vào phiên bản hiện hành; đính lần hai; vào phiên bản cũ | 200; 409; 409 | US10 #3 |
 | Q21 | Kỳ cuối chưa chốt; KT xác nhận | 409 "bảng kỳ cuối chưa chốt" | US10 #2 |
 | Q22 | Bản giả 004 ghi qua đời C; xem mục việc sau qua đời | `QUYET_TOAN` Chưa hoàn thành tới khi ba ý tiền Đạt và đã xác nhận; sổ chưa từng có giao dịch khác 0 → Không áp dụng | US7 #5, US10 #5, FR-023 |
+| Q22a | *(Q-387)* C qua đời còn nợ 2.000.000, cọc 0; bản giả 004 trả ngoại lệ đã duyệt; KT xác nhận quyết toán | 201, bảng ghi còn nợ 2.000.000, `coNgoaiLe`; mục `QUYET_TOAN` Hoàn thành; vẫn báo còn nợ tới khi số dư 0 hoặc QL dừng nhắc | US10 #5, FR-023 |
 | Q23 | Lệnh Kết thúc lưu trú đã chạy; bảng bổ sung chốt muộn | Giao dịch ghi; KT được nhắc mỗi ngày tới khi số dư 0 và xác nhận lại; hồ sơ không mở lại | US7 #6, FR-024 |
 | Q24 | Hợp đồng A hủy trước Hiệu lực khi cọc 20.000.000 | KT được nhắc lập hoàn cọc mỗi CFG-M02-09 tới khi cọc 0 | US2 #7, FR-015a |
 | Q25 | Danh sách chờ phát hành; KT phát hành phiếu bảng tháng 10 của A (15.200.000, số dư trước 10.000.000); phát hành lần hai | Có bảng tháng 10; phiếu mã `PBP-202610-<bangId>`, PDF và Excel; số dư sau −5.200.000, số còn nợ, mã nộp tiền, tài khoản, ảnh QR; dòng "Chứng từ này không thay thế hóa đơn"; lần hai 409 `DA_PHAT_HANH` | US9 #1, #2, FR-031, FR-032 |

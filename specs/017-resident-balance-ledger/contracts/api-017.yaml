@@ -48,6 +48,12 @@ paths:
         - { name: den, in: query, schema: { type: string, format: date } }
         - { name: trangThai, in: query, schema: { type: string, enum: [CHO_DUYET, DA_XAC_NHAN, TU_CHOI, DA_HUY] } }
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/GiaoDich' } } } } } }
+  /ngan-hang:
+    get:
+      tags: [so-du]
+      summary: Danh mục ngân hàng (mã BIN NAPAS) còn hiệu lực, cho ô chọn ngân hàng của CFG-M11-10 (Quản lý viện; bổ sung 2026-10-22)
+      x-fr: [FR-003]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/NganHang' } } } } } }
   /so-du/tim-theo-ma:
     get:
       tags: [nop-tien]
@@ -380,6 +386,12 @@ components:
         - type: object
           properties:
             giaoDichTrung: { type: array, items: { $ref: '#/components/schemas/GiaoDich' } }
+    NganHang:
+      type: object
+      properties:
+        maBin: { type: string, pattern: '^[0-9]{6}$' }
+        tenVietTat: { type: string }
+        tenDayDu: { type: string }
     ThongTinNopTien:
       type: object
       description: CFG-M11-10 và mã nộp tiền; vietQr là chuỗi payload EMVCo (không số tiền), client vẽ ảnh

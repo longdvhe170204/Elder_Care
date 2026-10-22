@@ -110,4 +110,6 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Q41 | Lập ngoại lệ với `maDieuKien = KT_H_XAC_NHAN_QUYET_TOAN` | 422 | FR-064 |
 | Q42 | Bản giả 017 gọi `HoSoKetThucDocApi.thongTinQuyetToan(A)` khi hồ sơ kết thúc Đang chuẩn bị; rồi với người qua đời B | Trả loại lưu trú, hợp đồng, ngày bắt đầu, ngày kết thúc dự kiến, trường hợp; B trả `QUA_DOI` kèm ngày qua đời | 017 FR-034 |
 
-Test: `NgoaiLeKetThucIT` mở rộng (Q39, Q41), `DieuKienKetThucIT` mở rộng (Q38, Q40), `HoSoKetThucDocApiIT` (Q42).
+| Q43 | *(Q-387)* B đã qua đời, còn nợ 3.000.000; Kế toán lập ngoại lệ mục quyết toán; QL duyệt; bản giả 017 trả mục `HOAN_THANH` sau khi Kế toán xác nhận; mọi mục khác xong; lập ngoại lệ cho mục đồ gửi | Yêu cầu `KT_H_QUYET_TOAN` căn cứ danh sách sau qua đời; 017 nhận `NgoaiLeKetThucDaDuyet` với `hoSoKetThucId` rỗng; hồ sơ lưu trú Đã đóng; mục đồ gửi không có endpoint ngoại lệ | FR-071a |
+
+Test: `NgoaiLeKetThucIT` mở rộng (Q39, Q41, Q43), `DieuKienKetThucIT` mở rộng (Q38, Q40), `HoSoKetThucDocApiIT` (Q42).

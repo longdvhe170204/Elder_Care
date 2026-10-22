@@ -12,7 +12,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 
 **Giai đoạn**: Theo mục "Giai đoạn hiện tại" của CLAUDE.md (constitution IX); task của `mobile/` chỉ làm khi mục đó mở phần mobile, trừ màn mẫu thiết kế.
 
-**Cập nhật 2026-10-22** (plan mục "Cập nhật 2026-10-22"; Q-379, Q-385): sửa câu chữ T039 (điều chỉnh có duyệt thay giao dịch đảo); thêm T106 → T108. Không đánh số lại.
+**Cập nhật 2026-10-22** (plan mục "Cập nhật 2026-10-22"; Q-379, Q-385): sửa câu chữ T039 (điều chỉnh có duyệt thay giao dịch đảo); thêm T106 → T108; Q-387 (chốt sau plan) thêm T109. Không đánh số lại.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
@@ -235,6 +235,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 - [ ] T063 [US8] Tạo `MIG/V004_09__qua_doi.sql`: `ban_ghi_qua_doi` (nhóm 3; `nct_id UNIQUE`; `nguyen_nhan VARCHAR(2000) NULL`) và `muc_viec_sau_qua_doi` (khóa chính `(ban_ghi_qua_doi_id, ma_muc)`; `ma_muc ENUM('DO_GUI','THUOC_GUI','CHI_PHI_KY_CUOI','CANH_BAO_SU_CO','QUYET_TOAN')`; `trang_thai ENUM('CHUA_HOAN_THANH','HOAN_THANH','KHONG_AP_DUNG')`) (data-model mục 10)
 - [ ] T064 [US8] Cài phần `GHI_NHAN_QUA_DOI` của `ThamGiaM02.java` (bản ghi qua đời, hợp đồng `CHAM_DUT`, `dongDoTrangThaiCuoi`) và `BE/m02/quadoi/internal/ViecSauQuaDoiService.java` (`DanhSachViecSauQuaDoiApi`; tính lại theo `MucViecSauQuaDoiPort`; đóng hồ sơ khi đủ; nhắc CFG-M02-09) và `DinhChinhDuocProvider` `M02.BAN_GHI_QUA_DOI` (research T-13)
 - [ ] T065 [US8] Tạo `BE/m02/quadoi/web/QuaDoiController.java`: `GET /nguoi-cao-tuoi/{nctId}/ban-ghi-qua-doi`, `POST /ban-ghi-qua-doi/{id}/dinh-chinh`, `GET /nguoi-cao-tuoi/{nctId}/viec-sau-qua-doi`; màn web `frontend/src/tinh-nang/qua-doi/`
+- [ ] T109 [US8] *(Bổ sung 2026-10-22, FR-071a, Q-387)* Ngoại lệ mục quyết toán sau qua đời: cột `nct_id`, `ho_so_ket_thuc_id` rỗng được và `CHECK` ở `ngoai_le_dieu_kien` (migration của 004 lúc làm); endpoint `POST /nguoi-cao-tuoi/{nctId}/viec-sau-qua-doi/yeu-cau-ngoai-le-quyet-toan`; handler `M02.NGOAI_LE_KET_THUC` nhận căn cứ danh sách việc sau qua đời; `coNgoaiLeQuyetToanDaDuyet` trả cả hai căn cứ; nút trên màn danh sách việc sau qua đời; test mở rộng `NgoaiLeKetThucIT` (quickstart Q43)
 
 **Checkpoint**: Qua đời chạy độc lập.
 
