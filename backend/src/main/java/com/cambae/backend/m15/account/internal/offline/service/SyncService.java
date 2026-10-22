@@ -178,7 +178,7 @@ public class SyncService {
         String reference = handler.apply(content, outcome, r.deviceTime());
         if (!stillAllowed) {
             events.publishEvent(new RecordSyncedAfterPermissionLoss(
-                    r.recordType(), reference, floor(target, r.deviceTime(), syncAt)));
+                    r.recordType(), reference, floor(target, r.deviceTime(), syncAt), syncAt));
         }
         return new RecordResult(r.idempotencyKey(), outcome.result(), outcome.reason(), reference);
     }
@@ -225,7 +225,7 @@ public class SyncService {
                 .details(Map.of("recordType", r.recordType(), "pendingReason", reason.name()))
                 .deviceTime(r.deviceTime())
                 .build());
-        events.publishEvent(new RecordPendingReview(id, floor));
+        events.publishEvent(new RecordPendingReview(id, floor, syncAt));
         return new RecordResult(
                 r.idempotencyKey(), SyncResult.PENDING_REVIEW, reason.name(), OfflineAuditActions.ENTITY + "/" + id);
     }

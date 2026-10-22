@@ -699,6 +699,11 @@ public class AccountService implements AccountApi {
     }
 
     @Override
+    public Optional<AccountView> byId(long accountId) {
+        return store.find(accountId).map(this::view);
+    }
+
+    @Override
     public Optional<AccountView> byStaff(long staffId) {
         return store.byStaff(staffId).map(this::view);
     }
@@ -739,6 +744,11 @@ public class AccountService implements AccountApi {
     }
 
     private AccountView view(Account account) {
-        return new AccountView(account.id(), account.type(), account.status(), Set.copyOf(store.roles(account.id())));
+        return new AccountView(
+                account.id(),
+                account.type(),
+                account.status(),
+                Set.copyOf(store.roles(account.id())),
+                account.staffId());
     }
 }
