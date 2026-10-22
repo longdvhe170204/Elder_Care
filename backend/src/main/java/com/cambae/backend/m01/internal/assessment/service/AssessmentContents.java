@@ -59,14 +59,16 @@ class AssessmentContents {
         if (current != null && current.corrected()) {
             corrected = true;
             if (current.content() instanceof Map<?, ?> map) {
-                if (map.containsKey(COMMENT)) {
+                // Form đính chính dùng chung gửi mọi ô: nhận xét và mức để trống là giữ nguyên, lưu ý để trống là bỏ
+                // lưu ý
+                if (blankToNull(map.get(COMMENT)) != null) {
                     comment = blankToNull(map.get(COMMENT));
                 }
                 if (map.containsKey(CARE_NOTE)) {
                     careNote = blankToNull(map.get(CARE_NOTE));
                 }
-                if (map.get(CARE_LEVEL) != null) {
-                    level = CareLevel.valueOf(map.get(CARE_LEVEL).toString());
+                if (blankToNull(map.get(CARE_LEVEL)) != null) {
+                    level = CareLevel.valueOf(blankToNull(map.get(CARE_LEVEL)));
                 }
             }
         }
