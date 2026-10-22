@@ -66,6 +66,19 @@ public class DeliveryStore {
                 accountId);
     }
 
+    /** Đăng ký hoặc cập nhật token FCM của thiết bị đang đăng nhập (research B-05); token mới bỏ dấu vô hiệu. */
+    public void registerToken(long accountId, String deviceId, String app, String fcmToken, Instant at) {
+        jdbc.update(
+                "INSERT INTO push_device (account_id, device_id, app, fcm_token, updated_at) VALUES (?, ?, ?, ?, ?)"
+                        + " ON DUPLICATE KEY UPDATE app = VALUES(app), fcm_token = VALUES(fcm_token),"
+                        + " updated_at = VALUES(updated_at), invalidated_at = NULL",
+                accountId,
+                deviceId,
+                app,
+                fcmToken,
+                utc(at));
+    }
+
     /** FCM báo token hết hạn: không đẩy tới token này nữa. */
     public void invalidateToken(String token, Instant at) {
         jdbc.update(
