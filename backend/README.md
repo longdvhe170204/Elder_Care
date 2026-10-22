@@ -19,7 +19,7 @@ Test `*IT` cần MySQL đang chạy và biến `TEST_DB_URL`, `TEST_DB_ADMIN_USE
 
 | Gói | Nội dung |
 | --- | --- |
-| `common/` | Thành phần kỹ thuật dùng chung (đồng hồ, lỗi, nhóm dữ liệu, lập lịch, web). Không chứa dữ liệu nghiệp vụ; không dùng để né ranh giới module. A giữ |
+| `common/` | Thành phần kỹ thuật dùng chung (đồng hồ, lỗi, nhóm dữ liệu, lập lịch, web, tệp `file`, chứng từ PDF và Excel `document`, khuôn thông báo). Không chứa dữ liệu nghiệp vụ; không dùng để né ranh giới module. A giữ |
 | `m01/` … `m15/` | 15 application module của Spring Modulith, mỗi module một chủ. Mỗi module có `package-info.java` gắn `@ApplicationModule` |
 
 M15 có sáu phần, mỗi phần theo cấu trúc như một module: `account`, `approval`, `auditlog`, `correction`, `parameter`, `retention`.
