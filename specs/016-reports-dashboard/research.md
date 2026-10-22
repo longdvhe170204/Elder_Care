@@ -164,3 +164,10 @@ Stream<PhongCachLyView> phongCachLy(PhamViLoc phamVi, Instant t);
 
 **Quyết định**: Chỉ tiêu mới thuộc nhóm sức khỏe: lọc `CanhBaoBaoCaoView.nguon = SOS`; số lần là số cảnh báo (không phải số lần bấm); thời gian từ `lan_dau_luc` đến `tiep_nhan_luc`, theo mức lúc tiếp nhận như FR-041; cảnh báo chưa tiếp nhận không vào thời gian, vẫn vào số lần. Phạm vi, giới hạn trường như các chỉ tiêu cảnh báo khác.
 
+---
+
+## O-13. Cảnh báo nút hỗ trợ khẩn cấp và thời gian tới nơi *(bổ sung 2026-10-22; FR-041, Q-374, Q-375)*
+
+**Quyết định**: Mở rộng chỉ tiêu của O-12 thành `SK.CANH_BAO_SOS_HO_TRO` (contracts/chi-tieu.md): mỗi nguồn `SOS`, `NUT_HO_TRO` của `CanhBaoThongKeApi.canhBao` một dòng theo tầng: số cảnh báo; thời gian tạo → tiếp nhận (như O-12); thời gian tạo → tới nơi (trung bình, lớn nhất, chỉ cảnh báo có `daToiNoiLuc`); số cảnh báo `khongGhiMocToiNoi`. Cảnh báo nút hỗ trợ không có người cao tuổi dùng tầng của cảnh báo; tầng rỗng → dòng "chưa rõ tầng". Phạm vi người xem theo tầng như các chỉ tiêu cảnh báo khác; cảnh báo không gắn người cao tuổi chỉ lọc theo tầng. Mọi cảnh báo vẫn đếm trong tổng theo mức.
+
+**Lý do**: 007 FR-081 đã cung cấp nguồn, mốc tới nơi và dấu; 016 chỉ tổng hợp (FR-001 của 016).

@@ -1,14 +1,16 @@
 openapi: 3.1.0
 info:
   title: Elder Care – Feature 017 (số dư và thu chi)
-  version: 1.0.0-design
+  version: 2.0.0-design
   description: |
-    Hợp đồng REST của feature 017 (module M11, gói m11.sodu). Quy ước chung theo research R-03 của 000:
-    tiền tố /api/v1, lỗi RFC 9457 có maLoi và dieuKienChuaThoa[], Idempotency-Key cho mọi lệnh ghi.
-    Không có endpoint sửa hay xóa giao dịch; sai sót đi qua giao dịch đảo có duyệt (DBR-17, DBR-28).
-    Hoàn tiền, hoàn cọc, điều chỉnh, cặp chuyển tiền, đảo là loại yêu cầu M11.GIAO_DICH_SO_DU của 000;
-    Quản lý viện duyệt qua lệnh của 017 dưới đây (kiểm lại giới hạn, người nhận tại lúc duyệt).
-    Không có thanh toán trực tuyến (Q-285). Người thân dùng /cong/** khi có quyền xem chi phí.
+    Hợp đồng REST của feature 017 (module M11, gói m11.sodu), lập lại 2026-10-22 theo spec viết lại (Q-377 → Q-379, Q-381, Q-385, Q-386).
+    Quy ước chung theo research R-03 của 000: tiền tố /api/v1, lỗi RFC 9457 có maLoi và dieuKienChuaThoa[], Idempotency-Key cho mọi lệnh ghi.
+    Không có endpoint sửa, xóa, hủy giao dịch Đã xác nhận; sai sót đi qua giao dịch điều chỉnh có duyệt (FR-011). Không có giao dịch đảo,
+    số phiếu thu chi, chốt quỹ ngày, nhập sao kê ngân hàng (Q-385).
+    Hoàn tiền, hoàn cọc, điều chỉnh là loại yêu cầu M11.GIAO_DICH_SO_DU của 000; Quản lý viện duyệt, từ chối và Kế toán hủy qua API yêu cầu phê duyệt của 000
+    (api-000); handler của 017 kiểm lại giới hạn và người nhận tại lúc duyệt (research E-06).
+    Chứng từ (phiếu báo phí, bảng quyết toán) và file xuất được dựng một lần, lưu cùng bản ghi; tải lại trả đúng file đã lưu (FR-037).
+    Không có thanh toán trực tuyến (Q-285). Người thân dùng /cong/** khi có quyền xem chi phí (chú thích ¹⁶).
     Truy vết: mỗi operation có x-fr (FR của spec 017) và x-br khi có.
 servers:
   - url: /api/v1
@@ -16,22 +18,24 @@ security:
   - phien: []
 tags:
   - { name: so-du, description: 'UC-85; mục A' }
-  - { name: thu, description: 'UC-12, UC-85, UC-93; mục B' }
-  - { name: sao-ke, description: 'UC-86; mục B' }
+  - { name: nop-tien, description: 'UC-12, UC-85, UC-86; mục B' }
   - { name: giao-dich, description: 'Mục C' }
   - { name: tinh-trang, description: 'UC-87; mục D' }
-  - { name: quyet-toan, description: 'Mục E' }
+  - { name: quyet-toan, description: 'UC-101; mục E, J' }
+  - { name: phieu-bao-phi, description: 'UC-100; mục J' }
   - { name: xuat, description: 'UC-88; mục F' }
-  - { name: cong, description: 'FR-003, FR-026' }
+  - { name: cong, description: 'FR-003, FR-026, FR-038' }
 
 paths:
+  # ---------------- Sổ ----------------
   /nguoi-cao-tuoi/{nctId}/so-du:
     get:
       tags: [so-du]
-      summary: Số dư, số dư cọc, tình trạng, trạng thái đặt cọc, mã nộp tiền (Kế toán, Hành chính, Quản lý viện)
-      x-fr: [FR-002, FR-004, FR-006]
+      summary: Số dư, số dư cọc, tình trạng, trạng thái đặt cọc, mã nộp tiền, thông tin nộp tiền (Kế toán, Hành chính, Quản lý viện)
+      description: 'Hành chính chỉ nhận số dư, số dư cọc, trạng thái đặt cọc (truongBiAn liệt kê phần còn lại).'
+      x-fr: [FR-002, FR-003, FR-004, FR-006]
       parameters: [ { $ref: '#/components/parameters/NctId' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SoDu' } } } }, '403': { $ref: '#/components/responses/Loi' } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SoDu' } } } }, '403': { $ref: '#/components/responses/Loi' }, '404': { $ref: '#/components/responses/Loi' } }
   /nguoi-cao-tuoi/{nctId}/giao-dich:
     get:
       tags: [so-du]
@@ -42,157 +46,315 @@ paths:
         - { name: so, in: query, schema: { type: string, enum: [SO_DU, COC] } }
         - { name: tu, in: query, schema: { type: string, format: date } }
         - { name: den, in: query, schema: { type: string, format: date } }
+        - { name: trangThai, in: query, schema: { type: string, enum: [CHO_DUYET, DA_XAC_NHAN, TU_CHOI, DA_HUY] } }
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/GiaoDich' } } } } } }
+  /ngan-hang:
+    get:
+      tags: [so-du]
+      summary: Danh mục ngân hàng (mã BIN NAPAS) còn hiệu lực, cho ô chọn ngân hàng của CFG-M11-10 (Quản lý viện; bổ sung 2026-10-22)
+      x-fr: [FR-003]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/NganHang' } } } } } }
+  /so-du/tim-theo-ma:
+    get:
+      tags: [nop-tien]
+      summary: Tìm hồ sơ theo mã nộp tiền đọc từ nội dung chuyển khoản (Kế toán)
+      description: 'Không phân biệt hoa thường, bỏ khoảng trắng và gạch nối; ký tự kiểm tra sai trả 404 (research E-04).'
+      x-fr: [FR-007]
+      parameters: [ { name: ma, in: query, required: true, schema: { type: string } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SoDu' } } } }, '404': { $ref: '#/components/responses/Loi' } }
 
-  /phieu-thu:
+  # ---------------- Ghi nhận tiền nộp ----------------
+  /nguoi-cao-tuoi/{nctId}/nop-tien-mat:
     post:
-      tags: [thu]
-      summary: Ghi phiếu thu tiền mặt vào số dư hoặc sổ cọc (Kế toán); cấp số phiếu; Đã xác nhận ngay
+      tags: [nop-tien]
+      summary: Kế toán ghi nhận khoản nộp tiền mặt vào số dư hoặc sổ cọc; Đã xác nhận ngay; không cấp số phiếu
       x-fr: [FR-005, FR-006, FR-018]
-      x-br: [BR-M11-10, BR-M11-16]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/PhieuThu' } } } }
-      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/GiaoDich' } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /chot-quy-ngay:
-    get:
-      tags: [thu]
-      summary: Chốt quỹ ngày; ngày có giao dịch tiền mặt chưa chốt
-      x-fr: [FR-005a]
-      parameters: [ { name: tu, in: query, schema: { type: string, format: date } }, { name: den, in: query, schema: { type: string, format: date } } ]
-      responses: { '200': { description: OK } }
-    post:
-      tags: [thu]
-      summary: Lập chốt quỹ cho một ngày (Kế toán); tổng thu, chi, phải có tính từ giao dịch
-      x-fr: [FR-005a]
       x-br: [BR-M11-16]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ngay, thucCo], properties: { ngay: { type: string, format: date }, thucCo: { type: integer, format: int64 }, lyDo: { type: string } } } } } }
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /chot-quy-ngay/{id}/{lenh}:
+      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [so, soTien, nguoiNop, thoiDiemThu]
+              properties:
+                so: { type: string, enum: [SO_DU, COC] }
+                soTien: { type: integer, format: int64, minimum: 1 }
+                nguoiNop: { type: string, minLength: 1 }
+                thoiDiemThu: { type: string, format: date-time }
+                ghiChu: { type: string, description: 'Ghi được số chứng từ của phần mềm kế toán' }
+      responses:
+        '201': { description: Giao dịch và tình trạng sau khi nộp, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaNop' } } } }
+        '403': { $ref: '#/components/responses/Loi' }
+        '409': { $ref: '#/components/responses/LoiChan' }
+        '422': { $ref: '#/components/responses/Loi' }
+  /nguoi-cao-tuoi/{nctId}/nop-chuyen-khoan:
     post:
-      tags: [thu]
-      summary: "xac-nhan, tra-lai (lý do) – Quản lý viện"
-      x-fr: [FR-005a]
-      parameters:
-        - { $ref: '#/components/parameters/Id' }
-        - { name: lenh, in: path, required: true, schema: { type: string, enum: [xac-nhan, tra-lai] } }
-        - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { content: { application/json: { schema: { type: object, properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-
-  /sao-ke/nhap:
-    post:
-      tags: [sao-ke]
-      summary: Nhập sao kê Excel/CSV; khớp mã nộp tiền; trả số dòng nhận, bỏ qua, từ chối
-      x-fr: [FR-007, FR-008]
+      tags: [nop-tien]
+      summary: Kế toán ghi nhận khoản chuyển khoản đã về tài khoản của viện; nhiều dòng (khác sổ) cùng mã giao dịch ngân hàng
+      description: 'Mã giao dịch ngân hàng đã dùng ở giao dịch khác → 409 MA_GIAO_DICH_DA_DUNG kèm giao dịch trước; gửi lại với xacNhanTrungMa = true thì lưu (DBR-29). Không nhập file sao kê, không tự khớp.'
+      x-fr: [FR-007, FR-006, FR-018]
       x-br: [BR-M11-12]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { multipart/form-data: { schema: { type: object, required: [tep], properties: { tep: { type: string, format: binary }, mauCot: { type: string } } } } } }
-      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaNhap' } } } }, '422': { $ref: '#/components/responses/Loi' } }
-  /sao-ke/dong:
-    get:
-      tags: [sao-ke]
-      summary: Dòng sao kê theo trạng thái (Kế toán, Quản lý viện)
-      x-fr: [FR-008, FR-009, FR-029]
-      parameters: [ { name: trangThai, in: query, schema: { type: string, enum: [DA_KHOP, CHUA_KHOP, DA_GHI_NHAN, KHONG_THUOC_NCT] } }, { name: lanNhapId, in: query, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DongSaoKe' } } } } } }
-  /sao-ke/dong/{id}/{lenh}:
-    post:
-      tags: [sao-ke]
-      summary: "xac-nhan (vào SO_DU hoặc COC), gan (hồ sơ, lý do), bo-khop (lý do), khong-thuoc-nct (lý do)"
-      x-fr: [FR-009, FR-018]
-      x-br: [BR-M11-12]
-      parameters:
-        - { $ref: '#/components/parameters/Id' }
-        - { name: lenh, in: path, required: true, schema: { type: string, enum: [xac-nhan, gan, bo-khop, khong-thuoc-nct] } }
-        - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { content: { application/json: { schema: { type: object, properties: { so: { type: string, enum: [SO_DU, COC] }, nctId: { type: integer, format: int64 }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dong, ngayNhan, maGiaoDichNganHang]
+              properties:
+                dong:
+                  type: array
+                  minItems: 1
+                  maxItems: 2
+                  items:
+                    type: object
+                    required: [so, soTien]
+                    properties:
+                      so: { type: string, enum: [SO_DU, COC] }
+                      soTien: { type: integer, format: int64, minimum: 1 }
+                ngayNhan: { type: string, format: date }
+                maGiaoDichNganHang: { type: string, minLength: 1 }
+                nguoiNop: { type: string }
+                ghiChu: { type: string }
+                xacNhanTrungMa: { type: boolean, default: false }
+      responses:
+        '201': { description: Các giao dịch và tình trạng sau khi nộp, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaNop' } } } }
+        '403': { $ref: '#/components/responses/Loi' }
+        '409': { description: 'MA_GIAO_DICH_DA_DUNG (kèm giaoDichTrung), CHUA_CO_SO', content: { application/problem+json: { schema: { $ref: '#/components/schemas/LoiTrungMa' } } } }
+        '422': { $ref: '#/components/responses/Loi' }
 
+  # ---------------- Giao dịch cần duyệt, cấn trừ ----------------
   /giao-dich:
     post:
       tags: [giao-dich]
-      summary: Lập hoàn tiền, hoàn cọc, điều chỉnh, cặp điều chỉnh chuyển tiền, giao dịch đảo (Chờ duyệt)
-      x-fr: [FR-009a, FR-010, FR-011, FR-013, FR-014]
+      summary: Kế toán lập hoàn tiền, hoàn cọc hoặc điều chỉnh (Chờ duyệt); tạo yêu cầu M11.GIAO_DICH_SO_DU của 000
+      description: 'Duyệt, từ chối (Quản lý viện) và hủy (Kế toán) qua API yêu cầu phê duyệt của 000; lúc duyệt kiểm lại giới hạn, người nhận (FR-014). Điều chỉnh không trỏ giao dịch Thanh toán bảng chi phí (FR-011).'
+      x-fr: [FR-010, FR-011, FR-013, FR-014]
       x-br: [BR-M11-10, BR-M11-14]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LapGiaoDich' } } } }
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /giao-dich/can-tru-coc:
-    post:
-      tags: [giao-dich]
-      summary: Cấn trừ tiền cọc (Kế toán, không duyệt); cặp hai giao dịch trong một lệnh
-      x-fr: [FR-015]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nctId, soTien], properties: { nctId: { type: integer, format: int64 }, soTien: { type: integer, format: int64, minimum: 1 }, ghiChu: { type: string } } } } } }
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+      responses:
+        '201': { description: Giao dịch Chờ duyệt, content: { application/json: { schema: { $ref: '#/components/schemas/GiaoDich' } } } }
+        '403': { $ref: '#/components/responses/Loi' }
+        '409': { $ref: '#/components/responses/LoiChan' }
+        '422': { $ref: '#/components/responses/Loi' }
   /giao-dich/cho-duyet:
     get:
       tags: [giao-dich]
-      summary: Giao dịch Chờ duyệt (Quản lý viện)
+      summary: Giao dịch Chờ duyệt (Quản lý viện, Kế toán) kèm kết quả kiểm tra hiện tại
       x-fr: [FR-013]
-      responses: { '200': { description: OK } }
-  /giao-dich/{id}/{lenh}:
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/GiaoDich' } } } } } }
+  /nguoi-cao-tuoi/{nctId}/can-tru-coc:
     post:
       tags: [giao-dich]
-      summary: "duyet, tu-choi (lý do) – Quản lý viện; huy (lý do) – Kế toán. Cặp được áp cùng nhau"
-      x-fr: [FR-009a, FR-013, FR-014]
-      x-br: [BR-M11-10, BR-M11-14]
-      parameters:
-        - { $ref: '#/components/parameters/Id' }
-        - { name: lenh, in: path, required: true, schema: { type: string, enum: [duyet, tu-choi, huy] } }
-        - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { content: { application/json: { schema: { type: object, properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+      summary: Kế toán cấn trừ tiền cọc vào số dư âm (cặp hai giao dịch liên kết, không duyệt)
+      x-fr: [FR-015]
+      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [soTien], properties: { soTien: { type: integer, format: int64, minimum: 1 }, ghiChu: { type: string } } } } } }
+      responses:
+        '201': { description: Cặp giao dịch, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/GiaoDich' } } } } }
+        '409': { $ref: '#/components/responses/LoiChan' }
 
+  # ---------------- Tình trạng ----------------
   /tinh-trang-so-du:
     get:
       tags: [tinh-trang]
-      summary: Danh sách hồ sơ Sắp hết tiền, Còn nợ, số ngày còn đủ tiền (Kế toán, Quản lý viện)
-      x-fr: [FR-016, FR-017]
+      summary: Danh sách hồ sơ Sắp hết tiền, Còn nợ (Kế toán, Quản lý viện)
+      x-fr: [FR-016, FR-017, FR-018]
       x-br: [BR-M11-13]
-      responses: { '200': { description: OK } }
+      parameters: [ { name: tinhTrang, in: query, schema: { type: string, enum: [SAP_HET_TIEN, CON_NO] } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/SoDu' } } } } } }
   /nguoi-cao-tuoi/{nctId}/so-du/dung-nhac:
     post:
       tags: [tinh-trang]
-      summary: Quản lý viện ghi "dừng nhắc" cho hồ sơ trạng thái cuối còn nợ (lý do)
+      summary: Quản lý viện ghi "dừng nhắc" cho hồ sơ trạng thái cuối còn nợ
       x-fr: [FR-020]
       parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
 
+  # ---------------- Quyết toán ----------------
   /nguoi-cao-tuoi/{nctId}/quyet-toan:
     get:
       tags: [quyet-toan]
-      summary: Điều kiện "số dư và tiền cọc đã quyết toán" kèm lý do
-      x-fr: [FR-022, FR-023]
+      summary: Điều kiện quyết toán (hai mã) và các phiên bản bảng quyết toán
+      x-fr: [FR-022, FR-023, FR-034]
       parameters: [ { $ref: '#/components/parameters/NctId' } ]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/QuyetToan' } } } } }
+  /nguoi-cao-tuoi/{nctId}/quyet-toan/xac-nhan:
+    post:
+      tags: [quyet-toan]
+      summary: Kế toán Xác nhận quyết toán; dựng bảng quyết toán PDF phiên bản mới
+      description: 'Điều kiện: hồ sơ kết thúc Đang chuẩn bị, danh sách việc sau qua đời đang mở hoặc hồ sơ trạng thái cuối có giao dịch sau lần xác nhận trước; ba ý tiền đạt hoặc có ngoại lệ đã duyệt (chỉ hồ sơ kết thúc lưu trú); không còn giao dịch Chờ duyệt (không miễn được, BR-M11-22). Không đạt → 409 kèm dieuKienChuaThoa.'
+      x-fr: [FR-022, FR-024, FR-034, FR-037]
+      x-br: [BR-M11-22, BR-M11-23]
+      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses:
+        '201': { description: Phiên bản bảng quyết toán, content: { application/json: { schema: { $ref: '#/components/schemas/BangQuyetToan' } } } }
+        '403': { $ref: '#/components/responses/Loi' }
+        '409': { $ref: '#/components/responses/LoiChan' }
+  /bang-quyet-toan/{id}/ban-ky:
+    post:
+      tags: [quyet-toan]
+      summary: Kế toán đính kèm bản scan có chữ ký của người đại diện vào phiên bản hiện hành (một lần; không đổi điều kiện)
+      x-fr: [FR-034]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [tepId], properties: { tepId: { type: integer, format: int64 } } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /bang-quyet-toan/{id}/file:
+    get:
+      tags: [quyet-toan]
+      summary: Tải đúng file PDF đã lưu của phiên bản; ghi lần tải
+      x-fr: [FR-037]
+      x-br: [BR-M11-23]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: PDF, content: { application/pdf: { schema: { type: string, format: binary } } } }, '403': { $ref: '#/components/responses/Loi' } }
 
-  /xuat/so-du:
+  # ---------------- Phiếu báo phí ----------------
+  /phieu-bao-phi/cho-phat-hanh:
+    get:
+      tags: [phieu-bao-phi]
+      summary: Bảng chi phí Đã chốt (đã có giao dịch thanh toán) chưa phát hành phiếu (Kế toán)
+      x-fr: [FR-031]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BangChoPhatHanh' } } } } } }
+  /bang-chi-phi/{bangId}/phieu-bao-phi:
+    post:
+      tags: [phieu-bao-phi]
+      summary: Kế toán phát hành phiếu báo phí (PDF và Excel) cho một bảng Đã chốt; mỗi bảng tối đa một phiếu
+      x-fr: [FR-031, FR-032, FR-037, FR-030]
+      x-br: [BR-M11-21, BR-M11-23]
+      parameters: [ { name: bangId, in: path, required: true, schema: { type: integer, format: int64 } }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses:
+        '201': { description: Phiếu, content: { application/json: { schema: { $ref: '#/components/schemas/PhieuBaoPhi' } } } }
+        '403': { $ref: '#/components/responses/Loi' }
+        '409': { description: 'DA_PHAT_HANH, BANG_CHUA_THANH_TOAN', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
+  /nguoi-cao-tuoi/{nctId}/phieu-bao-phi:
+    get:
+      tags: [phieu-bao-phi]
+      summary: Phiếu báo phí của hồ sơ (Kế toán, Quản lý viện)
+      x-fr: [FR-031]
+      parameters: [ { $ref: '#/components/parameters/NctId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PhieuBaoPhi' } } } } } }
+  /phieu-bao-phi/{id}/file:
+    get:
+      tags: [phieu-bao-phi]
+      summary: Tải đúng file đã lưu (PDF hoặc XLSX); ghi lần tải
+      x-fr: [FR-037]
+      x-br: [BR-M11-23]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/DinhDang' } ]
+      responses:
+        '200':
+          description: File
+          content:
+            application/pdf: { schema: { type: string, format: binary } }
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: { schema: { type: string, format: binary } }
+        '403': { $ref: '#/components/responses/Loi' }
+
+  # ---------------- Xuất ----------------
+  /xuat/sao-ke:
     post:
       tags: [xuat]
-      summary: "Xuất Excel: SAO_KE (hồ sơ, khoảng), THU_CHI (khoảng), SO_COC (khoảng); khoảng ≤ CFG-M14-01"
+      summary: Xuất sao kê số dư (gồm giao dịch tiền cọc) của một hoặc nhiều hồ sơ, Excel hoặc PDF (Kế toán; Quản lý viện xem được)
       x-fr: [FR-025, FR-027]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [loai, tu, den], properties: { loai: { type: string, enum: [SAO_KE, THU_CHI, SO_COC] }, nctIds: { type: array, items: { type: integer, format: int64 } }, tu: { type: string, format: date }, den: { type: string, format: date } } } } } }
-      responses: { '201': { description: 'Mã tệp để tải' }, '422': { $ref: '#/components/responses/Loi' } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nctIds, tu, den, dinhDang]
+              properties:
+                nctIds: { type: array, minItems: 1, items: { type: integer, format: int64 } }
+                tu: { type: string, format: date }
+                den: { type: string, format: date }
+                dinhDang: { type: string, enum: [XLSX, PDF] }
+      responses: { '201': { description: Lần xuất, content: { application/json: { schema: { $ref: '#/components/schemas/LanXuat' } } } }, '422': { description: 'VUOT_KHOANG_XUAT (CFG-M14-01)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } } }
+  /xuat/bao-cao-thu-chi:
+    post:
+      tags: [xuat]
+      summary: Xuất báo cáo thu chi thu gọn theo khoảng, Excel hoặc PDF (Q-386)
+      x-fr: [FR-025, FR-027]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tu, den, dinhDang]
+              properties:
+                tu: { type: string, format: date }
+                den: { type: string, format: date }
+                dinhDang: { type: string, enum: [XLSX, PDF] }
+      responses: { '201': { description: Lần xuất, content: { application/json: { schema: { $ref: '#/components/schemas/LanXuat' } } } }, '403': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
+  /xuat/{id}/file:
+    get:
+      tags: [xuat]
+      summary: Tải file của một lần xuất (đúng file đã dựng)
+      x-fr: [FR-027]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: File, content: { application/octet-stream: { schema: { type: string, format: binary } } } }, '403': { $ref: '#/components/responses/Loi' } }
 
+  # ---------------- Cổng người thân ----------------
   /cong/nguoi-cao-tuoi/{nctId}/so-du:
     get:
       tags: [cong]
-      summary: Số dư, số dư cọc, giao dịch Đã xác nhận, số tài khoản thu, mã nộp tiền, payload VietQR (người thân có quyền xem chi phí)
+      summary: Số dư, số dư cọc, giao dịch Đã xác nhận, thông tin nộp tiền (người thân có quyền xem chi phí)
       x-fr: [FR-003]
       parameters: [ { $ref: '#/components/parameters/NctId' } ]
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SoDuCong' } } } }, '403': { $ref: '#/components/responses/Loi' } }
+  /cong/nguoi-cao-tuoi/{nctId}/chung-tu:
+    get:
+      tags: [cong]
+      summary: Phiếu báo phí và phiên bản hiện hành của bảng quyết toán (người thân có quyền xem chi phí)
+      x-fr: [FR-038]
+      parameters: [ { $ref: '#/components/parameters/NctId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ChungTu' } } } } }, '403': { $ref: '#/components/responses/Loi' } }
+  /cong/chung-tu/{loai}/{id}/file:
+    get:
+      tags: [cong]
+      summary: Người thân tải chứng từ (đúng file đã lưu); ghi lần tải
+      x-fr: [FR-038, FR-037]
+      parameters:
+        - { name: loai, in: path, required: true, schema: { type: string, enum: [PHIEU_BAO_PHI, BANG_QUYET_TOAN] } }
+        - { $ref: '#/components/parameters/Id' }
+        - { $ref: '#/components/parameters/DinhDang' }
+      responses:
+        '200':
+          description: File
+          content:
+            application/pdf: { schema: { type: string, format: binary } }
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: { schema: { type: string, format: binary } }
+        '403': { $ref: '#/components/responses/Loi' }
   /cong/nguoi-cao-tuoi/{nctId}/sao-ke:
     post:
       tags: [cong]
-      summary: Người thân tải sao kê của người cao tuổi (khoảng ≤ CFG-M14-01)
+      summary: Người thân có quyền xem chi phí xuất sao kê của người cao tuổi (Excel hoặc PDF, khoảng ≤ CFG-M14-01)
       x-fr: [FR-026, FR-027]
       parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [tu, den], properties: { tu: { type: string, format: date }, den: { type: string, format: date } } } } } }
-      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tu, den, dinhDang]
+              properties:
+                tu: { type: string, format: date }
+                den: { type: string, format: date }
+                dinhDang: { type: string, enum: [XLSX, PDF] }
+      responses:
+        '200':
+          description: File sao kê
+          content:
+            application/pdf: { schema: { type: string, format: binary } }
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: { schema: { type: string, format: binary } }
+        '403': { $ref: '#/components/responses/Loi' }
+        '422': { $ref: '#/components/responses/Loi' }
 
 components:
   securitySchemes:
@@ -201,6 +363,7 @@ components:
     Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
     NctId: { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } }
     IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
+    DinhDang: { name: dinhDang, in: query, schema: { type: string, enum: [PDF, XLSX], default: PDF } }
   requestBodies:
     LyDo:
       required: true
@@ -210,41 +373,164 @@ components:
       description: Lỗi theo RFC 9457 (research R-03 của 000)
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
     LoiChan:
-      description: 'TRANG_THAI_DA_DOI, CHUA_CO_SO, SO_TIEN_KHONG_HOP_LE, DA_CO_CHOT_QUY, KHONG_CO_GIAO_DICH_TIEN_MAT, THIEU_LY_DO_CHENH_LECH, DONG_DA_SINH_GIAO_DICH, VUOT_SO_DU, VUOT_SO_DU_COC, VUOT_GIOI_HAN_HOAN, NGUOI_NHAN_KHONG_CON_DAI_DIEN, DA_CO_GIAO_DICH_DAO, KHONG_DAO_THANH_TOAN_BANG, CHUA_DU_DIEU_KIEN_CAN_TRU, KHONG_PHAI_TRANG_THAI_CUOI, VUOT_KHOANG_XUAT'
+      description: 'TRANG_THAI_DA_DOI, CHUA_CO_SO, SO_TIEN_KHONG_HOP_LE, VUOT_SO_DU, VUOT_SO_DU_COC, VUOT_GIOI_HAN_HOAN, NGUOI_NHAN_KHONG_CON_DAI_DIEN, KHONG_DIEU_CHINH_THANH_TOAN_BANG, CHUA_DU_DIEU_KIEN_CAN_TRU, CHUA_DU_DIEU_KIEN_QUYET_TOAN, CON_GIAO_DICH_CHO_DUYET, KHONG_PHAI_TRANG_THAI_CUOI, DA_CO_BAN_KY, KHONG_PHAI_PHIEN_BAN_HIEN_HANH'
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
   schemas:
     LyDo: { type: string, minLength: 1, maxLength: 2000 }
     Loi:
       type: object
       properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, maLoi: { type: string }, dieuKienChuaThoa: { type: array, items: { type: object } } }
+    LoiTrungMa:
+      allOf:
+        - { $ref: '#/components/schemas/Loi' }
+        - type: object
+          properties:
+            giaoDichTrung: { type: array, items: { $ref: '#/components/schemas/GiaoDich' } }
+    NganHang:
+      type: object
+      properties:
+        maBin: { type: string, pattern: '^[0-9]{6}$' }
+        tenVietTat: { type: string }
+        tenDayDu: { type: string }
+    ThongTinNopTien:
+      type: object
+      description: CFG-M11-10 và mã nộp tiền; vietQr là chuỗi payload EMVCo (không số tiền), client vẽ ảnh
+      properties:
+        nganHang: { type: string }
+        soTaiKhoan: { type: string }
+        chuTaiKhoan: { type: string }
+        maNopTien: { type: string }
+        vietQr: { type: string }
     SoDu:
       type: object
-      properties: { nctId: { type: integer, format: int64 }, maNopTien: { type: string }, soDu: { type: integer, format: int64 }, soDuCoc: { type: integer, format: int64 }, tinhTrang: { type: string, enum: [BINH_THUONG, SAP_HET_TIEN, CON_NO] }, soNgayConDu: { type: integer }, tongChuaChot: { type: integer, format: int64 }, trangThaiDatCoc: { type: string, enum: [KHONG_YEU_CAU, DA_DAP_UNG, CHUA_DAP_UNG] } }
+      properties:
+        nctId: { type: integer, format: int64 }
+        maNopTien: { type: string }
+        soDu: { type: integer, format: int64 }
+        soDuCoc: { type: integer, format: int64 }
+        conNo: { type: [integer, 'null'], format: int64, description: 'Khi số dư âm (FR-002)' }
+        tinhTrang: { type: string, enum: [BINH_THUONG, SAP_HET_TIEN, CON_NO] }
+        soNgayConDu: { type: [integer, 'null'] }
+        tongChuaChot: { type: integer, format: int64 }
+        trangThaiDatCoc: { type: string, enum: [KHONG_YEU_CAU, DA_DAP_UNG, CHUA_DAP_UNG] }
+        dungNhac: { type: boolean }
+        thongTinNopTien: { $ref: '#/components/schemas/ThongTinNopTien' }
+        truongBiAn: { type: array, items: { type: string } }
+    SoDuCong:
+      type: object
+      properties:
+        soDu: { type: integer, format: int64 }
+        soDuCoc: { type: integer, format: int64 }
+        conNo: { type: [integer, 'null'], format: int64 }
+        giaoDich: { type: array, items: { $ref: '#/components/schemas/GiaoDich' }, description: 'Chỉ Đã xác nhận; thanh toán bảng chỉ hiện tổng (Q-133)' }
+        thongTinNopTien: { $ref: '#/components/schemas/ThongTinNopTien' }
     GiaoDich:
       type: object
-      properties: { id: { type: integer, format: int64 }, so: { type: string }, loai: { type: string }, soTien: { type: integer, format: int64 }, thoiDiem: { type: string, format: date-time }, phuongThuc: { type: string }, soPhieu: { type: string }, trangThai: { type: string, enum: [CHO_DUYET, DA_XAC_NHAN, TU_CHOI, DA_HUY] }, daDao: { type: boolean } }
-    PhieuThu:
+      properties:
+        id: { type: integer, format: int64 }
+        so: { type: string, enum: [SO_DU, COC] }
+        loai: { type: string, enum: [NOP_TIEN_MAT, NOP_CHUYEN_KHOAN, THANH_TOAN_BANG, HOAN_TIEN, CAN_TRU_COC, DIEU_CHINH, THU_COC, HOAN_COC] }
+        soTien: { type: integer, format: int64 }
+        thoiDiem: { type: string, format: date-time }
+        phuongThuc: { type: string, enum: [TIEN_MAT, CHUYEN_KHOAN, NOI_BO, KHAC] }
+        maGiaoDichNganHang: { type: [string, 'null'] }
+        bangChiPhiId: { type: [integer, 'null'], format: int64 }
+        giaoDichGocId: { type: [integer, 'null'], format: int64 }
+        giaoDichLienKetId: { type: [integer, 'null'], format: int64 }
+        nguoiLap: { type: string }
+        nguoiDuyet: { type: [string, 'null'] }
+        lyDo: { type: [string, 'null'] }
+        ghiChu: { type: [string, 'null'] }
+        trangThai: { type: string, enum: [CHO_DUYET, DA_XAC_NHAN, TU_CHOI, DA_HUY] }
+        daDieuChinh: { type: boolean }
+        yeuCauPheDuyetId: { type: [integer, 'null'], format: int64 }
+    KetQuaNop:
       type: object
-      required: [nctId, so, soTien, nguoiNop, thoiDiem]
-      properties: { nctId: { type: integer, format: int64 }, so: { type: string, enum: [SO_DU, COC] }, soTien: { type: integer, format: int64, minimum: 1 }, nguoiNop: { type: string }, thoiDiem: { type: string, format: date-time }, tepChungTuId: { type: integer, format: int64 }, ghiChu: { type: string } }
-    KetQuaNhap:
-      type: object
-      properties: { lanNhapId: { type: integer, format: int64 }, soNhan: { type: integer }, soBoQua: { type: integer }, soTuChoi: { type: integer }, tuChoi: { type: array, items: { type: object } }, daNhapTruoc: { type: array, items: { type: string } }, soChuaKhop: { type: integer } }
-    DongSaoKe:
-      type: object
-      properties: { id: { type: integer, format: int64 }, maGiaoDichNganHang: { type: string }, thoiDiem: { type: string, format: date-time }, soTien: { type: integer, format: int64 }, noiDung: { type: string }, trangThai: { type: string }, nctId: { type: integer, format: int64 }, lyDoChuaKhop: { type: string } }
+      properties:
+        giaoDich: { type: array, items: { $ref: '#/components/schemas/GiaoDich' } }
+        soDu: { $ref: '#/components/schemas/SoDu' }
     LapGiaoDich:
       type: object
-      required: [loai, nctId, so, lyDo]
+      required: [loai, nctId, so, soTien, lyDo]
       properties:
-        loai: { type: string, enum: [HOAN_TIEN, HOAN_COC, DIEU_CHINH, CAP_CHUYEN_TIEN, DAO] }
+        loai: { type: string, enum: [HOAN_TIEN, HOAN_COC, DIEU_CHINH] }
         nctId: { type: integer, format: int64 }
         so: { type: string, enum: [SO_DU, COC] }
-        soTien: { type: integer, format: int64 }
-        giaoDichGocId: { type: integer, format: int64 }
-        dongSaoKeId: { type: integer, format: int64 }
-        nhan: { type: object, description: 'Cặp chuyển tiền: sổ và hồ sơ nhận', properties: { nctId: { type: integer, format: int64 }, so: { type: string, enum: [SO_DU, COC] } } }
-        nguoiNhan: { type: object, properties: { nguoiThanId: { type: integer, format: int64 }, hoTen: { type: string }, giayTo: { type: string } } }
+        soTien: { type: integer, format: int64, description: 'Hoàn: số dương (ghi âm vào sổ); điều chỉnh: có dấu, khác 0' }
+        giaoDichGocId: { type: integer, format: int64, description: 'Điều chỉnh sửa một giao dịch cụ thể (FR-011)' }
+        nguoiNhan:
+          type: object
+          description: 'Bắt buộc với hoàn tiền, hoàn cọc (FR-014): người đại diện Hiệu lực; không còn người đại diện thì người nhận khác kèm lý do'
+          properties:
+            nguoiThanId: { type: integer, format: int64 }
+            hoTen: { type: string }
+            giayTo: { type: string }
         phuongThuc: { type: string, enum: [TIEN_MAT, CHUYEN_KHOAN, KHAC] }
-        tepChungTuId: { type: integer, format: int64 }
         lyDo: { $ref: '#/components/schemas/LyDo' }
+        ghiChu: { type: string }
+    DieuKienMa:
+      type: object
+      properties:
+        ma: { type: string, enum: [KT_H_QUYET_TOAN, KT_H_XAC_NHAN_QUYET_TOAN] }
+        trangThai: { type: string, enum: [DAT, CHUA_DAT] }
+        coTheMien: { type: boolean }
+        lyDo: { type: array, items: { type: string } }
+    QuyetToan:
+      type: object
+      properties:
+        dieuKien: { type: array, items: { $ref: '#/components/schemas/DieuKienMa' } }
+        coNgoaiLe: { type: boolean }
+        phienBan: { type: array, items: { $ref: '#/components/schemas/BangQuyetToan' } }
+    BangQuyetToan:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        phienBan: { type: integer }
+        hienHanh: { type: boolean }
+        coNgoaiLe: { type: boolean }
+        soConNoHoacPhaiHoan: { type: integer, format: int64 }
+        xacNhanBoi: { type: string }
+        xacNhanLuc: { type: string, format: date-time }
+        coBanKy: { type: boolean }
+    BangChoPhatHanh:
+      type: object
+      properties:
+        bangChiPhiId: { type: integer, format: int64 }
+        nctId: { type: integer, format: int64 }
+        hoTen: { type: string }
+        ky: { type: string }
+        loaiBang: { type: string, enum: [THUONG, BO_SUNG, KY_CUOI] }
+        tong: { type: integer, format: int64 }
+        chotLuc: { type: string, format: date-time }
+    PhieuBaoPhi:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        maPhieu: { type: string }
+        bangChiPhiId: { type: integer, format: int64 }
+        ky: { type: string }
+        loaiBang: { type: string, enum: [THUONG, BO_SUNG, KY_CUOI] }
+        tong: { type: integer, format: int64 }
+        soDuTruoc: { type: integer, format: int64 }
+        soDuSau: { type: integer, format: int64 }
+        phatHanhBoi: { type: string }
+        phatHanhLuc: { type: string, format: date-time }
+    ChungTu:
+      type: object
+      properties:
+        loai: { type: string, enum: [PHIEU_BAO_PHI, BANG_QUYET_TOAN] }
+        id: { type: integer, format: int64 }
+        ma: { type: string, description: 'Mã phiếu hoặc số phiên bản' }
+        ngay: { type: string, format: date }
+        ky: { type: [string, 'null'] }
+        dinhDang: { type: array, items: { type: string, enum: [PDF, XLSX] } }
+    LanXuat:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        loai: { type: string, enum: [SAO_KE, THU_CHI] }
+        dinhDang: { type: string, enum: [XLSX, PDF] }
+        tu: { type: string, format: date }
+        den: { type: string, format: date }
+        soDong: { type: integer }
+        luc: { type: string, format: date-time }

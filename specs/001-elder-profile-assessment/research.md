@@ -133,7 +133,7 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
   | --- | --- | --- |
   | `HO_SO_NGUOI_CAO_TUOI` | Hồ sơ người cao tuổi (UC-01, 02) | XEM, TAO, SUA |
   | `BAN_DONG_Y` | Bản đồng ý chia sẻ dữ liệu (UC-03) | XEM, TAO (ghi nhận, rút lại) |
-  | `DI_UNG_BENH_NEN` | Dị ứng, bệnh nền (UC-04) | XEM, TAO (ghi nhận, loại trừ, hồ sơ sức khỏe ban đầu) |
+  | `DI_UNG_BENH_NEN` | Dị ứng, bệnh nền (UC-04, 103) | XEM, TAO (ghi nhận, loại trừ, hồ sơ sức khỏe ban đầu; phiếu nguyện vọng khi điều trị, bổ sung 2026-10-22) |
   | `DANH_GIA_MUC_CHAM_SOC` | Đánh giá, mức chăm sóc (UC-05, 06) | XEM, TAO (lập nháp), DUYET (xác nhận) |
   | `TIEP_NHAN_HOP_DONG` | Tiếp nhận, hợp đồng, đặt cọc (UC-08) | TAO (Hoàn tất, Hủy tiếp nhận) |
   | `TAM_VANG_TRO_VE` | Tạm vắng, trở về (UC-15) | TAO |
@@ -422,3 +422,23 @@ Nội dung cho kênh ngoài ứng dụng không chứa họ tên hay thông tin 
 
 **Phương án đã cân nhắc**: 012 gọi API đọc của từng module để kiểm mục (thêm hàm đọc ở mọi module có ý kiến). Lưu liên kết ở 001 (001 không sở hữu các mục này).
 
+---
+
+## H-18. Phiếu nguyện vọng khi điều trị và giấy tờ bệnh viện *(bổ sung 2026-10-22; FR-023, FR-023j → FR-023m, FR-047c; Q-383, Q-384)*
+
+**Quyết định**:
+- **Phiên bản** (DBR-39, FR-023k): bảng `nguyen_vong_dieu_tri` theo đúng mẫu của H-09: chỉ thêm phiên bản; cột sinh `dang_hieu_luc` có `UNIQUE`; ghi phiên bản mới trong một transaction chuyển bản cũ sang `HET_HIEU_LUC` (tên trạng thái theo DBR-39, khác `DUOC_THAY_THE` của phiếu cuối đời), đặt `thay_the_boi_id`, thêm bản mới; trigger chỉ cho `UPDATE` hai cột đó theo chiều `HIEU_LUC → HET_HIEU_LUC`. Không có lệnh sửa, xóa.
+- **Trường** (FR-023j): một hoặc hai bệnh viện ưu tiên lưu thành hai cặp cột (`bv1_*` bắt buộc, `bv2_*` tùy chọn, `CHECK` đủ cặp); bảo hiểm y tế ba cột tùy chọn; `hoi_gia_dinh_truoc BOOLEAN NOT NULL`; `nguoi_di_kem ENUM(GIA_DINH,VIEN_CU_NHAN_VIEN,TUY_TINH_HUONG)`; `ghi_chu`; người trả lời theo mẫu cột nguồn ý kiến (H-16); bản ký tùy chọn (`ban_ky_tep_id NULL`).
+- **Người cần báo**: bảng con `nguyen_vong_dieu_tri_nguoi_bao (nguyen_vong_dieu_tri_id, nguoi_than_id)`, 0..n dòng, mỗi người thân phải có quan hệ Hiệu lực lúc ghi (`QuanHeNguoiThanApi.thuocNguoiCaoTuoi`, sai → 409 `NGUOI_THAN_KHONG_HOP_LE`). Chủ dự án chọn 0..n, không bắt buộc (2026-10-22). `hoiGiaDinhTruoc = true` mà rỗng thì phản hồi kèm cảnh báo `CHUA_CO_NGUOI_CAN_BAO`.
+- **Ý kiến khác** (BR-M01-14): ý kiến người cao tuổi là nội dung phiếu; ý kiến gia đình khác là dòng `nguyen_vong_dieu_tri_y_kien` theo mẫu cột nguồn (data-model mục 6a), kiểm bằng `NguonYKienApi.kiemTra`. Phiếu không có nhận định "tự quyết được" (FR-023j không yêu cầu; FR-023h vẫn đúng vì không có cột năng lực).
+- **Quyền và hiển thị** (FR-023m): khóa `DI_UNG_BENH_NEN` (XEM, TAO); nội dung nhóm `SUC_KHOE` (Hành chính, Kế toán `KHONG`; người thân theo chú thích ¹). Hồ sơ có cờ `coNguyenVongDieuTri` (đúng/sai, tính lúc đọc từ phiên bản Hiệu lực, không lưu cột): 001 chỉ đưa cờ vào DTO khi người xem có `(DI_UNG_BENH_NEN, XEM)` với người cao tuổi đó hoặc `(HO_SO_NGUOI_CAO_TUOI, TAO)` (Hành chính); Kế toán và vai trò khác không có cờ, trường nằm trong `truongBiAn`. Không dùng nhóm `NGUYEN_VONG` vì nhóm đó cho Kế toán `CHI_CO_HAY_KHONG`; quy tắc xem trường của 002 không tách theo trường (chủ dự án chọn 2026-10-22, plan điểm báo lại 13).
+- **Hoàn tất tiếp nhận** (FR-023l): `ThamGiaM01` trả cảnh báo `THIEU_NGUYEN_VONG_DIEU_TRI` khi chưa có phiên bản Hiệu lực; không thêm điều kiện chặn, không thêm dòng `nhac_chu_ky`.
+- **Cho 007** (FR-023): `NguyenVongApi.dieuTriHieuLuc(nctId)` trả bản đọc (bệnh viện ưu tiên, bảo hiểm y tế, hỏi trước, người cần báo kèm họ tên và số điện thoại lấy qua 012, người đi kèm, ghi chú) cho thẻ thông tin khẩn cấp, lệnh Chuyển viện và phiếu tóm tắt chuyển viện. 007 không ghi phiếu này.
+- **Giấy tờ bệnh viện** (FR-047c, BR-M05-32): `LenhTrangThai` có thêm `tepDinhKemIds` (tối đa 10 tệp, kiểu và kích thước theo H-13), chỉ nhận ở `GHI_NHAN_TRO_VE` từ `DIEU_TRI_BENH_VIEN` và ở `CHUYEN_VIEN` (007 truyền qua `TrangThaiNguoiCaoTuoiApi.thucHien`); lệnh khác có `tepDinhKemIds` → 422 `KHONG_NHAN_TEP_DINH_KEM`. Tệp gắn vào dòng `lich_su_trang_thai_nct` với loại chủ sở hữu `M01.GIAY_TO_BENH_VIEN` trong transaction của lệnh; `QuyenTepProvider` cho tải khi có `(DI_UNG_BENH_NEN, XEM)` trong phạm vi. 006 đọc danh sách tệp bằng `TrangThaiNguoiCaoTuoiApi.giayToDinhKem(lichSuId)` (lấy `lichSuId` từ sự kiện `NguoiCaoTuoiDaChuyenTrangThai`) để hiện cạnh phiếu đối chiếu thuốc (BR-M07-16).
+
+**Lý do**: FR-023j → FR-023m dựng theo mẫu nguyện vọng cuối đời đã có (H-09) để dùng lại trigger, cột sinh và test; giấy tờ bệnh viện dùng thành phần tệp có sẵn (H-13), không thêm bảng.
+
+**Phương án đã cân nhắc**:
+- Gộp vào bảng `nguyen_vong_cuoi_doi` bằng cột loại: hai phiếu có trường, trạng thái, người ký và điều kiện khác nhau; `UNIQUE` theo loại làm `CHECK` phức tạp; bị loại.
+- Bảng con cho bệnh viện ưu tiên: spec giới hạn một hoặc hai bệnh viện, hai cặp cột đủ và `CHECK` đơn giản hơn.
+- Đính kèm giấy tờ vào bảng của 004 (lượt vắng): FR-047c thuộc lệnh trạng thái của 001; lượt Điều trị tại bệnh viện không có bảng riêng ở 004.

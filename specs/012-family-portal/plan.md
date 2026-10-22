@@ -44,8 +44,15 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - **Kênh người cao tuổi** (FR-083, FR-084): gói mới `m10.kenhnct`, REST `/kenh-nguoi-cao-tuoi/**` chỉ cho tài khoản AC-16, phạm vi `BAN_THAN` của 002; DTO riêng không có trường sức khỏe, chi phí, số dư, hợp đồng (research F-18). 012 dựng cả năm phần ở một chỗ: lượt thăm (012), lịch đến/về bán trú (`CoMatBanTruApi` của 005), thực đơn và suất ăn dự kiến (`ThucDonChungApi`, `SuatAnDuKienApi` mới của 011), hoạt động sắp tới (SPI mới `HoatDongKenhNctPort`, 014 cài), đồ gửi (SPI mới `DoGuiKenhNctPort`, 013 cài).
 - **Phản hồi của người cao tuổi** (FR-058, FR-058a, FR-058b, FR-066, FR-086): `phan_hoi` thêm `nguoi_gui_loai`, `ghi_thay_boi_id`, loại `MONG_MUON`, nguồn `KENH_NGUOI_CAO_TUOI`, `GHI_TRUC_TIEP`; bảng `phan_hoi_y_kien` gắn mục ý kiến; lệnh `doi-loai`, `gan-y-kien`; Trả lời loại Mong muốn bị chặn khi chưa gắn mục; mọi truy vấn của người thân lọc `nguoi_gui_loai = NGUOI_THAN` (research F-13, F-18).
 - **Thông báo** (FR-069): nhắc lượt thăm trong ngày và phản hồi đã trả lời gửi nhóm `NguoiCaoTuoi` của 009, mức Nhẹ, phần `CHUNG` (research F-15).
-- **Nút SOS** (FR-085): giao diện ở app người cao tuổi; lệnh `/sos` thuộc 007 (007 research S-23); app giữ số liên hệ nhận được gần nhất để hiện khi mất kết nối.
+- **Nút SOS** (FR-085): giao diện ở app người cao tuổi; lệnh `/sos` thuộc 007 (007 research S-23); app giữ số liên hệ nhận được gần nhất để hiện khi mất kết nối. *(2026-10-22: thêm "đang tới", "đã tới", gửi vị trí GPS, xem mục "Cập nhật 2026-10-22".)*
 - Gói, bảng, SPI mới ở trên; không đổi bảng khác. Điểm báo lại 10 bên dưới.
+
+### Cập nhật 2026-10-22 (spec mục "Cập nhật 2026-10-22": Q-373, Q-374, Q-377 → Q-379)
+
+- **Chứng từ trên cổng** (FR-046 loại (3)): phiếu báo phí (PDF, Excel), bảng quyết toán (phiên bản hiện hành, PDF) và sao kê Excel, PDF do REST của 017 phục vụ (`/cong/nguoi-cao-tuoi/{nctId}/chung-tu`, `/cong/chung-tu/{loai}/{id}/file`, `/cong/nguoi-cao-tuoi/{nctId}/sao-ke`; 017 research E-10, E-11), cùng cách số dư đã làm (research F-10); 017 kiểm `QuyenNguoiThanApi.quyenCoTacDung(XEM_CHI_PHI)`. 012 không thêm bảng, SPI hay REST; màn trên web và app người thân do task của 017 (T011, T036) và 012 T073 dựng.
+- **Nút SOS** (FR-085): app người cao tuổi hiện "[họ tên] đang tới" (`DA_TIEP_NHAN`) và "[họ tên] đã tới" (`DA_TOI`) từ `GET /sos/hien-tai`; khi `guiViTri = true` và người cao tuổi đã cho quyền vị trí "khi đang dùng ứng dụng", app gửi `POST /sos/{lanBamId}/vi-tri` mỗi `chuKyGuiViTriGiay` (CFG-M05-09), dừng khi `guiViTri = false` hoặc nhận 409; không theo dõi nền (007 research S-24). Danh sách nơi chọn nhanh thêm hành lang, phòng sinh hoạt chung. Gói `geolocator` cho app (007 plan).
+- **Thông báo** (FR-043): dòng 017 thêm phiếu báo phí, bảng quyết toán mới phát hành (Nhẹ, người thân có quyền xem chi phí, phần "chi phí") do 017 phát theo khuôn 009; bỏ thông báo sao kê chưa khớp, chốt quỹ ngày. Cảnh báo từ nút hỗ trợ khẩn cấp dùng nhóm (a) có sẵn; vị trí không vào nội dung thông báo.
+- Không thêm bảng, gói, SPI.
 
 ## Technical Context
 

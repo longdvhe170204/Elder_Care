@@ -81,7 +81,7 @@ Kết quả mong đợi: `verify` xanh, gồm test kiến trúc (`HoSoMoGuardArc
 
 ## 5. Tiêu chí hoàn tất (đối chiếu SC)
 
-- SC-001, SC-002, SC-003, SC-004, SC-007, SC-008, SC-009, SC-010, SC-011, SC-012, SC-013: test tự động ở mục 4, chạy trên MySQL thật và đồng hồ giả lập.
+- SC-001, SC-002, SC-003, SC-004, SC-007, SC-008, SC-009, SC-010, SC-011, SC-012, SC-013, SC-014 (bổ sung 2026-10-22; phần "lệnh Chuyển viện hiện đủ" đo ở quickstart 007): test tự động ở mục 4, chạy trên MySQL thật và đồng hồ giả lập.
 - SC-005 (đánh giá đầu vào trong 10 phút) và SC-006 (tạo hồ sơ trong 5 phút): đo với người dùng đã được hướng dẫn trên profile `demo`, lấy trung vị của ít nhất 10 lần, theo cách đo ghi trong spec.
 
 ## 6. Kịch bản bổ sung 2026-10-18 (Q-347, Q-348)
@@ -105,3 +105,14 @@ Test bổ sung: `NhacXemLaiNhanDinhIT` (Q37), `FR_011_DaiDienPhapLuatIT` (Q33, Q
 
 Test: `FR_023g_YKienTuPhanHoiIT` (dùng bản giả 012 nghe sự kiện).
 
+## 8. Kịch bản bổ sung 2026-10-22 (Q-383, Q-384)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| T1 | Điều dưỡng ghi phiếu nguyện vọng khi điều trị cho A (Đang tiếp nhận): bệnh viện ưu tiên "Bệnh viện X", `hoiGiaDinhTruoc = true`, người cần báo là R (con của A), `nguoiDiKem = GIA_DINH`, người trả lời `NGUOI_CAO_TUOI` | 201; phiên bản `HIEU_LUC` đầu tiên; `NguyenVongApi.dieuTriHieuLuc(A)` trả đủ bệnh viện, R kèm số điện thoại, người đi kèm | US7 #9, FR-023j, FR-023 |
+| T2 | Ghi phiên bản mới đổi bệnh viện ưu tiên; Hành chính xem hồ sơ và `GET …/nguyen-vong-dieu-tri` | Phiên bản cũ `HET_HIEU_LUC`, vẫn trong `lichSu`; Hành chính thấy `coNguyenVongDieuTri = true`, endpoint phiếu trả 403; Kế toán xem hồ sơ không có trường cờ (nằm trong `truongBiAn`) | US7 #10, FR-023k, FR-023m, DBR-39 |
+| T3 | Ghi phiếu có người cần báo là người thân không có quan hệ Hiệu lực; rồi `hoiGiaDinhTruoc = true` không có người cần báo | 409 `NGUOI_THAN_KHONG_HOP_LE`; 201 kèm cảnh báo `CHUA_CO_NGUOI_CAN_BAO` | FR-023j |
+| T4 | C chưa có phiếu; Hoàn tất tiếp nhận (mọi bean Đạt); tua đồng hồ 30 ngày | 200 kèm cảnh báo `THIEU_NGUYEN_VONG_DIEU_TRI`; không có nhắc nào về phiếu này | US7 #11, FR-023l |
+| T5 | B ở Điều trị tại bệnh viện; Ghi nhận trở về kèm hai tệp (giấy ra viện, đơn thuốc); Cho tạm vắng kèm `tepDinhKemIds` | 200, `giayToDinhKem(lichSuId)` trả hai tệp, Điều dưỡng tải được, Hành chính bị chặn; 422 `KHONG_NHAN_TEP_DINH_KEM` | FR-047c |
+
+Test: `NguyenVongDieuTriPhienBanIT` (T1, T2, T3; DBR-39), `NguyenVongDieuTriGioiHanXemIT` (T2), `HoanTatTiepNhanCanhBaoDieuTriIT` (T4, đồng hồ giả lập), `GiayToBenhVienIT` (T5).

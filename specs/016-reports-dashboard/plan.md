@@ -22,6 +22,11 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307) và FR-001 của spec: 016 khô
 
 - **Cảnh báo SOS** (FR-041): báo cáo cảnh báo thêm dòng riêng cho cảnh báo có `nguon = SOS` của `CanhBaoThongKeApi.canhBao` (007 FR-081): số lần, thời gian trung bình và lớn nhất từ tạo đến tiếp nhận, theo tầng; vẫn đếm trong tổng theo mức (research O-12). Không thêm bảng.
 
+### Cập nhật 2026-10-22 (spec mục "Cập nhật 2026-10-22": Q-374, Q-375; Q-385, Q-386)
+
+- **Nút hỗ trợ khẩn cấp và thời gian tới nơi** (FR-041): báo cáo cảnh báo thêm dòng riêng cho `nguon = NUT_HO_TRO` như dòng SOS; với cả hai nguồn thêm thời gian trung bình, lớn nhất từ `lan_dau_luc` tới `daToiNoiLuc` (chỉ cảnh báo có mốc) và số cảnh báo `khongGhiMocToiNoi`; cảnh báo nút hỗ trợ không có người cao tuổi xếp theo tầng của cảnh báo, chưa có tầng vào dòng "chưa rõ tầng" (research O-13; 007 `CanhBaoThongKeApi`, cập nhật 2026-10-22). Không thêm bảng.
+- **017 thu gọn** (Q-385, Q-386): `SoDuThongKeApi` còn `tinhTrang` (chỉ tiêu `SD.THAP_CON_NO`, không đổi) và `thuChi` thu gọn; bỏ `chotQuy` của bản cũ. 016 không dùng hai hàm sau nên không đổi.
+
 ## Technical Context
 
 **Language/Version**: Java 25 (virtual threads cho truy vấn song song); JavaScript (JSX) (000 R-01). Không có màn trên app di động (spec không yêu cầu).

@@ -1,6 +1,7 @@
 // Hiển thị và đọc giá trị tham số theo kiểu (000 T081; hợp đồng schema Parameter, glossary mục 6.3).
 
 export const UNIT_LABELS = {
+  SECONDS: 'giây',
   MINUTES: 'phút',
   HOURS: 'giờ',
   DAYS: 'ngày',
@@ -10,9 +11,16 @@ export const UNIT_LABELS = {
   PERCENT: '%',
   VND: 'đồng',
   PERSONS: 'người',
+  ROWS: 'dòng',
 }
 
 const NUMBER = new Intl.NumberFormat('vi-VN')
+
+// Cấu trúc ban đầu của tham số dạng bảng khi chưa có giá trị, theo dạng module dùng tham số đọc (khóa là tên trường của
+// backend). CFG-M11-11: thông tin viện in trên chứng từ (common.document.FacilityInfo, 007 T104); logo chưa nhập ở đây.
+export const TABLE_TEMPLATES = {
+  'CFG-M11-11': { name: null, address: null, taxCode: null, phone: null },
+}
 
 export function isDuration(value) {
   return (

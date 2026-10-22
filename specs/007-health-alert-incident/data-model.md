@@ -230,10 +230,15 @@ Chỉ mục `(nct_id, chi_so_id, hieu_luc_tu)`, `(pham_vi, chi_so_id, hieu_luc_t
 | `dung_leo_thang` | `BOOLEAN` | Trạng thái cuối | FR-038 |
 | `tao_boi_id`, `mo_ta` | | Thủ công: bắt buộc mô tả | FR-026 (c) |
 | *(bổ sung 2026-10-18)* loại `NCT_YEU_CAU_TRO_GIUP`, khóa `SOS` | | Cảnh báo từ nút SOS; người tạo là người cao tuổi, ghi ở `lan_bam_sos` (`tao_boi_id` rỗng) | FR-026 (d), FR-027, FR-028 |
+| *(bổ sung 2026-10-22)* loại `NV_YEU_CAU_HO_TRO`, khóa `HO_TRO_NV:<taiKhoanId>` | | Cảnh báo từ nút hỗ trợ khẩn cấp; `nct_id` được rỗng chỉ với loại này: `CHECK (nct_id IS NOT NULL OR loai = 'NV_YEU_CAU_HO_TRO')`; `tang_khu_vuc_id` rỗng tới khi biết tầng | FR-026 (e), FR-027, FR-028, FR-047i |
+| `nguoi_bam_id` *(bổ sung 2026-10-22)* | `BIGINT NULL` | Tài khoản bấm nút hỗ trợ | FR-027 |
+| `khoa_mo_ho_tro` *(bổ sung 2026-10-22)* | Cột sinh `IF(loai = 'NV_YEU_CAU_HO_TRO' AND trang_thai IN ('MOI','LEO_THANG','DA_TIEP_NHAN','DANG_XU_LY'), nguoi_bam_id, NULL)`; `UNIQUE` | Gộp theo người bấm khi `nct_id` rỗng | FR-028 |
+| `da_toi_noi_luc`, `da_toi_noi_boi_id` *(bổ sung 2026-10-22)* | `DATETIME(6) NULL`, `BIGINT NULL` | Đặt một lần; chỉ loại `NCT_YEU_CAU_TRO_GIUP`, `NV_YEU_CAU_HO_TRO` | FR-047j |
+| `khong_ghi_moc_toi_noi` *(bổ sung 2026-10-22)* | `BOOLEAN` | Đặt khi đóng hoặc chuyển sự cố mà chưa có mốc | FR-047j, FR-081 |
 | `khoa_mo` | Cột sinh `IF(trang_thai IN ('MOI','LEO_THANG','DA_TIEP_NHAN','DANG_XU_LY'), khoa_loai, NULL)`; `UNIQUE (nct_id, khoa_mo)` | DBR-18 |
 | `phien_ban` | | | |
 
-Chỉ mục `(trang_thai, han_tiep_nhan)` (job), `(tang_khu_vuc_id, trang_thai)` (dashboard, bàn giao), `(nct_id, trang_thai)`, `(nguoi_phu_trach_id, trang_thai)`. Trigger: chặn đổi `nct_id`, `khoa_loai`, `lan_dau_luc`; chặn mọi đổi khi `OLD.trang_thai IN ('DA_DONG','CHUYEN_SU_CO')` trừ khi cột đổi duy nhất là `phien_ban` (nguồn đã xử lý ghi ở `nguon_canh_bao`, không ở cảnh báo).
+Chỉ mục `(trang_thai, han_tiep_nhan)` (job), `(tang_khu_vuc_id, trang_thai)` (dashboard, bàn giao), `(nct_id, trang_thai)`, `(nguoi_phu_trach_id, trang_thai)`. Trigger: chặn đổi `nct_id` (trừ `NULL → giá trị` một lần với loại `NV_YEU_CAU_HO_TRO`, bổ sung 2026-10-22), `khoa_loai`, `lan_dau_luc`, `da_toi_noi_luc` khi đã có; chặn mọi đổi khi `OLD.trang_thai IN ('DA_DONG','CHUYEN_SU_CO')` trừ khi cột đổi duy nhất là `phien_ban` (nguồn đã xử lý ghi ở `nguon_canh_bao`, không ở cảnh báo).
 
 ### `nguon_canh_bao` – nhóm 3
 
@@ -261,9 +266,47 @@ Chỉ mục `(trang_thai, han_tiep_nhan)` (job), `(tang_khu_vuc_id, trang_thai)`
 | `phong_id`, `giuong_id` | `BIGINT NULL` | Vị trí lúc bấm (`ViTriApi.hienTai`) | FR-027 |
 | `trang_thai_nct` | `VARCHAR(32)` | Trạng thái lúc bấm (Đang lưu trú, Hoạt động bên ngoài) | FR-047e |
 | `canh_bao_id` | `BIGINT` | Cảnh báo được tạo hoặc gộp | FR-028 |
-| `noi_dang_o` | `ENUM('PHONG','NHA_VE_SINH','SAN','KHAC') NULL` | Đặt một lần (trigger) | FR-047f |
+| `noi_dang_o` | `ENUM('PHONG','NHA_VE_SINH','HANH_LANG','PHONG_SINH_HOAT_CHUNG','SAN','KHAC') NULL` | Đặt một lần (trigger); thêm hành lang, phòng sinh hoạt chung 2026-10-22 (Q-373) | FR-047f |
 
 Lần bấm bị từ chối không ghi bảng này (không có cảnh báo); lý do từ chối chỉ trả cho app. Trigger chặn `UPDATE` trừ `noi_dang_o` từ `NULL`.
+
+### `lan_bam_ho_tro` – nhóm 3 *(bổ sung 2026-10-22, Q-375; research S-24)*
+
+| Cột | Kiểu | Ghi chú | Nguồn |
+| --- | --- | --- | --- |
+| `id`, `tai_khoan_id`, `nhan_vien_id` | | Người bấm | FR-047i |
+| `idempotency_key` | | `UNIQUE` | FR-047i |
+| `thoi_diem` | `DATETIME(6)` | Lúc máy chủ nhận | FR-047i |
+| `tang_theo_ca_id` | `BIGINT NULL` | `NhanSuCanhBaoPort.tangTrongCa` lúc bấm | FR-047i |
+| `canh_bao_id` | `BIGINT` | Cảnh báo được tạo hoặc gộp | FR-028 |
+| `loai_su_viec` | `ENUM('NGUNG_TIM_NGAT','NGA','KICH_DONG_BAO_LUC','KHAC') NULL` | Đặt một lần | FR-047i |
+| `tang_chon_id` | `BIGINT NULL` | Đặt một lần | FR-047i |
+| `noi` | `ENUM('PHONG','NHA_VE_SINH','HANH_LANG','PHONG_SINH_HOAT_CHUNG','SAN','KHAC') NULL` | Đặt một lần | FR-047i |
+| `nct_chon_id` | `BIGINT NULL` | Đặt một lần; đồng thời đặt `canh_bao.nct_id` nếu còn rỗng | FR-047i |
+
+Lần bấm bị từ chối (không trong ca) không ghi bảng này. Trigger chỉ cho đặt bốn cột cuối từ `NULL`.
+
+### `vi_tri_canh_bao` – nhóm 3 *(bổ sung 2026-10-22, Q-373)*
+
+| Cột | Kiểu | Ghi chú | Nguồn |
+| --- | --- | --- | --- |
+| `id`, `canh_bao_id` | | Chỉ mục `(canh_bao_id, nhan_luc)` | FR-047h |
+| `lan_bam_loai`, `lan_bam_id` | `ENUM('SOS','HO_TRO')`, `BIGINT` | Lần bấm gửi vị trí | FR-047h |
+| `vi_do`, `kinh_do` | `DECIMAL(9,6)` | `CHECK` trong [-90, 90], [-180, 180] | FR-047h |
+| `sai_so_met` | `DECIMAL(8,1)` | `>= 0` | FR-047h |
+| `do_luc` | `DATETIME(6)` | Thời điểm máy đo | FR-047h, DBR-25 |
+| `nhan_luc` | `DATETIME(6)` | `Clock` máy chủ | FR-047h |
+
+Không `UPDATE`, `DELETE` (mẫu 000). 19.3 không có nhóm thông tin "vị trí"; plan không thêm nhóm ở 002 mà giới hạn bằng API: chỉ API nhân viên có quyền xem cảnh báo trả vị trí, DTO cho 012 và nội dung thông báo không có trường này (research S-24).
+
+### `luot_goi_115` – nhóm 3 *(bổ sung 2026-10-22, Q-376)*
+
+| Cột | Kiểu | Ghi chú | Nguồn |
+| --- | --- | --- | --- |
+| `id`, `canh_bao_id`, `su_co_id` | `BIGINT NULL` | `CHECK` đúng một trong hai | FR-047k |
+| `nguoi_bam_id`, `bam_luc` | | | FR-047k |
+| `ket_qua`, `ket_qua_luc` | `ENUM('DA_GOI_DUOC','KHONG_GOI_DUOC') NULL` | Đặt một lần (trigger), chỉ người bấm | FR-047k |
+| `dien_bien_id` | `BIGINT NULL` | Diễn biến `GOI_CAP_CUU` đã thêm vào sự cố (đặt một lần) | FR-048b |
 
 **Bảng chuyển `canh_bao`** (khớp bảng FR-029):
 
@@ -276,8 +319,9 @@ Lần bấm bị từ chối không ghi bảng này (không có cảnh báo); l�
 | `DA_TIEP_NHAN` | Giao người phụ trách | Giữ | QL (người phụ trách) | Người được giao có quyền; ghi chú | Thông báo |
 | `DA_TIEP_NHAN` | Bắt đầu xử lý | `DANG_XU_LY` | Người có quyền FR-036 | — | — |
 | `DANG_XU_LY` | Đóng | `DA_DONG` | ĐD, TT, BS | Kết quả; lý do với quá hạn Bắt buộc; nguy kịch: FR-050d | `capNhat` việc sau qua đời nếu trạng thái cuối |
-| `DANG_XU_LY` | Chuyển sự cố | `CHUYEN_SU_CO` | ĐD, TT, BS | — | Tạo sự cố liên kết |
-| `MOI`, `LEO_THANG`, `DA_TIEP_NHAN` | Kích hoạt khẩn cấp từ cảnh báo | `CHUYEN_SU_CO` | ĐD, TT, BS | Ba dòng lịch sử | Sự cố Khẩn cấp, mục G |
+| `DANG_XU_LY` | Chuyển sự cố | `CHUYEN_SU_CO` | ĐD, TT, BS | `NV_YEU_CAU_HO_TRO` chưa có người: bắt buộc `nctId` (bổ sung 2026-10-22) | Tạo sự cố liên kết; chép lượt gọi 115 Đã gọi được; `khong_ghi_moc_toi_noi` nếu chưa có mốc |
+| `MOI`, `LEO_THANG`, `DA_TIEP_NHAN` | Kích hoạt khẩn cấp từ cảnh báo | `CHUYEN_SU_CO` | ĐD, TT, BS | Ba dòng lịch sử; như trên với `nctId` | Sự cố Khẩn cấp, mục G; như trên |
+| `DA_TIEP_NHAN`, `DANG_XU_LY` | Ghi đã tới nơi *(bổ sung 2026-10-22)* | Giữ | Người phụ trách | Loại SOS hoặc nút hỗ trợ; chưa có mốc | `DA_TOI` cho app; dừng nhận vị trí |
 | Đang mở | Mọi nguồn đã xử lý | `DA_DONG` | Hệ thống | Không phải nguy kịch | Kết quả "nguồn đã được xử lý" |
 | Đang mở | Nâng / Hạ mức | Giữ | ĐD, TT, BS; hạ từ Khẩn cấp: BS | Lý do | Hạn tính lại nếu `MOI`, `LEO_THANG` |
 | Đang mở | Bàn giao được xác nhận | Giữ | Hệ thống | Người phụ trách thuộc ca trước | Đổi người phụ trách |
@@ -367,7 +411,13 @@ Bảng FR-045 có dòng "Hệ thống tạo (thiếu người khi trở về, ph
 
 ### `ban_tom_tat_chuyen_vien` – nhóm 3
 
-`id`, `su_co_id NULL`, `canh_bao_id NULL` (nguy kịch), `nct_id`, `co_so_tiep_nhan`, `noi_dung` `JSON` (dị ứng, thuốc đang dùng, chỉ số gần nhất mỗi loại kèm thời điểm, diễn biến, nguyện vọng), `nguoi_lap_id`, `thoi_diem`, `lich_su_trang_thai_id` (của 001).
+`id`, `su_co_id NULL`, `canh_bao_id NULL` (nguy kịch), `nct_id`, `co_so_tiep_nhan`, `noi_dung` `JSON` (dị ứng, thuốc đang dùng, chỉ số gần nhất mỗi loại kèm thời điểm, diễn biến, nguyện vọng; *bổ sung 2026-10-22:* nguyện vọng khi điều trị, người liên hệ chính), `nguoi_lap_id`, `thoi_diem`, `lich_su_trang_thai_id` (của 001).
+
+*(Bổ sung 2026-10-22, FR-049, FR-050, FR-050h)* Thêm cột: `nguoi_di_kem VARCHAR(500) NOT NULL` (bản ghi cũ trước cột này không có trong dữ liệu thật), `nguyen_vong_dieu_tri_phien_ban_id BIGINT NULL`, `da_lien_lac_nguoi_can_bao BOOLEAN NULL`, `ly_do_khong_hoi_truoc VARCHAR(2000) NULL`, `phieu_tep_id BIGINT NOT NULL` (tệp PDF ở `common.tep`, loại chủ sở hữu `M05.PHIEU_CHUYEN_VIEN`).
+
+### `lan_in_phieu_chuyen_vien` – nhóm 3 *(bổ sung 2026-10-22, FR-050h)*
+
+`id`, `ban_tom_tat_id`, `nguoi_in_id`, `thoi_diem`, `la_in_lai BOOLEAN`. Không `UPDATE`, `DELETE`.
 
 ---
 
@@ -478,6 +528,8 @@ Một dòng: `so_dien_thoai`, `ghi_chu`, `phien_ban`. Đổi ghi nhật ký (FR-
 | Một danh sách tiếp xúc mỗi sự cố | `UNIQUE su_co_id` | FR-061 |
 | Lần nhắc leo thang tối đa không trùng | `UNIQUE (loai, canh_bao_id, su_co_id, so_thu_tu)` | Q-266, NFR-04 |
 | Giấy phép cơ sở không sửa, không xóa | Trigger | FR-075 |
+| Một cảnh báo nút hỗ trợ đang mở mỗi người bấm | `UNIQUE khoa_mo_ho_tro` | FR-028 (bổ sung 2026-10-22) |
+| Lần bấm, vị trí, lượt gọi 115, lần in phiếu không sửa; các trường chọn sau đặt một lần | Trigger mẫu 000; trigger đặt một lần | FR-047h → FR-047k, FR-050h |
 | Mọi thay đổi có nhật ký | `NhatKyApi.ghi` trong transaction | DBR-23 |
 | Thời điểm theo Asia/Ho_Chi_Minh; ngoại tuyến lưu hai mốc | `Clock`; `thoi_diem_thiet_bi` | DBR-25 |
 
@@ -487,6 +539,7 @@ Một dòng: `so_dien_thoai`, `ghi_chu`, `phien_ban`. Đổi ghi nhật ký (FR-
 
 - Loại đối tượng nhật ký: `M06.LICH_DO`, `M06.NGUONG`, `M06.BAN_GHI_CHI_SO`, `M06.GIAY_PHEP_CO_SO`, `M06.SO_LIEN_HE_VIEN`, `M06.BAN_GHI_KHAM`, `M06.CHI_SO` (danh mục), `M05.CANH_BAO`, `M05.SU_CO`, `M05.DAU_NGUY_KICH`, `M05.KHOANG_THEO_DOI_SAU_NGA`, `M05.DANH_SACH_TIEP_XUC`, `M05.KHOANH_VUNG`, `M05.QUY_TAC_XU_HUONG`, `M05.LOAI_SU_CO`, `M05.LOAI_DIEN_BIEN`.
 - Dấu nhật ký riêng: `ngoaiPhamVi` (FR-041), `apDungBu` và `thoiDiemDuKien` (FR-084), `khongCoBacSiTruc` (FR-047b).
+- *(Bổ sung 2026-10-22)* Hành động: `CB_HO_TRO_BAM`, `CB_HO_TRO_CHI_TIET`, `CB_VI_TRI` (không ghi tọa độ vào nhật ký, chỉ id dòng), `CB_DA_TOI_NOI`, `GOI_115`, `GOI_115_KET_QUA`, `PHIEU_CV_IN` (19.4).
 - `PhanLoaiTruongProvider`: `giaTri`, `muc`, `noiDung` của khám, `moTa`, `dienBien`, `theKhanCap`, `nguyenVong`, `nhanDinh` → `SUC_KHOE`; `soDienThoai` của người tiếp xúc → `LIEN_HE`.
 - Loại đính chính (`DinhChinhDuocProvider`): `M06.BAN_GHI_CHI_SO`, `M06.BAN_GHI_KHAM`, `M05.SU_CO`, `M05.DIEN_BIEN_SU_CO`, `M05.KET_QUA_XAC_NHAN_LAI`, `M05.LUA_CHON_THUC_HIEN`. `tangKhuVuc` là tầng của người cao tuổi lúc ghi (sự cố cơ sở vật chất: tầng/khu của sự cố).
 
@@ -501,6 +554,8 @@ Một dòng: `so_dien_thoai`, `ghi_chu`, `phien_ban`. Đổi ghi nhật ký (FR-
 | Sự cố gắn người cao tuổi và các bảng con, dấu nguy kịch, kết quả, lựa chọn, bản tóm tắt | `THEO_HO_SO` | Danh sách tiếp xúc; khoanh vùng |
 | Sự cố không gắn người cao tuổi, khoanh vùng, ngưỡng mặc định, giấy phép cơ sở | `KHONG_GAN_HO_SO` (CFG-M15-04) | Sự cố gắn |
 | Danh sách tiếp xúc | Theo sự cố | Người tiếp xúc là người cao tuổi khác: giữ tới khi cả chuỗi hết hạn |
+| *(Bổ sung 2026-10-22)* `vi_tri_canh_bao`, `luot_goi_115`, `lan_bam_ho_tro` | Theo cảnh báo: `THEO_HO_SO` khi có `nct_id`; `KHONG_GAN_HO_SO` khi cảnh báo nút hỗ trợ không gắn người (FR-047h "lưu, loại bỏ cùng cảnh báo"; pháp lý chờ 24.4) | Sự cố liên kết |
+| *(Bổ sung 2026-10-22)* Phiếu tóm tắt PDF, `lan_in_phieu_chuyen_vien` | Như bản tóm tắt (`THEO_HO_SO`) | |
 
 ---
 
@@ -546,3 +601,8 @@ Một dòng: `so_dien_thoai`, `ghi_chu`, `phien_ban`. Đổi ghi nhật ký (FR-
 | BR-M04-10 (phần 007) | S-06 | `BR_M04_10_DoChiSoCongViecIT` |
 | BR-M05-27 *(bổ sung 2026-10-18)* | S-23; `lan_bam_sos`; khóa `SOS` | `BR_M05_27_NutSosIT`, `FR_047d_DieuKienGuiSosIT` |
 | FR-047e, FR-047f, FR-047g *(bổ sung 2026-10-18)* | S-23 | `FR_047e_SosNgoaiVienIT`, `FR_047f_TrangThaiSosIT`, `SosXuLyIT` |
+| BR-M05-28 *(bổ sung 2026-10-22)* | S-24; `vi_tri_canh_bao` | `BR_M05_28_ViTriSosIT` |
+| BR-M05-29 *(bổ sung 2026-10-22)* | S-24; `lan_bam_ho_tro`; `khoa_mo_ho_tro` | `BR_M05_29_NutHoTroIT`, `FR_047i_NguoiNhanHoTroIT` |
+| BR-M05-30 *(bổ sung 2026-10-22)* | S-24; `da_toi_noi_luc` | `BR_M05_30_DaToiNoiIT` |
+| BR-M05-31 *(bổ sung 2026-10-22)* | S-24; `luot_goi_115` | `BR_M05_31_Goi115IT` |
+| BR-M05-32 *(bổ sung 2026-10-22)* | S-25; `ban_tom_tat_chuyen_vien`, `lan_in_phieu_chuyen_vien`, `common.bieumau` | `BR_M05_32_PhieuChuyenVienIT`, `PdfBieuMauTest` |

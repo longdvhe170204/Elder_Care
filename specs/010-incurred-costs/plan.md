@@ -32,6 +32,12 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 - **Đối tượng thông tin** (FR-044, 009 FR-001a): mọi thông báo tới người thân (bảng Đã chốt, đề nghị mua hộ cần đồng ý, bị hủy sau khi đồng ý, vượt số đã đồng ý, quá hạn chờ đồng ý) khai `doiTuongThongTin = VE_VIEC_NGUOI_THAN`; không yêu cầu nào mang mã Q-354 (research P-13).
 
+### Cập nhật 2026-10-22 (spec mục "Cập nhật 2026-10-22": Q-378, Q-380, Q-385)
+
+- **Gửi 017 chi tiết khoản Đã chốt** (FR-042, bảng giao tiếp "Gửi 017"; 017 FR-031, FR-032, FR-034): port nội bộ `ChiPhiChoSoDuPort` thêm `bangDaChot(bangId)` trả bảng (loại, kỳ, tổng, tổng theo loại từ `bang_chi_phi_tong_loai`) và khoản Đã chốt (ngày phát sinh, loại, mô tả, số lượng, đơn vị, đơn giá, thành tiền; khoản điều chỉnh kèm kỳ gốc; khoản thuốc chỉ "Thuốc" và mã vật phẩm theo FR-019). Chỉ đọc, dữ liệu đã có; không thêm bảng, không đổi REST (research P-12).
+- **Q-380 (sửa theo Q-385)**: phí chấm dứt sớm là khoản nhập tay có lý do của FR-021 vào bảng kỳ cuối, Quản lý viện duyệt từng khoản; không thêm loại khoản, tham số hay cách tính.
+- **Q-385**: 017 không còn đối soát chuyển khoản; không ảnh hưởng 010.
+
 ## Technical Context
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).
@@ -183,7 +189,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 1. **004** (đã ghi bổ sung vào [../004-admission-residency/contracts/module-interfaces.md](../004-admission-residency/contracts/module-interfaces.md) mục 1.8): sự kiện `PhienBanDonGiaDaTao(dichVuId, hieuLucTu, hieuLucDen)` khi tạo phiên bản đơn giá (kể cả hiệu lực lùi cho khoảng chưa có phiên bản, DBR-08), để 010 tính lại khoản thiếu đơn giá (FR-012). 010 cài `KyCuoiPort`, `MucViecSauQuaDoiPort` (`CHI_PHI_KY_CUOI`), dùng `KT_A_CHI_PHI` và các API, sự kiện của 004 như đã khai báo.
 2. **005, 006**: dùng các sự kiện tính phí đã khai báo (005 C-13, 006 D-17); 010 cài `DeNghiMuaHoPort` đúng chữ ký. Không đổi.
 3. **011, 012, 014**: phát `m11.api.SuKienTinhPhiNguon`, `SuKienTinhPhiNguonDaDoi` cho suất ăn người thân, đêm ở lại, điểm danh có phí ([contracts/module-interfaces.md](contracts/module-interfaces.md) mục 1.5). **012** cài `NguoiDaiDienPort` (đã khai báo ở 004) và đọc `ChiPhiCongNguoiThanApi`.
-4. **017** (cùng M11): cài `SoDuMuaHoPort`; dùng `ChiPhiChoSoDuPort`; nghe `BangChiPhiDaChot` (đúng một lần mỗi bảng) và `DeNghiMuaHo*`. **016** đọc `ChiPhiThongKeApi`. **009**: thông báo theo FR-044 cài `CoYeuCauThongBao`.
+4. **017** (cùng M11): cài `SoDuMuaHoPort`; dùng `ChiPhiChoSoDuPort` (*2026-10-22:* thêm `bangDaChot` cho phiếu báo phí, bảng quyết toán); nghe `BangChiPhiDaChot` (đúng một lần mỗi bảng) và `DeNghiMuaHo*`. **016** đọc `ChiPhiThongKeApi`. **009**: thông báo theo FR-044 cài `CoYeuCauThongBao`.
 
 ## Điểm cần báo lại về tài liệu nguồn
 

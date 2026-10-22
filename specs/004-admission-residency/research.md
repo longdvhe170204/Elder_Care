@@ -211,19 +211,21 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
   | `KT_C_THUOC_GUI` | (c) thuốc gia đình gửi | 006 |
   | `KT_D_CANH_BAO_SU_CO` | (d) cảnh báo, sự cố mở | 007 |
   | `KT_E_BAN_GIAO` | (e) bàn giao người cao tuổi | 004 |
-  | `KT_H_QUYET_TOAN` | (h) số dư và tiền cọc | 017 |
+  | `KT_H_QUYET_TOAN` | (h) ba ý về tiền: bảng kỳ cuối đã chốt và trừ, số dư cọc 0, số dư 0 (miễn được bằng ngoại lệ) | 017 |
+  | `KT_H_XAC_NHAN_QUYET_TOAN` | (h) không còn giao dịch Chờ duyệt, Kế toán đã xác nhận quyết toán và số liệu không đổi sau đó (bổ sung 2026-10-22, Q-379; BR-M11-22, 017 FR-022, FR-034; chủ dự án chọn theo BR-M11-22 2026-10-22: ý Chờ duyệt không miễn được); `coTheMien = false` | 017 |
 
-  Điều kiện Đạt khi không có trong kết quả `xemDieuKien(nctId, KET_THUC_LUU_TRU)` của 001. "Đạt (ngoại lệ)" khi có ngoại lệ đã duyệt. (f), (g) hiển thị "Tự động". Plan của 006, 007, 010, 013, 017 phải dùng đúng mã này (module-interfaces mục 2.1).
+  Điều kiện Đạt khi không có trong kết quả `xemDieuKien(nctId, KET_THUC_LUU_TRU)` của 001. "Đạt (ngoại lệ)" khi có ngoại lệ đã duyệt. *(Bổ sung 2026-10-22, FR-064)* Dòng (h) gộp hai mã của 017: Chưa đạt khi còn một trong hai (lý do của từng mã); "Đạt (ngoại lệ)" khi `KT_H_QUYET_TOAN` được miễn và `KT_H_XAC_NHAN_QUYET_TOAN` đạt; ngoại lệ không bao giờ miễn ý xác nhận. (f), (g) hiển thị "Tự động". Plan của 006, 007, 010, 013, 017 phải dùng đúng mã này (module-interfaces mục 2.1).
 - **Bean của 004 cho `KET_THUC_LUU_TRU`**:
   - điều kiện: có hồ sơ kết thúc Đang chuẩn bị; (e) đã có bàn giao; không mang dấu "quá ngày dự kiến"; thời điểm hiệu lực nằm trong ngày kết thúc dự kiến (FR-066, FR-066a);
-  - miễn điều kiện: `mienDieuKien` trả ngoại lệ đã duyệt (loại `M02.NGOAI_LE_KET_THUC`), chỉ cho (a) → (d), (h). (e) không có ngoại lệ (FR-064).
+  - miễn điều kiện: `mienDieuKien` trả ngoại lệ đã duyệt (loại `M02.NGOAI_LE_KET_THUC`), chỉ cho (a) → (d), (h). (e) không có ngoại lệ (FR-064). Với (h), ngoại lệ chỉ miễn `KT_H_QUYET_TOAN`; `KT_H_XAC_NHAN_QUYET_TOAN` không có trong danh sách miễn được (bổ sung 2026-10-22).
 - **Tác động của `KET_THUC_LUU_TRU`** (FR-065): hồ sơ kết thúc sang Hoàn tất; hợp đồng Kết thúc hoặc Chấm dứt (so ngày hiệu lực với ngày kết thúc hiện hành, FR-027); đóng lượt vắng đang mở; hồ sơ chờ sang Hủy chờ; đóng yêu cầu mở (T-06); đặt `luu_tru_nct.da_dong_luc` (FR-072); phát sự kiện cho 010, 017, 018.
 - **Lập hồ sơ kết thúc** (FR-062, FR-066 (1)):
   - Hành chính, hoặc Bác sĩ với Xuất viện, Chuyển cơ sở vì lý do y tế; Chuyển cơ sở bắt buộc nơi chuyển đến;
   - trong cùng transaction gọi `KyCuoiPort.taoKyCuoiNhap(nctId, ngayKetThucDuKien)` (010). Đây là tác động kèm lệnh, được phép theo Q-306;
   - đổi ngày gọi `KyCuoiPort.tinhLai`; hủy gọi `KyCuoiPort.huyMocDung`.
 - **Bàn giao** `POST /ho-so-ket-thuc/{id}/ban-giao` (nhóm 3): người nhận (người thân hoặc cơ sở tiếp nhận), thời điểm, nhân viên bàn giao.
-- **Ngoại lệ** là loại yêu cầu `M02.NGOAI_LE_KET_THUC`, lập bởi Hành chính, hoặc Kế toán với (h); `apDung` thêm dòng `ngoai_le_dieu_kien`.
+- **Ngoại lệ** là loại yêu cầu `M02.NGOAI_LE_KET_THUC`, lập bởi Hành chính, hoặc Kế toán với (h); `apDung` thêm dòng `ngoai_le_dieu_kien` và phát `NgoaiLeKetThucDaDuyet` (017 nghe, bổ sung 2026-10-22).
+- **Cho 017** *(bổ sung 2026-10-22; 017 FR-022, FR-034)*: `HoSoKetThucDocApi` trả hồ sơ kết thúc Đang chuẩn bị, thông tin cho bảng quyết toán (loại lưu trú, hợp đồng, ngày bắt đầu, ngày kết thúc dự kiến, trường hợp kết thúc; người qua đời là `QUA_DOI` cùng ngày qua đời) và ngoại lệ (h) đã duyệt. 017 tự quyết dùng cho điều kiện nào; 004 không đọc sổ của 017.
 
 - **Ý kiến về việc vào ở** (FR-004a, bổ sung 2026-10-18): xem T-09a.
 
@@ -295,6 +297,7 @@ Sự kiện không gửi thông báo, dành cho module khác: `HopDongDaDoiTrang
   Mọi mục xong thì đặt `luu_tru_nct.da_dong_luc` và dừng nhắc (FR-072). Dấu không gỡ được sau đó (FR-072 câu cuối).
 - **Giới hạn trường** (FR-069, BR-M02-21): `nguyenNhan` mang `@NhomTruong(SUC_KHOE)`. Hành chính và Kế toán không xem được, kể cả người đã ghi; người thân xem theo chú thích ¹. Bằng chứng do Hành chính tải lên thì người tải xem được (`QuyenTepProvider`).
 - **Bổ sung nguyên nhân** đi đường đính chính `M02.BAN_GHI_QUA_DOI`.
+- **Ngoại lệ mục quyết toán khi qua đời** *(bổ sung 2026-10-22, FR-071a, Q-387)*: `POST /nguoi-cao-tuoi/{nctId}/viec-sau-qua-doi/yeu-cau-ngoai-le-quyet-toan` (Hành chính, Kế toán; lý do) lập yêu cầu `M02.NGOAI_LE_KET_THUC` với `maDieuKien = KT_H_QUYET_TOAN`, căn cứ là danh sách việc sau qua đời đang mở; mục khác không lập được. `apDung` thêm `ngoai_le_dieu_kien` (`ho_so_ket_thuc_id` rỗng, `nct_id`), phát `NgoaiLeKetThucDaDuyet(null, nctId, KT_H_QUYET_TOAN)`. Mục chỉ Hoàn thành khi 017 trả `HOAN_THANH` (ba ý tiền miễn bằng ngoại lệ và Kế toán đã xác nhận quyết toán, không còn giao dịch Chờ duyệt); 004 không tự đổi trạng thái mục.
 
 ---
 

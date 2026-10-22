@@ -23,6 +23,7 @@ Mã chỉ tiêu dùng trong REST (`/bao-cao/{nhom}`, `/chi-tiet/{maChiTieu}`) v�
 | `KT.TY_LE_DAT`, `KT.THEO_VAI_TRO_KIEM_TRA` | Kiểm tra chất lượng | 014 `kiemTra` | FR-037 |
 | `SK.CHI_SO` | Chỉ số, cảnh báo, sự cố | 007 `ChiSoThongKeApi` | FR-040 |
 | `SK.CANH_BAO`, `SK.CANH_BAO_THOI_GIAN_TIEP_NHAN`, `SK.CANH_BAO_LEO_THANG` | Chỉ số, cảnh báo, sự cố | 007 `CanhBaoThongKeApi` | FR-020, FR-041 |
+| `SK.CANH_BAO_SOS_HO_TRO` *(bổ sung 2026-10-22; gồm chỉ tiêu SOS của 2026-10-18)* | Chỉ số, cảnh báo, sự cố | 007 `CanhBaoThongKeApi` (`nguon`, `daToiNoiLuc`, `khongGhiMocToiNoi`) | FR-041 |
 | `SK.SU_CO`, `SK.SU_CO_LEO_THANG`, `SK.SU_CO_THOI_GIAN_TIEP_NHAN`, `SK.THEO_DOI` | Chỉ số, cảnh báo, sự cố | 007 `SuCoApi`, `CanhBaoThongKeApi` | FR-020, FR-042 |
 | `SK.SU_CO_KHONG_THUOC_SK` | Sự cố không thuộc sức khỏe (Hành chính) | 007, danh mục loại sự cố | FR-042a |
 | `SK.DANH_GIA_LAI_QUA_HAN` | Đánh giá lại quá hạn | 001 `danhGiaLaiQuaHan` | FR-044 |

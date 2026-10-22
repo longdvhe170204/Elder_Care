@@ -43,11 +43,12 @@ public final class ParameterValue {
         return raw != null && !raw.isNull();
     }
 
-    /** Thời lượng theo phút, giờ, ngày. Tháng, năm không đổi được sang Duration: dùng {@link #asPeriod()}. */
+    /** Thời lượng theo giây, phút, giờ, ngày. Tháng, năm không đổi được sang Duration: dùng {@link #asPeriod()}. */
     public Duration asDuration() {
         JsonNode v = require(ParameterKind.DURATION);
         long amount = v.get("value").longValue();
         return switch (v.get("unit").asString()) {
+            case "SECONDS" -> Duration.ofSeconds(amount);
             case "MINUTES" -> Duration.ofMinutes(amount);
             case "HOURS" -> Duration.ofHours(amount);
             case "DAYS" -> Duration.ofDays(amount);
