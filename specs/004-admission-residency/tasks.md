@@ -12,6 +12,8 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 
 **Giai đoạn**: Theo mục "Giai đoạn hiện tại" của CLAUDE.md (constitution IX); task của `mobile/` chỉ làm khi mục đó mở phần mobile, trừ màn mẫu thiết kế.
 
+**Cập nhật 2026-10-22** (plan mục "Cập nhật 2026-10-22"; Q-379, Q-385): sửa câu chữ T039 (điều chỉnh có duyệt thay giao dịch đảo); thêm T106 → T108. Không đánh số lại.
+
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
@@ -135,7 +137,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 
 ### Tests cho User Story 4
 
-- [ ] T039 [P] [US4] Test `BT/m02/DatCocDieuKienIT.java`, `FR_032_DatCocSauLuuTruIT.java`, `SuKien017018IT.java`: điều kiện cọc `CHUA_DAP_UNG`/`DA_DAP_UNG`/`KHONG_YEU_CAU` theo port; đảo thu cọc làm điều kiện quay lại chưa đạt; phát sự kiện cho 017 và 018 khi hợp đồng, tiếp nhận đổi
+- [ ] T039 [P] [US4] Test `BT/m02/DatCocDieuKienIT.java`, `FR_032_DatCocSauLuuTruIT.java`, `SuKien017018IT.java`: điều kiện cọc `CHUA_DAP_UNG`/`DA_DAP_UNG`/`KHONG_YEU_CAU` theo port; điều chỉnh giảm thu cọc có duyệt ở 017 (sửa 2026-10-22, Q-385: không còn giao dịch đảo) làm điều kiện quay lại chưa đạt; phát sự kiện cho 017 và 018 khi hợp đồng, tiếp nhận đổi
 
 ### Implementation cho User Story 4
 
@@ -210,6 +212,9 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 - [ ] T059 [US7] Cài `BE/m02/ketthuc/internal/HoSoKetThucService.java` (lập, đổi ngày, hủy, bàn giao qua `BanGhiDonPort.daDung`; `DinhChinhDuocProvider` cho `M02.BAN_GIAO_NCT`) và handler `M02.NGOAI_LE_KET_THUC` (`quyenTao` gồm Kế toán khi `KT_H_QUYET_TOAN`; `apDung` thêm `ngoai_le_dieu_kien`) (research T-09)
 - [ ] T060 [US7] Cài phần `KET_THUC_LUU_TRU` của `ThamGiaM02.java`: điều kiện (e) bàn giao; `mienDieuKien` từ `ngoai_le_dieu_kien`; tác động: hợp đồng `KET_THUC`/`CHAM_DUT`, hồ sơ `HOAN_TAT`, `luu_tru_nct.da_dong_luc`, phụ lục `KHONG_AP_DUNG`, `dongDoTrangThaiCuoi` cho yêu cầu mở (000); cài `KetThucLuuTruApi`; việc `KET_THUC` và nhắc `QUA_NGAY_DU_KIEN` của job
 - [ ] T061 [US7] Tạo `BE/m02/ketthuc/web/KetThucController.java`: `/ho-so-ket-thuc`, `/{id}`, `/{id}/dieu-kien`, `/doi-ngay`, `/huy`, `/ban-giao`, `/yeu-cau-ngoai-le`; màn web `frontend/src/tinh-nang/ket-thuc-luu-tru/` và test `DieuKienKetThuc.test.jsx`
+- [ ] T106 [P] [US7] *(Bổ sung 2026-10-22)* Mở rộng `DieuKienKetThucIT`, `NgoaiLeKetThucIT` và thêm `BT/m02/HoSoKetThucDocApiIT.java` (quickstart Q38 → Q42): dòng (h) gộp `KT_H_QUYET_TOAN`, `KT_H_XAC_NHAN_QUYET_TOAN`; ngoại lệ (h) không miễn ý xác nhận; lập ngoại lệ với `KT_H_XAC_NHAN_QUYET_TOAN` → 422; duyệt ngoại lệ phát `NgoaiLeKetThucDaDuyet`; `thongTinQuyetToan` trả đủ trường cả khi qua đời (FR-063 (h), FR-064; 017 FR-022, FR-034)
+- [ ] T107 [US7] *(Bổ sung 2026-10-22)* Cài gộp dòng (h) trong màn điều kiện kết thúc, chặn ngoại lệ cho `KT_H_XAC_NHAN_QUYET_TOAN` trong handler `M02.NGOAI_LE_KET_THUC` và phát `NgoaiLeKetThucDaDuyet`; cài `BE/m02/ketthuc/internal/HoSoKetThucDocApiImpl.java` (`dangChuanBi`, `thongTinQuyetToan`, `coNgoaiLeQuyetToanDaDuyet`); màn web `ket-thuc-luu-tru/` hiện hai ý của (h) (research T-09)
+- [ ] T108 [P] *(Bổ sung 2026-10-22)* Khai báo `HoSoKetThucDocApi` và sự kiện `NgoaiLeKetThucDaDuyet` ở `BE/m02/api/`, thêm mã `KT_H_XAC_NHAN_QUYET_TOAN` vào danh sách mã điều kiện kết thúc; cập nhật bản giả `BT/support/fake/m02/` và bản giả bean 017 (T002) trả hai mã (luật "Đổi api") (module-interfaces mục 1.5b, 2.1)
 
 **Checkpoint**: Kết thúc lưu trú chạy với bean giả của module khác.
 
@@ -277,6 +282,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 - **US7 (P2)**: sau US3, US6
 - **US8 (P2)**: sau US3
 - **US9 (P3)**: sau Foundational; độc lập
+- *(2026-10-22)* T108 sớm (017 cần `HoSoKetThucDocApi`); T106, T107 sau T059 → T061
 
 ### Parallel Opportunities
 

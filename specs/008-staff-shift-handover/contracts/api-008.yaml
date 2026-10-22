@@ -41,6 +41,36 @@ paths:
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NhanVien' } } } }
       responses: { '201': { description: Đã tạo }, '403': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
+  /nhan-vien/import/mau:
+    get:
+      tags: [nhan-vien]
+      summary: Tải file mẫu import (.xlsx) (bổ sung 2026-10-22, Q-382)
+      x-fr: [FR-001b]
+      x-br: [BR-M09-18]
+      responses: { '200': { description: File mẫu, content: { application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: { schema: { type: string, format: binary } } } }, '403': { $ref: '#/components/responses/Loi' } }
+  /nhan-vien/import/xem-truoc:
+    post:
+      tags: [nhan-vien]
+      summary: Tải file lên, kiểm tra từng dòng, trả xem trước; không ghi dữ liệu (Quản lý viện)
+      description: 'Sai mẫu, sai loại file → 422 FILE_KHONG_DUNG_MAU; quá CFG-M09-13 dòng → 422 QUA_SO_DONG (research N-16).'
+      x-fr: [FR-001b, FR-001c]
+      x-br: [BR-M09-18]
+      requestBody: { required: true, content: { multipart/form-data: { schema: { type: object, required: [file], properties: { file: { type: string, format: binary } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaImport' } } } }, '403': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
+  /nhan-vien/import/xac-nhan:
+    post:
+      tags: [nhan-vien]
+      summary: Gửi lại cùng file để tạo mọi hồ sơ trong một lần; còn dòng lỗi thì không tạo gì
+      description: 'Hệ thống không lưu file gốc (FR-001c) nên xác nhận đọc và kiểm tra lại file; có lỗi → 409 IMPORT_CO_DONG_LOI kèm loi[].'
+      x-fr: [FR-001b, FR-001c]
+      x-br: [BR-M09-18]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { multipart/form-data: { schema: { type: object, required: [file], properties: { file: { type: string, format: binary } } } } } }
+      responses:
+        '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaXacNhanImport' } } } }
+        '403': { $ref: '#/components/responses/Loi' }
+        '409': { description: 'IMPORT_CO_DONG_LOI', content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaImport' } } } }
+        '422': { $ref: '#/components/responses/Loi' }
   /nhan-vien/{id}:
     get:
       tags: [nhan-vien]
@@ -524,8 +554,44 @@ components:
         email: { type: string }
         trangThai: { type: string, enum: [DANG_LAM_VIEC, NGHI_VIEC], readOnly: true }
         taiKhoanId: { type: integer, format: int64, readOnly: true }
+        nguon: { type: string, enum: [TAO_TAY, IMPORT], readOnly: true, description: 'Bổ sung 2026-10-22 (FR-001b)' }
+        lanImportId: { type: [integer, 'null'], format: int64, readOnly: true }
         boPhanId: { type: integer, format: int64 }
         truongBiAn: { type: array, items: { type: string } }
+    DongImport:
+      type: object
+      properties:
+        dong: { type: integer }
+        hoTen: { type: string }
+        chucDanh: { type: string }
+        dienThoai: { type: string }
+        ngayBatDau: { type: string, format: date }
+        chuyenMon: { type: string }
+        email: { type: string }
+    LoiDongImport:
+      type: object
+      properties:
+        dong: { type: integer }
+        cot: { type: string }
+        maLoi: { type: string, enum: [THIEU_O_BAT_BUOC, NGAY_SAI_DINH_DANG, DIEN_THOAI_SAI_DINH_DANG, EMAIL_SAI_DINH_DANG, TRUNG_HO_SO, TRUNG_DONG_TRONG_FILE] }
+        lyDo: { type: string }
+        trungVoiNhanVienId: { type: [integer, 'null'], format: int64 }
+        trungVoiDong: { type: [integer, 'null'] }
+    KetQuaImport:
+      type: object
+      description: Bổ sung 2026-10-22 (FR-001b)
+      properties:
+        tenFile: { type: string }
+        soDong: { type: integer }
+        dong: { type: array, items: { $ref: '#/components/schemas/DongImport' } }
+        loi: { type: array, items: { $ref: '#/components/schemas/LoiDongImport' } }
+        xacNhanDuoc: { type: boolean }
+    KetQuaXacNhanImport:
+      type: object
+      properties:
+        lanImportId: { type: integer, format: int64 }
+        soHoSoDaTao: { type: integer }
+        nhanVienIds: { type: array, items: { type: integer, format: int64 } }
     BoPhan:
       type: object
       required: [ten]

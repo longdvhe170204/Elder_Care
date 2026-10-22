@@ -38,6 +38,9 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | `id`, `ho_ten`, `chuc_danh`, `chuyen_mon`, `ngay_bat_dau` | | | FR-001 |
 | `dien_thoai`, `email`, `dia_chi` | | `@NhomTruong(HAN_CHE_NHAN_VIEN)` | FR-052 |
 | `tai_khoan_id` | `BIGINT NULL UNIQUE` | Tham chiếu 002; rỗng với nhân viên không dùng hệ thống (Q-282) | FR-001, FR-002 |
+| `dien_thoai_chuan` *(bổ sung 2026-10-22)* | `VARCHAR(15) NULL` | Chỉ chữ số, service ghi khi tạo, sửa; chỉ mục (không `UNIQUE`, plan điểm báo lại 7) | FR-001b |
+| `nguon` *(bổ sung 2026-10-22)* | `ENUM('TAO_TAY','IMPORT')` | Mặc định `TAO_TAY` | FR-001b |
+| `lan_import_id` *(bổ sung 2026-10-22)* | `BIGINT NULL` | Khóa ngoại `lan_import_nhan_vien` | FR-001b |
 | `trang_thai` | `ENUM('DANG_LAM_VIEC','NGHI_VIEC')` | Chỉ đổi qua lệnh (trigger) | FR-003 |
 | `nghi_viec_hieu_luc`, `ly_do_nghi_viec`, `da_ap_nghi_viec_luc` | | Lý do mang nhóm hạn chế | FR-003, FR-004, FR-053 |
 | `phien_ban` | | | |
@@ -49,8 +52,19 @@ Trigger `BEFORE DELETE` chặn mọi xóa (FR-001). `BEFORE UPDATE` chặn đổ
 | Từ | Lệnh | Đến | Người | Điều kiện |
 | --- | --- | --- | --- | --- |
 | — | Tạo hồ sơ | `DANG_LAM_VIEC` | Quản lý viện | Họ tên, chức danh |
+| — | Import (xác nhận) *(bổ sung 2026-10-22)* | `DANG_LAM_VIEC`, `nguon = IMPORT` | Quản lý viện | FR-001b: mọi dòng hợp lệ, không trùng số điện thoại; hoặc toàn bộ, hoặc không |
 | `DANG_LAM_VIEC` | Cho nghỉ việc | `NGHI_VIEC` (tại `nghi_viec_hieu_luc`) | Quản lý viện | Lý do; hiệu lực ≥ bây giờ; Phụ trách bộ phận cần người thay |
 | `NGHI_VIEC` | Nhận lại làm việc | `DANG_LAM_VIEC` | Quản lý viện | Lý do |
+
+### `lan_import_nhan_vien` – nhóm 3 *(bổ sung 2026-10-22, Q-382; research N-16)*
+
+| Cột | Kiểu | Ghi chú | Nguồn |
+| --- | --- | --- | --- |
+| `id`, `nguoi_thuc_hien_id`, `thoi_diem` | | | FR-001c |
+| `ten_file` | `VARCHAR(255)` | Không lưu nội dung file | FR-001c |
+| `so_dong` | `INT` | `<=` CFG-M09-13 lúc thực hiện | FR-001b |
+
+Danh sách hồ sơ đã tạo là các `nhan_vien` có `lan_import_id` này (và nằm trong nhật ký `NV_IMPORT`). Không `UPDATE`, `DELETE`.
 
 ### `bo_phan` – nhóm 1
 

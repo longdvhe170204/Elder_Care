@@ -43,6 +43,15 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - **Đối tượng thông tin** (FR-078, 009 FR-001a): 004 không tự gửi thông báo nào tới người thân; thông báo qua đời do 001 phát (mã Q-354 `QUA_DOI`); dấu `viecSauQuaDoi` cho module khác giữ nguyên (research T-12).
 - Không thêm thư viện, vai trò, trạng thái. Điểm báo lại 9 bên dưới.
 
+### Cập nhật 2026-10-22 (spec mục "Cập nhật 2026-10-22": Q-379, Q-380, Q-385)
+
+- **Điều kiện (h) tách hai ý** (FR-063 (h), FR-064, 017 FR-022): bean của 017 trả hai mã cho `KET_THUC_LUU_TRU`: `KT_H_QUYET_TOAN` (ba ý về tiền: kỳ cuối đã chốt và trừ, cọc 0, số dư 0; `coTheMien = true`) và `KT_H_XAC_NHAN_QUYET_TOAN` (không còn giao dịch Chờ duyệt, Kế toán đã xác nhận quyết toán và số liệu chưa đổi sau đó; `coTheMien = false`; theo BR-M11-22, chủ dự án chọn 2026-10-22, xem plan 017 điểm báo lại). Màn điều kiện vẫn hiện một dòng (h): Chưa đạt khi còn một trong hai mã; "Đạt (ngoại lệ)" khi chỉ `KT_H_QUYET_TOAN` được miễn; yêu cầu ngoại lệ (h) chỉ nhận `KT_H_QUYET_TOAN` (research T-09, module-interfaces mục 2.1).
+- **Cho 017** (017 FR-022, FR-034, bảng giao tiếp "Nhận 004"): API đọc mới `HoSoKetThucDocApi` (hồ sơ kết thúc Đang chuẩn bị, thông tin cho bảng quyết toán, ngoại lệ (h) đã duyệt) và sự kiện `NgoaiLeKetThucDaDuyet` (module-interfaces mục 1.5b, 1.8).
+- **Cổng người thân** (FR-068): `DieuKienTiepNhanApi.dieuKienKetThuc` giữ nguyên; bảng quyết toán do 012 lấy từ 017 (017 FR-038), 004 không lưu file quyết toán.
+- **Sửa sai tiền cọc** (Q-385): không còn giao dịch đảo, số phiếu thu; 017 báo trạng thái đặt cọc mới sau điều chỉnh có duyệt, 004 xử lý như mọi lần đổi trạng thái (FR-032 giữ nguyên).
+- **Q-380 (sửa theo Q-385)**: không có thời hạn báo trước, không thêm tham số; phí chấm dứt sớm là khoản nhập tay của 010. 004 không đổi.
+- Không thêm bảng, thư viện, vai trò, trạng thái.
+
 ## Technical Context
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).
@@ -109,6 +118,8 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | XIII. Tham số | Đạt | Như V. Bảng CFG-M02-05, CFG-M02-08 đọc giá trị hiện hành tại lúc tính (FR-052, FR-077) |
 | XIV. Ngoại tuyến, thông báo | Đạt | Lệnh của 004 chỉ trực tuyến. Mọi thông báo là sự kiện tới 009, có mức (T-12) |
 | XV. Truy vết, kiểm thử | Đạt | Tên test theo BR, FR. Mỗi BR của 004 có test (data-model mục 15). Không có BR nào của 004 thực hiện ở client |
+
+**Kiểm lại sau Phase 1 (2026-10-22)**: Đạt. Q-379, Q-385 chỉ thêm một mã điều kiện không miễn được do 017 trả, một API đọc và một sự kiện cho 017; không thêm bảng, trạng thái, vai trò. Điểm báo lại 10.
 
 **Kiểm lại sau Phase 1**: Đạt. Thiết kế không thêm vai trò, trạng thái hay quy tắc nghiệp vụ ngoài spec. Có năm bổ sung kỹ thuật, giải thích ở Complexity Tracking:
 1. Bảng `luu_tru_nct` làm đích khóa theo người.
@@ -244,3 +255,5 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
    - [../003-room-bed-allocation/contracts/module-interfaces.md](../003-room-bed-allocation/contracts/module-interfaces.md): thêm `PhongChoPhepApi.thuocTinhPhanBo`, `TinhTrangGiuongApi.batDauLuotTrong`, `ViTriApi.phanBoHienHanhHoacTuongLai`.
 
 9. **(2026-10-18) Q-356 "bắt buộc lý do" đã có sẵn ở 001 FR-046.** Mọi lệnh chuyển trạng thái do người dùng thực hiện, gồm Hoàn tất tiếp nhận, đã bắt buộc lý do. Plan không thêm trường lý do riêng; cảnh báo `NCT_KHONG_DONG_Y_VAO_O` hiện ý kiến để người thực hiện ghi lý do nói tới nó. Nếu ý định là một lý do riêng cho ý kiến "Không đồng ý", cần sửa FR-004a cho rõ (cùng nội dung plan 001 điểm báo lại 12). *(Đã xử lý 2026-10-18: Q-361: lý do của lệnh; thiết kế giữ nguyên, spec FR-004a đã làm rõ)*
+
+10. **(2026-10-22) Spec 004 User Story 4 kịch bản 4 còn chữ "được đảo ở feature 017".** Q-385 bỏ giao dịch đảo (sai sót bằng điều chỉnh có duyệt, 017 FR-011); Clarification 2026-09-28 và bảng nhóm dữ liệu của spec 004 đã sửa nhưng kịch bản 4 chưa. Plan, tasks theo điều chỉnh có duyệt (T039 sửa câu chữ). Đề nghị sửa kịch bản 4 của spec khi đồng bộ.

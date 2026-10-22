@@ -1,6 +1,6 @@
 # Implementation Plan: Hồ sơ và đánh giá người cao tuổi
 
-**Branch**: `001-elder-profile-assessment` | **Date**: 2026-10-07, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
+**Branch**: `001-elder-profile-assessment` | **Date**: 2026-10-07, cập nhật 2026-10-18, 2026-10-22 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/001-elder-profile-assessment/spec.md`
 
@@ -10,7 +10,7 @@ Feature 001 là module M01. Nó cung cấp:
 1. Hồ sơ cá nhân người cao tuổi, tra cứu theo quyền, liên kết hồ sơ của người quay lại (mục A; UC-01, UC-02).
 2. Bản đồng ý chia sẻ dữ liệu, là căn cứ cho chú thích ¹ của ma trận quyền (mục B; UC-03).
 3. Hồ sơ sức khỏe ban đầu; dị ứng, bệnh nền, tiền sử bệnh lưu thành từng mục chỉ loại trừ (mục C; UC-04).
-4. Phiếu nguyện vọng cuối đời có phiên bản (mục C1; UC-82).
+4. Phiếu nguyện vọng cuối đời có phiên bản (mục C1; UC-82); phiếu nguyện vọng khi điều trị có phiên bản (mục C1a; UC-103, bổ sung 2026-10-22).
 5. Đánh giá đầu vào và đánh giá lại bằng nhận xét, lưu ý chăm sóc, mức và nhu cầu chăm sóc; báo đánh giá lại (mục D, E; UC-05 → UC-07).
 6. Máy trạng thái người cao tuổi: mọi lệnh chuyển trạng thái, điều kiện chặn, lịch sử, mức chăm sóc hiện hành (mục F, G; UC-08, cùng UC-15 → UC-18 của 004).
 
@@ -35,6 +35,14 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307): M01 không tự sinh bản ghi
 ### Cập nhật 2026-10-18, lượt 3 (spec mục "Cập nhật 2026-10-18, lượt 3": Q-366)
 
 - **Mục ý kiến ghi từ phản hồi Mong muốn** (FR-023g): mẫu cột nguồn ý kiến (data-model mục 6a) có thêm cột tùy chọn `phan_hoi_id NULL`, chỉ bảng có lệnh ghi mục từ phản hồi mới dùng; khi lệnh ghi mục có `phanHoiId`, module ghi mục phát sự kiện chung `YKienDaGhiTuPhanHoi` khai báo ở `m01.api`; 012 nghe để gắn mục vào phản hồi (research H-17). Hiện có hai nơi ghi: 012 (mong muốn về khách thăm, người đón) và 014 (sở thích, gồm thói quen theo Q-363).
+
+### Cập nhật 2026-10-22 (spec mục "Cập nhật 2026-10-22": Q-383, Q-384)
+
+- **Phiếu nguyện vọng khi điều trị** (FR-023j → FR-023m, BR-M01-16, DBR-39, UC-103): bảng `nguyen_vong_dieu_tri` nhóm 2 có phiên bản (`HIEU_LUC` / `HET_HIEU_LUC`, cột sinh `dang_hieu_luc` `UNIQUE`), bảng con chỉ thêm `nguyen_vong_dieu_tri_nguoi_bao` (người cần báo, 0..n người thân có quan hệ Hiệu lực, chủ dự án chọn 2026-10-22) và `nguyen_vong_dieu_tri_y_kien` (ý kiến gia đình khác ý kiến người cao tuổi, mẫu cột nguồn mục 6a). Endpoint `GET/POST /nguoi-cao-tuoi/{id}/nguyen-vong-dieu-tri`; khóa quyền `DI_UNG_BENH_NEN` (dòng "Dị ứng, bệnh nền | UC-04, 103"), nội dung nhóm `SUC_KHOE`; hồ sơ có cờ `coNguyenVongDieuTri` cho Hành chính, Kế toán không thấy (research H-18, data-model mục 6b).
+- **Cảnh báo khi Hoàn tất tiếp nhận** (FR-023l): `ThamGiaM01` thêm cảnh báo `THIEU_NGUYEN_VONG_DIEU_TRI` vào `canhBao`, không chặn, không nhắc định kỳ (không thêm job).
+- **Cho 007** (FR-023): `NguyenVongApi.dieuTriHieuLuc(nctId)` cho thẻ thông tin khẩn cấp, lệnh Chuyển viện và phiếu tóm tắt chuyển viện (module-interfaces mục 1.8).
+- **Giấy tờ khi trở về từ bệnh viện** (FR-047c, BR-M05-32): lệnh `GHI_NHAN_TRO_VE` từ `DIEU_TRI_BENH_VIEN` nhận `tepDinhKemIds` (không bắt buộc); tệp gắn vào dòng `lich_su_trang_thai_nct` (loại chủ sở hữu `M01.GIAY_TO_BENH_VIEN`); 006 đọc qua `TrangThaiNguoiCaoTuoiApi.giayToDinhKem(lichSuId)` làm căn cứ đối chiếu thuốc (BR-M07-16). Cùng cơ chế cho lệnh `CHUYEN_VIEN` do 007 gọi (giấy chuyển viện, plan 007).
+- Không thêm thư viện, vai trò, trạng thái người cao tuổi hay job.
 
 ## Technical Context
 
@@ -78,7 +86,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307): M01 không tự sinh bản ghi
 - 300 người cao tuổi đang ở (NFR-01).
 - 8 trạng thái, 11 lệnh chuyển; 9 module tham gia chuyển trạng thái.
 - 7 job (thêm `NhacXemLaiNhanDinh` 2026-10-18, Q-360).
-- Khoảng 35 endpoint (contracts/api-001.yaml).
+- Khoảng 37 endpoint (contracts/api-001.yaml; thêm hai endpoint phiếu nguyện vọng khi điều trị 2026-10-22).
 
 Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chốt ở [research.md](research.md). Các điểm về tài liệu nguồn ghi ở "Điểm cần báo lại"; chúng không chặn thiết kế.
 
@@ -88,14 +96,14 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 
 | Nguyên tắc | Đánh giá | Bằng chứng |
 | --- | --- | --- |
-| I. Nguồn gốc, truy vết | Đạt | Mọi quyết định dẫn FR, BR, DBR; data-model mục 12 là bảng truy vết DBR-01 → 05, 23, 25, 34 và BR-M01-01 → 15 (BR-M01-14, 15 phần của 001, bổ sung 2026-10-18) |
+| I. Nguồn gốc, truy vết | Đạt | Mọi quyết định dẫn FR, BR, DBR; data-model mục 12 là bảng truy vết DBR-01 → 05, 23, 25, 34, 39 và BR-M01-01 → 16 (BR-M01-14, 15 phần của 001, bổ sung 2026-10-18; BR-M01-16, DBR-39 bổ sung 2026-10-22) |
 | II. Spec không nêu công nghệ | Đạt | Spec không đổi; công nghệ chỉ ở plan, research |
 | III. Không mặc định CRUD | Đạt | Nhóm 2 (hồ sơ, bản đồng ý, mục sức khỏe, nguyện vọng) chỉ có lệnh. Nhóm 3 (lịch sử, đánh giá, hồ sơ sức khỏe ban đầu sau xác nhận) chỉ thêm và đính chính. "Sửa nháp" chỉ khi chưa xác nhận. Danh mục theo mẫu nhóm 1 |
 | IV. Trạng thái kiểm tra được | Đạt | Bảng chuyển ở data-model mục 2, 4 → 7 khớp hai bảng trạng thái của spec; mỗi kịch bản có test (quickstart mục 4) |
 | V. Không cố định giá trị | Đạt | CFG-M01-01, 02, 03, 06, CFG-M03-02 đọc từ `ThamSoApi`. Chu kỳ job 15 phút, giới hạn tệp là thông số kỹ thuật (Complexity Tracking) |
 | VI. Vai trò, quyền | Đạt | Khóa quyền theo dòng Phụ lục 27 (H-05); 19.3 qua `@NhomTruong` của 002; không thêm vai trò. Chuyển viện chưa có dòng ở Phụ lục 27, tạm dùng UC-16 và BR-M01-06, báo lại ở điểm 1 |
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ. Chỗ nguồn còn thiếu ghi ở "Điểm cần báo lại"; thiết kế chọn cách hẹp nhất (ví dụ chỉ liên kết hồ sơ qua CCCD) |
-| VIII. Tiêu chí thành công | Đạt | SC-001 → SC-013 có cách đo ở quickstart mục 5 |
+| VIII. Tiêu chí thành công | Đạt | SC-001 → SC-014 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng của 000 được bổ sung giao diện (`TepApi`, `chuyenMoRong`), không đổi hành vi đã thiết kế |
 | X. Kiến trúc | Đạt | Một khối; gói `m01`; module khác chỉ dùng `m01.api`; điều kiện, tác động chéo module đi qua SPI. REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Mọi điều kiện chặn, bảng chuyển, quyền, giới hạn trường ở backend; `lenhDuocPhep` chỉ để hiển thị; mỗi lệnh trạng thái có `POST …/{id}/<lenh>` riêng |
@@ -103,6 +111,8 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | XIII. Tham số | Đạt | Như V |
 | XIV. Ngoại tuyến, thông báo | Đạt | Lệnh của 001 chỉ trực tuyến (ngoài phạm vi 8.6). Mọi thông báo là sự kiện tới 009, có mức, người nhận, khóa sự kiện (H-14) |
 | XV. Truy vết, kiểm thử | Đạt | Tên test theo BR, FR; mỗi BR-M01-01 → 13 có test tích hợp (data-model mục 12). Không có BR nào của 001 thực hiện ở client |
+
+**Kiểm lại sau Phase 1 (2026-10-22)**: Đạt. Q-383, Q-384 thêm một loại phiếu có phiên bản theo đúng mẫu nguyện vọng cuối đời, một cảnh báo trong lệnh Hoàn tất tiếp nhận đã có và tệp đính kèm cho lệnh trạng thái đã có; không thêm vai trò, trạng thái người cao tuổi, job hay thư viện. Hai điểm báo lại ở điểm 13.
 
 **Kiểm lại sau Phase 1 (2026-10-18)**: Đạt. Cập nhật Q-347, Q-348 chỉ đổi trường của bản đồng ý và phiếu nguyện vọng, thêm bảng con chỉ thêm `nguyen_vong_y_kien` và giao diện `NguonYKienApi` theo FR-023g; không thêm vai trò, trạng thái hay lệnh. Các điểm còn thiếu ở nguồn ghi ở điểm báo lại 10 → 12.
 
@@ -239,3 +249,8 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 11. **(2026-10-18) Ngày xem lại nhận định của Bác sĩ.** FR-023a, FR-023h bắt buộc ghi ngày xem lại nhưng không nói đến hạn thì làm gì. Plan chỉ lưu và hiển thị, không nhắc (Q-306: không tự sinh; nhắc thì cần FR). Đề nghị xác nhận, hoặc thêm FR nhắc Bác sĩ khi tới ngày xem lại. *(Đã xử lý 2026-10-18: Q-360, FR-023i: thêm job `NhacXemLaiNhanDinh` (research H-12))*
 
 12. **(2026-10-18) Q-356 "bắt buộc lý do" trùng FR-046.** FR-046 đã bắt lý do với mọi lệnh chuyển trạng thái do người dùng thực hiện, gồm Hoàn tất tiếp nhận; `LenhTrangThai.lyDo` luôn bắt buộc. Nên khi ý kiến là "Không đồng ý", điều mới chỉ là hệ thống hiện ý kiến đó (cảnh báo của bean 004) để lý do nói tới nó. Plan không thêm cơ chế riêng. Đề nghị: nếu ý định là lý do phải nói riêng về ý kiến của người cao tuổi (ví dụ trường lý do riêng), ghi rõ ở 004 FR-004a. *(Đã xử lý 2026-10-18: Q-361: dùng lý do của lệnh; thiết kế giữ nguyên)*
+
+13. **(2026-10-22) Q-383, Q-384.**
+    - **Số thẻ bảo hiểm y tế** (FR-023j): plan lưu `bhyt_so_the`, `bhyt_han_the`, `bhyt_noi_dang_ky` trong nhóm `SUC_KHOE`, không bắt buộc. Căn cứ xử lý dữ liệu cá nhân chờ đối chiếu ở 24.4 (Q-384), chặn trước khi vận hành, không chặn thiết kế.
+    - **Kế toán thấy cờ "đã có phiếu"**: FR-023m chỉ nêu Hành chính thấy "đã có phiếu". *(Đã xử lý 2026-10-22: chủ dự án chọn Kế toán không thấy cờ, đúng chữ FR-023m.)* Quy tắc xem trường của 002 chỉ theo vai trò × nhóm thông tin nên không tách được một trường; 001 tự kiểm khi dựng DTO hồ sơ: cờ `coNguyenVongDieuTri` chỉ có khi người xem có `(DI_UNG_BENH_NEN, XEM)` với người cao tuổi đó hoặc có `(HO_SO_NGUOI_CAO_TUOI, TAO)` (Hành chính, chú thích ⁵); ngược lại bỏ trường và liệt kê ở `truongBiAn`. Không đổi 002 (research H-18).
+    - **Người cần báo** 0..n người, không bắt buộc (chủ dự án chọn 2026-10-22); "cần hỏi trước = Có" mà danh sách rỗng thì lệnh ghi phiếu trả cảnh báo `CHUA_CO_NGUOI_CAN_BAO`, không chặn.

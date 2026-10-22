@@ -107,3 +107,12 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | SC-010 | Q27 → Q32 |
 | SC-011 | Q34 → Q36 |
 | SC-012 | Q39 và quét lịch sử tính lại, nhật ký, thông báo, tạm tính |
+
+## Kịch bản bổ sung 2026-10-22 (Q-378, Q-380)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| P1 | Chốt bảng tháng 10 của A gồm phí lưu trú, một khoản thuốc Amlodipin, một khoản điều chỉnh cho tháng 9; gọi `ChiPhiChoSoDuPort.bangDaChot` | Đủ khoản và tổng theo loại; khoản thuốc mô tả "Thuốc" và mã vật phẩm, không có tên thuốc; khoản điều chỉnh có kỳ gốc tháng 9; bảng chưa chốt trả rỗng | FR-042, FR-019 |
+| P2 | Hợp đồng của B có quy định phí chấm dứt sớm; Hành chính lập khoản nhập tay "phí chấm dứt sớm" có lý do vào bảng kỳ cuối; Quản lý viện duyệt | Khoản theo luồng FR-021 như mọi khoản nhập tay; không có tính tự động số ngày báo trước | Q-380 |
+
+Test: `BangDaChotPortIT` (P1); P2 nằm trong `BR_M11_04_NhapTayIT` hiện có (thêm một ca).

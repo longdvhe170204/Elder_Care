@@ -77,6 +77,16 @@ TienTrinhView tienTrinh(long luotDangKyId);              // FR-003
 DanhSachDieuKienView dieuKienKetThuc(long hoSoKetThucId); // FR-063, kèm ngoại lệ (012 FR-068)
 ```
 
+### 1.5b. `HoSoKetThucDocApi` (017; bổ sung 2026-10-22, Q-379)
+
+```java
+Optional<HoSoKetThucView> dangChuanBi(long nctId);              // hoSoKetThucId, truongHop, ngayKetThucDuKien, dấu quá ngày dự kiến
+Optional<ThongTinQuyetToanView> thongTinQuyetToan(long nctId);  // 017 FR-034: loaiLuuTru, hopDongId, ngayBatDau, ngayKetThucDuKien,
+    // truongHop (HET_HOP_DONG | XUAT_VIEN | CHUYEN_CO_SO | CHAM_DUT_HOP_DONG | QUA_DOI), ngayQuaDoi; rỗng khi không có hồ sơ kết thúc
+    // Đang chuẩn bị, danh sách việc sau qua đời đang mở, hoặc hồ sơ đã ở trạng thái cuối
+boolean coNgoaiLeQuyetToanDaDuyet(long nctId);                  // 017 FR-034: ngoại lệ đã duyệt cho KT_H_QUYET_TOAN
+```
+
 ### 1.5a. `LuuTruThongKeApi` (016; bổ sung theo plan 016, research O-10)
 
 ```java
@@ -98,7 +108,7 @@ DanhSachViecView xem(long nctId);
 | `LoaiYeuCauHandler` (000) | `M02.THAY_DOI_LUU_TRU` | Research T-06; cài `kiemTraKhiDuyet`, `khiDuyet`, `gioiHanVaiTroDuyet` (thay đổi nhỏ, FR-043, Q-338; hàm này bổ sung vào SPI của 000 theo plan này); chuyển mở rộng `DUOC_THAY_THE` |
 | | `M02.DIEU_CHINH_DIEM` | `apDung` thêm điều chỉnh, tính lại điểm (FR-011) |
 | | `M02.DUYET_DIEU_KHOAN_HOP_DONG` | `kiemTraDieuKienApDung`: hợp đồng còn Nháp, băm nội dung khớp (FR-025a) |
-| | `M02.NGOAI_LE_KET_THUC` | `quyenTao` gồm Kế toán khi điều kiện là `KT_H_QUYET_TOAN`; `apDung` thêm `ngoai_le_dieu_kien` (FR-064) |
+| | `M02.NGOAI_LE_KET_THUC` | `quyenTao` gồm Kế toán khi điều kiện là `KT_H_QUYET_TOAN`; `apDung` thêm `ngoai_le_dieu_kien` (FR-064), phát `NgoaiLeKetThucDaDuyet` (bổ sung 2026-10-22); `KT_H_XAC_NHAN_QUYET_TOAN` không lập được ngoại lệ |
 | `DinhChinhDuocProvider` (000) | `M02.LUOT_VANG`, `M02.BAN_GHI_QUA_DOI`, `M02.QUYET_DINH_GIU_GIUONG`, `M02.BAN_GIAO_NCT`, `M02.LICH_SU_DIEM` | `tangKhuVuc` rỗng (không gắn tầng); `sauKhiDinhChinh` của `M02.LUOT_VANG` tính lại ngày vắng (FR-061) |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | data-model mục 13, 14 | |
 | `GanPhamViProvider` (002) | Mọi loại của 004 | Trả `DoiTuong` với `nguoiCaoTuoiId` |
@@ -122,6 +132,7 @@ DanhSachViecView xem(long nctId);
 | `YeuCauNguoiDaiDienCanHoanThien(yeuCauId)` | 009 (Hành chính) | FR-039 |
 | `HoSoKetThucDaLap`, `…DaDoiNgay`, `…DaHuy`, `…HoanTat` (`hoSoKetThucId`, `nctId`, ngày) | 010, 017, 018, 012 | FR-033a, FR-066 |
 | `QuaDoiDaGhiNhan(nctId, thoiDiem, banGhiId)` | 017, 018, 012 | FR-033a, FR-070 |
+| `NgoaiLeKetThucDaDuyet(hoSoKetThucId, nctId, maDieuKien)` (bổ sung 2026-10-22) | 017 (tính lại điều kiện quyết toán, FR-022, FR-034) | FR-064 |
 | `NgayNghiBanTruDaDoi(ngay, hieuLuc)`; `BaoVangBanTruDaGhi(nctId, ngay, buoi, duHan)` | 005, 010, 011 | FR-060, FR-060a |
 | `PhienBanDonGiaDaTao(dichVuId, hieuLucTu, hieuLucDen)` (bổ sung theo plan 010): khi tạo phiên bản đơn giá, kể cả hiệu lực lùi cho khoảng chưa có phiên bản (DBR-08) | 010 (tính lại khoản thiếu đơn giá, 010 FR-012) | FR-034 → FR-036 |
 
@@ -160,7 +171,7 @@ interface MucViecSauQuaDoiPort {      // 010, 013, 006, 007, 017 mỗi bên mộ
 }
 ```
 
-**Mã điều kiện kết thúc** mà bean `ThamGiaChuyenTrangThai` của 010, 013, 006, 007, 017 phải dùng cho lệnh `KET_THUC_LUU_TRU`: `KT_A_CHI_PHI` (010), `KT_B_DO_GUI` (013), `KT_C_THUOC_GUI` (006), `KT_D_CANH_BAO_SU_CO` (007), `KT_H_QUYET_TOAN` (017); `coTheMien = true` (research T-09). 004 dùng `KT_E_BAN_GIAO` với `coTheMien = false`.
+**Mã điều kiện kết thúc** mà bean `ThamGiaChuyenTrangThai` của 010, 013, 006, 007, 017 phải dùng cho lệnh `KET_THUC_LUU_TRU`: `KT_A_CHI_PHI` (010), `KT_B_DO_GUI` (013), `KT_C_THUOC_GUI` (006), `KT_D_CANH_BAO_SU_CO` (007), `KT_H_QUYET_TOAN` (017); `coTheMien = true` (research T-09). *(Bổ sung 2026-10-22, Q-379)* 017 trả thêm `KT_H_XAC_NHAN_QUYET_TOAN` với `coTheMien = false` (ý "không còn giao dịch Chờ duyệt" và "Kế toán đã xác nhận quyết toán", FR-064, BR-M11-22); `KT_H_QUYET_TOAN` chỉ còn ba ý về tiền. 004 dùng `KT_E_BAN_GIAO` với `coTheMien = false`.
 
 Sự kiện 004 nghe: `NguoiCaoTuoiDaChuyenTrangThai`, `DanhGiaDauVaoDaXacNhan`, `MucChamSocDaDoi` (001); `GiuongDaTrong` (003); `YeuCauDaQuyetDinh`, `YeuCauApDungKhongThanh`, `YeuCauDaHuy`, `ThamSoDaDoi(CFG-M02-05, CFG-M02-08)` (000).
 

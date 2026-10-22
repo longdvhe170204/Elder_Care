@@ -645,7 +645,7 @@ paths:
     get:
       tags: [ket-thuc]
       summary: Danh sách điều kiện kết thúc (a) → (h)
-      description: 'Đạt / Chưa đạt / Đạt (ngoại lệ) / Tự động, kèm căn cứ; cùng nguồn với điều kiện của lệnh Kết thúc lưu trú (research T-09).'
+      description: 'Đạt / Chưa đạt / Đạt (ngoại lệ) / Tự động, kèm căn cứ; cùng nguồn với điều kiện của lệnh Kết thúc lưu trú (research T-09). (Bổ sung 2026-10-22, FR-063 (h), FR-064) Dòng (h) gộp KT_H_QUYET_TOAN và KT_H_XAC_NHAN_QUYET_TOAN của 017; Đạt (ngoại lệ) chỉ khi ý tiền được miễn và Kế toán đã xác nhận quyết toán.'
       x-fr: [FR-063, FR-064, FR-068]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/DanhSachDieuKien' } } } } }
@@ -700,7 +700,7 @@ paths:
     post:
       tags: [ket-thuc]
       summary: Lập yêu cầu ngoại lệ cho một điều kiện (a)–(d), (h)
-      description: 'Yêu cầu M02.NGOAI_LE_KET_THUC; Kế toán chỉ với KT_H_QUYET_TOAN; KT_E_BAN_GIAO không có ngoại lệ (FR-064).'
+      description: 'Yêu cầu M02.NGOAI_LE_KET_THUC; Kế toán chỉ với KT_H_QUYET_TOAN; KT_E_BAN_GIAO và KT_H_XAC_NHAN_QUYET_TOAN (bổ sung 2026-10-22) không có ngoại lệ (FR-064).'
       x-fr: [FR-064]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody:

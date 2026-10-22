@@ -46,7 +46,7 @@ List<Long> nguoiNhanTaiTang(long tangKhuVucId, long caId);          // 011 UC-76
 ```java
 Optional<CaView> caDangDienRa(long tangKhuVucId, Instant t);
 List<CaView> caCuaNhanVien(long nhanVienId, Instant tu, Instant den);
-boolean dangTrongCa(long nhanVienId, Instant t);                    // 009: nhân viên "trong ca" để chọn kênh (BR-M13-01)
+boolean dangTrongCa(long nhanVienId, Instant t);                    // 009: nhân viên "trong ca" để chọn kênh (BR-M13-01); cùng quy tắc với NhanSuCanhBaoPort.dangTrongCa (007, bổ sung 2026-10-22)
 Optional<NhanVienView> nhanVien(long nhanVienId);                   // nhóm (a) công khai
 ```
 
