@@ -92,7 +92,8 @@ class NFR_03_DeliveryDispatcherIT extends M13IntegrationTestBase {
                     Set.of(),
                     false,
                     level,
-                    Instant.now()));
+                    Instant.now(),
+                    null));
             notifications.markSent(id, Instant.now());
             attempt[0] = notifications.planAttempt(id, "IN_APP", null, Instant.now());
         });
