@@ -20,8 +20,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * 001 T020 (R-14): các endpoint hồ sơ đã cài khớp {@code api-001.yaml} về đường dẫn, phương thức và tên trường của
- * {@code Profile}, {@code PersonalInfo}, {@code CreateProfileResult}. Là kiểm tạm cho phần 001 tới khi {@code ApiContractIT}
+ * 001 T020, T032 (R-14): các endpoint hồ sơ và sức khỏe đã cài khớp {@code api-001.yaml} về đường dẫn, phương thức và tên
+ * trường của {@code Profile}, {@code PersonalInfo}, {@code CreateProfileResult}, {@code HealthItem}, {@code
+ * HealthItemResult}, {@code CorrectionResult}. Là kiểm tạm cho phần 001 tới khi {@code ApiContractIT}
  * của 000 đăng ký api-001 (BL-23); khi đó {@code ApiContractIT} kiểm đầy đủ hơn và test này có thể bỏ.
  */
 @AutoConfigureMockMvc
@@ -33,7 +34,14 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
             "POST /residents",
             "GET /residents/{id}",
             "POST /residents/{id}/update-personal-info",
-            "GET /residents/{id}/linked-profiles");
+            "GET /residents/{id}/linked-profiles",
+            "GET /residents/{id}/initial-health-record",
+            "PUT /residents/{id}/initial-health-record",
+            "POST /residents/{id}/initial-health-record/confirm",
+            "POST /initial-health-records/{id}/correct",
+            "GET /residents/{id}/health-items",
+            "POST /residents/{id}/health-items",
+            "POST /health-items/{id}/exclude");
 
     @Autowired
     MockMvc mvc;
@@ -70,11 +78,14 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
                 mvc.perform(get("/v3/api-docs")).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8));
 
         Set<String> inCode = operations(generated, "/api/v1");
-        inCode.removeIf(op -> !op.contains("/residents"));
+        inCode.removeIf(op ->
+                !op.contains("/residents") && !op.contains("/initial-health-records") && !op.contains("/health-items"));
         assertThat(inCode).containsExactlyInAnyOrderElementsOf(IMPLEMENTED);
         assertThat(operations(contract, "")).containsAll(IMPLEMENTED);
 
-        for (String schema : new String[] {"Profile", "PersonalInfo", "CreateProfileResult"}) {
+        for (String schema : new String[] {
+            "Profile", "PersonalInfo", "CreateProfileResult", "HealthItem", "HealthItemResult", "CorrectionResult"
+        }) {
             assertThat(properties(generated, schema)).as(schema).isEqualTo(properties(contract, schema));
         }
     }
