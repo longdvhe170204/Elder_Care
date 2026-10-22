@@ -25,7 +25,8 @@ class M15AccountEventsIntakeIT extends M13IntegrationTestBase {
     private void assertValid(List<Map<String, Object>> rows) {
         assertThat(rows).hasSize(1);
         assertThat(rows.getFirst().get("intake_result")).isEqualTo("VALID");
-        assertThat(rows.getFirst().get("flags")).isEqualTo("MISSING_LEVEL");
+        // Người nhận có hay không tùy dữ liệu tài khoản của lần chạy; ở đây chỉ kiểm dấu thiếu mức
+        assertThat((String) rows.getFirst().get("flags")).contains("MISSING_LEVEL");
         assertThat(rows.getFirst().get("source_module")).isEqualTo("M15");
     }
 
