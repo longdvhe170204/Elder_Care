@@ -71,6 +71,21 @@ class AssessmentCorrectionIT extends AssessmentTestBase {
     }
 
     @Test
+    void FR_032_sharedFormWithBlankCommentAndLevel_keepsThem_butBlankNoteClearsIt() {
+        long resident = admitted(CareLevel.REGULAR, "Lưu ý cũ");
+        long id = latestId(resident);
+
+        correct(id, Map.of("comment", "", "careNote", "", "careLevel", ""));
+
+        user.set(doctor.user());
+        AssessmentView view = assessments.get(target(resident), id);
+        assertThat(view.comment()).isEqualTo("Đầu vào");
+        assertThat(view.careLevel()).isEqualTo(CareLevel.REGULAR);
+        assertThat(view.careNote()).isNull();
+        assertThat(events.stream(AssessmentCorrectedLevel.class)).noneMatch(e -> e.residentId() == resident);
+    }
+
+    @Test
     void FR_032_correctingLevelOfLatest_keepsAppliedLevel_butNotifiesDoctorToReassess() {
         long resident = admitted(CareLevel.REGULAR, null);
         long id = latestId(resident);

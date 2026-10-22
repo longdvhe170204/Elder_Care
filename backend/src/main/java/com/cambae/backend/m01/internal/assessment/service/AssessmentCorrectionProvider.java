@@ -78,16 +78,14 @@ class AssessmentCorrectionProvider implements CorrectableRecordProvider {
             throw new InvalidValueException(
                     "Nội dung đúng cần ít nhất một trong các trường comment, careNote, careLevel");
         }
-        Object comment = map.get(AssessmentContents.COMMENT);
-        if (map.containsKey(AssessmentContents.COMMENT)
-                && (comment == null || comment.toString().isBlank())) {
-            throw new InvalidValueException("Nhận xét đánh giá không được để trống (DBR-05)");
-        }
-        if (map.containsKey(AssessmentContents.CARE_LEVEL)) {
+        // Form đính chính dùng chung gửi mọi ô: nhận xét và mức để trống nghĩa là giữ nguyên (không được rỗng, DBR-05);
+        // lưu ý chăm sóc để trống nghĩa là bỏ lưu ý.
+        Object level = map.get(AssessmentContents.CARE_LEVEL);
+        if (level != null && !level.toString().isBlank()) {
             try {
-                CareLevel.valueOf(String.valueOf(map.get(AssessmentContents.CARE_LEVEL)));
+                CareLevel.valueOf(level.toString().strip());
             } catch (IllegalArgumentException e) {
-                throw new InvalidValueException("Mức chăm sóc không hợp lệ");
+                throw new InvalidValueException("Mức chăm sóc không hợp lệ (BASIC, REGULAR hoặc SPECIAL)");
             }
         }
     }
