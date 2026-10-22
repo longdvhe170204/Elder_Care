@@ -61,7 +61,7 @@ public class PermissionDataErrors {
                     now,
                     now);
             id = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-            events.publishEvent(new PermissionDataError(e.source(), e.recordId(), e.errorKind()));
+            events.publishEvent(new PermissionDataError(id, e.source(), e.recordId(), e.errorKind(), time.now()));
         } else {
             id = open.getFirst();
             jdbc.update(
