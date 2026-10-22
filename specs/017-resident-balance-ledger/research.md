@@ -1,25 +1,26 @@
 # Research: Số dư và thu chi của người cao tuổi (017)
 
-**Ngày**: 2026-10-10 | **Plan**: [plan.md](plan.md) | **Spec**: [spec.md](spec.md)
+**Ngày**: 2026-10-22 (lập lại theo spec viết lại; bản 2026-10-10 bỏ) | **Plan**: [plan.md](plan.md) | **Spec**: [spec.md](spec.md)
 
-Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyết định nền R-01 → R-14 của 000 và các mẫu đã chốt ở 001 → 015 (H-02 bean trạng thái, T-09 mã điều kiện kết thúc, P-01 → P-15 của 010, đặc biệt P-12 port nội bộ M11; B-02 khuôn thông báo) được dùng lại, không quyết lại. Các quyết định dưới đây là kỹ thuật; chúng không đổi nghiệp vụ (constitution IX). Chỗ spec chưa rõ hoặc mâu thuẫn được ghi ở plan, mục "Điểm cần báo lại".
+Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyết định nền R-01 → R-14 của 000 và các mẫu đã chốt (001 H-02 bean trạng thái, H-13 tệp; 004 T-09 mã điều kiện kết thúc; 007 S-25 `common.bieumau`; 009 khuôn thông báo; 010 P-01 → P-15, đặc biệt P-12 port nội bộ M11) được dùng lại, không quyết lại. Các quyết định dưới đây là kỹ thuật, không đổi nghiệp vụ (constitution IX). Chỗ spec chưa rõ hoặc lệch ghi ở plan, "Điểm cần báo lại".
+
+Bản lập lại bỏ toàn bộ phần của bản cũ không còn trong spec (Q-385): phiếu thu chi và dãy số phiếu, chốt quỹ ngày, nhập sao kê và khớp mã, cặp điều chỉnh chuyển tiền, giao dịch đảo, biên bản quyết toán có vòng đời, xuất sổ cọc riêng.
 
 ---
 
 ## E-01. Vị trí trong backend
 
-**Quyết định**: Feature 017 là phần 15.9 của module M11, thêm gói `com.cambae.backend.m11.sodu` (010 P-01).
+**Quyết định**: Gói `com.cambae.backend.m11.sodu` trong module M11 (010 P-01), cấu trúc trong gói theo R-02 của 000.
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
-| `m11.sodu.so` | Sổ số dư, sổ tiền cọc, mã nộp tiền, thông tin nộp tiền (VietQR), số dư hiển thị | A |
-| `m11.sodu.thu` | Phiếu thu tiền mặt, dãy số phiếu, chốt quỹ ngày, trạng thái đặt cọc | B |
-| `m11.sodu.saoke` | Nhập sao kê, khớp mã nộp tiền, dòng sao kê | B |
-| `m11.sodu.giaodich` | Giao dịch, thanh toán bảng, hoàn tiền, hoàn cọc, điều chỉnh, cặp chuyển tiền, cấn trừ cọc, đảo; duyệt | C |
-| `m11.sodu.tinhtrang` | Số ngày còn đủ tiền, tình trạng, báo, dừng nhắc, dấu mua hộ | D |
-| `m11.sodu.quyettoan` | Điều kiện quyết toán, mục việc sau qua đời, nhắc sau trạng thái cuối, nhắc hoàn cọc | E |
-| `m11.sodu.xuat` | Sao kê, báo cáo thu chi, sổ cọc (Excel) | F |
-| `m11.sodu.lich`, `m11.api` (bổ sung) | Job; giao diện công khai | |
+| `so` | Sổ số dư, sổ tiền cọc, mã nộp tiền, VietQR, số dư hiển thị, REST cổng | A |
+| `giaodich` | Nộp tiền mặt, ghi nhận chuyển khoản, thanh toán bảng, hoàn tiền, hoàn cọc, điều chỉnh, cấn trừ cọc; duyệt; trạng thái đặt cọc | B, C |
+| `tinhtrang` | Số ngày còn đủ tiền, tình trạng, báo, dừng nhắc, dấu mua hộ | D |
+| `quyettoan` | Điều kiện quyết toán, bean trạng thái, mục việc sau qua đời, Xác nhận quyết toán, bảng quyết toán, nhắc sau trạng thái cuối, nhắc hoàn cọc | E, J |
+| `chungtu` | Phiếu báo phí | J |
+| `xuat` | Sao kê, báo cáo thu chi | F |
+| `lich` | Job hằng ngày | D, E |
 
 ---
 
@@ -29,126 +30,168 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 | Cặp | Cách nối |
 | --- | --- |
-| 017 ↔ 010 (cùng M11) | Port nội bộ P-12: dùng `ChiPhiChoSoDuPort` (`tongChuaChot`, `phiNgayCoSo`); cài `SoDuMuaHoPort.soDuKhongDu`. Nghe `m11.api.BangChiPhiDaChot`, `DeNghiMuaHo*`, `KhoanChiPhiDaDoi` như module khác |
-| 017 → 004 | Cài `TrangThaiDatCocPort` (`m02.api`), `MucViecSauQuaDoiPort` (`QUYET_TOAN`), `ThamGiaChuyenTrangThai` với điều kiện `KT_H_QUYET_TOAN` (T-09); đọc `HopDongDocApi.khoanDatCoc`, lịch đến bán trú; nghe `HopDongDaDoiTrangThai`, `KhoanCocDaDoi`, `HoSoKetThucDa*`, `QuaDoiDaGhiNhan`; gọi `DanhSachViecSauQuaDoiApi.capNhat` |
-| 017 → 001 | `NguoiCaoTuoiApi.trangThai`, `laTrangThaiCuoi`; nghe `NguoiCaoTuoiDaChuyenTrangThai` (Hủy tiếp nhận) |
-| 017 → 012 | `QuyenNguoiThanApi` (người đại diện, quyền xem chi phí) cho người nhận hoàn tiền, thông báo, REST cổng |
-| 017 → 009, 016 | Thông báo cài `CoYeuCauThongBao`; 016 đọc `SoDuThongKeApi` |
+| 017 ↔ 010 (cùng M11) | Port nội bộ P-12: dùng `ChiPhiChoSoDuPort` (`tongChuaChot`, `phiNgayCoSo`, `bangDaChot`); cài `SoDuMuaHoPort.soDuKhongDu`. Nghe `m11.api.BangChiPhiDaChot` |
+| 017 → 004 | Cài `TrangThaiDatCocPort`, `MucViecSauQuaDoiPort` (`QUYET_TOAN`), bean `ThamGiaChuyenTrangThai` (mã `KT_H_QUYET_TOAN`, `KT_H_XAC_NHAN_QUYET_TOAN`); đọc `HopDongDocApi` (`khoanDatCoc`, hợp đồng hiệu lực, lịch đến bán trú), `HoSoKetThucDocApi` (`dangChuanBi`, `thongTinQuyetToan`, `coNgoaiLeQuyetToanDaDuyet`), `DanhSachViecSauQuaDoiApi` (`xem`, `capNhat`); nghe `HopDongDaDoiTrangThai`, `KhoanCocDaDoi`, `HoSoKetThucDa*`, `QuaDoiDaGhiNhan`, `NgoaiLeKetThucDaDuyet` |
+| 017 → 001 | `NguoiCaoTuoiApi` (`trangThai`, `laTrangThaiCuoi`, `nhanDang`); nghe `NguoiCaoTuoiDaChuyenTrangThai` (Hủy tiếp nhận) |
+| 017 → 012 | `QuyenNguoiThanApi` (`quyenCoTacDung(XEM_CHI_PHI)`, `laNguoiDaiDien`, `nguoiDaiDien`) cho người nhận hoàn tiền, REST cổng, tên người đại diện trên chứng từ |
+| 017 → 009, 016 | Thông báo theo khuôn `common.notification`; 016 đọc `SoDuThongKeApi` |
+| 017 → `common` | `common.bieumau` (`PdfBieuMau`, `ExcelBieuMau`), `common.tep` (`FileApi`) |
 
-Không có SPI 017 khai cho module sau (016 đọc API).
+Không có SPI 017 khai báo cho module khác cài. Modulith `verify()` không có vòng.
 
-**Lý do**: Các SPI 004 đã khai cho 017; 010 dành sẵn port nội bộ. Modulith `verify()` không có vòng.
+**Lý do**: SPI phía 004 đã khai cho 017; 010 dành sẵn port nội bộ.
 
 ---
 
-## E-03. Khóa và đồng thời
+## E-03. Khóa, đồng thời và bất biến
 
 **Quyết định**:
-- Nối chuỗi khóa của 010 (P-03): … → `chi_phi_nct` (M11) → `so_du` (một dòng mỗi hồ sơ, giữ cả số dư cọc) → giao dịch.
-- Mọi giao dịch Đã xác nhận cập nhật `so_du.so_du` / `so_du_coc` trong cùng transaction dưới khóa `so_du`; bất biến "số dư = tổng giao dịch Đã xác nhận" kiểm bằng test và truy vấn đối chiếu hằng đêm (ghi lỗi, không tự sửa).
-- **Số phiếu** (FR-005): bảng `day_so_phieu (loai: THU | CHI, gia_tri_cuoi)` khóa `FOR UPDATE`; cấp trong transaction ghi giao dịch nên rollback không để lại khoảng trống (SC-011). Không dùng AUTO_INCREMENT (có thể bỏ số).
-- **Dòng sao kê** (DBR-29): `UNIQUE (ma_giao_dich_ngan_hang)` trên dòng; `UNIQUE (dong_sao_ke_id)` trên giao dịch.
-- **Thanh toán bảng** (DBR-30): `UNIQUE (bang_chi_phi_id)` trên giao dịch loại `THANH_TOAN_BANG`.
-- **Một đảo mỗi gốc**: cột sinh `khoa_dao = IF(loai = 'DAO' AND trang_thai IN ('CHO_DUYET','DA_XAC_NHAN'), giao_dich_goc_id, NULL)` `UNIQUE`.
-- **Chốt quỹ mỗi ngày** (DBR-35): cột sinh `khoa_ngay = IF(trang_thai IN ('DA_LAP','DA_XAC_NHAN'), ngay, NULL)` `UNIQUE`.
+- Nối chuỗi khóa của 010 (P-03): … → `so_du` (một dòng mỗi hồ sơ, giữ cả số dư cọc) → giao dịch.
+- Mọi giao dịch Đã xác nhận cập nhật `so_du.so_du` / `so_du_coc` trong cùng transaction dưới `SELECT … FOR UPDATE` dòng `so_du`; cặp cấn trừ cọc cập nhật cả hai cột trong cùng lệnh. Bất biến "số dư = tổng giao dịch Đã xác nhận" (FR-002, DBR-28) kiểm bằng test và truy vấn đối chiếu hằng đêm (ghi lỗi kỹ thuật, không tự sửa).
+- `UNIQUE (bang_chi_phi_id)` trên giao dịch thanh toán bảng (DBR-30); `UNIQUE (bang_chi_phi_id)` trên phiếu báo phí (DBR-37); cột sinh `khoa_hien_hanh` `UNIQUE` trên bảng quyết toán (DBR-38).
+- Mã giao dịch ngân hàng **không** `UNIQUE` (FR-007: trùng chỉ cảnh báo, một lần chuyển khoản được ghi thành nhiều giao dịch cùng mã); chỉ mục thường để tìm trùng.
 
 ---
 
-## E-04. Sổ, mã nộp tiền, VietQR (mục A; DBR-28, Q-211, Q-225, Q-285)
+## E-04. Sổ, mã nộp tiền, VietQR (mục A; FR-001 → FR-004; DBR-28, DBR-29; Q-211, Q-225, Q-285, Q-335)
 
 **Quyết định**:
-- Listener `HopDongDaDoiTrangThai(… den = CHO_KY)` (004): nếu hồ sơ chưa có sổ → mở `so_du` (số dư 0, số dư cọc 0) và cấp `ma_nop_tien` (tác động kèm lệnh gửi ký của 004; idempotent theo hồ sơ). Hồ sơ mới của người quay lại có sổ mới (khóa theo `nct_id`).
-- `ma_nop_tien`: chuỗi ngắn có chữ số kiểm tra (ví dụ `NCT` + 6 ký tự Base32 Crockford + 1 ký tự kiểm tra), `UNIQUE`, không dùng lại; sinh ngẫu nhiên và thử lại khi trùng. Chữ số kiểm tra giảm khớp nhầm khi gõ sai.
-- Thông tin nộp tiền: số tài khoản thu, tên ngân hàng, mã BIN (VietQR) của viện đọc từ tham số CFG-M11-10 qua `ThamSoApi` (Q-335, sửa 2026-10-10); Quản lý viện đổi trên màn cấu hình, có lịch sử (BR-M15-04). Mã QR theo chuẩn VietQR (EMVCo, không số tiền, nội dung = mã nộp tiền) dựng ở backend thành chuỗi payload; client vẽ ảnh QR. Không có thanh toán trực tuyến (Q-285).
-- REST cổng `/cong/nguoi-cao-tuoi/{nctId}/so-du` (số dư, cọc, giao dịch Đã xác nhận, thông tin nộp tiền) và tải sao kê; kiểm `QuyenNguoiThanApi.quyenCoTacDung(XEM_CHI_PHI)` mỗi lần gọi (SC-010). Giao dịch thanh toán bảng chỉ hiện tổng (Q-133).
+- Listener `HopDongDaDoiTrangThai(… den = CHO_KY)` (004): nếu hồ sơ chưa có sổ → mở `so_du` (số dư 0, số dư cọc 0), cấp `ma_nop_tien` (tác động kèm lệnh gửi ký; idempotent theo `nct_id`). Hồ sơ mới của người quay lại có sổ mới (khóa theo `nct_id`).
+- `ma_nop_tien`: `NCT` + 6 ký tự Base32 Crockford + 1 ký tự kiểm tra (mod 37), `UNIQUE`, không dùng lại; sinh ngẫu nhiên, thử lại khi trùng. Tìm theo mã không phân biệt hoa thường, bỏ khoảng trắng và gạch nối.
+- Thông tin nộp tiền: ngân hàng, mã BIN, số tài khoản, chủ tài khoản đọc từ CFG-M11-10 (`ThamSoApi`). Hàm thuần `VietQrPayload(bin, soTaiKhoan, noiDung)` dựng chuỗi EMVCo (merchant account `A000000727`, dịch vụ chuyển nhanh tới tài khoản, không trường số tiền, nội dung = mã nộp tiền, CRC16-CCITT). REST trả chuỗi payload; client vẽ ảnh. Trên PDF (phiếu báo phí), backend vẽ ảnh QR bằng **ZXing core** rồi chèn ảnh qua `PdfBieuMau`.
+- Hiển thị (FR-004): số dư trên hồ sơ cho Kế toán, Hành chính, Quản lý viện (`BALANCE_LEDGER, XEM`); giao dịch thanh toán bảng chỉ hiện tổng (Q-133).
+- REST cổng `/cong/nguoi-cao-tuoi/{nctId}/so-du` (số dư, cọc, giao dịch Đã xác nhận, thông tin nộp tiền) kiểm `QuyenNguoiThanApi.quyenCoTacDung(nguoiThanId, nctId, XEM_CHI_PHI, now)` mỗi lần gọi (SC-010).
+
+**Phương án đã cân nhắc**: Thư viện VietQR riêng (ít lựa chọn được duy trì; chuẩn ngắn, tự viết kèm test vector của NAPAS). Client vẽ QR cả trên PDF (không làm được vì PDF dựng ở máy chủ).
 
 ---
 
-## E-05. Thu tiền mặt, chốt quỹ, đặt cọc (FR-005, FR-005a, FR-006; BR-M11-16, DBR-35)
+## E-05. Ghi nhận tiền nộp và trạng thái đặt cọc (mục B; FR-005 → FR-007; BR-M11-12, 16; DBR-29)
 
 **Quyết định**:
-- Phiếu thu = giao dịch `NOP_TIEN_MAT` (sổ số dư) hoặc `THU_COC` phương thức tiền mặt (sổ cọc), Đã xác nhận ngay, cấp số phiếu dãy `THU`. Hoàn tiền, hoàn cọc tiền mặt cấp số dãy `CHI` khi Đã xác nhận.
-- `chot_quy_ngay` (nhóm 2 → 3): ngày, danh sách số phiếu (bảng con), tổng thu, tổng chi, phải có, thực có, chênh lệch, lý do. Hàm thuần `TongQuyNgay(giaoDichTienMat, ngay)` theo ngày giao dịch chuyển Đã xác nhận. Trạng thái `DA_LAP | DA_XAC_NHAN | BI_TRA_LAI`. Giao dịch tiền mặt Đã xác nhận cho ngày đã có chốt quỹ Đã xác nhận → dấu "phát sinh sau chốt quỹ" và nhắc Kế toán (chốt quỹ bổ sung cho ngày duyệt, theo bảng của spec).
-- Job theo giờ hành chính (CFG-M13-06): hết giờ hành chính ngày có giao dịch tiền mặt mà chưa có chốt quỹ → nhắc Kế toán; hết giờ ngày làm việc kế tiếp mà chưa xác nhận → báo Quản lý viện (Trung bình).
-- **Đặt cọc** (FR-006): hàm thuần `TrangThaiDatCoc(hopDong, soDuCoc)` → `KHONG_YEU_CAU | DA_DAP_UNG | CHUA_DAP_UNG`. Bản cài `TrangThaiDatCocPort.trangThai(hopDongId)` tính lúc gọi. Mỗi lần kết quả đổi (sau giao dịch cọc, đảo cọc, `KhoanCocDaDoi`) → phát `m11.api.TrangThaiDatCocDaDoi(hopDongId, nctId, trangThai, giaoDichId, keToanId, thoiDiem)` cho 004.
+- **Tiền mặt** `POST /nguoi-cao-tuoi/{nctId}/nop-tien-mat`: sổ (`SO_DU` | `COC`), số tiền > 0, người nộp, thời điểm thu, ghi chú (ghi được số chứng từ của phần mềm kế toán). Giao dịch `NOP_TIEN_MAT` (sổ số dư) hoặc `THU_COC` phương thức `TIEN_MAT` (sổ cọc), Đã xác nhận ngay. Không cấp số, không in phiếu (FR-005).
+- **Chuyển khoản** `POST /nguoi-cao-tuoi/{nctId}/nop-chuyen-khoan`: tìm hồ sơ qua `GET /so-du/tim-theo-ma?ma=` (mã nộp tiền); thân: danh sách dòng (mỗi dòng: sổ, số tiền) cùng ngày nhận, mã giao dịch ngân hàng (bắt buộc), người nộp, ghi chú. Nhiều dòng (khác sổ) ghi trong một transaction cùng mã (FR-007; khác hồ sơ thì gọi lệnh cho từng hồ sơ). Mã đã có ở giao dịch khác (mọi hồ sơ, trừ các dòng của chính lệnh) và thân không có `xacNhanTrungMa = true` → 409 `MA_GIAO_DICH_DA_DUNG` kèm giao dịch trước; gửi lại với cờ thì lưu (DBR-29: cảnh báo, không chặn).
+- Mỗi giao dịch nộp: cập nhật sổ; tính lại tình trạng ngay (E-07, Q-252, Q-257); tính lại trạng thái đặt cọc khi sổ cọc đổi.
+- **Đặt cọc** (FR-006): hàm thuần `TrangThaiDatCoc(khoanCanCoc | KHONG_YEU_CAU, soDuCoc)` → `KHONG_YEU_CAU | DA_DAP_UNG | CHUA_DAP_UNG`. `TrangThaiDatCocPort.trangThai(hopDongId)` tính lúc gọi kèm giao dịch làm đổi gần nhất và Kế toán lập. Mỗi lần kết quả đổi (giao dịch cọc, điều chỉnh cọc được duyệt, `KhoanCocDaDoi`) phát `m11.api.TrangThaiDatCocDaDoi` cho 004.
+- Hành chính không có quyền ghi (`BALANCE_LEDGER` chỉ `XEM`) → 403 (US2 #5).
+
+**Phương án đã cân nhắc**: Một endpoint cho cả tiền mặt và chuyển khoản (thân rẽ nhánh theo phương thức, khó kiểm trường bắt buộc); bắt `UNIQUE` mã ngân hàng (trái FR-007).
 
 ---
 
-## E-06. Sao kê và đối soát (FR-007 → FR-009a; BR-M11-12, DBR-29, Q-227)
+## E-06. Giao dịch, duyệt, thanh toán bảng, cấn trừ (mục C; FR-010 → FR-015a; BR-M11-10, 11, 14; DBR-17, DBR-28, DBR-30)
 
 **Quyết định**:
-- Nhập: đọc Excel (fastexcel-reader, cùng họ thư viện 010 dùng để ghi) hoặc CSV; ánh xạ cột theo mẫu sao kê cấu hình (tên cột của ngân hàng). File không đọc được hoặc thiếu cột → 422, không ghi gì. Dòng thiếu giá trị → danh sách từ chối; mã giao dịch đã có → "đã nhập trước đó". Các dòng còn lại ghi trong một transaction; lỗi giữa chừng rollback toàn bộ (FR-007).
-- Hàm thuần `KhopMa(noiDung, soTien, maHieuLuc)`: chuẩn hóa nội dung (bỏ dấu, viết hoa, bỏ khoảng trắng thừa), tìm các chuỗi đúng mẫu mã có chữ số kiểm tra đúng; đúng một mã thuộc sổ hiệu lực và số tiền dương → `DA_KHOP`; còn lại `CHUA_KHOP` kèm lý do (`KHONG_CO_MA`, `NHIEU_MA`, `SO_TIEN_AM`, `MA_KHONG_TON_TAI`). Khớp không tạo giao dịch.
-- `dong_sao_ke` (nội dung nhóm 3; trạng thái nhóm 2) `DA_KHOP | CHUA_KHOP | DA_GHI_NHAN | KHONG_THUOC_NCT`. Lệnh xác nhận vào số dư/cọc tạo giao dịch `NOP_CHUYEN_KHOAN` / `THU_COC` Đã xác nhận (`UNIQUE (dong_sao_ke_id)`), tính lại tình trạng (E-08), trạng thái đặt cọc. Dòng khớp hồ sơ đã ở trạng thái cuối → vẫn ghi, báo Kế toán (E-09).
-- **Cặp điều chỉnh chuyển tiền**: hai giao dịch `DIEU_CHINH` Chờ duyệt liên kết (`cap_id`), trỏ dòng sao kê; lệnh duyệt áp cả hai trong một transaction (khóa hai sổ theo `nct_id` tăng); từ chối/hủy áp cả hai.
+- `giao_dich` (nhóm 2 khi `CHO_DUYET` → 3 khi `DA_XAC_NHAN`): sổ, loại theo FR-010, số tiền có dấu, thời điểm, phương thức, tham chiếu (mã giao dịch ngân hàng, bảng chi phí, giao dịch được điều chỉnh, giao dịch liên kết của cặp cấn trừ), người lập, người duyệt, lý do, ghi chú, trạng thái, `da_dieu_chinh`.
+- **Duyệt** (FR-013): Hoàn tiền, Hoàn cọc, Điều chỉnh là loại yêu cầu phê duyệt `M11.GIAO_DICH_SO_DU` của 000 (Chờ duyệt → Đã duyệt và áp dụng ngay; Từ chối; Hủy bởi người lập). Kế toán không có quyền duyệt. Handler:
+  - `kiemTraKhiDuyet`: hàm thuần `GioiHanHoan(soDu, soDuCoc, tongChuaChot, laTrangThaiCuoi, loai, soTien)` (FR-014); người nhận còn là người đại diện Hiệu lực (`QuyenNguoiThanApi.laNguoiDaiDien`) trừ khi lúc lập hồ sơ không còn người đại diện (người nhận khác, có lý do); điều chỉnh không trỏ giao dịch thanh toán bảng (FR-011). Không đạt → chặn duyệt, báo Kế toán (US6 #3, #8).
+  - `apDung`: ghi Đã xác nhận, cập nhật sổ, đặt `da_dieu_chinh` của giao dịch gốc (nếu có), tính lại tình trạng (điều chỉnh giảm khoản nộp: Q-268, sửa theo Q-385), tính lại trạng thái đặt cọc, điều kiện quyết toán.
+- **Sửa sai** (FR-011): điều chỉnh có lý do, MAY trỏ giao dịch gốc (`giao_dich_goc_id`); ghi nhầm người thì điều chỉnh giảm ở hồ sơ sai và ghi nhận lại ở hồ sơ đúng (US3 #4). Không có loại `DAO`.
+- **Thanh toán bảng** (FR-012): listener `BangChiPhiDaChot` (010, sau commit lệnh chốt) → giao dịch `THANH_TOAN_BANG` Đã xác nhận = −tổng (tổng 0 vẫn ghi); `UNIQUE (bang_chi_phi_id)` chống lặp (SC-002). Không điều chỉnh được.
+- **Cấn trừ cọc** (FR-015): Kế toán, không duyệt; điều kiện: `HoSoKetThucDocApi.dangChuanBi` có, hoặc danh sách việc sau qua đời đang mở (`DanhSachViecSauQuaDoiApi.xem`), và bảng kỳ cuối đã chốt (đã có giao dịch thanh toán của bảng kỳ cuối); số tiền ≤ số dư cọc và ≤ phần còn nợ; hai giao dịch `CAN_TRU_COC` liên kết (`giao_dich_lien_ket_id`) cùng transaction (SC-013).
+- **Nhắc hoàn cọc** (FR-015a): listener hợp đồng Đã hủy trước Hiệu lực, Hủy tiếp nhận (001) đặt `so_du.can_hoan_coc_tu`; job hằng ngày nhắc Kế toán mỗi CFG-M02-09 tới khi số dư cọc về 0.
 
 ---
 
-## E-07. Giao dịch, duyệt, thanh toán bảng, cấn trừ (mục C; BR-M11-10, 11, 14, DBR-17, DBR-28, DBR-30)
-
-**Quyết định**:
-- `giao_dich` (nhóm 2 khi `CHO_DUYET` → 3 khi `DA_XAC_NHAN`): sổ (`SO_DU`, `COC`), loại (FR-010), số tiền có dấu (`BIGINT`), thời điểm, phương thức, tham chiếu (số phiếu, dòng sao kê, bảng, giao dịch gốc, `cap_id`), người lập, người duyệt, lý do, trạng thái `CHO_DUYET | DA_XAC_NHAN | TU_CHOI | DA_HUY`, `da_dao`. Trigger: `DA_XAC_NHAN` chỉ cho đặt `da_dao` từ false.
-- **Duyệt**: Hoàn tiền, Hoàn cọc, Điều chỉnh, Đảo là loại yêu cầu phê duyệt `M11.GIAO_DICH_SO_DU` của 000 (Chờ duyệt → Đã duyệt/áp dụng ngay; Từ chối; Hủy), `choTuDuyet` không áp vì Kế toán không có quyền duyệt. `kiemTraKhiDuyet` kiểm lại: giới hạn số tiền (hàm `GioiHanHoan(soDu, soDuCoc, tongChuaChot, laTrangThaiCuoi)`), người nhận còn là người đại diện Hiệu lực (`QuyenNguoiThanApi.laNguoiDaiDien`), một đảo mỗi gốc, gốc không phải thanh toán bảng. `apDung` ghi giao dịch Đã xác nhận, cập nhật sổ, đánh dấu gốc "đã đảo".
-- **Thanh toán bảng** (FR-012): listener `BangChiPhiDaChot` (010, sau commit lệnh chốt của Quản lý viện) → giao dịch `THANH_TOAN_BANG` Đã xác nhận = −tổng; `UNIQUE (bang_chi_phi_id)` chống lặp (SC-002). Không đảo được.
-- **Cấn trừ cọc** (FR-015): Kế toán, không duyệt; kiểm có hồ sơ kết thúc đang chuẩn bị hoặc danh sách việc sau qua đời đang mở (004), bảng kỳ cuối đã chốt (010 qua `ChiPhiChoSoDuPort`/sự kiện), số tiền ≤ số dư cọc và ≤ phần còn nợ; hai giao dịch liên kết trong một transaction.
-
----
-
-## E-08. Số ngày còn đủ tiền, tình trạng, báo (mục D; BR-M11-13, Q-136, Q-223, Q-252, Q-257, Q-268)
+## E-07. Số ngày còn đủ tiền, tình trạng, báo (mục D; FR-016 → FR-021; BR-M11-13, 15; Q-136, Q-223, Q-252, Q-257, Q-268, Q-334)
 
 **Quyết định**:
 - Hàm thuần `PhiMotNgay(hopDong, ngay, lichBanTru, phiNgayCoSo)` theo FR-016 (tháng: `ChiPhiChoSoDuPort.phiNgayCoSo`; ngày: đơn giá ngày; bán trú tháng: giá ÷ số ngày tháng; bán trú buổi: giá buổi × số buổi có lịch 7 ngày tới ÷ 7).
-- Hàm thuần `TinhTrang(soDu, tongChuaChot, phiMotNgay, cfg04)` → `CON_NO | SAP_HET_TIEN | BINH_THUONG` và số ngày (làm tròn xuống); phí = 0 chỉ xét Còn nợ.
-- Hàm thuần `QuyetDinhBao(cu, moi, lanBaoTruoc, cfg05, suKien)` theo bảng chuyển tình trạng (lần tính hằng ngày, nộp tiền về Bình thường, nộp tiền chưa đủ, đảo nộp tiền): trả tác động (báo ngay, đặt lại chu kỳ, giữ chu kỳ, báo "đã ghi nhận khoản nộp", nhắc lại, báo Quản lý viện).
-- `tinh_trang_so_du` (nhóm 2 dẫn xuất trên `so_du`: tình trạng, `chu_ky_tu`, `lan_bao_truoc`, `con_no_tu`, `dung_nhac`) và `lich_su_tinh_trang` (nhóm 3: ngày, số ngày, tình trạng, lần báo).
-- **Job hằng ngày** 02:00 (sau nửa đêm): mỗi hồ sơ có hợp đồng Hiệu lực, chưa trạng thái cuối, và hồ sơ trạng thái cuối còn nợ chưa "dừng nhắc": tính, ghi lịch sử, quyết định báo; khóa `(nct_id, ngày)` chống báo trùng khi chạy lại (SC-012). Giao dịch nộp tiền (phiếu thu, xác nhận dòng sao kê) và đảo nộp tiền tính lại ngay trong lệnh (Q-252, Q-268).
-- Thông báo người đại diện: `YeuCauThongBao` mức Trung bình với hai phần `CHUNG` ("có thông báo về tài chính…") và `CHI_PHI` (tình trạng, số dư, tổng chưa chốt, thông tin nộp tiền); 009 lọc theo quyền xem chi phí từng người (BR-M13-04).
-- **Dấu mua hộ** (FR-021): bản cài `SoDuMuaHoPort.soDuKhongDu(nctId, soTien, t)` = (số dư − tổng chưa chốt) < số tiền; 010 gọi lúc hiển thị nên luôn mới nhất.
-- Không có lệnh nào của module khác bị chặn vì số dư (FR-020, SC-006).
+- Hàm thuần `TinhTrang(soDu, tongChuaChot, phiMotNgay, cfg04)` → `CON_NO | SAP_HET_TIEN | BINH_THUONG` và số ngày (làm tròn xuống); phí = 0 chỉ xét Còn nợ (FR-017).
+- Hàm thuần `QuyetDinhBao(cu, moi, lanBaoTruoc, conNoTu, cfg05, suKien)` theo bảng chuyển tình trạng (lần tính hằng ngày; nộp tiền về Bình thường; nộp tiền chưa đủ; điều chỉnh giảm được duyệt): trả tác động (báo ngay, đặt lại chu kỳ, giữ chu kỳ, báo "đã ghi nhận khoản nộp", nhắc lại, báo Quản lý viện).
+- Tình trạng lưu trên `so_du` (`tinh_trang`, `so_ngay_con_du`, `chu_ky_tu`, `lan_bao_truoc`, `con_no_tu`, `dung_nhac`); mỗi lần tính ghi `lich_su_tinh_trang` (nhóm 3).
+- **Job hằng ngày** 02:00: hồ sơ có hợp đồng Hiệu lực chưa trạng thái cuối, và hồ sơ trạng thái cuối còn nợ chưa "dừng nhắc" (FR-020); khóa `(nct_id, ngày, nguồn)` chống báo trùng khi chạy lại (SC-012). Giao dịch nộp tiền và điều chỉnh giảm khoản nộp tính lại ngay trong lệnh.
+- **Thông báo** người đại diện: mức Trung bình, hai phần `CHUNG` ("có thông báo về tài chính của [họ tên], vui lòng liên hệ Kế toán") và `CHI_PHI` (tình trạng, số dư, tổng chưa chốt, thông tin nộp tiền); nhóm `Representative(nctId)`; 009 lọc phần `CHI_PHI` theo quyền xem chi phí (BR-M13-04).
+- **Dừng nhắc** (FR-020): `POST /nguoi-cao-tuoi/{nctId}/so-du/dung-nhac` (Quản lý viện, lý do; chỉ hồ sơ trạng thái cuối còn nợ).
+- **Dấu mua hộ** (FR-021): `SoDuMuaHoPort.soDuKhongDu(nctId, soTien, t)` = (số dư − tổng chưa chốt) < số tiền; 010 hỏi lúc hiển thị nên luôn mới.
+- Không lệnh nào của module khác bị chặn vì số dư (FR-020, SC-006).
 
 ---
 
-## E-09. Quyết toán (mục E; Q-222, Q-224)
+## E-08. Điều kiện quyết toán và mục việc sau qua đời (mục E; FR-022 → FR-024; Q-222, Q-224, Q-379; BR-M11-22)
 
 **Quyết định**:
-- Hàm thuần `DieuKienQuyetToan(bangKyCuoiDaChotVaThanhToan, soDu, soDuCoc, conChoDuyet)` → `DAT` / `CHUA_DAT` kèm lý do; bảng bổ sung chưa chốt không làm Chưa đạt.
-- Bean `ThamGiaChuyenTrangThai` (`@Order` sau 013): điều kiện `KT_H_QUYET_TOAN` (`coTheMien = true`; 004 `M02.NGOAI_LE_KET_THUC` cho Kế toán lập ngoại lệ) cho `KET_THUC_LUU_TRU`. Mỗi lần kết quả đổi → phát `m11.api.DieuKienQuyetToanDaDoi(nctId, ketQua)` cho 004 làm mới màn điều kiện.
-- `MucViecSauQuaDoiPort` (`QUYET_TOAN`): `KHONG_AP_DUNG` khi sổ chưa từng có giao dịch khác 0; `HOAN_THANH` khi `DAT`; gọi `DanhSachViecSauQuaDoiApi.capNhat` sau mỗi giao dịch của hồ sơ đã qua đời.
-- Job hằng ngày: hồ sơ trạng thái cuối có số dư khác 0 → nhắc Kế toán mỗi CFG-M02-09 (FR-024); hợp đồng Đã hủy trước Hiệu lực hoặc Hủy tiếp nhận còn cọc → nhắc hoàn cọc mỗi CFG-M02-09 (FR-015a). Không mở lại hồ sơ.
+- Hàm thuần `DieuKienQuyetToan(kyCuoiDaChotVaTru, soDu, soDuCoc, soChoDuyet, xacNhanHienHanh, coGiaoDichSauXacNhan, ngoaiLe)` trả hai kết quả (theo lựa chọn của chủ dự án 2026-10-22: ý Chờ duyệt không miễn được, BR-M11-22):
+  - `KT_H_QUYET_TOAN` (ba ý tiền: bảng kỳ cuối Đã chốt và có giao dịch thanh toán; số dư cọc 0; số dư 0): Đạt, Chưa đạt kèm lý do; "Đạt (ngoại lệ)" do 004 áp khi ngoại lệ đã duyệt;
+  - `KT_H_XAC_NHAN_QUYET_TOAN`: Đạt khi không còn giao dịch Chờ duyệt **và** có phiên bản bảng quyết toán hiện hành **và** không có giao dịch Đã xác nhận nào của hồ sơ sau thời điểm xác nhận đó; không miễn được.
+  - Bảng bổ sung chưa chốt không làm Chưa đạt (Q-134).
+- Bean `ThamGiaChuyenTrangThai` (`@Order` sau 013) trả hai mã cho `KET_THUC_LUU_TRU` (`coTheMien` như trên). Mỗi lần kết quả đổi phát `m11.api.DieuKienQuyetToanDaDoi(nctId)` để 004 làm mới màn điều kiện.
+- `MucViecSauQuaDoiPort` (`QUYET_TOAN`): `KHONG_AP_DUNG` khi hai sổ chưa từng có giao dịch khác 0; `HOAN_THANH` khi cả hai mã Đạt (không có ngoại lệ cho danh sách việc sau qua đời, plan điểm báo lại 3); gọi `DanhSachViecSauQuaDoiApi.capNhat` sau mỗi giao dịch, xác nhận của hồ sơ đã qua đời.
+- **Sau trạng thái cuối** (FR-024): job hằng ngày nhắc Kế toán mỗi CFG-M02-09 khi số dư khác 0 hoặc có giao dịch sau lần xác nhận cuối; dừng khi số dư 0 và đã xác nhận lại. Không mở lại hồ sơ.
 
 ---
 
-## E-10. Xuất (mục F; UC-88, Q-05)
-
-**Quyết định**: Dùng fastexcel (đã chọn ở 010) ghi luồng. `lan_xuat_so_du` (nhóm 3: người, vai trò, thời điểm, loại, khoảng, phạm vi, số dòng, tệp). Khoảng ≤ CFG-M14-01. Hàm thuần `SaoKe(soDuDauKy, giaoDich[])` bảo đảm đầu kỳ + tổng = cuối kỳ (SC-009). Tệp lưu ở kho tệp `common.tep`, không tạo lại khi dữ liệu đổi.
-
----
-
-## E-11. Quyền (FR-028, FR-029)
+## E-09. Xác nhận quyết toán và bảng quyết toán (FR-034; BR-M11-22; DBR-38; UC-101)
 
 **Quyết định**:
+- `POST /nguoi-cao-tuoi/{nctId}/quyet-toan/xac-nhan` (Kế toán, `SETTLEMENT_RECORD, THUC_HIEN`, khóa `so_du`). Điều kiện (409 kèm danh sách lý do):
+  - có hồ sơ kết thúc Đang chuẩn bị (`HoSoKetThucDocApi.dangChuanBi`), hoặc danh sách việc sau qua đời đang mở, hoặc hồ sơ trạng thái cuối có giao dịch sau lần xác nhận trước (FR-024);
+  - ba ý tiền Đạt, hoặc `HoSoKetThucDocApi.coNgoaiLeQuyetToanDaDuyet(nctId)` (chỉ với hồ sơ kết thúc lưu trú);
+  - không còn giao dịch Chờ duyệt (không miễn được).
+- Số liệu bảng (chụp lúc xác nhận, lưu `JSON` cùng phiên bản): thông tin viện (CFG-M11-11); người cao tuổi (`nhanDang`), người đại diện (`QuyenNguoiThanApi.nguoiDaiDien`); loại lưu trú, hợp đồng, ngày bắt đầu, ngày kết thúc dự kiến, trường hợp kết thúc (`HoSoKetThucDocApi.thongTinQuyetToan`); tổng bảng kỳ cuối theo loại (`ChiPhiChoSoDuPort.bangDaChot`); số dư trước quyết toán (số dư ngay trước giao dịch thanh toán bảng kỳ cuối); tiền cọc đã thu, đã cấn trừ, đã hoàn; các giao dịch nộp, hoàn kể từ thanh toán bảng kỳ cuối; số còn nợ hoặc còn phải hoàn (= số dư hiện tại; khác 0 chỉ khi có ngoại lệ); người xác nhận, thời điểm, số phiên bản.
+- Mỗi lần xác nhận: thêm phiên bản `bang_quyet_toan` mới, chuyển phiên bản trước sang không hiện hành (chỉ cột `hien_hanh`, trigger), dựng PDF bằng `PdfBieuMau` (dòng "Chứng từ này không thay thế hóa đơn"; khoản thuốc chỉ "Thuốc" và mã vật phẩm), `FileApi.upload` + `attach` (`M11.BANG_QUYET_TOAN`), nhật ký `BQT_XAC_NHAN`, thông báo người thân có quyền xem chi phí (Nhẹ, phần `CHI_PHI`), `DieuKienQuyetToanDaDoi`.
+- **Đính kèm bản ký** `POST /bang-quyet-toan/{id}/ban-ky` (Kế toán; phiên bản hiện hành; một lần mỗi phiên bản, trigger): gắn tệp (`M11.BAN_KY_QUYET_TOAN`); không đổi điều kiện.
+- Tải: `GET /bang-quyet-toan/{id}/file` trả đúng file đã lưu; mỗi lần tải ghi nhật ký `CHUNG_TU_TAI` (FR-037).
 
-| `ChucNang` | Thao tác |
-| --- | --- |
-| `SO_DU` | `XEM` (Kế toán, Hành chính: số dư, cọc, đặt cọc; Quản lý viện); `THUC_HIEN` (Kế toán: phiếu thu, sao kê, lập giao dịch, cấn trừ, xuất) |
-| `SO_DU_DUYET` | `DUYET` (Quản lý viện: giao dịch, chốt quỹ, dừng nhắc) |
-| `SAO_KE` | `XEM` (Kế toán, Quản lý viện; file, mọi dòng) |
-
-Kế toán không xem sức khỏe; khoản thuốc chỉ mã vật phẩm (010 FR-019). Người thân qua REST cổng với quyền xem chi phí. Không có thao tác ngoại tuyến.
+**Phương án đã cân nhắc**: Dựng PDF lúc tải từ `JSON` đã chụp (không bảo đảm giống byte qua các lần nâng thư viện, font; trái FR-037). Lưu file trong MySQL (`BLOB`; trái cách lưu tệp đã chọn, 001 H-13).
 
 ---
 
-## E-12. Bộ lập lịch, lưu giữ, nhật ký, kiểm thử
+## E-10. Phiếu báo phí (FR-031, FR-032, FR-037, FR-038; BR-M11-21, 23; DBR-37; UC-100)
 
 **Quyết định**:
-- **Job**: `ViecHangNgayM11SoDu` 02:00 (tình trạng số dư; nhắc sau trạng thái cuối; nhắc hoàn cọc; đối chiếu bất biến sổ); `ViecGioHanhChinhM11SoDu` (nhắc chốt quỹ, báo Quản lý viện). Khóa chạy theo ngày; chạy bù khi khởi động.
-- **Lưu giữ**: giao dịch, dòng sao kê, lần nhập, chốt quỹ, lần xuất `THEO_HO_SO` (CFG-M15-03; FR-029).
-- **Nhật ký**: mọi lệnh; lần người thân xem số dư không ghi (FR-029).
-- **Kiểm thử**:
-  - test bảng `TrangThaiDatCoc`, `KhopMa`, `GioiHanHoan`, `PhiMotNgay`, `TinhTrang`, `QuyetDinhBao`, `DieuKienQuyetToan`, `TongQuyNgay`, `SaoKe`;
-  - SC-001: bộ 3 tháng × 50 hồ sơ; SC-003: nhập cùng file 3 lần; SC-004: 200 dòng;
-  - Test tích hợp MySQL: `UNIQUE` dòng sao kê, thanh toán bảng, đảo, chốt quỹ ngày; trigger nhóm 3; dãy số phiếu không khoảng trống khi rollback;
-  - test đồng thời: hai Kế toán ghi phiếu cùng lúc (số liên tục); duyệt hoàn tiền cùng lúc với thanh toán bảng;
-  - đồng hồ giả lập cho CFG-M11-04, 05, CFG-M02-09, CFG-M13-06, CFG-M15-05, 06;
-  - bản giả `ChiPhiChoSoDuPort`, 004 sự kiện, 012 `QuyenNguoiThanApi`.
-- Tên test theo BR/FR (`BR_M11_12_DoiSoatIT`, `DBR_30_ThanhToanBangIT`).
+- Danh sách chờ phát hành `GET /phieu-bao-phi/cho-phat-hanh`: bảng có giao dịch thanh toán (`THANH_TOAN_BANG`) mà chưa có phiếu.
+- `POST /bang-chi-phi/{bangId}/phieu-bao-phi` (Kế toán, `PAYMENT_NOTICE, THUC_HIEN`): bảng chưa có giao dịch thanh toán → 409; đã có phiếu → 409 `DA_PHAT_HANH` (`UNIQUE (bang_chi_phi_id)`, DBR-37). Số liệu chụp: thông tin viện, mã phiếu, ngày phát hành, người phát hành; người cao tuổi, người đại diện, kỳ, loại bảng; khoản và tổng theo loại (`ChiPhiChoSoDuPort.bangDaChot`); tổng; số dư ngay trước và ngay sau giao dịch thanh toán của bảng (tính từ sổ: tổng giao dịch Đã xác nhận có thời điểm xác nhận trước giao dịch đó); khi số dư sau âm: số còn nợ, mã nộp tiền, tài khoản thu, ảnh mã QR (E-04).
+- Mã phiếu `PBP-<yyyyMM của kỳ>-<bangId>`, `UNIQUE` (một bảng một phiếu nên không cần dãy số).
+- Dựng PDF (`PdfBieuMau`) và Excel (`ExcelBieuMau`, cùng số liệu) trong lệnh, lưu cả hai qua `FileApi` (`M11.PHIEU_BAO_PHI`). Nhật ký `PBP_PHAT_HANH`; thông báo người thân có quyền xem chi phí (Nhẹ; nhóm `FamilyWithRight(nctId, XEM_CHI_PHI)`).
+- Tải `GET /phieu-bao-phi/{id}/file?dinhDang=PDF|XLSX`: đúng file đã lưu; nhật ký `CHUNG_TU_TAI`.
+
+---
+
+## E-11. Sao kê và báo cáo thu chi (mục F; FR-025 → FR-027; UC-88; Q-381, Q-386)
+
+**Quyết định**:
+- `POST /xuat/sao-ke` (Kế toán; Quản lý viện xem được): danh sách hồ sơ, khoảng, định dạng `XLSX | PDF`; khoảng > CFG-M14-01 → 422. Hàm thuần `SaoKe(soDuDauKy, soDuCocDauKy, giaoDich[])` bảo đảm đầu kỳ + tổng = cuối kỳ cho từng sổ (SC-009); chỉ giao dịch Đã xác nhận.
+- `POST /xuat/bao-cao-thu-chi`: khoảng, định dạng. Hàm thuần `BaoCaoThuChi(giaoDich[], soDuCuoiKhoang[])`: tổng nộp (`NOP_TIEN_MAT`, `NOP_CHUYEN_KHOAN`, `THU_COC`), tổng đã trừ theo bảng (`THANH_TOAN_BANG`, lấy trị tuyệt đối; bảng tổng âm làm giảm tổng), tổng hoàn (`HOAN_TIEN`, `HOAN_COC`), danh sách hồ sơ có số dư < 0 tại hết ngày cuối khoảng kèm số còn nợ (plan điểm báo lại 5). Không tách theo phương thức, không có tổng điều chỉnh, tổng hoàn cọc riêng (Q-386).
+- File dựng một lần, lưu qua `FileApi` (`M11.FILE_XUAT`), ghi `lan_xuat_so_du` (FR-027); tải lại trả đúng file. PDF có thông tin viện (CFG-M11-11).
+- `common.tep` hiện chỉ nhận PDF, JPEG, PNG; plan thêm kiểu `.xlsx` cho tệp do hệ thống tạo (không mở cho `POST /tep`), sửa nhỏ ở `FileApi.upload` (chủ `common`).
+- **Cổng** `POST /cong/nguoi-cao-tuoi/{nctId}/sao-ke` (người thân có quyền xem chi phí; khoảng ≤ CFG-M14-01; `XLSX | PDF`) → cùng hàm, ghi `lan_xuat_so_du` với vai trò người thân, trả file.
+
+---
+
+## E-12. Quyền (FR-028, FR-029; Phụ lục 27 dòng "Số dư, thu chi", "Sao kê, báo cáo thu chi", "Phiếu báo phí", "Bảng quyết toán")
+
+**Quyết định** (khóa `Function` của 002, V002_09):
+
+| `Function` | QL | HC | KT | NT |
+| --- | --- | --- | --- | --- |
+| `BALANCE_LEDGER` | Duyệt (³²: hoàn tiền, hoàn cọc, điều chỉnh, dừng nhắc) | Xem (số dư, cọc, đặt cọc) | Thực hiện (nộp tiền, lập giao dịch, cấn trừ) | Xem¹⁶ (cổng) |
+| `STATEMENT_REPORT` | Xem | — | Thực hiện | Xem¹⁶ (sao kê của người mình) |
+| `PAYMENT_NOTICE` | Xem | — | Thực hiện | Xem¹⁶ |
+| `SETTLEMENT_RECORD` | Xem | — | Thực hiện (xác nhận, đính kèm bản ký) | Xem¹⁶ |
+
+Kế toán không xem sức khỏe; khoản thuốc chỉ mã vật phẩm. `QuyenTepProvider` của 017 cho các loại tệp `M11.PHIEU_BAO_PHI`, `M11.BANG_QUYET_TOAN`, `M11.BAN_KY_QUYET_TOAN`, `M11.FILE_XUAT` theo bảng trên (file xuất: người xuất và vai trò xem tương ứng). Không có thao tác ngoại tuyến.
+
+---
+
+## E-13. Kiểm thử và hàm thuần
+
+**Quyết định**:
+- Test bảng: `TrangThaiDatCoc`, `GioiHanHoan`, `PhiMotNgay`, `TinhTrang`, `QuyetDinhBao`, `DieuKienQuyetToan`, `SaoKe`, `BaoCaoThuChi`, `VietQrPayload` (test vector chuẩn và CRC).
+- SC-001: bộ 3 tháng × 50 hồ sơ dựng từ bản giả 010 sinh sự kiện chốt bảng; so số dư với tính tay.
+- Test tích hợp MySQL: `UNIQUE` thanh toán bảng, phiếu báo phí, phiên bản hiện hành; trigger nhóm 3; cột sinh.
+- Test đồng thời: hai Kế toán ghi nộp cùng hồ sơ (số dư đúng); duyệt hoàn tiền cùng lúc với thanh toán bảng (một bên bị chặn theo FR-014); hai lần phát hành phiếu (một thành công); hai lần xác nhận (hai phiên bản tuần tự, một hiện hành).
+- Chứng từ: trích chữ PDF để kiểm dòng "Chứng từ này không thay thế hóa đơn", không có tên thuốc; Excel đọc lại ô; tải lại so byte (SC-016); thời gian dựng ≤ 5 giây (SC-017).
+- Đồng hồ giả lập cho CFG-M11-04, 05, CFG-M02-09, CFG-M15-05, 06.
+- Bản giả: `ChiPhiChoSoDuPort` (010), `HoSoKetThucDocApi` và sự kiện 004, `QuyenNguoiThanApi` (012), `S3Client` (001).
+- Tên test theo BR/FR (`BR_M11_12_ChuyenKhoanIT`, `DBR_30_ThanhToanBangIT`, `BR_M11_21_PhieuBaoPhiIT`).
+
+---
+
+## E-14. Bộ lập lịch, lưu giữ, nhật ký, thông báo
+
+**Quyết định**:
+- **Job** `ViecHangNgayM11SoDu` 02:00: tình trạng số dư (E-07); nhắc sau trạng thái cuối (FR-024); nhắc hoàn cọc (FR-015a); đối chiếu bất biến sổ. Khóa chạy theo ngày (ShedLock), chạy bù khi khởi động.
+- **Lưu giữ** (FR-029): giao dịch, lịch sử tình trạng, lần xuất, phiếu báo phí, bảng quyết toán và tệp `THEO_HO_SO` (CFG-M15-03) qua `LuuTruProvider`.
+- **Nhật ký**: mọi lệnh; phát hành, xác nhận, tải chứng từ, xuất (19.4); lần người thân xem số dư không ghi (FR-029).
+- **Thông báo** (FR-030): theo bảng spec; nhóm `Representative`, `FamilyWithRight(XEM_CHI_PHI)`, `FacilityRole(KE_TOAN)`, `FacilityRole(QUAN_LY_VIEN)`, `Approvers`; loại thông tin `CHI_PHI` cho phần chi phí. Bỏ thông báo chốt quỹ, sao kê chưa khớp của bản cũ.

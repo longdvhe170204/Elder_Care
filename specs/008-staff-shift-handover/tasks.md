@@ -4,13 +4,15 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 # Tasks: Nhân sự, ca trực và bàn giao (008)
 
-**Input**: Tài liệu thiết kế ở `specs/008-staff-shift-handover/` (plan.md, spec.md, research.md N-01 → N-15, data-model.md, contracts/api-008.yaml, contracts/module-interfaces.md, quickstart.md)
+**Input**: Tài liệu thiết kế ở `specs/008-staff-shift-handover/` (plan.md, spec.md, research.md N-01 → N-16, data-model.md, contracts/api-008.yaml, contracts/module-interfaces.md, quickstart.md)
 
 **Prerequisites**: 000, 002 đã xong Phase 2 (002 khai báo `HoSoNhanVienApi`, `GiayPhepApi`, `DanhMucPhamViHanhNgheApi`, `PhanCongApi`, `NhiemVuApi` dạng SPI để M09 cài); 001, 003 → 007 đã có `api` (`CongViecCaApi`, `CongViecBanGiaoApi`, `LieuBanGiaoApi`, `CanhBaoBanGiaoApi`, SPI `NhanSuCaPort`, `DieuDuongCaPort`, `NhanSuCanhBaoPort`, `ThamChieuViTri`).
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4 và data-model.md mục 11.
 
 **Giai đoạn**: Theo mục "Giai đoạn hiện tại" của CLAUDE.md (constitution IX); task của `mobile/` chỉ làm khi mục đó mở phần mobile, trừ màn mẫu thiết kế.
+
+**Cập nhật 2026-10-22** (plan mục "Cập nhật 2026-10-22"; Q-382; 007 FR-047i): thêm T046 → T049. Không đánh số lại.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
@@ -137,6 +139,12 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 ---
 
+### Bổ sung 2026-10-22: import hồ sơ nhân viên (US4 #10 → #14; FR-001b, FR-001c; Q-382)
+
+- [ ] T046 [P] [US4] Test `BT/m09/FR_001b_ImportNhanVienIT.java`, `KiemTraDongImportTest.java`, `ImportHieuNangIT.java` (quickstart I1 → I7): xem trước không ghi; mọi loại lỗi đúng dòng, cột, lý do; trùng hồ sơ mọi trạng thái và trùng trong file; xác nhận gửi lại file kiểm lại, còn lỗi thì 0 hồ sơ; hồ sơ tạo ra không tài khoản, không bộ phận, `nguon = IMPORT`; nhật ký đủ trường, không lưu file; quá CFG-M09-13, sai mẫu, sai loại → 422; chỉ Quản lý viện; 500 dòng ≤ 10 giây (SC-013)
+- [ ] T047 [US4] Tạo `MIG/V008_xx__import_nhan_vien.sql` (số theo thứ tự migration 008 lúc làm): `lan_import_nhan_vien`; cột `nhan_vien.dien_thoai_chuan` (chỉ mục, điền cho dữ liệu cũ), `nguon`, `lan_import_id`; cài `BE/m09/nhanvien/internal/ImportNhanVienService.java` (`KiemTraDongImport` hàm thuần, khóa `FOR UPDATE` theo tập số, chèn theo lô, `NV_IMPORT`) dùng `ExcelBieuMau` của `common.bieumau` (007 T104; thêm `fastexcel-reader` vào `pom.xml` sau khi chủ dự án duyệt); service tạo, sửa hồ sơ ghi `dien_thoai_chuan` (research N-16)
+- [ ] T048 [US4] Tạo endpoint `GET /nhan-vien/import/mau`, `POST /nhan-vien/import/xem-truoc`, `POST /nhan-vien/import/xac-nhan` trong `NhanVienController.java` và màn web import trong `frontend/src/tinh-nang/nhan-vien/` (bảng xem trước tô lỗi theo dòng, cột; nút xác nhận chỉ bật khi không lỗi) cùng test Vitest `ImportNhanVien.test.jsx`
+
 ## Phase 7: User Story 5 – Cảnh báo tỷ lệ phục vụ theo trọng số chăm sóc (Priority: P2)
 
 **Goal**: Tỷ lệ = tổng trọng số mức chăm sóc / số nhân viên được tính; cảnh báo dưới ngưỡng một lần; tính lại theo sự kiện (FR-034 → FR-037a, BR-M09-02).
@@ -183,6 +191,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 - [ ] T045 Rà truy vết data-model mục 11: DBR-20, 21, 23, 25, 36 và BR-M09-01 → 08, 12 → 17, BR-M04-13, BR-M05-05 (phần 008) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-048, FR-049, FR-050, FR-051, FR-052, FR-053, FR-054, FR-056, FR-057, FR-058, FR-059, FR-060 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
+- [ ] T049 [P] *(Bổ sung 2026-10-22, 007 FR-047i)* Cài `dangTrongCa`, `tangTrongCa`, `tangDangCoCa` của `NhanSuCanhBaoPort` trong `TraCuuCaService` (cùng quy tắc `CaTrucApi.dangTrongCa`, vai trò không xếp ca theo CFG-M13-06) và mở rộng test `NhanSuCanhBaoPortIT` (quickstart K1); chạy lại test US13 của 007 với bản thật (007 T063)
 
 ## Dependencies & Execution Order
 

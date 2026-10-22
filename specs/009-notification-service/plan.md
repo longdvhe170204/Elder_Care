@@ -41,6 +41,13 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - **Kênh và giờ yên tĩnh**: Nhẹ chỉ trong ứng dụng, kênh `TRONG_UNG_DUNG` (đẩy tới app chung, `thiet_bi_day.ung_dung = APP_NGUOI_CAO_TUOI`); `GioYenTinh` áp cho người nhận `NGUOI_CAO_TUOI` như người thân (research B-06). Hộp thông báo của tài khoản người cao tuổi dùng endpoint hộp thư sẵn có.
 - Người gửi yêu cầu nhóm (f): 012 (nhắc lượt thăm, phản hồi đã trả lời), 014 (nhắc hoạt động). Cảnh báo SOS (007) gửi nhân viên, không đổi gì ở 009.
 
+### Cập nhật 2026-10-22 (spec mục "Cập nhật 2026-10-22": Q-373 → Q-379, Q-385)
+
+- **Nút hỗ trợ khẩn cấp** (007 FR-047i): cảnh báo Khẩn cấp dùng nhóm người nhận có sẵn của `common.notification` (`OnDutyDoctor`, `ShiftLead(tầng)`, `OnShiftStaff(tầng)`); 007 phát một `ShiftLead` cho mỗi tầng đang có ca khi chưa biết tầng. 009 không thêm nhóm, quy tắc hay kênh; phân giải các nhóm này vẫn cần `CaTrucApi` của 008 (Phase 3).
+- **Vị trí, mốc tới nơi** (Q-373, Q-374): không vào nội dung thông báo; không thay đổi ở 009.
+- **017** (Q-378, Q-379, Q-385): thêm thông báo phiếu báo phí, bảng quyết toán mới phát hành (Nhẹ, `FamilyWithRight(VIEW_COSTS)`, phần chi phí) do 017 phát theo khuôn; bỏ thông báo sao kê chưa khớp, chốt quỹ ngày (chưa có mã nào của 009 dựa vào hai thông báo này).
+- Không thêm task; Phase 1, 2 đã xong không bị ảnh hưởng.
+
 ## Technical Context
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).

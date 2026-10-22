@@ -21,7 +21,7 @@ tags:
   - name: suc-khoe
     description: UC-04; mục C
   - name: nguyen-vong
-    description: UC-82; mục C1
+    description: UC-82; mục C1; UC-103, mục C1a (bổ sung 2026-10-22)
   - name: danh-gia
     description: UC-05 → UC-07; mục D, E
   - name: danh-muc
@@ -188,8 +188,9 @@ paths:
     post:
       tags: [trang-thai]
       summary: Ghi nhận trở về (từ Tạm vắng hoặc Điều trị tại bệnh viện)
-      x-fr: [FR-040, FR-041, FR-044, FR-047a]
-      x-br: [BR-M01-02, BR-M07-09]
+      x-fr: [FR-040, FR-041, FR-044, FR-047a, FR-047c]
+      x-br: [BR-M01-02, BR-M07-09, BR-M05-32]
+      description: Từ DIEU_TRI_BENH_VIEN nhận tepDinhKemIds (giấy ra viện, đơn thuốc; không bắt buộc, FR-047c).
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/LenhTrangThai' }
       responses:
@@ -451,6 +452,63 @@ paths:
         '422': { description: 'NGUON_Y_KIEN_KHONG_HOP_LE, THIEU_QUYET_DINH_TOA_AN, thiếu nhanDinh', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
         '409': { description: 'NGUOI_KY_KHONG_HOP_LE, HO_SO_DA_DONG', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
 
+  /nguoi-cao-tuoi/{id}/nguyen-vong-dieu-tri:
+    get:
+      tags: [nguyen-vong]
+      summary: Phiếu nguyện vọng khi điều trị — phiên bản Hiệu lực và lịch sử (bổ sung 2026-10-22)
+      description: Nội dung nhóm SUC_KHOE; Hành chính, Kế toán bị chặn (dùng cờ coNguyenVongDieuTri của HoSo); người thân theo chú thích ¹ (FR-023m).
+      x-fr: [FR-023k, FR-023m]
+      x-br: [BR-M01-16]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/NguyenVongDieuTriTongHop' } } } }
+        '403': { $ref: '#/components/responses/Loi' }
+    post:
+      tags: [nguyen-vong]
+      summary: Ghi phiên bản mới (Bác sĩ, Điều dưỡng); phiên bản cũ chuyển Hết hiệu lực (bổ sung 2026-10-22)
+      x-fr: [FR-023j, FR-023k, FR-023g]
+      x-br: [BR-M01-16, BR-M01-14]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [benhVienUuTien, hoiGiaDinhTruoc, nguoiDiKem, nguoiTraLoi]
+              properties:
+                benhVienUuTien:
+                  type: array
+                  minItems: 1
+                  maxItems: 2
+                  items: { $ref: '#/components/schemas/BenhVienUuTien' }
+                baoHiemYTe: { $ref: '#/components/schemas/BaoHiemYTe' }
+                hoiGiaDinhTruoc: { type: boolean, description: Cần hỏi gia đình trước khi chuyển viện không khẩn cấp }
+                nguoiCanBaoIds:
+                  type: array
+                  description: Người thân có quan hệ Hiệu lực; 0..n (chủ dự án chọn 2026-10-22)
+                  items: { type: integer, format: int64 }
+                nguoiDiKem: { type: string, enum: [GIA_DINH, VIEN_CU_NHAN_VIEN, TUY_TINH_HUONG] }
+                ghiChu: { type: string }
+                nguoiTraLoi: { $ref: '#/components/schemas/NguonYKien' }
+                yKienKhac:
+                  type: array
+                  description: Ý kiến gia đình khác ý kiến người cao tuổi, mỗi ý kiến một mục có nguồn (BR-M01-14, FR-023g)
+                  items:
+                    type: object
+                    required: [nguon, noiDung]
+                    properties:
+                      nguon: { $ref: '#/components/schemas/NguonYKien' }
+                      noiDung: { type: string }
+                banKyTepId: { type: integer, format: int64, description: Không bắt buộc }
+      responses:
+        '201':
+          description: OK; canhBao có CHUA_CO_NGUOI_CAN_BAO khi hoiGiaDinhTruoc = true mà nguoiCanBaoIds rỗng
+          content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaNguyenVongDieuTri' } } }
+        '403': { $ref: '#/components/responses/Loi' }
+        '422': { description: 'NGUON_Y_KIEN_KHONG_HOP_LE, thiếu bệnh viện ưu tiên', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
+        '409': { description: 'NGUOI_THAN_KHONG_HOP_LE, HO_SO_DA_DONG', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
+
   /nguoi-cao-tuoi/{id}/danh-gia:
     get:
       tags: [danh-gia]
@@ -655,6 +713,14 @@ components:
             required: [lyDo]
             properties:
               lyDo: { $ref: '#/components/schemas/LyDo' }
+              tepDinhKemIds:
+                type: array
+                maxItems: 10
+                items: { type: integer, format: int64 }
+                description: |
+                  (Bổ sung 2026-10-22, FR-047c, BR-M05-32) Ảnh hoặc bản scan giấy tờ của bệnh viện, không bắt buộc.
+                  Chỉ nhận ở GHI_NHAN_TRO_VE từ DIEU_TRI_BENH_VIEN (giấy ra viện, đơn thuốc) và CHUYEN_VIEN (giấy chuyển viện);
+                  lệnh khác có trường này → 422 KHONG_NHAN_TEP_DINH_KEM. Tệp gắn vào dòng lịch sử trạng thái (research H-18).
               chiTiet:
                 type: object
                 description: |
@@ -744,6 +810,7 @@ components:
         mucSucKhoeHieuLuc: { type: array, items: { $ref: '#/components/schemas/MucSucKhoe' }, description: 'Nhóm SUC_KHOE' }
         coBanDongYHieuLuc: { type: boolean }
         coNguyenVong: { type: boolean }
+        coNguyenVongDieuTri: { type: boolean, description: 'Bổ sung 2026-10-22 (FR-023m): Hành chính chỉ thấy cờ này, không thấy nội dung phiếu; Kế toán không có trường này (truongBiAn)' }
         hoSoTruocId: { type: [integer, 'null'], format: int64 }
         lenhDuocPhep: { type: array, items: { type: string }, description: 'Chỉ để client ẩn hiện nút (002 FR-042)' }
         truongBiAn: { type: array, items: { type: string } }
@@ -873,6 +940,63 @@ components:
         thoiDiemKy: { type: string, format: date-time }
         nguon: { type: string }
         trangThai: { type: string, enum: [HIEU_LUC, DUOC_THAY_THE] }
+    BenhVienUuTien:
+      type: object
+      required: [ten, diaChi]
+      properties:
+        ten: { type: string, minLength: 1 }
+        diaChi: { type: string, minLength: 1 }
+    BaoHiemYTe:
+      type: object
+      description: Không bắt buộc (FR-023j); căn cứ xử lý dữ liệu cá nhân chờ đối chiếu 24.4 (Q-384)
+      properties:
+        noiDangKyBanDau: { type: string }
+        soThe: { type: string }
+        hanThe: { type: string, format: date }
+    NguyenVongDieuTri:
+      type: object
+      description: Phiếu nguyện vọng khi điều trị (bổ sung 2026-10-22; FR-023j, BR-M01-16)
+      properties:
+        id: { type: integer, format: int64 }
+        benhVienUuTien: { type: array, items: { $ref: '#/components/schemas/BenhVienUuTien' } }
+        baoHiemYTe: { $ref: '#/components/schemas/BaoHiemYTe' }
+        hoiGiaDinhTruoc: { type: boolean }
+        nguoiCanBao:
+          type: array
+          items:
+            type: object
+            properties:
+              nguoiThanId: { type: integer, format: int64 }
+              hoTen: { type: string }
+              quanHe: { type: string }
+              soDienThoai: { type: string }
+        nguoiDiKem: { type: string, enum: [GIA_DINH, VIEN_CU_NHAN_VIEN, TUY_TINH_HUONG] }
+        ghiChu: { type: string }
+        nguoiTraLoi: { $ref: '#/components/schemas/NguonYKien' }
+        yKienKhac:
+          type: array
+          items:
+            type: object
+            properties:
+              nguon: { $ref: '#/components/schemas/NguonYKien' }
+              noiDung: { type: string }
+              nguoiGhi: { type: string }
+              thoiDiem: { type: string, format: date-time }
+        banKyTepId: { type: [integer, 'null'], format: int64 }
+        nguoiGhi: { type: string }
+        thoiDiem: { type: string, format: date-time }
+        trangThai: { type: string, enum: [HIEU_LUC, HET_HIEU_LUC] }
+    NguyenVongDieuTriTongHop:
+      type: object
+      properties:
+        hieuLuc: { $ref: '#/components/schemas/NguyenVongDieuTri' }
+        lichSu: { type: array, items: { $ref: '#/components/schemas/NguyenVongDieuTri' } }
+        truongBiAn: { type: array, items: { type: string } }
+    KetQuaNguyenVongDieuTri:
+      type: object
+      properties:
+        phieu: { $ref: '#/components/schemas/NguyenVongDieuTri' }
+        canhBao: { type: array, items: { $ref: '#/components/schemas/CanhBao' } }
     NguonYKien:
       type: object
       description: |

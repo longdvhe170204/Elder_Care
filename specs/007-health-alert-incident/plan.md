@@ -1,6 +1,6 @@
 # Implementation Plan: Sức khỏe, cảnh báo và sự cố
 
-**Branch**: `007-health-alert-incident` | **Cập nhật**: 2026-10-18 | **Date**: 2026-10-10 | **Spec**: [spec.md](spec.md)
+**Branch**: `007-health-alert-incident` | **Cập nhật**: 2026-10-22 | **Date**: 2026-10-10 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/007-health-alert-incident/spec.md`
 
@@ -19,6 +19,7 @@ Feature 007 gồm module M06 – Sức khỏe (mục 10) và M05 – Sự cố v
 9. Sự cố ngã và khoảng theo dõi sau ngã (mục H); sự cố lây nhiễm, tra cứu truy vết, danh sách tiếp xúc, khoanh vùng (mục I).
 10. Giấy phép hoạt động của cơ sở làm căn cứ cho BR-M06-05; ghi khám và điều trị (mục J); dữ liệu cho 002, 003, 004, 005, 008, 012, 016 (mục K).
 11. *(Bổ sung 2026-10-18, Q-369)* Nút SOS của người cao tuổi: tạo cảnh báo Khẩn cấp từ thiết bị đã gắn, điều kiện gửi, người nhận thêm khi ở Hoạt động bên ngoài, trạng thái cho người cao tuổi (FR-047d → FR-047g).
+12. *(Bổ sung 2026-10-22, Q-373 → Q-376, Q-383, Q-384)* Vị trí GPS kèm SOS và nút hỗ trợ khẩn cấp; nút hỗ trợ khẩn cấp của nhân viên (UC-99); mốc "Đã tới nơi"; nút "Gọi 115"; lệnh Chuyển viện hiện nguyện vọng khi điều trị, ghi người đi kèm, đính kèm giấy tờ bệnh viện và dựng phiếu tóm tắt chuyển viện PDF (FR-047h → FR-047k, FR-049, FR-050, FR-050h).
 
 Hướng kỹ thuật:
 - Hai gói Modulith `m06` và `m05`, một chiều `m05 → m06`. Kết quả so ngưỡng sang `m05` bằng sự kiện `ChiSoDaXacNhan` sau commit (research S-01).
@@ -48,11 +49,21 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - **Trạng thái cho người cao tuổi**: `GET /sos/hien-tai` (token thiết bị), app hỏi lại mỗi 5 giây khi màn trạng thái đang mở; lỗi từ chối trả kèm số liên hệ của viện và 115 từ `SoLienHeVienApi`.
 - FR-081: `CanhBaoThongKeApi.canhBao` thêm `nguon` để 016 tách SOS. Thêm một bảng, một SPI; không đổi vòng đời cảnh báo.
 
+### Cập nhật 2026-10-22 (spec mục "Cập nhật 2026-10-22": Q-373 → Q-376, Q-383, Q-384)
+
+- **Vị trí GPS** (FR-047h, BR-M05-28, CFG-M05-09): bảng `vi_tri_canh_bao` (nhóm 3), mỗi lần gửi một dòng; `POST /sos/{lanBamId}/vi-tri` (token thiết bị) và `POST /ho-tro-khan-cap/{lanBamId}/vi-tri` (phiên); nhận khi cảnh báo đang mở và chưa có mốc tới nơi, ngược lại 409 để app dừng gửi. Trạng thái trả cho app có `guiViTri` và `chuKyGuiViTriGiay` (CFG-M05-09). Dấu "có thể đã cũ" tính lúc đọc (không lưu). Vị trí không vào nội dung thông báo, không có ở API cho 012 phần người thân (research S-24).
+- **Nút hỗ trợ khẩn cấp** (FR-047i, BR-M05-29, UC-99, quyền `NUT_HO_TRO_KHAN_CAP` = `EMERGENCY_ASSIST_BUTTON` của 002 V002_09): `POST /ho-tro-khan-cap` tạo hoặc gộp cảnh báo Khẩn cấp loại `NV_YEU_CAU_HO_TRO`, khóa theo người bấm; `canh_bao.nct_id` được trống chỉ với loại này và đặt được một lần khi người bấm chọn người cao tuổi; bảng `lan_bam_ho_tro` (nhóm 3). "Đang trong ca" và tầng của người bấm lấy qua `NhanSuCanhBaoPort` (008 cài, thêm ba hàm); người nhận là nhóm `OnDutyDoctor`, `ShiftLead(tầng)`, `OnShiftStaff(tầng)` của `common.notification`, chưa có tầng thì `ShiftLead` của mọi tầng đang có ca (research S-24).
+- **Mốc "Đã tới nơi"** (FR-047j, BR-M05-30): lệnh `POST /canh-bao/{id}/da-toi-noi` của người phụ trách; cột `da_toi_noi_luc`, `da_toi_noi_boi_id`; cờ `khong_ghi_moc_toi_noi` đặt khi đóng; `GET /sos/hien-tai` và `GET /ho-tro-khan-cap/hien-tai` trả `DA_GUI`, `DA_TIEP_NHAN` ("đang tới"), `DA_TOI`.
+- **Gọi 115** (FR-047k, FR-048b, BR-M05-31): bảng `luot_goi_115` (nhóm 3, kết quả đặt một lần); `GET …/thong-tin-goi-115` trả thông tin đọc cho tổng đài (CFG-M11-11 qua `ThamSoApi`, vị trí, nhận dạng; dị ứng, bệnh nền theo quyền xem sức khỏe). Lượt "Đã gọi được" thêm diễn biến `GOI_CAP_CUU` vào sự cố liên kết; lượt trên cảnh báo trước khi chuyển sự cố được chép vào sự cố lúc chuyển (plan điểm báo lại 12).
+- **Chuyển viện và phiếu tóm tắt** (FR-049, FR-050, FR-050h, BR-M05-32): `GET /su-co/{id}/chuyen-vien/thong-tin` hiện nguyện vọng khi điều trị (`NguyenVongApi.dieuTriHieuLuc` của 001) và nguyện vọng cuối đời; thân lệnh thêm `nguoiDiKem`, `daLienLacNguoiCanBao`, `lyDoKhongHoiTruoc`, `tepDinhKemIds` (chuyển nguyên cho `TrangThaiNguoiCaoTuoiApi.thucHien(CHUYEN_VIEN)`, 001 research H-18). Phiếu PDF dựng trong lệnh bằng thành phần dùng chung `common.bieumau` (OpenPDF, font Be Vietnam Pro nhúng), lưu S3 qua `TepApi`; in lại đóng dấu "Bản in lại" lúc tải, mỗi lần in một dòng `lan_in_phieu_chuyen_vien` (research S-25).
+- **Báo cáo** (FR-081): `CanhBaoBaoCaoView` thêm `nguon` = `NUT_HO_TRO`, `daToiNoiLuc`, `khongGhiMocToiNoi`.
+- **Thư viện mới**: OpenPDF (dựng, đóng dấu PDF) cho backend; web hiện vị trí ngoài viện bằng Leaflet với lớp bản đồ OpenStreetMap và liên kết chỉ đường; app dùng gói định vị khi chạy nền trước (`geolocator`) và mở ứng dụng bản đồ của máy (`url_launcher`) khi `mobile/` được mở. Lý do, phương án ở research S-24, S-25; thêm vào `pom.xml`, `package.json` cần chủ dự án duyệt (docs/team-plan.md mục 3).
+
 ## Technical Context
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).
 
-**Primary Dependencies**: Như 000 → 006: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7. Web: React 19, TanStack Query. App nhân viên: Flutter, drift (hàng đợi ngoại tuyến, 000 R-13). App người thân: Flutter. Không thêm thư viện mới.
+**Primary Dependencies**: Như 000 → 006: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7. Web: React 19, TanStack Query. App nhân viên: Flutter, drift (hàng đợi ngoại tuyến, 000 R-13). App người thân: Flutter. *(Sửa 2026-10-22)* Thêm OpenPDF (backend, phiếu tóm tắt chuyển viện; dùng chung qua `common.bieumau`), Leaflet (web, bản đồ vị trí ngoài viện), `geolocator`, `url_launcher` (app, khi mở `mobile/`); research S-24, S-25.
 
 **Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md).
 
@@ -90,6 +101,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - 3 job (theo phút M06, theo phút M05, hằng ngày M06).
 - 59 đường dẫn, 72 thao tác REST ([contracts/api-007.yaml](contracts/api-007.yaml)).
 - 4 SPI 007 khai báo; 14 SPI 007 cài cho module thấp hơn; 10 giao diện 007 cung cấp.
+- *(Bổ sung 2026-10-22)* Thêm 4 bảng (`lan_bam_ho_tro`, `vi_tri_canh_bao`, `luot_goi_115`, `lan_in_phieu_chuyen_vien`), 12 thao tác REST, 3 hàm của `NhanSuCanhBaoPort`.
 
 Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chốt ở [research.md](research.md). Các điểm về tài liệu nguồn ghi ở "Điểm cần báo lại"; chúng không chặn thiết kế.
 
@@ -236,6 +248,8 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 6. **008** cài `NhanSuCanhBaoPort`; gọi `CanhBaoBanGiaoApi.dangMo`, `khiXacNhanBanGiao` (MANDATORY) trong lệnh xác nhận bàn giao; đọc `ChiSoApi.vuotNguongTrongKhoang`; cung cấp danh mục phạm vi hành nghề cho giấy phép cơ sở. **009** cài `NhatKyThongBaoPort`; phân giải các nhóm người nhận ở research S-19 (gồm `BAC_SI_TRUC` nhiều người, `BAC_SI_TOAN_VIEN`, `NGUOI_TRONG_BAN_GHI_NGUON`, cờ `khongThay`); nghe `YeuCauDungNhacGoiDien`, `DaCoKetQuaXacNhanLai`; đọc `SoLienHeVienApi`. **012** cài `NguoiThanKhanCapPort`; nghe `KhoanhVungDaTao`, `SuCoDaHuyTrongBanTin`; đọc `KhoanhVungApi`, `SucKhoeCongNguoiThanApi`, `BanTinSucKhoeApi`. **013** gọi `SuCoLenhApi`; đọc `SuCoApi.xem`. **014** cài `DiemDanhTruyVetPort`; phát `m05.api.YeuCauTaoCanhBao` (thiếu người: Khẩn cấp); gọi `SuCoLenhApi.ghiNhan` cho "Báo thiếu người"; đọc `KhoanhVungApi`; nghe `KhoanhVungDaTao`. **011** nghe `SutCanPhatHien`; phát `YeuCauTaoCanhBao`, `YeuCauDongCanhBaoNguon`. **016** đọc `CanhBaoThongKeApi`, `ChiSoThongKeApi`, `KhoanhVungApi`.
 7. *(Bổ sung 2026-10-18, Q-369)* **002** cung cấp `ThietBiGanApi.xacDinh` (002 module-interfaces 1.11). **005**: 007 thêm vào danh sách người dùng `CoMatBanTruApi.theoNgay` (đã ghi vào [../005-daily-care-tasks/contracts/module-interfaces.md](../005-daily-care-tasks/contracts/module-interfaces.md) mục 1.3). **014** cài `ChuyenDiSosPort` (014 FR-068a). **012** dựng nút SOS và màn trạng thái trên kênh người cao tuổi, gọi `/sos` (012 FR-085). **016** đọc `nguon` của `CanhBaoThongKeApi.canhBao`.
 
+8. *(Bổ sung 2026-10-22, Q-373 → Q-376, Q-383, Q-384)* **001** thêm `NguyenVongApi.dieuTriHieuLuc` và `LenhTrangThai.tepDinhKemIds` cho `CHUYEN_VIEN` (001 research H-18; đã ghi ở 001 module-interfaces mục 1.2, 1.8). **008** cài thêm ba hàm của `NhanSuCanhBaoPort` (`dangTrongCa`, `tangTrongCa`, `tangDangCoCa`; module-interfaces mục 2.1) cho FR-047i. **012** gọi `/sos/{id}/vi-tri` và hiện `DA_TIEP_NHAN` ("đang tới"), `DA_TOI` trên kênh người cao tuổi (012 FR-085). **016** đọc `nguon` `NUT_HO_TRO`, `daToiNoiLuc`, `khongGhiMocToiNoi` để báo cáo thời gian tới nơi (18.3). **002**: `/ho-tro-khan-cap` dùng `@RequiresPermission(EMERGENCY_ASSIST_BUTTON)`; `/sos/{id}/vi-tri` thuộc nhóm đường token thiết bị đã có (`SELF_CHECKED`). **017** dùng lại `common.bieumau` cho chứng từ PDF, Excel.
+
 ## Điểm cần báo lại về tài liệu nguồn
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
@@ -264,3 +278,8 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 9. **(2026-10-18) Mức sự cố và mô tả tự do thuộc phần nào (Q-352).** Q-352 (9.5, 14.5) liệt kê phần chung: có sự cố, loại, thời điểm, viện đã xử lý; không nêu mức. Spec 012 FR-052 lại ghi "phần chung của sự cố trong kỳ kèm mức". Plan theo spec 012: mức thuộc phần chung. `mo_ta`, `xu_ly_ban_dau`, diễn biến xếp vào phần sức khỏe (hạn chế hơn) vì có thể chứa tổn thương hoặc điều trị; "viện đã xử lý" là trạng thái xử lý (Đang xử lý, Đang theo dõi, Đã đóng). Đề nghị chủ dự án xác nhận mức thuộc phần chung và ghi vào Q-352. Loại sự cố tự nêu bệnh: cùng câu hỏi với spec "Điểm cần báo lại" 1; plan hiện xếp tên loại vào phần chung, trừ loại lây nhiễm theo Q-72. *(Đã xử lý 2026-10-18: Q-358: mức thuộc phần chung; thiết kế giữ nguyên)*
 
 10. **(2026-10-18) Mã trường hợp của thông báo nguy kịch tới người thân.** FR-050b (c) gửi người liên hệ chính và mọi người đại diện nội dung tối thiểu. Q-354 có "khẩn cấp tới người liên hệ chính" và "xác nhận lại nguyện vọng khi nguy kịch". Plan gắn `XAC_NHAN_LAI_NGUYEN_VONG` cho thông báo tới người đại diện (vì họ được báo để chuẩn bị xác nhận lại) và `KHAN_CAP_NGUOI_LIEN_HE_CHINH` cho người liên hệ chính. Đề nghị xác nhận. *(Đã xử lý 2026-10-18: giữ theo plan, chủ dự án ủy quyền chốt)*
+
+11. **(2026-10-22) "Cấp cứu không cần lý do" của FR-049.** FR-049 bắt lý do khi phiếu ghi "cần hỏi trước" mà chưa liên lạc được người cần báo, "cấp cứu không cần lý do này". Spec không định nghĩa "cấp cứu" trong lệnh Chuyển viện. Plan coi Chuyển viện từ sự cố mức Khẩn cấp là cấp cứu (không bắt lý do), từ sự cố Nhẹ, Trung bình thì bắt lý do khi `daLienLacNguoiCanBao = false` (khớp US5 kịch bản 8). Đề nghị xác nhận. *(Đã xử lý 2026-10-22: chủ dự án chọn theo plan: sự cố mức Khẩn cấp là cấp cứu.)*
+12. **(2026-10-22) Lượt "Gọi 115" trên cảnh báo trước khi chuyển sự cố.** FR-047k: lượt Đã gọi được "được thêm làm diễn biến của sự cố liên kết nếu có". Plan: nếu cảnh báo chưa có sự cố liên kết lúc ghi, lượt được chép thành diễn biến `GOI_CAP_CUU` của sự cố khi cảnh báo được chuyển sự cố hoặc kích hoạt khẩn cấp; cảnh báo đóng không chuyển thì lượt chỉ nằm ở cảnh báo. Đề nghị xác nhận. *(Đã xử lý 2026-10-22: chủ dự án chọn theo plan: chép lượt Đã gọi được sang sự cố khi chuyển.)*
+13. **(2026-10-22) Thư viện bản đồ và lớp bản đồ.** FR-047h đòi hiện tọa độ trên bản đồ có nút chỉ đường. Plan chọn Leaflet và lớp bản đồ OpenStreetMap (không cần khóa API, phải ghi nguồn bản đồ; tải lớp bản đồ từ máy chủ OSM nên có lưu lượng ra ngoài) cho web; nút chỉ đường mở ứng dụng bản đồ của máy qua đường dẫn chuẩn. Phương án Google Maps cần khóa API và thanh toán. Chờ chủ dự án duyệt thư viện (`package.json`) và chính sách dùng lớp bản đồ OSM; phần app chờ mở `mobile/`.
+14. **(2026-10-22) Pháp lý vị trí và phiếu chuyển viện.** Căn cứ xử lý vị trí GPS, thời hạn lưu (Q-373) và việc lập giấy chuyển cơ sở khi viện có giấy phép khám chữa bệnh (Q-383) chờ 24.4; plan lưu vị trí theo hạn của cảnh báo (`THEO_HO_SO`, cảnh báo không gắn người: `KHONG_GAN_HO_SO`) và không lập giấy chuyển cơ sở.

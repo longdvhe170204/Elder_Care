@@ -136,3 +136,12 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | K8 | A gửi Hỏi đáp nhóm `SUC_KHOE_THUOC`; T soạn trả lời | T thấy nhắc trả lời trực tiếp; A thấy trả lời chỉ phần chung | US9 #8, FR-058a |
 | K9 | App: tài khoản A Đã khóa; mở app trên máy đã từng gắn, bấm SOS | Không gửi được; màn hiện số liên hệ đã lưu và 115 | US9 #9, FR-085 |
 
+## Kịch bản bổ sung 2026-10-22 (Q-373, Q-374, Q-377 → Q-379)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| K10 | A bấm SOS (đã cho quyền vị trí); D tiếp nhận; D ghi đã tới nơi | App gửi vị trí theo chu kỳ; màn hiện "D đang tới" rồi "D đã tới" và dừng gửi | FR-085 |
+| K11 | A từ chối quyền vị trí rồi bấm SOS | Cảnh báo vẫn tạo; không gửi vị trí; không hỏi lại trong phiên | FR-085, 007 FR-047h |
+| K12 | Kế toán phát hành phiếu báo phí tháng 10 của A; R (có quyền xem chi phí), N (không) mở cổng | R thấy phiếu, tải PDF, Excel, bảng quyết toán hiện hành, sao kê; N không thấy mục chứng từ, gọi trực tiếp 403 | FR-046 (3) |
+
+Test: `nut_sos_test.dart` mở rộng (K10, K11, bản giả API); K12 thuộc test của 017 (`CongChungTuIT`) và `CongChungTu.test.jsx` (web).

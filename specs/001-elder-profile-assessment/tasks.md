@@ -4,7 +4,7 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 
 # Tasks: Hồ sơ và đánh giá người cao tuổi (001)
 
-**Input**: Tài liệu thiết kế ở `specs/001-elder-profile-assessment/` (plan.md, spec.md, research.md H-01 → H-16, data-model.md, contracts/api-001.yaml, contracts/module-interfaces.md, quickstart.md)
+**Input**: Tài liệu thiết kế ở `specs/001-elder-profile-assessment/` (plan.md, spec.md, research.md H-01 → H-18, data-model.md, contracts/api-001.yaml, contracts/module-interfaces.md, quickstart.md)
 
 **Prerequisites**: 000 (common, nhật ký, tham số, phê duyệt, đính chính, lưu trữ) và 002 (`@CanQuyen`, `PhamViApi`, `QuyenXemTruongApi`, SPI `QuanHeNguoiThanApi`) đã xong Phase 2.
 
@@ -13,6 +13,8 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 **Giai đoạn**: Theo mục "Giai đoạn hiện tại" của CLAUDE.md (constitution IX); task của `mobile/` chỉ làm khi mục đó mở phần mobile, trừ màn mẫu thiết kế.
 
 **Cập nhật 2026-10-18** (plan mục "Cập nhật 2026-10-18"; Q-347, Q-348, Q-353): sửa T007, T053, T055 → T057, T059, T067 → T070, T075; thêm T012a, T013a. Mã task cũ giữ nguyên.
+
+**Cập nhật 2026-10-22** (plan mục "Cập nhật 2026-10-22"; Q-383, Q-384): thêm T077 → T083 (phiếu nguyện vọng khi điều trị FR-023j → FR-023m, DBR-39; giấy tờ bệnh viện FR-047c; `NguyenVongApi.dieuTriHieuLuc` cho 007). Không đánh số lại, không đổi task đã có.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
@@ -50,6 +52,8 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 - [ ] T012a Cài `BE/m01/hoso/internal/NguonYKienService.java` (cài `NguonYKienApi.kiemTra`: `NGUOI_THAN` thì người thân phải có quan hệ Hiệu lực lúc gọi qua `QuanHeNguoiThanApi.thuocNguoiCaoTuoi`, loại khác thì `nguoiThanId` phải rỗng; sai → 422 `NGUON_Y_KIEN_KHONG_HOP_LE`) và test `BT/m01/BR_M01_14_NguonYKienIT.java` viết trước; 004, 005, 012, 014 dùng giao diện này (FR-023g, BR-M01-14, research H-16; bổ sung 2026-10-18)
 - [ ] T013 [P] Test `BT/m01/NhatKyDayDuM01IT.java`: mọi lệnh M01 có một `INSERT nhat_ky` với `nguoi_cao_tuoi_id` (DBR-23)
 - [ ] T013a [P] Test kiến trúc `BT/m01/FR_023h_KhongDauNangLucArchTest.java`: quét `information_schema.COLUMNS` của schema test và OpenAPI sinh từ springdoc; báo lỗi khi bảng có `nguoi_cao_tuoi_id` (hoặc chính `nguoi_cao_tuoi`) hay schema người cao tuổi có cột, trường chứa `nang_luc` / `nangLuc` (danh sách cho phép rỗng; `tu_quyet_duoc` chỉ ở phiếu nguyện vọng của 001 và mục thỏa thuận của 005) (FR-023h, data-model mục 6a; bổ sung 2026-10-18)
+
+- [ ] T083 [P] *(Bổ sung 2026-10-22)* Thêm vào `BE/m01/api/`: `NguyenVongApi.dieuTriHieuLuc(nctId)` và record `NguyenVongDieuTriView`, `TrangThaiNguoiCaoTuoiApi.giayToDinhKem(lichSuId)` (contracts/module-interfaces.md mục 1.2, 1.8); cập nhật bản giả `BT/support/fake/m01/` cùng PR (luật "Đổi api", docs/team-plan.md mục 3) để 007, 006 dùng
 
 **Checkpoint**: Hồ sơ và SPI sẵn sàng; module khác có thể cài `ThamGiaChuyenTrangThai`.
 
@@ -153,6 +157,8 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 - [ ] T050 [US4] Tạo `BE/m01/trangthai/web/TrangThaiController.java`: `GET /nguoi-cao-tuoi/{id}/lich-su-trang-thai`, `GET …/dieu-kien/{lenh}`, `POST …/hoan-tat-tiep-nhan`, `/huy-tiep-nhan`, `/cho-tam-vang`, `/ghi-nhan-tro-ve`, `/chuyen-vien`, `/ket-thuc-luu-tru`, `/ghi-nhan-qua-doi` (thân `lyDo`, `chiTiet`) theo contracts/api-001.yaml; `DinhChinhDuocProvider` cho `M01.LICH_SU_TRANG_THAI`
 - [ ] T051 [US4] Tạo `MIG/V001_06__canh_bao_tro_lai.sql` (`(luot_vang_id, moc_du_kien)` khóa chính, `canh_bao_luc`) và cài job `BE/m01/lich/CanhBaoQuaHanTroLai.java` dùng `LuotVangApi.dangMo()` và CFG-M01-01, phát `TamVangQuaHan` (BR-M01-01, FR-050)
 - [ ] T052 [P] [US4] Tạo màn web lệnh trạng thái trong `frontend/src/tinh-nang/ho-so-nguoi-cao-tuoi/LenhTrangThai.jsx` (xem trước điều kiện, hiển thị `dieuKienChuaThoa[]`, cảnh báo) và test `DieuKienChuaThoa.test.jsx`; app `mobile/lib/nhan-vien/trang-thai/` (Cho tạm vắng, Ghi nhận trở về, Chuyển viện, Ghi nhận qua đời; chỉ trực tuyến)
+- [ ] T081 [P] [US4] *(Bổ sung 2026-10-22)* Test `BT/m01/GiayToBenhVienIT.java` (quickstart T5): Ghi nhận trở về từ `DIEU_TRI_BENH_VIEN` kèm hai tệp → tệp gắn `M01.GIAY_TO_BENH_VIEN` với `lich_su_trang_thai_nct.id`, `giayToDinhKem` trả hai tệp; không kèm tệp vẫn thành công; Cho tạm vắng kèm `tepDinhKemIds` → 422 `KHONG_NHAN_TEP_DINH_KEM`; Hành chính tải tệp bị chặn, Điều dưỡng trong phạm vi tải được (FR-047c, BR-M05-32)
+- [ ] T082 [US4] *(Bổ sung 2026-10-22)* Nhận `tepDinhKemIds` trong `ChuyenTrangThaiService` (chỉ `GHI_NHAN_TRO_VE` từ `DIEU_TRI_BENH_VIEN` và `CHUYEN_VIEN`; gắn bằng `TepApi.gan` trong transaction của lệnh), cài `giayToDinhKem`, `QuyenTepProvider` cho `M01.GIAY_TO_BENH_VIEN`; màn web `LenhTrangThai.jsx` thêm chọn tệp cho Ghi nhận trở về; app `mobile/lib/nhan-vien/trang-thai/` thêm chụp giấy tờ (theo mục "Giai đoạn hiện tại" của CLAUDE.md) (research H-18)
 
 **Checkpoint**: Máy trạng thái chạy với bean giả; P1 hoàn tất.
 
@@ -220,6 +226,13 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 - [ ] T069 [US7] Cài `BE/m01/nguyenvong/internal/NguyenVongService.java` (ghi phiên bản mới; `NguyenVongApi.ghiPhienBan` cho 007; bác sĩ nhận định có AC-03 lúc ghi; nhận định gắn với phiếu, người ký theo FR-023c qua `thuocNguoiCaoTuoi`; ý kiến khác kiểm bằng `NguonYKienApi` rồi ghi `nguyen_vong_y_kien` cùng transaction; ngày xem lại chỉ lưu, không nhắc; `NV_GHI`) và phần nguyện vọng của job `NhacThieuDongYNguyenVong`, job `BE/m01/lich/NhacXemLaiNhanDinh.java` (ShedLock, 15 phút; `nhac_chu_ky` `XEM_LAI_NHAN_DINH`; FR-023i) (research H-09, H-12)
 - [ ] T070 [US7] Tạo `BE/m01/nguyenvong/web/NguyenVongController.java` cho `POST/GET /nguoi-cao-tuoi/{id}/nguyen-vong` và màn web `frontend/src/tinh-nang/nguyen-vong/NguyenVong.jsx` (khối nhận định của Bác sĩ cho phiếu này: tự quyết được, cách hỗ trợ hiểu, ngày xem lại; người ký theo nhận định; danh sách ý kiến khác, mỗi ý kiến chọn nguồn; không có ô năng lực trên hồ sơ)
 
+### Bổ sung 2026-10-22: phiếu nguyện vọng khi điều trị (US7 #9 → #11; FR-023, FR-023j → FR-023m; DBR-39)
+
+- [ ] T077 [P] [US7] Test `BT/m01/NguyenVongDieuTriPhienBanIT.java`, `NguyenVongDieuTriGioiHanXemIT.java`, `HoanTatTiepNhanCanhBaoDieuTriIT.java` (quickstart T1 → T4): phiên bản mới chuyển bản cũ `HET_HIEU_LUC`, `UNIQUE dang_hieu_luc` chặn hai bản Hiệu lực; thiếu bệnh viện ưu tiên hoặc quá hai bệnh viện → 422; người cần báo không có quan hệ Hiệu lực → 409 `NGUOI_THAN_KHONG_HOP_LE`; `hoiGiaDinhTruoc` không người cần báo → 201 kèm `CHUA_CO_NGUOI_CAN_BAO`; ý kiến gia đình khác lưu từng dòng có nguồn; Hành chính chỉ có `coNguyenVongDieuTri`, `GET …/nguyen-vong-dieu-tri` 403; Kế toán không có cờ (`truongBiAn`); người thân xem khi thỏa chú thích ¹; Hoàn tất tiếp nhận không phiếu → 200 kèm `THIEU_NGUYEN_VONG_DIEU_TRI`, tua đồng hồ không có nhắc; `dieuTriHieuLuc` trả đủ trường cho 007 (SC-014)
+- [ ] T078 [US7] Tạo `MIG/V001_10__nguyen_vong_dieu_tri.sql` theo data-model mục 6b: `nguyen_vong_dieu_tri` (`bv1_*` `NOT NULL`, `CHECK` cặp `bv2_*`; `bhyt_*` `NULL`; `hoi_gia_dinh_truoc BOOLEAN NOT NULL`; `nguoi_di_kem ENUM('GIA_DINH','VIEN_CU_NHAN_VIEN','TUY_TINH_HUONG')`; mẫu cột nguồn ý kiến cho người trả lời; `ban_ky_tep_id NULL`; `trang_thai ENUM('HIEU_LUC','HET_HIEU_LUC')`; cột sinh `dang_hieu_luc` `UNIQUE`; trigger chỉ cho `HIEU_LUC → HET_HIEU_LUC`), `nguyen_vong_dieu_tri_nguoi_bao` (khóa chính ghép), `nguyen_vong_dieu_tri_y_kien` (mẫu mục 6a); không cấp `UPDATE`, `DELETE` cho bảng con
+- [ ] T079 [US7] Cài `BE/m01/nguyenvong/internal/NguyenVongDieuTriService.java` (khóa quyền `DI_UNG_BENH_NEN`; `HoSoMoGuard`; người cần báo, người trả lời qua `QuanHeNguoiThanApi.thuocNguoiCaoTuoi`; ý kiến qua `NguonYKienApi`; `NVDT_GHI`), `NguyenVongApi.dieuTriHieuLuc` (họ tên, số điện thoại người cần báo qua SPI của 012), cảnh báo `THIEU_NGUYEN_VONG_DIEU_TRI` trong `ThamGiaM01.canhBao` cho `HOAN_TAT_TIEP_NHAN`, cờ `coNguyenVongDieuTri` trên DTO hồ sơ (chỉ cho người có `(DI_UNG_BENH_NEN, XEM)` hoặc Hành chính; Kế toán không có, vào `truongBiAn`); thêm `M01.NGUYEN_VONG_DIEU_TRI` vào `PhanLoaiTruongProvider` (mọi trường `SUC_KHOE`), `LuuTruProvider`, `QuyenTepProvider` (research H-18)
+- [ ] T080 [US7] Tạo `BE/m01/nguyenvong/web/NguyenVongDieuTriController.java` cho `GET/POST /nguoi-cao-tuoi/{id}/nguyen-vong-dieu-tri` và màn web `frontend/src/tinh-nang/nguyen-vong/NguyenVongDieuTri.jsx` (một hoặc hai bệnh viện, bảo hiểm y tế không bắt buộc, hỏi trước, chọn người cần báo từ người thân có quan hệ Hiệu lực, người đi kèm, ý kiến khác có nguồn; lịch sử phiên bản) cùng test Vitest `NguyenVongDieuTri.test.jsx` (Hành chính chỉ thấy "đã có phiếu")
+
 **Checkpoint**: Mọi user story của 001 chạy độc lập.
 
 ---
@@ -232,7 +245,7 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 - [ ] T072 [P] Màn danh mục `frontend/src/tinh-nang/danh-muc-m01/` (dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc)
 - [ ] T073 Khi plan của 003, 004, 005, 006, 007, 010, 011, 012, 013 cài bean `ThamGiaChuyenTrangThai` thật, chạy lại `FR_045_LietKeDieuKienIT`, `FR_047_RollbackTacDongIT` với bean thật (research H-02 mục 4)
 - [ ] T074 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T075 Rà truy vết data-model mục 12: DBR-01 → 05, 23, 25, 34 và BR-M01-01 → 15 (BR-M01-14, 15 phần của 001) có test; FR bổ sung 2026-10-10: FR-054 — có task hoặc test tương ứng (constitution XV)
+- [ ] T075 Rà truy vết data-model mục 12: DBR-01 → 05, 23, 25, 34 và BR-M01-01 → 15 (BR-M01-14, 15 phần của 001) có test; FR bổ sung 2026-10-10: FR-054 — có task hoặc test tương ứng (constitution XV); *(bổ sung 2026-10-22)* DBR-39, BR-M01-16, FR-047c, SC-014
 
 ---
 
@@ -247,6 +260,7 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 - **US6 (P2)**: sau US3, US4
 - **US7 (P2)**: sau US1
 - Bean giả T002 được thay khi các feature khác triển khai (T073)
+- *(2026-10-22)* T083 trước khi 007 làm lệnh Chuyển viện, phiếu tóm tắt; T077 → T080 sau US1 và T079 cần `ThamGiaM01` (T048); T081, T082 sau T047
 
 ### Parallel Opportunities
 
