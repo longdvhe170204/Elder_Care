@@ -122,6 +122,13 @@ Chủ dự án chốt Q-365 → Q-371 (docs/business/nghiep-vu.md 24.2; Q-367 th
 - **Q-366**: thêm nhóm người nhận (f) chính người cao tuổi (FR-007); nhóm (f) chỉ nhận mức Nhẹ, chỉ trong ứng dụng, không nhận loại thông tin sức khỏe, chi phí (FR-022a); giờ yên tĩnh áp cho người cao tuổi như người thân (FR-022, BR-M13-03). Mục D đổi tên. Thêm kịch bản 12, 13 ở User Story 4.
 - Cảnh báo từ nút SOS (Q-369) là cảnh báo Khẩn cấp của feature 007, gửi nhân viên theo FR-007 (a), không có quy tắc mới ở spec này.
 
+### Cập nhật 2026-10-22 (đồng bộ Q-373 → Q-379)
+
+- **Q-375**: cảnh báo từ nút hỗ trợ khẩn cấp của nhân viên là cảnh báo Khẩn cấp của feature 007 (FR-047i), người nhận thuộc nhóm (a) có sẵn của FR-007 (Bác sĩ trực, Người phụ trách ca của tầng hoặc của mọi tầng, nhân viên có ca tại tầng); không có quy tắc gửi mới.
+- **Q-373, Q-374**: vị trí và mốc "đã tới" hiện ở màn cảnh báo của feature 007, không nằm trong nội dung thông báo gửi người thân.
+- **Q-385**: bỏ thông báo dòng sao kê chưa khớp và chốt quỹ ngày của feature 017 khỏi dòng 017 ở bảng FR-043.
+- **Q-378, Q-379**: thêm dòng 017 ở bảng FR-043 cho phiếu báo phí, bảng quyết toán mới phát hành (Nhẹ, người thân có quyền xem chi phí). Mục 17 của nghiep-vu.md đã ghi mức.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 13 mục 17, 17.1; BR-M13-01 → 05; UC-66; mục 23 dòng "Nhà cung cấp SMS", "Gọi điện"; CFG-M13-01, CFG-M13-02, CFG-M13-03 → CFG-M13-06; thực thể THONG_BAO):
@@ -437,8 +444,9 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 | 011 | Mọi thông báo của feature 011 (chế độ ăn, thực đơn, chốt suất, phát sinh, phiếu bữa ăn, đồ ăn gia đình, thông báo xem lại chế độ ăn (không còn là yêu cầu, Q-307) — gồm cả thông báo tới Bác sĩ (sửa, Q-283) khi ăn kém kéo dài, thay cho nhắc cũ của feature 005 FR-040) | Theo bảng FR-065 của spec 011 | Theo bảng FR-065 của spec 011 (FR-043a) |
 | 013 | Mọi thông báo của feature 013 (thất lạc, hư hỏng, tìm thấy; tiếp nhận, trả đồ; xác nhận người nhận khác và duyệt thay; đồng ý cho tự giữ; nhắc đồ chưa trả sau trạng thái cuối; đề nghị xử lý đồ không người nhận; phiếu kiểm kê; đồ có giá trị khi hết ca; đính chính) | Theo bảng FR-032 của spec 013 | Theo bảng FR-032 của spec 013 (FR-043a); thông báo tới người thân chỉ loại "chung", nội dung chỉ loại đồ và sự kiện |
 | 014 | Mọi thông báo của feature 014 (buổi hoạt động bị hủy, dời, đăng ký hủy tự động; điểm danh chưa hoàn tất, "Không ghi nhận"; chuẩn bị thuốc mang theo, Nhận lại thuốc; đồng ý về muộn của bán trú; quá giờ về, báo Quản lý viện; chuyển trưởng đoàn; kiểm tra chất lượng) | Theo bảng FR-071 của spec 014 | Theo bảng FR-071 của spec 014 (FR-043a); cảnh báo "nguy cơ cô lập" và sự cố thiếu người đi qua feature 007 |
-| 017 | *(bổ sung 2026-09-29)* Mọi thông báo của feature 017 (sắp hết tiền, còn nợ và nhắc lại theo CFG-M11-05; còn nợ kéo dài; dòng sao kê chưa khớp; giao dịch cần duyệt, bị từ chối; chốt quỹ ngày chưa lập, chưa xác nhận, bị trả lại; tiền cọc, số dư còn lại sau hủy hợp đồng hoặc trạng thái cuối) | Theo bảng FR-030 của spec 017 | Theo bảng FR-030 của spec 017 (FR-043a); người đại diện không có quyền xem chi phí chỉ nhận phần "chung" (Q-228) |
+| 017 | *(bổ sung 2026-09-29)* Mọi thông báo của feature 017 (sắp hết tiền, còn nợ và nhắc lại theo CFG-M11-05; còn nợ kéo dài; giao dịch cần duyệt, bị từ chối; tiền cọc, số dư còn lại sau hủy hợp đồng hoặc trạng thái cuối) | Theo bảng FR-030 của spec 017 | Theo bảng FR-030 của spec 017 (FR-043a); người đại diện không có quyền xem chi phí chỉ nhận phần "chung" (Q-228) |
 | 017 | *(bổ sung 2026-09-30; sửa 2026-10-01, Q-257)* "Đã ghi nhận khoản nộp" kèm tình trạng sau khi nộp, với mọi giao dịch nộp tiền của người đang Sắp hết tiền hoặc Còn nợ (đủ hoặc chưa đủ) | Người đại diện | Nhẹ (Q-252, Q-257); người không có quyền xem chi phí chỉ nhận phần "chung" |
+| 017 | *(bổ sung 2026-10-22, Q-378, Q-379)* Phiếu báo phí, bảng quyết toán mới phát hành (feature 017) | Người thân có quyền xem chi phí | Nhẹ; nội dung loại "chi phí" |
 | 018 | *(bổ sung 2026-09-29)* Mọi thông báo của feature 018 (khai báo mới cần làm, quá hạn khai báo, nhắc gia hạn, Hết hạn, nhắc khai báo xóa) | Hành chính; Quản lý viện | Nhẹ (feature 018 FR-010) |
 | 019 | *(bổ sung 2026-09-29)* Mọi thông báo của feature 019 (lô sắp hết hạn, dưới tồn tối thiểu, kiểm kê, đề nghị nhập; tài sản bị báo hỏng, nhắc hạn bảo trì, dấu "chờ chuyển người" và nhắc báo hỏng lại (Q-235); lịch xe bị hủy, dời, quá giờ trả, chồng lịch do gia hạn (Q-236); **(bổ sung, 2026-10-06, Q-284)** yêu cầu mua sắm gửi duyệt, kết quả duyệt, nhắc Phụ trách bộ phận khi Đã duyệt quá CFG-M11-08 chưa ghi đã mua, nhắc Kế toán khi Chờ đối chiếu quá CFG-M11-09 (BR-M11-20)). Nhắc về nguyên liệu, tài sản gửi Phụ trách bộ phận thay Quản lý viện (Q-284) | Theo FR-021 của spec 019 | Nhẹ (feature 019 FR-021) |
 | 001 | *(bổ sung 2026-10-10, Q-311)* Các thông báo khác của feature 001 | Theo spec 001 FR-054 | Theo spec 001 FR-054 |

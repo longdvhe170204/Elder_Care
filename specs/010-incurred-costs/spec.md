@@ -99,6 +99,12 @@ Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi 
 
 Feature 009 FR-001a (Q-353, Q-354) yêu cầu mọi thông báo tới người thân khai đối tượng thông tin ("về người cao tuổi" hoặc "về việc của chính người thân"), và mang mã trường hợp Q-354 khi nội dung vượt phạm vi bản đồng ý. Thông báo "về người cao tuổi" chỉ tới người thân trong phạm vi "nhận thông báo" của bản đồng ý Hiệu lực (feature 009 FR-014). Thay đổi ở spec này: FR-044 khai đối tượng thông tin; không đổi người nhận, mức, loại thông tin hay nội dung.
 
+### Cập nhật 2026-10-22 (đồng bộ Q-378, Q-380, Q-385)
+
+- **Q-378**: phiếu báo phí phát hành từ bảng Đã chốt thuộc feature 017; spec này cung cấp chi tiết khoản (bảng giao tiếp "Gửi 017", FR-042).
+- **Q-380 (sửa theo Q-385)**: hệ thống không tính thời hạn báo trước; hợp đồng có quy định phí chấm dứt sớm thì Hành chính lập khoản nhập tay có lý do vào bảng kỳ cuối (FR-021), Quản lý viện duyệt từng khoản. Không thêm yêu cầu mới.
+- **Q-385**: feature 017 không còn đối soát chuyển khoản; sửa dòng Ngoài phạm vi.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 11, mục 15; UC-61 → UC-64, UC-79):
@@ -120,7 +126,7 @@ Feature 009 FR-001a (Q-353, Q-354) yêu cầu mọi thông báo tới người t
 - Công việc có tính phí, số lượng vật phẩm đã dùng, trạng thái có mặt bán trú theo ngày: feature 005. Liều thuốc và lần dùng PRN nguồn viện, lần giao và nhận lại thuốc mang theo: feature 006. Lượt người thân ở lại: feature 012. Suất ăn của người ở lại: feature 011. Điểm danh hoạt động có thu phí: feature 014.
 - Quyền xem chi phí của từng người thân, cổng người thân, bản tin định kỳ: feature 012. Gửi thông báo: feature 009.
 - Báo cáo chi phí và dashboard (18.4, 18.5): feature báo cáo (Module 14). Spec này chỉ cung cấp dữ liệu.
-- Thu tiền, hoàn cọc, số dư, trừ bảng chi phí vào số dư, đối soát chuyển khoản, quyết toán khi kết thúc lưu trú: feature 017 (15.9, Q-211). Hạch toán, hóa đơn: phần mềm kế toán bên ngoài (1.2, 15.1).
+- Thu tiền, hoàn cọc, số dư, trừ bảng chi phí vào số dư, quyết toán khi kết thúc lưu trú, phiếu báo phí: feature 017 (15.9, Q-211, Q-378). Hạch toán, hóa đơn, quỹ tiền mặt, đối soát ngân hàng: phần mềm kế toán bên ngoài (1.2, 15.1, Q-385).
 - **(Bổ sung, 2026-10-06, Q-284)** Yêu cầu mua sắm của bộ phận (15.10, BR-M11-17 → 20, UC-94, UC-95): feature 019. Yêu cầu mua sắm không sinh khoản chi phí cho người cao tuổi; tổng chi mua sắm theo bộ phận ở báo cáo chi phí (18.4) thuộc feature 016.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -473,7 +479,7 @@ Từ chối, Hủy, Đã mua là trạng thái cuối. Đề nghị mua hộ là
 - **FR-039** *(đã chỉnh sửa 2026-09-28, Q-212)*: **Kế toán** MUST xuất được dữ liệu cho kế toán theo kỳ, gồm mọi khoản Đã chốt của các bảng Đã chốt trong kỳ, với các cột: mã người cao tuổi, họ tên, kỳ, loại chi phí, mô tả (với khoản thuốc là mã vật phẩm, FR-019), ngày phát sinh, số lượng, đơn vị, đơn giá, thành tiền, dấu "thuộc gói", mã tham chiếu nguồn, và với khoản điều chỉnh: mã khoản gốc, kỳ gốc, loại điều chỉnh. Định dạng là Excel/CSV theo Q-05. Bốn cột ngày phát sinh, đơn vị, dấu "thuộc gói", loại điều chỉnh được thêm so với mục 23 và cần kế toán của cơ sở (người quyết định Q-05) xác nhận. File MUST ghi danh sách người cao tuổi có bảng chưa chốt trong kỳ. MUST NOT xuất khoản hoặc bảng chưa chốt. *(Nguồn: 23, UC-64, Q-05)*
 - **FR-040**: Khi một bảng Đã chốt, hệ thống MUST yêu cầu feature 009 thông báo mức Trung bình, loại thông tin "chi phí", tới người thân có quyền xem chi phí của người cao tuổi đó. *(Nguồn: 15.6, feature 009)*
 - **FR-041**: Mỗi lần xuất MUST được ghi lại: người xuất, thời điểm, kỳ, phạm vi, danh sách bảng có trong file, số khoản, tổng số tiền. Mỗi bảng MUST lưu lần xuất đầu tiên có chứa nó. Kế toán MUST chọn được phạm vi xuất: (a) toàn bộ bảng đã chốt của kỳ; (b) chỉ các bảng đã chốt chưa từng được xuất. Mỗi file MUST có dòng tổng kiểm soát (số bảng, số khoản, tổng tiền) và đánh dấu từng bảng là "xuất lần đầu" hay "đã xuất trước đó", để kế toán không nhập trùng. Xuất lại cùng kỳ, cùng phạm vi (a), khi không có bảng mới chốt MUST cho cùng nội dung. *(Nguồn: 19.4, 23; suy ra từ 15.1 "cung cấp dữ liệu cho kế toán")*
-- **FR-042** *(đã chỉnh sửa 2026-09-28, Q-211)*: **Feature này** MUST NOT ghi nhận thu tiền, công nợ, số đã thanh toán, hóa đơn hay bút toán, và đặt cọc không được trừ vào bảng chi phí. Việc thu tiền, số dư, công nợ ("còn nợ"), trừ bảng chi phí vào số dư và quyết toán thuộc **feature 017** (15.9): khi một bảng Đã chốt, feature này chỉ gửi sự kiện cho feature 017 (bảng giao tiếp "Gửi 017"). Hóa đơn và bút toán vẫn nằm ngoài hệ thống. *(Nguồn: 1.2, 6.5, 15.1, 15.9)*
+- **FR-042** *(đã chỉnh sửa 2026-09-28, Q-211)*: **Feature này** MUST NOT ghi nhận thu tiền, công nợ, số đã thanh toán, hóa đơn hay bút toán, và đặt cọc không được trừ vào bảng chi phí. Việc thu tiền, số dư, công nợ ("còn nợ"), trừ bảng chi phí vào số dư và quyết toán thuộc **feature 017** (15.9): khi một bảng Đã chốt, feature này chỉ gửi sự kiện cho feature 017 (bảng giao tiếp "Gửi 017"). Hóa đơn và bút toán vẫn nằm ngoài hệ thống. *(Bổ sung 2026-10-22, Q-378)* Phiếu báo phí của bảng Đã chốt do feature 017 phát hành (feature 017 FR-031). *(Nguồn: 1.2, 6.5, 15.1, 15.9)*
 
 #### I. Quyền
 
@@ -526,6 +532,7 @@ Từ chối, Hủy, Đã mua là trạng thái cuối. Đề nghị mua hộ là
 | Nhận | 012 | Đêm người thân ở lại; đồng ý hoặc từ chối đề nghị mua hộ của người đại diện | Lượt ở lại, đêm; đề nghị, người đại diện, quyết định |
 | Gửi | 012 | Bảng chi phí đã chốt; chi phí tạm tính; đề nghị mua hộ cần đồng ý (kèm dấu "số dư không đủ" nhận từ 017) | Theo FR-037, FR-038, FR-023 |
 | Gửi | 017 | *(mới 2026-09-28)* Bảng Đã chốt (thường hoặc bổ sung), gửi đúng một lần cho mỗi bảng, gửi lặp được nhận diện theo mã bảng; tổng chi phí chưa chốt (FR-038a); phí ngày cơ sở của hợp đồng tính theo tháng (FR-009); đề nghị mua hộ được gửi, được quyết định, bị hủy | Mã bảng (duy nhất), loại bảng, kỳ, người cao tuổi, tổng có dấu, thời điểm chốt; tổng chưa chốt; đề nghị, số tiền dự kiến, trạng thái |
+| Gửi | 017 | *(bổ sung 2026-10-22, Q-378)* Chi tiết khoản Đã chốt của một bảng cho phiếu báo phí (khoản thuốc theo FR-019) | Bảng, khoản, loại, mô tả, ngày phát sinh, số lượng, đơn vị, đơn giá, thành tiền, khoản điều chỉnh kèm kỳ gốc |
 | Nhận | 017 | *(mới 2026-09-28)* Dấu "số dư không đủ" của đề nghị mua hộ, tính lại tới khi đề nghị được quyết định (feature 017 FR-021, BR-M11-15). Dấu MUST hiển thị cho người đại diện và Quản lý viện khi đồng ý hoặc từ chối; dấu không chặn | Đề nghị, dấu, thời điểm tính |
 | Nhận | 014 | Điểm danh hoạt động có thu phí và việc hủy lượt (đính chính điểm danh, Hủy ghi nhận điểm danh rời viện, feature 014 FR-031, FR-031a); giờ về theo ngày của bán trú lấy từ feature 005 (Q-176) | Buổi, người cao tuổi, hoạt động/dịch vụ, bản ghi điểm danh |
 | Gửi | 009 | Các thông báo ở bảng FR-044 | Nguồn, mức, nhóm người nhận, loại thông tin "chi phí" |
@@ -685,3 +692,5 @@ Nội dung gốc của từng điểm được giữ dưới đây để truy v�
 **(2026-10-11) Đối chiếu tài liệu gốc DOCX và rà soát bổ sung (báo cáo audit 2026-10-11, không lưu trong kho mã).** *(Đã xử lý 2026-10-11: Q-337 → Q-345; sửa FR-013, Assumptions; xem mục "Cập nhật 2026-10-11" ở Clarifications.)*
 
 **(2026-10-18) Đồng bộ feature 009 FR-001a (đối tượng thông tin).** *(Đã xử lý 2026-10-18: Clarifications "Cập nhật 2026-10-18", FR-044.)* Còn báo lại: plan, contracts, tasks chưa cập nhật. *(Đã xử lý 2026-10-18: plan, research, tasks đã khai.)*
+
+**(2026-10-22) Đồng bộ Q-378, Q-380, Q-385.** *(Đã xử lý 2026-10-22: Clarifications "Cập nhật 2026-10-22", dòng Ngoài phạm vi về feature 017, FR-042, bảng giao tiếp.)* Còn báo lại: contracts, tasks chưa cập nhật dòng giao tiếp mới với 017.

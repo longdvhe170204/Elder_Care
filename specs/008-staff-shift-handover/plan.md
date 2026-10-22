@@ -1,6 +1,6 @@
 # Implementation Plan: Nhân sự, ca trực và bàn giao
 
-**Branch**: `008-staff-shift-handover` | **Date**: 2026-10-10 | **Spec**: [spec.md](spec.md)
+**Branch**: `008-staff-shift-handover` | **Date**: 2026-10-10, cập nhật 2026-10-22 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/008-staff-shift-handover/spec.md`
 
@@ -14,6 +14,7 @@ Feature 008 là module M09 (mục 13.1 → 13.5; UC-49, UC-50 phần lập và c
 5. Tỷ lệ phục vụ theo trọng số chăm sóc và cảnh báo dưới ngưỡng (mục D).
 6. Bàn giao ca do người phụ trách ca lập, danh sách bản ghi nguồn để tham khảo, hoàn tất, ý kiến, xác nhận nguyên tử với chuyển công việc và cảnh báo (mục E).
 7. Nhiệm vụ và dữ liệu ca theo thời điểm cho 002, 003, 005, 006, 007, 009, 011, 013, 016 (mục F).
+8. *(Bổ sung 2026-10-22, Q-382)* Import danh sách nhân viên bằng Excel: xem trước, hoặc toàn bộ hoặc không (FR-001b, FR-001c; UC-102).
 
 Hướng kỹ thuật:
 - Gói `m09` với bảy gói con; 015 (cùng M09) dùng port nội bộ, không qua API công khai (research N-01, N-07).
@@ -28,11 +29,18 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - 008 không lập ca, lịch, phân công, bàn giao hay mục bàn giao thay actor; không gợi ý người phụ trách ca;
 - hệ thống chỉ: chuyển trạng thái ca, phân công theo giờ; tác động kèm lệnh của actor (nghỉ việc, vắng ca, thu hồi, xác nhận bàn giao); kiểm tra và chặn; nhắc, cảnh báo; hiển thị danh sách bản ghi nguồn và số liệu tỷ lệ phục vụ.
 
+### Cập nhật 2026-10-22 (spec mục "Cập nhật 2026-10-22": Q-382; 007 FR-047i)
+
+- **Import hồ sơ nhân viên** (FR-001b, FR-001c, BR-M09-18, CFG-M09-13): ba endpoint `GET /nhan-vien/import/mau` (file mẫu .xlsx), `POST /nhan-vien/import/xem-truoc`, `POST /nhan-vien/import/xac-nhan` (cả hai nhận file multipart). Hệ thống không lưu file gốc: xác nhận gửi lại cùng file, máy chủ đọc và kiểm tra lại mọi dòng rồi tạo mọi hồ sơ trong một transaction. Bảng `lan_import_nhan_vien` (nhóm 3); `nhan_vien` thêm `nguon`, `lan_import_id`, `dien_thoai_chuan` (số chỉ gồm chữ số, dùng so trùng) (research N-16, data-model mục 2).
+- **Thư viện**: fastexcel (`fastexcel-reader` đọc, `fastexcel` ghi file mẫu; thư viện XLSX 010 đã chọn) qua `common.bieumau` (`ExcelBieuMau`, 007 research S-25); giới hạn kích thước file 5 MB và số dòng đọc.
+- **Cho 007 FR-047i**: `NhanSuCanhBaoPort` thêm `dangTrongCa`, `tangTrongCa`, `tangDangCoCa` (007 module-interfaces mục 2.1); `TraCuuCaService` cài, cùng quy tắc "trong ca" với `CaTrucApi.dangTrongCa` (vai trò không xếp ca: giờ hành chính CFG-M13-06). Không thêm quy tắc.
+- Không thêm vai trò, trạng thái; một bảng mới, ba cột mới.
+
 ## Technical Context
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).
 
-**Primary Dependencies**: Như 000 → 007: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7. Web: React 19, TanStack Query. App nhân viên: Flutter, drift (lưu bản xem bàn giao). Không thêm thư viện mới.
+**Primary Dependencies**: Như 000 → 007: Spring Boot 4.1.x, Spring Modulith 2.x, Flyway (bản do Spring Boot quản lý), springdoc-openapi 3.x, ShedLock, Spring Security 7. Web: React 19, TanStack Query. App nhân viên: Flutter, drift (lưu bản xem bàn giao). *(Sửa 2026-10-22)* Dùng thêm `fastexcel-reader` (cùng họ fastexcel của 010) cho import Excel (FR-001b), qua `common.bieumau` (research N-16).
 
 **Storage**: MySQL 8.0. Bảng ở [data-model.md](data-model.md).
 
@@ -188,7 +196,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
    - Hàm đọc mới `NghiepVuChuyenMonApi.loaiYeuCau(maNghiepVu)` để 008 biết loại giấy phép của "phát thuốc và xác nhận liều" (FR-030).
 2. **003** (đã ghi bổ sung vào [../003-room-bed-allocation/contracts/module-interfaces.md](../003-room-bed-allocation/contracts/module-interfaces.md) mục 1.8): hàm đọc `TinhTrangGiuongApi.choSanSangQuaHan(tangId, t)` cho nhóm (f) của danh sách bản ghi nguồn bàn giao (FR-039 f). 008 cài `ThamChieuViTri` đúng chữ ký.
 3. **005** (đã ghi bổ sung vào [../005-daily-care-tasks/contracts/module-interfaces.md](../005-daily-care-tasks/contracts/module-interfaces.md) mục 1.2): hàm đọc `LoaiCongViecApi.yeuCau(loaiCongViecId)` (vai trò, chứng chỉ yêu cầu; FR-030) và `KeHoachChamSocApi.loaiCongViecHienHanh(nctId)` (FR-031). 008 cài `NhanSuCaPort`, gọi `CongViecCaApi`, `CongViecBanGiaoApi` đúng chữ ký.
-4. **006, 007**: 008 cài `DieuDuongCaPort`, `NhanSuCanhBaoPort` đúng chữ ký; gọi `CanhBaoBanGiaoApi.khiXacNhanBanGiao` trong lệnh xác nhận; đọc `LieuBanGiaoApi`, `ChiSoApi.vuotNguongTrongKhoang`. Không gọi 006 khi xác nhận (006 đọc `banGiaoDaXacNhan`).
+4. **006, 007**: 008 cài `DieuDuongCaPort`, `NhanSuCanhBaoPort` đúng chữ ký (*2026-10-22:* kèm ba hàm mới cho nút hỗ trợ khẩn cấp, 007 FR-047i); gọi `CanhBaoBanGiaoApi.khiXacNhanBanGiao` trong lệnh xác nhận; đọc `LieuBanGiaoApi`, `ChiSoApi.vuotNguongTrongKhoang`. Không gọi 006 khi xác nhận (006 đọc `banGiaoDaXacNhan`).
 5. **009** nghe các sự kiện ở [contracts/module-interfaces.md](contracts/module-interfaces.md) mục 1.6 với mức FR-058; đọc `CaTrucApi.dangTrongCa` để chọn kênh (BR-M13-01). **011** đọc `NhiemVuApi.nguoiNhanTaiTang` (UC-76). **013** cài `DoGuiBanGiaoPort`; nghe `CaDaKetThuc`. **014** cài `ChuyenDiNhiemVuPort`. **015** dùng port nội bộ M09 (research N-07), đặt các cột của `ca_nhan_vien` dành cho 015, cài `KiemTraCongBoMoRong`. **016** đọc `NhanSuThongKeApi`. **019** đọc `NhiemVuApi.phuTrachBoPhan`, `boPhanCua`.
 
 ## Điểm cần báo lại về tài liệu nguồn
@@ -211,3 +219,6 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 6. **(Đồng bộ câu chữ spec 008, không đổi nghiệp vụ)** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - Assumptions còn câu dẫn `docs/phan-tich-yeu-cau.md` mục 4.2 (đã bỏ); có thể giữ làm lịch sử.
    - FR-036, FR-038 còn chữ "đề xuất" với CFG-M09-08, CFG-M09-09 dù đã có ở Phụ lục 25.
+
+7. **(2026-10-22) Trùng số điện thoại khi tạo tay.** FR-001b coi trùng số điện thoại với hồ sơ đã có là lỗi của dòng import, nhưng lệnh tạo hồ sơ bằng tay (FR-001) không kiểm trùng. Plan chỉ kiểm khi import (theo đúng spec) và dùng cột `dien_thoai_chuan` có chỉ mục; tạo tay vẫn cho trùng. Nếu viện muốn số điện thoại duy nhất cho mọi hồ sơ thì cần Q mới. *(Đã xử lý 2026-10-22: chủ dự án chọn giữ đúng spec: chỉ kiểm trùng khi import; muốn kiểm khi tạo tay thì cần Q mới.)*
+8. **(2026-10-22) Bố cục file mẫu.** Spec để plan chốt (Điểm cần báo lại 2026-10-22). Plan chốt: một trang tính "NhanVien", dòng 1 là tiêu đề cố định theo thứ tự Họ tên, Chức danh, Số điện thoại, Ngày bắt đầu làm việc, Chuyên môn, Email; dữ liệu từ dòng 2; ngày nhận ô kiểu ngày của Excel hoặc chữ `dd/MM/yyyy`; số điện thoại nhận ô chữ (giữ số 0 đầu). Thiếu hoặc sai thứ tự cột tiêu đề là "không đúng mẫu". Trang tính thứ hai "HuongDan" chỉ để đọc. Đề nghị chủ dự án duyệt bố cục. *(Đã xử lý 2026-10-22: chủ dự án chọn duyệt bố cục trên.)*

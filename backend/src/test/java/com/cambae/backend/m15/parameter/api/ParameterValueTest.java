@@ -31,6 +31,9 @@ class ParameterValueTest {
         assertThat(value(ParameterKind.DURATION, "{\"value\":90,\"unit\":\"DAYS\"}")
                         .asDuration())
                 .isEqualTo(Duration.ofDays(90));
+        assertThat(value(ParameterKind.DURATION, "{\"value\":30,\"unit\":\"SECONDS\"}")
+                        .asDuration())
+                .isEqualTo(Duration.ofSeconds(30));
     }
 
     @Test

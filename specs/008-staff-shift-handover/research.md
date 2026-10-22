@@ -215,7 +215,7 @@ Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũn
 | `ThamChieuViTri` (003) | Phân công Nháp, Tương lai, Hiệu lực; giao trưởng tầng đang/sẽ hiệu lực; ca chưa Đã đóng, Đã hủy của tầng/khu/phòng (003 FR-005, CHK017) |
 | `NhanSuCaPort` (005) | Theo chữ ký 005; `duDieuKien` dùng `HieuLucChungChi` |
 | `DieuDuongCaPort` (006) | Theo chữ ký 006; `dieuDuongCoCa(tang, t)` = Điều dưỡng có tên trong ca đang diễn ra của tầng, không vắng |
-| `NhanSuCanhBaoPort` (007) | Theo chữ ký 007 |
+| `NhanSuCanhBaoPort` (007) | Theo chữ ký 007; *(bổ sung 2026-10-22, 007 FR-047i)* `dangTrongCa` (cùng quy tắc `CaTrucApi.dangTrongCa`), `tangTrongCa` (tầng của ca đang diễn ra có tên người đó, không vắng), `tangDangCoCa` (tầng có ca đang diễn ra) |
 
 Các hàm "tại thời điểm t" đọc dữ liệu lịch sử (`nguoi_phu_trach_ca`, `ket_thuc_thuc_te`, `vang_luc`), nên cùng cho phạm vi báo cáo khoảng đã qua (002 `boLocLichSu`, FR-037a).
 
@@ -287,3 +287,23 @@ Các hàm "tại thời điểm t" đọc dữ liệu lịch sử (`nguoi_phu_tr
   - bản giả `DoGuiBanGiaoPort`, `ChuyenDiNhiemVuPort`, `KiemTraCongBoMoRong` có công tắc `/api/v1/kiem-thu/gia-lap/{module}`;
   - Flutter: xem bàn giao ngoại tuyến và xóa khi hết phạm vi ca; chặn hoàn tất/xác nhận khi mất kết nối.
 - Tên test theo BR/FR (`BR_M09_03_ChongCaIT`, `FR_044_XacNhanBanGiaoNguyenTuIT`).
+
+---
+
+## N-16. Import hồ sơ nhân viên bằng Excel *(bổ sung 2026-10-22; FR-001b, FR-001c, BR-M09-18, CFG-M09-13, Q-382)*
+
+**Quyết định**:
+- **File mẫu** `GET /nhan-vien/import/mau`: dựng bằng `ExcelBieuMau` (fastexcel) theo bố cục ở plan điểm báo lại 8; cột Số điện thoại định dạng chữ.
+- **Xem trước** `POST /nhan-vien/import/xem-truoc` (multipart, quyền `HO_SO_NHAN_VIEN, THUC_HIEN` = Quản lý viện): chỉ nhận `.xlsx` (kiểm cả kiểu MIME và chữ ký ZIP), tối đa 5 MB; đọc bằng `fastexcel-reader` (đọc luồng, dừng khi vượt CFG-M09-13 + 1 dòng hoặc giới hạn số ô; kích thước nén và giải nén có giới hạn); tiêu đề sai → 422 `FILE_KHONG_DUNG_MAU`; số dòng dữ liệu (bỏ dòng trống hoàn toàn) > CFG-M09-13 → 422 `QUA_SO_DONG` (đọc tham số lúc chạy). Mỗi dòng qua `KiemTraDongImport` (hàm thuần, test bảng): ô bắt buộc, ngày (ô ngày hoặc `dd/MM/yyyy`), điện thoại `^0\d{9}$` sau khi bỏ khoảng trắng, dấu chấm, gạch nối, email; trùng trong file (map theo số chuẩn); trùng hồ sơ đã có qua `nhan_vien.dien_thoai_chuan` (mọi trạng thái). Trả `soDong`, `dong[]` (dữ liệu đã chuẩn hóa), `loi[]` (`dong`, `cot`, `maLoi`, `lyDo`, `trungVoi`: hồ sơ id hoặc số dòng). Không ghi gì, không nhật ký.
+- **Xác nhận** `POST /nhan-vien/import/xac-nhan` (multipart cùng file, `Idempotency-Key`): đọc và kiểm tra lại như xem trước; khóa trùng bằng `SELECT … FOR UPDATE` trên chỉ mục `dien_thoai_chuan` với tập số của file (khóa khoảng chặn lệnh tạo tay chen vào trong lúc tạo); còn lỗi → 409 `IMPORT_CO_DONG_LOI` kèm `loi[]`, không tạo gì; ngược lại trong một transaction: thêm `lan_import_nhan_vien`, thêm từng `nhan_vien` (`DANG_LAM_VIEC`, `nguon = IMPORT`, `lan_import_id`, `tai_khoan_id` rỗng, không bộ phận), một dòng nhật ký `NV_IMPORT` (người, thời điểm, tên file, số dòng, danh sách id; FR-001c). Không sửa hồ sơ có sẵn. File không lưu (FR-001c): chỉ đọc trong bộ nhớ.
+- **Tạo tay** giữ như cũ; service ghi `dien_thoai_chuan` cho mọi hồ sơ (tạo, sửa) để lần import sau so được. Migration điền `dien_thoai_chuan` cho dữ liệu cũ.
+- **Hiệu năng** (SC-013 ≤ 10 giây với 500 dòng): một truy vấn `IN` cho tập số; chèn theo lô JDBC.
+- **Web**: màn import trong `frontend/src/tinh-nang/nhan-vien/` (tải mẫu, chọn file, bảng xem trước tô dòng lỗi theo cột, nút xác nhận chỉ bật khi không lỗi). Không có ở app.
+
+**Lý do**: Gửi lại file khi xác nhận giữ đúng FR-001c (không lưu file gốc) mà vẫn kiểm lại toàn bộ (FR-001b (2), kịch bản 13). Một transaction cho "hoặc toàn bộ, hoặc không".
+
+**Phương án đã cân nhắc**:
+- Lưu file tạm (S3 hoặc bảng) giữa hai bước: trái FR-001c.
+- Gửi lại các dòng đã chuẩn hóa dạng JSON khi xác nhận: client sửa được dữ liệu giữa hai bước mà không qua kiểm tra file; vẫn phải kiểm lại nên không gọn hơn.
+- Đọc CSV thay Excel: spec ghi Excel (.xlsx) theo mẫu.
+- `UNIQUE` trên số điện thoại: chặn cả tạo tay, vượt spec (plan điểm báo lại 7).

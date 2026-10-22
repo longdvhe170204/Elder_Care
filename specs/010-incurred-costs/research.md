@@ -178,6 +178,10 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 interface ChiPhiChoSoDuPort {               // 010 cài, 017 dùng
   long tongChuaChot(long nctId);            // FR-038a
   Optional<Long> phiNgayCoSo(long nctId, LocalDate ngay);   // FR-009, 017 FR-016
+  Optional<BangDaChotView> bangDaChot(long bangId);          // bổ sung 2026-10-22 (FR-042, Q-378): 017 FR-031, FR-032, FR-034
+      // bangId, loaiBang (THUONG | BO_SUNG | KY_CUOI), kyId, kỳ (tháng), nctId, tong, chotLuc, tongTheoLoai[] (bang_chi_phi_tong_loai),
+      // khoan[]: ngayPhatSinh, loai, moTa, soLuong, donVi, donGia, thanhTien, laDieuChinh, kyGoc; khoản thuốc: moTa = "Thuốc" + mã vật phẩm (FR-019, Q-133)
+      // rỗng khi bảng chưa Đã chốt
 }
 interface SoDuMuaHoPort {                   // 017 cài, 010 dùng (mặc định: không có dấu)
   boolean soDuKhongDu(long nctId, long soTien, Instant t);  // Q-219, BR-M11-15

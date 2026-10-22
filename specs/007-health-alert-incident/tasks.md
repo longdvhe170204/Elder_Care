@@ -12,6 +12,8 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 
 **Giai đoạn**: Theo mục "Giai đoạn hiện tại" của CLAUDE.md (constitution IX); task của `mobile/` chỉ làm khi mục đó mở phần mobile, trừ màn mẫu thiết kế.
 
+**Cập nhật 2026-10-22** (plan mục "Cập nhật 2026-10-22"; Q-373 → Q-376, Q-383, Q-384; research S-24, S-25): thêm T094 → T105 (vị trí GPS, mốc tới nơi ở US12; Phase 8b US13 nút hỗ trợ khẩn cấp, gọi 115; chuyển viện và phiếu tóm tắt PDF ở US5). Không đánh số lại, không đổi task đã có.
+
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
@@ -159,6 +161,9 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 
 - [ ] T040 [US5] Tạo `MIG/V007_06__khan_cap.sql`: `ban_chup_the_khan_cap` (nhóm 3; `noi_dung JSON`), `xac_nhan_doi_chieu` (`su_co_id UNIQUE`), `ban_tom_tat_chuyen_vien` (nhóm 3; `noi_dung JSON`)
 - [ ] T041 [US5] Cài `BE/m05/khancap/internal/TheKhanCapService.java` (dựng thẻ từ `NguoiCaoTuoiApi`, `MucSucKhoeApi`, `NguyenVongApi`, `ViTriApi`, `DonThuocApi`, `NguoiThanKhanCapPort`; bản chụp mỗi lần kích hoạt), lệnh kích hoạt khẩn cấp (ghi sự cố Khẩn cấp hoặc nâng lên; từ cảnh báo thì `CHUYEN_SU_CO`), xác nhận đối chiếu, chuyển viện (bản tóm tắt; `chiTiet.canCu = {suCoId}`); yêu cầu tới người liên hệ chính mang mã Q-354 (research S-12, S-19)
+- [ ] T103 [P] [US5] *(Bổ sung 2026-10-22)* Test `BT/m05/khancap/BR_M05_32_PhieuChuyenVienIT.java` (quickstart C1 → C4) và `BT/common/bieumau/PdfBieuMauTest.java`: thông tin chuyển viện có nguyện vọng khi điều trị (bản giả `NguyenVongApi.dieuTriHieuLuc`); `nguoiDiKem` bắt buộc; lý do khi cần hỏi trước mà chưa liên lạc được, trừ sự cố Khẩn cấp; `tepDinhKemIds` chuyển cho 001; phiếu PDF có dòng bắt buộc, font tiếng Việt; tải lại cùng byte; in lại có dấu, ghi lần in và nhật ký (FR-049, FR-050, FR-050h, SC-021)
+- [ ] T104 [P] [US5] *(Bổ sung 2026-10-22)* Tạo thành phần `BE/common/bieumau/` (`PdfBieuMau`: khung A4, đầu trang CFG-M11-11, bảng, ô ký, `dongDau`; font Be Vietnam Pro trong `resources/fonts/`) dùng OpenPDF; thêm OpenPDF 3.0.5 vào `backend/pom.xml` (đã duyệt 2026-10-22, research S-26; kiểm phụ thuộc `brotli4j`); 017, 008 dùng lại
+- [ ] T105 [US5] *(Bổ sung 2026-10-22)* Mở rộng lệnh Chuyển viện trong `BE/m05/khancap/internal/` (trường mới, kiểm lý do theo phiếu điều trị, chuyển `tepDinhKemIds` cho `TrangThaiNguoiCaoTuoiApi.thucHien`, chụp nguyện vọng khi điều trị và người liên hệ chính vào `noi_dung`, dựng PDF và `FileApi.upload` + `attach`); endpoint `GET /su-co/{id}/chuyen-vien/thong-tin`, `GET /ban-tom-tat-chuyen-vien/{id}/phieu`, `POST …/in-lai`; màn web chuyển viện và tải, in phiếu trong `frontend/src/tinh-nang/su-co/`
 - [ ] T042 [US5] Tạo endpoint `POST /canh-bao/{id}/kich-hoat-khan-cap`, `GET /su-co/{id}/the-khan-cap`, `POST /su-co/{id}/xac-nhan-doi-chieu-nguyen-vong`, `/chuyen-vien`, `GET /ban-tom-tat-chuyen-vien/{id}` (bản in); app chặn kích hoạt khi mất kết nối, hiển thị thẻ
 
 **Checkpoint**: Khẩn cấp chạy độc lập.
@@ -206,8 +211,33 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 - [ ] T074 [US12] Cài `BE/m05/canhbao/internal/SosService.java`: `ThietBiGanApi.xacDinh`, điều kiện qua `NguoiCaoTuoiApi.trangThai`, `CoMatBanTruApi.theoNgay`; ghi `lan_bam_sos` (vị trí từ `ViTriApi.hienTai`) và tạo hoặc gộp cảnh báo qua đường tạo sẵn có với khóa `SOS`; nhóm người nhận FR-047a cùng `TRUONG_DOAN`, `NGUOI_DI_CUNG` khi Hoạt động bên ngoài (research S-23)
 - [ ] T075 [US12] Tạo `BE/m05/canhbao/web/SosController.java`: `POST /sos`, `GET /sos/hien-tai`, `POST /sos/{id}/noi-dang-o` với lược đồ bảo mật `tokenThietBi`, đường `/sos/**` đã được 002 T011 cho qua không cần phiên; lệnh nằm trong danh sách ngoại lệ của `CanQuyenArchTest` (002 T093); lỗi `LoiSos` kèm `lienHe` từ `SoLienHeVienApi` (contracts/api-007.yaml)
 - [ ] T076 [US12] Thêm `nguon` vào `CanhBaoBaoCaoView` của `CanhBaoThongKeApi.canhBao` (FR-081, 016 FR-041)
+- [ ] T094 [P] [US12] *(Bổ sung 2026-10-22)* Test `BT/m05/canhbao/BR_M05_28_ViTriSosIT.java`, `BR_M05_30_DaToiNoiIT.java` và kiến trúc `ViTriKhongLoNguoiThanArchTest.java` (quickstart S9 → S12, H5, H9): lệnh SOS không chờ vị trí; mỗi lần gửi một dòng; `coTheDaCu` theo 2 × CFG-M05-09; vị trí là chính khi Hoạt động bên ngoài; DTO cho 012 và nội dung thông báo không có vị trí; đã tới nơi một lần, không đổi trạng thái, dừng nhận vị trí (409 `DUNG_GUI_VI_TRI`); đóng chưa có mốc → `khong_ghi_moc_toi_noi` (FR-047h, FR-047j, SC-018, SC-020)
+- [ ] T095 [US12] *(Bổ sung 2026-10-22)* Tạo `MIG/V007_12__vi_tri_ho_tro_goi_115.sql` theo data-model mục 7, 8: `vi_tri_canh_bao`, `lan_bam_ho_tro`, `luot_goi_115`, `lan_in_phieu_chuyen_vien`; cột mới của `canh_bao` (`nguoi_bam_id`, cột sinh `khoa_mo_ho_tro` `UNIQUE`, `da_toi_noi_luc`, `da_toi_noi_boi_id`, `khong_ghi_moc_toi_noi`; `CHECK (nct_id IS NOT NULL OR loai = 'NV_YEU_CAU_HO_TRO')`; trigger cho `nct_id` `NULL → giá trị` một lần); `lan_bam_sos.noi_dang_o` thêm `HANH_LANG`, `PHONG_SINH_HOAT_CHUNG`; cột mới của `ban_tom_tat_chuyen_vien`; trigger nhóm 3 và đặt một lần
+- [ ] T096 [US12] *(Bổ sung 2026-10-22)* Cài `BE/m05/canhbao/internal/ViTriCanhBaoService.java` (`POST /sos/{id}/vi-tri`, `/ho-tro-khan-cap/{id}/vi-tri`), lệnh `POST /canh-bao/{id}/da-toi-noi`, `DA_TOI`, `guiViTri`, `chuKyGuiViTriGiay` trong `GET /sos/hien-tai`, `viTriMoiNhat` trong chi tiết cảnh báo, đặt `khong_ghi_moc_toi_noi` khi đóng, chuyển sự cố; `CanhBaoBaoCaoView` thêm `NUT_HO_TRO`, `daToiNoiLuc`, `khongGhiMocToiNoi` (research S-24)
 
-**Checkpoint**: S1 → S8 xanh; 012 gọi được `/sos` từ kênh người cao tuổi.
+**Checkpoint**: S1 → S8 xanh; 012 gọi được `/sos` từ kênh người cao tuổi. *(2026-10-22)* S9 → S12 xanh.
+
+---
+
+## Phase 8b: User Story 13 – Nhân viên bấm nút hỗ trợ khẩn cấp, gọi 115 (Priority: P1) *(bổ sung 2026-10-22, Q-375, Q-376)*
+
+**Goal**: Nút hỗ trợ khẩn cấp tạo hoặc gộp cảnh báo Khẩn cấp theo người bấm, người nhận theo tầng trong ca, chọn người cao tuổi sau; nút "Gọi 115" ghi mốc gọi cấp cứu (FR-026 (e), FR-047i, FR-047k, FR-048b; BR-M05-29, BR-M05-31; UC-99).
+
+**Independent Test**: Quickstart "Kịch bản bổ sung 2026-10-22" H1 → H9 với bản giả `NhanSuCanhBaoPort`.
+
+### Tests cho User Story 13
+
+- [ ] T097 [P] [US13] Test `BT/m05/canhbao/BR_M05_29_NutHoTroIT.java`, `FR_047i_NguoiNhanHoTroIT.java` (H1 → H6): trong ca mới bấm được, ngoài ca 409 kèm `lienHe`; gộp theo `khoa_mo_ho_tro`; người nhận theo tầng trong ca, chưa có tầng thì `ShiftLead` mọi tầng đang có ca; chọn tầng, người cao tuổi đặt một lần và gửi thêm nhóm; không gửi người thân; chuyển sự cố, kích hoạt khẩn cấp thiếu `nctId` → 422; quyền `EMERGENCY_ASSIST_BUTTON` theo FR-080 (Kế toán bấm được, người thân, người cao tuổi không) (SC-019)
+- [ ] T098 [P] [US13] Test `BT/m05/khancap/BR_M05_31_Goi115IT.java` (H7, H8): thông tin tổng đài theo quyền xem sức khỏe; lượt gọi, kết quả một lần, chỉ người bấm; Đã gọi được thêm diễn biến `GOI_CAP_CUU`; lượt trên cảnh báo được chép khi chuyển sự cố (SC-020)
+
+### Implementation cho User Story 13
+
+- [ ] T099 [US13] Thêm `dangTrongCa`, `tangTrongCa`, `tangDangCoCa` vào `BE/m05/api/NhanSuCanhBaoPort.java` và bản giả `BT/support/gia007/` (luật "Đổi api"; 008 cài, plan 008)
+- [ ] T100 [US13] Cài `BE/m05/canhbao/internal/HoTroKhanCapService.java` và `BE/m05/canhbao/web/HoTroKhanCapController.java`: `POST /ho-tro-khan-cap`, `GET /ho-tro-khan-cap/hien-tai`, `POST /ho-tro-khan-cap/{id}/chi-tiet`; tạo hoặc gộp qua đường tạo cảnh báo sẵn có; nhóm người nhận `OnDutyDoctor`, `ShiftLead`, `OnShiftStaff`; bắt buộc `nctId` khi chuyển sự cố, kích hoạt khẩn cấp (sửa `CanhBaoService`); `requiresOnline` (research S-24)
+- [ ] T101 [US13] Cài `BE/m05/khancap/internal/Goi115Service.java` và endpoint `GET/POST /canh-bao/{id}/thong-tin-goi-115|goi-115`, `/su-co/{id}/…`, `POST /luot-goi-115/{id}/ket-qua`; thông tin viện từ CFG-M11-11 qua `ThamSoApi`
+- [ ] T102 [P] [US13] Màn web `frontend/src/tinh-nang/canh-bao/`: nguồn, người bấm, loại sự việc, vị trí (bản đồ Leaflet khi là vị trí chính, liên kết chỉ đường; nhãn tham khảo, "có thể đã cũ"), nút "Đã tới nơi", nút "Gọi 115" kèm thông tin đọc cho tổng đài; test Vitest `GoiCapCuu.test.jsx`, `ViTriCanhBao.test.jsx`; thêm Leaflet 1.9.4 (và react-leaflet 5.0.0 nếu giấy phép phù hợp) vào `package.json` (đã duyệt 2026-10-22, research S-26); app `mobile/lib/nhan-vien/canh-bao/` nút hỗ trợ khẩn cấp (đếm ngược 3 giây), gửi vị trí, trình quay số theo mục "Giai đoạn hiện tại" của CLAUDE.md
+
+**Checkpoint**: H1 → H9 xanh; 008 cài ba hàm mới thì chạy lại với bản thật (T063).
 
 ---
 
@@ -328,6 +358,8 @@ description: "Danh sách task triển khai feature 007 – Sức khỏe, cảnh 
 - **US6, US7, US8 (P2)**: sau US4 (US7 sau US1)
 - **US9, US10 (P3)**: sau US1
 - **US12 (P1)** *(bổ sung 2026-10-18)*: sau US3 (cảnh báo); cần 002 US8 (`ThietBiGanApi`); 014 cài `ChuyenDiSosPort` sau (bản giả T073)
+- **US13 (P1)** *(bổ sung 2026-10-22)*: sau US3 và T095; 008 cài ba hàm `NhanSuCanhBaoPort` (bản giả T099); T101 cần US4, US5 (sự cố)
+- *(2026-10-22)* T103 → T105 sau T040 → T042 và 001 T083 (`dieuTriHieuLuc`, `tepDinhKemIds`); T104 trước chứng từ của 017
 
 ### Parallel Opportunities
 

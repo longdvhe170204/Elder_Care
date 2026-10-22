@@ -100,3 +100,10 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M14 chỉ ph�
 
 Test: `ChiTieu_SK_CanhBaoSosTest`.
 
+## 7. Kịch bản bổ sung 2026-10-22 (Q-374, Q-375)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| B2 | Tháng 10: 12 cảnh báo SOS Tầng 2 (10 có mốc tới nơi), 3 cảnh báo nút hỗ trợ Tầng 2, 1 cảnh báo nút hỗ trợ chưa có tầng; xem báo cáo cảnh báo | Dòng SOS và dòng nút hỗ trợ riêng; thời gian tạo → tới nơi trung bình, lớn nhất trên cảnh báo có mốc; "không ghi mốc tới nơi" của SOS là 2; dòng "chưa rõ tầng" có 1 cảnh báo; mọi cảnh báo vẫn trong tổng Khẩn cấp | US5 #7, FR-041 |
+
+Test: `ChiTieu_SK_CanhBaoSosHoTroTest` (thay `ChiTieu_SK_CanhBaoSosTest`, giữ ca B1).
