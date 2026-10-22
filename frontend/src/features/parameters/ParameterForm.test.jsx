@@ -228,4 +228,30 @@ describe('ParameterForm', () => {
       window: { value: 12, unit: 'HOURS' },
     })
   })
+
+  it('CFG_M11_11_chuaCoGiaTri_hienCacOThongTinVien', async () => {
+    // 007 T104: dạng giá trị thông tin viện do 000 chốt (common.document.FacilityInfo); chưa có giá trị vẫn nhập được
+    api.on('POST', '/parameters/CFG-M11-11/change-value', () => json(200, parameter(), { ETag: '"1"' }))
+    render(
+      <ParameterForm
+        parameter={parameter({ code: 'CFG-M11-11', type: 'TABLE', unit: null, currentValue: null, defaultValue: null })}
+        etag={'"0"'}
+        onSaved={vi.fn()}
+        onStale={vi.fn()}
+      />,
+    )
+
+    type(screen.getByLabelText('name'), 'Viện dưỡng lão Bình An')
+    type(screen.getByLabelText('phone'), '024 3999 8888')
+    type(screen.getByLabelText('Lý do'), 'Nhập thông tin viện')
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu giá trị' }))
+
+    await waitFor(() => expect(api.calls('POST', '/parameters/CFG-M11-11/change-value')).toHaveLength(1))
+    expect(body(api.calls('POST', '/parameters/CFG-M11-11/change-value')[0]).value).toEqual({
+      name: 'Viện dưỡng lão Bình An',
+      address: null,
+      taxCode: null,
+      phone: '024 3999 8888',
+    })
+  })
 })

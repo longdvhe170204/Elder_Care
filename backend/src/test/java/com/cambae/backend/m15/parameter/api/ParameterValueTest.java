@@ -3,6 +3,7 @@ package com.cambae.backend.m15.parameter.api;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.cambae.backend.common.document.FacilityInfo;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalTime;
@@ -71,6 +72,17 @@ class ParameterValueTest {
                 .asTable(Lockout.class);
 
         assertThat(lockout.maxFailedAttempts()).isEqualTo(5);
+    }
+
+    @Test
+    void facilityInfo_readsCfgM11_11_withoutLogo() {
+        // Dạng giá trị CFG-M11-11 (007 T104): màn Tham số không có ô logo, khóa thiếu thì null
+        FacilityInfo facility = value(
+                        ParameterKind.TABLE,
+                        "{\"name\":\"Viện Bình An\",\"address\":\"Hà Nội\",\"taxCode\":null,\"phone\":\"024 3999 8888\"}")
+                .asTable(FacilityInfo.class);
+
+        assertThat(facility).isEqualTo(new FacilityInfo("Viện Bình An", "Hà Nội", null, "024 3999 8888", null));
     }
 
     @Test

@@ -16,6 +16,12 @@ export const UNIT_LABELS = {
 
 const NUMBER = new Intl.NumberFormat('vi-VN')
 
+// Cấu trúc ban đầu của tham số dạng bảng khi chưa có giá trị, theo dạng module dùng tham số đọc (khóa là tên trường của
+// backend). CFG-M11-11: thông tin viện in trên chứng từ (common.document.FacilityInfo, 007 T104); logo chưa nhập ở đây.
+export const TABLE_TEMPLATES = {
+  'CFG-M11-11': { name: null, address: null, taxCode: null, phone: null },
+}
+
 export function isDuration(value) {
   return (
     value !== null &&
