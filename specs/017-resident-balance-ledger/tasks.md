@@ -28,7 +28,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 - [ ] T001 Tạo khung gói `BE/m11/sodu/{so,giaodich,tinhtrang,quyettoan,chungtu,xuat,lich}/`; mở rộng `BT/m11/M11ArchTest.java` (010): chỉ `m11.sodu` dùng `ChiPhiChoSoDuPort`; gói `..lich..` không tạo giao dịch (research E-01, E-02)
 - [ ] T002 [P] Thêm ZXing core 3.5.4 vào `backend/pom.xml` (đã duyệt 2026-10-22; research E-04, 007 research S-26); kiểm `common.bieumau` (007 T104) và fastexcel (010) đã có
-- [ ] T003 [P] Bổ sung kiểu `.xlsx` cho tệp do hệ thống tạo trong `FileApi.upload` của `BE/common/file/` (không mở cho `POST /tep`) và test (research E-11)
+- [x] T003 [P] *(Xong 2026-10-22: `common.file.FileTypes`, `FileTypesTest`; ghi chú triển khai ở plan)* Bổ sung kiểu `.xlsx` cho tệp do hệ thống tạo trong `FileApi.upload` của `BE/common/file/` (không mở cho `POST /tep`) và test (research E-11)
 
 ---
 
@@ -62,7 +62,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 - [ ] T010 [US1] Cài `BE/m11/sodu/so/` : listener `HopDongDaDoiTrangThai` mở sổ (idempotent), sinh `ma_nop_tien` có ký tự kiểm tra, `VietQrPayload` (CFG-M11-10), `GET /nguoi-cao-tuoi/{nctId}/so-du`, `GET /nguoi-cao-tuoi/{nctId}/giao-dich`, `GET /so-du/tim-theo-ma`, `GET /cong/nguoi-cao-tuoi/{nctId}/so-du` (kiểm `quyenCoTacDung(XEM_CHI_PHI)` mỗi lần) (research E-04)
 - [ ] T011 [P] [US1] Màn web số dư trên hồ sơ trong `frontend/src/tinh-nang/so-du/` và cổng `frontend/src/tinh-nang/cong-nguoi-than/so-du/` (vẽ mã QR từ chuỗi payload) cùng test Vitest; app `mobile/lib/nguoi-than/so-du/` theo mục "Giai đoạn hiện tại" của CLAUDE.md
-- [ ] T045 [US1] *(Bổ sung 2026-10-22)* Danh mục ngân hàng cho CFG-M11-10 (research E-04): migration bảng `ngan_hang` và nạp danh sách mã BIN NAPAS (trong `MIG/V017_*` của 017); `GET /ngan-hang`; khai báo SPI `KiemTraGiaTriThamSo` ở `m15.thamso.api` và gọi trong lệnh đổi giá trị tham số của 000 (sửa `ParameterService`, chủ 000: A) cùng bản cài của 017 cho CFG-M11-10; ô chọn ngân hàng trên màn Tham số (`frontend/src/features/parameters/`); CFG-M11-10 chưa có giá trị thì ẩn thông tin nộp tiền; test `NganHangThamSoIT` (quickstart Q1a)
+- [ ] T045 [US1] *(Bổ sung 2026-10-22; phần 000 xong 2026-10-22: SPI `ParameterValueCheck` ở `m15.parameter.api.spi`, `ParameterService` gọi trước khi lưu, bản giả `FakeParameterValueCheck`, `ParameterValueCheckIT`; còn phần của 017)* Danh mục ngân hàng cho CFG-M11-10 (research E-04): migration bảng `ngan_hang` và nạp danh sách mã BIN NAPAS (trong `MIG/V017_*` của 017); `GET /ngan-hang`; khai báo SPI `KiemTraGiaTriThamSo` ở `m15.thamso.api` và gọi trong lệnh đổi giá trị tham số của 000 (sửa `ParameterService`, chủ 000: A) cùng bản cài của 017 cho CFG-M11-10; ô chọn ngân hàng trên màn Tham số (`frontend/src/features/parameters/`); CFG-M11-10 chưa có giá trị thì ẩn thông tin nộp tiền; test `NganHangThamSoIT` (quickstart Q1a)
 
 **Checkpoint**: Q1, Q2 xanh.
 

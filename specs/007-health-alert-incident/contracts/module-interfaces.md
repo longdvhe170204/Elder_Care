@@ -248,5 +248,5 @@ Bean thiếu thì mặc định an toàn: không có `NhanSuCanhBaoPort` thì ng
 | Bản cài các SPI mục 2.1 | 008, 009, 012, 014 | | Bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}` |
 | *(Bổ sung 2026-10-18)* `ThietBiGanApi.xacDinh` | M15 (002) | FR-047d (S-23) | Bản giả |
 | *(Bổ sung 2026-10-18)* `CoMatBanTruApi.theoNgay` | M04 (005) | FR-047d (S-23) | Có sẵn |
-| *(Bổ sung 2026-10-22)* `FileApi.upload`, `attach` (`common.tep`); `common.bieumau` (`PdfBieuMau`) | `common` (A) | FR-050h (S-25) | `common.bieumau` làm trong task T104 |
+| *(Bổ sung 2026-10-22)* `FileApi.upload`, `attach` (`common.tep`); `common.bieumau` (`PdfBieuMau`) | `common` (A) | FR-050h (S-25) | `common.bieumau` làm trong task T104 *(xong 2026-10-22, gói `common.document`)* |
 | *(Bổ sung 2026-10-22)* Nhóm người nhận `OnDutyDoctor`, `ShiftLead`, `OnShiftStaff` (`common.notification`) | 009 | FR-047i (S-24) | Có sẵn (009 Phase 2) |

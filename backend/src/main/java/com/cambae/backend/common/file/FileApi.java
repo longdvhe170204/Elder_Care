@@ -6,7 +6,11 @@ package com.cambae.backend.common.file;
  */
 public interface FileApi {
 
-    /** Lưu nội dung (PDF, JPEG, PNG, tối đa 10 MB), trả id tệp. */
+    /**
+     * Lưu nội dung, trả id tệp. Nhận {@link FileTypes#SYSTEM_GENERATED} (PDF, JPEG, PNG và {@code .xlsx} cho tệp hệ
+     * thống tạo, 017 research E-11), tối đa 10 MB; kiểm bằng {@link FileTypes#check}. {@code POST /files} kiểm trước
+     * với {@link FileTypes#USER_UPLOAD} nên người dùng không tải lên được {@code .xlsx}.
+     */
     long upload(String originalName, String mimeType, byte[] content, long uploadedBy);
 
     /**

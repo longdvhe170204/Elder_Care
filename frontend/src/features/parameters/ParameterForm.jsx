@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
 import { TableValueEditor } from './TableValueEditor'
-import { UNIT_LABELS, formatValue, isDuration } from './parameterValue'
+import { TABLE_TEMPLATES, UNIT_LABELS, formatValue, isDuration } from './parameterValue'
 
 // Đổi giá trị một tham số (000 T081; US4 #2, #5, #7, #9; FR-014 → FR-016, FR-021; hợp đồng
 // POST /parameters/{code}/change-value). Lý do bắt buộc; có hiệu lực ngay khi lưu; 412 hiện giá trị hiện hành mới.
@@ -39,7 +39,7 @@ function toValue(parameter, text) {
 export function ParameterForm({ parameter, etag, onSaved, onStale }) {
   const isTable = parameter.type === 'TABLE'
   const [text, setText] = useState(() => scalarOf(parameter))
-  const [table, setTable] = useState(() => parameter.currentValue)
+  const [table, setTable] = useState(() => parameter.currentValue ?? TABLE_TEMPLATES[parameter.code] ?? null)
   const [restore, setRestore] = useState(false)
   const [reason, setReason] = useState('')
   const [errors, setErrors] = useState({})
