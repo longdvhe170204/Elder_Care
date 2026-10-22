@@ -1,5 +1,6 @@
 package com.cambae.backend.m01.web;
 
+import com.cambae.backend.common.Role;
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.web.VersionEtag;
 import com.cambae.backend.m01.api.dto.ResidentStatus;
@@ -25,6 +26,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,8 +52,21 @@ class ResidentController {
 
     private static final String PROBLEM = "application/problem+json";
     private static final String UPDATE_PERSONAL_INFO = "UPDATE_PERSONAL_INFO";
-    private static final Map<String, PermissionKey> COMMANDS =
-            Map.of(UPDATE_PERSONAL_INFO, new PermissionKey(Function.RESIDENT_PROFILE, Operation.UPDATE));
+    // Lệnh sức khỏe (US2): ghi mục và hồ sơ ban đầu cho Bác sĩ, Điều dưỡng; xác nhận hồ sơ ban đầu chỉ Bác sĩ (lọc
+    // thêm)
+    private static final String CONFIRM_INITIAL_HEALTH_RECORD = "CONFIRM_INITIAL_HEALTH_RECORD";
+    private static final PermissionKey WRITE_HEALTH = new PermissionKey(Function.ALLERGY_CONDITION, Operation.UPDATE);
+    private static final Map<String, PermissionKey> COMMANDS = Map.of(
+            UPDATE_PERSONAL_INFO,
+            new PermissionKey(Function.RESIDENT_PROFILE, Operation.UPDATE),
+            "RECORD_HEALTH_ITEM",
+            new PermissionKey(Function.ALLERGY_CONDITION, Operation.CREATE),
+            "EXCLUDE_HEALTH_ITEM",
+            WRITE_HEALTH,
+            "WRITE_INITIAL_HEALTH_RECORD",
+            WRITE_HEALTH,
+            CONFIRM_INITIAL_HEALTH_RECORD,
+            WRITE_HEALTH);
 
     private final ResidentProfileService profiles;
     private final PermissionApi permissions;
@@ -128,7 +143,11 @@ class ResidentController {
     }
 
     private ProfileBody body(ProfileView view) {
-        return ProfileBody.of(
-                view, permissions.allowedCommands(currentUser, ResidentProfileService.target(view.id()), COMMANDS));
+        Set<String> commands = new HashSet<>(
+                permissions.allowedCommands(currentUser, ResidentProfileService.target(view.id()), COMMANDS));
+        if (!currentUser.roles().contains(Role.DOCTOR)) {
+            commands.remove(CONFIRM_INITIAL_HEALTH_RECORD);
+        }
+        return ProfileBody.of(view, commands);
     }
 }
