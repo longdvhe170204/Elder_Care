@@ -108,3 +108,18 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | SC-010 | Thử nghiệm với Trưởng tầng: 10 lần sao chép, trung vị ≤ 5 phút |
 | SC-011 | Q12, Q24 và test đồng thời |
 | SC-012 | Q40 và test nhật ký mọi lệnh nhóm 2 có căn cứ quyền |
+
+## 6. Kịch bản bổ sung 2026-10-22 (Q-382; 007 FR-047i)
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| I1 | QLV tải mẫu, điền 40 dòng hợp lệ, gọi `xem-truoc` | 200, 40 dòng, `loi` rỗng, `xacNhanDuoc = true`; 0 hồ sơ mới | US4 #10, FR-001b |
+| I2 | Gọi `xac-nhan` với cùng file | 201, 40 hồ sơ `DANG_LAM_VIEC`, `nguon = IMPORT`, không tài khoản, không bộ phận; một `lan_import_nhan_vien`; nhật ký `NV_IMPORT` có tên file, 40 id | US4 #10, FR-001c |
+| I3 | File dòng 7 thiếu chức danh, dòng 12 số 9 chữ số | `loi` có (7, "Chức danh", `THIEU_O_BAT_BUOC`), (12, "Số điện thoại", `DIEN_THOAI_SAI_DINH_DANG`); `xac-nhan` 409, 0 hồ sơ | US4 #11 |
+| I4 | Hồ sơ S (Nghỉ việc) số 0912345678; file có dòng số đó, hai dòng khác cùng một số | `TRUNG_HO_SO` kèm id S; `TRUNG_DONG_TRONG_FILE` kèm số dòng | US4 #12 |
+| I5 | Xem trước không lỗi; tạo tay hồ sơ trùng số với dòng 5; xác nhận | 409 `IMPORT_CO_DONG_LOI` báo dòng 5; 0 hồ sơ | US4 #13 |
+| I6 | File 501 dòng (CFG-M09-13 = 500); file .csv; file thiếu cột Email; Trưởng tầng gọi `xem-truoc` | 422 `QUA_SO_DONG`; 422 `FILE_KHONG_DUNG_MAU` (hai lần); 403 | US4 #14, FR-001c |
+| I7 | 500 dòng hợp lệ: đo `xem-truoc`, `xac-nhan` | Mỗi bước ≤ 10 giây | SC-013 |
+| K1 | Bản cài `NhanSuCanhBaoPort`: C có ca Tầng 2 đang diễn ra; K (Bếp) không xếp ca trong giờ hành chính; C vắng ca | `dangTrongCa(C)` true, `tangTrongCa(C)` = 2; `dangTrongCa(K)` true, tầng rỗng; C vắng → false; `tangDangCoCa` gồm tầng 2 | 007 FR-047i |
+
+Test: `FR_001b_ImportNhanVienIT` (I1 → I6), `KiemTraDongImportTest` (bảng mọi loại lỗi), `ImportHieuNangIT` (I7), `NhanSuCanhBaoPortIT` mở rộng (K1).

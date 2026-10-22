@@ -471,3 +471,75 @@ Mức (spec; dòng có * là plan áp nguyên tắc 3 bậc của 009 FR-043b, x
 **Lý do**: Dùng lại khóa loại, gộp, leo thang, người nhận Khẩn cấp đã có, nên cảnh báo SOS được xử lý, bàn giao, báo cáo như mọi cảnh báo; chỉ thêm đường vào không qua phiên (Q-370).
 
 **Phương án đã cân nhắc**: Đẩy trạng thái tiếp nhận về app qua 009 (thêm nhóm người nhận và kênh đẩy cho một màn ngắn; hỏi lại 5 giây đủ). Tạo sự cố ngay khi bấm (trái Q-67, Q-369). Cho phép bấm khi Tạm vắng và báo nhân viên (viện không tới được; Q-369 chọn hiện số liên hệ).
+
+---
+
+## S-24. Vị trí GPS, nút hỗ trợ khẩn cấp, mốc tới nơi, gọi 115 *(bổ sung 2026-10-22; FR-026 (e), FR-027, FR-028, FR-029, FR-047f, FR-047h → FR-047k, FR-048b, FR-081; BR-M05-28 → 31; Q-373 → Q-376)*
+
+**Quyết định**:
+- **Vị trí** (FR-047h): lệnh SOS và lệnh nút hỗ trợ không nhận tọa độ; app gửi vị trí bằng lệnh riêng sau khi có GPS: `POST /sos/{lanBamId}/vi-tri` (token thiết bị, như S-23) và `POST /ho-tro-khan-cap/{lanBamId}/vi-tri` (phiên). Thân: `viDo`, `kinhDo` (`DECIMAL(9,6)`, kiểm khoảng hợp lệ), `saiSoMet`, `doLuc` (thời điểm máy đo; `nhan_luc` từ `Clock`, DBR-25). Mỗi lần một dòng `vi_tri_canh_bao` (nhóm 3). Nhận khi cảnh báo đang mở và `da_toi_noi_luc` rỗng; ngược lại 409 `DUNG_GUI_VI_TRI` để app dừng. Không chống tần suất phía máy chủ ngoài giới hạn chung của API; app gửi theo `chuKyGuiViTriGiay` = CFG-M05-09 đọc lúc trả trạng thái (constitution XIII).
+  - Hiển thị: chi tiết cảnh báo trả `viTriMoiNhat` (tọa độ, sai số, đo lúc, `coTheDaCu` = quá 2 × CFG-M05-09 kể từ `nhan_luc` mới nhất, tính lúc đọc) và `viTriLaChinh` = người cao tuổi đang ở Hoạt động bên ngoài lúc bấm (`lan_bam_sos.trang_thai_nct`), hoặc với nút hỗ trợ: luôn tham khảo trừ khi người bấm thuộc chuyến đang diễn ra (không có nguồn; plan để tham khảo).
+  - Quyền lộ vị trí: chỉ các API của nhân viên có quyền xem cảnh báo. `SucKhoeCongNguoiThanApi` (012) và nội dung thông báo (009) không có trường vị trí (FR-047h "MUST NOT hiện cho người thân"); test kiến trúc kiểm DTO cho 012 không có `viTri`.
+  - App: chỉ xin quyền vị trí "khi đang dùng ứng dụng" (`geolocator`, `LocationPermission.whileInUse`), không đăng ký dịch vụ nền (BR-M05-28).
+- **Nút hỗ trợ khẩn cấp** (FR-047i):
+  - `POST /ho-tro-khan-cap` (phiên, `Idempotency-Key`, `@RequiresPermission(EMERGENCY_ASSIST_BUTTON, TAO)`; chỉ trực tuyến, `requiresOnline` của 002). Điều kiện: `NhanSuCanhBaoPort.dangTrongCa(nhanVienId, t)` (008 gồm vai trò không xếp ca theo CFG-M13-06); sai → 409 `KHONG_TRONG_CA` kèm `lienHe` (`SoLienHeVienApi`, 115).
+  - Ghi `lan_bam_ho_tro` rồi tạo hoặc gộp cảnh báo qua đường tạo sẵn có (S-08): loại `NV_YEU_CAU_HO_TRO`, mức Khẩn cấp, `nct_id` rỗng, `nguoi_bam_id`, khóa `HO_TRO_NV:<taiKhoanId>`; gộp theo cột sinh `khoa_mo_ho_tro` `UNIQUE` (vì `UNIQUE (nct_id, khoa_mo)` không giữ được khi `nct_id` rỗng). Tầng của cảnh báo = `NhanSuCanhBaoPort.tangTrongCa(nhanVienId, t)`; rỗng thì chờ người bấm chọn.
+  - Người nhận (sự kiện gửi 009, mức Khẩn cấp): `OnDutyDoctor` (không có thì FR-047b), `ShiftLead(tầng)`, `OnShiftStaff(tầng, mọi vai trò)`; chưa có tầng: `ShiftLead` của từng tầng trong `NhanSuCanhBaoPort.tangDangCoCa(t)`. Người phụ trách ban đầu (FR-031) = Người phụ trách ca của tầng; chưa có tầng thì rỗng tới khi có người tiếp nhận. Không có nhóm người thân.
+  - `POST /ho-tro-khan-cap/{lanBamId}/chi-tiet` (người bấm): `loaiSuViec` (`NGUNG_TIM_NGAT`, `NGA`, `KICH_DONG_BAO_LUC`, `KHAC`), `tangKhuVucId`, `noi`, `nctId`; mỗi trường đặt một lần (trigger). Có tầng mới (trước đó rỗng) thì gửi thêm `OnShiftStaff(tầng)`, `ShiftLead(tầng)` và đặt người phụ trách nếu chưa ai tiếp nhận; có `nctId` thì đặt `canh_bao.nct_id` (trigger cho `NULL → giá trị` một lần), kiểm người cao tuổi chưa ở trạng thái cuối, gửi thêm nhóm FR-047a của người đó (trừ người đã nhận). Ghi sự cố ngoài phạm vi được theo 002 FR-044a.
+  - Chuyển sự cố, kích hoạt khẩn cấp từ cảnh báo loại này: bắt buộc `nctId` trong thân lệnh khi cảnh báo chưa có (422 `CAN_CHON_NGUOI_CAO_TUOI`), lệnh đặt luôn `nct_id`.
+  - Trạng thái cho người bấm: `GET /ho-tro-khan-cap/hien-tai` như `/sos/hien-tai`.
+- **Mốc tới nơi** (FR-047j): `POST /canh-bao/{id}/da-toi-noi` (người phụ trách; cảnh báo loại `NCT_YEU_CAU_TRO_GIUP` hoặc `NV_YEU_CAU_HO_TRO`, trạng thái `DA_TIEP_NHAN`, `DANG_XU_LY`; một lần, trigger). Không đổi trạng thái; nhật ký `CB_DA_TOI_NOI`. Khi đóng hoặc chuyển sự cố mà chưa có mốc, đặt `khong_ghi_moc_toi_noi = true`. Trạng thái trả cho app: `DA_GUI` (chưa tiếp nhận), `DA_TIEP_NHAN` ("[họ tên] đang tới"), `DA_TOI` ("[họ tên] đã tới"); `guiViTri = (đang mở && chưa tới nơi)`.
+- **Gọi 115** (FR-047k):
+  - `GET /canh-bao/{id}/thong-tin-goi-115`, `GET /su-co/{id}/thong-tin-goi-115` (cảnh báo, sự cố mức Khẩn cấp; quyền xử lý FR-036): tên, địa chỉ, điện thoại viện (CFG-M11-11); tầng, phòng hoặc nơi đã chọn; vị trí mới nhất; họ tên, tuổi, giới tính (`NguoiCaoTuoiApi`); dị ứng, bệnh nền chỉ khi người gọi có quyền xem sức khỏe (`QuyenXemTruongApi`, nhóm `SUC_KHOE` bị bỏ và liệt kê ở `truongBiAn`).
+  - `POST /canh-bao/{id}/goi-115`, `POST /su-co/{id}/goi-115` ghi `luot_goi_115` (người bấm, bấm lúc) trước khi app mở trình quay số `tel:115`; `POST /luot-goi-115/{id}/ket-qua` (`DA_GOI_DUOC` / `KHONG_GOI_DUOC`, một lần, chỉ người bấm). Đã gọi được: thêm `dien_bien_su_co` loại `GOI_CAP_CUU` với `dien_ra_luc` = bấm lúc cho sự cố liên kết; cảnh báo chưa có sự cố thì chép lúc chuyển sự cố (plan điểm báo lại 12). Ghi tay vẫn theo diễn biến `GOI_CAP_CUU` sẵn có (FR-048b).
+- **Báo cáo** (FR-081): `CanhBaoBaoCaoView.nguon` = `SOS` / `NUT_HO_TRO` / `KHAC`; thêm `daToiNoiLuc`, `khongGhiMocToiNoi`. 016 tính thời gian từ `lan_dau_luc` tới `daToiNoiLuc`.
+- **Thông báo và quyền**: lệnh mới không gửi người thân; `/ho-tro-khan-cap/**` không thuộc `/sos/**` nên đi qua phiên như mọi lệnh nhân viên.
+
+**Lý do**: Dùng lại khóa loại, gộp, leo thang, người phụ trách và nhóm người nhận đã có nên hai nút mới chỉ thêm đường vào và ba bảng nhóm 3. Gửi vị trí bằng lệnh riêng giữ lệnh SOS không chờ GPS (BR-M05-28).
+
+**Phương án đã cân nhắc**:
+- Lưu vị trí mới nhất vào cột của cảnh báo (`UPDATE`): mất lịch sử di chuyển, trái "lưu từng lần" của FR-047h.
+- Đẩy vị trí qua WebSocket: thêm hạ tầng mới; người nhận đọc lại khi mở chi tiết (đã có hỏi lại 5 giây ở app).
+- Cho `NHAN_VIEN(id)` từng người trong ca do 007 tự lấy danh sách: 009 đã có nhóm `OnShiftStaff` phân giải theo phân công tại lúc gửi (BR-M13-04), không lặp quy tắc.
+- Google Maps cho bản đồ: cần khóa API, thanh toán; OSM đủ cho hiển thị một điểm (plan điểm báo lại 13).
+
+---
+
+## S-25. Phiếu tóm tắt chuyển viện PDF và thành phần dựng chứng từ dùng chung *(bổ sung 2026-10-22; FR-049, FR-050, FR-050h; BR-M05-32; Q-383, Q-384)*
+
+**Quyết định**:
+- **Thông tin trước lệnh**: `GET /su-co/{id}/chuyen-vien/thong-tin` trả `nguyenVongDieuTri` (`NguyenVongApi.dieuTriHieuLuc`, 001), `nguyenVongCuoiDoi` (`hieuLuc`), người liên hệ chính (`NguoiThanKhanCapPort`); không gợi ý cơ sở tiếp nhận (Q-306).
+- **Thân lệnh** `POST /su-co/{id}/chuyen-vien` thêm: `nguoiDiKem` (bắt buộc, chữ: họ tên và quan hệ hoặc chức danh), `daLienLacNguoiCanBao` (bắt buộc khi phiếu điều trị có `hoiGiaDinhTruoc = true`), `lyDoKhongHoiTruoc` (bắt buộc khi `hoiGiaDinhTruoc` và `daLienLacNguoiCanBao = false` và sự cố không ở mức Khẩn cấp; plan điểm báo lại 11), `tepDinhKemIds` (giấy chuyển viện, không bắt buộc; chuyển cho 001 qua `LenhTrangThai.tepDinhKemIds`).
+- **Bản tóm tắt** (FR-050): `ban_tom_tat_chuyen_vien.noi_dung` thêm `nguyenVongDieuTri` (bản chụp phiên bản Hiệu lực), `nguoiLienHeChinh`; cột mới `nguoi_di_kem`, `nguyen_vong_dieu_tri_phien_ban_id`, `ly_do_khong_hoi_truoc`, `phieu_tep_id`.
+- **Phiếu PDF** (FR-050h): dựng trong transaction của lệnh từ `noi_dung` đã chụp (không đọc lại module khác), có thông tin viện (CFG-M11-11), ô ký tay của người lập, dòng "Phiếu thông tin bàn giao, không thay giấy chuyển cơ sở khám bệnh, chữa bệnh". File lưu S3 bằng `TepApi` có sẵn (`FileApi.upload` rồi `attach(tepId, "M05.PHIEU_CHUYEN_VIEN", banTomTatId)` trong transaction của lệnh); lệnh rollback thì tệp còn chưa gắn và job dọn tệp sau 24 giờ xóa (001 research H-13), không thêm hàm mới. `GET /ban-tom-tat-chuyen-vien/{id}/phieu` trả file đã lưu; `POST /ban-tom-tat-chuyen-vien/{id}/in-lai` trả file đã lưu đóng thêm dấu "Bản in lại" (chỉ lớp phủ, nội dung giữ nguyên) và ghi `lan_in_phieu_chuyen_vien` + nhật ký `PHIEU_CV_IN` (19.4). Lần tải đầu trong lệnh cũng ghi một dòng (`la_in_lai = false`).
+- **Thành phần dùng chung `common.bieumau`** (chủ `common`: A; 007 là feature đầu tiên cần):
+  - `PdfBieuMau`: khung trang A4, đầu trang thông tin viện (CFG-M11-11 qua `ThamSoApi`), chân trang số trang, bảng, ô ký, đóng dấu chữ (`dongDau(bytes, "Bản in lại")`). Font Be Vietnam Pro (OFL, cùng font của web) nhúng trong `resources/fonts/` để có đủ dấu tiếng Việt.
+  - `ExcelBieuMau` (fastexcel, thư viện XLSX 010 đã chọn: `org.dhatim:fastexcel` ghi, `fastexcel-reader` đọc): ghi bảng có tiêu đề, định dạng tiền, ngày; đọc file `.xlsx` theo mẫu (dùng cho 008 import, 017 chứng từ, sao kê).
+  - Lưu file: `FileApi.upload` + `attach` như trên; tệp hệ thống tạo dùng cùng giới hạn 10 MB. Kiểu `.xlsx` chưa nằm trong danh sách kiểu của `upload` (PDF, JPEG, PNG): plan 017 bổ sung kiểu này cho tệp do hệ thống tạo (không mở cho `POST /tep`).
+  - Thư viện: **OpenPDF** (`com.github.librepdf:openpdf`, LGPL 2.1 / MPL 2.0): Java thuần, bảng, nhúng font Unicode, đóng dấu lên PDF có sẵn; Excel dùng fastexcel đã chọn ở 010 (Apache 2.0), không thêm Apache POI. Bản đã duyệt ở S-26: OpenPDF 3.0.5.
+- **Hiệu năng** (SC-021 ≤ 3 giây): phiếu một trang tới vài trang, dữ liệu đã có trong bộ nhớ; tải S3 một lần.
+
+**Lý do**: FR-050h đòi file lưu cùng lệnh, không sửa, tải lại đúng file; "Bản in lại" là lớp phủ lúc in nên file gốc không đổi. Một thành phần chung tránh ba cách dựng chứng từ khác nhau ở 007, 008, 017.
+
+**Phương án đã cân nhắc**:
+- HTML → PDF (openhtmltopdf, trình duyệt không giao diện): mẫu dễ sửa nhưng thêm bộ máy CSS hoặc trình duyệt; chứng từ của dự án là bảng đơn giản.
+- Apache PDFBox: giấy phép Apache 2.0 nhưng phải tự dàn bảng, ngắt trang.
+- Thư viện thương mại (iText 7+): AGPL hoặc phí.
+- Dựng PDF ở trình duyệt: không lưu được bản đã phát hành ở máy chủ, trái FR-050h.
+
+---
+
+## S-26. Bản thư viện đã duyệt *(2026-10-22)*
+
+*(Chủ dự án duyệt 2026-10-22; bản tra Maven Central, npm cùng ngày)*
+
+| Thư viện | Bản | Giấy phép | Ghi chú |
+| --- | --- | --- | --- |
+| OpenPDF `com.github.librepdf:openpdf` | 3.0.5 | LGPL 2.1 / MPL 2.0 | Dòng 3.x dùng gói `org.openpdf` (không còn `com.lowagie`). Kéo theo `brotli4j` (thư viện có phần native); khi thêm vào `pom.xml` kiểm build trên Windows và Linux, loại trừ nếu không cần nén Brotli. `icu4j`, Bouncy Castle, FOP là phụ thuộc tùy chọn, không kéo theo |
+| ZXing `com.google.zxing:core` | 3.5.4 | Apache 2.0 | Chỉ dùng `core` để tính ma trận mã QR; `PdfBieuMau` vẽ ma trận thành ô vuông trên PDF, không cần `javase`/AWT (017 research E-04) |
+| fastexcel `org.dhatim:fastexcel`, `fastexcel-reader` | 0.20.2 | Apache 2.0 | Thư viện XLSX 010 đã chọn; 008 thêm `fastexcel-reader` |
+| Leaflet (web) | 1.9.4 | BSD-2-Clause | Lớp bản đồ OpenStreetMap, ghi nguồn bản đồ trên màn; lưu lượng tải lớp bản đồ thấp (chỉ khi mở cảnh báo có vị trí ngoài viện) |
+| react-leaflet (web) | 5.0.0 | Hippocratic 2.1 | Yêu cầu React 19 (dự án dùng 19.2); nếu giấy phép này không phù hợp thì dùng Leaflet trực tiếp trong một component, không cần react-leaflet |
+| `geolocator`, `url_launcher` (app) | Chốt khi mở `mobile/` | | |
+
+Thêm vào `backend/pom.xml` và `frontend/package.json` lúc làm task (007 T104, T102; 017 T002; 008 T047), không thêm sẵn.

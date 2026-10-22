@@ -158,3 +158,28 @@ Test: `FR_047c_MaTruongHopIT` (K1, K2), `FR_082_PhanChungSucKhoeIT` (K3), mở r
 
 Test: `BR_M05_27_NutSosIT` (S1, S2), `FR_047f_TrangThaiSosIT` (S3), `FR_047d_DieuKienGuiSosIT` (S4, S8), `FR_047e_SosNgoaiVienIT` (S5), `SosXuLyIT` (S6, S7, US12 #10). SC-017: `BR_M05_27_NutSosIT` đếm cảnh báo mở và yêu cầu tới người liên hệ chính.
 
+## Kịch bản bổ sung 2026-10-22 (Q-373 → Q-376, Q-383, Q-384)
+
+Dữ liệu: Tầng 2 có Nhân viên chăm sóc C, Điều dưỡng D2 cùng ca, Người phụ trách ca P, Bác sĩ trực B; Nhân viên bếp K (không có tầng); người cao tuổi A (thiết bị đã gắn), R là người liên hệ chính. Bản giả `NhanSuCanhBaoPort` có ba hàm mới; đồng hồ giả lập; CFG-M05-09 = 30 giây.
+
+| # | Thao tác | Kết quả mong đợi | Spec |
+| --- | --- | --- | --- |
+| S9 | A gọi `POST /sos`; 12 giây sau `POST /sos/{id}/vi-tri` (sai số 15 m); tua 30 giây, gửi lại | Cảnh báo tạo ngay, không chờ vị trí; hai dòng `vi_tri_canh_bao`; chi tiết cảnh báo có `viTriMoiNhat` nhãn tham khảo; `GET /sos/hien-tai` có `guiViTri = true`, `chuKyGuiViTriGiay = 30` | US12 #11, FR-047h |
+| S10 | Không gửi vị trí 61 giây; mở chi tiết cảnh báo | `coTheDaCu = true` | FR-047h, edge case |
+| S11 | A ở Hoạt động bên ngoài bấm SOS, gửi vị trí; R mở cổng (012) | Vị trí là vị trí chính; dữ liệu cho 012 không có trường vị trí | US12 #12, FR-047h |
+| S12 | D tiếp nhận lúc 14:01, ghi "Đã tới nơi" lúc 14:03; A gửi vị trí tiếp; D ghi lần hai | `/sos/hien-tai` `DA_TOI` kèm họ tên D, `guiViTri = false`; vị trí 409 `DUNG_GUI_VI_TRI`; lần hai 409; báo cáo thời gian tới nơi 2 phút | US12 #13, FR-047j, FR-081 |
+| H1 | C (trong ca Tầng 2) gọi `POST /ho-tro-khan-cap` | Cảnh báo Khẩn cấp `NV_YEU_CAU_HO_TRO`, `nct_id` rỗng, tầng 2; sự kiện gửi `OnDutyDoctor`, `ShiftLead(2)`, `OnShiftStaff(2)`; không có nhóm người thân | US13 #1, FR-047i |
+| H2 | C gửi `chi-tiet` loại `NGA`, nơi `NHA_VE_SINH`, `nctId` A; gửi lại `nctId` khác | Cảnh báo gắn A; gửi thêm nhóm FR-047a của A; lần hai 409 | US13 #2 |
+| H3 | K (không tầng) bấm; rồi `chi-tiet` tầng 3 | `ShiftLead` của mọi tầng đang có ca và `OnDutyDoctor`; sau đó thêm `OnShiftStaff(3)`, `ShiftLead(3)` | US13 #3 |
+| H4 | C ngoài ca bấm; C bấm hai lần khi cảnh báo đang mở | 409 `KHONG_TRONG_CA` kèm `lienHe`; lần hai gộp (số lần 2) | US13 #4, FR-028 |
+| H5 | D2 tiếp nhận, ghi đã tới nơi; C gọi `/ho-tro-khan-cap/hien-tai` | `DA_TOI` kèm họ tên D2 | US13 #5, FR-047j |
+| H6 | Cảnh báo H1 chưa có người: D2 kích hoạt khẩn cấp không `nctId`; rồi có `nctId` A | 422 `CAN_CHON_NGUOI_CAO_TUOI`; sự cố Khẩn cấp của A, R được báo theo FR-047 | US13 #6, FR-029 |
+| H7 | Trên sự cố Khẩn cấp của A, D2 xem `thong-tin-goi-115`, gọi `goi-115`, chọn `DA_GOI_DUOC`; Nhân viên chăm sóc xem thông tin | Có địa chỉ viện, tầng, nơi, họ tên, tuổi, dị ứng; lượt gọi có diễn biến `GOI_CAP_CUU` ở sự cố; nhân viên chăm sóc không thấy dị ứng (`truongBiAn`) | US13 #7, FR-047k, FR-048b |
+| H8 | Trên cảnh báo Khẩn cấp chưa có sự cố: gọi 115 Đã gọi được, rồi kích hoạt khẩn cấp | Sự cố mới có diễn biến `GOI_CAP_CUU` với thời điểm bấm (plan điểm báo lại 12) | FR-047k |
+| H9 | Đóng cảnh báo H1 khi chưa ghi đã tới nơi | `khongGhiMocToiNoi = true` | FR-047j |
+| C1 | A có phiếu nguyện vọng khi điều trị (bệnh viện X, cần hỏi trước, người cần báo R); sự cố Trung bình; `GET …/chuyen-vien/thong-tin` | Trả phiếu, người liên hệ chính; không có gợi ý cơ sở | US5 #8, FR-049 |
+| C2 | Chuyển viện với `daLienLacNguoiCanBao = false` không lý do; rồi có lý do, `nguoiDiKem`, hai tệp giấy chuyển viện | 422; 201, bản tóm tắt có nguyện vọng khi điều trị, người đi kèm; 001 nhận `tepDinhKemIds`; `phieuTepId` có PDF chứa dòng "không thay giấy chuyển cơ sở khám bệnh, chữa bệnh" | US5 #8, FR-049, FR-050, FR-050h |
+| C3 | `GET …/phieu` hai lần; `POST …/in-lai` | Hai lần cùng byte; bản in lại có dấu "Bản in lại"; hai dòng `lan_in_phieu_chuyen_vien` và nhật ký | FR-050h |
+| C4 | Chuyển viện từ sự cố Khẩn cấp, `daLienLacNguoiCanBao = false`, không lý do | 201 (cấp cứu, plan điểm báo lại 11) | FR-049 |
+
+Test: `BR_M05_28_ViTriSosIT` (S9 → S11), `BR_M05_30_DaToiNoiIT` (S12, H5, H9), `BR_M05_29_NutHoTroIT` (H1, H2, H4, H6), `FR_047i_NguoiNhanHoTroIT` (H1 → H3), `BR_M05_31_Goi115IT` (H7, H8), `BR_M05_32_PhieuChuyenVienIT` (C1 → C4), `PdfBieuMauTest` (font tiếng Việt, đóng dấu không đổi trang gốc), `ViTriKhongLoNguoiThanArchTest` (DTO cho 012 không có trường vị trí). SC-018 → SC-021: đo trên các test trên với đồng hồ giả lập; SC-021 đo thời gian dựng phiếu ≤ 3 giây.

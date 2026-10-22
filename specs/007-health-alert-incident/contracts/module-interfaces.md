@@ -119,6 +119,7 @@ BanTinSucKhoeView choBanTin(long nctId, LocalDate tu, LocalDate den);
 ```java
 Stream<CanhBaoBaoCaoView> canhBao(PhamViLoc phamVi, Instant tu, Instant den);
     // mức hiện hành, mức lúc tiếp nhận, lan_dau_luc, tiep_nhan_luc, số lần leo thang, dấu leo thang tối đa, loại, tầng; nguon (SOS / KHAC, bổ sung 2026-10-18, FR-081)
+    // bổ sung 2026-10-22 (Q-374, Q-375): nguon thêm NUT_HO_TRO; daToiNoiLuc, khongGhiMocToiNoi (thời gian tới nơi, 18.3)
 Stream<SuCoBaoCaoView> suCo(PhamViLoc phamVi, Instant tu, Instant den);
     // mức, loại (kèm dấu khong_thuoc_suc_khoe), tầng, thời điểm tạo, tiếp nhận xử lý (Q-199), số lần leo thang; bỏ Đã hủy
 List<TheoDoiView> dangTheoDoi(PhamViLoc phamVi);        // sau ngã, tiếp xúc
@@ -193,6 +194,10 @@ interface NhanSuCanhBaoPort {                      // 008 cài; chỉ đọc
   boolean coTenTrongCaDangDienRa(long nhanVienId, Instant t);       // tạm nhận (Q-94)
   List<CaChuaXacNhanView> caDaBatDauChuaXacNhanBanGiao(Instant tu, Instant den);   // ca sau, ca trước, tầng
   List<PhanCongTruyVetView> phanCongTrongKhoang(long nctId, Instant tu, Instant den); // FR-060 (c)
+  // bổ sung 2026-10-22 (FR-047i, Q-375; research S-24):
+  boolean dangTrongCa(long nhanVienId, Instant t);                  // có ca đang diễn ra; vai trò không xếp ca: trong giờ hành chính CFG-M13-06
+  Optional<Long> tangTrongCa(long nhanVienId, Instant t);           // tầng theo phân công ca đang diễn ra; rỗng: không có tầng (bếp, hành chính…)
+  List<Long> tangDangCoCa(Instant t);                               // các tầng đang có ca, để báo Người phụ trách ca từng tầng khi chưa biết tầng
 }
 
 interface NguoiThanKhanCapPort {                   // 012 cài; chỉ đọc
@@ -215,7 +220,7 @@ interface NhatKyThongBaoPort {                     // 009 cài; chỉ đọc
 }
 ```
 
-Bean thiếu thì mặc định an toàn: không có `NhanSuCanhBaoPort` thì người phụ trách ban đầu là Người phụ trách ca (`PhamViApi`), không có Bác sĩ trực (áp FR-047b), hạn Nhẹ là cuối ngày; thiếu `NguoiThanKhanCapPort` thì thẻ ghi "không lấy được người liên hệ chính"; thiếu `DiemDanhTruyVetPort`, `NguoiThanKhanCapPort` khi tra cứu thì nhóm tương ứng trả "chưa có dữ liệu" và người lập được báo. Thiếu `ChuyenDiSosPort` thì cảnh báo SOS khi Hoạt động bên ngoài chỉ gửi nhóm của FR-047a (bổ sung 2026-10-18).
+Bean thiếu thì mặc định an toàn: không có `NhanSuCanhBaoPort` thì người phụ trách ban đầu là Người phụ trách ca (`PhamViApi`), không có Bác sĩ trực (áp FR-047b), hạn Nhẹ là cuối ngày; thiếu `NguoiThanKhanCapPort` thì thẻ ghi "không lấy được người liên hệ chính"; thiếu `DiemDanhTruyVetPort`, `NguoiThanKhanCapPort` khi tra cứu thì nhóm tương ứng trả "chưa có dữ liệu" và người lập được báo. Thiếu `ChuyenDiSosPort` thì cảnh báo SOS khi Hoạt động bên ngoài chỉ gửi nhóm của FR-047a (bổ sung 2026-10-18). *(Bổ sung 2026-10-22)* Thiếu `NhanSuCanhBaoPort` thì nút hỗ trợ khẩn cấp từ chối mọi lần bấm với `KHONG_TRONG_CA` kèm số liên hệ (không xác định được ca), chạy được với bản giả.
 
 ### 2.2. Sự kiện 007 nghe
 
@@ -233,7 +238,7 @@ Bean thiếu thì mặc định an toàn: không có `NhanSuCanhBaoPort` thì ng
 
 | Giao diện | Module (feature) | Dùng cho | Khi chưa có |
 | --- | --- | --- | --- |
-| `NguoiCaoTuoiApi.trangThai`, `nhanDang`, `laTrangThaiCuoi`; `TrangThaiNguoiCaoTuoiApi.thucHien(CHUYEN_VIEN)`, `khoangTrangThai`; `NguyenVongApi.hieuLuc`, `ghiPhienBan`; `MucSucKhoeApi.hieuLuc`; `DanhGiaApi.luuYHienHanh`; `BanDongYApi.baoGom` | M01 (001) | FR-031, FR-048, FR-049, FR-050c, FR-060, FR-025 | Có sẵn |
+| `NguoiCaoTuoiApi.trangThai`, `nhanDang`, `laTrangThaiCuoi`; `TrangThaiNguoiCaoTuoiApi.thucHien(CHUYEN_VIEN)` (*2026-10-22:* kèm `tepDinhKemIds`), `khoangTrangThai`; `NguyenVongApi.hieuLuc`, `ghiPhienBan`, `dieuTriHieuLuc` (*bổ sung 2026-10-22*, 001 FR-023); `MucSucKhoeApi.hieuLuc`; `DanhGiaApi.luuYHienHanh`; `BanDongYApi.baoGom` | M01 (001) | FR-031, FR-048, FR-049, FR-050c, FR-060, FR-025 | Có sẵn |
 | `ViTriApi.hienTai`, `LichSuViTriApi.cungPhong`, `theoNguoi`, `CoCauViTriApi` | M03 (003) | Tầng, truy vết, khoanh vùng | Có sẵn |
 | `DanhSachViecSauQuaDoiApi.capNhat` | M02 (004) | S-17 | Có sẵn |
 | `CongViecDoChiSoApi.daXacNhan`, `NguonCongViecApi.nguonBiHuy`, `nguonDaDoi`, `CongViecThongKeApi.ketQuaTheoKhoang`; `CongViecThongKeApi.nguoiDaGhiKetQua(nctId, tu, den)` (bổ sung theo plan này) | M04 (005) | FR-018, FR-006, FR-052, FR-061, FR-039c, FR-060 (c) | Hàm cuối: bản giả |
@@ -243,3 +248,5 @@ Bean thiếu thì mặc định an toàn: không có `NhanSuCanhBaoPort` thì ng
 | Bản cài các SPI mục 2.1 | 008, 009, 012, 014 | | Bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}` |
 | *(Bổ sung 2026-10-18)* `ThietBiGanApi.xacDinh` | M15 (002) | FR-047d (S-23) | Bản giả |
 | *(Bổ sung 2026-10-18)* `CoMatBanTruApi.theoNgay` | M04 (005) | FR-047d (S-23) | Có sẵn |
+| *(Bổ sung 2026-10-22)* `FileApi.upload`, `attach` (`common.tep`); `common.bieumau` (`PdfBieuMau`) | `common` (A) | FR-050h (S-25) | `common.bieumau` làm trong task T104 |
+| *(Bổ sung 2026-10-22)* Nhóm người nhận `OnDutyDoctor`, `ShiftLead`, `OnShiftStaff` (`common.notification`) | 009 | FR-047i (S-24) | Có sẵn (009 Phase 2) |

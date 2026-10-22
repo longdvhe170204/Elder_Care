@@ -1,7 +1,7 @@
 package com.cambae.backend.m15.parameter.api;
 
 /**
- * Mã tham số cấu hình: đủ 119 mã của Phụ lục 25 (docs/business/nghiep-vu.md), sinh từ phụ lục (000 T030).
+ * Mã tham số cấu hình: đủ 122 mã của Phụ lục 25 (docs/business/nghiep-vu.md), sinh từ phụ lục (000 T030).
  * Không có lệnh tạo hay xóa mã (FR-011); thêm mã khi tài liệu nghiệp vụ bổ sung.
  */
 public enum ParameterCode {
@@ -89,6 +89,8 @@ public enum ParameterCode {
     CFG_M05_07,
     /** Theo dõi người tiếp xúc (mặc định: Đo nhiệt độ 2 lần/ngày trong 7 ngày) */
     CFG_M05_08,
+    /** Chu kỳ ứng dụng gửi lại vị trí khi cảnh báo từ nút SOS, nút hỗ trợ khẩn cấp chưa có người tới nơi (mặc định: 30 giây) */
+    CFG_M05_09,
     /** Nhắc thiết lập ngưỡng cá nhân (mặc định: 7 ngày sau khi lưu trú) */
     CFG_M06_01,
     /** Cảnh báo trước khi giấy phép cơ sở/người hành nghề hết hạn (mọi giấy phép hành nghề) (mặc định: 60 ngày) */
@@ -149,6 +151,8 @@ public enum ParameterCode {
     CFG_M09_11,
     /** Trọng số chăm sóc theo từng mức chăm sóc (Q-205; ba mức ở mục 4; nhu cầu chăm sóc không có trọng số) (mặc định: Theo cơ sở (ví dụ cơ bản = 1, đặc biệt = 2,5)) */
     CFG_M09_12,
+    /** Số dòng tối đa của một file import danh sách nhân viên (mặc định: 500 dòng) */
+    CFG_M09_13,
     /** Hạn xử lý phản hồi (mặc định: Cao 24 giờ / thường 72 giờ) */
     CFG_M10_01,
     /** Tự đóng phản hồi khi người gửi không phản hồi (mặc định: 7 ngày) */
@@ -193,6 +197,8 @@ public enum ParameterCode {
     CFG_M11_09,
     /** Tài khoản thu của viện (ngân hàng, số tài khoản, tên chủ tài khoản) dùng cho sao kê và mã QR nộp tiền (Q-335) (mặc định: Viện nhập khi cài đặt) */
     CFG_M11_10,
+    /** Thông tin viện in trên chứng từ, phiếu tóm tắt chuyển viện và hiện ở màn gọi 115 (tên, địa chỉ, mã số thuế, điện thoại, logo) (mặc định: Viện nhập khi cài đặt) */
+    CFG_M11_11,
     /** Danh mục đồ có giá trị bắt buộc chụp ảnh (mặc định: Điện thoại, trang sức, tiền mặt) */
     CFG_M12_01,
     /** Chu kỳ nhắc đồ gửi chưa trả sau khi hồ sơ ở trạng thái cuối (mặc định: 7 ngày) */

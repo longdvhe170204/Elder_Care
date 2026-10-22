@@ -4,7 +4,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 # Tasks: Báo cáo và dashboard (016)
 
-**Input**: Tài liệu thiết kế ở `specs/016-reports-dashboard/` (plan.md, spec.md, research.md O-01 → O-11, data-model.md, contracts/api-016.yaml, contracts/chi-tieu.md, contracts/module-interfaces.md, quickstart.md)
+**Input**: Tài liệu thiết kế ở `specs/016-reports-dashboard/` (plan.md, spec.md, research.md O-01 → O-13, data-model.md, contracts/api-016.yaml, contracts/chi-tieu.md, contracts/module-interfaces.md, quickstart.md)
 
 **Prerequisites**: 000, 002 (phạm vi, `boLocLichSu`, thu hẹp `DASHBOARD_BAO_CAO`), 008 (lịch sử ca) đã xong; các module nguồn đã cài `*ThongKeApi`: 001 `NguoiCaoTuoiThongKeApi`, 003 `TinhTrangGiuongApi`, `GiuongThongKeApi`, 004 `LuuTruThongKeApi`, 005 `CongViecThongKeApi`, 006 `ThuocThongKeApi`, 007 `CanhBaoThongKeApi`, `ChiSoThongKeApi`, 008 `NhanSuThongKeApi`, 010 `ChiPhiThongKeApi`, 011 `DinhDuongThongKeApi`, 014 `HoatDongThongKeApi`, 015 `XoayCaThongKeApi`.
 
@@ -25,7 +25,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ## Phase 1: Setup
 
 - [ ] T001 Tạo khung gói `BE/m14/{chitieu,phamvi,dashboard,baocao,chitiet,xuat}/`; ArchUnit `BT/m14/M14ArchTest.java`: cấm gọi API lệnh của module khác, cấm repository ghi; mọi service `@Transactional(readOnly = true)` trừ ghi nhật ký xuất (research O-01, O-09)
-- [ ] T002 [P] Thêm thư viện tạo XLSX (Apache POI) vào `backend/pom.xml` (research O-08)
+- [ ] T002 [P] Thêm thư viện tạo XLSX (fastexcel, đã chọn ở 010; sửa 2026-10-22 cho khớp research O-08) vào `backend/pom.xml` nếu 010 chưa thêm
 
 ---
 
@@ -199,6 +199,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ## Phase 12: Polish & Cross-Cutting
 
 - [ ] T031 [US5] *(Bổ sung 2026-10-18, Q-369)* Thêm chỉ tiêu cảnh báo SOS vào nhóm sức khỏe (research O-12) và màn `frontend/src/tinh-nang/bao-cao/suc-khoe-thuoc/`; test `ChiTieu_SK_CanhBaoSosTest` (quickstart B1)
+- [ ] T032 [US5] *(Bổ sung 2026-10-22, Q-374, Q-375)* Mở rộng chỉ tiêu của T031 thành `SK.CANH_BAO_SOS_HO_TRO` (research O-13, contracts/chi-tieu.md): dòng nút hỗ trợ khẩn cấp, thời gian tạo → tới nơi, số "không ghi mốc tới nơi", dòng "chưa rõ tầng"; test `ChiTieu_SK_CanhBaoSosHoTroTest` (quickstart B1, B2); cần 007 T096 (`daToiNoiLuc`, `NUT_HO_TRO` trong `CanhBaoThongKeApi`), bản giả trước đó
 
 - [ ] T027 [P] Test `BT/m14/SC_008_ChiDocIT.java` (đếm bản ghi trước/sau mọi báo cáo; Q29) và hiệu năng báo cáo 12 tháng (SC-003; Q24)
 - [ ] T028 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/016-reports-dashboard/contracts/api-016.yaml`

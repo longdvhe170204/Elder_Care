@@ -30,12 +30,15 @@ List<DieuKien> xemDieuKien(long nctId, LenhTrangThai lenh);                 // 0
 List<KhoangTrangThai> khoangTrangThai(long nctId, Set<TrangThaiNct> tt, Instant tu, Instant den);
     // bổ sung theo plan 003 (research G-13): khoảng Tạm vắng, Điều trị tại bệnh viện, Hoạt động bên ngoài từ lịch sử trạng thái
     // (003 FR-027 c, FR-036); đọc, không khóa
+List<TepView> giayToDinhKem(long lichSuId);
+    // bổ sung 2026-10-22 (FR-047c, research H-18): giấy tờ bệnh viện gắn vào lệnh GHI_NHAN_TRO_VE, CHUYEN_VIEN;
+    // 006 hiện cạnh phiếu đối chiếu thuốc (BR-M07-16); lichSuId lấy từ NguoiCaoTuoiDaChuyenTrangThai
 ```
 
 | Người gọi | Lệnh được phép |
 | --- | --- |
 | 014 | `DIEM_DANH_ROI_VIEN`, `DIEM_DANH_VE`, `HUY_GHI_NHAN_ROI_VIEN` (`doHeThong = true`) |
-| 007 | `CHUYEN_VIEN` khi ghi chuyển viện trên sự cố Khẩn cấp (BR-M05-14) |
+| 007 | `CHUYEN_VIEN` khi ghi chuyển viện trên sự cố Khẩn cấp (BR-M05-14); *(bổ sung 2026-10-22, BR-M05-32)* `LenhTrangThai.tepDinhKemIds` mang giấy chuyển viện, tệp gắn vào dòng lịch sử (`M01.GIAY_TO_BENH_VIEN`) |
 | 004 | `HUY_TIEP_NHAN` khi hồ sơ chờ chuyển Từ chối hoặc Hủy chờ (004 FR-002); `chiTiet` mang `hoSoChoId`, `lenhHoSoCho`; người thực hiện là Hành chính ra lệnh (bổ sung theo plan 004, research T-03) |
 
 Lời gọi của module khác với lệnh ngoài bảng trên bị từ chối (ArchUnit cùng kiểm tra lúc chạy).
@@ -107,6 +110,9 @@ M01 cài `DieuKienChuThich` với `maChuThich() = "1"` cho 002 (BR-M01-08, DBR-0
 ```java
 Optional<NguyenVongView> hieuLuc(long nctId);                  // 007: thẻ khẩn cấp, cảnh báo nguy kịch (FR-023)
 long ghiPhienBan(GhiNguyenVong lenh, NguonNguyenVong nguon);   // 007: XAC_NHAN_LAI_NGUY_KICH (BR-M05-16); MANDATORY
+Optional<NguyenVongDieuTriView> dieuTriHieuLuc(long nctId);    // bổ sung 2026-10-22 (FR-023, Q-384): 007 thẻ thông tin khẩn cấp,
+    // lệnh Chuyển viện, phiếu tóm tắt chuyển viện (BR-M05-32); view: benhVienUuTien[], baoHiemYTe, hoiGiaDinhTruoc,
+    // nguoiCanBao[] (nguoiThanId, hoTen, quanHe, soDienThoai), nguoiDiKem, ghiChu, phienBanId, thoiDiem; 007 không ghi phiếu này
 ```
 
 ### 1.8b. `NguonYKienApi` và kiểu `NguonYKien` *(bổ sung 2026-10-18; FR-023g, research H-16)*
@@ -140,7 +146,7 @@ Chỉ đọc, không khóa; không trả bản ghi Hủy ghi nhận (016 FR-007)
 | `LuuTruProvider` | Các loại ở data-model mục 11 | |
 | `DieuKienChuThich` | `"1"` | BR-M01-08 |
 | `GanPhamViProvider` | `M01.NGUOI_CAO_TUOI` và các bản ghi con | Trả `DoiTuong` với `nguoiCaoTuoiId` để 002 tính phạm vi |
-| `QuyenTepProvider` (`common.tep`) | `M01.ANH_NGUOI_CAO_TUOI`, `M01.BAN_DONG_Y`, `M01.NGUYEN_VONG`, `M01.QUA_DOI` | Quyền tải tệp bằng quyền xem bản ghi chủ sở hữu (H-13) |
+| `QuyenTepProvider` (`common.tep`) | `M01.ANH_NGUOI_CAO_TUOI`, `M01.BAN_DONG_Y`, `M01.NGUYEN_VONG`, `M01.QUA_DOI`; *(bổ sung 2026-10-22)* `M01.NGUYEN_VONG_DIEU_TRI` (bản ký), `M01.GIAY_TO_BENH_VIEN` (`(DI_UNG_BENH_NEN, XEM)` trong phạm vi) | Quyền tải tệp bằng quyền xem bản ghi chủ sở hữu (H-13, H-18) |
 
 ### 1.10. Sự kiện 001 phát (sau commit, qua outbox của 000)
 
@@ -176,7 +182,7 @@ Mỗi sự kiện gửi 009 mang mức, nhóm người nhận, loại thông tin
 | `LuotVangApi.dangMo()` trả mốc dự kiến trở lại | 004 (FR-048, FR-049) | FR-050 | Bản giả |
 
 Ba giao diện trên được khai báo trong `m01.api` dưới dạng SPI, M02 cài, để không có vòng M01 ↔ M02 (bổ sung theo plan 004, research T-02); chữ ký giữ nguyên.
-| `QuanHeNguoiThanApi.thuocNguoiCaoTuoi(nguoiThanId, nctId)` (SPI khai báo ở `m15.taikhoan.api`, M10 cài; theo plan 012). Từ 2026-10-18 (Q-348) 001 không dùng `laNguoiDaiDienHieuLuc` cho FR-011, FR-023c | M10 (012) | FR-011, FR-023c, FR-023g, phạm vi bản đồng ý | Bản giả |
+| `QuanHeNguoiThanApi.thuocNguoiCaoTuoi(nguoiThanId, nctId)` (SPI khai báo ở `m15.taikhoan.api`, M10 cài; theo plan 012). Từ 2026-10-18 (Q-348) 001 không dùng `laNguoiDaiDienHieuLuc` cho FR-011, FR-023c. *(Bổ sung 2026-10-22)* Dùng thêm cho người cần báo, người trả lời của phiếu nguyện vọng khi điều trị (FR-023j); họ tên, quan hệ, số điện thoại của người cần báo lấy bằng `hieuLuc`, `soDienThoaiDaDangKy` và họ tên người thân (`FamilyRelationshipApi.familyMemberName`, 002 T032a) của cùng SPI, không thêm hàm | M10 (012) | FR-011, FR-023c, FR-023g, FR-023j, phạm vi bản đồng ý | Bản giả |
 | `ChiSoApi.ganNhat(nctId)` | M06 (007) | FR-024 | Bản giả trả rỗng |
 | Sự kiện `SuCoDaGhiNhan(suCoId, nctId, loai, muc, canDanhGiaLai)` (thêm `canDanhGiaLai` theo plan 007: Trung bình trở lên hoặc Ngã, trừ đồ gửi; phát lại khi sự cố nâng lên Trung bình hoặc đổi loại sang Ngã). 001 chỉ báo đánh giá lại khi `canDanhGiaLai = true`, khóa bỏ trùng `(suCoId, mốc)` | M05 (007) | FR-040 | Không có thì không báo căn cứ sau sự cố |
 | `NhiemVuApi`: bác sĩ trực, Điều dưỡng phụ trách, Trưởng tầng của tầng | M09 (008) qua 002 | Người nhận ở research H-14 | Bản giả |

@@ -671,8 +671,143 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       requestBody:
         required: true
-        content: { application/json: { schema: { type: object, required: [noi], properties: { noi: { type: string, enum: [PHONG, NHA_VE_SINH, SAN, KHAC] } } } } }
+        content: { application/json: { schema: { type: object, required: [noi], properties: { noi: { type: string, enum: [PHONG, NHA_VE_SINH, HANH_LANG, PHONG_SINH_HOAT_CHUNG, SAN, KHAC], description: "HANH_LANG, PHONG_SINH_HOAT_CHUNG bổ sung 2026-10-22 (Q-373)" } } } } }
       responses: { '204': { description: Đã ghi }, '409': { $ref: '#/components/responses/Loi' } }
+  /sos/{id}/vi-tri:
+    post:
+      tags: [canh-bao]
+      summary: App người cao tuổi gửi vị trí GPS cho lần bấm SOS (bổ sung 2026-10-22, Q-373)
+      description: 'Nhận khi cảnh báo đang mở và chưa ghi đã tới nơi; ngược lại 409 DUNG_GUI_VI_TRI để app dừng. Gửi lại mỗi chuKyGuiViTriGiay (CFG-M05-09). Lệnh /sos không chờ vị trí (BR-M05-28).'
+      x-fr: [FR-047h]
+      x-br: [BR-M05-28]
+      security: [ { tokenThietBi: [] } ]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ViTriGui' } } } }
+      responses: { '204': { description: Đã lưu }, '409': { $ref: '#/components/responses/Loi' } }
+
+  # ---------------- Nút hỗ trợ khẩn cấp của nhân viên (bổ sung 2026-10-22, Q-375) ----------------
+  /ho-tro-khan-cap:
+    post:
+      tags: [canh-bao, khan-cap]
+      summary: Nhân viên đang trong ca bấm nút hỗ trợ khẩn cấp; tạo hoặc gộp cảnh báo Khẩn cấp NV_YEU_CAU_HO_TRO
+      description: 'Quyền NUT_HO_TRO_KHAN_CAP (EMERGENCY_ASSIST_BUTTON); chỉ trực tuyến. Không trong ca: 409 KHONG_TRONG_CA kèm lienHe. Không tự tạo sự cố (Q-67); không báo người thân. Đếm ngược 3 giây và Hủy là việc của app.'
+      x-fr: [FR-026, FR-047i]
+      x-br: [BR-M05-29]
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses:
+        '201': { description: Đã gửi, content: { application/json: { schema: { $ref: '#/components/schemas/TrangThaiSos' } } } }
+        '403': { $ref: '#/components/responses/Loi' }
+        '409': { description: 'KHONG_TRONG_CA', content: { application/problem+json: { schema: { $ref: '#/components/schemas/LoiSos' } } } }
+  /ho-tro-khan-cap/hien-tai:
+    get:
+      tags: [canh-bao]
+      summary: Trạng thái cảnh báo nút hỗ trợ đang mở gần nhất của người bấm (đang tới, đã tới)
+      x-fr: [FR-047j]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TrangThaiSos' } } } }
+        '204': { description: Không có cảnh báo đang mở }
+  /ho-tro-khan-cap/{id}/chi-tiet:
+    post:
+      tags: [canh-bao]
+      summary: Người bấm chọn loại sự việc, tầng, nơi, người cao tuổi sau khi gửi (mỗi trường đặt một lần)
+      description: 'Có tầng mới thì báo thêm Người phụ trách ca, nhân viên trong ca của tầng; có nctId thì gắn cảnh báo với người cao tuổi và báo thêm người nhận FR-047a (research S-24).'
+      x-fr: [FR-047i]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                loaiSuViec: { type: string, enum: [NGUNG_TIM_NGAT, NGA, KICH_DONG_BAO_LUC, KHAC] }
+                tangKhuVucId: { type: integer, format: int64 }
+                noi: { type: string, enum: [PHONG, NHA_VE_SINH, HANH_LANG, PHONG_SINH_HOAT_CHUNG, SAN, KHAC] }
+                nctId: { type: integer, format: int64 }
+      responses: { '204': { description: Đã ghi }, '409': { $ref: '#/components/responses/Loi' } }
+  /ho-tro-khan-cap/{id}/vi-tri:
+    post:
+      tags: [canh-bao]
+      summary: App nhân viên gửi vị trí GPS cho lần bấm nút hỗ trợ (như /sos/{id}/vi-tri)
+      x-fr: [FR-047h]
+      x-br: [BR-M05-28]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ViTriGui' } } } }
+      responses: { '204': { description: Đã lưu }, '409': { $ref: '#/components/responses/Loi' } }
+
+  # ---------------- Mốc tới nơi, gọi 115 (bổ sung 2026-10-22, Q-374, Q-376) ----------------
+  /canh-bao/{id}/da-toi-noi:
+    post:
+      tags: [canh-bao]
+      summary: Người phụ trách ghi "Đã tới nơi" (cảnh báo từ nút SOS hoặc nút hỗ trợ; một lần; không đổi trạng thái)
+      x-fr: [FR-047j, FR-029]
+      x-br: [BR-M05-30]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+  /canh-bao/{id}/thong-tin-goi-115:
+    get:
+      tags: [khan-cap]
+      summary: Thông tin đọc cho tổng đài 115 (cảnh báo Khẩn cấp)
+      description: 'Dị ứng, bệnh nền chỉ khi người xem có quyền xem sức khỏe; ngược lại liệt kê ở truongBiAn.'
+      x-fr: [FR-047k]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ThongTinGoi115' } } } } }
+  /canh-bao/{id}/goi-115:
+    post:
+      tags: [khan-cap]
+      summary: Ghi lượt bấm "Gọi 115" trước khi app mở trình quay số (cảnh báo Khẩn cấp)
+      x-fr: [FR-047k]
+      x-br: [BR-M05-31]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '201': { description: Lượt gọi, content: { application/json: { schema: { $ref: '#/components/schemas/LuotGoi115' } } } }, '403': { $ref: '#/components/responses/Loi' } }
+  /su-co/{id}/thong-tin-goi-115:
+    get:
+      tags: [khan-cap]
+      summary: Thông tin đọc cho tổng đài 115 (sự cố Khẩn cấp)
+      x-fr: [FR-047k]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ThongTinGoi115' } } } } }
+  /su-co/{id}/goi-115:
+    post:
+      tags: [khan-cap]
+      summary: Ghi lượt bấm "Gọi 115" (sự cố Khẩn cấp)
+      x-fr: [FR-047k, FR-048b]
+      x-br: [BR-M05-31]
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      responses: { '201': { description: Lượt gọi, content: { application/json: { schema: { $ref: '#/components/schemas/LuotGoi115' } } } }, '403': { $ref: '#/components/responses/Loi' } }
+  /luot-goi-115/{id}/ket-qua:
+    post:
+      tags: [khan-cap]
+      summary: Người bấm chọn kết quả gọi (một lần); Đã gọi được thì thêm diễn biến GOI_CAP_CUU vào sự cố liên kết
+      x-fr: [FR-047k, FR-048b]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ketQua], properties: { ketQua: { type: string, enum: [DA_GOI_DUOC, KHONG_GOI_DUOC] } } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Loi' } }
+
+  # ---------------- Chuyển viện, phiếu tóm tắt (bổ sung 2026-10-22, Q-383, Q-384) ----------------
+  /su-co/{id}/chuyen-vien/thong-tin:
+    get:
+      tags: [khan-cap]
+      summary: Thông tin hiện ở màn lệnh Chuyển viện (nguyện vọng khi điều trị, nguyện vọng cuối đời, người liên hệ chính); không gợi ý cơ sở
+      x-fr: [FR-049]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ThongTinChuyenVien' } } } } }
+  /ban-tom-tat-chuyen-vien/{id}/phieu:
+    get:
+      tags: [khan-cap]
+      summary: Tải phiếu tóm tắt chuyển viện PDF đã lưu (đúng file đã dựng trong lệnh)
+      x-fr: [FR-050h]
+      x-br: [BR-M05-32]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: PDF, content: { application/pdf: { schema: { type: string, format: binary } } } }, '403': { $ref: '#/components/responses/Loi' } }
+  /ban-tom-tat-chuyen-vien/{id}/in-lai:
+    post:
+      tags: [khan-cap]
+      summary: In lại phiếu; trả file đã lưu có dấu "Bản in lại"; ghi lần in và nhật ký
+      x-fr: [FR-050h]
+      x-br: [BR-M05-32]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: PDF, content: { application/pdf: { schema: { type: string, format: binary } } } }, '403': { $ref: '#/components/responses/Loi' } }
 
 components:
   securitySchemes:
@@ -704,8 +839,11 @@ components:
       properties:
         lanBamId: { type: integer, format: int64 }
         canhBaoId: { type: integer, format: int64 }
-        trangThai: { type: string, enum: [DA_GUI, DA_TIEP_NHAN] }
+        trangThai: { type: string, enum: [DA_GUI, DA_TIEP_NHAN, DA_TOI], description: 'DA_TIEP_NHAN hiện "[họ tên] đang tới"; DA_TOI bổ sung 2026-10-22 (FR-047j)' }
         nguoiTiepNhan: { type: string, description: Họ tên người đã tiếp nhận }
+        daToiLuc: { type: string, format: date-time }
+        guiViTri: { type: boolean, description: 'Bổ sung 2026-10-22 (FR-047h): app gửi vị trí khi true' }
+        chuKyGuiViTriGiay: { type: integer, description: 'CFG-M05-09' }
         lienHe: { $ref: '#/components/schemas/LienHeKhiKhongGuiDuoc' }
     LienHeKhiKhongGuiDuoc:
       type: object
@@ -719,6 +857,52 @@ components:
         maLoi: { type: string }
         detail: { type: string }
         lienHe: { $ref: '#/components/schemas/LienHeKhiKhongGuiDuoc' }
+    ViTriGui:
+      type: object
+      description: Bổ sung 2026-10-22 (FR-047h)
+      required: [viDo, kinhDo, saiSoMet, doLuc]
+      properties:
+        viDo: { type: number, minimum: -90, maximum: 90 }
+        kinhDo: { type: number, minimum: -180, maximum: 180 }
+        saiSoMet: { type: number, minimum: 0 }
+        doLuc: { type: string, format: date-time }
+    ViTriHienThi:
+      type: object
+      properties:
+        viDo: { type: number }
+        kinhDo: { type: number }
+        saiSoMet: { type: number }
+        doLuc: { type: string, format: date-time }
+        coTheDaCu: { type: boolean, description: 'Quá hai chu kỳ CFG-M05-09 không cập nhật' }
+        laViTriChinh: { type: boolean, description: 'Người cao tuổi đang ở Hoạt động bên ngoài; ngược lại là tham khảo' }
+    ThongTinGoi115:
+      type: object
+      description: Bổ sung 2026-10-22 (FR-047k)
+      properties:
+        vien: { type: object, properties: { ten: { type: string }, diaChi: { type: string }, dienThoai: { type: string } } }
+        tang: { type: string }
+        phongHoacNoi: { type: string }
+        viTri: { $ref: '#/components/schemas/ViTriHienThi' }
+        nguoiCaoTuoi: { type: object, properties: { hoTen: { type: string }, tuoi: { type: integer }, gioiTinh: { type: string } } }
+        diUng: { type: array, items: { type: string } }
+        benhNen: { type: array, items: { type: string } }
+        truongBiAn: { type: array, items: { type: string } }
+    LuotGoi115:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        bamLuc: { type: string, format: date-time }
+        nguoiBam: { type: string }
+        ketQua: { type: [string, 'null'], enum: [DA_GOI_DUOC, KHONG_GOI_DUOC, null] }
+    ThongTinChuyenVien:
+      type: object
+      description: Bổ sung 2026-10-22 (FR-049); bản đọc từ 001 NguyenVongApi.dieuTriHieuLuc, hieuLuc
+      properties:
+        nguyenVongDieuTri: { type: [object, 'null'] }
+        nguyenVongCuoiDoi: { type: [object, 'null'] }
+        nguoiLienHeChinh: { type: [object, 'null'] }
+        canHoiTruoc: { type: boolean }
+        laCapCuu: { type: boolean, description: 'Sự cố mức Khẩn cấp: không bắt lyDoKhongHoiTruoc' }
     LyDo: { type: string, minLength: 1, maxLength: 2000 }
     Muc: { type: string, enum: [NHE, TRUNG_BINH, KHAN_CAP] }
     TrangThaiCanhBao: { type: string, enum: [MOI, LEO_THANG, DA_TIEP_NHAN, DANG_XU_LY, DA_DONG, CHUYEN_SU_CO] }
@@ -847,11 +1031,18 @@ components:
         khongCoBacSiTruc: { type: boolean }
         suCoId: { type: integer, format: int64 }
         gop: { type: boolean, readOnly: true }
+        nguonTao: { type: string, enum: [HE_THONG, THU_CONG, SOS, NUT_HO_TRO], description: 'Bổ sung 2026-10-22' }
+        nguoiBam: { type: [string, 'null'], description: 'Nút hỗ trợ: họ tên người bấm' }
+        loaiSuViec: { type: [string, 'null'] }
+        noiChon: { type: [string, 'null'] }
+        viTriMoiNhat: { oneOf: [ { $ref: '#/components/schemas/ViTriHienThi' }, { type: 'null' } ] }
+        daToiNoiLuc: { type: [string, 'null'], format: date-time }
+        khongGhiMocToiNoi: { type: boolean }
         nguon: { type: array, items: { type: object, properties: { loaiNguon: { type: string }, nguonId: { type: integer, format: int64 }, muc: { $ref: '#/components/schemas/Muc' }, thoiDiem: { type: string, format: date-time }, daXuLyLuc: { type: string, format: date-time } } } }
         lenhDuocPhep: { type: array, items: { type: string } }
     SuCoTuCanhBao:
       type: object
-      properties: { loaiSuCoId: { type: integer, format: int64 }, moTa: { type: string }, xuLyBanDau: { type: string } }
+      properties: { loaiSuCoId: { type: integer, format: int64 }, moTa: { type: string }, xuLyBanDau: { type: string }, nctId: { type: integer, format: int64, description: "Bổ sung 2026-10-22 (FR-047i): bắt buộc khi cảnh báo NV_YEU_CAU_HO_TRO chưa gắn người cao tuổi (422 CAN_CHON_NGUOI_CAO_TUOI)" } }
     GhiNhanSuCo:
       type: object
       required: [loaiSuCoId, phatHienLuc, moTa, muc]
@@ -911,11 +1102,20 @@ components:
         banChupLuc: { type: string, format: date-time }
     ChuyenVien:
       type: object
-      required: [donViDuaDi, thoiDiem]
-      properties: { donViDuaDi: { type: string }, thoiDiem: { type: string, format: date-time }, duKienTroLai: { type: string, format: date-time }, nhanVienBanGiaoId: { type: integer, format: int64 } }
+      required: [donViDuaDi, thoiDiem, nguoiDiKem]
+      description: 'Bổ sung 2026-10-22 (FR-049, Q-383, Q-384): nguoiDiKem bắt buộc; daLienLacNguoiCanBao bắt buộc khi phiếu nguyện vọng khi điều trị có hoiGiaDinhTruoc; lyDoKhongHoiTruoc bắt buộc khi daLienLacNguoiCanBao = false và sự cố không ở mức Khẩn cấp (plan điểm báo lại 11); tepDinhKemIds chuyển cho lệnh CHUYEN_VIEN của 001.'
+      properties:
+        donViDuaDi: { type: string }
+        thoiDiem: { type: string, format: date-time }
+        duKienTroLai: { type: string, format: date-time }
+        nhanVienBanGiaoId: { type: integer, format: int64 }
+        nguoiDiKem: { type: string, minLength: 1, description: 'Họ tên và quan hệ hoặc chức danh' }
+        daLienLacNguoiCanBao: { type: boolean }
+        lyDoKhongHoiTruoc: { $ref: '#/components/schemas/LyDo' }
+        tepDinhKemIds: { type: array, maxItems: 10, items: { type: integer, format: int64 } }
     BanTomTat:
       type: object
-      properties: { id: { type: integer, format: int64 }, coSoTiepNhan: { type: string }, diUng: { type: array, items: { type: object } }, thuocDangDung: { type: array, items: { type: object } }, chiSoGanNhat: { type: array, items: { type: object } }, dienBien: { type: array, items: { type: object } }, nguyenVong: { type: object }, nguoiLap: { type: string }, thoiDiem: { type: string, format: date-time } }
+      properties: { id: { type: integer, format: int64 }, coSoTiepNhan: { type: string }, diUng: { type: array, items: { type: object } }, thuocDangDung: { type: array, items: { type: object } }, chiSoGanNhat: { type: array, items: { type: object } }, dienBien: { type: array, items: { type: object } }, nguyenVong: { type: object }, nguyenVongDieuTri: { type: object, description: 'Bổ sung 2026-10-22 (FR-050)' }, nguoiLienHeChinh: { type: object, description: 'Bổ sung 2026-10-22' }, nguoiDiKem: { type: string }, phieuTepId: { type: integer, format: int64, description: 'Phiếu PDF (FR-050h)' }, nguoiLap: { type: string }, thoiDiem: { type: string, format: date-time } }
     KetQuaXacNhanLai:
       type: object
       required: [nguoiDuocLienHe, kenh, thoiDiem, ketQua]

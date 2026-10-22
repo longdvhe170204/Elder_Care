@@ -1,6 +1,7 @@
 // Hiển thị và đọc giá trị tham số theo kiểu (000 T081; hợp đồng schema Parameter, glossary mục 6.3).
 
 export const UNIT_LABELS = {
+  SECONDS: 'giây',
   MINUTES: 'phút',
   HOURS: 'giờ',
   DAYS: 'ngày',
@@ -10,6 +11,7 @@ export const UNIT_LABELS = {
   PERCENT: '%',
   VND: 'đồng',
   PERSONS: 'người',
+  ROWS: 'dòng',
 }
 
 const NUMBER = new Intl.NumberFormat('vi-VN')
