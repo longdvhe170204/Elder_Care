@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
+import { AssessmentTab } from '../assessments/AssessmentTab'
 import { HealthTab } from './HealthTab'
 import { GENDER_LABELS, ID_DOCUMENT_LABELS, STATUS_LABELS } from './residentLabels'
 
@@ -46,7 +47,7 @@ function Row({ label, children }) {
   )
 }
 
-export function ResidentDetail({ residentId, onChanged, onClose }) {
+export function ResidentDetail({ residentId, onChanged, onClose, onTabChange }) {
   const [profile, setProfile] = useState(null)
   const [etag, setEtag] = useState(null)
   const [linked, setLinked] = useState([])
@@ -168,25 +169,43 @@ export function ResidentDetail({ residentId, onChanged, onClose }) {
           )}
         </ProblemAlert>
 
-        {showHealthTab && !editing && (
+        {!!profile && !editing && (
           <ToggleGroup
             variant="outline"
             value={[tab]}
-            onValueChange={(next) => next[0] && setTab(next[0])}
+            onValueChange={(next) => {
+              if (!next[0]) return
+              setTab(next[0])
+              onTabChange?.(next[0])
+            }}
             aria-label="Phần của hồ sơ"
             className="self-start"
           >
             <ToggleGroupItem value="info" className="h-10 px-4">
               Thông tin
             </ToggleGroupItem>
-            <ToggleGroupItem value="health" className="h-10 px-4">
-              Sức khỏe
+            {showHealthTab && (
+              <ToggleGroupItem value="health" className="h-10 px-4">
+                Sức khỏe
+              </ToggleGroupItem>
+            )}
+            <ToggleGroupItem value="assessment" className="h-10 px-4">
+              Đánh giá
             </ToggleGroupItem>
           </ToggleGroup>
         )}
 
         {info && tab === 'health' && showHealthTab && (
           <HealthTab residentId={residentId} allowedCommands={profile.allowedCommands ?? []} />
+        )}
+
+        {info && tab === 'assessment' && (
+          <AssessmentTab
+            residentId={residentId}
+            residentStatus={profile.status}
+            allowedCommands={profile.allowedCommands ?? []}
+            onChanged={load}
+          />
         )}
 
         {info && !editing && tab === 'info' && (
