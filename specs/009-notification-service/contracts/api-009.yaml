@@ -182,7 +182,19 @@ components:
     NotificationLevel: { type: string, enum: [LOW, MEDIUM, URGENT] }
     Problem:
       type: object
-      properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, errorCode: { type: string } }
+      description: RFC 9457 cùng errorCode (000 R-03), giống schema Problem của api-000, api-002 (sửa 2026-10-22 cho khớp ProblemBody chung).
+      required: [type, title, status, errorCode]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        errorCode: { type: string }
+        unmetConditions: { type: array, items: { type: object, properties: { code: { type: string }, description: { type: string } } } }
+        currentValue: { description: 'Khi 412: tài nguyên hiện hành' }
+        failedLayer: { type: string, enum: [ROLE, SCOPE, LEGAL, SOURCE_DATA] }
+        license: { type: object, properties: { name: { type: string }, expiryDate: { type: string, format: date } } }
+        unlocksAt: { type: string, format: date-time, description: 'Khi 423 ACCOUNT_TEMPORARILY_LOCKED (FR-014)' }
     Notification:
       type: object
       properties:

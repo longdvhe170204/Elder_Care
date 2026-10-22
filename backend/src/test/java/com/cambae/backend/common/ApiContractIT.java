@@ -52,6 +52,20 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             new Contract(
                     Path.of("..", "specs", "002-account-permission", "contracts", "api-002.yaml"),
                     Set.of("POST /api/v1/resident-accounts"),
+                    Set.of()),
+            // 009 T034 (2026-10-22, kéo phần T036 lên khi cài controller đầu tiên của US5); còn lại theo US1, US3
+            new Contract(
+                    Path.of("..", "specs", "009-notification-service", "contracts", "api-009.yaml"),
+                    Set.of(
+                            "POST /api/v1/notifications/{id}/acknowledge",
+                            "POST /api/v1/notifications/{id}/acknowledge-and-take-charge",
+                            "GET /api/v1/me/call-reminders",
+                            "GET /api/v1/call-reminders/{id}",
+                            "POST /api/v1/call-reminders/{id}/results",
+                            "GET /api/v1/direct-contacts",
+                            "POST /api/v1/direct-contacts/{id}/results",
+                            "GET /api/v1/notification-channels",
+                            "PUT /api/v1/notification-channels/{code}"),
                     Set.of()));
 
     @Autowired
