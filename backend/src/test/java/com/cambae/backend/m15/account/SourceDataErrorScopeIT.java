@@ -19,6 +19,7 @@ import com.cambae.backend.support.MySqlIntegrationTestBase;
 import com.cambae.backend.support.fake.m15.FakeAssignments;
 import com.cambae.backend.support.fake.m15.FakeBedAllocations;
 import com.cambae.backend.support.fake.m15.FakeM15Config;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,8 +88,10 @@ class SourceDataErrorScopeIT extends MySqlIntegrationTestBase {
         assertThat(incident.allowed()).isTrue();
         assertThat(incident.basis()).contains(PermissionBasis.OUT_OF_SCOPE);
 
-        assertThat(events.stream(PermissionDataError.class).filter(e -> e.recordId() == staffId))
-                .containsExactly(new PermissionDataError("M09.ASSIGNMENT", staffId, "FLOOR_INACTIVE"));
+        assertThat(events.stream(PermissionDataError.class)
+                        .filter(e -> e.recordId() == staffId)
+                        .map(e -> List.of(e.source(), e.errorKind())))
+                .containsExactly(List.of("M09.ASSIGNMENT", "FLOOR_INACTIVE"));
         assertThat(jdbc.queryForObject(
                         "SELECT occurrences FROM permission_data_error WHERE record_id = ? AND fixed_at IS NULL",
                         Integer.class,
