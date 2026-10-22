@@ -82,6 +82,8 @@ Duyệt danh sách tài khoản Hoạt động có quyền vai trò, nhiệm v�
 ```java
 void khoaDoNghiViec(long nhanVienId, CanCu canCu);         // gọi trong transaction lệnh Cho nghỉ việc của 008 (FR-009, BR-M09-04)
 void xetLaiNguoiThan(long nguoiThanId, CanCu canCu);       // gọi trong transaction lệnh chấm dứt quan hệ của 012 (FR-049, BR-M15-14)
+Optional<TaiKhoanView> theoId(long taiKhoanId);           // bổ sung 2026-10-22: 000 báo người yêu cầu khi áp dụng không thành (000 FR-038);
+                                                          // TaiKhoanView thêm nhanVienId (null với người thân, người cao tuổi)
 Optional<TaiKhoanView> theoNhanVien(long nhanVienId);      // 008: vai trò hệ thống để xếp ca (008 FR-002)
 Optional<TaiKhoanView> theoNguoiThan(long nguoiThanId);    // 009: trạng thái tài khoản không chặn gửi ngoài ứng dụng (CHK036)
 Optional<TaiKhoanView> theoNguoiCaoTuoi(long nguoiCaoTuoiId); // bổ sung 2026-10-18: 009 nhóm người nhận (f) (009 FR-007), 012 kênh người cao tuổi

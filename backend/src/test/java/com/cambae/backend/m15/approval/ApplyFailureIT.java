@@ -1,9 +1,12 @@
 package com.cambae.backend.m15.approval;
 
+import static com.cambae.backend.m15.approval.ApprovalFixtures.MANAGER;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.cambae.backend.common.notification.RecipientGroup;
 import com.cambae.backend.m15.approval.api.RequestApplyFailed;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -29,7 +32,14 @@ class ApplyFailureIT extends ApprovalTestBase {
         assertThat(events.stream(RequestApplyFailed.class)
                         .filter(e -> e.request().id() == id))
                 .singleElement()
-                .satisfies(e -> assertThat(e.notificationRequests()).isNotEmpty());
+                .satisfies(e -> assertThat(e.notificationRequests())
+                        .singleElement()
+                        .satisfies(r -> assertThat(r.recipientGroups())
+                                // Người duyệt đã quyết định và người yêu cầu (Hành chính A, hồ sơ nhân viên 20)
+                                .containsExactly(
+                                        new RecipientGroup.Approvers(
+                                                ApprovalFixtures.TYPE, List.of(MANAGER.accountId())),
+                                        new RecipientGroup.Staff(20L, "REQUESTER"))));
         assertThat(lastAudit(id, "REQUEST_APPLY_FAILED", "action")).isNotNull();
     }
 
