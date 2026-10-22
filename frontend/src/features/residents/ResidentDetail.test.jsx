@@ -111,6 +111,32 @@ describe('ResidentDetail', () => {
     expect(screen.getByRole('button', { name: 'Xem giá trị mới' })).toBeTruthy()
   })
 
+  it('001 T033: có tab Sức khỏe khi được xem phần sức khỏe, chuyển tab thì nạp hồ sơ ban đầu và mục sức khỏe', async () => {
+    routes()
+    api.on('GET', '/residents/7/initial-health-record', json(200, { id: 5, confirmed: false, corrected: false }, { ETag: '"1"' }))
+    api.on('GET', '/residents/7/health-items', json(200, []))
+
+    open()
+    fireEvent.click(await screen.findByRole('button', { name: 'Sức khỏe' }))
+
+    expect(await screen.findByText('Hồ sơ sức khỏe ban đầu')).toBeTruthy()
+    expect(await screen.findByText('Chưa ghi nhận dị ứng, bệnh nền hay tiền sử bệnh')).toBeTruthy()
+    expect(screen.queryByText('Ngày sinh')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Thông tin' }))
+    expect(await screen.findByText('Ngày sinh')).toBeTruthy()
+  })
+
+  it('001 T033: không có tab Sức khỏe khi backend bỏ phần sức khỏe theo quyền (hiddenFields)', async () => {
+    routes({ view: profile({ allowedCommands: [], hiddenFields: ['activeHealthItems'] }) })
+
+    open()
+
+    await screen.findByText('Nguyễn Văn An')
+    expect(screen.queryByRole('button', { name: 'Sức khỏe' })).toBeNull()
+    expect(api.calls('GET', '/residents/7/health-items')).toHaveLength(0)
+  })
+
   it('CCCD trùng hiện lỗi ở ô số giấy tờ', async () => {
     routes()
     api.on(
