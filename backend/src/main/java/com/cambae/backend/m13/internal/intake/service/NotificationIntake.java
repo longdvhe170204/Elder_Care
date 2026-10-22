@@ -6,6 +6,8 @@ import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m13.internal.intake.domain.RequestValidation;
 import com.cambae.backend.m13.internal.intake.domain.ValidatedRequest;
 import com.cambae.backend.m13.internal.intake.persistence.NotificationRequestStore;
+import com.cambae.backend.m13.internal.recipient.service.NotificationCreation;
+import com.cambae.backend.m13.internal.recipient.service.RecipientResolver.Resolution;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -26,10 +28,12 @@ public class NotificationIntake {
 
     private final NotificationRequestStore store;
     private final BusinessTime time;
+    private final NotificationCreation creation;
 
-    NotificationIntake(NotificationRequestStore store, BusinessTime time) {
+    NotificationIntake(NotificationRequestStore store, BusinessTime time, NotificationCreation creation) {
         this.store = store;
         this.time = time;
+        this.creation = creation;
     }
 
     /** Tiếp nhận mọi yêu cầu của một sự kiện nguồn; trả id các yêu cầu mới (yêu cầu trùng không có trong kết quả). */
@@ -68,8 +72,10 @@ public class NotificationIntake {
             store.insertDuplicate(existing.get(), now);
             return Optional.empty();
         }
+        Resolution resolution = creation.resolve(v, now);
+        long id;
         try {
-            return Optional.of(store.insert(v, now));
+            id = store.insert(NotificationCreation.withFlags(v, resolution), resolution.groupOutcomes(), now);
         } catch (DuplicateKeyException e) {
             // Hai lần nhận đồng thời: lần kia đã commit trước (FR-005)
             long first = store.findIdLatest(
@@ -78,5 +84,7 @@ public class NotificationIntake {
             store.insertDuplicate(first, now);
             return Optional.empty();
         }
+        creation.create(id, resolution, v, now);
+        return Optional.of(id);
     }
 }
