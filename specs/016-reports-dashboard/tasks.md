@@ -25,7 +25,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ## Phase 1: Setup
 
 - [ ] T001 Tạo khung gói `BE/m14/{chitieu,phamvi,dashboard,baocao,chitiet,xuat}/`; ArchUnit `BT/m14/M14ArchTest.java`: cấm gọi API lệnh của module khác, cấm repository ghi; mọi service `@Transactional(readOnly = true)` trừ ghi nhật ký xuất (research O-01, O-09)
-- [ ] T002 [P] Thêm thư viện tạo XLSX (fastexcel, đã chọn ở 010; sửa 2026-10-22 cho khớp research O-08) vào `backend/pom.xml` nếu 010 chưa thêm
+- [ ] T002 [P] Thêm thư viện tạo XLSX (fastexcel, đã chọn ở 010; sửa 2026-10-22 cho khớp research O-08) vào `backend/pom.xml` nếu 010 chưa thêm *(2026-10-22: fastexcel, fastexcel-reader 0.20.2 đã thêm cùng `common.document`, 007 T104)*
 
 ---
 

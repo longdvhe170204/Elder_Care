@@ -20,6 +20,7 @@ import com.cambae.backend.m15.parameter.api.ParameterCode;
 import com.cambae.backend.m15.parameter.api.ParameterKind;
 import com.cambae.backend.m15.parameter.api.ParameterPermissions;
 import com.cambae.backend.m15.parameter.api.ParameterValue;
+import com.cambae.backend.m15.parameter.api.spi.ParameterValueCheck;
 import com.cambae.backend.m15.parameter.internal.domain.ParameterValidator;
 import com.cambae.backend.m15.parameter.internal.domain.ParameterValidator.Definition;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -67,6 +68,7 @@ public class ParameterService implements ParameterApi {
     private final ObjectProvider<CurrentUser> currentUser;
     private final ObjectProvider<PermissionApi> permissions;
     private final ObjectProvider<AccountApi> accounts;
+    private final ObjectProvider<ParameterValueCheck> valueChecks;
     private final Map<ParameterCode, ParameterValue> cache = new ConcurrentHashMap<>();
 
     ParameterService(
@@ -77,7 +79,8 @@ public class ParameterService implements ParameterApi {
             ApplicationEventPublisher events,
             ObjectProvider<CurrentUser> currentUser,
             ObjectProvider<PermissionApi> permissions,
-            ObjectProvider<AccountApi> accounts) {
+            ObjectProvider<AccountApi> accounts,
+            ObjectProvider<ParameterValueCheck> valueChecks) {
         this.jdbc = jdbc;
         this.json = json;
         this.time = time;
@@ -87,6 +90,7 @@ public class ParameterService implements ParameterApi {
         this.currentUser = currentUser;
         this.permissions = permissions;
         this.accounts = accounts;
+        this.valueChecks = valueChecks;
     }
 
     /** Một tham số theo schema {@code Parameter} của contracts/api-000.yaml. */
@@ -197,7 +201,8 @@ public class ParameterService implements ParameterApi {
     }
 
     /**
-     * Đổi giá trị hoặc khôi phục mặc định (FR-013 → FR-016, FR-020 → FR-022): kiểm quyền và giá trị, {@code UPDATE ...
+     * Đổi giá trị hoặc khôi phục mặc định (FR-013 → FR-016, FR-020 → FR-022): kiểm quyền và giá trị (kiểm chung rồi
+     * {@link ParameterValueCheck} của module sở hữu, 017 research E-04), {@code UPDATE ...
      * WHERE version = ?} (lệch phiên bản thì 412 kèm giá trị hiện hành), thêm dòng lịch sử, ghi nhật ký cùng transaction,
      * phát {@link ParameterChanged}; bộ đệm xóa khi transaction kết thúc.
      */
@@ -214,6 +219,11 @@ public class ParameterService implements ParameterApi {
         }
         if (!(restoreDefault && next.isNull())) {
             validator.validate(definition(current), next, related(current));
+            ParameterCode parameter = ParameterCode.of(code);
+            valueChecks
+                    .orderedStream()
+                    .filter(check -> check.code() == parameter)
+                    .forEach(check -> check.check(next));
         }
         Instant now = time.now();
         int updated = jdbc.update(
