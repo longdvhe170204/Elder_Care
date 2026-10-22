@@ -15,7 +15,8 @@ public class FakeStaffProfiles implements StaffProfileApi {
     private final Map<Long, Role> positionRoles = new HashMap<>();
     private final Map<Long, String> createdMinimal = new HashMap<>();
     private final Map<Long, String> names = new HashMap<>();
-    private long nextStaffId = 5_000_000;
+    // Dải riêng, không trùng support/TestUsers (từ 5.000.000) vì hai bên cùng ghi staff_id vào bảng account
+    private long nextStaffId = 6_000_000;
 
     public FakeStaffProfiles staff(long staffId, Role positionRole) {
         positionRoles.put(staffId, positionRole);

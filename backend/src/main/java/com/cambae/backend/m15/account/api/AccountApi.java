@@ -17,6 +17,9 @@ public interface AccountApi {
     /** Xét lại tài khoản người thân khi quan hệ chấm dứt; gọi trong transaction lệnh của 012 (FR-049, BR-M15-14). */
     void recheckFamilyMember(long familyMemberId, Basis basis);
 
+    /** Tài khoản theo id; 000 dùng để báo người yêu cầu theo hồ sơ nhân viên (000 FR-038; "Đổi api" 2026-10-22). */
+    Optional<AccountView> byId(long accountId);
+
     Optional<AccountView> byStaff(long staffId);
 
     Optional<AccountView> byFamilyMember(long familyMemberId);
