@@ -20,7 +20,7 @@ Hướng kỹ thuật:
 - Số dư, số dư cọc lưu dẫn xuất trên `so_du`, cập nhật cùng transaction với giao dịch Đã xác nhận dưới khóa dòng `so_du`; bất biến đối chiếu bằng test và truy vấn hằng đêm (E-03).
 - Giao dịch cần duyệt là loại yêu cầu phê duyệt `M11.GIAO_DICH_SO_DU` của 000; duyệt kiểm lại giới hạn và người nhận tại lúc duyệt (E-06).
 - Chứng từ (phiếu báo phí, bảng quyết toán) và file xuất dựng bằng `common.bieumau` (PDF: OpenPDF, 007 research S-25; Excel: fastexcel, đã chọn ở 010), lưu S3 qua `FileApi` như tệp đính kèm (001 research H-13); tải lại trả đúng file đã lưu (E-09 → E-11).
-- Mã QR VietQR: chuỗi EMVCo dựng trong mã (CRC16); ảnh QR in trên PDF dựng bằng ZXing; client web, app vẽ ảnh từ chuỗi (E-04).
+- Mã QR VietQR: chuỗi EMVCo dựng trong mã (CRC16); ảnh QR in trên PDF: ZXing core tính ma trận, `PdfBieuMau` vẽ thành ô vuông; client web, app vẽ ảnh từ chuỗi (E-04).
 - Hàm thuần kiểm thử bằng bảng: `TrangThaiDatCoc`, `GioiHanHoan`, `PhiMotNgay`, `TinhTrang`, `QuyetDinhBao`, `DieuKienQuyetToan`, `SaoKe`, `BaoCaoThuChi`, `VietQrPayload` (E-13).
 
 Plan tuân theo FR-010a của 000 (Q-306, Q-307):
@@ -31,7 +31,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 **Language/Version**: Java 25; JavaScript (JSX); Dart 3.x với Flutter stable 3.x (000 R-01).
 
-**Primary Dependencies**: Như 000 → 016. Dùng lại: fastexcel (010) cho Excel; OpenPDF qua `common.bieumau` (007 research S-25) cho PDF. Thêm ZXing core (`com.google.zxing:core`, Apache 2.0) để vẽ ảnh mã QR trên PDF (research E-04); bản cụ thể chốt khi thêm vào `pom.xml` (chủ dự án duyệt). Web, app vẽ mã QR từ chuỗi payload bằng thư viện vẽ QR của client (chọn khi làm màn, không ảnh hưởng backend).
+**Primary Dependencies**: Như 000 → 016. Dùng lại: fastexcel (010) cho Excel; OpenPDF qua `common.bieumau` (007 research S-25) cho PDF. Thêm ZXing core (`com.google.zxing:core`, Apache 2.0) để vẽ ảnh mã QR trên PDF (research E-04); đã duyệt bản 3.5.4 (2026-10-22, 007 research S-26); chỉ dùng `core`, không cần `javase`. Web, app vẽ mã QR từ chuỗi payload bằng thư viện vẽ QR của client (chọn khi làm màn, không ảnh hưởng backend).
 
 **Storage**: MySQL 8.0, cùng schema M11 với 010; bảng ở [data-model.md](data-model.md). File chứng từ, file xuất ở bucket S3 qua `common.tep` (`FileApi.upload` + `attach`); bổ sung kiểu `.xlsx` cho tệp do hệ thống tạo (research E-11).
 
@@ -67,7 +67,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - 300 hồ sơ; vài nghìn giao dịch mỗi tháng; khoảng 300 phiếu báo phí mỗi tháng.
 - 3 thực thể có vòng đời (giao dịch, tình trạng số dư, phiên bản bảng quyết toán); 9 bảng (gồm kỹ thuật).
 - 1 job hằng ngày.
-- 25 đường dẫn, 25 thao tác REST (duyệt, từ chối, hủy giao dịch đi qua API yêu cầu phê duyệt của 000) ([contracts/api-017.yaml](contracts/api-017.yaml)).
+- 26 đường dẫn, 26 thao tác REST (duyệt, từ chối, hủy giao dịch đi qua API yêu cầu phê duyệt của 000) ([contracts/api-017.yaml](contracts/api-017.yaml)).
 - 7 SPI hoặc provider 017 cài; 1 port nội bộ cài, 1 dùng; 2 giao diện công khai; 4 sự kiện.
 
 Không còn mục NEEDS CLARIFICATION. Lựa chọn kỹ thuật ở [research.md](research.md). Điểm về tài liệu nguồn ở "Điểm cần báo lại"; chúng không chặn thiết kế.
@@ -170,14 +170,15 @@ mobile/lib/nguoi-than/so-du/           # số dư, mã QR, chứng từ, sao kê
 2. **010**: dùng `ChiPhiChoSoDuPort` (`tongChuaChot`, `phiNgayCoSo`, `bangDaChot` thêm 2026-10-22, 010 research P-12); cài `SoDuMuaHoPort`; nghe `BangChiPhiDaChot`.
 3. **012**: dùng `QuyenNguoiThanApi` (`quyenCoTacDung(XEM_CHI_PHI)`, `laNguoiDaiDien`, `nguoiDaiDien`); REST cổng của 017 phục vụ số dư, chứng từ, sao kê trên cổng (012 FR-046). **009**: thông báo cài khuôn `common.notification` (nhóm `Representative`, `FamilyWithRight(CHI_PHI)`, `FacilityRole(KE_TOAN)`, `Approvers`). **016** đọc `SoDuThongKeApi` (bỏ hàm chốt quỹ cũ).
 4. **007, `common`**: dùng `common.bieumau` (`PdfBieuMau`, `ExcelBieuMau`) do 007 T104 tạo; 017 cần thêm `FileApi` nhận kiểu `.xlsx` cho tệp hệ thống tạo (sửa nhỏ ở `common.tep`, chủ `common`).
-5. **000**: CFG-M11-11 kiểu bảng có trường logo; plan coi logo là id tệp `common.tep` (chưa có thì không in logo). Cần 000 thống nhất dạng giá trị khi làm màn tham số.
+5. **000** *(bổ sung 2026-10-22)*: SPI mới `KiemTraGiaTriThamSo` ở `m15.thamso.api` để module sở hữu kiểm giá trị tham số kiểu bảng trước khi lưu; 017 cài cho CFG-M11-10 (`maBin`, `soTaiKhoan`, `chuTaiKhoan`). Màn Tham số của 000 hiện CFG-M11-10 với ô chọn ngân hàng lấy từ `GET /ngan-hang` của 017 (research E-04).
+6. **000**: CFG-M11-11 kiểu bảng có trường logo; plan coi logo là id tệp `common.tep` (chưa có thì không in logo). Cần 000 thống nhất dạng giá trị khi làm màn tham số.
 
 ## Điểm cần báo lại về tài liệu nguồn
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
-1. **Ý "không còn giao dịch Chờ duyệt" với ngoại lệ (đã hỏi, 2026-10-22).** Spec FR-022, FR-034 gộp "bốn ý về tiền" (gồm ý không còn giao dịch Chờ duyệt) và cho ngoại lệ thay cả bốn; BR-M11-22 tách "ba ý tiền … hoặc ngoại lệ, và không còn giao dịch chờ duyệt". Chủ dự án chọn theo BR-M11-22: ngoại lệ chỉ miễn ba ý tiền; ý Chờ duyệt và ý xác nhận không miễn được. Đề nghị sửa câu chữ FR-022, FR-034 (và User Story 7 kịch bản 4) cho khớp.
+1. **Ý "không còn giao dịch Chờ duyệt" với ngoại lệ (đã hỏi, 2026-10-22).** Spec FR-022, FR-034 gộp "bốn ý về tiền" (gồm ý không còn giao dịch Chờ duyệt) và cho ngoại lệ thay cả bốn; BR-M11-22 tách "ba ý tiền … hoặc ngoại lệ, và không còn giao dịch chờ duyệt". Chủ dự án chọn theo BR-M11-22: ngoại lệ chỉ miễn ba ý tiền; ý Chờ duyệt và ý xác nhận không miễn được. Đề nghị sửa câu chữ FR-022, FR-034 (và User Story 7 kịch bản 4) cho khớp. *(Đã xử lý 2026-10-22: spec đã sửa.)*
 2. **Hồ sơ đã kết thúc vẫn có giao dịch mới**: FR-034 cho xác nhận lại khi hồ sơ ở trạng thái cuối có giao dịch mới; điều kiện của 004 lúc đó không còn ý nghĩa (lệnh Kết thúc lưu trú đã chạy). Plan vẫn cho xác nhận lại và tạo phiên bản bảng mới (FR-024, Q-224); không đổi hồ sơ. Ghi lại để thống nhất cách hiểu.
-3. **Danh sách việc sau qua đời và ngoại lệ**: 004 không có ngoại lệ cho mục của danh sách việc sau qua đời; FR-034 "đã có ngoại lệ được duyệt" chỉ áp cho hồ sơ kết thúc lưu trú. Với người qua đời, Kế toán chỉ xác nhận được khi ba ý tiền đã đạt. Đề nghị xác nhận, hoặc nêu rõ nếu người qua đời còn nợ cần một đường ngoại lệ (cần Q mới). *(Đã xử lý 2026-10-22: chủ dự án chọn giữ plan: không có ngoại lệ cho người qua đời. Còn mở: danh sách việc sau qua đời có thể không đóng được khi gia đình không trả; đề nghị mở Q mới (ví dụ Quản lý viện duyệt đóng mục quyết toán dù còn nợ, khoản nợ vẫn theo dõi).)*
+3. **Danh sách việc sau qua đời và ngoại lệ**: 004 không có ngoại lệ cho mục của danh sách việc sau qua đời; FR-034 "đã có ngoại lệ được duyệt" chỉ áp cho hồ sơ kết thúc lưu trú. Với người qua đời, Kế toán chỉ xác nhận được khi ba ý tiền đã đạt. Đề nghị xác nhận, hoặc nêu rõ nếu người qua đời còn nợ cần một đường ngoại lệ (cần Q mới). *(Đã xử lý 2026-10-22: chủ dự án chọn giữ plan: không có ngoại lệ cho người qua đời. Còn mở: danh sách việc sau qua đời có thể không đóng được khi gia đình không trả; đề nghị mở Q mới (ví dụ Quản lý viện duyệt đóng mục quyết toán dù còn nợ, khoản nợ vẫn theo dõi).)* *(Đã xử lý tiếp 2026-10-22: chủ dự án mở Q-387 — có ngoại lệ do Quản lý viện duyệt cho mục quyết toán khi người qua đời còn nợ; 004 FR-071a, 017 FR-023, FR-034.)*
 4. **Tên, mẫu chứng từ** đối chiếu Nghị định 123/2020/NĐ-CP (24.4, Q-377) trước khi vận hành; plan in dòng "Chứng từ này không thay thế hóa đơn" ở mọi chứng từ, không dùng chữ "hóa đơn", "phiếu thu" trong tên.
 5. **Báo cáo thu chi "danh sách người còn nợ tại cuối khoảng"** (FR-025 (b)): plan tính theo số dư (tổng giao dịch Đã xác nhận tới hết ngày cuối khoảng) < 0, không trừ tổng chi phí chưa chốt (khác tình trạng "Còn nợ" của FR-017, vốn tính cả chi phí chưa chốt và chỉ có cho hiện tại). Đề nghị xác nhận. *(Đã xử lý 2026-10-22: chủ dự án chọn theo plan: số dư cuối khoảng < 0.)*

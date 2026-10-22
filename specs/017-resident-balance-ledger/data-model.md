@@ -18,6 +18,7 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | `lan_xuat_so_du` | 3 | F (FR-027) |
 | `lan_tai_chung_tu` | 3 | J (FR-037) |
 | `su_kien_m11sd_da_xu_ly`, `lan_chay_m11sd` | Kỹ thuật | Listener, job |
+| `ngan_hang` *(bổ sung 2026-10-22)* | 1, cố định | A (danh mục ngân hàng cho CFG-M11-10 và VietQR) |
 
 Không còn các bảng của bản cũ: `day_so_phieu`, `chot_quy_ngay`, `chot_quy_ngay_phieu`, `lan_nhap_sao_ke`, `dong_sao_ke` (Q-385).
 
@@ -37,6 +38,18 @@ Không còn các bảng của bản cũ: `day_so_phieu`, `chot_quy_ngay`, `chot_
 | `phien_ban` | | research E-03 |
 
 Chỉ cập nhật trong transaction ghi giao dịch Đã xác nhận, lần tính tình trạng, lệnh dừng nhắc hoặc listener nhắc hoàn cọc.
+
+---
+
+## 2a. `ngan_hang` – nhóm 1, cố định *(bổ sung 2026-10-22; research E-04)*
+
+| Cột | Ghi chú | Nguồn |
+| --- | --- | --- |
+| `ma_bin` (khóa chính) | `CHAR(6)`, chỉ chữ số; mã NAPAS cho VietQR | FR-003 |
+| `ten_viet_tat`, `ten_day_du` | | FR-003 |
+| `con_hieu_luc` | `BOOLEAN`; tắt thay cho xóa | |
+
+Nạp và đổi chỉ bằng migration; tài khoản ứng dụng chỉ có quyền `SELECT`.
 
 ---
 

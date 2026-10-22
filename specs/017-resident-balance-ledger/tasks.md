@@ -27,7 +27,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 ## Phase 1: Setup
 
 - [ ] T001 Tạo khung gói `BE/m11/sodu/{so,giaodich,tinhtrang,quyettoan,chungtu,xuat,lich}/`; mở rộng `BT/m11/M11ArchTest.java` (010): chỉ `m11.sodu` dùng `ChiPhiChoSoDuPort`; gói `..lich..` không tạo giao dịch (research E-01, E-02)
-- [ ] T002 [P] Thêm ZXing core vào `backend/pom.xml` sau khi chủ dự án duyệt bản (research E-04); kiểm `common.bieumau` (007 T104) và fastexcel (010) đã có
+- [ ] T002 [P] Thêm ZXing core 3.5.4 vào `backend/pom.xml` (đã duyệt 2026-10-22; research E-04, 007 research S-26); kiểm `common.bieumau` (007 T104) và fastexcel (010) đã có
 - [ ] T003 [P] Bổ sung kiểu `.xlsx` cho tệp do hệ thống tạo trong `FileApi.upload` của `BE/common/file/` (không mở cho `POST /tep`) và test (research E-11)
 
 ---
@@ -62,6 +62,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 - [ ] T010 [US1] Cài `BE/m11/sodu/so/` : listener `HopDongDaDoiTrangThai` mở sổ (idempotent), sinh `ma_nop_tien` có ký tự kiểm tra, `VietQrPayload` (CFG-M11-10), `GET /nguoi-cao-tuoi/{nctId}/so-du`, `GET /nguoi-cao-tuoi/{nctId}/giao-dich`, `GET /so-du/tim-theo-ma`, `GET /cong/nguoi-cao-tuoi/{nctId}/so-du` (kiểm `quyenCoTacDung(XEM_CHI_PHI)` mỗi lần) (research E-04)
 - [ ] T011 [P] [US1] Màn web số dư trên hồ sơ trong `frontend/src/tinh-nang/so-du/` và cổng `frontend/src/tinh-nang/cong-nguoi-than/so-du/` (vẽ mã QR từ chuỗi payload) cùng test Vitest; app `mobile/lib/nguoi-than/so-du/` theo mục "Giai đoạn hiện tại" của CLAUDE.md
+- [ ] T045 [US1] *(Bổ sung 2026-10-22)* Danh mục ngân hàng cho CFG-M11-10 (research E-04): migration bảng `ngan_hang` và nạp danh sách mã BIN NAPAS (trong `MIG/V017_*` của 017); `GET /ngan-hang`; khai báo SPI `KiemTraGiaTriThamSo` ở `m15.thamso.api` và gọi trong lệnh đổi giá trị tham số của 000 (sửa `ParameterService`, chủ 000: A) cùng bản cài của 017 cho CFG-M11-10; ô chọn ngân hàng trên màn Tham số (`frontend/src/features/parameters/`); CFG-M11-10 chưa có giá trị thì ẩn thông tin nộp tiền; test `NganHangThamSoIT` (quickstart Q1a)
 
 **Checkpoint**: Q1, Q2 xanh.
 
@@ -151,7 +152,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 ### Tests cho User Story 7, 10
 
 - [ ] T028 [P] [US7] Test đơn vị `BT/m11/sodu/DieuKienQuyetToanTest.java`: ba ý tiền và ý xác nhận; ngoại lệ chỉ miễn ba ý tiền; còn Chờ duyệt thì ý xác nhận Chưa đạt dù có ngoại lệ (BR-M11-22, chủ dự án chọn 2026-10-22); giao dịch sau xác nhận làm ý xác nhận Chưa đạt; bảng bổ sung chưa chốt không ảnh hưởng
-- [ ] T029 [P] [US7] Test `BT/m11/sodu/FR_022_DieuKienQuyetToanIT.java`, `FR_023_ViecSauQuaDoiIT.java`, `FR_024_SauTrangThaiCuoiIT.java` (Q16, Q22, Q23): bean trả đúng hai mã và `coTheMien`; `DieuKienQuyetToanDaDoi` phát khi đổi; mục `QUYET_TOAN` Hoàn thành, Không áp dụng; nhắc sau trạng thái cuối tới khi số dư 0 và xác nhận lại
+- [ ] T029 [P] [US7] Test `BT/m11/sodu/FR_022_DieuKienQuyetToanIT.java`, `FR_023_ViecSauQuaDoiIT.java`, `FR_024_SauTrangThaiCuoiIT.java` (Q16, Q22, Q22a, Q23): bean trả đúng hai mã và `coTheMien`; mục `QUYET_TOAN` của người qua đời Hoàn thành khi có ngoại lệ đã duyệt và đã xác nhận (Q-387); `DieuKienQuyetToanDaDoi` phát khi đổi; mục `QUYET_TOAN` Hoàn thành, Không áp dụng; nhắc sau trạng thái cuối tới khi số dư 0 và xác nhận lại
 - [ ] T030 [P] [US10] Test `BT/m11/sodu/BR_M11_22_XacNhanQuyetToanIT.java` (Q17 → Q21): điều kiện lệnh (căn cứ, ba ý tiền hoặc ngoại lệ, không còn Chờ duyệt); phiên bản tăng, một hiện hành; nội dung bảng khớp sổ, kỳ cuối, thông tin hồ sơ kết thúc; dòng "Chứng từ này không thay thế hóa đơn"; bản ký một lần vào phiên bản hiện hành; người thân có quyền xem chi phí được báo (SC-008, SC-015)
 
 ### Implementation cho User Story 7, 10

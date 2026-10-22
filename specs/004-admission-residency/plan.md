@@ -50,6 +50,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - **Cổng người thân** (FR-068): `DieuKienTiepNhanApi.dieuKienKetThuc` giữ nguyên; bảng quyết toán do 012 lấy từ 017 (017 FR-038), 004 không lưu file quyết toán.
 - **Sửa sai tiền cọc** (Q-385): không còn giao dịch đảo, số phiếu thu; 017 báo trạng thái đặt cọc mới sau điều chỉnh có duyệt, 004 xử lý như mọi lần đổi trạng thái (FR-032 giữ nguyên).
 - **Q-380 (sửa theo Q-385)**: không có thời hạn báo trước, không thêm tham số; phí chấm dứt sớm là khoản nhập tay của 010. 004 không đổi.
+- **Q-387** (FR-071a, chốt 2026-10-22 sau plan): ngoại lệ cho mục quyết toán của danh sách việc sau qua đời dùng cùng loại yêu cầu `M02.NGOAI_LE_KET_THUC` với mã `KT_H_QUYET_TOAN`; `ngoai_le_dieu_kien` thêm `nct_id`, `ho_so_ket_thuc_id` được rỗng khi căn cứ là danh sách việc sau qua đời; endpoint mới `POST /nguoi-cao-tuoi/{nctId}/viec-sau-qua-doi/yeu-cau-ngoai-le-quyet-toan` (Hành chính, Kế toán); `HoSoKetThucDocApi.coNgoaiLeQuyetToanDaDuyet` trả cả hai căn cứ; `NgoaiLeKetThucDaDuyet` mang `hoSoKetThucId` rỗng khi qua đời (research T-13).
 - Không thêm bảng, thư viện, vai trò, trạng thái.
 
 ## Technical Context
@@ -256,4 +257,4 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 
 9. **(2026-10-18) Q-356 "bắt buộc lý do" đã có sẵn ở 001 FR-046.** Mọi lệnh chuyển trạng thái do người dùng thực hiện, gồm Hoàn tất tiếp nhận, đã bắt buộc lý do. Plan không thêm trường lý do riêng; cảnh báo `NCT_KHONG_DONG_Y_VAO_O` hiện ý kiến để người thực hiện ghi lý do nói tới nó. Nếu ý định là một lý do riêng cho ý kiến "Không đồng ý", cần sửa FR-004a cho rõ (cùng nội dung plan 001 điểm báo lại 12). *(Đã xử lý 2026-10-18: Q-361: lý do của lệnh; thiết kế giữ nguyên, spec FR-004a đã làm rõ)*
 
-10. **(2026-10-22) Spec 004 User Story 4 kịch bản 4 còn chữ "được đảo ở feature 017".** Q-385 bỏ giao dịch đảo (sai sót bằng điều chỉnh có duyệt, 017 FR-011); Clarification 2026-09-28 và bảng nhóm dữ liệu của spec 004 đã sửa nhưng kịch bản 4 chưa. Plan, tasks theo điều chỉnh có duyệt (T039 sửa câu chữ). Đề nghị sửa kịch bản 4 của spec khi đồng bộ.
+10. **(2026-10-22) Spec 004 User Story 4 kịch bản 4 còn chữ "được đảo ở feature 017".** Q-385 bỏ giao dịch đảo (sai sót bằng điều chỉnh có duyệt, 017 FR-011); Clarification 2026-09-28 và bảng nhóm dữ liệu của spec 004 đã sửa nhưng kịch bản 4 chưa. Plan, tasks theo điều chỉnh có duyệt (T039 sửa câu chữ). Đề nghị sửa kịch bản 4 của spec khi đồng bộ. *(Đã xử lý 2026-10-22: spec đã sửa.)*

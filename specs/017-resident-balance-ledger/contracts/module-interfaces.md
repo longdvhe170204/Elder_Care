@@ -29,6 +29,7 @@ Chỉ `m11.sodu` dùng `ChiPhiChoSoDuPort` (ArchUnit của 010).
 | `LoaiYeuCauHandler` (000) | `M11.GIAO_DICH_SO_DU` (hoàn tiền, hoàn cọc, điều chỉnh): `kiemTraKhiDuyet` kiểm lại FR-011, FR-014; `apDung` ghi Đã xác nhận | 000 FR-031 |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | Trường tài chính `TAI_CHINH`; lưu theo CFG-M15-03 | 000 |
 | `GanPhamViProvider` (002) | `M11.SO_DU`, `M11.GIAO_DICH_SO_DU`, `M11.PHIEU_BAO_PHI`, `M11.BANG_QUYET_TOAN`: theo người cao tuổi | 002 FR-034 |
+| `KiemTraGiaTriThamSo` (`m15.thamso.api`, 000; SPI mới, bổ sung 2026-10-22) | Bản cài cho CFG-M11-10: `maBin` có trong `ngan_hang` và còn hiệu lực, `soTaiKhoan` chỉ chữ số, `chuTaiKhoan` không rỗng (research E-04) | 000 lệnh đổi giá trị tham số (FR-016 của 000) |
 | `QuyenTepProvider` (`common.tep`) | `M11.PHIEU_BAO_PHI`, `M11.BANG_QUYET_TOAN`, `M11.BAN_KY_QUYET_TOAN`: Kế toán, Quản lý viện, người thân có quyền xem chi phí của người cao tuổi đó; `M11.FILE_XUAT`: người xuất và vai trò xem được loại xuất đó (research E-12) | FR-028, FR-037 |
 
 ### 2.2. `m11.api.SoDuApi` (đọc; 004 hiển thị, 012, 016)
