@@ -6,8 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
+import { ResidentDetail } from './ResidentDetail'
 import { GENDER_LABELS, STATUS_LABELS } from './residentLabels'
 
 // Tra cứu hồ sơ thật trong phạm vi (001 T022; US1 #6, #7; FR-007; hợp đồng GET /residents). Kết quả đã lọc
@@ -19,6 +21,7 @@ export function ResidentSearch({ reloadKey }) {
   const [nextCursor, setNextCursor] = useState(null)
   const [failure, setFailure] = useState(null)
   const [applied, setApplied] = useState('')
+  const [openId, setOpenId] = useState(null)
 
   const load = useCallback(async (q, cursor) => {
     try {
@@ -88,7 +91,15 @@ export function ResidentSearch({ reloadKey }) {
               {items.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell className="tabular-nums">{p.profileCode}</TableCell>
-                  <TableCell className="font-medium">{p.personalInfo.fullName}</TableCell>
+                  <TableCell className="font-medium">
+                    <button
+                      type="button"
+                      className="rounded text-left underline-offset-4 hover:underline"
+                      onClick={() => setOpenId(p.id)}
+                    >
+                      {p.personalInfo.fullName}
+                    </button>
+                  </TableCell>
                   <TableCell className="tabular-nums">{p.personalInfo.dateOfBirth}</TableCell>
                   <TableCell>{GENDER_LABELS[p.personalInfo.gender]}</TableCell>
                   <TableCell>{STATUS_LABELS[p.status] ?? p.status}</TableCell>
@@ -103,6 +114,13 @@ export function ResidentSearch({ reloadKey }) {
           </Button>
         )}
       </CardContent>
+      <Sheet open={openId !== null} onOpenChange={(open) => !open && setOpenId(null)}>
+        <SheetContent className="sm:max-w-lg">
+          {openId !== null && (
+            <ResidentDetail residentId={openId} onChanged={() => load(applied)} onClose={() => setOpenId(null)} />
+          )}
+        </SheetContent>
+      </Sheet>
     </Card>
   )
 }
