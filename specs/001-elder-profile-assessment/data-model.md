@@ -525,3 +525,7 @@ Hồ sơ có hồ sơ sau liên kết tới (FR-004) không bị loại bỏ tr�
 | FR-045, FR-047 | Gộp điều kiện; tác động trong transaction (H-02) | `FR_045_LietKeDieuKienIT`, `FR_047_RollbackTacDongIT` |
 | FR-048 | `SELECT … FOR UPDATE` | `FR_048_LenhDongThoiIT` |
 | FR-053 | `lich_su_muc_cham_soc` | `FR_053_MucTaiNgayIT` |
+| FR-054 | Mức thông báo của sự kiện nhắc, cảnh báo (`HasNotificationRequests`) | T009 (`[ ]`, chờ xem lại với 009); chưa có test |
+| FR-023g (Q-366) | `OpinionRecordedFromFeedback` (tên logic `YKienDaGhiTuPhanHoi`) ở `m01.api.events` | `FR_023g_OpinionFromFeedbackIT` |
+
+**Rà truy vết 2026-10-24 (T075)**: tên lớp test ở bảng là tên logic; tên thật theo bảng đối chiếu glossary mục 8 (đổi tên 2026-10-23). Có test chạy xanh: DBR-01 → 05, 23, 25, 34, 39; BR-M01-01 → 16 (BR-M01-04: `BR_M01_04_TransitionTableTest`, `StatusHistoryIT`; BR-M01-15: `FR_023h_KhongDauNangLucIT` là test tích hợp đọc `information_schema`, không phải `*ArchTest`); FR-045, 047, 048, 053; SC-014 phần 001 (không có hai phiên bản Hiệu lực: `TreatmentWishVersionIT`; phần "lệnh Chuyển viện hiện đủ" thuộc 007). **Chưa có test, có task**: FR-047c (T082: `StatusController` đang trả 422 `ATTACHMENTS_NOT_ACCEPTED`, kiểm bởi `StatusEndpointsIT.FR_047c_attachmentsAreRefusedUntilFileStorageExists`; `GiayToBenhVienIT` chưa viết), FR-054 (T009).

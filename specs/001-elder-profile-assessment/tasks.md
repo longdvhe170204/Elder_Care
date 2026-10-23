@@ -239,13 +239,13 @@ description: "Danh sách task triển khai feature 001 – Hồ sơ và đánh g
 
 ## Phase 10: Polish & Cross-Cutting
 
-- [ ] T076 *(Bổ sung 2026-10-18, Q-366)* Thêm `phan_hoi_id` vào mẫu cột nguồn ý kiến (data-model mục 6a) và khai báo `YKienDaGhiTuPhanHoi` ở `BE/m01/api/`; test `BT/m01/FR_023g_YKienTuPhanHoiIT.java` (quickstart Y1; research H-17)
+- [x] T076 *(Bổ sung 2026-10-18, Q-366)* Thêm `phan_hoi_id` vào mẫu cột nguồn ý kiến (data-model mục 6a) và khai báo `YKienDaGhiTuPhanHoi` ở `BE/m01/api/`; test `BT/m01/FR_023g_YKienTuPhanHoiIT.java` (quickstart Y1; research H-17)
 
 - [ ] T071 [P] Mở rộng `BT/common/HopDongApiTest.java` so springdoc với `specs/001-elder-profile-assessment/contracts/api-001.yaml`
-- [ ] T072 [P] Màn danh mục `frontend/src/tinh-nang/danh-muc-m01/` (dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc)
+- [x] T072 [P] Màn danh mục `frontend/src/tinh-nang/danh-muc-m01/` (dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc)
 - [ ] T073 Khi plan của 003, 004, 005, 006, 007, 010, 011, 012, 013 cài bean `ThamGiaChuyenTrangThai` thật, chạy lại `FR_045_LietKeDieuKienIT`, `FR_047_RollbackTacDongIT` với bean thật (research H-02 mục 4)
 - [ ] T074 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T075 Rà truy vết data-model mục 12: DBR-01 → 05, 23, 25, 34 và BR-M01-01 → 15 (BR-M01-14, 15 phần của 001) có test; FR bổ sung 2026-10-10: FR-054 — có task hoặc test tương ứng (constitution XV); *(bổ sung 2026-10-22)* DBR-39, BR-M01-16, FR-047c, SC-014
+- [x] T075 Rà truy vết data-model mục 12: DBR-01 → 05, 23, 25, 34 và BR-M01-01 → 15 (BR-M01-14, 15 phần của 001) có test; FR bổ sung 2026-10-10: FR-054 — có task hoặc test tương ứng (constitution XV); *(bổ sung 2026-10-22)* DBR-39, BR-M01-16, FR-047c, SC-014
 
 ---
 

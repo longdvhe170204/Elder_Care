@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 5.19.1
+version: 5.19.2
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-10-23
@@ -638,6 +638,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 5.19.2 | 2026-10-24 | Chủ dự án duyệt bố cục tab Danh mục trong "Tài khoản, tham số" (001 T072; mục 14): bộ chọn bốn loại danh mục (dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc), bộ lọc trạng thái và nhóm dị nguyên, bảng, form Thêm/Sửa và form lý do Ngừng hiệu lực/Kích hoạt lại mở dưới bảng; nút thao tác chỉ hiện cho Quản lý viện. Không thêm màu, không thêm quy định; "Hiệu lực" tông `settled`, "Ngừng hiệu lực" tông `neutral` mặc định. Chưa nghiệm thu trên trình duyệt. |
 | 5.19.1 | 2026-10-23 | Chủ dự án cho triển khai bố cục tab Nguyện vọng trong khung chi tiết hồ sơ người cao tuổi (001 T070, T080; mục 14) theo đề xuất: hai khối xếp dọc "Nguyện vọng cuối đời" và "Nguyện vọng khi điều trị", mỗi khối có thẻ phiếu hiện hành, nút theo lệnh được phép, form mở dưới thẻ, lịch sử phiên bản; nhận định "tự quyết được" chỉ nằm trong thẻ phiếu cuối đời kèm dòng "Người quyết định"; Hành chính chỉ thấy "Đã có phiếu", Kế toán không thấy khối khi điều trị. Không thêm màu, không thêm quy định; "Hiệu lực" dùng tông `settled`, "Được thay thế", "Hết hiệu lực" tông `neutral` mặc định. Chưa nghiệm thu trên trình duyệt. |
 | 5.19.0 | 2026-10-23 | Chủ dự án duyệt bố cục thông báo (009 T035, T028): mục menu "Thông báo" với năm tab theo vai trò (mục 14), công thức `notification-inbox` (mục 7.2). Tông trạng thái vào mục 3.5: mức thông báo như mức cảnh báo; thông báo Chờ hết giờ yên tĩnh, Đã gửi, Không gửi `neutral`, Đã xem, Đã xác nhận `settled`, Gửi thất bại, Không liên lạc được `attention`; liên hệ trực tiếp Chờ liên hệ `attention`, Đã liên hệ `settled`, Không liên hệ được `neutral`; kênh Đang bật `settled`, Đã tắt `neutral`. Không thêm màu |
 | 5.18.4 | 2026-10-23 | Chủ dự án duyệt bố cục báo đánh giá lại (001 T066; mục 14): dải `Alert` đầu tab Đánh giá, cột Đánh giá lại và bộ lọc "Cần đánh giá lại (n)" ở bảng hồ sơ. Không thêm màu; mục 3.5 thêm "Cần đánh giá lại" vào tông `attention` và "Quá hạn đánh giá lại" vào tông `urgent`. |
