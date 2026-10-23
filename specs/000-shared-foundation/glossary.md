@@ -938,6 +938,44 @@ Sự kiện ở `m09.api.events` (chỉ khai báo ở T003; dịch vụ nguồn 
 
 Ba loại mặc định dùng code `DOCTOR_LICENSE`, `NURSING_LICENSE`, `FIRST_AID_TRAINING`; các cờ khởi tạo được người dùng duyệt trong phiên. `Credential.hiddenFields` là mảng tên trường chỉ đọc, không bắt buộc. Trường lỗi dùng nguyên tên chung ở mục 6; `warnings` giữ nguyên schema 008. Nhóm `STAFF_REASON` chưa mở quyền cho người không phải Quản lý viện trước khi có luồng vắng ca và dữ liệu người ghi/phạm vi ở T039–T040.
 
+### 14.8. Lịch ca Phase 3 (2026-10-24)
+
+Tên bổ sung cho T010–T016; chỉ mục 14 thay đổi. Người dùng duyệt khai báo tối thiểu SPI của C/D kèm bản giả dùng chung và `version` chỉ đọc trong `ShiftTemplate`, `ShiftSchedule`, `Shift`. C/D review các tên SPI dưới đây trước khi gộp; các hàm phân công/bàn giao nối ở T021/T026.
+
+| Tên logic | Mã |
+| --- | --- |
+| `mau_ca / lich_ca / ca / ca_nhan_vien` | `shift_template / shift_schedule / work_shift / shift_staff` |
+| `nguoi_phu_trach_ca / ban_cong_bo_lich` | `shift_lead_history / shift_publication` |
+| `loai_pham_vi / pham_vi_id / khoa_pham_vi` | `scope_type / scope_id / scope_key` |
+| `gio_bat_dau / gio_ket_thuc / yeu_cau_ban_giao` | `start_time / end_time / requires_handover` |
+| `thang / nguoi_lap / nguoi_cong_bo / cong_bo_luc / tu_duyet` | `month / created_by / published_by / published_at / self_approved` |
+| `lich_id / mau_ca_id / ca_id / thieu_nguoi_phu_trach` | `schedule_id / template_id / shift_id / missing_lead` |
+| `bac_si_truc / vang_luc / rut_do_nghi_viec_luc / bo_sung_luc` | `on_duty_doctor / absent_at / withdrawn_on_resignation_at / added_at` |
+| `nghi_co_duyet_yeu_cau_id / roi_ca_luc / can_cu_vao_ca / can_cu_roi_ca` | `approved_leave_request_id / left_at / entry_basis / departure_basis` |
+| `da_nhac_lap_ban_giao_luc / da_nhac_ket_thuc_luc / da_nhac_chua_xac_nhan_luc / da_bao_chua_co_nguoi_phu_trach_luc` | `prepare_handover_reminded_at / shift_end_reminded_at / unconfirmed_handover_reminded_at / unassigned_residents_notified_at` |
+| `dang_duoi_nguong / da_bao_quan_ly_luc / ly_do_huy / noi_dung` | `below_threshold / manager_notified_below_threshold_at / cancellation_reason / content` |
+| `ChuoiCaLienTuc / kho / dịch vụ lịch / vòng đời ca` | `ContinuousShiftChain / ShiftStore / ShiftScheduleService / ShiftLifecycle` |
+| `Mẫu / lịch / ca / thành viên / đầu vào` | `ShiftTemplate / ShiftSchedule / WorkShift / ShiftMember / TemplateInput / ShiftInput` |
+| `Nguồn trạng thái bàn giao / phạm vi lịch-ca` | `ShiftHandoverState / ShiftScopeAssignment` |
+| `TraCuuCaService / bản cài phần ca của SPI` | `ShiftQueries / CareShiftLookup / NursingShiftLookup / AlertStaffLookup / ShiftLocationReferences` |
+| `ThamChieuViTri / ViTriRef / ThamChieuViTriView` (003) | `m03.api.spi.LocationReferences / m03.api.dto.LocationRef / LocationReferenceView` |
+| `NhanSuCaPort / CaView` (005) | `m04.api.spi.CareShiftPort / m04.api.dto.CareShiftView` |
+| `DieuDuongCaPort / CaView` (006) | `m07.api.spi.NursingShiftPort / m07.api.dto.NursingShiftView` |
+| `NhanSuCanhBaoPort / CaView` (007) | `m05.api.spi.AlertStaffPort / m05.api.dto.AlertShiftView` |
+| `conThamChieu / daTungThamChieu / caDaCongBo / caTai / caSau` | `activeReferences / everReferenced / publishedShifts / shiftAt / nextShift` |
+| `coTenTrongCa / duDieuKien / caCoNguoi / dieuDuongCoCa` | `listedInShift / qualified / hasQualifiedStaff / nursesWithShift` |
+| `coTenTrongCaDangDienRa / truongTangDuocGiao / tangTrongCa / cacTangCoCa` | `inProgressShiftMember / assignedFloorManager / floorDuringShift / floorsWithShift` |
+| `Bản giả dùng chung 003 / 005 / 006 / 007` | `FakeLocationReferences / FakeCareShifts / FakeNursingShifts / FakeAlertStaff` và `FakeM03Config / FakeM04Config / FakeM07Config / FakeM05Config` |
+| `HTTP lịch ca: controller / yêu cầu / phản hồi` | `ShiftController / ShiftRequests / ShiftResponses` |
+| `Web lịch: trang / form ca / form lịch-mẫu-công bố / nhãn` | `features/shifts/ShiftsPage / ShiftForm / ScheduleForms / shiftLabels` |
+| `M09.LICH_CA / M09.CA / M09.MAU_CA / M09.CA_NHAN_VIEN / M09.NGUOI_PHU_TRACH_CA / M09.BAN_CONG_BO_LICH` | `M09.SCHEDULE / M09.SHIFT / M09.SHIFT_TEMPLATE / M09.SHIFT_STAFF / M09.SHIFT_LEAD_HISTORY / M09.SHIFT_PUBLICATION` |
+| `Tạo-sửa mẫu / công bố lịch / chuyển trạng thái` | `SHIFT_TEMPLATE_CREATED / SHIFT_TEMPLATE_UPDATED / SCHEDULE_PUBLISHED / SHIFT_STATUS_CHANGED` |
+| `Trùng lịch / chồng ca / cần xác nhận cảnh báo / dữ liệu đã thay đổi` | `SCHEDULE_ALREADY_EXISTS / SHIFT_OVERLAP / WARNING_CONFIRMATION_REQUIRED / STATE_CHANGED` |
+| `Vượt giờ liên tục / đào tạo hết hạn / cần phụ trách / cần Trưởng tầng / phân công không hợp lệ` | `CONTINUOUS_WORK_HOURS / REQUIRED_TRAINING_EXPIRED / SHIFT_LEAD_REQUIRED / FLOOR_MANAGER_REQUIRED / INVALID_ASSIGNMENTS` |
+| `Nguồn ca tại tầng mâu thuẫn` | `InvalidPermissionDataException("M09.SHIFT", "MULTIPLE_CURRENT_SHIFTS", floorId)` |
+
+`ShiftSchedule.version` lấy từ danh sách lịch, `ShiftTemplate.version` từ danh mục mẫu; `Shift.version` và ETag từ đọc chi tiết. If-Match là số phiên bản trong dấu ngoặc kép. Đây là bổ sung hợp đồng đã duyệt, không thêm đường dẫn. Khoảng ngày `/me/shifts` dùng `[from, to)` theo múi giờ Việt Nam.
+
 ## 15. Feature 009 (`009-notification-service`, A) *(bổ sung 2026-10-21, khi dịch `contracts/api-009.yaml`)*
 
 Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với mã (R-03). Khuôn `common.notification` đã dịch ở mục 6.5 (`NotificationRequest`, `NotificationLevel`, `InformationType`, `RecipientGroup`, `Substitution`, `InformationSubject`, `Q354Case`) giữ nguyên.

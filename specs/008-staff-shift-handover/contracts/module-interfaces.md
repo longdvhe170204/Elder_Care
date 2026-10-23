@@ -6,6 +6,10 @@ Giao diện Java công khai ở `m09.api` và bản cài các SPI do module th�
 
 Plan làm sau (009, 011, 013, 014, 015, 016) giữ đúng chữ ký hoặc ghi rõ thay đổi.
 
+**Triển khai Phase 3, 2026-10-24**: `ShiftApi` có bản thật ở `m09.duty.internal.service.ShiftQueries`; bản giả chung vẫn là `support/fake/m09/FakeShifts`. Các SPI thấp hơn chưa có trên nhánh nên người dùng cho phép khai báo phần đọc ca tối thiểu: `m03.api.spi.LocationReferences`, `m04.api.spi.CareShiftPort`, `m07.api.spi.NursingShiftPort`, `m05.api.spi.AlertStaffPort`, cùng bản giả duy nhất tại `support/fake/m03`, `m04`, `m07`, `m05`. Chữ ký Java trong các interface và bảng dịch glossary mục 14.8 là phần đã cài; không phải toàn bộ SPI phân công/bàn giao trong bảng thiết kế bên dưới. Hàm phân công, giao Trưởng tầng nối ở T019–T021; trạng thái bàn giao/ca sau nối T026–T028. Không cài bản trả rỗng để giả là các phần này đã hoàn thành. C/D review trước khi gộp (team-plan mục 8).
+
+Truy vấn ca tại tầng dựa trên thời gian `[bắt đầu, kết thúc)` và lịch đã công bố, không chờ job cập nhật nhãn trạng thái; thành viên bị trừ từ mốc vắng/rút/rời ca và nghỉ đã duyệt. Nếu nhiều ca đang có hiệu lực cùng tầng tại cùng thời điểm, báo lỗi dữ liệu nguồn qua `InvalidPermissionDataException`, không chọn tùy ý một ca. Vai trò không xếp ca dùng `CFG_M13_06` qua `ParameterApi`.
+
 ---
 
 

@@ -628,10 +628,10 @@ components:
     ShiftTemplate:
       type: object
       required: [name, startTime, endTime, scopeType]
-      properties: { id: { type: integer, format: int64 }, name: { type: string }, startTime: { type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$' }, endTime: { type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$' }, scopeType: { type: string, enum: [FLOOR, AREA, FACILITY] }, handoverRequired: { type: boolean }, active: { type: boolean } }
+      properties: { id: { type: integer, format: int64 }, name: { type: string }, startTime: { type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$' }, endTime: { type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$' }, scopeType: { type: string, enum: [FLOOR, AREA, FACILITY] }, handoverRequired: { type: boolean }, active: { type: boolean }, version: { type: integer, format: int64, readOnly: true } }
     ShiftSchedule:
       type: object
-      properties: { id: { type: integer, format: int64 }, month: { type: string }, scopeType: { type: string }, scopeId: { type: integer, format: int64 }, status: { type: string, enum: [DRAFT, PUBLISHED] }, shifts: { type: array, items: { $ref: '#/components/schemas/Shift' } } }
+      properties: { id: { type: integer, format: int64 }, month: { type: string }, scopeType: { type: string }, scopeId: { type: integer, format: int64 }, status: { type: string, enum: [DRAFT, PUBLISHED] }, shifts: { type: array, items: { $ref: '#/components/schemas/Shift' } }, version: { type: integer, format: int64, readOnly: true } }
     NewShift:
       type: object
       required: [shiftTemplateId, date]
@@ -648,6 +648,7 @@ components:
       type: object
       properties:
         id: { type: integer, format: int64 }
+        version: { type: integer, format: int64, readOnly: true }
         shiftTemplateId: { type: integer, format: int64 }
         startsAt: { type: string, format: date-time }
         endsAt: { type: string, format: date-time }
