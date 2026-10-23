@@ -2,3 +2,4 @@
 export { ApiError, request } from './client.js'
 export * from './api000.js'
 export * from './api002.js'
+export * from './api009.js'
