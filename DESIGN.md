@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 5.18.2
+version: 5.18.3
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-10-23
@@ -635,6 +635,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 5.18.3 | 2026-10-23 | Chủ dự án duyệt bố cục tab Đồng ý trong khung chi tiết hồ sơ người cao tuổi (001 T059; mục 14): thẻ bản đồng ý hiện hành kèm nút theo lệnh được phép, form ghi nhận hoặc rút lại mở dưới thẻ, lịch sử bản đã rút lại. Không thêm màu, không thêm quy định; "Hiệu lực" dùng tông `settled`, "Đã rút lại" tông `neutral` mặc định. Tải bản ký đi qua backend, không có đường dẫn công khai. |
 | 5.18.2 | 2026-10-23 | Chủ dự án duyệt bố cục tab Đánh giá trong khung chi tiết hồ sơ người cao tuổi (001 T042; mục 14): hai cột phiếu và thông tin tham khảo, khung rộng khi mở tab. Không thêm màu, không thêm quy định; nhãn Bản nháp, Đã hủy dùng tông `neutral`, Đã xác nhận `settled` như hồ sơ sức khỏe ban đầu. |
 | 5.18.1 | 2026-10-22 | Chủ dự án duyệt bố cục tab Sức khỏe trong khung chi tiết hồ sơ người cao tuổi (001 T033; mục 14). Không thêm màu, không thêm quy định; "Bản nháp", "Đã loại trừ" dùng tông `neutral` mặc định của `StatusBadge` |
 | 5.18.0 | 2026-10-21 | Chủ dự án duyệt bố cục phân quyền (002 T077): tab Phân quyền trong "Tài khoản, tham số", mục Quyền trong khung chi tiết tài khoản (mục 14). Trạng thái quyền vào mục 3.5: Đã thu hẹp `attention`, Theo ma trận `neutral`. Không thêm màu |
