@@ -322,3 +322,36 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - **Kiểm chứng**: MySQL 3307; 282 test tích hợp của `m01.*` và `common.file.*`, ArchTest xanh sau sửa hai lỗi trong test (`ResidentContractIT` thêm endpoint `consents`, `files` và schema `Consent`). Chưa chạy `verify` toàn dự án.
 - **Web (T059, 2026-10-23)**: `frontend/src/features/consents/` (`ConsentTab`, `consentLabels.js`, 12 test Vitest), tab "Đồng ý" trong `ResidentDetail`; `frontend/src/common/files.js` (`uploadFile`, `openFile`) vì client sinh từ hợp đồng chỉ gửi JSON. Bố cục duyệt 2026-10-23 (DESIGN.md 5.18.3). Nút theo `allowedCommands`; hồ sơ trạng thái cuối không ghi nhận bản mới nhưng vẫn rút lại. Bản ký tải qua `GET /files/{id}` bằng cookie phiên rồi mở bằng URL `blob:` trong trình duyệt; backend kiểm quyền mỗi lần, không có đường dẫn công khai. **Tạm thời**: mã người thân (người được xem sức khỏe, người ký thay) nhập tay vì 012 chưa có danh sách; mã được kiểm là số nguyên dương, người ký thay còn được backend kiểm quan hệ (409 `INVALID_SIGNER`); mã trong danh sách xem sức khỏe không kiểm tồn tại. Profile `demo` có `DemoFileStorageConfig` lưu tệp trong bộ nhớ khi chưa có `ELDERCARE_S3_BUCKET` (mất khi khởi động lại; **không phải kiểm thử với S3 thật**, chưa có môi trường AWS để chạy upload/download thật).
 - **Chốt Phase 7 (2026-10-23)**: `./mvnw verify` trên MySQL 3307 (TEST_DB_URL, DB_URL đã xác minh): 410 test đơn vị và kiến trúc xanh; 706 test tích hợp, 702 xanh, 4 đỏ: `ApiContractIT.R_14` (BL-23 của A, có từ trước) và 3 test của `m15.account.FamilyHealthIT` do bản giả `FakeConsents` (mã chú thích "1") trùng với `ConsentFootnoteCondition` thật nên `PermissionService.registeredConditions` báo "Duplicate key 1": test của A cần dùng bản thật hoặc gỡ bản giả (chờ chủ dự án cho phép sửa file của A). Vitest 164, lint, build xanh.
+
+
+## Ghi chú triển khai *(2026-10-23, CP-001-P8: T060 → T066)*
+
+- **Mã**: migration `V001_08__reassessment_notice.sql` (tên tiếng Anh theo glossary mục 8); `m01/internal/assessment/service/` gồm `ReassessmentNoticeService` (báo, tính trạng thái, chạy job), `ReassessmentApiImpl`, `ReassessmentNoticeListener`, `CareLevelChangeRequestReminderService` (nhắc CFG-M03-02, dùng bảng `periodic_reminder`), `ReassessmentQueryService`; `web/ReassessmentController`; ba job ở `m01/scheduling/`. Hạn tính từ lần báo sớm nhất chưa đáp ứng; chưa đáp ứng là lần báo sau lần đánh giá Đã xác nhận gần nhất (mọi loại). Đang Điều trị tại bệnh viện không tính hạn; Ghi nhận trở về đặt mốc cho mọi lần báo chưa đáp ứng và xóa dấu đã cảnh báo.
+- **Lệch có chủ đích**: (1) báo sau đính chính và sau sự cố cho mọi hồ sơ chưa ở trạng thái cuối (kể cả Đang tiếp nhận); chỉ job định kỳ giới hạn bốn trạng thái của FR-039. (2) `GET /reassessments/due` trả mảng đầy đủ, không phân trang, vì hợp đồng không có `nextCursor`. (3) `basis[].source` có dạng `LOẠI:mã`. (4) `applyChange` đặt mức hiện hành ngay, nên 004 phải gọi vào hoặc sau ngày hiệu lực.
+- **Chưa làm**: listener sự cố của T063 (chờ D khai báo `IncidentRecorded`); `ResidentStatisticsApi.overdueReassessments` chưa có bản cài. Chờ A thêm ba tên job vào `runJobs` (team-plan mục 8). File chung đã sửa với phép của chủ dự án: `SchedulerScopeArchTest.ALLOWED`, `application.yml` profile test.
+- **Web**: dải `Alert` đầu tab Đánh giá, cột và bộ lọc ở bảng hồ sơ (DESIGN.md 5.18.4); 52 Vitest xanh ở assessments, residents; lint, build xanh.
+- **Chốt Phase 8**: `./mvnw verify` trên MySQL 3307: 729 test, 4 đỏ đều có từ trước và thuộc A (`ApiContractIT.R_14` BL-23; ba test `FamilyHealthIT` BL-39). Chưa nghiệm thu giao diện trên trình duyệt.
+
+## Bàn giao checkpoint Phase 8 *(2026-10-23, trước khi tạm nghỉ; B duyệt)*
+
+**Git (xác minh bằng `git ls-remote origin refs/heads/impl/001-elder-profile-assessment`, không dựa nhánh theo dõi local, vì nhánh này từng cũ hơn thực tế):** các commit Phase 1 → 7 đã ở remote (remote khớp `3b27943` trước khi commit Phase 8). Phase 8 gồm `a4c8dd5` (test), `3ee1b9b` (backend), `69f1089` (web) và một commit tài liệu; push theo fast-forward, không force. Stash `CP-001-P2-IMPL` còn nguyên (web danh mục, `ApiContractIT` đăng ký api-001, `api-001.yaml`; chờ A duyệt file chung).
+
+| Phase | Task xong / chưa | Commit | Test tự động | Giao diện web B nghiệm thu |
+| --- | --- | --- | --- | --- |
+| 1, 2 | Xong 10 (có T003, T004 từ `8aa21d3`). Chưa: T002 (thiếu bản giả `ChiSoApi`, `SuCoDaGhiNhan` do D), T009 (thiếu `HasNotificationRequests`, chờ 009), T011 (chưa phân loại trường các loại còn lại, `RetentionProvider`), T013 (mới phủ lệnh danh mục), T013a (Excel và commit `e9483e5` ghi xong, test `FR_023h_KhongDauNangLucIT` có, nhưng tasks.md chưa `[x]`: cần đối chiếu T013a nói ArchTest trước khi đánh dấu), T083 | `a0482bc`, `e75ac3e`, `5be4575`, `e422566`, `e9483e5`; T003, T004: `8aa21d3` | Có | Chưa |
+| 3 | Xong 7 / chưa T018, T019, T023 (mobile) | `24a09ab`, `b108441`, `29dcde1`, `884657b` | Có | Chưa |
+| 4 | Xong 9 / chưa T033 (mobile) | `fdece81`, `a8956f7`, `55d8b5d` | Có | Chưa |
+| 5 | Xong 8 / chưa T042 (mobile) | `ba4bd33`, `b669c62`, `e547a42`, `344eb2f`, `c0c374e` | Có | Chưa |
+| 6 | Xong 7 / chưa T049 (`statusPeriods`), T050 (`DinhChinhDuocProvider`), T052 (mobile), T081, T082 (giấy tờ bệnh viện; `FileApi` đã có từ `8aa21d3`, chưa làm) | `eaf473e`, `fa3ee79`, `82152ff` | Có | Chưa |
+| 7 | Xong 7 / chưa: không | `e8ef59c`, `55f0a87`, `3b27943` | Có | Chưa |
+| 8 | Xong 6 (T060 → T062, T064 → T066; T036 và T048 thuộc Phase 5, 6 cũng xong ở Phase 8) / chưa T063 (listener sự cố, chờ D) | `a4c8dd5`, `3ee1b9b`, `69f1089`, commit tài liệu | Có | Chưa |
+
+Tổng theo tasks.md: 54 task `[x]`, 31 task `[ ]` (Phase 9: 8, Phase 10: 6, còn lại là tồn đọng ở Phase 1 → 8 ở bảng trên). Đã merge `origin/develop` ba lần (`f7680b5`, `5a6335a`, `5cf69e5`).
+
+**Test còn đỏ (không phải của B, không sửa):** `ApiContractIT.R_14` (BL-23, A đăng ký api-001) và ba test `FamilyHealthIT` do `FakeConsents` trùng `ConsentFootnoteCondition` thật (BL-39, A). `./mvnw verify` Phase 8: 729 test, chỉ 4 đỏ này.
+
+**Chờ người khác:** A (duyệt ba tên job vào `runJobs`, BL-23, BL-39, `TEMPORARY_ABSENCE_OVERDUE` và các job trước), D (`IncidentRecorded`, `VitalSignApi`), 009 (`HasNotificationRequests`).
+
+**Còn phải làm cho Feature 001:** Phase 9 (nguyện vọng cuối đời T067 → T070, T077 → T080), Phase 10 (T071 → T076), tồn đọng ở bảng trên, toàn bộ phần `mobile/` (chưa mở), nghiệm thu giao diện web các tab Hồ sơ, Sức khỏe, Đánh giá, Trạng thái, Đồng ý, dải đánh giá lại.
+
+**Nhớ khi làm Phase 9:** luôn đặt `DB_URL`, `TEST_DB_URL` về cổng 3307 (biến máy trỏ 3306); sau verify khôi phục quyền `elder_care_demo`; dùng `git ls-remote` để biết remote thật; không đánh dấu nghiệm thu giao diện khi B chưa thử; tạo bản giả `support/fake/m05/` khi D khai báo `IncidentRecorded`.
