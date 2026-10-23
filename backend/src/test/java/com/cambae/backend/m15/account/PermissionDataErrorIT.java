@@ -26,6 +26,7 @@ import com.cambae.backend.support.fake.m15.FakeM15Config;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -104,8 +105,10 @@ class PermissionDataErrorIT extends MySqlIntegrationTestBase {
                 .containsEntry("source", "M03.BED_ALLOCATION")
                 .containsEntry("error_kind", "TWO_OPEN_ALLOCATIONS")
                 .containsEntry("occurrences", 2);
-        assertThat(events.stream(PermissionDataError.class).filter(e -> e.recordId() == broken))
-                .containsExactly(new PermissionDataError("M03.BED_ALLOCATION", broken, "TWO_OPEN_ALLOCATIONS"));
+        assertThat(events.stream(PermissionDataError.class)
+                        .filter(e -> e.recordId() == broken)
+                        .map(e -> List.<Object>of(e.errorId(), e.source(), e.errorKind())))
+                .containsExactly(List.<Object>of(error.get("id"), "M03.BED_ALLOCATION", "TWO_OPEN_ALLOCATIONS"));
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM audit_log WHERE action = 'PERMISSION_DENIED_SOURCE_DATA'"
                                 + " AND entity_type = 'M15.PERMISSION_DATA_ERROR' AND entity_id = ?",

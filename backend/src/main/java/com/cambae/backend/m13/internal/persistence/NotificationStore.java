@@ -2,6 +2,7 @@ package com.cambae.backend.m13.internal.persistence;
 
 import com.cambae.backend.common.notification.InformationType;
 import com.cambae.backend.common.notification.NotificationLevel;
+import com.cambae.backend.common.notification.Q354Case;
 import com.cambae.backend.m13.api.dto.AcknowledgementMethod;
 import com.cambae.backend.m13.api.dto.RecipientType;
 import com.cambae.backend.m13.internal.domain.DeliveryOutcome;
@@ -42,7 +43,8 @@ public class NotificationStore {
             Set<InformationType> visibleParts,
             boolean identityOnly,
             NotificationLevel level,
-            Instant createdAt) {}
+            Instant createdAt,
+            Q354Case q354Case) {}
 
     private final JdbcTemplate jdbc;
     private final JsonMapper json;
@@ -59,8 +61,8 @@ public class NotificationStore {
                 connection -> {
                     PreparedStatement ps = connection.prepareStatement(
                             "INSERT INTO notification (request_id, recipient_type, recipient_id, account_id, basis,"
-                                    + " visible_parts, identity_only, level, created_at)"
-                                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                    + " visible_parts, identity_only, level, created_at, q354_case)"
+                                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS);
                     ps.setLong(1, n.requestId());
                     ps.setString(2, n.recipientType().name());
@@ -71,6 +73,7 @@ public class NotificationStore {
                     ps.setBoolean(7, n.identityOnly());
                     ps.setString(8, n.level().name());
                     ps.setObject(9, utc(n.createdAt()));
+                    ps.setString(10, n.q354Case() == null ? null : n.q354Case().name());
                     return ps;
                 },
                 key);
@@ -110,6 +113,28 @@ public class NotificationStore {
                 actorId,
                 utc(at));
         recompute(notificationId);
+    }
+
+    /**
+     * Lần gửi đầu tiên của thông báo vừa tạo (lần thử số 1); chèn thẳng, không đọc số lần thử như {@link #planAttempt}, để
+     * các lượt tiếp nhận chạy song song không khóa khoảng chỉ mục của nhau.
+     */
+    public long planFirstAttempt(long notificationId, String channel, String address, Instant at) {
+        GeneratedKeyHolder key = new GeneratedKeyHolder();
+        jdbc.update(
+                connection -> {
+                    PreparedStatement ps = connection.prepareStatement(
+                            "INSERT INTO delivery_attempt (notification_id, channel, address, attempt_no, scheduled_at)"
+                                    + " VALUES (?, ?, ?, 1, ?)",
+                            Statement.RETURN_GENERATED_KEYS);
+                    ps.setLong(1, notificationId);
+                    ps.setString(2, channel);
+                    ps.setString(3, address);
+                    ps.setObject(4, utc(at));
+                    return ps;
+                },
+                key);
+        return key.getKey().longValue();
     }
 
     /** Thêm lần gửi dự kiến (lần thử kế tiếp của kênh); trả id lần gửi. */
