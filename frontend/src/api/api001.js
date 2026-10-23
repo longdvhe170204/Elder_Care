@@ -33,7 +33,7 @@ export const postResidentsByIdCancelAdmission = (params) => request('POST', '/re
 /** Cho tạm vắng (Hành chính, Trưởng tầng; không qua duyệt) (FR-044, FR-047, FR-047a, BR-M01-06, BR-M10-03) */
 export const postResidentsByIdGrantTemporaryAbsence = (params) => request('POST', '/residents/{id}/grant-temporary-absence', params)
 
-/** Ghi nhận trở về (từ Tạm vắng hoặc Điều trị tại bệnh viện) (FR-040, FR-041, FR-044, FR-047a, BR-M01-02, BR-M07-09) */
+/** Ghi nhận trở về (từ Tạm vắng hoặc Điều trị tại bệnh viện) (FR-040, FR-041, FR-044, FR-047a, FR-047c, BR-M01-02, BR-M07-09, BR-M05-32) */
 export const postResidentsByIdRecordReturn = (params) => request('POST', '/residents/{id}/record-return', params)
 
 /** Chuyển viện (Điều dưỡng, Bác sĩ) (FR-044, FR-047, BR-M01-06) */
@@ -86,6 +86,12 @@ export const getResidentsByIdEndOfLifeWishes = (params) => request('GET', '/resi
 
 /** Ghi phiên bản mới (Bác sĩ, Điều dưỡng); phiên bản cũ chuyển Được thay thế (FR-023a, FR-023b, FR-023c, FR-023g, FR-023h) */
 export const postResidentsByIdEndOfLifeWishes = (params) => request('POST', '/residents/{id}/end-of-life-wishes', params)
+
+/** Phiếu nguyện vọng khi điều trị — phiên bản Hiệu lực và lịch sử (bổ sung 2026-10-22) (FR-023k, FR-023m, BR-M01-16) */
+export const getResidentsByIdTreatmentWishes = (params) => request('GET', '/residents/{id}/treatment-wishes', params)
+
+/** Ghi phiên bản mới (Bác sĩ, Điều dưỡng); phiên bản cũ chuyển Hết hiệu lực (bổ sung 2026-10-22) (FR-023j, FR-023k, FR-023g, BR-M01-16, BR-M01-14) */
+export const postResidentsByIdTreatmentWishes = (params) => request('POST', '/residents/{id}/treatment-wishes', params)
 
 /** Lịch sử đánh giá (chỉ vai trò có quyền xem Đánh giá; Nhân viên chăm sóc 403) (FR-008, FR-025) */
 export const getResidentsByIdAssessments = (params) => request('GET', '/residents/{id}/assessments', params)
