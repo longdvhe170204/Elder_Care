@@ -79,7 +79,8 @@ paths:
       summary: Xem hồ sơ
       description: |
         Nhân viên nhận Profile: trường bị bỏ theo 19.3 (Hành chính không thấy activeHealthItems; nguyện vọng chỉ hasEndOfLifeWish).
-        Người thân nhận FamilyProfile: không có careNote; phần sức khỏe chỉ có khi thỏa chú thích ¹ (FR-022).
+        Người thân nhận cùng schema Profile ở dạng tập con FamilyProfile: không có careNote; phần sức khỏe chỉ có khi thỏa chú thích ¹ (FR-022);
+        trường bị bỏ khỏi phản hồi và liệt kê trong hiddenFields (002 A-08), nên một schema Profile mô tả cả hai.
         Ngoài phạm vi: 404.
       x-fr: [FR-007, FR-008, FR-009, FR-022, FR-023e]
       x-br: [BR-M01-08, BR-M15-01]
@@ -90,7 +91,7 @@ paths:
           headers: { ETag: { $ref: '#/components/headers/ETag' } }
           content:
             application/json:
-              schema: { oneOf: [ { $ref: '#/components/schemas/Profile' }, { $ref: '#/components/schemas/FamilyProfile' } ] }
+              schema: { $ref: '#/components/schemas/Profile' }
         '404': { $ref: '#/components/responses/Problem' }
   /residents/{id}/update-personal-info:
     post:
@@ -616,17 +617,16 @@ paths:
       tags: [assessments]
       summary: Danh sách người cao tuổi cần đánh giá lại (Bác sĩ), sắp theo hạn
       x-fr: [FR-039, FR-041]
-      parameters: [ { $ref: '#/components/parameters/Cursor' } ]
+      description: Trả đủ danh sách trong phạm vi của người gọi, không phân trang (bỏ tham số cursor 2026-10-24, theo mã đã cài)
       responses:
         '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ReassessmentStatus' } } } } }
 
   /catalogs/{type}:
-    parameters:
-      - { name: type, in: path, required: true, schema: { type: string, enum: [allergens, allergy-severities, information-sources, care-needs, care-levels] } }
     get:
       tags: [catalogs]
       summary: Danh sách mục (care-levels cố định, chỉ đọc)
       parameters:
+        - { name: type, in: path, required: true, schema: { type: string, enum: [allergens, allergy-severities, information-sources, care-needs, care-levels] } }
         - { name: group, in: query, description: 'Chỉ với allergens', schema: { type: string, enum: [ACTIVE_INGREDIENT, FOOD, OTHER] } }
         - { name: status, in: query, schema: { type: string, enum: [ACTIVE, INACTIVE] } }
       responses:
@@ -636,6 +636,8 @@ paths:
       summary: Tạo mục (quyền theo data-model mục 5)
       x-fr: [FR-018, FR-018a]
       x-br: [BR-M01-11, BR-M15-06]
+      parameters:
+        - { name: type, in: path, required: true, schema: { type: string, enum: [allergens, allergy-severities, information-sources, care-needs, care-levels] } }
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CatalogItem' } } } }
       responses:
         '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CatalogItem' } } } }
@@ -760,15 +762,23 @@ components:
     CareLevelCode: { type: string, enum: [BASIC, REGULAR, SPECIAL] }
     Problem:
       type: object
+      description: Lỗi theo RFC 9457; cùng cấu trúc với Problem của api-000 (BL-23, chủ dự án chọn bản chung 2026-10-23)
+      required: [type, title, status, errorCode]
       properties:
-        type: { type: string }
+        type: { type: string, format: uri }
         title: { type: string }
         status: { type: integer }
         detail: { type: string }
-        errorCode: { type: string }
-        unmetConditions: { type: array, items: { $ref: '#/components/schemas/Condition' } }
-        currentValue: { type: object }
-        candidates: { type: array, description: 'POSSIBLE_DUPLICATE_PROFILE, DUPLICATE_HEALTH_ITEM', items: { type: object } }
+        errorCode: { type: string, example: CONDITION_NOT_MET }
+        unmetConditions:
+          type: array
+          description: FR-006
+          items: { type: object, properties: { code: { type: string, example: BR-M03-06 }, description: { type: string }, basis: { type: string, description: "BR/FR, ví dụ BR-M12-03" }, module: { type: string, description: "Feature sở hữu điều kiện, ví dụ 013" }, waivable: { type: boolean, description: "Miễn được qua yêu cầu phê duyệt (004)" } } }
+        currentValue: { description: 'Khi 412: tài nguyên hiện hành (FR-021)' }
+        candidates: { type: array, description: "POSSIBLE_DUPLICATE_PROFILE, DUPLICATE_HEALTH_ITEM (001)", items: { type: object } }
+        failedLayer: { type: string, enum: [ROLE, SCOPE, LEGAL, SOURCE_DATA], description: 'Khi 403 của lớp quyền (002 FR-043)' }
+        license: { type: object, description: 'Khi 403 LEGAL_CONDITION_NOT_MET (002 FR-043)', properties: { name: { type: string }, expiryDate: { type: string, format: date } } }
+        unlocksAt: { type: string, format: date-time, description: 'Khi 423 ACCOUNT_TEMPORARILY_LOCKED (002 FR-014)' }
     Condition:
       type: object
       properties:
@@ -817,6 +827,7 @@ components:
         hiddenFields: { type: array, items: { type: string } }
     FamilyProfile:
       type: object
+      description: Tập con của Profile mà người thân nhận (xem mô tả GET /residents/{id}); không dùng làm schema phản hồi riêng
       properties:
         id: { type: integer, format: int64 }
         personalInfo: { $ref: '#/components/schemas/PersonalInfo' }
@@ -872,7 +883,7 @@ components:
         id: { type: integer, format: int64 }
         consenterType: { type: string, enum: [RESIDENT, LEGAL_REPRESENTATIVE] }
         consenterFamilyMemberId: { type: [integer, 'null'], format: int64, description: 'Bổ sung 2026-10-23: người đại diện theo pháp luật ký thay (kể cả người ghi là người thân quan hệ Khác, Q-359); rỗng khi RESIDENT' }
-        courtDecision: { oneOf: [ { $ref: '#/components/schemas/CourtDecision' }, { type: 'null' } ] }
+        courtDecision: { $ref: '#/components/schemas/CourtDecision' }
         familyMemberIdsAllowedHealthView: { type: array, items: { type: integer, format: int64 } }
         photoConsent: { type: boolean }
         notificationConsent: { type: boolean }
@@ -905,7 +916,7 @@ components:
       properties:
         id: { type: integer, format: int64 }
         type: { type: string, enum: [ALLERGY, CHRONIC_CONDITION, MEDICAL_HISTORY] }
-        allergen: { $ref: '#/components/schemas/CatalogItem' }
+        allergen: { $ref: '#/components/schemas/AllergenRef' }
         freeText: { type: [string, 'null'] }
         notAutoChecked: { type: boolean }
         pendingCheck: { type: boolean }
@@ -915,6 +926,13 @@ components:
         at: { type: string, format: date-time }
         status: { type: string, enum: [ACTIVE, EXCLUDED] }
         exclusion: { type: [object, 'null'], properties: { at: { type: string, format: date-time }, by: { type: string }, reason: { type: string } } }
+    AllergenRef:
+      type: object
+      description: Dị nguyên của mục sức khỏe (rỗng khi dị ứng nhập tay); nhóm, thứ tự lấy từ GET /catalogs/allergens
+      required: [id, name]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
     HealthItemResult:
       type: object
       properties:
@@ -924,13 +942,13 @@ components:
       type: object
       properties:
         id: { type: integer, format: int64 }
-        choice: { type: string }
+        choice: { type: string, enum: [TRANSFER_TO_HOSPITAL, RETURN_HOME, STAY_PALLIATIVE] }
         firstContact: { type: string }
         note: { type: string }
         selfDeterminationAssessment: { $ref: '#/components/schemas/SelfDeterminationAssessment' }
         signer: { type: string }
         signerType: { type: string, enum: [RESIDENT, PATIENT_REPRESENTATIVE, LEGAL_REPRESENTATIVE] }
-        representativeSelection: { type: [string, 'null'], enum: [CHOSEN_BY_RESIDENT, CHOSEN_BY_FAMILY, null] }
+        representativeSelection: { type: [string, 'null'], enum: [CHOSEN_BY_RESIDENT, CHOSEN_BY_FAMILY] }
         otherOpinions:
           type: array
           items:
@@ -941,7 +959,7 @@ components:
               recordedBy: { type: string }
               at: { type: string, format: date-time }
         signedAt: { type: string, format: date-time }
-        source: { type: string }
+        source: { type: string, enum: [ADMISSION, FAMILY_REQUEST, CRITICAL_RECONFIRMATION], description: 'CRITICAL_RECONFIRMATION do 007 ghi qua EndOfLifeWishApi (BR-M05-16); POST chỉ nhận ADMISSION, FAMILY_REQUEST' }
         status: { type: string, enum: [ACTIVE, SUPERSEDED] }
     PreferredHospital:
       type: object
@@ -1019,7 +1037,7 @@ components:
         supportMethod: { type: string, minLength: 1 }
         reviewDate: { type: string, format: date }
     CourtDecision:
-      type: object
+      type: [object, 'null']
       description: Bằng chứng quyết định của Tòa án tuyên mất năng lực hành vi dân sự hoặc khó khăn trong nhận thức, làm chủ hành vi (FR-011)
       required: [number, date, court, fileId]
       properties:
@@ -1045,7 +1063,7 @@ components:
         careNote: { type: [string, 'null'] }
         careLevel: { $ref: '#/components/schemas/CareLevelCode' }
         careNeeds: { type: array, items: { $ref: '#/components/schemas/CatalogItem' } }
-        proposedResidenceType: { type: [string, 'null'] }
+        proposedResidenceType: { type: [string, 'null'], enum: [LONG_TERM_RESIDENTIAL, SHORT_TERM_RESIDENTIAL, DAY_CARE] }
         status: { type: string, enum: [DRAFT, CONFIRMED, DISCARDED] }
         confirmedBy: { type: [string, 'null'] }
         confirmedAt: { type: [string, 'null'], format: date-time }
