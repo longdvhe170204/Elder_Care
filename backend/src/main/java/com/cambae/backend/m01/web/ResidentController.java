@@ -12,6 +12,8 @@ import com.cambae.backend.m01.internal.profile.service.ResidentProfileService.Li
 import com.cambae.backend.m01.internal.profile.service.ResidentProfileService.ProfileView;
 import com.cambae.backend.m01.internal.profile.service.ResidentProfileService.SearchPage;
 import com.cambae.backend.m01.internal.status.service.ResidentStatusService;
+import com.cambae.backend.m01.internal.wish.service.EndOfLifeWishService;
+import com.cambae.backend.m01.internal.wish.service.TreatmentWishService;
 import com.cambae.backend.m01.web.request.CreateResidentBody;
 import com.cambae.backend.m01.web.request.UpdatePersonalInfoBody;
 import com.cambae.backend.m01.web.response.CreateProfileResultBody;
@@ -22,6 +24,7 @@ import com.cambae.backend.m15.account.api.PermissionApi;
 import com.cambae.backend.m15.account.api.dto.Function;
 import com.cambae.backend.m15.account.api.dto.Operation;
 import com.cambae.backend.m15.account.api.dto.PermissionKey;
+import com.cambae.backend.m15.account.api.dto.Target;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -60,27 +63,21 @@ class ResidentController {
     // thêm)
     private static final String CONFIRM_INITIAL_HEALTH_RECORD = "CONFIRM_INITIAL_HEALTH_RECORD";
     private static final PermissionKey WRITE_HEALTH = new PermissionKey(Function.ALLERGY_CONDITION, Operation.UPDATE);
-    private static final Map<String, PermissionKey> PROFILE_COMMANDS = Map.of(
-            UPDATE_PERSONAL_INFO,
-            new PermissionKey(Function.RESIDENT_PROFILE, Operation.UPDATE),
-            "RECORD_HEALTH_ITEM",
-            new PermissionKey(Function.ALLERGY_CONDITION, Operation.CREATE),
-            "EXCLUDE_HEALTH_ITEM",
-            WRITE_HEALTH,
-            "WRITE_INITIAL_HEALTH_RECORD",
-            WRITE_HEALTH,
-            CONFIRM_INITIAL_HEALTH_RECORD,
-            WRITE_HEALTH,
+    private static final Map<String, PermissionKey> PROFILE_COMMANDS = Map.ofEntries(
+            Map.entry(UPDATE_PERSONAL_INFO, new PermissionKey(Function.RESIDENT_PROFILE, Operation.UPDATE)),
+            Map.entry("RECORD_HEALTH_ITEM", new PermissionKey(Function.ALLERGY_CONDITION, Operation.CREATE)),
+            Map.entry("EXCLUDE_HEALTH_ITEM", WRITE_HEALTH),
+            Map.entry("WRITE_INITIAL_HEALTH_RECORD", WRITE_HEALTH),
+            Map.entry(CONFIRM_INITIAL_HEALTH_RECORD, WRITE_HEALTH),
             // Đánh giá (US3): Bác sĩ, Điều dưỡng lập và sửa nháp; xác nhận chỉ Bác sĩ (quyền APPROVE, Phụ lục 27)
-            "CREATE_ASSESSMENT",
-            new PermissionKey(Function.ASSESSMENT_CARE_LEVEL, Operation.CREATE),
-            "CONFIRM_ASSESSMENT",
-            new PermissionKey(Function.ASSESSMENT_CARE_LEVEL, Operation.APPROVE),
+            Map.entry("CREATE_ASSESSMENT", new PermissionKey(Function.ASSESSMENT_CARE_LEVEL, Operation.CREATE)),
+            Map.entry("CONFIRM_ASSESSMENT", new PermissionKey(Function.ASSESSMENT_CARE_LEVEL, Operation.APPROVE)),
             // Bản đồng ý (US5): Hành chính ghi nhận và rút lại (AC-09, Phụ lục 27)
-            "RECORD_CONSENT",
-            new PermissionKey(Function.DATA_SHARING_CONSENT, Operation.CREATE),
-            "WITHDRAW_CONSENT",
-            new PermissionKey(Function.DATA_SHARING_CONSENT, Operation.UPDATE));
+            Map.entry("RECORD_CONSENT", new PermissionKey(Function.DATA_SHARING_CONSENT, Operation.CREATE)),
+            Map.entry("WITHDRAW_CONSENT", new PermissionKey(Function.DATA_SHARING_CONSENT, Operation.UPDATE)),
+            // Phiếu nguyện vọng (US7): Bác sĩ, Điều dưỡng ghi phiên bản mới (Phụ lục 27)
+            Map.entry("RECORD_END_OF_LIFE_WISH", new PermissionKey(Function.END_OF_LIFE_WISHES, Operation.CREATE)),
+            Map.entry("RECORD_TREATMENT_WISH", new PermissionKey(Function.ALLERGY_CONDITION, Operation.CREATE)));
 
     // Lệnh trạng thái (US4): khóa quyền theo data-model mục 2; hợp trạng thái hiện tại lọc thêm ở body()
     private static final Map<StatusCommand, PermissionKey> STATUS_COMMANDS = Map.of(
@@ -100,18 +97,30 @@ class ResidentController {
             new PermissionKey(Function.RESIDENCY_END_DEATH, Operation.CREATE));
 
     private static final Map<String, PermissionKey> COMMANDS = allCommands();
+    private static final PermissionKey SEE_TREATMENT_WISH =
+            new PermissionKey(Function.ALLERGY_CONDITION, Operation.VIEW);
+    private static final PermissionKey OFFICE_PROFILE = new PermissionKey(Function.RESIDENT_PROFILE, Operation.CREATE);
 
     private final ResidentProfileService profiles;
     private final PermissionApi permissions;
     private final CurrentUser currentUser;
     private final ConsentApi consents;
+    private final EndOfLifeWishService endOfLifeWishes;
+    private final TreatmentWishService treatmentWishes;
 
     ResidentController(
-            ResidentProfileService profiles, PermissionApi permissions, CurrentUser currentUser, ConsentApi consents) {
+            ResidentProfileService profiles,
+            PermissionApi permissions,
+            CurrentUser currentUser,
+            ConsentApi consents,
+            EndOfLifeWishService endOfLifeWishes,
+            TreatmentWishService treatmentWishes) {
         this.profiles = profiles;
         this.permissions = permissions;
         this.currentUser = currentUser;
         this.consents = consents;
+        this.endOfLifeWishes = endOfLifeWishes;
+        this.treatmentWishes = treatmentWishes;
     }
 
     @GetMapping
@@ -198,6 +207,19 @@ class ResidentController {
                 .map(Enum::name)
                 .filter(c -> !statusCommands.contains(c))
                 .forEach(commands::remove);
-        return ProfileBody.of(view, commands, consents.current(view.id()).isPresent());
+        Target target = ResidentProfileService.target(view.id());
+        // FR-023m: cờ phiếu nguyện vọng khi điều trị chỉ cho người đọc được nội dung hoặc Hành chính; Kế toán không có
+        boolean sees = permissions
+                        .hasPermission(currentUser, SEE_TREATMENT_WISH, target)
+                        .allowed()
+                || permissions
+                        .hasPermission(currentUser, OFFICE_PROFILE, target)
+                        .allowed();
+        return ProfileBody.of(
+                view,
+                commands,
+                consents.current(view.id()).isPresent(),
+                endOfLifeWishes.hasActive(view.id()),
+                sees ? treatmentWishes.hasActive(view.id()) : null);
     }
 }
