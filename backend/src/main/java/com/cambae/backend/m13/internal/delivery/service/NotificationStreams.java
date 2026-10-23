@@ -28,6 +28,13 @@ public class NotificationStreams {
         emitter.onCompletion(remove);
         emitter.onTimeout(remove);
         emitter.onError(e -> remove.run());
+        // Dòng chú thích để trình duyệt báo "đã mở" ngay, không chờ tới thông báo đầu tiên; web bỏ qua dòng này.
+        try {
+            emitter.send(SseEmitter.event().comment("open"));
+        } catch (IOException e) {
+            emitters.remove(emitter);
+            emitter.completeWithError(e);
+        }
         return emitter;
     }
 

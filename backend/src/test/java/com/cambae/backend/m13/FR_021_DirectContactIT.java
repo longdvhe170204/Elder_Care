@@ -17,6 +17,7 @@ import com.cambae.backend.common.notification.RecipientGroup;
 import com.cambae.backend.common.notification.SourceGroup;
 import com.cambae.backend.common.notification.SourceRecord;
 import com.cambae.backend.common.time.BusinessTime;
+import com.cambae.backend.common.time.TestClockControl;
 import com.cambae.backend.m13.api.spi.FamilyContactView;
 import com.cambae.backend.m13.api.spi.NotifiableRelationshipView;
 import com.cambae.backend.m13.internal.directcontact.service.DirectContactDetector;
@@ -56,6 +57,9 @@ class FR_021_DirectContactIT extends M13IntegrationTestBase {
     BusinessTime time;
 
     @Autowired
+    TestClockControl clock;
+
+    @Autowired
     FakeFamilyNotifications family;
 
     @Autowired
@@ -73,6 +77,13 @@ class FR_021_DirectContactIT extends M13IntegrationTestBase {
 
     @BeforeEach
     void setUp() {
+        // 10:00 hôm qua: chạy trong giờ yên tĩnh (CFG-M13-02) thì thông báo cho người thân bị giữ lại; mốc ở quá khứ để
+        // phân công vai trò tạo trong test không bắt đầu sau giờ thật mà test khác dùng để kết thúc.
+        clock.setTo(time.today()
+                .minusDays(1)
+                .atTime(10, 0)
+                .atZone(BusinessTime.ZONE)
+                .toInstant());
         users = new TestUsers(jdbc, time);
         resident = TestUsers.nextId();
         member = TestUsers.nextId();
@@ -91,6 +102,7 @@ class FR_021_DirectContactIT extends M13IntegrationTestBase {
 
     @AfterEach
     void reset() {
+        clock.reset();
         family.reset();
     }
 
