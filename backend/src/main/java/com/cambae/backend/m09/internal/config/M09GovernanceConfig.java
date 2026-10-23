@@ -3,6 +3,7 @@ package com.cambae.backend.m09.internal.config;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m09.credential.internal.persistence.CredentialStore;
 import com.cambae.backend.m09.internal.service.*;
+import com.cambae.backend.m09.shift.internal.persistence.ShiftStore;
 import com.cambae.backend.m09.staff.internal.persistence.StaffStore;
 import com.cambae.backend.m15.account.api.*;
 import com.cambae.backend.m15.account.api.dto.InfoGroup;
@@ -89,6 +90,76 @@ class M09GovernanceConfig {
     @Bean
     ScopeAssignmentProvider credentialScope(StaffStore staff, CredentialStore credentials) {
         return new M09ScopeAssignment("M09.CREDENTIAL", staff, credentials);
+    }
+
+    @Bean
+    ScopeAssignmentProvider shiftScope(ShiftStore store) {
+        return new ShiftScopeAssignment("M09.SHIFT", store);
+    }
+
+    @Bean
+    ScopeAssignmentProvider scheduleScope(ShiftStore store) {
+        return new ShiftScopeAssignment("M09.SCHEDULE", store);
+    }
+
+    @Bean
+    RetentionProvider shiftTemplateRetention(
+            JdbcTemplate jdbc,
+            RetentionDatabase database,
+            BusinessTime time,
+            AccountApi accounts,
+            ProfessionalActivityApi activities) {
+        return retention(M09Retention.Kind.SHIFT_TEMPLATE, jdbc, database, time, accounts, activities);
+    }
+
+    @Bean
+    RetentionProvider scheduleRetention(
+            JdbcTemplate jdbc,
+            RetentionDatabase database,
+            BusinessTime time,
+            AccountApi accounts,
+            ProfessionalActivityApi activities) {
+        return retention(M09Retention.Kind.SCHEDULE, jdbc, database, time, accounts, activities);
+    }
+
+    @Bean
+    RetentionProvider shiftRetention(
+            JdbcTemplate jdbc,
+            RetentionDatabase database,
+            BusinessTime time,
+            AccountApi accounts,
+            ProfessionalActivityApi activities) {
+        return retention(M09Retention.Kind.SHIFT, jdbc, database, time, accounts, activities);
+    }
+
+    @Bean
+    RetentionProvider shiftStaffRetention(
+            JdbcTemplate jdbc,
+            RetentionDatabase database,
+            BusinessTime time,
+            AccountApi accounts,
+            ProfessionalActivityApi activities) {
+        return retention(M09Retention.Kind.SHIFT_STAFF, jdbc, database, time, accounts, activities);
+    }
+
+    @Bean
+    RetentionProvider shiftLeadRetention(
+            JdbcTemplate jdbc,
+            RetentionDatabase database,
+            BusinessTime time,
+            AccountApi accounts,
+            ProfessionalActivityApi activities) {
+        return retention(M09Retention.Kind.SHIFT_LEAD_HISTORY, jdbc, database, time, accounts, activities);
+    }
+
+    @Bean
+    RetentionProvider shiftPublicationRetention(
+            JdbcTemplate jdbc,
+            RetentionDatabase database,
+            BusinessTime time,
+            AccountApi accounts,
+            ProfessionalActivityApi activities) {
+        return retention(M09Retention.Kind.SHIFT_PUBLICATION, jdbc, database, time, accounts, activities);
     }
 
     private M09Retention retention(

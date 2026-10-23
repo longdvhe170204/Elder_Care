@@ -20,7 +20,13 @@ public class M09Retention implements RetentionProvider {
         CREDENTIAL_TYPE("M09.CREDENTIAL_TYPE", "credential_type", "created_at"),
         PRACTICE_SCOPE("M09.PRACTICE_SCOPE", "practice_scope", "created_at"),
         STAFF_DEPARTMENT("M09.STAFF_DEPARTMENT", "staff_department", "ends_at"),
-        DEPARTMENT_LEAD_HISTORY("M09.DEPARTMENT_LEAD_HISTORY", "department_lead_history", "ends_at");
+        DEPARTMENT_LEAD_HISTORY("M09.DEPARTMENT_LEAD_HISTORY", "department_lead_history", "ends_at"),
+        SHIFT_TEMPLATE("M09.SHIFT_TEMPLATE", "shift_template", "created_at"),
+        SCHEDULE("M09.SCHEDULE", "shift_schedule", "created_at"),
+        SHIFT("M09.SHIFT", "work_shift", "ends_at"),
+        SHIFT_STAFF("M09.SHIFT_STAFF", "shift_staff", ""),
+        SHIFT_LEAD_HISTORY("M09.SHIFT_LEAD_HISTORY", "shift_lead_history", "ends_at"),
+        SHIFT_PUBLICATION("M09.SHIFT_PUBLICATION", "shift_publication", "published_at");
         final String type;
         final String table;
         final String at;
@@ -63,12 +69,27 @@ public class M09Retention implements RetentionProvider {
     }
 
     public Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
+        if (kind == Kind.SHIFT_STAFF)
+            return jdbc
+                    .query(
+                            "SELECT m.id,s.ends_at AS at FROM shift_staff m JOIN work_shift s ON s.id=m.shift_id WHERE s.status IN ('CLOSED','CANCELLED') AND s.ends_at<? ORDER BY s.ends_at,m.id LIMIT ?",
+                            (r, i) -> new Candidate(
+                                    r.getLong("id"),
+                                    r.getObject("at", LocalDateTime.class).toInstant(ZoneOffset.UTC)),
+                            LocalDateTime.ofInstant(cutoff, ZoneOffset.UTC),
+                            batch)
+                    .stream();
         String extra = switch (kind) {
             case STAFF -> " AND status='RESIGNED'";
             case CREDENTIAL ->
                 " AND (expiry_date < ? OR revoked_from <= ? OR EXISTS(SELECT 1 FROM credential replacement WHERE replacement.replaces_id=credential.id))";
-            case DEPARTMENT, CREDENTIAL_TYPE, PRACTICE_SCOPE -> " AND status='INACTIVE'";
-            case STAFF_DEPARTMENT, DEPARTMENT_LEAD_HISTORY -> "";
+            case DEPARTMENT, CREDENTIAL_TYPE, PRACTICE_SCOPE, SHIFT_TEMPLATE -> " AND status='INACTIVE'";
+            case SHIFT -> " AND status IN ('CLOSED','CANCELLED')";
+            case SCHEDULE ->
+                " AND NOT EXISTS(SELECT 1 FROM work_shift s WHERE s.schedule_id=shift_schedule.id AND s.status NOT IN ('CLOSED','CANCELLED'))";
+            case SHIFT_PUBLICATION ->
+                " AND NOT EXISTS(SELECT 1 FROM work_shift s WHERE s.schedule_id=shift_publication.schedule_id AND s.status NOT IN ('CLOSED','CANCELLED'))";
+            case STAFF_DEPARTMENT, DEPARTMENT_LEAD_HISTORY, SHIFT_LEAD_HISTORY, SHIFT_STAFF -> "";
         };
         var args = new ArrayList<Object>();
         args.add(LocalDateTime.ofInstant(cutoff, ZoneOffset.UTC));
@@ -110,6 +131,9 @@ public class M09Retention implements RetentionProvider {
                         "SELECT id FROM department_lead_history WHERE staff_id=?",
                         id);
                 refs(refs, "M09.DEPARTMENT", "SELECT id FROM department WHERE lead_staff_id=?", id);
+                refs(refs, "M09.SHIFT_STAFF", "SELECT id FROM shift_staff WHERE staff_id=?", id);
+                refs(refs, "M09.SHIFT_LEAD_HISTORY", "SELECT id FROM shift_lead_history WHERE staff_id=?", id);
+                refs(refs, "M09.SHIFT", "SELECT id FROM work_shift WHERE lead_staff_id=?", id);
                 accounts.byStaff(id).ifPresent(a -> refs.add(new DataRef("M15.ACCOUNT", a.accountId())));
             }
             case CREDENTIAL -> refs(refs, "M09.CREDENTIAL", "SELECT id FROM credential WHERE replaces_id=?", id);
@@ -129,6 +153,15 @@ public class M09Retention implements RetentionProvider {
                         "M09.CREDENTIAL",
                         "SELECT credential_id FROM credential_practice_scope WHERE practice_scope_id=?",
                         id);
+            case SHIFT_TEMPLATE -> refs(refs, "M09.SHIFT", "SELECT id FROM work_shift WHERE template_id=?", id);
+            case SCHEDULE -> {
+                refs(refs, "M09.SHIFT", "SELECT id FROM work_shift WHERE schedule_id=?", id);
+                refs(refs, "M09.SHIFT_PUBLICATION", "SELECT id FROM shift_publication WHERE schedule_id=?", id);
+            }
+            case SHIFT -> {
+                refs(refs, "M09.SHIFT_STAFF", "SELECT id FROM shift_staff WHERE shift_id=?", id);
+                refs(refs, "M09.SHIFT_LEAD_HISTORY", "SELECT id FROM shift_lead_history WHERE shift_id=?", id);
+            }
             default -> {}
         }
         return refs;
