@@ -106,6 +106,13 @@ eldercare:
     # Job M01 (001 T058): test gọi MissingConsentReminderService.run()
     missing-consent-reminder:
       cron: "-"
+    # Job M01 (001 T064): test gọi ReassessmentNoticeService.runPeriodic(), runOverdue(), CareLevelChangeRequestReminderService.run()
+    notify-periodic-reassessment:
+      cron: "-"
+    alert-overdue-reassessment:
+      cron: "-"
+    remind-care-level-change-request:
+      cron: "-"
     # Job dọn tệp chưa gắn (001 T004): test gọi UnattachedFileCleanup.run()
     clean-unattached-files:
       cron: "-"

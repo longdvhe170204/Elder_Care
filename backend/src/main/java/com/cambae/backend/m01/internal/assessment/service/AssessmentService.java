@@ -128,6 +128,7 @@ public class AssessmentService {
     private final ApplicationEventPublisher events;
     private final ObjectProvider<CareLevelChangeRequestApi> changeRequests;
     private final ObjectProvider<CurrentUser> currentUser;
+    private final CareLevelChangeRequestReminderService changeRequestReminders;
 
     AssessmentService(
             AssessmentRepository assessments,
@@ -142,7 +143,8 @@ public class AssessmentService {
             ActorNames names,
             ApplicationEventPublisher events,
             ObjectProvider<CareLevelChangeRequestApi> changeRequests,
-            ObjectProvider<CurrentUser> currentUser) {
+            ObjectProvider<CurrentUser> currentUser,
+            CareLevelChangeRequestReminderService changeRequestReminders) {
         this.assessments = assessments;
         this.residents = residents;
         this.statuses = statuses;
@@ -156,6 +158,7 @@ public class AssessmentService {
         this.events = events;
         this.changeRequests = changeRequests;
         this.currentUser = currentUser;
+        this.changeRequestReminders = changeRequestReminders;
     }
 
     /** Đối tượng kiểm quyền của hồ sơ chứa lần đánh giá (đường dẫn {@code /assessments/{id}} không nêu hồ sơ). */
@@ -290,6 +293,7 @@ public class AssessmentService {
             }
             if (levelDiffers) {
                 events.publishEvent(new CareLevelChangeRequestNeeded(residentId, id, level));
+                changeRequestReminders.startReminding(residentId, id);
                 administratorNotified = true;
             }
         }
