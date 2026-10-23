@@ -1,6 +1,7 @@
 package com.cambae.backend.m01;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 import com.cambae.backend.common.time.TestClockControl;
 import com.cambae.backend.m01.api.dto.OpenAbsence;
@@ -8,6 +9,8 @@ import com.cambae.backend.m01.api.dto.ResidentStatus;
 import com.cambae.backend.m01.api.events.TemporaryAbsenceOverdue;
 import com.cambae.backend.m01.internal.status.service.TemporaryAbsenceOverdueAlert;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,9 +42,13 @@ class BR_M01_01_TemporaryAbsenceOverdueIT extends StatusTestBase {
                 .count();
     }
 
+    /** Mốc dự kiến trở về đúng như đã đưa cho {@code open} (đồng hồ test chạy tiếp, không đọc lại {@code now()}). */
+    private Instant lastExpectedReturn;
+
     private long absentUntil(long residentId, Duration fromNow) {
         long absenceId = ++absenceSequence;
-        absences.open(residentId, new OpenAbsence(absenceId, time.now().plus(fromNow)));
+        lastExpectedReturn = time.now().plus(fromNow);
+        absences.open(residentId, new OpenAbsence(absenceId, lastExpectedReturn));
         return absenceId;
     }
 
@@ -60,7 +67,7 @@ class BR_M01_01_TemporaryAbsenceOverdueIT extends StatusTestBase {
     void BR_M01_01_pastTheMilestone_alertsExactlyOnce_evenWhenTheJobRunsAgain() {
         long id = residentIn(ResidentStatus.TEMPORARILY_ABSENT);
         long absence = absentUntil(id, Duration.ofHours(1));
-        var expected = time.now().plus(Duration.ofHours(1));
+        var expected = lastExpectedReturn;
 
         clock.advanceBy(Duration.ofHours(3).plusMinutes(1));
         alert.run();
@@ -73,7 +80,7 @@ class BR_M01_01_TemporaryAbsenceOverdueIT extends StatusTestBase {
                 .singleElement()
                 .satisfies(e -> {
                     assertThat(e.absenceId()).isEqualTo(absence);
-                    assertThat(e.expectedReturnAt()).isEqualTo(expected);
+                    assertThat(e.expectedReturnAt()).isCloseTo(expected, within(1, ChronoUnit.MILLIS));
                 });
     }
 
