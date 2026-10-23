@@ -132,6 +132,9 @@ export const getBedAllocationsById = (params) => request('GET', '/bed-allocation
 /** Hủy phân bổ tương lai (FR-023, FR-021) */
 export const postBedAllocationsByIdCancel = (params) => request('POST', '/bed-allocations/{id}/cancel', params)
 
+/** Chuyển giường trực tiếp (Hành chính; Trưởng tầng khi người và giường mới trong phạm vi) (FR-027, FR-028, FR-029, FR-030, FR-031, FR-032, FR-033, BR-M03-01, BR-M03-04, BR-M03-07) */
+export const postBedAllocationsByIdTransfer = (params) => request('POST', '/bed-allocations/{id}/transfer', params)
+
 /** Vị trí hiện tại, phân bổ tương lai và dấu của một người cao tuổi (FR-017, FR-025a, FR-037) */
 export const getResidentsByResidentIdLocation = (params) => request('GET', '/residents/{residentId}/location', params)
 
