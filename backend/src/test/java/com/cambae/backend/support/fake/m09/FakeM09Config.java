@@ -10,6 +10,18 @@ public class FakeM09Config {
 
     @Bean
     @Primary
+    FakeShifts fakeShifts() {
+        return new FakeShifts();
+    }
+
+    @Bean
+    @Primary
+    FakeStaffStatistics fakeStaffStatistics() {
+        return new FakeStaffStatistics();
+    }
+
+    @Bean
+    @Primary
     FakeHeldBelongings fakeHeldBelongings() {
         return new FakeHeldBelongings();
     }

@@ -22,21 +22,38 @@ import org.springframework.scheduling.annotation.Scheduled;
 class SchedulerScopeArchTest {
 
     /** Job → loại việc FR-010a cho phép. */
-    static final Map<String, String> ALLOWED = Map.of(
-            "com.cambae.backend.m15.approval.scheduling.ApplyDueRequestsJob",
-                    "áp dụng yêu cầu đã duyệt khi tới ngày hiệu lực (FR-037)",
-            "com.cambae.backend.m15.approval.scheduling.RemindPendingRequestsJob", "nhắc, báo (FR-031a)",
-            "com.cambae.backend.m15.retention.scheduling.ExpiredDataPurgeJob",
-                    "loại bỏ dữ liệu hết hạn lưu giữ (FR-051)",
-            "com.cambae.backend.m15.account.scheduling.MarkInactiveAccountsJob",
-                    "tự chuyển trạng thái theo giờ: tài khoản người thân Không hoạt động (002 FR-010)",
-            "com.cambae.backend.m15.account.scheduling.WarnExpiringLicensesJob",
-                    "cảnh báo giấy phép sắp hết hạn; chỉ ghi bảng kỹ thuật chống lặp (002 FR-039)",
-            "com.cambae.backend.m15.account.scheduling.LockAfterResidencyEndJob",
-                    "tự chuyển trạng thái theo giờ: khóa tài khoản người thân sau CFG-M01-04 (002 FR-049)",
-            "com.cambae.backend.m13.scheduling.M13FastJob",
-                    "nhắc, gửi lại, giải phóng giờ yên tĩnh, chuyển nhắc gọi (009 research B-10)",
-            "com.cambae.backend.m13.scheduling.M13DailyJob", "nhắc liên hệ trực tiếp còn chờ (009 research B-10)");
+    static final Map<String, String> ALLOWED = Map.ofEntries(
+            Map.entry(
+                    "com.cambae.backend.m15.approval.scheduling.ApplyDueRequestsJob",
+                    "áp dụng yêu cầu đã duyệt khi tới ngày hiệu lực (FR-037)"),
+            Map.entry("com.cambae.backend.m15.approval.scheduling.RemindPendingRequestsJob", "nhắc, báo (FR-031a)"),
+            Map.entry(
+                    "com.cambae.backend.m15.retention.scheduling.ExpiredDataPurgeJob",
+                    "loại bỏ dữ liệu hết hạn lưu giữ (FR-051)"),
+            Map.entry(
+                    "com.cambae.backend.m15.account.scheduling.MarkInactiveAccountsJob",
+                    "tự chuyển trạng thái theo giờ: tài khoản người thân Không hoạt động (002 FR-010)"),
+            Map.entry(
+                    "com.cambae.backend.m15.account.scheduling.WarnExpiringLicensesJob",
+                    "cảnh báo giấy phép sắp hết hạn; chỉ ghi bảng kỹ thuật chống lặp (002 FR-039)"),
+            Map.entry(
+                    "com.cambae.backend.m15.account.scheduling.LockAfterResidencyEndJob",
+                    "tự chuyển trạng thái theo giờ: khóa tài khoản người thân sau CFG-M01-04 (002 FR-049)"),
+            Map.entry(
+                    "com.cambae.backend.m13.scheduling.M13FastJob",
+                    "nhắc, gửi lại, giải phóng giờ yên tĩnh, chuyển nhắc gọi (009 research B-10)"),
+            Map.entry(
+                    "com.cambae.backend.m13.scheduling.M13DailyJob",
+                    "nhắc liên hệ trực tiếp còn chờ (009 research B-10)"),
+            Map.entry(
+                    "com.cambae.backend.m09.scheduling.M09MinuteJob",
+                    "chuyển trạng thái theo giờ và nhắc, không lập ca/phân công/bàn giao (008 N-13)"),
+            Map.entry(
+                    "com.cambae.backend.m09.scheduling.M09HourlyJob",
+                    "nhắc ca sắp bắt đầu dưới ngưỡng phục vụ (008 N-13)"),
+            Map.entry(
+                    "com.cambae.backend.m09.scheduling.M09DailyJob",
+                    "cảnh báo đào tạo và nhắc bộ phận thiếu phụ trách (008 N-13)"));
 
     private static final DescribedPredicate<JavaClass> LISTED = DescribedPredicate.describe(
             "có trong danh sách job được phép của FR-010a", c -> ALLOWED.containsKey(c.getName()));

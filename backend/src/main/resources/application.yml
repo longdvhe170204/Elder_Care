@@ -103,6 +103,16 @@ eldercare:
     m13-daily:
       cron: "-"
       on-startup: false
+    # Job M09 (008 T008): test chủ động gọi khung chạy bù.
+    m09-minute:
+      cron: "-"
+      on-startup: false
+    m09-hourly:
+      cron: "-"
+      on-startup: false
+    m09-daily:
+      cron: "-"
+      on-startup: false
 
 ---
 spring:

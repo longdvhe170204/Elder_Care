@@ -149,6 +149,16 @@ public class ProfessionalActivityService implements ProfessionalActivityApi {
         }
     }
 
+    @Override
+    public boolean usesCredentialType(String code) {
+        return activities.all().stream().anyMatch(a -> code.equals(a.requiredLicenseType()));
+    }
+
+    @Override
+    public boolean usesPracticeScope(long id) {
+        return activities.all().stream().anyMatch(a -> a.practiceScopes().contains(id));
+    }
+
     private Set<Long> practiceScopes(Set<Long> ids) {
         Set<Long> scopes = ids == null ? Set.of() : Set.copyOf(ids);
         PracticeScopeCatalogApi catalog = practiceScopes.getIfAvailable();
