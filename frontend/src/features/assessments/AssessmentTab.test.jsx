@@ -52,9 +52,12 @@ function detail(overrides = {}) {
   }
 }
 
-function routes({ list = [], level = null, draft = null, failList = null } = {}) {
+const NO_REASSESSMENT = { residentId: 5, status: 'NONE', dueAt: null, overdueSince: null, basis: [] }
+
+function routes({ list = [], level = null, draft = null, failList = null, reassessment = NO_REASSESSMENT } = {}) {
   api.on('GET', '/residents/5/care-level', level ? json(200, level) : problem(404, 'NOT_FOUND'))
   api.on('GET', '/residents/5/assessments', failList ?? json(200, list))
+  api.on('GET', '/residents/5/reassessment', reassessment instanceof Response ? reassessment : json(200, reassessment))
   api.on('GET', '/catalogs/care-needs', json(200, [{ id: 11, name: 'Hỗ trợ vận động', status: 'ACTIVE' }]))
   if (draft) api.on('GET', `/assessments/${draft.id}`, json(200, draft, { ETag: '"2"' }))
 }
@@ -72,6 +75,35 @@ describe('AssessmentTab', () => {
 
     expect(await screen.findByText(/Chưa có mức chăm sóc hiện hành/)).toBeInTheDocument()
     expect(screen.getByText('Chưa có lần đánh giá nào đã xác nhận hoặc đã hủy.')).toBeInTheDocument()
+  })
+
+  it('cần đánh giá lại thì đầu tab có dải nêu hạn và căn cứ; không cần thì không có dải', async () => {
+    routes({
+      reassessment: {
+        residentId: 5,
+        status: 'DUE',
+        dueAt: '2026-10-23T01:00:00Z',
+        overdueSince: null,
+        basis: [{ basis: 'AFTER_INCIDENT', source: 'INCIDENT:77', notifiedAt: '2026-10-21T02:30:00Z' }],
+      },
+    })
+    const view = open({ residentStatus: 'IN_RESIDENCE' })
+
+    expect(await screen.findByText('Cần đánh giá lại')).toBeInTheDocument()
+    expect(screen.getByText(/Sau sự cố, báo lúc 21\/10\/2026 09:30/)).toBeInTheDocument()
+    view.unmount()
+
+    routes()
+    open({ residentStatus: 'IN_RESIDENCE' })
+    expect(await screen.findByText(/Chưa có mức chăm sóc hiện hành/)).toBeInTheDocument()
+    expect(screen.queryByText('Cần đánh giá lại')).not.toBeInTheDocument()
+  })
+
+  it('lỗi khi tải báo đánh giá lại không chặn tab', async () => {
+    routes({ reassessment: problem(500, 'INTERNAL_ERROR') })
+    open({ residentStatus: 'IN_RESIDENCE' })
+
+    expect(await screen.findByText(/Chưa có mức chăm sóc hiện hành/)).toBeInTheDocument()
   })
 
   it('Điều dưỡng lập đánh giá đầu vào khi đang tiếp nhận: POST kiểu INITIAL', async () => {

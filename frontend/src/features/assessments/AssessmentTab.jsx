@@ -3,6 +3,7 @@ import {
   ApiError,
   getCatalogsByType,
   getResidentsByIdAssessments,
+  getResidentsByIdReassessment,
   getResidentsByIdCareLevel,
   getResidentsByIdCareLevelHistory,
   postResidentsByIdAssessments,
@@ -17,6 +18,7 @@ import { formatDate, formatDateTime } from '@/common/dateTime'
 import { CorrectionBadge } from '@/common/correction/CorrectionBadge'
 import { CorrectionHistorySheet } from '@/common/correction/CorrectionHistorySheet'
 import { AssessmentForm } from './AssessmentForm'
+import { ReassessmentNotice } from './ReassessmentNotice'
 import {
   ASSESSMENT_CORRECTION_FIELDS,
   ASSESSMENT_RECORD_TYPE,
@@ -150,6 +152,7 @@ function HistoryItem({ item, canCorrect, onCorrect }) {
 export function AssessmentTab({ residentId, residentStatus, allowedCommands = [], onChanged }) {
   const [state, setState] = useState('loading')
   const [level, setLevel] = useState(null)
+  const [reassessment, setReassessment] = useState(null)
   const [list, setList] = useState([])
   const [careNeeds, setCareNeeds] = useState([])
   const [failure, setFailure] = useState(null)
@@ -161,10 +164,11 @@ export function AssessmentTab({ residentId, residentStatus, allowedCommands = []
   const canConfirm = allowedCommands.includes('CONFIRM_ASSESSMENT')
 
   const load = useCallback(async () => {
-    const [levelRes, listRes, needsRes] = await Promise.allSettled([
+    const [levelRes, listRes, needsRes, reassessmentRes] = await Promise.allSettled([
       getResidentsByIdCareLevel({ path: { id: residentId } }),
       getResidentsByIdAssessments({ path: { id: residentId } }),
       getCatalogsByType({ path: { type: 'care-needs' } }),
+      getResidentsByIdReassessment({ path: { id: residentId } }),
     ])
     if (listRes.status === 'rejected') {
       if (listRes.reason instanceof ApiError && listRes.reason.status === 403) {
@@ -183,6 +187,8 @@ export function AssessmentTab({ residentId, residentStatus, allowedCommands = []
       return
     }
     setList(listRes.value.data)
+    // Báo đánh giá lại là phần phụ của tab: lỗi tải thì không hiện dải, không chặn tab
+    setReassessment(reassessmentRes.status === 'fulfilled' ? reassessmentRes.value.data : null)
     setCareNeeds(needsRes.status === 'fulfilled' ? needsRes.value.data.filter((n) => n.status !== 'INACTIVE') : [])
     setFailure(null)
     setState('ready')
@@ -255,6 +261,7 @@ export function AssessmentTab({ residentId, residentStatus, allowedCommands = []
 
   return (
     <div className="flex flex-col gap-5">
+      <ReassessmentNotice reassessment={reassessment} />
       <CareLevelCard level={level} careNote={latestConfirmed?.careNote} residentId={residentId} />
 
       {result && (
