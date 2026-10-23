@@ -31,6 +31,7 @@ public class HeldNotificationStore {
             Optional<InformationSubject> informationSubject,
             boolean hasQ354Case,
             boolean invalidOutOfAppContent,
+            boolean afterDeath,
             Set<InformationType> requestParts,
             Instant scheduledSendAt) {}
 
@@ -63,6 +64,18 @@ public class HeldNotificationStore {
                 Long.class);
     }
 
+    /** Thông báo người thân đang giữ về người cao tuổi này (FR-015, FR-025: qua đời trước giờ gửi). */
+    public List<Long> heldForFamilyOf(long residentId) {
+        return jdbc.queryForList(
+                "SELECT s.notification_id FROM notification_state s"
+                        + " JOIN notification n ON n.id = s.notification_id"
+                        + " JOIN notification_request r ON r.id = n.request_id"
+                        + " WHERE s.status = 'HELD_FOR_QUIET_HOURS' AND n.recipient_type = 'FAMILY_MEMBER'"
+                        + " AND r.resident_id = ? ORDER BY r.received_at, n.id",
+                Long.class,
+                residentId);
+    }
+
     /** Khóa dòng trạng thái rồi đọc; rỗng khi thông báo không còn đang giữ (lượt khác đã xử lý). */
     public Optional<Held> lock(long notificationId) {
         List<String> status = jdbc.queryForList(
@@ -81,7 +94,8 @@ public class HeldNotificationStore {
                 .forEach(t -> parts.add(InformationType.valueOf(t)));
         return Optional.of(jdbc.queryForObject(
                 "SELECT n.recipient_type, n.recipient_id, n.basis, n.level, r.resident_id, r.information_subject,"
-                        + " r.q354_case, s.scheduled_send_at, FIND_IN_SET('INVALID_OUT_OF_APP_CONTENT', r.flags) > 0"
+                        + " r.q354_case, s.scheduled_send_at, FIND_IN_SET('INVALID_OUT_OF_APP_CONTENT', r.flags) > 0,"
+                        + " FIND_IN_SET('AFTER_DEATH', r.flags) > 0"
                         + " FROM notification n"
                         + " JOIN notification_request r ON r.id = n.request_id"
                         + " JOIN notification_state s ON s.notification_id = n.id WHERE n.id = ?",
@@ -95,6 +109,7 @@ public class HeldNotificationStore {
                         Optional.ofNullable(rs.getString(6)).map(InformationSubject::valueOf),
                         rs.getString(7) != null,
                         rs.getBoolean(9),
+                        rs.getBoolean(10),
                         parts,
                         rs.getObject(8, LocalDateTime.class).toInstant(ZoneOffset.UTC)),
                 notificationId));
