@@ -9,6 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
 import { AssessmentTab } from '../assessments/AssessmentTab'
+import { StatusTab } from '../status/StatusTab'
 import { HealthTab } from './HealthTab'
 import { GENDER_LABELS, ID_DOCUMENT_LABELS, STATUS_LABELS } from './residentLabels'
 
@@ -192,6 +193,9 @@ export function ResidentDetail({ residentId, onChanged, onClose, onTabChange }) 
             <ToggleGroupItem value="assessment" className="h-10 px-4">
               Đánh giá
             </ToggleGroupItem>
+            <ToggleGroupItem value="status" className="h-10 px-4">
+              Trạng thái
+            </ToggleGroupItem>
           </ToggleGroup>
         )}
 
@@ -205,6 +209,18 @@ export function ResidentDetail({ residentId, onChanged, onClose, onTabChange }) 
             residentStatus={profile.status}
             allowedCommands={profile.allowedCommands ?? []}
             onChanged={load}
+          />
+        )}
+
+        {info && tab === 'status' && (
+          <StatusTab
+            residentId={residentId}
+            status={profile.status}
+            allowedCommands={profile.allowedCommands ?? []}
+            onChanged={() => {
+              load()
+              onChanged?.()
+            }}
           />
         )}
 
