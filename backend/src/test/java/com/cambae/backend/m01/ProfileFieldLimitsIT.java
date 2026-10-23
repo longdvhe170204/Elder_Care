@@ -29,7 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @AutoConfigureMockMvc
 @WithMockUser
-class GioiHanTruongHoSoIT extends ResidentProfileTestBase {
+class ProfileFieldLimitsIT extends ResidentProfileTestBase {
 
     @Autowired
     MockMvc mvc;

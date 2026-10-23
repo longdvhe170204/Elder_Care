@@ -32,8 +32,8 @@ import org.springframework.context.annotation.Import;
  * danh mục; lệnh gắn hồ sơ người cao tuổi (có {@code resident_id} trong nhật ký) thêm vào đây cùng phase của từng user
  * story.
  */
-@Import({NhatKyDayDuM01IT.Fixtures.class, NhatKyDayDuM01IT.Counting.class})
-class NhatKyDayDuM01IT extends MySqlIntegrationTestBase {
+@Import({M01AuditCompletenessIT.Fixtures.class, M01AuditCompletenessIT.Counting.class})
+class M01AuditCompletenessIT extends MySqlIntegrationTestBase {
 
     private static final Pattern AUDIT_INSERT = Pattern.compile("(?is)^\\s*insert\\s+into\\s+`?audit_log\\b.*");
     private static final Reason REASON = new Reason("Dùng thử");

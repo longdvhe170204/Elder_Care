@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
  * Tạm vắng, Hoạt động bên ngoài, Điều trị tại bệnh viện (mất ngoài viện), Bác sĩ hoặc Hành chính được làm; Hành chính
  * bắt buộc kèm {@code evidenceFileId}.
  */
-class GhiNhanQuaDoiIT extends StatusTestBase {
+class RecordDeathIT extends StatusTestBase {
 
     private static final long EVIDENCE_FILE = 4242L;
 

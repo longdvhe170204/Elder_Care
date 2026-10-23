@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
  * 001 T015 (US1 #3, #10; FR-004): chuỗi hồ sơ trước của cùng người, gần nhất trước. Mỗi phần tử chỉ đầy đủ khi người xem
  * có quyền trên chính hồ sơ đó; còn lại chỉ có mã hồ sơ và {@code viewable = false}.
  */
-class HoSoLienKetIT extends ResidentProfileTestBase {
+class ProfileLinkIT extends ResidentProfileTestBase {
 
     /** H1 (2025) → H2 (2026) → H4, cùng CCCD; trả về id theo thứ tự H1, H2, H4. */
     private long[] chainOfThree() {

@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
  * hay lịch sử của nó trên hồ sơ (lấy từ hợp đồng qua 004), nên bảng hồ sơ và bảng lịch sử mức không có cột loại hình
  * lưu trú.
  */
-class DocLapLuuTruMucChamSocIT extends StatusTestBase {
+class ResidenceTypeAndCareLevelAreIndependentIT extends StatusTestBase {
 
     @Test
     void FR_052_residentAndCareLevelHistoryHoldNoResidenceType() {

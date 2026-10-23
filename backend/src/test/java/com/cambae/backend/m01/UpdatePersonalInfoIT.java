@@ -28,7 +28,7 @@ import org.springframework.test.context.event.ApplicationEvents;
  * tính (và mọi trường) phát {@code PersonalInfoUpdated}; nhật ký chỉ ghi trường đã đổi, trước và sau; hồ sơ trạng thái
  * cuối bị chặn.
  */
-class CapNhatThongTinIT extends ResidentProfileTestBase {
+class UpdatePersonalInfoIT extends ResidentProfileTestBase {
 
     private static final Reason REASON = new Reason("Sửa theo giấy tờ gốc");
 
