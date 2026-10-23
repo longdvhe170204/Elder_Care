@@ -36,7 +36,11 @@ class SchedulerScopeArchTest {
                     "tự chuyển trạng thái theo giờ: khóa tài khoản người thân sau CFG-M01-04 (002 FR-049)",
             "com.cambae.backend.m13.scheduling.M13FastJob",
                     "nhắc, gửi lại, giải phóng giờ yên tĩnh, chuyển nhắc gọi (009 research B-10)",
-            "com.cambae.backend.m13.scheduling.M13DailyJob", "nhắc liên hệ trực tiếp còn chờ (009 research B-10)");
+            "com.cambae.backend.m13.scheduling.M13DailyJob", "nhắc liên hệ trực tiếp còn chờ (009 research B-10)",
+            "com.cambae.backend.m07.scheduling.M07MinuteJob",
+                    "việc theo phút m07: quét cửa sổ liều, trễ, bỏ lỡ (006 research D-19)",
+            "com.cambae.backend.m07.scheduling.M07DailyJob",
+                    "việc hàng ngày m07: đối chiếu thuốc, cảnh báo hết hạn đơn (006 research D-19)");
 
     private static final DescribedPredicate<JavaClass> LISTED = DescribedPredicate.describe(
             "có trong danh sách job được phép của FR-010a", c -> ALLOWED.containsKey(c.getName()));
