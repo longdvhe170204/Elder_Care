@@ -159,7 +159,9 @@ class RequestValidationTest {
                 request(Optional.of(NotificationLevel.LOW), MANAGERS, GENERAL, Optional.empty(), Optional.empty()));
 
         assertThat(medium.result()).isEqualTo(IntakeResult.VALID);
-        assertThat(medium.flags()).containsExactly(RequestFlag.MISSING_SHORT_CONTENT);
+        // Không có nội dung rút gọn thì kênh ngoài ứng dụng không có gì để gửi (FR-019, FR-020; 009 US3)
+        assertThat(medium.flags())
+                .containsExactlyInAnyOrder(RequestFlag.MISSING_SHORT_CONTENT, RequestFlag.INVALID_OUT_OF_APP_CONTENT);
         assertThat(low.flags()).isEmpty();
     }
 

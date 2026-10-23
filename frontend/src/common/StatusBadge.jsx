@@ -40,6 +40,14 @@ const STATUS_TONE = {
   'Đã vào': 'occupied',
   'Đang giữ chỗ': 'held',
   'Đang sử dụng': 'occupied',
+  // Thông báo, liên hệ trực tiếp, kênh (009; DESIGN.md 5.19.0): Chờ hết giờ yên tĩnh, Đã gửi, Không gửi, Không liên hệ
+  // được, Đã tắt giữ neutral
+  'Đã xem': 'settled',
+  'Gửi thất bại': 'attention',
+  'Không liên lạc được': 'attention',
+  'Chờ liên hệ': 'attention',
+  'Đã liên hệ': 'settled',
+  'Đang bật': 'settled',
   // Tài khoản (002): Không hoạt động giữ neutral, Đã khóa viền xám để phân biệt
   'Hoạt động': 'settled',
   'Khóa tạm': 'attention',
