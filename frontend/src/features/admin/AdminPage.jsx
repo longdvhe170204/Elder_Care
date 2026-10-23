@@ -2,17 +2,19 @@ import { useState } from 'react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { PageHeader } from '@/common/PageHeader'
 import { AccountList } from '@/features/accounts/AccountList'
+import { CatalogList } from '@/features/catalogs-m01/CatalogList'
 import { ParameterList } from '@/features/parameters/ParameterList'
 import { RolePermissions } from '@/features/permissions/RolePermissions'
 
 // Màn "Tài khoản, tham số" (Phụ lục 27, dòng "Tài khoản, phân quyền, tham số"). Tab Tài khoản: 002 T035; tab Phân
-// quyền: 002 T077 (chỉ Quản lý viện, backend trả 403 cho vai trò khác).
+// quyền: 002 T077 (chỉ Quản lý viện, backend trả 403 cho vai trò khác). Tab Danh mục: 001 T072.
 // Chỉ Quản lý viện đổi tham số (BR-M15-04), tạo tài khoản nhân viên (FR-002); quyền thật do backend trả và kiểm.
 
 const SUBTITLES = {
   accounts: 'Tài khoản không xóa được; khóa, mở khóa, đổi vai trò đều ghi lý do.',
   permissions: 'Chỉ thu hẹp được trong ma trận quyền; mỗi thay đổi ghi lý do và có hiệu lực ngay.',
   parameters: 'Tham số vận hành có hiệu lực ngay khi lưu; mỗi lần đổi ghi lý do.',
+  catalogs: 'Danh mục không xóa được; mục ngừng hiệu lực vẫn đọc được ở dữ liệu cũ, ngừng hoặc kích hoạt lại ghi lý do.',
 }
 
 export function AdminPage({ role }) {
@@ -35,11 +37,15 @@ export function AdminPage({ role }) {
           <ToggleGroupItem value="parameters" className="h-10 px-4">
             Tham số
           </ToggleGroupItem>
+          <ToggleGroupItem value="catalogs" className="h-10 px-4">
+            Danh mục
+          </ToggleGroupItem>
         </ToggleGroup>
       </PageHeader>
       {tab === 'parameters' && <ParameterList canChange={role === 'NURSING_HOME_MANAGER'} />}
       {tab === 'accounts' && <AccountList canCreate={role === 'NURSING_HOME_MANAGER'} />}
       {tab === 'permissions' && <RolePermissions />}
+      {tab === 'catalogs' && <CatalogList canChange={role === 'NURSING_HOME_MANAGER'} />}
     </div>
   )
 }
