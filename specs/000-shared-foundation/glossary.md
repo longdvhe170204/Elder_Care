@@ -510,7 +510,16 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 
 ## 12. Feature 006 (`006-medication-management`, D)
 
-*Chủ feature điền khi dịch `contracts/api-006.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+### 12.1. Bảng và cột nền tảng (T005, `V006_01__medication_foundation.sql`)
+
+| Tên logic | Mã |
+| --- | --- |
+| `thuoc_nct` (`nct_id`, `han_doi_chieu`, `ly_do_doi_chieu`, `da_canh_bao_doi_chieu_luc`, `phien_ban`) | `resident_medication` (`resident_id`, `reconciliation_due_at`, `reconciliation_reason`, `reconciliation_warned_at`, `version`) |
+| `ly_do_doi_chieu` `TIEP_NHAN`, `TRO_VE_BENH_VIEN` | `ADMISSION`, `HOSPITAL_RETURN` |
+| `lan_chay_m07` (`viec`, `moc`, `ket_qua`, `lan_chay_lich_id`, `thoi_diem_hoan_thanh`) | `m07_job_run` (`job_key`, `checkpoint`, `result`, `scheduler_run_id`, `completed_at`) |
+| `thuoc` (`ten`, `ham_luong`, `dang_bao_che`, `duong_dung_mac_dinh`, `don_vi_dung`, `cua_so_truoc_phut`, `cua_so_sau_phut`, `kiem_soat_dac_biet`, `trang_thai`, `phien_ban`) | `medication` (`name`, `concentration`, `dosage_form`, `default_route`, `usage_unit`, `before_window_minutes`, `after_window_minutes`, `special_control`, `status`, `version`) |
+| `thuoc_hoat_chat` (`thuoc_id`, `di_nguyen_id`) | `medication_active_ingredient` (`medication_id`, `allergen_id`) |
+
 
 ## 13. Feature 007 (`007-health-alert-incident`, D)
 
