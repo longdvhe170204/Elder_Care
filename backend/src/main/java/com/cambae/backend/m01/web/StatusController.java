@@ -1,7 +1,6 @@
 package com.cambae.backend.m01.web;
 
 import com.cambae.backend.common.error.BusinessException;
-import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.m01.api.dto.Condition;
 import com.cambae.backend.m01.api.dto.StatusCommand;
 import com.cambae.backend.m01.internal.status.service.ResidentStatusService;
@@ -9,10 +8,8 @@ import com.cambae.backend.m01.internal.status.service.ResidentStatusService.Outc
 import com.cambae.backend.m01.web.request.StatusCommandRequestBody;
 import com.cambae.backend.m01.web.response.StatusCommandResultBody;
 import com.cambae.backend.m01.web.response.StatusHistoryEntryBody;
-import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.EnumSet;
@@ -39,8 +36,6 @@ import tools.jackson.databind.node.JsonNodeFactory;
 @Tag(name = "status")
 class StatusController {
 
-    private static final String PROBLEM = "application/problem+json";
-
     /** Lệnh người dùng được xem trước điều kiện (schema {@code UserCommand}). */
     private static final Set<StatusCommand> USER_COMMANDS = EnumSet.of(
             StatusCommand.COMPLETE_ADMISSION,
@@ -65,7 +60,22 @@ class StatusController {
     }
 
     @GetMapping("/conditions/{command}")
-    List<Condition> conditions(@PathVariable long id, @PathVariable StatusCommand command) {
+    List<Condition> conditions(
+            @PathVariable long id,
+            @PathVariable
+                    @Parameter(
+                            schema =
+                                    @Schema(
+                                            allowableValues = {
+                                                "COMPLETE_ADMISSION",
+                                                "CANCEL_ADMISSION",
+                                                "GRANT_TEMPORARY_ABSENCE",
+                                                "RECORD_RETURN",
+                                                "TRANSFER_OUT",
+                                                "END_RESIDENCY",
+                                                "RECORD_DEATH"
+                                            }))
+                    StatusCommand command) {
         if (!USER_COMMANDS.contains(command)) {
             throw new BusinessException(
                     HttpStatus.UNPROCESSABLE_CONTENT,
@@ -76,11 +86,7 @@ class StatusController {
     }
 
     @PostMapping("/complete-admission")
-    @ApiResponses(
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "UNMET_CONDITIONS, INVALID_TRANSITION, PROFILE_CLOSED",
-                    content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))))
+    @ProblemResponses.StatusCommand
     StatusCommandResultBody completeAdmission(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -90,6 +96,7 @@ class StatusController {
     }
 
     @PostMapping("/cancel-admission")
+    @ProblemResponses.StatusCommand
     StatusCommandResultBody cancelAdmission(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -99,6 +106,7 @@ class StatusController {
     }
 
     @PostMapping("/grant-temporary-absence")
+    @ProblemResponses.StatusCommand
     StatusCommandResultBody grantTemporaryAbsence(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -108,6 +116,7 @@ class StatusController {
     }
 
     @PostMapping("/record-return")
+    @ProblemResponses.StatusCommand
     StatusCommandResultBody recordReturn(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -117,6 +126,7 @@ class StatusController {
     }
 
     @PostMapping("/transfer-out")
+    @ProblemResponses.StatusCommand
     StatusCommandResultBody transferOut(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -126,6 +136,7 @@ class StatusController {
     }
 
     @PostMapping("/end-residency")
+    @ProblemResponses.StatusCommand
     StatusCommandResultBody endResidency(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -135,6 +146,7 @@ class StatusController {
     }
 
     @PostMapping("/record-death")
+    @ProblemResponses.StatusCommand
     StatusCommandResultBody recordDeath(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,

@@ -41,11 +41,14 @@ class TreatmentWishController {
     }
 
     @GetMapping("/residents/{id}/treatment-wishes")
+    @ProblemResponses.Forbidden
+    @ApiResponse(responseCode = "200", description = "OK")
     TreatmentWishSummaryBody get(@PathVariable long id) {
         return TreatmentWishSummaryBody.of(id, wishes.get(ResidentProfileService.target(id)), wishes);
     }
 
     @PostMapping("/residents/{id}/treatment-wishes")
+    @ProblemResponses.Forbidden
     @ApiResponses({
         @ApiResponse(
                 responseCode = "201",

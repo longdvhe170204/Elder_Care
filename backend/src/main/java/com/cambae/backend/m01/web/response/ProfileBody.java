@@ -27,7 +27,10 @@ public record ProfileBody(
         ResidentStatus status,
         Instant statusSince,
         String currentResidenceType,
-        @FieldGroup(InfoGroup.CARE_LEVEL) String currentCareLevel,
+
+        @FieldGroup(InfoGroup.CARE_LEVEL) @Schema(allowableValues = {"BASIC", "REGULAR", "SPECIAL"})
+        String currentCareLevel,
+
         List<String> careNeeds,
         String careNote,
         @FieldGroup(InfoGroup.HEALTH) List<Object> activeHealthItems,

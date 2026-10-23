@@ -1,13 +1,18 @@
 package com.cambae.backend.m01.web;
 
+import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.file.FileContent;
 import com.cambae.backend.common.file.FileService;
 import com.cambae.backend.common.file.FileTypes;
+import com.cambae.backend.m01.web.response.UploadedFileBody;
 import com.cambae.backend.m15.account.api.CurrentUser;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Map;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -43,7 +48,17 @@ class FileController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    ResponseEntity<Map<String, Long>> upload(@RequestParam("file") MultipartFile file) {
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Đã tải lên"),
+        @ApiResponse(
+                responseCode = "422",
+                description = "FILE_TYPE_NOT_ALLOWED, FILE_TOO_LARGE",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = ProblemBody.class)))
+    })
+    ResponseEntity<UploadedFileBody> upload(@RequestParam("file") MultipartFile file) {
         byte[] content;
         try {
             content = file.getBytes();
@@ -53,10 +68,18 @@ class FileController {
         // POST /files chỉ nhận PDF, JPEG, PNG; FileApi.upload nhận thêm .xlsx cho tệp hệ thống tạo
         FileTypes.check(file.getContentType(), content, FileTypes.USER_UPLOAD);
         long id = files.upload(file.getOriginalFilename(), file.getContentType(), content, currentUser.accountId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("fileId", id));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new UploadedFileBody(id));
     }
 
     @GetMapping("/{id}")
+    @ProblemResponses.NotFound
+    @ApiResponse(
+            responseCode = "200",
+            description = "Nội dung tệp",
+            content =
+                    @Content(
+                            mediaType = "application/octet-stream",
+                            schema = @Schema(type = "string", format = "binary")))
     ResponseEntity<byte[]> download(@PathVariable long id) {
         FileContent file = files.download(id, currentUser.accountId());
         return ResponseEntity.ok()
