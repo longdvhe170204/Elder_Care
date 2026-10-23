@@ -104,6 +104,17 @@ interface ChuyenDiNhiemVuPort {                    // 014 cài; chỉ đọc
 
 Bean thiếu thì nhóm (g), phần chuyến đi của nhóm (e) trả "chưa có dữ liệu"; `truongDoan`, `nguoiDiCung` trả rỗng (002 không cấp quyền theo nhiệm vụ này: mặc định an toàn).
 
+**Tên triển khai T002 (2026-10-23)**: chữ ký trên là tên logic; mã theo `backend/README.md` và glossary mục 14.6:
+
+| Tên logic | Khai báo tiếng Anh |
+| --- | --- |
+| `DoGuiBanGiaoPort.dangGiu`, `.conDangGiu` | `m09.api.spi.HeldBelongingsHandoverPort.heldBy`, `.stillHeld` |
+| `ChuyenDiNhiemVuPort.truongDoan`, `.nguoiDiCung`, `.chuyenTrongCa` | `m09.api.spi.TripDutyPort.groupLeader`, `.companions`, `.inShift` |
+| `DoGuiDangGiuView` | `HeldBelongingView(belongingId, holderStaffId, residentId, storageLocationId)`; vị trí lưu giữ có thể rỗng theo data-model 013 |
+| `ChuyenTrongCaView` | `TripInShiftView(tripId, staffIds, expectedReturnAt)` |
+
+Hai kiểu chỉ SPI dùng nằm cùng gói `api.spi`. Bản giả dùng chung ở `support/fake/m09/`: test `@Import(FakeM09Config.class)` rồi tiêm bản giả để đặt dữ liệu. `available(false)` mô phỏng nguồn không có dữ liệu bằng lỗi, tách biệt với kết quả rỗng khi nguồn hoạt động; cách xử lý khi thiếu bean vẫn theo đoạn trên. SPI nội bộ `KiemTraCongBoMoRong` ở mục 1.5 có tên triển khai `m09.shift.internal.service.port.ExtendedPublicationCheck.check(scheduleId)`; cảnh báo `PublicationWarning(code, description, details)` dùng tên trường của schema `Warning`.
+
 ### 2.2. Sự kiện 008 nghe
 
 | Sự kiện | Module | Xử lý | FR |

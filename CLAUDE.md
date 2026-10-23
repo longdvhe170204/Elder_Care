@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Giai đoạn hiện tại: TRIỂN KHAI BACKEND VÀ WEB
 
+- Tiến độ E (2026-10-23), 008 trên nhánh `impl/008-staff-shift-handover`: A đã duyệt bản dịch API và glossary mục 14 theo xác nhận của E. Phase 1 T001–T002 đã hoàn thành sau test trước: luật kiến trúc M09, SPI đồ gửi/chuyến đi, SPI kiểm tra công bố nội bộ và bản giả dùng chung `support/fake/m09/`. `./mvnw clean verify` chạy nền qua trên JDK 25/MySQL 8.0: 174 test đơn vị/kiến trúc, 426 tích hợp, 0 lỗi/thất bại/bỏ qua; Spotless qua. Ghi chú ở plan 008, glossary mục 14.6, team-plan mục 8; chưa tạo PR vào develop. Tiếp theo Phase 2 từ T003; chưa có controller hay bản cài nghiệp vụ 008.
 - Từ 2026-10-19 (constitution IX), chủ dự án mở triển khai cho `backend/` và `frontend/`, làm theo mục "Khi vào triển khai", bắt đầu từ 000. Trước đó (2026-10-16 → 2026-10-19) là giai đoạn thiết kế; cả 20 feature (000 → 019) đã có spec, plan, tasks và đã qua /speckit-analyze.
 - `mobile/` chưa viết mã chức năng: chỉ thiết kế giao diện theo DESIGN.md mục 15 (màn mẫu, dữ liệu giả). Task của `mobile/` trong tasks.md để chưa `[x]` cho tới khi chủ dự án mở phần này; phần backend, web của một feature không chờ task mobile.
 - Thiết kế vẫn làm song song: giao diện web, mobile; sửa plan, tasks, data-model, contracts khi cần.
