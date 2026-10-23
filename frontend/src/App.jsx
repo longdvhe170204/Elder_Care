@@ -16,9 +16,11 @@ import { HandoverPage } from '@/features/handover/HandoverPage'
 import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
 import { MedicationPage } from '@/features/medication/MedicationPage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
+import { BedsPage } from '@/features/beds/BedsPage'
 
 // Bản mẫu giai đoạn thiết kế: chuyển màn bằng state, React Router thêm ở 000 T005.
 const PAGES = {
+  beds: BedsPage,
   dashboard: DashboardPage,
   residents: ResidentListPage,
   'care-tasks': ShiftChecklistPage,

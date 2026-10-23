@@ -60,19 +60,21 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 ### Tests cho User Story 1
 
-- [ ] T011 [P] [US1] Test `BT/m03/CoCauIT.java`, `MaDuyNhatIT.java`, `NgungHieuLucCoCauIT.java`: mã trùng → 409; Trưởng tầng sửa → 403; ngừng hiệu lực phòng còn giường không `KHONG_SU_DUNG` (kể cả `TAM_NGUNG`) → 409 liệt kê; `ThamChieuViTri` còn phân công → 409 (US1 #1–8; FR-003, FR-005)
+- [x] T011 [P] [US1] Test `BT/m03/CoCauIT.java`, `MaDuyNhatIT.java`, `NgungHieuLucCoCauIT.java`: mã trùng → 409; Trưởng tầng sửa → 403; ngừng hiệu lực phòng còn giường không `KHONG_SU_DUNG` (kể cả `TAM_NGUNG`) → 409 liệt kê; `ThamChieuViTri` còn phân công → 409 (US1 #1–8; FR-003, FR-005)
 - [ ] T012 [P] [US1] Test `BT/m03/FR_006_DoiChinhSachPhongIT.java`, `FR_007_KhongDoiChaIT.java`: đổi giới tính/mức của phòng vi phạm phân bổ hiện tại → 409 liệt kê người; đổi tầng của phòng hoặc phòng của giường đã có phân bổ → 409
-- [ ] T013 [P] [US1] Test `BT/m03/BR_M03_22_SoGiuongTieuChuanIT.java`, `Q_238_TaoGiuongGhiTangIT.java`: vượt số giường tiêu chuẩn → 201 kèm cảnh báo `VUOT_SO_GIUONG_TIEU_CHUAN`; tạo giường gọi `TaiSanGiuongPort.ghiTangChoGiuong` cùng transaction, lỗi thì rollback
+- [x] T013 [P] [US1] Test `BT/m03/BR_M03_22_SoGiuongTieuChuanIT.java`, `Q_238_TaoGiuongGhiTangIT.java`: vượt số giường tiêu chuẩn → 201 kèm cảnh báo `VUOT_SO_GIUONG_TIEU_CHUAN`; tạo giường gọi `TaiSanGiuongPort.ghiTangChoGiuong` cùng transaction, lỗi thì rollback
 
 ### Implementation cho User Story 1
 
-- [ ] T014 [P] [US1] Tạo entity `BE/m03/cocau/internal/{KhuVuc,Tang,LoaiPhong,Phong,LyDoChuyenGiuong}.java` (`@NhomDuLieu(DANH_MUC)`) và `BE/m03/giuong/internal/Giuong.java`
+- [x] T014 [P] [US1] Tạo entity `BE/m03/cocau/internal/{KhuVuc,Tang,LoaiPhong,Phong,LyDoChuyenGiuong}.java` (`@NhomDuLieu(DANH_MUC)`) và `BE/m03/giuong/internal/Giuong.java`
 - [ ] T015 [US1] Cài `BE/m03/cocau/internal/CoCauService.java`: tạo, sửa, ngừng hiệu lực, kích hoạt lại, xóa (chỉ khi chưa từng tham chiếu, kể cả `ThamChieuViTri.daTungThamChieu`) cho khu vực, tầng, loại phòng, phòng, lý do chuyển; sửa chính sách phòng khóa giường và kiểm (a), (c); nhật ký `M03_CO_CAU_*` (FR-001 → FR-007)
-- [ ] T016 [US1] Cài tạo giường (`TAO_GIUONG` → `TRONG`, gọi ghi tăng tài sản 019, cảnh báo BR-M03-22) trong `BE/m03/giuong/internal/GiuongService.java`; giường không có lệnh xóa (Q-237)
+- [x] T016 [US1] Cài tạo giường (`TAO_GIUONG` → `TRONG`, gọi ghi tăng tài sản 019, cảnh báo BR-M03-22) trong `BE/m03/giuong/internal/GiuongService.java`; giường không có lệnh xóa (Q-237)
 - [ ] T017 [US1] Tạo controller `BE/m03/cocau/web/CoCauController.java` và `BE/m03/giuong/web/GiuongController.java` cho `/khu-vuc`, `/tang`, `/loai-phong`, `/phong`, `/ly-do-chuyen-giuong` (kèm `/{id}`, `/ngung-hieu-luc`, `/kich-hoat-lai`), `POST/GET /giuong`, `GET /giuong/{id}` theo contracts/api-003.yaml; cài `CoCauViTriApi`, `PhongChoPhepApi`
-- [ ] T018 [P] [US1] Tạo màn web `frontend/src/tinh-nang/co-cau-phong-giuong/` (cây khu vực → tầng → phòng → giường, loại phòng, lý do chuyển)
+- [x] T018 [P] [US1] Tạo màn web `frontend/src/tinh-nang/co-cau-phong-giuong/` (cây khu vực → tầng → phòng → giường, loại phòng, lý do chuyển)
 
 **Checkpoint**: Cơ cấu dựng được độc lập.
+
+**Ghi chú kỹ thuật Phase 3 (2026-10-23, chưa hoàn tất)**: T014 dùng entity tiếng Anh ở `internal/structure/domain`, `internal/bed/domain`; chuẩn bị mapping trước service. Test T011 là `FR_001_StructureIT`, `FR_003_UniqueCodesIT`, `FR_005_DeactivateStructureIT`; T013 gộp hai kiểm tra tạo/cảnh báo và rollback tài sản trong `BR_M03_22_BedCreationIT`; T015 có test bổ sung `FR_003_StructureVersionIT`. `StructureService`/`StructureStore`, `BedService`/`BedStore` theo tầng README. Sau quyết định của chủ dự án, đã dịch 39 operation HTTP Phase 3, cài controller/API đọc và màn frontend/src/features/beds. T012 và phần FR-006/T015 chờ API/fake M01 cùng dữ liệu phân bổ T023; chủ dự án chọn chờ B, không viết hộ. Đổi phòng giường tạm hoãn vì chưa duyệt mở rộng BedAssetPort; chỉ sửa mã giường, T017 giữ chưa đánh vì phần sửa phòng chưa đủ. Đã kiểm nền clean verify: 167 unit/kiến trúc + 450 IT, 0 failure/error/skip; web 105 test, lint/build qua. Chỉ đánh T011/T013/T014/T016/T018 sau các kết quả này; chưa nghiệm thu toàn Phase 3. Task chưa xong đầu tiên: T012. Xem plan và Working-history.md cho giới hạn và bằng chứng.
 
 ---
 

@@ -52,6 +52,42 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             new Contract(
                     Path.of("..", "specs", "002-account-permission", "contracts", "api-002.yaml"),
                     Set.of("POST /api/v1/resident-accounts"),
+                    Set.of()),
+            // 003 Phase 3: chỉ phần đã dịch/triển khai; các user story sau còn pending.
+            new Contract(
+                    Path.of("..", "specs", "003-room-bed-allocation", "contracts", "api-003.yaml"),
+                    Set.of(
+                            "GET /api/v1/giuong/tong-hop",
+                            "POST /api/v1/giuong/{id}/tam-ngung-su-dung",
+                            "POST /api/v1/giuong/{id}/su-dung-lai",
+                            "GET /api/v1/giuong/{id}/dieu-kien-xac-nhan-san-sang",
+                            "POST /api/v1/giuong/{id}/xac-nhan-san-sang",
+                            "GET /api/v1/giuong/{id}/lich-su-trang-thai",
+                            "POST /api/v1/giuong/{id}/lich-su-trang-thai/{lichSuId}/dinh-chinh",
+                            "POST /api/v1/phong/{id}/dat-cach-ly",
+                            "POST /api/v1/phong/{id}/go-cach-ly",
+                            "GET /api/v1/phong/{id}/lich-su-cach-ly",
+                            "GET /api/v1/phan-bo-giuong/giuong-phu-hop",
+                            "POST /api/v1/phan-bo-giuong",
+                            "GET /api/v1/phan-bo-giuong/{id}",
+                            "POST /api/v1/phan-bo-giuong/{id}/huy",
+                            "POST /api/v1/phan-bo-giuong/{id}/chuyen-giuong",
+                            "POST /api/v1/phan-bo-giuong/{id}/chuyen-giuong-kiem-soat-lay-nhiem",
+                            "POST /api/v1/phan-bo-giuong/{id}/xac-nhan-o-lai-vung-cach-ly",
+                            "POST /api/v1/phan-bo-giuong/{id}/dinh-chinh",
+                            "GET /api/v1/nguoi-cao-tuoi/{nctId}/vi-tri",
+                            "GET /api/v1/lich-su-vi-tri/nguoi-cao-tuoi/{nctId}",
+                            "GET /api/v1/lich-su-vi-tri/giuong",
+                            "GET /api/v1/lich-su-vi-tri/cung-phong",
+                            "GET /api/v1/khu-nghi-ban-tru",
+                            "POST /api/v1/khu-nghi-ban-tru",
+                            "PUT /api/v1/khu-nghi-ban-tru/{id}",
+                            "POST /api/v1/khu-nghi-ban-tru/{id}/ngung-hieu-luc",
+                            "GET /api/v1/khu-nghi-ban-tru/so-dang-ky",
+                            "GET /api/v1/buoi-ban-tru",
+                            "POST /api/v1/buoi-ban-tru",
+                            "PUT /api/v1/buoi-ban-tru/{id}",
+                            "POST /api/v1/buoi-ban-tru/{id}/ngung-hieu-luc"),
                     Set.of()));
 
     @Autowired
