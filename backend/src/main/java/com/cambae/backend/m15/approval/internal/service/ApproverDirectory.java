@@ -6,6 +6,7 @@ import com.cambae.backend.m15.account.api.AccountApi;
 import com.cambae.backend.m15.account.api.ApproverApi;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.PermissionApi;
+import com.cambae.backend.m15.account.api.dto.AccountView;
 import com.cambae.backend.m15.approval.api.ApprovalRequestView;
 import com.cambae.backend.m15.approval.api.spi.RequestTypeHandler;
 import java.util.List;
@@ -85,6 +86,14 @@ class ApproverDirectory {
         return approvers.getObject().approvers(handler.approvePermission(), request.target()).stream()
                 .filter(id -> withinRestriction(id, restriction))
                 .toList();
+    }
+
+    /** Hồ sơ nhân viên của người yêu cầu, để báo khi áp dụng không thành (FR-038); không có thì {@code null}. */
+    Long requesterStaffId(ApprovalRequestView request) {
+        return accounts.getObject()
+                .byId(request.requesterId())
+                .map(AccountView::staffId)
+                .orElse(null);
     }
 
     boolean allManagers(List<Long> accountIds) {

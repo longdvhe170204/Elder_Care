@@ -239,6 +239,24 @@ public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibility
     }
 
     @Override
+    public List<AccountView> activeWithRole(Role role) {
+        return accounts.values().stream()
+                .filter(u -> u.roles().contains(role))
+                .map(u -> new AccountView(
+                        u.accountId(),
+                        u.type(),
+                        AccountStatus.ACTIVE,
+                        u.roles(),
+                        u.staffId().orElse(null)))
+                .toList();
+    }
+
+    @Override
+    public Optional<AccountView> byId(long accountId) {
+        return find(u -> u.accountId() == accountId);
+    }
+
+    @Override
     public Optional<AccountView> byStaff(long staffId) {
         return find(u -> u.staffId().equals(Optional.of(staffId)));
     }
@@ -257,7 +275,12 @@ public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibility
         return accounts.values().stream()
                 .filter(match)
                 .findFirst()
-                .map(u -> new AccountView(u.accountId(), u.type(), AccountStatus.ACTIVE, u.roles()));
+                .map(u -> new AccountView(
+                        u.accountId(),
+                        u.type(),
+                        AccountStatus.ACTIVE,
+                        u.roles(),
+                        u.staffId().orElse(null)));
     }
 
     @Override

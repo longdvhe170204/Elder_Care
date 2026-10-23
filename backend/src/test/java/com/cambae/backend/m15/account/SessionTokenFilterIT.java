@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
@@ -74,7 +75,8 @@ class SessionTokenFilterIT extends MySqlIntegrationTestBase {
     void FR_013_bearerToken_passesAndTouchesSessionAndDevice() throws Exception {
         Session s = openSession("STAFF_APP");
         clock.advanceBy(Duration.ofMinutes(5));
-        Instant before = time.now();
+        // Cột DATETIME(6) chỉ giữ tới micro giây nên mốc so sánh cắt cùng độ chính xác
+        Instant before = time.now().truncatedTo(ChronoUnit.MICROS);
 
         mvc.perform(get(PROBE).header("Authorization", "Bearer " + s.token())).andExpect(status().isNotFound());
 
