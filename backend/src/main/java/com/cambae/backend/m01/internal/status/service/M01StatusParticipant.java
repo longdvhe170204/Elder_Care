@@ -3,6 +3,7 @@ package com.cambae.backend.m01.internal.status.service;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m01.api.dto.CommandContext;
 import com.cambae.backend.m01.api.dto.Condition;
+import com.cambae.backend.m01.api.dto.ResidentStatus;
 import com.cambae.backend.m01.api.dto.StatusCommand;
 import com.cambae.backend.m01.api.dto.TransitionResult;
 import com.cambae.backend.m01.api.dto.Warning;
@@ -11,6 +12,7 @@ import com.cambae.backend.m01.internal.assessment.domain.Assessment;
 import com.cambae.backend.m01.internal.assessment.domain.AssessmentStatus;
 import com.cambae.backend.m01.internal.assessment.domain.AssessmentType;
 import com.cambae.backend.m01.internal.assessment.persistence.AssessmentRepository;
+import com.cambae.backend.m01.internal.assessment.service.ReassessmentNoticeService;
 import com.cambae.backend.m01.internal.consent.persistence.ConsentStore;
 import com.cambae.backend.m01.internal.consent.service.MissingConsentReminderService;
 import com.cambae.backend.m15.parameter.api.ParameterApi;
@@ -26,7 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Điều kiện và tác động riêng của M01 trong lệnh trạng thái (research H-02 mục 4): Hoàn tất tiếp nhận cần đánh giá đầu
  * vào Đã xác nhận và lần đánh giá Đã xác nhận gần nhất chưa quá CFG-M01-02 (FR-034a). Thiếu bản đồng ý Hiệu lực thì không
- * chặn nhưng cảnh báo và bắt đầu nhắc Hành chính (FR-012). Chạy trước các module khác.
+ * chặn nhưng cảnh báo và bắt đầu nhắc Hành chính (FR-012). Ghi nhận trở về từ Điều trị tại bệnh viện tính hạn đánh giá
+ * lại từ lúc trở về và thêm lần báo căn cứ trở về (FR-041; T048). Chạy trước các module khác.
  */
 @Component
 @Order(0)
@@ -41,28 +44,34 @@ class M01StatusParticipant implements StatusTransitionParticipant {
     private final BusinessTime time;
     private final ConsentStore consents;
     private final MissingConsentReminderService reminders;
+    private final ReassessmentNoticeService reassessmentNotices;
 
     M01StatusParticipant(
             AssessmentRepository assessments,
             ParameterApi parameters,
             BusinessTime time,
             ConsentStore consents,
-            MissingConsentReminderService reminders) {
+            MissingConsentReminderService reminders,
+            ReassessmentNoticeService reassessmentNotices) {
         this.assessments = assessments;
         this.parameters = parameters;
         this.time = time;
         this.consents = consents;
         this.reminders = reminders;
+        this.reassessmentNotices = reassessmentNotices;
     }
 
     @Override
     public Set<StatusCommand> interestedCommands() {
-        return Set.of(StatusCommand.COMPLETE_ADMISSION);
+        return Set.of(StatusCommand.COMPLETE_ADMISSION, StatusCommand.RECORD_RETURN);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Condition> checkConditions(CommandContext context) {
+        if (context.command() != StatusCommand.COMPLETE_ADMISSION) {
+            return List.of();
+        }
         long residentId = context.residentId();
         if (!assessments.existsByResidentIdAndTypeAndStatus(
                 residentId, AssessmentType.INITIAL, AssessmentStatus.CONFIRMED)) {
@@ -87,7 +96,8 @@ class M01StatusParticipant implements StatusTransitionParticipant {
     @Override
     @Transactional(readOnly = true)
     public List<Warning> warnings(CommandContext context) {
-        if (consents.findActive(context.residentId()).isPresent()) {
+        if (context.command() != StatusCommand.COMPLETE_ADMISSION
+                || consents.findActive(context.residentId()).isPresent()) {
             return List.of();
         }
         return List.of(new Warning(
@@ -97,7 +107,9 @@ class M01StatusParticipant implements StatusTransitionParticipant {
 
     @Override
     public void applyEffects(TransitionResult result) {
-        // Tác động riêng của M01 khi Ghi nhận trở về từ bệnh viện cần bảng lan_bao_danh_gia_lai (T062, Phase 8).
+        if (result.command() == StatusCommand.RECORD_RETURN && result.from() == ResidentStatus.HOSPITALIZED) {
+            reassessmentNotices.onReturnFromHospital(result.residentId(), result.historyId(), result.at());
+        }
         if (result.command() == StatusCommand.COMPLETE_ADMISSION
                 && consents.findActive(result.residentId()).isEmpty()) {
             reminders.startReminding(result.residentId());

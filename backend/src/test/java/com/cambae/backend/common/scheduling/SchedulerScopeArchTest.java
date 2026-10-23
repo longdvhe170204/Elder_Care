@@ -55,6 +55,15 @@ class SchedulerScopeArchTest {
                     "com.cambae.backend.m01.scheduling.MissingConsentReminderJob",
                     "nhắc Hành chính khi thiếu bản đồng ý; chỉ ghi bảng kỹ thuật nhắc (001 FR-012, T058)"),
             Map.entry(
+                    "com.cambae.backend.m01.scheduling.NotifyPeriodicReassessmentJob",
+                    "báo bác sĩ cần đánh giá lại định kỳ; chỉ ghi bảng kỹ thuật chống lặp (001 FR-039, T064)"),
+            Map.entry(
+                    "com.cambae.backend.m01.scheduling.AlertOverdueReassessmentJob",
+                    "cảnh báo quá hạn đánh giá lại; chỉ ghi bảng kỹ thuật chống lặp (001 FR-041, T064)"),
+            Map.entry(
+                    "com.cambae.backend.m01.scheduling.RemindCareLevelChangeRequestJob",
+                    "nhắc Hành chính lập yêu cầu đổi mức; chỉ ghi bảng kỹ thuật nhắc (001 FR-036, T064)"),
+            Map.entry(
                     "com.cambae.backend.common.file.UnattachedFileCleanupJob",
                     "dọn tệp tải lên chưa gắn sau 24 giờ; dữ liệu tạm, không phải bản ghi nghiệp vụ (001 research H-13, T004)"));
 
