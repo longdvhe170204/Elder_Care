@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Search } from 'lucide-react'
-import { getResidents } from '@/api'
+import { getReassessmentsDue, getResidents, getResidentsById } from '@/api'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
@@ -9,11 +10,35 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
+import { formatDateTime } from '@/common/dateTime'
+import { StatusBadge } from '@/common/StatusBadge'
 import { ResidentDetail } from './ResidentDetail'
 import { GENDER_LABELS, STATUS_LABELS } from './residentLabels'
 
 // Tra cứu hồ sơ thật trong phạm vi (001 T022; US1 #6, #7; FR-007; hợp đồng GET /residents). Kết quả đã lọc
 // theo phạm vi ở backend; vai trò không được xem nhận lỗi 403 và màn hiện lỗi đó.
+// Đánh giá lại (T066; US6; FR-041; bố cục duyệt 2026-10-23): cột Đánh giá lại và bộ lọc "Cần đánh giá lại (n)" lấy từ
+// GET /reassessments/due; vai trò không xem được đánh giá (403) thì không có cột và bộ lọc.
+
+function ReassessmentCell({ item }) {
+  if (!item) return null
+  return (
+    <div className="flex flex-col items-start gap-1">
+      {item.status === 'OVERDUE' ? (
+        <StatusBadge status="Quá hạn" />
+      ) : (
+        <Badge variant="attention">Cần đánh giá lại</Badge>
+      )}
+      <span className="type-caption text-muted-foreground tabular-nums">
+        {item.status === 'OVERDUE'
+          ? `từ ${formatDateTime(item.overdueSince)}`
+          : item.dueAt
+            ? `Hạn ${formatDateTime(item.dueAt)}`
+            : 'Hạn tính từ lúc Ghi nhận trở về'}
+      </span>
+    </div>
+  )
+}
 
 export function ResidentSearch({ reloadKey }) {
   const [text, setText] = useState('')
@@ -22,6 +47,9 @@ export function ResidentSearch({ reloadKey }) {
   const [failure, setFailure] = useState(null)
   const [applied, setApplied] = useState('')
   const [openId, setOpenId] = useState(null)
+  const [due, setDue] = useState(null)
+  const [onlyDue, setOnlyDue] = useState(false)
+  const [dueProfiles, setDueProfiles] = useState(null)
   // Tab Đánh giá chia hai cột (phiếu, thông tin tham khảo) nên khung chi tiết rộng hơn
   const [wide, setWide] = useState(false)
 
@@ -41,6 +69,31 @@ export function ResidentSearch({ reloadKey }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- nạp danh sách khi vào màn, đổi từ khóa hoặc vừa tạo hồ sơ
     load(applied)
   }, [applied, reloadKey, load])
+
+  useEffect(() => {
+    let cancelled = false
+    getReassessmentsDue()
+      .then(({ data }) => !cancelled && setDue(data))
+      .catch(() => !cancelled && setDue(null))
+    return () => {
+      cancelled = true
+    }
+  }, [reloadKey])
+
+  useEffect(() => {
+    if (!onlyDue || !due) return undefined
+    let cancelled = false
+    Promise.allSettled(due.map((d) => getResidentsById({ path: { id: d.residentId } }))).then((results) => {
+      if (!cancelled) setDueProfiles(results.filter((r) => r.status === 'fulfilled').map((r) => r.value.data))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [onlyDue, due])
+
+  const dueById = new Map((due ?? []).map((d) => [d.residentId, d]))
+  // Bật bộ lọc: chỉ những người cần đánh giá lại, theo thứ tự backend trả (quá hạn trước, rồi theo hạn)
+  const rows = onlyDue ? (dueProfiles ?? []) : items
 
   function submit(event) {
     event.preventDefault()
@@ -69,8 +122,40 @@ export function ResidentSearch({ reloadKey }) {
             Tìm
           </Button>
         </form>
+        {due && (
+          <div role="group" aria-label="Lọc hồ sơ" className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant={onlyDue ? 'outline' : 'default'}
+              className="h-11"
+              aria-pressed={!onlyDue}
+              onClick={() => setOnlyDue(false)}
+            >
+              Tất cả hồ sơ
+            </Button>
+            <Button
+              type="button"
+              variant={onlyDue ? 'default' : 'outline'}
+              className="h-11"
+              aria-pressed={onlyDue}
+              onClick={() => setOnlyDue(true)}
+            >
+              {`Cần đánh giá lại (${due.length})`}
+            </Button>
+          </div>
+        )}
         <ProblemAlert problem={failure} />
-        {items && items.length === 0 && !failure && (
+        {onlyDue && due && due.length === 0 && (
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>Chưa có ai cần đánh giá lại</EmptyTitle>
+              <EmptyDescription>
+                Hệ thống báo khi tới hạn định kỳ, sau sự cố, sau nằm viện hoặc sau đính chính đổi mức.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        )}
+        {!onlyDue && items && items.length === 0 && !failure && (
           <Empty>
             <EmptyHeader>
               <EmptyTitle>Chưa có hồ sơ nào</EmptyTitle>
@@ -78,7 +163,7 @@ export function ResidentSearch({ reloadKey }) {
             </EmptyHeader>
           </Empty>
         )}
-        {items && items.length > 0 && (
+        {rows && rows.length > 0 && (
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
@@ -87,10 +172,11 @@ export function ResidentSearch({ reloadKey }) {
                 <TableHead>Ngày sinh</TableHead>
                 <TableHead>Giới tính</TableHead>
                 <TableHead>Trạng thái</TableHead>
+                {due && <TableHead>Đánh giá lại</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((p) => (
+              {rows.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell className="tabular-nums">{p.profileCode}</TableCell>
                   <TableCell className="font-medium">
@@ -105,12 +191,17 @@ export function ResidentSearch({ reloadKey }) {
                   <TableCell className="tabular-nums">{p.personalInfo.dateOfBirth}</TableCell>
                   <TableCell>{GENDER_LABELS[p.personalInfo.gender]}</TableCell>
                   <TableCell>{STATUS_LABELS[p.status] ?? p.status}</TableCell>
+                  {due && (
+                    <TableCell>
+                      <ReassessmentCell item={dueById.get(p.id)} />
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         )}
-        {nextCursor && (
+        {!onlyDue && nextCursor && (
           <Button variant="outline" className="h-11 self-start" onClick={() => load(applied, nextCursor)}>
             Xem thêm
           </Button>

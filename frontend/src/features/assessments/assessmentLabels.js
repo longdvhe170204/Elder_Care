@@ -47,3 +47,11 @@ export const ASSESSMENT_CORRECTION_FIELDS = [
 
 // Trạng thái người cao tuổi cho phép lập từng loại đánh giá (FR-035); backend vẫn kiểm lại.
 export const REASSESSABLE_STATUSES = ['IN_RESIDENCE', 'TEMPORARILY_ABSENT', 'OFF_SITE_ACTIVITY']
+
+// Căn cứ báo đánh giá lại (001 US6; FR-039 → FR-042; contracts ReassessmentStatus.basis[].basis).
+export const REASSESSMENT_BASIS_LABELS = {
+  PERIODIC: 'Định kỳ',
+  AFTER_INCIDENT: 'Sau sự cố',
+  RETURN_FROM_HOSPITAL: 'Trở về từ bệnh viện',
+  ASSESSMENT_CORRECTION: 'Đính chính đánh giá',
+}
