@@ -2,12 +2,14 @@ package com.cambae.backend.support.fake.m01;
 
 import com.cambae.backend.m01.api.dto.CommandContext;
 import com.cambae.backend.m01.api.dto.Condition;
+import com.cambae.backend.m01.api.dto.ConditionWaiver;
 import com.cambae.backend.m01.api.dto.StatusCommand;
 import com.cambae.backend.m01.api.dto.TransitionResult;
 import com.cambae.backend.m01.api.spi.StatusTransitionParticipant;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -20,6 +22,7 @@ public class FakeStatusTransitionParticipant implements StatusTransitionParticip
     private final List<Condition> unmet = new ArrayList<>();
     private final List<TransitionResult> applied = new ArrayList<>();
     private RuntimeException failure;
+    private ConditionWaiver waiver;
 
     public FakeStatusTransitionParticipant interestedIn(StatusCommand... only) {
         commands.clear();
@@ -29,6 +32,23 @@ public class FakeStatusTransitionParticipant implements StatusTransitionParticip
 
     public FakeStatusTransitionParticipant unmet(Condition condition) {
         unmet.add(condition);
+        return this;
+    }
+
+    /** Giả lập 004: yêu cầu ngoại lệ đã duyệt miễn các điều kiện ghi trong {@code waiver}. */
+    public FakeStatusTransitionParticipant waive(ConditionWaiver waiver) {
+        this.waiver = waiver;
+        return this;
+    }
+
+    /** Đưa về mặc định (bean dùng chung giữa các test trong một context). */
+    public FakeStatusTransitionParticipant reset() {
+        commands.clear();
+        commands.addAll(EnumSet.allOf(StatusCommand.class));
+        unmet.clear();
+        applied.clear();
+        failure = null;
+        waiver = null;
         return this;
     }
 
@@ -50,6 +70,11 @@ public class FakeStatusTransitionParticipant implements StatusTransitionParticip
     @Override
     public List<Condition> checkConditions(CommandContext context) {
         return List.copyOf(unmet);
+    }
+
+    @Override
+    public Optional<ConditionWaiver> waiveConditions(CommandContext context) {
+        return Optional.ofNullable(waiver);
     }
 
     @Override

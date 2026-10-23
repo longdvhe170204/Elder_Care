@@ -50,7 +50,16 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
             "POST /assessments/{id}/discard-draft",
             "POST /assessments/{id}/correct",
             "GET /residents/{id}/care-level",
-            "GET /residents/{id}/care-level-history");
+            "GET /residents/{id}/care-level-history",
+            "GET /residents/{id}/status-history",
+            "GET /residents/{id}/conditions/{command}",
+            "POST /residents/{id}/complete-admission",
+            "POST /residents/{id}/cancel-admission",
+            "POST /residents/{id}/grant-temporary-absence",
+            "POST /residents/{id}/record-return",
+            "POST /residents/{id}/transfer-out",
+            "POST /residents/{id}/end-residency",
+            "POST /residents/{id}/record-death");
 
     @Autowired
     MockMvc mvc;
@@ -103,7 +112,9 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
             "CorrectionResult",
             "Assessment",
             "ConfirmAssessmentResult",
-            "CareLevelAtDate"
+            "CareLevelAtDate",
+            "StatusHistoryEntry",
+            "StatusCommandResult"
         }) {
             assertThat(properties(generated, schema)).as(schema).isEqualTo(properties(contract, schema));
         }

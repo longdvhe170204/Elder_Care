@@ -1,6 +1,7 @@
 package com.cambae.backend.m01.internal.status.persistence;
 
 import com.cambae.backend.m01.api.dto.ResidentStatus;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -23,5 +24,10 @@ public class ResidentStatusStore {
                         residentId)
                 .stream()
                 .findFirst();
+    }
+
+    /** Mã các hồ sơ đang ở trạng thái cho trước. */
+    public List<Long> idsByStatus(ResidentStatus status) {
+        return jdbc.query("SELECT id FROM resident WHERE status = ?", (rs, i) -> rs.getLong(1), status.name());
     }
 }

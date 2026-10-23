@@ -4,11 +4,13 @@ import com.cambae.backend.common.Role;
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.web.VersionEtag;
 import com.cambae.backend.m01.api.dto.ResidentStatus;
+import com.cambae.backend.m01.api.dto.StatusCommand;
 import com.cambae.backend.m01.internal.profile.service.ResidentProfileService;
 import com.cambae.backend.m01.internal.profile.service.ResidentProfileService.CreateResult;
 import com.cambae.backend.m01.internal.profile.service.ResidentProfileService.LinkedProfile;
 import com.cambae.backend.m01.internal.profile.service.ResidentProfileService.ProfileView;
 import com.cambae.backend.m01.internal.profile.service.ResidentProfileService.SearchPage;
+import com.cambae.backend.m01.internal.status.service.ResidentStatusService;
 import com.cambae.backend.m01.web.request.CreateResidentBody;
 import com.cambae.backend.m01.web.request.UpdatePersonalInfoBody;
 import com.cambae.backend.m01.web.response.CreateProfileResultBody;
@@ -26,6 +28,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +59,7 @@ class ResidentController {
     // thêm)
     private static final String CONFIRM_INITIAL_HEALTH_RECORD = "CONFIRM_INITIAL_HEALTH_RECORD";
     private static final PermissionKey WRITE_HEALTH = new PermissionKey(Function.ALLERGY_CONDITION, Operation.UPDATE);
-    private static final Map<String, PermissionKey> COMMANDS = Map.of(
+    private static final Map<String, PermissionKey> PROFILE_COMMANDS = Map.of(
             UPDATE_PERSONAL_INFO,
             new PermissionKey(Function.RESIDENT_PROFILE, Operation.UPDATE),
             "RECORD_HEALTH_ITEM",
@@ -72,6 +75,25 @@ class ResidentController {
             new PermissionKey(Function.ASSESSMENT_CARE_LEVEL, Operation.CREATE),
             "CONFIRM_ASSESSMENT",
             new PermissionKey(Function.ASSESSMENT_CARE_LEVEL, Operation.APPROVE));
+
+    // Lệnh trạng thái (US4): khóa quyền theo data-model mục 2; hợp trạng thái hiện tại lọc thêm ở body()
+    private static final Map<StatusCommand, PermissionKey> STATUS_COMMANDS = Map.of(
+            StatusCommand.COMPLETE_ADMISSION,
+            new PermissionKey(Function.ADMISSION_CONTRACT_DEPOSIT, Operation.CREATE),
+            StatusCommand.CANCEL_ADMISSION,
+            new PermissionKey(Function.ADMISSION_CONTRACT_DEPOSIT, Operation.CREATE),
+            StatusCommand.GRANT_TEMPORARY_ABSENCE,
+            new PermissionKey(Function.ABSENCE_RETURN, Operation.CREATE),
+            StatusCommand.RECORD_RETURN,
+            new PermissionKey(Function.ABSENCE_RETURN, Operation.CREATE),
+            StatusCommand.TRANSFER_OUT,
+            new PermissionKey(Function.TRANSFER_OUT, Operation.CREATE),
+            StatusCommand.END_RESIDENCY,
+            new PermissionKey(Function.RESIDENCY_END_DEATH, Operation.CREATE),
+            StatusCommand.RECORD_DEATH,
+            new PermissionKey(Function.RESIDENCY_END_DEATH, Operation.CREATE));
+
+    private static final Map<String, PermissionKey> COMMANDS = allCommands();
 
     private final ResidentProfileService profiles;
     private final PermissionApi permissions;
@@ -147,12 +169,26 @@ class ResidentController {
         return profiles.linkedProfiles(ResidentProfileService.target(id));
     }
 
+    private static Map<String, PermissionKey> allCommands() {
+        Map<String, PermissionKey> all = new HashMap<>(PROFILE_COMMANDS);
+        STATUS_COMMANDS.forEach((command, key) -> all.put(command.name(), key));
+        return Map.copyOf(all);
+    }
+
     private ProfileBody body(ProfileView view) {
         Set<String> commands = new HashSet<>(
                 permissions.allowedCommands(currentUser, ResidentProfileService.target(view.id()), COMMANDS));
         if (!currentUser.roles().contains(Role.DOCTOR)) {
             commands.remove(CONFIRM_INITIAL_HEALTH_RECORD);
         }
+        Set<String> statusCommands =
+                ResidentStatusService.availableCommands(view.status(), currentUser.roles()).stream()
+                        .map(Enum::name)
+                        .collect(java.util.stream.Collectors.toSet());
+        STATUS_COMMANDS.keySet().stream()
+                .map(Enum::name)
+                .filter(c -> !statusCommands.contains(c))
+                .forEach(commands::remove);
         return ProfileBody.of(view, commands);
     }
 }
