@@ -81,14 +81,14 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 ### Tests cho User Story 1
 
 - [ ] T016 [P] [US1] Test đơn vị `BT/m13/NguoiNhacGoiTest.java`
-- [ ] T017 [P] [US1] Test `BT/m13/SC_001_KhanCapDongThoiIT.java`, `BR_M13_02_LuotNhacGoiIT.java`, `FR_027a_GopLuotIT.java`, `FR_028_ThatBaiMoiKenhIT.java`, `FR_029a_ChuoiGoiIT.java`, `FR_030a_ChuyenNhacIT.java`, `FR_026a_XacNhanVaTiepNhanIT.java`, `FR_032_MotLuotIT.java`: song song; một lượt tự động mỗi thông báo (`UNIQUE`); một lượt Chờ mỗi cặp (`khoa_cho`); `YeuCauDungNhacGoiDien`, `DaCoKetQuaXacNhanLai` dừng lượt; xác nhận và tiếp nhận gọi lệnh tiếp nhận của 007 (Q1 → Q7, Q32 → Q35)
+- [ ] T017 [P] [US1] *(2026-10-23: xong phần xác nhận `FR_026_AcknowledgeIT` (3); còn lượt nhắc gọi, chuỗi gọi chờ `CaTrucApi` (008))* Test `BT/m13/SC_001_KhanCapDongThoiIT.java`, `BR_M13_02_LuotNhacGoiIT.java`, `FR_027a_GopLuotIT.java`, `FR_028_ThatBaiMoiKenhIT.java`, `FR_029a_ChuoiGoiIT.java`, `FR_030a_ChuyenNhacIT.java`, `FR_026a_XacNhanVaTiepNhanIT.java`, `FR_032_MotLuotIT.java`: song song; một lượt tự động mỗi thông báo (`UNIQUE`); một lượt Chờ mỗi cặp (`khoa_cho`); `YeuCauDungNhacGoiDien`, `DaCoKetQuaXacNhanLai` dừng lượt; xác nhận và tiếp nhận gọi lệnh tiếp nhận của 007 (Q1 → Q7, Q32 → Q35)
 
 ### Implementation cho User Story 1
 
 - [ ] T018 [US1] Tạo `MIG/V009_02__nhac_goi.sql`: `luot_nhac_goi` (nhóm 3; `chuoi_goi_id`), `luot_nhac_goi_thong_bao` (`thong_bao_id UNIQUE`), `chuyen_nhac` (`ly_do` `KHOI_TAO|QUA_HAN|HET_CA|GOP_CAP_NHAT|NHAC_LAI_QLV`; `han_luc = thoi_diem + CFG-M13-04`), `luot_nhac_goi_trang_thai` (kỹ thuật; cột sinh `khoa_cho` `UNIQUE`), `ket_qua_goi` (nhóm 3; `ket_qua` `DA_LIEN_LAC|KHONG_LIEN_LAC`; `ly_do` `KHONG_NGHE_MAY|SAI_SO|KHONG_CO_SO|...`) (data-model mục 6)
-- [ ] T019 [US1] Cài `BE/m13/khancap/internal/KhanCapService.java`: xác nhận (bắt buộc trực tuyến), xác nhận và tiếp nhận (gọi lệnh tiếp nhận cảnh báo/sự cố của 007), lượt nhắc gọi (`NguoiNhacGoi`, gộp vào lượt Chờ), kết quả gọi (lần gọi bổ sung), chuyển nhắc, chuỗi gọi theo `thuTuGoi`; listener `YeuCauDungNhacGoiDien`, `DaCoKetQuaXacNhanLai`; `DinhChinhDuocProvider` `M13.KET_QUA_GOI` (research B-07, B-08)
+- [ ] T019 [US1] *(2026-10-23: xong phần xác nhận `UrgentAcknowledgement` (`m13/internal/urgent`); còn xác nhận và tiếp nhận (lệnh của 007, D), lượt nhắc gọi, chuyển nhắc, chuỗi gọi (chờ `CaTrucApi`))* Cài `BE/m13/khancap/internal/KhanCapService.java`: xác nhận (bắt buộc trực tuyến), xác nhận và tiếp nhận (gọi lệnh tiếp nhận cảnh báo/sự cố của 007), lượt nhắc gọi (`NguoiNhacGoi`, gộp vào lượt Chờ), kết quả gọi (lần gọi bổ sung), chuyển nhắc, chuỗi gọi theo `thuTuGoi`; listener `YeuCauDungNhacGoiDien`, `DaCoKetQuaXacNhanLai`; `DinhChinhDuocProvider` `M13.KET_QUA_GOI` (research B-07, B-08)
 - [ ] T020 [US1] Đăng ký việc 20 giây: tạo lượt nhắc khi quá CFG-M13-04 chưa xác nhận; chuyển nhắc quá hạn hoặc hết ca; nhắc lại Quản lý viện
-- [ ] T021 [US1] Tạo `BE/m13/khancap/web/KhanCapController.java`: `POST /thong-bao/{id}/xac-nhan`, `/xac-nhan-va-tiep-nhan`, `GET /toi/luot-nhac-goi`, `GET /luot-nhac-goi/{id}`, `POST /luot-nhac-goi/{id}/ket-qua`
+- [ ] T021 [US1] *(2026-10-23: xong `POST /notifications/{id}/acknowledge` (`UrgentController`); còn bốn endpoint khác của US1)* Tạo `BE/m13/khancap/web/KhanCapController.java`: `POST /thong-bao/{id}/xac-nhan`, `/xac-nhan-va-tiep-nhan`, `GET /toi/luot-nhac-goi`, `GET /luot-nhac-goi/{id}`, `POST /luot-nhac-goi/{id}/ket-qua`
 - [ ] T022 [P] [US1] Tạo app `mobile/lib/nhan-vien/thong-bao/` (nhận đẩy, xác nhận hai thao tác, xác nhận và tiếp nhận, ghi kết quả gọi) và test `mobile/test/nhan-vien/nhan_day_test.dart`, `xac_nhan_hai_thao_tac_test.dart` (SC-008), `xac_nhan_bat_buoc_truc_tuyen_test.dart`, `ghi_ket_qua_goi_test.dart`
 
 **Checkpoint**: P1 hoàn tất; đo SC-001 (≤ 10 giây).
@@ -154,7 +154,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 - [x] T033 [US5] *(Xong 2026-10-22: `InboxService`, `NotificationStreams`, `InboxController`; ghi chú triển khai ở plan)* Cài `BE/m13/hopthu/internal/HopThuService.java` (danh sách, chi tiết, xem, ẩn; phát `ThongBaoDaXem`), luồng SSE `BE/m13/hopthu/web/LuongThongBaoController.java` (`GET /thong-bao/luong`), đăng ký thiết bị đẩy (`POST /thiet-bi-day`) (research B-11)
 - [x] T034 [US5] *(Xong 2026-10-22: `NotificationLookupService`, `NotificationLookupController`; lượt nhắc gọi trong kết quả rỗng tới US1)* Cài `BE/m13/tracuu/internal/TraCuuService.java` (`ThongBaoTraCuuApi`; bản cài `NhatKyThongBaoPort` của 007 ủy cho `theoNguon`; lỗi gửi) và endpoint `GET /toi/thong-bao`, `/toi/thong-bao/{id}`, `POST /toi/thong-bao/{id}/an`, `GET /lich-su-thong-bao`, `GET /loi-gui` (research B-12)
-- [ ] T035 [P] [US5] *(2026-10-23: xong hộp thông báo, SSE kèm hỏi lại, lịch sử, lỗi gửi (`frontend/src/features/notifications/`, 13 Vitest); còn nút xác nhận Khẩn cấp chờ US1, lọc theo người cao tuổi chờ 001)* Tạo màn web `frontend/src/tinh-nang/thong-bao/HopThongBao.jsx` (Khẩn cấp lên đầu, xác nhận), luồng SSE (dự phòng polling), lịch sử, lỗi gửi với test Vitest
+- [ ] T035 [P] [US5] *(2026-10-23: xong hộp thông báo, nút "Xác nhận đã nhận", SSE kèm hỏi lại, lịch sử, lỗi gửi (`frontend/src/features/notifications/`, 15 Vitest); còn lọc theo người cao tuổi chờ 001)* Tạo màn web `frontend/src/tinh-nang/thong-bao/HopThongBao.jsx` (Khẩn cấp lên đầu, xác nhận), luồng SSE (dự phòng polling), lịch sử, lỗi gửi với test Vitest
 
 **Checkpoint**: Mọi user story của 009 chạy độc lập.
 
@@ -162,7 +162,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 ## Phase 8: Polish & Cross-Cutting
 
-- [ ] T036 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/009-notification-service/contracts/api-009.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 009
+- [x] T036 [P] *(2026-10-23: `ApiContractIT` so api-009 từ T034; `M13RecordGroupTriggerIT` liệt kê tám bảng nhóm 3 của 009 vì M13 ghi bằng JDBC, `RecordGroupTriggerIT` chỉ tìm qua `@Entity`)* Mở rộng `BT/common/HopDongApiTest.java` với `specs/009-notification-service/contracts/api-009.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 009
 - [ ] T037 Chạy kiểm thử đầu–cuối với sự kiện thật của 001 → 008 (một sự kiện mỗi module) và đo NFR-03 (Khẩn cấp ≤ 10 giây)
 - [ ] T038 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
 - [ ] T039 Rà truy vết data-model mục 11: BR-M13-01 → 05, FR-007 (f), FR-022a, BR-M10-06 (phần 009), DBR-03 (phần 009), FR-005, FR-012, FR-032, FR-001a, FR-014 và FR-014a (bổ sung 2026-10-18) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-039, FR-040, FR-041, FR-042, FR-043, FR-043a, FR-043b — mỗi FR có task hoặc test tương ứng (constitution XV)

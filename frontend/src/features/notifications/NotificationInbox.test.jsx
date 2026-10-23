@@ -119,4 +119,27 @@ describe('NotificationInbox', () => {
     expect(await screen.findByText('Không tải được thông báo')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Thử lại' })).toBeInTheDocument()
   })
+
+  it('FR_026_xacNhanKhanCap_coIdempotencyKey_taiLai', async () => {
+    api.on('GET', '/me/notifications', json(200, PAGE))
+    api.on('POST', '/notifications/12/acknowledge', json(200, null))
+    render(<NotificationInbox />)
+    const urgent = await screen.findByRole('region', { name: 'Khẩn cấp chưa xác nhận' })
+
+    fireEvent.click(within(urgent).getByRole('button', { name: 'Xác nhận đã nhận' }))
+    await screen.findByText('Đã xác nhận thông báo khẩn cấp')
+    const [, init] = api.calls('POST', '/notifications/12/acknowledge')[0]
+    expect(init.headers['Idempotency-Key']).toMatch(/^[0-9a-f-]{36}$/)
+    expect(inboxCalls().length).toBeGreaterThan(1)
+  })
+
+  it('FR_026_daCoNguoiXacNhan_409_baoLyDo', async () => {
+    api.on('GET', '/me/notifications', json(200, PAGE))
+    api.on('POST', '/notifications/12/acknowledge', problem(409, 'ALREADY_ACKNOWLEDGED', { detail: 'Đã xác nhận' }))
+    render(<NotificationInbox />)
+    const urgent = await screen.findByRole('region', { name: 'Khẩn cấp chưa xác nhận' })
+
+    fireEvent.click(within(urgent).getByRole('button', { name: 'Xác nhận đã nhận' }))
+    expect(await within(urgent).findByText('Chưa thực hiện được')).toBeInTheDocument()
+  })
 })

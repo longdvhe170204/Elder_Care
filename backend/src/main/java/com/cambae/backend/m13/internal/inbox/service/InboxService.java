@@ -241,7 +241,8 @@ public class InboxService {
         return allowed;
     }
 
-    private static String recipientKey(CurrentUser user) {
+    /** Khóa người nhận của tài khoản đang đăng nhập ({@code notification_state.recipient_key}); không có hồ sơ thì 404. */
+    public static String recipientKey(CurrentUser user) {
         long id = switch (user.type()) {
             case STAFF -> user.staffId().orElseThrow(NotFoundException::new);
             case FAMILY_MEMBER -> user.familyMemberId().orElseThrow(NotFoundException::new);
