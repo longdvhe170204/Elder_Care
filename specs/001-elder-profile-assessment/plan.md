@@ -346,7 +346,7 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 | 7 | Xong 7 / chưa: không | `e8ef59c`, `55f0a87`, `3b27943` | Có | Chưa |
 | 8 | Xong 6 (T060 → T062, T064 → T066; T036 và T048 thuộc Phase 5, 6 cũng xong ở Phase 8) / chưa T063 (listener sự cố, chờ D) | `a4c8dd5`, `3ee1b9b`, `69f1089`, commit tài liệu | Có | Chưa |
 
-Tổng theo tasks.md: 54 task `[x]`, 31 task `[ ]` (Phase 9: 8, Phase 10: 6, còn lại là tồn đọng ở Phase 1 → 8 ở bảng trên). Đã merge `origin/develop` ba lần (`f7680b5`, `5a6335a`, `5cf69e5`).
+Tổng theo tasks.md (số liệu 2026-10-23, trước Phase 9; số hiện hành ở mục "Bàn giao checkpoint cuối Phase 9" cuối file): 54 task `[x]`, 31 task `[ ]` (Phase 9: 8, Phase 10: 6, còn lại là tồn đọng ở Phase 1 → 8 ở bảng trên). Đã merge `origin/develop` ba lần (`f7680b5`, `5a6335a`, `5cf69e5`).
 
 **Test còn đỏ (không phải của B, không sửa):** `ApiContractIT.R_14` (BL-23, A đăng ký api-001) và ba test `FamilyHealthIT` do `FakeConsents` trùng `ConsentFootnoteCondition` thật (BL-39, A). `./mvnw verify` Phase 8: 729 test, chỉ 4 đỏ này.
 
@@ -373,3 +373,25 @@ Tổng theo tasks.md: 54 task `[x]`, 31 task `[ ]` (Phase 9: 8, Phase 10: 6, cò
 - **Sửa hợp đồng** (`api-001.yaml`, không thêm bớt endpoint hay trường nghiệp vụ): `Problem` theo bản chung của 000 (thêm `failedLayer`, `license`, `unlocksAt`, `required`; 96 chỗ); `GET /residents/{id}` trả một schema `Profile` (người thân nhận tập con, trường bị bỏ nằm ở `hiddenFields`, `FamilyProfile` chỉ còn mô tả); `CourtDecision` kiểu `[object, null]` thay `oneOf`; `HealthItem.allergen` dùng `AllergenRef` (`id`, `name`) vì mã chỉ trả hai trường; thêm enum cho `EndOfLifeWish.choice`, `source`, `Assessment.proposedResidenceType`, bỏ `null` khỏi enum `representativeSelection`; tham số `type` của `/catalogs/{type}` khai ở từng operation; bỏ `cursor` của `GET /reassessments/due` (mã trả đủ danh sách, không phân trang).
 - **Sửa mã** (chỉ M01, hành vi không đổi): `ProblemResponses` (meta-annotation `@Forbidden`, `@NotFound`, `@StatusCommand`) khai 200/403/404/409/422; đính chính và `POST /files` khai 201; `GET /files/{id}` khai `application/octet-stream` và 404; `UploadedFileBody` thay `Map`; enum `currentCareLevel`, `conditions/{command}`, `type` của danh mục, `source` của thân ghi phiếu cuối đời (không nhận `CRITICAL_RECONFIRMATION`, chỉ 007 ghi qua `EndOfLifeWishApi`); trường bắt buộc của `CourtDecision`, `SelfDeterminationAssessment`, `OpinionSource.type`, `AllergenRef`; schema `CorrectionBody` đổi `ResidentCorrectionBody` vì trùng tên schema của 000 làm OpenAPI lẫn hai thân.
 - **Kiểm thử** (MySQL 3307): `./mvnw clean verify` 185 đơn vị và kiến trúc, 828 tích hợp, 0 lỗi; 211 Vitest, lint, build qua.
+
+## Bàn giao checkpoint cuối Phase 9 *(2026-10-24, trước khi chuyển sang session làm Phase 10; B duyệt)*
+
+**Git**: nhánh `impl/001-elder-profile-assessment`, HEAD trước commit bàn giao là `a8dfdd9` (merge `origin/develop` `ebfcd38`, PR #25 của 009); commit bàn giao là commit tài liệu ngay sau `a8dfdd9`. Remote `origin/develop` đã chứa Phase 1 → 9 tới `e4d8cdc` (PR #23); **chưa push, chưa PR** cho 4 commit sau PR #23: `c41e5e5` (mã BL-23), `8037a8f` (hợp đồng api-001), `81dff74` (tài liệu BL-23), `a8dfdd9` (merge) và commit bàn giao. Stash `CP-001-P2-IMPL` còn nguyên (web danh mục, `ApiContractIT` đăng ký api-001 — A đã đăng ký bản khác ở PR #24 nên stash chủ yếu còn để tham khảo — `api-001.yaml`). Bản sao lưu BL-23: `…/scratchpad/backup_bl23/` của phiên làm việc (patch, 2 file mới), chỉ để đối chiếu.
+
+**Tiến độ**: tasks.md 61 `[x]`, 24 `[ ]`. Phase 1 → 9 xong phần backend và web trừ các task dưới; `mobile/` chưa mở. Phase 9: T067 → T070, T077, T078, T080 xong; T079 `[ ]`.
+
+**Task còn `[ ]` (24)**: nền/Phase 1–2: T002 (bản giả `ChiSoApi`, `SuCoDaGhiNhan` của D), T009 (`HasNotificationRequests`, 009 đã có, cần xem lại), T011 (`RetentionProvider`, `LuuTruProvider`, phân loại trường còn lại), T013, T013a (test có, chưa đánh dấu), T083 (`EndOfLifeWishApi.currentTreatmentWish` đã làm một phần ở Phase 9; đối chiếu trước khi đánh dấu); Phase 3–6: T018, T019, T023 (mobile), T033, T042, T052 (mobile), T049 (`statusPeriods`), T050 (`DinhChinhDuocProvider`), T081, T082 (giấy tờ bệnh viện); Phase 8: T063 (listener sự cố, chờ D); Phase 9: T079 (`LuuTruProvider`, cùng T011); Phase 10: T071 → T076.
+
+**BL-23**: 202 chỗ lệch giữa `api-001.yaml` và mã M01 đã sửa về 0 (ghi chú 2026-10-24 ở trên). Xác nhận lần cuối sau merge develop `ebfcd38`: bản sao tạm của `ApiContractIT` bật so operation cho api-001 qua, đã xóa. **Còn chờ A** đặt `checkOperations = true` cho api-001 trong `ApiContractIT` (file của A) để xác nhận chính thức; sau đó B không còn việc ở BL-23. BL-39 đã được A xử lý ở PR #24.
+
+**Blocker/chờ người khác** (team-plan mục 8): A bật `checkOperations`; D (`IncidentRecorded`, `VitalSignApi`) cho T002, T063; E (012 `familyMemberName`, `registeredPhoneNumber`, nhãn quan hệ ở `FamilyRelationshipApi`) cho phiếu điều trị; A ghi `hiddenFields` cho cờ `hasTreatmentWish` (BL-42, BL-43).
+
+**Kết quả test cuối** (MySQL 3307): `./mvnw clean verify` 185 đơn vị và kiến trúc, 835 tích hợp, 0 lỗi; 213 Vitest; `npm run lint`, `npm run build` qua. `FakeConsentApi` (A, PR #25) không trùng bean với `ConsentService` thật; M13 dùng `ConsentApi`, `ResidentApi`, `ResidentStatusChanged` tương thích, `FR_014_015_ConsentAndDeathIT`, `InboxIT` xanh.
+
+**Lưu ý để bắt đầu Phase 10 (T071 → T076)**:
+- Đọc `tasks.md` Phase 10 và dòng B ở `docs/team-plan.md` mục 8; `.specify/feature.json` là `{"feature_directory": "specs/001-elder-profile-assessment"}`.
+- T071 (`HopDongApiTest` so springdoc với `api-001.yaml`): `ApiContractIT` của A đã so cả api-001 (đường dẫn, endpoint); phần so operation chờ A bật, nên T071 nên dùng phần đó chứ không viết test so sánh thứ hai.
+- Luôn đặt `DB_URL`, `TEST_DB_URL` về `jdbc:mysql://localhost:3307/…` (biến máy trỏ 3306, không dùng); instance 3307 có thể bị tắt giữa chừng: nếu `Communications link failure` thì bật lại bằng `mysqld --no-defaults --datadir=<scratchpad phiên 221e9972>mysql3307data --port=3307 --mysqlx=OFF --skip-log-bin --max_connections=400`.
+- Sau mỗi lần `verify`, quyền `elder_care_demo` mất (test DROP/CREATE user); khôi phục chưa làm, cần B cho phép.
+- File `.java` trong cây làm việc dùng CRLF; script sửa bằng node cần xử lý CRLF (xem cách ở các script `edit*.js` trong scratchpad); `git commit -F <file>`; không có `gh`/token: PR tạo qua URL compare của GitHub.
+- Không đánh dấu nghiệm thu giao diện khi B chưa tự thử; không đổi `CLAUDE.md`; không push/PR/merge khi B chưa duyệt.
