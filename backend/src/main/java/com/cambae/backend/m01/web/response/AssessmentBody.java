@@ -36,7 +36,7 @@ public record AssessmentBody(
                 v.careNote(),
                 v.careLevel(),
                 v.careNeeds().stream()
-                        .map(n -> new CatalogItemBody(n.id(), n.name(), null, null, null))
+                        .map(n -> new CatalogItemBody(n.id(), n.name(), null, null, null, null))
                         .toList(),
                 v.proposedResidenceType(),
                 v.status(),
