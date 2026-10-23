@@ -49,7 +49,28 @@ class ProblemDetailsHandlerIT extends MySqlIntegrationTestBase {
     void FR_006_unmetConditions_listBrCodeAndDescription() throws Exception {
         mvc.perform(get("/api/v1/test-support/errors/condition"))
                 .andExpect(jsonPath("$.unmetConditions[0].code").value("BR-M03-06"))
-                .andExpect(jsonPath("$.unmetConditions[0].description").value("Giường chưa Trống"));
+                .andExpect(jsonPath("$.unmetConditions[0].description").value("Giường chưa Trống"))
+                .andExpect(jsonPath("$.unmetConditions[0].basis").doesNotExist())
+                .andExpect(jsonPath("$.unmetConditions[0].waivable").doesNotExist());
+    }
+
+    /** 001 BL-23 (004 FR-004): điều kiện trạng thái kèm căn cứ, feature sở hữu, miễn được. */
+    @Test
+    void FR_006_unmetConditions_carryBasisModuleWaivable() throws Exception {
+        mvc.perform(get("/api/v1/test-support/errors/waivable"))
+                .andExpect(jsonPath("$.unmetConditions[0].code").value("KT_H_QUYET_TOAN"))
+                .andExpect(jsonPath("$.unmetConditions[0].basis").value("BR-M11-22"))
+                .andExpect(jsonPath("$.unmetConditions[0].module").value("017"))
+                .andExpect(jsonPath("$.unmetConditions[0].waivable").value(true));
+    }
+
+    /** 001 BL-23 (POSSIBLE_DUPLICATE_PROFILE, DUPLICATE_HEALTH_ITEM): bản ghi có thể trùng. */
+    @Test
+    void R_03_candidates_returnedInProblem() throws Exception {
+        mvc.perform(get("/api/v1/test-support/errors/candidates"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("POSSIBLE_DUPLICATE_PROFILE"))
+                .andExpect(jsonPath("$.candidates[0].id").value(7));
     }
 
     /** 002 FR-043 (T014): lỗi quyền kèm lớp không thỏa và giấy phép. */
