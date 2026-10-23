@@ -15,8 +15,9 @@ import java.util.Set;
 
 /**
  * Hồ sơ cho nhân viên (contracts/api-001.yaml, schema {@code Profile}). Các trường của user story sau (loại hình lưu
- * trú, nhu cầu, lưu ý chăm sóc, mục sức khỏe, nguyện vọng, phiếu nguyện vọng khi điều trị) để rỗng tới khi làm (T079 giới hạn {@code hasTreatmentWish} theo vai trò); {@code hiddenFields} do 002 điền
- * khi tuần tự hóa.
+ * trú, nhu cầu, lưu ý chăm sóc, mục sức khỏe) để rỗng tới khi làm; {@code hasEndOfLifeWish} và
+ * {@code hasTreatmentWish} là cờ có/không (FR-023e, FR-023m) nên không gắn nhóm; {@code hiddenFields} do 002 điền khi
+ * tuần tự hóa.
  */
 @Schema(name = "Profile")
 public record ProfileBody(
@@ -39,7 +40,16 @@ public record ProfileBody(
         @JsonIgnore @Schema(hidden = true) Target target)
         implements VisibilityTarget {
 
-    public static ProfileBody of(ProfileView view, Set<String> allowedCommands, boolean hasActiveConsent) {
+    /**
+     * {@code hasTreatmentWish} là {@code null} khi người xem không có quyền với nội dung phiếu và không phải Hành chính
+     * (Kế toán không có cờ, FR-023m).
+     */
+    public static ProfileBody of(
+            ProfileView view,
+            Set<String> allowedCommands,
+            boolean hasActiveConsent,
+            boolean hasEndOfLifeWish,
+            Boolean hasTreatmentWish) {
         return new ProfileBody(
                 view.id(),
                 view.profileCode(),
@@ -52,8 +62,8 @@ public record ProfileBody(
                 null,
                 List.of(),
                 hasActiveConsent,
-                false,
-                false,
+                hasEndOfLifeWish,
+                hasTreatmentWish,
                 view.previousProfileId(),
                 allowedCommands,
                 List.of(),

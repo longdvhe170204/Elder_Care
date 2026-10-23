@@ -22,7 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 /**
  * 001 T020, T032 (R-14): các endpoint hồ sơ và sức khỏe đã cài khớp {@code api-001.yaml} về đường dẫn, phương thức và tên
  * trường của {@code Profile}, {@code PersonalInfo}, {@code CreateProfileResult}, {@code HealthItem}, {@code
- * HealthItemResult}, {@code CorrectionResult}. Là kiểm tạm cho phần 001 tới khi {@code ApiContractIT}
+ * HealthItemResult}, {@code CorrectionResult}, và (T070, T080) các schema phiếu nguyện vọng. Là kiểm tạm cho phần 001 tới khi {@code ApiContractIT}
  * của 000 đăng ký api-001 (BL-23); khi đó {@code ApiContractIT} kiểm đầy đủ hơn và test này có thể bỏ.
  */
 @AutoConfigureMockMvc
@@ -65,6 +65,10 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
             "POST /consents/{id}/withdraw",
             "GET /residents/{id}/reassessment",
             "GET /reassessments/due",
+            "GET /residents/{id}/end-of-life-wishes",
+            "POST /residents/{id}/end-of-life-wishes",
+            "GET /residents/{id}/treatment-wishes",
+            "POST /residents/{id}/treatment-wishes",
             "POST /files",
             "GET /files/{id}");
 
@@ -126,7 +130,13 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
             "StatusHistoryEntry",
             "StatusCommandResult",
             "Consent",
-            "ReassessmentStatus"
+            "ReassessmentStatus",
+            "EndOfLifeWish",
+            "EndOfLifeWishSummary",
+            "SelfDeterminationAssessment",
+            "TreatmentWish",
+            "TreatmentWishSummary",
+            "TreatmentWishResult"
         }) {
             assertThat(properties(generated, schema)).as(schema).isEqualTo(properties(contract, schema));
         }
