@@ -15,6 +15,7 @@ public class FakeStaffProfiles implements StaffProfileApi {
     private final Map<Long, Role> positionRoles = new HashMap<>();
     private final Map<Long, String> createdMinimal = new HashMap<>();
     private final Map<Long, String> names = new HashMap<>();
+    private final Map<Long, String> phones = new HashMap<>();
     // Dải riêng, không trùng support/TestUsers (từ 5.000.000) vì hai bên cùng ghi staff_id vào bảng account
     private long nextStaffId = 6_000_000;
 
@@ -56,6 +57,17 @@ public class FakeStaffProfiles implements StaffProfileApi {
     @Override
     public Optional<String> fullName(long staffId) {
         return Optional.ofNullable(names.getOrDefault(staffId, createdMinimal.get(staffId)));
+    }
+
+    public FakeStaffProfiles phone(long staffId, String phoneNumber) {
+        phones.put(staffId, phoneNumber);
+        return this;
+    }
+
+    /** Số đặt bằng {@link #phone}; mặc định không có số. */
+    @Override
+    public Optional<String> phoneNumber(long staffId) {
+        return Optional.ofNullable(phones.get(staffId));
     }
 
     /** Hồ sơ đã tạo bằng {@link #createMinimal}: id → họ tên. */

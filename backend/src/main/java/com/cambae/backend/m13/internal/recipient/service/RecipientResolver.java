@@ -120,10 +120,13 @@ public class RecipientResolver {
                     outcomes.add(f.added() ? HAS_RECIPIENTS : NONE);
                     missingCase |= f.missingCase();
                 }
+                case RecipientGroup.Resident p -> outcomes.add(resident(p, found) ? HAS_RECIPIENTS : NONE);
                 default -> outcomes.add(found.addStaff(direct(g), basis(g)) ? HAS_RECIPIENTS : NONE);
             }
         }
-        boolean noRecipient = found.isEmpty();
+        // FR-007, FR-022a: người cao tuổi không có tài khoản không phải lỗi gửi
+        boolean noRecipient =
+                found.isEmpty() && r.recipientGroups().stream().anyMatch(g -> !(g instanceof RecipientGroup.Resident));
         if (noRecipient && v.level() == NotificationLevel.URGENT) {
             fallback(r, at, found);
         }
@@ -268,6 +271,18 @@ public class RecipientResolver {
         }
     }
 
+    /** Nhóm (f): tài khoản người cao tuổi Hoạt động hoặc Khóa tạm (như FR-008); không có thì không có người nhận. */
+    private boolean resident(RecipientGroup.Resident g, Recipients found) {
+        return accounts.getObject()
+                .byResident(g.residentId())
+                .filter(a -> a.status() == AccountStatus.ACTIVE || a.status() == AccountStatus.TEMPORARILY_LOCKED)
+                .map(a -> {
+                    found.addResident(g.residentId(), a.accountId(), basis(g));
+                    return true;
+                })
+                .orElse(false);
+    }
+
     private record FamilyResult(boolean added, boolean missingCase) {}
 
     /** Nhóm người thân (d), (e): lọc khẩn cấp (FR-014, Q-96), phạm vi đồng ý (FR-014, FR-014a), phần nội dung (FR-013). */
@@ -397,6 +412,13 @@ public class RecipientResolver {
                     "FAMILY_MEMBER:" + familyMemberId,
                     k -> new Builder(RecipientType.FAMILY_MEMBER, familyMemberId, accountId, false));
             b.merge(basis, visible, false, q354);
+        }
+
+        void addResident(long residentId, long accountId, String basis) {
+            byKey.computeIfAbsent(
+                            "RESIDENT:" + residentId,
+                            k -> new Builder(RecipientType.RESIDENT, residentId, accountId, false))
+                    .merge(basis, parts, false, null);
         }
 
         void removeAccount(long accountId) {
