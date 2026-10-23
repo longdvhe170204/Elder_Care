@@ -25,6 +25,7 @@ import com.cambae.backend.m15.account.api.spi.AssignmentKind;
 import com.cambae.backend.m15.account.api.spi.AssignmentView;
 import com.cambae.backend.support.TestUsers;
 import com.cambae.backend.support.TestUsers.TestUser;
+import com.cambae.backend.support.fake.m01.FakeConsentApi;
 import com.cambae.backend.support.fake.m13.FakeFamilyNotifications;
 import com.cambae.backend.support.fake.m15.FakeAssignments;
 import com.cambae.backend.support.fake.m15.FakeM15Config;
@@ -54,7 +55,7 @@ import tools.jackson.databind.json.JsonMapper;
  */
 @AutoConfigureMockMvc
 @RecordApplicationEvents
-@Import(FakeM15Config.class)
+@Import({FakeM15Config.class, FakeConsentApi.Config.class})
 class InboxIT extends M13IntegrationTestBase {
 
     private static final String INBOX = "/api/v1/me/notifications";
@@ -75,6 +76,9 @@ class InboxIT extends M13IntegrationTestBase {
     FakeFamilyNotifications family;
 
     @Autowired
+    FakeConsentApi consents;
+
+    @Autowired
     ApplicationEvents events;
 
     TestUsers users;
@@ -89,6 +93,7 @@ class InboxIT extends M13IntegrationTestBase {
     @AfterEach
     void resetFamily() {
         family.reset();
+        consents.reset();
     }
 
     private NotificationRequest notice(
@@ -304,6 +309,44 @@ class InboxIT extends M13IntegrationTestBase {
                 .extracting(p -> p.get("informationType").asString())
                 .containsExactly("GENERAL");
         assertThat(after.get("hiddenParts")).extracting(JsonNode::asString).containsExactly("COSTS");
+    }
+
+    @Test
+    void FR_034_family_consentWithdrawn_healthPartHidden() throws Exception {
+        long familyMemberId = TestUsers.nextId();
+        TestUser member = users.family(familyMemberId);
+        family.relate(
+                resident,
+                new NotifiableRelationshipView(
+                        familyMemberId,
+                        true,
+                        false,
+                        Set.of(FamilyRight.VIEW_HEALTH),
+                        Optional.of(member.accountId()),
+                        true,
+                        Optional.empty()));
+        consents.active(resident, Set.of(familyMemberId), true);
+        String token = users.session(member.accountId());
+        String key = send(notice(
+                "fr034h-" + resident,
+                NotificationLevel.URGENT,
+                new RecipientGroup.PrimaryContact(resident),
+                Optional.of(InformationSubject.ABOUT_RESIDENT),
+                InformationType.GENERAL,
+                InformationType.HEALTH));
+        long id = notificationId(key, member.accountId());
+
+        assertThat(getJson(INBOX + "/" + id, token).get("content"))
+                .extracting(p -> p.get("informationType").asString())
+                .containsExactly("GENERAL", "HEALTH");
+
+        consents.withdraw(resident);
+        JsonNode after = getJson(INBOX + "/" + id, token);
+
+        assertThat(after.get("content"))
+                .extracting(p -> p.get("informationType").asString())
+                .containsExactly("GENERAL");
+        assertThat(after.get("hiddenParts")).extracting(JsonNode::asString).containsExactly("HEALTH");
     }
 
     @Test
