@@ -122,3 +122,13 @@ it('FR_021_staleUpdateShowsCurrentValueAndReloadsEtag', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Tải lại dữ liệu' }))
   await waitFor(() => expect(screen.getByLabelText('Tên khu vực')).toHaveValue('Khu đã đổi'))
 })
+
+it('FR_021_allocationViewerCanOpenTransfersWithoutConfigurationAccess', async () => {
+  api.on('GET', '/me/permissions', json(200, [{ function: 'BED_ALLOCATION', operation: 'VIEW' }]))
+  api.on('GET', '/bed-allocations', json(200, []))
+  render(<BedsPage />)
+  expect(await screen.findByRole('tab', { name: 'Chuyển giường' })).toHaveAttribute('aria-selected', 'true')
+  expect(await screen.findByText('Chưa có phân bổ đang hiệu lực trong phạm vi được xem.')).toBeInTheDocument()
+  expect(screen.queryByRole('tab', { name: 'Cơ cấu' })).not.toBeInTheDocument()
+  expect(api.calls('GET', '/areas')).toHaveLength(0)
+})

@@ -9,15 +9,23 @@ import { PermissionDeniedState } from '@/common/PageState'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
 import { StructureForm } from './StructureForm'
+import { BedTransfersPanel } from './BedTransfersPanel'
 import { catalogs, bedStates } from './bedCatalog'
 
 async function fetchCatalogs() {
+  const { data: permissions } = await getMePermissions()
+  if (
+    !permissions.some(
+      (permission) => permission.function === 'ROOM_BED_CONFIGURATION' && permission.operation === 'VIEW',
+    )
+  )
+    return { data: {}, permissions }
   const entries = await Promise.all(
     Object.entries(catalogs)
       .filter(([kind]) => kind !== 'beds')
       .map(async ([kind, config]) => [kind, (await config.list()).data]),
   )
-  const [{ data: board }, { data: permissions }] = await Promise.all([getBeds(), getMePermissions()])
+  const { data: board } = await getBeds()
   return { data: { ...Object.fromEntries(entries), beds: board.beds }, permissions }
 }
 
@@ -63,7 +71,10 @@ export function BedsPage() {
     permissions.some(
       (permission) => permission.function === 'ROOM_BED_CONFIGURATION' && permission.operation === operation,
     )
-  if (!allowed('VIEW')) return <PermissionDeniedState label="phòng, giường" />
+  const allocationAllowed = (operation) =>
+    permissions.some((permission) => permission.function === 'BED_ALLOCATION' && permission.operation === operation)
+  if (!allowed('VIEW') && !allocationAllowed('VIEW')) return <PermissionDeniedState label="phòng, giường" />
+  const activeTab = allowed('VIEW') ? tab : 'transfers'
   const canCreate = allowed('CREATE'),
     canUpdate = allowed('UPDATE')
   function edit(kind, item, action = 'update') {
@@ -130,15 +141,20 @@ export function BedsPage() {
       <PageHeader title="Phòng, giường" subtitle="Cơ cấu khu vực, tầng, phòng và giường của viện.">
         <div role="tablist" aria-label="Nội dung phòng, giường" className="flex flex-wrap gap-2">
           {[
-            ['structure', 'Cơ cấu'],
-            ['room-types', 'Loại phòng'],
-            ['bed-transfer-reasons', 'Lý do chuyển'],
+            ...(allowed('VIEW')
+              ? [
+                  ['structure', 'Cơ cấu'],
+                  ['room-types', 'Loại phòng'],
+                  ['bed-transfer-reasons', 'Lý do chuyển'],
+                ]
+              : []),
+            ...(allocationAllowed('VIEW') ? [['transfers', 'Chuyển giường']] : []),
           ].map(([key, label]) => (
             <Button
               key={key}
               role="tab"
-              aria-selected={tab === key}
-              variant={tab === key ? 'secondary' : 'outline'}
+              aria-selected={activeTab === key}
+              variant={activeTab === key ? 'secondary' : 'outline'}
               onClick={() => setTab(key)}
             >
               {label}
@@ -152,7 +168,9 @@ export function BedsPage() {
           <AlertDescription>{notice}</AlertDescription>
         </Alert>
       )}
-      {tab === 'structure' ? (
+      {activeTab === 'transfers' ? (
+        <BedTransfersPanel canTransfer={allocationAllowed('CREATE')} />
+      ) : tab === 'structure' ? (
         <section className="flex flex-col gap-4">
           {canCreate && (
             <Button className="self-start" onClick={() => create('areas')}>

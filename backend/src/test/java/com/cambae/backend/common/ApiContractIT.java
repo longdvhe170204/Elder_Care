@@ -53,7 +53,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Path.of("..", "specs", "002-account-permission", "contracts", "api-002.yaml"),
                     Set.of("POST /api/v1/resident-accounts"),
                     Set.of()),
-            // 003: Phase 3 đã cài; bảy operation Phase 4 đã duyệt nhưng còn pending triển khai.
+            // 003: Phase 3 đã cài; operation Phase 4/5 đã duyệt vẫn pending khi chưa có controller.
             new Contract(
                     Path.of("..", "specs", "003-room-bed-allocation", "contracts", "api-003.yaml"),
                     Set.of(
@@ -72,7 +72,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "GET /api/v1/bed-allocations",
                             "GET /api/v1/bed-allocations/{id}",
                             "POST /api/v1/bed-allocations/{id}/cancel",
-                            "POST /api/v1/phan-bo-giuong/{id}/chuyen-giuong",
+                            "POST /api/v1/bed-allocations/{id}/transfer",
                             "POST /api/v1/phan-bo-giuong/{id}/chuyen-giuong-kiem-soat-lay-nhiem",
                             "POST /api/v1/phan-bo-giuong/{id}/xac-nhan-o-lai-vung-cach-ly",
                             "POST /api/v1/phan-bo-giuong/{id}/dinh-chinh",

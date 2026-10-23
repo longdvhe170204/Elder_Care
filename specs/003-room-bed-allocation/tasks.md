@@ -130,6 +130,8 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 **Checkpoint**: Chuyển giường đủ biến thể.
 
+**Khởi động Phase 5 (2026-10-24; chỉ phần độc lập, chưa hoàn tất)**: Chủ dự án duyệt dịch riêng operation chuyển giường T036, tiếp tục chọn chờ B cho API/fake/sự kiện M01. Đã viết đỏ rồi cài phần migration của T034 bằng `V003_04__bed_backfill_request.sql`; `FR_027_BackfillSchemaIT` có 5 IT (schema/chỉ mục, PK/FK, bất biến admin/retention, rollback và dọn cùng phân bổ), sau cài cùng 23 ArchTest xanh. Handler T034 chưa cài vì còn cần checker FR-018/lệnh chuyển giường và nguồn khoảng vắng M01. T036 mới dịch `POST /bed-allocations/{id}/transfer`, clone request/response và sinh client; chưa controller/web/mobile. Giữ T029–T036 chưa đánh; không dùng dữ liệu giả thay nguồn M01. Ghi chú và kết quả clean verify nền ở plan/Working-history.md.
+
 ---
 
 ## Phase 6: User Story 4 – Trạng thái giường chỉ thay đổi qua lệnh và sự kiện; giữ chỗ có lý do và hạn (Priority: P1)
@@ -292,3 +294,7 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8; mỗi bước chạ
 - Lệnh của 003 chỉ chạy trực tuyến
 
 **Chốt phần nền độc lập Phase 4 (2026-10-24; chưa xong cả phase)**: Sau khi chủ dự án cung cấp cấu hình MySQL và duyệt thêm GET /bed-allocations, đã cài T023 bằng V003_03__bed_allocation.sql, T024 bằng BedAllocation/ResidentPosition/AllocationReminder ở internal/allocation/domain. T022 là DBR_09_AllocationSchemaIT (12 IT). T020/T025 mới có AllocationLocks, 3 IT kiểm khóa gồm hồi quy deadlock đã RED rồi GREEN khi đổi INSERT IGNORE sang upsert theo G-03. T026 mới có AllocationQueries cài BedAllocationApi/ResidentLocationApi (4 IT), chưa lệnh tạo/hủy. HTTP Phase 4 có 7 operation đã duyệt, vẫn pending controller; client được sinh lại. `clean verify` nền bản cuối BUILD SUCCESS, 02:25, 167 unit/kiến trúc +470 IT, 0 failure/error/skip, Spotless qua. Web 105 test, lint/build qua. Chỉ sau kết quả này mới đánh T022/T023/T024; T019/T020/T021/T025/T026/T027/T028 giữ chưa đánh. Nguồn M01 vẫn chờ B, không tạo fake thay. Chi tiết ở plan/Working-history.md.
+
+**Kiểm chốt phần độc lập Phase 5 (2026-10-24)**: clean verify nền bản cuối sau sửa fixture BUILD SUCCESS (04:10), 167 unit/kiến trúc +475 IT, 0 failure/error/skip; web 105 test, lint/build qua. Không đánh thêm task: T034 thiếu handler, T036 thiếu controller/UI; T029 là task Phase 5 chưa xong đầu tiên. Chủ dự án giữ quyết định chờ B cho nguồn M01. Xem plan/Working-history.md về lần kiểm đầu thất bại do fixture tăng AUTO_INCREMENT và kết quả kiểm lại sau sửa.
+
+**Bổ sung T036 UI web (2026-10-24)**: Sau nhắc của chủ dự án, đã làm `frontend/src/features/beds/BedTransfersPanel.jsx`, `BedTransferForm.jsx` và gắn tab vào `BedsPage.jsx` theo quyền BED_ALLOCATION. Test trước RED→GREEN: 7 ca panel +6 ca page; kiểm cuối frontend 113 test, lint/build qua; kiểm trực quan ba kích thước, chế độ tối và bàn phím bằng API fixture cục bộ. T036 giữ chưa đánh vì controller chưa có; mobile chưa mở theo mobile/README.md. Các ghi chú trước “chưa UI” là trạng thái ở thời điểm ghi, đã được cập nhật bởi mục này. Chờ B vẫn chỉ chặn nguồn M01/backend; không chặn phần UI độc lập đã hoàn thành. Xem plan/Working-history.md.

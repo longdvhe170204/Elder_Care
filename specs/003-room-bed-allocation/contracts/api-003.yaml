@@ -1211,26 +1211,60 @@ paths:
         "409":
           $ref: "#/components/responses/Problem"
       x-implementation-phase: 4
-  /phan-bo-giuong/{id}/chuyen-giuong:
+  /bed-allocations/{id}/transfer:
     post:
-      tags: [phan-bo]
+      tags:
+        - phan-bo
       summary: Chuyển giường trực tiếp (Hành chính; Trưởng tầng khi người và giường mới trong phạm vi)
-      description: |
-        Một lần thực hiện: đóng phân bổ {id} tại thoiDiemChuyen, mở phân bổ mới cùng thời điểm, đổi trạng thái hai giường (FR-028).
-        Phòng hiện tại chịu chặn cách ly: 409 CHI_CHUYEN_THEO_CHI_DINH (FR-010).
-        Khác đơn giá và lý do không thuộc nhóm y tế/an toàn: 409 CAN_YEU_CAU_THAY_DOI_LUU_TRU (FR-030).
-        thoiDiemChuyen trong quá khứ là nhập bù: lùi ≤ CFG-M03-07 thì thực hiện ngay; lùi xa hơn thì 202 kèm yêu cầu phê duyệt
+      description: >
+        Một lần thực hiện: đóng phân bổ {id} tại transferAt, mở phân bổ mới cùng thời điểm, đổi trạng thái
+        hai giường (FR-028).
+
+        Phòng hiện tại chịu chặn cách ly: 409 INFECTION_CONTROL_TRANSFER_REQUIRED (FR-010).
+
+        Khác đơn giá và lý do không thuộc nhóm y tế/an toàn: 409 RESIDENCY_CHANGE_REQUEST_REQUIRED (FR-030).
+
+        transferAt trong quá khứ là nhập bù: lùi ≤ CFG-M03-07 thì thực hiện ngay; lùi xa hơn thì 202 kèm yêu
+        cầu phê duyệt
+
         M03.NHAP_BU_PHAN_BO (FR-027).
-      x-fr: [FR-027, FR-028, FR-029, FR-030, FR-031, FR-032, FR-033]
-      x-br: [BR-M03-01, BR-M03-04, BR-M03-07]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/ChuyenGiuong' }
+      x-fr:
+        - FR-027
+        - FR-028
+        - FR-029
+        - FR-030
+        - FR-031
+        - FR-032
+        - FR-033
+      x-br:
+        - BR-M03-01
+        - BR-M03-04
+        - BR-M03-07
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/BedTransfer"
       responses:
-        '200': { description: Đã chuyển, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaChuyenGiuong' } } } }
-        '202': { description: Đã lập yêu cầu nhập bù chờ Quản lý viện duyệt, content: { application/json: { schema: { $ref: '#/components/schemas/YeuCauNhapBu' } } } }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { $ref: '#/components/responses/LoiChan' }
-        '422': { $ref: '#/components/responses/Loi' }
+        "200":
+          description: Đã chuyển
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BedTransferResult"
+        "202":
+          description: Đã lập yêu cầu nhập bù chờ Quản lý viện duyệt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackfillRequestCreated"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/BlockedProblem"
+        "422":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 5
   /phan-bo-giuong/{id}/chuyen-giuong-kiem-soat-lay-nhiem:
     post:
       tags: [phan-bo]
@@ -1522,6 +1556,30 @@ components:
               lyDoChuyenId: { type: integer, format: int64, description: 'Danh mục lý do chuyển; cờ yTeAnToan quyết định FR-030' }
               lyDo: { $ref: '#/components/schemas/LyDo' }
               thoiDiemChuyen: { type: string, format: date-time, description: 'Mặc định là bây giờ; quá khứ là nhập bù (FR-027)' }
+    BedTransfer:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - newBedId
+              - transferReasonId
+              - reason
+            properties:
+              newBedId:
+                type: integer
+                format: int64
+              transferReasonId:
+                type: integer
+                format: int64
+                description: Danh mục lý do chuyển; cờ yTeAnToan quyết định FR-030
+              reason:
+                $ref: "#/components/schemas/Reason"
+              transferAt:
+                type: string
+                format: date-time
+                description: Mặc định là bây giờ; quá khứ là nhập bù (FR-027)
   responses:
     Problem:
       description: Lỗi theo RFC 9457 (research R-03 của 000)
@@ -2355,3 +2413,22 @@ components:
         - ACTIVE
         - CLOSED
         - CANCELLED
+    BedTransferResult:
+      type: object
+      properties:
+        previousAllocation:
+          $ref: "#/components/schemas/BedAllocation"
+        newAllocation:
+          $ref: "#/components/schemas/BedAllocation"
+        warnings:
+          type: array
+          items:
+            $ref: "#/components/schemas/Warning"
+    BackfillRequestCreated:
+      type: object
+      properties:
+        approvalRequestId:
+          type: integer
+          format: int64
+        status:
+          type: string

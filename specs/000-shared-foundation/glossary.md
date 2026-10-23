@@ -633,6 +633,22 @@ Bảy operation mang `x-implementation-phase: 4` ghi nhận phần đã được
 
 `AllocationQueries` cài `BedAllocationApi` của 002 và `ResidentLocationApi` của 003; không sửa chữ ký API/fake. T025 mới có khóa tuần tự; chưa có bộ kiểm điều kiện hoặc retry ở transaction lệnh. T026 mới có phần đọc; chưa có lệnh tạo/hủy phân bổ.
 
+**Phase 5 — phần độc lập được duyệt (2026-10-24; chưa triển khai chuyển giường)**:
+
+| Tên logic / vai trò | Tên trong mã / hợp đồng |
+| --- | --- |
+| `/phan-bo-giuong/{id}/chuyen-giuong` | `POST /bed-allocations/{id}/transfer` (x-implementation-phase: 5; pending controller) |
+| Request `ChuyenGiuong`; `giuongMoiId`, `lyDoChuyenId`, `lyDo`, `thoiDiemChuyen` | requestBody `BedTransfer`; `newBedId`, `transferReasonId`, `reason`, `transferAt` |
+| Kết quả chuyển, phân bổ cũ/mới, cảnh báo | `BedTransferResult` (`previousAllocation`, `newAllocation`, `warnings`), dùng `BedAllocation` và `Warning` đã dịch |
+| Kết quả lập yêu cầu nhập bù chờ duyệt | `BackfillRequestCreated` (`approvalRequestId`, `status`) |
+| Màn danh sách phân bổ để chuyển / form chuyển giường web | `BedTransfersPanel`, `BedTransferForm` trong `frontend/src/features/beds/` (T036) |
+| Chỉ chuyển theo chỉ định / cần yêu cầu đổi lưu trú trong mô tả HTTP Phase 5 | `INFECTION_CONTROL_TRANSFER_REQUIRED`, `RESIDENCY_CHANGE_REQUEST_REQUIRED` (chưa có implementation) |
+| Bảng kỹ thuật `yeu_cau_nhap_bu` | `bed_backfill_request` (`approval_request_id`, `resident_id`, `current_allocation_id`, `new_bed_id`, `transfer_at`), migration `V003_04__bed_backfill_request.sql` |
+| Mã loại yêu cầu nhập bù trong fixture schema (handler chưa cài) | `M03.BED_ALLOCATION_BACKFILL` (tên logic `M03.NHAP_BU_PHAN_BO`) |
+| Client chuyển giường | `postBedAllocationsByIdTransfer`, sinh từ contract bằng generator |
+
+Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phase 4 +1 Phase 5 đã duyệt, 24 chưa dịch. Clone component mới, giữ component tên logic cho phase sau. T034 mới có migration/test schema, chưa handler phê duyệt; T036 mới có bản dịch và client, chưa controller/UI/mobile.
+
 ## 10. Feature 004 (`004-admission-residency`, B)
 
 *Chủ feature điền khi dịch `contracts/api-004.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
