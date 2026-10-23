@@ -14,6 +14,7 @@ import com.cambae.backend.common.notification.RecipientGroup;
 import com.cambae.backend.common.notification.SourceGroup;
 import com.cambae.backend.common.notification.SourceRecord;
 import com.cambae.backend.common.time.BusinessTime;
+import com.cambae.backend.common.time.TestClockControl;
 import com.cambae.backend.m13.api.spi.NotifiableRelationshipView;
 import com.cambae.backend.m13.api.spi.SmsResult;
 import com.cambae.backend.m13.internal.delivery.service.OutOfAppResender;
@@ -48,6 +49,9 @@ class BR_M13_01_ChannelSelectionIT extends M13IntegrationTestBase {
     BusinessTime time;
 
     @Autowired
+    TestClockControl clock;
+
+    @Autowired
     FakeStaffProfiles profiles;
 
     @Autowired
@@ -64,6 +68,13 @@ class BR_M13_01_ChannelSelectionIT extends M13IntegrationTestBase {
 
     @BeforeEach
     void setUp() {
+        // 10:00 hôm qua: chạy trong giờ yên tĩnh (CFG-M13-02) thì thông báo cho người thân bị giữ lại; mốc ở quá khứ để
+        // phân công vai trò tạo trong test không bắt đầu sau giờ thật mà test khác dùng để kết thúc.
+        clock.setTo(time.today()
+                .minusDays(1)
+                .atTime(10, 0)
+                .atZone(BusinessTime.ZONE)
+                .toInstant());
         users = new TestUsers(jdbc, time);
         resident = TestUsers.nextId();
         jdbc.update("UPDATE notification_channel SET enabled = TRUE WHERE code = 'SMS'");
@@ -72,6 +83,7 @@ class BR_M13_01_ChannelSelectionIT extends M13IntegrationTestBase {
 
     @AfterEach
     void reset() {
+        clock.reset();
         jdbc.update("UPDATE notification_channel SET enabled = FALSE WHERE code = 'SMS'");
         family.reset();
         sms.reset();

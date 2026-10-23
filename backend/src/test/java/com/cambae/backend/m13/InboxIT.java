@@ -366,4 +366,19 @@ class InboxIT extends M13IntegrationTestBase {
                 .until(() -> stream.getResponse().getContentAsString().contains("\"notificationId\":" + id));
         assertThat(stream.getResponse().getContentType()).startsWith("text/event-stream");
     }
+
+    @Test
+    void stream_sendsCommentOnOpenBeforeAnyNotification() throws Exception {
+        TestUser office = users.staff(Role.OFFICE_STAFF);
+        String token = users.session(office.accountId());
+        MvcResult stream = mvc.perform(
+                        get("/api/v1/notifications/stream").header("Authorization", TestUsers.bearer(token)))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        org.awaitility.Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .until(() -> !stream.getResponse().getContentAsString().isEmpty());
+        assertThat(stream.getResponse().getContentAsString()).startsWith(":").doesNotContain("event:");
+    }
 }
