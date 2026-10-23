@@ -18,6 +18,7 @@ import com.cambae.backend.m13.internal.inbox.domain.InboxItem;
 import com.cambae.backend.m13.internal.inbox.persistence.InboxStore;
 import com.cambae.backend.m13.internal.persistence.NotificationStore;
 import com.cambae.backend.m13.internal.recipient.domain.ContentFilter;
+import com.cambae.backend.m13.internal.recipient.service.ResidentFacts;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.FieldVisibilityApi;
 import com.cambae.backend.m15.account.api.ScopeApi;
@@ -69,6 +70,7 @@ public class InboxService {
     private final ObjectProvider<ScopeApi> scope;
     private final ObjectProvider<FieldVisibilityApi> fields;
     private final ObjectProvider<FamilyNotificationPort> family;
+    private final ResidentFacts facts;
 
     InboxService(
             InboxStore inbox,
@@ -80,7 +82,8 @@ public class InboxService {
             ObjectProvider<CurrentUser> currentUser,
             ObjectProvider<ScopeApi> scope,
             ObjectProvider<FieldVisibilityApi> fields,
-            ObjectProvider<FamilyNotificationPort> family) {
+            ObjectProvider<FamilyNotificationPort> family,
+            ResidentFacts facts) {
         this.inbox = inbox;
         this.notifications = notifications;
         this.deliveries = deliveries;
@@ -91,6 +94,7 @@ public class InboxService {
         this.scope = scope;
         this.fields = fields;
         this.family = family;
+        this.facts = facts;
     }
 
     @Transactional(readOnly = true)
@@ -220,7 +224,7 @@ public class InboxService {
         return allowed;
     }
 
-    /** Người thân: quan hệ còn hiệu lực và quyền hiện hành; bản đồng ý chưa có (001) nên không hiện phần sức khỏe. */
+    /** Người thân: quan hệ còn hiệu lực, quyền hiện hành và bản đồng ý Hiệu lực hiện hành (FR-013, DBR-03). */
     private Set<InformationType> familyAllowed(InboxItem row, Set<InformationType> allowed, List<ContentPart> content) {
         if (row.residentId() == null) {
             return allowed;
@@ -237,7 +241,11 @@ public class InboxService {
         Set<InformationType> parts = EnumSet.noneOf(InformationType.class);
         content.forEach(p -> parts.add(p.type()));
         allowed.retainAll(ContentFilter.visibleParts(
-                parts, relation.get().rights(), relation.get().representative(), true, false));
+                parts,
+                relation.get().rights(),
+                relation.get().representative(),
+                true,
+                facts.healthConsent(row.residentId(), row.recipientId())));
         return allowed;
     }
 
