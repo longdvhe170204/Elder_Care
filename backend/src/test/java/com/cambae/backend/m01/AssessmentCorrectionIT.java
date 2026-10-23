@@ -96,6 +96,10 @@ class AssessmentCorrectionIT extends AssessmentTestBase {
         assertThat(historyRows(resident)).isEqualTo(1);
         assertThat(events.stream(AssessmentCorrectedLevel.class))
                 .anyMatch(e -> e.residentId() == resident && e.assessmentId() == id);
+        assertThat(jdbc.queryForList(
+                        "SELECT basis FROM reassessment_notice WHERE resident_id = ?", String.class, resident))
+                .as("lần báo đánh giá lại căn cứ đính chính (H-10, H-11)")
+                .containsExactly("ASSESSMENT_CORRECTION");
     }
 
     @Test
