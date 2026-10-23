@@ -3,6 +3,7 @@ package com.cambae.backend.m01.web;
 import com.cambae.backend.common.Role;
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.web.VersionEtag;
+import com.cambae.backend.m01.api.ConsentApi;
 import com.cambae.backend.m01.api.dto.ResidentStatus;
 import com.cambae.backend.m01.api.dto.StatusCommand;
 import com.cambae.backend.m01.internal.profile.service.ResidentProfileService;
@@ -74,7 +75,12 @@ class ResidentController {
             "CREATE_ASSESSMENT",
             new PermissionKey(Function.ASSESSMENT_CARE_LEVEL, Operation.CREATE),
             "CONFIRM_ASSESSMENT",
-            new PermissionKey(Function.ASSESSMENT_CARE_LEVEL, Operation.APPROVE));
+            new PermissionKey(Function.ASSESSMENT_CARE_LEVEL, Operation.APPROVE),
+            // Bản đồng ý (US5): Hành chính ghi nhận và rút lại (AC-09, Phụ lục 27)
+            "RECORD_CONSENT",
+            new PermissionKey(Function.DATA_SHARING_CONSENT, Operation.CREATE),
+            "WITHDRAW_CONSENT",
+            new PermissionKey(Function.DATA_SHARING_CONSENT, Operation.UPDATE));
 
     // Lệnh trạng thái (US4): khóa quyền theo data-model mục 2; hợp trạng thái hiện tại lọc thêm ở body()
     private static final Map<StatusCommand, PermissionKey> STATUS_COMMANDS = Map.of(
@@ -98,11 +104,14 @@ class ResidentController {
     private final ResidentProfileService profiles;
     private final PermissionApi permissions;
     private final CurrentUser currentUser;
+    private final ConsentApi consents;
 
-    ResidentController(ResidentProfileService profiles, PermissionApi permissions, CurrentUser currentUser) {
+    ResidentController(
+            ResidentProfileService profiles, PermissionApi permissions, CurrentUser currentUser, ConsentApi consents) {
         this.profiles = profiles;
         this.permissions = permissions;
         this.currentUser = currentUser;
+        this.consents = consents;
     }
 
     @GetMapping
@@ -189,6 +198,6 @@ class ResidentController {
                 .map(Enum::name)
                 .filter(c -> !statusCommands.contains(c))
                 .forEach(commands::remove);
-        return ProfileBody.of(view, commands);
+        return ProfileBody.of(view, commands, consents.current(view.id()).isPresent());
     }
 }

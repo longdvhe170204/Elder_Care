@@ -59,7 +59,12 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
             "POST /residents/{id}/record-return",
             "POST /residents/{id}/transfer-out",
             "POST /residents/{id}/end-residency",
-            "POST /residents/{id}/record-death");
+            "POST /residents/{id}/record-death",
+            "GET /residents/{id}/consents",
+            "POST /residents/{id}/consents",
+            "POST /consents/{id}/withdraw",
+            "POST /files",
+            "GET /files/{id}");
 
     @Autowired
     MockMvc mvc;
@@ -99,7 +104,9 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
         inCode.removeIf(op -> !op.contains("/residents")
                 && !op.contains("/initial-health-records")
                 && !op.contains("/health-items")
-                && !op.contains("/assessments"));
+                && !op.contains("/assessments")
+                && !op.contains("/consents")
+                && !op.contains("/files"));
         assertThat(inCode).containsExactlyInAnyOrderElementsOf(IMPLEMENTED);
         assertThat(operations(contract, "")).containsAll(IMPLEMENTED);
 
@@ -114,7 +121,8 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
             "ConfirmAssessmentResult",
             "CareLevelAtDate",
             "StatusHistoryEntry",
-            "StatusCommandResult"
+            "StatusCommandResult",
+            "Consent"
         }) {
             assertThat(properties(generated, schema)).as(schema).isEqualTo(properties(contract, schema));
         }

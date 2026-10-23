@@ -33,7 +33,9 @@ class ProfileOpenGuardArchTest {
             "com.cambae.backend.m01.internal.health.service.CatalogService.deactivate",
             "danh mục dùng chung, không gắn hồ sơ người cao tuổi",
             "com.cambae.backend.m01.internal.health.service.CatalogService.reactivate",
-            "danh mục dùng chung, không gắn hồ sơ người cao tuổi");
+            "danh mục dùng chung, không gắn hồ sơ người cao tuổi",
+            "com.cambae.backend.m01.internal.consent.service.ConsentService.withdraw",
+            "rút lại đồng ý làm được cả trên hồ sơ trạng thái cuối (FR-014a, ngoại lệ của BR-M01-05)");
 
     static ArchRule everyBusinessCommandCallsGuard() {
         return ArchRuleDefinition.methods()
