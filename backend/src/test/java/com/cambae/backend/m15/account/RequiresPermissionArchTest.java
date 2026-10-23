@@ -26,27 +26,42 @@ import java.util.Map;
 class RequiresPermissionArchTest {
 
     /** Lệnh tự kiểm quyền: {@code Lớp.phươngThức} → cách kiểm. Thêm dòng thì người xem lại kiểm lệnh có tự kiểm thật. */
-    static final Map<String, String> SELF_CHECKED = Map.of(
-            "com.cambae.backend.m15.approval.internal.service.ApprovalRequestService.editContent",
-            "khóa Lập theo loại yêu cầu (RequestTypeHandler.createPermission), chỉ người yêu cầu; 000 FR-034",
-            "com.cambae.backend.m15.approval.internal.service.ApprovalRequestService.reject",
-            "khóa Duyệt theo loại yêu cầu (ApproverDirectory.canDecide); 000 FR-034",
-            "com.cambae.backend.m15.approval.internal.service.ApprovalRequestService.cancel",
-            "người yêu cầu, hoặc người duyệt khi đã Duyệt (ApproverDirectory.canDecide); 000 FR-034",
-            "com.cambae.backend.m15.correction.internal.service.CorrectionService.create",
-            "quyền theo loại bản ghi gốc (CorrectableRecordProvider.canRecord, CorrectionMethodSelector); 000 FR-026",
-            "com.cambae.backend.m15.parameter.internal.service.ParameterService.changeValue",
-            "PermissionApi.hasPermission với khóa tham số, chỉ Quản lý viện; 000 BR-M15-04",
-            "com.cambae.backend.m15.account.internal.auth.service.AccountService.earlyUnlock",
-            "Quản lý viện, hoặc Trưởng tầng, Người phụ trách ca cùng tầng và ca theo AssignmentApi lúc chạy"
-                    + " (AccountService.earlyUnlockAuthority); 002 FR-019c",
-            "com.cambae.backend.m15.account.internal.offline.service.PendingReviewService.accept",
-            "người quyết định xem lại của tầng lúc chạy (ScopeApi.reviewDecider); 002 FR-041c, CHK056",
-            "com.cambae.backend.m15.account.internal.offline.service.PendingReviewService.reject",
-            "người quyết định xem lại của tầng lúc chạy (ScopeApi.reviewDecider); 002 FR-041c, CHK056",
-            "com.cambae.backend.m15.account.internal.auth.service.ResidentAccountService.createLoginCode",
-            "PermissionApi.hasPermission (RESIDENT_ACCOUNT, CREATE) trên người cao tuổi của tài khoản, đọc sau khi tra"
-                    + " tài khoản; Điều dưỡng chỉ trong phạm vi (Phụ lục 27 ⁴⁸); 002 FR-069");
+    static final Map<String, String> SELF_CHECKED = Map.ofEntries(
+            Map.entry(
+                    "com.cambae.backend.m15.approval.internal.service.ApprovalRequestService.editContent",
+                    "khóa Lập theo loại yêu cầu (RequestTypeHandler.createPermission), chỉ người yêu cầu; 000 FR-034"),
+            Map.entry(
+                    "com.cambae.backend.m15.approval.internal.service.ApprovalRequestService.reject",
+                    "khóa Duyệt theo loại yêu cầu (ApproverDirectory.canDecide); 000 FR-034"),
+            Map.entry(
+                    "com.cambae.backend.m15.approval.internal.service.ApprovalRequestService.cancel",
+                    "người yêu cầu, hoặc người duyệt khi đã Duyệt (ApproverDirectory.canDecide); 000 FR-034"),
+            Map.entry(
+                    "com.cambae.backend.m15.correction.internal.service.CorrectionService.create",
+                    "quyền theo loại bản ghi gốc (CorrectableRecordProvider.canRecord, CorrectionMethodSelector); 000 FR-026"),
+            Map.entry(
+                    "com.cambae.backend.m15.parameter.internal.service.ParameterService.changeValue",
+                    "PermissionApi.hasPermission với khóa tham số, chỉ Quản lý viện; 000 BR-M15-04"),
+            Map.entry(
+                    "com.cambae.backend.m15.account.internal.auth.service.AccountService.earlyUnlock",
+                    "Quản lý viện, hoặc Trưởng tầng, Người phụ trách ca cùng tầng và ca theo AssignmentApi lúc chạy"
+                            + " (AccountService.earlyUnlockAuthority); 002 FR-019c"),
+            Map.entry(
+                    "com.cambae.backend.m15.account.internal.offline.service.PendingReviewService.accept",
+                    "người quyết định xem lại của tầng lúc chạy (ScopeApi.reviewDecider); 002 FR-041c, CHK056"),
+            Map.entry(
+                    "com.cambae.backend.m15.account.internal.offline.service.PendingReviewService.reject",
+                    "người quyết định xem lại của tầng lúc chạy (ScopeApi.reviewDecider); 002 FR-041c, CHK056"),
+            Map.entry(
+                    "com.cambae.backend.m13.internal.directcontact.service.DirectContactService.record",
+                    "vai trò Hành chính theo bảng FR-039 của 009 (Phụ lục 27 không có dòng thông báo)"),
+            Map.entry(
+                    "com.cambae.backend.m13.internal.channel.service.ChannelService.change",
+                    "vai trò Quản lý viện theo bảng FR-039 của 009 (Phụ lục 27 không có dòng thông báo)"),
+            Map.entry(
+                    "com.cambae.backend.m15.account.internal.auth.service.ResidentAccountService.createLoginCode",
+                    "PermissionApi.hasPermission (RESIDENT_ACCOUNT, CREATE) trên người cao tuổi của tài khoản, đọc sau khi tra"
+                            + " tài khoản; Điều dưỡng chỉ trong phạm vi (Phụ lục 27 ⁴⁸); 002 FR-069"));
 
     /**
      * Lệnh nút SOS của 007 tự kiểm bằng {@code BoundDeviceApi.identify} (token thiết bị, không có phiên) thay cho
