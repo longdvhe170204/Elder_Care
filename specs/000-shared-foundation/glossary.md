@@ -516,6 +516,55 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | `BT/support/gia003/`, bản giả năm cổng T002 | `support/fake/m03/`: `FakeM03Config`, `FakeAllocationResidencySource`, `FakeDayCareArrivals`, `FakeAllocationInfectionStatus`, `FakeLocationReferences`, `FakeBedAssets` |
 | Màn web 003 | `frontend/src/features/beds/` (đã chốt ở frontend/README.md; Phase 1 chưa sửa web) |
 
+**Phase 2 (2026-10-23)**: khai báo hợp đồng nội bộ và nền dữ liệu; hợp đồng HTTP vẫn chưa dịch.
+
+| Tên logic | Tên trong mã |
+| --- | --- |
+| `ViTriApi` | `api.ResidentLocationApi`: `current`, `current`, `at`, `floorOn`, `hasNoBed`, `currentOrFutureAllocation` |
+| `LichSuViTriApi` | `api.LocationHistoryApi`: `byResident`, `byLocation`, `byLocationOn`, `roommates` |
+| `PhanBoGiuongLenhApi` | `api.BedAllocationCommandApi`: `holdForWaitingRecord`, `cancelHold`, `releaseWhenAbsent`, `extendExpectedEnd`, `checkScheduledReservation`, `reserveScheduledTransfer`, `checkScheduledTransfer`, `applyScheduledTransfer`, `cancelScheduledAllocation`, `requestCreatedAfterUrgentTransfer`, `urgentTransferRequestResult` |
+| `SucChuaBanTruApi` | `api.DayCareCapacityApi`: `lock`, `occupiedSessions`, `checkCapacity` |
+| `CoCauViTriApi` | `api.LocationStructureApi`: `bed`, `room`, `floor`, `area`, `active`, `floorsInArea`, `dayCareRestAreaLocation`, `roomTypeOfBed` |
+| `PhongChoPhepApi` | `api.RoomPolicyApi`: `currentRoomAllows`, `allocationProperties` |
+| `TinhTrangGiuongApi` | `api.BedStatusApi`: `countByState`, `countAvailable`, `flaggedBeds`, `emptyPeriodStarted`, `overdueAwaitingReady` |
+| `GiuongThongKeApi` | `api.BedStatisticsApi`: `stateAt`, `awaitingReady`, `isolatedRooms` |
+| `CanhBaoBanGiaoApi` | `api.BedHandoverAlertApi`: `byFloor` |
+| `GiuongTheoTaiSanPort`, `LenhTaiSanGiuong` | `internal.bed.domain.BedAssetCommandPort`, `BedAssetCommand` (MAINTENANCE, READY, RETIREMENT) |
+| Trạng thái Trống, Đang sử dụng, Đang giữ chỗ, Chờ sẵn sàng, Đang bảo trì, Tạm ngừng, Không sử dụng | `api.dto.BedStatus`: EMPTY, OCCUPIED, HELD, AWAITING_READY, UNDER_MAINTENANCE, SUSPENDED, RETIRED |
+| Chính sách phòng nam/nữ/không giới hạn; giới tính người cao tuổi nam/nữ | `api.dto.GenderPolicy`: MALE/FEMALE/UNRESTRICTED; `ResidentGender`: MALE/FEMALE |
+| `GiuongTrangThaiService`, bảng chuyển, lịch sử/truy cập trạng thái | `internal.bed.service.BedStateService`, `domain.BedTransitions`, `persistence.BedStateStore` |
+| `khu_vuc`, `tang`, `loai_phong`, `loai_phong_muc`, `phong`, `phong_muc_cho_phep`, `ly_do_chuyen_giuong` | `area`, `floor`, `room_type`, `room_type_care_level`, `room`, `room_allowed_care_level`, `bed_transfer_reason` |
+| `giuong`, `lich_su_trang_thai_giuong`; thuộc tính trạng thái/giữ chỗ/hạn | `bed`, `bed_state_history`; `state`, `hold_reason`, `hold_resident_id`, `hold_waiting_record_id`, `hold_until`, `ready_deadline`, `last_closed_allocation_id`, `suspension_reason` |
+| `phan_bo_giuong`, `lich_su_cach_ly_phong`, `yeu_cau_nhap_bu`, `nhac_phan_bo` (bảng tạo ở các phase sau) | `bed_allocation` (`resident_id`, `bed_id`, `status`, `previous_allocation_id`), `room_isolation_history` (`room_id`, `occurred_at`), `bed_backfill_request` (`current_allocation_id`), `allocation_reminder` (`target_type`, `target_id`) |
+| `thoi_diem`, `thoi_diem_du_kien`, `thuc_hien_tre`, `da_khu_khuan`, `da_dung_bao_ho`, `bat_buoc_khu_khuan` | `occurred_at`, `planned_at`, `executed_late`, `disinfected`, `ppe_used`, `disinfection_required` |
+| Lý do thông thường; lý do lây nhiễm/cách ly trong dữ liệu nhật ký | `reason`; `infectionControlReason`, `isolationReason` (HEALTH); cột reason của nhật ký cũng bị che khi các trường này bị che |
+| `M03.GIUONG`, `M03.PHONG`, `M03.PHAN_BO_GIUONG`, `M03.LICH_SU_TRANG_THAI_GIUONG`, `M03.LICH_SU_CACH_LY_PHONG`, `M03.XAC_NHAN_SAN_SANG` | `M03.BED`, `M03.ROOM`, `M03.BED_ALLOCATION`, `M03.BED_STATE_HISTORY`, `M03.ROOM_ISOLATION_HISTORY`, `M03.BED_READINESS_CONFIRMATION` |
+| `M03_GIUONG_CHUYEN`; `CHUYEN_KHONG_HOP_LE`; `CHUA_GHI_KHU_KHUAN` | `M03_BED_STATE_CHANGED`; `INVALID_BED_TRANSITION`; `DISINFECTION_CONFIRMATION_REQUIRED` |
+| Metadata thông báo sự kiện | `api.dto.BedNotificationContext` (`occurredAt`, `floorAreaId`, `recipients`); nhóm người nhận do lệnh nguồn chọn theo G-12 |
+
+| Sự kiện logic | Record tại `api.events` |
+| --- | --- |
+| `GiuongDaTrong` | `BedBecameEmpty` |
+| `PhanBoDaBatDau` | `BedAllocationStarted` |
+| `PhanBoDaDong` | `BedAllocationClosed` |
+| `DaChuyenGiuong` | `BedTransferred` |
+| `GiuChoNguoiVangHetHan` | `AbsentResidentHoldExpired` |
+| `PhongDaDatCachLy` | `RoomIsolated` |
+| `PhongDaGoCachLy` | `RoomIsolationLifted` |
+| `PhanBoDaDinhChinh` | `BedAllocationCorrected` |
+| `DaChuyenGiuongKhacGia` | `DifferentPriceBedTransfer` (MEDIUM) |
+| `BacSiDuocGhiChiDinh` | `DoctorAssignedToAllocation` (LOW) |
+| `TroVePhongCachLy` | `ReturnedToIsolatedRoom` (URGENT) |
+| `PhanBoKhongConPhuHop` | `AllocationNoLongerSuitable` (MEDIUM) |
+| `PhanBoTuongLaiQuaBatDau` | `FutureAllocationPastStart` (MEDIUM) |
+| `PhanBoTuongLaiBiHuyDoGiuongHong` | `FutureAllocationCancelledForDamagedBed` (MEDIUM) |
+| `ChuyenTheoLichChoGiuong` | `ScheduledTransferWaitingForBed` (MEDIUM) |
+| `NhacPhanBo` | `AllocationReminder` (LOW) |
+| `NhacGiuongChoSanSang` | `BedReadinessReminder` (LOW) |
+| `NguoiRoiGiuongVaoDanhSachTiepXuc` | `FormerOccupantListed` (MEDIUM) |
+| `ViecLichTre` | `DelayedScheduledWork` (MEDIUM) |
+| `KhuNghiVuotSucChua` | `DayCareOverCapacity` (MEDIUM) |
+
 ## 10. Feature 004 (`004-admission-residency`, B)
 
 *Chủ feature điền khi dịch `contracts/api-004.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
