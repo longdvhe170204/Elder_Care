@@ -70,6 +70,9 @@ class NotificationRequestRetention implements RetentionProvider {
     public void delete(Collection<Long> ids) {
         String in = ids.stream().map(String::valueOf).collect(Collectors.joining(",", "(", ")"));
         JdbcTemplate r = database.jdbc();
+        r.update("DELETE FROM direct_contact_result WHERE direct_contact_id IN (SELECT id FROM direct_contact"
+                + " WHERE notification_id IN (" + NOTIFICATIONS + in + "))");
+        r.update("DELETE FROM direct_contact WHERE notification_id IN (" + NOTIFICATIONS + in + ")");
         r.update("DELETE FROM delivery_result WHERE attempt_id IN (" + ATTEMPTS + in + ")");
         r.update("DELETE FROM delivery_attempt WHERE notification_id IN (" + NOTIFICATIONS + in + ")");
         r.update("DELETE FROM notification_event WHERE notification_id IN (" + NOTIFICATIONS + in + ")");

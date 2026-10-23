@@ -109,6 +109,13 @@ public class TestUsers {
                         AccessChannel.FAMILY_APP));
     }
 
+    /** Tài khoản người cao tuổi Hoạt động (vai trò AC-16) của hồ sơ đã cho; trả id tài khoản. */
+    public long resident(long residentId) {
+        long accountId = insert("RESIDENT", "resident_id", residentId, "test-resident-" + residentId);
+        assignRole(accountId, Role.RESIDENT);
+        return accountId;
+    }
+
     /** Mở phiên kênh app nhân viên cho tài khoản; trả token cho {@link #bearer(String)}. */
     public String session(long accountId) {
         byte[] bytes = new byte[32];
