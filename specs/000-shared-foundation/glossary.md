@@ -565,6 +565,42 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | `ViecLichTre` | `DelayedScheduledWork` (MEDIUM) |
 | `KhuNghiVuotSucChua` | `DayCareOverCapacity` (MEDIUM) |
 
+**Phase 3 — phần backend độc lập (2026-10-23, chưa hoàn tất phase)**:
+
+| Tên logic / vai trò | Tên trong mã |
+| --- | --- |
+| Khu vực, tầng, loại phòng, phòng, lý do chuyển | `internal.structure.domain.Area`, `Floor`, `RoomType`, `Room`, `BedTransferReason` (entity `CatalogBase`, CATALOG) |
+| Giường | `internal.bed.domain.Bed` (BUSINESS; JPA không ghi `state`) |
+| Loại danh mục, dữ liệu lệnh nội bộ | `StructureKind`, `StructureChange` (không phải schema HTTP) |
+| Dịch vụ / kho cơ cấu | `internal.structure.service.StructureService`, `internal.structure.persistence.StructureStore` |
+| Tạo giường và kết quả/cảnh báo | `internal.bed.service.BedService`, `internal.bed.persistence.BedStore`, `BedCreation`, `BedWarning` |
+| `VUOT_SO_GIUONG_TIEU_CHUAN` | `STANDARD_BED_COUNT_EXCEEDED` (cảnh báo nội bộ, chưa dịch hợp đồng HTTP) |
+| Mã/tên trùng, dữ liệu cơ cấu sai, thiếu nguồn kiểm | `DUPLICATE_CODE`, `INVALID_STRUCTURE`, `SOURCE_UNAVAILABLE` |
+| Nhật ký cơ cấu tạo/sửa/ngừng/kích hoạt/xóa | `M03_STRUCTURE_CREATED`, `M03_STRUCTURE_UPDATED`, `M03_STRUCTURE_DEACTIVATED`, `M03_STRUCTURE_REACTIVATED`, `M03_STRUCTURE_DELETED` |
+| Nhật ký tạo giường | `M03_STRUCTURE_CREATED`, entity `M03.BED`, `after.roomId/code`, `details.warnings` (ngoài nhật ký chuyển trạng thái) |
+
+**Phase 3 — HTTP/API đọc và web được duyệt (2026-10-23)**:
+
+| Tên logic / vai trò | Tên trong mã / hợp đồng |
+| --- | --- |
+| /khu-vuc, /tang, /loai-phong, /phong, /ly-do-chuyen-giuong, /giuong | /areas, /floors, /room-types, /rooms, /bed-transfer-reasons, /beds |
+| /ngung-hieu-luc, /kich-hoat-lai | /deactivate, /reactivate |
+| id, ma, ten, phienBan, trangThai danh mục | id, code, name, version, status (ACTIVE/INACTIVE) |
+| khuVucId, tangId, phongId, loaiPhongId, tenToaNha | areaId, floorId, roomId, roomTypeId, buildingName |
+| soGiuongTieuChuan, mucMacDinh, mucChoPhep, chinhSachGioiTinh | standardBeds, defaultCareLevels, allowedCareLevels, genderPolicy |
+| phucVuDaiHan, phucVuNganNgay, dangCachLy, yTeAnToan, coDinh | servesLongTerm, servesShortTerm, isolated, medicalSafety, fixed |
+| Trạng thái giường, vị trí, cảnh báo tạo giường | state (BedStatus), location (LocationResponse), warnings (WarningResponse), STANDARD_BED_COUNT_EXCEEDED |
+| Kết quả tạo / bảng giường | BedCreationResponse (bed, warnings), BedBoardResponse (beds, residentsWithoutBed), BedResponse |
+| Dấu giường | BedFlagCode: ROOM_UNSUITABLE, AWAITING_DOCTOR_CONFIRMATION, AWAITING_REQUEST, AWAITING_SAME_PRICE (story sau mới cấp dữ liệu) |
+| Cổng đọc cơ cấu/chính sách, đọc bảng giường | internal.structure.service.StructureQueries, internal.bed.service.BedQueries, domain.BedDetails |
+| Controller theo tài nguyên | web.AreaController, FloorController, RoomTypeController, RoomController, BedTransferReasonController, BedController |
+| Dữ liệu ghi / lý do lệnh | web.request.*Write, ReasonBody (reason dùng Reason của common) |
+| Problem riêng hợp đồng 003 / người cao tuổi trong schema bảng giường | StructureProblem (M03StructureProblem), ResidentSummarySchema (chỉ mô tả schema, Phase 3 không cấp dữ liệu người ở) |
+| Màn cơ cấu, form, khai báo danh mục | frontend/src/features/beds/BedsPage.jsx, StructureForm.jsx, bedCatalog.js |
+| Khu nghỉ bán trú tương lai được API đọc | day_care_rest_area (floor_id, area_id, status), đối chiếu migration khi triển khai story bán trú |
+
+Chỉ 39 operation Phase 3 có tên HTTP tiếng Anh và x-implementation-phase: 3; các component tiếng Việt được giữ cho 31 operation tương lai. Generator không sinh client của phần chưa dịch. Đổi phòng giường chưa có đồng bộ tài sản là thao tác tạm hoãn; không có relocateForBed mới trong BedAssetPort.
+
 ## 10. Feature 004 (`004-admission-residency`, B)
 
 *Chủ feature điền khi dịch `contracts/api-004.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
