@@ -1108,6 +1108,7 @@ components:
         group: { type: string, description: 'Chỉ với allergens' }
         order: { type: integer }
         status: { type: string, enum: [ACTIVE, INACTIVE] }
+        version: { type: integer, format: int32, description: "Phiên bản; gửi làm If-Match khi sửa (bổ sung 2026-10-24)" }
     CorrectionResult:
       type: object
       properties:

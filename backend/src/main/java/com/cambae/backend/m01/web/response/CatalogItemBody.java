@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 /**
  * Mục danh mục, dùng cho cả thân yêu cầu tạo, sửa và phản hồi (contracts/api-001.yaml, schema {@code CatalogItem}).
  * Khi tạo, sửa chỉ {@code name}, {@code group} (dị nguyên), {@code order} (mức độ dị ứng) được dùng; {@code id},
- * {@code status} do hệ thống đặt.
+ * {@code status}, {@code version} do hệ thống đặt.
  */
 @Schema(name = "CatalogItem")
 public record CatalogItemBody(
@@ -26,10 +26,13 @@ public record CatalogItemBody(
         Integer order,
 
         @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        CatalogStatus status) {
+        CatalogStatus status,
+
+        @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "Phiên bản; gửi làm If-Match khi sửa")
+        Integer version) {
 
     public static CatalogItemBody of(CatalogItemView view) {
-        return new CatalogItemBody(view.id(), view.name(), view.group(), view.order(), view.status());
+        return new CatalogItemBody(view.id(), view.name(), view.group(), view.order(), view.status(), view.version());
     }
 
     public CatalogService.Input input() {
