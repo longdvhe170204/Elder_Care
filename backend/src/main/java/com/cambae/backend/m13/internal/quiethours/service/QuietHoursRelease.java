@@ -3,6 +3,7 @@ package com.cambae.backend.m13.internal.quiethours.service;
 import com.cambae.backend.common.notification.FamilyRight;
 import com.cambae.backend.common.notification.InformationType;
 import com.cambae.backend.common.time.BusinessTime;
+import com.cambae.backend.m13.api.dto.RecipientType;
 import com.cambae.backend.m13.api.spi.FamilyContactView;
 import com.cambae.backend.m13.api.spi.FamilyNotificationPort;
 import com.cambae.backend.m13.api.spi.NotifiableRelationshipView;
@@ -16,6 +17,7 @@ import com.cambae.backend.m13.internal.quiethours.persistence.HeldNotificationSt
 import com.cambae.backend.m13.internal.recipient.domain.ConsentScope;
 import com.cambae.backend.m13.internal.recipient.domain.ContentFilter;
 import com.cambae.backend.m13.internal.recipient.service.RecipientPhones;
+import com.cambae.backend.m13.internal.recipient.service.ResidentFacts;
 import com.cambae.backend.m15.account.api.AccountApi;
 import com.cambae.backend.m15.account.api.dto.AccountStatus;
 import java.time.Instant;
@@ -28,15 +30,15 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * Giải phóng thông báo hết giờ yên tĩnh (việc 20 giây {@code RELEASE_QUIET_HOURS}; FR-025, research B-06): theo thứ tự
  * tiếp nhận, mỗi thông báo một transaction, xét lại người nhận lúc gửi rồi ghi Đã gửi kèm các lần gửi theo kênh
- * ({@link OutOfAppPlanner}; tin nhắn Trung bình vào khung gộp, FR-016b), hoặc Không gửi kèm lý do.
- *
- * <p>Chưa có, chờ 001 (docs/team-plan.md mục 8): người cao tuổi đã Qua đời (FR-015, lý do {@code RESIDENT_DECEASED}) và
- * bản đồng ý hiện hành; tới đó phạm vi đồng ý xét như lúc tiếp nhận.
+ * ({@link OutOfAppPlanner}; tin nhắn Trung bình vào khung gộp, FR-016b), hoặc Không gửi kèm lý do: người cao tuổi đã Qua
+ * đời ({@code RESIDENT_DECEASED}, FR-015, trừ việc sau qua đời của 004), người nhận không còn đủ điều kiện theo quan hệ,
+ * quyền và bản đồng ý hiện hành.
  */
 @Service
 public class QuietHoursRelease implements M13FastTask {
 
     static final String NO_LONGER_ELIGIBLE = "RECIPIENT_NO_LONGER_ELIGIBLE";
+    static final String RESIDENT_DECEASED = "RESIDENT_DECEASED";
     private static final int BATCH = 200;
 
     private final HeldNotificationStore held;
@@ -46,6 +48,7 @@ public class QuietHoursRelease implements M13FastTask {
     private final RecipientPhones phones;
     private final ObjectProvider<AccountApi> accounts;
     private final ObjectProvider<FamilyNotificationPort> family;
+    private final ResidentFacts facts;
     private final TransactionTemplate tx;
     private final BusinessTime time;
 
@@ -57,6 +60,7 @@ public class QuietHoursRelease implements M13FastTask {
             RecipientPhones phones,
             ObjectProvider<AccountApi> accounts,
             ObjectProvider<FamilyNotificationPort> family,
+            ResidentFacts facts,
             TransactionTemplate tx,
             BusinessTime time) {
         this.held = held;
@@ -66,6 +70,7 @@ public class QuietHoursRelease implements M13FastTask {
         this.phones = phones;
         this.accounts = accounts;
         this.family = family;
+        this.facts = facts;
         this.tx = tx;
         this.time = time;
     }
@@ -88,26 +93,38 @@ public class QuietHoursRelease implements M13FastTask {
         return released;
     }
 
+    /**
+     * Người cao tuổi vừa Qua đời: thông báo người thân đang giữ về người đó chuyển Không gửi ngay (US4 #6), trừ việc sau qua
+     * đời của 004.
+     */
+    public void cancelForDeath(long residentId) {
+        Instant now = time.now();
+        for (long id : held.heldForFamilyOf(residentId)) {
+            tx.executeWithoutResult(s ->
+                    held.lock(id).filter(h -> !h.afterDeath()).ifPresent(h -> notSent(id, RESIDENT_DECEASED, now)));
+        }
+    }
+
     private boolean release(long id, Instant now) {
         Optional<Held> found = held.lock(id).filter(h -> !h.scheduledSendAt().isAfter(now));
         if (found.isEmpty()) {
             return false;
         }
         Held h = found.get();
+        if (h.recipientType() == RecipientType.FAMILY_MEMBER
+                && h.residentId() != null
+                && !h.afterDeath()
+                && facts.deathAt(h.residentId()).isPresent()) {
+            notSent(id, RESIDENT_DECEASED, now);
+            return true;
+        }
         Optional<Optional<Long>> account = switch (h.recipientType()) {
             case RESIDENT -> residentAccount(h);
             case FAMILY_MEMBER -> familyAccount(h);
             case STAFF -> Optional.of(Optional.empty());
         };
         if (account.isEmpty()) {
-            notifications.appendEvent(
-                    id,
-                    NotificationEventType.NOT_SENT,
-                    Optional.empty(),
-                    Optional.empty(),
-                    NO_LONGER_ELIGIBLE,
-                    null,
-                    now);
+            notSent(id, NO_LONGER_ELIGIBLE, now);
             return true;
         }
         notifications.markSent(id, now);
@@ -122,6 +139,11 @@ public class QuietHoursRelease implements M13FastTask {
                 h.invalidOutOfAppContent(),
                 now));
         return true;
+    }
+
+    private void notSent(long id, String reason, Instant now) {
+        notifications.appendEvent(
+                id, NotificationEventType.NOT_SENT, Optional.empty(), Optional.empty(), reason, null, now);
     }
 
     /** Người cao tuổi còn tài khoản Hoạt động hoặc Khóa tạm; rỗng khi không còn đủ điều kiện. */
@@ -149,8 +171,11 @@ public class QuietHoursRelease implements M13FastTask {
         if (h.basis().stream().noneMatch(b -> stillHolds(b, rel))) {
             return Optional.empty();
         }
-        ConsentScope.Decision decision =
-                ConsentScope.decide(h.informationSubject().orElse(null), false, h.hasQ354Case(), h.level());
+        ConsentScope.Decision decision = ConsentScope.decide(
+                h.informationSubject().orElse(null),
+                rel.isPresent() && facts.notificationScope(h.residentId()),
+                h.hasQ354Case(),
+                h.level());
         if (decision == ConsentScope.Decision.SKIP || decision == ConsentScope.Decision.MISSING_CASE) {
             return Optional.empty();
         }
@@ -159,7 +184,7 @@ public class QuietHoursRelease implements M13FastTask {
                 rel.map(NotifiableRelationshipView::rights).orElse(Set.of()),
                 rel.map(NotifiableRelationshipView::representative).orElse(false),
                 rel.isPresent(),
-                false);
+                rel.isPresent() && facts.healthConsent(h.residentId(), h.recipientId()));
         if (visible.isEmpty()) {
             return Optional.empty();
         }

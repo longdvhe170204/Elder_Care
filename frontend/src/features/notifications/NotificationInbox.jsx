@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getMeNotifications, postNotificationsByIdAcknowledge } from '@/api'
+import { getMeNotifications, getResidents, postNotificationsByIdAcknowledge } from '@/api'
 import { Alert, AlertAction, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
@@ -16,23 +16,31 @@ import { LEVEL_LABELS, label } from './notificationLabels'
 
 // Hộp thông báo (009 T035; FR-033 → FR-036; DESIGN.md `notification-inbox`). Khẩn cấp chưa xác nhận lên đầu (backend
 // sắp), mỗi dòng có nút "Xác nhận đã nhận" (FR-026); thông báo mới qua SSE thì tải lại trang đầu, mất luồng thì hỏi lại
-// mỗi 60 giây. Lọc theo người cao tuổi chờ danh sách người cao tuổi của 001.
+// mỗi 60 giây. Lọc theo người cao tuổi: danh sách trang đầu của GET /residents (001, trong phạm vi); vai trò không xem được hồ
+// sơ (403) thì không có ô lọc.
 
 const LEVELS = ['URGENT', 'MEDIUM', 'LOW']
 const STREAM_URL = '/api/v1/notifications/stream'
 const POLL_MS = 60_000
 const SELECT_CLASS = 'h-10 w-full rounded-md border border-input bg-transparent px-3'
 
-function toQuery({ level, unread, eventType }, cursor) {
-  return { level: level || undefined, unread: unread || undefined, eventType: eventType || undefined, cursor }
+function toQuery({ level, unread, eventType, residentId }, cursor) {
+  return {
+    level: level || undefined,
+    unread: unread || undefined,
+    eventType: eventType || undefined,
+    residentId: residentId || undefined,
+    cursor,
+  }
 }
 
 const isOpenUrgent = (n) => n.level === 'URGENT' && !n.acknowledgedAt
 
 export function NotificationInbox() {
-  const [filter, setFilter] = useState({ level: '', unread: false, eventType: '' })
+  const [filter, setFilter] = useState({ level: '', unread: false, eventType: '', residentId: '' })
   const [state, setState] = useState({ status: 'loading', items: [], nextCursor: null })
   const [eventTypes, setEventTypes] = useState([])
+  const [residents, setResidents] = useState(null)
   const [opened, setOpened] = useState(null)
   const [announcement, setAnnouncement] = useState('')
 
@@ -85,6 +93,16 @@ export function NotificationInbox() {
       clearInterval(timer)
     }
   }, [load, filter])
+
+  useEffect(() => {
+    let cancelled = false
+    getResidents()
+      .then(({ data }) => !cancelled && setResidents(data.items))
+      .catch(() => !cancelled && setResidents(null))
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const replace = useCallback((data) => {
     setState((s) => ({ ...s, items: s.items.map((n) => (n.id === data.id ? data : n)) }))
@@ -148,6 +166,24 @@ export function NotificationInbox() {
               ))}
             </select>
           </Field>
+          {residents && (
+            <Field className="w-72">
+              <FieldLabel htmlFor="notification-resident">Người cao tuổi</FieldLabel>
+              <select
+                id="notification-resident"
+                value={filter.residentId}
+                onChange={(e) => setFilter((f) => ({ ...f, residentId: e.target.value }))}
+                className={SELECT_CLASS}
+              >
+                <option value="">Tất cả</option>
+                {residents.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {`${r.personalInfo.fullName} (${r.profileCode})`}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )}
         </div>
       </div>
 
