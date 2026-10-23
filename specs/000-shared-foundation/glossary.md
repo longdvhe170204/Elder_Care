@@ -862,6 +862,82 @@ Tên trong tasks/plan là tên logic; chỉ tạo gói khi có lớp theo `backe
 
 `M09ArchTest` kiểm lời gọi port lệnh nội bộ theo các tên trên và cấm job gọi `createSchedule`, `createShift`, `createAssignment`, `createHandover`, `addHandoverItem`. `ExtendedPublicationCheck` có chiều gọi 008 → 015 nên không thuộc nhóm port lệnh chỉ 015 được gọi. Công tắc bản giả chỉ dùng trong test, không thêm endpoint HTTP.
 
+### 14.7. Backend Phase 2 (2026-10-23)
+
+Tên và ánh xạ được bổ sung cùng mã T003–T009; chỉ mục 14 thay đổi. Các phần API 002, `Credential.hiddenFields` và đồng bộ `Problem` được người dùng cho phép trong phiên triển khai; ghi chú duyệt ở plan 008.
+
+| Tên logic | Mã |
+| --- | --- |
+| `nhan_vien / bo_phan` | `staff_profile / department` |
+| `nhan_vien_bo_phan / lich_su_phu_trach_bo_phan` | `staff_department / department_lead_history` |
+| `loai_chung_chi / pham_vi_hanh_nghe` | `credential_type / practice_scope` |
+| `chung_chi / chung_chi_pham_vi / lan_chay_m09` | `credential / credential_practice_scope / m09_job_run` |
+| `ho_ten / chuc_danh / chuyen_mon / ngay_bat_dau` | `full_name / position / specialty / start_date` |
+| `dien_thoai / dien_thoai_chuan / email / dia_chi` | `phone_number / normalized_phone / email / address` |
+| `tai_khoan_id / nguon / lan_import_id / phien_ban` | `account_id / source / import_batch_id / version` |
+| `nghi_viec_hieu_luc / ly_do_nghi_viec / da_ap_nghi_viec_luc` | `employment_ends_at / termination_reason / termination_applied_at` |
+| `phu_trach_id / trang_thai_hieu_luc / khoa_hien_hanh / khoa_mo` | `lead_staff_id / status / open_staff_id / open_department_id` |
+| `nhan_vien_id / bo_phan_id / tu / den / nguoi_thuc_hien_id / ly_do` | `staff_id / department_id / starts_at / ends_at / actor_id / reason` |
+| `nhom / co_thoi_han / bat_buoc_voi_vai_tro / co_pham_vi` | `credential_group / has_expiry / required_for_roles / has_practice_scopes` |
+| `loai_id / so / don_vi_cap / ngay_cap / ngay_het_han` | `credential_type_id / credential_number / issuing_authority / issue_date / expiry_date` |
+| `thay_the_cho / thu_hoi_tu / ly_do_thu_hoi / tep_scan_id` | `replaces_id / revoked_from / revocation_reason / scan_file_id` |
+| `da_canh_bao_het_han_luc / da_ap_het_hieu_luc_luc` | `expiry_warning_at / invalidity_applied_at` |
+| `chung_chi_id / ma_pham_vi` | `credential_id / practice_scope_id (id kỹ thuật); code giữ mã danh mục` |
+| `lần chạy: thời điểm dự kiến / bắt đầu / kết thúc / kết quả` | `scheduled_at / started_at / finished_at / result` |
+| `CaTrucApi / NhanSuThongKeApi` | `ShiftApi / StaffStatisticsApi` |
+| `caDangDienRa / caCuaNhanVien / dangTrongCa / nhanVien` | `currentShift / staffShifts / onShift / staff` |
+| `tyLePhucVu / banGiao / chungChiSapHetHan / canCuKhacVaiTro / lichSuPhanCong` | `staffingRatios / handovers / expiringCredentials / nonRoleBases / assignmentHistory` |
+| `CaView / NhanVienView / LanTinhTyLeView / BanGiaoBaoCaoView` | `ShiftView / StaffPublicView / StaffingRatioView / HandoverReportView` |
+| `ChungChiSapHetHanView / CanCuNhiemVuView / LichSuPhanCongView` | `ExpiringCredentialView / DutyBasisView / AssignmentHistoryView` |
+| `HieuLucChungChi / coHieuLucTrongKhoang` | `CredentialValidity / covers (credential.internal.domain)` |
+| `Hồ sơ: dữ liệu / nội dung ghi / kho / dịch vụ / controller` | `StaffProfile / StaffInput / StaffStore / StaffService / StaffController` |
+| `HTTP hồ sơ: yêu cầu / phản hồi` | `StaffProfileInput / StaffProfileBody` |
+| `Chứng chỉ: bản ghi / nội dung ghi / loại / kho / dịch vụ` | `Credential / CredentialInput / CredentialType / CredentialStore / CredentialService` |
+| `HTTP chứng chỉ: yêu cầu / loại / phản hồi / controller` | `CredentialInputBody / CredentialTypeInput / CredentialBody / CredentialTypeBody / CredentialController` |
+| `Bản cài SPI hồ sơ / giấy phép / phạm vi hành nghề` | `StaffDirectory / StaffLicenseLookup / PracticeScopeLookup (duty.internal.service)` |
+| `ViecTheoPhutM09 / ViecHangGioM09 / ViecHangNgayM09` | `M09MinuteJob / M09HourlyJob / M09DailyJob (scheduling)` |
+| `Khung việc chạy định kỳ / điều phối / kho lần chạy` | `M09TimedTask / M09Jobs / M09JobRuns` |
+| `Bộ provider: cấu hình / gắn phạm vi / tải scan / lưu giữ` | `M09GovernanceConfig / M09ScopeAssignment / M09ScanAccess / M09Retention` |
+| `Lỗi dữ liệu đầu vào M09` | `M09ValidationAdvice; INVALID_VALUE` |
+| `Mô tả lỗi HTTP của 008 / cảnh báo` | `M09ProblemBody / M09ProblemBody.M09Warning (web.response); trường lỗi chung 000 và warnings` |
+| `Bản giả API đọc ca / thống kê` | `FakeShifts / FakeStaffStatistics trong FakeM09Config` |
+| `HAN_CHE_NHAN_VIEN (liên hệ / phần riêng tư khác) / LY_DO_NHAN_SU` | `InfoGroup.STAFF_CONTACT / STAFF_RESTRICTED / STAFF_REASON` |
+| `M09.NHAN_VIEN / M09.BO_PHAN / M09.CHUNG_CHI / M09.SCAN_CHUNG_CHI` | `M09.STAFF / M09.DEPARTMENT / M09.CREDENTIAL / M09.CREDENTIAL_SCAN` |
+| `M09.BAN_GIAO / lý do vắng ca` | `M09.HANDOVER / M09.STAFF_ABSENCE` |
+| `Hành động nhật ký tạo / sửa nhân viên, thêm chứng chỉ, tạo loại` | `STAFF_CREATED / STAFF_UPDATED / CREDENTIAL_ADDED / CREDENTIAL_TYPE_CREATED` |
+| `Đổi bộ phận phải qua lệnh / bộ phận không hợp lệ` | `DEPARTMENT_CHANGE_REQUIRES_COMMAND / INVALID_DEPARTMENT` |
+| `002: kiểm danh mục còn tham chiếu (đã duyệt)` | `ProfessionalActivityApi.usesCredentialType / usesPracticeScope` |
+
+Sự kiện ở `m09.api.events` (chỉ khai báo ở T003; dịch vụ nguồn dựng yêu cầu thông báo và phát ở story tương ứng):
+
+| Tên logic | Mã |
+| --- | --- |
+| `LichCaDaCongBo` | `SchedulePublished` |
+| `CaDaThayDoi` | `ShiftChanged` |
+| `CaDaBatDau` | `ShiftStarted` |
+| `CaDaKetThuc` | `ShiftEnded` |
+| `NhanVienVangCa` | `StaffAbsent` |
+| `NhanVienNghiViec` | `StaffEmploymentEnded` |
+| `CaThieuNguoiPhuTrach` | `ShiftLeadMissing` |
+| `TangChuaCoTruongTang` | `FloorManagerMissing` |
+| `PhanCongDaDoi` | `AssignmentChanged` |
+| `PhanCongKetThucDoChungChi` | `AssignmentsEndedByCredential` |
+| `ChungChiSapHetHan` | `CredentialExpiring` |
+| `CanhBaoChungChiDaDong` | `CredentialExpiryWarningClosed` |
+| `CaDuoiNguongPhucVu` | `ShiftBelowStaffingThreshold` |
+| `NctChuaCoNguoiPhuTrach` | `ResidentsWithoutAssignedStaff` |
+| `BanGiaoChuaLap` | `HandoverNotPrepared` |
+| `BanGiaoChuaHoanTatKhiHetCa` | `HandoverIncompleteAtShiftEnd` |
+| `BanGiaoChuaXacNhan` | `HandoverNotConfirmed` |
+| `BanGiaoCoYKien` | `HandoverFeedbackReceived` |
+| `BanGiaoDaLap` | `HandoverPrepared` |
+| `BanGiaoDangDoDaChuyen` | `HandoverReassigned` |
+| `BanGiaoDaDinhChinh` | `HandoverCorrected` |
+| `BanGiaoDaXacNhan` | `HandoverConfirmed` |
+| `BoPhanChuaCoPhuTrach` | `DepartmentLeadMissing` |
+
+Ba loại mặc định dùng code `DOCTOR_LICENSE`, `NURSING_LICENSE`, `FIRST_AID_TRAINING`; các cờ khởi tạo được người dùng duyệt trong phiên. `Credential.hiddenFields` là mảng tên trường chỉ đọc, không bắt buộc. Trường lỗi dùng nguyên tên chung ở mục 6; `warnings` giữ nguyên schema 008. Nhóm `STAFF_REASON` chưa mở quyền cho người không phải Quản lý viện trước khi có luồng vắng ca và dữ liệu người ghi/phạm vi ở T039–T040.
+
 ## 15. Feature 009 (`009-notification-service`, A) *(bổ sung 2026-10-21, khi dịch `contracts/api-009.yaml`)*
 
 Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với mã (R-03). Khuôn `common.notification` đã dịch ở mục 6.5 (`NotificationRequest`, `NotificationLevel`, `InformationType`, `RecipientGroup`, `Substitution`, `InformationSubject`, `Q354Case`) giữ nguyên.

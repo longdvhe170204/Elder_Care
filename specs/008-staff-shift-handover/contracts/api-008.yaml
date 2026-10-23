@@ -530,13 +530,19 @@ components:
     Reason: { type: string, minLength: 1, maxLength: 2000 }
     Problem:
       type: object
+      required: [type, title, status, errorCode]
       properties:
-        type: { type: string }
+        type: { type: string, format: uri }
         title: { type: string }
         status: { type: integer }
         detail: { type: string }
         errorCode: { type: string }
-        unmetConditions: { type: array, items: { type: object, properties: { code: { type: string }, description: { type: string }, basis: { type: string } } } }
+        unmetConditions: { type: array, items: { type: object, properties: { code: { type: string }, description: { type: string }, basis: { type: string }, module: { type: string }, waivable: { type: boolean } } } }
+        currentValue: { description: 'Khi 412: tài nguyên hiện hành (FR-021 của 000)' }
+        candidates: { type: array, items: { type: object } }
+        failedLayer: { type: string, enum: [ROLE, SCOPE, LEGAL, SOURCE_DATA] }
+        license: { type: object, properties: { name: { type: string }, expiryDate: { type: string, format: date } } }
+        unlocksAt: { type: string, format: date-time }
         warnings: { type: array, items: { $ref: '#/components/schemas/Warning' } }
     Warning:
       type: object
@@ -618,6 +624,7 @@ components:
         replacesId: { type: integer, format: int64, readOnly: true }
         revokedFrom: { type: string, format: date, readOnly: true }
         validityStatus: { type: string, enum: [VALID, EXPIRED, REVOKED, REPLACED, NOT_YET_ISSUED], readOnly: true }
+        hiddenFields: { type: array, items: { type: string }, readOnly: true, description: 'FR-052: tên trường bị che; chủ dự án duyệt bổ sung 2026-10-23.' }
     ShiftTemplate:
       type: object
       required: [name, startTime, endTime, scopeType]

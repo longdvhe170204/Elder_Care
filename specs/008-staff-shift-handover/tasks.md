@@ -14,7 +14,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 **Cập nhật 2026-10-22** (plan mục "Cập nhật 2026-10-22"; Q-382; 007 FR-047i): thêm T046 → T049. Không đánh số lại.
 
-**Tiến độ 2026-10-23 (E)**: bản dịch đầy đủ `contracts/api-008.yaml` và glossary mục 14 đã được A duyệt theo xác nhận của E trong phiên làm việc. Phase 1 (T001–T002) đã hoàn thành sau TDD và `./mvnw clean verify` trên JDK 25/MySQL 8.0: 174 test đơn vị/kiến trúc, 426 test tích hợp, không lỗi/thất bại/bỏ qua. Kết quả đối chiếu và cách xử lý phụ thuộc T002/T003 ở plan mục "Ghi chú triển khai"; chưa tạo PR vào develop.
+**Tiến độ 2026-10-23 (E)**: bản dịch đầy đủ `contracts/api-008.yaml` và glossary mục 14 đã được A duyệt theo xác nhận của E trong phiên làm việc. Phase 1 (T001–T002) đã hoàn thành sau TDD và `./mvnw clean verify` trên JDK 25/MySQL 8.0: 174 test đơn vị/kiến trúc, 426 test tích hợp, không lỗi/thất bại/bỏ qua. Kết quả đối chiếu và cách xử lý phụ thuộc T002/T003 ở plan mục "Ghi chú triển khai"; chưa tạo PR vào develop. Phase 2 T003–T009 hoàn thành: clean verify chạy nền trên JDK 25/MySQL 8.0 qua 182 test đơn vị/kiến trúc và 454 tích hợp (636 tổng), không lỗi/thất bại/bỏ qua; Spotless và đối chiếu API qua. Các đổi hợp đồng/phần A đã được người dùng duyệt và ghi ở plan; chưa commit/push Phase 2.
 
 ## Format: `[ID] [P?] [Story] Mô tả`
 
@@ -39,13 +39,13 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T003 [P] Tạo giao diện `BE/m09/api/`: `CaTrucApi`, `NhanSuThongKeApi` và sự kiện mục 1.6 (cài `CoYeuCauThongBao` khi gửi 009). Hai SPI `DoGuiBanGiaoPort`, `ChuyenDiNhiemVuPort` đã được đưa lên T002 để bản giả biên dịch được; dùng lại, không khai báo lần hai (contracts mục 1.3, 1.4, 1.6, 2.1; plan "Ghi chú triển khai").
-- [ ] T004 Tạo `MIG/V008_01__nhan_vien.sql`: `nhan_vien` (`tai_khoan_id BIGINT NULL UNIQUE`; `trang_thai ENUM('DANG_LAM_VIEC','NGHI_VIEC')` chỉ đổi khi `@lenh_trang_thai_nv`; trigger chặn `DELETE`), `bo_phan` (nạp Y tế, Chăm sóc, Bếp, Hành chính – Kế toán; Q-284), `nhan_vien_bo_phan` (cột sinh `khoa_hien_hanh = IF(den IS NULL, nhan_vien_id, NULL)` `UNIQUE`), `lich_su_phu_trach_bo_phan` (nhóm 3; cột sinh `khoa_mo` `UNIQUE`), `loai_chung_chi` (`nhom` `GIAY_PHEP_HANH_NGHE|DAO_TAO`; `bat_buoc_voi_vai_tro JSON`), `pham_vi_hanh_nghe`, `chung_chi` (trigger chặn `DELETE`; `UPDATE` chỉ cột thu hồi, cột job, sửa sai khi `@sua_sai`), `chung_chi_pham_vi`, `lan_chay_m09` (data-model mục 2, 3)
-- [ ] T005 [P] Cài hàm thuần `BE/m09/giayphep/internal/HieuLucChungChi.java` (hiệu lực tới hết ngày hết hạn theo `ThoiGianNghiepVu`; thu hồi; thay thế) và test `BT/m09/HieuLucChungChiTest.java` (research N-05; DBR-25)
-- [ ] T006 Cài tạo, sửa hồ sơ nhân viên (Quản lý viện; trường liên hệ `@NhomTruong(HAN_CHE_NHAN_VIEN)`) và thêm chứng chỉ trong `BE/m09/nhanvien/internal/NhanVienService.java`, `BE/m09/giayphep/internal/ChungChiService.java`; controller `/nhan-vien`, `/{id}`, `/loai-chung-chi`, `/pham-vi-hanh-nghe`, `/nhan-vien/{id}/chung-chi` (FR-001, FR-005, FR-006)
-- [ ] T007 Cài SPI cho 002 trong `BE/m09/nhiemvu/internal/`: `HoSoNhanVienApi` (`trangThai`, `chucDanhCoVaiTro`), `GiayPhepApi` (`hieuLuc`, `sapHetHan`), `DanhMucPhamViHanhNgheApi` (contracts mục 1.1)
-- [ ] T008 Cài khung job `BE/m09/lich/ViecTheoPhutM09.java`, `ViecHangGioM09.java`, `ViecHangNgayM09.java` (00:10) (ShedLock, `lan_chay_m09`, chạy bù) – việc đăng ký ở các story; test `BT/m09/ChayBuM09IT.java` (research N-13)
-- [ ] T009 [P] Cài provider cho 000/002: `PhanLoaiTruongProvider` (`HAN_CHE_NHAN_VIEN`, `LY_DO_NHAN_SU`, nội dung bàn giao), `LuuTruProvider` theo data-model mục 10, `GanPhamViProvider`, `QuyenTepProvider` `M09.SCAN_CHUNG_CHI` (chỉ Quản lý viện và chính nhân viên) (research N-12)
+- [x] T003 [P] Tạo giao diện `BE/m09/api/`: `CaTrucApi`, `NhanSuThongKeApi` và sự kiện mục 1.6 (cài `CoYeuCauThongBao` khi gửi 009). Hai SPI `DoGuiBanGiaoPort`, `ChuyenDiNhiemVuPort` đã được đưa lên T002 để bản giả biên dịch được; dùng lại, không khai báo lần hai (contracts mục 1.3, 1.4, 1.6, 2.1; plan "Ghi chú triển khai").
+- [x] T004 Tạo `MIG/V008_01__nhan_vien.sql`: `nhan_vien` (`tai_khoan_id BIGINT NULL UNIQUE`; `trang_thai ENUM('DANG_LAM_VIEC','NGHI_VIEC')` chỉ đổi khi `@lenh_trang_thai_nv`; trigger chặn `DELETE`), `bo_phan` (nạp Y tế, Chăm sóc, Bếp, Hành chính – Kế toán; Q-284), `nhan_vien_bo_phan` (cột sinh `khoa_hien_hanh = IF(den IS NULL, nhan_vien_id, NULL)` `UNIQUE`), `lich_su_phu_trach_bo_phan` (nhóm 3; cột sinh `khoa_mo` `UNIQUE`), `loai_chung_chi` (`nhom` `GIAY_PHEP_HANH_NGHE|DAO_TAO`; `bat_buoc_voi_vai_tro JSON`), `pham_vi_hanh_nghe`, `chung_chi` (trigger chặn `DELETE`; `UPDATE` chỉ cột thu hồi, cột job, sửa sai khi `@sua_sai`), `chung_chi_pham_vi`, `lan_chay_m09` (data-model mục 2, 3)
+- [x] T005 [P] Cài hàm thuần `BE/m09/giayphep/internal/HieuLucChungChi.java` (hiệu lực tới hết ngày hết hạn theo `ThoiGianNghiepVu`; thu hồi; thay thế) và test `BT/m09/HieuLucChungChiTest.java` (research N-05; DBR-25)
+- [x] T006 Cài tạo, sửa hồ sơ nhân viên (Quản lý viện; trường liên hệ `@NhomTruong(HAN_CHE_NHAN_VIEN)`) và thêm chứng chỉ trong `BE/m09/nhanvien/internal/NhanVienService.java`, `BE/m09/giayphep/internal/ChungChiService.java`; controller `/nhan-vien`, `/{id}`, `/loai-chung-chi`, `/pham-vi-hanh-nghe`, `/nhan-vien/{id}/chung-chi` (FR-001, FR-005, FR-006)
+- [x] T007 Cài SPI cho 002 trong `BE/m09/nhiemvu/internal/`: `HoSoNhanVienApi` (`trangThai`, `chucDanhCoVaiTro`), `GiayPhepApi` (`hieuLuc`, `sapHetHan`), `DanhMucPhamViHanhNgheApi` (contracts mục 1.1)
+- [x] T008 Cài khung job `BE/m09/lich/ViecTheoPhutM09.java`, `ViecHangGioM09.java`, `ViecHangNgayM09.java` (00:10) (ShedLock, `lan_chay_m09`, chạy bù) – việc đăng ký ở các story; test `BT/m09/ChayBuM09IT.java` (research N-13)
+- [x] T009 [P] Cài provider cho 000/002: `PhanLoaiTruongProvider` (`HAN_CHE_NHAN_VIEN`, `LY_DO_NHAN_SU`, nội dung bàn giao), `LuuTruProvider` theo data-model mục 10 cho bảng đã có trong T004, `GanPhamViProvider` hồ sơ/chứng chỉ, `QuyenTepProvider` `M09.SCAN_CHUNG_CHI` (chỉ Quản lý viện và chính nhân viên). Đăng ký provider lưu giữ/phạm vi ca, phân công, bàn giao cùng migration T012/T019/T026; không truy vấn bảng chưa tạo. Bổ sung kiểm tra danh mục còn được 002 tham chiếu qua API đã duyệt; chi tiết ở plan "Ghi chú triển khai" (research N-12).
 
 **Checkpoint**: Hồ sơ nhân viên và chứng chỉ sẵn sàng.
 
@@ -187,7 +187,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 ## Phase 9: Polish & Cross-Cutting
 
-- [ ] T042 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/008-staff-shift-handover/contracts/api-008.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 008
+- [ ] T042 [P] Hoàn tất đối chiếu `ApiContractIT` với `specs/008-staff-shift-handover/contracts/api-008.yaml` (phần đăng ký đã lấy sớm vào T006 để kiểm ngay controller nền; giảm danh sách PENDING khi cài từng story); mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 008
 - [ ] T043 Thay bản giả của 002 (002 T003), 005 → 007 (`NhanSuCaPort`, `DieuDuongCaPort`, `NhanSuCanhBaoPort`) bằng bản cài của 008 và chạy lại test của các feature đó
 - [ ] T044 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
 - [ ] T045 Rà truy vết data-model mục 11: DBR-20, 21, 23, 25, 36 và BR-M09-01 → 08, 12 → 17, BR-M04-13, BR-M05-05 (phần 008) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-048, FR-049, FR-050, FR-051, FR-052, FR-053, FR-054, FR-056, FR-057, FR-058, FR-059, FR-060 — mỗi FR có task hoặc test tương ứng (constitution XV)

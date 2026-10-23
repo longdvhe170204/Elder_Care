@@ -1,5 +1,7 @@
 # Giao diện giữa module: Feature 002
 
+**Bổ sung được người dùng duyệt 2026-10-23, khi triển khai 008 Phase 2**: `InfoGroup` thêm `STAFF_CONTACT`, `STAFF_RESTRICTED`, `STAFF_REASON` cho FR-052/FR-053 của 008; không dùng CONTACT chung cho nhân viên. `ProfessionalActivityApi` thêm hai hàm đọc `boolean usesCredentialType(String code)` và `boolean usesPracticeScope(long id)`; xét cả mục đã ngừng hiệu lực để job lưu giữ của 008 không xoá danh mục còn tham chiếu (000 R-11). Không đổi endpoint HTTP 002; ghi chú và test ở plan 008, team-plan mục 8 để A review.
+
 **Ngày**: 2026-10-07 | **Plan**: [../plan.md](../plan.md)
 
 Hợp đồng trong backend, ở gói `com.cambae.backend.m15.taikhoan.api` (mã: `m15.account.api`; *sửa 2026-10-21*: record, enum ở `api.dto`, SPI module khác cài ở mục 1.7 → 1.9 và mục 2 ở `api.spi`, sự kiện ở `api.events`; 000 research R-02). Module khác chỉ dùng các giao diện này, không đọc bảng của 002 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
