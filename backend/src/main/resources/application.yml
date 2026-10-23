@@ -103,6 +103,12 @@ eldercare:
     # Job M01 (001 T051): test gọi TemporaryAbsenceOverdueAlert.run()
     temporary-absence-overdue:
       cron: "-"
+    # Job M01 (001 T058): test gọi MissingConsentReminderService.run()
+    missing-consent-reminder:
+      cron: "-"
+    # Job dọn tệp chưa gắn (001 T004): test gọi UnattachedFileCleanup.run()
+    clean-unattached-files:
+      cron: "-"
     # Job M13 (009 T010): test gọi M13FastJob.run(), M13DailyJob.catchUp()
     m13-fast:
       cron: "-"
