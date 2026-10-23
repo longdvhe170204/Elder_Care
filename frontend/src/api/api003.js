@@ -108,11 +108,32 @@ export const getBeds = (params) => request('GET', '/beds', params)
 /** Tạo giường (Quản lý viện) (FR-001, FR-003, FR-004, BR-M03-22) */
 export const postBeds = (params) => request('POST', '/beds', params)
 
+/** Số giường theo trạng thái và số giường Trống theo điều kiện (FR-011) */
+export const getBedsSummary = (params) => request('GET', '/beds/summary', params)
+
 /** Xem giường (FR-002, FR-011) */
 export const getBedsById = (params) => request('GET', '/beds/{id}', params)
 
 /** Sửa mã giường; đổi phòng khi giường chưa từng có phân bổ (FR-003, FR-007) */
 export const putBedsById = (params) => request('PUT', '/beds/{id}', params)
+
+/** Danh sách giường thỏa FR-018 cho một người cao tuổi (FR-018, FR-021, FR-022, BR-M03-01) */
+export const getBedAllocationsSuitableBeds = (params) => request('GET', '/bed-allocations/suitable-beds', params)
+
+/** Danh sách phân bổ trong phạm vi quyền người xem (FR-017, FR-021, FR-037) */
+export const getBedAllocations = (params) => request('GET', '/bed-allocations', params)
+
+/** Phân bổ giường (Hành chính; Trưởng tầng với giường trong phạm vi) (FR-017, FR-018, FR-019, FR-020, FR-021, FR-023, FR-025a, FR-011a, BR-M03-01, BR-M03-02, BR-M03-19, BR-M03-20) */
+export const postBedAllocations = (params) => request('POST', '/bed-allocations', params)
+
+/** Xem phân bổ (FR-017) */
+export const getBedAllocationsById = (params) => request('GET', '/bed-allocations/{id}', params)
+
+/** Hủy phân bổ tương lai (FR-023, FR-021) */
+export const postBedAllocationsByIdCancel = (params) => request('POST', '/bed-allocations/{id}/cancel', params)
+
+/** Vị trí hiện tại, phân bổ tương lai và dấu của một người cao tuổi (FR-017, FR-025a, FR-037) */
+export const getResidentsByResidentIdLocation = (params) => request('GET', '/residents/{residentId}/location', params)
 
 /** Kích hoạt lại mục danh mục (FR-005) */
 export const postRoomTypesByIdReactivate = (params) => request('POST', '/room-types/{id}/reactivate', params)

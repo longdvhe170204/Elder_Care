@@ -599,7 +599,39 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | Màn cơ cấu, form, khai báo danh mục | frontend/src/features/beds/BedsPage.jsx, StructureForm.jsx, bedCatalog.js |
 | Khu nghỉ bán trú tương lai được API đọc | day_care_rest_area (floor_id, area_id, status), đối chiếu migration khi triển khai story bán trú |
 
-Chỉ 39 operation Phase 3 có tên HTTP tiếng Anh và x-implementation-phase: 3; các component tiếng Việt được giữ cho 31 operation tương lai. Generator không sinh client của phần chưa dịch. Đổi phòng giường chưa có đồng bộ tài sản là thao tác tạm hoãn; không có relocateForBed mới trong BedAssetPort.
+Tại mốc chốt Phase 3, 39 operation đã dịch có x-implementation-phase: 3; các component tiếng Việt được giữ cho các phase sau. Generator không sinh client của phần chưa dịch. Đổi phòng giường chưa có đồng bộ tài sản là thao tác tạm hoãn; không có relocateForBed mới trong BedAssetPort.
+
+**Phase 4 — HTTP được duyệt dịch riêng (2026-10-23, chưa triển khai endpoint)**:
+
+| Tên logic | Tên trong hợp đồng/client |
+| --- | --- |
+| `/giuong/tong-hop` | `GET /beds/summary`, schema `BedSummary` (`byState`, `usable`, `emptyMatching`) |
+| `/phan-bo-giuong/giuong-phu-hop` | `GET /bed-allocations/suitable-beds`, schema `SuitableBed` (`location`, `state`, `futureAllocationFrom`, `earliestStartAt`, `roommates`) |
+| `/phan-bo-giuong`, `/{id}`, `/{id}/huy` | `POST /bed-allocations`, `GET /bed-allocations/{id}`, `POST /bed-allocations/{id}/cancel` |
+| `/nguoi-cao-tuoi/{nctId}/vi-tri` | `GET /residents/{residentId}/location`, schema `ResidentLocation` (`location`, `currentAllocation`, `futureAllocation`, `withoutBedSince`) |
+| `PhanBo`, `TrangThaiPhanBo`; Tương lai, Đang hiệu lực, Đã đóng, Đã hủy | `BedAllocation`, `AllocationStatus`; `FUTURE`, `ACTIVE`, `CLOSED`, `CANCELLED` |
+| `nctId`, `giuongId`, `batDau`, `tuPhanBoId`, `kiemSoatLayNhiem`, `lyDo` | `residentId`, `bedId`, `startAt`, `fromAllocationId`, `infectionControl`, `reason` |
+| `batDauDuKien`, `ketThuc`, `ketThucDuKien`, `lyDoBatDau`, `lyDoKetThuc`, `lyDoHuy` | `plannedStartAt`, `endAt`, `expectedEnd`, `startReason`, `endReason`, `cancellationReason` |
+| `nguoiMo`, `nguoiDong`, `canCu`, `phanBoTruocId`, `mucDaKiemTra`, `nguonMuc` | `openedBy`, `closedBy`, `basis` (`type`, `id`), `previousAllocationId`, `checkedCareLevel`, `careLevelSource` (`CURRENT`, `CONTRACT`, `REGISTRATION`) |
+| `bacSiChiDinh`, `nhapBu`, `thoiDiemNhapThuc`, `thoiDiemDuKien`, `thucHienTre`, `choGiuongSanSang`, `dau`, `bacSiXacNhan`, `daDinhChinh` | `prescribingDoctor`, `backfilled`, `actualRecordedAt`, `plannedAt`, `executedLate`, `waitingForBedReady`, `flags`, `doctorConfirmation` (`fullName`, `occurredAt`, `reason`), `corrected` |
+| `DA_CO_PHAN_BO`, `DIEU_KIEN_CHUA_THOA`, `PB_CHONG_THOI_GIAN` (mô tả lệnh Phase 4) | `ALREADY_ALLOCATED`, `UNMET_CONDITIONS`, `ALLOCATION_TIME_OVERLAP` (chưa có implementation) |
+
+Bảy operation mang `x-implementation-phase: 4` ghi nhận phần đã được duyệt, chưa phải trạng thái hoàn tất. Tổng 46 operation đã dịch (39 Phase 3 + 7 Phase 4); 25 operation phase sau giữ nguyên, tổng 71 operation. Các schema tên logic cũ vẫn phục vụ phase sau. Chủ dự án đã duyệt bổ sung `GET /bed-allocations`: bộ lọc `residentId`, `bedId`, `status` tùy chọn, trả mảng `BedAllocation` trong phạm vi quyền người xem; client sinh `getBedAllocations`.
+
+**Phase 4 — nền dữ liệu và API đọc (cập nhật 2026-10-24)**:
+
+| Tên logic / vai trò | Tên trong mã |
+| --- | --- |
+| Phân bổ giường, vị trí kỹ thuật theo người, mốc nhắc | `internal.allocation.domain.BedAllocation`, `ResidentPosition`, `AllocationReminder` (khóa lồng `Key`) |
+| Trạng thái và nguồn mức nội bộ | `AllocationStatus`, `CareLevelSource`; mức dùng `api.spi.CareLevelCode` hiện có |
+| Projection vị trí / kho dữ liệu / bản cài API đọc | `AllocationLocation`, `internal.allocation.persistence.AllocationStore`, `internal.allocation.service.AllocationQueries` |
+| Khóa tuần tự theo người rồi giường | `internal.allocation.service.AllocationLocks.lock` (MANDATORY) |
+| Bảng khóa người / mốc nhắc / view đã đính chính | `resident_position` (`resident_id`, `without_bed_since`, `version`), `allocation_reminder` (`target_type`, `target_id`, `flag_type`, `started_at`, `last_reminded_at`, `reminder_count`), `v_current_allocation` |
+| Cột phân bổ thời điểm và cột sinh | `start_at`, `planned_start_at`, `end_at`, `expected_end`, `effective_end`, `active_bed_id`, `active_resident_id`, `future_resident_id` |
+| Dấu mốc nhắc | `WITHOUT_BED`, `AWAITING_REQUEST`, `AWAITING_SAME_PRICE`, `ROOM_UNSUITABLE` |
+| Lỗi nguồn phân bổ mâu thuẫn | `InvalidPermissionDataException` (`source=M03.BED_ALLOCATION`, `errorKind=CONFLICTING_ALLOCATION`) |
+
+`AllocationQueries` cài `BedAllocationApi` của 002 và `ResidentLocationApi` của 003; không sửa chữ ký API/fake. T025 mới có khóa tuần tự; chưa có bộ kiểm điều kiện hoặc retry ở transaction lệnh. T026 mới có phần đọc; chưa có lệnh tạo/hủy phân bổ.
 
 ## 10. Feature 004 (`004-admission-residency`, B)
 
