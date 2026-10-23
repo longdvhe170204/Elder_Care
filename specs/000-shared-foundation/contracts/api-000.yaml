@@ -358,8 +358,9 @@ components:
         unmetConditions:
           type: array
           description: FR-006
-          items: { type: object, properties: { code: { type: string, example: BR-M03-06 }, description: { type: string } } }
+          items: { type: object, properties: { code: { type: string, example: BR-M03-06 }, description: { type: string }, basis: { type: string, description: "BR/FR, ví dụ BR-M12-03" }, module: { type: string, description: "Feature sở hữu điều kiện, ví dụ 013" }, waivable: { type: boolean, description: "Miễn được qua yêu cầu phê duyệt (004)" } } }
         currentValue: { description: 'Khi 412: tài nguyên hiện hành (FR-021)' }
+        candidates: { type: array, description: "POSSIBLE_DUPLICATE_PROFILE, DUPLICATE_HEALTH_ITEM (001)", items: { type: object } }
         failedLayer: { type: string, enum: [ROLE, SCOPE, LEGAL, SOURCE_DATA], description: 'Khi 403 của lớp quyền (002 FR-043)' }
         license: { type: object, description: 'Khi 403 LEGAL_CONDITION_NOT_MET (002 FR-043)', properties: { name: { type: string }, expiryDate: { type: string, format: date } } }
         unlocksAt: { type: string, format: date-time, description: 'Khi 423 ACCOUNT_TEMPORARILY_LOCKED (002 FR-014)' }
