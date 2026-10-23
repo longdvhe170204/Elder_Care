@@ -120,7 +120,7 @@ Bean thiếu thì nhóm (e) trả rỗng và nhóm (d) người thân không có
 | --- | --- | --- | --- |
 | `NhiemVuApi`, `PhanCongApi` (`m15.taikhoan.api`, 008 cài); `CaTrucApi.dangTrongCa`, `caDangDienRa` | M09 (008) | Nhóm (a), FR-016a, FR-029, FR-030a | Có sẵn |
 | `TaiKhoanApi` (trạng thái, vai trò, `theoNguoiThan`), `QuyenApi`, `PhamViApi`, `QuyenXemTruongApi`, `NguoiDungHienTai`; mã thiết bị (A-02) | M15 (002) | Nhóm (b), (c), FR-008, FR-034 | Có sẵn |
-| `BanDongYApi.baoGom`, `NguoiCaoTuoiApi.trangThai`, `thoiDiemTrangThaiCuoi`, `nhanDang` | M01 (001) | FR-013, FR-015, FR-011 | Có sẵn |
+| `BanDongYApi.baoGom`, `NguoiCaoTuoiApi.trangThai`, `thoiDiemTrangThaiCuoi`, `nhanDang` | M01 (001) | FR-013, FR-015, FR-011 | *(2026-10-22: chưa có trên `develop`, B khai báo)* Tới đó người thân coi như ngoài phạm vi đồng ý, không thấy phần sức khỏe; FR-015 chưa chặn |
 | `CanhBaoLenhApi.tiepNhan(canhBaoId, nd)`, `SuCoLenhApi.tiepNhan(suCoId, nd)` (bổ sung theo plan này vào `m05.api`; cùng kiểm tra và tác động như REST của 007) | M05 (007) | FR-026a | Nút "Xác nhận và tiếp nhận" không hiện |
 | `SoLienHeVienApi.hienHanh` | M06 (007) | Nội dung mặc định, nội dung Q-72 | Có sẵn |
 | `NhatKyApi`, `ThamSoApi`, `DinhChinhApi`, `common` | M15 (000) | Mọi lệnh | Có sẵn |

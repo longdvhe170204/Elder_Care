@@ -121,7 +121,7 @@ Sự kiện phát sau commit:
 - `YeuCauCanBaoQuanLyVien(yc, lyDo: QUA_CFG_M15_06 | KHONG_CON_NGUOI_DUYET)`;
 - `YeuCauDaQuyetDinh(yc, ketQua)`;
 - `YeuCauDaApDung(yc, ketQua)`;
-- `YeuCauApDungKhongThanh(yc, dieuKien)`;
+- `YeuCauApDungKhongThanh(yc, dieuKien, thoiDiem, nguoiYeuCauNhanVienId)` *(sửa 2026-10-22: báo người duyệt đã quyết định và người yêu cầu theo FR-038; người yêu cầu là nhóm (d) `NHAN_VIEN(id, NGUOI_YEU_CAU)` của 009, tra qua `TaiKhoanApi.theoId`)*;
 - `YeuCauDaHuy`.
 
 **Danh sách người duyệt** *(bổ sung theo plan 004, Q-338)*: `danhSachNguoiDuyet` là danh sách tài khoản do 000 tính tại thời điểm phát sự kiện: `NguoiDuyetApi.danhSach(handler.quyenDuyet(), DoiTuong.tuPhamVi(handler.phamVi(yc)))`, rồi nếu `gioiHanVaiTroDuyet(yc)` có giá trị thì giữ tài khoản có ít nhất một vai trò trong tập (`TaiKhoanApi.coVaiTro`). Cùng danh sách này quyết định `conNguoiDuyet` của `NhacQuaHan` (BR-M15-09) và điều kiện "người duyệt không phải Quản lý viện" ở mốc CFG-M15-06 (FR-031a): mọi tài khoản trong danh sách đều là Quản lý viện thì không phát `YeuCauCanBaoQuanLyVien(QUA_CFG_M15_06)`. Yêu cầu thông báo của các sự kiện trên dùng nhóm `NguoiCoQuyenDuyet` mang sẵn danh sách này (009 contracts mục 1.1); 009 không tự tra lại `NguoiDuyetApi` cho yêu cầu của 000.
