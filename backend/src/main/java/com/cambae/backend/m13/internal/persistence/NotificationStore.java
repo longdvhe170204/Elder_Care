@@ -88,6 +88,18 @@ public class NotificationStore {
         return id;
     }
 
+    /** Khóa dòng trạng thái và đọc trạng thái hiện hành (rỗng khi chưa có kết quả quyết định). */
+    public Optional<String> lockStatus(long notificationId) {
+        return jdbc
+                .queryForList(
+                        "SELECT status FROM notification_state WHERE notification_id = ? FOR UPDATE",
+                        String.class,
+                        notificationId)
+                .stream()
+                .filter(java.util.Objects::nonNull)
+                .findFirst();
+    }
+
     /** Ghi sự kiện gửi đi (lúc tiếp nhận, hoặc lúc giải phóng giờ yên tĩnh). */
     public void markSent(long notificationId, Instant at) {
         appendEvent(notificationId, NotificationEventType.SEND, Optional.empty(), Optional.empty(), null, null, at);

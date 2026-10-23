@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { getMeNotifications } from '@/api'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { getMeNotifications, postNotificationsByIdAcknowledge } from '@/api'
 import { Alert, AlertAction, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
@@ -7,14 +7,16 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
+import { problemOf } from '@/common/problem'
 import { formatDateTime } from '@/common/dateTime'
 import { NotificationDetail } from './NotificationDetail'
 import { LEVEL_LABELS, label } from './notificationLabels'
 
 // Hộp thông báo (009 T035; FR-033 → FR-036; DESIGN.md `notification-inbox`). Khẩn cấp chưa xác nhận lên đầu (backend
-// sắp); thông báo mới qua SSE thì tải lại trang đầu, mất luồng thì hỏi lại mỗi 60 giây. Lọc theo người cao tuổi chờ danh
-// sách người cao tuổi của 001; nút xác nhận Khẩn cấp chờ 009 US1.
+// sắp), mỗi dòng có nút "Xác nhận đã nhận" (FR-026); thông báo mới qua SSE thì tải lại trang đầu, mất luồng thì hỏi lại
+// mỗi 60 giây. Lọc theo người cao tuổi chờ danh sách người cao tuổi của 001.
 
 const LEVELS = ['URGENT', 'MEDIUM', 'LOW']
 const STREAM_URL = '/api/v1/notifications/stream'
@@ -183,7 +185,14 @@ export function NotificationInbox() {
           <ul className="flex flex-col gap-2">
             {urgent.map((n) => (
               <li key={n.id} className="rounded-xl border-[1.5px] border-destructive p-3">
-                <NotificationRow notification={n} onOpen={() => setOpened(n.id)} status="Chưa xác nhận" />
+                <UrgentItem
+                  notification={n}
+                  onOpen={() => setOpened(n.id)}
+                  onAcknowledged={() => {
+                    setAnnouncement('Đã xác nhận thông báo khẩn cấp')
+                    load(filter)
+                  }}
+                />
               </li>
             ))}
           </ul>
@@ -230,6 +239,40 @@ export function NotificationInbox() {
           {opened !== null && <NotificationDetail key={opened} id={opened} onOpened={replace} onHidden={hide} />}
         </SheetContent>
       </Sheet>
+    </div>
+  )
+}
+
+// Một thông báo Khẩn cấp chưa xác nhận: nút chính "Xác nhận đã nhận"; mở thông báo không phải xác nhận (FR-026)
+function UrgentItem({ notification, onOpen, onAcknowledged }) {
+  const [busy, setBusy] = useState(false)
+  const [failure, setFailure] = useState(null)
+  // Một khóa cho mỗi thông báo: bấm lại khi mạng chập chờn không ghi hai lần
+  const key = useRef(crypto.randomUUID())
+
+  async function acknowledge() {
+    setFailure(null)
+    setBusy(true)
+    try {
+      await postNotificationsByIdAcknowledge({
+        path: { id: notification.id },
+        headers: { 'Idempotency-Key': key.current },
+      })
+      onAcknowledged()
+    } catch (error) {
+      setFailure(problemOf(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <NotificationRow notification={notification} onOpen={onOpen} status="Chưa xác nhận" />
+      <ProblemAlert problem={failure} />
+      <Button className="self-start" disabled={busy} onClick={acknowledge}>
+        Xác nhận đã nhận
+      </Button>
     </div>
   )
 }

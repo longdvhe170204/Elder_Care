@@ -1,0 +1,107 @@
+package com.cambae.backend.m13.internal.urgent.service;
+
+import com.cambae.backend.common.data.BusinessCommand;
+import com.cambae.backend.common.error.BusinessException;
+import com.cambae.backend.common.error.NotFoundException;
+import com.cambae.backend.common.notification.NotificationLevel;
+import com.cambae.backend.common.notification.SourceRecord;
+import com.cambae.backend.common.time.BusinessTime;
+import com.cambae.backend.m13.api.dto.AcknowledgementMethod;
+import com.cambae.backend.m13.api.events.UrgentNotificationAcknowledged;
+import com.cambae.backend.m13.internal.domain.NotificationEventType;
+import com.cambae.backend.m13.internal.inbox.domain.InboxItem;
+import com.cambae.backend.m13.internal.inbox.persistence.InboxStore;
+import com.cambae.backend.m13.internal.inbox.service.InboxService;
+import com.cambae.backend.m13.internal.persistence.NotificationStore;
+import com.cambae.backend.m15.account.api.CurrentUser;
+import com.cambae.backend.m15.auditlog.api.AuditAction;
+import com.cambae.backend.m15.auditlog.api.AuditLogApi;
+import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
+import java.time.Instant;
+import java.util.Map;
+import java.util.Optional;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * "Xác nhận đã nhận" thông báo Khẩn cấp (tên logic {@code KhanCapService}, phần xác nhận; FR-026, FR-026a, research B-07):
+ * chỉ người nhận, chỉ mức Khẩn cấp, một lần; đang "Không liên lạc được" thì ghi xác nhận muộn (Q-104). Không đổi bản ghi
+ * nguồn; phát {@link UrgentNotificationAcknowledged} cho module nguồn (FR-035). Dừng lượt nhắc gọi (FR-030) làm cùng
+ * phần lượt nhắc gọi của US1 (chờ {@code CaTrucApi} của 008).
+ */
+@Service
+public class UrgentAcknowledgement {
+
+    static final AuditAction ACKNOWLEDGED = new AuditAction("NOTIFICATION_ACKNOWLEDGED", false);
+    static final String ENTITY = "M13.NOTIFICATION";
+
+    private final InboxStore inbox;
+    private final NotificationStore notifications;
+    private final ObjectProvider<CurrentUser> currentUser;
+    private final AuditLogApi auditLog;
+    private final ApplicationEventPublisher events;
+    private final BusinessTime time;
+
+    UrgentAcknowledgement(
+            InboxStore inbox,
+            NotificationStore notifications,
+            ObjectProvider<CurrentUser> currentUser,
+            AuditLogApi auditLog,
+            ApplicationEventPublisher events,
+            BusinessTime time) {
+        this.inbox = inbox;
+        this.notifications = notifications;
+        this.currentUser = currentUser;
+        this.auditLog = auditLog;
+        this.events = events;
+        this.time = time;
+    }
+
+    @BusinessCommand(requiresReason = false)
+    @Transactional
+    public void acknowledge(long notificationId) {
+        CurrentUser user = currentUser.getObject();
+        InboxItem row =
+                inbox.find(notificationId, InboxService.recipientKey(user)).orElseThrow(NotFoundException::new);
+        if (row.level() != NotificationLevel.URGENT) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT, "NOT_URGENT", "Chỉ thông báo Khẩn cấp cần xác nhận đã nhận");
+        }
+        Optional<String> status = notifications.lockStatus(notificationId);
+        if (status.filter("ACKNOWLEDGED"::equals).isPresent()) {
+            throw alreadyAcknowledged();
+        }
+        AcknowledgementMethod method = status.filter("UNREACHABLE"::equals).isPresent()
+                ? AcknowledgementMethod.LATE
+                : AcknowledgementMethod.IN_APP;
+        Instant now = time.now();
+        try {
+            notifications.appendEvent(
+                    notificationId,
+                    NotificationEventType.ACKNOWLEDGE,
+                    Optional.of(method),
+                    Optional.empty(),
+                    null,
+                    user.accountId(),
+                    now);
+        } catch (DuplicateKeyException e) {
+            throw alreadyAcknowledged();
+        }
+        auditLog.write(AuditLogEntry.builder()
+                .action(ACKNOWLEDGED)
+                .entity(ENTITY, notificationId)
+                .resident(row.residentId())
+                .after(Map.of("acknowledgementMethod", method.name()))
+                .build());
+        events.publishEvent(new UrgentNotificationAcknowledged(
+                notificationId, new SourceRecord(row.sourceRecordType(), row.sourceRecordId()), method));
+    }
+
+    private static BusinessException alreadyAcknowledged() {
+        return new BusinessException(HttpStatus.CONFLICT, "ALREADY_ACKNOWLEDGED", "Thông báo đã được xác nhận");
+    }
+}
