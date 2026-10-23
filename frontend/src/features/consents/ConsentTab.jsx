@@ -35,7 +35,7 @@ function uploadProblem(problem) {
   return null
 }
 
-function FileField({ id, label, error, onPick, hint = FILE_HINT }) {
+export function FileField({ id, label, error, onPick, hint = FILE_HINT }) {
   return (
     <Field data-invalid={!!error || undefined}>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
@@ -73,7 +73,7 @@ function DownloadButton({ fileId, label, onFailure }) {
   )
 }
 
-function Row({ label, children }) {
+export function Row({ label, children }) {
   return (
     <div className="flex flex-col">
       <dt className="type-caption text-muted-foreground">{label}</dt>

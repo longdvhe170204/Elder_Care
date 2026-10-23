@@ -11,6 +11,7 @@ import { problemOf } from '@/common/problem'
 import { AssessmentTab } from '../assessments/AssessmentTab'
 import { ConsentTab } from '../consents/ConsentTab'
 import { StatusTab } from '../status/StatusTab'
+import { WishTab } from '../wishes/WishTab'
 import { HealthTab } from './HealthTab'
 import { GENDER_LABELS, ID_DOCUMENT_LABELS, STATUS_LABELS } from './residentLabels'
 
@@ -200,6 +201,9 @@ export function ResidentDetail({ residentId, onChanged, onClose, onTabChange }) 
             <ToggleGroupItem value="consent" className="h-10 px-4">
               Đồng ý
             </ToggleGroupItem>
+            <ToggleGroupItem value="wishes" className="h-10 px-4">
+              Nguyện vọng
+            </ToggleGroupItem>
           </ToggleGroup>
         )}
 
@@ -233,6 +237,19 @@ export function ResidentDetail({ residentId, onChanged, onClose, onTabChange }) 
             residentId={residentId}
             status={profile.status}
             allowedCommands={profile.allowedCommands ?? []}
+            onChanged={() => {
+              load()
+              onChanged?.()
+            }}
+          />
+        )}
+
+        {info && tab === 'wishes' && (
+          <WishTab
+            residentId={residentId}
+            status={profile.status}
+            allowedCommands={profile.allowedCommands ?? []}
+            profile={profile}
             onChanged={() => {
               load()
               onChanged?.()
