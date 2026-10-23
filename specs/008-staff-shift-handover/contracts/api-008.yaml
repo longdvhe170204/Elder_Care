@@ -7,7 +7,7 @@ info:
     tiền tố /api/v1, lỗi RFC 9457 có maLoi và dieuKienChuaThoa[], If-Match cho lệnh sửa nội dung
     (danh mục, hồ sơ nhân viên, lịch ca Nháp, mục bàn giao ở Bản nháp), Idempotency-Key cho mọi lệnh ghi.
     Lệnh chuyển trạng thái không dùng If-Match; backend khóa dòng và kiểm tra lại (research N-03); lệnh thứ hai trên cùng bàn giao trả 409 TRANG_THAI_DA_DOI.
-    Cảnh báo không chặn (giờ làm liên tục FR-014, đào tạo bắt buộc FR-010) trả 409 CAN_XAC_NHAN_CANH_BAO; gửi lại với xacNhanCanhBao = true và lyDo.
+    Cảnh báo không chặn (giờ làm liên tục FR-014, đào tạo bắt buộc FR-010) trả 409 CAN_XAC_NHAN_CANH_BAO; gửi lại với xacNhanCanhBao = true và reason.
     Hoàn tất, gửi ý kiến, bổ sung, xác nhận bàn giao bắt buộc trực tuyến (FR-060); không có loại ngoại tuyến cho 008.
     Đổi ca, nghỉ đột xuất, xoay ca, phủ tối thiểu thuộc api-015; 015 dùng port nội bộ của M09 (research N-07).
     Đính chính bàn giao đi qua khung của api-000 với loại M09.BAN_GIAO.
@@ -18,48 +18,51 @@ servers:
 security:
   - phien: []
 tags:
-  - { name: nhan-vien, description: 'UC-49; mục A' }
-  - { name: chung-chi, description: 'UC-49; mục A' }
-  - { name: lich-ca, description: 'UC-50; mục B' }
-  - { name: phan-cong, description: 'UC-51; mục C' }
-  - { name: ty-le, description: 'BR-M09-02; mục D' }
-  - { name: ban-giao, description: 'UC-52, UC-53; mục E' }
+  - { name: staff, description: 'UC-49; mục A' }
+  - { name: credentials, description: 'UC-49; mục A' }
+  - { name: shift-schedules, description: 'UC-50; mục B' }
+  - { name: assignments, description: 'UC-51; mục C' }
+  - { name: staffing-ratios, description: 'BR-M09-02; mục D' }
+  - { name: handovers, description: 'UC-52, UC-53; mục E' }
 
 paths:
   # ---------------- Nhân viên, bộ phận ----------------
-  /nhan-vien:
+  /staff:
     get:
-      tags: [nhan-vien]
+      tags: [staff]
       summary: Danh sách nhân viên (Quản lý viện toàn bộ; Trưởng tầng nhóm công khai; nhân viên chỉ người cùng ca)
       x-fr: [FR-001, FR-052]
-      parameters: [ { name: q, in: query, schema: { type: string } }, { name: trangThai, in: query, schema: { type: string, enum: [DANG_LAM_VIEC, NGHI_VIEC] } }, { name: boPhanId, in: query, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/NhanVien' } } } } } }
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string, enum: [WORKING, RESIGNED] } }
+        - { name: departmentId, in: query, schema: { type: integer, format: int64 } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/StaffProfile' } } } } } }
     post:
-      tags: [nhan-vien]
+      tags: [staff]
       summary: Tạo hồ sơ nhân viên (Quản lý viện); trạng thái Đang làm việc
       x-fr: [FR-001, FR-003]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NhanVien' } } } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/StaffProfile' } } } }
       responses: { '201': { description: Đã tạo }, '403': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
-  /nhan-vien/import/mau:
+  /staff/import/mau:
     get:
-      tags: [nhan-vien]
+      tags: [staff]
       summary: Tải file mẫu import (.xlsx) (bổ sung 2026-10-22, Q-382)
       x-fr: [FR-001b]
       x-br: [BR-M09-18]
       responses: { '200': { description: File mẫu, content: { application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: { schema: { type: string, format: binary } } } }, '403': { $ref: '#/components/responses/Loi' } }
-  /nhan-vien/import/xem-truoc:
+  /staff/import/xem-truoc:
     post:
-      tags: [nhan-vien]
+      tags: [staff]
       summary: Tải file lên, kiểm tra từng dòng, trả xem trước; không ghi dữ liệu (Quản lý viện)
       description: 'Sai mẫu, sai loại file → 422 FILE_KHONG_DUNG_MAU; quá CFG-M09-13 dòng → 422 QUA_SO_DONG (research N-16).'
       x-fr: [FR-001b, FR-001c]
       x-br: [BR-M09-18]
       requestBody: { required: true, content: { multipart/form-data: { schema: { type: object, required: [file], properties: { file: { type: string, format: binary } } } } } }
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaImport' } } } }, '403': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
-  /nhan-vien/import/xac-nhan:
+  /staff/import/xac-nhan:
     post:
-      tags: [nhan-vien]
+      tags: [staff]
       summary: Gửi lại cùng file để tạo mọi hồ sơ trong một lần; còn dòng lỗi thì không tạo gì
       description: 'Hệ thống không lưu file gốc (FR-001c) nên xác nhận đọc và kiểm tra lại file; có lỗi → 409 IMPORT_CO_DONG_LOI kèm loi[].'
       x-fr: [FR-001b, FR-001c]
@@ -71,54 +74,54 @@ paths:
         '403': { $ref: '#/components/responses/Loi' }
         '409': { description: 'IMPORT_CO_DONG_LOI', content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaImport' } } } }
         '422': { $ref: '#/components/responses/Loi' }
-  /nhan-vien/{id}:
+  /staff/{id}:
     get:
-      tags: [nhan-vien]
+      tags: [staff]
       summary: Hồ sơ nhân viên (giới hạn trường FR-052)
       x-fr: [FR-001, FR-052]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/NhanVien' } } } } }
+      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/StaffProfile' } } } } }
     put:
-      tags: [nhan-vien]
+      tags: [staff]
       summary: Sửa thông tin mô tả (Quản lý viện); không có DELETE
       x-fr: [FR-001]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NhanVien' } } } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/StaffProfile' } } } }
       responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Loi' } }
-  /nhan-vien/{id}/cho-nghi-viec:
+  /staff/{id}/terminate-employment:
     post:
-      tags: [nhan-vien]
+      tags: [staff]
       summary: Cho nghỉ việc (Quản lý viện; lý do; hiệu lực không sớm hơn hiện tại)
-      description: 'Người đang là Phụ trách bộ phận: bắt buộc nguoiThayId (409 CAN_NGUOI_THAY_PHU_TRACH). Tại thời điểm hiệu lực, trong một lần: khóa tài khoản, rút ca, kết thúc phân công và giao trưởng tầng, công việc thành chung, dấu thiếu người phụ trách, chuyển quyền bàn giao, tính lại tỷ lệ (FR-004).'
+      description: 'Người đang là Phụ trách bộ phận: bắt buộc replacementStaffId (409 CAN_NGUOI_THAY_PHU_TRACH). Tại thời điểm hiệu lực, trong một lần: khóa tài khoản, rút ca, kết thúc phân công và giao trưởng tầng, công việc thành chung, dấu thiếu người phụ trách, chuyển quyền bàn giao, tính lại tỷ lệ (FR-004).'
       x-fr: [FR-003, FR-004, FR-001a]
       x-br: [BR-M09-04]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [lyDo, hieuLuc], properties: { lyDo: { $ref: '#/components/schemas/LyDo' }, hieuLuc: { type: string, format: date-time }, nguoiThayId: { type: integer, format: int64 } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason, effectiveAt], properties: { reason: { $ref: '#/components/schemas/Reason' }, effectiveAt: { type: string, format: date-time }, replacementStaffId: { type: integer, format: int64 } } } } } }
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /nhan-vien/{id}/nhan-lai-lam-viec:
+  /staff/{id}/rehire:
     post:
-      tags: [nhan-vien]
+      tags: [staff]
       summary: Nhận lại làm việc (Quản lý viện; lý do); tài khoản không tự mở
       x-fr: [FR-003]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/ReasonBody' }
       responses: { '200': { description: OK }, '422': { $ref: '#/components/responses/Loi' } }
-  /nhan-vien/{id}/doi-bo-phan:
+  /staff/{id}/change-department:
     post:
-      tags: [nhan-vien]
+      tags: [staff]
       summary: Đổi bộ phận (Quản lý viện; lý do; người đang là Phụ trách bộ phận phải có người thay)
       x-fr: [FR-001a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [boPhanId, lyDo], properties: { boPhanId: { type: integer, format: int64 }, lyDo: { $ref: '#/components/schemas/LyDo' }, nguoiThayId: { type: integer, format: int64 } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [departmentId, reason], properties: { departmentId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' }, replacementStaffId: { type: integer, format: int64 } } } } } }
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
   /bo-phan:
     get:
-      tags: [nhan-vien]
+      tags: [staff]
       summary: Danh mục bộ phận và Phụ trách bộ phận
       x-fr: [FR-001a]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BoPhan' } } } } } }
     post:
-      tags: [nhan-vien]
+      tags: [staff]
       summary: Thêm bộ phận (Quản lý viện); chưa có phụ trách thì Quản lý viện được nhắc
       x-fr: [FR-001a]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -126,23 +129,23 @@ paths:
       responses: { '201': { description: OK } }
   /bo-phan/{id}/chi-dinh-phu-trach:
     post:
-      tags: [nhan-vien]
+      tags: [staff]
       summary: Chỉ định / đổi Phụ trách bộ phận (Quản lý viện; người mới trong cùng lệnh)
       description: 'Người được chỉ định thuộc bộ phận, có tài khoản Hoạt động, không có vai trò Quản lý viện hoặc Kế toán; Hành chính – Kế toán chỉ nhận người vai trò Hành chính (Q-292, Q-293, Q-299).'
       x-fr: [FR-001a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nhanVienId, lyDo], properties: { nhanVienId: { type: integer, format: int64 }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nhanVienId, reason], properties: { nhanVienId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
 
   # ---------------- Giấy phép, đào tạo ----------------
   /loai-chung-chi:
     get:
-      tags: [chung-chi]
+      tags: [credentials]
       summary: Danh mục loại giấy phép/đào tạo
       x-fr: [FR-005]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LoaiChungChi' } } } } } }
     post:
-      tags: [chung-chi]
+      tags: [credentials]
       summary: Thêm loại (Quản lý viện)
       x-fr: [FR-005]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -150,19 +153,19 @@ paths:
       responses: { '201': { description: OK } }
   /pham-vi-hanh-nghe:
     get:
-      tags: [chung-chi]
+      tags: [credentials]
       summary: Danh mục phạm vi hành nghề (dùng chung với 002, 007)
       x-fr: [FR-006]
       responses: { '200': { description: OK } }
-  /nhan-vien/{id}/chung-chi:
+  /staff/{id}/chung-chi:
     get:
-      tags: [chung-chi]
+      tags: [credentials]
       summary: Giấy phép, đào tạo của nhân viên và lịch sử, kèm tình trạng hiệu lực suy ra
       x-fr: [FR-006, FR-007, FR-052]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ChungChi' } } } } } }
     post:
-      tags: [chung-chi]
+      tags: [credentials]
       summary: Thêm giấy phép/đào tạo (Quản lý viện)
       x-fr: [FR-006]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -170,7 +173,7 @@ paths:
       responses: { '201': { description: OK }, '422': { $ref: '#/components/responses/Loi' } }
   /chung-chi/{id}/gia-han:
     post:
-      tags: [chung-chi]
+      tags: [credentials]
       summary: Gia hạn (bản mới trỏ bản cũ; cảnh báo sắp hết hạn của bản cũ đóng)
       x-fr: [FR-006, FR-008]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -178,31 +181,31 @@ paths:
       responses: { '201': { description: OK } }
   /chung-chi/{id}/thu-hoi:
     post:
-      tags: [chung-chi]
+      tags: [credentials]
       summary: Ghi nhận thu hồi (lý do, ngày hiệu lực); tại mốc kết thúc phân công cần loại này (FR-009)
       x-fr: [FR-006, FR-009]
       x-br: [BR-M09-01]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [hieuLucTu, lyDo], properties: { hieuLucTu: { type: string, format: date }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [hieuLucTu, reason], properties: { hieuLucTu: { type: string, format: date }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '200': { description: OK } }
   /chung-chi/{id}/sua-sai:
     post:
-      tags: [chung-chi]
+      tags: [credentials]
       summary: Sửa sai (lý do; nhật ký trước/sau; ngày hết hạn sớm lên áp FR-009)
       x-fr: [FR-006, FR-009]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { allOf: [ { $ref: '#/components/schemas/ChungChi' }, { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } ] } } } }
+      requestBody: { required: true, content: { application/json: { schema: { allOf: [ { $ref: '#/components/schemas/ChungChi' }, { type: object, required: [reason], properties: { reason: { $ref: '#/components/schemas/Reason' } } } ] } } } }
       responses: { '200': { description: OK } }
 
   # ---------------- Mẫu ca, lịch ca, ca ----------------
   /mau-ca:
     get:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Mẫu ca
       x-fr: [FR-011]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MauCa' } } } } } }
     post:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Thêm mẫu ca (Quản lý viện; ca qua ngày được; dài hơn 0, không quá 24 giờ)
       x-fr: [FR-011]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -210,7 +213,7 @@ paths:
       responses: { '201': { description: OK }, '422': { $ref: '#/components/responses/Loi' } }
   /mau-ca/{id}:
     put:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Sửa mẫu ca (không ảnh hưởng ca đã tạo)
       x-fr: [FR-011]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -218,13 +221,13 @@ paths:
       responses: { '200': { description: OK } }
   /lich-ca:
     get:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Lịch ca theo tháng, phạm vi (Trưởng tầng tầng được giao; Quản lý viện; nhân viên chỉ ca của mình qua /toi/ca)
       x-fr: [FR-012, FR-033, FR-054]
       parameters: [ { name: thang, in: query, required: true, schema: { type: string, pattern: '^[0-9]{4}-[0-9]{2}$' } }, { name: phamViId, in: query, schema: { type: integer, format: int64 } } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LichCa' } } } } } }
     post:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Lập lịch Nháp cho tháng, phạm vi (lịch toàn viện chỉ Quản lý viện)
       x-fr: [FR-012, FR-016]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -232,7 +235,7 @@ paths:
       responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
   /lich-ca/{id}/ca:
     post:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Tạo ca trong lịch Nháp (từ mẫu; giờ chỉnh riêng được)
       x-fr: [FR-012]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -240,13 +243,13 @@ paths:
       responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaVoiCanhBao' } } } }, '409': { $ref: '#/components/responses/LoiChan' }, '412': { $ref: '#/components/responses/Loi' } }
   /ca/{id}:
     get:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Chi tiết ca (nhân viên, người phụ trách, Bác sĩ trực, tỷ lệ phục vụ, lenhDuocPhep[])
       x-fr: [FR-012, FR-023, FR-034]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Ca' } } } } }
     put:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Sửa ca, xếp/gỡ nhân viên, chỉ định người phụ trách, Bác sĩ trực (chỉ khi lịch Nháp)
       description: 'Chồng giờ: 409 CHONG_CA (FR-013). Vượt CFG-M09-02 hoặc xếp vào ngày nghỉ có duyệt (015): 409 CAN_XAC_NHAN_CANH_BAO. Người phụ trách phải có tên trong ca, vai trò Trưởng tầng hoặc Điều dưỡng (FR-015).'
       x-fr: [FR-012, FR-013, FR-014, FR-015, FR-002, FR-010]
@@ -255,74 +258,74 @@ paths:
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CaMoi' } } } }
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaVoiCanhBao' } } } }, '409': { $ref: '#/components/responses/LoiChan' }, '412': { $ref: '#/components/responses/Loi' } }
     delete:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Xóa ca (chỉ lịch Nháp; phân công Nháp xóa cùng)
       x-fr: [FR-012, FR-025]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
       responses: { '204': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
   /lich-ca/{id}/xem-truoc-cong-bo:
     get:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Điều kiện chặn và cảnh báo không chặn trước khi công bố (FR-014, FR-034, FR-010; phủ tối thiểu, nghỉ theo ngày của 015)
       x-fr: [FR-016]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/XemTruocCongBo' } } } } }
   /lich-ca/{id}/cong-bo:
     post:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Công bố lịch (Trưởng tầng được giao; Quản lý viện; lịch toàn viện chỉ Quản lý viện)
       description: |
         Chặn: ca thiếu người phụ trách; tầng chưa có Trưởng tầng cho cả tháng; phân công Nháp không đạt FR-028, FR-030 (kèm danh sách; loaiBoPhanCong[] để loại trong cùng lệnh).
-        Tự công bố: lyDo bắt buộc, nhật ký tuDuyet (Q-10); lý do dùng chung cho công bố khi thiếu phủ (015).
+        Tự công bố: reason bắt buộc, nhật ký tuDuyet (Q-10); lý do dùng chung cho công bố khi thiếu phủ (015).
       x-fr: [FR-016, FR-027, FR-034, FR-055]
       x-br: [BR-M09-03]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { lyDo: { $ref: '#/components/schemas/LyDo' }, loaiBoPhanCong: { type: array, items: { type: integer, format: int64 } }, xacNhanCanhBao: { type: boolean } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' }, loaiBoPhanCong: { type: array, items: { type: integer, format: int64 } }, xacNhanCanhBao: { type: boolean } } } } } }
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
   /ca/{id}/bo-sung-nhan-vien:
     post:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Bổ sung nhân viên vào ca đã công bố hoặc đang diễn ra (Trưởng tầng của tầng, Quản lý viện; lý do)
       x-fr: [FR-018, FR-013, FR-014]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nhanVienId, lyDo], properties: { nhanVienId: { type: integer, format: int64 }, lyDo: { $ref: '#/components/schemas/LyDo' }, xacNhanCanhBao: { type: boolean } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nhanVienId, reason], properties: { nhanVienId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' }, xacNhanCanhBao: { type: boolean } } } } } }
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
   /ca/{id}/chuyen-nguoi-phu-trach:
     post:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Chuyển người phụ trách ca (Trưởng tầng của tầng, Quản lý viện; lý do); bàn giao đang dở chuyển theo
       x-fr: [FR-019]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nhanVienId, lyDo], properties: { nhanVienId: { type: integer, format: int64 }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nhanVienId, reason], properties: { nhanVienId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
   /ca/{id}/ghi-nhan-vang:
     post:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Ghi nhận vắng ca (Trưởng tầng; Người phụ trách ca của chính ca đó)
       description: 'Chỉ trong [giờ bắt đầu − CFG-M15-07, giờ kết thúc]; ngoài khoảng 409 NGOAI_KHOANG_GHI_VANG (dùng nghỉ đột xuất của 015). Người vắng là người phụ trách: bắt buộc nguoiPhuTrachMoiId hoặc ca gắn dấu thiếu người phụ trách.'
       x-fr: [FR-020]
       x-br: [BR-M04-13]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nhanVienId, lyDo], properties: { nhanVienId: { type: integer, format: int64 }, lyDo: { $ref: '#/components/schemas/LyDo' }, nguoiPhuTrachMoiId: { type: integer, format: int64 } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nhanVienId, reason], properties: { nhanVienId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' }, nguoiPhuTrachMoiId: { type: integer, format: int64 } } } } } }
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
   /ca/{id}/huy:
     post:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Hủy ca đã công bố chưa bắt đầu (Quản lý viện; lý do)
       x-fr: [FR-021]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/ReasonBody' }
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
   /toi/ca:
     get:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Ca và phân công của chính mình, người cùng ca, người phụ trách (mọi nhân viên có ca)
       x-fr: [FR-033, FR-054]
       parameters: [ { name: tu, in: query, schema: { type: string, format: date } }, { name: den, in: query, schema: { type: string, format: date } } ]
       responses: { '200': { description: OK } }
   /bac-si-truc:
     get:
-      tags: [lich-ca]
+      tags: [shift-schedules]
       summary: Bác sĩ trực tại thời điểm (nhiều người được)
       x-fr: [FR-023]
       parameters: [ { name: thoiDiem, in: query, schema: { type: string, format: date-time } } ]
@@ -331,13 +334,13 @@ paths:
   # ---------------- Giao trưởng tầng, phân công ----------------
   /giao-truong-tang:
     get:
-      tags: [phan-cong]
+      tags: [assignments]
       summary: Giao Trưởng tầng theo tầng và thời gian (Quản lý viện; Trưởng tầng xem)
       x-fr: [FR-024]
       parameters: [ { name: tangKhuVucId, in: query, schema: { type: integer, format: int64 } } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/GiaoTruongTang' } } } } } }
     post:
-      tags: [phan-cong]
+      tags: [assignments]
       summary: Giao Trưởng tầng (Quản lý viện); chồng thời gian cùng tầng bị chặn (409 CHONG_GIAO_TRUONG_TANG)
       x-fr: [FR-024]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -345,21 +348,21 @@ paths:
       responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
   /giao-truong-tang/{id}/ket-thuc:
     post:
-      tags: [phan-cong]
+      tags: [assignments]
       summary: Kết thúc hoặc rút ngắn giao (Quản lý viện; lý do)
       x-fr: [FR-024]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [den, lyDo], properties: { den: { type: string, format: date }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [den, reason], properties: { den: { type: string, format: date }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '200': { description: OK } }
   /ca/{id}/phan-cong:
     get:
-      tags: [phan-cong]
+      tags: [assignments]
       summary: Phân công của ca, nhân viên chính theo người cao tuổi, người chưa có Điều dưỡng phụ trách / nhân viên chăm sóc chính
       x-fr: [FR-025, FR-028, FR-029]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PhanCong' } } } } } }
     post:
-      tags: [phan-cong]
+      tags: [assignments]
       summary: Lập phân công (Trưởng tầng trong phạm vi, Quản lý viện)
       description: 'Ca Nháp → Nháp; ca đã công bố → Tương lai / Hiệu lực. Chặn: không có tên trong ca, đối tượng ngoài phạm vi ca, hai phân công chính trùng (FR-028), thiếu chứng chỉ (FR-030), Nhân viên chăm sóc nhận việc vai trò Điều dưỡng (FR-028a). Phân công chính không giới hạn: phản hồi kèm loại công việc không đủ điều kiện (FR-031).'
       x-fr: [FR-025, FR-027, FR-028, FR-028a, FR-030, FR-031]
@@ -369,40 +372,40 @@ paths:
       responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaVoiCanhBao' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
   /phan-cong/{id}:
     delete:
-      tags: [phan-cong]
+      tags: [assignments]
       summary: Xóa phân công Nháp (chỉ khi lịch Nháp)
       x-fr: [FR-025]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '204': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
   /phan-cong/{id}/huy:
     post:
-      tags: [phan-cong]
+      tags: [assignments]
       summary: Hủy phân công Tương lai (lý do)
       x-fr: [FR-027]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/ReasonBody' }
       responses: { '200': { description: OK } }
   /phan-cong/{id}/ket-thuc:
     post:
-      tags: [phan-cong]
+      tags: [assignments]
       summary: Kết thúc phân công Hiệu lực (Trưởng tầng, Người phụ trách ca trong ca, Quản lý viện; lý do); công việc, liều gán lại hoặc thành chung
       x-fr: [FR-027]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/ReasonBody' }
       responses: { '200': { description: OK } }
   /ca/{id}/sao-chep-phan-cong:
     post:
-      tags: [phan-cong]
+      tags: [assignments]
       summary: Sao chép phân công từ ca nguồn cùng phạm vi (Trưởng tầng); trả danh sách không sao chép kèm lý do
       x-fr: [FR-032]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [caNguonId], properties: { caNguonId: { type: integer, format: int64 } } } } } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { daSaoChep: { type: array, items: { type: integer, format: int64 } }, khongSaoChep: { type: array, items: { type: object, properties: { phanCongNguonId: { type: integer, format: int64 }, lyDo: { type: string } } } } } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { daSaoChep: { type: array, items: { type: integer, format: int64 } }, khongSaoChep: { type: array, items: { type: object, properties: { phanCongNguonId: { type: integer, format: int64 }, reason: { type: string } } } } } } } } } }
 
   # ---------------- Tỷ lệ phục vụ ----------------
   /ca/{id}/ty-le-phuc-vu:
     get:
-      tags: [ty-le]
+      tags: [staffing-ratios]
       summary: Các lần tính tỷ lệ phục vụ của ca
       x-fr: [FR-034, FR-037]
       x-br: [BR-M09-02]
@@ -412,7 +415,7 @@ paths:
   # ---------------- Bàn giao ----------------
   /ca/{id}/ban-giao:
     post:
-      tags: [ban-giao]
+      tags: [handovers]
       summary: Lập bàn giao (Bản nháp) từ mốc CFG-M09-04 trước kết ca; không có mục lập sẵn
       x-fr: [FR-038, FR-039, FR-042]
       x-br: [BR-M09-06]
@@ -420,21 +423,21 @@ paths:
       responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/BanGiao' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
   /ban-giao/{id}:
     get:
-      tags: [ban-giao]
+      tags: [handovers]
       summary: Bàn giao (mục với trạng thái lúc chốt và hiện tại, phát sinh sau khi lập, ý kiến; giới hạn trường FR-047, FR-050)
       x-fr: [FR-040, FR-045, FR-047, FR-050]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/BanGiao' } } } } }
   /ban-giao/{id}/ban-ghi-nguon:
     get:
-      tags: [ban-giao]
+      tags: [handovers]
       summary: Danh sách bản ghi nguồn đang mở theo nhóm (a) → (g) để tham khảo; sauKhiLap = true chỉ lấy phát sinh sau thời điểm Đã lập
       x-fr: [FR-039, FR-045]
       parameters: [ { $ref: '#/components/parameters/Id' }, { name: sauKhiLap, in: query, schema: { type: boolean } } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BanGhiNguon' } } } } } }
   /ban-giao/{id}/muc:
     post:
-      tags: [ban-giao]
+      tags: [handovers]
       summary: Thêm mục (Bản nháp; hoặc phần "Phát sinh sau khi lập" khi Đã lập / Có ý kiến)
       x-fr: [FR-040, FR-041, FR-051]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -442,21 +445,21 @@ paths:
       responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '412': { $ref: '#/components/responses/Loi' } }
   /ban-giao/{id}/muc/{mucId}:
     put:
-      tags: [ban-giao]
+      tags: [handovers]
       summary: Sửa mục, ghi chú, đánh dấu đã xử lý (chỉ Bản nháp)
       x-fr: [FR-040]
       parameters: [ { $ref: '#/components/parameters/Id' }, { name: mucId, in: path, required: true, schema: { type: integer, format: int64 } }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/MucBanGiao' } } } }
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
     delete:
-      tags: [ban-giao]
+      tags: [handovers]
       summary: Bỏ mục (chỉ Bản nháp; nhóm chỉ số vượt ngưỡng và biến động người cao tuổi không bỏ được, Q-88)
       x-fr: [FR-040]
       parameters: [ { $ref: '#/components/parameters/Id' }, { name: mucId, in: path, required: true, schema: { type: integer, format: int64 } }, { $ref: '#/components/parameters/IfMatch' } ]
       responses: { '204': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
   /ban-giao/{id}/nhan-dinh:
     put:
-      tags: [ban-giao]
+      tags: [handovers]
       summary: Ghi nhận định chung và theo người cao tuổi (chỉ Bản nháp); nhận định chung có nhắc không ghi thông tin sức khỏe từng người
       x-fr: [FR-040, FR-051]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -464,7 +467,7 @@ paths:
       responses: { '200': { description: OK } }
   /ban-giao/{id}/hoan-tat:
     post:
-      tags: [ban-giao]
+      tags: [handovers]
       summary: Hoàn tất bàn giao (chốt nội dung); thiếu ghi chú mục nghiêm trọng 409 THIEU_GHI_CHU_MUC_NGHIEM_TRONG; bắt buộc trực tuyến
       x-fr: [FR-041, FR-042, FR-022, FR-060]
       x-br: [BR-M09-06, BR-M09-07]
@@ -472,7 +475,7 @@ paths:
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
   /ban-giao/{id}/xac-nhan:
     post:
-      tags: [ban-giao]
+      tags: [handovers]
       summary: Xác nhận bàn giao (người phụ trách ca sau trong phạm vi ca sau; Trưởng tầng)
       description: 'Một lần: công việc tồn sang ca mới (005), người phụ trách cảnh báo, sự cố chuyển (007), khóa nội dung, nhật ký. Một phần lỗi thì không gì thay đổi (FR-044).'
       x-fr: [FR-042, FR-044, FR-060]
@@ -481,7 +484,7 @@ paths:
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
   /ban-giao/{id}/y-kien:
     post:
-      tags: [ban-giao]
+      tags: [handovers]
       summary: Gửi ý kiến (nội dung bắt buộc)
       x-fr: [FR-042]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -489,7 +492,7 @@ paths:
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
   /ban-giao/{id}/bo-sung-gui-lai:
     post:
-      tags: [ban-giao]
+      tags: [handovers]
       summary: Bổ sung và gửi lại (người bàn giao trong phạm vi ca; Trưởng tầng); phản hồi cho từng ý kiến
       x-fr: [FR-041, FR-042]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -497,7 +500,7 @@ paths:
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
   /nhat-ky-can-cu-nhiem-vu:
     get:
-      tags: [ban-giao]
+      tags: [handovers]
       summary: Các lần dùng quyền theo nhiệm vụ hoặc thay thế (căn cứ khác "vai trò"), theo tầng và thời gian (Quản lý viện)
       x-fr: [FR-056]
       parameters: [ { name: tangKhuVucId, in: query, schema: { type: integer, format: int64 } }, { name: tu, in: query, schema: { type: string, format: date-time } }, { name: den, in: query, schema: { type: string, format: date-time } } ]
@@ -513,9 +516,9 @@ components:
   headers:
     ETag: { schema: { type: string } }
   requestBodies:
-    LyDo:
+    ReasonBody:
       required: true
-      content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } }
+      content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { $ref: '#/components/schemas/Reason' } } } } }
   responses:
     Loi:
       description: Lỗi theo RFC 9457 (research R-03 của 000)
@@ -524,7 +527,7 @@ components:
       description: 'DIEU_KIEN_CHUA_THOA, CHONG_CA, CAN_XAC_NHAN_CANH_BAO, THIEU_NGUOI_PHU_TRACH, TANG_CHUA_CO_TRUONG_TANG, PHAN_CONG_KHONG_DAT, TRUNG_NHAN_VIEN_CHINH, THIEU_CHUNG_CHI, CHONG_GIAO_TRUONG_TANG, NGOAI_KHOANG_GHI_VANG, CA_DA_BAT_DAU, DA_CO_BAN_GIAO, CHUA_TOI_MOC_LAP, MUC_KHONG_BO_DUOC, THIEU_GHI_CHU_MUC_NGHIEM_TRONG, TRANG_THAI_DA_DOI, NGOAI_PHAM_VI_CA, CAN_NGUOI_THAY_PHU_TRACH…'
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
   schemas:
-    LyDo: { type: string, minLength: 1, maxLength: 2000 }
+    Reason: { type: string, minLength: 1, maxLength: 2000 }
     Loi:
       type: object
       properties:
@@ -541,23 +544,23 @@ components:
     KetQuaVoiCanhBao:
       type: object
       properties: { id: { type: integer, format: int64 }, canhBao: { type: array, items: { $ref: '#/components/schemas/CanhBao' } } }
-    NhanVien:
+    StaffProfile:
       type: object
-      required: [hoTen, chucDanh]
+      required: [fullName, position]
       properties:
         id: { type: integer, format: int64 }
-        hoTen: { type: string }
-        chucDanh: { type: string }
-        chuyenMon: { type: string }
-        ngayBatDau: { type: string, format: date }
-        dienThoai: { type: string }
+        fullName: { type: string }
+        position: { type: string }
+        specialty: { type: string }
+        startDate: { type: string, format: date }
+        phoneNumber: { type: string }
         email: { type: string }
-        trangThai: { type: string, enum: [DANG_LAM_VIEC, NGHI_VIEC], readOnly: true }
-        taiKhoanId: { type: integer, format: int64, readOnly: true }
+        status: { type: string, enum: [WORKING, RESIGNED], readOnly: true }
+        accountId: { type: integer, format: int64, readOnly: true }
         nguon: { type: string, enum: [TAO_TAY, IMPORT], readOnly: true, description: 'Bổ sung 2026-10-22 (FR-001b)' }
         lanImportId: { type: [integer, 'null'], format: int64, readOnly: true }
-        boPhanId: { type: integer, format: int64 }
-        truongBiAn: { type: array, items: { type: string } }
+        departmentId: { type: integer, format: int64 }
+        hiddenFields: { type: array, items: { type: string } }
     DongImport:
       type: object
       properties:
@@ -574,7 +577,7 @@ components:
         dong: { type: integer }
         cot: { type: string }
         maLoi: { type: string, enum: [THIEU_O_BAT_BUOC, NGAY_SAI_DINH_DANG, DIEN_THOAI_SAI_DINH_DANG, EMAIL_SAI_DINH_DANG, TRUNG_HO_SO, TRUNG_DONG_TRONG_FILE] }
-        lyDo: { type: string }
+        reason: { type: string }
         trungVoiNhanVienId: { type: [integer, 'null'], format: int64 }
         trungVoiDong: { type: [integer, 'null'] }
     KetQuaImport:
@@ -633,7 +636,7 @@ components:
         nhanVien: { type: array, items: { type: object, properties: { nhanVienId: { type: integer, format: int64 }, bacSiTruc: { type: boolean } } } }
         nguoiPhuTrachId: { type: integer, format: int64 }
         xacNhanCanhBao: { type: boolean }
-        lyDo: { $ref: '#/components/schemas/LyDo' }
+        reason: { $ref: '#/components/schemas/Reason' }
     Ca:
       type: object
       properties:
@@ -651,12 +654,12 @@ components:
       type: object
       properties:
         dieuKienChuaThoa: { type: array, items: { type: object } }
-        phanCongKhongDat: { type: array, items: { type: object, properties: { phanCongId: { type: integer, format: int64 }, lyDo: { type: string } } } }
+        phanCongKhongDat: { type: array, items: { type: object, properties: { phanCongId: { type: integer, format: int64 }, reason: { type: string } } } }
         canhBao: { type: array, items: { $ref: '#/components/schemas/CanhBao' } }
     GiaoTruongTang:
       type: object
       required: [nhanVienId, tangKhuVucId, tu]
-      properties: { id: { type: integer, format: int64 }, nhanVienId: { type: integer, format: int64 }, tangKhuVucId: { type: integer, format: int64 }, tu: { type: string, format: date }, den: { type: string, format: date }, lyDo: { type: string } }
+      properties: { id: { type: integer, format: int64 }, nhanVienId: { type: integer, format: int64 }, tangKhuVucId: { type: integer, format: int64 }, tu: { type: string, format: date }, den: { type: string, format: date }, reason: { type: string } }
     PhanCongMoi:
       type: object
       required: [nhanVienId, loaiDoiTuong, doiTuongId, vaiTro, chinhHoTro]
