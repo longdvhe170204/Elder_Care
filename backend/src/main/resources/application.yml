@@ -100,6 +100,9 @@ eldercare:
     # Job M01 (001 T031): test gọi AllergyCheckRetry.run()
     retry-allergy-checks:
       cron: "-"
+    # Job M01 (001 T051): test gọi TemporaryAbsenceOverdueAlert.run()
+    temporary-absence-overdue:
+      cron: "-"
     # Job M13 (009 T010): test gọi M13FastJob.run(), M13DailyJob.catchUp()
     m13-fast:
       cron: "-"

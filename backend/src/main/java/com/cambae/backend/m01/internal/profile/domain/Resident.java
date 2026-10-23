@@ -91,6 +91,12 @@ public class Resident {
         this.profileCode = String.format("NCT-%d-%06d", year, id);
     }
 
+    /** Chuyển trạng thái; chỉ {@code ResidentStatusService} gọi (FR-044). */
+    public void changeStatus(ResidentStatus to, Instant at) {
+        this.status = to;
+        this.statusSince = at;
+    }
+
     public void changePersonalInfo(PersonalInfo info, String contactJson) {
         apply(info, contactJson);
     }
