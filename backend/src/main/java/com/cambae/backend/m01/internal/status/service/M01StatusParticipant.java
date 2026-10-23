@@ -5,11 +5,14 @@ import com.cambae.backend.m01.api.dto.CommandContext;
 import com.cambae.backend.m01.api.dto.Condition;
 import com.cambae.backend.m01.api.dto.StatusCommand;
 import com.cambae.backend.m01.api.dto.TransitionResult;
+import com.cambae.backend.m01.api.dto.Warning;
 import com.cambae.backend.m01.api.spi.StatusTransitionParticipant;
 import com.cambae.backend.m01.internal.assessment.domain.Assessment;
 import com.cambae.backend.m01.internal.assessment.domain.AssessmentStatus;
 import com.cambae.backend.m01.internal.assessment.domain.AssessmentType;
 import com.cambae.backend.m01.internal.assessment.persistence.AssessmentRepository;
+import com.cambae.backend.m01.internal.consent.persistence.ConsentStore;
+import com.cambae.backend.m01.internal.consent.service.MissingConsentReminderService;
 import com.cambae.backend.m15.parameter.api.ParameterApi;
 import com.cambae.backend.m15.parameter.api.ParameterCode;
 import java.time.Duration;
@@ -22,7 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Điều kiện và tác động riêng của M01 trong lệnh trạng thái (research H-02 mục 4): Hoàn tất tiếp nhận cần đánh giá đầu
- * vào Đã xác nhận và lần đánh giá Đã xác nhận gần nhất chưa quá CFG-M01-02 (FR-034a). Chạy trước các module khác.
+ * vào Đã xác nhận và lần đánh giá Đã xác nhận gần nhất chưa quá CFG-M01-02 (FR-034a). Thiếu bản đồng ý Hiệu lực thì không
+ * chặn nhưng cảnh báo và bắt đầu nhắc Hành chính (FR-012). Chạy trước các module khác.
  */
 @Component
 @Order(0)
@@ -30,15 +34,25 @@ class M01StatusParticipant implements StatusTransitionParticipant {
 
     static final String NOT_CONFIRMED = "INITIAL_ASSESSMENT_NOT_CONFIRMED";
     static final String EXPIRED = "INITIAL_ASSESSMENT_EXPIRED";
+    static final String MISSING_CONSENT = "MISSING_CONSENT";
 
     private final AssessmentRepository assessments;
     private final ParameterApi parameters;
     private final BusinessTime time;
+    private final ConsentStore consents;
+    private final MissingConsentReminderService reminders;
 
-    M01StatusParticipant(AssessmentRepository assessments, ParameterApi parameters, BusinessTime time) {
+    M01StatusParticipant(
+            AssessmentRepository assessments,
+            ParameterApi parameters,
+            BusinessTime time,
+            ConsentStore consents,
+            MissingConsentReminderService reminders) {
         this.assessments = assessments;
         this.parameters = parameters;
         this.time = time;
+        this.consents = consents;
+        this.reminders = reminders;
     }
 
     @Override
@@ -71,7 +85,22 @@ class M01StatusParticipant implements StatusTransitionParticipant {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Warning> warnings(CommandContext context) {
+        if (consents.findActive(context.residentId()).isPresent()) {
+            return List.of();
+        }
+        return List.of(new Warning(
+                MISSING_CONSENT,
+                "Chưa có bản đồng ý chia sẻ dữ liệu Hiệu lực; Hành chính sẽ được nhắc ghi nhận (FR-012)"));
+    }
+
+    @Override
     public void applyEffects(TransitionResult result) {
         // Tác động riêng của M01 khi Ghi nhận trở về từ bệnh viện cần bảng lan_bao_danh_gia_lai (T062, Phase 8).
+        if (result.command() == StatusCommand.COMPLETE_ADMISSION
+                && consents.findActive(result.residentId()).isEmpty()) {
+            reminders.startReminding(result.residentId());
+        }
     }
 }

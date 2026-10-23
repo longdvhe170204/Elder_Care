@@ -871,13 +871,15 @@ components:
       properties:
         id: { type: integer, format: int64 }
         consenterType: { type: string, enum: [RESIDENT, LEGAL_REPRESENTATIVE] }
+        consenterFamilyMemberId: { type: [integer, 'null'], format: int64, description: 'Bổ sung 2026-10-23: người đại diện theo pháp luật ký thay (kể cả người ghi là người thân quan hệ Khác, Q-359); rỗng khi RESIDENT' }
         courtDecision: { oneOf: [ { $ref: '#/components/schemas/CourtDecision' }, { type: 'null' } ] }
         familyMemberIdsAllowedHealthView: { type: array, items: { type: integer, format: int64 } }
         photoConsent: { type: boolean }
         notificationConsent: { type: boolean }
         consentedAt: { type: string, format: date-time }
+        evidenceFileId: { type: integer, format: int64, description: 'Bổ sung 2026-10-23: bản ký đã scan; tải bằng GET /files/{id} theo quyền xem bản đồng ý' }
         status: { type: string, enum: [ACTIVE, WITHDRAWN] }
-        withdrawal: { type: [object, 'null'], properties: { at: { type: string, format: date-time }, reason: { type: string }, supersededById: { type: integer, format: int64 } } }
+        withdrawal: { type: [object, 'null'], properties: { at: { type: string, format: date-time }, reason: { type: string }, evidenceFileId: { type: [integer, 'null'], format: int64, description: 'Bổ sung 2026-10-23: bản yêu cầu rút lại; rỗng khi được thay thế' }, supersededById: { type: integer, format: int64 } } }
     HealthRecordContent:
       type: object
       properties:
