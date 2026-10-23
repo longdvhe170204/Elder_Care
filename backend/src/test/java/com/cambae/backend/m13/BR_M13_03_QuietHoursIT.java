@@ -41,8 +41,9 @@ import org.springframework.context.annotation.Import;
 /**
  * 009 US4 (T029, tên logic {@code BR_M13_03_GioYenTinhIT}): thông báo Nhẹ, Trung bình cho người thân trong giờ yên tĩnh
  * CFG-M13-02 được giữ, không có lần gửi nào (FR-022); Khẩn cấp và nhân viên không giữ (FR-022, FR-023); hết giờ yên tĩnh
- * thì xét lại điều kiện rồi gửi theo thứ tự tiếp nhận, hoặc Không gửi kèm lý do (FR-025). Bản đồng ý chưa có (001) nên
- * yêu cầu dùng đối tượng thông tin "việc của người thân" (thông báo về người cao tuổi chưa tới người thân).
+ * thì xét lại điều kiện rồi gửi theo thứ tự tiếp nhận, hoặc Không gửi kèm lý do (FR-025). Yêu cầu dùng
+ * đối tượng thông tin "việc của người thân" để không phụ thuộc bản đồng ý; bản đồng ý, qua đời lúc giải phóng ở
+ * {@link FR_014_015_ConsentAndDeathIT}.
  */
 @Import(FakeM15Config.class)
 class BR_M13_03_QuietHoursIT extends M13IntegrationTestBase {

@@ -81,6 +81,41 @@ describe('NotificationInbox', () => {
     expect(inboxCalls().at(-1).searchParams.get('unread')).toBe('true')
   })
 
+  it('FR_033_locTheoNguoiCaoTuoi_guiResidentId', async () => {
+    api.on('GET', '/me/notifications', json(200, PAGE))
+    api.on(
+      'GET',
+      '/residents',
+      json(200, {
+        items: [
+          { id: 501, profileCode: 'NCT-2026-0501', personalInfo: { fullName: 'Nguyễn Văn An' } },
+          { id: 502, profileCode: 'NCT-2026-0502', personalInfo: { fullName: 'Trần Thị Bình' } },
+        ],
+        nextCursor: null,
+      }),
+    )
+    render(<NotificationInbox />)
+    const select = await screen.findByLabelText('Người cao tuổi')
+    expect(within(select).getByRole('option', { name: 'Trần Thị Bình (NCT-2026-0502)' })).toBeInTheDocument()
+
+    fireEvent.change(select, { target: { value: '502' } })
+    await screen.findByRole('list', { name: 'Thông báo' })
+    expect(inboxCalls().at(-1).searchParams.get('residentId')).toBe('502')
+
+    fireEvent.change(select, { target: { value: '' } })
+    await screen.findByRole('list', { name: 'Thông báo' })
+    expect(inboxCalls().at(-1).searchParams.has('residentId')).toBe(false)
+  })
+
+  it('FR_033_khongXemDuocHoSo_khongCoOLocNguoiCaoTuoi', async () => {
+    api.on('GET', '/me/notifications', json(200, PAGE))
+    api.on('GET', '/residents', problem(403, 'PERMISSION_DENIED'))
+    render(<NotificationInbox />)
+    await screen.findByRole('list', { name: 'Thông báo' })
+    await vi.waitFor(() => expect(api.calls('GET', '/residents')).toHaveLength(1))
+    expect(screen.queryByLabelText('Người cao tuổi')).toBeNull()
+  })
+
   it('FR_034_moChiTiet_phanTheoLoai_phanBiAnThanhDongKhoa', async () => {
     api.on('GET', '/me/notifications', json(200, PAGE))
     api.on(
