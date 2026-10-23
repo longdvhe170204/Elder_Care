@@ -9,6 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
 import { AssessmentTab } from '../assessments/AssessmentTab'
+import { ConsentTab } from '../consents/ConsentTab'
 import { StatusTab } from '../status/StatusTab'
 import { HealthTab } from './HealthTab'
 import { GENDER_LABELS, ID_DOCUMENT_LABELS, STATUS_LABELS } from './residentLabels'
@@ -196,6 +197,9 @@ export function ResidentDetail({ residentId, onChanged, onClose, onTabChange }) 
             <ToggleGroupItem value="status" className="h-10 px-4">
               Trạng thái
             </ToggleGroupItem>
+            <ToggleGroupItem value="consent" className="h-10 px-4">
+              Đồng ý
+            </ToggleGroupItem>
           </ToggleGroup>
         )}
 
@@ -214,6 +218,18 @@ export function ResidentDetail({ residentId, onChanged, onClose, onTabChange }) 
 
         {info && tab === 'status' && (
           <StatusTab
+            residentId={residentId}
+            status={profile.status}
+            allowedCommands={profile.allowedCommands ?? []}
+            onChanged={() => {
+              load()
+              onChanged?.()
+            }}
+          />
+        )}
+
+        {info && tab === 'consent' && (
+          <ConsentTab
             residentId={residentId}
             status={profile.status}
             allowedCommands={profile.allowedCommands ?? []}
