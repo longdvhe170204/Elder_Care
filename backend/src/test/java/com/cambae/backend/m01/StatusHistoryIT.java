@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
  * 001 T045 (FR-046, FR-047; US4 #9–10): lịch sử trạng thái ghi đủ trường và chỉ thêm; yêu cầu ngoại lệ đã duyệt của 004
  * miễn điều kiện miễn được và ghi {@code condition_waiver}, điều kiện không miễn được vẫn chặn.
  */
-class LichSuTrangThaiIT extends StatusTestBase {
+class StatusHistoryIT extends StatusTestBase {
 
     private static final Condition WAIVABLE = new Condition("UNPAID_FEES", "Còn nợ", "BR-M11-22", true);
     private static final Condition HARD = new Condition("BELONGINGS_NOT_RETURNED", "Còn đồ gửi", "BR-M12-03", false);

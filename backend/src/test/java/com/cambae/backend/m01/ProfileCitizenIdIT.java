@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
  * thúc lưu trú, Hủy tiếp nhận thì tạo và liên kết hồ sơ gần nhất; trùng hồ sơ Qua đời thì tạo, không liên kết, kèm cảnh
  * báo.
  */
-class HoSoCccdIT extends ResidentProfileTestBase {
+class ProfileCitizenIdIT extends ResidentProfileTestBase {
 
     @Test
     void US1_2_citizenIdOfOpenProfile_isRejectedWithExistingProfileCode() {

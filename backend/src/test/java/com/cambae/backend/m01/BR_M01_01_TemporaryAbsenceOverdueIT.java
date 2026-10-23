@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * 001 T046 (BR-M01-01, FR-050; đồng hồ giả lập): Tạm vắng quá thời điểm dự kiến trở lại cộng CFG-M01-01 (2 giờ) mà chưa
  * Ghi nhận trở về thì cảnh báo đúng một lần cho mỗi mốc dự kiến; gia hạn tạo mốc mới thì cảnh báo lại.
  */
-class BR_M01_01_TamVangQuaHanIT extends StatusTestBase {
+class BR_M01_01_TemporaryAbsenceOverdueIT extends StatusTestBase {
 
     private static long absenceSequence = System.nanoTime() % 1_000_000L;
 

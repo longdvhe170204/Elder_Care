@@ -23,7 +23,7 @@ import org.springframework.test.context.event.ApplicationEvents;
  * 001 T014 (US1 #1; FR-001, FR-002, FR-003; DBR-23): tạo hồ sơ cấp mã duy nhất, trạng thái Đang tiếp nhận, bản ghi
  * lịch sử đầu tiên kèm người tạo và thời điểm, đúng một bản ghi nhật ký, phát {@code ResidentCreated}.
  */
-class TaoHoSoIT extends ResidentProfileTestBase {
+class CreateProfileIT extends ResidentProfileTestBase {
 
     @Autowired
     ApplicationEvents events;

@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
  * 001 T014 (US1 #4; FR-005; research H-04): không có CCCD mà trùng họ tên và ngày sinh thì hỏi xác nhận; so khớp họ tên
  * không phân biệt hoa thường và khoảng trắng thừa, có phân biệt dấu; ngày sinh chính xác; nhật ký ghi lần xác nhận.
  */
-class HoSoTrungTenIT extends ResidentProfileTestBase {
+class ProfileDuplicateNameIT extends ResidentProfileTestBase {
 
     /** Hậu tố riêng cho mỗi test để các test không trùng nhau. */
     private static String stem() {

@@ -31,7 +31,7 @@ import org.springframework.dao.DuplicateKeyException;
  * tới khi Ghi nhận trở về (cùng căn cứ {@code RETURN_FROM_HOSPITAL}, T048), hồ sơ ở trạng thái cuối không báo. Báo là
  * bảng kỹ thuật {@code reassessment_notice}, không tạo đánh giá hay bản ghi yêu cầu nào.
  */
-class BR_M01_02_BaoDanhGiaLaiIT extends StatusTestBase {
+class BR_M01_02_ReassessmentNoticeIT extends StatusTestBase {
 
     private static final Duration PERIOD = Duration.ofDays(90);
     private static final Duration DEADLINE = Duration.ofHours(48);

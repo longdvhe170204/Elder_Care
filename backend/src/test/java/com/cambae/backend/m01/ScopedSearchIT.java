@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
  * 404, vai trò không có quyền xem trả 403 (Nhân viên bếp); tìm theo họ tên, mã hồ sơ, số giấy tờ; lọc theo trạng thái;
  * phân trang theo con trỏ.
  */
-class TraCuuPhamViIT extends ResidentProfileTestBase {
+class ScopedSearchIT extends ResidentProfileTestBase {
 
     private SearchPage search(String q, Set<ResidentStatus> statuses, String cursor, int limit) {
         return profiles.search(q, statuses, cursor, limit);

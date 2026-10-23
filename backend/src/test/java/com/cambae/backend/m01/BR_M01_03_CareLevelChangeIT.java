@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
  * 001 T061 (US6 #12; FR-035, FR-036, BR-M01-03): đánh giá lại ra mức khác khi Tạm vắng vẫn báo Hành chính lập yêu cầu
  * đổi mức, không tự tạo yêu cầu, không đổi mức hiện hành, không đổi trạng thái.
  */
-class BR_M01_03_DoiMucIT extends StatusTestBase {
+class BR_M01_03_CareLevelChangeIT extends StatusTestBase {
 
     @Test
     void US6_12_reassessmentWhileTemporarilyAbsent_notifiesOffice_andChangesNothingElse() {

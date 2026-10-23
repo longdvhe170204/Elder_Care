@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * 001 T061, T065 (US6 #11; FR-052, FR-053): mức chăm sóc đổi theo yêu cầu thay đổi lưu trú ghi dòng lịch sử có căn cứ
  * {@code RESIDENCY_CHANGE_REQUEST} hiệu lực từ 00:00 ngày hiệu lực (giờ Việt Nam); tra theo ngày trả đúng mức và căn cứ.
  */
-class FR_053_MucTaiNgayIT extends StatusTestBase {
+class FR_053_CareLevelAtDateIT extends StatusTestBase {
 
     @Autowired
     TestClockControl clock;

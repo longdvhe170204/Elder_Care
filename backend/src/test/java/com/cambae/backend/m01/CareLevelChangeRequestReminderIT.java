@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * nhắc lập yêu cầu đổi mức mỗi CFG-M03-02 (mặc định 1 ngày) tới khi 004 có yêu cầu chưa kết thúc, hoặc có lần đánh giá
  * lại mới, hoặc mức hiện hành đã bằng mức mới, hoặc hồ sơ sang trạng thái cuối. Yêu cầu bị Từ chối không dừng nhắc.
  */
-class NhacLapYeuCauDoiMucIT extends StatusTestBase {
+class CareLevelChangeRequestReminderIT extends StatusTestBase {
 
     private static final Duration PERIOD = Duration.ofDays(1);
 
