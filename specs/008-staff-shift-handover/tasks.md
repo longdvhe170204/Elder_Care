@@ -14,6 +14,8 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 **Cập nhật 2026-10-22** (plan mục "Cập nhật 2026-10-22"; Q-382; 007 FR-047i): thêm T046 → T049. Không đánh số lại.
 
+**Tiến độ 2026-10-23 (E)**: bản dịch đầy đủ `contracts/api-008.yaml` và glossary mục 14 đã được A duyệt theo xác nhận của E trong phiên làm việc. Phase 1 (T001–T002) đã hoàn thành sau TDD và `./mvnw clean verify` trên JDK 25/MySQL 8.0: 174 test đơn vị/kiến trúc, 426 test tích hợp, không lỗi/thất bại/bỏ qua. Kết quả đối chiếu và cách xử lý phụ thuộc T002/T003 ở plan mục "Ghi chú triển khai"; chưa tạo PR vào develop.
+
 ## Format: `[ID] [P?] [Story] Mô tả`
 
 ## Quy ước đường dẫn
@@ -26,8 +28,8 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo khung gói `BE/m09/{api,nhanvien,giayphep,lichca,phancong,tyle,bangiao,nhiemvu,lich}/` với `package-info.java`; ArchUnit `BT/m09/M09ArchTest.java`: chỉ `m09.doica`, `m09.xoayca` (015) dùng port nội bộ; gói `..lich..` không lập ca, phân công, bàn giao (research N-01; Q-306)
-- [ ] T002 [P] Tạo bản giả SPI 008 khai báo trong `BT/support/gia008/`: `DoGuiBanGiaoPort` (013), `ChuyenDiNhiemVuPort` (014), `KiemTraCongBoMoRong` (015) (contracts mục 2.1)
+- [x] T001 Tạo khung M09 theo `backend/README.md`, R-02: dùng tên tiếng Anh, chỉ tạo gói khi có lớp; giữ `@ApplicationModule` ở gốc, `@NamedInterface` cho các gói API được tạo. ArchUnit `BT/m09/M09ArchTest.java`: chỉ phần đổi/xoay ca 015 gọi các port lệnh nội bộ; `scheduling/` không lập lịch, ca, phân công, bàn giao hoặc mục bàn giao (research N-01, N-07; Q-306). Tên và chỗ đặt cụ thể ở glossary mục 14, plan "Ghi chú triển khai".
+- [x] T002 [P] Khai báo tối thiểu các SPI đã có trong hợp đồng để tạo bản giả: `DoGuiBanGiaoPort` (013), `ChuyenDiNhiemVuPort` (014), `KiemTraCongBoMoRong` (015); bản giả và `@TestConfiguration` ở `BT/support/fake/m09/`, SPI/kiểu công khai ở `m09.api.spi`, port mở rộng công bố nội bộ ở tầng service của phần ca (contracts 008 mục 2.1; research N-07). Phần khai báo hai SPI lấy sớm từ T003; T003 vẫn giữ API tra cứu ca, thống kê và sự kiện.
 
 ---
 
@@ -37,7 +39,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T003 [P] Tạo giao diện `BE/m09/api/`: `CaTrucApi`, `NhanSuThongKeApi`, SPI `DoGuiBanGiaoPort`, `ChuyenDiNhiemVuPort` và sự kiện mục 1.6 (cài `CoYeuCauThongBao` khi gửi 009) (contracts mục 1.3, 1.4, 1.6, 2.1)
+- [ ] T003 [P] Tạo giao diện `BE/m09/api/`: `CaTrucApi`, `NhanSuThongKeApi` và sự kiện mục 1.6 (cài `CoYeuCauThongBao` khi gửi 009). Hai SPI `DoGuiBanGiaoPort`, `ChuyenDiNhiemVuPort` đã được đưa lên T002 để bản giả biên dịch được; dùng lại, không khai báo lần hai (contracts mục 1.3, 1.4, 1.6, 2.1; plan "Ghi chú triển khai").
 - [ ] T004 Tạo `MIG/V008_01__nhan_vien.sql`: `nhan_vien` (`tai_khoan_id BIGINT NULL UNIQUE`; `trang_thai ENUM('DANG_LAM_VIEC','NGHI_VIEC')` chỉ đổi khi `@lenh_trang_thai_nv`; trigger chặn `DELETE`), `bo_phan` (nạp Y tế, Chăm sóc, Bếp, Hành chính – Kế toán; Q-284), `nhan_vien_bo_phan` (cột sinh `khoa_hien_hanh = IF(den IS NULL, nhan_vien_id, NULL)` `UNIQUE`), `lich_su_phu_trach_bo_phan` (nhóm 3; cột sinh `khoa_mo` `UNIQUE`), `loai_chung_chi` (`nhom` `GIAY_PHEP_HANH_NGHE|DAO_TAO`; `bat_buoc_voi_vai_tro JSON`), `pham_vi_hanh_nghe`, `chung_chi` (trigger chặn `DELETE`; `UPDATE` chỉ cột thu hồi, cột job, sửa sai khi `@sua_sai`), `chung_chi_pham_vi`, `lan_chay_m09` (data-model mục 2, 3)
 - [ ] T005 [P] Cài hàm thuần `BE/m09/giayphep/internal/HieuLucChungChi.java` (hiệu lực tới hết ngày hết hạn theo `ThoiGianNghiepVu`; thu hồi; thay thế) và test `BT/m09/HieuLucChungChiTest.java` (research N-05; DBR-25)
 - [ ] T006 Cài tạo, sửa hồ sơ nhân viên (Quản lý viện; trường liên hệ `@NhomTruong(HAN_CHE_NHAN_VIEN)`) và thêm chứng chỉ trong `BE/m09/nhanvien/internal/NhanVienService.java`, `BE/m09/giayphep/internal/ChungChiService.java`; controller `/nhan-vien`, `/{id}`, `/loai-chung-chi`, `/pham-vi-hanh-nghe`, `/nhan-vien/{id}/chung-chi` (FR-001, FR-005, FR-006)

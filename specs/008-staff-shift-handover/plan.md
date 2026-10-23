@@ -177,6 +177,29 @@ mobile/lib/nhan-vien/
 
 **Structure Decision**: Theo R-02 của 000. Feature 008 nằm ở `backend/…/m09` với sáu gói con nghiệp vụ, gói `nhiemvu` gom bản cài SPI cho module khác, gói `lich` và gói `api`. Feature 015 thêm gói con vào cùng `m09` và dùng port nội bộ. Web có đủ chức năng. App nhân viên có ca của tôi, bàn giao và ghi vắng ca. App người thân không có màn của 008.
 
+## Ghi chú triển khai
+
+### 2026-10-23 — Chuẩn bị trước Phase 1 (E)
+
+- **Trạng thái**: A đã duyệt bản dịch hợp đồng và glossary mục 14 theo xác nhận của E trong phiên làm việc ngày 2026-10-23. Phase 1 T001–T002 đã hoàn thành và qua kiểm thử cuối phase; các task từ T003 chưa được đánh hoàn thành. Chưa tạo PR vào develop.
+- **Phạm vi bản nháp**: dịch nốt đường dẫn, schema/response, tham số, trường JSON, enum, mã lỗi và tên khai báo phiên sang tiếng Anh. Giữ các tên đã dịch của hồ sơ nhân viên, `Reason` và `ReasonBody`; bảng đối chiếu đầy đủ ở glossary mục 14. Không thêm hoặc bớt thao tác, trường hay quy tắc.
+- **Đối chiếu đã chạy**: YAML hợp lệ, không khóa trùng; đủ 48 đường dẫn, 60 thao tác HTTP, 24 schema, 199 tham chiếu nội bộ phân biệt hoa thường. So sánh cấu trúc trước/sau theo bảng đổi tên xác nhận giữ nguyên kiểu, `required`, `format`, giới hạn, enum, HTTP status, `x-fr`, `x-br` và các mã nghiệp vụ. Glossary ngoài mục 14 được giữ nguyên.
+- **Thứ tự**: thực hiện Phase 1 T001 → T002 bằng test trước, chạy test của task cùng các kiểm tra kiến trúc; cuối phase mới chạy `clean verify` và đánh `[x]`.
+- **Áp dụng R-02 khi triển khai**: chỉ tạo gói có lớp, dùng `api/{dto,spi,events}`, `web/{request,response}`, `internal/.../{service,domain,persistence,config}`, `scheduling`; không tạo các gói tiếng Việt từ đường dẫn logic trong tasks. Bản giả do 008 khai báo đặt ở `support/fake/m09/`.
+- **Điều chỉnh kỹ thuật T001**: giữ module gốc đã có, tạo gói có lớp theo R-02; không tạo các gói rỗng chỉ để đủ cây thư mục logic cũ. Luật kiến trúc có test với trường hợp được phép/bị cấm để vẫn kiểm chứng được khi Phase 1 chưa có dịch vụ nghiệp vụ.
+- **Điều chỉnh kỹ thuật T002/T003**: đưa khai báo tối thiểu của hai SPI đồ gửi/chuyến đi đã có trong hợp đồng từ T003 lên T002 để bản giả biên dịch được; T003 còn API tra cứu ca, thống kê và sự kiện. `KiemTraCongBoMoRong` là SPI nội bộ theo N-07, nằm ở `m09.shift.internal.service.port` vì phần 015 cài và lệnh công bố của 008 gọi. Luật "chỉ 015 gọi port" áp cho port lệnh ca/phân công/lịch nháp, không áp cho SPI kiểm tra mở rộng có chiều gọi ngược này.
+
+### 2026-10-23 — Phase 1 T001, T002 (E)
+
+- **Phạm vi**: hai luật `M09ArchTest`, test chứng minh luật bắt được vi phạm, hai SPI công khai + kiểu dùng riêng, SPI kiểm tra công bố nội bộ và ba bản giả dùng chung. Chưa có controller, migration, job hay dịch vụ nghiệp vụ; T003 vẫn chưa xong.
+- **Khai báo SPI**: `HeldBelongingsHandoverPort`, `TripDutyPort` cùng record ở `m09.api.spi`, có `@NamedInterface` cho `api`, `api.spi`. Chữ ký giữ đúng hợp đồng mục 2.1, dịch tên theo glossary 14.6. Các view trước đây chỉ có tên, chưa có cấu trúc: chọn các id tối thiểu và vị trí lưu giữ (013 mục 1.1), nhân viên đang đi và giờ về dự kiến (FR-039 e); không thêm luật lọc hoặc quyền mới.
+- **Kiểm tra công bố**: `ExtendedPublicationCheck`, `PublicationWarning` ở `m09.shift.internal.service.port`; cảnh báo giữ `code`, `description`, `details` như schema `Warning`. Đây là SPI nội bộ cho 015, không mở ra module khác. Không dùng port lệnh cho chiều gọi ngược này.
+- **Bản giả**: `FakeM09Config` là `@TestConfiguration`, ba bean `@Primary`, chỉ test import mới có. Dữ liệu mặc định rỗng; test chủ động đặt dữ liệu, chuyển nguồn có/không dữ liệu qua `available`. Không thêm controller thử nghiệm vào hợp đồng HTTP. Bản giả chuyến lọc khoảng đi thực tế `[departedAt, returnedAt)` giao khoảng ca và đúng tầng/khu; `returnedAt = null` giữ chuyến đang đi kể cả quá giờ về dự kiến. Danh sách đầu vào được sao chép để test không vô tình đổi dữ liệu đã đặt.
+- **TDD T001**: viết `M09ArchRuleTest` và các lớp thử trước; lệnh `./mvnw -o -B '-Dtest=M09ArchRuleTest,*ArchTest,ModuleBoundaryTest' test` đỏ ở bước biên dịch do chưa có `M09ArchTest`. Sau khi cài luật: 27 test qua, 0 lỗi/thất bại/bỏ qua. Bốn test riêng kiểm lời gọi được phép, bị cấm, năm lệnh tạo bản ghi trong job và chuyển trạng thái được phép.
+- **TDD T002**: viết `FakeM09Test` trước; lệnh `./mvnw -o -B '-Dtest=FakeM09Test,*ArchTest,ModuleBoundaryTest' test` đỏ ở bước biên dịch do chưa có SPI và bản giả. Sau khi cài: 34 test qua, 0 lỗi/thất bại/bỏ qua (11 test bản giả). Có kiểm phạm vi người giữ, thay người giữ/trả đồ, chuyến tiếp giáp ca, chuyến chưa về đã quá giờ, nguồn không có dữ liệu và `@Primary` khi cùng tồn tại bản cài khác.
+- **Kiểm tra cuối phase**: `./mvnw -o -B spotless:apply` thành công, chỉ định dạng 20 file Java mới của M09. Sau đó chạy nền `./mvnw -B clean verify` trên JDK 25.0.4.1/MySQL 8.0 bằng Maven wrapper Windows (`.\mvnw.cmd`): **BUILD SUCCESS**, 174 test đơn vị/kiến trúc + 426 test tích hợp = 600 test, 0 lỗi/thất bại/bỏ qua; Spotless check qua. Chỉ sau kết quả này mới đánh T001–T002. Biến kiểm thử đọc từ `.env` cục bộ được Git bỏ qua, schema xác nhận là `eldercare_test` trên MySQL cục bộ; không ghi giá trị bí mật vào tài liệu.
+- **Bàn giao và bước sau**: đã ghi "Đổi api" và việc B (013), C (014), E (015) cần cài vào team-plan mục 8; các bản cài SPI của 002, `CaTrucApi` và dữ liệu demo vẫn chờ đúng phase. Phase 2 bắt đầu từ T003 (API tra cứu ca, thống kê và sự kiện), dùng lại hai SPI có sẵn. Không thay giao diện nên không chụp màn hình, không chạy kiểm tra frontend. Chưa tạo PR vào develop.
+
 ## Complexity Tracking
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |

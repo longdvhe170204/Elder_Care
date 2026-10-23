@@ -519,35 +519,348 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 
 ## 14. Feature 008 (`008-staff-shift-handover`, E)
 
+Bản dịch hợp đồng 008 cập nhật 2026-10-23, **đã được A duyệt theo xác nhận của E trong phiên làm việc, cho phép triển khai Phase 1**. Chỉ đổi tên; giữ nguyên kiểu, trường bắt buộc, ràng buộc, quyền và mã truy vết nghiệp vụ.
+
+### 14.1. Tag và đường dẫn API
+
 | Tên logic | Mã |
 | --- | --- |
-| tag `nhan-vien` | `staff` |
-| tag `chung-chi` | `credentials` |
-| tag `lich-ca` | `shift-schedules` |
-| tag `phan-cong` | `assignments` |
-| tag `ty-le` | `staffing-ratios` |
-| tag `ban-giao` | `handovers` |
-| `/nhan-vien`, `/nhan-vien/{id}` | `/staff`, `/staff/{id}` |
+| `tag nhan-vien` | `staff` |
+| `tag chung-chi` | `credentials` |
+| `tag lich-ca` | `shift-schedules` |
+| `tag phan-cong` | `assignments` |
+| `tag ty-le` | `staffing-ratios` |
+| `tag ban-giao` | `handovers` |
+| `/nhan-vien, /nhan-vien/{id}` | `/staff, /staff/{id}` |
 | `/nhan-vien/{id}/cho-nghi-viec` | `/staff/{id}/terminate-employment` |
 | `/nhan-vien/{id}/nhan-lai-lam-viec` | `/staff/{id}/rehire` |
 | `/nhan-vien/{id}/doi-bo-phan` | `/staff/{id}/change-department` |
-| schema `NhanVien` | `StaffProfile` |
-| trường `hoTen` | `fullName` |
-| trường `chucDanh` | `position` |
-| trường `trangThai` | `status` |
-| trạng thái `DANG_LAM_VIEC`, `NGHI_VIEC` | `WORKING`, `RESIGNED` |
-| trường `chuyenMon` | `specialty` |
-| trường `ngayBatDau` | `startDate` |
-| trường `dienThoai` | `phoneNumber` |
-| trường `taiKhoanId` | `accountId` |
-| trường `boPhanId` | `departmentId` |
-| trường `truongBiAn` | `hiddenFields` |
-| trường `lyDo` | `reason` |
-| trường `hieuLuc` của lệnh Cho nghỉ việc (`date-time`) | `effectiveAt` |
-| trường `nguoiThayId` của lệnh Cho nghỉ việc, Đổi bộ phận | `replacementStaffId` |
-| schema `LyDo` | `Reason` |
-| request body `LyDo` | `ReasonBody` |
-*Chủ feature điền khi dịch `contracts/api-008.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+| `/staff/import/mau` | `/staff/import/template` |
+| `/staff/import/xem-truoc` | `/staff/import/preview` |
+| `/staff/import/xac-nhan` | `/staff/import/confirm` |
+| `/bo-phan` | `/departments` |
+| `/bo-phan/{id}/chi-dinh-phu-trach` | `/departments/{id}/assign-lead` |
+| `/loai-chung-chi` | `/credential-types` |
+| `/pham-vi-hanh-nghe` | `/practice-scopes` |
+| `/staff/{id}/chung-chi` | `/staff/{id}/credentials` |
+| `/chung-chi/{id}/gia-han` | `/credentials/{id}/renew` |
+| `/chung-chi/{id}/thu-hoi` | `/credentials/{id}/revoke` |
+| `/chung-chi/{id}/sua-sai` | `/credentials/{id}/correct` |
+| `/mau-ca` | `/shift-templates` |
+| `/mau-ca/{id}` | `/shift-templates/{id}` |
+| `/lich-ca` | `/shift-schedules` |
+| `/lich-ca/{id}/ca` | `/shift-schedules/{id}/shifts` |
+| `/ca/{id}` | `/shifts/{id}` |
+| `/lich-ca/{id}/xem-truoc-cong-bo` | `/shift-schedules/{id}/publication-preview` |
+| `/lich-ca/{id}/cong-bo` | `/shift-schedules/{id}/publish` |
+| `/ca/{id}/bo-sung-nhan-vien` | `/shifts/{id}/add-staff` |
+| `/ca/{id}/chuyen-nguoi-phu-trach` | `/shifts/{id}/change-lead` |
+| `/ca/{id}/ghi-nhan-vang` | `/shifts/{id}/record-absence` |
+| `/ca/{id}/huy` | `/shifts/{id}/cancel` |
+| `/toi/ca` | `/me/shifts` |
+| `/bac-si-truc` | `/on-duty-doctors` |
+| `/giao-truong-tang` | `/floor-manager-assignments` |
+| `/giao-truong-tang/{id}/ket-thuc` | `/floor-manager-assignments/{id}/end` |
+| `/ca/{id}/phan-cong` | `/shifts/{id}/assignments` |
+| `/phan-cong/{id}` | `/assignments/{id}` |
+| `/phan-cong/{id}/huy` | `/assignments/{id}/cancel` |
+| `/phan-cong/{id}/ket-thuc` | `/assignments/{id}/end` |
+| `/ca/{id}/sao-chep-phan-cong` | `/shifts/{id}/copy-assignments` |
+| `/ca/{id}/ty-le-phuc-vu` | `/shifts/{id}/staffing-ratios` |
+| `/ca/{id}/ban-giao` | `/shifts/{id}/handovers` |
+| `/ban-giao/{id}` | `/handovers/{id}` |
+| `/ban-giao/{id}/ban-ghi-nguon` | `/handovers/{id}/source-records` |
+| `/ban-giao/{id}/muc` | `/handovers/{id}/items` |
+| `/ban-giao/{id}/muc/{mucId}` | `/handovers/{id}/items/{itemId}` |
+| `/ban-giao/{id}/nhan-dinh` | `/handovers/{id}/assessments` |
+| `/ban-giao/{id}/hoan-tat` | `/handovers/{id}/complete` |
+| `/ban-giao/{id}/xac-nhan` | `/handovers/{id}/confirm` |
+| `/ban-giao/{id}/y-kien` | `/handovers/{id}/comments` |
+| `/ban-giao/{id}/bo-sung-gui-lai` | `/handovers/{id}/supplement-and-resubmit` |
+| `/nhat-ky-can-cu-nhiem-vu` | `/duty-basis-audit-logs` |
+
+### 14.2. Schema, response và phiên đăng nhập
+
+| Tên logic | Mã |
+| --- | --- |
+| `NhanVien` | `StaffProfile` |
+| `LyDo (schema)` | `Reason` |
+| `LyDo (request body)` | `ReasonBody` |
+| `Loi` | `Problem` |
+| `CanhBao` | `Warning` |
+| `KetQuaVoiCanhBao` | `ResultWithWarnings` |
+| `DongImport` | `StaffImportRow` |
+| `LoiDongImport` | `StaffImportRowError` |
+| `KetQuaImport` | `StaffImportPreview` |
+| `KetQuaXacNhanImport` | `StaffImportResult` |
+| `BoPhan` | `Department` |
+| `LoaiChungChi` | `CredentialType` |
+| `ChungChi` | `Credential` |
+| `MauCa` | `ShiftTemplate` |
+| `LichCa` | `ShiftSchedule` |
+| `CaMoi` | `NewShift` |
+| `Ca` | `Shift` |
+| `XemTruocCongBo` | `SchedulePublicationPreview` |
+| `GiaoTruongTang` | `FloorManagerAssignment` |
+| `PhanCongMoi` | `NewAssignment` |
+| `PhanCong` | `Assignment` |
+| `LanTinhTyLe` | `StaffingRatioCalculation` |
+| `BanGhiNguon` | `HandoverSourceRecord` |
+| `MucBanGiao` | `HandoverItem` |
+| `BanGiao` | `Handover` |
+| `Loi (response)` | `Problem` |
+| `LoiChan (response)` | `BlockingProblem` |
+| `phien (security scheme)` | `session` |
+
+### 14.3. Trường JSON và tham số
+
+Các trường dùng cùng tên logic giữ cùng bản dịch. `dong` trong kết quả xem trước là danh sách; trong từng dòng và lỗi dòng là số dòng.
+
+| Tên logic | Mã |
+| --- | --- |
+| `hoTen` | `fullName` |
+| `chucDanh` | `position` |
+| `chuyenMon` | `specialty` |
+| `ngayBatDau` | `startDate` |
+| `dienThoai` | `phoneNumber` |
+| `taiKhoanId` | `accountId` |
+| `boPhanId` | `departmentId` |
+| `lyDo` | `reason` |
+| `hieuLuc của Cho nghỉ việc (date-time)` | `effectiveAt` |
+| `nguoiThayId của Cho nghỉ việc, Đổi bộ phận` | `replacementStaffId` |
+| `nhanVienId` | `staffId` |
+| `hieuLucTu` | `effectiveFrom` |
+| `thang` | `month` |
+| `phamViId` | `scopeId` |
+| `loaiPhamVi` | `scopeType` |
+| `loaiBoPhanCong` | `assignmentIdsToRemove` |
+| `xacNhanCanhBao` | `confirmWarnings` |
+| `tu` | `from` |
+| `den` | `to` |
+| `thoiDiem` | `at` |
+| `tangKhuVucId` | `floorAreaId` |
+| `caNguonId` | `sourceShiftId` |
+| `daSaoChep` | `copiedIds` |
+| `khongSaoChep` | `notCopied` |
+| `phanCongNguonId` | `sourceAssignmentId` |
+| `sauKhiLap` | `afterPreparation` |
+| `chung` | `general` |
+| `theoNguoiCaoTuoi` | `byResident` |
+| `nctId` | `residentId` |
+| `noiDung` | `content` |
+| `phanHoi` | `replies` |
+| `yKienId` | `commentId` |
+| `mucBoSung` | `additionalItems` |
+| `mucId` | `itemId` |
+| `maLoi` | `errorCode` |
+| `dieuKienChuaThoa` | `unmetConditions` |
+| `ma` | `code` |
+| `moTa` | `description` |
+| `canCu` | `basis` |
+| `canhBao` | `warnings` |
+| `chiTiet` | `details` |
+| `nguon` | `source` |
+| `lanImportId` | `importBatchId` |
+| `cot` | `column` |
+| `trungVoiNhanVienId` | `duplicateStaffId` |
+| `trungVoiDong` | `duplicateRowNumber` |
+| `tenFile` | `fileName` |
+| `soDong` | `rowCount` |
+| `loi` | `errors` |
+| `xacNhanDuoc` | `canConfirm` |
+| `soHoSoDaTao` | `createdProfileCount` |
+| `nhanVienIds` | `staffIds` |
+| `ten` | `name` |
+| `phuTrachId` | `leadStaffId` |
+| `hieuLuc` | `active` |
+| `nhom` | `group` |
+| `coThoiHan` | `hasExpiry` |
+| `batBuocVoiVaiTro` | `requiredForRoles` |
+| `coPhamVi` | `hasPracticeScopes` |
+| `loaiId` | `credentialTypeId` |
+| `so` | `credentialNumber` |
+| `donViCap` | `issuingAuthority` |
+| `phamVi` | `practiceScopes` |
+| `ngayCap` | `issueDate` |
+| `ngayHetHan` | `expiryDate` |
+| `tepScanId` | `scanFileId` |
+| `thayTheCho` | `replacesId` |
+| `thuHoiTu` | `revokedFrom` |
+| `tinhTrang` | `validityStatus` |
+| `gioBatDau` | `startTime` |
+| `gioKetThuc` | `endTime` |
+| `yeuCauBanGiao` | `handoverRequired` |
+| `trangThai` | `status` |
+| `ca` | `shifts` |
+| `mauCaId` | `shiftTemplateId` |
+| `ngay` | `date` |
+| `batDau` | `startsAt` |
+| `ketThuc` | `endsAt` |
+| `nhanVien` | `staff` |
+| `bacSiTruc` | `onDutyDoctor` |
+| `nguoiPhuTrachId` | `leadStaffId` |
+| `nguoiPhuTrachMoiId` | `replacementLeadStaffId` |
+| `thieuNguoiPhuTrach` | `missingLead` |
+| `vang` | `absent` |
+| `nghiCoDuyet` | `approvedLeave` |
+| `tyLePhucVu` | `staffingRatio` |
+| `lenhDuocPhep` | `allowedCommands` |
+| `phanCongKhongDat` | `invalidAssignments` |
+| `phanCongId` | `assignmentId` |
+| `loaiDoiTuong` | `targetType` |
+| `doiTuongId` | `targetId` |
+| `loaiCongViecId` | `taskTypeId` |
+| `vaiTro` | `role` |
+| `chinhHoTro` | `assignmentKind` |
+| `dieuDuongPhuTrach` | `assignedNurse` |
+| `ketThucThucTe` | `actualEndAt` |
+| `suKien` | `event` |
+| `tongTrongSo` | `totalWeight` |
+| `soNhanVien` | `staffCount` |
+| `tyLe` | `ratio` |
+| `nguong` | `threshold` |
+| `dat` | `meetsThreshold` |
+| `nguonLoai` | `sourceType` |
+| `nguonId` | `sourceId` |
+| `phongId` | `roomId` |
+| `trangThaiHienTai` | `currentStatus` |
+| `nghiemTrong` | `critical` |
+| `daCoMuc` | `hasItem` |
+| `chuaCoDuLieu` | `dataUnavailable` |
+| `ghiChu` | `note` |
+| `daXuLy` | `resolved` |
+| `phan` | `section` |
+| `trangThaiLucChot` | `statusAtFinalization` |
+| `nguoiGhiChu` | `noteAuthor` |
+| `caId` | `shiftId` |
+| `caSauId` | `nextShiftId` |
+| `nguoiBanGiaoId` | `handoverStaffId` |
+| `chotLuc` | `finalizedAt` |
+| `xacNhanLuc` | `confirmedAt` |
+| `nhanDinhChung` | `generalAssessment` |
+| `nhanDinhTheoNguoi` | `residentAssessments` |
+| `muc` | `items` |
+| `yKien` | `comments` |
+| `nguoiGui` | `sender` |
+| `truongBiAn` | `hiddenFields` |
+| `dong trong DongImport, LoiDongImport` | `rowNumber` |
+| `dong trong KetQuaImport` | `rows` |
+
+### 14.4. Giá trị enum
+
+| Tên logic | Mã |
+| --- | --- |
+| `DANG_LAM_VIEC` | `WORKING` |
+| `NGHI_VIEC` | `RESIGNED` |
+| `GIAY_PHEP_HANH_NGHE` | `PROFESSIONAL_LICENSE` |
+| `DAO_TAO` | `TRAINING` |
+| `CON_HIEU_LUC` | `VALID` |
+| `HET_HAN` | `EXPIRED` |
+| `DA_THU_HOI` | `REVOKED` |
+| `DA_THAY_THE` | `REPLACED` |
+| `CHUA_TOI_NGAY_CAP` | `NOT_YET_ISSUED` |
+| `TANG` | `FLOOR` |
+| `KHU_VUC` | `AREA` |
+| `TOAN_VIEN` | `FACILITY` |
+| `NHAP` | `DRAFT` |
+| `DA_CONG_BO` | `PUBLISHED` |
+| `DANG_DIEN_RA` | `IN_PROGRESS` |
+| `CHO_BAN_GIAO` | `AWAITING_HANDOVER` |
+| `DA_DONG` | `CLOSED` |
+| `DA_HUY` | `CANCELLED` |
+| `TUONG_LAI` | `SCHEDULED` |
+| `HIEU_LUC` | `ACTIVE` |
+| `DA_KET_THUC` | `ENDED` |
+| `LAP_TAY` | `MANUAL` |
+| `TAO_TAY` | `MANUAL` |
+| `SAO_CHEP` | `COPIED` |
+| `DOI_CA_015` | `SHIFT_SWAP_015` |
+| `CHINH` | `PRIMARY` |
+| `HO_TRO` | `SUPPORT` |
+| `PHONG` | `ROOM` |
+| `NGUOI_CAO_TUOI` | `RESIDENT` |
+| `CONG_VIEC` | `TASK` |
+| `LIEU` | `DOSE` |
+| `CHI_SO` | `VITAL_SIGN` |
+| `CANH_BAO` | `ALERT` |
+| `SU_CO` | `INCIDENT` |
+| `BIEN_DONG_NCT` | `RESIDENT_CHANGE` |
+| `GIUONG_CHO_SAN_SANG` | `BED_AWAITING_READINESS` |
+| `DO_GUI` | `STORED_BELONGING` |
+| `VAN_DE_THEO_DOI` | `FOLLOW_UP_ISSUE` |
+| `DA_CHOT` | `FINALIZED` |
+| `PHAT_SINH_SAU_KHI_LAP` | `AFTER_PREPARATION` |
+| `DA_XU_LY_TRONG_CA` | `RESOLVED_DURING_SHIFT` |
+| `BAN_NHAP` | `DRAFT` |
+| `DA_LAP` | `PREPARED` |
+| `CO_Y_KIEN` | `HAS_COMMENTS` |
+| `DA_XAC_NHAN` | `CONFIRMED` |
+| `GIO_LAM_LIEN_TUC` | `CONTINUOUS_WORK_HOURS` |
+| `DAO_TAO_BAT_BUOC_HET_HIEU_LUC` | `REQUIRED_TRAINING_EXPIRED` |
+| `DUOI_NGUONG_PHUC_VU` | `BELOW_STAFFING_THRESHOLD` |
+| `LOAI_CONG_VIEC_KHONG_DU_DIEU_KIEN` | `TASK_TYPE_REQUIREMENTS_NOT_MET` |
+| `NGAY_NGHI_CO_DUYET` | `APPROVED_LEAVE_DAY` |
+| `THIEU_PHU_TOI_THIEU` | `INSUFFICIENT_MINIMUM_COVERAGE` |
+| `THIEU_O_BAT_BUOC` | `REQUIRED_CELL_MISSING` |
+| `NGAY_SAI_DINH_DANG` | `INVALID_DATE_FORMAT` |
+| `DIEN_THOAI_SAI_DINH_DANG` | `INVALID_PHONE_NUMBER_FORMAT` |
+| `EMAIL_SAI_DINH_DANG` | `INVALID_EMAIL_FORMAT` |
+| `TRUNG_HO_SO` | `DUPLICATE_STAFF_PROFILE` |
+| `TRUNG_DONG_TRONG_FILE` | `DUPLICATE_FILE_ROW` |
+
+### 14.5. Mã lỗi
+
+| Tên logic | Mã |
+| --- | --- |
+| `DIEU_KIEN_CHUA_THOA` | `CONDITION_NOT_MET` |
+| `TRANG_THAI_DA_DOI` | `STATE_CHANGED` |
+| `CAN_XAC_NHAN_CANH_BAO` | `WARNING_CONFIRMATION_REQUIRED` |
+| `FILE_KHONG_DUNG_MAU` | `INVALID_IMPORT_TEMPLATE` |
+| `QUA_SO_DONG` | `IMPORT_ROW_LIMIT_EXCEEDED` |
+| `IMPORT_CO_DONG_LOI` | `IMPORT_HAS_ROW_ERRORS` |
+| `CAN_NGUOI_THAY_PHU_TRACH` | `REPLACEMENT_LEAD_REQUIRED` |
+| `NGOAI_KHOANG_GHI_VANG` | `OUTSIDE_ABSENCE_REPORTING_WINDOW` |
+| `CHONG_CA` | `SHIFT_OVERLAP` |
+| `CHONG_GIAO_TRUONG_TANG` | `FLOOR_MANAGER_ASSIGNMENT_OVERLAP` |
+| `THIEU_NGUOI_PHU_TRACH` | `SHIFT_LEAD_REQUIRED` |
+| `TANG_CHUA_CO_TRUONG_TANG` | `FLOOR_MANAGER_REQUIRED` |
+| `PHAN_CONG_KHONG_DAT` | `INVALID_ASSIGNMENTS` |
+| `TRUNG_NHAN_VIEN_CHINH` | `PRIMARY_STAFF_OVERLAP` |
+| `THIEU_CHUNG_CHI` | `REQUIRED_CREDENTIAL_MISSING` |
+| `CA_DA_BAT_DAU` | `SHIFT_ALREADY_STARTED` |
+| `DA_CO_BAN_GIAO` | `HANDOVER_ALREADY_EXISTS` |
+| `CHUA_TOI_MOC_LAP` | `BEFORE_HANDOVER_PREPARATION_WINDOW` |
+| `MUC_KHONG_BO_DUOC` | `HANDOVER_ITEM_REMOVAL_NOT_ALLOWED` |
+| `THIEU_GHI_CHU_MUC_NGHIEM_TRONG` | `CRITICAL_ITEM_NOTE_REQUIRED` |
+| `NGOAI_PHAM_VI_CA` | `OUTSIDE_SHIFT_SCOPE` |
+
+### 14.6. Gói, SPI và bản giả Phase 1 (2026-10-23)
+
+Tên trong tasks/plan là tên logic; chỉ tạo gói khi có lớp theo `backend/README.md`. Các tên gói chức năng dưới đây dùng nhất quán khi triển khai các phase sau.
+
+| Tên logic | Mã |
+| --- | --- |
+| `nhanvien`, `giayphep`, `lichca`, `phancong` | `staff`, `credential`, `shift`, `assignment` |
+| `tyle`, `bangiao`, `nhiemvu`, `lich` | `staffing`, `handover`, `duty`, `scheduling` |
+| `doica`, `xoayca` (015 cùng M09) | `swap`, `rotation` |
+| Port lệnh ca, phân công, lịch nháp (N-07, 015) | `ShiftCommandPort`, `AssignmentCommandPort`, `DraftScheduleCommandPort`; ở `shift.internal.service.port` hoặc `assignment.internal.service.port` khi đến task tương ứng |
+| `DoGuiBanGiaoPort` | `m09.api.spi.HeldBelongingsHandoverPort` |
+| `dangGiu(nhanVienIds)`, `conDangGiu(doGuiIds, nhanVienIds)` | `heldBy(staffIds)`, `stillHeld(belongingIds, staffIds)` |
+| `DoGuiDangGiuView` | `HeldBelongingView` |
+| Đồ gửi, người giữ, người cao tuổi, vị trí lưu giữ | `belongingId`, `holderStaffId`, `residentId`, `storageLocationId` |
+| `ChuyenDiNhiemVuPort` | `m09.api.spi.TripDutyPort` |
+| `truongDoan(chuyenId)`, `nguoiDiCung(chuyenId)` | `groupLeader(tripId)`, `companions(tripId)` |
+| `chuyenTrongCa(tangKhuVucId, tu, den)` | `inShift(floorAreaId, from, to)` |
+| `ChuyenTrongCaView` | `TripInShiftView` |
+| Chuyến, nhân viên đang đi, giờ về dự kiến | `tripId`, `staffIds`, `expectedReturnAt` |
+| `KiemTraCongBoMoRong.kiemTra(lichCaId)` | `m09.shift.internal.service.port.ExtendedPublicationCheck.check(scheduleId)` |
+| `CanhBaoCongBo` | `PublicationWarning(code, description, details)` ở cùng gói port nội bộ |
+| Bản giả đồ gửi, chuyến đi, kiểm tra công bố | `FakeHeldBelongings`, `FakeTripDuties`, `FakeExtendedPublicationChecks` |
+| Cấu hình bản giả dùng chung cho test M09 | `support.fake.m09.FakeM09Config` |
+| Đặt đồ đang giữ / bỏ đồ trong bản giả | `hold` / `release` |
+| Đặt chuyến, cảnh báo, công tắc nguồn dữ liệu trong bản giả | `trip`, `warnings`, `available` |
+
+`M09ArchTest` kiểm lời gọi port lệnh nội bộ theo các tên trên và cấm job gọi `createSchedule`, `createShift`, `createAssignment`, `createHandover`, `addHandoverItem`. `ExtendedPublicationCheck` có chiều gọi 008 → 015 nên không thuộc nhóm port lệnh chỉ 015 được gọi. Công tắc bản giả chỉ dùng trong test, không thêm endpoint HTTP.
 
 ## 15. Feature 009 (`009-notification-service`, A) *(bổ sung 2026-10-21, khi dịch `contracts/api-009.yaml`)*
 
