@@ -8,9 +8,7 @@ Plan làm sau (009, 011, 013, 014, 015, 016) giữ đúng chữ ký hoặc ghi r
 
 ---
 
-## 1. 008 cung cấp
 
-### 1.1. SPI khai báo ở module thấp hơn, M09 cài
 
 | SPI (gói khai báo) | Bản cài của 008 | Dùng bởi |
 | --- | --- | --- |
