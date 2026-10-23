@@ -1,6 +1,7 @@
 package com.testsupport;
 
 import com.cambae.backend.common.error.AlreadyProcessedException;
+import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.error.ConditionNotMetException;
 import com.cambae.backend.common.error.InvalidValueException;
 import com.cambae.backend.common.error.NotFoundException;
@@ -30,6 +31,15 @@ public class SampleController {
         throw switch (kind) {
             case "condition" ->
                 new ConditionNotMetException(List.of(new UnmetCondition("BR-M03-06", "Giường chưa Trống")));
+            case "waivable" ->
+                new ConditionNotMetException(List.of(new UnmetCondition(
+                        "KT_H_QUYET_TOAN", "Chưa có biên bản quyết toán", "BR-M11-22", "017", true)));
+            case "candidates" ->
+                new BusinessException(
+                        HttpStatus.CONFLICT,
+                        "POSSIBLE_DUPLICATE_PROFILE",
+                        "Có thể trùng hồ sơ",
+                        Map.of("candidates", List.of(Map.of("id", 7))));
             case "permission" -> new PermissionDeniedException("Không có quyền");
             case "legal" ->
                 new PermissionDeniedException(
