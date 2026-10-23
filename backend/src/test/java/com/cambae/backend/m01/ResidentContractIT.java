@@ -63,6 +63,8 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
             "GET /residents/{id}/consents",
             "POST /residents/{id}/consents",
             "POST /consents/{id}/withdraw",
+            "GET /residents/{id}/reassessment",
+            "GET /reassessments/due",
             "POST /files",
             "GET /files/{id}");
 
@@ -105,6 +107,7 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
                 && !op.contains("/initial-health-records")
                 && !op.contains("/health-items")
                 && !op.contains("/assessments")
+                && !op.contains("/reassessments")
                 && !op.contains("/consents")
                 && !op.contains("/files"));
         assertThat(inCode).containsExactlyInAnyOrderElementsOf(IMPLEMENTED);
@@ -122,7 +125,8 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
             "CareLevelAtDate",
             "StatusHistoryEntry",
             "StatusCommandResult",
-            "Consent"
+            "Consent",
+            "ReassessmentStatus"
         }) {
             assertThat(properties(generated, schema)).as(schema).isEqualTo(properties(contract, schema));
         }
