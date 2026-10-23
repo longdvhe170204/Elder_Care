@@ -10,6 +10,7 @@ import { ShiftChecklistPage } from '@/features/care-tasks/ShiftChecklistPage'
 import { AlertsPage } from '@/features/alerts/AlertsPage'
 import { AdminPage } from '@/features/admin/AdminPage'
 import { ApprovalInbox } from '@/features/approval-requests/ApprovalInbox'
+import { NotificationsPage } from '@/features/notifications/NotificationsPage'
 import { AuditLogTable } from '@/features/audit-log/AuditLogTable'
 import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
 import { HandoverPage } from '@/features/handover/HandoverPage'
@@ -30,6 +31,7 @@ const PAGES = {
   'audit-log': AuditLogTable,
   admin: AdminPage,
   'approval-requests': ApprovalInbox,
+  notifications: NotificationsPage,
 }
 
 function firstPage(role) {

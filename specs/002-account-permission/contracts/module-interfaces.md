@@ -160,7 +160,7 @@ Chỉ endpoint nút SOS của 007 gọi hàm này (ArchUnit kiểm). Token thi�
 
 | Giao diện | Module cung cấp (feature) | Dùng cho | Khi chưa có |
 | --- | --- | --- | --- |
-| `HoSoNhanVienApi.trangThai(nhanVienId, ngay)`; `chucDanhCoVaiTro(nhanVienId)`; *(bổ sung 2026-10-20)* `taoHoSoToiThieu(hoTen, chucDanh)` (T016, công cụ khởi tạo, BR-M15-22), `hoTen(nhanVienId)` (T032a) | M09 (008) | FR-004, FR-004a, FR-011, FR-004b | Bản giả |
+| `HoSoNhanVienApi.trangThai(nhanVienId, ngay)`; `chucDanhCoVaiTro(nhanVienId)`; *(bổ sung 2026-10-20)* `taoHoSoToiThieu(hoTen, chucDanh)` (T016, công cụ khởi tạo, BR-M15-22), `hoTen(nhanVienId)` (T032a); *(bổ sung 2026-10-23, 009 US3, luật "Đổi api")* `soDienThoai(nhanVienId)` (`phoneNumber`, tin nhắn của 009 FR-016, FR-019) | M09 (008) | FR-004, FR-004a, FR-011, FR-004b; 009 FR-016 | Bản giả |
 | `GiayPhepApi.hieuLuc(nhanVienId, loai, ngay)` trả giấy phép và mục phạm vi hành nghề | 008 (FR-006) | FR-037, FR-038, A-09 | Bản giả |
 | `DanhMucPhamViHanhNgheApi` | 008 | FR-037, BR-M15-19 | Bản giả |
 | `PhanCongApi.dangHieuLuc(nhanVienId, thoiDiem)`; `lichSu(nhanVienId, tu, den)`; *(bổ sung 2026-10-22 cho 009 FR-007 (a))* `nhanVienPhanCongChoNguoiCaoTuoi(nctId, thoiDiem)`, `nhanVienPhanCongChoPhong(phongId, thoiDiem)` (trực tiếp hoặc qua phòng, tầng theo luật 008) | 008 (FR-037a) | FR-028 → FR-035a; 009 BR-M13-04 | Bản giả |
