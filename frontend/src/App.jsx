@@ -15,6 +15,7 @@ import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
 import { HandoverPage } from '@/features/handover/HandoverPage'
 import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
 import { MedicationPage } from '@/features/medication/MedicationPage'
+import { MedicationCatalogPage } from '@/features/medication-catalog/MedicationCatalogPage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
 
 // Bản mẫu giai đoạn thiết kế: chuyển màn bằng state, React Router thêm ở 000 T005.
@@ -24,6 +25,7 @@ const PAGES = {
   'care-tasks': ShiftChecklistPage,
   incidents: IncidentDetailPage,
   medication: MedicationPage,
+  'medication-catalog': MedicationCatalogPage,
   alerts: AlertsPage,
   handovers: HandoverPage,
   relatives: RelativesPage,
