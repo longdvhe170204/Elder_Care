@@ -162,7 +162,7 @@ Bổ sung theo từng feature khi dịch `contracts/api-NNN.yaml` (R-03).
 
 | Tên logic | Mã |
 | --- | --- |
-| `Loi` (`maLoi`, `dieuKienChuaThoa[]` {`ma`, `moTa`}, `giaTriHienHanh`) | `Problem` (`errorCode`, `unmetConditions[]` {`code`, `description`}, `currentValue`) |
+| `Loi` (`maLoi`, `dieuKienChuaThoa[]` {`ma`, `moTa`, `canCu`, `module`, `mienDuoc`}, `giaTriHienHanh`, `ungVien[]`) | `Problem` (`errorCode`, `unmetConditions[]` {`code`, `description`, `basis`, `module`, `waivable`}, `currentValue`, `candidates[]`); `UnmetCondition` (ba trường sau không bắt buộc, 001 BL-23 2026-10-23) |
 | `LyDo` | `Reason` |
 | `ThamSo` (`ma`, `moTa`, `kieu`, `donVi`, `rangBuoc`, `giaTriMacDinh`, `giaTriHienHanh`, `dungTai`, `phienBan`, `doiLuc`) | `Parameter` (`code`, `description`, `type`, `unit`, `constraints`, `defaultValue`, `currentValue`, `usedIn`, `version`, `changedAt`) |
 | đổi giá trị: `giaTri`, `khoiPhucMacDinh` | `value`, `restoreDefault` |
