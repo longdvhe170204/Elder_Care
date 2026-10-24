@@ -370,6 +370,15 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NewAssignment' } } } }
       responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ResultWithWarnings' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/BlockingProblem' } }
+  /shifts/{id}/assignments/preview:
+    post:
+      tags: [assignments]
+      summary: Kiểm tra phân công và cảnh báo chứng chỉ trước khi lưu
+      description: 'Bổ sung được chủ dự án duyệt 2026-10-24 cho FR-031. Chỉ đọc, không lập phân công hoặc ghi nhật ký; phản hồi không có id. Lệnh tạo vẫn kiểm lại dữ liệu hiện hành.'
+      x-fr: [FR-025, FR-028, FR-028a, FR-030, FR-031]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NewAssignment' } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ResultWithWarnings' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/BlockingProblem' } }
   /assignments/{id}:
     delete:
       tags: [assignments]

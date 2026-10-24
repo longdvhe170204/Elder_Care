@@ -287,6 +287,12 @@ Trigger: khi `ban_giao.chot_luc IS NOT NULL`, dòng `DA_CHOT`, `DA_XU_LY_TRONG_C
 
 ---
 
+### Ghi chú triển khai Phase 4 (2026-10-24)
+
+- Tên bảng thật theo glossary 14.9: `floor_scope_lock`, `floor_manager_assignment`, `staff_assignment`, chỉ khóa ngoại nội bộ M09. Trạng thái cuối được bảo vệ ở trigger; chỉ tài khoản lưu giữ được loại bỏ bản ghi cuối theo provider.
+- `work_shift.publication_assignments_notified_at` là cờ kỹ thuật cho mốc công bố, tách khỏi `unassigned_residents_notified_at` của mốc đầu ca. Nguồn B/C chưa có thì cờ còn null để thử lại, không lưu kết quả người cao tuổi rỗng thay dữ liệu chưa lấy được.
+- Provider `M09.ASSIGNMENT`, `M09.FLOOR_MANAGER_ASSIGNMENT` cùng phạm vi đăng ký khi tạo bảng T019. Mốc lưu giữ phân công lấy `COALESCE(actual_end_at,ends_at)`, chỉ chọn trạng thái cuối và ca cha đã đóng/hủy; hồ sơ nhân viên, ca giữ lại khi còn tham chiếu.
+
 ## 11. Truy vết DBR, BR và FR
 
 | Mã | Bảo đảm ở | Test |

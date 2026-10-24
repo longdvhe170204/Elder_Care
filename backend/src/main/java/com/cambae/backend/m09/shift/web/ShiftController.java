@@ -279,6 +279,9 @@ class ShiftController {
                     .stream()
                     .sorted()
                     .toList();
+        var assignmentCommands = new ArrayList<>(commands);
+        assignmentCommands.addAll(schedules.assignmentCommands(shift));
+        commands = List.copyOf(assignmentCommands);
         var members = schedules.members(shift.id()).stream()
                 .map(m -> new ShiftResponses.Staff(
                         m.staffId(), m.onDutyDoctor(), m.absentAt() != null, m.approvedLeaveRequestId() != null))

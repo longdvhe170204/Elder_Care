@@ -48,6 +48,26 @@ beforeEach(() => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
+it('FR_025_moPhanCongCuaCa_vaGiaoTruongTangTuLich', async () => {
+  api.on(
+    'GET',
+    '/shift-schedules',
+    json(200, [
+      { id: 7, month: '2026-11', scopeType: 'FLOOR', scopeId: 5, status: 'DRAFT', version: 2, shifts: [SHIFT] },
+    ]),
+  )
+  api.on('GET', '/shifts/20', json(200, { ...SHIFT, allowedCommands: ['createAssignment'] }))
+  api.on('GET', '/shifts/20/assignments', json(200, []))
+  api.on('GET', '/floor-manager-assignments', json(200, []))
+  render(<ShiftsPage initialMonth="2026-11" />)
+  fireEvent.click(await screen.findByRole('button', { name: 'Phân công' }))
+  expect(await screen.findByText('Chưa có phân công trong ca.')).toBeVisible()
+  fireEvent.keyDown(document, { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  fireEvent.click(screen.getByRole('button', { name: 'Giao Trưởng tầng' }))
+  expect(await screen.findByLabelText('Ngày bắt đầu giao')).toBeVisible()
+})
+
 it('FR_016_khongBatBuocLyDoNeuBackendKhongYeuCau_vaChoBoSungKhiTuDuyet', async () => {
   api.on(
     'GET',

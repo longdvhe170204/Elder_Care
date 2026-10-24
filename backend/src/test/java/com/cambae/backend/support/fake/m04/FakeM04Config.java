@@ -9,6 +9,12 @@ import org.springframework.context.annotation.Primary;
 public class FakeM04Config {
     @Bean
     @Primary
+    public FakeCareRequirements fakeCareRequirements() {
+        return new FakeCareRequirements();
+    }
+
+    @Bean
+    @Primary
     public FakeCareShifts fakeCareShifts() {
         return new FakeCareShifts();
     }

@@ -142,3 +142,11 @@ Hai kiểu chỉ SPI dùng nằm cùng gói `api.spi`. Bản giả dùng chung �
 | `CanhBaoBanGiaoApi` (`dangMo`, `khiXacNhanBanGiao` MANDATORY), `ChiSoApi.vuotNguongTrongKhoang` | M05, M06 (007) | FR-039 (c), (d), FR-044 | Có sẵn |
 | `NhatKyApi`, `ThamSoApi`, `DinhChinhApi`, `TepApi`, `common` | M15 (000) | Mọi lệnh | Có sẵn |
 | Bản cài các SPI mục 2.1; `KiemTraCongBoMoRong` (015) | 013, 014, 015 | | Bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}` |
+
+### 2.4. Ghi chú nối Phase 4 (2026-10-24)
+
+- `AssignmentApi`/`DutyApi` của 002 được M09 cài bằng `AssignmentQueries`/`DutyDirectory`; phần thay Phụ trách bộ phận tham gia transaction của lệnh gọi bằng `MANDATORY`. Các SPI đọc phân công của 005/006/007 được nối cùng bảng phân công; tên tiếng Anh ở glossary 14.9.
+- 001 đã có trên `origin/develop` (`b049b1f`, PR #23 tại `dc0c452`). 008 dùng đúng `m01.api.ResidentApi.isFinalStatus(long)` và `m01.api.events.ResidentStatusChanged`, với enum `ResidentStatus`/`StatusCommand` do B khai báo. Listener kết thúc/hủy phân công trực tiếp cùng transaction lệnh nguồn; cập nhật tỷ lệ thuộc T037. API/DTO và bản giả `FakeResidents` được đồng bộ từ B thay cho khai báo tạm, chưa gộp toàn bộ bản cài 001 vào nhánh E.
+- Khi test độc lập, dùng duy nhất `support/fake/m01/FakeResidents` qua `FakeM01Config`, đặt trạng thái tường minh bằng `resident`/`changeStatus`. `FakeLocations` và `FakeCareRequirements` là nguồn test cho API tối thiểu 003/005 đã được người dùng duyệt, chờ C review/cài thật. Không có bean giả trong ứng dụng thật; thiếu nguồn kiểm nghiệp vụ thì báo thiếu nguồn, riêng nhắc phân công giữ cờ chờ để thử lại.
+- `AssignmentView.scopeEndsAt` là mốc ngừng cấp phạm vi khi kết thúc sớm, được người dùng duyệt; vẫn giữ constructor bảy tham số. Phạm vi không cộng CFG-M15-07 qua mốc này; lịch sử trước mốc vẫn truy được.
+- `FileApi` đã có bản cài trong develop sau 001. Nhánh E hiện vẫn dùng interface có sẵn và cần gộp develop có kiểm soát trước khi kiểm scan chứng chỉ với nguồn thật; không sao chép riêng dịch vụ lưu tệp hay tạo thêm fake tệp.

@@ -8,4 +8,23 @@ import java.time.Instant;
  * ({@code to} {@code null} khi chưa kết thúc).
  */
 public record AssignmentView(
-        AssignmentKind kind, Long floorAreaId, Long roomId, Long residentId, Long shiftId, Instant from, Instant to) {}
+        AssignmentKind kind,
+        Long floorAreaId,
+        Long roomId,
+        Long residentId,
+        Long shiftId,
+        Instant from,
+        Instant to,
+        Instant scopeEndsAt) {
+    /** Mốc ngừng phạm vi khi kết thúc sớm; không cộng biên CFG-M15-07 sau mốc này. */
+    public AssignmentView(
+            AssignmentKind kind,
+            Long floorAreaId,
+            Long roomId,
+            Long residentId,
+            Long shiftId,
+            Instant from,
+            Instant to) {
+        this(kind, floorAreaId, roomId, residentId, shiftId, from, to, null);
+    }
+}

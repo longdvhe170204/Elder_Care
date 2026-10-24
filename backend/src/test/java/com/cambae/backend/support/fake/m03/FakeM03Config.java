@@ -9,6 +9,12 @@ import org.springframework.context.annotation.Primary;
 public class FakeM03Config {
     @Bean
     @Primary
+    public FakeLocations fakeLocations() {
+        return new FakeLocations();
+    }
+
+    @Bean
+    @Primary
     public FakeLocationReferences fakeLocationReferences() {
         return new FakeLocationReferences();
     }

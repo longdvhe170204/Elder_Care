@@ -52,6 +52,8 @@ public class ShiftScheduleService {
     private final BusinessTime time;
     private final AuditLogApi audit;
     private final ApplicationEventPublisher events;
+    private final com.cambae.backend.m09.assignment.internal.service.AssignmentService staffAssignments;
+    private final com.cambae.backend.m09.assignment.internal.service.AssignmentReminders assignmentReminders;
 
     public ShiftScheduleService(
             ShiftStore store,
@@ -65,7 +67,9 @@ public class ShiftScheduleService {
             ParameterApi parameters,
             BusinessTime time,
             AuditLogApi audit,
-            ApplicationEventPublisher events) {
+            ApplicationEventPublisher events,
+            com.cambae.backend.m09.assignment.internal.service.AssignmentService staffAssignments,
+            com.cambae.backend.m09.assignment.internal.service.AssignmentReminders assignmentReminders) {
         this.store = store;
         this.staff = staff;
         this.credentials = credentials;
@@ -78,10 +82,16 @@ public class ShiftScheduleService {
         this.time = time;
         this.audit = audit;
         this.events = events;
+        this.staffAssignments = staffAssignments;
+        this.assignmentReminders = assignmentReminders;
     }
 
     public List<ShiftTemplate> templates() {
         return store.templates();
+    }
+
+    public List<String> assignmentCommands(WorkShift shift) {
+        return staffAssignments.allowedCommands(shift);
     }
 
     @RequiresPermission(function = Function.SHIFT_SCHEDULE, operation = Operation.CREATE)
@@ -183,6 +193,8 @@ public class ShiftScheduleService {
         Instant[] interval = interval(schedule, template, input);
         var warnings = validateStaff(schedule, input, id, interval[0], interval[1]);
         confirm(warnings, input.confirmWarnings(), input.reason());
+        staffAssignments.removeDraftMembers(
+                id, input.staff().stream().map(ShiftInput.Member::staffId).toList());
         store.updateShift(before, template, input, interval[0], interval[1]);
         return new Mutation(id, warnings);
     }
@@ -197,6 +209,7 @@ public class ShiftScheduleService {
         require(Operation.UPDATE, target(schedule.scopeType(), schedule.scopeId()));
         draft(schedule);
         VersionEtag.requireMatch(ifMatch, shift.version(), shift);
+        staffAssignments.removeDraftMembers(id, List.of());
         store.deleteShift(shift);
     }
 
@@ -282,8 +295,11 @@ public class ShiftScheduleService {
                 warnings.addAll(trainingWarnings(member.staffId(), shift.startsAt(), shift.endsAt()));
             }
         extended.orderedStream().forEach(check -> warnings.addAll(check.check(schedule.id())));
-        // T021/T037 nối kiểm tra phân công và tỷ lệ khi có bảng, dữ liệu nguồn tương ứng.
-        return new Preview(List.copyOf(conditions), List.of(), List.copyOf(new LinkedHashSet<>(warnings)));
+        // Tỷ lệ phục vụ nối T037 khi có nguồn trọng số.
+        var invalid = staffAssignments.invalidDrafts(schedule.id()).stream()
+                .map(a -> new InvalidAssignment(a.assignmentId(), a.reason()))
+                .toList();
+        return new Preview(List.copyOf(conditions), invalid, List.copyOf(new LinkedHashSet<>(warnings)));
     }
 
     @BusinessCommand(requiresReason = false)
@@ -298,6 +314,7 @@ public class ShiftScheduleService {
                 .sorted()
                 .toList();
         lockStaff(staffIds);
+        staffAssignments.lockScheduleScope(id);
         var schedule = store.schedule(id, true);
         require(Operation.APPROVE, target(schedule.scopeType(), schedule.scopeId()));
         draft(schedule);
@@ -310,9 +327,12 @@ public class ShiftScheduleService {
                 .toList();
         if (!staffIds.equals(actual))
             throw conflict("STATE_CHANGED", "Danh sách nhân viên đã thay đổi, hãy xem lại lịch");
-        if (!assignmentsToRemove.isEmpty())
-            throw conflict("INVALID_ASSIGNMENTS", "Không tìm thấy phân công Nháp cần loại bỏ trong lịch");
+        staffAssignments.removeDrafts(id, assignmentsToRemove);
         var check = preview(schedule);
+        if (!check.invalidAssignments().isEmpty())
+            throw conflict(
+                    "INVALID_ASSIGNMENTS",
+                    "Có phân công Nháp không hợp lệ; hãy gỡ các dòng đã liệt kê và kiểm tra lại");
         if (!check.unmetConditions().isEmpty()) throw new ConditionNotMetException(check.unmetConditions());
         boolean self = Objects.equals(schedule.createdBy(), users.getObject().accountId());
         if (self && reason == null) throw new ReasonRequiredException();
@@ -334,6 +354,8 @@ public class ShiftScheduleService {
         Instant now = time.now();
         store.publish(
                 schedule, shifts, users.getObject().accountId(), self, reason == null ? null : reason.value(), now);
+        staffAssignments.activateSchedule(id);
+        store.savePublication(id, now, staffAssignments.snapshot(id));
         audit.write(AuditLogEntry.builder()
                 .action(new AuditAction("SCHEDULE_PUBLISHED", self))
                 .entity("M09.SCHEDULE", id)
@@ -370,6 +392,7 @@ public class ShiftScheduleService {
                     Optional.empty(),
                     Optional.empty()));
         }
+        assignmentReminders.published(id, now);
         events.publishEvent(new SchedulePublished(id, staffIds, now, requests));
     }
 

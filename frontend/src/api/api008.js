@@ -132,6 +132,9 @@ export const getShiftsByIdAssignments = (params) => request('GET', '/shifts/{id}
 /** Lập phân công (Trưởng tầng trong phạm vi, Quản lý viện) (FR-025, FR-027, FR-028, FR-028a, FR-030, FR-031, BR-M09-01) */
 export const postShiftsByIdAssignments = (params) => request('POST', '/shifts/{id}/assignments', params)
 
+/** Kiểm tra phân công và cảnh báo chứng chỉ trước khi lưu (FR-025, FR-028, FR-028a, FR-030, FR-031) */
+export const postShiftsByIdAssignmentsPreview = (params) => request('POST', '/shifts/{id}/assignments/preview', params)
+
 /** Xóa phân công Nháp (chỉ khi lịch Nháp) (FR-025) */
 export const deleteAssignmentsById = (params) => request('DELETE', '/assignments/{id}', params)
 

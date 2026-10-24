@@ -9,9 +9,16 @@ import org.springframework.stereotype.Service;
 @Service
 class NursingShiftLookup implements NursingShiftPort {
     private final ShiftQueries query;
+    private final com.cambae.backend.m09.assignment.internal.service.AssignmentQueries assignments;
 
-    NursingShiftLookup(ShiftQueries query) {
+    NursingShiftLookup(
+            ShiftQueries query, com.cambae.backend.m09.assignment.internal.service.AssignmentQueries assignments) {
         this.query = query;
+        this.assignments = assignments;
+    }
+
+    public Optional<Long> assignedTo(long resident, Instant at) {
+        return assignments.assignedNurses(resident, at).stream().findFirst();
     }
 
     public Optional<NursingShiftView> shiftAt(long floor, Instant at) {
