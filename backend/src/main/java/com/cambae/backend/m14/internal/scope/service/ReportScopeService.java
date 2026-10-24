@@ -135,6 +135,16 @@ public class ReportScopeService {
         }
     }
 
+    /**
+     * Người xem thấy nhóm chỉ tiêu ở kênh đã cho (bảng FR-010 sau thu hẹp của 002), không ném lỗi: báo cáo bỏ nhóm không
+     * thấy mà không làm hỏng transaction của lệnh xuất.
+     */
+    public boolean visible(CurrentUser user, MetricGroup group, ReportChannel channel) {
+        return permissions.permissions(user).contains(KEY)
+                && !MetricGroupAccess.scopes(user.roles(), group, channel, permissions.metricGroupRestrictions(user))
+                        .isEmpty();
+    }
+
     private Set<GroupScope> allowedKinds(CurrentUser user, MetricGroup group, ReportChannel channel) {
         if (!permissions.permissions(user).contains(KEY)) {
             throw new PermissionDeniedException(
