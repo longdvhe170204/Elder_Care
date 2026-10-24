@@ -80,7 +80,7 @@ paths:
         - { $ref: '#/components/parameters/IdempotencyKey' }
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ExportRequest' } } } }
       responses:
-        '201': { description: 'Mã tệp để tải và mã nhật ký' }
+        '201': { description: 'Mã tệp để tải (GET /files/{id}) và mã nhật ký', content: { application/json: { schema: { $ref: '#/components/schemas/ExportResult' } } } }
         '403': { $ref: '#/components/responses/Problem' }
         '422': { description: 'RANGE_EXCEEDS_MAXIMUM, PURPOSE_REQUIRED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
   /reports/exports:
@@ -88,7 +88,7 @@ paths:
       tags: [export]
       summary: Lần xuất (Quản lý viện thấy mọi lần; người khác thấy lần của mình)
       x-fr: [FR-062]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ExportRecord' } } } } } }
 
 components:
   securitySchemes:
@@ -166,3 +166,24 @@ components:
         includeIdentity: { type: boolean, description: 'Chỉ Quản lý viện' }
         purpose: { type: string, description: 'Bắt buộc khi includeIdentity' }
         format: { type: string, enum: [XLSX, CSV], default: XLSX }
+    ExportResult:
+      type: object
+      description: 'Bổ sung 2026-10-24 (chủ dự án duyệt): kết quả lệnh xuất'
+      properties:
+        fileId: { type: integer, format: int64, description: 'Tải bằng GET /files/{id} (người xuất, Quản lý viện)' }
+        auditLogId: { type: integer, format: int64, description: 'Bản ghi nhật ký "Xuất báo cáo"' }
+    ExportRecord:
+      type: object
+      description: 'Bổ sung 2026-10-24 (chủ dự án duyệt): một lần xuất, đọc từ nhật ký (FR-062)'
+      properties:
+        auditLogId: { type: integer, format: int64 }
+        fileId: { type: integer, format: int64 }
+        exportedAt: { type: string, format: date-time }
+        exportedBy: { type: [integer, 'null'], format: int64, description: 'Tài khoản người xuất' }
+        role: { type: string, description: 'Vai trò lúc xuất (mã AC-xx)' }
+        group: { type: string, description: 'Nhóm báo cáo (ReportGroup)' }
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        includeIdentity: { type: boolean }
+        purpose: { type: [string, 'null'], description: 'Mục đích xuất (lý do của bản ghi nhật ký)' }
+        rowCount: { type: [integer, 'null'] }
