@@ -835,6 +835,7 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 | `BaoCao` (`nhom`, `tu`, `den`, `tinhDen`, `boLoc`, `giaTri`, `ghiChu`) | `Report` (`group`, `from`, `to`, `asOf`, `filters`, `values`, `notes`) |
 | `ChiTiet` (`maChiTieu`, `tongSo`, `dong` {`khoaNguon`, `feature`, `loai`, `trangThai`, `moc`, `tangKhuVuc`, `nguoiCaoTuoi`, `rutGon`, `nguoiThucHien`, `ketQua`, `choXemLai`, `moDuocBanGhi`}) | `MetricDetail` (`metricCode`, `total`, `rows` {`sourceKey`, `feature`, `type`, `status`, `referenceTime`, `floorArea`, `resident`, `reduced`, `performedBy`, `result`, `pendingReview`, `canOpenRecord`}) |
 | `YeuCauXuat` (`tu`, `den`, `boLoc`, `cheDoChiPhi`, `coDinhDanh`, `mucDich`, `dinhDang`) | `ExportRequest` (`from`, `to`, `filters`, `costMode`, `includeIdentity`, `purpose`, `format`) |
+| *(bổ sung 2026-10-24, chủ dự án duyệt)* kết quả xuất (`maTep`, `maNhatKy`); lần xuất (`maNhatKy`, `maTep`, `thoiDiem`, `nguoiXuat`, `vaiTro`, `nhom`, `tu`, `den`, `coDinhDanh`, `mucDich`, `soDong`) | `ExportResult` (`fileId`, `auditLogId`); `ExportRecord` (`auditLogId`, `fileId`, `exportedAt`, `exportedBy`, `role`, `group`, `from`, `to`, `includeIdentity`, `purpose`, `rowCount`) |
 | `Loi`, response `Loi`; security scheme `phien` | `Problem` (như api-000), response `Problem`; `session` |
 
 ### 22.3. Giá trị enum

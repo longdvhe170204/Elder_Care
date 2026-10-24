@@ -28,9 +28,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Xuất báo cáo và lần xuất theo contracts/api-016.yaml (thẻ {@code export}; 016 T026). Hợp đồng chưa có schema cho phản
- * hồi 201, 200 nên tài liệu sinh ra không ghi nội dung; thân thật: {@code {fileId, auditLogId}} và danh sách lần xuất.
- * Tải tệp qua {@code GET /files/{id}}.
+ * Xuất báo cáo và lần xuất theo contracts/api-016.yaml (thẻ {@code export}; 016 T026). Tải tệp qua
+ * {@code GET /files/{id}}.
  */
 @RestController
 @RequestMapping("/api/v1")
@@ -45,7 +44,7 @@ public class ReportExportController {
 
     @PostMapping("/reports/{group}/export")
     @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Mã tệp để tải và mã nhật ký", content = @Content),
+        @ApiResponse(responseCode = "201", description = "Mã tệp để tải và mã nhật ký"),
         @ApiResponse(
                 responseCode = "403",
                 content =
@@ -75,7 +74,7 @@ public class ReportExportController {
     }
 
     @GetMapping("/reports/exports")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
+    @ApiResponse(responseCode = "200", description = "OK")
     List<ExportRecord> list() {
         return exports.list();
     }
