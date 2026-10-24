@@ -440,6 +440,18 @@ Tổng theo tasks.md (số liệu 2026-10-23, trước Phase 9; số hiện hàn
 - **Sự kiện T076**: `sourceModule = "M04"`, `itemType = "INTEREST"`, bản dựng sự kiện từ chối giá trị khác và id không dương; test đi qua kho sự kiện Modulith thật.
 - **Tab Danh mục (T072; Opus #12, #13)**: theo quyền thật `HEALTH_CATALOGS` từ `GET /me/permissions`; `AdminPage` bọc `PermissionsProvider` vì `App` chưa gắn.
 
+## Ghi chú triển khai *(2026-10-24, lượt sửa cuối sau Opus final review)*
+
+- **Opus #6 (High) đã sửa**: `reason`, `basis`, `conditionWaiver` của `StatusHistoryEntryBody` thuộc nhóm `HEALTH` (`@FieldGroup`, `VisibilityTarget` theo người cao tuổi của dòng, `hiddenFields` mới trong schema `StatusHistoryEntry` của api-001); áp cho cả `GET /residents/{id}/status-history` và `StatusCommandResult.history`. Hành chính, Kế toán, người thân chưa được chia sẻ sức khỏe vẫn thấy từ, đến, lệnh, thời điểm, người thực hiện; lý do đã đính chính cũng bị che. Quyền xem lịch sử (`RESIDENT_PROFILE VIEW`) không đổi. `HistoryEntry` của service thêm `residentId`. Web: `StatusTab` báo "lý do và căn cứ chỉ hiện với người được xem thông tin sức khỏe". Test: `StatusHistoryVisibilityIT` 7 test (Hành chính, Kế toán, Bác sĩ, Điều dưỡng được phân công và không được phân công, người thân có và không có trong bản đồng ý, đính chính, kết quả lệnh); `StatusEndpointsIT` sửa một dòng cũ (Hành chính không còn thấy lý do ở kết quả lệnh).
+- **`SelfHiddenFields` (002, "Đổi api" 2026-10-24)**: `ProfileBody` cài giao diện, cờ `hasTreatmentWish` `null` thì ẩn và ghi vào `hiddenFields` (Kế toán); `TreatmentWishVisibilityIT` thêm kiểm `hiddenFields` và kiểm người thấy cờ thì không bị liệt kê.
+- **Hai lớp A viết trong m01** (`ResidentProfileForAccount`, `ResidentAccountLockOnFinalStatus`): tương thích, `ResidentProfileForAccountIT`, `ResidentAccountFinalStatusIT` qua. Lưu ý `inResidence` của A chỉ đúng khi `IN_RESIDENCE` (Tạm vắng, Chuyển viện không tính).
+- **`ResidentStatisticsApi` (016)**: hợp đồng đủ (ba hàm, ba DTO) nhưng chưa có task 001 và chưa có bản cài hay bản giả; không làm trong lượt này, đề xuất lượt riêng sau PR 001 (team-plan mục 8).
+- **`SourceRecord` của `ResidentStatusNotice`** đổi thành `M01.RESIDENT_STATUS_HISTORY` (cùng loại với nhật ký, đính chính, lưu giữ); chưa có bản ghi nào dùng tên cũ.
+- **Retention**: theo quyết định chủ dự án, không xóa vật lý tệp S3, không thêm `FileApi.delete`; T011 giữ `[ ]`. Việc A phải xong trước khi bật xóa thật (team-plan mục 8): `AuditLogRetention` theo mốc hồ sơ, SPI phần đi kèm cho tệp, cơ chế khai tham chiếu giữa các module, quy tắc lifecycle S3 (bucket bật versioning).
+- **`checkOperations`**: bản tạm của `ApiContractIT` với api-001 `true` báo 0 lệch (đã xóa bản tạm); chưa sửa file của A, chờ chủ dự án duyệt (T071).
+- **Đồng bộ develop**: merge `origin/develop` `b049b1f`; xung đột chỉ ở `DESIGN.md` (phiên bản 5.20.1 cho bố cục tab Danh mục, giữ 5.20.0 của 002) và `docs/team-plan.md` (giữ đủ dòng A và B).
+- **Kiểm thử cuối (MySQL 3307)**: `./mvnw clean verify`: 244 test đơn vị và kiến trúc, 936 test tích hợp, 0 lỗi; lần chạy đầu dừng ở `spotless:check` vì `ResidentStatusNotice.java` lệch dòng sau `sed`, đã `spotless:apply` và `verify -DskipTests` BUILD SUCCESS. Vitest 247, lint sạch, build đạt (sau `npm ci` vì develop thêm `qrcode.react`).
+
 ## Bàn giao cho Opus review cuối *(2026-10-24)*
 
 ### 1. Tổng tiến độ 85 task của Phase 1 → 10
@@ -467,7 +479,7 @@ Tổng theo tasks.md (số liệu 2026-10-23, trước Phase 9; số hiện hàn
 | 3 | Ảnh không gắn tệp | **Đã sửa** (đợt 1) | `ResidentPhotoIT` |
 | 4 | M01 không gửi thông báo | **Đã sửa phía M01** (đợt 2); người nhận thật chờ E (BL-47) | `ResidentNotificationRequestsTest`, `ResidentNotificationsIntakeIT` |
 | 5 | Giấy tờ bệnh viện chưa làm | **Đã sửa** backend, web, `hospitalDocuments`; mobile chưa | `HospitalDocumentsIT`, `StatusTab.test.jsx` |
-| 6 | Lịch sử trạng thái có thể lộ lý do, căn cứ, miễn điều kiện | **Chưa sửa, cần quyết định nghiệp vụ**: spec chưa quy định ai thấy phần nào; đã ghi phương án ở team-plan mục 8 | không có test mới |
+| 6 | Lịch sử trạng thái có thể lộ lý do, căn cứ, miễn điều kiện | **Đã sửa (lượt cuối 2026-10-24)**: nhóm `HEALTH`, `hiddenFields` | `StatusHistoryVisibilityIT` 7 test |
 | 7 | Truy vết DBR-23 chưa đủ | **Đã sửa** (đợt 3); T075 từng ghi quá sớm, đã điều chỉnh | `M01CommandAuditTrailIT` 14 test |
 | 8 | Thiếu `RetentionProvider` | **Đã sửa phía M01**; chưa xóa thật do A và tệp chờ quyết định | `ResidentRetentionIT` 4 test |
 | 9 | Thiếu provider đính chính lịch sử trạng thái | **Đã sửa** | `StatusHistoryCorrectionIT` 4 test |
@@ -479,14 +491,13 @@ Tổng theo tasks.md (số liệu 2026-10-23, trước Phase 9; số hiện hàn
 | 15 | T013a tên tiếng Việt | **Đã sửa**: `FR_023h_NoCapacityFlagIT` | `[x]` |
 | 16 | `specialNotes` xếp công khai nội bộ | **Đã sửa** theo chỉ đạo: nhóm `HEALTH` | `M01CommandAuditTrailIT` |
 
-Còn mở: **#6** (cần quyết định nghiệp vụ). #4, #5, #8 đã xong phần B, còn phụ thuộc người khác hoặc mobile như bảng trên.
+Không còn vấn đề mở ở phía B. #4, #5, #8 đã xong phần B, còn phụ thuộc người khác hoặc mobile như bảng trên.
 
 ### 3. Lỗi và hạn chế còn tồn tại
 
 | Mức | Vấn đề | Bằng chứng | Ai |
 | --- | --- | --- | --- |
 | Trung bình | Dữ liệu M01 hết hạn chưa bao giờ bị xóa thật: `AuditLogRetention` giữ nhật ký gắn người cao tuổi | `ResidentRetentionIT.FR_050_residentLinkedAuditLog_keepsTheWholeChain…` | A |
-| Trung bình | Lịch sử trạng thái hiện lý do, căn cứ, miễn điều kiện cho cả người thân và Hành chính (xem #6) | `StatusController.history`, `StatusHistoryEntryBody` | Chủ dự án |
 | Thấp | Đính chính "Hủy ghi nhận" (VOID) áp dụng được cho dòng lịch sử trạng thái nhưng không đổi trạng thái hiện tại; provider không chặn được | không có test; do SPI của A | A |
 | Thấp | Đính chính không có `resident_id` ở dòng của 000; M01 ghi dòng phụ `RECORD_CORRECTED` (BL-48) | `M01CommandAuditTrailIT` | A |
 | Thấp | `AuditLogQueryService.history()` trả 404 cho người xem theo phạm vi | báo từ đợt 1 | A |
@@ -495,7 +506,7 @@ Còn mở: **#6** (cần quyết định nghiệp vụ). #4, #5, #8 đã xong ph
 | Thấp | Giao diện web mới chưa nghiệm thu trên trình duyệt: `StatusTab` (giấy tờ bệnh viện, bằng chứng qua đời), tab Danh mục theo quyền | chỉ có Vitest | Chủ dự án |
 
 ### 4. Kết quả kiểm thử cuối cùng (MySQL 3307; không đụng 3306, dữ liệu demo, lịch sử Flyway)
-- `./mvnw clean verify`: **199 test đơn vị và kiến trúc, 905 test tích hợp, 0 lỗi**, BUILD SUCCESS (gồm `ModuleBoundaryTest`, `LayerArchTest`, `M13ArchTest`, `ApiContractIT`).
+- (Số liệu đợt 4; số liệu cuối xem ghi chú "lượt sửa cuối" ở trên: 244 đơn vị, 936 tích hợp, 247 Vitest) `./mvnw clean verify`: **199 test đơn vị và kiến trúc, 905 test tích hợp, 0 lỗi**, BUILD SUCCESS (gồm `ModuleBoundaryTest`, `LayerArchTest`, `M13ArchTest`, `ApiContractIT`).
 - Frontend: **237 Vitest**, `npm run lint` sạch, `npm run build` đạt. `prettier --check` còn báo 6 file lệch định dạng (cũ và file sửa có dòng cũ); không áp hàng loạt theo chỉ đạo.
 - Test mới của đợt 2 → 4: `HospitalDocumentsIT` 11, `ResidentNotificationRequestsTest` 12, `ResidentNotificationsIntakeIT` 5, `M01CommandAuditTrailIT` 14, `StatusPeriodsIT` 5, `StatusHistoryCorrectionIT` 4, `ResidentRetentionIT` 4, `ChildScopeAssignmentIT` 3, `FR_023g_OpinionFromFeedbackIT` 5, `AdminPage.test.jsx` 5, 7 test `StatusTab`.
 
