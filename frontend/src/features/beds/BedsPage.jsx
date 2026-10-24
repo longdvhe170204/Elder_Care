@@ -13,6 +13,7 @@ import { BedTransfersPanel } from './BedTransfersPanel'
 import { BedAllocationsPanel } from './BedAllocationsPanel'
 import { LocationHistoryPanel } from './LocationHistoryPanel'
 import { DayCarePanel } from './DayCarePanel'
+import { IsolationWorkspace } from './IsolationWorkspace'
 import { catalogs, bedStates } from './bedCatalog'
 
 async function fetchCatalogs() {
@@ -81,15 +82,19 @@ export function BedsPage() {
     permissions.some(
       (permission) => permission.function === 'INFECTION_CONTAINMENT' && permission.operation === 'CREATE',
     )
-  if (!allowed('VIEW') && !allocationAllowed('VIEW') && !historyAllowed)
+  const isolationAllowed = (operation) =>
+    permissions.some((permission) => permission.function === 'ROOM_ISOLATION' && permission.operation === operation)
+  if (!allowed('VIEW') && !allocationAllowed('VIEW') && !historyAllowed && !isolationAllowed('VIEW'))
     return <PermissionDeniedState label="phòng, giường" />
   const activeTab = allowed('VIEW')
     ? tab
-    : !allocationAllowed('VIEW') || tab === 'history'
-      ? 'history'
-      : tab === 'allocations'
-        ? 'allocations'
-        : 'transfers'
+    : isolationAllowed('VIEW') && (tab === 'isolation' || (!allocationAllowed('VIEW') && tab !== 'history'))
+      ? 'isolation'
+      : !allocationAllowed('VIEW') || tab === 'history'
+        ? 'history'
+        : tab === 'allocations'
+          ? 'allocations'
+          : 'transfers'
   const canCreate = allowed('CREATE'),
     canUpdate = allowed('UPDATE')
   function edit(kind, item, action = 'update') {
@@ -171,6 +176,7 @@ export function BedsPage() {
                 ]
               : []),
             ...(historyAllowed ? [['history', 'Lịch sử vị trí']] : []),
+            ...(isolationAllowed('VIEW') ? [['isolation', 'Cách ly']] : []),
           ].map(([key, label]) => (
             <Button
               key={key}
@@ -190,7 +196,13 @@ export function BedsPage() {
           <AlertDescription>{notice}</AlertDescription>
         </Alert>
       )}
-      {activeTab === 'day-care' ? (
+      {activeTab === 'isolation' ? (
+        <IsolationWorkspace
+          canIsolate={isolationAllowed('CREATE')}
+          canLift={isolationAllowed('UPDATE')}
+          canTransfer={allocationAllowed('CREATE')}
+        />
+      ) : activeTab === 'day-care' ? (
         <DayCarePanel catalogs={data} canCreate={canCreate} />
       ) : activeTab === 'history' ? (
         <LocationHistoryPanel catalogs={data} canCorrectAllocation={allocationAllowed('CREATE')} />

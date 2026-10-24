@@ -2,6 +2,12 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { json, mockRoutes, problem } from '@/test/fetchRoutes'
 import { BedsPage } from './BedsPage'
+import { NAV_GROUPS } from '@/common/layout/navigation'
+
+it('FR_008_Bác sĩ có mục Phòng, giường để mở luồng cách ly', () => {
+  const item = NAV_GROUPS.flatMap((group) => group.items).find((row) => row.key === 'beds')
+  expect(item.roles).toContain('DOCTOR')
+})
 
 let api
 const area = { id: 1, code: 'A', name: 'Khu A', status: 'ACTIVE', version: 0 }
@@ -45,6 +51,15 @@ beforeEach(() => {
   api.on('GET', '/rooms/3', json(200, room, { ETag: '"0"' }))
 })
 afterEach(() => vi.unstubAllGlobals())
+
+it('FR_008_doctorOpensIsolationWithoutConfigurationPermission', async () => {
+  api.on('GET', '/me/permissions', json(200, [{ function: 'ROOM_ISOLATION', operation: 'VIEW' }]))
+  api.on('GET', '/room-isolation/rooms', json(200, []))
+  render(<BedsPage />)
+  expect(await screen.findByRole('tab', { name: 'Cách ly' })).toHaveAttribute('aria-selected', 'true')
+  expect(await screen.findByRole('heading', { name: 'Cách ly phòng' })).toBeInTheDocument()
+  expect(screen.queryByRole('tab', { name: 'Cơ cấu' })).not.toBeInTheDocument()
+})
 
 it('FR_038_configurationViewerCanOpenDayCareTab', async () => {
   api.on('GET', '/day-care-rest-areas', json(200, []))
