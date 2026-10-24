@@ -1019,3 +1019,14 @@ Các tên mã trên đã có implementation; task chỉ đánh sau kiểm cuối
 | --- | --- |
 | Pool đọc hiện hành sau khóa | `AllocationCurrentReadPool`, `CurrentAllocationOverlapStore` (chỉ đọc RC, không tham gia transaction nguồn) |
 | Khóa kỹ thuật chống gap-lock cycle của transaction RR | `allocation_write_guard`, `AllocationStore.guardWrites` (RC S, RR/default X trước khóa vị trí) |
+
+#### Bổ sung 003 Phase 8 — 2026-10-24
+
+| Tên logic | Tên mã nguồn/đường dẫn |
+| --- | --- |
+| Khu nghỉ bán trú, buổi | `DayCareRestArea`, `DayCareSessionEntry` (entity kế thừa `CatalogBase`); `DayCareAreaState`, `DayCareSessionState` (ảnh đọc) |
+| Cấu hình và kiểm sức chứa | `DayCareConfigurationService`, `DayCareCapacityService`, `DayCareStore`, `day_care_capacity_guard` |
+| Đếm lại, cảnh báo đổi khung/CFG | `DayCareRecounting`, `DayCareParameterListener`, `SessionCapacityRow`, `DayCareSessionChange`, `M03_DAY_CARE_OVER_CAPACITY` |
+| HTTP bán trú Phase 8 | `/day-care-rest-areas`, `/day-care-sessions`; `DayCareRestAreaWrite`, `DayCareSessionWrite`, `DayCareRestAreaResponse`, `DayCareSessionResponse`, `DayCareSessionChangeResponse`, `DayCareSessionCapacity` |
+| Màn bán trú | `frontend/src/features/beds/DayCarePanel.jsx`, tab Bán trú trong `BedsPage` |
+| Lỗi bán trú | `DAY_CARE_REST_AREA_EXISTS`, `DAY_CARE_SESSION_NAME_EXISTS`, `DAY_CARE_SESSION_OVERLAP`, `DAY_CARE_LOCATION_INACTIVE`, `DAY_CARE_FUTURE_ARRIVALS`, `DAY_CARE_NOT_CONFIGURED`, `DAY_CARE_CAPACITY_UNSET`, `DAY_CARE_OVER_CAPACITY`, `DAY_CARE_CORDONED`; thiếu nguồn dùng `SOURCE_UNAVAILABLE` đã có |

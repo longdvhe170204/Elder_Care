@@ -46,6 +46,14 @@ beforeEach(() => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
+it('FR_038_configurationViewerCanOpenDayCareTab', async () => {
+  api.on('GET', '/day-care-rest-areas', json(200, []))
+  api.on('GET', '/day-care-sessions', json(200, []))
+  render(<BedsPage />)
+  fireEvent.click(await screen.findByRole('tab', { name: 'Bán trú' }))
+  expect(await screen.findByRole('heading', { name: 'Khu nghỉ bán trú' })).toBeInTheDocument()
+})
+
 it('FR_037_infectionViewerCanOpenHistoryWithoutConfigurationPermission', async () => {
   api.on('GET', '/me/permissions', json(200, [{ function: 'INFECTION_CONTAINMENT', operation: 'CREATE' }]))
   render(<BedsPage />)

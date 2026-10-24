@@ -12,6 +12,7 @@ import { StructureForm } from './StructureForm'
 import { BedTransfersPanel } from './BedTransfersPanel'
 import { BedAllocationsPanel } from './BedAllocationsPanel'
 import { LocationHistoryPanel } from './LocationHistoryPanel'
+import { DayCarePanel } from './DayCarePanel'
 import { catalogs, bedStates } from './bedCatalog'
 
 async function fetchCatalogs() {
@@ -160,6 +161,7 @@ export function BedsPage() {
                   ['structure', 'Cơ cấu'],
                   ['room-types', 'Loại phòng'],
                   ['bed-transfer-reasons', 'Lý do chuyển'],
+                  ['day-care', 'Bán trú'],
                 ]
               : []),
             ...(allocationAllowed('VIEW')
@@ -188,7 +190,9 @@ export function BedsPage() {
           <AlertDescription>{notice}</AlertDescription>
         </Alert>
       )}
-      {activeTab === 'history' ? (
+      {activeTab === 'day-care' ? (
+        <DayCarePanel catalogs={data} canCreate={canCreate} />
+      ) : activeTab === 'history' ? (
         <LocationHistoryPanel catalogs={data} canCorrectAllocation={allocationAllowed('CREATE')} />
       ) : activeTab === 'allocations' ? (
         <BedAllocationsPanel canCreate={allocationAllowed('CREATE')} />

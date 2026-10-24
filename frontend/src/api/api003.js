@@ -162,6 +162,33 @@ export const getLocationHistoryBeds = (params) => request('GET', '/location-hist
 /** Những ai ở cùng phòng với A trong khoảng [from, to) (FR-035, FR-036, FR-037, BR-M05-10) */
 export const getLocationHistoryRoommates = (params) => request('GET', '/location-history/roommates', params)
 
+/** Khu nghỉ bán trú của viện (FR-038) */
+export const getDayCareRestAreas = (params) => request('GET', '/day-care-rest-areas', params)
+
+/** Khai báo khu nghỉ bán trú (Quản lý viện) (FR-038) */
+export const postDayCareRestAreas = (params) => request('POST', '/day-care-rest-areas', params)
+
+/** Sửa khu nghỉ (kể cả dời tầng/khu vực gắn vào) (FR-038) */
+export const putDayCareRestAreasById = (params) => request('PUT', '/day-care-rest-areas/{id}', params)
+
+/** Ngừng hiệu lực khu nghỉ (FR-038) */
+export const postDayCareRestAreasByIdDeactivate = (params) => request('POST', '/day-care-rest-areas/{id}/deactivate', params)
+
+/** Số đăng ký và chỗ còn lại theo buổi (FR-039, FR-040) */
+export const getDayCareRestAreasRegistrationCounts = (params) => request('GET', '/day-care-rest-areas/registration-counts', params)
+
+/** Danh mục buổi (FR-038) */
+export const getDayCareSessions = (params) => request('GET', '/day-care-sessions', params)
+
+/** Thêm buổi (Quản lý viện) (FR-038, FR-040, BR-M03-25) */
+export const postDayCareSessions = (params) => request('POST', '/day-care-sessions', params)
+
+/** Sửa khung giờ buổi (FR-038, FR-040, BR-M03-25) */
+export const putDayCareSessionsById = (params) => request('PUT', '/day-care-sessions/{id}', params)
+
+/** Ngừng hiệu lực buổi (FR-038, FR-040) */
+export const postDayCareSessionsByIdDeactivate = (params) => request('POST', '/day-care-sessions/{id}/deactivate', params)
+
 /** Kích hoạt lại mục danh mục (FR-005) */
 export const postRoomTypesByIdReactivate = (params) => request('POST', '/room-types/{id}/reactivate', params)
 
