@@ -808,9 +808,77 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 
 *Chủ feature điền khi dịch `contracts/api-015.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
 
-## 22. Feature 016 (`016-reports-dashboard`, A)
+## 22. Feature 016 (`016-reports-dashboard`, A) *(bổ sung 2026-10-24, khi dịch `contracts/api-016.yaml`)*
 
-*Chủ feature điền khi dịch `contracts/api-016.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+"Chỉ tiêu" dịch là `metric` như cột `metric_group` của 002 (mục 7.6). Lớp của 016 bổ sung vào mục này cùng thay đổi với mã (R-03). M14 không có bảng (data-model mục 1).
+
+### 22.1. Đường dẫn API (tiền tố `/api/v1`)
+
+| Tên logic | Mã |
+| --- | --- |
+| `/dashboard`, `/chi-tieu` | `/dashboard`, `/metrics` |
+| `/bao-cao/{nhom}`, `…/xuat`, `/bao-cao/lan-xuat` | `/reports/{group}`, `…/export`, `/reports/exports` |
+| `/chi-tiet/{maChiTieu}` | `/metric-details/{metricCode}` |
+| tag `dashboard`, `bao-cao`, `xuat` | `dashboard`, `reports`, `export` |
+
+### 22.2. Schema, tham số và trường JSON
+
+| Tên logic | Mã |
+| --- | --- |
+| tham số báo cáo `nhom`, `tu`, `den`, `ngay`, `tangKhuVucId`, `loaiLuuTru`, `mucChamSocId`, `nctId`, `nhanVienId`, `caId`, `cheDoChiPhi` | `group`, `from`, `to`, `date`, `floorAreaId`, `residenceType`, `careLevelId`, `residentId`, `staffId`, `shiftId`, `costMode` |
+| tham số chi tiết `nhomCon`, `tinhDen`, `trang` | `breakdownKey`, `asOf`, `page` |
+| `ChiTieu` (`ma`, `nhom`, `ten`, `dinhNghia`, `nguon`) | `Metric` (`code`, `group`, `name`, `definition`, `source`) |
+| `GiaTri` (`maChiTieu`, `giaTri`, `tuSo`, `mauSo`, `nhan`, `soChoXemLai`, `chiaNhom` {`khoa`, `giaTri`, `tuSo`, `mauSo`}) | `MetricValue` (`metricCode`, `value`, `numerator`, `denominator`, `labels`, `pendingReviewCount`, `breakdown` {`key`, `value`, `numerator`, `denominator`}) |
+| `Dashboard` (`tinhDen`, `khoi` {`nhom`, `trangThai`, `giaTri`}, `thongDiep`) | `Dashboard` (`asOf`, `blocks` {`group`, `status`, `values`}, `message`) |
+| `BaoCao` (`nhom`, `tu`, `den`, `tinhDen`, `boLoc`, `giaTri`, `ghiChu`) | `Report` (`group`, `from`, `to`, `asOf`, `filters`, `values`, `notes`) |
+| `ChiTiet` (`maChiTieu`, `tongSo`, `dong` {`khoaNguon`, `feature`, `loai`, `trangThai`, `moc`, `tangKhuVuc`, `nguoiCaoTuoi`, `rutGon`, `nguoiThucHien`, `ketQua`, `choXemLai`, `moDuocBanGhi`}) | `MetricDetail` (`metricCode`, `total`, `rows` {`sourceKey`, `feature`, `type`, `status`, `referenceTime`, `floorArea`, `resident`, `reduced`, `performedBy`, `result`, `pendingReview`, `canOpenRecord`}) |
+| `YeuCauXuat` (`tu`, `den`, `boLoc`, `cheDoChiPhi`, `coDinhDanh`, `mucDich`, `dinhDang`) | `ExportRequest` (`from`, `to`, `filters`, `costMode`, `includeIdentity`, `purpose`, `format`) |
+| `Loi`, response `Loi`; security scheme `phien` | `Problem` (như api-000), response `Problem`; `session` |
+
+### 22.3. Giá trị enum
+
+| Tên logic | Mã |
+| --- | --- |
+| nhóm báo cáo `NGUOI_CAO_TUOI`, `CHAM_SOC`, `CHAT_LUONG`, `SUC_KHOE_THUOC`, `CHI_PHI`, `NHAN_SU_CA` | `RESIDENTS`, `CARE`, `QUALITY`, `HEALTH_MEDICATION`, `INCURRED_COSTS`, `STAFFING_SHIFTS` |
+| chế độ chi phí `DA_CHOT`, `TAM_TINH` | `FINALIZED`, `PROVISIONAL` |
+| nhãn giá trị `KHONG_CO_DU_LIEU`, `CHUA_CAU_HINH`, `NGAY_CHUA_KET_THUC`, `CHO_XEM_LAI`, `LOAI_BO_LUU_TRU`, `TAM_TINH`, `TRONG_PHAM_VI_CUA_BAN` | `NO_DATA`, `NOT_CONFIGURED`, `DAY_NOT_ENDED`, `PENDING_REVIEW`, `PURGED_BY_RETENTION`, `PROVISIONAL`, `WITHIN_YOUR_SCOPE` |
+| trạng thái khối dashboard `DU`, `DANG_CAP_NHAT` | `COMPLETE`, `UPDATING` |
+| định dạng xuất `XLSX`, `CSV` | giữ nguyên |
+| hành động nhật ký `XUAT_BAO_CAO`; loại tệp `M14.BAO_CAO_XUAT` | `REPORT_EXPORTED` (mục 6.5); `M14.REPORT_EXPORT` |
+
+### 22.4. Mã chỉ tiêu (`contracts/chi-tieu.md`)
+
+| Tên logic | Mã |
+| --- | --- |
+| tiền tố `NCT`, `GIUONG`, `CV`, `BUA`, `HD`, `KT`, `SK`, `THUOC`, `CA`, `GP`, `CP`, `SD`, `KB`, `TS`, `KHO` | `RES`, `BED`, `TASK`, `MEAL`, `ACT`, `QC`, `HEALTH`, `MED`, `SHIFT`, `LICENSE`, `COST`, `BALANCE`, `REGISTRATION`, `ASSET`, `INVENTORY` |
+| `NCT.DANG_LUU_TRU`, `NCT.TAI_NGAY`, `NCT.BIEN_DONG`, `NCT.DANH_SACH_CHO` | `RES.IN_RESIDENCE`, `RES.AT_DATE`, `RES.MOVEMENTS`, `RES.WAITING_LIST` |
+| `GIUONG.TRANG_THAI`, `GIUONG.CHO_SAN_SANG` | `BED.STATUS`, `BED.AWAITING_READY` |
+| `CV.HOM_NAY`, `CV.QUA_HAN`, `CV.THEO_TRANG_THAI`, `CV.TY_LE_DUNG_HAN_BAT_BUOC`, `CV.GHI_NHAN_MUON`, `CV.THEO_NHAN_VIEN` | `TASK.TODAY`, `TASK.OVERDUE`, `TASK.BY_STATUS`, `TASK.MANDATORY_ON_TIME_RATE`, `TASK.LATE_RECORDINGS`, `TASK.BY_STAFF` |
+| `BUA.PHIEU_TRE`, `BUA.PHIEU_SAI_LECH` | `MEAL.LATE_TICKETS`, `MEAL.DISCREPANCY_TICKETS` |
+| `HD.BUOI`, `HD.TY_LE_THAM_GIA`, `HD.CHUYEN_QUA_GIO`, `HD.THIEU_NGUOI`, `HD.CO_LAP` | `ACT.SESSIONS`, `ACT.PARTICIPATION_RATE`, `ACT.OVERDUE_TRIPS`, `ACT.MISSING_PARTICIPANTS`, `ACT.ISOLATION_RISK` |
+| `KT.TY_LE_DAT`, `KT.THEO_VAI_TRO_KIEM_TRA` | `QC.PASS_RATE`, `QC.BY_CHECKER_ROLE` |
+| `SK.CHI_SO`; `SK.CANH_BAO`, `SK.CANH_BAO_THOI_GIAN_TIEP_NHAN`, `SK.CANH_BAO_LEO_THANG`, `SK.CANH_BAO_SOS_HO_TRO` | `HEALTH.VITAL_SIGNS`; `HEALTH.ALERTS`, `HEALTH.ALERT_RESPONSE_TIME`, `HEALTH.ALERT_ESCALATIONS`, `HEALTH.SOS_ASSISTANCE_ALERTS` |
+| `SK.SU_CO`, `SK.SU_CO_LEO_THANG`, `SK.SU_CO_THOI_GIAN_TIEP_NHAN`, `SK.THEO_DOI`, `SK.SU_CO_KHONG_THUOC_SK` | `HEALTH.INCIDENTS`, `HEALTH.INCIDENT_ESCALATIONS`, `HEALTH.INCIDENT_RESPONSE_TIME`, `HEALTH.FOLLOW_UPS`, `HEALTH.NON_HEALTH_INCIDENTS` |
+| `SK.DANH_GIA_LAI_QUA_HAN`, `SK.KHOANH_VUNG`, `SK.NGUY_KICH` | `HEALTH.OVERDUE_REASSESSMENTS`, `HEALTH.CONTAINMENT_ZONES`, `HEALTH.CRITICAL_FLAGS` |
+| `THUOC.TY_LE_BO_LO`, `THUOC.TY_LE_TU_CHOI`, `THUOC.DOI_CHIEU_QUA_HAN` | `MED.MISSED_RATE`, `MED.REFUSED_RATE`, `MED.OVERDUE_RECONCILIATIONS` |
+| `CA.BAN_GIAO_CHUA_XAC_NHAN`, `CA.TY_LE_PHUC_VU`, `CA.THIEU_PHU`, `CA.THIEU_CA`, `CA.YEU_CAU`, `CA.LOI_MOI`, `CA.GIO_LAM` | `SHIFT.UNCONFIRMED_HANDOVERS`, `SHIFT.STAFFING_RATIO`, `SHIFT.UNDER_COVERAGE`, `SHIFT.MISSING_SHIFTS`, `SHIFT.REQUESTS`, `SHIFT.INVITATIONS`, `SHIFT.WORKING_HOURS` |
+| `GP.CO_SO`, `GP.NHAN_VIEN` | `LICENSE.FACILITY`, `LICENSE.STAFF` |
+| `CP.BANG`, `CP.TONG_HOP`, `CP.DIEU_CHINH_SAU_CHOT`, `CP.TY_LE_THEO_SU_KIEN`, `CP.MUA_SAM` | `COST.STATEMENTS`, `COST.SUMMARY`, `COST.POST_FINALIZATION_ADJUSTMENTS`, `COST.EVENT_GENERATED_RATE`, `COST.PURCHASING` |
+| `SD.THAP_CON_NO`, `KB.CAN_LAM`, `TS.QUA_HAN`, `KHO.DUOI_TOI_THIEU`, `KHO.LO_SAP_HET_HAN` | `BALANCE.LOW_OR_OWING`, `REGISTRATION.TO_DO`, `ASSET.OVERDUE`, `INVENTORY.BELOW_MINIMUM`, `INVENTORY.EXPIRING_LOTS` |
+
+### 22.5. Mã lỗi
+
+| Tên logic | Mã |
+| --- | --- |
+| `VUOT_KHOANG_TOI_DA` (CFG-M14-01), `THIEU_MUC_DICH` | `RANGE_EXCEEDS_MAXIMUM` (422), `PURPOSE_REQUIRED` (422) |
+| `KHONG_XAC_DINH_PHAM_VI` (FR-016) | không có mã riêng: `PERMISSION_DENIED` (403) kèm `failedLayer` `SOURCE_DATA` như 002 (chủ dự án chọn 2026-10-24) |
+
+### 22.6. Gói và thư mục (dự kiến, chốt cùng mã)
+
+| Tên logic | Mã |
+| --- | --- |
+| `m14.chitieu`, `phamvi`, `dashboard`, `baocao`, `chitiet`, `xuat` | `m14.internal.metric`, `scope`, `dashboard`, `report`, `detail`, `export` (mỗi gói `{service, domain}`); controller ở `m14.web` |
+| web `tinh-nang/bao-cao/{dashboard, nguoi-cao-tuoi, cham-soc, chat-luong, suc-khoe-thuoc, chi-phi, nhan-su-ca, chi-tiet}` | `features/reports/{dashboard, residents, care, quality, health-medication, incurred-costs, staffing-shifts, metric-details}` |
 
 ## 23. Feature 017 (`017-resident-balance-ledger`, E)
 
