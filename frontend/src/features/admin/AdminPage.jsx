@@ -58,7 +58,12 @@ function AdminContent({ role }) {
         </ToggleGroup>
       </PageHeader>
       {tab === 'parameters' && <ParameterList canChange={role === 'NURSING_HOME_MANAGER'} />}
-      {tab === 'accounts' && <AccountList canCreate={role === 'NURSING_HOME_MANAGER'} />}
+      {tab === 'accounts' && (
+          <AccountList
+            canCreate={role === 'NURSING_HOME_MANAGER'}
+            canCreateResident={role === 'NURSING_HOME_MANAGER' || role === 'OFFICE_STAFF'}
+          />
+        )}
       {tab === 'permissions' && <RolePermissions />}
       {tab === 'catalogs' && canSeeCatalogs && (
         <CatalogList canCreate={can('HEALTH_CATALOGS', 'CREATE')} canUpdate={can('HEALTH_CATALOGS', 'UPDATE')} />

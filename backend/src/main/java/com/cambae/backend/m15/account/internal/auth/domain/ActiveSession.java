@@ -18,13 +18,20 @@ public record ActiveSession(
         Optional<Long> familyMemberId,
         Set<Role> roles,
         String deviceId,
-        AccessChannel channel)
+        AccessChannel channel,
+        Optional<Long> residentId)
         implements CurrentUser {
 
-    /** Tài khoản người cao tuổi thêm ở V002_08 (T090). */
-    @Override
-    public Optional<Long> residentId() {
-        return Optional.empty();
+    /** Phiên của tài khoản nhân viên, người thân (không liên kết người cao tuổi). */
+    public ActiveSession(
+            long accountId,
+            AccountType type,
+            Optional<Long> staffId,
+            Optional<Long> familyMemberId,
+            Set<Role> roles,
+            String deviceId,
+            AccessChannel channel) {
+        this(accountId, type, staffId, familyMemberId, roles, deviceId, channel, Optional.empty());
     }
 
     @Override

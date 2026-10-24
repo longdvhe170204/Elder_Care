@@ -64,7 +64,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // 002 T025 (2026-10-20): kéo một phần T078 lên để thêm /me; danh sách giảm dần theo các user story
             new Contract(
                     Path.of("..", "specs", "002-account-permission", "contracts", "api-002.yaml"),
-                    Set.of("POST /api/v1/resident-accounts"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 009 T034 (2026-10-22, kéo phần T036 lên khi cài controller đầu tiên của US5); US3 xong 2026-10-23; còn
@@ -76,6 +76,16 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "GET /api/v1/me/call-reminders",
                             "GET /api/v1/call-reminders/{id}",
                             "POST /api/v1/call-reminders/{id}/results"),
+                    Set.of(),
+                    true),
+            // 016 T028 (2026-10-24, cùng phần xuất US9): còn dashboard, danh mục chỉ tiêu, báo cáo, danh sách chi tiết
+            new Contract(
+                    Path.of("..", "specs", "016-reports-dashboard", "contracts", "api-016.yaml"),
+                    Set.of(
+                            "GET /api/v1/dashboard",
+                            "GET /api/v1/metrics",
+                            "GET /api/v1/reports/{group}",
+                            "GET /api/v1/metric-details/{metricCode}"),
                     Set.of(),
                     true));
 
