@@ -125,24 +125,27 @@ function DetailBody({ metric, from, to, breakdownKey }) {
 
 // opened: { metric: {code, name}, from?, to?, breakdownKey?, valueText } hoặc null
 export function MetricDetailSheet({ opened, onClose }) {
+  // giữ nội dung lần mở gần nhất để khung không trống trong lúc trượt ra khi đóng
+  const [shown, setShown] = useState(opened)
+  if (opened && opened !== shown) setShown(opened)
   return (
     <Sheet open={opened !== null} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="sm:max-w-3xl">
-        {opened && (
+        {shown && (
           <>
             <SheetHeader>
-              <SheetTitle>{opened.metric.name}</SheetTitle>
+              <SheetTitle>{shown.metric.name}</SheetTitle>
               <SheetDescription>
-                {opened.breakdownKey ? `${opened.breakdownKey}: ` : ''}
-                {opened.valueText}
+                {shown.breakdownKey ? `${shown.breakdownKey}: ` : ''}
+                {shown.valueText}
               </SheetDescription>
             </SheetHeader>
             <DetailBody
-              key={`${opened.metric.code}|${opened.breakdownKey ?? ''}|${opened.from ?? ''}|${opened.to ?? ''}`}
-              metric={opened.metric}
-              from={opened.from}
-              to={opened.to}
-              breakdownKey={opened.breakdownKey}
+              key={`${shown.metric.code}|${shown.breakdownKey ?? ''}|${shown.from ?? ''}|${shown.to ?? ''}`}
+              metric={shown.metric}
+              from={shown.from}
+              to={shown.to}
+              breakdownKey={shown.breakdownKey}
             />
           </>
         )}
