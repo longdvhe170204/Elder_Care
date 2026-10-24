@@ -9,7 +9,6 @@ import com.cambae.backend.m15.account.api.dto.Operation;
 import com.cambae.backend.m15.account.api.dto.PermissionKey;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Quyền tải giấy tờ bằng chứng qua đời (001 T047, T011; FR-047b, research H-13, NFR-08): tệp có chủ sở hữu
@@ -40,8 +39,8 @@ class DeathEvidenceFilePermission implements FilePermissionProvider {
         return ResidentStatusService.DEATH_EVIDENCE_OWNER;
     }
 
+    // Không đặt readOnly: kiểm quyền theo phạm vi có thể ghi dấu đã khắc phục lỗi dữ liệu nguồn (002 CHK059)
     @Override
-    @Transactional(readOnly = true)
     public boolean canDownload(long ownerId) {
         CurrentUser user = currentUser.getObject();
         if (user.familyMemberId().isPresent()) {

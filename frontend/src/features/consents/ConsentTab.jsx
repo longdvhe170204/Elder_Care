@@ -35,7 +35,13 @@ function uploadProblem(problem) {
   return null
 }
 
-export function FileField({ id, label, error, onPick, hint = FILE_HINT }) {
+// multiple: chọn nhiều tệp một lần; onPick nhận mảng File và ô được xóa để chọn lại cùng tệp được (001 T082)
+export function FileField({ id, label, error, onPick, hint = FILE_HINT, multiple = false }) {
+  function picked(event) {
+    if (!multiple) return onPick(event.target.files?.[0] ?? null)
+    onPick(Array.from(event.target.files ?? []))
+    event.target.value = ''
+  }
   return (
     <Field data-invalid={!!error || undefined}>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
@@ -43,9 +49,10 @@ export function FileField({ id, label, error, onPick, hint = FILE_HINT }) {
         id={id}
         type="file"
         accept="application/pdf,image/jpeg,image/png"
+        multiple={multiple}
         aria-invalid={!!error || undefined}
         className="type-body-sm h-11 rounded-lg border px-3 py-2"
-        onChange={(event) => onPick(event.target.files?.[0] ?? null)}
+        onChange={picked}
       />
       {error ? <FieldError>{error}</FieldError> : <FieldDescription>{hint}</FieldDescription>}
     </Field>

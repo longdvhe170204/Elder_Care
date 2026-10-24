@@ -3,6 +3,7 @@ package com.cambae.backend.common.file;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -77,6 +78,19 @@ class FileStore {
                         id)
                 .stream()
                 .findFirst();
+    }
+
+    List<FileView> findAttached(String ownerType, long ownerId) {
+        return jdbc.query(
+                "SELECT id, original_name, mime_type, size_bytes FROM file WHERE owner_type = ? AND owner_id = ?"
+                        + " ORDER BY id",
+                (rs, i) -> new FileView(
+                        rs.getLong("id"),
+                        rs.getString("original_name"),
+                        rs.getString("mime_type"),
+                        rs.getLong("size_bytes")),
+                ownerType,
+                ownerId);
     }
 
     /** Gắn nếu chưa gắn; trả số dòng đổi (0 khi tệp không có hoặc đã gắn). */

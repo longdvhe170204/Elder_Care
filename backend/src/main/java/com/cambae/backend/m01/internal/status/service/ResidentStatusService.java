@@ -16,6 +16,7 @@ import com.cambae.backend.m01.api.dto.StatusCommand;
 import com.cambae.backend.m01.api.dto.TransitionResult;
 import com.cambae.backend.m01.api.dto.Warning;
 import com.cambae.backend.m01.api.events.ResidentStatusChanged;
+import com.cambae.backend.m01.api.events.ResidentStatusNotice;
 import com.cambae.backend.m01.api.spi.StatusTransitionParticipant;
 import com.cambae.backend.m01.internal.health.service.ActorNames;
 import com.cambae.backend.m01.internal.profile.domain.Resident;
@@ -69,6 +70,13 @@ public class ResidentStatusService {
 
     /** Chủ sở hữu của tệp bằng chứng qua đời là dòng lịch sử trạng thái; quyền tải ở {@code DeathEvidenceFilePermission}. */
     static final String DEATH_EVIDENCE_OWNER = "M01.DEATH_EVIDENCE";
+
+    /** Giấy tờ bệnh viện gắn vào dòng lịch sử của Ghi nhận trở về từ bệnh viện và Chuyển viện (FR-047c, research H-18). */
+    static final String HOSPITAL_DOCUMENT_OWNER = "M01.HOSPITAL_DOCUMENT";
+
+    private static final String ATTACHMENTS_FIELD = "attachmentFileIds";
+
+    private static final int MAX_ATTACHMENTS = 10;
 
     /** Lệnh các module khác được gọi qua {@code ResidentStatusApi} (research H-03; 004 FR-002). */
     private static final Set<StatusCommand> MODULE_COMMANDS = Set.of(
@@ -312,6 +320,7 @@ public class ResidentStatusService {
         }
         JsonNode body = details == null ? noDetails() : details;
         BasisRef basis = basisOf(command, from, user, body, moduleBasis);
+        List<Long> attachments = attachmentsOf(command, from, body);
         participants
                 .orderedStream()
                 .filter(p -> p.interestedCommands().contains(command))
@@ -340,6 +349,8 @@ public class ResidentStatusService {
                 basis == null ? null : basis.type(),
                 basis == null ? null : basis.id(),
                 evaluation.waiver() == null ? null : json.writeValueAsString(evaluation.waiver())));
+        // tệp không có hoặc đã gắn thì ném lỗi và cả lệnh rollback, kể cả tệp đã gắn trước đó trong vòng lặp (FR-047c)
+        attachments.forEach(fileId -> files.attach(fileId, HOSPITAL_DOCUMENT_OWNER, row.getId()));
         if (basis != null && EVIDENCE_BASIS.equals(basis.type())) {
             // tệp không tồn tại hoặc đã gắn thì ném lỗi và cả lệnh rollback (FR-047b, research H-13)
             files.attach(basis.id(), DEATH_EVIDENCE_OWNER, row.getId());
@@ -368,6 +379,9 @@ public class ResidentStatusService {
                     warnings.addAll(p.warnings(context));
                 });
         events.publishEvent(new ResidentStatusChanged(residentId, from, to, command, row.getId(), now));
+        if (command == StatusCommand.TRANSFER_OUT || command == StatusCommand.RECORD_DEATH) {
+            events.publishEvent(new ResidentStatusNotice(residentId, command, row.getId(), now));
+        }
         return new Outcome(to, row.getId(), entry(row), List.copyOf(warnings));
     }
 
@@ -465,6 +479,29 @@ public class ResidentStatusService {
             return hasEvidence ? new BasisRef(EVIDENCE_BASIS, evidence.longValue()) : null;
         }
         return null;
+    }
+
+    /**
+     * Giấy tờ bệnh viện đính kèm (FR-047c): chỉ Ghi nhận trở về từ Điều trị tại bệnh viện và Chuyển viện nhận, không bắt
+     * buộc, tối đa {@value #MAX_ATTACHMENTS} tệp; lệnh khác có tệp thì 422, và một tệp liệt kê hai lần chỉ gắn một lần.
+     */
+    private static List<Long> attachmentsOf(StatusCommand command, ResidentStatus from, JsonNode details) {
+        JsonNode listed = details.get(ATTACHMENTS_FIELD);
+        if (listed == null || listed.isNull() || (listed.isArray() && listed.isEmpty())) {
+            return List.of();
+        }
+        boolean accepted = command == StatusCommand.TRANSFER_OUT
+                || (command == StatusCommand.RECORD_RETURN && from == ResidentStatus.HOSPITALIZED);
+        if (!accepted) {
+            throw invalidDetails("ATTACHMENTS_NOT_ACCEPTED", "Lệnh này không nhận tệp đính kèm");
+        }
+        if (!listed.isArray() || listed.valueStream().anyMatch(id -> !id.isIntegralNumber())) {
+            throw invalidDetails("INVALID_ATTACHMENTS", "Tệp đính kèm là danh sách mã tệp");
+        }
+        if (listed.size() > MAX_ATTACHMENTS) {
+            throw invalidDetails("TOO_MANY_ATTACHMENTS", "Tối đa " + MAX_ATTACHMENTS + " tệp đính kèm");
+        }
+        return listed.valueStream().map(JsonNode::longValue).distinct().toList();
     }
 
     private static BusinessException invalidDetails(String code, String message) {

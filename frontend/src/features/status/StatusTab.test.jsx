@@ -57,6 +57,12 @@ function routes({ history = HISTORY, conditions = [], forbidden = false } = {}) 
   api.on('GET', (u) => u.pathname.startsWith('/api/v1/residents/5/conditions/'), json(200, conditions))
 }
 
+const pdf = (name = 'giay-to.pdf') => new File(['%PDF-1.4'], name, { type: 'application/pdf' })
+
+function pick(label, files) {
+  fireEvent.change(screen.getByLabelText(label), { target: { files } })
+}
+
 function open(props = {}) {
   return render(<StatusTab residentId={5} status="IN_RESIDENCE" allowedCommands={[]} {...props} />)
 }
@@ -190,7 +196,7 @@ describe('StatusTab', () => {
     expect(alerts.some((a) => a.textContent.includes('Còn thuốc gửi chưa trả'))).toBe(true)
   })
 
-  it('Ghi nhận qua đời thiếu giấy tờ bằng chứng (422) báo tại ô mã tệp', async () => {
+  it('Ghi nhận qua đời thiếu giấy tờ bằng chứng (422) báo tại ô chọn tệp', async () => {
     routes()
     api.on('POST', '/residents/5/record-death', problem(422, 'EVIDENCE_REQUIRED', { detail: 'Phải kèm giấy tờ' }))
     open({ status: 'TEMPORARILY_ABSENT', allowedCommands: ['RECORD_DEATH'] })
@@ -200,22 +206,143 @@ describe('StatusTab', () => {
     await submitReady('Xác nhận ghi nhận qua đời')
 
     expect(await screen.findByText(/Phải kèm giấy tờ bằng chứng/)).toBeInTheDocument()
-    expect(screen.getByLabelText(/Mã tệp giấy tờ bằng chứng/)).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByLabelText(/Giấy tờ bằng chứng/)).toHaveAttribute('aria-invalid', 'true')
   })
 
-  it('có mã tệp bằng chứng thì gửi details.evidenceFileId dạng số', async () => {
+  it('Ghi nhận qua đời: tải tệp bằng chứng lên rồi gửi details.evidenceFileId', async () => {
     routes()
+    api.on('POST', '/files', json(201, { fileId: 4242 }))
     api.on('POST', '/residents/5/record-death', result('DECEASED'))
     open({ status: 'TEMPORARILY_ABSENT', allowedCommands: ['RECORD_DEATH'] })
 
     fireEvent.click(await screen.findByRole('button', { name: 'Ghi nhận qua đời' }))
     fireEvent.change(await screen.findByLabelText(/Lý do/), { target: { value: 'Mất tại nhà' } })
-    fireEvent.change(screen.getByLabelText(/Mã tệp giấy tờ bằng chứng/), { target: { value: '4242' } })
+    pick(/Giấy tờ bằng chứng/, [pdf('giay-bao-tu.pdf')])
     await submitReady('Xác nhận ghi nhận qua đời')
 
     await waitFor(() => expect(api.calls('POST', '/residents/5/record-death')).toHaveLength(1))
+    expect(api.calls('POST', '/files')).toHaveLength(1)
     expect(JSON.parse(api.calls('POST', '/residents/5/record-death')[0][1].body).details).toEqual({
       evidenceFileId: 4242,
+    })
+  })
+
+  describe('giấy tờ bệnh viện (T082; FR-047c)', () => {
+    it('Ghi nhận trở về từ Điều trị tại bệnh viện: tải từng tệp rồi gửi attachmentFileIds', async () => {
+      routes()
+      let next = 90
+      api.on('POST', '/files', () => json(201, { fileId: next++ }))
+      api.on('POST', '/residents/5/record-return', result('IN_RESIDENCE'))
+      open({ status: 'HOSPITALIZED', allowedCommands: ['RECORD_RETURN'] })
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Ghi nhận trở về' }))
+      fireEvent.change(await screen.findByLabelText(/Lý do/), { target: { value: 'Ra viện' } })
+      pick(/Giấy tờ bệnh viện/, [pdf('giay-ra-vien.pdf'), pdf('don-thuoc.pdf')])
+      expect(screen.getByText('giay-ra-vien.pdf')).toBeInTheDocument()
+      expect(screen.getByText('don-thuoc.pdf')).toBeInTheDocument()
+      await submitReady('Xác nhận ghi nhận trở về')
+
+      await waitFor(() => expect(api.calls('POST', '/residents/5/record-return')).toHaveLength(1))
+      expect(api.calls('POST', '/files')).toHaveLength(2)
+      expect(JSON.parse(api.calls('POST', '/residents/5/record-return')[0][1].body)).toMatchObject({
+        reason: 'Ra viện',
+        attachmentFileIds: [90, 91],
+      })
+    })
+
+    it('bỏ một tệp đã chọn thì không tải và không gửi tệp đó', async () => {
+      routes()
+      api.on('POST', '/files', json(201, { fileId: 7 }))
+      api.on('POST', '/residents/5/transfer-out', result('HOSPITALIZED'))
+      open({ allowedCommands: ['TRANSFER_OUT'] })
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Chuyển viện' }))
+      fireEvent.change(await screen.findByLabelText(/Lý do/), { target: { value: 'Đau ngực' } })
+      fireEvent.click(screen.getByRole('radio', { name: 'Chỉ định của Bác sĩ' }))
+      fireEvent.change(screen.getByLabelText('Nội dung căn cứ'), { target: { value: 'Cấp cứu' } })
+      pick(/Giấy tờ bệnh viện/, [pdf('a.pdf'), pdf('b.pdf')])
+      fireEvent.click(screen.getByRole('button', { name: 'Bỏ a.pdf' }))
+      await submitReady('Xác nhận chuyển viện')
+
+      await waitFor(() => expect(api.calls('POST', '/residents/5/transfer-out')).toHaveLength(1))
+      expect(api.calls('POST', '/files')).toHaveLength(1)
+      expect(JSON.parse(api.calls('POST', '/residents/5/transfer-out')[0][1].body).attachmentFileIds).toEqual([7])
+    })
+
+    it('không chọn tệp: gửi lệnh bình thường, không có attachmentFileIds', async () => {
+      routes()
+      api.on('POST', '/residents/5/record-return', result('IN_RESIDENCE'))
+      open({ status: 'HOSPITALIZED', allowedCommands: ['RECORD_RETURN'] })
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Ghi nhận trở về' }))
+      fireEvent.change(await screen.findByLabelText(/Lý do/), { target: { value: 'Ra viện' } })
+      await submitReady('Xác nhận ghi nhận trở về')
+
+      await waitFor(() => expect(api.calls('POST', '/residents/5/record-return')).toHaveLength(1))
+      expect(api.calls('POST', '/files')).toHaveLength(0)
+      expect(JSON.parse(api.calls('POST', '/residents/5/record-return')[0][1].body)).not.toHaveProperty(
+        'attachmentFileIds',
+      )
+    })
+
+    it('Ghi nhận trở về từ Tạm vắng không có ô giấy tờ bệnh viện', async () => {
+      routes()
+      open({ status: 'TEMPORARILY_ABSENT', allowedCommands: ['RECORD_RETURN'] })
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Ghi nhận trở về' }))
+      await screen.findByLabelText(/Lý do/)
+      expect(screen.queryByLabelText(/Giấy tờ bệnh viện/)).not.toBeInTheDocument()
+    })
+
+    it('chọn quá 10 tệp: báo tại ô, không tải và không gửi lệnh', async () => {
+      routes()
+      open({ status: 'HOSPITALIZED', allowedCommands: ['RECORD_RETURN'] })
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Ghi nhận trở về' }))
+      fireEvent.change(await screen.findByLabelText(/Lý do/), { target: { value: 'Ra viện' } })
+      pick(
+        /Giấy tờ bệnh viện/,
+        Array.from({ length: 11 }, (_, n) => pdf(`t${n}.pdf`)),
+      )
+      await submitReady('Xác nhận ghi nhận trở về')
+
+      expect(await screen.findByText('Tối đa 10 tệp')).toBeInTheDocument()
+      expect(api.calls('POST', '/files')).toHaveLength(0)
+      expect(api.calls('POST', '/residents/5/record-return')).toHaveLength(0)
+    })
+
+    it('tệp quá lớn (422 FILE_TOO_LARGE) báo tại ô; lệnh không được gửi', async () => {
+      routes()
+      api.on('POST', '/files', problem(422, 'FILE_TOO_LARGE'))
+      open({ status: 'HOSPITALIZED', allowedCommands: ['RECORD_RETURN'] })
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Ghi nhận trở về' }))
+      fireEvent.change(await screen.findByLabelText(/Lý do/), { target: { value: 'Ra viện' } })
+      pick(/Giấy tờ bệnh viện/, [pdf()])
+      await submitReady('Xác nhận ghi nhận trở về')
+
+      expect(await screen.findByText('Tệp quá 10 MB')).toBeInTheDocument()
+      expect(api.calls('POST', '/residents/5/record-return')).toHaveLength(0)
+    })
+
+    it('lệnh lỗi sau khi tải: gửi lại không tải lên lần nữa', async () => {
+      routes()
+      api.on('POST', '/files', json(201, { fileId: 55 }))
+      let attempts = 0
+      api.on('POST', '/residents/5/record-return', () =>
+        attempts++ === 0 ? problem(500, 'INTERNAL') : result('IN_RESIDENCE'),
+      )
+      open({ status: 'HOSPITALIZED', allowedCommands: ['RECORD_RETURN'] })
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Ghi nhận trở về' }))
+      fireEvent.change(await screen.findByLabelText(/Lý do/), { target: { value: 'Ra viện' } })
+      pick(/Giấy tờ bệnh viện/, [pdf()])
+      await submitReady('Xác nhận ghi nhận trở về')
+      await waitFor(() => expect(api.calls('POST', '/residents/5/record-return')).toHaveLength(1))
+      await submitReady('Xác nhận ghi nhận trở về')
+
+      await waitFor(() => expect(api.calls('POST', '/residents/5/record-return')).toHaveLength(2))
+      expect(api.calls('POST', '/files')).toHaveLength(1)
     })
   })
 })
