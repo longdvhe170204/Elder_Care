@@ -13,7 +13,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * Kênh trong ứng dụng và cổng người thân (research B-05): thông báo đã vào hộp là đã gửi (FR-018); đồng thời đẩy tới
- * mọi thiết bị còn hiệu lực của tài khoản, kết quả đẩy không quyết định "Đã gửi". Token hết hạn bị vô hiệu.
+ * mọi thiết bị còn hiệu lực của tài khoản và luồng SSE đang mở của web, kết quả đẩy không quyết định "Đã gửi". Token hết
+ * hạn bị vô hiệu.
  */
 @Component
 class InAppSender implements ChannelSender {
@@ -23,11 +24,13 @@ class InAppSender implements ChannelSender {
     private final DeliveryStore store;
     private final PushGateway push;
     private final BusinessTime time;
+    private final NotificationStreams streams;
 
-    InAppSender(DeliveryStore store, PushGateway push, BusinessTime time) {
+    InAppSender(DeliveryStore store, PushGateway push, BusinessTime time, NotificationStreams streams) {
         this.store = store;
         this.push = push;
         this.time = time;
+        this.streams = streams;
     }
 
     @Override
@@ -61,6 +64,7 @@ class InAppSender implements ChannelSender {
                 delivered++;
             }
         }
+        a.accountId().ifPresent(account -> streams.publish(account, a.notificationId(), a.level()));
         return new SendResult(
                 DeliveryOutcome.SENT,
                 tokens.isEmpty() ? Optional.empty() : Optional.of("push " + delivered + "/" + tokens.size()));

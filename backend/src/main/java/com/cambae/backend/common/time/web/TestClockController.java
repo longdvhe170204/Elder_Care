@@ -71,7 +71,18 @@ public class TestClockController {
         PURGE_EXPIRED_DATA,
         MARK_INACTIVE_ACCOUNTS,
         WARN_EXPIRING_LICENSES,
-        LOCK_AFTER_RESIDENCY_END
+        LOCK_AFTER_RESIDENCY_END,
+        // Hai job của M13 (009 T010; chủ dự án duyệt 2026-10-22)
+        M13_FAST,
+        M13_DAILY,
+        // Bảy job của M01 (001 T004, T031, T051, T058, T064; chủ dự án duyệt 2026-10-23)
+        CLEAN_UNATTACHED_FILES,
+        RETRY_ALLERGY_CHECKS,
+        TEMPORARY_ABSENCE_OVERDUE,
+        MISSING_CONSENT_REMINDER,
+        NOTIFY_PERIODIC_REASSESSMENT,
+        ALERT_OVERDUE_REASSESSMENT,
+        REMIND_CARE_LEVEL_CHANGE_REQUEST
     }
 
     public record ClockResponse(OffsetDateTime now, boolean simulated) {}

@@ -91,6 +91,17 @@ public class AccountStore {
         return jdbc.query(sql.toString(), AccountStore::row, args.toArray());
     }
 
+    /** Tài khoản Hoạt động hoặc Khóa tạm đang có vai trò (009 FR-008). */
+    public List<Account> activeWithRole(Role role) {
+        return jdbc.query(
+                "SELECT " + COLUMNS + " FROM account WHERE status IN ('ACTIVE', 'TEMPORARILY_LOCKED') AND id IN"
+                        + " (SELECT account_id FROM role_assignment WHERE role = ? AND effective_to IS NULL"
+                        + " AND effective_from <= ?) ORDER BY id",
+                AccountStore::row,
+                role.code(),
+                utc(time.now()));
+    }
+
     /** Vai trò đang gán (còn hiệu lực lúc này). */
     public Set<Role> roles(long accountId) {
         Set<Role> roles = EnumSet.noneOf(Role.class);
@@ -173,6 +184,11 @@ public class AccountStore {
     /** Tài khoản người thân (FR-050), buộc đổi mật khẩu lần đầu như tài khoản nhân viên. */
     public long insertFamily(long familyMemberId, String username, String passwordHash, Long createdBy) {
         return insert("family_member_id", "FAMILY_MEMBER", familyMemberId, username, passwordHash, createdBy);
+    }
+
+    /** Tài khoản người cao tuổi (FR-067), buộc đổi mật khẩu lần đầu như bảng chuyển trạng thái của spec. */
+    public long insertResident(long residentId, String username, String passwordHash, Long createdBy) {
+        return insert("resident_id", "RESIDENT", residentId, username, passwordHash, createdBy);
     }
 
     private long insert(

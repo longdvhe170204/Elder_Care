@@ -116,7 +116,7 @@ public class StructureStore {
     public List<Long> allocatedResidents(long roomId) {
         if (!tableExists("bed_allocation")) return List.of();
         return jdbc.queryForList(
-                "SELECT DISTINCT a.resident_id FROM bed_allocation a JOIN bed b ON b.id=a.bed_id WHERE b.room_id=? AND a.status IN ('ACTIVE','FUTURE') ORDER BY a.resident_id",
+                "SELECT DISTINCT a.resident_id FROM v_current_allocation a WHERE a.room_id=? AND a.status IN ('ACTIVE','FUTURE') ORDER BY a.resident_id",
                 Long.class,
                 roomId);
     }

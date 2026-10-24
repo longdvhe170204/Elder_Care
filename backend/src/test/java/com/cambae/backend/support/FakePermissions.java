@@ -239,6 +239,24 @@ public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibility
     }
 
     @Override
+    public void lockResidentOnFinalStatus(long residentId, Basis basis) {
+        sideEffects.add("lockResidentOnFinalStatus:" + residentId);
+    }
+
+    @Override
+    public List<AccountView> activeWithRole(Role role) {
+        return accounts.values().stream()
+                .filter(u -> u.roles().contains(role))
+                .map(u -> new AccountView(
+                        u.accountId(),
+                        u.type(),
+                        AccountStatus.ACTIVE,
+                        u.roles(),
+                        u.staffId().orElse(null)))
+                .toList();
+    }
+
+    @Override
     public Optional<AccountView> byId(long accountId) {
         return find(u -> u.accountId() == accountId);
     }

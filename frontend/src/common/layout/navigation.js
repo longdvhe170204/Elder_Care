@@ -37,6 +37,9 @@ export const NAV_GROUPS = [
         icon: 'ClipboardCheck',
         roles: [QL, TT, BS, DD, CS, BEP, HC, KT],
       },
+      // Thông báo (009 T035, T028): mọi vai trò nhân viên có hộp thông báo; tab khác theo bảng quyền FR-039 của spec 009
+      // vì Phụ lục 27 không có dòng thông báo
+      { key: 'notifications', label: 'Thông báo', icon: 'Inbox', roles: [QL, TT, BS, DD, CS, BEP, HC, KT] },
       // Dòng "Hồ sơ người cao tuổi"
       { key: 'residents', label: 'Người cao tuổi', icon: 'Users', roles: [QL, TT, BS, DD, CS, HC, NT, KT] },
     ],

@@ -76,6 +76,19 @@ public class BedHoldStore {
                 .isEmpty();
     }
 
+    public List<Held> waitingForResidentCurrent(long bedId, long residentId) {
+        return jdbc.query(
+                "SELECT id,hold_resident_id,hold_waiting_record_id,hold_reason,hold_until FROM bed WHERE id=? AND hold_resident_id=? AND state='HELD' AND hold_reason='WAITING_RECORD' FOR UPDATE",
+                (r, i) -> new Held(
+                        r.getLong(1),
+                        r.getLong(2),
+                        r.getLong(3),
+                        r.getString(4),
+                        r.getObject(5, LocalDateTime.class).toInstant(ZoneOffset.UTC)),
+                bedId,
+                residentId);
+    }
+
     public boolean extensionOverlaps(long id, Instant end) {
         return !jdbc.queryForList(
                         "SELECT other.id FROM bed_allocation locked JOIN v_current_allocation current ON current.id=locked.id JOIN v_current_allocation other ON other.bed_id=current.bed_id AND other.id<>current.id WHERE current.id=? AND other.status IN ('ACTIVE','FUTURE','CLOSED') AND other.start_at<COALESCE(?,'9999-12-31') AND other.effective_end>current.start_at FOR UPDATE OF locked",

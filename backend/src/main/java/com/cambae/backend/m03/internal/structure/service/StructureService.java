@@ -41,11 +41,17 @@ public class StructureService {
     private final StructureStore store;
     private final ObjectProvider<LocationReferences> references;
     private final AuditLogApi audit;
+    private final com.cambae.backend.m03.internal.allocation.service.ResidentAllocationFacts residentFacts;
 
-    public StructureService(StructureStore store, ObjectProvider<LocationReferences> references, AuditLogApi audit) {
+    public StructureService(
+            StructureStore store,
+            ObjectProvider<LocationReferences> references,
+            AuditLogApi audit,
+            com.cambae.backend.m03.internal.allocation.service.ResidentAllocationFacts residentFacts) {
         this.store = store;
         this.references = references;
         this.audit = audit;
+        this.residentFacts = residentFacts;
     }
 
     @RequiresPermission(function = Function.ROOM_BED_CONFIGURATION, operation = Operation.CREATE)
@@ -91,7 +97,7 @@ public class StructureService {
 
     @RequiresPermission(function = Function.ROOM_BED_CONFIGURATION, operation = Operation.UPDATE)
     @BusinessCommand(requiresReason = false)
-    @Transactional
+    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
     public CatalogBase update(StructureKind kind, long id, String ifMatch, StructureChange change) {
         validate(change, kind);
         var entity = store.find(kind, id, true);
@@ -127,12 +133,19 @@ public class StructureService {
                 var levels = change.careLevels() == null ? r.careLevels() : change.careLevels();
                 if (r.genderPolicy() != change.genderPolicy() || !r.careLevels().equals(levels)) {
                     var residents = store.allocatedResidents(id);
-                    if (!residents.isEmpty())
-                        throw new BusinessException(
-                                HttpStatus.SERVICE_UNAVAILABLE,
-                                "SOURCE_UNAVAILABLE",
-                                "Chưa có API M01 để kiểm chính sách phòng",
-                                Map.of("residentIds", residents));
+                    List<UnmetCondition> violations = new ArrayList<>();
+                    for (long resident : residents) {
+                        if (!residentFacts.genderAllowed(resident, change.genderPolicy()))
+                            violations.add(new UnmetCondition(
+                                    "FR-006", "Người cao tuổi #" + resident + " không phù hợp chính sách giới tính"));
+                        if (residentFacts
+                                .careLevel(resident)
+                                .filter(level -> levels.contains(level.level()))
+                                .isEmpty())
+                            violations.add(new UnmetCondition(
+                                    "FR-006", "Người cao tuổi #" + resident + " không phù hợp mức chăm sóc của phòng"));
+                    }
+                    if (!violations.isEmpty()) throw new ConditionNotMetException(violations);
                 }
                 r.revise(
                         change.parentId(),

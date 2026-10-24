@@ -10,6 +10,7 @@ import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
 import { StructureForm } from './StructureForm'
 import { BedTransfersPanel } from './BedTransfersPanel'
+import { BedAllocationsPanel } from './BedAllocationsPanel'
 import { catalogs, bedStates } from './bedCatalog'
 
 async function fetchCatalogs() {
@@ -74,7 +75,7 @@ export function BedsPage() {
   const allocationAllowed = (operation) =>
     permissions.some((permission) => permission.function === 'BED_ALLOCATION' && permission.operation === operation)
   if (!allowed('VIEW') && !allocationAllowed('VIEW')) return <PermissionDeniedState label="phòng, giường" />
-  const activeTab = allowed('VIEW') ? tab : 'transfers'
+  const activeTab = allowed('VIEW') ? tab : tab === 'allocations' ? 'allocations' : 'transfers'
   const canCreate = allowed('CREATE'),
     canUpdate = allowed('UPDATE')
   function edit(kind, item, action = 'update') {
@@ -148,7 +149,12 @@ export function BedsPage() {
                   ['bed-transfer-reasons', 'Lý do chuyển'],
                 ]
               : []),
-            ...(allocationAllowed('VIEW') ? [['transfers', 'Chuyển giường']] : []),
+            ...(allocationAllowed('VIEW')
+              ? [
+                  ['allocations', 'Phân bổ giường'],
+                  ['transfers', 'Chuyển giường'],
+                ]
+              : []),
           ].map(([key, label]) => (
             <Button
               key={key}
@@ -168,7 +174,9 @@ export function BedsPage() {
           <AlertDescription>{notice}</AlertDescription>
         </Alert>
       )}
-      {activeTab === 'transfers' ? (
+      {activeTab === 'allocations' ? (
+        <BedAllocationsPanel canCreate={allocationAllowed('CREATE')} />
+      ) : activeTab === 'transfers' ? (
         <BedTransfersPanel canTransfer={allocationAllowed('CREATE')} />
       ) : tab === 'structure' ? (
         <section className="flex flex-col gap-4">

@@ -10,10 +10,15 @@ import org.springframework.stereotype.Repository;
 public class BedStore {
     private final EntityManager entities;
     private final JdbcTemplate jdbc;
+    private final com.cambae.backend.m03.internal.allocation.persistence.AllocationStore allocations;
 
-    public BedStore(EntityManager entities, JdbcTemplate jdbc) {
+    public BedStore(
+            EntityManager entities,
+            JdbcTemplate jdbc,
+            com.cambae.backend.m03.internal.allocation.persistence.AllocationStore allocations) {
         this.entities = entities;
         this.jdbc = jdbc;
+        this.allocations = allocations;
     }
 
     public Bed create(long roomId, String code) {
@@ -32,6 +37,7 @@ public class BedStore {
     }
 
     public Bed lock(long id) {
+        allocations.guardRooms(java.util.List.of(id));
         var bed = entities.find(Bed.class, id, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
         if (bed == null) throw new com.cambae.backend.common.error.NotFoundException();
         return bed;
