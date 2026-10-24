@@ -9,9 +9,9 @@ import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 
 /**
- * Lưu giữ dữ liệu thuốc gắn người cao tuổi (data-model mục 13, research R-11).
- * Thuộc loại {@link RetentionKind.ResidentRecord} (theo CFG-M15-03 từ trạng thái cuối).
- * Danh mục thuốc (medication) là nhóm 1 không bị loại bỏ.
+ * Retention provider for resident medication data (data-model section 13, research R-11).
+ * Belongs to {@link RetentionKind.ResidentRecord} (per CFG-M15-03 from terminal status).
+ * Medication catalog is group 1 and is not purged.
  */
 @Component
 public class MedicationRetentionProvider implements RetentionProvider {
@@ -30,7 +30,6 @@ public class MedicationRetentionProvider implements RetentionProvider {
 
     @Override
     public Stream<Candidate> expiredCandidates(Instant cutoff, int batch) {
-        // Giai đoạn hiện tại bảng đơn thuốc đang triển khai ở US1 (Phase 3)
         return Stream.empty();
     }
 
@@ -41,6 +40,6 @@ public class MedicationRetentionProvider implements RetentionProvider {
 
     @Override
     public void delete(Collection<Long> ids) {
-        // Thực thi xóa bởi eldercare_retention khi có dữ liệu
+        // Deletion executed by eldercare_retention when data is present
     }
 }

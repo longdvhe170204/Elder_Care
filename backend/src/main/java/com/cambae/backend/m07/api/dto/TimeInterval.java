@@ -3,6 +3,6 @@ package com.cambae.backend.m07.api.dto;
 import java.time.Instant;
 
 /**
- * Khoảng thời gian từ mốc đến mốc (KhoangThoiGian).
+ * Time interval between start and end instants.
  */
 public record TimeInterval(Instant from, Instant to) {}

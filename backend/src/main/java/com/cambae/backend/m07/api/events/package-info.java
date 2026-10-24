@@ -1,5 +1,5 @@
 /**
- * Sự kiện miền (Domain Events) phát sinh từ Module M07 qua outbox của 000.
+ * Domain Events emitted by Module M07 via the module 000 outbox.
  */
 @NamedInterface("medication-events")
 package com.cambae.backend.m07.api.events;

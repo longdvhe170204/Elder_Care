@@ -1,10 +1,10 @@
 package com.cambae.backend.m07.api.dto;
 
 /**
- * Loại thay đổi chuyến đi ra ngoài / chuyển viện (LoaiThayDoiChuyen).
+ * Trip change type for resident outings / hospital transfers.
  */
 public enum TripChangeType {
-    CANCEL_TRIP, // Hủy chuyến
-    NOT_ATTENDING, // Không đi
-    RESCHEDULE // Đổi ngày
+    CANCEL_TRIP, // Cancel trip
+    NOT_ATTENDING, // Resident not attending
+    RESCHEDULE // Reschedule trip dates
 }

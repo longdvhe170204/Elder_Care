@@ -4,13 +4,13 @@ import com.cambae.backend.m07.api.dto.FamilyMedicationView;
 import java.util.List;
 
 /**
- * API tra cứu thuốc gia đình gửi (ThuocGiaDinhGuiApi).
- * Dùng bởi Module M02 (004 - Viện phí & Kết thúc lưu trú), M10 (012), M14 (016).
+ * API for querying family-sent medications.
+ * Used by Module M02 (004 - Billing & Discharge), M10 (012), M14 (016).
  */
 public interface FamilySentMedicationApi {
-    /** Kiểm tra xem viện còn đang giữ thuốc gia đình gửi của người cao tuổi không (004 FR-063c). */
+    /** Check whether the facility is retaining family-sent medication for the resident (004 FR-063c). */
     boolean hasRetainedMedication(long residentId);
 
-    /** Danh sách thuốc gia đình gửi của người cao tuổi (tên, trạng thái, số lượng còn, hạn dùng). */
+    /** List of family-sent medications of the resident (name, status, remaining quantity, expiry date). */
     List<FamilyMedicationView> byResident(long residentId);
 }

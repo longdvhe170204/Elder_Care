@@ -5,22 +5,22 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * SPI do M07 khai báo, Module M09 (008) cài đặt để cung cấp thông tin ca trực và phân công điều dưỡng.
- * Chỉ đọc (DieuDuongCaPort).
+ * SPI declared by M07 and implemented by Module M09 (008) to provide shift and nurse assignment information.
+ * Read-only.
  */
 public interface ShiftNursePort {
-    /** Ca của tầng chứa thời điểm. */
+    /** Shift on the floor covering the specified time. */
     Optional<ShiftView> shiftContaining(long floorAreaId, Instant time);
 
-    /** Điều dưỡng phụ trách người cao tuổi trong ca. */
+    /** Nurse assigned to the resident during the shift. */
     Optional<Long> assignedNurse(long residentId, Instant time);
 
-    /** Danh sách điều dưỡng có ca trực tại tầng trong mốc giờ. */
+    /** List of nurses on shift on the floor at the specified time. */
     List<Long> nursesOnShift(long floorAreaId, Instant time);
 
-    /** Nhân viên có tên trong ca đang diễn ra không. */
+    /** Check whether staff member is on an active shift. */
     boolean isStaffOnActiveShift(long staffId, Instant time);
 
-    /** Bàn giao ca trực đã được xác nhận chưa. */
+    /** Check whether shift handover has been confirmed. */
     boolean isHandoverConfirmed(long shiftId);
 }

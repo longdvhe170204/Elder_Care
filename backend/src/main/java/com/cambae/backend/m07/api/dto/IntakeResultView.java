@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
- * Kết quả tiếp nhận thuốc cung ứng theo đợt mua sắm (KetQuaTiepNhanView, FR-054).
+ * Supplied medication intake result by procurement order (FR-054).
  */
 public record IntakeResultView(
         long intakeLineId,

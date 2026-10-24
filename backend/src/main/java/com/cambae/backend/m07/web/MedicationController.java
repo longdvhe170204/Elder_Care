@@ -25,8 +25,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller Danh mục thuốc (FR-001, FR-002, FR-003, AC-01; contracts/api-006.yaml mục danh-muc-thuoc).
- * Hỗ trợ endpoint logic {@code /api/v1/thuoc} và endpoint tiếng Anh {@code /api/v1/medications}.
+ * Medication Catalog Controller (FR-001, FR-002, FR-003, AC-01; contracts/api-006.yaml section danh-muc-thuoc).
+ * Supports legacy endpoint {@code /api/v1/thuoc} and English endpoint {@code /api/v1/medications}.
  */
 @RestController
 @RequestMapping({"/api/v1/thuoc", "/api/v1/medications"})
@@ -50,9 +50,7 @@ public class MedicationController {
     @GetMapping("/{id}")
     public ResponseEntity<MedicationResponse> getById(@PathVariable Long id) {
         MedicationDetailView view = medicationService.getById(id);
-        return ResponseEntity.ok()
-                .eTag(VersionEtag.of(view.version()))
-                .body(MedicationResponse.from(view));
+        return ResponseEntity.ok().eTag(VersionEtag.of(view.version())).body(MedicationResponse.from(view));
     }
 
     @PostMapping
@@ -94,9 +92,7 @@ public class MedicationController {
                 body.isSpecialControl());
 
         MedicationDetailView updated = medicationService.update(id, ifMatch, cmd);
-        return ResponseEntity.ok()
-                .eTag(VersionEtag.of(updated.version()))
-                .body(MedicationResponse.from(updated));
+        return ResponseEntity.ok().eTag(VersionEtag.of(updated.version())).body(MedicationResponse.from(updated));
     }
 
     @PostMapping({"/{id}/ngung-hieu-luc", "/{id}/deactivate"})
@@ -106,7 +102,7 @@ public class MedicationController {
             @RequestBody(required = false) ReasonBody body) {
         Reason reason = body != null && body.reason() != null && !body.reason().isBlank()
                 ? Reason.of(body.reason())
-                : Reason.of("Ngừng hiệu lực danh mục");
+                : Reason.of("Deactivated catalog item");
         MedicationDetailView deactivated = medicationService.deactivate(id, reason);
         return ResponseEntity.ok()
                 .eTag(VersionEtag.of(deactivated.version()))

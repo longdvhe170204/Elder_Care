@@ -7,8 +7,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * Quản lý theo dõi lần chạy job M07 (bảng {@code m07_job_run}; research D-19).
- * Đảm bảo mỗi việc mỗi mốc chỉ chạy một lần, kể cả chạy bù.
+ * Job run tracking store for Module M07 (table {@code m07_job_run}; research D-19).
+ * Ensures each job and checkpoint runs at most once, including catch-up runs.
  */
 @Repository
 public class M07JobRunStore {
@@ -20,7 +20,7 @@ public class M07JobRunStore {
     }
 
     /**
-     * Kiểm tra một việc tại một mốc đã hoàn thành chưa.
+     * Check whether a job at a specific checkpoint has completed.
      */
     public boolean isCompleted(String jobKey, String checkpoint) {
         Integer count = jdbc.queryForObject(
@@ -32,9 +32,10 @@ public class M07JobRunStore {
     }
 
     /**
-     * Ghi nhận việc tại một mốc đã hoàn thành.
+     * Record completion of a job at a specific checkpoint.
      */
-    public void recordCompletion(String jobKey, String checkpoint, String result, Long schedulerRunId, Instant completedAt) {
+    public void recordCompletion(
+            String jobKey, String checkpoint, String result, Long schedulerRunId, Instant completedAt) {
         jdbc.update(
                 "INSERT INTO m07_job_run (job_key, checkpoint, result, scheduler_run_id, completed_at) VALUES (?, ?, ?, ?, ?) "
                         + "ON DUPLICATE KEY UPDATE result = VALUES(result), scheduler_run_id = VALUES(scheduler_run_id), completed_at = VALUES(completed_at)",
@@ -42,6 +43,8 @@ public class M07JobRunStore {
                 checkpoint,
                 result,
                 schedulerRunId,
-                completedAt != null ? LocalDateTime.ofInstant(completedAt, ZoneOffset.UTC) : LocalDateTime.now(ZoneOffset.UTC));
+                completedAt != null
+                        ? LocalDateTime.ofInstant(completedAt, ZoneOffset.UTC)
+                        : LocalDateTime.now(ZoneOffset.UTC));
     }
 }

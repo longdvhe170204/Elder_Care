@@ -7,17 +7,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * API tra cứu liều thuốc phục vụ bàn giao ca trực (LieuBanGiaoApi, FR-028, BR-M09-06, Q-307).
- * Được sử dụng bởi Module M09 (008 - Ca trực điều dưỡng).
+ * API for querying medication doses for shift handover (FR-028, BR-M09-06, Q-307).
+ * Used by Module M09 (008 - Nursing Shift Handover).
  */
 public interface DoseHandoverApi {
     /**
-     * Danh sách liều cần bàn giao trong ca: Trễ, Bỏ lỡ, Từ chối, Mang theo, KSĐB chờ xem lại.
+     * List of doses requiring handover in shift: Late, Missed, Refused, Carried, Special Control pending review.
      */
     List<DosePendingHandoverView> inShift(long floorAreaId, long shiftId);
 
     /**
-     * Tra cứu trạng thái hiện hành của tập hợp mã liều (sau khi đã tính đính chính).
+     * Query current status of a set of dose keys (taking corrections into account).
      */
     Map<String, DoseStatus> currentStatuses(Collection<String> doseKeys);
 }

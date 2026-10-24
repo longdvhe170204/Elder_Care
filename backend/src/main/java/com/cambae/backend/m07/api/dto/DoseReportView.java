@@ -3,7 +3,7 @@ package com.cambae.backend.m07.api.dto;
 import java.time.Instant;
 
 /**
- * Dòng thống kê liều thuốc phục vụ báo cáo (LieuBaoCaoView, FR-051).
+ * Medication dose reporting statistics view (FR-051).
  */
 public record DoseReportView(
         String doseKey,

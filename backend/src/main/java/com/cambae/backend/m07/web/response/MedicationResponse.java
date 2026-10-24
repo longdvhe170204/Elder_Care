@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
- * Phản hồi chi tiết thuốc theo hợp đồng OpenAPI api-006.yaml (schema Thuoc).
+ * Medication detail response per OpenAPI contract api-006.yaml (schema Thuoc).
  */
 public record MedicationResponse(
         @JsonProperty("id") Long id,

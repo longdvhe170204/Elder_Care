@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 /**
- * Thân yêu cầu tạo hoặc sửa thuốc trong Danh mục thuốc (FR-001, FR-002; api-006.yaml).
+ * Request body for creating or updating a medication in the Medication Catalog (FR-001, FR-002; api-006.yaml).
  */
 public class MedicationBody {
 

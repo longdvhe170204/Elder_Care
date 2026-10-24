@@ -4,7 +4,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 /**
- * Thuốc đang dùng cho thẻ khẩn cấp và tóm tắt chuyển viện (ThuocDangDungView, FR-050).
+ * Currently active medication for emergency card and hospital transfer summary (FR-050).
  */
 public record ActiveMedicationView(
         long prescriptionId,

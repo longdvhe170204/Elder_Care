@@ -6,12 +6,12 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Sự kiện yêu cầu cảnh báo y tế về thuốc (YeuCauCanhBao).
- * Module M05 (007) và M13 (009) lắng nghe để xử lý cảnh báo và gửi thông báo.
+ * Event requesting a medical alert regarding medication.
+ * Modules M05 (007) and M13 (009) listen to process alerts and send notifications.
  */
 public record MedicationAlertRequestedEvent(
-        String alertType, // BO_LO_LIEU | PHAN_UNG_THUOC | TU_CHOI_LIEN_TIEP | XUNG_DOT_DI_UNG | ...
-        String alertLevel, // NHE | TRUNG_BINH | KHAN_CAP
+        String alertType, // MISSED_DOSE | ADVERSE_REACTION | CONSECUTIVE_REFUSALS | ALLERGY_CONFLICT | ...
+        String alertLevel, // LOW | MEDIUM | CRITICAL
         long residentId,
         String sourceRecord,
         String deduplicationKey,

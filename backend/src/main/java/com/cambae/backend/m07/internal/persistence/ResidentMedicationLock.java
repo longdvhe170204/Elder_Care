@@ -4,8 +4,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * Khóa bi quan theo hồ sơ người cao tuổi trên bảng {@code resident_medication} (thuoc_nct) theo research D-03.
- * Thứ tự khóa toàn hệ thống: ... -> cham_soc_nct (005) -> thuoc_nct (006) -> don_thuoc -> lieu_thuoc -> ...
+ * Pessimistic lock per resident on table {@code resident_medication} per research D-03.
+ * Global locking order: ... -> resident_care (005) -> resident_medication (006) -> prescription -> medication_dose -> ...
  */
 @Component
 public class ResidentMedicationLock {
@@ -17,9 +17,9 @@ public class ResidentMedicationLock {
     }
 
     /**
-     * Đảm bảo bản ghi tồn tại và khóa dòng tới hết transaction hiện tại.
+     * Ensure record exists and lock row until the end of the current transaction.
      *
-     * @param residentId logic id người cao tuổi
+     * @param residentId resident logical ID
      */
     public void lock(long residentId) {
         jdbc.update(
@@ -27,8 +27,6 @@ public class ResidentMedicationLock {
                         + "ON DUPLICATE KEY UPDATE resident_id = resident_id",
                 residentId);
         jdbc.queryForList(
-                "SELECT resident_id FROM resident_medication WHERE resident_id = ? FOR UPDATE",
-                Long.class,
-                residentId);
+                "SELECT resident_id FROM resident_medication WHERE resident_id = ? FOR UPDATE", Long.class, residentId);
     }
 }

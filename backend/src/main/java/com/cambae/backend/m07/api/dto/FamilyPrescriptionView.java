@@ -3,7 +3,7 @@ package com.cambae.backend.m07.api.dto;
 import java.time.LocalDate;
 
 /**
- * Đơn thuốc hiển thị trên cổng người thân (DonThuocNguoiThanView).
+ * Prescription view for family portal.
  */
 public record FamilyPrescriptionView(
         long prescriptionId,
