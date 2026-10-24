@@ -187,7 +187,8 @@ public class LoginService {
                 Optional.ofNullable(account.familyMemberId()),
                 store.roles(account.id()),
                 deviceId,
-                channel);
+                channel,
+                Optional.ofNullable(account.residentId()));
         String[] deviceToken = new String[1];
         runAs(session, () -> {
             if (bindDevice) {
