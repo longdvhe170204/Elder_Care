@@ -3,6 +3,7 @@ package com.cambae.backend.m15.account.internal.permission.service;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.FieldGroup;
 import com.cambae.backend.m15.account.api.FieldVisibilityApi;
+import com.cambae.backend.m15.account.api.SelfHiddenFields;
 import com.cambae.backend.m15.account.api.VisibilityTarget;
 import com.cambae.backend.m15.account.api.dto.InfoGroup;
 import com.cambae.backend.m15.account.api.dto.Target;
@@ -24,6 +25,8 @@ import tools.jackson.databind.ser.ValueSerializerModifier;
  * khi người dùng hiện tại xem đầy đủ nhóm đó trên đối tượng của DTO ({@link VisibilityTarget}); thuộc tính
  * {@code hiddenFields} của DTO được ghi lại bằng danh sách tên trường đã bỏ. Mức "chỉ có/không" cũng bỏ trường: DTO tự
  * mang cờ có/không (ví dụ {@code coNguyenVong} của 001). Không xác định được người dùng thì bỏ mọi trường có nhóm.
+ * DTO cài {@link SelfHiddenFields} thì các trường nó tự khai cũng bị bỏ và ghi vào {@code hiddenFields} ("Đổi api"
+ * 2026-10-24, 001 FR-023m).
  */
 public class FieldGroupSerializerModifier extends ValueSerializerModifier {
 
@@ -48,20 +51,33 @@ public class FieldGroupSerializerModifier extends ValueSerializerModifier {
                 grouped.put(property.getName(), group.value());
             }
         }
-        if (grouped.isEmpty()) {
+        boolean selfHiding = SelfHiddenFields.class.isAssignableFrom(beanDesc.getBeanClass());
+        if (grouped.isEmpty() && !selfHiding) {
             return properties;
         }
+        List<String> names = properties.stream()
+                .map(BeanPropertyWriter::getName)
+                .filter(name -> !name.equals(HIDDEN_FIELDS))
+                .toList();
         List<BeanPropertyWriter> result = new ArrayList<>(properties.size());
         for (BeanPropertyWriter property : properties) {
-            if (grouped.containsKey(property.getName())) {
+            if (property.getName().equals(HIDDEN_FIELDS)) {
+                result.add(new HiddenFieldsWriter(property, names, grouped));
+            } else if (grouped.containsKey(property.getName()) || selfHiding) {
                 result.add(new GroupedWriter(property, grouped.get(property.getName())));
-            } else if (property.getName().equals(HIDDEN_FIELDS)) {
-                result.add(new HiddenFieldsWriter(property, grouped));
             } else {
                 result.add(property);
             }
         }
         return result;
+    }
+
+    /** Trường bị ẩn với người xem: theo nhóm thông tin, hoặc do DTO tự khai ({@link SelfHiddenFields}). */
+    private boolean hidden(Object bean, String name, InfoGroup group) {
+        if (bean instanceof SelfHiddenFields s && s.selfHiddenFields().contains(name)) {
+            return true;
+        }
+        return group != null && !visible(bean, group);
     }
 
     private boolean visible(Object bean, InfoGroup group) {
@@ -73,7 +89,7 @@ public class FieldGroupSerializerModifier extends ValueSerializerModifier {
         }
     }
 
-    /** Thuộc tính có nhóm: chỉ ghi khi được xem đầy đủ. */
+    /** Thuộc tính có nhóm (hoặc của DTO tự ẩn trường): chỉ ghi khi người xem được thấy; {@code group} rỗng là không nhóm. */
     private final class GroupedWriter extends BeanPropertyWriter {
 
         private final InfoGroup group;
@@ -85,19 +101,21 @@ public class FieldGroupSerializerModifier extends ValueSerializerModifier {
 
         @Override
         public void serializeAsProperty(Object bean, JsonGenerator gen, SerializationContext ctxt) throws Exception {
-            if (visible(bean, group)) {
+            if (!hidden(bean, getName(), group)) {
                 super.serializeAsProperty(bean, gen, ctxt);
             }
         }
     }
 
-    /** {@code hiddenFields}: tên các thuộc tính có nhóm đã bỏ, theo thứ tự khai báo. */
+    /** {@code hiddenFields}: tên các thuộc tính đã bỏ, theo thứ tự khai báo. */
     private final class HiddenFieldsWriter extends BeanPropertyWriter {
 
+        private final List<String> names;
         private final Map<String, InfoGroup> grouped;
 
-        HiddenFieldsWriter(BeanPropertyWriter base, Map<String, InfoGroup> grouped) {
+        HiddenFieldsWriter(BeanPropertyWriter base, List<String> names, Map<String, InfoGroup> grouped) {
             super(base);
+            this.names = names;
             this.grouped = grouped;
         }
 
@@ -105,11 +123,11 @@ public class FieldGroupSerializerModifier extends ValueSerializerModifier {
         public void serializeAsProperty(Object bean, JsonGenerator gen, SerializationContext ctxt) {
             gen.writeName(getName());
             gen.writeStartArray();
-            grouped.forEach((name, group) -> {
-                if (!visible(bean, group)) {
+            for (String name : names) {
+                if (hidden(bean, name, grouped.get(name))) {
                     gen.writeString(name);
                 }
-            });
+            }
             gen.writeEndArray();
         }
     }
