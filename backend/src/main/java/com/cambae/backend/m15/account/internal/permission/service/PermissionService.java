@@ -1,15 +1,18 @@
 package com.cambae.backend.m15.account.internal.permission.service;
 
+import com.cambae.backend.common.Role;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.PermissionApi;
 import com.cambae.backend.m15.account.api.ScopeApi;
 import com.cambae.backend.m15.account.api.dto.FailedLayer;
 import com.cambae.backend.m15.account.api.dto.Function;
+import com.cambae.backend.m15.account.api.dto.MetricGroupRestrictions;
 import com.cambae.backend.m15.account.api.dto.Operation;
 import com.cambae.backend.m15.account.api.dto.PermissionBasis;
 import com.cambae.backend.m15.account.api.dto.PermissionKey;
 import com.cambae.backend.m15.account.api.dto.PermissionResult;
+import com.cambae.backend.m15.account.api.dto.ReportChannel;
 import com.cambae.backend.m15.account.api.dto.Target;
 import com.cambae.backend.m15.account.api.spi.FootnoteCondition;
 import com.cambae.backend.m15.account.api.spi.InvalidPermissionDataException;
@@ -18,8 +21,10 @@ import com.cambae.backend.m15.account.internal.legal.service.LegalConditionServi
 import com.cambae.backend.m15.account.internal.permission.domain.FootnoteRules;
 import com.cambae.backend.m15.account.internal.permission.domain.PermissionScope;
 import com.cambae.backend.m15.account.internal.permission.domain.RoleGrant;
+import com.cambae.backend.m15.account.internal.permission.persistence.PermissionChanges;
 import com.cambae.backend.m15.account.internal.scope.service.PermissionDataErrors;
 import java.time.Instant;
+import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +71,7 @@ class PermissionService implements PermissionApi {
     private final BusinessTime time;
     // 004 cài
     private final ObjectProvider<ResidencyEndApi> residencyEnds;
+    private final PermissionChanges restrictions;
 
     PermissionService(
             RolePermissionCalculator roles,
@@ -75,7 +81,8 @@ class PermissionService implements PermissionApi {
             DutyPermissions duties,
             LegalConditionService legal,
             BusinessTime time,
-            ObjectProvider<ResidencyEndApi> residencyEnds) {
+            ObjectProvider<ResidencyEndApi> residencyEnds,
+            PermissionChanges restrictions) {
         this.roles = roles;
         this.scope = scope;
         this.conditions = conditions;
@@ -84,6 +91,7 @@ class PermissionService implements PermissionApi {
         this.legal = legal;
         this.time = time;
         this.residencyEnds = residencyEnds;
+        this.restrictions = restrictions;
     }
 
     @Override
@@ -115,6 +123,38 @@ class PermissionService implements PermissionApi {
                         .anyMatch(g -> !FootnoteRules.blockedAtRoleLayer(g.footnotes(), registered)))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toUnmodifiableSet());
+    }
+
+    /**
+     * Thu hẹp chi tiết của {@code DASHBOARD_REPORT} (có {@code metric_group} hoặc {@code channel}) mà
+     * {@link RolePermissionCalculator} không trừ ở mức khóa (016 FR-010a): theo từng vai trò và theo tài khoản.
+     */
+    @Override
+    public MetricGroupRestrictions metricGroupRestrictions(CurrentUser user) {
+        if (user.isScheduler()) {
+            return MetricGroupRestrictions.NONE;
+        }
+        Map<Role, List<MetricGroupRestrictions.Restriction>> byRole = new EnumMap<>(Role.class);
+        for (Role role : user.roles()) {
+            List<MetricGroupRestrictions.Restriction> rows =
+                    detailed(restrictions.activeRestrictions(role.code(), null));
+            if (!rows.isEmpty()) {
+                byRole.put(role, rows);
+            }
+        }
+        return new MetricGroupRestrictions(
+                Map.copyOf(byRole), detailed(restrictions.activeRestrictions(null, user.accountId())));
+    }
+
+    private static List<MetricGroupRestrictions.Restriction> detailed(List<PermissionChanges.RestrictionRow> rows) {
+        return rows.stream()
+                .filter(r -> r.key().function() == Function.DASHBOARD_REPORT
+                        && (r.metricGroup() != null || r.channel() != null))
+                .map(r -> new MetricGroupRestrictions.Restriction(
+                        r.metricGroup(),
+                        r.channel() == null ? null : ReportChannel.valueOf(r.channel()),
+                        MetricGroupRestrictions.Kind.valueOf(r.kind().name())))
+                .toList();
     }
 
     @Override

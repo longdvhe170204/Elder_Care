@@ -275,6 +275,7 @@ Loại yêu cầu, loại bản ghi của module khác (ví dụ `M02.THAY_DOI_L
 | kết nối tài khoản `eldercare_luu_tru` | `RetentionDatabase` (`jdbc`, `transaction`) |
 | loại dữ liệu lưu giữ của 000: nhật ký, đính chính (đi kèm bản ghi trong chuỗi) | `M15.AUDIT_LOG`, `M15.CORRECTION` (`AuditLogRetention`, `CorrectionRetention`, `AttachedRetention`); một đợt loại bỏ: `ExpiredDataPurge` |
 | hành động nhật ký `LOAI_BO_DU_LIEU_HET_HAN` (bản tóm tắt, đối tượng là lần chạy), `XUAT_BAO_CAO` | `EXPIRED_DATA_PURGED` (`AuditAction.EXPIRED_DATA_PURGED`, đối tượng `M15.PURGE_RUN`), `REPORT_EXPORTED` |
+| *(Đổi api 2026-10-24, 016 US9)* `NhatKyApi.banGhiDaGhi`, bản ghi đã lưu | `AuditLogApi.recorded` (`RECORDED_LIMIT` = 200), `AuditLogRecord` (`id`, `occurredAt`, `actorAccountId`, `role`, `entityId`, `reason`, `details`) |
 | job chạy ngay theo `runJobs` của đồng hồ giả lập | `common.scheduling.ScheduledJob` (`name`, `runNow`) |
 | test `NhatKyDayDuIT`, `NhatKyCheTruongIT`, `NhatKyPhamViIT`, `NhatKyNgoaiTuyenIT`, `NhatKyXuatBaoCaoIT`, `LoaiBoDuLieuIT` | `AuditLogCompletenessIT`, `AuditLogFieldMaskingIT`, `AuditLogScopeIT`, `AuditLogOfflineIT`, `AuditLogReportExportIT`, `ExpiredDataPurgeIT` |
 | màn `tinh-nang/nhat-ky/NhatKyBang.jsx`, test `NhatKyBang.test.jsx` | `features/audit-log/AuditLogTable.jsx`, `AuditLogTable.test.jsx` |
@@ -417,6 +418,8 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | SPI `PhanBoGiuongApi` (`dangMo`, `nguoiCaoTuoiTai`), `PhanBoView` | `BedAllocationApi` (`openAt`, `residentsIn`), `BedAllocationView` (`allocationId`, `bedId`, `roomId`, `floorAreaId`) |
 | SPI `QuanHeNguoiThanApi` (`hieuLuc`, `soDienThoaiDaDangKy`, `laNguoiDaiDienHieuLuc`, `thuocNguoiCaoTuoi`), `QuanHeView` | `FamilyRelationshipApi` (`active`, `registeredPhoneNumber`, `isActiveRepresentative`, `belongsToResident`), `FamilyRelationshipView` (`relationshipId`, `residentId`) |
 | SPI `KetThucLuuTruApi.thoiDiemTrangThaiCuoi` | `ResidencyEndApi.finalStatusAt` |
+| SPI phần `NguoiCaoTuoiApi` 002 dùng (`trangThai`, `hoTen`; 2026-10-24, M01 cài để tránh vòng M15 ↔ M01) | `ResidentProfileApi.profile` → `ResidentProfileView` (`fullName`, `inResidence`, `finalStatus`) |
+| `TaiKhoanApi.khoaKhiNctTrangThaiCuoi` (M01 gọi từ listener `NguoiCaoTuoiDaChuyenTrangThai`) | `AccountApi.lockResidentOnFinalStatus` |
 | SPI `NgoaiTuyenHandler` (`loaiBanGhi`, `khoaQuyen`, `doiTuong`, `kiemTraNoiDung`, `apDung`, `batBuocTrucTuyen`) | `OfflineHandler` (`recordType`, `permissionKey`, `target`, `validate`, `apply`, `requiresOnline`) |
 | SPI `DieuKienChuThich` (`maChuThich`, `thoa`), `GanPhamViProvider` (`loaiDoiTuong`, `ganPhamVi`) | `FootnoteCondition` (`footnoteCode`, `isSatisfied`), `ScopeAssignmentProvider` (`entityType`, `assignScope`) |
 | ngoại lệ `DuLieuQuyenKhongHopLe` (`nguon`, `loaiLoi`, `banGhiId`) | `InvalidPermissionDataException` (`source`, `errorKind`, `recordId`) |
@@ -434,6 +437,7 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | hành động nhật ký `TK_TAO`, `VT_GAN`; đối tượng tài khoản; người thực hiện `KHOI_TAO` | `ACCOUNT_CREATED`, `ROLE_ASSIGNED`; `M15.ACCOUNT`; `actor_type = BOOTSTRAP` qua `AuditLogApi.writeAsBootstrap` |
 | `quyen/internal/QuyenService` (T022); `phamvi/internal/PhamViService` (`trongPhamVi`, phần kéo lên US1); phân loại chú thích | `internal/permission/service/PermissionService`; `internal/scope/service/ScopeService` (`inScope`); `FootnoteRules` (`CONDITIONS`, `DUTIES`, `blockedAtRoleLayer`); nguồn quyền thêm `GrantSource.DUTY` |
 | `quyen/internal/QuyenXemTruongService`, `GioiHanTruongSerializerModifier` (T023); `truongBiAn`; DTO có đối tượng | `internal/permission/service/FieldVisibilityService`, `FieldGroupSerializerModifier`, `FieldVisibilityJacksonConfig`; trường JSON `hiddenFields`; `api.VisibilityTarget` (`visibilityTarget()`) |
+| *(bổ sung 2026-10-24, "Đổi api" cho 001 FR-023m)* DTO tự khai trường bị ẩn (`DtoTuAnTruong`, `truongTuAn`) | `m15.account.api.SelfHiddenFields` (`selfHiddenFields`); `FieldGroupSerializerModifier` bỏ các trường đó và ghi vào `hiddenFields` |
 | `phamvi/internal/LoiDuLieuQuyenService` (T024); bảng `loi_du_lieu_quyen` (`nguon`, `ban_ghi_id`, `loai_loi`, `lan_dau_luc`, `lan_cuoi_luc`, `so_lan`, `da_khac_phuc_luc`); hành động `QUYEN_TU_CHOI_DU_LIEU_NGUON` | `internal/scope/service/PermissionDataErrors` (`record`, `markFixed`); `permission_data_error` (`source`, `record_id`, `error_kind`, `first_at`, `last_at`, `occurrences`, `fixed_at`, `open_key`); `PERMISSION_DENIED_SOURCE_DATA` (đối tượng `M15.PERMISSION_DATA_ERROR`) |
 | `quyen/web/ToiController` (T025) | `web/MeController` (`UserInfo`, `EffectivePermission`) |
 | web `chung/quyen/useQuyen.js`, test `AnNutTheoQuyen.test.jsx` (T026) | `frontend/src/common/permissions/permissions.jsx` (`PermissionsProvider`, `usePermissions`, `IfAllowed`, `isAllowed`), `HideByPermission.test.jsx` |
@@ -815,9 +819,88 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 
 *Chủ feature điền khi dịch `contracts/api-015.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
 
-## 22. Feature 016 (`016-reports-dashboard`, A)
+## 22. Feature 016 (`016-reports-dashboard`, A) *(bổ sung 2026-10-24, khi dịch `contracts/api-016.yaml`)*
 
-*Chủ feature điền khi dịch `contracts/api-016.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+"Chỉ tiêu" dịch là `metric` như cột `metric_group` của 002 (mục 7.6). Lớp của 016 bổ sung vào mục này cùng thay đổi với mã (R-03). M14 không có bảng (data-model mục 1).
+
+### 22.1. Đường dẫn API (tiền tố `/api/v1`)
+
+| Tên logic | Mã |
+| --- | --- |
+| `/dashboard`, `/chi-tieu` | `/dashboard`, `/metrics` |
+| `/bao-cao/{nhom}`, `…/xuat`, `/bao-cao/lan-xuat` | `/reports/{group}`, `…/export`, `/reports/exports` |
+| `/chi-tiet/{maChiTieu}` | `/metric-details/{metricCode}` |
+| tag `dashboard`, `bao-cao`, `xuat` | `dashboard`, `reports`, `export` |
+
+### 22.2. Schema, tham số và trường JSON
+
+| Tên logic | Mã |
+| --- | --- |
+| tham số báo cáo `nhom`, `tu`, `den`, `ngay`, `tangKhuVucId`, `loaiLuuTru`, `mucChamSocId`, `nctId`, `nhanVienId`, `caId`, `cheDoChiPhi` | `group`, `from`, `to`, `date`, `floorAreaId`, `residenceType`, `careLevelId`, `residentId`, `staffId`, `shiftId`, `costMode` |
+| tham số chi tiết `nhomCon`, `tinhDen`, `trang` | `breakdownKey`, `asOf`, `page` |
+| `ChiTieu` (`ma`, `nhom`, `ten`, `dinhNghia`, `nguon`) | `Metric` (`code`, `group`, `name`, `definition`, `source`) |
+| `GiaTri` (`maChiTieu`, `giaTri`, `tuSo`, `mauSo`, `nhan`, `soChoXemLai`, `chiaNhom` {`khoa`, `giaTri`, `tuSo`, `mauSo`}) | `MetricValue` (`metricCode`, `value`, `numerator`, `denominator`, `labels`, `pendingReviewCount`, `breakdown` {`key`, `value`, `numerator`, `denominator`}) |
+| `Dashboard` (`tinhDen`, `khoi` {`nhom`, `trangThai`, `giaTri`}, `thongDiep`) | `Dashboard` (`asOf`, `blocks` {`group`, `status`, `values`}, `message`) |
+| `BaoCao` (`nhom`, `tu`, `den`, `tinhDen`, `boLoc`, `giaTri`, `ghiChu`) | `Report` (`group`, `from`, `to`, `asOf`, `filters`, `values`, `notes`) |
+| `ChiTiet` (`maChiTieu`, `tongSo`, `dong` {`khoaNguon`, `feature`, `loai`, `trangThai`, `moc`, `tangKhuVuc`, `nguoiCaoTuoi`, `rutGon`, `nguoiThucHien`, `ketQua`, `choXemLai`, `moDuocBanGhi`}) | `MetricDetail` (`metricCode`, `total`, `rows` {`sourceKey`, `feature`, `type`, `status`, `referenceTime`, `floorArea`, `resident`, `reduced`, `performedBy`, `result`, `pendingReview`, `canOpenRecord`}) |
+| `YeuCauXuat` (`tu`, `den`, `boLoc`, `cheDoChiPhi`, `coDinhDanh`, `mucDich`, `dinhDang`) | `ExportRequest` (`from`, `to`, `filters`, `costMode`, `includeIdentity`, `purpose`, `format`) |
+| *(bổ sung 2026-10-24, chủ dự án duyệt)* kết quả xuất (`maTep`, `maNhatKy`); lần xuất (`maNhatKy`, `maTep`, `thoiDiem`, `nguoiXuat`, `vaiTro`, `nhom`, `tu`, `den`, `coDinhDanh`, `mucDich`, `soDong`) | `ExportResult` (`fileId`, `auditLogId`); `ExportRecord` (`auditLogId`, `fileId`, `exportedAt`, `exportedBy`, `role`, `group`, `from`, `to`, `includeIdentity`, `purpose`, `rowCount`) |
+| `Loi`, response `Loi`; security scheme `phien` | `Problem` (như api-000), response `Problem`; `session` |
+
+### 22.3. Giá trị enum
+
+| Tên logic | Mã |
+| --- | --- |
+| nhóm báo cáo `NGUOI_CAO_TUOI`, `CHAM_SOC`, `CHAT_LUONG`, `SUC_KHOE_THUOC`, `CHI_PHI`, `NHAN_SU_CA` | `RESIDENTS`, `CARE`, `QUALITY`, `HEALTH_MEDICATION`, `INCURRED_COSTS`, `STAFFING_SHIFTS` |
+| chế độ chi phí `DA_CHOT`, `TAM_TINH` | `FINALIZED`, `PROVISIONAL` |
+| nhãn giá trị `KHONG_CO_DU_LIEU`, `CHUA_CAU_HINH`, `NGAY_CHUA_KET_THUC`, `CHO_XEM_LAI`, `LOAI_BO_LUU_TRU`, `TAM_TINH`, `TRONG_PHAM_VI_CUA_BAN` | `NO_DATA`, `NOT_CONFIGURED`, `DAY_NOT_ENDED`, `PENDING_REVIEW`, `PURGED_BY_RETENTION`, `PROVISIONAL`, `WITHIN_YOUR_SCOPE` |
+| trạng thái khối dashboard `DU`, `DANG_CAP_NHAT` | `COMPLETE`, `UPDATING` |
+| định dạng xuất `XLSX`, `CSV` | giữ nguyên |
+| hành động nhật ký `XUAT_BAO_CAO`; loại tệp `M14.BAO_CAO_XUAT` | `REPORT_EXPORTED` (mục 6.5); `M14.REPORT_EXPORT` |
+
+### 22.4. Mã chỉ tiêu (`contracts/chi-tieu.md`)
+
+| Tên logic | Mã |
+| --- | --- |
+| tiền tố `NCT`, `GIUONG`, `CV`, `BUA`, `HD`, `KT`, `SK`, `THUOC`, `CA`, `GP`, `CP`, `SD`, `KB`, `TS`, `KHO` | `RES`, `BED`, `TASK`, `MEAL`, `ACT`, `QC`, `HEALTH`, `MED`, `SHIFT`, `LICENSE`, `COST`, `BALANCE`, `REGISTRATION`, `ASSET`, `INVENTORY` |
+| `NCT.DANG_LUU_TRU`, `NCT.TAI_NGAY`, `NCT.BIEN_DONG`, `NCT.DANH_SACH_CHO` | `RES.IN_RESIDENCE`, `RES.AT_DATE`, `RES.MOVEMENTS`, `RES.WAITING_LIST` |
+| `GIUONG.TRANG_THAI`, `GIUONG.CHO_SAN_SANG` | `BED.STATUS`, `BED.AWAITING_READY` |
+| `CV.HOM_NAY`, `CV.QUA_HAN`, `CV.THEO_TRANG_THAI`, `CV.TY_LE_DUNG_HAN_BAT_BUOC`, `CV.GHI_NHAN_MUON`, `CV.THEO_NHAN_VIEN` | `TASK.TODAY`, `TASK.OVERDUE`, `TASK.BY_STATUS`, `TASK.MANDATORY_ON_TIME_RATE`, `TASK.LATE_RECORDINGS`, `TASK.BY_STAFF` |
+| `BUA.PHIEU_TRE`, `BUA.PHIEU_SAI_LECH` | `MEAL.LATE_TICKETS`, `MEAL.DISCREPANCY_TICKETS` |
+| `HD.BUOI`, `HD.TY_LE_THAM_GIA`, `HD.CHUYEN_QUA_GIO`, `HD.THIEU_NGUOI`, `HD.CO_LAP` | `ACT.SESSIONS`, `ACT.PARTICIPATION_RATE`, `ACT.OVERDUE_TRIPS`, `ACT.MISSING_PARTICIPANTS`, `ACT.ISOLATION_RISK` |
+| `KT.TY_LE_DAT`, `KT.THEO_VAI_TRO_KIEM_TRA` | `QC.PASS_RATE`, `QC.BY_CHECKER_ROLE` |
+| `SK.CHI_SO`; `SK.CANH_BAO`, `SK.CANH_BAO_THOI_GIAN_TIEP_NHAN`, `SK.CANH_BAO_LEO_THANG`, `SK.CANH_BAO_SOS_HO_TRO` | `HEALTH.VITAL_SIGNS`; `HEALTH.ALERTS`, `HEALTH.ALERT_RESPONSE_TIME`, `HEALTH.ALERT_ESCALATIONS`, `HEALTH.SOS_ASSISTANCE_ALERTS` |
+| `SK.SU_CO`, `SK.SU_CO_LEO_THANG`, `SK.SU_CO_THOI_GIAN_TIEP_NHAN`, `SK.THEO_DOI`, `SK.SU_CO_KHONG_THUOC_SK` | `HEALTH.INCIDENTS`, `HEALTH.INCIDENT_ESCALATIONS`, `HEALTH.INCIDENT_RESPONSE_TIME`, `HEALTH.FOLLOW_UPS`, `HEALTH.NON_HEALTH_INCIDENTS` |
+| `SK.DANH_GIA_LAI_QUA_HAN`, `SK.KHOANH_VUNG`, `SK.NGUY_KICH` | `HEALTH.OVERDUE_REASSESSMENTS`, `HEALTH.CONTAINMENT_ZONES`, `HEALTH.CRITICAL_FLAGS` |
+| `THUOC.TY_LE_BO_LO`, `THUOC.TY_LE_TU_CHOI`, `THUOC.DOI_CHIEU_QUA_HAN` | `MED.MISSED_RATE`, `MED.REFUSED_RATE`, `MED.OVERDUE_RECONCILIATIONS` |
+| `CA.BAN_GIAO_CHUA_XAC_NHAN`, `CA.TY_LE_PHUC_VU`, `CA.THIEU_PHU`, `CA.THIEU_CA`, `CA.YEU_CAU`, `CA.LOI_MOI`, `CA.GIO_LAM` | `SHIFT.UNCONFIRMED_HANDOVERS`, `SHIFT.STAFFING_RATIO`, `SHIFT.UNDER_COVERAGE`, `SHIFT.MISSING_SHIFTS`, `SHIFT.REQUESTS`, `SHIFT.INVITATIONS`, `SHIFT.WORKING_HOURS` |
+| `GP.CO_SO`, `GP.NHAN_VIEN` | `LICENSE.FACILITY`, `LICENSE.STAFF` |
+| `CP.BANG`, `CP.TONG_HOP`, `CP.DIEU_CHINH_SAU_CHOT`, `CP.TY_LE_THEO_SU_KIEN`, `CP.MUA_SAM` | `COST.STATEMENTS`, `COST.SUMMARY`, `COST.POST_FINALIZATION_ADJUSTMENTS`, `COST.EVENT_GENERATED_RATE`, `COST.PURCHASING` |
+| `SD.THAP_CON_NO`, `KB.CAN_LAM`, `TS.QUA_HAN`, `KHO.DUOI_TOI_THIEU`, `KHO.LO_SAP_HET_HAN` | `BALANCE.LOW_OR_OWING`, `REGISTRATION.TO_DO`, `ASSET.OVERDUE`, `INVENTORY.BELOW_MINIMUM`, `INVENTORY.EXPIRING_LOTS` |
+
+### 22.5. Mã lỗi
+
+| Tên logic | Mã |
+| --- | --- |
+| `VUOT_KHOANG_TOI_DA` (CFG-M14-01), `THIEU_MUC_DICH` | `RANGE_EXCEEDS_MAXIMUM` (422), `PURPOSE_REQUIRED` (422) |
+| `KHONG_XAC_DINH_PHAM_VI` (FR-016) | không có mã riêng: `PERMISSION_DENIED` (403) kèm `failedLayer` `SOURCE_DATA` như 002 (chủ dự án chọn 2026-10-24) |
+
+### 22.6. Gói và thư mục (dự kiến, chốt cùng mã)
+
+| Tên logic | Mã |
+| --- | --- |
+| `m14.chitieu`, `phamvi`, `dashboard`, `baocao`, `chitiet`, `xuat` | `m14.internal.metric`, `scope`, `dashboard`, `report`, `detail`, `export` (mỗi gói `{service, domain}`); controller ở `m14.web` |
+| *(bổ sung 2026-10-24, Phase 1, 2)* `ChiTieu`, `GiaTriChiTieu`, `DongChiTiet`, bản ghi nguồn, danh mục chỉ tiêu; phép đếm, tỷ lệ, trung bình/lớn nhất/tổng; nhãn | `m14.internal.metric.domain`: `Metric` (`Computation.Count`, `Ratio`, `Aggregate` `AVERAGE`/`MAXIMUM`/`SUM`), `MetricValue` (`Breakdown`), `DetailRow`, `MetricRecord`, `ValueLabel`; `m14.internal.metric.service.MetricCatalog` |
+| nhóm chỉ tiêu FR-010 (giá trị cột `metric_group` của 002); phạm vi ô `TOAN_VIEN`, `TANG_DUOC_GIAO`, `PHAN_CONG`, tầng/khu của phân công, `NHAN_VIEN_TANG`; `QuyenNhomChiTieu` | `MetricGroup` (`RESIDENTS`, `WAITING_LIST`, `BEDS`, `CARE_TASKS`, `PER_STAFF`, `BED_AWAITING_READY`, `MEAL_TICKETS`, `ACTIVITIES`, `QUALITY_CHECKS`, `HEALTH_EVENTS`, `NON_HEALTH_INCIDENTS`, `OVERDUE_REASSESSMENTS`, `MEDICATION_DOSES`, `MEDICATION_RECONCILIATIONS`, `CONTAINMENT_ZONES`, `HANDOVERS`, `STAFFING_RATIO`, `FACILITY_LICENSES`, `STAFF_LICENSES`, `INCURRED_COSTS`, `PURCHASING`, `BALANCES`, `RESIDENCE_REGISTRATION`, `ASSETS`, `INVENTORY`, `CRITICAL_FLAGS`, `STAFFING_SHIFTS`); `GroupScope` (`FACILITY`, `ASSIGNED_FLOORS`, `ASSIGNMENT`, `ASSIGNMENT_AREA`, `FLOOR_STAFF`); `MetricGroupAccess` |
+| `PhamViBaoCao` (phần phạm vi, lọc thô, lọc chính xác); giới hạn trường dòng chi tiết; kiểm khoảng CFG-M14-01 | `m14.internal.scope`: `ReportScope` (`Grant`, `rough`, `covers`), `ReportScopeService` (`dashboard`, `period`), `DetailRowPolicy`, `ReportPeriods` (`ReportPeriod`) |
+| *(bổ sung 2026-10-24, "Đổi api" 002)* `QuyenApi.thuHepNhomChiTieu`, `ThuHepNhomChiTieu` (theo vai trò, theo tài khoản; dòng `nhomChiTieu`, `kenh`, loại `BO_THAO_TAC`, `HA_PHAM_VI`); `QuyenXemTruongApi.duocXemTheoVaiTro`; kênh `DASHBOARD`, `BAO_CAO` | `PermissionApi.metricGroupRestrictions`, `m15.account.api.dto.MetricGroupRestrictions` (`byRole`, `byAccount`; `Restriction` `metricGroup`, `channel`, `kind`, `appliesTo`; `Kind` `REMOVE_OPERATION`, `LOWER_SCOPE`); `FieldVisibilityApi.canViewByRole`; `m15.account.api.dto.ReportChannel` (`DASHBOARD`, `REPORT`); test `MetricGroupRestrictionsIT` |
+| test `PhamViBaoCaoTest`; test khung chỉ tiêu, bảng FR-010, giới hạn trường, khoảng | `ReportScopeTest`; `MetricTest`, `MetricGroupAccessTest`, `DetailRowPolicyTest`, `FR_060_ReportPeriodTest`, `M14ArchTest` |
+| *(bổ sung 2026-10-24, Phase 11)* nguồn bản ghi của chỉ tiêu; bộ lọc báo cáo; chế độ chi phí | `m14.internal.metric.domain.MetricSource` (`metric`, `records`), `ReportFilters` (`floorAreaIds`, `residenceType`, `careLevelId`, `residentId`, `staffId`, `shiftId`, `costMode`; `NONE`, `matches`, `toMap`), `ReportFilters.CostMode`; `Metric.residents`; `MetricCatalog.sourcesIn`; `ReportScopeService.visible` |
+| nhóm báo cáo và nhóm chỉ tiêu trong báo cáo; báo cáo đã tính, kết quả một chỉ tiêu | `m14.internal.report`: `ReportGroup` (`label`, `metricGroups`), `Report`, `MetricResult` (`residents`, `residentsByKey`, `rows`), `ReportService.period` |
+| `XuatBaoCaoService`, `YeuCauXuat`, `NoiDungDuocXuat`, file xuất, `QuyenTepProvider` `M14.BAO_CAO_XUAT`, định dạng | `m14.internal.export`: `ReportExportService` (`export`, `list`, `canDownload`; `ExportRequest`, `ExportResult` {`fileId`, `auditLogId`}, `ExportRecord`, `ExportFormat`), `ExportContent` (`decide`, `SummaryRow`, `DetailLine`, `rowCount`), `ExportWorkbook` (`Header`), `ReportExportFilePermission`; `m14.web.ReportExportController`, `web.request.ExportRequestBody` |
+| chỉ tiêu `GP.CO_SO` | `m14.internal.license.service.FacilityLicenseMetric` (`FacilityLicenseRecord`: `licenseId`, `name`, `expiryDate`, `daysRemaining`) |
+| test `FR_061_NoiDungXuatTest`, `FR_062_NhatKyXuatIT`, `ChiTieu_GP_CoSoTest`; chỉ tiêu giả của test | `FR_061_ExportContentTest`, `FR_062_ExportAuditIT`, `MetricLicenseFacilityTest`; `TestDoseMetric` (`TEST.MISSED_DOSES`) |
+| web `tinh-nang/bao-cao/{dashboard, nguoi-cao-tuoi, cham-soc, chat-luong, suc-khoe-thuoc, chi-phi, nhan-su-ca, chi-tiet}` | `features/reports/{dashboard, residents, care, quality, health-medication, incurred-costs, staffing-shifts, metric-details}` |
 
 ## 23. Feature 017 (`017-resident-balance-ledger`, E)
 

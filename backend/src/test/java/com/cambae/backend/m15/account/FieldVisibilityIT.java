@@ -10,6 +10,7 @@ import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.FieldGroup;
 import com.cambae.backend.m15.account.api.FieldVisibilityApi;
+import com.cambae.backend.m15.account.api.SelfHiddenFields;
 import com.cambae.backend.m15.account.api.VisibilityTarget;
 import com.cambae.backend.m15.account.api.dto.AccessChannel;
 import com.cambae.backend.m15.account.api.dto.AccountType;
@@ -25,10 +26,12 @@ import com.cambae.backend.support.MySqlIntegrationTestBase;
 import com.cambae.backend.support.fake.m15.FakeAssignments;
 import com.cambae.backend.support.fake.m15.FakeBedAllocations;
 import com.cambae.backend.support.fake.m15.FakeM15Config;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.Duration;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -167,6 +170,78 @@ class FieldVisibilityIT extends MySqlIntegrationTestBase {
         assertThat(body.get("wishes").asString()).isEqualTo("Về quê");
         assertThat(body.get("hiddenFields").isArray()).isTrue();
         assertThat(body.get("hiddenFields").isEmpty()).isTrue();
+    }
+
+    /** Cờ có/không mà module tự kiểm quyền, không gắn nhóm (001 {@code hasTreatmentWish}, FR-023m; "Đổi api" 2026-10-24). */
+    record SampleFlags(
+            long residentId,
+            Boolean hasTreatmentWish,
+            List<String> hiddenFields,
+            @JsonIgnore Set<String> hide) implements SelfHiddenFields {
+
+        @Override
+        public Set<String> selfHiddenFields() {
+            return hide;
+        }
+    }
+
+    /** Vừa có trường theo nhóm vừa có trường module tự ẩn. */
+    record SampleMixed(
+            long residentId,
+            @FieldGroup(InfoGroup.HEALTH) List<String> allergies,
+            Boolean hasTreatmentWish,
+            List<String> hiddenFields,
+            @JsonIgnore Set<String> hide)
+            implements VisibilityTarget, SelfHiddenFields {
+
+        @Override
+        public Target visibilityTarget() {
+            return resident(residentId);
+        }
+
+        @Override
+        public Set<String> selfHiddenFields() {
+            return hide;
+        }
+    }
+
+    @Test
+    void A_08_selfHiddenField_omittedAndListedInHiddenFields() {
+        signIn(staff(EnumSet.of(Role.ACCOUNTANT), null));
+
+        JsonNode body = json.valueToTree(new SampleFlags(1, null, null, Set.of("hasTreatmentWish")));
+
+        assertThat(body.has("hasTreatmentWish")).isFalse();
+        assertThat(body.has("hide")).isFalse();
+        assertThat(body.has("selfHiddenFields")).isFalse();
+        assertThat(body.get("hiddenFields").values())
+                .extracting(JsonNode::asString)
+                .containsExactly("hasTreatmentWish");
+    }
+
+    @Test
+    void A_08_selfHiddenEmpty_fieldKept() {
+        signIn(staff(EnumSet.of(Role.OFFICE_STAFF), null));
+
+        JsonNode body = json.valueToTree(new SampleFlags(1, true, null, Set.of()));
+
+        assertThat(body.get("hasTreatmentWish").asBoolean()).isTrue();
+        assertThat(body.get("hiddenFields").isEmpty()).isTrue();
+    }
+
+    @Test
+    void A_08_groupedAndSelfHidden_bothListedInDeclarationOrder() {
+        signIn(staff(EnumSet.of(Role.ACCOUNTANT), null));
+        SampleMixed mixed =
+                new SampleMixed(Long.parseLong(onFloor1.id()), List.of("Tôm"), null, null, Set.of("hasTreatmentWish"));
+
+        JsonNode body = json.valueToTree(mixed);
+
+        assertThat(body.has("allergies")).isFalse();
+        assertThat(body.has("hasTreatmentWish")).isFalse();
+        assertThat(body.get("hiddenFields").values())
+                .extracting(JsonNode::asString)
+                .containsExactly("allergies", "hasTreatmentWish");
     }
 
     private void signIn(ActiveSession user) {

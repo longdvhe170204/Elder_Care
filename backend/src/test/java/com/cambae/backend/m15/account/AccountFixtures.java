@@ -139,6 +139,20 @@ class AccountFixtures {
                 AccessChannel.FAMILY_APP);
     }
 
+    /** Người dùng của tài khoản người cao tuổi fixture, như phiên app người cao tuổi (002 US8). */
+    ActiveSession residentUser(long accountId) {
+        long residentId = jdbc.queryForObject("SELECT resident_id FROM account WHERE id = ?", Long.class, accountId);
+        return new ActiveSession(
+                accountId,
+                AccountType.RESIDENT,
+                Optional.empty(),
+                Optional.empty(),
+                EnumSet.of(Role.RESIDENT),
+                "fixture-device",
+                AccessChannel.RESIDENT_APP,
+                Optional.of(residentId));
+    }
+
     long staffId(long accountId) {
         return jdbc.queryForObject("SELECT staff_id FROM account WHERE id = ?", Long.class, accountId);
     }
