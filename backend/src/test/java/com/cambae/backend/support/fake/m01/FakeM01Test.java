@@ -6,12 +6,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.cambae.backend.m01.api.dto.CommandContext;
 import com.cambae.backend.m01.api.dto.Condition;
 import com.cambae.backend.m01.api.dto.Gender;
+import com.cambae.backend.m01.api.dto.HealthInsurance;
 import com.cambae.backend.m01.api.dto.OpenAbsence;
+import com.cambae.backend.m01.api.dto.PreferredHospital;
+import com.cambae.backend.m01.api.dto.RecordEndOfLifeWish;
 import com.cambae.backend.m01.api.dto.ResidenceType;
 import com.cambae.backend.m01.api.dto.ResidenceTypePeriod;
 import com.cambae.backend.m01.api.dto.ResidentStatus;
 import com.cambae.backend.m01.api.dto.StatusCommand;
 import com.cambae.backend.m01.api.dto.TransitionResult;
+import com.cambae.backend.m01.api.dto.TreatmentEscort;
+import com.cambae.backend.m01.api.dto.TreatmentWishView;
+import com.cambae.backend.m01.api.dto.WishChoice;
+import com.cambae.backend.m01.api.dto.WishRecordSource;
+import com.cambae.backend.m01.api.dto.WishSignerType;
 import com.cambae.backend.m01.api.events.ResidentStatusChanged;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -152,5 +160,51 @@ class FakeM01Test {
         absences.close(1);
 
         assertThat(absences.open(1)).isEmpty();
+    }
+
+    @Test
+    void FR_023_endOfLifeWishes_recordVersionBecomesTheCurrentWish_andTreatmentWishIsReadOnly() {
+        FakeEndOfLifeWishes wishes = new FakeEndOfLifeWishes();
+        assertThat(wishes.current(7)).isEmpty();
+        assertThat(wishes.currentTreatmentWish(7)).isEmpty();
+
+        long id = wishes.recordVersion(
+                new RecordEndOfLifeWish(
+                        7,
+                        WishChoice.STAY_PALLIATIVE,
+                        "Con gái",
+                        "Ghi chú",
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        WishSignerType.RESIDENT,
+                        null,
+                        null,
+                        null,
+                        List.of(),
+                        T,
+                        null),
+                WishRecordSource.CRITICAL_RECONFIRMATION);
+
+        assertThat(wishes.current(7)).get().satisfies(view -> {
+            assertThat(view.id()).isEqualTo(id);
+            assertThat(view.source()).isEqualTo(WishRecordSource.CRITICAL_RECONFIRMATION);
+            assertThat(view.choice()).isEqualTo(WishChoice.STAY_PALLIATIVE);
+        });
+        assertThat(wishes.recorded()).hasSize(1);
+
+        wishes.treatment(new TreatmentWishView(
+                1,
+                7,
+                List.of(new PreferredHospital("Bệnh viện A", "1 Lê Lợi")),
+                Optional.of(new HealthInsurance("BV A", "GD123", LocalDate.of(2027, 1, 1))),
+                true,
+                List.of(),
+                TreatmentEscort.FAMILY,
+                "",
+                T));
+        assertThat(wishes.currentTreatmentWish(7)).isPresent();
     }
 }
