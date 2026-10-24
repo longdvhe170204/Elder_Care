@@ -111,7 +111,7 @@ public class CareLevelChangeRequestReminderService {
                     TYPE,
                     residentId,
                     assessmentId);
-            events.publishEvent(new CareLevelChangeRequestReminder(residentId, assessmentId, newLevel, number));
+            events.publishEvent(new CareLevelChangeRequestReminder(residentId, assessmentId, newLevel, number, now));
             reminded++;
         }
         return reminded;

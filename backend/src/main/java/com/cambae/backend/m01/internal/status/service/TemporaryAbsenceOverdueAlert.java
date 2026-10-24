@@ -6,6 +6,8 @@ import com.cambae.backend.m01.api.dto.ResidentStatus;
 import com.cambae.backend.m01.api.events.TemporaryAbsenceOverdue;
 import com.cambae.backend.m01.api.spi.AbsenceApi;
 import com.cambae.backend.m01.internal.status.persistence.ResidentStatusStore;
+import com.cambae.backend.m15.account.api.spi.BedAllocationApi;
+import com.cambae.backend.m15.account.api.spi.BedAllocationView;
 import com.cambae.backend.m15.parameter.api.ParameterApi;
 import com.cambae.backend.m15.parameter.api.ParameterCode;
 import java.sql.Timestamp;
@@ -29,6 +31,7 @@ public class TemporaryAbsenceOverdueAlert {
 
     private final ResidentStatusStore statuses;
     private final ObjectProvider<AbsenceApi> absences;
+    private final ObjectProvider<BedAllocationApi> beds;
     private final ParameterApi parameters;
     private final JdbcTemplate jdbc;
     private final ApplicationEventPublisher events;
@@ -37,12 +40,14 @@ public class TemporaryAbsenceOverdueAlert {
     TemporaryAbsenceOverdueAlert(
             ResidentStatusStore statuses,
             ObjectProvider<AbsenceApi> absences,
+            ObjectProvider<BedAllocationApi> beds,
             ParameterApi parameters,
             JdbcTemplate jdbc,
             ApplicationEventPublisher events,
             BusinessTime time) {
         this.statuses = statuses;
         this.absences = absences;
+        this.beds = beds;
         this.parameters = parameters;
         this.jdbc = jdbc;
         this.events = events;
@@ -72,10 +77,19 @@ public class TemporaryAbsenceOverdueAlert {
                     residentId,
                     Timestamp.from(now));
             if (inserted == 1) {
-                events.publishEvent(new TemporaryAbsenceOverdue(residentId, open.absenceId(), open.expectedReturnAt()));
+                events.publishEvent(new TemporaryAbsenceOverdue(
+                        residentId, open.absenceId(), open.expectedReturnAt(), floorOf(residentId, now), now));
                 alerted++;
             }
         }
         return alerted;
+    }
+
+    /** Tầng của người cao tuổi theo phân bổ giường (003); chưa có 003 hoặc chưa phân bổ thì báo không theo tầng. */
+    private Long floorOf(long residentId, Instant at) {
+        BedAllocationApi api = beds.getIfAvailable();
+        return api == null
+                ? null
+                : api.openAt(residentId, at).map(BedAllocationView::floorAreaId).orElse(null);
     }
 }
