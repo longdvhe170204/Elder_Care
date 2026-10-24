@@ -52,15 +52,12 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 001 (đăng ký 2026-10-23 sau PR #23): đường dẫn, endpoint đã khớp; so operation tắt tới khi B sửa các chỗ
-            // lệch
-            // ghi ở docs/team-plan.md mục 8 (Problem theo bản chung, phản hồi 403/409/422, mã 201 của đính chính,
-            // enum…)
+            // 001 (đăng ký 2026-10-23 sau PR #23; so operation bật 2026-10-24 khi B hết các chỗ lệch, 001 T071)
             new Contract(
                     Path.of("..", "specs", "001-elder-profile-assessment", "contracts", "api-001.yaml"),
                     Set.of(),
                     Set.of(),
-                    false),
+                    true),
             // 002 T025 (2026-10-20): kéo một phần T078 lên để thêm /me; danh sách giảm dần theo các user story
             new Contract(
                     Path.of("..", "specs", "002-account-permission", "contracts", "api-002.yaml"),

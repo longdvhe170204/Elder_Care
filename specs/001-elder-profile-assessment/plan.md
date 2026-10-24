@@ -448,7 +448,7 @@ Tổng theo tasks.md (số liệu 2026-10-23, trước Phase 9; số hiện hàn
 - **`ResidentStatisticsApi` (016)**: hợp đồng đủ (ba hàm, ba DTO) nhưng chưa có task 001 và chưa có bản cài hay bản giả; không làm trong lượt này, đề xuất lượt riêng sau PR 001 (team-plan mục 8).
 - **`SourceRecord` của `ResidentStatusNotice`** đổi thành `M01.RESIDENT_STATUS_HISTORY` (cùng loại với nhật ký, đính chính, lưu giữ); chưa có bản ghi nào dùng tên cũ.
 - **Retention**: theo quyết định chủ dự án, không xóa vật lý tệp S3, không thêm `FileApi.delete`; T011 giữ `[ ]`. Việc A phải xong trước khi bật xóa thật (team-plan mục 8): `AuditLogRetention` theo mốc hồ sơ, SPI phần đi kèm cho tệp, cơ chế khai tham chiếu giữa các module, quy tắc lifecycle S3 (bucket bật versioning).
-- **`checkOperations`**: bản tạm của `ApiContractIT` với api-001 `true` báo 0 lệch (đã xóa bản tạm); chưa sửa file của A, chờ chủ dự án duyệt (T071).
+- **`checkOperations` (T071 `[x]`)**: bản tạm báo 0 lệch, chủ dự án duyệt nên `ApiContractIT` (file của A) đổi api-001 sang `checkOperations = true` (một dòng và dòng chú thích); `ApiContractIT` chính thức qua. Tổng 74/85 task `[x]`.
 - **Đồng bộ develop**: merge `origin/develop` `b049b1f`; xung đột chỉ ở `DESIGN.md` (phiên bản 5.20.1 cho bố cục tab Danh mục, giữ 5.20.0 của 002) và `docs/team-plan.md` (giữ đủ dòng A và B).
 - **Kiểm thử cuối (MySQL 3307)**: `./mvnw clean verify`: 244 test đơn vị và kiến trúc, 936 test tích hợp, 0 lỗi; lần chạy đầu dừng ở `spotless:check` vì `ResidentStatusNotice.java` lệch dòng sau `sed`, đã `spotless:apply` và `verify -DskipTests` BUILD SUCCESS. Vitest 247, lint sạch, build đạt (sau `npm ci` vì develop thêm `qrcode.react`).
 
