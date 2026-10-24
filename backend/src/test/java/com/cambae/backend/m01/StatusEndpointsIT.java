@@ -44,7 +44,10 @@ class StatusEndpointsIT extends StatusTestBase {
                 .andExpect(jsonPath("$.status").value("TEMPORARILY_ABSENT"))
                 .andExpect(jsonPath("$.history.command").value("GRANT_TEMPORARY_ABSENCE"))
                 .andExpect(jsonPath("$.history.from").value("IN_RESIDENCE"))
-                .andExpect(jsonPath("$.history.reason").value("Gia đình đón về cuối tuần"))
+                // lý do thuộc nhóm HEALTH (Opus #6): Hành chính không thấy lại ở phản hồi; xem
+                // StatusHistoryVisibilityIT
+                .andExpect(jsonPath("$.history.reason").doesNotExist())
+                .andExpect(jsonPath("$.history.hiddenFields", org.hamcrest.Matchers.hasItem("reason")))
                 .andExpect(jsonPath("$.history.bySystem").value(false));
 
         mvc.perform(get("/api/v1/residents/" + id + "/status-history"))
