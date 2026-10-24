@@ -995,9 +995,10 @@ paths:
   # ---------------- Cách ly ----------------
       x-implementation-phase: 7
 
-  /phong/{id}/dat-cach-ly:
+  /rooms/{id}/isolate:
     post:
-      tags: [cach-ly]
+      x-implementation-phase: 9
+      tags: [room-isolation]
       summary: Đặt cách ly phòng (Bác sĩ, Quản lý viện)
       x-fr: [FR-008, FR-009]
       x-br: [BR-M05-12]
@@ -1008,31 +1009,33 @@ paths:
           application/json:
             schema:
               type: object
-              required: [lyDo]
+              required: [reason]
               properties:
-                lyDo: { $ref: '#/components/schemas/LyDo' }
-                suCoId: { type: integer, format: int64 }
+                reason: { $ref: '#/components/schemas/Reason' }
+                incidentId: { type: integer, format: int64 }
       responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Phong' } } } }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { description: DA_CACH_LY, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-        '422': { $ref: '#/components/responses/Loi' }
-  /phong/{id}/go-cach-ly:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Room' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { description: ROOM_ALREADY_ISOLATED, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '422': { $ref: '#/components/responses/Problem' }
+  /rooms/{id}/lift-isolation:
     post:
-      tags: [cach-ly]
+      x-implementation-phase: 9
+      tags: [room-isolation]
       summary: Gỡ cách ly phòng (Bác sĩ, Quản lý viện)
       description: Phòng vẫn thuộc vùng khoanh vùng của 007 thì vẫn chịu chặn (FR-009).
       x-fr: [FR-008, FR-009, FR-024a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
-  /phong/{id}/lich-su-cach-ly:
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
+  /rooms/{id}/isolation-history:
     get:
-      tags: [cach-ly]
+      x-implementation-phase: 9
+      tags: [room-isolation]
       summary: Lịch sử cách ly phòng
       x-fr: [FR-008]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DongCachLy' } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/RoomIsolationHistoryRow' } } } } } }
 
   # ---------------- Phân bổ ----------------
   /bed-allocations/suitable-beds:
@@ -1270,14 +1273,15 @@ paths:
         "422":
           $ref: "#/components/responses/Problem"
       x-implementation-phase: 5
-  /phan-bo-giuong/{id}/chuyen-giuong-kiem-soat-lay-nhiem:
+  /bed-allocations/{id}/infection-control-transfer:
     post:
-      tags: [phan-bo]
+      x-implementation-phase: 9
+      tags: [bed-allocations]
       summary: Chuyển giường theo chỉ định kiểm soát lây nhiễm
       description: |
-        Bắt buộc bacSiChiDinhId (tài khoản Bác sĩ đang Hoạt động, BR-M03-21) và lý do. Miễn điều kiện (d) cho giường đích,
+        Bắt buộc prescribingDoctorId (tài khoản Bác sĩ đang Hoạt động, BR-M03-21) và lý do. Miễn điều kiện (d) cho giường đích,
         cho phép chuyển ra khỏi hoặc trong vùng chịu chặn; các điều kiện khác của FR-018 vẫn áp dụng (FR-010).
-        Lý do chuyển luôn là KIEM_SOAT_LAY_NHIEM (nhóm y tế/an toàn).
+        Lý do chuyển luôn là INFECTION_CONTROL (nhóm y tế/an toàn).
       x-fr: [FR-010, FR-028, FR-030]
       x-br: [BR-M03-01, BR-M03-21]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -1287,24 +1291,25 @@ paths:
           application/json:
             schema:
               type: object
-              required: [giuongMoiId, bacSiChiDinhId, lyDo]
+              required: [newBedId, prescribingDoctorId, reason]
               properties:
-                giuongMoiId: { type: integer, format: int64 }
-                bacSiChiDinhId: { type: integer, format: int64, description: 'Id tài khoản; chọn từ danh sách, không nhập văn bản' }
-                lyDo: { $ref: '#/components/schemas/LyDo' }
+                newBedId: { type: integer, format: int64 }
+                prescribingDoctorId: { type: integer, format: int64, description: 'Id tài khoản; chọn từ danh sách, không nhập văn bản' }
+                reason: { $ref: '#/components/schemas/Reason' }
       responses:
-        '200': { description: Đã chuyển, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaChuyenGiuong' } } } }
-        '409': { $ref: '#/components/responses/LoiChan' }
-        '422': { description: BAC_SI_KHONG_HOP_LE hoặc THIEU_LY_DO, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-  /phan-bo-giuong/{id}/xac-nhan-o-lai-vung-cach-ly:
+        '200': { description: Đã chuyển, content: { application/json: { schema: { $ref: '#/components/schemas/BedTransferResult' } } } }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { description: INVALID_PRESCRIBING_DOCTOR hoặc REASON_REQUIRED, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /bed-allocations/{id}/confirm-isolated-stay:
     post:
-      tags: [phan-bo]
+      x-implementation-phase: 9
+      tags: [bed-allocations]
       summary: Bác sĩ xác nhận người trở về ở lại giường trong vùng cách ly
       description: Bác sĩ bất kỳ đang Hoạt động; không thời hạn trong đợt cách ly đó (FR-024a, CHK057). Gỡ dấu "chờ bác sĩ xác nhận vùng cách ly".
       x-fr: [FR-024a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PhanBo' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/Loi' } }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/BedAllocation' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Problem' } }
   /bed-allocations/{id}/corrections:
     post:
       tags: [bed-allocations]
@@ -1520,6 +1525,23 @@ paths:
                 $ref: "#/components/schemas/BedTransferReason"
         "409":
           $ref: "#/components/responses/Problem"
+
+  /room-isolation/rooms:
+    get:
+      x-implementation-phase: 9
+      summary: Danh sách phòng cho người có quyền xem cách ly
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Room' } } } } } }
+  /bed-allocations/prescribing-doctors:
+    get:
+      x-implementation-phase: 9
+      summary: Bác sĩ Hoạt động cho người có quyền phân bổ
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PrescribingDoctor' } } } } } }
+  /room-isolation/pending-stays:
+    get:
+      x-implementation-phase: 9
+      summary: Phân bổ Hiệu lực chờ Bác sĩ xác nhận ở lại
+      description: Chỉ tài khoản Bác sĩ Hoạt động có ROOM_ISOLATION.UPDATE.
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BedAllocation' } } } } } }
 
 components:
   securitySchemes:
@@ -2510,3 +2532,17 @@ components:
           format: int64
         status:
           type: string
+
+    RoomIsolationHistoryRow:
+      type: object
+      properties:
+        action: { type: string, enum: [ISOLATE, LIFT] }
+        occurredAt: { type: string, format: date-time }
+        actor: { type: string }
+        reason: { type: string }
+        incidentId: { type: integer, format: int64 }
+    PrescribingDoctor:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        fullName: { type: string }

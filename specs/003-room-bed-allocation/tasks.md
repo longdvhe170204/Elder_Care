@@ -221,6 +221,10 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 **Checkpoint**: Cách ly chạy độc lập.
 
+**Ghi chú triển khai Phase 9 (2026-10-25, chưa nghiệm thu)**: Đường dẫn logic được đặt thành `internal/isolation/{domain,persistence,service}`, `web/{request,response}`, `V003_06__room_isolation_history.sql`; UI trong `features/beds/{RoomIsolationPanel,IsolationWorkspace}`. T053 có các lớp `FR_008_RoomIsolationIT`, `BR_M03_21_ControlledTransferIT`, `FR_028_ControlledTransferAtomicityIT`; phần trở về phòng đã có hồi quy `FR_024_AllocationStatusParticipantIT` của Phase6. T055 dùng ControlledTransferService, chỉ miễn điều kiện cách ly; lệnh/giường/lịch sử/audit cùng rollback, giữ hạn giữ giường khi vắng. Chủ dự án duyệt5operation dịch và3GET phụ trợ quyền; client sinh lại. Scoped cuối `003-p9-review-green.log`:19IT+25testkiến trúc xanh; web250test/lint/build qua. Giữ checkbox tới khi clean verify cuối hoàn tất và đạt gate. T053/T054 còn listener sự kiện007 chờD; T056 có backend/web, mobile nhân viên chưa mở theo CLAUDE/mobile README. Không suy phần còn thiếu thành hoàn tất phase.
+
+**Kết quả gate Phase9**: clean verify nền đã kết thúc (003-p9-clean-verify-final.log, exit1,06:25phút),392unit/kiến trúc và205IT M03 xanh; toàn kho1050IT còn6failure+9error của8lớpM01,0skip; spotless qua. Không đánh thêm[x]. Thứ tự việc còn lại trong Phase9: T053 bổ sung ca sự kiện007→T054 listener sauD công bố API/fake→T055 giữ implementation đã kiểm, chờ gate xanh→T056 đóng phần backend/web khi đạt gate, appnhân viên chờ mở phạm vi. Task đầu Phase10 là T057, chưa thực hiện trong lượt này.
+
 ---
 
 ## Phase 10: User Story 8 – Xác nhận giường sẵn sàng trước khi nhận người mới (Priority: P2)

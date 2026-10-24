@@ -129,6 +129,15 @@ export const getBedsByIdStateHistory = (params) => request('GET', '/beds/{id}/st
 /** Đính chính lần Xác nhận giường sẵn sàng (ghi chú, khử khuẩn, bảo hộ) (FR-044) */
 export const postBedsByIdStateHistoryByHistoryIdCorrections = (params) => request('POST', '/beds/{id}/state-history/{historyId}/corrections', params)
 
+/** Đặt cách ly phòng (Bác sĩ, Quản lý viện) (FR-008, FR-009, BR-M05-12) */
+export const postRoomsByIdIsolate = (params) => request('POST', '/rooms/{id}/isolate', params)
+
+/** Gỡ cách ly phòng (Bác sĩ, Quản lý viện) (FR-008, FR-009, FR-024a) */
+export const postRoomsByIdLiftIsolation = (params) => request('POST', '/rooms/{id}/lift-isolation', params)
+
+/** Lịch sử cách ly phòng (FR-008) */
+export const getRoomsByIdIsolationHistory = (params) => request('GET', '/rooms/{id}/isolation-history', params)
+
 /** Danh sách giường thỏa FR-018 cho một người cao tuổi (FR-018, FR-021, FR-022, BR-M03-01) */
 export const getBedAllocationsSuitableBeds = (params) => request('GET', '/bed-allocations/suitable-beds', params)
 
@@ -146,6 +155,12 @@ export const postBedAllocationsByIdCancel = (params) => request('POST', '/bed-al
 
 /** Chuyển giường trực tiếp (Hành chính; Trưởng tầng khi người và giường mới trong phạm vi) (FR-027, FR-028, FR-029, FR-030, FR-031, FR-032, FR-033, BR-M03-01, BR-M03-04, BR-M03-07) */
 export const postBedAllocationsByIdTransfer = (params) => request('POST', '/bed-allocations/{id}/transfer', params)
+
+/** Chuyển giường theo chỉ định kiểm soát lây nhiễm (FR-010, FR-028, FR-030, BR-M03-01, BR-M03-21) */
+export const postBedAllocationsByIdInfectionControlTransfer = (params) => request('POST', '/bed-allocations/{id}/infection-control-transfer', params)
+
+/** Bác sĩ xác nhận người trở về ở lại giường trong vùng cách ly (FR-024a) */
+export const postBedAllocationsByIdConfirmIsolatedStay = (params) => request('POST', '/bed-allocations/{id}/confirm-isolated-stay', params)
 
 /** Đính chính phân bổ đã đóng hoặc đã hủy (FR-026, BR-M03-07, BR-M03-24) */
 export const postBedAllocationsByIdCorrections = (params) => request('POST', '/bed-allocations/{id}/corrections', params)
@@ -194,3 +209,12 @@ export const postRoomTypesByIdReactivate = (params) => request('POST', '/room-ty
 
 /** Kích hoạt lại mục danh mục (FR-005) */
 export const postBedTransferReasonsByIdReactivate = (params) => request('POST', '/bed-transfer-reasons/{id}/reactivate', params)
+
+/** Danh sách phòng cho người có quyền xem cách ly */
+export const getRoomIsolationRooms = (params) => request('GET', '/room-isolation/rooms', params)
+
+/** Bác sĩ Hoạt động cho người có quyền phân bổ */
+export const getBedAllocationsPrescribingDoctors = (params) => request('GET', '/bed-allocations/prescribing-doctors', params)
+
+/** Phân bổ Hiệu lực chờ Bác sĩ xác nhận ở lại */
+export const getRoomIsolationPendingStays = (params) => request('GET', '/room-isolation/pending-stays', params)

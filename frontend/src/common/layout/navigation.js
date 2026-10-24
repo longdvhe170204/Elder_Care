@@ -62,8 +62,8 @@ export const NAV_GROUPS = [
   {
     label: 'Tầng và nhân sự',
     items: [
-      // Dòng "Phân bổ, chuyển giường"
-      { key: 'beds', label: 'Phòng, giường', icon: 'BedDouble', roles: [QL, TT, HC] },
+      // Dòng "Phân bổ, chuyển giường" và "Cách ly phòng"
+      { key: 'beds', label: 'Phòng, giường', icon: 'BedDouble', roles: [QL, TT, HC, BS] },
       // Dòng "Lịch ca, phân công"
       { key: 'shifts', label: 'Lịch ca', icon: 'CalendarDays', roles: [QL, TT, BS, DD, CS, BEP, HC] },
       // Dòng "Suất ăn đã chốt, phiếu bữa ăn"

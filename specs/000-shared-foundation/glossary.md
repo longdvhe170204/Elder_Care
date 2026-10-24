@@ -1030,3 +1030,14 @@ Các tên mã trên đã có implementation; task chỉ đánh sau kiểm cuối
 | HTTP bán trú Phase 8 | `/day-care-rest-areas`, `/day-care-sessions`; `DayCareRestAreaWrite`, `DayCareSessionWrite`, `DayCareRestAreaResponse`, `DayCareSessionResponse`, `DayCareSessionChangeResponse`, `DayCareSessionCapacity` |
 | Màn bán trú | `frontend/src/features/beds/DayCarePanel.jsx`, tab Bán trú trong `BedsPage` |
 | Lỗi bán trú | `DAY_CARE_REST_AREA_EXISTS`, `DAY_CARE_SESSION_NAME_EXISTS`, `DAY_CARE_SESSION_OVERLAP`, `DAY_CARE_LOCATION_INACTIVE`, `DAY_CARE_FUTURE_ARRIVALS`, `DAY_CARE_NOT_CONFIGURED`, `DAY_CARE_CAPACITY_UNSET`, `DAY_CARE_OVER_CAPACITY`, `DAY_CARE_CORDONED`; thiếu nguồn dùng `SOURCE_UNAVAILABLE` đã có |
+
+#### Bổ sung 003 Phase 9 — 2026-10-25
+
+| Khái niệm | Tên mã |
+| --- | --- |
+| Lệnh và nhật sử cách ly phòng | `RoomIsolationService`, `RoomIsolationStore`, `RoomIsolationFact`, `room_isolation_history`, hành động `ISOLATE`/`LIFT` |
+| Chuyển kiểm soát lây nhiễm | `ControlledTransferService`, `ControlledTransferStore`, `ControlledTransferResult`, lý do danh mục `INFECTION_CONTROL` |
+| Phòng chịu chặn, Bác sĩ chỉ định | `IsolationRoom`, `PrescribingDoctor`, `PrescribingDoctorResponse` |
+| HTTP cách ly | `RoomIsolationController`, `ControlledTransferController`, `IsolationOptionsController`, `RoomIsolationWrite`, `InfectionControlTransferWrite`, `RoomIsolationHistoryRow`, `BedTransferResult` |
+| UI web cách ly | `RoomIsolationPanel`, `IsolationWorkspace` trong `frontend/src/features/beds/`, tab Cách ly |
+| Lỗi lệnh cách ly/chuyển | `ROOM_ALREADY_ISOLATED`, `ROOM_NOT_ISOLATED`, `ALLOCATION_NOT_TRANSFERABLE`, `INVALID_PRESCRIBING_DOCTOR`, `DOCTOR_CONFIRMATION_NOT_PENDING`; tái dùng `SOURCE_UNAVAILABLE`, `UNMET_CONDITIONS`, `ALLOCATION_TIME_OVERLAP` |
