@@ -501,7 +501,7 @@ Hồ sơ có hồ sơ sau liên kết tới (FR-004) không bị loại bỏ tr�
 | DBR-03 | `DieuKienChuThich("1")` kiểm bản đồng ý Hiệu lực ở mỗi yêu cầu | `NguoiThanSucKhoeIT` (dùng chung với 002), `RutLaiDongYIT` |
 | DBR-04 | Trigger mục sức khỏe; không có endpoint sửa, xóa | `MucSucKhoeBatBienIT` |
 | DBR-05 | `CHECK` trên `danh_gia`; kiểm ở service | `XacNhanDanhGiaIT` |
-| DBR-23 | Nhật ký trong transaction (000) | `NhatKyDayDuM01IT` (proxy `DataSource` của 000) |
+| DBR-23 | Nhật ký trong transaction (000); mọi lệnh có `resident_id`, loại và mã bản ghi, người thực hiện | `M01AuditCompletenessIT` (proxy `DataSource` của 000, lệnh danh mục), `M01CommandAuditTrailIT` (mọi lệnh gắn người cao tuổi) |
 | DBR-25 | `Clock` của 000; không có thời điểm từ client cho lệnh của 001 | ArchUnit của 000 |
 | DBR-34 | `dang_hieu_luc UNIQUE`; trigger | `NguyenVongPhienBanIT` |
 | DBR-39 | `nguyen_vong_dieu_tri.dang_hieu_luc UNIQUE`; trigger | `NguyenVongDieuTriPhienBanIT` |
@@ -521,11 +521,11 @@ Hồ sơ có hồ sơ sau liên kết tới (FR-004) không bị loại bỏ tr�
 | BR-M01-14 (phần 001) | Mẫu cột nguồn ý kiến; `NguonYKienApi`; `nguyen_vong_y_kien` | `BR_M01_14_NguonYKienIT` |
 | BR-M01-15 (phần 001) | FR-011: `CHECK` quyết định của Tòa án; FR-023c: `CHECK` người ký; FR-023h: test kiến trúc | `FR_011_DaiDienPhapLuatIT`, `NguyenVongNguoiKyIT`, `FR_023h_KhongDauNangLucArchTest` |
 | BR-M01-16 | Mục 6b; cảnh báo `THIEU_NGUYEN_VONG_DIEU_TRI` của `ThamGiaM01`; `NguyenVongApi.dieuTriHieuLuc` | `NguyenVongDieuTriPhienBanIT`, `NguyenVongDieuTriGioiHanXemIT`, `HoanTatTiepNhanCanhBaoDieuTriIT` |
-| FR-047c (BR-M05-32) | `tepDinhKemIds` của lệnh trạng thái; `M01.GIAY_TO_BENH_VIEN` | `GiayToBenhVienIT` |
+| FR-047c (BR-M05-32) | `attachmentFileIds` của lệnh trạng thái; `M01.HOSPITAL_DOCUMENT`; `ResidentStatusApi.hospitalDocuments` | `HospitalDocumentsIT` (tên logic `GiayToBenhVienIT`) |
 | FR-045, FR-047 | Gộp điều kiện; tác động trong transaction (H-02) | `FR_045_LietKeDieuKienIT`, `FR_047_RollbackTacDongIT` |
 | FR-048 | `SELECT … FOR UPDATE` | `FR_048_LenhDongThoiIT` |
 | FR-053 | `lich_su_muc_cham_soc` | `FR_053_MucTaiNgayIT` |
-| FR-054 | Mức thông báo của sự kiện nhắc, cảnh báo (`HasNotificationRequests`) | T009 (`[ ]`, chờ xem lại với 009); chưa có test |
+| FR-054 | Mức thông báo của sự kiện nhắc, cảnh báo (`HasNotificationRequests`) | `ResidentNotificationRequestsTest`, `ResidentNotificationsIntakeIT` (T009; người nhận thật chờ E) |
 | FR-023g (Q-366) | `OpinionRecordedFromFeedback` (tên logic `YKienDaGhiTuPhanHoi`) ở `m01.api.events` | `FR_023g_OpinionFromFeedbackIT` |
 
-**Rà truy vết 2026-10-24 (T075)**: tên lớp test ở bảng là tên logic; tên thật theo bảng đối chiếu glossary mục 8 (đổi tên 2026-10-23). Có test chạy xanh: DBR-01 → 05, 23, 25, 34, 39; BR-M01-01 → 16 (BR-M01-04: `BR_M01_04_TransitionTableTest`, `StatusHistoryIT`; BR-M01-15: `FR_023h_KhongDauNangLucIT` là test tích hợp đọc `information_schema`, không phải `*ArchTest`); FR-045, 047, 048, 053; SC-014 phần 001 (không có hai phiên bản Hiệu lực: `TreatmentWishVersionIT`; phần "lệnh Chuyển viện hiện đủ" thuộc 007). **Chưa có test, có task**: FR-047c (T082: `StatusController` đang trả 422 `ATTACHMENTS_NOT_ACCEPTED`, kiểm bởi `StatusEndpointsIT.FR_047c_attachmentsAreRefusedUntilFileStorageExists`; `GiayToBenhVienIT` chưa viết), FR-054 (T009).
+**Rà truy vết 2026-10-24 (T075)**: tên lớp test ở bảng là tên logic; tên thật theo bảng đối chiếu glossary mục 8 (đổi tên 2026-10-23). Có test chạy xanh: DBR-01 → 05, 23, 25, 34, 39; BR-M01-01 → 16 (BR-M01-04: `BR_M01_04_TransitionTableTest`, `StatusHistoryIT`; BR-M01-15: `FR_023h_KhongDauNangLucIT` là test tích hợp đọc `information_schema`, không phải `*ArchTest`); FR-045, 047, 047c, 048, 053, 054; SC-014 phần 001 (không có hai phiên bản Hiệu lực: `TreatmentWishVersionIT`; phần "lệnh Chuyển viện hiện đủ" thuộc 007). **Sửa 2026-10-24 (đợt 3)**: lần rà đầu ghi DBR-23 "có test" nhưng `M01AuditCompletenessIT` chỉ kiểm lệnh danh mục; kiểm lại mới thấy ba chỗ thiếu (xem plan, ghi chú đợt 3) và bổ sung `M01CommandAuditTrailIT`. DBR-02 (điều kiện của 012 trong Hoàn tất tiếp nhận) chỉ kiểm qua cơ chế gộp điều kiện của module khác (`FR_034a_CompleteAdmissionIT`, `FR_045_ListConditionsIT`), chưa có bean thật của 012.
