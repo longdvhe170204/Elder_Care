@@ -314,6 +314,11 @@ function HistoryItem({ item }) {
       </div>
       <p className="type-body-sm">{actor}</p>
       {item.reason && <p className="type-body-sm whitespace-pre-wrap">{item.reason}</p>}
+      {item.hiddenFields?.includes('reason') && (
+        <p className="type-caption text-muted-foreground">
+          Lý do và căn cứ chỉ hiện với người được xem thông tin sức khỏe của người cao tuổi này.
+        </p>
+      )}
       {item.conditionWaiver && (
         <p className="type-caption text-muted-foreground">
           Theo yêu cầu ngoại lệ đã duyệt số {item.conditionWaiver.approvalRequestId}

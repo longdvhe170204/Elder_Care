@@ -89,6 +89,34 @@ describe('StatusTab', () => {
     expect(screen.getByText('Trạng thái hiện tại')).toBeInTheDocument()
   })
 
+  it('lý do, căn cứ bị ẩn theo quyền sức khỏe (hiddenFields): vẫn hiện trạng thái, báo rõ có phần bị ẩn', async () => {
+    const hidden = HISTORY.map((entry) => {
+      const shown = { ...entry, hiddenFields: ['reason', 'basis', 'conditionWaiver'] }
+      delete shown.reason
+      delete shown.basis
+      delete shown.conditionWaiver
+      return shown
+    })
+    routes({ history: hidden })
+    open()
+
+    const list = await screen.findByRole('list', { name: 'Lịch sử trạng thái' })
+    expect(within(list).getByText('Hành chính Lan, tạo hồ sơ')).toBeInTheDocument()
+    expect(within(list).queryByText('Gia đình đón về')).not.toBeInTheDocument()
+    expect(within(list).queryByText('Miễn điều kiện')).not.toBeInTheDocument()
+    expect(within(list).getAllByText(/Lý do và căn cứ chỉ hiện với người được xem thông tin sức khỏe/)).toHaveLength(
+      hidden.length,
+    )
+  })
+
+  it('đủ quyền thì không có dòng báo ẩn', async () => {
+    routes()
+    open()
+
+    await screen.findByText('Hành chính Lan, tạo hồ sơ')
+    expect(screen.queryByText(/chỉ hiện với người được xem thông tin sức khỏe/)).not.toBeInTheDocument()
+  })
+
   it('nút lệnh chỉ hiện theo allowedCommands; hồ sơ trạng thái cuối không có nút', async () => {
     routes()
     const view = open({ allowedCommands: ['GRANT_TEMPORARY_ABSENCE', 'END_RESIDENCY'] })
