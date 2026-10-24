@@ -429,3 +429,99 @@ Tổng theo tasks.md (số liệu 2026-10-23, trước Phase 9; số hiện hàn
 - **Ba chỗ thiếu tìm ra và đã sửa trong M01**: (1) `CareLevelApiImpl.applyChange` (004 gọi khi yêu cầu thay đổi lưu trú được duyệt) đổi mức chăm sóc, nhóm 2, mà không ghi nhật ký; nay ghi `CARE_LEVEL_CHANGED` loại `M01.RESIDENT` (trước/sau `currentCareLevel`, căn cứ là yêu cầu phê duyệt, `effectiveFrom` ở chi tiết); trường `currentCareLevel` đã thuộc nhóm mức chăm sóc. (2) Đính chính lần đánh giá, hồ sơ sức khỏe ban đầu: dòng nhật ký `CORRECTION_ADDED` của 000 không có `resident_id` (`CorrectableRecordProvider` không cho biết người cao tuổi) nên tra theo người cao tuổi không thấy; hai provider của M01 ghi thêm dòng `RECORD_CORRECTED` cùng bản gốc, gắn người cao tuổi, trỏ tới bản đính chính (`correctionId`, `sequenceNo`, loại), không chép nội dung (có thể là dữ liệu sức khỏe). Đây là cách tạm trong phạm vi M01; cách đúng là SPI trả `residentId`, ghi ở docs/team-plan.md mục 8 cho A. (3) Phân loại trường: kiểm mọi trường lệnh ghi vào nhật ký của `M01.RESIDENT`, `M01.CONSENT`, `M01.END_OF_LIFE_WISH`, `M01.TREATMENT_WISH`; trường không phải dữ liệu nhạy cảm (`status`, `supersededById`, `source`, `consenterType`, `photoConsent`, `notificationConsent`, `consentedAt`, `evidenceFileId`, họ tên, ngày sinh, giới tính, mã hồ sơ) cố ý để nhóm công khai nội bộ, ghi thành danh sách cho phép trong test. **Chủ dự án chỉ đạo 2026-10-24**: `specialNotes` (văn bản tự do, có thể chứa tình trạng sức khỏe) của `M01.RESIDENT` và `familyMemberIdsAllowedHealthView` (người thân được xem sức khỏe) của `M01.CONSENT` thuộc nhóm `HEALTH`, không để công khai nội bộ chỉ vì Hành chính xem được trên giao diện. Phân loại chỉ dùng để che giá trị khi tra nhật ký (`AuditLogQueryService` là nơi duy nhất dùng), không đổi quyền xem hồ sơ hay bản đồng ý (kiểm bằng `M01CommandAuditTrailIT`: Hành chính vẫn xem `specialNotes` trên hồ sơ; `FieldVisibilityApi` thật cho Hành chính không xem được nhóm `HEALTH`, Bác sĩ xem được). Test không đọc qua `AuditLogQueryService.history` vì hàm đó trả 404 cho người xem theo phạm vi (lỗi của A đã báo ở đợt 1).
 - **Không coi là dữ liệu cần nhật ký**: `reassessment_notice`, `periodic_reminder`, `return_overdue_alert` là sổ theo dõi nhắc, cảnh báo do job ghi (không phải dữ liệu nhóm 2, 3 của người cao tuổi); thay đổi trạng thái thật đã có `RESIDENT_STATUS_CHANGED`.
 - **Chưa kiểm**: `AuditLogQueryService.history()` của A (đã báo ở đợt 1) vẫn chặn người xem theo phạm vi; test đọc thẳng `audit_log`, không qua API tra cứu.
+
+## Ghi chú triển khai *(2026-10-24, đợt 4: lượt hoàn thiện cuối của B trước khi Opus review)*
+
+- **Lưu giữ dữ liệu hết hạn (T011, T079; data-model mục 11)**: `ResidentRetention` (gốc `M01.RESIDENT`, CFG-M15-03, mốc là lúc hồ sơ vào trạng thái cuối) và bảy `ResidentChildRetention` (`M01.RESIDENT_STATUS_HISTORY`, `M01.CONSENT`, `M01.INITIAL_HEALTH_RECORD`, `M01.HEALTH_ITEM`, `M01.ASSESSMENT`, `M01.END_OF_LIFE_WISH`, `M01.TREATMENT_WISH`). **Quyết định thiết kế, rút ra từ một lỗi test bắt được**: bản ghi con chỉ có mặt để nhật ký và đính chính của chúng đi theo chuỗi; `referencesTo` của bản ghi con trả về hồ sơ nên mọi chuỗi bắt đầu từ bản ghi con đều kéo cả hồ sơ, và `delete` của bản ghi con không làm gì. Mọi dòng dữ liệu chỉ bị xóa trong `ResidentRetention.delete`, một transaction, theo thứ tự: bảng không nhật ký riêng, bảng con, bản ghi con theo mã tăng dần (vì `superseded_by_id` trỏ tới bản mới hơn), hồ sơ. Bản đầu cho bản ghi con tự là gốc chuỗi nên có thể bị xóa riêng khi hồ sơ còn được giữ (lịch sử trạng thái mất, hồ sơ còn); `ResidentRetentionIT` bắt được và đã sửa. Migration không đổi: quyền `DELETE` và trigger cho `eldercare_retention` đã có từ V001_02 → V001_10.
+- **Chưa xóa được thật** vì `AuditLogRetention` của A giữ mọi dòng nhật ký gắn người cao tuổi; `ResidentRetentionIT` mô phỏng bước đó qua kết nối lưu giữ và có thêm test chuỗi được giữ khi còn nhật ký. Tệp đính kèm chưa lưu giữ (xóa nội dung S3 cần quyết định). Cả hai hướng đều là giữ lại nhiều hơn, không mất dữ liệu.
+- **Gắn phạm vi bản ghi con (T011)**: `ChildScopeAssignment` cho bảy loại con, `Target` mang `residentId`, tầng để trống; mã lạ → không có người cao tuổi.
+- **`statusPeriods` (T049)**: dựng từ lịch sử trạng thái, lấy khoảng giao với [từ, đến], trả nguyên khoảng không cắt (người gọi, tức 003, tự tính phần giao); khoảng kết thúc đúng lúc `from` không giao.
+- **Đính chính lịch sử trạng thái (T050)**: `StatusHistoryCorrectionProvider` (loại `M01.RESIDENT_STATUS_HISTORY`): chỉ đính chính được `reason`; cách A cho người ghi gốc, trên hồ sơ trạng thái cuối chỉ cách C (người ghi gốc bị chặn như với lần đánh giá, đồng nghiệp cùng vai trò lập yêu cầu); `history()` hiển thị lý do đã đính chính, bản gốc giữ nguyên. Có ghi thêm dòng `RECORD_CORRECTED` gắn người cao tuổi như hai provider đính chính khác.
+- **Sự kiện T076**: `sourceModule = "M04"`, `itemType = "INTEREST"`, bản dựng sự kiện từ chối giá trị khác và id không dương; test đi qua kho sự kiện Modulith thật.
+- **Tab Danh mục (T072; Opus #12, #13)**: theo quyền thật `HEALTH_CATALOGS` từ `GET /me/permissions`; `AdminPage` bọc `PermissionsProvider` vì `App` chưa gắn.
+
+## Bàn giao cho Opus review cuối *(2026-10-24)*
+
+### 1. Tổng tiến độ 85 task của Phase 1 → 10
+- **73 task `[x]`**, **12 task `[ ]`**. Không đánh dấu `[x]` task còn phụ thuộc thật.
+- Đã hoàn thành: T001, T003 → T010, T012, T012a, T013, T013a, T014 → T018, T020 → T022, T024 → T032, T034 → T041, T043 → T051, T053 → T062, T064 → T070, T072, T075 → T081, T083.
+- Chưa hoàn thành (12):
+
+| Task | Điều kiện còn thiếu | Ai |
+| --- | --- | --- |
+| T002 | `ChiSoApi`, sự kiện `SuCoDaGhiNhan` do 007 khai báo, chưa có trong `develop` | D |
+| T011 | Lưu giữ tệp đính kèm: cần quyết cách xóa nội dung S3 (`FileApi` chưa có hàm xóa); phần còn lại xong | Chủ dự án |
+| T019 | Lọc theo tầng, phòng cần phân bổ giường của 003; hợp đồng api-001 chưa có tham số lọc này | C (003) |
+| T023, T033, T042, T052, T082 | Phần web đã xong; phần app `mobile/` chưa mở (CLAUDE.md) | Chủ dự án mở mobile |
+| T063 | Listener sự cố cần `IncidentRecorded` của 007 | D |
+| T071 | So sánh operation api-001 với `checkOperations = true`: file `ApiContractIT` của A | A |
+| T073 | Chạy lại `FR_045`, `FR_047` với bean `StatusTransitionParticipant` thật của 003 → 013 | C, D, E, B (004) |
+| T074 | `flutter test`, kịch bản quickstart mục 3, đo SC bằng người thật | Nghiệm thu |
+
+### 2. Kết quả xử lý 16 vấn đề của báo cáo Opus
+
+| # | Vấn đề | Kết quả | Bằng chứng |
+| --- | --- | --- | --- |
+| 1 | Tra nhật ký lộ dữ liệu sức khỏe (thiếu phân loại trường) | **Đã sửa** (đợt 1) và siết ở đợt 3: `specialNotes`, `familyMemberIdsAllowedHealthView` thuộc `HEALTH` | `AuditLogHealthMaskingIT`, `M01CommandAuditTrailIT` |
+| 2 | Bằng chứng qua đời chỉ kiểm "là số" | **Đã sửa** (đợt 1): kiểm tệp, gắn tệp, quyền tải, web tải tệp (đợt 2) | `RecordDeathIT` |
+| 3 | Ảnh không gắn tệp | **Đã sửa** (đợt 1) | `ResidentPhotoIT` |
+| 4 | M01 không gửi thông báo | **Đã sửa phía M01** (đợt 2); người nhận thật chờ E (BL-47) | `ResidentNotificationRequestsTest`, `ResidentNotificationsIntakeIT` |
+| 5 | Giấy tờ bệnh viện chưa làm | **Đã sửa** backend, web, `hospitalDocuments`; mobile chưa | `HospitalDocumentsIT`, `StatusTab.test.jsx` |
+| 6 | Lịch sử trạng thái có thể lộ lý do, căn cứ, miễn điều kiện | **Chưa sửa, cần quyết định nghiệp vụ**: spec chưa quy định ai thấy phần nào; đã ghi phương án ở team-plan mục 8 | không có test mới |
+| 7 | Truy vết DBR-23 chưa đủ | **Đã sửa** (đợt 3); T075 từng ghi quá sớm, đã điều chỉnh | `M01CommandAuditTrailIT` 14 test |
+| 8 | Thiếu `RetentionProvider` | **Đã sửa phía M01**; chưa xóa thật do A và tệp chờ quyết định | `ResidentRetentionIT` 4 test |
+| 9 | Thiếu provider đính chính lịch sử trạng thái | **Đã sửa** | `StatusHistoryCorrectionIT` 4 test |
+| 10 | Hợp đồng sự kiện T076 còn lỏng | **Đã sửa**: bộ giá trị `M04`, `INTEREST`; glossary, module-interfaces, team-plan (014 do C) | `FR_023g_OpinionFromFeedbackIT` |
+| 11 | `statusPeriods` chưa cài | **Đã sửa** | `StatusPeriodsIT` 5 test |
+| 12 | Hành chính thấy tab Danh mục luôn nhận 403 | **Đã sửa**: ẩn tab khi không có quyền xem | `AdminPage.test.jsx` |
+| 13 | Nút sửa danh mục theo vai trò | **Đã sửa**: theo CREATE, UPDATE thật | `AdminPage.test.jsx` |
+| 14 | Test T076 tự khẳng định | **Đã sửa**: đi qua kho sự kiện Modulith | `FR_023g_OpinionFromFeedbackIT` |
+| 15 | T013a tên tiếng Việt | **Đã sửa**: `FR_023h_NoCapacityFlagIT` | `[x]` |
+| 16 | `specialNotes` xếp công khai nội bộ | **Đã sửa** theo chỉ đạo: nhóm `HEALTH` | `M01CommandAuditTrailIT` |
+
+Còn mở: **#6** (cần quyết định nghiệp vụ). #4, #5, #8 đã xong phần B, còn phụ thuộc người khác hoặc mobile như bảng trên.
+
+### 3. Lỗi và hạn chế còn tồn tại
+
+| Mức | Vấn đề | Bằng chứng | Ai |
+| --- | --- | --- | --- |
+| Trung bình | Dữ liệu M01 hết hạn chưa bao giờ bị xóa thật: `AuditLogRetention` giữ nhật ký gắn người cao tuổi | `ResidentRetentionIT.FR_050_residentLinkedAuditLog_keepsTheWholeChain…` | A |
+| Trung bình | Lịch sử trạng thái hiện lý do, căn cứ, miễn điều kiện cho cả người thân và Hành chính (xem #6) | `StatusController.history`, `StatusHistoryEntryBody` | Chủ dự án |
+| Thấp | Đính chính "Hủy ghi nhận" (VOID) áp dụng được cho dòng lịch sử trạng thái nhưng không đổi trạng thái hiện tại; provider không chặn được | không có test; do SPI của A | A |
+| Thấp | Đính chính không có `resident_id` ở dòng của 000; M01 ghi dòng phụ `RECORD_CORRECTED` (BL-48) | `M01CommandAuditTrailIT` | A |
+| Thấp | `AuditLogQueryService.history()` trả 404 cho người xem theo phạm vi | báo từ đợt 1 | A |
+| Thấp | Tệp đính kèm không được lưu giữ; nội dung S3 không bao giờ bị xóa | data-model mục 11 | Chủ dự án |
+| Thấp | `PermissionsProvider` chưa gắn ở `App`; `AdminPage` tự bọc | `AdminPage.jsx` | A |
+| Thấp | Giao diện web mới chưa nghiệm thu trên trình duyệt: `StatusTab` (giấy tờ bệnh viện, bằng chứng qua đời), tab Danh mục theo quyền | chỉ có Vitest | Chủ dự án |
+
+### 4. Kết quả kiểm thử cuối cùng (MySQL 3307; không đụng 3306, dữ liệu demo, lịch sử Flyway)
+- `./mvnw clean verify`: **199 test đơn vị và kiến trúc, 905 test tích hợp, 0 lỗi**, BUILD SUCCESS (gồm `ModuleBoundaryTest`, `LayerArchTest`, `M13ArchTest`, `ApiContractIT`).
+- Frontend: **237 Vitest**, `npm run lint` sạch, `npm run build` đạt. `prettier --check` còn báo 6 file lệch định dạng (cũ và file sửa có dòng cũ); không áp hàng loạt theo chỉ đạo.
+- Test mới của đợt 2 → 4: `HospitalDocumentsIT` 11, `ResidentNotificationRequestsTest` 12, `ResidentNotificationsIntakeIT` 5, `M01CommandAuditTrailIT` 14, `StatusPeriodsIT` 5, `StatusHistoryCorrectionIT` 4, `ResidentRetentionIT` 4, `ChildScopeAssignmentIT` 3, `FR_023g_OpinionFromFeedbackIT` 5, `AdminPage.test.jsx` 5, 7 test `StatusTab`.
+
+### 5. Thay đổi API, migration, file chung cần A xem
+- **Migration: không có** trong cả bốn đợt; không sửa migration đã áp dụng.
+- **`common.file`** (đợt 2, chủ dự án duyệt): `FileApi.attachedTo(ownerType, ownerId)`, record `FileView`; cộng thêm, không đổi `upload`, `attach`, `download`.
+- **Provider M01 cài cho 000, 002** (không sửa code A): `StatusHistoryCorrectionProvider`, `ResidentRetention` và bảy `ResidentChildRetention`, `ChildScopeAssignment` (bảy loại), phân loại trường `specialNotes` và `familyMemberIdsAllowedHealthView`.
+- **File chung đã sửa**: `frontend/src/features/admin/AdminPage.jsx` (bọc `PermissionsProvider`, ẩn tab theo quyền; T072 đã được duyệt), `docs/team-plan.md`, `specs/000-shared-foundation/glossary.md` (chỉ mục 8 của 001).
+- **Cần A**: `AuditLogRetention` (nhật ký gắn hồ sơ), `CorrectableRecordProvider.residentId` và kiểu đính chính (BL-48), `AuditLogQueryService.history()`, gắn `PermissionsProvider` ở `App`, bật `checkOperations` cho api-001. Chi tiết ở docs/team-plan.md mục 8.
+- **Cần chủ dự án quyết định**: cách lưu giữ tệp đính kèm (S3); che lý do, căn cứ lịch sử trạng thái (#6).
+
+### 6. Phần chưa nghiệm thu
+- Web: toàn bộ giao diện 001 chưa được chủ dự án nghiệm thu trên trình duyệt (T052, T072, T033, T042 ghi rõ).
+- Mobile: chưa mở nên T023, T033, T042, T052, T082 giữ `[ ]`; không có `flutter test`.
+- Quickstart mục 3 và đo SC (T074): chưa chạy.
+
+### 7. Git
+- Nhánh `impl/001-elder-profile-assessment`; stash `CP-001-P2-IMPL` còn nguyên. Chưa push, PR, merge.
+- Commit đợt 4: `71ebe67` (lưu giữ, gắn phạm vi, T011/T079), `613db2c` (`statusPeriods`, đính chính lịch sử, T049/T050), `5c41d25` (sự kiện T076, đổi tên T013a), `a1407aa` (tab Danh mục theo quyền, T072); commit tài liệu cuối cùng là HEAD (xem `git log`).
+- Đợt 3: `208c0a2`, `8153393`. Đợt 2: `3489df9`, `1495bcf`, `fc36c9f`, `91bb43a`. Đợt 1: `e960560`, `f35b9bd`, `842c6bc`, `5417206`.
+
+### 8. File và chức năng Opus cần kiểm tra kỹ
+1. `m01/internal/retention/service/ResidentRetention.java`, `ResidentChildRetention.java`, `ResidentRetentionBeans.java`: thứ tự xóa, FK tự tham chiếu, ranh giới "chỉ xóa cùng hồ sơ"; `ResidentRetentionIT`. Đây là mã xóa dữ liệu, kiểm kỹ nhất.
+2. `m01/internal/status/service/ResidentStatusService.java` (`periods`, `history` với đính chính, `apply` đính kèm tệp và phát `ResidentStatusNotice`) và `StatusHistoryCorrectionProvider.java`.
+3. `m01/internal/assessment/service/CareLevelApiImpl.applyChange` (nhật ký mới) và hai provider đính chính ghi `RECORD_CORRECTED`.
+4. `m01/api/events/*` (chín sự kiện `HasNotificationRequests`, `Notices`, `ResidentStatusNotice`, `OpinionRecordedFromFeedback`): mức, nhóm người nhận, khóa chống trùng.
+5. `m01/internal/status/service/HospitalDocumentFilePermission.java`, `DeathEvidenceFilePermission.java`, và `common/file` (`attachedTo`).
+6. Phân loại trường: `ResidentFieldClassification`, `ConsentFieldClassification` và danh sách "cố ý công khai nội bộ" trong `M01CommandAuditTrailIT`.
+7. Web: `frontend/src/features/status/StatusTab.jsx` (tải nhiều tệp), `features/admin/AdminPage.jsx`, `features/catalogs-m01/CatalogList.jsx`.
