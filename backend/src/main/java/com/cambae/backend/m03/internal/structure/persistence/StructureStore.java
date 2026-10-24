@@ -88,8 +88,24 @@ public class StructureStore {
             case ROOM -> "SELECT id,code FROM bed WHERE room_id=? AND state<>'RETIRED' ORDER BY id";
             default -> null;
         };
-        if (query == null) return List.of();
-        return jdbc.query(query, (rs, i) -> new UnmetCondition("FR-005", rs.getString(2) + " #" + rs.getLong(1)), id);
+        var result = new java.util.ArrayList<UnmetCondition>();
+        if (query != null)
+            result.addAll(jdbc.query(
+                    query, (rs, i) -> new UnmetCondition("FR-005", rs.getString(2) + " #" + rs.getLong(1)), id));
+        if ((kind == StructureKind.AREA || kind == StructureKind.FLOOR) && tableExists("day_care_rest_area")) {
+            String column = kind == StructureKind.AREA ? "area_id" : "floor_id";
+            result.addAll(jdbc.query(
+                    "SELECT id,name FROM day_care_rest_area WHERE status='ACTIVE' AND " + column + "=? FOR SHARE",
+                    (rs, i) -> new UnmetCondition("FR-005", "Khu nghỉ " + rs.getString(2) + " #" + rs.getLong(1)),
+                    id));
+        }
+        return result;
+    }
+
+    /** Cùng thứ tự guard → vị trí với lệnh tạo/dời khu nghỉ, tránh race và đảo khóa. */
+    public void lockDayCareGuard(StructureKind kind) {
+        if ((kind == StructureKind.AREA || kind == StructureKind.FLOOR) && tableExists("day_care_capacity_guard"))
+            jdbc.queryForObject("SELECT id FROM day_care_capacity_guard WHERE id=1 FOR UPDATE", Integer.class);
     }
 
     public boolean hasAllocationHistory(StructureKind kind, long id) {

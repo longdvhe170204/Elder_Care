@@ -187,6 +187,7 @@ public class StructureService {
     @BusinessCommand
     @Transactional
     public CatalogBase deactivate(StructureKind kind, long id, String ifMatch, Reason reason) {
+        store.lockDayCareGuard(kind);
         var entity = store.find(kind, id, true);
         VersionEtag.requireMatch(ifMatch, entity.getVersion(), snapshot(entity));
         if (entity instanceof BedTransferReason r && r.fixed())
@@ -233,6 +234,7 @@ public class StructureService {
     @BusinessCommand(requiresReason = false)
     @Transactional
     public void delete(StructureKind kind, long id, String ifMatch) {
+        store.lockDayCareGuard(kind);
         var entity = store.find(kind, id, true);
         VersionEtag.requireMatch(ifMatch, entity.getVersion(), snapshot(entity));
         if (entity instanceof BedTransferReason r && r.fixed()) throw condition("FR-030", "Không xóa lý do cố định");
