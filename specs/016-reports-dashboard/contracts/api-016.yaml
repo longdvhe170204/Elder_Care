@@ -4,18 +4,19 @@ info:
   version: 1.0.0-design
   description: |
     Hợp đồng REST của feature 016 (module M14). Chỉ đọc: mọi endpoint là GET, trừ lệnh xuất (ghi nhật ký "Xuất báo cáo" của 000 và tệp).
-    Quy ước chung theo research R-03 của 000: tiền tố /api/v1, lỗi RFC 9457 có maLoi.
+    Quy ước chung theo research R-03 của 000: tiền tố /api/v1, lỗi RFC 9457 có errorCode.
+    Tên định danh tiếng Anh theo glossary.md của 000, mục 22 (dịch 2026-10-24; bản tên logic tiếng Việt ở lịch sử git).
     Phạm vi, giới hạn trường xét lại mỗi lần gọi (FR-017). Mỗi giá trị có tử số, mẫu số (với tỷ lệ), nhãn và "tính đến".
     Dashboard hỗ trợ ETag / If-None-Match để client làm mới mỗi 30 giây (research O-06).
-    Mã chỉ tiêu: contracts/chi-tieu.md. Truy vết: mỗi operation có x-fr.
+    Mã chỉ tiêu: contracts/chi-tieu.md (mã tiếng Anh ở glossary mục 22.4). Truy vết: mỗi operation có x-fr.
 servers:
   - url: /api/v1
 security:
-  - phien: []
+  - session: []
 tags:
   - { name: dashboard, description: '18.5' }
-  - { name: bao-cao, description: '18.1 → 18.6' }
-  - { name: xuat, description: 'FR-060 → FR-062' }
+  - { name: reports, description: '18.1 → 18.6' }
+  - { name: export, description: 'FR-060 → FR-062' }
 
 paths:
   /dashboard:
@@ -27,126 +28,162 @@ paths:
       responses:
         '200': { description: OK, headers: { ETag: { schema: { type: string } } }, content: { application/json: { schema: { $ref: '#/components/schemas/Dashboard' } } } }
         '304': { description: Không đổi }
-        '403': { $ref: '#/components/responses/Loi' }
-  /chi-tieu:
+        '403': { $ref: '#/components/responses/Problem' }
+  /metrics:
     get:
-      tags: [bao-cao]
+      tags: [reports]
       summary: Danh mục chỉ tiêu người xem được thấy, kèm định nghĩa hiển thị
       x-fr: [FR-003, FR-010]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ChiTieu' } } } } } }
-  /bao-cao/{nhom}:
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Metric' } } } } } }
+  /reports/{group}:
     get:
-      tags: [bao-cao]
+      tags: [reports]
       summary: Báo cáo một nhóm theo khoảng và bộ lọc; khoảng dài hơn CFG-M14-01 bị từ chối
       x-fr: [FR-022, FR-023, FR-024, FR-025, FR-030, FR-031, FR-032, FR-033, FR-034, FR-035, FR-036, FR-037, FR-040, FR-041, FR-042, FR-042a, FR-043, FR-044, FR-050, FR-051, FR-052, FR-053, FR-054, FR-055, FR-055a, FR-060, FR-070, FR-071, FR-072, FR-073]
       parameters:
-        - { name: nhom, in: path, required: true, schema: { type: string, enum: [NGUOI_CAO_TUOI, CHAM_SOC, CHAT_LUONG, SUC_KHOE_THUOC, CHI_PHI, NHAN_SU_CA] } }
-        - { $ref: '#/components/parameters/Tu' }
-        - { $ref: '#/components/parameters/Den' }
-        - { name: ngay, in: query, description: 'Báo cáo tại một ngày (FR-022, FR-024)', schema: { type: string, format: date } }
-        - { name: tangKhuVucId, in: query, schema: { type: array, items: { type: integer, format: int64 } } }
-        - { name: loaiLuuTru, in: query, schema: { type: string } }
-        - { name: mucChamSocId, in: query, schema: { type: integer, format: int64 } }
-        - { name: nctId, in: query, schema: { type: integer, format: int64 } }
-        - { name: nhanVienId, in: query, schema: { type: integer, format: int64 } }
-        - { name: caId, in: query, schema: { type: integer, format: int64 } }
-        - { name: cheDoChiPhi, in: query, schema: { type: string, enum: [DA_CHOT, TAM_TINH], default: DA_CHOT } }
+        - { $ref: '#/components/parameters/ReportGroup' }
+        - { $ref: '#/components/parameters/From' }
+        - { $ref: '#/components/parameters/To' }
+        - { name: date, in: query, description: 'Báo cáo tại một ngày (FR-022, FR-024)', schema: { type: string, format: date } }
+        - { name: floorAreaId, in: query, schema: { type: array, items: { type: integer, format: int64 } } }
+        - { name: residenceType, in: query, schema: { type: string } }
+        - { name: careLevelId, in: query, schema: { type: integer, format: int64 } }
+        - { name: residentId, in: query, schema: { type: integer, format: int64 } }
+        - { name: staffId, in: query, schema: { type: integer, format: int64 } }
+        - { name: shiftId, in: query, schema: { type: integer, format: int64 } }
+        - { name: costMode, in: query, schema: { $ref: '#/components/schemas/CostMode' } }
       responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/BaoCao' } } } }
-        '403': { $ref: '#/components/responses/Loi' }
-        '422': { description: 'VUOT_KHOANG_TOI_DA (CFG-M14-01)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-  /chi-tiet/{maChiTieu}:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Report' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { description: 'RANGE_EXCEEDS_MAXIMUM (CFG-M14-01)', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /metric-details/{metricCode}:
     get:
-      tags: [bao-cao]
+      tags: [reports]
       summary: Danh sách bản ghi tạo nên một con số (cùng phạm vi, bộ lọc, mốc tính); dòng người ngoài phạm vi hiện hành ở dạng rút gọn (Q-196)
       x-fr: [FR-009, FR-012, FR-014]
       parameters:
-        - { name: maChiTieu, in: path, required: true, schema: { type: string } }
-        - { $ref: '#/components/parameters/Tu' }
-        - { $ref: '#/components/parameters/Den' }
-        - { name: nhomCon, in: query, description: 'Ô cụ thể (ví dụ trạng thái, tầng, nhân viên)', schema: { type: string } }
-        - { name: tinhDen, in: query, description: 'Mốc "tính đến" của con số để danh sách khớp số', schema: { type: string, format: date-time } }
-        - { name: trang, in: query, schema: { type: integer, minimum: 1 } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ChiTiet' } } } }, '403': { $ref: '#/components/responses/Loi' } }
-  /bao-cao/{nhom}/xuat:
+        - { name: metricCode, in: path, required: true, schema: { type: string } }
+        - { $ref: '#/components/parameters/From' }
+        - { $ref: '#/components/parameters/To' }
+        - { name: breakdownKey, in: query, description: 'Ô cụ thể (ví dụ trạng thái, tầng, nhân viên)', schema: { type: string } }
+        - { name: asOf, in: query, description: 'Mốc "tính đến" của con số để danh sách khớp số', schema: { type: string, format: date-time } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/MetricDetail' } } } }, '403': { $ref: '#/components/responses/Problem' } }
+  /reports/{group}/export:
     post:
-      tags: [xuat]
+      tags: [export]
       summary: Xuất báo cáo (XLSX); Quản lý viện xuất có định danh phải nhập mục đích; vai trò khác chỉ tổng hợp
       description: Tệp chỉ được giao sau khi bản ghi nhật ký "Xuất báo cáo" đã lưu (FR-062). Tệp không đổi khi dữ liệu nguồn đổi.
       x-fr: [FR-060, FR-061, FR-062]
       parameters:
-        - { name: nhom, in: path, required: true, schema: { type: string, enum: [NGUOI_CAO_TUOI, CHAM_SOC, CHAT_LUONG, SUC_KHOE_THUOC, CHI_PHI, NHAN_SU_CA] } }
+        - { $ref: '#/components/parameters/ReportGroup' }
         - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/YeuCauXuat' } } } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ExportRequest' } } } }
       responses:
-        '201': { description: 'Mã tệp để tải và mã nhật ký' }
-        '403': { $ref: '#/components/responses/Loi' }
-        '422': { description: 'VUOT_KHOANG_TOI_DA, THIEU_MUC_DICH', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-  /bao-cao/lan-xuat:
+        '201': { description: 'Mã tệp để tải (GET /files/{id}) và mã nhật ký', content: { application/json: { schema: { $ref: '#/components/schemas/ExportResult' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { description: 'RANGE_EXCEEDS_MAXIMUM, PURPOSE_REQUIRED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /reports/exports:
     get:
-      tags: [xuat]
+      tags: [export]
       summary: Lần xuất (Quản lý viện thấy mọi lần; người khác thấy lần của mình)
       x-fr: [FR-062]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ExportRecord' } } } } } }
 
 components:
   securitySchemes:
-    phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
+    session: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
   parameters:
-    Tu: { name: tu, in: query, schema: { type: string, format: date } }
-    Den: { name: den, in: query, schema: { type: string, format: date } }
+    ReportGroup: { name: group, in: path, required: true, schema: { type: string, enum: [RESIDENTS, CARE, QUALITY, HEALTH_MEDICATION, INCURRED_COSTS, STAFFING_SHIFTS] } }
+    From: { name: from, in: query, schema: { type: string, format: date } }
+    To: { name: to, in: query, schema: { type: string, format: date } }
     IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
   responses:
-    Loi:
-      description: 'Lỗi theo RFC 9457 (KHONG_CO_QUYEN, KHONG_XAC_DINH_PHAM_VI)'
-      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
+    Problem:
+      description: 'Lỗi theo RFC 9457 (PERMISSION_DENIED; không xác định được phạm vi FR-016 thì PERMISSION_DENIED kèm failedLayer SOURCE_DATA như 002)'
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
   schemas:
-    Loi:
+    CostMode: { type: string, enum: [FINALIZED, PROVISIONAL], default: FINALIZED }
+    Problem:
       type: object
-      properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, maLoi: { type: string } }
-    ChiTieu:
+      description: RFC 9457 cùng errorCode (000 R-03), giống schema Problem của api-000, api-002, api-009 (sửa 2026-10-24 cho khớp ProblemBody chung, BL-23).
+      required: [type, title, status, errorCode]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        errorCode: { type: string }
+        unmetConditions: { type: array, items: { type: object, properties: { code: { type: string }, description: { type: string }, basis: { type: string, description: "BR/FR, ví dụ BR-M12-03" }, module: { type: string, description: "Feature sở hữu điều kiện, ví dụ 013" }, waivable: { type: boolean, description: "Miễn được qua yêu cầu phê duyệt (004)" } } } }
+        currentValue: { description: 'Khi 412: tài nguyên hiện hành' }
+        candidates: { type: array, description: "POSSIBLE_DUPLICATE_PROFILE, DUPLICATE_HEALTH_ITEM (001)", items: { type: object } }
+        failedLayer: { type: string, enum: [ROLE, SCOPE, LEGAL, SOURCE_DATA] }
+        license: { type: object, properties: { name: { type: string }, expiryDate: { type: string, format: date } } }
+        unlocksAt: { type: string, format: date-time, description: 'Khi 423 ACCOUNT_TEMPORARILY_LOCKED (FR-014)' }
+    Metric:
       type: object
-      properties: { ma: { type: string }, nhom: { type: string }, ten: { type: string }, dinhNghia: { type: string }, nguon: { type: string } }
-    GiaTri:
+      properties: { code: { type: string }, group: { type: string }, name: { type: string }, definition: { type: string }, source: { type: string } }
+    MetricValue:
       type: object
       properties:
-        maChiTieu: { type: string }
-        giaTri: { type: [number, 'null'] }
-        tuSo: { type: number }
-        mauSo: { type: number }
-        nhan: { type: array, items: { type: string, enum: [KHONG_CO_DU_LIEU, CHUA_CAU_HINH, NGAY_CHUA_KET_THUC, CHO_XEM_LAI, LOAI_BO_LUU_TRU, TAM_TINH, TRONG_PHAM_VI_CUA_BAN] } }
-        soChoXemLai: { type: integer }
-        chiaNhom: { type: array, items: { type: object, properties: { khoa: { type: string }, giaTri: { type: number }, tuSo: { type: number }, mauSo: { type: number } } } }
+        metricCode: { type: string }
+        value: { type: [number, 'null'] }
+        numerator: { type: number }
+        denominator: { type: number }
+        labels: { type: array, items: { type: string, enum: [NO_DATA, NOT_CONFIGURED, DAY_NOT_ENDED, PENDING_REVIEW, PURGED_BY_RETENTION, PROVISIONAL, WITHIN_YOUR_SCOPE] } }
+        pendingReviewCount: { type: integer }
+        breakdown: { type: array, items: { type: object, properties: { key: { type: string }, value: { type: number }, numerator: { type: number }, denominator: { type: number } } } }
     Dashboard:
       type: object
       properties:
-        tinhDen: { type: string, format: date-time }
-        khoi: { type: array, items: { type: object, properties: { nhom: { type: string }, trangThai: { type: string, enum: [DU, DANG_CAP_NHAT] }, giaTri: { type: array, items: { $ref: '#/components/schemas/GiaTri' } } } } }
-        thongDiep: { type: string, description: '"hiện không có phạm vi phân công" khi trống' }
-    BaoCao:
+        asOf: { type: string, format: date-time }
+        blocks: { type: array, items: { type: object, properties: { group: { type: string }, status: { type: string, enum: [COMPLETE, UPDATING] }, values: { type: array, items: { $ref: '#/components/schemas/MetricValue' } } } } }
+        message: { type: string, description: '"hiện không có phạm vi phân công" khi trống' }
+    Report:
       type: object
       properties:
-        nhom: { type: string }
-        tu: { type: string, format: date }
-        den: { type: string, format: date }
-        tinhDen: { type: string, format: date-time }
-        boLoc: { type: object }
-        giaTri: { type: array, items: { $ref: '#/components/schemas/GiaTri' } }
-        ghiChu: { type: array, items: { type: string }, description: 'Ví dụ "chi phí phát sinh của người cao tuổi, không phải báo cáo tài chính của viện"' }
-    ChiTiet:
+        group: { type: string }
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        asOf: { type: string, format: date-time }
+        filters: { type: object }
+        values: { type: array, items: { $ref: '#/components/schemas/MetricValue' } }
+        notes: { type: array, items: { type: string }, description: 'Ví dụ "chi phí phát sinh của người cao tuổi, không phải báo cáo tài chính của viện"' }
+    MetricDetail:
       type: object
       properties:
-        maChiTieu: { type: string }
-        tongSo: { type: integer }
-        dong: { type: array, items: { type: object, properties: { khoaNguon: { type: string }, feature: { type: string }, loai: { type: string }, trangThai: { type: string }, moc: { type: string, format: date-time }, tangKhuVuc: { type: string }, nguoiCaoTuoi: { type: string }, rutGon: { type: boolean }, nguoiThucHien: { type: string }, ketQua: { type: object }, choXemLai: { type: boolean }, moDuocBanGhi: { type: boolean } } } }
-    YeuCauXuat:
+        metricCode: { type: string }
+        total: { type: integer }
+        rows: { type: array, items: { type: object, properties: { sourceKey: { type: string }, feature: { type: string }, type: { type: string }, status: { type: string }, referenceTime: { type: string, format: date-time }, floorArea: { type: string }, resident: { type: string }, reduced: { type: boolean }, performedBy: { type: string }, result: { type: object }, pendingReview: { type: boolean }, canOpenRecord: { type: boolean } } } }
+    ExportRequest:
       type: object
-      required: [tu, den]
+      required: [from, to]
       properties:
-        tu: { type: string, format: date }
-        den: { type: string, format: date }
-        boLoc: { type: object }
-        cheDoChiPhi: { type: string, enum: [DA_CHOT, TAM_TINH] }
-        coDinhDanh: { type: boolean, description: 'Chỉ Quản lý viện' }
-        mucDich: { type: string, description: 'Bắt buộc khi coDinhDanh' }
-        dinhDang: { type: string, enum: [XLSX, CSV], default: XLSX }
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        filters: { type: object }
+        costMode: { $ref: '#/components/schemas/CostMode' }
+        includeIdentity: { type: boolean, description: 'Chỉ Quản lý viện' }
+        purpose: { type: string, description: 'Bắt buộc khi includeIdentity' }
+        format: { type: string, enum: [XLSX, CSV], default: XLSX }
+    ExportResult:
+      type: object
+      description: 'Bổ sung 2026-10-24 (chủ dự án duyệt): kết quả lệnh xuất'
+      properties:
+        fileId: { type: integer, format: int64, description: 'Tải bằng GET /files/{id} (người xuất, Quản lý viện)' }
+        auditLogId: { type: integer, format: int64, description: 'Bản ghi nhật ký "Xuất báo cáo"' }
+    ExportRecord:
+      type: object
+      description: 'Bổ sung 2026-10-24 (chủ dự án duyệt): một lần xuất, đọc từ nhật ký (FR-062)'
+      properties:
+        auditLogId: { type: integer, format: int64 }
+        fileId: { type: integer, format: int64 }
+        exportedAt: { type: string, format: date-time }
+        exportedBy: { type: [integer, 'null'], format: int64, description: 'Tài khoản người xuất' }
+        role: { type: string, description: 'Vai trò lúc xuất (mã AC-xx)' }
+        group: { type: string, description: 'Nhóm báo cáo (ReportGroup)' }
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        includeIdentity: { type: boolean }
+        purpose: { type: [string, 'null'], description: 'Mục đích xuất (lý do của bản ghi nhật ký)' }
+        rowCount: { type: [integer, 'null'] }

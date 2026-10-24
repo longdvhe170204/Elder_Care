@@ -43,8 +43,10 @@ public class ResidentFinalAssignmentEffects {
     @EventListener
     @Transactional(propagation = Propagation.MANDATORY)
     public void changed(ResidentStatusChanged event) {
-        if (!sources.terminal(event.residentId())) return;
         var initial = store.directResident(event.residentId(), false);
+        // Không có phân công trực tiếp thì M09 không có tác động, không cần đọc nguồn hồ sơ.
+        if (initial.isEmpty()) return;
+        if (!sources.terminal(event.residentId())) return;
         initial.stream().map(a -> a.staffId()).distinct().sorted().forEach(staff::lock);
         var parents = initial.stream()
                 .map(a -> shifts.shift(a.shiftId(), false))

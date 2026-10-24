@@ -1,24 +1,29 @@
 package com.cambae.backend.m13.internal.recipient.service;
 
-import com.cambae.backend.m13.api.dto.RecipientType;
 import com.cambae.backend.m13.internal.delivery.service.DeliveryDispatcher;
+import com.cambae.backend.m13.internal.delivery.service.OutOfAppPlanner;
+import com.cambae.backend.m13.internal.domain.NotificationEventType;
 import com.cambae.backend.m13.internal.intake.domain.RequestFlag;
 import com.cambae.backend.m13.internal.intake.domain.ValidatedRequest;
 import com.cambae.backend.m13.internal.persistence.NotificationStore;
 import com.cambae.backend.m13.internal.persistence.NotificationStore.NewNotification;
+import com.cambae.backend.m13.internal.quiethours.domain.QuietHours;
+import com.cambae.backend.m13.internal.quiethours.service.QuietHoursPolicy;
 import com.cambae.backend.m13.internal.recipient.domain.ResolvedRecipient;
 import com.cambae.backend.m13.internal.recipient.service.RecipientResolver.Resolution;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Service;
 
 /**
  * Tạo thông báo cho một yêu cầu hợp lệ trong transaction tiếp nhận (research B-03 bước 2): xác định người nhận, ghi một
  * thông báo mỗi người (FR-012), kết quả từng nhóm, dấu không có người nhận, thiếu mã trường hợp; lần gửi dự kiến trong ứng
- * dụng hoặc cổng người thân cho người có tài khoản, gửi sau commit. Chọn kênh ngoài ứng dụng, giờ yên tĩnh làm ở US3, US4.
+ * dụng, cổng người thân và kênh ngoài theo {@link OutOfAppPlanner}, gửi sau commit. Người thân, người cao tuổi nhận
+ * thông báo không khẩn trong giờ yên tĩnh thì giữ tới hết giờ, chưa có lần gửi (FR-022).
  */
 @Service
 public class NotificationCreation {
@@ -26,11 +31,23 @@ public class NotificationCreation {
     private final RecipientResolver resolver;
     private final NotificationStore notifications;
     private final DeliveryDispatcher dispatcher;
+    private final QuietHoursPolicy quietHours;
+    private final OutOfAppPlanner planner;
+    private final RecipientPhones phones;
 
-    NotificationCreation(RecipientResolver resolver, NotificationStore notifications, DeliveryDispatcher dispatcher) {
+    NotificationCreation(
+            RecipientResolver resolver,
+            NotificationStore notifications,
+            DeliveryDispatcher dispatcher,
+            QuietHoursPolicy quietHours,
+            OutOfAppPlanner planner,
+            RecipientPhones phones) {
         this.resolver = resolver;
         this.notifications = notifications;
         this.dispatcher = dispatcher;
+        this.quietHours = quietHours;
+        this.planner = planner;
+        this.phones = phones;
     }
 
     /** Xác định người nhận trước khi lưu yêu cầu: kết quả nhóm và dấu ghi cùng lần thêm yêu cầu (bảng chỉ cho thêm). */
@@ -55,6 +72,7 @@ public class NotificationCreation {
     /** Ghi một thông báo mỗi người nhận của yêu cầu đã lưu, lên lịch gửi sau commit. */
     public void create(long requestId, Resolution resolution, ValidatedRequest v, Instant at) {
         List<Long> attempts = new ArrayList<>();
+        QuietHours quiet = quietHours.current();
         for (ResolvedRecipient p : resolution.recipients()) {
             long id = notifications.insert(new NewNotification(
                     requestId,
@@ -67,11 +85,22 @@ public class NotificationCreation {
                     v.level(),
                     at,
                     p.q354Case()));
-            notifications.markSent(id, at);
-            if (p.accountId() != null) {
-                String channel = p.type() == RecipientType.FAMILY_MEMBER ? "FAMILY_PORTAL" : "IN_APP";
-                attempts.add(notifications.planFirstAttempt(id, channel, null, at));
+            Optional<Instant> holdUntil = QuietHoursPolicy.holdUntil(quiet, p.type(), v.level(), at);
+            if (holdUntil.isPresent()) {
+                notifications.appendEvent(id, NotificationEventType.HOLD, Optional.empty(), holdUntil, null, null, at);
+                continue;
             }
+            notifications.markSent(id, at);
+            attempts.addAll(planner.plan(
+                    new OutOfAppPlanner.Target(
+                            id,
+                            p.type(),
+                            p.id(),
+                            p.accountId() != null,
+                            phones.of(p.type(), p.id(), v.request().residentId().orElse(null))),
+                    v.level(),
+                    v.flags().contains(RequestFlag.INVALID_OUT_OF_APP_CONTENT),
+                    at));
         }
         dispatcher.dispatch(attempts);
     }

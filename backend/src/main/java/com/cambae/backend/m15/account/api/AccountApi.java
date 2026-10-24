@@ -18,6 +18,13 @@ public interface AccountApi {
     /** Xét lại tài khoản người thân khi quan hệ chấm dứt; gọi trong transaction lệnh của 012 (FR-049, BR-M15-14). */
     void recheckFamilyMember(long familyMemberId, Basis basis);
 
+    /**
+     * Khóa tài khoản người cao tuổi khi người đó sang trạng thái cuối (FR-072 (a), BR-M15-23; research A-16): M01 gọi từ
+     * listener của sự kiện đổi trạng thái của chính nó, trong transaction của listener (002 không nghe sự kiện của M01
+     * để tránh vòng M15 ↔ M01). Không có tài khoản hoặc đã khóa vì kết thúc lưu trú thì không làm gì.
+     */
+    void lockResidentOnFinalStatus(long residentId, Basis basis);
+
     /** Tài khoản theo id; 000 dùng để báo người yêu cầu theo hồ sơ nhân viên (000 FR-038; "Đổi api" 2026-10-22). */
     Optional<AccountView> byId(long accountId);
 

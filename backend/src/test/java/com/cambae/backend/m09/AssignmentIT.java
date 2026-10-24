@@ -59,6 +59,9 @@ class AssignmentIT extends MySqlIntegrationTestBase {
     AssignmentLifecycle lifecycle;
 
     @Autowired
+    ResidentFinalAssignmentEffects residentEffects;
+
+    @Autowired
     JdbcTemplate jdbc;
 
     @Autowired
@@ -576,6 +579,26 @@ class AssignmentIT extends MySqlIntegrationTestBase {
         assertThat(applicationEvents.stream(com.cambae.backend.m09.api.events.FloorManagerMissing.class)
                         .filter(e -> e.floorAreaId() == floor))
                 .hasSize(1);
+    }
+
+    @Test
+    void FR_026_residentWithoutAssignmentsDoesNotRequireAnotherModulesProfileSource() {
+        long unrelated = TestUsers.nextId();
+        assertThatCode(() -> new org.springframework.transaction.support.TransactionTemplate(transactions)
+                        .executeWithoutResult(tx ->
+                                residentEffects.changed(new com.cambae.backend.m01.api.events.ResidentStatusChanged(
+                                        unrelated,
+                                        ResidentStatus.IN_RESIDENCE,
+                                        ResidentStatus.DECEASED,
+                                        StatusCommand.RECORD_DEATH,
+                                        TestUsers.nextId(),
+                                        time.now()))))
+                .doesNotThrowAnyException();
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM staff_assignment WHERE target_type='RESIDENT' AND target_id=?",
+                        Integer.class,
+                        unrelated))
+                .isZero();
     }
 
     @Test

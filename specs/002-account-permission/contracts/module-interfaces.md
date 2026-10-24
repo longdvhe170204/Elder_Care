@@ -42,6 +42,7 @@ record KetQuaQuyen(boolean duocPhep, Optional<Lop> lopKhongThoa,     // VAI_TRO 
 
 - 000 khai báo `coQuyen(nd, KhoaQuyen, PhamVi)`. 002 đổi tham số thứ ba thành `DoiTuong` (loại, id, người cao tuổi, tầng/khu nếu có) để kiểm được phạm vi, giới hạn trường và ngoại lệ sự cố trên cùng một đối tượng. `PhamVi` của 000 vẫn dùng được: `DoiTuong.tuPhamVi(phamVi)`. Plan 000 không cần sửa vì 000 chỉ dùng qua bản giả.
 - Chú thích dùng ở service: `@CanQuyen(chucNang = …, thaoTac = …)`; interceptor gọi `coQuyen` trước lệnh, ném `KhongCoQuyen` (403) hoặc `KhongTimThay` (404) theo FR-043.
+- *(Bổ sung 2026-10-24, "Đổi api" cho 016 FR-010a, chủ dự án duyệt)* `ThuHepNhomChiTieu thuHepNhomChiTieu(NguoiDungHienTai nd)` (mã `PermissionApi.metricGroupRestrictions`, `MetricGroupRestrictions`): các dòng thu hẹp đang hiệu lực của `DASHBOARD_BAO_CAO` có `nhom_chi_tieu` hoặc `kenh` (loại `BO_THAO_TAC`, `HA_PHAM_VI`; kênh `DASHBOARD`, `BAO_CAO` mã `ReportChannel`), tách theo từng vai trò và theo tài khoản để 016 áp đúng thứ tự A-05. Thu hẹp mức khóa đã trừ trong `tapQuyen`. Mặc định của interface là không có thu hẹp.
 
 ### 1.3. `PhamViApi`
 
@@ -65,6 +66,8 @@ MucXem duocXem(NguoiDungHienTai nd, NhomThongTin nhom, DoiTuong doiTuong);   // 
 ```
 
 - 000 khai báo `duocXem(nd, NhomThongTin)`; 002 thêm `DoiTuong` vì giới hạn trường xét theo cặp (nhóm, phạm vi) của từng vai trò (FR-034). Bản rút gọn của 000 tương đương `duocXem(nd, nhom, DoiTuong.KHONG_CU_THE)` và chỉ dùng cho nhật ký toàn viện của Quản lý viện.
+- *(Bổ sung 2026-10-24, "Đổi api" cho 016 Q-196, chủ dự án duyệt)* `MucXem duocXemTheoVaiTro(NguoiDungHienTai nd, NhomThongTin nhom)` (mã `FieldVisibilityApi.canViewByRole`): mức cao nhất của các vai trò, không xét phạm vi hiện hành; vai trò Người thân không góp mức cho nhóm cần bản đồng ý. Dùng cho dòng chi tiết báo cáo của người cao tuổi đã ngoài phạm vi. Mặc định của interface là `duocXem(nd, nhom, KHONG_CU_THE)`.
+- *(Bổ sung 2026-10-24, "Đổi api" cho 001 FR-023m, chủ dự án chọn)* DTO có trường module tự kiểm quyền, không gắn được nhóm (ví dụ cờ `coNguyenVongDieuTri`: Hành chính thấy, Kế toán không) cài `DtoTuAnTruong` (mã `SelfHiddenFields.selfHiddenFields()`): trả tên các trường người xem hiện tại không được thấy; serializer bỏ các trường đó và ghi vào `truongBiAn` cùng trường bị ẩn theo nhóm, theo thứ tự khai báo. DTO không cài thì như cũ.
 - Chú thích DTO: `@NhomTruong(NhomThongTin.SUC_KHOE)` trên trường; `BeanSerializerModifier` của 002 áp khi tuần tự hóa (research A-08).
 - *(Bổ sung 2026-10-20, T023)* DTO có trường `@NhomTruong` cài `DoiTuongXemTruong` (mã `VisibilityTarget.visibilityTarget()`) để serializer biết đối tượng, xét phạm vi từng vai trò; không cài thì đối tượng là `KHONG_CU_THE`. DTO khai trường `truongBiAn` (mã `hiddenFields`), serializer ghi lại bằng tên các trường đã bỏ. Mức `CHI_CO_HAY_KHONG` cũng bỏ trường; DTO tự mang cờ có/không (ví dụ `coNguyenVong` của 001).
 
@@ -162,7 +165,7 @@ Chỉ endpoint nút SOS của 007 gọi hàm này (ArchUnit kiểm). Token thi�
 
 | Giao diện | Module cung cấp (feature) | Dùng cho | Khi chưa có |
 | --- | --- | --- | --- |
-| `HoSoNhanVienApi.trangThai(nhanVienId, ngay)`; `chucDanhCoVaiTro(nhanVienId)`; *(bổ sung 2026-10-20)* `taoHoSoToiThieu(hoTen, chucDanh)` (T016, công cụ khởi tạo, BR-M15-22), `hoTen(nhanVienId)` (T032a) | M09 (008) | FR-004, FR-004a, FR-011, FR-004b | Bản giả |
+| `HoSoNhanVienApi.trangThai(nhanVienId, ngay)`; `chucDanhCoVaiTro(nhanVienId)`; *(bổ sung 2026-10-20)* `taoHoSoToiThieu(hoTen, chucDanh)` (T016, công cụ khởi tạo, BR-M15-22), `hoTen(nhanVienId)` (T032a); *(bổ sung 2026-10-23, 009 US3, luật "Đổi api")* `soDienThoai(nhanVienId)` (`phoneNumber`, tin nhắn của 009 FR-016, FR-019) | M09 (008) | FR-004, FR-004a, FR-011, FR-004b; 009 FR-016 | Bản giả |
 | `GiayPhepApi.hieuLuc(nhanVienId, loai, ngay)` trả giấy phép và mục phạm vi hành nghề | 008 (FR-006) | FR-037, FR-038, A-09 | Bản giả |
 | `DanhMucPhamViHanhNgheApi` | 008 | FR-037, BR-M15-19 | Bản giả |
 | `PhanCongApi.dangHieuLuc(nhanVienId, thoiDiem)`; `lichSu(nhanVienId, tu, den)`; *(bổ sung 2026-10-22 cho 009 FR-007 (a))* `nhanVienPhanCongChoNguoiCaoTuoi(nctId, thoiDiem)`, `nhanVienPhanCongChoPhong(phongId, thoiDiem)` (trực tiếp hoặc qua phòng, tầng theo luật 008) | 008 (FR-037a) | FR-028 → FR-035a; 009 BR-M13-04 | Bản giả |
@@ -176,5 +179,5 @@ Chỉ endpoint nút SOS của 007 gọi hàm này (ArchUnit kiểm). Token thi�
 | `GiayPhepCoSoApi.coPhamVi(phamVi, ngay)`; `sapHetHan(trongVong)` *(khai báo 2026-10-20: `m15.account.api.FacilityLicenseApi.coversScope(operationScope, date)`, `expiringWithin(within)` trả `ExpiringFacilityLicense`)* | M06 (007, FR-070) | FR-037 (c), FR-039 | Bản giả `FakeFacilityLicenses` |
 | `ThamSoApi`, `NhatKyApi`, `NhacQuaHan`, `common` | M15 (000) | Mọi lệnh | Có sẵn |
 | Lắng nghe sự kiện mục 1.10 | M13 (009) | FR-039, FR-041a → c | Sự kiện lưu ở outbox |
-| *(Bổ sung 2026-10-18)* `NguoiCaoTuoiApi.trangThai(id)` cho lệnh tạo, mở khóa tài khoản người cao tuổi; *(2026-10-20)* họ tên người cao tuổi cho `TaiKhoanApi.hoTen` (B khai báo trong `NguoiCaoTuoiApi`, 002 dùng ở T091); nghe `NguoiCaoTuoiDaChuyenTrangThai` sang trạng thái cuối để khóa | M01 (001) | FR-067, FR-072 (A-16) | Bản giả; sự kiện giả trong test |
+| *(Bổ sung 2026-10-18)* `NguoiCaoTuoiApi.trangThai(id)` cho lệnh tạo, mở khóa tài khoản người cao tuổi; *(2026-10-20)* họ tên người cao tuổi cho `TaiKhoanApi.hoTen` (B khai báo trong `NguoiCaoTuoiApi`, 002 dùng ở T091); nghe `NguoiCaoTuoiDaChuyenTrangThai` sang trạng thái cuối để khóa. *(Sửa 2026-10-24, vòng M15 ↔ M01)* Thành SPI `ResidentProfileApi` (002 khai báo, M01 cài) và `AccountApi.lockResidentOnFinalStatus` do listener của M01 gọi; plan 002 ghi chú T091 | M01 (001) | FR-067, FR-072 (A-16) | `FakeResidentProfiles`; sự kiện qua `FakeResidentEvents` |
 | *(Bổ sung 2026-10-18)* `LoaiYeuCauHandler` cho loại `M15.KHOA_TAI_KHOAN_NCT` (002 cài, 000 gọi) | M15 (000) | FR-072 (A-16) | Có sẵn |

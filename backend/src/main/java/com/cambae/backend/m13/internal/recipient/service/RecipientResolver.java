@@ -46,10 +46,10 @@ import org.springframework.stereotype.Service;
  * qua phân công, nhiệm vụ (008 qua SPI của 002), tài khoản (002), quan hệ người thân (012); cách thay (FR-010), loại trừ
  * (FR-008), không có người nhận (FR-011), gộp và người gây ra (FR-012), lọc người thân (FR-013, FR-014).
  *
+ * Bản đồng ý và qua đời đọc từ 001 qua {@link ResidentFacts} (FR-013, FR-014, FR-015).
+ *
  * <p>Chưa có, chờ module khác (docs/team-plan.md mục 8): nhóm {@code OnShiftStaff}, {@code OnDutyDoctor} và loại người vắng
- * ca cần {@code CaTrucApi} (008), nên hai nhóm này coi như không có người rồi theo cách thay; bản đồng ý ({@code
- * BanDongYApi} của 001) chưa có, nên người thân luôn coi như ngoài phạm vi "nhận thông báo" và không thấy phần sức khỏe
- * (mặc định an toàn của FR-013, FR-014); chặn sau qua đời (FR-015) chờ {@code NguoiCaoTuoiApi} (001).
+ * ca cần {@code CaTrucApi} (008), nên hai nhóm này coi như không có người rồi theo cách thay.
  */
 @Service
 public class RecipientResolver {
@@ -73,6 +73,7 @@ public class RecipientResolver {
     private final ObjectProvider<DutyApi> duties;
     private final ObjectProvider<StaffProfileApi> profiles;
     private final ObjectProvider<FamilyNotificationPort> family;
+    private final ResidentFacts facts;
     private final BusinessTime time;
 
     RecipientResolver(
@@ -81,12 +82,14 @@ public class RecipientResolver {
             ObjectProvider<DutyApi> duties,
             ObjectProvider<StaffProfileApi> profiles,
             ObjectProvider<FamilyNotificationPort> family,
+            ResidentFacts facts,
             BusinessTime time) {
         this.accounts = accounts;
         this.assignments = assignments;
         this.duties = duties;
         this.profiles = profiles;
         this.family = family;
+        this.facts = facts;
         this.time = time;
     }
 
@@ -120,10 +123,13 @@ public class RecipientResolver {
                     outcomes.add(f.added() ? HAS_RECIPIENTS : NONE);
                     missingCase |= f.missingCase();
                 }
+                case RecipientGroup.Resident p -> outcomes.add(resident(p, found) ? HAS_RECIPIENTS : NONE);
                 default -> outcomes.add(found.addStaff(direct(g), basis(g)) ? HAS_RECIPIENTS : NONE);
             }
         }
-        boolean noRecipient = found.isEmpty();
+        // FR-007, FR-022a: người cao tuổi không có tài khoản không phải lỗi gửi
+        boolean noRecipient =
+                found.isEmpty() && r.recipientGroups().stream().anyMatch(g -> !(g instanceof RecipientGroup.Resident));
         if (noRecipient && v.level() == NotificationLevel.URGENT) {
             fallback(r, at, found);
         }
@@ -268,12 +274,27 @@ public class RecipientResolver {
         }
     }
 
+    /** Nhóm (f): tài khoản người cao tuổi Hoạt động hoặc Khóa tạm (như FR-008); không có thì không có người nhận. */
+    private boolean resident(RecipientGroup.Resident g, Recipients found) {
+        return accounts.getObject()
+                .byResident(g.residentId())
+                .filter(a -> a.status() == AccountStatus.ACTIVE || a.status() == AccountStatus.TEMPORARILY_LOCKED)
+                .map(a -> {
+                    found.addResident(g.residentId(), a.accountId(), basis(g));
+                    return true;
+                })
+                .orElse(false);
+    }
+
     private record FamilyResult(boolean added, boolean missingCase) {}
 
-    /** Nhóm người thân (d), (e): lọc khẩn cấp (FR-014, Q-96), phạm vi đồng ý (FR-014, FR-014a), phần nội dung (FR-013). */
+    /**
+     * Nhóm người thân (d), (e): chặn sau qua đời (FR-015), lọc khẩn cấp (FR-014, Q-96), phạm vi đồng ý (FR-014, FR-014a),
+     * phần nội dung (FR-013).
+     */
     private FamilyResult family(RecipientGroup g, Long residentId, ValidatedRequest v, Recipients found) {
         FamilyNotificationPort port = family.getIfAvailable();
-        if (port == null) {
+        if (port == null || afterDeath(v.request(), residentId)) {
             return new FamilyResult(false, false);
         }
         List<NotifiableRelationshipView> relations =
@@ -294,6 +315,7 @@ public class RecipientResolver {
         NotificationRequest r = v.request();
         boolean added = false;
         boolean missingCase = false;
+        boolean notificationScope = residentId != null && facts.notificationScope(residentId);
         for (Candidate c : candidates) {
             NotifiableRelationshipView rel = c.relation();
             if (v.level() == NotificationLevel.URGENT
@@ -301,9 +323,11 @@ public class RecipientResolver {
                     && !rel.rights().contains(FamilyRight.RECEIVE_URGENT)) {
                 continue;
             }
-            // Bản đồng ý chưa có (001): coi như ngoài phạm vi "nhận thông báo"
             ConsentScope.Decision decision = ConsentScope.decide(
-                    v.informationSubject().orElse(null), false, r.q354Case().isPresent(), v.level());
+                    v.informationSubject().orElse(null),
+                    c.related() && notificationScope,
+                    r.q354Case().isPresent(),
+                    v.level());
             if (decision == ConsentScope.Decision.MISSING_CASE) {
                 missingCase = true;
                 continue;
@@ -311,8 +335,9 @@ public class RecipientResolver {
             if (decision == ConsentScope.Decision.SKIP) {
                 continue;
             }
-            Set<InformationType> visible =
-                    ContentFilter.visibleParts(found.parts, rel.rights(), rel.representative(), c.related(), false);
+            boolean healthConsent = c.related() && facts.healthConsent(residentId, rel.familyMemberId());
+            Set<InformationType> visible = ContentFilter.visibleParts(
+                    found.parts, rel.rights(), rel.representative(), c.related(), healthConsent);
             if (visible.isEmpty()) {
                 continue;
             }
@@ -324,6 +349,16 @@ public class RecipientResolver {
             added = true;
         }
         return new FamilyResult(added, missingCase);
+    }
+
+    /**
+     * FR-015: yêu cầu phát sinh sau thời điểm qua đời không gửi người thân, trừ việc sau qua đời của 004; tin báo qua đời
+     * phát sinh cùng thời điểm nên vẫn gửi.
+     */
+    private boolean afterDeath(NotificationRequest r, Long residentId) {
+        return residentId != null
+                && !r.afterDeath()
+                && facts.deathAt(residentId).filter(r.occurredAt()::isAfter).isPresent();
     }
 
     private record Candidate(NotifiableRelationshipView relation, boolean related) {}
@@ -397,6 +432,13 @@ public class RecipientResolver {
                     "FAMILY_MEMBER:" + familyMemberId,
                     k -> new Builder(RecipientType.FAMILY_MEMBER, familyMemberId, accountId, false));
             b.merge(basis, visible, false, q354);
+        }
+
+        void addResident(long residentId, long accountId, String basis) {
+            byKey.computeIfAbsent(
+                            "RESIDENT:" + residentId,
+                            k -> new Builder(RecipientType.RESIDENT, residentId, accountId, false))
+                    .merge(basis, parts, false, null);
         }
 
         void removeAccount(long accountId) {

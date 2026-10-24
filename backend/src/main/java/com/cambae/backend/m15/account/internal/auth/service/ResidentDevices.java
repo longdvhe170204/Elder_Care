@@ -9,6 +9,7 @@ import com.cambae.backend.m15.account.internal.auth.persistence.DeviceBindings;
 import com.cambae.backend.m15.account.internal.auth.persistence.DeviceBindings.Binding;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
+import com.cambae.backend.m15.auditlog.api.Basis;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -46,7 +47,7 @@ public class ResidentDevices implements BoundDeviceApi {
      */
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
     public String bind(long accountId, String deviceId, Long qrCodeId) {
-        bindings.lockActiveOfAccount(accountId).ifPresent(old -> unbind(old, "NEW_DEVICE_BOUND", null, null));
+        bindings.lockActiveOfAccount(accountId).ifPresent(old -> unbind(old, "NEW_DEVICE_BOUND", null, null, null));
         String token = SessionTokens.generate();
         bindings.bind(accountId, deviceId, SessionTokens.hash(token), qrCodeId);
         Map<String, Object> after = new HashMap<>();
@@ -64,7 +65,15 @@ public class ResidentDevices implements BoundDeviceApi {
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
     public Optional<Binding> unbindActive(long accountId, String reason, Long actorId, String note) {
         Optional<Binding> active = bindings.lockActiveOfAccount(accountId);
-        active.ifPresent(b -> unbind(b, reason, actorId, note));
+        active.ifPresent(b -> unbind(b, reason, actorId, note, null));
+        return active;
+    }
+
+    /** Gỡ thiết bị do hệ thống (Bộ lập lịch) khi khóa tài khoản theo sự kiện; nhật ký ghi căn cứ (FR-045). */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public Optional<Binding> unbindActive(long accountId, String reason, Basis basis) {
+        Optional<Binding> active = bindings.lockActiveOfAccount(accountId);
+        active.ifPresent(b -> unbind(b, reason, null, null, basis));
         return active;
     }
 
@@ -83,7 +92,7 @@ public class ResidentDevices implements BoundDeviceApi {
                 .map(o -> new ResidentDevice(o.residentId(), o.accountId(), o.deviceId()));
     }
 
-    private void unbind(Binding binding, String reason, Long actorId, String note) {
+    private void unbind(Binding binding, String reason, Long actorId, String note, Basis basis) {
         bindings.unbind(binding.id(), reason, actorId, note);
         bindings.endSessionsOnDevice(binding.accountId(), binding.deviceId(), "DEVICE_UNBOUND");
         AuditLogEntry.Builder entry = AuditLogEntry.builder()
@@ -93,6 +102,9 @@ public class ResidentDevices implements BoundDeviceApi {
                 .details(Map.of("unbindReason", reason));
         if (note != null) {
             entry.reason(new Reason(note));
+        }
+        if (basis != null) {
+            entry.basis(basis);
         }
         auditLog.write(entry.build());
     }
