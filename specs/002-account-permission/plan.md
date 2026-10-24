@@ -330,3 +330,9 @@ Test không bị ảnh hưởng: test của 000 và của module khác dùng b�
 
 - **Thứ tự**: làm T032, T052, T054 trước dữ liệu demo T079a để chạy `demo` không gặp lỗi 500 ở đính chính, phê duyệt; khớp điều kiện mở 000 T106, T103.
 - **Báo nhóm** (họp tuần, docs/team-plan.md mục 6): `ScopeApi` thật mới có `inScope`, các hàm còn lại từ US4; test vẫn dùng bản giả. Nhờ B khai báo sớm `NguoiCaoTuoiApi.trangThai` và bản giả (cho FR-044a và US8 của 002).
+
+### "Đổi api" `SelfHiddenFields` cho 001 FR-023m (2026-10-24, nhánh `impl/002-self-hidden-fields`)
+
+- Dòng "Chờ A quyết" ở team-plan mục 8: cờ `hasTreatmentWish` của hồ sơ 001 không gắn được `@FieldGroup` (Hành chính thấy cờ, Kế toán không; nhóm `HEALTH` chặn cả Hành chính, nhóm `WISHES` cho Kế toán `PRESENCE_ONLY`). Chủ dự án chọn cách cho DTO tự khai trường bị ẩn thay vì để `null`, để đúng hợp đồng api-001 và 001 research H-18.
+- `m15.account.api.SelfHiddenFields.selfHiddenFields()`: `FieldGroupSerializerModifier` bọc mọi thuộc tính của DTO cài interface, bỏ thuộc tính có tên trong tập trả về và ghi tên vào `hiddenFields` cùng các trường bị ẩn theo nhóm, theo thứ tự khai báo. DTO không cài interface chạy như cũ.
+- Test: `FieldVisibilityIT` (thêm 3: chỉ trường tự ẩn, tập rỗng giữ trường, trộn trường theo nhóm và trường tự ẩn). B áp vào `ProfileBody` của 001 (team-plan mục 8).
