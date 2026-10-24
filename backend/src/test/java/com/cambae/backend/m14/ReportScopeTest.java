@@ -15,8 +15,12 @@ import com.cambae.backend.m15.account.api.PermissionApi;
 import com.cambae.backend.m15.account.api.ScopeApi;
 import com.cambae.backend.m15.account.api.dto.AccessChannel;
 import com.cambae.backend.m15.account.api.dto.AccountType;
+import com.cambae.backend.m15.account.api.dto.MetricGroupRestrictions;
+import com.cambae.backend.m15.account.api.dto.MetricGroupRestrictions.Kind;
+import com.cambae.backend.m15.account.api.dto.MetricGroupRestrictions.Restriction;
 import com.cambae.backend.m15.account.api.dto.PermissionKey;
 import com.cambae.backend.m15.account.api.dto.PermissionResult;
+import com.cambae.backend.m15.account.api.dto.ReportChannel;
 import com.cambae.backend.m15.account.api.dto.ReviewRecipient;
 import com.cambae.backend.m15.account.api.dto.ScopeFilter;
 import com.cambae.backend.m15.account.api.dto.Target;
@@ -30,6 +34,7 @@ import com.cambae.backend.m15.parameter.api.ParameterValue;
 import com.cambae.backend.support.fake.m15.FakeAssignments;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -91,6 +96,7 @@ class ReportScopeTest {
     private final FakeAssignments assignments = new FakeAssignments();
     private Set<PermissionKey> keys = Set.of(ReportScopeService.KEY);
     private ScopeFilter currentFilter = ScopeFilter.FACILITY;
+    private MetricGroupRestrictions restrictions = MetricGroupRestrictions.NONE;
 
     private final PermissionApi permissionApi = new PermissionApi() {
         @Override
@@ -106,6 +112,11 @@ class ReportScopeTest {
         @Override
         public Set<PermissionKey> permissions(CurrentUser user) {
             return keys;
+        }
+
+        @Override
+        public MetricGroupRestrictions metricGroupRestrictions(CurrentUser user) {
+            return restrictions;
         }
 
         @Override
@@ -302,6 +313,45 @@ class ReportScopeTest {
         assertThat(scope.facilityWide()).isFalse();
         assertThat(scope.covers(rec("x", "2026-10-05T01:00:00Z", 4, null))).isTrue();
         assertThat(scope.covers(rec("y", "2026-10-05T01:00:00Z", 5, null))).isFalse();
+    }
+
+    @Test
+    void FR_010a_groupRemovedOnDashboardOnly_reportStillOpen() {
+        restrictions = new MetricGroupRestrictions(
+                Map.of(), List.of(new Restriction("RESIDENTS", ReportChannel.DASHBOARD, Kind.REMOVE_OPERATION)));
+        User manager = new User(Set.of(Role.NURSING_HOME_MANAGER));
+
+        assertThatThrownBy(() -> service().dashboard(manager, MetricGroup.RESIDENTS))
+                .isInstanceOf(PermissionDeniedException.class);
+        assertThat(service().period(manager, MetricGroup.RESIDENTS, OCT_1, NOW).facilityWide())
+                .isTrue();
+    }
+
+    @Test
+    void FR_010a_groupLoweredOnDashboard_currentAssignmentsOnly() {
+        restrictions = new MetricGroupRestrictions(
+                Map.of(), List.of(new Restriction("HEALTH_EVENTS", null, Kind.LOWER_SCOPE)));
+        // ca đang diễn ra quanh NOW, phân công tầng 4
+        assignments.assign(
+                STAFF,
+                new AssignmentView(
+                        AssignmentKind.SHIFT_MEMBER,
+                        4L,
+                        null,
+                        null,
+                        9L,
+                        NOW.minusSeconds(3600),
+                        NOW.plusSeconds(3600)));
+
+        ReportScope scope = service().dashboard(new User(Set.of(Role.DOCTOR)), MetricGroup.HEALTH_EVENTS);
+
+        assertThat(scope.facilityWide()).isFalse();
+        assertThat(scope.covers(rec("x", "2026-10-24T02:00:00Z", 4, null))).isTrue();
+        assertThat(scope.covers(rec("y", "2026-10-24T02:00:00Z", 5, null))).isFalse();
+        assertThat(service()
+                        .dashboard(new User(Set.of(Role.DOCTOR)), MetricGroup.CARE_TASKS)
+                        .facilityWide())
+                .isTrue();
     }
 
     @Test

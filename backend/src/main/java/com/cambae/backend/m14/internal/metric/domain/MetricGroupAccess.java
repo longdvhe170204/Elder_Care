@@ -7,15 +7,18 @@ import static com.cambae.backend.m14.internal.metric.domain.GroupScope.FACILITY;
 import static com.cambae.backend.m14.internal.metric.domain.GroupScope.FLOOR_STAFF;
 
 import com.cambae.backend.common.Role;
+import com.cambae.backend.m15.account.api.dto.MetricGroupRestrictions;
+import com.cambae.backend.m15.account.api.dto.ReportChannel;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * Bảng FR-010 ({@code QuyenNhomChiTieu}, research O-03): nhóm chỉ tiêu vai trò được thấy và phạm vi. Ô "—" không có
  * trong bảng; Nhân viên chăm sóc, Nhân viên bếp, Người thân, Người cao tuổi không có dòng nào. Người phụ trách ca dùng
- * cột Điều dưỡng. Thu hẹp của 002 FR-025 áp sau bảng này (FR-010a).
+ * cột Điều dưỡng. Thu hẹp chi tiết của 002 FR-025 áp trên bảng này (FR-010a); thu hẹp mức khóa do người gọi kiểm.
  */
 public final class MetricGroupAccess {
 
@@ -101,20 +104,58 @@ public final class MetricGroupAccess {
 
     /** Phạm vi của nhóm với tài khoản nhiều vai trò: hợp các vai trò (FR-015); rỗng là không thấy nhóm. */
     public static Set<GroupScope> scopes(Set<Role> roles, MetricGroup group) {
+        return scopes(roles, group, ReportChannel.REPORT, MetricGroupRestrictions.NONE);
+    }
+
+    /**
+     * Như {@link #scopes(Set, MetricGroup)} sau thu hẹp của 002 (FR-010a; 002 research A-05): thu hẹp của từng vai trò
+     * trước khi hợp, thu hẹp theo tài khoản sau. Bỏ thao tác thì ô thành "—"; hạ phạm vi thì toàn viện thành phạm vi phân
+     * công. Không mở rộng quá bảng (Q-15).
+     */
+    public static Set<GroupScope> scopes(
+            Set<Role> roles, MetricGroup group, ReportChannel channel, MetricGroupRestrictions restrictions) {
         Set<GroupScope> result = EnumSet.noneOf(GroupScope.class);
         for (Role role : roles) {
-            result.addAll(TABLE.getOrDefault(role, Map.of()).getOrDefault(group, Set.of()));
+            Set<GroupScope> cell = EnumSet.noneOf(GroupScope.class);
+            cell.addAll(TABLE.getOrDefault(role, Map.of()).getOrDefault(group, Set.of()));
+            apply(cell, restrictions.byRole().getOrDefault(role, List.of()), group, channel);
+            result.addAll(cell);
+        }
+        apply(result, restrictions.byAccount(), group, channel);
+        return result;
+    }
+
+    /** Các nhóm tài khoản thấy được trên kênh (cho {@code GET /metrics}, khối dashboard). */
+    public static Set<MetricGroup> visibleGroups(Set<Role> roles) {
+        return visibleGroups(roles, ReportChannel.REPORT, MetricGroupRestrictions.NONE);
+    }
+
+    public static Set<MetricGroup> visibleGroups(
+            Set<Role> roles, ReportChannel channel, MetricGroupRestrictions restrictions) {
+        Set<MetricGroup> result = EnumSet.noneOf(MetricGroup.class);
+        for (MetricGroup g : MetricGroup.values()) {
+            if (!scopes(roles, g, channel, restrictions).isEmpty()) {
+                result.add(g);
+            }
         }
         return result;
     }
 
-    /** Các nhóm vai trò thấy được (cho {@code GET /metrics}, khối dashboard). */
-    public static Set<MetricGroup> visibleGroups(Set<Role> roles) {
-        Set<MetricGroup> result = EnumSet.noneOf(MetricGroup.class);
-        for (Role role : roles) {
-            result.addAll(TABLE.getOrDefault(role, Map.of()).keySet());
+    private static void apply(
+            Set<GroupScope> cell, List<MetricGroupRestrictions.Restriction> rows, MetricGroup group, ReportChannel ch) {
+        for (MetricGroupRestrictions.Restriction r : rows) {
+            if (!r.appliesTo(group.name(), ch)) {
+                continue;
+            }
+            switch (r.kind()) {
+                case REMOVE_OPERATION -> cell.clear();
+                case LOWER_SCOPE -> {
+                    if (cell.remove(GroupScope.FACILITY)) {
+                        cell.add(GroupScope.ASSIGNMENT);
+                    }
+                }
+            }
         }
-        return result;
     }
 
     private static Map<MetricGroup, Set<GroupScope>> row(Object... pairs) {
