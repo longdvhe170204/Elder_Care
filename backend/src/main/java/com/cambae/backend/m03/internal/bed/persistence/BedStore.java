@@ -41,6 +41,38 @@ public class BedStore {
         entities.flush();
     }
 
+    public boolean hasFutureAllocation(long bedId) {
+        return jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM v_current_allocation WHERE bed_id=? AND status='FUTURE'",
+                        Long.class,
+                        bedId)
+                > 0;
+    }
+
+    public java.util.List<com.cambae.backend.m03.internal.bed.domain.BedHistoryEntry> history(long bedId, long after) {
+        return jdbc.query(
+                "SELECT * FROM bed_state_history WHERE bed_id=? AND id>? ORDER BY id",
+                (rs, i) -> new com.cambae.backend.m03.internal.bed.domain.BedHistoryEntry(
+                        rs.getLong("id"),
+                        rs.getString("from_state") == null
+                                ? null
+                                : com.cambae.backend.m03.api.dto.BedStatus.valueOf(rs.getString("from_state")),
+                        com.cambae.backend.m03.api.dto.BedStatus.valueOf(rs.getString("to_state")),
+                        rs.getString("event"),
+                        instant(rs.getObject("occurred_at", java.time.LocalDateTime.class)),
+                        instant(rs.getObject("planned_at", java.time.LocalDateTime.class)),
+                        rs.getBoolean("executed_late"),
+                        rs.getObject("actor_id", Long.class),
+                        rs.getString("reason"),
+                        rs.getString("basis_type"),
+                        rs.getLong("basis_id"),
+                        rs.getObject("disinfected", Boolean.class),
+                        rs.getObject("ppe_used", Boolean.class),
+                        rs.getString("note")),
+                bedId,
+                after);
+    }
+
     public java.util.Optional<com.cambae.backend.m03.internal.bed.domain.BedDetails> details(long id) {
         return rows(" WHERE b.id=?", java.util.List.of(id)).stream().findFirst();
     }

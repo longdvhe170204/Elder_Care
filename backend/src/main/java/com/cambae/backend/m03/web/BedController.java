@@ -25,10 +25,116 @@ import org.springframework.web.bind.annotation.*;
 public class BedController {
     private final BedService beds;
     private final BedQueries queries;
+    private final com.cambae.backend.m15.account.api.AccountApi accounts;
+    private final com.cambae.backend.m15.correction.api.CorrectionApi corrections;
 
-    public BedController(BedService beds, BedQueries queries) {
+    public BedController(
+            BedService beds,
+            BedQueries queries,
+            com.cambae.backend.m15.account.api.AccountApi accounts,
+            com.cambae.backend.m15.correction.api.CorrectionApi corrections) {
         this.beds = beds;
         this.queries = queries;
+        this.accounts = accounts;
+        this.corrections = corrections;
+    }
+
+    @PostMapping("/{id}/suspend")
+    @Operation(
+            parameters =
+                    @Parameter(
+                            name = "Idempotency-Key",
+                            in = ParameterIn.HEADER,
+                            required = true,
+                            schema = @Schema(type = "string")))
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Đã tạm ngừng",
+                content =
+                        @Content(mediaType = "application/json", schema = @Schema(implementation = BedResponse.class))),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Không có quyền",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = StructureProblem.class))),
+        @ApiResponse(
+                responseCode = "409",
+                description = "Điều kiện chưa thỏa",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = StructureProblem.class))),
+        @ApiResponse(
+                responseCode = "422",
+                description = "Thiếu lý do",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = StructureProblem.class)))
+    })
+    public BedResponse suspend(@PathVariable long id, @Valid @RequestBody ReasonBody body) {
+        beds.suspend(id, body.reason());
+        return BedResponse.of(queries.detail(id));
+    }
+
+    @PostMapping("/{id}/reuse")
+    @Operation(
+            parameters =
+                    @Parameter(
+                            name = "Idempotency-Key",
+                            in = ParameterIn.HEADER,
+                            required = true,
+                            schema = @Schema(type = "string")))
+    @ApiResponses({
+        @ApiResponse(
+                responseCode = "200",
+                description = "Đã sử dụng lại",
+                content =
+                        @Content(mediaType = "application/json", schema = @Schema(implementation = BedResponse.class))),
+        @ApiResponse(
+                responseCode = "409",
+                description = "Điều kiện chưa thỏa",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = StructureProblem.class)))
+    })
+    public BedResponse reuse(@PathVariable long id, @Valid @RequestBody ReasonBody body) {
+        beds.reuse(id, body.reason());
+        return BedResponse.of(queries.detail(id));
+    }
+
+    @GetMapping("/{id}/state-history")
+    @ApiResponse(responseCode = "200", description = "Lịch sử gốc có dấu đính chính")
+    public List<BedStateHistoryRow> history(@PathVariable long id, @RequestParam(required = false) String after) {
+        var rows = queries.history(id, after);
+        var current = corrections.current(
+                "M03.BED_STATE_HISTORY",
+                rows.stream()
+                        .map(com.cambae.backend.m03.internal.bed.domain.BedHistoryEntry::id)
+                        .toList());
+        return rows.stream()
+                .map(row -> new BedStateHistoryRow(
+                        row.id(),
+                        row.from(),
+                        row.to(),
+                        row.event(),
+                        row.occurredAt(),
+                        row.plannedAt(),
+                        row.executedLate(),
+                        row.actorId() == null
+                                ? (row.plannedAt() == null ? null : "Bộ lập lịch hệ thống")
+                                : accounts.fullName(row.actorId()).orElse(null),
+                        row.reason(),
+                        new BedStateHistoryRow.HistoryBasis(row.basisType(), row.basisId()),
+                        row.disinfected(),
+                        row.ppeUsed(),
+                        row.note(),
+                        current.get(row.id()) != null && current.get(row.id()).corrected()))
+                .toList();
     }
 
     @GetMapping

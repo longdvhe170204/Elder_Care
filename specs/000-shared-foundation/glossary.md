@@ -645,6 +645,13 @@ Bảy operation mang `x-implementation-phase: 4` ghi nhận phần đã được
 | Chỉ chuyển theo chỉ định / cần yêu cầu đổi lưu trú trong mô tả HTTP Phase 5 | `INFECTION_CONTROL_TRANSFER_REQUIRED`, `RESIDENCY_CHANGE_REQUEST_REQUIRED` (chưa có implementation) |
 | Bảng kỹ thuật `yeu_cau_nhap_bu` | `bed_backfill_request` (`approval_request_id`, `resident_id`, `current_allocation_id`, `new_bed_id`, `transfer_at`), migration `V003_04__bed_backfill_request.sql` |
 | Mã loại yêu cầu nhập bù trong fixture schema (handler chưa cài) | `M03.BED_ALLOCATION_BACKFILL` (tên logic `M03.NHAP_BU_PHAN_BO`) |
+| Tạm ngừng, sử dụng lại, lịch sử trạng thái (T041) | `POST /beds/{id}/suspend`, `POST /beds/{id}/reuse`, `GET /beds/{id}/state-history?after=...`; `BedStateChanged`, `BedStateHistoryRow`, `After` |
+| Lịch sử trạng thái / actor / căn cứ | `BedHistoryEntry`; `from`, `to`, `event`, `occurredAt`, `plannedAt`, `executedLate`, `actor`, `reason`, `basis.type/id`, `disinfected`, `ppeUsed`, `note`, `corrected` |
+| Giữ chỗ và hết hạn (T040/T044) | `BedHoldService`, `BedHoldStore`, `HoldExpiryProcessor`, `HoldExpiryJob` (`EXPIRE_BED_HOLDS`) |
+| Nhật ký giải phóng, gia hạn và hết hạn giữ người vắng | `M03_ALLOCATION_CLOSED`, `M03_EXPECTED_END_EXTENDED`, `M03_ABSENT_HOLD_EXPIRED` |
+| Khóa trang lịch sử không hợp lệ | `INVALID_CURSOR` |
+| Nhánh trạng thái tài sản giường độc lập (T038/T042) | `BedAssetStateService`, `BedAssetStateStore`; chưa nối adapter `BedAssetCommandPort` đầy đủ |
+| Nhật ký hủy phân bổ tương lai do giường hỏng | `M03_FUTURE_ALLOCATION_CANCELLED` |
 | Client chuyển giường | `postBedAllocationsByIdTransfer`, sinh từ contract bằng generator |
 
 Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phase 4 +1 Phase 5 đã duyệt, 24 chưa dịch. Clone component mới, giữ component tên logic cho phase sau. T034 mới có migration/test schema, chưa handler phê duyệt; T036 mới có bản dịch và client, chưa controller/UI/mobile.

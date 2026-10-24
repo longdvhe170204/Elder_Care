@@ -58,11 +58,8 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Path.of("..", "specs", "003-room-bed-allocation", "contracts", "api-003.yaml"),
                     Set.of(
                             "GET /api/v1/beds/summary",
-                            "POST /api/v1/giuong/{id}/tam-ngung-su-dung",
-                            "POST /api/v1/giuong/{id}/su-dung-lai",
                             "GET /api/v1/giuong/{id}/dieu-kien-xac-nhan-san-sang",
                             "POST /api/v1/giuong/{id}/xac-nhan-san-sang",
-                            "GET /api/v1/giuong/{id}/lich-su-trang-thai",
                             "POST /api/v1/giuong/{id}/lich-su-trang-thai/{lichSuId}/dinh-chinh",
                             "POST /api/v1/phong/{id}/dat-cach-ly",
                             "POST /api/v1/phong/{id}/go-cach-ly",

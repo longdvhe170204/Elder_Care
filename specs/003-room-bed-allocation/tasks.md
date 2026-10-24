@@ -142,18 +142,19 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 ### Tests cho User Story 4
 
-- [ ] T037 [P] [US4] Test đơn vị `BT/m03/BangChuyenTrangThaiGiuongTest.java` tham số hóa mọi dòng của bảng chuyển data-model mục 3 và mọi cặp ngoài bảng
+- [x] T037 [P] [US4] Test đơn vị `BT/m03/BangChuyenTrangThaiGiuongTest.java` tham số hóa mọi dòng của bảng chuyển data-model mục 3 và mọi cặp ngoài bảng
 - [ ] T038 [P] [US4] Test `BT/m03/BR_M03_05_GiuongCoNguoiIT.java`, `BR_M03_06_VeTrongIT.java`, `BR_M03_13_GiuongHongDatTruocIT.java`, `BR_M03_15_DauChoChuyenNguoiIT.java`, `TamNgungSuDungIT.java`, `FR_016a_ThucHienTreIT.java`: giường có người chặn lệnh tài sản; hết hạn giữ chỗ hồ sơ chờ về Trống và gọi 004; giường hỏng hủy phân bổ tương lai theo FR-013a; Báo hỏng giường có người ghi dấu "chờ chuyển người"; tạm ngừng có lý do, sử dụng lại về `CHO_SAN_SANG`; việc trễ hơn CFG-M03-08 ghi `thuc_hien_tre` (US4 #1–16)
 - [ ] T039 [P] [US4] Test `BT/m03/PhanBoThamGiaChuyenTrangThaiIT.java`: mỗi lệnh của bảng G-06 (Hoàn tất tiếp nhận, Hủy tiếp nhận, Cho tạm vắng, Chuyển viện, Ghi nhận trở về, Kết thúc lưu trú, Ghi nhận qua đời) đổi giường, phân bổ đúng; lỗi thì rollback cả lệnh 001
 
 ### Implementation cho User Story 4
 
 - [ ] T040 [US4] Cài giữ chỗ trong `BE/m03/giuong/internal/GiuChoService.java`: `giuChoHoSoCho` (hạn CFG-M02-02), `huyGiuCho` (idempotent), `giaiPhongGiuongKhiVang`, `giaHanKetThucDuKien` của `PhanBoGiuongLenhApi` (FR-012, FR-014, FR-015)
-- [ ] T041 [US4] Cài lệnh tạm ngừng, sử dụng lại (AC-01; Q-246, Q-261) trong `GiuongService.java` và endpoint `POST /giuong/{id}/tam-ngung-su-dung`, `/su-dung-lai`, `GET /giuong/{id}/lich-su-trang-thai` trong `GiuongController.java`
+- [x] T041 [US4] Cài lệnh tạm ngừng, sử dụng lại (AC-01; Q-246, Q-261) trong `GiuongService.java` và endpoint `POST /giuong/{id}/tam-ngung-su-dung`, `/su-dung-lai`, `GET /giuong/{id}/lich-su-trang-thai` trong `GiuongController.java`
 - [ ] T042 [US4] Cài `BE/m03/giuong/port/GiuongTheoTaiSanPortImpl.java`: `TAI_SAN_BAO_TRI`, `TAI_SAN_THANH_LY`, `TAI_SAN_SAN_SANG`, dấu "chờ chuyển người", ngoại lệ FR-013a, FR-013b; chặn khi giường có người (BR-M03-05, 13, 15)
 - [ ] T043 [US4] Cài bean `ThamGiaChuyenTrangThai` của 003 trong `BE/m03/phanbo/internal/PhanBoThamGiaChuyenTrangThai.java` (`@Order` sau 004; `chiTiet.doiPhanBoSangGiuongId` cho Hoàn tất tiếp nhận; giữ/không giữ giường theo `giuGiuongKhiVang`; giải phóng khi kết thúc, qua đời; cảnh báo FR-024a khi trở về phòng chịu chặn) (research G-06)
 - [ ] T044 [US4] Cài job `BE/m03/lich/HetHanGiuCho.java` và `BaoQuaBatDauDuKien.java` (ShedLock, 15 phút; chống lặp theo `da_bao_het_han_luc`, `da_bao_qua_bat_dau_cho`; gọi `hoSoChoHetHanGiuCho` cùng transaction) (research G-09)
 
+**Kết quả lượt Phase 6 (2026-10-24; chưa hoàn tất cả phase)**: Chỉ đánh T037/T041 sau `mvnw.cmd clean verify` nền BUILD SUCCESS (02:06), 351 unit/kiến trúc +495 IT, 0 failure/error/skip, Spotless 786 file qua. T037 có 184 ca bảng chuyển; T041 có lệnh tạm ngừng/sử dụng lại và lịch sử, 3 operation được duyệt dịch và ApiContractIT đã kiểm. T040 mới có 4 tác động nội bộ BedHoldService, chưa nối facade API đầy đủ; T044 mới có HoldExpiryJob, chưa BaoQuaBatDauDuKien. T038/T039/T040/T042/T043/T044 giữ chưa đánh: thiếu hợp đồng/fake M01 và checker/lệnh theo lịch của phase trước. Không đổi UI, không chụp màn hình; frontend 113 test, lint/build qua. Xem plan và Working-history.md; task chưa hoàn tất tiếp theo của Phase 6 là T038.
 **Checkpoint**: P1 hoàn tất; giường và phân bổ đầy đủ.
 
 ---
@@ -298,3 +299,5 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8; mỗi bước chạ
 **Kiểm chốt phần độc lập Phase 5 (2026-10-24)**: clean verify nền bản cuối sau sửa fixture BUILD SUCCESS (04:10), 167 unit/kiến trúc +475 IT, 0 failure/error/skip; web 105 test, lint/build qua. Không đánh thêm task: T034 thiếu handler, T036 thiếu controller/UI; T029 là task Phase 5 chưa xong đầu tiên. Chủ dự án giữ quyết định chờ B cho nguồn M01. Xem plan/Working-history.md về lần kiểm đầu thất bại do fixture tăng AUTO_INCREMENT và kết quả kiểm lại sau sửa.
 
 **Bổ sung T036 UI web (2026-10-24)**: Sau nhắc của chủ dự án, đã làm `frontend/src/features/beds/BedTransfersPanel.jsx`, `BedTransferForm.jsx` và gắn tab vào `BedsPage.jsx` theo quyền BED_ALLOCATION. Test trước RED→GREEN: 7 ca panel +6 ca page; kiểm cuối frontend 113 test, lint/build qua; kiểm trực quan ba kích thước, chế độ tối và bàn phím bằng API fixture cục bộ. T036 giữ chưa đánh vì controller chưa có; mobile chưa mở theo mobile/README.md. Các ghi chú trước “chưa UI” là trạng thái ở thời điểm ghi, đã được cập nhật bởi mục này. Chờ B vẫn chỉ chặn nguồn M01/backend; không chặn phần UI độc lập đã hoàn thành. Xem plan/Working-history.md.
+
+**Bổ sung tiếp tục T038/T042 sau nhắc điểm dừng sớm (2026-10-24)**: Đã thêm BedAssetStateService/BedAssetStateStore và 9 IT viết RED→GREEN cho nhánh trạng thái tài sản độc lập, gồm chặn có người, bảo trì/thanh lý, khôi phục Tạm ngừng, hủy phân bổ ban đầu khi giường hỏng và rollback. `clean verify` nền bản mới BUILD SUCCESS (02:12), 351 unit/kiến trúc +504 IT, 0 failure/error/skip; Spotless 789 file qua. T038/T042 vẫn chưa [x] vì chưa đủ adapter BedAssetCommandPort/FR-013b/suitable checker và xử lý căn cứ theo lịch. Kết quả 495 IT ở ghi chú trước là thời điểm trước phần bổ sung này; không thay thế kết quả cuối. Xem plan/Working-history.md.
