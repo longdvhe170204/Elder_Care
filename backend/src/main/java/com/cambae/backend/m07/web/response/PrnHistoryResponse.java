@@ -1,7 +1,6 @@
 package com.cambae.backend.m07.web.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,16 +8,9 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PrnHistoryResponse {
 
-    @JsonProperty("donThuocId")
     private Long prescriptionId;
-
-    @JsonProperty("cacLanDung")
     private List<PrnAdministrationResponse> administrations = new ArrayList<>();
-
-    @JsonProperty("somNhatDuocDung")
     private Instant earliestNextAllowedTime;
-
-    @JsonProperty("coTheDungNgay")
     private boolean canAdministerNow;
 
     public Long getPrescriptionId() {
@@ -46,6 +38,10 @@ public class PrnHistoryResponse {
     }
 
     public boolean isCanAdministerNow() {
+        return canAdministerNow;
+    }
+
+    public boolean canAdministerNow() {
         return canAdministerNow;
     }
 

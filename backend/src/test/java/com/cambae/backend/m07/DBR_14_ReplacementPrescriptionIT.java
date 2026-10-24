@@ -112,8 +112,8 @@ class DBR_14_ReplacementPrescriptionIT extends MySqlIntegrationTestBase {
 
         // Verify replacement prescription
         assertThat(replacement.id()).isNotNull().isNotEqualTo(oldId);
-        assertThat(replacement.thayTheChoId()).isEqualTo(oldId);
-        assertThat(replacement.trangThai()).isEqualTo("ACTIVE");
+        assertThat(replacement.replacesId()).isEqualTo(oldId);
+        assertThat(replacement.status()).isEqualTo("ACTIVE");
 
         // Verify old prescription is DISCONTINUED with reason REPLACED
         Prescription oldPrescription = prescriptionRepository.findById(oldId).orElseThrow();

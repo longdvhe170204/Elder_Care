@@ -6,14 +6,14 @@ import com.cambae.backend.m07.internal.service.PrescriptionIssueView;
  * Prescription issue response (schema VanDe in api-006.yaml).
  */
 public record PrescriptionIssueResponse(
-        String maVanDe,
-        String loai,
-        String hoatChat,
-        Long donTrungId,
-        Long mucDiUngId,
-        String mucDo,
-        boolean khongKiemTraTuDong,
-        Integer dong) {
+        String issueCode,
+        String issueType,
+        String activeIngredient,
+        Long duplicatePrescriptionId,
+        Long allergyItemId,
+        String severity,
+        boolean manualReviewRequired,
+        Integer lineNumber) {
 
     public static PrescriptionIssueResponse from(PrescriptionIssueView view) {
         return new PrescriptionIssueResponse(
@@ -25,5 +25,38 @@ public record PrescriptionIssueResponse(
                 view.severity(),
                 view.manualReviewRequired(),
                 view.lineNumber());
+    }
+
+    // Compatibility accessors
+    public String maVanDe() {
+        return issueCode;
+    }
+
+    public String loai() {
+        return issueType;
+    }
+
+    public String hoatChat() {
+        return activeIngredient;
+    }
+
+    public Long donTrungId() {
+        return duplicatePrescriptionId;
+    }
+
+    public Long mucDiUngId() {
+        return allergyItemId;
+    }
+
+    public String mucDo() {
+        return severity;
+    }
+
+    public boolean khongKiemTraTuDong() {
+        return manualReviewRequired;
+    }
+
+    public Integer dong() {
+        return lineNumber;
     }
 }

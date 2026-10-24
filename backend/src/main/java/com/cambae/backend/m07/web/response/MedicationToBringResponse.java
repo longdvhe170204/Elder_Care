@@ -1,7 +1,6 @@
 package com.cambae.backend.m07.web.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -10,25 +9,12 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MedicationToBringResponse {
 
-    @JsonProperty("donThuocId")
     private Long prescriptionId;
-
-    @JsonProperty("tenThuoc")
     private String medicationName;
-
-    @JsonProperty("lieuDung")
     private BigDecimal dosage;
-
-    @JsonProperty("donVi")
     private String dosageUnit;
-
-    @JsonProperty("loaiDon")
     private String prescriptionType; // PERIODIC | PRN
-
-    @JsonProperty("soLuongCanMang")
     private BigDecimal totalQuantityNeeded;
-
-    @JsonProperty("thoiDiemDuKien")
     private List<Instant> scheduledTimes = new ArrayList<>();
 
     public Long getPrescriptionId() {
