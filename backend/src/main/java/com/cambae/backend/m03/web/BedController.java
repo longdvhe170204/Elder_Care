@@ -112,7 +112,7 @@ public class BedController {
     public List<BedStateHistoryRow> history(@PathVariable long id, @RequestParam(required = false) String after) {
         var rows = queries.history(id, after);
         var current = corrections.current(
-                "M03.BED_STATE_HISTORY",
+                "M03.BED_READINESS_CONFIRMATION",
                 rows.stream()
                         .map(com.cambae.backend.m03.internal.bed.domain.BedHistoryEntry::id)
                         .toList());
@@ -130,11 +130,20 @@ public class BedController {
                                 : accounts.fullName(row.actorId()).orElse(null),
                         row.reason(),
                         new BedStateHistoryRow.HistoryBasis(row.basisType(), row.basisId()),
-                        row.disinfected(),
-                        row.ppeUsed(),
-                        row.note(),
+                        correctedValue(current.get(row.id()), "disinfected", row.disinfected(), Boolean.class),
+                        correctedValue(current.get(row.id()), "ppeUsed", row.ppeUsed(), Boolean.class),
+                        correctedValue(current.get(row.id()), "note", row.note(), String.class),
                         current.get(row.id()) != null && current.get(row.id()).corrected()))
                 .toList();
+    }
+
+    private static <T> T correctedValue(
+            com.cambae.backend.m15.correction.api.CurrentValue value, String field, T original, Class<T> type) {
+        if (value == null
+                || value.voided()
+                || !(value.content() instanceof java.util.Map<?, ?> content)
+                || !content.containsKey(field)) return original;
+        return type.cast(content.get(field));
     }
 
     @GetMapping

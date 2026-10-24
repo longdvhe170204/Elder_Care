@@ -980,19 +980,21 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/After' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BedStateHistoryRow' } } } } } }
       x-implementation-phase: 6
-  /giuong/{id}/lich-su-trang-thai/{lichSuId}/dinh-chinh:
+  /beds/{id}/state-history/{historyId}/corrections:
     post:
-      tags: [giuong]
+      tags: [beds]
       summary: Đính chính lần Xác nhận giường sẵn sàng (ghi chú, khử khuẩn, bảo hộ)
       x-fr: [FR-044]
       parameters:
         - { $ref: '#/components/parameters/Id' }
-        - { name: lichSuId, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: historyId, in: path, required: true, schema: { type: integer, format: int64 } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { $ref: '#/components/requestBodies/DinhChinh' }
-      responses: { '201': { description: Đã đính chính hoặc đã lập yêu cầu (000 FR-026) }, '409': { $ref: '#/components/responses/Loi' } }
+      requestBody: { $ref: '#/components/requestBodies/RecordCorrection' }
+      responses: { '201': { description: Đã đính chính hoặc đã lập yêu cầu (000 FR-026) }, '409': { $ref: '#/components/responses/Problem' } }
 
   # ---------------- Cách ly ----------------
+      x-implementation-phase: 7
+
   /phong/{id}/dat-cach-ly:
     post:
       tags: [cach-ly]
@@ -1303,9 +1305,9 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/LyDo' }
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PhanBo' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/Loi' } }
-  /phan-bo-giuong/{id}/dinh-chinh:
+  /bed-allocations/{id}/corrections:
     post:
-      tags: [phan-bo]
+      tags: [bed-allocations]
       summary: Đính chính phân bổ đã đóng hoặc đã hủy
       description: |
         Theo 000 FR-026 (cách a/b/c). Bản đính chính phải thỏa FR-019 (không chồng thời gian), nếu không 409 PB_CHONG_THOI_GIAN.
@@ -1313,8 +1315,10 @@ paths:
       x-fr: [FR-026]
       x-br: [BR-M03-07, BR-M03-24]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/DinhChinh' }
-      responses: { '201': { description: Đã đính chính hoặc đã lập yêu cầu }, '409': { $ref: '#/components/responses/Loi' } }
+      requestBody: { $ref: '#/components/requestBodies/RecordCorrection' }
+      responses: { '201': { description: Đã đính chính hoặc đã lập yêu cầu }, '409': { $ref: '#/components/responses/Problem' } }
+      x-implementation-phase: 7
+
   /residents/{residentId}/location:
     get:
       tags:
@@ -1343,44 +1347,50 @@ paths:
         "404":
           $ref: "#/components/responses/Problem"
       x-implementation-phase: 4
-  /lich-su-vi-tri/nguoi-cao-tuoi/{nctId}:
+  /location-history/residents/{residentId}:
     get:
-      tags: [tra-cuu]
-      summary: Người A ở giường nào tại T, hoặc trong khoảng [tu, den)
+      tags: [location-history]
+      summary: Người A ở giường nào tại T, hoặc trong khoảng [from, to)
       description: Dùng giá trị sau đính chính; dòng đã đính chính có daDinhChinh (CHK017). Không kèm thông tin sức khỏe.
       x-fr: [FR-035, FR-037]
       parameters:
-        - { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } }
-        - { name: thoiDiem, in: query, schema: { type: string, format: date-time } }
-        - { name: tu, in: query, schema: { type: string, format: date-time } }
-        - { name: den, in: query, schema: { type: string, format: date-time } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DongViTri' } } } } }, '403': { $ref: '#/components/responses/Loi' } }
-  /lich-su-vi-tri/giuong:
+        - { name: residentId, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: at, in: query, schema: { type: string, format: date-time } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ResidentLocationHistoryRow' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
+      x-implementation-phase: 7
+
+  /location-history/beds:
     get:
-      tags: [tra-cuu]
+      tags: [location-history]
       summary: Mỗi giường của phòng/tầng/khu vực có ai tại T hoặc trong ngày D
       x-fr: [FR-035, FR-037]
       parameters:
-        - { name: phongId, in: query, schema: { type: integer, format: int64 } }
-        - { name: tangId, in: query, schema: { type: integer, format: int64 } }
-        - { name: khuVucId, in: query, schema: { type: integer, format: int64 } }
-        - { name: thoiDiem, in: query, schema: { type: string, format: date-time } }
-        - { name: ngay, in: query, schema: { type: string, format: date } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DongGiuong' } } } } } }
-  /lich-su-vi-tri/cung-phong:
+        - { name: roomId, in: query, schema: { type: integer, format: int64 } }
+        - { name: floorId, in: query, schema: { type: integer, format: int64 } }
+        - { name: areaId, in: query, schema: { type: integer, format: int64 } }
+        - { name: at, in: query, schema: { type: string, format: date-time } }
+        - { name: date, in: query, schema: { type: string, format: date } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BedLocationHistoryRow' } } } } } }
+      x-implementation-phase: 7
+
+  /location-history/roommates:
     get:
-      tags: [tra-cuu]
-      summary: Những ai ở cùng phòng với A trong khoảng [tu, den)
+      tags: [location-history]
+      summary: Những ai ở cùng phòng với A trong khoảng [from, to)
       description: Kèm khoảng chồng, khoảng A và người kia vắng mặt (FR-036), dấu có nhập bù đang chờ duyệt (FR-027).
       x-fr: [FR-035, FR-036, FR-037]
       x-br: [BR-M05-10]
       parameters:
-        - { name: nctId, in: query, required: true, schema: { type: integer, format: int64 } }
-        - { name: tu, in: query, required: true, schema: { type: string, format: date-time } }
-        - { name: den, in: query, required: true, schema: { type: string, format: date-time } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/NguoiCungPhong' } } } } } }
+        - { name: residentId, in: query, required: true, schema: { type: integer, format: int64 } }
+        - { name: from, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date-time } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/RoommateHistoryRow' } } } } } }
 
   # ---------------- Bán trú ----------------
+      x-implementation-phase: 7
+
   /khu-nghi-ban-tru:
     get:
       tags: [ban-tru]
@@ -1537,6 +1547,17 @@ components:
     LyDo:
       required: true
       content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } }
+    RecordCorrection:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [type, reason]
+            properties:
+              type: { type: string, enum: [AMEND_CONTENT, VOID] }
+              correctedContent: { type: object, additionalProperties: true, description: 'Phân bổ: bedId, startAt, endAt. Xác nhận sẵn sàng: disinfected, ppeUsed, note' }
+              reason: { $ref: '#/components/schemas/Reason' }
     DinhChinh:
       required: true
       content:
@@ -2272,33 +2293,33 @@ components:
         phanBoHienHanh: { $ref: '#/components/schemas/PhanBo' }
         phanBoTuongLai: { $ref: '#/components/schemas/PhanBo' }
         chuaCoGiuongTu: { type: string, format: date-time }
-    DongViTri:
+    ResidentLocationHistoryRow:
       type: object
       properties:
-        phanBoId: { type: integer, format: int64 }
-        viTri: { $ref: '#/components/schemas/ViTri' }
-        tu: { type: string, format: date-time }
-        den: { type: string, format: date-time }
-        daDinhChinh: { type: boolean }
-        coNhapBuChoDuyet: { type: boolean }
-    DongGiuong:
+        allocationId: { type: integer, format: int64 }
+        location: { $ref: '#/components/schemas/Location' }
+        from: { type: string, format: date-time }
+        to: { type: string, format: date-time }
+        corrected: { type: boolean }
+        pendingBackfill: { type: boolean }
+    BedLocationHistoryRow:
       type: object
       properties:
-        viTri: { $ref: '#/components/schemas/ViTri' }
-        nguoi: { type: array, items: { type: object, properties: { nctId: { type: integer, format: int64 }, hoTen: { type: string }, tu: { type: string, format: date-time }, den: { type: string, format: date-time }, daDinhChinh: { type: boolean } } } }
-    NguoiCungPhong:
+        location: { $ref: '#/components/schemas/Location' }
+        residents: { type: array, items: { type: object, properties: { residentId: { type: integer, format: int64 }, fullName: { type: string }, from: { type: string, format: date-time }, to: { type: string, format: date-time }, corrected: { type: boolean } } } }
+    RoommateHistoryRow:
       type: object
       properties:
-        nctId: { type: integer, format: int64 }
-        hoTen: { type: string }
-        phong: { type: string }
-        khoangChong: { type: array, items: { type: object, properties: { tu: { type: string, format: date-time }, den: { type: string, format: date-time } } } }
-        khoangVang:
+        residentId: { type: integer, format: int64 }
+        fullName: { type: string }
+        room: { type: string }
+        overlaps: { type: array, items: { type: object, properties: { from: { type: string, format: date-time }, to: { type: string, format: date-time } } } }
+        absences:
           type: array
           description: Khoảng A hoặc người này vắng mặt (Tạm vắng, Điều trị tại bệnh viện, Hoạt động bên ngoài; FR-036)
-          items: { type: object, properties: { nctId: { type: integer, format: int64 }, loai: { type: string }, tu: { type: string, format: date-time }, den: { type: string, format: date-time } } }
-        daDinhChinh: { type: boolean }
-        coNhapBuChoDuyet: { type: boolean }
+          items: { type: object, properties: { residentId: { type: integer, format: int64 }, type: { type: string }, from: { type: string, format: date-time }, to: { type: string, format: date-time } } }
+        corrected: { type: boolean }
+        pendingBackfill: { type: boolean }
     KhuNghiBanTru:
       type: object
       properties: { id: { type: integer, format: int64 }, ma: { type: string }, ten: { type: string }, tangId: { type: integer, format: int64 }, khuVucId: { type: integer, format: int64 }, sucChuaMoiBuoi: { type: integer, description: 'Giá trị hiện hành của CFG-M03-01' }, trangThai: { type: string } }

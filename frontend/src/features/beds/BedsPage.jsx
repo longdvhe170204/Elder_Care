@@ -11,6 +11,7 @@ import { problemOf } from '@/common/problem'
 import { StructureForm } from './StructureForm'
 import { BedTransfersPanel } from './BedTransfersPanel'
 import { BedAllocationsPanel } from './BedAllocationsPanel'
+import { LocationHistoryPanel } from './LocationHistoryPanel'
 import { catalogs, bedStates } from './bedCatalog'
 
 async function fetchCatalogs() {
@@ -74,8 +75,20 @@ export function BedsPage() {
     )
   const allocationAllowed = (operation) =>
     permissions.some((permission) => permission.function === 'BED_ALLOCATION' && permission.operation === operation)
-  if (!allowed('VIEW') && !allocationAllowed('VIEW')) return <PermissionDeniedState label="phòng, giường" />
-  const activeTab = allowed('VIEW') ? tab : tab === 'allocations' ? 'allocations' : 'transfers'
+  const historyAllowed =
+    allocationAllowed('VIEW') ||
+    permissions.some(
+      (permission) => permission.function === 'INFECTION_CONTAINMENT' && permission.operation === 'CREATE',
+    )
+  if (!allowed('VIEW') && !allocationAllowed('VIEW') && !historyAllowed)
+    return <PermissionDeniedState label="phòng, giường" />
+  const activeTab = allowed('VIEW')
+    ? tab
+    : !allocationAllowed('VIEW') || tab === 'history'
+      ? 'history'
+      : tab === 'allocations'
+        ? 'allocations'
+        : 'transfers'
   const canCreate = allowed('CREATE'),
     canUpdate = allowed('UPDATE')
   function edit(kind, item, action = 'update') {
@@ -155,6 +168,7 @@ export function BedsPage() {
                   ['transfers', 'Chuyển giường'],
                 ]
               : []),
+            ...(historyAllowed ? [['history', 'Lịch sử vị trí']] : []),
           ].map(([key, label]) => (
             <Button
               key={key}
@@ -174,7 +188,9 @@ export function BedsPage() {
           <AlertDescription>{notice}</AlertDescription>
         </Alert>
       )}
-      {activeTab === 'allocations' ? (
+      {activeTab === 'history' ? (
+        <LocationHistoryPanel catalogs={data} canCorrectAllocation={allocationAllowed('CREATE')} />
+      ) : activeTab === 'allocations' ? (
         <BedAllocationsPanel canCreate={allocationAllowed('CREATE')} />
       ) : activeTab === 'transfers' ? (
         <BedTransfersPanel canTransfer={allocationAllowed('CREATE')} />

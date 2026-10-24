@@ -175,6 +175,8 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 - [ ] T047 [US5] Cài `DinhChinhDuocProvider` cho `M03.PHAN_BO_GIUONG` và `M03.XAC_NHAN_SAN_SANG` (`tangKhuVuc` là tầng của giường; `sauKhiDinhChinh` báo 007) trong `BE/m03/phanbo/internal/PhanBoDinhChinhProvider.java`
 - [ ] T048 [US5] Tạo `BE/m03/phanbo/web/LichSuViTriController.java`: `GET /lich-su-vi-tri/nguoi-cao-tuoi/{nctId}`, `/lich-su-vi-tri/giuong`, `/lich-su-vi-tri/cung-phong`, `POST /phan-bo-giuong/{id}/dinh-chinh`, `POST /giuong/{id}/lich-su-trang-thai/{lichSuId}/dinh-chinh`; màn web `frontend/src/tinh-nang/lich-su-vi-tri/`
 
+**Ghi chú triển khai 2026-10-24**: T045–T048 đã có bản cài và kiểm hẹp xanh; tên lớp/đường dẫn thực tế và lệch SPI ghi ở plan. `clean verify` cuối: 392 unit/kiến trúc và 170 IT M03 xanh, toàn kho còn 14 lỗi test M01. Chưa đánh `[x]`: M01 `statusPeriods` còn stub; chủ dự án giữ nguyên schema lịch sử theo giường nên chưa thể trả dấu nhập bù FR-027 ở HTTP này; UI chưa kiểm trực quan browser đủ ba bề rộng/chế độ tối.
+
 **Checkpoint**: Truy vết vị trí chạy độc lập.
 
 ---

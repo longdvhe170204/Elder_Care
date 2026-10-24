@@ -698,6 +698,11 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 | `M03_GIUONG_CHUYEN`; `CHUYEN_KHONG_HOP_LE`; `CHUA_GHI_KHU_KHUAN` | `M03_BED_STATE_CHANGED`; `INVALID_BED_TRANSITION`; `DISINFECTION_CONFIRMATION_REQUIRED` |
 | Metadata thông báo sự kiện | `api.dto.BedNotificationContext` (`occurredAt`, `floorAreaId`, `recipients`); nhóm người nhận do lệnh nguồn chọn theo G-12 |
 
+| Lịch sử vị trí Phase 7 (T046–T048) | `LocationHistoryReading`, `LocationHistoryQueries`, `LocationHistoryStore`, `HistoryStay`, `HistoryAbsence`, `LocationHistoryController`; HTTP `/location-history/residents/{residentId}`, `/location-history/beds`, `/location-history/roommates` |
+| Provider đính chính và HTTP Phase 7 | `AllocationCorrectionProvider`, `ReadinessCorrectionProvider`, `HistoryCorrections`, `RecordCorrection`; `/bed-allocations/{id}/corrections`, `/beds/{id}/state-history/{historyId}/corrections` |
+| Projection/store đính chính Phase 7 | `AllocationCorrectionOriginal`, `AllocationCorrectionSnapshot`, `AllocationCorrectionStore`, `ReadinessCorrectionOriginal`, `ReadinessCorrectionStore` |
+| Schema web lịch sử và màn trong `features/beds` | `ResidentLocationHistoryRow`, `BedLocationHistoryRow`, `BedResidentHistoryRow`, `RoommateHistoryRow`, `HistoryInterval`, `HistoryAbsenceResponse`; `LocationHistoryPanel`, `AllocationCorrectionForm` |
+
 | Sự kiện logic | Record tại `api.events` |
 | --- | --- |
 | `GiuongDaTrong` | `BedBecameEmpty` |
