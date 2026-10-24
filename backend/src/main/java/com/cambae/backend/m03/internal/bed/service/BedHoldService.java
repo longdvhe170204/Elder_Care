@@ -33,6 +33,7 @@ public class BedHoldService {
     private final ApplicationEventPublisher events;
     private final ObjectProvider<BedAssetPort> assets;
     private final AuditLogApi audit;
+    private final com.cambae.backend.m03.internal.allocation.persistence.WaitingHoldIndexStore index;
 
     public BedHoldService(
             BedHoldStore store,
@@ -44,7 +45,8 @@ public class BedHoldService {
             CurrentUser user,
             ApplicationEventPublisher events,
             ObjectProvider<BedAssetPort> assets,
-            AuditLogApi audit) {
+            AuditLogApi audit,
+            com.cambae.backend.m03.internal.allocation.persistence.WaitingHoldIndexStore index) {
         this.store = store;
         this.beds = beds;
         this.state = state;
@@ -55,6 +57,7 @@ public class BedHoldService {
         this.events = events;
         this.assets = assets;
         this.audit = audit;
+        this.index = index;
     }
 
     public void holdForWaitingRecord(long waitingRecordId, long residentId, long bedId, Instant at) {
@@ -84,7 +87,12 @@ public class BedHoldService {
     }
 
     public void cancelHold(long waitingRecordId, Reason reason) {
+        cancelHoldExcept(waitingRecordId, reason, null);
+    }
+
+    public void cancelHoldExcept(long waitingRecordId, Reason reason, Long retainedBedId) {
         for (var held : store.waiting(waitingRecordId)) {
+            if (java.util.Objects.equals(held.bedId(), retainedBedId)) continue;
             locks.lock(held.residentId(), List.of(held.bedId()));
             if (!store.waitingCurrent(held.bedId(), waitingRecordId)) continue;
             state.transition(
@@ -131,6 +139,30 @@ public class BedHoldService {
                 .build());
         events.publishEvent(
                 new BedAllocationClosed(active.allocationId(), residentId, active.bedId(), at, "RELEASE_WHEN_ABSENT"));
+    }
+
+    /** Nguồn trạng thái đã biết người: tra chỉ mục hiện hành sau khóa vị trí, rồi khóa giường tăng dần. */
+    public void cancelResidentHolds(long residentId, Reason reason, Long retainedBedId) {
+        locks.lock(residentId, List.of());
+        var bedIds = index.current(residentId);
+        locks.lock(residentId, bedIds);
+        for (long bedId : bedIds) {
+            if (Objects.equals(retainedBedId, bedId)) continue;
+            for (var held : store.waitingForResidentCurrent(bedId, residentId)) {
+                state.transition(
+                        bedId,
+                        command(
+                                BedEvent.HOLD_CANCELLED,
+                                reason,
+                                new Basis("FR-014", null, held.waitingId(), null),
+                                "WAITING_RECORD",
+                                held.waitingId(),
+                                null,
+                                null,
+                                null));
+                becameEmpty(bedId, "HOLD_CANCELLED");
+            }
+        }
     }
 
     public void extendExpectedEnd(long residentId, Instant end) {

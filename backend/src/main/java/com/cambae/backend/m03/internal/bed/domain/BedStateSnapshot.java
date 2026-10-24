@@ -3,4 +3,10 @@ package com.cambae.backend.m03.internal.bed.domain;
 import com.cambae.backend.m03.api.dto.BedStatus;
 
 public record BedStateSnapshot(
-        long id, long roomId, long floorId, BedStatus state, HoldReason holdReason, boolean roomActive) {}
+        long id,
+        long roomId,
+        long floorId,
+        BedStatus state,
+        HoldReason holdReason,
+        boolean roomActive,
+        Long holdResidentId) {}

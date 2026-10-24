@@ -66,4 +66,10 @@ public sealed interface RecipientGroup {
 
     /** (e) Người thân có một quyền với người cao tuổi. */
     record FamilyWithRight(long residentId, FamilyRight right) implements RecipientGroup {}
+
+    /**
+     * (f) Chính người cao tuổi qua tài khoản của mình (Q-366): chỉ mức Nhẹ, không có phần sức khỏe, chi phí (FR-022a);
+     * không có tài khoản thì không có người nhận.
+     */
+    record Resident(long residentId) implements RecipientGroup {}
 }

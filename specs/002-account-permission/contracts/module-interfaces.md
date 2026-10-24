@@ -82,6 +82,7 @@ Duyệt danh sách tài khoản Hoạt động có quyền vai trò, nhiệm v�
 ```java
 void khoaDoNghiViec(long nhanVienId, CanCu canCu);         // gọi trong transaction lệnh Cho nghỉ việc của 008 (FR-009, BR-M09-04)
 void xetLaiNguoiThan(long nguoiThanId, CanCu canCu);       // gọi trong transaction lệnh chấm dứt quan hệ của 012 (FR-049, BR-M15-14)
+List<TaiKhoanView> dangHoatDongCoVaiTro(VaiTro vaiTro); // bổ sung 2026-10-22: 009 nhóm (b); Hoạt động hoặc Khóa tạm (009 FR-008)
 Optional<TaiKhoanView> theoId(long taiKhoanId);           // bổ sung 2026-10-22: 000 báo người yêu cầu khi áp dụng không thành (000 FR-038);
                                                           // TaiKhoanView thêm nhanVienId (null với người thân, người cao tuổi)
 Optional<TaiKhoanView> theoNhanVien(long nhanVienId);      // 008: vai trò hệ thống để xếp ca (008 FR-002)
@@ -159,10 +160,10 @@ Chỉ endpoint nút SOS của 007 gọi hàm này (ArchUnit kiểm). Token thi�
 
 | Giao diện | Module cung cấp (feature) | Dùng cho | Khi chưa có |
 | --- | --- | --- | --- |
-| `HoSoNhanVienApi.trangThai(nhanVienId, ngay)`; `chucDanhCoVaiTro(nhanVienId)`; *(bổ sung 2026-10-20)* `taoHoSoToiThieu(hoTen, chucDanh)` (T016, công cụ khởi tạo, BR-M15-22), `hoTen(nhanVienId)` (T032a) | M09 (008) | FR-004, FR-004a, FR-011, FR-004b | Bản giả |
+| `HoSoNhanVienApi.trangThai(nhanVienId, ngay)`; `chucDanhCoVaiTro(nhanVienId)`; *(bổ sung 2026-10-20)* `taoHoSoToiThieu(hoTen, chucDanh)` (T016, công cụ khởi tạo, BR-M15-22), `hoTen(nhanVienId)` (T032a); *(bổ sung 2026-10-23, 009 US3, luật "Đổi api")* `soDienThoai(nhanVienId)` (`phoneNumber`, tin nhắn của 009 FR-016, FR-019) | M09 (008) | FR-004, FR-004a, FR-011, FR-004b; 009 FR-016 | Bản giả |
 | `GiayPhepApi.hieuLuc(nhanVienId, loai, ngay)` trả giấy phép và mục phạm vi hành nghề | 008 (FR-006) | FR-037, FR-038, A-09 | Bản giả |
 | `DanhMucPhamViHanhNgheApi` | 008 | FR-037, BR-M15-19 | Bản giả |
-| `PhanCongApi.dangHieuLuc(nhanVienId, thoiDiem)`; `lichSu(nhanVienId, tu, den)` | 008 (FR-037a) | FR-028 → FR-035a | Bản giả |
+| `PhanCongApi.dangHieuLuc(nhanVienId, thoiDiem)`; `lichSu(nhanVienId, tu, den)`; *(bổ sung 2026-10-22 cho 009 FR-007 (a))* `nhanVienPhanCongChoNguoiCaoTuoi(nctId, thoiDiem)`, `nhanVienPhanCongChoPhong(phongId, thoiDiem)` (trực tiếp hoặc qua phòng, tầng theo luật 008) | 008 (FR-037a) | FR-028 → FR-035a; 009 BR-M13-04 | Bản giả |
 | `NhiemVuApi`: người phụ trách ca, trưởng tầng được giao (kể cả tạm), ca không có trưởng tầng, Phụ trách bộ phận, trưởng đoàn, người đi cùng, người nhận tại tầng. Plan 008 thêm `nguoiThayTruongTang(tang, t)` (Q-90), `boPhanCua(nv, t)`, `laPhuTrachBoPhan(nv)`; *(bổ sung 2026-10-20)* `thayPhuTrachBoPhan(nvDangGiu, nvThay, lyDo)` (T031, khóa tài khoản người đang là Phụ trách bộ phận, Q-292; `MANDATORY`, 008 kiểm người thay) | 008 (014 cho chuyến đi qua 008) | FR-019a → f, FR-031 | Bản giả |
 
 `HoSoNhanVienApi`, `GiayPhepApi`, `DanhMucPhamViHanhNgheApi`, `PhanCongApi`, `NhiemVuApi` được khai báo trong `m15.taikhoan.api` dưới dạng SPI, M09 cài, để không có vòng M15 ↔ M09 (bổ sung theo plan 008, research N-02); chữ ký giữ nguyên. 002 cung cấp thêm cho 008 hàm đọc `NghiepVuChuyenMonApi.loaiYeuCau(maNghiepVu)` (loại giấy phép/đào tạo của nghiệp vụ chuyên môn; 008 FR-030).
@@ -173,5 +174,5 @@ Chỉ endpoint nút SOS của 007 gọi hàm này (ArchUnit kiểm). Token thi�
 | `GiayPhepCoSoApi.coPhamVi(phamVi, ngay)`; `sapHetHan(trongVong)` *(khai báo 2026-10-20: `m15.account.api.FacilityLicenseApi.coversScope(operationScope, date)`, `expiringWithin(within)` trả `ExpiringFacilityLicense`)* | M06 (007, FR-070) | FR-037 (c), FR-039 | Bản giả `FakeFacilityLicenses` |
 | `ThamSoApi`, `NhatKyApi`, `NhacQuaHan`, `common` | M15 (000) | Mọi lệnh | Có sẵn |
 | Lắng nghe sự kiện mục 1.10 | M13 (009) | FR-039, FR-041a → c | Sự kiện lưu ở outbox |
-| *(Bổ sung 2026-10-18)* `NguoiCaoTuoiApi.trangThai(id)` cho lệnh tạo, mở khóa tài khoản người cao tuổi; *(2026-10-20)* họ tên người cao tuổi cho `TaiKhoanApi.hoTen` (B khai báo trong `NguoiCaoTuoiApi`, 002 dùng ở T091); nghe `NguoiCaoTuoiDaChuyenTrangThai` sang trạng thái cuối để khóa | M01 (001) | FR-067, FR-072 (A-16) | Bản giả; sự kiện giả trong test |
+| *(Bổ sung 2026-10-18)* `NguoiCaoTuoiApi.trangThai(id)` cho lệnh tạo, mở khóa tài khoản người cao tuổi; *(2026-10-20)* họ tên người cao tuổi cho `TaiKhoanApi.hoTen` (B khai báo trong `NguoiCaoTuoiApi`, 002 dùng ở T091); nghe `NguoiCaoTuoiDaChuyenTrangThai` sang trạng thái cuối để khóa. *(Sửa 2026-10-24, vòng M15 ↔ M01)* Thành SPI `ResidentProfileApi` (002 khai báo, M01 cài) và `AccountApi.lockResidentOnFinalStatus` do listener của M01 gọi; plan 002 ghi chú T091 | M01 (001) | FR-067, FR-072 (A-16) | `FakeResidentProfiles`; sự kiện qua `FakeResidentEvents` |
 | *(Bổ sung 2026-10-18)* `LoaiYeuCauHandler` cho loại `M15.KHOA_TAI_KHOAN_NCT` (002 cài, 000 gọi) | M15 (000) | FR-072 (A-16) | Có sẵn |

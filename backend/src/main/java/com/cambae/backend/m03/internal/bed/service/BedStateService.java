@@ -40,18 +40,21 @@ public class BedStateService {
     private final BusinessTime time;
     private final AuditLogApi audit;
     private final ApplicationEventPublisher events;
+    private final com.cambae.backend.m03.internal.allocation.persistence.WaitingHoldIndexStore holds;
 
     public BedStateService(
             BedStateStore store,
             ParameterApi parameters,
             BusinessTime time,
             AuditLogApi audit,
-            ApplicationEventPublisher events) {
+            ApplicationEventPublisher events,
+            com.cambae.backend.m03.internal.allocation.persistence.WaitingHoldIndexStore holds) {
         this.store = store;
         this.parameters = parameters;
         this.time = time;
         this.audit = audit;
         this.events = events;
+        this.holds = holds;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -108,6 +111,9 @@ public class BedStateService {
                                         .asDuration())
                         > 0;
         BedStateChange change = new BedStateChange(before, after, now, late);
+        if (bed.holdReason() == HoldReason.WAITING_RECORD && bed.holdResidentId() != null)
+            holds.update(bed.holdResidentId(), bedId, false);
+        if (hold != null && hold.reason() == HoldReason.WAITING_RECORD) holds.update(hold.residentId(), bedId, true);
         store.writeState(bedId, after, hold, now, deadline, command.closedAllocationId(), suspension);
         store.appendHistory(bed, change, command);
         Map<String, Object> afterValues = new LinkedHashMap<>();
@@ -142,5 +148,21 @@ public class BedStateService {
     private static BusinessException invalid() {
         return new BusinessException(
                 HttpStatus.CONFLICT, "INVALID_BED_TRANSITION", "Chuyển trạng thái giường không hợp lệ");
+    }
+
+    /** Giữ nguyên trạng thái khi người đang tạm vắng chuyển viện; chỉ đồng bộ hạn từ nguồn lưu trú. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void refreshAbsentHold(long bedId, BedHold hold, com.cambae.backend.m15.auditlog.api.Basis basis) {
+        store.lock(bedId);
+        if (hold.reason() != HoldReason.ABSENT_RESIDENT || !store.refreshAbsentHold(bedId, hold)) throw invalid();
+        audit.write(AuditLogEntry.builder()
+                .action(new AuditAction("M03_BED_HOLD_UPDATED", false))
+                .entity("M03.BED", bedId)
+                .after(
+                        hold.until() == null
+                                ? Map.of()
+                                : Map.of("holdUntil", hold.until().toString()))
+                .basis(basis)
+                .build());
     }
 }

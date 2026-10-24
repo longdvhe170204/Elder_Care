@@ -46,6 +46,24 @@ beforeEach(() => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
+it('FR_022_allocationOnlyViewerCanOpenInitialAllocationBoard', async () => {
+  api.on(
+    'GET',
+    '/me/permissions',
+    json(200, [
+      { function: 'BED_ALLOCATION', operation: 'VIEW' },
+      { function: 'BED_ALLOCATION', operation: 'CREATE' },
+    ]),
+  )
+  api.on('GET', '/beds/summary', json(200, { usable: 4, emptyMatching: 2 }))
+  api.on('GET', '/bed-allocations', json(200, []))
+  render(<BedsPage />)
+  fireEvent.click(await screen.findByRole('tab', { name: 'Phân bổ giường' }))
+  expect(await screen.findByRole('tab', { name: 'Phân bổ giường' })).toHaveAttribute('aria-selected', 'true')
+  expect(await screen.findByText('Sức chứa sử dụng: 4')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Tìm hồ sơ' })).toBeInTheDocument()
+})
+
 it('BR_M03_22_bedCreationKeepsTheSuccessfulWarningVisible', async () => {
   manager()
   api.on(

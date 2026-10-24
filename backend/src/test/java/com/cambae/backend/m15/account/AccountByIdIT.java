@@ -40,4 +40,25 @@ class AccountByIdIT extends MySqlIntegrationTestBase {
         });
         assertThat(accounts.byId(TestUsers.nextId())).isEmpty();
     }
+
+    @Test
+    void activeWithRole_includesTemporarilyLocked_excludesLockedAndInactive() {
+        // 009 FR-008: Khóa tạm vẫn nhận thông báo; Đã khóa, Không hoạt động thì không (nhóm (b) của 009)
+        TestUsers users = new TestUsers(jdbc, time);
+        TestUsers.TestUser active = users.staff(Role.ACCOUNTANT);
+        TestUsers.TestUser tempLocked = users.staff(Role.ACCOUNTANT);
+        TestUsers.TestUser locked = users.staff(Role.ACCOUNTANT);
+        TestUsers.TestUser inactive = users.staff(Role.ACCOUNTANT);
+        TestUsers.TestUser other = users.staff(Role.KITCHEN_STAFF);
+        jdbc.update(
+                "UPDATE account SET status = 'TEMPORARILY_LOCKED', locked_until = UTC_TIMESTAMP(6) + INTERVAL 1 HOUR WHERE id = ?",
+                tempLocked.accountId());
+        jdbc.update("UPDATE account SET status = 'LOCKED', lock_cause = 'MANUAL' WHERE id = ?", locked.accountId());
+        jdbc.update("UPDATE account SET status = 'INACTIVE' WHERE id = ?", inactive.accountId());
+
+        assertThat(accounts.activeWithRole(Role.ACCOUNTANT))
+                .extracting(a -> a.accountId())
+                .contains(active.accountId(), tempLocked.accountId())
+                .doesNotContain(locked.accountId(), inactive.accountId(), other.accountId());
+    }
 }

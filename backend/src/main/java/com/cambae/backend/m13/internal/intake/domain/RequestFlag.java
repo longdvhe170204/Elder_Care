@@ -8,5 +8,7 @@ public enum RequestFlag {
     NO_RECIPIENT,
     AFTER_DEATH,
     MISSING_INFORMATION_SUBJECT,
-    MISSING_Q354_CASE
+    MISSING_Q354_CASE,
+    /** Nội dung rút gọn có trường sức khỏe hoặc thiếu: phần kênh ngoài ứng dụng không gửi (FR-020). */
+    INVALID_OUT_OF_APP_CONTENT
 }

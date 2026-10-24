@@ -25,14 +25,19 @@ public class BedStateStore {
     public BedStateSnapshot lock(long id) {
         return jdbc
                 .query(
-                        "SELECT b.id,b.room_id,r.floor_id,b.state,b.hold_reason,r.status FROM bed b JOIN room r ON r.id=b.room_id WHERE b.id=? FOR UPDATE",
+                        "SELECT b.id,b.room_id,r.floor_id,b.state,b.hold_reason,r.status,b.hold_resident_id FROM bed b JOIN room r ON r.id=b.room_id WHERE b.id=? FOR UPDATE OF b",
                         (rs, i) -> new BedStateSnapshot(
                                 rs.getLong(1),
                                 rs.getLong(2),
                                 rs.getLong(3),
                                 BedStatus.valueOf(rs.getString(4)),
                                 rs.getString(5) == null ? null : HoldReason.valueOf(rs.getString(5)),
-                                "ACTIVE".equals(rs.getString(6))),
+                                "ACTIVE"
+                                        .equals(jdbc.queryForObject(
+                                                "SELECT status FROM room WHERE id=? FOR SHARE",
+                                                String.class,
+                                                rs.getLong(2))),
+                                rs.getObject(7, Long.class)),
                         id)
                 .stream()
                 .findFirst()
@@ -41,6 +46,15 @@ public class BedStateStore {
 
     public boolean hasHistory(long id) {
         return jdbc.queryForObject("SELECT COUNT(*) FROM bed_state_history WHERE bed_id=?", Long.class, id) > 0;
+    }
+
+    public boolean refreshAbsentHold(long id, BedHold hold) {
+        return jdbc.update(
+                        "UPDATE bed SET hold_until=?,hold_expiry_notified_at=NULL,version=version+1 WHERE id=? AND state='HELD' AND hold_reason='ABSENT_RESIDENT' AND hold_resident_id=?",
+                        time(hold.until()),
+                        id,
+                        hold.residentId())
+                == 1;
     }
 
     public BedStatus maintenanceSource(long id) {

@@ -17,7 +17,11 @@ public class AllocationLocks {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void lock(long residentId, List<Long> bedIds) {
+        store.guardWrites(Integer.valueOf(java.sql.Connection.TRANSACTION_READ_COMMITTED)
+                .equals(org.springframework.transaction.support.TransactionSynchronizationManager
+                        .getCurrentTransactionIsolationLevel()));
         store.lockPosition(residentId);
+        store.guardRooms(bedIds);
         bedIds.stream().distinct().sorted().forEach(store::lockBed);
     }
 }

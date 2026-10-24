@@ -60,13 +60,13 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 ### Tests cho User Story 2
 
-- [ ] T013 [P] [US2] Test đơn vị `BT/m13/ChuoiThayTest.java`, `LocPhanNoiDungTest.java`, `XetPhamViDongYTest.java` (bổ sung 2026-10-18: bảng đối tượng × trong/ngoài phạm vi × có/không mã × mức), `SC_004_NguoiNhanTest.java` (200 yêu cầu)
-- [ ] T014 [P] [US2] Test `BT/m13/BR_M13_04_NguoiNhanTheoPhanCongIT.java`, `FR_010_CachThayIT.java`, `FR_011_KhongNguoiNhanIT.java`, `FR_012_GopNguoiNhanIT.java`, `FR_013_LocNguoiThanIT.java`, `FR_014_KhanCapNguoiThanIT.java`, `FR_014_NhanThongBaoDongYIT.java`, `FR_014a_MaTruongHopIT.java` (bổ sung 2026-10-18; Q38 → Q42), `FR_015_QuaDoiIT.java`: người thân chỉ thấy phần được phép (`phan_duoc_xem`); không có người nhận → Quản lý viện nhận thay "chỉ nhận dạng"; một người một thông báo mỗi yêu cầu (Q8 → Q15, Q22 → Q25)
+- [ ] T013 [P] [US2] *(2026-10-22: xong `SubstitutionChainTest`, `ContentFilterTest`, `ConsentScopeTest`; còn `SC_004_NguoiNhanTest` 200 yêu cầu khi đủ nhóm ca trực)* Test đơn vị `BT/m13/ChuoiThayTest.java`, `LocPhanNoiDungTest.java`, `XetPhamViDongYTest.java` (bổ sung 2026-10-18: bảng đối tượng × trong/ngoài phạm vi × có/không mã × mức), `SC_004_NguoiNhanTest.java` (200 yêu cầu)
+- [ ] T014 [P] [US2] *(2026-10-22: phần làm được ở `RecipientResolutionIT` (11 kịch bản: BR-M13-04, FR-008, FR-010, FR-011, FR-012, FR-013, FR-014, FR-014a); 2026-10-24: phần sức khỏe, phạm vi đồng ý, FR-015 xong ở `FR_014_015_ConsentAndDeathIT`; còn nhóm có ca, vắng ca chờ `CaTrucApi` (008))* Test `BT/m13/BR_M13_04_NguoiNhanTheoPhanCongIT.java`, `FR_010_CachThayIT.java`, `FR_011_KhongNguoiNhanIT.java`, `FR_012_GopNguoiNhanIT.java`, `FR_013_LocNguoiThanIT.java`, `FR_014_KhanCapNguoiThanIT.java`, `FR_014_NhanThongBaoDongYIT.java`, `FR_014a_MaTruongHopIT.java` (bổ sung 2026-10-18; Q38 → Q42), `FR_015_QuaDoiIT.java`: người thân chỉ thấy phần được phép (`phan_duoc_xem`); không có người nhận → Quản lý viện nhận thay "chỉ nhận dạng"; một người một thông báo mỗi yêu cầu (Q8 → Q15, Q22 → Q25)
 
 ### Implementation cho User Story 2
 
-- [ ] T015 [US2] Cài `BE/m13/nguoinhan/internal/XacDinhNguoiNhan.java` (biến thể `NhomNhan` qua `NhiemVuApi`, `CaTrucApi`, `PhamViApi`, `NguoiThanNhanThongBaoPort`; `NguoiCoQuyenDuyet` dùng thẳng danh sách tài khoản 000 truyền, không tra lại `NguoiDuyetApi`, sửa theo plan 004), `ChuoiThay.java`, `LocPhanNoiDung.java` (`QuyenXemTruongApi`, bản đồng ý) và nối vào `TiepNhanListener` để thêm `thong_bao` + `lan_gui` dự kiến (research B-04)
-- [ ] T015a [US2] Cài hàm thuần `BE/m13/nguoinhan/internal/XetPhamViDongY.java` (đối tượng thông tin; bản đồng ý Hiệu lực với `dongYThongBao` qua `BanDongYApi.hienHanh`; người ngoài phạm vi: có mã thì gửi và ghi `thong_bao.ma_truong_hop`, không mã thì không gửi, Khẩn cấp không mã thì lỗi gửi `THIEU_MA_TRUONG_HOP`) và gọi trước `LocPhanNoiDung` trong `XacDinhNguoiNhan` (FR-001a, FR-014, FR-014a; research B-04; bổ sung 2026-10-18)
+- [ ] T015 [US2] *(2026-10-22: `RecipientResolver`, `SubstitutionChain`, `ContentFilter`, `NotificationCreation` xong, nối vào tiếp nhận; 2026-10-24: bản đồng ý, qua đời qua `ResidentFacts` (`ConsentApi`, `ResidentApi` của 001); còn `OnShiftStaff`, `OnDutyDoctor`, vắng ca (`CaTrucApi`); ghi chú triển khai ở plan)* Cài `BE/m13/nguoinhan/internal/XacDinhNguoiNhan.java` (biến thể `NhomNhan` qua `NhiemVuApi`, `CaTrucApi`, `PhamViApi`, `NguoiThanNhanThongBaoPort`; `NguoiCoQuyenDuyet` dùng thẳng danh sách tài khoản 000 truyền, không tra lại `NguoiDuyetApi`, sửa theo plan 004), `ChuoiThay.java`, `LocPhanNoiDung.java` (`QuyenXemTruongApi`, bản đồng ý) và nối vào `TiepNhanListener` để thêm `thong_bao` + `lan_gui` dự kiến (research B-04)
+- [x] T015a [US2] *(2026-10-22: hàm thuần `ConsentScope` xong, đã gọi trong `RecipientResolver`; 2026-10-24: phạm vi theo `ConsentApi.current(...).notificationConsent` (Q-357))* Cài hàm thuần `BE/m13/nguoinhan/internal/XetPhamViDongY.java` (đối tượng thông tin; bản đồng ý Hiệu lực với `dongYThongBao` qua `BanDongYApi.hienHanh`; người ngoài phạm vi: có mã thì gửi và ghi `thong_bao.ma_truong_hop`, không mã thì không gửi, Khẩn cấp không mã thì lỗi gửi `THIEU_MA_TRUONG_HOP`) và gọi trước `LocPhanNoiDung` trong `XacDinhNguoiNhan` (FR-001a, FR-014, FR-014a; research B-04; bổ sung 2026-10-18)
 
 **Checkpoint**: Người nhận đúng theo phân công.
 
@@ -81,14 +81,14 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 ### Tests cho User Story 1
 
 - [ ] T016 [P] [US1] Test đơn vị `BT/m13/NguoiNhacGoiTest.java`
-- [ ] T017 [P] [US1] Test `BT/m13/SC_001_KhanCapDongThoiIT.java`, `BR_M13_02_LuotNhacGoiIT.java`, `FR_027a_GopLuotIT.java`, `FR_028_ThatBaiMoiKenhIT.java`, `FR_029a_ChuoiGoiIT.java`, `FR_030a_ChuyenNhacIT.java`, `FR_026a_XacNhanVaTiepNhanIT.java`, `FR_032_MotLuotIT.java`: song song; một lượt tự động mỗi thông báo (`UNIQUE`); một lượt Chờ mỗi cặp (`khoa_cho`); `YeuCauDungNhacGoiDien`, `DaCoKetQuaXacNhanLai` dừng lượt; xác nhận và tiếp nhận gọi lệnh tiếp nhận của 007 (Q1 → Q7, Q32 → Q35)
+- [ ] T017 [P] [US1] *(2026-10-23: xong phần xác nhận `FR_026_AcknowledgeIT` (3); còn lượt nhắc gọi, chuỗi gọi chờ `CaTrucApi` (008))* Test `BT/m13/SC_001_KhanCapDongThoiIT.java`, `BR_M13_02_LuotNhacGoiIT.java`, `FR_027a_GopLuotIT.java`, `FR_028_ThatBaiMoiKenhIT.java`, `FR_029a_ChuoiGoiIT.java`, `FR_030a_ChuyenNhacIT.java`, `FR_026a_XacNhanVaTiepNhanIT.java`, `FR_032_MotLuotIT.java`: song song; một lượt tự động mỗi thông báo (`UNIQUE`); một lượt Chờ mỗi cặp (`khoa_cho`); `YeuCauDungNhacGoiDien`, `DaCoKetQuaXacNhanLai` dừng lượt; xác nhận và tiếp nhận gọi lệnh tiếp nhận của 007 (Q1 → Q7, Q32 → Q35)
 
 ### Implementation cho User Story 1
 
 - [ ] T018 [US1] Tạo `MIG/V009_02__nhac_goi.sql`: `luot_nhac_goi` (nhóm 3; `chuoi_goi_id`), `luot_nhac_goi_thong_bao` (`thong_bao_id UNIQUE`), `chuyen_nhac` (`ly_do` `KHOI_TAO|QUA_HAN|HET_CA|GOP_CAP_NHAT|NHAC_LAI_QLV`; `han_luc = thoi_diem + CFG-M13-04`), `luot_nhac_goi_trang_thai` (kỹ thuật; cột sinh `khoa_cho` `UNIQUE`), `ket_qua_goi` (nhóm 3; `ket_qua` `DA_LIEN_LAC|KHONG_LIEN_LAC`; `ly_do` `KHONG_NGHE_MAY|SAI_SO|KHONG_CO_SO|...`) (data-model mục 6)
-- [ ] T019 [US1] Cài `BE/m13/khancap/internal/KhanCapService.java`: xác nhận (bắt buộc trực tuyến), xác nhận và tiếp nhận (gọi lệnh tiếp nhận cảnh báo/sự cố của 007), lượt nhắc gọi (`NguoiNhacGoi`, gộp vào lượt Chờ), kết quả gọi (lần gọi bổ sung), chuyển nhắc, chuỗi gọi theo `thuTuGoi`; listener `YeuCauDungNhacGoiDien`, `DaCoKetQuaXacNhanLai`; `DinhChinhDuocProvider` `M13.KET_QUA_GOI` (research B-07, B-08)
+- [ ] T019 [US1] *(2026-10-23: xong phần xác nhận `UrgentAcknowledgement` (`m13/internal/urgent`); còn xác nhận và tiếp nhận (lệnh của 007, D), lượt nhắc gọi, chuyển nhắc, chuỗi gọi (chờ `CaTrucApi`))* Cài `BE/m13/khancap/internal/KhanCapService.java`: xác nhận (bắt buộc trực tuyến), xác nhận và tiếp nhận (gọi lệnh tiếp nhận cảnh báo/sự cố của 007), lượt nhắc gọi (`NguoiNhacGoi`, gộp vào lượt Chờ), kết quả gọi (lần gọi bổ sung), chuyển nhắc, chuỗi gọi theo `thuTuGoi`; listener `YeuCauDungNhacGoiDien`, `DaCoKetQuaXacNhanLai`; `DinhChinhDuocProvider` `M13.KET_QUA_GOI` (research B-07, B-08)
 - [ ] T020 [US1] Đăng ký việc 20 giây: tạo lượt nhắc khi quá CFG-M13-04 chưa xác nhận; chuyển nhắc quá hạn hoặc hết ca; nhắc lại Quản lý viện
-- [ ] T021 [US1] Tạo `BE/m13/khancap/web/KhanCapController.java`: `POST /thong-bao/{id}/xac-nhan`, `/xac-nhan-va-tiep-nhan`, `GET /toi/luot-nhac-goi`, `GET /luot-nhac-goi/{id}`, `POST /luot-nhac-goi/{id}/ket-qua`
+- [ ] T021 [US1] *(2026-10-23: xong `POST /notifications/{id}/acknowledge` (`UrgentController`); còn bốn endpoint khác của US1)* Tạo `BE/m13/khancap/web/KhanCapController.java`: `POST /thong-bao/{id}/xac-nhan`, `/xac-nhan-va-tiep-nhan`, `GET /toi/luot-nhac-goi`, `GET /luot-nhac-goi/{id}`, `POST /luot-nhac-goi/{id}/ket-qua`
 - [ ] T022 [P] [US1] Tạo app `mobile/lib/nhan-vien/thong-bao/` (nhận đẩy, xác nhận hai thao tác, xác nhận và tiếp nhận, ghi kết quả gọi) và test `mobile/test/nhan-vien/nhan_day_test.dart`, `xac_nhan_hai_thao_tac_test.dart` (SC-008), `xac_nhan_bat_buoc_truc_tuyen_test.dart`, `ghi_ket_qua_goi_test.dart`
 
 **Checkpoint**: P1 hoàn tất; đo SC-001 (≤ 10 giây).
@@ -103,16 +103,16 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 ### Tests cho User Story 3
 
-- [ ] T023 [P] [US3] Test đơn vị `BT/m13/ChonKenhTest.java`, `KhungGopTest.java`
-- [ ] T024 [P] [US3] Test `BT/m13/BR_M13_01_ChonKenhIT.java`, `FR_016a_NgoaiCaIT.java`, `FR_016b_GopTinNhanIT.java`, `FR_018_GuiLaiIT.java`, `FR_020_NoiDungKenhNgoaiIT.java`, `FR_021_LienHeTrucTiepIT.java`: nhân viên ngoài ca; một khung gộp mở mỗi người; gửi lại không trùng; nội dung chứa trường sức khỏe bị từ chối ở kênh ngoài; Trung bình thất bại mọi kênh tới người thân → liên hệ trực tiếp (Q16 → Q19, Q26)
+- [x] T023 [P] [US3] *(2026-10-23: `ChannelSelectionTest`, `SmsBatchingTest` (gồm kiểm nội dung kênh ngoài))* Test đơn vị `BT/m13/ChonKenhTest.java`, `KhungGopTest.java`
+- [ ] T024 [P] [US3] *(2026-10-23: xong `BR_M13_01_ChannelSelectionIT` (gồm FR-018 gửi lại, FR-020), `FR_016b_SmsBatchingIT`, `FR_021_DirectContactIT`, thêm `FR_016_ChannelConfigIT`; còn `FR_016a_NgoaiCaIT` chờ `CaTrucApi` của 008)* Test `BT/m13/BR_M13_01_ChonKenhIT.java`, `FR_016a_NgoaiCaIT.java`, `FR_016b_GopTinNhanIT.java`, `FR_018_GuiLaiIT.java`, `FR_020_NoiDungKenhNgoaiIT.java`, `FR_021_LienHeTrucTiepIT.java`: nhân viên ngoài ca; một khung gộp mở mỗi người; gửi lại không trùng; nội dung chứa trường sức khỏe bị từ chối ở kênh ngoài; Trung bình thất bại mọi kênh tới người thân → liên hệ trực tiếp (Q16 → Q19, Q26)
 
 ### Implementation cho User Story 3
 
-- [ ] T025 [US3] Tạo `MIG/V009_03__kenh_ngoai.sql`: `khung_gop_tin_nhan` (cột sinh `khoa_mo` `UNIQUE`), `lien_he_truc_tiep` (nhóm 2; `thong_bao_id UNIQUE`; `trang_thai` `CHO_LIEN_HE|DA_LIEN_HE|KHONG_LIEN_HE_DUOC`), `ket_qua_lien_he` (nhóm 3; `ly_do` bắt buộc khi không liên hệ được)
-- [ ] T026 [US3] Cài `BE/m13/gui/internal/ChonKenh.java`, `KhungGop.java`, `KiemTraNoiDungKenhNgoai.java`, bean `ChuaCauHinh` của `NhaCungCapTinNhan`; việc 20 giây đóng khung gộp, gửi lại kênh ngoài (research B-05)
+- [x] T025 [US3] *(2026-10-23: `V009_03__out_of_app_channels.sql`; tên bảng tiếng Anh ở glossary mục 15.6)* Tạo `MIG/V009_03__kenh_ngoai.sql`: `khung_gop_tin_nhan` (cột sinh `khoa_mo` `UNIQUE`), `lien_he_truc_tiep` (nhóm 2; `thong_bao_id UNIQUE`; `trang_thai` `CHO_LIEN_HE|DA_LIEN_HE|KHONG_LIEN_HE_DUOC`), `ket_qua_lien_he` (nhóm 3; `ly_do` bắt buộc khi không liên hệ được)
+- [ ] T026 [US3] *(2026-10-23: xong `ChannelSelection`, `SmsBatching`, `OutOfAppContent`, `UnconfiguredSmsProvider`, `SmsSender`, việc `CLOSE_SMS_WINDOWS`, `RESEND_OUT_OF_APP`; còn FR-016a ngoài ca và danh sách tầng/khu, ca trong tin tổng hợp gửi nhân viên, chờ `CaTrucApi` (008) và tên tầng (003))* Cài `BE/m13/gui/internal/ChonKenh.java`, `KhungGop.java`, `KiemTraNoiDungKenhNgoai.java`, bean `ChuaCauHinh` của `NhaCungCapTinNhan`; việc 20 giây đóng khung gộp, gửi lại kênh ngoài (research B-05)
 - [ ] T026a [US3] *(Bổ sung 2026-10-19; chờ chủ dự án chốt nhà cung cấp SMS, Q-06)* Cài bộ chuyển `BE/m13/gui/internal/NhaCungCapTinNhanSms.java` gọi API nhà cung cấp, đổi phản hồi thành `KetQua` (thành công, lỗi tạm gửi lại, lỗi vĩnh viễn, mã lỗi nhà cung cấp), khóa API từ biến môi trường, chỉ nạp khi có cấu hình; test đơn vị với máy chủ HTTP giả cho phản hồi thành công và lỗi (research B-05)
-- [ ] T027 [US3] Cài `BE/m13/lienhe/internal/LienHeTrucTiepService.java` (`DinhChinhDuocProvider` `M13.KET_QUA_LIEN_HE`) và `BE/m13/cauhinh/internal/KenhService.java` (Quản lý viện bật/tắt, gắn kênh khác vào mức; lý do; nhật ký)
-- [ ] T028 [US3] Tạo endpoint `GET /lien-he-truc-tiep`, `POST /lien-he-truc-tiep/{id}/ket-qua`, `GET /kenh-thong-bao`, `PUT /kenh-thong-bao/{ma}`; màn web liên hệ trực tiếp và cấu hình kênh trong `frontend/src/tinh-nang/thong-bao/`
+- [x] T027 [US3] *(2026-10-23: `DirectContactService`, `DirectContactDetector` (`DIRECT_CONTACTS`), `DirectContactReminder` (`REMIND_DIRECT_CONTACTS`), `DirectContactResultCorrection`, `ChannelService`)* Cài `BE/m13/lienhe/internal/LienHeTrucTiepService.java` (`DinhChinhDuocProvider` `M13.KET_QUA_LIEN_HE`) và `BE/m13/cauhinh/internal/KenhService.java` (Quản lý viện bật/tắt, gắn kênh khác vào mức; lý do; nhật ký)
+- [x] T028 [US3] *(2026-10-23: bốn endpoint, `ApiContractIT` so đủ; màn web tab Liên hệ trực tiếp, Kênh trong `frontend/src/features/notifications/`)* Tạo endpoint `GET /lien-he-truc-tiep`, `POST /lien-he-truc-tiep/{id}/ket-qua`, `GET /kenh-thong-bao`, `PUT /kenh-thong-bao/{ma}`; màn web liên hệ trực tiếp và cấu hình kênh trong `frontend/src/tinh-nang/thong-bao/`
 
 **Checkpoint**: Kênh ngoài chạy độc lập.
 
@@ -126,14 +126,14 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 ### Tests cho User Story 4
 
-- [ ] T029 [P] [US4] Test đơn vị `BT/m13/GioYenTinhTest.java` và `BT/m13/BR_M13_03_GioYenTinhIT.java`, `FR_024_DoiThamSoIT.java`: giữ tới hết giờ yên tĩnh; khi giải phóng không còn đủ điều kiện → `KHONG_GUI`; người cao tuổi qua đời → `KHONG_GUI`; đổi CFG-M13-02 tính lại thời điểm dự kiến (Q20, Q21, Q24, Q27)
-- [ ] T040 [P] [US4] *(Bổ sung 2026-10-18, Q-366)* Test `BT/m13/FR_022a_NguoiCaoTuoiNhanIT.java`: nhóm (f) chỉ nhận Nhẹ phần `CHUNG`, sai thì `BI_TU_CHOI`; giờ yên tĩnh áp cho người cao tuổi; không có tài khoản thì không có người nhận và không vào lỗi gửi (FR-007, FR-022, FR-022a; quickstart R1 → R3)
+- [x] T029 [P] [US4] *(2026-10-23: xong `QuietHoursTest`, `BR_M13_03_QuietHoursIT` (4), `FR_024_ParameterChangeIT`; 2026-10-24: kịch bản qua đời, bản đồng ý lúc giải phóng ở `FR_014_015_ConsentAndDeathIT`)* Test đơn vị `BT/m13/GioYenTinhTest.java` và `BT/m13/BR_M13_03_GioYenTinhIT.java`, `FR_024_DoiThamSoIT.java`: giữ tới hết giờ yên tĩnh; khi giải phóng không còn đủ điều kiện → `KHONG_GUI`; người cao tuổi qua đời → `KHONG_GUI`; đổi CFG-M13-02 tính lại thời điểm dự kiến (Q20, Q21, Q24, Q27)
+- [x] T040 [P] [US4] *(Bổ sung 2026-10-18, Q-366)* Test `BT/m13/FR_022a_NguoiCaoTuoiNhanIT.java`: nhóm (f) chỉ nhận Nhẹ phần `CHUNG`, sai thì `BI_TU_CHOI`; giờ yên tĩnh áp cho người cao tuổi; không có tài khoản thì không có người nhận và không vào lỗi gửi (FR-007, FR-022, FR-022a; quickstart R1 → R3)
 
 ### Implementation cho User Story 4
 
-- [ ] T030 [US4] Cài `BE/m13/yentinh/internal/GioYenTinh.java` (giữ trong transaction tiếp nhận, giải phóng ở việc 20 giây, kiểm lại điều kiện lúc giải phóng, gồm `XetPhamViDongY` với bản đồng ý hiện hành) và listener `ThamSoDaDoi(CFG-M13-02)`, `NguoiCaoTuoiDaChuyenTrangThai(GHI_NHAN_QUA_DOI)` (research B-06)
+- [x] T030 [US4] *(2026-10-23: `QuietHoursPolicy`, giữ trong `NotificationCreation`, `QuietHoursRelease` (việc `RELEASE_QUIET_HOURS`), `QuietHoursRescheduler` xong; 2026-10-24: `ResidentDeathListener` nghe `ResidentStatusChanged` sang `DECEASED`, giải phóng xét bản đồng ý hiện hành và qua đời)* Cài `BE/m13/yentinh/internal/GioYenTinh.java` (giữ trong transaction tiếp nhận, giải phóng ở việc 20 giây, kiểm lại điều kiện lúc giải phóng, gồm `XetPhamViDongY` với bản đồng ý hiện hành) và listener `ThamSoDaDoi(CFG-M13-02)`, `NguoiCaoTuoiDaChuyenTrangThai(GHI_NHAN_QUA_DOI)` (research B-06)
 - [ ] T031 [P] [US4] Tạo app `mobile/lib/nguoi-than/thong-bao/` (nhận đẩy, hộp thông báo)
-- [ ] T041 [US4] *(Bổ sung 2026-10-18)* Thêm `NhomNhan.NguoiCaoTuoi` vào `common.thongbao`, phân giải trong `BE/m13/nguoinhan/internal/XacDinhNguoiNhan.java` qua `TaiKhoanApi.theoNguoiCaoTuoi`; kiểm FR-022a trong kiểm tra yêu cầu; `GioYenTinh` áp cho `NGUOI_CAO_TUOI`; `thiet_bi_day.ung_dung` thêm `APP_NGUOI_CAO_TUOI` (migration `MIG/V009_04__nguoi_cao_tuoi_nhan.sql`)
+- [x] T041 [US4] *(2026-10-23: `RecipientGroup.Resident`; `push_device.app` đã có `RESIDENT_APP` từ `V009_02` nên không cần `V009_04`)* *(Bổ sung 2026-10-18)* Thêm `NhomNhan.NguoiCaoTuoi` vào `common.thongbao`, phân giải trong `BE/m13/nguoinhan/internal/XacDinhNguoiNhan.java` qua `TaiKhoanApi.theoNguoiCaoTuoi`; kiểm FR-022a trong kiểm tra yêu cầu; `GioYenTinh` áp cho `NGUOI_CAO_TUOI`; `thiet_bi_day.ung_dung` thêm `APP_NGUOI_CAO_TUOI` (migration `MIG/V009_04__nguoi_cao_tuoi_nhan.sql`)
 - [ ] T042 [P] [US4] *(Bổ sung 2026-10-18)* Tạo `mobile/lib/nguoi-cao-tuoi/thong-bao/` (nhận đẩy, hộp thông báo chữ lớn) và test `mobile/test/nguoi-cao-tuoi/thong_bao_test.dart`
 
 **Checkpoint**: Thông báo người thân chạy đúng.
@@ -148,13 +148,13 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 ### Tests cho User Story 5
 
-- [ ] T032 [P] [US5] Test `BT/m13/FR_034_HienThiTheoQuyenIT.java`, `BR_M13_05_LichSuGuiIT.java`, `FR_035_DuLieuChoNguonIT.java`: nội dung hiển thị theo quyền hiện hành (không theo lúc gửi); xem lần đầu một lần; `ThongBaoTraCuuApi.theoNguon` đủ trường (Q28 → Q31)
+- [x] T032 [P] [US5] *(Xong 2026-10-22: `InboxIT`, `NotificationLookupIT`)* Test `BT/m13/FR_034_HienThiTheoQuyenIT.java`, `BR_M13_05_LichSuGuiIT.java`, `FR_035_DuLieuChoNguonIT.java`: nội dung hiển thị theo quyền hiện hành (không theo lúc gửi); xem lần đầu một lần; `ThongBaoTraCuuApi.theoNguon` đủ trường (Q28 → Q31)
 
 ### Implementation cho User Story 5
 
-- [ ] T033 [US5] Cài `BE/m13/hopthu/internal/HopThuService.java` (danh sách, chi tiết, xem, ẩn; phát `ThongBaoDaXem`), luồng SSE `BE/m13/hopthu/web/LuongThongBaoController.java` (`GET /thong-bao/luong`), đăng ký thiết bị đẩy (`POST /thiet-bi-day`) (research B-11)
-- [ ] T034 [US5] Cài `BE/m13/tracuu/internal/TraCuuService.java` (`ThongBaoTraCuuApi`; bản cài `NhatKyThongBaoPort` của 007 ủy cho `theoNguon`; lỗi gửi) và endpoint `GET /toi/thong-bao`, `/toi/thong-bao/{id}`, `POST /toi/thong-bao/{id}/an`, `GET /lich-su-thong-bao`, `GET /loi-gui` (research B-12)
-- [ ] T035 [P] [US5] Tạo màn web `frontend/src/tinh-nang/thong-bao/HopThongBao.jsx` (Khẩn cấp lên đầu, xác nhận), luồng SSE (dự phòng polling), lịch sử, lỗi gửi với test Vitest
+- [x] T033 [US5] *(Xong 2026-10-22: `InboxService`, `NotificationStreams`, `InboxController`; ghi chú triển khai ở plan)* Cài `BE/m13/hopthu/internal/HopThuService.java` (danh sách, chi tiết, xem, ẩn; phát `ThongBaoDaXem`), luồng SSE `BE/m13/hopthu/web/LuongThongBaoController.java` (`GET /thong-bao/luong`), đăng ký thiết bị đẩy (`POST /thiet-bi-day`) (research B-11)
+- [x] T034 [US5] *(Xong 2026-10-22: `NotificationLookupService`, `NotificationLookupController`; lượt nhắc gọi trong kết quả rỗng tới US1)* Cài `BE/m13/tracuu/internal/TraCuuService.java` (`ThongBaoTraCuuApi`; bản cài `NhatKyThongBaoPort` của 007 ủy cho `theoNguon`; lỗi gửi) và endpoint `GET /toi/thong-bao`, `/toi/thong-bao/{id}`, `POST /toi/thong-bao/{id}/an`, `GET /lich-su-thong-bao`, `GET /loi-gui` (research B-12)
+- [x] T035 [P] [US5] *(2026-10-23: xong hộp thông báo, nút "Xác nhận đã nhận", SSE kèm hỏi lại, lịch sử, lỗi gửi (`frontend/src/features/notifications/`, 15 Vitest); 2026-10-24: lọc theo người cao tuổi (`GET /residents` của 001), 17 Vitest)* Tạo màn web `frontend/src/tinh-nang/thong-bao/HopThongBao.jsx` (Khẩn cấp lên đầu, xác nhận), luồng SSE (dự phòng polling), lịch sử, lỗi gửi với test Vitest
 
 **Checkpoint**: Mọi user story của 009 chạy độc lập.
 
@@ -162,7 +162,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 ## Phase 8: Polish & Cross-Cutting
 
-- [ ] T036 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/009-notification-service/contracts/api-009.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 009
+- [x] T036 [P] *(2026-10-23: `ApiContractIT` so api-009 từ T034; `M13RecordGroupTriggerIT` liệt kê tám bảng nhóm 3 của 009 vì M13 ghi bằng JDBC, `RecordGroupTriggerIT` chỉ tìm qua `@Entity`)* Mở rộng `BT/common/HopDongApiTest.java` với `specs/009-notification-service/contracts/api-009.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 009
 - [ ] T037 Chạy kiểm thử đầu–cuối với sự kiện thật của 001 → 008 (một sự kiện mỗi module) và đo NFR-03 (Khẩn cấp ≤ 10 giây)
 - [ ] T038 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
 - [ ] T039 Rà truy vết data-model mục 11: BR-M13-01 → 05, FR-007 (f), FR-022a, BR-M10-06 (phần 009), DBR-03 (phần 009), FR-005, FR-012, FR-032, FR-001a, FR-014 và FR-014a (bổ sung 2026-10-18) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-039, FR-040, FR-041, FR-042, FR-043, FR-043a, FR-043b — mỗi FR có task hoặc test tương ứng (constitution XV)

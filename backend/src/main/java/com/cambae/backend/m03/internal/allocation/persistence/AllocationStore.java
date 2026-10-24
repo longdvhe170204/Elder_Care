@@ -64,9 +64,27 @@ public class AllocationStore {
                 "SELECT resident_id FROM resident_position WHERE resident_id=? FOR UPDATE", Long.class, residentId);
     }
 
+    /** RC chạy song song; transaction RR giữ độc quyền để trigger không tạo gap-lock cycle giữa các giường. */
+    public void guardWrites(boolean readCommitted) {
+        jdbc.queryForList(
+                "SELECT id FROM allocation_write_guard WHERE id=1 " + (readCommitted ? "FOR SHARE" : "FOR UPDATE"),
+                Integer.class);
+    }
+
     public void lockBed(long bedId) {
         if (jdbc.queryForList("SELECT id FROM bed WHERE id=? FOR UPDATE", Long.class, bedId)
                 .isEmpty()) throw new NotFoundException();
+    }
+
+    /** Giữ cấu hình phòng ổn định trước khi khóa giường; không nâng khóa phòng trong máy trạng thái. */
+    public void guardRooms(List<Long> bedIds) {
+        if (bedIds.isEmpty()) return;
+        var placeholders = String.join(",", java.util.Collections.nCopies(bedIds.size(), "?"));
+        var rooms = jdbc.queryForList(
+                "SELECT DISTINCT room_id FROM bed WHERE id IN (" + placeholders + ") ORDER BY room_id",
+                Long.class,
+                bedIds.toArray());
+        for (long roomId : rooms) jdbc.queryForList("SELECT id FROM room WHERE id=? FOR SHARE", Long.class, roomId);
     }
 
     private static AllocationLocation location(ResultSet row, int index) throws SQLException {
