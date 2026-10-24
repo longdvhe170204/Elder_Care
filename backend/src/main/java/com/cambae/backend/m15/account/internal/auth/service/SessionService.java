@@ -58,7 +58,7 @@ public class SessionService {
         Optional<SyncRow> row = jdbc
                 .query(
                         "SELECT s.account_id, s.device_id, s.channel, s.last_active_at, a.type, a.staff_id,"
-                                + " a.family_member_id, a.must_change_password, s.ended_at IS NULL FROM login_session s"
+                                + " a.family_member_id, a.must_change_password, s.ended_at IS NULL, a.resident_id FROM login_session s"
                                 + " JOIN account a ON a.id = s.account_id"
                                 + " WHERE s.token_hash = ? AND (s.end_reason IS NULL OR s.end_reason <> 'LOGOUT')",
                         (rs, i) -> new SyncRow(
@@ -70,7 +70,8 @@ public class SessionService {
                                         AccountType.valueOf(rs.getString(5)),
                                         Optional.ofNullable(rs.getObject(6, Long.class)),
                                         Optional.ofNullable(rs.getObject(7, Long.class)),
-                                        rs.getBoolean(8)),
+                                        rs.getBoolean(8),
+                                        Optional.ofNullable(rs.getObject(10, Long.class))),
                                 rs.getBoolean(9)),
                         hash)
                 .stream()
@@ -98,7 +99,8 @@ public class SessionService {
                 found.familyMemberId(),
                 roles(found.accountId(), now),
                 found.deviceId(),
-                found.channel()));
+                found.channel(),
+                found.residentId()));
     }
 
     /** Như {@link #resolve} kèm cờ buộc đổi mật khẩu cho bộ lọc phiên. */
@@ -107,7 +109,8 @@ public class SessionService {
         Optional<OpenRow> row = jdbc
                 .query(
                         "SELECT s.account_id, s.device_id, s.channel, s.last_active_at, a.type, a.staff_id,"
-                                + " a.family_member_id, a.must_change_password FROM login_session s JOIN account a ON a.id = s.account_id"
+                                + " a.family_member_id, a.must_change_password, a.resident_id FROM login_session s"
+                                + " JOIN account a ON a.id = s.account_id"
                                 + " WHERE s.token_hash = ? AND s.ended_at IS NULL",
                         (rs, i) -> new OpenRow(
                                 rs.getLong(1),
@@ -117,7 +120,8 @@ public class SessionService {
                                 AccountType.valueOf(rs.getString(5)),
                                 Optional.ofNullable(rs.getObject(6, Long.class)),
                                 Optional.ofNullable(rs.getObject(7, Long.class)),
-                                rs.getBoolean(8)),
+                                rs.getBoolean(8),
+                                Optional.ofNullable(rs.getObject(9, Long.class))),
                         hash)
                 .stream()
                 .findFirst();
@@ -154,7 +158,8 @@ public class SessionService {
                         open.familyMemberId(),
                         roles(open.accountId(), now),
                         open.deviceId(),
-                        open.channel()),
+                        open.channel(),
+                        open.residentId()),
                 open.mustChangePassword()));
     }
 
@@ -202,7 +207,8 @@ public class SessionService {
             AccountType type,
             Optional<Long> staffId,
             Optional<Long> familyMemberId,
-            boolean mustChangePassword) {}
+            boolean mustChangePassword,
+            Optional<Long> residentId) {}
 
     private record SyncRow(OpenRow session, boolean open) {}
 }

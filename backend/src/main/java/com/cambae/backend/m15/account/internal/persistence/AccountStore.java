@@ -186,6 +186,11 @@ public class AccountStore {
         return insert("family_member_id", "FAMILY_MEMBER", familyMemberId, username, passwordHash, createdBy);
     }
 
+    /** Tài khoản người cao tuổi (FR-067), buộc đổi mật khẩu lần đầu như bảng chuyển trạng thái của spec. */
+    public long insertResident(long residentId, String username, String passwordHash, Long createdBy) {
+        return insert("resident_id", "RESIDENT", residentId, username, passwordHash, createdBy);
+    }
+
     private long insert(
             String linkColumn, String type, long linkId, String username, String passwordHash, Long createdBy) {
         LocalDateTime now = utc(time.now());

@@ -62,6 +62,12 @@ public class FakeM15Config {
 
     @Bean
     @Primary
+    FakeResidentProfiles fakeResidentProfiles() {
+        return new FakeResidentProfiles();
+    }
+
+    @Bean
+    @Primary
     FakeFacilityLicenses fakeFacilityLicenses() {
         return new FakeFacilityLicenses();
     }
