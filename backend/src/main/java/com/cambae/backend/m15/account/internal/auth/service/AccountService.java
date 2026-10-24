@@ -25,6 +25,8 @@ import com.cambae.backend.m15.account.api.spi.AssignmentView;
 import com.cambae.backend.m15.account.api.spi.DutyApi;
 import com.cambae.backend.m15.account.api.spi.FamilyRelationshipApi;
 import com.cambae.backend.m15.account.api.spi.ResidencyEndApi;
+import com.cambae.backend.m15.account.api.spi.ResidentProfileApi;
+import com.cambae.backend.m15.account.api.spi.ResidentProfileView;
 import com.cambae.backend.m15.account.api.spi.StaffProfileApi;
 import com.cambae.backend.m15.account.api.spi.StaffStatus;
 import com.cambae.backend.m15.account.internal.auth.domain.AccountAuditActions;
@@ -77,6 +79,8 @@ public class AccountService implements AccountApi {
             Role.OFFICE_STAFF,
             Role.ACCOUNTANT);
     private static final int PAGE_SIZE = 50;
+    static final Set<String> RESIDENT_CONSENT_METHODS = Set.of("REQUESTED", "AGREED");
+    static final String RESIDENCY_ENDED = "RESIDENT_RESIDENCY_ENDED";
 
     private final AccountStore store;
     private final BusinessTime time;
@@ -89,6 +93,7 @@ public class AccountService implements AccountApi {
     private final ObjectProvider<FamilyRelationshipApi> familyRelationships;
     private final ObjectProvider<AssignmentApi> assignments;
     private final ObjectProvider<ResidencyEndApi> residencyEnds;
+    private final ObjectProvider<ResidentProfileApi> residentProfiles;
     private final ParameterApi parameters;
     private final ResidentDevices devices;
 
@@ -103,6 +108,7 @@ public class AccountService implements AccountApi {
             ObjectProvider<FamilyRelationshipApi> familyRelationships,
             ObjectProvider<AssignmentApi> assignments,
             ObjectProvider<ResidencyEndApi> residencyEnds,
+            ObjectProvider<ResidentProfileApi> residentProfiles,
             ParameterApi parameters,
             ResidentDevices devices) {
         this.store = store;
@@ -115,6 +121,7 @@ public class AccountService implements AccountApi {
         this.familyRelationships = familyRelationships;
         this.assignments = assignments;
         this.residencyEnds = residencyEnds;
+        this.residentProfiles = residentProfiles;
         this.parameters = parameters;
         this.devices = devices;
     }
@@ -233,6 +240,60 @@ public class AccountService implements AccountApi {
                 .entity(AccountAuditActions.ENTITY, accountId)
                 .after(after)
                 .details(Map.of("verificationMethod", verificationMethod))
+                .build());
+        return new Created(details(store.find(accountId).orElseThrow(), user), temporaryPassword);
+    }
+
+    /**
+     * Tạo tài khoản người cao tuổi (002 T091; FR-067, FR-068; US8 #1): Hành chính hoặc Quản lý viện; người cao tuổi Đang
+     * lưu trú, chưa có tài khoản; bắt buộc xác nhận của chính người cao tuổi (theo lời người thân thì không có xác nhận,
+     * nên bị từ chối); vai trò duy nhất AC-16 (phạm vi chính mình); buộc đổi mật khẩu lần đầu; nhật ký ghi cách xác nhận
+     * và nhân viên đã nghe.
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.RESIDENT_ACCOUNT, operation = Operation.CREATE)
+    @Transactional
+    public Created createResident(long residentId, String username, String consentMethod, Long consentWithStaffId) {
+        CurrentUser user = currentUser.getObject();
+        if (!user.roles().contains(Role.NURSING_HOME_MANAGER) && !user.roles().contains(Role.OFFICE_STAFF)) {
+            throw new PermissionDeniedException(
+                    "PERMISSION_DENIED",
+                    "Chỉ Hành chính, Quản lý viện tạo tài khoản người cao tuổi",
+                    Map.of("failedLayer", "ROLE"));
+        }
+        if (consentMethod == null || !RESIDENT_CONSENT_METHODS.contains(consentMethod) || consentWithStaffId == null) {
+            throw new InvalidValueException(
+                    "Cần xác nhận của chính người cao tuổi: cách và nhân viên đã nghe (FR-067)");
+        }
+        ResidentProfileView profile =
+                residentProfiles.getObject().profile(residentId).orElseThrow(NotFoundException::new);
+        if (store.byResident(residentId).isPresent()) {
+            throw conflict("ALREADY_HAS_ACCOUNT", "Người cao tuổi đã có tài khoản (FR-067)");
+        }
+        if (!profile.inResidence()) {
+            throw conflict("NOT_IN_RESIDENCE", "Người cao tuổi không ở trạng thái Đang lưu trú (FR-067)");
+        }
+        String temporaryPassword = TemporaryPasswords.generate();
+        long accountId;
+        try {
+            accountId =
+                    store.insertResident(residentId, username, passwords.encode(temporaryPassword), user.accountId());
+        } catch (DuplicateKeyException e) {
+            throw new ConditionNotMetException(List.of(new UnmetCondition("FR-001", "Tên đăng nhập đã được dùng")));
+        }
+        store.history(accountId, AccountStatus.ACTIVE, null, user.accountId());
+        store.addRole(accountId, Role.RESIDENT, user.accountId(), "Tạo tài khoản");
+        Map<String, Object> after = new LinkedHashMap<>();
+        after.put("username", username);
+        after.put("type", AccountType.RESIDENT.name());
+        after.put("residentId", residentId);
+        after.put("status", AccountStatus.ACTIVE.name());
+        after.put("roles", List.of(Role.RESIDENT.code()));
+        auditLog.write(AuditLogEntry.builder()
+                .action(AccountAuditActions.ACCOUNT_CREATED)
+                .entity(AccountAuditActions.ENTITY, accountId)
+                .after(after)
+                .details(Map.of("consentMethod", consentMethod, "consentWithStaffId", consentWithStaffId))
                 .build());
         return new Created(details(store.find(accountId).orElseThrow(), user), temporaryPassword);
     }
@@ -698,6 +759,41 @@ public class AccountService implements AccountApi {
         return true;
     }
 
+    /**
+     * Khóa tài khoản người cao tuổi khi sang trạng thái cuối (FR-072 (a), BR-M15-23; research A-16): Đã khóa nguyên nhân
+     * kết thúc lưu trú, kết thúc phiên, gỡ thiết bị; đang khóa vì lý do khác thì đổi nguyên nhân để không mở lại được
+     * (FR-073); sự kiện giao lại thì không làm gì. Nhật ký người thực hiện Bộ lập lịch kèm căn cứ.
+     */
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void lockResidentOnFinalStatus(long residentId, Basis basis) {
+        Optional<Account> found = store.byResident(residentId);
+        if (found.isEmpty()) {
+            return;
+        }
+        Account account = store.lock(found.get().id()).orElseThrow();
+        if (account.status() == AccountStatus.LOCKED && RESIDENCY_ENDED.equals(account.lockCause())) {
+            return;
+        }
+        store.changeStatus(account.id(), AccountStatus.LOCKED, RESIDENCY_ENDED, null);
+        store.endSessions(account.id(), "ACCOUNT_LEFT_ACTIVE");
+        Map<String, Object> before = new LinkedHashMap<>();
+        before.put("status", account.status().name());
+        if (account.lockCause() != null) {
+            before.put("lockCause", account.lockCause());
+        }
+        SchedulerUserAspect.runAsScheduler(() -> {
+            devices.unbindActive(account.id(), "ACCOUNT_LOCKED", basis);
+            auditLog.write(AuditLogEntry.builder()
+                    .action(AccountAuditActions.ACCOUNT_LOCKED)
+                    .entity(AccountAuditActions.ENTITY, account.id())
+                    .before(before)
+                    .after(Map.of("status", AccountStatus.LOCKED.name(), "lockCause", RESIDENCY_ENDED))
+                    .basis(basis)
+                    .build());
+        });
+    }
+
     @Override
     public List<AccountView> activeWithRole(Role role) {
         return store.activeWithRole(role).stream().map(this::view).toList();
@@ -743,8 +839,10 @@ public class AccountService implements AccountApi {
             case FAMILY_MEMBER ->
                 Optional.ofNullable(familyRelationships.getIfAvailable())
                         .flatMap(r -> r.familyMemberName(a.familyMemberId()));
-            // Người cao tuổi: họ tên qua NguoiCaoTuoiApi của 001 ở T091
-            case RESIDENT -> Optional.<String>empty();
+            case RESIDENT ->
+                Optional.ofNullable(residentProfiles.getIfAvailable())
+                        .flatMap(p -> p.profile(a.residentId()))
+                        .map(ResidentProfileView::fullName);
         });
     }
 
