@@ -29,6 +29,8 @@ class ResidentFieldClassification implements FieldClassificationProvider {
                 "permanentAddress", InfoGroup.CONTACT,
                 "contactAddress", InfoGroup.CONTACT,
                 "contact", InfoGroup.CONTACT,
-                "currentCareLevel", InfoGroup.CARE_LEVEL);
+                "currentCareLevel", InfoGroup.CARE_LEVEL,
+                // văn bản tự do, có thể chứa tình trạng sức khỏe
+                "specialNotes", InfoGroup.HEALTH);
     }
 }
