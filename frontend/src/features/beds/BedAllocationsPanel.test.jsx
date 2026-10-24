@@ -31,6 +31,26 @@ beforeEach(() => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
+it('FR_026_cancelledAllocationCanOpenCorrectionWithoutInventingLocationHistory', async () => {
+  api.on(
+    'GET',
+    '/bed-allocations',
+    json(200, [
+      {
+        id: 41,
+        residentId: 11,
+        status: 'CANCELLED',
+        startAt: '2026-01-01T00:00:00Z',
+        location: { label: 'Khu A – P201 – G2' },
+      },
+    ]),
+  )
+  api.on('GET', '/bed-allocations/41', json(200, { id: 41, status: 'CANCELLED' }))
+  render(<BedAllocationsPanel canCreate />)
+  fireEvent.click(await screen.findByRole('button', { name: 'Đính chính phân bổ 41' }))
+  expect(await screen.findByRole('form', { name: 'Đính chính phân bổ' })).toBeInTheDocument()
+})
+
 it('FR_011_boardShowsRealCapacityAndAllocationsWithoutWritePermission', async () => {
   render(<BedAllocationsPanel />)
   expect(await screen.findByText('Sức chứa sử dụng: 4')).toBeInTheDocument()

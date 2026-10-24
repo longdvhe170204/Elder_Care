@@ -46,6 +46,14 @@ beforeEach(() => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
+it('FR_037_infectionViewerCanOpenHistoryWithoutConfigurationPermission', async () => {
+  api.on('GET', '/me/permissions', json(200, [{ function: 'INFECTION_CONTAINMENT', operation: 'CREATE' }]))
+  render(<BedsPage />)
+  expect(await screen.findByRole('tab', { name: 'Lịch sử vị trí' })).toHaveAttribute('aria-selected', 'true')
+  expect(screen.getByRole('heading', { name: 'Lịch sử vị trí' })).toBeInTheDocument()
+  expect(screen.queryByRole('tab', { name: 'Cơ cấu' })).not.toBeInTheDocument()
+})
+
 it('FR_022_allocationOnlyViewerCanOpenInitialAllocationBoard', async () => {
   api.on(
     'GET',

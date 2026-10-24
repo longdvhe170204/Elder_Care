@@ -126,6 +126,9 @@ export const postBedsByIdReuse = (params) => request('POST', '/beds/{id}/reuse',
 /** Lịch sử trạng thái giường (FR-016, FR-016a) */
 export const getBedsByIdStateHistory = (params) => request('GET', '/beds/{id}/state-history', params)
 
+/** Đính chính lần Xác nhận giường sẵn sàng (ghi chú, khử khuẩn, bảo hộ) (FR-044) */
+export const postBedsByIdStateHistoryByHistoryIdCorrections = (params) => request('POST', '/beds/{id}/state-history/{historyId}/corrections', params)
+
 /** Danh sách giường thỏa FR-018 cho một người cao tuổi (FR-018, FR-021, FR-022, BR-M03-01) */
 export const getBedAllocationsSuitableBeds = (params) => request('GET', '/bed-allocations/suitable-beds', params)
 
@@ -144,8 +147,20 @@ export const postBedAllocationsByIdCancel = (params) => request('POST', '/bed-al
 /** Chuyển giường trực tiếp (Hành chính; Trưởng tầng khi người và giường mới trong phạm vi) (FR-027, FR-028, FR-029, FR-030, FR-031, FR-032, FR-033, BR-M03-01, BR-M03-04, BR-M03-07) */
 export const postBedAllocationsByIdTransfer = (params) => request('POST', '/bed-allocations/{id}/transfer', params)
 
+/** Đính chính phân bổ đã đóng hoặc đã hủy (FR-026, BR-M03-07, BR-M03-24) */
+export const postBedAllocationsByIdCorrections = (params) => request('POST', '/bed-allocations/{id}/corrections', params)
+
 /** Vị trí hiện tại, phân bổ tương lai và dấu của một người cao tuổi (FR-017, FR-025a, FR-037) */
 export const getResidentsByResidentIdLocation = (params) => request('GET', '/residents/{residentId}/location', params)
+
+/** Người A ở giường nào tại T, hoặc trong khoảng [from, to) (FR-035, FR-037) */
+export const getLocationHistoryResidentsByResidentId = (params) => request('GET', '/location-history/residents/{residentId}', params)
+
+/** Mỗi giường của phòng/tầng/khu vực có ai tại T hoặc trong ngày D (FR-035, FR-037) */
+export const getLocationHistoryBeds = (params) => request('GET', '/location-history/beds', params)
+
+/** Những ai ở cùng phòng với A trong khoảng [from, to) (FR-035, FR-036, FR-037, BR-M05-10) */
+export const getLocationHistoryRoommates = (params) => request('GET', '/location-history/roommates', params)
 
 /** Kích hoạt lại mục danh mục (FR-005) */
 export const postRoomTypesByIdReactivate = (params) => request('POST', '/room-types/{id}/reactivate', params)

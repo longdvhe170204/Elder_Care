@@ -6,6 +6,7 @@ import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
 import { formatDateTime } from '@/common/dateTime'
 import { BedAllocationForm } from './BedAllocationForm'
+import { AllocationCorrectionForm } from './AllocationCorrectionForm'
 
 const statuses = { FUTURE: 'Tương lai', ACTIVE: 'Đang hiệu lực', CLOSED: 'Đã đóng', CANCELLED: 'Đã hủy' }
 
@@ -16,6 +17,7 @@ export function BedAllocationsPanel({ canCreate }) {
   const [search, setSearch] = useState({ items: [], loading: false })
   const [selected, setSelected] = useState(null)
   const [notice, setNotice] = useState(null)
+  const [correcting, setCorrecting] = useState(null)
   useEffect(() => {
     let current = true
     Promise.all([getBedsSummary(), getBedAllocations()])
@@ -110,6 +112,7 @@ export function BedAllocationsPanel({ canCreate }) {
               <th className="p-3">Vị trí</th>
               <th className="p-3">Trạng thái</th>
               <th className="p-3">Bắt đầu</th>
+              {canCreate && <th className="p-3">Đính chính</th>}
             </tr>
           </thead>
           <tbody>
@@ -119,11 +122,31 @@ export function BedAllocationsPanel({ canCreate }) {
                 <td className="p-3">{row.location.label}</td>
                 <td className="p-3">{statuses[row.status]}</td>
                 <td className="p-3">{formatDateTime(row.startAt)}</td>
+                {canCreate && (
+                  <td className="p-3">
+                    {['CLOSED', 'CANCELLED'].includes(row.status) && (
+                      <Button
+                        variant="outline"
+                        aria-label={`Đính chính phân bổ ${row.id}`}
+                        onClick={() => setCorrecting(row.id)}
+                      >
+                        Đính chính
+                      </Button>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {correcting !== null && (
+        <AllocationCorrectionForm
+          key={correcting}
+          allocationId={correcting}
+          onSaved={() => setRevision((value) => value + 1)}
+        />
+      )}
     </section>
   )
 }
