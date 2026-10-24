@@ -861,9 +861,10 @@ components:
         at: { type: string, format: date-time }
         performedBy: { type: string }
         bySystem: { type: boolean }
-        reason: { type: [string, 'null'] }
-        basis: { type: [object, 'null'] }
-        conditionWaiver: { type: [object, 'null'] }
+        reason: { type: [string, 'null'], description: 'Nhóm HEALTH (Opus #6, 2026-10-24): bị bỏ khỏi phản hồi và ghi vào hiddenFields khi người xem không xem được nhóm sức khỏe của người cao tuổi này' }
+        basis: { type: [object, 'null'], description: 'Nhóm HEALTH, như reason' }
+        conditionWaiver: { type: [object, 'null'], description: 'Nhóm HEALTH, như reason' }
+        hiddenFields: { type: array, items: { type: string }, description: 'Tên trường đã bỏ theo quyền (002 A-08)' }
     StatusCommandResult:
       type: object
       properties:

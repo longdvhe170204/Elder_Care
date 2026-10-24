@@ -100,7 +100,9 @@ public class ResidentStatusService {
             StatusCommand.END_RESIDENCY,
             StatusCommand.RECORD_DEATH);
 
+    /** {@code residentId} cho giới hạn trường theo người cao tuổi của dòng (không ghi ra JSON). */
     public record HistoryEntry(
+            long residentId,
             ResidentStatus from,
             ResidentStatus to,
             String command,
@@ -575,6 +577,7 @@ public class ResidentStatusService {
                 ? null
                 : json.readValue(row.getConditionWaiver(), new tools.jackson.core.type.TypeReference<>() {});
         return new HistoryEntry(
+                row.getResidentId(),
                 row.getFromStatus(),
                 row.getToStatus(),
                 row.getCommand(),

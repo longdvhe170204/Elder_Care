@@ -41,7 +41,7 @@ public record ResidentStatusNotice(long residentId, StatusCommand command, long 
                 "M01",
                 eventType,
                 SourceGroup.OTHER,
-                new SourceRecord("M01.STATUS_HISTORY", String.valueOf(historyId)),
+                new SourceRecord("M01.RESIDENT_STATUS_HISTORY", String.valueOf(historyId)),
                 eventType + ":" + residentId + ":" + historyId,
                 Optional.of(NotificationLevel.URGENT),
                 Optional.of(residentId),

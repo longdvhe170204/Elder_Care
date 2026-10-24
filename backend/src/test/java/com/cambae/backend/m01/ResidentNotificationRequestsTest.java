@@ -74,7 +74,7 @@ class ResidentNotificationRequestsTest {
         assertThat(r.recipientGroups()).containsExactly(new RecipientGroup.PrimaryContact(RESIDENT));
         assertThat(r.informationSubject()).contains(InformationSubject.ABOUT_RESIDENT);
         assertThat(r.q354Case()).contains(Q354Case.TRANSFER);
-        assertThat(r.sourceRecord()).isEqualTo(new SourceRecord("M01.STATUS_HISTORY", "900"));
+        assertThat(r.sourceRecord()).isEqualTo(new SourceRecord("M01.RESIDENT_STATUS_HISTORY", "900"));
         assertThat(r.occurredAt()).isEqualTo(AT);
         assertThat(r.afterDeath()).isFalse();
         assertThat(r.content()).allSatisfy(p -> assertThat(p.type()).isEqualTo(InformationType.GENERAL));

@@ -83,7 +83,25 @@ class TreatmentWishVisibilityIT extends WishTestBase {
         mvc.perform(get(url(residentId))).andExpect(status().isForbidden());
         mvc.perform(get("/api/v1/residents/" + residentId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.hasTreatmentWish").doesNotExist());
+                .andExpect(jsonPath("$.hasTreatmentWish").doesNotExist())
+                .andExpect(jsonPath("$.hiddenFields", org.hamcrest.Matchers.hasItem("hasTreatmentWish")));
+    }
+
+    @Test
+    void FR_023m_flagIsNotListedAsHidden_forWhoeverSeesIt() throws Exception {
+        long residentId = newResident();
+        wishExists(residentId);
+
+        for (var viewer : new TestUser[] {office, doctor, nurse}) {
+            user.set(viewer.user());
+            assignNurse(nurse, residentId);
+            mvc.perform(get("/api/v1/residents/" + residentId))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.hasTreatmentWish").value(true))
+                    .andExpect(jsonPath(
+                            "$.hiddenFields",
+                            org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("hasTreatmentWish"))));
+        }
     }
 
     @Test

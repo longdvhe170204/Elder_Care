@@ -79,7 +79,7 @@ class ResidentNotificationsIntakeIT extends StatusTestBase {
         assertCleanAndValid(row, "URGENT");
         assertThat(row.get("information_subject")).isEqualTo("ABOUT_RESIDENT");
         assertThat(row.get("q354_case")).isEqualTo("DEATH");
-        assertThat(row.get("source_record_type")).isEqualTo("M01.STATUS_HISTORY");
+        assertThat(row.get("source_record_type")).isEqualTo("M01.RESIDENT_STATUS_HISTORY");
     }
 
     @Test
