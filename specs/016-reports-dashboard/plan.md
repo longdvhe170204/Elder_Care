@@ -147,3 +147,15 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
    - FR-010 và bảng nhóm chỉ tiêu dẫn "4.4" (Permission Matrix của `docs/phan-tich-yeu-cau.md` đã bỏ; tra Phụ lục 27, 19.3 là căn cứ); Assumptions dòng đầu dẫn mục 4.2 của tài liệu đã bỏ.
 
 2. **Q-03** (ghi nhật ký lần nhân viên xem dữ liệu sức khỏe) vẫn chờ tư vấn pháp lý theo Luật số 91/2025/QH15 (24.4); thiết kế không ghi; nếu phải ghi, cần thêm FR và một điểm ghi ở M14 (mọi API đọc trả dữ liệu sức khỏe). *(Còn mở 2026-10-10: chờ tư vấn pháp lý, mục 24.4.)*
+
+## Ghi chú triển khai
+
+### Phase 1, 2 (2026-10-24, nhánh `impl/016-reports-dashboard`)
+
+- Hợp đồng dịch theo glossary mục 22; "chỉ tiêu" là `metric` (cùng cột `metric_group` của 002). Không xác định được phạm vi (FR-016) trả `PERMISSION_DENIED` kèm `failedLayer: SOURCE_DATA` như 002, không có mã riêng (chủ dự án chọn).
+- Gói: `m14.internal.metric` (`Metric`, `MetricGroup`, `MetricGroupAccess`, `MetricCatalog`), `m14.internal.scope` (`ReportScope`, `ReportScopeService`, `DetailRowPolicy`, `ReportPeriods`).
+- Bảng FR-010 mã hóa trong `MetricGroupAccess`; áp sau đó khóa `(DASHBOARD_REPORT, VIEW)` của 002 (thu hẹp mức khóa, `PermissionApi.permissions`). Ô toàn viện bị 002 hạ phạm vi thì tính như phạm vi phân công.
+- Phạm vi theo ca của Điều dưỡng, Người phụ trách ca lấy từ `AssignmentApi.history` (SPI của 002, 008 cài) thay cho `CaTrucApi.caCuaNhanVien` ở research O-03: phân công gắn ca đã mang giờ ca, CFG-M15-07 cộng hai đầu; ca hủy, vắng, nghỉ có duyệt thuộc luật của 008 khi trả lịch sử phân công. Trưởng tầng: phân công `FLOOR_MANAGER` đang hiệu lực lúc xem, không giới hạn thời gian.
+- **Chưa làm (chờ chủ dự án)**: thu hẹp chi tiết theo `metric_group`, `channel` (FR-010a) đã lưu ở bảng `permission_restriction` của 002 nhưng 002 chưa có hàm công khai để M14 đọc (`RolePermissionCalculator` bỏ qua các dòng này ở mức khóa). Cần "Đổi api" 002, ví dụ `PermissionApi.restrictedMetricGroups(user, channel)`.
+- Dòng rút gọn (Q-196) xét nhóm thông tin theo tầng/khu lúc phát sinh vì người cao tuổi đã ngoài phạm vi hiện hành; Điều dưỡng xem dòng của người không còn phân công thì kết quả sức khỏe bị ẩn, chặt hơn spec ("theo vai trò"). Cần 002 cho hỏi quyền xem nhóm theo vai trò, không xét phạm vi hiện hành.
+- FR-016: M14 từ chối khi `InvalidPermissionDataException`; việc báo Quản lý viện (002 FR-041b) do 002 ghi khi kiểm quyền, `ScopeApi.filter` hiện chưa ghi.
