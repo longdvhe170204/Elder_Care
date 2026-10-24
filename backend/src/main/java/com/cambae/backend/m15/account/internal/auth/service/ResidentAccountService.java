@@ -19,6 +19,8 @@ import com.cambae.backend.m15.account.api.dto.Operation;
 import com.cambae.backend.m15.account.api.dto.PermissionKey;
 import com.cambae.backend.m15.account.api.dto.PermissionResult;
 import com.cambae.backend.m15.account.api.dto.Target;
+import com.cambae.backend.m15.account.api.spi.ResidentProfileApi;
+import com.cambae.backend.m15.account.api.spi.ResidentProfileView;
 import com.cambae.backend.m15.account.internal.auth.domain.AccountAuditActions;
 import com.cambae.backend.m15.account.internal.auth.persistence.DeviceBindings;
 import com.cambae.backend.m15.account.internal.auth.service.AccountService.AccountDetails;
@@ -42,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Lệnh trên tài khoản người cao tuổi không cần hồ sơ người cao tuổi của 001 (002 T092, T094; FR-069, FR-070, FR-072,
  * FR-073, BR-M15-23, BR-M15-24; research A-15, A-16): tạo mã QR đăng nhập, gỡ thiết bị, khóa theo yêu cầu của chính
  * người cao tuổi hoặc có lý do, khóa theo đề nghị của người thân đã được Quản lý viện duyệt, mở khóa khi người cao tuổi
- * yêu cầu. Tạo tài khoản (T091) và khóa khi kết thúc lưu trú chờ {@code NguoiCaoTuoiApi} và sự kiện của 001.
+ * yêu cầu. Tạo tài khoản (T091) và khóa khi kết thúc lưu trú ở {@link AccountService}.
  */
 @Service
 public class ResidentAccountService {
@@ -63,6 +65,7 @@ public class ResidentAccountService {
     private final ResidentDevices devices;
     private final ObjectProvider<CurrentUser> currentUser;
     private final ObjectProvider<PermissionApi> permissions;
+    private final ObjectProvider<ResidentProfileApi> residentProfiles;
     private final ParameterApi parameters;
     private final AuditLogApi auditLog;
     private final BusinessTime time;
@@ -74,6 +77,7 @@ public class ResidentAccountService {
             ResidentDevices devices,
             ObjectProvider<CurrentUser> currentUser,
             ObjectProvider<PermissionApi> permissions,
+            ObjectProvider<ResidentProfileApi> residentProfiles,
             ParameterApi parameters,
             AuditLogApi auditLog,
             BusinessTime time) {
@@ -83,6 +87,7 @@ public class ResidentAccountService {
         this.devices = devices;
         this.currentUser = currentUser;
         this.permissions = permissions;
+        this.residentProfiles = residentProfiles;
         this.parameters = parameters;
         this.auditLog = auditLog;
         this.time = time;
@@ -192,7 +197,7 @@ public class ResidentAccountService {
         if (account.status() != AccountStatus.LOCKED) {
             throw conflict("INVALID_STATE", "Chỉ mở khóa tài khoản Đã khóa");
         }
-        if ("RESIDENT_RESIDENCY_ENDED".equals(account.lockCause())) {
+        if (AccountService.RESIDENCY_ENDED.equals(account.lockCause()) || finalStatus(account.residentId())) {
             throw conflict("LOCK_CAUSE_STILL_EXISTS", "Tài khoản khóa do kết thúc lưu trú, không mở lại (FR-073)");
         }
         store.changeStatus(accountId, AccountStatus.ACTIVE, null, user.accountId());
@@ -241,6 +246,14 @@ public class ResidentAccountService {
         requireResident(account);
         VersionEtag.requireMatch(ifMatch, account.version(), accounts.detail(accountId));
         return account;
+    }
+
+    /** Người cao tuổi đã ở trạng thái cuối dù sự kiện chưa tới (FR-073: khóa theo (a) không mở được). */
+    private boolean finalStatus(Long residentId) {
+        ResidentProfileApi api = residentProfiles.getIfAvailable();
+        return residentId != null
+                && api != null
+                && api.profile(residentId).map(ResidentProfileView::finalStatus).orElse(false);
     }
 
     static Target target(Account account) {
