@@ -24,7 +24,7 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 
 ## Phase 1: Setup
 
-- [ ] T001 Thêm Spring Security 7 và Bouncy Castle (cho `Argon2PasswordEncoder`) vào `backend/pom.xml`; thêm `flutter_secure_storage` vào `mobile/pubspec.yaml` (plan Technical Context)
+- [x] T001 *(2026-10-24: phần mobile xong cùng T097)* Thêm Spring Security 7 và Bouncy Castle (cho `Argon2PasswordEncoder`) vào `backend/pom.xml`; thêm `flutter_secure_storage` vào `mobile/pubspec.yaml` (plan Technical Context)
 - [x] T002 [P] Tạo khung gói `BE/m15/taikhoan/{api,xacthuc,quyen,phamvi,phaply,ngoaituyen,lich}/` với `package-info.java`; gỡ bản giả 000 T025 khỏi `BE/m15/taikhoan/api/` và chuyển bản giả test sang `BT/support/QuyenGia.java` (research A-01)
 - [ ] T003 [P] Tạo bản giả các giao diện 002 cần (contracts/module-interfaces.md mục 2) trong `BT/support/gia002/`: `HoSoNhanVienApi`, `GiayPhepApi`, `DanhMucPhamViHanhNgheApi`, `PhanCongApi`, `NhiemVuApi` (008); `PhanBoGiuongApi` (003); `NguoiCaoTuoiApi` (001); `QuanHeNguoiThanApi` (012); `KetThucLuuTruApi` (004); `GiayPhepCoSoApi` (007)
 
@@ -253,7 +253,7 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 - [x] T094 [US8] *(2026-10-21: endpoint khóa, mở khóa, loại yêu cầu xong; 2026-10-24: listener đặt ở M01 (`ResidentAccountLockOnFinalStatus`) gọi `AccountApi.lockResidentOnFinalStatus`, vì vòng M15 ↔ M01)* Cài khóa, mở khóa tài khoản người cao tuổi: `POST /tai-khoan/{id}/khoa-nguoi-cao-tuoi`, `/mo-khoa-nguoi-cao-tuoi`; listener `BE/m15/taikhoan/lich/KhoaTaiKhoanNctKhiKetThuc.java` nghe `NguoiCaoTuoiDaChuyenTrangThai`; `LoaiYeuCauHandler` `M15.KHOA_TAI_KHOAN_NCT` (`choTuDuyet() = false`) (FR-072, FR-073, BR-M15-23; research A-16)
 - [ ] T095 [P] [US8] Tạo màn web `frontend/src/tinh-nang/tai-khoan/TaiKhoanNguoiCaoTuoi.jsx` (tạo kèm xác nhận của người cao tuổi, hiện mã QR, gỡ thiết bị, khóa, mở khóa, lập đề nghị khóa theo lời người thân) và test `TaiKhoanNguoiCaoTuoi.test.jsx`
 - [ ] T096 [P] [US8] Tạo `mobile/lib/nhan-vien/ma-qr-nguoi-cao-tuoi/` (Điều dưỡng tạo, hiện mã QR, đếm ngược hết hạn) và test `mobile/test/nhan-vien/ma_qr_nguoi_cao_tuoi_test.dart`
-- [ ] T097 [P] [US8] Thêm `mobile_scanner`, `local_auth` vào `mobile/pubspec.yaml`; tạo `mobile/lib/nguoi-cao-tuoi/dang-nhap-qr/` (quét mã, lưu token phiên và token thiết bị trong `flutter_secure_storage`, mở khóa sinh trắc học tùy chọn, không có PIN) và test `mobile/test/nguoi-cao-tuoi/dang_nhap_qr_test.dart`, `mo_khoa_sinh_trac_test.dart` (FR-074)
+- [x] T097 [P] [US8] *(2026-10-24: `mobile/lib/resident/qr_login/`, `biometric_unlock/`, `today/`; test `test/resident/qr_login/qr_login_test.dart` (8), `biometric_unlock/biometric_unlock_test.dart` (4); chưa chạy trên máy thật)* Thêm `mobile_scanner`, `local_auth` vào `mobile/pubspec.yaml`; tạo `mobile/lib/nguoi-cao-tuoi/dang-nhap-qr/` (quét mã, lưu token phiên và token thiết bị trong `flutter_secure_storage`, mở khóa sinh trắc học tùy chọn, không có PIN) và test `mobile/test/nguoi-cao-tuoi/dang_nhap_qr_test.dart`, `mo_khoa_sinh_trac_test.dart` (FR-074)
 
 **Checkpoint**: Quickstart K28 → K35 chạy được; 007 và 012 dùng được `ThietBiGanApi`, `TaiKhoanApi.theoNguoiCaoTuoi`.
 

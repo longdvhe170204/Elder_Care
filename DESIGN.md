@@ -631,7 +631,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 ### 15.7 Hiện trạng
 
-- Chưa có theme và màn mẫu; `lib/main.dart` vẫn là app mẫu của Flutter. Phần người cao tuổi (15.6, duyệt 2026-10-19) chưa có màn mẫu.
+- (2026-10-24) Đã có theme `lib/common/theme/app_theme.dart` theo token và phần người cao tuổi: đăng nhập QR, mật khẩu dự phòng, đổi mật khẩu lần đầu, hỏi mở bằng sinh trắc học, màn khóa, "Hôm nay" mới có tiêu đề (thẻ và nút SOS thêm khi 012, 007 có phần app). Font mới có 400, 700. Chưa nghiệm thu trên máy thật.
 - Đã duyệt 2026-10-18: bố cục 15.4, bộ biểu tượng lucide. Cách lưu chế độ sáng tối và gói lucide cho Flutter chốt ở plan khi triển khai.
 
 ## 16. Lịch sử
