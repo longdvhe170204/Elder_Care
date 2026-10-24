@@ -6,6 +6,7 @@ import com.cambae.backend.common.data.BusinessCommand;
 import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.error.NotFoundException;
 import com.cambae.backend.common.error.ReasonRequiredException;
+import com.cambae.backend.common.file.FileApi;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m01.api.dto.CommandContext;
 import com.cambae.backend.m01.api.dto.Condition;
@@ -64,6 +65,11 @@ public class ResidentStatusService {
 
     private static final String EVIDENCE_FIELD = "evidenceFileId";
 
+    private static final String EVIDENCE_BASIS = "EVIDENCE_FILE";
+
+    /** Chủ sở hữu của tệp bằng chứng qua đời là dòng lịch sử trạng thái; quyền tải ở {@code DeathEvidenceFilePermission}. */
+    static final String DEATH_EVIDENCE_OWNER = "M01.DEATH_EVIDENCE";
+
     /** Lệnh các module khác được gọi qua {@code ResidentStatusApi} (research H-03; 004 FR-002). */
     private static final Set<StatusCommand> MODULE_COMMANDS = Set.of(
             StatusCommand.ROLL_CALL_DEPARTURE,
@@ -104,6 +110,7 @@ public class ResidentStatusService {
     private final JsonMapper json;
     private final ActorNames names;
     private final ObjectProvider<CurrentUser> currentUser;
+    private final FileApi files;
 
     ResidentStatusService(
             ResidentRepository residents,
@@ -115,7 +122,8 @@ public class ResidentStatusService {
             BusinessTime time,
             JsonMapper json,
             ActorNames names,
-            ObjectProvider<CurrentUser> currentUser) {
+            ObjectProvider<CurrentUser> currentUser,
+            FileApi files) {
         this.residents = residents;
         this.histories = histories;
         this.guard = guard;
@@ -126,6 +134,7 @@ public class ResidentStatusService {
         this.json = json;
         this.names = names;
         this.currentUser = currentUser;
+        this.files = files;
     }
 
     @BusinessCommand
@@ -331,6 +340,10 @@ public class ResidentStatusService {
                 basis == null ? null : basis.type(),
                 basis == null ? null : basis.id(),
                 evaluation.waiver() == null ? null : json.writeValueAsString(evaluation.waiver())));
+        if (basis != null && EVIDENCE_BASIS.equals(basis.type())) {
+            // tệp không tồn tại hoặc đã gắn thì ném lỗi và cả lệnh rollback (FR-047b, research H-13)
+            files.attach(basis.id(), DEATH_EVIDENCE_OWNER, row.getId());
+        }
         resident.changeStatus(to, now);
         residents.saveAndFlush(resident);
 
@@ -437,7 +450,7 @@ public class ResidentStatusService {
         if (command == StatusCommand.RECORD_DEATH) {
             boolean doctor = user.roles().contains(Role.DOCTOR);
             JsonNode evidence = details.get(EVIDENCE_FIELD);
-            boolean hasEvidence = evidence != null && evidence.isNumber();
+            boolean hasEvidence = evidence != null && evidence.isIntegralNumber();
             if (from == ResidentStatus.IN_RESIDENCE && !doctor) {
                 throw new BusinessException(
                         HttpStatus.FORBIDDEN,
@@ -449,7 +462,7 @@ public class ResidentStatusService {
                         "EVIDENCE_REQUIRED",
                         "Hành chính ghi nhận qua đời ngoài viện phải kèm giấy tờ bằng chứng (FR-047b)");
             }
-            return hasEvidence ? new BasisRef("EVIDENCE_FILE", evidence.longValue()) : null;
+            return hasEvidence ? new BasisRef(EVIDENCE_BASIS, evidence.longValue()) : null;
         }
         return null;
     }
