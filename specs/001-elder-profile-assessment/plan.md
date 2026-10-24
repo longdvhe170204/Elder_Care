@@ -452,6 +452,8 @@ Tổng theo tasks.md (số liệu 2026-10-23, trước Phase 9; số hiện hàn
 - **Đồng bộ develop**: merge `origin/develop` `b049b1f`; xung đột chỉ ở `DESIGN.md` (phiên bản 5.20.1 cho bố cục tab Danh mục, giữ 5.20.0 của 002) và `docs/team-plan.md` (giữ đủ dòng A và B).
 - **Kiểm thử cuối (MySQL 3307)**: `./mvnw clean verify`: 244 test đơn vị và kiến trúc, 936 test tích hợp, 0 lỗi; lần chạy đầu dừng ở `spotless:check` vì `ResidentStatusNotice.java` lệch dòng sau `sed`, đã `spotless:apply` và `verify -DskipTests` BUILD SUCCESS. Vitest 247, lint sạch, build đạt (sau `npm ci` vì develop thêm `qrcode.react`).
 
+- **Chốt trước PR (2026-10-24)**: merge `origin/develop` `cc9761f` (PR #32 của 016, xung đột chỉ ở `DESIGN.md`, phiên bản 5.21.1); `./mvnw clean verify` 244 đơn vị, 948 tích hợp, 0 lỗi, BUILD SUCCESS; 259 Vitest, lint, build đạt; 74/85 task `[x]`.
+
 ## Bàn giao cho Opus review cuối *(2026-10-24)*
 
 ### 1. Tổng tiến độ 85 task của Phase 1 → 10
