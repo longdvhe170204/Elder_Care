@@ -26,7 +26,9 @@ public class M09Retention implements RetentionProvider {
         SHIFT("M09.SHIFT", "work_shift", "ends_at"),
         SHIFT_STAFF("M09.SHIFT_STAFF", "shift_staff", ""),
         SHIFT_LEAD_HISTORY("M09.SHIFT_LEAD_HISTORY", "shift_lead_history", "ends_at"),
-        SHIFT_PUBLICATION("M09.SHIFT_PUBLICATION", "shift_publication", "published_at");
+        SHIFT_PUBLICATION("M09.SHIFT_PUBLICATION", "shift_publication", "published_at"),
+        FLOOR_MANAGER_ASSIGNMENT("M09.FLOOR_MANAGER_ASSIGNMENT", "floor_manager_assignment", "ends_at"),
+        ASSIGNMENT("M09.ASSIGNMENT", "staff_assignment", "COALESCE(actual_end_at,ends_at)");
         final String type;
         final String table;
         final String at;
@@ -89,6 +91,9 @@ public class M09Retention implements RetentionProvider {
                 " AND NOT EXISTS(SELECT 1 FROM work_shift s WHERE s.schedule_id=shift_schedule.id AND s.status NOT IN ('CLOSED','CANCELLED'))";
             case SHIFT_PUBLICATION ->
                 " AND NOT EXISTS(SELECT 1 FROM work_shift s WHERE s.schedule_id=shift_publication.schedule_id AND s.status NOT IN ('CLOSED','CANCELLED'))";
+            case FLOOR_MANAGER_ASSIGNMENT -> " AND status='ENDED'";
+            case ASSIGNMENT ->
+                " AND status IN ('ENDED','CANCELLED') AND NOT EXISTS(SELECT 1 FROM work_shift s WHERE s.id=staff_assignment.shift_id AND s.status NOT IN ('CLOSED','CANCELLED'))";
             case STAFF_DEPARTMENT, DEPARTMENT_LEAD_HISTORY, SHIFT_LEAD_HISTORY, SHIFT_STAFF -> "";
         };
         var args = new ArrayList<Object>();
@@ -134,6 +139,12 @@ public class M09Retention implements RetentionProvider {
                 refs(refs, "M09.SHIFT_STAFF", "SELECT id FROM shift_staff WHERE staff_id=?", id);
                 refs(refs, "M09.SHIFT_LEAD_HISTORY", "SELECT id FROM shift_lead_history WHERE staff_id=?", id);
                 refs(refs, "M09.SHIFT", "SELECT id FROM work_shift WHERE lead_staff_id=?", id);
+                refs(refs, "M09.ASSIGNMENT", "SELECT id FROM staff_assignment WHERE staff_id=?", id);
+                refs(
+                        refs,
+                        "M09.FLOOR_MANAGER_ASSIGNMENT",
+                        "SELECT id FROM floor_manager_assignment WHERE staff_id=?",
+                        id);
                 accounts.byStaff(id).ifPresent(a -> refs.add(new DataRef("M15.ACCOUNT", a.accountId())));
             }
             case CREDENTIAL -> refs(refs, "M09.CREDENTIAL", "SELECT id FROM credential WHERE replaces_id=?", id);
@@ -161,6 +172,7 @@ public class M09Retention implements RetentionProvider {
             case SHIFT -> {
                 refs(refs, "M09.SHIFT_STAFF", "SELECT id FROM shift_staff WHERE shift_id=?", id);
                 refs(refs, "M09.SHIFT_LEAD_HISTORY", "SELECT id FROM shift_lead_history WHERE shift_id=?", id);
+                refs(refs, "M09.ASSIGNMENT", "SELECT id FROM staff_assignment WHERE shift_id=?", id);
             }
             default -> {}
         }

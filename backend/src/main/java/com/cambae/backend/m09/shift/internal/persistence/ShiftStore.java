@@ -228,8 +228,12 @@ public class ShiftStore {
     }
 
     public List<ShiftMember> members(long id) {
+        return members(id, false);
+    }
+
+    public List<ShiftMember> members(long id, boolean lock) {
         return jdbc.query(
-                "SELECT * FROM shift_staff WHERE shift_id=? ORDER BY staff_id",
+                "SELECT * FROM shift_staff WHERE shift_id=? ORDER BY staff_id" + (lock ? " FOR UPDATE" : ""),
                 (r, i) -> new ShiftMember(
                         r.getLong("staff_id"),
                         r.getBoolean("on_duty_doctor"),
@@ -336,15 +340,21 @@ public class ShiftStore {
                         sql(shift.startsAt()),
                         actor);
         }
-        var snapshots = scheduleShifts(schedule.id()).stream()
+    }
+
+    public void savePublication(
+            long scheduleId,
+            Instant at,
+            List<com.cambae.backend.m09.assignment.internal.domain.StaffAssignment> assignments) {
+        var snapshots = scheduleShifts(scheduleId).stream()
                 .map(s -> Map.of("shift", s, "staff", members(s.id())))
                 .toList();
         insert(
                 "INSERT INTO shift_publication(schedule_id,published_at,content) VALUES (?,?,?)",
-                schedule.id(),
+                scheduleId,
                 sql(at),
                 json.writeValueAsString(Map.of(
-                        "schedule", schedule(schedule.id(), false), "shifts", snapshots, "assignments", List.of())));
+                        "schedule", schedule(scheduleId, false), "shifts", snapshots, "assignments", assignments)));
     }
 
     public void transition(long id, String status) {

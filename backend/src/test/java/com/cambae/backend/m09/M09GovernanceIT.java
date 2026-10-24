@@ -13,6 +13,7 @@ import com.cambae.backend.m15.retention.api.spi.RetentionProvider;
 import com.cambae.backend.support.FakePermissions;
 import com.cambae.backend.support.MySqlIntegrationTestBase;
 import com.cambae.backend.support.SwitchableUser;
+import com.cambae.backend.support.TestUsers;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -51,8 +52,11 @@ class M09GovernanceIT extends MySqlIntegrationTestBase {
     RetentionDatabase retentionDatabase;
 
     private long staff() {
-        jdbc.update("INSERT INTO staff_profile(full_name,position) VALUES ('[Nhân viên provider]','NURSING_STAFF')");
-        return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        long id = TestUsers.nextId();
+        jdbc.update(
+                "INSERT INTO staff_profile(id,full_name,position) VALUES (?,'[Nhân viên provider]','NURSING_STAFF')",
+                id);
+        return id;
     }
 
     private long credential(long staff) {

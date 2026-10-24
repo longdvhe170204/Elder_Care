@@ -12,9 +12,20 @@ import org.springframework.stereotype.Service;
 @Service
 class CareShiftLookup implements CareShiftPort {
     private final ShiftQueries query;
+    private final com.cambae.backend.m09.assignment.internal.service.AssignmentQueries assignments;
 
-    CareShiftLookup(ShiftQueries query) {
+    CareShiftLookup(
+            ShiftQueries query, com.cambae.backend.m09.assignment.internal.service.AssignmentQueries assignments) {
         this.query = query;
+        this.assignments = assignments;
+    }
+
+    public List<com.cambae.backend.m04.api.dto.CareAssignmentView> assignments(long resident, long shift) {
+        return assignments.careAssignments(resident, shift);
+    }
+
+    public List<Long> assignedNurses(long resident, Instant at) {
+        return assignments.assignedNurses(resident, at);
     }
 
     private CareShiftView view(WorkShift s) {

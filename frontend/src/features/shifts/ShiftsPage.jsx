@@ -23,6 +23,8 @@ import { formatDateTime } from '@/common/dateTime'
 import { PermissionsProvider, usePermissions } from '@/common/permissions/permissions'
 import { ShiftForm, Choice } from './ShiftForm'
 import { PublicationForm, ScheduleForm, TemplateForm } from './ScheduleForms'
+import { AssignmentPanel } from './AssignmentPanel'
+import { FloorManagerPanel } from './FloorManagerPanel'
 import { currentMonth, nextMonth, scopeLabel, STATUSES } from './shiftLabels'
 
 export function ShiftsPage(props) {
@@ -126,6 +128,8 @@ function ShiftWorkspace({ initialMonth }) {
     template: panel?.template ? 'Sửa mẫu ca' : 'Thêm mẫu ca',
     templates: 'Danh mục mẫu ca',
     publish: 'Xem trước công bố',
+    assignments: 'Phân công trong ca',
+    floorManagers: 'Giao Trưởng tầng',
   }
   return (
     <div className="mx-auto flex max-w-[1600px] flex-col gap-4">
@@ -155,6 +159,9 @@ function ShiftWorkspace({ initialMonth }) {
             <>
               <Button variant="outline" onClick={() => setPanel({ kind: 'templates' })}>
                 Mẫu ca
+              </Button>
+              <Button variant="outline" onClick={() => setPanel({ kind: 'floorManagers' })}>
+                Giao Trưởng tầng
               </Button>
               {can('SHIFT_SCHEDULE', 'CREATE') && (
                 <Button onClick={() => setPanel({ kind: 'schedule' })}>
@@ -240,6 +247,14 @@ function ShiftWorkspace({ initialMonth }) {
                       <Button size="sm" variant="ghost" onClick={() => openShift(shift)} disabled={actionBusy}>
                         Chi tiết
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openShift(shift, 'assignments')}
+                        disabled={actionBusy}
+                      >
+                        Phân công
+                      </Button>
                       {shift.allowedCommands?.includes('edit') && (
                         <Button
                           size="sm"
@@ -269,7 +284,7 @@ function ShiftWorkspace({ initialMonth }) {
         )}
       </section>
       <Sheet open={!!panel} onOpenChange={(open) => !open && setPanel(null)}>
-        <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
+        <SheetContent className="overflow-x-hidden overflow-y-auto data-[side=right]:w-full data-[side=right]:sm:max-w-2xl">
           <SheetHeader>
             <SheetTitle>{titles[panel?.kind]}</SheetTitle>
             <SheetDescription>
@@ -289,6 +304,16 @@ function ShiftWorkspace({ initialMonth }) {
               />
             )}
             {panel?.kind === 'schedule' && <ScheduleForm month={month} onDone={done} />}
+            {panel?.kind === 'assignments' && (
+              <AssignmentPanel key={panel.shift.id} shift={panel.shift} staff={staff} />
+            )}
+            {panel?.kind === 'floorManagers' && (
+              <FloorManagerPanel
+                staff={staff}
+                canCreate={can('SHIFT_SCHEDULE', 'CREATE')}
+                canUpdate={can('SHIFT_SCHEDULE', 'UPDATE')}
+              />
+            )}
             {panel?.kind === 'template' && (
               <TemplateForm key={panel.template?.id ?? 'new'} template={panel.template} onDone={done} onStale={done} />
             )}

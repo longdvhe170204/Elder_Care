@@ -10,6 +10,29 @@ public class FakeAlertStaff implements AlertStaffPort {
 
     private final Map<Long, Entry> shifts = new LinkedHashMap<>();
     private final Map<Long, Long> managers = new HashMap<>();
+    private final Map<Long, List<com.cambae.backend.m05.api.dto.AssignmentTraceView>> assignments = new HashMap<>();
+    private final Map<Long, Long> nurses = new HashMap<>();
+
+    public FakeAlertStaff assignments(long resident, List<com.cambae.backend.m05.api.dto.AssignmentTraceView> rows) {
+        assignments.put(resident, List.copyOf(rows));
+        return this;
+    }
+
+    public FakeAlertStaff nurse(long resident, long staff) {
+        nurses.put(resident, staff);
+        return this;
+    }
+
+    public Optional<Long> assignedNurse(long resident, Instant at) {
+        return Optional.ofNullable(nurses.get(resident)).filter(staff -> inProgressShiftMember(staff, at));
+    }
+
+    public List<com.cambae.backend.m05.api.dto.AssignmentTraceView> assignmentsInRange(
+            long resident, Instant from, Instant to) {
+        return assignments.getOrDefault(resident, List.of()).stream()
+                .filter(a -> a.from().isBefore(to) && a.to().isAfter(from))
+                .toList();
+    }
 
     public FakeAlertStaff shift(AlertShiftView view, List<Long> staff, List<Long> doctors) {
         shifts.put(view.id(), new Entry(view, List.copyOf(staff), List.copyOf(doctors)));

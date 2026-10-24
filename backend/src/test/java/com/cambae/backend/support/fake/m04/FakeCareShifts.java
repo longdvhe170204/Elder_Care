@@ -16,6 +16,32 @@ public class FakeCareShifts implements CareShiftPort {
     private final Map<Long, Entry> shifts = new LinkedHashMap<>();
     private final Map<Long, Qualification> qualifications = new HashMap<>();
 
+    private record AssignmentKey(long resident, long shift) {}
+
+    private final Map<AssignmentKey, List<com.cambae.backend.m04.api.dto.CareAssignmentView>> assignments =
+            new HashMap<>();
+
+    public FakeCareShifts assignments(
+            long resident, long shift, List<com.cambae.backend.m04.api.dto.CareAssignmentView> rows) {
+        assignments.put(new AssignmentKey(resident, shift), List.copyOf(rows));
+        return this;
+    }
+
+    public List<com.cambae.backend.m04.api.dto.CareAssignmentView> assignments(long resident, long shift) {
+        return assignments.getOrDefault(new AssignmentKey(resident, shift), List.of());
+    }
+
+    public List<Long> assignedNurses(long resident, Instant at) {
+        return shifts.values().stream()
+                .filter(e ->
+                        !e.view().startsAt().isAfter(at) && e.view().endsAt().isAfter(at))
+                .flatMap(e -> assignments(resident, e.view().id()).stream())
+                .filter(a -> a.assignedNurse())
+                .map(a -> a.staffId())
+                .distinct()
+                .toList();
+    }
+
     public FakeCareShifts shift(CareShiftView view, List<Long> members, Long lead) {
         shifts.put(view.id(), new Entry(view, List.copyOf(members), lead));
         return this;

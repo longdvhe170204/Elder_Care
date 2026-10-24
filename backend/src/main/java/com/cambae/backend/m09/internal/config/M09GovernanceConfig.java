@@ -103,6 +103,18 @@ class M09GovernanceConfig {
     }
 
     @Bean
+    ScopeAssignmentProvider assignmentScope(
+            com.cambae.backend.m09.assignment.internal.persistence.AssignmentStore assignments, ShiftStore shifts) {
+        return new AssignmentScopeAssignment("M09.ASSIGNMENT", assignments, shifts);
+    }
+
+    @Bean
+    ScopeAssignmentProvider floorManagerAssignmentScope(
+            com.cambae.backend.m09.assignment.internal.persistence.AssignmentStore assignments, ShiftStore shifts) {
+        return new AssignmentScopeAssignment("M09.FLOOR_MANAGER_ASSIGNMENT", assignments, shifts);
+    }
+
+    @Bean
     RetentionProvider shiftTemplateRetention(
             JdbcTemplate jdbc,
             RetentionDatabase database,
@@ -170,6 +182,26 @@ class M09GovernanceConfig {
             AccountApi accounts,
             ProfessionalActivityApi activities) {
         return new M09Retention(kind, jdbc, database, time, accounts, activities);
+    }
+
+    @Bean
+    RetentionProvider assignmentRetention(
+            JdbcTemplate jdbc,
+            RetentionDatabase database,
+            BusinessTime time,
+            AccountApi accounts,
+            ProfessionalActivityApi activities) {
+        return retention(M09Retention.Kind.ASSIGNMENT, jdbc, database, time, accounts, activities);
+    }
+
+    @Bean
+    RetentionProvider floorManagerAssignmentRetention(
+            JdbcTemplate jdbc,
+            RetentionDatabase database,
+            BusinessTime time,
+            AccountApi accounts,
+            ProfessionalActivityApi activities) {
+        return retention(M09Retention.Kind.FLOOR_MANAGER_ASSIGNMENT, jdbc, database, time, accounts, activities);
     }
 
     @Bean

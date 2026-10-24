@@ -10,6 +10,22 @@ public class FakeNursingShifts implements NursingShiftPort {
 
     private final Map<Long, Entry> shifts = new LinkedHashMap<>();
 
+    private record Assignment(long resident, long staff, Instant from, Instant to) {}
+
+    private final List<Assignment> assignments = new ArrayList<>();
+
+    public FakeNursingShifts assign(long resident, long staff, Instant from, Instant to) {
+        assignments.add(new Assignment(resident, staff, from, to));
+        return this;
+    }
+
+    public Optional<Long> assignedTo(long resident, Instant at) {
+        return assignments.stream()
+                .filter(a -> a.resident() == resident && !a.from().isAfter(at) && a.to().isAfter(at))
+                .map(Assignment::staff)
+                .findFirst();
+    }
+
     public FakeNursingShifts shift(NursingShiftView view, List<Long> nurses) {
         shifts.put(view.id(), new Entry(view, List.copyOf(nurses)));
         return this;

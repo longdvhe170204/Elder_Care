@@ -976,6 +976,43 @@ Tên bổ sung cho T010–T016; chỉ mục 14 thay đổi. Người dùng duy�
 
 `ShiftSchedule.version` lấy từ danh sách lịch, `ShiftTemplate.version` từ danh mục mẫu; `Shift.version` và ETag từ đọc chi tiết. If-Match là số phiên bản trong dấu ngoặc kép. Đây là bổ sung hợp đồng đã duyệt, không thêm đường dẫn. Khoảng ngày `/me/shifts` dùng `[from, to)` theo múi giờ Việt Nam.
 
+### 14.9. Phân công Phase 4 (2026-10-24)
+
+Người dùng đã duyệt API tối thiểu của B/C/D, `AssignmentView.scopeEndsAt` của A và endpoint xem trước. Chủ module review tên API của mình trước khi gộp; các tên mới được ghi trong mục 14 của 008.
+
+| Tên logic | Mã |
+| --- | --- |
+| `tang_ca_khoa / giao_truong_tang / phan_cong` | `floor_scope_lock / floor_manager_assignment / staff_assignment` |
+| `loai_doi_tuong / doi_tuong_id / loai_cong_viec_id` | `target_type / target_id / task_type_id` |
+| `chinh_ho_tro / dieu_duong_phu_trach / ket_thuc_thuc_te / ly_do_ket_thuc / nguon` | `assignment_kind / assigned_nurse / actual_end_at / end_reason / source` |
+| `nguoi_giao / đã nhắc phân công khi công bố` | `assigned_by / publication_assignments_notified_at` |
+| `PhanCong / đầu vào / GiaoTruongTang / XacDinhNhanVienChinh` | `StaffAssignment / AssignmentInput / FloorManagerAssignment / PrimaryAssigneeResolver` (`TargetRef`) |
+| Kho / lệnh / nguồn / truy vấn / vòng đời / nhắc phân công | `AssignmentStore / AssignmentService / AssignmentSources / AssignmentQueries / AssignmentLifecycle / AssignmentReminders` |
+| Lệnh giao Trưởng tầng / provider phạm vi | `FloorManagerService / AssignmentScopeAssignment` |
+| Phụ trách bộ phận / kho / lệnh / bản cài NhiemVuApi | `DepartmentDuty / DepartmentDutyStore / DepartmentDutyService / DutyDirectory` |
+| `NguoiCaoTuoiApi.laTrangThaiCuoi / NguoiCaoTuoiDaChuyenTrangThai` (001) | `ResidentApi.isFinalStatus / ResidentStatusChanged`; dùng đúng API và enum `ResidentStatus`/`StatusCommand` của B trên develop |
+| Tác động khi người cao tuổi sang trạng thái cuối | `ResidentFinalAssignmentEffects` |
+| `ViTriApi.taiThoiDiem / CoCauViTriApi / LichSuViTriApi` (003) | `LocationApi.at / LocationStructureApi / LocationHistoryApi` (`atLocation`, `inDay`, `byResident`); bộ lọc vị trí null: toàn viện |
+| Vị trí / phòng / tầng / khu vực / dòng lịch sử vị trí | `LocationView / RoomView / FloorView / AreaView / LocationStay` (`AbsenceInterval`) |
+| `LoaiCongViecApi / YeuCauLoaiCongViec / KeHoachChamSocApi / CongViecCaApi` (005) | `TaskTypeApi / TaskRequirements / CarePlanApi / ShiftTaskApi` |
+| `yeuCau / loaiCongViecHienHanh / khiDoiPhanCong / khiKetThucPhanCong` | `requirements / currentTaskTypes / onAssignmentChanged / onAssignmentEnded` |
+| `PhanCongChamSocView / PhanCongTruyVetView` (005/007) | `CareAssignmentView / AssignmentTraceView` |
+| Hàm SPI phân công của 005/006/007 | `assignments / assignedNurses` (005), `assignedTo` (006), `assignedNurse / assignmentsInRange` (007) |
+| Bản giả nguồn dùng chung | `FakeResidents / FakeM01Config`, `FakeLocations` trong `FakeM03Config`, `FakeCareRequirements` trong `FakeM04Config`; mở rộng các fake SPI Phase 3 hiện có |
+| Mốc ngừng cấp phạm vi khi kết thúc sớm | `AssignmentView.scopeEndsAt`; giữ constructor bảy tham số, không cộng CFG-M15-07 sau mốc này |
+| Xem trước phân công | `POST /shifts/{id}/assignments/preview`: `NewAssignment` → `ResultWithWarnings` không có `id` |
+| HTTP phân công / yêu cầu / phản hồi | `AssignmentController / AssignmentRequests / AssignmentResponses`; schema sao chép `CopyAssignmentsRequest / CopyAssignmentsResult` |
+| Web phân công / giao Trưởng tầng | `features/shifts/AssignmentPanel / FloorManagerPanel` |
+| `M09.PHAN_CONG / M09.GIAO_TRUONG_TANG` | `M09.ASSIGNMENT / M09.FLOOR_MANAGER_ASSIGNMENT` |
+| Nhật ký lập / hủy / kết thúc / đổi trạng thái phân công | `ASSIGNMENT_CREATED / ASSIGNMENT_CANCELLED / ASSIGNMENT_ENDED / ASSIGNMENT_STATUS_CHANGED` |
+| Nhật ký kết thúc theo trạng thái người cao tuổi | `ASSIGNMENT_ENDED_BY_RESIDENT_STATUS` |
+| Nhật ký giao / kết thúc / đổi trạng thái giao Trưởng tầng | `FLOOR_MANAGER_ASSIGNED / FLOOR_MANAGER_ASSIGNMENT_ENDED / FLOOR_MANAGER_ASSIGNMENT_STATUS_CHANGED` |
+| Nhật ký thay Phụ trách bộ phận | `DEPARTMENT_LEAD_REPLACED` |
+| Thiếu nguồn / phân công không hợp lệ / đối tượng không hợp lệ | `ASSIGNMENT_SOURCE_UNAVAILABLE / INVALID_ASSIGNMENT / INVALID_ASSIGNMENT_TARGET` |
+| Thiếu chứng chỉ / trùng nhân viên chính / công việc không đủ điều kiện | `ASSIGNMENT_CREDENTIAL_REQUIRED / PRIMARY_ASSIGNMENT_OVERLAP / UNQUALIFIED_TASK_TYPES` |
+| Giao Trưởng tầng không hợp lệ / chồng thời gian / người thay bộ phận không hợp lệ | `INVALID_FLOOR_MANAGER_ASSIGNMENT / FLOOR_MANAGER_ASSIGNMENT_OVERLAP / INVALID_REPLACEMENT_DEPARTMENT_LEAD` |
+| Dữ liệu nhiều người chính / nhiều Trưởng tầng / nhiều bộ phận | `MULTIPLE_PRIMARY_ASSIGNEES / MULTIPLE_FLOOR_MANAGERS / MULTIPLE_DEPARTMENTS` |
+
 ## 15. Feature 009 (`009-notification-service`, A) *(bổ sung 2026-10-21, khi dịch `contracts/api-009.yaml`)*
 
 Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với mã (R-03). Khuôn `common.notification` đã dịch ở mục 6.5 (`NotificationRequest`, `NotificationLevel`, `InformationType`, `RecipientGroup`, `Substitution`, `InformationSubject`, `Q354Case`) giữ nguyên.

@@ -13,10 +13,24 @@ import org.springframework.stereotype.Service;
 class AlertStaffLookup implements AlertStaffPort {
     private final ShiftQueries query;
     private final ObjectProvider<DutyApi> duties;
+    private final com.cambae.backend.m09.assignment.internal.service.AssignmentQueries assignments;
 
-    AlertStaffLookup(ShiftQueries query, ObjectProvider<DutyApi> duties) {
+    AlertStaffLookup(
+            ShiftQueries query,
+            ObjectProvider<DutyApi> duties,
+            com.cambae.backend.m09.assignment.internal.service.AssignmentQueries assignments) {
         this.query = query;
         this.duties = duties;
+        this.assignments = assignments;
+    }
+
+    public Optional<Long> assignedNurse(long resident, Instant at) {
+        return assignments.assignedNurses(resident, at).stream().findFirst();
+    }
+
+    public List<com.cambae.backend.m05.api.dto.AssignmentTraceView> assignmentsInRange(
+            long resident, Instant from, Instant to) {
+        return assignments.trace(resident, from, to);
     }
 
     private AlertShiftView view(WorkShift s) {

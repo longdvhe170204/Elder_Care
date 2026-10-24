@@ -45,22 +45,22 @@ class ShiftLifecycleIT extends MySqlIntegrationTestBase {
     }
 
     private long fixture(boolean handover, String day) {
-        jdbc.update(
+        long template = AssignmentFixtures.insert(
+                jdbc,
                 "INSERT INTO shift_template(name,start_time,end_time,scope_type,requires_handover) VALUES ('[Vòng đời ca]','07:00','15:00','FACILITY',?)",
                 handover);
-        long template = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        jdbc.update(
+        long schedule = AssignmentFixtures.insert(
+                jdbc,
                 "INSERT INTO shift_schedule(month,scope_type,status) VALUES (?,'FACILITY','PUBLISHED')",
                 day.substring(0, 7));
-        long schedule = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        jdbc.update(
+        return AssignmentFixtures.insert(
+                jdbc,
                 "INSERT INTO work_shift(schedule_id,template_id,starts_at,ends_at,scope_type,requires_handover,status) VALUES (?,?,CONCAT(?,' 00:00'),CONCAT(?,' 08:00'),'FACILITY',?,'PUBLISHED')",
                 schedule,
                 template,
                 day,
                 day,
                 handover);
-        return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
     }
 
     private String status(long id) {

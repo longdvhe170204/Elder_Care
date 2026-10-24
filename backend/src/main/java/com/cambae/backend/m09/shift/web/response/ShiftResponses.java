@@ -95,7 +95,8 @@ public final class ShiftResponses {
             long version) {}
 
     @Schema(name = "ResultWithWarnings")
-    public record Result(long id, List<M09Warning> warnings) {}
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    public record Result(Long id, List<M09Warning> warnings) {}
 
     public record InvalidAssignment(long assignmentId, String reason) {}
 

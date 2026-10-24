@@ -41,8 +41,8 @@ class ShiftGovernanceIT extends MySqlIntegrationTestBase {
     @Test
     void FR_051_closedShiftGraphHasScopeReferencesAndCanBePurgedInDependencyOrder() {
         long floor = TestUsers.nextId();
-        jdbc.update("INSERT INTO staff_profile(full_name,position) VALUES ('[Lưu giữ ca]','Điều dưỡng')");
-        long staff = id();
+        long staff = TestUsers.nextId();
+        jdbc.update("INSERT INTO staff_profile(id,full_name,position) VALUES (?,'[Lưu giữ ca]','Điều dưỡng')", staff);
         jdbc.update(
                 "INSERT INTO shift_template(name,start_time,end_time,scope_type,status,created_at) VALUES ('[Lưu giữ ca]','07:00','15:00','FLOOR','INACTIVE','2000-01-01')");
         long template = id();

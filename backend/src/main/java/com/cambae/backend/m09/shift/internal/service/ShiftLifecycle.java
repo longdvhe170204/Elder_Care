@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 /** T014: tác vụ của khung theo phút; chạy bù xét mọi ca tới hạn, không tạo ca hoặc bàn giao. */
 @Service
+@org.springframework.core.annotation.Order(20)
 public class ShiftLifecycle implements M09TimedTask {
     private final ShiftStore shifts;
     private final ObjectProvider<ShiftHandoverState> handovers;
