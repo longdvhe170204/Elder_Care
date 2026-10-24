@@ -14,6 +14,7 @@ import com.cambae.backend.m15.account.api.dto.FailedLayer;
 import com.cambae.backend.m15.account.api.dto.Function;
 import com.cambae.backend.m15.account.api.dto.Operation;
 import com.cambae.backend.m15.account.api.dto.PermissionKey;
+import com.cambae.backend.m15.account.api.dto.ReportChannel;
 import com.cambae.backend.m15.account.api.dto.ScopeFilter;
 import com.cambae.backend.m15.account.api.spi.AssignmentApi;
 import com.cambae.backend.m15.account.api.spi.AssignmentKind;
@@ -73,13 +74,30 @@ public class ReportScopeService {
 
     /** Phạm vi dashboard (trong ngày, ca hiện tại). */
     public ReportScope dashboard(CurrentUser user, MetricGroup group) {
-        Set<GroupScope> kinds = allowedKinds(user, group);
+        Set<GroupScope> kinds = allowedKinds(user, group, ReportChannel.DASHBOARD);
         try {
             ScopeFilter current = scopes.filter(user, KEY);
-            if (kinds.contains(GroupScope.FACILITY) && current.facilityWide()) {
+            if (!current.facilityWide()) {
+                return ReportScope.of(List.of(Grant.always(current)));
+            }
+            if (kinds.contains(GroupScope.FACILITY)) {
                 return ReportScope.FACILITY;
             }
-            return ReportScope.of(List.of(Grant.always(current)));
+            // Ô toàn viện bị hạ cho riêng nhóm này (FR-010a): phân công đang góp vào phạm vi lúc xem
+            AssignmentApi api = assignments.getIfAvailable();
+            if (api == null || user.staffId().isEmpty()) {
+                return ReportScope.EMPTY;
+            }
+            Instant now = time.now();
+            Duration margin = parameters.read(ParameterCode.CFG_M15_07).asDuration();
+            List<Grant> grants = new ArrayList<>();
+            for (AssignmentView a : api.history(user.staffId().get(), now.minus(margin), now.plus(margin))) {
+                Grant g = duringShift(a, margin, now);
+                if (!now.isBefore(g.from()) && now.isBefore(g.to())) {
+                    grants.add(new Grant(g.floorAreaIds(), g.roomIds(), g.residentIds(), null, null));
+                }
+            }
+            return ReportScope.of(grants);
         } catch (InvalidPermissionDataException e) {
             throw sourceDataError();
         }
@@ -87,7 +105,7 @@ public class ReportScopeService {
 
     /** Phạm vi báo cáo khoảng {@code [from, to)}. */
     public ReportScope period(CurrentUser user, MetricGroup group, Instant from, Instant to) {
-        Set<GroupScope> kinds = allowedKinds(user, group);
+        Set<GroupScope> kinds = allowedKinds(user, group, ReportChannel.REPORT);
         try {
             if (kinds.contains(GroupScope.FACILITY) && scopes.filter(user, KEY).facilityWide()) {
                 return ReportScope.FACILITY;
@@ -117,9 +135,14 @@ public class ReportScopeService {
         }
     }
 
-    private Set<GroupScope> allowedKinds(CurrentUser user, MetricGroup group) {
-        Set<GroupScope> kinds = MetricGroupAccess.scopes(user.roles(), group);
-        if (kinds.isEmpty() || !permissions.permissions(user).contains(KEY)) {
+    private Set<GroupScope> allowedKinds(CurrentUser user, MetricGroup group, ReportChannel channel) {
+        if (!permissions.permissions(user).contains(KEY)) {
+            throw new PermissionDeniedException(
+                    "PERMISSION_DENIED", "Không có quyền xem dashboard, báo cáo", Map.of("failedLayer", "ROLE"));
+        }
+        Set<GroupScope> kinds =
+                MetricGroupAccess.scopes(user.roles(), group, channel, permissions.metricGroupRestrictions(user));
+        if (kinds.isEmpty()) {
             throw new PermissionDeniedException(
                     "PERMISSION_DENIED", "Không có quyền xem nhóm chỉ tiêu", Map.of("failedLayer", "ROLE"));
         }

@@ -19,7 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
  *       thay tên thuốc (Q-133).
  * </ul>
  *
- * Dòng rút gọn xét nhóm thông tin theo tầng/khu lúc phát sinh của bản ghi, vì người cao tuổi đã ngoài phạm vi hiện hành.
+ * Dòng rút gọn xét nhóm thông tin theo vai trò của người xem, không xét phạm vi hiện hành (FR-012: "chỉ khi vai trò của
+ * người xem được xem nhóm trường đó"; {@code FieldVisibilityApi.canViewByRole}).
  */
 @Service
 @Transactional(readOnly = true)
@@ -48,10 +49,11 @@ public class DetailRowPolicy {
             result = result.asReduced();
         }
         if (row.resultGroup() != null) {
-            Target target = reduced
-                    ? new Target(null, null, null, row.floorAreaId())
-                    : new Target(null, null, row.residentId(), row.floorAreaId());
-            if (fields.canView(user, row.resultGroup(), target) != Visibility.FULL) {
+            Visibility level = reduced
+                    ? fields.canViewByRole(user, row.resultGroup())
+                    : fields.canView(
+                            user, row.resultGroup(), new Target(null, null, row.residentId(), row.floorAreaId()));
+            if (level != Visibility.FULL) {
                 result = result.withResult(row.restrictedResult());
             }
         }

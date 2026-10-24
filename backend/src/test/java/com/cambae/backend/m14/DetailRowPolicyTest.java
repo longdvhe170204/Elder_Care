@@ -61,8 +61,19 @@ class DetailRowPolicyTest {
         }
     };
 
-    private final FieldVisibilityApi fields =
-            (user, group, target) -> group == InfoGroup.MEDICATION ? medication : Visibility.FULL;
+    private Visibility medicationByRole = Visibility.FULL;
+
+    private final FieldVisibilityApi fields = new FieldVisibilityApi() {
+        @Override
+        public Visibility canView(CurrentUser user, InfoGroup group, Target target) {
+            return group == InfoGroup.MEDICATION ? medication : Visibility.FULL;
+        }
+
+        @Override
+        public Visibility canViewByRole(CurrentUser user, InfoGroup group) {
+            return group == InfoGroup.MEDICATION ? medicationByRole : Visibility.FULL;
+        }
+    };
 
     private static DetailRow dose(long residentId) {
         return new DetailRow(
@@ -105,6 +116,17 @@ class DetailRowPolicyTest {
         assertThat(row.canOpenRecord()).isFalse();
         assertThat(row.resident()).isEqualTo("Nguyễn Văn A");
         assertThat(row.floorArea()).isEqualTo("Tầng 1");
+    }
+
+    @Test
+    void FR_012_Q_196_reducedRow_resultByRoleNotByCurrentScope() {
+        medication = Visibility.NONE; // ngoài phạm vi hiện hành thì canView không cho
+        assertThat(policy().apply(USER, List.of(dose(777))).getFirst().result())
+                .containsEntry("medication", "Amlodipin 5 mg");
+
+        medicationByRole = Visibility.NONE;
+        assertThat(policy().apply(USER, List.of(dose(777))).getFirst().result())
+                .containsExactly(Map.entry("itemCode", "VT-001"));
     }
 
     @Test
