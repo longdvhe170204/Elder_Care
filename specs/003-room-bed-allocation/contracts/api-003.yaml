@@ -914,29 +914,31 @@ paths:
           $ref: "#/components/responses/Problem"
       x-implementation-phase: 3
       x-implementation-note: Đổi phòng chờ đồng bộ tài sản 019; người dùng giữ nguyên port hiện tại.
-  /giuong/{id}/tam-ngung-su-dung:
+  /beds/{id}/suspend:
     post:
-      tags: [giuong]
+      tags: [beds]
       summary: Tạm ngừng sử dụng (Quản lý viện)
       description: Chỉ từ Trống, không có phân bổ tương lai, không mang dấu "chờ chuyển người"; bắt buộc lý do (Q-246).
       x-fr: [FR-011]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
       responses:
-        '200': { $ref: '#/components/responses/GiuongOk' }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { $ref: '#/components/responses/LoiChan' }
-        '422': { $ref: '#/components/responses/Loi' }
-  /giuong/{id}/su-dung-lai:
+        '200': { $ref: '#/components/responses/BedStateChanged' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/BlockedProblem' }
+        '422': { $ref: '#/components/responses/Problem' }
+      x-implementation-phase: 6
+  /beds/{id}/reuse:
     post:
-      tags: [giuong]
+      tags: [beds]
       summary: Sử dụng lại (Quản lý viện)
       description: Tạm ngừng sử dụng → Chờ sẵn sàng, hạn xác nhận CFG-M03-04; không sinh công việc nào (Q-261, Q-282).
       x-fr: [FR-011, FR-044]
       x-br: [BR-M03-09]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { $ref: '#/components/responses/GiuongOk' }, '409': { $ref: '#/components/responses/LoiChan' } }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses: { '200': { $ref: '#/components/responses/BedStateChanged' }, '409': { $ref: '#/components/responses/BlockedProblem' } }
+      x-implementation-phase: 6
   /giuong/{id}/dieu-kien-xac-nhan-san-sang:
     get:
       tags: [giuong]
@@ -970,13 +972,14 @@ paths:
         '200': { $ref: '#/components/responses/GiuongOk' }
         '403': { $ref: '#/components/responses/Loi' }
         '409': { $ref: '#/components/responses/LoiChan' }
-  /giuong/{id}/lich-su-trang-thai:
+  /beds/{id}/state-history:
     get:
-      tags: [giuong]
+      tags: [beds]
       summary: Lịch sử trạng thái giường
       x-fr: [FR-016, FR-016a]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/Sau' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DongLichSuGiuong' } } } } } }
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/After' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BedStateHistoryRow' } } } } } }
+      x-implementation-phase: 6
   /giuong/{id}/lich-su-trang-thai/{lichSuId}/dinh-chinh:
     post:
       tags: [giuong]
@@ -1514,6 +1517,7 @@ components:
     Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
     IfMatch: { name: If-Match, in: header, required: true, schema: { type: string } }
     IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
+    After: { name: after, in: query, description: Khóa trang kế tiếp, schema: { type: string } }
     Sau: { name: sau, in: query, description: Khóa trang kế tiếp, schema: { type: string } }
     TrangThaiDanhMuc: { name: trangThai, in: query, schema: { type: string, enum: [HIEU_LUC, NGUNG_HIEU_LUC] } }
   headers:
@@ -1600,6 +1604,9 @@ components:
     LoiChan:
       description: 'DIEU_KIEN_CHUA_THOA (đủ danh sách, mỗi phần tử có mã PB_* hoặc mã chặn khác), CHUYEN_KHONG_HOP_LE, DA_CO_PHAN_BO'
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
+    BedStateChanged:
+      description: Đã chuyển trạng thái giường
+      content: { application/json: { schema: { $ref: '#/components/schemas/Bed' } } }
     GiuongOk:
       description: Đã chuyển trạng thái giường
       content: { application/json: { schema: { $ref: '#/components/schemas/Giuong' } } }
@@ -2136,6 +2143,47 @@ components:
         canKhuKhuan: { type: boolean }
         nguoiVuaRoi: { $ref: '#/components/schemas/NguoiNgan' }
         dieuKienChuaThoa: { type: array, items: { $ref: '#/components/schemas/DieuKien' } }
+    BedStateHistoryRow:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        from:
+          $ref: "#/components/schemas/BedStatus"
+        to:
+          $ref: "#/components/schemas/BedStatus"
+        event:
+          type: string
+        occurredAt:
+          type: string
+          format: date-time
+        plannedAt:
+          type: string
+          format: date-time
+        executedLate:
+          type: boolean
+        actor:
+          type: string
+          description: Họ tên hoặc "Bộ lập lịch hệ thống"
+        reason:
+          type: string
+        basis:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+            type:
+              type: string
+        disinfected:
+          type: boolean
+        ppeUsed:
+          type: boolean
+        note:
+          type: string
+        corrected:
+          type: boolean
     DongLichSuGiuong:
       type: object
       properties:

@@ -23,6 +23,8 @@ class SchedulerScopeArchTest {
 
     /** Job → loại việc FR-010a cho phép. */
     static final Map<String, String> ALLOWED = Map.of(
+            "com.cambae.backend.m03.scheduling.HoldExpiryJob",
+                    "chuyển trạng thái hết hạn giữ hồ sơ chờ và báo hạn giữ người vắng (003 FR-015)",
             "com.cambae.backend.m15.approval.scheduling.ApplyDueRequestsJob",
                     "áp dụng yêu cầu đã duyệt khi tới ngày hiệu lực (FR-037)",
             "com.cambae.backend.m15.approval.scheduling.RemindPendingRequestsJob", "nhắc, báo (FR-031a)",

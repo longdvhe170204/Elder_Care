@@ -54,6 +54,24 @@ public class BedQueries {
         return access(store.details(id).orElseThrow(NotFoundException::new));
     }
 
+    @RequiresPermission(function = Function.ROOM_BED_CONFIGURATION, operation = Operation.VIEW)
+    public java.util.List<com.cambae.backend.m03.internal.bed.domain.BedHistoryEntry> history(long id, String after) {
+        detail(id);
+        long cursor = 0;
+        if (after != null) {
+            try {
+                cursor = Long.parseLong(after);
+                if (cursor < 0) throw new NumberFormatException();
+            } catch (NumberFormatException error) {
+                throw new com.cambae.backend.common.error.BusinessException(
+                        org.springframework.http.HttpStatus.UNPROCESSABLE_CONTENT,
+                        "INVALID_CURSOR",
+                        "Khóa trang lịch sử không hợp lệ");
+            }
+        }
+        return store.history(id, cursor);
+    }
+
     private BedDetails access(BedDetails d) {
         var source = assets.getIfAvailable();
         Boolean awaiting = source == null ? null : source.awaitingResidentTransfer(d.id());

@@ -117,6 +117,15 @@ export const getBedsById = (params) => request('GET', '/beds/{id}', params)
 /** Sửa mã giường; đổi phòng khi giường chưa từng có phân bổ (FR-003, FR-007) */
 export const putBedsById = (params) => request('PUT', '/beds/{id}', params)
 
+/** Tạm ngừng sử dụng (Quản lý viện) (FR-011) */
+export const postBedsByIdSuspend = (params) => request('POST', '/beds/{id}/suspend', params)
+
+/** Sử dụng lại (Quản lý viện) (FR-011, FR-044, BR-M03-09) */
+export const postBedsByIdReuse = (params) => request('POST', '/beds/{id}/reuse', params)
+
+/** Lịch sử trạng thái giường (FR-016, FR-016a) */
+export const getBedsByIdStateHistory = (params) => request('GET', '/beds/{id}/state-history', params)
+
 /** Danh sách giường thỏa FR-018 cho một người cao tuổi (FR-018, FR-021, FR-022, BR-M03-01) */
 export const getBedAllocationsSuitableBeds = (params) => request('GET', '/bed-allocations/suitable-beds', params)
 

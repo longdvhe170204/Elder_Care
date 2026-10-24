@@ -110,6 +110,53 @@ public class BedService {
     }
 
     @RequiresPermission(function = Function.ROOM_BED_CONFIGURATION, operation = Operation.UPDATE)
+    @BusinessCommand
+    @Transactional
+    public void suspend(long id, com.cambae.backend.common.Reason reason) {
+        if (reason == null) throw new com.cambae.backend.common.error.ReasonRequiredException();
+        beds.lock(id);
+        var source = assets.getIfAvailable();
+        if (source == null)
+            throw new BusinessException(
+                    HttpStatus.SERVICE_UNAVAILABLE, "SOURCE_UNAVAILABLE", "Chưa thể kiểm dấu tài sản giường");
+        var failures = new java.util.ArrayList<UnmetCondition>();
+        if (beds.hasFutureAllocation(id)) failures.add(new UnmetCondition("FR-011", "Giường có phân bổ tương lai"));
+        if (source.awaitingResidentTransfer(id))
+            failures.add(new UnmetCondition("BR-M03-15", "Giường đang chờ chuyển người"));
+        if (!failures.isEmpty()) throw new ConditionNotMetException(failures);
+        changeAvailability(id, BedEvent.SUSPEND, reason);
+    }
+
+    @RequiresPermission(function = Function.ROOM_BED_CONFIGURATION, operation = Operation.UPDATE)
+    @BusinessCommand
+    @Transactional
+    public void reuse(long id, com.cambae.backend.common.Reason reason) {
+        if (reason == null) throw new com.cambae.backend.common.error.ReasonRequiredException();
+        beds.lock(id);
+        changeAvailability(id, BedEvent.REUSE, reason);
+    }
+
+    private void changeAvailability(long id, BedEvent event, com.cambae.backend.common.Reason reason) {
+        state.transition(
+                id,
+                new BedTransition(
+                        event,
+                        reason,
+                        null,
+                        "BED",
+                        id,
+                        null,
+                        user.accountId(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        false,
+                        false));
+    }
+
+    @RequiresPermission(function = Function.ROOM_BED_CONFIGURATION, operation = Operation.UPDATE)
     @BusinessCommand(requiresReason = false)
     @Transactional
     public com.cambae.backend.m03.internal.bed.domain.Bed update(long id, String ifMatch, long roomId, String code) {
