@@ -186,11 +186,11 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 9
 
-- [ ] T025 [P] [US9] Test đơn vị `BT/m14/FR_061_NoiDungXuatTest.java` và `BT/m14/FR_062_NhatKyXuatIT.java` (Q25 → Q28)
+- [x] T025 [P] [US9] *(2026-10-24: `FR_061_ExportContentTest`, `FR_062_ExportAuditIT`; chỉ tiêu giả `TEST.MISSED_DOSES`, ghi chú Phase 11 ở plan)* Test đơn vị `BT/m14/FR_061_NoiDungXuatTest.java` và `BT/m14/FR_062_NhatKyXuatIT.java` (Q25 → Q28)
 
 ### Implementation cho User Story 9
 
-- [ ] T026 [US9] Cài `BE/m14/xuat/internal/XuatBaoCaoService.java` (`YeuCauXuat`; POI; `NhatKyApi.ghi` `XUAT_BAO_CAO` với bộ lọc ở `chi_tiet`; `TepApi`; `QuyenTepProvider` `M14.BAO_CAO_XUAT`: người xuất, Quản lý viện) và endpoint `POST /bao-cao/{nhom}/xuat`, `GET /bao-cao/lan-xuat` (research O-08)
+- [x] T026 [US9] *(2026-10-24: `m14.internal.export`, fastexcel qua `common.document` thay POI; lần xuất đọc bằng `AuditLogApi.recorded`)* Cài `BE/m14/xuat/internal/XuatBaoCaoService.java` (`YeuCauXuat`; POI; `NhatKyApi.ghi` `XUAT_BAO_CAO` với bộ lọc ở `chi_tiet`; `TepApi`; `QuyenTepProvider` `M14.BAO_CAO_XUAT`: người xuất, Quản lý viện) và endpoint `POST /bao-cao/{nhom}/xuat`, `GET /bao-cao/lan-xuat` (research O-08)
 
 **Checkpoint**: Mọi user story của 016 chạy độc lập.
 
@@ -202,7 +202,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 - [ ] T032 [US5] *(Bổ sung 2026-10-22, Q-374, Q-375)* Mở rộng chỉ tiêu của T031 thành `SK.CANH_BAO_SOS_HO_TRO` (research O-13, contracts/chi-tieu.md): dòng nút hỗ trợ khẩn cấp, thời gian tạo → tới nơi, số "không ghi mốc tới nơi", dòng "chưa rõ tầng"; test `ChiTieu_SK_CanhBaoSosHoTroTest` (quickstart B1, B2); cần 007 T096 (`daToiNoiLuc`, `NUT_HO_TRO` trong `CanhBaoThongKeApi`), bản giả trước đó
 
 - [ ] T027 [P] Test `BT/m14/SC_008_ChiDocIT.java` (đếm bản ghi trước/sau mọi báo cáo; Q29) và hiệu năng báo cáo 12 tháng (SC-003; Q24)
-- [ ] T028 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/016-reports-dashboard/contracts/api-016.yaml`
+- [x] T028 [P] *(2026-10-24: `ApiContractIT`; `pending` còn `/dashboard`, `/metrics`, `/reports/{group}`, `/metric-details/{metricCode}`)* Mở rộng `BT/common/HopDongApiTest.java` với `specs/016-reports-dashboard/contracts/api-016.yaml`
 - [ ] T029 Chạy `./mvnw verify`, `npm test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
 - [ ] T030 Rà: mọi mã ở `contracts/chi-tieu.md` có `ChiTieu_*Test` (SC-001); DBR-25 (mốc theo Asia/Ho_Chi_Minh); FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-002, FR-004, FR-005, FR-006, FR-007, FR-008, FR-055, FR-055a — mỗi FR có task hoặc test tương ứng (constitution XV)
 

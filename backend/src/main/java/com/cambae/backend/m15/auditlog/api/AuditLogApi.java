@@ -1,5 +1,7 @@
 package com.cambae.backend.m15.auditlog.api;
 
+import java.util.List;
+
 /** Ghi nhật ký hệ thống (contracts/module-interfaces.md mục 1.2; FR-042 → FR-047). */
 public interface AuditLogApi {
 
@@ -23,4 +25,13 @@ public interface AuditLogApi {
      * khoản, vai trò): chỉ lần đăng nhập thất bại (002 FR-015, research A-03).
      */
     void writeAnonymous(AuditLogEntry entry);
+
+    /**
+     * Bản ghi của một hành động trên một loại đối tượng, mới nhất trước, tối đa {@link #RECORDED_LIMIT} dòng
+     * ({@code entityId}, {@code actorAccountId} rỗng là không lọc). Cho module ghi đọc lại hành động của mình, ví dụ lần
+     * xuất báo cáo của 016 (FR-062; "Đổi api" 2026-10-24). Không kiểm quyền và không che trường: module gọi tự kiểm.
+     */
+    List<AuditLogRecord> recorded(AuditAction action, String entityType, String entityId, Long actorAccountId);
+
+    int RECORDED_LIMIT = 200;
 }
