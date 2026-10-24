@@ -4,7 +4,7 @@ import com.cambae.backend.common.file.FilePermissionProvider;
 import org.springframework.stereotype.Component;
 
 /**
- * Kiểm quyền tải ảnh thuốc gia đình gửi (NFR-08).
+ * Permission provider for downloading family-sent medication images (NFR-08).
  */
 @Component
 public class FamilyMedicationImageFilePermissionProvider implements FilePermissionProvider {

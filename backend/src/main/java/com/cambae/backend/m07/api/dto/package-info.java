@@ -1,5 +1,5 @@
 /**
- * Các DTO, Record và Enum truyền tải dữ liệu của Module M07.
+ * Data Transfer Objects (DTOs), Records, and Enums for Module M07.
  */
 @NamedInterface("medication-dto")
 package com.cambae.backend.m07.api.dto;

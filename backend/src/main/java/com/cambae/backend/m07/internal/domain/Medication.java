@@ -19,8 +19,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Entity Danh mục thuốc (FR-001, FR-002, data-model mục 3).
- * Lưu ở bảng {@code medication}, hoạt chất lưu ở {@code medication_active_ingredient}.
+ * Medication Catalog Entity (FR-001, FR-002, data-model section 3).
+ * Stored in table {@code medication}, active ingredients in {@code medication_active_ingredient}.
  */
 @Entity
 @Table(name = "medication")

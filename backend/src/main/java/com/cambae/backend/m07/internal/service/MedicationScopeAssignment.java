@@ -5,8 +5,8 @@ import com.cambae.backend.m15.account.api.spi.ScopeAssignmentProvider;
 import org.springframework.stereotype.Component;
 
 /**
- * Gắn phạm vi cho Danh mục thuốc (contracts mục 1.1; 002 FR-034).
- * Danh mục thuốc áp dụng toàn viện (không gắn người cao tuổi hay tầng cụ thể).
+ * Scope assignment for Medication Catalog (contracts section 1.1; 002 FR-034).
+ * Medication catalog applies facility-wide (not tied to specific resident or floor).
  */
 @Component
 public class MedicationScopeAssignment implements ScopeAssignmentProvider {

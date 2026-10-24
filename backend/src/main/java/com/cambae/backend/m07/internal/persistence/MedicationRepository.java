@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /**
- * Kho dữ liệu Danh mục thuốc (bảng {@code medication}).
+ * Medication Catalog repository (table {@code medication}).
  */
 public interface MedicationRepository extends JpaRepository<Medication, Long> {
 

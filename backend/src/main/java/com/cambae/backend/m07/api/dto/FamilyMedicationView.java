@@ -3,7 +3,7 @@ package com.cambae.backend.m07.api.dto;
 import java.time.LocalDate;
 
 /**
- * Thông tin thuốc gia đình gửi (ThuocGuiView).
+ * Family-sent medication view.
  */
 public record FamilyMedicationView(
         long batchId,

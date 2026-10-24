@@ -1,9 +1,9 @@
 package com.cambae.backend.m07.api.dto;
 
 /**
- * Nguồn thuốc (NguonThuoc): do viện cung cấp hoặc gia đình gửi.
+ * Medication source: facility-provided or family-sent.
  */
 public enum MedicationSource {
-    FACILITY, // Viện cung cấp
-    FAMILY_SENT // Gia đình gửi
+    FACILITY, // Facility provided
+    FAMILY_SENT // Family sent
 }

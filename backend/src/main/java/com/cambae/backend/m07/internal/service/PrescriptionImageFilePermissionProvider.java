@@ -4,7 +4,7 @@ import com.cambae.backend.common.file.FilePermissionProvider;
 import org.springframework.stereotype.Component;
 
 /**
- * Kiểm quyền tải ảnh đơn thuốc (NFR-08; research D-02).
+ * Permission provider for downloading prescription image files (NFR-08; research D-02).
  */
 @Component
 public class PrescriptionImageFilePermissionProvider implements FilePermissionProvider {
@@ -18,7 +18,7 @@ public class PrescriptionImageFilePermissionProvider implements FilePermissionPr
 
     @Override
     public boolean canDownload(long ownerId) {
-        // Quyền tải tệp bằng quyền xem đơn thuốc chủ sở hữu (FR-049, NFR-08)
+        // Download permission matches prescription view permission (FR-049, NFR-08)
         return true;
     }
 }

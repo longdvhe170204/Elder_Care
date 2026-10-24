@@ -6,8 +6,8 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 /**
- * Phân loại trường của Danh mục thuốc (FR-001, FR-002, data-model mục 12).
- * Các trường tên, hàm lượng, dạng bào chế, đường dùng, đơn vị dùng, hoạt chất mang nhóm {@link InfoGroup#HEALTH}.
+ * Field classification for Medication Catalog (FR-001, FR-002, data-model section 12).
+ * Fields name, concentration, dosageForm, defaultRoute, usageUnit, allergenIds belong to {@link InfoGroup#HEALTH}.
  */
 @Component
 public class MedicationFieldClassification implements FieldClassificationProvider {

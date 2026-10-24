@@ -3,10 +3,10 @@ package com.cambae.backend.m07.api.spi;
 import java.util.Optional;
 
 /**
- * SPI do M07 khai báo, Module M11/M03 (019) cài đặt để đối soát thuốc cung ứng theo đợt mua sắm.
- * Chỉ đọc (YeuCauThuocCungUngPort).
+ * SPI declared by M07 and implemented by Module M11/M03 (019) to reconcile supplied medication against procurement orders.
+ * Read-only.
  */
 public interface ProcurementMedicationPort {
-    /** Lấy dòng yêu cầu thuốc ở trạng thái ĐÃ MUA để đối chiếu tiếp nhận. */
+    /** Retrieve medication request line in PURCHASED status for intake reconciliation. */
     Optional<ProcurementMedicationLineView> lineRecordedPurchased(long lineId);
 }

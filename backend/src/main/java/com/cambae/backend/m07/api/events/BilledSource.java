@@ -1,10 +1,10 @@
 package com.cambae.backend.m07.api.events;
 
 /**
- * Nguồn phát sinh tính phí thuốc (LIEU | LAN_DUNG_PRN | LAN_GIAO).
+ * Source of medication charge event (DOSE | PRN_ADMINISTRATION | DISPENSE_RECORD).
  */
 public enum BilledSource {
-    DOSE, // Liều định kỳ
-    PRN_ADMINISTRATION, // Lần dùng PRN
-    DISPENSE_RECORD // Lần giao thuốc mang theo
+    DOSE, // Scheduled dose
+    PRN_ADMINISTRATION, // PRN administration
+    DISPENSE_RECORD // Medication handover record
 }

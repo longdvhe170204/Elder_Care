@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Nghiệp vụ Danh mục thuốc (FR-001, FR-002, FR-003, AC-01; research D-04).
+ * Business service for Medication Catalog (FR-001, FR-002, FR-003, AC-01; research D-04).
  */
 @Service
 public class MedicationService {
@@ -34,9 +34,7 @@ public class MedicationService {
     @Transactional(readOnly = true)
     public List<MedicationDetailView> list(String q, Boolean activeOnly) {
         MedicationStatus status = (activeOnly != null && activeOnly) ? MedicationStatus.ACTIVE : null;
-        return medications.search(q, status).stream()
-                .map(this::toView)
-                .toList();
+        return medications.search(q, status).stream().map(this::toView).toList();
     }
 
     @RequiresPermission(function = Function.MEDICATION_CATALOG, operation = Operation.VIEW)
@@ -62,7 +60,8 @@ public class MedicationService {
         if (medications.existsByNameIgnoreCaseAndConcentrationIgnoreCaseAndDosageFormIgnoreCase(
                 cmd.name().trim(), cmd.concentration().trim(), cmd.dosageForm().trim())) {
             throw new ConditionNotMetException(List.of(new UnmetCondition(
-                    "TRUNG_THUOC", "Thuốc đã tồn tại với cùng tên, hàm lượng và dạng bào chế (FR-001)")));
+                    "TRUNG_THUOC",
+                    "Medication already exists with the same name, concentration, and dosage form (FR-001)")));
         }
 
         Medication med = new Medication(
@@ -99,7 +98,8 @@ public class MedicationService {
         if (medications.existsByNameIgnoreCaseAndConcentrationIgnoreCaseAndDosageFormIgnoreCaseAndIdNot(
                 cmd.name().trim(), cmd.concentration().trim(), cmd.dosageForm().trim(), id)) {
             throw new ConditionNotMetException(List.of(new UnmetCondition(
-                    "TRUNG_THUOC", "Thuốc đã tồn tại với cùng tên, hàm lượng và dạng bào chế (FR-001)")));
+                    "TRUNG_THUOC",
+                    "Medication already exists with the same name, concentration, and dosage form (FR-001)")));
         }
 
         med.update(
@@ -134,28 +134,37 @@ public class MedicationService {
             Integer beforeWindow,
             Integer afterWindow) {
         if (name == null || name.isBlank()) {
-            throw new ConditionNotMetException(List.of(new UnmetCondition("THIEU_TEN", "Tên thuốc bắt buộc (FR-001)")));
+            throw new ConditionNotMetException(
+                    List.of(new UnmetCondition("THIEU_TEN", "Medication name is required (FR-001)")));
         }
         if (concentration == null || concentration.isBlank()) {
-            throw new ConditionNotMetException(List.of(new UnmetCondition("THIEU_HAM_LUONG", "Hàm lượng bắt buộc (FR-001)")));
+            throw new ConditionNotMetException(
+                    List.of(new UnmetCondition("THIEU_HAM_LUONG", "Concentration is required (FR-001)")));
         }
         if (dosageForm == null || dosageForm.isBlank()) {
-            throw new ConditionNotMetException(List.of(new UnmetCondition("THIEU_DANG_BAO_CHE", "Dạng bào chế bắt buộc (FR-001)")));
+            throw new ConditionNotMetException(
+                    List.of(new UnmetCondition("THIEU_DANG_BAO_CHE", "Dosage form is required (FR-001)")));
         }
         if (defaultRoute == null || defaultRoute.isBlank()) {
-            throw new ConditionNotMetException(List.of(new UnmetCondition("THIEU_DUONG_DUNG", "Đường dùng mặc định bắt buộc (FR-001)")));
+            throw new ConditionNotMetException(
+                    List.of(new UnmetCondition("THIEU_DUONG_DUNG", "Default route is required (FR-001)")));
         }
         if (usageUnit == null || usageUnit.isBlank()) {
-            throw new ConditionNotMetException(List.of(new UnmetCondition("THIEU_DON_VI", "Đơn vị dùng bắt buộc (FR-001)")));
+            throw new ConditionNotMetException(
+                    List.of(new UnmetCondition("THIEU_DON_VI", "Usage unit is required (FR-001)")));
         }
         if (allergenIds == null || allergenIds.isEmpty()) {
-            throw new ConditionNotMetException(List.of(new UnmetCondition("THIEU_HOAT_CHAT", "Thuốc phải liên kết ít nhất một hoạt chất/dị nguyên (FR-001)")));
+            throw new ConditionNotMetException(List.of(new UnmetCondition(
+                    "THIEU_HOAT_CHAT",
+                    "Medication must be linked to at least one active ingredient / allergen (FR-001)")));
         }
         if (beforeWindow != null && beforeWindow < 0) {
-            throw new ConditionNotMetException(List.of(new UnmetCondition("CUA_SO_KHONG_HOP_LE", "Cửa sổ trước phải không âm")));
+            throw new ConditionNotMetException(
+                    List.of(new UnmetCondition("CUA_SO_KHONG_HOP_LE", "Before window must be non-negative")));
         }
         if (afterWindow != null && afterWindow < 0) {
-            throw new ConditionNotMetException(List.of(new UnmetCondition("CUA_SO_KHONG_HOP_LE", "Cửa sổ sau phải không âm")));
+            throw new ConditionNotMetException(
+                    List.of(new UnmetCondition("CUA_SO_KHONG_HOP_LE", "After window must be non-negative")));
         }
     }
 

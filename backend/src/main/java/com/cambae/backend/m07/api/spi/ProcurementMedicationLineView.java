@@ -3,7 +3,7 @@ package com.cambae.backend.m07.api.spi;
 import java.math.BigDecimal;
 
 /**
- * Dòng yêu cầu thuốc đã mua từ module M11/019 (DongYeuCauThuocView).
+ * Purchased medication request line view from module M11/019.
  */
 public record ProcurementMedicationLineView(
         long procurementLineId,

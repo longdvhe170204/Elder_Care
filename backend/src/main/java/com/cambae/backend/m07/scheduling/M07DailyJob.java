@@ -11,8 +11,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Job hằng ngày của M07 ({@code ViecHangNgayM07}; research D-19).
- * Chạy lúc 00:00 (Asia/Ho_Chi_Minh) và khi khởi động ứng dụng (chạy bù).
+ * Daily job for M07 (research D-19).
+ * Runs at 00:00 (Asia/Ho_Chi_Minh) and upon application startup (catch-up run).
  */
 @Component
 public class M07DailyJob implements ScheduledJob {

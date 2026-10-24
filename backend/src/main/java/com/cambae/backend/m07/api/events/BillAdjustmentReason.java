@@ -1,9 +1,9 @@
 package com.cambae.backend.m07.api.events;
 
 /**
- * Lý do điều chỉnh tính phí thuốc (DINH_CHINH | NHAN_LAI).
+ * Medication billing adjustment reason (CORRECTION | RETURNED).
  */
 public enum BillAdjustmentReason {
-    CORRECTION, // Đính chính bản ghi
-    RETURNED // Nhận lại thuốc mang theo chưa dùng
+    CORRECTION, // Record correction
+    RETURNED // Returned unused carried medication
 }

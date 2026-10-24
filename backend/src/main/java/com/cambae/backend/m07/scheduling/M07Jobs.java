@@ -1,7 +1,7 @@
 package com.cambae.backend.m07.scheduling;
 
 /**
- * Tên các job định kỳ của Module M07.
+ * Periodic job identifiers for Module M07.
  */
 public final class M07Jobs {
 

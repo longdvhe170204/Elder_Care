@@ -3,10 +3,10 @@ package com.cambae.backend.m07.api.spi;
 import java.util.Optional;
 
 /**
- * SPI do M07 khai báo, Module M11 (010) cài đặt để đối soát mua thuốc hộ (DeNghiMuaHoPort).
- * Chỉ đọc.
+ * SPI declared by M07 and implemented by Module M11 (010) to verify assisted medication purchases.
+ * Read-only.
  */
 public interface PurchaseAssistancePort {
-    /** Lấy thông tin đề nghị mua hộ ở trạng thái ĐÃ MUA. */
+    /** Retrieve assisted purchase request details in PURCHASED status. */
     Optional<PurchaseAssistanceView> purchasedDetails(long requestId, long residentId);
 }

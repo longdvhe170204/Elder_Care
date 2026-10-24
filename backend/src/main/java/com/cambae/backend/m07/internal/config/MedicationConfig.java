@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Cấu hình nội bộ cho Module M07 - Quản lý thuốc.
+ * Internal configuration for Module M07 - Medication Management.
  */
 @Configuration
 public class MedicationConfig {
@@ -14,7 +14,7 @@ public class MedicationConfig {
     @Bean
     @ConditionalOnMissingBean(MedicationCatalogPort.class)
     public MedicationCatalogPort defaultMedicationCatalogPort() {
-        // Mặc định khi chưa có module 004 chạy thật: coi như chưa có mục vật phẩm viện
+        // Default fallback when module 004 is not yet active: treat item as absent from facility items
         return medicationId -> false;
     }
 }

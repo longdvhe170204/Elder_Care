@@ -1,11 +1,10 @@
-package com.cambae.backend.m07.danhmuc;
+package com.cambae.backend.m07;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.cambae.backend.common.Reason;
@@ -21,7 +20,6 @@ import com.cambae.backend.m07.internal.service.MedicationService.CreateMedicatio
 import com.cambae.backend.m07.internal.service.MedicationService.MedicationDetailView;
 import com.cambae.backend.m07.internal.service.MedicationService.UpdateMedicationCommand;
 import java.lang.reflect.Field;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,18 +56,11 @@ class MedicationServiceTest {
     @DisplayName("FR-001: Tạo thuốc mới thành công và cờ chưa có mục vật phẩm đúng")
     void create_valid_success() {
         CreateMedicationCommand cmd = new CreateMedicationCommand(
-                "Paracetamol",
-                "500mg",
-                "Viên nén",
-                "Uống",
-                "viên",
-                Set.of(101L),
-                30,
-                30,
-                false);
+                "Paracetamol", "500mg", "Viên nén", "Uống", "viên", Set.of(101L), 30, 30, false);
 
         when(repository.existsByNameIgnoreCaseAndConcentrationIgnoreCaseAndDosageFormIgnoreCase(
-                "Paracetamol", "500mg", "Viên nén")).thenReturn(false);
+                        "Paracetamol", "500mg", "Viên nén"))
+                .thenReturn(false);
 
         when(repository.save(any(Medication.class))).thenAnswer(invocation -> {
             Medication m = invocation.getArgument(0);
@@ -94,18 +85,11 @@ class MedicationServiceTest {
     @DisplayName("FR-001: Trùng tên, hàm lượng, dạng bào chế thì báo lỗi 409 TRUNG_THUOC")
     void create_duplicateIdentity_throwsConflict() {
         CreateMedicationCommand cmd = new CreateMedicationCommand(
-                "Paracetamol",
-                "500mg",
-                "Viên nén",
-                "Uống",
-                "viên",
-                Set.of(101L),
-                null,
-                null,
-                false);
+                "Paracetamol", "500mg", "Viên nén", "Uống", "viên", Set.of(101L), null, null, false);
 
         when(repository.existsByNameIgnoreCaseAndConcentrationIgnoreCaseAndDosageFormIgnoreCase(
-                "Paracetamol", "500mg", "Viên nén")).thenReturn(true);
+                        "Paracetamol", "500mg", "Viên nén"))
+                .thenReturn(true);
 
         assertThatThrownBy(() -> service.create(cmd))
                 .isInstanceOf(ConditionNotMetException.class)
@@ -116,30 +100,22 @@ class MedicationServiceTest {
     @DisplayName("FR-001: Thiếu hoạt chất dị nguyên ném lỗi")
     void create_missingAllergen_throwsException() {
         CreateMedicationCommand cmd = new CreateMedicationCommand(
-                "Paracetamol",
-                "500mg",
-                "Viên nén",
-                "Uống",
-                "viên",
-                Set.of(),
-                null,
-                null,
-                false);
+                "Paracetamol", "500mg", "Viên nén", "Uống", "viên", Set.of(), null, null, false);
 
-        assertThatThrownBy(() -> service.create(cmd))
-                .isInstanceOf(ConditionNotMetException.class);
+        assertThatThrownBy(() -> service.create(cmd)).isInstanceOf(ConditionNotMetException.class);
     }
 
     @Test
     @DisplayName("FR-002: Cập nhật thuốc thành công khi đúng phiên bản If-Match")
     void update_validIfMatch_success() {
-        Medication med = new Medication(
-                "Paracetamol", "500mg", "Viên nén", "Uống", "viên", 30, 30, false, Set.of(101L));
+        Medication med =
+                new Medication("Paracetamol", "500mg", "Viên nén", "Uống", "viên", 30, 30, false, Set.of(101L));
         setId(med, 1L);
 
         when(repository.findById(1L)).thenReturn(Optional.of(med));
         when(repository.existsByNameIgnoreCaseAndConcentrationIgnoreCaseAndDosageFormIgnoreCaseAndIdNot(
-                eq("Paracetamol Extra"), eq("500mg"), eq("Viên nén"), eq(1L))).thenReturn(false);
+                        eq("Paracetamol Extra"), eq("500mg"), eq("Viên nén"), eq(1L)))
+                .thenReturn(false);
 
         UpdateMedicationCommand cmd = new UpdateMedicationCommand(
                 "Paracetamol Extra", "500mg", "Viên nén", "Uống", "viên", Set.of(101L, 102L), 45, 45, false);
@@ -154,8 +130,8 @@ class MedicationServiceTest {
     @Test
     @DisplayName("FR-002: Sai phiên bản If-Match ném VersionMismatchException (412)")
     void update_wrongIfMatch_throwsVersionMismatch() {
-        Medication med = new Medication(
-                "Paracetamol", "500mg", "Viên nén", "Uống", "viên", 30, 30, false, Set.of(101L));
+        Medication med =
+                new Medication("Paracetamol", "500mg", "Viên nén", "Uống", "viên", 30, 30, false, Set.of(101L));
         setId(med, 1L);
 
         when(repository.findById(1L)).thenReturn(Optional.of(med));
@@ -163,15 +139,14 @@ class MedicationServiceTest {
         UpdateMedicationCommand cmd = new UpdateMedicationCommand(
                 "Paracetamol Extra", "500mg", "Viên nén", "Uống", "viên", Set.of(101L), 30, 30, false);
 
-        assertThatThrownBy(() -> service.update(1L, "\"99\"", cmd))
-                .isInstanceOf(VersionMismatchException.class);
+        assertThatThrownBy(() -> service.update(1L, "\"99\"", cmd)).isInstanceOf(VersionMismatchException.class);
     }
 
     @Test
     @DisplayName("FR-002: Ngừng hiệu lực chuyển trạng thái sang INACTIVE")
     void deactivate_success() {
-        Medication med = new Medication(
-                "Paracetamol", "500mg", "Viên nén", "Uống", "viên", 30, 30, false, Set.of(101L));
+        Medication med =
+                new Medication("Paracetamol", "500mg", "Viên nén", "Uống", "viên", 30, 30, false, Set.of(101L));
         setId(med, 1L);
 
         when(repository.findById(1L)).thenReturn(Optional.of(med));
@@ -187,7 +162,6 @@ class MedicationServiceTest {
     void getById_notFound_throwsNotFound() {
         when(repository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.getById(999L))
-                .isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> service.getById(999L)).isInstanceOf(NotFoundException.class);
     }
 }

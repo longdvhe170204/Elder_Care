@@ -4,13 +4,13 @@ import com.cambae.backend.m07.api.dto.TimeInterval;
 import java.util.Optional;
 
 /**
- * SPI do M07 khai báo, Module M04 (014) cài đặt để cung cấp thông tin chuyến đi ra ngoài / chuyển viện.
- * Chỉ đọc (ChuyenDiThuocPort).
+ * SPI declared by M07 and implemented by Module M04 (014) to provide trip / hospital transfer information.
+ * Read-only.
  */
 public interface TripMedicationPort {
-    /** Khoảng thời gian đi dự kiến khi người cao tuổi được đánh giá Đạt. */
+    /** Expected trip interval when resident is evaluated as Eligible. */
     Optional<TimeInterval> approvedTripInterval(long residentId, long tripId);
 
-    /** Khoảng thời gian đi của chuyến. */
+    /** Trip duration interval. */
     Optional<TimeInterval> tripInterval(long tripId);
 }

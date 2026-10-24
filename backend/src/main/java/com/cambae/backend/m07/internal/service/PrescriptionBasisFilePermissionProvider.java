@@ -4,7 +4,7 @@ import com.cambae.backend.common.file.FilePermissionProvider;
 import org.springframework.stereotype.Component;
 
 /**
- * Kiểm quyền tải ảnh căn cứ cơ sở kê đơn (BR-M07-16, NFR-08).
+ * Permission provider for downloading prescription basis document files (BR-M07-16, NFR-08).
  */
 @Component
 public class PrescriptionBasisFilePermissionProvider implements FilePermissionProvider {

@@ -7,16 +7,16 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * API dành riêng cho Cổng người thân (ThuocCongNguoiThanApi, FR-049, Q-59).
- * Dùng bởi Module M10 (012 - Family Portal).
+ * API dedicated to the Family Portal (FR-049, Q-59).
+ * Used by Module M10 (012 - Family Portal).
  */
 public interface FamilyPortalMedicationApi {
-    /** Danh sách thuốc người thân đã gửi viện (cho người thân có quan hệ Hiệu lực). */
+    /** List of medications sent to the facility by family members (for family member with Active relationship). */
     List<FamilyMedicationView> sentMedications(long residentId, long familyMemberId);
 
-    /** Đơn thuốc của người cao tuổi (chỉ trả về khi có bản đồng ý bao gồm người thân đó). */
+    /** Prescriptions of the resident (only returned when consent covers the family member). */
     Optional<List<FamilyPrescriptionView>> prescriptions(long residentId, long familyMemberId);
 
-    /** Phiếu đối chiếu thuốc đã xác nhận (chỉ trả về khi có bản đồng ý bao gồm người thân đó). */
+    /** Confirmed medication reconciliations (only returned when consent covers the family member). */
     Optional<List<ConfirmedReconciliationView>> confirmedReconciliations(long residentId, long familyMemberId);
 }

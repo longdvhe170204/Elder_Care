@@ -8,8 +8,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Job theo phút của M07 ({@code ViecTheoPhutM07}; research D-19).
- * Chạy mỗi phút với ShedLock. Profile test tắt lịch, kiểm thử có thể gọi {@link #runNow()}.
+ * Minute job for M07 (research D-19).
+ * Runs every minute with ShedLock. Test profile disables scheduler; tests may invoke {@link #runNow()}.
  */
 @Component
 public class M07MinuteJob implements ScheduledJob {

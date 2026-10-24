@@ -7,17 +7,17 @@ import java.time.Instant;
 import java.util.stream.Stream;
 
 /**
- * API báo cáo và thống kê về thuốc (ThuocThongKeApi, FR-051).
- * Dùng bởi Module M14 (016 - Báo cáo & Dashboard).
+ * API for medication reporting and statistics (FR-051).
+ * Used by Module M14 (016 - Reports & Dashboard).
  */
 public interface MedicationStatisticsApi {
     /**
-     * Dòng thống kê liều thuốc trong khoảng thời gian theo phạm vi lọc.
+     * Stream of dose statistics within a period by scope filter.
      */
     Stream<DoseReportView> dosesInPeriod(ScopeFilter scopeFilter, Instant from, Instant to);
 
     /**
-     * Dòng thống kê phiếu đối chiếu thuốc trong khoảng thời gian.
+     * Stream of reconciliation report rows within a period.
      */
     Stream<ReconciliationReportView> reconciliationsInPeriod(ScopeFilter scopeFilter, Instant from, Instant to);
 }

@@ -1,16 +1,16 @@
 package com.cambae.backend.m07.internal.service;
 
 /**
- * Cổng tra cứu dịch vụ/đơn giá thuốc nguồn viện từ Module M02 (004) theo FR-003.
- * Khi chưa có mục vật phẩm ở 004, trả về false để đánh dấu {@code chuaCoMucVatPham = true}.
+ * Port for looking up hospital medication procurement service/pricing from Module M02 (004) per FR-003.
+ * When an item is not yet present in 004, returns false to flag {@code pendingProcurementItem = true}.
  */
 public interface MedicationCatalogPort {
 
     /**
-     * Kiểm tra thuốc nguồn viện đã có mục vật phẩm (dịch vụ THUOC_NGUON_VIEN) tại 004 chưa.
+     * Checks if hospital medication has an associated catalog item (service THUOC_NGUON_VIEN) in 004.
      *
-     * @param medicationId id thuốc
-     * @return true nếu đã có mục vật phẩm, false nếu chưa có
+     * @param medicationId medication ID
+     * @return true if catalog item exists, false otherwise
      */
     boolean hasHospitalProcurementItem(long medicationId);
 }

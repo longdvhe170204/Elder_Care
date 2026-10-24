@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 /**
- * Thông tin hiển thị liều thuốc trên lịch và checklist (LieuHienThiView).
+ * Medication dose display view for schedule and checklist.
  */
 public record DoseDisplayView(
         String doseKey,
