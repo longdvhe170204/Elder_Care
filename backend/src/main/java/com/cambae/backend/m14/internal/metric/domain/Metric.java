@@ -99,6 +99,21 @@ public record Metric<R extends MetricRecord>(
                 .toList();
     }
 
+    /**
+     * Người cao tuổi khác nhau của các bản ghi tạo nên con số, hoặc của một ô {@code key} (rỗng là cả con số); file xuất
+     * không định danh bỏ dòng mà nhóm chỉ có đúng một người (FR-061).
+     */
+    public Set<Long> residents(List<R> included, String key) {
+        Set<Long> result = new HashSet<>();
+        for (R r : contributing(included)) {
+            if (r.residentId() != null
+                    && (key == null || (breakdownKey != null && key.equals(breakdownKey.apply(r))))) {
+                result.add(r.residentId());
+            }
+        }
+        return result;
+    }
+
     private List<R> contributing(List<R> rows) {
         Predicate<R> keep = switch (computation) {
             case Computation.Count<R> c -> c.counted()::test;
