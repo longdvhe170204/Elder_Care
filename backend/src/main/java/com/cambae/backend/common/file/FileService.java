@@ -7,6 +7,7 @@ import com.cambae.backend.common.time.BusinessTime;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -88,6 +89,11 @@ public class FileService implements FileApi {
             throw new NotFoundException();
         }
         throw new BusinessException(HttpStatus.CONFLICT, "FILE_ALREADY_ATTACHED", "Tệp đã gắn vào một bản ghi");
+    }
+
+    @Override
+    public List<FileView> attachedTo(String ownerType, long ownerId) {
+        return store.findAttached(ownerType, ownerId);
     }
 
     /**

@@ -1,6 +1,8 @@
 package com.cambae.backend.m01.internal.status.service;
 
 import com.cambae.backend.common.Reason;
+import com.cambae.backend.common.file.FileApi;
+import com.cambae.backend.common.file.FileView;
 import com.cambae.backend.m01.api.ResidentStatusApi;
 import com.cambae.backend.m01.api.dto.Condition;
 import com.cambae.backend.m01.api.dto.ResidentStatus;
@@ -21,9 +23,16 @@ import tools.jackson.databind.JsonNode;
 class ResidentStatusApiImpl implements ResidentStatusApi {
 
     private final ResidentStatusService status;
+    private final FileApi files;
 
-    ResidentStatusApiImpl(ResidentStatusService status) {
+    ResidentStatusApiImpl(ResidentStatusService status, FileApi files) {
         this.status = status;
+        this.files = files;
+    }
+
+    @Override
+    public List<FileView> hospitalDocuments(long historyId) {
+        return files.attachedTo(ResidentStatusService.HOSPITAL_DOCUMENT_OWNER, historyId);
     }
 
     @Override

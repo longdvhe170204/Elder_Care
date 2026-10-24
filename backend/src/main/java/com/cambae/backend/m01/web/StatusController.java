@@ -25,7 +25,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Lệnh và lịch sử trạng thái người cao tuổi (001 T050; contracts/api-001.yaml, tag {@code status}). Mỗi lệnh một
@@ -91,7 +93,6 @@ class StatusController {
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody StatusCommandRequestBody body) {
-        requireNoAttachments(body);
         return result(status.completeAdmission(ResidentStatusService.target(id), body.reason(), details(body)));
     }
 
@@ -101,7 +102,6 @@ class StatusController {
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody StatusCommandRequestBody body) {
-        requireNoAttachments(body);
         return result(status.cancelAdmission(ResidentStatusService.target(id), body.reason(), details(body)));
     }
 
@@ -111,7 +111,6 @@ class StatusController {
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody StatusCommandRequestBody body) {
-        requireNoAttachments(body);
         return result(status.grantTemporaryAbsence(ResidentStatusService.target(id), body.reason(), details(body)));
     }
 
@@ -121,7 +120,6 @@ class StatusController {
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody StatusCommandRequestBody body) {
-        requireNoAttachments(body);
         return result(status.recordReturn(ResidentStatusService.target(id), body.reason(), details(body)));
     }
 
@@ -131,7 +129,6 @@ class StatusController {
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody StatusCommandRequestBody body) {
-        requireNoAttachments(body);
         return result(status.transferOut(ResidentStatusService.target(id), body.reason(), details(body)));
     }
 
@@ -141,7 +138,6 @@ class StatusController {
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody StatusCommandRequestBody body) {
-        requireNoAttachments(body);
         return result(status.endResidency(ResidentStatusService.target(id), body.reason(), details(body)));
     }
 
@@ -151,7 +147,6 @@ class StatusController {
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody StatusCommandRequestBody body) {
-        requireNoAttachments(body);
         return result(status.recordDeath(ResidentStatusService.target(id), body.reason(), details(body)));
     }
 
@@ -159,18 +154,14 @@ class StatusController {
         return StatusCommandResultBody.of(outcome);
     }
 
+    /** Chi tiết lệnh kèm danh sách tệp đính kèm; {@code ResidentStatusService} kiểm lệnh nào được nhận tệp (FR-047c). */
     private static JsonNode details(StatusCommandRequestBody body) {
-        return body.details() == null ? JsonNodeFactory.instance.objectNode() : body.details();
-    }
-
-    /**
-     * Tệp đính kèm của Ghi nhận trở về từ bệnh viện và Chuyển viện thuộc T082 (cần {@code FileApi}, T003); tới đó mọi
-     * lệnh từ chối tệp đính kèm thay vì bỏ qua tệp người dùng gửi.
-     */
-    private static void requireNoAttachments(StatusCommandRequestBody body) {
+        ObjectNode details =
+                body.details() instanceof ObjectNode node ? node.deepCopy() : JsonNodeFactory.instance.objectNode();
         if (body.attachmentFileIds() != null && !body.attachmentFileIds().isEmpty()) {
-            throw new BusinessException(
-                    HttpStatus.UNPROCESSABLE_CONTENT, "ATTACHMENTS_NOT_ACCEPTED", "Lệnh này chưa nhận tệp đính kèm");
+            ArrayNode ids = details.putArray("attachmentFileIds");
+            body.attachmentFileIds().forEach(ids::add);
         }
+        return details;
     }
 }

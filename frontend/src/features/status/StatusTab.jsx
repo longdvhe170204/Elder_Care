@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ApiError,
   getResidentsByIdConditionsByCommand,
@@ -13,15 +13,18 @@ import {
 } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
-import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
 import { formatDateTime } from '@/common/dateTime'
+import { uploadFile } from '@/common/files'
 import { problemOf } from '@/common/problem'
+import { FileField } from '../consents/ConsentTab'
 import { STATUS_LABELS } from '../residents/residentLabels'
+import { uploadProblem } from '../wishes/wishUtils'
 import {
   BASIS_KINDS,
   COMMAND_EFFECTS,
@@ -46,6 +49,8 @@ const SENDERS = {
   RECORD_DEATH: postResidentsByIdRecordDeath,
 }
 
+const MAX_DOCUMENTS = 10
+
 // Chữ thường của tên lệnh, dùng trong nhãn nút xác nhận: "Xác nhận cho tạm vắng"
 const lower = (label) => label.charAt(0).toLowerCase() + label.slice(1)
 
@@ -63,17 +68,27 @@ function ConditionList({ conditions }) {
   )
 }
 
-function CommandForm({ residentId, command, onCancel, onDone }) {
+function CommandForm({ residentId, status, command, onCancel, onDone }) {
   const label = COMMAND_LABELS[command]
   const [conditions, setConditions] = useState(null)
   const [reason, setReason] = useState('')
   const [basisKind, setBasisKind] = useState('')
   const [basisText, setBasisText] = useState('')
-  const [evidence, setEvidence] = useState('')
+  const [evidence, setEvidence] = useState(null)
+  const [documents, setDocuments] = useState([])
   const [errors, setErrors] = useState({})
   const [failure, setFailure] = useState(null)
   const [busy, setBusy] = useState(false)
   const [key] = useState(() => crypto.randomUUID())
+  // tệp đã tải lên theo đối tượng File: gửi lại sau lỗi không tải lên lần nữa
+  const uploaded = useRef(new Map())
+  // giấy tờ bệnh viện: Chuyển viện và Ghi nhận trở về từ Điều trị tại bệnh viện (FR-047c); lệnh khác backend từ chối
+  const takesDocuments = command === 'TRANSFER_OUT' || (command === 'RECORD_RETURN' && status === 'HOSPITALIZED')
+
+  async function upload(file) {
+    if (!uploaded.current.has(file)) uploaded.current.set(file, await uploadFile(file))
+    return uploaded.current.get(file)
+  }
 
   const loadConditions = useCallback(async () => {
     try {
@@ -90,13 +105,13 @@ function CommandForm({ residentId, command, onCancel, onDone }) {
     loadConditions()
   }, [loadConditions])
 
-  function detailsOf() {
+  function detailsOf(evidenceFileId) {
     if (command === 'TRANSFER_OUT') {
       const kind = BASIS_KINDS.find((k) => k.value === basisKind)
       const value = basisText.trim()
       return { basis: { [basisKind]: kind.numeric ? Number(value) : value } }
     }
-    if (command === 'RECORD_DEATH' && evidence.trim()) return { evidenceFileId: Number(evidence) }
+    if (evidenceFileId !== undefined) return { evidenceFileId }
     return {}
   }
 
@@ -111,23 +126,33 @@ function CommandForm({ residentId, command, onCancel, onDone }) {
         next.basis = 'Chọn và nhập căn cứ chuyển viện'
       }
     }
-    if (command === 'RECORD_DEATH' && evidence.trim() && !Number.isInteger(Number(evidence))) {
-      next.evidence = 'Mã tệp là số'
-    }
+    if (takesDocuments && documents.length > MAX_DOCUMENTS) next.documents = `Tối đa ${MAX_DOCUMENTS} tệp`
     setErrors(next)
     if (Object.keys(next).length > 0) return
     setFailure(null)
     setBusy(true)
+    let uploading = true
     try {
+      const evidenceFileId = command === 'RECORD_DEATH' && evidence ? await upload(evidence) : undefined
+      const attachmentFileIds = []
+      if (takesDocuments) {
+        for (const file of documents) attachmentFileIds.push(await upload(file))
+      }
+      uploading = false
+      const body = { reason: reason.trim(), details: detailsOf(evidenceFileId) }
+      if (attachmentFileIds.length > 0) body.attachmentFileIds = attachmentFileIds
       const { data } = await SENDERS[command]({
         path: { id: residentId },
         headers: { 'Idempotency-Key': key },
-        body: { reason: reason.trim(), details: detailsOf() },
+        body,
       })
       onDone(data)
     } catch (error) {
       const problem = problemOf(error)
-      if (error instanceof ApiError && error.status === 422) {
+      const fileMessage = uploading ? uploadProblem(problem) : null
+      if (fileMessage) {
+        setErrors(command === 'RECORD_DEATH' ? { evidence: fileMessage } : { documents: fileMessage })
+      } else if (error instanceof ApiError && error.status === 422) {
         if (problem.errorCode === 'REASON_REQUIRED') setErrors({ reason: problem.detail || 'Nhập lý do của lệnh' })
         else if (problem.errorCode === 'BASIS_REQUIRED') setErrors({ basis: 'Chọn và nhập căn cứ chuyển viện' })
         else if (problem.errorCode === 'EVIDENCE_REQUIRED') {
@@ -211,24 +236,49 @@ function CommandForm({ residentId, command, onCancel, onDone }) {
       )}
 
       {command === 'RECORD_DEATH' && (
-        <Field data-invalid={!!errors.evidence || undefined}>
-          <FieldLabel htmlFor="status-evidence">Mã tệp giấy tờ bằng chứng</FieldLabel>
-          <Input
-            id="status-evidence"
-            inputMode="numeric"
-            value={evidence}
-            onChange={(e) => setEvidence(e.target.value)}
-            aria-invalid={!!errors.evidence || undefined}
+        <FileField
+          id="status-evidence"
+          label="Giấy tờ bằng chứng"
+          error={errors.evidence}
+          onPick={setEvidence}
+          hint="Bác sĩ không cần khi xác nhận tại viện. Hành chính ghi nhận ngoài viện phải kèm giấy báo tử hoặc giấy chứng tử. PDF, JPEG hoặc PNG, tối đa 10 MB."
+        />
+      )}
+
+      {takesDocuments && (
+        <div className="flex flex-col gap-2">
+          <FileField
+            id="status-documents"
+            label="Giấy tờ bệnh viện"
+            error={errors.documents}
+            multiple
+            onPick={(files) => setDocuments((current) => [...current, ...files])}
+            hint={
+              command === 'TRANSFER_OUT'
+                ? `Giấy chuyển viện, không bắt buộc. Tối đa ${MAX_DOCUMENTS} tệp, mỗi tệp PDF, JPEG hoặc PNG, tối đa 10 MB.`
+                : `Giấy ra viện, đơn thuốc, không bắt buộc. Tối đa ${MAX_DOCUMENTS} tệp, mỗi tệp PDF, JPEG hoặc PNG, tối đa 10 MB.`
+            }
           />
-          {errors.evidence ? (
-            <FieldError>{errors.evidence}</FieldError>
-          ) : (
-            <FieldDescription>
-              Bác sĩ không cần khi xác nhận tại viện. Hành chính ghi nhận ngoài viện phải kèm giấy báo tử hoặc giấy chứng
-              tử. Tải tệp lên sẽ có khi tính năng tệp đính kèm kết nối.
-            </FieldDescription>
+          {documents.length > 0 && (
+            <ul aria-label="Tệp đã chọn" className="flex flex-col gap-1">
+              {documents.map((file, index) => (
+                <li key={`${file.name}-${index}`} className="type-body-sm flex items-center gap-2">
+                  <span className="min-w-0 flex-1 truncate">{file.name}</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    aria-label={`Bỏ ${file.name}`}
+                    disabled={busy}
+                    onClick={() => setDocuments((current) => current.filter((_, i) => i !== index))}
+                  >
+                    Bỏ
+                  </Button>
+                </li>
+              ))}
+            </ul>
           )}
-        </Field>
+        </div>
       )}
 
       <ProblemAlert problem={failure} />
@@ -394,6 +444,7 @@ export function StatusTab({ residentId, status, allowedCommands = [], onChanged 
         <CommandForm
           key={command}
           residentId={residentId}
+          status={status}
           command={command}
           onCancel={() => setCommand(null)}
           onDone={finished}
