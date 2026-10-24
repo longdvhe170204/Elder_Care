@@ -57,8 +57,8 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 ### Implementation cho User Story 1
 
 - [ ] T008 [US1] Cài hàm tính và chi tiết cho các chỉ tiêu dashboard trong `BE/m14/chitieu/` gọi `*ThongKeApi` tương ứng (contracts/chi-tieu.md)
-- [ ] T009 [US1] Cài `BE/m14/dashboard/internal/DashboardService.java` (khối theo vai trò, song song, bộ đệm trong tiến trình 20 giây, ETag) và `BE/m14/dashboard/web/DashboardController.java` (`GET /dashboard`, `GET /chi-tieu`) (research O-06)
-- [ ] T010 [P] [US1] Tạo màn web `frontend/src/tinh-nang/bao-cao/dashboard/` (định nghĩa chỉ tiêu tại chỗ; "—" khi mẫu số 0; làm mới 30 giây với ETag) với test Vitest
+- [x] T009 [US1] *(2026-10-24: `DashboardService` theo nhóm của bảng FR-020, bộ đệm 20 giây theo (nhóm, phạm vi), ETag; chạy tuần tự, ghi chú ở plan; `GET /dashboard`, `GET /metrics`; test `FR_020_DashboardIT`)* Cài `BE/m14/dashboard/internal/DashboardService.java` (khối theo vai trò, song song, bộ đệm trong tiến trình 20 giây, ETag) và `BE/m14/dashboard/web/DashboardController.java` (`GET /dashboard`, `GET /chi-tieu`) (research O-06)
+- [x] T010 [P] [US1] *(2026-10-24: bố cục duyệt, DESIGN.md 5.21.0; `src/features/dashboard/DashboardPage.jsx` thay bản mẫu Tổng quan; test `DashboardPage.test.jsx`)* Tạo màn web `frontend/src/tinh-nang/bao-cao/dashboard/` (định nghĩa chỉ tiêu tại chỗ; "—" khi mẫu số 0; làm mới 30 giây với ETag) với test Vitest
 
 **Checkpoint**: Dashboard chạy độc lập.
 
@@ -94,7 +94,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Implementation cho User Story 3
 
-- [ ] T014 [US3] Cài chỉ tiêu nhóm người cao tuổi, giường và `BE/m14/baocao/internal/BaoCaoService.java` + `BE/m14/baocao/web/BaoCaoController.java` (`GET /bao-cao/{nhom}`) (research O-07); màn web `frontend/src/tinh-nang/bao-cao/nguoi-cao-tuoi/`
+- [ ] T014 [US3] *(2026-10-24: xong phần khung `GET /reports/{group}` (`ReportController`, `ReportService`, test `ReportApiIT`) và màn `src/features/reports/` dùng chung cho mọi nhóm; còn chỉ tiêu nhóm người cao tuổi, giường chờ `*ThongKeApi` của 001, 003, 004)* Cài chỉ tiêu nhóm người cao tuổi, giường và `BE/m14/baocao/internal/BaoCaoService.java` + `BE/m14/baocao/web/BaoCaoController.java` (`GET /bao-cao/{nhom}`) (research O-07); màn web `frontend/src/tinh-nang/bao-cao/nguoi-cao-tuoi/`
 
 ---
 
@@ -158,7 +158,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Implementation cho User Story 7
 
-- [ ] T022 [US7] Cài `BE/m14/chitiet/internal/ChiTietService.java` và `BE/m14/chitiet/web/ChiTietController.java` (`GET /chi-tiet/{maChiTieu}`; phân trang; giới hạn trường); màn web `frontend/src/tinh-nang/bao-cao/chi-tiet/`
+- [ ] T022 [US7] *(2026-10-24: xong `GET /metric-details/{metricCode}` (`MetricDetailService`, phân trang 50 dòng) và khung `MetricDetailSheet`; còn test FR-012, FR-014 của US7 với nguồn thật)* Cài `BE/m14/chitiet/internal/ChiTietService.java` và `BE/m14/chitiet/web/ChiTietController.java` (`GET /chi-tiet/{maChiTieu}`; phân trang; giới hạn trường); màn web `frontend/src/tinh-nang/bao-cao/chi-tiet/`
 
 ---
 
