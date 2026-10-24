@@ -476,6 +476,8 @@ Mọi lệnh ghi `nhat_ky` của 000 trong cùng transaction (000 FR-047). `nguo
 | `M01.NGUYEN_VONG_DIEU_TRI` *(bổ sung 2026-10-22)* | Mọi trường → `SUC_KHOE` (FR-023m); cờ `coNguyenVongDieuTri` trên `M01.NGUOI_CAO_TUOI` → `CONG_KHAI_NOI_BO` nhưng chỉ đưa vào DTO cho người có `(DI_UNG_BENH_NEN, XEM)` hoặc Hành chính; Kế toán không có (research H-18; chủ dự án chọn 2026-10-22) |
 | `M01.BAN_DONG_Y` | `qdToaSo`, `qdToaNgay`, `qdToaToaAn`, `qdToaTepId` (quyết định của Tòa án về năng lực hành vi, sửa 2026-10-18) → `NHAN_DANG`, người thân không thấy; còn lại → `CONG_KHAI_NOI_BO` |
 
+**Lịch sử trạng thái trên API** *(2026-10-24, Opus #6)*: `GET /residents/{id}/status-history` và `StatusCommandResult.history` (schema `StatusHistoryEntry`) đặt `reason`, `basis`, `conditionWaiver` vào nhóm `SUC_KHOE` (`@FieldGroup(HEALTH)`) theo đối tượng là người cao tuổi của dòng: lý do chuyển viện, qua đời có thể là chẩn đoán, nguyên nhân. Người không xem được nhóm này (Hành chính, Kế toán, người thân chưa được chia sẻ sức khỏe) vẫn thấy `from`, `to`, `command`, `at`, `performedBy`, `bySystem`; ba trường nằm trong `hiddenFields`. Lý do đã đính chính bị che như bản gốc. Quyền xem lịch sử (`RESIDENT_PROFILE VIEW`) không đổi.
+
 Nhờ bảng này, Hành chính xem lịch sử hồ sơ thấy "đã thay đổi" ở trường sức khỏe mà không thấy giá trị (19.3, BR-M15-11).
 
 ---
