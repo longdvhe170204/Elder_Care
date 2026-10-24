@@ -48,6 +48,15 @@ class StaffSpiIT extends MySqlIntegrationTestBase {
     }
 
     @Test
+    void FR_016_009_staffContactPhoneIsReadFromProfileAndAbsentWithoutContact() {
+        long id = staff("NURSING_STAFF");
+        assertThat(profiles.phoneNumber(id)).isEmpty();
+        jdbc.update("UPDATE staff_profile SET phone_number='0900000001' WHERE id=?", id);
+        assertThat(profiles.phoneNumber(id)).contains("0900000001");
+        assertThat(profiles.phoneNumber(Long.MAX_VALUE)).isEmpty();
+    }
+
+    @Test
     void BR_M15_22_minimalBootstrapProfileIsCreatedInCallerTransactionWithAudit() {
         long id = profiles.createMinimal("[Quản lý viện kiểm thử]", Role.NURSING_HOME_MANAGER);
         assertThat(profiles.positionRole(id)).contains(Role.NURSING_HOME_MANAGER);

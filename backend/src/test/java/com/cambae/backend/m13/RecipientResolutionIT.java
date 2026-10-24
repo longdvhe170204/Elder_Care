@@ -38,10 +38,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 
 /**
- * 009 US2 (T014 phần không cần {@code CaTrucApi}, bản đồng ý, trạng thái người cao tuổi): BR-M13-04 người nhận theo phân
+ * 009 US2 (T014 phần không cần {@code CaTrucApi}): BR-M13-04 người nhận theo phân
  * công tại thời điểm gửi; FR-008 loại trừ; FR-010 cách thay; FR-011 không có người nhận; FR-012 gộp người nhận, người gây
- * ra; FR-013 lọc phần nội dung người thân; FR-014, FR-014a phạm vi "nhận thông báo" và mã trường hợp. Bản đồng ý chưa có
- * (001), nên người thân luôn ngoài phạm vi và phần sức khỏe không hiện (mặc định an toàn của FR-013, FR-014).
+ * ra; FR-013 lọc phần nội dung người thân; FR-014, FR-014a phạm vi "nhận thông báo" và mã trường hợp. Người cao tuổi
+ * ở đây không có bản đồng ý Hiệu lực, nên người thân ngoài phạm vi và không thấy phần sức khỏe; trường hợp có bản đồng ý ở
+ * {@link FR_014_015_ConsentAndDeathIT}.
  */
 @Import(FakeM15Config.class)
 class RecipientResolutionIT extends M13IntegrationTestBase {
@@ -358,7 +359,7 @@ class RecipientResolutionIT extends M13IntegrationTestBase {
 
         assertThat(notificationOf(id, "FAMILY_MEMBER", withCosts).get("visible_parts"))
                 .isEqualTo("GENERAL,COSTS");
-        // Chưa có bản đồng ý (001) nên phần sức khỏe không hiện (DBR-03)
+        // Không có bản đồng ý Hiệu lực nên phần sức khỏe không hiện (DBR-03)
         assertThat(notificationOf(id, "FAMILY_MEMBER", withHealth).get("visible_parts"))
                 .isEqualTo("GENERAL");
     }

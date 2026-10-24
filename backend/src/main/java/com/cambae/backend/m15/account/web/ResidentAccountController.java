@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Lệnh trên tài khoản người cao tuổi (002 T092, T094; contracts/api-002.yaml mục H): mã QR đăng nhập, gỡ thiết bị, khóa
- * và mở khóa theo lời chính người cao tuổi. Tạo tài khoản ({@code POST /resident-accounts}, T091) chờ 001.
+ * và mở khóa theo lời chính người cao tuổi. Tạo tài khoản ở {@code ResidentAccountCreationController} (T091).
  */
 @RestController
 @RequestMapping("/api/v1/accounts")

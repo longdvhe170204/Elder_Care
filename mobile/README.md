@@ -4,7 +4,9 @@ Một app Flutter chung cho nhân viên, người thân và người cao tuổi;
 
 Đọc trước khi viết mã: [AGENTS.md](../AGENTS.md), [DESIGN.md](../DESIGN.md) (mục 15 riêng cho Flutter; 15.6 phần người cao tuổi), [docs/team-plan.md](../docs/team-plan.md).
 
-**Giai đoạn**: mobile chưa viết mã chức năng, chỉ làm màn mẫu thiết kế với dữ liệu giả (CLAUDE.md, "Giai đoạn hiện tại"). Task `mobile/` trong tasks.md để chưa `[x]` tới khi chủ dự án mở phần này. Các mục ghi "chờ chốt" sẽ được A chốt khi mở mobile.
+**Giai đoạn** (2026-10-24): chủ dự án mở mobile cho **phần người cao tuổi trước** (002 T097: đăng nhập QR, mật khẩu dự phòng, đổi mật khẩu lần đầu, mở khóa sinh trắc học, màn "Hôm nay" khung). Phần nhân viên, người thân chưa mở: task của chúng để `[ ]`. Thư viện đã duyệt: `http`, `mobile_scanner`, `local_auth`, `flutter_secure_storage`, `firebase_messaging`, `geolocator`, `url_launcher`.
+
+**Máy có dấu cách trong đường dẫn Flutter** (ví dụ `C:\Users\ADMIN VIP\flutter`): hook native assets của `objective_c` (kéo theo bởi `local_auth`) không đặt nháy đường dẫn nên `flutter test` báo `'C:\Users\ADMIN' is not recognized`. Gọi Flutter qua tên ngắn 8.3, ví dụ `C:\Users\ADMINV~1\flutter\bin\flutter.bat test`, hoặc cài Flutter ở thư mục không có dấu cách.
 
 ## Lệnh
 
@@ -58,9 +60,11 @@ test/staff/care_tasks/
 5. Lệnh ghi khi mất mạng (phần nhân viên) đi qua hàng đợi ngoại tuyến và `/sync` của 002; lệnh bắt buộc trực tuyến thì báo cần mạng.
 6. Chữ trên màn tiếng Việt; tên trong mã tiếng Anh theo glossary.
 
-## 5. Chờ chốt khi mở mobile
+## 5. Đã chốt khi mở mobile (2026-10-24, A)
 
-- Cách quản lý trạng thái (ví dụ `ChangeNotifier`/`provider`, Riverpod hay bloc).
-- Điều hướng (Navigator 2 / `go_router`).
-- Sinh client API từ hợp đồng hay viết tay.
-- Kho an toàn cho token (`flutter_secure_storage`, 002 T001).
+- Trạng thái: `ChangeNotifier` của Flutter (`common/auth/session_controller.dart`), không thêm gói.
+- Điều hướng: `MaterialApp.home` đổi màn theo trạng thái phiên; màn con dùng `Navigator` của Flutter. Đổi sang `go_router` khi phần nhân viên có nhiều màn.
+- Client API: viết tay trong `common/api/api_client.dart` (Problem Details thành `ApiProblem`, mất mạng thành `ApiUnreachable`); script sinh client (000 T010b) làm khi phần nhân viên cần nhiều endpoint.
+- Kho token: `flutter_secure_storage` qua `common/auth/secure_store.dart` (test dùng `MemoryStore`).
+- Theme: `common/theme/app_theme.dart` (token DESIGN.md, `Tones` cho tông trạng thái, `AppTheme.resident` chữ x1,25 vùng bấm 56). Font Be Vietnam Pro 400, 700 đóng gói ở `assets/fonts/`; còn thiếu 500, 600.
+- Chưa chốt: gói biểu tượng lucide cho Flutter, cách lưu chế độ sáng tối (DESIGN.md 15.7).

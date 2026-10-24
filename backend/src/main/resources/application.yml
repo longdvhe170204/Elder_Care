@@ -97,6 +97,25 @@ eldercare:
       cron: "-"
     lock-after-residency-end:
       cron: "-"
+    # Job M01 (001 T031): test gọi AllergyCheckRetry.run()
+    retry-allergy-checks:
+      cron: "-"
+    # Job M01 (001 T051): test gọi TemporaryAbsenceOverdueAlert.run()
+    temporary-absence-overdue:
+      cron: "-"
+    # Job M01 (001 T058): test gọi MissingConsentReminderService.run()
+    missing-consent-reminder:
+      cron: "-"
+    # Job M01 (001 T064): test gọi ReassessmentNoticeService.runPeriodic(), runOverdue(), CareLevelChangeRequestReminderService.run()
+    notify-periodic-reassessment:
+      cron: "-"
+    alert-overdue-reassessment:
+      cron: "-"
+    remind-care-level-change-request:
+      cron: "-"
+    # Job dọn tệp chưa gắn (001 T004): test gọi UnattachedFileCleanup.run()
+    clean-unattached-files:
+      cron: "-"
     # Job M13 (009 T010): test gọi M13FastJob.run(), M13DailyJob.catchUp()
     m13-fast:
       cron: "-"

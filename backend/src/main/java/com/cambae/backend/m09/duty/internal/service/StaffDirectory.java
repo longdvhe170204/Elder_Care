@@ -69,6 +69,10 @@ class StaffDirectory implements StaffProfileApi {
         return staff.find(staffId).map(s -> s.fullName());
     }
 
+    public Optional<String> phoneNumber(long staffId) {
+        return staff.find(staffId).map(s -> s.phoneNumber());
+    }
+
     @Transactional(propagation = Propagation.MANDATORY)
     public long createMinimal(String fullName, Role positionRole) {
         if (!STAFF_ROLES.contains(positionRole) || fullName == null || fullName.isBlank())

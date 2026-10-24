@@ -8,4 +8,13 @@ import com.cambae.backend.m15.account.api.dto.Visibility;
 public interface FieldVisibilityApi {
 
     Visibility canView(CurrentUser user, InfoGroup group, Target target);
+
+    /**
+     * Mức xem nhóm theo vai trò, không xét phạm vi hiện hành của đối tượng: cho dòng chi tiết báo cáo của người cao tuổi
+     * đã ngoài phạm vi (016 FR-012, Q-196; "Đổi api" 2026-10-24). Người thân xem nhóm có điều kiện bản đồng ý thì không
+     * qua hàm này. Mặc định như đối tượng không xác định (chặt hơn), để bản giả của test cũ không phải cài.
+     */
+    default Visibility canViewByRole(CurrentUser user, InfoGroup group) {
+        return canView(user, group, Target.UNSPECIFIED);
+    }
 }
