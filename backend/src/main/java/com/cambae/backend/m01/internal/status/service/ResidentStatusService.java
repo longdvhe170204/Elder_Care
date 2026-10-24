@@ -13,6 +13,7 @@ import com.cambae.backend.m01.api.dto.Condition;
 import com.cambae.backend.m01.api.dto.ConditionWaiver;
 import com.cambae.backend.m01.api.dto.ResidentStatus;
 import com.cambae.backend.m01.api.dto.StatusCommand;
+import com.cambae.backend.m01.api.dto.StatusPeriod;
 import com.cambae.backend.m01.api.dto.TransitionResult;
 import com.cambae.backend.m01.api.dto.Warning;
 import com.cambae.backend.m01.api.events.ResidentStatusChanged;
@@ -34,6 +35,8 @@ import com.cambae.backend.m15.auditlog.api.AuditAction;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
 import com.cambae.backend.m15.auditlog.api.Basis;
+import com.cambae.backend.m15.correction.api.CorrectionApi;
+import com.cambae.backend.m15.correction.api.CurrentValue;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -60,6 +63,8 @@ public class ResidentStatusService {
 
     static final AuditAction CHANGED = new AuditAction("RESIDENT_STATUS_CHANGED", false);
     static final String ENTITY_TYPE = "M01.RESIDENT";
+    /** Loại bản ghi của dòng lịch sử trạng thái trong đính chính của 000 (FR-049a). */
+    public static final String HISTORY_RECORD_TYPE = "M01.RESIDENT_STATUS_HISTORY";
 
     /** Chi tiết bắt buộc của Chuyển viện và Ghi nhận qua đời ngoài viện (CHK016, FR-047b). */
     private static final String BASIS_FIELD = "basis";
@@ -119,6 +124,7 @@ public class ResidentStatusService {
     private final ActorNames names;
     private final ObjectProvider<CurrentUser> currentUser;
     private final FileApi files;
+    private final ObjectProvider<CorrectionApi> corrections;
 
     ResidentStatusService(
             ResidentRepository residents,
@@ -131,7 +137,9 @@ public class ResidentStatusService {
             JsonMapper json,
             ActorNames names,
             ObjectProvider<CurrentUser> currentUser,
-            FileApi files) {
+            FileApi files,
+            ObjectProvider<CorrectionApi> corrections) {
+        this.corrections = corrections;
         this.residents = residents;
         this.histories = histories;
         this.guard = guard;
@@ -274,9 +282,45 @@ public class ResidentStatusService {
     public List<HistoryEntry> history(Target target) {
         long id = target.residentId();
         residents.findById(id).orElseThrow(NotFoundException::new);
-        return histories.findByResidentIdOrderByIdAsc(id).stream()
-                .map(this::entry)
+        List<ResidentStatusHistory> rows = histories.findByResidentIdOrderByIdAsc(id);
+        // Lý do hiển thị là lý do đã đính chính (FR-049a, FR-030); bản gốc giữ nguyên ở bảng lịch sử
+        Map<Long, CurrentValue> corrected = rows.isEmpty()
+                ? Map.of()
+                : corrections
+                        .getObject()
+                        .current(
+                                HISTORY_RECORD_TYPE,
+                                rows.stream().map(ResidentStatusHistory::getId).toList());
+        return rows.stream()
+                .map(row -> entry(row, correctedReason(corrected.get(row.getId()))))
                 .toList();
+    }
+
+    /**
+     * Khoảng người cao tuổi ở các trạng thái cho trước (003 FR-027 c, FR-036), dựng từ lịch sử trạng thái: bắt đầu ở
+     * dòng vào trạng thái, kết thúc ở dòng kế tiếp (rỗng nếu đang ở). Lấy khoảng giao với [from, to], trả nguyên khoảng
+     * không cắt; khoảng kết thúc đúng lúc {@code from} không tính. Đọc, không khóa, không đổi dữ liệu.
+     */
+    public List<StatusPeriod> periods(long residentId, Set<ResidentStatus> statuses, Instant from, Instant to) {
+        if (statuses.isEmpty()) {
+            return List.of();
+        }
+        List<ResidentStatusHistory> rows = histories.findByResidentIdOrderByIdAsc(residentId);
+        List<StatusPeriod> found = new ArrayList<>();
+        for (int i = 0; i < rows.size(); i++) {
+            ResidentStatusHistory row = rows.get(i);
+            if (!statuses.contains(row.getToStatus())) {
+                continue;
+            }
+            Optional<Instant> end =
+                    i + 1 < rows.size() ? Optional.of(rows.get(i + 1).getOccurredAt()) : Optional.empty();
+            boolean startsBeforeRangeEnds = row.getOccurredAt().isBefore(to);
+            boolean endsAfterRangeStarts = end.map(e -> e.isAfter(from)).orElse(true);
+            if (startsBeforeRangeEnds && endsAfterRangeStarts) {
+                found.add(new StatusPeriod(row.getToStatus(), row.getOccurredAt(), end));
+            }
+        }
+        return found;
     }
 
     /**
@@ -512,7 +556,19 @@ public class ResidentStatusService {
         return tools.jackson.databind.node.JsonNodeFactory.instance.objectNode();
     }
 
+    private static String correctedReason(CurrentValue value) {
+        if (value != null && value.corrected() && !value.voided() && value.content() instanceof Map<?, ?> content) {
+            Object reason = content.get(StatusHistoryCorrectionProvider.REASON);
+            return reason == null ? null : reason.toString();
+        }
+        return null;
+    }
+
     private HistoryEntry entry(ResidentStatusHistory row) {
+        return entry(row, null);
+    }
+
+    private HistoryEntry entry(ResidentStatusHistory row, String correctedReason) {
         Map<String, Object> basis =
                 row.getBasisType() == null ? null : Map.of("type", row.getBasisType(), "id", row.getBasisId());
         Map<String, Object> waiver = row.getConditionWaiver() == null
@@ -525,7 +581,7 @@ public class ResidentStatusService {
                 row.getOccurredAt(),
                 names.of(row.getPerformedBy()),
                 row.isBySystem(),
-                row.getReason(),
+                correctedReason != null ? correctedReason : row.getReason(),
                 basis,
                 waiver);
     }

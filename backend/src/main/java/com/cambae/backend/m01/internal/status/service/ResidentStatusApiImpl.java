@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 
 /** Lệnh đổi trạng thái từ module khác (014, 007, 004) và xem trước điều kiện cho 004 (research H-03). */
@@ -52,8 +53,8 @@ class ResidentStatusApiImpl implements ResidentStatusApi {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<StatusPeriod> statusPeriods(long residentId, Set<ResidentStatus> statuses, Instant from, Instant to) {
-        // Khoảng Tạm vắng, Điều trị tại bệnh viện, Hoạt động bên ngoài cho 003 (T049 phần đọc), làm khi 003 cần.
-        throw new UnsupportedOperationException("statusPeriods chưa cài");
+        return status.periods(residentId, statuses, from, to);
     }
 }
