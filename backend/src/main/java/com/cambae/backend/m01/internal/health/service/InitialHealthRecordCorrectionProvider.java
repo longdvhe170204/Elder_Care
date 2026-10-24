@@ -1,5 +1,6 @@
 package com.cambae.backend.m01.internal.health.service;
 
+import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.Role;
 import com.cambae.backend.common.error.InvalidValueException;
 import com.cambae.backend.common.error.NotFoundException;
@@ -8,6 +9,10 @@ import com.cambae.backend.m01.api.events.InitialHealthRecordChanged;
 import com.cambae.backend.m01.internal.health.domain.InitialHealthRecord;
 import com.cambae.backend.m01.internal.health.persistence.InitialHealthRecordRepository;
 import com.cambae.backend.m15.account.api.CurrentUser;
+import com.cambae.backend.m15.auditlog.api.AuditAction;
+import com.cambae.backend.m15.auditlog.api.AuditLogApi;
+import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
+import com.cambae.backend.m15.auditlog.api.Basis;
 import com.cambae.backend.m15.correction.api.CorrectionView;
 import com.cambae.backend.m15.correction.api.CreationMethod;
 import com.cambae.backend.m15.correction.api.spi.CorrectableRecordProvider;
@@ -35,12 +40,19 @@ class InitialHealthRecordCorrectionProvider implements CorrectableRecordProvider
             "currentMedications",
             "rehabilitationNeeds");
 
+    private static final AuditAction CORRECTED = new AuditAction("RECORD_CORRECTED", true);
+
     private final InitialHealthRecordRepository records;
     private final ResidentApi residents;
     private final ApplicationEventPublisher events;
+    private final AuditLogApi auditLog;
 
     InitialHealthRecordCorrectionProvider(
-            InitialHealthRecordRepository records, ResidentApi residents, ApplicationEventPublisher events) {
+            InitialHealthRecordRepository records,
+            ResidentApi residents,
+            ApplicationEventPublisher events,
+            AuditLogApi auditLog) {
+        this.auditLog = auditLog;
         this.records = records;
         this.residents = residents;
         this.events = events;
@@ -90,8 +102,30 @@ class InitialHealthRecordCorrectionProvider implements CorrectableRecordProvider
 
     @Override
     public void afterCorrection(CorrectionView correction) {
-        events.publishEvent(new InitialHealthRecordChanged(
-                find(correction.originalRecordId()).getResidentId()));
+        long residentId = find(correction.originalRecordId()).getResidentId();
+        linkToResident(correction, residentId);
+        events.publishEvent(new InitialHealthRecordChanged(residentId));
+    }
+
+    /**
+     * Dòng nhật ký của 000 cho đính chính không mang {@code resident_id} (SPI không cho biết người cao tuổi), nên tra
+     * theo người cao tuổi sẽ không thấy đính chính. Ghi thêm một dòng cùng bản ghi gốc, gắn người cao tuổi, trỏ tới
+     * bản đính chính (DBR-23); không chép nội dung đính chính vì có thể là dữ liệu sức khỏe.
+     */
+    private void linkToResident(CorrectionView correction, long residentId) {
+        AuditLogEntry.Builder entry = AuditLogEntry.builder()
+                .action(CORRECTED)
+                .entity(correction.recordType(), correction.originalRecordId())
+                .resident(residentId)
+                .reason(new Reason(correction.reason()))
+                .details(Map.of(
+                        "correctionId", correction.id(),
+                        "sequenceNo", correction.sequenceNo(),
+                        "type", correction.type().name()));
+        if (correction.approvalRequestId() != null) {
+            entry.basis(new Basis(null, correction.approvalRequestId(), null, null));
+        }
+        auditLog.write(entry.build());
     }
 
     private InitialHealthRecord find(long id) {
