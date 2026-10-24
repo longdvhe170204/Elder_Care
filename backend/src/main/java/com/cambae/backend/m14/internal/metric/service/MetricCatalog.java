@@ -35,6 +35,10 @@ public class MetricCatalog {
         return Optional.ofNullable(byCode.get(code)).map(MetricSource::metric);
     }
 
+    public Optional<MetricSource<?>> source(String code) {
+        return Optional.ofNullable(byCode.get(code));
+    }
+
     /** Chỉ tiêu thuộc các nhóm người xem được thấy (FR-010; {@code GET /metrics}). */
     public List<Metric<?>> inGroups(Set<MetricGroup> groups) {
         return byCode.values().stream()
