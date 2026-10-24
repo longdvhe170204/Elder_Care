@@ -160,13 +160,14 @@ class PrescriptionLifecycleTest {
         when(prescriptionRepository.findById(1001L)).thenReturn(Optional.of(oldPrescription));
         when(prescriptionRepository.save(any(Prescription.class))).thenAnswer(inv -> inv.getArgument(0));
 
+        Instant doseTime = Instant.now().plusSeconds(3600);
         MedicationDose openDose = new MedicationDose(
                 1001L,
                 residentId,
                 medId,
-                Instant.parse("2026-10-24T15:00:00Z"),
-                Instant.parse("2026-10-24T14:30:00Z"),
-                Instant.parse("2026-10-24T15:30:00Z"),
+                doseTime,
+                doseTime.minusSeconds(1800),
+                doseTime.plusSeconds(1800),
                 new BigDecimal("5.0"),
                 "mg",
                 MedicationSource.FACILITY,
@@ -224,7 +225,7 @@ class PrescriptionLifecycleTest {
 
         PrescriptionResponse resp = prescriptionService.discontinue(1002L, body, 1L, true);
 
-        assertThat(resp.trangThai()).isEqualTo(PrescriptionStatus.DISCONTINUED.name());
+        assertThat(resp.status()).isEqualTo(PrescriptionStatus.DISCONTINUED.name());
         assertThat(oldPrescription.getSuspendedFrom()).isNull();
     }
 
@@ -263,7 +264,7 @@ class PrescriptionLifecycleTest {
 
         PrescriptionResponse resp = prescriptionService.suspend(1003L, body, 2L, false);
 
-        assertThat(resp.trangThai()).isEqualTo(PrescriptionStatus.SUSPENDED.name());
+        assertThat(resp.status()).isEqualTo(PrescriptionStatus.SUSPENDED.name());
         verify(prescriptionBasisRepository).save(any(PrescriptionBasis.class));
     }
 

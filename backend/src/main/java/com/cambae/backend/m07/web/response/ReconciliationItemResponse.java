@@ -2,7 +2,6 @@ package com.cambae.backend.m07.web.response;
 
 import com.cambae.backend.m07.web.request.CreatePrescriptionBody;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Medication reconciliation line item response (FR-036).
@@ -11,35 +10,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ReconciliationItemResponse {
 
     private Long id;
-
-    @JsonProperty("nguon")
     private String source;
-
-    @JsonProperty("donThuocId")
     private Long prescriptionId;
-
-    @JsonProperty("mucThuocDangDungId")
     private Long admissionMedicationItemId;
-
-    @JsonProperty("moTaThuoc")
     private String medicationDescription;
-
-    @JsonProperty("quyetDinh")
     private String decision;
-
-    @JsonProperty("lyDo")
     private String reason;
-
-    @JsonProperty("donMoi")
     private CreatePrescriptionBody newPrescription;
-
-    @JsonProperty("daNgungNgoaiPhieu")
     private Boolean discontinuedOutsideTicket;
-
-    @JsonProperty("thuocDaBoKhoiHoSo")
     private Boolean medicationRemovedFromProfile;
-
-    @JsonProperty("donTaoId")
     private Long createdPrescriptionId;
 
     public Long getId() {

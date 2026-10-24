@@ -1,7 +1,6 @@
 package com.cambae.backend.m07.web.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,43 +12,18 @@ import java.util.List;
 public class ReconciliationResponse {
 
     private Long id;
-
-    @JsonProperty("nctId")
     private Long residentId;
-
-    @JsonProperty("lyDo")
     private String reason;
-
-    @JsonProperty("lyDoLap")
     private String reasonDetail;
-
-    @JsonProperty("trangThai")
     private String status;
-
-    @JsonProperty("hanLuc")
     private Instant deadlineAt;
-
-    @JsonProperty("quaHan")
     private Boolean overdue;
-
-    @JsonProperty("nguoiLap")
     private String createdBy;
-
-    @JsonProperty("nguoiGui")
     private String submittedBy;
-
-    @JsonProperty("nguoiXacNhan")
     private String confirmedBy;
-
-    @JsonProperty("lyDoTraLai")
     private String returnReason;
-
-    @JsonProperty("dong")
     private List<ReconciliationItemResponse> items = new ArrayList<>();
-
-    @JsonProperty("lenhDuocPhep")
     private List<String> permittedActions = new ArrayList<>();
-
     private int version;
 
     public Long getId() {

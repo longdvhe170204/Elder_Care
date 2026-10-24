@@ -48,8 +48,8 @@ class MedicationControllerTest {
 
         assertThat(responses).hasSize(1);
         assertThat(responses.get(0).id()).isEqualTo(1L);
-        assertThat(responses.get(0).ten()).isEqualTo("Paracetamol");
-        assertThat(responses.get(0).hieuLuc()).isTrue();
+        assertThat(responses.get(0).name()).isEqualTo("Paracetamol");
+        assertThat(responses.get(0).active()).isTrue();
     }
 
     @Test
@@ -65,8 +65,8 @@ class MedicationControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getHeaders().getETag()).isEqualTo("\"2\"");
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().ten()).isEqualTo("Amlodipin");
-        assertThat(response.getBody().chuaCoMucVatPham()).isTrue();
+        assertThat(response.getBody().name()).isEqualTo("Amlodipin");
+        assertThat(response.getBody().missingPricingItem()).isTrue();
     }
 
     @Test
@@ -116,7 +116,7 @@ class MedicationControllerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getHeaders().getETag()).isEqualTo("\"1\"");
-        assertThat(response.getBody().ten()).isEqualTo("Paracetamol Extra");
+        assertThat(response.getBody().name()).isEqualTo("Paracetamol Extra");
     }
 
     @Test
@@ -130,6 +130,6 @@ class MedicationControllerTest {
         ResponseEntity<MedicationResponse> response = controller.deactivate(10L, null, new ReasonBody("Hết sản xuất"));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().hieuLuc()).isFalse();
+        assertThat(response.getBody().active()).isFalse();
     }
 }

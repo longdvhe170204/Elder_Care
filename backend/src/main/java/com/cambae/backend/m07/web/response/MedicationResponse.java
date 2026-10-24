@@ -1,26 +1,25 @@
 package com.cambae.backend.m07.web.response;
 
 import com.cambae.backend.m07.internal.service.MedicationService.MedicationDetailView;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
  * Medication detail response per OpenAPI contract api-006.yaml (schema Thuoc).
  */
 public record MedicationResponse(
-        @JsonProperty("id") Long id,
-        @JsonProperty("ten") String ten,
-        @JsonProperty("hamLuong") String hamLuong,
-        @JsonProperty("dangBaoChe") String dangBaoChe,
-        @JsonProperty("duongDungMacDinh") String duongDungMacDinh,
-        @JsonProperty("donViDung") String donViDung,
-        @JsonProperty("hoatChat") List<Long> hoatChat,
-        @JsonProperty("cuaSoTruocPhut") Integer cuaSoTruocPhut,
-        @JsonProperty("cuaSoSauPhut") Integer cuaSoSauPhut,
-        @JsonProperty("kiemSoatDacBiet") boolean kiemSoatDacBiet,
-        @JsonProperty("hieuLuc") boolean hieuLuc,
-        @JsonProperty("chuaCoMucVatPham") boolean chuaCoMucVatPham,
-        @JsonProperty("phienBan") int phienBan) {
+        Long id,
+        String name,
+        String concentration,
+        String dosageForm,
+        String defaultRoute,
+        String usageUnit,
+        List<Long> allergenIds,
+        Integer beforeWindowMinutes,
+        Integer afterWindowMinutes,
+        boolean specialControl,
+        boolean active,
+        boolean missingPricingItem,
+        int version) {
 
     public static MedicationResponse from(MedicationDetailView view) {
         return new MedicationResponse(
@@ -37,5 +36,54 @@ public record MedicationResponse(
                 view.active(),
                 view.missingPricingItem(),
                 view.version());
+    }
+
+    // Compatibility accessors
+    public String ten() {
+        return name;
+    }
+
+    public String hamLuong() {
+        return concentration;
+    }
+
+    public String dangBaoChe() {
+        return dosageForm;
+    }
+
+    public String duongDungMacDinh() {
+        return defaultRoute;
+    }
+
+    public String donViDung() {
+        return usageUnit;
+    }
+
+    public List<Long> hoatChat() {
+        return allergenIds;
+    }
+
+    public Integer cuaSoTruocPhut() {
+        return beforeWindowMinutes;
+    }
+
+    public Integer cuaSoSauPhut() {
+        return afterWindowMinutes;
+    }
+
+    public boolean kiemSoatDacBiet() {
+        return specialControl;
+    }
+
+    public boolean hieuLuc() {
+        return active;
+    }
+
+    public boolean chuaCoMucVatPham() {
+        return missingPricingItem;
+    }
+
+    public int phienBan() {
+        return version;
     }
 }

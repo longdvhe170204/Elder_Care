@@ -1,7 +1,6 @@
 package com.cambae.backend.m07.web.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.Instant;
 
@@ -9,32 +8,14 @@ import java.time.Instant;
 public class PrnAdministrationResponse {
 
     private Long id;
-
-    @JsonProperty("donThuocId")
     private Long prescriptionId;
-
-    @JsonProperty("nctId")
     private Long residentId;
-
-    @JsonProperty("thoiDiemDung")
     private Instant administeredAt;
-
-    @JsonProperty("lieuDung")
     private BigDecimal dosage;
-
-    @JsonProperty("donVi")
     private String dosageUnit;
-
-    @JsonProperty("lyDo")
     private String reason;
-
-    @JsonProperty("nguoiThucHienId")
     private Long administeredById;
-
-    @JsonProperty("nguoiBao")
     private String reportedBy;
-
-    @JsonProperty("vuotGioiHan")
     private boolean exceededLimit;
 
     public Long getId() {

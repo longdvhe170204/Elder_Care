@@ -12,46 +12,89 @@ import java.util.List;
  */
 public record PrescriptionResponse(
         Long id,
-        Long nctId,
-        Long thuocId,
-        BigDecimal lieu,
-        String donVi,
-        String duongDung,
-        String loaiDon,
-        FrequencyResponse tanSuat,
-        Integer khoangCachToiThieuPhut,
-        Integer soLanToiDa24h,
-        Instant batDauLuc,
-        LocalDate ngayKetThuc,
-        Instant ngungTu,
-        String nguonThuoc,
-        PrescriberResponse coSoKe,
-        String ghiChuHuongDan,
-        String trangThai,
-        String lyDoTamDung,
-        boolean dauChoTiepNhan,
-        Long thayTheChoId,
-        Long biThayTheBoiId,
-        boolean chuaCoThuoc,
-        List<PrescriptionIssueResponse> vanDeDaXacNhan,
-        List<Long> loGan,
-        List<String> lenhDuocPhep,
-        List<String> truongBiAn,
+        Long residentId,
+        Long medicationId,
+        BigDecimal dosage,
+        String unit,
+        String route,
+        String prescriptionType,
+        FrequencyResponse frequency,
+        Integer minIntervalMinutes,
+        Integer maxDosesPer24h,
+        Instant startedAt,
+        LocalDate endedAt,
+        Instant suspendedFrom,
+        String medicationSource,
+        PrescriberResponse prescriber,
+        String instructionNote,
+        String status,
+        String suspensionReason,
+        boolean pendingAdmission,
+        Long replacesId,
+        Long replacedById,
+        boolean noMedicationAvailable,
+        List<PrescriptionIssueResponse> confirmedIssues,
+        List<Long> boundBatchIds,
+        List<String> allowedCommands,
+        List<String> hiddenFields,
         int version) {
 
     public record FrequencyResponse(
-            String kieu, List<String> cacMoc, Integer nGio, Instant mocDau, List<Integer> ngayTrongTuan) {}
+            String type, List<String> timedSlots, Integer everyNHours, Instant firstSlot, List<Integer> daysOfWeek) {
 
-    public record PrescriberResponse(String loai, String tenCoSo, String nguoiKe, LocalDate ngayKe, Long tepDonId) {}
+        public String kieu() {
+            return type;
+        }
+
+        public List<String> cacMoc() {
+            return timedSlots;
+        }
+
+        public Integer nGio() {
+            return everyNHours;
+        }
+
+        public Instant mocDau() {
+            return firstSlot;
+        }
+
+        public List<Integer> ngayTrongTuan() {
+            return daysOfWeek;
+        }
+    }
+
+    public record PrescriberResponse(
+            String type, String facilityName, String prescriberName, LocalDate prescribedAt, Long prescriptionFileId) {
+
+        public String loai() {
+            return type;
+        }
+
+        public String tenCoSo() {
+            return facilityName;
+        }
+
+        public String nguoiKe() {
+            return prescriberName;
+        }
+
+        public LocalDate ngayKe() {
+            return prescribedAt;
+        }
+
+        public Long tepDonId() {
+            return prescriptionFileId;
+        }
+    }
 
     public static PrescriptionResponse from(
             Prescription p,
-            Long biThayTheBoiId,
-            boolean chuaCoThuoc,
+            Long replacedById,
+            boolean noMedicationAvailable,
             List<PrescriptionIssue> issues,
-            List<Long> loGan,
-            List<String> lenhDuocPhep,
-            List<String> truongBiAn) {
+            List<Long> boundBatchIds,
+            List<String> allowedCommands,
+            List<String> hiddenFields) {
 
         FrequencyResponse freq = null;
         if (p.getFrequencyType() != null) {
@@ -105,12 +148,113 @@ public record PrescriptionResponse(
                 p.getSuspensionReason() != null ? p.getSuspensionReason().name() : null,
                 p.isPendingAdmission(),
                 p.getReplacesId(),
-                biThayTheBoiId,
-                chuaCoThuoc,
+                replacedById,
+                noMedicationAvailable,
                 issueResponses,
-                loGan != null ? loGan : List.of(),
-                lenhDuocPhep != null ? lenhDuocPhep : List.of(),
-                truongBiAn != null ? truongBiAn : List.of(),
+                boundBatchIds != null ? boundBatchIds : List.of(),
+                allowedCommands != null ? allowedCommands : List.of(),
+                hiddenFields != null ? hiddenFields : List.of(),
                 p.getVersion());
+    }
+
+    // Compatibility accessors
+    public Long nctId() {
+        return residentId;
+    }
+
+    public Long thuocId() {
+        return medicationId;
+    }
+
+    public BigDecimal lieu() {
+        return dosage;
+    }
+
+    public String donVi() {
+        return unit;
+    }
+
+    public String duongDung() {
+        return route;
+    }
+
+    public String loaiDon() {
+        return prescriptionType;
+    }
+
+    public FrequencyResponse tanSuat() {
+        return frequency;
+    }
+
+    public Integer khoangCachToiThieuPhut() {
+        return minIntervalMinutes;
+    }
+
+    public Integer soLanToiDa24h() {
+        return maxDosesPer24h;
+    }
+
+    public Instant batDauLuc() {
+        return startedAt;
+    }
+
+    public LocalDate ngayKetThuc() {
+        return endedAt;
+    }
+
+    public Instant ngungTu() {
+        return suspendedFrom;
+    }
+
+    public String nguonThuoc() {
+        return medicationSource;
+    }
+
+    public PrescriberResponse coSoKe() {
+        return prescriber;
+    }
+
+    public String ghiChuHuongDan() {
+        return instructionNote;
+    }
+
+    public String trangThai() {
+        return status;
+    }
+
+    public String lyDoTamDung() {
+        return suspensionReason;
+    }
+
+    public boolean dauChoTiepNhan() {
+        return pendingAdmission;
+    }
+
+    public Long thayTheChoId() {
+        return replacesId;
+    }
+
+    public Long biThayTheBoiId() {
+        return replacedById;
+    }
+
+    public boolean chuaCoThuoc() {
+        return noMedicationAvailable;
+    }
+
+    public List<PrescriptionIssueResponse> vanDeDaXacNhan() {
+        return confirmedIssues;
+    }
+
+    public List<Long> loGan() {
+        return boundBatchIds;
+    }
+
+    public List<String> lenhDuocPhep() {
+        return allowedCommands;
+    }
+
+    public List<String> truongBiAn() {
+        return hiddenFields;
     }
 }

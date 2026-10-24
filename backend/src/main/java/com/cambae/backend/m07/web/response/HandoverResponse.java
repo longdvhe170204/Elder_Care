@@ -1,7 +1,6 @@
 package com.cambae.backend.m07.web.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -11,51 +10,22 @@ import java.util.List;
 public class HandoverResponse {
 
     private Long id;
-
-    @JsonProperty("nctId")
     private Long residentId;
-
-    @JsonProperty("chuyenId")
     private Long tripId;
-
-    @JsonProperty("khoangVangId")
     private Long absenceIntervalId;
-
-    @JsonProperty("nguoiNhanLoai")
     private String recipientType;
-
-    @JsonProperty("nguoiNhanId")
     private Long recipientId;
-
-    @JsonProperty("nguoiNhanTen")
     private String recipientName;
-
-    @JsonProperty("quanHe")
     private String relationship;
-
-    @JsonProperty("nguoiGiaoId")
     private Long dispensedById;
-
-    @JsonProperty("thoiDiem")
     private Instant handoverTime;
-
-    @JsonProperty("trangThai")
     private String status;
-
-    @JsonProperty("dong")
     private List<HandoverItemResponse> items = new ArrayList<>();
 
     public static class HandoverItemResponse {
-        @JsonProperty("id")
         private Long id;
-
-        @JsonProperty("donThuocId")
         private Long prescriptionId;
-
-        @JsonProperty("soLuong")
         private BigDecimal quantity;
-
-        @JsonProperty("loThuocGuiId")
         private Long familyMedicationBatchId;
 
         public Long getId() {

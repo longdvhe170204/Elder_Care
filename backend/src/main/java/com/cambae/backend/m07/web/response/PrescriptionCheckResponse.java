@@ -7,7 +7,7 @@ import java.util.List;
  * Pre-validation check response for new prescription (POST /nguoi-cao-tuoi/{nctId}/don-thuoc/kiem-tra; api-006.yaml).
  */
 public record PrescriptionCheckResponse(
-        List<PrescriptionIssueResponse> vanDe, List<PrescriptionIssueResponse> canXemXet) {
+        List<PrescriptionIssueResponse> issues, List<PrescriptionIssueResponse> reviewItems) {
 
     public static PrescriptionCheckResponse from(PrescriptionCheckResult result) {
         List<PrescriptionIssueResponse> issues =
@@ -16,5 +16,14 @@ public record PrescriptionCheckResponse(
                 .map(PrescriptionIssueResponse::from)
                 .toList();
         return new PrescriptionCheckResponse(issues, review);
+    }
+
+    // Compatibility accessors
+    public List<PrescriptionIssueResponse> vanDe() {
+        return issues;
+    }
+
+    public List<PrescriptionIssueResponse> canXemXet() {
+        return reviewItems;
     }
 }
