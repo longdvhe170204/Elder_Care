@@ -19,7 +19,8 @@ import { CatalogReasonForm } from './CatalogReasonForm'
 
 const SELECT = 'h-10 w-full rounded-md border border-input bg-transparent px-3'
 
-export function CatalogList({ canChange }) {
+// canCreate, canUpdate theo quyền hiện hành (HEALTH_CATALOGS CREATE, UPDATE); canChange là cách viết gọn cho cả hai
+export function CatalogList({ canChange = false, canCreate = canChange, canUpdate = canChange }) {
   const [type, setType] = useState('allergens')
   const [status, setStatus] = useState('')
   const [group, setGroup] = useState('')
@@ -99,7 +100,7 @@ export function CatalogList({ canChange }) {
             </select>
           </Field>
         )}
-        {canChange && (
+        {canCreate && (
           <Button className="ml-auto h-10" onClick={() => setPanel({ kind: 'create' })}>
             Thêm mục
           </Button>
@@ -140,7 +141,7 @@ export function CatalogList({ canChange }) {
               {isAllergen && <TableHead>Nhóm</TableHead>}
               {isSeverity && <TableHead>Thứ tự</TableHead>}
               <TableHead>Trạng thái</TableHead>
-              {canChange && <TableHead>Thao tác</TableHead>}
+              {canUpdate && <TableHead>Thao tác</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -152,7 +153,7 @@ export function CatalogList({ canChange }) {
                 <TableCell>
                   <StatusBadge status={STATUS_LABELS[item.status] ?? item.status} />
                 </TableCell>
-                {canChange && (
+                {canUpdate && (
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
                       <Button variant="outline" size="sm" onClick={() => setPanel({ kind: 'edit', item })}>
@@ -170,10 +171,10 @@ export function CatalogList({ canChange }) {
         </Table>
       )}
 
-      {canChange && panel?.kind === 'create' && (
+      {canCreate && panel?.kind === 'create' && (
         <CatalogItemForm key="create" type={type} onSaved={changed} onCancel={() => setPanel(null)} onStale={changed} />
       )}
-      {canChange && panel?.kind === 'edit' && (
+      {canUpdate && panel?.kind === 'edit' && (
         <CatalogItemForm
           key={`edit-${panel.item.id}`}
           type={type}
@@ -183,7 +184,7 @@ export function CatalogList({ canChange }) {
           onStale={changed}
         />
       )}
-      {canChange && panel?.kind === 'reason' && (
+      {canUpdate && panel?.kind === 'reason' && (
         <CatalogReasonForm
           key={`reason-${panel.item.id}`}
           type={type}
