@@ -6,15 +6,20 @@ import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.auditlog.api.AuditAction;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
+import com.cambae.backend.m15.auditlog.api.AuditLogRecord;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -27,6 +32,8 @@ class AuditLogService implements AuditLogApi {
     private static final String INSERT = "INSERT INTO audit_log (occurred_at, device_time, actor_type, actor_id, role,"
             + " action, entity_type, entity_id, resident_id, data_before, data_after, reason, basis, details,"
             + " exempt_from_purge) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
 
     private final JdbcTemplate jdbc;
     private final BusinessTime time;
@@ -65,6 +72,35 @@ class AuditLogService implements AuditLogApi {
     @Transactional(propagation = Propagation.MANDATORY)
     public void writeAnonymous(AuditLogEntry entry) {
         insert(entry, "ANONYMOUS", null, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AuditLogRecord> recorded(AuditAction action, String entityType, String entityId, Long actorAccountId) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT id, occurred_at, actor_type, actor_id, role, entity_id, reason, details FROM audit_log"
+                        + " WHERE action = ? AND entity_type = ?");
+        List<Object> args = new ArrayList<>(List.of(action.code(), entityType));
+        if (entityId != null) {
+            sql.append(" AND entity_id = ?");
+            args.add(entityId);
+        }
+        if (actorAccountId != null) {
+            sql.append(" AND actor_type = 'USER' AND actor_id = ?");
+            args.add(actorAccountId);
+        }
+        sql.append(" ORDER BY occurred_at DESC, id DESC LIMIT ").append(RECORDED_LIMIT);
+        return jdbc.query(
+                sql.toString(),
+                (rs, i) -> new AuditLogRecord(
+                        rs.getLong("id"),
+                        rs.getObject("occurred_at", LocalDateTime.class).toInstant(ZoneOffset.UTC),
+                        "USER".equals(rs.getString("actor_type")) ? rs.getLong("actor_id") : null,
+                        rs.getString("role"),
+                        rs.getString("entity_id"),
+                        rs.getString("reason"),
+                        rs.getString("details") == null ? null : json.readValue(rs.getString("details"), MAP)),
+                args.toArray());
     }
 
     private void insert(AuditLogEntry entry) {

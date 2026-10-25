@@ -9,6 +9,7 @@ import { problemOf } from '@/common/problem'
 import { formatDateTime } from '@/common/dateTime'
 import { AccountPermissions } from '@/features/permissions/AccountPermissions'
 import { AccountCommandForm } from './AccountCommandForm'
+import { ResidentAccountSection } from './ResidentAccountSection'
 import { COMMANDS, LOCK_CAUSE_LABELS, STATUS_LABELS, TYPE_LABELS, profileLabel, roleNames } from './accountLabels'
 
 // Khung chi tiết tài khoản (002 T035; detail-panel DESIGN.md 7.2; FR-042): thông tin, rồi nút lệnh lấy đúng từ
@@ -109,6 +110,8 @@ export function AccountDetail({ id, onChanged }) {
             </div>
           )
         )}
+
+        {account.type === 'RESIDENT' && <ResidentAccountSection account={account} etag={etag} onChanged={load} />}
 
         {account.allowedCommands?.includes('restrict') && (
           <AccountPermissions accountId={account.id} allowedCommands={account.allowedCommands} onChanged={load} />

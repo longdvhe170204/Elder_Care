@@ -34,6 +34,24 @@ export const LOCK_CAUSE_LABELS = {
   RESIGNATION: 'Nghỉ việc',
   EXPIRED_AFTER_RESIDENCY_END: 'Hết hạn sau kết thúc lưu trú',
   RELATIONSHIP_ENDED: 'Hết quan hệ người thân',
+  RESIDENT_RESIDENCY_ENDED: 'Kết thúc lưu trú',
+  RESIDENT_REQUESTED: 'Người cao tuổi tự yêu cầu',
+  WITH_REASON: 'Có lý do',
+  FAMILY_REQUEST: 'Theo đề nghị của người thân',
+}
+
+// Người cao tuổi yêu cầu hoặc đồng ý (ResidentConsent, FR-067, FR-073)
+export const CONSENT_METHOD_LABELS = { REQUESTED: 'Tự yêu cầu', AGREED: 'Đồng ý' }
+
+// Căn cứ khóa tài khoản người cao tuổi (FR-072 (b), (c))
+export const RESIDENT_LOCK_BASIS_LABELS = { RESIDENT_REQUESTED: 'Người cao tuổi tự yêu cầu', WITH_REASON: 'Có lý do khác' }
+
+// Lệnh trên tài khoản người cao tuổi theo allowedCommands (002 T095): nhãn nút mở form, nhãn nút gửi
+export const RESIDENT_COMMANDS = {
+  'login-qr-code': { label: 'Tạo mã QR' },
+  'unbind-device': { label: 'Gỡ thiết bị', submit: 'Gỡ thiết bị đang gắn' },
+  'lock-resident': { label: 'Khóa', submit: 'Khóa tài khoản' },
+  'unlock-resident': { label: 'Mở khóa', submit: 'Mở khóa tài khoản' },
 }
 
 // Lệnh trên tài khoản nhân viên theo allowedCommands (FR-042): nhãn nút mở form, nhãn nút gửi

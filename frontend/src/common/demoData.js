@@ -3,67 +3,6 @@
 // Tên trạng thái lấy đúng theo docs/business/nghiep-vu.md: người cao tuổi (5.5), giường (7.2),
 // công việc (8.x), mức chăm sóc (mục 4), mức cảnh báo (Nhẹ, Trung bình, Khẩn cấp).
 
-export const DEMO_SCOPE = { floor: 'Tầng 2', shift: 'Ca ngày', updatedAt: '10:05' }
-
-export const DEMO_ESCALATED_ALERT = {
-  room: '202-A',
-  resident: '[Họ tên NCT 3]',
-  level: 'Trung bình',
-  note: 'Đã leo thang tối đa, chưa có người tiếp nhận',
-}
-
-export const DEMO_INDICATORS = [
-  { label: 'Đang lưu trú', value: 38 },
-  { label: 'Công việc hôm nay', value: 40 },
-  { label: 'Quá hạn', value: 3, detail: '1 bắt buộc', urgent: true },
-  { label: 'Cảnh báo đang mở', value: 2 },
-  { label: 'Sự cố đang mở', value: 1 },
-  { label: 'Bàn giao chưa xác nhận', value: 1 },
-]
-
-// Công việc trong ca, nhóm theo khung giờ ở Tổng quan. "[Công việc chuyên môn minh họa]" là công việc chuyên môn (8.5),
-// tên thật lấy từ danh mục. Giờ hiện tại của bản mẫu là DEMO_SCOPE.updatedAt.
-export const DEMO_TASKS = [
-  { time: '07:30', title: 'Đo chỉ số sức khỏe', resident: '[Họ tên NCT 1]', room: '201-A', assignee: '[Điều dưỡng 1]', status: 'Hoàn thành' },
-  { time: '07:30', title: 'Hỗ trợ ăn bữa sáng', resident: '[Họ tên NCT 3]', room: '202-A', assignee: '[NV chăm sóc 2]', status: 'Hoàn thành' },
-  { time: '07:45', title: 'Hỗ trợ vệ sinh cá nhân', resident: '[Họ tên NCT 2]', room: '201-B', assignee: '[NV chăm sóc 1]', status: 'Hoàn thành' },
-  { time: '08:00', title: '[Công việc chuyên môn minh họa]', resident: '[Họ tên NCT 2]', room: '201-B', assignee: '[Bác sĩ 1]', status: 'Hoàn thành' },
-  { time: '08:30', title: 'Đo chỉ số sức khỏe', resident: '[Họ tên NCT 3]', room: '202-A', assignee: '[Điều dưỡng 1]', status: 'Quá hạn', mandatory: true },
-  { time: '09:00', title: 'Hỗ trợ vận động', resident: '[Họ tên NCT 5]', room: '—', assignee: '[NV chăm sóc 2]', status: 'Quá hạn' },
-  { time: '09:30', title: 'Hỗ trợ uống nước', resident: '[Họ tên NCT 1]', room: '201-A', assignee: '[NV chăm sóc 1]', status: 'Đến hạn' },
-  { time: '09:30', title: 'Thay tã', resident: '[Họ tên NCT 2]', room: '201-B', assignee: '[NV chăm sóc 1]', status: 'Đến hạn' },
-  { time: '10:00', title: 'Đo chỉ số sức khỏe', resident: '[Họ tên NCT 1]', room: '201-A', assignee: '[Điều dưỡng 1]', status: 'Đến hạn' },
-  { time: '10:00', title: '[Công việc chuyên môn minh họa]', resident: '[Họ tên NCT 3]', room: '202-A', assignee: '[Bác sĩ 1]', status: 'Đến hạn' },
-  { time: '10:30', title: 'Hỗ trợ vận động', resident: '[Họ tên NCT 2]', room: '201-B', assignee: '[NV chăm sóc 2]', status: 'Chưa đến hạn' },
-  { time: '11:00', title: 'Hỗ trợ ăn bữa trưa', resident: '[Họ tên NCT 3]', room: '202-A', assignee: null, status: 'Chưa đến hạn' },
-  { time: '11:00', title: 'Hỗ trợ ăn bữa trưa', resident: '[Họ tên NCT 1]', room: '201-A', assignee: '[NV chăm sóc 1]', status: 'Chưa đến hạn' },
-  { time: '11:00', title: 'Hỗ trợ ăn bữa trưa', resident: '[Họ tên NCT 2]', room: '201-B', assignee: '[NV chăm sóc 1]', status: 'Chưa đến hạn' },
-]
-
-export const DEMO_BEDS = [
-  ...Array(30).fill('Đang sử dụng'),
-  'Đang giữ chỗ',
-  'Đang giữ chỗ',
-  'Trống',
-  'Trống',
-  'Trống',
-  'Chờ sẵn sàng',
-  'Đang bảo trì',
-  'Tạm ngừng sử dụng',
-]
-
-// Bàn giao ca (13.5): Có ý kiến nghĩa là quay lại người bàn giao bổ sung rồi gửi lại (Q-87)
-export const DEMO_HANDOVER = {
-  from: 'Ca đêm',
-  to: 'Ca ngày',
-  status: 'Có ý kiến',
-  giver: '[Điều dưỡng 2]',
-  receiver: '[Điều dưỡng 1]',
-  openTasks: 2,
-  openAlerts: 1,
-  comment: '[Ý kiến minh họa: thiếu ghi chú cho cảnh báo phòng 202-A]',
-}
-
 export const DEMO_RESIDENTS = [
   { id: 1, code: 'NCT-0001', name: '[Họ tên NCT 1]', initials: 'N1', room: '201-A', careLevel: 'Thường xuyên', stayType: 'Nội trú dài hạn', status: 'Đang lưu trú', allergies: ['[Dị ứng minh họa]'], careNote: '[Lưu ý chăm sóc minh họa]', today: { tasks: 2, overdue: 0, doses: 2 }, careNeeds: ['Hỗ trợ vận động'], primaryCaregiver: '[NV chăm sóc 1]', preferences: [
     { group: '[Nhóm sở thích 1]', level: 'Thích', source: 'resident', recordedBy: '[NV chăm sóc 1]', recordedAt: '02/10/2026' },
