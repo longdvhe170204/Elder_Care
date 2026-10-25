@@ -122,6 +122,10 @@ eldercare:
     m13-daily:
       cron: "-"
       on-startup: false
+    # Job M02 (004 T009): test gọi M02DailyRunner.catchUp()
+    m02-daily:
+      cron: "-"
+      on-startup: false
 
 ---
 spring:
