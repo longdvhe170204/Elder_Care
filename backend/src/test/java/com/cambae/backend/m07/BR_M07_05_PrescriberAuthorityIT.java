@@ -202,6 +202,6 @@ class BR_M07_05_PrescriberAuthorityIT extends MySqlIntegrationTestBase {
         PrescriptionResponse resp = prescriptionService.create(residentId, body, 1L, true);
         assertThat(resp).isNotNull();
         assertThat(resp.id()).isNotNull();
-        assertThat(resp.vanDeDaXacNhan()).isNotEmpty();
+        assertThat(resp.confirmedIssues()).isNotEmpty();
     }
 }
