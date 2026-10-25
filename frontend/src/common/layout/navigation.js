@@ -53,6 +53,8 @@ export const NAV_GROUPS = [
       { key: 'care-tasks', label: 'Checklist ca', icon: 'ListChecks', roles: [QL, TT, BS, DD, CS] },
       // Dòng "Phát thuốc, thuốc khi cần"
       { key: 'medication', label: 'Phát thuốc', icon: 'Pill', roles: [QL, TT, BS, DD] },
+      // Dòng "Danh mục thuốc"
+      { key: 'medication-catalog', label: 'Danh mục thuốc', icon: 'BookOpen', roles: [QL, BS, DD] },
       // Dòng "Xử lý cảnh báo"
       { key: 'alerts', label: 'Cảnh báo', icon: 'Bell', roles: [QL, TT, BS, DD, CS] },
       // Dòng "Sự cố, khẩn cấp"

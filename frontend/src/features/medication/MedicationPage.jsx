@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { DoseSheet } from './DoseSheet'
 import { DoseTags } from './DoseTags'
 import { windowOf } from './medicationTime'
+import { PrescriptionPanel } from './PrescriptionPanel'
 import { PrnPanel } from './PrnPanel'
 
 // Bản mẫu màn Phát thuốc (M14; spec 006 User Story 2, 6), theo DESIGN.md 5.1: lưới thẻ theo giờ dự kiến, mỗi thẻ
@@ -156,6 +157,9 @@ export function MedicationPage({ role }) {
             <ToggleGroupItem value="prn" className="h-11 px-4">
               Thuốc khi cần
             </ToggleGroupItem>
+            <ToggleGroupItem value="prescriptions" className="h-11 px-4">
+              Đơn thuốc
+            </ToggleGroupItem>
           </ToggleGroup>
           {mode === 'scheduled' && (
             <ToggleGroup variant="filter" size="lg" value={[filter]} onValueChange={(n) => n[0] && setFilter(n[0])} className="flex-wrap" aria-label="Lọc theo trạng thái">
@@ -179,6 +183,8 @@ export function MedicationPage({ role }) {
 
       {mode === 'prn' ? (
         <PrnPanel canRecord={canRecord} now={shift.now} onSaved={setAnnouncement} />
+      ) : mode === 'prescriptions' ? (
+        <PrescriptionPanel canRecord={canRecord} onSaved={setAnnouncement} />
       ) : (
         <div className="flex flex-col gap-6">
           {times.map((t) => {
