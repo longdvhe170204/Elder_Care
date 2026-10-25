@@ -6,14 +6,10 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.stereotype.Component;
 
 /**
  * Fallback implementation of {@link ShiftNursePort} when M08 is not present.
  */
-@Component
-@ConditionalOnMissingBean(ShiftNursePort.class)
 public class DefaultShiftNursePort implements ShiftNursePort {
 
     @Override

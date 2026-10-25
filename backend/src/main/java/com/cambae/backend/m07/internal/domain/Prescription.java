@@ -16,11 +16,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.math.BigDecimal;
+import java.sql.Types;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import org.hibernate.annotations.JdbcTypeCode;
 
 /**
  * Prescription Entity (FR-004 -> FR-017, data-model section 4).
@@ -61,6 +63,7 @@ public class Prescription {
     @Column(name = "timed_slots", columnDefinition = "json")
     private String timedSlots;
 
+    @JdbcTypeCode(Types.SMALLINT)
     @Column(name = "every_n_hours")
     private Integer everyNHours;
 
@@ -73,6 +76,7 @@ public class Prescription {
     @Column(name = "min_interval_minutes")
     private Integer minIntervalMinutes;
 
+    @JdbcTypeCode(Types.SMALLINT)
     @Column(name = "max_doses_per_24h")
     private Integer maxDosesPer24h;
 
