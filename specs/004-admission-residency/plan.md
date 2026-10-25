@@ -309,3 +309,54 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 **Excel và quy trình**
 - Chỉ cập nhật file `C:\Users\Admin\Documents\ElderCare_ThanhVienB\CHECKLIST_ELDER_CARE_THANH_VIEN_B.xlsx` (qua Excel COM); không tạo bản sao, backup. Cập nhật `FEATURE_004`, `PHASES`, `DASHBOARD`, `TEST_LOG`, `GIT_CHECKPOINT` đến đâu làm đến đó.
 - Chưa tạo PR, chưa merge vào develop; hết Phase 2 báo checkpoint rồi mới sang Phase 3. Trước khi làm giao diện web hoặc mobile, trình bày bố cục để chủ dự án duyệt.
+
+## PHASE 3 HANDOFF (2026-10-25)
+
+**Trạng thái Git**
+- Nhánh `impl/004-admission-residency`, Git sạch. Commit Phase 2 (trên `97d0c97`): `df7d335` (api đọc và sự kiện, T003, T004), `be2c73e` (khóa, migration, đơn giá, T005 → T008), `da5c52b` (bean trạng thái, job hằng ngày, SPI cho module thấp, T009 → T012), `347bf79` (`M02_DAILY` ở file chung), `4d41347` (tài liệu: tasks, plan, glossary 10.8, team-plan). Commit bàn giao này nằm sau `4d41347`; HEAD cuối ghi ở báo cáo của session.
+- Chưa push, chưa PR. Nhánh `docs/004-api-contract` (chỉ `dd4cf9c`) vẫn chỉ ở local (xem PHASE 2 HANDOFF). Stash `CP-001-P2-IMPL` của 001 giữ nguyên, không đụng.
+- Kiểm cuối Phase 2: `./mvnw clean verify` JDK 25, MySQL 3307: 263 test đơn vị + 898 test tích hợp qua.
+
+**Trạng thái task**
+- `[x]`: T001, T002, T003, T004, T005, T006, T007, T008, T009, T012.
+- `[ ]` còn thiếu: **T010** (xong `ResidencyEndApi`; `AbsenceApi`, `ContractApi`, `CareLevelChangeRequestApi` là khung trả rỗng; thiếu hai SPI 003 `NguonLuuTruChoPhanBo`, `DemLichDenBanTru`), **T011** (xong `FieldClassificationProvider`; thiếu `RetentionProvider`, `ScopeAssignmentProvider`, `FilePermissionProvider`, cài cùng migration của từng story vì cần bảng thực thể).
+- **T108** làm một phần: có sự kiện `EndingExceptionApproved`; thiếu `ResidencyEndingReadApi`, mã `END_H_SETTLEMENT_CONFIRMATION`, bản giả bean 017.
+
+**Đã có trong mã (đường dẫn gốc `backend/src/main/java/com/cambae/backend/m02/`)**
+- `api/`: `ContractReadApi`, `UnitPriceApi`, `ResidencyDayApi`, `AdmissionConditionApi`, `ResidencyStatisticsApi`, `PostDeathTaskApi`; `api/dto` (16 view/enum, tên ở glossary 10.8); `api/spi` (6 SPI M02 khai báo, từ Phase 1); `api/events` (28 sự kiện, 9 sự kiện gửi thông báo qua `HasNotificationRequests`, người nhận Hành chính hoặc Quản lý viện).
+- Migration: `V004_01__resident_residency.sql` (`resident_residency`, `daily_run`, `m02_reminder`), `V004_02__service_catalog.sql` (`service`, `price_version`, trigger không chồng khoảng và bất biến). Migration kế tiếp là `V004_03` (T015). Không sửa V004_01/02 (đã vào lịch sử commit).
+- `internal/transition/service/`: `ResidencyLock` (`lock(residentId)`, `MANDATORY`), `M02StatusParticipant` (khung: `@Order(1)`, bảy lệnh, `validateDetails`; `checkConditions` trả rỗng, `applyEffects` rỗng, chưa có `warnings`, `waiveConditions`), `M02DailyRunner` + `M02DailyTask` (chạy bù theo ngày, `latestDayOnly`), `ResidencyEndLookup`, `AbsenceLookup`, `ContractLookup`, `CareLevelChangeRequestHandler`; `internal/transition/config/M02FieldClassificationConfig`; `internal/servicecatalog/service/UnitPriceService` (`UnitPriceApi`); `scheduling/M02DailyJob` (00:15 và khi khởi động, ShedLock `M02_DAILY`).
+- Bản giả: `src/test/java/com/cambae/backend/support/fake/m02/` (`FakeM02Config` và 6 bản giả SPI).
+- File chung đã sửa với chủ dự án duyệt (2026-10-25): `M02_DAILY` ở `runJobs` của api-000, `TestClockController.TestJob`, `SchedulerScopeArchTest.ALLOWED`, `application.yml` profile test (`m02-daily` cron `"-"`, `on-startup: false`); dòng cho A ở team-plan mục 8.
+
+**Cách đăng ký việc hằng ngày** (cho T016 và các story sau): bean `M02DailyTask` (`name` là một trong `CALCULATE_SCORES`, `ABSENCE_DAYS`, `CONTRACTS`, `ENDINGS`, `REMINDERS`; `@Order` quyết thứ tự trong ngày; `latestDayOnly()` cho việc chỉ có nghĩa ngày mới nhất). Test gọi `M02DailyRunner.catchUp()`. Khi mỗi story thêm bean thật, `BR_M02_19_CatchUpRunIT` vẫn chạy cùng chúng (dùng tên việc `TEST_*` riêng).
+
+**Blocker và phụ thuộc**
+- **Flyway**: V004 nằm giữa V002 và V009 đã có trên develop. DB dev đã áp V009 mà chạy không `out-of-order` sẽ báo lệch; profile `demo` và test (schema tạo mới) không bị. Cân nhắc trước khi chạy trên DB 3306.
+- **A**: `'004'` vào `TRANSLATED` của `frontend/scripts/gen-api.mjs`; đăng ký api-004 vào `ApiContractIT`; sửa `Problem` của api-004 cho trùng `Problem` chung (khi mở PR hợp đồng); `M02_DAILY` đã sửa, chờ A merge.
+- **C (003)**: m03 còn rỗng; chưa có `NguonLuuTruChoPhanBo`, `DemLichDenBanTru`, `PhanBoGiuongLenhApi`, `SucChuaBanTruApi`. Phase 3 (US1) không cần các giao diện này trực tiếp, nhưng điều kiện "chưa có phân bổ giường" của FR-021/FR-076 và Phase 4 trở đi cần. Không tự khai báo thay C (BL-56).
+- **E (012, 017), D (005, 006, 007)**: xác nhận chữ ký `DepositStatusView`, `PickupRecordView`, `PostDeathItemStatusView` và tên 6 SPI (BL-57). `RepresentativePort` (012) dùng cho điều kiện (f) DBR-02 ở US1: dùng bản giả `FakeRepresentatives`. `DepositStatusPort` (017) dùng cho điều kiện đặt cọc.
+- **001 (B, đã vào develop)**: dùng `ResidentStatusApi.previewConditions`, `NguonYKienApi`/`OpinionSourceApi` (kiểm nguồn ý kiến), `ResidentApi`. Kiểm tên thực tế của giao diện 001 trong `m01.api` trước khi viết T016/T016a (tên trong tasks là tên logic cũ `xemDieuKien`, `NguonYKienApi.kiemTra`).
+
+**Quyết định chưa chốt (ghi để hỏi chủ dự án khi gặp, không đoán)**
+- Trường `details` bắt buộc của `M02StatusParticipant.validateDetails` suy từ FR-048/062/069 vì api-001 không định nghĩa; 001 chưa xác nhận.
+- `residencyFeeServiceOf`, `facilityMedicationServiceOf` chưa có ràng buộc duy nhất (lấy dịch vụ Hiệu lực mã nhỏ nhất).
+- Tên loại đối tượng nhật ký của phụ lục `M02.ADDENDUM` là tên tạm.
+- Khoá `ResidencyLock` trong bean tham gia lệnh trạng thái: thứ tự (001 khóa `resident` trước, rồi 004) chưa quyết nơi gọi `lock` (checkConditions chạy chỉ đọc); quyết khi làm T017.
+- Điểm báo lại 4 (lịch đến bán trú), 6 (quyền Kế toán lập ngoại lệ (h)) của plan đã xử lý ở spec; Q-387 ảnh hưởng T109 (Phase 10).
+
+**Phase 3 (US1, T013 → T019), thứ tự làm**
+1. T013, T014 (test trước, phải đỏ): `LuotDangKyIT`, `CapNhatLuotDangKyIT`, `TienTrinhIT`, `FR_004a_YKienVaoOIT`, `FR_004_DanhSachKhopLenhIT`, `BR_M02_22_MucHopDongIT`, `FR_076_CanhBaoChuaVaoOIT`. Có thể bắt đầu ngay các phần không cần C: lượt đăng ký, ý kiến, tiến trình, điều kiện (a)-(f) với bản giả 012/017.
+2. T015: `V004_03__admission_application.sql` (`admission_application`, `admission_opinion`; tên cột theo glossary 10.6; trigger ý kiến chỉ cho `ACTIVE → SUPERSEDED`, không xóa; nhóm 2/3 theo data-model mục 3).
+3. T016, T016a: `AdmissionApplicationService`, `AdmissionConditionService` (cài `AdmissionConditionApi`), `AdmissionOpinionService`; việc nhắc FR-076 qua `M02DailyTask` `REMINDERS`.
+4. T017: hoàn thiện `M02StatusParticipant` cho `COMPLETE_ADMISSION`, `CANCEL_ADMISSION` (điều kiện, cảnh báo `ADMISSION_OPINION_MISSING`, `RESIDENT_DISAGREES_WITH_ADMISSION`, tác động, sự kiện `AdmissionCompleted`). Phần phụ thuộc hợp đồng (Phase 5) và hồ sơ chờ (Phase 4) dùng bản giả hoặc để trống có chủ đích. Sửa/thêm test của `StatusTestBase` nếu cần; bean thật đã bị gỡ khỏi context test M01.
+5. T018: `AdmissionApplicationController` theo api-004 (đường dẫn glossary 10.1); web T019 chỉ làm sau khi chủ dự án duyệt bố cục (DESIGN.md); mobile T019 người thân chưa mở.
+6. Cùng migration của US1 cài `RetentionProvider`, `ScopeAssignmentProvider` cho `M02.ADMISSION_APPLICATION` (phần của T011), ghi vào plan.
+
+**Quy định**
+- MySQL: chỉ cổng 3307. Instance chạy bằng `mysqld.exe --no-defaults --datadir=<...>\mysql3307\data --port=3307 --mysqlx=OFF --skip-log-bin --max_connections=400` (datadir ở scratchpad phiên cũ, xem memory `reference-mysql-3307-test`); đặt `TEST_DB_URL`, `DB_URL` về `jdbc:mysql://localhost:3307/...` trong phiên (biến máy trỏ 3306). Không chạy `*IT` trên 3306.
+- TDD: test trước, thấy đỏ rồi mới cài; tên test bắt đầu bằng mã quy tắc; chỉ `[x]` khi đã chạy xanh. Test `*IT` kế thừa `MySqlIntegrationTestBase`; schema dùng chung nên test tự dọn dữ liệu (tài khoản app không có `DELETE`, dùng `adminConnection()`).
+- Modulith: module khác chỉ qua `m02.api`; `ModuleBoundaryTest`, `LayerArchTest`, `ApiNamedInterfaceArchTest`, `SchedulerScopeArchTest`, `RequiresPermissionArchTest` phải qua; thời gian lấy từ `BusinessTime`; không tự sinh bản ghi (job chỉ chuyển trạng thái, nhắc, báo).
+- Quyền sở hữu file: chỉ sửa `m02`, `V004_*`, glossary mục 10, `specs/004-*`. File chung (`runJobs`, `TestClockController`, `application.yml`, `SchedulerScopeArchTest`, `ApiContractIT`, `gen-api.mjs`, `pom.xml`) cần chủ dự án duyệt trước. Không sửa code của A/C/D/E; bản giả của họ ở `support/fake/<module>/`.
+- Git: không commit, push, PR, merge khi chưa được yêu cầu; commit bằng `git commit -F <file>` (PowerShell 5.1; máy không có `gh`).
+- Excel: chỉ cập nhật `C:\Users\Admin\Documents\ElderCare_ThanhVienB\CHECKLIST_ELDER_CARE_THANH_VIEN_B.xlsx` (Excel COM, script ASCII, chuỗi Việt từ JSON UTF-8); không tạo bản sao hay backup.
