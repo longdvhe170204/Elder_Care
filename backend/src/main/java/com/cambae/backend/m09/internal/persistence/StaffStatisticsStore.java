@@ -97,7 +97,7 @@ public class StaffStatisticsStore {
         String table = switch (type) {
             case "M09.HANDOVER" -> "shift_handover";
             case "M09.ASSIGNMENT" -> "staff_assignment";
-            case "M09.SHIFT_STAFF" -> "shift_staff";
+            case "M09.SHIFT_STAFF", "M09.STAFF_ABSENCE" -> "shift_staff";
             case "M09.SHIFT_LEAD_HISTORY" -> "shift_lead_history";
             default -> null;
         };

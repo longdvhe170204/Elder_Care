@@ -150,17 +150,74 @@ public class AssignmentService {
     }
 
     private Result save(StaffAssignment row, List<PublicationWarning> warnings) {
+        return save(row, warnings, null);
+    }
+
+    private Result save(StaffAssignment row, List<PublicationWarning> warnings, Basis basis) {
         long id = store.insert(row, users.getObject().accountId(), time.now());
         if (!"DRAFT".equals(row.status())) {
-            log(
-                    "ASSIGNMENT_CREATED",
-                    id,
-                    Map.of(),
-                    Map.of("status", row.status(), "staffId", row.staffId(), "shiftId", row.shiftId()),
-                    null);
+            if (basis == null)
+                log(
+                        "ASSIGNMENT_CREATED",
+                        id,
+                        Map.of(),
+                        Map.of("status", row.status(), "staffId", row.staffId(), "shiftId", row.shiftId()),
+                        null);
+            else
+                audit.write(AuditLogEntry.builder()
+                        .action(new AuditAction("ASSIGNMENT_CREATED", false))
+                        .entity("M09.ASSIGNMENT", id)
+                        .after(Map.of("status", row.status(), "staffId", row.staffId(), "shiftId", row.shiftId()))
+                        .basis(basis)
+                        .details(Map.of("shiftId", row.shiftId(), "source", "SHIFT_SWAP_015"))
+                        .build());
             changed(row);
         }
         return new Result(id, warnings);
+    }
+
+    List<UnmetCondition> validateFromRequest(long shift, AssignmentInput input) {
+        try {
+            var s = shifts.shift(shift, false);
+            validate(row(s, input, "SHIFT_SWAP_015"), s, null, false);
+            return List.of();
+        } catch (BusinessException e) {
+            return List.of(new UnmetCondition(e.errorCode(), e.getMessage()));
+        }
+    }
+
+    long createFromRequest(long shift, AssignmentInput input, Basis basis) {
+        Objects.requireNonNull(basis);
+        staff.lock(input.staffId());
+        var initial = shifts.shift(shift, false);
+        var candidate = row(initial, input, "SHIFT_SWAP_015");
+        lockScope(initial, candidate);
+        shifts.schedule(initial.scheduleId(), true);
+        var s = shifts.shift(shift, true);
+        candidate = row(s, input, "SHIFT_SWAP_015");
+        return save(candidate, validate(candidate, s, null, true), basis).id();
+    }
+
+    void cancelFromRequest(long id, Basis basis) {
+        Objects.requireNonNull(basis);
+        var a = store.find(id, false);
+        staff.lock(a.staffId());
+        var initial = shifts.shift(a.shiftId(), false);
+        lockScope(initial, a);
+        shifts.schedule(initial.scheduleId(), true);
+        shifts.shift(initial.id(), true);
+        a = store.find(id, true);
+        if (!"SCHEDULED".equals(a.status())) throw invalid("Chỉ hủy phân công tương lai trong lệnh đổi ca");
+        store.transition(a, "CANCELLED", null, "Điều chỉnh theo yêu cầu đổi ca");
+        audit.write(AuditLogEntry.builder()
+                .action(new AuditAction("ASSIGNMENT_CANCELLED", false))
+                .entity("M09.ASSIGNMENT", id)
+                .before(Map.of("status", a.status()))
+                .after(Map.of("status", "CANCELLED"))
+                .basis(basis)
+                .details(Map.of("shiftId", a.shiftId()))
+                .build());
+        events.publishEvent(new AssignmentChanged(a.shiftId(), a.staffId(), time.now()));
     }
 
     public StaffAssignment row(WorkShift shift, AssignmentInput input, String source) {

@@ -70,12 +70,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             // 008 T006: kiểm ngay các controller nền; giảm PENDING khi cài từng story (phần T042 lấy sớm).
             new Contract(
                     Path.of("..", "specs", "008-staff-shift-handover", "contracts", "api-008.yaml"),
-                    Set.of(
-                            "POST /api/v1/shifts/{id}/add-staff",
-                            "POST /api/v1/shifts/{id}/change-lead",
-                            "POST /api/v1/shifts/{id}/record-absence",
-                            "POST /api/v1/shifts/{id}/cancel",
-                            "GET /api/v1/duty-basis-audit-logs"),
+                    Set.of(),
                     Set.of(),
                     true),
             // 009 T034 (2026-10-22, kéo phần T036 lên khi cài controller đầu tiên của US5); US3 xong 2026-10-23; còn

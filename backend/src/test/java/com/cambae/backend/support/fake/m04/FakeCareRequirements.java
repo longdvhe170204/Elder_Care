@@ -12,6 +12,17 @@ public class FakeCareRequirements implements TaskTypeApi, CarePlanApi, ShiftTask
             new java.util.concurrent.ConcurrentHashMap<>();
     private Runnable confirmed = () -> {};
     private Runnable resigned = () -> {};
+    private java.util.function.BiConsumer<Long, Long> absent = (staff, shift) -> {};
+
+    public void onAbsent(java.util.function.BiConsumer<Long, Long> action) {
+        absent = action;
+    }
+
+    @org.springframework.transaction.annotation.Transactional(
+            propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public void onAbsence(long staffId, long shiftId) {
+        absent.accept(staffId, shiftId);
+    }
 
     public void onResign(Runnable action) {
         resigned = action;

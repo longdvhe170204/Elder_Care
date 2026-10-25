@@ -26,6 +26,7 @@ import { PublicationForm, ScheduleForm, TemplateForm } from './ScheduleForms'
 import { AssignmentPanel } from './AssignmentPanel'
 import { FloorManagerPanel } from './FloorManagerPanel'
 import { StaffingRatioPanel } from './StaffingRatioPanel'
+import { PostPublicationPanel } from './PostPublicationPanel'
 import { currentMonth, nextMonth, scopeLabel, STATUSES } from './shiftLabels'
 
 export function ShiftsPage(props) {
@@ -371,6 +372,7 @@ function ShiftWorkspace({ initialMonth }) {
                     {panel.shift.leadStaffId === m.staffId && ' · Phụ trách ca'}
                   </p>
                 ))}
+                <PostPublicationPanel shift={panel.shift} staff={staff} scopeId={schedule?.scopeId} onDone={done} />
                 {schedule?.scopeType !== 'FACILITY' && <StaffingRatioPanel shiftId={panel.shift.id} />}
               </div>
             )}
