@@ -96,7 +96,6 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "GET /api/v1/beds/{bedId}/matching-entries",
                             "POST /api/v1/waiting-list-entries/{id}/record-contacted",
                             "POST /api/v1/waiting-list-entries/{id}/decline-bed",
-                            "GET /api/v1/contracts/{id}/deposit",
                             "GET /api/v1/services",
                             "POST /api/v1/services",
                             "PUT /api/v1/services/{id}",
