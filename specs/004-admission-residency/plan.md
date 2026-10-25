@@ -267,3 +267,37 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - **T002**: bản giả ở `support/fake/m02/` (`FakeM02Config`, năm bản giả cộng một bean `FakePostDeathItem` mỗi mã) theo glossary mục 10 (không phải `support/gia004/`). Bản giả cần SPI để biên dịch, nên **phần SPI của T003 được kéo lên làm trước**: sáu interface ở `m02.api.spi` (`RepresentativePort`, `PickupRecordPort`, `DepositStatusPort`, `FinalPeriodPort`, `DayCareAttendancePort`, `PostDeathItemPort`) và bảy kiểu ở `m02.api.dto` (`DepositStatus`, `DepositStatusView`, `PickupRecordView`, `Attendance`, `PostDeathItemCode`, `PostDeathItemStatus`, `PostDeathItemStatusView`). T003 vẫn `[ ]`: còn các giao diện đọc (`ContractReadApi`, `UnitPriceApi`, …).
 - **Provisional**: tên theo glossary mục 10 chờ A duyệt; chữ ký view (`DepositStatusView`, `PickupRecordView`, `PostDeathItemStatusView`) do 004 tạm đặt tối thiểu vì tài liệu 012, 017 chưa định nghĩa, chờ E (012, 017), D (006, 007), C (005) xác nhận. Đổi tên thì đổi cả bản giả cùng PR ("Đổi api").
 - Kiểm: `FakeM02Test` (6), `ApiNamedInterfaceArchTest`, `LayerArchTest` (6), `ModuleBoundaryTest` qua trên JDK 25; `spotless:apply` đã chạy.
+
+## PHASE 2 HANDOFF (2026-10-25)
+
+**Trạng thái Git**
+- Nhánh `impl/004-admission-residency`, tạo từ `develop` tại `cc9761f`; đã push lên `origin` (không có PR). Commit code Phase 1: `4e85599` (trên `dd4cf9c` = dịch `api-004.yaml` và glossary mục 10). Commit tài liệu bàn giao này nằm sau `4e85599`.
+- Nhánh `docs/004-api-contract` (chỉ `dd4cf9c`) **chỉ ở local, chưa push, chưa PR**; PR hợp đồng đầu tiên của feature (team-plan 3.7) mở khi chủ dự án cho phép. Mô tả PR cần nêu các điểm A quyết định: `Problem` của 004 chưa trùng `Problem` chung của api-000; mã điều kiện `END_*`, `ADM_*` dùng chung với 006, 007, 010, 013, 017; `Deposit.basis.receiptNumber` còn trong hợp đồng dù Q-385 bỏ số phiếu thu; tên 003 (C), sự kiện 017 (E) chờ chốt; việc cho A: thêm `'004'` vào `TRANSLATED` của `frontend/scripts/gen-api.mjs`, `M02_DAILY` vào `runJobs` của api-000, đăng ký api-004 vào `ApiContractIT`.
+- Stash `CP-001-P2-IMPL` (của 001) giữ nguyên, không đụng. Nhánh 001 không sửa.
+
+**Phase 1 (xong)**
+- T001 `[x]`: khung gói M02 (mục "Ghi chú triển khai" ở trên).
+- T002 `[x]`: bản giả `support/fake/m02/`. 14 test qua trên JDK 25 (`FakeM02Test` 6, `LayerArchTest` 6, `ApiNamedInterfaceArchTest` 1, `ModuleBoundaryTest` 1).
+
+**T003 đã làm trước một phần** (T003 vẫn `[ ]`)
+- Đã có: sáu SPI ở `m02.api.spi` (`RepresentativePort`, `PickupRecordPort`, `DepositStatusPort`, `FinalPeriodPort`, `DayCareAttendancePort`, `PostDeathItemPort`) và bảy kiểu ở `m02.api.dto`. Tên và chữ ký view là **provisional**.
+- Còn thiếu của T003: `ContractReadApi`, `UnitPriceApi`, `ResidencyDayApi`, `AdmissionConditionApi`, `ResidencyStatisticsApi` (016), `PostDeathTaskApi` và các view của chúng (glossary mục 10.5; chữ ký ở contracts/module-interfaces.md mục 1.2 → 1.6). `PickupRecordPort.markUsed` cần ghi `Propagation.MANDATORY` ở bản cài.
+
+**Task Phase 2 còn lại** (theo tasks.md; làm đúng thứ tự, test viết trước)
+- T003 (phần còn lại), T004 (sự kiện `m02.api.events`, mục 1.8, `package-info` đã có), T005 (`V004_01__resident_residency.sql`: `resident_residency`, `daily_run`, `m02_reminder`), T006 (`ResidencyLock`), T007 (`V004_02__service_catalog.sql`: `service`, `price_version`, hai trigger), T008 (`UnitPriceService`), T009 (`M02StatusParticipant` khung `@Order(1)`, `M02DailyJob` khung), T010 (SPI M02 cài cho module thấp hơn: `ContractApi`, `AbsenceApi`, `CareLevelChangeRequestApi` của 001 và `ResidencyEndApi` của 002 đã có trên develop), T011 (bốn provider cho 000, 002), T012 (`BR_M02_19_CatchUpRunIT`, test này cần MySQL).
+- Bổ sung 2026-10-22 làm sớm: T108 (`HoSoKetThucDocApi`, sự kiện `NgoaiLeKetThucDaDuyet`, mã `END_H_SETTLEMENT_CONFIRMATION`) vì 017 cần.
+- Quy ước tên: theo glossary mục 10 (ví dụ `ResidencyLock` ở `internal.transition`); migration đặt tên theo glossary 10.6 (`V004_01__resident_residency.sql`…).
+
+**Phụ thuộc A/C/D/E**
+- A (000, 002): `ApprovalRequestApi`, `RequestTypeHandler` (đã có `approverRoleRestriction` cho thay đổi nhỏ), `CorrectableRecordProvider`, `RetentionProvider`, `FieldClassificationProvider`, `ScopeAssignmentProvider`, `FilePermissionProvider`, `ParameterApi` đã có trên develop. Thêm job `M02_DAILY` cần sửa file chung (`runJobs` api-000, `TestClockController.TestJob`, `SchedulerScopeArchTest.ALLOWED`, cron `"-"` ở profile `test`): làm như 001 đã làm, xin chủ dự án cho phép, ghi vào team-plan mục 8 cho A.
+- C (003): `m03` còn rỗng trên develop; chưa có `NguonLuuTruChoPhanBo`, `DemLichDenBanTru`, `PhanBoGiuongLenhApi`, `SucChuaBanTruApi`. Phần T010 liên quan hai SPI đầu và mọi gọi sang 003 (Phase 4 trở đi) bị chặn tới khi C công bố; ghi blocker, không tự khai báo thay C. Khóa ngoại tới bảng module khác chỉ thêm khi module đó vào develop (team-plan 3.5).
+- D (005, 006, 007) và E (010, 012, 013, 017): chưa có bản thật của các SPI M02 khai báo; dùng bản giả `FakeM02Config`. Chữ ký `DepositStatusView`, `PickupRecordView`, `PostDeathItemStatusView` chờ E, D, C xác nhận; đổi thì sửa bản giả cùng PR ("Đổi api") và báo họ ở team-plan mục 8.
+- 001 (B, đã push nhưng chưa merge vào develop): 004 chỉ dùng `m01.api` đã có trên develop; không lấy code 001 chưa merge.
+
+**Quy định MySQL và môi trường**
+- Chỉ dùng MySQL cổng **3307** cho `*IT`. Biến môi trường vĩnh viễn của máy (`TEST_DB_URL`, `DB_URL`) trỏ cổng 3306 (MySQL84, dev DB của B): **luôn đặt `TEST_DB_URL`, `DB_URL` về `jdbc:mysql://localhost:3307/...` trong phiên chạy** và kiểm tra instance 3307 đang chạy trước. `MySqlIntegrationTestBase` xóa và tạo lại schema test cùng hai tài khoản `eldercare_app`, `eldercare_retention`; không chạy trên 3306 và không đụng dữ liệu demo.
+- Máy không có Python và không có `gh`; commit bằng `git commit -F <file>` (PowerShell 5.1); JDK 25; chạy test nhẹ không cần DB: `./mvnw test -Dtest=...`.
+
+**Excel và quy trình**
+- Chỉ cập nhật file `C:\Users\Admin\Documents\ElderCare_ThanhVienB\CHECKLIST_ELDER_CARE_THANH_VIEN_B.xlsx` (qua Excel COM); không tạo bản sao, backup. Cập nhật `FEATURE_004`, `PHASES`, `DASHBOARD`, `TEST_LOG`, `GIT_CHECKPOINT` đến đâu làm đến đó.
+- Chưa tạo PR, chưa merge vào develop; hết Phase 2 báo checkpoint rồi mới sang Phase 3. Trước khi làm giao diện web hoặc mobile, trình bày bố cục để chủ dự án duyệt.
