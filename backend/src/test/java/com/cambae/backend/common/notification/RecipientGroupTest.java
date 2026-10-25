@@ -7,13 +7,13 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 /**
- * FR-007, FR-010, FR-020, research B-04, B-05 (009 T004): khuôn người nhận có đủ các nhóm (a) → (e) của bảng B-04; mỗi
+ * FR-007, FR-010, FR-020, research B-04, B-05 (009 T004, T041): khuôn người nhận có đủ các nhóm (a) → (f); mỗi
  * nhóm loại (a) mang cách thay; danh mục trường sức khỏe cấm ở nội dung rút gọn.
  */
 class RecipientGroupTest {
 
     @Test
-    void FR_007_recipientGroup_coversGroupsAToE() {
+    void FR_007_recipientGroup_coversGroupsAToF() {
         assertThat(leaves(RecipientGroup.class))
                 .containsExactlyInAnyOrder(
                         // (a) nhiệm vụ
@@ -34,7 +34,9 @@ class RecipientGroupTest {
                         // (e) quan hệ người thân
                         "PrimaryContact",
                         "Representative",
-                        "FamilyWithRight");
+                        "FamilyWithRight",
+                        // (f) chính người cao tuổi (009 T041, Q-366)
+                        "Resident");
     }
 
     @Test

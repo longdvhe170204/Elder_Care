@@ -22,6 +22,9 @@ public record ProblemBody(
         List<UnmetCondition> unmetConditions,
         Object currentValue,
 
+        /** Bản ghi có thể trùng (001 {@code POSSIBLE_DUPLICATE_PROFILE}, {@code DUPLICATE_HEALTH_ITEM}). */
+        List<Object> candidates,
+
         @Schema(allowableValues = {"ROLE", "SCOPE", "LEGAL", "SOURCE_DATA"})
         String failedLayer,
 

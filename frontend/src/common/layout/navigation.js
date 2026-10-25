@@ -30,6 +30,8 @@ export const NAV_GROUPS = [
     items: [
       // Dòng "Dashboard, báo cáo"
       { key: 'dashboard', label: 'Tổng quan', icon: 'LayoutDashboard', roles: [QL, TT, BS, DD, HC, KT] },
+      // Dòng "Dashboard, báo cáo" (016; tab theo bảng FR-010 trong màn)
+      { key: 'reports', label: 'Báo cáo', icon: 'ChartColumn', roles: [QL, TT, BS, DD, HC, KT] },
       // Yêu cầu phê duyệt (000 US5): mọi vai trò nhân viên lập hoặc duyệt được tùy loại yêu cầu; danh sách do backend lọc theo phạm vi
       {
         key: 'approval-requests',
@@ -37,6 +39,9 @@ export const NAV_GROUPS = [
         icon: 'ClipboardCheck',
         roles: [QL, TT, BS, DD, CS, BEP, HC, KT],
       },
+      // Thông báo (009 T035, T028): mọi vai trò nhân viên có hộp thông báo; tab khác theo bảng quyền FR-039 của spec 009
+      // vì Phụ lục 27 không có dòng thông báo
+      { key: 'notifications', label: 'Thông báo', icon: 'Inbox', roles: [QL, TT, BS, DD, CS, BEP, HC, KT] },
       // Dòng "Hồ sơ người cao tuổi"
       { key: 'residents', label: 'Người cao tuổi', icon: 'Users', roles: [QL, TT, BS, DD, CS, HC, NT, KT] },
     ],

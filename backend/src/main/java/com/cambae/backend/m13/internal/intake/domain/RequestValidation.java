@@ -6,6 +6,7 @@ import com.cambae.backend.common.notification.InformationType;
 import com.cambae.backend.common.notification.NotificationLevel;
 import com.cambae.backend.common.notification.NotificationRequest;
 import com.cambae.backend.common.notification.RecipientGroup;
+import com.cambae.backend.m13.internal.delivery.domain.OutOfAppContent;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -50,11 +51,15 @@ public final class RequestValidation {
             flags.add(RequestFlag.MISSING_INFORMATION_SUBJECT);
         }
 
+        if (level != NotificationLevel.LOW && OutOfAppContent.invalid(r.displayParams(), r.shortContent())) {
+            flags.add(RequestFlag.INVALID_OUT_OF_APP_CONTENT);
+        }
+
         if (r.afterDeath()) {
             flags.add(RequestFlag.AFTER_DEATH);
         }
 
-        Optional<String> rejection = rejection(r, groups, content);
+        Optional<String> rejection = rejection(r, groups, content, level);
         return new ValidatedRequest(
                 r,
                 rejection.isPresent() ? IntakeResult.REJECTED : IntakeResult.VALID,
@@ -66,7 +71,7 @@ public final class RequestValidation {
     }
 
     private static Optional<String> rejection(
-            NotificationRequest r, List<RecipientGroup> groups, List<ContentPart> content) {
+            NotificationRequest r, List<RecipientGroup> groups, List<ContentPart> content, NotificationLevel level) {
         if (r.sourceRecord() == null
                 || blank(r.sourceRecord().type())
                 || blank(r.sourceRecord().id())) {
@@ -80,6 +85,14 @@ public final class RequestValidation {
         }
         if (content.isEmpty() || content.stream().anyMatch(p -> blank(p.content()))) {
             return Optional.of("MISSING_CONTENT");
+        }
+        // FR-022a: nhóm (f) chỉ mức Nhẹ, không có phần sức khỏe, chi phí (phần thiếu loại đã thành sức khỏe)
+        if (groups.stream().anyMatch(g -> g instanceof RecipientGroup.Resident)
+                && (level != NotificationLevel.LOW
+                        || content.stream()
+                                .anyMatch(p ->
+                                        p.type() == InformationType.HEALTH || p.type() == InformationType.COSTS))) {
+            return Optional.of("INVALID_RESIDENT_GROUP");
         }
         return Optional.empty();
     }

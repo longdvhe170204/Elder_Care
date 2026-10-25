@@ -1,0 +1,113 @@
+package com.cambae.backend.m14.internal.metric.service;
+
+import com.cambae.backend.m14.internal.metric.domain.DetailRow;
+import com.cambae.backend.m14.internal.metric.domain.Metric;
+import com.cambae.backend.m14.internal.metric.domain.MetricRecord;
+import com.cambae.backend.m14.internal.metric.domain.MetricSource;
+import com.cambae.backend.m14.internal.metric.domain.MetricValue;
+import com.cambae.backend.m14.internal.metric.domain.ReportFilters;
+import com.cambae.backend.m14.internal.report.domain.MetricResult;
+import com.cambae.backend.m14.internal.scope.domain.ReportScope;
+import com.cambae.backend.m14.internal.scope.service.DetailRowPolicy;
+import com.cambae.backend.m15.account.api.CurrentUser;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Tính một chỉ tiêu trên phạm vi và khoảng (lọc hai bước của research O-03): nguồn lọc thô, rồi {@link ReportScope#covers}
+ * và bộ lọc chung lọc từng bản ghi. Dashboard, báo cáo, danh sách chi tiết và file xuất cùng đi qua đây nên số trên màn
+ * hình bằng số dòng chi tiết (FR-009).
+ */
+@Service
+@Transactional(readOnly = true)
+public class MetricEvaluator {
+
+    private final DetailRowPolicy rows;
+
+    public MetricEvaluator(DetailRowPolicy rows) {
+        this.rows = rows;
+    }
+
+    public MetricValue value(
+            MetricSource<?> source, ReportScope scope, Instant from, Instant to, ReportFilters filters) {
+        return valueOf(capture(source), scope, from, to, filters);
+    }
+
+    /** Giá trị, người cao tuổi theo ô, dòng chi tiết đã giới hạn trường (báo cáo, xuất). */
+    public MetricResult result(
+            CurrentUser user,
+            MetricSource<?> source,
+            ReportScope scope,
+            Instant from,
+            Instant to,
+            ReportFilters filters) {
+        return resultOf(user, capture(source), scope, from, to, filters);
+    }
+
+    /** Dòng chi tiết của con số, hoặc của một ô {@code key}, đã giới hạn trường (FR-009, FR-014). */
+    public List<DetailRow> details(
+            CurrentUser user,
+            MetricSource<?> source,
+            ReportScope scope,
+            Instant from,
+            Instant to,
+            ReportFilters filters,
+            String key) {
+        return detailsOf(user, capture(source), scope, from, to, filters, key);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <R extends MetricRecord> MetricSource<R> capture(MetricSource<?> source) {
+        return (MetricSource<R>) source;
+    }
+
+    private static <R extends MetricRecord> List<R> included(
+            MetricSource<R> source, ReportScope scope, Instant from, Instant to, ReportFilters filters) {
+        return source.metric()
+                .included(source.records(scope.rough(), from, to, filters), r -> scope.covers(r) && filters.matches(r));
+    }
+
+    private <R extends MetricRecord> MetricValue valueOf(
+            MetricSource<R> source, ReportScope scope, Instant from, Instant to, ReportFilters filters) {
+        return source.metric().compute(included(source, scope, from, to, filters));
+    }
+
+    private <R extends MetricRecord> MetricResult resultOf(
+            CurrentUser user,
+            MetricSource<R> source,
+            ReportScope scope,
+            Instant from,
+            Instant to,
+            ReportFilters filters) {
+        Metric<R> metric = source.metric();
+        List<R> included = included(source, scope, from, to, filters);
+        MetricValue value = metric.compute(included);
+        Map<String, Set<Long>> byKey = new LinkedHashMap<>();
+        for (MetricValue.Breakdown b : value.breakdown()) {
+            byKey.put(b.key(), metric.residents(included, b.key()));
+        }
+        return new MetricResult(
+                metric.code(),
+                metric.name(),
+                value,
+                metric.residents(included, null),
+                byKey,
+                rows.apply(user, metric.details(included, null)));
+    }
+
+    private <R extends MetricRecord> List<DetailRow> detailsOf(
+            CurrentUser user,
+            MetricSource<R> source,
+            ReportScope scope,
+            Instant from,
+            Instant to,
+            ReportFilters filters,
+            String key) {
+        return rows.apply(user, source.metric().details(included(source, scope, from, to, filters), key));
+    }
+}

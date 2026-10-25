@@ -10,6 +10,7 @@ import { ShiftChecklistPage } from '@/features/care-tasks/ShiftChecklistPage'
 import { AlertsPage } from '@/features/alerts/AlertsPage'
 import { AdminPage } from '@/features/admin/AdminPage'
 import { ApprovalInbox } from '@/features/approval-requests/ApprovalInbox'
+import { NotificationsPage } from '@/features/notifications/NotificationsPage'
 import { AuditLogTable } from '@/features/audit-log/AuditLogTable'
 import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
 import { HandoverPage } from '@/features/handover/HandoverPage'
@@ -17,10 +18,12 @@ import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
 import { MedicationPage } from '@/features/medication/MedicationPage'
 import { MedicationCatalogPage } from '@/features/medication-catalog/MedicationCatalogPage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
+import { ReportsPage } from '@/features/reports/ReportsPage'
 
 // Bản mẫu giai đoạn thiết kế: chuyển màn bằng state, React Router thêm ở 000 T005.
 const PAGES = {
   dashboard: DashboardPage,
+  reports: ReportsPage,
   residents: ResidentListPage,
   'care-tasks': ShiftChecklistPage,
   incidents: IncidentDetailPage,
@@ -32,6 +35,7 @@ const PAGES = {
   'audit-log': AuditLogTable,
   admin: AdminPage,
   'approval-requests': ApprovalInbox,
+  notifications: NotificationsPage,
 }
 
 function firstPage(role) {

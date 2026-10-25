@@ -13,6 +13,7 @@ import com.cambae.backend.m15.account.api.dto.AccountType;
 import com.cambae.backend.m15.account.api.dto.AccountView;
 import com.cambae.backend.m15.account.api.dto.FailedLayer;
 import com.cambae.backend.m15.account.api.dto.InfoGroup;
+import com.cambae.backend.m15.account.api.dto.MetricGroupRestrictions;
 import com.cambae.backend.m15.account.api.dto.PermissionBasis;
 import com.cambae.backend.m15.account.api.dto.PermissionKey;
 import com.cambae.backend.m15.account.api.dto.PermissionResult;
@@ -56,6 +57,7 @@ public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibility
     private final Map<Role, Map<InfoGroup, Visibility>> visibility = new EnumMap<>(Role.class);
     private final Set<String> outOfScope = new HashSet<>();
     private final List<String> sideEffects = new ArrayList<>();
+    private MetricGroupRestrictions metricGroupRestrictions = MetricGroupRestrictions.NONE;
 
     /**
      * Người dùng giả: loại tài khoản suy từ vai trò (Người thân, Người cao tuổi, còn lại nhân viên); id hồ sơ liên kết bằng
@@ -145,6 +147,17 @@ public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibility
         return keys;
     }
 
+    /** Thu hẹp chi tiết theo nhóm chỉ tiêu, kênh (016 FR-010a) trả cho mọi người dùng. */
+    public FakePermissions metricGroupRestrictions(MetricGroupRestrictions restrictions) {
+        this.metricGroupRestrictions = restrictions;
+        return this;
+    }
+
+    @Override
+    public MetricGroupRestrictions metricGroupRestrictions(CurrentUser user) {
+        return metricGroupRestrictions;
+    }
+
     @Override
     public Set<String> allowedCommands(CurrentUser user, Target target, Map<String, PermissionKey> commands) {
         return commands.entrySet().stream()
@@ -193,6 +206,12 @@ public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibility
                         .collect(Collectors.toSet())));
     }
 
+    /** Bản giả không xét phạm vi khi xem theo nhóm nên mức theo vai trò như {@link #canView}. */
+    @Override
+    public Visibility canViewByRole(CurrentUser user, InfoGroup group) {
+        return canView(user, group, Target.UNSPECIFIED);
+    }
+
     @Override
     public Visibility canView(CurrentUser user, InfoGroup group, Target target) {
         if (user.roles().contains(Role.NURSING_HOME_MANAGER)) {
@@ -236,6 +255,11 @@ public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibility
     @Override
     public void recheckFamilyMember(long familyMemberId, Basis basis) {
         sideEffects.add("recheckFamilyMember:" + familyMemberId);
+    }
+
+    @Override
+    public void lockResidentOnFinalStatus(long residentId, Basis basis) {
+        sideEffects.add("lockResidentOnFinalStatus:" + residentId);
     }
 
     @Override

@@ -11,7 +11,8 @@ public record AttemptContext(
         Optional<String> address,
         Optional<Long> accountId,
         NotificationLevel level,
-        Optional<String> title) {
+        Optional<String> title,
+        Optional<String> content) {
 
     public boolean urgent() {
         return level == NotificationLevel.URGENT;

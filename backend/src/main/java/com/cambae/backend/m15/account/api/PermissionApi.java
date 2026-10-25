@@ -1,5 +1,6 @@
 package com.cambae.backend.m15.account.api;
 
+import com.cambae.backend.m15.account.api.dto.MetricGroupRestrictions;
 import com.cambae.backend.m15.account.api.dto.PermissionKey;
 import com.cambae.backend.m15.account.api.dto.PermissionResult;
 import com.cambae.backend.m15.account.api.dto.Target;
@@ -14,6 +15,14 @@ import java.util.Set;
 public interface PermissionApi {
 
     PermissionResult hasPermission(CurrentUser user, PermissionKey key, Target target);
+
+    /**
+     * Thu hẹp chi tiết theo nhóm chỉ tiêu, kênh của dòng "Dashboard, báo cáo" đang hiệu lực với tài khoản (016 FR-010a;
+     * "Đổi api" 2026-10-24). Mặc định không có, để bản giả của test cũ không phải cài.
+     */
+    default MetricGroupRestrictions metricGroupRestrictions(CurrentUser user) {
+        return MetricGroupRestrictions.NONE;
+    }
 
     /** Kiểm tại thời điểm thiết bị, cho bản ghi ngoại tuyến (FR-041a; research A-11). */
     PermissionResult hasPermissionAt(CurrentUser user, PermissionKey key, Target target, Instant at);

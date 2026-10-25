@@ -23,4 +23,10 @@ public interface StaffProfileApi {
 
     /** Họ tên trên hồ sơ nhân viên, cho {@code AccountApi.fullName} (002 T032a). */
     Optional<String> fullName(long staffId);
+
+    /**
+     * Số điện thoại liên hệ trên hồ sơ nhân viên, cho tin nhắn của 009 (FR-016, FR-019; luật "Đổi api", chủ dự án duyệt
+     * 2026-10-23); rỗng khi hồ sơ không có số.
+     */
+    Optional<String> phoneNumber(long staffId);
 }
