@@ -16,6 +16,7 @@ import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
 import { HandoverPage } from '@/features/handover/HandoverPage'
 import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
 import { MedicationPage } from '@/features/medication/MedicationPage'
+import { MedicationCatalogPage } from '@/features/medication-catalog/MedicationCatalogPage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
 import { BedsPage } from '@/features/beds/BedsPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
@@ -29,6 +30,7 @@ const PAGES = {
   'care-tasks': ShiftChecklistPage,
   incidents: IncidentDetailPage,
   medication: MedicationPage,
+  'medication-catalog': MedicationCatalogPage,
   alerts: AlertsPage,
   handovers: HandoverPage,
   relatives: RelativesPage,

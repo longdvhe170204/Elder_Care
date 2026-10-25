@@ -1,5 +1,5 @@
 /**
- * Module M07 (research R-02): chỉ gói api công khai cho module khác.
+ * Module M07 (research R-02): only api package is exposed to other modules.
  */
 @ApplicationModule
 package com.cambae.backend.m07;
