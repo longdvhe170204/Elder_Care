@@ -36,7 +36,8 @@ public class PrescriptionAllergyListener {
 
     public PrescriptionAllergyListener(
             PrescriptionRepository prescriptionRepository,
-            HealthAllergyPort healthAllergyPort,
+            @org.springframework.beans.factory.annotation.Autowired(required = false)
+                    HealthAllergyPort healthAllergyPort,
             ApplicationEventPublisher eventPublisher,
             BusinessTime time) {
         this.prescriptionRepository = prescriptionRepository;
