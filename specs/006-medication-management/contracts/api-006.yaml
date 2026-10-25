@@ -6,7 +6,7 @@ info:
     Hợp đồng REST của feature 006 (module M07). Quy ước chung theo research R-03 của 000:
     tiền tố /api/v1, lỗi RFC 9457 có errorCode và unmetConditions[], If-Match cho lệnh sửa nội dung
     (danh mục thuốc, ghi chú hướng dẫn của đơn, danh sách dòng của phiếu đối chiếu đang Mở), Idempotency-Key cho mọi lệnh ghi.
-    Tên định danh tiếng Anh theo glossary.md của 000, mục 12 (dịch 2026-10-26; bản tên logic tiếng Việt ở lịch sử git).
+    Tên định danh tiếng Anh theo glossary.md của 000, mục 12 (dịch 2026-10-26, chủ dự án duyệt; bản tên logic tiếng Việt ở lịch sử git).
     Lệnh chuyển trạng thái không dùng If-Match; backend khóa dòng và kiểm tra lại trên trạng thái mới (research D-03).
     Liều không có bản ghi lập sẵn (Q-306): liều được định danh bằng doseKey = {prescriptionId}-{yyyyMMddHHmm}
     (thời điểm dự kiến, Asia/Ho_Chi_Minh). Lệnh trên liều chưa có dòng sẽ vật hóa dòng trong cùng transaction (research D-06).
@@ -197,7 +197,7 @@ paths:
       summary: Liều của vòng phát thuốc cho Điều dưỡng hiện tại (được phân công, liều chung của tầng, Người phụ trách ca)
       description: 'Kèm liều Mang theo chờ ghi nhận và lần giao Chờ nhận lại (FR-028). Mục tiêu ≤ 3 giây (SC-009).'
       x-fr: [FR-026, FR-026a, FR-028]
-      parameters: [ { name: floorAreaId, in: query, description: 'Lọc theo tầng (bổ sung khi sửa operation 2026-10-26, chờ chủ dự án duyệt)', schema: { type: integer, format: int64 } }, { name: from, in: query, schema: { type: string, format: date-time } }, { name: to, in: query, schema: { type: string, format: date-time } } ]
+      parameters: [ { name: floorAreaId, in: query, description: 'Lọc theo tầng (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)', schema: { type: integer, format: int64 } }, { name: from, in: query, schema: { type: string, format: date-time } }, { name: to, in: query, schema: { type: string, format: date-time } } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Dose' } } } } } }
   /medication-doses/{doseKey}:
     get:
@@ -248,7 +248,7 @@ paths:
       summary: Bản ghi thuốc kiểm soát đặc biệt "ghi sau mất kết nối" chờ xem lại trong phạm vi
       x-fr: [FR-029]
       parameters: [ { name: status, in: query, schema: { type: string, enum: [PENDING_REVIEW, ACCEPTED, REQUIRES_CORRECTION] } } ]
-      responses: { '200': { description: 'OK (bổ sung khi sửa operation 2026-10-26, chờ chủ dự án duyệt)', content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DoseReview' } } } } } }
+      responses: { '200': { description: 'OK (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)', content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DoseReview' } } } } } }
   /dose-reviews/{id}/result:
     post:
       tags: [dose]
@@ -266,7 +266,7 @@ paths:
       summary: Các lần dùng của đơn PRN (cả chuỗi thay thế) và thời điểm sớm nhất được dùng tiếp
       x-fr: [FR-024, FR-025]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: 'OK (bổ sung khi sửa operation 2026-10-26, chờ chủ dự án duyệt)', content: { application/json: { schema: { $ref: '#/components/schemas/PrnHistory' } } } } }
+      responses: { '200': { description: 'OK (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)', content: { application/json: { schema: { $ref: '#/components/schemas/PrnHistory' } } } } }
     post:
       tags: [prn]
       summary: Ghi một lần dùng PRN
@@ -317,7 +317,7 @@ paths:
       description: '"Đã nhận" (mọi dòng có lần Đạt) do 019 tính qua ProcurementIntakeApi (module-interfaces mục 1.8a), không trả ở đây (chủ dự án chọn 2026-10-26).'
       x-fr: [FR-054]
       parameters: [ { name: purchaseRequestId, in: query, required: true, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: 'OK (bổ sung khi sửa operation 2026-10-26, chờ chủ dự án duyệt)', content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/SuppliedMedicationIntake' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
+      responses: { '200': { description: 'OK (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)', content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/SuppliedMedicationIntake' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
   /medication-reconciliations/{id}:
     get:
       tags: [reconciliation]
@@ -474,7 +474,7 @@ paths:
       summary: Thuốc cần mang cho khoảng vắng hoặc chuyến đi (đơn có liều Mang theo, đơn PRN, lô dùng được)
       x-fr: [FR-048a, FR-048b]
       parameters: [ { $ref: '#/components/parameters/ResidentId' }, { name: tripId, in: query, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: 'OK (bổ sung khi sửa operation 2026-10-26, chờ chủ dự án duyệt)', content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MedicationToBring' } } } } } }
+      responses: { '200': { description: 'OK (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)', content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MedicationToBring' } } } } } }
   /residents/{residentId}/medication-handovers:
     get:
       tags: [leave-medication]
@@ -750,7 +750,7 @@ components:
         delivererName: { type: string }
     SuppliedMedicationIntake:
       type: object
-      description: 'Lần tiếp nhận thuốc cung ứng (bổ sung khi sửa operation 2026-10-26, chờ chủ dự án duyệt)'
+      description: 'Lần tiếp nhận thuốc cung ứng (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)'
       properties:
         id: { type: integer, format: int64 }
         requestLineId: { type: integer, format: int64 }
@@ -772,7 +772,7 @@ components:
         receivedAt: { type: string, format: date-time }
     PrnAdministration:
       type: object
-      description: 'Một lần dùng PRN (bổ sung khi sửa operation 2026-10-26, chờ chủ dự án duyệt)'
+      description: 'Một lần dùng PRN (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)'
       properties:
         id: { type: integer, format: int64 }
         prescriptionId: { type: integer, format: int64 }
@@ -790,7 +790,7 @@ components:
         recordedAfterDisconnect: { type: boolean }
     PrnHistory:
       type: object
-      description: 'Các lần dùng của chuỗi đơn PRN và thời điểm sớm nhất được dùng tiếp (bổ sung khi sửa operation 2026-10-26, chờ chủ dự án duyệt)'
+      description: 'Các lần dùng của chuỗi đơn PRN và thời điểm sớm nhất được dùng tiếp (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)'
       properties:
         prescriptionId: { type: integer, format: int64 }
         administrations: { type: array, items: { $ref: '#/components/schemas/PrnAdministration' } }
@@ -798,7 +798,7 @@ components:
         canAdministerNow: { type: boolean }
     DoseReview:
       type: object
-      description: 'Bản ghi chờ xem lại (FR-029) (bổ sung khi sửa operation 2026-10-26, chờ chủ dự án duyệt)'
+      description: 'Bản ghi chờ xem lại (FR-029) (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)'
       properties:
         id: { type: integer, format: int64 }
         doseKey: { type: string, description: 'Khi bản ghi là liều' }
@@ -815,7 +815,7 @@ components:
         note: { type: string }
     MedicationToBring:
       type: object
-      description: 'Thuốc cần mang (FR-048a, FR-048b) (bổ sung khi sửa operation 2026-10-26, chờ chủ dự án duyệt)'
+      description: 'Thuốc cần mang (FR-048a, FR-048b) (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)'
       properties:
         prescriptionId: { type: integer, format: int64 }
         medicationName: { type: string }
