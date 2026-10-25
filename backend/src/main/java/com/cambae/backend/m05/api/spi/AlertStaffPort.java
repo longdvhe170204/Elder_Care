@@ -6,6 +6,9 @@ import java.util.*;
 
 /** NhanSuCanhBaoPort: phần ca của T015; phân công, truy vết và bàn giao nối cùng story nguồn. */
 public interface AlertStaffPort {
+    java.util.List<com.cambae.backend.m05.api.dto.UnconfirmedShiftHandoverView> startedWithoutConfirmedHandover(
+            Instant from, Instant to);
+
     Optional<Long> assignedNurse(long residentId, Instant at);
 
     List<com.cambae.backend.m05.api.dto.AssignmentTraceView> assignmentsInRange(

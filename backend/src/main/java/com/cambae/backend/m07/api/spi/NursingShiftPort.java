@@ -6,6 +6,8 @@ import java.util.*;
 
 /** DieuDuongCaPort: phần ca của T015; phân công và xác nhận bàn giao nối ở T021/T026. */
 public interface NursingShiftPort {
+    boolean handoverConfirmed(long previousShiftId);
+
     Optional<Long> assignedTo(long residentId, Instant at);
 
     Optional<NursingShiftView> shiftAt(long floorAreaId, Instant at);

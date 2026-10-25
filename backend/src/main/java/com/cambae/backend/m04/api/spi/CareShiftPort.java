@@ -7,6 +7,8 @@ import java.util.*;
 
 /** NhanSuCaPort: phần dữ liệu ca của T015; phần phân công/bàn giao nối cùng T021/T026. */
 public interface CareShiftPort {
+    boolean handoverConfirmed(long previousShiftId);
+
     List<com.cambae.backend.m04.api.dto.CareAssignmentView> assignments(long residentId, long shiftId);
 
     List<Long> assignedNurses(long residentId, Instant at);

@@ -6,6 +6,18 @@ import java.time.Instant;
 import java.util.*;
 
 public class FakeNursingShifts implements NursingShiftPort {
+    private final Set<Long> confirmedHandovers = new HashSet<>();
+
+    public FakeNursingShifts handoverConfirmed(long id, boolean value) {
+        if (value) confirmedHandovers.add(id);
+        else confirmedHandovers.remove(id);
+        return this;
+    }
+
+    public boolean handoverConfirmed(long id) {
+        return confirmedHandovers.contains(id);
+    }
+
     private record Entry(NursingShiftView view, List<Long> nurses) {}
 
     private final Map<Long, Entry> shifts = new LinkedHashMap<>();

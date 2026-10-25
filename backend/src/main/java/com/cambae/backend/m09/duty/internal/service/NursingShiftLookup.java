@@ -8,12 +8,20 @@ import org.springframework.stereotype.Service;
 
 @Service
 class NursingShiftLookup implements NursingShiftPort {
+    public boolean handoverConfirmed(long id) {
+        return handovers.confirmed(id);
+    }
+
     private final ShiftQueries query;
+    private final com.cambae.backend.m09.handover.internal.service.HandoverQueries handovers;
     private final com.cambae.backend.m09.assignment.internal.service.AssignmentQueries assignments;
 
     NursingShiftLookup(
-            ShiftQueries query, com.cambae.backend.m09.assignment.internal.service.AssignmentQueries assignments) {
+            ShiftQueries query,
+            com.cambae.backend.m09.assignment.internal.service.AssignmentQueries assignments,
+            com.cambae.backend.m09.handover.internal.service.HandoverQueries handovers) {
         this.query = query;
+        this.handovers = handovers;
         this.assignments = assignments;
     }
 

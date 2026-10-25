@@ -150,3 +150,22 @@ Hai kiểu chỉ SPI dùng nằm cùng gói `api.spi`. Bản giả dùng chung �
 - Khi test độc lập, dùng duy nhất `support/fake/m01/FakeResidents` qua `FakeM01Config`, đặt trạng thái tường minh bằng `resident`/`changeStatus`. `FakeLocations` và `FakeCareRequirements` là nguồn test cho API tối thiểu 003/005 đã được người dùng duyệt, chờ C review/cài thật. Không có bean giả trong ứng dụng thật; thiếu nguồn kiểm nghiệp vụ thì báo thiếu nguồn, riêng nhắc phân công giữ cờ chờ để thử lại.
 - `AssignmentView.scopeEndsAt` là mốc ngừng cấp phạm vi khi kết thúc sớm, được người dùng duyệt; vẫn giữ constructor bảy tham số. Phạm vi không cộng CFG-M15-07 qua mốc này; lịch sử trước mốc vẫn truy được.
 - `FileApi` đã có bản cài trong develop sau 001. Nhánh E hiện vẫn dùng interface có sẵn và cần gộp develop có kiểm soát trước khi kiểm scan chứng chỉ với nguồn thật; không sao chép riêng dịch vụ lưu tệp hay tạo thêm fake tệp.
+
+
+### 2.5. Nối Phase 5 đã được chủ dự án duyệt (2026-10-25)
+
+| Chủ / phần | Chữ ký tiếng Anh đã khai báo/cài | Điều kiện cần giữ khi cài thật |
+| --- | --- | --- |
+| B — 001 | `ResidentStatusApi.statusPeriods(residentId, statuses, from, to)` | Hợp đồng không đổi. Bản đọc repository đã cài; biên thật, giao khoảng nửa mở; B review. Không sửa lệnh trạng thái. |
+| C — 003 | `BedStatusApi.awaitingReadinessOverdue(floorAreaId, at)`, **mới** `currentState(Collection<Long> bedIds, Instant at): Map<Long,String>`; `AllocationHandoverApi.atFloor` | `currentState` trả trạng thái thật kể cả giường không còn quá hạn. Thiếu khóa = chưa đọc được, không suy ra giường đã rời AWAITING_READINESS khi CFG thay đổi. Fake chung `FakeHandoverLocations`. |
+| C — 005 | `TaskHandoverApi.unclosed`, `currentStatus`, `recordedInHandover`; `ShiftTaskApi.onHandoverConfirmed(handoverId, previousShiftId, Long nextShiftId, taskIds, at)` | Callback MANDATORY, trả HandoverTransferResult; null ca sau = công việc chung tầng; lọc công việc theo quy tắc 005. Dùng một `FakeCareRequirements` đã có. |
+| D — 006 | `DoseHandoverApi.inShift`, `currentStatus`; `NursingShiftPort.handoverConfirmed` | Chỉ đọc nguồn/trạng thái; 008 không chạy lệnh chuyển liều. FakeDoseHandover/FakeNursingShifts dùng chung. |
+| D — 007 | `AlertHandoverApi.open`, **mới** `currentStatus(Collection<SourceRef>)`, `onHandoverConfirmed(..., Long nextShiftId, floorAreaId)`; `VitalSignApi.aboveThresholdInRange` | Trạng thái/mức hiện tại kể cả nguồn đã đóng; callback MANDATORY, không bỏ mất lỗi. FakeAlertHandover/FakeVitalSigns dùng chung. |
+| C/D — SPI ca | `CareShiftPort.handoverConfirmed`, `NursingShiftPort.handoverConfirmed`, `AlertStaffPort.startedWithoutConfirmedHandover(from,to)` | Đọc trạng thái thật của M09; danh sách chỉ ca sau đã bắt đầu trong khoảng và chưa xác nhận. Bản giả ca có dữ liệu trạng thái/range. |
+| C — 014 | `TripInShiftView(..., residentIds, departedAt)` | Giữ constructor ba tham số cũ; bản nguồn thật cần hai giá trị mới để gắn đúng người và thời điểm; thiếu metadata báo nguồn chưa sẵn sàng. Dùng FakeTripDuties đã có. |
+| E — sự kiện | `HandoverConfirmed(..., Long nextShiftId, ...)` | nextShiftId=null khi Trưởng tầng nhận bàn giao không tìm được ca sau; không tạo ca thay thế. |
+
+Chỉ cài phần tối thiểu cần cho task; Java là chữ ký cụ thể, bảng tên logic phía trên vẫn là thiết kế tổng thể. Các bổ sung đã được người dùng duyệt trong phiên Phase 5, chờ B/C/D review ở team-plan mục 8. API HTTP mới duy nhất là GET `/shifts/{id}/handovers` đã ghi trong api-008; nhóm có nguồn bắt buộc không mở thêm nhóm/endpoint.
+
+
+**Sửa phần dùng chung đã được chủ dự án duyệt 2026-10-25**: RecipientGroup/Substitution thêm nhãn `kind` và danh sách loại JSON tường minh để Spring Modulith đọc lại sự kiện thông báo đã lưu; không đổi chữ ký các record, nhóm nhận hay lệnh nghiệp vụ. Không thêm thư viện. Test đọc/ghi 18 trường hợp đã xanh cùng bộ tích hợp có khởi động context mới; A review hai kiểu common (team-plan mục 8). Đây là metadata sự kiện nội bộ, không bổ sung trường vào API HTTP 008.
