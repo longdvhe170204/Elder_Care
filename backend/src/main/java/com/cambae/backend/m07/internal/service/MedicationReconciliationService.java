@@ -70,7 +70,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             @Autowired(required = false) MedicationDoseRepository doseRepo,
             PrescriptionService prescriptionService,
             ResidentMedicationLock residentMedicationLock,
-            ObjectMapper objectMapper) {
+            @Autowired(required = false) ObjectMapper objectMapper) {
         this.reconciliationRepo = reconciliationRepo;
         this.itemRepo = itemRepo;
         this.correctionRepo = correctionRepo;
