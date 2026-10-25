@@ -870,7 +870,7 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | nhật ký lượt đăng ký | `M02_APPLICATION_CREATED`, `M02_APPLICATION_UPDATED`, `M02_APPLICATION_OPINION`, `M02_APPLICATION_ADMITTED`, `M02_APPLICATION_CANCELLED` (loại đối tượng `M02.ADMISSION_APPLICATION`) |
 | lớp trong `m02.internal.application` | `domain`: `AdmissionApplication`, `AdmissionOpinion`, `ApplicationStatus`, `OpinionChoice`, `OpinionStatus`; `persistence`: `AdmissionApplicationStore`; `service`: `AdmissionApplicationService`, `AdmissionOpinionService`, `AdmissionConditionService` (cài `AdmissionConditionApi`), `AdmissionContractConditions` ((b), (c), (e) dùng chung bean và danh sách), `AdmissionTransition` (tác động Hoàn tất, Hủy tiếp nhận), `AdmissionOpinionWarnings`, `NotYetAdmittedReminder`, `AdmissionApplicationScopeAssignment`, `AdmissionApplicationRetention`, `M02ActorNames` |
 | việc nhắc `NHAC` của `ViecHangNgayM02` | `M02ReminderTask` (việc `REMINDERS`, `latestDayOnly`) chạy các bean `ReminderRule`; ghi qua `ReminderLog` (`m02_reminder`); loại nhắc `NOT_YET_ADMITTED` (`CHUA_VAO_O`) |
-| bản giả hợp đồng đọc cho tới Phase 5 | `support/fake/m02/FakeContractReads` (`ContractReadApi`) |
+| bản giả hợp đồng đọc cho tới Phase 5 | `support/fake/m02/FakeContractReads` (`ContractReadApi`); đã xóa ở Phase 5, test dùng `ContractFixtures` (ghi bảng `contract` thật) |
 
 ### 10.10. Bổ sung khi cài Phase 4 (US2, T020, T022 → T024, 2026-10-25)
 
@@ -893,6 +893,26 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | lớp trong `m02.internal.waitinglist` | `domain`: `WaitingListEntry`, `WaitingListStatus`, `Circumstance`, `CircumstanceStatus`, `ScoreBreakdown`, `ScoreCause`, `ScoreHistoryRow`; `persistence`: `WaitingListStore`; `service`: `WaitingListService`, `PriorityScoreCalculator` (hàm thuần), `PriorityScoreTable` (và `Config` đọc CFG-M02-08), `ScoreRecalculation`, `CalculateScoresTask` (việc `CALCULATE_SCORES`, `latestDayOnly`), `WaitingListScoreListeners` (nghe `CareLevelChanged`, `ParameterChanged`), `ScoreAdjustmentRequestHandler`, `WaitingListTransition` (tác động lên hồ sơ chờ của lệnh Hủy tiếp nhận, do `M02StatusParticipant` gọi), `WaitingEntryUpdateReminder` (nhắc `WAITING_ENTRY_UPDATE`), `MatchingEntryService` (hồ sơ phù hợp, nhận `MatchCriteria` từ người gọi), `WaitingListEntryRetention`, `WaitingListScopeAssignment` |
 | phản hồi `HoSoCho`, lịch sử điểm, tham chiếu yêu cầu | `WaitingListEntryBody`, `ScoreHistoryEntryBody`, `ApprovalRequestRefBody`; thân yêu cầu `AddToWaitingListBody`, `UpdateCircumstancesBody`, `ProposeScoreAdjustmentBody`, `ReasonBody` (ở `m02.web`) |
 | test | `BR_M02_10_PriorityScoreTest`, `DailyScoreIT`, `ScoreAdjustmentIT`, `WaitingListEntryIT`, `BR_M02_01_MatchingEntriesIT`, `FR_002_DeclineCancelAdmissionIT`, `BR_M02_03_WaitingEntryReminderIT`, `WaitingListRetentionIT`, `FR_007_PreviousResidencyIT` |
+
+### 10.11. Bổ sung khi cài Phase 5 (US3, T029 → T037, 2026-10-25)
+
+*Tên cài thực tế của hợp đồng; mã lỗi, điều kiện, cảnh báo, nhật ký mà 10.2 → 10.6 chưa đặt. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| lỗi `NGUOI_CAO_TUOI_KHONG_DU_DIEU_KIEN_LAP_HOP_DONG`, `NGUOI_KY_KHONG_PHAI_NGUOI_DAI_DIEN`, `KHONG_CO_DIEU_KHOAN_KHAC_CHUAN` | `RESIDENT_NOT_ELIGIBLE_FOR_CONTRACT` (409), `INVALID_SIGNING_REPRESENTATIVE` (409, DBR-02), `NO_NON_STANDARD_TERMS` (409); `CONTRACT_LOCKED`, `CONTRACT_OVERLAP`, `REPRESENTATIVE_REQUIRED`, `INVALID_TRANSITION` đã có ở 10.4 |
+| mã điều kiện chặn Gửi ký (`CONDITION_NOT_MET`, module `004`) | `CONTRACT_ROOM_REQUIRED`, `CONTRACT_ARRIVAL_SCHEDULE_REQUIRED`, `CONTRACT_DEPOSIT_REQUIRED`, `CONTRACT_CARE_SERVICE_REQUIRED` (đúng một dịch vụ chăm sóc, đúng mức hợp đồng, Q-297), `TERMS_APPROVAL_REQUIRED` (FR-025a); chặn Ghi nhận đã ký: `SERVICE_PRICE_MISSING` (FR-036) |
+| cảnh báo không chặn khi lập, sửa, Gửi ký (FR-025) | `CONTRACT_CARE_LEVEL_MISMATCH` (đã ở 10.9), `SERVICE_PRICE_NOT_EFFECTIVE` |
+| loại yêu cầu `M02.DUYET_DIEU_KHOAN_HOP_DONG`; nội dung | `M02.CONTRACT_TERMS_APPROVAL`; `{contractId, contentHash, terms[] (type, description, standardValue, proposedValue)}`; lập khóa `ADMISSION_CONTRACT_DEPOSIT, UPDATE` (Hành chính), duyệt `ADMISSION_CONTRACT_DEPOSIT, APPROVE` (Quản lý viện) |
+| loại điều khoản khác chuẩn (đã ở 10.3) | `NonStandardTerm.Type`: `PRICE`, `ABSENCE_POLICY`, `BED_HOLD_POLICY` |
+| loại tệp, chủ sở hữu tệp bản scan | `M02.CONTRACT_SCAN` (chủ sở hữu là hợp đồng; `ContractScanFilePermission`) |
+| nhật ký hợp đồng (loại đối tượng `M02.CONTRACT`) | `M02_CONTRACT_CREATED`, `M02_CONTRACT_UPDATED`, `M02_CONTRACT_TERMS_SUBMITTED` (có lý do), `M02_CONTRACT_TERMS_APPROVED`, `M02_CONTRACT_SENT`, `M02_CONTRACT_RETURNED` (có lý do), `M02_CONTRACT_SIGNED`, `M02_CONTRACT_CANCELLED` (có lý do ở lệnh Hủy), `M02_CONTRACT_TERMINATED` (Hủy tiếp nhận sau khi Hiệu lực) |
+| việc hằng ngày `HOP_DONG` | `CONTRACTS` (`ContractOverdueTask`, `@Order(30)`, không `latestDayOnly`); nhắc `ContractReminders` (`CONTRACT_EXPIRING`, `SHORT_TERM_CONTRACT`, `CONTRACT_OVERDUE`) |
+| bảng | `contract` (cột `current_end_date`, `content_hash`, `awaiting_terms_approval`, `terms_approval_request_id`, `overdue_since`, `manager_notified_overdue_at`), `contract_service`, `contract_absence_policy`, `contract_arrival_schedule`, `contract_content_version` (mã hợp đồng trong cột `contract_id`); trigger thêm `trg_contract_no_delete`, ba trigger khóa mỗi bảng con (`…_lock_insert`, `…_lock_update`, `…_lock_delete`), `trg_contract_content_version_no_update`, `trg_contract_content_version_no_delete` |
+| lớp trong `m02.internal.contract` | `domain`: `Contract`, `ContractContent` (`ServiceLine`, `AbsencePolicyLine`, `ArrivalLine`), `ContractVersion`, `NonStandardTerm`; `persistence`: `ContractStore`; `service`: `ContractService`, `ContractRules`, `ContractSnapshot` (JSON chuẩn hóa và băm SHA-256), `NonStandardTermDetector`, `ContractTermsRequestHandler`, `ContractTermsListeners`, `ContractReadService` (cài `ContractReadApi` và `ContractApi` của 001; thay `ContractLookup` khung), `ContractTransition` (Hủy tiếp nhận kéo theo hợp đồng), `ContractOverdueTask`, `ContractReminders`, `ContractScopeAssignment`, `ContractScanFilePermission` |
+| phản hồi, thân yêu cầu | `ContractBody`, `ContractResultBody`, `ContractContentBody`, `NonStandardTermBody`, `AddendumBody`; `ContractInputBody` (kèm `FeeBillingPeriod`, `HoldBed`, `ServiceLineBody`, `AbsencePolicyLineBody`, `ArrivalLineBody`), `RecordSignedBody` |
+| hợp đồng lệch glossary | `AddendumBody.Status` theo hợp đồng api-004 là `PENDING_EFFECTIVE`, `APPLIED`, `NOT_APPLICABLE`; 10.3 ghi `NOT_APPLIED` (lệch, chờ chủ dự án chọn khi làm Phase 7) |
+| test | `ContractLifecycleIT`, `ContractContentLockDbIT`, `DBR_06_ContractNoOverlapIT`, `FR_021_RecordSignedIT`, `NonStandardTermDetectorTest`, `TermsApprovalIT`, `BR_M02_09_ContentAtDateIT`, `BR_M02_05_ContractReminderIT`, `FR_029_ContractOverdueIT`; nền `ContractTestBase`, `ContractFixtures` (thay `FakeContractReads` đã xóa) |
 
 ## 11. Feature 005 (`005-daily-care-tasks`, C)
 
