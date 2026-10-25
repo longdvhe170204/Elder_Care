@@ -123,6 +123,12 @@ export const postBedsByIdSuspend = (params) => request('POST', '/beds/{id}/suspe
 /** Sử dụng lại (Quản lý viện) (FR-011, FR-044, BR-M03-09) */
 export const postBedsByIdReuse = (params) => request('POST', '/beds/{id}/reuse', params)
 
+/** Xem trước điều kiện Xác nhận giường sẵn sàng (FR-044, FR-045) */
+export const getBedsByIdReadinessConditions = (params) => request('GET', '/beds/{id}/readiness-conditions', params)
+
+/** Xác nhận giường sẵn sàng (UC-74) (FR-011a, FR-014, FR-044, FR-045, BR-M03-09, BR-M03-10) */
+export const postBedsByIdConfirmReadiness = (params) => request('POST', '/beds/{id}/confirm-readiness', params)
+
 /** Lịch sử trạng thái giường (FR-016, FR-016a) */
 export const getBedsByIdStateHistory = (params) => request('GET', '/beds/{id}/state-history', params)
 

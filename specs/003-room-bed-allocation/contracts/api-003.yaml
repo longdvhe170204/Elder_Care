@@ -939,22 +939,24 @@ paths:
       requestBody: { $ref: '#/components/requestBodies/Reason' }
       responses: { '200': { $ref: '#/components/responses/BedStateChanged' }, '409': { $ref: '#/components/responses/BlockedProblem' } }
       x-implementation-phase: 6
-  /giuong/{id}/dieu-kien-xac-nhan-san-sang:
+  /beds/{id}/readiness-conditions:
     get:
-      tags: [giuong]
+      tags: [beds]
       summary: Xem trước điều kiện Xác nhận giường sẵn sàng
-      description: canKhuKhuan = true khi người vừa rời giường thuộc danh sách nghi nhiễm, tiếp xúc tại lúc hỏi (FR-045).
+      description: disinfectionRequired = true khi người vừa rời giường thuộc danh sách nghi nhiễm, tiếp xúc tại lúc hỏi (FR-045).
+      x-implementation-phase: 10
       x-fr: [FR-044, FR-045]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/DieuKienXacNhanSanSang' } } } } }
-  /giuong/{id}/xac-nhan-san-sang:
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/BedReadinessConditions' } } } } }
+  /beds/{id}/confirm-readiness:
     post:
-      tags: [giuong]
+      tags: [beds]
+      x-implementation-phase: 10
       summary: Xác nhận giường sẵn sàng (UC-74)
       description: |
         Chỉ Trưởng tầng được giao của tầng chứa giường hoặc Người phụ trách ca của tầng đó trong ca (FR-044, research G-14).
         Giường Chờ sẵn sàng → Trống; nếu có chuyển giường theo lịch đang chờ giường này thì lệnh chuyển thực hiện ngay
-        và giường → Đang sử dụng (FR-011a). Thiếu daKhuKhuan/daDungBaoHo khi bắt buộc: 409 (BR-M03-10).
+        và giường → Đang sử dụng (FR-011a). Thiếu disinfected/ppeUsed khi bắt buộc: 422 (BR-M03-10).
       x-fr: [FR-011a, FR-014, FR-044, FR-045]
       x-br: [BR-M03-09, BR-M03-10]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -965,13 +967,14 @@ paths:
             schema:
               type: object
               properties:
-                daKhuKhuan: { type: boolean }
-                daDungBaoHo: { type: boolean }
-                ghiChu: { type: string, maxLength: 2000 }
+                disinfected: { type: boolean }
+                ppeUsed: { type: boolean }
+                note: { type: string, maxLength: 2000 }
       responses:
-        '200': { $ref: '#/components/responses/GiuongOk' }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { $ref: '#/components/responses/LoiChan' }
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Bed' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/BlockedProblem' }
+        '422': { $ref: '#/components/responses/Problem' }
   /beds/{id}/state-history:
     get:
       tags: [beds]
@@ -2188,13 +2191,13 @@ components:
         theoTrangThai: { type: object, additionalProperties: { type: integer } }
         coTheDung: { type: integer, description: 'Không tính Tạm ngừng sử dụng, Đang bảo trì, Không sử dụng' }
         trongTheoDieuKien: { type: integer }
-    DieuKienXacNhanSanSang:
+    BedReadinessConditions:
       type: object
       properties:
-        duocThucHien: { type: boolean }
-        canKhuKhuan: { type: boolean }
-        nguoiVuaRoi: { $ref: '#/components/schemas/NguoiNgan' }
-        dieuKienChuaThoa: { type: array, items: { $ref: '#/components/schemas/DieuKien' } }
+        allowed: { type: boolean }
+        disinfectionRequired: { type: boolean }
+        departedResident: { $ref: '#/components/schemas/ResidentSummary' }
+        unmetConditions: { type: array, items: { $ref: '#/components/schemas/UnmetCondition' } }
     BedStateHistoryRow:
       type: object
       properties:
