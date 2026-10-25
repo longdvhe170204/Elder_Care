@@ -72,6 +72,30 @@ class FieldVisibilityService implements FieldVisibilityApi {
         return best;
     }
 
+    /**
+     * Mức cao nhất của các vai trò, bỏ điều kiện phạm vi (016 Q-196). Nhóm cần bản đồng ý của người thân không xét được
+     * khi không có đối tượng nên vai trò Người thân không góp mức cho các nhóm đó.
+     */
+    @Override
+    public Visibility canViewByRole(CurrentUser user, InfoGroup group) {
+        if (user.isScheduler()) {
+            return Visibility.FULL;
+        }
+        load();
+        Visibility best = Visibility.NONE;
+        for (Role role : user.roles()) {
+            if (executionScopes.get(role.code()) == null
+                    || (role == Role.FAMILY_MEMBER && CONSENT_GROUPS.contains(group))) {
+                continue;
+            }
+            Visibility level = rules.getOrDefault(role.code(), Map.of()).getOrDefault(group, Visibility.FULL);
+            if (rank(level) > rank(best)) {
+                best = level;
+            }
+        }
+        return best;
+    }
+
     private boolean consented(CurrentUser user, Target target) {
         return conditions
                 .orderedStream()

@@ -96,6 +96,10 @@ class ScopeService implements ScopeApi {
             return target.residentId() != null
                     && familyResidents(user.familyMemberId().get(), at).contains(target.residentId());
         }
+        // Tài khoản người cao tuổi: chỉ chính người đó (FR-068, phạm vi SELF)
+        if (user.residentId().isPresent()) {
+            return user.residentId().get().equals(target.residentId());
+        }
         if (user.staffId().isEmpty()) {
             return false;
         }
@@ -118,6 +122,10 @@ class ScopeService implements ScopeApi {
         return false;
     }
 
+    private static ScopeFilter self(long residentId) {
+        return new ScopeFilter(false, Set.of(), Set.of(), Set.of(residentId));
+    }
+
     private static boolean matches(Long assigned, Long ofTarget) {
         return assigned != null && Objects.equals(assigned, ofTarget);
     }
@@ -133,6 +141,9 @@ class ScopeService implements ScopeApi {
         }
         if (user.familyMemberId().isPresent()) {
             return family(user.familyMemberId().get(), time.now());
+        }
+        if (user.residentId().isPresent()) {
+            return self(user.residentId().get());
         }
         if (user.staffId().isEmpty()) {
             return empty();
@@ -154,6 +165,9 @@ class ScopeService implements ScopeApi {
         }
         if (user.familyMemberId().isPresent()) {
             return family(user.familyMemberId().get(), time.now());
+        }
+        if (user.residentId().isPresent()) {
+            return self(user.residentId().get());
         }
         if (user.staffId().isEmpty()) {
             return empty();

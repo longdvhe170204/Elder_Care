@@ -29,6 +29,11 @@ public class FakeFacilityLicenses implements FacilityLicenseApi {
         return this;
     }
 
+    public void reset() {
+        scopes.clear();
+        expiring.clear();
+    }
+
     @Override
     public boolean coversScope(String operationScope, LocalDate date) {
         LocalDate expiry = scopes.get(operationScope);

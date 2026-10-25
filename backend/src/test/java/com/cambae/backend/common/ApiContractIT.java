@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import com.cambae.backend.support.MySqlIntegrationTestBase;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Paths;
+import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import java.io.IOException;
@@ -43,16 +44,46 @@ class ApiContractIT extends MySqlIntegrationTestBase {
      * C chờ yêu cầu phê duyệt của 000). Mỗi hợp đồng so riêng với phần OpenAPI sinh ra có đường dẫn của nó, vì các hợp
      * đồng khai component cùng tên khác nội dung ({@code Problem}, {@code Reason}…).
      */
-    private record Contract(Path file, Set<String> pending, Set<String> pendingResponses) {}
+    private record Contract(Path file, Set<String> pending, Set<String> pendingResponses, boolean checkOperations) {}
 
     private static final List<Contract> CONTRACTS = List.of(
             new Contract(
-                    Path.of("..", "specs", "000-shared-foundation", "contracts", "api-000.yaml"), Set.of(), Set.of()),
+                    Path.of("..", "specs", "000-shared-foundation", "contracts", "api-000.yaml"),
+                    Set.of(),
+                    Set.of(),
+                    true),
+            // 001 (đăng ký 2026-10-23 sau PR #23): đường dẫn, endpoint đã khớp; so operation tắt tới khi B sửa các chỗ
+            // lệch
+            // ghi ở docs/team-plan.md mục 8 (Problem theo bản chung, phản hồi 403/409/422, mã 201 của đính chính,
+            // enum…)
+            new Contract(
+                    Path.of("..", "specs", "001-elder-profile-assessment", "contracts", "api-001.yaml"),
+                    Set.of(),
+                    Set.of(),
+                    false),
             // 002 T025 (2026-10-20): kéo một phần T078 lên để thêm /me; danh sách giảm dần theo các user story
             new Contract(
                     Path.of("..", "specs", "002-account-permission", "contracts", "api-002.yaml"),
-                    Set.of("POST /api/v1/resident-accounts"),
-                    Set.of()));
+                    Set.of(),
+                    Set.of(),
+                    true),
+            // 009 T034 (2026-10-22, kéo phần T036 lên khi cài controller đầu tiên của US5); US3 xong 2026-10-23; còn
+            // US1
+            new Contract(
+                    Path.of("..", "specs", "009-notification-service", "contracts", "api-009.yaml"),
+                    Set.of(
+                            "POST /api/v1/notifications/{id}/acknowledge-and-take-charge",
+                            "GET /api/v1/me/call-reminders",
+                            "GET /api/v1/call-reminders/{id}",
+                            "POST /api/v1/call-reminders/{id}/results"),
+                    Set.of(),
+                    true),
+            // 016 T028 (2026-10-24): đủ endpoint sau T009 (dashboard), khung báo cáo và danh sách chi tiết
+            new Contract(
+                    Path.of("..", "specs", "016-reports-dashboard", "contracts", "api-016.yaml"),
+                    Set.of(),
+                    Set.of(),
+                    true));
 
     @Autowired
     MockMvc mvc;
@@ -86,6 +117,9 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             assertThat(new TreeSet<>(c.pending()))
                     .as(name + ": endpoint đã cài nhưng còn ở PENDING")
                     .isEqualTo(new TreeSet<>(missing));
+            if (!c.checkOperations()) {
+                continue;
+            }
             List<String> mismatched = new ArrayList<>();
             diff.getChangedOperations().forEach(op -> structuralChanges(op, c.pendingResponses(), mismatched));
             assertThat(mismatched).as(name + ": operation lệch hợp đồng").isEmpty();
@@ -154,7 +188,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
      * Kiểu gốc của schema, bỏ {@code format} (int32, int64…) và {@code null} của OpenAPI 3.1: hợp đồng ghi
      * {@code integer} hay {@code [integer, 'null']}, springdoc ghi {@code integer} kèm format, cùng một kiểu.
      */
-    private static Set<String> baseType(io.swagger.v3.oas.models.media.Schema<?> schema) {
+    private static Set<String> baseType(Schema<?> schema) {
         Set<String> types = new TreeSet<>();
         if (schema == null) {
             return types;
@@ -178,10 +212,54 @@ class ApiContractIT extends MySqlIntegrationTestBase {
         return api;
     }
 
+    /** Gộp trường, trường bắt buộc của các phần {@code allOf} (đã resolve) vào chính schema, đệ quy theo trường. */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void flattenAllOf(Schema schema) {
+        if (schema == null) {
+            return;
+        }
+        if (schema.getAllOf() != null) {
+            List<Schema> parts = schema.getAllOf();
+            schema.setAllOf(null);
+            for (Schema part : parts) {
+                flattenAllOf(part);
+                if (part.getProperties() != null) {
+                    part.getProperties().forEach((k, v) -> schema.addProperty((String) k, (Schema) v));
+                }
+                if (part.getRequired() != null) {
+                    ((List<String>) part.getRequired()).forEach(schema::addRequiredItem);
+                }
+                if (schema.getType() == null && schema.getTypes() == null) {
+                    schema.setType(part.getType() != null ? part.getType() : "object");
+                }
+            }
+        }
+        if (schema.getProperties() != null) {
+            schema.getProperties().values().forEach(p -> flattenAllOf((Schema) p));
+        }
+        flattenAllOf(schema.getItems());
+    }
+
+    /**
+     * Gộp {@code allOf} thành một schema ở cả hợp đồng và mã (hợp đồng 001 viết thân yêu cầu
+     * {@code allOf: [PersonalInfo, {…}]}, springdoc sinh một schema phẳng) để so theo trường chứ không theo cách viết.
+     */
     private static OpenAPI parse(String content) {
         ParseOptions options = new ParseOptions();
         options.setResolve(true);
-        return new OpenAPIV3Parser().readContents(content, null, options).getOpenAPI();
+        options.setResolveFully(true);
+        OpenAPI api = new OpenAPIV3Parser().readContents(content, null, options).getOpenAPI();
+        api.getPaths()
+                .values()
+                .forEach(item -> item.readOperations().forEach(op -> {
+                    if (op.getRequestBody() != null && op.getRequestBody().getContent() != null) {
+                        op.getRequestBody().getContent().values().forEach(m -> flattenAllOf(m.getSchema()));
+                    }
+                    op.getResponses().values().stream()
+                            .filter(r -> r.getContent() != null)
+                            .forEach(r -> r.getContent().values().forEach(m -> flattenAllOf(m.getSchema())));
+                }));
+        return api;
     }
 
     private static Set<String> keys(List<Endpoint> endpoints) {
