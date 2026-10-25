@@ -137,12 +137,12 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 
 ### Tests cho User Story 4
 
-- [ ] T039 [P] [US4] Test `BT/m02/DatCocDieuKienIT.java`, `FR_032_DatCocSauLuuTruIT.java`, `SuKien017018IT.java`: điều kiện cọc `CHUA_DAP_UNG`/`DA_DAP_UNG`/`KHONG_YEU_CAU` theo port; điều chỉnh giảm thu cọc có duyệt ở 017 (sửa 2026-10-22, Q-385: không còn giao dịch đảo) làm điều kiện quay lại chưa đạt; phát sự kiện cho 017 và 018 khi hợp đồng, tiếp nhận đổi
+- [x] T039 [P] [US4] Test `BT/m02/DatCocDieuKienIT.java`, `FR_032_DatCocSauLuuTruIT.java`, `SuKien017018IT.java`: điều kiện cọc `CHUA_DAP_UNG`/`DA_DAP_UNG`/`KHONG_YEU_CAU` theo port; điều chỉnh giảm thu cọc có duyệt ở 017 (sửa 2026-10-22, Q-385: không còn giao dịch đảo) làm điều kiện quay lại chưa đạt; phát sự kiện cho 017 và 018 khi hợp đồng, tiếp nhận đổi
 
 ### Implementation cho User Story 4
 
-- [ ] T040 [US4] Cài điều kiện đặt cọc trong `ThamGiaM02.java` và endpoint `GET /hop-dong/{id}/dat-coc` trong `HopDongController.java`; listener `TrangThaiDatCocDaDoi` của 017 làm mới màn điều kiện (FR-030 → FR-032)
-- [ ] T041 [US4] Phát sự kiện cho 017 (hợp đồng, khoản cọc) và 018 (tiếp nhận hoàn tất, hợp đồng; BR-M02-11 → 14 thuộc 018) trong `HopDongService.java` (FR-033a, FR-033b)
+- [ ] T040 [US4] Cài điều kiện đặt cọc trong `ThamGiaM02.java` và endpoint `GET /hop-dong/{id}/dat-coc` trong `HopDongController.java`; listener `TrangThaiDatCocDaDoi` của 017 làm mới màn điều kiện (FR-030 → FR-032) *(2026-10-26: điều kiện (c), endpoint và `DepositRecheckService` (FR-032) xong; còn `[ ]` vì listener chờ `m11.api.TrangThaiDatCocDaDoi` của 017/E, team-plan mục 8)*
+- [x] T041 [US4] Phát sự kiện cho 017 (hợp đồng, khoản cọc) và 018 (tiếp nhận hoàn tất, hợp đồng; BR-M02-11 → 14 thuộc 018) trong `HopDongService.java` (FR-033a, FR-033b)
 
 **Checkpoint**: P1 hoàn tất: đăng ký → chờ → hợp đồng → cọc → Hoàn tất tiếp nhận.
 
