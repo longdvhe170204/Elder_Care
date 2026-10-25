@@ -84,23 +84,17 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 004 Phase 3 (2026-10-25, chủ dự án duyệt): mới cài nhóm đăng ký tiếp nhận (mục A); endpoint còn lại chờ
+            // 004 Phase 4 (2026-10-25): thêm nhóm danh sách chờ trừ ba endpoint theo giường (chờ 003). Phase 3 (chủ dự
+            // án
+            // duyệt): nhóm đăng ký tiếp nhận (mục A); endpoint còn lại chờ
             // user story của chúng, xóa dòng khi cài controller
             new Contract(
                     Path.of("..", "specs", "004-admission-residency", "contracts", "api-004.yaml"),
                     Set.of(
-                            "GET /api/v1/waiting-list-entries",
-                            "POST /api/v1/waiting-list-entries",
-                            "GET /api/v1/waiting-list-entries/{id}",
-                            "GET /api/v1/waiting-list-entries/{id}/score-history",
-                            "POST /api/v1/waiting-list-entries/{id}/update-circumstances",
-                            "POST /api/v1/waiting-list-entries/{id}/propose-score-adjustment",
+                            // Còn chờ 003 công bố giao diện giường (team-plan mục 8)
                             "GET /api/v1/beds/{bedId}/matching-entries",
                             "POST /api/v1/waiting-list-entries/{id}/record-contacted",
                             "POST /api/v1/waiting-list-entries/{id}/decline-bed",
-                            "POST /api/v1/waiting-list-entries/{id}/decline",
-                            "POST /api/v1/waiting-list-entries/{id}/cancel-waiting",
-                            "POST /api/v1/waiting-list-entries/{id}/confirm-still-needed",
                             "GET /api/v1/contracts",
                             "POST /api/v1/contracts",
                             "GET /api/v1/contracts/{id}",
