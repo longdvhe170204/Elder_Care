@@ -41,6 +41,60 @@ public class DepartmentDutyService {
         this.audit = audit;
     }
 
+    @RequiresPermission(
+            function = com.cambae.backend.m15.account.api.dto.Function.STAFF_PROFILE,
+            operation = com.cambae.backend.m15.account.api.dto.Operation.VIEW)
+    public List<com.cambae.backend.m09.duty.internal.domain.Department> list() {
+        return store.all();
+    }
+
+    @RequiresPermission(
+            function = com.cambae.backend.m15.account.api.dto.Function.STAFF_PROFILE,
+            operation = com.cambae.backend.m15.account.api.dto.Operation.CREATE)
+    @Transactional
+    public long create(String name, boolean active) {
+        if (name == null || name.isBlank() || name.strip().length() > 200) throw invalid("Tên bộ phận không hợp lệ");
+        long id = store.add(name, active, time.now());
+        audit.write(AuditLogEntry.builder()
+                .action(new AuditAction("DEPARTMENT_CREATED", false))
+                .entity("M09.DEPARTMENT", id)
+                .after(Map.of("name", name.strip(), "active", active))
+                .build());
+        return id;
+    }
+
+    @com.cambae.backend.common.data.BusinessCommand
+    @RequiresPermission(
+            function = com.cambae.backend.m15.account.api.dto.Function.STAFF_PROFILE,
+            operation = com.cambae.backend.m15.account.api.dto.Operation.UPDATE)
+    @Transactional
+    public void assignLead(long department, long personId, Reason reason) {
+        if (reason == null) throw new ReasonRequiredException();
+        staff.lock(personId);
+        var dept = store.lock(department);
+        var person = staff.find(personId).orElseThrow(NotFoundException::new);
+        var account = accounts.byStaff(personId).orElseThrow(() -> invalid("Người phụ trách chưa có tài khoản"));
+        if (!dept.active()
+                || !"WORKING".equals(person.status())
+                || account.status() != AccountStatus.ACTIVE
+                || !departmentOf(personId, time.now()).equals(Optional.of(department))
+                || !Collections.disjoint(account.roles(), Set.of(Role.NURSING_HOME_MANAGER, Role.ACCOUNTANT)))
+            throw invalid("Người phụ trách phải cùng bộ phận, đang làm việc, tài khoản Hoạt động và vai trò được phép");
+        if ("Hành chính – Kế toán".equalsIgnoreCase(dept.name())
+                && !account.roles().contains(Role.OFFICE_STAFF))
+            throw invalid("Phụ trách Hành chính – Kế toán phải có vai trò Hành chính");
+        var before = new LinkedHashMap<String, Object>();
+        before.put("leadStaffId", dept.leadStaffId());
+        store.replace(department, personId, time.now(), users.getObject().accountId(), reason.value());
+        audit.write(AuditLogEntry.builder()
+                .action(new AuditAction("DEPARTMENT_LEAD_ASSIGNED", false))
+                .entity("M09.DEPARTMENT", department)
+                .before(before)
+                .after(Map.of("leadStaffId", personId))
+                .reason(reason)
+                .build());
+    }
+
     public Optional<Long> lead(long department) {
         return store.lead(department);
     }

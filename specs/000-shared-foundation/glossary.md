@@ -1198,6 +1198,29 @@ Người dùng đã duyệt API tối thiểu của B/C/D, `AssignmentView.scope
 | Nhãn loại JSON nội bộ nhóm nhận / cách thay thế (phần A được duyệt 2026-10-25) | `kind`; `RecipientGroup / Substitution`, `JsonTypeInfo.Id.NAME`, danh sách loại tường minh qua `JsonSubTypes` |
 | Màn bàn giao / đính chính | `features/handover/HandoverPage.jsx / HandoverCorrections.jsx` |
 
+### 14.11. Nhân sự và import Phase 6 (2026-10-25)
+
+| Tên logic | Mã triển khai |
+| --- | --- |
+| Lưu yêu cầu nghỉ việc / tác động nghỉ việc | StaffEmploymentStore / StaffEmploymentEffects |
+| Khi nhân viên nghỉ việc (005) | ShiftTaskApi.onResignation(staffId, effectiveAt); FakeCareRequirements.onResign |
+| Lệnh cho nghỉ việc / nhận lại / đổi bộ phận | terminateEmployment / rehire / changeDepartment |
+| Màn nhân sự / import | features/shifts/StaffPage.jsx / StaffImportPanel.jsx; route staff |
+| Tác động hết hiệu lực / nhắc chứng chỉ | CredentialInvalidityEffects / CredentialReminders |
+| Khuôn thông báo nhân sự | StaffNotifications; missingLeadInFloors |
+| Danh mục bộ phận / lệnh chỉ định phụ trách | Department / DepartmentBody; assignLead |
+| Lưu dấu lần import, tên file, số dòng | staff_import_batch; file_name / row_count / created_by / created_at |
+| Đọc/chèn lô import / kiểm dòng / dòng lỗi | StaffImportStore / StaffImportService / StaffImportRowValidator; StaffImportData.Row / Error / Preview / Result |
+| Xác nhận có dòng lỗi (409 đúng bảng xem trước) | StaffImportRejected; StaffImportResponses |
+| Gia hạn / ghi thu hồi / sửa sai chứng chỉ | renew / revoke / correct; effectiveFrom |
+| Lệnh/nhật ký nghỉ việc / nhận lại / chuyển bộ phận | STAFF_TERMINATION_REQUESTED / STAFF_EMPLOYMENT_ENDED / STAFF_REHIRED / STAFF_DEPARTMENT_CHANGED |
+| Nhật ký loại chứng chỉ / bộ phận / giao phụ trách | CREDENTIAL_RENEWED / CREDENTIAL_REVOKED / CREDENTIAL_CORRECTED; DEPARTMENT_CREATED / DEPARTMENT_LEAD_ASSIGNED |
+| Nhật ký tác động phân công / giao trưởng tầng | ASSIGNMENT_ENDED_BY_EMPLOYMENT / ASSIGNMENT_ENDED_BY_CREDENTIAL / FLOOR_MANAGER_ENDED_BY_EMPLOYMENT |
+| Nhật ký import (NV_IMPORT) / thay đổi ca do nghỉ việc | STAFF_IMPORTED / EMPLOYMENT_ENDED |
+| Form nhân sự / bộ phận / chứng chỉ / loại chứng chỉ | StaffForms / DepartmentPanel / CredentialPanel / CredentialTypePanel |
+| Mã danh mục phạm vi trên HTTP (giữ SPI 002) | PracticeScope / PracticeScopeBody.code; schema StaffPracticeScope |
+
+
 ## 15. Feature 009 (`009-notification-service`, A) *(bổ sung 2026-10-21, khi dịch `contracts/api-009.yaml`)*
 
 Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với mã (R-03). Khuôn `common.notification` đã dịch ở mục 6.5 (`NotificationRequest`, `NotificationLevel`, `InformationType`, `RecipientGroup`, `Substitution`, `InformationSubject`, `Q354Case`) giữ nguyên.

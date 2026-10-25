@@ -11,6 +11,18 @@ public class FakeCareRequirements implements TaskTypeApi, CarePlanApi, ShiftTask
     private final Map<Scope, List<com.cambae.backend.m04.api.dto.TaskHandoverView>> sources =
             new java.util.concurrent.ConcurrentHashMap<>();
     private Runnable confirmed = () -> {};
+    private Runnable resigned = () -> {};
+
+    public void onResign(Runnable action) {
+        resigned = action;
+    }
+
+    @org.springframework.transaction.annotation.Transactional(
+            propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public void onResignation(long staffId, java.time.Instant effectiveAt) {
+        resigned.run();
+    }
+
     private Runnable reading = () -> {};
 
     public void beforeRead(Runnable action) {

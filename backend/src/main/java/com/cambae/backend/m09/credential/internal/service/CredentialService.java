@@ -1,9 +1,12 @@
 package com.cambae.backend.m09.credential.internal.service;
 
+import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.Role;
+import com.cambae.backend.common.data.BusinessCommand;
 import com.cambae.backend.common.error.*;
 import com.cambae.backend.common.file.FileApi;
 import com.cambae.backend.common.time.BusinessTime;
+import com.cambae.backend.m09.api.events.CredentialExpiryWarningClosed;
 import com.cambae.backend.m09.credential.internal.domain.*;
 import com.cambae.backend.m09.credential.internal.persistence.CredentialStore;
 import com.cambae.backend.m09.staff.internal.persistence.StaffStore;
@@ -11,8 +14,10 @@ import com.cambae.backend.m09.staff.internal.service.StaffService;
 import com.cambae.backend.m15.account.api.*;
 import com.cambae.backend.m15.account.api.dto.*;
 import com.cambae.backend.m15.auditlog.api.*;
+import java.time.*;
 import java.util.*;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -29,6 +34,8 @@ public class CredentialService {
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> users;
     private final ObjectProvider<FileApi> files;
+    private final CredentialInvalidityEffects effects;
+    private final ApplicationEventPublisher events;
 
     public CredentialService(
             CredentialStore store,
@@ -38,7 +45,9 @@ public class CredentialService {
             AuditLogApi audit,
             BusinessTime time,
             ObjectProvider<CurrentUser> users,
-            ObjectProvider<FileApi> files) {
+            ObjectProvider<FileApi> files,
+            CredentialInvalidityEffects effects,
+            ApplicationEventPublisher events) {
         this.store = store;
         this.staff = staff;
         this.staffStore = staffStore;
@@ -47,6 +56,8 @@ public class CredentialService {
         this.time = time;
         this.users = users;
         this.files = files;
+        this.effects = effects;
+        this.events = events;
     }
 
     public List<Credential> list(long staffId) {
@@ -96,19 +107,7 @@ public class CredentialService {
     @Transactional
     public Credential add(long staffId, CredentialInput input) {
         staffStore.lock(staffId);
-        var type = store.type(input.credentialTypeId())
-                .filter(CredentialType::active)
-                .orElseThrow(() -> invalid("Loại chứng chỉ không còn hiệu lực"));
-        if (input.issueDate() == null || (type.hasExpiry() && input.expiryDate() == null))
-            throw invalid("Thiếu ngày cấp hoặc ngày hết hạn");
-        if (input.expiryDate() != null && input.expiryDate().isBefore(input.issueDate()))
-            throw invalid("Ngày hết hạn trước ngày cấp");
-        if (!type.hasPracticeScopes() && !input.practiceScopes().isEmpty())
-            throw invalid("Loại chứng chỉ không có phạm vi hành nghề");
-        for (String code : input.practiceScopes())
-            if (jdbc.queryForObject(
-                            "SELECT COUNT(*) FROM practice_scope WHERE code=? AND status='ACTIVE'", Integer.class, code)
-                    == 0) throw invalid("Phạm vi hành nghề không còn hiệu lực");
+        validateInput(input);
         FileApi fileApi = null;
         if (input.scanFileId() != null) {
             fileApi = files.getIfAvailable();
@@ -133,11 +132,121 @@ public class CredentialService {
         return store.find(id).orElseThrow();
     }
 
-    public List<com.cambae.backend.m15.account.api.spi.PracticeScopeView> practiceScopes() {
+    private void validateInput(CredentialInput input) {
+        var type = store.type(input.credentialTypeId())
+                .filter(CredentialType::active)
+                .orElseThrow(() -> invalid("Loại chứng chỉ không còn hiệu lực"));
+        if (input.issueDate() == null || (type.hasExpiry() && input.expiryDate() == null))
+            throw invalid("Thiếu ngày cấp hoặc ngày hết hạn");
+        if (input.expiryDate() != null && input.expiryDate().isBefore(input.issueDate()))
+            throw invalid("Ngày hết hạn trước ngày cấp");
+        if (!type.hasPracticeScopes() && !input.practiceScopes().isEmpty())
+            throw invalid("Loại chứng chỉ không có phạm vi hành nghề");
+        for (String code : input.practiceScopes())
+            if (jdbc.queryForObject(
+                            "SELECT COUNT(*) FROM practice_scope WHERE code=? AND status='ACTIVE'", Integer.class, code)
+                    == 0) throw invalid("Phạm vi hành nghề không còn hiệu lực");
+    }
+
+    private Credential lock(long id) {
+        var before = store.find(id).orElseThrow(NotFoundException::new);
+        staffStore.lock(before.staffId());
+        return store.find(id).orElseThrow(NotFoundException::new);
+    }
+
+    @RequiresPermission(function = Function.STAFF_PROFILE, operation = Operation.UPDATE)
+    @Transactional
+    public Credential renew(long id, CredentialInput input) {
+        var before = lock(id);
+        if (before.replaced())
+            throw new BusinessException(HttpStatus.CONFLICT, "STATE_CHANGED", "Chứng chỉ đã được thay thế");
+        if (before.credentialTypeId() != input.credentialTypeId())
+            throw invalid("Gia hạn phải giữ nguyên loại chứng chỉ");
+        var added = add(before.staffId(), input);
+        store.replaces(added.id(), id);
+        jdbc.update("UPDATE credential SET expiry_warning_at=NULL WHERE id=?", id);
+        events.publishEvent(new CredentialExpiryWarningClosed(id, time.now()));
+        var result = store.find(added.id()).orElseThrow();
+        auditChange("CREDENTIAL_RENEWED", before, result, null);
+        return result;
+    }
+
+    @BusinessCommand
+    @RequiresPermission(function = Function.STAFF_PROFILE, operation = Operation.UPDATE)
+    @Transactional
+    public void revoke(long id, LocalDate effectiveFrom, Reason reason) {
+        if (reason == null) throw new ReasonRequiredException();
+        if (effectiveFrom == null) throw invalid("Cần ngày hiệu lực thu hồi");
+        var before = lock(id);
+        if (before.replaced())
+            throw new BusinessException(HttpStatus.CONFLICT, "STATE_CHANGED", "Chứng chỉ đã được thay thế");
+        jdbc.update(
+                "UPDATE credential SET revoked_from=?,revocation_reason=?,invalidity_applied_at=NULL WHERE id=?",
+                effectiveFrom,
+                reason.value(),
+                id);
+        var after = store.find(id).orElseThrow();
+        var at = effects.invalidAt(after);
+        if (at != null && !at.isAfter(time.now())) effects.apply(after, at);
+        auditChange("CREDENTIAL_REVOKED", before, after, reason);
+    }
+
+    @BusinessCommand
+    @RequiresPermission(function = Function.STAFF_PROFILE, operation = Operation.UPDATE)
+    @Transactional
+    public void correct(long id, CredentialInput input, Reason reason) {
+        if (reason == null) throw new ReasonRequiredException();
+        var before = lock(id);
+        validateInput(input);
+        if (input.scanFileId() != null && !Objects.equals(input.scanFileId(), before.scanFileId()))
+            attachFile(input.scanFileId(), id);
+        store.correct(id, input);
+        var after = store.find(id).orElseThrow();
+        var at = effects.invalidAt(after);
+        if (before.credentialTypeId() != after.credentialTypeId()) {
+            effects.apply(before, time.now());
+            // Cờ vừa áp thuộc loại cũ; loại đã đính chính vẫn phải được xử lý khi tới mốc riêng.
+            jdbc.update("UPDATE credential SET invalidity_applied_at=NULL WHERE id=?", id);
+        }
+        if (at != null && !at.isAfter(time.now())) effects.apply(after, at);
+        auditChange("CREDENTIAL_CORRECTED", before, after, reason);
+    }
+
+    private void attachFile(long file, long id) {
+        var api = files.getIfAvailable();
+        if (api == null) throw invalid("Dịch vụ tệp chưa sẵn sàng");
+        api.attach(file, "M09.CREDENTIAL_SCAN", id);
+    }
+
+    private Map<String, Object> snapshot(Credential c) {
+        var m = new LinkedHashMap<String, Object>();
+        m.put("credentialTypeId", c.credentialTypeId());
+        m.put("credentialNumber", c.credentialNumber());
+        m.put("issuingAuthority", c.issuingAuthority());
+        m.put("practiceScopes", c.practiceScopes());
+        m.put("issueDate", c.issueDate());
+        m.put("expiryDate", c.expiryDate());
+        m.put("scanFileId", c.scanFileId());
+        m.put("revokedFrom", c.revokedFrom());
+        m.put("replacesId", c.replacesId());
+        return m;
+    }
+
+    private void auditChange(String action, Credential before, Credential after, Reason reason) {
+        var entry = AuditLogEntry.builder()
+                .action(new AuditAction(action, false))
+                .entity("M09.CREDENTIAL", after.id())
+                .before(snapshot(before))
+                .after(snapshot(after));
+        if (reason != null) entry.reason(reason);
+        audit.write(entry.build());
+    }
+
+    public List<PracticeScope> practiceScopes() {
         return jdbc.query(
-                "SELECT id,name,status FROM practice_scope ORDER BY id",
-                (r, i) -> new com.cambae.backend.m15.account.api.spi.PracticeScopeView(
-                        r.getLong(1), r.getString(2), "ACTIVE".equals(r.getString(3))));
+                "SELECT id,name,status,code FROM practice_scope ORDER BY id",
+                (r, i) -> new PracticeScope(
+                        r.getLong(1), r.getString(2), "ACTIVE".equals(r.getString(3)), r.getString(4)));
     }
 
     private static BusinessException invalid(String message) {

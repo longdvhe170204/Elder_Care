@@ -273,4 +273,14 @@ class M09GovernanceConfig {
             ProfessionalActivityApi activities) {
         return retention(M09Retention.Kind.DEPARTMENT_LEAD_HISTORY, jdbc, database, time, accounts, activities);
     }
+
+    @Bean
+    RetentionProvider staffImportRetention(
+            JdbcTemplate jdbc,
+            RetentionDatabase database,
+            BusinessTime time,
+            AccountApi accounts,
+            ProfessionalActivityApi activities) {
+        return retention(M09Retention.Kind.STAFF_IMPORT_BATCH, jdbc, database, time, accounts, activities);
+    }
 }

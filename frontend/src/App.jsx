@@ -18,12 +18,14 @@ import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
 import { MedicationPage } from '@/features/medication/MedicationPage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
 import { ShiftsPage } from '@/features/shifts/ShiftsPage'
+import { StaffPage } from '@/features/shifts/StaffPage'
 
 // Bản mẫu giai đoạn thiết kế: chuyển màn bằng state, React Router thêm ở 000 T005.
 const PAGES = {
   dashboard: DashboardPage,
   residents: ResidentListPage,
   shifts: ShiftsPage,
+  staff: StaffPage,
   'care-tasks': ShiftChecklistPage,
   incidents: IncidentDetailPage,
   medication: MedicationPage,

@@ -16,6 +16,36 @@ public class DepartmentDutyStore {
         this.jdbc = jdbc;
     }
 
+    public List<com.cambae.backend.m09.duty.internal.domain.Department> all() {
+        return jdbc.query(
+                "SELECT id,name,lead_staff_id,status FROM department ORDER BY id",
+                (r, n) -> new com.cambae.backend.m09.duty.internal.domain.Department(
+                        r.getLong(1), r.getString(2), r.getObject(3, Long.class), "ACTIVE".equals(r.getString(4))));
+    }
+
+    public com.cambae.backend.m09.duty.internal.domain.Department lock(long id) {
+        jdbc.queryForList("SELECT id FROM department WHERE id=? FOR UPDATE", Long.class, id).stream()
+                .findFirst()
+                .orElseThrow(com.cambae.backend.common.error.NotFoundException::new);
+        return all().stream().filter(d -> d.id() == id).findFirst().orElseThrow();
+    }
+
+    public long add(String name, boolean active, Instant at) {
+        var key = new org.springframework.jdbc.support.GeneratedKeyHolder();
+        jdbc.update(
+                c -> {
+                    var p = c.prepareStatement(
+                            "INSERT INTO department(name,status,created_at) VALUES (?,?,?)",
+                            java.sql.Statement.RETURN_GENERATED_KEYS);
+                    p.setString(1, name.strip());
+                    p.setString(2, active ? "ACTIVE" : "INACTIVE");
+                    p.setObject(3, ShiftStore.sql(at));
+                    return p;
+                },
+                key);
+        return key.getKey().longValue();
+    }
+
     public Optional<Long> lead(long id) {
         return jdbc
                 .queryForList(

@@ -134,14 +134,16 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 ### Tests cho User Story 4
 
-- [ ] T031 [P] [US4] Test `BT/m09/BR_M09_04_NghiViecIT.java`, `FR_003_NhanLaiIT.java`, `FR_001a_PhuTrachBoPhanIT.java`, `DBR_36_MotBoPhanIT.java`, `NhanVienTriggerIT.java`: nghỉ việc gọi `TaiKhoanApi.khoaDoNghiViec` và `CongViecCaApi.khiNghiViec` cùng transaction, rút khỏi ca tương lai, hủy phân công; Phụ trách bộ phận cần người thay (Q-292); một bộ phận mỗi nhân viên (Q16 → Q19)
-- [ ] T032 [P] [US4] Test `BT/m09/BR_M09_05_CanhBaoDaoTaoIT.java`, `FR_009_ThuHoiIT.java`: cảnh báo một lần; thu hồi làm mất hiệu lực, kết thúc phân công cần chứng chỉ (Q14, Q15)
+- [x] T031 [P] [US4] Test `BT/m09/BR_M09_04_NghiViecIT.java`, `FR_003_NhanLaiIT.java`, `FR_001a_PhuTrachBoPhanIT.java`, `DBR_36_MotBoPhanIT.java`, `NhanVienTriggerIT.java`: nghỉ việc gọi `TaiKhoanApi.khoaDoNghiViec` và `CongViecCaApi.khiNghiViec` cùng transaction, rút khỏi ca tương lai, hủy phân công; Phụ trách bộ phận cần người thay (Q-292); một bộ phận mỗi nhân viên (Q16 → Q19)
+- [x] T032 [P] [US4] Test `BT/m09/BR_M09_05_CanhBaoDaoTaoIT.java`, `FR_009_ThuHoiIT.java`: cảnh báo một lần; thu hồi làm mất hiệu lực, kết thúc phân công cần chứng chỉ (Q14, Q15)
 
 ### Implementation cho User Story 4
 
-- [ ] T033 [US4] Cài lệnh Cho nghỉ việc (hiệu lực ngay hoặc tương lai qua việc theo phút), Nhận lại làm việc, đổi bộ phận, chỉ định Phụ trách bộ phận trong `NhanVienService.java` (research N-04)
-- [ ] T034 [US4] Cài gia hạn, thu hồi, sửa sai chứng chỉ trong `ChungChiService.java`; việc theo phút chứng chỉ hết hiệu lực theo mốc; việc hằng ngày cảnh báo đào tạo sắp hết hạn (CFG-M09-03), bộ phận chưa có Phụ trách (research N-05)
-- [ ] T035 [US4] Bổ sung endpoint `POST /nhan-vien/{id}/cho-nghi-viec`, `/nhan-lai-lam-viec`, `/doi-bo-phan`, `GET /bo-phan`, `POST /bo-phan/{id}/chi-dinh-phu-trach`, `POST /chung-chi/{id}/gia-han`, `/thu-hoi`, `/sua-sai`; màn web `frontend/src/tinh-nang/nhan-vien/`
+- [x] T033 [US4] Cài lệnh Cho nghỉ việc (hiệu lực ngay hoặc tương lai qua việc theo phút), Nhận lại làm việc, đổi bộ phận, chỉ định Phụ trách bộ phận trong `NhanVienService.java` (research N-04)
+- [x] T034 [US4] Cài gia hạn, thu hồi, sửa sai chứng chỉ trong `ChungChiService.java`; việc theo phút chứng chỉ hết hiệu lực theo mốc; việc hằng ngày cảnh báo đào tạo sắp hết hạn (CFG-M09-03), bộ phận chưa có Phụ trách (research N-05)
+- [x] T035 [US4] Bổ sung endpoint `POST /nhan-vien/{id}/cho-nghi-viec`, `/nhan-lai-lam-viec`, `/doi-bo-phan`, `GET /bo-phan`, `POST /bo-phan/{id}/chi-dinh-phu-trach`, `POST /chung-chi/{id}/gia-han`, `/thu-hoi`, `/sua-sai`; màn web `frontend/src/tinh-nang/nhan-vien/`
+
+**Ánh xạ triển khai Phase 6 (2026-10-25)**: T031 gom StaffEmploymentIT/DepartmentCommandsIT và dùng lại DepartmentDutyIT/StaffSchemaIT; T032 gom CredentialLifecycleIT, StaffNotificationsTest. T046 gồm StaffImportIT, StaffImportRowValidatorTest, StaffImportTransportIT. Lớp đặt trong m09/staff, duty, credential theo backend/README; màn trong features/shifts. V008_05 cho khoảng rỗng khi hủy giao Trưởng tầng tương lai, V008_06 import; T037 chuyển số migration sang V008_07. Đánh [x] sau clean verify cuối phase đã xanh.
 
 **Checkpoint**: Hồ sơ nhân viên đầy đủ.
 
@@ -149,9 +151,11 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 ### Bổ sung 2026-10-22: import hồ sơ nhân viên (US4 #10 → #14; FR-001b, FR-001c; Q-382)
 
-- [ ] T046 [P] [US4] Test `BT/m09/FR_001b_ImportNhanVienIT.java`, `KiemTraDongImportTest.java`, `ImportHieuNangIT.java` (quickstart I1 → I7): xem trước không ghi; mọi loại lỗi đúng dòng, cột, lý do; trùng hồ sơ mọi trạng thái và trùng trong file; xác nhận gửi lại file kiểm lại, còn lỗi thì 0 hồ sơ; hồ sơ tạo ra không tài khoản, không bộ phận, `nguon = IMPORT`; nhật ký đủ trường, không lưu file; quá CFG-M09-13, sai mẫu, sai loại → 422; chỉ Quản lý viện; 500 dòng ≤ 10 giây (SC-013)
-- [ ] T047 [US4] Tạo `MIG/V008_xx__import_nhan_vien.sql` (số theo thứ tự migration 008 lúc làm): `lan_import_nhan_vien`; cột `nhan_vien.dien_thoai_chuan` (chỉ mục, điền cho dữ liệu cũ), `nguon`, `lan_import_id`; cài `BE/m09/nhanvien/internal/ImportNhanVienService.java` (`KiemTraDongImport` hàm thuần, khóa `FOR UPDATE` theo tập số, chèn theo lô, `NV_IMPORT`) dùng `ExcelBieuMau` của `common.bieumau` (007 T104; thêm `fastexcel-reader` 0.20.2 vào `pom.xml` (đã duyệt 2026-10-22, 007 research S-26)); service tạo, sửa hồ sơ ghi `dien_thoai_chuan` (research N-16)
-- [ ] T048 [US4] Tạo endpoint `GET /nhan-vien/import/mau`, `POST /nhan-vien/import/xem-truoc`, `POST /nhan-vien/import/xac-nhan` trong `NhanVienController.java` và màn web import trong `frontend/src/tinh-nang/nhan-vien/` (bảng xem trước tô lỗi theo dòng, cột; nút xác nhận chỉ bật khi không lỗi) cùng test Vitest `ImportNhanVien.test.jsx`
+- [x] T046 [P] [US4] Test `BT/m09/FR_001b_ImportNhanVienIT.java`, `KiemTraDongImportTest.java`, `ImportHieuNangIT.java` (quickstart I1 → I7): xem trước không ghi; mọi loại lỗi đúng dòng, cột, lý do; trùng hồ sơ mọi trạng thái và trùng trong file; xác nhận gửi lại file kiểm lại, còn lỗi thì 0 hồ sơ; hồ sơ tạo ra không tài khoản, không bộ phận, `nguon = IMPORT`; nhật ký đủ trường, không lưu file; quá CFG-M09-13, sai mẫu, sai loại → 422; chỉ Quản lý viện; 500 dòng ≤ 10 giây (SC-013)
+- [x] T047 [US4] Tạo `MIG/V008_xx__import_nhan_vien.sql` (số theo thứ tự migration 008 lúc làm): `lan_import_nhan_vien`; cột `nhan_vien.dien_thoai_chuan` (chỉ mục, điền cho dữ liệu cũ), `nguon`, `lan_import_id`; cài `BE/m09/nhanvien/internal/ImportNhanVienService.java` (`KiemTraDongImport` hàm thuần, khóa `FOR UPDATE` theo tập số, chèn theo lô, `NV_IMPORT`) dùng `ExcelBieuMau` của `common.bieumau` (007 T104; thêm `fastexcel-reader` 0.20.2 vào `pom.xml` (đã duyệt 2026-10-22, 007 research S-26)); service tạo, sửa hồ sơ ghi `dien_thoai_chuan` (research N-16)
+- [x] T048 [US4] Tạo endpoint `GET /nhan-vien/import/mau`, `POST /nhan-vien/import/xem-truoc`, `POST /nhan-vien/import/xac-nhan` trong `NhanVienController.java` và màn web import trong `frontend/src/tinh-nang/nhan-vien/` (bảng xem trước tô lỗi theo dòng, cột; nút xác nhận chỉ bật khi không lỗi) cùng test Vitest `ImportNhanVien.test.jsx`
+
+**Checkpoint Phase 6 phần E — 2026-10-25**: T031–T035, T046–T048 hoàn thành backend/web sau TDD. Clean verify chạy nền JDK 25/MySQL 8.0: 322 lượt test đơn vị/kiến trúc + 1040 IT, không lỗi/thất bại/bỏ qua; Spotless qua. Web 256 test/38 file, lint/build qua; Edge 1440/900/390, sáng/tối/bàn phím/chỉ xem qua. Import 500 dòng từng bước dưới 10 giây, đồng thời không tạo trùng, HTTP multipart thật chống lặp theo nội dung file. Các phần đã duyệt của A/C ghi review ở team-plan mục 8; bản thật 005 và listener đóng cảnh báo 009 do chủ module nối. T037 tính tỷ lệ thuộc Phase 7. Đã cập nhật plan/glossary/CLAUDE; không commit/push/merge.
 
 ## Phase 7: User Story 5 – Cảnh báo tỷ lệ phục vụ theo trọng số chăm sóc (Priority: P2)
 
@@ -165,7 +169,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 ### Implementation cho User Story 5
 
-- [ ] T037 [US5] Tạo bảng `lan_tinh_ty_le` (nhóm 3; `su_kien` 10 giá trị; `tong_trong_so DECIMAL(8,2)`) trong `MIG/V008_05__ty_le.sql`; cài `BE/m09/tyle/internal/TyLePhucVuService.java` (`TinhTyLePhucVu`; listener `MucChamSocDaDoi`, `NguoiCaoTuoiDaChuyenTrangThai`, `PhanBoDaBatDau`, `PhanBoDaDong`, `DaChuyenGiuong`; cảnh báo một lần qua `dang_duoi_nguong`), việc hằng giờ ca sắp bắt đầu dưới ngưỡng (CFG-M09-08); `NhanSuThongKeApi` (016) (research N-09) Nối staffingRatio trong chi tiết ca và cảnh báo xem trước công bố; T016 để null khi chưa có lần tính.
+- [ ] T037 [US5] Tạo bảng `lan_tinh_ty_le` (nhóm 3; `su_kien` 10 giá trị; `tong_trong_so DECIMAL(8,2)`) trong `MIG/V008_07__ty_le.sql`; cài `BE/m09/tyle/internal/TyLePhucVuService.java` (`TinhTyLePhucVu`; listener `MucChamSocDaDoi`, `NguoiCaoTuoiDaChuyenTrangThai`, `PhanBoDaBatDau`, `PhanBoDaDong`, `DaChuyenGiuong`; cảnh báo một lần qua `dang_duoi_nguong`), việc hằng giờ ca sắp bắt đầu dưới ngưỡng (CFG-M09-08); `NhanSuThongKeApi` (016) (research N-09) Nối staffingRatio trong chi tiết ca và cảnh báo xem trước công bố; T016 để null khi chưa có lần tính.
 - [ ] T038 [US5] Tạo endpoint `GET /ca/{id}/ty-le-phuc-vu` và màn web `frontend/src/tinh-nang/ty-le-phuc-vu/`
 
 **Checkpoint**: Tỷ lệ phục vụ chạy độc lập.
