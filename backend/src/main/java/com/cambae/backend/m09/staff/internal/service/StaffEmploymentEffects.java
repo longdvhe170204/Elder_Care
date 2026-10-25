@@ -36,6 +36,7 @@ public class StaffEmploymentEffects implements M09TimedTask {
     private final ApplicationEventPublisher events;
     private final JdbcTemplate jdbc;
     private final StaffNotifications notifications;
+    private final com.cambae.backend.m09.ratio.internal.service.StaffingRatioService ratios;
 
     public StaffEmploymentEffects(
             StaffStore staff,
@@ -50,7 +51,8 @@ public class StaffEmploymentEffects implements M09TimedTask {
             BusinessTime time,
             ApplicationEventPublisher events,
             JdbcTemplate jdbc,
-            StaffNotifications notifications) {
+            StaffNotifications notifications,
+            com.cambae.backend.m09.ratio.internal.service.StaffingRatioService ratios) {
         this.staff = staff;
         this.employment = employment;
         this.shifts = shifts;
@@ -64,6 +66,7 @@ public class StaffEmploymentEffects implements M09TimedTask {
         this.events = events;
         this.jdbc = jdbc;
         this.notifications = notifications;
+        this.ratios = ratios;
     }
 
     public java.util.Optional<com.cambae.backend.m15.account.api.dto.AccountView> account(long id) {
@@ -136,6 +139,7 @@ public class StaffEmploymentEffects implements M09TimedTask {
                             .build());
                     events.publishEvent(new AssignmentChanged(shift.id(), id, time.now()));
                 }
+            ratios.recalculate(shift.id(), "EMPLOYMENT_ENDED");
             events.publishEvent(new ShiftChanged(shift.id(), "EMPLOYMENT_ENDED", List.of(id), time.now(), List.of()));
             if (Objects.equals(shift.leadStaffId(), id)) {
                 var affectedFloors = "FLOOR".equals(shift.scopeType())

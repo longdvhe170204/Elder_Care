@@ -75,7 +75,6 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "POST /api/v1/shifts/{id}/change-lead",
                             "POST /api/v1/shifts/{id}/record-absence",
                             "POST /api/v1/shifts/{id}/cancel",
-                            "GET /api/v1/shifts/{id}/staffing-ratios",
                             "GET /api/v1/duty-basis-audit-logs"),
                     Set.of(),
                     true),

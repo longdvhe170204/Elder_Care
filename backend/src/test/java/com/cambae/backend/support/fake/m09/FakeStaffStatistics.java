@@ -37,6 +37,7 @@ public class FakeStaffStatistics implements StaffStatisticsApi {
     }
 
     public FakeStaffStatistics history(List<AssignmentHistoryView> values) {
+        // Giữ nguyên shiftId rỗng của giao Trưởng tầng; không gán một số ca giả.
         history = List.copyOf(values);
         return this;
     }

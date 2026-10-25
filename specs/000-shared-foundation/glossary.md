@@ -1221,6 +1221,29 @@ Người dùng đã duyệt API tối thiểu của B/C/D, `AssignmentView.scope
 | Mã danh mục phạm vi trên HTTP (giữ SPI 002) | PracticeScope / PracticeScopeBody.code; schema StaffPracticeScope |
 
 
+### 14.12. Tỷ lệ phục vụ và lịch sử thống kê Phase 7 (2026-10-25)
+
+| Tên logic | Mã triển khai |
+| --- | --- |
+| Tính tỷ lệ phục vụ / đầu vào người cao tuổi, thành viên / kết quả | `ratio/internal/domain/StaffingRatioCalculator`; `Resident / Member / Result` |
+| Lần tính tỷ lệ / bảng lưu bất biến | `StaffingRatioCalculation / staffing_ratio_calculation` |
+| Ca / thời điểm / sự kiện / tổng trọng số / số nhân viên | `shift_id / calculated_at / event / total_weight / staff_count` |
+| Tỷ lệ / ngưỡng tối đa / đạt ngưỡng | `ratio / threshold / meets_threshold` |
+| Lưu nháp / công bố / vắng ca / bổ sung / nghỉ việc | `DRAFT_SAVED / PUBLISHED / STAFF_ABSENT / STAFF_ADDED / EMPLOYMENT_ENDED` |
+| Đổi ca 015 / đổi mức / phân bổ / vắng NCT / trạng thái cuối | `SHIFT_SWAP_015 / CARE_LEVEL_CHANGED / ALLOCATION_CHANGED / RESIDENT_ABSENCE / FINAL_STATUS` |
+| Lưu lịch sử / cờ cảnh báo / nhắc quản lý viện | `StaffingRatioStore / StaffingRatioService`; `below_threshold / manager_notified_below_threshold_at` (cột đã có từ Phase 3) |
+| Provider lưu giữ lần tính | `M09.STAFFING_RATIO_CALCULATION` |
+| Màn lịch sử tỷ lệ trong chi tiết ca | `features/shifts/StaffingRatioPanel.jsx` |
+| Nguồn tỷ lệ / listener sau commit / truy vấn thống kê | `StaffingRatioSources / StaffingRatioEvents / StaffStatisticsService / StaffStatisticsStore / StaffStatisticsRows` |
+| Lịch đến trong ngày (004, khai báo tối thiểu được duyệt) | `m02.api.ContractReadApi.attendanceOn`; `AttendanceScheduleView(date, arrivalTime, departureTime)`; `FakeContractSchedules / FakeM02Config` |
+| Vị trí nghỉ bán trú (003, hàm đã có trong hợp đồng) | `LocationStructureApi.daycareRestLocation`; `FakeLocations.daycareRestLocation / closeStays` |
+| Phân bổ bắt đầu / đóng / chuyển giường (003) | `m03.api.events.AllocationStarted / AllocationClosed / BedChanged` |
+| Dữ liệu tỷ lệ / thống kê chưa đọc đủ | `STAFFING_RATIO_UNAVAILABLE / STAFF_STATISTICS_SOURCE_UNAVAILABLE`; không trả số không thay nguồn lỗi |
+| Ngưỡng theo mẫu / trọng số theo mức (kiểu TABLE của CFG) | `CFG_M09_01`: object khóa là id mẫu ca dạng chuỗi; `CFG_M09_12`: object khóa `BASIC / REGULAR / SPECIAL`, giá trị số dương; không giá trị mặc định viết cứng |
+| Đọc nhật ký theo khoảng và con trỏ (A duyệt E cài, A review) | `AuditLogApi.recordedBetween(entityType, from, to, afterId, limit)`; khoảng `[from,to)`, id tăng dần, trang tối đa `RECORDED_LIMIT` (200), giữ kiểu `AuditLogRecord` và hàm `recorded` |
+| Lịch sử không gắn ca / nguồn Trưởng tầng, thành viên, Người phụ trách | `AssignmentHistoryView.shiftId: Long` (null khi không gắn ca); `role: FLOOR_MANAGER / SHIFT_MEMBER / SHIFT_LEAD`; khóa bản ghi theo nguồn và id, không tạo id ca giả |
+| Căn cứ nhiệm vụ / thay Trưởng tầng / tạm nhận / vai trò với lời mời đã gửi (FR-056) | `SHIFT_LEAD / FLOOR_MANAGER_SUBSTITUTE / TEMPORARY_RECEIVER / ROLE_INVITATION_SENT`; đọc giá trị đã ghi, không suy từ vai trò hiện tại |
+
 ## 15. Feature 009 (`009-notification-service`, A) *(bổ sung 2026-10-21, khi dịch `contracts/api-009.yaml`)*
 
 Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với mã (R-03). Khuôn `common.notification` đã dịch ở mục 6.5 (`NotificationRequest`, `NotificationLevel`, `InformationType`, `RecipientGroup`, `Substitution`, `InformationSubject`, `Q354Case`) giữ nguyên.

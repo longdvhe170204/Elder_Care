@@ -275,6 +275,16 @@ class M09GovernanceConfig {
     }
 
     @Bean
+    RetentionProvider staffingRatioRetention(
+            JdbcTemplate jdbc,
+            RetentionDatabase database,
+            BusinessTime time,
+            AccountApi accounts,
+            ProfessionalActivityApi activities) {
+        return retention(M09Retention.Kind.STAFFING_RATIO_CALCULATION, jdbc, database, time, accounts, activities);
+    }
+
+    @Bean
     RetentionProvider staffImportRetention(
             JdbcTemplate jdbc,
             RetentionDatabase database,

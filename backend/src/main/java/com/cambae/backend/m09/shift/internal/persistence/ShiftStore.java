@@ -227,6 +227,14 @@ public class ShiftStore {
         return jdbc.query("SELECT * FROM work_shift WHERE schedule_id=? ORDER BY starts_at,id", SHIFT, id);
     }
 
+    public List<WorkShift> reportShifts(Instant from, Instant to) {
+        return jdbc.query(
+                "SELECT * FROM work_shift WHERE status NOT IN ('DRAFT','CANCELLED') AND starts_at<? AND ends_at>? ORDER BY starts_at,id",
+                SHIFT,
+                sql(to),
+                sql(from));
+    }
+
     public List<ShiftMember> members(long id) {
         return members(id, false);
     }

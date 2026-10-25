@@ -25,6 +25,7 @@ import { ShiftForm, Choice } from './ShiftForm'
 import { PublicationForm, ScheduleForm, TemplateForm } from './ScheduleForms'
 import { AssignmentPanel } from './AssignmentPanel'
 import { FloorManagerPanel } from './FloorManagerPanel'
+import { StaffingRatioPanel } from './StaffingRatioPanel'
 import { currentMonth, nextMonth, scopeLabel, STATUSES } from './shiftLabels'
 
 export function ShiftsPage(props) {
@@ -241,6 +242,9 @@ function ShiftWorkspace({ initialMonth }) {
                   <TableCell>
                     {shift.staff?.length ?? 0} người
                     {shift.leadStaffId ? ` · #${shift.leadStaffId}` : shift.missingLead ? ' · Chưa có phụ trách' : ''}
+                    {shift.staffingRatio && !shift.staffingRatio.meetsThreshold && (
+                      <p className="type-caption font-medium text-warning-foreground">Dưới ngưỡng phục vụ</p>
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
@@ -367,11 +371,7 @@ function ShiftWorkspace({ initialMonth }) {
                     {panel.shift.leadStaffId === m.staffId && ' · Phụ trách ca'}
                   </p>
                 ))}
-                <p className="text-muted-foreground">
-                  {panel.shift.staffingRatio
-                    ? `Tỷ lệ phục vụ: ${panel.shift.staffingRatio.ratio}`
-                    : 'Chưa có số liệu tỷ lệ phục vụ.'}
-                </p>
+                {schedule?.scopeType !== 'FACILITY' && <StaffingRatioPanel shiftId={panel.shift.id} />}
               </div>
             )}
           </div>

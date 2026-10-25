@@ -32,6 +32,7 @@ class ShiftController {
     private final ObjectProvider<CurrentUser> users;
     private final PermissionApi permissions;
     private final com.cambae.backend.m09.handover.internal.service.HandoverService handovers;
+    private final com.cambae.backend.m09.ratio.internal.service.StaffingRatioService ratios;
 
     ShiftController(
             ShiftScheduleService schedules,
@@ -39,13 +40,15 @@ class ShiftController {
             BusinessTime time,
             ObjectProvider<CurrentUser> users,
             PermissionApi permissions,
-            com.cambae.backend.m09.handover.internal.service.HandoverService handovers) {
+            com.cambae.backend.m09.handover.internal.service.HandoverService handovers,
+            com.cambae.backend.m09.ratio.internal.service.StaffingRatioService ratios) {
         this.schedules = schedules;
         this.query = query;
         this.time = time;
         this.users = users;
         this.permissions = permissions;
         this.handovers = handovers;
+        this.ratios = ratios;
     }
 
     @GetMapping("/shift-templates")
@@ -166,6 +169,12 @@ class ShiftController {
     ResponseEntity<ShiftResponses.Shift> detail(@PathVariable long id) {
         var shift = schedules.detail(id);
         return ResponseEntity.ok().eTag(VersionEtag.of(shift.version())).body(body(shift));
+    }
+
+    @GetMapping("/shifts/{id}/staffing-ratios")
+    List<ShiftResponses.StaffingRatio> staffingRatios(@PathVariable long id) {
+        schedules.detail(id);
+        return ratios.history(id).stream().map(ShiftResponses.StaffingRatio::of).toList();
     }
 
     @PutMapping("/shifts/{id}")
@@ -299,7 +308,7 @@ class ShiftController {
                 shift.leadStaffId(),
                 shift.missingLead(),
                 members,
-                null,
+                ratios.latest(shift.id()).map(ShiftResponses.StaffingRatio::of).orElse(null),
                 commands,
                 shift.version());
     }

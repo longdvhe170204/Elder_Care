@@ -14,4 +14,7 @@ public interface LocationStructureApi {
     Optional<AreaView> area(long id);
 
     Set<Long> floorsInArea(long areaId);
+
+    /** viTriKhuNghiBanTru của hợp đồng 003 mục 1.6; dùng vị trí chung, không đoán từ giường nội trú. */
+    Optional<LocationRef> daycareRestLocation();
 }
