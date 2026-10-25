@@ -914,6 +914,17 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | hợp đồng lệch glossary | `AddendumBody.Status` theo hợp đồng api-004 là `PENDING_EFFECTIVE`, `APPLIED`, `NOT_APPLICABLE`; 10.3 ghi `NOT_APPLIED` (lệch, chờ chủ dự án chọn khi làm Phase 7) |
 | test | `ContractLifecycleIT`, `ContractContentLockDbIT`, `DBR_06_ContractNoOverlapIT`, `FR_021_RecordSignedIT`, `NonStandardTermDetectorTest`, `TermsApprovalIT`, `BR_M02_09_ContentAtDateIT`, `BR_M02_05_ContractReminderIT`, `FR_029_ContractOverdueIT`; nền `ContractTestBase`, `ContractFixtures` (thay `FakeContractReads` đã xóa) |
 
+### 10.12. Bổ sung khi cài Phase 6 (US4, T039 → T041, 2026-10-26)
+
+*Tên cài thực tế của phần đặt cọc. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| `GET /hop-dong/{id}/dat-coc`; thân phản hồi | `GET /contracts/{id}/deposit`; `DepositBody` (`notRequired`, `requiredAmount`, `status`, `basis`), `DepositBody.Basis` (`at`, `transactionId`, `accountant` là họ tên Kế toán, `receiptNumber` luôn rỗng vì Q-385 bỏ số phiếu thu chi) |
+| lớp trong `m02.internal.deposit.service` | `DepositViewService` (khoản cần đặt cọc từ hợp đồng, trạng thái từ `DepositStatusPort`; chưa có 017 thì Chưa đáp ứng), `DepositRecheckService.recheck(contractId)` (FR-032, listener của 017 sẽ gọi) |
+| sự kiện khoản cọc | `DepositAmountChanged(contractId, newAmount)` phát khi hợp đồng vào Chờ ký (kể cả gửi ký lại sau Trả về nháp); `newAmount` bằng 0 khi không yêu cầu cọc; phụ lục đổi khoản cọc phát ở Phase 7 |
+| test | `DepositConditionIT`, `FR_032_DepositAfterResidencyIT`, `Events017018IT` |
+
 ## 11. Feature 005 (`005-daily-care-tasks`, C)
 
 *Chủ feature điền khi dịch `contracts/api-005.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
