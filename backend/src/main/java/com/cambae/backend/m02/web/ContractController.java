@@ -6,6 +6,7 @@ import com.cambae.backend.m02.api.dto.ContractStatus;
 import com.cambae.backend.m02.internal.contract.domain.Contract;
 import com.cambae.backend.m02.internal.contract.service.ContractReadService;
 import com.cambae.backend.m02.internal.contract.service.ContractService;
+import com.cambae.backend.m02.internal.deposit.service.DepositViewService;
 import com.cambae.backend.m02.web.request.ContractInputBody;
 import com.cambae.backend.m02.web.request.ReasonBody;
 import com.cambae.backend.m02.web.request.RecordSignedBody;
@@ -14,6 +15,7 @@ import com.cambae.backend.m02.web.response.ApprovalRequestRefBody;
 import com.cambae.backend.m02.web.response.ContractBody;
 import com.cambae.backend.m02.web.response.ContractContentBody;
 import com.cambae.backend.m02.web.response.ContractResultBody;
+import com.cambae.backend.m02.web.response.DepositBody;
 import com.cambae.backend.m02.web.response.NonStandardTermBody;
 import com.cambae.backend.m15.account.api.dto.Target;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -41,8 +43,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Hợp đồng lưu trú (004 US3; contracts/api-004.yaml, tag {@code contracts}). Mọi logic và kiểm quyền ở service. Trạng thái
- * đặt cọc ({@code GET /contracts/{id}/deposit}) do 017 tính nên thuộc user story đặt cọc; phụ lục chỉ có từ user story thay
- * đổi lưu trú nên danh sách phụ lục tới lúc đó rỗng.
+ * đặt cọc ({@code GET /contracts/{id}/deposit}) do 017 tính, controller chỉ đọc; phụ lục chỉ có từ user story thay đổi
+ * lưu trú nên danh sách phụ lục tới lúc đó rỗng.
  */
 @RestController
 @RequestMapping("/api/v1")
@@ -53,10 +55,12 @@ class ContractController {
 
     private final ContractService contracts;
     private final ContractReadService reads;
+    private final DepositViewService deposits;
 
-    ContractController(ContractService contracts, ContractReadService reads) {
+    ContractController(ContractService contracts, ContractReadService reads, DepositViewService deposits) {
         this.contracts = contracts;
         this.reads = reads;
+        this.deposits = deposits;
     }
 
     @GetMapping("/contracts")
@@ -224,5 +228,11 @@ class ContractController {
     List<AddendumBody> addenda(@PathVariable long id) {
         contracts.get(contracts.targetOf(id), id);
         return List.of();
+    }
+
+    @GetMapping("/contracts/{id}/deposit")
+    DepositBody deposit(@PathVariable long id) {
+        contracts.get(contracts.targetOf(id), id);
+        return DepositBody.of(deposits.view(id));
     }
 }
