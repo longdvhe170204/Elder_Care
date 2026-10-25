@@ -1244,6 +1244,26 @@ Người dùng đã duyệt API tối thiểu của B/C/D, `AssignmentView.scope
 | Lịch sử không gắn ca / nguồn Trưởng tầng, thành viên, Người phụ trách | `AssignmentHistoryView.shiftId: Long` (null khi không gắn ca); `role: FLOOR_MANAGER / SHIFT_MEMBER / SHIFT_LEAD`; khóa bản ghi theo nguồn và id, không tạo id ca giả |
 | Căn cứ nhiệm vụ / thay Trưởng tầng / tạm nhận / vai trò với lời mời đã gửi (FR-056) | `SHIFT_LEAD / FLOOR_MANAGER_SUBSTITUTE / TEMPORARY_RECEIVER / ROLE_INVITATION_SENT`; đọc giá trị đã ghi, không suy từ vai trò hiện tại |
 
+### 14.13. Điều chỉnh ca sau công bố Phase 8 (2026-10-25)
+
+| Tên logic | Mã triển khai |
+| --- | --- |
+| Lệnh sau công bố / truy cập dữ liệu / thông báo | `PostPublicationService / PostPublicationStore / PostPublicationNotifications` trong chức năng `shift` |
+| Quyền xem lý do vắng / dòng vắng | `StaffAbsenceApi.canViewReason / AbsenceReasonAccess / StaffAbsence`; id dòng `shift_staff`, nguồn `M09.STAFF_ABSENCE` |
+| Bản giả SPI lý do vắng (A/002) | `FakeStaffAbsences` (`allow`, `clear`, `Config`); mặc định che |
+| Khi vắng ca (C/005) | `ShiftTaskApi.onAbsence(staffId, shiftId)`; `FakeCareRequirements.onAbsent` |
+| Port lệnh ca / phân công cho 015 | `ShiftCommandPort / ShiftCommandService`; `AssignmentCommandPort / AssignmentCommandService`; MANDATORY |
+| Vào ca / rời ca / đổi phụ trách / gắn thiếu phụ trách | `addToShift / leaveShift / changeLead / markMissingLead` |
+| Căn cứ vào: đổi ca, nhận thay, lời mời | `ShiftEntryBasis(Kind, sourceId, Reason)`; `SWAPPED / COVERED / INVITED` |
+| Căn cứ rời: đổi ca, nghỉ có duyệt | `ShiftDepartureBasis(Kind, sourceId)`; `SWAPPED / APPROVED_LEAVE` |
+| Kiểm tra / lập / hủy phân công từ yêu cầu | `validate / create / cancel`; `AssignmentInput`, source `SHIFT_SWAP_015` |
+| Form lệnh ca / lịch sử căn cứ trên web | `features/shifts/PostPublicationPanel / DutyBasisPanel` |
+| Lệnh backend cho phép | `addStaff / changeLead / recordAbsence / cancelShift / viewDutyBasisAudit` |
+| Nhật ký thêm / rời / vắng / chuyển phụ trách / hủy | `STAFF_ADDED_TO_SHIFT / STAFF_LEFT_SHIFT / STAFF_ABSENCE_RECORDED / SHIFT_LEAD_CHANGED / SHIFT_CANCELLED` |
+| Đã có tên trong ca / không còn trong ca / phụ trách không hợp lệ | `STAFF_ALREADY_IN_SHIFT / STAFF_NOT_IN_SHIFT / INVALID_SHIFT_LEAD` |
+| Ngoài khoảng ghi vắng / cần người thay | `OUTSIDE_ABSENCE_REPORTING_WINDOW / REPLACEMENT_LEAD_REQUIRED` |
+| DTO thân lệnh HTTP / phản hồi căn cứ | `ShiftRequests.AddStaff / ChangeLead / RecordAbsence / ReasonBody`; `ShiftResponses.DutyBasis` |
+
 ## 15. Feature 009 (`009-notification-service`, A) *(bổ sung 2026-10-21, khi dịch `contracts/api-009.yaml`)*
 
 Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với mã (R-03). Khuôn `common.notification` đã dịch ở mục 6.5 (`NotificationRequest`, `NotificationLevel`, `InformationType`, `RecipientGroup`, `Substitution`, `InformationSubject`, `Q354Case`) giữ nguyên.

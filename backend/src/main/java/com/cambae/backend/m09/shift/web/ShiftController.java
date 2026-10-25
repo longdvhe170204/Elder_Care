@@ -33,6 +33,7 @@ class ShiftController {
     private final PermissionApi permissions;
     private final com.cambae.backend.m09.handover.internal.service.HandoverService handovers;
     private final com.cambae.backend.m09.ratio.internal.service.StaffingRatioService ratios;
+    private final com.cambae.backend.m09.shift.internal.service.PostPublicationService postPublication;
 
     ShiftController(
             ShiftScheduleService schedules,
@@ -41,7 +42,8 @@ class ShiftController {
             ObjectProvider<CurrentUser> users,
             PermissionApi permissions,
             com.cambae.backend.m09.handover.internal.service.HandoverService handovers,
-            com.cambae.backend.m09.ratio.internal.service.StaffingRatioService ratios) {
+            com.cambae.backend.m09.ratio.internal.service.StaffingRatioService ratios,
+            com.cambae.backend.m09.shift.internal.service.PostPublicationService postPublication) {
         this.schedules = schedules;
         this.query = query;
         this.time = time;
@@ -49,6 +51,7 @@ class ShiftController {
         this.permissions = permissions;
         this.handovers = handovers;
         this.ratios = ratios;
+        this.postPublication = postPublication;
     }
 
     @GetMapping("/shift-templates")
@@ -292,6 +295,7 @@ class ShiftController {
                     .sorted()
                     .toList();
         var assignmentCommands = new ArrayList<>(commands);
+        assignmentCommands.addAll(postPublication.allowedCommands(shift));
         assignmentCommands.addAll(schedules.assignmentCommands(shift));
         if (handovers.canCreate(shift.id())) assignmentCommands.add("createHandover");
         commands = List.copyOf(assignmentCommands);

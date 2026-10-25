@@ -180,8 +180,13 @@ public class StaffStatisticsService implements StaffStatisticsApi {
         validatePeriod(from, to);
         var rows = new ArrayList<DutyBasisView>();
         var staffByAccount = new HashMap<Long, Long>();
-        for (String type :
-                List.of("M09.HANDOVER", "M09.SHIFT", "M09.SHIFT_STAFF", "M09.SHIFT_LEAD_HISTORY", "M09.ASSIGNMENT")) {
+        for (String type : List.of(
+                "M09.HANDOVER",
+                "M09.SHIFT",
+                "M09.SHIFT_STAFF",
+                "M09.SHIFT_LEAD_HISTORY",
+                "M09.ASSIGNMENT",
+                "M09.STAFF_ABSENCE")) {
             long after = 0;
             List<AuditLogRecord> page;
             do {

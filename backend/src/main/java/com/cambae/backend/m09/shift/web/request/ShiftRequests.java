@@ -78,6 +78,30 @@ public final class ShiftRequests {
 
     public record Publish(Reason reason, List<Long> assignmentIdsToRemove, Boolean confirmWarnings) {}
 
+    public record AddStaff(
+            @NotNull Long staffId,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            Reason reason,
+
+            Boolean confirmWarnings) {}
+
+    public record ChangeLead(
+            @NotNull Long staffId,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            Reason reason) {}
+
+    public record RecordAbsence(
+            @NotNull Long staffId,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            Reason reason,
+
+            Long replacementLeadStaffId) {}
+
+    public record ReasonBody(Reason reason) {}
+
     public static YearMonth parseMonth(String month) {
         try {
             return YearMonth.parse(month);

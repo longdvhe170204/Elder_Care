@@ -412,7 +412,7 @@ public class ShiftScheduleService {
         events.publishEvent(new SchedulePublished(id, staffIds, now, requests));
     }
 
-    private List<PublicationWarning> validateStaff(
+    List<PublicationWarning> validateStaff(
             ShiftSchedule schedule, ShiftInput input, Long exclude, Instant from, Instant to) {
         var warnings = new ArrayList<PublicationWarning>();
         var ids = new HashSet<Long>();
@@ -580,7 +580,7 @@ public class ShiftScheduleService {
         return input.handoverRequired() != null ? input.handoverRequired() : !"FACILITY".equals(input.scopeType());
     }
 
-    private static void confirm(List<PublicationWarning> warnings, boolean confirmed, Reason reason) {
+    static void confirm(List<PublicationWarning> warnings, boolean confirmed, Reason reason) {
         if (warnings.isEmpty()) return;
         if (!confirmed)
             throw new BusinessException(

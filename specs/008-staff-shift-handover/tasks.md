@@ -186,12 +186,13 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 ### Tests cho User Story 6
 
-- [ ] T039 [P] [US6] Test `BT/m09/FR_020_VangCaIT.java`, `FR_020_NgoaiKhoangIT.java`, `FR_019_ChuyenNguoiPhuTrachIT.java` (gồm BR-M09-13: người bàn giao của bàn giao đang dở đổi theo), `FR_021_HuyCaIT.java`, `FR_053_LyDoVangIT.java`, `FR_052_GioiHanTruongNhanVienIT.java`, `SC_012_ThongBaoNgoaiUngDungIT.java`: vắng ca gọi `CongViecCaApi.khiVangCa` cùng transaction; vắng của người phụ trách ca chuyển người phụ trách; bàn giao Bản nháp đổi người bàn giao; lý do vắng chỉ người có quyền thấy (Q22, Q23, Q25, Q40, Q41)
+- [x] T039 [P] [US6] Test các quy tắc FR-017 → FR-021, FR-052/053, FR-058/059 và BR-M09-13 trong `BT/m09/PostPublicationShiftIT.java`, `PostPublicationPortsIT.java`, `PostPublicationNotificationsTest.java`, `AbsenceSourceContractsTest.java` (tên phương thức bắt đầu mã quy tắc; gộp fixture MySQL/quyền theo plan Phase 8): vắng ca gọi `ShiftTaskApi.onAbsence` cùng transaction; vắng của người phụ trách ca chuyển người phụ trách; bàn giao đang dở đổi người bàn giao và giữ nội dung/tác giả; lý do vắng chỉ người có quyền thấy (Q22, Q23, Q25, Q40, Q41). Kiểm rollback, đồng thời, biên giờ, phạm vi, thông báo ngoài ứng dụng và ca khác không đổi; nguồn 005 dùng bản giả chung trong test, C còn nối nguồn thật.
 
 ### Implementation cho User Story 6
 
-- [ ] T040 [US6] Cài lệnh bổ sung nhân viên, chuyển người phụ trách ca, ghi nhận vắng, hủy ca trong `BE/m09/lichca/internal/LenhSauCongBoService.java`; port `BE/m09/lichca/port/CaLenhPort.java` và `BE/m09/phancong/port/PhanCongLenhPort.java` cho 015 (research N-07)
-- [ ] T041 [US6] Bổ sung endpoint `POST /ca/{id}/bo-sung-nhan-vien`, `/chuyen-nguoi-phu-trach`, `/ghi-nhan-vang`, `/huy`, `GET /nhat-ky-can-cu-nhiem-vu`; app `mobile/lib/nhan-vien/vang-ca/` và test `mobile/test/nhan-vien/ghi_nhan_vang_ca_test.dart`
+- [x] T040 [US6] Cài lệnh bổ sung nhân viên, chuyển người phụ trách ca, ghi nhận vắng, hủy ca trong `BE/m09/shift/internal/service/PostPublicationService.java`; port `shift/internal/service/port/ShiftCommandPort.java` và `assignment/internal/service/port/AssignmentCommandPort.java` cùng bộ cài MANDATORY cho 015 (research N-07; plan Phase 8, module-interfaces mục 2.8).
+- [x] T041 [US6] Bổ sung đúng endpoint đã dịch: `POST /shifts/{id}/add-staff`, `/change-lead`, `/record-absence`, `/cancel`, `GET /duty-basis-audit-logs`; nối các lệnh và tra cứu vào web `features/shifts` theo giai đoạn backend/web. Đối chiếu toàn bộ HTTP 008 xanh; không đổi YAML/client sinh. Phần mobile tách T041b theo CLAUDE.md/mobile README.
+- [ ] T041b [US6] Khi chủ dự án mở mobile nhân viên: app `mobile/lib/nhan-vien/vang-ca/` và test `mobile/test/nhan-vien/ghi_nhan_vang_ca_test.dart`; đặt đường dẫn thật theo mobile/README.md. Chưa làm trong giai đoạn chỉ mở mobile người cao tuổi.
 
 **Checkpoint**: Mọi user story của 008 chạy độc lập.
 

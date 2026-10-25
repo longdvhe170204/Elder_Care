@@ -40,6 +40,7 @@ class FieldVisibilityService implements FieldVisibilityApi {
     private final BusinessTime time;
     private final ObjectProvider<AssignmentApi> assignments;
     private final ObjectProvider<DutyApi> duties;
+    private final ObjectProvider<com.cambae.backend.m15.account.api.spi.StaffAbsenceApi> absences;
     private static final Set<InfoGroup> CONSENT_GROUPS =
             Set.of(InfoGroup.HEALTH, InfoGroup.MEDICATION, InfoGroup.WISHES);
 
@@ -52,13 +53,15 @@ class FieldVisibilityService implements FieldVisibilityApi {
             ObjectProvider<FootnoteCondition> conditions,
             BusinessTime time,
             ObjectProvider<AssignmentApi> assignments,
-            ObjectProvider<DutyApi> duties) {
+            ObjectProvider<DutyApi> duties,
+            ObjectProvider<com.cambae.backend.m15.account.api.spi.StaffAbsenceApi> absences) {
         this.jdbc = jdbc;
         this.scope = scope;
         this.conditions = conditions;
         this.time = time;
         this.assignments = assignments;
         this.duties = duties;
+        this.absences = absences;
     }
 
     @Override
@@ -92,7 +95,16 @@ class FieldVisibilityService implements FieldVisibilityApi {
     /** FR-052: liên hệ nhân viên không kế thừa quyền mặc định của CONTACT. */
     private Visibility staffVisibility(CurrentUser user, InfoGroup group, Target target) {
         if (user.roles().contains(Role.NURSING_HOME_MANAGER)) return Visibility.FULL;
-        // STAFF_REASON chưa có luồng đọc ở Phase 2; mở theo người ghi/tầng khi triển khai FR-020.
+        if (group == InfoGroup.STAFF_REASON) {
+            if (!"M09.STAFF_ABSENCE".equals(target.type()) || target.id() == null) return Visibility.NONE;
+            var api = absences.getIfAvailable();
+            if (api == null) return Visibility.NONE;
+            try {
+                return api.canViewReason(user, Long.parseLong(target.id())) ? Visibility.FULL : Visibility.NONE;
+            } catch (NumberFormatException ignored) {
+                return Visibility.NONE;
+            }
+        }
         if (group != InfoGroup.STAFF_CONTACT
                 || !user.roles().contains(Role.FLOOR_MANAGER)
                 || user.staffId().isEmpty()

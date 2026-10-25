@@ -65,6 +65,8 @@ public final class ShiftResponses {
 
     public record Staff(long staffId, boolean onDutyDoctor, boolean absent, boolean approvedLeave) {}
 
+    public record DutyBasis(long auditId, String targetType, String targetId, long staffId, String basis, Instant at) {}
+
     @Schema(name = "StaffingRatioCalculation")
     public record StaffingRatio(
             Instant at,
