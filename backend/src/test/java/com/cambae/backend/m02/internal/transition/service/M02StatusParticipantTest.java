@@ -20,8 +20,8 @@ class M02StatusParticipantTest {
 
     private static final JsonMapper JSON = JsonMapper.builder().build();
 
-    // Các phép kiểm tra nội dung details không dùng hai bean của lượt đăng ký
-    private final M02StatusParticipant participant = new M02StatusParticipant(null, null, null);
+    // Các phép kiểm tra nội dung details không dùng các bean tác động (lượt đăng ký, hồ sơ chờ, hợp đồng)
+    private final M02StatusParticipant participant = new M02StatusParticipant(null, null, null, null);
 
     private static JsonNode json(String text) {
         return JSON.readTree(text);

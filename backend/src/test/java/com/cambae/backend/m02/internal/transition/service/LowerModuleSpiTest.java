@@ -10,7 +10,6 @@ import com.cambae.backend.m01.api.ResidentStatusApi;
 import com.cambae.backend.m01.api.dto.ResidentStatus;
 import com.cambae.backend.m01.api.dto.StatusPeriod;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -18,7 +17,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * 004 T010 (contracts mục 1.1): các SPI mà M02 cài cho module thấp hơn. Thời điểm trạng thái cuối lấy từ lịch sử trạng
- * thái của 001; ba SPI còn lại là khung trả rỗng tới khi có bảng của user story tương ứng.
+ * thái của 001; hai SPI còn lại (lượt vắng, yêu cầu đổi mức) là khung trả rỗng tới khi có bảng của user story tương ứng. SPI hợp đồng
+ * ({@code ContractApi}) đã có bản thật ở Phase 5, kiểm ở {@code BR_M02_09_ContentAtDateIT}.
  */
 class LowerModuleSpiTest {
 
@@ -46,9 +46,6 @@ class LowerModuleSpiTest {
     @Test
     void FR_048_skeletonSpis_returnEmptyUntilTheirStoriesAddTables() {
         assertThat(new AbsenceLookup().open(1L)).isEmpty();
-        assertThat(new ContractLookup().currentResidenceType(1L, LocalDate.of(2030, 3, 4)))
-                .isEmpty();
-        assertThat(new ContractLookup().residenceTypeHistory(1L)).isEmpty();
         CareLevelChangeRequestHandler requests = new CareLevelChangeRequestHandler();
         assertThat(requests.supersedeByAssessment(1L, 2L)).isEmpty();
         assertThat(requests.hasOpenRequest(1L)).isFalse();
