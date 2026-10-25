@@ -59,6 +59,11 @@ class ResidentApiImpl implements ResidentApi {
     }
 
     @Override
+    public Optional<Long> previousProfileId(long residentId) {
+        return Optional.ofNullable(require(residentId).getPreviousProfileId());
+    }
+
+    @Override
     public List<Long> byStatus(Set<ResidentStatus> statuses) {
         return statuses.isEmpty() ? List.of() : residents.findIdsByStatusIn(statuses);
     }

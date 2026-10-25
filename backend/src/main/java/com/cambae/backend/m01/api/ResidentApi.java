@@ -25,6 +25,12 @@ public interface ResidentApi {
     /** 003 (BR-M03-01). */
     Optional<Gender> gender(long residentId);
 
+    /**
+     * Hồ sơ trước cùng CCCD đã Kết thúc lưu trú hoặc Hủy tiếp nhận (liên kết lúc tạo hồ sơ, FR-004 của 001); 004 đánh dấu sẵn
+     * tình huống "từng lưu trú tại viện" (FR-007). Không có liên kết thì rỗng; người cao tuổi không tồn tại thì 404.
+     */
+    Optional<Long> previousProfileId(long residentId);
+
     /** Cho job của module khác. */
     List<Long> byStatus(Set<ResidentStatus> statuses);
 }
