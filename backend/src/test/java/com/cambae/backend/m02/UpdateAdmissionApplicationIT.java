@@ -55,10 +55,13 @@ class UpdateAdmissionApplicationIT extends M02TestBase {
                         .content(updateBody(today().toString(), "Nhu cầu mới")))
                 .andExpect(status().isOk())
                 .andExpect(header().exists("ETag"))
+                .andReturn();
+
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
+                        "/api/v1/admission-applications/" + id))
                 .andExpect(jsonPath("$.needs").value("Nhu cầu mới"))
                 .andExpect(jsonPath("$.desiredResidenceType").value("SHORT_TERM_RESIDENTIAL"))
-                .andExpect(jsonPath("$.expectedCareLevel").value("REGULAR"))
-                .andReturn();
+                .andExpect(jsonPath("$.expectedCareLevel").value("REGULAR"));
 
         assertThat(updated.getResponse().getHeader("ETag")).isNotEqualTo(etag);
         assertThat(jdbc.queryForObject(
