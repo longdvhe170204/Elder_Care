@@ -360,3 +360,27 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - Quyền sở hữu file: chỉ sửa `m02`, `V004_*`, glossary mục 10, `specs/004-*`. File chung (`runJobs`, `TestClockController`, `application.yml`, `SchedulerScopeArchTest`, `ApiContractIT`, `gen-api.mjs`, `pom.xml`) cần chủ dự án duyệt trước. Không sửa code của A/C/D/E; bản giả của họ ở `support/fake/<module>/`.
 - Git: không commit, push, PR, merge khi chưa được yêu cầu; commit bằng `git commit -F <file>` (PowerShell 5.1; máy không có `gh`).
 - Excel: chỉ cập nhật `C:\Users\Admin\Documents\ElderCare_ThanhVienB\CHECKLIST_ELDER_CARE_THANH_VIEN_B.xlsx` (Excel COM, script ASCII, chuỗi Việt từ JSON UTF-8); không tạo bản sao hay backup.
+
+## Ghi chú triển khai Phase 3 (US1, T013 → T018, 2026-10-25)
+
+- Đã cài: `V004_03` (`admission_application`, `admission_opinion`, trigger, quyền cột), `m02/internal/application/{domain,persistence,service}`, `AdmissionApplicationController` (đủ 7 endpoint api-004 mục A), `M02StatusParticipant` cho `COMPLETE_ADMISSION` (điều kiện (b), (c), (e), cảnh báo ý kiến, tác động lên lượt, sự kiện `AdmissionCompleted`) và `CANCEL_ADMISSION` (lượt Đã hủy). Việc nhắc FR-076 qua `M02ReminderTask` + `ReminderRule` (mỗi story sau thêm một `ReminderRule`). Glossary mục 10.9.
+- T011: đã thêm `ScopeAssignmentProvider` và `RetentionProvider` cho `M02.ADMISSION_APPLICATION`; `referencesTo` rỗng cho tới khi có hồ sơ chờ (Phase 4).
+- Test: 7 lớp IT mới ở `m02` (44 test) xanh trên MySQL 3307; `clean verify` 944 test, chỉ `ApiContractIT.R_14` đỏ vì api-004 chưa đăng ký (file chung, chờ chủ dự án duyệt).
+- Giả định chờ xác nhận: (1) hợp đồng đọc qua `ContractReadApi` bằng `ObjectProvider`; chưa có bản cài (Phase 5) thì (b), (c), (e) Chưa đạt, test dùng `FakeContractReads`; (2) điều kiện lệnh không thuộc 001, 004, 012 gom vào dòng (d) của 003 (mã thật của C chưa có); (3) FR-076 cảnh báo khi hôm nay > ngày bắt đầu (đúng ngày bắt đầu chưa báo); (4) Hoàn tất tiếp nhận khi người cao tuổi không có lượt mở: không có gì để chuyển, vẫn cảnh báo thiếu ý kiến; (5) `cursor` của danh sách là mã dòng cuối trang trước (hợp đồng trả mảng trơn); (6) mã lỗi `RESIDENT_NOT_ADMISSION_IN_PROGRESS`, `APPLICATION_CLOSED`, `APPLICATION_DATE_LOCKED` do 004 đặt.
+- Chưa làm: T019 (web cần duyệt bố cục; mobile người thân chưa mở); T010, T011 (phần còn lại), T108 vẫn mở; không đổi chữ ký provisional.
+
+## PHASE 4 HANDOFF (2026-10-25)
+
+**Git**: nhánh `impl/004-admission-residency`; checkpoint trước Phase 3 `31c1be6`; commit code Phase 3 `a983748`; commit tài liệu handoff nằm sau đó (xem `git log`). Chưa push/PR/merge. Stash `CP-001-P2-IMPL` giữ nguyên.
+
+**Task**: `[x]` T013, T014, T015, T016, T016a, T017, T018. `[ ]` T019 (web cần chủ dự án duyệt bố cục DESIGN.md; mobile người thân chưa mở; chưa viết dòng nào). Còn mở từ Phase 2: T010 (thiếu hai SPI của 003 và `AbsenceApi`, `ContractApi`, `CareLevelChangeRequestApi` còn khung), T011 (xong `FieldClassificationProvider` + `ScopeAssignmentProvider`, `RetentionProvider` cho `M02.ADMISSION_APPLICATION`; còn `FilePermissionProvider` và các loại dữ liệu của story sau), T108.
+
+**Đã viết**: migration `V004_03`; `m02/internal/application/{domain,persistence,service}`; `m02/web/AdmissionApplicationController` + request/response; `M02StatusParticipant` (COMPLETE/CANCEL_ADMISSION); `ReminderRule`/`ReminderLog`/`M02ReminderTask` (mỗi story sau thêm một `ReminderRule`); test `m02/{AdmissionApplicationIT, UpdateAdmissionApplicationIT, ProgressIT, FR_004a_AdmissionOpinionIT, FR_004_ConditionsMatchCommandIT, BR_M02_22_ContractCareLevelIT, FR_076_NotYetAdmittedWarningIT, M02TestBase}`, bản giả `support/fake/m02/FakeContractReads`. Glossary mục 10.9.
+
+**Kết quả test đã xác nhận (MySQL 3307)**: 7 lớp IT trên xanh (44 test; riêng `FR_004a_AdmissionOpinionIT` 11/11 sau khi sửa). `clean verify` đầy đủ chạy trước lần sửa cuối: 944 test, đỏ `ApiContractIT.R_14` (api-004 chưa đăng ký) và 1 test của tôi (đã sửa, chạy lại riêng thì xanh). **Chưa chạy lại `clean verify` đầy đủ sau lần sửa cuối.** `M02StatusParticipantTest` (đã sửa constructor) chưa chạy riêng; ArchTest không báo lỗi trong lần chạy đầy đủ.
+
+**Blocker**: (1) đăng ký api-004 vào `ApiContractIT` (file chung, cần chủ dự án duyệt; thêm `Contract` với `pending` là endpoint chưa cài, `checkOperations=false` nếu còn lệch); (2) Phase 5 hợp đồng: `ContractReadApi` chưa có bản cài nên (b), (c), (e) luôn Chưa đạt ngoài test, `FakeContractReads` cần thay/chạy lại; (3) mã điều kiện giường của C; (4) 017 chưa cài `DepositStatusPort`.
+
+**Giả định chờ xác nhận**: xem "Ghi chú triển khai Phase 3" phía trên.
+
+**Cho session mới**: chạy với `TEST_DB_URL`, `DB_URL` trỏ 3307 (xem memory `reference-mysql-3307-test`); chạy `./mvnw clean verify` (phải `clean` vì IDE có thể để class cũ ở target); xử lý blocker (1) khi được duyệt; rồi Phase 4 (US2, hồ sơ chờ, `V004_04`, T020 trở đi) — không làm lại Phase 3. Khi Phase 4 có hồ sơ chờ: cập nhật `AdmissionApplicationRetention.referencesTo`, trạng thái `WAITING`, khóa ngày đăng ký (BR-M02-15 hiện chỉ dựa vào `WAITING`).
