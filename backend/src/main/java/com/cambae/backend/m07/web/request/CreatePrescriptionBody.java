@@ -1,6 +1,5 @@
 package com.cambae.backend.m07.web.request;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
@@ -12,67 +11,49 @@ import java.util.List;
 
 /**
  * Request body for creating a new prescription (schema DonThuocMoi in api-006.yaml).
- * Standardized English field names with backward-compatible Vietnamese aliases.
  */
 public class CreatePrescriptionBody {
 
     @NotNull
-    @JsonAlias({"thuocId"})
     private Long medicationId;
 
     @NotNull
     @DecimalMin("0.01")
-    @JsonAlias({"lieu"})
     private BigDecimal dosage;
 
-    @JsonAlias({"donVi", "unit"})
     private String dosageUnit;
 
     @NotEmpty
-    @JsonAlias({"duongDung"})
     private String route;
 
     @NotEmpty
-    @JsonAlias({"loaiDon"})
-    private String prescriptionType; // PERIODIC | PRN | DINH_KY
+    private String prescriptionType; // PERIODIC | PRN
 
     @Valid
-    @JsonAlias({"tanSuat"})
     private FrequencyBody frequency;
 
-    @JsonAlias({"khoangCachToiThieuPhut"})
     private Integer minIntervalMinutes;
 
-    @JsonAlias({"soLanToiDa24h"})
     private Integer maxDosesPer24h;
 
     @NotNull
-    @JsonAlias({"batDauLuc"})
     private Instant startedAt;
 
-    @JsonAlias({"ngayKetThuc", "endDate"})
     private LocalDate endedAt;
 
     @NotEmpty
-    @JsonAlias({"nguonThuoc", "source"})
-    private String medicationSource; // FACILITY | FAMILY_SENT | VIEN | GIA_DINH_GUI
+    private String medicationSource; // FACILITY | FAMILY_SENT
 
     @NotNull
     @Valid
-    @JsonAlias({"coSoKe"})
     private PrescriberBody prescriber;
 
-    @JsonAlias({"ghiChuHuongDan", "dosageInstruction"})
     private String instructionNote;
 
-    @JsonAlias({"dauChoTiepNhan"})
     private boolean pendingAdmission;
 
     @Valid
-    @JsonAlias({"xacNhanVanDe"})
     private List<ConfirmedIssueBody> confirmedIssues;
-
-    // --- English Getters & Setters ---
 
     public Long getMedicationId() {
         return medicationId;
@@ -96,6 +77,14 @@ public class CreatePrescriptionBody {
 
     public void setDosageUnit(String dosageUnit) {
         this.dosageUnit = dosageUnit;
+    }
+
+    public String getUnit() {
+        return dosageUnit;
+    }
+
+    public void setUnit(String unit) {
+        this.dosageUnit = unit;
     }
 
     public String getRoute() {
@@ -192,127 +181,5 @@ public class CreatePrescriptionBody {
 
     public void setConfirmedIssues(List<ConfirmedIssueBody> confirmedIssues) {
         this.confirmedIssues = confirmedIssues;
-    }
-
-    // --- Backward-Compatible Vietnamese Getters & Setters ---
-
-    public Long getThuocId() {
-        return medicationId;
-    }
-
-    public void setThuocId(Long thuocId) {
-        this.medicationId = thuocId;
-    }
-
-    public BigDecimal getLieu() {
-        return dosage;
-    }
-
-    public void setLieu(BigDecimal lieu) {
-        this.dosage = lieu;
-    }
-
-    public String getDonVi() {
-        return dosageUnit;
-    }
-
-    public void setDonVi(String donVi) {
-        this.dosageUnit = donVi;
-    }
-
-    public String getDuongDung() {
-        return route;
-    }
-
-    public void setDuongDung(String duongDung) {
-        this.route = duongDung;
-    }
-
-    public String getLoaiDon() {
-        return prescriptionType;
-    }
-
-    public void setLoaiDon(String loaiDon) {
-        this.prescriptionType = loaiDon;
-    }
-
-    public FrequencyBody getTanSuat() {
-        return frequency;
-    }
-
-    public void setTanSuat(FrequencyBody tanSuat) {
-        this.frequency = tanSuat;
-    }
-
-    public Integer getKhoangCachToiThieuPhut() {
-        return minIntervalMinutes;
-    }
-
-    public void setKhoangCachToiThieuPhut(Integer khoangCachToiThieuPhut) {
-        this.minIntervalMinutes = khoangCachToiThieuPhut;
-    }
-
-    public Integer getSoLanToiDa24h() {
-        return maxDosesPer24h;
-    }
-
-    public void setSoLanToiDa24h(Integer soLanToiDa24h) {
-        this.maxDosesPer24h = soLanToiDa24h;
-    }
-
-    public Instant getBatDauLuc() {
-        return startedAt;
-    }
-
-    public void setBatDauLuc(Instant batDauLuc) {
-        this.startedAt = batDauLuc;
-    }
-
-    public LocalDate getNgayKetThuc() {
-        return endedAt;
-    }
-
-    public void setNgayKetThuc(LocalDate ngayKetThuc) {
-        this.endedAt = ngayKetThuc;
-    }
-
-    public String getNguonThuoc() {
-        return medicationSource;
-    }
-
-    public void setNguonThuoc(String nguonThuoc) {
-        this.medicationSource = nguonThuoc;
-    }
-
-    public PrescriberBody getCoSoKe() {
-        return prescriber;
-    }
-
-    public void setCoSoKe(PrescriberBody coSoKe) {
-        this.prescriber = coSoKe;
-    }
-
-    public String getGhiChuHuongDan() {
-        return instructionNote;
-    }
-
-    public void setGhiChuHuongDan(String ghiChuHuongDan) {
-        this.instructionNote = ghiChuHuongDan;
-    }
-
-    public boolean isDauChoTiepNhan() {
-        return pendingAdmission;
-    }
-
-    public void setDauChoTiepNhan(boolean dauChoTiepNhan) {
-        this.pendingAdmission = dauChoTiepNhan;
-    }
-
-    public List<ConfirmedIssueBody> getXacNhanVanDe() {
-        return confirmedIssues;
-    }
-
-    public void setXacNhanVanDe(List<ConfirmedIssueBody> xacNhanVanDe) {
-        this.confirmedIssues = xacNhanVanDe;
     }
 }

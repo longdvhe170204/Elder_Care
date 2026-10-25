@@ -1,6 +1,5 @@
 package com.cambae.backend.m07.web.request;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -10,21 +9,16 @@ public class DisposeBatchBody {
 
     @NotNull(message = "Disposal quantity is required")
     @DecimalMin(value = "0.01", message = "Disposal quantity must be > 0")
-    @JsonAlias({"soLuong", "quantity"})
     private BigDecimal quantity;
 
-    @JsonAlias({"nguoiDaiDienId", "representativeId"})
     private Long representativeId;
 
-    @JsonAlias({"cachNhanYeuCau", "requestMethod"})
     private String requestMethod;
 
     @NotBlank(message = "Disposal witness is required")
-    @JsonAlias({"nguoiChungKien", "witness"})
     private String witness;
 
     @NotBlank(message = "Disposal reason is required")
-    @JsonAlias({"lyDo", "reason"})
     private String reason;
 
     public BigDecimal getQuantity() {

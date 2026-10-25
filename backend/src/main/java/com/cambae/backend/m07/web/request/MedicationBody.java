@@ -1,7 +1,5 @@
 package com.cambae.backend.m07.web.request;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -12,45 +10,27 @@ import java.util.List;
 public class MedicationBody {
 
     @NotBlank
-    @JsonProperty("ten")
-    @JsonAlias({"name", "ten"})
     private String name;
 
     @NotBlank
-    @JsonProperty("hamLuong")
-    @JsonAlias({"concentration", "hamLuong"})
     private String concentration;
 
     @NotBlank
-    @JsonProperty("dangBaoChe")
-    @JsonAlias({"dosageForm", "dangBaoChe"})
     private String dosageForm;
 
     @NotBlank
-    @JsonProperty("duongDungMacDinh")
-    @JsonAlias({"defaultRoute", "duongDungMacDinh"})
     private String defaultRoute;
 
     @NotBlank
-    @JsonProperty("donViDung")
-    @JsonAlias({"usageUnit", "donViDung"})
     private String usageUnit;
 
     @NotNull
-    @JsonProperty("hoatChat")
-    @JsonAlias({"allergenIds", "hoatChat", "activeAllergenIds"})
     private List<Long> allergenIds;
 
-    @JsonProperty("cuaSoTruocPhut")
-    @JsonAlias({"beforeWindowMinutes", "cuaSoTruocPhut"})
     private Integer beforeWindowMinutes;
 
-    @JsonProperty("cuaSoSauPhut")
-    @JsonAlias({"afterWindowMinutes", "cuaSoSauPhut"})
     private Integer afterWindowMinutes;
 
-    @JsonProperty("kiemSoatDacBiet")
-    @JsonAlias({"specialControl", "kiemSoatDacBiet"})
     private boolean specialControl;
 
     public MedicationBody() {}

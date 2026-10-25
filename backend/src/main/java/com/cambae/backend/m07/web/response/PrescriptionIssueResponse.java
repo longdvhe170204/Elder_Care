@@ -26,37 +26,4 @@ public record PrescriptionIssueResponse(
                 view.manualReviewRequired(),
                 view.lineNumber());
     }
-
-    // Compatibility accessors
-    public String maVanDe() {
-        return issueCode;
-    }
-
-    public String loai() {
-        return issueType;
-    }
-
-    public String hoatChat() {
-        return activeIngredient;
-    }
-
-    public Long donTrungId() {
-        return duplicatePrescriptionId;
-    }
-
-    public Long mucDiUngId() {
-        return allergyItemId;
-    }
-
-    public String mucDo() {
-        return severity;
-    }
-
-    public boolean khongKiemTraTuDong() {
-        return manualReviewRequired;
-    }
-
-    public Integer dong() {
-        return lineNumber;
-    }
 }

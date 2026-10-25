@@ -1,6 +1,5 @@
 package com.cambae.backend.m07.web.request;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -9,53 +8,38 @@ import java.util.List;
 
 public class ReceiveBatchBody {
 
-    @JsonAlias({"thuocId", "medicationId"})
     private Long medicationId;
 
-    @JsonAlias({"tenTuDo", "customName"})
     private String customName;
 
-    @JsonAlias({"hoatChatTuDo", "customActiveIngredient"})
     private String customActiveIngredient;
 
-    @JsonAlias({"hamLuong", "customConcentration"})
     private String customConcentration;
 
     @NotNull(message = "Initial quantity is required")
     @DecimalMin(value = "0.01", message = "Initial quantity must be > 0")
-    @JsonAlias({"soLuongBanDau", "initialQuantity"})
     private BigDecimal initialQuantity;
 
     @NotNull(message = "Unit is required")
-    @JsonAlias({"donVi", "unit"})
     private String unit;
 
-    @JsonAlias({"hanDung", "expiryDate"})
     private LocalDate expiryDate;
 
-    @JsonAlias({"tinhTrangBaoBi", "packagingCondition"})
     private String packagingCondition;
 
-    @JsonAlias({"coToa", "hasPrescription"})
     private boolean hasPrescription;
 
-    @JsonAlias({"tepIds", "fileIds"})
     private List<Long> fileIds;
 
     @NotNull(message = "Deliverer type is required")
-    @JsonAlias({"nguoiGiaoLoai", "delivererType"})
     private String delivererType;
 
-    @JsonAlias({"nguoiGiaoId", "delivererId"})
     private Long delivererId;
 
-    @JsonAlias({"nguoiGiaoTen", "delivererName"})
     private String delivererName;
 
-    @JsonAlias({"quanHe", "relationship"})
     private String relationship;
 
-    @JsonAlias({"deNghiMuaHoId", "purchaseRequestId"})
     private Long purchaseRequestId;
 
     // Getters and Setters

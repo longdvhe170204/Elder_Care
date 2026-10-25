@@ -1,6 +1,5 @@
 package com.cambae.backend.m07.web.request;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -14,23 +13,17 @@ public class RecordPrnBody {
 
     @NotNull
     @DecimalMin(value = "0.001", message = "Dosage must be greater than 0")
-    @JsonAlias({"lieuDung", "dosage"})
     private BigDecimal dosage;
 
-    @JsonAlias({"donVi", "dosageUnit"})
     private String dosageUnit;
 
     @NotEmpty(message = "PRN medication reason is required (FR-024)")
-    @JsonAlias({"lyDo", "reason"})
     private String reason;
 
-    @JsonAlias({"nguoiBao", "reportedBy"})
     private String reportedBy;
 
-    @JsonAlias({"thoiDiemThietBi", "offlineDeviceTime"})
     private Instant offlineDeviceTime;
 
-    @JsonAlias({"loThuocGuiId", "familyMedicationBatchId"})
     private Long familyMedicationBatchId;
 
     public BigDecimal getDosage() {

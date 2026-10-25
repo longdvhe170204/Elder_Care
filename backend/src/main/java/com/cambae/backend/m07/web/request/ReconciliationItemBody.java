@@ -1,6 +1,5 @@
 package com.cambae.backend.m07.web.request;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotEmpty;
 
 /**
@@ -11,25 +10,18 @@ public class ReconciliationItemBody {
     private Long id;
 
     @NotEmpty
-    @JsonAlias({"nguon", "source"})
     private String source;
 
-    @JsonAlias({"donThuocId", "prescriptionId"})
     private Long prescriptionId;
 
-    @JsonAlias({"mucThuocDangDungId", "admissionMedicationItemId"})
     private Long admissionMedicationItemId;
 
-    @JsonAlias({"moTaThuoc", "medicationDescription"})
     private String medicationDescription;
 
-    @JsonAlias({"quyetDinh", "decision"})
     private String decision;
 
-    @JsonAlias({"lyDo", "reason"})
     private String reason;
 
-    @JsonAlias({"donMoi", "newPrescription"})
     private CreatePrescriptionBody newPrescription;
 
     public Long getId() {

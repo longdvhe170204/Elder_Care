@@ -1,6 +1,5 @@
 package com.cambae.backend.m07.web.request;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -8,25 +7,19 @@ import java.math.BigDecimal;
 public class RecordIntakeBody {
 
     @NotNull(message = "Procurement request line is required")
-    @JsonAlias({"dongYeuCauMuaSamId", "procurementLineId"})
     private Long procurementLineId;
 
-    @NotNull(message = "Intake result is required (PASS/FAIL or DAT/KHONG_DAT)")
-    @JsonAlias({"ketQua", "intakeResult"})
+    @NotNull(message = "Intake result is required (PASS/FAIL)")
     private String intakeResult;
 
     @NotNull(message = "Received quantity is required")
     @DecimalMin(value = "0.01", message = "Received quantity must be > 0")
-    @JsonAlias({"soLuongNhan", "quantityReceived"})
     private BigDecimal quantityReceived;
 
-    @JsonAlias({"saiLech", "discrepancy"})
     private String discrepancy;
 
-    @JsonAlias({"lyDo", "reason"})
     private String reason;
 
-    @JsonAlias({"ghiChu", "note"})
     private String note;
 
     public Long getProcurementLineId() {

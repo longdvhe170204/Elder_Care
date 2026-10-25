@@ -1,6 +1,5 @@
 package com.cambae.backend.m07.web.request;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -8,25 +7,19 @@ import java.util.List;
 
 public class CreateHandoverBody {
 
-    @JsonAlias({"chuyenId", "tripId"})
     private Long tripId;
 
     @NotNull
-    @JsonAlias({"nguoiNhanLoai", "recipientType"})
-    private String recipientType; // STAFF | TRIP_LEADER | RELATIVE | NHAN_VIEN | TRUONG_DOAN | NGUOI_THAN
+    private String recipientType; // STAFF | TRIP_LEADER | RELATIVE
 
-    @JsonAlias({"nguoiNhanId", "recipientId"})
     private Long recipientId;
 
-    @JsonAlias({"nguoiNhanTen", "recipientName"})
     private String recipientName;
 
-    @JsonAlias({"quanHe", "relationship"})
     private String relationship;
 
     @NotEmpty
     @Valid
-    @JsonAlias({"dong", "items"})
     private List<HandoverItemBody> items;
 
     public Long getTripId() {

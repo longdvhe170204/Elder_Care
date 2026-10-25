@@ -281,7 +281,7 @@ class PrescriptionLifecycleTest {
 
         PrescriptionResponse resp = prescriptionService.extend(1004L, body, 1L, true);
 
-        assertThat(resp.ngayKetThuc()).isEqualTo(LocalDate.of(2026, 12, 31));
+        assertThat(resp.endedAt()).isEqualTo(LocalDate.of(2026, 12, 31));
     }
 
     @Test
