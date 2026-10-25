@@ -13,6 +13,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -31,6 +32,19 @@ public abstract class StatusTestBase extends AssessmentTestBase {
 
     @TestConfiguration
     static class Fakes {
+
+        /**
+         * Test của 001 kiểm hành vi của M01 với các bản giả; bean thật của 004 (kiểm `details`) không tham gia để
+         * các test này không phải dựng thân lệnh của 004.
+         */
+        @Bean
+        static BeanDefinitionRegistryPostProcessor withoutM02Participant() {
+            return registry -> {
+                if (registry.containsBeanDefinition("m02StatusParticipant")) {
+                    registry.removeBeanDefinition("m02StatusParticipant");
+                }
+            };
+        }
 
         @Bean
         FakeStatusTransitionParticipant participantOne() {
