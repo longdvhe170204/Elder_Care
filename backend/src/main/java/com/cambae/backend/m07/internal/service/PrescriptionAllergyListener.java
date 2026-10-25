@@ -1,7 +1,7 @@
 package com.cambae.backend.m07.internal.service;
 
 import com.cambae.backend.common.time.BusinessTime;
-import com.cambae.backend.m07.api.events.AllergyRecordedEvent;
+import com.cambae.backend.m01.api.events.AllergyRecorded;
 import com.cambae.backend.m07.api.events.MedicationAlertRequestedEvent;
 import com.cambae.backend.m07.internal.domain.Prescription;
 import com.cambae.backend.m07.internal.persistence.PrescriptionRepository;
@@ -12,9 +12,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * Listens for new allergy recorded events (FR-012, BR-M01-07, BR-M07-06).
@@ -36,8 +37,7 @@ public class PrescriptionAllergyListener {
 
     public PrescriptionAllergyListener(
             PrescriptionRepository prescriptionRepository,
-            @org.springframework.beans.factory.annotation.Autowired(required = false)
-                    HealthAllergyPort healthAllergyPort,
+            HealthAllergyPort healthAllergyPort,
             ApplicationEventPublisher eventPublisher,
             BusinessTime time) {
         this.prescriptionRepository = prescriptionRepository;
@@ -46,14 +46,15 @@ public class PrescriptionAllergyListener {
         this.time = time;
     }
 
-    @EventListener
-    @Transactional
-    public void onAllergyRecorded(AllergyRecordedEvent event) {
-        checkAndAlert(event.allergyId(), event.residentId(), event.allergenId());
+    /** 001 phát sau khi lệnh commit và phát lại mục còn chờ kiểm tra (BR-M01-12); lỗi ở đây không hủy lệnh của 001. */
+    @TransactionalEventListener(fallbackExecution = true)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void onAllergyRecorded(AllergyRecorded event) {
+        checkAndAlert(event.itemId(), event.residentId(), event.allergenId());
     }
 
     public void checkAndAlert(long allergyId, long residentId, long allergenId) {
-        if (!processedAllergies.add(allergyId)) {
+        if (processedAllergies.contains(allergyId)) {
             log.info(
                     "Allergy {} has already been processed for resident {}, skipping (idempotent)",
                     allergyId,
@@ -93,5 +94,7 @@ public class PrescriptionAllergyListener {
                 conflictCount);
 
         healthAllergyPort.markAllergyChecked(allergyId, "THUOC");
+        // Ghi đã xử lý sau khi xong: lần phát lại của 001 sau lỗi vẫn được kiểm tra
+        processedAllergies.add(allergyId);
     }
 }

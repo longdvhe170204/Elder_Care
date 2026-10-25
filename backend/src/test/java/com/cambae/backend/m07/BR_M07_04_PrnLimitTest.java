@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.cambae.backend.common.error.BusinessException;
+import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m07.api.dto.MedicationSource;
 import com.cambae.backend.m07.internal.domain.PrescriberType;
 import com.cambae.backend.m07.internal.domain.Prescription;
@@ -18,11 +19,12 @@ import com.cambae.backend.m07.internal.persistence.PrescriptionRepository;
 import com.cambae.backend.m07.internal.persistence.PrnAdministrationRepository;
 import com.cambae.backend.m07.internal.persistence.ResidentMedicationLock;
 import com.cambae.backend.m07.internal.service.PrnMedicationService;
-import com.cambae.backend.m07.web.request.RecordPrnBody;
-import com.cambae.backend.m07.web.response.PrnAdministrationResponse;
-import com.cambae.backend.m07.web.response.PrnHistoryResponse;
+import com.cambae.backend.m07.internal.service.request.RecordPrnBody;
+import com.cambae.backend.m07.internal.service.response.PrnAdministrationResponse;
+import com.cambae.backend.m07.internal.service.response.PrnHistoryResponse;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -53,7 +55,8 @@ class BR_M07_04_PrnLimitTest {
         prescriptionRepo = mock(PrescriptionRepository.class);
         residentMedicationLock = mock(ResidentMedicationLock.class);
 
-        prnService = new PrnMedicationService(prnRepo, prescriptionRepo, residentMedicationLock);
+        prnService = new PrnMedicationService(
+                prnRepo, prescriptionRepo, residentMedicationLock, new BusinessTime(Clock.systemUTC()));
     }
 
     private void setId(Object entity, Long id) {
@@ -98,14 +101,29 @@ class BR_M07_04_PrnLimitTest {
                 null,
                 1L,
                 Instant.parse("2026-10-20T00:00:00Z"),
-                Set.of(101L));
+                Set.of(101L),
+                Instant.now());
         setId(p, id);
         return p;
     }
 
     private PrnAdministration createAdminRecord(Long id, Long prescriptionId, Instant time, BigDecimal dosage) {
         PrnAdministration a = new PrnAdministration(
-                prescriptionId, 100L, time, dosage, "mg", "Sốt cao 38.8 độ C", 1L, null, false, null, null);
+                prescriptionId,
+                100L,
+                time,
+                dosage,
+                "mg",
+                "Sốt cao 38.8 độ C",
+                1L,
+                null,
+                false,
+                null,
+                null,
+                null,
+                null,
+                false,
+                Instant.now());
         setId(a, id);
         return a;
     }
@@ -144,7 +162,7 @@ class BR_M07_04_PrnLimitTest {
                 .satisfies(e -> {
                     BusinessException be = (BusinessException) e;
                     assertThat(be.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-                    assertThat(be.errorCode()).isEqualTo("VUOT_LIEU_DON");
+                    assertThat(be.errorCode()).isEqualTo("EXCEEDS_PRESCRIBED_DOSE");
                 });
     }
 
@@ -195,7 +213,7 @@ class BR_M07_04_PrnLimitTest {
                 .satisfies(e -> {
                     BusinessException be = (BusinessException) e;
                     assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("VUOT_GIOI_HAN_PRN");
+                    assertThat(be.errorCode()).isEqualTo("PRN_LIMIT_EXCEEDED");
                 });
     }
 
@@ -224,7 +242,7 @@ class BR_M07_04_PrnLimitTest {
                 .satisfies(e -> {
                     BusinessException be = (BusinessException) e;
                     assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("VUOT_GIOI_HAN_PRN");
+                    assertThat(be.errorCode()).isEqualTo("PRN_LIMIT_EXCEEDED");
                 });
     }
 

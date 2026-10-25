@@ -2,7 +2,6 @@ package com.cambae.backend.m07.internal.domain;
 
 import com.cambae.backend.common.data.DataGroup;
 import com.cambae.backend.m07.api.dto.MedicationSource;
-import com.cambae.backend.m07.internal.service.DoseTransitionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -102,10 +101,10 @@ public class MedicationDose {
     private int version;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt = Instant.now();
+    private Instant updatedAt;
 
     protected MedicationDose() {}
 
@@ -121,7 +120,8 @@ public class MedicationDose {
             MedicationSource medicationSource,
             boolean specialControl,
             DoseStatus status,
-            Long floorAreaId) {
+            Long floorAreaId,
+            Instant now) {
         this.prescriptionId = prescriptionId;
         this.residentId = residentId;
         this.medicationId = medicationId;
@@ -134,8 +134,8 @@ public class MedicationDose {
         this.specialControl = specialControl;
         this.status = status != null ? status : DoseStatus.UPCOMING;
         this.floorAreaId = floorAreaId;
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
+        this.createdAt = now;
+        this.updatedAt = now;
     }
 
     public void markDue(Instant now) {

@@ -2,6 +2,7 @@ package com.cambae.backend.m07.internal.service;
 
 import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.error.NotFoundException;
+import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.common.web.VersionEtag;
 import com.cambae.backend.m07.internal.domain.DoseCancellationReason;
 import com.cambae.backend.m07.internal.domain.DoseStatus;
@@ -24,17 +25,18 @@ import com.cambae.backend.m07.internal.persistence.PrescriptionRepository;
 import com.cambae.backend.m07.internal.persistence.ReconciliationCorrectionRequestRepository;
 import com.cambae.backend.m07.internal.persistence.ReconciliationItemRepository;
 import com.cambae.backend.m07.internal.persistence.ResidentMedicationLock;
-import com.cambae.backend.m07.web.request.CreatePrescriptionBody;
-import com.cambae.backend.m07.web.request.CreateReconciliationBody;
-import com.cambae.backend.m07.web.request.ProposeCorrectionBody;
-import com.cambae.backend.m07.web.request.ReconciliationItemBody;
-import com.cambae.backend.m07.web.response.PrescriptionResponse;
-import com.cambae.backend.m07.web.response.ReconciliationCorrectionResponse;
-import com.cambae.backend.m07.web.response.ReconciliationItemResponse;
-import com.cambae.backend.m07.web.response.ReconciliationResponse;
+import com.cambae.backend.m07.internal.service.request.CreatePrescriptionBody;
+import com.cambae.backend.m07.internal.service.request.CreateReconciliationBody;
+import com.cambae.backend.m07.internal.service.request.ProposeCorrectionBody;
+import com.cambae.backend.m07.internal.service.request.ReconciliationItemBody;
+import com.cambae.backend.m07.internal.service.response.PrescriptionResponse;
+import com.cambae.backend.m07.internal.service.response.ReconciliationCorrectionResponse;
+import com.cambae.backend.m07.internal.service.response.ReconciliationItemResponse;
+import com.cambae.backend.m07.internal.service.response.ReconciliationResponse;
+import com.cambae.backend.m15.parameter.api.ParameterApi;
+import com.cambae.backend.m15.parameter.api.ParameterCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +62,8 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
     private final PrescriptionService prescriptionService;
     private final ResidentMedicationLock residentMedicationLock;
     private final ObjectMapper objectMapper;
+    private final BusinessTime businessTime;
+    private final ParameterApi parameters;
 
     @Autowired
     public MedicationReconciliationService(
@@ -70,7 +74,9 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             @Autowired(required = false) MedicationDoseRepository doseRepo,
             PrescriptionService prescriptionService,
             ResidentMedicationLock residentMedicationLock,
-            @Autowired(required = false) ObjectMapper objectMapper) {
+            @Autowired(required = false) ObjectMapper objectMapper,
+            BusinessTime businessTime,
+            ParameterApi parameters) {
         this.reconciliationRepo = reconciliationRepo;
         this.itemRepo = itemRepo;
         this.correctionRepo = correctionRepo;
@@ -79,6 +85,8 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         this.prescriptionService = prescriptionService;
         this.residentMedicationLock = residentMedicationLock;
         this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper();
+        this.businessTime = businessTime;
+        this.parameters = parameters;
     }
 
     @Override
@@ -96,7 +104,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         if (hasOpenOrPendingReconciliation(residentId)) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "DA_CO_PHIEU_MO",
+                    "OPEN_RECONCILIATION_EXISTS",
                     "Resident already has an open or pending confirmation reconciliation ticket (FR-034)");
         }
 
@@ -115,7 +123,9 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             // Do not suspend prescriptions, no deadline (deadlineAt = null)
         } else {
             // Admission or Hospital return: 24-hour deadline (CFG-M07-05)
-            deadlineAt = Instant.now().plus(Duration.ofHours(24));
+            deadlineAt = businessTime
+                    .now()
+                    .plus(parameters.read(ParameterCode.CFG_M07_05).asDuration());
 
             // Suspend active prescriptions pending reconciliation (FR-034)
             List<Prescription> activePrescriptions =
@@ -131,8 +141,9 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                 reason,
                 body.getReasonDetail(),
                 deadlineAt,
-                currentUserId != null ? currentUserId : 1L,
-                Instant.now());
+                currentUserId,
+                businessTime.now(),
+                businessTime.now());
 
         MedicationReconciliation saved = reconciliationRepo.save(ticket);
         return toResponse(saved, List.of());
@@ -165,7 +176,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         if (ticket.getStatus() != ReconciliationStatus.OPEN) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "TRANG_THAI_KHONG_HOP_LE",
+                    "INVALID_STATE",
                     "Items can only be updated when reconciliation sheet is in OPEN status (FR-035)");
         }
 
@@ -202,8 +213,9 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                         decision != null ? decision : ReconciliationDecision.CONTINUE,
                         b.getReason(),
                         newPrescriptionJson,
-                        currentUserId != null ? currentUserId : 1L,
-                        Instant.now());
+                        currentUserId,
+                        businessTime.now(),
+                        businessTime.now());
 
                 savedItems.add(itemRepo.save(item));
             }
@@ -220,25 +232,25 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         if (ticket.getStatus() != ReconciliationStatus.OPEN) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "TRANG_THAI_KHONG_HOP_LE",
+                    "INVALID_STATE",
                     "Reconciliation sheet is not in OPEN status to submit for confirmation");
         }
 
         List<ReconciliationItem> items = itemRepo.findByReconciliationIdOrderByItemOrderAsc(id);
         if (items.isEmpty()) {
             throw new BusinessException(
-                    HttpStatus.CONFLICT, "THIEU_DONG", "Reconciliation sheet has no items (FR-034)");
+                    HttpStatus.CONFLICT, "MISSING_ITEMS", "Reconciliation sheet has no items (FR-034)");
         }
 
         // Verify item completeness (FR-034, FR-034a, BR-M07-25)
         for (ReconciliationItem item : items) {
             if (item.getDecision() == null) {
-                throw new BusinessException(HttpStatus.CONFLICT, "THIEU_DONG", "Item missing decision (FR-034)");
+                throw new BusinessException(HttpStatus.CONFLICT, "MISSING_ITEMS", "Item missing decision (FR-034)");
             }
             if (item.getDecision() == ReconciliationDecision.DISCONTINUE
                     && (item.getReason() == null || item.getReason().isBlank())) {
                 throw new BusinessException(
-                        HttpStatus.CONFLICT, "THIEU_DONG", "Discontinue item missing reason (FR-034)");
+                        HttpStatus.CONFLICT, "MISSING_ITEMS", "Discontinue item missing reason (FR-034)");
             }
         }
 
@@ -256,13 +268,13 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             if (!itemPrescriptionIds.contains(p.getId())) {
                 throw new BusinessException(
                         HttpStatus.CONFLICT,
-                        "THIEU_DONG",
+                        "MISSING_ITEMS",
                         "Thiếu dòng đối chiếu cho đơn thuốc ID=" + p.getId()
                                 + " của người cao tuổi (FR-034, BR-M07-25)");
             }
         }
 
-        ticket.submit(currentUserId != null ? currentUserId : 1L, Instant.now());
+        ticket.submit(currentUserId, businessTime.now());
         MedicationReconciliation saved = reconciliationRepo.save(ticket);
         return toResponse(saved, items);
     }
@@ -274,9 +286,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
 
         if (ticket.getStatus() != ReconciliationStatus.PENDING_CONFIRMATION) {
             throw new BusinessException(
-                    HttpStatus.CONFLICT,
-                    "TRANG_THAI_KHONG_HOP_LE",
-                    "Chỉ có thể trả lại phiếu đang chờ xác nhận (FR-035)");
+                    HttpStatus.CONFLICT, "INVALID_STATE", "Chỉ có thể trả lại phiếu đang chờ xác nhận (FR-035)");
         }
 
         if (reason == null || reason.isBlank()) {
@@ -297,10 +307,10 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
 
         if (ticket.getStatus() != ReconciliationStatus.PENDING_CONFIRMATION) {
             throw new BusinessException(
-                    HttpStatus.CONFLICT, "TRANG_THAI_KHONG_HOP_LE", "Phiếu không ở trạng thái Chờ xác nhận (FR-036)");
+                    HttpStatus.CONFLICT, "INVALID_STATE", "Phiếu không ở trạng thái Chờ xác nhận (FR-036)");
         }
 
-        Long actualUserId = currentUserId != null ? currentUserId : 1L;
+        Long actualUserId = currentUserId;
 
         // Quy tắc hai người (SC-014, BR-M07-09, Q-55):
         // Người xác nhận phải khác người lập và người gửi
@@ -308,7 +318,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                 || Objects.equals(ticket.getCreatedById(), actualUserId)) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "QUY_TAC_HAI_NGUOI",
+                    "TWO_PERSON_RULE",
                     "Người xác nhận không được trùng với người lập hoặc gửi phiếu (SC-014, BR-M07-09)");
         }
 
@@ -319,7 +329,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             if (Objects.equals(item.getCreatedById(), actualUserId)) {
                 throw new BusinessException(
                         HttpStatus.CONFLICT,
-                        "QUY_TAC_HAI_NGUOI",
+                        "TWO_PERSON_RULE",
                         "Người xác nhận không được trùng với người đã ghi dòng đối chiếu (SC-014, BR-M07-09)");
             }
         }
@@ -339,7 +349,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                                 && !isDoctor) {
                             throw new BusinessException(
                                     HttpStatus.FORBIDDEN,
-                                    "CAN_BAC_SI_KE_DON",
+                                    "PRESCRIBING_DOCTOR_REQUIRED",
                                     "Cần bác sĩ có quyền kê đơn để xác nhận phiếu có tạo đơn nội bộ (BR-M07-09)");
                         }
                     } catch (JsonProcessingException e) {
@@ -350,7 +360,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         }
 
         // Áp dụng quyết định từng dòng trong cùng giao dịch (FR-036)
-        Instant now = Instant.now();
+        Instant now = businessTime.now();
         for (ReconciliationItem item : items) {
             if (item.getDecision() == ReconciliationDecision.CONTINUE) {
                 if (item.getPrescriptionId() != null) {
@@ -401,8 +411,12 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                         CreatePrescriptionBody newPrescription =
                                 objectMapper.readValue(item.getNewPrescriptionJson(), CreatePrescriptionBody.class);
                         PrescriptionResponse created = prescriptionService.create(
-                                ticket.getResidentId(), newPrescription, actualUserId, isDoctor);
-                        item.setCreatedPrescriptionId(created.id());
+                                PrescriptionService.target(ticket.getResidentId()),
+                                ticket.getResidentId(),
+                                newPrescription,
+                                actualUserId,
+                                isDoctor);
+                        item.recordCreatedPrescription(created.id());
                         itemRepo.save(item);
                     } catch (JsonProcessingException e) {
                         throw new BusinessException(
@@ -415,8 +429,12 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
                         CreatePrescriptionBody newPrescription =
                                 objectMapper.readValue(item.getNewPrescriptionJson(), CreatePrescriptionBody.class);
                         PrescriptionResponse created = prescriptionService.create(
-                                ticket.getResidentId(), newPrescription, actualUserId, isDoctor);
-                        item.setCreatedPrescriptionId(created.id());
+                                PrescriptionService.target(ticket.getResidentId()),
+                                ticket.getResidentId(),
+                                newPrescription,
+                                actualUserId,
+                                isDoctor);
+                        item.recordCreatedPrescription(created.id());
                         itemRepo.save(item);
                     } catch (JsonProcessingException e) {
                         throw new BusinessException(
@@ -437,12 +455,10 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
 
         if (ticket.getStatus() != ReconciliationStatus.CONFIRMED) {
             throw new BusinessException(
-                    HttpStatus.CONFLICT,
-                    "TRANG_THAI_KHONG_HOP_LE",
-                    "Chỉ có thể đề nghị đính chính phiếu đã xác nhận (FR-039)");
+                    HttpStatus.CONFLICT, "INVALID_STATE", "Chỉ có thể đề nghị đính chính phiếu đã xác nhận (FR-039)");
         }
 
-        Long actualUserId = currentUserId != null ? currentUserId : 1L;
+        Long actualUserId = currentUserId;
 
         // Chỉ người lập, người gửi hoặc người xác nhận phiếu mới được đề nghị đính chính
         boolean isParticipant = Objects.equals(ticket.getCreatedById(), actualUserId)
@@ -468,8 +484,8 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
             throw new BusinessException(HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_VALUE", "Nội dung đúng không hợp lệ");
         }
 
-        ReconciliationCorrectionRequest req =
-                new ReconciliationCorrectionRequest(id, jsonContent, body.getReason(), actualUserId, Instant.now());
+        ReconciliationCorrectionRequest req = new ReconciliationCorrectionRequest(
+                id, jsonContent, body.getReason(), actualUserId, businessTime.now(), businessTime.now());
         ReconciliationCorrectionRequest saved = correctionRepo.save(req);
 
         ReconciliationCorrectionResponse res = new ReconciliationCorrectionResponse();
@@ -490,20 +506,18 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
 
         if (req.getStatus() != ReconciliationCorrectionStatus.PENDING_CONFIRMATION) {
             throw new BusinessException(
-                    HttpStatus.CONFLICT,
-                    "TRANG_THAI_KHONG_HOP_LE",
-                    "Đề nghị đính chính không ở trạng thái Chờ xác nhận");
+                    HttpStatus.CONFLICT, "INVALID_STATE", "Đề nghị đính chính không ở trạng thái Chờ xác nhận");
         }
 
-        Long actualUserId = currentUserId != null ? currentUserId : 1L;
+        Long actualUserId = currentUserId;
         if (Objects.equals(req.getCreatedById(), actualUserId)) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "QUY_TAC_HAI_NGUOI",
+                    "TWO_PERSON_RULE",
                     "Người xác nhận đính chính phải khác người lập đề nghị (BR-M07-17)");
         }
 
-        req.confirm(actualUserId, Instant.now(), correctionId);
+        req.confirm(actualUserId, businessTime.now(), correctionId);
         ReconciliationCorrectionRequest saved = correctionRepo.save(req);
 
         ReconciliationCorrectionResponse res = new ReconciliationCorrectionResponse();
@@ -519,19 +533,17 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
     }
 
     @Transactional
-    public ReconciliationCorrectionResponse rejectCorrection(Long correctionId, Long currentUserId) {
+    public ReconciliationCorrectionResponse rejectCorrection(Long correctionId, String reason, Long currentUserId) {
         ReconciliationCorrectionRequest req =
                 correctionRepo.findById(correctionId).orElseThrow(NotFoundException::new);
 
         if (req.getStatus() != ReconciliationCorrectionStatus.PENDING_CONFIRMATION) {
             throw new BusinessException(
-                    HttpStatus.CONFLICT,
-                    "TRANG_THAI_KHONG_HOP_LE",
-                    "Đề nghị đính chính không ở trạng thái Chờ xác nhận");
+                    HttpStatus.CONFLICT, "INVALID_STATE", "Đề nghị đính chính không ở trạng thái Chờ xác nhận");
         }
 
-        Long actualUserId = currentUserId != null ? currentUserId : 1L;
-        req.reject(actualUserId, Instant.now());
+        Long actualUserId = currentUserId;
+        req.reject(actualUserId, businessTime.now(), reason);
         ReconciliationCorrectionRequest saved = correctionRepo.save(req);
 
         ReconciliationCorrectionResponse res = new ReconciliationCorrectionResponse();
@@ -598,7 +610,7 @@ public class MedicationReconciliationService implements ReconciliationCheckPort 
         res.setStatus(t.getStatus().name());
         res.setDeadlineAt(t.getDeadlineAt());
         res.setOverdue(t.getOverdueAt() != null
-                || (t.getDeadlineAt() != null && t.getDeadlineAt().isBefore(Instant.now())));
+                || (t.getDeadlineAt() != null && t.getDeadlineAt().isBefore(businessTime.now())));
         res.setCreatedBy(String.valueOf(t.getCreatedById()));
         if (t.getSubmittedById() != null) {
             res.setSubmittedBy(String.valueOf(t.getSubmittedById()));

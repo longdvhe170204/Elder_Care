@@ -60,7 +60,7 @@ public class MedicationService {
         if (medications.existsByNameIgnoreCaseAndConcentrationIgnoreCaseAndDosageFormIgnoreCase(
                 cmd.name().trim(), cmd.concentration().trim(), cmd.dosageForm().trim())) {
             throw new ConditionNotMetException(List.of(new UnmetCondition(
-                    "TRUNG_THUOC",
+                    "DUPLICATE_MEDICATION",
                     "Medication already exists with the same name, concentration, and dosage form (FR-001)")));
         }
 
@@ -98,7 +98,7 @@ public class MedicationService {
         if (medications.existsByNameIgnoreCaseAndConcentrationIgnoreCaseAndDosageFormIgnoreCaseAndIdNot(
                 cmd.name().trim(), cmd.concentration().trim(), cmd.dosageForm().trim(), id)) {
             throw new ConditionNotMetException(List.of(new UnmetCondition(
-                    "TRUNG_THUOC",
+                    "DUPLICATE_MEDICATION",
                     "Medication already exists with the same name, concentration, and dosage form (FR-001)")));
         }
 
@@ -135,36 +135,36 @@ public class MedicationService {
             Integer afterWindow) {
         if (name == null || name.isBlank()) {
             throw new ConditionNotMetException(
-                    List.of(new UnmetCondition("THIEU_TEN", "Medication name is required (FR-001)")));
+                    List.of(new UnmetCondition("NAME_REQUIRED", "Medication name is required (FR-001)")));
         }
         if (concentration == null || concentration.isBlank()) {
             throw new ConditionNotMetException(
-                    List.of(new UnmetCondition("THIEU_HAM_LUONG", "Concentration is required (FR-001)")));
+                    List.of(new UnmetCondition("CONCENTRATION_REQUIRED", "Concentration is required (FR-001)")));
         }
         if (dosageForm == null || dosageForm.isBlank()) {
             throw new ConditionNotMetException(
-                    List.of(new UnmetCondition("THIEU_DANG_BAO_CHE", "Dosage form is required (FR-001)")));
+                    List.of(new UnmetCondition("DOSAGE_FORM_REQUIRED", "Dosage form is required (FR-001)")));
         }
         if (defaultRoute == null || defaultRoute.isBlank()) {
             throw new ConditionNotMetException(
-                    List.of(new UnmetCondition("THIEU_DUONG_DUNG", "Default route is required (FR-001)")));
+                    List.of(new UnmetCondition("ROUTE_REQUIRED", "Default route is required (FR-001)")));
         }
         if (usageUnit == null || usageUnit.isBlank()) {
             throw new ConditionNotMetException(
-                    List.of(new UnmetCondition("THIEU_DON_VI", "Usage unit is required (FR-001)")));
+                    List.of(new UnmetCondition("UNIT_REQUIRED", "Usage unit is required (FR-001)")));
         }
         if (allergenIds == null || allergenIds.isEmpty()) {
             throw new ConditionNotMetException(List.of(new UnmetCondition(
-                    "THIEU_HOAT_CHAT",
+                    "ACTIVE_INGREDIENT_REQUIRED",
                     "Medication must be linked to at least one active ingredient / allergen (FR-001)")));
         }
         if (beforeWindow != null && beforeWindow < 0) {
             throw new ConditionNotMetException(
-                    List.of(new UnmetCondition("CUA_SO_KHONG_HOP_LE", "Before window must be non-negative")));
+                    List.of(new UnmetCondition("INVALID_WINDOW", "Before window must be non-negative")));
         }
         if (afterWindow != null && afterWindow < 0) {
             throw new ConditionNotMetException(
-                    List.of(new UnmetCondition("CUA_SO_KHONG_HOP_LE", "After window must be non-negative")));
+                    List.of(new UnmetCondition("INVALID_WINDOW", "After window must be non-negative")));
         }
     }
 

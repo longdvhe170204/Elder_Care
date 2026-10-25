@@ -1,6 +1,5 @@
 package com.cambae.backend.m07.internal.service;
 
-import com.cambae.backend.m07.api.dto.DoseDetailView;
 import com.cambae.backend.m07.internal.domain.DoseResult;
 import com.cambae.backend.m07.internal.domain.Medication;
 import com.cambae.backend.m07.internal.domain.MedicationDose;
@@ -9,6 +8,7 @@ import com.cambae.backend.m07.internal.persistence.DoseResultRepository;
 import com.cambae.backend.m07.internal.persistence.MedicationDoseRepository;
 import com.cambae.backend.m07.internal.persistence.MedicationRepository;
 import com.cambae.backend.m07.internal.persistence.PrescriptionRepository;
+import com.cambae.backend.m07.internal.service.response.DoseDetailView;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;

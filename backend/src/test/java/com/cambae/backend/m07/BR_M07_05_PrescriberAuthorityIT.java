@@ -10,12 +10,12 @@ import com.cambae.backend.m07.internal.service.AllergyItemView;
 import com.cambae.backend.m07.internal.service.HealthAllergyPort;
 import com.cambae.backend.m07.internal.service.PrescriptionService;
 import com.cambae.backend.m07.internal.service.ReconciliationCheckPort;
-import com.cambae.backend.m07.web.request.ConfirmedIssueBody;
-import com.cambae.backend.m07.web.request.CreatePrescriptionBody;
-import com.cambae.backend.m07.web.request.FrequencyBody;
-import com.cambae.backend.m07.web.request.PrescriberBody;
-import com.cambae.backend.m07.web.response.PrescriptionResponse;
-import com.cambae.backend.support.MySqlIntegrationTestBase;
+import com.cambae.backend.m07.internal.service.request.ConfirmedIssueBody;
+import com.cambae.backend.m07.internal.service.request.CreatePrescriptionBody;
+import com.cambae.backend.m07.internal.service.request.FrequencyBody;
+import com.cambae.backend.m07.internal.service.request.PrescriberBody;
+import com.cambae.backend.m07.internal.service.response.PrescriptionResponse;
+import com.cambae.backend.support.TestUsers;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -27,12 +27,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Kiểm thử tích hợp BR-M07-05: Quyền kê đơn và điều kiện tính hợp lệ của đơn thuốc.
  */
-class BR_M07_05_PrescriberAuthorityIT extends MySqlIntegrationTestBase {
+class BR_M07_05_PrescriberAuthorityIT extends M07IntegrationTestBase {
 
     @Autowired
     private PrescriptionService prescriptionService;
@@ -40,11 +39,8 @@ class BR_M07_05_PrescriberAuthorityIT extends MySqlIntegrationTestBase {
     @Autowired
     private MedicationRepository medicationRepository;
 
-    @Autowired
-    private JdbcTemplate jdbc;
-
-    private Long residentId = 8801L;
-    private Long medId = 8801L;
+    private Long residentId = TestUsers.nextId();
+    private Long medId;
 
     @BeforeEach
     void setUp() {
@@ -53,12 +49,18 @@ class BR_M07_05_PrescriberAuthorityIT extends MySqlIntegrationTestBase {
                         + "VALUES (?, NULL, NULL, NULL, 0) ON DUPLICATE KEY UPDATE version = version",
                 residentId);
 
-        if (!medicationRepository.existsById(medId)) {
-            Medication med = new Medication(
-                    "Amoxicillin 500mg", "500mg", "Capsule", "Uống", "Viên", 30, 30, false, Set.of(101L));
-            med = medicationRepository.save(med);
-            medId = med.getId();
-        }
+        // Mỗi test một thuốc mới có hoạt chất 101 (Penicillin của bản giả dị ứng)
+        Medication med = new Medication(
+                "Amoxicillin 500mg " + TestUsers.nextId(),
+                "500mg",
+                "Capsule",
+                "Uống",
+                "Viên",
+                30,
+                30,
+                false,
+                Set.of(101L));
+        medId = medicationRepository.save(med).getId();
     }
 
     @TestConfiguration
@@ -69,7 +71,8 @@ class BR_M07_05_PrescriberAuthorityIT extends MySqlIntegrationTestBase {
             return new HealthAllergyPort() {
                 @Override
                 public List<AllergyItemView> getActiveAllergies(long residentId) {
-                    return List.of(new AllergyItemView(101L, 101L, "Penicillin", "NANG", false));
+                    // Dị ứng chọn từ danh mục: kiểm tự động, chặn khi chưa xác nhận (FR-007)
+                    return List.of(AllergyItemView.fromCatalog(101L, 101L, "Penicillin", "NANG"));
                 }
 
                 @Override
@@ -106,7 +109,8 @@ class BR_M07_05_PrescriberAuthorityIT extends MySqlIntegrationTestBase {
         body.setPrescriber(prescriber);
 
         // Kê bởi người không có chứng chỉ bác sĩ (isDoctorWithLicense = false)
-        assertThatThrownBy(() -> prescriptionService.create(residentId, body, 2L, false))
+        assertThatThrownBy(() ->
+                        prescriptionService.create(PrescriptionService.target(residentId), residentId, body, 2L, false))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(ex -> {
                     BusinessException be = (BusinessException) ex;
@@ -135,7 +139,8 @@ class BR_M07_05_PrescriberAuthorityIT extends MySqlIntegrationTestBase {
         // Thiếu tenCoSo, nguoiKe, ngayKe
         body.setPrescriber(prescriber);
 
-        assertThatThrownBy(() -> prescriptionService.create(residentId, body, 1L, true))
+        assertThatThrownBy(() ->
+                        prescriptionService.create(PrescriptionService.target(residentId), residentId, body, 1L, true))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(ex -> {
                     BusinessException be = (BusinessException) ex;
@@ -165,12 +170,13 @@ class BR_M07_05_PrescriberAuthorityIT extends MySqlIntegrationTestBase {
         prescriber.setPrescriberId(1L);
         body.setPrescriber(prescriber);
 
-        assertThatThrownBy(() -> prescriptionService.create(residentId, body, 1L, true))
+        assertThatThrownBy(() ->
+                        prescriptionService.create(PrescriptionService.target(residentId), residentId, body, 1L, true))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(ex -> {
                     BusinessException be = (BusinessException) ex;
-                    assertThat(be.errorCode()).isEqualTo("CAN_XAC_NHAN_VAN_DE");
-                    assertThat(be.properties()).containsKey("vanDe");
+                    assertThat(be.errorCode()).isEqualTo("ISSUES_REQUIRE_CONFIRMATION");
+                    assertThat(be.properties()).containsKey("issues");
                 });
     }
 
@@ -197,9 +203,10 @@ class BR_M07_05_PrescriberAuthorityIT extends MySqlIntegrationTestBase {
 
         // Đã có xác nhận lý do
         body.setConfirmedIssues(
-                List.of(new ConfirmedIssueBody("ALLERGY:101", "Bác sĩ đã cân nhắc lợi ích vượt trội nguy cơ")));
+                List.of(new ConfirmedIssueBody("ALLERGY_101", "Bác sĩ đã cân nhắc lợi ích vượt trội nguy cơ")));
 
-        PrescriptionResponse resp = prescriptionService.create(residentId, body, 1L, true);
+        PrescriptionResponse resp =
+                prescriptionService.create(PrescriptionService.target(residentId), residentId, body, 1L, true);
         assertThat(resp).isNotNull();
         assertThat(resp.id()).isNotNull();
         assertThat(resp.confirmedIssues()).isNotEmpty();

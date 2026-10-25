@@ -4,8 +4,8 @@ import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.error.ConditionNotMetException;
 import com.cambae.backend.common.error.NotFoundException;
 import com.cambae.backend.common.error.UnmetCondition;
+import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m07.api.dto.AdministerDoseRequest;
-import com.cambae.backend.m07.api.dto.DoseDetailView;
 import com.cambae.backend.m07.api.dto.MedicationSource;
 import com.cambae.backend.m07.api.dto.RefuseDoseRequest;
 import com.cambae.backend.m07.api.dto.SkipDoseRequest;
@@ -26,6 +26,9 @@ import com.cambae.backend.m07.internal.persistence.MedicationDoseRepository;
 import com.cambae.backend.m07.internal.persistence.MedicationRepository;
 import com.cambae.backend.m07.internal.persistence.PrescriptionRepository;
 import com.cambae.backend.m07.internal.persistence.ResidentMedicationLock;
+import com.cambae.backend.m07.internal.service.response.DoseDetailView;
+import com.cambae.backend.m15.parameter.api.ParameterApi;
+import com.cambae.backend.m15.parameter.api.ParameterCode;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -53,6 +56,8 @@ public class DoseAdministrationService {
     private final DoseAssigneeResolver assigneeResolver;
     private final ResidentMedicationLock residentMedicationLock;
     private final ApplicationEventPublisher eventPublisher;
+    private final BusinessTime businessTime;
+    private final ParameterApi parameters;
 
     public DoseAdministrationService(
             MedicationDoseRepository doseRepository,
@@ -63,7 +68,9 @@ public class DoseAdministrationService {
             MedicationScheduleCalculator scheduleCalculator,
             DoseAssigneeResolver assigneeResolver,
             ResidentMedicationLock residentMedicationLock,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            BusinessTime businessTime,
+            ParameterApi parameters) {
         this.doseRepository = doseRepository;
         this.doseResultRepository = doseResultRepository;
         this.doseReviewRepository = doseReviewRepository;
@@ -73,6 +80,8 @@ public class DoseAdministrationService {
         this.assigneeResolver = assigneeResolver;
         this.residentMedicationLock = residentMedicationLock;
         this.eventPublisher = eventPublisher;
+        this.businessTime = businessTime;
+        this.parameters = parameters;
     }
 
     /**
@@ -91,14 +100,14 @@ public class DoseAdministrationService {
         if (dose.isSpecialControl() && request.offlineFlag()) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "BAT_BUOC_TRUC_TUYEN",
+                    "REQUIRES_ONLINE",
                     "Thuốc kiểm soát đặc biệt bắt buộc trực tuyến, không được đồng bộ ngoại tuyến (BR-M07-20)");
         }
 
         Instant administeredAt = request.administeredAt() != null ? request.administeredAt() : now;
         if (administeredAt.isAfter(now)) {
             throw new ConditionNotMetException(
-                    List.of(new UnmetCondition("THOI_DIEM_DUNG_TUONG_LAI", "Thời điểm dùng không được sau hiện tại")));
+                    List.of(new UnmetCondition("ADMINISTERED_AT_IN_FUTURE", "Thời điểm dùng không được sau hiện tại")));
         }
 
         // Determine authority basis
@@ -142,7 +151,8 @@ public class DoseAdministrationService {
                 request.offlineFlag(),
                 false,
                 request.familyMedicationLotId(),
-                request.leaveHandoverId());
+                request.leaveHandoverId(),
+                businessTime.now());
         doseResultRepository.save(result);
 
         // Facility source fee event (FR-033)
@@ -171,7 +181,12 @@ public class DoseAdministrationService {
         // If special control recorded after reconnect, create review record (FR-029)
         if (dose.isSpecialControl()) {
             DoseReview review = new DoseReview(
-                    result.getId(), null, floorAreaId, null, "Thuốc kiểm soát đặc biệt cần kiểm tra xác nhận");
+                    result.getId(),
+                    null,
+                    floorAreaId,
+                    null,
+                    "Thuốc kiểm soát đặc biệt cần kiểm tra xác nhận",
+                    businessTime.now());
             doseReviewRepository.save(review);
         }
 
@@ -187,7 +202,7 @@ public class DoseAdministrationService {
 
         if (request.reason() == null || request.reason().isBlank()) {
             throw new ConditionNotMetException(
-                    List.of(new UnmetCondition("THIEU_LY_DO", "Lý do từ chối dùng thuốc bắt buộc (FR-021)")));
+                    List.of(new UnmetCondition("REASON_REQUIRED", "Lý do từ chối dùng thuốc bắt buộc (FR-021)")));
         }
 
         ParsedDoseKey parsed = parseDoseKey(doseKey);
@@ -218,7 +233,8 @@ public class DoseAdministrationService {
                 request.offlineFlag(),
                 false,
                 null,
-                null);
+                null,
+                businessTime.now());
         doseResultRepository.save(result);
 
         // Check consecutive refusals (BR-M07-13)
@@ -235,8 +251,8 @@ public class DoseAdministrationService {
             String doseKey, SkipDoseRequest request, Long recorderId, Long floorAreaId, Instant now) {
 
         if (request.reason() == null || request.reason().isBlank()) {
-            throw new ConditionNotMetException(
-                    List.of(new UnmetCondition("THIEU_LY_DO", "Lý do không thực hiện liều thuốc bắt buộc (FR-021)")));
+            throw new ConditionNotMetException(List.of(
+                    new UnmetCondition("REASON_REQUIRED", "Lý do không thực hiện liều thuốc bắt buộc (FR-021)")));
         }
 
         ParsedDoseKey parsed = parseDoseKey(doseKey);
@@ -267,7 +283,8 @@ public class DoseAdministrationService {
                 request.offlineFlag(),
                 false,
                 null,
-                null);
+                null,
+                businessTime.now());
         doseResultRepository.save(result);
 
         return toDetailView(dose, result, doseKey, now);
@@ -350,7 +367,8 @@ public class DoseAdministrationService {
         }
 
         int count = ConsecutiveRefusalCounter.count(views);
-        if (ConsecutiveRefusalCounter.meetsThreshold(count, ConsecutiveRefusalCounter.DEFAULT_REFUSAL_THRESHOLD)) {
+        if (ConsecutiveRefusalCounter.meetsThreshold(
+                count, parameters.read(ParameterCode.CFG_M05_04).asInt())) {
             eventPublisher.publishEvent(new MedicationAlertRequestedEvent(
                     "TU_CHOI_LIEN_TIEP",
                     "TRUNG_BINH",
@@ -377,12 +395,13 @@ public class DoseAdministrationService {
         Medication medication =
                 medicationRepository.findById(prescription.getMedicationId()).orElse(null);
 
+        int defaultWindow = scheduleCalculator.defaultWindowMinutes();
         int windowBefore = medication != null && medication.getBeforeWindowMinutes() != null
                 ? medication.getBeforeWindowMinutes()
-                : MedicationScheduleCalculator.DEFAULT_WINDOW_MINUTES;
+                : defaultWindow;
         int windowAfter = medication != null && medication.getAfterWindowMinutes() != null
                 ? medication.getAfterWindowMinutes()
-                : MedicationScheduleCalculator.DEFAULT_WINDOW_MINUTES;
+                : defaultWindow;
 
         Instant windowFrom = parsed.scheduledTime().minus(windowBefore, ChronoUnit.MINUTES);
         Instant windowTo = parsed.scheduledTime().plus(windowAfter, ChronoUnit.MINUTES);
@@ -408,7 +427,8 @@ public class DoseAdministrationService {
                 prescription.getMedicationSource(),
                 medication != null && medication.isSpecialControl(),
                 status,
-                floorAreaId);
+                floorAreaId,
+                businessTime.now());
 
         if (status == DoseStatus.DUE) {
             dose.markDue(now);
@@ -469,7 +489,7 @@ public class DoseAdministrationService {
     public ParsedDoseKey parseDoseKey(String doseKey) {
         if (doseKey == null || !doseKey.contains("-")) {
             throw new ConditionNotMetException(
-                    List.of(new UnmetCondition("MA_LIEU_KHONG_HOP_LE", "Mã liều thuốc không đúng định dạng (FR-018)")));
+                    List.of(new UnmetCondition("INVALID_DOSE_KEY", "Mã liều thuốc không đúng định dạng (FR-018)")));
         }
         String[] parts = doseKey.split("-");
         try {
@@ -480,7 +500,7 @@ public class DoseAdministrationService {
             return new ParsedDoseKey(prescriptionId, scheduledTime);
         } catch (Exception e) {
             throw new ConditionNotMetException(
-                    List.of(new UnmetCondition("MA_LIEU_KHONG_HOP_LE", "Không phân giải được mã liều: " + doseKey)));
+                    List.of(new UnmetCondition("INVALID_DOSE_KEY", "Không phân giải được mã liều: " + doseKey)));
         }
     }
 }

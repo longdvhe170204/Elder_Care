@@ -77,7 +77,8 @@ public class PrescriptionBasis {
             Instant calledAt,
             Long documentFileId,
             Long recorderId,
-            Instant recordedAt) {
+            Instant recordedAt,
+            Instant now) {
         this.prescriptionId = prescriptionId;
         this.command = command;
         this.facilityName = facilityName;
@@ -89,7 +90,7 @@ public class PrescriptionBasis {
         this.calledAt = calledAt;
         this.documentFileId = documentFileId;
         this.recorderId = recorderId;
-        this.recordedAt = recordedAt != null ? recordedAt : Instant.now();
+        this.recordedAt = recordedAt != null ? recordedAt : now;
     }
 
     public Long getId() {

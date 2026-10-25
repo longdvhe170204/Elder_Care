@@ -2,8 +2,8 @@ package com.cambae.backend.m07.internal.service;
 
 import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.offline.SyncOutcome;
+import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m07.api.dto.AdministerDoseRequest;
-import com.cambae.backend.m07.api.dto.DoseDetailView;
 import com.cambae.backend.m07.api.dto.RefuseDoseRequest;
 import com.cambae.backend.m07.api.dto.SkipDoseRequest;
 import com.cambae.backend.m07.api.events.MedicationAlertRequestedEvent;
@@ -18,6 +18,7 @@ import com.cambae.backend.m07.internal.persistence.DoseReviewRepository;
 import com.cambae.backend.m07.internal.persistence.MedicationDoseRepository;
 import com.cambae.backend.m07.internal.persistence.MedicationRepository;
 import com.cambae.backend.m07.internal.persistence.PrescriptionRepository;
+import com.cambae.backend.m07.internal.service.response.DoseDetailView;
 import com.cambae.backend.m15.account.api.dto.Function;
 import com.cambae.backend.m15.account.api.dto.Operation;
 import com.cambae.backend.m15.account.api.dto.PermissionKey;
@@ -45,6 +46,7 @@ public class DoseResultOfflineHandler implements OfflineHandler<DoseResultOfflin
     private final PrescriptionRepository prescriptionRepository;
     private final MedicationRepository medicationRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final BusinessTime businessTime;
 
     public DoseResultOfflineHandler(
             DoseAdministrationService doseAdministrationService,
@@ -53,7 +55,8 @@ public class DoseResultOfflineHandler implements OfflineHandler<DoseResultOfflin
             DoseReviewRepository doseReviewRepository,
             PrescriptionRepository prescriptionRepository,
             MedicationRepository medicationRepository,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            BusinessTime businessTime) {
         this.doseAdministrationService = doseAdministrationService;
         this.doseRepository = doseRepository;
         this.doseResultRepository = doseResultRepository;
@@ -61,6 +64,7 @@ public class DoseResultOfflineHandler implements OfflineHandler<DoseResultOfflin
         this.prescriptionRepository = prescriptionRepository;
         this.medicationRepository = medicationRepository;
         this.eventPublisher = eventPublisher;
+        this.businessTime = businessTime;
     }
 
     @Override
@@ -90,7 +94,7 @@ public class DoseResultOfflineHandler implements OfflineHandler<DoseResultOfflin
             if (med != null && med.isSpecialControl()) {
                 throw new BusinessException(
                         HttpStatus.CONFLICT,
-                        "BAT_BUOC_TRUC_TUYEN",
+                        "REQUIRES_ONLINE",
                         "Special control medication requires online recording, cannot sync offline (BR-M07-20)");
             }
         }
@@ -113,11 +117,12 @@ public class DoseResultOfflineHandler implements OfflineHandler<DoseResultOfflin
                         null,
                         dose.getFloorAreaId(),
                         null,
-                        "Offline record rejected due to duplicate dose with pre-existing record (BR-M07-20)");
+                        "Offline record rejected due to duplicate dose with pre-existing record (BR-M07-20)",
+                        businessTime.now());
                 doseReviewRepository.save(review);
 
                 eventPublisher.publishEvent(new MedicationAlertRequestedEvent(
-                        "NGHI_DUNG_TRUNG_LIEU",
+                        "POSSIBLE_DUPLICATE_DOSE",
                         "TRUNG_BINH",
                         content.residentId(),
                         "doseKey:" + content.doseKey(),

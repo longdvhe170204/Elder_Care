@@ -79,7 +79,8 @@ public class PrescriptionIssue {
             boolean manualReviewRequired,
             String confirmationReason,
             Long confirmedById,
-            Instant occurredAt) {
+            Instant occurredAt,
+            Instant now) {
         this.prescriptionId = prescriptionId;
         this.reconciliationLineId = reconciliationLineId;
         this.lineNumber = lineNumber;
@@ -92,7 +93,7 @@ public class PrescriptionIssue {
         this.manualReviewRequired = manualReviewRequired;
         this.confirmationReason = confirmationReason;
         this.confirmedById = confirmedById;
-        this.occurredAt = occurredAt != null ? occurredAt : Instant.now();
+        this.occurredAt = occurredAt != null ? occurredAt : now;
     }
 
     public Long getId() {
@@ -101,10 +102,6 @@ public class PrescriptionIssue {
 
     public Long getPrescriptionId() {
         return prescriptionId;
-    }
-
-    public void setPrescriptionId(Long prescriptionId) {
-        this.prescriptionId = prescriptionId;
     }
 
     public Long getReconciliationLineId() {

@@ -186,7 +186,8 @@ public class Prescription {
             Long reconciliationTicketId,
             Long creatorId,
             Instant createdAt,
-            Set<Long> allergenIds) {
+            Set<Long> allergenIds,
+            Instant now) {
         this.residentId = residentId;
         this.medicationId = medicationId;
         this.dosage = dosage;
@@ -215,7 +216,7 @@ public class Prescription {
         this.replacesId = replacesId;
         this.reconciliationTicketId = reconciliationTicketId;
         this.creatorId = creatorId;
-        this.createdAt = createdAt != null ? createdAt : Instant.now();
+        this.createdAt = createdAt != null ? createdAt : now;
         if (allergenIds != null) {
             this.allergenIds.addAll(allergenIds);
         }
@@ -281,15 +282,11 @@ public class Prescription {
         return startedAt;
     }
 
-    public void setStartedAt(Instant startedAt) {
-        this.startedAt = startedAt;
-    }
-
     public LocalDate getEndedAt() {
         return endedAt;
     }
 
-    public void setEndedAt(LocalDate endedAt) {
+    public void changeEndDate(LocalDate endedAt) {
         this.endedAt = endedAt;
     }
 
@@ -297,8 +294,12 @@ public class Prescription {
         return suspendedFrom;
     }
 
-    public void setSuspendedFrom(Instant suspendedFrom) {
+    public void scheduleSuspensionFrom(Instant suspendedFrom) {
         this.suspendedFrom = suspendedFrom;
+    }
+
+    public void cancelScheduledSuspension() {
+        this.suspendedFrom = null;
     }
 
     public MedicationSource getMedicationSource() {
@@ -333,7 +334,7 @@ public class Prescription {
         return instructionNote;
     }
 
-    public void setInstructionNote(String instructionNote) {
+    public void changeInstructionNote(String instructionNote) {
         this.instructionNote = instructionNote;
     }
 
@@ -341,24 +342,12 @@ public class Prescription {
         return status;
     }
 
-    public void setStatus(PrescriptionStatus status) {
-        this.status = status;
-    }
-
     public SuspensionReason getSuspensionReason() {
         return suspensionReason;
     }
 
-    public void setSuspensionReason(SuspensionReason suspensionReason) {
-        this.suspensionReason = suspensionReason;
-    }
-
     public boolean isPendingAdmission() {
         return pendingAdmission;
-    }
-
-    public void setPendingAdmission(boolean pendingAdmission) {
-        this.pendingAdmission = pendingAdmission;
     }
 
     public Long getReplacesId() {
@@ -369,10 +358,6 @@ public class Prescription {
         return terminationReason;
     }
 
-    public void setTerminationReason(TerminationReason terminationReason) {
-        this.terminationReason = terminationReason;
-    }
-
     public Long getReconciliationTicketId() {
         return reconciliationTicketId;
     }
@@ -381,8 +366,12 @@ public class Prescription {
         return expirationWarnedAt;
     }
 
-    public void setExpirationWarnedAt(Instant expirationWarnedAt) {
-        this.expirationWarnedAt = expirationWarnedAt;
+    public void markExpirationWarned(Instant warnedAt) {
+        this.expirationWarnedAt = warnedAt;
+    }
+
+    public void clearExpirationWarning() {
+        this.expirationWarnedAt = null;
     }
 
     public Long getCreatorId() {
@@ -401,14 +390,7 @@ public class Prescription {
         return Collections.unmodifiableSet(allergenIds);
     }
 
-    public void setAllergenIds(Set<Long> allergenIds) {
-        this.allergenIds.clear();
-        if (allergenIds != null) {
-            this.allergenIds.addAll(allergenIds);
-        }
-    }
-
-    public void setReplacesId(Long replacesId) {
+    public void markReplaces(Long replacesId) {
         this.replacesId = replacesId;
     }
 
