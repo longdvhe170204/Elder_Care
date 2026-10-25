@@ -4,7 +4,6 @@ import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m09.api.spi.TripDutyPort;
 import com.cambae.backend.m09.assignment.internal.service.AssignmentQueries;
-import com.cambae.backend.m09.shift.internal.domain.WorkShift;
 import com.cambae.backend.m15.account.api.spi.DutyApi;
 import java.time.Instant;
 import java.util.*;
@@ -34,10 +33,7 @@ public class DutyDirectory implements DutyApi {
     }
 
     public Optional<Long> shiftLead(long floor, Instant at) {
-        return shifts.atFloor(floor, at)
-                .filter(s -> !s.missingLead())
-                .filter(s -> s.leadStaffId() != null && shifts.inProgressMember(s.leadStaffId(), at))
-                .map(WorkShift::leadStaffId);
+        return shifts.leadAtFloor(floor, at);
     }
 
     public Optional<Long> assignedFloorManager(long floor, Instant at) {

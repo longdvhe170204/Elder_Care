@@ -214,6 +214,46 @@ public class ShiftStore {
                 sql(at));
     }
 
+    public List<Long> leadStaffAt(long shift, Instant at) {
+        return jdbc.query(
+                "SELECT h.staff_id FROM shift_lead_history h JOIN work_shift s ON s.id=h.shift_id"
+                        + " JOIN shift_staff m ON m.shift_id=h.shift_id AND m.staff_id=h.staff_id"
+                        + " WHERE s.id=? AND s.status NOT IN ('DRAFT','CANCELLED')"
+                        + " AND s.starts_at<=? AND s.ends_at>? AND h.starts_at<=? AND (h.ends_at IS NULL OR h.ends_at>?)"
+                        + " AND m.approved_leave_request_id IS NULL AND " + MEMBER_FROM + "<=? AND " + MEMBER_TO + ">?",
+                (r, i) -> r.getLong("staff_id"),
+                shift,
+                sql(at),
+                sql(at),
+                sql(at),
+                sql(at),
+                sql(at),
+                sql(at));
+    }
+
+    public List<ShiftLeadPeriod> leadPeriods(long staff, Instant from, Instant to) {
+        String source = "SELECT s.id AS shift_id,s.scope_id,s.ends_at AS shift_ends_at,"
+                + " GREATEST(s.starts_at,h.starts_at,COALESCE(m.added_at,s.starts_at)) AS effective_from,"
+                + " LEAST(s.ends_at,COALESCE(h.ends_at,s.ends_at),COALESCE(m.absent_at,s.ends_at),"
+                + " COALESCE(m.left_at,s.ends_at),COALESCE(m.withdrawn_on_resignation_at,s.ends_at)) AS effective_to"
+                + " FROM shift_lead_history h JOIN work_shift s ON s.id=h.shift_id"
+                + " JOIN shift_staff m ON m.shift_id=h.shift_id AND m.staff_id=h.staff_id"
+                + " WHERE h.staff_id=? AND s.scope_type IN ('FLOOR','AREA') AND s.status NOT IN ('DRAFT','CANCELLED')"
+                + " AND m.approved_leave_request_id IS NULL";
+        return jdbc.query(
+                "SELECT * FROM (" + source + ") periods WHERE effective_from<? AND effective_to>?"
+                        + " AND effective_to>effective_from ORDER BY effective_from,shift_id",
+                (r, i) -> new ShiftLeadPeriod(
+                        r.getLong("shift_id"),
+                        r.getLong("scope_id"),
+                        instant(r, "effective_from"),
+                        instant(r, "effective_to"),
+                        instant(r, "shift_ends_at")),
+                staff,
+                sql(to),
+                sql(from));
+    }
+
     public List<WorkShift> locationReferences(String type, long id, boolean activeOnly) {
         return jdbc.query(
                 "SELECT * FROM work_shift WHERE scope_type=? AND scope_id=?"

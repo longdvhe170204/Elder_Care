@@ -200,13 +200,16 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 ## Phase 9: Polish & Cross-Cutting
 
-- [ ] T042 [P] Hoàn tất đối chiếu `ApiContractIT` với `specs/008-staff-shift-handover/contracts/api-008.yaml` (phần đăng ký đã lấy sớm vào T006 để kiểm ngay controller nền; giảm danh sách PENDING khi cài từng story); mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 008
-- [ ] T043 Thay bản giả của 002 (002 T003), 005 → 007 (`NhanSuCaPort`, `DieuDuongCaPort`, `NhanSuCanhBaoPort`) bằng bản cài của 008 và chạy lại test của các feature đó
-- [ ] T044 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T045 Rà truy vết data-model mục 11: DBR-20, 21, 23, 25, 36 và BR-M09-01 → 08, 12 → 17, BR-M04-13, BR-M05-05 (phần 008) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-048, FR-049, FR-050, FR-051, FR-052, FR-053, FR-054, FR-056, FR-057, FR-058, FR-059, FR-060 — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [x] T042 [P] Chốt đối chiếu đầy đủ `ApiContractIT` với `contracts/api-008.yaml` (pending và pendingResponses rỗng, checkOperations=true); bổ sung `BT/m09/M09RecordProtectionIT.java` kiểm đủ BEFORE UPDATE/DELETE trên mười một bảng ghi nhận/lịch sử JDBC và chặn quản trị sửa/xóa bản gốc. Giữ test chung 000 của A; lý do tách và bảng truy vết ở plan Phase 9, `validation.md`.
+- [x] T043 Kiểm các SPI của 002, 005–007 bằng bean thật của 008 trong `BT/m09/StaffModuleIntegrationIT.java`, không nhập FakeM15Config: nối ScopeApi thật của A, kiểm lịch sử phụ trách/chuyển người/vắng/biên CFG và phạm vi. Giữ test cô lập của chủ module khác; phần chạy lại toàn luồng nguồn thật tách T043b.
+- [ ] T043b Khi C/D có nghiệp vụ 005–007 và bộ test tương ứng: chủ module thay cấu hình fake nguồn 008 trong lượt kiểm tích hợp, chạy lại test với CareShiftPort/NursingShiftPort/AlertStaffPort thật. A review hồi quy 002 với nguồn 008. Không coi test fake callback là nghiệm thu nguồn công việc/liều/cảnh báo thật.
+- [x] T044 Chạy nền `./mvnw clean verify`, `npm test`, lint/build và `flutter test --no-pub`; đối chiếu tự động các Q/SC của quickstart theo `validation.md`. Flutter hiện chỉ kiểm phần người cao tuổi đã mở; phần demo đầu–cuối/đo thực tế và mobile nhân viên tách T044b.
+- [ ] T044b Sau khi đủ nguồn/dữ liệu demo 001/003–007/013–015 và mở mobile nhân viên: chạy quickstart mục 3 đầu–cuối, Q38 trên app; đo SC-002/SC-010 với ít nhất mười lần thao tác thật, SC-003 bằng vận hành thử một tháng. Lưu chứng cứ theo hướng dẫn ở `validation.md`, không dùng thời gian test tự động thay số đo người dùng.
+- [x] T045 Rà truy vết data-model mục 11 và `validation.md`: DBR-20, 21, 23, 25, 36; BR-M09-01 → 08, 12 → 17, BR-M04-13, BR-M05-05 (phần 008); FR-048 → FR-060 đều có task/test hoặc task nghiệm thu còn mở. Ghi đúng giới hạn phụ thuộc/mobile và bằng chứng từng Q/SC (constitution XV); không đánh đạt FR-060 mobile khi chưa làm T030.
 
 ---
-- [ ] T049 [P] *(Bổ sung 2026-10-22, 007 FR-047i)* Cài `dangTrongCa`, `tangTrongCa`, `tangDangCoCa` của `NhanSuCanhBaoPort` trong `TraCuuCaService` (cùng quy tắc `CaTrucApi.dangTrongCa`, vai trò không xếp ca theo CFG-M13-06) và mở rộng test `NhanSuCanhBaoPortIT` (quickstart K1); chạy lại test US13 của 007 với bản thật (007 T063)
+- [x] T049 [P] *(Bổ sung 2026-10-22, 007 FR-047i)* Chốt ba hàm `AlertStaffPort.onShift`, `floorDuringShift`, `floorsWithShift` đã cài trong AlertStaffLookup/ShiftQueries; `BT/m09/AlertStaffPortIT.java` kiểm K1 với bean thật, biên ca/vắng/giờ hành chính CFG/danh sách tầng, không dùng fake ca. Sửa ví dụ K1 theo Q-332: vai trò không xếp ca là Quản lý viện/Hành chính/Kế toán. Phần kiểm nghiệp vụ US13 của D tách T049b.
+- [ ] T049b Khi D có US13 của 007: chạy lại H1–H9 với AlertStaffPort thật (007 T063/T099); D review ba hàm và bản giả chung hiện có. Nhánh hiện chưa có bộ test nghiệp vụ này, chưa nghiệm thu nút hỗ trợ khẩn cấp đầu–cuối.
 
 ## Dependencies & Execution Order
 

@@ -1264,6 +1264,17 @@ Người dùng đã duyệt API tối thiểu của B/C/D, `AssignmentView.scope
 | Ngoài khoảng ghi vắng / cần người thay | `OUTSIDE_ABSENCE_REPORTING_WINDOW / REPLACEMENT_LEAD_REQUIRED` |
 | DTO thân lệnh HTTP / phản hồi căn cứ | `ShiftRequests.AddStaff / ChangeLead / RecordAbsence / ReasonBody`; `ShiftResponses.DutyBasis` |
 
+### 14.14. Kiểm tích hợp và lịch sử phụ trách Phase 9 (2026-10-26)
+
+| Tiếng Việt | Tên trong mã / tài liệu |
+| --- | --- |
+| Khoảng phụ trách đã ghi theo thời gian ca/thành viên | `ShiftLeadPeriod(shiftId, floorAreaId, startsAt, endsAt, shiftEndsAt)` trong `shift.internal.domain` |
+| Người phụ trách đúng thời điểm / khoảng lịch sử | `ShiftStore.leadStaffAt / leadPeriods`, `ShiftQueries.leadAtFloor`; đọc `shift_lead_history` |
+| Lỗi dữ liệu nguồn nhiều người phụ trách tại một mốc | `MULTIPLE_SHIFT_LEADS` trong `InvalidPermissionDataException`, nguồn `M09.SHIFT` |
+| Kiểm bảo vệ bản gốc JDBC / SPI ca cảnh báo / nối phạm vi thật | `M09RecordProtectionIT / AlertStaffPortIT / StaffModuleIntegrationIT` |
+| Biên bản kiểm chứng, truy vết và số đo còn chờ | `specs/008-staff-shift-handover/validation.md` |
+| Bảo vệ lịch sử chuyển bộ phận, đóng khoảng một lần | `V008_08__protect_staff_department_history.sql`; `trg_staff_department_close_once / trg_staff_department_no_delete`, chỉ `UPDATE(ends_at)` |
+
 ## 15. Feature 009 (`009-notification-service`, A) *(bổ sung 2026-10-21, khi dịch `contracts/api-009.yaml`)*
 
 Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với mã (R-03). Khuôn `common.notification` đã dịch ở mục 6.5 (`NotificationRequest`, `NotificationLevel`, `InformationType`, `RecipientGroup`, `Substitution`, `InformationSubject`, `Q354Case`) giữ nguyên.
