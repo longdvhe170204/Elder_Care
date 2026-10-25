@@ -858,6 +858,20 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | `DonGiaService` | `UnitPriceService` (`internal.servicecatalog.service`) |
 | `PhanLoaiTruongProvider` | `M02FieldClassificationConfig` (`internal.transition.config`): bốn provider `M02.CONTRACT`, `M02.ADDENDUM` (tên tạm), `M02.RESIDENCY_CHANGE`, `M02.DEATH_RECORD` |
 
+### 10.9. Bổ sung khi cài Phase 3 (US1, T013 → T018, 2026-10-25)
+
+*Tên cài thực tế của đăng ký tiếp nhận; mã lỗi, cảnh báo, mã dòng điều kiện mà 10.3, 10.4 chưa đặt. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| lỗi `NCT_KHONG_DANG_TIEP_NHAN`, `LUOT_DA_DONG`, `NGAY_DANG_KY_BI_KHOA` | `RESIDENT_NOT_ADMISSION_IN_PROGRESS` (409), `APPLICATION_CLOSED` (409), `APPLICATION_DATE_LOCKED` (409, BR-M02-15) |
+| cảnh báo lệch mức, lệch loại lưu trú, chưa vào ở (FR-005, FR-076) | `CONTRACT_CARE_LEVEL_MISMATCH`, `RESIDENCE_TYPE_MISMATCH`, `NOT_YET_ADMITTED_FEE_CHARGED` |
+| mã dòng điều kiện khi Đạt: (a), (d), (f) (khi Chưa đạt dòng mang mã điều kiện của module sở hữu: `INITIAL_ASSESSMENT_NOT_CONFIRMED`, `INITIAL_ASSESSMENT_EXPIRED`, mã của 003, `DBR_02`) | `ADM_A_ASSESSMENT`, `ADM_D_BED`, `ADM_F_CONTACTS`; dòng (b), (c), (e) giữ `ADM_B_CONTRACT`, `ADM_C_DEPOSIT`, `ADM_E_CONTRACT_LEVEL` |
+| nhật ký lượt đăng ký | `M02_APPLICATION_CREATED`, `M02_APPLICATION_UPDATED`, `M02_APPLICATION_OPINION`, `M02_APPLICATION_ADMITTED`, `M02_APPLICATION_CANCELLED` (loại đối tượng `M02.ADMISSION_APPLICATION`) |
+| lớp trong `m02.internal.application` | `domain`: `AdmissionApplication`, `AdmissionOpinion`, `ApplicationStatus`, `OpinionChoice`, `OpinionStatus`; `persistence`: `AdmissionApplicationStore`; `service`: `AdmissionApplicationService`, `AdmissionOpinionService`, `AdmissionConditionService` (cài `AdmissionConditionApi`), `AdmissionContractConditions` ((b), (c), (e) dùng chung bean và danh sách), `AdmissionTransition` (tác động Hoàn tất, Hủy tiếp nhận), `AdmissionOpinionWarnings`, `NotYetAdmittedReminder`, `AdmissionApplicationScopeAssignment`, `AdmissionApplicationRetention`, `M02ActorNames` |
+| việc nhắc `NHAC` của `ViecHangNgayM02` | `M02ReminderTask` (việc `REMINDERS`, `latestDayOnly`) chạy các bean `ReminderRule`; ghi qua `ReminderLog` (`m02_reminder`); loại nhắc `NOT_YET_ADMITTED` (`CHUA_VAO_O`) |
+| bản giả hợp đồng đọc cho tới Phase 5 | `support/fake/m02/FakeContractReads` (`ContractReadApi`) |
+
 ## 11. Feature 005 (`005-daily-care-tasks`, C)
 
 *Chủ feature điền khi dịch `contracts/api-005.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
