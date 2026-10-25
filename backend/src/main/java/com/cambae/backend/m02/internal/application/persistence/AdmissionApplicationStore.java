@@ -147,6 +147,14 @@ public class AdmissionApplicationStore {
                 id);
     }
 
+    /** Đưa vào danh sách chờ: lượt Đang xử lý thành Đang chờ (FR-007); tăng phiên bản để sửa đồng thời bị từ chối. */
+    public void markWaiting(long id) {
+        jdbc.update(
+                "UPDATE admission_application SET status = 'WAITING', version = version + 1 WHERE id = ? AND status ="
+                        + " 'IN_PROGRESS'",
+                id);
+    }
+
     public void markCancelled(long id) {
         jdbc.update("UPDATE admission_application SET status = 'CANCELLED', version = version + 1 WHERE id = ?", id);
     }

@@ -9,6 +9,7 @@ import com.cambae.backend.m02.internal.application.service.AdmissionApplicationS
 import com.cambae.backend.m02.internal.application.service.AdmissionConditionService;
 import com.cambae.backend.m02.internal.application.service.AdmissionOpinionService;
 import com.cambae.backend.m02.internal.application.service.M02ActorNames;
+import com.cambae.backend.m02.internal.waitinglist.service.WaitingListService;
 import com.cambae.backend.m02.web.request.AdmissionApplicationInputBody;
 import com.cambae.backend.m02.web.request.RecordAdmissionOpinionBody;
 import com.cambae.backend.m02.web.request.UpdateAdmissionApplicationBody;
@@ -52,16 +53,19 @@ class AdmissionApplicationController {
     private final AdmissionOpinionService opinions;
     private final AdmissionConditionService conditions;
     private final M02ActorNames names;
+    private final WaitingListService waitingList;
 
     AdmissionApplicationController(
             AdmissionApplicationService applications,
             AdmissionOpinionService opinions,
             AdmissionConditionService conditions,
-            M02ActorNames names) {
+            M02ActorNames names,
+            WaitingListService waitingList) {
         this.applications = applications;
         this.opinions = opinions;
         this.conditions = conditions;
         this.names = names;
+        this.waitingList = waitingList;
     }
 
     @GetMapping("/admission-applications")
@@ -109,7 +113,11 @@ class AdmissionApplicationController {
         Detail detail = applications.get(target, id);
         return ResponseEntity.ok()
                 .eTag(VersionEtag.of(detail.application().version()))
-                .body(AdmissionApplicationBody.of(detail.application(), detail.opinions(), names::of));
+                .body(AdmissionApplicationBody.of(
+                        detail.application(),
+                        detail.opinions(),
+                        names::of,
+                        waitingList.entryIdOfApplication(id).orElse(null)));
     }
 
     @PostMapping("/admission-applications/{id}/update")

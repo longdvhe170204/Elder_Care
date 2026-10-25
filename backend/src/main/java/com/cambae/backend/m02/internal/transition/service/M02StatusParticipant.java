@@ -9,6 +9,7 @@ import com.cambae.backend.m01.api.dto.Warning;
 import com.cambae.backend.m01.api.spi.StatusTransitionParticipant;
 import com.cambae.backend.m02.internal.application.service.AdmissionContractConditions;
 import com.cambae.backend.m02.internal.application.service.AdmissionTransition;
+import com.cambae.backend.m02.internal.waitinglist.service.WaitingListTransition;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -50,10 +51,15 @@ class M02StatusParticipant implements StatusTransitionParticipant {
 
     private final AdmissionContractConditions admissionConditions;
     private final AdmissionTransition admissionTransition;
+    private final WaitingListTransition waitingListTransition;
 
-    M02StatusParticipant(AdmissionContractConditions admissionConditions, AdmissionTransition admissionTransition) {
+    M02StatusParticipant(
+            AdmissionContractConditions admissionConditions,
+            AdmissionTransition admissionTransition,
+            WaitingListTransition waitingListTransition) {
         this.admissionConditions = admissionConditions;
         this.admissionTransition = admissionTransition;
+        this.waitingListTransition = waitingListTransition;
     }
 
     /** Hoàn tất tiếp nhận: điều kiện (b), (c), (e) của FR-004 (research T-09); lệnh khác bổ sung ở user story của chúng. */
@@ -109,12 +115,18 @@ class M02StatusParticipant implements StatusTransitionParticipant {
         }
     }
 
-    /** Tác động của Hoàn tất tiếp nhận, Hủy tiếp nhận lên lượt đăng ký (FR-002); lệnh khác thêm ở user story của chúng. */
+    /**
+     * Tác động của Hoàn tất tiếp nhận, Hủy tiếp nhận lên lượt đăng ký và hồ sơ chờ (FR-002); lệnh khác thêm ở user story
+     * của chúng.
+     */
     @Override
     public void applyEffects(TransitionResult result) {
         switch (result.command()) {
             case COMPLETE_ADMISSION -> admissionTransition.completed(result);
-            case CANCEL_ADMISSION -> admissionTransition.cancelled(result);
+            case CANCEL_ADMISSION -> {
+                waitingListTransition.cancelled(result);
+                admissionTransition.cancelled(result);
+            }
             default -> {}
         }
     }
