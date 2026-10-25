@@ -80,4 +80,25 @@ class RecordGroupTriggerIT extends MySqlIntegrationTestBase {
                     .hasFieldOrPropertyWithValue("SQLState", "45000");
         }
     }
+
+    @Test
+    void DBR_23_m03SqlRecordTablesHaveBothAppendOnlyTriggers() throws SQLException {
+        // room_isolation_history là bảng SQL thuần nên phép quét @Entity phía trên không thấy.
+        try (Connection c = adminConnection();
+                var query = c.prepareStatement(
+                        "SELECT EVENT_MANIPULATION,ACTION_TIMING,ACTION_STATEMENT FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA=DATABASE() AND EVENT_OBJECT_TABLE=?")) {
+            for (String table : List.of("bed_state_history", "room_isolation_history")) {
+                query.setString(1, table);
+                Set<String> events = new HashSet<>();
+                try (var rows = query.executeQuery()) {
+                    while (rows.next()) {
+                        events.add(rows.getString(1));
+                        assertThat(rows.getString(2)).isEqualTo("BEFORE");
+                        assertThat(rows.getString(3)).contains("45000");
+                    }
+                }
+                assertThat(events).as(table).contains("UPDATE", "DELETE");
+            }
+        }
+    }
 }

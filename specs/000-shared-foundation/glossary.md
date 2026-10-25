@@ -656,7 +656,168 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 
 ## 9. Feature 003 (`003-room-bed-allocation`, C)
 
-*Chủ feature điền khi dịch `contracts/api-003.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+**Phase 1 (2026-10-22)**: bảng dưới chỉ chốt tên phần khung/SPI cần cho T001–T002. `contracts/api-003.yaml` chưa dịch; chưa chốt tên endpoint/schema HTTP trong lượt này.
+
+| Tên logic | Tên trong mã |
+| --- | --- |
+| `cocau`, `giuong`, `phanbo`, `cachly`, `bantru`, `lich` | `internal.structure`, `internal.bed`, `internal.allocation`, `internal.isolation`, `internal.daycare`, `scheduling` |
+| `NguonLuuTruChoPhanBo` | `api.spi.AllocationResidencySource` |
+| `loaiLuuTru`, `mucTheoHopDong`, `mucTheoLuotDangKy`, `ketThucDuKien`, `giuGiuongKhiVang`, `khacDonGia`, `hoSoChoHetHanGiuCho`, `daPhanBo` | `residencyType`, `careLevelFromContract`, `careLevelFromRegistration`, `expectedEnd`, `holdBedWhenAbsent`, `differentUnitPrice`, `waitingRecordHoldExpired`, `allocated` |
+| `DemLichDenBanTru.demTuNgay`, `coLichTuongLai` | `api.spi.DayCareArrivalCounter.countFrom`, `hasFutureArrivals` |
+| `TinhTrangLayNhiemChoPhanBo.vungDangKhoanh`, `thuocDanhSach` | `api.spi.AllocationInfectionStatus.cordonedAt`, `listedAt` |
+| `ThamChieuViTri.dangThamChieu`, `daTungThamChieu` | `api.spi.LocationReferences.currentReferences`, `everReferenced` |
+| `TaiSanGiuongPort.ghiTangChoGiuong`, `mangDauChoChuyenNguoi`, `giuongMangDau` | `internal.bed.domain.BedAssetPort.recordIncreaseForBed`, `awaitingResidentTransfer`, `flaggedBeds` |
+| `BuoiNgay`, `BuoiBanTru`, `ViTriRef` | `api.dto.SessionDate` (`date`, `sessionId`), `DayCareSession` (`id`, `name`, `startTime`, `endTime`, `active`), `LocationRef` (`type`, `id`) |
+| `GiuGiuong`, `VungKhoanh`, `ThamChieuView` | `api.spi.HeldBed` (`held`, `until`), `CordonedArea` (`floorIds`, `areaIds`), `LocationReferenceView` (`type`, `id`, `label`) |
+| Mã mức `CO_BAN`, `THUONG_XUYEN`, `DAC_BIET` trong SPI phân bổ | `api.spi.CareLevelCode`: `BASIC`, `FREQUENT`, `SPECIAL` |
+| Loại lưu trú nội trú dài hạn, nội trú ngắn ngày, bán trú trong SPI phân bổ | `api.spi.ResidencyType`: `LONG_TERM`, `SHORT_TERM`, `DAY_CARE` |
+| `BT/support/gia003/`, bản giả năm cổng T002 | `support/fake/m03/`: `FakeM03Config`, `FakeAllocationResidencySource`, `FakeDayCareArrivals`, `FakeAllocationInfectionStatus`, `FakeLocationReferences`, `FakeBedAssets` |
+| Màn web 003 | `frontend/src/features/beds/` (đã chốt ở frontend/README.md; Phase 1 chưa sửa web) |
+
+**Phase 2 (2026-10-23)**: khai báo hợp đồng nội bộ và nền dữ liệu; hợp đồng HTTP vẫn chưa dịch.
+
+| Tên logic | Tên trong mã |
+| --- | --- |
+| `ViTriApi` | `api.ResidentLocationApi`: `current`, `current`, `at`, `floorOn`, `hasNoBed`, `currentOrFutureAllocation` |
+| `LichSuViTriApi` | `api.LocationHistoryApi`: `byResident`, `byLocation`, `byLocationOn`, `roommates` |
+| `PhanBoGiuongLenhApi` | `api.BedAllocationCommandApi`: `holdForWaitingRecord`, `cancelHold`, `releaseWhenAbsent`, `extendExpectedEnd`, `checkScheduledReservation`, `reserveScheduledTransfer`, `checkScheduledTransfer`, `applyScheduledTransfer`, `cancelScheduledAllocation`, `requestCreatedAfterUrgentTransfer`, `urgentTransferRequestResult` |
+| `SucChuaBanTruApi` | `api.DayCareCapacityApi`: `lock`, `occupiedSessions`, `checkCapacity` |
+| `CoCauViTriApi` | `api.LocationStructureApi`: `bed`, `room`, `floor`, `area`, `active`, `floorsInArea`, `dayCareRestAreaLocation`, `roomTypeOfBed` |
+| `PhongChoPhepApi` | `api.RoomPolicyApi`: `currentRoomAllows`, `allocationProperties` |
+| `TinhTrangGiuongApi` | `api.BedStatusApi`: `countByState`, `countAvailable`, `flaggedBeds`, `emptyPeriodStarted`, `overdueAwaitingReady` |
+| `GiuongThongKeApi` | `api.BedStatisticsApi`: `stateAt`, `awaitingReady`, `isolatedRooms` |
+| `CanhBaoBanGiaoApi` | `api.BedHandoverAlertApi`: `byFloor` |
+| `GiuongTheoTaiSanPort`, `LenhTaiSanGiuong` | `internal.bed.domain.BedAssetCommandPort`, `BedAssetCommand` (MAINTENANCE, READY, RETIREMENT) |
+| Trạng thái Trống, Đang sử dụng, Đang giữ chỗ, Chờ sẵn sàng, Đang bảo trì, Tạm ngừng, Không sử dụng | `api.dto.BedStatus`: EMPTY, OCCUPIED, HELD, AWAITING_READY, UNDER_MAINTENANCE, SUSPENDED, RETIRED |
+| Chính sách phòng nam/nữ/không giới hạn; giới tính người cao tuổi nam/nữ | `api.dto.GenderPolicy`: MALE/FEMALE/UNRESTRICTED; `ResidentGender`: MALE/FEMALE |
+| `GiuongTrangThaiService`, bảng chuyển, lịch sử/truy cập trạng thái | `internal.bed.service.BedStateService`, `domain.BedTransitions`, `persistence.BedStateStore` |
+| `khu_vuc`, `tang`, `loai_phong`, `loai_phong_muc`, `phong`, `phong_muc_cho_phep`, `ly_do_chuyen_giuong` | `area`, `floor`, `room_type`, `room_type_care_level`, `room`, `room_allowed_care_level`, `bed_transfer_reason` |
+| `giuong`, `lich_su_trang_thai_giuong`; thuộc tính trạng thái/giữ chỗ/hạn | `bed`, `bed_state_history`; `state`, `hold_reason`, `hold_resident_id`, `hold_waiting_record_id`, `hold_until`, `ready_deadline`, `last_closed_allocation_id`, `suspension_reason` |
+| `phan_bo_giuong`, `lich_su_cach_ly_phong`, `yeu_cau_nhap_bu`, `nhac_phan_bo` (bảng tạo ở các phase sau) | `bed_allocation` (`resident_id`, `bed_id`, `status`, `previous_allocation_id`), `room_isolation_history` (`room_id`, `occurred_at`), `bed_backfill_request` (`current_allocation_id`), `allocation_reminder` (`target_type`, `target_id`) |
+| `thoi_diem`, `thoi_diem_du_kien`, `thuc_hien_tre`, `da_khu_khuan`, `da_dung_bao_ho`, `bat_buoc_khu_khuan` | `occurred_at`, `planned_at`, `executed_late`, `disinfected`, `ppe_used`, `disinfection_required` |
+| Lý do thông thường; lý do lây nhiễm/cách ly trong dữ liệu nhật ký | `reason`; `infectionControlReason`, `isolationReason` (HEALTH); cột reason của nhật ký cũng bị che khi các trường này bị che |
+| `M03.GIUONG`, `M03.PHONG`, `M03.PHAN_BO_GIUONG`, `M03.LICH_SU_TRANG_THAI_GIUONG`, `M03.LICH_SU_CACH_LY_PHONG`, `M03.XAC_NHAN_SAN_SANG` | `M03.BED`, `M03.ROOM`, `M03.BED_ALLOCATION`, `M03.BED_STATE_HISTORY`, `M03.ROOM_ISOLATION_HISTORY`, `M03.BED_READINESS_CONFIRMATION` |
+| `M03_GIUONG_CHUYEN`; `CHUYEN_KHONG_HOP_LE`; `CHUA_GHI_KHU_KHUAN` | `M03_BED_STATE_CHANGED`; `INVALID_BED_TRANSITION`; `DISINFECTION_CONFIRMATION_REQUIRED` |
+| Metadata thông báo sự kiện | `api.dto.BedNotificationContext` (`occurredAt`, `floorAreaId`, `recipients`); nhóm người nhận do lệnh nguồn chọn theo G-12 |
+
+| Lịch sử vị trí Phase 7 (T046–T048) | `LocationHistoryReading`, `LocationHistoryQueries`, `LocationHistoryStore`, `HistoryStay`, `HistoryAbsence`, `LocationHistoryController`; HTTP `/location-history/residents/{residentId}`, `/location-history/beds`, `/location-history/roommates` |
+| Provider đính chính và HTTP Phase 7 | `AllocationCorrectionProvider`, `ReadinessCorrectionProvider`, `HistoryCorrections`, `RecordCorrection`; `/bed-allocations/{id}/corrections`, `/beds/{id}/state-history/{historyId}/corrections` |
+| Projection/store đính chính Phase 7 | `AllocationCorrectionOriginal`, `AllocationCorrectionSnapshot`, `AllocationCorrectionStore`, `ReadinessCorrectionOriginal`, `ReadinessCorrectionStore` |
+| Schema web lịch sử và màn trong `features/beds` | `ResidentLocationHistoryRow`, `BedLocationHistoryRow`, `BedResidentHistoryRow`, `RoommateHistoryRow`, `HistoryInterval`, `HistoryAbsenceResponse`; `LocationHistoryPanel`, `AllocationCorrectionForm` |
+
+| Sự kiện logic | Record tại `api.events` |
+| --- | --- |
+| `GiuongDaTrong` | `BedBecameEmpty` |
+| `PhanBoDaBatDau` | `BedAllocationStarted` |
+| `PhanBoDaDong` | `BedAllocationClosed` |
+| `DaChuyenGiuong` | `BedTransferred` |
+| `GiuChoNguoiVangHetHan` | `AbsentResidentHoldExpired` |
+| `PhongDaDatCachLy` | `RoomIsolated` |
+| `PhongDaGoCachLy` | `RoomIsolationLifted` |
+| `PhanBoDaDinhChinh` | `BedAllocationCorrected` |
+| `DaChuyenGiuongKhacGia` | `DifferentPriceBedTransfer` (MEDIUM) |
+| `BacSiDuocGhiChiDinh` | `DoctorAssignedToAllocation` (LOW) |
+| `TroVePhongCachLy` | `ReturnedToIsolatedRoom` (URGENT) |
+| `PhanBoKhongConPhuHop` | `AllocationNoLongerSuitable` (MEDIUM) |
+| `PhanBoTuongLaiQuaBatDau` | `FutureAllocationPastStart` (MEDIUM) |
+| `PhanBoTuongLaiBiHuyDoGiuongHong` | `FutureAllocationCancelledForDamagedBed` (MEDIUM) |
+| `ChuyenTheoLichChoGiuong` | `ScheduledTransferWaitingForBed` (MEDIUM) |
+| `NhacPhanBo` | `AllocationReminder` (LOW) |
+| `NhacGiuongChoSanSang` | `BedReadinessReminder` (LOW) |
+| `NguoiRoiGiuongVaoDanhSachTiepXuc` | `FormerOccupantListed` (MEDIUM) |
+| `ViecLichTre` | `DelayedScheduledWork` (MEDIUM) |
+| `KhuNghiVuotSucChua` | `DayCareOverCapacity` (MEDIUM) |
+
+**Phase 3 — phần backend độc lập (2026-10-23, chưa hoàn tất phase)**:
+
+| Tên logic / vai trò | Tên trong mã |
+| --- | --- |
+| Khu vực, tầng, loại phòng, phòng, lý do chuyển | `internal.structure.domain.Area`, `Floor`, `RoomType`, `Room`, `BedTransferReason` (entity `CatalogBase`, CATALOG) |
+| Giường | `internal.bed.domain.Bed` (BUSINESS; JPA không ghi `state`) |
+| Loại danh mục, dữ liệu lệnh nội bộ | `StructureKind`, `StructureChange` (không phải schema HTTP) |
+| Dịch vụ / kho cơ cấu | `internal.structure.service.StructureService`, `internal.structure.persistence.StructureStore` |
+| Tạo giường và kết quả/cảnh báo | `internal.bed.service.BedService`, `internal.bed.persistence.BedStore`, `BedCreation`, `BedWarning` |
+| `VUOT_SO_GIUONG_TIEU_CHUAN` | `STANDARD_BED_COUNT_EXCEEDED` (cảnh báo nội bộ, chưa dịch hợp đồng HTTP) |
+| Mã/tên trùng, dữ liệu cơ cấu sai, thiếu nguồn kiểm | `DUPLICATE_CODE`, `INVALID_STRUCTURE`, `SOURCE_UNAVAILABLE` |
+| Nhật ký cơ cấu tạo/sửa/ngừng/kích hoạt/xóa | `M03_STRUCTURE_CREATED`, `M03_STRUCTURE_UPDATED`, `M03_STRUCTURE_DEACTIVATED`, `M03_STRUCTURE_REACTIVATED`, `M03_STRUCTURE_DELETED` |
+| Nhật ký tạo giường | `M03_STRUCTURE_CREATED`, entity `M03.BED`, `after.roomId/code`, `details.warnings` (ngoài nhật ký chuyển trạng thái) |
+
+**Phase 3 — HTTP/API đọc và web được duyệt (2026-10-23)**:
+
+| Tên logic / vai trò | Tên trong mã / hợp đồng |
+| --- | --- |
+| /khu-vuc, /tang, /loai-phong, /phong, /ly-do-chuyen-giuong, /giuong | /areas, /floors, /room-types, /rooms, /bed-transfer-reasons, /beds |
+| /ngung-hieu-luc, /kich-hoat-lai | /deactivate, /reactivate |
+| id, ma, ten, phienBan, trangThai danh mục | id, code, name, version, status (ACTIVE/INACTIVE) |
+| khuVucId, tangId, phongId, loaiPhongId, tenToaNha | areaId, floorId, roomId, roomTypeId, buildingName |
+| soGiuongTieuChuan, mucMacDinh, mucChoPhep, chinhSachGioiTinh | standardBeds, defaultCareLevels, allowedCareLevels, genderPolicy |
+| phucVuDaiHan, phucVuNganNgay, dangCachLy, yTeAnToan, coDinh | servesLongTerm, servesShortTerm, isolated, medicalSafety, fixed |
+| Trạng thái giường, vị trí, cảnh báo tạo giường | state (BedStatus), location (LocationResponse), warnings (WarningResponse), STANDARD_BED_COUNT_EXCEEDED |
+| Kết quả tạo / bảng giường | BedCreationResponse (bed, warnings), BedBoardResponse (beds, residentsWithoutBed), BedResponse |
+| Dấu giường | BedFlagCode: ROOM_UNSUITABLE, AWAITING_DOCTOR_CONFIRMATION, AWAITING_REQUEST, AWAITING_SAME_PRICE (story sau mới cấp dữ liệu) |
+| Cổng đọc cơ cấu/chính sách, đọc bảng giường | internal.structure.service.StructureQueries, internal.bed.service.BedQueries, domain.BedDetails |
+| Controller theo tài nguyên | web.AreaController, FloorController, RoomTypeController, RoomController, BedTransferReasonController, BedController |
+| Dữ liệu ghi / lý do lệnh | web.request.*Write, ReasonBody (reason dùng Reason của common) |
+| Problem riêng hợp đồng 003 / người cao tuổi trong schema bảng giường | StructureProblem (M03StructureProblem), ResidentSummarySchema (chỉ mô tả schema, Phase 3 không cấp dữ liệu người ở) |
+| Màn cơ cấu, form, khai báo danh mục | frontend/src/features/beds/BedsPage.jsx, StructureForm.jsx, bedCatalog.js |
+| Khu nghỉ bán trú tương lai được API đọc | day_care_rest_area (floor_id, area_id, status), đối chiếu migration khi triển khai story bán trú |
+
+Tại mốc chốt Phase 3, 39 operation đã dịch có x-implementation-phase: 3; các component tiếng Việt được giữ cho các phase sau. Generator không sinh client của phần chưa dịch. Đổi phòng giường chưa có đồng bộ tài sản là thao tác tạm hoãn; không có relocateForBed mới trong BedAssetPort.
+
+**Phase 4 — HTTP được duyệt dịch riêng (2026-10-23, chưa triển khai endpoint)**:
+
+| Tên logic | Tên trong hợp đồng/client |
+| --- | --- |
+| `/giuong/tong-hop` | `GET /beds/summary`, schema `BedSummary` (`byState`, `usable`, `emptyMatching`) |
+| `/phan-bo-giuong/giuong-phu-hop` | `GET /bed-allocations/suitable-beds`, schema `SuitableBed` (`location`, `state`, `futureAllocationFrom`, `earliestStartAt`, `roommates`) |
+| `/phan-bo-giuong`, `/{id}`, `/{id}/huy` | `POST /bed-allocations`, `GET /bed-allocations/{id}`, `POST /bed-allocations/{id}/cancel` |
+| `/nguoi-cao-tuoi/{nctId}/vi-tri` | `GET /residents/{residentId}/location`, schema `ResidentLocation` (`location`, `currentAllocation`, `futureAllocation`, `withoutBedSince`) |
+| `PhanBo`, `TrangThaiPhanBo`; Tương lai, Đang hiệu lực, Đã đóng, Đã hủy | `BedAllocation`, `AllocationStatus`; `FUTURE`, `ACTIVE`, `CLOSED`, `CANCELLED` |
+| `nctId`, `giuongId`, `batDau`, `tuPhanBoId`, `kiemSoatLayNhiem`, `lyDo` | `residentId`, `bedId`, `startAt`, `fromAllocationId`, `infectionControl`, `reason` |
+| `batDauDuKien`, `ketThuc`, `ketThucDuKien`, `lyDoBatDau`, `lyDoKetThuc`, `lyDoHuy` | `plannedStartAt`, `endAt`, `expectedEnd`, `startReason`, `endReason`, `cancellationReason` |
+| `nguoiMo`, `nguoiDong`, `canCu`, `phanBoTruocId`, `mucDaKiemTra`, `nguonMuc` | `openedBy`, `closedBy`, `basis` (`type`, `id`), `previousAllocationId`, `checkedCareLevel`, `careLevelSource` (`CURRENT`, `CONTRACT`, `REGISTRATION`) |
+| `bacSiChiDinh`, `nhapBu`, `thoiDiemNhapThuc`, `thoiDiemDuKien`, `thucHienTre`, `choGiuongSanSang`, `dau`, `bacSiXacNhan`, `daDinhChinh` | `prescribingDoctor`, `backfilled`, `actualRecordedAt`, `plannedAt`, `executedLate`, `waitingForBedReady`, `flags`, `doctorConfirmation` (`fullName`, `occurredAt`, `reason`), `corrected` |
+| `DA_CO_PHAN_BO`, `DIEU_KIEN_CHUA_THOA`, `PB_CHONG_THOI_GIAN` (mô tả lệnh Phase 4) | `ALREADY_ALLOCATED`, `UNMET_CONDITIONS`, `ALLOCATION_TIME_OVERLAP` (chưa có implementation) |
+
+Bảy operation mang `x-implementation-phase: 4` ghi nhận phần đã được duyệt, chưa phải trạng thái hoàn tất. Tổng 46 operation đã dịch (39 Phase 3 + 7 Phase 4); 25 operation phase sau giữ nguyên, tổng 71 operation. Các schema tên logic cũ vẫn phục vụ phase sau. Chủ dự án đã duyệt bổ sung `GET /bed-allocations`: bộ lọc `residentId`, `bedId`, `status` tùy chọn, trả mảng `BedAllocation` trong phạm vi quyền người xem; client sinh `getBedAllocations`.
+
+**Phase 4 — nền dữ liệu và API đọc (cập nhật 2026-10-24)**:
+
+| Tên logic / vai trò | Tên trong mã |
+| --- | --- |
+| Phân bổ giường, vị trí kỹ thuật theo người, mốc nhắc | `internal.allocation.domain.BedAllocation`, `ResidentPosition`, `AllocationReminder` (khóa lồng `Key`) |
+| Trạng thái và nguồn mức nội bộ | `AllocationStatus`, `CareLevelSource`; mức dùng `api.spi.CareLevelCode` hiện có |
+| Projection vị trí / kho dữ liệu / bản cài API đọc | `AllocationLocation`, `internal.allocation.persistence.AllocationStore`, `internal.allocation.service.AllocationQueries` |
+| Khóa tuần tự theo người rồi giường | `internal.allocation.service.AllocationLocks.lock` (MANDATORY) |
+| Bảng khóa người / mốc nhắc / view đã đính chính | `resident_position` (`resident_id`, `without_bed_since`, `version`), `allocation_reminder` (`target_type`, `target_id`, `flag_type`, `started_at`, `last_reminded_at`, `reminder_count`), `v_current_allocation` |
+| Cột phân bổ thời điểm và cột sinh | `start_at`, `planned_start_at`, `end_at`, `expected_end`, `effective_end`, `active_bed_id`, `active_resident_id`, `future_resident_id` |
+| Dấu mốc nhắc | `WITHOUT_BED`, `AWAITING_REQUEST`, `AWAITING_SAME_PRICE`, `ROOM_UNSUITABLE` |
+| Lỗi nguồn phân bổ mâu thuẫn | `InvalidPermissionDataException` (`source=M03.BED_ALLOCATION`, `errorKind=CONFLICTING_ALLOCATION`) |
+
+`AllocationQueries` cài `BedAllocationApi` của 002 và `ResidentLocationApi` của 003; không sửa chữ ký API/fake. T025 mới có khóa tuần tự; chưa có bộ kiểm điều kiện hoặc retry ở transaction lệnh. T026 mới có phần đọc; chưa có lệnh tạo/hủy phân bổ.
+
+**Phase 5 — phần độc lập được duyệt (2026-10-24; chưa triển khai chuyển giường)**:
+
+| Tên logic / vai trò | Tên trong mã / hợp đồng |
+| --- | --- |
+| `/phan-bo-giuong/{id}/chuyen-giuong` | `POST /bed-allocations/{id}/transfer` (x-implementation-phase: 5; pending controller) |
+| Request `ChuyenGiuong`; `giuongMoiId`, `lyDoChuyenId`, `lyDo`, `thoiDiemChuyen` | requestBody `BedTransfer`; `newBedId`, `transferReasonId`, `reason`, `transferAt` |
+| Kết quả chuyển, phân bổ cũ/mới, cảnh báo | `BedTransferResult` (`previousAllocation`, `newAllocation`, `warnings`), dùng `BedAllocation` và `Warning` đã dịch |
+| Kết quả lập yêu cầu nhập bù chờ duyệt | `BackfillRequestCreated` (`approvalRequestId`, `status`) |
+| Màn danh sách phân bổ để chuyển / form chuyển giường web | `BedTransfersPanel`, `BedTransferForm` trong `frontend/src/features/beds/` (T036) |
+| Chỉ chuyển theo chỉ định / cần yêu cầu đổi lưu trú trong mô tả HTTP Phase 5 | `INFECTION_CONTROL_TRANSFER_REQUIRED`, `RESIDENCY_CHANGE_REQUEST_REQUIRED` (chưa có implementation) |
+| Bảng kỹ thuật `yeu_cau_nhap_bu` | `bed_backfill_request` (`approval_request_id`, `resident_id`, `current_allocation_id`, `new_bed_id`, `transfer_at`), migration `V003_04__bed_backfill_request.sql` |
+| Mã loại yêu cầu nhập bù trong fixture schema (handler chưa cài) | `M03.BED_ALLOCATION_BACKFILL` (tên logic `M03.NHAP_BU_PHAN_BO`) |
+| Tạm ngừng, sử dụng lại, lịch sử trạng thái (T041) | `POST /beds/{id}/suspend`, `POST /beds/{id}/reuse`, `GET /beds/{id}/state-history?after=...`; `BedStateChanged`, `BedStateHistoryRow`, `After` |
+| Lịch sử trạng thái / actor / căn cứ | `BedHistoryEntry`; `from`, `to`, `event`, `occurredAt`, `plannedAt`, `executedLate`, `actor`, `reason`, `basis.type/id`, `disinfected`, `ppeUsed`, `note`, `corrected` |
+| Giữ chỗ và hết hạn (T040/T044) | `BedHoldService`, `BedHoldStore`, `HoldExpiryProcessor`, `HoldExpiryJob` (`EXPIRE_BED_HOLDS`) |
+| Nhật ký giải phóng, gia hạn và hết hạn giữ người vắng | `M03_ALLOCATION_CLOSED`, `M03_EXPECTED_END_EXTENDED`, `M03_ABSENT_HOLD_EXPIRED` |
+| Khóa trang lịch sử không hợp lệ | `INVALID_CURSOR` |
+| Nhánh trạng thái tài sản giường độc lập (T038/T042) | `BedAssetStateService`, `BedAssetStateStore`; chưa nối adapter `BedAssetCommandPort` đầy đủ |
+| Nhật ký hủy phân bổ tương lai do giường hỏng | `M03_FUTURE_ALLOCATION_CANCELLED` |
+| Client chuyển giường | `postBedAllocationsByIdTransfer`, sinh từ contract bằng generator |
+
+Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phase 4 +1 Phase 5 đã duyệt, 24 chưa dịch. Clone component mới, giữ component tên logic cho phase sau. T034 mới có migration/test schema, chưa handler phê duyệt; T036 mới có bản dịch và client, chưa controller/UI/mobile.
 
 ## 10. Feature 004 (`004-admission-residency`, B)
 
@@ -916,3 +1077,79 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 ## 25. Feature 019 (`019-inventory-assets`, C)
 
 *Chủ feature điền khi dịch `contracts/api-019.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+
+#### Bổ sung 003 sau merge M01 (2026-10-24)
+
+| Tên logic, mục đích | Tên trong mã |
+| --- | --- |
+| Dữ liệu người cao tuổi dùng kiểm phân bổ; mức đã chọn và nguồn | `ResidentAllocationFacts`, `CheckedCareLevel`; `CareLevel.REGULAR` (001) ánh xạ `CareLevelCode.FREQUENT` (003) |
+| Ảnh chính sách giường, kiểm FR-018 dùng chung, SQL kiểm | `AllocationCandidate`, `AllocationChecker`, `AllocationCheckStore` |
+| Ảnh lệnh và ảnh đọc phân bổ; lệnh, SQL ghi, SQL đọc, service đọc | `AllocationRecord`, `AllocationDetails`, `AllocationCommands`, `AllocationCommandStore`, `AllocationReadStore`, `AllocationReading` |
+| HTTP phân bổ và vị trí | `BedAllocationController`, `ResidentLocationController`, `BedAllocationWrite`, `BedAllocationResponse`, `SuitableBedResponse`, `ResidentLocationResponse` |
+| Mã vi phạm FR-018 (a) → (i) | `ALLOCATION_CARE_LEVEL`, `ALLOCATION_RESIDENCY_TYPE`, `ALLOCATION_GENDER`, `ALLOCATION_ISOLATION`, `ALLOCATION_BED_STATE`, `ALLOCATION_HOLD`, `ALLOCATION_TIME_OVERLAP`, `ALLOCATION_PROFILE_CLOSED`, `ALLOCATION_ASSET_FLAG` |
+| Bắt đầu dự kiến trước hạn sẵn sàng; thiếu dấu chưa có giường; hủy chỉ tương lai | `ALLOCATION_NOT_READY_BEFORE_DEADLINE`, `WITHOUT_BED_REQUIRED`, `FUTURE_ALLOCATION_REQUIRED` |
+| Nhật ký tạo/hủy phân bổ | `M03_ALLOCATION_CREATED`, `M03_ALLOCATION_CANCELLED` |
+| Giữ lại giữ chỗ giường đích khi đặt trước | `BedHoldService.cancelHoldExcept` (helper nội bộ, không đổi API) |
+| Đánh giá lại tính phù hợp khi nhận sự kiện M01 | `AllocationSuitabilityService`, `AllocationSuitabilityListener`, `AllocationChecker.policyConditions` |
+| Báo quá bắt đầu dự kiến | `PastStartAllocation`, `PastStartAllocationStore`, `PastStartAllocationProcessor`, `FutureAllocationPastStartJob`; job `REPORT_FUTURE_ALLOCATION_PAST_START` |
+
+**Bổ sung tên 003 sau khi nối M01 (2026-10-24)**
+
+| Khái niệm | Tên mã đã dùng |
+| --- | --- |
+| Dữ kiện trạng thái/giới tính/mức chăm sóc, kiểm phân bổ | `ResidentAllocationFacts`, `CheckedCareLevel`, `AllocationChecker`, `AllocationCandidate`, `AllocationCheckStore` |
+| Lệnh phân bổ, đọc chi tiết và vị trí | `AllocationCommands`, `AllocationCommandStore`, `AllocationReading`, `AllocationReadStore`, `AllocationRecord`, `AllocationDetails`, `ResidentLocationQueries`, `ResidentLocationDetails` |
+| Tổng hợp giường | `BedCapacityQueries`, `BedCapacitySummary`, `BedSummaryController`, `BedSummaryResponse`, `BedResidencyType` |
+| HTTP phân bổ và vị trí | `BedAllocationController`, `ResidentLocationController`, `BedAllocationWrite`, `BedAllocationResponse`, `SuitableBedResponse`, `ResidentLocationResponse` |
+| Tham gia trạng thái M01 và đánh giá phù hợp | `AllocationStatusParticipant`, `AllocationSuitabilityListener`, `AllocationSuitabilityService` |
+| Thông báo quá bắt đầu dự kiến | `PastStartAllocation`, `PastStartAllocationStore`, `PastStartAllocationProcessor`, `FutureAllocationPastStartJob`, `REPORT_FUTURE_ALLOCATION_PAST_START` |
+| Chỉ mục kỹ thuật giữ chỗ, retry | `WaitingHoldIndexStore`, `resident_position.waiting_hold_bed_ids`, `AllocationRetryConfig`, `M03_BED_HOLD_UPDATED` |
+| Màn phân bổ và bảng giường (T028) | `BedAllocationForm`, `BedAllocationsPanel` trong `frontend/src/features/beds/` |
+
+Các tên mã trên đã có implementation; task chỉ đánh sau kiểm cuối. Enum đồng hồ thử 000 chưa thêm hai job theo lựa chọn chủ dự án; không đổi HTTP contract.
+
+| Khái niệm kỹ thuật bổ sung | Tên mã |
+| --- | --- |
+| Pool đọc hiện hành sau khóa | `AllocationCurrentReadPool`, `CurrentAllocationOverlapStore` (chỉ đọc RC, không tham gia transaction nguồn) |
+| Khóa kỹ thuật chống gap-lock cycle của transaction RR | `allocation_write_guard`, `AllocationStore.guardWrites` (RC S, RR/default X trước khóa vị trí) |
+
+#### Bổ sung 003 Phase 8 — 2026-10-24
+
+| Tên logic | Tên mã nguồn/đường dẫn |
+| --- | --- |
+| Khu nghỉ bán trú, buổi | `DayCareRestArea`, `DayCareSessionEntry` (entity kế thừa `CatalogBase`); `DayCareAreaState`, `DayCareSessionState` (ảnh đọc) |
+| Cấu hình và kiểm sức chứa | `DayCareConfigurationService`, `DayCareCapacityService`, `DayCareStore`, `day_care_capacity_guard` |
+| Đếm lại, cảnh báo đổi khung/CFG | `DayCareRecounting`, `DayCareParameterListener`, `SessionCapacityRow`, `DayCareSessionChange`, `M03_DAY_CARE_OVER_CAPACITY` |
+| HTTP bán trú Phase 8 | `/day-care-rest-areas`, `/day-care-sessions`; `DayCareRestAreaWrite`, `DayCareSessionWrite`, `DayCareRestAreaResponse`, `DayCareSessionResponse`, `DayCareSessionChangeResponse`, `DayCareSessionCapacity` |
+| Màn bán trú | `frontend/src/features/beds/DayCarePanel.jsx`, tab Bán trú trong `BedsPage` |
+| Lỗi bán trú | `DAY_CARE_REST_AREA_EXISTS`, `DAY_CARE_SESSION_NAME_EXISTS`, `DAY_CARE_SESSION_OVERLAP`, `DAY_CARE_LOCATION_INACTIVE`, `DAY_CARE_FUTURE_ARRIVALS`, `DAY_CARE_NOT_CONFIGURED`, `DAY_CARE_CAPACITY_UNSET`, `DAY_CARE_OVER_CAPACITY`, `DAY_CARE_CORDONED`; thiếu nguồn dùng `SOURCE_UNAVAILABLE` đã có |
+
+#### Bổ sung 003 Phase 9 — 2026-10-25
+
+| Khái niệm | Tên mã |
+| --- | --- |
+| Lệnh và nhật sử cách ly phòng | `RoomIsolationService`, `RoomIsolationStore`, `RoomIsolationFact`, `room_isolation_history`, hành động `ISOLATE`/`LIFT` |
+| Chuyển kiểm soát lây nhiễm | `ControlledTransferService`, `ControlledTransferStore`, `ControlledTransferResult`, lý do danh mục `INFECTION_CONTROL` |
+| Phòng chịu chặn, Bác sĩ chỉ định | `IsolationRoom`, `PrescribingDoctor`, `PrescribingDoctorResponse` |
+| HTTP cách ly | `RoomIsolationController`, `ControlledTransferController`, `IsolationOptionsController`, `RoomIsolationWrite`, `InfectionControlTransferWrite`, `RoomIsolationHistoryRow`, `BedTransferResult` |
+| UI web cách ly | `RoomIsolationPanel`, `IsolationWorkspace` trong `frontend/src/features/beds/`, tab Cách ly |
+| Lỗi lệnh cách ly/chuyển | `ROOM_ALREADY_ISOLATED`, `ROOM_NOT_ISOLATED`, `ALLOCATION_NOT_TRANSFERABLE`, `INVALID_PRESCRIBING_DOCTOR`, `DOCTOR_CONFIRMATION_NOT_PENDING`; tái dùng `SOURCE_UNAVAILABLE`, `UNMET_CONDITIONS`, `ALLOCATION_TIME_OVERLAP` |
+
+#### Bổ sung 003 Phase 10 — 2026-10-25
+
+| Khái niệm | Tên mã |
+| --- | --- |
+| Điều kiện/lệnh xác nhận sẵn sàng | `BedReadiness`, `BedReadinessStore`, `BedReadinessService`, `BedReadinessController`, `BedReadinessWrite`, `BedReadinessResponse`; schema HTTP `BedReadinessConditions` |
+| Nhắc giường quá hạn | `BedReadinessReminderProcessor`, `BedReadinessReminderJob`, tên job `REMIND_BED_READINESS` |
+| Nhắc dấu phân bổ còn mở | `AllocationReminderStore`, `AllocationReminderProcessor`, `AllocationReminderJob`, tên job `REMIND_ALLOCATIONS` |
+| Nhật ký nhắc | `M03_REMINDER`, chi tiết `plannedAt`, `executedLate`, `flagType` (nhắc dấu) |
+| Lỗi xác nhận | `BED_NOT_AWAITING_READY`, `SCHEDULED_TRANSFER_NOT_COMPLETED`; tái dùng `DISINFECTION_CONFIRMATION_REQUIRED`, `SOURCE_UNAVAILABLE` |
+
+#### Bổ sung 003 Phase 11 — 2026-10-25
+
+| Khái niệm | Tên mã |
+| --- | --- |
+| Adapter dữ liệu cho008/016 | `BedReportingService` cài `BedStatusApi`, `BedStatisticsApi`, `BedHandoverAlertApi` |
+| Đọc snapshot/interval theo lô | `BedReportingStore`, `BedReportingSnapshot` và record nội bộ `State`, `Window`, `Policy`, `Flags` trong `internal/bed/domain` |
+| Dấu chưa có giường | `BedFlagView.bedId` kiểu `Long`, null chỉ cho `WITHOUT_BED` theo duyệt chủ dự án2026-10-25 |
+| Bằng chứng kiểm cuối | `specs/003-room-bed-allocation/verification.md`, `SC_008_BedReportingIT`, `DBR_23_RecordTablesIT`, `T064_BedListPerformanceIT` |
