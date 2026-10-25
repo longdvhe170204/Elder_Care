@@ -24,6 +24,7 @@ public class FakeResidents implements ResidentApi {
             IdentityView identity, Optional<Gender> gender, ResidentStatus status, Optional<Instant> finalStatusAt) {}
 
     private final Map<Long, Entry> residents = new HashMap<>();
+    private final Map<Long, Long> previousProfiles = new HashMap<>();
 
     public FakeResidents resident(long residentId, String fullName, Gender gender, ResidentStatus status) {
         IdentityView identity = new IdentityView(residentId, "NCT-2026-" + residentId, fullName, Optional.empty());
@@ -36,6 +37,12 @@ public class FakeResidents implements ResidentApi {
         Entry e = entry(residentId);
         Optional<Instant> finalAt = FINAL_STATUSES.contains(status) ? Optional.of(at) : Optional.empty();
         residents.put(residentId, new Entry(e.identity(), e.gender(), status, finalAt));
+        return this;
+    }
+
+    /** Đặt hồ sơ trước của {@code residentId} (liên kết lúc tạo hồ sơ cùng CCCD). */
+    public FakeResidents previousProfile(long residentId, long previousProfileId) {
+        previousProfiles.put(residentId, previousProfileId);
         return this;
     }
 
@@ -70,6 +77,12 @@ public class FakeResidents implements ResidentApi {
     @Override
     public Optional<Gender> gender(long residentId) {
         return entry(residentId).gender();
+    }
+
+    @Override
+    public Optional<Long> previousProfileId(long residentId) {
+        entry(residentId);
+        return Optional.ofNullable(previousProfiles.get(residentId));
     }
 
     @Override
