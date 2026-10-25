@@ -872,6 +872,28 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | việc nhắc `NHAC` của `ViecHangNgayM02` | `M02ReminderTask` (việc `REMINDERS`, `latestDayOnly`) chạy các bean `ReminderRule`; ghi qua `ReminderLog` (`m02_reminder`); loại nhắc `NOT_YET_ADMITTED` (`CHUA_VAO_O`) |
 | bản giả hợp đồng đọc cho tới Phase 5 | `support/fake/m02/FakeContractReads` (`ContractReadApi`) |
 
+### 10.10. Bổ sung khi cài Phase 4 (US2, T020, T022 → T024, 2026-10-25)
+
+*Tên cài thực tế của danh sách chờ; mã lỗi, nhật ký, giá trị enum mà 10.2 → 10.6 chưa đặt. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| lượt liên hệ giường `ket_qua` `LIEN_HE`, `TU_CHOI_GIUONG`, `HET_HAN` | `bed_contact.result`: `CONTACTED`, `BED_DECLINED`, `EXPIRED` |
+| nguyên nhân dòng lịch sử điểm `TAO`, `TINH_HANG_NGAY`, `DOI_MUC`, `DOI_TINH_HUONG`, `DIEU_CHINH`, `DOI_BANG_DIEM` | `score_history.cause`: `CREATED`, `DAILY`, `CARE_LEVEL_CHANGED`, `CIRCUMSTANCES_CHANGED`, `ADJUSTMENT`, `SCORE_TABLE_CHANGED` |
+| thành phần điểm (`score_breakdown`, `components`) | JSON `{careLevel, waitingTime, circumstances, adjustment}`; `current_score` là tổng; `adjustment` là tổng điều chỉnh đã duyệt |
+| bảng điểm CFG-M02-08 (giá trị kiểu TABLE) | `{waitingPeriod {value, unit DAYS}, pointsPerWaitingPeriod, careLevelPoints {BASIC, REGULAR, SPECIAL → điểm} hoặc null, specialSituationPoints {mã tình huống → điểm} hoặc null}`; `null` là viện chưa đặt, tính 0 điểm; mã tình huống chọn được là khóa của `specialSituationPoints` |
+| loại yêu cầu `M02.DIEU_CHINH_DIEM` | `M02.SCORE_ADJUSTMENT`, nội dung `{entryId, points}`; Hành chính lập (khóa `WAITING_LIST`, `UPDATE`), Quản lý viện duyệt (`APPROVE`); gửi duyệt ngay khi lập |
+| loại đối tượng nhật ký, lưu giữ, gắn phạm vi | `M02.WAITING_LIST_ENTRY` (cũng là loại kết quả áp dụng của yêu cầu) |
+| nhật ký hồ sơ chờ | `M02_WAITING_ENTRY_CREATED`, `M02_WAITING_ENTRY_CIRCUMSTANCES_UPDATED` (có lý do), `M02_WAITING_ENTRY_CONFIRMED`, `M02_WAITING_ENTRY_DECLINED`, `M02_WAITING_ENTRY_CANCELLED`; điểm đổi ghi ở `score_history`, không ghi nhật ký |
+| lỗi `LUOT_KHONG_DANG_XU_LY`, `HO_SO_CHO_DA_DONG`, `HO_SO_CHO_KHONG_DANG_CHO`, `HO_SO_CHO_DA_TON_TAI` | `APPLICATION_NOT_IN_PROGRESS` (409), `WAITING_ENTRY_CLOSED` (409), `WAITING_ENTRY_NOT_WAITING` (409), `WAITING_ENTRY_ALREADY_EXISTS` (409, bảo đảm thêm bởi cột sinh `UNIQUE`) |
+| tình huống chờ xác nhận | `waiting_list_circumstance.status` `PENDING_CONFIRMATION`; chỉ tình huống `CONFIRMED` được tính điểm |
+| tình huống "từng lưu trú tại viện" (FR-007) | mã `PREVIOUSLY_RESIDED` (`WaitingListService.PREVIOUSLY_RESIDED`), đánh dấu sẵn `PENDING_CONFIRMATION` khi `ResidentApi.previousProfileId` có và hồ sơ trước `RESIDENCY_ENDED`; điểm của mã này do viện đặt trong `specialSituationPoints` |
+| hàm đọc hồ sơ trước ("Đổi api" 001) | `ResidentApi.previousProfileId(residentId): Optional<Long>` |
+| mã tham số ngoài bảng điểm | CFG-M02-03 đọc bằng `asDuration()` (ngày) |
+| lớp trong `m02.internal.waitinglist` | `domain`: `WaitingListEntry`, `WaitingListStatus`, `Circumstance`, `CircumstanceStatus`, `ScoreBreakdown`, `ScoreCause`, `ScoreHistoryRow`; `persistence`: `WaitingListStore`; `service`: `WaitingListService`, `PriorityScoreCalculator` (hàm thuần), `PriorityScoreTable` (và `Config` đọc CFG-M02-08), `ScoreRecalculation`, `CalculateScoresTask` (việc `CALCULATE_SCORES`, `latestDayOnly`), `WaitingListScoreListeners` (nghe `CareLevelChanged`, `ParameterChanged`), `ScoreAdjustmentRequestHandler`, `WaitingListTransition` (tác động lên hồ sơ chờ của lệnh Hủy tiếp nhận, do `M02StatusParticipant` gọi), `WaitingEntryUpdateReminder` (nhắc `WAITING_ENTRY_UPDATE`), `MatchingEntryService` (hồ sơ phù hợp, nhận `MatchCriteria` từ người gọi), `WaitingListEntryRetention`, `WaitingListScopeAssignment` |
+| phản hồi `HoSoCho`, lịch sử điểm, tham chiếu yêu cầu | `WaitingListEntryBody`, `ScoreHistoryEntryBody`, `ApprovalRequestRefBody`; thân yêu cầu `AddToWaitingListBody`, `UpdateCircumstancesBody`, `ProposeScoreAdjustmentBody`, `ReasonBody` (ở `m02.web`) |
+| test | `BR_M02_10_PriorityScoreTest`, `DailyScoreIT`, `ScoreAdjustmentIT`, `WaitingListEntryIT`, `BR_M02_01_MatchingEntriesIT`, `FR_002_DeclineCancelAdmissionIT`, `BR_M02_03_WaitingEntryReminderIT`, `WaitingListRetentionIT`, `FR_007_PreviousResidencyIT` |
+
 ## 11. Feature 005 (`005-daily-care-tasks`, C)
 
 *Chủ feature điền khi dịch `contracts/api-005.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
