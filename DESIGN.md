@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 5.21.0
+version: 5.22.0
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-10-24
@@ -353,7 +353,7 @@ Bốn cặp màu: xanh trời nhạt, xanh chàm nhạt, xanh lá nhạt, xám (
 - **Menu:** logo, các nhóm mục theo vai trò (nhãn nhóm `caption`), cuối là khối người dùng: ảnh đại diện vai trò, tên vai trò, tầng và ca, nút sáng/tối. Mục menu bo tròn, cao tối thiểu 40px, biểu tượng 16px.
 - **Đầu mỗi màn:** `page-header`, khối thẻ trắng bo 16px gồm tiêu đề nói phạm vi bằng câu bình thường, dòng phụ, ô bên phải (giờ, thao tác) và thanh lọc hoặc ô tìm ở dưới. Không đặt dãy thẻ số liệu lớn ở đầu trang; số đếm nằm trên nút lọc hoặc trong dải số đếm gọn.
 - Màn nhân viên rộng tối đa 1600px (cổng người thân theo mục 2.3); khoảng cách giữa các khối 24px, giữa các thẻ 12px. Dùng `gap-*`, không dùng `space-x-*`/`space-y-*`.
-- **Khung chi tiết:** `Sheet` mở bên phải, bo 20px phía trái.
+- **Khung chi tiết:** `Sheet` mở bên phải, bo 20px phía trái. Ngoại lệ: màn Người cao tuổi là danh sách toàn chiều rộng, ban đầu không chọn ai; bấm một dòng thì mở hộp chi tiết ở giữa màn (`Dialog`, rộng 768px, cao tối đa 85% màn, cuộn bên trong không hiện thanh cuộn, bo 20px), hai cột: trái Hồ sơ, An toàn, Hôm nay; phải Về người này. Khung phụ (lịch sử sở thích, Hoàn tất tiếp nhận) vẫn là `Sheet` mở chồng lên hộp.
 
 ### 5.1 Lưới thẻ hay bảng
 
@@ -645,6 +645,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 5.22.0 | 2026-10-26 | Chủ dự án chọn hộp chi tiết ở giữa màn cho màn Người cao tuổi (mục 5, ngoại lệ của khung chi tiết `Sheet`): danh sách toàn chiều rộng, bấm dòng mở `Dialog` 768px hai cột. Các màn khác giữ `Sheet` bên phải. Không thêm màu |
 | 5.21.0 | 2026-10-24 | Chủ dự án duyệt bố cục dashboard và báo cáo (016 T010, US9): Tổng quan thành dashboard 016 thay bản mẫu cũ, mục menu "Báo cáo" ngay dưới Tổng quan; công thức `dashboard-block`, `dashboard-urgent`, `report-table`, `metric-detail-sheet`, `export-dialog` (mục 7.2); dòng Tổng quan và báo cáo ở mục 5.1. Không thêm màu |
 | 5.20.0 | 2026-10-24 | Chủ dự án duyệt bố cục tài khoản người cao tuổi (002 T095; mục 14): đặt trong tab Tài khoản, khung tạo, khối "Đăng nhập trên app" có mã QR và thời gian còn lại; thư viện `qrcode.react` (web). Mục 15.7 ghi phần người cao tuổi của app. Không thêm màu |
 | 5.19.1 | 2026-10-23 | Chủ dự án cho triển khai bố cục tab Nguyện vọng trong khung chi tiết hồ sơ người cao tuổi (001 T070, T080; mục 14) theo đề xuất: hai khối xếp dọc "Nguyện vọng cuối đời" và "Nguyện vọng khi điều trị", mỗi khối có thẻ phiếu hiện hành, nút theo lệnh được phép, form mở dưới thẻ, lịch sử phiên bản; nhận định "tự quyết được" chỉ nằm trong thẻ phiếu cuối đời kèm dòng "Người quyết định"; Hành chính chỉ thấy "Đã có phiếu", Kế toán không thấy khối khi điều trị. Không thêm màu, không thêm quy định; "Hiệu lực" dùng tông `settled`, "Được thay thế", "Hết hiệu lực" tông `neutral` mặc định. Chưa nghiệm thu trên trình duyệt. |

@@ -163,7 +163,7 @@ function RecordForm({ task, now, onSave, onNotDone }) {
 export function RecordResultSheet({ task, now, onOpenChange, onSave, onNotDone }) {
   return (
     <Sheet open={!!task} onOpenChange={onOpenChange}>
-      <SheetContent>
+      <SheetContent className="sm:max-w-lg">
         {task && (
           <>
             <SheetHeader className="gap-3 pt-6">
