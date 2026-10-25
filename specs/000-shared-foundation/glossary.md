@@ -1171,6 +1171,33 @@ Người dùng đã duyệt API tối thiểu của B/C/D, `AssignmentView.scope
 | Giao Trưởng tầng không hợp lệ / chồng thời gian / người thay bộ phận không hợp lệ | `INVALID_FLOOR_MANAGER_ASSIGNMENT / FLOOR_MANAGER_ASSIGNMENT_OVERLAP / INVALID_REPLACEMENT_DEPARTMENT_LEAD` |
 | Dữ liệu nhiều người chính / nhiều Trưởng tầng / nhiều bộ phận | `MULTIPLE_PRIMARY_ASSIGNEES / MULTIPLE_FLOOR_MANAGERS / MULTIPLE_DEPARTMENTS` |
 
+### 14.10. Nền bàn giao Phase 5 (2026-10-24)
+
+| Tên logic | Mã triển khai |
+| --- | --- |
+| `XacDinhCaSau / MucNghiemTrong` | `NextHandoverShift / CriticalHandoverItem` |
+| Bàn giao / mục / nhận định / ý kiến / phản hồi | `shift_handover / handover_item / handover_assessment / handover_comment / handover_reply` |
+| Nhận định chung / theo người cao tuổi | `GENERAL / BY_RESIDENT` |
+| Loại nhận định / khóa người cao tuổi / nhóm mục | `assessment_kind / resident_key / item_group` |
+| Người bàn giao / tài khoản tạo / tài khoản xác nhận / căn cứ nhiệm vụ | `handover_staff_id / created_by / confirmed_by / duty_basis` |
+| Lúc chốt / lúc xác nhận / trạng thái lúc chốt / người ghi chú | `finalized_at / confirmed_at / status_at_finalization / note_author` |
+| Kho và truy vấn trạng thái bàn giao thật | `handover.internal.persistence.HandoverStore / handover.internal.service.HandoverQueries` |
+| Đã lập xong / đã xác nhận theo ca | `prepared(shiftId) / confirmed(shiftId)`; `HAS_COMMENTS` không phải đã lập xong |
+| Dịch vụ nguồn / lệnh / nội dung hiện hành / đính chính / lưu giữ / nhắc | `HandoverSources / HandoverService / HandoverContents / HandoverCorrection / HandoverRetention / HandoverReminders` |
+| Tài khoản hoàn tất / các khóa nguồn lúc chốt | `finalized_by / source_keys_at_finalization` (metadata kỹ thuật, không phải mục sinh tự động) |
+| Định danh nguồn bị thiếu lúc chốt | `UNAVAILABLE:<sourceType>` |
+| Nguồn công việc / liều / cảnh báo / chỉ số / giường / phân bổ | `TaskHandoverApi / DoseHandoverApi / AlertHandoverApi / VitalSignApi / BedStatusApi / AllocationHandoverApi` |
+| Bản nguồn công việc / liều / cảnh báo / chỉ số / giường / phân bổ | `TaskHandoverView / DoseHandoverView / AlertHandoverView / VitalSignHandoverView / AwaitingReadyBedView / AllocationHandoverView` |
+| Trạng thái hiện tại nguồn / trạng thái thật giường / còn giữ đồ | `currentStatus / currentState / stillHeld` |
+| Tham chiếu nguồn / kết quả chuyển công việc | `SourceRef / HandoverTransferResult` |
+| Hồ sơ liên quan chuyến / thời điểm xuất phát | `residentIds / departedAt` trong `TripInShiftView` |
+| Ca sau đã bắt đầu, bàn giao trước chưa xác nhận | `startedWithoutConfirmedHandover / UnconfirmedShiftHandoverView` |
+| Chưa đọc được nguồn / thiếu ghi chú nghiêm trọng / trước mốc lập / đã có bàn giao | `HANDOVER_SOURCE_UNAVAILABLE / CRITICAL_ITEM_NOTE_REQUIRED / BEFORE_HANDOVER_PREPARATION_WINDOW / HANDOVER_ALREADY_EXISTS` |
+| Mục không được bỏ / ngoài phạm vi ca | `HANDOVER_ITEM_REMOVAL_NOT_ALLOWED / OUTSIDE_SHIFT_SCOPE` |
+| Khóa nội dung đính chính | `generalAssessment / items / residentAssessments / comments`; con giữ `id` hoặc `residentId`, chỉ sửa `description / note / content`, phản hồi giữ thứ tự |
+| Nhãn loại JSON nội bộ nhóm nhận / cách thay thế (phần A được duyệt 2026-10-25) | `kind`; `RecipientGroup / Substitution`, `JsonTypeInfo.Id.NAME`, danh sách loại tường minh qua `JsonSubTypes` |
+| Màn bàn giao / đính chính | `features/handover/HandoverPage.jsx / HandoverCorrections.jsx` |
+
 ## 15. Feature 009 (`009-notification-service`, A) *(bổ sung 2026-10-21, khi dịch `contracts/api-009.yaml`)*
 
 Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với mã (R-03). Khuôn `common.notification` đã dịch ở mục 6.5 (`NotificationRequest`, `NotificationLevel`, `InformationType`, `RecipientGroup`, `Substitution`, `InformationSubject`, `Q354Case`) giữ nguyên.

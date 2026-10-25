@@ -11,12 +11,20 @@ import org.springframework.stereotype.Service;
 /** Bản cài phần ca của NhanSuCaPort; không giả dữ liệu phân công hoặc bàn giao chưa có. */
 @Service
 class CareShiftLookup implements CareShiftPort {
+    public boolean handoverConfirmed(long id) {
+        return handovers.confirmed(id);
+    }
+
     private final ShiftQueries query;
+    private final com.cambae.backend.m09.handover.internal.service.HandoverQueries handovers;
     private final com.cambae.backend.m09.assignment.internal.service.AssignmentQueries assignments;
 
     CareShiftLookup(
-            ShiftQueries query, com.cambae.backend.m09.assignment.internal.service.AssignmentQueries assignments) {
+            ShiftQueries query,
+            com.cambae.backend.m09.assignment.internal.service.AssignmentQueries assignments,
+            com.cambae.backend.m09.handover.internal.service.HandoverQueries handovers) {
         this.query = query;
+        this.handovers = handovers;
         this.assignments = assignments;
     }
 

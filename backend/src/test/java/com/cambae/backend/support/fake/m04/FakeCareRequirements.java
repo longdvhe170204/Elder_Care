@@ -5,7 +5,52 @@ import com.cambae.backend.m04.api.dto.TaskRequirements;
 import java.util.*;
 
 /** Nguồn yêu cầu công việc/kế hoạch và tác động kèm lệnh của C; không thay bằng bean giả trong sản phẩm. */
-public class FakeCareRequirements implements TaskTypeApi, CarePlanApi, ShiftTaskApi {
+public class FakeCareRequirements implements TaskTypeApi, CarePlanApi, ShiftTaskApi, TaskHandoverApi {
+    private record Scope(long floor, long shift) {}
+
+    private final Map<Scope, List<com.cambae.backend.m04.api.dto.TaskHandoverView>> sources =
+            new java.util.concurrent.ConcurrentHashMap<>();
+    private Runnable confirmed = () -> {};
+    private Runnable reading = () -> {};
+
+    public void beforeRead(Runnable action) {
+        reading = action;
+    }
+
+    public void source(long floor, long shift, com.cambae.backend.m04.api.dto.TaskHandoverView row) {
+        sources.put(new Scope(floor, shift), List.of(row));
+    }
+
+    public List<com.cambae.backend.m04.api.dto.TaskHandoverView> unclosed(long floor, long shift) {
+        reading.run();
+        return sources.getOrDefault(new Scope(floor, shift), List.of());
+    }
+
+    public Map<Long, com.cambae.backend.m04.api.dto.TaskHandoverView> currentStatus(Collection<Long> ids) {
+        var result = new HashMap<Long, com.cambae.backend.m04.api.dto.TaskHandoverView>();
+        sources.values().stream()
+                .flatMap(Collection::stream)
+                .filter(r -> ids.contains(r.id()))
+                .forEach(r -> result.put(r.id(), r));
+        return result;
+    }
+
+    @org.springframework.transaction.annotation.Transactional(
+            propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public void recordedInHandover(long handover, Collection<Long> ids) {}
+
+    public void onConfirm(Runnable action) {
+        confirmed = action;
+    }
+
+    @org.springframework.transaction.annotation.Transactional(
+            propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public com.cambae.backend.m04.api.dto.HandoverTransferResult onHandoverConfirmed(
+            long handover, long previous, Long next, Set<Long> ids, java.time.Instant at) {
+        confirmed.run();
+        return new com.cambae.backend.m04.api.dto.HandoverTransferResult(List.of(), List.copyOf(ids));
+    }
+
     private final Map<Long, TaskRequirements> types = new HashMap<>();
     private final Map<Long, Set<Long>> plans = new HashMap<>();
     private final List<Long> ended = new ArrayList<>();

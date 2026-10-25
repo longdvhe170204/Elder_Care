@@ -11,15 +11,23 @@ import org.springframework.stereotype.Service;
 
 @Service
 class AlertStaffLookup implements AlertStaffPort {
+    public java.util.List<com.cambae.backend.m05.api.dto.UnconfirmedShiftHandoverView> startedWithoutConfirmedHandover(
+            Instant from, Instant to) {
+        return handovers.startedUnconfirmed(from, to);
+    }
+
     private final ShiftQueries query;
+    private final com.cambae.backend.m09.handover.internal.service.HandoverQueries handovers;
     private final ObjectProvider<DutyApi> duties;
     private final com.cambae.backend.m09.assignment.internal.service.AssignmentQueries assignments;
 
     AlertStaffLookup(
             ShiftQueries query,
             ObjectProvider<DutyApi> duties,
-            com.cambae.backend.m09.assignment.internal.service.AssignmentQueries assignments) {
+            com.cambae.backend.m09.assignment.internal.service.AssignmentQueries assignments,
+            com.cambae.backend.m09.handover.internal.service.HandoverQueries handovers) {
         this.query = query;
+        this.handovers = handovers;
         this.duties = duties;
         this.assignments = assignments;
     }

@@ -9,6 +9,18 @@ import java.util.*;
 
 /** Dữ liệu do test đặt; ca, thành viên và hiệu lực chứng chỉ là các nguồn độc lập. */
 public class FakeCareShifts implements CareShiftPort {
+    private final Set<Long> confirmedHandovers = new HashSet<>();
+
+    public FakeCareShifts handoverConfirmed(long id, boolean value) {
+        if (value) confirmedHandovers.add(id);
+        else confirmedHandovers.remove(id);
+        return this;
+    }
+
+    public boolean handoverConfirmed(long id) {
+        return confirmedHandovers.contains(id);
+    }
+
     private record Entry(CareShiftView view, List<Long> members, Long lead) {}
 
     private record Qualification(Role role, Set<String> certificates, LocalDate from, LocalDate to) {}

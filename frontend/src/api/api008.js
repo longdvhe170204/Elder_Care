@@ -150,6 +150,9 @@ export const postShiftsByIdCopyAssignments = (params) => request('POST', '/shift
 /** Các lần tính tỷ lệ phục vụ của ca (FR-034, FR-037, BR-M09-02) */
 export const getShiftsByIdStaffingRatios = (params) => request('GET', '/shifts/{id}/staffing-ratios', params)
 
+/** Tìm bàn giao của ca trong phạm vi được xem; chưa lập trả 404 (FR-038, FR-047) */
+export const getShiftsByIdHandovers = (params) => request('GET', '/shifts/{id}/handovers', params)
+
 /** Lập bàn giao (Bản nháp) từ mốc CFG-M09-04 trước kết ca; không có mục lập sẵn (FR-038, FR-039, FR-042, BR-M09-06) */
 export const postShiftsByIdHandovers = (params) => request('POST', '/shifts/{id}/handovers', params)
 

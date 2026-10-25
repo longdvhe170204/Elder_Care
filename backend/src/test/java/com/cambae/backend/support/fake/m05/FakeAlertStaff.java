@@ -6,6 +6,23 @@ import java.time.Instant;
 import java.util.*;
 
 public class FakeAlertStaff implements AlertStaffPort {
+    private final Map<com.cambae.backend.m05.api.dto.UnconfirmedShiftHandoverView, Instant> awaitingHandovers =
+            new HashMap<>();
+
+    public FakeAlertStaff awaitingHandover(
+            com.cambae.backend.m05.api.dto.UnconfirmedShiftHandoverView row, Instant startsAt) {
+        awaitingHandovers.put(row, startsAt);
+        return this;
+    }
+
+    public List<com.cambae.backend.m05.api.dto.UnconfirmedShiftHandoverView> startedWithoutConfirmedHandover(
+            Instant from, Instant to) {
+        return awaitingHandovers.entrySet().stream()
+                .filter(e -> e.getValue().isAfter(from) && !e.getValue().isAfter(to))
+                .map(Map.Entry::getKey)
+                .toList();
+    }
+
     private record Entry(AlertShiftView view, List<Long> staff, List<Long> doctors) {}
 
     private final Map<Long, Entry> shifts = new LinkedHashMap<>();

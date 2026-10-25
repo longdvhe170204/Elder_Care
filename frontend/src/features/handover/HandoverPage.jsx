@@ -1,447 +1,185 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import {
+ getMeShifts, getShiftSchedules, getShiftsById, getShiftsByIdHandovers, getHandoversById,
+ getHandoversByIdSourceRecords, postShiftsByIdHandovers, postHandoversByIdItems,
+ putHandoversByIdItemsByItemId, deleteHandoversByIdItemsByItemId, putHandoversByIdAssessments,
+ postHandoversByIdComplete, postHandoversByIdConfirm, postHandoversByIdComments,
+ postHandoversByIdSupplementAndResubmit, getResidentsById, getResidents,
+} from '@/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Field, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Skeleton } from '@/components/ui/skeleton'
 import { PageHeader } from '@/common/PageHeader'
+import { PermissionDeniedState } from '@/common/PageState'
+import { ProblemAlert } from '@/common/ProblemAlert'
+import { problemOf } from '@/common/problem'
 import { StatusBadge } from '@/common/StatusBadge'
-import {
-  DEMO_HANDOVER_AFTER_LOCK,
-  DEMO_HANDOVER_DRAFT_ITEMS,
-  DEMO_HANDOVER_HISTORY,
-  DEMO_HANDOVER_SCOPE,
-  DEMO_HANDOVER_SOURCE_GROUPS,
-  DEMO_HANDOVER_SOURCES,
-} from '@/common/demoData'
-import { cn } from '@/lib/utils'
+import { formatDate, formatDateTime } from '@/common/dateTime'
+import { PermissionsProvider, usePermissions } from '@/common/permissions/permissions'
+import { HandoverCorrections } from './HandoverCorrections'
 
-// Bản mẫu màn Bàn giao ca (M17; spec 008 User Story 1, FR-038 → FR-047). Người bàn giao là Người phụ trách ca
-// (bản mẫu: vai trò Điều dưỡng); người xác nhận là người phụ trách ca sau hoặc Trưởng tầng của phạm vi (bản mẫu:
-// vai trò Trưởng tầng). Hệ thống không lập sẵn mục; người bàn giao tự chọn từ bản ghi nguồn (Q-306, Q-307).
-// Trạng thái thật và các tác động khi xác nhận do backend thực hiện.
-
-const GIVER_ROLE = 'NURSING_STAFF'
-const CONFIRM_ROLE = 'FLOOR_MANAGER'
-const sourceOf = (id) => DEMO_HANDOVER_SOURCES.find((s) => s.id === id)
-const groupLabel = (key) => DEMO_HANDOVER_SOURCE_GROUPS.find((g) => g.key === key).label
-
-function SourceLine({ source }) {
-  return (
-    <span className="flex min-w-0 flex-col">
-      <span className="type-label">{source.resident ?? 'Chung của tầng'}</span>
-      <span className="text-muted-foreground">{source.text}</span>
-    </span>
-  )
+const STATUS = { DRAFT: 'Bản nháp', PREPARED: 'Đã lập', HAS_COMMENTS: 'Có ý kiến', CONFIRMED: 'Đã xác nhận' }
+const GROUP = { TASK: 'Công việc', DOSE: 'Liều thuốc', VITAL_SIGN: 'Chỉ số vượt ngưỡng', ALERT: 'Cảnh báo', INCIDENT: 'Sự cố', RESIDENT_CHANGE: 'Biến động người cao tuổi', BED_AWAITING_READINESS: 'Giường chờ sẵn sàng', STORED_BELONGING: 'Đồ gửi đang giữ', FOLLOW_UP_ISSUE: 'Vấn đề cần theo dõi' }
+const SOURCE_STATUS = { OVERDUE: 'Quá hạn', DUE: 'Đến hạn', NOT_DUE: 'Chưa đến hạn', OPEN: 'Đang mở', NEW: 'Mới', ACKNOWLEDGED: 'Đã tiếp nhận', IN_PROGRESS: 'Đang xử lý', COMPLETED: 'Hoàn thành', COMPLETED_LATE: 'Hoàn thành trễ', NOT_PERFORMED: 'Không thực hiện', CANCELLED: 'Đã hủy', CLOSED: 'Đã đóng', LATE: 'Trễ', MISSED: 'Bỏ lỡ', REFUSED: 'Từ chối', TAKEN: 'Đã dùng', CARRIED: 'Mang theo', ABNORMAL: 'Vượt ngưỡng', IN_RESIDENCE: 'Đang lưu trú', TEMPORARILY_ABSENT: 'Tạm vắng', HOSPITALIZED: 'Điều trị tại bệnh viện', OFF_SITE_ACTIVITY: 'Hoạt động bên ngoài', OVERDUE_RETURN: 'Quá giờ dự kiến trở về', AWAITING_READINESS: 'Chờ sẵn sàng', AWAITING_CONFIRMATION: 'Chờ xác nhận', HELD: 'Đang giữ', NOT_HELD: 'Đã chuyển giữ hoặc trả' }
+const labelStatus = (value) => SOURCE_STATUS[value] ?? 'Chưa đọc được trạng thái'
+const inputOf = (item) => Object.fromEntries(['group', 'sourceType', 'sourceId', 'residentId', 'roomId', 'description', 'note', 'resolved'].map((key) => [key, item[key]]))
+function monthNow() { const [, m, y] = formatDate(new Date().toISOString()).split('/'); return `${y}-${m}` }
+function monthAfter(value) { const [y, m] = value.split('-').map(Number); return m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, '0')}` }
+function ResidentName({ id }) {
+ const [name, setName] = useState('')
+ useEffect(() => { let current = true; if (id) getResidentsById({ path: { id } }).then(({ data }) => { if (current) setName(data.fullName ?? '') }).catch(() => {}); return () => { current = false } }, [id])
+ return id ? <span className="type-label">{name || 'Người cao tuổi trong bản ghi'}</span> : null
 }
-
-// Bên trái: bản ghi nguồn đang mở của phạm vi, theo nhóm FR-039 (a) → (g)
-function SourcesPanel({ items, onAdd }) {
-  return (
-    <Card className="h-fit">
-      <CardHeader>
-        <CardTitle className="type-card-title">Bản ghi nguồn đang mở</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4 type-body-sm">
-        {DEMO_HANDOVER_SOURCE_GROUPS.map((g) => {
-          const sources = DEMO_HANDOVER_SOURCES.filter((s) => s.group === g.key)
-          return (
-            <section key={g.key} className="flex flex-col gap-2">
-              <h3 className="type-caption text-muted-foreground">
-                {g.label} <span className="tabular-nums">({sources.length})</span>
-              </h3>
-              {sources.length === 0 ? (
-                <p className="text-muted-foreground">Không có.</p>
-              ) : (
-                <ul className="flex flex-col">
-                  {sources.map((s) => {
-                    const added = items.some((i) => i.sourceId === s.id)
-                    return (
-                      <li key={s.id} className="flex items-center gap-3 border-t py-2 first:border-t-0 first:pt-0">
-                        <SourceLine source={s} />
-                        <span className="ml-auto flex shrink-0 items-center gap-2">
-                          <StatusBadge status={s.currentStatus ?? s.status} />
-                          {added ? (
-                            <span className="w-14 type-caption text-muted-foreground">Đã thêm</span>
-                          ) : (
-                            <Button variant="outline" size="sm" className="w-14" onClick={() => onAdd(s.id)}>
-                              Thêm
-                            </Button>
-                          )}
-                        </span>
-                      </li>
-                    )
-                  })}
-                </ul>
-              )}
-            </section>
-          )
-        })}
-      </CardContent>
-    </Card>
-  )
+function SelectField({ label, value, onChange, children, id }) {
+ return <Field><FieldLabel htmlFor={id}>{label}</FieldLabel><select id={id} value={value} onChange={(e) => onChange(e.target.value)} className="h-11 w-full min-w-0 rounded-xl border border-input bg-background px-3 type-body focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">{children}</select></Field>
 }
-
-function DraftPanel({ items, setItems, general, setGeneral, followUp, setFollowUp, onComplete }) {
-  const [submitted, setSubmitted] = useState(false)
-  const missing = [
-    ...items
-      .filter((i) => sourceOf(i.sourceId).serious && !i.handled && !i.note.trim())
-      .map((i) => `ghi chú cho ${sourceOf(i.sourceId).text} của ${sourceOf(i.sourceId).resident}`),
-    ...(general.trim() ? [] : ['nhận định chung']),
-  ]
-  const update = (id, patch) => setItems(items.map((i) => (i.sourceId === id ? { ...i, ...patch } : i)))
-
-  function complete(event) {
-    event.preventDefault()
-    setSubmitted(true)
-    if (missing.length === 0) onComplete()
+export function HandoverPage(props) { return <PermissionsProvider><Workspace {...props} /></PermissionsProvider> }
+function Workspace({ initialShiftId }) {
+ const { status, can } = usePermissions()
+ const [month, setMonth] = useState(monthNow)
+ const [shiftId, setShiftId] = useState(initialShiftId ? String(initialShiftId) : '')
+ const [choices, setChoices] = useState([])
+ const [shift, setShift] = useState(null)
+ const [handover, setHandover] = useState(null)
+ const [etag, setEtag] = useState(null)
+ const [sources, setSources] = useState([])
+ const [failure, setFailure] = useState(null)
+ const [loading, setLoading] = useState(false)
+ const [busy, setBusy] = useState(false)
+ const [revision, setRevision] = useState(0)
+ const [announcement, setAnnouncement] = useState('')
+ const view = can('SHIFT_HANDOVER', 'VIEW')
+ const manage = can('SHIFT_SCHEDULE', 'CREATE') || can('SHIFT_SCHEDULE', 'UPDATE') || can('SHIFT_SCHEDULE', 'APPROVE')
+ useEffect(() => {
+  if (status !== 'ready' || !view || initialShiftId) return
+  let current = true
+  const request = manage ? getShiftSchedules({ query: { month } }) : getMeShifts({ query: { from: `${month}-01`, to: `${monthAfter(month)}-01` } })
+  request.then(({ data }) => { if (current) { const all = manage ? data.flatMap((s) => s.shifts ?? []) : data; setChoices(all); setShiftId((old) => all.some((s) => String(s.id) === old) ? old : String(all[0]?.id ?? '')) } }).catch((e) => { if (current) setFailure(problemOf(e)) })
+  return () => { current = false }
+ }, [status, view, manage, month, initialShiftId])
+ useEffect(() => {
+  if (status !== 'ready' || !view || !shiftId) return
+  let current = true
+  async function load() {
+   setLoading(true)
+   try {
+    const detail = await getShiftsById({ path: { id: shiftId } })
+    let result
+    try { result = await getShiftsByIdHandovers({ path: { id: shiftId } }) } catch (e) { if (e.status !== 404) throw e }
+    if (!current) return
+    setShift(detail.data); setHandover(result?.data ?? null); setEtag(result?.etag ?? null); setSources([])
+    if (result) {
+     const rows = await getHandoversByIdSourceRecords({ path: { id: result.data.id }, query: { afterPreparation: result.data.status !== 'DRAFT' } })
+     if (current) setSources(rows.data)
+    }
+    if (current) setFailure(null)
+   } catch (e) { if (current) setFailure(problemOf(e)) } finally { if (current) setLoading(false) }
   }
-
-  return (
-    <Card className="h-fit">
-      <CardHeader>
-        <CardTitle className="type-card-title">Nội dung bàn giao</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={complete} noValidate className="flex flex-col gap-4 type-body-sm">
-          {items.length === 0 && <p className="text-muted-foreground">Chưa có mục. Chọn "Thêm" ở danh sách bản ghi nguồn.</p>}
-          <ul className="flex flex-col gap-3">
-            {items.map((i) => {
-              const s = sourceOf(i.sourceId)
-              const closed = s.currentStatus && s.currentStatus !== s.status
-              const noteMissing = submitted && s.serious && !i.handled && !i.note.trim()
-              return (
-                <li key={i.sourceId} className={cn('flex flex-col gap-2 rounded-xl border p-3', i.handled && 'bg-muted')}>
-                  <div className="flex items-start gap-3">
-                    <span className="flex min-w-0 flex-col gap-0.5">
-                      <span className="type-caption text-muted-foreground">{groupLabel(s.group)}</span>
-                      <SourceLine source={s} />
-                    </span>
-                    <span className="ml-auto flex shrink-0 flex-col items-end gap-1">
-                      <StatusBadge status={s.currentStatus ?? s.status} />
-                      {s.serious && !i.handled && <span className="type-caption text-warning-foreground">Cần ghi chú</span>}
-                    </span>
-                  </div>
-                  {/* Nguồn đã xử lý xong: người bàn giao ghi "đã xử lý" hoặc bỏ mục (FR-040) */}
-                  {closed && (
-                    <p className="text-muted-foreground">
-                      Nguồn đã chuyển {s.currentStatus.toLowerCase()} sau khi thêm vào bàn giao.
-                    </p>
-                  )}
-                  <Field data-invalid={noteMissing || undefined}>
-                    <FieldLabel htmlFor={`note-${s.id}`} className="sr-only">
-                      Ghi chú cho mục {s.text}
-                    </FieldLabel>
-                    <Textarea
-                      id={`note-${s.id}`}
-                      rows={2}
-                      placeholder={s.serious ? 'Ghi chú (bắt buộc với mục nghiêm trọng)' : 'Ghi chú'}
-                      value={i.note}
-                      onChange={(e) => update(s.id, { note: e.target.value })}
-                      aria-invalid={noteMissing || undefined}
-                    />
-                    {noteMissing && <FieldError>Mục nghiêm trọng cần ghi chú</FieldError>}
-                  </Field>
-                  <div className="flex flex-wrap items-center justify-end gap-2">
-                    {closed && !i.handled && (
-                      <Button type="button" variant="outline" size="sm" onClick={() => update(s.id, { handled: true })}>
-                        Ghi đã xử lý
-                      </Button>
-                    )}
-                    {i.handled && <span className="type-caption text-muted-foreground">Đã ghi đã xử lý</span>}
-                    {s.keep ? (
-                      <span className="type-caption text-muted-foreground">Mục này không bỏ được</span>
-                    ) : (
-                      <Button type="button" variant="ghost" size="sm" onClick={() => setItems(items.filter((x) => x.sourceId !== s.id))}>
-                        Bỏ mục
-                      </Button>
-                    )}
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-          <Field>
-            <FieldLabel htmlFor="follow-up">Vấn đề cần theo dõi, nhận định theo người cao tuổi</FieldLabel>
-            <Textarea id="follow-up" rows={3} value={followUp} onChange={(e) => setFollowUp(e.target.value)} />
-          </Field>
-          <Field data-invalid={(submitted && !general.trim()) || undefined}>
-            <FieldLabel htmlFor="general">Nhận định chung</FieldLabel>
-            <Textarea id="general" rows={3} value={general} onChange={(e) => setGeneral(e.target.value)} aria-invalid={(submitted && !general.trim()) || undefined} />
-            {submitted && !general.trim() ? <FieldError>Nhập nhận định chung</FieldError> : <FieldDescription>Bắt buộc trước khi hoàn tất.</FieldDescription>}
-          </Field>
-          {submitted && missing.length > 0 && (
-            <div role="alert" className="rounded-lg bg-warning px-3 py-2 text-warning-foreground">
-              <span className="type-label">Chưa hoàn tất được, còn thiếu:</span>
-              <ul className="list-disc pl-5">
-                {missing.map((m) => (
-                  <li key={m}>{m}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <Button type="submit" className="h-11 self-end">
-            Hoàn tất bàn giao
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
-  )
+  load(); return () => { current = false }
+ }, [status, view, shiftId, revision])
+ const allowed = (command) => (handover?.allowedCommands ?? []).includes(command)
+ async function refresh(id) {
+  const result = await getHandoversById({ path: { id } })
+  setHandover(result.data); setEtag(result.etag)
+  const rows = await getHandoversByIdSourceRecords({ path: { id }, query: { afterPreparation: result.data.status !== 'DRAFT' } })
+  setSources(rows.data)
+ }
+ async function act(command, message) {
+  if (busy) return
+  if (!navigator.onLine) { setFailure({ status: 0, title: 'Cần kết nối mạng', detail: 'Kết nối mạng rồi thực hiện lại lệnh bàn giao.', unmetConditions: [] }); return }
+  setBusy(true); setFailure(null)
+  try { const created = await command(); await refresh(created?.data?.id ?? handover.id); setAnnouncement(message) } catch (e) { setFailure(problemOf(e)) } finally { setBusy(false) }
+ }
+ const params = (body) => ({ path: { id: handover.id }, headers: { 'Idempotency-Key': crypto.randomUUID(), 'If-Match': etag }, ...(body !== undefined && { body }) })
+ if (status === 'ready' && !view || status === 'error' || failure?.status === 403) return <PermissionDeniedState label="bàn giao ca" />
+ return <div className="mx-auto flex max-w-[1600px] flex-col gap-6">
+  <PageHeader title="Bàn giao ca" subtitle={shift ? `Ca ${formatDateTime(shift.startsAt)} đến ${formatDateTime(shift.endsAt)}` : 'Chọn ca để xem hoặc lập bàn giao.'} aside={handover && <StatusBadge status={STATUS[handover.status]} />}>
+   {!initialShiftId && <div className="grid gap-3 md:grid-cols-[12rem_minmax(0,1fr)]"><Field><FieldLabel htmlFor="handover-month">Tháng có ca</FieldLabel><Input id="handover-month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} /></Field><SelectField id="handover-shift" label="Ca cần bàn giao" value={shiftId} onChange={setShiftId}><option value="">Chọn ca</option>{choices.map((s) => <option key={s.id} value={s.id}>{formatDateTime(s.startsAt)} đến {formatDateTime(s.endsAt)}</option>)}</SelectField></div>}
+  </PageHeader>
+  {announcement && <p role="status" aria-live="polite" className="rounded-xl border bg-card px-4 py-3 type-body-sm">{announcement}</p>}
+  <ProblemAlert problem={failure}>
+   {failure?.status === 412 && <p>Bản hiện tại: {STATUS[failure.currentValue?.status] ?? 'Nội dung đã thay đổi'}.</p>}
+   <Button variant="outline" className="h-11" onClick={() => setRevision((n) => n + 1)}>Tải lại bàn giao</Button>
+  </ProblemAlert>
+  {loading || status === 'loading' ? <Card><CardContent><Skeleton className="h-28 w-full" /></CardContent></Card> : !handover ? <Card><CardContent className="flex flex-col items-start gap-3"><p>{shiftId ? 'Ca chưa có bàn giao. Chỉ người có quyền mới lập được từ mốc trước khi kết ca.' : 'Chưa có ca trong tháng hoặc chưa chọn ca.'}</p>{shift?.allowedCommands?.includes('createHandover') && <Button disabled={busy} className="h-11" onClick={() => act(() => postShiftsByIdHandovers({ path: { id: shiftId }, headers: { 'Idempotency-Key': crypto.randomUUID() } }), 'Đã lập bản nháp bàn giao.')}>Lập bàn giao</Button>}</CardContent></Card> :
+   <div className={`grid items-start gap-4 ${handover.status === 'DRAFT' ? 'lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]' : 'lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]'}`}>
+    <Card className={handover.status !== 'DRAFT' ? 'lg:order-2' : ''}><CardHeader><CardTitle className="type-card-title">{handover.status === 'DRAFT' ? 'Bản ghi nguồn để tham khảo' : 'Bản ghi nguồn mới sau khi lập'}</CardTitle></CardHeader><CardContent className="flex flex-col gap-4">
+     <p className="type-body-sm text-muted-foreground">Chọn từng bản ghi cần bàn giao. Hệ thống không lập sẵn mục.</p>
+     {sources.length === 0 && <p>Chưa có bản ghi nguồn trong danh sách này.</p>}
+     {sources.map((s, index) => <div key={`${s.sourceType}:${s.sourceId ?? index}`} className="flex min-w-0 flex-col gap-2 border-t pt-3 first:border-t-0">
+      <p className="type-caption text-muted-foreground">{GROUP[s.group]}</p><ResidentName id={s.residentId} /><p className="break-words type-body-sm">{s.dataUnavailable ? 'Nguồn chưa sẵn sàng. Tải lại để kiểm tra dữ liệu.' : s.description ?? 'Nội dung được giới hạn theo quyền xem.'}</p>
+      {!s.dataUnavailable && <div className="flex flex-wrap items-center justify-between gap-2"><StatusBadge status={labelStatus(s.currentStatus)} />{allowed('addItem') && <Button variant="outline" className="h-11" disabled={busy || s.hasItem} aria-label={`Thêm ${s.description}`} onClick={() => act(() => postHandoversByIdItems(params(inputOf({ ...s, resolved: false }))), 'Đã thêm mục bàn giao.')}>{s.hasItem ? 'Đã có mục' : 'Thêm'}</Button>}</div>}
+     </div>)}
+    </CardContent></Card>
+    <Card><CardHeader><CardTitle className="type-card-title">{handover.status === 'DRAFT' ? 'Nội dung bàn giao' : 'Nội dung đã chốt'}</CardTitle></CardHeader><CardContent className="flex flex-col gap-5">
+     {handover.finalizedAt && <p className="type-caption text-muted-foreground">Chốt lúc {formatDateTime(handover.finalizedAt)}; phần gốc được giữ nguyên.</p>}
+     {handover.items.length === 0 && <p className="type-body-sm">Chưa thêm mục bàn giao.</p>}
+     {handover.items.map((item) => <ItemBlock key={item.id} item={item} critical={sources.some((s) => s.sourceType === item.sourceType && s.sourceId === item.sourceId && s.critical)} busy={busy} editable={allowed('updateItem')} removable={allowed('deleteItem')} onSave={(note, resolved) => act(() => putHandoversByIdItemsByItemId({ ...params({ ...inputOf(item), note, resolved }), path: { id: handover.id, itemId: item.id } }), 'Đã lưu ghi chú.')} onDelete={() => act(() => deleteHandoversByIdItemsByItemId({ path: { id: handover.id, itemId: item.id }, headers: { 'If-Match': etag } }), 'Đã bỏ mục bàn giao.')} />)}
+     {allowed('addItem') && <FollowUpForm busy={busy} residents={[...new Set([...sources, ...handover.items].map((s) => s.residentId).filter(Boolean))]} rooms={[...new Set([...sources, ...handover.items].map((s) => s.roomId).filter(Boolean))]} onAdd={(body) => act(() => postHandoversByIdItems(params(body)), 'Đã ghi vấn đề cần theo dõi.')} />}
+     {allowed('assess') ? <AssessmentForm handover={handover} busy={busy} onSave={(body) => act(() => putHandoversByIdAssessments(params(body)), 'Đã lưu nhận định.')} /> : <div className="flex flex-col gap-3"><h3 className="type-label">Nhận định chung</h3><p className="whitespace-pre-wrap type-body-sm">{handover.generalAssessment || 'Chưa ghi nhận.'}</p>{handover.residentAssessments.map((a) => <div key={a.residentId}><ResidentName id={a.residentId} /><p className="whitespace-pre-wrap type-body-sm">{a.content ?? 'Nội dung được giới hạn theo quyền xem.'}</p></div>)}</div>}
+     {handover.hiddenFields.length > 0 && <p className="type-caption text-muted-foreground">Một số thông tin sức khỏe được giới hạn theo quyền xem.</p>}
+     {handover.comments.map((c) => <div key={c.id} className="rounded-xl border bg-muted p-3 type-body-sm"><p className="type-label">{c.sender}, {formatDateTime(c.at)}</p><p className="whitespace-pre-wrap">{c.content}</p>{c.replies?.map((r, index) => <p key={index} className="mt-2 whitespace-pre-wrap">Phản hồi: {r.content}</p>)}</div>)}
+     {allowed('complete') && <Button className="h-11 self-end" disabled={busy} onClick={() => act(() => postHandoversByIdComplete(params()), 'Đã hoàn tất bàn giao và chốt nội dung.')}>Hoàn tất bàn giao</Button>}
+     {allowed('comment') && <CommentForm busy={busy} onSend={(content) => act(() => postHandoversByIdComments(params({ content })), 'Đã gửi ý kiến, chờ bổ sung.')} />}
+     {allowed('confirm') && <Button className="h-11 self-end" disabled={busy} onClick={() => act(() => postHandoversByIdConfirm(params()), 'Đã xác nhận bàn giao. Công việc và trách nhiệm được chuyển cùng lần xác nhận.')}>Xác nhận bàn giao</Button>}
+     {allowed('supplementAndResubmit') && <ReplyForm comments={handover.comments} busy={busy} onSend={(replies) => act(() => postHandoversByIdSupplementAndResubmit(params({ replies })), 'Đã bổ sung và gửi lại.')} />}
+     {handover.status === 'CONFIRMED' && <p className="type-body-sm">Bàn giao đã xác nhận. Sai sót được xử lý bằng đính chính; nội dung gốc được giữ nguyên.</p>}
+     {handover.status === 'CONFIRMED' && <HandoverCorrections key={handover.id} handover={handover} canCorrect={can('SHIFT_HANDOVER', 'UPDATE') && !handover.hiddenFields.length} onChanged={() => setRevision((n) => n + 1)} />}
+    </CardContent></Card>
+   </div>}
+ </div>
 }
-
-// Nội dung đã chốt: mỗi mục có trạng thái lúc chốt và trạng thái hiện tại nếu khác (FR-045)
-function LockedContent({ items, general, followUp, status }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="type-card-title">Nội dung đã chốt</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4 type-body-sm">
-        <ul className="flex flex-col">
-          {items.map((i) => {
-            const s = sourceOf(i.sourceId)
-            const atLock = i.handled ? 'Đã xử lý' : (s.currentStatus ?? s.status)
-            const now = status === 'Đã lập' && s.laterStatus
-            return (
-              <li key={i.sourceId} className="flex flex-col gap-1.5 border-t py-3 first:border-t-0 first:pt-0">
-                <div className="flex items-start gap-3">
-                  <span className="flex min-w-0 flex-col gap-0.5">
-                    <span className="type-caption text-muted-foreground">{groupLabel(s.group)}</span>
-                    <SourceLine source={s} />
-                  </span>
-                  <span className="ml-auto flex shrink-0 flex-col items-end gap-1 type-caption text-muted-foreground">
-                    <span>
-                      Lúc chốt: <StatusBadge status={atLock} />
-                    </span>
-                    {now && (
-                      <span>
-                        Nay: <StatusBadge status={now} />
-                      </span>
-                    )}
-                  </span>
-                </div>
-                {i.note && <p>{i.note}</p>}
-              </li>
-            )
-          })}
-        </ul>
-        {followUp && (
-          <p>
-            <span className="type-label">Vấn đề cần theo dõi: </span>
-            {followUp}
-          </p>
-        )}
-        <p>
-          <span className="type-label">Nhận định chung: </span>
-          {general}
-        </p>
-      </CardContent>
-    </Card>
-  )
+function ItemBlock({ item, critical, editable, removable, busy, onSave, onDelete }) {
+ const [note, setNote] = useState(item.note ?? '')
+ const [resolved, setResolved] = useState(Boolean(item.resolved))
+ const protectedItem = ['VITAL_SIGN', 'RESIDENT_CHANGE'].includes(item.group)
+ return <section className="flex min-w-0 flex-col gap-3 border-t pt-4"><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="type-label">{GROUP[item.group]}</h3>{item.section === 'AFTER_PREPARATION' && <span className="type-caption text-muted-foreground">Phát sinh sau khi lập</span>}{item.section === 'RESOLVED_DURING_SHIFT' && <StatusBadge status="Đã xử lý trong ca" />}</div><ResidentName id={item.residentId} /><p className="break-words type-body-sm">{item.description ?? 'Nội dung được giới hạn theo quyền xem.'}</p><div className="flex flex-wrap gap-2 type-caption">{item.statusAtFinalization && <span>Lúc chốt: {labelStatus(item.statusAtFinalization)}</span>}<span>Nay: {labelStatus(item.currentStatus)}</span></div>
+  {editable && critical && !note.trim() && <p className="type-caption text-destructive" role="status">Cần ghi chú trước khi hoàn tất</p>}
+  {editable ? <><Field><FieldLabel htmlFor={`note-${item.id}`}>Ghi chú mục {item.id}</FieldLabel><Textarea id={`note-${item.id}`} rows={3} value={note} onChange={(e) => setNote(e.target.value)} /></Field><div className="flex flex-wrap gap-2"><Button variant="outline" className="h-11" disabled={busy} aria-label={`Lưu ghi chú mục ${item.id}`} onClick={() => onSave(note, resolved)}>Lưu ghi chú</Button>{!protectedItem && <Button variant="outline" className="h-11" disabled={busy} onClick={() => { setResolved(true); onSave(note, true) }}>Ghi đã xử lý</Button>}{removable && !protectedItem ? <Button variant="ghost" className="h-11" disabled={busy} aria-label={`Bỏ mục ${item.id}`} onClick={onDelete}>Bỏ mục</Button> : protectedItem && <span className="self-center type-caption text-muted-foreground">Không bỏ được</span>}</div></> : <p className="whitespace-pre-wrap type-body-sm">{item.note || 'Chưa ghi chú.'}</p>}
+  {item.noteAuthor && <p className="type-caption text-muted-foreground">Ghi chú bởi {item.noteAuthor}</p>}
+ </section>
 }
-
-function ConfirmPanel({ onConfirm, onComment }) {
-  const [comment, setComment] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-  return (
-    <Card className="h-fit">
-      <CardHeader>
-        <CardTitle className="type-card-title">Xác nhận bàn giao</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4 type-body-sm">
-        <section className="flex flex-col gap-2">
-          <h3 className="type-caption text-muted-foreground">Bản ghi nguồn mới sau khi lập (chỉ để xem)</h3>
-          <ul className="flex flex-col">
-            {DEMO_HANDOVER_AFTER_LOCK.map((n) => (
-              <li key={n.id} className="flex items-center gap-3 border-t py-2 first:border-t-0 first:pt-0">
-                <SourceLine source={n} />
-                <StatusBadge status={n.status} className="ml-auto" />
-              </li>
-            ))}
-          </ul>
-        </section>
-        <Field data-invalid={(submitted && !comment.trim()) || undefined}>
-          <FieldLabel htmlFor="comment">Ý kiến khi thấy thiếu sót</FieldLabel>
-          <Textarea id="comment" rows={3} value={comment} onChange={(e) => setComment(e.target.value)} aria-invalid={(submitted && !comment.trim()) || undefined} />
-          {submitted && !comment.trim() && <FieldError>Nhập nội dung ý kiến</FieldError>}
-        </Field>
-        <div className="flex flex-wrap justify-end gap-2">
-          <Button
-            variant="outline"
-            className="h-11"
-            onClick={() => {
-              setSubmitted(true)
-              if (comment.trim()) onComment(comment.trim())
-            }}
-          >
-            Gửi ý kiến
-          </Button>
-          <Button className="h-11" onClick={onConfirm}>
-            Xác nhận bàn giao
-          </Button>
-        </div>
-        <p className="type-caption text-muted-foreground">
-          Xác nhận thì công việc tồn sang checklist ca sau, cảnh báo và sự cố đang mở đổi người phụ trách, bàn giao bị khóa.
-        </p>
-      </CardContent>
-    </Card>
-  )
+function AssessmentForm({ handover, busy, onSave }) {
+ const [general, setGeneral] = useState(handover.generalAssessment ?? '')
+ const [byResident, setByResident] = useState(Object.fromEntries(handover.residentAssessments.map((r) => [r.residentId, r.content ?? ''])))
+ const residents = [...new Set(handover.items.map((i) => i.residentId).filter(Boolean))]
+ return <form className="flex flex-col gap-3 border-t pt-4" onSubmit={(e) => { e.preventDefault(); onSave({ general, byResident: Object.entries(byResident).map(([residentId, content]) => ({ residentId: Number(residentId), content })) }) }}><Field><FieldLabel htmlFor="handover-general">Nhận định chung</FieldLabel><Textarea id="handover-general" value={general} onChange={(e) => setGeneral(e.target.value)} rows={3} /><p className="type-caption text-muted-foreground">Không ghi thông tin sức khỏe riêng của từng người ở nhận định chung.</p></Field>{residents.map((id) => <Field key={id}><FieldLabel htmlFor={`assessment-${id}`}>Nhận định: <ResidentName id={id} /></FieldLabel><Textarea id={`assessment-${id}`} value={byResident[id] ?? ''} onChange={(e) => setByResident({ ...byResident, [id]: e.target.value })} /></Field>)}<Button type="submit" variant="outline" className="h-11 self-end" disabled={busy}>Lưu nhận định</Button></form>
 }
-
-function ReplyPanel({ comments, onResend }) {
-  const [reply, setReply] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-  return (
-    <Card className="h-fit">
-      <CardHeader>
-        <CardTitle className="type-card-title">Ý kiến của ca sau</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4 type-body-sm">
-        <p className="rounded-lg bg-warning px-3 py-2 text-warning-foreground">{comments.at(-1)}</p>
-        <Field data-invalid={(submitted && !reply.trim()) || undefined}>
-          <FieldLabel htmlFor="reply">Phản hồi, phần bổ sung</FieldLabel>
-          <Textarea id="reply" rows={3} value={reply} onChange={(e) => setReply(e.target.value)} aria-invalid={(submitted && !reply.trim()) || undefined} />
-          {submitted && !reply.trim() && <FieldError>Nhập phản hồi cho ý kiến</FieldError>}
-        </Field>
-        <Button
-          className="h-11 self-end"
-          onClick={() => {
-            setSubmitted(true)
-            if (reply.trim()) onResend(reply.trim())
-          }}
-        >
-          Bổ sung và gửi lại
-        </Button>
-      </CardContent>
-    </Card>
-  )
+function FollowUpForm({ residents, rooms, busy, onAdd }) {
+ const [target, setTarget] = useState('')
+ const [description, setDescription] = useState('')
+ const [query, setQuery] = useState('')
+ const [people, setPeople] = useState([])
+ const [error, setError] = useState(null)
+ const residentIds = residents.join(',')
+ useEffect(() => {
+  let current = true
+  const timer = setTimeout(async () => {
+   try {
+    const values = query.trim() ? (await getResidents({ query: { q: query.trim() } })).data.items : await Promise.all(residentIds.split(',').filter(Boolean).map(async (id) => (await getResidentsById({ path: { id } })).data))
+    if (current) { setPeople(values); setError(null) }
+   } catch (e) { if (current) setError(problemOf(e)) }
+  }, 250)
+  return () => { current = false; clearTimeout(timer) }
+ }, [query, residentIds])
+ return <form className="flex flex-col gap-3 border-t pt-4" onSubmit={(e) => { e.preventDefault(); if (!target || !description.trim()) return; const [kind, id] = target.split(':'); onAdd({ group: 'FOLLOW_UP_ISSUE', description: description.trim(), [kind === 'resident' ? 'residentId' : 'roomId']: Number(id), resolved: false }) }}>
+  <h3 className="type-label">Ghi vấn đề cần theo dõi</h3>
+  <Field><FieldLabel htmlFor="follow-up-search">Tìm người cao tuổi</FieldLabel><Input id="follow-up-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nhập tên hoặc mã hồ sơ" /></Field>
+  <ProblemAlert problem={error} />
+  <SelectField id="follow-up-target" label="Người cao tuổi hoặc phòng liên quan" value={target} onChange={setTarget}><option value="">Chọn đối tượng trong ca</option>{people.map((person) => <option key={person.id} value={`resident:${person.id}`}>{person.fullName}</option>)}{rooms.map((id) => <option key={id} value={`room:${id}`}>Phòng có mã {id}</option>)}</SelectField>
+  <Field><FieldLabel htmlFor="follow-up-content">Nội dung cần theo dõi</FieldLabel><Textarea id="follow-up-content" value={description} onChange={(e) => setDescription(e.target.value)} /></Field>
+  <Button variant="outline" className="h-11 self-end" type="submit" disabled={busy || !target || !description.trim()}>Thêm vấn đề cần theo dõi</Button>
+ </form>
 }
-
-function HistoryCard() {
-  return (
-    <Card className="py-0">
-      <CardHeader className="pt-4">
-        <CardTitle className="type-card-title">Bàn giao trước</CardTitle>
-      </CardHeader>
-      <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="pl-4">Ca</TableHead>
-            <TableHead>Ngày</TableHead>
-            <TableHead>Người bàn giao</TableHead>
-            <TableHead>Người xác nhận</TableHead>
-            <TableHead className="pr-4">Trạng thái</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {DEMO_HANDOVER_HISTORY.map((h) => (
-            <TableRow key={h.id}>
-              <TableCell className="pl-4">
-                {h.from} → {h.to}
-              </TableCell>
-              <TableCell className="tabular-nums">{h.date}</TableCell>
-              <TableCell>{h.giver}</TableCell>
-              <TableCell>{h.receiver}</TableCell>
-              <TableCell className="pr-4">
-                <StatusBadge status={h.status} />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Card>
-  )
+function CommentForm({ busy, onSend }) {
+ const [content, setContent] = useState('')
+ return <form className="flex flex-col gap-3 border-t pt-4" onSubmit={(e) => { e.preventDefault(); if (content.trim()) onSend(content.trim()) }}><Field><FieldLabel htmlFor="handover-comment">Ý kiến khi thấy thiếu sót</FieldLabel><Textarea id="handover-comment" value={content} onChange={(e) => setContent(e.target.value)} /></Field><Button type="submit" variant="outline" className="h-11 self-end" disabled={busy || !content.trim()}>Gửi ý kiến</Button></form>
 }
-
-export function HandoverPage({ role }) {
-  const scope = DEMO_HANDOVER_SCOPE
-  const canGive = role === GIVER_ROLE
-  const canConfirm = role === CONFIRM_ROLE
-  const [status, setStatus] = useState('Bản nháp')
-  const [items, setItems] = useState(DEMO_HANDOVER_DRAFT_ITEMS.map((i) => ({ ...i, handled: false })))
-  const [general, setGeneral] = useState('')
-  const [followUp, setFollowUp] = useState('')
-  const [comments, setComments] = useState([])
-  const [announcement, setAnnouncement] = useState('')
-
-  const waiting = (text) => (
-    <Card>
-      <CardContent className="type-body-sm">
-        <p>{text}</p>
-      </CardContent>
-    </Card>
-  )
-
-  return (
-    <div className="mx-auto flex max-w-[1600px] flex-col gap-6">
-      <PageHeader
-        title={`Bàn giao ${scope.from.toLowerCase()} → ${scope.to.toLowerCase()}, ${scope.floor.toLowerCase()}`}
-        subtitle={`Người bàn giao ${scope.giver}; người xác nhận: ${scope.receiver.toLowerCase()} hoặc Trưởng tầng. Bản mẫu hiện như lúc ${scope.now}, ca kết thúc ${scope.end}.`}
-        aside={<StatusBadge status={status} />}
-      />
-      <p role="status" aria-live="polite" className="empty:hidden rounded-xl border bg-card px-4 py-3 type-body-sm">
-        {announcement}
-      </p>
-
-      {status === 'Bản nháp' &&
-        (canGive ? (
-          <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-            <SourcesPanel items={items} onAdd={(id) => setItems([...items, { sourceId: id, note: '', handled: false }])} />
-            <DraftPanel
-              items={items}
-              setItems={setItems}
-              general={general}
-              setGeneral={setGeneral}
-              followUp={followUp}
-              setFollowUp={setFollowUp}
-              onComplete={() => {
-                setStatus('Đã lập')
-                setAnnouncement('Đã hoàn tất bàn giao, nội dung được chốt. Bản mẫu: đổi vai trò sang Trưởng tầng để xác nhận.')
-              }}
-            />
-          </div>
-        ) : (
-          waiting('Người phụ trách ca đang lập bàn giao (Bản nháp). Bản mẫu: đổi vai trò sang Điều dưỡng để lập.')
-        ))}
-
-      {status !== 'Bản nháp' && (
-        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-          <LockedContent items={items} general={general} followUp={followUp} status={status} />
-          {status === 'Đã lập' &&
-            (canConfirm ? (
-              <ConfirmPanel
-                onConfirm={() => {
-                  setStatus('Đã xác nhận')
-                  setAnnouncement('Đã xác nhận bàn giao. Bản mẫu: chuyển công việc tồn, đổi người phụ trách cảnh báo do backend thực hiện.')
-                }}
-                onComment={(c) => {
-                  setComments([...comments, c])
-                  setStatus('Có ý kiến')
-                  setAnnouncement('Đã gửi ý kiến, bàn giao quay lại người bàn giao. Bản mẫu: đổi vai trò sang Điều dưỡng để bổ sung.')
-                }}
-              />
-            ) : (
-              waiting('Chờ người phụ trách ca sau xác nhận. Bản mẫu: đổi vai trò sang Trưởng tầng để xác nhận.')
-            ))}
-          {status === 'Có ý kiến' &&
-            (canGive ? (
-              <ReplyPanel
-                comments={comments}
-                onResend={(r) => {
-                  setFollowUp(followUp ? `${followUp}\nBổ sung: ${r}` : `Bổ sung: ${r}`)
-                  setStatus('Đã lập')
-                  setAnnouncement('Đã bổ sung và gửi lại, bàn giao trở lại Đã lập.')
-                }}
-              />
-            ) : (
-              waiting('Bàn giao có ý kiến, chờ người bàn giao bổ sung và gửi lại.')
-            ))}
-          {status === 'Đã xác nhận' && waiting('Bàn giao đã xác nhận và bị khóa; sai sót xử lý bằng bản đính chính.')}
-        </div>
-      )}
-
-      <HistoryCard />
-    </div>
-  )
+function ReplyForm({ comments, busy, onSend }) {
+ const unanswered = comments.filter((c) => !c.replies?.length)
+ const [replies, setReplies] = useState({})
+ return <form className="flex flex-col gap-3 border-t pt-4" onSubmit={(e) => { e.preventDefault(); onSend(unanswered.map((c) => ({ commentId: c.id, content: replies[c.id]?.trim() ?? '' }))) }}>{unanswered.map((c) => <Field key={c.id}><FieldLabel htmlFor={`reply-${c.id}`}>Phản hồi ý kiến: {c.content}</FieldLabel><Textarea id={`reply-${c.id}`} value={replies[c.id] ?? ''} onChange={(e) => setReplies({ ...replies, [c.id]: e.target.value })} /></Field>)}<Button type="submit" className="h-11 self-end" disabled={busy || unanswered.some((c) => !replies[c.id]?.trim())}>Bổ sung và gửi lại</Button></form>
 }

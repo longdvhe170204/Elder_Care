@@ -31,18 +31,21 @@ class ShiftController {
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> users;
     private final PermissionApi permissions;
+    private final com.cambae.backend.m09.handover.internal.service.HandoverService handovers;
 
     ShiftController(
             ShiftScheduleService schedules,
             ShiftQueries query,
             BusinessTime time,
             ObjectProvider<CurrentUser> users,
-            PermissionApi permissions) {
+            PermissionApi permissions,
+            com.cambae.backend.m09.handover.internal.service.HandoverService handovers) {
         this.schedules = schedules;
         this.query = query;
         this.time = time;
         this.users = users;
         this.permissions = permissions;
+        this.handovers = handovers;
     }
 
     @GetMapping("/shift-templates")
@@ -281,6 +284,7 @@ class ShiftController {
                     .toList();
         var assignmentCommands = new ArrayList<>(commands);
         assignmentCommands.addAll(schedules.assignmentCommands(shift));
+        if (handovers.canCreate(shift.id())) assignmentCommands.add("createHandover");
         commands = List.copyOf(assignmentCommands);
         var members = schedules.members(shift.id()).stream()
                 .map(m -> new ShiftResponses.Staff(

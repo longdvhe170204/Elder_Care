@@ -128,6 +128,7 @@ public class M09Retention implements RetentionProvider {
         Set<DataRef> refs = new LinkedHashSet<>();
         switch (kind) {
             case STAFF -> {
+                refs(refs, "M09.HANDOVER", "SELECT id FROM shift_handover WHERE handover_staff_id=?", id);
                 refs(refs, "M09.CREDENTIAL", "SELECT id FROM credential WHERE staff_id=?", id);
                 refs(refs, "M09.STAFF_DEPARTMENT", "SELECT id FROM staff_department WHERE staff_id=?", id);
                 refs(
@@ -170,6 +171,9 @@ public class M09Retention implements RetentionProvider {
                 refs(refs, "M09.SHIFT_PUBLICATION", "SELECT id FROM shift_publication WHERE schedule_id=?", id);
             }
             case SHIFT -> {
+                jdbc.queryForList(
+                                "SELECT id FROM shift_handover WHERE shift_id=? OR next_shift_id=?", Long.class, id, id)
+                        .forEach(found -> refs.add(new DataRef("M09.HANDOVER", found)));
                 refs(refs, "M09.SHIFT_STAFF", "SELECT id FROM shift_staff WHERE shift_id=?", id);
                 refs(refs, "M09.SHIFT_LEAD_HISTORY", "SELECT id FROM shift_lead_history WHERE shift_id=?", id);
                 refs(refs, "M09.ASSIGNMENT", "SELECT id FROM staff_assignment WHERE shift_id=?", id);

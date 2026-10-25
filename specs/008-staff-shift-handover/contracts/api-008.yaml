@@ -423,6 +423,12 @@ paths:
 
   # ---------------- Bàn giao ----------------
   /shifts/{id}/handovers:
+    get:
+      tags: [handovers]
+      summary: Tìm bàn giao của ca trong phạm vi được xem; chưa lập trả 404
+      x-fr: [FR-038, FR-047]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/Handover' } } } }, '404': { $ref: '#/components/responses/Problem' } }
     post:
       tags: [handovers]
       summary: Lập bàn giao (Bản nháp) từ mốc CFG-M09-04 trước kết ca; không có mục lập sẵn
@@ -713,6 +719,7 @@ components:
         dataUnavailable: { type: boolean }
     HandoverItem:
       type: object
+      description: 'TASK, DOSE, ALERT, INCIDENT phải chọn bản ghi nguồn; nội dung tự ghi không có nguồn dùng FOLLOW_UP_ISSUE (chủ dự án duyệt 2026-10-24).'
       required: [group, description]
       properties:
         id: { type: integer, format: int64, readOnly: true }
