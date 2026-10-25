@@ -7,6 +7,8 @@ import com.cambae.backend.m07.internal.domain.Medication;
 import com.cambae.backend.m07.internal.domain.Prescription;
 import com.cambae.backend.m07.internal.domain.PrescriptionStatus;
 import com.cambae.backend.m07.internal.domain.PrescriptionType;
+import com.cambae.backend.m15.parameter.api.ParameterApi;
+import com.cambae.backend.m15.parameter.api.ParameterCode;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -33,7 +35,22 @@ public class MedicationScheduleCalculator {
 
     public static final ZoneId ZONE_VN = ZoneId.of("Asia/Ho_Chi_Minh");
     public static final DateTimeFormatter DOSE_KEY_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
-    public static final int DEFAULT_WINDOW_MINUTES = 30; // CFG-M07-01 default window
+
+    private final ParameterApi parameters;
+
+    public MedicationScheduleCalculator(ParameterApi parameters) {
+        this.parameters = parameters;
+    }
+
+    /** doseKey của liều có thời điểm dự kiến đã biết (liều đã vật hóa). */
+    public static String doseKey(long prescriptionId, Instant scheduledTime) {
+        return prescriptionId + "-" + DOSE_KEY_FORMATTER.format(scheduledTime.atZone(ZONE_VN));
+    }
+
+    /** Cửa sổ mặc định của liều khi thuốc không đặt cửa sổ riêng (CFG-M07-01). */
+    public int defaultWindowMinutes() {
+        return (int) parameters.read(ParameterCode.CFG_M07_01).asDuration().toMinutes();
+    }
 
     /**
      * Projects dose slots for a single prescription within the given time range.
@@ -55,12 +72,13 @@ public class MedicationScheduleCalculator {
             return Collections.emptyList();
         }
 
+        int defaultWindow = defaultWindowMinutes();
         int windowBefore = medication != null && medication.getBeforeWindowMinutes() != null
                 ? medication.getBeforeWindowMinutes()
-                : DEFAULT_WINDOW_MINUTES;
+                : defaultWindow;
         int windowAfter = medication != null && medication.getAfterWindowMinutes() != null
                 ? medication.getAfterWindowMinutes()
-                : DEFAULT_WINDOW_MINUTES;
+                : defaultWindow;
 
         String medName = medication != null ? medication.getName() : "Medication";
         boolean specialControl = medication != null && medication.isSpecialControl();

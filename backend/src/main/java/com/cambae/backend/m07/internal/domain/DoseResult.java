@@ -41,7 +41,7 @@ public class DoseResult {
     private Instant administeredAt;
 
     @Column(name = "recorded_at", nullable = false, updatable = false)
-    private Instant recordedAt = Instant.now();
+    private Instant recordedAt;
 
     @Column(name = "device_recorded_at")
     private Instant deviceRecordedAt;
@@ -111,13 +111,14 @@ public class DoseResult {
             boolean offlineFlag,
             boolean syncedAfterPermissionLoss,
             Long familyMedicationLotId,
-            Long leaveHandoverId) {
+            Long leaveHandoverId,
+            Instant now) {
         this.doseId = doseId;
         this.residentId = residentId;
         this.floorAreaId = floorAreaId;
         this.resultType = resultType;
         this.administeredAt = administeredAt;
-        this.recordedAt = Instant.now();
+        this.recordedAt = now;
         this.deviceRecordedAt = deviceRecordedAt;
         this.recorderId = recorderId;
         this.authorityBasis = authorityBasis;

@@ -1,10 +1,12 @@
 package com.cambae.backend.m07.internal.domain;
 
+import com.cambae.backend.common.data.DataGroup;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
+@DataGroup(DataGroup.Group.RECORD)
 @Table(name = "family_medication_movement")
 public class FamilyMedicationMovement {
 

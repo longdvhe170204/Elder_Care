@@ -1,16 +1,15 @@
 package com.cambae.backend.m07.internal.service;
 
 import com.cambae.backend.common.error.BusinessException;
+import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m07.internal.domain.*;
 import com.cambae.backend.m07.internal.persistence.*;
-import com.cambae.backend.m07.web.request.*;
-import com.cambae.backend.m07.web.response.FamilyMedicationBatchResponse;
+import com.cambae.backend.m07.internal.service.request.*;
+import com.cambae.backend.m07.internal.service.response.FamilyMedicationBatchResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.util.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,19 +25,22 @@ public class FamilyMedicationService {
     private final PrescriptionRepository prescriptionRepo;
     private final ResidentMedicationLock residentMedicationLock;
     private final ObjectMapper objectMapper;
+    private final BusinessTime businessTime;
 
     public FamilyMedicationService(
             FamilyMedicationBatchRepository batchRepo,
             FamilyMedicationPrescriptionRepository batchPrescriptionRepo,
             FamilyMedicationMovementRepository movementRepo,
             PrescriptionRepository prescriptionRepo,
-            ResidentMedicationLock residentMedicationLock) {
+            ResidentMedicationLock residentMedicationLock,
+            BusinessTime businessTime) {
         this.batchRepo = batchRepo;
         this.batchPrescriptionRepo = batchPrescriptionRepo;
         this.movementRepo = movementRepo;
         this.prescriptionRepo = prescriptionRepo;
         this.residentMedicationLock = residentMedicationLock;
         this.objectMapper = new ObjectMapper();
+        this.businessTime = businessTime;
     }
 
     /**
@@ -80,10 +82,11 @@ public class FamilyMedicationService {
                 body.getDelivererName(),
                 body.getRelationship(),
                 body.getPurchaseRequestId(),
-                receiverId != null ? receiverId : 1L,
-                Instant.now(),
+                receiverId,
+                body.getReceivedAt() != null ? body.getReceivedAt() : businessTime.now(),
                 FamilyMedicationBatchStatus.PENDING_RECONCILIATION,
-                null);
+                null,
+                businessTime.now());
 
         FamilyMedicationBatch saved = batchRepo.save(batch);
 
@@ -95,8 +98,8 @@ public class FamilyMedicationService {
                 saved.getRemainingQuantity(),
                 "RECEIPT",
                 saved.getId(),
-                receiverId != null ? receiverId : 1L,
-                Instant.now(),
+                receiverId,
+                businessTime.now(),
                 "Family medication received",
                 null,
                 null,
@@ -113,7 +116,7 @@ public class FamilyMedicationService {
         FamilyMedicationBatch batch = batchRepo
                 .findById(batchId)
                 .orElseThrow(() -> new BusinessException(
-                        HttpStatus.NOT_FOUND, "KHONG_TIM_THAY", "Family-sent medication batch not found"));
+                        HttpStatus.NOT_FOUND, "NOT_FOUND", "Family-sent medication batch not found"));
 
         residentMedicationLock.lock(batch.getResidentId());
 
@@ -121,27 +124,27 @@ public class FamilyMedicationService {
                 && batch.getStatus() != FamilyMedicationBatchStatus.HOLD_ONLY) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "TRANG_THAI_KHONG_HOP_LE",
+                    "INVALID_STATE",
                     "Medication batch can only be confirmed for use when in PENDING_RECONCILIATION or HOLD_ONLY status");
         }
 
         if (body.getPackagingRecognizable() == null || !body.getPackagingRecognizable()) {
             throw new BusinessException(
                     HttpStatus.UNPROCESSABLE_ENTITY,
-                    "BAO_BI_KHONG_NHAN_DIEN_DUOC",
+                    "PACKAGING_NOT_RECOGNIZABLE",
                     "Medication packaging information cannot be recognized");
         }
 
-        if (batch.getExpiryDate() != null && batch.getExpiryDate().isBefore(LocalDate.now())) {
+        if (batch.getExpiryDate() != null && batch.getExpiryDate().isBefore(businessTime.today())) {
             throw new BusinessException(
-                    HttpStatus.CONFLICT, "THUOC_DA_HET_HAN", "Medication is expired, cannot be approved for use");
+                    HttpStatus.CONFLICT, "EXPIRED_MEDICATION", "Medication is expired, cannot be approved for use");
         }
 
         Long medicationId = body.getMedicationId() != null ? body.getMedicationId() : batch.getMedicationId();
         if (medicationId == null) {
             throw new BusinessException(
                     HttpStatus.UNPROCESSABLE_ENTITY,
-                    "THIEU_THUOC_ID",
+                    "MEDICATION_REQUIRED",
                     "Custom batch requires selecting catalog medication when confirming for use");
         }
 
@@ -150,30 +153,31 @@ public class FamilyMedicationService {
         if (prescriptions.isEmpty()
                 || prescriptions.size() != body.getPrescriptionIds().size()) {
             throw new BusinessException(
-                    HttpStatus.UNPROCESSABLE_ENTITY, "DON_THUOC_KHONG_HOP_LE", "Prescription does not exist");
+                    HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_PRESCRIPTION", "Prescription does not exist");
         }
 
         for (Prescription p : prescriptions) {
             if (!p.getResidentId().equals(batch.getResidentId())) {
                 throw new BusinessException(
                         HttpStatus.UNPROCESSABLE_ENTITY,
-                        "KHAC_NGUOI_CAO_TUOI",
+                        "RESIDENT_MISMATCH",
                         "Prescription does not belong to this resident");
             }
             if (!p.getMedicationId().equals(medicationId)) {
                 throw new BusinessException(
                         HttpStatus.UNPROCESSABLE_ENTITY,
-                        "KHAC_THUOC",
+                        "MEDICATION_MISMATCH",
                         "Prescription medication does not match batch medication");
             }
         }
 
-        batch.markInUse(medicationId);
+        batch.markInUse(medicationId, businessTime.now());
         batchRepo.save(batch);
 
         // Bind prescriptions
         for (Long pId : body.getPrescriptionIds()) {
-            FamilyMedicationPrescription link = new FamilyMedicationPrescription(batch.getId(), pId, Instant.now());
+            FamilyMedicationPrescription link =
+                    new FamilyMedicationPrescription(batch.getId(), pId, businessTime.now());
             batchPrescriptionRepo.save(link);
         }
 
@@ -187,7 +191,7 @@ public class FamilyMedicationService {
         FamilyMedicationBatch batch = batchRepo
                 .findById(batchId)
                 .orElseThrow(() -> new BusinessException(
-                        HttpStatus.NOT_FOUND, "KHONG_TIM_THAY", "Family-sent medication batch not found"));
+                        HttpStatus.NOT_FOUND, "NOT_FOUND", "Family-sent medication batch not found"));
 
         residentMedicationLock.lock(batch.getResidentId());
 
@@ -195,18 +199,18 @@ public class FamilyMedicationService {
                 && batch.getStatus() != FamilyMedicationBatchStatus.IN_USE) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "TRANG_THAI_KHONG_HOP_LE",
+                    "INVALID_STATE",
                     "Only batches in PENDING_RECONCILIATION or IN_USE can transition to HOLD_ONLY");
         }
 
         // Unbind active prescriptions
         List<FamilyMedicationPrescription> activeLinks = batchPrescriptionRepo.findByBatchIdAndBoundToIsNull(batchId);
         for (FamilyMedicationPrescription link : activeLinks) {
-            link.unbind(Instant.now());
+            link.unbind(businessTime.now());
             batchPrescriptionRepo.save(link);
         }
 
-        batch.markHoldOnly(reason != null ? reason : "Transitioned to hold only");
+        batch.markHoldOnly(reason != null ? reason : "Transitioned to hold only", businessTime.now());
         batchRepo.save(batch);
 
         return getBatch(batchId);
@@ -226,12 +230,12 @@ public class FamilyMedicationService {
         FamilyMedicationBatch batch = batchRepo
                 .findById(batchId)
                 .orElseThrow(() -> new BusinessException(
-                        HttpStatus.NOT_FOUND, "KHONG_TIM_THAY", "Family-sent medication batch not found"));
+                        HttpStatus.NOT_FOUND, "NOT_FOUND", "Family-sent medication batch not found"));
 
         residentMedicationLock.lock(batch.getResidentId());
 
         BigDecimal diff = body.getActualQuantity().subtract(batch.getRemainingQuantity());
-        batch.updateRemainingQuantity(body.getActualQuantity());
+        batch.updateRemainingQuantity(body.getActualQuantity(), businessTime.now());
         batchRepo.save(batch);
 
         FamilyMedicationMovement movement = new FamilyMedicationMovement(
@@ -241,8 +245,8 @@ public class FamilyMedicationService {
                 body.getActualQuantity(),
                 "INVENTORY_ADJUSTMENT",
                 null,
-                actorId != null ? actorId : 1L,
-                Instant.now(),
+                actorId,
+                businessTime.now(),
                 body.getReason(),
                 null,
                 null,
@@ -260,7 +264,7 @@ public class FamilyMedicationService {
         FamilyMedicationBatch batch = batchRepo
                 .findById(batchId)
                 .orElseThrow(() -> new BusinessException(
-                        HttpStatus.NOT_FOUND, "KHONG_TIM_THAY", "Family-sent medication batch not found"));
+                        HttpStatus.NOT_FOUND, "NOT_FOUND", "Family-sent medication batch not found"));
 
         residentMedicationLock.lock(batch.getResidentId());
 
@@ -268,14 +272,14 @@ public class FamilyMedicationService {
                 && batch.getStatus() != FamilyMedicationBatchStatus.HOLD_ONLY) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "TRANG_THAI_KHONG_HOP_LE",
+                    "INVALID_STATE",
                     "Can only return batches in PENDING_RECONCILIATION or HOLD_ONLY status");
         }
 
         if (body.getQuantity().compareTo(batch.getRemainingQuantity()) != 0) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "SO_LUONG_KHAC_SO_CON",
+                    "QUANTITY_DIFFERS_FROM_REMAINING",
                     "Return quantity must exactly match remaining quantity (" + batch.getRemainingQuantity() + ")");
         }
 
@@ -286,15 +290,15 @@ public class FamilyMedicationService {
                 BigDecimal.ZERO,
                 "RETURN",
                 null,
-                actorId != null ? actorId : 1L,
-                body.getReturnedAt() != null ? body.getReturnedAt() : Instant.now(),
+                actorId,
+                body.getReturnedAt() != null ? body.getReturnedAt() : businessTime.now(),
                 "Returned to family",
                 null,
                 body.getRecipientName(),
                 body.getRelationship());
         movementRepo.save(movement);
 
-        batch.markReturned("Returned to " + body.getRecipientName());
+        batch.markReturned("Returned to " + body.getRecipientName(), businessTime.now());
         batchRepo.save(batch);
 
         return getBatch(batchId);
@@ -308,7 +312,7 @@ public class FamilyMedicationService {
         FamilyMedicationBatch batch = batchRepo
                 .findById(batchId)
                 .orElseThrow(() -> new BusinessException(
-                        HttpStatus.NOT_FOUND, "KHONG_TIM_THAY", "Family-sent medication batch not found"));
+                        HttpStatus.NOT_FOUND, "NOT_FOUND", "Family-sent medication batch not found"));
 
         residentMedicationLock.lock(batch.getResidentId());
 
@@ -316,14 +320,14 @@ public class FamilyMedicationService {
                 && batch.getStatus() != FamilyMedicationBatchStatus.HOLD_ONLY) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "TRANG_THAI_KHONG_HOP_LE",
+                    "INVALID_STATE",
                     "Can only dispose batches in PENDING_RECONCILIATION or HOLD_ONLY status");
         }
 
         if (body.getQuantity().compareTo(batch.getRemainingQuantity()) != 0) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "SO_LUONG_KHAC_SO_CON",
+                    "QUANTITY_DIFFERS_FROM_REMAINING",
                     "Disposal quantity must exactly match remaining quantity (" + batch.getRemainingQuantity() + ")");
         }
 
@@ -334,15 +338,15 @@ public class FamilyMedicationService {
                 BigDecimal.ZERO,
                 "DISPOSAL",
                 null,
-                actorId != null ? actorId : 1L,
-                Instant.now(),
+                actorId,
+                businessTime.now(),
                 body.getReason(),
                 body.getWitness(),
                 null,
                 null);
         movementRepo.save(movement);
 
-        batch.markDisposed(body.getReason());
+        batch.markDisposed(body.getReason(), businessTime.now());
         batchRepo.save(batch);
 
         return getBatch(batchId);
@@ -356,25 +360,25 @@ public class FamilyMedicationService {
         FamilyMedicationBatch batch = batchRepo
                 .findById(batchId)
                 .orElseThrow(() -> new BusinessException(
-                        HttpStatus.NOT_FOUND, "KHONG_TIM_THAY", "Family-sent medication batch not found"));
+                        HttpStatus.NOT_FOUND, "NOT_FOUND", "Family-sent medication batch not found"));
 
         if (batch.getStatus() != FamilyMedicationBatchStatus.IN_USE) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "LO_CHUA_DOI_CHIEU",
+                    "BATCH_NOT_RECONCILED",
                     "Family medication batch has not been reconciled and confirmed for use");
         }
 
         if (batch.getRemainingQuantity().compareTo(quantity) < 0) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "KHONG_DU_THUOC",
+                    "INSUFFICIENT_QUANTITY",
                     "Remaining medication is insufficient (available: " + batch.getRemainingQuantity() + ", needed: "
                             + quantity + ")");
         }
 
         BigDecimal newRemaining = batch.getRemainingQuantity().subtract(quantity);
-        batch.updateRemainingQuantity(newRemaining);
+        batch.updateRemainingQuantity(newRemaining, businessTime.now());
         batchRepo.save(batch);
 
         FamilyMedicationMovement movement = new FamilyMedicationMovement(
@@ -384,8 +388,8 @@ public class FamilyMedicationService {
                 newRemaining,
                 sourceType,
                 sourceId,
-                actorId != null ? actorId : 1L,
-                Instant.now(),
+                actorId,
+                businessTime.now(),
                 "Deducted for medication administration",
                 null,
                 null,
@@ -398,7 +402,7 @@ public class FamilyMedicationService {
         FamilyMedicationBatch batch = batchRepo
                 .findById(batchId)
                 .orElseThrow(() -> new BusinessException(
-                        HttpStatus.NOT_FOUND, "KHONG_TIM_THAY", "Không tìm thấy lô thuốc gia đình gửi"));
+                        HttpStatus.NOT_FOUND, "NOT_FOUND", "Không tìm thấy lô thuốc gia đình gửi"));
 
         List<FamilyMedicationPrescription> activeLinks = batchPrescriptionRepo.findByBatchIdAndBoundToIsNull(batchId);
         List<Long> boundPrescriptionIds = activeLinks.stream()
@@ -480,6 +484,18 @@ public class FamilyMedicationService {
                 .intValue();
     }
 
+    /** Danh sách id tệp lưu dạng JSON ở cột file_ids. */
+    private List<Long> fileIds(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        try {
+            return List.of(objectMapper.readValue(json, Long[].class));
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
     private FamilyMedicationBatchResponse toResponse(
             FamilyMedicationBatch batch,
             List<Long> boundPrescriptionIds,
@@ -503,6 +519,16 @@ public class FamilyMedicationService {
         res.setStatusReason(batch.getStatusReason());
         res.setDaysRemaining(daysRemaining);
         res.setBoundPrescriptionIds(boundPrescriptionIds);
+        res.setDelivererType(
+                batch.getDelivererType() == null
+                        ? null
+                        : batch.getDelivererType().name());
+        res.setDelivererId(batch.getDelivererId());
+        res.setDelivererName(batch.getDelivererName());
+        res.setRelationship(batch.getRelationship());
+        res.setPurchaseRequestId(batch.getPurchaseRequestId());
+        res.setReceivedAt(batch.getReceivedAt());
+        res.setFileIds(fileIds(batch.getFileIds()));
 
         List<FamilyMedicationBatchResponse.MovementResponse> movementResponses = movements.stream()
                 .map(m -> {

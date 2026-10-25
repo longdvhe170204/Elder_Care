@@ -31,21 +31,4 @@ public class MedicationConfig {
     public com.fasterxml.jackson.databind.ObjectMapper objectMapper() {
         return new com.fasterxml.jackson.databind.ObjectMapper();
     }
-
-    @Bean
-    @ConditionalOnMissingBean(com.cambae.backend.m07.internal.service.HealthAllergyPort.class)
-    public com.cambae.backend.m07.internal.service.HealthAllergyPort defaultHealthAllergyPort() {
-        return new com.cambae.backend.m07.internal.service.HealthAllergyPort() {
-            @Override
-            public java.util.List<com.cambae.backend.m07.internal.service.AllergyItemView> getActiveAllergies(
-                    long residentId) {
-                return java.util.Collections.emptyList();
-            }
-
-            @Override
-            public void markAllergyChecked(long allergyId, String module) {
-                // Default fallback: no-op
-            }
-        };
-    }
 }

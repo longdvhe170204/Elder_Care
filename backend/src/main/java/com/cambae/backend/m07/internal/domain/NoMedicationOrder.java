@@ -1,5 +1,6 @@
 package com.cambae.backend.m07.internal.domain;
 
+import com.cambae.backend.common.data.DataGroup;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,6 +13,7 @@ import java.time.Instant;
  * No-medication order for trip (FR-048b).
  */
 @Entity
+@DataGroup(DataGroup.Group.RECORD)
 @Table(name = "no_medication_order")
 public class NoMedicationOrder {
 
@@ -32,16 +34,16 @@ public class NoMedicationOrder {
     private Long createdById;
 
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     protected NoMedicationOrder() {}
 
-    public NoMedicationOrder(Long residentId, Long tripId, String reason, Long createdById) {
+    public NoMedicationOrder(Long residentId, Long tripId, String reason, Long createdById, Instant now) {
         this.residentId = residentId;
         this.tripId = tripId;
         this.reason = reason;
         this.createdById = createdById;
-        this.createdAt = Instant.now();
+        this.createdAt = now;
     }
 
     public Long getId() {

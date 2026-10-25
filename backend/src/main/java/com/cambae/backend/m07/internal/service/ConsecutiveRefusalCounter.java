@@ -7,11 +7,9 @@ import java.util.List;
 
 /**
  * Pure consecutive refusal counter for medication doses (BR-M07-13, FR-032).
- * When consecutive refusals >= CFG-M05-04 (default 3), alert TU_CHOI_LIEN_TIEP is triggered.
+ * When consecutive refusals >= CFG-M05-04 (default 2), alert TU_CHOI_LIEN_TIEP is triggered.
  */
 public final class ConsecutiveRefusalCounter {
-
-    public static final int DEFAULT_REFUSAL_THRESHOLD = 3;
 
     private ConsecutiveRefusalCounter() {}
 

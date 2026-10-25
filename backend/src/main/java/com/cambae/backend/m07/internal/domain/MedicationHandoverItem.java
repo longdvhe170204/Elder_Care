@@ -1,5 +1,6 @@
 package com.cambae.backend.m07.internal.domain;
 
+import com.cambae.backend.common.data.DataGroup;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
  * Carried medication line item in handover record (FR-048a).
  */
 @Entity
+@DataGroup(DataGroup.Group.RECORD)
 @Table(name = "medication_handover_item")
 public class MedicationHandoverItem {
 

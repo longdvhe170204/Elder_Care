@@ -65,7 +65,8 @@ class BR_M07_06_DuplicateIngredientAllergyTest {
                 null,
                 1L,
                 Instant.now(),
-                allergenIds);
+                allergenIds,
+                Instant.now());
         if (id != null) {
             try {
                 Field f = Prescription.class.getDeclaredField("id");
@@ -95,14 +96,15 @@ class BR_M07_06_DuplicateIngredientAllergyTest {
         PrescriptionIssueView issue = result.issues().get(0);
         assertThat(issue.issueType()).isEqualTo(PrescriptionIssueType.DUPLICATE_ACTIVE_INGREDIENT);
         assertThat(issue.duplicatePrescriptionId()).isEqualTo(10L);
-        assertThat(issue.issueCode()).isEqualTo("TRUNG_HC_10_1001");
+        assertThat(issue.issueCode()).isEqualTo("DUPLICATE_INGREDIENT_10_1001");
         assertThat(result.reviewItems()).isEmpty();
 
         // Chưa có lý do xác nhận -> hasUnconfirmedIssues là true
         assertThat(result.hasUnconfirmedIssues(Map.of())).isTrue();
 
         // Cung cấp lý do -> false (được phép tiếp tục)
-        assertThat(result.hasUnconfirmedIssues(Map.of("TRUNG_HC_10_1001", "Bác sĩ chuyên khoa chỉ định phối hợp")))
+        assertThat(result.hasUnconfirmedIssues(
+                        Map.of("DUPLICATE_INGREDIENT_10_1001", "Bác sĩ chuyên khoa chỉ định phối hợp")))
                 .isFalse();
     }
 
@@ -124,7 +126,7 @@ class BR_M07_06_DuplicateIngredientAllergyTest {
         assertThat(issue.allergyItemId()).isEqualTo(50L);
         assertThat(issue.activeIngredient()).isEqualTo("Penicillin");
         assertThat(issue.severity()).isEqualTo("NANG");
-        assertThat(issue.issueCode()).isEqualTo("DI_UNG_50");
+        assertThat(issue.issueCode()).isEqualTo("ALLERGY_50");
         assertThat(result.reviewItems()).isEmpty();
     }
 

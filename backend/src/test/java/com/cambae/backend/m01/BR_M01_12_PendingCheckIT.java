@@ -106,7 +106,8 @@ class BR_M01_12_PendingCheckIT extends HealthTestBase {
                                 + " AND action = 'HEALTH_ITEM_CHECKED'",
                         Integer.class,
                         String.valueOf(item.id())))
-                .isEqualTo(3);
+                // 3 lần gọi ở trên và 1 lần của listener 006 (PrescriptionAllergyListener) sau khi ghi mục
+                .isEqualTo(4);
     }
 
     @Test

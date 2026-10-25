@@ -1,5 +1,6 @@
 package com.cambae.backend.m07.internal.service;
 
+import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m07.api.events.MedicationAlertRequestedEvent;
 import com.cambae.backend.m07.internal.domain.DoseAuthorityBasis;
 import com.cambae.backend.m07.internal.domain.DoseCancellationReason;
@@ -16,6 +17,8 @@ import com.cambae.backend.m07.internal.persistence.M07JobRunStore;
 import com.cambae.backend.m07.internal.persistence.MedicationDoseRepository;
 import com.cambae.backend.m07.internal.persistence.MedicationRepository;
 import com.cambae.backend.m07.internal.persistence.PrescriptionRepository;
+import com.cambae.backend.m15.parameter.api.ParameterApi;
+import com.cambae.backend.m15.parameter.api.ParameterCode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -33,7 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class M07JobService {
 
     private static final Logger log = LoggerFactory.getLogger(M07JobService.class);
-    private static final int DEFAULT_MISSED_GRACE_MINUTES = 60; // CFG-M07-02 default
 
     private final M07JobRunStore jobRunStore;
     private final PrescriptionRepository prescriptionRepository;
@@ -43,6 +45,8 @@ public class M07JobService {
     private final MedicationScheduleCalculator scheduleCalculator;
     private final DoseAdministrationService doseAdministrationService;
     private final ApplicationEventPublisher eventPublisher;
+    private final BusinessTime businessTime;
+    private final ParameterApi parameters;
 
     public M07JobService(
             M07JobRunStore jobRunStore,
@@ -52,7 +56,9 @@ public class M07JobService {
             DoseResultRepository doseResultRepository,
             MedicationScheduleCalculator scheduleCalculator,
             DoseAdministrationService doseAdministrationService,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            BusinessTime businessTime,
+            ParameterApi parameters) {
         this.jobRunStore = jobRunStore;
         this.prescriptionRepository = prescriptionRepository;
         this.medicationRepository = medicationRepository;
@@ -61,6 +67,8 @@ public class M07JobService {
         this.scheduleCalculator = scheduleCalculator;
         this.doseAdministrationService = doseAdministrationService;
         this.eventPublisher = eventPublisher;
+        this.businessTime = businessTime;
+        this.parameters = parameters;
     }
 
     /**
@@ -158,7 +166,8 @@ public class M07JobService {
     }
 
     private void transitionLateToMissed(Instant now) {
-        Instant missedThreshold = now.minus(DEFAULT_MISSED_GRACE_MINUTES, ChronoUnit.MINUTES);
+        Instant missedThreshold =
+                now.minus(parameters.read(ParameterCode.CFG_M07_02).asDuration());
         List<MedicationDose> lateDoses =
                 doseRepository.findByStatusAndLateAtLessThanEqual(DoseStatus.LATE, missedThreshold);
 
@@ -186,7 +195,8 @@ public class M07JobService {
                     false,
                     false,
                     null,
-                    null);
+                    null,
+                    businessTime.now());
             doseResultRepository.save(result);
 
             // Alert missed dose
@@ -242,10 +252,11 @@ public class M07JobService {
         }
 
         // 2. Warn of expiring prescriptions within CFG-M07-04 (default 3 days - FR-017)
-        LocalDate warningThreshold = today.plusDays(3);
+        LocalDate warningThreshold = today.plusDays(
+                parameters.read(ParameterCode.CFG_M07_04).asDuration().toDays());
         List<Prescription> expiringToWarn = prescriptionRepository.findExpiringPrescriptionsToWarn(warningThreshold);
         for (Prescription p : expiringToWarn) {
-            p.setExpirationWarnedAt(now);
+            p.markExpirationWarned(now);
             prescriptionRepository.save(p);
 
             eventPublisher.publishEvent(new MedicationAlertRequestedEvent(
