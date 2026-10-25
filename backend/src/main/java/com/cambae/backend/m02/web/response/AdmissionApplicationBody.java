@@ -13,8 +13,8 @@ import java.util.function.LongFunction;
 
 /**
  * Lượt đăng ký tiếp nhận (contracts/api-004.yaml, schema {@code AdmissionApplication}). {@code admissionOpinion} (ý
- * kiến hiện hành rồi lịch sử) chỉ có ở phản hồi một lượt; danh sách không kèm để tránh truy vấn từng dòng.
- * {@code waitingListEntryId} có ở user story hồ sơ chờ.
+ * kiến hiện hành rồi lịch sử) và {@code waitingListEntryId} chỉ có ở phản hồi một lượt; danh sách không kèm để tránh truy
+ * vấn từng dòng.
  */
 @Schema(name = "AdmissionApplication")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -34,11 +34,19 @@ public record AdmissionApplicationBody(
         Long opinionAtAdmissionId) {
 
     public static AdmissionApplicationBody of(AdmissionApplication application) {
-        return of(application, null, null);
+        return of(application, null, null, null);
     }
 
     public static AdmissionApplicationBody of(
             AdmissionApplication application, List<AdmissionOpinion> opinions, LongFunction<String> names) {
+        return of(application, opinions, names, null);
+    }
+
+    public static AdmissionApplicationBody of(
+            AdmissionApplication application,
+            List<AdmissionOpinion> opinions,
+            LongFunction<String> names,
+            Long waitingListEntryId) {
         return new AdmissionApplicationBody(
                 application.id(),
                 application.residentId(),
@@ -50,7 +58,7 @@ public record AdmissionApplicationBody(
                 application.desiredAdmissionDate(),
                 application.note(),
                 application.status(),
-                null,
+                waitingListEntryId,
                 opinions == null
                         ? null
                         : opinions.stream()

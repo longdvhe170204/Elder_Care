@@ -2,6 +2,7 @@ package com.cambae.backend.m02.internal.application.service;
 
 import com.cambae.backend.m01.api.ResidentApi;
 import com.cambae.backend.m01.api.dto.ResidentStatus;
+import com.cambae.backend.m02.internal.waitinglist.service.WaitingListService;
 import com.cambae.backend.m15.retention.api.RetentionDatabase;
 import com.cambae.backend.m15.retention.api.RetentionKind;
 import com.cambae.backend.m15.retention.api.spi.RetentionProvider;
@@ -74,9 +75,13 @@ class AdmissionApplicationRetention implements RetentionProvider {
         return candidates.stream();
     }
 
+    /** Hồ sơ chờ của lượt (BR-M02-15): xóa cùng lượt, trước lượt vì khóa ngoại RESTRICT (FR-051a). */
     @Override
     public Set<DataRef> referencesTo(long id) {
-        return Set.of();
+        return Set.copyOf(jdbc.query(
+                "SELECT id FROM waiting_list_entry WHERE application_id = ?",
+                (rs, i) -> new DataRef(WaitingListService.ENTITY_TYPE, rs.getLong(1)),
+                id));
     }
 
     @Override
