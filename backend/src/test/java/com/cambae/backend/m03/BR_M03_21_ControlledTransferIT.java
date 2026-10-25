@@ -20,7 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @WithMockUser
 @Transactional
+@org.springframework.test.context.event.RecordApplicationEvents
 class BR_M03_21_ControlledTransferIT extends StructureTestSupport {
+    @Autowired
+    org.springframework.test.context.event.ApplicationEvents publishedEvents;
+
     @Autowired
     MockMvc mvc;
 
@@ -160,6 +164,18 @@ class BR_M03_21_ControlledTransferIT extends StructureTestSupport {
                         Long.class,
                         resident))
                 .isEqualTo(doctor);
+        var transfers = publishedEvents.stream(com.cambae.backend.m03.api.events.BedTransferred.class)
+                .filter(event -> event.residentId() == resident)
+                .toList();
+        assertThat(transfers).hasSize(1);
+        assertThat(transfers.getFirst().previousAllocationId()).isEqualTo(allocation);
+        assertThat(transfers.getFirst().previousFloorId()).isEqualTo(floor);
+        assertThat(transfers.getFirst().nextFloorId()).isEqualTo(floor);
+        assertThat(jdbc.queryForObject(
+                        "SELECT previous_allocation_id FROM bed_allocation WHERE id=?",
+                        Long.class,
+                        transfers.getFirst().nextAllocationId()))
+                .isEqualTo(allocation);
     }
 
     @Test

@@ -259,6 +259,8 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 - [ ] T064 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC-005 (danh sách giường < 1 giây) theo quickstart mục 5
 - [ ] T065 Rà truy vết data-model mục 11: DBR-09, 10, 23, 25, 26, 32 (phần 003) và BR-M03-01 → 07, 09, 10, 13, 15, 19 → 25 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-024, FR-025, FR-051 (bổ sung 2026-10-10) — mỗi FR có task hoặc test tương ứng (constitution XV)
 
+**Ghi chú Phase11 (2026-10-25, chưa nghiệm thu)**: T061 có BedReportingService cài3API hiện có, BedReportingStore và domain BedReportingSnapshot; đã duyệt BedFlagView.bedId nullable riêng WITHOUT_BED. T062 giữ đăng ký HTTP đã có, mở rộng RecordGroupTriggerIT cho2bảng003 SQL-only và DBR_23_RecordTablesIT trên hàng thật. T063 chưa có nguồn thật004/007/008/019. T064 có T064_BedListPerformanceIT (100phòng/300giường,10request sauwarmup), không phải phép đo đầy đủ SC-00560người dùng/2phút. Flutter exit1 trước test vì Windows thiếu symlink; demo đủ37kịch bản chưa chạy được do thiếu công tắc fake/luồng/provider. T065 có [verification.md](verification.md) mapping đúng class/method và phần thiếu; bổ sung test FR-051 mức thông báo và producer BedTransferred. Kiểm cuối nền393unit/kiến trúc,227IT M03 xanh; toàn kho1073IT còn15lỗiM01 đã bàn giaoB (6failure+9error),0skip; web250test/lint/build qua; spotless qua. Giữ T061–T065[ ]; task đầu còn lại trong Phase11 làT061 chốt giới hạn/gate, rồiT062→T063→T064→T065 theo nội dung thiếu. Không có Phase12 trong tasks này.
+
 ---
 
 ## Dependencies & Execution Order
