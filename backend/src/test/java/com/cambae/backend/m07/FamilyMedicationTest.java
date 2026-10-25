@@ -6,14 +6,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.cambae.backend.common.error.BusinessException;
+import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m07.api.dto.MedicationSource;
 import com.cambae.backend.m07.internal.domain.*;
 import com.cambae.backend.m07.internal.persistence.*;
 import com.cambae.backend.m07.internal.service.FamilyMedicationService;
-import com.cambae.backend.m07.web.request.*;
-import com.cambae.backend.m07.web.response.FamilyMedicationBatchResponse;
+import com.cambae.backend.m07.internal.service.request.*;
+import com.cambae.backend.m07.internal.service.response.FamilyMedicationBatchResponse;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -43,7 +45,12 @@ class FamilyMedicationTest {
         residentMedicationLock = mock(ResidentMedicationLock.class);
 
         familyMedicationService = new FamilyMedicationService(
-                batchRepo, batchPrescriptionRepo, movementRepo, prescriptionRepo, residentMedicationLock);
+                batchRepo,
+                batchPrescriptionRepo,
+                movementRepo,
+                prescriptionRepo,
+                residentMedicationLock,
+                new BusinessTime(Clock.systemUTC()));
     }
 
     private void setId(Object entity, Long id) {
@@ -78,7 +85,8 @@ class FamilyMedicationTest {
                 1L,
                 Instant.now(),
                 status,
-                null);
+                null,
+                Instant.now());
         setId(b, id);
         return b;
     }
@@ -114,7 +122,8 @@ class FamilyMedicationTest {
                 null,
                 1L,
                 Instant.now(),
-                Set.of(medicationId));
+                Set.of(medicationId),
+                Instant.now());
         setId(p, id);
         return p;
     }
@@ -162,7 +171,7 @@ class FamilyMedicationTest {
                 .satisfies(e -> {
                     BusinessException be = (BusinessException) e;
                     assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("LO_CHUA_DOI_CHIEU");
+                    assertThat(be.errorCode()).isEqualTo("BATCH_NOT_RECONCILED");
                 });
     }
 
@@ -182,7 +191,7 @@ class FamilyMedicationTest {
                 .satisfies(e -> {
                     BusinessException be = (BusinessException) e;
                     assertThat(be.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-                    assertThat(be.errorCode()).isEqualTo("BAO_BI_KHONG_NHAN_DIEN_DUOC");
+                    assertThat(be.errorCode()).isEqualTo("PACKAGING_NOT_RECOGNIZABLE");
                 });
     }
 
@@ -212,7 +221,7 @@ class FamilyMedicationTest {
                 .satisfies(e -> {
                     BusinessException be = (BusinessException) e;
                     assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("THUOC_DA_HET_HAN");
+                    assertThat(be.errorCode()).isEqualTo("EXPIRED_MEDICATION");
                 });
     }
 
@@ -253,7 +262,7 @@ class FamilyMedicationTest {
                 .satisfies(e -> {
                     BusinessException be = (BusinessException) e;
                     assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("SO_LUONG_KHAC_SO_CON");
+                    assertThat(be.errorCode()).isEqualTo("QUANTITY_DIFFERS_FROM_REMAINING");
                 });
     }
 
@@ -291,7 +300,7 @@ class FamilyMedicationTest {
                 .satisfies(e -> {
                     BusinessException be = (BusinessException) e;
                     assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("SO_LUONG_KHAC_SO_CON");
+                    assertThat(be.errorCode()).isEqualTo("QUANTITY_DIFFERS_FROM_REMAINING");
                 });
     }
 

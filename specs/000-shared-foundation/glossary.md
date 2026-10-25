@@ -839,6 +839,91 @@ Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phas
 | `thuoc` (`ten`, `ham_luong`, `dang_bao_che`, `duong_dung_mac_dinh`, `don_vi_dung`, `cua_so_truoc_phut`, `cua_so_sau_phut`, `kiem_soat_dac_biet`, `trang_thai`, `phien_ban`) | `medication` (`name`, `concentration`, `dosage_form`, `default_route`, `usage_unit`, `before_window_minutes`, `after_window_minutes`, `special_control`, `status`, `version`) |
 | `thuoc_hoat_chat` (`thuoc_id`, `di_nguyen_id`) | `medication_active_ingredient` (`medication_id`, `allergen_id`) |
 
+*Mục 12.2 → 12.5 bổ sung 2026-10-26 khi dịch `contracts/api-006.yaml` (sửa sau PR #34). Tên mã theo tên D đã dùng trong m07 khi cùng nghĩa.*
+
+### 12.2. Đường dẫn API (tiền tố `/api/v1`) và tag
+
+| Tên logic | Mã |
+| --- | --- |
+| `/thuoc`, `/thuoc/{id}`, `…/ngung-hieu-luc` | `/medications`, `/medications/{id}`, `…/deactivate` |
+| `/nguoi-cao-tuoi/{nctId}/don-thuoc`, `…/kiem-tra` | `/residents/{residentId}/prescriptions`, `…/check` |
+| `/don-thuoc/{id}`, `…/ghi-chu`, `…/tam-dung`, `…/tiep-tuc`, `…/ngung`, `…/doi-lieu`, `…/gia-han`, `…/lan-dung-prn` | `/prescriptions/{id}`, `…/instruction-note`, `…/suspend`, `…/resume`, `…/discontinue`, `…/change-dosage`, `…/extend`, `…/prn-administrations` |
+| `/nguoi-cao-tuoi/{nctId}/lich-thuoc` (tham số `tu`, `den`) | `/residents/{residentId}/medication-schedule` (`from`, `to`) |
+| `/lieu-thuoc/vong-phat-thuoc`, `/lieu-thuoc/{lieuKey}`, `…/da-dung`, `…/tu-choi`, `…/khong-thuc-hien` | `/medication-doses/rounds`, `/medication-doses/{doseKey}`, `…/administer`, `…/refuse`, `…/skip` |
+| `/xem-lai-lieu`, `…/{id}/ket-qua` | `/dose-reviews`, `…/{id}/result` |
+| `/nguoi-cao-tuoi/{nctId}/phieu-doi-chieu`, `/phieu-doi-chieu/{id}`, `…/dong`, `…/gui-xac-nhan`, `…/tra-lai`, `…/xac-nhan`, `…/de-nghi-dinh-chinh` | `/residents/{residentId}/medication-reconciliations`, `/medication-reconciliations/{id}`, `…/items`, `…/submit`, `…/return`, `…/confirm`, `…/propose-correction` |
+| `/de-nghi-dinh-chinh-phieu/{id}/xac-nhan`, `…/tra-lai` | `/reconciliation-corrections/{id}/confirm`, `…/return` |
+| `/tiep-nhan-thuoc-cung-ung` (tham số `yeuCauMuaSamId`) | `/supplied-medication-intakes` (`purchaseRequestId`) |
+| `/nguoi-cao-tuoi/{nctId}/thuoc-gia-dinh-gui`, `/thuoc-gia-dinh-gui/{id}`, `…/xac-nhan-su-dung`, `…/chi-giu-ho`, `…/ngung-su-dung`, `…/kiem-ke-dieu-chinh`, `…/hoan-tra`, `…/huy` | `/residents/{residentId}/family-medications`, `/family-medications/{id}`, `…/confirm-use`, `…/hold-only`, `…/stop-use`, `…/adjust-inventory`, `…/return`, `…/dispose` |
+| `/nguoi-cao-tuoi/{nctId}/thuoc-can-mang` (tham số `chuyenId`), `…/lan-giao-thuoc`, `/lan-giao-thuoc/{id}/nhan-lai`, `/nguoi-cao-tuoi/{nctId}/khong-mang-thuoc` | `/residents/{residentId}/medications-to-bring` (`tripId`), `…/medication-handovers`, `/medication-handovers/{id}/return`, `/residents/{residentId}/no-medication-orders` |
+| tham số `hieuLuc` (danh mục), `trangThai` (đơn, xem lại liều) | `active`, `status` |
+| tag `danh-muc-thuoc`, `don-thuoc`, `lieu`, `prn`, `doi-chieu`, `thuoc-gui`, `mang-theo`, `tiep-nhan-thuoc` | `medication-catalog`, `prescription`, `dose`, `prn`, `reconciliation`, `family-medication`, `leave-medication`, `supplied-medication` |
+
+### 12.3. Schema và trường JSON
+
+| Tên logic | Mã |
+| --- | --- |
+| `Thuoc` (`ten`, `hamLuong`, `dangBaoChe`, `duongDungMacDinh`, `donViDung`, `hoatChat`, `cuaSoTruocPhut`, `cuaSoSauPhut`, `kiemSoatDacBiet`, `hieuLuc`, `chuaCoMucVatPham`) | `Medication` (`name`, `concentration`, `dosageForm`, `defaultRoute`, `usageUnit`, `allergenIds`, `beforeWindowMinutes`, `afterWindowMinutes`, `specialControl`, `active`, `missingPricingItem`) |
+| `TanSuat` (`kieu`, `cacMoc`, `nGio`, `mocDau`, `ngayTrongTuan`) | `Frequency` (`type`, `timedSlots`, `everyNHours`, `firstSlot`, `daysOfWeek`) |
+| `CoSoKe` (`loai`, `tenCoSo`, `nguoiKe`, `ngayKe`, `tepDonId`) | `Prescriber` (`type`, `facilityName`, `prescriberName`, `prescribedAt`, `prescriptionFileId`) |
+| `CanCuCoSoKe` (`tenCoSo`, `nguoiChiDinh`, `ngay`, `hinhThuc`, `nguoiGoi`, `nguoiTraLoi`, `thoiDiemGoi`, `tepId`) | `ExternalBasis` (`facilityName`, `prescriberName`, `prescribedDate`, `basisType`, `callerName`, `receiverName`, `calledAt`, `documentFileId`) |
+| `LenhDonThan` (`lyDo`, `canCuCoSoKe`); request body `LyDo`, `LenhDon` | `PrescriptionCommandBody` (`reason`, `externalBasis`); `Reason`, `PrescriptionCommand` |
+| `VanDe` (`maVanDe`, `loai`, `hoatChat`, `donTrungId`, `mucDiUngId`, `mucDo`, `khongKiemTraTuDong`, `dong`) | `Issue` (`issueCode`, `issueType`, `activeIngredient`, `duplicatePrescriptionId`, `allergyItemId`, `severity`, `notAutoChecked`, `lineNumber`) |
+| `DonThuocMoi` (`thuocId`, `lieu`, `duongDung`, `loaiDon`, `tanSuat`, `khoangCachToiThieuPhut`, `soLanToiDa24h`, `batDauLuc`, `ngayKetThuc`, `nguonThuoc`, `coSoKe`, `ghiChuHuongDan`, `xacNhanVanDe` {`maVanDe`, `lyDo`}) | `NewPrescription` (`medicationId`, `dosage`, `route`, `prescriptionType`, `frequency`, `minIntervalMinutes`, `maxDosesPer24h`, `startedAt`, `endedAt`, `medicationSource`, `prescriber`, `instructionNote`, `issueConfirmations` {`issueCode`, `reason`}) |
+| `DonThuoc` (`nctId`, `trangThai`, `lyDoTamDung`, `dauChoTiepNhan`, `ngungTu`, `thayTheChoId`, `biThayTheBoiId`, `chuaCoThuoc`, `vanDeDaXacNhan`, `loGan`, `lenhDuocPhep`, `truongBiAn`) | `Prescription` (`residentId`, `status`, `suspensionReason`, `pendingAdmission`, `suspendedFrom`, `replacesId`, `replacedById`, `noMedicationAvailable`, `confirmedIssues`, `boundBatchIds`, `allowedCommands`, `hiddenFields`) |
+| thân ngừng `ngungTu`, phản hồi `canhBao`; thân gia hạn `ngayKetThucMoi`; thân đổi liều `donThayThe`, `hieuLucTu` | `discontinueAt`, `warnings`; `newEndedAt`; `newPrescription`, `effectiveFrom` |
+| `Lieu` (`lieuKey`, `donThuocId`, `thoiDiemDuKien`, `cuaSoTu`, `cuaSoDen`, `trangThai`, `trangThaiHienHanh`, `daVatHoa`, `lieuChungTang`, `tonChoXacNhanBanGiao`, `choGhiNhanSauTroVe`, `batBuocTrucTuyen`, `nguonThuoc`, `loDuocDung` {`loId`, `hanDung`, `soLuongCon`}, `lanGiaoId`, `ketQua`, `dongBoi`, `canRaSoat`) | `Dose` (`doseKey`, `prescriptionId`, `scheduledTime`, `windowFrom`, `windowTo`, `status`, `currentStatus`, `materialized`, `floorShared`, `pendingHandoverConfirmation`, `awaitingRecordAfterReturn`, `requiresOnline`, `medicationSource`, `usableBatches` {`batchId`, `expiryDate`, `remainingQuantity`}, `handoverId`, `result`, `closedBy`, `needsReview`) |
+| `XacNhanLieu` (`thoiDiemDung`, `loThuocGuiId`, `canCu`, `nguoiBaoLai`, `phanUng`, `lyDo`, `ghiChu`, `ghiSauMatKetNoi`) | `DoseResult` (`administeredAt`, `familyMedicationBatchId`, `basis`, `reportedBy`, `adverseReaction`, `reason`, `note`, `recordedAfterDisconnect`) |
+| `LanDungPrnMoi` (`thoiDiemDung`, `lieuDung`, …) | `NewPrnAdministration` (`administeredAt`, `dosage`, …, như `DoseResult`) |
+| `NguoiNgoai` (`loai`, `id`, `hoTen`, `quanHe`) | `ExternalPerson` (`type`, `id`, `fullName`, `relationship`) |
+| thân xem lại liều `ketQua`, `ghiChu` | `result`, `note` |
+| `PhieuDoiChieu` (`nctId`, `lyDo`, `lyDoLap`, `trangThai`, `hanLuc`, `quaHan`, `nguoiLap`, `nguoiGui`, `nguoiXacNhan`, `dong`, `lenhDuocPhep`) | `Reconciliation` (`residentId`, `reason`, `reasonDetail`, `status`, `deadlineAt`, `overdue`, `createdBy`, `submittedBy`, `confirmedBy`, `items`, `allowedCommands`) |
+| `DongDoiChieu` (`nguon`, `donThuocId`, `mucThuocDangDungId`, `moTaThuoc`, `quyetDinh`, `lyDo`, `donMoi`, `daNgungNgoaiPhieu`, `thuocDaBoKhoiHoSo`, `donTaoId`) | `ReconciliationItem` (`source`, `prescriptionId`, `admissionMedicationItemId`, `medicationDescription`, `decision`, `reason`, `newPrescription`, `discontinuedOutsideTicket`, `medicationRemovedFromProfile`, `createdPrescriptionId`) |
+| thân đề nghị đính chính `noiDungDung`, `lyDo` | `correctedContent`, `reason` |
+| `LanTiepNhanThuocGhi` (`dongYeuCauId`, `hamLuong`, `dangThuoc`, `soLuongNhan`, `donVi`, `hanDung`, `tinhTrang`, `ketQua`, `saiLech`, `lyDo`, `nguoiGiao`) | `NewSuppliedMedicationIntake` (`requestLineId`, `concentration`, `dosageForm`, `receivedQuantity`, `unit`, `expiryDate`, `condition`, `result`, `discrepancy`, `reason`, `delivererName`) |
+| `TiepNhanThuocGui` (`thuocId`, `tenTuDo`, `hoatChatTuDo`, `hamLuong`, `soLuong`, `donVi`, `hanDung`, `tinhTrangBaoBi`, `coToa`, `tepIds`, `nguoiGiao`, `deNghiMuaHoId`, `thoiDiem`) | `ReceiveFamilyMedication` (`medicationId`, `customName`, `customActiveIngredient`, `concentration`, `quantity`, `unit`, `expiryDate`, `packagingCondition`, `hasPrescription`, `fileIds`, `deliverer`, `purchaseAssistanceId`, `receivedAt`) |
+| `ThuocGui` (`trangThai`, `soLuongCon`, `donGan`, `soNgayConLai`, `bienDong` {`loai`, `soLuong`, `thoiDiem`, `nguon`}) | `FamilyMedicationBatch` (`status`, `remainingQuantity`, `boundPrescriptionIds`, `daysRemaining`, `movements` {`movementType`, `quantity`, `movedAt`, `source`}) |
+| thân xác nhận sử dụng `donThuocIds`, `thuocId`, `baoBiNhanDienDuoc`, `canCu`; kiểm kê `soLuongThucTe`; hoàn trả `soLuong`, `nguoiNhan`, `thoiDiem`; hủy `nguoiDaiDienId`, `cachNhanYeuCau`, `nguoiChungKien` | `prescriptionIds`, `medicationId`, `packagingRecognizable`, `basis`; `actualQuantity`; `quantity`, `recipient`, `returnedAt`; `representativeId`, `requestMethod`, `witness` |
+| `LanGiaoMoi` (`chuyenId`, `nguoiNhan`, `dong` {`donThuocId`, `soLuong`, `loThuocGuiId`}); `LanGiao` (`trangThai`, `thoiDiem`, `lieu` {`lieuKey`, `thoiThuoc`}); thân nhận lại `dong`, `lyDo` | `NewMedicationHandover` (`tripId`, `recipient`, `items` {`prescriptionId`, `quantity`, `familyMedicationBatchId`}); `MedicationHandover` (`status`, `handoverTime`, `doses` {`doseKey`, `reverted`}); `items`, `reason` |
+| thân không mang thuốc `chuyenId`, `lyDo` | `tripId`, `reason` |
+| `Loi`; response `Loi`, `LoiChan`, `LoiVanDe`, `LoiLieuDaXacNhan` (`dongBoi`, `dongLuc`, `noiDungBiTuChoi`), `LoiPrn` (`somNhatDuocDung`, `viPham`); security scheme `phien` | `Problem`; `Problem`, `Blocked`, `IssuesProblem`, `DoseAlreadyClosed` (`closedBy`, `closedAt`, `rejectedContent`), `PrnProblem` (`earliestAllowedAt`, `violations`); `session` |
+
+### 12.4. Giá trị enum
+
+| Tên logic | Mã |
+| --- | --- |
+| trạng thái đơn `CHO_HIEU_LUC`, `HIEU_LUC`, `TAM_DUNG`, `DA_NGUNG`, `HET_HAN`; lý do tạm dừng `LENH`, `CHO_DOI_CHIEU` | `PENDING_EFFECTIVE`, `ACTIVE`, `SUSPENDED`, `DISCONTINUED`, `EXPIRED`; `ORDER`, `RECONCILIATION_PENDING` |
+| loại đơn `DINH_KY`, `PRN`; nguồn thuốc `VIEN`, `GIA_DINH_GUI`; cơ sở kê `NOI_BO`, `BEN_NGOAI` | `PERIODIC`, `PRN`; `FACILITY`, `FAMILY_SENT`; `INTERNAL`, `EXTERNAL` |
+| tần suất `CAC_MOC`, `MOI_N_GIO`, `NGAY_TRONG_TUAN` | `TIMED_SLOTS`, `EVERY_N_HOURS`, `DAYS_OF_WEEK` |
+| hình thức căn cứ `DON_MOI`, `GIAY_RA_VIEN`, `DIEN_THOAI` | `NEW_PRESCRIPTION`, `DISCHARGE_PAPER`, `PHONE_ORDER` |
+| loại vấn đề `TRUNG_HOAT_CHAT`, `XUNG_DOT_DI_UNG`, `DI_UNG_KHAC_CAN_XEM` | `DUPLICATE_ACTIVE_INGREDIENT`, `ALLERGY_CONFLICT`, `OTHER_ALLERGY_REVIEW` |
+| trạng thái liều `CHUA_DEN_GIO`, `DEN_GIO`, `TRE`, `BO_LO`, `DA_DUNG`, `TU_CHOI`, `KHONG_THUC_HIEN`, `TAM_DUNG`, `MANG_THEO`, `DA_HUY` | `UPCOMING`, `DUE`, `LATE`, `MISSED`, `ADMINISTERED`, `REFUSED`, `NOT_ADMINISTERED`, `SUSPENDED`, `LEAVE_MEDICATION`, `CANCELLED` |
+| căn cứ ghi liều `THUONG`, `MANG_THEO`, `GHI_THEO_BAO_LAI` | `REGULAR`, `LEAVE_MEDICATION`, `REPORTED_BY_OTHERS` |
+| xem lại liều `CHO_XEM_LAI`, `CHAP_NHAN`, `CAN_DINH_CHINH` | `PENDING_REVIEW`, `ACCEPTED`, `REQUIRES_CORRECTION` |
+| vi phạm PRN `KHOANG_CACH_TOI_THIEU`, `SO_LAN_24H` | `MIN_INTERVAL`, `MAX_PER_24H` |
+| người ngoài `NHAN_VIEN`, `NGUOI_THAN`, `TU_DO` | `STAFF`, `FAMILY_MEMBER`, `FREE` |
+| lý do phiếu `TIEP_NHAN`, `TRO_VE_BENH_VIEN`, `THEO_YEU_CAU_CHUYEN_MON`; trạng thái phiếu `MO`, `CHO_XAC_NHAN`, `DA_XAC_NHAN`, `DA_HUY` | `ADMISSION`, `HOSPITAL_RETURN`, `PROFESSIONAL_REQUEST`; `OPEN`, `PENDING_CONFIRMATION`, `CONFIRMED`, `CANCELLED` |
+| nguồn dòng `DON_HIEN_CO`, `DON_RA_VIEN`, `THUOC_DANG_DUNG_TIEP_NHAN`; quyết định `TIEP_TUC`, `NGUNG`, `THAY_DOI_LIEU`, `THEM_MOI` | `CURRENT_PRESCRIPTION`, `DISCHARGE_PRESCRIPTION`, `ADMISSION_CURRENT_MEDICATION`; `CONTINUE`, `DISCONTINUE`, `CHANGE_DOSE`, `ADD_NEW` |
+| tiếp nhận thuốc cung ứng `DAT`, `KHONG_DAT` | `PASSED`, `NOT_PASSED` |
+| thuốc gửi `CHO_DOI_CHIEU`, `DUOC_SU_DUNG`, `CHI_GIU_HO`, `DA_DUNG_HET`, `DA_HOAN_TRA`, `DA_HUY_THEO_YEU_CAU`; căn cứ sử dụng `TOA_GIA_DINH`, `DON_CUA_VIEN` | `PENDING_RECONCILIATION`, `IN_USE`, `HOLD_ONLY`, `DEPLETED`, `RETURNED`, `DISPOSED`; `FAMILY_PRESCRIPTION`, `FACILITY_PRESCRIPTION` |
+| lần giao `DANG_MANG_THEO`, `CHO_NHAN_LAI`, `DA_NHAN_LAI` | `HANDED_OVER`, `WAITING_RETURN`, `RETURNED` |
+| loại bản ghi đính chính, đồng bộ `M07.KET_QUA_LIEU`, `M07.LAN_DUNG_PRN`, `M07.LAN_GIAO_THUOC`, `M07.LAN_NHAN_LAI_THUOC` | `M07.DOSE_RESULT`, `M07.PRN_ADMINISTRATION`, `M07.MEDICATION_HANDOVER`, `M07.MEDICATION_RETURN` |
+
+### 12.5. Mã lỗi
+
+| Tên logic | Mã |
+| --- | --- |
+| `DANG_CO_PHIEU_DOI_CHIEU`, `DA_CO_PHIEU_MO`, `THIEU_DONG`, `QUY_TAC_HAI_NGUOI`, `CAN_BAC_SI_KE_DON` | `RECONCILIATION_IN_PROGRESS`, `OPEN_RECONCILIATION_EXISTS`, `MISSING_ITEMS`, `TWO_PERSON_RULE`, `PRESCRIBING_DOCTOR_REQUIRED` |
+| `CAN_XAC_NHAN_VAN_DE`, `LIEU_DA_XAC_NHAN`, `VUOT_GIOI_HAN_PRN` | `ISSUES_REQUIRE_CONFIRMATION`, `DOSE_ALREADY_CLOSED`, `PRN_LIMIT_EXCEEDED` |
+| `LO_KHONG_HOP_LE`, `CHUA_CO_THUOC`, `HET_HAN_DUNG`, `SO_LUONG_KHAC_SO_CON`, `BAT_BUOC_TRUC_TUYEN`, `CHUYEN_KHONG_HOP_LE` | `INVALID_BATCH`, `NO_MEDICATION_AVAILABLE`, `EXPIRED_MEDICATION`, `QUANTITY_DIFFERS_FROM_REMAINING`, `REQUIRES_ONLINE`, `INVALID_TRANSITION` |
+| cảnh báo `KHOANG_KHONG_CO_LIEU`; nhắc `GHI_NHAN_LAI_THUOC_MANG_THEO` | `NO_DOSE_GAP`; `RECORD_LEAVE_MEDICATION_RETURN` |
+| mã điều kiện danh mục `TRUNG_THUOC`, `THIEU_TEN`, `THIEU_HAM_LUONG`, `THIEU_DANG_BAO_CHE`, `THIEU_DUONG_DUNG`, `THIEU_DON_VI`, `THIEU_HOAT_CHAT`, `CUA_SO_KHONG_HOP_LE`, `THUOC_DA_NGUNG` | `DUPLICATE_MEDICATION`, `NAME_REQUIRED`, `CONCENTRATION_REQUIRED`, `DOSAGE_FORM_REQUIRED`, `ROUTE_REQUIRED`, `UNIT_REQUIRED`, `ACTIVE_INGREDIENT_REQUIRED`, `INVALID_WINDOW`, `MEDICATION_INACTIVE` |
+| mã điều kiện đơn `THIEU_TAN_SUAT`, `THIEU_GIOI_HAN_PRN`, `LOAI_DON_KHONG_HOP_LE`, `THOI_DIEM_KHONG_HOP_LE`, `NGAY_KET_THUC_KHONG_HOP_LE`, `CAN_CU_CO_SO_KE`, `VUOT_LIEU_DON` | `FREQUENCY_REQUIRED`, `PRN_LIMITS_REQUIRED`, `INVALID_PRESCRIPTION_TYPE`, `INVALID_TIME`, `INVALID_END_DATE`, `EXTERNAL_BASIS_REQUIRED`, `EXCEEDS_PRESCRIBED_DOSE` |
+| mã điều kiện liều `MA_LIEU_KHONG_HOP_LE`, `THOI_DIEM_DUNG_TUONG_LAI`, `NGHI_DUNG_TRUNG_LIEU`, `TU_XEM_LAI_BI_CHAN` | `INVALID_DOSE_KEY`, `ADMINISTERED_AT_IN_FUTURE`, `POSSIBLE_DUPLICATE_DOSE`, `SELF_REVIEW_NOT_ALLOWED` |
+| mã điều kiện thuốc gửi, mang theo `BAO_BI_KHONG_NHAN_DIEN_DUOC`, `THIEU_THUOC_ID`, `DON_THUOC_KHONG_HOP_LE`, `KHAC_NGUOI_CAO_TUOI`, `KHAC_THUOC`, `LO_CHUA_DOI_CHIEU`, `KHONG_DU_THUOC`, `SO_LUONG_KHONG_HOP_LE` | `PACKAGING_NOT_RECOGNIZABLE`, `MEDICATION_REQUIRED`, `INVALID_PRESCRIPTION`, `RESIDENT_MISMATCH`, `MEDICATION_MISMATCH`, `BATCH_NOT_RECONCILED`, `INSUFFICIENT_QUANTITY`, `INVALID_QUANTITY` |
+| mã vấn đề `TRUNG_HC_{donId}_{diNguyenId}`, `DI_UNG_{mucId}`, `DI_UNG_KHAC_{mucId}` | `DUPLICATE_INGREDIENT_{prescriptionId}_{allergenId}`, `ALLERGY_{itemId}`, `OTHER_ALLERGY_{itemId}` |
+| `TRANG_THAI_CUOI` | `FINAL_STATE` |
+
 
 ## 13. Feature 007 (`007-health-alert-incident`, D)
 

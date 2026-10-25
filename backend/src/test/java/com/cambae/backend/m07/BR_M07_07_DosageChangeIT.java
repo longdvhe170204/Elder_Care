@@ -15,12 +15,12 @@ import com.cambae.backend.m07.internal.persistence.MedicationDoseRepository;
 import com.cambae.backend.m07.internal.persistence.MedicationRepository;
 import com.cambae.backend.m07.internal.persistence.PrescriptionRepository;
 import com.cambae.backend.m07.internal.service.PrescriptionService;
-import com.cambae.backend.m07.web.request.ChangeDosageBody;
-import com.cambae.backend.m07.web.request.CreatePrescriptionBody;
-import com.cambae.backend.m07.web.request.FrequencyBody;
-import com.cambae.backend.m07.web.request.PrescriberBody;
-import com.cambae.backend.m07.web.response.PrescriptionResponse;
-import com.cambae.backend.support.MySqlIntegrationTestBase;
+import com.cambae.backend.m07.internal.service.request.ChangeDosageBody;
+import com.cambae.backend.m07.internal.service.request.CreatePrescriptionBody;
+import com.cambae.backend.m07.internal.service.request.FrequencyBody;
+import com.cambae.backend.m07.internal.service.request.PrescriberBody;
+import com.cambae.backend.m07.internal.service.response.PrescriptionResponse;
+import com.cambae.backend.support.TestUsers;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -30,13 +30,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * T030: Test BR-M07-07 & FR-016: Changing dosage or discontinuing a prescription cancels open doses
  * from the effective time, while preserving already-administered doses.
  */
-class BR_M07_07_DosageChangeIT extends MySqlIntegrationTestBase {
+class BR_M07_07_DosageChangeIT extends M07IntegrationTestBase {
 
     @Autowired
     private PrescriptionService prescriptionService;
@@ -50,10 +49,7 @@ class BR_M07_07_DosageChangeIT extends MySqlIntegrationTestBase {
     @Autowired
     private MedicationDoseRepository doseRepository;
 
-    @Autowired
-    private JdbcTemplate jdbc;
-
-    private Long residentId = 8802L;
+    private Long residentId = TestUsers.nextId();
     private Long medId = 8802L;
 
     @BeforeEach
@@ -63,8 +59,16 @@ class BR_M07_07_DosageChangeIT extends MySqlIntegrationTestBase {
                         + "ON DUPLICATE KEY UPDATE version = version",
                 residentId);
 
-        Medication med =
-                new Medication("Metformin 500mg", "500mg", "Viên nén", "Oral", "viên", 30, 30, false, Set.of(102L));
+        Medication med = new Medication(
+                "Metformin 500mg " + TestUsers.nextId(),
+                "500mg",
+                "Viên nén",
+                "Oral",
+                "viên",
+                30,
+                30,
+                false,
+                Set.of(102L));
         medicationRepository.save(med);
         medId = med.getId();
     }
@@ -105,7 +109,8 @@ class BR_M07_07_DosageChangeIT extends MySqlIntegrationTestBase {
                 null,
                 10L,
                 now.minus(1, ChronoUnit.DAYS),
-                Set.of(102L));
+                Set.of(102L),
+                Instant.now());
         Prescription savedOld = prescriptionRepository.save(p);
         Long oldId = savedOld.getId();
 
@@ -124,7 +129,8 @@ class BR_M07_07_DosageChangeIT extends MySqlIntegrationTestBase {
                 MedicationSource.FACILITY,
                 false,
                 DoseStatus.ADMINISTERED,
-                1L);
+                1L,
+                Instant.now());
         doseRepository.save(dose1);
 
         // Dose 2: 12:00 today - due (open)
@@ -141,7 +147,8 @@ class BR_M07_07_DosageChangeIT extends MySqlIntegrationTestBase {
                 MedicationSource.FACILITY,
                 false,
                 DoseStatus.DUE,
-                1L);
+                1L,
+                Instant.now());
         doseRepository.save(dose2);
 
         // Dose 3: 20:00 today - upcoming (open)
@@ -158,7 +165,8 @@ class BR_M07_07_DosageChangeIT extends MySqlIntegrationTestBase {
                 MedicationSource.FACILITY,
                 false,
                 DoseStatus.UPCOMING,
-                1L);
+                1L,
+                Instant.now());
         doseRepository.save(dose3);
 
         // 3. Change dosage from 10:00 today (effective immediately)
@@ -186,7 +194,8 @@ class BR_M07_07_DosageChangeIT extends MySqlIntegrationTestBase {
         changeCmd.setEffectiveFrom(now);
         changeCmd.setReason("Đổi sang liều 1000mg");
 
-        PrescriptionResponse replacement = prescriptionService.changeDosage(oldId, changeCmd, 10L, true);
+        PrescriptionResponse replacement =
+                prescriptionService.changeDosage(prescriptionService.targetOf(oldId), oldId, changeCmd, 10L, true);
 
         // 4. Assertions:
         // Dose 1 remains ADMINISTERED

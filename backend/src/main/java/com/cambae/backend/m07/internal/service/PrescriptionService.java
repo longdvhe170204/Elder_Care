@@ -4,6 +4,7 @@ import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.error.ConditionNotMetException;
 import com.cambae.backend.common.error.NotFoundException;
 import com.cambae.backend.common.error.UnmetCondition;
+import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.common.web.VersionEtag;
 import com.cambae.backend.m07.api.PrescriptionApi;
 import com.cambae.backend.m07.api.dto.ActiveMedicationView;
@@ -31,16 +32,19 @@ import com.cambae.backend.m07.internal.persistence.PrescriptionBasisRepository;
 import com.cambae.backend.m07.internal.persistence.PrescriptionIssueRepository;
 import com.cambae.backend.m07.internal.persistence.PrescriptionRepository;
 import com.cambae.backend.m07.internal.persistence.ResidentMedicationLock;
-import com.cambae.backend.m07.web.request.ChangeDosageBody;
-import com.cambae.backend.m07.web.request.DiscontinuePrescriptionBody;
-import com.cambae.backend.m07.web.request.ExtendPrescriptionBody;
-import com.cambae.backend.m07.web.request.ExternalBasisBody;
-import com.cambae.backend.m07.web.request.OrderPrescriptionBody;
-import com.cambae.backend.m07.web.response.PrescriptionIssueResponse;
-import com.cambae.backend.m07.web.response.PrescriptionResponse;
+import com.cambae.backend.m07.internal.service.request.ChangeDosageBody;
+import com.cambae.backend.m07.internal.service.request.DiscontinuePrescriptionBody;
+import com.cambae.backend.m07.internal.service.request.ExtendPrescriptionBody;
+import com.cambae.backend.m07.internal.service.request.ExternalBasisBody;
+import com.cambae.backend.m07.internal.service.request.OrderPrescriptionBody;
+import com.cambae.backend.m07.internal.service.response.PrescriptionIssueResponse;
+import com.cambae.backend.m07.internal.service.response.PrescriptionResponse;
 import com.cambae.backend.m15.account.api.RequiresPermission;
 import com.cambae.backend.m15.account.api.dto.Function;
 import com.cambae.backend.m15.account.api.dto.Operation;
+import com.cambae.backend.m15.account.api.dto.Target;
+import com.cambae.backend.m15.parameter.api.ParameterApi;
+import com.cambae.backend.m15.parameter.api.ParameterCode;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -59,6 +63,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PrescriptionService implements PrescriptionApi {
 
+    static final String ENTITY_TYPE = "M07.PRESCRIPTION";
+
     private final PrescriptionRepository prescriptionRepository;
     private final PrescriptionIssueRepository prescriptionIssueRepository;
     private final PrescriptionBasisRepository prescriptionBasisRepository;
@@ -68,6 +74,8 @@ public class PrescriptionService implements PrescriptionApi {
     private final PrescriptionValidator prescriptionValidator;
     private final HealthAllergyPort healthAllergyPort;
     private final ReconciliationCheckPort reconciliationCheckPort;
+    private final BusinessTime businessTime;
+    private final ParameterApi parameters;
 
     @Autowired
     public PrescriptionService(
@@ -78,9 +86,11 @@ public class PrescriptionService implements PrescriptionApi {
             @Autowired(required = false) MedicationDoseRepository doseRepository,
             ResidentMedicationLock residentMedicationLock,
             PrescriptionValidator prescriptionValidator,
-            @Autowired(required = false) HealthAllergyPort healthAllergyPort,
+            HealthAllergyPort healthAllergyPort,
             @org.springframework.context.annotation.Lazy @Autowired(required = false)
-                    ReconciliationCheckPort reconciliationCheckPort) {
+                    ReconciliationCheckPort reconciliationCheckPort,
+            BusinessTime businessTime,
+            ParameterApi parameters) {
         this.prescriptionRepository = prescriptionRepository;
         this.prescriptionIssueRepository = prescriptionIssueRepository;
         this.prescriptionBasisRepository = prescriptionBasisRepository;
@@ -88,8 +98,10 @@ public class PrescriptionService implements PrescriptionApi {
         this.doseRepository = doseRepository;
         this.residentMedicationLock = residentMedicationLock;
         this.prescriptionValidator = prescriptionValidator;
-        this.healthAllergyPort = healthAllergyPort != null ? healthAllergyPort : new DefaultHealthAllergyPort();
+        this.healthAllergyPort = healthAllergyPort;
         this.reconciliationCheckPort = reconciliationCheckPort != null ? reconciliationCheckPort : r -> false;
+        this.businessTime = businessTime;
+        this.parameters = parameters;
     }
 
     public record CreatePrescriptionCommand(
@@ -119,9 +131,22 @@ public class PrescriptionService implements PrescriptionApi {
             Map<String, String> confirmedIssues,
             boolean doctorLicensed) {}
 
+    /** Đối tượng kiểm quyền, phạm vi của lệnh đơn thuốc trên một người cao tuổi (kiểm ở {@code RequiresPermissionAspect}). */
+    public static Target target(long residentId) {
+        return new Target(ENTITY_TYPE, null, residentId, null);
+    }
+
+    /** Đối tượng kiểm quyền của một đơn: người cao tuổi của đơn; không có đơn thì 404. */
+    @Transactional(readOnly = true)
+    public Target targetOf(long prescriptionId) {
+        Prescription p = prescriptionRepository.findById(prescriptionId).orElseThrow(NotFoundException::new);
+        return new Target(ENTITY_TYPE, String.valueOf(prescriptionId), p.getResidentId(), null);
+    }
+
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.VIEW)
     @Transactional(readOnly = true)
-    public List<PrescriptionResponse> listByResident(long residentId, Collection<PrescriptionStatus> statuses) {
+    public List<PrescriptionResponse> listByResident(
+            Target target, long residentId, Collection<PrescriptionStatus> statuses) {
         List<Prescription> list = (statuses == null || statuses.isEmpty())
                 ? prescriptionRepository.findByResidentId(residentId)
                 : prescriptionRepository.findByResidentIdAndStatusIn(residentId, statuses);
@@ -131,7 +156,7 @@ public class PrescriptionService implements PrescriptionApi {
 
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.VIEW)
     @Transactional(readOnly = true)
-    public List<PrescriptionResponse> listByResident(long residentId, List<String> statusStrings) {
+    public List<PrescriptionResponse> listByResident(Target target, long residentId, List<String> statusStrings) {
         Collection<PrescriptionStatus> statuses = null;
         if (statusStrings != null && !statusStrings.isEmpty()) {
             statuses = statusStrings.stream()
@@ -145,25 +170,26 @@ public class PrescriptionService implements PrescriptionApi {
                     .filter(java.util.Objects::nonNull)
                     .toList();
         }
-        return listByResident(residentId, statuses);
+        return listByResident(target, residentId, statuses);
     }
 
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.VIEW)
     @Transactional(readOnly = true)
-    public PrescriptionResponse getById(long id) {
+    public PrescriptionResponse getById(Target target, long id) {
         Prescription p = prescriptionRepository.findById(id).orElseThrow(NotFoundException::new);
         return toResponse(p);
     }
 
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.VIEW)
     @Transactional(readOnly = true)
-    public PrescriptionCheckResult check(long residentId, CreatePrescriptionCommand cmd) {
-        return check(residentId, cmd, null);
+    public PrescriptionCheckResult check(Target target, long residentId, CreatePrescriptionCommand cmd) {
+        return check(target, residentId, cmd, null);
     }
 
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.VIEW)
     @Transactional(readOnly = true)
-    public PrescriptionCheckResult check(long residentId, CreatePrescriptionCommand cmd, Long replacedPrescriptionId) {
+    public PrescriptionCheckResult check(
+            Target target, long residentId, CreatePrescriptionCommand cmd, Long replacedPrescriptionId) {
         Medication med = medicationRepository.findById(cmd.medicationId()).orElseThrow(NotFoundException::new);
         List<Prescription> existing = prescriptionRepository.findUnendedByResidentId(residentId);
         List<AllergyItemView> allergies = healthAllergyPort.getActiveAllergies(residentId);
@@ -174,12 +200,16 @@ public class PrescriptionService implements PrescriptionApi {
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public PrescriptionCheckResult check(
-            long residentId, com.cambae.backend.m07.web.request.CreatePrescriptionBody body) {
-        return check(residentId, toCommand(body, 1L, true));
+            Target target,
+            long residentId,
+            com.cambae.backend.m07.internal.service.request.CreatePrescriptionBody body) {
+        return check(target, residentId, toCommand(body, 1L, true));
     }
 
     public CreatePrescriptionCommand toCommand(
-            com.cambae.backend.m07.web.request.CreatePrescriptionBody body, Long currentUserId, boolean isDoctor) {
+            com.cambae.backend.m07.internal.service.request.CreatePrescriptionBody body,
+            Long currentUserId,
+            boolean isDoctor) {
         FrequencyType freqType = null;
         if (body.getFrequency() != null && body.getFrequency().getType() != null) {
             String type = body.getFrequency().getType().toUpperCase();
@@ -236,7 +266,7 @@ public class PrescriptionService implements PrescriptionApi {
         String facilityName = null;
         String prescriberName = null;
         Long prescriberId = currentUserId;
-        LocalDate prescribedAt = LocalDate.now();
+        LocalDate prescribedAt = businessTime.today();
         Long prescriptionFileId = null;
 
         if (body.getPrescriber() != null) {
@@ -262,7 +292,13 @@ public class PrescriptionService implements PrescriptionApi {
             }
         }
 
-        String unit = body.getDosageUnit() != null && !body.getDosageUnit().isBlank() ? body.getDosageUnit() : "Viên";
+        // Đơn vị liều là đơn vị dùng của thuốc trong danh mục (api-006 NewPrescription không có trường đơn vị)
+        String unit = body.getDosageUnit() != null && !body.getDosageUnit().isBlank()
+                ? body.getDosageUnit()
+                : medicationRepository
+                        .findById(body.getMedicationId())
+                        .map(Medication::getUsageUnit)
+                        .orElse(null);
 
         return new CreatePrescriptionCommand(
                 body.getMedicationId(),
@@ -295,16 +331,17 @@ public class PrescriptionService implements PrescriptionApi {
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.CREATE)
     @Transactional
     public PrescriptionResponse create(
+            Target target,
             long residentId,
-            com.cambae.backend.m07.web.request.CreatePrescriptionBody body,
+            com.cambae.backend.m07.internal.service.request.CreatePrescriptionBody body,
             Long currentUserId,
             boolean isDoctor) {
-        return create(residentId, toCommand(body, currentUserId, isDoctor));
+        return create(target, residentId, toCommand(body, currentUserId, isDoctor));
     }
 
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.CREATE)
     @Transactional
-    public PrescriptionResponse create(long residentId, CreatePrescriptionCommand cmd) {
+    public PrescriptionResponse create(Target target, long residentId, CreatePrescriptionCommand cmd) {
         // 1. Khóa theo người trên resident_medication (research D-03)
         residentMedicationLock.lock(residentId);
 
@@ -312,7 +349,7 @@ public class PrescriptionService implements PrescriptionApi {
         if (reconciliationCheckPort.hasOpenOrPendingReconciliation(residentId)) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "DANG_CO_PHIEU_DOI_CHIEU",
+                    "RECONCILIATION_IN_PROGRESS",
                     "Người cao tuổi đang có phiếu đối chiếu thuốc chưa hoàn tất (FR-037)");
         }
 
@@ -342,14 +379,14 @@ public class PrescriptionService implements PrescriptionApi {
         Medication med = medicationRepository.findById(cmd.medicationId()).orElseThrow(NotFoundException::new);
         if (!med.isActive()) {
             throw new ConditionNotMetException(
-                    List.of(new UnmetCondition("THUOC_DA_NGUNG", "Thuốc đã ngừng hiệu lực trong danh mục")));
+                    List.of(new UnmetCondition("MEDICATION_INACTIVE", "Thuốc đã ngừng hiệu lực trong danh mục")));
         }
 
         // 5. Kiểm tra loại đơn và tần suất (FR-004)
         if (cmd.prescriptionType() == PrescriptionType.PERIODIC) {
             if (cmd.frequencyType() == null) {
-                throw new ConditionNotMetException(
-                        List.of(new UnmetCondition("THIEU_TAN_SUAT", "Đơn định kỳ bắt buộc phải có kiểu tần suất")));
+                throw new ConditionNotMetException(List.of(
+                        new UnmetCondition("FREQUENCY_REQUIRED", "Đơn định kỳ bắt buộc phải có kiểu tần suất")));
             }
         } else if (cmd.prescriptionType() == PrescriptionType.PRN) {
             if (cmd.minIntervalMinutes() == null
@@ -357,7 +394,7 @@ public class PrescriptionService implements PrescriptionApi {
                     || cmd.maxDosesPer24h() == null
                     || cmd.maxDosesPer24h() < 1) {
                 throw new ConditionNotMetException(List.of(new UnmetCondition(
-                        "THIEU_GIOI_HAN_PRN", "Đơn PRN bắt buộc có khoảng cách tối thiểu > 0 và số lần tối đa >= 1")));
+                        "PRN_LIMITS_REQUIRED", "Đơn PRN bắt buộc có khoảng cách tối thiểu > 0 và số lần tối đa >= 1")));
             }
         }
 
@@ -374,16 +411,16 @@ public class PrescriptionService implements PrescriptionApi {
                             .toList();
             throw new BusinessException(
                     HttpStatus.CONFLICT,
-                    "CAN_XAC_NHAN_VAN_DE",
+                    "ISSUES_REQUIRE_CONFIRMATION",
                     "Còn vấn đề trùng hoạt chất hoặc xung đột dị ứng chưa có lý do xác nhận (FR-007, BR-M07-06)",
-                    Map.of("vanDe", unconfirmed));
+                    Map.of("issues", unconfirmed));
         }
 
         // 7. Xác định trạng thái ban đầu (FR-011, research D-05)
         PrescriptionStatus initialStatus;
         if (cmd.pendingAdmission()) {
             initialStatus = PrescriptionStatus.PENDING_EFFECTIVE;
-        } else if (cmd.startedAt().isAfter(Instant.now())) {
+        } else if (cmd.startedAt().isAfter(businessTime.now())) {
             initialStatus = PrescriptionStatus.PENDING_EFFECTIVE;
         } else {
             initialStatus = PrescriptionStatus.ACTIVE;
@@ -418,8 +455,9 @@ public class PrescriptionService implements PrescriptionApi {
                 null,
                 null,
                 cmd.prescriberId(),
-                Instant.now(),
-                med.getAllergenIds());
+                businessTime.now(),
+                med.getAllergenIds(),
+                businessTime.now());
 
         Prescription saved = prescriptionRepository.save(p);
 
@@ -442,7 +480,8 @@ public class PrescriptionService implements PrescriptionApi {
                         issueView.manualReviewRequired(),
                         reason,
                         cmd.prescriberId(),
-                        Instant.now());
+                        businessTime.now(),
+                        businessTime.now());
                 issuesToSave.add(issue);
             }
             prescriptionIssueRepository.saveAll(issuesToSave);
@@ -453,11 +492,11 @@ public class PrescriptionService implements PrescriptionApi {
 
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.UPDATE)
     @Transactional
-    public PrescriptionResponse updateInstructionNote(long id, String ifMatch, String newNote) {
+    public PrescriptionResponse updateInstructionNote(Target target, long id, String ifMatch, String newNote) {
         Prescription p = prescriptionRepository.findById(id).orElseThrow(NotFoundException::new);
         VersionEtag.requireMatch(ifMatch, p.getVersion(), toResponse(p));
 
-        p.setInstructionNote(newNote);
+        p.changeInstructionNote(newNote);
         Prescription saved = prescriptionRepository.save(p);
         return toResponse(saved);
     }
@@ -468,12 +507,13 @@ public class PrescriptionService implements PrescriptionApi {
 
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.UPDATE)
     @Transactional
-    public PrescriptionResponse suspend(long id, OrderPrescriptionBody body, Long currentUserId, boolean isDoctor) {
+    public PrescriptionResponse suspend(
+            Target target, long id, OrderPrescriptionBody body, Long currentUserId, boolean isDoctor) {
         Prescription p = prescriptionRepository.findById(id).orElseThrow(NotFoundException::new);
         residentMedicationLock.lock(p.getResidentId());
 
         if (p.getStatus() != PrescriptionStatus.ACTIVE) {
-            throw conditionNotMet("TRANG_THAI_KHONG_HOP_LE", "Prescription must be ACTIVE to suspend");
+            throw conditionNotMet("INVALID_STATE", "Prescription must be ACTIVE to suspend");
         }
 
         validateAndSaveBasis(p, body.getExternalBasis(), PrescriptionBasisCommand.SUSPEND, currentUserId, isDoctor);
@@ -485,7 +525,7 @@ public class PrescriptionService implements PrescriptionApi {
         if (doseRepository != null) {
             List<MedicationDose> openDoses = doseRepository.findByPrescriptionIdAndStatusIn(
                     p.getId(), List.of(DoseStatus.UPCOMING, DoseStatus.DUE));
-            Instant now = Instant.now();
+            Instant now = businessTime.now();
             for (MedicationDose d : openDoses) {
                 if (!d.getScheduledTime().isBefore(now.minusSeconds(60))) {
                     d.suspend(now);
@@ -499,12 +539,13 @@ public class PrescriptionService implements PrescriptionApi {
 
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.UPDATE)
     @Transactional
-    public PrescriptionResponse resume(long id, OrderPrescriptionBody body, Long currentUserId, boolean isDoctor) {
+    public PrescriptionResponse resume(
+            Target target, long id, OrderPrescriptionBody body, Long currentUserId, boolean isDoctor) {
         Prescription p = prescriptionRepository.findById(id).orElseThrow(NotFoundException::new);
         residentMedicationLock.lock(p.getResidentId());
 
         if (p.getStatus() != PrescriptionStatus.SUSPENDED) {
-            throw conditionNotMet("TRANG_THAI_KHONG_HOP_LE", "Prescription must be SUSPENDED to resume");
+            throw conditionNotMet("INVALID_STATE", "Prescription must be SUSPENDED to resume");
         }
 
         if (p.getSuspensionReason() == SuspensionReason.RECONCILIATION_PENDING) {
@@ -514,7 +555,7 @@ public class PrescriptionService implements PrescriptionApi {
         }
 
         if (reconciliationCheckPort.hasOpenOrPendingReconciliation(p.getResidentId())) {
-            throw conditionNotMet("DANG_CO_PHIEU_DOI_CHIEU", "Cannot resume while reconciliation ticket is open");
+            throw conditionNotMet("RECONCILIATION_IN_PROGRESS", "Cannot resume while reconciliation ticket is open");
         }
 
         validateAndSaveBasis(p, body.getExternalBasis(), PrescriptionBasisCommand.RESUME, currentUserId, isDoctor);
@@ -526,7 +567,7 @@ public class PrescriptionService implements PrescriptionApi {
         if (doseRepository != null) {
             List<MedicationDose> suspendedDoses =
                     doseRepository.findByPrescriptionIdAndStatusIn(p.getId(), List.of(DoseStatus.SUSPENDED));
-            Instant now = Instant.now();
+            Instant now = businessTime.now();
             for (MedicationDose d : suspendedDoses) {
                 if (d.getWindowTo().isAfter(now)) {
                     d.resumeFromSuspension(now);
@@ -538,21 +579,36 @@ public class PrescriptionService implements PrescriptionApi {
         return toResponse(saved);
     }
 
+    /**
+     * Cảnh báo khi Ngừng đơn cũ sớm hơn hiệu lực của đơn thay thế (BR-M07-15, api-006 {@code warnings}): khoảng giữa
+     * hai mốc không có liều. Không chặn lệnh.
+     */
+    @Transactional(readOnly = true)
+    public List<String> discontinueWarnings(long id, Instant discontinueAt) {
+        Instant at = discontinueAt != null ? discontinueAt : businessTime.now();
+        return prescriptionRepository
+                .findByReplacesId(id)
+                .filter(next ->
+                        next.getStartedAt() != null && next.getStartedAt().isAfter(at))
+                .map(next -> List.of("NO_DOSE_GAP"))
+                .orElse(List.of());
+    }
+
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.UPDATE)
     @Transactional
     public PrescriptionResponse discontinue(
-            long id, DiscontinuePrescriptionBody body, Long currentUserId, boolean isDoctor) {
+            Target target, long id, DiscontinuePrescriptionBody body, Long currentUserId, boolean isDoctor) {
         Prescription p = prescriptionRepository.findById(id).orElseThrow(NotFoundException::new);
         residentMedicationLock.lock(p.getResidentId());
 
         if (p.getStatus() == PrescriptionStatus.DISCONTINUED || p.getStatus() == PrescriptionStatus.EXPIRED) {
-            throw conditionNotMet("TRANG_THAI_CUOI", "Final status prescription cannot be discontinued");
+            throw conditionNotMet("FINAL_STATE", "Final status prescription cannot be discontinued");
         }
 
-        Instant now = Instant.now();
+        Instant now = businessTime.now();
         Instant discontinueAt = body.getDiscontinueAt() != null ? body.getDiscontinueAt() : now;
         if (discontinueAt.isBefore(now.minusSeconds(60))) {
-            throw conditionNotMet("THOI_DIEM_KHONG_HOP_LE", "Discontinuation time cannot be before command time");
+            throw conditionNotMet("INVALID_TIME", "Discontinuation time cannot be before command time");
         }
 
         validateAndSaveBasis(p, body.getExternalBasis(), PrescriptionBasisCommand.DISCONTINUE, currentUserId, isDoctor);
@@ -564,7 +620,7 @@ public class PrescriptionService implements PrescriptionApi {
 
             // Đơn cũ thôi bị ngừng tại thời điểm đã hẹn
             prescriptionRepository.findById(p.getReplacesId()).ifPresent(old -> {
-                old.setSuspendedFrom(null);
+                old.cancelScheduledSuspension();
                 prescriptionRepository.save(old);
             });
 
@@ -573,7 +629,7 @@ public class PrescriptionService implements PrescriptionApi {
 
         // Trường hợp thông thường: Ngừng ngay hoặc ngừng tương lai
         if (discontinueAt.isAfter(now)) {
-            p.setSuspendedFrom(discontinueAt);
+            p.scheduleSuspensionFrom(discontinueAt);
             Prescription saved = prescriptionRepository.save(p);
             return toResponse(saved);
         } else {
@@ -603,19 +659,20 @@ public class PrescriptionService implements PrescriptionApi {
 
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.UPDATE)
     @Transactional
-    public PrescriptionResponse changeDosage(long id, ChangeDosageBody body, Long currentUserId, boolean isDoctor) {
+    public PrescriptionResponse changeDosage(
+            Target target, long id, ChangeDosageBody body, Long currentUserId, boolean isDoctor) {
         Prescription oldPrescription = prescriptionRepository.findById(id).orElseThrow(NotFoundException::new);
         residentMedicationLock.lock(oldPrescription.getResidentId());
 
         if (oldPrescription.getStatus() == PrescriptionStatus.DISCONTINUED
                 || oldPrescription.getStatus() == PrescriptionStatus.EXPIRED) {
-            throw conditionNotMet("TRANG_THAI_CUOI", "Final status prescription cannot be changed");
+            throw conditionNotMet("FINAL_STATE", "Final status prescription cannot be changed");
         }
 
-        Instant now = Instant.now();
+        Instant now = businessTime.now();
         Instant effectiveFrom = body.getEffectiveFrom() != null ? body.getEffectiveFrom() : now;
         if (effectiveFrom.isBefore(now.minusSeconds(60))) {
-            throw conditionNotMet("THOI_DIEM_KHONG_HOP_LE", "Effective from time cannot be before command time");
+            throw conditionNotMet("INVALID_TIME", "Effective from time cannot be before command time");
         }
 
         validateAndSaveBasis(
@@ -628,7 +685,8 @@ public class PrescriptionService implements PrescriptionApi {
         // Chuyển đổi và kiểm tra đơn thuốc mới (bỏ qua trùng hoạt chất với chính oldPrescription - BR-M07-06 scenario
         // 4)
         CreatePrescriptionCommand cmd = toCommand(body.getNewPrescription(), currentUserId, isDoctor);
-        PrescriptionCheckResult checkResult = check(oldPrescription.getResidentId(), cmd, oldPrescription.getId());
+        PrescriptionCheckResult checkResult =
+                check(target, oldPrescription.getResidentId(), cmd, oldPrescription.getId());
 
         // Kiểm tra xem các vấn đề (issues) đã được người dùng xác nhận lý do chưa
         if (!checkResult.issues().isEmpty()) {
@@ -650,7 +708,7 @@ public class PrescriptionService implements PrescriptionApi {
 
         // 1. Cập nhật đơn cũ: nếu hiệu lực ngay thì DA_NGUNG (lý do REPLACED); nếu tương lai thì đặt suspendedFrom
         if (effectiveFrom.isAfter(now)) {
-            oldPrescription.setSuspendedFrom(effectiveFrom);
+            oldPrescription.scheduleSuspensionFrom(effectiveFrom);
             prescriptionRepository.save(oldPrescription);
         } else {
             oldPrescription.discontinue(TerminationReason.REPLACED);
@@ -709,9 +767,10 @@ public class PrescriptionService implements PrescriptionApi {
                 null,
                 currentUserId,
                 now,
-                med.getAllergenIds());
+                med.getAllergenIds(),
+                businessTime.now());
 
-        newPrescription.setReplacesId(oldPrescription.getId());
+        newPrescription.markReplaces(oldPrescription.getId());
         Prescription savedNew = prescriptionRepository.save(newPrescription);
 
         // Lưu các vấn đề đã xác nhận vào prescription_issue
@@ -733,7 +792,8 @@ public class PrescriptionService implements PrescriptionApi {
                         issueView.manualReviewRequired(),
                         reason,
                         currentUserId,
-                        now);
+                        now,
+                        businessTime.now());
                 issuesToSave.add(issue);
             }
             prescriptionIssueRepository.saveAll(issuesToSave);
@@ -744,25 +804,31 @@ public class PrescriptionService implements PrescriptionApi {
 
     @RequiresPermission(function = Function.PRESCRIPTION, operation = Operation.UPDATE)
     @Transactional
-    public PrescriptionResponse extend(long id, ExtendPrescriptionBody body, Long currentUserId, boolean isDoctor) {
+    public PrescriptionResponse extend(
+            Target target, long id, ExtendPrescriptionBody body, Long currentUserId, boolean isDoctor) {
         Prescription p = prescriptionRepository.findById(id).orElseThrow(NotFoundException::new);
         residentMedicationLock.lock(p.getResidentId());
 
         if (p.getStatus() != PrescriptionStatus.ACTIVE && p.getStatus() != PrescriptionStatus.SUSPENDED) {
-            throw conditionNotMet("TRANG_THAI_KHONG_HOP_LE", "Only ACTIVE or SUSPENDED prescriptions can be extended");
+            throw conditionNotMet("INVALID_STATE", "Only ACTIVE or SUSPENDED prescriptions can be extended");
         }
 
         LocalDate newEndedAt = body.getNewEndedAt();
         if (newEndedAt != null && p.getEndedAt() != null && !newEndedAt.isAfter(p.getEndedAt())) {
-            throw conditionNotMet(
-                    "NGAY_KET_THUC_KHONG_HOP_LE", "New end date must be strictly after current end date (FR-015)");
+            throw conditionNotMet("INVALID_END_DATE", "New end date must be strictly after current end date (FR-015)");
         }
 
         validateAndSaveBasis(p, body.getExternalBasis(), PrescriptionBasisCommand.EXTEND, currentUserId, isDoctor);
 
-        p.setEndedAt(newEndedAt);
-        if (newEndedAt == null || newEndedAt.isAfter(LocalDate.now().plusDays(3))) {
-            p.setExpirationWarnedAt(null);
+        p.changeEndDate(newEndedAt);
+        if (newEndedAt == null
+                || newEndedAt.isAfter(businessTime
+                        .today()
+                        .plusDays(parameters
+                                .read(ParameterCode.CFG_M07_04)
+                                .asDuration()
+                                .toDays()))) {
+            p.clearExpirationWarning();
         }
 
         Prescription saved = prescriptionRepository.save(p);
@@ -801,13 +867,13 @@ public class PrescriptionService implements PrescriptionApi {
                 || basisBody.getBasisType() == null
                 || basisBody.getBasisType().isBlank()) {
             throw conditionNotMet(
-                    "CAN_CU_CO_SO_KE",
+                    "EXTERNAL_BASIS_REQUIRED",
                     "External prescription modification by nurse requires complete external basis (BR-M07-16, FR-013)");
         }
 
         PrescriptionBasisType type = parseBasisType(basisBody.getBasisType());
         if (type == null) {
-            throw conditionNotMet("CAN_CU_CO_SO_KE", "Invalid basis type: " + basisBody.getBasisType());
+            throw conditionNotMet("EXTERNAL_BASIS_REQUIRED", "Invalid basis type: " + basisBody.getBasisType());
         }
 
         if (type == PrescriptionBasisType.PHONE_ORDER) {
@@ -817,12 +883,13 @@ public class PrescriptionService implements PrescriptionApi {
                     || basisBody.getReceiverName().isBlank()
                     || basisBody.getCalledAt() == null) {
                 throw conditionNotMet(
-                        "CAN_CU_CO_SO_KE",
+                        "EXTERNAL_BASIS_REQUIRED",
                         "Phone order basis requires callerName, receiverName, and calledAt (BR-M07-16)");
             }
         } else {
             if (basisBody.getDocumentFileId() == null) {
-                throw conditionNotMet("CAN_CU_CO_SO_KE", "Document-based basis requires documentFileId (BR-M07-16)");
+                throw conditionNotMet(
+                        "EXTERNAL_BASIS_REQUIRED", "Document-based basis requires documentFileId (BR-M07-16)");
             }
         }
 
@@ -843,8 +910,9 @@ public class PrescriptionService implements PrescriptionApi {
                 basisBody.getReceiverName(),
                 basisBody.getCalledAt(),
                 basisBody.getDocumentFileId(),
-                currentUserId != null ? currentUserId : 1L,
-                Instant.now());
+                currentUserId,
+                businessTime.now(),
+                businessTime.now());
         prescriptionBasisRepository.save(basis);
     }
 
@@ -971,17 +1039,5 @@ public class PrescriptionService implements PrescriptionApi {
         }
 
         return PrescriptionResponse.from(p, replacedBy, false, issues, List.of(), allowedCommands, List.of());
-    }
-
-    private static class DefaultHealthAllergyPort implements HealthAllergyPort {
-        @Override
-        public List<AllergyItemView> getActiveAllergies(long residentId) {
-            return List.of();
-        }
-
-        @Override
-        public void markAllergyChecked(long allergyId, String module) {
-            // No-op default
-        }
     }
 }

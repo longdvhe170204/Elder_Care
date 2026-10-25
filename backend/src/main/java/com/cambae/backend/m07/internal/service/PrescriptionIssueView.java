@@ -18,7 +18,7 @@ public record PrescriptionIssueView(
     public static PrescriptionIssueView duplicateIngredient(
             long duplicatePrescriptionId, long allergenId, String ingredientName) {
         return new PrescriptionIssueView(
-                "TRUNG_HC_" + duplicatePrescriptionId + "_" + allergenId,
+                "DUPLICATE_INGREDIENT_" + duplicatePrescriptionId + "_" + allergenId,
                 PrescriptionIssueType.DUPLICATE_ACTIVE_INGREDIENT,
                 ingredientName != null ? ingredientName : String.valueOf(allergenId),
                 duplicatePrescriptionId,
@@ -30,7 +30,7 @@ public record PrescriptionIssueView(
 
     public static PrescriptionIssueView allergyConflict(long allergyItemId, String allergenName, String severity) {
         return new PrescriptionIssueView(
-                "DI_UNG_" + allergyItemId,
+                "ALLERGY_" + allergyItemId,
                 PrescriptionIssueType.ALLERGY_CONFLICT,
                 allergenName,
                 null,
@@ -42,7 +42,7 @@ public record PrescriptionIssueView(
 
     public static PrescriptionIssueView otherAllergyReview(long allergyItemId, String description, String severity) {
         return new PrescriptionIssueView(
-                "DI_UNG_KHAC_" + allergyItemId,
+                "OTHER_ALLERGY_" + allergyItemId,
                 PrescriptionIssueType.OTHER_ALLERGY_REVIEW,
                 description,
                 null,

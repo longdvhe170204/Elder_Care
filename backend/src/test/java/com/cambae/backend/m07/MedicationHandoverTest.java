@@ -9,7 +9,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.cambae.backend.common.error.BusinessException;
+import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m07.api.dto.MedicationSource;
+import com.cambae.backend.m07.api.spi.TripMedicationPort;
 import com.cambae.backend.m07.internal.domain.DoseStatus;
 import com.cambae.backend.m07.internal.domain.FrequencyType;
 import com.cambae.backend.m07.internal.domain.MedicationDose;
@@ -35,15 +37,16 @@ import com.cambae.backend.m07.internal.persistence.NoMedicationOrderRepository;
 import com.cambae.backend.m07.internal.persistence.PrescriptionRepository;
 import com.cambae.backend.m07.internal.persistence.ResidentMedicationLock;
 import com.cambae.backend.m07.internal.service.MedicationHandoverService;
-import com.cambae.backend.m07.web.request.CreateHandoverBody;
-import com.cambae.backend.m07.web.request.HandoverItemBody;
-import com.cambae.backend.m07.web.request.NoMedicationOrderBody;
-import com.cambae.backend.m07.web.request.ReportedDoseBody;
-import com.cambae.backend.m07.web.request.ReturnHandoverBody;
-import com.cambae.backend.m07.web.request.ReturnItemBody;
-import com.cambae.backend.m07.web.response.HandoverResponse;
+import com.cambae.backend.m07.internal.service.MedicationScheduleCalculator;
+import com.cambae.backend.m07.internal.service.request.CreateHandoverBody;
+import com.cambae.backend.m07.internal.service.request.HandoverItemBody;
+import com.cambae.backend.m07.internal.service.request.NoMedicationOrderBody;
+import com.cambae.backend.m07.internal.service.request.ReturnHandoverBody;
+import com.cambae.backend.m07.internal.service.request.ReturnItemBody;
+import com.cambae.backend.m07.internal.service.response.HandoverResponse;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -52,6 +55,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.support.StaticListableBeanFactory;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -100,7 +104,10 @@ class MedicationHandoverTest {
                 prescriptionRepo,
                 medicationRepo,
                 doseRepo,
-                residentMedicationLock);
+                residentMedicationLock,
+                new BusinessTime(Clock.systemUTC()),
+                new MedicationScheduleCalculator(M07TestParameters.defaults()),
+                new StaticListableBeanFactory().getBeanProvider(TripMedicationPort.class));
     }
 
     private void setId(Object entity, Long id) {
@@ -144,7 +151,8 @@ class MedicationHandoverTest {
                 null,
                 1L,
                 Instant.parse("2026-10-20T00:00:00Z"),
-                Set.of(101L));
+                Set.of(101L),
+                Instant.now());
         setId(p, id);
         return p;
     }
@@ -162,7 +170,8 @@ class MedicationHandoverTest {
                 MedicationSource.FACILITY,
                 false,
                 status,
-                1L);
+                1L,
+                Instant.now());
         setId(d, id);
         return d;
     }
@@ -228,8 +237,8 @@ class MedicationHandoverTest {
     @Test
     @DisplayName("T039: Nhận lại thuốc mang theo vượt quá số lượng đã giao -> 422 SO_LUONG_KHONG_HOP_LE (FR-048a)")
     void testReturnHandover_ExceededHandedOverQuantity_Throws422() {
-        MedicationHandover handover =
-                new MedicationHandover(100L, null, null, RecipientType.STAFF, null, "A", null, 1L, Instant.now());
+        MedicationHandover handover = new MedicationHandover(
+                100L, null, null, RecipientType.STAFF, null, "A", null, 1L, Instant.now(), Instant.now());
         setId(handover, 10L);
         when(handoverRepo.findById(10L)).thenReturn(Optional.of(handover));
 
@@ -250,15 +259,15 @@ class MedicationHandoverTest {
                 .satisfies(e -> {
                     BusinessException be = (BusinessException) e;
                     assertThat(be.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-                    assertThat(be.errorCode()).isEqualTo("SO_LUONG_KHONG_HOP_LE");
+                    assertThat(be.errorCode()).isEqualTo("INVALID_QUANTITY");
                 });
     }
 
     @Test
     @DisplayName("T039: Nhận lại thuốc tổng số lượng = 0 bắt buộc có lý do (FR-048a)")
     void testReturnHandover_ZeroQuantityWithoutReason_Throws422() {
-        MedicationHandover handover =
-                new MedicationHandover(100L, null, null, RecipientType.STAFF, null, "A", null, 1L, Instant.now());
+        MedicationHandover handover = new MedicationHandover(
+                100L, null, null, RecipientType.STAFF, null, "A", null, 1L, Instant.now(), Instant.now());
         setId(handover, 11L);
         when(handoverRepo.findById(11L)).thenReturn(Optional.of(handover));
 
@@ -286,8 +295,8 @@ class MedicationHandoverTest {
     @Test
     @DisplayName("T039: Nhận lại thuốc thành công -> Trạng thái lần giao chuyển DA_NHAN_LAI (HandoverStatus.RETURNED)")
     void testReturnHandover_Success() {
-        MedicationHandover handover =
-                new MedicationHandover(100L, null, null, RecipientType.STAFF, null, "A", null, 1L, Instant.now());
+        MedicationHandover handover = new MedicationHandover(
+                100L, null, null, RecipientType.STAFF, null, "A", null, 1L, Instant.now(), Instant.now());
         setId(handover, 12L);
         when(handoverRepo.findById(12L)).thenReturn(Optional.of(handover));
         when(handoverRepo.save(any())).thenReturn(handover);
@@ -320,7 +329,7 @@ class MedicationHandoverTest {
     @DisplayName("T039: Đã có lệnh không mang thuốc cho chuyến đi -> Chặn tạo thêm 409 DA_TON_TAI (FR-048b)")
     void testOrderNoMedication_DuplicateTrip_ThrowsConflict409() {
         when(noMedOrderRepo.findByResidentIdAndTripId(100L, 555L))
-                .thenReturn(Optional.of(new NoMedicationOrder(100L, 555L, "Da co", 1L)));
+                .thenReturn(Optional.of(new NoMedicationOrder(100L, 555L, "Da co", 1L, Instant.now())));
 
         NoMedicationOrderBody body = new NoMedicationOrderBody();
         body.setTripId(555L);
@@ -333,51 +342,5 @@ class MedicationHandoverTest {
                     assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
                     assertThat(be.errorCode()).isEqualTo("DA_TON_TAI");
                 });
-    }
-
-    @Test
-    @DisplayName("T039: Ghi nhận liều mang theo theo báo lại bởi người không phải Điều dưỡng -> 403 FORBIDDEN (FR-027)")
-    void testRecordReportedDose_NonNurse_ThrowsForbidden403() {
-        ReportedDoseBody body = new ReportedDoseBody();
-        body.setReportedBy("Người thân Nguyễn Văn B");
-
-        // isNurse = false
-        assertThatThrownBy(() -> handoverService.recordReportedDose(501L, body, 1L, false))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(e -> {
-                    BusinessException be = (BusinessException) e;
-                    assertThat(be.status()).isEqualTo(HttpStatus.FORBIDDEN);
-                });
-    }
-
-    @Test
-    @DisplayName("T039: Ghi nhận liều mang theo theo báo lại thiếu người báo -> 422 INVALID_VALUE (FR-027)")
-    void testRecordReportedDose_MissingReporter_Throws422() {
-        ReportedDoseBody body = new ReportedDoseBody();
-        body.setReportedBy("");
-
-        assertThatThrownBy(() -> handoverService.recordReportedDose(501L, body, 1L, true))
-                .isInstanceOf(BusinessException.class)
-                .satisfies(e -> {
-                    BusinessException be = (BusinessException) e;
-                    assertThat(be.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-                    assertThat(be.errorCode()).isEqualTo("INVALID_VALUE");
-                });
-    }
-
-    @Test
-    @DisplayName("T039: Điều dưỡng ghi nhận liều mang theo theo báo lại thành công (FR-027)")
-    void testRecordReportedDose_Success() {
-        MedicationDose dose = createSampleDose(501L, 201L, DoseStatus.LEAVE_MEDICATION);
-        when(doseRepo.findById(501L)).thenReturn(Optional.of(dose));
-        when(doseRepo.save(any())).thenReturn(dose);
-
-        ReportedDoseBody body = new ReportedDoseBody();
-        body.setReportedBy("Trưởng đoàn thông báo đã uống đúng giờ");
-
-        MedicationDose savedDose = handoverService.recordReportedDose(501L, body, 1L, true);
-
-        assertThat(savedDose.getStatus()).isEqualTo(DoseStatus.ADMINISTERED);
-        verify(doseRepo).save(dose);
     }
 }

@@ -19,10 +19,10 @@ import com.cambae.backend.m07.internal.persistence.MedicationRepository;
 import com.cambae.backend.m07.internal.persistence.PrescriptionBasisRepository;
 import com.cambae.backend.m07.internal.persistence.PrescriptionRepository;
 import com.cambae.backend.m07.internal.service.PrescriptionService;
-import com.cambae.backend.m07.web.request.DiscontinuePrescriptionBody;
-import com.cambae.backend.m07.web.request.ExternalBasisBody;
-import com.cambae.backend.m07.web.request.OrderPrescriptionBody;
-import com.cambae.backend.support.MySqlIntegrationTestBase;
+import com.cambae.backend.m07.internal.service.request.DiscontinuePrescriptionBody;
+import com.cambae.backend.m07.internal.service.request.ExternalBasisBody;
+import com.cambae.backend.m07.internal.service.request.OrderPrescriptionBody;
+import com.cambae.backend.support.TestUsers;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -32,7 +32,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * T030: Test BR-M07-16 & FR-013: External prescriber basis validation.
@@ -40,7 +39,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * Nurses modifying internal prescriptions are forbidden (403).
  * Physicians do not require external basis.
  */
-class BR_M07_16_ExternalPrescriberBasisIT extends MySqlIntegrationTestBase {
+class BR_M07_16_ExternalPrescriberBasisIT extends M07IntegrationTestBase {
 
     @Autowired
     private PrescriptionService prescriptionService;
@@ -54,10 +53,7 @@ class BR_M07_16_ExternalPrescriberBasisIT extends MySqlIntegrationTestBase {
     @Autowired
     private MedicationRepository medicationRepository;
 
-    @Autowired
-    private JdbcTemplate jdbc;
-
-    private Long residentId = 8804L;
+    private Long residentId = TestUsers.nextId();
     private Long medId = 8804L;
 
     @BeforeEach
@@ -67,8 +63,16 @@ class BR_M07_16_ExternalPrescriberBasisIT extends MySqlIntegrationTestBase {
                         + "ON DUPLICATE KEY UPDATE version = version",
                 residentId);
 
-        Medication med =
-                new Medication("Atorvastatin 20mg", "20mg", "Viên nén", "Oral", "viên", 30, 30, false, Set.of(104L));
+        Medication med = new Medication(
+                "Atorvastatin 20mg " + TestUsers.nextId(),
+                "20mg",
+                "Viên nén",
+                "Oral",
+                "viên",
+                30,
+                30,
+                false,
+                Set.of(104L));
         medicationRepository.save(med);
         medId = med.getId();
     }
@@ -104,7 +108,8 @@ class BR_M07_16_ExternalPrescriberBasisIT extends MySqlIntegrationTestBase {
                 null,
                 null,
                 Instant.now().minusSeconds(86400),
-                Set.of(104L));
+                Set.of(104L),
+                Instant.now());
         return prescriptionRepository.save(p);
     }
 
@@ -139,7 +144,8 @@ class BR_M07_16_ExternalPrescriberBasisIT extends MySqlIntegrationTestBase {
                 null,
                 10L,
                 Instant.now().minusSeconds(86400),
-                Set.of(104L));
+                Set.of(104L),
+                Instant.now());
         return prescriptionRepository.save(p);
     }
 
@@ -147,13 +153,16 @@ class BR_M07_16_ExternalPrescriberBasisIT extends MySqlIntegrationTestBase {
     @DisplayName(
             "BR-M07-16: Nurse modifying external prescription without basis is rejected (ConditionNotMetException)")
     void nurse_modifyingExternalWithoutBasis_rejected() {
+        user.set(nurse.user());
+        assignNurse(nurse, residentId);
         Prescription p = createExternalPrescription();
 
         OrderPrescriptionBody cmd = new OrderPrescriptionBody();
         cmd.setReason("Tạm dừng theo lời người nhà");
         // No external basis provided
 
-        assertThatThrownBy(() -> prescriptionService.suspend(p.getId(), cmd, 20L, false))
+        assertThatThrownBy(() -> prescriptionService.suspend(
+                        prescriptionService.targetOf(p.getId()), p.getId(), cmd, 20L, false))
                 .isInstanceOf(ConditionNotMetException.class);
     }
 
@@ -161,6 +170,8 @@ class BR_M07_16_ExternalPrescriberBasisIT extends MySqlIntegrationTestBase {
     @DisplayName(
             "BR-M07-16: Nurse modifying external prescription with valid document basis succeeds and records basis")
     void nurse_modifyingExternalWithValidBasis_succeeds() {
+        user.set(nurse.user());
+        assignNurse(nurse, residentId);
         Prescription p = createExternalPrescription();
 
         OrderPrescriptionBody cmd = new OrderPrescriptionBody();
@@ -174,7 +185,7 @@ class BR_M07_16_ExternalPrescriberBasisIT extends MySqlIntegrationTestBase {
         basis.setDocumentFileId(5001L);
         cmd.setExternalBasis(basis);
 
-        prescriptionService.suspend(p.getId(), cmd, 20L, false);
+        prescriptionService.suspend(prescriptionService.targetOf(p.getId()), p.getId(), cmd, 20L, false);
 
         // Verify status
         Prescription reloaded = prescriptionRepository.findById(p.getId()).orElseThrow();
@@ -192,12 +203,15 @@ class BR_M07_16_ExternalPrescriberBasisIT extends MySqlIntegrationTestBase {
     @Test
     @DisplayName("BR-M07-16: Nurse modifying internal prescription is forbidden (403)")
     void nurse_modifyingInternalPrescription_forbidden() {
+        user.set(nurse.user());
+        assignNurse(nurse, residentId);
         Prescription p = createInternalPrescription();
 
         OrderPrescriptionBody cmd = new OrderPrescriptionBody();
         cmd.setReason("Thử tạm dừng đơn nội bộ");
 
-        assertThatThrownBy(() -> prescriptionService.suspend(p.getId(), cmd, 20L, false))
+        assertThatThrownBy(() -> prescriptionService.suspend(
+                        prescriptionService.targetOf(p.getId()), p.getId(), cmd, 20L, false))
                 .isInstanceOf(BusinessException.class);
     }
 
@@ -209,7 +223,7 @@ class BR_M07_16_ExternalPrescriberBasisIT extends MySqlIntegrationTestBase {
         DiscontinuePrescriptionBody cmd = new DiscontinuePrescriptionBody();
         cmd.setReason("Bác sĩ cơ sở quyết định ngừng đơn bên ngoài");
 
-        prescriptionService.discontinue(p.getId(), cmd, 10L, true);
+        prescriptionService.discontinue(prescriptionService.targetOf(p.getId()), p.getId(), cmd, 10L, true);
 
         Prescription reloaded = prescriptionRepository.findById(p.getId()).orElseThrow();
         assertThat(reloaded.getStatus()).isEqualTo(PrescriptionStatus.DISCONTINUED);

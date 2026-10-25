@@ -1,5 +1,6 @@
 package com.cambae.backend.m07.internal.domain;
 
+import com.cambae.backend.common.data.DataGroup;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,6 +15,7 @@ import java.time.Instant;
  * Medication reconciliation item line entity (FR-036).
  */
 @Entity
+@DataGroup(DataGroup.Group.BUSINESS)
 @Table(name = "reconciliation_item")
 public class ReconciliationItem {
 
@@ -54,7 +56,7 @@ public class ReconciliationItem {
     private Long createdById;
 
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     @Column(name = "discontinued_outside_ticket", nullable = false)
     private boolean discontinuedOutsideTicket = false;
@@ -75,7 +77,8 @@ public class ReconciliationItem {
             String reason,
             String newPrescriptionJson,
             Long createdById,
-            Instant createdAt) {
+            Instant createdAt,
+            Instant now) {
         this.reconciliationId = reconciliationId;
         this.itemOrder = itemOrder;
         this.source = source;
@@ -86,7 +89,7 @@ public class ReconciliationItem {
         this.reason = reason;
         this.newPrescriptionJson = newPrescriptionJson;
         this.createdById = createdById;
-        this.createdAt = createdAt != null ? createdAt : Instant.now();
+        this.createdAt = createdAt != null ? createdAt : now;
     }
 
     public void updateDecision(ReconciliationDecision decision, String reason, String newPrescriptionJson) {
@@ -95,12 +98,8 @@ public class ReconciliationItem {
         this.newPrescriptionJson = newPrescriptionJson;
     }
 
-    public void setCreatedPrescriptionId(Long createdPrescriptionId) {
+    public void recordCreatedPrescription(Long createdPrescriptionId) {
         this.createdPrescriptionId = createdPrescriptionId;
-    }
-
-    public void setDiscontinuedOutsideTicket(boolean discontinuedOutsideTicket) {
-        this.discontinuedOutsideTicket = discontinuedOutsideTicket;
     }
 
     // --- Getters ---

@@ -55,22 +55,23 @@ public class DoseReview {
     private int version;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt = Instant.now();
+    private Instant updatedAt;
 
     protected DoseReview() {}
 
-    public DoseReview(Long doseResultId, Long prnUsageId, Long floorAreaId, String reviewerCandidate, String note) {
+    public DoseReview(
+            Long doseResultId, Long prnUsageId, Long floorAreaId, String reviewerCandidate, String note, Instant now) {
         this.doseResultId = doseResultId;
         this.prnUsageId = prnUsageId;
         this.floorAreaId = floorAreaId;
         this.reviewerCandidate = reviewerCandidate;
         this.status = DoseReviewStatus.PENDING_REVIEW;
         this.note = note;
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
+        this.createdAt = now;
+        this.updatedAt = now;
     }
 
     public void accept(Long reviewerId, String reviewNote, Instant now) {

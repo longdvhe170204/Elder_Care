@@ -1,9 +1,11 @@
 package com.cambae.backend.m07.internal.domain;
 
+import com.cambae.backend.common.data.DataGroup;
 import jakarta.persistence.*;
 import java.time.Instant;
 
 @Entity
+@DataGroup(DataGroup.Group.BUSINESS)
 @Table(name = "family_medication_prescription")
 public class FamilyMedicationPrescription {
 
