@@ -71,9 +71,17 @@ public final class ShiftResponses {
             String event,
             BigDecimal totalWeight,
             int staffCount,
+
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
             BigDecimal ratio,
+
             BigDecimal threshold,
-            boolean meetsThreshold) {}
+            boolean meetsThreshold) {
+        public static StaffingRatio of(com.cambae.backend.m09.ratio.internal.domain.StaffingRatioCalculation c) {
+            return new StaffingRatio(
+                    c.at(), c.event(), c.totalWeight(), c.staffCount(), c.ratio(), c.threshold(), c.meetsThreshold());
+        }
+    }
 
     @Schema(name = "Shift")
     public record Shift(

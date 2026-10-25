@@ -2,11 +2,14 @@ package com.cambae.backend.m09.api.dto;
 
 import java.time.Instant;
 
-/** Kiểu đọc giữa module, theo 008 contracts mục 1.3/1.4; không chứa thông tin liên hệ hoặc lý do riêng tư. */
+/**
+ * FR-037a: shiftId rỗng khi giao Trưởng tầng không gắn ca. role giữ vai trò phân công, hoặc FLOOR_MANAGER,
+ * SHIFT_MEMBER, SHIFT_LEAD để phân biệt nguồn lịch sử; assignmentId là id trong nguồn đó. Không có lý do riêng tư.
+ */
 public record AssignmentHistoryView(
         long assignmentId,
         long staffId,
-        long shiftId,
+        Long shiftId,
         String targetType,
         long targetId,
         Instant from,

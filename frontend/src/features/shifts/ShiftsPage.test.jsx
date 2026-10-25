@@ -48,6 +48,61 @@ beforeEach(() => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
+it('FR_036_lichNhapHienCanhBaoTyLeNgayTrenDongCa', async () => {
+  api.on(
+    'GET',
+    '/shift-schedules',
+    json(200, [
+      {
+        id: 7,
+        month: '2026-11',
+        scopeType: 'FLOOR',
+        scopeId: 5,
+        status: 'DRAFT',
+        version: 2,
+        shifts: [
+          {
+            ...SHIFT,
+            staffingRatio: { totalWeight: 35, staffCount: 4, ratio: 8.75, threshold: 8, meetsThreshold: false },
+          },
+        ],
+      },
+    ]),
+  )
+  render(<ShiftsPage initialMonth="2026-11" />)
+  expect(await screen.findByText('Dưới ngưỡng phục vụ')).toBeVisible()
+})
+
+it('FR_037_chiTietCaMoLichSuTyLe_tuApi', async () => {
+  api.on(
+    'GET',
+    '/shift-schedules',
+    json(200, [
+      { id: 7, month: '2026-11', scopeType: 'FLOOR', scopeId: 5, status: 'DRAFT', version: 2, shifts: [SHIFT] },
+    ]),
+  )
+  api.on('GET', '/shifts/20', json(200, SHIFT))
+  api.on(
+    'GET',
+    '/shifts/20/staffing-ratios',
+    json(200, [
+      {
+        at: '2026-10-25T00:00:00Z',
+        event: 'DRAFT_SAVED',
+        totalWeight: 35,
+        staffCount: 4,
+        ratio: 8.75,
+        threshold: 8,
+        meetsThreshold: false,
+      },
+    ]),
+  )
+  render(<ShiftsPage initialMonth="2026-11" />)
+  fireEvent.click(await screen.findByRole('button', { name: 'Chi tiết' }))
+  expect(await screen.findByRole('region', { name: 'Tỷ lệ phục vụ' })).toBeVisible()
+  expect(await screen.findByText('Dưới ngưỡng phục vụ')).toBeVisible()
+})
+
 it('FR_025_moPhanCongCuaCa_vaGiaoTruongTangTuLich', async () => {
   api.on(
     'GET',

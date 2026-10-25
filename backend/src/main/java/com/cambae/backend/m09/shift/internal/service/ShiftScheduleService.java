@@ -54,6 +54,7 @@ public class ShiftScheduleService {
     private final ApplicationEventPublisher events;
     private final com.cambae.backend.m09.assignment.internal.service.AssignmentService staffAssignments;
     private final com.cambae.backend.m09.assignment.internal.service.AssignmentReminders assignmentReminders;
+    private final com.cambae.backend.m09.ratio.internal.service.StaffingRatioService ratios;
 
     public ShiftScheduleService(
             ShiftStore store,
@@ -69,7 +70,8 @@ public class ShiftScheduleService {
             AuditLogApi audit,
             ApplicationEventPublisher events,
             com.cambae.backend.m09.assignment.internal.service.AssignmentService staffAssignments,
-            com.cambae.backend.m09.assignment.internal.service.AssignmentReminders assignmentReminders) {
+            com.cambae.backend.m09.assignment.internal.service.AssignmentReminders assignmentReminders,
+            com.cambae.backend.m09.ratio.internal.service.StaffingRatioService ratios) {
         this.store = store;
         this.staff = staff;
         this.credentials = credentials;
@@ -84,6 +86,7 @@ public class ShiftScheduleService {
         this.events = events;
         this.staffAssignments = staffAssignments;
         this.assignmentReminders = assignmentReminders;
+        this.ratios = ratios;
     }
 
     public List<ShiftTemplate> templates() {
@@ -173,7 +176,10 @@ public class ShiftScheduleService {
         Instant[] interval = interval(schedule, template, input);
         var warnings = validateStaff(schedule, input, null, interval[0], interval[1]);
         confirm(warnings, input.confirmWarnings(), input.reason());
-        return new Mutation(store.createShift(schedule, template, input, interval[0], interval[1]), warnings);
+        long id = store.createShift(schedule, template, input, interval[0], interval[1]);
+        var allWarnings = new ArrayList<>(warnings);
+        allWarnings.addAll(ratios.recalculate(id, "DRAFT_SAVED"));
+        return new Mutation(id, List.copyOf(allWarnings));
     }
 
     @RequiresPermission(function = Function.SHIFT_SCHEDULE, operation = Operation.UPDATE)
@@ -196,7 +202,9 @@ public class ShiftScheduleService {
         staffAssignments.removeDraftMembers(
                 id, input.staff().stream().map(ShiftInput.Member::staffId).toList());
         store.updateShift(before, template, input, interval[0], interval[1]);
-        return new Mutation(id, warnings);
+        var allWarnings = new ArrayList<>(warnings);
+        allWarnings.addAll(ratios.recalculate(id, "DRAFT_SAVED"));
+        return new Mutation(id, List.copyOf(allWarnings));
     }
 
     @RequiresPermission(function = Function.SHIFT_SCHEDULE, operation = Operation.UPDATE)
@@ -295,7 +303,7 @@ public class ShiftScheduleService {
                 warnings.addAll(trainingWarnings(member.staffId(), shift.startsAt(), shift.endsAt()));
             }
         extended.orderedStream().forEach(check -> warnings.addAll(check.check(schedule.id())));
-        // Tỷ lệ phục vụ nối T037 khi có nguồn trọng số.
+        for (var shift : shifts) warnings.addAll(ratios.preview(shift.id()));
         var invalid = staffAssignments.invalidDrafts(schedule.id()).stream()
                 .map(a -> new InvalidAssignment(a.assignmentId(), a.reason()))
                 .toList();
@@ -336,7 +344,14 @@ public class ShiftScheduleService {
         if (!check.unmetConditions().isEmpty()) throw new ConditionNotMetException(check.unmetConditions());
         boolean self = Objects.equals(schedule.createdBy(), users.getObject().accountId());
         if (self && reason == null) throw new ReasonRequiredException();
-        confirm(check.warnings(), confirmWarnings, reason);
+        // FR-036: cảnh báo tỷ lệ không chặn công bố và không phát sinh yêu cầu lý do riêng.
+        confirm(
+                check.warnings().stream()
+                        .filter(w -> !Set.of("BELOW_STAFFING_THRESHOLD", "STAFFING_RATIO_UNAVAILABLE")
+                                .contains(w.code()))
+                        .toList(),
+                confirmWarnings,
+                reason);
         for (var shift : shifts) {
             var input = new ShiftInput(
                     shift.shiftTemplateId(),
@@ -355,6 +370,7 @@ public class ShiftScheduleService {
         store.publish(
                 schedule, shifts, users.getObject().accountId(), self, reason == null ? null : reason.value(), now);
         staffAssignments.activateSchedule(id);
+        for (var shift : shifts) ratios.recalculate(shift.id(), "PUBLISHED");
         store.savePublication(id, now, staffAssignments.snapshot(id));
         audit.write(AuditLogEntry.builder()
                 .action(new AuditAction("SCHEDULE_PUBLISHED", self))

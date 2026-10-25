@@ -12,6 +12,16 @@ public class FakeLocations implements LocationApi, LocationStructureApi, Locatio
     private final Map<Long, AreaView> areas = new HashMap<>();
     private final List<LocationStay> stays = new ArrayList<>();
     private final Set<LocationRef> disabled = new HashSet<>();
+    private LocationRef daycareRestLocation;
+
+    public FakeLocations daycareRestLocation(LocationRef ref) {
+        daycareRestLocation = ref;
+        return this;
+    }
+
+    public Optional<LocationRef> daycareRestLocation() {
+        return Optional.ofNullable(daycareRestLocation);
+    }
 
     public FakeLocations floor(long id, Long area) {
         floors.put(id, new FloorView(id, area, "[Tầng kiểm thử]"));
@@ -41,6 +51,25 @@ public class FakeLocations implements LocationApi, LocationStructureApi, Locatio
                 false,
                 false,
                 List.of()));
+        return this;
+    }
+
+    public FakeLocations closeStays(long resident, Instant at) {
+        for (int i = 0; i < stays.size(); i++) {
+            var s = stays.get(i);
+            if (s.residentId() == resident && !s.from().isAfter(at) && (s.to() == null || s.to().isAfter(at)))
+                stays.set(
+                        i,
+                        new LocationStay(
+                                s.residentId(),
+                                s.fullName(),
+                                s.location(),
+                                s.from(),
+                                at,
+                                s.corrected(),
+                                s.pendingLateEntry(),
+                                s.absences()));
+        }
         return this;
     }
 

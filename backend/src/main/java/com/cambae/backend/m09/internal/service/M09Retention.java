@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /** T009, R-11: provider cho bảng đã có; chỉ tài khoản lưu giữ thực hiện xoá, giữ các bản ghi còn dùng. */
 public class M09Retention implements RetentionProvider {
     public enum Kind {
+        STAFFING_RATIO_CALCULATION("M09.STAFFING_RATIO_CALCULATION", "staffing_ratio_calculation", "calculated_at"),
         STAFF_IMPORT_BATCH("M09.STAFF_IMPORT_BATCH", "staff_import_batch", "created_at"),
         STAFF("M09.STAFF", "staff_profile", "termination_applied_at"),
         CREDENTIAL("M09.CREDENTIAL", "credential", "created_at"),
@@ -83,6 +84,8 @@ public class M09Retention implements RetentionProvider {
                             batch)
                     .stream();
         String extra = switch (kind) {
+            case STAFFING_RATIO_CALCULATION ->
+                " AND NOT EXISTS(SELECT 1 FROM work_shift s WHERE s.id=staffing_ratio_calculation.shift_id AND s.status NOT IN ('CLOSED','CANCELLED'))";
             case STAFF -> " AND status='RESIGNED'";
             case CREDENTIAL ->
                 " AND (expiry_date < ? OR revoked_from <= ? OR EXISTS(SELECT 1 FROM credential replacement WHERE replacement.replaces_id=credential.id))";
@@ -174,6 +177,11 @@ public class M09Retention implements RetentionProvider {
                 refs(refs, "M09.SHIFT_PUBLICATION", "SELECT id FROM shift_publication WHERE schedule_id=?", id);
             }
             case SHIFT -> {
+                refs(
+                        refs,
+                        "M09.STAFFING_RATIO_CALCULATION",
+                        "SELECT id FROM staffing_ratio_calculation WHERE shift_id=?",
+                        id);
                 jdbc.queryForList(
                                 "SELECT id FROM shift_handover WHERE shift_id=? OR next_shift_id=?", Long.class, id, id)
                         .forEach(found -> refs.add(new DataRef("M09.HANDOVER", found)));

@@ -141,11 +141,17 @@ export function PublicationForm({ schedule, preview, onDone }) {
   const [failure, setFailure] = useState(null)
   const [warnings, setWarnings] = useState(preview.warnings ?? [])
   const [busy, setBusy] = useState(false)
+  const information = warnings.filter((w) =>
+    ['BELOW_STAFFING_THRESHOLD', 'STAFFING_RATIO_UNAVAILABLE'].includes(w.code),
+  )
+  const confirmationWarnings = warnings.filter(
+    (w) => !['BELOW_STAFFING_THRESHOLD', 'STAFFING_RATIO_UNAVAILABLE'].includes(w.code),
+  )
   const blocked =
     !!preview.unmetConditions?.length ||
     (preview.invalidAssignments ?? []).some((a) => !removed.includes(a.assignmentId)) ||
-    ((reasonRequired || !!warnings.length) && !reason.trim()) ||
-    (!!warnings.length && !confirmed)
+    ((reasonRequired || !!confirmationWarnings.length) && !reason.trim()) ||
+    (!!confirmationWarnings.length && !confirmed)
   const needsPreview = failure && !['REASON_REQUIRED', 'WARNING_CONFIRMATION_REQUIRED'].includes(failure.errorCode)
   async function submit(e) {
     e.preventDefault()
@@ -196,13 +202,24 @@ export function PublicationForm({ schedule, preview, onDone }) {
         </label>
       ))}
       <WarningConfirmation
-        warnings={warnings}
+        warnings={confirmationWarnings}
         confirmed={confirmed}
         onConfirm={setConfirmed}
         reason={reason}
         onReason={setReason}
       />
-      {!warnings.length && (
+      {information.length > 0 && (
+        <div className="flex flex-col gap-2 rounded-xl border bg-muted p-3">
+          <p className="font-medium text-warning-foreground">Cảnh báo tỷ lệ phục vụ</p>
+          {information.map((w, index) => (
+            <div key={`${w.code}:${index}`}>
+              <p>{w.description}</p>
+              {w.details?.shiftId && <p className="type-caption text-muted-foreground">Ca #{w.details.shiftId}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+      {!confirmationWarnings.length && (
         <Field>
           <FieldLabel htmlFor="publish-reason">Lý do công bố / tự duyệt</FieldLabel>
           <Textarea

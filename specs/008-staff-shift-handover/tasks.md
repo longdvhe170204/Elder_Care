@@ -165,14 +165,16 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 ### Tests cho User Story 5
 
-- [ ] T036 [P] [US5] Test đơn vị `BT/m09/TinhTyLePhucVuTest.java` và `BT/m09/BR_M09_02_TyLePhucVuIT.java`, `FR_036_CanhBaoMotLanIT.java`, `BR_M09_14_TinhTheoCaIT.java` (người có ca chưa có phân công vẫn được tính; yêu cầu đổi mức chăm sóc đang chờ duyệt không tính trước) (Q20, Q21)
+- [x] T036 [P] [US5] Test đơn vị `BT/m09/TinhTyLePhucVuTest.java` và `BT/m09/BR_M09_02_TyLePhucVuIT.java`, `FR_036_CanhBaoMotLanIT.java`, `BR_M09_14_TinhTheoCaIT.java` (người có ca chưa có phân công vẫn được tính; yêu cầu đổi mức chăm sóc đang chờ duyệt không tính trước) (Q20, Q21)
 
 ### Implementation cho User Story 5
 
-- [ ] T037 [US5] Tạo bảng `lan_tinh_ty_le` (nhóm 3; `su_kien` 10 giá trị; `tong_trong_so DECIMAL(8,2)`) trong `MIG/V008_07__ty_le.sql`; cài `BE/m09/tyle/internal/TyLePhucVuService.java` (`TinhTyLePhucVu`; listener `MucChamSocDaDoi`, `NguoiCaoTuoiDaChuyenTrangThai`, `PhanBoDaBatDau`, `PhanBoDaDong`, `DaChuyenGiuong`; cảnh báo một lần qua `dang_duoi_nguong`), việc hằng giờ ca sắp bắt đầu dưới ngưỡng (CFG-M09-08); `NhanSuThongKeApi` (016) (research N-09) Nối staffingRatio trong chi tiết ca và cảnh báo xem trước công bố; T016 để null khi chưa có lần tính.
-- [ ] T038 [US5] Tạo endpoint `GET /ca/{id}/ty-le-phuc-vu` và màn web `frontend/src/tinh-nang/ty-le-phuc-vu/`
+- [x] T037 [US5] Tạo bảng `lan_tinh_ty_le` (nhóm 3; `su_kien` 10 giá trị; `tong_trong_so DECIMAL(8,2)`) trong `MIG/V008_07__ty_le.sql`; cài `BE/m09/tyle/internal/TyLePhucVuService.java` (`TinhTyLePhucVu`; listener `MucChamSocDaDoi`, `NguoiCaoTuoiDaChuyenTrangThai`, `PhanBoDaBatDau`, `PhanBoDaDong`, `DaChuyenGiuong`; cảnh báo một lần qua `dang_duoi_nguong`), việc hằng giờ ca sắp bắt đầu dưới ngưỡng (CFG-M09-08); `NhanSuThongKeApi` (016) (research N-09) Nối staffingRatio trong chi tiết ca và cảnh báo xem trước công bố; T016 để null khi chưa có lần tính.
+- [x] T038 [US5] Tạo endpoint `GET /ca/{id}/ty-le-phuc-vu` và màn web `frontend/src/tinh-nang/ty-le-phuc-vu/`
 
 **Checkpoint**: Tỷ lệ phục vụ chạy độc lập.
+
+**Checkpoint Phase 7 phần E — 2026-10-25**: T036–T038 hoàn thành sau TDD. Có bộ tính, migration `V008_07__staffing_ratios.sql`, lịch sử/cảnh báo/nhắc, endpoint/panel trong `features/shifts`, nối lưu/công bố/nghỉ việc và listener sau commit. StaffStatisticsApi đã có các truy vấn tỷ lệ, bàn giao, chứng chỉ, lịch sử phân công/Trưởng tầng/thành viên/phụ trách và căn cứ nhiệm vụ; hai thay đổi API phân trang/shiftId nullable đã được chủ dự án duyệt, có test và ghi A/016 review. Clean verify chạy nền JDK 25/MySQL 8.0 qua 333 lượt test đơn vị/kiến trúc + 1074 IT = 1407, không lỗi/thất bại/bỏ qua (07:14); Spotless qua. Web 265 test/40 file, lint/build qua; Edge ba bề rộng/sáng/tối/bàn phím đã kiểm. B/C còn review/cài nguồn 003/004 thật theo team-plan mục 8; không dùng fake trong production, thiếu nguồn báo rõ chưa đủ dữ liệu. Chi tiết tại plan "Phase 7 hoàn thành phần E". Chưa commit/push/merge.
 
 ---
 
