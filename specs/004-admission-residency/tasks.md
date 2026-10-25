@@ -28,8 +28,8 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo khung gói `BE/m02/{api,dangky,danhsachcho,hopdong,dichvu,thaydoi,vang,ketthuc,quadoi,tinhphi,trangthai,lich}/` với `package-info.java` (research T-01)
-- [ ] T002 [P] Tạo bản giả SPI 004 khai báo (contracts mục 2.1) trong `BT/support/gia004/`: `NguoiDaiDienPort`, `BanGhiDonPort` (012), `TrangThaiDatCocPort` (017), `KyCuoiPort` (010), `TrangThaiCoMatBanTruPort` (005), `MucViecSauQuaDoiPort` (010, 013, 006, 007, 017)
+- [x] T001 Tạo khung gói `BE/m02/{api,dangky,danhsachcho,hopdong,dichvu,thaydoi,vang,ketthuc,quadoi,tinhphi,trangthai,lich}/` với `package-info.java` (research T-01)
+- [x] T002 [P] Tạo bản giả SPI 004 khai báo (contracts mục 2.1) trong `BT/support/gia004/`: `NguoiDaiDienPort`, `BanGhiDonPort` (012), `TrangThaiDatCocPort` (017), `KyCuoiPort` (010), `TrangThaiCoMatBanTruPort` (005), `MucViecSauQuaDoiPort` (010, 013, 006, 007, 017)
 
 ---
 
