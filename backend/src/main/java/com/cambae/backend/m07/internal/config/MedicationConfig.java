@@ -1,5 +1,7 @@
 package com.cambae.backend.m07.internal.config;
 
+import com.cambae.backend.m07.api.spi.ShiftNursePort;
+import com.cambae.backend.m07.internal.service.DefaultShiftNursePort;
 import com.cambae.backend.m07.internal.service.MedicationCatalogPort;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -16,5 +18,11 @@ public class MedicationConfig {
     public MedicationCatalogPort defaultMedicationCatalogPort() {
         // Default fallback when module 004 is not yet active: treat item as absent from facility items
         return medicationId -> false;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(ShiftNursePort.class)
+    public ShiftNursePort defaultShiftNursePort() {
+        return new DefaultShiftNursePort();
     }
 }

@@ -14,9 +14,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import java.sql.Types;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import org.hibernate.annotations.JdbcTypeCode;
 
 /**
  * Medication Catalog Entity (FR-001, FR-002, data-model section 3).
@@ -46,9 +48,11 @@ public class Medication {
     @Column(name = "usage_unit", nullable = false, length = 50)
     private String usageUnit;
 
+    @JdbcTypeCode(Types.SMALLINT)
     @Column(name = "before_window_minutes")
     private Integer beforeWindowMinutes;
 
+    @JdbcTypeCode(Types.SMALLINT)
     @Column(name = "after_window_minutes")
     private Integer afterWindowMinutes;
 

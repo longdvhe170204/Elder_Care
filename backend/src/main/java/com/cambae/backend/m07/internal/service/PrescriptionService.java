@@ -79,7 +79,8 @@ public class PrescriptionService implements PrescriptionApi {
             ResidentMedicationLock residentMedicationLock,
             PrescriptionValidator prescriptionValidator,
             @Autowired(required = false) HealthAllergyPort healthAllergyPort,
-            @Autowired(required = false) ReconciliationCheckPort reconciliationCheckPort) {
+            @org.springframework.context.annotation.Lazy @Autowired(required = false)
+                    ReconciliationCheckPort reconciliationCheckPort) {
         this.prescriptionRepository = prescriptionRepository;
         this.prescriptionIssueRepository = prescriptionIssueRepository;
         this.prescriptionBasisRepository = prescriptionBasisRepository;
