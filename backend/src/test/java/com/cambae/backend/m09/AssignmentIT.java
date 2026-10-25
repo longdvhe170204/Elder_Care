@@ -672,6 +672,11 @@ class AssignmentIT extends MySqlIntegrationTestBase {
                 shift);
         published();
         clock.setTo(start.plusSeconds(2 * 3600));
+        jdbc.update(
+                "INSERT INTO shift_lead_history(shift_id,staff_id,starts_at,basis) VALUES (?,?,?,'SCHEDULED')",
+                shift,
+                lead,
+                com.cambae.backend.m09.shift.internal.persistence.ShiftStore.sql(start));
         assertThat(duties.assignedFloorManager(floor, time.now())).isEmpty();
         assertThat(duties.floorManagerSubstitute(floor, time.now())).contains(lead);
         assertThat(duties.shiftHasNoFloorManager(shift)).isTrue();

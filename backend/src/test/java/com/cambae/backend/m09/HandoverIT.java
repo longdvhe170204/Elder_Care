@@ -199,6 +199,11 @@ class HandoverIT extends MySqlIntegrationTestBase {
                 "INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)",
                 id,
                 lead.staffId().orElseThrow());
+        jdbc.update(
+                "INSERT INTO shift_lead_history(shift_id,staff_id,starts_at,basis) VALUES (?,?,?,'SCHEDULED')",
+                id,
+                lead.staffId().orElseThrow(),
+                ShiftStore.sql(from));
         return id;
     }
 
@@ -478,11 +483,6 @@ class HandoverIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_022_lateCompletionBeforeMinuteJobClosesLeadHistoryAndEmitsShiftEndedOnce() {
-        jdbc.update(
-                "INSERT INTO shift_lead_history(shift_id,staff_id,starts_at) VALUES (?,?,?)",
-                shift,
-                giver.staffId().orElseThrow(),
-                ShiftStore.sql(starts));
         long id = draft();
         assessment(id);
         clock.setTo(ends);

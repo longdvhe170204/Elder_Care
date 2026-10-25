@@ -84,6 +84,15 @@ public class ShiftQueries implements ShiftApi {
         return store.nextAtFloor(floor, at);
     }
 
+    public Optional<Long> leadAtFloor(long floor, Instant at) {
+        return atFloor(floor, at).flatMap(shift -> {
+            var people = store.leadStaffAt(shift.id(), at);
+            if (people.size() > 1)
+                throw new InvalidPermissionDataException("M09.SHIFT", "MULTIPLE_SHIFT_LEADS", shift.id());
+            return people.stream().findFirst();
+        });
+    }
+
     public List<WorkShift> published(long floor, Instant from, Instant to) {
         return store.floorRange(floor, from, to);
     }

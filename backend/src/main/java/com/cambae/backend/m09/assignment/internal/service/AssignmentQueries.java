@@ -40,12 +40,17 @@ public class AssignmentQueries implements AssignmentApi {
         for (var a : store.managersForStaff(staff, from, to))
             views.add(new AssignmentView(
                     AssignmentKind.FLOOR_MANAGER, a.floorAreaId(), null, null, null, a.startsAt(), a.endsAt()));
-        // Chỉ người phụ trách có phạm vi toàn ca, lấy lịch sử đã được công bố.
-        for (var s : shifts.staffRange(staff, from, to, true)) {
-            if (Objects.equals(s.leadStaffId(), staff) && !s.missingLead() && s.scopeId() != null)
-                views.add(new AssignmentView(
-                        AssignmentKind.SHIFT_LEAD, s.scopeId(), null, null, s.id(), s.startsAt(), s.endsAt()));
-        }
+        // Giữ lịch sử của người cũ, cắt quyền ngay khi chuyển người hoặc rời ca; 002 giữ quy tắc biên CFG.
+        for (var period : shifts.leadPeriods(staff, from, to))
+            views.add(new AssignmentView(
+                    AssignmentKind.SHIFT_LEAD,
+                    period.floorAreaId(),
+                    null,
+                    null,
+                    period.shiftId(),
+                    period.startsAt(),
+                    period.shiftEndsAt(),
+                    period.endsAt().isBefore(period.shiftEndsAt()) ? period.endsAt() : null));
         return List.copyOf(views);
     }
 

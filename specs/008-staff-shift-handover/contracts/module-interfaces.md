@@ -10,6 +10,8 @@ Plan làm sau (009, 011, 013, 014, 015, 016) giữ đúng chữ ký hoặc ghi r
 
 Truy vấn ca tại tầng dựa trên thời gian `[bắt đầu, kết thúc)` và lịch đã công bố, không chờ job cập nhật nhãn trạng thái; thành viên bị trừ từ mốc vắng/rút/rời ca và nghỉ đã duyệt. Nếu nhiều ca đang có hiệu lực cùng tầng tại cùng thời điểm, báo lỗi dữ liệu nguồn qua `InvalidPermissionDataException`, không chọn tùy ý một ca. Vai trò không xếp ca dùng `CFG_M13_06` qua `ParameterApi`.
 
+**Chốt Phase 9, 2026-10-26:** không đổi chữ ký Java hay HTTP. `DutyApi.shiftLead(floor, at)` và phần người phụ trách của `AssignmentApi.history` đọc khoảng `shift_lead_history`, không suy quá khứ từ `work_shift.lead_staff_id` hoặc cờ thiếu người hiện tại. Lịch sử người cũ được giữ; `scopeEndsAt` cắt đúng mốc chuyển/vắng/rời, kết ca thường vẫn theo biên CFG của 002. `StaffModuleIntegrationIT` dùng SPI M09/ScopeApi A thật; `AlertStaffPortIT` kiểm K1 bằng nguồn thật. Test nghiệp vụ 005–007 và US13 007 còn T043b/T049b, xem [validation.md](../validation.md); không thay fake test bằng bean giả trong ứng dụng.
+
 ---
 
 
