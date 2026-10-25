@@ -43,6 +43,9 @@ class SchedulerScopeArchTest {
                     "com.cambae.backend.m13.scheduling.M13FastJob",
                     "nhắc, gửi lại, giải phóng giờ yên tĩnh, chuyển nhắc gọi (009 research B-10)"),
             Map.entry(
+                    "com.cambae.backend.m02.scheduling.M02DailyJob",
+                    "tính ngày vắng, đặt dấu theo ngày, nhắc, báo; chạy bù từng ngày (004 FR-077)"),
+            Map.entry(
                     "com.cambae.backend.m13.scheduling.M13DailyJob",
                     "nhắc liên hệ trực tiếp còn chờ (009 research B-10)"),
             Map.entry(
