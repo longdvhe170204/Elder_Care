@@ -40,6 +40,7 @@ record KetQuaQuyen(boolean duocPhep, Optional<Lop> lopKhongThoa,     // VAI_TRO 
 
 - 000 khai báo `coQuyen(nd, KhoaQuyen, PhamVi)`. 002 đổi tham số thứ ba thành `DoiTuong` (loại, id, người cao tuổi, tầng/khu nếu có) để kiểm được phạm vi, giới hạn trường và ngoại lệ sự cố trên cùng một đối tượng. `PhamVi` của 000 vẫn dùng được: `DoiTuong.tuPhamVi(phamVi)`. Plan 000 không cần sửa vì 000 chỉ dùng qua bản giả.
 - Chú thích dùng ở service: `@CanQuyen(chucNang = …, thaoTac = …)`; interceptor gọi `coQuyen` trước lệnh, ném `KhongCoQuyen` (403) hoặc `KhongTimThay` (404) theo FR-043.
+- *(Bổ sung 2026-10-24, "Đổi api" cho 016 FR-010a, chủ dự án duyệt)* `ThuHepNhomChiTieu thuHepNhomChiTieu(NguoiDungHienTai nd)` (mã `PermissionApi.metricGroupRestrictions`, `MetricGroupRestrictions`): các dòng thu hẹp đang hiệu lực của `DASHBOARD_BAO_CAO` có `nhom_chi_tieu` hoặc `kenh` (loại `BO_THAO_TAC`, `HA_PHAM_VI`; kênh `DASHBOARD`, `BAO_CAO` mã `ReportChannel`), tách theo từng vai trò và theo tài khoản để 016 áp đúng thứ tự A-05. Thu hẹp mức khóa đã trừ trong `tapQuyen`. Mặc định của interface là không có thu hẹp.
 
 ### 1.3. `PhamViApi`
 
@@ -63,6 +64,8 @@ MucXem duocXem(NguoiDungHienTai nd, NhomThongTin nhom, DoiTuong doiTuong);   // 
 ```
 
 - 000 khai báo `duocXem(nd, NhomThongTin)`; 002 thêm `DoiTuong` vì giới hạn trường xét theo cặp (nhóm, phạm vi) của từng vai trò (FR-034). Bản rút gọn của 000 tương đương `duocXem(nd, nhom, DoiTuong.KHONG_CU_THE)` và chỉ dùng cho nhật ký toàn viện của Quản lý viện.
+- *(Bổ sung 2026-10-24, "Đổi api" cho 016 Q-196, chủ dự án duyệt)* `MucXem duocXemTheoVaiTro(NguoiDungHienTai nd, NhomThongTin nhom)` (mã `FieldVisibilityApi.canViewByRole`): mức cao nhất của các vai trò, không xét phạm vi hiện hành; vai trò Người thân không góp mức cho nhóm cần bản đồng ý. Dùng cho dòng chi tiết báo cáo của người cao tuổi đã ngoài phạm vi. Mặc định của interface là `duocXem(nd, nhom, KHONG_CU_THE)`.
+- *(Bổ sung 2026-10-24, "Đổi api" cho 001 FR-023m, chủ dự án chọn)* DTO có trường module tự kiểm quyền, không gắn được nhóm (ví dụ cờ `coNguyenVongDieuTri`: Hành chính thấy, Kế toán không) cài `DtoTuAnTruong` (mã `SelfHiddenFields.selfHiddenFields()`): trả tên các trường người xem hiện tại không được thấy; serializer bỏ các trường đó và ghi vào `truongBiAn` cùng trường bị ẩn theo nhóm, theo thứ tự khai báo. DTO không cài thì như cũ.
 - Chú thích DTO: `@NhomTruong(NhomThongTin.SUC_KHOE)` trên trường; `BeanSerializerModifier` của 002 áp khi tuần tự hóa (research A-08).
 - *(Bổ sung 2026-10-20, T023)* DTO có trường `@NhomTruong` cài `DoiTuongXemTruong` (mã `VisibilityTarget.visibilityTarget()`) để serializer biết đối tượng, xét phạm vi từng vai trò; không cài thì đối tượng là `KHONG_CU_THE`. DTO khai trường `truongBiAn` (mã `hiddenFields`), serializer ghi lại bằng tên các trường đã bỏ. Mức `CHI_CO_HAY_KHONG` cũng bỏ trường; DTO tự mang cờ có/không (ví dụ `coNguyenVong` của 001).
 

@@ -312,6 +312,7 @@ Ghi khi triển khai (constitution XIV: lệch kỹ thuật ghi ở plan cùng l
   - **Phạm vi SELF**: `ActiveSession` thêm `residentId` (hàm dựng 7 tham số cũ giữ cho nhân viên, người thân), `SessionService`, `LoginService` đọc `account.resident_id`; `ScopeService.inScope` chỉ đúng người cao tuổi của tài khoản, `filter`, `historyFilter` chỉ người đó.
   - **Khóa theo trạng thái cuối**: Đã khóa `RESIDENT_RESIDENCY_ENDED`, kết thúc phiên, gỡ thiết bị (`ResidentDevices.unbindActive` biến thể có căn cứ vì nhật ký của Bộ lập lịch cần căn cứ, FR-045), nhật ký căn cứ `BR-M15-23` và dòng lịch sử trạng thái; đang khóa vì lý do khác thì đổi nguyên nhân; đã khóa vì kết thúc lưu trú thì bỏ qua (giao lại sự kiện). `unlock-resident` còn từ chối khi hồ sơ đã ở trạng thái cuối dù sự kiện chưa tới.
   - Test: `CreateResidentAccountIT` (5, tasks ghi `TaoTaiKhoanNguoiCaoTuoiIT`), `ResidentAccountFinalStatusIT` (3), `ResidentProfileForAccountIT` (2, bản cài của M01); `ApiContractIT` bỏ `POST /resident-accounts` khỏi `pending`. Còn T095 (màn web), T096, T097 (mobile).
+- **T095** (2026-10-24, nhánh `impl/002-resident-web`; bố cục chủ dự án duyệt, DESIGN.md 5.20.0): tab Tài khoản thêm loại "Người cao tuổi", cột Thiết bị, nút "Tạo tài khoản người cao tuổi" (`canCreateResident` cho Quản lý viện, Hành chính). Khung tạo `CreateResidentAccount` lấy hồ sơ `GET /residents?status=IN_RESIDENCE` của 001. Xác nhận của người cao tuổi nhập mã hồ sơ nhân viên đã nghe bằng tay vì `/me` (`UserInfo`) không có mã hồ sơ nhân viên, Hành chính không xem được tài khoản nhân viên của mình. Khối `ResidentAccountSection` trong khung chi tiết: mã QR vẽ bằng `qrcode.react` 4.2.0 (chủ dự án duyệt), đếm ngược tới `expiresAt`; Gỡ thiết bị, Khóa, Mở khóa theo `allowedCommands` (If-Match là ETag tài khoản); "Lập đề nghị khóa theo lời người thân" hiện khi có `lock-resident`, gửi `POST /approval-requests` loại `M15.RESIDENT_ACCOUNT_LOCK` (mã hồ sơ người thân gõ tay tới khi 012 có danh sách). Đã xem trên trình duyệt (phản hồi API giả lập trong trang): bề rộng desktop và điện thoại.
 
 ### Việc dang dở sau Phase 3 và tác động khi chạy thật (2026-10-20)
 
@@ -329,3 +330,9 @@ Test không bị ảnh hưởng: test của 000 và của module khác dùng b�
 
 - **Thứ tự**: làm T032, T052, T054 trước dữ liệu demo T079a để chạy `demo` không gặp lỗi 500 ở đính chính, phê duyệt; khớp điều kiện mở 000 T106, T103.
 - **Báo nhóm** (họp tuần, docs/team-plan.md mục 6): `ScopeApi` thật mới có `inScope`, các hàm còn lại từ US4; test vẫn dùng bản giả. Nhờ B khai báo sớm `NguoiCaoTuoiApi.trangThai` và bản giả (cho FR-044a và US8 của 002).
+
+### "Đổi api" `SelfHiddenFields` cho 001 FR-023m (2026-10-24, nhánh `impl/002-self-hidden-fields`)
+
+- Dòng "Chờ A quyết" ở team-plan mục 8: cờ `hasTreatmentWish` của hồ sơ 001 không gắn được `@FieldGroup` (Hành chính thấy cờ, Kế toán không; nhóm `HEALTH` chặn cả Hành chính, nhóm `WISHES` cho Kế toán `PRESENCE_ONLY`). Chủ dự án chọn cách cho DTO tự khai trường bị ẩn thay vì để `null`, để đúng hợp đồng api-001 và 001 research H-18.
+- `m15.account.api.SelfHiddenFields.selfHiddenFields()`: `FieldGroupSerializerModifier` bọc mọi thuộc tính của DTO cài interface, bỏ thuộc tính có tên trong tập trả về và ghi tên vào `hiddenFields` cùng các trường bị ẩn theo nhóm, theo thứ tự khai báo. DTO không cài interface chạy như cũ.
+- Test: `FieldVisibilityIT` (thêm 3: chỉ trường tự ẩn, tập rỗng giữ trường, trộn trường theo nhóm và trường tự ẩn). B áp vào `ProfileBody` của 001 (team-plan mục 8).

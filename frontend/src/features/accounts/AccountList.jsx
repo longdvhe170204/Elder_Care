@@ -12,12 +12,13 @@ import { PermissionDeniedState } from '@/common/PageState'
 import { StatusBadge } from '@/common/StatusBadge'
 import { formatDateTime } from '@/common/dateTime'
 import { AccountDetail } from './AccountDetail'
+import { CreateResidentAccount } from './CreateResidentAccount'
 import { CreateStaffAccount } from './CreateStaffAccount'
 import { STATUS_LABELS, TYPE_LABELS, profileLabel, roleNames } from './accountLabels'
 
 // Danh sách tài khoản (002 T035; US2; FR-001, FR-051; hợp đồng GET /accounts, phân trang theo con trỏ).
-// Quản lý viện thấy mọi tài khoản; Hành chính chỉ thấy tài khoản người thân (backend lọc). canCreate chỉ để hiện nút
-// tạo tài khoản nhân viên; backend vẫn kiểm (constitution XI).
+// Quản lý viện thấy mọi tài khoản; Hành chính thấy tài khoản người thân, người cao tuổi (backend lọc). canCreate,
+// canCreateResident chỉ để hiện nút tạo tài khoản nhân viên, người cao tuổi (002 T095); backend vẫn kiểm (constitution XI).
 
 const EMPTY_FILTER = { type: '', status: '', q: '' }
 
@@ -25,7 +26,7 @@ function toQuery(filter, cursor) {
   return { type: filter.type || undefined, status: filter.status || undefined, q: filter.q.trim() || undefined, cursor }
 }
 
-export function AccountList({ canCreate }) {
+export function AccountList({ canCreate, canCreateResident = false }) {
   const [draft, setDraft] = useState(EMPTY_FILTER)
   const [filter, setFilter] = useState(EMPTY_FILTER)
   const [state, setState] = useState({ status: 'loading', items: [], nextCursor: null })
@@ -87,6 +88,7 @@ export function AccountList({ canCreate }) {
             <option value="">Tất cả</option>
             <option value="STAFF">{TYPE_LABELS.STAFF}</option>
             <option value="FAMILY_MEMBER">{TYPE_LABELS.FAMILY_MEMBER}</option>
+            <option value="RESIDENT">{TYPE_LABELS.RESIDENT}</option>
           </select>
         </Field>
         <Field>
@@ -112,6 +114,11 @@ export function AccountList({ canCreate }) {
           {canCreate && (
             <Button type="button" className="h-10" onClick={() => setOpened('new')}>
               Tạo tài khoản nhân viên
+            </Button>
+          )}
+          {canCreateResident && (
+            <Button type="button" className="h-10" onClick={() => setOpened('new-resident')}>
+              Tạo tài khoản người cao tuổi
             </Button>
           )}
         </div>
@@ -153,6 +160,7 @@ export function AccountList({ canCreate }) {
               <TableHead className="min-w-40">Vai trò</TableHead>
               <TableHead>Trạng thái</TableHead>
               <TableHead>Đăng nhập gần nhất</TableHead>
+              {filter.type === 'RESIDENT' && <TableHead>Thiết bị</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -176,6 +184,15 @@ export function AccountList({ canCreate }) {
                     <span className="text-muted-foreground">Chưa đăng nhập</span>
                   )}
                 </TableCell>
+                {filter.type === 'RESIDENT' && (
+                  <TableCell className="tabular-nums">
+                    {a.boundDevice ? (
+                      `Đã gắn ${formatDateTime(a.boundDevice.boundAt)}`
+                    ) : (
+                      <span className="text-muted-foreground">Chưa gắn</span>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
@@ -195,7 +212,10 @@ export function AccountList({ canCreate }) {
       <Sheet open={opened !== null} onOpenChange={(open) => !open && setOpened(null)}>
         <SheetContent className="sm:max-w-lg">
           {opened === 'new' && <CreateStaffAccount onCreated={() => load(filter)} onClose={() => setOpened(null)} />}
-          {opened !== null && opened !== 'new' && <AccountDetail key={opened} id={opened} onChanged={replaceRow} />}
+          {opened === 'new-resident' && (
+            <CreateResidentAccount onCreated={() => load(filter)} onClose={() => setOpened(null)} />
+          )}
+          {typeof opened === 'number' && <AccountDetail key={opened} id={opened} onChanged={replaceRow} />}
         </SheetContent>
       </Sheet>
     </section>

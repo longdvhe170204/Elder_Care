@@ -83,6 +83,12 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "GET /api/v1/call-reminders/{id}",
                             "POST /api/v1/call-reminders/{id}/results"),
                     Set.of(),
+                    true),
+            // 016 T028 (2026-10-24): đủ endpoint sau T009 (dashboard), khung báo cáo và danh sách chi tiết
+            new Contract(
+                    Path.of("..", "specs", "016-reports-dashboard", "contracts", "api-016.yaml"),
+                    Set.of(),
+                    Set.of(),
                     true));
 
     @Autowired
