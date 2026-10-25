@@ -23,6 +23,7 @@ import com.cambae.backend.m02.api.UnitPriceApi;
 import com.cambae.backend.m02.api.dto.ContractStatus;
 import com.cambae.backend.m02.api.dto.UnitPriceView;
 import com.cambae.backend.m02.api.events.ContractStatusChanged;
+import com.cambae.backend.m02.api.events.DepositAmountChanged;
 import com.cambae.backend.m02.api.spi.RepresentativePort;
 import com.cambae.backend.m02.internal.contract.domain.Contract;
 import com.cambae.backend.m02.internal.contract.domain.ContractContent;
@@ -327,6 +328,13 @@ public class ContractService {
             throw new ConditionNotMetException(unmet);
         }
         transition(contract, ContractStatus.PENDING_SIGNATURE, SENT, null);
+        // 017 theo dõi đặt cọc từ khi hợp đồng Chờ ký (FR-030, FR-033a): gửi khoản cần đặt cọc hiện tại
+        ContractContent sentContent = contract.content();
+        events.publishEvent(new DepositAmountChanged(
+                contractId,
+                sentContent.noDepositRequired() || sentContent.depositAmount() == null
+                        ? BigDecimal.ZERO
+                        : sentContent.depositAmount()));
         Contract sent = store.find(contractId).orElseThrow();
         return new Result(sent, warnings(sent));
     }
