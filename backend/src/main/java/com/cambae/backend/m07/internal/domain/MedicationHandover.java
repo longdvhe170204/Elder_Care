@@ -1,5 +1,6 @@
 package com.cambae.backend.m07.internal.domain;
 
+import com.cambae.backend.common.data.DataGroup;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,6 +16,7 @@ import java.time.Instant;
  * Carried medication handover entity (FR-048a).
  */
 @Entity
+@DataGroup(DataGroup.Group.RECORD)
 @Table(name = "medication_handover")
 public class MedicationHandover {
 
@@ -59,7 +61,7 @@ public class MedicationHandover {
     private int version;
 
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     protected MedicationHandover() {}
 
@@ -72,7 +74,8 @@ public class MedicationHandover {
             String recipientName,
             String relationship,
             Long dispensedById,
-            Instant handoverTime) {
+            Instant handoverTime,
+            Instant now) {
         this.residentId = residentId;
         this.absenceIntervalId = absenceIntervalId;
         this.tripId = tripId;
@@ -81,9 +84,9 @@ public class MedicationHandover {
         this.recipientName = recipientName;
         this.relationship = relationship;
         this.dispensedById = dispensedById;
-        this.handoverTime = handoverTime != null ? handoverTime : Instant.now();
+        this.handoverTime = handoverTime != null ? handoverTime : now;
         this.status = HandoverStatus.HANDED_OVER;
-        this.createdAt = Instant.now();
+        this.createdAt = now;
     }
 
     public void markWaitingReturn() {

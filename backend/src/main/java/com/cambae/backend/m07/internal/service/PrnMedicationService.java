@@ -2,6 +2,7 @@ package com.cambae.backend.m07.internal.service;
 
 import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.error.NotFoundException;
+import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m07.internal.domain.Prescription;
 import com.cambae.backend.m07.internal.domain.PrescriptionStatus;
 import com.cambae.backend.m07.internal.domain.PrescriptionType;
@@ -9,9 +10,9 @@ import com.cambae.backend.m07.internal.domain.PrnAdministration;
 import com.cambae.backend.m07.internal.persistence.PrescriptionRepository;
 import com.cambae.backend.m07.internal.persistence.PrnAdministrationRepository;
 import com.cambae.backend.m07.internal.persistence.ResidentMedicationLock;
-import com.cambae.backend.m07.web.request.RecordPrnBody;
-import com.cambae.backend.m07.web.response.PrnAdministrationResponse;
-import com.cambae.backend.m07.web.response.PrnHistoryResponse;
+import com.cambae.backend.m07.internal.service.request.RecordPrnBody;
+import com.cambae.backend.m07.internal.service.response.PrnAdministrationResponse;
+import com.cambae.backend.m07.internal.service.response.PrnHistoryResponse;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
@@ -33,15 +34,18 @@ public class PrnMedicationService {
     private final PrnAdministrationRepository prnRepo;
     private final PrescriptionRepository prescriptionRepo;
     private final ResidentMedicationLock residentMedicationLock;
+    private final BusinessTime businessTime;
 
     @Autowired
     public PrnMedicationService(
             PrnAdministrationRepository prnRepo,
             PrescriptionRepository prescriptionRepo,
-            ResidentMedicationLock residentMedicationLock) {
+            ResidentMedicationLock residentMedicationLock,
+            BusinessTime businessTime) {
         this.prnRepo = prnRepo;
         this.prescriptionRepo = prescriptionRepo;
         this.residentMedicationLock = residentMedicationLock;
+        this.businessTime = businessTime;
     }
 
     @Transactional
@@ -53,13 +57,13 @@ public class PrnMedicationService {
         if (prescription.getPrescriptionType() != PrescriptionType.PRN) {
             throw new BusinessException(
                     HttpStatus.UNPROCESSABLE_ENTITY,
-                    "LOAI_DON_KHONG_HOP_LE",
+                    "INVALID_PRESCRIPTION_TYPE",
                     "Prescription is not a PRN (as-needed) type");
         }
 
         if (prescription.getStatus() != PrescriptionStatus.ACTIVE) {
             throw new BusinessException(
-                    HttpStatus.CONFLICT, "TRANG_THAI_KHONG_HOP_LE", "PRN prescription is not in ACTIVE status");
+                    HttpStatus.CONFLICT, "INVALID_STATE", "PRN prescription is not in ACTIVE status");
         }
 
         if (body.getReason() == null || body.getReason().isBlank()) {
@@ -75,13 +79,16 @@ public class PrnMedicationService {
         if (prescription.getDosage() != null && body.getDosage().compareTo(prescription.getDosage()) > 0) {
             throw new BusinessException(
                     HttpStatus.UNPROCESSABLE_ENTITY,
-                    "VUOT_LIEU_DON",
+                    "EXCEEDS_PRESCRIBED_DOSE",
                     "Dosage (" + body.getDosage() + ") exceeds maximum single dose in prescription ("
                             + prescription.getDosage() + ")");
         }
 
-        Instant now = Instant.now();
-        Instant adminTime = body.getOfflineDeviceTime() != null ? body.getOfflineDeviceTime() : now;
+        Instant now = businessTime.now();
+        // Thời điểm dùng do người ghi nhập (api-006 administeredAt); bản ngoại tuyến dùng giờ thiết bị
+        Instant adminTime = body.getAdministeredAt() != null
+                ? body.getAdministeredAt()
+                : body.getOfflineDeviceTime() != null ? body.getOfflineDeviceTime() : now;
 
         // Collect all prescription IDs in the replacement chain (BR-M07-04)
         Set<Long> chainPrescriptionIds = getReplacementChainIds(prescription);
@@ -127,11 +134,11 @@ public class PrnMedicationService {
             } else {
                 throw new BusinessException(
                         HttpStatus.CONFLICT,
-                        "VUOT_GIOI_HAN_PRN",
+                        "PRN_LIMIT_EXCEEDED",
                         "Exceeded PRN limit. Earliest allowed time: " + earliestAllowed,
                         earliestAllowed != null
                                 ? Map.of(
-                                        "somNhatDuocDung",
+                                        "earliestAllowedAt",
                                         earliestAllowed.toString(),
                                         "earliestAllowed",
                                         earliestAllowed.toString())
@@ -146,11 +153,15 @@ public class PrnMedicationService {
                 body.getDosage(),
                 prescription.getDosageUnit(),
                 body.getReason(),
-                currentUserId != null ? currentUserId : 1L,
+                currentUserId,
                 body.getReportedBy(),
                 limitExceeded,
                 body.getOfflineDeviceTime(),
-                body.getFamilyMedicationBatchId());
+                body.getFamilyMedicationBatchId(),
+                body.getAdverseReaction(),
+                body.getNote(),
+                body.isRecordedAfterDisconnect(),
+                businessTime.now());
 
         PrnAdministration saved = prnRepo.save(prn);
         return toResponse(saved);
@@ -164,7 +175,7 @@ public class PrnMedicationService {
         List<PrnAdministration> administrations =
                 prnRepo.findByPrescriptionIdInOrderByAdministeredAtDesc(chainPrescriptionIds);
 
-        Instant now = Instant.now();
+        Instant now = businessTime.now();
         Instant earliestAllowed = null;
 
         // Calculate earliest next allowed administration time
@@ -229,6 +240,10 @@ public class PrnMedicationService {
         res.setAdministeredById(a.getAdministeredById());
         res.setReportedBy(a.getReportedBy());
         res.setExceededLimit(a.isExceededLimit());
+        res.setAdverseReaction(a.getAdverseReaction());
+        res.setNote(a.getNote());
+        res.setFamilyMedicationBatchId(a.getFamilyMedicationBatchId());
+        res.setRecordedAfterDisconnect(a.isRecordedAfterDisconnect());
         return res;
     }
 }

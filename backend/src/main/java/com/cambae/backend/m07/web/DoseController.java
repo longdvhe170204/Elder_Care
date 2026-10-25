@@ -1,116 +1,171 @@
 package com.cambae.backend.m07.web;
 
+import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m07.api.dto.AdministerDoseRequest;
-import com.cambae.backend.m07.api.dto.DoseDetailView;
 import com.cambae.backend.m07.api.dto.RefuseDoseRequest;
 import com.cambae.backend.m07.api.dto.SkipDoseRequest;
-import com.cambae.backend.m07.internal.domain.DoseReview;
+import com.cambae.backend.m07.internal.domain.DoseReviewStatus;
 import com.cambae.backend.m07.internal.service.DoseAdministrationService;
 import com.cambae.backend.m07.internal.service.DoseReviewService;
-import com.cambae.backend.m07.web.request.ReviewDoseRequestBody;
+import com.cambae.backend.m07.internal.service.DoseViewService;
+import com.cambae.backend.m07.web.request.DoseRequests.DoseResultRequest;
+import com.cambae.backend.m07.web.request.DoseRequests.DoseReviewResultRequest;
+import com.cambae.backend.m07.web.request.DoseRequests.ReviewResult;
+import com.cambae.backend.m07.web.response.DoseBodies.DoseBody;
+import com.cambae.backend.m07.web.response.DoseBodies.DoseReviewBody;
 import com.cambae.backend.m15.account.api.CurrentUser;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Controller for dose confirmation and review (FR-020 -> FR-033, FR-029; research D-08, D-11).
- */
+/** Xác nhận liều và xem lại bản ghi theo api-006 (thẻ {@code dose}; FR-020 → FR-033, FR-029). */
 @RestController
+@Tag(name = "dose")
 public class DoseController {
+
+    private static final String PROBLEM = "application/problem+json";
 
     private final DoseAdministrationService doseAdministrationService;
     private final DoseReviewService doseReviewService;
-    private final ObjectProvider<CurrentUser> currentUserProvider;
+    private final DoseViewService doseViews;
+    private final CurrentUser currentUser;
     private final BusinessTime businessTime;
 
     public DoseController(
             DoseAdministrationService doseAdministrationService,
             DoseReviewService doseReviewService,
-            ObjectProvider<CurrentUser> currentUserProvider,
+            DoseViewService doseViews,
+            CurrentUser currentUser,
             BusinessTime businessTime) {
         this.doseAdministrationService = doseAdministrationService;
         this.doseReviewService = doseReviewService;
-        this.currentUserProvider = currentUserProvider;
+        this.doseViews = doseViews;
+        this.currentUser = currentUser;
         this.businessTime = businessTime;
     }
 
-    /**
-     * Confirm administered medication dose (FR-020, FR-026).
-     */
-    @PostMapping({"/api/v1/lieu-thuoc/{doseKey}/da-dung", "/api/v1/medication-doses/{doseKey}/administer"})
-    public ResponseEntity<DoseDetailView> administer(
-            @PathVariable("doseKey") String doseKey, @RequestBody(required = false) AdministerDoseRequest body) {
-
-        CurrentUser currentUser = currentUserProvider.getIfAvailable();
-        Long recorderId = currentUser != null ? currentUser.accountId() : 1L;
-        AdministerDoseRequest request = body != null
-                ? body
-                : new AdministerDoseRequest(
-                        businessTime.now(), null, null, null, null, null, null, null, false, null, null);
-
-        DoseDetailView view =
-                doseAdministrationService.administerDose(doseKey, request, recorderId, null, businessTime.now());
-        return ResponseEntity.ok(view);
+    @PostMapping("/api/v1/medication-doses/{doseKey}/administer")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Đã dùng"),
+        @ApiResponse(
+                responseCode = "403",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "422",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public DoseBody administer(
+            @PathVariable("doseKey") String doseKey,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @Valid @RequestBody DoseResultRequest body) {
+        var reporter = body.reportedBy();
+        AdministerDoseRequest request = new AdministerDoseRequest(
+                body.administeredAt() != null ? body.administeredAt() : businessTime.now(),
+                null,
+                reporter == null || reporter.type() == null
+                        ? null
+                        : reporter.type().name(),
+                reporter == null ? null : reporter.id(),
+                reporter == null ? null : reporter.fullName(),
+                reporter == null ? null : reporter.relationship(),
+                body.adverseReaction(),
+                body.note(),
+                Boolean.TRUE.equals(body.recordedAfterDisconnect()),
+                body.familyMedicationBatchId(),
+                null);
+        return DoseBody.of(doseViews.view(doseAdministrationService.administerDose(
+                doseKey, request, currentUser.accountId(), null, businessTime.now())));
     }
 
-    /**
-     * Confirm refused medication dose (FR-021, FR-032).
-     */
-    @PostMapping({"/api/v1/lieu-thuoc/{doseKey}/tu-choi", "/api/v1/medication-doses/{doseKey}/refuse"})
-    public ResponseEntity<DoseDetailView> refuse(
-            @PathVariable("doseKey") String doseKey, @Valid @RequestBody RefuseDoseRequest body) {
-
-        CurrentUser currentUser = currentUserProvider.getIfAvailable();
-        Long recorderId = currentUser != null ? currentUser.accountId() : 1L;
-
-        DoseDetailView view = doseAdministrationService.refuseDose(doseKey, body, recorderId, null, businessTime.now());
-        return ResponseEntity.ok(view);
+    @PostMapping("/api/v1/medication-doses/{doseKey}/refuse")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Từ chối", content = @Content),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "422",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<Void> refuse(
+            @PathVariable("doseKey") String doseKey,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @Valid @RequestBody DoseResultRequest body) {
+        doseAdministrationService.refuseDose(
+                doseKey,
+                new RefuseDoseRequest(
+                        body.reason(), body.note(), null, Boolean.TRUE.equals(body.recordedAfterDisconnect())),
+                currentUser.accountId(),
+                null,
+                businessTime.now());
+        return ResponseEntity.ok().build();
     }
 
-    /**
-     * Confirm omitted/skipped medication dose (FR-021).
-     */
-    @PostMapping({"/api/v1/lieu-thuoc/{doseKey}/khong-thuc-hien", "/api/v1/medication-doses/{doseKey}/skip"})
-    public ResponseEntity<DoseDetailView> skip(
-            @PathVariable("doseKey") String doseKey, @Valid @RequestBody SkipDoseRequest body) {
-
-        CurrentUser currentUser = currentUserProvider.getIfAvailable();
-        Long recorderId = currentUser != null ? currentUser.accountId() : 1L;
-
-        DoseDetailView view = doseAdministrationService.skipDose(doseKey, body, recorderId, null, businessTime.now());
-        return ResponseEntity.ok(view);
+    @PostMapping("/api/v1/medication-doses/{doseKey}/skip")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Không thực hiện", content = @Content),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "422",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<Void> skip(
+            @PathVariable("doseKey") String doseKey,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @Valid @RequestBody DoseResultRequest body) {
+        doseAdministrationService.skipDose(
+                doseKey,
+                new SkipDoseRequest(
+                        body.reason(), body.note(), null, Boolean.TRUE.equals(body.recordedAfterDisconnect())),
+                currentUser.accountId(),
+                null,
+                businessTime.now());
+        return ResponseEntity.ok().build();
     }
 
-    /**
-     * Retrieve list of doses pending review (FR-029).
-     */
-    @GetMapping({"/api/v1/xem-lai-lieu", "/api/v1/dose-reviews"})
-    public List<DoseReview> listPendingReviews(
-            @RequestParam(name = "tangKhuVucId", required = false) Long floorAreaId) {
-        return doseReviewService.listPendingReviews(floorAreaId);
+    @GetMapping("/api/v1/dose-reviews")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public List<DoseReviewBody> listReviews(@RequestParam(name = "status", required = false) DoseReviewStatus status) {
+        return doseReviewService.listReviews(status).stream()
+                .map(DoseReviewBody::of)
+                .toList();
     }
 
-    /**
-     * Process dose review decision (Accept or Request Correction; FR-029).
-     */
-    @PostMapping({"/api/v1/xem-lai-lieu/{id}/ket-qua", "/api/v1/dose-reviews/{id}/result"})
-    public ResponseEntity<DoseReview> processReview(
-            @PathVariable("id") Long reviewId, @Valid @RequestBody ReviewDoseRequestBody body) {
-
-        CurrentUser currentUser = currentUserProvider.getIfAvailable();
-        Long reviewerId = currentUser != null ? currentUser.accountId() : 2L;
-
-        DoseReview updated =
-                doseReviewService.reviewDose(reviewId, body.accept(), body.note(), reviewerId, businessTime.now());
-        return ResponseEntity.ok(updated);
+    @PostMapping("/api/v1/dose-reviews/{id}/result")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK", content = @Content),
+        @ApiResponse(
+                responseCode = "403",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<Void> processReview(
+            @PathVariable("id") Long reviewId,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @Valid @RequestBody DoseReviewResultRequest body) {
+        doseReviewService.reviewDose(
+                reviewId,
+                body.result() == ReviewResult.ACCEPTED,
+                body.note(),
+                currentUser.accountId(),
+                businessTime.now());
+        return ResponseEntity.ok().build();
     }
 }

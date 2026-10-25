@@ -1,5 +1,6 @@
 package com.cambae.backend.m07.internal.domain;
 
+import com.cambae.backend.common.data.DataGroup;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,6 +15,7 @@ import java.time.Instant;
  * Medication reconciliation correction request entity (FR-039, BR-M07-17).
  */
 @Entity
+@DataGroup(DataGroup.Group.BUSINESS)
 @Table(name = "reconciliation_correction_request")
 public class ReconciliationCorrectionRequest {
 
@@ -34,7 +36,7 @@ public class ReconciliationCorrectionRequest {
     private Long createdById;
 
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
@@ -49,29 +51,38 @@ public class ReconciliationCorrectionRequest {
     @Column(name = "correction_id")
     private Long correctionId;
 
+    @Column(name = "return_reason", length = 2000)
+    private String returnReason;
+
     protected ReconciliationCorrectionRequest() {}
 
     public ReconciliationCorrectionRequest(
-            Long reconciliationId, String correctedContentJson, String reason, Long createdById, Instant createdAt) {
+            Long reconciliationId,
+            String correctedContentJson,
+            String reason,
+            Long createdById,
+            Instant createdAt,
+            Instant now) {
         this.reconciliationId = reconciliationId;
         this.correctedContentJson = correctedContentJson;
         this.reason = reason;
         this.createdById = createdById;
-        this.createdAt = createdAt != null ? createdAt : Instant.now();
+        this.createdAt = createdAt != null ? createdAt : now;
         this.status = ReconciliationCorrectionStatus.PENDING_CONFIRMATION;
     }
 
     public void confirm(Long confirmedById, Instant confirmedAt, Long correctionId) {
         this.status = ReconciliationCorrectionStatus.CONFIRMED;
         this.confirmedById = confirmedById;
-        this.confirmedAt = confirmedAt != null ? confirmedAt : Instant.now();
+        this.confirmedAt = confirmedAt;
         this.correctionId = correctionId;
     }
 
-    public void reject(Long rejectedById, Instant rejectedAt) {
+    public void reject(Long rejectedById, Instant rejectedAt, String returnReason) {
+        this.returnReason = returnReason;
         this.status = ReconciliationCorrectionStatus.REJECTED;
         this.confirmedById = rejectedById;
-        this.confirmedAt = rejectedAt != null ? rejectedAt : Instant.now();
+        this.confirmedAt = rejectedAt;
     }
 
     // --- Getters ---

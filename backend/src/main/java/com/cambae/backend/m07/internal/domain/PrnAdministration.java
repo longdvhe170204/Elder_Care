@@ -1,5 +1,6 @@
 package com.cambae.backend.m07.internal.domain;
 
+import com.cambae.backend.common.data.DataGroup;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,6 +14,7 @@ import java.time.Instant;
  * PRN medication administration entity (FR-024, FR-025, BR-M07-04).
  */
 @Entity
+@DataGroup(DataGroup.Group.RECORD)
 @Table(name = "prn_administration")
 public class PrnAdministration {
 
@@ -38,6 +40,15 @@ public class PrnAdministration {
     @Column(nullable = false, length = 2000)
     private String reason;
 
+    @Column(name = "adverse_reaction", length = 2000)
+    private String adverseReaction;
+
+    @Column(length = 2000)
+    private String note;
+
+    @Column(name = "recorded_after_disconnect", nullable = false)
+    private boolean recordedAfterDisconnect;
+
     @Column(name = "administered_by_id", nullable = false)
     private Long administeredById;
 
@@ -54,7 +65,7 @@ public class PrnAdministration {
     private Long familyMedicationBatchId;
 
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     protected PrnAdministration() {}
 
@@ -69,10 +80,17 @@ public class PrnAdministration {
             String reportedBy,
             boolean exceededLimit,
             Instant offlineDeviceTime,
-            Long familyMedicationBatchId) {
+            Long familyMedicationBatchId,
+            String adverseReaction,
+            String note,
+            boolean recordedAfterDisconnect,
+            Instant now) {
         this.prescriptionId = prescriptionId;
+        this.adverseReaction = adverseReaction;
+        this.note = note;
+        this.recordedAfterDisconnect = recordedAfterDisconnect;
         this.residentId = residentId;
-        this.administeredAt = administeredAt != null ? administeredAt : Instant.now();
+        this.administeredAt = administeredAt != null ? administeredAt : now;
         this.dosage = dosage;
         this.dosageUnit = dosageUnit;
         this.reason = reason;
@@ -81,7 +99,7 @@ public class PrnAdministration {
         this.exceededLimit = exceededLimit;
         this.offlineDeviceTime = offlineDeviceTime;
         this.familyMedicationBatchId = familyMedicationBatchId;
-        this.createdAt = Instant.now();
+        this.createdAt = now;
     }
 
     public Long getId() {
@@ -124,10 +142,6 @@ public class PrnAdministration {
         return exceededLimit;
     }
 
-    public void setExceededLimit(boolean exceededLimit) {
-        this.exceededLimit = exceededLimit;
-    }
-
     public Instant getOfflineDeviceTime() {
         return offlineDeviceTime;
     }
@@ -138,5 +152,17 @@ public class PrnAdministration {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public String getAdverseReaction() {
+        return adverseReaction;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public boolean isRecordedAfterDisconnect() {
+        return recordedAfterDisconnect;
     }
 }

@@ -43,8 +43,6 @@ public class M07JobRunStore {
                 checkpoint,
                 result,
                 schedulerRunId,
-                completedAt != null
-                        ? LocalDateTime.ofInstant(completedAt, ZoneOffset.UTC)
-                        : LocalDateTime.now(ZoneOffset.UTC));
+                LocalDateTime.ofInstant(completedAt, ZoneOffset.UTC));
     }
 }

@@ -1,20 +1,29 @@
 package com.cambae.backend.m07.web;
 
 import com.cambae.backend.common.Role;
+import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.web.VersionEtag;
 import com.cambae.backend.m07.internal.service.PrescriptionService;
-import com.cambae.backend.m07.web.request.ChangeDosageBody;
-import com.cambae.backend.m07.web.request.CreatePrescriptionBody;
-import com.cambae.backend.m07.web.request.DiscontinuePrescriptionBody;
-import com.cambae.backend.m07.web.request.ExtendPrescriptionBody;
-import com.cambae.backend.m07.web.request.InstructionBody;
-import com.cambae.backend.m07.web.request.OrderPrescriptionBody;
-import com.cambae.backend.m07.web.response.PrescriptionCheckResponse;
-import com.cambae.backend.m07.web.response.PrescriptionResponse;
+import com.cambae.backend.m07.internal.service.response.PrescriptionCheckResponse;
+import com.cambae.backend.m07.internal.service.response.PrescriptionResponse;
+import com.cambae.backend.m07.web.request.NewPrescriptionRequest;
+import com.cambae.backend.m07.web.request.PrescriptionChangeRequests.ChangeDosageRequest;
+import com.cambae.backend.m07.web.request.PrescriptionChangeRequests.DiscontinueRequest;
+import com.cambae.backend.m07.web.request.PrescriptionChangeRequests.ExtendRequest;
+import com.cambae.backend.m07.web.request.PrescriptionChangeRequests.InstructionNoteRequest;
+import com.cambae.backend.m07.web.request.PrescriptionCommandRequest;
+import com.cambae.backend.m07.web.response.PrescriptionBodies.CheckBody;
+import com.cambae.backend.m07.web.response.PrescriptionBodies.DiscontinueBody;
+import com.cambae.backend.m07.web.response.PrescriptionBodies.PrescriptionBody;
+import com.cambae.backend.m07.web.response.PrescriptionBodies.Warning;
 import com.cambae.backend.m15.account.api.CurrentUser;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,160 +35,205 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Prescription Controller (FR-004 -> FR-017; contracts/api-006.yaml section don-thuoc).
- * Supports both OpenAPI paths and English paths:
- * - /api/v1/nguoi-cao-tuoi/{nctId}/don-thuoc and /api/v1/residents/{nctId}/prescriptions
- * - /api/v1/don-thuoc/{id} and /api/v1/prescriptions/{id}
- */
+/** Đơn thuốc theo api-006 (thẻ {@code prescription}; FR-004 → FR-017). */
 @RestController
+@Tag(name = "prescription")
 public class PrescriptionController {
 
+    private static final String PROBLEM = "application/problem+json";
+
     private final PrescriptionService prescriptionService;
-    private final ObjectProvider<CurrentUser> currentUserProvider;
+    private final CurrentUser currentUser;
 
-    public PrescriptionController(
-            PrescriptionService prescriptionService, ObjectProvider<CurrentUser> currentUserProvider) {
+    public PrescriptionController(PrescriptionService prescriptionService, CurrentUser currentUser) {
         this.prescriptionService = prescriptionService;
-        this.currentUserProvider = currentUserProvider;
+        this.currentUser = currentUser;
     }
 
-    @GetMapping({"/api/v1/nguoi-cao-tuoi/{nctId}/don-thuoc", "/api/v1/residents/{nctId}/prescriptions"})
-    public List<PrescriptionResponse> list(
-            @PathVariable("nctId") Long residentId,
-            @RequestParam(name = "trangThai", required = false) List<String> statuses) {
-        return prescriptionService.listByResident(residentId, statuses);
+    private boolean isDoctor() {
+        return currentUser.roles().contains(Role.DOCTOR);
     }
 
-    @PostMapping({"/api/v1/nguoi-cao-tuoi/{nctId}/don-thuoc", "/api/v1/residents/{nctId}/prescriptions"})
-    public ResponseEntity<PrescriptionResponse> create(
-            @PathVariable("nctId") Long residentId,
+    @GetMapping("/api/v1/residents/{residentId}/prescriptions")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(
+                responseCode = "403",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public List<PrescriptionBody> list(
+            @PathVariable("residentId") Long residentId,
+            @RequestParam(name = "status", required = false) List<String> status) {
+        return prescriptionService.listByResident(PrescriptionService.target(residentId), residentId, status).stream()
+                .map(PrescriptionBody::of)
+                .toList();
+    }
+
+    @PostMapping("/api/v1/residents/{residentId}/prescriptions")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Hiệu lực hoặc Chờ hiệu lực"),
+        @ApiResponse(
+                responseCode = "403",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "422",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<PrescriptionBody> create(
+            @PathVariable("residentId") Long residentId,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-            @Valid @RequestBody CreatePrescriptionBody body) {
-
-        CurrentUser currentUser = currentUserProvider.getIfAvailable();
-        Long currentUserId = currentUser != null ? currentUser.accountId() : 1L;
-        boolean isDoctor = currentUser != null
-                ? currentUser.roles().contains(Role.DOCTOR)
-                : true; // Default true if no Security Context present in unit test
-
-        PrescriptionResponse created = prescriptionService.create(residentId, body, currentUserId, isDoctor);
-
+            @Valid @RequestBody NewPrescriptionRequest body) {
+        PrescriptionResponse created = prescriptionService.create(
+                PrescriptionService.target(residentId),
+                residentId,
+                M07RequestMapper.prescription(body),
+                currentUser.accountId(),
+                isDoctor());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .eTag(VersionEtag.of(created.version()))
-                .body(created);
+                .body(PrescriptionBody.of(created));
     }
 
-    @PostMapping({"/api/v1/nguoi-cao-tuoi/{nctId}/don-thuoc/kiem-tra", "/api/v1/residents/{nctId}/prescriptions/check"})
-    public ResponseEntity<PrescriptionCheckResponse> check(
-            @PathVariable("nctId") Long residentId, @Valid @RequestBody CreatePrescriptionBody body) {
-
-        var result = prescriptionService.check(residentId, body);
-        return ResponseEntity.ok(PrescriptionCheckResponse.from(result));
+    @PostMapping("/api/v1/residents/{residentId}/prescriptions/check")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public CheckBody check(
+            @PathVariable("residentId") Long residentId, @Valid @RequestBody NewPrescriptionRequest body) {
+        return CheckBody.of(PrescriptionCheckResponse.from(prescriptionService.check(
+                PrescriptionService.target(residentId), residentId, M07RequestMapper.prescription(body))));
     }
 
-    @GetMapping({"/api/v1/don-thuoc/{id}", "/api/v1/prescriptions/{id}"})
-    public ResponseEntity<PrescriptionResponse> getById(@PathVariable("id") Long id) {
-        PrescriptionResponse response = prescriptionService.getById(id);
-        return ResponseEntity.ok().eTag(VersionEtag.of(response.version())).body(response);
+    @GetMapping("/api/v1/prescriptions/{id}")
+    @ApiResponse(responseCode = "200", description = "OK")
+    public ResponseEntity<PrescriptionBody> getById(@PathVariable("id") Long id) {
+        PrescriptionResponse response = prescriptionService.getById(prescriptionService.targetOf(id), id);
+        return ResponseEntity.ok().eTag(VersionEtag.of(response.version())).body(PrescriptionBody.of(response));
     }
 
-    @PatchMapping({
-        "/api/v1/don-thuoc/{id}/ghi-chu",
-        "/api/v1/prescriptions/{id}/ghi-chu",
-        "/api/v1/prescriptions/{id}/instruction"
+    @PatchMapping("/api/v1/prescriptions/{id}/instruction-note")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK", content = @Content),
+        @ApiResponse(
+                responseCode = "412",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
     })
-    public ResponseEntity<PrescriptionResponse> updateInstructionNotePatch(
+    public ResponseEntity<Void> updateInstructionNote(
             @PathVariable("id") Long id,
             @RequestHeader("If-Match") String ifMatch,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-            @Valid @RequestBody InstructionBody body) {
-
-        PrescriptionResponse updated =
-                prescriptionService.updateInstructionNote(id, ifMatch, body.getInstructionNote());
-
-        return ResponseEntity.ok().eTag(VersionEtag.of(updated.version())).body(updated);
+            @Valid @RequestBody InstructionNoteRequest body) {
+        PrescriptionResponse updated = prescriptionService.updateInstructionNote(
+                prescriptionService.targetOf(id), id, ifMatch, body.instructionNote());
+        return ResponseEntity.ok().eTag(VersionEtag.of(updated.version())).build();
     }
 
-    @PostMapping({"/api/v1/don-thuoc/{id}/ghi-chu", "/api/v1/prescriptions/{id}/ghi-chu"})
-    public ResponseEntity<PrescriptionResponse> updateInstructionNotePost(
+    @PostMapping("/api/v1/prescriptions/{id}/suspend")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK", content = @Content),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "422",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<Void> suspend(
             @PathVariable("id") Long id,
-            @RequestHeader("If-Match") String ifMatch,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-            @Valid @RequestBody InstructionBody body) {
-
-        return updateInstructionNotePatch(id, ifMatch, idempotencyKey, body);
+            @Valid @RequestBody PrescriptionCommandRequest body) {
+        PrescriptionResponse response = prescriptionService.suspend(
+                prescriptionService.targetOf(id),
+                id,
+                M07RequestMapper.order(body),
+                currentUser.accountId(),
+                isDoctor());
+        return ResponseEntity.ok().eTag(VersionEtag.of(response.version())).build();
     }
 
-    @PostMapping({"/api/v1/don-thuoc/{id}/tam-dung", "/api/v1/prescriptions/{id}/suspend"})
-    public ResponseEntity<PrescriptionResponse> suspend(
+    @PostMapping("/api/v1/prescriptions/{id}/resume")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK", content = @Content),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<Void> resume(
             @PathVariable("id") Long id,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-            @Valid @RequestBody OrderPrescriptionBody body) {
-
-        CurrentUser currentUser = currentUserProvider.getIfAvailable();
-        Long currentUserId = currentUser != null ? currentUser.accountId() : 1L;
-        boolean isDoctor = currentUser != null && currentUser.roles().contains(Role.DOCTOR);
-
-        PrescriptionResponse response = prescriptionService.suspend(id, body, currentUserId, isDoctor);
-        return ResponseEntity.ok().eTag(VersionEtag.of(response.version())).body(response);
+            @Valid @RequestBody PrescriptionCommandRequest body) {
+        PrescriptionResponse response = prescriptionService.resume(
+                prescriptionService.targetOf(id),
+                id,
+                M07RequestMapper.order(body),
+                currentUser.accountId(),
+                isDoctor());
+        return ResponseEntity.ok().eTag(VersionEtag.of(response.version())).build();
     }
 
-    @PostMapping({"/api/v1/don-thuoc/{id}/tiep-tuc", "/api/v1/prescriptions/{id}/resume"})
-    public ResponseEntity<PrescriptionResponse> resume(
+    @PostMapping("/api/v1/prescriptions/{id}/discontinue")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<DiscontinueBody> discontinue(
             @PathVariable("id") Long id,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-            @Valid @RequestBody OrderPrescriptionBody body) {
-
-        CurrentUser currentUser = currentUserProvider.getIfAvailable();
-        Long currentUserId = currentUser != null ? currentUser.accountId() : 1L;
-        boolean isDoctor = currentUser != null && currentUser.roles().contains(Role.DOCTOR);
-
-        PrescriptionResponse response = prescriptionService.resume(id, body, currentUserId, isDoctor);
-        return ResponseEntity.ok().eTag(VersionEtag.of(response.version())).body(response);
+            @Valid @RequestBody DiscontinueRequest body) {
+        List<Warning> warnings = prescriptionService.discontinueWarnings(id, body.discontinueAt()).stream()
+                .map(Warning::new)
+                .toList();
+        PrescriptionResponse response = prescriptionService.discontinue(
+                prescriptionService.targetOf(id),
+                id,
+                M07RequestMapper.discontinue(body),
+                currentUser.accountId(),
+                isDoctor());
+        return ResponseEntity.ok().eTag(VersionEtag.of(response.version())).body(new DiscontinueBody(warnings));
     }
 
-    @PostMapping({"/api/v1/don-thuoc/{id}/ngung", "/api/v1/prescriptions/{id}/discontinue"})
-    public ResponseEntity<PrescriptionResponse> discontinue(
+    @PostMapping("/api/v1/prescriptions/{id}/change-dosage")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Đơn thay thế"),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<PrescriptionBody> changeDosage(
             @PathVariable("id") Long id,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-            @Valid @RequestBody DiscontinuePrescriptionBody body) {
-
-        CurrentUser currentUser = currentUserProvider.getIfAvailable();
-        Long currentUserId = currentUser != null ? currentUser.accountId() : 1L;
-        boolean isDoctor = currentUser != null && currentUser.roles().contains(Role.DOCTOR);
-
-        PrescriptionResponse response = prescriptionService.discontinue(id, body, currentUserId, isDoctor);
-        return ResponseEntity.ok().eTag(VersionEtag.of(response.version())).body(response);
-    }
-
-    @PostMapping({"/api/v1/don-thuoc/{id}/doi-lieu", "/api/v1/prescriptions/{id}/change-dosage"})
-    public ResponseEntity<PrescriptionResponse> changeDosage(
-            @PathVariable("id") Long id,
-            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-            @Valid @RequestBody ChangeDosageBody body) {
-
-        CurrentUser currentUser = currentUserProvider.getIfAvailable();
-        Long currentUserId = currentUser != null ? currentUser.accountId() : 1L;
-        boolean isDoctor = currentUser != null && currentUser.roles().contains(Role.DOCTOR);
-
-        PrescriptionResponse response = prescriptionService.changeDosage(id, body, currentUserId, isDoctor);
+            @Valid @RequestBody ChangeDosageRequest body) {
+        PrescriptionResponse replacement = prescriptionService.changeDosage(
+                prescriptionService.targetOf(id),
+                id,
+                M07RequestMapper.changeDosage(body),
+                currentUser.accountId(),
+                isDoctor());
         return ResponseEntity.status(HttpStatus.CREATED)
-                .eTag(VersionEtag.of(response.version()))
-                .body(response);
+                .eTag(VersionEtag.of(replacement.version()))
+                .body(PrescriptionBody.of(replacement));
     }
 
-    @PostMapping({"/api/v1/don-thuoc/{id}/gia-han", "/api/v1/prescriptions/{id}/extend"})
-    public ResponseEntity<PrescriptionResponse> extend(
+    @PostMapping("/api/v1/prescriptions/{id}/extend")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK", content = @Content),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<Void> extend(
             @PathVariable("id") Long id,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-            @Valid @RequestBody ExtendPrescriptionBody body) {
-
-        CurrentUser currentUser = currentUserProvider.getIfAvailable();
-        Long currentUserId = currentUser != null ? currentUser.accountId() : 1L;
-        boolean isDoctor = currentUser != null && currentUser.roles().contains(Role.DOCTOR);
-
-        PrescriptionResponse response = prescriptionService.extend(id, body, currentUserId, isDoctor);
-        return ResponseEntity.ok().eTag(VersionEtag.of(response.version())).body(response);
+            @Valid @RequestBody ExtendRequest body) {
+        PrescriptionResponse response = prescriptionService.extend(
+                prescriptionService.targetOf(id),
+                id,
+                M07RequestMapper.extend(body),
+                currentUser.accountId(),
+                isDoctor());
+        return ResponseEntity.ok().eTag(VersionEtag.of(response.version())).build();
     }
 }

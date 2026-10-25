@@ -2,6 +2,9 @@ package com.cambae.backend.m07.internal.service;
 
 import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.error.NotFoundException;
+import com.cambae.backend.common.time.BusinessTime;
+import com.cambae.backend.m07.api.dto.TimeInterval;
+import com.cambae.backend.m07.api.spi.TripMedicationPort;
 import com.cambae.backend.m07.internal.domain.AbsenceIntervalType;
 import com.cambae.backend.m07.internal.domain.DoseStatus;
 import com.cambae.backend.m07.internal.domain.HandoverStatus;
@@ -29,22 +32,21 @@ import com.cambae.backend.m07.internal.persistence.MedicationReturnRepository;
 import com.cambae.backend.m07.internal.persistence.NoMedicationOrderRepository;
 import com.cambae.backend.m07.internal.persistence.PrescriptionRepository;
 import com.cambae.backend.m07.internal.persistence.ResidentMedicationLock;
-import com.cambae.backend.m07.web.request.CreateHandoverBody;
-import com.cambae.backend.m07.web.request.HandoverItemBody;
-import com.cambae.backend.m07.web.request.NoMedicationOrderBody;
-import com.cambae.backend.m07.web.request.ReportedDoseBody;
-import com.cambae.backend.m07.web.request.ReturnHandoverBody;
-import com.cambae.backend.m07.web.request.ReturnItemBody;
-import com.cambae.backend.m07.web.response.HandoverResponse;
-import com.cambae.backend.m07.web.response.MedicationToBringResponse;
+import com.cambae.backend.m07.internal.service.request.CreateHandoverBody;
+import com.cambae.backend.m07.internal.service.request.HandoverItemBody;
+import com.cambae.backend.m07.internal.service.request.NoMedicationOrderBody;
+import com.cambae.backend.m07.internal.service.request.ReturnHandoverBody;
+import com.cambae.backend.m07.internal.service.request.ReturnItemBody;
+import com.cambae.backend.m07.internal.service.response.HandoverResponse;
+import com.cambae.backend.m07.internal.service.response.MedicationToBringResponse;
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -67,6 +69,10 @@ public class MedicationHandoverService {
     private final MedicationRepository medicationRepo;
     private final MedicationDoseRepository doseRepo;
     private final ResidentMedicationLock residentMedicationLock;
+    private final BusinessTime businessTime;
+    private final MedicationScheduleCalculator scheduleCalculator;
+    // 014 cài khi có chuyến đi; chưa có thì giờ về chỉ lấy từ khoảng vắng
+    private final ObjectProvider<TripMedicationPort> trips;
 
     @Autowired
     public MedicationHandoverService(
@@ -80,7 +86,10 @@ public class MedicationHandoverService {
             PrescriptionRepository prescriptionRepo,
             MedicationRepository medicationRepo,
             @Autowired(required = false) MedicationDoseRepository doseRepo,
-            ResidentMedicationLock residentMedicationLock) {
+            ResidentMedicationLock residentMedicationLock,
+            BusinessTime businessTime,
+            MedicationScheduleCalculator scheduleCalculator,
+            ObjectProvider<TripMedicationPort> trips) {
         this.absenceRepo = absenceRepo;
         this.handoverRepo = handoverRepo;
         this.handoverItemRepo = handoverItemRepo;
@@ -92,6 +101,9 @@ public class MedicationHandoverService {
         this.medicationRepo = medicationRepo;
         this.doseRepo = doseRepo;
         this.residentMedicationLock = residentMedicationLock;
+        this.businessTime = businessTime;
+        this.scheduleCalculator = scheduleCalculator;
+        this.trips = trips;
     }
 
     @Transactional(readOnly = true)
@@ -101,10 +113,12 @@ public class MedicationHandoverService {
                 tripId != null ? absenceRepo.findByTripId(tripId) : absenceRepo.findOpenByResidentId(residentId);
 
         Instant fromTime =
-                intervalOpt.map(MedicationAbsenceInterval::getFromTime).orElseGet(Instant::now);
+                intervalOpt.map(MedicationAbsenceInterval::getFromTime).orElseGet(businessTime::now);
+        // Giờ về: của khoảng vắng, không có thì của chuyến (014); không biết thì không tính số lượng
         Instant toTime = intervalOpt
-                .flatMap(i -> Optional.ofNullable(i.getExpectedToTime()))
-                .orElseGet(() -> fromTime.plus(Duration.ofHours(24)));
+                .map(MedicationAbsenceInterval::getExpectedToTime)
+                .or(() -> tripEnd(tripId))
+                .orElse(null);
 
         List<Prescription> prescriptions =
                 prescriptionRepo.findByResidentIdAndStatusIn(residentId, List.of(PrescriptionStatus.ACTIVE));
@@ -116,25 +130,34 @@ public class MedicationHandoverService {
             res.setDosage(p.getDosage());
             res.setDosageUnit(p.getDosageUnit());
             res.setPrescriptionType(p.getPrescriptionType().name());
+            res.setMedicationSource(p.getMedicationSource());
 
             Medication med = medicationRepo.findById(p.getMedicationId()).orElse(null);
             res.setMedicationName(med != null ? med.getName() : "Medication ID=" + p.getMedicationId());
 
-            if (p.getPrescriptionType() == PrescriptionType.PERIODIC) {
-                // Calculate projected doses during absence (each dose = p.getDosage())
-                BigDecimal total =
-                        p.getDosage() != null ? p.getDosage().multiply(BigDecimal.valueOf(2)) : BigDecimal.ONE;
-                res.setTotalQuantityNeeded(total);
-            } else {
-                // PRN: Quantity based on maxDosesPer24h
-                int maxDoses = p.getMaxDosesPer24h() != null ? p.getMaxDosesPer24h() : 2;
-                res.setTotalQuantityNeeded(p.getDosage().multiply(BigDecimal.valueOf(maxDoses)));
+            // Đơn định kỳ: liều dự kiến trong khoảng vắng; đơn PRN không có lịch nên người giao tự định số lượng
+            if (p.getPrescriptionType() == PrescriptionType.PERIODIC && toTime != null) {
+                List<Instant> times = scheduleCalculator
+                        .calculate(p, med, fromTime, toTime, businessTime.now(), ScheduleContext.empty(residentId))
+                        .stream()
+                        .map(CalculatedDoseSlot::scheduledTime)
+                        .toList();
+                res.setScheduledTimes(new ArrayList<>(times));
+                res.setTotalQuantityNeeded(p.getDosage().multiply(BigDecimal.valueOf(times.size())));
             }
 
             result.add(res);
         }
 
         return result;
+    }
+
+    private Optional<Instant> tripEnd(Long tripId) {
+        TripMedicationPort port = trips.getIfAvailable();
+        if (tripId == null || port == null) {
+            return Optional.empty();
+        }
+        return port.tripInterval(tripId).map(TimeInterval::to);
     }
 
     @Transactional
@@ -168,8 +191,9 @@ public class MedicationHandoverService {
                 body.getRecipientId(),
                 body.getRecipientName(),
                 body.getRelationship(),
-                currentUserId != null ? currentUserId : 1L,
-                Instant.now());
+                currentUserId,
+                businessTime.now(),
+                businessTime.now());
 
         MedicationHandover saved = handoverRepo.save(handover);
         List<MedicationHandoverItem> savedItems = new ArrayList<>();
@@ -195,7 +219,7 @@ public class MedicationHandoverService {
                 List<MedicationDose> openDoses = doseRepo.findByPrescriptionIdAndStatusIn(
                         p.getId(), List.of(DoseStatus.UPCOMING, DoseStatus.DUE));
                 for (MedicationDose d : openDoses) {
-                    d.markLeaveMedication(Instant.now());
+                    d.markLeaveMedication(businessTime.now());
                     doseRepo.save(d);
 
                     MedicationHandoverDose hd = new MedicationHandoverDose(saved.getId(), d.getId());
@@ -232,7 +256,7 @@ public class MedicationHandoverService {
 
         if (handover.getStatus() == HandoverStatus.RETURNED) {
             throw new BusinessException(
-                    HttpStatus.CONFLICT, "TRANG_THAI_CUOI", "Medication handover has already been returned");
+                    HttpStatus.CONFLICT, "FINAL_STATE", "Medication handover has already been returned");
         }
 
         List<MedicationHandoverItem> handedItems = handoverItemRepo.findByHandoverId(handoverId);
@@ -247,7 +271,7 @@ public class MedicationHandoverService {
             if (ri.getQuantity().compareTo(handedQty) > 0) {
                 throw new BusinessException(
                         HttpStatus.UNPROCESSABLE_ENTITY,
-                        "SO_LUONG_KHONG_HOP_LE",
+                        "INVALID_QUANTITY",
                         "Return quantity (" + ri.getQuantity() + ") cannot exceed handed over quantity (" + handedQty
                                 + ") (FR-048a)");
             }
@@ -265,7 +289,7 @@ public class MedicationHandoverService {
         }
 
         MedicationReturn medReturn = new MedicationReturn(
-                handoverId, currentUserId != null ? currentUserId : 1L, Instant.now(), body.getReason());
+                handoverId, currentUserId, businessTime.now(), body.getReason(), businessTime.now());
         MedicationReturn savedReturn = returnRepo.save(medReturn);
 
         for (ReturnItemBody ri : body.getItems()) {
@@ -294,60 +318,30 @@ public class MedicationHandoverService {
         }
 
         NoMedicationOrder order = new NoMedicationOrder(
-                residentId, body.getTripId(), body.getReason(), currentUserId != null ? currentUserId : 1L);
+                residentId, body.getTripId(), body.getReason(), currentUserId, businessTime.now());
         NoMedicationOrder savedOrder = noMedOrderRepo.save(order);
 
         // Update or create absence interval of type TRIP_NO_MED
         Optional<MedicationAbsenceInterval> intervalOpt = absenceRepo.findByTripId(body.getTripId());
         if (intervalOpt.isPresent()) {
             MedicationAbsenceInterval interval = intervalOpt.get();
-            interval.setAbsenceType(AbsenceIntervalType.TRIP_NO_MED);
-            interval.setNoMedicationOrderId(savedOrder.getId());
+            interval.attachNoMedicationOrder(savedOrder.getId());
             absenceRepo.save(interval);
         } else {
             MedicationAbsenceInterval interval = new MedicationAbsenceInterval(
                     residentId,
                     AbsenceIntervalType.TRIP_NO_MED,
-                    Instant.now(),
-                    Instant.now().plus(Duration.ofHours(24)),
+                    businessTime.now(),
+                    // Giờ về chưa biết thì để trống; khoảng vắng đóng khi Ghi nhận trở về
                     null,
-                    body.getTripId());
-            interval.setNoMedicationOrderId(savedOrder.getId());
+                    null,
+                    body.getTripId(),
+                    businessTime.now());
+            interval.attachNoMedicationOrder(savedOrder.getId());
             absenceRepo.save(interval);
         }
 
         return savedOrder;
-    }
-
-    @Transactional
-    public MedicationDose recordReportedDose(Long doseId, ReportedDoseBody body, Long currentUserId, boolean isNurse) {
-
-        if (!isNurse) {
-            throw new BusinessException(
-                    HttpStatus.FORBIDDEN, "FORBIDDEN", "Only a Nurse can record leave medication by report (FR-027)");
-        }
-
-        if (body.getReportedBy() == null || body.getReportedBy().isBlank()) {
-            throw new BusinessException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    "INVALID_VALUE",
-                    "Reporter information is required when recording reported leave dose (FR-027)");
-        }
-
-        if (doseRepo == null) {
-            throw new BusinessException(HttpStatus.NOT_FOUND, "NOT_FOUND", "Dose not found");
-        }
-
-        MedicationDose dose = doseRepo.findById(doseId).orElseThrow(NotFoundException::new);
-        if (dose.getStatus() != DoseStatus.LEAVE_MEDICATION) {
-            throw new BusinessException(
-                    HttpStatus.CONFLICT,
-                    "TRANG_THAI_KHONG_HOP_LE",
-                    "Can only record report for doses in LEAVE_MEDICATION status (FR-027)");
-        }
-
-        dose.closeAdministered(currentUserId != null ? currentUserId : 1L, "NURSE", null, Instant.now());
-        return doseRepo.save(dose);
     }
 
     // --- Helpers ---
@@ -379,6 +373,18 @@ public class MedicationHandoverService {
         res.setDispensedById(h.getDispensedById());
         res.setHandoverTime(h.getHandoverTime());
         res.setStatus(h.getStatus().name());
+        if (doseRepo != null && h.getId() != null) {
+            res.setDoses(handoverDoseRepo.findByHandoverId(h.getId()).stream()
+                    .map(link -> doseRepo.findById(link.getDoseId())
+                            .map(d -> new HandoverResponse.HandoverDoseResponse(
+                                    d.getPrescriptionId() + "-"
+                                            + MedicationScheduleCalculator.DOSE_KEY_FORMATTER.format(
+                                                    d.getScheduledTime().atZone(MedicationScheduleCalculator.ZONE_VN)),
+                                    link.getRevertedAt() != null))
+                            .orElse(null))
+                    .filter(java.util.Objects::nonNull)
+                    .toList());
+        }
 
         List<HandoverResponse.HandoverItemResponse> itemResponses = new ArrayList<>();
         if (items != null) {
