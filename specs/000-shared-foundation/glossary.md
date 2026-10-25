@@ -837,6 +837,27 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | `BR_M02_19_ChayBuIT`, `NgayLuuTruApiIT`, `HopDongApiSpiIT`, `NguonLuuTruChoPhanBoIT`, `BeanThamGiaChuyenTrangThaiM02IT` | `BR_M02_19_CatchUpRunIT`, `ResidencyDayApiIT`, `ContractApiSpiIT`, (tên do C chốt, mục 9), `M02StatusParticipantIT` |
 | `HopDongApiTest` (so hợp đồng), `NhomGhiNhanCoTriggerIT` (mở rộng cho nhóm 3 của 004) | đăng ký api-004 vào `ApiContractIT`; mở rộng test nhóm 3 của 000 |
 
+### 10.8. Bổ sung khi cài Phase 2 (T003 → T012, 2026-10-25)
+
+*Tên kiểu trong chữ ký `m02.api` mà 10.5 chưa đặt, và chỗ cài khác 10.5, 10.6. Mọi chữ ký view là **provisional** tới khi module dùng xác nhận.*
+
+| Tên logic | Mã |
+| --- | --- |
+| `NoiDungHopDongView`, `HopDongView`, `KhoanDatCocView`, `LichDenView` | `ContractContentView` (`contractId`, `version`, `effectiveFrom`, `addendumId`, `content`, `recordedUnitPrices`), `ContractView` (kèm `ContractStatus`), `DepositAmountView`, `ArrivalScheduleView` |
+| `DonGiaView`, `DichVuView` | `UnitPriceView` (`serviceId`, `priceVersionId`, `unitPrice`, `effectiveFrom`, `effectiveTo`), `ServiceView` (`id`, `type`, `name`, `unit`, `billingPeriod`) |
+| `NgayLuuTruView`, `BuoiBanTruView` | `ResidencyDayView` (`presence`, `absenceId`, `sequenceNo`, `coefficientPercent`, cờ `pendingDecision`, `noPolicyLine`, `notYetAdmitted`, `contractOverdue`, `outsideBillingPeriod`), `DayCareSessionView` |
+| `DanhSachDieuKienView`, `TienTrinhView` | `ConditionListView` (`conditions`, `warnings`), `ConditionView` (`code`, `name`, `status` `ConditionStatus`, `basis`, `module`, `exceptionRequestId`), `ProgressStepView` |
+| `LoaiLuuTruTaiNgayView`, `HoSoChoView`, `DanhSachViecView` | `ResidenceTypeAtDateView`, `WaitingEntryView`, `PostDeathTaskView` (`items` `Item`, `closedAt`) |
+| `PhamViLoc`, `MaMucChamSoc` (trong chữ ký) | `ScopeFilter` (`m15.account.api.dto`), `CareLevel` (`m01.api.dto`) |
+| Sự kiện gửi thông báo (thêm trường so với 10.5) | Mọi sự kiện gửi thông báo thêm `at` (`Instant`) và `residentId` khi có: `BedAvailableForWaitingList(bedId, matchingEntryCount, at)`, `ContractCareLevelMismatch(…, at)`, `BedHoldDecisionNeeded(absenceId, residentId, days, policyLine, at)`, `BedHoldReviewDue(absenceId, residentId, at)`, `NoAbsencePolicyLine(absenceId, residentId, date, at)`, `ContractOverdueEscalated(contractId, residentId, days, at)`, `DepositNotSatisfiedAfterAdmission(contractId, residentId, at)`, `RepresentativeRequestNeedsCompletion(requestId, residentId, at)`, `M02Reminder(type, subjectId, on, at)` |
+| `trg_phien_ban_don_gia_khong_chong` | `trg_price_version_no_overlap_insert`, `trg_price_version_no_overlap_update` (MySQL cần một trigger cho mỗi sự kiện); `trg_price_version_immutable` như 10.6 |
+| `lan_chay_theo_ngay.ket_qua` | `daily_run.result` chỉ `SUCCEEDED`, `SKIPPED`; việc lỗi không ghi dòng nên lần sau làm lại |
+| `ViecHangNgayM02` (bộ chạy bù) | `M02DailyRunner` (`internal.transition.service`, hàm `catchUp`), `M02DailyTask` (mỗi việc: `name`, `latestDayOnly`, `run(day)`), job `M02DailyJob` (`scheduling`); `runJobs` thêm `M02_DAILY` |
+| `ThamGiaM02` | `M02StatusParticipant` (`@Order(1)`) |
+| SPI M02 cài cho module thấp hơn | `ResidencyEndLookup` (`ResidencyEndApi`), `AbsenceLookup` (`AbsenceApi`), `ContractLookup` (`ContractApi`), `CareLevelChangeRequestHandler` (`CareLevelChangeRequestApi`), cả bốn ở `internal.transition.service` |
+| `DonGiaService` | `UnitPriceService` (`internal.servicecatalog.service`) |
+| `PhanLoaiTruongProvider` | `M02FieldClassificationConfig` (`internal.transition.config`): bốn provider `M02.CONTRACT`, `M02.ADDENDUM` (tên tạm), `M02.RESIDENCY_CHANGE`, `M02.DEATH_RECORD` |
+
 ## 11. Feature 005 (`005-daily-care-tasks`, C)
 
 *Chủ feature điền khi dịch `contracts/api-005.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
