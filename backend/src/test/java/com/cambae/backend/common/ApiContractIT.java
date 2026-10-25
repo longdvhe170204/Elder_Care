@@ -84,7 +84,8 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 004 Phase 4 (2026-10-25): thêm nhóm danh sách chờ trừ ba endpoint theo giường (chờ 003). Phase 3 (chủ dự
+            // 004 Phase 5 (2026-10-25): bớt nhóm hợp đồng (US3) trừ `/deposit` (017, Phase 6). Phase 4: thêm nhóm danh
+            // sách chờ trừ ba endpoint theo giường (chờ 003). Phase 3 (chủ dự
             // án
             // duyệt): nhóm đăng ký tiếp nhận (mục A); endpoint còn lại chờ
             // user story của chúng, xóa dòng khi cài controller
@@ -95,18 +96,6 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "GET /api/v1/beds/{bedId}/matching-entries",
                             "POST /api/v1/waiting-list-entries/{id}/record-contacted",
                             "POST /api/v1/waiting-list-entries/{id}/decline-bed",
-                            "GET /api/v1/contracts",
-                            "POST /api/v1/contracts",
-                            "GET /api/v1/contracts/{id}",
-                            "PUT /api/v1/contracts/{id}",
-                            "GET /api/v1/contracts/{id}/non-standard-terms",
-                            "POST /api/v1/contracts/{id}/submit-terms-for-approval",
-                            "POST /api/v1/contracts/{id}/send-for-signature",
-                            "POST /api/v1/contracts/{id}/return-to-draft",
-                            "POST /api/v1/contracts/{id}/record-signed",
-                            "POST /api/v1/contracts/{id}/cancel",
-                            "GET /api/v1/contracts/{id}/content",
-                            "GET /api/v1/contracts/{id}/addenda",
                             "GET /api/v1/contracts/{id}/deposit",
                             "GET /api/v1/services",
                             "POST /api/v1/services",
