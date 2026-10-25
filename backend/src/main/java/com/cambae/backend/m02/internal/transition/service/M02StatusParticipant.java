@@ -5,7 +5,10 @@ import com.cambae.backend.m01.api.dto.CommandContext;
 import com.cambae.backend.m01.api.dto.Condition;
 import com.cambae.backend.m01.api.dto.StatusCommand;
 import com.cambae.backend.m01.api.dto.TransitionResult;
+import com.cambae.backend.m01.api.dto.Warning;
 import com.cambae.backend.m01.api.spi.StatusTransitionParticipant;
+import com.cambae.backend.m02.internal.application.service.AdmissionContractConditions;
+import com.cambae.backend.m02.internal.application.service.AdmissionTransition;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -45,8 +48,20 @@ class M02StatusParticipant implements StatusTransitionParticipant {
                 StatusCommand.RECORD_DEATH);
     }
 
+    private final AdmissionContractConditions admissionConditions;
+    private final AdmissionTransition admissionTransition;
+
+    M02StatusParticipant(AdmissionContractConditions admissionConditions, AdmissionTransition admissionTransition) {
+        this.admissionConditions = admissionConditions;
+        this.admissionTransition = admissionTransition;
+    }
+
+    /** Hoàn tất tiếp nhận: điều kiện (b), (c), (e) của FR-004 (research T-09); lệnh khác bổ sung ở user story của chúng. */
     @Override
     public List<Condition> checkConditions(CommandContext context) {
+        if (context.command() == StatusCommand.COMPLETE_ADMISSION) {
+            return admissionConditions.unmet(context.residentId(), context.at());
+        }
         return List.of();
     }
 
@@ -94,8 +109,24 @@ class M02StatusParticipant implements StatusTransitionParticipant {
         }
     }
 
+    /** Tác động của Hoàn tất tiếp nhận, Hủy tiếp nhận lên lượt đăng ký (FR-002); lệnh khác thêm ở user story của chúng. */
     @Override
-    public void applyEffects(TransitionResult result) {}
+    public void applyEffects(TransitionResult result) {
+        switch (result.command()) {
+            case COMPLETE_ADMISSION -> admissionTransition.completed(result);
+            case CANCEL_ADMISSION -> admissionTransition.cancelled(result);
+            default -> {}
+        }
+    }
+
+    /** Hoàn tất tiếp nhận: cảnh báo ý kiến vào ở, không chặn lệnh (FR-004a). */
+    @Override
+    public List<Warning> warnings(CommandContext context) {
+        if (context.command() == StatusCommand.COMPLETE_ADMISSION) {
+            return admissionTransition.completionWarnings(context.residentId());
+        }
+        return List.of();
+    }
 
     private static boolean has(JsonNode details, String field) {
         JsonNode node = details == null ? null : details.get(field);
