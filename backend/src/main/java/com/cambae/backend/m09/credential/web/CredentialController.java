@@ -5,7 +5,6 @@ import com.cambae.backend.m09.credential.internal.service.CredentialService;
 import com.cambae.backend.m09.credential.web.request.*;
 import com.cambae.backend.m09.credential.web.response.*;
 import com.cambae.backend.m09.web.response.M09ProblemBody;
-import com.cambae.backend.m15.account.api.spi.PracticeScopeView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -58,9 +57,10 @@ class CredentialController {
     }
 
     @GetMapping("/practice-scopes")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
-    List<PracticeScopeView> scopes() {
-        return credentials.practiceScopes();
+    List<PracticeScopeBody> scopes() {
+        return credentials.practiceScopes().stream()
+                .map(s -> new PracticeScopeBody(s.id(), s.name(), s.active(), s.code()))
+                .toList();
     }
 
     @GetMapping("/staff/{id}/credentials")
@@ -95,5 +95,57 @@ class CredentialController {
         var c = credentials.add(id, input.input());
         return ResponseEntity.created(URI.create("/api/v1/staff/" + id + "/credentials"))
                 .build();
+    }
+
+    @PostMapping("/credentials/{id}/renew")
+    @Operation(
+            requestBody =
+                    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                            required = true,
+                            content =
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema = @Schema(implementation = CredentialBody.class))))
+    @ApiResponse(responseCode = "201", description = "Đã tạo", content = @Content)
+    ResponseEntity<Void> renew(
+            @PathVariable long id,
+            @RequestHeader("Idempotency-Key") UUID key,
+            @Valid @RequestBody CredentialInputBody input) {
+        var c = credentials.renew(id, input.input());
+        return ResponseEntity.created(URI.create("/api/v1/staff/" + c.staffId() + "/credentials"))
+                .build();
+    }
+
+    @PostMapping("/credentials/{id}/revoke")
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
+    ResponseEntity<Void> revoke(
+            @PathVariable long id,
+            @RequestHeader("Idempotency-Key") UUID key,
+            @Valid @RequestBody CredentialCommands.Revoke input) {
+        credentials.revoke(id, input.effectiveFrom(), input.reason());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/credentials/{id}/correct")
+    @Operation(
+            requestBody =
+                    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                            required = true,
+                            content =
+                                    @Content(
+                                            mediaType = "application/json",
+                                            schema =
+                                                    @Schema(
+                                                            allOf = {
+                                                                CredentialBody.class,
+                                                                CredentialCommands.CorrectionReason.class
+                                                            }))))
+    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
+    ResponseEntity<Void> correct(
+            @PathVariable long id,
+            @RequestHeader("Idempotency-Key") UUID key,
+            @Valid @RequestBody CredentialCommands.Correct input) {
+        credentials.correct(id, input.input(), input.reason());
+        return ResponseEntity.ok().build();
     }
 }

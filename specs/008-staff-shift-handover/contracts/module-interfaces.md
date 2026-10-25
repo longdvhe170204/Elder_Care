@@ -169,3 +169,10 @@ Chỉ cài phần tối thiểu cần cho task; Java là chữ ký cụ thể, b
 
 
 **Sửa phần dùng chung đã được chủ dự án duyệt 2026-10-25**: RecipientGroup/Substitution thêm nhãn `kind` và danh sách loại JSON tường minh để Spring Modulith đọc lại sự kiện thông báo đã lưu; không đổi chữ ký các record, nhóm nhận hay lệnh nghiệp vụ. Không thêm thư viện. Test đọc/ghi 18 trường hợp đã xanh cùng bộ tích hợp có khởi động context mới; A review hai kiểu common (team-plan mục 8). Đây là metadata sự kiện nội bộ, không bổ sung trường vào API HTTP 008.
+
+### 2.6. Nối Phase 6 được chủ dự án duyệt (2026-10-25)
+
+- **C — 005:** ShiftTaskApi.onResignation(long staffId, Instant effectiveAt), theo khiNghiViec có sẵn của hợp đồng 005 mục 1.4. Tham gia transaction lệnh gọi (MANDATORY), chuyển công việc còn mở/tương lai thành chung; dùng FakeCareRequirements chung với hook onResign, không có fake production. Hồ sơ không tài khoản và không có ca/công việc hệ thống không cần nguồn 005; hồ sơ có liên kết mà thiếu nguồn thì từ chối thay vì bỏ qua tác động.
+- **A — common web/web client:** chủ dự án duyệt generator FormData/Blob và sửa riêng IdempotencyFilter cho multipart, có test gửi file HTTP thật/chống lặp và hồi quy JSON. A review ở team-plan mục 8; không thêm thư viện hoặc sửa endpoint.
+- **A — 009:** 008 phát CredentialExpiryWarningClosed khi gia hạn trong cùng transaction; A nối đóng cảnh báo nguồn cũ. Các thông báo Phase 6 giữ mức FR-058 và chỉ nội dung chung, không chứa lý do nhân sự/số hoặc scan chứng chỉ.
+- **HTTP 008:** chủ dự án duyệt bổ sung code trong danh mục GET /practice-scopes để dùng đúng giá trị Credential.practiceScopes; SPI PracticeScopeCatalogApi/PracticeScopeView của 002 giữ nguyên.

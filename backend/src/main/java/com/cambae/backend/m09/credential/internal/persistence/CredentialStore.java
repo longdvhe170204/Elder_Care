@@ -20,6 +20,44 @@ public class CredentialStore {
         this.json = json;
     }
 
+    /** Chỉ lệnh có nhật ký được sửa mô tả; luôn trả biến phiên kể cả khi lỗi, trên cùng connection. */
+    private void guardedUpdate(String sql, Object... args) {
+        jdbc.execute((org.springframework.jdbc.core.ConnectionCallback<Void>) c -> {
+            try (var control = c.createStatement()) {
+                control.execute("SET @correct_credential=1");
+                try (var p = c.prepareStatement(sql)) {
+                    for (int n = 0; n < args.length; n++) p.setObject(n + 1, args[n]);
+                    p.executeUpdate();
+                } finally {
+                    control.execute("SET @correct_credential=0");
+                }
+            }
+            return null;
+        });
+    }
+
+    public void replaces(long id, long oldId) {
+        guardedUpdate("UPDATE credential SET replaces_id=? WHERE id=?", oldId, id);
+    }
+
+    public void correct(long id, CredentialInput input) {
+        guardedUpdate(
+                "UPDATE credential SET credential_type_id=?,credential_number=?,issuing_authority=?,issue_date=?,expiry_date=?,scan_file_id=?,invalidity_applied_at=NULL WHERE id=?",
+                input.credentialTypeId(),
+                input.credentialNumber(),
+                input.issuingAuthority(),
+                input.issueDate(),
+                input.expiryDate(),
+                input.scanFileId(),
+                id);
+        jdbc.update("DELETE FROM credential_practice_scope WHERE credential_id=?", id);
+        for (String code : input.practiceScopes())
+            jdbc.update(
+                    "INSERT INTO credential_practice_scope(credential_id,practice_scope_id) SELECT ?,id FROM practice_scope WHERE code=?",
+                    id,
+                    code);
+    }
+
     public List<CredentialType> types() {
         return jdbc.query(
                 "SELECT * FROM credential_type ORDER BY id",

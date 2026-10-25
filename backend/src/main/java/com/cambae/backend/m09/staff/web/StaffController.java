@@ -99,4 +99,75 @@ class StaffController {
         var s = staff.update(id, ifMatch, input.input());
         return ResponseEntity.ok().eTag(VersionEtag.of(s.version())).build();
     }
+
+    @PostMapping("/{id}/terminate-employment")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK", content = @Content),
+        @ApiResponse(
+                responseCode = "403",
+                description = "OK",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = M09ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "409",
+                description = "OK",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = M09ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "422",
+                description = "OK",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = M09ProblemBody.class)))
+    })
+    ResponseEntity<Void> terminateEmployment(
+            @PathVariable long id,
+            @RequestHeader("Idempotency-Key") UUID key,
+            @Valid @RequestBody com.cambae.backend.m09.staff.web.request.StaffCommands.Terminate input) {
+        staff.terminateEmployment(id, input.effectiveAt(), input.replacementStaffId(), input.reason());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/rehire")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK", content = @Content),
+        @ApiResponse(
+                responseCode = "422",
+                description = "OK",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = M09ProblemBody.class)))
+    })
+    ResponseEntity<Void> rehire(
+            @PathVariable long id,
+            @RequestHeader("Idempotency-Key") UUID key,
+            @Valid @RequestBody com.cambae.backend.m09.staff.web.request.StaffCommands.ReasonBody input) {
+        staff.rehire(id, input.reason());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/change-department")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK", content = @Content),
+        @ApiResponse(
+                responseCode = "409",
+                description = "OK",
+                content =
+                        @Content(
+                                mediaType = "application/problem+json",
+                                schema = @Schema(implementation = M09ProblemBody.class)))
+    })
+    ResponseEntity<Void> changeDepartment(
+            @PathVariable long id,
+            @RequestHeader("Idempotency-Key") UUID key,
+            @Valid @RequestBody com.cambae.backend.m09.staff.web.request.StaffCommands.ChangeDepartment input) {
+        staff.changeDepartment(id, input.departmentId(), input.replacementStaffId(), input.reason());
+        return ResponseEntity.ok().build();
+    }
 }

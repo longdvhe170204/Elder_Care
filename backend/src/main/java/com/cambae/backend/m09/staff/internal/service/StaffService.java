@@ -1,6 +1,8 @@
 package com.cambae.backend.m09.staff.internal.service;
 
+import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.Role;
+import com.cambae.backend.common.data.BusinessCommand;
 import com.cambae.backend.common.error.*;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.common.web.VersionEtag;
@@ -17,7 +19,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** T006: mô tả hồ sơ, không tự tạo tài khoản hoặc thực hiện lệnh nghỉ việc/đổi bộ phận. */
+/** T006/T033: hồ sơ và lệnh nhân sự; không tự tạo hoặc mở lại tài khoản. */
 @Service
 public class StaffService {
     private final StaffStore staff;
@@ -26,6 +28,9 @@ public class StaffService {
     private final ObjectProvider<CurrentUser> users;
     private final ObjectProvider<ShiftApi> shifts;
     private final AuditLogApi audit;
+    private final com.cambae.backend.m09.duty.internal.service.DepartmentDutyService departments;
+    private final com.cambae.backend.m09.staff.internal.persistence.StaffEmploymentStore employment;
+    private final StaffEmploymentEffects employmentEffects;
 
     public StaffService(
             StaffStore staff,
@@ -33,13 +38,115 @@ public class StaffService {
             BusinessTime time,
             ObjectProvider<CurrentUser> users,
             ObjectProvider<ShiftApi> shifts,
-            AuditLogApi audit) {
+            AuditLogApi audit,
+            com.cambae.backend.m09.duty.internal.service.DepartmentDutyService departments,
+            com.cambae.backend.m09.staff.internal.persistence.StaffEmploymentStore employment,
+            StaffEmploymentEffects employmentEffects) {
         this.staff = staff;
         this.jdbc = jdbc;
         this.time = time;
         this.users = users;
         this.shifts = shifts;
         this.audit = audit;
+        this.departments = departments;
+        this.employment = employment;
+        this.employmentEffects = employmentEffects;
+    }
+
+    @BusinessCommand
+    @RequiresPermission(function = Function.STAFF_PROFILE, operation = Operation.UPDATE)
+    @Transactional
+    public void terminateEmployment(long id, java.time.Instant effectiveAt, Long replacementStaffId, Reason reason) {
+        if (reason == null) throw new ReasonRequiredException();
+        if (effectiveAt == null || effectiveAt.isBefore(time.now()))
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_EFFECTIVE_TIME", "Hiệu lực không được sớm hơn hiện tại");
+        java.util.stream.Stream.of(id, replacementStaffId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted()
+                .forEach(staff::lock);
+        var person = staff.find(id).orElseThrow();
+        if (!"WORKING".equals(person.status()))
+            throw new BusinessException(HttpStatus.CONFLICT, "STATE_CHANGED", "Nhân viên đã nghỉ việc");
+        if (departments.isLead(id)) {
+            if (replacementStaffId == null)
+                throw new BusinessException(
+                        HttpStatus.CONFLICT, "REPLACEMENT_LEAD_REQUIRED", "Cần chỉ định người thay Phụ trách bộ phận");
+            departments.replaceLead(id, replacementStaffId, reason);
+        }
+        employment.request(id, effectiveAt, reason.value());
+        audit.write(AuditLogEntry.builder()
+                .action(new AuditAction("STAFF_TERMINATION_REQUESTED", false))
+                .entity("M09.STAFF", id)
+                .reason(reason)
+                .after(Map.of("effectiveAt", effectiveAt))
+                .build());
+        if (!effectiveAt.isAfter(time.now())) employmentEffects.apply(id, effectiveAt);
+    }
+
+    @BusinessCommand
+    @RequiresPermission(function = Function.STAFF_PROFILE, operation = Operation.UPDATE)
+    @Transactional
+    public void rehire(long id, Reason reason) {
+        if (reason == null) throw new ReasonRequiredException();
+        var person = staff.lock(id);
+        if (!"RESIGNED".equals(person.status()))
+            throw new BusinessException(
+                    HttpStatus.UNPROCESSABLE_ENTITY, "INVALID_STATE", "Nhân viên chưa ở trạng thái Nghỉ việc");
+        employment.status(id, "WORKING", time.now());
+        audit.write(AuditLogEntry.builder()
+                .action(new AuditAction("STAFF_REHIRED", false))
+                .entity("M09.STAFF", id)
+                .before(Map.of("status", "RESIGNED"))
+                .after(Map.of("status", "WORKING"))
+                .reason(reason)
+                .build());
+    }
+
+    @BusinessCommand
+    @RequiresPermission(function = Function.STAFF_PROFILE, operation = Operation.UPDATE)
+    @Transactional
+    public void changeDepartment(long id, long departmentId, Long replacementStaffId, Reason reason) {
+        if (reason == null) throw new ReasonRequiredException();
+        java.util.stream.Stream.of(id, replacementStaffId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted()
+                .forEach(staff::lock);
+        var before = staff.find(id).orElseThrow();
+        validateDepartment(departmentId);
+        if (jdbc.queryForObject("SELECT COUNT(*) FROM department WHERE id=? FOR UPDATE", Integer.class, departmentId)
+                == 0) throw new NotFoundException();
+        var account = employmentEffects.account(id);
+        if (account.map(a -> a.roles().contains(Role.NURSING_HOME_MANAGER)).orElse(false))
+            throw new BusinessException(HttpStatus.CONFLICT, "INVALID_DEPARTMENT", "Quản lý viện không thuộc bộ phận");
+        if (Objects.equals(before.departmentId(), departmentId)) return;
+        if (departments.isLead(id)) {
+            if (replacementStaffId == null)
+                throw new BusinessException(
+                        HttpStatus.CONFLICT, "REPLACEMENT_LEAD_REQUIRED", "Cần chỉ định người thay Phụ trách bộ phận");
+            departments.replaceLead(id, replacementStaffId, reason);
+        }
+        var at = com.cambae.backend.m09.shift.internal.persistence.ShiftStore.sql(time.now());
+        jdbc.update("UPDATE staff_department SET ends_at=? WHERE staff_id=? AND ends_at IS NULL", at, id);
+        jdbc.update(
+                "INSERT INTO staff_department(staff_id,department_id,starts_at,actor_id,reason) VALUES (?,?,?,?,?)",
+                id,
+                departmentId,
+                at,
+                users.getObject().accountId(),
+                reason.value());
+        jdbc.update("UPDATE staff_profile SET version=version+1 WHERE id=?", id);
+        var previous = new LinkedHashMap<String, Object>();
+        previous.put("departmentId", before.departmentId());
+        audit.write(AuditLogEntry.builder()
+                .action(new AuditAction("STAFF_DEPARTMENT_CHANGED", false))
+                .entity("M09.STAFF", id)
+                .before(previous)
+                .after(Map.of("departmentId", departmentId))
+                .reason(reason)
+                .build());
     }
 
     @RequiresPermission(function = Function.STAFF_PROFILE, operation = Operation.CREATE)

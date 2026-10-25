@@ -156,7 +156,7 @@ paths:
       tags: [credentials]
       summary: Danh mục phạm vi hành nghề (dùng chung với 002, 007)
       x-fr: [FR-006]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/StaffPracticeScope' } } } } } }
   /staff/{id}/credentials:
     get:
       tags: [credentials]
@@ -624,6 +624,10 @@ components:
       type: object
       required: [name, group, hasExpiry]
       properties: { id: { type: integer, format: int64 }, name: { type: string }, group: { type: string, enum: [PROFESSIONAL_LICENSE, TRAINING] }, hasExpiry: { type: boolean }, requiredForRoles: { type: array, items: { type: string } }, hasPracticeScopes: { type: boolean }, active: { type: boolean } }
+    StaffPracticeScope:
+      type: object
+      description: 'Mã code dùng trong Credential.practiceScopes; bổ sung được chủ dự án duyệt 2026-10-25, giữ nguyên SPI 002.'
+      properties: { id: { type: integer, format: int64 }, name: { type: string }, active: { type: boolean }, code: { type: string } }
     Credential:
       type: object
       required: [credentialTypeId, issueDate]

@@ -71,18 +71,6 @@ class ApiContractIT extends MySqlIntegrationTestBase {
             new Contract(
                     Path.of("..", "specs", "008-staff-shift-handover", "contracts", "api-008.yaml"),
                     Set.of(
-                            "GET /api/v1/staff/import/template",
-                            "POST /api/v1/staff/import/preview",
-                            "POST /api/v1/staff/import/confirm",
-                            "POST /api/v1/staff/{id}/terminate-employment",
-                            "POST /api/v1/staff/{id}/rehire",
-                            "POST /api/v1/staff/{id}/change-department",
-                            "GET /api/v1/departments",
-                            "POST /api/v1/departments",
-                            "POST /api/v1/departments/{id}/assign-lead",
-                            "POST /api/v1/credentials/{id}/renew",
-                            "POST /api/v1/credentials/{id}/revoke",
-                            "POST /api/v1/credentials/{id}/correct",
                             "POST /api/v1/shifts/{id}/add-staff",
                             "POST /api/v1/shifts/{id}/change-lead",
                             "POST /api/v1/shifts/{id}/record-absence",

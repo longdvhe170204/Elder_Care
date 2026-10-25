@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /** T009, R-11: provider cho bảng đã có; chỉ tài khoản lưu giữ thực hiện xoá, giữ các bản ghi còn dùng. */
 public class M09Retention implements RetentionProvider {
     public enum Kind {
+        STAFF_IMPORT_BATCH("M09.STAFF_IMPORT_BATCH", "staff_import_batch", "created_at"),
         STAFF("M09.STAFF", "staff_profile", "termination_applied_at"),
         CREDENTIAL("M09.CREDENTIAL", "credential", "created_at"),
         DEPARTMENT("M09.DEPARTMENT", "department", "created_at"),
@@ -94,7 +95,7 @@ public class M09Retention implements RetentionProvider {
             case FLOOR_MANAGER_ASSIGNMENT -> " AND status='ENDED'";
             case ASSIGNMENT ->
                 " AND status IN ('ENDED','CANCELLED') AND NOT EXISTS(SELECT 1 FROM work_shift s WHERE s.id=staff_assignment.shift_id AND s.status NOT IN ('CLOSED','CANCELLED'))";
-            case STAFF_DEPARTMENT, DEPARTMENT_LEAD_HISTORY, SHIFT_LEAD_HISTORY, SHIFT_STAFF -> "";
+            case STAFF_IMPORT_BATCH, STAFF_DEPARTMENT, DEPARTMENT_LEAD_HISTORY, SHIFT_LEAD_HISTORY, SHIFT_STAFF -> "";
         };
         var args = new ArrayList<Object>();
         args.add(LocalDateTime.ofInstant(cutoff, ZoneOffset.UTC));
@@ -127,6 +128,8 @@ public class M09Retention implements RetentionProvider {
     public Set<DataRef> referencesTo(long id) {
         Set<DataRef> refs = new LinkedHashSet<>();
         switch (kind) {
+            case STAFF_IMPORT_BATCH ->
+                refs(refs, "M09.STAFF", "SELECT id FROM staff_profile WHERE import_batch_id=?", id);
             case STAFF -> {
                 refs(refs, "M09.HANDOVER", "SELECT id FROM shift_handover WHERE handover_staff_id=?", id);
                 refs(refs, "M09.CREDENTIAL", "SELECT id FROM credential WHERE staff_id=?", id);
