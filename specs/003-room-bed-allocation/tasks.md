@@ -245,6 +245,10 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 **Checkpoint**: Mọi user story của 003 chạy độc lập.
 
+**Ghi chú Phase 10 (2026-10-25, đang kiểm cuối)**: T057 ánh xạ thành BR_M03_09_BedReadinessIT, FR_044_BedRemindersIT, FR_044_ReminderAtomicityIT; kiểm cả quyền thật002/SHIFT_LEAD, điều kiện007 đổi sau preview, CHECK MySQL, nhắc một lần/chu kỳ/gỡ dấu, nhóm nhận và rollback. T058 dùng internal/bed/{domain,persistence,service}/BedReadiness*, note INSERT qua BedTransition/BedStateStore, chỉ BedStateService ghi trạng thái. T059 có scheduling/{BedReadinessReminderJob,AllocationReminderJob}, processor/store đúng tầng; đăng ký2job003 theo SchedulerScopeArchTest, không đổi APIclock000. T060 có BedReadinessController, web/request/BedReadinessWrite, web/response/BedReadinessResponse,2operation đã duyệt dịch và422; client sinh lại. Scoped cuối15IT+25kiến trúc xanh; frontend250test/lint/build qua. Giữ[ ] trong khi clean verify chạy. T057–T058 còn nhánh chuyển theo lịch thật: BedAllocationCommandApi của T032–T033 chưa có provider; có pending thì503/rollback. T060 app nhân viên chưa mở theo CLAUDE.md:12, không tự làm web mới thay task app. T063 sẽ kiểm bean007/008/004 thật khi có, không coi fake là production.
+
+**Gate Phase10 đã kết thúc**: `003-p10-clean-verify-final.log`, exit1/04:06phút;392unit/kiến trúc và218IT M03 xanh; toàn kho1063IT còn6failure+9error ở8lớpM01 đã bàn giaoB,0skip; spotless qua. Giữ T057–T060[ ]. Việc tiếp trong phạm vi phase: hoàn thiện nhánh T057→T058 khi có providerT032–T033, chốt T059 sau gate toàn kho xanh, T060 còn appchờ mở. Task đầu Phase11 là T061, chưa thực hiện lượt này.
+
 ---
 
 ## Phase 11: Polish & Cross-Cutting

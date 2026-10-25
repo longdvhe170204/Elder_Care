@@ -18,4 +18,39 @@ public record BedTransition(
         Boolean disinfected,
         Boolean ppeUsed,
         boolean startReservedAllocation,
-        boolean healthReason) {}
+        boolean healthReason,
+        String note) {
+    /** Các lệnh cũ không có ghi chú xác nhận sẵn sàng. */
+    public BedTransition(
+            BedEvent event,
+            Reason reason,
+            Basis basis,
+            String basisType,
+            long basisId,
+            Instant plannedAt,
+            Long actorId,
+            BedHold hold,
+            Long closedAllocationId,
+            Boolean disinfectionRequired,
+            Boolean disinfected,
+            Boolean ppeUsed,
+            boolean startReservedAllocation,
+            boolean healthReason) {
+        this(
+                event,
+                reason,
+                basis,
+                basisType,
+                basisId,
+                plannedAt,
+                actorId,
+                hold,
+                closedAllocationId,
+                disinfectionRequired,
+                disinfected,
+                ppeUsed,
+                startReservedAllocation,
+                healthReason,
+                null);
+    }
+}

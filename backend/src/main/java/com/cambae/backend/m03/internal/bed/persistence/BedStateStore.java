@@ -105,7 +105,7 @@ public class BedStateStore {
     public void appendHistory(BedStateSnapshot bed, BedStateChange change, BedTransition command) {
         jdbc.update(
                 "INSERT INTO bed_state_history(bed_id,from_state,to_state,event,occurred_at,planned_at,executed_late,actor_id,reason,basis_type,basis_id,"
-                        + "disinfection_required,disinfected,ppe_used,floor_area_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        + "disinfection_required,disinfected,ppe_used,floor_area_id,note) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 bed.id(),
                 change.before() == null ? null : change.before().name(),
                 change.after().name(),
@@ -120,7 +120,8 @@ public class BedStateStore {
                 command.disinfectionRequired(),
                 command.disinfected(),
                 command.ppeUsed(),
-                bed.floorId());
+                bed.floorId(),
+                command.note());
     }
 
     private static LocalDateTime time(Instant at) {
