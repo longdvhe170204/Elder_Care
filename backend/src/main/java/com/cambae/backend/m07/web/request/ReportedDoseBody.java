@@ -1,6 +1,5 @@
 package com.cambae.backend.m07.web.request;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotEmpty;
 
 /**
@@ -9,10 +8,8 @@ import jakarta.validation.constraints.NotEmpty;
 public class ReportedDoseBody {
 
     @NotEmpty(message = "Reporter information is required (FR-027)")
-    @JsonAlias({"nguoiBao", "reportedBy"})
     private String reportedBy;
 
-    @JsonAlias({"ghiChu", "notes"})
     private String notes;
 
     public String getReportedBy() {

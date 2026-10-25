@@ -1,6 +1,5 @@
 package com.cambae.backend.m07.web.request;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
@@ -12,13 +11,10 @@ public class ExtendPrescriptionBody {
 
     @NotBlank
     @Size(max = 2000)
-    @JsonAlias({"lyDo", "reason"})
     private String reason;
 
-    @JsonAlias({"ngayKetThucMoi", "newEndedAt"})
     private LocalDate newEndedAt;
 
-    @JsonAlias({"canCuCoSoKe", "externalBasis"})
     private ExternalBasisBody externalBasis;
 
     public String getReason() {
@@ -43,30 +39,5 @@ public class ExtendPrescriptionBody {
 
     public void setExternalBasis(ExternalBasisBody externalBasis) {
         this.externalBasis = externalBasis;
-    }
-
-    // Backward compatibility
-    public String getLyDo() {
-        return reason;
-    }
-
-    public void setLyDo(String lyDo) {
-        this.reason = lyDo;
-    }
-
-    public LocalDate getNgayKetThucMoi() {
-        return newEndedAt;
-    }
-
-    public void setNgayKetThucMoi(LocalDate ngayKetThucMoi) {
-        this.newEndedAt = ngayKetThucMoi;
-    }
-
-    public ExternalBasisBody getCanCuCoSoKe() {
-        return externalBasis;
-    }
-
-    public void setCanCuCoSoKe(ExternalBasisBody canCuCoSoKe) {
-        this.externalBasis = canCuCoSoKe;
     }
 }

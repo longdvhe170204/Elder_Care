@@ -1,6 +1,5 @@
 package com.cambae.backend.m07.web.request;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -9,28 +8,20 @@ import java.time.LocalDate;
  */
 public class ExternalBasisBody {
 
-    @JsonAlias({"tenCoSo", "facilityName"})
     private String facilityName;
 
-    @JsonAlias({"nguoiChiDinh", "prescriberName"})
     private String prescriberName;
 
-    @JsonAlias({"ngay", "prescribedDate"})
     private LocalDate prescribedDate;
 
-    @JsonAlias({"hinhThuc", "basisType"})
     private String basisType;
 
-    @JsonAlias({"nguoiGoi", "callerName"})
     private String callerName;
 
-    @JsonAlias({"nguoiTraLoi", "receiverName"})
     private String receiverName;
 
-    @JsonAlias({"thoiDiemGoi", "calledAt"})
     private Instant calledAt;
 
-    @JsonAlias({"tepId", "documentFileId"})
     private Long documentFileId;
 
     public String getFacilityName() {

@@ -1,6 +1,5 @@
 package com.cambae.backend.m07.web.request;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,19 +13,15 @@ public class ChangeDosageBody {
 
     @NotNull
     @Valid
-    @JsonAlias({"donThayThe", "newPrescription"})
     private CreatePrescriptionBody newPrescription;
 
     @NotNull
-    @JsonAlias({"hieuLucTu", "effectiveFrom"})
     private Instant effectiveFrom;
 
     @NotBlank
     @Size(max = 2000)
-    @JsonAlias({"lyDo", "reason"})
     private String reason;
 
-    @JsonAlias({"canCuCoSoKe", "externalBasis"})
     private ExternalBasisBody externalBasis;
 
     public CreatePrescriptionBody getNewPrescription() {
@@ -59,38 +54,5 @@ public class ChangeDosageBody {
 
     public void setExternalBasis(ExternalBasisBody externalBasis) {
         this.externalBasis = externalBasis;
-    }
-
-    // Backward compatibility
-    public CreatePrescriptionBody getDonThayThe() {
-        return newPrescription;
-    }
-
-    public void setDonThayThe(CreatePrescriptionBody donThayThe) {
-        this.newPrescription = donThayThe;
-    }
-
-    public Instant getHieuLucTu() {
-        return effectiveFrom;
-    }
-
-    public void setHieuLucTu(Instant hieuLucTu) {
-        this.effectiveFrom = hieuLucTu;
-    }
-
-    public String getLyDo() {
-        return reason;
-    }
-
-    public void setLyDo(String lyDo) {
-        this.reason = lyDo;
-    }
-
-    public ExternalBasisBody getCanCuCoSoKe() {
-        return externalBasis;
-    }
-
-    public void setCanCuCoSoKe(ExternalBasisBody canCuCoSoKe) {
-        this.externalBasis = canCuCoSoKe;
     }
 }

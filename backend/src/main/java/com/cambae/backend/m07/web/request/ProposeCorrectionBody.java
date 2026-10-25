@@ -1,6 +1,5 @@
 package com.cambae.backend.m07.web.request;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
@@ -11,11 +10,9 @@ import java.util.Map;
 public class ProposeCorrectionBody {
 
     @NotNull
-    @JsonAlias({"noiDungDung", "correctedContent"})
     private Map<String, Object> correctedContent;
 
     @NotEmpty
-    @JsonAlias({"lyDo", "reason"})
     private String reason;
 
     public Map<String, Object> getCorrectedContent() {
