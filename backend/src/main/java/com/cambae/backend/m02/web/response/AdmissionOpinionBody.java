@@ -1,6 +1,5 @@
 package com.cambae.backend.m02.web.response;
 
-import com.cambae.backend.m01.api.dto.OpinionSource;
 import com.cambae.backend.m02.internal.application.domain.AdmissionOpinion;
 import com.cambae.backend.m02.internal.application.domain.OpinionChoice;
 import com.cambae.backend.m02.internal.application.domain.OpinionStatus;
@@ -13,7 +12,7 @@ import java.util.function.LongFunction;
 public record AdmissionOpinionBody(
         long id,
         OpinionChoice opinion,
-        OpinionSource source,
+        OpinionSourceBody source,
         String note,
         String recordedBy,
         Instant at,
@@ -23,7 +22,7 @@ public record AdmissionOpinionBody(
         return new AdmissionOpinionBody(
                 opinion.id(),
                 opinion.opinion(),
-                opinion.source(),
+                OpinionSourceBody.of(opinion.source()),
                 opinion.note(),
                 names.apply(opinion.recordedBy()),
                 opinion.recordedAt(),

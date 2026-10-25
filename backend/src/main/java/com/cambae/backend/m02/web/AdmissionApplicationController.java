@@ -1,5 +1,6 @@
 package com.cambae.backend.m02.web;
 
+import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.web.VersionEtag;
 import com.cambae.backend.m02.internal.application.domain.AdmissionApplication;
 import com.cambae.backend.m02.internal.application.domain.ApplicationStatus;
@@ -16,6 +17,10 @@ import com.cambae.backend.m02.web.response.AdmissionOpinionBody;
 import com.cambae.backend.m02.web.response.ConditionListBody;
 import com.cambae.backend.m02.web.response.ProgressBody;
 import com.cambae.backend.m15.account.api.dto.Target;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -41,6 +46,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "applications")
 class AdmissionApplicationController {
 
+    private static final String PROBLEM = "application/problem+json";
+
     private final AdmissionApplicationService applications;
     private final AdmissionOpinionService opinions;
     private final AdmissionConditionService conditions;
@@ -58,6 +65,13 @@ class AdmissionApplicationController {
     }
 
     @GetMapping("/admission-applications")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Không có quyền",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
     List<AdmissionApplicationBody> list(
             @RequestParam(name = "status", required = false) Set<ApplicationStatus> status,
             @RequestParam(name = "cursor", required = false) String cursor) {
@@ -68,6 +82,17 @@ class AdmissionApplicationController {
     }
 
     @PostMapping("/admission-applications")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Đã lập"),
+        @ApiResponse(
+                responseCode = "403",
+                description = "Không có quyền",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "409",
+                description = "APPLICATION_ALREADY_EXISTS, RESIDENT_NOT_ADMISSION_IN_PROGRESS",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
     ResponseEntity<AdmissionApplicationBody> create(
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody AdmissionApplicationInputBody body) {
@@ -88,23 +113,45 @@ class AdmissionApplicationController {
     }
 
     @PostMapping("/admission-applications/{id}/update")
-    ResponseEntity<AdmissionApplicationBody> update(
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OK", content = @Content),
+        @ApiResponse(
+                responseCode = "409",
+                description = "APPLICATION_CLOSED, APPLICATION_DATE_LOCKED",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "412",
+                description = "VERSION_MISMATCH",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    ResponseEntity<Void> update(
             @PathVariable long id,
             @RequestHeader(name = "If-Match", required = false) String ifMatch,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody UpdateAdmissionApplicationBody body) {
         Target target = applications.targetOf(id);
         AdmissionApplication updated = applications.update(target, id, ifMatch, body.content(), body.reason());
-        return ResponseEntity.ok().eTag(VersionEtag.of(updated.version())).body(AdmissionApplicationBody.of(updated));
+        return ResponseEntity.ok().eTag(VersionEtag.of(updated.version())).build();
     }
 
     @PostMapping("/admission-applications/{id}/admission-opinion")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Đã ghi"),
+        @ApiResponse(
+                responseCode = "409",
+                description = "APPLICATION_CLOSED",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
+        @ApiResponse(
+                responseCode = "422",
+                description = "INVALID_OPINION_SOURCE",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
     ResponseEntity<AdmissionOpinionBody> recordOpinion(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody RecordAdmissionOpinionBody body) {
         Target target = applications.targetOf(id);
-        var saved = opinions.record(target, id, body.opinion(), body.source(), body.note());
+        var saved = opinions.record(target, id, body.opinion(), body.source().toSource(), body.note());
         return ResponseEntity.status(HttpStatus.CREATED).body(AdmissionOpinionBody.of(saved, names::of));
     }
 

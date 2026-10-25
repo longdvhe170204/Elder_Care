@@ -12,7 +12,11 @@ import java.util.function.LongFunction;
 /** Danh sách điều kiện tiếp nhận (contracts/api-004.yaml, schema {@code ConditionList}; FR-004, FR-004a). */
 @Schema(name = "ConditionList")
 public record ConditionListBody(
-        List<ConditionLineBody> conditions, List<Warning> warnings, AdmissionOpinionBody admissionOpinion) {
+        List<ConditionLineBody> conditions,
+        List<Warning> warnings,
+
+        @Schema(description = "AdmissionOpinion hiện hành hoặc null (FR-004a)")
+        Object admissionOpinion) {
 
     /** Một dòng điều kiện (schema {@code ConditionLine}); ngoại lệ được duyệt của điều kiện kết thúc thuộc user story 8. */
     @Schema(name = "ConditionLine")
