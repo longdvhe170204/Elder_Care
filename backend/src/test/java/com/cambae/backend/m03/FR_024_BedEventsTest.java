@@ -93,4 +93,51 @@ class FR_024_BedEventsTest {
                     .isEqualTo(notices.contains(name));
         }
     }
+
+    @Test
+    void FR_051_notificationLevelsMatchTheApprovedMatrix() throws Exception {
+        var at = java.time.Instant.parse("2026-10-25T00:00:00Z");
+        var context = new com.cambae.backend.m03.api.dto.BedNotificationContext(
+                at,
+                1L,
+                List.of(new com.cambae.backend.common.notification.RecipientGroup.FacilityRole(
+                        com.cambae.backend.common.Role.NURSING_HOME_MANAGER)));
+        var levels = java.util.Map.ofEntries(
+                java.util.Map.entry("AllocationReminder", "LOW"),
+                java.util.Map.entry("BedReadinessReminder", "LOW"),
+                java.util.Map.entry("DoctorAssignedToAllocation", "LOW"),
+                java.util.Map.entry("ReturnedToIsolatedRoom", "URGENT"),
+                java.util.Map.entry("DifferentPriceBedTransfer", "MEDIUM"),
+                java.util.Map.entry("AllocationNoLongerSuitable", "MEDIUM"),
+                java.util.Map.entry("FutureAllocationPastStart", "MEDIUM"),
+                java.util.Map.entry("FutureAllocationCancelledForDamagedBed", "MEDIUM"),
+                java.util.Map.entry("ScheduledTransferWaitingForBed", "MEDIUM"),
+                java.util.Map.entry("FormerOccupantListed", "MEDIUM"),
+                java.util.Map.entry("DelayedScheduledWork", "MEDIUM"),
+                java.util.Map.entry("DayCareOverCapacity", "MEDIUM"));
+        for (var entry : levels.entrySet()) {
+            var type = Class.forName("com.cambae.backend.m03.api.events." + entry.getKey());
+            var components = type.getRecordComponents();
+            Object[] args = new Object[components.length];
+            Class<?>[] types = new Class<?>[components.length];
+            for (int n = 0; n < components.length; n++) {
+                var field = components[n].getType();
+                types[n] = field;
+                if (field == long.class || field == Long.class) args[n] = 1L;
+                else if (field == int.class) args[n] = 1;
+                else if (field == String.class) args[n] = "TEST";
+                else if (field == java.time.Instant.class) args[n] = at;
+                else if (field == List.class) args[n] = List.of();
+                else if (field == com.cambae.backend.m03.api.dto.BedNotificationContext.class) args[n] = context;
+                else throw new IllegalStateException("Cần dữ liệu test cho " + field.getName());
+            }
+            var event = (HasNotificationRequests) type.getConstructor(types).newInstance(args);
+            assertThat(event.notificationRequests())
+                    .as(entry.getKey())
+                    .isNotEmpty()
+                    .allSatisfy(request -> assertThat(request.level())
+                            .contains(com.cambae.backend.common.notification.NotificationLevel.valueOf(
+                                    entry.getValue())));
+        }
+    }
 }

@@ -12,7 +12,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
   - cơ cấu: Khu A; Tầng 1, Tầng 2; P101 (chỉ "Chăm sóc cơ bản", Nữ), P105, P107 (Không giới hạn), P201 ("Thường xuyên", "Đặc biệt", Nữ, loại phòng 2 giường), P305 (loại phòng khác đơn giá); mỗi phòng 2 giường;
   - người cao tuổi của 001: A (nữ, Đang tiếp nhận, mức Đặc biệt), B (nam, Đang lưu trú ở P105-G1), E (Đang tiếp nhận, có hồ sơ chờ);
   - CFG theo mặc định Phụ lục 25: CFG-M02-02 48 giờ, CFG-M03-02 1 ngày, CFG-M03-04 4 giờ, CFG-M03-07 24 giờ, CFG-M03-08 30 phút; CFG-M03-01 đặt 3 cho dữ liệu kiểm thử; buổi sáng 07:00–12:00, chiều 12:00–17:00;
-  - bản giả có công tắc qua `/api/v1/kiem-thu/gia-lap/{module}` (chỉ profile `test`, `demo`): `NguonLuuTruChoPhanBo`, `DemLichDenBanTru` (004), `TinhTrangLayNhiemChoPhanBo` (007), `ThamChieuViTri` (008), `TaiSanGiuongPort` (019).
+  - thiết kế công tắc bản giả qua `/api/v1/kiem-thu/gia-lap/{module}` (chỉ profile `test`, `demo`): `NguonLuuTruChoPhanBo`, `DemLichDenBanTru` (004), `TinhTrangLayNhiemChoPhanBo` (007), `ThamChieuViTri` (008), `TaiSanGiuongPort` (019). **Trạng thái2026-10-25**: công tắc HTTP này chưa cài; bản giả hiện ở test/support của đúng chủ. Không gọi đây là endpoint đã chạy được; xem [đối chiếu Phase11](verification.md).
 
 ## 2. Chạy
 
@@ -46,7 +46,7 @@ Kết quả mong đợi: `verify` xanh. Bộ test gồm test kiến trúc (Modul
 | Q15 | Bản giả 004 gọi `ketQuaYeuCauSauChuyenGap(tuChoi)`; tua 1 ngày; chuyển A về giường cùng giá | Dấu `CHO_VE_CUNG_GIA`, H2 và HC được nhắc; sau khi chuyển: dấu gỡ, không nhắc nữa | US3 #8, SC-013 |
 | Q16 | N (Người phụ trách ca Tầng 2) Xác nhận G1 sẵn sàng; C thử xác nhận | 200, G1 `TRONG`, `GiuongDaTrong`; C 403 | US8 #2, #7, FR-044 |
 | Q17 | Giường G2 Chờ sẵn sàng, tua 4 giờ 1 phút, chạy job hai lần | Trưởng tầng được nhắc đúng một lần; không có mục bàn giao nào được tạo | US8 #3, SC-011, Q-307 |
-| Q18 | Người rời G2 được bản giả 007 đưa vào danh sách tiếp xúc; H2 xác nhận G2 không ghi khử khuẩn; rồi ghi đủ | H2 được báo; 409 `CHUA_GHI_KHU_KHUAN`; 200 | US8 #4, #5, BR-M03-10, SC-010 |
+| Q18 | Người rời G2 được bản giả 007 đưa vào danh sách tiếp xúc; H2 xác nhận G2 không ghi khử khuẩn; rồi ghi đủ | H2 được báo; 422 `DISINFECTION_CONFIRMATION_REQUIRED` (đã duyệt ở Phase10); 200 | US8 #4, #5, BR-M03-10, SC-010 |
 | Q19 | Phân bổ người mới vào G2 (Chờ sẵn sàng từ 10:00) bắt đầu 12:00, rồi 15:00 | 409 `PB_CHO_SAN_SANG_TRUOC_HAN`; 201 `TUONG_LAI`, không `GiuongDaTrong` | Edge Case Q-40, FR-011a |
 | Q20 | Bản giả 004 duyệt yêu cầu đổi giường của B sang P107-G2 hiệu lực ngày D (`khiDuyet`); P107-G2 Chờ sẵn sàng tới ngày D; job 000 chạy 00:05; H xác nhận G2 lúc 15:40 | Phân bổ tương lai tạo lúc duyệt; 00:05: giữ `TUONG_LAI`, `choGiuongSanSang`, H và HC được báo; 15:40: chuyển thực hiện, phân bổ mới bắt đầu 15:40, G2 `DANG_SU_DUNG` | US3 #7, FR-011a, FR-029 |
 | Q21 | Như Q20 nhưng dừng job tới 02:30 | Hai bản ghi ghi 02:30, `thoiDiemDuKien` 00:00, `thucHienTre`; QL nhận `ViecLichTre` | US3 #11, FR-016a, SC-014 |

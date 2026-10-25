@@ -2,5 +2,5 @@ package com.cambae.backend.m03.api.dto;
 
 import java.util.Set;
 
-/** Kiểu trao đổi BedFlagView, hợp đồng 003 mục 1.2–1.9 (T003). */
-public record BedFlagView(Long residentId, long bedId, Set<String> flags) {}
+/** Dấu WITHOUT_BED có bedId null; thay đổi này đã được chủ dự án duyệt tại T061. */
+public record BedFlagView(Long residentId, Long bedId, Set<String> flags) {}
