@@ -9,7 +9,6 @@ import com.cambae.backend.m01.internal.assessment.domain.AssessmentType;
 import com.cambae.backend.m01.internal.status.service.ResidentStatusService;
 import com.cambae.backend.m02.internal.transition.service.M02DailyRunner;
 import com.cambae.backend.support.fake.m01.FakeStatusTransitionParticipant;
-import com.cambae.backend.support.fake.m02.FakeContractReads;
 import com.cambae.backend.support.fake.m02.FakeDepositStatuses;
 import com.cambae.backend.support.fake.m02.FakeM02Config;
 import java.time.LocalDate;
@@ -24,14 +23,19 @@ import org.springframework.context.annotation.Import;
 /**
  * Nền chung cho test của 004 dùng bean tham gia lệnh trạng thái thật của M02 cùng M01 thật. Khác {@code
  * StatusTestBase} của 001: không gỡ {@code m02StatusParticipant}. Một bản giả {@link FakeStatusTransitionParticipant}
- * đứng cho 003 (phân bổ giường) và 012 (điều kiện DBR_02); hợp đồng, đặt cọc lấy từ bản giả vì Phase 5 và 017 chưa có.
+ * đứng cho 003 (phân bổ giường) và 012 (điều kiện DBR_02); hợp đồng dựng bằng {@link ContractFixtures} (bảng thật, từ Phase 5), đặt cọc lấy từ bản giả vì 017 chưa có.
  * Người dùng là Hành chính ({@code office}) trừ khi test đổi.
  */
-@Import({FakeM02Config.class, FakeContractReads.Config.class, M02TestBase.Fakes.class})
+@Import({FakeM02Config.class, M02TestBase.Fakes.class})
 public abstract class M02TestBase extends AssessmentTestBase {
 
     @TestConfiguration
     static class Fakes {
+
+        @Bean
+        ContractFixtures contractFixtures(org.springframework.jdbc.core.JdbcTemplate jdbc) {
+            return new ContractFixtures(jdbc);
+        }
 
         @Bean
         @Qualifier("otherModules")
@@ -47,7 +51,7 @@ public abstract class M02TestBase extends AssessmentTestBase {
     protected ResidentStatusService statusService;
 
     @Autowired
-    protected FakeContractReads contracts;
+    protected ContractFixtures contracts;
 
     @Autowired
     protected FakeDepositStatuses deposits;
