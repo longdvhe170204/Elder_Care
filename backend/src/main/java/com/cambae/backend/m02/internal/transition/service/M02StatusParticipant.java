@@ -7,6 +7,7 @@ import com.cambae.backend.m01.api.dto.StatusCommand;
 import com.cambae.backend.m01.api.dto.TransitionResult;
 import com.cambae.backend.m01.api.dto.Warning;
 import com.cambae.backend.m01.api.spi.StatusTransitionParticipant;
+import com.cambae.backend.m02.internal.absence.service.AbsenceTransition;
 import com.cambae.backend.m02.internal.application.service.AdmissionContractConditions;
 import com.cambae.backend.m02.internal.application.service.AdmissionTransition;
 import com.cambae.backend.m02.internal.contract.service.ContractTransition;
@@ -54,25 +55,32 @@ class M02StatusParticipant implements StatusTransitionParticipant {
     private final AdmissionTransition admissionTransition;
     private final WaitingListTransition waitingListTransition;
     private final ContractTransition contractTransition;
+    private final AbsenceTransition absenceTransition;
 
     M02StatusParticipant(
             AdmissionContractConditions admissionConditions,
             AdmissionTransition admissionTransition,
             WaitingListTransition waitingListTransition,
-            ContractTransition contractTransition) {
+            ContractTransition contractTransition,
+            AbsenceTransition absenceTransition) {
         this.admissionConditions = admissionConditions;
         this.admissionTransition = admissionTransition;
         this.waitingListTransition = waitingListTransition;
         this.contractTransition = contractTransition;
+        this.absenceTransition = absenceTransition;
     }
 
-    /** Hoàn tất tiếp nhận: điều kiện (b), (c), (e) của FR-004 (research T-09); lệnh khác bổ sung ở user story của chúng. */
+    /**
+     * Hoàn tất tiếp nhận: điều kiện (b), (c), (e) của FR-004 (research T-09); Cho tạm vắng: bản ghi đón hợp lệ (FR-048); lệnh
+     * khác bổ sung ở user story của chúng.
+     */
     @Override
     public List<Condition> checkConditions(CommandContext context) {
-        if (context.command() == StatusCommand.COMPLETE_ADMISSION) {
-            return admissionConditions.unmet(context.residentId(), context.at());
-        }
-        return List.of();
+        return switch (context.command()) {
+            case COMPLETE_ADMISSION -> admissionConditions.unmet(context.residentId(), context.at());
+            case GRANT_TEMPORARY_ABSENCE -> absenceTransition.grantConditions(context);
+            default -> List.of();
+        };
     }
 
     @Override
@@ -132,17 +140,24 @@ class M02StatusParticipant implements StatusTransitionParticipant {
                 contractTransition.admissionCancelled(result);
                 admissionTransition.cancelled(result);
             }
+            case GRANT_TEMPORARY_ABSENCE -> absenceTransition.granted(result);
+            case TRANSFER_OUT -> absenceTransition.transferredOut(result);
+            case RECORD_RETURN -> absenceTransition.returned(result);
             default -> {}
         }
     }
 
-    /** Hoàn tất tiếp nhận: cảnh báo ý kiến vào ở, không chặn lệnh (FR-004a). */
+    /**
+     * Hoàn tất tiếp nhận: cảnh báo ý kiến vào ở, không chặn lệnh (FR-004a); Ghi nhận trở về: giường đã giải phóng thì cần
+     * phân bổ giường mới (FR-059).
+     */
     @Override
     public List<Warning> warnings(CommandContext context) {
-        if (context.command() == StatusCommand.COMPLETE_ADMISSION) {
-            return admissionTransition.completionWarnings(context.residentId());
-        }
-        return List.of();
+        return switch (context.command()) {
+            case COMPLETE_ADMISSION -> admissionTransition.completionWarnings(context.residentId());
+            case RECORD_RETURN -> absenceTransition.returnWarnings(context.residentId());
+            default -> List.of();
+        };
     }
 
     private static boolean has(JsonNode details, String field) {
