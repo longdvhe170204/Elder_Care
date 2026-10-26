@@ -208,6 +208,57 @@ public class ContractStore {
                 summary.depositAmount());
     }
 
+    /**
+     * Thêm phiên bản nội dung của một phụ lục đã áp dụng (FR-024, DBR-07) và trả mã; các cột đọc nhanh trích từ {@code
+     * content}. Cùng ngày hiệu lực thì phiên bản có {@code sequenceNo} lớn hơn thắng khi tra theo ngày.
+     */
+    public long appendVersion(
+            long contractId, int sequenceNo, LocalDate effectiveFrom, JsonNode content, long addendumId) {
+        GeneratedKeyHolder keys = new GeneratedKeyHolder();
+        jdbc.update(
+                connection -> {
+                    PreparedStatement statement = connection.prepareStatement(
+                            "INSERT INTO contract_content_version (contract_id, sequence_no, effective_from,"
+                                    + " addendum_id, content, residence_type, care_level, end_date, room_type_id,"
+                                    + " deposit_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                            Statement.RETURN_GENERATED_KEYS);
+                    statement.setLong(1, contractId);
+                    statement.setInt(2, sequenceNo);
+                    statement.setObject(3, effectiveFrom);
+                    statement.setLong(4, addendumId);
+                    statement.setString(5, content.toString());
+                    statement.setString(6, content.get("residenceType").asString());
+                    statement.setString(7, content.get("careLevel").asString());
+                    statement.setObject(
+                            8,
+                            content.hasNonNull("endDate")
+                                    ? LocalDate.parse(content.get("endDate").asString())
+                                    : null);
+                    statement.setObject(
+                            9,
+                            content.hasNonNull("roomTypeId")
+                                    ? content.get("roomTypeId").asLong()
+                                    : null);
+                    statement.setObject(
+                            10,
+                            content.hasNonNull("depositAmount")
+                                    ? content.get("depositAmount").decimalValue()
+                                    : null);
+                    return statement;
+                },
+                keys);
+        return keys.getKey().longValue();
+    }
+
+    /** Phụ lục gia hạn hoặc rút ngắn: đổi ngày kết thúc hiện hành và dấu quá hạn (FR-022, FR-029). */
+    public void setCurrentEndDate(long id, LocalDate currentEndDate, LocalDate overdueSince) {
+        jdbc.update(
+                "UPDATE contract SET current_end_date = ?, overdue_since = ?, version = version + 1 WHERE id = ?",
+                currentEndDate,
+                overdueSince,
+                id);
+    }
+
     // ---- Đọc ------------------------------------------------------------------------------------------------------
 
     public Optional<Contract> find(long id) {
@@ -260,8 +311,10 @@ public class ContractStore {
 
     public List<Expiring> activeWithEndDate() {
         return jdbc.query(
-                "SELECT id, resident_id, residence_type, current_end_date, overdue_since, manager_notified_overdue_at"
-                        + " FROM contract WHERE status = 'ACTIVE' AND current_end_date IS NOT NULL ORDER BY id",
+                "SELECT c.id, c.resident_id, COALESCE((SELECT v.residence_type FROM contract_content_version v"
+                        + " WHERE v.contract_id = c.id ORDER BY v.sequence_no DESC LIMIT 1), c.residence_type)"
+                        + " AS residence_type, c.current_end_date, c.overdue_since, c.manager_notified_overdue_at"
+                        + " FROM contract c WHERE c.status = 'ACTIVE' AND c.current_end_date IS NOT NULL ORDER BY c.id",
                 (rs, i) -> new Expiring(
                         rs.getLong("id"),
                         rs.getLong("resident_id"),
@@ -315,10 +368,21 @@ public class ContractStore {
         return jdbc
                 .query(
                         "SELECT * FROM contract_content_version WHERE contract_id = ? AND effective_from <= ? ORDER BY"
-                                + " effective_from DESC LIMIT 1",
+                                + " effective_from DESC, sequence_no DESC LIMIT 1",
                         (rs, i) -> version(rs),
                         contractId,
                         date)
+                .stream()
+                .findFirst();
+    }
+
+    /** Phiên bản nội dung mới nhất (số thứ tự lớn nhất), nền cho phụ lục kế tiếp. */
+    public Optional<ContractVersion> latestVersion(long contractId) {
+        return jdbc
+                .query(
+                        "SELECT * FROM contract_content_version WHERE contract_id = ? ORDER BY sequence_no DESC LIMIT 1",
+                        (rs, i) -> version(rs),
+                        contractId)
                 .stream()
                 .findFirst();
     }
