@@ -983,6 +983,25 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | việc hằng ngày, nhắc | `ENDINGS` (`@Order(40)`, bảng `daily_run`); loại nhắc `PAST_EXPECTED_DATE` (mức Nhẹ) |
 | test | `ResidencyEndingIT`, `EndingConditionsIT`, `EndingExceptionIT`, `FR_066_FinalPeriodIT`, `FR_066a_PastExpectedDateIT`, `ResidencyEndingReadApiIT`, `EndingConcurrencyIT`, `EndingClosesRequestsIT`; nền `EndingTestBase` |
 
+
+### 10.16. Bổ sung khi cài Phase 10 (US8, T062 → T065, T106, T109, 2026-10-26)
+
+*Tên cài thực tế của bản ghi qua đời và danh sách việc sau qua đời. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| `V004_09__qua_doi.sql`; `ban_ghi_qua_doi`, `muc_viec_sau_qua_doi` | `V004_09__death_record.sql`; `death_record` (`resident_id` `UNIQUE`, `death_at`, `place`, `discovered_by`, `confirmed_by_id`, `cause_of_death`, `evidence_file_id`, `history_id`, `recorded_by`, `recorded_at`), `post_death_task` (`death_record_id`, `item_code`, `status`, `basis`, `updated_at`) |
+| trigger | `trg_death_record_immutable`, `trg_death_record_no_delete`, `trg_post_death_task_no_delete` |
+| `ThamGiaM02` phần `GHI_NHAN_QUA_DOI` | `DeathTransition.recorded` do `M02StatusParticipant` gọi cho `RECORD_DEATH`; hợp đồng `ContractTransition.residentDied` |
+| lớp trong `m02.internal.death` | `domain`: `DeathRecord`, `PostDeathTask`; `persistence`: `DeathStore`; `service`: `DeathTransition`, `PostDeathTaskService` (`PostDeathTaskApi`: `refresh`, `view`; thêm `list`, `recalculate`, `requestSettlementException`, `settlementExceptionAllowed`, `recordIdOf`), `DeathRecordService`, `DeathRecordCorrectionProvider`, `DeathEvidenceFilePermission`, `PostDeathReminders` |
+| web | `DeathController` (`GET /residents/{residentId}/death-record`, `POST /death-records/{id}/correct`, `GET /residents/{residentId}/post-death-tasks`, `POST …/request-settlement-exception`); `DeathRecordBody`, `PostDeathTaskListBody` |
+| loại đối tượng, tệp | `M02.DEATH_RECORD` (kiểm quyền, nhật ký, đính chính, phân loại trường `cause` = `HEALTH`); chủ sở hữu tệp `M02.DEATH_EVIDENCE` |
+| nội dung yêu cầu ngoại lệ sau qua đời | `M02.ENDING_EXCEPTION` với `{residentId, basis = POST_DEATH, conditionCode = END_H_SETTLEMENT}`; `ResidencyEndingService.POST_DEATH_BASIS`, `EXCEPTION_TYPE`, `settlementExceptionTarget` |
+| mã lỗi | `POST_DEATH_LIST_CLOSED` (409), `POST_DEATH_SETTLEMENT_NOT_OPEN` (409), `EVIDENCE_REQUIRED` (422, của 001) |
+| nhật ký | `M02_DEATH_RECORDED`, `M02_POST_DEATH_ITEM_CHANGED`, `M02_POST_DEATH_CLOSED`, `M02_ENDING_CANCELLED_BY_DEATH`, `M02_ENDING_EXCEPTION_APPROVED` (dùng chung) |
+| nhắc | `POST_DEATH_TASKS` (mức Nhẹ, `subjectId` là mã bản ghi qua đời) |
+| test | `RecordDeathEffectsIT` (tránh trùng `m01.RecordDeathIT`), `PostDeathTaskIT`, `BR_M02_21_CauseOfDeathIT`, `PostDeathSettlementExceptionIT`; nền `DeathTestBase` |
+
 ## 11. Feature 005 (`005-daily-care-tasks`, C)
 
 *Chủ feature điền khi dịch `contracts/api-005.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
