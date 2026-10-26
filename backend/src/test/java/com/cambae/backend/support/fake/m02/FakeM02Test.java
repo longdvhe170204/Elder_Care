@@ -3,6 +3,7 @@ package com.cambae.backend.support.fake.m02;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.m02.api.dto.Attendance;
 import com.cambae.backend.m02.api.dto.DepositStatus;
 import com.cambae.backend.m02.api.dto.PickupRecordView;
@@ -41,7 +42,9 @@ class FakeM02Test {
 
         assertThat(records.isUsed(5)).isTrue();
         assertThatThrownBy(() -> records.markUsed(5, "GRANT_TEMPORARY_ABSENCE", 12))
-                .hasMessage("PICKUP_RECORD_ALREADY_USED");
+                .isInstanceOfSatisfying(
+                        BusinessException.class,
+                        e -> assertThat(e.errorCode()).isEqualTo("PICKUP_RECORD_ALREADY_USED"));
     }
 
     @Test

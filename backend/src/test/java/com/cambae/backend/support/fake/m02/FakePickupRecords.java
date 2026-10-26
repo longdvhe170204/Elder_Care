@@ -1,5 +1,6 @@
 package com.cambae.backend.support.fake.m02;
 
+import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.m02.api.dto.PickupRecordView;
 import com.cambae.backend.m02.api.spi.PickupRecordPort;
 import java.time.Instant;
@@ -8,6 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.http.HttpStatus;
 
 /** Bản giả {@link PickupRecordPort} (012 cài): dùng lần hai ném lỗi như bản thật. */
 public class FakePickupRecords implements PickupRecordPort {
@@ -42,7 +44,8 @@ public class FakePickupRecords implements PickupRecordPort {
     @Override
     public void markUsed(long pickupRecordId, String sourceCommand, long sourceId) {
         if (!used.add(pickupRecordId)) {
-            throw new IllegalStateException("PICKUP_RECORD_ALREADY_USED");
+            throw new BusinessException(
+                    HttpStatus.CONFLICT, "PICKUP_RECORD_ALREADY_USED", "Bản ghi đón đã được dùng cho một lệnh khác");
         }
     }
 }
