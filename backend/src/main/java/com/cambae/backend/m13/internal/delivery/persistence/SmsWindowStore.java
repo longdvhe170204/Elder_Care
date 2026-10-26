@@ -18,7 +18,8 @@ public class SmsWindowStore {
     public record Window(long id, String recipientKey, Instant endsAt) {}
 
     /** Tin dồn trong khung, chưa có kết quả. */
-    public record Batched(long attemptId, long notificationId, String address) {}
+    /** Lần gửi đang dồn, kèm tầng/khu vực và thời điểm sự kiện của yêu cầu (tin tổng hợp gửi nhân viên). */
+    public record Batched(long attemptId, long notificationId, String address, Long floorAreaId, Instant occurredAt) {}
 
     private final JdbcTemplate jdbc;
 
@@ -80,9 +81,16 @@ public class SmsWindowStore {
 
     public List<Batched> batched(long windowId) {
         return jdbc.query(
-                "SELECT a.id, a.notification_id, a.address FROM delivery_attempt a WHERE a.batch_window_id = ?"
+                "SELECT a.id, a.notification_id, a.address, q.floor_area_id, COALESCE(q.occurred_at, q.received_at)"
+                        + " FROM delivery_attempt a JOIN notification n ON n.id = a.notification_id"
+                        + " JOIN notification_request q ON q.id = n.request_id WHERE a.batch_window_id = ?"
                         + " AND NOT EXISTS (SELECT 1 FROM delivery_result r WHERE r.attempt_id = a.id) ORDER BY a.id",
-                (rs, i) -> new Batched(rs.getLong(1), rs.getLong(2), rs.getString(3)),
+                (rs, i) -> new Batched(
+                        rs.getLong(1),
+                        rs.getLong(2),
+                        rs.getString(3),
+                        rs.getObject(4, Long.class),
+                        instant(rs.getObject(5, LocalDateTime.class))),
                 windowId);
     }
 

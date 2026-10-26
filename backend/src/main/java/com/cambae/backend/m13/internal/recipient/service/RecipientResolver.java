@@ -10,6 +10,7 @@ import com.cambae.backend.common.notification.Q354Case;
 import com.cambae.backend.common.notification.RecipientGroup;
 import com.cambae.backend.common.notification.Substitution;
 import com.cambae.backend.common.time.BusinessTime;
+import com.cambae.backend.m09.api.ShiftApi;
 import com.cambae.backend.m13.api.dto.RecipientType;
 import com.cambae.backend.m13.api.spi.FamilyContactView;
 import com.cambae.backend.m13.api.spi.FamilyNotificationPort;
@@ -25,10 +26,13 @@ import com.cambae.backend.m15.account.api.dto.AccountStatus;
 import com.cambae.backend.m15.account.api.dto.AccountView;
 import com.cambae.backend.m15.account.api.spi.AssignmentApi;
 import com.cambae.backend.m15.account.api.spi.DutyApi;
+import com.cambae.backend.m15.account.api.spi.LicenseApi;
 import com.cambae.backend.m15.account.api.spi.StaffProfileApi;
 import com.cambae.backend.m15.account.api.spi.StaffStatus;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -48,8 +52,8 @@ import org.springframework.stereotype.Service;
  *
  * Bản đồng ý và qua đời đọc từ 001 qua {@link ResidentFacts} (FR-013, FR-014, FR-015).
  *
- * <p>Chưa có, chờ module khác (docs/team-plan.md mục 8): nhóm {@code OnShiftStaff}, {@code OnDutyDoctor} và loại người vắng
- * ca cần {@code CaTrucApi} (008), nên hai nhóm này coi như không có người rồi theo cách thay.
+ * <p>Nhóm {@code OnShiftStaff}, {@code OnDutyDoctor} qua {@link ShiftApi} của 008 ({@code CaTrucApi}): người có mặt trong ca
+ * đang diễn ra, nên người đã Ghi nhận vắng ca không có (FR-008); chứng chỉ phải còn hiệu lực ngày gửi ({@link LicenseApi}).
  */
 @Service
 public class RecipientResolver {
@@ -73,6 +77,8 @@ public class RecipientResolver {
     private final ObjectProvider<DutyApi> duties;
     private final ObjectProvider<StaffProfileApi> profiles;
     private final ObjectProvider<FamilyNotificationPort> family;
+    private final ObjectProvider<ShiftApi> shifts;
+    private final ObjectProvider<LicenseApi> licenses;
     private final ResidentFacts facts;
     private final BusinessTime time;
 
@@ -82,6 +88,8 @@ public class RecipientResolver {
             ObjectProvider<DutyApi> duties,
             ObjectProvider<StaffProfileApi> profiles,
             ObjectProvider<FamilyNotificationPort> family,
+            ObjectProvider<ShiftApi> shifts,
+            ObjectProvider<LicenseApi> licenses,
             ResidentFacts facts,
             BusinessTime time) {
         this.accounts = accounts;
@@ -89,6 +97,8 @@ public class RecipientResolver {
         this.duties = duties;
         this.profiles = profiles;
         this.family = family;
+        this.shifts = shifts;
+        this.licenses = licenses;
         this.facts = facts;
         this.time = time;
     }
@@ -141,7 +151,7 @@ public class RecipientResolver {
 
     /** Nhóm loại (a): người theo nhiệm vụ, không có thì theo cách thay (FR-010). */
     private String duty(RecipientGroup.DutyGroup d, NotificationRequest r, Instant at, Recipients found) {
-        if (found.addStaff(eligible(dutyStaff(d, at), role(d)), basis(d))) {
+        if (found.addStaff(eligible(dutyStaff(d, at), roles(d)), basis(d))) {
             return HAS_RECIPIENTS;
         }
         String substitute = "SUBSTITUTE:" + basis(d);
@@ -186,17 +196,41 @@ public class RecipientResolver {
                 du.flatMap(x -> x.departmentLead(dl.departmentId())).stream().toList();
             case RecipientGroup.TripLeader t ->
                 du.flatMap(x -> x.groupLeader(t.tripId())).stream().toList();
-            // Chờ CaTrucApi của 008: chưa biết ai đang có ca, nên theo cách thay
-            case RecipientGroup.OnShiftStaff o -> List.of();
-            case RecipientGroup.OnDutyDoctor o -> List.of();
+            case RecipientGroup.OnShiftStaff o ->
+                certified(
+                        Optional.ofNullable(shifts.getIfAvailable())
+                                .map(x -> x.staffOnShift(o.floorAreaId(), at))
+                                .orElse(List.of()),
+                        o.certificates(),
+                        at);
+            case RecipientGroup.OnDutyDoctor o ->
+                Optional.ofNullable(shifts.getIfAvailable())
+                        .map(x -> x.onDutyDoctors(at))
+                        .orElse(List.of());
         };
     }
 
-    private static Optional<Role> role(RecipientGroup.DutyGroup d) {
+    /** Chứng chỉ nguồn yêu cầu (005 FR-043): mọi loại còn hiệu lực ngày gửi; không có nguồn giấy phép thì không ai đủ. */
+    private List<Long> certified(List<Long> staffIds, Set<String> certificates, Instant at) {
+        if (certificates.isEmpty()) {
+            return staffIds;
+        }
+        LicenseApi api = licenses.getIfAvailable();
+        LocalDate date = LocalDate.ofInstant(at, BusinessTime.ZONE);
+        return staffIds.stream()
+                .filter(id -> api != null
+                        && certificates.stream()
+                                .allMatch(type -> api.valid(id, type, date).isPresent()))
+                .toList();
+    }
+
+    /** Vai trò giới hạn của nhóm; rỗng là không giới hạn. */
+    private static Set<Role> roles(RecipientGroup.DutyGroup d) {
         return switch (d) {
-            case RecipientGroup.AssignedNurse n -> Optional.of(Role.NURSING_STAFF);
-            case RecipientGroup.AssignedStaff s -> s.role();
-            default -> Optional.empty();
+            case RecipientGroup.AssignedNurse n -> Set.of(Role.NURSING_STAFF);
+            case RecipientGroup.AssignedStaff s -> s.role().map(Set::of).orElse(Set.of());
+            case RecipientGroup.OnShiftStaff o -> o.roles();
+            default -> Set.of();
         };
     }
 
@@ -223,12 +257,12 @@ public class RecipientResolver {
             case FLOOR_MANAGER_SUBSTITUTE -> du.floorManagerSubstitute(floor.get(), at);
             case MANAGERS -> Optional.empty();
         };
-        return eligible(staffId.stream().toList(), Optional.empty());
+        return eligible(staffId.stream().toList(), Set.of());
     }
 
     /** Người thay chỉ định: dùng thẳng nhóm đó, không theo chuỗi thay tiếp (FR-010). */
     private List<AccountView> designated(RecipientGroup g, Instant at) {
-        return g instanceof RecipientGroup.DutyGroup d ? eligible(dutyStaff(d, at), role(d)) : direct(g);
+        return g instanceof RecipientGroup.DutyGroup d ? eligible(dutyStaff(d, at), roles(d)) : direct(g);
     }
 
     /** Nhóm (b), (c), (d) nhân viên: tài khoản theo vai trò, theo danh sách 000 truyền, theo hồ sơ nhân viên. */
@@ -247,14 +281,14 @@ public class RecipientResolver {
      * FR-008: nhóm loại (a) không gồm nhân viên Nghỉ việc, tài khoản Đã khóa, Không hoạt động; Khóa tạm vẫn nhận. Nhân viên
      * không có tài khoản không nhận được thông báo trong ứng dụng.
      */
-    private List<AccountView> eligible(List<Long> staffIds, Optional<Role> role) {
+    private List<AccountView> eligible(List<Long> staffIds, Set<Role> roles) {
         AccountApi api = accounts.getObject();
         StaffProfileApi staff = profiles.getIfAvailable();
         return staffIds.stream()
                 .filter(id -> staff == null || staff.status(id, time.today()) != StaffStatus.RESIGNED)
                 .flatMap(id -> api.byStaff(id).stream())
                 .filter(a -> a.status() == AccountStatus.ACTIVE || a.status() == AccountStatus.TEMPORARILY_LOCKED)
-                .filter(a -> role.isEmpty() || a.roles().contains(role.get()))
+                .filter(a -> roles.isEmpty() || !Collections.disjoint(a.roles(), roles))
                 .toList();
     }
 
