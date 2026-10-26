@@ -28,7 +28,8 @@ public class AllocationReminderJob implements ScheduledJob {
             BusinessTime time,
             SchedulerRuns runs,
             Environment environment,
-            @Value("${eldercare.jobs.allocation-reminder.on-startup:true}") boolean startup) {
+            @Value("${eldercare.jobs.allocation-reminder.on-startup:${eldercare.scheduling.enabled:true}}")
+                    boolean startup) {
         this.store = store;
         this.processor = processor;
         this.time = time;
