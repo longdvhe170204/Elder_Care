@@ -1,6 +1,7 @@
 package com.cambae.backend.m15.account.web.security;
 
 import com.cambae.backend.m15.account.internal.auth.service.SessionService;
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,11 @@ class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .requestCache(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(a -> a.requestMatchers(SessionTokenFilter.PUBLIC_PATHS)
+                // Lượt chuyển sang /error của lỗi chưa xử lý không có phiên: cho qua để giữ mã lỗi thật, không thành
+                // 401
+                .authorizeHttpRequests(a -> a.dispatcherTypeMatchers(DispatcherType.ERROR)
+                        .permitAll()
+                        .requestMatchers(SessionTokenFilter.PUBLIC_PATHS)
                         .permitAll()
                         .anyRequest()
                         .authenticated())

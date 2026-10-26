@@ -2,6 +2,22 @@
 
 Ngày 2026-10-26. Nhánh `impl/008-staff-shift-handover`, HEAD `4fc4bdf`, commit đang được merge từ develop `4e1b7dd`. Người dùng đã tự commit/push Phase 9 và khởi động merge; AI chỉ xử lý conflict theo yêu cầu, không commit/push/đổi nhánh hoặc chạy merge lại.
 
+## Đồng bộ develop fef90dd sau commit 63cb0a5
+
+Ngày 2026-10-26: người dùng đã tự commit lượt e548357 tại 63cb0a5. Fetch và merge --no-commit origin/develop fef90dd (PR #37) vào đúng nhánh 008; gặp một conflict tại ActiveAssignments.at. Người dùng duyệt giữ cả hai bản sửa, cập nhật đúng hai chỗ giả lập nguồn trong EarlyAssignmentEndTest của E và ghi A review; không commit/push.
+
+- Dùng history/getIfAvailable mới của A: thiếu bean AssignmentApi trả danh sách rỗng; không nuốt lỗi từ nguồn có thật.
+- Giữ phần mở rộng truy vấn một microgiây cho DATETIME(6), bộ lọc covers và scopeEndsAt của 008; không kéo dài quyền quá mốc kết thúc sớm, không đổi hợp đồng hoặc CFG.
+- TDD: đổi mock sang getIfAvailable, chạy bản ghép chưa giữ biên một microgiây; hai test có một thất bại tại FR_032_scopeIncludesTheExactStartOfTheConfiguredMargin. Khôi phục biên rồi chạy lại cùng kiến trúc: **32 test xanh**, 0 lỗi/thất bại/bỏ qua; giữ mọi assertion cũ.
+- Spotless chỉ áp dụng đúng hai file Java đã duyệt. Sinh lại client từ hợp đồng mới không đổi nội dung frontend; kết quả 332 test/lint/build của lượt e548357 là bằng chứng trước lượt này, không phải lần chạy mới.
+- Clean verify đã hoàn tất sau **15:23**: **619 test đơn vị/kiến trúc xanh**, **1378 IT có 7 thất bại + 9 lỗi**, 0 bỏ qua. Tổng **1997 lượt test** trong lượt kiểm cuối; **BUILD FAILURE tại failsafe:verify**, chưa đạt gate toàn kho.
+- **16 tên phương thức lỗi trùng đúng lượt e548357**, không có tên test lỗi mới hoặc lỗi cũ biến mất. Bảng nguyên nhân M01/M03 bên dưới vẫn áp dụng; đối chiếu baseline 15 test M01 là bằng chứng từ e548357, không phải một lần chạy baseline fef90dd mới.
+- M09 theo toàn bộ gói com.cambae.backend.m09, gồm gói con: **93 đơn vị/kiến trúc + 246 IT = 339 xanh**. Con số 336 ở lượt cũ chỉ cộng 90 test gói gốc và 246 IT, chưa cộng 3 test StaffingPresenceTest trong gói con; không có thêm test M09 trong lượt merge này. FakeM09Test thuộc support/fake, có 11 test xanh và nằm trong tổng 619 toàn kho.
+- Các test mới của A **FR_020_DashboardDemoAccountIT (1), ErrorDispatchIT (1)** và **TestClockControllerIT (5, gồm test hai job M03 mới)** đều xanh; **ApiContractIT (1)** xanh. Spotless kiểm toàn bộ **1954 file Java**, không cần sửa file nào.
+- Kiểm chỉ đọc sau IT: eldercare_app vẫn truy cập eldercare_demo thành công, **6 nhân viên và 5 bộ phận**. Không khởi động server hoặc sửa dữ liệu demo trong lượt kiểm. Không đánh thêm task nghiệm thu.
+
+Sao lưu file conflict/test gốc và log: TEMP/ElderCare-008-merge-fef90dd-20261026-151629, gồm boundary-red.log, focused-green.log, spotless-apply.log, clean-verify.log, verification-comparison.json. File JSON lưu tên test lỗi và đối chiếu với lượt trước. HEAD vẫn 63cb0a5, MERGE_HEAD fef90dd; Git đã hết unmerged entry nhưng còn chờ người dùng tự commit. Chưa push.
+
 ## Đồng bộ tiếp develop e548357 sau commit d308b05
 
 Ngày 2026-10-26: người dùng tự commit merge cũ và sửa demo tại d308b05. Fetch lại origin, merge --no-commit develop e548357, gặp ba conflict và đã được người dùng duyệt phương án trước khi gỡ. Bản sao ba file nằm ở TEMP/ElderCare-008-merge-e548357-6apzV0.

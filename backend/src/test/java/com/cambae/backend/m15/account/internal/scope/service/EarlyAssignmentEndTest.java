@@ -23,7 +23,7 @@ class EarlyAssignmentEndTest {
                         new AssignmentView(
                                 AssignmentKind.SHIFT_MEMBER, 10L, null, null, 20L, start, start.plusSeconds(3600)));
         ObjectProvider<AssignmentApi> source = mock(ObjectProvider.class);
-        when(source.getObject()).thenReturn(rows);
+        when(source.getIfAvailable()).thenReturn(rows);
         var parameters = mock(ParameterApi.class);
         when(parameters.read(ParameterCode.CFG_M15_07))
                 .thenReturn(new ParameterValue(
@@ -46,7 +46,7 @@ class EarlyAssignmentEndTest {
         ObjectProvider<AssignmentApi> source = mock(ObjectProvider.class);
         @SuppressWarnings("unchecked")
         ObjectProvider<BedAllocationApi> beds = mock(ObjectProvider.class);
-        when(source.getObject()).thenReturn(rows);
+        when(source.getIfAvailable()).thenReturn(rows);
         var parameters = mock(ParameterApi.class);
         when(parameters.read(ParameterCode.CFG_M15_07))
                 .thenReturn(new ParameterValue(

@@ -391,6 +391,14 @@ mobile/lib/nhan-vien/
 - Clean verify còn bắt 20 file Java từ lượt ghép cũ dùng LF trong working tree Windows core.autocrlf=true. Chỉ chuẩn hóa xuống dòng CRLF, kiểm không có diff Git ở backend; spotless:check sau đó xanh. Chạy failsafe:verify trên báo cáo IT đã lưu vẫn đỏ đúng các test trên, không chạy lại toàn bộ chức năng chỉ vì thay xuống dòng.
 - Ba conflict đã stage và git ls-files -u rỗng; HEAD vẫn d308b05, MERGE_HEAD e548357, chưa commit/push. Kết nối chỉ đọc bằng tài khoản ứng dụng vào eldercare_demo còn thành công, đếm được 6 hồ sơ và 5 bộ phận. Chi tiết ở merge-verification.md và team-plan mục 8; T043b/T044b/T049b vẫn giữ phần nghiệm thu còn chờ.
 
+### Đồng bộ develop fef90dd — 2026-10-26
+
+- Người dùng tự commit lượt e548357 tại 63cb0a5, rồi yêu cầu lấy develop mới nhất. Fetch/merge --no-commit fef90dd phát sinh một conflict ActiveAssignments.at; chủ dự án duyệt giữ cả hai bản sửa và ghi A review.
+- Quyết định kỹ thuật: gọi history/getIfAvailable của A để thiếu provider trả rỗng, đồng thời giữ +1 microgiây ở đầu vào truy vấn cho DATETIME(6). Bộ lọc covers vẫn xét thời điểm thật và scopeEndsAt vẫn chặn phần biên sau kết thúc sớm. Không đổi API/CFG, không bắt lỗi nguồn thật thành dữ liệu rỗng.
+- Hai chỗ mock getObject trong EarlyAssignmentEndTest của E chuyển sang getIfAvailable; giữ nguyên mọi assertion. Đã thấy đúng test đầu biên đỏ trên bản ghép thiếu +1 microgiây; sau khi giữ phần biên, 32 test hồi quy/kiến trúc xanh. Spotless áp dụng chỉ hai file được duyệt; client sinh lại không đổi nội dung frontend.
+- Clean verify trên eldercare_test hoàn tất sau 15:23: 619 test đơn vị/kiến trúc xanh; 1378 IT có 7 thất bại + 9 lỗi, 0 bỏ qua; BUILD FAILURE tại failsafe:verify. Đối chiếu đủ 16 tên phương thức trùng lượt e548357, không có test lỗi mới. M09 gồm gói con có 93 đơn vị/kiến trúc + 246 IT = 339 xanh; số 336 cũ chưa cộng ba test StaffingPresenceTest ở gói con, không phải số test mới thêm trong lượt ghép. Hai IT dashboard/error-dispatch mới của A, TestClockControllerIT và ApiContractIT xanh; Spotless kiểm 1954 file qua.
+- Giữ mật khẩu kỹ thuật khớp demo như lượt trước; đọc lại thành công 6 nhân viên, 5 bộ phận trên eldercare_demo, không chạy server hoặc sửa dữ liệu demo. Bằng chứng và danh sách lỗi ở merge-verification.md/verification-comparison.json trong TEMP. Không coi kết quả web lượt cũ là một lần chạy mới. Chưa commit/push, không đánh thêm task SC hoặc tích hợp nguồn thật; không có thuật ngữ mới cần thêm glossary.
+
 ## Complexity Tracking
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
