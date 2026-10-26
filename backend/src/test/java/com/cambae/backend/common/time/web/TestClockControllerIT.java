@@ -84,6 +84,23 @@ class TestClockControllerIT extends MySqlIntegrationTestBase {
                 .isEqualTo(1);
     }
 
+    @Test
+    void NFR_13_runJobs_runsM03HoldExpiryAndFutureAllocation() throws Exception {
+        // 003 (FR-015, FR-023, research G-09): hai job của M03 chạy tay được (chủ dự án duyệt thêm vào runJobs
+        // 2026-10-26)
+        int holdsBefore = runs("EXPIRE_BED_HOLDS");
+        int futureBefore = runs("REPORT_FUTURE_ALLOCATION_PAST_START");
+
+        mvc.perform(post("/api/v1/testing/clock")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"runJobs\":[\"EXPIRE_BED_HOLDS\",\"REPORT_FUTURE_ALLOCATION_PAST_START\"]}"))
+                .andExpect(status().isOk());
+
+        assertThat(runs("EXPIRE_BED_HOLDS")).isGreaterThan(holdsBefore);
+        assertThat(runs("REPORT_FUTURE_ALLOCATION_PAST_START")).isGreaterThan(futureBefore);
+    }
+
     private int runs(String job) {
         return jdbc.queryForObject("SELECT COUNT(*) FROM scheduler_run WHERE job = ?", Integer.class, job);
     }
