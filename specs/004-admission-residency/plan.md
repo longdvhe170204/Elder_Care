@@ -523,3 +523,31 @@ Checkpoint Phase 7 do chủ dự án duyệt theo phạm vi đã hoàn thành (2
 - **Quyết định kỹ thuật chưa được duyệt** (không tự đổi nghiệp vụ; ghi ở "Ghi chú triển khai Phase 7", BL-72, BL-66): bỏ `UNIQUE` theo ngày hiệu lực; `newValue.services` theo dòng ADD/REMOVE; khoản cọc đi kèm `newValue.depositAmount`; phụ lục chỉ giữ thuộc tính đổi; đóng phụ lục trong `checkApplyConditions`; chặn bằng điều kiện khi 003 chưa có; `SUPERSEDED`; ẩn `costImpact` theo quyền xem hợp đồng; `NOT_APPLICABLE` (hợp đồng) so với `NOT_APPLIED` (glossary). Chưa sửa API/SPI của A, C, D, E.
 - **Blocker**: BL-69 (A: Đổi api Nháp do người khác lập), BL-70 (C: giao diện giường, sức chứa), BL-71 (E: chú thích ²), BL-72 (chủ dự án duyệt Phase 7), cộng BL-56, 59, 62, 64–68 như trước.
 - **Bắt đầu Phase 8** (US6 tạm vắng, T048 → T056, `tasks.md`): xác minh HEAD và `git status` sạch, `git fetch`; đọc lại tasks Phase 8, spec FR-048 → FR-061, research T-07 → T-09, nghiệp vụ BR-M02-06, 07, 17, 18; test trước (T048 → T050) phải đỏ; migration `V004_07__absence.sql` (data-model mục 8). Phụ thuộc: `ResidentStatusApi` của 001 (`CHO_TAM_VANG`, `CHUYEN_VIEN`, `GHI_NHAN_TRO_VE` đã có bean `M02StatusParticipant` kiểm `validateDetails`), `BanGhiDonPort` (012, bản giả), `TrangThaiCoMatBanTruPort` (005, bản giả); giữ giường cần 003 (chưa có, không tự khai báo). Chạy test: `export DB_URL=jdbc:mysql://localhost:3307/elder_care_demo TEST_DB_URL=jdbc:mysql://localhost:3307/eldercare_test`, `./mvnw verify -Dtest=NoSuchTest -Dit.test='A,B' -Dsurefire.failIfNoSpecifiedTests=false`; không đụng 3306. Đến Phase 9 nhớ đóng yêu cầu thay đổi lưu trú còn mở bằng `closeForFinalState` (team-plan mục 8).
+
+## Ghi chú triển khai Phase 8 (2026-10-26, chờ chủ dự án duyệt checkpoint)
+
+- **Đã làm**: T048, T050, T051, T052, T055 `[x]`. T049, T053, T054 `[ ]` vì còn phần chờ 003 (xem tasks.md); T056 chờ duyệt bố cục. Tên theo glossary 10.14.
+- **Kiểm**: `./mvnw clean verify` (JDK 25, MySQL 3307): 301 đơn vị + 1185 tích hợp, 0 lỗi (Phase 7: 290 + 1151). Test mới: 11 đơn vị (`BR_M02_06_AbsencePolicyLookupTest`, `BR_M02_17_ManagerDecidesDay1Test`), 34 tích hợp (`AbsenceDayIT` 9, `BR_M02_07_BedHoldDecisionIT` 6, `BR_M02_18_CorrectionOverThresholdIT` 6, `FR_057_TransferOutDuringAbsenceIT` 4, `DayCareCoefficientIT` 4, `DayCareClosureDayIT` 5). Sửa test cũ: `M02StatusParticipantTest` (5 tham số), `LowerModuleSpiTest` (`AbsenceLookup` thật), `FakeM02Test`/`FakePickupRecords` (lỗi 409 `PICKUP_RECORD_ALREADY_USED`), `ApiContractIT` (bớt 9 endpoint khỏi `pending`).
+- **Quyết định kỹ thuật (B, chờ duyệt)**:
+  1. Migration `V004_07__absence.sql` (6 bảng, trigger bất biến khi đóng; `absence_day.hold_policy` lưu chế độ giữ giường của dòng áp dụng để tra ngưỡng bằng một truy vấn; bản đầu tính lại cả khoảng ngày làm `BR_M02_19_CatchUpRunIT` treo).
+  2. `AbsencePolicyResolver` (hàm thuần): nhóm `HOME_OR_OUTING` chỉ gồm Về nhà, Đi chơi (6.7); Đi khám trong ngày, Lý do khác chỉ có dòng khi bảng hoặc hợp đồng nêu riêng hoặc dùng `ANY`. Lệch với `NonStandardTermDetector.absence()` (Phase 5) gộp cả bốn loại: chưa sửa, cần chủ dự án xem.
+  3. `absence_day.hold_bed` = giường đang được giữ vào ngày đó; quyết định thay hệ số mọi ngày nó phủ tới quyết định sau; `applies_from` = ngày ngưỡng (quyết định đầu) hoặc ngày quyết định (sau); COEFFICIENT_ONLY = các ngày chờ quyết định của lượt đã đóng.
+  4. Ngưỡng báo một lần (`threshold_notified_at`); ngày 1 "Quản lý quyết định" báo ngay lúc mở (BR-M02-17); không tạo yêu cầu (Q-307).
+  5. Chuyển viện khi đang Tạm vắng: đóng lượt cũ rồi mở lượt Bệnh viện (UNIQUE lượt mở), ngày chuyển thuộc lượt mới, giường giữ liên tục.
+  6. `CorrectionApi` tra trễ qua `ObjectProvider` (tránh vòng bean với `CorrectionService`); đính chính chỉ tính lại từ chỗ đổi; `M02.BED_HOLD_DECISION` sửa được hệ số, ngày xem xét lại.
+  7. Hợp đồng api-004 giữ nguyên: gia hạn, khai báo, hủy ngày nghỉ không trả nội dung; `coefficient` bắt buộc (0% là giá trị điền sẵn của giao diện); thân đính chính đặt tên schema `AbsenceCorrectionBody` (trùng `CorrectionBody` của m15 làm springdoc lẫn).
+  8. `PickupRecordPort` tra qua `ObjectProvider`: chưa có 012 thì điều kiện `ABS_PICKUP_RECORD` chưa thỏa (Cho tạm vắng 409 ở môi trường chạy thật).
+  9. `DayCareAbsenceNoticeRecorded.sessionId` đổi `long` → `Long` (rỗng là cả ngày). Buổi thuộc 005 nên 004 dùng giờ đến sớm nhất của ngày để xác định báo trước đủ CFG-M02-06.
+  10. `absence.reason` chưa ghi: `CommandContext` của 001 không mang lý do lệnh; cần thêm trường (module 001 của B) nếu chủ dự án muốn.
+- **Bẫy**: test đổi tham số phải `clock.reset()` trước, vì `parameter_history` xếp theo `effective_from` và dòng ở tương lai làm lệch `ParameterTableIT` (A).
+
+## PHASE 9 HANDOFF (2026-10-26)
+
+- Chủ dự án duyệt checkpoint Phase 8 (backend, 2026-10-26); đã commit và push nhánh `impl/004-admission-residency`, chưa PR. Bắt đầu Phase 9 (US7, T057 → T061): `git status`, test trước, migration `V004_08__residency_ending.sql`.
+- Task Phase 8: `[x]` T048, T050, T051, T052, T055; `[ ]` T049, T053, T054 (chờ 003, T069), T056 (chờ bố cục).
+- Đã có: migration `V004_07__absence.sql` (không sửa), `internal/absence` (policy, calculator, service, transition, task `ABSENCE_DAYS`, provider đính chính), 9 endpoint khớp api-004 trong `ApiContractIT`, `AbsenceApi.open` thật, sự kiện `DayCareAbsenceNoticeRecorded.sessionId` là `Long`.
+- Blocker: BL-73 (C/003 giữ/giải phóng giường), BL-74 (E/012 `PickupRecordPort`), BL-75 (10 quyết định kỹ thuật, `NonStandardTermDetector` lệch nhóm, `absence.reason`), BL-76 (bố cục web). Chưa quyết định thay chủ dự án.
+- Verify cuối Phase 8: `./mvnw clean verify` JDK 25, MySQL 3307: 301 đơn vị + 1185 IT, 0 lỗi, 0 bỏ qua, BUILD SUCCESS.
+- Còn mở từ Phase 8: `giuGiuongKhiVang`, `giaiPhongGiuongKhiVang` (C/003), web `vang-mat` và app (T056, bố cục), `TrangThaiCoMatBanTruPort` cho ngày bán trú ở T069.
+- Phase 9/10 phải đóng lượt vắng đang mở khi `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI` (thêm hàm đóng ở `AbsenceTransition`, ghi nốt ngày trước khi đóng) và gọi `closeForFinalState` cho yêu cầu thay đổi lưu trú.
+- Chạy test: `DB_URL`, `TEST_DB_URL` về 3307; mysqld 3307 dùng datadir cũ ở scratchpad phiên 221e9972 (bật bằng `mysqld --no-defaults --datadir=… --port=3307`).
