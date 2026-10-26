@@ -157,10 +157,9 @@ class ContractContentLockDbIT extends M02TestBase {
         assertThatThrownBy(() -> jdbc.update(insert, id, 0, today().plusDays(1)))
                 .as("UNIQUE (hợp đồng, số thứ tự)")
                 .isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update(insert, id, 1, today()))
-                .as("UNIQUE (hợp đồng, hieu_luc_tu)")
-                .isInstanceOf(DataAccessException.class);
-        assertThat(jdbc.update(insert, id, 1, today().plusDays(30))).isEqualTo(1);
+        // V004_06 bỏ UNIQUE (hợp đồng, hieu_luc_tu): hai phụ lục khác thuộc tính được cùng ngày hiệu lực
+        assertThat(jdbc.update(insert, id, 1, today())).isEqualTo(1);
+        assertThat(jdbc.update(insert, id, 2, today().plusDays(30))).isEqualTo(1);
     }
 
     @Test
