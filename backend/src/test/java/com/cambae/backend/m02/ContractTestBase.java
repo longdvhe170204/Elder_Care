@@ -52,6 +52,13 @@ abstract class ContractTestBase extends M02TestBase {
     @Autowired
     protected FileApi files;
 
+    /**
+     * Quản lý viện dùng chung giữa các test: mỗi tài khoản Quản lý viện tạo thêm đều vào danh sách người duyệt của mọi sự kiện
+     * {@code RequestSubmitted} (cột {@code SERIALIZED_EVENT} dài 4000), nên tạo mới ở mỗi test làm sự kiện vượt cột khi bộ test
+     * đủ lớn (phát hiện ở Phase 9). Tạo lại khi schema test đã dựng lại.
+     */
+    private static TestUser sharedManager;
+
     protected TestUser manager;
     protected long basicCare;
     protected long regularCare;
@@ -59,7 +66,7 @@ abstract class ContractTestBase extends M02TestBase {
 
     @BeforeEach
     void contractSetup() throws SQLException {
-        manager = users.staff(Role.NURSING_HOME_MANAGER);
+        manager = sharedManager();
         representatives.reset();
         clock.reset();
         cleanDailyState();
@@ -67,6 +74,21 @@ abstract class ContractTestBase extends M02TestBase {
         basicCare = service("CARE", "Chăm sóc cơ bản", "BASIC", 5_000_000);
         regularCare = service("CARE", "Chăm sóc thường xuyên", "REGULAR", 8_000_000);
         meal = service("MEAL", "Suất ăn thêm", null, 600_000);
+    }
+
+    private TestUser sharedManager() {
+        TestUser cached = sharedManager;
+        if (cached != null
+                && jdbc.queryForObject(
+                                "SELECT COUNT(*) FROM account WHERE id = ? AND staff_id = ?",
+                                Integer.class,
+                                cached.accountId(),
+                                cached.staffId())
+                        == 1) {
+            return cached;
+        }
+        sharedManager = users.staff(Role.NURSING_HOME_MANAGER);
+        return sharedManager;
     }
 
     @AfterEach
