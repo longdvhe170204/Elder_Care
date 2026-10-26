@@ -23,7 +23,12 @@ public class ResidencyLock {
     /** Chạy trong transaction của lệnh; khóa giữ tới khi transaction kết thúc. */
     @Transactional(propagation = Propagation.MANDATORY)
     public void lock(long residentId) {
-        jdbc.update("INSERT IGNORE INTO resident_residency (resident_id) VALUES (?)", residentId);
+        // ON DUPLICATE KEY UPDATE lấy khóa X ngay trên dòng sẵn có; INSERT IGNORE chỉ lấy khóa S nên hai lệnh đồng thời
+        // cùng
+        // nâng lên X ở SELECT … FOR UPDATE sẽ bế tắc (phát hiện ở EndingConcurrencyIT)
+        jdbc.update(
+                "INSERT INTO resident_residency (resident_id) VALUES (?) ON DUPLICATE KEY UPDATE resident_id = resident_id",
+                residentId);
         jdbc.queryForObject(
                 "SELECT resident_id FROM resident_residency WHERE resident_id = ? FOR UPDATE", Long.class, residentId);
     }

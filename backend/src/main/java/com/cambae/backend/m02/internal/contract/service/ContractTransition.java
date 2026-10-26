@@ -9,6 +9,7 @@ import com.cambae.backend.m02.internal.transition.service.ResidencyLock;
 import com.cambae.backend.m15.auditlog.api.AuditAction;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
+import java.time.LocalDate;
 import java.util.Map;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -16,16 +17,18 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Phần của hợp đồng trong lệnh Hủy tiếp nhận của 001 (FR-002, FR-027; bảng trạng thái hợp đồng), do {@code
+ * Phần của hợp đồng trong lệnh Hủy tiếp nhận và Kết thúc lưu trú của 001 (FR-002, FR-027, FR-065; bảng trạng thái hợp đồng), do {@code
  * M02StatusParticipant} gọi trong transaction của lệnh (001 đã khóa dòng hồ sơ; ở đây khóa tiếp {@code resident_residency},
  * rồi từng hợp đồng): hợp đồng Nháp và Chờ ký thành Đã hủy; hợp đồng Hiệu lực thành Chấm dứt, lý do chấm dứt trỏ về lịch sử
- * trạng thái của lệnh (lý do của lệnh nằm ở đó). Kết thúc lưu trú sớm, ghi nhận qua đời thuộc user story của chúng.
+ * trạng thái của lệnh (lý do của lệnh nằm ở đó). Kết thúc lưu trú: Kết thúc hoặc Chấm dứt theo ngày kết thúc hợp đồng
+ * ({@link #residencyEnded}). Ghi nhận qua đời thuộc user story 8.
  */
 @Component
 public class ContractTransition {
 
     static final AuditAction CANCELLED_BY_ADMISSION = new AuditAction("M02_CONTRACT_CANCELLED", false);
     static final AuditAction TERMINATED = new AuditAction("M02_CONTRACT_TERMINATED", false);
+    static final AuditAction ENDED = new AuditAction("M02_CONTRACT_ENDED", false);
 
     private final ContractStore store;
     private final ResidencyLock residencyLock;
@@ -57,6 +60,36 @@ public class ContractTransition {
                     record(contract, ContractStatus.TERMINATED, TERMINATED, result, reason);
                 }
                 default -> {}
+            }
+        }
+    }
+
+    /**
+     * Lệnh Kết thúc lưu trú (FR-027, FR-065): hợp đồng Hiệu lực chuyển Kết thúc khi thời điểm hiệu lực không sớm hơn ngày kết thúc
+     * hiện hành (dấu "quá hạn hợp đồng" được gỡ, FR-029), ngược lại hoặc khi hợp đồng không có ngày kết thúc thì chuyển Chấm
+     * dứt, lý do trỏ về lịch sử trạng thái của lệnh. Hợp đồng Nháp, Chờ ký của lần tái ký giữ nguyên.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void residencyEnded(TransitionResult result, LocalDate effectiveDate) {
+        long residentId = result.residentId();
+        residencyLock.lock(residentId);
+        for (Contract listed : store.ofResident(residentId)) {
+            Contract contract = store.lock(listed.id()).orElseThrow();
+            if (contract.status() != ContractStatus.ACTIVE) {
+                continue;
+            }
+            LocalDate end = contract.currentEndDate();
+            if (end != null && !effectiveDate.isBefore(end)) {
+                store.transition(contract.id(), ContractStatus.ACTIVE, ContractStatus.ENDED);
+                if (contract.overdueSince() != null) {
+                    store.setOverdueSince(contract.id(), null);
+                }
+                record(contract, ContractStatus.ENDED, ENDED, result, null);
+            } else {
+                String reason = "Kết thúc lưu trú sớm hơn ngày kết thúc hợp đồng (lịch sử trạng thái "
+                        + result.historyId() + ")";
+                store.markTerminated(contract.id(), reason);
+                record(contract, ContractStatus.TERMINATED, TERMINATED, result, reason);
             }
         }
     }
