@@ -246,6 +246,16 @@ public class ResidencyEndingStore {
                 endingId);
     }
 
+    /** Có ngoại lệ đã duyệt của mục quyết toán sau qua đời, không gắn hồ sơ kết thúc (FR-071a, Q-387). */
+    public boolean hasPostDeathSettlementException(long residentId) {
+        return jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM ending_condition_exception WHERE resident_id = ? AND ending_id IS NULL"
+                                + " AND condition_code = 'END_H_SETTLEMENT'",
+                        Integer.class,
+                        residentId)
+                > 0;
+    }
+
     // ---- Ánh xạ ----------------------------------------------------------------------------------------------------
 
     private ResidencyEnding map(ResultSet rs, int row) throws SQLException {
