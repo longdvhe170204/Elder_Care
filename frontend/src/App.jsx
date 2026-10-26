@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { ApiError, getMe, postAuthLogout } from '@/api'
 import { AppShell } from '@/common/layout/AppShell'
-import { NAV_GROUPS, navForRole } from '@/common/layout/navigation'
-import { NotDesignedState, PermissionDeniedState } from '@/common/PageState'
+import { NAV_GROUPS, canSee, navForRole } from '@/common/layout/navigation'
+import { PermissionsProvider, usePermissions } from '@/common/permissions/permissions'
+import { PermissionDeniedState } from '@/common/PageState'
 import { homeOf, primaryRole } from '@/common/session'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ResidentListPage } from '@/features/residents/ResidentListPage'
@@ -44,8 +45,28 @@ const PAGES = {
   notifications: NotificationsPage,
 }
 
-function firstPage(role) {
-  return navForRole(role)[0].items[0].key
+// Mục menu chỉ hiện khi đã có màn
+const BUILT = new Set(Object.keys(PAGES))
+
+function firstPage(role, hasFunction = null) {
+  return navForRole(role, hasFunction, BUILT)[0]?.items[0].key
+}
+
+// Có phiên thật: menu và quyền mở màn theo GET /me/permissions; chưa tải xong thì chưa vẽ để menu không nháy, lỗi thì
+// lùi về lọc theo vai trò. Màn đang mở không được phép (mặc định Tổng quan) thì sang mục đầu tiên được phép.
+function LivePermissions({ role, page, onNavigate, render }) {
+  const { status, hasFunction } = usePermissions()
+  const check = status === 'ready' ? hasFunction : null
+  const item = NAV_GROUPS.flatMap((g) => g.items).find((i) => i.key === page)
+  const misplaced = status !== 'loading' && (!item || !canSee(item, role, check, BUILT))
+  const first = misplaced ? firstPage(role, check) : null
+
+  useEffect(() => {
+    if (first && first !== page) onNavigate(first)
+  }, [first, page, onNavigate])
+
+  if (status === 'loading') return null
+  return render(check)
 }
 
 function App() {
@@ -99,7 +120,7 @@ function App() {
 
   function changeRole(nextRole) {
     setRole(nextRole)
-    const allowed = navForRole(nextRole).flatMap((g) => g.items.map((i) => i.key))
+    const allowed = navForRole(nextRole, null, BUILT).flatMap((g) => g.items.map((i) => i.key))
     if (!allowed.includes(page)) navigate(firstPage(nextRole))
   }
 
@@ -108,26 +129,35 @@ function App() {
 
   const Page = PAGES[page]
   const item = NAV_GROUPS.flatMap((g) => g.items).find((i) => i.key === page)
-  // Chặn hiển thị khi vai trò không có quyền (quyền thật do backend trả, backend vẫn kiểm)
-  const allowed = item?.roles.includes(role)
 
+  const shell = (hasFunction) => {
+    // Chặn hiển thị khi không có quyền (quyền thật do backend trả, backend vẫn kiểm)
+    const allowed = item && canSee(item, role, hasFunction, BUILT)
+    return (
+      <AppShell
+        role={role}
+        hasFunction={hasFunction}
+        built={BUILT}
+        onRoleChange={changeRole}
+        session={session}
+        onLogout={logout}
+        page={page}
+        onPageChange={(key) => navigate(key)}
+      >
+        {allowed ? (
+          <Page key={`${page}:${JSON.stringify(params)}`} role={role} onNavigate={navigate} {...params} />
+        ) : (
+          <PermissionDeniedState label={item?.label ?? 'màn này'} />
+        )}
+      </AppShell>
+    )
+  }
+
+  if (!session) return shell(null)
   return (
-    <AppShell
-      role={role}
-      onRoleChange={changeRole}
-      session={session}
-      onLogout={logout}
-      page={page}
-      onPageChange={(key) => navigate(key)}
-    >
-      {!allowed ? (
-        <PermissionDeniedState label={item?.label ?? 'màn này'} />
-      ) : Page ? (
-        <Page key={`${page}:${JSON.stringify(params)}`} role={role} onNavigate={navigate} {...params} />
-      ) : (
-        <NotDesignedState label={item.label} />
-      )}
-    </AppShell>
+    <PermissionsProvider>
+      <LivePermissions role={role} page={page} onNavigate={navigate} render={shell} />
+    </PermissionsProvider>
   )
 }
 

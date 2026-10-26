@@ -1,10 +1,14 @@
 package com.cambae.backend.m07.internal.domain;
 
+import com.cambae.backend.common.data.DataGroup;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 
+/** Lần tiếp nhận thuốc cung ứng (data-model mục 9a, FR-054): nhóm 3, chỉ thêm; sai sót sửa bằng đính chính. */
 @Entity
+@DataGroup(DataGroup.Group.RECORD)
 @Table(name = "supplied_medication_intake")
 public class SuppliedMedicationIntake {
 
@@ -24,14 +28,29 @@ public class SuppliedMedicationIntake {
     @Column(name = "prescription_id", nullable = false)
     private Long prescriptionId;
 
+    @Column(name = "medication_id", nullable = false)
+    private Long medicationId;
+
     @Column(name = "medication_name", nullable = false)
     private String medicationName;
+
+    @Column(name = "concentration", nullable = false, length = 100)
+    private String concentration;
+
+    @Column(name = "dosage_form", nullable = false, length = 100)
+    private String dosageForm;
 
     @Column(name = "quantity_received", nullable = false, precision = 10, scale = 2)
     private BigDecimal quantityReceived;
 
     @Column(name = "unit", nullable = false, length = 50)
     private String unit;
+
+    @Column(name = "expiry_date", nullable = false)
+    private LocalDate expiryDate;
+
+    @Column(name = "item_condition", nullable = false, length = 500)
+    private String condition;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "intake_result", nullable = false)
@@ -43,6 +62,9 @@ public class SuppliedMedicationIntake {
     @Column(name = "reason", length = 2000)
     private String reason;
 
+    @Column(name = "deliverer_name", nullable = false)
+    private String delivererName;
+
     @Column(name = "receiver_id", nullable = false)
     private Long receiverId;
 
@@ -53,38 +75,50 @@ public class SuppliedMedicationIntake {
     private Instant createdAt;
 
     public enum IntakeResult {
-        PASS,
-        FAIL
+        PASSED,
+        NOT_PASSED
     }
 
-    public SuppliedMedicationIntake() {}
+    protected SuppliedMedicationIntake() {}
 
     public SuppliedMedicationIntake(
             Long procurementLineId,
             Long procurementRequestId,
             Long residentId,
             Long prescriptionId,
+            Long medicationId,
             String medicationName,
+            String concentration,
+            String dosageForm,
             BigDecimal quantityReceived,
             String unit,
+            LocalDate expiryDate,
+            String condition,
             IntakeResult intakeResult,
             String discrepancy,
             String reason,
+            String delivererName,
             Long receiverId,
-            Instant receivedAt) {
+            Instant now) {
         this.procurementLineId = procurementLineId;
         this.procurementRequestId = procurementRequestId;
         this.residentId = residentId;
         this.prescriptionId = prescriptionId;
+        this.medicationId = medicationId;
         this.medicationName = medicationName;
+        this.concentration = concentration;
+        this.dosageForm = dosageForm;
         this.quantityReceived = quantityReceived;
         this.unit = unit;
+        this.expiryDate = expiryDate;
+        this.condition = condition;
         this.intakeResult = intakeResult;
         this.discrepancy = discrepancy;
         this.reason = reason;
+        this.delivererName = delivererName;
         this.receiverId = receiverId;
-        this.receivedAt = receivedAt;
-        this.createdAt = Instant.now();
+        this.receivedAt = now;
+        this.createdAt = now;
     }
 
     public Long getId() {
@@ -107,8 +141,20 @@ public class SuppliedMedicationIntake {
         return prescriptionId;
     }
 
+    public Long getMedicationId() {
+        return medicationId;
+    }
+
     public String getMedicationName() {
         return medicationName;
+    }
+
+    public String getConcentration() {
+        return concentration;
+    }
+
+    public String getDosageForm() {
+        return dosageForm;
     }
 
     public BigDecimal getQuantityReceived() {
@@ -117,6 +163,14 @@ public class SuppliedMedicationIntake {
 
     public String getUnit() {
         return unit;
+    }
+
+    public LocalDate getExpiryDate() {
+        return expiryDate;
+    }
+
+    public String getCondition() {
+        return condition;
     }
 
     public IntakeResult getIntakeResult() {
@@ -129,6 +183,10 @@ public class SuppliedMedicationIntake {
 
     public String getReason() {
         return reason;
+    }
+
+    public String getDelivererName() {
+        return delivererName;
     }
 
     public Long getReceiverId() {

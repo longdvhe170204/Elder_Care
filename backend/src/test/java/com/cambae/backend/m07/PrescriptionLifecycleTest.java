@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.cambae.backend.common.error.ConditionNotMetException;
+import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m07.api.dto.MedicationSource;
 import com.cambae.backend.m07.internal.domain.DoseCancellationReason;
 import com.cambae.backend.m07.internal.domain.DoseStatus;
@@ -33,17 +34,19 @@ import com.cambae.backend.m07.internal.service.PrescriptionCheckResult;
 import com.cambae.backend.m07.internal.service.PrescriptionService;
 import com.cambae.backend.m07.internal.service.PrescriptionValidator;
 import com.cambae.backend.m07.internal.service.ReconciliationCheckPort;
-import com.cambae.backend.m07.web.request.ChangeDosageBody;
-import com.cambae.backend.m07.web.request.CreatePrescriptionBody;
-import com.cambae.backend.m07.web.request.DiscontinuePrescriptionBody;
-import com.cambae.backend.m07.web.request.ExtendPrescriptionBody;
-import com.cambae.backend.m07.web.request.ExternalBasisBody;
-import com.cambae.backend.m07.web.request.FrequencyBody;
-import com.cambae.backend.m07.web.request.OrderPrescriptionBody;
-import com.cambae.backend.m07.web.request.PrescriberBody;
-import com.cambae.backend.m07.web.response.PrescriptionResponse;
+import com.cambae.backend.m07.internal.service.request.ChangeDosageBody;
+import com.cambae.backend.m07.internal.service.request.CreatePrescriptionBody;
+import com.cambae.backend.m07.internal.service.request.DiscontinuePrescriptionBody;
+import com.cambae.backend.m07.internal.service.request.ExtendPrescriptionBody;
+import com.cambae.backend.m07.internal.service.request.ExternalBasisBody;
+import com.cambae.backend.m07.internal.service.request.FrequencyBody;
+import com.cambae.backend.m07.internal.service.request.OrderPrescriptionBody;
+import com.cambae.backend.m07.internal.service.request.PrescriberBody;
+import com.cambae.backend.m07.internal.service.response.PrescriptionResponse;
+import com.cambae.backend.m15.account.api.dto.Target;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -95,7 +98,9 @@ class PrescriptionLifecycleTest {
                 residentMedicationLock,
                 prescriptionValidator,
                 healthAllergyPort,
-                reconciliationCheckPort);
+                reconciliationCheckPort,
+                new BusinessTime(Clock.systemUTC()),
+                M07TestParameters.defaults());
 
         when(prescriptionValidator.validate(any(), any(), any(), any()))
                 .thenReturn(new PrescriptionCheckResult(List.of(), List.of()));
@@ -147,7 +152,8 @@ class PrescriptionLifecycleTest {
                 null,
                 1L,
                 Instant.parse("2026-10-20T00:00:00Z"),
-                Set.of(101L));
+                Set.of(101L),
+                Instant.now());
         setId(p, id);
         return p;
     }
@@ -173,7 +179,8 @@ class PrescriptionLifecycleTest {
                 MedicationSource.FACILITY,
                 false,
                 DoseStatus.UPCOMING,
-                1L);
+                1L,
+                Instant.now());
         when(doseRepository.findByPrescriptionIdAndStatusIn(eq(1001L), anyList()))
                 .thenReturn(List.of(openDose));
 
@@ -197,7 +204,7 @@ class PrescriptionLifecycleTest {
         newPresc.setStartedAt(Instant.now());
         body.setNewPrescription(newPresc);
 
-        PrescriptionResponse resp = prescriptionService.changeDosage(1001L, body, 1L, true);
+        PrescriptionResponse resp = prescriptionService.changeDosage(Target.UNSPECIFIED, 1001L, body, 1L, true);
 
         assertThat(resp).isNotNull();
         assertThat(oldPrescription.getStatus()).isEqualTo(PrescriptionStatus.DISCONTINUED);
@@ -211,19 +218,19 @@ class PrescriptionLifecycleTest {
     void cancelDosageChange_success() {
         Prescription oldPrescription =
                 createSamplePrescription(1001L, PrescriptionStatus.ACTIVE, PrescriberType.INTERNAL);
-        oldPrescription.setSuspendedFrom(Instant.parse("2026-10-25T08:00:00Z"));
+        oldPrescription.scheduleSuspensionFrom(Instant.parse("2026-10-25T08:00:00Z"));
         when(prescriptionRepository.findById(1001L)).thenReturn(Optional.of(oldPrescription));
 
         Prescription replacementPrescription =
                 createSamplePrescription(1002L, PrescriptionStatus.PENDING_EFFECTIVE, PrescriberType.INTERNAL);
-        replacementPrescription.setReplacesId(1001L);
+        replacementPrescription.markReplaces(1001L);
         when(prescriptionRepository.findById(1002L)).thenReturn(Optional.of(replacementPrescription));
         when(prescriptionRepository.save(any(Prescription.class))).thenAnswer(inv -> inv.getArgument(0));
 
         DiscontinuePrescriptionBody body = new DiscontinuePrescriptionBody();
         body.setDiscontinueAt(Instant.now());
 
-        PrescriptionResponse resp = prescriptionService.discontinue(1002L, body, 1L, true);
+        PrescriptionResponse resp = prescriptionService.discontinue(Target.UNSPECIFIED, 1002L, body, 1L, true);
 
         assertThat(resp.status()).isEqualTo(PrescriptionStatus.DISCONTINUED.name());
         assertThat(oldPrescription.getSuspendedFrom()).isNull();
@@ -238,11 +245,11 @@ class PrescriptionLifecycleTest {
         OrderPrescriptionBody body = new OrderPrescriptionBody();
         body.setExternalBasis(null); // Thiếu căn cứ
 
-        assertThatThrownBy(() -> prescriptionService.suspend(1003L, body, 2L, false))
+        assertThatThrownBy(() -> prescriptionService.suspend(Target.UNSPECIFIED, 1003L, body, 2L, false))
                 .isInstanceOf(ConditionNotMetException.class)
                 .satisfies(ex -> {
                     ConditionNotMetException cnme = (ConditionNotMetException) ex;
-                    assertThat(cnme.unmetConditions()).anyMatch(c -> c.code().equals("CAN_CU_CO_SO_KE"));
+                    assertThat(cnme.unmetConditions()).anyMatch(c -> c.code().equals("EXTERNAL_BASIS_REQUIRED"));
                 });
     }
 
@@ -262,7 +269,7 @@ class PrescriptionLifecycleTest {
         basis.setDocumentFileId(999L);
         body.setExternalBasis(basis);
 
-        PrescriptionResponse resp = prescriptionService.suspend(1003L, body, 2L, false);
+        PrescriptionResponse resp = prescriptionService.suspend(Target.UNSPECIFIED, 1003L, body, 2L, false);
 
         assertThat(resp.status()).isEqualTo(PrescriptionStatus.SUSPENDED.name());
         verify(prescriptionBasisRepository).save(any(PrescriptionBasis.class));
@@ -279,7 +286,7 @@ class PrescriptionLifecycleTest {
         body.setNewEndedAt(LocalDate.of(2026, 12, 31));
         body.setReason("Tiếp tục điều trị theo chỉ định");
 
-        PrescriptionResponse resp = prescriptionService.extend(1004L, body, 1L, true);
+        PrescriptionResponse resp = prescriptionService.extend(Target.UNSPECIFIED, 1004L, body, 1L, true);
 
         assertThat(resp.endedAt()).isEqualTo(LocalDate.of(2026, 12, 31));
     }
@@ -294,11 +301,11 @@ class PrescriptionLifecycleTest {
         body.setNewEndedAt(LocalDate.of(2026, 11, 10)); // Ngày cũ là 2026-11-20
         body.setReason("Rút ngắn");
 
-        assertThatThrownBy(() -> prescriptionService.extend(1004L, body, 1L, true))
+        assertThatThrownBy(() -> prescriptionService.extend(Target.UNSPECIFIED, 1004L, body, 1L, true))
                 .isInstanceOf(ConditionNotMetException.class)
                 .satisfies(ex -> {
                     ConditionNotMetException cnme = (ConditionNotMetException) ex;
-                    assertThat(cnme.unmetConditions()).anyMatch(c -> c.code().equals("NGAY_KET_THUC_KHONG_HOP_LE"));
+                    assertThat(cnme.unmetConditions()).anyMatch(c -> c.code().equals("INVALID_END_DATE"));
                 });
     }
 }

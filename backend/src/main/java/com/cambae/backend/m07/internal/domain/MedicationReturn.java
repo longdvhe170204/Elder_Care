@@ -1,5 +1,6 @@
 package com.cambae.backend.m07.internal.domain;
 
+import com.cambae.backend.common.data.DataGroup;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,6 +13,7 @@ import java.time.Instant;
  * Carried medication return record (FR-048a, FR-047).
  */
 @Entity
+@DataGroup(DataGroup.Group.RECORD)
 @Table(name = "medication_return")
 public class MedicationReturn {
 
@@ -32,16 +34,16 @@ public class MedicationReturn {
     private String reason;
 
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     protected MedicationReturn() {}
 
-    public MedicationReturn(Long handoverId, Long recordedById, Instant returnTime, String reason) {
+    public MedicationReturn(Long handoverId, Long recordedById, Instant returnTime, String reason, Instant now) {
         this.handoverId = handoverId;
         this.recordedById = recordedById;
-        this.returnTime = returnTime != null ? returnTime : Instant.now();
+        this.returnTime = returnTime != null ? returnTime : now;
         this.reason = reason;
-        this.createdAt = Instant.now();
+        this.createdAt = now;
     }
 
     public Long getId() {

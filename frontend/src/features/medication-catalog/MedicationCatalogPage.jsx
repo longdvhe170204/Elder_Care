@@ -25,58 +25,56 @@ import { PageHeader } from '@/common/PageHeader'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { cn } from '@/lib/utils'
 import {
-  createMedication,
-  deactivateMedication,
   getMedications,
-  updateMedication,
-} from './medicationApi'
+  getMedicationsById,
+  postMedications,
+  postMedicationsByIdDeactivate,
+  putMedicationsById,
+} from '@/api/api006'
 
 // Mock dữ liệu mẫu khởi tạo ban đầu khi chưa kết nối backend
 const INITIAL_DEMO_MEDICATIONS = [
   {
     id: 1,
-    ten: 'Paracetamol',
-    hamLuong: '500mg',
-    dangBaoChe: 'Viên nén',
-    duongDungMacDinh: 'Uống',
-    donViDung: 'viên',
-    hoatChat: [101],
-    cuaSoTruocPhut: 30,
-    cuaSoSauPhut: 30,
-    kiemSoatDacBiet: false,
-    hieuLuc: true,
-    chuaCoMucVatPham: false,
-    phienBan: 1,
+    name: 'Paracetamol',
+    concentration: '500mg',
+    dosageForm: 'Viên nén',
+    defaultRoute: 'Uống',
+    usageUnit: 'viên',
+    allergenIds: [101],
+    beforeWindowMinutes: 30,
+    afterWindowMinutes: 30,
+    specialControl: false,
+    active: true,
+    missingPricingItem: false,
   },
   {
     id: 2,
-    ten: 'Amlodipin',
-    hamLuong: '5mg',
-    dangBaoChe: 'Viên nang',
-    duongDungMacDinh: 'Uống',
-    donViDung: 'viên',
-    hoatChat: [201],
-    cuaSoTruocPhut: 60,
-    cuaSoSauPhut: 60,
-    kiemSoatDacBiet: false,
-    hieuLuc: true,
-    chuaCoMucVatPham: true, // FR-003: Chưa có mục vật phẩm viện
-    phienBan: 1,
+    name: 'Amlodipin',
+    concentration: '5mg',
+    dosageForm: 'Viên nang',
+    defaultRoute: 'Uống',
+    usageUnit: 'viên',
+    allergenIds: [201],
+    beforeWindowMinutes: 60,
+    afterWindowMinutes: 60,
+    specialControl: false,
+    active: true,
+    missingPricingItem: true, // FR-003: Chưa có mục vật phẩm viện
   },
   {
     id: 3,
-    ten: 'Morphin sulfat',
-    hamLuong: '10mg',
-    dangBaoChe: 'Dung dịch tiêm',
-    duongDungMacDinh: 'Tiêm dưới da',
-    donViDung: 'ống',
-    hoatChat: [301],
-    cuaSoTruocPhut: 15,
-    cuaSoSauPhut: 15,
-    kiemSoatDacBiet: true, // Thuốc kiểm soát đặc biệt
-    hieuLuc: true,
-    chuaCoMucVatPham: false,
-    phienBan: 1,
+    name: 'Morphin sulfat',
+    concentration: '10mg',
+    dosageForm: 'Dung dịch tiêm',
+    defaultRoute: 'Tiêm dưới da',
+    usageUnit: 'ống',
+    allergenIds: [301],
+    beforeWindowMinutes: 15,
+    afterWindowMinutes: 15,
+    specialControl: true, // Thuốc kiểm soát đặc biệt
+    active: true,
+    missingPricingItem: false,
   },
 ]
 
@@ -97,15 +95,15 @@ export function MedicationCatalogPage({ role }) {
 
   // Form State
   const [formValues, setFormValues] = useState({
-    ten: '',
-    hamLuong: '',
-    dangBaoChe: '',
-    duongDungMacDinh: '',
-    donViDung: '',
-    hoatChat: '',
-    cuaSoTruocPhut: '',
-    cuaSoSauPhut: '',
-    kiemSoatDacBiet: false,
+    name: '',
+    concentration: '',
+    dosageForm: '',
+    defaultRoute: '',
+    usageUnit: '',
+    allergenIds: '',
+    beforeWindowMinutes: '',
+    afterWindowMinutes: '',
+    specialControl: false,
   })
 
   const isManager = role === 'NURSING_HOME_MANAGER'
@@ -113,7 +111,7 @@ export function MedicationCatalogPage({ role }) {
   useEffect(() => {
     let cancelled = false
     const activeParam = filterStatus === 'ACTIVE' ? true : filterStatus === 'INACTIVE' ? false : undefined
-    getMedications({ q: search, hieuLuc: activeParam })
+    getMedications({ query: { q: search || undefined, active: activeParam } })
       .then(({ data }) => {
         if (cancelled) return
         if (Array.isArray(data)) {
@@ -130,13 +128,13 @@ export function MedicationCatalogPage({ role }) {
           const q = search.toLowerCase()
           filtered = filtered.filter(
             (m) =>
-              m.ten.toLowerCase().includes(q) ||
-              m.hamLuong.toLowerCase().includes(q) ||
-              m.dangBaoChe.toLowerCase().includes(q)
+              m.name.toLowerCase().includes(q) ||
+              m.concentration.toLowerCase().includes(q) ||
+              m.dosageForm.toLowerCase().includes(q)
           )
         }
-        if (filterStatus === 'ACTIVE') filtered = filtered.filter((m) => m.hieuLuc)
-        if (filterStatus === 'INACTIVE') filtered = filtered.filter((m) => !m.hieuLuc)
+        if (filterStatus === 'ACTIVE') filtered = filtered.filter((m) => m.active)
+        if (filterStatus === 'INACTIVE') filtered = filtered.filter((m) => !m.active)
         setItems(filtered)
         setLoading(false)
       })
@@ -149,15 +147,15 @@ export function MedicationCatalogPage({ role }) {
   function handleOpenCreate() {
     setEditingItem(null)
     setFormValues({
-      ten: '',
-      hamLuong: '',
-      dangBaoChe: '',
-      duongDungMacDinh: 'Uống',
-      donViDung: 'viên',
-      hoatChat: '101',
-      cuaSoTruocPhut: '30',
-      cuaSoSauPhut: '30',
-      kiemSoatDacBiet: false,
+      name: '',
+      concentration: '',
+      dosageForm: '',
+      defaultRoute: 'Uống',
+      usageUnit: 'viên',
+      allergenIds: '101',
+      beforeWindowMinutes: '30',
+      afterWindowMinutes: '30',
+      specialControl: false,
     })
     setProblem(null)
     setIsFormOpen(true)
@@ -166,15 +164,15 @@ export function MedicationCatalogPage({ role }) {
   function handleOpenEdit(item) {
     setEditingItem(item)
     setFormValues({
-      ten: item.ten,
-      hamLuong: item.hamLuong,
-      dangBaoChe: item.dangBaoChe,
-      duongDungMacDinh: item.duongDungMacDinh,
-      donViDung: item.donViDung,
-      hoatChat: Array.isArray(item.hoatChat) ? item.hoatChat.join(', ') : '',
-      cuaSoTruocPhut: item.cuaSoTruocPhut ?? '',
-      cuaSoSauPhut: item.cuaSoSauPhut ?? '',
-      kiemSoatDacBiet: item.kiemSoatDacBiet ?? false,
+      name: item.name,
+      concentration: item.concentration,
+      dosageForm: item.dosageForm,
+      defaultRoute: item.defaultRoute,
+      usageUnit: item.usageUnit,
+      allergenIds: Array.isArray(item.allergenIds) ? item.allergenIds.join(', ') : '',
+      beforeWindowMinutes: item.beforeWindowMinutes ?? '',
+      afterWindowMinutes: item.afterWindowMinutes ?? '',
+      specialControl: item.specialControl ?? false,
     })
     setProblem(null)
     setIsFormOpen(true)
@@ -186,27 +184,28 @@ export function MedicationCatalogPage({ role }) {
     setProblem(null)
 
     const payload = {
-      ten: formValues.ten.trim(),
-      hamLuong: formValues.hamLuong.trim(),
-      dangBaoChe: formValues.dangBaoChe.trim(),
-      duongDungMacDinh: formValues.duongDungMacDinh.trim(),
-      donViDung: formValues.donViDung.trim(),
-      hoatChat: formValues.hoatChat
+      name: formValues.name.trim(),
+      concentration: formValues.concentration.trim(),
+      dosageForm: formValues.dosageForm.trim(),
+      defaultRoute: formValues.defaultRoute.trim(),
+      usageUnit: formValues.usageUnit.trim(),
+      allergenIds: formValues.allergenIds
         .split(',')
         .map((s) => s.trim())
         .filter(Boolean)
         .map(Number),
-      cuaSoTruocPhut: formValues.cuaSoTruocPhut ? Number(formValues.cuaSoTruocPhut) : null,
-      cuaSoSauPhut: formValues.cuaSoSauPhut ? Number(formValues.cuaSoSauPhut) : null,
-      kiemSoatDacBiet: formValues.kiemSoatDacBiet,
+      beforeWindowMinutes: formValues.beforeWindowMinutes ? Number(formValues.beforeWindowMinutes) : null,
+      afterWindowMinutes: formValues.afterWindowMinutes ? Number(formValues.afterWindowMinutes) : null,
+      specialControl: formValues.specialControl,
     }
 
     try {
       if (editingItem) {
-        const etag = `"${editingItem.phienBan ?? 0}"`
-        await updateMedication(editingItem.id, etag, payload)
+        // Danh sách không kèm phiên bản: lấy ETag của thuốc ngay trước khi sửa
+        const { etag } = await getMedicationsById({ path: { id: editingItem.id } })
+        await putMedicationsById({ path: { id: editingItem.id }, headers: { 'If-Match': etag }, body: payload })
       } else {
-        await createMedication(payload)
+        await postMedications({ body: payload })
       }
       setIsFormOpen(false)
       setRefreshKey((k) => k + 1)
@@ -217,17 +216,14 @@ export function MedicationCatalogPage({ role }) {
         // Cập nhật local state giả lập nếu API chưa kết nối
         if (editingItem) {
           setItems((prev) =>
-            prev.map((m) =>
-              m.id === editingItem.id ? { ...m, ...payload, phienBan: (m.phienBan ?? 0) + 1 } : m
-            )
+            prev.map((m) => (m.id === editingItem.id ? { ...m, ...payload } : m))
           )
         } else {
           const newItem = {
             id: Date.now(),
             ...payload,
-            hieuLuc: true,
-            chuaCoMucVatPham: true,
-            phienBan: 0,
+            active: true,
+            missingPricingItem: true,
           }
           setItems((prev) => [newItem, ...prev])
         }
@@ -243,7 +239,10 @@ export function MedicationCatalogPage({ role }) {
     setFormSubmitting(true)
     setProblem(null)
     try {
-      await deactivateMedication(deactivatingItem.id, deactivateReason.trim())
+      await postMedicationsByIdDeactivate({
+        path: { id: deactivatingItem.id },
+        body: { reason: deactivateReason.trim() },
+      })
       setDeactivatingItem(null)
       setDeactivateReason('')
       setRefreshKey((k) => k + 1)
@@ -253,7 +252,7 @@ export function MedicationCatalogPage({ role }) {
       } else {
         // Fallback local state
         setItems((prev) =>
-          prev.map((m) => (m.id === deactivatingItem.id ? { ...m, hieuLuc: false } : m))
+          prev.map((m) => (m.id === deactivatingItem.id ? { ...m, active: false } : m))
         )
         setDeactivatingItem(null)
         setDeactivateReason('')
@@ -355,19 +354,19 @@ export function MedicationCatalogPage({ role }) {
                       <td className="px-4 py-3.5">
                         <div className="font-semibold text-foreground flex items-center gap-1.5">
                           <Pill className="h-4 w-4 text-primary shrink-0" />
-                          <span>{item.ten}</span>
+                          <span>{item.name}</span>
                         </div>
-                        <div className="text-xs text-muted-foreground font-mono">{item.hamLuong}</div>
+                        <div className="text-xs text-muted-foreground font-mono">{item.concentration}</div>
                       </td>
-                      <td className="px-4 py-3.5 text-foreground">{item.dangBaoChe}</td>
+                      <td className="px-4 py-3.5 text-foreground">{item.dosageForm}</td>
                       <td className="px-4 py-3.5">
-                        <div>{item.duongDungMacDinh}</div>
-                        <div className="text-xs text-muted-foreground">Đơn vị: {item.donViDung}</div>
+                        <div>{item.defaultRoute}</div>
+                        <div className="text-xs text-muted-foreground">Đơn vị: {item.usageUnit}</div>
                       </td>
                       <td className="px-4 py-3.5 font-mono text-xs">
-                        {item.cuaSoTruocPhut != null || item.cuaSoSauPhut != null ? (
+                        {item.beforeWindowMinutes != null || item.afterWindowMinutes != null ? (
                           <span>
-                            -{item.cuaSoTruocPhut ?? 'CFG'}m / +{item.cuaSoSauPhut ?? 'CFG'}m
+                            -{item.beforeWindowMinutes ?? 'CFG'}m / +{item.afterWindowMinutes ?? 'CFG'}m
                           </span>
                         ) : (
                           <span className="text-muted-foreground">Theo mặc định (CFG-M07-01)</span>
@@ -375,14 +374,14 @@ export function MedicationCatalogPage({ role }) {
                       </td>
                       <td className="px-4 py-3.5">
                         <div className="flex flex-col gap-1 items-start">
-                          {item.kiemSoatDacBiet && (
+                          {item.specialControl && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
                               <ShieldAlert className="h-3 w-3" /> Kiểm soát đặc biệt
                             </span>
                           )}
-                          {item.chuaCoMucVatPham && (
+                          {item.missingPricingItem && (
                             <span
-                              title="Thuốc nguồn viện chưa có dịch vụ THUOC_NGUON_VIEN ở 004 (FR-003)"
+                              title="Thuốc nguồn viện chưa có dịch vụ FACILITY_MEDICATION ở 004 (FR-003)"
                               className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300"
                             >
                               <AlertTriangle className="h-3 w-3" /> Chưa có mục vật phẩm viện
@@ -394,12 +393,12 @@ export function MedicationCatalogPage({ role }) {
                         <span
                           className={cn(
                             'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
-                            item.hieuLuc
+                            item.active
                               ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
                               : 'bg-muted text-muted-foreground'
                           )}
                         >
-                          {item.hieuLuc ? 'Hiệu lực' : 'Đã ngừng'}
+                          {item.active ? 'Hiệu lực' : 'Đã ngừng'}
                         </span>
                       </td>
                       {isManager && (
@@ -413,7 +412,7 @@ export function MedicationCatalogPage({ role }) {
                             >
                               <Edit2 className="h-3.5 w-3.5" />
                             </Button>
-                            {item.hieuLuc && (
+                            {item.active && (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -450,34 +449,34 @@ export function MedicationCatalogPage({ role }) {
 
           <form onSubmit={handleSaveForm} className="space-y-4 py-2">
             <div>
-              <Label htmlFor="ten">Tên thuốc *</Label>
+              <Label htmlFor="name">Tên thuốc *</Label>
               <Input
-                id="ten"
+                id="name"
                 required
-                value={formValues.ten}
-                onChange={(e) => setFormValues((v) => ({ ...v, ten: e.target.value }))}
+                value={formValues.name}
+                onChange={(e) => setFormValues((v) => ({ ...v, name: e.target.value }))}
                 placeholder="Ví dụ: Paracetamol"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="hamLuong">Hàm lượng *</Label>
+                <Label htmlFor="concentration">Hàm lượng *</Label>
                 <Input
-                  id="hamLuong"
+                  id="concentration"
                   required
-                  value={formValues.hamLuong}
-                  onChange={(e) => setFormValues((v) => ({ ...v, hamLuong: e.target.value }))}
+                  value={formValues.concentration}
+                  onChange={(e) => setFormValues((v) => ({ ...v, concentration: e.target.value }))}
                   placeholder="500mg, 10ml..."
                 />
               </div>
               <div>
-                <Label htmlFor="dangBaoChe">Dạng bào chế *</Label>
+                <Label htmlFor="dosageForm">Dạng bào chế *</Label>
                 <Input
-                  id="dangBaoChe"
+                  id="dosageForm"
                   required
-                  value={formValues.dangBaoChe}
-                  onChange={(e) => setFormValues((v) => ({ ...v, dangBaoChe: e.target.value }))}
+                  value={formValues.dosageForm}
+                  onChange={(e) => setFormValues((v) => ({ ...v, dosageForm: e.target.value }))}
                   placeholder="Viên nén, siro..."
                 />
               </div>
@@ -485,58 +484,58 @@ export function MedicationCatalogPage({ role }) {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="duongDungMacDinh">Đường dùng mặc định *</Label>
+                <Label htmlFor="defaultRoute">Đường dùng mặc định *</Label>
                 <Input
-                  id="duongDungMacDinh"
+                  id="defaultRoute"
                   required
-                  value={formValues.duongDungMacDinh}
-                  onChange={(e) => setFormValues((v) => ({ ...v, duongDungMacDinh: e.target.value }))}
+                  value={formValues.defaultRoute}
+                  onChange={(e) => setFormValues((v) => ({ ...v, defaultRoute: e.target.value }))}
                   placeholder="Uống, Tiêm..."
                 />
               </div>
               <div>
-                <Label htmlFor="donViDung">Đơn vị dùng *</Label>
+                <Label htmlFor="usageUnit">Đơn vị dùng *</Label>
                 <Input
-                  id="donViDung"
+                  id="usageUnit"
                   required
-                  value={formValues.donViDung}
-                  onChange={(e) => setFormValues((v) => ({ ...v, donViDung: e.target.value }))}
+                  value={formValues.usageUnit}
+                  onChange={(e) => setFormValues((v) => ({ ...v, usageUnit: e.target.value }))}
                   placeholder="viên, ml, gói..."
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="hoatChat">Mã dị nguyên / Hoạt chất (phân cách bằng dấu phẩy) *</Label>
+              <Label htmlFor="allergenIds">Mã dị nguyên / Hoạt chất (phân cách bằng dấu phẩy) *</Label>
               <Input
-                id="hoatChat"
+                id="allergenIds"
                 required
-                value={formValues.hoatChat}
-                onChange={(e) => setFormValues((v) => ({ ...v, hoatChat: e.target.value }))}
+                value={formValues.allergenIds}
+                onChange={(e) => setFormValues((v) => ({ ...v, allergenIds: e.target.value }))}
                 placeholder="101, 102..."
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="cuaSoTruocPhut">Cửa sổ trước (phút)</Label>
+                <Label htmlFor="beforeWindowMinutes">Cửa sổ trước (phút)</Label>
                 <Input
-                  id="cuaSoTruocPhut"
+                  id="beforeWindowMinutes"
                   type="number"
                   min="0"
-                  value={formValues.cuaSoTruocPhut}
-                  onChange={(e) => setFormValues((v) => ({ ...v, cuaSoTruocPhut: e.target.value }))}
+                  value={formValues.beforeWindowMinutes}
+                  onChange={(e) => setFormValues((v) => ({ ...v, beforeWindowMinutes: e.target.value }))}
                   placeholder="Mặc định CFG"
                 />
               </div>
               <div>
-                <Label htmlFor="cuaSoSauPhut">Cửa sổ sau (phút)</Label>
+                <Label htmlFor="afterWindowMinutes">Cửa sổ sau (phút)</Label>
                 <Input
-                  id="cuaSoSauPhut"
+                  id="afterWindowMinutes"
                   type="number"
                   min="0"
-                  value={formValues.cuaSoSauPhut}
-                  onChange={(e) => setFormValues((v) => ({ ...v, cuaSoSauPhut: e.target.value }))}
+                  value={formValues.afterWindowMinutes}
+                  onChange={(e) => setFormValues((v) => ({ ...v, afterWindowMinutes: e.target.value }))}
                   placeholder="Mặc định CFG"
                 />
               </div>
@@ -545,12 +544,12 @@ export function MedicationCatalogPage({ role }) {
             <div className="flex items-center gap-2 pt-1">
               <input
                 type="checkbox"
-                id="kiemSoatDacBiet"
-                checked={formValues.kiemSoatDacBiet}
-                onChange={(e) => setFormValues((v) => ({ ...v, kiemSoatDacBiet: e.target.checked }))}
+                id="specialControl"
+                checked={formValues.specialControl}
+                onChange={(e) => setFormValues((v) => ({ ...v, specialControl: e.target.checked }))}
                 className="rounded border-border text-primary focus:ring-primary h-4 w-4"
               />
-              <Label htmlFor="kiemSoatDacBiet" className="cursor-pointer font-normal text-sm">
+              <Label htmlFor="specialControl" className="cursor-pointer font-normal text-sm">
                 Thuốc kiểm soát đặc biệt (gây nghiện, hướng thần - FR-029)
               </Label>
             </div>
@@ -573,7 +572,7 @@ export function MedicationCatalogPage({ role }) {
           <DialogHeader>
             <DialogTitle>Ngừng hiệu lực thuốc</DialogTitle>
             <DialogDescription>
-              Thuốc <strong>{deactivatingItem?.ten} ({deactivatingItem?.hamLuong})</strong> sẽ không thể chọn
+              Thuốc <strong>{deactivatingItem?.name} ({deactivatingItem?.concentration})</strong> sẽ không thể chọn
               cho các đơn thuốc mới (FR-002). Thuốc đã có đơn tham chiếu không bị xóa.
             </DialogDescription>
           </DialogHeader>

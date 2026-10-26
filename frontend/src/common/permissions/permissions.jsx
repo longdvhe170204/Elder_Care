@@ -32,7 +32,12 @@ export function PermissionsProvider({ children }) {
 // eslint-disable-next-line react-refresh/only-export-components
 export function usePermissions() {
   const { status, keys } = useContext(PermissionsContext)
-  return { status, can: (fn, operation) => keys.has(keyOf(fn, operation)) }
+  return {
+    status,
+    can: (fn, operation) => keys.has(keyOf(fn, operation)),
+    // Có ít nhất một thao tác của chức năng (để hiện mục menu)
+    hasFunction: (fn) => [...keys].some((k) => k.startsWith(`${fn}:`)),
+  }
 }
 
 // Lệnh có trong allowedCommands mà backend trả cùng đối tượng

@@ -36,7 +36,7 @@ class BR_M07_01_MedicationScheduleTest {
 
     @BeforeEach
     void setUp() {
-        calculator = new MedicationScheduleCalculator();
+        calculator = new MedicationScheduleCalculator(M07TestParameters.defaults());
     }
 
     private Prescription createPrescription(
@@ -79,7 +79,8 @@ class BR_M07_01_MedicationScheduleTest {
                 null,
                 null,
                 Instant.now(),
-                java.util.Set.of());
+                java.util.Set.of(),
+                Instant.now());
 
         try {
             Field idField = Prescription.class.getDeclaredField("id");
@@ -274,7 +275,8 @@ class BR_M07_01_MedicationScheduleTest {
                 null,
                 null,
                 Instant.now(),
-                java.util.Set.of());
+                java.util.Set.of(),
+                Instant.now());
 
         List<CalculatedDoseSlot> schedule = calculator.calculate(
                 p, null, Instant.now(), Instant.now().plusSeconds(86400), Instant.now(), ScheduleContext.empty(1L));

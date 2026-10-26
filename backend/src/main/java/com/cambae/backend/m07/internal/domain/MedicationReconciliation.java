@@ -1,5 +1,6 @@
 package com.cambae.backend.m07.internal.domain;
 
+import com.cambae.backend.common.data.DataGroup;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,6 +16,7 @@ import java.time.Instant;
  * Medication reconciliation entity (FR-034 -> FR-039; research D-13, D-16).
  */
 @Entity
+@DataGroup(DataGroup.Group.BUSINESS)
 @Table(name = "medication_reconciliation")
 public class MedicationReconciliation {
 
@@ -46,7 +48,7 @@ public class MedicationReconciliation {
     private Long createdById;
 
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     @Column(name = "submitted_by_id")
     private Long submittedById;
@@ -78,20 +80,21 @@ public class MedicationReconciliation {
             String reasonDetail,
             Instant deadlineAt,
             Long createdById,
-            Instant createdAt) {
+            Instant createdAt,
+            Instant now) {
         this.residentId = residentId;
         this.reason = reason;
         this.reasonDetail = reasonDetail;
         this.deadlineAt = deadlineAt;
         this.createdById = createdById;
-        this.createdAt = createdAt != null ? createdAt : Instant.now();
+        this.createdAt = createdAt != null ? createdAt : now;
         this.status = ReconciliationStatus.OPEN;
     }
 
     public void submit(Long submittedById, Instant submittedAt) {
         this.status = ReconciliationStatus.PENDING_CONFIRMATION;
         this.submittedById = submittedById;
-        this.submittedAt = submittedAt != null ? submittedAt : Instant.now();
+        this.submittedAt = submittedAt;
         this.returnReason = null;
     }
 
@@ -103,7 +106,7 @@ public class MedicationReconciliation {
     public void confirm(Long confirmedById, Instant confirmedAt) {
         this.status = ReconciliationStatus.CONFIRMED;
         this.confirmedById = confirmedById;
-        this.confirmedAt = confirmedAt != null ? confirmedAt : Instant.now();
+        this.confirmedAt = confirmedAt;
     }
 
     public void cancel(String reason) {
@@ -139,10 +142,6 @@ public class MedicationReconciliation {
 
     public Instant getDeadlineAt() {
         return deadlineAt;
-    }
-
-    public void setDeadlineAt(Instant deadlineAt) {
-        this.deadlineAt = deadlineAt;
     }
 
     public Instant getOverdueAt() {

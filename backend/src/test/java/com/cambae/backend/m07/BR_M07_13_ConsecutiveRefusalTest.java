@@ -19,6 +19,9 @@ import org.junit.jupiter.api.Test;
  */
 class BR_M07_13_ConsecutiveRefusalTest {
 
+    // Ngưỡng của test, không phải mặc định CFG-M05-04 (service đọc qua ParameterApi)
+    private static final int THRESHOLD = 3;
+
     @Test
     @DisplayName("Empty list or no refusals returns 0")
     void testEmptyOrNoRefusals() {
@@ -30,8 +33,7 @@ class BR_M07_13_ConsecutiveRefusalTest {
                 new ClosedDoseView(2L, now.minus(4, ChronoUnit.HOURS), DoseStatus.NOT_ADMINISTERED));
 
         assertThat(ConsecutiveRefusalCounter.count(doses)).isEqualTo(0);
-        assertThat(ConsecutiveRefusalCounter.meetsThreshold(0, ConsecutiveRefusalCounter.DEFAULT_REFUSAL_THRESHOLD))
-                .isFalse();
+        assertThat(ConsecutiveRefusalCounter.meetsThreshold(0, THRESHOLD)).isFalse();
     }
 
     @Test
@@ -46,8 +48,7 @@ class BR_M07_13_ConsecutiveRefusalTest {
 
         int count = ConsecutiveRefusalCounter.count(doses);
         assertThat(count).isEqualTo(3);
-        assertThat(ConsecutiveRefusalCounter.meetsThreshold(count, ConsecutiveRefusalCounter.DEFAULT_REFUSAL_THRESHOLD))
-                .isTrue();
+        assertThat(ConsecutiveRefusalCounter.meetsThreshold(count, THRESHOLD)).isTrue();
     }
 
     @Test
@@ -64,8 +65,7 @@ class BR_M07_13_ConsecutiveRefusalTest {
 
         int count = ConsecutiveRefusalCounter.count(doses);
         assertThat(count).isEqualTo(2);
-        assertThat(ConsecutiveRefusalCounter.meetsThreshold(count, ConsecutiveRefusalCounter.DEFAULT_REFUSAL_THRESHOLD))
-                .isFalse();
+        assertThat(ConsecutiveRefusalCounter.meetsThreshold(count, THRESHOLD)).isFalse();
     }
 
     @Test
@@ -83,7 +83,6 @@ class BR_M07_13_ConsecutiveRefusalTest {
 
         int count = ConsecutiveRefusalCounter.count(doses);
         assertThat(count).isEqualTo(3);
-        assertThat(ConsecutiveRefusalCounter.meetsThreshold(count, ConsecutiveRefusalCounter.DEFAULT_REFUSAL_THRESHOLD))
-                .isTrue();
+        assertThat(ConsecutiveRefusalCounter.meetsThreshold(count, THRESHOLD)).isTrue();
     }
 }

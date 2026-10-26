@@ -2,6 +2,39 @@
 
 Ngày 2026-10-26. Nhánh `impl/008-staff-shift-handover`, HEAD `4fc4bdf`, commit đang được merge từ develop `4e1b7dd`. Người dùng đã tự commit/push Phase 9 và khởi động merge; AI chỉ xử lý conflict theo yêu cầu, không commit/push/đổi nhánh hoặc chạy merge lại.
 
+## Đồng bộ tiếp develop e548357 sau commit d308b05
+
+Ngày 2026-10-26: người dùng tự commit merge cũ và sửa demo tại d308b05. Fetch lại origin, merge --no-commit develop e548357, gặp ba conflict và đã được người dùng duyệt phương án trước khi gỡ. Bản sao ba file nằm ở TEMP/ElderCare-008-merge-e548357-6apzV0.
+
+| Phần | Kết quả lượt e548357 |
+| --- | --- |
+| Gỡ conflict | gen-api.mjs giữ 006/008; index.js sinh lại; AppShell lấy ICONS từ navIcons mới có BookOpen. Git còn 0 unmerged entry |
+| Tương thích menu Nhân sự | Gắn STAFF_PROFILE cho hasFunction; test mới đỏ rồi xanh, 11 test điều hướng xanh |
+| Backend đơn vị/kiến trúc | 619 test, 0 thất bại/lỗi/bỏ qua; đã qua các luật M07 từng đỏ ở lượt cũ |
+| Hợp đồng HTTP | ApiContractIT xanh, có cả 003/006/008; lỗi 89 đường dẫn thuốc của lượt cũ đã được xử lý trong develop |
+| Frontend | npm ci, gen:api, 332 test/57 file, lint/build xanh; còn cảnh báo kích thước chunk |
+| Clean verify toàn kho | **Đỏ**, 619 đơn vị/kiến trúc xanh; 1375 IT có **7 thất bại + 9 lỗi**, 0 bỏ qua; **12:54**. Tổng 1994 lượt test, chưa đạt gate toàn kho |
+| Hồi quy M09 | **90 đơn vị/kiến trúc + 246 IT = 336 xanh**, không lỗi/thất bại/bỏ qua |
+| Đối chiếu develop gốc | Chạy riêng chín lớp liên quan: **41 IT, 6 thất bại + 9 lỗi**; trùng đúng **15 tên test M01**. Một test M03 chỉ lỗi ở bản ghép, ghi riêng bên dưới |
+| Spotless | Chuẩn hóa LF → CRLF đúng cấu hình Git Windows cho 20 file đã ghép, nội dung Git không đổi. spotless:check xanh; failsafe:verify trên kết quả IT vẫn đỏ |
+| Database demo | Tài khoản ứng dụng vẫn đọc eldercare_demo thành công: **6 hồ sơ nhân viên, 5 bộ phận**; không chạy server demo trong lượt kiểm |
+| Git | HEAD vẫn d308b05, MERGE_HEAD e548357; chưa commit/push. Giữ các sửa demo của E |
+
+Không sửa mã nghiệp vụ M07 hoặc assertion của A/D. Kiểm trên eldercare_test, truyền mật khẩu kỹ thuật khớp demo theo hỗ trợ mới của lớp cơ sở test; không khởi động lại server demo. Log của lượt này ở TEMP nêu trên: npm-ci.log, gen-api.log, staff-menu-red.log, navigation-green.log, web-test.log, web-lint.log, web-build.log, clean-verify.log.
+
+### Các IT cần chủ module review sau lượt e548357
+
+| Nhóm | Bằng chứng / việc cần review |
+| --- | --- |
+| B/C: năm lớp M01, 9 lỗi | BR_M01_01_TemporaryAbsenceOverdueIT, BR_M01_02_ReassessmentNoticeIT, CompleteAdmissionConsentIT, CompleteAdmissionWishWarningsIT, StatusHistoryIT: nguồn lưu trú của participant M03 chưa có / điều kiện hoàn tất chưa thỏa. Các tên test lỗi đều tái hiện trên develop gốc |
+| B/C: FR_034a_CompleteAdmissionIT, 4 thất bại | Kết quả có thêm ALLOCATION_SOURCE_UNAVAILABLE so với fixture mong đợi; tái hiện trên develop gốc |
+| B: FR_023h_KhongDauNangLucIT và ResidentContractIT, 2 thất bại | Kiểm OpenAPI đang quét dữ liệu/đường dẫn module khác: capacity hợp lệ của M03 và các đường dẫn resident của thuốc; tái hiện trên develop gốc, không thay assertion/schema để bỏ qua |
+| C/B/E: FR_035_LocationHistoryHttpIT.FR_036_missingM01AbsenceSourceFailsClosed, 1 thất bại | Bản ghép nhận 404 thay 503, develop gốc xanh. Fixture hiện không giả lập lỗi nguồn tường minh mà dùng spy ResidentStatusApi; bản E có hàm đọc statusPeriods đã được duyệt, khác stub chưa cài trên develop. Cần rà test nguồn thiếu và nhánh dữ liệu không tồn tại; chưa sửa test hoặc nghiệp vụ C/B |
+
+Tên phương thức và số đếm so sánh được lưu tại baseline-comparison.json trong TEMP; baseline-compile.log, baseline-spotless.log, baseline-integration.log là bằng chứng bản gốc. spotless-after-eol.log và failsafe-summary.log ghi kiểm sau chuẩn hóa xuống dòng. Không coi 15 test tái hiện baseline là bằng chứng rằng test M03 còn lại cũng có sẵn trên develop.
+
+Các phần bên dưới ghi bằng chứng của lượt merge 4e1b7dd và sửa demo trước đó; kết quả mới nhất của lượt e548357 nằm ở bảng trên.
+
 ## Phần đã ghép
 
 - 28 file conflict ban đầu: 21 add/add và 7 nội dung. Đã sao lưu bản đang conflict trước khi sửa vào `TEMP/ElderCare-008-merge-20261026-025605`.

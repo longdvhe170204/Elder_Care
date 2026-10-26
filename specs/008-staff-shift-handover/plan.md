@@ -380,6 +380,17 @@ mobile/lib/nhan-vien/
 - Spotless đúng hai file và 90 test đơn vị/kiến trúc M09 xanh, gồm ba test mới; hồ sơ chưa có tài khoản vẫn trả null. Không chạy IT/clean verify trong lượt này vì người dùng đang thử demo, lớp cơ sở IT tạo lại tài khoản MySQL đang được demo dùng. Chưa kết luận IT sau bản sửa đã xanh; cần lượt kiểm tách môi trường sau. Không commit/push hoặc sửa phần A.
 - Kiểm Edge headless profile riêng sau biên dịch: đăng nhập demo.quanly, mở Nhân sự, thấy tiêu đề và nút Thêm nhân viên, không lỗi JavaScript/API; không tạo/sửa nhân viên, tài khoản hoặc phụ trách trong database. Người dùng tiếp tục thao tác chỉ định/thay trên dữ liệu của mình. Đã ghi E/A review ở team-plan mục 8; bổ sung cách bấm và lưu ý đọc accountId vào manual-test-guide.md.
 
+### Đồng bộ develop e548357 — 2026-10-26
+
+- Người dùng tự chốt merge trước và các sửa demo tại d308b05. Sau khi xác nhận working tree sạch, fetch origin và merge --no-commit origin/develop (e548357, thêm năm commit so với 4e1b7dd), giữ nhánh 008, không rebase/commit/push. Người dùng duyệt phương án gỡ ba conflict trước khi sửa.
+- Generator giữ cả 006 và 008 trong tám hợp đồng đã dịch; npm ci và npm run gen:api thành công, index/client chỉ sinh lại bằng generator. AppShell theo cách của develop, đọc ICONS từ navIcons.js đã có BookOpen, giữ bản sửa trang trắng.
+- Menu mới của A lọc theo hasFunction; dòng Nhân sự của E bổ sung functions: STAFF_PROFILE để không rơi vào nhánh mặc định hiện cho mọi nhân viên. StaffNavigation.test.jsx tái hiện đỏ khi người không có quyền vẫn thấy menu, sau đó xanh khi nối đúng mã hiện có; không thêm quyền hay đổi hợp đồng. Nhóm điều hướng 11 test xanh.
+- Giữ bản sửa M07 và MySqlIntegrationTestBase của develop. Kiểm test chỉ trên eldercare_test cục bộ; truyền DB_PASSWORD/DB_RETENTION_PASSWORD khớp cấu hình demo để lớp cơ sở test không đổi mật khẩu dùng cho demo, giữ quyền ngoài schema test. Không chạy hoặc mở lại server demo của người dùng.
+- Kết quả cuối lượt clean verify: 619 test đơn vị/kiến trúc xanh; 1375 IT có 7 thất bại và 9 lỗi, không bỏ qua, thời gian 12:54. Riêng M09 có 90 đơn vị/kiến trúc và 246 IT = 336 xanh. ApiContractIT xanh gồm cả 006 và 008; frontend 332 test/57 file, lint/build xanh (cảnh báo chunk Vite).
+- Đối chiếu develop nguyên gốc xuất trong TEMP: chọn chín lớp IT liên quan, 41 test có 6 thất bại và 9 lỗi; tái hiện đúng 15 tên phương thức lỗi của M01 trong lượt toàn kho. Một phương thức M03 khác kết quả: FR_036_missingM01AbsenceSourceFailsClosed mong 503 nhưng bản ghép trả 404, baseline xanh. Test dùng spy ResidentStatusApi, trước đây bản 001 chưa cài statusPeriods; nhánh E đã cài riêng hàm đọc theo duyệt trước đó. C/B/E cần rà fixture nguồn lỗi và đường xử lý; không sửa assertion hoặc mã phần C/B trong lượt đồng bộ này.
+- Clean verify còn bắt 20 file Java từ lượt ghép cũ dùng LF trong working tree Windows core.autocrlf=true. Chỉ chuẩn hóa xuống dòng CRLF, kiểm không có diff Git ở backend; spotless:check sau đó xanh. Chạy failsafe:verify trên báo cáo IT đã lưu vẫn đỏ đúng các test trên, không chạy lại toàn bộ chức năng chỉ vì thay xuống dòng.
+- Ba conflict đã stage và git ls-files -u rỗng; HEAD vẫn d308b05, MERGE_HEAD e548357, chưa commit/push. Kết nối chỉ đọc bằng tài khoản ứng dụng vào eldercare_demo còn thành công, đếm được 6 hồ sơ và 5 bộ phận. Chi tiết ở merge-verification.md và team-plan mục 8; T043b/T044b/T049b vẫn giữ phần nghiệm thu còn chờ.
+
 ## Complexity Tracking
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
