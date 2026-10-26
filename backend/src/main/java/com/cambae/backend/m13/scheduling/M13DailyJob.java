@@ -19,7 +19,9 @@ public class M13DailyJob implements ScheduledJob {
     private final M13Jobs jobs;
     private final boolean onStartup;
 
-    public M13DailyJob(M13Jobs jobs, @Value("${eldercare.jobs.m13-daily.on-startup:true}") boolean onStartup) {
+    public M13DailyJob(
+            M13Jobs jobs,
+            @Value("${eldercare.jobs.m13-daily.on-startup:${eldercare.scheduling.enabled:true}}") boolean onStartup) {
         this.jobs = jobs;
         this.onStartup = onStartup;
     }

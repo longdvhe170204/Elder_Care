@@ -28,7 +28,8 @@ public class BedReadinessReminderJob implements ScheduledJob {
             BusinessTime time,
             SchedulerRuns runs,
             Environment environment,
-            @Value("${eldercare.jobs.bed-readiness-reminder.on-startup:true}") boolean startup) {
+            @Value("${eldercare.jobs.bed-readiness-reminder.on-startup:${eldercare.scheduling.enabled:true}}")
+                    boolean startup) {
         this.store = store;
         this.processor = processor;
         this.time = time;
