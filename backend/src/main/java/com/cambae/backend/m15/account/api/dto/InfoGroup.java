@@ -10,5 +10,8 @@ public enum InfoGroup {
     WISHES,
     COSTS,
     FINANCE,
-    INTERNAL_PUBLIC
+    INTERNAL_PUBLIC,
+    STAFF_CONTACT,
+    STAFF_RESTRICTED,
+    STAFF_REASON
 }

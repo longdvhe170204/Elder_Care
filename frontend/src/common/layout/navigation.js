@@ -69,6 +69,8 @@ export const NAV_GROUPS = [
   {
     label: 'Tầng và nhân sự',
     items: [
+      // Dòng Hồ sơ nhân viên, chứng chỉ (Phụ lục 27): Quản lý viện T, Trưởng tầng X.
+      { key: 'staff', label: 'Nhân sự', icon: 'Users', functions: ['STAFF_PROFILE'], roles: [QL, TT] },
       // Dòng "Phân bổ, chuyển giường" và "Cách ly phòng"
       { key: 'beds', label: 'Phòng, giường', icon: 'BedDouble', functions: ['BED_ALLOCATION', 'ROOM_ISOLATION'], roles: [QL, TT, HC, BS] },
       // Dòng "Lịch ca, phân công"

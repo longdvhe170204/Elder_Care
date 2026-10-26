@@ -107,13 +107,18 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
                 mvc.perform(get("/v3/api-docs")).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8));
 
         Set<String> inCode = operations(generated, "/api/v1");
-        inCode.removeIf(op -> !op.contains("/residents")
-                && !op.contains("/initial-health-records")
-                && !op.contains("/health-items")
-                && !op.contains("/assessments")
-                && !op.contains("/reassessments")
-                && !op.contains("/consents")
-                && !op.contains("/files"));
+        Set<String> residentRoots = Set.of(
+                "/residents",
+                "/initial-health-records",
+                "/health-items",
+                "/assessments",
+                "/reassessments",
+                "/consents",
+                "/files");
+        inCode.removeIf(op -> {
+            String path = op.substring(op.indexOf(' ') + 1);
+            return residentRoots.stream().noneMatch(root -> path.equals(root) || path.startsWith(root + "/"));
+        });
         assertThat(inCode).containsExactlyInAnyOrderElementsOf(IMPLEMENTED);
         assertThat(operations(contract, "")).containsAll(IMPLEMENTED);
 

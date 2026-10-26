@@ -45,6 +45,7 @@ BanGhiNhatKy.builder()
 - `ghiNgoaiTransaction(BanGhiNhatKy)` dùng `REQUIRES_NEW`. Chỉ hai nơi được gọi: ghi lỗi áp dụng (FR-037b) và ghi bản tóm tắt loại bỏ dữ liệu (FR-051).
 - Lần xuất báo cáo (016) và lần đăng nhập (002) gọi `ghi(...)` với `truoc`/`sau` rỗng (FR-043a). Riêng xuất báo cáo, 016 chỉ giao file sau khi transaction ghi nhật ký đã commit (FR-047).
 - *(Đổi api 2026-10-24, 016 US9)* `banGhiDaGhi(hanhDong, loaiDoiTuong, doiTuongId, nguoiThucHienId)` (`AuditLogApi.recorded`, trả `AuditLogRecord`): bản ghi của một hành động trên một loại đối tượng, mới nhất trước, tối đa 200 dòng; tham số rỗng là không lọc. Cho module ghi đọc lại hành động của mình (016: danh sách lần xuất, quyền tải tệp xuất). Không kiểm quyền, không che trường: module gọi tự kiểm.
+- *(Đổi api 2026-10-25, chủ dự án duyệt E cài; chờ A review)* `AuditLogApi.recordedBetween(String entityType, Instant from, Instant to, long afterId, int limit)` trả `List<AuditLogRecord>` hiện có: khoảng `[from,to)`, id tăng dần và lớn hơn `afterId` (trang đầu 0), `limit` từ 1 đến 200. Trang kế tiếp dùng id cuối trang trước; dừng khi ít hơn limit dòng. Module gọi tự kiểm quyền và che trường. 008 dùng đọc đủ lịch sử căn cứ nhiệm vụ; giữ nguyên `recorded` và kiểu bản ghi cũ. Test `AuditLogPagingIT` kiểm hơn 200 dòng, thứ tự/mốc thời gian, actor và API cũ.
 
 ### 1.3. `m15.nhatky.api.PhanLoaiTruongProvider` (SPI, module sở hữu cài)
 

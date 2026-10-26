@@ -8,18 +8,23 @@ import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.dao.DuplicateKeyException;
@@ -172,13 +177,38 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         return auth.getName();
     }
 
-    private static String hash(CachedBodyRequest request) {
+    private static String hash(CachedBodyRequest request) throws IOException {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             String target = request.getMethod() + " " + request.getRequestURI() + "?"
                     + (request.getQueryString() == null ? "" : request.getQueryString()) + "\n";
             digest.update(target.getBytes(StandardCharsets.UTF_8));
-            digest.update(request.body);
+            if (request.parts == null) {
+                digest.update(request.body);
+            } else {
+                // Băm phần thực, không băm boundary do trình duyệt tạo lại khi gửi lại cùng file.
+                for (Part part : request.parts.stream()
+                        .sorted(Comparator.comparing(Part::getName)
+                                .thenComparing(p -> p.getSubmittedFileName() == null ? "" : p.getSubmittedFileName()))
+                        .toList()) {
+                    for (String value :
+                            new String[] {part.getName(), part.getSubmittedFileName(), part.getContentType()}) {
+                        byte[] metadata = (value == null ? "" : value).getBytes(StandardCharsets.UTF_8);
+                        digest.update(ByteBuffer.allocate(Integer.BYTES)
+                                .putInt(metadata.length)
+                                .array());
+                        digest.update(metadata);
+                    }
+                    digest.update(ByteBuffer.allocate(Long.BYTES)
+                            .putLong(part.getSize())
+                            .array());
+                    try (var input = part.getInputStream()) {
+                        byte[] chunk = new byte[8192];
+                        int read;
+                        while ((read = input.read(chunk)) != -1) digest.update(chunk, 0, read);
+                    }
+                }
+            }
             return HexFormat.of().formatHex(digest.digest());
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException(e);
@@ -199,14 +229,37 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         response.getWriter().write(json.writeValueAsString(problem));
     }
 
-    /** Đọc trước toàn bộ thân yêu cầu để băm, rồi cho controller đọc lại. */
+    /** JSON đọc lại từ bộ nhớ; multipart giữ các phần servlet đã phân tích để controller vẫn nhận được file. */
     static final class CachedBodyRequest extends HttpServletRequestWrapper {
 
         private final byte[] body;
+        private final Collection<Part> parts;
 
-        CachedBodyRequest(HttpServletRequest request) throws IOException {
+        CachedBodyRequest(HttpServletRequest request) throws IOException, ServletException {
             super(request);
-            this.body = request.getInputStream().readAllBytes();
+            if (request.getContentType() != null
+                    && request.getContentType().toLowerCase(Locale.ROOT).startsWith("multipart/")) {
+                this.parts = List.copyOf(request.getParts());
+                this.body = new byte[0];
+            } else {
+                this.parts = null;
+                this.body = request.getInputStream().readAllBytes();
+            }
+        }
+
+        @Override
+        public Collection<Part> getParts() throws IOException, ServletException {
+            return parts == null ? super.getParts() : parts;
+        }
+
+        @Override
+        public Part getPart(String name) throws IOException, ServletException {
+            return parts == null
+                    ? super.getPart(name)
+                    : parts.stream()
+                            .filter(p -> p.getName().equals(name))
+                            .findFirst()
+                            .orElse(null);
         }
 
         @Override

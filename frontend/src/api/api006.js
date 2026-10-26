@@ -87,7 +87,7 @@ export const postResidentsByResidentIdMedicationReconciliations = (params) => re
 /** Ghi lần tiếp nhận thuốc cung ứng (Điều dưỡng) cho một dòng của yêu cầu mua sắm loại "thuốc" đã ghi đã mua (FR-054, FR-055, BR-M07-24, BR-M11-17) */
 export const postSuppliedMedicationIntakes = (params) => request('POST', '/supplied-medication-intakes', params)
 
-/** Các lần tiếp nhận theo yêu cầu mua sắm, kèm received (FR-054) */
+/** Các lần tiếp nhận theo yêu cầu mua sắm (FR-054) */
 export const getSuppliedMedicationIntakes = (params) => request('GET', '/supplied-medication-intakes', params)
 
 /** Xem phiếu kèm dòng, dấu "thuốc đã bỏ khỏi hồ sơ" (tính lúc đọc), lịch sử, allowedCommands[] (FR-035, FR-038, FR-034a) */

@@ -115,6 +115,37 @@ class AuditLogService implements AuditLogApi {
                 roleCode(user));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<AuditLogRecord> recordedBetween(String entityType, Instant from, Instant to, long afterId, int limit) {
+        if (entityType == null
+                || entityType.isBlank()
+                || from == null
+                || to == null
+                || !from.isBefore(to)
+                || afterId < 0
+                || limit < 1
+                || limit > RECORDED_LIMIT) {
+            throw new IllegalArgumentException("Khoảng nhật ký hoặc trang đọc không hợp lệ");
+        }
+        return jdbc.query(
+                "SELECT id, occurred_at, actor_type, actor_id, role, entity_id, reason, details FROM audit_log"
+                        + " WHERE entity_type=? AND occurred_at>=? AND occurred_at<? AND id>? ORDER BY id LIMIT ?",
+                (rs, i) -> new AuditLogRecord(
+                        rs.getLong("id"),
+                        rs.getObject("occurred_at", LocalDateTime.class).toInstant(ZoneOffset.UTC),
+                        "USER".equals(rs.getString("actor_type")) ? rs.getLong("actor_id") : null,
+                        rs.getString("role"),
+                        rs.getString("entity_id"),
+                        rs.getString("reason"),
+                        rs.getString("details") == null ? null : json.readValue(rs.getString("details"), MAP)),
+                entityType,
+                utc(from),
+                utc(to),
+                afterId,
+                limit);
+    }
+
     private void insert(AuditLogEntry entry, String actorType, Long actorId, String role) {
         jdbc.update(
                 INSERT,

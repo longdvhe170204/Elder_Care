@@ -10,6 +10,12 @@ import java.util.Optional;
 public class FakeAbsences implements AbsenceApi {
 
     private final Map<Long, OpenAbsence> open = new HashMap<>();
+    private boolean available = true;
+
+    public FakeAbsences available(boolean value) {
+        available = value;
+        return this;
+    }
 
     public FakeAbsences open(long residentId, OpenAbsence absence) {
         open.put(residentId, absence);
@@ -23,6 +29,7 @@ public class FakeAbsences implements AbsenceApi {
 
     @Override
     public Optional<OpenAbsence> open(long residentId) {
+        if (!available) throw new IllegalStateException("Nguồn tạm vắng chưa đọc được");
         return Optional.ofNullable(open.get(residentId));
     }
 }
