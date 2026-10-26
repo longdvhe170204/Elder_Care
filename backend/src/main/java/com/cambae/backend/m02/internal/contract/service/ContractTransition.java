@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
  * M02StatusParticipant} gọi trong transaction của lệnh (001 đã khóa dòng hồ sơ; ở đây khóa tiếp {@code resident_residency},
  * rồi từng hợp đồng): hợp đồng Nháp và Chờ ký thành Đã hủy; hợp đồng Hiệu lực thành Chấm dứt, lý do chấm dứt trỏ về lịch sử
  * trạng thái của lệnh (lý do của lệnh nằm ở đó). Kết thúc lưu trú: Kết thúc hoặc Chấm dứt theo ngày kết thúc hợp đồng
- * ({@link #residencyEnded}). Ghi nhận qua đời thuộc user story 8.
+ * ({@link #residencyEnded}). Ghi nhận qua đời: Chấm dứt "Qua đời" ({@link #residentDied}).
  */
 @Component
 public class ContractTransition {
@@ -91,6 +91,25 @@ public class ContractTransition {
                 store.markTerminated(contract.id(), reason);
                 record(contract, ContractStatus.TERMINATED, TERMINATED, result, reason);
             }
+        }
+    }
+
+    /**
+     * Lệnh Ghi nhận qua đời (FR-070): hợp đồng Hiệu lực chuyển Chấm dứt với lý do "Qua đời", trỏ về lịch sử trạng thái của lệnh.
+     * Như Kết thúc lưu trú, hợp đồng Nháp, Chờ ký giữ nguyên.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void residentDied(TransitionResult result) {
+        long residentId = result.residentId();
+        residencyLock.lock(residentId);
+        for (Contract listed : store.ofResident(residentId)) {
+            Contract contract = store.lock(listed.id()).orElseThrow();
+            if (contract.status() != ContractStatus.ACTIVE) {
+                continue;
+            }
+            String reason = "Qua đời (lịch sử trạng thái " + result.historyId() + ")";
+            store.markTerminated(contract.id(), reason);
+            record(contract, ContractStatus.TERMINATED, TERMINATED, result, reason);
         }
     }
 

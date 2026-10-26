@@ -12,6 +12,7 @@ import com.cambae.backend.m02.internal.absence.service.AbsenceTransition;
 import com.cambae.backend.m02.internal.application.service.AdmissionContractConditions;
 import com.cambae.backend.m02.internal.application.service.AdmissionTransition;
 import com.cambae.backend.m02.internal.contract.service.ContractTransition;
+import com.cambae.backend.m02.internal.death.service.DeathTransition;
 import com.cambae.backend.m02.internal.ending.service.EndingTransition;
 import com.cambae.backend.m02.internal.waitinglist.service.WaitingListTransition;
 import java.time.Instant;
@@ -60,6 +61,7 @@ class M02StatusParticipant implements StatusTransitionParticipant {
     private final ContractTransition contractTransition;
     private final AbsenceTransition absenceTransition;
     private final EndingTransition endingTransition;
+    private final DeathTransition deathTransition;
 
     M02StatusParticipant(
             AdmissionContractConditions admissionConditions,
@@ -67,13 +69,15 @@ class M02StatusParticipant implements StatusTransitionParticipant {
             WaitingListTransition waitingListTransition,
             ContractTransition contractTransition,
             AbsenceTransition absenceTransition,
-            EndingTransition endingTransition) {
+            EndingTransition endingTransition,
+            DeathTransition deathTransition) {
         this.admissionConditions = admissionConditions;
         this.admissionTransition = admissionTransition;
         this.waitingListTransition = waitingListTransition;
         this.contractTransition = contractTransition;
         this.absenceTransition = absenceTransition;
         this.endingTransition = endingTransition;
+        this.deathTransition = deathTransition;
     }
 
     /**
@@ -157,6 +161,7 @@ class M02StatusParticipant implements StatusTransitionParticipant {
             case TRANSFER_OUT -> absenceTransition.transferredOut(result);
             case RECORD_RETURN -> absenceTransition.returned(result);
             case END_RESIDENCY -> endingTransition.completed(result);
+            case RECORD_DEATH -> deathTransition.recorded(result);
             default -> {}
         }
     }
