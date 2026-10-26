@@ -925,6 +925,24 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | sự kiện khoản cọc | `DepositAmountChanged(contractId, newAmount)` phát khi hợp đồng vào Chờ ký (kể cả gửi ký lại sau Trả về nháp); `newAmount` bằng 0 khi không yêu cầu cọc; phụ lục đổi khoản cọc phát ở Phase 7 |
 | test | `DepositConditionIT`, `FR_032_DepositAfterResidencyIT`, `Events017018IT` |
 
+### 10.13. Bổ sung khi cài Phase 7 (US5, T042 → T047, T075, 2026-10-26)
+
+*Tên cài thực tế của phần thay đổi lưu trú, phụ lục. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| `V004_06__phu_luc.sql` (đổi tên theo 10.6: `V004_06__addendum.sql`); `phu_luc_hop_dong`, `yeu_cau_thay_doi_thuoc_tinh` | `V004_06__addendum.sql`; `contract_addendum` (`contract_id`, `approval_request_id`, `change_types`, `content_before`, `content_after`, `effective_date`, `status`, `content_version_id`, `created_at`), `change_request_attribute` (`approval_request_id`, `contract_id`, `resident_id`, `attribute`, `pending_effective`, `lock_key`) |
+| trạng thái phụ lục (cột) | `PENDING_EFFECTIVE`, `APPLIED`, `NOT_APPLIED` (cột, theo 10.3); thân phản hồi `AddendumBody.Status` giữ `NOT_APPLICABLE` theo api-004 (chờ chủ dự án chọn, BL-66) |
+| `THAY_DOI_LUU_TRU` (loại yêu cầu), `ThayDoiLuuTruHandler`, `LaThayDoiNho` | `M02.RESIDENCY_CHANGE`, `ResidencyChangeHandler`, `IsMinorChange` (`m02.internal.change.service`) |
+| trạng thái mở rộng `DUOC_THAY_THE`, chuyển mở rộng | `SUPERSEDED`; mã chuyển `SUPERSEDE` (từ `DRAFT`, `PENDING_APPROVAL`, `APPROVED`) |
+| loại thay đổi `LOAI_LUU_TRU`, `MUC_CHAM_SOC`, `DICH_VU`, `THOI_GIAN`, `GIUONG`, `LICH_DEN` | `RESIDENCE_TYPE`, `CARE_LEVEL`, `SERVICE`, `DURATION`, `BED`, `ARRIVAL_SCHEDULE` (`ChangeType`) |
+| `newValue.services[]` | dòng thay đổi `{serviceId, action: ADD \| REMOVE, inPackage, quantity, customUnitPrice}` (không phải danh sách đích); khoản cọc đi kèm `newValue.depositAmount`, `newValue.noDepositRequired` |
+| lớp trong `m02.internal.change` | `domain`: `ChangeType`, `Addendum`, `ResidencyChangeContent`; `persistence`: `AddendumStore`; `service`: `ResidencyChangeHandler`, `ResidencyChangeRules` (điều kiện FR-041, FR-045, FR-046; giá trị trước; ảnh hưởng chi phí), `AddendumContent` (áp thay đổi lên nội dung phiên bản, diff trước/sau), `IsMinorChange`, `ResidencyChangeService`, `ResidencyChangeListeners`, `CareLevelChangeRequestHandler` (cài `CareLevelChangeRequestApi`, thay khung ở `transition`) |
+| web | `ResidencyChangeRequestController` (`POST /residency-change-requests`, `GET /residency-change-requests/{id}`), `ResidencyChangeRequestInputBody` (`Reference`), `ResidencyChangeRequestBody`, `AddendumBody.of`; `GET /contracts/{id}/addenda` đọc dữ liệu thật |
+| mã điều kiện chưa thỏa (409 `CONDITION_NOT_MET`) | `CONTRACT_NOT_ACTIVE`, `RESIDENT_IN_FINAL_STATUS`, `EFFECTIVE_DATE_BEFORE_CONTRACT_START`, `DUPLICATE_PENDING_ATTRIBUTE`, `RESIDENCE_TYPE_UNCHANGED`, `END_DATE_REQUIRED`, `ARRIVAL_SCHEDULE_REQUIRED`, `BED_REQUIRED`, `CARE_LEVEL_UNCHANGED`, `CARE_SERVICE_MISSING`, `SERVICE_NOT_FOUND`, `SERVICE_NOT_EFFECTIVE`, `SERVICE_PRICE_MISSING`, `SERVICE_NOT_IN_CONTRACT`, `SERVICE_ALREADY_IN_CONTRACT`, `CARE_SERVICE_NOT_ALLOWED`, `END_DATE_BEFORE_EFFECTIVE`, `CONTRACT_OVERLAP`, `NOT_INPATIENT`, `NOT_DAY_CARE`, `ADDENDUM_NOT_PENDING`, `BED_ALLOCATION_CHECK_UNAVAILABLE`, `DAY_CARE_CAPACITY_CHECK_UNAVAILABLE` |
+| nhật ký | `M02_ADDENDUM_CREATED` (khi duyệt), `M02_ADDENDUM_APPLIED`, `M02_ADDENDUM_NOT_APPLIED`; loại đối tượng `M02.ADDENDUM` |
+| test | `IsMinorChangeTest`, `BR_M02_04_ApplyAddendumIT`, `DBR_07_AddendumIT`, `FR_041_CheckOnApprovalIT`, `FR_046_DuplicateAttributeIT`, `ApplyFailedIT`, `RepresentativeRequestIT`, `ChangeArrivalScheduleIT`, `CareLevelChangeRequestIT`, `FR_043_MinorChangeIT` |
+
 ## 11. Feature 005 (`005-daily-care-tasks`, C)
 
 *Chủ feature điền khi dịch `contracts/api-005.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
