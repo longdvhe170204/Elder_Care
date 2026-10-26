@@ -84,7 +84,8 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 004 Phase 8 (2026-10-26): bớt nhóm lượt vắng, báo vắng và ngày nghỉ bán trú (US6). Phase 5 (2026-10-25):
+            // 004 Phase 9: bớt nhóm hồ sơ kết thúc lưu trú (US7). Phase 8 (2026-10-26): bớt nhóm lượt vắng, báo vắng và
+            // ngày nghỉ bán trú (US6). Phase 5 (2026-10-25):
             // bớt nhóm hợp đồng (US3) trừ `/deposit` (017, Phase 6). Phase 4: thêm nhóm danh
             // sách chờ trừ ba endpoint theo giường (chờ 003). Phase 3 (chủ dự
             // án
@@ -106,13 +107,6 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "GET /api/v1/services/{id}/mismatched-price-contracts",
                             // Sửa Nháp do Hành chính hoàn thiện (FR-039) cần API của 000 cho người không phải người lập
                             "PUT /api/v1/residency-change-requests/{id}",
-                            "POST /api/v1/residency-endings",
-                            "GET /api/v1/residency-endings/{id}",
-                            "GET /api/v1/residency-endings/{id}/conditions",
-                            "POST /api/v1/residency-endings/{id}/change-date",
-                            "POST /api/v1/residency-endings/{id}/cancel",
-                            "POST /api/v1/residency-endings/{id}/handover",
-                            "POST /api/v1/residency-endings/{id}/request-exception",
                             "GET /api/v1/residents/{residentId}/death-record",
                             "POST /api/v1/death-records/{id}/correct",
                             "GET /api/v1/residents/{residentId}/post-death-tasks",
