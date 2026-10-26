@@ -25,7 +25,10 @@ import org.springframework.test.context.event.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /** T032: hiệu lực theo ngày Việt Nam, cảnh báo một lần, callback và thu hồi nguyên tử. */
-@Import({FakeM04Config.class, com.cambae.backend.support.fake.m03.FakeM03Config.class, CredentialLifecycleIT.Users.class
+@Import({
+    FakeM04Config.class,
+    com.cambae.backend.support.fake.m03.FakeLocations.Config.class,
+    CredentialLifecycleIT.Users.class
 })
 @RecordApplicationEvents
 class CredentialLifecycleIT extends MySqlIntegrationTestBase {

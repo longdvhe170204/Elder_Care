@@ -17,18 +17,20 @@ import org.springframework.stereotype.Service;
 @Service
 public class AssignmentSources {
     private final ObjectProvider<ResidentApi> residents;
-    private final ObjectProvider<LocationApi> locations;
+    private final ObjectProvider<ResidentLocationApi> locations;
     private final ObjectProvider<LocationStructureApi> structures;
     private final ObjectProvider<LocationHistoryApi> history;
+    private final ObjectProvider<com.cambae.backend.m15.account.api.spi.BedAllocationApi> allocations;
     private final ObjectProvider<TaskTypeApi> types;
     private final ObjectProvider<CarePlanApi> plans;
     private final ObjectProvider<ShiftTaskApi> tasks;
 
     public AssignmentSources(
             ObjectProvider<ResidentApi> residents,
-            ObjectProvider<LocationApi> locations,
+            ObjectProvider<ResidentLocationApi> locations,
             ObjectProvider<LocationStructureApi> structures,
             ObjectProvider<LocationHistoryApi> history,
+            ObjectProvider<com.cambae.backend.m15.account.api.spi.BedAllocationApi> allocations,
             ObjectProvider<TaskTypeApi> types,
             ObjectProvider<CarePlanApi> plans,
             ObjectProvider<ShiftTaskApi> tasks) {
@@ -36,6 +38,7 @@ public class AssignmentSources {
         this.locations = locations;
         this.structures = structures;
         this.history = history;
+        this.allocations = allocations;
         this.types = types;
         this.plans = plans;
         this.tasks = tasks;
@@ -90,10 +93,10 @@ public class AssignmentSources {
         return switch (type) {
             case "FLOOR" -> s.floor(target).map(f -> Set.of(f.id())).orElse(Set.of());
             case "AREA" -> s.floorsInArea(target);
-            case "ROOM" -> s.room(target).map(r -> Set.of(r.floorAreaId())).orElse(Set.of());
+            case "ROOM" -> s.room(target).map(r -> Set.of(r.floorId())).orElse(Set.of());
             case "RESIDENT" ->
                 position(target, at)
-                        .map(p -> p.floorAreaId() == null ? Set.<Long>of() : Set.of(p.floorAreaId()))
+                        .map(p -> p.floorId() == null ? Set.<Long>of() : Set.of(p.floorId()))
                         .orElse(Set.of());
             default -> Set.of();
         };
@@ -101,12 +104,14 @@ public class AssignmentSources {
 
     public Set<Long> residents(String type, long target, Instant at) {
         if ("RESIDENT".equals(type)) return Set.of(target);
-        return required(history).atLocation("FACILITY".equals(type) ? null : new LocationRef(type, target), at).stream()
-                .map(LocationStay::residentId)
+        if ("FACILITY".equals(type))
+            return required(allocations).residentsIn(com.cambae.backend.m15.account.api.dto.ScopeFilter.FACILITY, at);
+        return required(history).byLocation(new LocationRef(type, target), at).stream()
+                .map(BedLocationRow::residentId)
                 .collect(java.util.stream.Collectors.toSet());
     }
 
-    public List<LocationStay> stays(long resident, Instant from, Instant to) {
+    public List<ResidentLocationRow> stays(long resident, Instant from, Instant to) {
         return required(history).byResident(resident, from, to);
     }
 
@@ -120,7 +125,7 @@ public class AssignmentSources {
     public static boolean matches(String type, long id, LocationView p) {
         return switch (type) {
             case "ROOM" -> p.roomId() == id;
-            case "FLOOR" -> Objects.equals(p.floorAreaId(), id);
+            case "FLOOR" -> Objects.equals(p.floorId(), id);
             case "AREA" -> Objects.equals(p.areaId(), id);
             default -> false;
         };
@@ -148,7 +153,7 @@ public class AssignmentSources {
                 case "ROOM" ->
                     structure()
                             .room(target)
-                            .flatMap(r -> structure().floor(r.floorAreaId()))
+                            .flatMap(r -> structure().floor(r.floorId()))
                             .map(FloorView::areaId)
                             .orElse(null);
                 case "RESIDENT" ->

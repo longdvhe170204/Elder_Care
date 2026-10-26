@@ -99,7 +99,7 @@ public class StaffingRatioSources {
             var levels = required(careLevels);
             var ref = new LocationRef(shift.scopeType(), shift.scopeId());
             for (LocalDate day = day(from); !day.isAfter(day(shift.endsAt().minusNanos(1))); day = day.plusDays(1)) {
-                for (var stay : position.inDay(ref, day))
+                for (var stay : position.byLocationOn(ref, day))
                     if (stay.from().isBefore(shift.endsAt())
                             && (stay.to() == null || stay.to().isAfter(from))
                             && !endedAt(people, stay.residentId(), memberAt)
@@ -110,7 +110,7 @@ public class StaffingRatioSources {
             }
             var attendance = required(contracts);
             var structure = required(structures);
-            var daycare = structure.daycareRestLocation();
+            var daycare = structure.dayCareRestAreaLocation();
             Set<ResidentStatus> candidates = EnumSet.allOf(ResidentStatus.class);
             candidates.removeAll(Set.of(
                     ResidentStatus.RESIDENCY_ENDED, ResidentStatus.DECEASED, ResidentStatus.ADMISSION_CANCELLED));
@@ -183,10 +183,10 @@ public class StaffingRatioSources {
     public boolean affects(WorkShift shift, long resident, Instant effectiveAt) {
         for (var stay : required(history).byResident(resident, effectiveAt.minusNanos(1000), shift.endsAt())) {
             var p = stay.location();
-            if (p.floorAreaId() != null && matches(shift, new LocationRef("FLOOR", p.floorAreaId()))) return true;
+            if (p.floorId() != null && matches(shift, new LocationRef("FLOOR", p.floorId()))) return true;
             if (p.areaId() != null && matches(shift, new LocationRef("AREA", p.areaId()))) return true;
         }
-        var rest = required(structures).daycareRestLocation();
+        var rest = required(structures).dayCareRestAreaLocation();
         if (rest.isEmpty() || !matches(shift, rest.get())) return false;
         Instant begin = shift.startsAt().isAfter(effectiveAt) ? shift.startsAt() : effectiveAt;
         for (LocalDate date = day(begin); !date.isAfter(day(shift.endsAt().minusNanos(1))); date = date.plusDays(1))
@@ -199,7 +199,7 @@ public class StaffingRatioSources {
         var api = required(structures);
         Long floor = switch (ref.type()) {
             case "FLOOR" -> ref.id();
-            case "ROOM" -> api.room(ref.id()).map(RoomView::floorAreaId).orElse(null);
+            case "ROOM" -> api.room(ref.id()).map(RoomView::floorId).orElse(null);
             default -> null;
         };
         if (floor == null) return false;

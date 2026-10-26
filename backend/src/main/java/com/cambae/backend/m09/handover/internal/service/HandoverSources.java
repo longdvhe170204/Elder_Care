@@ -6,6 +6,7 @@ import com.cambae.backend.m01.api.*;
 import com.cambae.backend.m01.api.dto.ResidentStatus;
 import com.cambae.backend.m01.api.spi.AbsenceApi;
 import com.cambae.backend.m03.api.*;
+import com.cambae.backend.m03.api.dto.BedStatus;
 import com.cambae.backend.m03.api.dto.LocationRef;
 import com.cambae.backend.m04.api.*;
 import com.cambae.backend.m05.api.AlertHandoverApi;
@@ -15,6 +16,7 @@ import com.cambae.backend.m09.api.spi.*;
 import com.cambae.backend.m09.handover.internal.domain.*;
 import com.cambae.backend.m09.shift.internal.domain.WorkShift;
 import com.cambae.backend.m09.shift.internal.persistence.ShiftStore;
+import com.cambae.backend.m15.account.api.dto.ScopeFilter;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -32,6 +34,7 @@ public class HandoverSources {
     private final ObjectProvider<AlertHandoverApi> alerts;
     private final ObjectProvider<VitalSignApi> vitalSigns;
     private final ObjectProvider<BedStatusApi> beds;
+    private final ObjectProvider<BedStatisticsApi> bedStatistics;
     private final ObjectProvider<AllocationHandoverApi> allocationAlerts;
     private final ObjectProvider<LocationHistoryApi> locations;
     private final ObjectProvider<ResidentStatusApi> statuses;
@@ -48,6 +51,7 @@ public class HandoverSources {
             ObjectProvider<AlertHandoverApi> alerts,
             ObjectProvider<VitalSignApi> vitalSigns,
             ObjectProvider<BedStatusApi> beds,
+            ObjectProvider<BedStatisticsApi> bedStatistics,
             ObjectProvider<AllocationHandoverApi> allocationAlerts,
             ObjectProvider<LocationHistoryApi> locations,
             ObjectProvider<ResidentStatusApi> statuses,
@@ -62,6 +66,7 @@ public class HandoverSources {
         this.alerts = alerts;
         this.vitalSigns = vitalSigns;
         this.beds = beds;
+        this.bedStatistics = bedStatistics;
         this.allocationAlerts = allocationAlerts;
         this.locations = locations;
         this.statuses = statuses;
@@ -130,6 +135,28 @@ public class HandoverSources {
         }
     }
 
+    private List<HandoverSource> bedRows(WorkShift shift, long floor, Instant at) {
+        var scope = new ScopeFilter(false, Set.of(floor), Set.of(), Set.of());
+        var starts = new HashMap<Long, Instant>();
+        var from = shift.startsAt().isBefore(at) ? shift.startsAt() : at.minusNanos(1000);
+        try (var periods = require(bedStatistics).awaitingReady(scope, from, at.plusNanos(1000))) {
+            periods.forEach(period ->
+                    starts.merge(period.bedId(), period.from(), (left, right) -> left.isAfter(right) ? left : right));
+        }
+        return require(beds).overdueAwaitingReady(floor, at).stream()
+                .map(bed -> row(
+                        "BED_AWAITING_READINESS",
+                        "M03.BED",
+                        bed.id(),
+                        null,
+                        bed.roomId(),
+                        bed.code(),
+                        "AWAITING_READINESS",
+                        null,
+                        starts.get(bed.id())))
+                .toList();
+    }
+
     public List<HandoverSource> list(WorkShift s) {
         long floor = Objects.requireNonNull(s.scopeId());
         Instant now = time.now();
@@ -158,13 +185,13 @@ public class HandoverSources {
                                         .map(r -> row(
                                                 "DOSE",
                                                 "M07.DOSE",
-                                                r.key(),
+                                                r.doseKey(),
                                                 r.residentId(),
-                                                r.roomId(),
-                                                r.description(),
-                                                r.status(),
                                                 null,
-                                                r.plannedAt()))
+                                                r.reason() == null ? "Liều thuốc " + r.doseKey() : r.reason(),
+                                                r.status().name(),
+                                                null,
+                                                r.scheduledTime()))
                                         .toList()),
                         () -> safe(
                                 "ALERT",
@@ -196,21 +223,7 @@ public class HandoverSources {
                                                 null,
                                                 r.measuredAt()))
                                         .toList()),
-                        () -> safe(
-                                "BED_AWAITING_READINESS",
-                                "M03.BED",
-                                () -> require(beds).awaitingReadinessOverdue(floor, now).stream()
-                                        .map(r -> row(
-                                                "BED_AWAITING_READINESS",
-                                                "M03.BED",
-                                                r.bedId(),
-                                                null,
-                                                r.roomId(),
-                                                r.description(),
-                                                "AWAITING_READINESS",
-                                                null,
-                                                r.awaitingSince()))
-                                        .toList()),
+                        () -> safe("BED_AWAITING_READINESS", "M03.BED", () -> bedRows(s, floor, now)),
                         () -> safe(
                                 "ALERT",
                                 "M03.ALLOCATION",
@@ -265,7 +278,7 @@ public class HandoverSources {
         LocalDate first = s.startsAt().atZone(BusinessTime.ZONE).toLocalDate(),
                 last = until.atZone(BusinessTime.ZONE).toLocalDate();
         for (LocalDate day = first; !day.isAfter(last); day = day.plusDays(1))
-            for (var stay : require(locations).inDay(new LocationRef(s.scopeType(), s.scopeId()), day))
+            for (var stay : require(locations).byLocationOn(new LocationRef(s.scopeType(), s.scopeId()), day))
                 found.put(stay.residentId(), stay.location().roomId());
         var result = new ArrayList<HandoverSource>();
         for (var e : found.entrySet()) {
@@ -357,8 +370,9 @@ public class HandoverSources {
                 .filter(i -> "M07.DOSE".equals(i.sourceType()))
                 .map(HandoverItem::sourceId)
                 .toList();
-        var doseStates =
-                doseIds.isEmpty() ? Map.<String, String>of() : require(doses).currentStatus(doseIds);
+        var doseStates = new HashMap<String, String>();
+        if (!doseIds.isEmpty())
+            require(doses).currentStatuses(doseIds).forEach((key, state) -> doseStates.put(key, state.name()));
         var alertRefs = items.stream()
                 .filter(i -> Set.of("M05.ALERT", "M05.INCIDENT").contains(i.sourceType() == null ? "" : i.sourceType()))
                 .map(i -> new AlertHandoverApi.SourceRef(i.group(), Long.parseLong(i.sourceId())))
@@ -370,8 +384,17 @@ public class HandoverSources {
                 .filter(i -> "M03.BED".equals(i.sourceType()))
                 .map(i -> Long.parseLong(i.sourceId()))
                 .toList();
-        var bedStates =
-                bedIds.isEmpty() ? Map.<Long, String>of() : require(beds).currentState(bedIds, time.now());
+        var bedStates = new HashMap<Long, String>();
+        if (!bedIds.isEmpty()) {
+            try (var states = require(bedStatistics).stateAt(ScopeFilter.FACILITY, time.now())) {
+                states.filter(state -> bedIds.contains(state.bedId()))
+                        .forEach(state -> bedStates.put(
+                                state.bedId(),
+                                state.state() == BedStatus.AWAITING_READY
+                                        ? "AWAITING_READINESS"
+                                        : state.state().name()));
+            }
+        }
         var belongingIds = items.stream()
                 .filter(i -> "M10.BELONGING".equals(i.sourceType()))
                 .map(i -> Long.parseLong(i.sourceId()))

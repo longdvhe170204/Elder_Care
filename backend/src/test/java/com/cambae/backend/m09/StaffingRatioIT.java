@@ -22,6 +22,7 @@ import com.cambae.backend.m15.account.api.spi.*;
 import com.cambae.backend.support.*;
 import com.cambae.backend.support.fake.m02.*;
 import com.cambae.backend.support.fake.m03.*;
+import com.cambae.backend.support.fake.m03.FakeLocations;
 import com.cambae.backend.support.fake.m15.*;
 import java.time.*;
 import java.util.*;
@@ -39,7 +40,7 @@ import tools.jackson.databind.json.JsonMapper;
 @AutoConfigureMockMvc
 @Import({
     FakeM02Config.class,
-    FakeM03Config.class,
+    FakeLocations.Config.class,
     FakeM15Config.class,
     com.cambae.backend.support.fake.m04.FakeM04Config.class,
     com.cambae.backend.support.fake.m01.FakeCareLevelChangeRequests.class,
@@ -405,7 +406,7 @@ class StaffingRatioIT extends MySqlIntegrationTestBase {
         Instant at = time.now();
         locations.closeStays(resident, at).stay(resident, nextRoom, at, null);
         tx.executeWithoutResult(t -> events.publishEvent(
-                new com.cambae.backend.m03.api.events.BedChanged(resident, 1, 2, floor, nextFloor, at)));
+                new com.cambae.backend.m03.api.events.BedTransferred(resident, 1, 2, floor, nextFloor, at)));
         await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
             assertThat(ratios.latest(old).orElseThrow().totalWeight()).isEqualByComparingTo("0");
             assertThat(ratios.latest(next).orElseThrow().totalWeight()).isEqualByComparingTo("1");
@@ -418,7 +419,7 @@ class StaffingRatioIT extends MySqlIntegrationTestBase {
         clock.setTo(from.minusSeconds(3600));
         locations.stay(resident, room, time.now(), null);
         tx.executeWithoutResult(t -> events.publishEvent(
-                new com.cambae.backend.m03.api.events.AllocationStarted(1, resident, 7, time.now())));
+                new com.cambae.backend.m03.api.events.BedAllocationStarted(1, resident, 7, time.now())));
         await().atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> assertThat(ratios.latest(id).orElseThrow().totalWeight())
                         .isEqualByComparingTo("1"));
@@ -426,7 +427,7 @@ class StaffingRatioIT extends MySqlIntegrationTestBase {
         Instant closedAt = time.now();
         locations.closeStays(resident, closedAt);
         tx.executeWithoutResult(t -> events.publishEvent(
-                new com.cambae.backend.m03.api.events.AllocationClosed(1, resident, 7, closedAt, "Đóng phân bổ")));
+                new com.cambae.backend.m03.api.events.BedAllocationClosed(1, resident, 7, closedAt, "Đóng phân bổ")));
         await().atMost(Duration.ofSeconds(10))
                 .untilAsserted(() -> assertThat(ratios.latest(id).orElseThrow().totalWeight())
                         .isEqualByComparingTo("0"));

@@ -32,343 +32,931 @@ tags:
 
 paths:
   # ---------------- Cơ cấu ----------------
-  /khu-vuc:
+  /areas:
     get:
-      tags: [co-cau]
+      tags:
+        - co-cau
       summary: Danh sách khu vực
-      x-fr: [FR-001, FR-002]
-      parameters: [ { $ref: '#/components/parameters/TrangThaiDanhMuc' } ]
+      x-fr:
+        - FR-001
+        - FR-002
+      parameters:
+        - $ref: "#/components/parameters/CatalogStatus"
       responses:
-        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/KhuVuc' } } } } }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Area"
+      x-implementation-phase: 3
     post:
-      tags: [co-cau]
+      tags:
+        - co-cau
       summary: Tạo khu vực (Quản lý viện)
-      x-fr: [FR-001, FR-002, FR-003]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/KhuVucGhi' } } } }
+      x-fr:
+        - FR-001
+        - FR-002
+        - FR-003
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AreaWrite"
       responses:
-        '201': { description: Đã tạo, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/KhuVuc' } } } }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { description: MA_DA_TON_TAI, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-  /khu-vuc/{id}:
+        "201":
+          description: Đã tạo
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Area"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "409":
+          description: MA_DA_TON_TAI
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      x-implementation-phase: 3
+  /areas/{id}:
     put:
-      tags: [co-cau]
+      tags:
+        - co-cau
       summary: Sửa khu vực
-      x-fr: [FR-002, FR-003]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/KhuVucGhi' } } } }
+      x-fr:
+        - FR-002
+        - FR-003
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AreaWrite"
       responses:
-        '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/KhuVuc' } } } }
-        '412': { $ref: '#/components/responses/Loi' }
+        "200":
+          description: OK
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Area"
+        "412":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 3
     delete:
-      tags: [co-cau]
+      tags:
+        - co-cau
       summary: Xóa khu vực chưa từng được tham chiếu
-      description: Đã được tham chiếu (trong 003 hoặc ThamChieuViTri.daTungThamChieu) thì 409 DANH_MUC_DA_DUOC_THAM_CHIEU; chỉ còn Ngừng hiệu lực (FR-005).
-      x-fr: [FR-005]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
+      description: Đã được tham chiếu (trong 003 hoặc ThamChieuViTri.daTungThamChieu) thì 409
+        DANH_MUC_DA_DUOC_THAM_CHIEU; chỉ còn Ngừng hiệu lực (FR-005).
+      x-fr:
+        - FR-005
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
       responses:
-        '204': { description: Đã xóa }
-        '409': { $ref: '#/components/responses/Loi' }
-  /khu-vuc/{id}/ngung-hieu-luc:
-    post:
-      tags: [co-cau]
-      summary: Ngừng hiệu lực khu vực
-      description: Chặn khi còn tầng chưa Ngừng hiệu lực hoặc còn phân công trỏ vào (FR-005 b, c); 409 liệt kê đối tượng gây chặn.
-      x-fr: [FR-005]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KhuVuc' } } } }
-        '409': { $ref: '#/components/responses/LoiChan' }
-  /khu-vuc/{id}/kich-hoat-lai:
-    post:
-      tags: [co-cau]
-      summary: Kích hoạt lại khu vực
-      x-fr: [FR-005]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KhuVuc' } } } }
-
-  /tang:
+        "204":
+          description: Đã xóa
+        "409":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 3
     get:
-      tags: [co-cau]
-      summary: Danh sách tầng
-      x-fr: [FR-001, FR-002]
-      parameters: [ { name: khuVucId, in: query, schema: { type: integer, format: int64 } }, { $ref: '#/components/parameters/TrangThaiDanhMuc' } ]
+      summary: Xem chi tiết kèm ETag
+      x-fr:
+        - FR-002
+      x-implementation-phase: 3
+      parameters:
+        - $ref: "#/components/parameters/Id"
       responses:
-        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Tang' } } } } }
+        "200":
+          description: OK
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Area"
+
+  /areas/{id}/deactivate:
     post:
-      tags: [co-cau]
-      summary: Tạo tầng (Quản lý viện)
-      x-fr: [FR-001, FR-003]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/TangGhi' } } } }
+      tags:
+        - co-cau
+      summary: Ngừng hiệu lực khu vực
+      description: Chặn khi còn tầng chưa Ngừng hiệu lực hoặc còn phân công trỏ vào (FR-005 b, c); 409 liệt kê đối
+        tượng gây chặn.
+      x-fr:
+        - FR-005
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/Reason"
       responses:
-        '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/Tang' } } } }
-        '409': { $ref: '#/components/responses/Loi' }
-  /tang/{id}:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Area"
+        "409":
+          $ref: "#/components/responses/BlockedProblem"
+      x-implementation-phase: 3
+  /areas/{id}/reactivate:
+    post:
+      tags:
+        - co-cau
+      summary: Kích hoạt lại khu vực
+      x-fr:
+        - FR-005
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/Reason"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Area"
+      x-implementation-phase: 3
+  /floors:
+    get:
+      tags:
+        - co-cau
+      summary: Danh sách tầng
+      x-fr:
+        - FR-001
+        - FR-002
+      parameters:
+        - name: areaId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - $ref: "#/components/parameters/CatalogStatus"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Floor"
+      x-implementation-phase: 3
+    post:
+      tags:
+        - co-cau
+      summary: Tạo tầng (Quản lý viện)
+      x-fr:
+        - FR-001
+        - FR-003
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FloorWrite"
+      responses:
+        "201":
+          description: Đã tạo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Floor"
+        "409":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 3
+  /floors/{id}:
     put:
-      tags: [co-cau]
+      tags:
+        - co-cau
       summary: Sửa tầng
       description: Không đổi khu vực khi tầng đã có phòng với lịch sử phân bổ (FR-007).
-      x-fr: [FR-002, FR-007]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/TangGhi' } } } }
+      x-fr:
+        - FR-002
+        - FR-007
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FloorWrite"
       responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Tang' } } } }
-        '409': { $ref: '#/components/responses/Loi' }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Floor"
+        "409":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 3
     delete:
-      tags: [co-cau]
+      tags:
+        - co-cau
       summary: Xóa tầng chưa từng được tham chiếu
-      x-fr: [FR-005]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
-      responses: { '204': { description: Đã xóa }, '409': { $ref: '#/components/responses/Loi' } }
-  /tang/{id}/ngung-hieu-luc:
-    post:
-      tags: [co-cau]
-      summary: Ngừng hiệu lực tầng
-      x-fr: [FR-005]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /tang/{id}/kich-hoat-lai:
-    post:
-      tags: [co-cau]
-      summary: Kích hoạt lại tầng
-      x-fr: [FR-005]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK } }
-
-  /loai-phong:
-    get:
-      tags: [co-cau]
-      summary: Danh mục loại phòng
-      x-fr: [FR-004]
-      parameters: [ { $ref: '#/components/parameters/TrangThaiDanhMuc' } ]
+      x-fr:
+        - FR-005
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
       responses:
-        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LoaiPhong' } } } } }
+        "204":
+          description: Đã xóa
+        "409":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 3
+    get:
+      summary: Xem chi tiết kèm ETag
+      x-fr:
+        - FR-002
+      x-implementation-phase: 3
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Floor"
+
+  /floors/{id}/deactivate:
     post:
-      tags: [co-cau]
+      tags:
+        - co-cau
+      summary: Ngừng hiệu lực tầng
+      x-fr:
+        - FR-005
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/Reason"
+      responses:
+        "200":
+          description: OK
+        "409":
+          $ref: "#/components/responses/BlockedProblem"
+      x-implementation-phase: 3
+  /floors/{id}/reactivate:
+    post:
+      tags:
+        - co-cau
+      summary: Kích hoạt lại tầng
+      x-fr:
+        - FR-005
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/Reason"
+      responses:
+        "200":
+          description: OK
+      x-implementation-phase: 3
+  /room-types:
+    get:
+      tags:
+        - co-cau
+      summary: Danh mục loại phòng
+      x-fr:
+        - FR-004
+      parameters:
+        - $ref: "#/components/parameters/CatalogStatus"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RoomType"
+      x-implementation-phase: 3
+    post:
+      tags:
+        - co-cau
       summary: Tạo loại phòng (Quản lý viện)
-      x-fr: [FR-004]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LoaiPhongGhi' } } } }
-      responses: { '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/LoaiPhong' } } } } }
-  /loai-phong/{id}:
+      x-fr:
+        - FR-004
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomTypeWrite"
+      responses:
+        "201":
+          description: Đã tạo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomType"
+      x-implementation-phase: 3
+  /room-types/{id}:
     put:
-      tags: [co-cau]
+      tags:
+        - co-cau
       summary: Sửa loại phòng
       description: Không đổi danh sách mức của phòng đã tạo (phòng giữ bản sao riêng, FR-004).
-      x-fr: [FR-004]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LoaiPhongGhi' } } } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/LoaiPhong' } } } } }
-  /loai-phong/{id}/ngung-hieu-luc:
-    post:
-      tags: [co-cau]
-      summary: Ngừng hiệu lực loại phòng
-      description: Được phép khi còn phòng Hiệu lực dùng; phòng giữ nguyên loại và điều kiện (US1 #8, 000 FR-003).
-      x-fr: [FR-004, FR-005]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK } }
-
-  /phong:
-    get:
-      tags: [co-cau]
-      summary: Danh sách phòng
-      x-fr: [FR-002, FR-004]
+      x-fr:
+        - FR-004
       parameters:
-        - { name: tangId, in: query, schema: { type: integer, format: int64 } }
-        - { $ref: '#/components/parameters/TrangThaiDanhMuc' }
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomTypeWrite"
       responses:
-        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Phong' } } } } }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomType"
+      x-implementation-phase: 3
+    get:
+      summary: Xem chi tiết kèm ETag
+      x-fr:
+        - FR-002
+      x-implementation-phase: 3
+      parameters:
+        - &a1
+          $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomType"
+    delete:
+      summary: Xóa mục chưa từng được tham chiếu
+      x-fr:
+        - FR-005
+      x-implementation-phase: 3
+      parameters:
+        - *a1
+        - $ref: "#/components/parameters/IfMatch"
+      responses:
+        "204":
+          description: Đã xóa
+        "409":
+          $ref: "#/components/responses/Problem"
+
+  /room-types/{id}/deactivate:
     post:
-      tags: [co-cau]
+      tags:
+        - co-cau
+      summary: Ngừng hiệu lực loại phòng
+      description: Được phép khi còn phòng Hiệu lực dùng; phòng giữ nguyên loại và điều kiện (US1
+      x-fr:
+        - FR-004
+        - FR-005
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/Reason"
+      responses:
+        "200":
+          description: OK
+      x-implementation-phase: 3
+  /rooms:
+    get:
+      tags:
+        - co-cau
+      summary: Danh sách phòng
+      x-fr:
+        - FR-002
+        - FR-004
+      parameters:
+        - name: floorId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - $ref: "#/components/parameters/CatalogStatus"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Room"
+      x-implementation-phase: 3
+    post:
+      tags:
+        - co-cau
       summary: Tạo phòng (Quản lý viện)
       description: Danh sách mức được phép khởi tạo từ loại phòng nếu không gửi (FR-004).
-      x-fr: [FR-001, FR-003, FR-004]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/PhongGhi' } } } }
+      x-fr:
+        - FR-001
+        - FR-003
+        - FR-004
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomWrite"
       responses:
-        '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/Phong' } } } }
-        '409': { $ref: '#/components/responses/Loi' }
-  /phong/{id}:
+        "201":
+          description: Đã tạo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+        "409":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 3
+  /rooms/{id}:
     get:
-      tags: [co-cau]
+      tags:
+        - co-cau
       summary: Xem phòng
-      x-fr: [FR-002]
-      parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/Phong' } } } } }
-    put:
-      tags: [co-cau]
-      summary: Sửa phòng
-      description: |
-        Đổi chính sách giới tính hoặc danh sách mức làm người có phân bổ đang hiệu lực/tương lai vi phạm:
-        409 DIEU_KIEN_CHUA_THOA liệt kê người vi phạm (FR-006). Đổi tầng khi đã có lịch sử phân bổ: 409 KHONG_DOI_CHA (FR-007).
-      x-fr: [FR-004, FR-006, FR-007]
-      x-br: [BR-M03-01]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/PhongGhi' } } } }
+      x-fr:
+        - FR-002
+      parameters:
+        - $ref: "#/components/parameters/Id"
       responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Phong' } } } }
-        '409': { $ref: '#/components/responses/LoiChan' }
-        '412': { $ref: '#/components/responses/Loi' }
-    delete:
-      tags: [co-cau]
-      summary: Xóa phòng chưa từng được tham chiếu
-      x-fr: [FR-005]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' } ]
-      responses: { '204': { description: Đã xóa }, '409': { $ref: '#/components/responses/Loi' } }
-  /phong/{id}/ngung-hieu-luc:
-    post:
-      tags: [co-cau]
-      summary: Ngừng hiệu lực phòng
-      description: Chặn khi còn giường chưa Không sử dụng (kể cả Tạm ngừng sử dụng, Q-260) hoặc còn phân công trỏ vào (FR-005).
-      x-fr: [FR-005]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /phong/{id}/kich-hoat-lai:
-    post:
-      tags: [co-cau]
-      summary: Kích hoạt lại phòng
-      x-fr: [FR-005]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK } }
-
-  /ly-do-chuyen-giuong:
-    get:
-      tags: [co-cau]
-      summary: Danh mục lý do chuyển giường
-      x-fr: [FR-030]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LyDoChuyen' } } } } } }
-    post:
-      tags: [co-cau]
-      summary: Thêm lý do chuyển giường (Quản lý viện)
-      x-fr: [FR-030]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LyDoChuyenGhi' } } } }
-      responses: { '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/LyDoChuyen' } } } } }
-  /ly-do-chuyen-giuong/{id}:
+        "200":
+          description: OK
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+      x-implementation-phase: 3
     put:
-      tags: [co-cau]
+      tags:
+        - co-cau
+      summary: Sửa phòng
+      description: >
+        Đổi chính sách giới tính hoặc danh sách mức làm người có phân bổ đang hiệu lực/tương lai vi phạm:
+
+        409 DIEU_KIEN_CHUA_THOA liệt kê người vi phạm (FR-006). Đổi tầng khi đã có lịch sử phân bổ: 409
+        KHONG_DOI_CHA (FR-007).
+      x-fr:
+        - FR-004
+        - FR-006
+        - FR-007
+      x-br:
+        - BR-M03-01
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomWrite"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+        "409":
+          $ref: "#/components/responses/BlockedProblem"
+        "412":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 3
+    delete:
+      tags:
+        - co-cau
+      summary: Xóa phòng chưa từng được tham chiếu
+      x-fr:
+        - FR-005
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
+      responses:
+        "204":
+          description: Đã xóa
+        "409":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 3
+  /rooms/{id}/deactivate:
+    post:
+      tags:
+        - co-cau
+      summary: Ngừng hiệu lực phòng
+      description: Chặn khi còn giường chưa Không sử dụng (kể cả Tạm ngừng sử dụng, Q-260) hoặc còn phân công trỏ
+        vào (FR-005).
+      x-fr:
+        - FR-005
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/Reason"
+      responses:
+        "200":
+          description: OK
+        "409":
+          $ref: "#/components/responses/BlockedProblem"
+      x-implementation-phase: 3
+  /rooms/{id}/reactivate:
+    post:
+      tags:
+        - co-cau
+      summary: Kích hoạt lại phòng
+      x-fr:
+        - FR-005
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/Reason"
+      responses:
+        "200":
+          description: OK
+      x-implementation-phase: 3
+  /bed-transfer-reasons:
+    get:
+      tags:
+        - co-cau
+      summary: Danh mục lý do chuyển giường
+      x-fr:
+        - FR-030
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BedTransferReason"
+      x-implementation-phase: 3
+    post:
+      tags:
+        - co-cau
+      summary: Thêm lý do chuyển giường (Quản lý viện)
+      x-fr:
+        - FR-030
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BedTransferReasonWrite"
+      responses:
+        "201":
+          description: Đã tạo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BedTransferReason"
+      x-implementation-phase: 3
+  /bed-transfer-reasons/{id}:
+    put:
+      tags:
+        - co-cau
       summary: Sửa lý do chuyển giường
       description: Dòng cố định KIEM_SOAT_LAY_NHIEM không đổi cờ yTeAnToan, không Ngừng hiệu lực (409 DONG_CO_DINH).
-      x-fr: [FR-030]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LyDoChuyenGhi' } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Loi' } }
-  /ly-do-chuyen-giuong/{id}/ngung-hieu-luc:
+      x-fr:
+        - FR-030
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BedTransferReasonWrite"
+      responses:
+        "200":
+          description: OK
+        "409":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 3
+    get:
+      summary: Xem chi tiết kèm ETag
+      x-fr:
+        - FR-002
+      x-implementation-phase: 3
+      parameters:
+        - &a1
+          $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BedTransferReason"
+    delete:
+      summary: Xóa mục chưa từng được tham chiếu
+      x-fr:
+        - FR-005
+      x-implementation-phase: 3
+      parameters:
+        - *a1
+        - $ref: "#/components/parameters/IfMatch"
+      responses:
+        "204":
+          description: Đã xóa
+        "409":
+          $ref: "#/components/responses/Problem"
+
+  /bed-transfer-reasons/{id}/deactivate:
     post:
-      tags: [co-cau]
+      tags:
+        - co-cau
       summary: Ngừng hiệu lực lý do chuyển giường
-      x-fr: [FR-030]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Loi' } }
+      x-fr:
+        - FR-030
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/Reason"
+      responses:
+        "200":
+          description: OK
+        "409":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 3
 
   # ---------------- Giường ----------------
-  /giuong:
+  /beds:
     get:
-      tags: [giuong]
+      tags:
+        - giuong
       summary: Bảng giường (Quản lý viện, Trưởng tầng, Hành chính)
-      description: |
-        Toàn bộ cơ cấu và trạng thái giường (FR-002). Mỗi giường có trạng thái, thuộc tính giữ chỗ, hạn xác nhận sẵn sàng,
-        người đang nằm (họ tên), dấu (phòng không còn phù hợp, chờ bác sĩ xác nhận vùng cách ly, chờ chuyển người),
-        phân bổ tương lai ("đã có phân bổ từ <thời điểm>"). Người mang dấu "chưa có giường" trả ở danhSachChuaCoGiuong (FR-025a).
+      description: >
+        Toàn bộ cơ cấu và trạng thái giường (FR-002). Mỗi giường có trạng thái, thuộc tính giữ chỗ, hạn xác nhận
+        sẵn sàng,
+
+        người đang nằm (họ tên), dấu (phòng không còn phù hợp, chờ bác sĩ xác nhận vùng cách ly, chờ chuyển
+        người),
+
+        phân bổ tương lai ("đã có phân bổ từ <thời điểm>"). Người mang dấu "chưa có giường" trả ở
+        danhSachChuaCoGiuong (FR-025a).
+
         Vai trò khác: 403; họ thấy vị trí qua hồ sơ (001).
-      x-fr: [FR-002, FR-013b, FR-024a, FR-025a, FR-034]
+      x-fr:
+        - FR-002
+        - FR-013b
+        - FR-024a
+        - FR-025a
+        - FR-034
       parameters:
-        - { name: khuVucId, in: query, schema: { type: integer, format: int64 } }
-        - { name: tangId, in: query, schema: { type: integer, format: int64 } }
-        - { name: phongId, in: query, schema: { type: integer, format: int64 } }
-        - { name: trangThai, in: query, schema: { type: array, items: { $ref: '#/components/schemas/TrangThaiGiuong' } } }
+        - name: areaId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: floorId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: roomId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: status
+          in: query
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/BedStatus"
       responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/BangGiuong' } } } }
-        '403': { $ref: '#/components/responses/Loi' }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BedBoard"
+        "403":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 3
     post:
-      tags: [giuong]
+      tags:
+        - giuong
       summary: Tạo giường (Quản lý viện)
       description: |
         Giường ở Trống; trong cùng một lần ghi tăng tài sản loại "giường" (019, Q-238).
         Vượt số giường tiêu chuẩn của loại phòng: 201 kèm canhBao VUOT_SO_GIUONG_TIEU_CHUAN (BR-M03-22).
-      x-fr: [FR-001, FR-003, FR-004]
-      x-br: [BR-M03-22]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/GiuongGhi' } } } }
+      x-fr:
+        - FR-001
+        - FR-003
+        - FR-004
+      x-br:
+        - BR-M03-22
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BedWrite"
       responses:
-        '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaTaoGiuong' } } } }
-        '409': { $ref: '#/components/responses/Loi' }
-  /giuong/tong-hop:
+        "201":
+          description: Đã tạo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BedCreation"
+        "409":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 3
+  /beds/summary:
     get:
-      tags: [giuong]
+      tags:
+        - giuong
       summary: Số giường theo trạng thái và số giường Trống theo điều kiện
       description: Tạm ngừng sử dụng không tính vào giường có thể dùng (Q-246). Số liệu cho dashboard 016 (SC-008).
-      x-fr: [FR-011]
+      x-fr:
+        - FR-011
       parameters:
-        - { name: tangId, in: query, schema: { type: integer, format: int64 } }
-        - { name: muc, in: query, schema: { $ref: '#/components/schemas/MaMucChamSoc' } }
-        - { name: gioiTinh, in: query, schema: { type: string, enum: [NAM, NU] } }
-        - { name: loaiLuuTru, in: query, schema: { type: string, enum: [NOI_TRU_DAI_HAN, NOI_TRU_NGAN_NGAY] } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TongHopGiuong' } } } } }
-  /giuong/{id}:
+        - name: floorId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: careLevel
+          in: query
+          schema:
+            $ref: "#/components/schemas/CareLevelCode"
+        - name: gender
+          in: query
+          schema:
+            type: string
+            enum:
+              - MALE
+              - FEMALE
+        - name: residencyType
+          in: query
+          schema:
+            type: string
+            enum:
+              - LONG_TERM
+              - SHORT_TERM
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BedSummary"
+      x-implementation-phase: 4
+  /beds/{id}:
     get:
-      tags: [giuong]
+      tags:
+        - giuong
       summary: Xem giường
-      x-fr: [FR-002, FR-011]
-      parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/Giuong' } } } } }
+      x-fr:
+        - FR-002
+        - FR-011
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bed"
+      x-implementation-phase: 3
     put:
-      tags: [giuong]
+      tags:
+        - giuong
       summary: Sửa mã giường; đổi phòng khi giường chưa từng có phân bổ
       description: Đổi phòng của giường đã có phân bổ → 409 KHONG_DOI_CHA (FR-007, Q-243); vị trí tài sản đổi theo ở 019.
-      x-fr: [FR-003, FR-007]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/GiuongGhi' } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Loi' } }
-  /giuong/{id}/tam-ngung-su-dung:
+      x-fr:
+        - FR-003
+        - FR-007
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IfMatch"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BedWrite"
+      responses:
+        "200":
+          description: OK
+        "409":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 3
+      x-implementation-note: Đổi phòng chờ đồng bộ tài sản 019; người dùng giữ nguyên port hiện tại.
+  /beds/{id}/suspend:
     post:
-      tags: [giuong]
+      tags: [beds]
       summary: Tạm ngừng sử dụng (Quản lý viện)
       description: Chỉ từ Trống, không có phân bổ tương lai, không mang dấu "chờ chuyển người"; bắt buộc lý do (Q-246).
       x-fr: [FR-011]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
       responses:
-        '200': { $ref: '#/components/responses/GiuongOk' }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { $ref: '#/components/responses/LoiChan' }
-        '422': { $ref: '#/components/responses/Loi' }
-  /giuong/{id}/su-dung-lai:
+        '200': { $ref: '#/components/responses/BedStateChanged' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/BlockedProblem' }
+        '422': { $ref: '#/components/responses/Problem' }
+      x-implementation-phase: 6
+  /beds/{id}/reuse:
     post:
-      tags: [giuong]
+      tags: [beds]
       summary: Sử dụng lại (Quản lý viện)
       description: Tạm ngừng sử dụng → Chờ sẵn sàng, hạn xác nhận CFG-M03-04; không sinh công việc nào (Q-261, Q-282).
       x-fr: [FR-011, FR-044]
       x-br: [BR-M03-09]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { $ref: '#/components/responses/GiuongOk' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /giuong/{id}/dieu-kien-xac-nhan-san-sang:
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses: { '200': { $ref: '#/components/responses/BedStateChanged' }, '409': { $ref: '#/components/responses/BlockedProblem' } }
+      x-implementation-phase: 6
+  /beds/{id}/readiness-conditions:
     get:
-      tags: [giuong]
+      tags: [beds]
       summary: Xem trước điều kiện Xác nhận giường sẵn sàng
-      description: canKhuKhuan = true khi người vừa rời giường thuộc danh sách nghi nhiễm, tiếp xúc tại lúc hỏi (FR-045).
+      description: disinfectionRequired = true khi người vừa rời giường thuộc danh sách nghi nhiễm, tiếp xúc tại lúc hỏi (FR-045).
+      x-implementation-phase: 10
       x-fr: [FR-044, FR-045]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/DieuKienXacNhanSanSang' } } } } }
-  /giuong/{id}/xac-nhan-san-sang:
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/BedReadinessConditions' } } } } }
+  /beds/{id}/confirm-readiness:
     post:
-      tags: [giuong]
+      tags: [beds]
+      x-implementation-phase: 10
       summary: Xác nhận giường sẵn sàng (UC-74)
       description: |
         Chỉ Trưởng tầng được giao của tầng chứa giường hoặc Người phụ trách ca của tầng đó trong ca (FR-044, research G-14).
         Giường Chờ sẵn sàng → Trống; nếu có chuyển giường theo lịch đang chờ giường này thì lệnh chuyển thực hiện ngay
-        và giường → Đang sử dụng (FR-011a). Thiếu daKhuKhuan/daDungBaoHo khi bắt buộc: 409 (BR-M03-10).
+        và giường → Đang sử dụng (FR-011a). Thiếu disinfected/ppeUsed khi bắt buộc: 422 (BR-M03-10).
       x-fr: [FR-011a, FR-014, FR-044, FR-045]
       x-br: [BR-M03-09, BR-M03-10]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -379,36 +967,41 @@ paths:
             schema:
               type: object
               properties:
-                daKhuKhuan: { type: boolean }
-                daDungBaoHo: { type: boolean }
-                ghiChu: { type: string, maxLength: 2000 }
+                disinfected: { type: boolean }
+                ppeUsed: { type: boolean }
+                note: { type: string, maxLength: 2000 }
       responses:
-        '200': { $ref: '#/components/responses/GiuongOk' }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { $ref: '#/components/responses/LoiChan' }
-  /giuong/{id}/lich-su-trang-thai:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Bed' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/BlockedProblem' }
+        '422': { $ref: '#/components/responses/Problem' }
+  /beds/{id}/state-history:
     get:
-      tags: [giuong]
+      tags: [beds]
       summary: Lịch sử trạng thái giường
       x-fr: [FR-016, FR-016a]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/Sau' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DongLichSuGiuong' } } } } } }
-  /giuong/{id}/lich-su-trang-thai/{lichSuId}/dinh-chinh:
+      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/After' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BedStateHistoryRow' } } } } } }
+      x-implementation-phase: 6
+  /beds/{id}/state-history/{historyId}/corrections:
     post:
-      tags: [giuong]
+      tags: [beds]
       summary: Đính chính lần Xác nhận giường sẵn sàng (ghi chú, khử khuẩn, bảo hộ)
       x-fr: [FR-044]
       parameters:
         - { $ref: '#/components/parameters/Id' }
-        - { name: lichSuId, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: historyId, in: path, required: true, schema: { type: integer, format: int64 } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { $ref: '#/components/requestBodies/DinhChinh' }
-      responses: { '201': { description: Đã đính chính hoặc đã lập yêu cầu (000 FR-026) }, '409': { $ref: '#/components/responses/Loi' } }
+      requestBody: { $ref: '#/components/requestBodies/RecordCorrection' }
+      responses: { '201': { description: Đã đính chính hoặc đã lập yêu cầu (000 FR-026) }, '409': { $ref: '#/components/responses/Problem' } }
 
   # ---------------- Cách ly ----------------
-  /phong/{id}/dat-cach-ly:
+      x-implementation-phase: 7
+
+  /rooms/{id}/isolate:
     post:
-      tags: [cach-ly]
+      x-implementation-phase: 9
+      tags: [room-isolation]
       summary: Đặt cách ly phòng (Bác sĩ, Quản lý viện)
       x-fr: [FR-008, FR-009]
       x-br: [BR-M05-12]
@@ -419,123 +1012,279 @@ paths:
           application/json:
             schema:
               type: object
-              required: [lyDo]
+              required: [reason]
               properties:
-                lyDo: { $ref: '#/components/schemas/LyDo' }
-                suCoId: { type: integer, format: int64 }
+                reason: { $ref: '#/components/schemas/Reason' }
+                incidentId: { type: integer, format: int64 }
       responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Phong' } } } }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { description: DA_CACH_LY, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-        '422': { $ref: '#/components/responses/Loi' }
-  /phong/{id}/go-cach-ly:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Room' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { description: ROOM_ALREADY_ISOLATED, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '422': { $ref: '#/components/responses/Problem' }
+  /rooms/{id}/lift-isolation:
     post:
-      tags: [cach-ly]
+      x-implementation-phase: 9
+      tags: [room-isolation]
       summary: Gỡ cách ly phòng (Bác sĩ, Quản lý viện)
       description: Phòng vẫn thuộc vùng khoanh vùng của 007 thì vẫn chịu chặn (FR-009).
       x-fr: [FR-008, FR-009, FR-024a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
-  /phong/{id}/lich-su-cach-ly:
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '422': { $ref: '#/components/responses/Problem' } }
+  /rooms/{id}/isolation-history:
     get:
-      tags: [cach-ly]
+      x-implementation-phase: 9
+      tags: [room-isolation]
       summary: Lịch sử cách ly phòng
       x-fr: [FR-008]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DongCachLy' } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/RoomIsolationHistoryRow' } } } } } }
 
   # ---------------- Phân bổ ----------------
-  /phan-bo-giuong/giuong-phu-hop:
+  /bed-allocations/suitable-beds:
     get:
-      tags: [phan-bo]
+      tags:
+        - phan-bo
       summary: Danh sách giường thỏa FR-018 cho một người cao tuổi
       description: |
         Chỉ gồm giường thỏa mọi điều kiện cho người đó và khoảng dự kiến, sắp theo khu vực, tầng, phòng.
         Không xếp hạng, không gợi ý, không chọn sẵn (Q-307). Trưởng tầng chỉ thấy giường trong phạm vi.
         Mỗi giường có thể kèm người cùng phòng ở mức họ tên, giới tính, mức chăm sóc (CHK041).
-      x-fr: [FR-018, FR-021, FR-022]
-      x-br: [BR-M03-01]
+      x-fr:
+        - FR-018
+        - FR-021
+        - FR-022
+      x-br:
+        - BR-M03-01
       parameters:
-        - { name: nctId, in: query, required: true, schema: { type: integer, format: int64 } }
-        - { name: batDau, in: query, description: 'Mặc định là bây giờ', schema: { type: string, format: date-time } }
-        - { name: tuPhanBoId, in: query, description: 'Khi chọn giường để chuyển: phân bổ hiện tại', schema: { type: integer, format: int64 } }
-        - { name: kiemSoatLayNhiem, in: query, description: 'Miễn điều kiện (d) cho giường đích (FR-010)', schema: { type: boolean, default: false } }
+        - name: residentId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: startAt
+          in: query
+          description: Mặc định là bây giờ
+          schema:
+            type: string
+            format: date-time
+        - name: fromAllocationId
+          in: query
+          description: "Khi chọn giường để chuyển: phân bổ hiện tại"
+          schema:
+            type: integer
+            format: int64
+        - name: infectionControl
+          in: query
+          description: Miễn điều kiện (d) cho giường đích (FR-010)
+          schema:
+            type: boolean
+            default: false
       responses:
-        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/GiuongPhuHop' } } } } }
-  /phan-bo-giuong:
-    post:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SuitableBed"
+      x-implementation-phase: 4
+  /bed-allocations:
+    get:
       tags: [phan-bo]
+      summary: Danh sách phân bổ trong phạm vi quyền người xem
+      description: Các bộ lọc tùy chọn kết hợp với phạm vi dữ liệu của người xem theo 002.
+      x-fr: [FR-017, FR-021, FR-037]
+      x-implementation-phase: 4
+      parameters:
+        - { name: residentId, in: query, schema: { type: integer, format: int64 } }
+        - { name: bedId, in: query, schema: { type: integer, format: int64 } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/AllocationStatus' } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/BedAllocation' }
+        '403': { $ref: '#/components/responses/Problem' }
+    post:
+      tags:
+        - phan-bo
       summary: Phân bổ giường (Hành chính; Trưởng tầng với giường trong phạm vi)
-      description: |
-        Người Đang tiếp nhận: tạo phân bổ TUONG_LAI từ batDau (FR-023). Người Đang lưu trú mang dấu "chưa có giường":
-        phân bổ DANG_HIEU_LUC bắt đầu ngay (FR-025a). Đã có phân bổ đang hiệu lực: 409 DA_CO_PHAN_BO, dùng chuyển giường.
-        Vi phạm: 409 DIEU_KIEN_CHUA_THOA với mọi mã PB_* trong một lần (SC-002); giường vừa bị người khác lấy:
-        PB_CHONG_THOI_GIAN "Giường đã được phân bổ trong khoảng thời gian này" (BR-M03-02).
-      x-fr: [FR-017, FR-018, FR-019, FR-020, FR-021, FR-023, FR-025a, FR-011a]
-      x-br: [BR-M03-01, BR-M03-02, BR-M03-19, BR-M03-20]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      description: >
+        Người Đang tiếp nhận: tạo phân bổ FUTURE từ startAt (FR-023). Người Đang lưu trú mang dấu "chưa có
+        giường":
+
+        phân bổ ACTIVE bắt đầu ngay (FR-025a). Đã có phân bổ đang hiệu lực: 409 ALREADY_ALLOCATED, dùng chuyển
+        giường.
+
+        Vi phạm: 409 UNMET_CONDITIONS với mọi mã ALLOCATION_* trong một lần (SC-002); giường vừa bị người khác
+        lấy:
+
+        ALLOCATION_TIME_OVERLAP "Giường đã được phân bổ trong khoảng thời gian này" (BR-M03-02).
+      x-fr:
+        - FR-017
+        - FR-018
+        - FR-019
+        - FR-020
+        - FR-021
+        - FR-023
+        - FR-025a
+        - FR-011a
+      x-br:
+        - BR-M03-01
+        - BR-M03-02
+        - BR-M03-19
+        - BR-M03-20
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [nctId, giuongId, lyDo]
+              required:
+                - residentId
+                - bedId
+                - reason
               properties:
-                nctId: { type: integer, format: int64 }
-                giuongId: { type: integer, format: int64 }
-                batDau: { type: string, format: date-time, description: 'Chỉ với người Đang tiếp nhận; bỏ qua khi bắt đầu ngay' }
-                lyDo: { $ref: '#/components/schemas/LyDo' }
+                residentId:
+                  type: integer
+                  format: int64
+                bedId:
+                  type: integer
+                  format: int64
+                startAt:
+                  type: string
+                  format: date-time
+                  description: Chỉ với người Đang tiếp nhận; bỏ qua khi bắt đầu ngay
+                reason:
+                  $ref: "#/components/schemas/Reason"
       responses:
-        '201': { description: Đã phân bổ, content: { application/json: { schema: { $ref: '#/components/schemas/PhanBo' } } } }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { $ref: '#/components/responses/LoiChan' }
-        '422': { $ref: '#/components/responses/Loi' }
-  /phan-bo-giuong/{id}:
+        "201":
+          description: Đã phân bổ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BedAllocation"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/BlockedProblem"
+        "422":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 4
+  /bed-allocations/{id}:
     get:
-      tags: [phan-bo]
+      tags:
+        - phan-bo
       summary: Xem phân bổ
-      x-fr: [FR-017]
-      parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PhanBo' } } } }, '404': { $ref: '#/components/responses/Loi' } }
-  /phan-bo-giuong/{id}/huy:
-    post:
-      tags: [phan-bo]
-      summary: Hủy phân bổ tương lai
-      description: Chỉ phân bổ TUONG_LAI; bản ghi chuyển DA_HUY và được giữ (FR-023).
-      x-fr: [FR-023, FR-021]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PhanBo' } } } }, '409': { $ref: '#/components/responses/Loi' } }
-  /phan-bo-giuong/{id}/chuyen-giuong:
-    post:
-      tags: [phan-bo]
-      summary: Chuyển giường trực tiếp (Hành chính; Trưởng tầng khi người và giường mới trong phạm vi)
-      description: |
-        Một lần thực hiện: đóng phân bổ {id} tại thoiDiemChuyen, mở phân bổ mới cùng thời điểm, đổi trạng thái hai giường (FR-028).
-        Phòng hiện tại chịu chặn cách ly: 409 CHI_CHUYEN_THEO_CHI_DINH (FR-010).
-        Khác đơn giá và lý do không thuộc nhóm y tế/an toàn: 409 CAN_YEU_CAU_THAY_DOI_LUU_TRU (FR-030).
-        thoiDiemChuyen trong quá khứ là nhập bù: lùi ≤ CFG-M03-07 thì thực hiện ngay; lùi xa hơn thì 202 kèm yêu cầu phê duyệt
-        M03.NHAP_BU_PHAN_BO (FR-027).
-      x-fr: [FR-027, FR-028, FR-029, FR-030, FR-031, FR-032, FR-033]
-      x-br: [BR-M03-01, BR-M03-04, BR-M03-07]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/ChuyenGiuong' }
+      x-fr:
+        - FR-017
+      parameters:
+        - $ref: "#/components/parameters/Id"
       responses:
-        '200': { description: Đã chuyển, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaChuyenGiuong' } } } }
-        '202': { description: Đã lập yêu cầu nhập bù chờ Quản lý viện duyệt, content: { application/json: { schema: { $ref: '#/components/schemas/YeuCauNhapBu' } } } }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { $ref: '#/components/responses/LoiChan' }
-        '422': { $ref: '#/components/responses/Loi' }
-  /phan-bo-giuong/{id}/chuyen-giuong-kiem-soat-lay-nhiem:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BedAllocation"
+        "404":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 4
+  /bed-allocations/{id}/cancel:
     post:
-      tags: [phan-bo]
+      tags:
+        - phan-bo
+      summary: Hủy phân bổ tương lai
+      description: Chỉ phân bổ FUTURE; bản ghi chuyển CANCELLED và được giữ (FR-023).
+      x-fr:
+        - FR-023
+        - FR-021
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/Reason"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BedAllocation"
+        "409":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 4
+  /bed-allocations/{id}/transfer:
+    post:
+      tags:
+        - phan-bo
+      summary: Chuyển giường trực tiếp (Hành chính; Trưởng tầng khi người và giường mới trong phạm vi)
+      description: >
+        Một lần thực hiện: đóng phân bổ {id} tại transferAt, mở phân bổ mới cùng thời điểm, đổi trạng thái
+        hai giường (FR-028).
+
+        Phòng hiện tại chịu chặn cách ly: 409 INFECTION_CONTROL_TRANSFER_REQUIRED (FR-010).
+
+        Khác đơn giá và lý do không thuộc nhóm y tế/an toàn: 409 RESIDENCY_CHANGE_REQUEST_REQUIRED (FR-030).
+
+        transferAt trong quá khứ là nhập bù: lùi ≤ CFG-M03-07 thì thực hiện ngay; lùi xa hơn thì 202 kèm yêu
+        cầu phê duyệt
+
+        M03.NHAP_BU_PHAN_BO (FR-027).
+      x-fr:
+        - FR-027
+        - FR-028
+        - FR-029
+        - FR-030
+        - FR-031
+        - FR-032
+        - FR-033
+      x-br:
+        - BR-M03-01
+        - BR-M03-04
+        - BR-M03-07
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/BedTransfer"
+      responses:
+        "200":
+          description: Đã chuyển
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BedTransferResult"
+        "202":
+          description: Đã lập yêu cầu nhập bù chờ Quản lý viện duyệt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackfillRequestCreated"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/BlockedProblem"
+        "422":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 5
+  /bed-allocations/{id}/infection-control-transfer:
+    post:
+      x-implementation-phase: 9
+      tags: [bed-allocations]
       summary: Chuyển giường theo chỉ định kiểm soát lây nhiễm
       description: |
-        Bắt buộc bacSiChiDinhId (tài khoản Bác sĩ đang Hoạt động, BR-M03-21) và lý do. Miễn điều kiện (d) cho giường đích,
+        Bắt buộc prescribingDoctorId (tài khoản Bác sĩ đang Hoạt động, BR-M03-21) và lý do. Miễn điều kiện (d) cho giường đích,
         cho phép chuyển ra khỏi hoặc trong vùng chịu chặn; các điều kiện khác của FR-018 vẫn áp dụng (FR-010).
-        Lý do chuyển luôn là KIEM_SOAT_LAY_NHIEM (nhóm y tế/an toàn).
+        Lý do chuyển luôn là INFECTION_CONTROL (nhóm y tế/an toàn).
       x-fr: [FR-010, FR-028, FR-030]
       x-br: [BR-M03-01, BR-M03-21]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
@@ -545,27 +1294,28 @@ paths:
           application/json:
             schema:
               type: object
-              required: [giuongMoiId, bacSiChiDinhId, lyDo]
+              required: [newBedId, prescribingDoctorId, reason]
               properties:
-                giuongMoiId: { type: integer, format: int64 }
-                bacSiChiDinhId: { type: integer, format: int64, description: 'Id tài khoản; chọn từ danh sách, không nhập văn bản' }
-                lyDo: { $ref: '#/components/schemas/LyDo' }
+                newBedId: { type: integer, format: int64 }
+                prescribingDoctorId: { type: integer, format: int64, description: 'Id tài khoản; chọn từ danh sách, không nhập văn bản' }
+                reason: { $ref: '#/components/schemas/Reason' }
       responses:
-        '200': { description: Đã chuyển, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaChuyenGiuong' } } } }
-        '409': { $ref: '#/components/responses/LoiChan' }
-        '422': { description: BAC_SI_KHONG_HOP_LE hoặc THIEU_LY_DO, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } } }
-  /phan-bo-giuong/{id}/xac-nhan-o-lai-vung-cach-ly:
+        '200': { description: Đã chuyển, content: { application/json: { schema: { $ref: '#/components/schemas/BedTransferResult' } } } }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { description: INVALID_PRESCRIBING_DOCTOR hoặc REASON_REQUIRED, content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+  /bed-allocations/{id}/confirm-isolated-stay:
     post:
-      tags: [phan-bo]
+      x-implementation-phase: 9
+      tags: [bed-allocations]
       summary: Bác sĩ xác nhận người trở về ở lại giường trong vùng cách ly
       description: Bác sĩ bất kỳ đang Hoạt động; không thời hạn trong đợt cách ly đó (FR-024a, CHK057). Gỡ dấu "chờ bác sĩ xác nhận vùng cách ly".
       x-fr: [FR-024a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PhanBo' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/Loi' } }
-  /phan-bo-giuong/{id}/dinh-chinh:
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/BedAllocation' } } } }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Problem' } }
+  /bed-allocations/{id}/corrections:
     post:
-      tags: [phan-bo]
+      tags: [bed-allocations]
       summary: Đính chính phân bổ đã đóng hoặc đã hủy
       description: |
         Theo 000 FR-026 (cách a/b/c). Bản đính chính phải thỏa FR-019 (không chồng thời gian), nếu không 409 PB_CHONG_THOI_GIAN.
@@ -573,146 +1323,275 @@ paths:
       x-fr: [FR-026]
       x-br: [BR-M03-07, BR-M03-24]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/DinhChinh' }
-      responses: { '201': { description: Đã đính chính hoặc đã lập yêu cầu }, '409': { $ref: '#/components/responses/Loi' } }
-  /nguoi-cao-tuoi/{nctId}/vi-tri:
-    get:
-      tags: [phan-bo]
-      summary: Vị trí hiện tại, phân bổ tương lai và dấu của một người cao tuổi
-      description: Trong phạm vi của người xem (002). Vai trò không có quyền X ở "Phân bổ, chuyển giường" chỉ nhận viTri hiện tại.
-      x-fr: [FR-017, FR-025a, FR-037]
-      parameters: [ { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ViTriNguoiCaoTuoi' } } } }, '404': { $ref: '#/components/responses/Loi' } }
+      requestBody: { $ref: '#/components/requestBodies/RecordCorrection' }
+      responses: { '201': { description: Đã đính chính hoặc đã lập yêu cầu }, '409': { $ref: '#/components/responses/Problem' } }
+      x-implementation-phase: 7
 
-  # ---------------- Tra cứu ----------------
-  /lich-su-vi-tri/nguoi-cao-tuoi/{nctId}:
+  /residents/{residentId}/location:
     get:
-      tags: [tra-cuu]
-      summary: Người A ở giường nào tại T, hoặc trong khoảng [tu, den)
+      tags:
+        - phan-bo
+      summary: Vị trí hiện tại, phân bổ tương lai và dấu của một người cao tuổi
+      description: Trong phạm vi của người xem (002). Vai trò không có quyền X ở "Phân bổ, chuyển giường" chỉ nhận
+        location hiện tại.
+      x-fr:
+        - FR-017
+        - FR-025a
+        - FR-037
+      parameters:
+        - name: residentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResidentLocation"
+        "404":
+          $ref: "#/components/responses/Problem"
+      x-implementation-phase: 4
+  /location-history/residents/{residentId}:
+    get:
+      tags: [location-history]
+      summary: Người A ở giường nào tại T, hoặc trong khoảng [from, to)
       description: Dùng giá trị sau đính chính; dòng đã đính chính có daDinhChinh (CHK017). Không kèm thông tin sức khỏe.
       x-fr: [FR-035, FR-037]
       parameters:
-        - { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } }
-        - { name: thoiDiem, in: query, schema: { type: string, format: date-time } }
-        - { name: tu, in: query, schema: { type: string, format: date-time } }
-        - { name: den, in: query, schema: { type: string, format: date-time } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DongViTri' } } } } }, '403': { $ref: '#/components/responses/Loi' } }
-  /lich-su-vi-tri/giuong:
+        - { name: residentId, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: at, in: query, schema: { type: string, format: date-time } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ResidentLocationHistoryRow' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
+      x-implementation-phase: 7
+
+  /location-history/beds:
     get:
-      tags: [tra-cuu]
+      tags: [location-history]
       summary: Mỗi giường của phòng/tầng/khu vực có ai tại T hoặc trong ngày D
       x-fr: [FR-035, FR-037]
       parameters:
-        - { name: phongId, in: query, schema: { type: integer, format: int64 } }
-        - { name: tangId, in: query, schema: { type: integer, format: int64 } }
-        - { name: khuVucId, in: query, schema: { type: integer, format: int64 } }
-        - { name: thoiDiem, in: query, schema: { type: string, format: date-time } }
-        - { name: ngay, in: query, schema: { type: string, format: date } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DongGiuong' } } } } } }
-  /lich-su-vi-tri/cung-phong:
+        - { name: roomId, in: query, schema: { type: integer, format: int64 } }
+        - { name: floorId, in: query, schema: { type: integer, format: int64 } }
+        - { name: areaId, in: query, schema: { type: integer, format: int64 } }
+        - { name: at, in: query, schema: { type: string, format: date-time } }
+        - { name: date, in: query, schema: { type: string, format: date } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BedLocationHistoryRow' } } } } } }
+      x-implementation-phase: 7
+
+  /location-history/roommates:
     get:
-      tags: [tra-cuu]
-      summary: Những ai ở cùng phòng với A trong khoảng [tu, den)
+      tags: [location-history]
+      summary: Những ai ở cùng phòng với A trong khoảng [from, to)
       description: Kèm khoảng chồng, khoảng A và người kia vắng mặt (FR-036), dấu có nhập bù đang chờ duyệt (FR-027).
       x-fr: [FR-035, FR-036, FR-037]
       x-br: [BR-M05-10]
       parameters:
-        - { name: nctId, in: query, required: true, schema: { type: integer, format: int64 } }
-        - { name: tu, in: query, required: true, schema: { type: string, format: date-time } }
-        - { name: den, in: query, required: true, schema: { type: string, format: date-time } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/NguoiCungPhong' } } } } } }
+        - { name: residentId, in: query, required: true, schema: { type: integer, format: int64 } }
+        - { name: from, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date-time } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/RoommateHistoryRow' } } } } } }
 
   # ---------------- Bán trú ----------------
-  /khu-nghi-ban-tru:
+      x-implementation-phase: 7
+
+  /day-care-rest-areas:
     get:
-      tags: [ban-tru]
+      x-implementation-phase: 8
+      tags: [day-care]
       summary: Khu nghỉ bán trú của viện
       x-fr: [FR-038]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/KhuNghiBanTru' } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DayCareRestArea' } } } } } }
     post:
-      tags: [ban-tru]
+      x-implementation-phase: 8
+      tags: [day-care]
       summary: Khai báo khu nghỉ bán trú (Quản lý viện)
-      description: 'Đã có khu Hiệu lực: 409 DA_CO_KHU_NGHI (FR-038). Sức chứa mỗi buổi là CFG-M03-01, không nhập ở đây.'
+      description: 'Đã có khu Hiệu lực: 409 DAY_CARE_REST_AREA_EXISTS (FR-038). Sức chứa mỗi buổi là CFG-M03-01, không nhập ở đây.'
       x-fr: [FR-038]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/KhuNghiBanTruGhi' } } } }
-      responses: { '201': { description: Đã tạo }, '409': { $ref: '#/components/responses/Loi' } }
-  /khu-nghi-ban-tru/{id}:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DayCareRestAreaWrite' } } } }
+      responses: { '201': { description: Đã tạo }, '409': { $ref: '#/components/responses/Problem' } }
+  /day-care-rest-areas/{id}:
     put:
-      tags: [ban-tru]
+      x-implementation-phase: 8
+      tags: [day-care]
       summary: Sửa khu nghỉ (kể cả dời tầng/khu vực gắn vào)
       x-fr: [FR-038]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/KhuNghiBanTruGhi' } } } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DayCareRestAreaWrite' } } } }
       responses: { '200': { description: OK } }
-  /khu-nghi-ban-tru/{id}/ngung-hieu-luc:
+  /day-care-rest-areas/{id}/deactivate:
     post:
-      tags: [ban-tru]
+      x-implementation-phase: 8
+      tags: [day-care]
       summary: Ngừng hiệu lực khu nghỉ
       description: Còn lịch đến tương lai thì 409 liệt kê người có lịch (Edge Case).
       x-fr: [FR-038]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /khu-nghi-ban-tru/so-dang-ky:
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Problem' } }
+  /day-care-rest-areas/registration-counts:
     get:
-      tags: [ban-tru]
+      x-implementation-phase: 8
+      tags: [day-care]
       summary: Số đăng ký và chỗ còn lại theo buổi
       description: Đếm theo lịch đăng ký của 004, không tính Vắng có báo (FR-039).
       x-fr: [FR-039, FR-040]
       parameters:
-        - { name: tuNgay, in: query, required: true, schema: { type: string, format: date } }
-        - { name: denNgay, in: query, required: true, schema: { type: string, format: date } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ChoTheoBuoi' } } } } } }
-  /buoi-ban-tru:
+        - { name: from, in: query, required: true, schema: { type: string, format: date } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DayCareSessionCapacity' } } } } } }
+  /day-care-sessions:
     get:
-      tags: [ban-tru]
+      x-implementation-phase: 8
+      tags: [day-care]
       summary: Danh mục buổi
       x-fr: [FR-038]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BuoiBanTru' } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DayCareSessionResponse' } } } } } }
     post:
-      tags: [ban-tru]
+      x-implementation-phase: 8
+      tags: [day-care]
       summary: Thêm buổi (Quản lý viện)
-      description: 'Khung giờ chồng buổi Hiệu lực khác: 409 KHUNG_GIO_CHONG (FR-038). Sau khi lưu, lịch đến được đếm lại (BR-M03-25).'
+      description: 'Khung giờ chồng buổi Hiệu lực khác: 409 DAY_CARE_SESSION_OVERLAP (FR-038). Sau khi lưu, lịch đến được đếm lại (BR-M03-25).'
       x-fr: [FR-038, FR-040]
       x-br: [BR-M03-25]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/BuoiBanTruGhi' } } } }
-      responses: { '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaDoiBuoi' } } } }, '409': { $ref: '#/components/responses/Loi' } }
-  /buoi-ban-tru/{id}:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DayCareSessionWrite' } } } }
+      responses: { '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/DayCareSessionChangeResponse' } } } }, '409': { $ref: '#/components/responses/Problem' } }
+  /day-care-sessions/{id}:
     put:
-      tags: [ban-tru]
+      x-implementation-phase: 8
+      tags: [day-care]
       summary: Sửa khung giờ buổi
       description: Lịch đến đã đăng ký được đếm lại theo khung mới; buổi vượt sức chứa được cảnh báo, không hủy lịch (FR-040, BR-M03-25).
       x-fr: [FR-038, FR-040]
       x-br: [BR-M03-25]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/BuoiBanTruGhi' } } } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KetQuaDoiBuoi' } } } }, '409': { $ref: '#/components/responses/Loi' } }
-  /buoi-ban-tru/{id}/ngung-hieu-luc:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DayCareSessionWrite' } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/DayCareSessionChangeResponse' } } } }, '409': { $ref: '#/components/responses/Problem' } }
+  /day-care-sessions/{id}/deactivate:
     post:
-      tags: [ban-tru]
+      x-implementation-phase: 8
+      tags: [day-care]
       summary: Ngừng hiệu lực buổi
       x-fr: [FR-038, FR-040]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
       responses: { '200': { description: OK } }
+
+  /room-types/{id}/reactivate:
+    post:
+      summary: Kích hoạt lại mục danh mục
+      x-fr:
+        - FR-005
+      x-implementation-phase: 3
+      parameters:
+        - &a1
+          $ref: "#/components/parameters/Id"
+        - &a2
+          $ref: "#/components/parameters/IfMatch"
+        - &a3
+          $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/Reason"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomType"
+        "409":
+          $ref: "#/components/responses/Problem"
+  /bed-transfer-reasons/{id}/reactivate:
+    post:
+      summary: Kích hoạt lại mục danh mục
+      x-fr:
+        - FR-005
+      x-implementation-phase: 3
+      parameters:
+        - *a1
+        - *a2
+        - *a3
+      requestBody:
+        $ref: "#/components/requestBodies/Reason"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BedTransferReason"
+        "409":
+          $ref: "#/components/responses/Problem"
+
+  /room-isolation/rooms:
+    get:
+      x-implementation-phase: 9
+      summary: Danh sách phòng cho người có quyền xem cách ly
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Room' } } } } } }
+  /bed-allocations/prescribing-doctors:
+    get:
+      x-implementation-phase: 9
+      summary: Bác sĩ Hoạt động cho người có quyền phân bổ
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PrescribingDoctor' } } } } } }
+  /room-isolation/pending-stays:
+    get:
+      x-implementation-phase: 9
+      summary: Phân bổ Hiệu lực chờ Bác sĩ xác nhận ở lại
+      description: Chỉ tài khoản Bác sĩ Hoạt động có ROOM_ISOLATION.UPDATE.
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BedAllocation' } } } } } }
 
 components:
   securitySchemes:
     phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
   parameters:
+    CatalogStatus:
+      name: status
+      in: query
+      schema:
+        type: string
+        enum:
+          - ACTIVE
+          - INACTIVE
     Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
     IfMatch: { name: If-Match, in: header, required: true, schema: { type: string } }
     IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
+    After: { name: after, in: query, description: Khóa trang kế tiếp, schema: { type: string } }
     Sau: { name: sau, in: query, description: Khóa trang kế tiếp, schema: { type: string } }
     TrangThaiDanhMuc: { name: trangThai, in: query, schema: { type: string, enum: [HIEU_LUC, NGUNG_HIEU_LUC] } }
   headers:
     ETag: { schema: { type: string } }
   requestBodies:
+    Reason:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - reason
+            properties:
+              reason:
+                $ref: "#/components/schemas/Reason"
     LyDo:
       required: true
       content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } }
+    RecordCorrection:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [type, reason]
+            properties:
+              type: { type: string, enum: [AMEND_CONTENT, VOID] }
+              correctedContent: { type: object, additionalProperties: true, description: 'Phân bổ: bedId, startAt, endAt. Xác nhận sẵn sàng: disinfected, ppeUsed, note' }
+              reason: { $ref: '#/components/schemas/Reason' }
     DinhChinh:
       required: true
       content:
@@ -736,17 +1615,451 @@ components:
               lyDoChuyenId: { type: integer, format: int64, description: 'Danh mục lý do chuyển; cờ yTeAnToan quyết định FR-030' }
               lyDo: { $ref: '#/components/schemas/LyDo' }
               thoiDiemChuyen: { type: string, format: date-time, description: 'Mặc định là bây giờ; quá khứ là nhập bù (FR-027)' }
+    BedTransfer:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - newBedId
+              - transferReasonId
+              - reason
+            properties:
+              newBedId:
+                type: integer
+                format: int64
+              transferReasonId:
+                type: integer
+                format: int64
+                description: Danh mục lý do chuyển; cờ yTeAnToan quyết định FR-030
+              reason:
+                $ref: "#/components/schemas/Reason"
+              transferAt:
+                type: string
+                format: date-time
+                description: Mặc định là bây giờ; quá khứ là nhập bù (FR-027)
   responses:
+    Problem:
+      description: Lỗi theo RFC 9457 (research R-03 của 000)
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    BlockedProblem:
+      description: DIEU_KIEN_CHUA_THOA (đủ danh sách, mỗi phần tử có mã PB_* hoặc mã chặn khác),
+        CHUYEN_KHONG_HOP_LE, DA_CO_PHAN_BO
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
     Loi:
       description: Lỗi theo RFC 9457 (research R-03 của 000)
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
     LoiChan:
       description: 'DIEU_KIEN_CHUA_THOA (đủ danh sách, mỗi phần tử có mã PB_* hoặc mã chặn khác), CHUYEN_KHONG_HOP_LE, DA_CO_PHAN_BO'
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
+    BedStateChanged:
+      description: Đã chuyển trạng thái giường
+      content: { application/json: { schema: { $ref: '#/components/schemas/Bed' } } }
     GiuongOk:
       description: Đã chuyển trạng thái giường
       content: { application/json: { schema: { $ref: '#/components/schemas/Giuong' } } }
   schemas:
+    Area:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        code:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+        version:
+          type: integer
+    AreaWrite:
+      type: object
+      required:
+        - code
+        - name
+      properties:
+        code:
+          type: string
+          maxLength: 20
+        name:
+          type: string
+          maxLength: 100
+        reason:
+          $ref: "#/components/schemas/Reason"
+    Reason:
+      type: string
+      minLength: 1
+      maxLength: 2000
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        errorCode:
+          type: string
+        unmetConditions:
+          type: array
+          items:
+            $ref: "#/components/schemas/UnmetCondition"
+        blockingObjects:
+          type: array
+          description: "FR-005, FR-006: giường, người cao tuổi, phân công gây chặn"
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              id:
+                type: integer
+                format: int64
+              label:
+                type: string
+        currentValue:
+          type: object
+    UnmetCondition:
+      type: object
+      properties:
+        code:
+          type: string
+          description: >
+            PB_MUC_CHAM_SOC (a), PB_LOAI_LUU_TRU (b), PB_GIOI_TINH (c), PB_CACH_LY (d), PB_TRANG_THAI_GIUONG (e),
+
+            PB_GIU_CHO_NGUOI_KHAC (f), PB_CHONG_THOI_GIAN (g), PB_TRANG_THAI_NCT (h), PB_CHO_CHUYEN_NGUOI (i),
+
+            PB_CHO_SAN_SANG_TRUOC_HAN (FR-011a), GIUONG_DAT_TRUOC_CHUA_SAN_SANG (FR-023), CHUA_GHI_KHU_KHUAN
+            (BR-M03-10),
+
+            KHOANG_VANG (FR-027 c), NGOAI_PHAM_VI …
+        description:
+          type: string
+        basis:
+          type: string
+          description: BR/FR, ví dụ BR-M03-01
+    Floor:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        areaId:
+          type: integer
+          format: int64
+        code:
+          type: string
+        name:
+          type: string
+        buildingName:
+          type: string
+        status:
+          type: string
+    FloorWrite:
+      type: object
+      required:
+        - areaId
+        - code
+        - name
+      properties:
+        areaId:
+          type: integer
+          format: int64
+        code:
+          type: string
+        name:
+          type: string
+        buildingName:
+          type: string
+    RoomType:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        standardBeds:
+          type: integer
+        defaultCareLevels:
+          type: array
+          items:
+            $ref: "#/components/schemas/CareLevelCode"
+        servesLongTerm:
+          type: boolean
+        servesShortTerm:
+          type: boolean
+        status:
+          type: string
+    CareLevelCode:
+      type: string
+      enum:
+        - BASIC
+        - FREQUENT
+        - SPECIAL
+    RoomTypeWrite:
+      type: object
+      required:
+        - name
+        - standardBeds
+        - defaultCareLevels
+      properties:
+        name:
+          type: string
+        standardBeds:
+          type: integer
+          minimum: 1
+        defaultCareLevels:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/CareLevelCode"
+        servesLongTerm:
+          type: boolean
+          default: true
+        servesShortTerm:
+          type: boolean
+          default: true
+    Room:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        floorId:
+          type: integer
+          format: int64
+        code:
+          type: string
+        name:
+          type: string
+        roomTypeId:
+          type: integer
+          format: int64
+        allowedCareLevels:
+          type: array
+          items:
+            $ref: "#/components/schemas/CareLevelCode"
+        genderPolicy:
+          type: string
+          enum:
+            - MALE
+            - FEMALE
+            - UNRESTRICTED
+        isolated:
+          type: boolean
+        isolationBlocked:
+          type: boolean
+          description: Đang cách ly hoặc thuộc vùng khoanh vùng (FR-009)
+        status:
+          type: string
+    RoomWrite:
+      type: object
+      required:
+        - floorId
+        - code
+        - name
+        - roomTypeId
+        - genderPolicy
+      properties:
+        floorId:
+          type: integer
+          format: int64
+        code:
+          type: string
+        name:
+          type: string
+        roomTypeId:
+          type: integer
+          format: int64
+        allowedCareLevels:
+          type: array
+          items:
+            $ref: "#/components/schemas/CareLevelCode"
+        genderPolicy:
+          type: string
+          enum:
+            - MALE
+            - FEMALE
+            - UNRESTRICTED
+        reason:
+          $ref: "#/components/schemas/Reason"
+    BedTransferReason:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        code:
+          type: string
+        name:
+          type: string
+        medicalSafety:
+          type: boolean
+        fixed:
+          type: boolean
+        status:
+          type: string
+    BedTransferReasonWrite:
+      type: object
+      required:
+        - code
+        - name
+        - medicalSafety
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        medicalSafety:
+          type: boolean
+    BedStatus:
+      type: string
+      enum:
+        - EMPTY
+        - OCCUPIED
+        - HELD
+        - AWAITING_READY
+        - UNDER_MAINTENANCE
+        - SUSPENDED
+        - RETIRED
+    BedBoard:
+      type: object
+      properties:
+        beds:
+          type: array
+          items:
+            $ref: "#/components/schemas/Bed"
+        residentsWithoutBed:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResidentSummary"
+    Bed:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        code:
+          type: string
+        location:
+          $ref: "#/components/schemas/Location"
+        holdReason:
+          type: string
+          enum:
+            - ABSENT_RESIDENT
+            - WAITING_RECORD
+        heldForResidentId:
+          type: integer
+          format: int64
+        holdUntil:
+          type: string
+          format: date-time
+        readyDeadline:
+          type: string
+          format: date-time
+        readinessOverdue:
+          type: boolean
+        awaitingResidentTransfer:
+          type: boolean
+        futureAllocationFrom:
+          type: string
+          format: date-time
+          description: '"đã có phân bổ từ <thời điểm>"'
+        occupant:
+          $ref: "#/components/schemas/ResidentSummary"
+        flags:
+          type: array
+          items:
+            type: string
+            enum:
+              - ROOM_UNSUITABLE
+              - AWAITING_DOCTOR_CONFIRMATION
+              - AWAITING_REQUEST
+              - AWAITING_SAME_PRICE
+        allowedCommands:
+          type: array
+          items:
+            type: string
+          description: Chỉ để hiển thị nút (constitution XI)
+        state:
+          $ref: "#/components/schemas/BedStatus"
+    Location:
+      type: object
+      properties:
+        area:
+          type: string
+        floor:
+          type: string
+        room:
+          type: string
+        label:
+          type: string
+          description: '"Khu A – Tầng 2 – P201 – G1" (FR-003)'
+        bedId:
+          type: integer
+          format: int64
+        roomId:
+          type: integer
+          format: int64
+        floorId:
+          type: integer
+          format: int64
+        bed:
+          type: string
+    ResidentSummary:
+      type: object
+      description: Họ tên, giới tính, mức chăm sóc; không có thông tin sức khỏe (FR-022, CHK041)
+      properties:
+        residentId:
+          type: integer
+          format: int64
+        fullName:
+          type: string
+        gender:
+          type: string
+        careLevel:
+          $ref: "#/components/schemas/CareLevelCode"
+    BedWrite:
+      type: object
+      required:
+        - roomId
+        - code
+      properties:
+        roomId:
+          type: integer
+          format: int64
+        code:
+          type: string
+          maxLength: 20
+    BedCreation:
+      type: object
+      properties:
+        warnings:
+          type: array
+          items:
+            $ref: "#/components/schemas/Warning"
+        bed:
+          $ref: "#/components/schemas/Bed"
+    Warning:
+      type: object
+      properties:
+        code:
+          type: string
+          description: VUOT_SO_GIUONG_TIEU_CHUAN, TRO_VE_PHONG_CACH_LY, DA_DAT_DAU_CHO_LAP_YEU_CAU…
+        description:
+          type: string
     LyDo: { type: string, minLength: 1, maxLength: 2000 }
     MaMucChamSoc: { type: string, enum: [CO_BAN, THUONG_XUYEN, DAC_BIET] }
     TrangThaiGiuong: { type: string, enum: [TRONG, DANG_SU_DUNG, DANG_GIU_CHO, CHO_SAN_SANG, DANG_BAO_TRI, TAM_NGUNG, KHONG_SU_DUNG] }
@@ -878,13 +2191,54 @@ components:
         theoTrangThai: { type: object, additionalProperties: { type: integer } }
         coTheDung: { type: integer, description: 'Không tính Tạm ngừng sử dụng, Đang bảo trì, Không sử dụng' }
         trongTheoDieuKien: { type: integer }
-    DieuKienXacNhanSanSang:
+    BedReadinessConditions:
       type: object
       properties:
-        duocThucHien: { type: boolean }
-        canKhuKhuan: { type: boolean }
-        nguoiVuaRoi: { $ref: '#/components/schemas/NguoiNgan' }
-        dieuKienChuaThoa: { type: array, items: { $ref: '#/components/schemas/DieuKien' } }
+        allowed: { type: boolean }
+        disinfectionRequired: { type: boolean }
+        departedResident: { $ref: '#/components/schemas/ResidentSummary' }
+        unmetConditions: { type: array, items: { $ref: '#/components/schemas/UnmetCondition' } }
+    BedStateHistoryRow:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        from:
+          $ref: "#/components/schemas/BedStatus"
+        to:
+          $ref: "#/components/schemas/BedStatus"
+        event:
+          type: string
+        occurredAt:
+          type: string
+          format: date-time
+        plannedAt:
+          type: string
+          format: date-time
+        executedLate:
+          type: boolean
+        actor:
+          type: string
+          description: Họ tên hoặc "Bộ lập lịch hệ thống"
+        reason:
+          type: string
+        basis:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+            type:
+              type: string
+        disinfected:
+          type: boolean
+        ppeUsed:
+          type: boolean
+        note:
+          type: string
+        corrected:
+          type: boolean
     DongLichSuGiuong:
       type: object
       properties:
@@ -973,52 +2327,225 @@ components:
         phanBoHienHanh: { $ref: '#/components/schemas/PhanBo' }
         phanBoTuongLai: { $ref: '#/components/schemas/PhanBo' }
         chuaCoGiuongTu: { type: string, format: date-time }
-    DongViTri:
+    ResidentLocationHistoryRow:
       type: object
       properties:
-        phanBoId: { type: integer, format: int64 }
-        viTri: { $ref: '#/components/schemas/ViTri' }
-        tu: { type: string, format: date-time }
-        den: { type: string, format: date-time }
-        daDinhChinh: { type: boolean }
-        coNhapBuChoDuyet: { type: boolean }
-    DongGiuong:
+        allocationId: { type: integer, format: int64 }
+        location: { $ref: '#/components/schemas/Location' }
+        from: { type: string, format: date-time }
+        to: { type: string, format: date-time }
+        corrected: { type: boolean }
+        pendingBackfill: { type: boolean }
+    BedLocationHistoryRow:
       type: object
       properties:
-        viTri: { $ref: '#/components/schemas/ViTri' }
-        nguoi: { type: array, items: { type: object, properties: { nctId: { type: integer, format: int64 }, hoTen: { type: string }, tu: { type: string, format: date-time }, den: { type: string, format: date-time }, daDinhChinh: { type: boolean } } } }
-    NguoiCungPhong:
+        location: { $ref: '#/components/schemas/Location' }
+        residents: { type: array, items: { type: object, properties: { residentId: { type: integer, format: int64 }, fullName: { type: string }, from: { type: string, format: date-time }, to: { type: string, format: date-time }, corrected: { type: boolean } } } }
+    RoommateHistoryRow:
       type: object
       properties:
-        nctId: { type: integer, format: int64 }
-        hoTen: { type: string }
-        phong: { type: string }
-        khoangChong: { type: array, items: { type: object, properties: { tu: { type: string, format: date-time }, den: { type: string, format: date-time } } } }
-        khoangVang:
+        residentId: { type: integer, format: int64 }
+        fullName: { type: string }
+        room: { type: string }
+        overlaps: { type: array, items: { type: object, properties: { from: { type: string, format: date-time }, to: { type: string, format: date-time } } } }
+        absences:
           type: array
           description: Khoảng A hoặc người này vắng mặt (Tạm vắng, Điều trị tại bệnh viện, Hoạt động bên ngoài; FR-036)
-          items: { type: object, properties: { nctId: { type: integer, format: int64 }, loai: { type: string }, tu: { type: string, format: date-time }, den: { type: string, format: date-time } } }
-        daDinhChinh: { type: boolean }
-        coNhapBuChoDuyet: { type: boolean }
-    KhuNghiBanTru:
+          items: { type: object, properties: { residentId: { type: integer, format: int64 }, type: { type: string }, from: { type: string, format: date-time }, to: { type: string, format: date-time } } }
+        corrected: { type: boolean }
+        pendingBackfill: { type: boolean }
+    DayCareRestArea:
       type: object
-      properties: { id: { type: integer, format: int64 }, ma: { type: string }, ten: { type: string }, tangId: { type: integer, format: int64 }, khuVucId: { type: integer, format: int64 }, sucChuaMoiBuoi: { type: integer, description: 'Giá trị hiện hành của CFG-M03-01' }, trangThai: { type: string } }
-    KhuNghiBanTruGhi:
+      properties: { id: { type: integer, format: int64 }, code: { type: string }, name: { type: string }, floorId: { type: integer, format: int64 }, areaId: { type: integer, format: int64 }, capacityPerSession: { type: integer, description: 'Giá trị hiện hành của CFG-M03-01' }, status: { type: string } }
+    DayCareRestAreaWrite:
       type: object
-      required: [ma, ten]
-      properties: { ma: { type: string }, ten: { type: string }, tangId: { type: integer, format: int64 }, khuVucId: { type: integer, format: int64 } }
-    BuoiBanTru:
+      required: [code, name]
+      properties: { code: { type: string }, name: { type: string }, floorId: { type: integer, format: int64 }, areaId: { type: integer, format: int64 } }
+    DayCareSessionResponse:
       type: object
-      properties: { id: { type: integer, format: int64 }, ten: { type: string }, gioBatDau: { type: string, example: '07:00' }, gioKetThuc: { type: string, example: '12:00' }, trangThai: { type: string } }
-    BuoiBanTruGhi:
+      properties: { id: { type: integer, format: int64 }, name: { type: string }, startTime: { type: string, example: '07:00' }, endTime: { type: string, example: '12:00' }, status: { type: string } }
+    DayCareSessionWrite:
       type: object
-      required: [ten, gioBatDau, gioKetThuc]
-      properties: { ten: { type: string }, gioBatDau: { type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$' }, gioKetThuc: { type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$' } }
-    KetQuaDoiBuoi:
+      required: [name, startTime, endTime]
+      properties: { name: { type: string }, startTime: { type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$' }, endTime: { type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$' } }
+    DayCareSessionChangeResponse:
       type: object
       properties:
-        buoi: { $ref: '#/components/schemas/BuoiBanTru' }
-        buoiVuotSucChua: { type: array, items: { $ref: '#/components/schemas/ChoTheoBuoi' } }
-    ChoTheoBuoi:
+        session: { $ref: '#/components/schemas/DayCareSessionResponse' }
+        overCapacitySessions: { type: array, items: { $ref: '#/components/schemas/DayCareSessionCapacity' } }
+    DayCareSessionCapacity:
       type: object
-      properties: { ngay: { type: string, format: date }, buoiId: { type: integer, format: int64 }, tenBuoi: { type: string }, soDangKy: { type: integer }, sucChua: { type: integer }, conLai: { type: integer } }
+      properties: { date: { type: string, format: date }, sessionId: { type: integer, format: int64 }, sessionName: { type: string }, registrations: { type: integer }, capacity: { type: integer }, remaining: { type: integer } }
+
+  # Schema HTTP Phase 4; giữ schema tên logic cho các phase sau.
+    BedSummary:
+      type: object
+      properties:
+        byState:
+          type: object
+          additionalProperties:
+            type: integer
+        usable:
+          type: integer
+          description: Không tính Tạm ngừng sử dụng, Đang bảo trì, Không sử dụng
+        emptyMatching:
+          type: integer
+    SuitableBed:
+      type: object
+      properties:
+        location:
+          $ref: "#/components/schemas/Location"
+        futureAllocationFrom:
+          type: string
+          format: date-time
+        earliestStartAt:
+          type: string
+          format: date-time
+          description: "Giường Chờ sẵn sàng: hạn xác nhận (FR-011a)"
+        roommates:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResidentSummary"
+        state:
+          $ref: "#/components/schemas/BedStatus"
+    BedAllocation:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        residentId:
+          type: integer
+          format: int64
+        location:
+          $ref: "#/components/schemas/Location"
+        status:
+          $ref: "#/components/schemas/AllocationStatus"
+        startAt:
+          type: string
+          format: date-time
+        plannedStartAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        expectedEnd:
+          type: string
+          format: date-time
+        startReason:
+          type: string
+        endReason:
+          type: string
+        cancellationReason:
+          type: string
+        openedBy:
+          type: string
+        closedBy:
+          type: string
+        basis:
+          type: object
+          properties:
+            type:
+              type: string
+            id:
+              type: integer
+              format: int64
+        previousAllocationId:
+          type: integer
+          format: int64
+        checkedCareLevel:
+          $ref: "#/components/schemas/CareLevelCode"
+        careLevelSource:
+          type: string
+          enum:
+            - CURRENT
+            - CONTRACT
+            - REGISTRATION
+        prescribingDoctor:
+          type: string
+        backfilled:
+          type: boolean
+        actualRecordedAt:
+          type: string
+          format: date-time
+        plannedAt:
+          type: string
+          format: date-time
+        executedLate:
+          type: boolean
+        waitingForBedReady:
+          type: boolean
+        flags:
+          type: array
+          items:
+            type: string
+            enum:
+              - ROOM_UNSUITABLE
+              - AWAITING_DOCTOR_CONFIRMATION
+              - AWAITING_REQUEST
+              - AWAITING_SAME_PRICE
+        doctorConfirmation:
+          type: object
+          properties:
+            fullName:
+              type: string
+            occurredAt:
+              type: string
+              format: date-time
+            reason:
+              type: string
+        corrected:
+          type: boolean
+    ResidentLocation:
+      type: object
+      properties:
+        location:
+          $ref: "#/components/schemas/Location"
+        currentAllocation:
+          $ref: "#/components/schemas/BedAllocation"
+        futureAllocation:
+          $ref: "#/components/schemas/BedAllocation"
+        withoutBedSince:
+          type: string
+          format: date-time
+    AllocationStatus:
+      type: string
+      enum:
+        - FUTURE
+        - ACTIVE
+        - CLOSED
+        - CANCELLED
+    BedTransferResult:
+      type: object
+      properties:
+        previousAllocation:
+          $ref: "#/components/schemas/BedAllocation"
+        newAllocation:
+          $ref: "#/components/schemas/BedAllocation"
+        warnings:
+          type: array
+          items:
+            $ref: "#/components/schemas/Warning"
+    BackfillRequestCreated:
+      type: object
+      properties:
+        approvalRequestId:
+          type: integer
+          format: int64
+        status:
+          type: string
+
+    RoomIsolationHistoryRow:
+      type: object
+      properties:
+        action: { type: string, enum: [ISOLATE, LIFT] }
+        occurredAt: { type: string, format: date-time }
+        actor: { type: string }
+        reason: { type: string }
+        incidentId: { type: integer, format: int64 }
+    PrescribingDoctor:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        fullName: { type: string }

@@ -84,7 +84,7 @@ public class StaffStatisticsService implements StaffStatisticsApi {
         if (api == null) throw unavailable("Chưa có nguồn cơ cấu vị trí để lọc thống kê");
         if ("FLOOR".equals(type))
             return api.floor(id)
-                    .map(f -> f.areaId() != null && scope.floorAreaIds().contains(f.areaId()))
+                    .map(f -> scope.floorAreaIds().contains(f.areaId()))
                     .orElse(false);
         var floors = api.floorsInArea(id);
         return !floors.isEmpty() && scope.floorAreaIds().containsAll(floors);

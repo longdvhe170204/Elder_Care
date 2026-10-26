@@ -232,3 +232,29 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
    - Điểm báo lại 12 của spec còn nêu "đề xuất lô hạn dùng sớm nhất (FR-044)", đã bỏ theo Q-307.
 
 9. **Q-63 và Thông tư 27/2024/TT-BYT** (spec điểm báo lại 2026-10-06, Q-304): thiết kế giữ phạm vi hiện tại (bắt buộc trực tuyến, xem lại khi mất kết nối), không có sổ nhập–xuất–tồn hay người chứng kiến cho thuốc gây nghiện, hướng thần. Nếu tư vấn pháp lý xác nhận viện thuộc diện áp dụng thì cần Q mới và thêm bảng sổ theo dõi ở `m07`; cấu trúc gói hiện tại không chặn việc bổ sung này. *(Còn mở 2026-10-10: chờ tư vấn pháp lý, mục 24.4.)*
+
+## Ghi chú triển khai
+
+### Phase 3 (User Story 1 - Nhập đơn thuốc, kiểm trùng hoạt chất và dị ứng)
+- Đã hoàn thành các task T010 → T017.
+- Cấu trúc mã tuân thủ 100% tiếng Anh cho database, backend domain/entities, DTOs, controllers và tests.
+- Database: migration `V006_02__prescription.sql` với bảng `prescription`, `prescription_active_ingredient`, `prescription_issue`, `prescription_basis`, kèm trigger khóa sửa trường cố định và chặn xóa vật lý.
+- Nghiệp vụ: `PrescriptionValidator` kiểm tra trùng hoạt chất và xung đột dị ứng; `PrescriptionService` quản lý vòng đời đơn và xác nhận lý do; `PrescriptionAllergyListener` lắng nghe `AllergyRecordedEvent` và phát cảnh báo `MedicationAlertRequestedEvent`.
+- Giao diện: Component `PrescriptionPanel`, `PrescriptionSheet` tại `frontend/src/features/medication/` với giao diện kiểm tra an toàn đơn và xác nhận lý do chuyên môn.
+- Toàn bộ 18 test đơn vị backend m07 và 100 test vitest frontend đều đã đạt 100%.
+
+### Phase 4 (User Story 2 - Lịch thuốc tính từ đơn; xác nhận từng liều trong cửa sổ)
+- Đã hoàn thành các task T018 → T029 (backend, database, API, web frontend).
+- Đặt tên 100% tiếng Anh cho mọi entity, database table, controller, service, test:
+  - Database: `V006_03__medication_dose.sql` gồm `medication_dose` (Group 2), `dose_result` (Group 3 append-only), `dose_review` (Group 2) và 4 trigger: `trg_medication_dose_terminal_lock`, `trg_medication_dose_no_delete`, `trg_dose_result_no_update`, `trg_dose_result_no_delete`.
+  - Tính lịch thuần (research D-06): `MedicationScheduleCalculator.java` sinh projected slots với khóa `doseKey = {prescriptionId}-{yyyyMMddHHmm}`, hỗ trợ 3 kiểu tần suất (`TIMED_SLOTS`, `EVERY_N_HOURS`, `DAYS_OF_WEEK`), giải quyết cửa sổ riêng hoặc mặc định CFG-M07-01, xử lý vắng mặt (`SUSPENDED`/`LEAVE_MEDICATION`), và không lập sẵn bản ghi liều tương lai (Q-306).
+  - Máy trạng thái liều: `DoseTransitionTable.java` kiểm soát chuyển trạng thái liều theo bảng FR-021.
+  - Từ chối liên tiếp (BR-M07-13): `ConsecutiveRefusalCounter.java` đếm số lần từ chối liên tiếp, bỏ qua liều tạm dừng/hủy, kích hoạt `MedicationAlertRequestedEvent("TU_CHOI_LIEN_TIEP")` khi đạt ngưỡng CFG-M05-04.
+  - Quản lý & Xác nhận liều: `DoseAssigneeResolver.java` tính người phụ trách lúc đọc và ghi qua `ShiftNursePort`; `DoseAdministrationService.java` xử lý Đã dùng (phát `MedicationBilledEvent` nguồn viện, cảnh báo phản ứng thuốc), Từ chối, Không thực hiện; vật hóa dòng tại đầu cửa sổ hoặc khi có lệnh.
+  - Ngoại tuyến & Xem lại (research D-11): `DoseResultOfflineHandler.java` cho `M07.KET_QUA_LIEU`, từ chối ngoại tuyến thuốc kiểm soát đặc biệt (BR-M07-20), xử lý xung đột trùng liều vào `dose_review`; `DoseReviewService.java` thực thi quy tắc hai người (SC-012).
+  - Tác vụ theo phút: `M07JobService.java` vật hóa liều đầu cửa sổ, chuyển `DUE -> LATE` (nhắc một lần), chuyển `LATE -> MISSED` (Hệ thống đóng sau CFG-M07-02, phát cảnh báo bỏ lỡ), và đóng liều tạm dừng qua cửa sổ.
+  - REST API & SPI: `MedicationScheduleController.java`, `DoseController.java`, `DefaultMedicationScheduleApi.java`, và adapter SPI cho Module 005 `MedicationChecklistPortAdapter.java` (`LieuThuocChecklistPort`, `ThoiKhoaBieuNguonPort`).
+  - Giao diện web: `MedicationPage.jsx`, `DoseSheet.jsx`, `DoseTags.jsx` tại `frontend/src/features/medication/`.
+- Kiểm thử: 15/15 unit tests backend m07 pass (bao gồm `BR_M07_01_MedicationScheduleTest` và `BR_M07_13_ConsecutiveRefusalTest`), 100/100 Vitest tests pass, ESLint 0 lỗi, Maven spotless clean.
+
+

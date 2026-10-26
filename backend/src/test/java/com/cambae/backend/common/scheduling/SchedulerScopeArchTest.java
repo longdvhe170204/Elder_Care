@@ -24,6 +24,18 @@ class SchedulerScopeArchTest {
     /** Job → loại việc FR-010a cho phép. */
     static final Map<String, String> ALLOWED = Map.ofEntries(
             Map.entry(
+                    "com.cambae.backend.m03.scheduling.BedReadinessReminderJob",
+                    "nhắc giường Chờ sẵn sàng quá hạn một lần (003 FR-044)"),
+            Map.entry(
+                    "com.cambae.backend.m03.scheduling.AllocationReminderJob",
+                    "nhắc dấu phân bổ còn mở theo CFG-M03-02, không lập yêu cầu (003 FR-025a/030/034)"),
+            Map.entry(
+                    "com.cambae.backend.m03.scheduling.FutureAllocationPastStartJob",
+                    "cảnh báo phân bổ ban đầu quá giờ dự kiến, không tự bắt đầu (003 FR-023)"),
+            Map.entry(
+                    "com.cambae.backend.m03.scheduling.HoldExpiryJob",
+                    "chuyển trạng thái hết hạn giữ hồ sơ chờ và báo hạn giữ người vắng (003 FR-015)"),
+            Map.entry(
                     "com.cambae.backend.m15.approval.scheduling.ApplyDueRequestsJob",
                     "áp dụng yêu cầu đã duyệt khi tới ngày hiệu lực (FR-037)"),
             Map.entry("com.cambae.backend.m15.approval.scheduling.RemindPendingRequestsJob", "nhắc, báo (FR-031a)"),
@@ -54,6 +66,12 @@ class SchedulerScopeArchTest {
             Map.entry(
                     "com.cambae.backend.m09.scheduling.M09DailyJob",
                     "cảnh báo đào tạo và nhắc bộ phận thiếu phụ trách (008 N-13)"),
+            Map.entry(
+                    "com.cambae.backend.m07.scheduling.M07MinuteJob",
+                    "việc theo phút m07: quét cửa sổ liều, trễ, bỏ lỡ (006 research D-19)"),
+            Map.entry(
+                    "com.cambae.backend.m07.scheduling.M07DailyJob",
+                    "việc hàng ngày m07: đối chiếu thuốc, cảnh báo hết hạn đơn (006 research D-19)"),
             Map.entry(
                     "com.cambae.backend.m01.scheduling.RetryAllergyChecksJob",
                     "phát lại sự kiện kiểm tra dị ứng; không tạo bản ghi nghiệp vụ (001 BR-M01-12, research H-12)"),

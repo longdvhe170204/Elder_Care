@@ -9,6 +9,7 @@ import com.cambae.backend.m09.shift.internal.persistence.ShiftStore;
 import com.cambae.backend.m15.account.api.dto.ScopeFilter;
 import com.cambae.backend.support.*;
 import com.cambae.backend.support.fake.m03.*;
+import com.cambae.backend.support.fake.m03.FakeLocations;
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
@@ -17,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-@Import(FakeM03Config.class)
+@Import(FakeLocations.Config.class)
 class StaffStatisticsIT extends MySqlIntegrationTestBase {
     @Autowired
     JdbcTemplate jdbc;

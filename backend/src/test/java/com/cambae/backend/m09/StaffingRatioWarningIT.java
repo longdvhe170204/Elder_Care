@@ -9,6 +9,7 @@ import com.cambae.backend.m09.ratio.internal.domain.StaffingRatioCalculator.Resu
 import com.cambae.backend.m09.ratio.internal.service.StaffingRatioService;
 import com.cambae.backend.support.*;
 import com.cambae.backend.support.fake.m03.*;
+import com.cambae.backend.support.fake.m03.FakeLocations;
 import java.math.BigDecimal;
 import java.time.*;
 import org.junit.jupiter.api.*;
@@ -17,7 +18,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.event.*;
 
-@Import(FakeM03Config.class)
+@Import(FakeLocations.Config.class)
 @RecordApplicationEvents
 class StaffingRatioWarningIT extends MySqlIntegrationTestBase {
     @Autowired

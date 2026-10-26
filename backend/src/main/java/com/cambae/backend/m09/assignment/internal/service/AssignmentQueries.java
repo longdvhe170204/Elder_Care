@@ -74,12 +74,12 @@ public class AssignmentQueries implements AssignmentApi {
         var r = sources.structure().room(room);
         if (r.isEmpty()) return List.of();
         Long area = sources.structure()
-                .floor(r.get().floorAreaId())
+                .floor(r.get().floorId())
                 .map(f -> f.areaId())
                 .orElse(null);
         var refs = new HashSet<TargetRef>();
         refs.add(new TargetRef("ROOM", room));
-        refs.add(new TargetRef("FLOOR", r.get().floorAreaId()));
+        refs.add(new TargetRef("FLOOR", r.get().floorId()));
         if (area != null) refs.add(new TargetRef("AREA", area));
         return store.atTargets(refs, at).stream()
                 .filter(a -> present(a, at))
@@ -116,7 +116,7 @@ public class AssignmentQueries implements AssignmentApi {
         refs.add(new TargetRef("RESIDENT", resident));
         sources.position(resident, at).ifPresent(p -> {
             refs.add(new TargetRef("ROOM", p.roomId()));
-            if (p.floorAreaId() != null) refs.add(new TargetRef("FLOOR", p.floorAreaId()));
+            if (p.floorId() != null) refs.add(new TargetRef("FLOOR", p.floorId()));
             if (p.areaId() != null) refs.add(new TargetRef("AREA", p.areaId()));
         });
         return PrimaryAssigneeResolver.resolve(rows, refs, role, task, at).map(StaffAssignment::staffId);
@@ -155,7 +155,7 @@ public class AssignmentQueries implements AssignmentApi {
         refs.add(new TargetRef("RESIDENT", resident));
         sources.position(resident, at).ifPresent(p -> {
             refs.add(new TargetRef("ROOM", p.roomId()));
-            if (p.floorAreaId() != null) refs.add(new TargetRef("FLOOR", p.floorAreaId()));
+            if (p.floorId() != null) refs.add(new TargetRef("FLOOR", p.floorId()));
             if (p.areaId() != null) refs.add(new TargetRef("AREA", p.areaId()));
         });
         return refs;
@@ -170,7 +170,7 @@ public class AssignmentQueries implements AssignmentApi {
         for (var stay : history) {
             var p = stay.location();
             refs.add(new TargetRef("ROOM", p.roomId()));
-            if (p.floorAreaId() != null) refs.add(new TargetRef("FLOOR", p.floorAreaId()));
+            if (p.floorId() != null) refs.add(new TargetRef("FLOOR", p.floorId()));
             if (p.areaId() != null) refs.add(new TargetRef("AREA", p.areaId()));
         }
         for (var a : store.effectiveTargets(refs, from, to)) {

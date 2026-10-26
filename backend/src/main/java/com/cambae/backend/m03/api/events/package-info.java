@@ -1,3 +1,5 @@
-/** Sự kiện phân bổ 003 theo contracts mục 1.11; C review khai báo tối thiểu phục vụ 008. */
-@org.springframework.modulith.NamedInterface
+/** Sự kiện M03 công khai theo hợp đồng 003 mục 1.11 (T005). */
+@NamedInterface("rooms-beds-events")
 package com.cambae.backend.m03.api.events;
+
+import org.springframework.modulith.NamedInterface;

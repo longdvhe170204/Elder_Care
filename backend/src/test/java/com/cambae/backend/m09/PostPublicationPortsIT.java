@@ -11,6 +11,7 @@ import com.cambae.backend.m09.shift.internal.service.port.*;
 import com.cambae.backend.m15.auditlog.api.Basis;
 import com.cambae.backend.support.*;
 import com.cambae.backend.support.fake.m03.*;
+import com.cambae.backend.support.fake.m03.FakeLocations;
 import com.cambae.backend.support.fake.m04.FakeM04Config;
 import java.time.*;
 import org.junit.jupiter.api.*;
@@ -21,7 +22,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.support.TransactionTemplate;
 
-@Import({FakeM03Config.class, FakeM04Config.class, PostPublicationShiftIT.Time.class, PostPublicationPortsIT.Users.class
+@Import({
+    FakeLocations.Config.class,
+    FakeM04Config.class,
+    PostPublicationShiftIT.Time.class,
+    PostPublicationPortsIT.Users.class
 })
 class PostPublicationPortsIT extends MySqlIntegrationTestBase {
     @Autowired

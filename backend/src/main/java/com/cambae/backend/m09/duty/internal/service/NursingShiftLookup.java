@@ -7,7 +7,33 @@ import java.util.*;
 import org.springframework.stereotype.Service;
 
 @Service
-class NursingShiftLookup implements NursingShiftPort {
+class NursingShiftLookup implements NursingShiftPort, com.cambae.backend.m07.api.spi.ShiftNursePort {
+    public Optional<com.cambae.backend.m07.api.spi.ShiftView> shiftContaining(long floor, Instant at) {
+        return query.atFloor(floor, at)
+                .map(shift -> new com.cambae.backend.m07.api.spi.ShiftView(
+                        shift.id(),
+                        floor,
+                        shift.startsAt(),
+                        shift.endsAt(),
+                        query.leadAtFloor(floor, at).orElse(null)));
+    }
+
+    public Optional<Long> assignedNurse(long resident, Instant at) {
+        return assignedTo(resident, at);
+    }
+
+    public List<Long> nursesOnShift(long floor, Instant at) {
+        return nursesWithShift(floor, at);
+    }
+
+    public boolean isStaffOnActiveShift(long staff, Instant at) {
+        return inProgressShiftMember(staff, at);
+    }
+
+    public boolean isHandoverConfirmed(long shift) {
+        return handoverConfirmed(shift);
+    }
+
     public boolean handoverConfirmed(long id) {
         return handovers.confirmed(id);
     }
