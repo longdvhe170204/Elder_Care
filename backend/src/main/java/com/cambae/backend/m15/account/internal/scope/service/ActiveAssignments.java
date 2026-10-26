@@ -45,7 +45,7 @@ public class ActiveAssignments {
     /** Phân công của nhân viên góp vào phạm vi tại {@code at}. */
     public List<AssignmentView> at(long staffId, Instant at) {
         Duration margin = margin();
-        return assignments.getObject().history(staffId, at.minus(margin), at.plus(margin)).stream()
+        return history(staffId, at.minus(margin), at.plus(margin)).stream()
                 .filter(a -> covers(a, at, margin))
                 .toList();
     }
@@ -53,13 +53,19 @@ public class ActiveAssignments {
     /** Phân công có khoảng góp giao với {@code [from, to)} (FR-035a). */
     public List<AssignmentView> during(long staffId, Instant from, Instant to) {
         Duration margin = margin();
-        return assignments.getObject().history(staffId, from.minus(margin), to.plus(margin)).stream()
+        return history(staffId, from.minus(margin), to.plus(margin)).stream()
                 .filter(a -> {
                     Duration m = a.shiftId() != null ? margin : Duration.ZERO;
                     return a.from().minus(m).isBefore(to)
                             && (a.to() == null || a.to().plus(m).isAfter(from));
                 })
                 .toList();
+    }
+
+    // 008 chưa cài thì không có phân công nào góp vào phạm vi (mặc định an toàn, như bedOf), không ném lỗi
+    private List<AssignmentView> history(long staffId, Instant from, Instant to) {
+        AssignmentApi api = assignments.getIfAvailable();
+        return api == null ? List.of() : api.history(staffId, from, to);
     }
 
     /** Phân bổ giường đang mở của người cao tuổi tại {@code at}. */
