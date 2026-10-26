@@ -1,5 +1,6 @@
 package com.cambae.backend.m15.auditlog.api;
 
+import java.time.Instant;
 import java.util.List;
 
 /** Ghi nhật ký hệ thống (contracts/module-interfaces.md mục 1.2; FR-042 → FR-047). */
@@ -32,6 +33,13 @@ public interface AuditLogApi {
      * xuất báo cáo của 016 (FR-062; "Đổi api" 2026-10-24). Không kiểm quyền và không che trường: module gọi tự kiểm.
      */
     List<AuditLogRecord> recorded(AuditAction action, String entityType, String entityId, Long actorAccountId);
+
+    /**
+     * Đọc nhật ký của module trong khoảng [from, to), theo id tăng dần, id lớn hơn afterId (trang đầu dùng 0).
+     * Mỗi trang từ 1 đến RECORDED_LIMIT dòng; dùng id cuối trang làm con trỏ tiếp theo. Không kiểm quyền và không
+     * che trường: module gọi tự kiểm. Không thay đổi cách đọc mới nhất trước của recorded.
+     */
+    List<AuditLogRecord> recordedBetween(String entityType, Instant from, Instant to, long afterId, int limit);
 
     int RECORDED_LIMIT = 200;
 }

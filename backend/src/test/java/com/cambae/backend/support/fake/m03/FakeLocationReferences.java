@@ -15,6 +15,17 @@ public class FakeLocationReferences implements LocationReferences {
     private final Map<LocationRef, List<LocationReferenceView>> references = new HashMap<>();
     private final Set<LocationRef> historical = new HashSet<>();
 
+    public FakeLocationReferences references(
+            LocationRef location, List<com.cambae.backend.m03.api.dto.LocationReferenceView> rows) {
+        references.put(
+                location,
+                rows.stream()
+                        .map(row -> new LocationReferenceView(row.type(), row.id(), row.type()))
+                        .toList());
+        if (!rows.isEmpty()) historical.add(location);
+        return this;
+    }
+
     public FakeLocationReferences reference(LocationRef location, LocationReferenceView reference) {
         references.computeIfAbsent(location, ignored -> new ArrayList<>()).add(reference);
         historical.add(location);

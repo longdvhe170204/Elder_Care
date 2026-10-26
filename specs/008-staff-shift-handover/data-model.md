@@ -74,6 +74,8 @@ Danh sách hồ sơ đã tạo là các `nhan_vien` có `lan_import_id` này (v�
 
 `nhan_vien_id`, `bo_phan_id`, `tu`, `den NULL`, `nguoi_thuc_hien_id`, `ly_do`. Cột sinh `khoa_hien_hanh = IF(den IS NULL, nhan_vien_id, NULL)` `UNIQUE` (DBR-36: một bộ phận tại một thời điểm). Không có dòng cho tài khoản Quản lý viện (Q-299, backend kiểm).
 
+Triển khai Phase 9: bảng thật `staff_department`; migration V008_08 bổ sung trigger chỉ đóng `ends_at` một lần, không đổi nhân viên/bộ phận/thời điểm đầu/người ghi/lý do, không sửa bản đã đóng. Xóa chỉ qua tài khoản lưu giữ khi đủ điều kiện; quyền ứng dụng chỉ INSERT và UPDATE(ends_at). M09RecordProtectionIT kiểm cả quản trị, DepartmentCommandsIT kiểm lệnh chuyển bộ phận vẫn hợp lệ.
+
 ### `lich_su_phu_trach_bo_phan` – nhóm 3
 
 `bo_phan_id`, `nhan_vien_id`, `tu`, `den NULL`, `nguoi_chi_dinh_id`, `ly_do`. Một dòng mở mỗi bộ phận: cột sinh `khoa_mo = IF(den IS NULL, bo_phan_id, NULL)` `UNIQUE`; dòng chỉ được đặt `den` một lần.
@@ -287,22 +289,36 @@ Trigger: khi `ban_giao.chot_luc IS NOT NULL`, dòng `DA_CHOT`, `DA_XU_LY_TRONG_C
 
 ---
 
+### Ghi chú triển khai Phase 4 (2026-10-24)
+
+- Tên bảng thật theo glossary 14.9: `floor_scope_lock`, `floor_manager_assignment`, `staff_assignment`, chỉ khóa ngoại nội bộ M09. Trạng thái cuối được bảo vệ ở trigger; chỉ tài khoản lưu giữ được loại bỏ bản ghi cuối theo provider.
+- `work_shift.publication_assignments_notified_at` là cờ kỹ thuật cho mốc công bố, tách khỏi `unassigned_residents_notified_at` của mốc đầu ca. Nguồn B/C chưa có thì cờ còn null để thử lại, không lưu kết quả người cao tuổi rỗng thay dữ liệu chưa lấy được.
+- Provider `M09.ASSIGNMENT`, `M09.FLOOR_MANAGER_ASSIGNMENT` cùng phạm vi đăng ký khi tạo bảng T019. Mốc lưu giữ phân công lấy `COALESCE(actual_end_at,ends_at)`, chỉ chọn trạng thái cuối và ca cha đã đóng/hủy; hồ sơ nhân viên, ca giữ lại khi còn tham chiếu.
+
 ## 11. Truy vết DBR, BR và FR
 
 | Mã | Bảo đảm ở | Test |
 | --- | --- | --- |
-| DBR-20 | Mục 4, 7, 8 | `DBR_20_MotBanGiaoMoiCaIT`, `BanGiaoTriggerIT` |
-| DBR-21 | Mục 4, 5, 8; research N-05, N-06 | `DBR_21_ChungChiPhanCongIT`, `BR_M09_03_ChongCaIT` |
-| DBR-23 | Nhật ký trong transaction | `NhomBaTriggerIT` (000) mở rộng |
-| DBR-25 | `Clock`, `ThoiGianNghiepVu` | `HieuLucChungChiTest` |
-| DBR-36 (phần bộ phận) | Mục 2 | `DBR_36_MotBoPhanIT` |
-| BR-M09-01 | N-05, N-08 | `BR_M09_01_ChanThieuChungChiIT`, `SC_005_XepCaPhanCongTest` |
-| BR-M09-02 | N-09 | `BR_M09_02_TyLePhucVuIT`, `TinhTyLePhucVuTest` |
-| BR-M09-03 | N-06 | `BR_M09_03_ChongCaIT`, `ChuoiCaLienTucTest`, `FR_016_CongBoIT` |
-| BR-M09-04 | N-04 | `BR_M09_04_NghiViecIT` |
-| BR-M09-05 | N-05 | `BR_M09_05_CanhBaoDaoTaoIT` |
-| BR-M09-06 | N-10 | `BR_M09_06_DanhSachNguonIT`, `FR_041_HoanTatIT` |
-| BR-M09-07 | N-06, N-10, N-13 | `BR_M09_07_ChoBanGiaoIT`, `FR_043_NhacBanGiaoIT` |
-| BR-M09-08 | N-10 | `BR_M09_08_XacNhanBanGiaoIT`, `FR_044_XacNhanNguyenTuIT` |
-| BR-M04-13 (phần 008) | N-07 | `FR_020_VangCaIT` |
-| BR-M05-05 (phần 008) | N-10 | `FR_044_XacNhanNguyenTuIT` |
+| DBR-20 | Mục 4, 7, 8 | `HandoverSchemaIT.DBR_20_oneHandoverPerShift`, `HandoverIT`, `M09RecordProtectionIT` |
+| DBR-21 | Mục 4, 5, 8; research N-05, N-06 | `AssignmentIT.FR_030_missingCertificateOrCertificateExpiringDuringIntervalIsRejected`, `ShiftScheduleIT` (FR-013, đồng thời) |
+| DBR-23 | Nhật ký trong transaction, bảo vệ bản gốc JDBC | `M09RecordProtectionIT`, `ShiftScheduleIT` (FR-055), `PostPublicationShiftIT`, `StaffEmploymentIT` (rollback) |
+| DBR-25 | `Clock`, `BusinessTime`, ngày Việt Nam | `CredentialValidityTest`, `AlertStaffPortIT`, `ShiftScheduleIT` |
+| DBR-36 (phần bộ phận) | Mục 2 | `StaffSchemaIT.DBR_36_staffCannotHaveTwoOpenDepartments`, `DepartmentCommandsIT`, `DepartmentDutyIT` |
+| BR-M09-01 | N-05, N-08 | `AssignmentIT` (FR-030, SC-005 kiểm 200 lần), `CredentialValidityTest` |
+| BR-M09-02 | N-09 | `StaffingRatioCalculatorTest`, `StaffingRatioIT`, `StaffingRatioWarningIT` |
+| BR-M09-03 | N-06 | `ContinuousShiftChainTest`, `ShiftScheduleIT` (FR-013/014/016 và đồng thời) |
+| BR-M09-04 | N-04 | `StaffEmploymentIT` (nghỉ việc và rollback tác động) |
+| BR-M09-05 | N-05 | `CredentialLifecycleIT`, `ShiftScheduleIT`, `StaffEmploymentIT` (nghỉ không ngừng cảnh báo) |
+| BR-M09-06 | N-10 | `HandoverIT` (FR-039/040/041/045, nguồn song song), `CriticalHandoverItemTest` |
+| BR-M09-07 | N-06, N-10, N-13 | `ShiftLifecycleIT`, `HandoverSchemaIT`, `HandoverIT` (Chờ bàn giao, hoàn tất muộn, nhắc) |
+| BR-M09-08 | N-10 | `HandoverIT` (FR-044 callback/rollback, FR-042 đồng thời) |
+| BR-M09-12 | Mục 4, research N-06 | `ShiftSchemaIT.BR_M09_12_shiftAllows24HoursAndRejectsZeroOrMoreThan24Hours`, `ShiftScheduleIT` |
+| BR-M09-13 | FR-019, N-07 | `PostPublicationShiftIT` (chuyển người giữ nội dung/tác giả), `StaffModuleIntegrationIT` (lịch sử phụ trách thật) |
+| BR-M09-14 | FR-034, N-09 | `StaffingRatioIT.BR_M09_14_membersWithoutAssignmentsStillCount_doubleRoleOnce_excludesFloorOnlyAndApprovedLeave` |
+| BR-M09-15 | FR-025, phạm vi 002 thật | `AssignmentIT` (Nháp không góp, kết thúc sớm), `StaffModuleIntegrationIT` (đổi người/vắng cắt ngay, kết ca thường giữ biên CFG) |
+| BR-M09-16 | FR-049, tham chiếu vị trí | `AssignmentIT.BR_M09_16_locationReferencesIncludeDraftAssignmentsAndCurrentFloorManager`, `ShiftQueriesIT` |
+| BR-M09-17 | FR-024, nghỉ dài ngày | `AssignmentIT.BR_M09_17_noShiftDoesNotLockAccountOrEraseFloorManagerHistory` |
+| BR-M04-13 (phần 008) | N-07 | `PostPublicationShiftIT` (FR-020 chỉ đúng ca, callback/rollback); C còn kiểm công việc thật tại T043b |
+| BR-M05-05 (phần 008) | N-10 | `HandoverIT.FR_044_confirmationCallbacksShareTransactionAndFailureRollsBackAllEffects`; C/D còn kiểm nguồn thật tại T043b |
+
+Tên lớp trên là tên thật dưới `backend/src/test/java/com/cambae/backend/m09/`; ma trận FR-048 → FR-060, kịch bản Q và SC ở [validation.md](validation.md). Các bài kiểm fixture/fake nguồn xác minh phần điều phối của 008; không thay nghiệm thu nghiệp vụ module nguồn hoặc mobile.

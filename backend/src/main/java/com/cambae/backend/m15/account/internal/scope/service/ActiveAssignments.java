@@ -45,7 +45,8 @@ public class ActiveAssignments {
     /** Phân công của nhân viên góp vào phạm vi tại {@code at}. */
     public List<AssignmentView> at(long staffId, Instant at) {
         Duration margin = margin();
-        return history(staffId, at.minus(margin), at.plus(margin)).stream()
+        // DATETIME(6): lấy dư một microgiây để không mất đầu biên; covers vẫn kiểm đúng thời điểm.
+        return history(staffId, at.minus(margin), at.plus(margin).plusNanos(1000)).stream()
                 .filter(a -> covers(a, at, margin))
                 .toList();
     }
@@ -57,7 +58,8 @@ public class ActiveAssignments {
                 .filter(a -> {
                     Duration m = a.shiftId() != null ? margin : Duration.ZERO;
                     return a.from().minus(m).isBefore(to)
-                            && (a.to() == null || a.to().plus(m).isAfter(from));
+                            && (a.to() == null || a.to().plus(m).isAfter(from))
+                            && (a.scopeEndsAt() == null || a.scopeEndsAt().isAfter(from));
                 })
                 .toList();
     }
@@ -98,6 +100,8 @@ public class ActiveAssignments {
 
     static boolean covers(AssignmentView a, Instant at, Duration margin) {
         Duration m = a.shiftId() != null ? margin : Duration.ZERO;
-        return !at.isBefore(a.from().minus(m)) && (a.to() == null || at.isBefore(a.to().plus(m)));
+        return !at.isBefore(a.from().minus(m))
+                && (a.to() == null || at.isBefore(a.to().plus(m)))
+                && (a.scopeEndsAt() == null || at.isBefore(a.scopeEndsAt()));
     }
 }

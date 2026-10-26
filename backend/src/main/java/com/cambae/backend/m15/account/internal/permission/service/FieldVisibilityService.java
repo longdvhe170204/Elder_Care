@@ -8,6 +8,9 @@ import com.cambae.backend.m15.account.api.ScopeApi;
 import com.cambae.backend.m15.account.api.dto.InfoGroup;
 import com.cambae.backend.m15.account.api.dto.Target;
 import com.cambae.backend.m15.account.api.dto.Visibility;
+import com.cambae.backend.m15.account.api.spi.AssignmentApi;
+import com.cambae.backend.m15.account.api.spi.AssignmentKind;
+import com.cambae.backend.m15.account.api.spi.DutyApi;
 import com.cambae.backend.m15.account.api.spi.FootnoteCondition;
 import com.cambae.backend.m15.account.internal.permission.domain.PermissionScope;
 import java.util.HashMap;
@@ -35,6 +38,9 @@ class FieldVisibilityService implements FieldVisibilityApi {
     private final ScopeApi scope;
     private final ObjectProvider<FootnoteCondition> conditions;
     private final BusinessTime time;
+    private final ObjectProvider<AssignmentApi> assignments;
+    private final ObjectProvider<DutyApi> duties;
+    private final ObjectProvider<com.cambae.backend.m15.account.api.spi.StaffAbsenceApi> absences;
     private static final Set<InfoGroup> CONSENT_GROUPS =
             Set.of(InfoGroup.HEALTH, InfoGroup.MEDICATION, InfoGroup.WISHES);
 
@@ -42,17 +48,31 @@ class FieldVisibilityService implements FieldVisibilityApi {
     private volatile Map<String, PermissionScope> executionScopes;
 
     FieldVisibilityService(
-            JdbcTemplate jdbc, ScopeApi scope, ObjectProvider<FootnoteCondition> conditions, BusinessTime time) {
+            JdbcTemplate jdbc,
+            ScopeApi scope,
+            ObjectProvider<FootnoteCondition> conditions,
+            BusinessTime time,
+            ObjectProvider<AssignmentApi> assignments,
+            ObjectProvider<DutyApi> duties,
+            ObjectProvider<com.cambae.backend.m15.account.api.spi.StaffAbsenceApi> absences) {
         this.jdbc = jdbc;
         this.scope = scope;
         this.conditions = conditions;
         this.time = time;
+        this.assignments = assignments;
+        this.duties = duties;
+        this.absences = absences;
     }
 
     @Override
     public Visibility canView(CurrentUser user, InfoGroup group, Target target) {
         if (user.isScheduler()) {
             return Visibility.FULL;
+        }
+        if (group == InfoGroup.STAFF_CONTACT
+                || group == InfoGroup.STAFF_RESTRICTED
+                || group == InfoGroup.STAFF_REASON) {
+            return staffVisibility(user, group, target);
         }
         load();
         Visibility best = Visibility.NONE;
@@ -70,6 +90,44 @@ class FieldVisibilityService implements FieldVisibilityApi {
             }
         }
         return best;
+    }
+
+    /** FR-052: liên hệ nhân viên không kế thừa quyền mặc định của CONTACT. */
+    private Visibility staffVisibility(CurrentUser user, InfoGroup group, Target target) {
+        if (user.roles().contains(Role.NURSING_HOME_MANAGER)) return Visibility.FULL;
+        if (group == InfoGroup.STAFF_REASON) {
+            if (!"M09.STAFF_ABSENCE".equals(target.type()) || target.id() == null) return Visibility.NONE;
+            var api = absences.getIfAvailable();
+            if (api == null) return Visibility.NONE;
+            try {
+                return api.canViewReason(user, Long.parseLong(target.id())) ? Visibility.FULL : Visibility.NONE;
+            } catch (NumberFormatException ignored) {
+                return Visibility.NONE;
+            }
+        }
+        if (group != InfoGroup.STAFF_CONTACT
+                || !user.roles().contains(Role.FLOOR_MANAGER)
+                || user.staffId().isEmpty()
+                || !"M09.STAFF".equals(target.type())
+                || target.id() == null) return Visibility.NONE;
+        var assignmentApi = assignments.getIfAvailable();
+        var dutyApi = duties.getIfAvailable();
+        if (assignmentApi == null || dutyApi == null) return Visibility.NONE;
+        long staffId;
+        try {
+            staffId = Long.parseLong(target.id());
+        } catch (NumberFormatException e) {
+            return Visibility.NONE;
+        }
+        var start = time.startOfDay(time.today().withDayOfMonth(1));
+        var end = time.startOfDay(time.today().withDayOfMonth(1).plusMonths(1));
+        boolean allowed = assignmentApi.history(staffId, start, end).stream()
+                .filter(a -> a.kind() == AssignmentKind.SHIFT_MEMBER || a.kind() == AssignmentKind.SHIFT_LEAD)
+                .filter(a ->
+                        a.floorAreaId() != null && a.from().isBefore(end) && (a.to() == null || a.to().isAfter(start)))
+                .anyMatch(a -> dutyApi.assignedFloorManager(a.floorAreaId(), time.now())
+                        .equals(user.staffId()));
+        return allowed ? Visibility.FULL : Visibility.NONE;
     }
 
     /**
