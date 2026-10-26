@@ -166,6 +166,23 @@ Mỗi sự kiện mang khóa `loại + id + mốc` để bên nghe bỏ trùng (
 
 ### 2.1. SPI 005 khai báo ở `m04.api`, module khác cài
 
+**Triển khai T002, 2026-10-26**: chữ ký logic bên dưới được giữ nguyên số phương thức/đối số và ánh xạ sang tiếng Anh trong `m04.api.spi` theo glossary mục 11. Đưa phần khai báo tám SPI lên T002 để fake có interface thật; API khác của T003 vẫn chưa cài. Bản giả duy nhất do 005 sở hữu là `support/fake/m04/FakeM04Config`, import tường minh ở test/demo.
+
+Các view chỉ phục vụ SPI được đặt lồng trong interface. Những view thiết kế chưa liệt kê trường được cụ thể hóa thành projection tối thiểu sau (không thay API dữ liệu của module nguồn):
+
+| SPI | View/kiểu trao đổi khi triển khai |
+| --- | --- |
+| `ShiftStaffPort` | `ShiftView(id, floorAreaId, startsAt, endsAt, published)`; `CareAssignmentView(staffId, role, primary)`; `HandoverTasksView(receiveAtStart, prepareAtEnd)` là hai việc checklist điều dưỡng theo FR-029 |
+| `TaskSourcePort` | `SourceType` tương ứng đủ 12 giá trị LoaiCanCu; `SourceValidation(valid, residentMatches, timeMatches, prescribed)` theo ghi chú kiểm căn cứ và FR-023 |
+| `VitalSignPort` | `RecordingResult(status, vitalSignRecordId, reason, remeasurementSessionId)` với status `SAVED`, `BLOCKED`, `AWAITING_REMEASUREMENT`; các id/lý do dùng Optional |
+| `MedicationChecklistPort` | `DoseView(doseKey, residentId, prescriptionId, plannedAt, windowFrom, windowTo, status, sharedOnFloor, awaitingHandoverConfirmation, awaitingRecordingAfterReturn, onlineRequired, medicationSource, deliveryId, medication)` giữ trường của 006 mục 1.3; `MedicationSummary(description)` là projection mô tả, không tự khai danh mục thuốc; status/medicationSource là mã do 006 cung cấp |
+| `AlertReadPort` | `AlertView(id, residentId)` là định danh/tham chiếu cảnh báo đang mở; không khẳng định đã cung cấp toàn bộ nội dung cảnh báo của 007 |
+| `DayCarePickupPort` | `PickupView(id, pickupType)`; nguồn 012 chịu trách nhiệm xác minh điều kiện hợp lệ, `pickupType` là mã nguồn; lỗi dùng lại `BAN_GHI_DON_DA_DUNG` tương ứng `PICKUP_RECORD_ALREADY_USED` |
+| `QualityCheckPort` | `FailedCheckView(id, shiftId)`; cặp kết quả/công việc gốc nằm trong đối số truy vấn |
+| `TimetableSourcePort` | `TimetableItemView(at, source, description, status)` theo schema MucThoiKhoaBieu; source/status giữ mã nguồn |
+
+`MANDATORY` của `VitalSignPort.record` và `DayCarePickupPort.markUsed` là trách nhiệm provider thật. Fixture bộ nhớ không thay thế kiểm rollback/MySQL hoặc tính điều kiện nghiệp vụ nguồn.
+
 ```java
 interface NhanSuCaPort {                    // 008 cài
   Optional<CaView> ca(long caId);                                         // tầng/khu, giờ bắt đầu, kết thúc, đã công bố
