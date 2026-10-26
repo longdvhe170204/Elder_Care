@@ -82,9 +82,16 @@ spring:
       maximum-pool-size: 5
       minimum-idle: 0
       idle-timeout: 10000
+  # Moments (Spring Modulith) tự bật lịch riêng (sự kiện mỗi giờ, nửa đêm); mã không dùng nên tắt trong test
+  modulith:
+    moments:
+      enabled: false
 # test: datasource do lớp cơ sở test tích hợp đặt (schema eldercare_test, 000 T009); có đồng hồ giả lập (NFR-13).
-# Job phê duyệt không chạy theo lịch hay lúc khởi động; test gọi job trực tiếp (000 T093, T094).
+# Không job nào chạy theo lịch hay lúc khởi động trong test (công tắc chung, SchedulingConfig); test gọi job trực tiếp
+# hoặc qua runJobs. Các dòng cron "-" bên dưới có từ trước, giữ nguyên.
 eldercare:
+  scheduling:
+    enabled: false
   jobs:
     apply-due-requests:
       cron: "-"

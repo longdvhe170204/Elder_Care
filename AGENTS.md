@@ -35,6 +35,7 @@ Nếu công cụ của bạn không tự đọc file này, hãy dán câu sau v�
 - [ ] Glossary của feature cập nhật
 - [ ] PR mô tả: phase, task, có đổi `api` không ("Đổi api" + đã báo ai), kết quả lệnh kiểm
 - [ ] `docs/team-plan.md` mục 8: đánh "Xong" dòng mình vừa làm; thêm dòng cho việc cần người khác làm
+- [ ] `docs/progress.md`: thêm một dòng tiến độ (nhánh, PR, việc xong, kết quả test, việc còn lại)
 
 ## 4. Backend (`backend/`)
 
@@ -44,11 +45,12 @@ Nếu công cụ của bạn không tự đọc file này, hãy dán câu sau v�
 - Nhóm dữ liệu (`backend/docs/data-group-conventions.md`): danh mục, nghiệp vụ có trạng thái (chỉ đổi qua lệnh, `If-Match`), ghi nhận (chỉ thêm, sửa bằng đính chính). Mọi lệnh ghi nhật ký qua `AuditLogApi`, lệnh cần lý do dùng `@BusinessCommand` + `Reason`.
 - Lỗi theo RFC 9457 (`errorCode`, `unmetConditions`, `currentValue`); mã lỗi theo glossary.
 - Quyền: `PermissionKey(Function, Operation)`, `Function` là một dòng Phụ lục 27 (`m15.account.api.dto.Function`). Không tự đặt khóa chuỗi.
-- Test: `*Test` đơn vị, `*IT` tích hợp (kế thừa `support/MySqlIntegrationTestBase`, cần biến `TEST_DB_URL`, `TEST_DB_ADMIN_USER`, `TEST_DB_ADMIN_PASSWORD`), `*ArchTest` kiến trúc.
+- Test: `*Test` đơn vị, `*IT` tích hợp (kế thừa `support/MySqlIntegrationTestBase`, cần biến `TEST_DB_URL`, `TEST_DB_ADMIN_USER`, `TEST_DB_ADMIN_PASSWORD`), `*ArchTest` kiến trúc. Hai tài khoản MySQL `eldercare_app`, `eldercare_retention` dùng chung cho test và profile demo: máy chạy cả hai thì đặt thêm `DB_PASSWORD`, `DB_RETENTION_PASSWORD` khi chạy test, nếu không test đổi mật khẩu sang ngẫu nhiên và demo không đăng nhập được.
+- Job (`scheduling/`): profile test tắt mọi lịch chạy bằng công tắc chung `eldercare.scheduling.enabled` (`SchedulingConfig`), không cần ghi `cron: "-"`. Job chạy lúc khởi động đặt mặc định là `@Value("${eldercare.jobs.<job>.on-startup:${eldercare.scheduling.enabled:true}}")`; test gọi job trực tiếp hoặc qua `runJobs` (`SchedulingSwitchIT` kiểm). Job mới thêm vào `SchedulerScopeArchTest` và, nếu test cần, vào `runJobs` của api-000 (A duyệt).
 
 ## 5. Web và mobile
 
-Theo [frontend/README.md](frontend/README.md) và [mobile/README.md](mobile/README.md): thư mục màn hình theo feature, không import chéo feature, gọi API chỉ qua client sinh từ hợp đồng, lỗi qua `problemOf`/`ProblemAlert`, ngày giờ qua `dateTime.js`, màu chữ qua token của DESIGN.md. Mobile hiện chỉ làm màn mẫu thiết kế.
+Theo [frontend/README.md](frontend/README.md) và [mobile/README.md](mobile/README.md): thư mục màn hình theo feature, không import chéo feature, gọi API chỉ qua client sinh từ hợp đồng, lỗi qua `problemOf`/`ProblemAlert`, ngày giờ qua `dateTime.js`, màu chữ qua token của DESIGN.md. Mobile mới mở phần người cao tuổi (`mobile/lib/resident/`, `mobile/lib/common/`); phần nhân viên, người thân chưa mở, task của chúng để `[ ]` (CLAUDE.md mục "Giai đoạn hiện tại").
 
 ## 6. AI không được làm
 

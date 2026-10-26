@@ -24,7 +24,7 @@ public class M07DailyJob implements ScheduledJob {
     public M07DailyJob(
             M07JobService jobService,
             BusinessTime businessTime,
-            @Value("${eldercare.jobs.m07-daily.on-startup:true}") boolean onStartup) {
+            @Value("${eldercare.jobs.m07-daily.on-startup:${eldercare.scheduling.enabled:true}}") boolean onStartup) {
         this.jobService = jobService;
         this.businessTime = businessTime;
         this.onStartup = onStartup;
