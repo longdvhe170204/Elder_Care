@@ -59,6 +59,10 @@ import tools.jackson.databind.node.ObjectNode;
 public class ResidencyEndingService {
 
     public static final String ENTITY_TYPE = "M02.RESIDENCY_ENDING";
+    /** Loại yêu cầu ngoại lệ điều kiện kết thúc; mục quyết toán sau qua đời dùng chung (FR-071a, Q-387). */
+    public static final String EXCEPTION_TYPE = EndingExceptionHandler.TYPE;
+    /** Giá trị {@code basis} trong nội dung yêu cầu khi căn cứ là danh sách việc sau qua đời. */
+    public static final String POST_DEATH_BASIS = "POST_DEATH";
 
     static final AuditAction CREATED = new AuditAction("M02_ENDING_CREATED", true);
     static final AuditAction DATE_CHANGED = new AuditAction("M02_ENDING_DATE_CHANGED", true);
@@ -129,6 +133,11 @@ public class ResidencyEndingService {
 
     public static Target targetForResident(long residentId) {
         return new Target(ENTITY_TYPE, null, residentId, null);
+    }
+
+    /** Đối tượng kiểm quyền của ngoại lệ ý tiền (h) sau qua đời; chú thích 39 cho Kế toán lập. */
+    public static Target settlementExceptionTarget(long residentId) {
+        return new Target(EndingExceptionHandler.SETTLEMENT_ENTITY, null, residentId, null);
     }
 
     /** Đối tượng kiểm quyền của một hồ sơ; không có thì 404. */
