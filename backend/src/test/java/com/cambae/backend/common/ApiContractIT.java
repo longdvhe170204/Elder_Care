@@ -73,7 +73,7 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 003: Phase 3 đã cài; operation Phase 4/5 đã duyệt vẫn pending khi chưa có controller.
+            // 003 (A review 2026-10-26): còn chuyển giường trực tiếp (FR-028) chưa có controller
             new Contract(
                     Path.of("..", "specs", "003-room-bed-allocation", "contracts", "api-003.yaml"),
                     Set.of("POST /api/v1/bed-allocations/{id}/transfer"),
