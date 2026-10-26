@@ -825,7 +825,36 @@ Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phas
 
 ## 11. Feature 005 (`005-daily-care-tasks`, C)
 
-*Chủ feature điền khi dịch `contracts/api-005.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+### 11.1. Phase 1 — khung gói và SPI (2026-10-26)
+
+Chưa dịch các endpoint/schema nghiệp vụ api-005. Riêng operation công tắc dưới đây được chủ dự án duyệt trong phiên 2026-10-26. Tên logic trong tasks/research không phải đường dẫn mã thật.
+
+| Tên logic | Tên triển khai |
+| --- | --- |
+| kehoach, comat, congviec, ghinhan | `careplan`, `attendance`, `task`, `recording` |
+| checklist, danhmuc, quytac, quahan | `checklist`, `catalog`, `rules`, `overdue` |
+| thoikhoabieu, trangthai, lich | `timetable`, `status`, `scheduling` |
+| NhanSuCaPort | `m04.api.spi.ShiftStaffPort`: `shift`, `publishedShifts`, `shiftContaining`, `shiftLead`, `assignments`, `responsibleNurses`, `onShift`, `qualified`, `hasQualifiedStaff`, `handoverConfirmed`, `handoverTasks` |
+| NguonCongViecPort | `TaskSourcePort`: `managedTypes`, `validate`, `confirmServing` |
+| ChiSoPort | `VitalSignPort.record` |
+| LieuThuocChecklistPort | `MedicationChecklistPort.inRange` |
+| CanhBaoDocPort | `AlertReadPort.open`, `byTask` |
+| BanGhiDonBanTruPort | `DayCarePickupPort.valid`, `markUsed` |
+| KetQuaKiemTraPort | `QualityCheckPort.failed` |
+| ThoiKhoaBieuNguonPort | `TimetableSourcePort.onDate` |
+| CaView, PhanCongChamSocView, ViecBanGiaoView | `ShiftStaffPort.ShiftView`, `CareAssignmentView`, `HandoverTasksView` |
+| LoaiCanCu, KetQuaKiemTraCanCu | `TaskSourcePort.SourceType`, `SourceValidation` |
+| KetQuaGhiChiSo: DA_LUU / BI_CHAN / CHO_DO_LAI | `VitalSignPort.RecordingResult`, `RecordingStatus`: `SAVED` / `BLOCKED` / `AWAITING_REMEASUREMENT` |
+| LieuHienThiView, ThuocTomTat | `MedicationChecklistPort.DoseView`, `MedicationSummary` |
+| CanhBaoView, BanGhiDonView, KetQuaKiemTraView, MucThoiKhoaBieuView | `AlertReadPort.AlertView`, `DayCarePickupPort.PickupView`, `QualityCheckPort.FailedCheckView`, `TimetableSourcePort.TimetableItemView` |
+| MUC_KE_HOACH, LAN_DO, BUA, BUOI_HOAT_DONG | `CARE_PLAN_ITEM`, `MEASUREMENT`, `MEAL`, `ACTIVITY_SESSION` |
+| THEO_DOI_SAU_NGA, THEO_DOI_TIEP_XUC, CANH_BAO_UONG_NUOC | `POST_FALL_MONITORING`, `CONTACT_MONITORING`, `WATER_INTAKE_ALERT` |
+| KIEM_TRA_DAU_CA, GIAM_SAT, PHAT_SINH, GHI_NHAN_PHAT_SINH, LAM_LAI | `SHIFT_START_CHECK`, `SUPERVISION`, `AD_HOC`, `AD_HOC_RECORDING`, `REWORK` |
+| BAN_GHI_DON_DA_DUNG | `PICKUP_RECORD_ALREADY_USED` (lỗi fake, chưa là schema lỗi HTTP nghiệp vụ) |
+| Bản giả SPI 005 | `support/fake/m04/`: `FakeShiftStaff`, `FakeTaskSource`, `FakeVitalSigns`, `FakeMedicationChecklist`, `FakeAlertReader`, `FakeDayCarePickups`, `FakeQualityChecks`, `FakeTimetableSource` |
+| Cấu hình/công tắc | `FakeM04Config`, `FakeM04Switches`, `FakeM04Controller`, `SwitchRequest(enabled)`; `PUT /api/v1/testing/fakes/{module}`, 204; module `006`, `007`, `008`, `011`, `012`, `014` |
+
+Các view được mô tả projection ở module-interfaces mục 2.1; kiểu chỉ SPI dùng nằm lồng trong SPI theo backend/README.md. Kiểu fixture `FakeVitalSigns.Measurement` lưu đủ đối số lần gọi, không phải DTO production. Không thêm thuật ngữ hay enum vai trò ngoài `common.Role` đã công bố.
 
 ## 12. Feature 006 (`006-medication-management`, D)
 

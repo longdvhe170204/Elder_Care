@@ -26,8 +26,10 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo khung gói `BE/m04/{api,kehoach,comat,congviec,ghinhan,checklist,danhmuc,quytac,quahan,thoikhoabieu,trangthai,lich}/` với `package-info.java` (research C-01)
-- [ ] T002 [P] Tạo bản giả SPI 005 khai báo (contracts mục 2.1) trong `BT/support/gia005/`: `NhanSuCaPort` (008), `NguonCongViecPort` (007, 011, 014), `ChiSoPort`, `CanhBaoDocPort` (007), `LieuThuocChecklistPort` (006), `BanGhiDonBanTruPort` (012), `KetQuaKiemTraPort` (014), `ThoiKhoaBieuNguonPort`; công tắc `/api/v1/kiem-thu/gia-lap/{module}` chỉ ở profile `test`, `demo`
+- [ ] T001 Tạo khung gói `BE/m04/{api,careplan,attendance,task,recording,checklist,catalog,rules,overdue,timetable,status,scheduling}/` với `package-info.java` (research C-01; tên mã theo glossary mục 11, lớp sẽ đặt theo backend/README.md)
+- [ ] T002 [P] Khai báo trước tám SPI cần cho fixture trong `BE/m04/api/spi/` (phần tương ứng của T003), tạo bản giả do 005 sở hữu trong `BT/support/fake/m04/`: `ShiftStaffPort` (008), `TaskSourcePort` (007, 011, 014), `VitalSignPort`, `AlertReadPort` (007), `MedicationChecklistPort` (006), `DayCarePickupPort` (012), `QualityCheckPort` (014), `TimetableSourcePort`. Công tắc `PUT /api/v1/testing/fakes/{module}`, body `{enabled: boolean}`, trả 204 (chủ dự án duyệt 2026-10-26); chỉ khi import `FakeM04Config` ở profile `test`/`demo`, không đưa fake vào production. Lý do đổi thứ tự kỹ thuật và bằng chứng kiểm ở plan mục Ghi chú triển khai.
+
+**Kiểm 2026-10-26**: T001–T002 đã cài; 23 ca mới và các kiểm kiến trúc xanh. `clean verify` nền kết thúc exit1: 461 test đơn vị/kiến trúc xanh; 1098 IT còn 6 failure + 9 error ở 8 lớp M01 đã bàn giao B. Spotless qua. Giữ hai checkbox trống theo gate cuối phase, không ghi Phase1 đã nghiệm thu. Chi tiết ở plan/Working-history.md; task tiếp theo T003, không tạo lại tám SPI đã có.
 
 ---
 

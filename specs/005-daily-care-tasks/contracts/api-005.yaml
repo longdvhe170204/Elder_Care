@@ -28,6 +28,33 @@ tags:
   - { name: thoi-khoa-bieu, description: '8.2; mục H' }
 
 paths:
+  # T002: hợp đồng công tắc được chủ dự án duyệt ngày 2026-10-26.
+  /testing/fakes/{module}:
+    put:
+      tags: [testing]
+      operationId: setDailyCareFakeEnabled
+      summary: Bật hoặc tắt các nguồn giả cùng module
+      description: |
+        Chỉ đăng ký khi import FakeM04Config từ test classpath và có profile test hoặc demo.
+        Không có trong JAR production hoặc ứng dụng chạy bình thường. Tắt nguồn gây lỗi rõ ràng
+        khi SPI được gọi; bật lại giữ fixture đã đặt. Không ghi dữ liệu nghiệp vụ.
+      parameters:
+        - name: module
+          in: path
+          required: true
+          schema: { type: string, enum: ['006', '007', '008', '011', '012', '014'] }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled: { type: boolean }
+      responses:
+        '204': { description: Đã cập nhật công tắc }
+        '400': { description: Module không hỗ trợ hoặc thiếu enabled hợp lệ }
   # ---------------- Kế hoạch chăm sóc ----------------
   /nguoi-cao-tuoi/{nctId}/ke-hoach-cham-soc:
     get:
