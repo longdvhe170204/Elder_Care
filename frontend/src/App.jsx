@@ -19,6 +19,8 @@ import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
 import { MedicationPage } from '@/features/medication/MedicationPage'
 import { MedicationCatalogPage } from '@/features/medication-catalog/MedicationCatalogPage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
+import { ShiftsPage } from '@/features/shifts/ShiftsPage'
+import { StaffPage } from '@/features/shifts/StaffPage'
 import { BedsPage } from '@/features/beds/BedsPage'
 import { ReportsPage } from '@/features/reports/ReportsPage'
 
@@ -28,6 +30,8 @@ const PAGES = {
   dashboard: DashboardPage,
   reports: ReportsPage,
   residents: ResidentListPage,
+  shifts: ShiftsPage,
+  staff: StaffPage,
   'care-tasks': ShiftChecklistPage,
   incidents: IncidentDetailPage,
   medication: MedicationPage,

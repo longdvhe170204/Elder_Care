@@ -23,6 +23,7 @@ import com.cambae.backend.m15.sample.CorrectionFixtures;
 import com.cambae.backend.m15.sample.SampleOfficeRecordProvider;
 import com.cambae.backend.support.MySqlIntegrationTestBase;
 import com.cambae.backend.support.SwitchableUser;
+import java.sql.Statement;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -68,11 +70,18 @@ class CorrectionApprovalIT extends MySqlIntegrationTestBase {
     }
 
     private long officeRecord(String note) {
+        var keys = new GeneratedKeyHolder();
         jdbc.update(
-                "INSERT INTO sample_office_record (occurred_at, actor_id, note) VALUES (UTC_TIMESTAMP(6), ?, ?)",
-                OFFICE_A.accountId(),
-                note);
-        return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+                connection -> {
+                    var statement = connection.prepareStatement(
+                            "INSERT INTO sample_office_record (occurred_at, actor_id, note) VALUES (UTC_TIMESTAMP(6), ?, ?)",
+                            Statement.RETURN_GENERATED_KEYS);
+                    statement.setLong(1, OFFICE_A.accountId());
+                    statement.setString(2, note);
+                    return statement;
+                },
+                keys);
+        return keys.getKey().longValue();
     }
 
     private ApprovalRequestView requestByColleague(long id, CorrectionType type, Object content) {

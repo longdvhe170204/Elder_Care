@@ -67,6 +67,12 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
+            // 008 T006: kiểm ngay các controller nền; giảm PENDING khi cài từng story (phần T042 lấy sớm).
+            new Contract(
+                    Path.of("..", "specs", "008-staff-shift-handover", "contracts", "api-008.yaml"),
+                    Set.of(),
+                    Set.of(),
+                    true),
             // 003: Phase 3 đã cài; operation Phase 4/5 đã duyệt vẫn pending khi chưa có controller.
             new Contract(
                     Path.of("..", "specs", "003-room-bed-allocation", "contracts", "api-003.yaml"),

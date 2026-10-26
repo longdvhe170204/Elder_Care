@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-10 | **Plan**: [plan.md](plan.md)
 
-Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế chưa có mã nên các lệnh chưa chạy được. Hợp đồng xem [contracts/api-008.yaml](contracts/api-008.yaml) và [contracts/module-interfaces.md](contracts/module-interfaces.md); bảng và ràng buộc xem [data-model.md](data-model.md).
+Hướng dẫn kịch bản nghiệm thu; tên tiếng Việt bên dưới là tên logic, đường dẫn/mã dùng khi gọi thật theo [contracts/api-008.yaml](contracts/api-008.yaml), không sao chép nguyên tên logic vào terminal. Trạng thái kiểm tự động, nguồn thật còn thiếu và số đo người dùng ở [validation.md](validation.md). Giao tiếp module xem [contracts/module-interfaces.md](contracts/module-interfaces.md); bảng và ràng buộc xem [data-model.md](data-model.md).
 
 ## 1. Điều kiện cần
 
@@ -13,7 +13,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
   - tầng 2 có 25 người cao tuổi ở 8 phòng (dữ liệu 003): 20 người mức cơ bản, 6 người mức đặc biệt (trọng số 1 và 2,5 theo CFG-M09-12);
   - giấy phép điều dưỡng của E hết hạn 04/10; đào tạo sơ cứu của S bắt buộc, hết hạn 30/11;
   - CFG theo mặc định Phụ lục 25: CFG-M09-01 8 trọng số/nhân viên, CFG-M09-02 16 giờ, CFG-M09-03 60 ngày, CFG-M09-04 30 phút, CFG-M09-05 30 phút, CFG-M09-08 24 giờ, CFG-M09-09 24 giờ, CFG-M15-07 2 giờ;
-  - bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}`: `DoGuiBanGiaoPort` (013), `ChuyenDiNhiemVuPort` (014), `KiemTraCongBoMoRong` (015); bộ ghi sự kiện để xem sự kiện gửi 005, 006, 007, 009.
+  - test tự động nhập bản giả dùng chung của `HeldBelongingsHandoverPort` (013), `TripDutyPort` (014), `ExtendedPublicationCheck` (015) trong `backend/src/test`; ứng dụng thật không có endpoint công tắc giả lập và không đăng ký bean fake. Kiểm demo đầu–cuối cần nguồn thật tương ứng; xem `validation.md`.
 
 ## 2. Chạy
 
@@ -120,6 +120,6 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | I5 | Xem trước không lỗi; tạo tay hồ sơ trùng số với dòng 5; xác nhận | 409 `IMPORT_CO_DONG_LOI` báo dòng 5; 0 hồ sơ | US4 #13 |
 | I6 | File 501 dòng (CFG-M09-13 = 500); file .csv; file thiếu cột Email; Trưởng tầng gọi `xem-truoc` | 422 `QUA_SO_DONG`; 422 `FILE_KHONG_DUNG_MAU` (hai lần); 403 | US4 #14, FR-001c |
 | I7 | 500 dòng hợp lệ: đo `xem-truoc`, `xac-nhan` | Mỗi bước ≤ 10 giây | SC-013 |
-| K1 | Bản cài `NhanSuCanhBaoPort`: C có ca Tầng 2 đang diễn ra; K (Bếp) không xếp ca trong giờ hành chính; C vắng ca | `dangTrongCa(C)` true, `tangTrongCa(C)` = 2; `dangTrongCa(K)` true, tầng rỗng; C vắng → false; `tangDangCoCa` gồm tầng 2 | 007 FR-047i |
+| K1 | Bản cài `AlertStaffPort`: C có ca Tầng 2 đang diễn ra; H (Hành chính) không xếp ca trong giờ hành chính CFG-M13-06; C vắng ca | `onShift(C)` true, `floorDuringShift(C)` = 2; `onShift(H)` true, tầng rỗng; C vắng → false; `floorsWithShift` vẫn gồm tầng 2. Theo Q-332, Bếp không thuộc ba vai trò mặc định trong giờ hành chính | 007 FR-047i, Q-332 |
 
 Test: `FR_001b_ImportNhanVienIT` (I1 → I6), `KiemTraDongImportTest` (bảng mọi loại lỗi), `ImportHieuNangIT` (I7), `NhanSuCanhBaoPortIT` mở rộng (K1).
