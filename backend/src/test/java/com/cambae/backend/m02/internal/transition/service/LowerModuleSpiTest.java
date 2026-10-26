@@ -17,8 +17,9 @@ import org.junit.jupiter.api.Test;
 
 /**
  * 004 T010 (contracts mục 1.1): các SPI mà M02 cài cho module thấp hơn. Thời điểm trạng thái cuối lấy từ lịch sử trạng
- * thái của 001; hai SPI còn lại (lượt vắng, yêu cầu đổi mức) là khung trả rỗng tới khi có bảng của user story tương ứng. SPI hợp đồng
- * ({@code ContractApi}) đã có bản thật ở Phase 5, kiểm ở {@code BR_M02_09_ContentAtDateIT}.
+ * thái của 001; SPI lượt vắng còn là khung trả rỗng tới khi có bảng của user story tương ứng. SPI hợp đồng ({@code ContractApi}) đã có
+ * bản thật ở Phase 5, kiểm ở {@code BR_M02_09_ContentAtDateIT}; SPI yêu cầu đổi mức đã có bản thật ở Phase 7, kiểm ở {@code
+ * CareLevelChangeRequestIT}.
  */
 class LowerModuleSpiTest {
 
@@ -44,10 +45,7 @@ class LowerModuleSpiTest {
     }
 
     @Test
-    void FR_048_skeletonSpis_returnEmptyUntilTheirStoriesAddTables() {
+    void FR_048_skeletonAbsenceSpi_returnsEmptyUntilItsStoryAddsTables() {
         assertThat(new AbsenceLookup().open(1L)).isEmpty();
-        CareLevelChangeRequestHandler requests = new CareLevelChangeRequestHandler();
-        assertThat(requests.supersedeByAssessment(1L, 2L)).isEmpty();
-        assertThat(requests.hasOpenRequest(1L)).isFalse();
     }
 }
