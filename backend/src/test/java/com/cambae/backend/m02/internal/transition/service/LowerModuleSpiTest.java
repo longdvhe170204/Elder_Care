@@ -7,8 +7,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.cambae.backend.m01.api.ResidentStatusApi;
+import com.cambae.backend.m01.api.dto.OpenAbsence;
 import com.cambae.backend.m01.api.dto.ResidentStatus;
 import com.cambae.backend.m01.api.dto.StatusPeriod;
+import com.cambae.backend.m02.internal.absence.domain.Absence;
+import com.cambae.backend.m02.internal.absence.domain.AbsenceType;
+import com.cambae.backend.m02.internal.absence.service.AbsenceService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +49,36 @@ class LowerModuleSpiTest {
     }
 
     @Test
-    void FR_048_skeletonAbsenceSpi_returnsEmptyUntilItsStoryAddsTables() {
-        assertThat(new AbsenceLookup().open(1L)).isEmpty();
+    void FR_050_absenceSpi_reportsTheOpenTemporaryAbsenceWithItsExpectedReturn() {
+        AbsenceService absences = mock(AbsenceService.class);
+        Instant expected = Instant.parse("2026-11-05T09:00:00Z");
+        Absence open = new Absence(
+                9L,
+                1L,
+                AbsenceType.HOME_VISIT,
+                null,
+                null,
+                expected.minusSeconds(3600),
+                expected,
+                null,
+                5L,
+                6L,
+                null,
+                7L,
+                false,
+                true,
+                null,
+                null,
+                null,
+                true,
+                1L,
+                null);
+        when(absences.openTemporary(1L)).thenReturn(Optional.of(open));
+        when(absences.openTemporary(2L)).thenReturn(Optional.empty());
+
+        AbsenceLookup lookup = new AbsenceLookup(absences);
+
+        assertThat(lookup.open(1L)).contains(new OpenAbsence(9L, expected));
+        assertThat(lookup.open(2L)).isEmpty();
     }
 }
