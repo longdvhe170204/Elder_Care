@@ -65,7 +65,8 @@ class DoseHandoverApiTest {
                 MedicationSource.FACILITY,
                 false,
                 com.cambae.backend.m07.internal.domain.DoseStatus.LATE,
-                1L);
+                1L,
+                Instant.now());
         setId(lateDose, 101L);
 
         when(doseRepository.findByFloorAreaIdAndStatusIn(eq(1L), any())).thenReturn(List.of(lateDose));
@@ -101,7 +102,8 @@ class DoseHandoverApiTest {
                 MedicationSource.FACILITY,
                 false,
                 com.cambae.backend.m07.internal.domain.DoseStatus.ADMINISTERED,
-                1L);
+                1L,
+                Instant.now());
         when(doseRepository.findByPrescriptionIdAndScheduledTime(10L, scheduled))
                 .thenReturn(Optional.of(dose));
 

@@ -8,7 +8,7 @@ Nguồn: [quickstart](quickstart.md), [tasks](tasks.md), [validation](validation
 
 1. Giữ backend profile demo ở cổng 8080 và frontend ở cổng 5173 đang chạy.
 2. Mở http://localhost:5173/login; tài khoản quản lý mẫu là `demo.quanly`, mật khẩu `Demo2026!`.
-3. Dùng database `eldercare_demo`. Không chạy bộ IT trong lúc thử web: lớp cơ sở IT tạo lại tài khoản MySQL eldercare_app/eldercare_retention, có thể làm phiên demo mất kết nối hoặc mất quyền database.
+3. Dùng database `eldercare_demo`. Khi kiểm IT trên cùng MySQL, cần truyền DB_PASSWORD/DB_RETENTION_PASSWORD khớp demo: bản lớp cơ sở mới từ develop e548357 giữ quyền ngoài schema test nhưng vẫn đặt mật khẩu tài khoản MySQL dùng chung; thiếu hai biến đó sẽ dùng mật khẩu ngẫu nhiên. Khi tự thử web, nên tách lượt IT để tránh gián đoạn.
 4. Với mỗi trường hợp, ghi: ngày/giờ, tài khoản, ID hồ sơ/ca/bàn giao, thao tác, kết quả thực tế, và một trong bốn trạng thái **Đạt / Lỗi / Chờ dữ liệu hoặc module / Chưa chạy**. Chỉ ghi Đạt sau khi đã thao tác và đối chiếu.
 5. Nếu có lỗi: ghi nguyên thông báo, giữ ID và bước tái hiện. F12 → Network → Fetch/XHR → chọn request lỗi, lấy Status và Response. Không gửi mật khẩu, Cookie, token hoặc toàn bộ request đăng nhập.
 6. Sau thao tác lưu thành công, đóng chi tiết rồi mở lại hoặc F5 để kiểm dữ liệu đã lưu thật.
@@ -259,7 +259,7 @@ Nếu nhảy giờ làm hết hạn phiên, đăng nhập lại. Muốn đưa đ
 - T049b: D kiểm H1–H9 US13 007 với AlertStaffPort thật.
 - T044b: demo đầu–cuối; SC-002/SC-010 ít nhất mười lượt thao tác người dùng thật; SC-003 cần số liệu vận hành một tháng. Ghi số đo thật theo mẫu trong validation.md.
 - Mobile nhân viên: T016b/T022b/T030/T041b chưa mở; không đánh xong từ việc chạy web hoặc test Flutter phần người cao tuổi.
-- Clean verify toàn kho sau merge còn lỗi M07/hợp đồng thuốc đã ghi trong [merge-verification.md](merge-verification.md). 321 test web xanh và mở được màn Nhân sự không thay kết quả đó.
+- Lượt đồng bộ develop e548357 đã qua kiểm kiến trúc M07/hợp đồng thuốc. Toàn kho còn 16 IT lỗi: 15 tái hiện trên develop gốc ở M01, một test nguồn lịch sử vị trí M03 khác kết quả khi ghép; xem [merge-verification.md](merge-verification.md). M09 có 336 lượt test xanh, frontend 332 test xanh; kết quả đó không thay nghiệm thu toàn bộ kịch bản thật và gate toàn kho.
 
 ## 15. Lượt thử đầu tiên nên làm ngay
 

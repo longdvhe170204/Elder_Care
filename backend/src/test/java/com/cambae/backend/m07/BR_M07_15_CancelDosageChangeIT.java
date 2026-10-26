@@ -12,13 +12,13 @@ import com.cambae.backend.m07.internal.domain.TerminationReason;
 import com.cambae.backend.m07.internal.persistence.MedicationRepository;
 import com.cambae.backend.m07.internal.persistence.PrescriptionRepository;
 import com.cambae.backend.m07.internal.service.PrescriptionService;
-import com.cambae.backend.m07.web.request.ChangeDosageBody;
-import com.cambae.backend.m07.web.request.CreatePrescriptionBody;
-import com.cambae.backend.m07.web.request.DiscontinuePrescriptionBody;
-import com.cambae.backend.m07.web.request.FrequencyBody;
-import com.cambae.backend.m07.web.request.PrescriberBody;
-import com.cambae.backend.m07.web.response.PrescriptionResponse;
-import com.cambae.backend.support.MySqlIntegrationTestBase;
+import com.cambae.backend.m07.internal.service.request.ChangeDosageBody;
+import com.cambae.backend.m07.internal.service.request.CreatePrescriptionBody;
+import com.cambae.backend.m07.internal.service.request.DiscontinuePrescriptionBody;
+import com.cambae.backend.m07.internal.service.request.FrequencyBody;
+import com.cambae.backend.m07.internal.service.request.PrescriberBody;
+import com.cambae.backend.m07.internal.service.response.PrescriptionResponse;
+import com.cambae.backend.support.TestUsers;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -28,14 +28,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * T030: Test BR-M07-15 & FR-016: Discontinuing a pending replacement prescription
  * cancels the planned dosage change: the replacement prescription becomes DISCONTINUED,
  * and the original prescription has its scheduled discontinuation cleared and remains ACTIVE.
  */
-class BR_M07_15_CancelDosageChangeIT extends MySqlIntegrationTestBase {
+class BR_M07_15_CancelDosageChangeIT extends M07IntegrationTestBase {
 
     @Autowired
     private PrescriptionService prescriptionService;
@@ -46,10 +45,7 @@ class BR_M07_15_CancelDosageChangeIT extends MySqlIntegrationTestBase {
     @Autowired
     private MedicationRepository medicationRepository;
 
-    @Autowired
-    private JdbcTemplate jdbc;
-
-    private Long residentId = 8803L;
+    private Long residentId = TestUsers.nextId();
     private Long medId = 8803L;
 
     @BeforeEach
@@ -59,8 +55,8 @@ class BR_M07_15_CancelDosageChangeIT extends MySqlIntegrationTestBase {
                         + "ON DUPLICATE KEY UPDATE version = version",
                 residentId);
 
-        Medication med =
-                new Medication("Losartan 50mg", "50mg", "Viên nén", "Oral", "viên", 30, 30, false, Set.of(103L));
+        Medication med = new Medication(
+                "Losartan 50mg " + TestUsers.nextId(), "50mg", "Viên nén", "Oral", "viên", 30, 30, false, Set.of(103L));
         medicationRepository.save(med);
         medId = med.getId();
     }
@@ -103,7 +99,8 @@ class BR_M07_15_CancelDosageChangeIT extends MySqlIntegrationTestBase {
                 null,
                 10L,
                 now.minus(5, ChronoUnit.DAYS),
-                Set.of(103L));
+                Set.of(103L),
+                Instant.now());
         Prescription savedOriginal = prescriptionRepository.save(p);
         Long originalId = savedOriginal.getId();
 
@@ -132,7 +129,8 @@ class BR_M07_15_CancelDosageChangeIT extends MySqlIntegrationTestBase {
         changeCmd.setEffectiveFrom(futureEffective);
         changeCmd.setReason("Dự kiến đổi sang 100mg sau 2 ngày");
 
-        PrescriptionResponse replacement = prescriptionService.changeDosage(originalId, changeCmd, 10L, true);
+        PrescriptionResponse replacement = prescriptionService.changeDosage(
+                prescriptionService.targetOf(originalId), originalId, changeCmd, 10L, true);
         Long replacementId = replacement.id();
 
         // Check intermediate state:
@@ -152,7 +150,8 @@ class BR_M07_15_CancelDosageChangeIT extends MySqlIntegrationTestBase {
         DiscontinuePrescriptionBody discontinueCmd = new DiscontinuePrescriptionBody();
         discontinueCmd.setReason("Hủy thay đổi liều, giữ nguyên liều cũ");
 
-        prescriptionService.discontinue(replacementId, discontinueCmd, 10L, true);
+        prescriptionService.discontinue(
+                prescriptionService.targetOf(replacementId), replacementId, discontinueCmd, 10L, true);
 
         // 4. Assertions:
         // Replacement prescription is DISCONTINUED

@@ -2,7 +2,7 @@ package com.cambae.backend.m07;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.cambae.backend.m07.api.events.AllergyRecordedEvent;
+import com.cambae.backend.m01.api.events.AllergyRecorded;
 import com.cambae.backend.m07.api.events.MedicationAlertRequestedEvent;
 import com.cambae.backend.m07.internal.domain.Medication;
 import com.cambae.backend.m07.internal.domain.Prescription;
@@ -142,7 +142,8 @@ class FR_012_NewAllergyIT extends MySqlIntegrationTestBase {
                 null,
                 1L,
                 Instant.now(),
-                Set.of(allergenId));
+                Set.of(allergenId),
+                Instant.now());
         prescriptionRepository.save(p);
     }
 
@@ -151,7 +152,7 @@ class FR_012_NewAllergyIT extends MySqlIntegrationTestBase {
     void new_allergy_triggers_alert_and_marks_checked() {
         long allergyId = 5555L;
 
-        allergyListener.onAllergyRecorded(new AllergyRecordedEvent(allergyId, residentId, allergenId));
+        allergyListener.onAllergyRecorded(new AllergyRecorded(allergyId, residentId, allergenId));
 
         // Kiểm tra đã phát cảnh báo
         assertThat(alertCollector.alerts).isNotEmpty();
@@ -165,7 +166,7 @@ class FR_012_NewAllergyIT extends MySqlIntegrationTestBase {
 
         // Kiểm tra tính Idempotent: Gọi lại cùng allergyId không phát thêm cảnh báo
         int alertCount = alertCollector.alerts.size();
-        allergyListener.onAllergyRecorded(new AllergyRecordedEvent(allergyId, residentId, allergenId));
+        allergyListener.onAllergyRecorded(new AllergyRecorded(allergyId, residentId, allergenId));
         assertThat(alertCollector.alerts.size()).isEqualTo(alertCount);
     }
 }

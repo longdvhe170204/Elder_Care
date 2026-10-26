@@ -1,55 +1,9 @@
 import { useState } from 'react'
-import {
-  ArrowLeftRight,
-  BedDouble,
-  Bell,
-  BookOpen,
-  CalendarCheck,
-  CalendarDays,
-  ChartColumn,
-  ClipboardCheck,
-  FileSignature,
-  HeartHandshake,
-  History,
-  Inbox,
-  LayoutDashboard,
-  ListChecks,
-  LogOut,
-  Moon,
-  Pill,
-  Receipt,
-  Settings,
-  Sun,
-  TriangleAlert,
-  Users,
-  Utensils,
-} from 'lucide-react'
+import { LogOut, Moon, Sun } from 'lucide-react'
 import { applyTheme, readTheme } from '@/common/theme'
 import { cn } from '@/lib/utils'
 import { ROLES, navForRole } from './navigation'
-
-const ICONS = {
-  ArrowLeftRight,
-  BedDouble,
-  Bell,
-  BookOpen,
-  CalendarCheck,
-  CalendarDays,
-  ChartColumn,
-  ClipboardCheck,
-  FileSignature,
-  HeartHandshake,
-  History,
-  Inbox,
-  LayoutDashboard,
-  ListChecks,
-  Pill,
-  Receipt,
-  Settings,
-  TriangleAlert,
-  Users,
-  Utensils,
-}
+import { ICONS } from './navIcons'
 
 // Dấu lá giống favicon
 export function LeafMark() {
@@ -148,8 +102,8 @@ function UserBlock({ role, onRoleChange, session, onLogout }) {
   )
 }
 
-export function AppShell({ role, onRoleChange, session, onLogout, page, onPageChange, children }) {
-  const groups = navForRole(role)
+export function AppShell({ role, hasFunction, built, onRoleChange, session, onLogout, page, onPageChange, children }) {
+  const groups = navForRole(role, hasFunction, built)
 
   return (
     <div className="grid min-h-screen grid-cols-1 md:grid-cols-[240px_minmax(0,1fr)]">

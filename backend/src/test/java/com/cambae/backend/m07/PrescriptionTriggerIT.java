@@ -56,16 +56,24 @@ class PrescriptionTriggerIT extends MySqlIntegrationTestBase {
         jdbc.update(
                 "INSERT INTO prescription (resident_id, medication_id, dosage, dosage_unit, route, prescription_type, "
                         + "frequency_type, started_at, medication_source, prescriber_type, prescriber_name, prescriber_id, "
-                        + "prescription_date, status, created_by_id, created_at, version) "
-                        + "VALUES (9901, 9901, 1.0, 'Viên', 'Uống', 'REGULAR', 'TIMED_SLOTS', NOW(), 'FACILITY', 'INTERNAL', "
+                        + "prescribed_at, status, creator_id, created_at, version) "
+                        + "VALUES (9901, 9901, 1.0, 'Viên', 'Uống', 'PERIODIC', 'TIMED_SLOTS', NOW(), 'FACILITY', 'INTERNAL', "
                         + "'Dr. A', 1, CURDATE(), 'ACTIVE', 1, NOW(), 0)");
 
         Long id = jdbc.queryForObject(
                 "SELECT id FROM prescription WHERE resident_id = 9901 ORDER BY id DESC LIMIT 1", Long.class);
 
+        // Tài khoản ứng dụng không có quyền DELETE; thử bằng quản trị để chạm trigger
         assertThatThrownBy(() -> jdbc.update("DELETE FROM prescription WHERE id = ?", id))
-                .isInstanceOf(DataAccessException.class)
-                .hasMessageContaining("PRESCRIPTION_NO_DELETE");
+                .isInstanceOf(DataAccessException.class);
+        assertThatThrownBy(() -> {
+                    try (Connection c = adminConnection();
+                            Statement st = c.createStatement()) {
+                        st.executeUpdate("DELETE FROM prescription WHERE id = " + id);
+                    }
+                })
+                .isInstanceOf(SQLException.class)
+                .hasMessageContaining("prescription cannot be deleted");
     }
 
     @Test
@@ -82,8 +90,8 @@ class PrescriptionTriggerIT extends MySqlIntegrationTestBase {
         jdbc.update(
                 "INSERT INTO prescription (resident_id, medication_id, dosage, dosage_unit, route, prescription_type, "
                         + "frequency_type, started_at, medication_source, prescriber_type, prescriber_name, prescriber_id, "
-                        + "prescription_date, status, created_by_id, created_at, version) "
-                        + "VALUES (9902, 9902, 1.0, 'Viên', 'Uống', 'REGULAR', 'TIMED_SLOTS', NOW(), 'FACILITY', 'INTERNAL', "
+                        + "prescribed_at, status, creator_id, created_at, version) "
+                        + "VALUES (9902, 9902, 1.0, 'Viên', 'Uống', 'PERIODIC', 'TIMED_SLOTS', NOW(), 'FACILITY', 'INTERNAL', "
                         + "'Dr. B', 1, CURDATE(), 'ACTIVE', 1, NOW(), 0)");
 
         Long id = jdbc.queryForObject(
@@ -92,7 +100,7 @@ class PrescriptionTriggerIT extends MySqlIntegrationTestBase {
         // Sửa liều (dosage) bị trigger chặn
         assertThatThrownBy(() -> jdbc.update("UPDATE prescription SET dosage = 2.0 WHERE id = ?", id))
                 .isInstanceOf(DataAccessException.class)
-                .hasMessageContaining("PRESCRIPTION_FIELD_IMMUTABLE");
+                .hasMessageContaining("Fixed fields of saved prescription cannot be modified");
 
         // Sửa ghi chú hướng dẫn (instruction_note) thì được phép
         int updated = jdbc.update(

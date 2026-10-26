@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.cambae.backend.common.error.BusinessException;
+import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m07.api.dto.MedicationSource;
 import com.cambae.backend.m07.internal.domain.DoseStatus;
 import com.cambae.backend.m07.internal.domain.FrequencyType;
@@ -33,13 +34,14 @@ import com.cambae.backend.m07.internal.persistence.ReconciliationItemRepository;
 import com.cambae.backend.m07.internal.persistence.ResidentMedicationLock;
 import com.cambae.backend.m07.internal.service.MedicationReconciliationService;
 import com.cambae.backend.m07.internal.service.PrescriptionService;
-import com.cambae.backend.m07.web.request.CreateReconciliationBody;
-import com.cambae.backend.m07.web.request.ProposeCorrectionBody;
-import com.cambae.backend.m07.web.response.ReconciliationCorrectionResponse;
-import com.cambae.backend.m07.web.response.ReconciliationResponse;
+import com.cambae.backend.m07.internal.service.request.CreateReconciliationBody;
+import com.cambae.backend.m07.internal.service.request.ProposeCorrectionBody;
+import com.cambae.backend.m07.internal.service.response.ReconciliationCorrectionResponse;
+import com.cambae.backend.m07.internal.service.response.ReconciliationResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -89,7 +91,9 @@ class MedicationReconciliationTest {
                 doseRepo,
                 prescriptionService,
                 residentMedicationLock,
-                objectMapper);
+                objectMapper,
+                new BusinessTime(Clock.systemUTC()),
+                M07TestParameters.defaults());
     }
 
     private void setId(Object entity, Long id) {
@@ -133,7 +137,8 @@ class MedicationReconciliationTest {
                 null,
                 1L,
                 Instant.parse("2026-10-20T00:00:00Z"),
-                Set.of(101L));
+                Set.of(101L),
+                Instant.now());
         setId(p, id);
         return p;
     }
@@ -151,7 +156,8 @@ class MedicationReconciliationTest {
                 MedicationSource.FACILITY,
                 false,
                 status,
-                1L);
+                1L,
+                Instant.now());
         setId(d, id);
         return d;
     }
@@ -199,8 +205,10 @@ class MedicationReconciliationTest {
     }
 
     @Test
-    @DisplayName("T034: Lập phiếu Tiếp nhận -> Tạm dừng các đơn hiệu lực, đặt hạn đối chiếu 24 giờ (FR-034, BR-M07-09)")
-    void testCreate_Admission_Success_SuspendsActivePrescriptions_Sets24hDeadline() {
+    @DisplayName(
+            "T034: Lập phiếu Tiếp nhận -> Tạm dừng các đơn hiệu lực, đặt hạn đối chiếu theo CFG-M07-05 (FR-034, BR-M07-09)")
+    void testCreate_Admission_Success_SuspendsActivePrescriptions_SetsCfgM0705Deadline() {
+        Instant before = Instant.now();
         CreateReconciliationBody body = new CreateReconciliationBody();
         body.setReason("TIEP_NHAN");
 
@@ -219,8 +227,9 @@ class MedicationReconciliationTest {
 
         assertThat(response.getId()).isEqualTo(2L);
         assertThat(response.getStatus()).isEqualTo("OPEN");
-        assertThat(response.getDeadlineAt()).isNotNull(); // Hạn 24h
-        assertThat(response.getDeadlineAt()).isAfter(Instant.now().plus(23, ChronoUnit.HOURS));
+        // CFG-M07-05 mặc định 4 giờ
+        assertThat(response.getDeadlineAt())
+                .isBetween(before.plus(4, ChronoUnit.HOURS), Instant.now().plus(4, ChronoUnit.HOURS));
 
         // Đơn hiệu lực đã bị tạm dừng chờ đối chiếu
         assertThat(activePrescription.getStatus()).isEqualTo(PrescriptionStatus.SUSPENDED);
@@ -237,6 +246,7 @@ class MedicationReconciliationTest {
                 null,
                 Instant.now().plus(24, ChronoUnit.HOURS),
                 1L,
+                Instant.now(),
                 Instant.now());
         when(reconciliationRepo.findOpenOrPendingByResidentId(100L)).thenReturn(Optional.of(existing));
 
@@ -248,7 +258,7 @@ class MedicationReconciliationTest {
                 .satisfies(e -> {
                     BusinessException be = (BusinessException) e;
                     assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("DA_CO_PHIEU_MO");
+                    assertThat(be.errorCode()).isEqualTo("OPEN_RECONCILIATION_EXISTS");
                 });
     }
 
@@ -256,7 +266,7 @@ class MedicationReconciliationTest {
     @DisplayName("T060: Gửi xác nhận khi còn đơn thuốc chưa có dòng đối chiếu -> 409 THIEU_DONG (FR-034, BR-M07-25)")
     void testSubmit_MissingLinesForExistingPrescription_ThrowsConflict409() {
         MedicationReconciliation ticket = new MedicationReconciliation(
-                100L, ReconciliationReason.PROFESSIONAL_REQUEST, "Kiem tra", null, 1L, Instant.now());
+                100L, ReconciliationReason.PROFESSIONAL_REQUEST, "Kiem tra", null, 1L, Instant.now(), Instant.now());
         setId(ticket, 5L);
         when(reconciliationRepo.findById(5L)).thenReturn(Optional.of(ticket));
 
@@ -277,6 +287,7 @@ class MedicationReconciliationTest {
                 null,
                 null,
                 1L,
+                Instant.now(),
                 Instant.now());
         when(itemRepo.findByReconciliationIdOrderByItemOrderAsc(5L)).thenReturn(List.of(item1));
 
@@ -285,7 +296,7 @@ class MedicationReconciliationTest {
                 .satisfies(e -> {
                     BusinessException be = (BusinessException) e;
                     assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("THIEU_DONG");
+                    assertThat(be.errorCode()).isEqualTo("MISSING_ITEMS");
                 });
     }
 
@@ -298,6 +309,7 @@ class MedicationReconciliationTest {
                 null,
                 Instant.now().plus(24, ChronoUnit.HOURS),
                 1L,
+                Instant.now(),
                 Instant.now());
         setId(ticket, 6L);
         when(reconciliationRepo.findById(6L)).thenReturn(Optional.of(ticket));
@@ -317,6 +329,7 @@ class MedicationReconciliationTest {
                 "",
                 null,
                 1L,
+                Instant.now(),
                 Instant.now());
         when(itemRepo.findByReconciliationIdOrderByItemOrderAsc(6L)).thenReturn(List.of(item1));
 
@@ -325,7 +338,7 @@ class MedicationReconciliationTest {
                 .satisfies(e -> {
                     BusinessException be = (BusinessException) e;
                     assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("THIEU_DONG");
+                    assertThat(be.errorCode()).isEqualTo("MISSING_ITEMS");
                 });
     }
 
@@ -334,7 +347,7 @@ class MedicationReconciliationTest {
             "T034 & T060: Quy tắc hai người: Người xác nhận trùng người gửi / lập / ghi dòng -> 409 QUY_TAC_HAI_NGUOI (SC-014, Q-55)")
     void testConfirm_TwoPersonRule_SameUser_ThrowsConflict409() {
         MedicationReconciliation ticket = new MedicationReconciliation(
-                100L, ReconciliationReason.ADMISSION, null, Instant.now(), 10L, Instant.now());
+                100L, ReconciliationReason.ADMISSION, null, Instant.now(), 10L, Instant.now(), Instant.now());
         setId(ticket, 7L);
         ticket.submit(10L, Instant.now()); // Người gửi là ID = 10
         when(reconciliationRepo.findById(7L)).thenReturn(Optional.of(ticket));
@@ -345,7 +358,7 @@ class MedicationReconciliationTest {
                 .satisfies(e -> {
                     BusinessException be = (BusinessException) e;
                     assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("QUY_TAC_HAI_NGUOI");
+                    assertThat(be.errorCode()).isEqualTo("TWO_PERSON_RULE");
                 });
 
         // Người gửi ID = 10, người xác nhận ID = 20 nhưng ID 20 là người ghi dòng
@@ -361,6 +374,7 @@ class MedicationReconciliationTest {
                 null,
                 null,
                 20L,
+                Instant.now(),
                 Instant.now()); // Người ghi dòng là ID = 20
         when(itemRepo.findByReconciliationIdOrderByItemOrderAsc(7L)).thenReturn(List.of(item));
 
@@ -369,7 +383,7 @@ class MedicationReconciliationTest {
                 .satisfies(e -> {
                     BusinessException be = (BusinessException) e;
                     assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("QUY_TAC_HAI_NGUOI");
+                    assertThat(be.errorCode()).isEqualTo("TWO_PERSON_RULE");
                 });
     }
 
@@ -378,7 +392,7 @@ class MedicationReconciliationTest {
             "T034: Xác nhận phiếu thành công bởi người khác: Áp quyết định Tiếp tục (khôi phục đơn) & Ngừng (hủy đơn và liều) (FR-036, BR-M07-09)")
     void testConfirm_Success_AppliesDecisions() {
         MedicationReconciliation ticket = new MedicationReconciliation(
-                100L, ReconciliationReason.ADMISSION, null, Instant.now(), 10L, Instant.now());
+                100L, ReconciliationReason.ADMISSION, null, Instant.now(), 10L, Instant.now(), Instant.now());
         setId(ticket, 8L);
         ticket.submit(10L, Instant.now()); // Người gửi ID = 10
         when(reconciliationRepo.findById(8L)).thenReturn(Optional.of(ticket));
@@ -406,6 +420,7 @@ class MedicationReconciliationTest {
                 null,
                 null,
                 11L,
+                Instant.now(),
                 Instant.now());
         ReconciliationItem item2 = new ReconciliationItem(
                 8L,
@@ -418,6 +433,7 @@ class MedicationReconciliationTest {
                 "Ngừng theo chỉ định",
                 null,
                 11L,
+                Instant.now(),
                 Instant.now());
         when(itemRepo.findByReconciliationIdOrderByItemOrderAsc(8L)).thenReturn(List.of(item1, item2));
 
@@ -448,7 +464,7 @@ class MedicationReconciliationTest {
     @DisplayName("T034: Đề nghị đính chính và xác nhận đính chính tuân thủ quy tắc hai người (FR-039, BR-M07-17)")
     void testCorrection_ProposeAndConfirm_TwoPersonRule() {
         MedicationReconciliation ticket = new MedicationReconciliation(
-                100L, ReconciliationReason.ADMISSION, null, Instant.now(), 10L, Instant.now());
+                100L, ReconciliationReason.ADMISSION, null, Instant.now(), 10L, Instant.now(), Instant.now());
         setId(ticket, 9L);
         ticket.submit(10L, Instant.now());
         ticket.confirm(30L, Instant.now()); // Trạng thái CONFIRMED
@@ -479,7 +495,7 @@ class MedicationReconciliationTest {
 
         // 3. Người lập (ID = 10) tự xác nhận đề nghị đính chính -> 409 QUY_TAC_HAI_NGUOI
         ReconciliationCorrectionRequest req =
-                new ReconciliationCorrectionRequest(9L, "{}", "Sua nham", 10L, Instant.now());
+                new ReconciliationCorrectionRequest(9L, "{}", "Sua nham", 10L, Instant.now(), Instant.now());
         setId(req, 101L);
         when(correctionRepo.findById(101L)).thenReturn(Optional.of(req));
         when(correctionRepo.save(any())).thenReturn(req);
@@ -489,7 +505,7 @@ class MedicationReconciliationTest {
                 .satisfies(e -> {
                     BusinessException be = (BusinessException) e;
                     assertThat(be.status()).isEqualTo(HttpStatus.CONFLICT);
-                    assertThat(be.errorCode()).isEqualTo("QUY_TAC_HAI_NGUOI");
+                    assertThat(be.errorCode()).isEqualTo("TWO_PERSON_RULE");
                 });
 
         // 4. Người khác (ID = 30) xác nhận -> Thành công
@@ -503,7 +519,7 @@ class MedicationReconciliationTest {
     void testReconciliationCheckPort_HasOpenTicket() {
         when(reconciliationRepo.findOpenOrPendingByResidentId(100L))
                 .thenReturn(Optional.of(new MedicationReconciliation(
-                        100L, ReconciliationReason.ADMISSION, null, null, 1L, Instant.now())));
+                        100L, ReconciliationReason.ADMISSION, null, null, 1L, Instant.now(), Instant.now())));
 
         boolean hasOpen = reconciliationService.hasOpenOrPendingReconciliation(100L);
         assertThat(hasOpen).isTrue();

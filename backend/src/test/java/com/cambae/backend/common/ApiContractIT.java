@@ -79,6 +79,12 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of("POST /api/v1/bed-allocations/{id}/transfer"),
                     Set.of(),
                     true),
+            // 006 (dịch 2026-10-26 sau PR #34)
+            new Contract(
+                    Path.of("..", "specs", "006-medication-management", "contracts", "api-006.yaml"),
+                    Set.of(),
+                    Set.of(),
+                    true),
             // 009 T034 (2026-10-22, kéo phần T036 lên khi cài controller đầu tiên của US5); US3 xong 2026-10-23; còn
             // US1
             new Contract(

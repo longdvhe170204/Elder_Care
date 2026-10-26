@@ -1,5 +1,6 @@
 package com.cambae.backend.m07.internal.domain;
 
+import com.cambae.backend.common.data.DataGroup;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,6 +15,7 @@ import java.time.Instant;
  * Absence interval affecting medication schedule (FR-048, BR-M07-03).
  */
 @Entity
+@DataGroup(DataGroup.Group.BUSINESS)
 @Table(name = "medication_absence_interval")
 public class MedicationAbsenceInterval {
 
@@ -47,7 +49,7 @@ public class MedicationAbsenceInterval {
     private Long noMedicationOrderId;
 
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt = Instant.now();
+    private Instant createdAt;
 
     protected MedicationAbsenceInterval() {}
 
@@ -57,18 +59,19 @@ public class MedicationAbsenceInterval {
             Instant fromTime,
             Instant expectedToTime,
             Long absenceSessionId,
-            Long tripId) {
+            Long tripId,
+            Instant now) {
         this.residentId = residentId;
         this.absenceType = absenceType;
         this.fromTime = fromTime;
         this.expectedToTime = expectedToTime;
         this.absenceSessionId = absenceSessionId;
         this.tripId = tripId;
-        this.createdAt = Instant.now();
+        this.createdAt = now;
     }
 
     public void close(Instant actualToTime) {
-        this.actualToTime = actualToTime != null ? actualToTime : Instant.now();
+        this.actualToTime = actualToTime;
     }
 
     public void extend(Instant newExpectedToTime) {
@@ -91,10 +94,6 @@ public class MedicationAbsenceInterval {
 
     public AbsenceIntervalType getAbsenceType() {
         return absenceType;
-    }
-
-    public void setAbsenceType(AbsenceIntervalType absenceType) {
-        this.absenceType = absenceType;
     }
 
     public Instant getFromTime() {
@@ -121,7 +120,9 @@ public class MedicationAbsenceInterval {
         return noMedicationOrderId;
     }
 
-    public void setNoMedicationOrderId(Long noMedicationOrderId) {
+    /** Chuyến đi không mang thuốc theo lệnh đã ghi (FR-048b). */
+    public void attachNoMedicationOrder(Long noMedicationOrderId) {
+        this.absenceType = AbsenceIntervalType.TRIP_NO_MED;
         this.noMedicationOrderId = noMedicationOrderId;
     }
 

@@ -1,11 +1,13 @@
 package com.cambae.backend.m07.internal.domain;
 
+import com.cambae.backend.common.data.DataGroup;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
+@DataGroup(DataGroup.Group.BUSINESS)
 @Table(name = "family_medication_batch")
 public class FamilyMedicationBatch {
 
@@ -107,7 +109,8 @@ public class FamilyMedicationBatch {
             Long receiverId,
             Instant receivedAt,
             FamilyMedicationBatchStatus status,
-            String statusReason) {
+            String statusReason,
+            Instant now) {
         this.residentId = residentId;
         this.medicationId = medicationId;
         this.customName = customName;
@@ -129,44 +132,44 @@ public class FamilyMedicationBatch {
         this.receivedAt = receivedAt;
         this.status = status;
         this.statusReason = statusReason;
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
+        this.createdAt = now;
+        this.updatedAt = now;
     }
 
-    public void updateRemainingQuantity(BigDecimal newRemaining) {
+    public void updateRemainingQuantity(BigDecimal newRemaining, Instant now) {
         this.remainingQuantity = newRemaining;
         if (this.remainingQuantity.compareTo(BigDecimal.ZERO) == 0
                 && this.status == FamilyMedicationBatchStatus.IN_USE) {
             this.status = FamilyMedicationBatchStatus.DEPLETED;
         }
-        this.updatedAt = Instant.now();
+        this.updatedAt = now;
     }
 
-    public void markInUse(Long medicationId) {
+    public void markInUse(Long medicationId, Instant now) {
         this.medicationId = medicationId;
         this.status = FamilyMedicationBatchStatus.IN_USE;
         this.statusReason = null;
-        this.updatedAt = Instant.now();
+        this.updatedAt = now;
     }
 
-    public void markHoldOnly(String reason) {
+    public void markHoldOnly(String reason, Instant now) {
         this.status = FamilyMedicationBatchStatus.HOLD_ONLY;
         this.statusReason = reason;
-        this.updatedAt = Instant.now();
+        this.updatedAt = now;
     }
 
-    public void markReturned(String reason) {
+    public void markReturned(String reason, Instant now) {
         this.status = FamilyMedicationBatchStatus.RETURNED;
         this.statusReason = reason;
         this.remainingQuantity = BigDecimal.ZERO;
-        this.updatedAt = Instant.now();
+        this.updatedAt = now;
     }
 
-    public void markDisposed(String reason) {
+    public void markDisposed(String reason, Instant now) {
         this.status = FamilyMedicationBatchStatus.DISPOSED;
         this.statusReason = reason;
         this.remainingQuantity = BigDecimal.ZERO;
-        this.updatedAt = Instant.now();
+        this.updatedAt = now;
     }
 
     // Getters and Setters
@@ -180,10 +183,6 @@ public class FamilyMedicationBatch {
 
     public Long getMedicationId() {
         return medicationId;
-    }
-
-    public void setMedicationId(Long medicationId) {
-        this.medicationId = medicationId;
     }
 
     public String getCustomName() {
@@ -258,16 +257,8 @@ public class FamilyMedicationBatch {
         return status;
     }
 
-    public void setStatus(FamilyMedicationBatchStatus status) {
-        this.status = status;
-    }
-
     public String getStatusReason() {
         return statusReason;
-    }
-
-    public void setStatusReason(String statusReason) {
-        this.statusReason = statusReason;
     }
 
     public Instant getCreatedAt() {
