@@ -929,9 +929,622 @@ Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phas
 
 *Chủ feature điền khi dịch `contracts/api-007.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
 
+
 ## 14. Feature 008 (`008-staff-shift-handover`, E)
 
-*Chủ feature điền khi dịch `contracts/api-008.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+Bản dịch hợp đồng 008 cập nhật 2026-10-23, **đã được A duyệt theo xác nhận của E trong phiên làm việc, cho phép triển khai Phase 1**. Chỉ đổi tên; giữ nguyên kiểu, trường bắt buộc, ràng buộc, quyền và mã truy vết nghiệp vụ.
+
+### 14.1. Tag và đường dẫn API
+
+| Tên logic | Mã |
+| --- | --- |
+| `tag nhan-vien` | `staff` |
+| `tag chung-chi` | `credentials` |
+| `tag lich-ca` | `shift-schedules` |
+| `tag phan-cong` | `assignments` |
+| `tag ty-le` | `staffing-ratios` |
+| `tag ban-giao` | `handovers` |
+| `/nhan-vien, /nhan-vien/{id}` | `/staff, /staff/{id}` |
+| `/nhan-vien/{id}/cho-nghi-viec` | `/staff/{id}/terminate-employment` |
+| `/nhan-vien/{id}/nhan-lai-lam-viec` | `/staff/{id}/rehire` |
+| `/nhan-vien/{id}/doi-bo-phan` | `/staff/{id}/change-department` |
+| `/staff/import/mau` | `/staff/import/template` |
+| `/staff/import/xem-truoc` | `/staff/import/preview` |
+| `/staff/import/xac-nhan` | `/staff/import/confirm` |
+| `/bo-phan` | `/departments` |
+| `/bo-phan/{id}/chi-dinh-phu-trach` | `/departments/{id}/assign-lead` |
+| `/loai-chung-chi` | `/credential-types` |
+| `/pham-vi-hanh-nghe` | `/practice-scopes` |
+| `/staff/{id}/chung-chi` | `/staff/{id}/credentials` |
+| `/chung-chi/{id}/gia-han` | `/credentials/{id}/renew` |
+| `/chung-chi/{id}/thu-hoi` | `/credentials/{id}/revoke` |
+| `/chung-chi/{id}/sua-sai` | `/credentials/{id}/correct` |
+| `/mau-ca` | `/shift-templates` |
+| `/mau-ca/{id}` | `/shift-templates/{id}` |
+| `/lich-ca` | `/shift-schedules` |
+| `/lich-ca/{id}/ca` | `/shift-schedules/{id}/shifts` |
+| `/ca/{id}` | `/shifts/{id}` |
+| `/lich-ca/{id}/xem-truoc-cong-bo` | `/shift-schedules/{id}/publication-preview` |
+| `/lich-ca/{id}/cong-bo` | `/shift-schedules/{id}/publish` |
+| `/ca/{id}/bo-sung-nhan-vien` | `/shifts/{id}/add-staff` |
+| `/ca/{id}/chuyen-nguoi-phu-trach` | `/shifts/{id}/change-lead` |
+| `/ca/{id}/ghi-nhan-vang` | `/shifts/{id}/record-absence` |
+| `/ca/{id}/huy` | `/shifts/{id}/cancel` |
+| `/toi/ca` | `/me/shifts` |
+| `/bac-si-truc` | `/on-duty-doctors` |
+| `/giao-truong-tang` | `/floor-manager-assignments` |
+| `/giao-truong-tang/{id}/ket-thuc` | `/floor-manager-assignments/{id}/end` |
+| `/ca/{id}/phan-cong` | `/shifts/{id}/assignments` |
+| `/phan-cong/{id}` | `/assignments/{id}` |
+| `/phan-cong/{id}/huy` | `/assignments/{id}/cancel` |
+| `/phan-cong/{id}/ket-thuc` | `/assignments/{id}/end` |
+| `/ca/{id}/sao-chep-phan-cong` | `/shifts/{id}/copy-assignments` |
+| `/ca/{id}/ty-le-phuc-vu` | `/shifts/{id}/staffing-ratios` |
+| `/ca/{id}/ban-giao` | `/shifts/{id}/handovers` |
+| `/ban-giao/{id}` | `/handovers/{id}` |
+| `/ban-giao/{id}/ban-ghi-nguon` | `/handovers/{id}/source-records` |
+| `/ban-giao/{id}/muc` | `/handovers/{id}/items` |
+| `/ban-giao/{id}/muc/{mucId}` | `/handovers/{id}/items/{itemId}` |
+| `/ban-giao/{id}/nhan-dinh` | `/handovers/{id}/assessments` |
+| `/ban-giao/{id}/hoan-tat` | `/handovers/{id}/complete` |
+| `/ban-giao/{id}/xac-nhan` | `/handovers/{id}/confirm` |
+| `/ban-giao/{id}/y-kien` | `/handovers/{id}/comments` |
+| `/ban-giao/{id}/bo-sung-gui-lai` | `/handovers/{id}/supplement-and-resubmit` |
+| `/nhat-ky-can-cu-nhiem-vu` | `/duty-basis-audit-logs` |
+
+### 14.2. Schema, response và phiên đăng nhập
+
+| Tên logic | Mã |
+| --- | --- |
+| `NhanVien` | `StaffProfile` |
+| `LyDo (schema)` | `Reason` |
+| `LyDo (request body)` | `ReasonBody` |
+| `Loi` | `Problem` |
+| `CanhBao` | `Warning` |
+| `KetQuaVoiCanhBao` | `ResultWithWarnings` |
+| `DongImport` | `StaffImportRow` |
+| `LoiDongImport` | `StaffImportRowError` |
+| `KetQuaImport` | `StaffImportPreview` |
+| `KetQuaXacNhanImport` | `StaffImportResult` |
+| `BoPhan` | `Department` |
+| `LoaiChungChi` | `CredentialType` |
+| `ChungChi` | `Credential` |
+| `MauCa` | `ShiftTemplate` |
+| `LichCa` | `ShiftSchedule` |
+| `CaMoi` | `NewShift` |
+| `Ca` | `Shift` |
+| `XemTruocCongBo` | `SchedulePublicationPreview` |
+| `GiaoTruongTang` | `FloorManagerAssignment` |
+| `PhanCongMoi` | `NewAssignment` |
+| `PhanCong` | `Assignment` |
+| `LanTinhTyLe` | `StaffingRatioCalculation` |
+| `BanGhiNguon` | `HandoverSourceRecord` |
+| `MucBanGiao` | `HandoverItem` |
+| `BanGiao` | `Handover` |
+| `Loi (response)` | `Problem` |
+| `LoiChan (response)` | `BlockingProblem` |
+| `phien (security scheme)` | `session` |
+
+### 14.3. Trường JSON và tham số
+
+Các trường dùng cùng tên logic giữ cùng bản dịch. `dong` trong kết quả xem trước là danh sách; trong từng dòng và lỗi dòng là số dòng.
+
+| Tên logic | Mã |
+| --- | --- |
+| `hoTen` | `fullName` |
+| `chucDanh` | `position` |
+| `chuyenMon` | `specialty` |
+| `ngayBatDau` | `startDate` |
+| `dienThoai` | `phoneNumber` |
+| `taiKhoanId` | `accountId` |
+| `boPhanId` | `departmentId` |
+| `lyDo` | `reason` |
+| `hieuLuc của Cho nghỉ việc (date-time)` | `effectiveAt` |
+| `nguoiThayId của Cho nghỉ việc, Đổi bộ phận` | `replacementStaffId` |
+| `nhanVienId` | `staffId` |
+| `hieuLucTu` | `effectiveFrom` |
+| `thang` | `month` |
+| `phamViId` | `scopeId` |
+| `loaiPhamVi` | `scopeType` |
+| `loaiBoPhanCong` | `assignmentIdsToRemove` |
+| `xacNhanCanhBao` | `confirmWarnings` |
+| `tu` | `from` |
+| `den` | `to` |
+| `thoiDiem` | `at` |
+| `tangKhuVucId` | `floorAreaId` |
+| `caNguonId` | `sourceShiftId` |
+| `daSaoChep` | `copiedIds` |
+| `khongSaoChep` | `notCopied` |
+| `phanCongNguonId` | `sourceAssignmentId` |
+| `sauKhiLap` | `afterPreparation` |
+| `chung` | `general` |
+| `theoNguoiCaoTuoi` | `byResident` |
+| `nctId` | `residentId` |
+| `noiDung` | `content` |
+| `phanHoi` | `replies` |
+| `yKienId` | `commentId` |
+| `mucBoSung` | `additionalItems` |
+| `mucId` | `itemId` |
+| `maLoi` | `errorCode` |
+| `dieuKienChuaThoa` | `unmetConditions` |
+| `ma` | `code` |
+| `moTa` | `description` |
+| `canCu` | `basis` |
+| `canhBao` | `warnings` |
+| `chiTiet` | `details` |
+| `nguon` | `source` |
+| `lanImportId` | `importBatchId` |
+| `cot` | `column` |
+| `trungVoiNhanVienId` | `duplicateStaffId` |
+| `trungVoiDong` | `duplicateRowNumber` |
+| `tenFile` | `fileName` |
+| `soDong` | `rowCount` |
+| `loi` | `errors` |
+| `xacNhanDuoc` | `canConfirm` |
+| `soHoSoDaTao` | `createdProfileCount` |
+| `nhanVienIds` | `staffIds` |
+| `ten` | `name` |
+| `phuTrachId` | `leadStaffId` |
+| `hieuLuc` | `active` |
+| `nhom` | `group` |
+| `coThoiHan` | `hasExpiry` |
+| `batBuocVoiVaiTro` | `requiredForRoles` |
+| `coPhamVi` | `hasPracticeScopes` |
+| `loaiId` | `credentialTypeId` |
+| `so` | `credentialNumber` |
+| `donViCap` | `issuingAuthority` |
+| `phamVi` | `practiceScopes` |
+| `ngayCap` | `issueDate` |
+| `ngayHetHan` | `expiryDate` |
+| `tepScanId` | `scanFileId` |
+| `thayTheCho` | `replacesId` |
+| `thuHoiTu` | `revokedFrom` |
+| `tinhTrang` | `validityStatus` |
+| `gioBatDau` | `startTime` |
+| `gioKetThuc` | `endTime` |
+| `yeuCauBanGiao` | `handoverRequired` |
+| `trangThai` | `status` |
+| `ca` | `shifts` |
+| `mauCaId` | `shiftTemplateId` |
+| `ngay` | `date` |
+| `batDau` | `startsAt` |
+| `ketThuc` | `endsAt` |
+| `nhanVien` | `staff` |
+| `bacSiTruc` | `onDutyDoctor` |
+| `nguoiPhuTrachId` | `leadStaffId` |
+| `nguoiPhuTrachMoiId` | `replacementLeadStaffId` |
+| `thieuNguoiPhuTrach` | `missingLead` |
+| `vang` | `absent` |
+| `nghiCoDuyet` | `approvedLeave` |
+| `tyLePhucVu` | `staffingRatio` |
+| `lenhDuocPhep` | `allowedCommands` |
+| `phanCongKhongDat` | `invalidAssignments` |
+| `phanCongId` | `assignmentId` |
+| `loaiDoiTuong` | `targetType` |
+| `doiTuongId` | `targetId` |
+| `loaiCongViecId` | `taskTypeId` |
+| `vaiTro` | `role` |
+| `chinhHoTro` | `assignmentKind` |
+| `dieuDuongPhuTrach` | `assignedNurse` |
+| `ketThucThucTe` | `actualEndAt` |
+| `suKien` | `event` |
+| `tongTrongSo` | `totalWeight` |
+| `soNhanVien` | `staffCount` |
+| `tyLe` | `ratio` |
+| `nguong` | `threshold` |
+| `dat` | `meetsThreshold` |
+| `nguonLoai` | `sourceType` |
+| `nguonId` | `sourceId` |
+| `phongId` | `roomId` |
+| `trangThaiHienTai` | `currentStatus` |
+| `nghiemTrong` | `critical` |
+| `daCoMuc` | `hasItem` |
+| `chuaCoDuLieu` | `dataUnavailable` |
+| `ghiChu` | `note` |
+| `daXuLy` | `resolved` |
+| `phan` | `section` |
+| `trangThaiLucChot` | `statusAtFinalization` |
+| `nguoiGhiChu` | `noteAuthor` |
+| `caId` | `shiftId` |
+| `caSauId` | `nextShiftId` |
+| `nguoiBanGiaoId` | `handoverStaffId` |
+| `chotLuc` | `finalizedAt` |
+| `xacNhanLuc` | `confirmedAt` |
+| `nhanDinhChung` | `generalAssessment` |
+| `nhanDinhTheoNguoi` | `residentAssessments` |
+| `muc` | `items` |
+| `yKien` | `comments` |
+| `nguoiGui` | `sender` |
+| `truongBiAn` | `hiddenFields` |
+| `dong trong DongImport, LoiDongImport` | `rowNumber` |
+| `dong trong KetQuaImport` | `rows` |
+
+### 14.4. Giá trị enum
+
+| Tên logic | Mã |
+| --- | --- |
+| `DANG_LAM_VIEC` | `WORKING` |
+| `NGHI_VIEC` | `RESIGNED` |
+| `GIAY_PHEP_HANH_NGHE` | `PROFESSIONAL_LICENSE` |
+| `DAO_TAO` | `TRAINING` |
+| `CON_HIEU_LUC` | `VALID` |
+| `HET_HAN` | `EXPIRED` |
+| `DA_THU_HOI` | `REVOKED` |
+| `DA_THAY_THE` | `REPLACED` |
+| `CHUA_TOI_NGAY_CAP` | `NOT_YET_ISSUED` |
+| `TANG` | `FLOOR` |
+| `KHU_VUC` | `AREA` |
+| `TOAN_VIEN` | `FACILITY` |
+| `NHAP` | `DRAFT` |
+| `DA_CONG_BO` | `PUBLISHED` |
+| `DANG_DIEN_RA` | `IN_PROGRESS` |
+| `CHO_BAN_GIAO` | `AWAITING_HANDOVER` |
+| `DA_DONG` | `CLOSED` |
+| `DA_HUY` | `CANCELLED` |
+| `TUONG_LAI` | `SCHEDULED` |
+| `HIEU_LUC` | `ACTIVE` |
+| `DA_KET_THUC` | `ENDED` |
+| `LAP_TAY` | `MANUAL` |
+| `TAO_TAY` | `MANUAL` |
+| `SAO_CHEP` | `COPIED` |
+| `DOI_CA_015` | `SHIFT_SWAP_015` |
+| `CHINH` | `PRIMARY` |
+| `HO_TRO` | `SUPPORT` |
+| `PHONG` | `ROOM` |
+| `NGUOI_CAO_TUOI` | `RESIDENT` |
+| `CONG_VIEC` | `TASK` |
+| `LIEU` | `DOSE` |
+| `CHI_SO` | `VITAL_SIGN` |
+| `CANH_BAO` | `ALERT` |
+| `SU_CO` | `INCIDENT` |
+| `BIEN_DONG_NCT` | `RESIDENT_CHANGE` |
+| `GIUONG_CHO_SAN_SANG` | `BED_AWAITING_READINESS` |
+| `DO_GUI` | `STORED_BELONGING` |
+| `VAN_DE_THEO_DOI` | `FOLLOW_UP_ISSUE` |
+| `DA_CHOT` | `FINALIZED` |
+| `PHAT_SINH_SAU_KHI_LAP` | `AFTER_PREPARATION` |
+| `DA_XU_LY_TRONG_CA` | `RESOLVED_DURING_SHIFT` |
+| `BAN_NHAP` | `DRAFT` |
+| `DA_LAP` | `PREPARED` |
+| `CO_Y_KIEN` | `HAS_COMMENTS` |
+| `DA_XAC_NHAN` | `CONFIRMED` |
+| `GIO_LAM_LIEN_TUC` | `CONTINUOUS_WORK_HOURS` |
+| `DAO_TAO_BAT_BUOC_HET_HIEU_LUC` | `REQUIRED_TRAINING_EXPIRED` |
+| `DUOI_NGUONG_PHUC_VU` | `BELOW_STAFFING_THRESHOLD` |
+| `LOAI_CONG_VIEC_KHONG_DU_DIEU_KIEN` | `TASK_TYPE_REQUIREMENTS_NOT_MET` |
+| `NGAY_NGHI_CO_DUYET` | `APPROVED_LEAVE_DAY` |
+| `THIEU_PHU_TOI_THIEU` | `INSUFFICIENT_MINIMUM_COVERAGE` |
+| `THIEU_O_BAT_BUOC` | `REQUIRED_CELL_MISSING` |
+| `NGAY_SAI_DINH_DANG` | `INVALID_DATE_FORMAT` |
+| `DIEN_THOAI_SAI_DINH_DANG` | `INVALID_PHONE_NUMBER_FORMAT` |
+| `EMAIL_SAI_DINH_DANG` | `INVALID_EMAIL_FORMAT` |
+| `TRUNG_HO_SO` | `DUPLICATE_STAFF_PROFILE` |
+| `TRUNG_DONG_TRONG_FILE` | `DUPLICATE_FILE_ROW` |
+
+### 14.5. Mã lỗi
+
+| Tên logic | Mã |
+| --- | --- |
+| `DIEU_KIEN_CHUA_THOA` | `CONDITION_NOT_MET` |
+| `TRANG_THAI_DA_DOI` | `STATE_CHANGED` |
+| `CAN_XAC_NHAN_CANH_BAO` | `WARNING_CONFIRMATION_REQUIRED` |
+| `FILE_KHONG_DUNG_MAU` | `INVALID_IMPORT_TEMPLATE` |
+| `QUA_SO_DONG` | `IMPORT_ROW_LIMIT_EXCEEDED` |
+| `IMPORT_CO_DONG_LOI` | `IMPORT_HAS_ROW_ERRORS` |
+| `CAN_NGUOI_THAY_PHU_TRACH` | `REPLACEMENT_LEAD_REQUIRED` |
+| `NGOAI_KHOANG_GHI_VANG` | `OUTSIDE_ABSENCE_REPORTING_WINDOW` |
+| `CHONG_CA` | `SHIFT_OVERLAP` |
+| `CHONG_GIAO_TRUONG_TANG` | `FLOOR_MANAGER_ASSIGNMENT_OVERLAP` |
+| `THIEU_NGUOI_PHU_TRACH` | `SHIFT_LEAD_REQUIRED` |
+| `TANG_CHUA_CO_TRUONG_TANG` | `FLOOR_MANAGER_REQUIRED` |
+| `PHAN_CONG_KHONG_DAT` | `INVALID_ASSIGNMENTS` |
+| `TRUNG_NHAN_VIEN_CHINH` | `PRIMARY_STAFF_OVERLAP` |
+| `THIEU_CHUNG_CHI` | `REQUIRED_CREDENTIAL_MISSING` |
+| `CA_DA_BAT_DAU` | `SHIFT_ALREADY_STARTED` |
+| `DA_CO_BAN_GIAO` | `HANDOVER_ALREADY_EXISTS` |
+| `CHUA_TOI_MOC_LAP` | `BEFORE_HANDOVER_PREPARATION_WINDOW` |
+| `MUC_KHONG_BO_DUOC` | `HANDOVER_ITEM_REMOVAL_NOT_ALLOWED` |
+| `THIEU_GHI_CHU_MUC_NGHIEM_TRONG` | `CRITICAL_ITEM_NOTE_REQUIRED` |
+| `NGOAI_PHAM_VI_CA` | `OUTSIDE_SHIFT_SCOPE` |
+
+### 14.6. Gói, SPI và bản giả Phase 1 (2026-10-23)
+
+Tên trong tasks/plan là tên logic; chỉ tạo gói khi có lớp theo `backend/README.md`. Các tên gói chức năng dưới đây dùng nhất quán khi triển khai các phase sau.
+
+| Tên logic | Mã |
+| --- | --- |
+| `nhanvien`, `giayphep`, `lichca`, `phancong` | `staff`, `credential`, `shift`, `assignment` |
+| `tyle`, `bangiao`, `nhiemvu`, `lich` | `staffing`, `handover`, `duty`, `scheduling` |
+| `doica`, `xoayca` (015 cùng M09) | `swap`, `rotation` |
+| Port lệnh ca, phân công, lịch nháp (N-07, 015) | `ShiftCommandPort`, `AssignmentCommandPort`, `DraftScheduleCommandPort`; ở `shift.internal.service.port` hoặc `assignment.internal.service.port` khi đến task tương ứng |
+| `DoGuiBanGiaoPort` | `m09.api.spi.HeldBelongingsHandoverPort` |
+| `dangGiu(nhanVienIds)`, `conDangGiu(doGuiIds, nhanVienIds)` | `heldBy(staffIds)`, `stillHeld(belongingIds, staffIds)` |
+| `DoGuiDangGiuView` | `HeldBelongingView` |
+| Đồ gửi, người giữ, người cao tuổi, vị trí lưu giữ | `belongingId`, `holderStaffId`, `residentId`, `storageLocationId` |
+| `ChuyenDiNhiemVuPort` | `m09.api.spi.TripDutyPort` |
+| `truongDoan(chuyenId)`, `nguoiDiCung(chuyenId)` | `groupLeader(tripId)`, `companions(tripId)` |
+| `chuyenTrongCa(tangKhuVucId, tu, den)` | `inShift(floorAreaId, from, to)` |
+| `ChuyenTrongCaView` | `TripInShiftView` |
+| Chuyến, nhân viên đang đi, giờ về dự kiến | `tripId`, `staffIds`, `expectedReturnAt` |
+| `KiemTraCongBoMoRong.kiemTra(lichCaId)` | `m09.shift.internal.service.port.ExtendedPublicationCheck.check(scheduleId)` |
+| `CanhBaoCongBo` | `PublicationWarning(code, description, details)` ở cùng gói port nội bộ |
+| Bản giả đồ gửi, chuyến đi, kiểm tra công bố | `FakeHeldBelongings`, `FakeTripDuties`, `FakeExtendedPublicationChecks` |
+| Cấu hình bản giả dùng chung cho test M09 | `support.fake.m09.FakeM09Config` |
+| Đặt đồ đang giữ / bỏ đồ trong bản giả | `hold` / `release` |
+| Đặt chuyến, cảnh báo, công tắc nguồn dữ liệu trong bản giả | `trip`, `warnings`, `available` |
+
+`M09ArchTest` kiểm lời gọi port lệnh nội bộ theo các tên trên và cấm job gọi `createSchedule`, `createShift`, `createAssignment`, `createHandover`, `addHandoverItem`. `ExtendedPublicationCheck` có chiều gọi 008 → 015 nên không thuộc nhóm port lệnh chỉ 015 được gọi. Công tắc bản giả chỉ dùng trong test, không thêm endpoint HTTP.
+
+### 14.7. Backend Phase 2 (2026-10-23)
+
+Tên và ánh xạ được bổ sung cùng mã T003–T009; chỉ mục 14 thay đổi. Các phần API 002, `Credential.hiddenFields` và đồng bộ `Problem` được người dùng cho phép trong phiên triển khai; ghi chú duyệt ở plan 008.
+
+| Tên logic | Mã |
+| --- | --- |
+| `nhan_vien / bo_phan` | `staff_profile / department` |
+| `nhan_vien_bo_phan / lich_su_phu_trach_bo_phan` | `staff_department / department_lead_history` |
+| `loai_chung_chi / pham_vi_hanh_nghe` | `credential_type / practice_scope` |
+| `chung_chi / chung_chi_pham_vi / lan_chay_m09` | `credential / credential_practice_scope / m09_job_run` |
+| `ho_ten / chuc_danh / chuyen_mon / ngay_bat_dau` | `full_name / position / specialty / start_date` |
+| `dien_thoai / dien_thoai_chuan / email / dia_chi` | `phone_number / normalized_phone / email / address` |
+| `tai_khoan_id / nguon / lan_import_id / phien_ban` | `account_id / source / import_batch_id / version` |
+| `nghi_viec_hieu_luc / ly_do_nghi_viec / da_ap_nghi_viec_luc` | `employment_ends_at / termination_reason / termination_applied_at` |
+| `phu_trach_id / trang_thai_hieu_luc / khoa_hien_hanh / khoa_mo` | `lead_staff_id / status / open_staff_id / open_department_id` |
+| `nhan_vien_id / bo_phan_id / tu / den / nguoi_thuc_hien_id / ly_do` | `staff_id / department_id / starts_at / ends_at / actor_id / reason` |
+| `nhom / co_thoi_han / bat_buoc_voi_vai_tro / co_pham_vi` | `credential_group / has_expiry / required_for_roles / has_practice_scopes` |
+| `loai_id / so / don_vi_cap / ngay_cap / ngay_het_han` | `credential_type_id / credential_number / issuing_authority / issue_date / expiry_date` |
+| `thay_the_cho / thu_hoi_tu / ly_do_thu_hoi / tep_scan_id` | `replaces_id / revoked_from / revocation_reason / scan_file_id` |
+| `da_canh_bao_het_han_luc / da_ap_het_hieu_luc_luc` | `expiry_warning_at / invalidity_applied_at` |
+| `chung_chi_id / ma_pham_vi` | `credential_id / practice_scope_id (id kỹ thuật); code giữ mã danh mục` |
+| `lần chạy: thời điểm dự kiến / bắt đầu / kết thúc / kết quả` | `scheduled_at / started_at / finished_at / result` |
+| `CaTrucApi / NhanSuThongKeApi` | `ShiftApi / StaffStatisticsApi` |
+| `caDangDienRa / caCuaNhanVien / dangTrongCa / nhanVien` | `currentShift / staffShifts / onShift / staff` |
+| `tyLePhucVu / banGiao / chungChiSapHetHan / canCuKhacVaiTro / lichSuPhanCong` | `staffingRatios / handovers / expiringCredentials / nonRoleBases / assignmentHistory` |
+| `CaView / NhanVienView / LanTinhTyLeView / BanGiaoBaoCaoView` | `ShiftView / StaffPublicView / StaffingRatioView / HandoverReportView` |
+| `ChungChiSapHetHanView / CanCuNhiemVuView / LichSuPhanCongView` | `ExpiringCredentialView / DutyBasisView / AssignmentHistoryView` |
+| `HieuLucChungChi / coHieuLucTrongKhoang` | `CredentialValidity / covers (credential.internal.domain)` |
+| `Hồ sơ: dữ liệu / nội dung ghi / kho / dịch vụ / controller` | `StaffProfile / StaffInput / StaffStore / StaffService / StaffController` |
+| `HTTP hồ sơ: yêu cầu / phản hồi` | `StaffProfileInput / StaffProfileBody` |
+| `Chứng chỉ: bản ghi / nội dung ghi / loại / kho / dịch vụ` | `Credential / CredentialInput / CredentialType / CredentialStore / CredentialService` |
+| `HTTP chứng chỉ: yêu cầu / loại / phản hồi / controller` | `CredentialInputBody / CredentialTypeInput / CredentialBody / CredentialTypeBody / CredentialController` |
+| `Bản cài SPI hồ sơ / giấy phép / phạm vi hành nghề` | `StaffDirectory / StaffLicenseLookup / PracticeScopeLookup (duty.internal.service)` |
+| `ViecTheoPhutM09 / ViecHangGioM09 / ViecHangNgayM09` | `M09MinuteJob / M09HourlyJob / M09DailyJob (scheduling)` |
+| `Khung việc chạy định kỳ / điều phối / kho lần chạy` | `M09TimedTask / M09Jobs / M09JobRuns` |
+| `Bộ provider: cấu hình / gắn phạm vi / tải scan / lưu giữ` | `M09GovernanceConfig / M09ScopeAssignment / M09ScanAccess / M09Retention` |
+| `Lỗi dữ liệu đầu vào M09` | `M09ValidationAdvice; INVALID_VALUE` |
+| `Mô tả lỗi HTTP của 008 / cảnh báo` | `M09ProblemBody / M09ProblemBody.M09Warning (web.response); trường lỗi chung 000 và warnings` |
+| `Bản giả API đọc ca / thống kê` | `FakeShifts / FakeStaffStatistics trong FakeM09Config` |
+| `HAN_CHE_NHAN_VIEN (liên hệ / phần riêng tư khác) / LY_DO_NHAN_SU` | `InfoGroup.STAFF_CONTACT / STAFF_RESTRICTED / STAFF_REASON` |
+| `M09.NHAN_VIEN / M09.BO_PHAN / M09.CHUNG_CHI / M09.SCAN_CHUNG_CHI` | `M09.STAFF / M09.DEPARTMENT / M09.CREDENTIAL / M09.CREDENTIAL_SCAN` |
+| `M09.BAN_GIAO / lý do vắng ca` | `M09.HANDOVER / M09.STAFF_ABSENCE` |
+| `Hành động nhật ký tạo / sửa nhân viên, thêm chứng chỉ, tạo loại` | `STAFF_CREATED / STAFF_UPDATED / CREDENTIAL_ADDED / CREDENTIAL_TYPE_CREATED` |
+| `Đổi bộ phận phải qua lệnh / bộ phận không hợp lệ` | `DEPARTMENT_CHANGE_REQUIRES_COMMAND / INVALID_DEPARTMENT` |
+| `002: kiểm danh mục còn tham chiếu (đã duyệt)` | `ProfessionalActivityApi.usesCredentialType / usesPracticeScope` |
+
+Sự kiện ở `m09.api.events` (chỉ khai báo ở T003; dịch vụ nguồn dựng yêu cầu thông báo và phát ở story tương ứng):
+
+| Tên logic | Mã |
+| --- | --- |
+| `LichCaDaCongBo` | `SchedulePublished` |
+| `CaDaThayDoi` | `ShiftChanged` |
+| `CaDaBatDau` | `ShiftStarted` |
+| `CaDaKetThuc` | `ShiftEnded` |
+| `NhanVienVangCa` | `StaffAbsent` |
+| `NhanVienNghiViec` | `StaffEmploymentEnded` |
+| `CaThieuNguoiPhuTrach` | `ShiftLeadMissing` |
+| `TangChuaCoTruongTang` | `FloorManagerMissing` |
+| `PhanCongDaDoi` | `AssignmentChanged` |
+| `PhanCongKetThucDoChungChi` | `AssignmentsEndedByCredential` |
+| `ChungChiSapHetHan` | `CredentialExpiring` |
+| `CanhBaoChungChiDaDong` | `CredentialExpiryWarningClosed` |
+| `CaDuoiNguongPhucVu` | `ShiftBelowStaffingThreshold` |
+| `NctChuaCoNguoiPhuTrach` | `ResidentsWithoutAssignedStaff` |
+| `BanGiaoChuaLap` | `HandoverNotPrepared` |
+| `BanGiaoChuaHoanTatKhiHetCa` | `HandoverIncompleteAtShiftEnd` |
+| `BanGiaoChuaXacNhan` | `HandoverNotConfirmed` |
+| `BanGiaoCoYKien` | `HandoverFeedbackReceived` |
+| `BanGiaoDaLap` | `HandoverPrepared` |
+| `BanGiaoDangDoDaChuyen` | `HandoverReassigned` |
+| `BanGiaoDaDinhChinh` | `HandoverCorrected` |
+| `BanGiaoDaXacNhan` | `HandoverConfirmed` |
+| `BoPhanChuaCoPhuTrach` | `DepartmentLeadMissing` |
+
+Ba loại mặc định dùng code `DOCTOR_LICENSE`, `NURSING_LICENSE`, `FIRST_AID_TRAINING`; các cờ khởi tạo được người dùng duyệt trong phiên. `Credential.hiddenFields` là mảng tên trường chỉ đọc, không bắt buộc. Trường lỗi dùng nguyên tên chung ở mục 6; `warnings` giữ nguyên schema 008. Nhóm `STAFF_REASON` chưa mở quyền cho người không phải Quản lý viện trước khi có luồng vắng ca và dữ liệu người ghi/phạm vi ở T039–T040.
+
+### 14.8. Lịch ca Phase 3 (2026-10-24)
+
+Tên bổ sung cho T010–T016; chỉ mục 14 thay đổi. Người dùng duyệt khai báo tối thiểu SPI của C/D kèm bản giả dùng chung và `version` chỉ đọc trong `ShiftTemplate`, `ShiftSchedule`, `Shift`. C/D review các tên SPI dưới đây trước khi gộp; các hàm phân công/bàn giao nối ở T021/T026.
+
+| Tên logic | Mã |
+| --- | --- |
+| `mau_ca / lich_ca / ca / ca_nhan_vien` | `shift_template / shift_schedule / work_shift / shift_staff` |
+| `nguoi_phu_trach_ca / ban_cong_bo_lich` | `shift_lead_history / shift_publication` |
+| `loai_pham_vi / pham_vi_id / khoa_pham_vi` | `scope_type / scope_id / scope_key` |
+| `gio_bat_dau / gio_ket_thuc / yeu_cau_ban_giao` | `start_time / end_time / requires_handover` |
+| `thang / nguoi_lap / nguoi_cong_bo / cong_bo_luc / tu_duyet` | `month / created_by / published_by / published_at / self_approved` |
+| `lich_id / mau_ca_id / ca_id / thieu_nguoi_phu_trach` | `schedule_id / template_id / shift_id / missing_lead` |
+| `bac_si_truc / vang_luc / rut_do_nghi_viec_luc / bo_sung_luc` | `on_duty_doctor / absent_at / withdrawn_on_resignation_at / added_at` |
+| `nghi_co_duyet_yeu_cau_id / roi_ca_luc / can_cu_vao_ca / can_cu_roi_ca` | `approved_leave_request_id / left_at / entry_basis / departure_basis` |
+| `da_nhac_lap_ban_giao_luc / da_nhac_ket_thuc_luc / da_nhac_chua_xac_nhan_luc / da_bao_chua_co_nguoi_phu_trach_luc` | `prepare_handover_reminded_at / shift_end_reminded_at / unconfirmed_handover_reminded_at / unassigned_residents_notified_at` |
+| `dang_duoi_nguong / da_bao_quan_ly_luc / ly_do_huy / noi_dung` | `below_threshold / manager_notified_below_threshold_at / cancellation_reason / content` |
+| `ChuoiCaLienTuc / kho / dịch vụ lịch / vòng đời ca` | `ContinuousShiftChain / ShiftStore / ShiftScheduleService / ShiftLifecycle` |
+| `Mẫu / lịch / ca / thành viên / đầu vào` | `ShiftTemplate / ShiftSchedule / WorkShift / ShiftMember / TemplateInput / ShiftInput` |
+| `Nguồn trạng thái bàn giao / phạm vi lịch-ca` | `ShiftHandoverState / ShiftScopeAssignment` |
+| `TraCuuCaService / bản cài phần ca của SPI` | `ShiftQueries / CareShiftLookup / NursingShiftLookup / AlertStaffLookup / ShiftLocationReferences` |
+| `ThamChieuViTri / ViTriRef / ThamChieuViTriView` (003) | `m03.api.spi.LocationReferences / m03.api.dto.LocationRef / LocationReferenceView` |
+| `NhanSuCaPort / CaView` (005) | `m04.api.spi.CareShiftPort / m04.api.dto.CareShiftView` |
+| `DieuDuongCaPort / CaView` (006) | `m07.api.spi.NursingShiftPort / m07.api.dto.NursingShiftView` |
+| `NhanSuCanhBaoPort / CaView` (007) | `m05.api.spi.AlertStaffPort / m05.api.dto.AlertShiftView` |
+| `conThamChieu / daTungThamChieu / caDaCongBo / caTai / caSau` | `activeReferences / everReferenced / publishedShifts / shiftAt / nextShift` |
+| `coTenTrongCa / duDieuKien / caCoNguoi / dieuDuongCoCa` | `listedInShift / qualified / hasQualifiedStaff / nursesWithShift` |
+| `coTenTrongCaDangDienRa / truongTangDuocGiao / tangTrongCa / cacTangCoCa` | `inProgressShiftMember / assignedFloorManager / floorDuringShift / floorsWithShift` |
+| `Bản giả dùng chung 003 / 005 / 006 / 007` | `FakeLocationReferences / FakeCareShifts / FakeNursingShifts / FakeAlertStaff` và `FakeM03Config / FakeM04Config / FakeM07Config / FakeM05Config` |
+| `HTTP lịch ca: controller / yêu cầu / phản hồi` | `ShiftController / ShiftRequests / ShiftResponses` |
+| `Web lịch: trang / form ca / form lịch-mẫu-công bố / nhãn` | `features/shifts/ShiftsPage / ShiftForm / ScheduleForms / shiftLabels` |
+| `M09.LICH_CA / M09.CA / M09.MAU_CA / M09.CA_NHAN_VIEN / M09.NGUOI_PHU_TRACH_CA / M09.BAN_CONG_BO_LICH` | `M09.SCHEDULE / M09.SHIFT / M09.SHIFT_TEMPLATE / M09.SHIFT_STAFF / M09.SHIFT_LEAD_HISTORY / M09.SHIFT_PUBLICATION` |
+| `Tạo-sửa mẫu / công bố lịch / chuyển trạng thái` | `SHIFT_TEMPLATE_CREATED / SHIFT_TEMPLATE_UPDATED / SCHEDULE_PUBLISHED / SHIFT_STATUS_CHANGED` |
+| `Trùng lịch / chồng ca / cần xác nhận cảnh báo / dữ liệu đã thay đổi` | `SCHEDULE_ALREADY_EXISTS / SHIFT_OVERLAP / WARNING_CONFIRMATION_REQUIRED / STATE_CHANGED` |
+| `Vượt giờ liên tục / đào tạo hết hạn / cần phụ trách / cần Trưởng tầng / phân công không hợp lệ` | `CONTINUOUS_WORK_HOURS / REQUIRED_TRAINING_EXPIRED / SHIFT_LEAD_REQUIRED / FLOOR_MANAGER_REQUIRED / INVALID_ASSIGNMENTS` |
+| `Nguồn ca tại tầng mâu thuẫn` | `InvalidPermissionDataException("M09.SHIFT", "MULTIPLE_CURRENT_SHIFTS", floorId)` |
+
+`ShiftSchedule.version` lấy từ danh sách lịch, `ShiftTemplate.version` từ danh mục mẫu; `Shift.version` và ETag từ đọc chi tiết. If-Match là số phiên bản trong dấu ngoặc kép. Đây là bổ sung hợp đồng đã duyệt, không thêm đường dẫn. Khoảng ngày `/me/shifts` dùng `[from, to)` theo múi giờ Việt Nam.
+
+### 14.9. Phân công Phase 4 (2026-10-24)
+
+Người dùng đã duyệt API tối thiểu của B/C/D, `AssignmentView.scopeEndsAt` của A và endpoint xem trước. Chủ module review tên API của mình trước khi gộp; các tên mới được ghi trong mục 14 của 008.
+
+| Tên logic | Mã |
+| --- | --- |
+| `tang_ca_khoa / giao_truong_tang / phan_cong` | `floor_scope_lock / floor_manager_assignment / staff_assignment` |
+| `loai_doi_tuong / doi_tuong_id / loai_cong_viec_id` | `target_type / target_id / task_type_id` |
+| `chinh_ho_tro / dieu_duong_phu_trach / ket_thuc_thuc_te / ly_do_ket_thuc / nguon` | `assignment_kind / assigned_nurse / actual_end_at / end_reason / source` |
+| `nguoi_giao / đã nhắc phân công khi công bố` | `assigned_by / publication_assignments_notified_at` |
+| `PhanCong / đầu vào / GiaoTruongTang / XacDinhNhanVienChinh` | `StaffAssignment / AssignmentInput / FloorManagerAssignment / PrimaryAssigneeResolver` (`TargetRef`) |
+| Kho / lệnh / nguồn / truy vấn / vòng đời / nhắc phân công | `AssignmentStore / AssignmentService / AssignmentSources / AssignmentQueries / AssignmentLifecycle / AssignmentReminders` |
+| Lệnh giao Trưởng tầng / provider phạm vi | `FloorManagerService / AssignmentScopeAssignment` |
+| Phụ trách bộ phận / kho / lệnh / bản cài NhiemVuApi | `DepartmentDuty / DepartmentDutyStore / DepartmentDutyService / DutyDirectory` |
+| `NguoiCaoTuoiApi.laTrangThaiCuoi / NguoiCaoTuoiDaChuyenTrangThai` (001) | `ResidentApi.isFinalStatus / ResidentStatusChanged`; dùng đúng API và enum `ResidentStatus`/`StatusCommand` của B trên develop |
+| Tác động khi người cao tuổi sang trạng thái cuối | `ResidentFinalAssignmentEffects` |
+| `ViTriApi.taiThoiDiem / CoCauViTriApi / LichSuViTriApi` (003) | `LocationApi.at / LocationStructureApi / LocationHistoryApi` (`atLocation`, `inDay`, `byResident`); bộ lọc vị trí null: toàn viện |
+| Vị trí / phòng / tầng / khu vực / dòng lịch sử vị trí | `LocationView / RoomView / FloorView / AreaView / LocationStay` (`AbsenceInterval`) |
+| `LoaiCongViecApi / YeuCauLoaiCongViec / KeHoachChamSocApi / CongViecCaApi` (005) | `TaskTypeApi / TaskRequirements / CarePlanApi / ShiftTaskApi` |
+| `yeuCau / loaiCongViecHienHanh / khiDoiPhanCong / khiKetThucPhanCong` | `requirements / currentTaskTypes / onAssignmentChanged / onAssignmentEnded` |
+| `PhanCongChamSocView / PhanCongTruyVetView` (005/007) | `CareAssignmentView / AssignmentTraceView` |
+| Hàm SPI phân công của 005/006/007 | `assignments / assignedNurses` (005), `assignedTo` (006), `assignedNurse / assignmentsInRange` (007) |
+| Bản giả nguồn dùng chung | `FakeResidents / FakeM01Config`, `FakeLocations` trong `FakeM03Config`, `FakeCareRequirements` trong `FakeM04Config`; mở rộng các fake SPI Phase 3 hiện có |
+| Mốc ngừng cấp phạm vi khi kết thúc sớm | `AssignmentView.scopeEndsAt`; giữ constructor bảy tham số, không cộng CFG-M15-07 sau mốc này |
+| Xem trước phân công | `POST /shifts/{id}/assignments/preview`: `NewAssignment` → `ResultWithWarnings` không có `id` |
+| HTTP phân công / yêu cầu / phản hồi | `AssignmentController / AssignmentRequests / AssignmentResponses`; schema sao chép `CopyAssignmentsRequest / CopyAssignmentsResult` |
+| Web phân công / giao Trưởng tầng | `features/shifts/AssignmentPanel / FloorManagerPanel` |
+| `M09.PHAN_CONG / M09.GIAO_TRUONG_TANG` | `M09.ASSIGNMENT / M09.FLOOR_MANAGER_ASSIGNMENT` |
+| Nhật ký lập / hủy / kết thúc / đổi trạng thái phân công | `ASSIGNMENT_CREATED / ASSIGNMENT_CANCELLED / ASSIGNMENT_ENDED / ASSIGNMENT_STATUS_CHANGED` |
+| Nhật ký kết thúc theo trạng thái người cao tuổi | `ASSIGNMENT_ENDED_BY_RESIDENT_STATUS` |
+| Nhật ký giao / kết thúc / đổi trạng thái giao Trưởng tầng | `FLOOR_MANAGER_ASSIGNED / FLOOR_MANAGER_ASSIGNMENT_ENDED / FLOOR_MANAGER_ASSIGNMENT_STATUS_CHANGED` |
+| Nhật ký thay Phụ trách bộ phận | `DEPARTMENT_LEAD_REPLACED` |
+| Thiếu nguồn / phân công không hợp lệ / đối tượng không hợp lệ | `ASSIGNMENT_SOURCE_UNAVAILABLE / INVALID_ASSIGNMENT / INVALID_ASSIGNMENT_TARGET` |
+| Thiếu chứng chỉ / trùng nhân viên chính / công việc không đủ điều kiện | `ASSIGNMENT_CREDENTIAL_REQUIRED / PRIMARY_ASSIGNMENT_OVERLAP / UNQUALIFIED_TASK_TYPES` |
+| Giao Trưởng tầng không hợp lệ / chồng thời gian / người thay bộ phận không hợp lệ | `INVALID_FLOOR_MANAGER_ASSIGNMENT / FLOOR_MANAGER_ASSIGNMENT_OVERLAP / INVALID_REPLACEMENT_DEPARTMENT_LEAD` |
+| Dữ liệu nhiều người chính / nhiều Trưởng tầng / nhiều bộ phận | `MULTIPLE_PRIMARY_ASSIGNEES / MULTIPLE_FLOOR_MANAGERS / MULTIPLE_DEPARTMENTS` |
+
+### 14.10. Nền bàn giao Phase 5 (2026-10-24)
+
+| Tên logic | Mã triển khai |
+| --- | --- |
+| `XacDinhCaSau / MucNghiemTrong` | `NextHandoverShift / CriticalHandoverItem` |
+| Bàn giao / mục / nhận định / ý kiến / phản hồi | `shift_handover / handover_item / handover_assessment / handover_comment / handover_reply` |
+| Nhận định chung / theo người cao tuổi | `GENERAL / BY_RESIDENT` |
+| Loại nhận định / khóa người cao tuổi / nhóm mục | `assessment_kind / resident_key / item_group` |
+| Người bàn giao / tài khoản tạo / tài khoản xác nhận / căn cứ nhiệm vụ | `handover_staff_id / created_by / confirmed_by / duty_basis` |
+| Lúc chốt / lúc xác nhận / trạng thái lúc chốt / người ghi chú | `finalized_at / confirmed_at / status_at_finalization / note_author` |
+| Kho và truy vấn trạng thái bàn giao thật | `handover.internal.persistence.HandoverStore / handover.internal.service.HandoverQueries` |
+| Đã lập xong / đã xác nhận theo ca | `prepared(shiftId) / confirmed(shiftId)`; `HAS_COMMENTS` không phải đã lập xong |
+| Dịch vụ nguồn / lệnh / nội dung hiện hành / đính chính / lưu giữ / nhắc | `HandoverSources / HandoverService / HandoverContents / HandoverCorrection / HandoverRetention / HandoverReminders` |
+| Tài khoản hoàn tất / các khóa nguồn lúc chốt | `finalized_by / source_keys_at_finalization` (metadata kỹ thuật, không phải mục sinh tự động) |
+| Định danh nguồn bị thiếu lúc chốt | `UNAVAILABLE:<sourceType>` |
+| Nguồn công việc / liều / cảnh báo / chỉ số / giường / phân bổ | `TaskHandoverApi / DoseHandoverApi / AlertHandoverApi / VitalSignApi / BedStatusApi / AllocationHandoverApi` |
+| Bản nguồn công việc / liều / cảnh báo / chỉ số / giường / phân bổ | `TaskHandoverView / DoseHandoverView / AlertHandoverView / VitalSignHandoverView / AwaitingReadyBedView / AllocationHandoverView` |
+| Trạng thái hiện tại nguồn / trạng thái thật giường / còn giữ đồ | `currentStatus / currentState / stillHeld` |
+| Tham chiếu nguồn / kết quả chuyển công việc | `SourceRef / HandoverTransferResult` |
+| Hồ sơ liên quan chuyến / thời điểm xuất phát | `residentIds / departedAt` trong `TripInShiftView` |
+| Ca sau đã bắt đầu, bàn giao trước chưa xác nhận | `startedWithoutConfirmedHandover / UnconfirmedShiftHandoverView` |
+| Chưa đọc được nguồn / thiếu ghi chú nghiêm trọng / trước mốc lập / đã có bàn giao | `HANDOVER_SOURCE_UNAVAILABLE / CRITICAL_ITEM_NOTE_REQUIRED / BEFORE_HANDOVER_PREPARATION_WINDOW / HANDOVER_ALREADY_EXISTS` |
+| Mục không được bỏ / ngoài phạm vi ca | `HANDOVER_ITEM_REMOVAL_NOT_ALLOWED / OUTSIDE_SHIFT_SCOPE` |
+| Khóa nội dung đính chính | `generalAssessment / items / residentAssessments / comments`; con giữ `id` hoặc `residentId`, chỉ sửa `description / note / content`, phản hồi giữ thứ tự |
+| Nhãn loại JSON nội bộ nhóm nhận / cách thay thế (phần A được duyệt 2026-10-25) | `kind`; `RecipientGroup / Substitution`, `JsonTypeInfo.Id.NAME`, danh sách loại tường minh qua `JsonSubTypes` |
+| Màn bàn giao / đính chính | `features/handover/HandoverPage.jsx / HandoverCorrections.jsx` |
+
+### 14.11. Nhân sự và import Phase 6 (2026-10-25)
+
+| Tên logic | Mã triển khai |
+| --- | --- |
+| Lưu yêu cầu nghỉ việc / tác động nghỉ việc | StaffEmploymentStore / StaffEmploymentEffects |
+| Khi nhân viên nghỉ việc (005) | ShiftTaskApi.onResignation(staffId, effectiveAt); FakeCareRequirements.onResign |
+| Lệnh cho nghỉ việc / nhận lại / đổi bộ phận | terminateEmployment / rehire / changeDepartment |
+| Màn nhân sự / import | features/shifts/StaffPage.jsx / StaffImportPanel.jsx; route staff |
+| Tác động hết hiệu lực / nhắc chứng chỉ | CredentialInvalidityEffects / CredentialReminders |
+| Khuôn thông báo nhân sự | StaffNotifications; missingLeadInFloors |
+| Danh mục bộ phận / lệnh chỉ định phụ trách | Department / DepartmentBody; assignLead |
+| Lưu dấu lần import, tên file, số dòng | staff_import_batch; file_name / row_count / created_by / created_at |
+| Đọc/chèn lô import / kiểm dòng / dòng lỗi | StaffImportStore / StaffImportService / StaffImportRowValidator; StaffImportData.Row / Error / Preview / Result |
+| Xác nhận có dòng lỗi (409 đúng bảng xem trước) | StaffImportRejected; StaffImportResponses |
+| Gia hạn / ghi thu hồi / sửa sai chứng chỉ | renew / revoke / correct; effectiveFrom |
+| Lệnh/nhật ký nghỉ việc / nhận lại / chuyển bộ phận | STAFF_TERMINATION_REQUESTED / STAFF_EMPLOYMENT_ENDED / STAFF_REHIRED / STAFF_DEPARTMENT_CHANGED |
+| Nhật ký loại chứng chỉ / bộ phận / giao phụ trách | CREDENTIAL_RENEWED / CREDENTIAL_REVOKED / CREDENTIAL_CORRECTED; DEPARTMENT_CREATED / DEPARTMENT_LEAD_ASSIGNED |
+| Nhật ký tác động phân công / giao trưởng tầng | ASSIGNMENT_ENDED_BY_EMPLOYMENT / ASSIGNMENT_ENDED_BY_CREDENTIAL / FLOOR_MANAGER_ENDED_BY_EMPLOYMENT |
+| Nhật ký import (NV_IMPORT) / thay đổi ca do nghỉ việc | STAFF_IMPORTED / EMPLOYMENT_ENDED |
+| Form nhân sự / bộ phận / chứng chỉ / loại chứng chỉ | StaffForms / DepartmentPanel / CredentialPanel / CredentialTypePanel |
+| Mã danh mục phạm vi trên HTTP (giữ SPI 002) | PracticeScope / PracticeScopeBody.code; schema StaffPracticeScope |
+
+
+### 14.12. Tỷ lệ phục vụ và lịch sử thống kê Phase 7 (2026-10-25)
+
+| Tên logic | Mã triển khai |
+| --- | --- |
+| Tính tỷ lệ phục vụ / đầu vào người cao tuổi, thành viên / kết quả | `ratio/internal/domain/StaffingRatioCalculator`; `Resident / Member / Result` |
+| Lần tính tỷ lệ / bảng lưu bất biến | `StaffingRatioCalculation / staffing_ratio_calculation` |
+| Ca / thời điểm / sự kiện / tổng trọng số / số nhân viên | `shift_id / calculated_at / event / total_weight / staff_count` |
+| Tỷ lệ / ngưỡng tối đa / đạt ngưỡng | `ratio / threshold / meets_threshold` |
+| Lưu nháp / công bố / vắng ca / bổ sung / nghỉ việc | `DRAFT_SAVED / PUBLISHED / STAFF_ABSENT / STAFF_ADDED / EMPLOYMENT_ENDED` |
+| Đổi ca 015 / đổi mức / phân bổ / vắng NCT / trạng thái cuối | `SHIFT_SWAP_015 / CARE_LEVEL_CHANGED / ALLOCATION_CHANGED / RESIDENT_ABSENCE / FINAL_STATUS` |
+| Lưu lịch sử / cờ cảnh báo / nhắc quản lý viện | `StaffingRatioStore / StaffingRatioService`; `below_threshold / manager_notified_below_threshold_at` (cột đã có từ Phase 3) |
+| Provider lưu giữ lần tính | `M09.STAFFING_RATIO_CALCULATION` |
+| Màn lịch sử tỷ lệ trong chi tiết ca | `features/shifts/StaffingRatioPanel.jsx` |
+| Nguồn tỷ lệ / listener sau commit / truy vấn thống kê | `StaffingRatioSources / StaffingRatioEvents / StaffStatisticsService / StaffStatisticsStore / StaffStatisticsRows` |
+| Lịch đến trong ngày (004, khai báo tối thiểu được duyệt) | `m02.api.ContractReadApi.attendanceOn`; `AttendanceScheduleView(date, arrivalTime, departureTime)`; `FakeContractSchedules / FakeM02Config` |
+| Vị trí nghỉ bán trú (003, hàm đã có trong hợp đồng) | `LocationStructureApi.daycareRestLocation`; `FakeLocations.daycareRestLocation / closeStays` |
+| Phân bổ bắt đầu / đóng / chuyển giường (003) | `m03.api.events.AllocationStarted / AllocationClosed / BedChanged` |
+| Dữ liệu tỷ lệ / thống kê chưa đọc đủ | `STAFFING_RATIO_UNAVAILABLE / STAFF_STATISTICS_SOURCE_UNAVAILABLE`; không trả số không thay nguồn lỗi |
+| Ngưỡng theo mẫu / trọng số theo mức (kiểu TABLE của CFG) | `CFG_M09_01`: object khóa là id mẫu ca dạng chuỗi; `CFG_M09_12`: object khóa `BASIC / REGULAR / SPECIAL`, giá trị số dương; không giá trị mặc định viết cứng |
+| Đọc nhật ký theo khoảng và con trỏ (A duyệt E cài, A review) | `AuditLogApi.recordedBetween(entityType, from, to, afterId, limit)`; khoảng `[from,to)`, id tăng dần, trang tối đa `RECORDED_LIMIT` (200), giữ kiểu `AuditLogRecord` và hàm `recorded` |
+| Lịch sử không gắn ca / nguồn Trưởng tầng, thành viên, Người phụ trách | `AssignmentHistoryView.shiftId: Long` (null khi không gắn ca); `role: FLOOR_MANAGER / SHIFT_MEMBER / SHIFT_LEAD`; khóa bản ghi theo nguồn và id, không tạo id ca giả |
+| Căn cứ nhiệm vụ / thay Trưởng tầng / tạm nhận / vai trò với lời mời đã gửi (FR-056) | `SHIFT_LEAD / FLOOR_MANAGER_SUBSTITUTE / TEMPORARY_RECEIVER / ROLE_INVITATION_SENT`; đọc giá trị đã ghi, không suy từ vai trò hiện tại |
+
+### 14.13. Điều chỉnh ca sau công bố Phase 8 (2026-10-25)
+
+| Tên logic | Mã triển khai |
+| --- | --- |
+| Lệnh sau công bố / truy cập dữ liệu / thông báo | `PostPublicationService / PostPublicationStore / PostPublicationNotifications` trong chức năng `shift` |
+| Quyền xem lý do vắng / dòng vắng | `StaffAbsenceApi.canViewReason / AbsenceReasonAccess / StaffAbsence`; id dòng `shift_staff`, nguồn `M09.STAFF_ABSENCE` |
+| Bản giả SPI lý do vắng (A/002) | `FakeStaffAbsences` (`allow`, `clear`, `Config`); mặc định che |
+| Khi vắng ca (C/005) | `ShiftTaskApi.onAbsence(staffId, shiftId)`; `FakeCareRequirements.onAbsent` |
+| Port lệnh ca / phân công cho 015 | `ShiftCommandPort / ShiftCommandService`; `AssignmentCommandPort / AssignmentCommandService`; MANDATORY |
+| Vào ca / rời ca / đổi phụ trách / gắn thiếu phụ trách | `addToShift / leaveShift / changeLead / markMissingLead` |
+| Căn cứ vào: đổi ca, nhận thay, lời mời | `ShiftEntryBasis(Kind, sourceId, Reason)`; `SWAPPED / COVERED / INVITED` |
+| Căn cứ rời: đổi ca, nghỉ có duyệt | `ShiftDepartureBasis(Kind, sourceId)`; `SWAPPED / APPROVED_LEAVE` |
+| Kiểm tra / lập / hủy phân công từ yêu cầu | `validate / create / cancel`; `AssignmentInput`, source `SHIFT_SWAP_015` |
+| Form lệnh ca / lịch sử căn cứ trên web | `features/shifts/PostPublicationPanel / DutyBasisPanel` |
+| Lệnh backend cho phép | `addStaff / changeLead / recordAbsence / cancelShift / viewDutyBasisAudit` |
+| Nhật ký thêm / rời / vắng / chuyển phụ trách / hủy | `STAFF_ADDED_TO_SHIFT / STAFF_LEFT_SHIFT / STAFF_ABSENCE_RECORDED / SHIFT_LEAD_CHANGED / SHIFT_CANCELLED` |
+| Đã có tên trong ca / không còn trong ca / phụ trách không hợp lệ | `STAFF_ALREADY_IN_SHIFT / STAFF_NOT_IN_SHIFT / INVALID_SHIFT_LEAD` |
+| Ngoài khoảng ghi vắng / cần người thay | `OUTSIDE_ABSENCE_REPORTING_WINDOW / REPLACEMENT_LEAD_REQUIRED` |
+| DTO thân lệnh HTTP / phản hồi căn cứ | `ShiftRequests.AddStaff / ChangeLead / RecordAbsence / ReasonBody`; `ShiftResponses.DutyBasis` |
+
+### 14.14. Kiểm tích hợp và lịch sử phụ trách Phase 9 (2026-10-26)
+
+| Tiếng Việt | Tên trong mã / tài liệu |
+| --- | --- |
+| Khoảng phụ trách đã ghi theo thời gian ca/thành viên | `ShiftLeadPeriod(shiftId, floorAreaId, startsAt, endsAt, shiftEndsAt)` trong `shift.internal.domain` |
+| Người phụ trách đúng thời điểm / khoảng lịch sử | `ShiftStore.leadStaffAt / leadPeriods`, `ShiftQueries.leadAtFloor`; đọc `shift_lead_history` |
+| Lỗi dữ liệu nguồn nhiều người phụ trách tại một mốc | `MULTIPLE_SHIFT_LEADS` trong `InvalidPermissionDataException`, nguồn `M09.SHIFT` |
+| Kiểm bảo vệ bản gốc JDBC / SPI ca cảnh báo / nối phạm vi thật | `M09RecordProtectionIT / AlertStaffPortIT / StaffModuleIntegrationIT` |
+| Biên bản kiểm chứng, truy vết và số đo còn chờ | `specs/008-staff-shift-handover/validation.md` |
+| Bảo vệ lịch sử chuyển bộ phận, đóng khoảng một lần | `V008_08__protect_staff_department_history.sql`; `trg_staff_department_close_once / trg_staff_department_no_delete`, chỉ `UPDATE(ends_at)` |
+
+### 14.15. Đồng bộ API nguồn trên develop (2026-10-26)
+
+Tên chính thức của C/D giữ theo feature sở hữu; các tên dưới đây ghi cách consumer 008 gọi sau khi ghép, không khai báo hợp đồng nguồn thứ hai.
+
+| Tiếng Việt | Tên trong mã / cách dùng ở 008 |
+| --- | --- |
+| Vị trí người cao tuổi hiện tại / lịch sử theo vị trí, ngày | `ResidentLocationApi`; `LocationHistoryApi.byLocation / byLocationOn`; `ResidentLocationRow / BedLocationRow` |
+| Mã tầng của vị trí / vị trí nghỉ bán trú | `LocationView.floorId`; `LocationStructureApi.dayCareRestAreaLocation` |
+| Tham chiếu vị trí hiện tại từ lịch ca/phân công | `LocationReferences.currentReferences`; `m03.api.spi.LocationReferenceView(type, id, label)` |
+| Giường chờ sẵn sàng quá hạn / khoảng chờ / trạng thái tại mốc | `BedStatusApi.overdueAwaitingReady`; `BedStatisticsApi.awaitingReady / stateAt`; nguồn C dùng `AWAITING_READY`, adapter bàn giao giữ `AWAITING_READINESS` |
+| Liều thuốc đang chờ bàn giao / trạng thái hiện tại | `DosePendingHandoverView(doseKey, residentId, prescriptionId, scheduledTime, status, reason, controlledSubstance)`; `DoseHandoverApi.currentStatuses` |
+| SPI ca/điều dưỡng chính thức của thuốc | `m07.api.spi.ShiftNursePort`, do `NursingShiftLookup` cài cùng nguồn với `NursingShiftPort` hiện có |
+| Sự kiện phân bổ mở / đóng / chuyển giường thật | `BedAllocationStarted / BedAllocationClosed / BedTransferred`; `StaffingRatioEvents` tiếp nhận để tính lại theo logic hiện có |
+| Cấu hình vị trí giả riêng cho test consumer 008 | `FakeLocations.Config` trong cùng bản giả dùng chung; không thay bean thật trong test chủ nguồn |
+| Biên bản gỡ conflict và lỗi develop còn chờ | `specs/008-staff-shift-handover/merge-verification.md` |
 
 ## 15. Feature 009 (`009-notification-service`, A) *(bổ sung 2026-10-21, khi dịch `contracts/api-009.yaml`)*
 
