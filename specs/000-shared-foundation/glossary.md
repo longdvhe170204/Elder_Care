@@ -961,6 +961,28 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | nội dung đính chính | `M02.ABSENCE`: `departedAt`, `returnedAt` (ISO-8601); `M02.BED_HOLD_DECISION`: `coefficient`, `reviewDate` |
 | test | `BR_M02_06_AbsencePolicyLookupTest`, `BR_M02_17_ManagerDecidesDay1Test`, `AbsenceDayIT`, `BR_M02_07_BedHoldDecisionIT`, `BR_M02_18_CorrectionOverThresholdIT`, `FR_057_TransferOutDuringAbsenceIT`, `DayCareCoefficientIT`, `DayCareClosureDayIT`; nền `AbsenceTestBase` |
 
+### 10.15. Bổ sung khi cài Phase 9 (US7, T057 → T061, T106 → T108, 2026-10-26)
+
+*Tên cài thực tế của hồ sơ kết thúc lưu trú, bàn giao, ngoại lệ điều kiện và đọc cho 017. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| `V004_08__ket_thuc.sql` (đổi tên theo 10.6: `V004_08__residency_ending.sql`); `ho_so_ket_thuc`, `ban_giao_nct`, `ngoai_le_dieu_kien` | `V004_08__residency_ending.sql`; `residency_ending` (`resident_id`, `end_case`, `medical_reason`, `destination`, `expected_end_date`, `actual_ended_at`, `requested_by`, `reason`, `overdue_since`, `final_period_ref`, `status`, `cancel_reason`, `open_resident_id`, `version`, `created_by`, `created_at`, `closed_by`, `closed_at`), `resident_handover` (`ending_id`, `recipient_type`, `family_member_id`, `facility_name`, `handover_at`, `handover_staff_id`, `recorded_by`, `recorded_at`), `ending_condition_exception` (`ending_id` rỗng được, `resident_id`, `condition_code`, `approval_request_id`, `created_at`) |
+| trigger | `trg_residency_ending_immutable_when_closed`, `trg_residency_ending_no_delete`, `trg_resident_handover_immutable`, `trg_resident_handover_no_delete`, `trg_ending_condition_exception_immutable`, `trg_ending_condition_exception_no_delete` |
+| `ThamGiaM02` phần `KET_THUC_LUU_TRU` | `EndingTransition` (`unmet`, `waiver`, `completed`) do `M02StatusParticipant` gọi cho `END_RESIDENCY`; hợp đồng: `ContractTransition.residencyEnded`; lượt vắng: `AbsenceTransition.closedByFinalState`; yêu cầu thay đổi lưu trú: `ResidencyChangeClosing.closeAll` (`closeForFinalState` của 000 rồi `AddendumClosing`) |
+| lớp trong `m02.internal.ending` | `domain`: `ResidencyEnding`, `EndingStatus`, `Handover`, `RecipientType`, `EndingExceptionRecord`, `EndingConditionCode`; `persistence`: `ResidencyEndingStore`; `service`: `ResidencyEndingService` (lập, đổi ngày, hủy, bàn giao, lập yêu cầu ngoại lệ, xem), `EndingConditionService` (danh sách (a) → (h), cài `AdmissionConditionApi.endingConditions` qua `AdmissionConditionService`), `EndingTransition`, `EndingHandovers` (bàn giao hiện hành sau đính chính), `HandoverCorrectionProvider` (`M02.RESIDENT_HANDOVER`), `EndingExceptionHandler` (loại yêu cầu `M02.ENDING_EXCEPTION`), `EndingFootnoteCondition` (chú thích 39 của Phụ lục 27), `EndingOverdueTask` (việc `ENDINGS`), `EndingReminders` (`PAST_EXPECTED_DATE`), `ResidencyEndingReadApiImpl` |
+| web | `ResidencyEndingController` (`POST /residency-endings`, `GET …/{id}`, `GET …/{id}/conditions`, `POST …/change-date`, `…/cancel`, `…/handover`, `…/request-exception`); thân `ResidencyEndingInputBody` (`EndCaseInput`), `ChangeExpectedEndDateBody`, `ResidentHandoverBody`, `RequestEndingExceptionBody`; phản hồi `ResidencyEndingBody` (`HandoverBody`), `ConditionListBody.ofEnding` (thêm `exception`: `ExceptionRefBody`) |
+| `m02.api` mới (T108) | `ResidencyEndingReadApi` (`HoSoKetThucDocApi`: `preparing`, `settlementInfo`, `hasApprovedSettlementException`); `dto`: `EndCase` (thêm `DEATH` chỉ cho `SettlementInfoView`), `ResidencyEndingView`, `SettlementInfoView` |
+| mã điều kiện kết thúc | `END_A_COSTS`, `END_B_BELONGINGS`, `END_C_STORED_MEDICATION`, `END_D_ALERTS_INCIDENTS`, `END_E_HANDOVER`, `END_H_SETTLEMENT`, `END_H_SETTLEMENT_CONFIRMATION` (10.3); dòng hiển thị cố định `END_F_CONTRACT`, `END_G_BED` (trạng thái `AUTOMATIC`, mã 004 đặt vì research T-09 không đặt mã cho (f), (g)); dòng (h) hiện mã `END_H_SETTLEMENT` |
+| mã điều kiện chưa thỏa của 004 (409 `CONDITION_NOT_MET`) | `END_NO_PREPARING_ENDING`, `END_PAST_EXPECTED_DATE`, `END_EFFECTIVE_DATE_OUT_OF_RANGE`, `END_E_HANDOVER` (cùng `FINAL_PERIOD_UNAVAILABLE` khi lập hồ sơ mà chưa có bản cài `KyCuoiPort` của 010) |
+| mã lỗi | `RESIDENT_NOT_IN_RESIDENCE` (409), `RESIDENCY_ENDING_ALREADY_OPEN` (409), `RESIDENCY_ENDING_NOT_PREPARING` (409) |
+| nhật ký | `M02_ENDING_CREATED`, `M02_ENDING_DATE_CHANGED`, `M02_ENDING_CANCELLED`, `M02_ENDING_HANDOVER_RECORDED`, `M02_ENDING_COMPLETED`, `M02_ENDING_OVERDUE_MARKED`, `M02_ENDING_EXCEPTION_APPROVED`, `M02_CONTRACT_ENDED`; loại đối tượng `M02.RESIDENCY_ENDING` |
+| đối tượng kiểm quyền | `M02.RESIDENCY_ENDING` (hồ sơ kết thúc), `M02.ENDING_EXCEPTION` (yêu cầu ngoại lệ), `M02.ENDING_EXCEPTION.SETTLEMENT` (yêu cầu ngoại lệ ý tiền (h): chú thích 39 chỉ thỏa với hai loại đối tượng của hồ sơ kết thúc và loại này) |
+| loại yêu cầu, bản ghi nhóm 3 | `M02.NGOAI_LE_KET_THUC` → `M02.ENDING_EXCEPTION` (nội dung `{residencyEndingId, conditionCode}`); `M02.BAN_GIAO_NCT` → `M02.RESIDENT_HANDOVER` (đính chính `handoverAt`, `handoverStaffId`, `familyMemberId`, `facilityName`) |
+| nguyên nhân `ResidencyDaysChanged.cause` | `RESIDENCY_ENDING_OVERDUE` |
+| việc hằng ngày, nhắc | `ENDINGS` (`@Order(40)`, bảng `daily_run`); loại nhắc `PAST_EXPECTED_DATE` (mức Nhẹ) |
+| test | `ResidencyEndingIT`, `EndingConditionsIT`, `EndingExceptionIT`, `FR_066_FinalPeriodIT`, `FR_066a_PastExpectedDateIT`, `ResidencyEndingReadApiIT`, `EndingConcurrencyIT`, `EndingClosesRequestsIT`; nền `EndingTestBase` |
+
 ## 11. Feature 005 (`005-daily-care-tasks`, C)
 
 *Chủ feature điền khi dịch `contracts/api-005.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
