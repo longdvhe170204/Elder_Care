@@ -1,6 +1,7 @@
 package com.cambae.backend.m02.internal.contract.service;
 
 import com.cambae.backend.common.error.NotFoundException;
+import com.cambae.backend.m01.api.dto.CareLevel;
 import com.cambae.backend.m01.api.dto.ResidenceType;
 import com.cambae.backend.m01.api.dto.ResidenceTypePeriod;
 import com.cambae.backend.m01.api.spi.ContractApi;
@@ -72,27 +73,37 @@ public class ContractReadService implements ContractReadApi, ContractApi {
     @Override
     @Transactional(readOnly = true)
     public Optional<ContractView> contract(long contractId) {
-        return store.find(contractId).map(ContractReadService::view);
+        return store.find(contractId).map(this::view);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ContractView> ofResident(long residentId) {
-        return store.ofResident(residentId).stream()
-                .map(ContractReadService::view)
-                .toList();
+        return store.ofResident(residentId).stream().map(this::view).toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<DepositAmountView> depositAmount(long contractId) {
-        return store.find(contractId)
-                .map(c -> new DepositAmountView(
+        return store.find(contractId).map(c -> {
+            // Phụ lục có thể đổi khoản cọc (FR-030): khoản hiện hành là của phiên bản nội dung mới nhất
+            Optional<ContractVersion> latest = store.latestVersion(c.id());
+            if (latest.isPresent()) {
+                JsonNode content = latest.get().content();
+                return new DepositAmountView(
                         c.id(),
-                        c.content().noDepositRequired(),
-                        c.content().depositAmount() == null
-                                ? BigDecimal.ZERO
-                                : c.content().depositAmount()));
+                        content.path("noDepositRequired").asBoolean(false),
+                        content.hasNonNull("depositAmount")
+                                ? content.get("depositAmount").decimalValue()
+                                : BigDecimal.ZERO);
+            }
+            return new DepositAmountView(
+                    c.id(),
+                    c.content().noDepositRequired(),
+                    c.content().depositAmount() == null
+                            ? BigDecimal.ZERO
+                            : c.content().depositAmount());
+        });
     }
 
     @Override
@@ -212,16 +223,21 @@ public class ContractReadService implements ContractReadApi, ContractApi {
                 recorded);
     }
 
-    private static ContractView view(Contract c) {
+    /** Loại lưu trú và mức chăm sóc hiện hành là của phiên bản nội dung mới nhất, vì phụ lục không sửa dòng hợp đồng gốc. */
+    private ContractView view(Contract c) {
+        Optional<ContractVersion> latest = SIGNED.contains(c.status()) ? store.latestVersion(c.id()) : Optional.empty();
         return new ContractView(
                 c.id(),
                 c.contractNumber(),
                 c.residentId(),
-                c.content().residenceType(),
+                latest.map(v -> ResidenceType.valueOf(
+                                v.content().get("residenceType").asString()))
+                        .orElse(c.content().residenceType()),
                 c.content().startDate(),
                 c.content().endDate(),
                 c.currentEndDate(),
-                c.content().careLevel(),
+                latest.map(v -> CareLevel.valueOf(v.content().get("careLevel").asString()))
+                        .orElse(c.content().careLevel()),
                 c.status(),
                 c.overdueSince());
     }
