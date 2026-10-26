@@ -1,3 +1,5 @@
-/** Giao diện công khai theo README backend, khai báo tối thiểu được người dùng duyệt cho 008 T015. */
-@org.springframework.modulith.NamedInterface
+/** Kiểu trao đổi của M03; không phụ thuộc dữ liệu hay lớp triển khai của module. */
+@NamedInterface("rooms-beds-dto")
 package com.cambae.backend.m03.api.dto;
+
+import org.springframework.modulith.NamedInterface;

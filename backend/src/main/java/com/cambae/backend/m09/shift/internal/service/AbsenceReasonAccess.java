@@ -62,9 +62,7 @@ public class AbsenceReasonAccess implements StaffAbsenceApi, ScopeAssignmentProv
         var api = structures.getIfAvailable();
         if (api == null) return false;
         if ("FLOOR".equals(s.scopeType()))
-            return api.floor(s.scopeId())
-                    .map(f -> f.areaId() != null && head(user, f.areaId()))
-                    .orElse(false);
+            return api.floor(s.scopeId()).map(f -> head(user, f.areaId())).orElse(false);
         return "AREA".equals(s.scopeType())
                 && api.floorsInArea(s.scopeId()).stream().anyMatch(f -> head(user, f));
     }

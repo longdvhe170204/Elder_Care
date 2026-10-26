@@ -10,6 +10,7 @@ import com.cambae.backend.m09.shift.internal.persistence.ShiftStore;
 import com.cambae.backend.support.*;
 import com.cambae.backend.support.fake.m01.*;
 import com.cambae.backend.support.fake.m03.*;
+import com.cambae.backend.support.fake.m03.FakeLocations;
 import com.cambae.backend.support.fake.m04.*;
 import java.time.*;
 import java.util.*;
@@ -25,7 +26,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /** T022: HTTP thật, xác thực thật, chỉ nguồn chưa có bản cài dùng fake chung của chủ interface. */
 @AutoConfigureMockMvc
-@Import({FakeM01Config.class, FakeM03Config.class, FakeM04Config.class})
+@Import({FakeM01Config.class, FakeLocations.Config.class, FakeM04Config.class})
 class AssignmentHttpIT extends MySqlIntegrationTestBase {
     @Autowired
     MockMvc mvc;

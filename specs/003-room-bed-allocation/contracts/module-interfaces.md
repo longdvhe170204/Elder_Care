@@ -105,6 +105,8 @@ List<GiuongView> choSanSangQuaHan(long tangId, Instant t);
     // bản ghi nguồn của bàn giao, không lập mục (Q-307)
 ```
 
+**Bổ sung đã duyệt 2026-10-25 (T061)**: kiểu mã nguồn `BedFlagView(Long residentId, Long bedId, Set<String> flags)` dùng `bedId = null` chỉ cho dấu `WITHOUT_BED`; không dùng id giường giả như0 hoặc-1. Các dấu gắn phân bổ vẫn có bedId thật. Chỉ thay khả năng null của trường này, giữ nguyên thao tác và trường khác.
+
 `TAM_NGUNG` không tính vào giường có thể dùng (Q-246).
 
 ### 1.8a. `GiuongThongKeApi` (016; bổ sung theo plan 016, research O-10)

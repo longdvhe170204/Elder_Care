@@ -23,7 +23,7 @@ class AssignmentSourcesTest {
         assertThat(source.at(30, at).orElseThrow().roomId()).isEqualTo(20);
         assertThat(source.at(30, at.plusSeconds(3600)).orElseThrow().roomId()).isEqualTo(21);
         assertThat(source.byResident(30, at, at.plusSeconds(7200))).hasSize(2);
-        assertThat(source.atLocation(new LocationRef("FLOOR", 10), at)).hasSize(1);
+        assertThat(source.byLocation(new LocationRef("FLOOR", 10), at)).hasSize(1);
         assertThat(source.active(new LocationRef("ROOM", 999))).isFalse();
     }
 

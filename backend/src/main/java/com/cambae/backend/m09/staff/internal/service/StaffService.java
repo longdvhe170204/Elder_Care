@@ -177,7 +177,7 @@ public class StaffService {
     public StaffProfile get(long id) {
         var result = staff.find(id).orElseThrow(NotFoundException::new);
         if (!canRead(id)) throw new NotFoundException();
-        return result;
+        return withAccount(result);
     }
 
     @Transactional(readOnly = true)
@@ -190,7 +190,30 @@ public class StaffService {
                                 .contains(q.toLowerCase(java.util.Locale.ROOT)))
                 .filter(s -> status == null || s.status().equals(status))
                 .filter(s -> departmentId == null || Objects.equals(s.departmentId(), departmentId))
+                .map(this::withAccount)
                 .toList();
+    }
+
+    private StaffProfile withAccount(StaffProfile profile) {
+        Long accountId = employmentEffects
+                .account(profile.id())
+                .map(AccountView::accountId)
+                .orElse(null);
+        if (Objects.equals(accountId, profile.accountId())) return profile;
+        return new StaffProfile(
+                profile.id(),
+                profile.fullName(),
+                profile.position(),
+                profile.specialty(),
+                profile.startDate(),
+                profile.phoneNumber(),
+                profile.email(),
+                profile.status(),
+                accountId,
+                profile.source(),
+                profile.importBatchId(),
+                profile.departmentId(),
+                profile.version());
     }
 
     public boolean canRead(long id) {

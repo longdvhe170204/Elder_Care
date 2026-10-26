@@ -1,25 +1,53 @@
 package com.cambae.backend.support.fake.m03;
 
-import com.cambae.backend.m03.api.dto.*;
+import com.cambae.backend.m03.api.dto.LocationRef;
+import com.cambae.backend.m03.api.spi.LocationReferenceView;
 import com.cambae.backend.m03.api.spi.LocationReferences;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-/** Bản giả duy nhất của SPI 003, chỉ test import cấu hình mới nạp. */
+/** Bản giả tham chiếu 008 (FR-005): tách tham chiếu hiện tại và dấu đã từng tham chiếu. */
 public class FakeLocationReferences implements LocationReferences {
-    private final Map<LocationRef, List<LocationReferenceView>> current = new HashMap<>();
-    private final Set<LocationRef> past = new HashSet<>();
+    private final Map<LocationRef, List<LocationReferenceView>> references = new HashMap<>();
+    private final Set<LocationRef> historical = new HashSet<>();
 
-    public FakeLocationReferences references(LocationRef location, List<LocationReferenceView> refs) {
-        current.put(location, List.copyOf(refs));
-        if (!refs.isEmpty()) past.add(location);
+    public FakeLocationReferences references(
+            LocationRef location, List<com.cambae.backend.m03.api.dto.LocationReferenceView> rows) {
+        references.put(
+                location,
+                rows.stream()
+                        .map(row -> new LocationReferenceView(row.type(), row.id(), row.type()))
+                        .toList());
+        if (!rows.isEmpty()) historical.add(location);
         return this;
     }
 
-    public List<LocationReferenceView> activeReferences(LocationRef location) {
-        return current.getOrDefault(location, List.of());
+    public FakeLocationReferences reference(LocationRef location, LocationReferenceView reference) {
+        references.computeIfAbsent(location, ignored -> new ArrayList<>()).add(reference);
+        historical.add(location);
+        return this;
     }
 
+    public void clearCurrent(LocationRef location) {
+        references.remove(location);
+    }
+
+    @Override
+    public List<LocationReferenceView> currentReferences(LocationRef location) {
+        return List.copyOf(references.getOrDefault(location, List.of()));
+    }
+
+    @Override
     public boolean everReferenced(LocationRef location) {
-        return past.contains(location);
+        return historical.contains(location);
+    }
+
+    public void reset() {
+        references.clear();
+        historical.clear();
     }
 }

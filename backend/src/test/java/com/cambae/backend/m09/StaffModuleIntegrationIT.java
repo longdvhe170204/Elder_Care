@@ -119,6 +119,7 @@ class StaffModuleIntegrationIT extends MySqlIntegrationTestBase {
             DutyApi.class,
             CareShiftPort.class,
             NursingShiftPort.class,
+            com.cambae.backend.m07.api.spi.ShiftNursePort.class,
             AlertStaffPort.class
         })
             assertThat(AopUtils.getTargetClass(context.getBean(api)).getPackageName())
@@ -131,6 +132,20 @@ class StaffModuleIntegrationIT extends MySqlIntegrationTestBase {
         assertThat(duties.shiftLead(floor, change)).contains(newLead.staffId());
         assertThat(scopes.shiftLead(floor, change.minusNanos(1000))).contains(oldLead.accountId());
         assertThat(scopes.shiftLead(floor, change)).contains(newLead.accountId());
+    }
+
+    @Test
+    void FR_049_medicationShiftNursePortUsesTheSameRecordedShiftAndLead() {
+        var medication = context.getBean(com.cambae.backend.m07.api.spi.ShiftNursePort.class);
+        var before = medication.shiftContaining(floor, change.minusNanos(1000)).orElseThrow();
+        assertThat(before.shiftId()).isEqualTo(shift);
+        assertThat(before.shiftLeadId()).isEqualTo(oldLead.staffId());
+        assertThat(medication.shiftContaining(floor, change).orElseThrow().shiftLeadId())
+                .isEqualTo(newLead.staffId());
+        assertThat(medication.nursesOnShift(floor, start))
+                .containsExactlyInAnyOrder(oldLead.staffId(), newLead.staffId());
+        assertThat(medication.isStaffOnActiveShift(oldLead.staffId(), end)).isFalse();
+        assertThat(medication.isHandoverConfirmed(shift)).isFalse();
     }
 
     @Test

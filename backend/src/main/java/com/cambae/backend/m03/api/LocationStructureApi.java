@@ -1,20 +1,29 @@
 package com.cambae.backend.m03.api;
 
-import com.cambae.backend.m03.api.dto.*;
-import java.util.*;
+import com.cambae.backend.m03.api.dto.AreaView;
+import com.cambae.backend.m03.api.dto.FloorView;
+import com.cambae.backend.m03.api.dto.LocationRef;
+import com.cambae.backend.m03.api.dto.LocationView;
+import com.cambae.backend.m03.api.dto.RoomTypeRef;
+import com.cambae.backend.m03.api.dto.RoomView;
+import java.util.Optional;
+import java.util.Set;
 
-/** Phần CoCauViTriApi cần cho 008; C review. */
+/** Hợp đồng 003 LocationStructureApi (T003); bản cài thuộc user story tương ứng. */
 public interface LocationStructureApi {
+    Optional<LocationView> bed(long bedId);
+
+    Optional<RoomView> room(long roomId);
+
+    Optional<FloorView> floor(long floorId);
+
+    Optional<AreaView> area(long areaId);
+
     boolean active(LocationRef location);
-
-    Optional<RoomView> room(long id);
-
-    Optional<FloorView> floor(long id);
-
-    Optional<AreaView> area(long id);
 
     Set<Long> floorsInArea(long areaId);
 
-    /** viTriKhuNghiBanTru của hợp đồng 003 mục 1.6; dùng vị trí chung, không đoán từ giường nội trú. */
-    Optional<LocationRef> daycareRestLocation();
+    Optional<LocationRef> dayCareRestAreaLocation();
+
+    Optional<RoomTypeRef> roomTypeOfBed(long bedId);
 }

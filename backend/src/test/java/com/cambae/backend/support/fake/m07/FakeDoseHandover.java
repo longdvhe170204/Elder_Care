@@ -21,9 +21,25 @@ public class FakeDoseHandover implements DoseHandoverApi {
         rows.put(new Scope(floor, shift), List.copyOf(values));
     }
 
-    public List<DoseHandoverView> inShift(long floor, long shift) {
+    public List<com.cambae.backend.m07.api.dto.DosePendingHandoverView> inShift(long floor, long shift) {
         reading.run();
-        return rows.getOrDefault(new Scope(floor, shift), List.of());
+        return rows.getOrDefault(new Scope(floor, shift), List.of()).stream()
+                .map(row -> new com.cambae.backend.m07.api.dto.DosePendingHandoverView(
+                        row.key(),
+                        row.residentId(),
+                        0,
+                        row.plannedAt(),
+                        com.cambae.backend.m07.api.dto.DoseStatus.valueOf(row.status()),
+                        row.description(),
+                        false))
+                .toList();
+    }
+
+    public Map<String, com.cambae.backend.m07.api.dto.DoseStatus> currentStatuses(Collection<String> ids) {
+        var result = new HashMap<String, com.cambae.backend.m07.api.dto.DoseStatus>();
+        currentStatus(ids)
+                .forEach((key, status) -> result.put(key, com.cambae.backend.m07.api.dto.DoseStatus.valueOf(status)));
+        return result;
     }
 
     public Map<String, String> currentStatus(Collection<String> ids) {

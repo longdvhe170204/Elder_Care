@@ -1,3 +1,4 @@
 package com.cambae.backend.m03.api.dto;
 
-public record AreaView(long id, String name) {}
+/** Kiểu trao đổi AreaView, hợp đồng 003 mục 1.2–1.9 (T003). */
+public record AreaView(long id, String code, String name, boolean active) {}

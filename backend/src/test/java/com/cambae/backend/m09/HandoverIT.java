@@ -14,7 +14,7 @@ import com.cambae.backend.m09.shift.internal.persistence.ShiftStore;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.support.*;
 import com.cambae.backend.support.fake.m01.FakeM01Config;
-import com.cambae.backend.support.fake.m03.FakeM03Config;
+import com.cambae.backend.support.fake.m03.FakeLocations;
 import com.cambae.backend.support.fake.m04.*;
 import com.cambae.backend.support.fake.m05.FakeAlertHandover;
 import com.cambae.backend.support.fake.m07.FakeDoseHandover;
@@ -32,7 +32,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 /** T024/T025: lệnh thật và MySQL thật; nguồn chưa cài dùng đúng bản giả chung của chủ API. */
 @Import({
     FakeM01Config.class,
-    FakeM03Config.class,
+    FakeLocations.Config.class,
     FakeM04Config.class,
     FakeAlertHandover.Config.class,
     FakeDoseHandover.Config.class,

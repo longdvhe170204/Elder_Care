@@ -53,8 +53,29 @@ public class StaffingRatioEvents {
     }
 
     @ApplicationModuleListener
+    public void started(BedAllocationStarted event) {
+        resident(event.residentId(), event.at(), "ALLOCATION_CHANGED");
+    }
+
+    @ApplicationModuleListener
     public void closed(AllocationClosed event) {
         resident(event.residentId(), event.at(), "ALLOCATION_CHANGED");
+    }
+
+    @ApplicationModuleListener
+    public void closed(BedAllocationClosed event) {
+        resident(event.residentId(), event.at(), "ALLOCATION_CHANGED");
+    }
+
+    @ApplicationModuleListener
+    public void moved(BedTransferred event) {
+        moved(new BedChanged(
+                event.residentId(),
+                event.previousAllocationId(),
+                event.nextAllocationId(),
+                event.previousFloorId(),
+                event.nextFloorId(),
+                event.at()));
     }
 
     @ApplicationModuleListener

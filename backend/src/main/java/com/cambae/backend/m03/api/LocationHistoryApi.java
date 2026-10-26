@@ -1,15 +1,20 @@
 package com.cambae.backend.m03.api;
 
-import com.cambae.backend.m03.api.dto.*;
-import java.time.*;
+import com.cambae.backend.m03.api.dto.BedLocationRow;
+import com.cambae.backend.m03.api.dto.LocationRef;
+import com.cambae.backend.m03.api.dto.ResidentLocationRow;
+import com.cambae.backend.m03.api.dto.RoommateView;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
-/** LichSuViTriApi: chỉ phần tra cứu cần cho phân công và truy vết 008. */
+/** Hợp đồng 003 LocationHistoryApi (T003); bản cài thuộc user story tương ứng. */
 public interface LocationHistoryApi {
-    /** Bộ lọc vị trí null: toàn viện (ViTriLoc không đặt giới hạn). */
-    List<LocationStay> atLocation(LocationRef location, Instant at);
+    List<ResidentLocationRow> byResident(long residentId, Instant from, Instant to);
 
-    List<LocationStay> inDay(LocationRef location, LocalDate day);
+    List<BedLocationRow> byLocation(LocationRef location, Instant at);
 
-    List<LocationStay> byResident(long residentId, Instant from, Instant to);
+    List<BedLocationRow> byLocationOn(LocationRef location, LocalDate date);
+
+    List<RoommateView> roommates(long residentId, Instant from, Instant to);
 }

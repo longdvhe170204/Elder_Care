@@ -1,3 +1,7 @@
-/** Giao diện công khai theo README backend, khai báo tối thiểu được người dùng duyệt cho 008 T015. */
-@org.springframework.modulith.NamedInterface
+/**
+ * Service Provider Interfaces (SPI) declared by M07 and implemented by other modules (M08, M09, M11).
+ */
+@NamedInterface("medication-spi")
 package com.cambae.backend.m07.api.spi;
+
+import org.springframework.modulith.NamedInterface;

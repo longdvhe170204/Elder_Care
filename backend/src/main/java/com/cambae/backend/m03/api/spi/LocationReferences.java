@@ -1,11 +1,11 @@
 package com.cambae.backend.m03.api.spi;
 
-import com.cambae.backend.m03.api.dto.*;
+import com.cambae.backend.m03.api.dto.LocationRef;
 import java.util.List;
 
-/** ThamChieuViTri; 008 cài, chủ 003 review theo duyệt của người dùng 2026-10-24. */
+/** Kiểm tham chiếu vị trí do 008 cài; module khác có thể cài thêm (FR-005). */
 public interface LocationReferences {
-    List<LocationReferenceView> activeReferences(LocationRef location);
+    List<LocationReferenceView> currentReferences(LocationRef location);
 
     boolean everReferenced(LocationRef location);
 }

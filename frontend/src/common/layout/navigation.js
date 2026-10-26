@@ -30,6 +30,8 @@ export const NAV_GROUPS = [
     items: [
       // Dòng "Dashboard, báo cáo"
       { key: 'dashboard', label: 'Tổng quan', icon: 'LayoutDashboard', roles: [QL, TT, BS, DD, HC, KT] },
+      // Dòng "Dashboard, báo cáo" (016; tab theo bảng FR-010 trong màn)
+      { key: 'reports', label: 'Báo cáo', icon: 'ChartColumn', roles: [QL, TT, BS, DD, HC, KT] },
       // Yêu cầu phê duyệt (000 US5): mọi vai trò nhân viên lập hoặc duyệt được tùy loại yêu cầu; danh sách do backend lọc theo phạm vi
       {
         key: 'approval-requests',
@@ -51,6 +53,8 @@ export const NAV_GROUPS = [
       { key: 'care-tasks', label: 'Checklist ca', icon: 'ListChecks', roles: [QL, TT, BS, DD, CS] },
       // Dòng "Phát thuốc, thuốc khi cần"
       { key: 'medication', label: 'Phát thuốc', icon: 'Pill', roles: [QL, TT, BS, DD] },
+      // Dòng "Danh mục thuốc"
+      { key: 'medication-catalog', label: 'Danh mục thuốc', icon: 'BookOpen', roles: [QL, BS, DD] },
       // Dòng "Xử lý cảnh báo"
       { key: 'alerts', label: 'Cảnh báo', icon: 'Bell', roles: [QL, TT, BS, DD, CS] },
       // Dòng "Sự cố, khẩn cấp"
@@ -64,8 +68,8 @@ export const NAV_GROUPS = [
     items: [
       // Dòng Hồ sơ nhân viên, chứng chỉ (Phụ lục 27): Quản lý viện T, Trưởng tầng X.
       { key: 'staff', label: 'Nhân sự', icon: 'Users', roles: [QL, TT] },
-      // Dòng "Phân bổ, chuyển giường"
-      { key: 'beds', label: 'Phòng, giường', icon: 'BedDouble', roles: [QL, TT, HC] },
+      // Dòng "Phân bổ, chuyển giường" và "Cách ly phòng"
+      { key: 'beds', label: 'Phòng, giường', icon: 'BedDouble', roles: [QL, TT, HC, BS] },
       // Dòng "Lịch ca, phân công"
       { key: 'shifts', label: 'Lịch ca', icon: 'CalendarDays', roles: [QL, TT, BS, DD, CS, BEP, HC] },
       // Dòng "Suất ăn đã chốt, phiếu bữa ăn"

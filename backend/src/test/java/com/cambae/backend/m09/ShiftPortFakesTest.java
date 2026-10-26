@@ -53,7 +53,7 @@ class ShiftPortFakesTest {
         var location = new LocationRef("FLOOR", 2);
         fake.references(location, List.of(new LocationReferenceView("M09.SHIFT", 1)));
         fake.references(location, List.of());
-        assertThat(fake.activeReferences(location)).isEmpty();
+        assertThat(fake.currentReferences(location)).isEmpty();
         assertThat(fake.everReferenced(location)).isTrue();
         assertThat(fake.everReferenced(new LocationRef("FLOOR", 99))).isFalse();
     }

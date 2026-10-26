@@ -4,18 +4,36 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
-/** Bản giả dùng chung, chỉ được nạp khi test import. */
-@TestConfiguration(proxyBeanMethods = false)
+/** T002: test dùng @Import(FakeM03Config.class), tiêm bản giả để đặt dữ liệu; không quét vào ứng dụng thật. */
+@TestConfiguration
 public class FakeM03Config {
     @Bean
     @Primary
-    public FakeLocations fakeLocations() {
-        return new FakeLocations();
+    FakeAllocationResidencySource fakeAllocationResidencySource() {
+        return new FakeAllocationResidencySource();
     }
 
     @Bean
     @Primary
-    public FakeLocationReferences fakeLocationReferences() {
+    FakeDayCareArrivals fakeDayCareArrivals() {
+        return new FakeDayCareArrivals();
+    }
+
+    @Bean
+    @Primary
+    FakeAllocationInfectionStatus fakeAllocationInfectionStatus() {
+        return new FakeAllocationInfectionStatus();
+    }
+
+    @Bean
+    @Primary
+    FakeLocationReferences fakeLocationReferences() {
         return new FakeLocationReferences();
+    }
+
+    @Bean
+    @Primary
+    FakeBedAssets fakeBedAssets() {
+        return new FakeBedAssets();
     }
 }

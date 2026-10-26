@@ -583,7 +583,7 @@ public class HandoverService {
             var p = positions.position(resident, time.now());
             boolean matches = p.isPresent()
                     && ("FLOOR".equals(s.scopeType())
-                            ? Objects.equals(p.get().floorAreaId(), s.scopeId())
+                            ? Objects.equals(p.get().floorId(), s.scopeId())
                             : Objects.equals(p.get().areaId(), s.scopeId()));
             if (!matches) throw invalid("OUTSIDE_SHIFT_SCOPE", "Người cao tuổi ngoài phạm vi ca");
         }
@@ -591,11 +591,11 @@ public class HandoverService {
             var r = positions.structure().room(room);
             boolean matches = r.isPresent()
                     && ("FLOOR".equals(s.scopeType())
-                            ? Objects.equals(r.get().floorAreaId(), s.scopeId())
+                            ? Objects.equals(r.get().floorId(), s.scopeId())
                             : positions
                                     .structure()
                                     .floorsInArea(s.scopeId())
-                                    .contains(r.get().floorAreaId()));
+                                    .contains(r.get().floorId()));
             if (!matches) throw invalid("OUTSIDE_SHIFT_SCOPE", "Phòng ngoài phạm vi ca");
         }
     }

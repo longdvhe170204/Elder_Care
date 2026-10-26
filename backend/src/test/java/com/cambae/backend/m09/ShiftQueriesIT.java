@@ -129,9 +129,9 @@ class ShiftQueriesIT extends MySqlIntegrationTestBase {
         assertThat(shifts.currentShift(floor, time.now())).isEmpty();
         assertThat(shifts.onShift(worker, time.now())).isFalse();
         var location = new LocationRef("FLOOR", floor);
-        assertThat(locations.activeReferences(location)).hasSize(1);
+        assertThat(locations.currentReferences(location)).hasSize(1);
         jdbc.update("UPDATE work_shift SET status='CLOSED' WHERE id=?", id);
-        assertThat(locations.activeReferences(location)).isEmpty();
+        assertThat(locations.currentReferences(location)).isEmpty();
         assertThat(locations.everReferenced(location)).isTrue();
     }
 

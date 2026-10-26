@@ -24,8 +24,10 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo khung gói `BE/m03/{api,cocau,giuong,phanbo,cachly,bantru,lich}/` với `package-info.java`; gói `BE/m03/giuong/port/` là cổng duy nhất cho `m03.taisan` (019) gọi vào (research G-01)
-- [ ] T002 [P] Tạo bản giả SPI 003 khai báo (contracts mục 2.1) trong `BT/support/gia003/`: `NguonLuuTruChoPhanBo`, `DemLichDenBanTru` (004), `TinhTrangLayNhiemChoPhanBo` (007), `ThamChieuViTri` (008), và bản giả `TaiSanGiuongPort` (019) (research G-16)
+- [x] T001 Tạo khung tài liệu gói `BE/m03/api/`, `BE/m03/internal/{structure,bed,allocation,isolation,daycare}/`, `BE/m03/scheduling/` bằng `package-info.java` theo backend/README.md; cổng giữa giường 003 và tài sản 019 nằm ở `internal/bed/domain/`, không cho hai phần đọc trực tiếp dữ liệu của nhau (research G-01; test `FR_001_ModuleSetupTest`)
+- [x] T002 [P] Tạo bản giả trong `BT/support/fake/m03/`, nhập bằng `FakeM03Config`: `AllocationResidencySource`, `DayCareArrivalCounter` (004), `AllocationInfectionStatus` (007), `LocationReferences` (008), `BedAssetPort` (019); tên logic và chữ ký theo contracts mục 2.1, mục 3, glossary mục 9 (research G-16; test `FR_018_FakeM03Test`)
+
+**Ghi chú kỹ thuật Phase 1 (2026-10-22)**: đưa riêng khai báo bốn SPI, `BedAssetPort` và các kiểu chữ ký cần cho T002 từ T004 lên Phase 1 để bản giả biên dịch được. Không đổi thao tác trong hợp đồng, không thêm REST endpoint. T004 vẫn chưa xong: còn cổng lệnh tài sản giường, đối chiếu với API của T003 và hoàn thiện toàn bộ khai báo Phase 2. Xem plan mục "Ghi chú triển khai"; T001/T002 chỉ đánh `[x]` sau khi `clean verify` qua.
 
 ---
 
@@ -35,16 +37,18 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T003 [P] Tạo giao diện công khai `BE/m03/api/`: `PhanBoGiuongLenhApi` (mọi hàm MANDATORY), `ViTriApi`, `LichSuViTriApi`, `SucChuaBanTruApi`, `CoCauViTriApi`, `PhongChoPhepApi`, `TinhTrangGiuongApi`, `GiuongThongKeApi` (016), `CanhBaoBanGiaoApi` (008) đúng contracts/module-interfaces.md mục 1.2 → 1.9
-- [ ] T004 [P] Khai báo SPI ở `BE/m03/api/`: `NguonLuuTruChoPhanBo`, `DemLichDenBanTru`, `TinhTrangLayNhiemChoPhanBo`, `ThamChieuViTri`; port `BE/m03/giuong/port/GiuongTheoTaiSanPort.java` và `TaiSanGiuongPort` (contracts mục 2.1; research G-02)
-- [ ] T005 [P] Tạo sự kiện `BE/m03/api/sukien/` theo contracts mục 1.11 (`DaChuyenGiuong`, `GiuongDaTrong`, `PhongDaDatCachLy`, `PhongDaGoCachLy`, các sự kiện nhắc, báo); sự kiện gửi 009 cài `CoYeuCauThongBao` (research G-12)
-- [ ] T006 Tạo `MIG/V003_01__co_cau.sql`: `khu_vuc` (`ma VARCHAR(20) UNIQUE` kể cả mục Ngừng hiệu lực), `tang` (`UNIQUE (khu_vuc_id, ma)`, `ten_toa_nha NULL`), `loai_phong` (`so_giuong_tieu_chuan SMALLINT > 0`, `CHECK (phuc_vu_dai_han OR phuc_vu_ngan_ngay)`, `ten_hieu_luc UNIQUE`), `loai_phong_muc`, `phong` (`ma VARCHAR(20) UNIQUE`, `chinh_sach_gioi_tinh ENUM('NAM','NU','KHONG_GIOI_HAN')`, `dang_cach_ly BOOLEAN` mặc định `false`), `phong_muc_cho_phep`, `ly_do_chuyen_giuong` (`ma VARCHAR(30) UNIQUE`, `y_te_an_toan`, `co_dinh`; nạp dòng `KIEM_SOAT_LAY_NHIEM` cố định) theo data-model mục 2; mã mức `ENUM('CO_BAN','THUONG_XUYEN','DAC_BIET')` không khóa ngoại sang M01
-- [ ] T007 Tạo `MIG/V003_02__giuong.sql`: `giuong` theo data-model mục 3 (`UNIQUE (phong_id, ma)`; `trang_thai ENUM('TRONG','DANG_SU_DUNG','DANG_GIU_CHO','CHO_SAN_SANG','DANG_BAO_TRI','TAM_NGUNG','KHONG_SU_DUNG')`; `ly_do_giu_cho ENUM('NGUOI_VANG','HO_SO_CHO') NULL`; năm `CHECK` của mục 3; `phan_bo_vua_dong_id`; `ly_do_tam_ngung VARCHAR(2000) NULL`) và `lich_su_trang_thai_giuong` (nhóm 3 chỉ thêm; `thoi_diem_du_kien`, `thuc_hien_tre`, `da_khu_khuan`, `da_dung_bao_ho`, `bat_buoc_khu_khuan`, `tang_khu_vuc_id`; `CHECK (su_kien <> 'XAC_NHAN_SAN_SANG' OR bat_buoc_khu_khuan = false OR (da_khu_khuan AND da_dung_bao_ho))`; hai trigger)
-- [ ] T008 Cài `BE/m03/giuong/internal/GiuongTrangThaiService.java`: một điểm ghi trạng thái giường với bảng chuyển data-model mục 3 cài trong mã; khóa giường theo `id`; mỗi lần chuyển thêm một dòng lịch sử và nhật ký `M03_GIUONG_CHUYEN`; tính `thuc_hien_tre` theo CFG-M03-08 cho việc của Bộ lập lịch (research G-04; FR-011 → FR-016a)
-- [ ] T009 [P] Test kiến trúc `BT/m03/ChiMotNoiGhiTrangThaiArchTest.java`: chỉ `GiuongTrangThaiService` ghi `giuong.trang_thai`
-- [ ] T010 [P] Cài provider cho 000/002 trong `BE/m03/phanbo/internal/`: `PhanLoaiTruongProvider` (`lyDo` cách ly và chuyển kiểm soát lây nhiễm → `SUC_KHOE`), `GanPhamViProvider` (`M03.GIUONG`, `M03.PHONG`, `M03.PHAN_BO_GIUONG`), `LuuTruProvider` theo data-model mục 10 (research G-14, G-15)
+- [x] T003 [P] Tạo giao diện công khai `BE/m03/api/`: `PhanBoGiuongLenhApi` (mọi hàm MANDATORY), `ViTriApi`, `LichSuViTriApi`, `SucChuaBanTruApi`, `CoCauViTriApi`, `PhongChoPhepApi`, `TinhTrangGiuongApi`, `GiuongThongKeApi` (016), `CanhBaoBanGiaoApi` (008) đúng contracts/module-interfaces.md mục 1.2 → 1.9
+- [x] T004 [P] Khai báo SPI ở `BE/m03/api/`: `NguonLuuTruChoPhanBo`, `DemLichDenBanTru`, `TinhTrangLayNhiemChoPhanBo`, `ThamChieuViTri`; port `BE/m03/giuong/port/GiuongTheoTaiSanPort.java` và `TaiSanGiuongPort` (contracts mục 2.1; research G-02)
+- [x] T005 [P] Tạo sự kiện `BE/m03/api/sukien/` theo contracts mục 1.11 (`DaChuyenGiuong`, `GiuongDaTrong`, `PhongDaDatCachLy`, `PhongDaGoCachLy`, các sự kiện nhắc, báo); sự kiện gửi 009 cài `CoYeuCauThongBao` (research G-12)
+- [x] T006 Tạo `MIG/V003_01__co_cau.sql`: `khu_vuc` (`ma VARCHAR(20) UNIQUE` kể cả mục Ngừng hiệu lực), `tang` (`UNIQUE (khu_vuc_id, ma)`, `ten_toa_nha NULL`), `loai_phong` (`so_giuong_tieu_chuan SMALLINT > 0`, `CHECK (phuc_vu_dai_han OR phuc_vu_ngan_ngay)`, `ten_hieu_luc UNIQUE`), `loai_phong_muc`, `phong` (`ma VARCHAR(20) UNIQUE`, `chinh_sach_gioi_tinh ENUM('NAM','NU','KHONG_GIOI_HAN')`, `dang_cach_ly BOOLEAN` mặc định `false`), `phong_muc_cho_phep`, `ly_do_chuyen_giuong` (`ma VARCHAR(30) UNIQUE`, `y_te_an_toan`, `co_dinh`; nạp dòng `KIEM_SOAT_LAY_NHIEM` cố định) theo data-model mục 2; mã mức `ENUM('CO_BAN','THUONG_XUYEN','DAC_BIET')` không khóa ngoại sang M01
+- [x] T007 Tạo `MIG/V003_02__giuong.sql`: `giuong` theo data-model mục 3 (`UNIQUE (phong_id, ma)`; `trang_thai ENUM('TRONG','DANG_SU_DUNG','DANG_GIU_CHO','CHO_SAN_SANG','DANG_BAO_TRI','TAM_NGUNG','KHONG_SU_DUNG')`; `ly_do_giu_cho ENUM('NGUOI_VANG','HO_SO_CHO') NULL`; năm `CHECK` của mục 3; `phan_bo_vua_dong_id`; `ly_do_tam_ngung VARCHAR(2000) NULL`) và `lich_su_trang_thai_giuong` (nhóm 3 chỉ thêm; `thoi_diem_du_kien`, `thuc_hien_tre`, `da_khu_khuan`, `da_dung_bao_ho`, `bat_buoc_khu_khuan`, `tang_khu_vuc_id`; `CHECK (su_kien <> 'XAC_NHAN_SAN_SANG' OR bat_buoc_khu_khuan = false OR (da_khu_khuan AND da_dung_bao_ho))`; hai trigger)
+- [x] T008 Cài `BE/m03/giuong/internal/GiuongTrangThaiService.java`: một điểm ghi trạng thái giường với bảng chuyển data-model mục 3 cài trong mã; khóa giường theo `id`; mỗi lần chuyển thêm một dòng lịch sử và nhật ký `M03_GIUONG_CHUYEN`; tính `thuc_hien_tre` theo CFG-M03-08 cho việc của Bộ lập lịch (research G-04; FR-011 → FR-016a)
+- [x] T009 [P] Test kiến trúc `BT/m03/ChiMotNoiGhiTrangThaiArchTest.java`: chỉ `GiuongTrangThaiService` ghi `giuong.trang_thai`
+- [x] T010 [P] Cài provider cho 000/002 trong `BE/m03/phanbo/internal/`: `PhanLoaiTruongProvider` (`lyDo` cách ly và chuyển kiểm soát lây nhiễm → `SUC_KHOE`), `GanPhamViProvider` (`M03.GIUONG`, `M03.PHONG`, `M03.PHAN_BO_GIUONG`), `LuuTruProvider` theo data-model mục 10 (research G-14, G-15)
 
 **Checkpoint**: Bảng cơ cấu, giường và điểm ghi trạng thái sẵn sàng.
+
+**Ghi chú kỹ thuật Phase 2 (2026-10-23)**: mã thật theo glossary mục 9: các API ở `m03.api`, sự kiện ở `api/events`, cổng nội bộ ở `internal/bed/domain`; migration `V003_01__room_structure.sql`, `V003_02__bed_state.sql`. T008 dùng `BedStateService` điều phối và `BedStateStore` giữ SQL; T009 là `SingleBedStateWriterArchTest` chặn mọi lớp khác gọi `writeState`, được viết đỏ trước T008. T003/T004 có fake tập trung `FakeM03ApiConfig`. Thêm khóa ngoại `bed.last_closed_allocation_id` tại V003_03/T023, khi `bed_allocation` đã tồn tại. Xem plan mục "Ghi chú triển khai" cho mapping, điều kiện tích hợp còn chờ và bằng chứng kiểm từng task.
 
 ---
 
@@ -56,19 +60,21 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 ### Tests cho User Story 1
 
-- [ ] T011 [P] [US1] Test `BT/m03/CoCauIT.java`, `MaDuyNhatIT.java`, `NgungHieuLucCoCauIT.java`: mã trùng → 409; Trưởng tầng sửa → 403; ngừng hiệu lực phòng còn giường không `KHONG_SU_DUNG` (kể cả `TAM_NGUNG`) → 409 liệt kê; `ThamChieuViTri` còn phân công → 409 (US1 #1–8; FR-003, FR-005)
+- [x] T011 [P] [US1] Test `BT/m03/CoCauIT.java`, `MaDuyNhatIT.java`, `NgungHieuLucCoCauIT.java`: mã trùng → 409; Trưởng tầng sửa → 403; ngừng hiệu lực phòng còn giường không `KHONG_SU_DUNG` (kể cả `TAM_NGUNG`) → 409 liệt kê; `ThamChieuViTri` còn phân công → 409 (US1 #1–8; FR-003, FR-005)
 - [ ] T012 [P] [US1] Test `BT/m03/FR_006_DoiChinhSachPhongIT.java`, `FR_007_KhongDoiChaIT.java`: đổi giới tính/mức của phòng vi phạm phân bổ hiện tại → 409 liệt kê người; đổi tầng của phòng hoặc phòng của giường đã có phân bổ → 409
-- [ ] T013 [P] [US1] Test `BT/m03/BR_M03_22_SoGiuongTieuChuanIT.java`, `Q_238_TaoGiuongGhiTangIT.java`: vượt số giường tiêu chuẩn → 201 kèm cảnh báo `VUOT_SO_GIUONG_TIEU_CHUAN`; tạo giường gọi `TaiSanGiuongPort.ghiTangChoGiuong` cùng transaction, lỗi thì rollback
+- [x] T013 [P] [US1] Test `BT/m03/BR_M03_22_SoGiuongTieuChuanIT.java`, `Q_238_TaoGiuongGhiTangIT.java`: vượt số giường tiêu chuẩn → 201 kèm cảnh báo `VUOT_SO_GIUONG_TIEU_CHUAN`; tạo giường gọi `TaiSanGiuongPort.ghiTangChoGiuong` cùng transaction, lỗi thì rollback
 
 ### Implementation cho User Story 1
 
-- [ ] T014 [P] [US1] Tạo entity `BE/m03/cocau/internal/{KhuVuc,Tang,LoaiPhong,Phong,LyDoChuyenGiuong}.java` (`@NhomDuLieu(DANH_MUC)`) và `BE/m03/giuong/internal/Giuong.java`
+- [x] T014 [P] [US1] Tạo entity `BE/m03/cocau/internal/{KhuVuc,Tang,LoaiPhong,Phong,LyDoChuyenGiuong}.java` (`@NhomDuLieu(DANH_MUC)`) và `BE/m03/giuong/internal/Giuong.java`
 - [ ] T015 [US1] Cài `BE/m03/cocau/internal/CoCauService.java`: tạo, sửa, ngừng hiệu lực, kích hoạt lại, xóa (chỉ khi chưa từng tham chiếu, kể cả `ThamChieuViTri.daTungThamChieu`) cho khu vực, tầng, loại phòng, phòng, lý do chuyển; sửa chính sách phòng khóa giường và kiểm (a), (c); nhật ký `M03_CO_CAU_*` (FR-001 → FR-007)
-- [ ] T016 [US1] Cài tạo giường (`TAO_GIUONG` → `TRONG`, gọi ghi tăng tài sản 019, cảnh báo BR-M03-22) trong `BE/m03/giuong/internal/GiuongService.java`; giường không có lệnh xóa (Q-237)
+- [x] T016 [US1] Cài tạo giường (`TAO_GIUONG` → `TRONG`, gọi ghi tăng tài sản 019, cảnh báo BR-M03-22) trong `BE/m03/giuong/internal/GiuongService.java`; giường không có lệnh xóa (Q-237)
 - [ ] T017 [US1] Tạo controller `BE/m03/cocau/web/CoCauController.java` và `BE/m03/giuong/web/GiuongController.java` cho `/khu-vuc`, `/tang`, `/loai-phong`, `/phong`, `/ly-do-chuyen-giuong` (kèm `/{id}`, `/ngung-hieu-luc`, `/kich-hoat-lai`), `POST/GET /giuong`, `GET /giuong/{id}` theo contracts/api-003.yaml; cài `CoCauViTriApi`, `PhongChoPhepApi`
-- [ ] T018 [P] [US1] Tạo màn web `frontend/src/tinh-nang/co-cau-phong-giuong/` (cây khu vực → tầng → phòng → giường, loại phòng, lý do chuyển)
+- [x] T018 [P] [US1] Tạo màn web `frontend/src/tinh-nang/co-cau-phong-giuong/` (cây khu vực → tầng → phòng → giường, loại phòng, lý do chuyển)
 
 **Checkpoint**: Cơ cấu dựng được độc lập.
+
+**Ghi chú kỹ thuật Phase 3 (2026-10-23, chưa hoàn tất)**: T014 dùng entity tiếng Anh ở `internal/structure/domain`, `internal/bed/domain`; chuẩn bị mapping trước service. Test T011 là `FR_001_StructureIT`, `FR_003_UniqueCodesIT`, `FR_005_DeactivateStructureIT`; T013 gộp hai kiểm tra tạo/cảnh báo và rollback tài sản trong `BR_M03_22_BedCreationIT`; T015 có test bổ sung `FR_003_StructureVersionIT`. `StructureService`/`StructureStore`, `BedService`/`BedStore` theo tầng README. Sau quyết định của chủ dự án, đã dịch 39 operation HTTP Phase 3, cài controller/API đọc và màn frontend/src/features/beds. T012 và phần FR-006/T015 chờ API/fake M01 cùng dữ liệu phân bổ T023; chủ dự án chọn chờ B, không viết hộ. Đổi phòng giường tạm hoãn vì chưa duyệt mở rộng BedAssetPort; chỉ sửa mã giường, T017 giữ chưa đánh vì phần sửa phòng chưa đủ. Đã kiểm nền clean verify: 167 unit/kiến trúc + 450 IT, 0 failure/error/skip; web 105 test, lint/build qua. Chỉ đánh T011/T013/T014/T016/T018 sau các kết quả này; chưa nghiệm thu toàn Phase 3. Task chưa xong đầu tiên: T012. Xem plan và Working-history.md cho giới hạn và bằng chứng.
 
 ---
 
@@ -83,18 +89,22 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 - [ ] T019 [P] [US2] Test `BT/m03/BR_M03_01_DieuKienPhanBoIT.java`: mức (hiện hành → hợp đồng → lượt đăng ký, Q-301), loại hình, giới tính, cách ly/khoanh vùng, trạng thái giường, giữ chỗ, dấu tài sản; trả đủ điều kiện chưa thỏa (DBR-10, BR-M03-01)
 - [ ] T020 [P] [US2] Test `BT/m03/BR_M03_02_HaiNguoiCungGiuongIT.java`, `DBR_09_KhongChongIT.java`, `FR_020_PhanBoDongThoiIT.java`: 10 luồng trên một giường chỉ một thành công (SC-001); `INSERT` trực tiếp chồng khoảng bị trigger chặn; cột sinh `UNIQUE` chặn hai đang hiệu lực
 - [ ] T021 [P] [US2] Test `BT/m03/FR_023_PhanBoBanDauIT.java`, `BR_M03_20_PhamViPhanBoBanDauIT.java`, `FR_022_DanhSachGiuongIT.java`, `BR_M03_19_TroVeChuaCoGiuongIT.java`: người Đang tiếp nhận chỉ có `TUONG_LAI`; phạm vi theo giường; danh sách giường phù hợp không chọn sẵn và khớp lệnh; người trở về không có giường mang dấu "chưa có giường" và được nhắc (US2 #1–15)
-- [ ] T022 [P] [US2] Test `BT/m03/PhanBoRangBuocDbIT.java`: mọi cột sinh, trigger, `CHECK` của `phan_bo_giuong` (tích hợp MySQL)
+- [x] T022 [P] [US2] Test `BT/m03/PhanBoRangBuocDbIT.java`: mọi cột sinh, trigger, `CHECK` của `phan_bo_giuong` (tích hợp MySQL)
 
 ### Implementation cho User Story 2
 
-- [ ] T023 [US2] Tạo `MIG/V003_03__phan_bo_giuong.sql`: `phan_bo_giuong` theo data-model mục 4 (`trang_thai ENUM('TUONG_LAI','DANG_HIEU_LUC','DA_DONG','DA_HUY')`; cột sinh `ket_thuc_hieu_dung = COALESCE(ket_thuc, ket_thuc_du_kien, '9999-12-31')`; cột sinh `giuong_dang_hieu_luc`, `nct_dang_hieu_luc`, `nct_tuong_lai` có `UNIQUE`; năm `CHECK` của mục 4; chỉ mục `(giuong_id, bat_dau)`, `(nct_id, bat_dau)`, `(trang_thai, bat_dau)`; trigger `trg_phan_bo_giuong_khong_chong`, `_khong_sua` khi `DA_DONG`/`DA_HUY`, `_khong_xoa`), `vi_tri_nct` (`nct_id` khóa chính, `chua_co_giuong_tu`, `phien_ban`), view `v_phan_bo_hien_hanh` (áp `v_dinh_chinh_moi_nhat`, loại `v_ban_ghi_da_huy`), `nhac_phan_bo` (khóa chính `(loai_doi_tuong, doi_tuong_id, loai_dau)`)
-- [ ] T024 [P] [US2] Tạo entity `BE/m03/phanbo/internal/PhanBoGiuong.java`, `ViTriNct.java`, `NhacPhanBo.java`
+- [x] T023 [US2] Tạo `MIG/V003_03__phan_bo_giuong.sql`: `phan_bo_giuong` theo data-model mục 4 (`trang_thai ENUM('TUONG_LAI','DANG_HIEU_LUC','DA_DONG','DA_HUY')`; cột sinh `ket_thuc_hieu_dung = COALESCE(ket_thuc, ket_thuc_du_kien, '9999-12-31')`; cột sinh `giuong_dang_hieu_luc`, `nct_dang_hieu_luc`, `nct_tuong_lai` có `UNIQUE`; năm `CHECK` của mục 4; chỉ mục `(giuong_id, bat_dau)`, `(nct_id, bat_dau)`, `(trang_thai, bat_dau)`; trigger `trg_phan_bo_giuong_khong_chong`, `_khong_sua` khi `DA_DONG`/`DA_HUY`, `_khong_xoa`), `vi_tri_nct` (`nct_id` khóa chính, `chua_co_giuong_tu`, `phien_ban`), view `v_phan_bo_hien_hanh` (áp `v_dinh_chinh_moi_nhat`, loại `v_ban_ghi_da_huy`), `nhac_phan_bo` (khóa chính `(loai_doi_tuong, doi_tuong_id, loai_dau)`)
+- [x] T024 [P] [US2] Tạo entity `BE/m03/phanbo/internal/PhanBoGiuong.java`, `ViTriNct.java`, `NhacPhanBo.java`
 - [ ] T025 [US2] Cài `BE/m03/phanbo/internal/KiemTraPhanBo.java` (FR-018 (a)–(g), dùng `NguonLuuTruChoPhanBo`, `TinhTrangLayNhiemChoPhanBo`, dấu tài sản) và `KhoaTuanTu.java` (khóa người cao tuổi khi qua 001 → `vi_tri_nct` → giường theo `id`; `@Retryable` khi deadlock) (research G-03, G-05)
 - [ ] T026 [US2] Cài `BE/m03/phanbo/internal/PhanBoService.java`: phân bổ cho người Đang tiếp nhận (`TUONG_LAI`, giường `CHO_SAN_SANG` theo FR-011a, gọi `daPhanBo` kết thúc giữ chỗ hồ sơ chờ), phân bổ cho người chưa có giường (`DANG_HIEU_LUC`, gỡ dấu), hủy phân bổ tương lai có lý do; nhật ký `M03_PB_*`; cài `PhanBoGiuongApi` (002), `ViTriApi` (FR-017 → FR-023, FR-025a)
 - [ ] T027 [US2] Tạo `BE/m03/phanbo/web/PhanBoController.java`: `GET /phan-bo-giuong/giuong-phu-hop`, `POST/GET /phan-bo-giuong`, `GET /phan-bo-giuong/{id}`, `POST …/{id}/huy`, `GET /nguoi-cao-tuoi/{nctId}/vi-tri`, `GET /giuong/tong-hop`
 - [ ] T028 [P] [US2] Tạo màn web `frontend/src/tinh-nang/phan-bo-giuong/ChonGiuong.jsx` (không chọn sẵn), `frontend/src/tinh-nang/bang-giuong/BangGiuong.jsx` và test `ChonGiuong.test.jsx`, `BangGiuong.test.jsx`, `DieuKienChuaThoa.test.jsx`
 
 **Checkpoint**: Phân bổ an toàn đồng thời.
+
+**Ghi chú khởi động Phase 4 (2026-10-23)**: Đã viết trước `DBR_09_AllocationSchemaIT` (phần T020/T022), chưa có migration/service mới. Lệnh test đã biên dịch trên JDK 25 nhưng 5 ca lỗi khởi tạo do thiếu `TEST_DB_URL`; chưa quan sát được assertion đỏ do thiếu chức năng, chưa đủ điều kiện viết triển khai theo quy trình test trước. Giữ toàn bộ T019–T028 chưa đánh. T019/T025/T026 còn cần API/fake M01 (trạng thái, giới tính, mức chăm sóc) do B sở hữu; không viết bản giả thứ hai. Khóa dòng M01 chỉ do lệnh trạng thái của 001 giữ trước khi gọi 003 (G-03), không thêm cổng khóa M01 mới. Chủ dự án đã duyệt dịch riêng HTTP Phase 4, chưa sửa hợp đồng/client khi backend chưa triển khai. Xem plan và Working-history.md cho kết quả kiểm cuối lượt.
+
+**Tiếp tục Phase 4 (2026-10-23)**: Dịch 6 operation đã tồn tại của T027 sang tiếng Anh theo duyệt của chủ dự án, giữ 64 operation khác và các component cũ. Thêm schema clone, glossary mục 9, sinh lại client; cập nhật tên 6 endpoint pending trong ApiContractIT, không gỡ pending. Test DB chuẩn bị tăng lên 8 ca, thêm khóa giường ACTIVE ngay cả khi không chồng, thứ tự effective_end, view đính chính/hủy ghi nhận. Chưa có migration/service/controller Phase 4; toàn bộ task vẫn chưa đánh. T027 còn lệch: tasks yêu cầu GET danh sách nhưng contract chưa khai báo; đã hỏi bổ sung GET /bed-allocations và đang chờ duyệt, chưa tự thêm.
 
 ---
 
@@ -120,6 +130,8 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 **Checkpoint**: Chuyển giường đủ biến thể.
 
+**Khởi động Phase 5 (2026-10-24; chỉ phần độc lập, chưa hoàn tất)**: Chủ dự án duyệt dịch riêng operation chuyển giường T036, tiếp tục chọn chờ B cho API/fake/sự kiện M01. Đã viết đỏ rồi cài phần migration của T034 bằng `V003_04__bed_backfill_request.sql`; `FR_027_BackfillSchemaIT` có 5 IT (schema/chỉ mục, PK/FK, bất biến admin/retention, rollback và dọn cùng phân bổ), sau cài cùng 23 ArchTest xanh. Handler T034 chưa cài vì còn cần checker FR-018/lệnh chuyển giường và nguồn khoảng vắng M01. T036 mới dịch `POST /bed-allocations/{id}/transfer`, clone request/response và sinh client; chưa controller/web/mobile. Giữ T029–T036 chưa đánh; không dùng dữ liệu giả thay nguồn M01. Ghi chú và kết quả clean verify nền ở plan/Working-history.md.
+
 ---
 
 ## Phase 6: User Story 4 – Trạng thái giường chỉ thay đổi qua lệnh và sự kiện; giữ chỗ có lý do và hạn (Priority: P1)
@@ -130,18 +142,19 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 ### Tests cho User Story 4
 
-- [ ] T037 [P] [US4] Test đơn vị `BT/m03/BangChuyenTrangThaiGiuongTest.java` tham số hóa mọi dòng của bảng chuyển data-model mục 3 và mọi cặp ngoài bảng
+- [x] T037 [P] [US4] Test đơn vị `BT/m03/BangChuyenTrangThaiGiuongTest.java` tham số hóa mọi dòng của bảng chuyển data-model mục 3 và mọi cặp ngoài bảng
 - [ ] T038 [P] [US4] Test `BT/m03/BR_M03_05_GiuongCoNguoiIT.java`, `BR_M03_06_VeTrongIT.java`, `BR_M03_13_GiuongHongDatTruocIT.java`, `BR_M03_15_DauChoChuyenNguoiIT.java`, `TamNgungSuDungIT.java`, `FR_016a_ThucHienTreIT.java`: giường có người chặn lệnh tài sản; hết hạn giữ chỗ hồ sơ chờ về Trống và gọi 004; giường hỏng hủy phân bổ tương lai theo FR-013a; Báo hỏng giường có người ghi dấu "chờ chuyển người"; tạm ngừng có lý do, sử dụng lại về `CHO_SAN_SANG`; việc trễ hơn CFG-M03-08 ghi `thuc_hien_tre` (US4 #1–16)
 - [ ] T039 [P] [US4] Test `BT/m03/PhanBoThamGiaChuyenTrangThaiIT.java`: mỗi lệnh của bảng G-06 (Hoàn tất tiếp nhận, Hủy tiếp nhận, Cho tạm vắng, Chuyển viện, Ghi nhận trở về, Kết thúc lưu trú, Ghi nhận qua đời) đổi giường, phân bổ đúng; lỗi thì rollback cả lệnh 001
 
 ### Implementation cho User Story 4
 
 - [ ] T040 [US4] Cài giữ chỗ trong `BE/m03/giuong/internal/GiuChoService.java`: `giuChoHoSoCho` (hạn CFG-M02-02), `huyGiuCho` (idempotent), `giaiPhongGiuongKhiVang`, `giaHanKetThucDuKien` của `PhanBoGiuongLenhApi` (FR-012, FR-014, FR-015)
-- [ ] T041 [US4] Cài lệnh tạm ngừng, sử dụng lại (AC-01; Q-246, Q-261) trong `GiuongService.java` và endpoint `POST /giuong/{id}/tam-ngung-su-dung`, `/su-dung-lai`, `GET /giuong/{id}/lich-su-trang-thai` trong `GiuongController.java`
+- [x] T041 [US4] Cài lệnh tạm ngừng, sử dụng lại (AC-01; Q-246, Q-261) trong `GiuongService.java` và endpoint `POST /giuong/{id}/tam-ngung-su-dung`, `/su-dung-lai`, `GET /giuong/{id}/lich-su-trang-thai` trong `GiuongController.java`
 - [ ] T042 [US4] Cài `BE/m03/giuong/port/GiuongTheoTaiSanPortImpl.java`: `TAI_SAN_BAO_TRI`, `TAI_SAN_THANH_LY`, `TAI_SAN_SAN_SANG`, dấu "chờ chuyển người", ngoại lệ FR-013a, FR-013b; chặn khi giường có người (BR-M03-05, 13, 15)
 - [ ] T043 [US4] Cài bean `ThamGiaChuyenTrangThai` của 003 trong `BE/m03/phanbo/internal/PhanBoThamGiaChuyenTrangThai.java` (`@Order` sau 004; `chiTiet.doiPhanBoSangGiuongId` cho Hoàn tất tiếp nhận; giữ/không giữ giường theo `giuGiuongKhiVang`; giải phóng khi kết thúc, qua đời; cảnh báo FR-024a khi trở về phòng chịu chặn) (research G-06)
 - [ ] T044 [US4] Cài job `BE/m03/lich/HetHanGiuCho.java` và `BaoQuaBatDauDuKien.java` (ShedLock, 15 phút; chống lặp theo `da_bao_het_han_luc`, `da_bao_qua_bat_dau_cho`; gọi `hoSoChoHetHanGiuCho` cùng transaction) (research G-09)
 
+**Kết quả lượt Phase 6 (2026-10-24; chưa hoàn tất cả phase)**: Chỉ đánh T037/T041 sau `mvnw.cmd clean verify` nền BUILD SUCCESS (02:06), 351 unit/kiến trúc +495 IT, 0 failure/error/skip, Spotless 786 file qua. T037 có 184 ca bảng chuyển; T041 có lệnh tạm ngừng/sử dụng lại và lịch sử, 3 operation được duyệt dịch và ApiContractIT đã kiểm. T040 mới có 4 tác động nội bộ BedHoldService, chưa nối facade API đầy đủ; T044 mới có HoldExpiryJob, chưa BaoQuaBatDauDuKien. T038/T039/T040/T042/T043/T044 giữ chưa đánh: thiếu hợp đồng/fake M01 và checker/lệnh theo lịch của phase trước. Không đổi UI, không chụp màn hình; frontend 113 test, lint/build qua. Xem plan và Working-history.md; task chưa hoàn tất tiếp theo của Phase 6 là T038.
 **Checkpoint**: P1 hoàn tất; giường và phân bổ đầy đủ.
 
 ---
@@ -161,6 +174,8 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 - [ ] T046 [US5] Cài `BE/m03/phanbo/internal/LichSuViTriService.java` (`LichSuViTriApi`) trên `v_phan_bo_hien_hanh` (research G-10)
 - [ ] T047 [US5] Cài `DinhChinhDuocProvider` cho `M03.PHAN_BO_GIUONG` và `M03.XAC_NHAN_SAN_SANG` (`tangKhuVuc` là tầng của giường; `sauKhiDinhChinh` báo 007) trong `BE/m03/phanbo/internal/PhanBoDinhChinhProvider.java`
 - [ ] T048 [US5] Tạo `BE/m03/phanbo/web/LichSuViTriController.java`: `GET /lich-su-vi-tri/nguoi-cao-tuoi/{nctId}`, `/lich-su-vi-tri/giuong`, `/lich-su-vi-tri/cung-phong`, `POST /phan-bo-giuong/{id}/dinh-chinh`, `POST /giuong/{id}/lich-su-trang-thai/{lichSuId}/dinh-chinh`; màn web `frontend/src/tinh-nang/lich-su-vi-tri/`
+
+**Ghi chú triển khai 2026-10-24**: T045–T048 đã có bản cài và kiểm hẹp xanh; tên lớp/đường dẫn thực tế và lệch SPI ghi ở plan. `clean verify` cuối: 392 unit/kiến trúc và 170 IT M03 xanh, toàn kho còn 14 lỗi test M01. Chưa đánh `[x]`: M01 `statusPeriods` còn stub; chủ dự án giữ nguyên schema lịch sử theo giường nên chưa thể trả dấu nhập bù FR-027 ở HTTP này; UI chưa kiểm trực quan browser đủ ba bề rộng/chế độ tối.
 
 **Checkpoint**: Truy vết vị trí chạy độc lập.
 
@@ -186,6 +201,8 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 ---
 
+**Ghi chú Phase 8 (2026-10-24, chưa nghiệm thu)**: Bản cài dùng `internal/daycare/{domain,persistence,service}`, `web/{request,response}`, migration `V003_05__day_care_capacity.sql`, UI `features/beds/DayCarePanel`. Test schema/capacity/HTTP/CFG đã RED trước implementation; test RR và vị trí cha RED trước fix. Bổ sung guard chung cho ngừng/xóa AREA/FLOOR để khu nghỉ Hiệu lực không bị mồ côi; ánh xạ LocalTime bằng JDBC4.2, lý do và bằng chứng ở plan. Lượt hồi quy `003-p8-review-green.log`: 16 IT cùng ArchTests xanh. Clean verify nền cuối:392unit/kiến trúc và186IT M03 xanh; toàn kho1031IT còn15lỗiM01 (14cũ +1regex capacity đã bàn giaoB). Frontend243test/lint/build xanh. Chưa đánh [x]: chủ dự án đã chọn giữ nguyên contract/SPI (phương án2 cho cả hai đề nghị), nên sửa/ngừng UI tiếp tục chờ và backend chỉ chặn chung, chưa liệt kê người có lịch; còn xử lý lỗi kiểm toàn kho và kiểm trực quan UI. T052 hiện UI xem/tạo/đếm, chưa sửa/ngừng hiệu lực trên UI.
+**Xác minh riêng T049–T050 (2026-10-24)**: Đã đối chiếu đủ test/migration và bổ sung ca nhiều ngày chỉ một ngày vượt, CHECK khung giờ rỗng. `003-t049-t050-verify.log`:16IT+25testkiếntrúc xanh; `003-t049-t050-extra-verify.log`:8IT+25testkiếntrúc xanh, spotless qua. Không cần thêm implementation spec khác để kiểm hai task này; không sửa production/migration/HTTP/SPI. Giữ `[ ]` theo gate clean verify cuốiPhase8, không nhầm với thiếu test hoặc thiếu migration. Task kế tiếp là T051 rồi T052.
 ## Phase 9: User Story 7 – Bác sĩ, Quản lý viện đặt và gỡ cách ly phòng (Priority: P2)
 
 **Goal**: Đặt/gỡ cách ly có lý do, chặn phân bổ vào/ra; chuyển theo chỉ định kiểm soát lây nhiễm; xác nhận ở lại vùng cách ly (FR-008 → FR-010, FR-024a, BR-M03-21).
@@ -203,6 +220,10 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 - [ ] T056 [US7] Tạo `BE/m03/cachly/web/CachLyController.java` (`POST /phong/{id}/dat-cach-ly`, `/go-cach-ly`, `GET /phong/{id}/lich-su-cach-ly`) và endpoint `POST /phan-bo-giuong/{id}/chuyen-giuong-kiem-soat-lay-nhiem`, `/xac-nhan-o-lai-vung-cach-ly`; màn web `frontend/src/tinh-nang/cach-ly-phong/` và app `mobile/lib/nhan-vien/cach-ly-phong/`
 
 **Checkpoint**: Cách ly chạy độc lập.
+
+**Ghi chú triển khai Phase 9 (2026-10-25, chưa nghiệm thu)**: Đường dẫn logic được đặt thành `internal/isolation/{domain,persistence,service}`, `web/{request,response}`, `V003_06__room_isolation_history.sql`; UI trong `features/beds/{RoomIsolationPanel,IsolationWorkspace}`. T053 có các lớp `FR_008_RoomIsolationIT`, `BR_M03_21_ControlledTransferIT`, `FR_028_ControlledTransferAtomicityIT`; phần trở về phòng đã có hồi quy `FR_024_AllocationStatusParticipantIT` của Phase6. T055 dùng ControlledTransferService, chỉ miễn điều kiện cách ly; lệnh/giường/lịch sử/audit cùng rollback, giữ hạn giữ giường khi vắng. Chủ dự án duyệt5operation dịch và3GET phụ trợ quyền; client sinh lại. Scoped cuối `003-p9-review-green.log`:19IT+25testkiến trúc xanh; web250test/lint/build qua. Giữ checkbox tới khi clean verify cuối hoàn tất và đạt gate. T053/T054 còn listener sự kiện007 chờD; T056 có backend/web, mobile nhân viên chưa mở theo CLAUDE/mobile README. Không suy phần còn thiếu thành hoàn tất phase.
+
+**Kết quả gate Phase9**: clean verify nền đã kết thúc (003-p9-clean-verify-final.log, exit1,06:25phút),392unit/kiến trúc và205IT M03 xanh; toàn kho1050IT còn6failure+9error của8lớpM01,0skip; spotless qua. Không đánh thêm[x]. Thứ tự việc còn lại trong Phase9: T053 bổ sung ca sự kiện007→T054 listener sauD công bố API/fake→T055 giữ implementation đã kiểm, chờ gate xanh→T056 đóng phần backend/web khi đạt gate, appnhân viên chờ mở phạm vi. Task đầu Phase10 là T057, chưa thực hiện trong lượt này.
 
 ---
 
@@ -224,6 +245,10 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 **Checkpoint**: Mọi user story của 003 chạy độc lập.
 
+**Ghi chú Phase 10 (2026-10-25, đang kiểm cuối)**: T057 ánh xạ thành BR_M03_09_BedReadinessIT, FR_044_BedRemindersIT, FR_044_ReminderAtomicityIT; kiểm cả quyền thật002/SHIFT_LEAD, điều kiện007 đổi sau preview, CHECK MySQL, nhắc một lần/chu kỳ/gỡ dấu, nhóm nhận và rollback. T058 dùng internal/bed/{domain,persistence,service}/BedReadiness*, note INSERT qua BedTransition/BedStateStore, chỉ BedStateService ghi trạng thái. T059 có scheduling/{BedReadinessReminderJob,AllocationReminderJob}, processor/store đúng tầng; đăng ký2job003 theo SchedulerScopeArchTest, không đổi APIclock000. T060 có BedReadinessController, web/request/BedReadinessWrite, web/response/BedReadinessResponse,2operation đã duyệt dịch và422; client sinh lại. Scoped cuối15IT+25kiến trúc xanh; frontend250test/lint/build qua. Giữ[ ] trong khi clean verify chạy. T057–T058 còn nhánh chuyển theo lịch thật: BedAllocationCommandApi của T032–T033 chưa có provider; có pending thì503/rollback. T060 app nhân viên chưa mở theo CLAUDE.md:12, không tự làm web mới thay task app. T063 sẽ kiểm bean007/008/004 thật khi có, không coi fake là production.
+
+**Gate Phase10 đã kết thúc**: `003-p10-clean-verify-final.log`, exit1/04:06phút;392unit/kiến trúc và218IT M03 xanh; toàn kho1063IT còn6failure+9error ở8lớpM01 đã bàn giaoB,0skip; spotless qua. Giữ T057–T060[ ]. Việc tiếp trong phạm vi phase: hoàn thiện nhánh T057→T058 khi có providerT032–T033, chốt T059 sau gate toàn kho xanh, T060 còn appchờ mở. Task đầu Phase11 là T061, chưa thực hiện lượt này.
+
 ---
 
 ## Phase 11: Polish & Cross-Cutting
@@ -233,6 +258,8 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 - [ ] T063 Khi 004, 007, 008, 019 có bản thật, chạy lại test của US2, US4, US7, US8 với bean thật thay T002
 - [ ] T064 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC-005 (danh sách giường < 1 giây) theo quickstart mục 5
 - [ ] T065 Rà truy vết data-model mục 11: DBR-09, 10, 23, 25, 26, 32 (phần 003) và BR-M03-01 → 07, 09, 10, 13, 15, 19 → 25 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-024, FR-025, FR-051 (bổ sung 2026-10-10) — mỗi FR có task hoặc test tương ứng (constitution XV)
+
+**Ghi chú Phase11 (2026-10-25, chưa nghiệm thu)**: T061 có BedReportingService cài3API hiện có, BedReportingStore và domain BedReportingSnapshot; đã duyệt BedFlagView.bedId nullable riêng WITHOUT_BED. T062 giữ đăng ký HTTP đã có, mở rộng RecordGroupTriggerIT cho2bảng003 SQL-only và DBR_23_RecordTablesIT trên hàng thật. T063 chưa có nguồn thật004/007/008/019. T064 có T064_BedListPerformanceIT (100phòng/300giường,10request sauwarmup), không phải phép đo đầy đủ SC-00560người dùng/2phút. Flutter exit1 trước test vì Windows thiếu symlink; demo đủ37kịch bản chưa chạy được do thiếu công tắc fake/luồng/provider. T065 có [verification.md](verification.md) mapping đúng class/method và phần thiếu; bổ sung test FR-051 mức thông báo và producer BedTransferred. Kiểm cuối nền393unit/kiến trúc,227IT M03 xanh; toàn kho1073IT còn15lỗiM01 đã bàn giaoB (6failure+9error),0skip; web250test/lint/build qua; spotless qua. Giữ T061–T065[ ]; task đầu còn lại trong Phase11 làT061 chốt giới hạn/gate, rồiT062→T063→T064→T065 theo nội dung thiếu. Không có Phase12 trong tasks này.
 
 ---
 
@@ -280,3 +307,15 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8; mỗi bước chạ
 - 003 không gợi ý hay chọn sẵn giường, không tự lập yêu cầu (Q-306, Q-307)
 - Mọi mốc đọc `ThamSoApi` (CFG-M02-02, CFG-M03-01, 02, 04, 07, 08)
 - Lệnh của 003 chỉ chạy trực tuyến
+
+**Chốt phần nền độc lập Phase 4 (2026-10-24; chưa xong cả phase)**: Sau khi chủ dự án cung cấp cấu hình MySQL và duyệt thêm GET /bed-allocations, đã cài T023 bằng V003_03__bed_allocation.sql, T024 bằng BedAllocation/ResidentPosition/AllocationReminder ở internal/allocation/domain. T022 là DBR_09_AllocationSchemaIT (12 IT). T020/T025 mới có AllocationLocks, 3 IT kiểm khóa gồm hồi quy deadlock đã RED rồi GREEN khi đổi INSERT IGNORE sang upsert theo G-03. T026 mới có AllocationQueries cài BedAllocationApi/ResidentLocationApi (4 IT), chưa lệnh tạo/hủy. HTTP Phase 4 có 7 operation đã duyệt, vẫn pending controller; client được sinh lại. `clean verify` nền bản cuối BUILD SUCCESS, 02:25, 167 unit/kiến trúc +470 IT, 0 failure/error/skip, Spotless qua. Web 105 test, lint/build qua. Chỉ sau kết quả này mới đánh T022/T023/T024; T019/T020/T021/T025/T026/T027/T028 giữ chưa đánh. Nguồn M01 vẫn chờ B, không tạo fake thay. Chi tiết ở plan/Working-history.md.
+
+**Kiểm chốt phần độc lập Phase 5 (2026-10-24)**: clean verify nền bản cuối sau sửa fixture BUILD SUCCESS (04:10), 167 unit/kiến trúc +475 IT, 0 failure/error/skip; web 105 test, lint/build qua. Không đánh thêm task: T034 thiếu handler, T036 thiếu controller/UI; T029 là task Phase 5 chưa xong đầu tiên. Chủ dự án giữ quyết định chờ B cho nguồn M01. Xem plan/Working-history.md về lần kiểm đầu thất bại do fixture tăng AUTO_INCREMENT và kết quả kiểm lại sau sửa.
+
+**Bổ sung T036 UI web (2026-10-24)**: Sau nhắc của chủ dự án, đã làm `frontend/src/features/beds/BedTransfersPanel.jsx`, `BedTransferForm.jsx` và gắn tab vào `BedsPage.jsx` theo quyền BED_ALLOCATION. Test trước RED→GREEN: 7 ca panel +6 ca page; kiểm cuối frontend 113 test, lint/build qua; kiểm trực quan ba kích thước, chế độ tối và bàn phím bằng API fixture cục bộ. T036 giữ chưa đánh vì controller chưa có; mobile chưa mở theo mobile/README.md. Các ghi chú trước “chưa UI” là trạng thái ở thời điểm ghi, đã được cập nhật bởi mục này. Chờ B vẫn chỉ chặn nguồn M01/backend; không chặn phần UI độc lập đã hoàn thành. Xem plan/Working-history.md.
+
+**Bổ sung tiếp tục T038/T042 sau nhắc điểm dừng sớm (2026-10-24)**: Đã thêm BedAssetStateService/BedAssetStateStore và 9 IT viết RED→GREEN cho nhánh trạng thái tài sản độc lập, gồm chặn có người, bảo trì/thanh lý, khôi phục Tạm ngừng, hủy phân bổ ban đầu khi giường hỏng và rollback. `clean verify` nền bản mới BUILD SUCCESS (02:12), 351 unit/kiến trúc +504 IT, 0 failure/error/skip; Spotless 789 file qua. T038/T042 vẫn chưa [x] vì chưa đủ adapter BedAssetCommandPort/FR-013b/suitable checker và xử lý căn cứ theo lịch. Kết quả 495 IT ở ghi chú trước là thời điểm trước phần bổ sung này; không thay thế kết quả cuối. Xem plan/Working-history.md.
+
+**Tiếp tục tích hợp sau merge M01 (chưa nghiệm thu)**: T025 bổ sung retry toàn transaction bằng resilience có sẵn của Spring Framework 7; T043 bổ sung chỉ mục kỹ thuật waiting_hold_bed_ids trong resident_position bằng migration mới V003_04_1__waiting_hold_index.sql để lấy id hiện hành trước khóa giường tăng dần trong transaction RR của M01. Không đổi API/M01 isolation; cần kiểm hồi quy và clean verify cuối trước đánh task. Chi tiết lý do, phạm vi và bằng chứng test ở plan/Working-history.md.
+
+**Kết quả kiểm sau tích hợp M01 (2026-10-24)**: 148 IT M03 và 392 unit/kiến trúc của kho xanh; frontend 232 test, lint/build qua. Clean verify nền toàn kho vẫn exit 1 (993 IT: 5 failure +9 error), chỉ còn fixture/contract M01 đang chờ B theo quyết định chủ dự án; không skip test và không đánh thêm [x]. T025/T043 có thêm V003_04_2__allocation_write_guard.sql, RC S/RR X trước position/room/bed, cùng pool đọc view RC độc lập để giữ đúng đính chính trong transaction RR. Không đổi isolation M01, API hoặc thư viện. Xem plan/Working-history.md cho đánh đổi và kết quả từng lệnh.

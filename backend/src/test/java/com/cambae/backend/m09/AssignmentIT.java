@@ -21,6 +21,7 @@ import com.cambae.backend.m15.account.api.spi.*;
 import com.cambae.backend.support.*;
 import com.cambae.backend.support.fake.m01.*;
 import com.cambae.backend.support.fake.m03.*;
+import com.cambae.backend.support.fake.m03.FakeLocations;
 import com.cambae.backend.support.fake.m04.*;
 import java.time.*;
 import java.util.*;
@@ -34,7 +35,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.event.*;
 
 /** T018/T020/T021: lệnh thật, MySQL thật, chỉ nguồn B/C dùng bản giả chung. */
-@Import({FakeM01Config.class, FakeM03Config.class, FakeM04Config.class, AssignmentIT.Users.class})
+@Import({FakeM01Config.class, FakeLocations.Config.class, FakeM04Config.class, AssignmentIT.Users.class})
 @RecordApplicationEvents
 class AssignmentIT extends MySqlIntegrationTestBase {
     private static final java.util.concurrent.atomic.AtomicInteger sequence =
@@ -544,11 +545,11 @@ class AssignmentIT extends MySqlIntegrationTestBase {
     void BR_M09_16_locationReferencesIncludeDraftAssignmentsAndCurrentFloorManager() {
         long id = create(input(worker, "ROOM", room, null, Role.CAREGIVER, "PRIMARY"));
         // Bản thật, không lấy FakeLocationReferences của nguồn 003.
-        assertThat(locationReferences.activeReferences(new LocationRef("ROOM", room)))
+        assertThat(locationReferences.currentReferences(new LocationRef("ROOM", room)))
                 .anyMatch(r -> r.id() == id && r.type().equals("M09.ASSIGNMENT"));
         long manager = staff(Role.FLOOR_MANAGER);
         long assigned = managers.assign(manager, floor, time.today(), null, null, target());
-        assertThat(locationReferences.activeReferences(new LocationRef("FLOOR", floor)))
+        assertThat(locationReferences.currentReferences(new LocationRef("FLOOR", floor)))
                 .anyMatch(r -> r.id() == assigned && r.type().equals("M09.FLOOR_MANAGER_ASSIGNMENT"));
     }
 

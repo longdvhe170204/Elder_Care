@@ -73,6 +73,12 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
+            // 003: Phase 3 đã cài; operation Phase 4/5 đã duyệt vẫn pending khi chưa có controller.
+            new Contract(
+                    Path.of("..", "specs", "003-room-bed-allocation", "contracts", "api-003.yaml"),
+                    Set.of("POST /api/v1/bed-allocations/{id}/transfer"),
+                    Set.of(),
+                    true),
             // 009 T034 (2026-10-22, kéo phần T036 lên khi cài controller đầu tiên của US5); US3 xong 2026-10-23; còn
             // US1
             new Contract(
@@ -84,14 +90,10 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "POST /api/v1/call-reminders/{id}/results"),
                     Set.of(),
                     true),
-            // 016 T028 (2026-10-24, cùng phần xuất US9): còn dashboard, danh mục chỉ tiêu, báo cáo, danh sách chi tiết
+            // 016 T028 (2026-10-24): đủ endpoint sau T009 (dashboard), khung báo cáo và danh sách chi tiết
             new Contract(
                     Path.of("..", "specs", "016-reports-dashboard", "contracts", "api-016.yaml"),
-                    Set.of(
-                            "GET /api/v1/dashboard",
-                            "GET /api/v1/metrics",
-                            "GET /api/v1/reports/{group}",
-                            "GET /api/v1/metric-details/{metricCode}"),
+                    Set.of(),
                     Set.of(),
                     true));
 

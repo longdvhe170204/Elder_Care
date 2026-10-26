@@ -16,19 +16,25 @@ import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
 import { HandoverPage } from '@/features/handover/HandoverPage'
 import { IncidentDetailPage } from '@/features/incidents/IncidentDetailPage'
 import { MedicationPage } from '@/features/medication/MedicationPage'
+import { MedicationCatalogPage } from '@/features/medication-catalog/MedicationCatalogPage'
 import { RelativesPage } from '@/features/relatives/RelativesPage'
 import { ShiftsPage } from '@/features/shifts/ShiftsPage'
 import { StaffPage } from '@/features/shifts/StaffPage'
+import { BedsPage } from '@/features/beds/BedsPage'
+import { ReportsPage } from '@/features/reports/ReportsPage'
 
 // Bản mẫu giai đoạn thiết kế: chuyển màn bằng state, React Router thêm ở 000 T005.
 const PAGES = {
+  beds: BedsPage,
   dashboard: DashboardPage,
+  reports: ReportsPage,
   residents: ResidentListPage,
   shifts: ShiftsPage,
   staff: StaffPage,
   'care-tasks': ShiftChecklistPage,
   incidents: IncidentDetailPage,
   medication: MedicationPage,
+  'medication-catalog': MedicationCatalogPage,
   alerts: AlertsPage,
   handovers: HandoverPage,
   relatives: RelativesPage,

@@ -1,11 +1,23 @@
 package com.cambae.backend.m07.api;
 
-import com.cambae.backend.m07.api.dto.DoseHandoverView;
-import java.util.*;
+import com.cambae.backend.m07.api.dto.DosePendingHandoverView;
+import com.cambae.backend.m07.api.dto.DoseStatus;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
-/** 006 mục 1.4: đọc không vật hóa liều và không lập mục bàn giao. */
+/**
+ * API for querying medication doses for shift handover (FR-028, BR-M09-06, Q-307).
+ * Used by Module M09 (008 - Nursing Shift Handover).
+ */
 public interface DoseHandoverApi {
-    List<DoseHandoverView> inShift(long floorAreaId, long shiftId);
+    /**
+     * List of doses requiring handover in shift: Late, Missed, Refused, Carried, Special Control pending review.
+     */
+    List<DosePendingHandoverView> inShift(long floorAreaId, long shiftId);
 
-    Map<String, String> currentStatus(Collection<String> doseKeys);
+    /**
+     * Query current status of a set of dose keys (taking corrections into account).
+     */
+    Map<String, DoseStatus> currentStatuses(Collection<String> doseKeys);
 }

@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parse } from 'yaml'
 
-const TRANSLATED = ['000', '001', '002', '008', '009', '016']
+const TRANSLATED = ['000', '001', '002', '003', '008', '009', '016']
 
 const root = fileURLToPath(new URL('../..', import.meta.url))
 const specsDir = join(root, 'specs')
@@ -84,6 +84,8 @@ function generate(feature, file) {
   for (const [path, item] of Object.entries(doc.paths)) {
     for (const [method, op] of Object.entries(item)) {
       if (!['get', 'post', 'put', 'patch', 'delete'].includes(method)) continue
+      // 003 duyệt từng phase; chỉ sinh client cho operation có tên tiếng Anh đã được duyệt.
+      if (feature.startsWith('003-') && !op['x-implementation-phase']) continue
       const refs = [...(op['x-fr'] || []), ...(op['x-br'] || [])]
       lines.push(`/** ${op.summary}${refs.length ? ` (${refs.join(', ')})` : ''} */`)
       lines.push(

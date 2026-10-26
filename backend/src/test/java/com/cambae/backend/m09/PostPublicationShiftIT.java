@@ -12,6 +12,7 @@ import com.cambae.backend.m15.account.api.dto.*;
 import com.cambae.backend.support.*;
 import com.cambae.backend.support.fake.m02.FakeM02Config;
 import com.cambae.backend.support.fake.m03.*;
+import com.cambae.backend.support.fake.m03.FakeLocations;
 import com.cambae.backend.support.fake.m04.*;
 import java.time.*;
 import java.util.*;
@@ -28,7 +29,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /** T039: HTTP/quyền thật, chỉ nguồn chưa có của B/C dùng bản giả chung. */
 @AutoConfigureMockMvc
-@Import({FakeM02Config.class, FakeM03Config.class, FakeM04Config.class, PostPublicationShiftIT.Time.class})
+@Import({FakeM02Config.class, FakeLocations.Config.class, FakeM04Config.class, PostPublicationShiftIT.Time.class})
 class PostPublicationShiftIT extends MySqlIntegrationTestBase {
     @Autowired
     JdbcTemplate jdbc;

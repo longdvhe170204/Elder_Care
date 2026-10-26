@@ -47,9 +47,9 @@ class StaffingSourceContractsTest {
         assertThat(moved.previousFloorId()).isEqualTo(20);
         assertThat(moved.newFloorId()).isEqualTo(21);
         var locations = new FakeLocations();
-        assertThat(locations.daycareRestLocation()).isEmpty();
+        assertThat(locations.dayCareRestAreaLocation()).isEmpty();
         locations.daycareRestLocation(new LocationRef("FLOOR", 20));
-        assertThat(locations.daycareRestLocation()).contains(new LocationRef("FLOOR", 20));
+        assertThat(locations.dayCareRestAreaLocation()).contains(new LocationRef("FLOOR", 20));
         locations.floor(20, null).room(22, 20).stay(2, 22, at.minusSeconds(3600), null);
         locations.closeStays(2, at);
         assertThat(locations.at(2, at.minusSeconds(1))).isPresent();
