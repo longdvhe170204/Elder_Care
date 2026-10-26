@@ -74,6 +74,18 @@ public class ShiftQueries implements ShiftApi {
                         s.id(), s.fullName(), s.position(), s.specialty(), StaffStatus.valueOf(s.status())));
     }
 
+    public List<Long> staffOnShift(long floorAreaId, Instant at) {
+        return atFloor(floorAreaId, at).stream()
+                .flatMap(s -> store.members(s.id()).stream().filter(m -> m.presentAt(at)))
+                .map(ShiftMember::staffId)
+                .distinct()
+                .toList();
+    }
+
+    public List<Long> onDutyDoctors(Instant at) {
+        return doctors(at);
+    }
+
     public Optional<WorkShift> atFloor(long floor, Instant at) {
         var found = store.atFloor(floor, at);
         if (found.size() > 1) throw new InvalidPermissionDataException("M09.SHIFT", "MULTIPLE_CURRENT_SHIFTS", floor);

@@ -153,4 +153,43 @@ class ShiftQueriesIT extends MySqlIntegrationTestBase {
             assertThat(s.endsAt()).isEqualTo(Instant.parse("2031-01-13T03:00:00Z"));
         });
     }
+
+    @Test
+    void FR_020_staffOnShiftListsPresentMembersOfTheFloorShiftFor009() {
+        long nurse = staff(Role.NURSING_STAFF);
+        long caregiver = staff(Role.CAREGIVER);
+        long id = fixture(nurse, "PUBLISHED");
+        jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", id, caregiver);
+        assertThat(shifts.staffOnShift(floor, time.now())).containsExactlyInAnyOrder(nurse, caregiver);
+        jdbc.update(
+                "UPDATE shift_staff SET absent_at='2031-01-13 02:00' WHERE shift_id=? AND staff_id=?", id, caregiver);
+        assertThat(shifts.staffOnShift(floor, time.now())).containsExactly(nurse);
+        assertThat(shifts.staffOnShift(floor, Instant.parse("2031-01-13T08:00:00Z")))
+                .isEmpty();
+        assertThat(shifts.staffOnShift(TestUsers.nextId(), time.now())).isEmpty();
+    }
+
+    @Test
+    void FR_023_onDutyDoctorsArePresentDoctorsMarkedOnDutyFor009() {
+        long nurse = staff(Role.NURSING_STAFF);
+        long doctor = staff(Role.DOCTOR);
+        long other = staff(Role.DOCTOR);
+        long floorShift = fixture(nurse, "PUBLISHED");
+        // Bác sĩ trực ở ca cấp viện; dấu Bác sĩ trực trên ca tầng không tính
+        jdbc.update("INSERT INTO shift_staff(shift_id,staff_id,on_duty_doctor) VALUES (?,?,TRUE)", floorShift, other);
+        long template = jdbc.queryForObject("SELECT template_id FROM work_shift WHERE id=?", Long.class, floorShift);
+        jdbc.update(
+                "INSERT INTO shift_schedule(month,scope_type,scope_id,status) VALUES ('2031-01','FACILITY',NULL,'PUBLISHED')");
+        long schedule = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        jdbc.update(
+                "INSERT INTO work_shift(schedule_id,template_id,starts_at,ends_at,scope_type,scope_id,requires_handover,status) VALUES (?,?,'2031-01-13 00:00','2031-01-13 08:00','FACILITY',NULL,FALSE,'PUBLISHED')",
+                schedule,
+                template);
+        long id = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        jdbc.update("INSERT INTO shift_staff(shift_id,staff_id,on_duty_doctor) VALUES (?,?,TRUE)", id, doctor);
+        jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", id, other);
+        assertThat(shifts.onDutyDoctors(time.now())).contains(doctor).doesNotContain(other, nurse);
+        jdbc.update("UPDATE shift_staff SET absent_at='2031-01-13 02:00' WHERE shift_id=? AND staff_id=?", id, doctor);
+        assertThat(shifts.onDutyDoctors(time.now())).doesNotContain(doctor);
+    }
 }

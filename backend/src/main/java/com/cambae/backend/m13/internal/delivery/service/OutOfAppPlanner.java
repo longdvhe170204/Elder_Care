@@ -1,6 +1,7 @@
 package com.cambae.backend.m13.internal.delivery.service;
 
 import com.cambae.backend.common.notification.NotificationLevel;
+import com.cambae.backend.m09.api.ShiftApi;
 import com.cambae.backend.m13.api.dto.RecipientType;
 import com.cambae.backend.m13.internal.channel.persistence.ChannelStore;
 import com.cambae.backend.m13.internal.delivery.domain.ChannelSelection;
@@ -18,6 +19,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +28,8 @@ import org.springframework.stereotype.Service;
  * research B-05): theo {@link ChannelSelection}; lần gửi biết trước kết quả ghi ngay; tin nhắn Trung bình dồn vào khung
  * gộp đang mở, không có khung thì gửi ngay và mở khung CFG-M13-03 (FR-016b). Trả các lần gửi cần phát sau commit.
  *
- * <p>Chưa có {@code CaTrucApi} của 008 nên mọi nhân viên coi như đang trong ca (FR-016a chờ E).
+ * <p>Nhân viên "đang trong ca" theo {@link ShiftApi#onShift} của 008 (FR-016a; vai trò không xếp ca theo giờ hành chính
+ * CFG-M13-06); chưa có bản cài thì coi như đang trong ca.
  */
 @Service
 public class OutOfAppPlanner {
@@ -37,6 +40,7 @@ public class OutOfAppPlanner {
     private final SmsWindowStore windows;
     private final SmsWindowCloser closer;
     private final ParameterApi parameters;
+    private final ObjectProvider<ShiftApi> shifts;
 
     OutOfAppPlanner(
             NotificationStore notifications,
@@ -44,13 +48,15 @@ public class OutOfAppPlanner {
             ChannelStore channels,
             SmsWindowStore windows,
             SmsWindowCloser closer,
-            ParameterApi parameters) {
+            ParameterApi parameters,
+            ObjectProvider<ShiftApi> shifts) {
         this.notifications = notifications;
         this.deliveries = deliveries;
         this.channels = channels;
         this.windows = windows;
         this.closer = closer;
         this.parameters = parameters;
+        this.shifts = shifts;
     }
 
     /** Người nhận của một thông báo, đủ để chọn kênh. */
@@ -64,7 +70,7 @@ public class OutOfAppPlanner {
 
     public List<Long> plan(Target t, NotificationLevel level, boolean invalidOutOfAppContent, Instant at) {
         List<Long> dispatch = new ArrayList<>();
-        Recipient r = new Recipient(t.type(), t.hasAccount(), t.phone(), true);
+        Recipient r = new Recipient(t.type(), t.hasAccount(), t.phone(), onShift(t, at));
         for (Planned p : ChannelSelection.plan(level, r, invalidOutOfAppContent, channels.channels())) {
             String address =
                     ChannelSelection.SMS.equals(p.channel()) ? t.phone().orElse(null) : null;
@@ -106,6 +112,11 @@ public class OutOfAppPlanner {
             // Lượt tiếp nhận khác vừa mở khung cho người này: tin này vẫn gửi ngay, khung kia giữ nguyên
         }
         return Optional.of(attempt);
+    }
+
+    private boolean onShift(Target t, Instant at) {
+        ShiftApi api = shifts.getIfAvailable();
+        return t.type() != RecipientType.STAFF || api == null || api.onShift(t.recipientId(), at);
     }
 
     private java.time.Duration windowLength() {

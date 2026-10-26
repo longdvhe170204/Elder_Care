@@ -12,6 +12,14 @@ public class FakeShifts implements ShiftApi {
 
     private final Map<Long, Entry> shifts = new LinkedHashMap<>();
     private final Map<Long, StaffPublicView> staff = new LinkedHashMap<>();
+    private final Map<Long, Set<Long>> doctors = new LinkedHashMap<>();
+
+    /** Xóa ca, nhân viên, Bác sĩ trực đã đặt (bản giả dùng chung cả context test). */
+    public void reset() {
+        shifts.clear();
+        staff.clear();
+        doctors.clear();
+    }
 
     public FakeShifts shift(ShiftView view, List<Long> staffIds) {
         shifts.put(view.id(), new Entry(view, List.copyOf(staffIds)));
@@ -49,5 +57,31 @@ public class FakeShifts implements ShiftApi {
 
     public Optional<StaffPublicView> staff(long staffId) {
         return Optional.ofNullable(staff.get(staffId));
+    }
+
+    /** Đánh dấu Bác sĩ trực của một ca đã đặt; chỉ tính khi ca đang diễn ra. */
+    public FakeShifts onDutyDoctor(long shiftId, long staffId) {
+        doctors.computeIfAbsent(shiftId, k -> new LinkedHashSet<>()).add(staffId);
+        return this;
+    }
+
+    public List<Long> staffOnShift(long floorAreaId, Instant at) {
+        return shifts.values().stream()
+                .filter(e -> Objects.equals(e.view().floorAreaId(), floorAreaId) && inProgress(e.view(), at))
+                .flatMap(e -> e.staffIds().stream())
+                .distinct()
+                .toList();
+    }
+
+    public List<Long> onDutyDoctors(Instant at) {
+        return shifts.values().stream()
+                .filter(e -> inProgress(e.view(), at))
+                .flatMap(e -> doctors.getOrDefault(e.view().id(), Set.of()).stream())
+                .distinct()
+                .toList();
+    }
+
+    private static boolean inProgress(ShiftView v, Instant at) {
+        return "IN_PROGRESS".equals(v.status()) && !at.isBefore(v.startsAt()) && at.isBefore(v.endsAt());
     }
 }
