@@ -3,6 +3,7 @@ package com.cambae.backend.m02.web;
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.web.VersionEtag;
 import com.cambae.backend.m02.api.dto.ContractStatus;
+import com.cambae.backend.m02.internal.change.service.ResidencyChangeService;
 import com.cambae.backend.m02.internal.contract.domain.Contract;
 import com.cambae.backend.m02.internal.contract.service.ContractReadService;
 import com.cambae.backend.m02.internal.contract.service.ContractService;
@@ -43,8 +44,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Hợp đồng lưu trú (004 US3; contracts/api-004.yaml, tag {@code contracts}). Mọi logic và kiểm quyền ở service. Trạng thái
- * đặt cọc ({@code GET /contracts/{id}/deposit}) do 017 tính, controller chỉ đọc; phụ lục chỉ có từ user story thay đổi
- * lưu trú nên danh sách phụ lục tới lúc đó rỗng.
+ * đặt cọc ({@code GET /contracts/{id}/deposit}) do 017 tính, controller chỉ đọc; phụ lục chỉ do yêu cầu thay đổi lưu trú đã
+ * duyệt tạo (user story 5) nên chỉ có endpoint đọc.
  */
 @RestController
 @RequestMapping("/api/v1")
@@ -56,11 +57,17 @@ class ContractController {
     private final ContractService contracts;
     private final ContractReadService reads;
     private final DepositViewService deposits;
+    private final ResidencyChangeService changes;
 
-    ContractController(ContractService contracts, ContractReadService reads, DepositViewService deposits) {
+    ContractController(
+            ContractService contracts,
+            ContractReadService reads,
+            DepositViewService deposits,
+            ResidencyChangeService changes) {
         this.contracts = contracts;
         this.reads = reads;
         this.deposits = deposits;
+        this.changes = changes;
     }
 
     @GetMapping("/contracts")
@@ -226,8 +233,10 @@ class ContractController {
 
     @GetMapping("/contracts/{id}/addenda")
     List<AddendumBody> addenda(@PathVariable long id) {
-        contracts.get(contracts.targetOf(id), id);
-        return List.of();
+        Contract contract = contracts.get(contracts.targetOf(id), id);
+        return changes.addendaOf(contracts.targetOf(id), id).stream()
+                .map(addendum -> AddendumBody.of(addendum, contract.residentId()))
+                .toList();
     }
 
     @GetMapping("/contracts/{id}/deposit")
