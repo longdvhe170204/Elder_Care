@@ -336,3 +336,9 @@ Test không bị ảnh hưởng: test của 000 và của module khác dùng b�
 - Dòng "Chờ A quyết" ở team-plan mục 8: cờ `hasTreatmentWish` của hồ sơ 001 không gắn được `@FieldGroup` (Hành chính thấy cờ, Kế toán không; nhóm `HEALTH` chặn cả Hành chính, nhóm `WISHES` cho Kế toán `PRESENCE_ONLY`). Chủ dự án chọn cách cho DTO tự khai trường bị ẩn thay vì để `null`, để đúng hợp đồng api-001 và 001 research H-18.
 - `m15.account.api.SelfHiddenFields.selfHiddenFields()`: `FieldGroupSerializerModifier` bọc mọi thuộc tính của DTO cài interface, bỏ thuộc tính có tên trong tập trả về và ghi tên vào `hiddenFields` cùng các trường bị ẩn theo nhóm, theo thứ tự khai báo. DTO không cài interface chạy như cũ.
 - Test: `FieldVisibilityIT` (thêm 3: chỉ trường tự ẩn, tập rỗng giữ trường, trộn trường theo nhóm và trường tự ẩn). B áp vào `ProfileBody` của 001 (team-plan mục 8).
+
+### Dashboard 401 khi chạy thật (2026-10-26, nhánh `fix/016-dashboard-401`)
+
+- Điều dưỡng mở Tổng quan ở profile `demo` nhận 401 "Cần đăng nhập". Hai lỗi chồng: `ActiveAssignments.at`, `during` lấy `AssignmentApi` (008 cài, chưa có) bằng `getObject()` nên ném `NoSuchBeanDefinitionException` (test luôn có `FakeAssignments` nên không thấy); lỗi 500 đó được Tomcat chuyển sang `/error`, lượt này bộ lọc phiên không chạy lại nên chuỗi lọc trả 401, che lỗi thật.
+- Sửa: chưa có `AssignmentApi` thì không có phân công nào góp vào phạm vi (như `bedOf`; mặc định an toàn); `SecurityConfig` cho lượt `DispatcherType.ERROR` đi qua để giữ mã lỗi thật. Test `FR_020_DashboardDemoAccountIT` (tài khoản `demo.dieuduong`, bean thật), `ErrorDispatchIT`.
+- Các lệnh của `AccountService` còn gọi `getObject()` trên SPI do module khác cài (`StaffProfileApi`, `FamilyRelationshipApi`, `ResidentProfileApi`, `DutyApi`): module nguồn chưa cài thì lệnh đó trả 500; không đổi trong lượt này.
