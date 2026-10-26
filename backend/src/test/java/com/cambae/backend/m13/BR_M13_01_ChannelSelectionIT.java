@@ -24,7 +24,9 @@ import com.cambae.backend.support.fake.m13.FakeFamilyNotifications;
 import com.cambae.backend.support.fake.m13.FakeSmsProvider;
 import com.cambae.backend.support.fake.m15.FakeM15Config;
 import com.cambae.backend.support.fake.m15.FakeStaffProfiles;
+import java.time.DayOfWeek;
 import java.time.Duration;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,8 +41,8 @@ import org.springframework.context.annotation.Import;
  * 009 US3 (T024, tên logic {@code BR_M13_01_ChonKenhIT}, {@code FR_018_GuiLaiIT}, {@code FR_020_NoiDungKenhNgoaiIT};
  * quickstart Q16 → Q19): kênh theo mức (BR-M13-01, FR-016); tin nhắn dùng nội dung rút gọn, kênh tắt không gửi; không có số
  * ghi Không có địa chỉ (FR-018); lỗi tạm gửi lại tối đa CFG-M13-05 lần (FR-018); nội dung rút gọn có trường sức khỏe thì
- * phần kênh ngoài Nội dung không hợp lệ, phần trong ứng dụng vẫn gửi (FR-020). Nhân viên ngoài ca (FR-016a) chờ
- * {@code CaTrucApi} của 008: hiện coi mọi nhân viên đang trong ca.
+ * phần kênh ngoài Nội dung không hợp lệ, phần trong ứng dụng vẫn gửi (FR-020). Nhân viên ở đây là Kế toán trong giờ hành
+ * chính CFG-M13-06 nên đang trong ca; nhân viên ngoài ca (FR-016a) ở {@link FR_016a_OffShiftIT}.
  */
 @Import(FakeM15Config.class)
 class BR_M13_01_ChannelSelectionIT extends M13IntegrationTestBase {
@@ -68,10 +70,13 @@ class BR_M13_01_ChannelSelectionIT extends M13IntegrationTestBase {
 
     @BeforeEach
     void setUp() {
-        // 10:00 hôm qua: chạy trong giờ yên tĩnh (CFG-M13-02) thì thông báo cho người thân bị giữ lại; mốc ở quá khứ để
-        // phân công vai trò tạo trong test không bắt đầu sau giờ thật mà test khác dùng để kết thúc.
+        // 10:00 thứ Ba gần nhất đã qua: chạy trong giờ yên tĩnh (CFG-M13-02) thì thông báo cho người thân bị giữ lại;
+        // mốc ở
+        // quá khứ để phân công vai trò tạo trong test không bắt đầu sau giờ thật mà test khác dùng để kết thúc; ngày
+        // thường
+        // để Kế toán trong giờ hành chính CFG-M13-06 (FR-016a).
         clock.setTo(time.today()
-                .minusDays(1)
+                .with(TemporalAdjusters.previous(DayOfWeek.TUESDAY))
                 .atTime(10, 0)
                 .atZone(BusinessTime.ZONE)
                 .toInstant());

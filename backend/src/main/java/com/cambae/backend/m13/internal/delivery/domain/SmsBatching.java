@@ -1,6 +1,7 @@
 package com.cambae.backend.m13.internal.delivery.domain;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -18,5 +19,13 @@ public final class SmsBatching {
 
     public static String digest(int count) {
         return "Bạn có " + count + " thông báo mới. Vui lòng mở ứng dụng để xem.";
+    }
+
+    /** Tin tổng hợp gửi nhân viên: thêm tầng/khu vực và ca của các thông báo trong đó (008 FR-059). */
+    public static String digest(int count, List<String> places) {
+        if (places.isEmpty()) {
+            return digest(count);
+        }
+        return "Bạn có " + count + " thông báo mới (" + String.join("; ", places) + "). Vui lòng mở ứng dụng để xem.";
     }
 }

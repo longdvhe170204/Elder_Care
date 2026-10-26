@@ -52,7 +52,11 @@ Optional<CaView> caDangDienRa(long tangKhuVucId, Instant t);
 List<CaView> caCuaNhanVien(long nhanVienId, Instant tu, Instant den);
 boolean dangTrongCa(long nhanVienId, Instant t);                    // 009: nhân viên "trong ca" để chọn kênh (BR-M13-01); cùng quy tắc với NhanSuCanhBaoPort.dangTrongCa (007, bổ sung 2026-10-22)
 Optional<NhanVienView> nhanVien(long nhanVienId);                   // nhóm (a) công khai
+List<Long> nhanVienTrongCa(long tangKhuVucId, Instant t);           // 009 nhóm OnShiftStaff: người có mặt trong ca đang diễn ra của tầng (trừ vắng ca, rời ca); bổ sung 2026-10-26
+List<Long> bacSiTruc(Instant t);                                    // 009 nhóm OnDutyDoctor: Bác sĩ trực có mặt ở ca cấp viện (FR-023); bổ sung 2026-10-26
 ```
+
+*(Bổ sung 2026-10-26, luật "Đổi api", chủ dự án duyệt; A cài trên nhánh `impl/009-shift-recipients`, E review)*: hai hàm cuối, mã `ShiftApi.staffOnShift`, `ShiftApi.onDutyDoctors` (glossary 15.5), cho 009 FR-007 (a) "nhân viên có ca đang diễn ra tại tầng/khu vực theo vai trò và chứng chỉ" và "Bác sĩ trực". Vai trò, chứng chỉ do 009 lọc (tài khoản, `LicenseApi.valid` ngày gửi). Bản cài dùng lại `ShiftQueries.doctors` của `NhanSuCanhBaoPort.bacSiTruc`; bản giả `FakeShifts.onDutyDoctor`, `reset`.
 
 ### 1.4. `m09.api.NhanSuThongKeApi` (016; FR-037, FR-037a, FR-049 dòng 016)
 
