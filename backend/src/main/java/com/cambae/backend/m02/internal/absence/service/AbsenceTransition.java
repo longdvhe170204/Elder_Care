@@ -212,6 +212,28 @@ public class AbsenceTransition {
         events.publishEvent(new AbsenceClosed(absence.id(), residentId, returnedAt));
     }
 
+    /**
+     * Người cao tuổi sang trạng thái cuối khi lượt vắng còn mở (Kết thúc lưu trú FR-065, Ghi nhận qua đời FR-070): ghi nốt các
+     * ngày tới ngày đóng rồi đóng lượt tại {@code closeAt} (không sớm hơn lúc rời viện). Không có lượt mở thì không làm gì.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void closedByFinalState(long residentId, Instant closeAt, String cause) {
+        residencyLock.lock(residentId);
+        Optional<Absence> open = store.open(residentId);
+        if (open.isEmpty()) {
+            return;
+        }
+        Absence absence = open.get();
+        Instant closedAt = closeAt.isBefore(absence.departedAt()) ? absence.departedAt() : closeAt;
+        List<BedHoldDecision> decisions = service.effectiveDecisions(absence.id());
+        Absence closing = absence.withTimes(absence.departedAt(), closedAt);
+        Written written = calculator.fillMissing(closing, AbsenceDayCalculator.dateOf(closedAt), decisions);
+        store.close(absence.id(), closedAt, currentUser.getObject().accountId());
+        service.publishDayEvents(closing, written);
+        audit(CLOSED, absence, Map.of("returnedAt", closedAt.toString(), "cause", cause));
+        events.publishEvent(new AbsenceClosed(absence.id(), residentId, closedAt));
+    }
+
     /** Giường đã giải phóng thì báo cần phân bổ giường mới khi người đó trở về (FR-059). */
     public List<Warning> returnWarnings(long residentId) {
         return store.ofResident(residentId).stream()

@@ -3,6 +3,7 @@ package com.cambae.backend.m02.internal.transition.service;
 import com.cambae.backend.common.error.InvalidValueException;
 import com.cambae.backend.m01.api.dto.CommandContext;
 import com.cambae.backend.m01.api.dto.Condition;
+import com.cambae.backend.m01.api.dto.ConditionWaiver;
 import com.cambae.backend.m01.api.dto.StatusCommand;
 import com.cambae.backend.m01.api.dto.TransitionResult;
 import com.cambae.backend.m01.api.dto.Warning;
@@ -11,10 +12,12 @@ import com.cambae.backend.m02.internal.absence.service.AbsenceTransition;
 import com.cambae.backend.m02.internal.application.service.AdmissionContractConditions;
 import com.cambae.backend.m02.internal.application.service.AdmissionTransition;
 import com.cambae.backend.m02.internal.contract.service.ContractTransition;
+import com.cambae.backend.m02.internal.ending.service.EndingTransition;
 import com.cambae.backend.m02.internal.waitinglist.service.WaitingListTransition;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -56,18 +59,21 @@ class M02StatusParticipant implements StatusTransitionParticipant {
     private final WaitingListTransition waitingListTransition;
     private final ContractTransition contractTransition;
     private final AbsenceTransition absenceTransition;
+    private final EndingTransition endingTransition;
 
     M02StatusParticipant(
             AdmissionContractConditions admissionConditions,
             AdmissionTransition admissionTransition,
             WaitingListTransition waitingListTransition,
             ContractTransition contractTransition,
-            AbsenceTransition absenceTransition) {
+            AbsenceTransition absenceTransition,
+            EndingTransition endingTransition) {
         this.admissionConditions = admissionConditions;
         this.admissionTransition = admissionTransition;
         this.waitingListTransition = waitingListTransition;
         this.contractTransition = contractTransition;
         this.absenceTransition = absenceTransition;
+        this.endingTransition = endingTransition;
     }
 
     /**
@@ -79,8 +85,15 @@ class M02StatusParticipant implements StatusTransitionParticipant {
         return switch (context.command()) {
             case COMPLETE_ADMISSION -> admissionConditions.unmet(context.residentId(), context.at());
             case GRANT_TEMPORARY_ABSENCE -> absenceTransition.grantConditions(context);
+            case END_RESIDENCY -> endingTransition.unmet(context);
             default -> List.of();
         };
+    }
+
+    /** Kết thúc lưu trú: ngoại lệ đã duyệt của hồ sơ miễn các điều kiện (a) → (d), (h) (FR-064). */
+    @Override
+    public Optional<ConditionWaiver> waiveConditions(CommandContext context) {
+        return context.command() == StatusCommand.END_RESIDENCY ? endingTransition.waiver(context) : Optional.empty();
     }
 
     @Override
@@ -143,6 +156,7 @@ class M02StatusParticipant implements StatusTransitionParticipant {
             case GRANT_TEMPORARY_ABSENCE -> absenceTransition.granted(result);
             case TRANSFER_OUT -> absenceTransition.transferredOut(result);
             case RECORD_RETURN -> absenceTransition.returned(result);
+            case END_RESIDENCY -> endingTransition.completed(result);
             default -> {}
         }
     }

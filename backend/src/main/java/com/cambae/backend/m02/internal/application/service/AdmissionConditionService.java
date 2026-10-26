@@ -22,6 +22,7 @@ import com.cambae.backend.m02.internal.application.domain.AdmissionApplication;
 import com.cambae.backend.m02.internal.application.domain.AdmissionOpinion;
 import com.cambae.backend.m02.internal.application.domain.ApplicationStatus;
 import com.cambae.backend.m02.internal.application.persistence.AdmissionApplicationStore;
+import com.cambae.backend.m02.internal.ending.service.EndingConditionService;
 import com.cambae.backend.m15.account.api.RequiresPermission;
 import com.cambae.backend.m15.account.api.dto.Function;
 import com.cambae.backend.m15.account.api.dto.Operation;
@@ -105,6 +106,7 @@ public class AdmissionConditionService implements AdmissionConditionApi {
     private final AssessmentApi assessments;
     private final HealthRecordApi healthRecords;
     private final CareLevelApi careLevels;
+    private final EndingConditionService endingConditions;
     private final BusinessTime time;
 
     AdmissionConditionService(
@@ -115,6 +117,7 @@ public class AdmissionConditionService implements AdmissionConditionApi {
             AssessmentApi assessments,
             HealthRecordApi healthRecords,
             CareLevelApi careLevels,
+            EndingConditionService endingConditions,
             BusinessTime time) {
         this.store = store;
         this.residentStatus = residentStatus;
@@ -123,6 +126,7 @@ public class AdmissionConditionService implements AdmissionConditionApi {
         this.assessments = assessments;
         this.healthRecords = healthRecords;
         this.careLevels = careLevels;
+        this.endingConditions = endingConditions;
         this.time = time;
     }
 
@@ -183,8 +187,9 @@ public class AdmissionConditionService implements AdmissionConditionApi {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ConditionListView endingConditions(long residencyEndingId) {
-        throw new UnsupportedOperationException("Điều kiện kết thúc lưu trú thuộc user story kết thúc lưu trú (UC-17)");
+        return endingConditions.of(residencyEndingId);
     }
 
     private Evaluation evaluate(long residentId, Optional<AdmissionApplication> application) {
