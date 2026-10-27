@@ -1340,6 +1340,10 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 | `DinhChinhDuocProvider` `M02.KHAI_BAO` *(T010)* | `RegistrationCorrectionProvider` (loại `M02.RESIDENCE_REGISTRATION`) |
 | hành động nhật ký ghi nộp, chấp nhận, từ chối | `M02_REGISTRATION_SUBMITTED`, `M02_REGISTRATION_ACCEPTED`, `M02_REGISTRATION_REJECTED` |
 | test `KhaiBaoNopKetQuaIT` *(T009)* | `RegistrationSubmissionResultIT` |
+| lệnh lập khai báo gia hạn *(T012)* | `ResidenceRegistrationService.createRenewalRegistration` |
+| nhắc gia hạn, chuyển Hết hạn *(T012)* | `RegistrationRenewalReminders.remind(day)` (`due`), `RegistrationExpiry.expire(day)`; ngày hết hạn hiện hành theo đính chính `RegistrationExpiryDates`; tên việc dự kiến `REG_RENEWAL`, `REG_EXPIRY` |
+| loại nhắc gia hạn, báo Hết hạn | `ResidenceRegistrationReminder.Kind.RENEWAL`, `EXPIRED_MANAGER`; hành động nhật ký `M02_REGISTRATION_EXPIRED` |
+| test `BR_M02_12_GiaHanIT`, `BR_M02_14_ChuyenLoaiIT` *(T011)* | `BR_M02_12_RenewalIT`, `BR_M02_14_TypeChangeIT` |
 
 ## 25. Feature 019 (`019-inventory-assets`, C)
 

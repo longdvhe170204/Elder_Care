@@ -88,11 +88,11 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 ### Tests cho User Story 3
 
-- [ ] T011 [P] [US3] Test `BT/m02/BR_M02_12_GiaHanIT.java`, `BR_M02_14_ChuyenLoaiIT.java` (Q11 → Q17)
+- [x] T011 [P] [US3] Test `BT/m02/BR_M02_12_GiaHanIT.java`, `BR_M02_14_ChuyenLoaiIT.java` (Q11 → Q17) *(2026-10-27: `BR_M02_12_RenewalIT` 9 (Q11, Q12, Q13, Q15, lệnh gia hạn qua HTTP, ngày hết hạn đã đính chính, việc sắp hết hạn), `BR_M02_14_TypeChangeIT` 5 (Q14, Q16, Q17, hai trường hợp không ghi mốc). RED (biên dịch: chưa có lớp) → GREEN; kiểm đột biến: bỏ đọc chuỗi đính chính thì `Z_04` đỏ)*
 
 ### Implementation cho User Story 3
 
-- [ ] T012 [US3] Cài listener `PhuLucDaApDung` (mốc `PHU_LUC_GIA_HAN`, `NOI_TRU_HIEU_LUC`), nhắc gia hạn, chuyển `DA_XAC_NHAN → HET_HAN` trong job; lệnh lập khai báo gia hạn trong `KhaiBaoService.java` (research Z-03)
+- [ ] T012 [US3] Cài listener `PhuLucDaApDung` (mốc `PHU_LUC_GIA_HAN`, `NOI_TRU_HIEU_LUC`), nhắc gia hạn, chuyển `DA_XAC_NHAN → HET_HAN` trong job; lệnh lập khai báo gia hạn trong `KhaiBaoService.java` (research Z-03) *(2026-10-27: backend xong và có test: listener `AddendumApplied`, `createRenewalRegistration`, `RegistrationRenewalReminders.remind(day)`, `RegistrationExpiry.expire(day)`; còn `[ ]` vì nhắc gia hạn, chuyển Hết hạn chưa gắn vào job (BL-90) và phần web (nút lập khai báo gia hạn, việc sắp hết hạn, Hết hạn) thuộc màn T008 chờ A duyệt (BL-96); xem plan "Phase 5 hoàn thành")*
 
 ---
 
