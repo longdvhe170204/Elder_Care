@@ -1,7 +1,6 @@
 package com.cambae.backend.m02.web;
 
 import com.cambae.backend.common.error.BusinessException;
-import com.cambae.backend.common.error.InvalidValueException;
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.m02.internal.registration.service.ResidenceRegistrationService;
 import com.cambae.backend.m02.web.request.CreateRegistrationBody;
@@ -30,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Khai báo tạm trú, lưu trú (018; contracts/api-018.yaml, tag {@code residence-registrations}). Phase 3 (US1): danh sách
  * cần làm, khai báo của người cao tuổi, lập khai báo, xác nhận thường trú cùng xã/phường; Phase 4 (US2): ghi nộp, ghi kết
- * quả; khai báo xóa (T014) và lập khai báo gia hạn (T012) thêm ở Phase 5, 6. Mọi logic và kiểm quyền ở service.
+ * quả; Phase 5 (US3): lập khai báo gia hạn ({@code renewal: true}); khai báo xóa (T014) thêm ở Phase 6. Mọi logic và kiểm quyền ở service.
  */
 @RestController
 @RequestMapping("/api/v1")
@@ -71,18 +70,19 @@ class ResidenceRegistrationController {
         @ApiResponse(responseCode = "201", description = "OK"),
         @ApiResponse(
                 responseCode = "409",
-                description = "NOT_RESIDENTIAL_CARE, NO_REGISTRATION_OBLIGATION, REGISTRATION_IN_PROGRESS_EXISTS",
+                description = "NOT_RESIDENTIAL_CARE, NO_REGISTRATION_OBLIGATION, REGISTRATION_IN_PROGRESS_EXISTS,"
+                        + " NO_CONFIRMED_TEMPORARY_RESIDENCE_REGISTRATION",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
     })
     ResidenceRegistrationBody create(
             @PathVariable long residentId,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @RequestBody CreateRegistrationBody body) {
-        if (body.isRenewal()) {
-            throw new InvalidValueException("Lập khai báo gia hạn chưa được cài (018 T012, Phase 5)");
-        }
-        return ResidenceRegistrationBody.of(registrations.createRegistration(
-                ResidenceRegistrationService.targetForResident(residentId), residentId));
+        Target target = ResidenceRegistrationService.targetForResident(residentId);
+        return ResidenceRegistrationBody.of(
+                body.isRenewal()
+                        ? registrations.createRenewalRegistration(target, residentId)
+                        : registrations.createRegistration(target, residentId));
     }
 
     /**

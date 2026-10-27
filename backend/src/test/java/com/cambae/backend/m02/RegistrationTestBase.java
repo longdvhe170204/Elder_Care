@@ -9,8 +9,11 @@ import com.cambae.backend.m01.api.dto.CareLevel;
 import com.cambae.backend.m01.api.dto.ResidenceType;
 import com.cambae.backend.m01.internal.status.service.ResidentStatusService;
 import com.cambae.backend.m02.api.dto.ContractStatus;
+import com.cambae.backend.m02.internal.registration.domain.ResidenceRegistration;
+import com.cambae.backend.m02.internal.registration.domain.SubmissionChannel;
 import com.cambae.backend.m02.internal.registration.service.RegistrationOverdueReminders;
 import com.cambae.backend.m02.internal.registration.service.ResidenceRegistrationService;
+import com.cambae.backend.m15.account.api.dto.Target;
 import com.cambae.backend.support.TestUsers.TestUser;
 import java.sql.Statement;
 import java.time.Duration;
@@ -110,6 +113,31 @@ abstract class RegistrationTestBase extends M02TestBase {
                 ResidentStatusService.target(residentId),
                 new Reason("Hoàn tất thử"),
                 JsonNodeFactory.instance.objectNode());
+    }
+
+    /** Lập khai báo bằng lệnh của Hành chính. */
+    protected ResidenceRegistration createFor(long residentId) {
+        user.set(office.user());
+        return registrations.createRegistration(ResidenceRegistrationService.targetForResident(residentId), residentId);
+    }
+
+    /** Ghi nộp rồi ghi được chấp nhận (US2); {@code expiry} chỉ với Đăng ký tạm trú, {@code evidenceFileId} đã tải lên. */
+    protected void confirm(ResidenceRegistration registration, LocalDate expiry, long evidenceFileId) {
+        user.set(office.user());
+        Target target = registrations.targetOf(registration.id());
+        registrations.recordSubmitted(
+                target,
+                registration.id(),
+                new ResidenceRegistrationService.Submission(
+                        today(), SubmissionChannel.IN_PERSON, "Công an phường X", null));
+        registrations.recordAccepted(
+                target, registration.id(), new ResidenceRegistrationService.Acceptance(evidenceFileId, expiry));
+    }
+
+    /** Trạng thái khai báo. */
+    protected String statusOf(long registrationId) {
+        return jdbc.queryForObject(
+                "SELECT status FROM residence_registration WHERE id = ?", String.class, registrationId);
     }
 
     /** Nghĩa vụ khai báo của người cao tuổi (bảng kỹ thuật), mới nhất trước. */

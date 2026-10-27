@@ -106,6 +106,20 @@ public class ResidenceRegistrationStore {
                 .findFirst();
     }
 
+    /** Đăng ký tạm trú Đã xác nhận (nhắc gia hạn, chuyển Hết hạn; FR-006). */
+    public List<ResidenceRegistration> confirmedTemporaryResidence() {
+        return jdbc.query(
+                "SELECT " + COLUMNS + " FROM residence_registration WHERE status = 'CONFIRMED'"
+                        + " AND type = 'TEMPORARY_RESIDENCE_REGISTRATION' ORDER BY id",
+                this::row);
+    }
+
+    /** Người cao tuổi đang có khai báo Cần khai báo hoặc Đã nộp (FR-004). */
+    public java.util.Set<Long> residentsWithInProgress() {
+        return new java.util.HashSet<>(jdbc.queryForList(
+                "SELECT resident_id FROM residence_registration WHERE in_progress_key IS NOT NULL", Long.class));
+    }
+
     /** Khai báo của người cao tuổi, mới nhất trước. */
     public List<ResidenceRegistration> ofResident(long residentId) {
         return jdbc.query(
@@ -182,6 +196,15 @@ public class ResidenceRegistrationStore {
                         "UPDATE residence_registration SET status = 'TO_SUBMIT', due_at = ?"
                                 + " WHERE id = ? AND status = 'SUBMITTED'",
                         utc(newDueAt),
+                        id)
+                == 1;
+    }
+
+    /** Qua ngày hết hạn (FR-006): Đã xác nhận → Hết hạn; {@code false} nếu đã chuyển. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public boolean markExpired(long id) {
+        return jdbc.update(
+                        "UPDATE residence_registration SET status = 'EXPIRED' WHERE id = ? AND status = 'CONFIRMED'",
                         id)
                 == 1;
     }
