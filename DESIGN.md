@@ -563,6 +563,22 @@ Chủ dự án duyệt thì mới viết mã (mục 13 bước 2); duyệt xong 
 
 **Cần chủ dự án chọn:** (1) hai tab trong một mục menu "Tiếp nhận" như trên hay hai mục menu riêng; (2) cột Thứ hạng có hiện không (điểm bằng nhau thì thứ hạng theo ngày đăng ký); (3) nhãn "Giường phù hợp" hay "Hồ sơ phù hợp" cho hộp chọn theo giường.
 
+### Đề xuất bố cục chờ duyệt: 018 T008, US1–US2 (chưa triển khai, chưa tăng phiên bản)
+
+B (chủ feature) chốt phương án 2026-10-27; chờ chủ dự án duyệt theo mục 13 bước 2. **Không có công thức hay màu mới**: chỉ ghép công thức đã duyệt ở mục 7.2, cùng cách làm của màn Thông báo (bảng, bấm dòng mở khung chi tiết) và tab Tài khoản (nút theo `allowedCommands`, form lệnh mở ngay dưới): K1 = một dòng `navigation.js`; K2 = `page-header` + `filter-bar` + `Table` + trạng thái mục 7.3; K3 = `detail-panel` + `status-pill` + `correction-sheet`, lịch sử lần nộp là danh sách dòng như `opinion-history`; K4 = "Form ghi nhận" (`FieldGroup`, `Field`, `ToggleGroup`) + lỗi theo mục 7.4; K5 = tông có sẵn ở mục 3.5; K6 = mục 10, M4 của 004. Duyệt xong mới viết mã, chuyển thành mục 14 chính thức, tăng `version` và thêm dòng ở mục 16. Không thêm màu, không sửa component chung: dùng `PageHeader`, `StatusBadge`, `PageState`, `ProblemAlert`, `Table`, `Sheet`, `Field`, khung đính chính `common/correction`, tải tệp `common/files.js`, ô tìm hồ sơ `ResidentSearch` (001). Cần hợp đồng api-018 bổ sung `basisNote`, `allowedCommands`, `submissions[]`, 422 (chờ duyệt cùng đề xuất này).
+
+**K1. Mục menu "Khai báo cư trú".** Nhóm "Hành chính, tài chính", ngay sau "Tiếp nhận, hợp đồng"; Hành chính (thao tác), Quản lý viện (chỉ xem) theo dòng "Khai báo tạm trú, lưu trú" của Phụ lục 27; vai trò khác không thấy mục.
+
+**K2. Màn chính: việc cần làm.** `page-header` "Khai báo cư trú" với dải số đếm gọn "Quá hạn n", "Cần lập n" (nút lọc). Bảng `Table`: Họ tên, Việc (Quá hạn `urgent`, Cần lập `attention`), Hạn (ngày giờ, kèm "quá hạn x ngày"), nút trên dòng "Lập khai báo" (theo `allowedCommands` của việc) hoặc "Mở"; Quá hạn trước. Ô tìm người cao tuổi để mở khai báo của bất kỳ người nào. Trạng thái màn theo mục 7.3: `Skeleton` dòng bảng, trống "Không có người cần khai báo", lỗi tải kèm Thử lại, không có quyền.
+
+**K3. Khung chi tiết theo người cao tuổi** (`Sheet` rộng `sm:max-w-3xl`). Khối khai báo hiện hành: loại, `StatusBadge` trạng thái, hạn khai báo, thường trú cùng xã/phường kèm căn cứ, ngày hết hạn. Nút lệnh theo `allowedCommands` do backend trả: "Xác nhận thường trú cùng xã/phường", "Ghi đã nộp", "Ghi kết quả"; bấm mở form ngay dưới khối. Khối "Lịch sử lần nộp" theo thời gian: ngày nộp, kênh, cơ quan, mã hồ sơ, kết quả (`StatusBadge`), lý do từ chối, bằng chứng (tải xuống, chỉ ở lần được chấp nhận), người ghi, thời điểm. Khai báo cũ (Được thay thế, Đã hủy, Đã xóa) thu gọn ở cuối. Nút "Đính chính" mở khung đính chính dùng chung (`M02.RESIDENCE_REGISTRATION`).
+
+**K4. Form.** Ghi đã nộp: ngày nộp (mặc định hôm nay), kênh (hai lựa chọn: Cổng dịch vụ công, Trực tiếp), cơ quan tiếp nhận, mã hồ sơ (không bắt buộc). Ghi kết quả: chọn "Được chấp nhận" (tải bằng chứng PDF, JPG, PNG tối đa 10 MB; ngày hết hạn chỉ với Đăng ký tạm trú) hoặc "Bị từ chối" (lý do bắt buộc; sau khi lưu hiện hạn mới do backend trả). 409 hiện `Alert` trong khung đang thao tác; 422 báo tại ô (`data-invalid`, `aria-invalid`).
+
+**K5. Tông trạng thái** (thêm vào mục 3.5 khi duyệt): Cần khai báo `attention`, Đã nộp `neutral`, Đã xác nhận `settled`, Hết hạn `urgent`, Được thay thế, Đã hủy, Đã xóa `neutral-outline`. Kết quả lần nộp: Chờ kết quả `neutral`, Được chấp nhận `settled`, Bị từ chối `attention`.
+
+**K6. Ba bề rộng, trợ năng.** Điện thoại: bảng thành danh sách thẻ (Họ tên, Việc, Hạn), khung chi tiết toàn màn hình. Nhãn cho mọi ô, kết quả lệnh báo qua vùng `aria-live`, thứ tự Tab theo thứ tự đọc, trạng thái luôn có chữ.
+
 ## 15. Ứng dụng di động (Flutter)
 
 Mục này nói cách áp các mục chung vào `mobile/`. Màu, chữ, trạng thái, nhân văn, câu chữ không có bản riêng cho mobile: lấy đúng các mục chung. Mục 15 đã duyệt 2026-10-18, gồm bố cục 15.4 và bộ biểu tượng.
