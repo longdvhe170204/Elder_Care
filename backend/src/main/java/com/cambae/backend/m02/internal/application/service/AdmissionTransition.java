@@ -2,6 +2,7 @@ package com.cambae.backend.m02.internal.application.service;
 
 import static com.cambae.backend.m02.internal.application.service.AdmissionApplicationService.ENTITY_TYPE;
 
+import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m01.api.dto.TransitionResult;
 import com.cambae.backend.m01.api.dto.Warning;
 import com.cambae.backend.m02.api.dto.ContractView;
@@ -75,7 +76,10 @@ public class AdmissionTransition {
         Long opinionId = store.findActiveOpinion(application.id())
                 .map(AdmissionOpinion::id)
                 .orElse(null);
-        store.markAdmitted(application.id(), opinionId);
+        store.markAdmitted(
+                application.id(),
+                opinionId,
+                result.at().atZone(BusinessTime.ZONE).toLocalDate());
 
         Map<String, Object> after = new LinkedHashMap<>();
         after.put("status", "ADMITTED");

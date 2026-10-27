@@ -151,6 +151,19 @@ public class ResidencyEndingStore {
                 id);
     }
 
+    /** Thời điểm thực tế Kết thúc lưu trú của hồ sơ Hoàn tất mới nhất (mốc dừng tính phí, FR-066). */
+    public Optional<Instant> completedAt(long residentId) {
+        return jdbc
+                .query(
+                        "SELECT actual_ended_at FROM residency_ending WHERE resident_id = ? AND status = 'COMPLETED'"
+                                + " ORDER BY id DESC LIMIT 1",
+                        (rs, i) -> instant(rs, "actual_ended_at"),
+                        residentId)
+                .stream()
+                .filter(java.util.Objects::nonNull)
+                .findFirst();
+    }
+
     public void complete(long id, Instant actualEndedAt, long closedBy, Instant closedAt) {
         jdbc.update(
                 "UPDATE residency_ending SET status = 'COMPLETED', actual_ended_at = ?, closed_by = ?, closed_at = ?,"

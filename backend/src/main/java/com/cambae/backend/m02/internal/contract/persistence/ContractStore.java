@@ -22,6 +22,7 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -142,12 +143,25 @@ public class ContractStore {
                 id);
     }
 
-    public void markTerminated(long id, String reason) {
+    public void markTerminated(long id, String reason, LocalDate on) {
         jdbc.update(
-                "UPDATE contract SET status = 'TERMINATED', termination_reason = ?, version = version + 1 WHERE id ="
-                        + " ?",
+                "UPDATE contract SET status = 'TERMINATED', termination_reason = ?, terminated_on = ?, version ="
+                        + " version + 1 WHERE id = ?",
                 reason,
+                on,
                 id);
+    }
+
+    /** Ngày hợp đồng chuyển Chấm dứt (mốc dừng tính phí, FR-070, FR-075a); rỗng với hợp đồng cũ hoặc chưa Chấm dứt. */
+    public Optional<LocalDate> terminatedOn(long id) {
+        return jdbc
+                .query(
+                        "SELECT terminated_on FROM contract WHERE id = ?",
+                        (rs, i) -> rs.getObject(1, LocalDate.class),
+                        id)
+                .stream()
+                .filter(Objects::nonNull)
+                .findFirst();
     }
 
     /** Khóa nội dung chờ duyệt điều khoản khác chuẩn cho bản băm {@code hash} (FR-025a). */
