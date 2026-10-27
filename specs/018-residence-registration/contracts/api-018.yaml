@@ -3,97 +3,111 @@ info:
   title: Elder Care – Feature 018 (khai báo tạm trú, lưu trú)
   version: 1.0.0-design
   description: |
-    Hợp đồng REST của feature 018 (module M02, gói m02.khaibao). Quy ước chung theo research R-03 của 000:
-    tiền tố /api/v1, lỗi RFC 9457 có maLoi và dieuKienChuaThoa[], Idempotency-Key cho mọi lệnh ghi.
+    Hợp đồng REST của feature 018 (module M02). Quy ước chung theo research R-03 của 000:
+    tiền tố /api/v1, lỗi RFC 9457 có errorCode và unmetConditions[], Idempotency-Key cho mọi lệnh ghi.
     Hệ thống không tự tạo khai báo (Q-306); không nộp hồ sơ thay, không kết nối Cổng dịch vụ công.
-    Đính chính kết quả ghi nhầm dùng endpoint đính chính chung của 000 với loại M02.KHAI_BAO.
+    Đính chính kết quả ghi nhầm dùng endpoint đính chính chung của 000 với loại M02.RESIDENCE_REGISTRATION.
+    Tên định danh tiếng Anh theo glossary.md của 000, mục 24 (dịch 2026-10-27; bản tên logic tiếng Việt ở lịch sử git).
     Truy vết: mỗi operation có x-fr (FR của spec 018) và x-br khi có.
 servers:
   - url: /api/v1
 security:
-  - phien: []
+  - session: []
 tags:
-  - { name: khai-bao, description: 'UC-80, UC-81' }
+  - { name: residence-registrations, description: 'UC-80, UC-81' }
 
 paths:
-  /khai-bao/can-lam:
+  /residence-registrations/to-do:
     get:
-      tags: [khai-bao]
+      tags: [residence-registrations]
       summary: Người cần khai báo (gồm chưa lập), quá hạn, sắp hết hạn, cần khai báo xóa (Hành chính, Quản lý viện)
       x-fr: [FR-001, FR-002, FR-006, FR-008, FR-011]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ViecKhaiBao' } } } } } }
-  /nguoi-cao-tuoi/{nctId}/khai-bao:
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/RegistrationTask' } } } } } }
+  /residents/{residentId}/residence-registrations:
     get:
-      tags: [khai-bao]
+      tags: [residence-registrations]
       summary: Khai báo của người cao tuổi và lịch sử
       x-fr: [FR-003]
-      parameters: [ { $ref: '#/components/parameters/NctId' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/KhaiBao' } } } } } }
+      parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ResidenceRegistration' } } } } } }
     post:
-      tags: [khai-bao]
+      tags: [residence-registrations]
       summary: Lập khai báo (hoặc khai báo gia hạn) ở Cần khai báo; loại xác định khi lập; hạn theo mốc nghĩa vụ
       x-fr: [FR-001, FR-001a, FR-002, FR-004, FR-006, FR-007]
       x-br: [BR-M02-11, BR-M02-12, BR-M02-14, DBR-33]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { giaHan: { type: boolean, default: false } } } } } }
-      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/KhaiBao' } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /khai-bao/{id}/{lenh}:
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { renewal: { type: boolean, default: false } } } } } }
+      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ResidenceRegistration' } } } }, '409': { $ref: '#/components/responses/Conflict' } }
+  /residence-registrations/{id}/{command}:
     post:
-      tags: [khai-bao]
+      tags: [residence-registrations]
       summary: Lệnh trên khai báo theo bảng FR-005
       description: |
-        xac-nhan-thuong-tru-cung-xa (ghi chú căn cứ; khi Cần khai báo), ghi-da-nop (ngày, kênh, cơ quan, mã hồ sơ),
-        ghi-chap-nhan (bằng chứng; ngày hết hạn với Đăng ký tạm trú), ghi-tu-choi (lý do),
-        ghi-da-khai-bao-xoa (bằng chứng; người đã Kết thúc lưu trú hoặc Qua đời; được khi hồ sơ ở trạng thái cuối).
+        confirm-local-permanent-resident (basisNote; khi Cần khai báo), record-submitted (ngày, kênh, cơ quan, mã hồ sơ),
+        record-accepted (bằng chứng; ngày hết hạn với Đăng ký tạm trú), record-rejected (lý do),
+        record-deregistered (bằng chứng; người đã Kết thúc lưu trú hoặc Qua đời; được khi hồ sơ ở trạng thái cuối).
       x-fr: [FR-001, FR-003, FR-005, FR-008]
       x-br: [BR-M02-11, BR-M02-13]
       parameters:
         - { $ref: '#/components/parameters/Id' }
-        - { name: lenh, in: path, required: true, schema: { type: string, enum: [xac-nhan-thuong-tru-cung-xa, ghi-da-nop, ghi-chap-nhan, ghi-tu-choi, ghi-da-khai-bao-xoa] } }
+        - { name: command, in: path, required: true, schema: { type: string, enum: [confirm-local-permanent-resident, record-submitted, record-accepted, record-rejected, record-deregistered] } }
         - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LenhKhaiBao' } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/RegistrationCommand' } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Conflict' } }
 
 components:
   securitySchemes:
-    phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
+    session: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
   parameters:
     Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
-    NctId: { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } }
+    ResidentId: { name: residentId, in: path, required: true, schema: { type: integer, format: int64 } }
     IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
   responses:
-    Loi:
+    Problem:
       description: Lỗi theo RFC 9457 (research R-03 của 000)
-      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
-    LoiChan:
-      description: 'TRANG_THAI_DA_DOI, KHONG_PHAI_NOI_TRU, CHUA_PHAT_SINH_NGHIA_VU, DA_CO_KHAI_BAO_DANG_XU_LY, CHUA_CO_DANG_KY_TAM_TRU_DA_XAC_NHAN, CHUA_GHI_NOP, THIEU_BANG_CHUNG, THIEU_NGAY_HET_HAN, CHUA_KET_THUC_LUU_TRU'
-      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Conflict:
+      description: 'STATE_CHANGED, NOT_RESIDENTIAL_CARE, NO_REGISTRATION_OBLIGATION, REGISTRATION_IN_PROGRESS_EXISTS, NO_CONFIRMED_TEMPORARY_RESIDENCE_REGISTRATION, NOT_SUBMITTED, EVIDENCE_REQUIRED, EXPIRY_DATE_REQUIRED, RESIDENCY_NOT_ENDED'
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
   schemas:
-    Loi:
+    Problem:
       type: object
-      properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, maLoi: { type: string }, dieuKienChuaThoa: { type: array, items: { type: object } } }
-    KhaiBao:
+      description: RFC 9457 cùng errorCode (000 R-03), giống schema Problem của api-000. Với 403 có failedLayer, license (FR-043).
+      required: [type, title, status, errorCode]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        errorCode: { type: string }
+        unmetConditions: { type: array, items: { type: object, properties: { code: { type: string }, description: { type: string }, basis: { type: string, description: "BR/FR, ví dụ BR-M12-03" }, module: { type: string, description: "Feature sở hữu điều kiện, ví dụ 013" }, waivable: { type: boolean, description: "Miễn được qua yêu cầu phê duyệt (004)" } } } }
+        currentValue: { description: 'Khi 412: tài nguyên hiện hành' }
+        candidates: { type: array, description: "POSSIBLE_DUPLICATE_PROFILE, DUPLICATE_HEALTH_ITEM (001)", items: { type: object } }
+        failedLayer: { type: string, enum: [ROLE, SCOPE, LEGAL, SOURCE_DATA] }
+        license: { type: object, properties: { name: { type: string }, expiryDate: { type: string, format: date } } }
+        unlocksAt: { type: string, format: date-time, description: 'Khi 423 ACCOUNT_TEMPORARILY_LOCKED (FR-014)' }
+    ResidenceRegistration:
       type: object
       properties:
         id: { type: integer, format: int64 }
-        nctId: { type: integer, format: int64 }
-        loai: { type: string, enum: [DANG_KY_TAM_TRU, THONG_BAO_LUU_TRU] }
-        laGiaHan: { type: boolean }
-        hanKhaiBao: { type: string, format: date-time }
-        trangThai: { type: string, enum: [CAN_KHAI_BAO, DA_NOP, DA_XAC_NHAN, HET_HAN, DA_XOA, DUOC_THAY_THE, DA_HUY] }
-        ngayHetHan: { type: string, format: date }
-        thuongTruCungXa: { type: boolean }
-    ViecKhaiBao:
+        residentId: { type: integer, format: int64 }
+        type: { type: string, enum: [TEMPORARY_RESIDENCE_REGISTRATION, STAY_NOTIFICATION] }
+        renewal: { type: boolean }
+        dueAt: { type: string, format: date-time }
+        status: { type: string, enum: [TO_SUBMIT, SUBMITTED, CONFIRMED, EXPIRED, DEREGISTERED, SUPERSEDED, CANCELLED] }
+        expiryDate: { type: string, format: date }
+        localPermanentResident: { type: boolean }
+    RegistrationTask:
       type: object
-      properties: { nctId: { type: integer, format: int64 }, hoTen: { type: string }, loaiViec: { type: string, enum: [CAN_LAP, QUA_HAN, SAP_HET_HAN, HET_HAN, CAN_KHAI_BAO_XOA] }, han: { type: string, format: date-time }, khaiBaoId: { type: integer, format: int64 } }
-    LenhKhaiBao:
+      properties: { residentId: { type: integer, format: int64 }, fullName: { type: string }, taskType: { type: string, enum: [TO_CREATE, OVERDUE, EXPIRING_SOON, EXPIRED, TO_DEREGISTER] }, dueAt: { type: string, format: date-time }, registrationId: { type: integer, format: int64 } }
+    RegistrationCommand:
       type: object
       properties:
-        ghiChuCanCu: { type: string }
-        ngayNop: { type: string, format: date }
-        kenh: { type: string, enum: [CONG_DICH_VU_CONG, TRUC_TIEP] }
-        coQuan: { type: string }
-        maHoSo: { type: string }
-        tepBangChungId: { type: integer, format: int64 }
-        ngayHetHan: { type: string, format: date }
-        lyDo: { type: string }
+        basisNote: { type: string }
+        submittedDate: { type: string, format: date }
+        channel: { type: string, enum: [PUBLIC_SERVICE_PORTAL, IN_PERSON] }
+        receivingAuthority: { type: string }
+        dossierCode: { type: string }
+        evidenceFileId: { type: integer, format: int64 }
+        expiryDate: { type: string, format: date }
+        reason: { type: string }

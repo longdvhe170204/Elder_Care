@@ -1270,9 +1270,49 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 
 *Chủ feature điền khi dịch `contracts/api-017.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
 
-## 24. Feature 018 (`018-residence-registration`, B)
+## 24. Feature 018 (`018-residence-registration`, B) *(bổ sung 2026-10-27, khi dịch `contracts/api-018.yaml`)*
 
-*Chủ feature điền khi dịch `contracts/api-018.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+"Khai báo tạm trú, lưu trú" dịch là `residence registration` (mục 4); hai loại theo luật cư trú: Đăng ký tạm trú `TEMPORARY_RESIDENCE_REGISTRATION`, Thông báo lưu trú `STAY_NOTIFICATION`. "Thường trú cùng xã/phường với viện" (Q-215) dịch là `local permanent resident`. Bảng, lớp của 018 bổ sung vào mục này cùng thay đổi với mã (R-03).
+
+### 24.1. Đường dẫn API (tiền tố `/api/v1`)
+
+| Tên logic | Mã |
+| --- | --- |
+| `/khai-bao/can-lam` | `/residence-registrations/to-do` (cùng tên chỉ tiêu `REGISTRATION.TO_DO` của 016) |
+| `/nguoi-cao-tuoi/{nctId}/khai-bao` | `/residents/{residentId}/residence-registrations` |
+| `/khai-bao/{id}/{lenh}` | `/residence-registrations/{id}/{command}` |
+| lệnh `xac-nhan-thuong-tru-cung-xa`, `ghi-da-nop`, `ghi-chap-nhan`, `ghi-tu-choi`, `ghi-da-khai-bao-xoa` | `confirm-local-permanent-resident`, `record-submitted`, `record-accepted`, `record-rejected`, `record-deregistered` |
+| tag `khai-bao`; security `phien` | `residence-registrations`; `session` |
+
+### 24.2. Schema, tham số và trường JSON
+
+| Tên logic | Mã |
+| --- | --- |
+| tham số `NctId` (`nctId`) | `ResidentId` (`residentId`) |
+| thân lệnh lập `giaHan` | `renewal` |
+| `KhaiBao` (`nctId`, `loai`, `laGiaHan`, `hanKhaiBao`, `trangThai`, `ngayHetHan`, `thuongTruCungXa`) | `ResidenceRegistration` (`residentId`, `type`, `renewal`, `dueAt`, `status`, `expiryDate`, `localPermanentResident`) |
+| `ViecKhaiBao` (`nctId`, `hoTen`, `loaiViec`, `han`, `khaiBaoId`) | `RegistrationTask` (`residentId`, `fullName`, `taskType`, `dueAt`, `registrationId`) |
+| `LenhKhaiBao` (`ghiChuCanCu`, `ngayNop`, `kenh`, `coQuan`, `maHoSo`, `tepBangChungId`, `ngayHetHan`, `lyDo`) | `RegistrationCommand` (`basisNote`, `submittedDate`, `channel`, `receivingAuthority`, `dossierCode`, `evidenceFileId`, `expiryDate`, `reason`) |
+| `Loi`, phản hồi `Loi`, `LoiChan` | `Problem` (bản chung của api-000, BL-23), phản hồi `Problem`, `Conflict` |
+
+### 24.3. Enum
+
+| Tên logic | Mã |
+| --- | --- |
+| loại `DANG_KY_TAM_TRU`, `THONG_BAO_LUU_TRU` | `TEMPORARY_RESIDENCE_REGISTRATION`, `STAY_NOTIFICATION` |
+| trạng thái `CAN_KHAI_BAO`, `DA_NOP`, `DA_XAC_NHAN`, `HET_HAN`, `DA_XOA`, `DUOC_THAY_THE`, `DA_HUY` | `TO_SUBMIT`, `SUBMITTED`, `CONFIRMED`, `EXPIRED`, `DEREGISTERED`, `SUPERSEDED`, `CANCELLED` |
+| loại việc `CAN_LAP`, `QUA_HAN`, `SAP_HET_HAN`, `HET_HAN`, `CAN_KHAI_BAO_XOA` | `TO_CREATE`, `OVERDUE`, `EXPIRING_SOON`, `EXPIRED`, `TO_DEREGISTER` |
+| kênh nộp `CONG_DICH_VU_CONG`, `TRUC_TIEP` | `PUBLIC_SERVICE_PORTAL`, `IN_PERSON` |
+| loại đính chính `M02.KHAI_BAO`; loại tệp `M02.BANG_CHUNG_KHAI_BAO` | `M02.RESIDENCE_REGISTRATION`; `M02.REGISTRATION_EVIDENCE` |
+
+### 24.4. Mã lỗi
+
+| Tên logic | Mã |
+| --- | --- |
+| `TRANG_THAI_DA_DOI` | `STATE_CHANGED` (mục 5) |
+| `KHONG_PHAI_NOI_TRU`, `CHUA_PHAT_SINH_NGHIA_VU`, `DA_CO_KHAI_BAO_DANG_XU_LY` | `NOT_RESIDENTIAL_CARE`, `NO_REGISTRATION_OBLIGATION`, `REGISTRATION_IN_PROGRESS_EXISTS` |
+| `CHUA_CO_DANG_KY_TAM_TRU_DA_XAC_NHAN`, `CHUA_GHI_NOP` | `NO_CONFIRMED_TEMPORARY_RESIDENCE_REGISTRATION`, `NOT_SUBMITTED` |
+| `THIEU_BANG_CHUNG`, `THIEU_NGAY_HET_HAN`, `CHUA_KET_THUC_LUU_TRU` | `EVIDENCE_REQUIRED`, `EXPIRY_DATE_REQUIRED`, `RESIDENCY_NOT_ENDED` |
 
 ## 25. Feature 019 (`019-inventory-assets`, C)
 
