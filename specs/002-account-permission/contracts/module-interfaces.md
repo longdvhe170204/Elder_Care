@@ -144,7 +144,7 @@ DoiTuong ganPhamVi(long id);                // tầng/khu, người cao tuổi, 
 | Sự kiện | Người nhận (009 xử lý) | FR |
 | --- | --- | --- |
 | `TaiKhoanDaTao(taiKhoanId, loai)` | Không gửi; dùng cho báo cáo | FR-015 |
-| `TaiKhoanDoiTrangThai(taiKhoanId, tu, den, nguyenNhan)` | Không gửi thông báo; app nhận qua phiên kết thúc | FR-015 |
+| `TaiKhoanDoiTrangThai(taiKhoanId, tu, den, nguyenNhan)` *(2026-10-27: `nguyenNhan` là nguyên nhân khóa của trạng thái mới, rỗng khi trạng thái mới không có nguyên nhân khóa; phát ở mọi lần thêm dòng lịch sử trạng thái, kể cả Đã khóa đổi nguyên nhân)* | Không gửi thông báo; app nhận qua phiên kết thúc | FR-015 |
 | `BanGhiDongBoSauMatQuyen(loaiBanGhi, id, tangKhuVucId)` | Trưởng tầng của tầng; Người phụ trách ca nếu chưa có Trưởng tầng; Quản lý viện nếu không gắn tầng | FR-041a, CHK056 |
 | `BanGhiChoXemLai(id, tangKhuVucId)` | Như trên | FR-041c |
 | `LoiDuLieuQuyen(nguon, banGhiId, loaiLoi)` | Quản lý viện | FR-041b |
