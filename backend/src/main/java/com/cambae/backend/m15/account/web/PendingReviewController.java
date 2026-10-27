@@ -2,6 +2,8 @@ package com.cambae.backend.m15.account.web;
 
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.common.web.VersionEtag;
+import com.cambae.backend.m15.account.api.AccountApi;
+import com.cambae.backend.m15.account.api.spi.FloorAreaNameApi;
 import com.cambae.backend.m15.account.internal.offline.domain.PendingReviewRecord;
 import com.cambae.backend.m15.account.internal.offline.service.PendingReviewService;
 import com.cambae.backend.m15.account.web.request.PendingReviewRejectBody;
@@ -13,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Map;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,7 +29,8 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Bản ghi chờ xem lại (002 T058; contracts/api-002.yaml; FR-041c): danh sách bản ghi người dùng được quyết định, chấp
- * nhận, từ chối kèm lý do. ETag là {@code version} của dòng.
+ * nhận, từ chối kèm lý do. ETag là {@code version} của dòng. Họ tên người ghi, tên tầng chỉ để hiển thị; chưa có
+ * bản cài tên tầng thì để trống.
  */
 @RestController
 @RequestMapping("/api/v1/pending-review-records")
@@ -34,10 +38,18 @@ class PendingReviewController {
 
     private final PendingReviewService reviews;
     private final JsonMapper json;
+    private final AccountApi accounts;
+    private final ObjectProvider<FloorAreaNameApi> floorNames;
 
-    PendingReviewController(PendingReviewService reviews, JsonMapper json) {
+    PendingReviewController(
+            PendingReviewService reviews,
+            JsonMapper json,
+            AccountApi accounts,
+            ObjectProvider<FloorAreaNameApi> floorNames) {
         this.reviews = reviews;
         this.json = json;
+        this.accounts = accounts;
+        this.floorNames = floorNames;
     }
 
     @GetMapping
@@ -82,15 +94,23 @@ class PendingReviewController {
                 r.recordType(),
                 json.readValue(r.content(), Map.class),
                 r.recorderId(),
+                accounts.fullName(r.recorderId()).orElse(null),
                 r.deviceTime(),
                 r.syncedAt(),
                 r.lastConnectedAt(),
                 r.pendingReason(),
                 r.floorAreaId(),
+                floorName(r.floorAreaId()),
                 r.status(),
                 r.decidedBy(),
                 r.decidedAt(),
                 r.rejectionReason(),
-                r.reference());
+                r.reference(),
+                r.version());
+    }
+
+    private String floorName(Long floorAreaId) {
+        FloorAreaNameApi api = floorNames.getIfAvailable();
+        return floorAreaId == null || api == null ? null : api.name(floorAreaId).orElse(null);
     }
 }
