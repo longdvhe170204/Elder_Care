@@ -98,13 +98,6 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "GET /api/v1/beds/{bedId}/matching-entries",
                             "POST /api/v1/waiting-list-entries/{id}/record-contacted",
                             "POST /api/v1/waiting-list-entries/{id}/decline-bed",
-                            "GET /api/v1/services",
-                            "POST /api/v1/services",
-                            "PUT /api/v1/services/{id}",
-                            "POST /api/v1/services/{id}/deactivate",
-                            "GET /api/v1/services/{id}/price-versions",
-                            "POST /api/v1/services/{id}/price-versions",
-                            "GET /api/v1/services/{id}/mismatched-price-contracts",
                             // Sửa Nháp do Hành chính hoàn thiện (FR-039) cần API của 000 cho người không phải người lập
                             "PUT /api/v1/residency-change-requests/{id}"),
                     Set.of(),
