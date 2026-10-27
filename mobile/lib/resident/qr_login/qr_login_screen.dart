@@ -135,9 +135,7 @@ class _QrLoginScreenState extends State<QrLoginScreen> {
       ),
       const SizedBox(height: 16),
       FilledButton(
-        onPressed: _busy
-            ? null
-            : () => _run(() => widget.session.passwordLogin(_username.text.trim(), _password.text)),
+        onPressed: _busy ? null : () => _run(() => widget.session.passwordLogin(_username.text.trim(), _password.text)),
         child: const Text('Đăng nhập'),
       ),
     ],
