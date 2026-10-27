@@ -56,6 +56,18 @@ class ResidenceRegistrationArchTest {
                 .containsExactly(FIXTURES + ".persistence.ResidenceRegistrationStore.insert(long)");
     }
 
+    /**
+     * Job 018 thật gọi việc qua interface ({@code RegistrationDailyRunner} → {@code RegistrationDailyTask}, Phase 2): luật
+     * đi vào mọi bản cài, bắt bản cài lập khai báo, không bắt bản cài chỉ chuyển Hết hạn.
+     */
+    @Test
+    void Q_306_rule_followsTasksCalledThroughAnInterface() {
+        JavaClasses fixtures = new ClassFileImporter().importPackages(FIXTURES);
+
+        assertThat(creationsReachedFrom(fixtures, named("TaskInterfaceJob"), FIXTURES))
+                .containsExactly(FIXTURES + ".RegistrationService.create(long)");
+    }
+
     /** Luật chỉ cấm lập khai báo: job chuyển Hết hạn, ghi khóa nhắc, hay gọi lệnh khác của khai báo không bị chặn. */
     @Test
     void Q_306_rule_allowsJobsThatDoNotCreateRegistrations() {
