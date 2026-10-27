@@ -8,7 +8,7 @@ Nếu công cụ của bạn không tự đọc file này, hãy dán câu sau v�
 
 ## 1. Đọc gì, theo thứ tự nào
 
-1. `docs/team-plan.md`: bạn sở hữu module, thư mục, migration nào; đang ở đợt nào; **mục 8: việc người khác đang chờ bạn** (đầu mỗi phiên báo cho người dùng các dòng có tên họ; cần người khác làm gì thì thêm dòng trong PR của mình).
+1. `docs/team-plan.md`: bạn sở hữu module, thư mục, migration nào; đang ở đợt nào; **mục 8: việc người khác đang chờ bạn** (đầu mỗi phiên báo cho người dùng các dòng có tên họ; cần người khác làm gì thì thêm dòng trong PR của mình; việc xong thì xóa dòng, quy định ngay trên bảng mục 8).
 2. README của phần sẽ sửa: [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md), [mobile/README.md](mobile/README.md).
 3. Khi làm một task: `specs/NNN-*/tasks.md` → `plan.md` → `data-model.md` → `contracts/` → `research.md` → `spec.md` → `docs/business/nghiep-vu.md`. Đường dẫn file trong tasks, plan (`BE/m01/hoso/internal/…`) là tên logic: đặt lớp theo cấu trúc ở [backend/README.md](backend/README.md) (research R-02 của 000), không chép đường dẫn trong tasks.
 4. Tên tiếng Anh: [specs/000-shared-foundation/glossary.md](specs/000-shared-foundation/glossary.md). Giao diện: [DESIGN.md](DESIGN.md).
@@ -34,8 +34,8 @@ Nếu công cụ của bạn không tự đọc file này, hãy dán câu sau v�
 - [ ] Đánh `[x]` task trong `tasks.md`; ghi chú triển khai, lệch kỹ thuật ở `plan.md`
 - [ ] Glossary của feature cập nhật
 - [ ] PR mô tả: phase, task, có đổi `api` không ("Đổi api" + đã báo ai), kết quả lệnh kiểm
-- [ ] `docs/team-plan.md` mục 8: đánh "Xong" dòng mình vừa làm; thêm dòng cho việc cần người khác làm
-- [ ] `docs/progress.md`: thêm một dòng tiến độ (nhánh, PR, việc xong, kết quả test, việc còn lại)
+- [ ] `docs/team-plan.md` mục 8: xóa dòng mình vừa làm xong (kết quả ghi ở `docs/progress.md`); sửa dòng xong một phần cho chỉ còn phần dở; thêm dòng cho việc cần người khác làm
+- [ ] `docs/progress.md`: thêm một dòng tiến độ (nhánh, PR, việc xong, kết quả test, việc còn lại); nhật ký chỉ thêm, không sửa, xóa dòng cũ; không ghi tiến độ vào AGENTS.md, CLAUDE.md
 
 ## 4. Backend (`backend/`)
 
@@ -47,10 +47,13 @@ Nếu công cụ của bạn không tự đọc file này, hãy dán câu sau v�
 - Quyền: `PermissionKey(Function, Operation)`, `Function` là một dòng Phụ lục 27 (`m15.account.api.dto.Function`). Không tự đặt khóa chuỗi.
 - Test: `*Test` đơn vị, `*IT` tích hợp (kế thừa `support/MySqlIntegrationTestBase`, cần biến `TEST_DB_URL`, `TEST_DB_ADMIN_USER`, `TEST_DB_ADMIN_PASSWORD`), `*ArchTest` kiến trúc. Hai tài khoản MySQL `eldercare_app`, `eldercare_retention` dùng chung cho test và profile demo: máy chạy cả hai thì đặt thêm `DB_PASSWORD`, `DB_RETENTION_PASSWORD` khi chạy test, nếu không test đổi mật khẩu sang ngẫu nhiên và demo không đăng nhập được.
 - Job (`scheduling/`): profile test tắt mọi lịch chạy bằng công tắc chung `eldercare.scheduling.enabled` (`SchedulingConfig`), không cần ghi `cron: "-"`. Job chạy lúc khởi động đặt mặc định là `@Value("${eldercare.jobs.<job>.on-startup:${eldercare.scheduling.enabled:true}}")`; test gọi job trực tiếp hoặc qua `runJobs` (`SchedulingSwitchIT` kiểm). Job mới thêm vào `SchedulerScopeArchTest` và, nếu test cần, vào `runJobs` của api-000 (A duyệt).
+- "Đổi api" (thêm hàm, trường vào interface, DTO, sự kiện công khai ở `api/`) trên module của người khác: chủ dự án duyệt trước; ghi ở `contracts/module-interfaces.md` của feature sở hữu và glossary; thêm dòng team-plan mục 8 để chủ module review trong PR. Không đổi chữ ký hàm cũ; thêm thành phần record thì sửa mọi nơi tạo record và bản giả chung có sẵn, không viết bản giả thứ hai.
+- Sự kiện qua outbox lưu ở `EVENT_PUBLICATION.SERIALIZED_EVENT` (VARCHAR 4000): không đưa danh sách dài (nhiều người nhận, nhiều id) vào một sự kiện; người nhận theo nhóm vai trò (`RecipientGroup` của `common.notification`).
+- Schema test `eldercare_test` giữ dữ liệu qua các lần chạy: id lấy từ `TestUsers.nextId()`, không giả định bảng rỗng; việc định kỳ hoặc truy vấn quét toàn bảng phải tự cô lập khỏi dữ liệu sót của test khác (mẫu `CallReminderTestBase` của m13). `./mvnw clean verify` mất khoảng 10–15 phút, chạy nền; lớp đang đỏ có sẵn trên `develop` ghi ở team-plan mục 8.
 
 ## 5. Web và mobile
 
-Theo [frontend/README.md](frontend/README.md) và [mobile/README.md](mobile/README.md): thư mục màn hình theo feature, không import chéo feature, gọi API chỉ qua client sinh từ hợp đồng, lỗi qua `problemOf`/`ProblemAlert`, ngày giờ qua `dateTime.js`, màu chữ qua token của DESIGN.md. Mobile mới mở phần người cao tuổi (`mobile/lib/resident/`, `mobile/lib/common/`); phần nhân viên, người thân chưa mở, task của chúng để `[ ]` (CLAUDE.md mục "Giai đoạn hiện tại").
+Theo [frontend/README.md](frontend/README.md) và [mobile/README.md](mobile/README.md): thư mục màn hình theo feature, không import chéo feature, gọi API chỉ qua client sinh từ hợp đồng, lỗi qua `problemOf`/`ProblemAlert`, ngày giờ qua `dateTime.js`, màu chữ qua token của DESIGN.md. Mobile đã mở cả ba phần (người cao tuổi 2026-10-24; nhân viên, người thân 2026-10-27): màn của feature ở `mobile/lib/{staff, family, resident}/<feature>/`, phần dùng chung ở `mobile/lib/common/` do A giữ; màn cần đăng nhập nhân viên, người thân hoặc ghi khi mất mạng thì chờ phần nền của A (CLAUDE.md mục "Giai đoạn hiện tại").
 
 ## 6. AI không được làm
 
