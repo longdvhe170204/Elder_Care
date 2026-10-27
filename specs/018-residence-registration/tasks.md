@@ -70,11 +70,11 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 ### Tests cho User Story 2
 
-- [ ] T009 [P] [US2] Test `BT/m02/KhaiBaoNopKetQuaIT.java` (Q7 → Q10)
+- [x] T009 [P] [US2] Test `BT/m02/KhaiBaoNopKetQuaIT.java` (Q7 → Q10) *(2026-10-27: `RegistrationSubmissionResultIT` 20 test: Q7 ghi nộp (dừng nhắc), chấp nhận thiếu ngày hết hạn/bằng chứng (409), đủ, Thông báo lưu trú không cần ngày hết hạn; Q8 `NOT_SUBMITTED`; Q9 từ chối (hạn mới ở khai báo, hạn gốc nghĩa vụ giữ, `submitted` về FALSE), nộp lại nhiều lần giữ lịch sử, nhắc quá hạn theo hạn đang có hiệu lực, Quản lý viện tối đa một lần mỗi nghĩa vụ; Q10 403; kết quả đặt một lần; thay thế Đã xác nhận cũ; đồng thời, `Idempotency-Key`; đính chính. RED (biên dịch: chưa có lệnh) → GREEN; kiểm đột biến: truy vấn quá hạn dùng hạn gốc thì Q9 đỏ)*
 
 ### Implementation cho User Story 2
 
-- [ ] T010 [US2] Bổ sung lệnh ghi nộp, ghi kết quả, thay thế (`DUOC_THAY_THE` trong cùng transaction) vào `KhaiBaoService.java`; `DinhChinhDuocProvider` `M02.KHAI_BAO` (không gắn tầng) (research Z-04)
+- [x] T010 [US2] Bổ sung lệnh ghi nộp, ghi kết quả, thay thế (`DUOC_THAY_THE` trong cùng transaction) vào `KhaiBaoService.java`; `DinhChinhDuocProvider` `M02.KHAI_BAO` (không gắn tầng) (research Z-04) *(2026-10-27: `recordSubmitted`, `recordAccepted`, `recordRejected`, `RegistrationSubmissionStore`, `RegistrationCorrectionProvider`; ba nhánh `record-*` trong controller, `record-deregistered` còn 422 tạm tới T014; xem plan "Phase 4 hoàn thành". Không có màn web riêng trong task; thao tác ghi nộp, kết quả nằm trong màn của T008, chờ bố cục duyệt)*
 
 **Checkpoint**: P1 hoàn tất.
 

@@ -1335,6 +1335,11 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 | `KhaiBaoService`, `KhaiBaoController` *(T008)* | `ResidenceRegistrationService` (lệnh `createRegistration`, `confirmLocalPermanentResident`; đọc `ofResident`, `toDo`), `ResidenceRegistrationController`; khóa `RegistrationResidentStore.lock`; kiểu `ResidenceRegistration`, `RegistrationStatus`, `SubmissionChannel`; thân `CreateRegistrationBody`, `RegistrationCommandBody`, `ResidenceRegistrationBody`, `RegistrationTaskBody` |
 | hành động nhật ký lập khai báo, xác nhận thường trú cùng xã/phường | `M02_REGISTRATION_CREATED`, `M02_REGISTRATION_LOCAL_CONFIRMED` |
 | test `BR_M02_11_KhaiBaoIT`, `DBR_33_MotKhaiBaoIT` *(T006)* | `BR_M02_11_ResidenceRegistrationIT`, `DBR_33_OneRegistrationIT` (nền `RegistrationTestBase`) |
+| lệnh ghi đã nộp, ghi được chấp nhận, ghi bị từ chối *(T010)* | `ResidenceRegistrationService.recordSubmitted` (`Submission`), `recordAccepted` (`Acceptance`), `recordRejected`; lần nộp `RegistrationSubmission`, `SubmissionResult` (`PENDING`, `ACCEPTED`, `REJECTED`), `RegistrationSubmissionStore` (`add`, `setResult`) |
+| hạn đang có hiệu lực của nghĩa vụ (khai báo bị từ chối: hạn mới của khai báo; còn lại: hạn nghĩa vụ) *(T010)* | `RegistrationObligation.effectiveDueAt` (cột tính `effective_due_at`) |
+| `DinhChinhDuocProvider` `M02.KHAI_BAO` *(T010)* | `RegistrationCorrectionProvider` (loại `M02.RESIDENCE_REGISTRATION`) |
+| hành động nhật ký ghi nộp, chấp nhận, từ chối | `M02_REGISTRATION_SUBMITTED`, `M02_REGISTRATION_ACCEPTED`, `M02_REGISTRATION_REJECTED` |
+| test `KhaiBaoNopKetQuaIT` *(T009)* | `RegistrationSubmissionResultIT` |
 
 ## 25. Feature 019 (`019-inventory-assets`, C)
 
