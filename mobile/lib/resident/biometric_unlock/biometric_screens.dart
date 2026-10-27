@@ -22,15 +22,9 @@ class BiometricOfferScreen extends StatelessWidget {
               children: [
                 Text('Mở bằng vân tay hoặc khuôn mặt?', style: text.headlineMedium),
                 const SizedBox(height: 8),
-                Text(
-                  'Lần sau mở ứng dụng, chỉ cần chạm ngón tay hoặc nhìn vào máy.',
-                  style: text.bodyLarge,
-                ),
+                Text('Lần sau mở ứng dụng, chỉ cần chạm ngón tay hoặc nhìn vào máy.', style: text.bodyLarge),
                 const Spacer(),
-                FilledButton(
-                  onPressed: () => session.answerBiometricOffer(enable: true),
-                  child: const Text('Có'),
-                ),
+                FilledButton(onPressed: () => session.answerBiometricOffer(enable: true), child: const Text('Có')),
                 const SizedBox(height: 12),
                 OutlinedButton(
                   onPressed: () => session.answerBiometricOffer(enable: false),
@@ -64,10 +58,7 @@ class LockedScreen extends StatelessWidget {
               children: [
                 Text('Ứng dụng đang khóa', style: text.headlineMedium),
                 const Spacer(),
-                FilledButton(
-                  onPressed: session.unlock,
-                  child: const Text('Mở bằng vân tay hoặc khuôn mặt'),
-                ),
+                FilledButton(onPressed: session.unlock, child: const Text('Mở bằng vân tay hoặc khuôn mặt')),
               ],
             ),
           ),

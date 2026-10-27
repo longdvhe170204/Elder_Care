@@ -2,23 +2,29 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/app.dart';
 import 'package:mobile/common/auth/secure_store.dart';
 import 'package:mobile/common/auth/session_controller.dart';
-import 'package:mobile/resident/resident_root.dart';
 
 import '../../support/fake_backend.dart';
 
 // 002 T097 (tên logic dang_nhap_qr_test; FR-069, FR-070, FR-006, FR-013a; DESIGN.md 15.6 "Đăng nhập").
 
-Widget fakeScanner(void Function(String code) onCode) =>
-    Center(child: ElevatedButton(onPressed: () => onCode('qr-123'), child: const Text('Giả quét mã')));
+Widget fakeScanner(void Function(String code) onCode) => Center(
+  child: ElevatedButton(onPressed: () => onCode('qr-123'), child: const Text('Giả quét mã')),
+);
 
-Future<SessionController> pumpApp(WidgetTester tester, FakeBackend backend, MemoryStore store,
-    {FakeBiometric? biometric}) async {
+Future<SessionController> pumpApp(
+  WidgetTester tester,
+  FakeBackend backend,
+  MemoryStore store, {
+  FakeBiometric? biometric,
+}) async {
   final s = session(backend, store, biometric ?? FakeBiometric(available: false));
   await s.start();
-  await tester.pumpWidget(ResidentRoot(session: s, scannerBuilder: fakeScanner));
+  await tester.pumpWidget(ElderCareApp(session: s, queue: memoryQueue(s), scannerBuilder: fakeScanner));
   await tester.pumpAndSettle();
+  await openResidentLogin(tester);
   return s;
 }
 
@@ -41,7 +47,10 @@ void main() {
 
     final call = backend.calls('POST', '/auth/qr-login').single;
     expect(jsonDecode(call.body), {'code': 'qr-123'});
-    expect(call.headers['X-Device-Id'], matches(RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$')));
+    expect(
+      call.headers['X-Device-Id'],
+      matches(RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$')),
+    );
     expect(store.values[SessionController.tokenKey], 'session-1');
     expect(store.values[SessionController.deviceTokenKey], 'device-token-1');
     expect(find.textContaining('Hôm nay'), findsOneWidget);
@@ -70,8 +79,11 @@ void main() {
     await tester.tap(find.text('Đăng nhập'));
     await tester.pumpAndSettle();
 
-    expect(jsonDecode(backend.calls('POST', '/auth/login').single.body),
-        {'username': 'nct-41', 'password': 'Mat-khau-1', 'channel': 'RESIDENT_APP'});
+    expect(jsonDecode(backend.calls('POST', '/auth/login').single.body), {
+      'username': 'nct-41',
+      'password': 'Mat-khau-1',
+      'channel': 'RESIDENT_APP',
+    });
     expect(find.textContaining('Hôm nay'), findsOneWidget);
   });
 
@@ -89,8 +101,10 @@ void main() {
     await tester.tap(find.text('Lưu mật khẩu mới'));
     await tester.pumpAndSettle();
 
-    expect(jsonDecode(backend.calls('POST', '/auth/change-password').single.body),
-        {'currentPassword': 'Tam-123456', 'newPassword': 'Moi-12345678'});
+    expect(jsonDecode(backend.calls('POST', '/auth/change-password').single.body), {
+      'currentPassword': 'Tam-123456',
+      'newPassword': 'Moi-12345678',
+    });
     expect(find.text('Đã đổi mật khẩu. Quét mã mới hoặc dùng mật khẩu mới để vào.'), findsOneWidget);
   });
 

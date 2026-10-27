@@ -222,6 +222,14 @@ paths:
       responses:
         '200': { $ref: '#/components/responses/AccountOk' }
         '403': { $ref: '#/components/responses/Problem' }
+  /early-unlock-candidates:
+    get:
+      tags: [accounts]
+      summary: Tài khoản nhân viên đang Khóa tạm người dùng được mở khóa sớm (bổ sung 2026-10-27, màn app nhân viên)
+      description: Cùng luật với lệnh early-unlock. Quản lý viện thấy mọi tài khoản nhân viên Khóa tạm; Trưởng tầng, Người phụ trách ca thấy người cùng tầng và ca; người khác nhận danh sách trống.
+      x-fr: [FR-019c]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EarlyUnlockCandidatePage' } } } }
   /accounts/{id}/reactivate:
     post:
       tags: [accounts]
@@ -812,6 +820,18 @@ components:
         rejectionReason: { type: string }
         reference: { type: string, description: Tham chiếu bản ghi thật khi đã chấp nhận }
         version: { type: integer, format: int64, description: 'Bổ sung 2026-10-27: phiên bản dòng, gửi lại trong If-Match' }
+    EarlyUnlockCandidate:
+      type: object
+      description: Bổ sung 2026-10-27 (FR-019c)
+      properties:
+        accountId: { type: integer, format: int64 }
+        fullName: { type: string }
+        lockedUntil: { type: string, format: date-time }
+        version: { type: integer, format: int64, description: 'Gửi lại trong If-Match của early-unlock' }
+    EarlyUnlockCandidatePage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/EarlyUnlockCandidate' } }
     PendingReviewRecordPage:
       type: object
       properties:

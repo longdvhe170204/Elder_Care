@@ -16,6 +16,7 @@ flutter test                                   # một file: flutter test test/<
 flutter test --plain-name "<tên test>"
 flutter analyze
 dart format <file>
+dart run build_runner build                     # sinh lại mã drift (*.g.dart) sau khi sửa bảng
 ```
 
 Thêm package: nhờ A (người giữ `pubspec.yaml`).
@@ -24,7 +25,7 @@ Thêm package: nhờ A (người giữ `pubspec.yaml`).
 
 | Thư mục | Nhiệm vụ | Ai sửa |
 | --- | --- | --- |
-| `main.dart` | Mở màn đăng nhập rồi chuyển sang `staff/`, `family/` hoặc `resident/` theo loại tài khoản (000 T006) | A |
+| `main.dart`, `app.dart` | `main.dart` dựng phiên rồi chạy `ElderCareApp` (`app.dart`): một `MaterialApp`, màn theo trạng thái phiên, đăng nhập xong chuyển sang `staff/staff_root.dart`, `family/family_root.dart` hoặc `resident/resident_root.dart` theo loại tài khoản (000 T006, T007) | A |
 | `common/` | Dùng chung: theme (token của DESIGN.md frontmatter, mục 15.2), widget công thức (mục 7.2, 15: `task_card`, `status_pill`, `resident_avatar`…), client API, phiên đăng nhập, hàng đợi ngoại tuyến (drift) và phong bì đồng bộ (000 `OfflineEnvelope`), định dạng ngày giờ | A duyệt |
 | `staff/<module>/` | Phần nhân viên; ghi được khi mất mạng (Q-01) | Chủ module (docs/team-plan.md) |
 | `family/<module>/` | Phần người thân | Chủ module |
@@ -63,11 +64,15 @@ test/staff/care_tasks/
 ## 5. Đã chốt khi mở mobile (2026-10-24, A)
 
 - Trạng thái: `ChangeNotifier` của Flutter (`common/auth/session_controller.dart`), không thêm gói.
-- Điều hướng: `MaterialApp.home` đổi màn theo trạng thái phiên; màn con dùng `Navigator` của Flutter. Đổi sang `go_router` khi phần nhân viên có nhiều màn.
+- Điều hướng: `MaterialApp.home` của `ElderCareApp` (`lib/app.dart`, 2026-10-27) đổi màn theo trạng thái phiên và loại tài khoản; phần người cao tuổi dùng `AppTheme.resident`, hai phần kia `AppTheme.light`; màn con dùng `Navigator` của Flutter. Đổi sang `go_router` khi phần nhân viên có nhiều màn.
 - Client API: viết tay trong `common/api/api_client.dart` (Problem Details thành `ApiProblem`, mất mạng thành `ApiUnreachable`); script sinh client (000 T010b) làm khi phần nhân viên cần nhiều endpoint.
 - Kho token: `flutter_secure_storage` qua `common/auth/secure_store.dart` (test dùng `MemoryStore`).
 - Theme: `common/theme/app_theme.dart` (token DESIGN.md, `Tones` cho tông trạng thái, `AppTheme.resident` chữ x1,25 vùng bấm 56). Font Be Vietnam Pro 400, 700 đóng gói ở `assets/fonts/`; còn thiếu 500, 600.
-- Chưa chốt: gói biểu tượng lucide cho Flutter, cách lưu chế độ sáng tối (DESIGN.md 15.7).
+- Lint, định dạng (000 T008b, 2026-10-27): `analysis_options.yaml` theo `flutter_lints` cộng sáu luật và `strict-casts`, `strict-raw-types`; `dart format` dòng 120 ký tự (`formatter.page_width`). `flutter analyze` phải sạch trước khi mở PR.
+- Hàng đợi ngoại tuyến (000 T100, 2026-10-27): `common/offline/offline_queue.dart` trên drift (`offline_database.dart`, mã sinh `*.g.dart` có trong kho). Module gọi `enqueue(accountId, recordType, content)` khi ghi lúc mất mạng (chỉ "ghi nhận thực hiện", Q-01), `sync(accountId)` khi có mạng; kết quả từng bản ghi lưu lại cho màn kết quả đồng bộ (002 T060). Gói thêm cùng bộ drift: `drift_flutter`, `drift_dev`, `build_runner`.
+- Đăng nhập (002 T046, T047, 2026-10-27): màn chọn "Tôi là" `common/auth/login_choice_screen.dart` nhận màn đăng nhập của từng phần từ `app.dart`; form chung `common/auth/password_login_form.dart`; đổi mật khẩu chung `common/auth/change_password_screen.dart`; câu lỗi theo `detail` của backend (`common/api/problem_message.dart`), phần người cao tuổi giữ câu ngắn riêng. `ApiClient.post` nhận `headers` (`If-Match`).
+- Phần nhân viên (`staff/staff_root.dart`): thanh điều hướng dưới, mỗi mục là một bản ghi `(nhãn, biểu tượng, màn)`; feature thêm màn của mình vào đó (A duyệt), mục thứ 6 trở đi gom vào "Thêm". Hiện có Đồng bộ, Chờ xem lại, Mở khóa sớm (002 T046, T060). Widget chung mới: `status_pill.dart`, `not_designed_state.dart`, `format/date_time.dart`, `offline/record_types.dart` (nhãn loại bản ghi ngoại tuyến, module thêm nhãn của mình).
+- Biểu tượng (2026-10-27): `lucide_icons_flutter`, cùng tên biểu tượng với web (DESIGN.md 15.3). Chưa chốt: cách lưu chế độ sáng tối (DESIGN.md 15.7).
 
 ## 6. Mở phần nhân viên, người thân (2026-10-27, chủ dự án)
 

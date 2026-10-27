@@ -39,6 +39,9 @@ export const postAccountsByIdUnlock = (params) => request('POST', '/accounts/{id
 /** Mở khóa sớm tài khoản đang Khóa tạm (FR-019c, BR-M15-05) */
 export const postAccountsByIdEarlyUnlock = (params) => request('POST', '/accounts/{id}/early-unlock', params)
 
+/** Tài khoản nhân viên đang Khóa tạm người dùng được mở khóa sớm (bổ sung 2026-10-27, màn app nhân viên) (FR-019c) */
+export const getEarlyUnlockCandidates = (params) => request('GET', '/early-unlock-candidates', params)
+
 /** Kích hoạt lại tài khoản người thân Không hoạt động (FR-011, FR-051, FR-052) */
 export const postAccountsByIdReactivate = (params) => request('POST', '/accounts/{id}/reactivate', params)
 
