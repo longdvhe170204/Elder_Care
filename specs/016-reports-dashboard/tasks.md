@@ -52,11 +52,11 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 1
 
-- [ ] T007 [P] [US1] Test `ChiTieu_*Test` cho các mã dashboard (`NCT.DANG_LUU_TRU`, `GIUONG.TRANG_THAI`, `CV.HOM_NAY`, `CV.QUA_HAN`, `HD.*`, `SK.CANH_BAO`, `SK.SU_CO`…) trong `BT/m14/chitieu/` (SC-001; Q14 → Q16); test hiệu năng dashboard 60 người dùng (SC-002) trong `BT/m14/DashboardHieuNangIT.java`
+- [ ] T007 [P] [US1]*(2026-10-27: xong phần giường `MetricBedStatusTest`; các mã khác chờ nguồn)*  Test `ChiTieu_*Test` cho các mã dashboard (`NCT.DANG_LUU_TRU`, `GIUONG.TRANG_THAI`, `CV.HOM_NAY`, `CV.QUA_HAN`, `HD.*`, `SK.CANH_BAO`, `SK.SU_CO`…) trong `BT/m14/chitieu/` (SC-001; Q14 → Q16); test hiệu năng dashboard 60 người dùng (SC-002) trong `BT/m14/DashboardHieuNangIT.java`
 
 ### Implementation cho User Story 1
 
-- [ ] T008 [US1] Cài hàm tính và chi tiết cho các chỉ tiêu dashboard trong `BE/m14/chitieu/` gọi `*ThongKeApi` tương ứng (contracts/chi-tieu.md)
+- [ ] T008 [US1]*(2026-10-27: xong `BED.STATUS`, `BED.USABLE`, `BED.ISOLATED_ROOMS`; `BED.EMPTY_AWAITING_TRANSFER` chờ 019; mã khác chờ nguồn)*  Cài hàm tính và chi tiết cho các chỉ tiêu dashboard trong `BE/m14/chitieu/` gọi `*ThongKeApi` tương ứng (contracts/chi-tieu.md)
 - [x] T009 [US1] *(2026-10-24: `DashboardService` theo nhóm của bảng FR-020, bộ đệm 20 giây theo (nhóm, phạm vi), ETag; chạy tuần tự, ghi chú ở plan; `GET /dashboard`, `GET /metrics`; test `FR_020_DashboardIT`)* Cài `BE/m14/dashboard/internal/DashboardService.java` (khối theo vai trò, song song, bộ đệm trong tiến trình 20 giây, ETag) và `BE/m14/dashboard/web/DashboardController.java` (`GET /dashboard`, `GET /chi-tieu`) (research O-06)
 - [x] T010 [P] [US1] *(2026-10-24: bố cục duyệt, DESIGN.md 5.21.0; `src/features/dashboard/DashboardPage.jsx` thay bản mẫu Tổng quan; test `DashboardPage.test.jsx`)* Tạo màn web `frontend/src/tinh-nang/bao-cao/dashboard/` (định nghĩa chỉ tiêu tại chỗ; "—" khi mẫu số 0; làm mới 30 giây với ETag) với test Vitest
 
@@ -90,11 +90,11 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 3
 
-- [ ] T013 [P] [US3] Test `ChiTieu_NCT_*Test`, `ChiTieu_GIUONG_*Test` trong `BT/m14/chitieu/`
+- [ ] T013 [P] [US3]*(2026-10-27: xong `ChiTieu_GIUONG_*` = `MetricBedStatusTest`; `NCT` chờ 001)*  Test `ChiTieu_NCT_*Test`, `ChiTieu_GIUONG_*Test` trong `BT/m14/chitieu/`
 
 ### Implementation cho User Story 3
 
-- [ ] T014 [US3] *(2026-10-24: xong phần khung `GET /reports/{group}` (`ReportController`, `ReportService`, test `ReportApiIT`) và màn `src/features/reports/` dùng chung cho mọi nhóm; còn chỉ tiêu nhóm người cao tuổi, giường chờ `*ThongKeApi` của 001, 003, 004)* Cài chỉ tiêu nhóm người cao tuổi, giường và `BE/m14/baocao/internal/BaoCaoService.java` + `BE/m14/baocao/web/BaoCaoController.java` (`GET /bao-cao/{nhom}`) (research O-07); màn web `frontend/src/tinh-nang/bao-cao/nguoi-cao-tuoi/`
+- [ ] T014 [US3] *(2026-10-27: xong `BED.STATUS`, `BED.OCCUPANTS` của FR-024 tại ngày đã qua; 2026-10-24: xong phần khung `GET /reports/{group}` (`ReportController`, `ReportService`, test `ReportApiIT`) và màn `src/features/reports/` dùng chung cho mọi nhóm; còn chỉ tiêu nhóm người cao tuổi, giường chờ `*ThongKeApi` của 001, 003, 004)* Cài chỉ tiêu nhóm người cao tuổi, giường và `BE/m14/baocao/internal/BaoCaoService.java` + `BE/m14/baocao/web/BaoCaoController.java` (`GET /bao-cao/{nhom}`) (research O-07); màn web `frontend/src/tinh-nang/bao-cao/nguoi-cao-tuoi/`
 
 ---
 
@@ -106,11 +106,11 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 4
 
-- [ ] T015 [P] [US4] Test `ChiTieu_CV_*Test`, `ChiTieu_BUA_*Test`, `ChiTieu_HD_*Test`, `ChiTieu_KT_*Test` (Q17)
+- [ ] T015 [P] [US4]*(2026-10-27: xong thời gian giường Chờ sẵn sàng `MetricBedAwaitingReadyTest`; `CV`, `BUA`, `HD`, `KT` chờ nguồn)*  Test `ChiTieu_CV_*Test`, `ChiTieu_BUA_*Test`, `ChiTieu_HD_*Test`, `ChiTieu_KT_*Test` (Q17)
 
 ### Implementation cho User Story 4
 
-- [ ] T016 [US4] Cài chỉ tiêu nhóm chăm sóc, bữa ăn, hoạt động, kiểm tra chất lượng (005, 011, 014); màn web `frontend/src/tinh-nang/bao-cao/cham-soc/`, `frontend/src/tinh-nang/bao-cao/chat-luong/`
+- [ ] T016 [US4]*(2026-10-27: xong `BED.AWAITING_READY`, `_MAX`, `_OVERDUE`; nhóm khác chờ nguồn)*  Cài chỉ tiêu nhóm chăm sóc, bữa ăn, hoạt động, kiểm tra chất lượng (005, 011, 014); màn web `frontend/src/tinh-nang/bao-cao/cham-soc/`, `frontend/src/tinh-nang/bao-cao/chat-luong/`
 
 ---
 

@@ -117,6 +117,8 @@ Stream<KhoangChoSanSangView> choSanSang(PhamViLoc phamVi, Instant tu, Instant de
 Stream<PhongCachLyView> phongCachLy(PhamViLoc phamVi, Instant t);                   // 016 FR-020
 ```
 
+*(Bổ sung 2026-10-27, luật "Đổi api", A làm cho 016, chủ dự án duyệt; C review)* `TrangThaiGiuongTaiNgayView` (`BedStateOnDate`) thêm `roomId` và `holdReason` (`WAITING_RECORD`, `ABSENT_RESIDENT`, suy từ sự kiện vào Đang giữ chỗ `HOLD_WAITING_RECORD`, `ABSENT_KEEP_BED`; rỗng khi không giữ chỗ) cho 016 FR-020, FR-024; `KhoangChoSanSangView` (`AwaitingReadyInterval`) thêm `startedAt`: lúc vào Chờ sẵn sàng, không cắt theo khoảng tra cứu (016 FR-033, Q-390).
+
 ### 1.9. `CanhBaoBanGiaoApi` (008)
 
 ```java
