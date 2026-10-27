@@ -2718,6 +2718,7 @@ Các quyết định dưới đây đã được chốt và phản ánh vào cá
 | Q-388 | Không gọi được người thân nhận thông báo Khẩn cấp nhưng gọi được người thân kế tiếp trong chuỗi gọi thì thông báo của người đầu tiên ở trạng thái nào | Giữ nguyên chưa xác nhận: chỉ thông báo của chính người được gọi và nghe máy mới ghi "xác nhận qua cuộc gọi"; không chuyển "Không liên lạc được" vì chưa phải mọi cuộc gọi đều không liên lạc được (Q-104); chuỗi gọi dừng, không nhắc gọi lại người đầu tiên. Người đó vẫn tự xác nhận được; gọi bổ sung được chính người đó thì ghi "xác nhận muộn qua cuộc gọi". Module nguồn (sự cố) thấy mọi lượt nhắc gọi của chuỗi kèm người cần gọi và kết quả gọi | BR-M13-02, Q-95, Q-104 | 009, 007 |
 | Q-389 | Chỉ tiêu "Giấy phép hành nghề, chứng chỉ đào tạo sắp hết hạn" trên dashboard của Trưởng tầng gồm nhân viên nào ("nhân viên có phân công tại tầng") | Nhân viên có phân công tại tầng được giao đang hiệu lực lúc xem hoặc đã công bố mà chưa kết thúc, trong cửa sổ cảnh báo của chỉ tiêu (CFG-M06-02 với giấy phép hành nghề, CFG-M09-03 với chứng chỉ đào tạo); không tính phân công Nháp, đã hủy, đã kết thúc. Cùng tập người với nhắc chứng chỉ đào tạo của feature 008 | 18.5, 19.3, BR-M09-05 | 016, 008 |
 | Q-390 | Báo cáo thời gian giường Chờ sẵn sàng (feature 016 FR-033, 18.2) xếp một lần Chờ sẵn sàng vào khoảng báo cáo nào khi lần đó cắt ngang hai khoảng | Xếp theo lúc giường bắt đầu Chờ sẵn sàng; mỗi lần tính một lần với thời gian đầy đủ (kể cả phần sau cuối khoảng), lần còn đang mở tính tới lúc xem; số lần vượt hạn CFG-M03-04 đếm theo cùng mốc | 18.2, BR-M03-09 | 016, 003 |
+| Q-391 | Phụ lục 27 chưa có dòng quyền cho danh mục loại công việc, giá trị kết quả và loại lý do Không thực hiện của Module 04 (feature 005 FR-038, FR-028a) | Thêm dòng "Danh mục công việc chăm sóc" gồm ba danh mục này: Quản lý viện cấu hình (C); Trưởng tầng, Bác sĩ, Điều dưỡng, Nhân viên chăm sóc xem (X) toàn viện vì dùng khi lập kế hoạch chăm sóc, lập công việc của ca, ghi nhận kết quả và chọn loại lý do Không thực hiện; Nhân viên bếp, Hành chính, Người thân, Kế toán, Người cao tuổi không có quyền | 2.3, 8.3, 8.6, Q-350 | 005, 002 |
 
 ### 24.4. Điểm cần đối chiếu trước khi triển khai
 
@@ -3064,6 +3065,7 @@ Viết tắt cột: QL Quản lý viện, TT Trưởng tầng, BS Bác sĩ, ĐD 
 | Xử lý việc quá hạn | UC-27 | X | T⁹ | — | — | — | — | — | — | — | — |
 | Hoạt động, ngoài viện | UC-29, 30 | X | T | — | T²⁷ | T | — | — | X | — | X⁴⁵ |
 | Kiểm tra chất lượng³⁶ | UC-31 | X | T | — | — | — | — | — | — | — | — |
+| Danh mục công việc chăm sóc | 8.3, 8.6, Q-391 | C | X | X | X | X | — | — | — | — | — |
 | Chỉ số sức khỏe | UC-32 | X | P | X | T | T | — | — | X¹ | — | — |
 | Ngưỡng cảnh báo | UC-33 | X | P | T | X | — | — | — | — | — | — |
 | Xử lý cảnh báo | UC-34 | X | T | T | T | X | — | — | — | — | — |
