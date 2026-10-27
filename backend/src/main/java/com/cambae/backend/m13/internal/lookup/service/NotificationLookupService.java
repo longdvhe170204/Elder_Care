@@ -9,6 +9,7 @@ import com.cambae.backend.m13.internal.lookup.domain.DeliveryError;
 import com.cambae.backend.m13.internal.lookup.domain.HistoryFilter;
 import com.cambae.backend.m13.internal.lookup.domain.SentNotification;
 import com.cambae.backend.m13.internal.lookup.persistence.LookupStore;
+import com.cambae.backend.m13.internal.urgent.persistence.CallReminderStore;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.api.spi.AssignmentApi;
 import com.cambae.backend.m15.account.api.spi.AssignmentKind;
@@ -34,16 +35,19 @@ public class NotificationLookupService implements NotificationLookupApi {
     public record HistoryEntry(SentNotification row, List<NotifiedPersonView.ChannelResult> channels) {}
 
     private final LookupStore store;
+    private final CallReminderStore reminders;
     private final BusinessTime time;
     private final ObjectProvider<CurrentUser> currentUser;
     private final ObjectProvider<AssignmentApi> assignments;
 
     NotificationLookupService(
             LookupStore store,
+            CallReminderStore reminders,
             BusinessTime time,
             ObjectProvider<CurrentUser> currentUser,
             ObjectProvider<AssignmentApi> assignments) {
         this.store = store;
+        this.reminders = reminders;
         this.time = time;
         this.currentUser = currentUser;
         this.assignments = assignments;
@@ -64,8 +68,23 @@ public class NotificationLookupService implements NotificationLookupApi {
                         Optional.ofNullable(r.viewedAt()),
                         Optional.ofNullable(r.acknowledgedAt()),
                         Optional.ofNullable(r.acknowledgementMethod()),
-                        List.of(),
+                        callReminders(r.notificationId()),
                         r.flags().contains("MISSING_LEVEL")))
+                .toList();
+    }
+
+    /** Mọi lượt nhắc gọi của chuỗi chứa thông báo (cả lượt gọi người thân kế tiếp) và kết quả gọi (FR-031, 007 FR-048b). */
+    private List<NotifiedPersonView.CallReminderSummary> callReminders(long notificationId) {
+        return reminders.chainRemindersOf(notificationId).stream()
+                .flatMap(id -> reminders.find(id).stream())
+                .map(r -> new NotifiedPersonView.CallReminderSummary(
+                        r.id(),
+                        r.calleeType(),
+                        r.calleeId(),
+                        r.status(),
+                        reminders.results(r.id()).stream()
+                                .map(c -> new NotifiedPersonView.CallOutcome(c.result(), c.calledAt()))
+                                .toList()))
                 .toList();
     }
 
