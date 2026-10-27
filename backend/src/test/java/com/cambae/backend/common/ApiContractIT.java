@@ -101,6 +101,13 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             // Sửa Nháp do Hành chính hoàn thiện (FR-039) cần API của 000 cho người không phải người lập
                             "PUT /api/v1/residency-change-requests/{id}"),
                     Set.of(),
+                    true),
+            // 018 Phase 3 (2026-10-27, chờ A xem): đủ bốn operation; lệnh {command} chưa cài tạm trả 422 (ngoài hợp
+            // đồng) tới Phase 4, 6
+            new Contract(
+                    Path.of("..", "specs", "018-residence-registration", "contracts", "api-018.yaml"),
+                    Set.of(),
+                    Set.of(),
                     true));
 
     @Autowired

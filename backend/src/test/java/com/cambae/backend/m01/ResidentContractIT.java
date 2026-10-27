@@ -107,8 +107,12 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
                 mvc.perform(get("/v3/api-docs")).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8));
 
         Set<String> inCode = operations(generated, "/api/v1");
-        // Endpoint qua đời thuộc 004 (api-004), dù đường dẫn bắt đầu bằng /residents
-        inCode.removeIf(op -> op.contains("/death-record") || op.contains("/post-death-tasks"));
+        // Endpoint qua đời thuộc 004 (api-004), khai báo tạm trú thuộc 018 (api-018), dù đường dẫn bắt đầu bằng
+        // /residents
+        inCode.removeIf(op -> op.contains("/death-record")
+                || op.contains("/post-death-tasks")
+                || op.equals("GET /residents/{residentId}/residence-registrations")
+                || op.equals("POST /residents/{residentId}/residence-registrations"));
         inCode.removeIf(op -> !op.contains("/residents")
                 && !op.contains("/initial-health-records")
                 && !op.contains("/health-items")
