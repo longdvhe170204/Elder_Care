@@ -156,7 +156,7 @@ description: "Danh sách task triển khai feature 002 – Tài khoản và phâ
 - [x] T056 [US4] Cài điều phối đồng bộ `BE/m15/taikhoan/ngoaituyen/internal/DongBoService.java`: nhận lô phong bì, đối chiếu `lan_ket_noi_cuoi` trước khi cập nhật, tra `NgoaiTuyenHandler` theo `loaiBanGhi`, kiểm quyền `coQuyenTaiThoiDiem(thoiDiemThietBi)`, trả `KetQuaDongBo` từng bản ghi (research A-11)
 - [x] T057 [US4] Cài lệnh chấp nhận/từ chối bản ghi chờ xem lại trong `BE/m15/taikhoan/ngoaituyen/internal/ChoXemLaiService.java` (người quyết định: Trưởng tầng được giao → Người phụ trách ca → AC-01 khi không gắn tầng; quyết định đầu tiên thắng; chấp nhận gọi `handler.apDung` hiệu lực từ lúc chấp nhận; nhật ký `NT_*`)
 - [x] T058 [US4] Tạo `BE/m15/taikhoan/ngoaituyen/web/DongBoController.java` (`POST /dong-bo`) và `ChoXemLaiController.java` (`GET /ban-ghi-cho-xem-lai`, `POST …/{id}/chap-nhan`, `…/tu-choi`) theo contracts/api-002.yaml
-- [ ] T059 [P] [US4] Tạo màn `frontend/src/tinh-nang/cho-xem-lai/ChoXemLai.jsx`
+- [x] T059 [P] [US4] Tạo màn `frontend/src/tinh-nang/cho-xem-lai/ChoXemLai.jsx` *(2026-10-27: `frontend/src/features/pending-review/PendingReviewPage.jsx`, mục menu "Chờ xem lại"; api-002 thêm `recorderName`, `floorAreaName`, `version` cho `PendingReviewRecord`, SPI `FloorAreaNameApi` M03 cài; plan ghi chú)*
 - [ ] T060 [P] [US4] Tạo `mobile/lib/nhan-vien/ket-qua-dong-bo/` (hiển thị kết quả từng bản ghi sau đồng bộ, BR-M15-20), `mobile/lib/nhan-vien/cho-xem-lai/` và test `mobile/test/nhan-vien/ket_qua_dong_bo_test.dart`, `cho_xem_lai_test.dart` (constitution XV: BR-M15-20 có test ở client)
 
 **Checkpoint**: Phạm vi và ngoại tuyến chạy theo phân công.

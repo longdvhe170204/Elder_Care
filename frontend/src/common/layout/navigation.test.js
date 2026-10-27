@@ -5,12 +5,13 @@ const keys = (groups) => groups.flatMap((g) => g.items.map((i) => i.key))
 
 // 002 FR-042: có phiên thật thì menu theo quyền ở GET /me/permissions; bản mẫu thì theo vai trò (Phụ lục 27).
 describe('navForRole', () => {
-  it('có quyền thật: chỉ hiện mục có chức năng được cấp, cùng Yêu cầu phê duyệt và Thông báo', () => {
+  it('có quyền thật: chỉ hiện mục có chức năng được cấp, cùng Yêu cầu phê duyệt, Thông báo, Chờ xem lại', () => {
     const granted = new Set(['TASK_CHECKLIST', 'MEDICATION_ADMINISTRATION'])
 
     expect(keys(navForRole('CAREGIVER', (fn) => granted.has(fn)))).toEqual([
       'approval-requests',
       'notifications',
+      'pending-review-records',
       'care-tasks',
       'medication',
     ])
@@ -42,6 +43,6 @@ describe('navForRole', () => {
       .filter((i) => !i.functions)
       .map((i) => i.key)
 
-    expect(withoutFunctions).toEqual(['approval-requests', 'notifications'])
+    expect(withoutFunctions).toEqual(['approval-requests', 'notifications', 'pending-review-records'])
   })
 })
