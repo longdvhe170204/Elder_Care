@@ -579,6 +579,8 @@ B (chủ feature) chốt phương án 2026-10-27; chờ chủ dự án duyệt t
 
 **K6. Ba bề rộng, trợ năng.** Điện thoại: bảng thành danh sách thẻ (Họ tên, Việc, Hạn), khung chi tiết toàn màn hình. Nhãn cho mọi ô, kết quả lệnh báo qua vùng `aria-live`, thứ tự Tab theo thứ tự đọc, trạng thái luôn có chữ.
 
+**K7. Bổ sung US4 (T014, 2026-10-27, cùng chờ duyệt).** Không thêm công thức hay màu: K2 thêm việc "Cần khai báo xóa" (`attention`, cột Hạn để "—" vì FR-008 không có hạn, nút "Mở"), dải số đếm thêm "Cần khai báo xóa n". K3 thêm nút "Ghi đã khai báo xóa" theo `allowedCommands` (khai báo Đã xác nhận hoặc Hết hạn của người đã Kết thúc lưu trú, Qua đời; hồ sơ trạng thái cuối vẫn thao tác được) và dòng thông tin ngày khai báo xóa, người ghi, bằng chứng ở khai báo Đã xóa. K4 thêm form "Ghi đã khai báo xóa": tải bằng chứng (bắt buộc, cùng giới hạn tệp như ghi kết quả); 409 `RESIDENCY_NOT_ENDED`, `EVIDENCE_REQUIRED`, `STATE_CHANGED` hiện `Alert` trong khung. Khai báo Đã hủy hiện ở phần thu gọn của K3 kèm chữ "Hủy khi người cao tuổi chuyển trạng thái cuối".
+
 ## 15. Ứng dụng di động (Flutter)
 
 Mục này nói cách áp các mục chung vào `mobile/`. Màu, chữ, trạng thái, nhân văn, câu chữ không có bản riêng cho mobile: lấy đúng các mục chung. Mục 15 đã duyệt 2026-10-18, gồm bố cục 15.4 và bộ biểu tượng.
