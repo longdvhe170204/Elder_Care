@@ -24,14 +24,25 @@ public class StaffStatisticsStore {
     public List<StaffStatisticsRows.Handover> handovers(Instant from, Instant to) {
         return jdbc.query(
                 "SELECT h.* FROM shift_handover h JOIN work_shift s ON s.id=h.shift_id WHERE s.starts_at<? AND s.ends_at>? AND s.status NOT IN ('DRAFT','CANCELLED') ORDER BY s.starts_at,h.id",
-                (r, i) -> new StaffStatisticsRows.Handover(
-                        r.getLong("id"),
-                        r.getLong("shift_id"),
-                        r.getString("status"),
-                        instant(r, "finalized_at"),
-                        instant(r, "confirmed_at")),
+                this::handover,
                 ShiftStore.sql(to),
                 ShiftStore.sql(from));
+    }
+
+    /** 016 FR-020: Đã lập, Có ý kiến, hoặc Bản nháp của ca đang Chờ bàn giao. */
+    public List<StaffStatisticsRows.Handover> openHandovers() {
+        return jdbc.query(
+                "SELECT h.* FROM shift_handover h JOIN work_shift s ON s.id=h.shift_id WHERE s.status NOT IN ('DRAFT','CANCELLED') AND (h.status IN ('PREPARED','HAS_COMMENTS') OR (h.status='DRAFT' AND s.status='AWAITING_HANDOVER')) ORDER BY s.ends_at,h.id",
+                this::handover);
+    }
+
+    private StaffStatisticsRows.Handover handover(ResultSet r, int i) throws SQLException {
+        return new StaffStatisticsRows.Handover(
+                r.getLong("id"),
+                r.getLong("shift_id"),
+                r.getString("status"),
+                instant(r, "finalized_at"),
+                instant(r, "confirmed_at"));
     }
 
     public List<StaffStatisticsRows.Assignment> assignments(Instant from, Instant to) {

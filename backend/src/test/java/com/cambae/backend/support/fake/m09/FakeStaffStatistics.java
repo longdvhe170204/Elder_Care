@@ -6,6 +6,7 @@ import com.cambae.backend.m15.account.api.dto.ScopeFilter;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /** Bản giả T003 trả các dòng test đặt sẵn; không thay bộ lọc quyền hoặc truy vấn thật của 008/016. */
@@ -48,6 +49,12 @@ public class FakeStaffStatistics implements StaffStatisticsApi {
 
     public Stream<HandoverReportView> handovers(ScopeFilter scope, LocalDate from, LocalDate to) {
         return handovers.stream();
+    }
+
+    /** Dòng đã đặt có trạng thái đang mở theo 016 FR-020; không xét trạng thái ca. */
+    public Stream<HandoverReportView> openHandovers(ScopeFilter scope) {
+        return handovers.stream()
+                .filter(h -> Set.of("DRAFT", "PREPARED", "HAS_COMMENTS").contains(h.status()));
     }
 
     public Stream<ExpiringCredentialView> expiringCredentials(int withinDays) {

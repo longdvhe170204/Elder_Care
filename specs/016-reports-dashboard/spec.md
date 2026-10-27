@@ -77,6 +77,10 @@ Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 
 
 - Báo cáo cảnh báo thêm dòng riêng cho cảnh báo từ nút hỗ trợ khẩn cấp và thời gian từ khi tạo đến khi tới nơi của cảnh báo từ nút SOS, nút hỗ trợ khẩn cấp (FR-041, kịch bản 7 của User Story 5; nghiep-vu.md 18.3, BR-M05-30).
 
+### Cập nhật 2026-10-27 (Q-389, chủ dự án chốt khi triển khai US8 phần feature 008)
+
+- **Q-389**: "nhân viên có phân công tại tầng" của chỉ tiêu "Giấy phép hành nghề/đào tạo sắp hết hạn" (FR-010, FR-020) là nhân viên có phân công tại tầng được giao đang hiệu lực lúc xem hoặc đã công bố mà chưa kết thúc, trong cửa sổ cảnh báo của chỉ tiêu; không tính phân công Nháp, đã hủy, đã kết thúc.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 14, mục 18; UC-67):
