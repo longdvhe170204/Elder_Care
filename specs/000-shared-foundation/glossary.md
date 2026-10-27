@@ -856,6 +856,90 @@ Chưa dịch các endpoint/schema nghiệp vụ api-005. Riêng operation công 
 
 Các view được mô tả projection ở module-interfaces mục 2.1; kiểu chỉ SPI dùng nằm lồng trong SPI theo backend/README.md. Kiểu fixture `FakeVitalSigns.Measurement` lưu đủ đối số lần gọi, không phải DTO production. Không thêm thuật ngữ hay enum vai trò ngoài `common.Role` đã công bố.
 
+### 11.2. Phase 2 — API, sự kiện, nền dữ liệu (2026-10-27)
+
+Đã duyệt riêng bản dịch HTTP danh mục và hai operation result-values (contracts/phase2-api-review.md); chưa cài service/controller do điểm quyền chưa được chốt. API Java bên dưới là khai báo, không nhận là provider nghiệp vụ đã có. Tám SPI Phase1 giữ nguyên.
+
+| Tên logic | Tên triển khai |
+| --- | --- |
+| KeHoachChamSocApi | `CarePlanApi: effectiveOn, waterTargetMl, hasEffectivePlan, currentTaskTypes` |
+| LoaiCongViecApi | `TaskTypeApi.requirements` |
+| CoMatBanTruApi | `DayCareAttendanceApi: onDate, returnTimeOn, inRange, changeReturnTime, restoreReturnTime, checkOut` |
+| CongViecCaApi | `ShiftTaskApi: onShiftAbsence, onApprovedLeave, onEmploymentEnded, onAssignmentChanged, onAssignmentEnded, onHandoverConfirmed` |
+| CongViecBanGiaoApi | `HandoverTaskApi: unclosed, currentStates, recordedInHandover` |
+| NguonCongViecApi | `TaskSourceApi: sourceCancelled, sourceChanged` |
+| CongViecVangMatApi | `AbsenceTaskApi.recalculate` |
+| CongViecDoChiSoApi | `VitalSignTaskApi.confirmed` |
+| CongViecThongKeApi | `TaskStatisticsApi: inRange, attendanceInRange, resultsInRange, resultRecorders` |
+| ThoiKhoaBieuApi | `TimetableApi.onDate` |
+| KetQuaChamSocCongApi | `PublicCareResultApi: results, summary` |
+| PhienBanKeHoachView, MucKeHoachView | `CarePlanView`, `CarePlanItemView` |
+| YeuCauLoaiCongViec, CoMatView | `TaskTypeRequirements`, `AttendanceView` |
+| KetQuaXacNhan, CongViecChoBanGiaoView, TrangThaiCongViecView | `HandoverConfirmationResult`, `HandoverTaskView`, `TaskStateView` |
+| KhoangThoiGian, CongViecBaoCaoView, KetQuaView | `CareTimeRange`, `TaskReportView`, `CareResultView` |
+| KetQuaNguoiThanView, TongHopAnUongView, lịch sử trạng thái | `FamilyCareResultView`, `EatingDrinkingSummary`, `TaskStateChange` |
+| Mức quan trọng | `Importance.NORMAL/IMPORTANT/MANDATORY` |
+| Loại kết quả | `ResultType.EATING/ML/MEASURED_VALUE/MOVEMENT/SLEEP/MOOD/BEHAVIOR/ITEM_QUANTITY/PERFORMED/NONE` |
+| Trạng thái công việc | `TaskStatus.NOT_YET_DUE/DUE/OVERDUE/COMPLETED/COMPLETED_LATE/NOT_PERFORMED/CANCELLED` |
+| Trạng thái phiên bản | `CarePlanStatus.DRAFT/PENDING_APPROVAL/PENDING_EFFECT/EFFECTIVE/EXPIRED/CANCELLED` |
+| Trạng thái có mặt | `AttendanceStatus.NOT_ARRIVED/PRESENT/LEFT/REPORTED_ABSENT/UNREPORTED_ABSENT/HOLIDAY_CANCELLED` |
+| QUA_DON, TU_VE, VIEN_DUA_VE | `CheckoutType.PICKUP/SELF_RETURN/INSTITUTE_RETURN` |
+| KhoaChamSoc, ViecTheoPhutM04, ViecHangNgayM04 | `CareResidentLock`, `CareMinuteJob` (CARE_MINUTE), `CareDailyJob` (CARE_DAILY) |
+
+DTO ở api/dto, sự kiện ở api/events, private metadata/read/store/service/config đúng internal/<chức năng>/<tầng>. Không tạo thêm enum Role, dùng common.Role; default_role trong SQL dùng VARCHAR để giữ một nguồn enum Java, provider/lệnh sau này phải kiểm Role hợp lệ.
+
+| Sự kiện logic | Record trong api/events |
+| --- | --- |
+| YeuCauCanhBao | `AlertRequested` |
+| YeuCauDongCanhBao | `AlertClosureRequested` |
+| NhacQuaHan | `OverdueTaskReminder` |
+| NhacQuaHanGop | `BatchedOverdueTaskReminder` |
+| CongViecQuaHanCanXuLy | `OverdueTaskNeedsHandling` |
+| CaChuaCoCongViec | `ShiftWithoutTasks` |
+| CanLapCongViec | `TaskPlanningNeeded` |
+| KeHoachDaDoi | `CarePlanChanged` |
+| NguonCongViecDaDoi | `TaskSourceChanged` |
+| PhienBanKeHoachDaGuiDuyet | `CarePlanSubmitted` |
+| PhienBanKeHoachDaTraLai | `CarePlanReturned` |
+| PhienBanKeHoachDaThuHoi | `CarePlanApprovalWithdrawn` |
+| PhienBanKeHoachQuaHanDuyet | `CarePlanApprovalOverdue` |
+| PhienBanKeHoachBaoQuanLyVien | `CarePlanManagerEscalation` |
+| NhacXemLaiThoaThuan | `RiskAgreementReviewReminder` |
+| CanXemXetKeHoach | `CarePlanReviewNeeded` |
+| CongViecThanhChung | `TaskBecameShared` |
+| CongViecChungKhongAiDuDieuKien | `SharedTaskWithoutQualifiedStaff` |
+| DaDiemDanhDen | `DayCareCheckedIn` |
+| VangKhongBao | `UnreportedAbsence` |
+| BanTruConCoMatHetNgay | `DayCarePresentAtDayEnd` |
+| TrangThaiCoMatDaXacDinh | `AttendanceDetermined` |
+| TrangThaiCoMatDaDoi | `AttendanceChanged` |
+| KetQuaCoTinhPhi | `BillableCareResultRecorded` |
+| KetQuaTinhPhiDaDinhChinh | `BillableCareResultCorrected` |
+| AnKemKeoDai | `ProlongedPoorEating` |
+| CongViecDoBiBo | `MeasurementTaskMissed` |
+| KetQuaNguDaGhi | `SleepResultRecorded` |
+
+CareEventContext là metadata sourceType/sourceId/milestone/occurredAt/floorAreaId/recipients; CareEvent tính key, CareNotice triển khai HasNotificationRequests, CareEventNotifications dựng khuôn. Khóa hash namespace+mốc có độ dài cố định, sourceId và tên event là tiền tố; nguồn/task type và loại ngày xem lại không bị gộp nhầm. Các DTO/event chưa có HTTP schema nghiệp vụ mới.
+
+| Bảng logic / file | Tên thực tế |
+| --- | --- |
+| cham_soc_nct (nct_id, phien_ban) | `care_resident_lock(resident_id, version)` |
+| lan_chay_m04 (viec, moc) | `m04_job_milestone(job, milestone)` |
+| loai_cong_viec | `care_task_type`: task_group, professional, result_type, default_role, default_importance, window_before_minutes, window_after_minutes, billable, service_id, upper_limit, vital_sign_type; name/status/version/active_name theo nhóm1 |
+| loai_cong_viec_chung_chi | `care_task_type_certificate(task_type_id, certificate_code)` |
+| danh_muc_gia_tri_ket_qua | `care_result_value(value_type, code, name, rule_group, status, version, active_name)` |
+| loai_ly_do_khong_thuc_hien | `care_non_performance_reason_type(name, fixed, status, version, active_name)` |
+| V005_01__nen_m04.sql | `V005_01__care_foundation.sql` |
+| V005_01a__loai_ly_do.sql | `V005_01_1__non_performance_reason_type.sql`; 01a không hợp lệ với version số Flyway |
+| Nhóm kết quả ngủ/tâm trạng/hành vi | `SLEEP_QUALITY/MOOD/BEHAVIOR`, rule_group `INSOMNIA/NEGATIVE` hoặc NULL |
+| Nhóm công việc18giá trị | `PERSONAL_HYGIENE/BATHING/DRESSING/EATING_ASSISTANCE/DRINKING_ASSISTANCE/TOILETING_ASSISTANCE/MOVEMENT/REHABILITATION/VITAL_SIGN_MEASUREMENT/ACTIVITY/SLEEP/MOOD/BEHAVIOR/DIAPER_ITEM_CHANGE/SHIFT_START_CHECK/SUPERVISION/MEDICATION/OTHER` |
+
+Nền migration hiện chỉ có sáu bảng trên. Provider T008 dùng các **tên dự kiến của bảng story chưa tạo**, không phải bằng chứng đã cài các bảng: care_plan (resident_id, previous_plan_id), care_plan_item (care_plan_id, source_item_id), care_risk_agreement (care_plan_id, source_agreement_id), care_risk_opinion/care_risk_participant (agreement_id), care_task (resident_id nullable, floor_area_id, planned_at, basis_type, basis_id, original_task_id), care_result (task_id, resident_id), care_task_history (task_id), care_day_attendance (resident_id), care_attendance_record (attendance_id). Migration/service story phải giữ đồng bộ các tên này và bổ sung cột nghiệp vụ đúng data-model; không lấy projection tối thiểu làm toàn bộ schema.
+
+Loại đối tượng chính: M04.CARE_PLAN, M04.TASK, M04.CARE_RESULT, M04.DAY_CARE_ATTENDANCE. Lưu giữ còn có M04.CARE_PLAN_ITEM, M04.RISK_AGREEMENT, M04.RISK_OPINION, M04.TASK_HISTORY, M04.ATTENDANCE_RECORD và ba alias LOCATION_TASK/LOCATION_CARE_RESULT/LOCATION_TASK_HISTORY cho cùng bảng nhưng thời hạn CFG-M15-04. Alias là phân tách kỹ thuật RetentionKind, chưa thêm trường hoặc endpoint HTTP. Nhật ký/căn cứ của story sau phải dùng đúng loại để đính chính/lưu giữ đi kèm được kiểm nhất quán.
+
+Bản giả API mới: FakeM04ApiConfig/FakeM04ApiFixture, import riêng với test/demo, không thay FakeM04Config của8SPI. Công tắc các SPI Phase1 không tự bật tắt fixture API mới; hai cấu hình có mục đích khác nhau.
+
 ## 12. Feature 006 (`006-medication-management`, D)
 
 *Chủ feature điền khi dịch `contracts/api-006.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*

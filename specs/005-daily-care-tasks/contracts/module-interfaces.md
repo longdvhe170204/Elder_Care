@@ -10,6 +10,10 @@ Chiều phụ thuộc theo research C-02: 005 phụ thuộc 000, 001, 002, 003, 
 
 ## 1. 005 cung cấp
 
+**Khai báo Phase2 ngày 2026-10-27**: chữ ký logic mục1.2–1.10a đã có interface tiếng Anh ở `m04.api`, DTO/enum ở `api.dto`; ánh xạ glossary11.2. Đây là khai báo, chưa có provider nghiệp vụ story. Test consumer import `FakeM04ApiConfig` ở test/demo, tiêm `FakeM04ApiFixture` để đặt Supplier theo interface/method/đủ đối số; chưa đặt thì báo lỗi, không mặc định nhận lệnh. Không thay fake8SPI T002 bằng fake thứ hai.
+
+Mục1.11 đã có28event ở `api.events`; `CareEventContext(sourceType, sourceId, milestone, occurredAt, floorAreaId, recipients)` là metadata kỹ thuật. `milestone` phải ổn định theo sự kiện nghiệp vụ, không đổi thành giờ phát lại. Khóa tính từ lớp+id+hash(namespace+mốc); TaskSourceChanged phân biệt SourceType, nhắc thỏa thuận phân biệt reviewDateType. `CareNotice` cài HasNotificationRequests; nhóm nhận do producer trong story cung cấp đúng C-13. Chưa có producer/listener/outbox story nên khai báo không là bằng chứng đã giao tới007/009/010/011. `RiskAgreementReviewReminder` tương ứng NhacXemLaiThoaThuan của C-18/Q-360, bổ sung vào nhóm sự kiện review vốn chưa có dòng riêng trong bảng.
+
 ### 1.1. SPI khai báo ở module thấp hơn, M04 cài
 
 | SPI (gói khai báo) | Bản cài của 005 | Dùng bởi |
