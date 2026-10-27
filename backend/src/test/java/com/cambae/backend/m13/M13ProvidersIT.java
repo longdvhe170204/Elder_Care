@@ -117,6 +117,52 @@ class M13ProvidersIT extends M13IntegrationTestBase {
     }
 
     @Test
+    void FR_041_retention_deletesCallRemindersOfExpiredNotifications_withWholeCallChain() {
+        RetentionProvider p = only(retentions, RetentionProvider::dataType, "M13.NOTIFICATION_REQUEST");
+        long[] old = requestWithNotification("2001-01-01 00:00:00", null);
+        jdbc.update(
+                "INSERT INTO call_reminder (callee_type, callee_id, source_record_type, source_record_id, creation_reason,"
+                        + " created_at) VALUES ('FAMILY_MEMBER', 7, 'M05.INCIDENT', 'x', 'UNACKNOWLEDGED', '2001-01-01')");
+        long root = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        jdbc.update(
+                "INSERT INTO call_reminder (call_chain_id, callee_type, callee_id, creation_reason, created_at)"
+                        + " VALUES (?, 'FAMILY_MEMBER', 8, 'PREVIOUS_NOT_REACHED', '2001-01-01')",
+                root);
+        long next = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        jdbc.update(
+                "INSERT INTO call_reminder_notification (call_reminder_id, notification_id, merged_at)"
+                        + " VALUES (?, ?, '2001-01-01')",
+                root,
+                old[1]);
+        for (long id : new long[] {root, next}) {
+            jdbc.update(
+                    "INSERT INTO call_reminder_handoff (call_reminder_id, reminded_staff_id, tier, reason, due_at,"
+                            + " occurred_at) VALUES (?, 1, 'MANAGERS', 'INITIAL', '2001-01-01', '2001-01-01')",
+                    id);
+            jdbc.update(
+                    "INSERT INTO call_reminder_state (call_reminder_id, status, final_result, due_at, current_staff_id,"
+                            + " callee_key) VALUES (?, 'RESULT_RECORDED', 'NOT_REACHED', '2001-01-01', 1, ?)",
+                    id,
+                    "retention:" + id);
+            jdbc.update(
+                    "INSERT INTO call_result (call_reminder_id, called_by, called_at, result, reason, recorded_at)"
+                            + " VALUES (?, 1, '2001-01-01', 'NOT_REACHED', 'NO_ANSWER', '2001-01-01')",
+                    id);
+        }
+
+        p.delete(List.of(old[0]));
+
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM call_reminder WHERE id IN (?, ?)", Integer.class, root, next))
+                .isZero();
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM call_result WHERE call_reminder_id IN (?, ?)", Integer.class, root, next))
+                .isZero();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM notification WHERE id = ?", Integer.class, old[1]))
+                .isZero();
+    }
+
+    @Test
     void FR_034_scopeOfNotification_isResidentAndFloorOfRequest() {
         ScopeAssignmentProvider p = only(scopes, ScopeAssignmentProvider::entityType, "M13.NOTIFICATION");
         long[] n = requestWithNotification("2026-10-21 01:00:00", 77L);

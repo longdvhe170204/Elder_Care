@@ -30,8 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * "Xác nhận đã nhận" thông báo Khẩn cấp (tên logic {@code KhanCapService}, phần xác nhận; FR-026, FR-026a, research B-07):
  * chỉ người nhận, chỉ mức Khẩn cấp, một lần; đang "Không liên lạc được" thì ghi xác nhận muộn (Q-104). Không đổi bản ghi
- * nguồn; phát {@link UrgentNotificationAcknowledged} cho module nguồn (FR-035). Dừng lượt nhắc gọi (FR-030) làm cùng
- * phần lượt nhắc gọi của US1 (chờ {@code CaTrucApi} của 008).
+ * nguồn; phát {@link UrgentNotificationAcknowledged} cho module nguồn (FR-035). Mọi thông báo của chuỗi gọi đã xác nhận thì
+ * lượt nhắc gọi Chờ kết quả dừng (FR-030).
  */
 @Service
 public class UrgentAcknowledgement {
@@ -44,6 +44,7 @@ public class UrgentAcknowledgement {
     private final ObjectProvider<CurrentUser> currentUser;
     private final AuditLogApi auditLog;
     private final ApplicationEventPublisher events;
+    private final CallReminderActions reminders;
     private final BusinessTime time;
 
     UrgentAcknowledgement(
@@ -52,12 +53,14 @@ public class UrgentAcknowledgement {
             ObjectProvider<CurrentUser> currentUser,
             AuditLogApi auditLog,
             ApplicationEventPublisher events,
+            CallReminderActions reminders,
             BusinessTime time) {
         this.inbox = inbox;
         this.notifications = notifications;
         this.currentUser = currentUser;
         this.auditLog = auditLog;
         this.events = events;
+        this.reminders = reminders;
         this.time = time;
     }
 
@@ -91,6 +94,7 @@ public class UrgentAcknowledgement {
         } catch (DuplicateKeyException e) {
             throw alreadyAcknowledged();
         }
+        reminders.afterAcknowledged(notificationId, now);
         auditLog.write(AuditLogEntry.builder()
                 .action(ACKNOWLEDGED)
                 .entity(ENTITY, notificationId)
