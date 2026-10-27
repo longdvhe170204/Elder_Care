@@ -57,7 +57,7 @@ public class FakeHandoverLocations implements BedStatusApi, BedStatisticsApi, Al
         return states.entrySet().stream()
                 .filter(row -> scope.facilityWide() || scope.floorAreaIds().contains(floors.get(row.getKey())))
                 .map(row -> new BedStateOnDate(
-                        row.getKey(), floors.getOrDefault(row.getKey(), 0L), state(row.getValue()), at));
+                        row.getKey(), floors.getOrDefault(row.getKey(), 0L), state(row.getValue()), at, 0L, null));
     }
 
     public java.util.stream.Stream<AwaitingReadyInterval> awaitingReady(
@@ -66,7 +66,12 @@ public class FakeHandoverLocations implements BedStatusApi, BedStatisticsApi, Al
                 .filter(row -> scope.facilityWide() || scope.floorAreaIds().contains(row.getKey()))
                 .flatMap(row -> row.getValue().stream()
                         .map(bed -> new AwaitingReadyInterval(
-                                bed.bedId(), row.getKey(), bed.awaitingSince(), to, bed.awaitingSince())));
+                                bed.bedId(),
+                                row.getKey(),
+                                bed.awaitingSince(),
+                                to,
+                                bed.awaitingSince(),
+                                bed.awaitingSince())));
     }
 
     public java.util.stream.Stream<RoomIsolationView> isolatedRooms(
