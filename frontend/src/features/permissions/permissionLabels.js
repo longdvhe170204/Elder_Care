@@ -1,5 +1,5 @@
 // Nhãn tiếng Việt cho quyền (002 US7; Phụ lục 27, glossary 7.3). Tên chức năng chép từ m15.account.api.dto.Function
-// (73 dòng Phụ lục 27, cùng thứ tự); đổi Function thì đổi file này.
+// (76 dòng Phụ lục 27, cùng thứ tự); đổi Function thì đổi file này.
 
 export const FUNCTION_LABELS = {
   RESIDENT_PROFILE: 'Hồ sơ người cao tuổi',
@@ -26,6 +26,7 @@ export const FUNCTION_LABELS = {
   OVERDUE_TASK_HANDLING: 'Xử lý việc quá hạn',
   ACTIVITY_OUTING: 'Hoạt động, ngoài viện',
   QUALITY_CHECK: 'Kiểm tra chất lượng',
+  CARE_TASK_CATALOG: 'Danh mục công việc chăm sóc',
   VITAL_SIGN: 'Chỉ số sức khỏe',
   ALERT_THRESHOLD: 'Ngưỡng cảnh báo',
   ALERT_HANDLING: 'Xử lý cảnh báo',
