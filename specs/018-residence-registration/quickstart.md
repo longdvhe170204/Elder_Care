@@ -47,10 +47,10 @@ frontend/ npm ci && npm test && npm run dev
 
 | Nhóm | Test | Kịch bản |
 | --- | --- | --- |
-| Hàm thuần | `TongThoiGianLuuTruTest`, `LoaiKhaiBaoTest` | Q3, Q14, Q16, Q17, Q20 |
-| Khai báo | `BR_M02_11_KhaiBaoIT`, `BR_M02_12_GiaHanIT`, `BR_M02_13_KhaiBaoXoaIT`, `BR_M02_14_ChuyenLoaiIT`, `DBR_33_MotKhaiBaoIT` | Q1 → Q19 |
-| Bộ lập lịch | `ChayBuM02KhaiBaoIT` (không nhắc trùng khi chạy lại) | Q4, Q11, Q13 |
-| Kiến trúc | ArchUnit: gói `..lich..` không tạo khai báo (Q-306) | |
+| Hàm thuần | `ExpectedStayDurationTest`, `RegistrationTypeRuleTest` | Q3, Q14, Q16, Q17, Q20 |
+| Khai báo | `BR_M02_11_ResidenceRegistrationIT`, `RegistrationSubmissionResultIT`, `BR_M02_12_RenewalIT`, `BR_M02_13_DeregistrationIT`, `BR_M02_14_TypeChangeIT`, `DBR_33_OneRegistrationIT`, `RegistrationSchemaIT`, `RegistrationProvidersIT` | Q1 → Q19 |
+| Bộ lập lịch | `RegistrationCatchUpIT` (không nhắc trùng khi chạy lại) | Q4, Q11, Q13 |
+| Kiến trúc | `ResidenceRegistrationArchTest`: `m02.scheduling` không lập khai báo (Q-306) | |
 
 ## 5. Tiêu chí hoàn tất
 
@@ -61,3 +61,27 @@ frontend/ npm ci && npm test && npm run dev
 | SC-003 | Q12, Q15 |
 | SC-004 | Q5 |
 | SC-005 | Đo thao tác ghi nộp, ghi kết quả |
+
+## 6. Trạng thái kiểm chứng (2026-10-27, Phase 7 một phần)
+
+- Mã lỗi ở mục 3 là tên logic; mã trả về theo api-018 (glossary 24.4): `KHONG_PHAI_NOI_TRU` → `NOT_RESIDENTIAL_CARE`, `THIEU_NGAY_HET_HAN` → `EXPIRY_DATE_REQUIRED`, `CHUA_GHI_NOP` → `NOT_SUBMITTED`, `DA_CO_KHAI_BAO_DANG_XU_LY` → `REGISTRATION_IN_PROGRESS_EXISTS`.
+- Chưa chạy kịch bản mục 3 trên profile `demo`: chưa có màn web (BL-96), chưa có dữ liệu mẫu A, B, C, E, F; các việc hằng ngày (nhắc quá hạn, gia hạn, khai báo xóa, chuyển Hết hạn) chưa gắn vào `ResidenceRegistrationJob` (BL-90) nên Q4, Q11, Q13, nhắc mỗi ngày của Q18 không tự xảy ra trên `demo`. Bằng chứng hiện có là test tự động (MySQL test `localhost:3307`), gọi lệnh qua HTTP hoặc gọi thẳng hàm nhắc với ngày giả lập:
+
+| # | Test | Ghi chú |
+| --- | --- | --- |
+| Q1, Q2 | `BR_M02_11_ResidenceRegistrationIT` `Q1_*` | |
+| Q3 | `BR_M02_11_*` `Q2_*`, `Q3_*`, `BR_M02_11_thirtyDays*`; `RegistrationTypeRuleTest` | |
+| Q4 | `BR_M02_11_*` `Q4_*`; `RegistrationSubmissionResultIT` `Q9_afterARejection_*`, `Q9_aManagerAlreadyTold*` | gọi `RegistrationOverdueReminders.remind(day)`, chưa qua job (BL-90) |
+| Q5 | `BR_M02_11_*` `Q5_*`; `BR_M02_13_DeregistrationIT` `SC_004_*`, `US4_1_*` | |
+| Q6 | `BR_M02_11_*` `Q6_*`; `RegistrationSubmissionResultIT` `FR_001_*Local*` | |
+| Q7 → Q10 | `RegistrationSubmissionResultIT` `Q7_*` → `Q10_*` | |
+| Q11 | `BR_M02_12_RenewalIT` `Q11_*` | gọi `RegistrationRenewalReminders.remind(day)` (BL-90) |
+| Q12 | `BR_M02_12_*` `Q12_*`; `RegistrationSchemaIT` `DBR_33_*` | |
+| Q13 | `BR_M02_12_*` `Q13_*`, `Z_04_*` | gọi `RegistrationExpiry.expire(day)` (BL-90) |
+| Q14, Q16, Q17 | `BR_M02_14_TypeChangeIT`; `BR_M02_11_*` `FR_001a_*` | |
+| Q15 | `BR_M02_12_*` `Q15_*`; `DBR_33_OneRegistrationIT` | |
+| Q18 | `BR_M02_13_*` `US4_1_*`, `US4_2_*`, `US4_4_*`, `FR_008_*` | nhắc mỗi ngày gọi `RegistrationDeregistration.remind(day)` (BL-90) |
+| Q19 | `BR_M02_13_*` `US4_3_*` | |
+| Q20 | `ExpectedStayDurationTest` `oneDayGap_*` | |
+
+- SC-005 (thời gian thao tác) chưa đo: cần màn web (BL-96) và người thật.
