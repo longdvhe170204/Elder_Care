@@ -71,6 +71,7 @@ public class ResidenceRegistrationService {
     private final RegistrationResidentStore residentLock;
     private final RegistrationSubmissionStore submissions;
     private final FileApi files;
+    private final RegistrationRenewalReminders renewals;
     private final ContractReadApi contracts;
     private final ResidentApi residents;
     private final ParameterApi parameters;
@@ -84,6 +85,7 @@ public class ResidenceRegistrationService {
             RegistrationResidentStore residentLock,
             RegistrationSubmissionStore submissions,
             FileApi files,
+            RegistrationRenewalReminders renewals,
             ContractReadApi contracts,
             ResidentApi residents,
             ParameterApi parameters,
@@ -95,6 +97,7 @@ public class ResidenceRegistrationService {
         this.residentLock = residentLock;
         this.submissions = submissions;
         this.files = files;
+        this.renewals = renewals;
         this.contracts = contracts;
         this.residents = residents;
         this.parameters = parameters;
@@ -104,8 +107,8 @@ public class ResidenceRegistrationService {
     }
 
     /**
-     * Việc trong danh sách cần làm (api-018 {@code RegistrationTask}). Phase 3 trả {@code TO_CREATE}, {@code OVERDUE}; sắp
-     * hết hạn, Hết hạn (T012), cần khai báo xóa (T014) trả từ Phase 5, 6.
+     * Việc trong danh sách cần làm (api-018 {@code RegistrationTask}): {@code TO_CREATE}, {@code OVERDUE} (Phase 3),
+     * {@code EXPIRING_SOON}, {@code EXPIRED} (T012); cần khai báo xóa (T014) trả từ Phase 6.
      */
     public enum TaskType {
         TO_CREATE,
@@ -146,7 +149,8 @@ public class ResidenceRegistrationService {
     /**
      * Người cần khai báo, gồm người chưa được lập khai báo (FR-001, FR-002): nghĩa vụ chưa ghi nộp; quá hạn (hạn đang có
      * hiệu lực trước hôm nay; khai báo bị từ chối thì hạn mới của khai báo) là {@code OVERDUE} dù đã lập hay chưa, còn hạn mà
-     * chưa lập là {@code TO_CREATE}.
+     * chưa lập là {@code TO_CREATE} ({@code EXPIRED} khi mốc là khai báo Hết hạn). Đăng ký tạm trú trong khoảng nhắc gia hạn
+     * (FR-006) là {@code EXPIRING_SOON}, hạn là hết ngày hết hạn.
      */
     @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.VIEW)
     @Transactional(readOnly = true)
@@ -158,7 +162,7 @@ public class ResidenceRegistrationService {
             if (obligation.effectiveDueAt().isBefore(todayStart)) {
                 type = TaskType.OVERDUE;
             } else if (obligation.registrationId() == null) {
-                type = TaskType.TO_CREATE;
+                type = obligation.trigger() == ObligationTrigger.EXPIRED ? TaskType.EXPIRED : TaskType.TO_CREATE;
             } else {
                 continue;
             }
@@ -168,6 +172,16 @@ public class ResidenceRegistrationService {
                     type,
                     obligation.effectiveDueAt(),
                     obligation.registrationId()));
+        }
+        List<ResidenceRegistration> expiring = renewals.due(time.today());
+        Map<Long, LocalDate> expiry = renewals.expiryOf(expiring);
+        for (ResidenceRegistration registration : expiring) {
+            tasks.add(new Task(
+                    registration.residentId(),
+                    residents.identity(registration.residentId()).fullName(),
+                    TaskType.EXPIRING_SOON,
+                    endOf(expiry.get(registration.id())),
+                    registration.id()));
         }
         return tasks;
     }
@@ -235,6 +249,53 @@ public class ResidenceRegistrationService {
                         "status", RegistrationStatus.TO_SUBMIT.name(),
                         "dueAt", obligation.dueAt().toString(),
                         "obligationId", obligation.id()))
+                .build());
+        return registrations.find(id).orElseThrow();
+    }
+
+    /**
+     * Lập khai báo gia hạn ở Cần khai báo (FR-005, FR-006, BR-M02-12): người có Đăng ký tạm trú Đã xác nhận, chưa có khai báo
+     * đang xử lý (FR-004). Loại Đăng ký tạm trú, hoặc Thông báo lưu trú khi hồ sơ đã xác nhận thường trú cùng xã/phường
+     * (FR-001). Hạn là hết ngày hết hạn hiện hành của khai báo đang Đã xác nhận (chủ dự án chốt 2026-10-27). Khai báo này
+     * thay khai báo đang Đã xác nhận khi được chấp nhận (T010). Không gắn nghĩa vụ.
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.CREATE)
+    @Transactional
+    public ResidenceRegistration createRenewalRegistration(Target target, long residentId) {
+        boolean localPermanentResident = residentLock.lock(residentId);
+        if (registrations.hasInProgress(residentId)) {
+            throw inProgressExists();
+        }
+        ResidenceRegistration confirmed = registrations
+                .confirmedOf(residentId)
+                .flatMap(registrations::find)
+                .filter(r -> r.type() == RegistrationType.TEMPORARY_RESIDENCE_REGISTRATION)
+                .orElseThrow(() -> new BusinessException(
+                        HttpStatus.CONFLICT,
+                        "NO_CONFIRMED_TEMPORARY_RESIDENCE_REGISTRATION",
+                        "Chỉ lập khai báo gia hạn khi có Đăng ký tạm trú Đã xác nhận (FR-005)"));
+        Instant dueAt = endOf(renewals.expiryOf(List.of(confirmed)).get(confirmed.id()));
+        RegistrationType type = localPermanentResident
+                ? RegistrationType.STAY_NOTIFICATION
+                : RegistrationType.TEMPORARY_RESIDENCE_REGISTRATION;
+        long id;
+        try {
+            id = registrations.insertToSubmit(
+                    residentId, type, true, null, dueAt, localPermanentResident, null, confirmed.id());
+        } catch (DuplicateKeyException e) {
+            throw inProgressExists();
+        }
+        auditLog.write(AuditLogEntry.builder()
+                .action(CREATED)
+                .entity(RegistrationNames.ENTITY_TYPE, id)
+                .resident(residentId)
+                .after(Map.of(
+                        "type", type.name(),
+                        "status", RegistrationStatus.TO_SUBMIT.name(),
+                        "renewal", true,
+                        "dueAt", dueAt.toString(),
+                        "replacedRegistrationId", confirmed.id()))
                 .build());
         return registrations.find(id).orElseThrow();
     }
@@ -461,6 +522,11 @@ public class ResidenceRegistrationService {
                         before.dueAt().toString()))
                 .after(after)
                 .build());
+    }
+
+    /** Hết ngày {@code date}: 00:00 ngày sau theo Asia/Ho_Chi_Minh (DBR-25). */
+    private static Instant endOf(LocalDate date) {
+        return date.plusDays(1).atStartOfDay(BusinessTime.ZONE).toInstant();
     }
 
     private static boolean isBlank(String value) {
