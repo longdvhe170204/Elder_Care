@@ -190,3 +190,12 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
 - `LICENSE.STAFF` (`m14.internal.license.service.StaffLicenseMetric`): một lần gọi `expiringCredentials` với mốc lớn hơn của CFG-M06-02, CFG-M09-03 rồi lọc theo `credentialGroup`; chia theo nhóm; họ tên qua `ShiftApi.staff`. Trưởng tầng (Q-389): nhân viên có dòng `assignmentHistory(phạm vi, lúc xem, hết cửa sổ)`; `floorAreaId` của bản ghi là một tầng trong phạm vi, chỉ để lọc bước 2.
 - Web: không đổi (tab "Nhân sự, ca" và khối dashboard dùng chung); khóa chia nhóm hiện nguyên mã như các chỉ tiêu khác.
 - Còn chờ 015 (`XoayCaThongKeApi`): FR-071 → FR-073. T023, T024 chưa đánh `[x]`.
+
+### Chỉ tiêu giường (2026-10-27, nhánh `impl/016-bed-metrics`)
+
+- "Đổi api" trên M03 (chủ dự án duyệt, C review): `BedStateOnDate` thêm `roomId`, `holdReason` (suy từ sự kiện `HOLD_WAITING_RECORD`, `ABSENT_KEEP_BED` của lịch sử, không thêm cột); `AwaitingReadyInterval` thêm `startedAt`. Bản giả `FakeHandoverLocations` truyền `0L`, `null`, `awaitingSince` cho trường mới. Không đổi hàm, không migration.
+- Mã con (chủ dự án duyệt; khung mỗi mã một số và một khóa chia nhóm): `BED.STATUS` (tổng giường, chia theo trạng thái, giữ chỗ tách `HELD_WAITING_RECORD`, `HELD_ABSENT_RESIDENT`), `BED.USABLE`, `BED.ISOLATED_ROOMS`, `BED.OCCUPANTS` (chia theo tầng; phòng ở dòng chi tiết) trong nhóm `BEDS`; `BED.AWAITING_READY` (trung bình phút), `BED.AWAITING_READY_MAX`, `BED.AWAITING_READY_OVERDUE` (chia theo tầng) trong nhóm `BED_AWAITING_READY`.
+- Thời điểm: lúc xem là hiện tại; báo cáo là ngay trước cuối khoảng, không quá lúc xem (FR-024 tại một ngày đã qua).
+- Q-390: lần Chờ sẵn sàng có lúc bắt đầu trong khoảng; đọc `awaitingReady` tới lúc xem để lần kết thúc sau cuối khoảng vẫn đủ thời gian; vượt hạn là `to` sau `deadline` của 003.
+- `BED.EMPTY_AWAITING_TRANSFER` (Trống – chờ xử lý hư hỏng) khai trong `chi-tieu.md` nhưng chưa cài: dấu của 019 ở port nội bộ M03 chưa có bản cài; cài chỉ tiêu trả 0 sẽ sai nghĩa.
+- Test chỉ tiêu dùng stub cục bộ của `BedStatisticsApi` trong lớp test (bản giả chung không có lý do giữ chỗ, phòng cách ly); `FakeBedAllocations` cho số người.
