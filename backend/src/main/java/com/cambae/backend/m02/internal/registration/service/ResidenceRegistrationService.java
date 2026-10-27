@@ -52,7 +52,8 @@ import org.springframework.transaction.annotation.Transactional;
  * research Z-03, Z-04). Chỉ actor (Hành chính) lập khai báo, qua {@link #createRegistration}; Bộ lập lịch không tới được
  * phương thức này ({@code ResidenceRegistrationArchTest}). Mọi lệnh khóa {@code registration_resident} của người cao tuổi
  * trước rồi đọc khóa khai báo; chuyển trạng thái bằng câu lệnh có điều kiện trạng thái. Ghi nộp, kết quả (US2, T010) ở
- * Phase 4; khai báo gia hạn (T012), khai báo xóa (T014) thêm ở Phase 5, 6.
+ * Phase 4; khai báo gia hạn (T012) ở Phase 5; ghi đã khai báo xóa (T014) ở Phase 6, phần kèm lệnh 001 ở {@link
+ * RegistrationDeregistration}.
  */
 @Service
 public class ResidenceRegistrationService {
@@ -62,6 +63,7 @@ public class ResidenceRegistrationService {
     static final AuditAction SUBMITTED = new AuditAction("M02_REGISTRATION_SUBMITTED", false);
     static final AuditAction ACCEPTED = new AuditAction("M02_REGISTRATION_ACCEPTED", false);
     static final AuditAction REJECTED = new AuditAction("M02_REGISTRATION_REJECTED", false);
+    static final AuditAction DEREGISTERED = new AuditAction("M02_REGISTRATION_DEREGISTERED", false);
 
     private static final Set<ContractStatus> SIGNED =
             Set.of(ContractStatus.ACTIVE, ContractStatus.ENDED, ContractStatus.TERMINATED);
@@ -72,6 +74,7 @@ public class ResidenceRegistrationService {
     private final RegistrationSubmissionStore submissions;
     private final FileApi files;
     private final RegistrationRenewalReminders renewals;
+    private final RegistrationDeregistration deregistration;
     private final ContractReadApi contracts;
     private final ResidentApi residents;
     private final ParameterApi parameters;
@@ -86,6 +89,7 @@ public class ResidenceRegistrationService {
             RegistrationSubmissionStore submissions,
             FileApi files,
             RegistrationRenewalReminders renewals,
+            RegistrationDeregistration deregistration,
             ContractReadApi contracts,
             ResidentApi residents,
             ParameterApi parameters,
@@ -98,6 +102,7 @@ public class ResidenceRegistrationService {
         this.submissions = submissions;
         this.files = files;
         this.renewals = renewals;
+        this.deregistration = deregistration;
         this.contracts = contracts;
         this.residents = residents;
         this.parameters = parameters;
@@ -108,7 +113,7 @@ public class ResidenceRegistrationService {
 
     /**
      * Việc trong danh sách cần làm (api-018 {@code RegistrationTask}): {@code TO_CREATE}, {@code OVERDUE} (Phase 3),
-     * {@code EXPIRING_SOON}, {@code EXPIRED} (T012); cần khai báo xóa (T014) trả từ Phase 6.
+     * {@code EXPIRING_SOON}, {@code EXPIRED} (T012), {@code TO_DEREGISTER} (T014).
      */
     public enum TaskType {
         TO_CREATE,
@@ -150,7 +155,8 @@ public class ResidenceRegistrationService {
      * Người cần khai báo, gồm người chưa được lập khai báo (FR-001, FR-002): nghĩa vụ chưa ghi nộp; quá hạn (hạn đang có
      * hiệu lực trước hôm nay; khai báo bị từ chối thì hạn mới của khai báo) là {@code OVERDUE} dù đã lập hay chưa, còn hạn mà
      * chưa lập là {@code TO_CREATE} ({@code EXPIRED} khi mốc là khai báo Hết hạn). Đăng ký tạm trú trong khoảng nhắc gia hạn
-     * (FR-006) là {@code EXPIRING_SOON}, hạn là hết ngày hết hạn.
+     * (FR-006) là {@code EXPIRING_SOON}, hạn là hết ngày hết hạn. Khai báo cần khai báo xóa (FR-008) là {@code
+     * TO_DEREGISTER}, không có hạn.
      */
     @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.VIEW)
     @Transactional(readOnly = true)
@@ -181,6 +187,14 @@ public class ResidenceRegistrationService {
                     residents.identity(registration.residentId()).fullName(),
                     TaskType.EXPIRING_SOON,
                     endOf(expiry.get(registration.id())),
+                    registration.id()));
+        }
+        for (ResidenceRegistration registration : deregistration.due()) {
+            tasks.add(new Task(
+                    registration.residentId(),
+                    residents.identity(registration.residentId()).fullName(),
+                    TaskType.TO_DEREGISTER,
+                    null,
                     registration.id()));
         }
         return tasks;
@@ -254,8 +268,8 @@ public class ResidenceRegistrationService {
     }
 
     /**
-     * Lập khai báo gia hạn ở Cần khai báo (FR-005, FR-006, BR-M02-12): người có Đăng ký tạm trú Đã xác nhận, chưa có khai báo
-     * đang xử lý (FR-004). Loại Đăng ký tạm trú, hoặc Thông báo lưu trú khi hồ sơ đã xác nhận thường trú cùng xã/phường
+     * Lập khai báo gia hạn ở Cần khai báo (FR-005, FR-006, BR-M02-12): người có Đăng ký tạm trú Đã xác nhận, chưa ở trạng
+     * thái cuối (BR-M01-05, {@code STATE_CHANGED}), chưa có khai báo đang xử lý (FR-004). Loại Đăng ký tạm trú, hoặc Thông báo lưu trú khi hồ sơ đã xác nhận thường trú cùng xã/phường
      * (FR-001). Hạn là hết ngày hết hạn hiện hành của khai báo đang Đã xác nhận (chủ dự án chốt 2026-10-27). Khai báo này
      * thay khai báo đang Đã xác nhận khi được chấp nhận (T010). Không gắn nghĩa vụ.
      */
@@ -264,6 +278,11 @@ public class ResidenceRegistrationService {
     @Transactional
     public ResidenceRegistration createRenewalRegistration(Target target, long residentId) {
         boolean localPermanentResident = residentLock.lock(residentId);
+        if (RegistrationRenewalReminders.FINAL.contains(residents.status(residentId))) {
+            // BR-M01-05: hồ sơ trạng thái cuối chỉ xem; ngoại lệ không gồm lập khai báo (chủ dự án chốt BL-97,
+            // 2026-10-27)
+            throw stateChanged("Hồ sơ đã ở trạng thái cuối, không lập khai báo gia hạn (BR-M01-05)");
+        }
         if (registrations.hasInProgress(residentId)) {
             throw inProgressExists();
         }
@@ -456,6 +475,44 @@ public class ResidenceRegistrationService {
         after.put("rejectionReason", reason.strip());
         after.put("dueAt", newDueAt.toString());
         audit(REJECTED, before, after);
+        return registrations.find(id).orElseThrow();
+    }
+
+    /**
+     * Ghi đã khai báo xóa (FR-005, FR-008; US4 #2, BR-M02-13): Đã xác nhận, Hết hạn → Đã xóa; người cao tuổi đã Kết thúc lưu
+     * trú hoặc Qua đời, bằng chứng bắt buộc. Được làm khi hồ sơ ở trạng thái cuối (ngoại lệ (3) của BR-M01-05) nên không
+     * gọi chặn hồ sơ đóng. Bằng chứng chấp nhận và các lần nộp giữ nguyên; nhắc khai báo xóa dừng vì khai báo hết là Đã xác
+     * nhận, Hết hạn.
+     */
+    @BusinessCommand(requiresReason = false)
+    @RequiresPermission(function = Function.RESIDENCE_REGISTRATION, operation = Operation.UPDATE)
+    @Transactional
+    public ResidenceRegistration recordDeregistered(Target target, long id, Long evidenceFileId) {
+        ResidenceRegistration before = locked(id);
+        if (before.status() != RegistrationStatus.CONFIRMED && before.status() != RegistrationStatus.EXPIRED) {
+            throw stateChanged("Chỉ ghi đã khai báo xóa khi khai báo Đã xác nhận hoặc Hết hạn (FR-005)");
+        }
+        if (!RegistrationDeregistration.ENDED.contains(residents.status(before.residentId()))) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "RESIDENCY_NOT_ENDED",
+                    "Chỉ ghi đã khai báo xóa khi người cao tuổi đã Kết thúc lưu trú hoặc Qua đời (FR-008)");
+        }
+        if (evidenceFileId == null) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT, "EVIDENCE_REQUIRED", "Cần bằng chứng khi ghi đã khai báo xóa (FR-005)");
+        }
+        Instant now = time.now();
+        long accountId = currentUser.getObject().accountId();
+        if (!registrations.markDeregistered(id, now, accountId, evidenceFileId)) {
+            throw stateChanged("Chỉ ghi đã khai báo xóa khi khai báo Đã xác nhận hoặc Hết hạn (FR-005)");
+        }
+        files.attach(evidenceFileId, RegistrationNames.EVIDENCE_OWNER_TYPE, id);
+        Map<String, Object> after = new LinkedHashMap<>();
+        after.put("status", RegistrationStatus.DEREGISTERED.name());
+        after.put("deregisteredAt", now.toString());
+        after.put("deregistrationEvidenceFileId", evidenceFileId);
+        audit(DEREGISTERED, before, after);
         return registrations.find(id).orElseThrow();
     }
 
