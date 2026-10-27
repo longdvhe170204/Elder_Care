@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -139,12 +140,26 @@ public class AdmissionApplicationStore {
     }
 
     /** Hoàn tất tiếp nhận: Đã tiếp nhận, kèm ý kiến Hiệu lực lúc đó (rỗng nếu chưa có). */
-    public void markAdmitted(long id, Long opinionId) {
+    public void markAdmitted(long id, Long opinionId, LocalDate on) {
         jdbc.update(
-                "UPDATE admission_application SET status = 'ADMITTED', opinion_at_admission_id = ?, version ="
-                        + " version + 1 WHERE id = ?",
+                "UPDATE admission_application SET status = 'ADMITTED', opinion_at_admission_id = ?, admitted_on = ?,"
+                        + " version = version + 1 WHERE id = ?",
                 opinionId,
+                on,
                 id);
+    }
+
+    /** Ngày Hoàn tất tiếp nhận của lượt Đã tiếp nhận mới nhất; rỗng với lượt cũ chưa ghi ngày hoặc chưa tiếp nhận. */
+    public Optional<LocalDate> admittedOn(long residentId) {
+        return jdbc
+                .query(
+                        "SELECT admitted_on FROM admission_application WHERE resident_id = ? AND status = 'ADMITTED'"
+                                + " ORDER BY id DESC LIMIT 1",
+                        (rs, i) -> rs.getObject(1, LocalDate.class),
+                        residentId)
+                .stream()
+                .filter(Objects::nonNull)
+                .findFirst();
     }
 
     /** Đưa vào danh sách chờ: lượt Đang xử lý thành Đang chờ (FR-007); tăng phiên bản để sửa đồng thời bị từ chối. */

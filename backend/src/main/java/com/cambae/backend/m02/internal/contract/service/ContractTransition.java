@@ -1,5 +1,6 @@
 package com.cambae.backend.m02.internal.contract.service;
 
+import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m01.api.dto.TransitionResult;
 import com.cambae.backend.m02.api.dto.ContractStatus;
 import com.cambae.backend.m02.api.events.ContractStatusChanged;
@@ -43,6 +44,10 @@ public class ContractTransition {
         this.events = events;
     }
 
+    private static LocalDate dayOf(TransitionResult result) {
+        return result.at().atZone(BusinessTime.ZONE).toLocalDate();
+    }
+
     @Transactional(propagation = Propagation.MANDATORY)
     public void admissionCancelled(TransitionResult result) {
         long residentId = result.residentId();
@@ -56,7 +61,7 @@ public class ContractTransition {
                 }
                 case ACTIVE -> {
                     String reason = "Hủy tiếp nhận (lịch sử trạng thái " + result.historyId() + ")";
-                    store.markTerminated(contract.id(), reason);
+                    store.markTerminated(contract.id(), reason, dayOf(result));
                     record(contract, ContractStatus.TERMINATED, TERMINATED, result, reason);
                 }
                 default -> {}
@@ -88,7 +93,7 @@ public class ContractTransition {
             } else {
                 String reason = "Kết thúc lưu trú sớm hơn ngày kết thúc hợp đồng (lịch sử trạng thái "
                         + result.historyId() + ")";
-                store.markTerminated(contract.id(), reason);
+                store.markTerminated(contract.id(), reason, dayOf(result));
                 record(contract, ContractStatus.TERMINATED, TERMINATED, result, reason);
             }
         }
@@ -108,7 +113,7 @@ public class ContractTransition {
                 continue;
             }
             String reason = "Qua đời (lịch sử trạng thái " + result.historyId() + ")";
-            store.markTerminated(contract.id(), reason);
+            store.markTerminated(contract.id(), reason, dayOf(result));
             record(contract, ContractStatus.TERMINATED, TERMINATED, result, reason);
         }
     }

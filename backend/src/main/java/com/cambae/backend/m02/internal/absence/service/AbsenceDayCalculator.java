@@ -195,7 +195,7 @@ class AbsenceDayCalculator {
         return ResidenceType.valueOf(content.get("residenceType").asString());
     }
 
-    private static List<AbsencePolicyLine> policyLines(JsonNode content) {
+    static List<AbsencePolicyLine> policyLines(JsonNode content) {
         List<AbsencePolicyLine> lines = new ArrayList<>();
         JsonNode overrides = content.get("absencePolicyOverrides");
         if (overrides != null) {
