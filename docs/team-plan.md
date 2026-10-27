@@ -70,7 +70,7 @@ Tên thư mục web cụ thể do chủ feature chốt khi dịch hợp đồng 
 
 ## 6. Họp tuần (15 phút)
 
-Mỗi người: `api` vừa công bố hoặc đổi; bản giả sắp được thay bằng bản thật; đang vướng gì ở module người khác. Rà bảng ở mục 8: dòng nào xong, dòng nào cần thêm.
+Mỗi người: `api` vừa công bố hoặc đổi; bản giả sắp được thay bằng bản thật; đang vướng gì ở module người khác. Rà bảng ở mục 8: dòng nào xong thì xóa (quy định ở mục 8), dòng nào cần thêm.
 
 ## 7. Dùng công cụ AI
 
@@ -82,10 +82,20 @@ Mỗi người một phiên, trên nhánh của mình. Lệnh đầu: "Làm feat
 
 <!-- 008 Phase 3: người dùng duyệt SPI tối thiểu C/D và version HTTP; verify cuối phase đã qua 672 test. -->
 
-Bảng này cho mọi người và mọi công cụ AI biết ai đang chờ ai. **Đầu mỗi phiên làm việc, xem các dòng có tên mình ở cột "Ai làm".** Khi đang làm mà cần người khác làm gì (khai báo, cài interface, bản giả, sửa hợp đồng), thêm một dòng ở đây trong PR của mình. Xong thì đổi trạng thái thành "Xong (PR, ngày)"; dòng xong quá hai tuần thì xóa. Chi tiết chữ ký ở `contracts/module-interfaces.md` của feature ghi ở cột "Căn cứ".
+Bảng này cho mọi người và mọi công cụ AI biết ai đang chờ ai. **Đầu mỗi phiên làm việc, xem các dòng có tên mình ở cột "Ai làm".** Khi đang làm mà cần người khác làm gì (khai báo, cài interface, bản giả, sửa hợp đồng), thêm một dòng ở đây trong PR của mình. Chi tiết chữ ký ở `contracts/module-interfaces.md` của feature ghi ở cột "Căn cứ".
+
+**Quy định khi một dòng xong** (sửa 2026-10-27, thay luật cũ "đổi trạng thái thành Xong, quá hai tuần thì xóa"):
+
+1. Việc xong (đã vào `develop`, người đang chờ dùng được) thì **xóa dòng đó** trong chính PR làm xong việc; không để lại dòng "Xong" trong bảng.
+2. Kết quả (việc, PR, ngày, test) ghi vào dòng tiến độ của PR đó ở [progress.md](progress.md), để vẫn tra lại được.
+3. Dòng xong một phần: sửa ô "Việc" và "Trạng thái" cho chỉ còn phần chưa xong, không xóa.
+4. Dòng review: người review xem xong (đồng ý, hoặc đã ghi việc cần sửa thành dòng mới) thì xóa dòng review.
+5. Dòng "Ghi nhớ", "Áp dụng" là quy ước dùng lâu dài: giữ tới khi quy ước hết hiệu lực.
+6. Thấy dòng của người khác đã xong trên `develop` mà chưa xóa thì báo người đó hoặc xóa trong PR của mình, ghi lý do ở progress.md.
 
 | Ai làm | Việc | Ai đang chờ, để làm gì | Căn cứ | Trạng thái |
 | --- | --- | --- | --- | --- |
+| A (000, 002) | Nền mobile phần nhân viên, người thân trong `mobile/lib/common/`, `main.dart` (chủ dự án mở 2026-10-27): 000 T006, T007 điều hướng theo loại tài khoản; T008b lint; 002 T046, T047 đăng nhập nhân viên (thiết bị dùng chung, mở khóa sớm), người thân; 000 T100 hàng đợi ngoại tuyến drift; 002 T060 kết quả đồng bộ, chờ xem lại; 000 T010b script sinh client | B, C, D, E: màn `staff/`, `family/` của feature mình cần đăng nhập hoặc ghi khi mất mạng (Q-01); trước đó làm phần trực tuyến | mobile/README.md mục 6; CLAUDE.md mục "Giai đoạn hiện tại" | Chờ A |
 | A (002) | Phát `AccountCreated(accountId, type)` khi tạo tài khoản và `AccountStatusChanged(accountId, from, to, cause)` khi đổi trạng thái, sau commit qua outbox (002 module-interfaces mục 1.10, FR-015); hiện hai sự kiện chỉ khai báo, không chỗ nào phát. Kèm sửa ghi chú cũ "008 chưa cài" trong `ActiveAssignments` | Báo cáo, module nghe sau này (FR-015) | 002 contracts/module-interfaces.md mục 1.10; Rà chéo 2026-10-27 trên develop 93d81bb | Chờ A |
 | A (002) | 002 T059: màn web "Chờ xem lại" (`/pending-review-records`, chấp nhận, từ chối); backend T055 → T058 và client `api002.js` đã có, chỉ thiếu màn | Trưởng tầng, Người phụ trách ca, Quản lý viện xử lý bản ghi ngoại tuyến (FR-041c); hiện chưa có loại bản ghi ngoại tuyến thật (dòng `OfflineHandler`) | 002 tasks T059; Rà chéo 2026-10-27 trên develop 93d81bb | Chờ A |
 | A (000) | 000 T106, T103: hết chờ 002 (T022, T023, T032, T044, T052, T054, T079a đã xong); chạy quickstart 000 mục 3 (K1–K21) ở profile `demo`, đo SC-006, SC-007 | Nghiệm thu 000 | 000 tasks T103, T106; Rà chéo 2026-10-27 trên develop 93d81bb | Chờ A |

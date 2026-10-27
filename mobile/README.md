@@ -4,7 +4,7 @@ Một app Flutter chung cho nhân viên, người thân và người cao tuổi;
 
 Đọc trước khi viết mã: [AGENTS.md](../AGENTS.md), [DESIGN.md](../DESIGN.md) (mục 15 riêng cho Flutter; 15.6 phần người cao tuổi), [docs/team-plan.md](../docs/team-plan.md).
 
-**Giai đoạn** (2026-10-24): chủ dự án mở mobile cho **phần người cao tuổi trước** (002 T097: đăng nhập QR, mật khẩu dự phòng, đổi mật khẩu lần đầu, mở khóa sinh trắc học, màn "Hôm nay" khung). Phần nhân viên, người thân chưa mở: task của chúng để `[ ]`. Thư viện đã duyệt: `http`, `mobile_scanner`, `local_auth`, `flutter_secure_storage`, `firebase_messaging`, `geolocator`, `url_launcher`.
+**Giai đoạn**: chủ dự án mở **phần người cao tuổi** ngày 2026-10-24 (002 T097: đăng nhập QR, mật khẩu dự phòng, đổi mật khẩu lần đầu, mở khóa sinh trắc học, màn "Hôm nay" khung) và mở thêm **phần nhân viên, người thân** ngày 2026-10-27: task mobile của mọi feature làm được. Phần nền dùng chung ở `lib/common/` do A làm: điều hướng theo loại tài khoản (000 T006, T007), lint (T008b), script sinh client (T010b), hàng đợi ngoại tuyến drift (T100), đăng nhập nhân viên, người thân (002 T046, T047), kết quả đồng bộ và chờ xem lại (002 T060); màn cần các phần này thì làm sau, trước đó làm phần trực tuyến và test widget với bản giả. Thư viện đã duyệt: `http`, `mobile_scanner`, `local_auth`, `flutter_secure_storage`, `firebase_messaging`, `geolocator`, `url_launcher`, `drift` (hàng đợi ngoại tuyến của phần nhân viên, research R-01, R-13 của 000).
 
 **Máy có dấu cách trong đường dẫn Flutter** (ví dụ `C:\Users\ADMIN VIP\flutter`): hook native assets của `objective_c` (kéo theo bởi `local_auth`) không đặt nháy đường dẫn nên `flutter test` báo `'C:\Users\ADMIN' is not recognized`. Gọi Flutter qua tên ngắn 8.3, ví dụ `C:\Users\ADMINV~1\flutter\bin\flutter.bat test`, hoặc cài Flutter ở thư mục không có dấu cách.
 
@@ -68,3 +68,10 @@ test/staff/care_tasks/
 - Kho token: `flutter_secure_storage` qua `common/auth/secure_store.dart` (test dùng `MemoryStore`).
 - Theme: `common/theme/app_theme.dart` (token DESIGN.md, `Tones` cho tông trạng thái, `AppTheme.resident` chữ x1,25 vùng bấm 56). Font Be Vietnam Pro 400, 700 đóng gói ở `assets/fonts/`; còn thiếu 500, 600.
 - Chưa chốt: gói biểu tượng lucide cho Flutter, cách lưu chế độ sáng tối (DESIGN.md 15.7).
+
+## 6. Mở phần nhân viên, người thân (2026-10-27, chủ dự án)
+
+- Chủ module làm màn của feature mình trong `staff/<feature>/`, `family/<feature>/` theo tasks; thư mục chưa có thì tạo cùng PR đầu tiên.
+- Thứ tự nền của A trong `common/` và `main.dart`: 000 T006, T007 (điều hướng theo loại tài khoản, khung ba phần), T008b (lint), 002 T046, T047 (đăng nhập nhân viên trên thiết bị dùng chung, mở khóa sớm; đăng nhập người thân), 000 T100 (hàng đợi ngoại tuyến drift, phong bì `Idempotency-Key`, `thoiDiemThietBi`), 002 T060 (kết quả đồng bộ, chờ xem lại), 000 T010b (script sinh client khi số endpoint lớn).
+- Tới khi có hàng đợi ngoại tuyến: lệnh ghi của phần nhân viên gọi API trực tuyến qua `common/api/api_client.dart` và báo cần mạng khi `ApiUnreachable`; không tự viết hàng đợi riêng trong thư mục feature.
+- Màn chỉ dùng dữ liệu mẫu khi không có backend phải ghi rõ trong test; dữ liệu minh họa theo AGENTS.md mục 6.
