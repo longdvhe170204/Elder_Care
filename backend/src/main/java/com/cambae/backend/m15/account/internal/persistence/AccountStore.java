@@ -4,6 +4,8 @@ import com.cambae.backend.common.Role;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m15.account.api.dto.AccountStatus;
 import com.cambae.backend.m15.account.api.dto.AccountType;
+import com.cambae.backend.m15.account.api.events.AccountCreated;
+import com.cambae.backend.m15.account.api.events.AccountStatusChanged;
 import com.cambae.backend.m15.account.internal.domain.Account;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,6 +19,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
@@ -24,6 +27,8 @@ import org.springframework.stereotype.Component;
 /**
  * Đọc, ghi {@code account}, {@code account_status_history}, {@code role_assignment}, {@code login_session} cho lệnh tài
  * khoản (002 T030, T031; data-model mục 2, 3). JDBC như phần còn lại của M15; không có entity JPA (plan 002 ghi chú T030).
+ * Tạo tài khoản và mỗi lần chuyển trạng thái phát sự kiện trong transaction của lệnh, qua outbox (FR-015,
+ * module-interfaces mục 1.10).
  */
 @Component
 public class AccountStore {
@@ -34,10 +39,12 @@ public class AccountStore {
 
     private final JdbcTemplate jdbc;
     private final BusinessTime time;
+    private final ApplicationEventPublisher events;
 
-    AccountStore(JdbcTemplate jdbc, BusinessTime time) {
+    AccountStore(JdbcTemplate jdbc, BusinessTime time, ApplicationEventPublisher events) {
         this.jdbc = jdbc;
         this.time = time;
+        this.events = events;
     }
 
     public Optional<Account> find(long id) {
@@ -178,21 +185,21 @@ public class AccountStore {
     }
 
     public long insertStaff(long staffId, String username, String passwordHash, Long createdBy) {
-        return insert("staff_id", "STAFF", staffId, username, passwordHash, createdBy);
+        return insert("staff_id", AccountType.STAFF, staffId, username, passwordHash, createdBy);
     }
 
     /** Tài khoản người thân (FR-050), buộc đổi mật khẩu lần đầu như tài khoản nhân viên. */
     public long insertFamily(long familyMemberId, String username, String passwordHash, Long createdBy) {
-        return insert("family_member_id", "FAMILY_MEMBER", familyMemberId, username, passwordHash, createdBy);
+        return insert("family_member_id", AccountType.FAMILY_MEMBER, familyMemberId, username, passwordHash, createdBy);
     }
 
     /** Tài khoản người cao tuổi (FR-067), buộc đổi mật khẩu lần đầu như bảng chuyển trạng thái của spec. */
     public long insertResident(long residentId, String username, String passwordHash, Long createdBy) {
-        return insert("resident_id", "RESIDENT", residentId, username, passwordHash, createdBy);
+        return insert("resident_id", AccountType.RESIDENT, residentId, username, passwordHash, createdBy);
     }
 
     private long insert(
-            String linkColumn, String type, long linkId, String username, String passwordHash, Long createdBy) {
+            String linkColumn, AccountType type, long linkId, String username, String passwordHash, Long createdBy) {
         LocalDateTime now = utc(time.now());
         GeneratedKeyHolder key = new GeneratedKeyHolder();
         jdbc.update(
@@ -200,7 +207,7 @@ public class AccountStore {
                     PreparedStatement ps = connection.prepareStatement(
                             "INSERT INTO account (username, type, " + linkColumn + ", status, password_hash,"
                                     + " must_change_password, inactivity_reference_at, created_at, created_by)"
-                                    + " VALUES (?, '" + type + "', ?, 'ACTIVE', ?, TRUE, ?, ?, ?)",
+                                    + " VALUES (?, '" + type.name() + "', ?, 'ACTIVE', ?, TRUE, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS);
                     ps.setString(1, username);
                     ps.setLong(2, linkId);
@@ -211,7 +218,9 @@ public class AccountStore {
                     return ps;
                 },
                 key);
-        return key.getKey().longValue();
+        long accountId = key.getKey().longValue();
+        events.publishEvent(new AccountCreated(accountId, type));
+        return accountId;
     }
 
     /** Tăng {@code version} khi lệnh đổi phần hiển thị của tài khoản mà không đổi trạng thái (gỡ thiết bị, FR-070). */
@@ -227,8 +236,12 @@ public class AccountStore {
                 .findFirst();
     }
 
-    /** Chuyển trạng thái, tăng {@code version}, thêm một dòng lịch sử (data-model mục 2). */
+    /**
+     * Chuyển trạng thái, tăng {@code version}, thêm một dòng lịch sử (data-model mục 2), phát {@code AccountStatusChanged}
+     * với nguyên nhân khóa (rỗng khi trạng thái mới không có nguyên nhân khóa).
+     */
     public void changeStatus(long accountId, AccountStatus status, String lockCause, Long actorId) {
+        AccountStatus from = currentStatus(accountId);
         LocalDateTime now = utc(time.now());
         jdbc.update(
                 "UPDATE account SET status = ?, lock_cause = ?, locked_until = NULL, version = version + 1,"
@@ -239,6 +252,12 @@ public class AccountStore {
                 now,
                 accountId);
         history(accountId, status, lockCause, actorId);
+        events.publishEvent(new AccountStatusChanged(accountId, from, status, lockCause));
+    }
+
+    private AccountStatus currentStatus(long accountId) {
+        return AccountStatus.valueOf(
+                jdbc.queryForObject("SELECT status FROM account WHERE id = ?", String.class, accountId));
     }
 
     public void history(long accountId, AccountStatus status, String lockCause, Long actorId) {
@@ -322,12 +341,14 @@ public class AccountStore {
 
     /** Chuyển Khóa tạm tới {@code until} (FR-008), tăng {@code version}, thêm dòng lịch sử; Bộ lập lịch thực hiện. */
     public void temporarilyLock(long accountId, Instant until) {
+        AccountStatus from = currentStatus(accountId);
         jdbc.update(
                 "UPDATE account SET status = 'TEMPORARILY_LOCKED', lock_cause = NULL, locked_until = ?,"
                         + " version = version + 1 WHERE id = ?",
                 utc(until),
                 accountId);
         history(accountId, AccountStatus.TEMPORARILY_LOCKED, null, null);
+        events.publishEvent(new AccountStatusChanged(accountId, from, AccountStatus.TEMPORARILY_LOCKED, null));
     }
 
     /** Đăng nhập thành công: bộ đếm về 0, lưu lần đăng nhập, đặt lại mốc tính Không hoạt động (FR-008, FR-010). */
