@@ -123,6 +123,20 @@ public class RegistrationObligationStore {
                 registrationId);
     }
 
+    /**
+     * Hủy nghĩa vụ đang mở khi người cao tuổi sang trạng thái cuối (research Z-05): nghĩa vụ chưa có khai báo đáp ứng hoặc
+     * có khai báo đáp ứng đã Đã hủy; dòng giữ lại ({@code cancelled_at}), không xóa. Gọi sau khi hủy khai báo đang xử lý.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int cancelOpen(long residentId, Instant at) {
+        return jdbc.update(
+                "UPDATE registration_obligation o LEFT JOIN residence_registration r ON r.id = o.registration_id"
+                        + " SET o.cancelled_at = ? WHERE o.resident_id = ? AND o.cancelled_at IS NULL"
+                        + " AND (o.registration_id IS NULL OR r.status = 'CANCELLED')",
+                ResidenceRegistrationStore.utc(at),
+                residentId);
+    }
+
     /** Đánh dấu đã báo Quản lý viện; {@code false} nếu đã báo trước đó (một lần, FR-002). */
     @Transactional(propagation = Propagation.MANDATORY)
     public boolean markManagerNotified(long id, Instant at) {

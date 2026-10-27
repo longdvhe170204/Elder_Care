@@ -29,7 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Khai báo tạm trú, lưu trú (018; contracts/api-018.yaml, tag {@code residence-registrations}). Phase 3 (US1): danh sách
  * cần làm, khai báo của người cao tuổi, lập khai báo, xác nhận thường trú cùng xã/phường; Phase 4 (US2): ghi nộp, ghi kết
- * quả; Phase 5 (US3): lập khai báo gia hạn ({@code renewal: true}); khai báo xóa (T014) thêm ở Phase 6. Mọi logic và kiểm quyền ở service.
+ * quả; Phase 5 (US3): lập khai báo gia hạn ({@code renewal: true}); Phase 6 (US4): ghi đã khai báo xóa. Mọi logic và kiểm
+ * quyền ở service.
  */
 @RestController
 @RequestMapping("/api/v1")
@@ -41,6 +42,7 @@ class ResidenceRegistrationController {
     private static final String RECORD_SUBMITTED = "record-submitted";
     private static final String RECORD_ACCEPTED = "record-accepted";
     private static final String RECORD_REJECTED = "record-rejected";
+    private static final String RECORD_DEREGISTERED = "record-deregistered";
 
     private final ResidenceRegistrationService registrations;
 
@@ -86,9 +88,9 @@ class ResidenceRegistrationController {
     }
 
     /**
-     * Lệnh theo bảng FR-005. Đã cài: {@code confirm-local-permanent-resident} (T008), {@code record-submitted}, {@code
-     * record-accepted}, {@code record-rejected} (T010). {@code record-deregistered} (T014) còn trả 422 {@code
-     * INVALID_COMMAND} tạm, ngoài hợp đồng, tới khi được cài.
+     * Lệnh theo bảng FR-005: {@code confirm-local-permanent-resident} (T008), {@code record-submitted}, {@code
+     * record-accepted}, {@code record-rejected} (T010), {@code record-deregistered} (T014). Lệnh khác trả 422 {@code
+     * INVALID_COMMAND} (đề xuất đưa vào hợp đồng chờ duyệt, BL-95).
      */
     @PostMapping("/residence-registrations/{id}/{command}")
     @ApiResponses({
@@ -99,7 +101,8 @@ class ResidenceRegistrationController {
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
         @ApiResponse(
                 responseCode = "409",
-                description = "STATE_CHANGED, NOT_SUBMITTED, EVIDENCE_REQUIRED, EXPIRY_DATE_REQUIRED",
+                description =
+                        "STATE_CHANGED, NOT_SUBMITTED, EVIDENCE_REQUIRED, EXPIRY_DATE_REQUIRED, RESIDENCY_NOT_ENDED",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
     })
     void command(
@@ -114,7 +117,7 @@ class ResidenceRegistrationController {
                                                 RECORD_SUBMITTED,
                                                 RECORD_ACCEPTED,
                                                 RECORD_REJECTED,
-                                                "record-deregistered"
+                                                RECORD_DEREGISTERED
                                             }))
                     String command,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
@@ -134,6 +137,7 @@ class ResidenceRegistrationController {
                         id,
                         new ResidenceRegistrationService.Acceptance(body.evidenceFileId(), body.expiryDate()));
             case RECORD_REJECTED -> registrations.recordRejected(target, id, body.reason());
+            case RECORD_DEREGISTERED -> registrations.recordDeregistered(target, id, body.evidenceFileId());
             default ->
                 throw new BusinessException(
                         HttpStatus.UNPROCESSABLE_CONTENT,

@@ -218,6 +218,58 @@ public class ResidenceRegistrationStore {
                 == 1;
     }
 
+    /** Khai báo Cần khai báo hoặc Đã nộp của người cao tuổi, đọc khóa (DBR-33: tối đa một). */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public List<ResidenceRegistration> inProgressForUpdate(long residentId) {
+        return jdbc.query(
+                "SELECT " + COLUMNS + " FROM residence_registration WHERE in_progress_key = ? FOR UPDATE",
+                this::row,
+                residentId);
+    }
+
+    /** Khai báo Đã xác nhận hoặc Hết hạn của người cao tuổi (cần khai báo xóa khi ở trạng thái cuối, FR-008), đọc khóa. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public boolean hasConfirmedOrExpired(long residentId) {
+        return !jdbc.queryForList(
+                        "SELECT id FROM residence_registration WHERE resident_id = ?"
+                                + " AND status IN ('CONFIRMED', 'EXPIRED') FOR UPDATE",
+                        Long.class,
+                        residentId)
+                .isEmpty();
+    }
+
+    /** Mọi khai báo Đã xác nhận hoặc Hết hạn (lọc người ở trạng thái cuối ở service, FR-008). */
+    public List<ResidenceRegistration> confirmedOrExpired() {
+        return jdbc.query(
+                "SELECT " + COLUMNS
+                        + " FROM residence_registration WHERE status IN ('CONFIRMED', 'EXPIRED') ORDER BY id",
+                this::row);
+    }
+
+    /** Người cao tuổi chuyển trạng thái cuối (FR-005): Cần khai báo, Đã nộp → Đã hủy; {@code false} nếu đã chuyển. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public boolean markCancelled(long id) {
+        return jdbc.update(
+                        "UPDATE residence_registration SET status = 'CANCELLED'"
+                                + " WHERE id = ? AND status IN ('TO_SUBMIT', 'SUBMITTED')",
+                        id)
+                == 1;
+    }
+
+    /** Ghi đã khai báo xóa (FR-008): Đã xác nhận, Hết hạn → Đã xóa; thời điểm, người ghi, bằng chứng đặt một lần. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public boolean markDeregistered(long id, Instant at, long byId, long evidenceFileId) {
+        return jdbc.update(
+                        "UPDATE residence_registration SET status = 'DEREGISTERED', deregistered_at = ?,"
+                                + " deregistered_by_id = ?, deregistration_evidence_file_id = ?"
+                                + " WHERE id = ? AND status IN ('CONFIRMED', 'EXPIRED')",
+                        utc(at),
+                        byId,
+                        evidenceFileId,
+                        id)
+                == 1;
+    }
+
     private ResidenceRegistration row(ResultSet rs, int i) throws SQLException {
         Date expiry = rs.getDate("expiry_date");
         return new ResidenceRegistration(
