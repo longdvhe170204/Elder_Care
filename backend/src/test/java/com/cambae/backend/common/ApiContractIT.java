@@ -102,8 +102,8 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                             "PUT /api/v1/residency-change-requests/{id}"),
                     Set.of(),
                     true),
-            // 018 Phase 3 (2026-10-27, chờ A xem): đủ bốn operation; lệnh {command} chưa cài tạm trả 422 (ngoài hợp
-            // đồng) tới Phase 4, 6
+            // 018 (2026-10-27, chờ A xem, BL-91): đủ bốn operation và năm lệnh {command}; lệnh ngoài enum trả 422
+            // INVALID_COMMAND (ngoài hợp đồng, BL-95)
             new Contract(
                     Path.of("..", "specs", "018-residence-registration", "contracts", "api-018.yaml"),
                     Set.of(),

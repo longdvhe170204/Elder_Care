@@ -182,7 +182,58 @@ frontend/src/tinh-nang/khai-bao-tam-tru/
 - **Xong**: T001 → T003, T005, T006, T009 → T011, T013.
 - **Theo dõi**: BL-87 (`KhaiBaoThongKeApi`, T015), BL-90, BL-91 (`ApiContractIT` api-018), BL-93 (fail-fast `MySqlIntegrationTestBase`), BL-94 (quyền thừa `eldercare_test` 3306), BL-95 (422 của `{command}`), BL-96.
 
-## PHASE 7 HANDOFF (Polish, T015 → T017)
+## Phase 7 (một phần, T015 → T017 vẫn `[ ]`, 2026-10-27)
+
+- **Rà test US1–US4** (không thêm test mới; mỗi nhóm đã có test xanh): lũy đẳng (`idempotency_theSameKeyTwice_*`, `NFR_05_aRepeatedEvent_*`, `replayingTheEffect_*`, `Z_06_runningAgainTheSameDay_*`); tranh chấp (`concurrency_*` ở `RegistrationSubmissionResultIT`, `BR_M02_13_DeregistrationIT`, `DBR_33_twoSimultaneousCreates_*`, `NFR_04_twoRunnersAtOnce_*`); transaction (`FR_005_acceptingANewRegistration_supersedes*` cùng transaction, tác động của bean trong transaction lệnh 001); quyền (`FR_009_*`, `Q10_*`, `NFR_08_evidence_*`); trạng thái và ràng buộc DB (`RegistrationSchemaIT`: bảng chuyển FR-005, cột đặt một lần, khóa `UNIQUE` DBR-33, chỉ tài khoản lưu giữ được xóa); hậu trạng thái cuối BR-M01-05 (`BR_M01_05_*`, `US4_2_*` ghi xóa khi hồ sơ trạng thái cuối, `FR_005_endResidencyWhileToSubmit_*`, `US4_3_*`).
+- **422 ngoài hợp đồng** (`POST /residence-registrations/{id}/{command}` chỉ khai 200, 403, 409): (1) lệnh ngoài enum trả `INVALID_COMMAND` (nhánh `default`, test `contract_unknownCommandStill422_*`); (2) thiếu trường bắt buộc (ngày nộp, kênh, cơ quan, lý do từ chối, ghi chú căn cứ) hoặc ngày hết hạn gửi kèm Thông báo lưu trú trả `INVALID_VALUE` (`InvalidValueException` chung, test ở mức service). Năm lệnh đã cài, không còn 422 tạm. Chờ BL-95.
+- **Job, provider**: `ResidenceRegistrationJob` chạy `RegistrationDailyRunner` nhưng chưa có `RegistrationDailyTask` thật (BL-90); bốn việc (`REG_OVERDUE`, `REG_RENEWAL`, `REG_EXPIRY`, `REG_DEREGISTER`) test bằng gọi thẳng hàm với ngày giả lập. Không bật job. Bốn provider có `RegistrationProvidersIT`.
+- **Kiểm ranh giới**: bảng 018 ghi, đọc chỉ thuộc M02 (`residence_registration`, `registration_*`, `daily_run` của 004); module khác qua `api` (`m01.api`, `m15.*.api`); 004 qua `m02.api` (`ContractReadApi`, `AdmissionCompleted`, `AddendumApplied`, `ContractStatusChanged`), không dùng `internal` của 004. `ModuleBoundaryTest`, `ResidenceRegistrationArchTest` xanh. Không có `TODO`, `@Disabled` trong file của 018.
+- **Sửa nhỏ** (không đổi hành vi): chú thích lỗi thời của B trong `ApiContractIT` (dòng đăng ký api-018); glossary 24.5 thêm tên Phase 6 (T013, T014); quickstart: tên test thật, mã lỗi theo api-018, mục 6 (Q1–Q20 ↔ test, phần chưa chạy).
+- **Lỗi thật**: không phát hiện. **Lệch tài liệu**: 018 module-interfaces khai sự kiện `KhaiBaoDaDoiTrangThai` cho 016 nhưng không có task, 016 không dùng (gộp vào BL-87).
+- **Hồi quy** (MySQL 8.4 `localhost:3307`, script chặn kiểm tiến trình, `@@port` 3307, `@@datadir` scratchpad, đặt `DB_URL`, `TEST_DB_URL` về 3307): `verify` với `-Dtest` 5 lớp (29 test: `ResidenceRegistrationArchTest`, `ModuleBoundaryTest`, `TimeArchTest`, hai test hàm thuần) và `-Dit.test` 15 lớp (116 test: 10 lớp IT của 018, `BR_M02_18`, `BR_M02_19`, `M02StatusParticipantIT`, `RecordDeathIT`, `ResidentContractIT`, `ApiContractIT`): `BUILD SUCCESS`, gồm `spotless:check`. Không chạy `clean verify` toàn kho (BL-90), `npm test` (không có mã web 018).
+
+### Truy vết (T017)
+
+| Mục | Task | Bằng chứng |
+| --- | --- | --- |
+| FR-001, FR-001a, FR-002, BR-M02-11 | T006 → T008 | `BR_M02_11_ResidenceRegistrationIT`, `ExpectedStayDurationTest`, `RegistrationTypeRuleTest`, `ResidenceRegistrationArchTest` (Q-306) |
+| FR-003, FR-004, FR-005, DBR-33 | T002, T009, T010 | `RegistrationSchemaIT`, `RegistrationSubmissionResultIT`, `DBR_33_OneRegistrationIT` |
+| FR-006, FR-007, BR-M02-12, BR-M02-14 | T011, T012 | `BR_M02_12_RenewalIT`, `BR_M02_14_TypeChangeIT` (nhắc trong job: BL-90) |
+| FR-008, BR-M02-13, SC-004 | T013, T014 | `BR_M02_13_DeregistrationIT` (nhắc trong job: BL-90) |
+| FR-009 | T005, T008, T010 | `FR_009_*`, `Q10_*`, `NFR_08_evidence_*` |
+| FR-010 | T007, T012, T014 | sự kiện `ResidenceRegistrationReminder` (sáu `Kind`, Nhẹ), test `Q4_*`, `Q11_*`, `Q13_*`, `US4_4_*`; gửi hằng ngày qua job chờ BL-90 |
+| FR-011 | T015 | **chưa có** (BL-87) |
+| DBR-25 | T002 | `TimeArchTest` (000), cột `DATETIME(6)` UTC đọc theo Asia/Ho_Chi_Minh (`RegistrationTestBase`) |
+| Đính chính, lưu giữ, phân loại trường, phạm vi (000) | T005, T010 | `RegistrationProvidersIT`, `Z_04_*` |
+| Hợp đồng api-018 | T008, T015 | `ApiContractIT` (BL-91) |
+
+### Đề xuất chữ ký `KhaiBaoThongKeApi` (chỉ để A duyệt, chưa viết mã)
+
+```java
+// m02.api
+public interface ResidenceRegistrationStatisticsApi {
+    /** 018 FR-011, 016 FR-020 (REGISTRATION.TO_DO); toàn viện (016 spec bảng quyền: chỉ Quản lý viện, Hành chính). */
+    RegistrationSummaryView summary();
+}
+// m02.api.dto
+public record RegistrationSummaryView(int toCreate, int overdue, int expired, int toDeregister) {}
+```
+
+Nguồn: `toCreate` = nghĩa vụ chưa nộp, chưa hủy (chưa lập hoặc khai báo Cần khai báo); `overdue` = phần đó có `effective_due_at` đã qua; `expired` = khai báo Hết hạn chưa ghi xóa; `toDeregister` = `RegistrationDeregistration.due`. Cách A: đếm người (FR-011 của 018; `expired` vẫn là số khai báo theo câu chữ FR-011). Cách B: đếm khai báo, việc (016 FR-020, spec 016 bảng chỉ tiêu). Hai spec lệch nhau nên B không chọn.
+
+### Bàn giao A (018, 2026-10-27; chi tiết từng dòng ở team-plan mục 8)
+
+| Ưu tiên | Mã | A cần quyết, duyệt | Task bị chặn |
+| --- | --- | --- | --- |
+| 1 | BL-90 | Sửa ba file chung: (a) `SchedulerScopeArchTest.ALLOWED` thêm `com.cambae.backend.m02.scheduling.ResidenceRegistrationJob` (nhắc lập, quá hạn, gia hạn, khai báo xóa; chuyển Hết hạn; không lập khai báo, Q-306); (b) `M02_REGISTRATION` vào `runJobs` của api-000 và `TestClockController.TestJob`; (c) `eldercare.jobs.m02-registration: cron: "-", on-startup: false` ở profile `test`. Sau đó B gắn bốn việc `REG_OVERDUE`, `REG_RENEWAL`, `REG_EXPIRY`, `REG_DEREGISTER` | T004, T007, T012, T014 (phần job), T016 (`clean verify` toàn kho đỏ) |
+| 2 | BL-96 | (1) Duyệt bố cục K1–K7 ở DESIGN.md mục 14 "Đề xuất bố cục chờ duyệt: 018 T008"; (2) duyệt bổ sung api-018: `ResidenceRegistration.basisNote`, `allowedCommands` (gồm `record-deregistered`), `submissions[]` (schema `RegistrationSubmission`), `RegistrationTask.allowedCommands`; (3) thêm '018' vào `TRANSLATED` của `frontend/scripts/gen-api.mjs` sau khi PR hợp đồng 018 được duyệt | T008, web của T012, T014; T016 (`npm test`, quickstart mục 3, SC-005) |
+| 3 | BL-87 | (1) Tên, DTO của `KhaiBaoThongKeApi` (đề xuất `ResidenceRegistrationStatisticsApi.summary()` → `RegistrationSummaryView(toCreate, overdue, expired, toDeregister)`, toàn viện); (2) đếm theo người (018 FR-011) hay theo khai báo, việc (016 FR-020): hai spec lệch, cần chủ dự án chốt; (3) sự kiện `KhaiBaoDaDoiTrangThai` trong 018 module-interfaces: thêm task hay bỏ | T015, FR-011 của T017 |
+| 4 | BL-91 | Xem dòng đăng ký api-018 trong `ApiContractIT` (B thêm, `pending` rỗng, `checkOperations = true`, đang xanh) | T015 (phần hợp đồng), PR 018 |
+| 5 | BL-95 | Thêm `'422': Problem` vào operation `{command}` của api-018 (đề xuất của B) cho hai trường hợp đang trả 422 ngoài hợp đồng: thiếu trường bắt buộc, ngày hết hạn với Thông báo lưu trú (`INVALID_VALUE`), lệnh ngoài enum (`INVALID_COMMAND`); hoặc chọn mã khác | T016 (lệch hợp đồng duy nhất còn lại); đi cùng bổ sung api-018 của BL-96 |
+| 6 | BL-93 | Fail-fast trong `MySqlIntegrationTestBase`: so `@@port`, `@@datadir` với `TEST_DB_EXPECTED_PORT`, `TEST_DB_EXPECTED_DATADIR` trước mọi `DROP`/`CREATE`; lệch thì dừng | Không chặn task; rủi ro xóa nhầm DB dev của mọi thành viên |
+| 7 | BL-97 B | Người có khai báo Hết hạn cũ và khai báo mới Đã xác nhận: một hay hai thủ tục khai báo xóa ở công an? Hiện giữ FR-008, bảng 6.10 (mỗi khai báo một việc, ghi xóa riêng) | Không chặn; đổi thì sửa T014 |
+
+## PHASE 7 HANDOFF (Polish, T015 → T017) *(đã dùng một phần; việc còn lại ở "Bàn giao A" dưới)*
 
 - **T015** chờ BL-87 (A chốt DTO và quy tắc đếm của `KhaiBaoThongKeApi.tongHop()`); "số người cần khai báo xóa" (FR-011) đếm theo `RegistrationDeregistration.due` (người, không phải khai báo). Phần mở rộng test hợp đồng: api-018 đã đăng ký trong `ApiContractIT` (chờ A xem, BL-91).
 - **T016** cần BL-90 xong để `./mvnw verify` toàn kho xanh (`SchedulerScopeArchTest.FR_010a_everyJobIsAnAllowedKind` đỏ vì `ResidenceRegistrationJob` chưa vào `ALLOWED`) và màn web (BL-96) để `npm test`, kịch bản quickstart mục 3 chạy được.

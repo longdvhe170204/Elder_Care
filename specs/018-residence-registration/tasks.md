@@ -116,9 +116,9 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 ## Phase 7: Polish & Cross-Cutting
 
-- [ ] T015 [P] Cài `KhaiBaoThongKeApi.tongHop()` (016); mở rộng `BT/common/HopDongApiTest.java` với `specs/018-residence-registration/contracts/api-018.yaml`
-- [ ] T016 Chạy `./mvnw verify`, `npm test` và kịch bản quickstart.md mục 3
-- [ ] T017 Rà truy vết: DBR-25, 33 và BR-M02-11 → 14 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-009, FR-010, FR-011 — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T015 [P] Cài `KhaiBaoThongKeApi.tongHop()` (016); mở rộng `BT/common/HopDongApiTest.java` với `specs/018-residence-registration/contracts/api-018.yaml` *(2026-10-27, Phase 7: phần so hợp đồng đã làm từ Phase 3: api-018 đăng ký trong `ApiContractIT` (`pending` rỗng, `checkOperations = true`), xanh; chờ A xem (BL-91). Chưa viết `KhaiBaoThongKeApi`, không interface, không bản giả: chờ A chốt DTO, đơn vị đếm (018 FR-011 đếm người, 016 FR-020 đếm khai báo) và sự kiện `KhaiBaoDaDoiTrangThai` khai ở module-interfaces mà không có task (BL-87); đề xuất chữ ký ở plan "Phase 7 (một phần)")*
+- [ ] T016 Chạy `./mvnw verify`, `npm test` và kịch bản quickstart.md mục 3 *(2026-10-27, Phase 7: rà test US1–US4 (lũy đẳng, tranh chấp, transaction, quyền, trạng thái, ràng buộc DB, BR-M01-05), hồi quy mục tiêu trên 3307 xanh (29 unit/ArchTest, 116 IT), xem plan "Phase 7 (một phần)"; quickstart thêm mục 6 (Q1–Q20 ↔ test). Còn `[ ]`: `clean verify` toàn kho đỏ ở `SchedulerScopeArchTest` (BL-90); chưa có màn web nên `npm test` không có test 018, kịch bản mục 3 chưa chạy trên `demo`, SC-005 chưa đo (BL-96))*
+- [ ] T017 Rà truy vết: DBR-25, 33 và BR-M02-11 → 14 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-009, FR-010, FR-011 — mỗi FR có task hoặc test tương ứng (constitution XV) *(2026-10-27, Phase 7: bảng truy vết ở plan "Phase 7 (một phần)"; DBR-25, DBR-33, BR-M02-11 → 14, FR-001 → FR-010 có test; glossary 24.5 bổ sung tên Phase 6. Còn `[ ]`: FR-011 chưa có (T015, BL-87); FR-010 phần nhắc hằng ngày chưa qua job (BL-90))*
 
 ---
 
