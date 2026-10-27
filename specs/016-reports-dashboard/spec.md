@@ -81,6 +81,10 @@ Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 
 
 - **Q-389**: "nhân viên có phân công tại tầng" của chỉ tiêu "Giấy phép hành nghề/đào tạo sắp hết hạn" (FR-010, FR-020) là nhân viên có phân công tại tầng được giao đang hiệu lực lúc xem hoặc đã công bố mà chưa kết thúc, trong cửa sổ cảnh báo của chỉ tiêu; không tính phân công Nháp, đã hủy, đã kết thúc.
 
+### Cập nhật 2026-10-27, lượt 2 (Q-390, chủ dự án chốt khi triển khai chỉ tiêu giường)
+
+- **Q-390**: FR-033 xếp mỗi lần giường Chờ sẵn sàng vào khoảng theo lúc bắt đầu, tính một lần với thời gian đầy đủ; lần còn mở tính tới lúc xem; số lần vượt CFG-M03-04 đếm theo cùng mốc (FR-003, FR-006).
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 14, mục 18; UC-67):
