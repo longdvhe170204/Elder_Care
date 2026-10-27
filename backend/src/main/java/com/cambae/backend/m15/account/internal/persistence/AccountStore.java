@@ -58,6 +58,15 @@ public class AccountStore {
                 .findFirst();
     }
 
+    /** Tài khoản nhân viên đang Khóa tạm chưa hết hạn tại {@code now} (ứng viên mở khóa sớm, FR-019c). */
+    public List<Account> temporarilyLockedStaff(Instant now) {
+        return jdbc.query(
+                "SELECT " + COLUMNS + " FROM account WHERE type = 'STAFF' AND status = 'TEMPORARILY_LOCKED'"
+                        + " AND locked_until > ? ORDER BY locked_until, id",
+                AccountStore::row,
+                utc(now));
+    }
+
     public Optional<Account> byStaff(long staffId) {
         return jdbc.query("SELECT " + COLUMNS + " FROM account WHERE staff_id = ?", AccountStore::row, staffId).stream()
                 .findFirst();

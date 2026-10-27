@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 
-import '../../common/api/api_client.dart';
-import '../../common/auth/session_controller.dart';
-import '../../common/widgets/sky_background.dart';
-import 'login_messages.dart';
+import '../api/api_client.dart';
+import '../api/problem_message.dart';
+import '../widgets/sky_background.dart';
+import 'session_controller.dart';
 
-/// Đổi mật khẩu bắt buộc lần đầu (002 FR-006; bảng chuyển trạng thái của spec 002 áp cả tài khoản người cao tuổi).
+/// Đổi mật khẩu bắt buộc lần đầu (002 FR-006) cho cả ba loại tài khoản; [message] đổi lỗi thành câu báo theo phần app
+/// (người cao tuổi dùng câu ngắn của DESIGN.md 15.6).
 class ChangePasswordScreen extends StatefulWidget {
-  const ChangePasswordScreen({super.key, required this.session});
+  const ChangePasswordScreen({super.key, required this.session, this.message = backendMessage});
 
   final SessionController session;
+  final String Function(Object error) message;
 
   @override
   State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
@@ -40,10 +42,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     } on ApiProblem catch (p) {
       // 422 báo tại ô (DESIGN.md 15.3)
       if (mounted) {
-        setState(() => p.status == 422 ? _newPasswordError = loginError(p) : _error = loginError(p));
+        setState(() => p.status == 422 ? _newPasswordError = widget.message(p) : _error = widget.message(p));
       }
     } on Exception catch (e) {
-      if (mounted) setState(() => _error = loginError(e));
+      if (mounted) setState(() => _error = widget.message(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }

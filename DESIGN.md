@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 5.23.0
+version: 5.25.0
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-10-27
@@ -310,8 +310,8 @@ Tên trạng thái lấy đúng theo `nghiep-vu.md`. `StatusBadge` ánh xạ the
 | Tông | Hiển thị | Trạng thái |
 | --- | --- | --- |
 | `urgent` | Chữ đỏ trên nền đỏ nhạt | Thông báo mức Khẩn cấp; Công việc Quá hạn; người cao tuổi Quá hạn đánh giá lại (cột Đánh giá lại, dải đầu tab Đánh giá); sự cố, cảnh báo mức Khẩn cấp; cảnh báo "đã leo thang tối đa"; liều thuốc Trễ, Bỏ lỡ; viền đỏ của thẻ cảnh báo Khẩn cấp hoặc đã leo thang tối đa |
-| `attention` | Chữ hổ phách trên nền hổ phách | Thông báo mức Trung bình, Gửi thất bại, Không liên lạc được; liên hệ trực tiếp Chờ liên hệ; Công việc Đến hạn; liều thuốc Đến giờ; cảnh báo, sự cố mức Trung bình; cảnh báo Mới, Leo thang (chưa tối đa); chỉ số Vượt ngưỡng; người cao tuổi Tạm vắng, Điều trị tại bệnh viện, Đang tiếp nhận; giường Chờ sẵn sàng; phòng đang cách ly; bàn giao Có ý kiến; yêu cầu thay đổi quyền người thân Chờ xác nhận; đề nghị mua hộ Chờ đồng ý; phản hồi Đang xử lý, Mở lại; đồ gửi Thất lạc, Hư hỏng; yêu cầu phê duyệt Chờ duyệt, Áp dụng không thành; tài khoản Khóa tạm; bản ghi ngoại tuyến Chờ xem lại; quyền Đã thu hẹp (lệch ma trận); dị ứng (`AllergyNote`, có viền và biểu tượng cảnh báo) |
-| `settled` | Chữ xanh lá trên nền xanh lá nhạt | Thông báo Đã xem, Đã xác nhận; liên hệ trực tiếp Đã liên hệ; kênh thông báo Đang bật; Công việc Hoàn thành; liều thuốc Đã dùng; cảnh báo Đã đóng; bàn giao Đã xác nhận; người cao tuổi Đang lưu trú; lượt thăm Đã duyệt; phản hồi Đã phản hồi; hợp đồng Hiệu lực; quyết định của người thân Đã đồng ý, Đã xác nhận; yêu cầu phê duyệt Đã duyệt, Đã áp dụng; tài khoản Hoạt động |
+| `attention` | Chữ hổ phách trên nền hổ phách | Thông báo mức Trung bình, Gửi thất bại, Không liên lạc được; liên hệ trực tiếp Chờ liên hệ; Công việc Đến hạn; liều thuốc Đến giờ; cảnh báo, sự cố mức Trung bình; cảnh báo Mới, Leo thang (chưa tối đa); chỉ số Vượt ngưỡng; người cao tuổi Tạm vắng, Điều trị tại bệnh viện, Đang tiếp nhận; giường Chờ sẵn sàng; phòng đang cách ly; bàn giao Có ý kiến; yêu cầu thay đổi quyền người thân Chờ xác nhận; đề nghị mua hộ Chờ đồng ý; phản hồi Đang xử lý, Mở lại; đồ gửi Thất lạc, Hư hỏng; yêu cầu phê duyệt Chờ duyệt, Áp dụng không thành; tài khoản Khóa tạm; bản ghi ngoại tuyến Chờ xem lại; kết quả đồng bộ Đã nhận kèm nhãn mất quyền, Bị từ chối; quyền Đã thu hẹp (lệch ma trận); dị ứng (`AllergyNote`, có viền và biểu tượng cảnh báo) |
+| `settled` | Chữ xanh lá trên nền xanh lá nhạt | Thông báo Đã xem, Đã xác nhận; liên hệ trực tiếp Đã liên hệ; kênh thông báo Đang bật; Công việc Hoàn thành; liều thuốc Đã dùng; cảnh báo Đã đóng; bàn giao Đã xác nhận; người cao tuổi Đang lưu trú; lượt thăm Đã duyệt; phản hồi Đã phản hồi; hợp đồng Hiệu lực; quyết định của người thân Đã đồng ý, Đã xác nhận; yêu cầu phê duyệt Đã duyệt, Đã áp dụng; tài khoản Hoạt động; kết quả đồng bộ Đã nhận |
 | `held` | Chữ xanh trời đậm, viền cùng màu, nền trong | Giường Đang giữ chỗ (ghi kèm lý do) |
 | `occupied` | Chữ xanh chàm trên nền xanh chàm | Giường Đang sử dụng; lượt thăm Đã vào |
 | `neutral` | Chữ phụ trên nền phụ | Thông báo mức Nhẹ, Chờ hết giờ yên tĩnh, Đã gửi, Không gửi; liên hệ trực tiếp Không liên hệ được; kênh thông báo Đã tắt; lỗi gửi (trừ Gửi thất bại); Lưu ý chăm sóc (`CareNote`, chữ chính trên nền phụ, biểu tượng thông tin); công việc Chưa đến hạn, Hoàn thành trễ, Không thực hiện, Hủy; giường Trống, Đang bảo trì, Tạm ngừng sử dụng, Không sử dụng; người cao tuổi ở trạng thái cuối; lượt thăm Đã ra, Không đến, Hủy; phản hồi Mới, Đóng; đồ gửi Đang giữ, Đang được người cao tuổi sử dụng; kỳ chi phí Tạm tính, Đã chốt; quyết định Đã từ chối; liều thuốc Chưa đến giờ, Từ chối, Không thực hiện, Tạm dừng, Mang theo, Đã hủy; cảnh báo, sự cố mức Nhẹ; cảnh báo Đã tiếp nhận, Chuyển sự cố; bàn giao Bản nháp, Đã lập; bản ghi Đã đính chính, Đã hủy ghi nhận (`CorrectionBadge`); yêu cầu phê duyệt Nháp, Từ chối, Đã hủy; tài khoản Không hoạt động; quyền Theo ma trận |
@@ -640,12 +640,17 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 ### 15.7 Hiện trạng
 
 - (2026-10-24) Đã có theme `lib/common/theme/app_theme.dart` theo token và phần người cao tuổi: đăng nhập QR, mật khẩu dự phòng, đổi mật khẩu lần đầu, hỏi mở bằng sinh trắc học, màn khóa, "Hôm nay" mới có tiêu đề (thẻ và nút SOS thêm khi 012, 007 có phần app). Font mới có 400, 700. Chưa nghiệm thu trên máy thật.
+- (2026-10-27) App chung chuyển phần theo loại tài khoản (000 T006, T007): phần nhân viên, người thân mới có trạng thái "Phần nhân viên: chưa có màn", "Phần người thân: chưa có màn" trên thẻ trắng (mục 7.3); thanh điều hướng dưới (15.4) thêm khi có màn đầu tiên. Không thêm màu, không đổi quy định.
+- (2026-10-27, bố cục duyệt cùng ngày) Đăng nhập: màn chọn "Tôi là" (Nhân viên, Người thân, Người cao tuổi: quét mã QR), máy đã gắn người cao tuổi vào thẳng màn quét; form tên đăng nhập, mật khẩu cho nhân viên (kèm câu máy dùng chung), người thân. Phần nhân viên có thanh điều hướng dưới Đồng bộ, Chờ xem lại, Mở khóa sớm và nút "Đăng xuất" ở thanh tiêu đề; bottom sheet cho quyết định xem lại, mở khóa sớm (ô "Tôi đã gặp trực tiếp người này", lý do). Gói biểu tượng: `lucide_icons_flutter` (cùng tên với web: `CloudOff` cho Chờ xem lại).
+- (2026-10-28, chủ dự án duyệt) Đăng nhập app bỏ màn chọn "Tôi là": màn đầu là thẻ "Elder Care" có câu cho nhân viên, người thân kèm câu máy dùng chung, ô tên đăng nhập, mật khẩu, nút chính "Đăng nhập", nút viền "Người cao tuổi: quét mã QR" mở màn quét mã (theme chữ lớn). Backend gán kênh phiên theo loại tài khoản (kênh `MOBILE_APP`, api-002). Thay dòng trên ở phần màn chọn; phần nhân viên giữ nguyên.
 - Đã duyệt 2026-10-18: bố cục 15.4, bộ biểu tượng lucide. Cách lưu chế độ sáng tối và gói lucide cho Flutter chốt ở plan khi triển khai.
 
 ## 16. Lịch sử
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 5.25.0 | 2026-10-28 | Đăng nhập app một màn cho nhân viên, người thân (bỏ màn chọn "Tôi là"), nút phụ sang màn quét mã người cao tuổi (mục 15.7). Không thêm màu, component. |
+| 5.24.0 | 2026-10-27 | Chủ dự án duyệt bố cục đăng nhập app (màn chọn "Tôi là"), kết quả đồng bộ, chờ xem lại, mở khóa sớm của phần nhân viên (mục 15.7). Mục 3.5 thêm kết quả đồng bộ: Đã nhận (`settled`), Đã nhận kèm nhãn mất quyền, Bị từ chối (`attention`, không đỏ theo mục 1 điều 4). Chốt gói biểu tượng lucide cho Flutter. Không thêm màu. |
 | 5.23.0 | 2026-10-27 | Chủ dự án duyệt bố cục màn Chờ xem lại (002 T059; mục 14). Thêm trạng thái "Chờ xem lại" của bản ghi ngoại tuyến vào tông `attention` (mục 3.5). Không thêm màu. |
 | 5.22.0 | 2026-10-26 | Chủ dự án chọn hộp chi tiết ở giữa màn cho màn Người cao tuổi (mục 5, ngoại lệ của khung chi tiết `Sheet`): danh sách toàn chiều rộng, bấm dòng mở `Dialog` 768px hai cột. Các màn khác giữ `Sheet` bên phải. Không thêm màu |
 | 5.21.0 | 2026-10-24 | Chủ dự án duyệt bố cục dashboard và báo cáo (016 T010, US9): Tổng quan thành dashboard 016 thay bản mẫu cũ, mục menu "Báo cáo" ngay dưới Tổng quan; công thức `dashboard-block`, `dashboard-urgent`, `report-table`, `metric-detail-sheet`, `export-dialog` (mục 7.2); dòng Tổng quan và báo cáo ở mục 5.1. Không thêm màu |
