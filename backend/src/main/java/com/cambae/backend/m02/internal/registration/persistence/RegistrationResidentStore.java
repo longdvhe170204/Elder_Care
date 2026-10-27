@@ -1,6 +1,7 @@
 package com.cambae.backend.m02.internal.registration.persistence;
 
 import java.time.Instant;
+import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -28,6 +29,27 @@ public class RegistrationResidentStore {
         return jdbc.queryForObject(
                 "SELECT local_permanent_resident FROM registration_resident WHERE resident_id = ? FOR UPDATE",
                 Boolean.class,
+                residentId);
+    }
+
+    /** Tài khoản đã ghi xác nhận thường trú cùng xã/phường đang có (người ghi gốc khi đính chính, FR-026 a). */
+    public Optional<Long> confirmedBy(long residentId) {
+        return jdbc
+                .queryForList(
+                        "SELECT confirmed_by_id FROM registration_resident WHERE resident_id = ?"
+                                + " AND local_permanent_resident",
+                        Long.class,
+                        residentId)
+                .stream()
+                .findFirst();
+    }
+
+    /** Gỡ xác nhận thường trú cùng xã/phường bằng đính chính (FR-001; đã khóa); căn cứ cũ còn ở nhật ký, chuỗi đính chính. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void removeLocalPermanentResident(long residentId) {
+        jdbc.update(
+                "UPDATE registration_resident SET local_permanent_resident = FALSE, basis_note = NULL,"
+                        + " confirmed_by_id = NULL, confirmed_at = NULL, version = version + 1 WHERE resident_id = ?",
                 residentId);
     }
 

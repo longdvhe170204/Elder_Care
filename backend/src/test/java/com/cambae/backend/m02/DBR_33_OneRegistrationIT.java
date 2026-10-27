@@ -90,11 +90,11 @@ class DBR_33_OneRegistrationIT extends RegistrationTestBase {
     void DBR_33_theUniqueKeyHolds_evenWhenTheServiceIsBypassed() {
         long residentId = admittedWithObligation();
         Instant due = time.now();
-        transaction.executeWithoutResult(status ->
-                store.insertToSubmit(residentId, RegistrationType.STAY_NOTIFICATION, false, null, due, false, null));
+        transaction.executeWithoutResult(status -> store.insertToSubmit(
+                residentId, RegistrationType.STAY_NOTIFICATION, false, null, due, false, null, null));
 
         assertThatThrownBy(() -> transaction.executeWithoutResult(status -> store.insertToSubmit(
-                        residentId, RegistrationType.STAY_NOTIFICATION, false, null, due, false, null)))
+                        residentId, RegistrationType.STAY_NOTIFICATION, false, null, due, false, null, null)))
                 .isInstanceOf(DuplicateKeyException.class);
         assertThat(registrationCount(residentId)).isEqualTo(1);
     }

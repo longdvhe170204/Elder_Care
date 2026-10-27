@@ -264,6 +264,8 @@ class RegistrationSchemaIT extends MySqlIntegrationTestBase {
                 .isInstanceOf(DuplicateKeyException.class);
         jdbc.update(insert, residentId, "RENEWAL_ADDENDUM", 501L);
         jdbc.update(insert, residentId, "ADMISSION_COMPLETED", 502L);
+        // Người cao tuổi giả: hủy nghĩa vụ để danh sách cần làm của test khác không tra họ tên người không có
+        jdbc.update("UPDATE registration_obligation SET cancelled_at = NOW(6) WHERE resident_id = ?", residentId);
     }
 
     @Test
