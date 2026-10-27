@@ -55,6 +55,22 @@ class CallReminderTargetTest {
     }
 
     @Test
+    void FR_030a_overdue_nextTierAfterCurrent_managerTierStaysManager() {
+        assertThat(CallReminderTarget.after(
+                        Tier.SHIFT_LEAD, Optional.of(LEAD), Optional.of(FLOOR_MANAGER), MANAGERS, Optional.empty()))
+                .contains(new Target(Tier.FLOOR_MANAGER, List.of(20L)));
+        assertThat(CallReminderTarget.after(
+                        Tier.SHIFT_LEAD, Optional.of(LEAD), Optional.empty(), MANAGERS, Optional.empty()))
+                .contains(new Target(Tier.MANAGERS, List.of(30L, 31L)));
+        assertThat(CallReminderTarget.after(
+                        Tier.FLOOR_MANAGER, Optional.of(LEAD), Optional.of(FLOOR_MANAGER), MANAGERS, Optional.empty()))
+                .contains(new Target(Tier.MANAGERS, List.of(30L, 31L)));
+        assertThat(CallReminderTarget.after(
+                        Tier.MANAGERS, Optional.of(LEAD), Optional.of(FLOOR_MANAGER), MANAGERS, Optional.empty()))
+                .contains(new Target(Tier.MANAGERS, List.of(30L, 31L)));
+    }
+
+    @Test
     void FR_029_noEligiblePersonAtAnyTier_empty() {
         assertThat(CallReminderTarget.of(
                         Optional.of(new Candidate(10L, false)),
