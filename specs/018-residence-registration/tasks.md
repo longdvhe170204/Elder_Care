@@ -51,12 +51,12 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 ### Tests cho User Story 1
 
-- [ ] T006 [P] [US1] Test `BT/m02/BR_M02_11_KhaiBaoIT.java`, `DBR_33_MotKhaiBaoIT.java` (một khai báo đang xử lý và một Đã xác nhận mỗi người; không tự tạo khai báo) (Q1 → Q6)
+- [x] T006 [P] [US1] Test `BT/m02/BR_M02_11_KhaiBaoIT.java`, `DBR_33_MotKhaiBaoIT.java` (một khai báo đang xử lý và một Đã xác nhận mỗi người; không tự tạo khai báo) (Q1 → Q6) *(2026-10-27: `BR_M02_11_ResidenceRegistrationIT` 14, `DBR_33_OneRegistrationIT` 3, nền `RegistrationTestBase`; RED (chưa có lớp) → GREEN. Phần Q5 "Kết thúc lưu trú khi khai báo chưa xong" thuộc T013, phần Q6 "gia hạn sau vẫn Thông báo lưu trú" thuộc T011; một Đã xác nhận mỗi người kiểm ở `RegistrationSchemaIT` (T002), lệnh chấp nhận ở T009)*
 
 ### Implementation cho User Story 1
 
-- [ ] T007 [US1] Cài listener `TiepNhanHoanTat`, `HopDongDaDoiTrangThai` ghi `nghia_vu_khai_bao` trong `BE/m02/khaibao/internal/NghiaVuService.java`; nhắc lập, quá hạn theo CFG-M02-12 trong job (research Z-03)
-- [ ] T008 [US1] Cài `BE/m02/khaibao/internal/KhaiBaoService.java` (lập, xác nhận thường trú cùng xã/phường; khóa `khai_bao_nct`) và `BE/m02/khaibao/web/KhaiBaoController.java` (`GET /khai-bao/can-lam`, `POST/GET /nguoi-cao-tuoi/{nctId}/khai-bao`, `POST /khai-bao/{id}/{lenh}`); màn web `frontend/src/tinh-nang/khai-bao-tam-tru/`
+- [ ] T007 [US1] Cài listener `TiepNhanHoanTat`, `HopDongDaDoiTrangThai` ghi `nghia_vu_khai_bao` trong `BE/m02/khaibao/internal/NghiaVuService.java`; nhắc lập, quá hạn theo CFG-M02-12 trong job (research Z-03) *(2026-10-27: listener `RegistrationObligationListeners`, ghi mốc `RegistrationObligations` (nhắc lập một lần), nhắc quá hạn `RegistrationOverdueReminders.remind(day)` xong và có test; còn `[ ]` vì việc quá hạn chưa gắn vào job (chưa cài `RegistrationDailyTask`) tới khi A xong BL-90; xem plan "Phase 3 hoàn thành")*
+- [ ] T008 [US1] Cài `BE/m02/khaibao/internal/KhaiBaoService.java` (lập, xác nhận thường trú cùng xã/phường; khóa `khai_bao_nct`) và `BE/m02/khaibao/web/KhaiBaoController.java` (`GET /khai-bao/can-lam`, `POST/GET /nguoi-cao-tuoi/{nctId}/khai-bao`, `POST /khai-bao/{id}/{lenh}`); màn web `frontend/src/tinh-nang/khai-bao-tam-tru/` *(2026-10-27: backend xong: `ResidenceRegistrationService`, `ResidenceRegistrationController`, api-018 đăng ký trong `ApiContractIT` (chờ A xem); còn `[ ]` vì màn web chưa có bố cục duyệt (DESIGN.md chưa có màn khai báo))*
 
 **Checkpoint**: Lập khai báo chạy độc lập.
 
