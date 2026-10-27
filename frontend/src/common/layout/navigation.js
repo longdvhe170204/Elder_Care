@@ -45,6 +45,9 @@ export const NAV_GROUPS = [
       // Thông báo (009 T035, T028): mọi vai trò nhân viên có hộp thông báo; tab khác theo bảng quyền FR-039 của spec 009
       // vì Phụ lục 27 không có dòng thông báo
       { key: 'notifications', label: 'Thông báo', icon: 'Inbox', roles: [QL, TT, BS, DD, CS, BEP, HC, KT] },
+      // Bản ghi chờ xem lại (002 T059, FR-041c): người quyết định do backend tính (Trưởng tầng, Người phụ trách ca, Quản lý
+      // viện), Phụ lục 27 không có dòng riêng; người khác thấy danh sách trống
+      { key: 'pending-review-records', label: 'Chờ xem lại', icon: 'CloudOff', roles: [QL, TT, BS, DD, CS] },
       // Dòng "Hồ sơ người cao tuổi"
       { key: 'residents', label: 'Người cao tuổi', icon: 'Users', functions: ['RESIDENT_PROFILE'], roles: [QL, TT, BS, DD, CS, HC, NT, KT] },
     ],

@@ -799,16 +799,19 @@ components:
         recordType: { type: string, example: M04.CARE_TASK_RESULT }
         content: { type: object, description: Nội dung gốc từ thiết bị }
         recorderId: { type: integer, format: int64, description: Tài khoản người ghi }
+        recorderName: { type: string, description: 'Bổ sung 2026-10-27: họ tên người ghi để hiển thị' }
         deviceTime: { type: string, format: date-time }
         syncedAt: { type: string, format: date-time }
         lastConnectedAt: { type: string, format: date-time }
         pendingReason: { type: string, enum: [LATER_THAN_SYNC, EARLIER_THAN_LAST_CONNECTION, EXCEEDS_CFG_M15_08] }
         floorAreaId: { type: integer, format: int64, description: 'Rỗng: không gắn tầng, Quản lý viện quyết định' }
+        floorAreaName: { type: string, description: 'Bổ sung 2026-10-27: tên tầng/khu vực để hiển thị (M03 cài FloorAreaNameApi); rỗng khi không gắn tầng' }
         status: { type: string, enum: [PENDING_REVIEW, ACCEPTED, REJECTED] }
         decidedBy: { type: integer, format: int64 }
         decidedAt: { type: string, format: date-time }
         rejectionReason: { type: string }
         reference: { type: string, description: Tham chiếu bản ghi thật khi đã chấp nhận }
+        version: { type: integer, format: int64, description: 'Bổ sung 2026-10-27: phiên bản dòng, gửi lại trong If-Match' }
     PendingReviewRecordPage:
       type: object
       properties:

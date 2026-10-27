@@ -1,9 +1,9 @@
 ---
 name: Elder_Care
-version: 5.22.0
+version: 5.23.0
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19)
 platforms: { web: frontend/, mobile: mobile/ }
-updated: 2026-10-24
+updated: 2026-10-27
 direction: Trời xanh theo bảng màu letters.app
 colors:
   light:
@@ -310,7 +310,7 @@ Tên trạng thái lấy đúng theo `nghiep-vu.md`. `StatusBadge` ánh xạ the
 | Tông | Hiển thị | Trạng thái |
 | --- | --- | --- |
 | `urgent` | Chữ đỏ trên nền đỏ nhạt | Thông báo mức Khẩn cấp; Công việc Quá hạn; người cao tuổi Quá hạn đánh giá lại (cột Đánh giá lại, dải đầu tab Đánh giá); sự cố, cảnh báo mức Khẩn cấp; cảnh báo "đã leo thang tối đa"; liều thuốc Trễ, Bỏ lỡ; viền đỏ của thẻ cảnh báo Khẩn cấp hoặc đã leo thang tối đa |
-| `attention` | Chữ hổ phách trên nền hổ phách | Thông báo mức Trung bình, Gửi thất bại, Không liên lạc được; liên hệ trực tiếp Chờ liên hệ; Công việc Đến hạn; liều thuốc Đến giờ; cảnh báo, sự cố mức Trung bình; cảnh báo Mới, Leo thang (chưa tối đa); chỉ số Vượt ngưỡng; người cao tuổi Tạm vắng, Điều trị tại bệnh viện, Đang tiếp nhận; giường Chờ sẵn sàng; phòng đang cách ly; bàn giao Có ý kiến; yêu cầu thay đổi quyền người thân Chờ xác nhận; đề nghị mua hộ Chờ đồng ý; phản hồi Đang xử lý, Mở lại; đồ gửi Thất lạc, Hư hỏng; yêu cầu phê duyệt Chờ duyệt, Áp dụng không thành; tài khoản Khóa tạm; quyền Đã thu hẹp (lệch ma trận); dị ứng (`AllergyNote`, có viền và biểu tượng cảnh báo) |
+| `attention` | Chữ hổ phách trên nền hổ phách | Thông báo mức Trung bình, Gửi thất bại, Không liên lạc được; liên hệ trực tiếp Chờ liên hệ; Công việc Đến hạn; liều thuốc Đến giờ; cảnh báo, sự cố mức Trung bình; cảnh báo Mới, Leo thang (chưa tối đa); chỉ số Vượt ngưỡng; người cao tuổi Tạm vắng, Điều trị tại bệnh viện, Đang tiếp nhận; giường Chờ sẵn sàng; phòng đang cách ly; bàn giao Có ý kiến; yêu cầu thay đổi quyền người thân Chờ xác nhận; đề nghị mua hộ Chờ đồng ý; phản hồi Đang xử lý, Mở lại; đồ gửi Thất lạc, Hư hỏng; yêu cầu phê duyệt Chờ duyệt, Áp dụng không thành; tài khoản Khóa tạm; bản ghi ngoại tuyến Chờ xem lại; quyền Đã thu hẹp (lệch ma trận); dị ứng (`AllergyNote`, có viền và biểu tượng cảnh báo) |
 | `settled` | Chữ xanh lá trên nền xanh lá nhạt | Thông báo Đã xem, Đã xác nhận; liên hệ trực tiếp Đã liên hệ; kênh thông báo Đang bật; Công việc Hoàn thành; liều thuốc Đã dùng; cảnh báo Đã đóng; bàn giao Đã xác nhận; người cao tuổi Đang lưu trú; lượt thăm Đã duyệt; phản hồi Đã phản hồi; hợp đồng Hiệu lực; quyết định của người thân Đã đồng ý, Đã xác nhận; yêu cầu phê duyệt Đã duyệt, Đã áp dụng; tài khoản Hoạt động |
 | `held` | Chữ xanh trời đậm, viền cùng màu, nền trong | Giường Đang giữ chỗ (ghi kèm lý do) |
 | `occupied` | Chữ xanh chàm trên nền xanh chàm | Giường Đang sử dụng; lượt thăm Đã vào |
@@ -537,6 +537,7 @@ Công nghệ: React 19, Vite 8, JavaScript, Tailwind CSS v4, shadcn/ui (Base UI)
 - Đã có tab Sức khỏe trong khung chi tiết hồ sơ người cao tuổi (001 T033, bố cục duyệt 2026-10-22; `src/features/residents/`): nút chuyển Thông tin | Sức khỏe, ẩn khi backend bỏ phần sức khỏe theo quyền (`hiddenFields`). Tab gồm hai khối. Hồ sơ sức khỏe ban đầu: nhãn Bản nháp hoặc Đã xác nhận (kèm Đã đính chính), tám ô theo FR-017, nút Lập hồ sơ, Sửa bản nháp, Xác nhận hồ sơ (chỉ Bác sĩ), Đính chính mở khung đính chính dùng chung. Dị ứng, bệnh nền, tiền sử bệnh: bộ lọc Hiệu lực | Đã loại trừ | Tất cả, khối dị ứng `AllergyNote` đứng trước, mục chia theo loại kèm nguồn, người ghi, ngày; "Không kiểm tra tự động" tông `attention`, "Chờ kiểm tra thuốc và chế độ ăn" tông `neutral`; nút Ghi nhận mục mở form ngay dưới (Dị ứng từ danh mục, Dị ứng khác nhập tay, Bệnh nền, Tiền sử bệnh; trùng thì hỏi "Vẫn ghi nhận mục này"); nút Loại trừ mở ô lý do bắt buộc ngay dưới mục. Mục không có nút Sửa, Xóa (DBR-04). Nút hiện theo `allowedCommands`. Gọi API thật.
 - Đã có tab Đánh giá trong khung chi tiết hồ sơ người cao tuổi (001 T042, bố cục duyệt 2026-10-23; `src/features/assessments/`): nút chuyển Thông tin | Sức khỏe | Đánh giá; khung rộng `sm:max-w-5xl` khi mở tab này. Từ trên xuống: thẻ "Mức chăm sóc hiện hành" (mức, từ ngày, căn cứ, lưu ý chăm sóc, Lịch sử mức), phiếu đang soạn hai cột (trái phiếu: căn cứ, nhận xét, lưu ý ≤1000 ký tự có bộ đếm, mức chọn bằng ba nút không chọn sẵn, nhu cầu chăm sóc dạng ô chọn, loại hình lưu trú đề xuất chỉ với đầu vào; phải khối tham khảo: hồ sơ sức khỏe ban đầu, mục Hiệu lực, chỉ số đo gần nhất ghi "Chưa có dữ liệu chỉ số đo" tới khi tính năng đo kết nối), lịch sử đánh giá (mở xem nội dung, nút Đính chính dùng `correction-sheet`). Mức trong phiếu tách khỏi mức hiện hành bằng nhãn "chưa áp dụng cho tới khi Bác sĩ xác nhận"; hộp Xác nhận nêu tác động theo loại; thiếu nhận xét hoặc mức báo tại ô. Không có ô điểm, không có mức đề xuất, không nhãn năng lực (mục 2.2).
 - Đã có báo đánh giá lại (001 T066, bố cục duyệt 2026-10-23; `src/features/assessments/ReassessmentNotice.jsx`, `src/features/residents/ResidentSearch.jsx`): đầu tab Đánh giá có `Alert` khi người cao tuổi cần hoặc quá hạn đánh giá lại (`attention` kèm hạn, hoặc `urgent` "Quá hạn đánh giá lại từ …"; danh sách căn cứ đã báo kèm thời điểm báo; đang Điều trị tại bệnh viện ghi hạn tính từ lúc Ghi nhận trở về). Không có nút: hệ thống chỉ báo, Bác sĩ hoặc Điều dưỡng tự lập đánh giá lại (Q-307). Bảng hồ sơ thêm cột Đánh giá lại và bộ lọc "Tất cả hồ sơ | Cần đánh giá lại (n)", ẩn khi vai trò không xem được đánh giá (403); bật bộ lọc thì bảng chỉ có những người đó, quá hạn trước. Gọi API thật.
+- Đã có màn Chờ xem lại (002 T059, FR-041c; bố cục duyệt 2026-10-27; `src/features/pending-review/`): mục menu "Chờ xem lại" nhóm đầu, dưới "Thông báo"; bảng loại bản ghi, người ghi, tầng, giờ trên thiết bị, đồng bộ lúc, lý do chờ; bấm loại bản ghi mở `Sheet`: nhãn "Chờ xem lại" (`attention`), ba mốc giờ, lý do chờ, "Nội dung gốc từ thiết bị", nút chính "Chấp nhận bản ghi", nút phụ "Từ chối" mở ô lý do bắt buộc ngay dưới. Quyết định xong thì dòng rời bảng và báo qua vùng `aria-live`. Gọi API thật.
 
 ## 15. Ứng dụng di động (Flutter)
 
@@ -645,6 +646,7 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 5.23.0 | 2026-10-27 | Chủ dự án duyệt bố cục màn Chờ xem lại (002 T059; mục 14). Thêm trạng thái "Chờ xem lại" của bản ghi ngoại tuyến vào tông `attention` (mục 3.5). Không thêm màu. |
 | 5.22.0 | 2026-10-26 | Chủ dự án chọn hộp chi tiết ở giữa màn cho màn Người cao tuổi (mục 5, ngoại lệ của khung chi tiết `Sheet`): danh sách toàn chiều rộng, bấm dòng mở `Dialog` 768px hai cột. Các màn khác giữ `Sheet` bên phải. Không thêm màu |
 | 5.21.0 | 2026-10-24 | Chủ dự án duyệt bố cục dashboard và báo cáo (016 T010, US9): Tổng quan thành dashboard 016 thay bản mẫu cũ, mục menu "Báo cáo" ngay dưới Tổng quan; công thức `dashboard-block`, `dashboard-urgent`, `report-table`, `metric-detail-sheet`, `export-dialog` (mục 7.2); dòng Tổng quan và báo cáo ở mục 5.1. Không thêm màu |
 | 5.20.0 | 2026-10-24 | Chủ dự án duyệt bố cục tài khoản người cao tuổi (002 T095; mục 14): đặt trong tab Tài khoản, khung tạo, khối "Đăng nhập trên app" có mã QR và thời gian còn lại; thư viện `qrcode.react` (web). Mục 15.7 ghi phần người cao tuổi của app. Không thêm màu |
