@@ -12,6 +12,7 @@ import { AlertsPage } from '@/features/alerts/AlertsPage'
 import { AdminPage } from '@/features/admin/AdminPage'
 import { ApprovalInbox } from '@/features/approval-requests/ApprovalInbox'
 import { NotificationsPage } from '@/features/notifications/NotificationsPage'
+import { PendingReviewPage } from '@/features/pending-review/PendingReviewPage'
 import { AuditLogTable } from '@/features/audit-log/AuditLogTable'
 import { FamilyPortal } from '@/features/family-portal/FamilyPortal'
 import { HandoverPage } from '@/features/handover/HandoverPage'
@@ -43,6 +44,7 @@ const PAGES = {
   admin: AdminPage,
   'approval-requests': ApprovalInbox,
   notifications: NotificationsPage,
+  'pending-review-records': PendingReviewPage,
 }
 
 // Mục menu chỉ hiện khi đã có màn

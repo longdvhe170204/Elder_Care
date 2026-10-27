@@ -71,4 +71,10 @@ public class FakeM15Config {
     FakeFacilityLicenses fakeFacilityLicenses() {
         return new FakeFacilityLicenses();
     }
+
+    @Bean
+    @Primary
+    FakeFloorAreaNames fakeFloorAreaNames() {
+        return new FakeFloorAreaNames();
+    }
 }
