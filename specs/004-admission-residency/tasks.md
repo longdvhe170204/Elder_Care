@@ -249,12 +249,12 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 
 ### Tests cho User Story 9
 
-- [ ] T066 [P] [US9] Test `BT/m02/DichVuIT.java`, `DBR_08_PhienBanDonGiaIT.java`, `HopDongLechGiaIT.java`: chỉ AC-01; chồng khoảng bị khóa `dich_vu` và trigger chặn; phiên bản đã tham chiếu chỉ được đóng `hieu_luc_den`; một dịch vụ chăm sóc Hiệu lực mỗi mức (Q-297); liệt kê hợp đồng lệch giá
+- [x] T066 [P] [US9] Test `BT/m02/DichVuIT.java`, `DBR_08_PhienBanDonGiaIT.java`, `HopDongLechGiaIT.java`: chỉ AC-01; chồng khoảng bị khóa `dich_vu` và trigger chặn; phiên bản đã tham chiếu chỉ được đóng `hieu_luc_den`; một dịch vụ chăm sóc Hiệu lực mỗi mức (Q-297); liệt kê hợp đồng lệch giá
 
 ### Implementation cho User Story 9
 
-- [ ] T067 [US9] Cài lệnh dịch vụ (tạo, sửa, ngừng hiệu lực) và phiên bản đơn giá (thêm dưới khóa `dich_vu`, đóng khoảng) trong `BE/m02/dichvu/internal/DichVuService.java` (research T-05)
-- [ ] T068 [US9] Tạo `BE/m02/dichvu/web/DichVuController.java`: `/dich-vu`, `/{id}`, `/{id}/ngung-hieu-luc`, `/{id}/phien-ban-don-gia`, `/{id}/hop-dong-lech-gia`; màn web `frontend/src/tinh-nang/dich-vu-don-gia/`
+- [x] T067 [US9] Cài lệnh dịch vụ (tạo, sửa, ngừng hiệu lực) và phiên bản đơn giá (thêm dưới khóa `dich_vu`, đóng khoảng) trong `BE/m02/dichvu/internal/DichVuService.java` (research T-05)
+- [ ] T068 [US9] *(backend xong 2026-10-27; còn màn web, chờ duyệt bố cục DESIGN.md mục 14, BL-76)* Tạo `BE/m02/dichvu/web/DichVuController.java`: `/dich-vu`, `/{id}`, `/{id}/ngung-hieu-luc`, `/{id}/phien-ban-don-gia`, `/{id}/hop-dong-lech-gia`; màn web `frontend/src/tinh-nang/dich-vu-don-gia/`
 
 **Checkpoint**: Mọi user story của 004 chạy độc lập.
 

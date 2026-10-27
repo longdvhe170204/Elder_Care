@@ -1001,6 +1001,21 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | nhật ký | `M02_DEATH_RECORDED`, `M02_POST_DEATH_ITEM_CHANGED`, `M02_POST_DEATH_CLOSED`, `M02_ENDING_CANCELLED_BY_DEATH`, `M02_ENDING_EXCEPTION_APPROVED` (dùng chung) |
 | nhắc | `POST_DEATH_TASKS` (mức Nhẹ, `subjectId` là mã bản ghi qua đời) |
 | test | `RecordDeathEffectsIT` (tránh trùng `m01.RecordDeathIT`), `PostDeathTaskIT`, `BR_M02_21_CauseOfDeathIT`, `PostDeathSettlementExceptionIT`; nền `DeathTestBase` |
+### 10.17. Bổ sung khi cài Phase 11 (US9, T066 → T068 phần backend, 2026-10-27)
+
+*Tên cài thực tế của lệnh dịch vụ và phiên bản đơn giá. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| `DichVuService` (T067) | `ServiceCatalogService` (`internal.servicecatalog.service`; `list`, `create`, `update`, `deactivate`, `priceVersions`, `createPriceVersion`, `mismatchedContracts`; `Input`; `target(serviceId)`) |
+| kho dữ liệu, kiểu miền | `ServiceCatalogStore` (`persistence`); `ServiceRecord`, `PriceVersion`, `MismatchedContract` (`domain`) |
+| web (T068) | `ServiceController` (`GET`, `POST /services`, `PUT /services/{id}`, `POST /services/{id}/deactivate`, `GET`, `POST /services/{id}/price-versions`, `GET /services/{id}/mismatched-price-contracts`); `ServiceInputBody`, `PriceVersionInputBody`; `ServiceBody` (schema `Service`), `PriceVersionBody` (schema `PriceVersion`), `MismatchedPriceContractBody` |
+| loại đối tượng | `M02.SERVICE`, `M02.PRICE_VERSION` (quyền `SERVICE_PRICE`: AC-01 xem, tạo, sửa; AC-09 chỉ xem) |
+| mã lỗi | `SERVICE_NAME_EXISTS`, `CARE_SERVICE_LEVEL_EXISTS` (409, Q-297), `SERVICE_INACTIVE`, `SERVICE_ALREADY_INACTIVE`, `SERVICE_FIELD_LOCKED` (409), `PRICE_VERSION_OVERLAPS_APPLIED` (409), `VERSION_MISMATCH` (412) |
+| nhật ký | `M02_SERVICE_CREATED`, `M02_SERVICE_UPDATED`, `M02_SERVICE_DEACTIVATED` (bắt buộc lý do), `M02_SERVICE_PRICE_VERSION_CREATED` |
+| hợp đồng | schema `Service` thêm `version` (cũng là ETag, `If-Match` của `PUT`, `deactivate`) |
+| test | `ServiceCatalogIT` (DichVuIT), `DBR_08_PriceVersionIT`, `MismatchedPriceContractsIT` |
+
 
 ## 11. Feature 005 (`005-daily-care-tasks`, C)
 
