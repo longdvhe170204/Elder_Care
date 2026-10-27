@@ -104,11 +104,11 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 ### Tests cho User Story 4
 
-- [ ] T013 [P] [US4] Test `BT/m02/BR_M02_13_KhaiBaoXoaIT.java` (Q18, Q19)
+- [x] T013 [P] [US4] Test `BT/m02/BR_M02_13_KhaiBaoXoaIT.java` (Q18, Q19) *(2026-10-27: `BR_M02_13_DeregistrationIT` 14 test trên nền `DeathTestBase` (lệnh Kết thúc lưu trú, Ghi nhận qua đời thật của 001, 004): không chặn (SC-004), nhắc ngay và mỗi CFG-M02-09, ghi đã khai báo xóa kèm bằng chứng khi hồ sơ trạng thái cuối, Hết hạn cũng cần khai báo xóa, Đã nộp/Cần khai báo → Đã hủy và nghĩa vụ đang mở hủy, quyền, phát lại tác động, hai lệnh đồng thời, ghi nộp tranh với tác động; RED (chưa có lớp) → GREEN 14/14. BL-97: thêm chặn lập khai báo gia hạn khi hồ sơ trạng thái cuối (`STATE_CHANGED`, RED → GREEN) và khai báo Hết hạn cũ cùng Đã xác nhận mới; 17/17)*
 
 ### Implementation cho User Story 4
 
-- [ ] T014 [US4] Cài bean `ThamGiaChuyenTrangThai` trong `BE/m02/khaibao/internal/ThamGiaKhaiBao.java` (không điều kiện; tác động `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN`), nhắc khai báo xóa và lệnh ghi đã khai báo xóa (research Z-05)
+- [ ] T014 [US4] Cài bean `ThamGiaChuyenTrangThai` trong `BE/m02/khaibao/internal/ThamGiaKhaiBao.java` (không điều kiện; tác động `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN`), nhắc khai báo xóa và lệnh ghi đã khai báo xóa (research Z-05) *(2026-10-27: backend xong: `RegistrationStatusParticipant`, `RegistrationDeregistration` (hủy khai báo đang xử lý, hủy nghĩa vụ đang mở, nhắc `DEREGISTER`), `recordDeregistered`, việc `TO_DEREGISTER`, nhánh `record-deregistered` trong controller (bỏ 422 tạm); xem plan "Phase 6 hoàn thành". Còn `[ ]`: gắn nhắc hằng ngày vào job (`REG_DEREGISTER`, BL-90) và web (K7 trong đề xuất chờ duyệt, BL-96))*
 
 **Checkpoint**: Mọi user story của 018 chạy độc lập.
 
