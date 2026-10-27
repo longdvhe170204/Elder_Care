@@ -169,7 +169,8 @@ public class ExpiredDataPurge {
         Map<AttachedRetention, List<Attached>> parts = new LinkedHashMap<>();
         for (DataRef record : records) {
             for (AttachedRetention part : attached) {
-                List<Attached> found = part.attachedTo(record, cutoffs.get(part.dataType()));
+                List<Attached> found = part.attachedTo(
+                        record, byType.get(record.dataType()).retentionKind(), cutoffs.get(part.dataType()));
                 if (found.stream().anyMatch(a -> !a.expired())) {
                     return Optional.empty();
                 }

@@ -11,6 +11,7 @@ import com.cambae.backend.m15.account.api.ScopeApi;
 import com.cambae.backend.m15.account.api.dto.InfoGroup;
 import com.cambae.backend.m15.account.api.dto.Target;
 import com.cambae.backend.m15.account.api.dto.Visibility;
+import com.cambae.backend.m15.account.api.spi.ScopeAssignmentProvider;
 import com.cambae.backend.m15.auditlog.api.AuditLogPermissions;
 import com.cambae.backend.m15.auditlog.api.spi.FieldClassificationProvider;
 import java.sql.ResultSet;
@@ -60,6 +61,7 @@ public class AuditLogQueryService {
     private final ObjectProvider<FieldVisibilityApi> fieldVisibility;
     private final ObjectProvider<FieldClassificationProvider> classifications;
     private final ObjectProvider<AccountApi> accounts;
+    private final ObjectProvider<ScopeAssignmentProvider> scopeAssignments;
 
     AuditLogQueryService(
             JdbcTemplate jdbc,
@@ -69,7 +71,8 @@ public class AuditLogQueryService {
             ObjectProvider<ScopeApi> scope,
             ObjectProvider<FieldVisibilityApi> fieldVisibility,
             ObjectProvider<FieldClassificationProvider> classifications,
-            ObjectProvider<AccountApi> accounts) {
+            ObjectProvider<AccountApi> accounts,
+            ObjectProvider<ScopeAssignmentProvider> scopeAssignments) {
         this.jdbc = jdbc;
         this.json = json;
         this.currentUser = currentUser;
@@ -78,6 +81,7 @@ public class AuditLogQueryService {
         this.fieldVisibility = fieldVisibility;
         this.classifications = classifications;
         this.accounts = accounts;
+        this.scopeAssignments = scopeAssignments;
     }
 
     /** Bộ lọc tra cứu toàn viện; trường {@code null} là không lọc. */
@@ -169,12 +173,14 @@ public class AuditLogQueryService {
     @Transactional(readOnly = true)
     public Page history(String entityType, String entityId, String cursor) {
         CurrentUser user = currentUser.getObject();
-        Target target = new Target(entityType, entityId, null, null);
         boolean facility = permissions
                 .getObject()
                 .hasPermission(user, AuditLogPermissions.VIEW, Target.UNSPECIFIED)
                 .allowed();
-        // Loại đối tượng chưa phân loại trường thì chỉ Quản lý viện xem (contracts/module-interfaces.md mục 1.3)
+        // Loại đối tượng chưa phân loại trường thì chỉ Quản lý viện xem (contracts/module-interfaces.md mục 1.3).
+        // Người cao tuổi, tầng của đối tượng lấy từ ScopeAssignmentProvider của loại đó (002 mục 1.9); không có
+        // provider thì đối tượng chỉ có loại, id nên không khớp phân công nào
+        Target target = facility ? null : scopedTarget(entityType, entityId);
         if (!facility
                 && (!classificationsByType().containsKey(entityType)
                         || !permissions
@@ -186,6 +192,23 @@ public class AuditLogQueryService {
         }
         List<Object> args = new ArrayList<>(List.of(entityType, entityId));
         return page(user, new ArrayList<>(List.of("entity_type = ?", "entity_id = ?")), args, cursor);
+    }
+
+    /** Đối tượng kèm người cao tuổi, tầng do module sở hữu cho biết; không có provider hoặc id không phải số thì chỉ loại, id. */
+    private Target scopedTarget(String entityType, String entityId) {
+        Target bare = new Target(entityType, entityId, null, null);
+        long id;
+        try {
+            id = Long.parseLong(entityId);
+        } catch (NumberFormatException e) {
+            return bare;
+        }
+        return scopeAssignments
+                .orderedStream()
+                .filter(p -> p.entityType().equals(entityType))
+                .findFirst()
+                .map(p -> p.assignScope(id))
+                .orElse(bare);
     }
 
     private Page page(CurrentUser user, List<String> where, List<Object> args, String cursor) {

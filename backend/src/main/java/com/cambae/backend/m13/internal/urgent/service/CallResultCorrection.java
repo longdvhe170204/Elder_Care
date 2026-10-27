@@ -58,6 +58,20 @@ class CallResultCorrection implements CorrectableRecordProvider {
                 .findFirst();
     }
 
+    /** Người cao tuổi của lượt nhắc gọi; lượt không gắn người cao tuổi (FR-027a) thì rỗng. */
+    @Override
+    public Optional<Long> residentId(long id) {
+        return jdbc
+                .queryForList(
+                        "SELECT r.resident_id FROM call_result c JOIN call_reminder r ON r.id = c.call_reminder_id"
+                                + " WHERE c.id = ?",
+                        Long.class,
+                        id)
+                .stream()
+                .filter(java.util.Objects::nonNull)
+                .findFirst();
+    }
+
     @Override
     public boolean canRecord(CurrentUser user) {
         return user.staffId().isPresent();

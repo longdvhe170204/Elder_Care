@@ -203,6 +203,7 @@ class CorrectionService implements CorrectionApi {
         auditLog.write(AuditLogEntry.builder()
                 .action(CORRECTION_ADDED)
                 .entity(recordType, originalRecordId)
+                .resident(provider.residentId(originalRecordId).orElse(null))
                 .after(afterOf(view))
                 .reason(reason)
                 .basis(approvalRequestId == null ? null : new Basis(null, approvalRequestId, null, null))
