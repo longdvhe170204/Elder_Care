@@ -48,7 +48,13 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 - [ ] T008 [P] Cài provider cho 000/002 trong `BE/m04/trangthai/internal/`: `PhanLoaiTruongProvider` (`SUC_KHOE` cho giá trị kết quả, `noi_dung` mục và công việc, mọi trường thỏa thuận và ý kiến, loại lý do và ghi chú Không thực hiện; `CONG_KHAI_NOI_BO` cho trạng thái, thời điểm, có mặt), `LuuTruProvider` theo data-model mục 11, `GanPhamViProvider` (`M04.KE_HOACH`, `M04.CONG_VIEC`, `M04.KET_QUA_GHI_NHAN`, `M04.CO_MAT_BAN_TRU`)
 - [ ] T009 [P] Test kiến trúc `BT/m04/M04ArchTest.java`: cấm gói `m04` gọi API của 008, 007 trực tiếp (chỉ qua SPI); cấm gói `m04.lich` gọi lệnh tạo công việc (Q-306)
 
-**Checkpoint**: Nền 005 sẵn sàng.
+**Triển khai 2026-10-27** (chưa đóng phase): T003 đã có 11 API/DTO và fake (8 SPI ở T002 giữ nguyên); T004 có28event; T005 dùng `V005_01__care_foundation.sql`, tên bảng/cột theo glossary11.2. T006 dùng `internal/status/{service,persistence}` và `internal/scheduling/{service,persistence}`, hai job ở `scheduling/`. T008 có provider/readiness cho bảng story chưa tạo; T009 có ArchTest và fixture vi phạm, bao gồm work của scheduler. Test scoped tương ứng xanh, đang chờ clean verify cuối.
+
+**T007/T007a chưa xong**: bản dịch12operation/schema HTTP đã được chủ dự án duyệt và test contract xanh; chưa cài service/controller vì thiếu khóa quyền trong Function/Phụ lục27, câu hỏi kiểm AC-01/SELF_CHECKED hay chờ A chưa có trả lời (contracts/phase2-permission-review.md). T007a mới xong schema/trigger/test SQL: migration thực tế `V005_01_1__non_performance_reason_type.sql` thay `V005_01a` để Flyway nhận version số. Không coi YAML/SQL xanh là kiểm HTTP hoặc toàn task đã xong. Giữ checkbox trống đến gate và điều kiện hoàn tất từng task.
+
+**Kiểm cuối 2026-10-27**: clean verify nền exit1/04:32phút;474unit/kiến trúc xanh,1112IT còn6failure+9error ở đúng8lớpM01 đã bàn giaoB;27kiểm mới Phase2 xanh, Spotless1509file sạch. Giữ toàn bộ checkbox Phase2[ ]; không sửa B để ép gate.
+
+**Checkpoint**: Nền 005 chưa nghiệm thu; ưu tiên tiếp theo T007 → T007a (service/HTTP) khi chủ dự án chốt quyền, rồi chạy lại kiểm cuối phase trước Phase3/T010.
 
 ---
 

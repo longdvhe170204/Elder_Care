@@ -24,6 +24,12 @@ class SchedulerScopeArchTest {
     /** Job → loại việc FR-010a cho phép. */
     static final Map<String, String> ALLOWED = Map.ofEntries(
             Map.entry(
+                    "com.cambae.backend.m04.scheduling.CareMinuteJob",
+                    "khung chuyển trạng thái theo giờ, nhắc và cảnh báo; bước story đăng ký dần, không lập công việc (005 C-12)"),
+            Map.entry(
+                    "com.cambae.backend.m04.scheduling.CareDailyJob",
+                    "khung hiệu lực kế hoạch/có mặt theo lịch và nhắc theo ngày; không lập công việc (005 C-12)"),
+            Map.entry(
                     "com.cambae.backend.m03.scheduling.BedReadinessReminderJob",
                     "nhắc giường Chờ sẵn sàng quá hạn một lần (003 FR-044)"),
             Map.entry(

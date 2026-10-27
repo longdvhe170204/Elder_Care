@@ -367,77 +367,95 @@ paths:
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/KetQua' } } } } } }
 
   # ---------------- Danh mục ----------------
-  /loai-cong-viec:
+  /task-types:
     get:
       tags: [danh-muc]
       summary: Danh mục loại công việc
       x-fr: [FR-038]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LoaiCongViec' } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/TaskType' } } } } } }
     post:
       tags: [danh-muc]
       summary: Tạo loại công việc (Quản lý viện)
       x-fr: [FR-038]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LoaiCongViec' } } } }
-      responses: { '201': { description: Đã tạo }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /loai-cong-viec/{id}:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/TaskType' } } } }
+      responses: { '201': { description: Đã tạo }, '409': { $ref: '#/components/responses/CareCatalogProblem' } }
+  /task-types/{id}:
     put:
       tags: [danh-muc]
       summary: Sửa loại công việc (chỉ áp cho mục, công việc tạo sau; chứng chỉ áp ngay)
       x-fr: [FR-038]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LoaiCongViec' } } } }
-      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Loi' } }
-  /loai-cong-viec/{id}/ngung-hieu-luc:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/TaskType' } } } }
+      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/CareCatalogProblem' } }
+  /task-types/{id}/deactivate:
     post:
       tags: [danh-muc]
       summary: Ngừng hiệu lực loại công việc
       x-fr: [FR-038]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/CatalogReason' }
       responses: { '200': { description: OK } }
-  /loai-ly-do-khong-thuc-hien:
+  /non-performance-reason-types:
     get:
       tags: [danh-muc]
       summary: Danh mục loại lý do Không thực hiện (bổ sung 2026-10-18)
       x-fr: [FR-028a]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LoaiLyDoKhongThucHien' } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/NonPerformanceReasonType' } } } } } }
     post:
       tags: [danh-muc]
       summary: Tạo loại lý do (Quản lý viện)
       x-fr: [FR-028a]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ten], properties: { ten: { type: string, maxLength: 200 } } } } } }
-      responses: { '201': { description: Đã tạo }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /loai-ly-do-khong-thuc-hien/{id}:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [name], properties: { name: { type: string, maxLength: 200 } } } } } }
+      responses: { '201': { description: Đã tạo }, '409': { $ref: '#/components/responses/CareCatalogProblem' } }
+  /non-performance-reason-types/{id}:
     put:
       tags: [danh-muc]
-      summary: Sửa tên loại lý do; loại cố định 409 LOAI_LY_DO_CO_DINH
+      summary: Sửa tên loại lý do; loại cố định 409 REASON_TYPE_FIXED
       x-fr: [FR-028a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ten], properties: { ten: { type: string, maxLength: 200 } } } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '412': { $ref: '#/components/responses/Loi' } }
-  /loai-ly-do-khong-thuc-hien/{id}/ngung-hieu-luc:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [name], properties: { name: { type: string, maxLength: 200 } } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/CareCatalogProblem' }, '412': { $ref: '#/components/responses/CareCatalogProblem' } }
+  /non-performance-reason-types/{id}/deactivate:
     post:
       tags: [danh-muc]
-      summary: Ngừng hiệu lực loại lý do; loại cố định 409 LOAI_LY_DO_CO_DINH
+      summary: Ngừng hiệu lực loại lý do; loại cố định 409 REASON_TYPE_FIXED
       x-fr: [FR-028a]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /danh-muc-gia-tri-ket-qua:
+      requestBody: { $ref: '#/components/requestBodies/CatalogReason' }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/CareCatalogProblem' } }
+  /result-values:
     get:
       tags: [danh-muc]
       summary: Giá trị kết quả (chất lượng ngủ, tâm trạng, hành vi) kèm nhóm quy tắc
       x-fr: [FR-034, FR-042]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/GiaTriKetQua' } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ResultValue' } } } } } }
     post:
       tags: [danh-muc]
       summary: Thêm giá trị (Quản lý viện)
       x-fr: [FR-034]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/GiaTriKetQua' } } } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ResultValue' } } } }
       responses: { '201': { description: Đã tạo } }
+
+  # Hai operation T007 được chủ dự án duyệt bổ sung ngày 2026-10-27.
+  /result-values/{id}:
+    put:
+      tags: [danh-muc]
+      summary: Sửa giá trị kết quả
+      x-fr: [FR-034, FR-038]
+      parameters: [{ $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ResultValue' } } } }
+      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/CareCatalogProblem' } }
+  /result-values/{id}/deactivate:
+    post:
+      tags: [danh-muc]
+      summary: Ngừng hiệu lực giá trị kết quả
+      x-fr: [FR-034, FR-038]
+      parameters: [{ $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody: { $ref: '#/components/requestBodies/CatalogReason' }
+      responses: { '200': { description: OK } }
 
   # ---------------- Thời khóa biểu ----------------
   /nguoi-cao-tuoi/{nctId}/thoi-khoa-bieu:
@@ -460,6 +478,9 @@ components:
   headers:
     ETag: { schema: { type: string } }
   requestBodies:
+    CatalogReason:
+      required: true
+      content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { $ref: '#/components/schemas/Reason' } } } } }
     LyDo:
       required: true
       content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } }
@@ -475,6 +496,9 @@ components:
               noiDungDung: { type: object, additionalProperties: true }
               lyDo: { $ref: '#/components/schemas/LyDo' }
   responses:
+    CareCatalogProblem:
+      description: Lỗi danh mục theo RFC 9457
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/CareCatalogProblem' } } }
     Loi:
       description: Lỗi theo RFC 9457 (research R-03 của 000)
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
@@ -488,6 +512,16 @@ components:
       description: 'CONG_VIEC_DA_DONG (FR-036): kèm người đóng, thời điểm và nội dung bị từ chối để chuyển thành đính chính hoặc Ghi nhận phát sinh'
       content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Loi' }, { type: object, properties: { dongBoi: { type: string }, dongLuc: { type: string, format: date-time }, trangThai: { $ref: '#/components/schemas/TrangThaiCongViec' }, noiDungBiTuChoi: { $ref: '#/components/schemas/GhiNhan' } } } ] } } }
   schemas:
+    Reason: { type: string, minLength: 1, maxLength: 2000 }
+    CareCatalogProblem:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        errorCode: { type: string }
+        unmetConditions: { type: array, items: { type: object, properties: { code: { type: string }, description: { type: string }, basis: { type: string } } } }
     LyDo: { type: string, minLength: 1, maxLength: 2000 }
     MucQuanTrong: { type: string, enum: [THUONG, QUAN_TRONG, BAT_BUOC] }
     TrangThaiCongViec: { type: string, enum: [CHUA_DEN_HAN, DEN_HAN, QUA_HAN, HOAN_THANH, HOAN_THANH_TRE, KHONG_THUC_HIEN, HUY] }
@@ -555,9 +589,9 @@ components:
               nguoiGhi: { type: string, readOnly: true }
               thoiDiem: { type: string, format: date-time, readOnly: true }
         ngayXemLai: { type: string, format: date }
-    LoaiLyDoKhongThucHien:
+    NonPerformanceReasonType:
       type: object
-      properties: { id: { type: integer, format: int64 }, ten: { type: string }, coDinh: { type: boolean }, trangThai: { type: string, enum: [HIEU_LUC, NGUNG_HIEU_LUC] } }
+      properties: { id: { type: integer, format: int64 }, name: { type: string }, fixed: { type: boolean }, status: { type: string, enum: [ACTIVE, INACTIVE] } }
     PhienBanKeHoach:
       type: object
       properties:
@@ -677,7 +711,7 @@ components:
         taiLuc: { type: string, format: date-time }
         congViec: { type: array, items: { $ref: '#/components/schemas/CongViec' } }
         thoaThuan: { type: array, description: 'Thỏa thuận lựa chọn có rủi ro của phiên bản Hiệu lực, theo người cao tuổi (FR-030, bổ sung 2026-10-18)', items: { type: object, properties: { nctId: { type: integer, format: int64 }, thoaThuan: { type: array, items: { $ref: '#/components/schemas/ThoaThuanRuiRo' } } } } }
-        loaiLyDoKhongThucHien: { type: array, description: 'Để app ghi ngoại tuyến (FR-028a)', items: { $ref: '#/components/schemas/LoaiLyDoKhongThucHien' } }
+        loaiLyDoKhongThucHien: { type: array, description: 'Để app ghi ngoại tuyến (FR-028a)', items: { $ref: '#/components/schemas/NonPerformanceReasonType' } }
         lieuThuoc: { type: array, items: { type: object, additionalProperties: true }, description: 'Chỉ điều dưỡng; từ 006, chỉ hiển thị' }
         canhBaoDangMo: { type: array, items: { type: object, additionalProperties: true } }
         viecBanGiao: { type: object, additionalProperties: true }
@@ -686,27 +720,27 @@ components:
       properties:
         ca: { type: object, properties: { id: { type: integer, format: int64 }, batDau: { type: string, format: date-time }, ketThuc: { type: string, format: date-time }, tangKhuVucId: { type: integer, format: int64 } } }
         nguoiCaoTuoi: { type: array, items: { type: object, properties: { nctId: { type: integer, format: int64 }, coMat: { type: string }, phanCong: { type: array, items: { type: object, additionalProperties: true } }, mucKeHoach: { type: array, items: { $ref: '#/components/schemas/MucKeHoach' } }, nguonKhac: { type: array, items: { type: object, properties: { loai: { $ref: '#/components/schemas/LoaiCanCu' }, id: { type: integer, format: int64 }, thoiDiem: { type: string, format: date-time }, moTa: { type: string } } } } } } }
-    LoaiCongViec:
+    TaskType:
       type: object
       properties:
         id: { type: integer, format: int64 }
-        ten: { type: string }
-        nhom: { type: string }
-        chuyenMon: { type: boolean }
-        loaiKetQua: { type: string }
-        vaiTroMacDinh: { type: string }
-        mucMacDinh: { $ref: '#/components/schemas/MucQuanTrong' }
-        khungTruocPhut: { type: integer }
-        khungSauPhut: { type: integer }
-        coTinhPhi: { type: boolean }
-        dichVuId: { type: integer, format: int64 }
-        gioiHanTren: { type: integer }
-        loaiChiSo: { type: string }
-        chungChi: { type: array, items: { type: string } }
-        trangThai: { type: string, enum: [HIEU_LUC, NGUNG_HIEU_LUC] }
-    GiaTriKetQua:
+        name: { type: string }
+        group: { type: string }
+        professional: { type: boolean }
+        resultType: { type: string }
+        defaultRole: { type: string }
+        defaultImportance: { type: string, enum: [NORMAL, IMPORTANT, MANDATORY] }
+        windowBeforeMinutes: { type: integer }
+        windowAfterMinutes: { type: integer }
+        billable: { type: boolean }
+        serviceId: { type: integer, format: int64 }
+        upperLimit: { type: integer }
+        vitalSignType: { type: string }
+        certificates: { type: array, items: { type: string } }
+        status: { type: string, enum: [ACTIVE, INACTIVE] }
+    ResultValue:
       type: object
-      properties: { id: { type: integer, format: int64 }, loai: { type: string, enum: [NGU_CHAT_LUONG, TAM_TRANG, HANH_VI] }, ma: { type: string }, ten: { type: string }, nhomQuyTac: { type: string, enum: [MAT_NGU, TIEU_CUC] }, trangThai: { type: string } }
+      properties: { id: { type: integer, format: int64 }, type: { type: string, enum: [SLEEP_QUALITY, MOOD, BEHAVIOR] }, code: { type: string }, name: { type: string }, ruleGroup: { type: string, enum: [INSOMNIA, NEGATIVE] }, status: { type: string } }
     MucThoiKhoaBieu:
       type: object
       properties: { thoiDiem: { type: string, format: date-time }, nguon: { type: string, enum: [CONG_VIEC, LIEU_THUOC, BUOI_HOAT_DONG, LICH_THAM, LICH_DEN_VE] }, moTa: { type: string }, trangThai: { type: string } }
