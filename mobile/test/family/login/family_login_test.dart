@@ -8,8 +8,9 @@ import 'package:mobile/common/auth/session_controller.dart';
 
 import '../../support/fake_backend.dart';
 
-// 002 T047 (tên logic dang_nhap_nguoi_than_test; FR-006, FR-050): người thân đăng nhập kênh FAMILY_APP; lần đầu buộc
-// đổi mật khẩu, đổi xong vào phần người thân (phiên giữ nguyên, khác người cao tuổi).
+// 002 T047 (tên logic dang_nhap_nguoi_than_test; FR-006, FR-050): người thân đăng nhập ở màn đầu chung, kênh MOBILE_APP
+// (backend gán kênh FAMILY_APP theo loại tài khoản); lần đầu buộc đổi mật khẩu, đổi xong vào phần người thân (phiên giữ
+// nguyên, khác người cao tuổi).
 
 void main() {
   late FakeBackend backend;
@@ -32,8 +33,6 @@ void main() {
     await tester.pumpWidget(ElderCareApp(session: s, queue: memoryQueue(s)));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Người thân'));
-    await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'Tên đăng nhập'), 'nguoi-than-1');
     await tester.enterText(find.widgetWithText(TextField, 'Mật khẩu'), 'tam12345');
     await tester.tap(find.widgetWithText(FilledButton, 'Đăng nhập'));
@@ -41,7 +40,7 @@ void main() {
 
     expect(
       (jsonDecode(backend.calls('POST', '/auth/login').single.body) as Map<String, dynamic>)['channel'],
-      'FAMILY_APP',
+      'MOBILE_APP',
     );
     expect(find.text('Đặt mật khẩu mới'), findsOneWidget);
     await tester.enterText(find.widgetWithText(TextField, 'Mật khẩu nhân viên đưa'), 'tam12345');
@@ -66,8 +65,6 @@ void main() {
     final s = session(backend, store, FakeBiometric());
     await s.start();
     await tester.pumpWidget(ElderCareApp(session: s, queue: memoryQueue(s)));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Người thân'));
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'Tên đăng nhập'), 'nguoi-than-1');
     await tester.enterText(find.widgetWithText(TextField, 'Mật khẩu'), 'tam12345');

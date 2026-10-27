@@ -49,15 +49,16 @@ void main() {
     expect(find.byType(NavigationBar), findsNothing);
   });
 
-  testWidgets('T006_chuaDangNhap_chonToiLa', (tester) async {
+  testWidgets('T006_chuaDangNhap_manDangNhapChung', (tester) async {
     final s = session(backend, store, FakeBiometric(available: false));
     await s.start();
     await tester.pumpWidget(ElderCareApp(session: s, queue: memoryQueue(s), scannerBuilder: fakeScanner));
     await tester.pumpAndSettle();
 
-    expect(find.text('Nhân viên'), findsOneWidget);
-    expect(find.text('Người thân'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Tên đăng nhập'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Đăng nhập'), findsOneWidget);
     expect(find.text('Người cao tuổi: quét mã QR'), findsOneWidget);
+    expect(find.text('Tôi là'), findsNothing);
   });
 
   testWidgets('FR_014a_mayDaGanNguoiCaoTuoi_vaoThangManQuetMa', (tester) async {
@@ -68,6 +69,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Đặt mã QR nhân viên đưa vào trong khung.'), findsOneWidget);
-    expect(find.text('Nhân viên'), findsNothing);
+    expect(find.widgetWithText(TextField, 'Tên đăng nhập'), findsNothing);
   });
 }

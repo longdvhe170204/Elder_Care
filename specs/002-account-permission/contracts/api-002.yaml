@@ -32,6 +32,7 @@ paths:
         Sai tên đăng nhập và sai mật khẩu trả cùng mã LOGIN_FAILED (FR-014).
         Mật khẩu đúng nhưng tài khoản không Hoạt động: ACCOUNT_TEMPORARILY_LOCKED (kèm unlocksAt) hoặc ACCOUNT_CONTACT_FACILITY.
         Đăng nhập kết thúc mọi phiên đang mở trên cùng thiết bị (FR-014a, BR-M15-15).
+        Kênh MOBILE_APP (app chung, bổ sung 2026-10-28, chủ dự án duyệt): một màn đăng nhập cho nhân viên và người thân; kênh phiên gán theo loại tài khoản sau khi đúng mật khẩu nên thời gian tự đăng xuất theo kênh (CFG-M15-10) giữ nguyên; tài khoản người cao tuổi trả 422 INVALID_VALUE.
       x-fr: [FR-007, FR-008, FR-010, FR-014, FR-014a, FR-015]
       x-br: [BR-M15-05, BR-M15-15, BR-M15-24]
       security: []
@@ -46,7 +47,7 @@ paths:
               properties:
                 username: { type: string }
                 password: { type: string, format: password }
-                channel: { type: string, enum: [WEB, STAFF_APP, FAMILY_APP, RESIDENT_APP], description: 'RESIDENT_APP gắn thiết bị và trả thêm deviceToken (FR-069, FR-070)' }
+                channel: { type: string, enum: [WEB, STAFF_APP, FAMILY_APP, RESIDENT_APP, MOBILE_APP], description: 'RESIDENT_APP gắn thiết bị và trả thêm deviceToken (FR-069, FR-070); MOBILE_APP là app chung: kênh phiên gán theo loại tài khoản, nhân viên STAFF_APP, người thân FAMILY_APP (FR-013a), tài khoản người cao tuổi bị từ chối (đăng nhập bằng mã QR)' }
       responses:
         '200':
           description: Đăng nhập thành công. Web nhận cookie phiên; app nhận token trong body.

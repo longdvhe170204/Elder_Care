@@ -120,17 +120,11 @@ class SessionController extends ChangeNotifier {
     );
   }
 
-  /// Nhân viên đăng nhập trên máy dùng chung tại tầng (002 T046; FR-014a).
-  Future<void> staffLogin(String username, String password) async {
+  /// Nhân viên, người thân đăng nhập ở màn đầu chung (002 T046, T047; FR-014a): kênh `MOBILE_APP`, backend gán kênh
+  /// phiên STAFF_APP hoặc FAMILY_APP theo loại tài khoản (đổi api-002 2026-10-28; FR-013a).
+  Future<void> appLogin(String username, String password) async {
     await _signedIn(
-      await api.post('/auth/login', {'username': username, 'password': password, 'channel': 'STAFF_APP'}),
-    );
-  }
-
-  /// Người thân đăng nhập (002 T047).
-  Future<void> familyLogin(String username, String password) async {
-    await _signedIn(
-      await api.post('/auth/login', {'username': username, 'password': password, 'channel': 'FAMILY_APP'}),
+      await api.post('/auth/login', {'username': username, 'password': password, 'channel': 'MOBILE_APP'}),
     );
   }
 
