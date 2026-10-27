@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 5.24.0
+version: 5.25.0
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-10-27
@@ -642,12 +642,14 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 - (2026-10-24) Đã có theme `lib/common/theme/app_theme.dart` theo token và phần người cao tuổi: đăng nhập QR, mật khẩu dự phòng, đổi mật khẩu lần đầu, hỏi mở bằng sinh trắc học, màn khóa, "Hôm nay" mới có tiêu đề (thẻ và nút SOS thêm khi 012, 007 có phần app). Font mới có 400, 700. Chưa nghiệm thu trên máy thật.
 - (2026-10-27) App chung chuyển phần theo loại tài khoản (000 T006, T007): phần nhân viên, người thân mới có trạng thái "Phần nhân viên: chưa có màn", "Phần người thân: chưa có màn" trên thẻ trắng (mục 7.3); thanh điều hướng dưới (15.4) thêm khi có màn đầu tiên. Không thêm màu, không đổi quy định.
 - (2026-10-27, bố cục duyệt cùng ngày) Đăng nhập: màn chọn "Tôi là" (Nhân viên, Người thân, Người cao tuổi: quét mã QR), máy đã gắn người cao tuổi vào thẳng màn quét; form tên đăng nhập, mật khẩu cho nhân viên (kèm câu máy dùng chung), người thân. Phần nhân viên có thanh điều hướng dưới Đồng bộ, Chờ xem lại, Mở khóa sớm và nút "Đăng xuất" ở thanh tiêu đề; bottom sheet cho quyết định xem lại, mở khóa sớm (ô "Tôi đã gặp trực tiếp người này", lý do). Gói biểu tượng: `lucide_icons_flutter` (cùng tên với web: `CloudOff` cho Chờ xem lại).
+- (2026-10-28, chủ dự án duyệt) Đăng nhập app bỏ màn chọn "Tôi là": màn đầu là thẻ "Elder Care" có câu cho nhân viên, người thân kèm câu máy dùng chung, ô tên đăng nhập, mật khẩu, nút chính "Đăng nhập", nút viền "Người cao tuổi: quét mã QR" mở màn quét mã (theme chữ lớn). Backend gán kênh phiên theo loại tài khoản (kênh `MOBILE_APP`, api-002). Thay dòng trên ở phần màn chọn; phần nhân viên giữ nguyên.
 - Đã duyệt 2026-10-18: bố cục 15.4, bộ biểu tượng lucide. Cách lưu chế độ sáng tối và gói lucide cho Flutter chốt ở plan khi triển khai.
 
 ## 16. Lịch sử
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 5.25.0 | 2026-10-28 | Đăng nhập app một màn cho nhân viên, người thân (bỏ màn chọn "Tôi là"), nút phụ sang màn quét mã người cao tuổi (mục 15.7). Không thêm màu, component. |
 | 5.24.0 | 2026-10-27 | Chủ dự án duyệt bố cục đăng nhập app (màn chọn "Tôi là"), kết quả đồng bộ, chờ xem lại, mở khóa sớm của phần nhân viên (mục 15.7). Mục 3.5 thêm kết quả đồng bộ: Đã nhận (`settled`), Đã nhận kèm nhãn mất quyền, Bị từ chối (`attention`, không đỏ theo mục 1 điều 4). Chốt gói biểu tượng lucide cho Flutter. Không thêm màu. |
 | 5.23.0 | 2026-10-27 | Chủ dự án duyệt bố cục màn Chờ xem lại (002 T059; mục 14). Thêm trạng thái "Chờ xem lại" của bản ghi ngoại tuyến vào tông `attention` (mục 3.5). Không thêm màu. |
 | 5.22.0 | 2026-10-26 | Chủ dự án chọn hộp chi tiết ở giữa màn cho màn Người cao tuổi (mục 5, ngoại lệ của khung chi tiết `Sheet`): danh sách toàn chiều rộng, bấm dòng mở `Dialog` 768px hai cột. Các màn khác giữ `Sheet` bên phải. Không thêm màu |

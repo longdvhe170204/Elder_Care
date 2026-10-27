@@ -8,8 +8,9 @@ import 'package:mobile/common/auth/session_controller.dart';
 
 import '../../support/fake_backend.dart';
 
-// 002 T046 (tên logic dang_nhap_thiet_bi_chung_test; FR-014a, FR-013): nhân viên đăng nhập trên máy dùng chung, kênh
-// STAFF_APP kèm mã thiết bị; không hỏi sinh trắc học; đăng xuất về màn chọn để người sau đăng nhập.
+// 002 T046 (tên logic dang_nhap_thiet_bi_chung_test; FR-014a, FR-013): nhân viên đăng nhập ngay ở màn đầu (một màn
+// cho nhân viên, người thân, kênh MOBILE_APP, đổi api-002 2026-10-28) trên máy dùng chung, kèm mã thiết bị; không hỏi
+// sinh trắc học; đăng xuất về màn đăng nhập để người sau đăng nhập.
 
 Future<SessionController> pumpApp(WidgetTester tester, FakeBackend backend, MemoryStore store) async {
   final s = session(backend, store, FakeBiometric());
@@ -20,8 +21,6 @@ Future<SessionController> pumpApp(WidgetTester tester, FakeBackend backend, Memo
 }
 
 Future<void> login(WidgetTester tester, String username, String password) async {
-  await tester.tap(find.text('Nhân viên'));
-  await tester.pumpAndSettle();
   await tester.enterText(find.widgetWithText(TextField, 'Tên đăng nhập'), username);
   await tester.enterText(find.widgetWithText(TextField, 'Mật khẩu'), password);
   await tester.tap(find.widgetWithText(FilledButton, 'Đăng nhập'));
@@ -37,13 +36,10 @@ void main() {
     store = MemoryStore();
   });
 
-  testWidgets('FR_014a_nhanVienDangNhap_kenhStaffApp_maThietBi_vaoPhanNhanVien', (tester) async {
+  testWidgets('FR_014a_nhanVienDangNhap_kenhMobileApp_maThietBi_vaoPhanNhanVien', (tester) async {
     backend.on('POST', '/auth/login', 200, {'token': 'staff-1', 'user': user('STAFF')});
     await pumpApp(tester, backend, store);
 
-    expect(find.textContaining('kết thúc phiên của người trước'), findsNothing);
-    await tester.tap(find.text('Nhân viên'));
-    await tester.pumpAndSettle();
     expect(find.textContaining('kết thúc phiên của người trước'), findsOneWidget);
     await tester.enterText(find.widgetWithText(TextField, 'Tên đăng nhập'), ' dieu-duong-1 ');
     await tester.enterText(find.widgetWithText(TextField, 'Mật khẩu'), 'matkhau123');
@@ -51,7 +47,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final call = backend.calls('POST', '/auth/login').single;
-    expect(jsonDecode(call.body), {'username': 'dieu-duong-1', 'password': 'matkhau123', 'channel': 'STAFF_APP'});
+    expect(jsonDecode(call.body), {'username': 'dieu-duong-1', 'password': 'matkhau123', 'channel': 'MOBILE_APP'});
     expect(call.headers['X-Device-Id'], isNotNull);
     expect(store.values[SessionController.tokenKey], 'staff-1');
     expect(find.byType(NavigationBar), findsOneWidget);
@@ -72,7 +68,7 @@ void main() {
     expect(find.byType(NavigationBar), findsNothing);
   });
 
-  testWidgets('FR_013_dangXuat_baoBackend_veManChon', (tester) async {
+  testWidgets('FR_013_dangXuat_baoBackend_veManDangNhap', (tester) async {
     backend.on('POST', '/auth/login', 200, {'token': 'staff-1', 'user': user('STAFF')});
     backend.on('POST', '/auth/logout', 204);
     await pumpApp(tester, backend, store);
@@ -83,6 +79,6 @@ void main() {
 
     expect(backend.calls('POST', '/auth/logout'), hasLength(1));
     expect(store.values[SessionController.tokenKey], isNull);
-    expect(find.text('Người thân'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Đăng nhập'), findsOneWidget);
   });
 }

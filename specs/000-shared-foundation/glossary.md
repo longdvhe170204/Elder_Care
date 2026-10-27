@@ -367,6 +367,7 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | Tên logic | Mã |
 | --- | --- |
 | kênh `WEB`, `APP_NHAN_VIEN`, `APP_NGUOI_THAN`, `APP_NGUOI_CAO_TUOI` | `WEB`, `STAFF_APP`, `FAMILY_APP`, `RESIDENT_APP` (cùng khóa của CFG-M15-10) |
+| *(bổ sung 2026-10-28, đổi api-002)* kênh đăng nhập app chung | `MOBILE_APP`: chỉ ở thân `POST /auth/login` (`LoginBody.Channel`, `Channel.session()`); kênh phiên gán theo loại tài khoản, vẫn là `STAFF_APP`, `FAMILY_APP` |
 | loại tài khoản `NHAN_VIEN`, `NGUOI_THAN`, `NGUOI_CAO_TUOI` | `STAFF`, `FAMILY_MEMBER`, `RESIDENT` |
 | trạng thái tài khoản `HOAT_DONG`, `KHOA_TAM`, `KHONG_HOAT_DONG`, `DA_KHOA` | `ACTIVE`, `TEMPORARILY_LOCKED`, `INACTIVE`, `LOCKED` |
 | loại thao tác `XEM`, `TAO`, `SUA`, `XAC_NHAN`, `DUYET`, `CHOT`, `CHUYEN_MON` | `Operation` `VIEW`, `CREATE`, `UPDATE`, `CONFIRM`, `APPROVE`, `FINALIZE`, `PROFESSIONAL` |

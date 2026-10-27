@@ -93,9 +93,15 @@ public class LoginService {
 
     public record Refused(String errorCode, int httpStatus, Instant unlocksAt) implements Result {}
 
+    /**
+     * Đăng nhập bằng tên, mật khẩu. {@code channel} rỗng là app chung ({@code MOBILE_APP}, đổi api-002 2026-10-28):
+     * kênh phiên gán theo loại tài khoản sau khi đúng mật khẩu, nhân viên STAFF_APP, người thân FAMILY_APP, để thời gian
+     * tự đăng xuất theo kênh (FR-013a, CFG-M15-10) giữ nguyên; người cao tuổi đăng nhập bằng mã QR (FR-069).
+     */
     @Transactional
-    public Result login(String username, String password, AccessChannel channel, String deviceId) {
+    public Result login(String username, String password, Optional<AccessChannel> requested, String deviceId) {
         Instant now = time.now();
+        String requestedName = requested.map(AccessChannel::name).orElse("MOBILE_APP");
         Optional<Account> found = store.lockByUsername(username);
         if (found.isEmpty()) {
             passwords.matches(password, dummyHash());
@@ -103,7 +109,7 @@ public class LoginService {
             auditLog.writeAnonymous(AuditLogEntry.builder()
                     .action(AccountAuditActions.LOGIN_FAILED)
                     .entity(AccountAuditActions.ENTITY, "")
-                    .details(Map.of("username", username, "channel", channel.name()))
+                    .details(Map.of("username", username, "channel", requestedName))
                     .build());
             return new Refused(refused.errorCode(), refused.httpStatus(), null);
         }
@@ -117,13 +123,18 @@ public class LoginService {
             auditLog.writeAnonymous(AuditLogEntry.builder()
                     .action(AccountAuditActions.LOGIN_FAILED)
                     .entity(AccountAuditActions.ENTITY, account.id())
-                    .details(Map.of("channel", channel.name(), "errorCode", decision.errorCode()))
+                    .details(Map.of("channel", requestedName, "errorCode", decision.errorCode()))
                     .build());
             if (decision.countsFailure()) {
                 countFailure(account, now);
             }
             return new Refused(decision.errorCode(), decision.httpStatus(), decision.unlocksAt());
         }
+        AccessChannel channel = requested.orElseGet(() -> switch (account.type()) {
+            case STAFF -> AccessChannel.STAFF_APP;
+            case FAMILY_MEMBER -> AccessChannel.FAMILY_APP;
+            case RESIDENT -> throw new InvalidValueException("Người cao tuổi đăng nhập bằng mã QR");
+        });
         // Kênh người cao tuổi chỉ cho tài khoản người cao tuổi: đăng nhập là gắn thiết bị (research A-15)
         boolean resident = channel == AccessChannel.RESIDENT_APP;
         if (resident && account.type() != AccountType.RESIDENT) {

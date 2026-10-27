@@ -5,7 +5,6 @@ import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.m15.account.api.AccountApi;
 import com.cambae.backend.m15.account.api.CurrentUser;
-import com.cambae.backend.m15.account.api.dto.AccessChannel;
 import com.cambae.backend.m15.account.internal.auth.service.LoginService;
 import com.cambae.backend.m15.account.internal.auth.service.SessionTokens;
 import com.cambae.backend.m15.account.web.request.ChangePasswordBody;
@@ -85,8 +84,8 @@ class AuthController {
     ResponseEntity<LoginResponse> login(
             @RequestHeader("X-Device-Id") @Parameter(schema = @Schema(type = "string", format = "uuid")) UUID deviceId,
             @Valid @RequestBody LoginBody body) {
-        LoginService.Result result =
-                logins.login(body.username().strip(), body.password(), body.channel(), deviceId.toString());
+        LoginService.Result result = logins.login(
+                body.username().strip(), body.password(), body.channel().session(), deviceId.toString());
         if (result instanceof LoginService.Refused refused) {
             throw new BusinessException(
                     HttpStatus.valueOf(refused.httpStatus()),
@@ -96,7 +95,7 @@ class AuthController {
         }
         LoginService.Success success = (LoginService.Success) result;
         UserInfo user = user(success);
-        boolean web = body.channel() == AccessChannel.WEB;
+        boolean web = body.channel() == LoginBody.Channel.WEB;
         ResponseEntity.BodyBuilder response = ResponseEntity.ok();
         if (web) {
             response.header(

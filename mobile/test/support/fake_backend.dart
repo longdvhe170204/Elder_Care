@@ -89,7 +89,7 @@ OfflineQueue memoryQueue(SessionController s) {
   return OfflineQueue(OfflineDatabase(NativeDatabase.memory()), s.api);
 }
 
-/// Máy chưa gắn tài khoản người cao tuổi mở màn chọn "Tôi là": chọn người cao tuổi để tới màn quét mã.
+/// Máy chưa gắn tài khoản người cao tuổi mở màn đăng nhập chung: bấm nút người cao tuổi để tới màn quét mã.
 Future<void> openResidentLogin(WidgetTester tester) async {
   final choice = find.text('Người cao tuổi: quét mã QR');
   if (choice.evaluate().isEmpty) return;
