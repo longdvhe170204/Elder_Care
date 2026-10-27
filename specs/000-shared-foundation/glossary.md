@@ -1329,6 +1329,12 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 | hàm `TongThoiGianLuuTru`, `LoaiKhaiBao` *(T003)* | `ExpectedStayDuration` (`StayPeriod`), `RegistrationTypeRule` (trả `RegistrationType`) |
 | job `ViecHangNgayM02KhaiBao` (`ViecKhaiBao`), test `ChayBuM02KhaiBaoIT` *(T004)* | `ResidenceRegistrationJob` (tên `M02_REGISTRATION`), `RegistrationDailyRunner`, `RegistrationDailyTask`; `RegistrationCatchUpIT` |
 | `PhanLoaiTruongProvider`, `LuuTruProvider`, `QuyenTepProvider`, `GanPhamViProvider` của khai báo *(T005)* | `RegistrationFieldClassificationConfig`, `RegistrationRetention`, `RegistrationEvidenceFilePermission`, `RegistrationScopeAssignment` |
+| `NghiaVuService` (listener `TiepNhanHoanTat`, `HopDongDaDoiTrangThai`, ghi mốc) *(T007)* | `RegistrationObligationListeners`, `RegistrationObligations`; lớp ghi bảng `RegistrationObligationStore` (`record`, không phải `insert…`); enum mốc `ObligationTrigger`; kiểu `RegistrationObligation` |
+| nhắc quá hạn (Hành chính mỗi ngày, Quản lý viện một lần) *(T007)* | `RegistrationOverdueReminders.remind(day)` |
+| sự kiện nhắc khai báo (FR-010) | `m02.api.events.ResidenceRegistrationReminder` (`Kind`: `TO_CREATE`, `OVERDUE`, `OVERDUE_MANAGER`); loại sự kiện thông báo `M02_REGISTRATION_<Kind>`; nguồn `M02.REGISTRATION_REMINDER` |
+| `KhaiBaoService`, `KhaiBaoController` *(T008)* | `ResidenceRegistrationService` (lệnh `createRegistration`, `confirmLocalPermanentResident`; đọc `ofResident`, `toDo`), `ResidenceRegistrationController`; khóa `RegistrationResidentStore.lock`; kiểu `ResidenceRegistration`, `RegistrationStatus`, `SubmissionChannel`; thân `CreateRegistrationBody`, `RegistrationCommandBody`, `ResidenceRegistrationBody`, `RegistrationTaskBody` |
+| hành động nhật ký lập khai báo, xác nhận thường trú cùng xã/phường | `M02_REGISTRATION_CREATED`, `M02_REGISTRATION_LOCAL_CONFIRMED` |
+| test `BR_M02_11_KhaiBaoIT`, `DBR_33_MotKhaiBaoIT` *(T006)* | `BR_M02_11_ResidenceRegistrationIT`, `DBR_33_OneRegistrationIT` (nền `RegistrationTestBase`) |
 
 ## 25. Feature 019 (`019-inventory-assets`, C)
 
