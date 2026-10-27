@@ -348,6 +348,10 @@ Test không bị ảnh hưởng: test của 000 và của module khác dùng b�
 
 - `PermissionDataErrors.markFixed` chạy trong transaction của nơi gọi; lần kiểm phạm vi có người cao tuổi (tra phân bổ giường) từ một tra cứu `readOnly` (lịch sử nhật ký, danh sách chi tiết báo cáo) bị MySQL chặn lệnh UPDATE. Lộ ra khi `AuditLogQueryService.history` bắt đầu đưa người cao tuổi vào `Target` (000 FR-049). Sửa: `markFixed` có transaction riêng (`REQUIRES_NEW`) như `record`. Test `FR_049_AuditHistoryAssignedScopeIT` (quyền, phạm vi thật).
 
+### Phát sự kiện tài khoản (2026-10-27, nhánh `impl/002-account-events`)
+
+- `AccountCreated`, `AccountStatusChanged` (contracts mục 1.10, FR-015) phát trong `AccountStore` (`insert`, `changeStatus`, `temporarilyLock`), trong transaction của lệnh; Spring Modulith lưu vào outbox, người nghe nhận sau commit. Đặt ở store vì mọi lần tạo và chuyển trạng thái đều qua ba hàm này (khoảng 15 nơi gọi ở bốn service); trạng thái trước đọc lại trong transaction, dòng đã khóa `FOR UPDATE` ở nơi gọi. `cause` là nguyên nhân khóa (`MANUAL`, `RESIGNATION`…), rỗng khi sang Hoạt động, Khóa tạm, Không hoạt động; Đã khóa đổi nguyên nhân (nghỉ việc, kết thúc lưu trú) cũng phát vì có dòng lịch sử mới. Chưa module nào nghe; 009 không gửi thông báo cho hai sự kiện này. Test `FR_015_AccountEventsIT`.
+
 ### Màn "Chờ xem lại" (2026-10-27, nhánh `impl/002-pending-review`)
 
 - T059 (`src/features/pending-review/PendingReviewPage.jsx`, mục menu `pending-review-records` nhóm đầu, không gắn mã chức năng vì Phụ lục 27 không có dòng riêng; người quyết định do backend tính). Bảng (loại bản ghi, người ghi, tầng, giờ trên thiết bị, đồng bộ lúc, lý do chờ), khung chi tiết `Sheet` có nội dung gốc, "Chấp nhận bản ghi", "Từ chối" kèm lý do bắt buộc; 409 `ALREADY_PROCESSED` báo người khác đã quyết định và bỏ dòng. Nhãn trạng thái "Chờ xem lại" tông `attention` (DESIGN.md 5.23.0).

@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ActiveAssignments {
 
-    // ObjectProvider: 008, 003 cài; trước đó chỉ test khai bản giả
+    // ObjectProvider: 008, 003 đã cài; context không có bean (test không nạp module đó) thì dùng mặc định an toàn
     private final ObjectProvider<AssignmentApi> assignments;
     private final ObjectProvider<BedAllocationApi> bedAllocations;
     private final ParameterApi parameters;
@@ -64,7 +64,8 @@ public class ActiveAssignments {
                 .toList();
     }
 
-    // 008 chưa cài thì không có phân công nào góp vào phạm vi (mặc định an toàn, như bedOf), không ném lỗi
+    // Không có bean AssignmentApi thì không có phân công nào góp vào phạm vi (mặc định an toàn, như bedOf), không ném
+    // lỗi
     private List<AssignmentView> history(long staffId, Instant from, Instant to) {
         AssignmentApi api = assignments.getIfAvailable();
         return api == null ? List.of() : api.history(staffId, from, to);
