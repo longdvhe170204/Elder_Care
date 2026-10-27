@@ -170,11 +170,11 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 8
 
-- [ ] T023 [P] [US8] Test `ChiTieu_NS_*Test` trong `BT/m14/chitieu/` (Q22, Q23)
+- [ ] T023 [P] [US8] *(2026-10-27: xong phần 008: `MetricShiftStaffingRatioTest`, `MetricShiftHandoversTest`, `MetricLicenseStaffTest`, `FR_020_StaffingDashboardIT`; còn phần 015 chờ `XoayCaThongKeApi`)* Test `ChiTieu_NS_*Test` trong `BT/m14/chitieu/` (Q22, Q23)
 
 ### Implementation cho User Story 8
 
-- [ ] T024 [US8] Cài chỉ tiêu nhân sự, ca qua `NhanSuThongKeApi` (008), `XoayCaThongKeApi` (015); màn web `frontend/src/tinh-nang/bao-cao/nhan-su-ca/`
+- [ ] T024 [US8] *(2026-10-27: xong `SHIFT.STAFFING_RATIO`, `SHIFT.UNCONFIRMED_HANDOVERS`, `LICENSE.STAFF` qua `StaffStatisticsApi` thật; màn web dùng tab "Nhân sự, ca" có sẵn; còn `SHIFT.UNDER_COVERAGE`, `MISSING_SHIFTS`, `REQUESTS`, `INVITATIONS`, `WORKING_HOURS` chờ 015)* Cài chỉ tiêu nhân sự, ca qua `NhanSuThongKeApi` (008), `XoayCaThongKeApi` (015); màn web `frontend/src/tinh-nang/bao-cao/nhan-su-ca/`
 
 ---
 

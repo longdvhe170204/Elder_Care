@@ -6,7 +6,6 @@ import com.cambae.backend.m14.internal.metric.domain.Metric;
 import com.cambae.backend.m14.internal.metric.domain.MetricGroup;
 import com.cambae.backend.m14.internal.metric.domain.MetricSource;
 import com.cambae.backend.m14.internal.metric.domain.MetricValue;
-import com.cambae.backend.m14.internal.metric.domain.ReportFilters;
 import com.cambae.backend.m14.internal.metric.service.MetricCatalog;
 import com.cambae.backend.m14.internal.metric.service.MetricEvaluator;
 import com.cambae.backend.m14.internal.scope.domain.ReportScope;
@@ -125,7 +124,7 @@ public class DashboardService {
                 }
                 List<MetricValue> values = new ArrayList<>();
                 for (MetricSource<?> source : catalog.sourcesIn(group)) {
-                    values.add(evaluator.value(source, scope, from, to, ReportFilters.NONE));
+                    values.add(evaluator.current(source, scope, from, to));
                 }
                 return new Cached(now, List.copyOf(values));
             });

@@ -68,6 +68,8 @@ Stream<CanCuNhiemVuView> canCuKhacVaiTro(PhamViLoc phamVi, Instant tu, Instant d
 Stream<LichSuPhanCongView> lichSuPhanCong(PhamViLoc phamVi, Instant tu, Instant den); // FR-037a
 ```
 
+*(Bổ sung 2026-10-27, luật "Đổi api", A làm cho 016 US8, chủ dự án duyệt; E review)* `banGiaoDangMo(PhamViLoc phamVi)` (`openHandovers`): bàn giao Đã lập, Có ý kiến, hoặc Bản nháp của ca đang Chờ bàn giao, không giới hạn ngày ca (016 FR-020). `LanTinhTyLeView` thêm `staffCount`, `totalWeight`, `shiftTemplateId`, `shiftStartsAt`, `shiftEndsAt` (016 FR-070); `BanGiaoBaoCaoView` thêm `shiftEndsAt`; `ChungChiSapHetHanView` thêm `credentialGroup` (`PROFESSIONAL_LICENSE`, `TRAINING`).
+
 ### 1.5. Port nội bộ M09 cho 015 (gói `m09.lichca.port`, `m09.phancong.port`)
 
 Theo research N-07 (`CaLenhPort`, `PhanCongLenhPort`, `KiemTraCongBoMoRong`). Chỉ `m09.doica`, `m09.xoayca` được dùng (ArchUnit). Khi 015 chưa có, `KiemTraCongBoMoRong` không có bean và lệnh công bố bỏ qua phần của 015.
