@@ -343,3 +343,7 @@ Test không bị ảnh hưởng: test của 000 và của module khác dùng b�
 - Điều dưỡng mở Tổng quan ở profile `demo` nhận 401 "Cần đăng nhập". Hai lỗi chồng: `ActiveAssignments.at`, `during` lấy `AssignmentApi` (008 cài, chưa có) bằng `getObject()` nên ném `NoSuchBeanDefinitionException` (test luôn có `FakeAssignments` nên không thấy); lỗi 500 đó được Tomcat chuyển sang `/error`, lượt này bộ lọc phiên không chạy lại nên chuỗi lọc trả 401, che lỗi thật.
 - Sửa: chưa có `AssignmentApi` thì không có phân công nào góp vào phạm vi (như `bedOf`; mặc định an toàn); `SecurityConfig` cho lượt `DispatcherType.ERROR` đi qua để giữ mã lỗi thật. Test `FR_020_DashboardDemoAccountIT` (tài khoản `demo.dieuduong`, bean thật), `ErrorDispatchIT`.
 - Các lệnh của `AccountService` còn gọi `getObject()` trên SPI do module khác cài (`StaffProfileApi`, `FamilyRelationshipApi`, `ResidentProfileApi`, `DutyApi`): module nguồn chưa cài thì lệnh đó trả 500; không đổi trong lượt này.
+
+### Kiểm phạm vi trong transaction chỉ đọc (2026-10-27, nhánh `fix/m15-audit-correction-retention`)
+
+- `PermissionDataErrors.markFixed` chạy trong transaction của nơi gọi; lần kiểm phạm vi có người cao tuổi (tra phân bổ giường) từ một tra cứu `readOnly` (lịch sử nhật ký, danh sách chi tiết báo cáo) bị MySQL chặn lệnh UPDATE. Lộ ra khi `AuditLogQueryService.history` bắt đầu đưa người cao tuổi vào `Target` (000 FR-049). Sửa: `markFixed` có transaction riêng (`REQUIRES_NEW`) như `record`. Test `FR_049_AuditHistoryAssignedScopeIT` (quyền, phạm vi thật).
