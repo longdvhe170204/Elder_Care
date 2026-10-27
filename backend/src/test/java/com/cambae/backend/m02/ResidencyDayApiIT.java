@@ -121,6 +121,18 @@ class ResidencyDayApiIT extends DeathTestBase {
     }
 
     @Test
+    void FR_074_theAdmissionDateRecordedOnTheResident_worksWithoutAnApplication() throws Exception {
+        long residentId = inResidence();
+        WaitingListTestBase.admin("INSERT INTO resident_residency (resident_id, admitted_on) VALUES (" + residentId
+                + ", '" + d0.plusDays(1) + "') ON DUPLICATE KEY UPDATE admitted_on = VALUES(admitted_on)");
+
+        List<ResidencyDayView> list = days.daysBetween(residentId, d0, d0.plusDays(2));
+
+        assertThat(on(list, d0).notYetAdmitted()).isTrue();
+        assertThat(on(list, d0.plusDays(1)).notYetAdmitted()).isFalse();
+    }
+
+    @Test
     void R016_residenceTypeAtDate_showsTheSignedContract_andRespectsTheScope() throws Exception {
         long residentId = inResidence();
 
