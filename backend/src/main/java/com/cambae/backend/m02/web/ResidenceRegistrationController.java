@@ -29,8 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Khai báo tạm trú, lưu trú (018; contracts/api-018.yaml, tag {@code residence-registrations}). Phase 3 (US1): danh sách
- * cần làm, khai báo của người cao tuổi, lập khai báo, xác nhận thường trú cùng xã/phường; lệnh ghi nộp, kết quả, khai báo
- * xóa và lập khai báo gia hạn thêm ở Phase 4 → 6. Mọi logic và kiểm quyền ở service.
+ * cần làm, khai báo của người cao tuổi, lập khai báo, xác nhận thường trú cùng xã/phường; Phase 4 (US2): ghi nộp, ghi kết
+ * quả; khai báo xóa (T014) và lập khai báo gia hạn (T012) thêm ở Phase 5, 6. Mọi logic và kiểm quyền ở service.
  */
 @RestController
 @RequestMapping("/api/v1")
@@ -39,6 +39,9 @@ class ResidenceRegistrationController {
 
     private static final String PROBLEM = "application/problem+json";
     private static final String CONFIRM_LOCAL = "confirm-local-permanent-resident";
+    private static final String RECORD_SUBMITTED = "record-submitted";
+    private static final String RECORD_ACCEPTED = "record-accepted";
+    private static final String RECORD_REJECTED = "record-rejected";
 
     private final ResidenceRegistrationService registrations;
 
@@ -83,8 +86,9 @@ class ResidenceRegistrationController {
     }
 
     /**
-     * Lệnh theo bảng FR-005. Phase 3 cài {@code confirm-local-permanent-resident}; lệnh ghi nộp, kết quả (T010), khai báo
-     * xóa (T014) trả 422 tới khi được cài.
+     * Lệnh theo bảng FR-005. Đã cài: {@code confirm-local-permanent-resident} (T008), {@code record-submitted}, {@code
+     * record-accepted}, {@code record-rejected} (T010). {@code record-deregistered} (T014) còn trả 422 {@code
+     * INVALID_COMMAND} tạm, ngoài hợp đồng, tới khi được cài.
      */
     @PostMapping("/residence-registrations/{id}/{command}")
     @ApiResponses({
@@ -95,7 +99,7 @@ class ResidenceRegistrationController {
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))),
         @ApiResponse(
                 responseCode = "409",
-                description = "STATE_CHANGED",
+                description = "STATE_CHANGED, NOT_SUBMITTED, EVIDENCE_REQUIRED, EXPIRY_DATE_REQUIRED",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
     })
     void command(
@@ -107,20 +111,34 @@ class ResidenceRegistrationController {
                                             type = "string",
                                             allowableValues = {
                                                 CONFIRM_LOCAL,
-                                                "record-submitted",
-                                                "record-accepted",
-                                                "record-rejected",
+                                                RECORD_SUBMITTED,
+                                                RECORD_ACCEPTED,
+                                                RECORD_REJECTED,
                                                 "record-deregistered"
                                             }))
                     String command,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @RequestBody RegistrationCommandBody body) {
-        if (!CONFIRM_LOCAL.equals(command)) {
-            throw new BusinessException(
-                    HttpStatus.UNPROCESSABLE_CONTENT,
-                    "INVALID_COMMAND",
-                    "Lệnh chưa được cài hoặc không có: " + command);
+        Target target = registrations.targetOf(id);
+        switch (command) {
+            case CONFIRM_LOCAL -> registrations.confirmLocalPermanentResident(target, id, body.basisNote());
+            case RECORD_SUBMITTED ->
+                registrations.recordSubmitted(
+                        target,
+                        id,
+                        new ResidenceRegistrationService.Submission(
+                                body.submittedDate(), body.channel(), body.receivingAuthority(), body.dossierCode()));
+            case RECORD_ACCEPTED ->
+                registrations.recordAccepted(
+                        target,
+                        id,
+                        new ResidenceRegistrationService.Acceptance(body.evidenceFileId(), body.expiryDate()));
+            case RECORD_REJECTED -> registrations.recordRejected(target, id, body.reason());
+            default ->
+                throw new BusinessException(
+                        HttpStatus.UNPROCESSABLE_CONTENT,
+                        "INVALID_COMMAND",
+                        "Lệnh chưa được cài hoặc không có: " + command);
         }
-        registrations.confirmLocalPermanentResident(registrations.targetOf(id), id, body.basisNote());
     }
 }

@@ -5,8 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 
 /**
- * Thân lệnh trên khai báo (contracts/api-018.yaml, schema {@code RegistrationCommand}). Phase 3 (US1) dùng {@code
- * basisNote}; trường ghi nộp, kết quả, khai báo xóa dùng từ Phase 4, 6.
+ * Thân lệnh trên khai báo (contracts/api-018.yaml, schema {@code RegistrationCommand}): {@code basisNote} (US1); ngày nộp,
+ * kênh, cơ quan, mã hồ sơ, bằng chứng, ngày hết hạn, lý do (US2); trường khai báo xóa dùng từ Phase 6.
  */
 @Schema(name = "RegistrationCommand")
 public record RegistrationCommandBody(

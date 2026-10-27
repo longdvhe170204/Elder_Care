@@ -4,8 +4,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * Khai báo tạm trú, lưu trú (FR-003 → FR-005; data-model mục 3), phần US1 cần: loại, gia hạn hay không, nghĩa vụ đáp ứng,
- * hạn khai báo, xác nhận thường trú cùng xã/phường, trạng thái, ngày hết hạn.
+ * Khai báo tạm trú, lưu trú (FR-003 → FR-005; data-model mục 3): loại, gia hạn hay không, nghĩa vụ đáp ứng, hạn khai báo,
+ * xác nhận thường trú cùng xã/phường, trạng thái, ngày hết hạn, lần nộp hiện hành, bằng chứng kết quả.
  */
 public record ResidenceRegistration(
         long id,
@@ -17,4 +17,6 @@ public record ResidenceRegistration(
         boolean localPermanentResident,
         String basisNote,
         RegistrationStatus status,
-        LocalDate expiryDate) {}
+        LocalDate expiryDate,
+        Long currentSubmissionId,
+        Long evidenceFileId) {}
