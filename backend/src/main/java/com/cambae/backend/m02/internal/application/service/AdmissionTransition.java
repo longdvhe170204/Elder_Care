@@ -64,22 +64,31 @@ public class AdmissionTransition {
         return opinionWarnings.of(store.findLatest(residentId));
     }
 
+    /**
+     * Hoàn tất tiếp nhận: luôn ghi ngày vào ở và phát {@link AdmissionCompleted}; lượt đăng ký mở (nếu có) chuyển Đã tiếp nhận.
+     * Hoàn tất tiếp nhận hợp lệ không cần lượt đăng ký mở (FR-001, FR-004; chủ dự án duyệt 2026-10-27). Lệnh chỉ chạy một lần
+     * vì 001 từ chối lệnh lặp, nên sự kiện không phát trùng.
+     */
     @Transactional(propagation = Propagation.MANDATORY)
     public void completed(TransitionResult result) {
         long residentId = result.residentId();
         residencyLock.lock(residentId);
-        Optional<AdmissionApplication> open = store.lockOpen(residentId);
-        if (open.isEmpty()) {
-            return;
-        }
-        AdmissionApplication application = open.get();
+        store.recordAdmittedOn(residentId, result.at().atZone(BusinessTime.ZONE).toLocalDate());
+        store.lockOpen(residentId).ifPresent(application -> markApplicationAdmitted(application, result));
+
+        // Điều kiện (b) bảo đảm có hợp đồng Hiệu lực khi lệnh đã qua kiểm tra
+        ContractView contract = contractConditions
+                .activeContract(residentId)
+                .orElseThrow(() -> new IllegalStateException("Hoàn tất tiếp nhận mà không có hợp đồng Hiệu lực"));
+        events.publishEvent(new AdmissionCompleted(
+                residentId, contract.id(), contract.residenceType(), contract.startDate(), contract.currentEndDate()));
+    }
+
+    private void markApplicationAdmitted(AdmissionApplication application, TransitionResult result) {
         Long opinionId = store.findActiveOpinion(application.id())
                 .map(AdmissionOpinion::id)
                 .orElse(null);
-        store.markAdmitted(
-                application.id(),
-                opinionId,
-                result.at().atZone(BusinessTime.ZONE).toLocalDate());
+        store.markAdmitted(application.id(), opinionId);
 
         Map<String, Object> after = new LinkedHashMap<>();
         after.put("status", "ADMITTED");
@@ -87,18 +96,11 @@ public class AdmissionTransition {
         auditLog.write(AuditLogEntry.builder()
                 .action(ADMITTED)
                 .entity(ENTITY_TYPE, application.id())
-                .resident(residentId)
+                .resident(application.residentId())
                 .before(Map.of("status", application.status().name()))
                 .after(after)
                 .details(Map.of("historyId", result.historyId()))
                 .build());
-
-        // Điều kiện (b) bảo đảm có hợp đồng Hiệu lực khi lệnh đã qua kiểm tra
-        ContractView contract = contractConditions
-                .activeContract(residentId)
-                .orElseThrow(() -> new IllegalStateException("Hoàn tất tiếp nhận mà không có hợp đồng Hiệu lực"));
-        events.publishEvent(new AdmissionCompleted(
-                residentId, contract.id(), contract.residenceType(), contract.startDate(), contract.endDate()));
     }
 
     @Transactional(propagation = Propagation.MANDATORY)

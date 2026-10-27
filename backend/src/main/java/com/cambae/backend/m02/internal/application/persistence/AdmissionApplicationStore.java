@@ -140,21 +140,33 @@ public class AdmissionApplicationStore {
     }
 
     /** Hoàn tất tiếp nhận: Đã tiếp nhận, kèm ý kiến Hiệu lực lúc đó (rỗng nếu chưa có). */
-    public void markAdmitted(long id, Long opinionId, LocalDate on) {
+    public void markAdmitted(long id, Long opinionId) {
         jdbc.update(
-                "UPDATE admission_application SET status = 'ADMITTED', opinion_at_admission_id = ?, admitted_on = ?,"
-                        + " version = version + 1 WHERE id = ?",
+                "UPDATE admission_application SET status = 'ADMITTED', opinion_at_admission_id = ?, version ="
+                        + " version + 1 WHERE id = ?",
                 opinionId,
-                on,
                 id);
     }
 
-    /** Ngày Hoàn tất tiếp nhận của lượt Đã tiếp nhận mới nhất; rỗng với lượt cũ chưa ghi ngày hoặc chưa tiếp nhận. */
+    /** Ghi ngày vào ở của người cao tuổi một lần; đã có ngày thì không đổi. Gọi sau khi khóa dòng lưu trú. */
+    public void recordAdmittedOn(long residentId, LocalDate on) {
+        jdbc.update(
+                "UPDATE resident_residency SET admitted_on = ?, version = version + 1 WHERE resident_id = ? AND"
+                        + " admitted_on IS NULL",
+                on,
+                residentId);
+    }
+
+    /**
+     * Ngày Hoàn tất tiếp nhận: ngày ghi theo người; dòng cũ chưa có thì lấy ngày của lượt Đã tiếp nhận mới nhất (V004_10).
+     * Rỗng khi chưa tiếp nhận hoặc dữ liệu cũ không có ngày.
+     */
     public Optional<LocalDate> admittedOn(long residentId) {
         return jdbc
                 .query(
-                        "SELECT admitted_on FROM admission_application WHERE resident_id = ? AND status = 'ADMITTED'"
-                                + " ORDER BY id DESC LIMIT 1",
+                        "SELECT COALESCE(r.admitted_on, (SELECT a.admitted_on FROM admission_application a WHERE"
+                                + " a.resident_id = r.resident_id AND a.status = 'ADMITTED' ORDER BY a.id DESC LIMIT"
+                                + " 1)) FROM resident_residency r WHERE r.resident_id = ?",
                         (rs, i) -> rs.getObject(1, LocalDate.class),
                         residentId)
                 .stream()
