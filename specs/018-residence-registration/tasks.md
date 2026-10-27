@@ -24,7 +24,7 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo gói `BE/m02/khaibao/{internal,web,lich}/`; ArchUnit `BT/m02/KhaiBaoArchTest.java`: gói `..lich..` không tạo khai báo (Q-306) (research Z-01)
+- [x] T001 Tạo gói `BE/m02/khaibao/{internal,web,lich}/`; ArchUnit `BT/m02/KhaiBaoArchTest.java`: gói `..lich..` không tạo khai báo (Q-306) (research Z-01) *(2026-10-27: `m02.internal.registration` mới, `m02.web`, `m02.scheduling` dùng chung với 004; `ResidenceRegistrationArchTest` đi theo chuỗi gọi, chỉ cấm lập khai báo; xem plan "Phase 1 hoàn thành")*
 
 ---
 

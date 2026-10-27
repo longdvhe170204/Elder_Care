@@ -1314,6 +1314,14 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 | `CHUA_CO_DANG_KY_TAM_TRU_DA_XAC_NHAN`, `CHUA_GHI_NOP` | `NO_CONFIRMED_TEMPORARY_RESIDENCE_REGISTRATION`, `NOT_SUBMITTED` |
 | `THIEU_BANG_CHUNG`, `THIEU_NGAY_HET_HAN`, `CHUA_KET_THUC_LUU_TRU` | `EVIDENCE_REQUIRED`, `EXPIRY_DATE_REQUIRED`, `RESIDENCY_NOT_ENDED` |
 
+### 24.5. Gói và kiểu Java (T001)
+
+| Tên logic | Mã |
+| --- | --- |
+| gói `m02.khaibao` (`internal`, `web`, `lich`) | `m02.internal.registration`; `m02.web`, `m02.scheduling` (dùng chung với 004) |
+| test `KhaiBaoArchTest` | `ResidenceRegistrationArchTest` (chỉ cấm Bộ lập lịch lập khai báo) |
+| lệnh lập khai báo, lập khai báo gia hạn; lớp ghi bảng khai báo | tên bắt đầu `create` (chỉ dành cho lập khai báo trong `m02.internal.registration`); `ResidenceRegistrationStore` (`insert…`) |
+
 ## 25. Feature 019 (`019-inventory-assets`, C)
 
 *Chủ feature điền khi dịch `contracts/api-019.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
