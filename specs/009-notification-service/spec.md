@@ -129,6 +129,10 @@ Chủ dự án chốt Q-365 → Q-371 (docs/business/nghiep-vu.md 24.2; Q-367 th
 - **Q-385**: bỏ thông báo dòng sao kê chưa khớp và chốt quỹ ngày của feature 017 khỏi dòng 017 ở bảng FR-043.
 - **Q-378, Q-379**: thêm dòng 017 ở bảng FR-043 cho phiếu báo phí, bảng quyết toán mới phát hành (Nhẹ, người thân có quyền xem chi phí). Mục 17 của nghiep-vu.md đã ghi mức.
 
+### Cập nhật 2026-10-27 (đồng bộ Q-388, chủ dự án chốt khi triển khai US1)
+
+- **Q-388**: dòng "Ghi kết quả gọi Đã liên lạc được" của bảng FR-030 chỉ áp cho thông báo gộp vào chính lượt vừa gọi. Gọi được người thân kế tiếp trong chuỗi (FR-029a) thì thông báo của người cần gọi trước giữ nguyên chưa xác nhận, không chuyển "Không liên lạc được" (FR-044, Q-104), chuỗi dừng. Kết quả gọi cung cấp cho module nguồn (FR-031, feature 007 FR-048b) gồm mọi lượt nhắc gọi của chuỗi, kèm người cần gọi của từng lượt.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 13 mục 17, 17.1; BR-M13-01 → 05; UC-66; mục 23 dòng "Nhà cung cấp SMS", "Gọi điện"; CFG-M13-01, CFG-M13-02, CFG-M13-03 → CFG-M13-06; thực thể THONG_BAO):

@@ -59,6 +59,9 @@ class RequiresPermissionArchTest {
                     "com.cambae.backend.m13.internal.urgent.service.UrgentAcknowledgement.acknowledge",
                     "chỉ người nhận của thông báo (recipient_key của tài khoản), bảng FR-039 của 009"),
             Map.entry(
+                    "com.cambae.backend.m13.internal.urgent.service.CallResultService.record",
+                    "người có quyền gọi theo nhiệm vụ lúc ghi: Người phụ trách ca, Trưởng tầng được giao của tầng, Quản lý viện; 009 FR-029"),
+            Map.entry(
                     "com.cambae.backend.m13.internal.channel.service.ChannelService.change",
                     "vai trò Quản lý viện theo bảng FR-039 của 009 (Phụ lục 27 không có dòng thông báo)"),
             Map.entry(
