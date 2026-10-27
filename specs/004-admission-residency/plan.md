@@ -632,5 +632,55 @@ Backend T066, T067 xong; T068 xong phần backend, màn web `frontend/src/featur
 - BL-83 đã xử lý (chủ dự án duyệt 2026-10-27): `version` vào `Service`, ràng buộc loại dịch vụ giữ, danh sách hợp đồng lệch giá chỉ Quản lý viện (sửa, có test từ chối Hành chính), 409/412 thêm vào hợp đồng; không còn quyết định chờ duyệt. Giữ BL-66, BL-73 → BL-82, T011, và các task mở ở PHASE 11 HANDOFF.
 - Verify cuối Phase 11: `./mvnw clean verify` JDK 25, MySQL 3307: 301 đơn vị + 1291 IT, 0 lỗi, 0 bỏ qua, BUILD SUCCESS.
 - API: `/services` (GET, POST), `/services/{id}` (PUT), `/deactivate`, `/price-versions` (GET, POST), `/mismatched-price-contracts` (GET, chỉ Quản lý viện); service `ServiceCatalogService`; sự kiện `PriceVersionCreated`. Test: `ServiceCatalogIT`, `DBR_08_PriceVersionIT`, `MismatchedPriceContractsIT`.
-- Phase 12 (T069 → T074) cần 005, 006, 007, 010, 012, 013, 017 có bản thật cho T072 (giữ `[ ]` nếu chưa); T073 chạy cả npm test, flutter test.
+- *(Phase 12 đã làm T069, T071, xem ghi chú Phase 12 bên trên.)* Phase 12 (T069 → T074) cần 005, 006, 007, 010, 012, 013, 017 có bản thật cho T072 (giữ `[ ]` nếu chưa); T073 chạy cả npm test, flutter test.
 - Chạy test: MySQL 3307 (datadir cũ ở scratchpad phiên 221e9972), `DB_URL`, `TEST_DB_URL` về 3307; `spotless:apply` trước `verify`.
+
+## Ghi chú triển khai Phase 12 (Polish, 2026-10-27, chờ chủ dự án duyệt checkpoint)
+
+- Task: `[x]` T069, T071; `[ ]` T070 (chỉ có `M02StatusParticipantIT`; `ContractApiSpiIT` đã phủ bởi `BR_M02_09_ContentAtDateIT`; `NguonLuuTruChoPhanBoIT` chờ 003), T072 (chưa module nào cài sáu SPI của 004; m03 → m12 còn rỗng), T073 (`./mvnw clean verify` xanh; còn `npm test`, `flutter test`, quickstart mục 3, đo SC), T074 (chưa rà truy vết).
+- Cài mới: `ResidencyDayService` (`daysBetween`, `dayCareSessions`, `billingStopDate`), `ResidencyStatisticsService` (016), `DayCareSessions` (hệ số buổi bán trú theo CFG-M02-05 và `DayCareAttendancePort`; `sessionId` là số thứ tự buổi theo giờ đến vì hợp đồng không có mã buổi). Mốc dừng: qua đời → Kết thúc lưu trú thực tế → hồ sơ Đang chuẩn bị → ngày hợp đồng Chấm dứt (Hủy tiếp nhận). Ngày sau mốc vẫn trả, kèm dấu `outsideBillingPeriod`.
+- Migration mới `V004_10`: `admission_application.admitted_on`, `contract.terminated_on` (ghi từ `TransitionResult.at`; dòng cũ NULL nên "chưa vào ở" của lượt cũ không xác định được, coi là đã vào ở). Cần chủ dự án duyệt.
+- Giới hạn đã biết: `WaitingEntryView.leftOn` để trống (chưa lưu ngày rời); `ScopeFilter` tầng, phòng không lọc được ở M02, chỉ lọc `residentIds`.
+- Test mới: `ResidencyDayApiIT` (6), `M02StatusParticipantIT` (1), `M02RecordGroupTriggerIT` (1). Verify cuối: `./mvnw clean verify` JDK 25, MySQL 3307: 301 đơn vị + 1299 IT, 0 lỗi, 0 bỏ qua, BUILD SUCCESS. Chưa commit.
+
+## FEATURE 004 – FINAL PHASE CHECKPOINT & REMAINING BACKLOG (2026-10-27)
+
+*Chủ dự án duyệt chốt checkpoint Phase 12 theo phạm vi đã hoàn thành. Phase 12 là Phase cuối (12 phase, T001 → T074 cùng T075, T106 → T109; không có Phase 13, 14). Feature 004 chưa hoàn thành.*
+
+### 1. Phase 12 và kết quả verify
+
+- `[x]` T069, T071. `[ ]` T070, T072, T073, T074.
+- `./mvnw clean verify` (JDK 25, MySQL 3307): BUILD SUCCESS, 301 đơn vị + 1299 IT, 0 lỗi, 0 bỏ qua. Mã nguồn không đổi sau lần verify này.
+- Giữ migration `V004_10`; không backfill dòng cũ (`admitted_on`, `terminated_on` NULL: lượt Đã tiếp nhận cũ coi là đã vào ở). Giới hạn: `WaitingEntryView.leftOn` trống (chưa lưu ngày rời); `ScopeFilter` tầng, phòng không lọc ở M02, chỉ `residentIds`; `sessionId` bán trú là số thứ tự buổi trong ngày theo giờ đến (hợp đồng không có mã buổi).
+- T074 rà dở, giữ `[ ]`. Có test theo tên: DBR-02, 06, 07, 08; BR-M02-01, 03 → 10, 15 → 19, 21, 22; FR-074, 075, 075a (`ResidencyDayApiIT`). Còn thiếu hoặc chưa có bằng chứng: **BR-M02-02** (giữ chỗ 48 giờ, chờ 003, cùng T021); **BR-M02-20** ("lượt trống hiện tại", không có test nêu tên); **DBR-23** (đối chiếu nhật ký nhóm 2, 3 của riêng 004 chưa có test tổng, test hiện có thuộc m01); **DBR-25** (chỉ có `TimeArchTest` chung); **FR-078** (mức thông báo Trung bình, chưa có test nêu tên). Cần rà từng mục trước khi đánh dấu.
+
+### 2. Tổng kết task
+
+80 dòng task trong tasks.md (T001 → T074, T075, T106 → T109): **51 `[x]`**, **29 `[ ]`**. (T016 xuất hiện hai lần trong file.) T075 `[x]` (Phase 7, `LaThayDoiNhoTest`); T106, T108 `[x]`; T107, T109 `[ ]`.
+
+### 3. Task còn mở
+
+- **Chờ 003 (C), `m03.api` chưa có:** T010 (`NguonLuuTruChoPhanBo`, `DemLichDenBanTru`), T021 (`FR_012_LuotTrongIT`, `BR_M02_02_GiuChoIT`, `GhiNhanLienHeDongThoiIT`), T025, T026 (ba endpoint: `record-contacted`, `decline-bed`, `matching-entries`), T027 (nhắc `REALLOCATION` còn cần hợp đồng đã xong), T033 (kiểm giường nội trú `ViTriApi`, sức chứa bán trú `SucChuaBanTruApi`), T042 (`datTruocChuyenTheoLich`, chuyển giường theo lịch), T043 (hủy phân bổ theo lịch, sức chứa bán trú), T049, T053, T054 (`giuGiuongKhiVang`, `giaiPhongGiuongKhiVang`), T070 (`NguonLuuTruChoPhanBoIT`).
+- **Chờ E (017, 010, 012):** T040 (listener `m11.api.TrangThaiDatCocDaDoi`), T107 và T109 (ca ngoại lệ quyết toán, phần nút trên màn và đối chiếu 017), T072 (bản thật `RepresentativePort`, `DepositStatusPort`, `FinalPeriodPort`, `PostDeathItemPort`).
+- **Chờ C, D (005, 006, 007), B (013):** T054 (`DayCareAttendancePort` của 005), T072 (`DayCareAttendancePort`, `PickupRecordPort`, `PostDeathItemPort`).
+- **Chờ A (000, 002):** T043, T047 (`PUT /residency-change-requests/{id}`, Hành chính hoàn thiện Nháp của người đại diện cần API của 000).
+- **Chờ duyệt giao diện (DESIGN.md mục 14, BL-76):** T019, T028, T038, T047 (màn và app), T056 (web và app), T061, T065, T068; app người thân.
+- **Cần quyết định nghiệp vụ hoặc kỹ thuật:** T059 (bàn giao chưa gọi `BanGhiDonPort.daDung`, api-004 và T-09 không có mã bản ghi đón, BL-77); T011 (thiếu `RetentionProvider`, `ScopeAssignmentProvider`, `FilePermissionProvider`, cài cùng migration từng story); T036 (nhắc ngắn ngày chưa loại trừ hồ sơ kết thúc và yêu cầu đổi thời gian đang mở; cần bảng Phase 7, 9, kiểm lại sau Phase 9); BL-66 (11 quyết định, `AdmissionApplicationService` chưa chặn Kế toán), BL-73 → BL-82, BL-85 (V004_10 và giới hạn Phase 12).
+- **Test, quickstart, truy vết còn thiếu:** T073 (`npm test`, `flutter test`, quickstart mục 3, đo SC), T074 (xem mục 1), T072.
+
+### 4. API/SPI thật cần nhóm khác cung cấp
+
+- C/003 (`m03.api`): `NguonLuuTruChoPhanBo`, `DemLichDenBanTru`, `PhanBoGiuongLenhApi`, `SucChuaBanTruApi`, `ViTriApi`.
+- C/005: `DayCareAttendancePort` (`TrangThaiCoMatBanTruPort`).
+- D (006, 007) và B (013): `PostDeathItemPort`, `PickupRecordPort` (bản đón, kèm quyết định BL-77).
+- E (010, 012, 017): `RepresentativePort`, `DepositStatusPort`, `FinalPeriodPort`, `PostDeathItemPort`; sự kiện `m11.api.TrangThaiDatCocDaDoi`.
+- A (000): API sửa Nháp cho người không phải người lập yêu cầu đổi lưu trú; duyệt `ApiContractIT` api-004.
+
+### 5. Việc ưu tiên cho session kế tiếp
+
+1. Chủ dự án duyệt checkpoint này, BL-85 (V004_10), BL-66, BL-76 (bố cục DESIGN.md mục 14), BL-77.
+2. Làm T074 cho tới `[x]`: viết thêm test nêu tên cho BR-M02-20, FR-078, DBR-23, DBR-25 của 004 (không sửa nghiệp vụ).
+3. Sau khi chủ dự án duyệt bố cục: các màn web (T019, T028, T038, T047, T056, T061, T065, T068), rồi `npm test`, `flutter test`, quickstart mục 3 (T073).
+4. Khi 003 lên develop: T010, T021, T025 → T027, T033, T042, T043, T049, T053, T054, T070.
+5. Khi E, D, C có bản thật: T072 và T040.
+6. Mở PR `impl/004-admission-residency` → `develop` khi chủ dự án yêu cầu (chưa mở).

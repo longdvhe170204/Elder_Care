@@ -1017,6 +1017,19 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | test | `ServiceCatalogIT` (DichVuIT), `DBR_08_PriceVersionIT`, `MismatchedPriceContractsIT` |
 
 
+### 10.18. Bổ sung khi cài Phase 12 (T069 → T071, 2026-10-27)
+
+*Tên cài thực tế của dữ liệu ngày lưu trú và số liệu 016. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| `NgayLuuTruService` (T069) | `ResidencyDayService` (`internal.residencyday.service`; cài `ResidencyDayApi`: `daysBetween`, `dayCareSessions`, `billingStopDate`) |
+| `LuuTruThongKeService` (T069) | `ResidencyStatisticsService` (cài `ResidencyStatisticsApi`: `residenceTypeAtDate`, `waitingList`) |
+| buổi bán trú | `DayCareSessions` (`internal.absence.service`; `sessionId` là số thứ tự buổi trong ngày theo giờ đến) |
+| cột mới (V004_10) | `admission_application.admitted_on` (ngày Hoàn tất tiếp nhận), `contract.terminated_on` (ngày hợp đồng Chấm dứt); kho `AdmissionApplicationStore.admittedOn`, `ContractStore.terminatedOn`, `ResidencyEndingStore.completedAt` |
+| test | `ResidencyDayApiIT` (NgayLuuTruApiIT), `M02StatusParticipantIT` (BeanThamGiaChuyenTrangThaiM02IT), `M02RecordGroupTriggerIT` (NhomGhiNhanCoTriggerIT cho 004) |
+
+
 ## 11. Feature 005 (`005-daily-care-tasks`, C)
 
 *Chủ feature điền khi dịch `contracts/api-005.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
