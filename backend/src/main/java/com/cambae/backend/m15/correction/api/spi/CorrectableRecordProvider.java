@@ -23,6 +23,14 @@ public interface CorrectableRecordProvider {
     /** Tầng/khu vực của bản gốc; rỗng là loại không gắn tầng (FR-026 c, CHK051). */
     Optional<Long> floorArea(long id);
 
+    /**
+     * Người cao tuổi của bản gốc, để dòng nhật ký đính chính tra được theo người cao tuổi (FR-049); rỗng là loại không gắn
+     * người cao tuổi.
+     */
+    default Optional<Long> residentId(long id) {
+        return Optional.empty();
+    }
+
     /** Người dùng có quyền ghi nhận loại bản ghi này (FR-026 a, c). */
     boolean canRecord(CurrentUser user);
 

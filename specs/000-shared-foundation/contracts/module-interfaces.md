@@ -149,6 +149,7 @@ void kiemTraNoiDung(Object noiDungDung);
 default boolean choPhep(NguoiDung nd, CachTao cach, long id) { return true; } // module thu hẹp thêm
 default void sauKhiDinhChinh(DinhChinhView dc) {}  // tác động dây chuyền do module (ví dụ 010 lập khoản điều chỉnh)
 Object noiDungGoc(long id);                  // bổ sung khi cài 000 (2026-10-19): API GET /corrections trả originalContent
+default Optional<Long> nguoiCaoTuoi(long id) { return Optional.empty(); } // bổ sung 2026-10-27: dòng nhật ký đính chính mang resident_id (FR-049)
 ```
 
 Sự kiện: `DaDinhChinh(loaiBanGhi, idGoc, kieu, dinhChinhId)`.

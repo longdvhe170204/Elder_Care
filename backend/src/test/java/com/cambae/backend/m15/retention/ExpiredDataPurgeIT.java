@@ -221,7 +221,7 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
 
         runJob();
 
-        // Hạn của hồ sơ tính từ ngày kết thúc lưu trú (001); chưa có thì giữ (plan 000, D5)
+        // Bản ghi mẫu không tính hạn theo hồ sơ nên dòng nhật ký gắn hồ sơ đi kèm giữ cả chuỗi (plan 000, D5)
         assertThat(exists("sample_floor_record", linked)).isTrue();
         assertThat(logsOf(FLOOR, linked)).isEqualTo(1);
         assertThat(logsOf("M15.SAMPLE_PROFILE", 99L)).isPositive();

@@ -76,7 +76,11 @@ public class PermissionDataErrors {
                 .build());
     }
 
-    /** Lần kiểm tra đọc được dữ liệu hợp lệ của bản ghi: đánh dấu đã khắc phục các lỗi đang mở của nó. */
+    /**
+     * Lần kiểm tra đọc được dữ liệu hợp lệ của bản ghi: đánh dấu đã khắc phục các lỗi đang mở của nó. Transaction riêng
+     * như {@link #record}: lần kiểm phạm vi có thể chạy trong transaction chỉ đọc của nơi gọi (tra cứu nhật ký, báo cáo).
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markFixed(long recordId) {
         jdbc.update(
                 "UPDATE permission_data_error SET fixed_at = ? WHERE record_id = ? AND fixed_at IS NULL",
