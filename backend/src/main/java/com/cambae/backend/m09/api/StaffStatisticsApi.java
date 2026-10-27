@@ -12,6 +12,12 @@ public interface StaffStatisticsApi {
 
     Stream<HandoverReportView> handovers(ScopeFilter scope, LocalDate from, LocalDate to);
 
+    /**
+     * Bàn giao đang mở lúc xem (016 FR-020): Đã lập hoặc Có ý kiến, cộng Bản nháp của ca đang Chờ bàn giao; không giới hạn
+     * ngày ca (luật "Đổi api", chủ dự án duyệt 2026-10-27).
+     */
+    Stream<HandoverReportView> openHandovers(ScopeFilter scope);
+
     Stream<ExpiringCredentialView> expiringCredentials(int withinDays);
 
     Stream<DutyBasisView> nonRoleBases(ScopeFilter scope, Instant from, Instant to);

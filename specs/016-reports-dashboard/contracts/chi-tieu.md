@@ -31,7 +31,7 @@ Mã chỉ tiêu dùng trong REST (`/bao-cao/{nhom}`, `/chi-tiet/{maChiTieu}`) v�
 | `THUOC.DOI_CHIEU_QUA_HAN` | Phiếu đối chiếu | 006 | FR-044 |
 | `SK.KHOANH_VUNG` | Khu đang khoanh vùng | 007 `KhoanhVungApi.dangKhoanh` | FR-020 |
 | `SK.NGUY_KICH` | Dấu nguy kịch | 007 | FR-020 |
-| `CA.BAN_GIAO_CHUA_XAC_NHAN` | Bàn giao | 008 `NhanSuThongKeApi.banGiao` | FR-020 |
+| `CA.BAN_GIAO_CHUA_XAC_NHAN` | Bàn giao | 008 `NhanSuThongKeApi.banGiao`; *(2026-10-27)* `banGiaoDangMo` (`openHandovers`) | FR-020 |
 | `CA.TY_LE_PHUC_VU` | Tỷ lệ phục vụ | 008 `tyLePhucVu` | FR-020, FR-070 |
 | `CA.THIEU_PHU`, `CA.THIEU_CA` | Nhân sự và ca trực | 015 `XoayCaThongKeApi.phu`, `thieuCaDaCongBo` | FR-071 |
 | `CA.YEU_CAU`, `CA.LOI_MOI` | Nhân sự và ca trực | 015 `yeuCau`, `loiMoi` | FR-072 |

@@ -10,4 +10,6 @@ public record HandoverReportView(
         String status,
         Instant preparedAt,
         Instant confirmedAt,
-        boolean late) {}
+        boolean late,
+        // 016 FR-020 (luật "Đổi api", chủ dự án duyệt 2026-10-27): mốc tính thời gian đã chờ.
+        Instant shiftEndsAt) {}

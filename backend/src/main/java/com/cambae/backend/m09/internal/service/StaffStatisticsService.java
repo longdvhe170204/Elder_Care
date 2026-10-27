@@ -7,6 +7,7 @@ import com.cambae.backend.m09.api.StaffStatisticsApi;
 import com.cambae.backend.m09.api.dto.*;
 import com.cambae.backend.m09.credential.internal.domain.CredentialValidity;
 import com.cambae.backend.m09.credential.internal.persistence.CredentialStore;
+import com.cambae.backend.m09.internal.domain.StaffStatisticsRows;
 import com.cambae.backend.m09.internal.domain.StaffStatisticsRows.Assignment;
 import com.cambae.backend.m09.internal.persistence.StaffStatisticsStore;
 import com.cambae.backend.m09.ratio.internal.persistence.StaffingRatioStore;
@@ -18,6 +19,7 @@ import com.cambae.backend.m15.auditlog.api.*;
 import com.cambae.backend.m15.parameter.api.*;
 import java.time.*;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.*;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
@@ -96,26 +98,43 @@ public class StaffStatisticsService implements StaffStatisticsApi {
         var ever = ratios.everBelow(interval[0], interval[1]);
         return ratios.forReport(interval[0], interval[1]).stream()
                 .filter(c -> allowed(scope, parents.get(c.shiftId())))
-                .map(c -> new StaffingRatioView(
-                        c.id(),
-                        c.shiftId(),
-                        parents.get(c.shiftId()).scopeId(),
-                        c.at(),
-                        c.ratio(),
-                        c.threshold(),
-                        c.meetsThreshold(),
-                        ever.contains(c.shiftId())));
+                .map(c -> {
+                    var s = parents.get(c.shiftId());
+                    return new StaffingRatioView(
+                            c.id(),
+                            c.shiftId(),
+                            s.scopeId(),
+                            c.at(),
+                            c.ratio(),
+                            c.threshold(),
+                            c.meetsThreshold(),
+                            ever.contains(c.shiftId()),
+                            c.staffCount(),
+                            c.totalWeight(),
+                            s.shiftTemplateId(),
+                            s.startsAt(),
+                            s.endsAt());
+                });
     }
 
     public Stream<HandoverReportView> handovers(ScopeFilter scope, LocalDate from, LocalDate to) {
         var interval = period(from, to);
         var parents = shifts(interval[0], interval[1]);
+        return handoverViews(scope, store.handovers(interval[0], interval[1]), parents::get);
+    }
+
+    public Stream<HandoverReportView> openHandovers(ScopeFilter scope) {
+        return handoverViews(scope, store.openHandovers(), id -> shifts.find(id).orElse(null));
+    }
+
+    private Stream<HandoverReportView> handoverViews(
+            ScopeFilter scope, List<StaffStatisticsRows.Handover> rows, Function<Long, WorkShift> parent) {
         var grace = parameters.read(ParameterCode.CFG_M09_05).asDuration();
         var now = time.now();
-        return store.handovers(interval[0], interval[1]).stream()
-                .filter(h -> allowed(scope, parents.get(h.shiftId())))
+        return rows.stream()
+                .filter(h -> allowed(scope, parent.apply(h.shiftId())))
                 .map(h -> {
-                    var s = parents.get(h.shiftId());
+                    var s = parent.apply(h.shiftId());
                     boolean late = h.preparedAt() == null
                             ? !now.isBefore(s.endsAt())
                             : h.preparedAt().isAfter(s.endsAt());
@@ -124,7 +143,14 @@ public class StaffStatisticsService implements StaffStatisticsApi {
                                 ? !now.isBefore(s.endsAt().plus(grace))
                                 : h.confirmedAt().isAfter(s.endsAt().plus(grace));
                     return new HandoverReportView(
-                            h.id(), h.shiftId(), s.scopeId(), h.status(), h.preparedAt(), h.confirmedAt(), late);
+                            h.id(),
+                            h.shiftId(),
+                            s.scopeId(),
+                            h.status(),
+                            h.preparedAt(),
+                            h.confirmedAt(),
+                            late,
+                            s.endsAt());
                 });
     }
 
@@ -140,7 +166,7 @@ public class StaffStatisticsService implements StaffStatisticsApi {
                 .filter(c -> CredentialValidity.status(
                                 c.issueDate(), c.expiryDate(), c.revokedFrom(), c.replaced(), now, time)
                         == CredentialValidity.Status.VALID)
-                .map(c -> new ExpiringCredentialView(c.id(), c.staffId(), c.typeCode(), c.expiryDate()));
+                .map(c -> new ExpiringCredentialView(c.id(), c.staffId(), c.typeCode(), c.expiryDate(), c.group()));
     }
 
     public Stream<AssignmentHistoryView> assignmentHistory(ScopeFilter scope, Instant from, Instant to) {

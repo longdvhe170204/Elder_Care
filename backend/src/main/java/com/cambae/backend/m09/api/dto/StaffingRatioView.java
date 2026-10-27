@@ -12,4 +12,10 @@ public record StaffingRatioView(
         BigDecimal ratio,
         BigDecimal threshold,
         boolean passed,
-        boolean everBelowThreshold) {}
+        boolean everBelowThreshold,
+        // 016 FR-070 (luật "Đổi api", chủ dự án duyệt 2026-10-27): số người được tính, tổng trọng số, mẫu ca, giờ ca.
+        int staffCount,
+        BigDecimal totalWeight,
+        long shiftTemplateId,
+        Instant shiftStartsAt,
+        Instant shiftEndsAt) {}
