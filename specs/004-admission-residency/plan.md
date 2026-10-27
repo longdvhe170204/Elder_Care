@@ -684,3 +684,12 @@ Backend T066, T067 xong; T068 xong phần backend, màn web `frontend/src/featur
 4. Khi 003 lên develop: T010, T021, T025 → T027, T033, T042, T043, T049, T053, T054, T070.
 5. Khi E, D, C có bản thật: T072 và T040.
 6. Mở PR `impl/004-admission-residency` → `develop` khi chủ dự án yêu cầu (chưa mở).
+
+## Ghi chú sửa sau audit Opus (2026-10-27, chờ chủ dự án duyệt checkpoint)
+
+- **Quyết định đã duyệt (FR-001, FR-004, FR-074, FR-075):** Hoàn tất tiếp nhận hợp lệ KHÔNG bắt buộc có lượt đăng ký mở. `AdmissionTransition.completed` luôn ghi ngày vào ở và phát `AdmissionCompleted`; lượt đăng ký mở (nếu có) vẫn chuyển Đã tiếp nhận và ghi nhật ký như trước; không tạo lượt đăng ký giả. Sự kiện phát đúng một lần trong transaction của lệnh: 001 từ chối lệnh lặp nên retry không để lại sự kiện hay ngày trùng; lệnh thất bại rollback cả hai.
+- **Ngày vào ở ghi theo người:** migration mới `V004_11` thêm `resident_residency.admitted_on` (đặt một lần). `AdmissionApplicationStore.admittedOn` đọc cột này, dự phòng `admission_application.admitted_on` (V004_10, nay không còn được ghi; giữ cột, không sửa migration lịch sử).
+- **`AdmissionCompleted.expectedEndDate`** lấy `ContractView.currentEndDate()` (ngày kết thúc sau phụ lục gia hạn), không dùng `endDate()` (ngày gốc). Cấu trúc sự kiện và interface 018 không đổi.
+- **Test mới:** `AdmissionCompletedEventIT` (6: có lượt mở; không có lượt mở; lệnh thất bại; lặp lệnh; hợp đồng đã gia hạn; chưa gia hạn). RED trước khi sửa: 6/6 đỏ do thiếu cột và không phát sự kiện khi không có lượt mở. `DayCareSessionsIT` (6: có mặt 100%, vắng có báo 0%, vắng không báo 50% theo CFG-M02-05 mặc định, chưa xác định không hệ số, ngày khu nghỉ không hệ số, ngày không có lịch / sau mốc dừng không có buổi). Tất cả đã xanh ngay vì `DayCareSessions` đã đúng; test chỉ bổ sung bằng chứng. Thêm 1 ca ở `ResidencyDayApiIT` (ngày vào ở ghi theo người, không cần lượt đăng ký).
+- **`sessionId`** vẫn là số thứ tự buổi trong ngày theo giờ đến; chưa có căn cứ từ 005 nên giữ blocker chờ C, không đổi interface.
+- **T074 giữ `[ ]`:** FR-078 đã phủ bởi `M02EventsTest` (mức LOW/MEDIUM từng sự kiện). Còn thiếu: BR-M02-02 (chờ 003), BR-M02-20 (phủ một phần ở `BR_M02_01_MatchingEntriesIT`, mốc lượt trống chờ 003), DBR-23 (chưa có test tổng nhật ký nhóm 2, 3 của 004), DBR-25 (chỉ `TimeArchTest` chung).

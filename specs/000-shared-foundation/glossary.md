@@ -1027,6 +1027,8 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 | `LuuTruThongKeService` (T069) | `ResidencyStatisticsService` (cài `ResidencyStatisticsApi`: `residenceTypeAtDate`, `waitingList`) |
 | buổi bán trú | `DayCareSessions` (`internal.absence.service`; `sessionId` là số thứ tự buổi trong ngày theo giờ đến) |
 | cột mới (V004_10) | `admission_application.admitted_on` (ngày Hoàn tất tiếp nhận), `contract.terminated_on` (ngày hợp đồng Chấm dứt); kho `AdmissionApplicationStore.admittedOn`, `ContractStore.terminatedOn`, `ResidencyEndingStore.completedAt` |
+| cột mới (V004_11) | `resident_residency.admitted_on` (ngày vào ở ghi theo người; `AdmissionApplicationStore.recordAdmittedOn`) |
+| test (audit) | `AdmissionCompletedEventIT`, `DayCareSessionsIT` |
 | test | `ResidencyDayApiIT` (NgayLuuTruApiIT), `M02StatusParticipantIT` (BeanThamGiaChuyenTrangThaiM02IT), `M02RecordGroupTriggerIT` (NhomGhiNhanCoTriggerIT cho 004) |
 
 
