@@ -3,9 +3,17 @@ package com.cambae.backend.m01;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.cambae.backend.support.MySqlIntegrationTestBase;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.parser.OpenAPIV3Parser;
+import io.swagger.v3.parser.core.models.ParseOptions;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -61,17 +69,43 @@ class FR_023h_NoCapacityFlagIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_023h_openApi_hasNoCapacityField() throws Exception {
-        String api = mvc.perform(MockMvcRequestBuilders.get("/v3/api-docs"))
+        String raw = mvc.perform(MockMvcRequestBuilders.get("/v3/api-docs"))
                 .andReturn()
                 .getResponse()
-                .getContentAsString(StandardCharsets.UTF_8)
-                .toLowerCase();
+                .getContentAsString(StandardCharsets.UTF_8);
+        String api = raw.toLowerCase();
 
         assertThat(api).isNotBlank();
         for (String word : List.of("nangluc", "nang_luc")) {
             assertThat(api).as("OpenAPI chứa \"" + word + "\"").doesNotContain(word);
         }
-        // Trường mang nghĩa dấu năng lực chung của người cao tuổi: tên thuộc tính JSON, không phải từ trong mô tả
-        assertThat(api).doesNotContainPattern("\"(resident)?capacity\"\\s*:");
+        // Trường mang nghĩa dấu năng lực chung: tên thuộc tính của schema mô tả người cao tuổi (schema của api-001 hoặc
+        // có residentId). Sức chứa của chỗ, buổi (003 DayCareSessionCapacity.capacity) không phải dấu năng lực (L207)
+        Set<String> residentSchemas = parse(Files.readString(
+                        Path.of("..", "specs", "001-elder-profile-assessment", "contracts", "api-001.yaml"),
+                        StandardCharsets.UTF_8))
+                .getComponents()
+                .getSchemas()
+                .keySet();
+        Map<String, Schema> generated = parse(raw).getComponents().getSchemas();
+        assertThat(generated).as("schema người cao tuổi").containsKey("Profile");
+        List<String> offending = new ArrayList<>();
+        generated.forEach((name, schema) -> {
+            Set<String> fields = schema.getProperties() == null
+                    ? Set.of()
+                    : schema.getProperties().keySet();
+            if (residentSchemas.contains(name) || fields.contains("residentId")) {
+                fields.stream()
+                        .filter(field -> FORBIDDEN.stream().anyMatch(field.toLowerCase()::contains))
+                        .forEach(field -> offending.add(name + "." + field));
+            }
+        });
+        assertThat(offending).as("trường dấu năng lực chung của người cao tuổi").isEmpty();
+    }
+
+    private static OpenAPI parse(String content) {
+        ParseOptions options = new ParseOptions();
+        options.setResolve(true);
+        return new OpenAPIV3Parser().readContents(content, null, options).getOpenAPI();
     }
 }

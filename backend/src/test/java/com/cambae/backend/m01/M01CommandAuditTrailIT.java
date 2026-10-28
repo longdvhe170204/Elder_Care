@@ -557,19 +557,42 @@ class M01CommandAuditTrailIT extends StatusTestBase {
                     assertThat(e.reason()).isEqualTo(REASON.value());
                 });
 
-        // hai dòng khác mục đích, không trùng: dòng của 000 giữ nội dung đính chính, dòng của M01 chỉ để tra theo người
-        List<Entry> all = since(m).stream()
-                .filter(e ->
-                        e.entityType().equals("M01.ASSESSMENT") && e.entityId().equals(String.valueOf(assessmentId)))
+        // một dòng của 000, gắn người cao tuổi qua CorrectableRecordProvider.residentId (L98), không ghi thêm dòng
+        // riêng
+        correctionIsOneLineOfTheResident(since(m), "M01.ASSESSMENT", assessmentId, resident);
+    }
+
+    @Test
+    void DBR_23_correctionOfTheInitialHealthRecord_isOneLineOfTheResidentsTrail() {
+        long resident = newResident();
+        assignNurse(nurse, resident);
+        user.set(nurse.user());
+        var draft = records.saveDraft(
+                target(resident),
+                null,
+                new InitialHealthRecordContent(
+                        "O+", "Đi lại khó", "Tự vệ sinh", "Tỉnh", "Ghi", "Ít muối", "Thuốc A", "Tập"));
+        user.set(doctor.user());
+        records.confirm(target(resident), "\"" + draft.version() + "\"");
+        user.set(nurse.user());
+        long m = mark();
+
+        corrections.create(
+                "M01.INITIAL_HEALTH_RECORD",
+                draft.id(),
+                CorrectionType.AMEND_CONTENT,
+                Map.of("bloodType", "A+"),
+                REASON);
+
+        correctionIsOneLineOfTheResident(since(m), "M01.INITIAL_HEALTH_RECORD", draft.id(), resident);
+    }
+
+    private void correctionIsOneLineOfTheResident(List<Entry> trail, String entityType, long recordId, long resident) {
+        List<Entry> all = trail.stream()
+                .filter(e -> e.entityType().equals(entityType) && e.entityId().equals(String.valueOf(recordId)))
                 .toList();
-        assertThat(all).extracting(Entry::action).containsExactlyInAnyOrder("CORRECTION_ADDED", "RECORD_CORRECTED");
-        Entry linked = all.stream()
-                .filter(e -> e.action().equals("RECORD_CORRECTED"))
-                .findFirst()
-                .orElseThrow();
-        assertThat(linked.after()).isNull();
-        assertThat(linked.before()).isNull();
-        assertThat(linked.residentId()).isEqualTo(resident);
+        assertThat(all).extracting(Entry::action).containsExactly("CORRECTION_ADDED");
+        assertThat(all.getFirst().residentId()).isEqualTo(resident);
     }
 
     // ---- Che giá trị nhạy cảm khi tra nhật ký ----
