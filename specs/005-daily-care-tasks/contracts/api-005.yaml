@@ -56,105 +56,116 @@ paths:
         '204': { description: Đã cập nhật công tắc }
         '400': { description: Module không hỗ trợ hoặc thiếu enabled hợp lệ }
   # ---------------- Kế hoạch chăm sóc ----------------
-  /nguoi-cao-tuoi/{nctId}/ke-hoach-cham-soc:
+  /residents/{residentId}/care-plans:
     get:
+      operationId: listCarePlans
       tags: [ke-hoach]
       summary: Lịch sử phiên bản kế hoạch của một người cao tuổi
-      description: 'Nhân viên chăm sóc chỉ thấy phiên bản Hiệu lực trong phạm vi; Hành chính, Bếp, Người thân 403 (FR-007). Kèm dấu chuaCoKeHoachHieuLuc (FR-009).'
+      description: 'Nhân viên chăm sóc chỉ thấy phiên bản Hiệu lực trong phạm vi; Hành chính, Bếp, Người thân 403 (FR-007). Kèm dấu noEffectivePlan (FR-009).'
       x-fr: [FR-007, FR-008, FR-009]
-      parameters: [ { $ref: '#/components/parameters/NctId' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PhienBanKeHoach' } } } } }, '403': { $ref: '#/components/responses/Loi' } }
+      parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CarePlan' } } } } }, '403': { $ref: '#/components/responses/CarePlanProblem' } }
     post:
+      operationId: createCarePlan
       tags: [ke-hoach]
       summary: Lập phiên bản Nháp (Điều dưỡng)
-      description: 'Nội dung khởi đầu là bản sao phiên bản Hiệu lực (saoChep = true) hoặc trống. Đã có phiên bản Nháp/Chờ duyệt/Chờ hiệu lực thì 409 DA_CO_PHIEN_BAN_MO. Không có đường tạo tự động từ đánh giá (Q-280).'
+      description: 'Nội dung khởi đầu là bản sao phiên bản Hiệu lực (copyCurrent = true) hoặc trống. Đã có phiên bản Nháp/Chờ duyệt/Chờ hiệu lực thì 409 OPEN_REVISION_EXISTS. Không có đường tạo tự động từ đánh giá (Q-280).'
       x-fr: [FR-001, FR-003, FR-004]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { saoChep: { type: boolean, default: true } } } } } }
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, properties: { copyCurrent: { type: boolean, default: true } } } } } }
       responses:
-        '201': { description: Đã lập, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/PhienBanKeHoach' } } } }
-        '409': { $ref: '#/components/responses/LoiChan' }
-  /ke-hoach-cham-soc/{id}:
+        '201': { description: Đã lập, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/CarePlan' } } } }
+        '409': { $ref: '#/components/responses/CarePlanConditionProblem' }
+  /care-plans/{id}:
     get:
+      operationId: getCarePlan
       tags: [ke-hoach]
       summary: Xem phiên bản kèm mục
       x-fr: [FR-001, FR-002, FR-007]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/PhienBanKeHoach' } } } } }
-  /ke-hoach-cham-soc/{id}/muc:
+      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/CarePlan' } } } } }
+  /care-plans/{id}/items:
     put:
+      operationId: replaceCarePlanItems
       tags: [ke-hoach]
       summary: Thay toàn bộ danh sách mục của bản Nháp
-      description: 'Chỉ khi Nháp; phiên bản khác 409 PHIEN_BAN_DA_KHOA (BR-M04-19). Mục thiếu khung nhận khung của loại công việc rồi CFG-M04-02.'
+      description: 'Chỉ khi Nháp; phiên bản khác 409 REVISION_LOCKED (BR-M04-19). Mục thiếu khung nhận khung của loại công việc rồi CFG-M04-02.'
       x-fr: [FR-002, FR-003, FR-004]
       x-br: [BR-M04-19]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MucKeHoach' } } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '412': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
-  /ke-hoach-cham-soc/{id}/thoa-thuan:
+      requestBody: { required: true, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CarePlanItem' } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' }, '412': { $ref: '#/components/responses/CarePlanProblem' }, '422': { $ref: '#/components/responses/CarePlanProblem' } }
+  /care-plans/{id}/risk-agreements:
     put:
+      operationId: replaceCarePlanRiskAgreements
       tags: [ke-hoach]
       summary: Thay toàn bộ danh sách thỏa thuận lựa chọn có rủi ro của bản Nháp (bổ sung 2026-10-18)
       description: |
-        Chỉ khi Nháp; phiên bản khác 409 PHIEN_BAN_DA_KHOA. Thỏa thuận không tạo, không chặn công việc (FR-002a).
-        Người quyết định khớp nhanDinh.tuQuyetDuoc; ý kiến có nguồn (001 FR-023g); người cao tuổi tự quyết được thì nctThamGia = true.
+        Chỉ khi Nháp; phiên bản khác 409 REVISION_LOCKED. Thỏa thuận không tạo, không chặn công việc (FR-002a).
+        Người quyết định khớp selfDeterminationAssessment.canSelfDetermine; ý kiến có nguồn (001 FR-023g); người cao tuổi tự quyết được thì residentParticipates = true.
       x-fr: [FR-002a, FR-004]
       x-br: [BR-M04-19, BR-M01-14, BR-M01-15]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ThoaThuanRuiRo' } } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '412': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
-  /ke-hoach-cham-soc/{id}/gui-duyet:
+      requestBody: { required: true, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/RiskAgreement' } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' }, '412': { $ref: '#/components/responses/CarePlanProblem' }, '422': { $ref: '#/components/responses/CarePlanProblem' } }
+  /care-plans/{id}/submit:
     post:
+      operationId: submitCarePlan
       tags: [ke-hoach]
       summary: Gửi duyệt kèm ngày hiệu lực đề xuất
-      description: 'Có ít nhất một mục, mọi mục đủ trường FR-002; ngày hiệu lực muộn hơn hôm nay; bắt buộc lyDoThayDoi khi đã có phiên bản trước.'
+      description: 'Có ít nhất một mục, mọi mục đủ trường FR-002; ngày hiệu lực muộn hơn hôm nay; bắt buộc changeReason khi đã có phiên bản trước.'
       x-fr: [FR-003, FR-005]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ngayHieuLuc], properties: { ngayHieuLuc: { type: string, format: date }, lyDoThayDoi: { $ref: '#/components/schemas/LyDo' } } } } } }
-      responses: { '200': { description: Chờ duyệt }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /ke-hoach-cham-soc/{id}/duyet:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [effectiveFrom], properties: { effectiveFrom: { type: string, format: date }, changeReason: { $ref: '#/components/schemas/Reason' } } } } } }
+      responses: { '200': { description: Chờ duyệt }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
+  /care-plans/{id}/approve:
     post:
+      operationId: approveCarePlan
       tags: [ke-hoach]
       summary: Duyệt (Bác sĩ; Điều dưỡng được gán quyền)
-      description: 'Ngày hiệu lực phải muộn hơn ngày duyệt, ngược lại 409 NGAY_HIEU_LUC_KHONG_HOP_LE và người duyệt dùng Trả lại (Q-34, FR-004). Người lập tự duyệt: bắt buộc lyDo, đánh dấu tự duyệt (Q-10). Không sửa nội dung, ngày.'
+      description: 'Ngày hiệu lực phải muộn hơn ngày duyệt, ngược lại 409 INVALID_EFFECTIVE_DATE và người duyệt dùng Trả lại (Q-34, FR-004). Người lập tự duyệt: bắt buộc reason, đánh dấu tự duyệt (Q-10). Không sửa nội dung, ngày.'
       x-fr: [FR-003, FR-004, FR-005]
       x-br: [BR-M04-19]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: false, content: { application/json: { schema: { type: object, properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
-      responses: { '200': { description: Chờ hiệu lực }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /ke-hoach-cham-soc/{id}/tra-lai:
+      requestBody: { required: false, content: { application/json: { schema: { type: object, properties: { reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      responses: { '200': { description: Chờ hiệu lực }, '403': { $ref: '#/components/responses/CarePlanProblem' }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
+  /care-plans/{id}/return:
     post:
+      operationId: returnCarePlan
       tags: [ke-hoach]
       summary: Trả lại về Nháp (bắt buộc lý do)
       x-fr: [FR-003]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: Nháp }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /ke-hoach-cham-soc/{id}/huy:
+      requestBody: { $ref: '#/components/requestBodies/CarePlanReason' }
+      responses: { '200': { description: Nháp }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' }, '422': { $ref: '#/components/responses/CarePlanProblem' } }
+  /care-plans/{id}/cancel:
     post:
+      operationId: cancelCarePlan
       tags: [ke-hoach]
       summary: Hủy phiên bản Nháp hoặc Chờ duyệt (người lập, người có quyền duyệt)
       x-fr: [FR-003]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /ke-hoach-cham-soc/{id}/thu-hoi:
+      requestBody: { $ref: '#/components/requestBodies/CarePlanReason' }
+      responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
+  /care-plans/{id}/withdraw-approval:
     post:
+      operationId: withdrawCarePlanApproval
       tags: [ke-hoach]
       summary: Thu hồi duyệt trước ngày hiệu lực
       x-fr: [FR-003]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /ke-hoach-cham-soc/so-sanh:
+      requestBody: { $ref: '#/components/requestBodies/CarePlanReason' }
+      responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
+  /care-plans/compare:
     get:
+      operationId: compareCarePlans
       tags: [ke-hoach]
       summary: So sánh hai phiên bản (mục thêm, bớt, đổi)
       x-fr: [FR-008]
       parameters:
-        - { name: tu, in: query, required: true, schema: { type: integer, format: int64 } }
-        - { name: den, in: query, required: true, schema: { type: integer, format: int64 } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SoSanhPhienBan' } } } } }
+        - { name: from, in: query, required: true, schema: { type: integer, format: int64 } }
+        - { name: to, in: query, required: true, schema: { type: integer, format: int64 } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CarePlanComparison' } } } } }
 
   # ---------------- Có mặt bán trú ----------------
   /co-mat-ban-tru:
@@ -471,6 +482,7 @@ components:
     phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
   parameters:
     Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+    ResidentId: { name: residentId, in: path, required: true, schema: { type: integer, format: int64 } }
     NctId: { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } }
     CaId: { name: caId, in: path, required: true, schema: { type: integer, format: int64 } }
     IfMatch: { name: If-Match, in: header, required: true, schema: { type: string } }
@@ -478,6 +490,9 @@ components:
   headers:
     ETag: { schema: { type: string } }
   requestBodies:
+    CarePlanReason:
+      required: true
+      content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { $ref: '#/components/schemas/Reason' } } } } }
     CatalogReason:
       required: true
       content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { $ref: '#/components/schemas/Reason' } } } } }
@@ -496,6 +511,13 @@ components:
               noiDungDung: { type: object, additionalProperties: true }
               lyDo: { $ref: '#/components/schemas/LyDo' }
   responses:
+    CarePlanProblem:
+      description: Lỗi kế hoạch theo RFC 9457
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/CareCatalogProblem' } } }
+    CarePlanConditionProblem:
+      description: 'OPEN_REVISION_EXISTS, REVISION_LOCKED, INVALID_EFFECTIVE_DATE và điều kiện chuyển trạng thái không thỏa'
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/CareCatalogProblem' } } }
+
     CareCatalogProblem:
       description: Lỗi danh mục theo RFC 9457
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/CareCatalogProblem' } } }
@@ -512,6 +534,7 @@ components:
       description: 'CONG_VIEC_DA_DONG (FR-036): kèm người đóng, thời điểm và nội dung bị từ chối để chuyển thành đính chính hoặc Ghi nhận phát sinh'
       content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Loi' }, { type: object, properties: { dongBoi: { type: string }, dongLuc: { type: string, format: date-time }, trangThai: { $ref: '#/components/schemas/TrangThaiCongViec' }, noiDungBiTuChoi: { $ref: '#/components/schemas/GhiNhan' } } } ] } } }
   schemas:
+    Importance: { type: string, enum: [NORMAL, IMPORTANT, MANDATORY] }
     Reason: { type: string, minLength: 1, maxLength: 2000 }
     CareCatalogProblem:
       type: object
@@ -525,7 +548,7 @@ components:
     LyDo: { type: string, minLength: 1, maxLength: 2000 }
     MucQuanTrong: { type: string, enum: [THUONG, QUAN_TRONG, BAT_BUOC] }
     TrangThaiCongViec: { type: string, enum: [CHUA_DEN_HAN, DEN_HAN, QUA_HAN, HOAN_THANH, HOAN_THANH_TRE, KHONG_THUC_HIEN, HUY] }
-    TrangThaiKeHoach: { type: string, enum: [NHAP, CHO_DUYET, CHO_HIEU_LUC, HIEU_LUC, HET_HIEU_LUC, DA_HUY] }
+    CarePlanStatus: { type: string, enum: [DRAFT, PENDING_APPROVAL, PENDING_EFFECT, EFFECTIVE, EXPIRED, CANCELLED] }
     LoaiCanCu: { type: string, enum: [MUC_KE_HOACH, LAN_DO, BUA, BUOI_HOAT_DONG, THEO_DOI_SAU_NGA, THEO_DOI_TIEP_XUC, CANH_BAO_UONG_NUOC, KIEM_TRA_DAU_CA, GIAM_SAT, PHAT_SINH, GHI_NHAN_PHAT_SINH, LAM_LAI] }
     Loi:
       type: object
@@ -536,86 +559,86 @@ components:
         detail: { type: string }
         maLoi: { type: string }
         dieuKienChuaThoa: { type: array, items: { type: object, properties: { ma: { type: string }, moTa: { type: string }, canCu: { type: string } } } }
-    MucKeHoach:
+    CarePlanItem:
       type: object
-      required: [loaiCongViecId, noiDung, kieuTanSuat, vaiTroThucHien, mucQuanTrong, coTinhPhi]
+      required: [taskTypeId, content, frequencyType, performerRole, importance, billable]
       properties:
         id: { type: integer, format: int64 }
-        mucGocId: { type: integer, format: int64 }
-        loaiCongViecId: { type: integer, format: int64 }
-        noiDung: { type: string }
-        kieuTanSuat: { type: string, enum: [SO_LAN_NGAY, MOI_N_GIO, NGAY_TRONG_TUAN, MOT_LAN_MOI_CA] }
-        nGio: { type: integer }
-        soLan: { type: integer }
-        mocBatDau: { type: string, description: 'HH:mm; bỏ trống = trong ca' }
-        cacMoc: { type: array, items: { type: string } }
-        ngayTrongTuan: { type: array, items: { type: integer, minimum: 1, maximum: 7 } }
-        khungTruocPhut: { type: integer }
-        khungSauPhut: { type: integer }
-        vaiTroThucHien: { type: string }
-        loaiKetQua: { type: string }
-        mucQuanTrong: { $ref: '#/components/schemas/MucQuanTrong' }
-        coTinhPhi: { type: boolean }
-        mucTieuMl: { type: integer }
-    ThoaThuanRuiRo:
+        sourceItemId: { type: integer, format: int64 }
+        taskTypeId: { type: integer, format: int64 }
+        content: { type: string }
+        frequencyType: { type: string, enum: [TIMES_PER_DAY, EVERY_N_HOURS, DAYS_OF_WEEK, ONCE_PER_SHIFT] }
+        intervalHours: { type: integer }
+        timesPerDay: { type: integer }
+        startsAt: { type: string, description: 'HH:mm; bỏ trống = trong ca' }
+        times: { type: array, items: { type: string } }
+        weekdays: { type: array, items: { type: integer, minimum: 1, maximum: 7 } }
+        windowBeforeMinutes: { type: integer }
+        windowAfterMinutes: { type: integer }
+        performerRole: { type: string }
+        resultType: { type: string }
+        importance: { $ref: '#/components/schemas/Importance' }
+        billable: { type: boolean }
+        waterTargetMl: { type: integer }
+    RiskAgreement:
       type: object
       description: Thỏa thuận lựa chọn có rủi ro (FR-002a, bổ sung 2026-10-18)
-      required: [luaChon, ruiRoDaTraoDoi, nctThamGia, bacSiNhanDinhId, nhanDinh, nguoiQuyetDinh, ngayXemLai]
+      required: [choice, discussedRisks, residentParticipates, assessingDoctorId, selfDeterminationAssessment, decisionMaker, reviewDate]
       properties:
         id: { type: integer, format: int64 }
-        thoaThuanGocId: { type: integer, format: int64 }
-        luaChon: { type: string, maxLength: 2000 }
-        ruiRoDaTraoDoi: { type: string, maxLength: 2000 }
-        nctThamGia: { type: boolean }
-        nguoiThamGia: { type: array, items: { type: object, required: [loai, id], properties: { loai: { type: string, enum: [NGUOI_THAN, NHAN_VIEN] }, id: { type: integer, format: int64 } } } }
-        bacSiNhanDinhId: { type: integer, format: int64 }
-        nhanDinh: { $ref: '#/components/schemas/NhanDinhTuQuyet' }
-        nguoiQuyetDinh:
+        sourceAgreementId: { type: integer, format: int64 }
+        choice: { type: string, maxLength: 2000 }
+        discussedRisks: { type: string, maxLength: 2000 }
+        residentParticipates: { type: boolean }
+        participants: { type: array, items: { type: object, required: [type, id], properties: { type: { type: string, enum: [FAMILY_MEMBER, STAFF] }, id: { type: integer, format: int64 } } } }
+        assessingDoctorId: { type: integer, format: int64 }
+        selfDeterminationAssessment: { $ref: '#/components/schemas/SelfDeterminationAssessment' }
+        decisionMaker:
           type: object
-          required: [loai]
+          required: [type]
           properties:
-            loai: { type: string, enum: [NGUOI_CAO_TUOI, DAI_DIEN_NGUOI_BENH, BAC_SI] }
-            nguoiThanId: { type: integer, format: int64 }
-            bacSiId: { type: integer, format: int64 }
-            lyDo: { type: string, maxLength: 1000, description: 'Bắt buộc khi BAC_SI: căn cứ không có văn bản nguyện vọng trước và không có người đại diện của người bệnh (bổ sung 2026-10-18)' }
-        yKien:
+            type: { type: string, enum: [RESIDENT, PATIENT_REPRESENTATIVE, DOCTOR] }
+            familyMemberId: { type: integer, format: int64 }
+            doctorId: { type: integer, format: int64 }
+            reason: { type: string, maxLength: 1000, description: 'Bắt buộc khi DOCTOR: căn cứ không có văn bản nguyện vọng trước và không có người đại diện của người bệnh (bổ sung 2026-10-18)' }
+        opinions:
           type: array
           items:
             type: object
-            required: [nguon, noiDung]
+            required: [source, content]
             properties:
-              nguon: { $ref: '#/components/schemas/NguonYKien' }
-              noiDung: { type: string, maxLength: 2000 }
-              nguoiGhi: { type: string, readOnly: true }
-              thoiDiem: { type: string, format: date-time, readOnly: true }
-        ngayXemLai: { type: string, format: date }
+              source: { $ref: '#/components/schemas/OpinionSource' }
+              content: { type: string, maxLength: 2000 }
+              recordedBy: { type: string, readOnly: true }
+              at: { type: string, format: date-time, readOnly: true }
+        reviewDate: { type: string, format: date }
     NonPerformanceReasonType:
       type: object
       properties: { id: { type: integer, format: int64 }, name: { type: string }, fixed: { type: boolean }, status: { type: string, enum: [ACTIVE, INACTIVE] } }
-    PhienBanKeHoach:
+    CarePlan:
       type: object
       properties:
         id: { type: integer, format: int64 }
-        nctId: { type: integer, format: int64 }
-        soPhienBan: { type: integer }
-        trangThai: { $ref: '#/components/schemas/TrangThaiKeHoach' }
-        ngayHieuLuc: { type: string, format: date }
-        hieuLucDen: { type: string, format: date }
-        nguoiLap: { type: string }
-        nguoiDuyet: { type: string }
-        duyetLuc: { type: string, format: date-time }
-        tuDuyet: { type: boolean }
-        lyDoThayDoi: { type: string }
-        muc: { type: array, items: { $ref: '#/components/schemas/MucKeHoach' } }
-        thoaThuan: { type: array, items: { $ref: '#/components/schemas/ThoaThuanRuiRo' } }
-        chuaCoKeHoachHieuLuc: { type: boolean }
-        lenhDuocPhep: { type: array, items: { type: string } }
-    SoSanhPhienBan:
+        residentId: { type: integer, format: int64 }
+        revision: { type: integer }
+        status: { $ref: '#/components/schemas/CarePlanStatus' }
+        effectiveFrom: { type: string, format: date }
+        effectiveTo: { type: string, format: date }
+        createdBy: { type: string }
+        approvedBy: { type: string }
+        approvedAt: { type: string, format: date-time }
+        selfApproved: { type: boolean }
+        changeReason: { type: string }
+        items: { type: array, items: { $ref: '#/components/schemas/CarePlanItem' } }
+        riskAgreements: { type: array, items: { $ref: '#/components/schemas/RiskAgreement' } }
+        noEffectivePlan: { type: boolean }
+        allowedCommands: { type: array, items: { type: string } }
+    CarePlanComparison:
       type: object
       properties:
-        them: { type: array, items: { $ref: '#/components/schemas/MucKeHoach' } }
-        bot: { type: array, items: { $ref: '#/components/schemas/MucKeHoach' } }
-        doi: { type: array, items: { type: object, properties: { truoc: { $ref: '#/components/schemas/MucKeHoach' }, sau: { $ref: '#/components/schemas/MucKeHoach' }, truongDoi: { type: array, items: { type: string } } } } }
+        added: { type: array, items: { $ref: '#/components/schemas/CarePlanItem' } }
+        removed: { type: array, items: { $ref: '#/components/schemas/CarePlanItem' } }
+        changed: { type: array, items: { type: object, properties: { before: { $ref: '#/components/schemas/CarePlanItem' }, after: { $ref: '#/components/schemas/CarePlanItem' }, changedFields: { type: array, items: { type: string } } } } }
     CoMat:
       type: object
       properties:
@@ -710,7 +733,7 @@ components:
         caId: { type: integer, format: int64 }
         taiLuc: { type: string, format: date-time }
         congViec: { type: array, items: { $ref: '#/components/schemas/CongViec' } }
-        thoaThuan: { type: array, description: 'Thỏa thuận lựa chọn có rủi ro của phiên bản Hiệu lực, theo người cao tuổi (FR-030, bổ sung 2026-10-18)', items: { type: object, properties: { nctId: { type: integer, format: int64 }, thoaThuan: { type: array, items: { $ref: '#/components/schemas/ThoaThuanRuiRo' } } } } }
+        thoaThuan: { type: array, description: 'Thỏa thuận lựa chọn có rủi ro của phiên bản Hiệu lực, theo người cao tuổi (FR-030, bổ sung 2026-10-18)', items: { type: object, properties: { nctId: { type: integer, format: int64 }, thoaThuan: { type: array, items: { $ref: '#/components/schemas/RiskAgreement' } } } } }
         loaiLyDoKhongThucHien: { type: array, description: 'Để app ghi ngoại tuyến (FR-028a)', items: { $ref: '#/components/schemas/NonPerformanceReasonType' } }
         lieuThuoc: { type: array, items: { type: object, additionalProperties: true }, description: 'Chỉ điều dưỡng; từ 006, chỉ hiển thị' }
         canhBaoDangMo: { type: array, items: { type: object, additionalProperties: true } }
@@ -719,7 +742,7 @@ components:
       type: object
       properties:
         ca: { type: object, properties: { id: { type: integer, format: int64 }, batDau: { type: string, format: date-time }, ketThuc: { type: string, format: date-time }, tangKhuVucId: { type: integer, format: int64 } } }
-        nguoiCaoTuoi: { type: array, items: { type: object, properties: { nctId: { type: integer, format: int64 }, coMat: { type: string }, phanCong: { type: array, items: { type: object, additionalProperties: true } }, mucKeHoach: { type: array, items: { $ref: '#/components/schemas/MucKeHoach' } }, nguonKhac: { type: array, items: { type: object, properties: { loai: { $ref: '#/components/schemas/LoaiCanCu' }, id: { type: integer, format: int64 }, thoiDiem: { type: string, format: date-time }, moTa: { type: string } } } } } } }
+        nguoiCaoTuoi: { type: array, items: { type: object, properties: { nctId: { type: integer, format: int64 }, coMat: { type: string }, phanCong: { type: array, items: { type: object, additionalProperties: true } }, mucKeHoach: { type: array, items: { $ref: '#/components/schemas/CarePlanItem' } }, nguonKhac: { type: array, items: { type: object, properties: { loai: { $ref: '#/components/schemas/LoaiCanCu' }, id: { type: integer, format: int64 }, thoiDiem: { type: string, format: date-time }, moTa: { type: string } } } } } } }
     TaskType:
       type: object
       properties:
@@ -744,3 +767,23 @@ components:
     MucThoiKhoaBieu:
       type: object
       properties: { thoiDiem: { type: string, format: date-time }, nguon: { type: string, enum: [CONG_VIEC, LIEU_THUOC, BUOI_HOAT_DONG, LICH_THAM, LICH_DEN_VE] }, moTa: { type: string }, trangThai: { type: string } }
+
+    OpinionSource:
+      type: object
+      description: |
+        Nguồn của ý kiến dùng chung (001 FR-023g, BR-M01-14); 004, 005, 012, 014 chép đúng schema này vào hợp đồng của mình.
+        familyMemberId bắt buộc khi type = FAMILY_MEMBER và phải là người thân có quan hệ Hiệu lực; rỗng khi loại khác.
+      required: [type]
+      properties:
+        type: { type: string, enum: [RESIDENT, FAMILY_MEMBER, OBSERVING_STAFF] }
+        familyMemberId: { type: [integer, 'null'], format: int64 }
+
+    SelfDeterminationAssessment:
+      type: object
+      description: Nhận định của Bác sĩ gắn với chính quyết định này, không phải dấu của người cao tuổi (FR-023h)
+      required: [canSelfDetermine, supportMethod, reviewDate]
+      properties:
+        canSelfDetermine: { type: boolean }
+        at: { type: string, format: date-time, readOnly: true }
+        supportMethod: { type: string, minLength: 1 }
+        reviewDate: { type: string, format: date }

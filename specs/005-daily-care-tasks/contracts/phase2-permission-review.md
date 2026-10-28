@@ -2,7 +2,7 @@
 
 Ngày 2026-10-27. Căn cứ: plan C-16 dùng `LOAI_CONG_VIEC/CAU_HINH`; spec FR-038 và FR-028a cho Quản lý viện cấu hình. Nhưng `m15.account.api.dto.Function` và Phụ lục 27 hiện không có dòng danh mục này; mục 24.1 không có Q đang mở. Không tự đặt PermissionKey, không sửa nghiệp vụ hoặc Function của A.
 
-Đã hỏi trong phiên, **chưa nhận câu trả lời** cho điểm quyền (khác với bản dịch HTTP và hai operation result-values đã được duyệt).
+**Đã nhận quyết định ngày 2026-10-27: chủ dự án chọn phương án 2 — chờ A công bố khóa quyền chính thức.** Quyết định này khác với bản dịch HTTP và hai operation result-values đã được duyệt. Không triển khai phương án AC-01 trực tiếp hoặc đăng ký chín phương thức SELF_CHECKED.
 
 Phương án đề nghị: như tiền lệ M13 không có dòng thông báo trong Phụ lục 27, kiểm `CurrentUser.roles()` có `NURSING_HOME_MANAGER` trong lệnh, ghi nhật ký/transaction/Reason bình thường. Thêm đúng chín phương thức dự kiến vào `RequiresPermissionArchTest.SELF_CHECKED`, ghi căn cứ FR-038/FR-028a và giao A review:
 
