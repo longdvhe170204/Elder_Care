@@ -1,14 +1,8 @@
-import { Building2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AllergyNote, CareNote, ChoiceNote } from '@/common/CareNotes'
+import { Building2, TriangleAlert } from 'lucide-react'
 import { ResidentAvatar } from '@/common/ResidentAvatar'
 import { StatusBadge } from '@/common/StatusBadge'
 import { cn } from '@/lib/utils'
-
-// Thẻ công việc chăm sóc (DESIGN.md 2.0.0, công thức task-card). Chỉ công việc Đến hạn hoặc
-// Quá hạn mới có nút Ghi nhận (bảng trạng thái công việc, mục 8.x nghiep-vu.md).
-const RECORDABLE = ['Đến hạn', 'Quá hạn']
+import { DONE, sourceText } from './taskText'
 
 export function WhoLine({ task, muted }) {
   if (task.floorTask) {
@@ -26,7 +20,7 @@ export function WhoLine({ task, muted }) {
       <ResidentAvatar name={task.resident} code={task.residentCode} initials={task.initials} />
       <div className="flex min-w-0 flex-col">
         <span className={cn('truncate', muted && 'text-muted-foreground')}>{task.resident}</span>
-        <span className="type-caption text-muted-foreground tabular-nums">{task.bed}</span>
+        <span className="type-body-sm text-muted-foreground tabular-nums">{task.bed}</span>
       </div>
     </div>
   )
@@ -35,74 +29,76 @@ export function WhoLine({ task, muted }) {
 // Người được phân công (8.4). Việc chung của tầng chưa ai nhận thì ghi rõ để người phụ trách ca phân.
 export function AssigneeLine({ task }) {
   return (
-    <span className="type-caption text-muted-foreground">
+    <span className="type-body-sm text-muted-foreground">
       {task.assignee ? `Phụ trách: ${task.assignee}` : 'Chưa ai nhận'}
     </span>
   )
 }
 
-export function TaskCard({ task, canRecord, onRecord }) {
+// Khối việc trong dòng thời gian ca (DESIGN.md 7.2 task-block, 6.3.0): đủ trường của spec 005 FR-030; không có
+// nút bên trong, bấm khối mở khung chi tiết. Nội dung là span để hợp lệ trong button.
+export function TaskBlock({ task, selected, onSelect }) {
+  const done = DONE.includes(task.status)
   const overdue = task.status === 'Quá hạn'
-  const mandatory = task.importance === 'Bắt buộc'
-  const showRecord = canRecord && RECORDABLE.includes(task.status)
 
   return (
-    <Card className={cn('gap-3', overdue && 'ring-[1.5px] ring-destructive')}>
-      <CardHeader className="gap-2">
-        <div className="flex items-center justify-between gap-2">
-          <span className={cn('type-card-title tabular-nums', overdue && 'text-destructive')}>
-            {task.from}
-            <span className="ml-1 type-caption text-muted-foreground">đến {task.to}</span>
-          </span>
-          <StatusBadge status={task.status} />
-        </div>
-        <CardTitle className="type-card-title font-semibold">{task.title}</CardTitle>
-      </CardHeader>
-
-      <CardContent className="flex flex-1 flex-col gap-3">
-        <WhoLine task={task} />
-
-        <AssigneeLine task={task} />
-        <AllergyNote allergies={task.allergies} />
-        <ChoiceNote choices={task.riskChoices} lines={2} />
-        <CareNote note={task.careNote} lines={2} />
-
-        {(showRecord || mandatory || task.carriedOver) && (
-          // Hàng cuối thẻ (DESIGN.md 2.1.0): ghi chú ngắn bên trái, nút Ghi nhận gọn bên phải, luôn ở đáy
-          <div className="mt-auto flex min-h-10 items-center justify-between gap-3 border-t pt-3">
-            <div className="flex flex-wrap gap-x-3 gap-y-1 type-caption">
-              {mandatory && <span className="text-foreground">Bắt buộc</span>}
-              {task.carriedOver && <span className="text-muted-foreground">Tồn từ ca trước</span>}
-            </div>
-            {showRecord && (
-              <Button variant={overdue ? 'default' : 'tonal'} onClick={() => onRecord(task)}>
-                Ghi nhận
-              </Button>
-            )}
-          </div>
+    <button
+      type="button"
+      onClick={() => onSelect(task)}
+      aria-pressed={selected}
+      className={cn(
+        'flex w-full flex-col gap-1.5 rounded-md border bg-card p-3 text-left type-body-sm',
+        done && 'border-dashed bg-transparent text-muted-foreground',
+        selected && 'ring-2 ring-primary',
+      )}
+    >
+      <span className="flex items-center justify-between gap-2">
+        <span className={cn('type-caption tabular-nums', overdue ? 'text-destructive' : 'text-muted-foreground')}>
+          {task.from}–{task.to}
+        </span>
+        <StatusBadge status={task.status} className="h-auto" />
+      </span>
+      <span className={cn('type-label', done ? 'text-muted-foreground' : 'text-foreground')}>
+        {task.title}
+        {task.importance && task.importance !== 'Thường' && (
+          <span className="ml-1.5 type-caption text-muted-foreground">{task.importance}</span>
         )}
-      </CardContent>
-    </Card>
-  )
-}
-
-export function DoneTaskCard({ task }) {
-  return (
-    <Card className="gap-3">
-      <CardHeader className="gap-2">
-        <div className="flex items-center justify-between gap-2">
-          <span className="type-body-sm text-muted-foreground tabular-nums">
-            {task.from} đến {task.to}
+      </span>
+      {task.floorTask ? (
+        <span className="flex items-center gap-2">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground" aria-hidden="true">
+            <Building2 className="size-3.5" />
           </span>
-          <StatusBadge status={task.status} />
-        </div>
-        <CardTitle className="type-body font-medium text-muted-foreground">{task.title}</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-2 type-body-sm">
-        <WhoLine task={task} muted />
-        {task.result && <span className="text-muted-foreground">{task.result}</span>}
-        <AssigneeLine task={task} />
-      </CardContent>
-    </Card>
+          Việc chung của tầng
+        </span>
+      ) : (
+        <span className="flex items-center gap-2">
+          <ResidentAvatar name={task.resident} code={task.residentCode} initials={task.initials} className="size-6" />
+          <span className="truncate">
+            {task.resident}, <span className="tabular-nums">{task.bed}</span>
+          </span>
+        </span>
+      )}
+      {done ? (
+        task.result && <span>{task.result}</span>
+      ) : (
+        <>
+          <span className="text-muted-foreground">{sourceText(task)}</span>
+          {task.allergies?.length > 0 && (
+            <span className="flex items-start gap-1.5 text-warning-foreground">
+              <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              Dị ứng: {task.allergies.join(', ')}
+            </span>
+          )}
+          {task.riskChoices?.map((c) => (
+            <span key={c.choice} className="line-clamp-2">
+              Lựa chọn của người cao tuổi: {c.choice}. Đã trao đổi rủi ro, xem lại {c.reviewOn}.
+            </span>
+          ))}
+          {task.careNote && <span className="line-clamp-2">Lưu ý: {task.careNote}</span>}
+        </>
+      )}
+      <AssigneeLine task={task} />
+    </button>
   )
 }

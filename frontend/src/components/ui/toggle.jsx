@@ -9,8 +9,9 @@ const toggleVariants = cva(
       variant: {
         default: "bg-transparent",
         outline: "border border-input bg-transparent hover:bg-muted",
+        // filter-bar (DESIGN.md 7.2, 6.0.0): tab gạch chân, mục chọn chữ chính và gạch 2px xanh đêm
         filter:
-          "rounded-full border border-border bg-popover px-3.5 hover:bg-muted aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground",
+          "rounded-none border-b-2 border-transparent bg-transparent px-1 text-muted-foreground hover:bg-transparent hover:text-foreground aria-pressed:border-primary aria-pressed:bg-transparent aria-pressed:text-foreground data-[state=on]:bg-transparent data-[state=on]:text-foreground",
       },
       size: {
         default:

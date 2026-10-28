@@ -64,7 +64,7 @@ function UserBlock({ role, onRoleChange, session, onLogout }) {
       </span>
       {session ? (
         <div className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate type-label">{session.fullName ?? `Tài khoản ${session.accountId}`}</span>
+          <span className="truncate type-label text-sidebar-primary-foreground">{session.fullName ?? `Tài khoản ${session.accountId}`}</span>
           <span className="type-caption text-sidebar-muted-foreground">{current.label}</span>
         </div>
       ) : (
@@ -107,13 +107,20 @@ export function AppShell({ role, hasFunction, built, onRoleChange, session, onLo
 
   return (
     <div className="grid min-h-screen grid-cols-1 md:grid-cols-[240px_minmax(0,1fr)]">
+      {/* Bỏ qua menu (DESIGN.md 9.3, WCAG 2.4.1): ẩn, hiện khi focus bằng bàn phím */}
+      <a
+        href="#main-content"
+        className="sr-only z-50 rounded-full bg-primary px-4 py-2 type-label text-primary-foreground focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+      >
+        Bỏ qua menu
+      </a>
       <aside
         data-slot="sidebar"
-        className="flex flex-col gap-2 border-b border-sidebar-border bg-sidebar bg-linear-to-b/srgb from-(--sidebar-from) via-(--sidebar-mid) via-58% to-(--sidebar-to) pb-3 text-sidebar-foreground md:sticky md:top-0 md:h-screen md:border-r md:border-b-0"
+        className="flex flex-col gap-2 border-b border-sidebar-border bg-sidebar pb-3 text-sidebar-foreground md:sticky md:top-0 md:h-screen md:border-r md:border-b-0"
       >
         <div className="flex items-center gap-2.5 px-4 pt-4 pb-2">
           <LeafMark />
-          <span className="type-title">Elder_Care</span>
+          <span className="type-title text-sidebar-primary-foreground">Elder_Care</span>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-3 md:flex-col md:overflow-y-auto">
           {groups.map((group) => (
@@ -131,7 +138,7 @@ export function AppShell({ role, hasFunction, built, onRoleChange, session, onLo
                     onClick={() => onPageChange(item.key)}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'flex min-h-10 shrink-0 items-center gap-2.5 rounded-full px-3 text-left type-label whitespace-nowrap text-sidebar-foreground hover:bg-(--sidebar-hover)',
+                      'flex min-h-10 shrink-0 items-center gap-2.5 rounded-menu px-3 text-left type-label whitespace-nowrap text-sidebar-foreground hover:bg-(--sidebar-hover)',
                       active &&
                         'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
                     )}
@@ -147,7 +154,9 @@ export function AppShell({ role, hasFunction, built, onRoleChange, session, onLo
         <UserBlock role={role} onRoleChange={onRoleChange} session={session} onLogout={onLogout} />
       </aside>
 
-      <main className="min-w-0 px-4 py-6 md:px-8">{children}</main>
+      <main id="main-content" tabIndex={-1} className="min-w-0 px-4 py-6 outline-none md:px-8">
+        {children}
+      </main>
     </div>
   )
 }

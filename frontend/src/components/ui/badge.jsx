@@ -18,13 +18,13 @@ const badgeVariants = cva(
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
-        // Tông trạng thái theo DESIGN.md (mục Trạng thái → tông màu)
-        urgent: "bg-destructive-subtle text-destructive",
-        attention: "bg-warning text-warning-foreground",
-        settled: "bg-success text-success-foreground",
+        // Tông trạng thái theo DESIGN.md 3.5 (6.0.0): chữ màu không nền; held, neutral-outline giữ viền
+        urgent: "px-0 text-destructive",
+        attention: "px-0 text-warning-foreground",
+        settled: "px-0 text-success-foreground",
         held: "border-accent-foreground text-accent-foreground",
-        occupied: "bg-info text-info-foreground",
-        neutral: "bg-muted text-muted-foreground",
+        occupied: "px-0 text-info-foreground",
+        neutral: "px-0 text-muted-foreground",
         "neutral-outline": "border-input text-muted-foreground",
       },
     },
