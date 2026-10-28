@@ -940,6 +940,35 @@ Loại đối tượng chính: M04.CARE_PLAN, M04.TASK, M04.CARE_RESULT, M04.DAY
 
 Bản giả API mới: FakeM04ApiConfig/FakeM04ApiFixture, import riêng với test/demo, không thay FakeM04Config của8SPI. Công tắc các SPI Phase1 không tự bật tắt fixture API mới; hai cấu hình có mục đích khác nhau.
 
+### 11.3. HTTP kế hoạch Phase 3 (005, duyệt 2026-10-27)
+
+Chỉ là hợp đồng đã dịch, chưa xác nhận endpoint runtime. Bảng đầy đủ và operationId tại `005-daily-care-tasks/contracts/phase3-api-review.md`; không đổi chữ ký DTO/API nội bộ đã công bố.
+
+| Tên logic | Tên tiếng Anh |
+| --- | --- |
+| `/nguoi-cao-tuoi/{nctId}/ke-hoach-cham-soc`, `/ke-hoach-cham-soc/{id}` | `/residents/{residentId}/care-plans`, `/care-plans/{id}` |
+| `/muc`, `/thoa-thuan`, `/gui-duyet`, `/duyet`, `/tra-lai`, `/huy`, `/thu-hoi` | `/items`, `/risk-agreements`, `/submit`, `/approve`, `/return`, `/cancel`, `/withdraw-approval` |
+| `/so-sanh?tu=&den=` | `/compare?from=&to=` |
+| PhienBanKeHoach, MucKeHoach, ThoaThuanRuiRo, SoSanhPhienBan | `CarePlan`, `CarePlanItem`, `RiskAgreement`, `CarePlanComparison` |
+| saoChep, nctId, soPhienBan, trangThai | `copyCurrent`, `residentId`, `revision`, `status` |
+| ngayHieuLuc, hieuLucDen, nguoiLap, nguoiDuyet, duyetLuc, tuDuyet | `effectiveFrom`, `effectiveTo`, `createdBy`, `approvedBy`, `approvedAt`, `selfApproved` |
+| lyDoThayDoi, lyDo, muc, thoaThuan, chuaCoKeHoachHieuLuc, lenhDuocPhep | `changeReason`, `reason`, `items`, `riskAgreements`, `noEffectivePlan`, `allowedCommands` |
+| mucGocId, loaiCongViecId, noiDung | `sourceItemId`, `taskTypeId`, `content` |
+| kieuTanSuat, nGio, soLan, mocBatDau, cacMoc, ngayTrongTuan | `frequencyType`, `intervalHours`, `timesPerDay`, `startsAt`, `times`, `weekdays` (HTTP mảng 1–7) |
+| SO_LAN_NGAY, MOI_N_GIO, NGAY_TRONG_TUAN, MOT_LAN_MOI_CA | `TIMES_PER_DAY`, `EVERY_N_HOURS`, `DAYS_OF_WEEK`, `ONCE_PER_SHIFT` |
+| khungTruocPhut, khungSauPhut, vaiTroThucHien, loaiKetQua, mucQuanTrong, coTinhPhi, mucTieuMl | `windowBeforeMinutes`, `windowAfterMinutes`, `performerRole`, `resultType`, `importance`, `billable`, `waterTargetMl` |
+| thoaThuanGocId, luaChon, ruiRoDaTraoDoi, nctThamGia, nguoiThamGia | `sourceAgreementId`, `choice`, `discussedRisks`, `residentParticipates`, `participants` |
+| bacSiNhanDinhId, nhanDinh, nguoiQuyetDinh, nguoiThanId, bacSiId | `assessingDoctorId`, `selfDeterminationAssessment`, `decisionMaker`, `familyMemberId`, `doctorId` |
+| loai, id; NGUOI_THAN/NHAN_VIEN của người tham gia | `type`, `id`; `FAMILY_MEMBER/STAFF` |
+| NGUOI_CAO_TUOI/DAI_DIEN_NGUOI_BENH/BAC_SI của người quyết định | `RESIDENT/PATIENT_REPRESENTATIVE/DOCTOR` |
+| yKien, nguon, nguoiGhi, thoiDiem, ngayXemLai | `opinions`, `source`, `recordedBy`, `at`, `reviewDate` |
+| them, bot, doi, truoc, sau, truongDoi | `added`, `removed`, `changed`, `before`, `after`, `changedFields` |
+| DA_CO_PHIEN_BAN_MO, PHIEN_BAN_DA_KHOA, NGAY_HIEU_LUC_KHONG_HOP_LE | `OPEN_REVISION_EXISTS`, `REVISION_LOCKED`, `INVALID_EFFECTIVE_DATE` |
+| NhanDinhTuQuyet, NguonYKien | `SelfDeterminationAssessment`, `OpinionSource`: chép đúng schema công khai 001, không thêm trường |
+| Trạng thái kế hoạch, mức quan trọng | `CarePlanStatus` (giá trị như 11.2), `Importance.NORMAL/IMPORTANT/MANDATORY` |
+
+Các operation chưa dịch ở story khác vẫn giữ tên; tham chiếu tới schema mục/thỏa thuận dùng tên schema mới để không có `$ref` treo. Lỗi kế hoạch dùng `CarePlanProblem`/`CarePlanConditionProblem`, cùng hình dạng tiếng Anh đã có của `CareCatalogProblem`; `CarePlanReason` dùng `Reason`, không đổi thân lý do của các story chưa dịch.
+
 ## 12. Feature 006 (`006-medication-management`, D)
 
 *Chủ feature điền khi dịch `contracts/api-006.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*

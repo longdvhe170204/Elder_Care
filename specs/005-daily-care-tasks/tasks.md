@@ -54,7 +54,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 
 **Kiểm cuối 2026-10-27**: clean verify nền exit1/04:32phút;474unit/kiến trúc xanh,1112IT còn6failure+9error ở đúng8lớpM01 đã bàn giaoB;27kiểm mới Phase2 xanh, Spotless1509file sạch. Giữ toàn bộ checkbox Phase2[ ]; không sửa B để ép gate.
 
-**Checkpoint**: Nền 005 chưa nghiệm thu; ưu tiên tiếp theo T007 → T007a (service/HTTP) khi chủ dự án chốt quyền, rồi chạy lại kiểm cuối phase trước Phase3/T010.
+**Checkpoint**: Nền 005 chưa nghiệm thu; chủ dự án đã chọn phương án 2 ngày 2026-10-27: chờ A công bố khóa quyền chính thức, không dùng AC-01 trực tiếp/SELF_CHECKED. Ưu tiên tiếp theo T007 → T007a (service/HTTP) khi có khóa quyền, rồi chạy lại kiểm cuối phase trước Phase3/T010. Bản dịch HTTP Phase 3 tại contracts/phase3-api-review.md đã được duyệt bằng trả lời "1" và áp dụng vào YAML cùng test hợp đồng; chưa bắt đầu implementation story Phase 3, chưa hoàn tất T016/T016a.
 
 ---
 
