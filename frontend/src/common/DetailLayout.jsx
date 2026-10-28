@@ -41,7 +41,10 @@ export function DetailLayout({ open, detailKey, onClose, label, renderDetail, ch
           ref={panelRef}
           tabIndex={-1}
           aria-label={label}
-          onKeyDown={(event) => event.key === 'Escape' && onClose()}
+          onKeyDown={(event) => {
+            // Sheet mở chồng từ khung (phần của hồ sơ, form) tự đóng bằng Esc; khi đó khung giữ nguyên
+            if (event.key === 'Escape' && !document.querySelector('[data-slot="sheet-content"][data-open]')) onClose()
+          }}
           className="sticky top-0 -my-6 -mr-8 flex h-screen flex-col gap-2 overflow-y-auto border-l bg-card p-6 outline-none"
         >
           <Button variant="ghost" size="icon" className="self-end" aria-label="Đóng chi tiết" onClick={onClose}>
