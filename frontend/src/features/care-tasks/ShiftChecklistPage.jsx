@@ -1,26 +1,21 @@
-import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { useEffect, useRef, useState } from 'react'
+import { X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { DEMO_CARE_TASKS, DEMO_RESIDENTS, DEMO_SHIFT } from '@/common/demoData'
 import { ClockAside, PageHeader } from '@/common/PageHeader'
 import { cn } from '@/lib/utils'
-import { DoneTaskCard, TaskCard } from './TaskCard'
-import { RecordResultSheet } from './RecordResultSheet'
+import { TaskBlock } from './TaskCard'
+import { DONE } from './taskText'
+import { TaskDetail, TaskDetailSheet } from './RecordResultSheet'
 
-// Bản mẫu màn Checklist ca (005 User Story 4) dạng lưới thẻ, theo DESIGN.md 2.0.0.
+// Bản mẫu màn Checklist ca (005 User Story 4) theo DESIGN.md 6.3.1: nhóm Quá hạn trên cùng, rồi dòng thời gian
+// ca theo giờ (shift-timeline), khối việc đủ trường của FR-030; khung chi tiết cố định bên phải từ 1280px.
 // Dữ liệu minh họa; trạng thái sau khi ghi nhận ở đây chỉ mô phỏng, trạng thái thật do backend trả.
 
-const DONE = ['Hoàn thành', 'Hoàn thành trễ', 'Không thực hiện', 'Hủy']
-const GROUPS = [
-  { status: 'Quá hạn', open: true },
-  { status: 'Đến hạn', open: true },
-  { status: 'Chưa đến hạn', open: false },
-]
-
-// Dị ứng hiện trên việc ăn, uống (DESIGN.md mục 7.2); thỏa thuận lựa chọn có rủi ro hiện trên mọi việc của
-// người đó (005 FR-030, Q-360). Dữ liệu thật: backend trả kèm công việc.
+// Dị ứng hiện trên việc ăn, uống (DESIGN.md mục 7.2); thỏa thuận lựa chọn có rủi ro và lưu ý chăm sóc hiện trên
+// mọi việc của người đó (005 FR-030, Q-360). Dữ liệu thật: backend trả kèm công việc.
 const FOOD_KINDS = ['meal', 'water']
 const withAllergies = (t) => {
   const resident = DEMO_RESIDENTS.find((r) => r.code === t.residentCode)
@@ -36,51 +31,40 @@ function minutes(hhmm) {
   return h * 60 + m
 }
 
-// shift-bar: phần ca đã qua và vạch giờ hiện tại
-function ShiftBar({ shift }) {
-  const start = minutes(shift.start)
-  const passed = Math.min(100, Math.max(0, ((minutes(shift.now) - start) / (minutes(shift.end) - start)) * 100))
-
-  return (
-    <div className="flex flex-col gap-1.5" aria-hidden="true">
-      <div className="relative h-2 rounded-full bg-muted">
-        <div className="absolute inset-y-0 left-0 rounded-full bg-chart-2" style={{ width: `${passed}%` }} />
-        <span
-          className="absolute -top-1 -bottom-1 w-1 -translate-x-1/2 rounded-full bg-primary ring-2 ring-background"
-          style={{ left: `${passed}%` }}
-        />
-      </div>
-      <div className="flex justify-between type-caption text-muted-foreground tabular-nums">
-        <span>{shift.start}</span>
-        <span>{shift.end}</span>
-      </div>
-    </div>
-  )
+function remainingText(shift) {
+  const left = minutes(shift.end) - minutes(shift.now)
+  if (left <= 0) return 'Ca đã hết'
+  const h = Math.floor(left / 60)
+  const m = left % 60
+  return `còn ${[h && `${h} giờ`, m && `${m} phút`].filter(Boolean).join(' ')}`
 }
 
-function TaskGroup({ label, count, defaultOpen, urgent, children }) {
-  return (
-    <Collapsible defaultOpen={defaultOpen} className="flex flex-col gap-3">
-      <CollapsibleTrigger className="group flex min-h-11 w-fit items-center gap-2 rounded-full pr-2">
-        <ChevronDown
-          className="size-5 -rotate-90 text-foreground transition-transform group-data-[panel-open]:rotate-0"
-          aria-hidden="true"
-        />
-        <span className="type-title">{label}</span>
-        <span
-          className={cn(
-            'rounded-full px-2 type-caption tabular-nums',
-            urgent ? 'bg-destructive-subtle text-destructive' : 'bg-muted text-muted-foreground',
-          )}
-        >
-          {count}
-        </span>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-3 *:max-w-[480px]">{children}</div>
-      </CollapsibleContent>
-    </Collapsible>
-  )
+const WIDE = '(min-width: 1280px)'
+
+// Khung chi tiết cố định khi màn rộng từ 1280px (DESIGN.md mục 5, 10)
+function useWide() {
+  const [wide, setWide] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.(WIDE).matches)
+  useEffect(() => {
+    const query = window.matchMedia?.(WIDE)
+    if (!query) return undefined
+    const update = () => setWide(query.matches)
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
+  return wide
+}
+
+const FILTERS = [
+  { value: 'all', label: 'Tất cả', match: () => true },
+  { value: 'Quá hạn', label: 'Quá hạn', match: (t) => t.status === 'Quá hạn' },
+  { value: 'Đến hạn', label: 'Đến hạn', match: (t) => t.status === 'Đến hạn' },
+  { value: 'Chưa đến hạn', label: 'Chưa đến hạn', match: (t) => t.status === 'Chưa đến hạn' },
+  { value: 'done', label: 'Đã xong', match: (t) => DONE.includes(t.status) },
+  { value: 'floor', label: 'Việc chung của tầng', match: (t) => t.floorTask },
+]
+
+function BlockGrid({ children }) {
+  return <div className="grid min-w-0 flex-1 grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-2 *:max-w-[360px]">{children}</div>
 }
 
 // Vai trò có quyền T ở dòng "Checklist, ghi nhận công việc" của Phụ lục 27 (QL, BS chỉ xem).
@@ -91,114 +75,176 @@ export function ShiftChecklistPage({ role, initialFilter = 'all' }) {
   const canRecord = RECORD_ROLES.includes(role)
   const [tasks, setTasks] = useState(() => DEMO_CARE_TASKS.map(withAllergies))
   const [filter, setFilter] = useState(initialFilter)
-  const [recording, setRecording] = useState(null)
+  const [selectedId, setSelectedId] = useState(null)
   const [announcement, setAnnouncement] = useState('')
+  const wide = useWide()
   const shift = DEMO_SHIFT
 
-  const visible = tasks.filter((t) => filter === 'all' || (filter === 'floor' ? t.floorTask : t.status === filter))
-  const count = (status) => tasks.filter((t) => t.status === status).length
-  const done = visible.filter((t) => DONE.includes(t.status))
-  const overdueCount = count('Quá hạn')
+  const matches = FILTERS.find((f) => f.value === filter)?.match ?? (() => true)
+  const visible = tasks.filter(matches)
+  const overdue = visible.filter((t) => t.status === 'Quá hạn').sort((a, b) => minutes(a.from) - minutes(b.from))
+  const timeline = visible.filter((t) => t.status !== 'Quá hạn').sort((a, b) => minutes(a.from) - minutes(b.from))
+  const hours = [...new Set(timeline.map((t) => t.from.slice(0, 2)))]
+  const nowHour = shift.now.slice(0, 2)
+  const nowIndex = hours.findIndex((h) => h > nowHour)
+  const selected = tasks.find((t) => t.id === selectedId) ?? null
+  // Khung chi tiết cố định chỉ hiện khi đã chọn một việc; chưa chọn thì danh sách rộng hết màn (DESIGN.md mục 5)
+  const panelOpen = wide && !!selected
+  const panelRef = useRef(null)
+  const triggerRef = useRef(null)
+
+  function select(task) {
+    triggerRef.current = document.activeElement
+    setSelectedId(task.id)
+  }
+
+  // Đóng khung thì focus trở về khối đã mở (DESIGN.md 9.2, WCAG 2.1.2)
+  function closePanel() {
+    setSelectedId(null)
+    requestAnimationFrame(() => triggerRef.current?.focus?.())
+  }
+
+  // Mở khung thì đưa focus vào khung để người dùng bàn phím, trình đọc màn hình đọc tiếp
+  useEffect(() => {
+    if (panelOpen) panelRef.current?.focus()
+  }, [panelOpen, selectedId])
 
   function close(task, patch, message) {
     setTasks((all) => all.map((t) => (t.id === task.id ? { ...t, ...patch } : t)))
-    setRecording(null)
+    closePanel()
     setAnnouncement(message)
   }
 
+  const detailProps = {
+    now: shift.now,
+    canRecord,
+    onSave: ({ value, doneAt }) =>
+      close(
+        selected,
+        {
+          // Mô phỏng mục 8.x: ghi nhận trong khung thì Hoàn thành, sau khung thì Hoàn thành trễ.
+          status: minutes(doneAt) > minutes(selected.to) ? 'Hoàn thành trễ' : 'Hoàn thành',
+          result: [value, `lúc ${doneAt}`].filter(Boolean).join(', '),
+        },
+        `Đã lưu kết quả: ${selected.title}`,
+      ),
+    onNotDone: ({ reasonType, note }) =>
+      close(
+        selected,
+        { status: 'Không thực hiện', result: [reasonType, note].filter(Boolean).join(', ') },
+        `Đã ghi nhận không thực hiện: ${selected.title}`,
+      ),
+  }
+
+  const nowLine = (
+    <div key="now" className="flex items-center gap-4 py-1" role="presentation">
+      <span className="w-13 shrink-0 type-caption text-accent-foreground">Bây giờ</span>
+      <span className="h-0.5 flex-1 bg-chart-2" />
+    </div>
+  )
+
   return (
-    <div className="mx-auto flex max-w-[1600px] flex-col gap-6">
-      <PageHeader
-        title={`Checklist ${shift.name.toLowerCase()}`}
-        subtitle={`${shift.floor}, bạn phụ trách ${shift.residentsAssigned} người cao tuổi`}
-        aside={<ClockAside time={shift.now} caption={`Ca ${shift.start} đến ${shift.end}`} />}
-      >
-        <ShiftBar shift={shift} />
-        <ToggleGroup
-          variant="filter"
-          size="lg"
-          value={[filter]}
-          onValueChange={(next) => next[0] && setFilter(next[0])}
-          className="flex-wrap"
-          aria-label="Lọc công việc"
+    <div
+      className={cn(
+        'mx-auto flex max-w-[1600px] flex-col gap-5',
+        panelOpen && 'grid grid-cols-[minmax(0,1fr)_420px] items-start gap-0',
+      )}
+    >
+      <div className={cn('flex min-w-0 flex-col gap-5', panelOpen && 'pr-8')}>
+        <PageHeader
+          title={`Checklist ${shift.name.toLowerCase()}`}
+          subtitle={`${shift.floor}, bạn phụ trách ${shift.residentsAssigned} người cao tuổi`}
+          aside={<ClockAside time={shift.now} caption={remainingText(shift)} />}
         >
-          <ToggleGroupItem value="all" className="h-11 px-4">
-            Tất cả <span className="tabular-nums">{tasks.length}</span>
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="Quá hạn"
-            className={cn(
-              'h-11 px-4',
-              overdueCount > 0 && filter !== 'Quá hạn' && 'border-transparent bg-destructive-subtle text-destructive',
-            )}
+          <ToggleGroup
+            variant="filter"
+            value={[filter]}
+            onValueChange={(next) => next[0] && setFilter(next[0])}
+            className="flex-wrap"
+            aria-label="Lọc công việc"
           >
-            Quá hạn <span className="tabular-nums">{overdueCount}</span>
-          </ToggleGroupItem>
-          <ToggleGroupItem value="Đến hạn" className="h-11 px-4">
-            Đến hạn <span className="tabular-nums">{count('Đến hạn')}</span>
-          </ToggleGroupItem>
-          <ToggleGroupItem value="floor" className="h-11 px-4">
-            Việc chung của tầng <span className="tabular-nums">{tasks.filter((t) => t.floorTask).length}</span>
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </PageHeader>
+            {FILTERS.map((f) => {
+              const n = tasks.filter(f.match).length
+              return (
+                <ToggleGroupItem
+                  key={f.value}
+                  value={f.value}
+                  className={cn('h-11', f.value === 'Quá hạn' && n > 0 && 'text-destructive aria-pressed:text-destructive')}
+                >
+                  {f.label} <span className="tabular-nums">{n}</span>
+                </ToggleGroupItem>
+              )
+            })}
+          </ToggleGroup>
+        </PageHeader>
 
-      <p className="sr-only" aria-live="polite">
-        {announcement}
-      </p>
+        <p className="sr-only" aria-live="polite">
+          {announcement}
+        </p>
 
-      {visible.length === 0 ? (
-        <Empty className="rounded-2xl border bg-card">
-          <EmptyHeader>
-            <EmptyTitle>Không có công việc nào khớp bộ lọc</EmptyTitle>
-            <EmptyDescription>Chọn "Tất cả" để xem toàn bộ công việc của ca.</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      ) : (
-        <div className="flex flex-col gap-8">
-          {GROUPS.map((g) => {
-            const items = visible.filter((t) => t.status === g.status)
-            if (items.length === 0) return null
-            return (
-              <TaskGroup key={g.status} label={g.status} count={items.length} defaultOpen={g.open} urgent={g.status === 'Quá hạn'}>
-                {items.map((t) => (
-                  <TaskCard key={t.id} task={t} canRecord={canRecord} onRecord={setRecording} />
-                ))}
-              </TaskGroup>
-            )
-          })}
-          {done.length > 0 && (
-            <TaskGroup label="Đã xong" count={done.length} defaultOpen={false}>
-              {done.map((t) => (
-                <DoneTaskCard key={t.id} task={t} />
-              ))}
-            </TaskGroup>
-          )}
-        </div>
+        {visible.length === 0 ? (
+          <Empty className="rounded-lg border bg-card">
+            <EmptyHeader>
+              <EmptyTitle>Không có công việc nào khớp bộ lọc</EmptyTitle>
+              <EmptyDescription>Chọn "Tất cả" để xem toàn bộ công việc của ca.</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          <>
+            {overdue.length > 0 && (
+              <section aria-labelledby="overdue-title" className="flex flex-col gap-2.5">
+                <h2 id="overdue-title" className="type-label text-destructive">
+                  Quá hạn ({overdue.length})
+                </h2>
+                <BlockGrid>
+                  {overdue.map((t) => (
+                    <TaskBlock key={t.id} task={t} selected={t.id === selectedId} onSelect={select} />
+                  ))}
+                </BlockGrid>
+              </section>
+            )}
+
+            {timeline.length > 0 && (
+              <section aria-label="Dòng thời gian ca" className="flex flex-col">
+                {hours.flatMap((h, i) => [
+                  i === nowIndex && nowLine,
+                  <div key={h} className="flex gap-4 border-t py-3">
+                    <span className="w-13 shrink-0 pt-3 type-label text-muted-foreground tabular-nums">{h}:00</span>
+                    <BlockGrid>
+                      {timeline
+                        .filter((t) => t.from.startsWith(h))
+                        .map((t) => (
+                          <TaskBlock key={t.id} task={t} selected={t.id === selectedId} onSelect={select} />
+                        ))}
+                    </BlockGrid>
+                  </div>,
+                ])}
+                {nowIndex === -1 && nowLine}
+              </section>
+            )}
+          </>
+        )}
+      </div>
+
+      {panelOpen && (
+        <aside
+          ref={panelRef}
+          tabIndex={-1}
+          aria-label="Chi tiết công việc"
+          onKeyDown={(event) => event.key === 'Escape' && closePanel()}
+          className="sticky top-0 -my-6 -mr-8 flex h-screen flex-col gap-2 overflow-y-auto border-l bg-card p-6 outline-none"
+        >
+          <Button variant="ghost" size="icon" className="self-end" aria-label="Đóng chi tiết" onClick={closePanel}>
+            <X aria-hidden="true" />
+          </Button>
+          <TaskDetail key={selected.id} task={selected} {...detailProps} />
+        </aside>
       )}
 
-      <RecordResultSheet
-        task={recording}
-        now={shift.now}
-        onOpenChange={(open) => !open && setRecording(null)}
-        onSave={({ value, doneAt }) =>
-          close(
-            recording,
-            {
-              // Mô phỏng mục 8.x: ghi nhận trong khung thì Hoàn thành, sau khung thì Hoàn thành trễ.
-              status: minutes(doneAt) > minutes(recording.to) ? 'Hoàn thành trễ' : 'Hoàn thành',
-              result: [value, `lúc ${doneAt}`].filter(Boolean).join(', '),
-            },
-            `Đã lưu kết quả: ${recording.title}`,
-          )
-        }
-        onNotDone={({ reasonType, note }) =>
-          close(
-            recording,
-            { status: 'Không thực hiện', result: [reasonType, note].filter(Boolean).join(', ') },
-            `Đã ghi nhận không thực hiện: ${recording.title}`,
-          )
-        }
+      <TaskDetailSheet
+        task={wide ? null : selected}
+        onOpenChange={(open) => !open && closePanel()}
+        {...detailProps}
       />
     </div>
   )

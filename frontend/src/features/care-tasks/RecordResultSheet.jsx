@@ -2,15 +2,21 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { AllergyNote, CareNote, ChoiceNote } from '@/common/CareNotes'
 import { DEMO_MEAL_LEVELS, DEMO_NOT_DONE_REASONS } from '@/common/demoData'
+import { StatusBadge } from '@/common/StatusBadge'
 import { WhoLine } from './TaskCard'
+import { DONE, sourceText } from './taskText'
 
-// Khung ghi nhận kết quả (DESIGN.md, detail-panel + form ghi nhận; 005 US4 kịch bản 3–6, 10).
+// Khung chi tiết công việc (DESIGN.md 7.2 task-detail): thông tin việc, care-notes, form ghi nhận; nút chính ở
+// chân khung (005 US4 kịch bản 3–6, 10). Từ 1280px là khung cố định bên phải, hẹp hơn mở bằng Sheet.
 // Bản mẫu: kiểm tra trên màn chỉ để hiện lỗi tại ô; kiểm tra thật và trạng thái mới do backend trả.
+
+// Chỉ công việc Đến hạn hoặc Quá hạn mới ghi nhận được (bảng trạng thái công việc, mục 8.x nghiep-vu.md).
+const RECORDABLE = ['Đến hạn', 'Quá hạn']
 
 function ResultField({ task, value, onChange, invalid }) {
   if (task.kind === 'meal') {
@@ -83,8 +89,8 @@ function RecordForm({ task, now, onSave, onNotDone }) {
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-1 flex-col" noValidate>
-      <FieldGroup className="px-4">
+    <form onSubmit={submit} className="flex flex-1 flex-col gap-5" noValidate>
+      <FieldGroup>
         {mode === 'result' ? (
           <>
             <ResultField task={task} value={value} onChange={setValue} invalid={submitted && valueMissing} />
@@ -140,8 +146,8 @@ function RecordForm({ task, now, onSave, onNotDone }) {
         )}
       </FieldGroup>
 
-      <SheetFooter>
-        <Button type="submit" className="h-11">
+      <div className="mt-auto flex flex-col gap-2">
+        <Button type="submit" className="h-12">
           {mode === 'result' ? 'Lưu kết quả' : 'Ghi nhận không thực hiện'}
         </Button>
         <Button
@@ -153,32 +159,73 @@ function RecordForm({ task, now, onSave, onNotDone }) {
             setSubmitted(false)
           }}
         >
-          {mode === 'result' ? 'Không thực hiện' : 'Quay lại ghi kết quả'}
+          {mode === 'result' ? 'Không thực hiện được…' : 'Quay lại ghi kết quả'}
         </Button>
-      </SheetFooter>
+      </div>
     </form>
   )
 }
 
-export function RecordResultSheet({ task, now, onOpenChange, onSave, onNotDone }) {
+// Thời gian trễ so với cuối khung, hiện ở dòng trạng thái của việc Quá hạn
+function lateText(task, now) {
+  const toMin = (hhmm) => hhmm.split(':').map(Number).reduce((h, m) => h * 60 + m)
+  const late = toMin(now) - toMin(task.to)
+  if (late <= 0) return null
+  const h = Math.floor(late / 60)
+  const m = late % 60
+  return `trễ ${[h && `${h} giờ`, m && `${m} phút`].filter(Boolean).join(' ')}`
+}
+
+// Nội dung khung chi tiết; dùng chung cho khung cố định và Sheet. Title là tên việc (tiêu đề hộp thoại khi ở Sheet).
+export function TaskDetail({ task, now, canRecord, onSave, onNotDone, Title = 'h2', Description = 'p' }) {
+  const recordable = canRecord && RECORDABLE.includes(task.status)
+  const late = task.status === 'Quá hạn' ? lateText(task, now) : null
+
+  return (
+    <div className="flex min-h-full flex-col gap-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5">
+          <StatusBadge status={task.status} />
+          {late && <span className="type-caption text-destructive">{late}</span>}
+        </span>
+        {task.importance && task.importance !== 'Thường' && (
+          <span className="type-caption text-muted-foreground">{task.importance}</span>
+        )}
+      </div>
+      <div className="flex flex-col gap-1">
+        <Title className="type-title">{task.title}</Title>
+        <Description className="type-body-sm text-muted-foreground">
+          <span className="tabular-nums">
+            {task.from}–{task.to}
+          </span>
+          , {sourceText(task)}, {task.assignee ? `phụ trách ${task.assignee}` : 'chưa ai nhận'}
+        </Description>
+      </div>
+      <WhoLine task={task} />
+      <AllergyNote allergies={task.allergies} />
+      <ChoiceNote choices={task.riskChoices} />
+      <CareNote note={task.careNote} />
+      {DONE.includes(task.status) && task.result && (
+        <p className="type-body-sm">
+          <span className="text-muted-foreground">Kết quả: </span>
+          {task.result}
+        </p>
+      )}
+      {recordable && (
+        <>
+          <div className="h-px bg-border" />
+          <RecordForm key={task.id} task={task} now={now} onSave={onSave} onNotDone={onNotDone} />
+        </>
+      )}
+    </div>
+  )
+}
+
+export function TaskDetailSheet({ task, onOpenChange, ...props }) {
   return (
     <Sheet open={!!task} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg">
-        {task && (
-          <>
-            <SheetHeader className="gap-3 pt-6">
-              <SheetTitle className="type-title">{task.title}</SheetTitle>
-              <SheetDescription className="tabular-nums">
-                Khung {task.from} đến {task.to}
-              </SheetDescription>
-              <WhoLine task={task} />
-              <AllergyNote allergies={task.allergies} />
-              <ChoiceNote choices={task.riskChoices} />
-              <CareNote note={task.careNote} />
-            </SheetHeader>
-            <RecordForm key={task.id} task={task} now={now} onSave={onSave} onNotDone={onNotDone} />
-          </>
-        )}
+      <SheetContent className="overflow-y-auto p-6 sm:max-w-lg">
+        {task && <TaskDetail task={task} Title={SheetTitle} Description={SheetDescription} {...props} />}
       </SheetContent>
     </Sheet>
   )
