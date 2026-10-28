@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Search, TriangleAlert } from 'lucide-react'
+import { getMe } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -215,6 +216,19 @@ export function ResidentListPage({ role }) {
   const [notice, setNotice] = useState('')
   const [creating, setCreating] = useState(false)
   const [reloadKey, setReloadKey] = useState(0)
+  // Có phiên thật (GET /me như App) thì chỉ dữ liệu thật của 001; không có backend thì bản mẫu (team-plan L106).
+  // null: chưa biết, chưa vẽ phần nào để không nháy dữ liệu mẫu
+  const [live, setLive] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    getMe()
+      .then(() => !cancelled && setLive(true))
+      .catch(() => !cancelled && setLive(false))
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const q = query.trim().toLowerCase()
   const rows = DEMO_RESIDENTS.filter(
@@ -229,18 +243,39 @@ export function ResidentListPage({ role }) {
   }
   const countOf = (s) => (s === 'Tất cả' ? DEMO_RESIDENTS.length : DEMO_RESIDENTS.filter((r) => r.status === s).length)
 
+  const createButton = PROFILE_CREATORS.includes(role) && (
+    <Button className="h-11" onClick={() => setCreating(true)}>
+      Tạo hồ sơ
+    </Button>
+  )
+  const createSheet = (
+    <Sheet open={creating} onOpenChange={setCreating}>
+      <SheetContent className="sm:max-w-lg">
+        {creating && <CreateResident onCreated={() => setReloadKey((k) => k + 1)} onClose={() => setCreating(false)} />}
+      </SheetContent>
+    </Sheet>
+  )
+
+  if (live !== false) {
+    return (
+      <div className="mx-auto flex max-w-[1600px] flex-col gap-6">
+        <PageHeader title="Người cao tuổi" aside={createButton} />
+        {live && (
+          <>
+            <ResidentSearch reloadKey={reloadKey} />
+            {createSheet}
+          </>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="mx-auto flex max-w-[1600px] flex-col gap-6">
       <PageHeader
         title="Người cao tuổi"
         subtitle={`${DEMO_RESIDENTS.length} hồ sơ trong phạm vi bạn được xem`}
-        aside={
-          PROFILE_CREATORS.includes(role) && (
-            <Button className="h-11" onClick={() => setCreating(true)}>
-              Tạo hồ sơ
-            </Button>
-          )
-        }
+        aside={createButton}
       >
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <InputGroup className="h-11 bg-popover lg:w-72 lg:shrink-0">
@@ -273,13 +308,7 @@ export function ResidentListPage({ role }) {
 
       <ResidentSearch reloadKey={reloadKey} />
 
-      <Sheet open={creating} onOpenChange={setCreating}>
-        <SheetContent className="sm:max-w-lg">
-          {creating && (
-            <CreateResident onCreated={() => setReloadKey((k) => k + 1)} onClose={() => setCreating(false)} />
-          )}
-        </SheetContent>
-      </Sheet>
+      {createSheet}
 
       <Card className="py-0">
         {rows.length === 0 ? (
