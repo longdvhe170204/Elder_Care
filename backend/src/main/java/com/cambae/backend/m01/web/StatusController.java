@@ -1,7 +1,6 @@
 package com.cambae.backend.m01.web;
 
 import com.cambae.backend.common.error.BusinessException;
-import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.m01.api.dto.Condition;
 import com.cambae.backend.m01.api.dto.StatusCommand;
 import com.cambae.backend.m01.internal.status.service.ResidentStatusService;
@@ -9,10 +8,8 @@ import com.cambae.backend.m01.internal.status.service.ResidentStatusService.Outc
 import com.cambae.backend.m01.web.request.StatusCommandRequestBody;
 import com.cambae.backend.m01.web.response.StatusCommandResultBody;
 import com.cambae.backend.m01.web.response.StatusHistoryEntryBody;
-import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.EnumSet;
@@ -28,7 +25,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Lệnh và lịch sử trạng thái người cao tuổi (001 T050; contracts/api-001.yaml, tag {@code status}). Mỗi lệnh một
@@ -38,8 +37,6 @@ import tools.jackson.databind.node.JsonNodeFactory;
 @RequestMapping("/api/v1/residents/{id}")
 @Tag(name = "status")
 class StatusController {
-
-    private static final String PROBLEM = "application/problem+json";
 
     /** Lệnh người dùng được xem trước điều kiện (schema {@code UserCommand}). */
     private static final Set<StatusCommand> USER_COMMANDS = EnumSet.of(
@@ -65,7 +62,22 @@ class StatusController {
     }
 
     @GetMapping("/conditions/{command}")
-    List<Condition> conditions(@PathVariable long id, @PathVariable StatusCommand command) {
+    List<Condition> conditions(
+            @PathVariable long id,
+            @PathVariable
+                    @Parameter(
+                            schema =
+                                    @Schema(
+                                            allowableValues = {
+                                                "COMPLETE_ADMISSION",
+                                                "CANCEL_ADMISSION",
+                                                "GRANT_TEMPORARY_ABSENCE",
+                                                "RECORD_RETURN",
+                                                "TRANSFER_OUT",
+                                                "END_RESIDENCY",
+                                                "RECORD_DEATH"
+                                            }))
+                    StatusCommand command) {
         if (!USER_COMMANDS.contains(command)) {
             throw new BusinessException(
                     HttpStatus.UNPROCESSABLE_CONTENT,
@@ -76,70 +88,65 @@ class StatusController {
     }
 
     @PostMapping("/complete-admission")
-    @ApiResponses(
-            @ApiResponse(
-                    responseCode = "409",
-                    description = "UNMET_CONDITIONS, INVALID_TRANSITION, PROFILE_CLOSED",
-                    content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class))))
+    @ProblemResponses.StatusCommand
     StatusCommandResultBody completeAdmission(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody StatusCommandRequestBody body) {
-        requireNoAttachments(body);
         return result(status.completeAdmission(ResidentStatusService.target(id), body.reason(), details(body)));
     }
 
     @PostMapping("/cancel-admission")
+    @ProblemResponses.StatusCommand
     StatusCommandResultBody cancelAdmission(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody StatusCommandRequestBody body) {
-        requireNoAttachments(body);
         return result(status.cancelAdmission(ResidentStatusService.target(id), body.reason(), details(body)));
     }
 
     @PostMapping("/grant-temporary-absence")
+    @ProblemResponses.StatusCommand
     StatusCommandResultBody grantTemporaryAbsence(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody StatusCommandRequestBody body) {
-        requireNoAttachments(body);
         return result(status.grantTemporaryAbsence(ResidentStatusService.target(id), body.reason(), details(body)));
     }
 
     @PostMapping("/record-return")
+    @ProblemResponses.StatusCommand
     StatusCommandResultBody recordReturn(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody StatusCommandRequestBody body) {
-        requireNoAttachments(body);
         return result(status.recordReturn(ResidentStatusService.target(id), body.reason(), details(body)));
     }
 
     @PostMapping("/transfer-out")
+    @ProblemResponses.StatusCommand
     StatusCommandResultBody transferOut(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody StatusCommandRequestBody body) {
-        requireNoAttachments(body);
         return result(status.transferOut(ResidentStatusService.target(id), body.reason(), details(body)));
     }
 
     @PostMapping("/end-residency")
+    @ProblemResponses.StatusCommand
     StatusCommandResultBody endResidency(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody StatusCommandRequestBody body) {
-        requireNoAttachments(body);
         return result(status.endResidency(ResidentStatusService.target(id), body.reason(), details(body)));
     }
 
     @PostMapping("/record-death")
+    @ProblemResponses.StatusCommand
     StatusCommandResultBody recordDeath(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,
             @Valid @RequestBody StatusCommandRequestBody body) {
-        requireNoAttachments(body);
         return result(status.recordDeath(ResidentStatusService.target(id), body.reason(), details(body)));
     }
 
@@ -147,18 +154,14 @@ class StatusController {
         return StatusCommandResultBody.of(outcome);
     }
 
+    /** Chi tiết lệnh kèm danh sách tệp đính kèm; {@code ResidentStatusService} kiểm lệnh nào được nhận tệp (FR-047c). */
     private static JsonNode details(StatusCommandRequestBody body) {
-        return body.details() == null ? JsonNodeFactory.instance.objectNode() : body.details();
-    }
-
-    /**
-     * Tệp đính kèm của Ghi nhận trở về từ bệnh viện và Chuyển viện thuộc T082 (cần {@code FileApi}, T003); tới đó mọi
-     * lệnh từ chối tệp đính kèm thay vì bỏ qua tệp người dùng gửi.
-     */
-    private static void requireNoAttachments(StatusCommandRequestBody body) {
+        ObjectNode details =
+                body.details() instanceof ObjectNode node ? node.deepCopy() : JsonNodeFactory.instance.objectNode();
         if (body.attachmentFileIds() != null && !body.attachmentFileIds().isEmpty()) {
-            throw new BusinessException(
-                    HttpStatus.UNPROCESSABLE_CONTENT, "ATTACHMENTS_NOT_ACCEPTED", "Lệnh này chưa nhận tệp đính kèm");
+            ArrayNode ids = details.putArray("attachmentFileIds");
+            body.attachmentFileIds().forEach(ids::add);
         }
+        return details;
     }
 }

@@ -346,7 +346,7 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 | 7 | Xong 7 / chưa: không | `e8ef59c`, `55f0a87`, `3b27943` | Có | Chưa |
 | 8 | Xong 6 (T060 → T062, T064 → T066; T036 và T048 thuộc Phase 5, 6 cũng xong ở Phase 8) / chưa T063 (listener sự cố, chờ D) | `a4c8dd5`, `3ee1b9b`, `69f1089`, commit tài liệu | Có | Chưa |
 
-Tổng theo tasks.md: 54 task `[x]`, 31 task `[ ]` (Phase 9: 8, Phase 10: 6, còn lại là tồn đọng ở Phase 1 → 8 ở bảng trên). Đã merge `origin/develop` ba lần (`f7680b5`, `5a6335a`, `5cf69e5`).
+Tổng theo tasks.md (số liệu 2026-10-23, trước Phase 9; số hiện hành ở mục "Bàn giao checkpoint cuối Phase 9" cuối file): 54 task `[x]`, 31 task `[ ]` (Phase 9: 8, Phase 10: 6, còn lại là tồn đọng ở Phase 1 → 8 ở bảng trên). Đã merge `origin/develop` ba lần (`f7680b5`, `5a6335a`, `5cf69e5`).
 
 **Test còn đỏ (không phải của B, không sửa):** `ApiContractIT.R_14` (BL-23, A đăng ký api-001) và ba test `FamilyHealthIT` do `FakeConsents` trùng `ConsentFootnoteCondition` thật (BL-39, A). `./mvnw verify` Phase 8: 729 test, chỉ 4 đỏ này.
 
@@ -366,3 +366,175 @@ Tổng theo tasks.md: 54 task `[x]`, 31 task `[ ]` (Phase 9: 8, Phase 10: 6, cò
 - **Đồng bộ develop (2026-10-23)**: đã merge `origin/develop` (3f43cb2: PR #21 Problem chung, PR #22 009). Conflict chỉ ở tài liệu và script sinh API (`DESIGN.md` hợp nhất bảng tông và lịch sử phiên bản; `frontend/scripts/gen-api.mjs` `TRANSLATED = ['000', '001', '002', '009']`). Migration `V009_02`, `V009_03` không xung đột `V001_09`, `V001_10`.
 - **Chưa làm**: `LuuTruProvider` cho các bảng phiếu (T079, cùng provider của M01 ở T011); phần `mobile/`; nghiệm thu giao diện trên trình duyệt.
 - **Chốt Phase 9**: `./mvnw verify` trên MySQL 3307 sau khi merge develop: 186 test đơn vị và kiến trúc xanh, 828 test tích hợp, 4 đỏ đều có từ trước và thuộc A (`ApiContractIT.R_14` BL-23: còn đường dẫn của nhiều module chưa vào hợp đồng đăng ký, kể cả api-001; `FamilyHealthIT` ×3 BL-39). Frontend: 211 Vitest xanh, `npm run lint`, `npm run build` qua.
+
+## Ghi chú triển khai *(2026-10-24, BL-23: hợp đồng api-001 khớp mã, 202 chỗ lệch về 0)*
+
+- **Cách kiểm**: bản sao tạm của `ApiContractIT` chỉ gồm api-001 với so operation bật (đã xóa sau khi dùng, không đụng file của A) báo 202 chỗ trên 37 operation; sau sửa báo 0. `ApiContractIT` của A vẫn để `checkOperations = false` cho api-001 chờ A bật.
+- **Sửa hợp đồng** (`api-001.yaml`, không thêm bớt endpoint hay trường nghiệp vụ): `Problem` theo bản chung của 000 (thêm `failedLayer`, `license`, `unlocksAt`, `required`; 96 chỗ); `GET /residents/{id}` trả một schema `Profile` (người thân nhận tập con, trường bị bỏ nằm ở `hiddenFields`, `FamilyProfile` chỉ còn mô tả); `CourtDecision` kiểu `[object, null]` thay `oneOf`; `HealthItem.allergen` dùng `AllergenRef` (`id`, `name`) vì mã chỉ trả hai trường; thêm enum cho `EndOfLifeWish.choice`, `source`, `Assessment.proposedResidenceType`, bỏ `null` khỏi enum `representativeSelection`; tham số `type` của `/catalogs/{type}` khai ở từng operation; bỏ `cursor` của `GET /reassessments/due` (mã trả đủ danh sách, không phân trang).
+- **Sửa mã** (chỉ M01, hành vi không đổi): `ProblemResponses` (meta-annotation `@Forbidden`, `@NotFound`, `@StatusCommand`) khai 200/403/404/409/422; đính chính và `POST /files` khai 201; `GET /files/{id}` khai `application/octet-stream` và 404; `UploadedFileBody` thay `Map`; enum `currentCareLevel`, `conditions/{command}`, `type` của danh mục, `source` của thân ghi phiếu cuối đời (không nhận `CRITICAL_RECONFIRMATION`, chỉ 007 ghi qua `EndOfLifeWishApi`); trường bắt buộc của `CourtDecision`, `SelfDeterminationAssessment`, `OpinionSource.type`, `AllergenRef`; schema `CorrectionBody` đổi `ResidentCorrectionBody` vì trùng tên schema của 000 làm OpenAPI lẫn hai thân.
+- **Kiểm thử** (MySQL 3307): `./mvnw clean verify` 185 đơn vị và kiến trúc, 828 tích hợp, 0 lỗi; 211 Vitest, lint, build qua.
+
+## Bàn giao checkpoint cuối Phase 9 *(2026-10-24, trước khi chuyển sang session làm Phase 10; B duyệt)*
+
+**Git**: nhánh `impl/001-elder-profile-assessment`, HEAD trước commit bàn giao là `a8dfdd9` (merge `origin/develop` `ebfcd38`, PR #25 của 009); commit bàn giao là commit tài liệu ngay sau `a8dfdd9`. Remote `origin/develop` đã chứa Phase 1 → 9 tới `e4d8cdc` (PR #23); **chưa push, chưa PR** cho 4 commit sau PR #23: `c41e5e5` (mã BL-23), `8037a8f` (hợp đồng api-001), `81dff74` (tài liệu BL-23), `a8dfdd9` (merge) và commit bàn giao. Stash `CP-001-P2-IMPL` còn nguyên (web danh mục, `ApiContractIT` đăng ký api-001 — A đã đăng ký bản khác ở PR #24 nên stash chủ yếu còn để tham khảo — `api-001.yaml`). Bản sao lưu BL-23: `…/scratchpad/backup_bl23/` của phiên làm việc (patch, 2 file mới), chỉ để đối chiếu.
+
+**Tiến độ**: tasks.md 61 `[x]`, 24 `[ ]`. Phase 1 → 9 xong phần backend và web trừ các task dưới; `mobile/` chưa mở. Phase 9: T067 → T070, T077, T078, T080 xong; T079 `[ ]`.
+
+**Task còn `[ ]` (24)**: nền/Phase 1–2: T002 (bản giả `ChiSoApi`, `SuCoDaGhiNhan` của D), T009 (`HasNotificationRequests`, 009 đã có, cần xem lại), T011 (`RetentionProvider`, `LuuTruProvider`, phân loại trường còn lại), T013, T013a (test có, chưa đánh dấu), T083 (`EndOfLifeWishApi.currentTreatmentWish` đã làm một phần ở Phase 9; đối chiếu trước khi đánh dấu); Phase 3–6: T018, T019, T023 (mobile), T033, T042, T052 (mobile), T049 (`statusPeriods`), T050 (`DinhChinhDuocProvider`), T081, T082 (giấy tờ bệnh viện); Phase 8: T063 (listener sự cố, chờ D); Phase 9: T079 (`LuuTruProvider`, cùng T011); Phase 10: T071 → T076.
+
+**BL-23**: 202 chỗ lệch giữa `api-001.yaml` và mã M01 đã sửa về 0 (ghi chú 2026-10-24 ở trên). Xác nhận lần cuối sau merge develop `ebfcd38`: bản sao tạm của `ApiContractIT` bật so operation cho api-001 qua, đã xóa. **Còn chờ A** đặt `checkOperations = true` cho api-001 trong `ApiContractIT` (file của A) để xác nhận chính thức; sau đó B không còn việc ở BL-23. BL-39 đã được A xử lý ở PR #24.
+
+**Blocker/chờ người khác** (team-plan mục 8): A bật `checkOperations`; D (`IncidentRecorded`, `VitalSignApi`) cho T002, T063; E (012 `familyMemberName`, `registeredPhoneNumber`, nhãn quan hệ ở `FamilyRelationshipApi`) cho phiếu điều trị; A ghi `hiddenFields` cho cờ `hasTreatmentWish` (BL-42, BL-43).
+
+**Kết quả test cuối** (MySQL 3307): `./mvnw clean verify` 185 đơn vị và kiến trúc, 835 tích hợp, 0 lỗi; 213 Vitest; `npm run lint`, `npm run build` qua. `FakeConsentApi` (A, PR #25) không trùng bean với `ConsentService` thật; M13 dùng `ConsentApi`, `ResidentApi`, `ResidentStatusChanged` tương thích, `FR_014_015_ConsentAndDeathIT`, `InboxIT` xanh.
+
+**Lưu ý để bắt đầu Phase 10 (T071 → T076)**:
+- Đọc `tasks.md` Phase 10 và dòng B ở `docs/team-plan.md` mục 8; `.specify/feature.json` là `{"feature_directory": "specs/001-elder-profile-assessment"}`.
+- T071 (`HopDongApiTest` so springdoc với `api-001.yaml`): `ApiContractIT` của A đã so cả api-001 (đường dẫn, endpoint); phần so operation chờ A bật, nên T071 nên dùng phần đó chứ không viết test so sánh thứ hai.
+- Luôn đặt `DB_URL`, `TEST_DB_URL` về `jdbc:mysql://localhost:3307/…` (biến máy trỏ 3306, không dùng); instance 3307 có thể bị tắt giữa chừng: nếu `Communications link failure` thì bật lại bằng `mysqld --no-defaults --datadir=<scratchpad phiên 221e9972>mysql3307data --port=3307 --mysqlx=OFF --skip-log-bin --max_connections=400`.
+- Sau mỗi lần `verify`, quyền `elder_care_demo` mất (test DROP/CREATE user); khôi phục chưa làm, cần B cho phép.
+- File `.java` trong cây làm việc dùng CRLF; script sửa bằng node cần xử lý CRLF (xem cách ở các script `edit*.js` trong scratchpad); `git commit -F <file>`; không có `gh`/token: PR tạo qua URL compare của GitHub.
+- Không đánh dấu nghiệm thu giao diện khi B chưa tự thử; không đổi `CLAUDE.md`; không push/PR/merge khi B chưa duyệt.
+
+## Ghi chú triển khai *(2026-10-24, Phase 10 một phần: T072, T075, T076)*
+
+- **T076**: sự kiện `m01.api.events.OpinionRecordedFromFeedback(feedbackId, sourceModule, itemType, itemId, residentId, source)` (tên logic `YKienDaGhiTuPhanHoi`); cột `phan_hoi_id` thuộc bảng của 014 (data-model mục 6a), 001 không có bảng nào dùng nên chỉ khai báo sự kiện. Test `FR_023g_OpinionFromFeedbackIT` (3 test). 014 phát, 012 nghe: báo ở team-plan mục 8.
+- **T075**: rà truy vết ghi ở data-model mục 12 (cuối bảng). Chưa có test nhưng có task: FR-047c (T082), FR-054 (T009).
+- **T072** (bố cục chủ dự án duyệt 2026-10-24, DESIGN.md 5.19.2): tab "Danh mục" trong `AdminPage`, mã ở `frontend/src/features/catalogs-m01/` (`CatalogList`, `CatalogItemForm`, `CatalogReasonForm`, `catalogLabels.js`); bốn loại danh mục, lọc trạng thái và nhóm dị nguyên, thêm, sửa (If-Match = `version` của dòng), ngừng hiệu lực và kích hoạt lại kèm lý do; 12 Vitest (403 xem và thao tác, 409 trùng tên, 412). Nút thao tác chỉ hiện cho Quản lý viện theo ma trận `HEALTH_CATALOGS` (AC-01 xem, tạo, sửa; AC-03, AC-04 chỉ xem). **Điểm còn thiếu ở UC-69**: nghiep-vu.md Phụ lục 26 chỉ nêu "Cấu hình tham số" (Quản lý viện), không có dòng cho danh mục dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc; ma trận nạp ở `V002_04` đã có `HEALTH_CATALOGS` (plan, điểm báo lại 3) nên web theo ma trận, không tự thêm quyền. Chưa nghiệm thu trên trình duyệt.
+- **Đổi hợp đồng (chủ dự án duyệt 2026-10-24)**: schema `CatalogItem` của api-001 thêm `version` (int32, không bắt buộc) và `CatalogItemBody` trả `version`, vì `PUT /catalogs/{type}/{id}` cần `If-Match` mà danh sách không có nguồn phiên bản; test `BR_M01_11_CatalogIT.FR_018a_listCarriesVersionSoTheClientCanSendIfMatch`. `ApiContractIT` bật so operation tạm cho api-001 vẫn qua (0 lệch). Thay đổi cộng thêm, không ảnh hưởng module khác.
+- **Sửa test flaky** (lỗi thật, không đổi hành vi): `BR_M01_01_TemporaryAbsenceOverdueIT` lấy mốc dự kiến trở về đúng giá trị đã đưa cho `open` (trước đọc lại `now()` lệch 1 µs vì đồng hồ test chạy tiếp) và so trong 1 mili giây; sai lệch nghiệp vụ (giờ) vẫn bị bắt.
+- **Chưa làm / phần B tự làm được**: T071 — hợp đồng đã khớp (bật tạm `checkOperations` cho api-001 trong bản sao, `ApiContractIT` qua rồi hoàn lại); chỉ còn A đặt `true` ở file của A. T073 — chưa module nào ngoài 001 cài `StatusTransitionParticipant` thật (003–013 chưa vào develop), B không tự làm được. T074 — đã chạy `verify`, Vitest, lint, build; còn `flutter test` (mobile chưa mở), kịch bản quickstart mục 3 chạy tay trên profile demo (đa số đã có IT tương ứng, không đụng demo), đo SC cần người thật.
+- **Kiểm thử** (MySQL 3307): `./mvnw clean verify` 186 đơn vị và kiến trúc, 839 tích hợp, 0 lỗi; 225 Vitest, `npm run lint`, `npm run build` qua.
+
+## Ghi chú triển khai *(2026-10-24, đợt 1 sau rà soát: T011 phần phân loại trường, T018, T047)*
+
+- **Che trường nhật ký sức khỏe (T011)**: thêm `HealthItemFieldClassification`, `InitialHealthRecordFieldClassification`, `AssessmentFieldClassification` (mọi trường nhóm `HEALTH`, `careLevel` của đánh giá nhóm `CARE_LEVEL`). **Đính chính mức độ**: rà soát ghi Critical "Hành chính đọc được nội dung sức khỏe", nhưng `AuditLogQueryService` đang an toàn theo hướng đóng: loại đối tượng chưa phân loại thì `history()` trả 404 cho người không phải Quản lý viện và `search()` chỉ cho Quản lý viện, nên chưa lộ dữ liệu. Phân loại cần thêm vì (1) data-model mục 10 yêu cầu Hành chính thấy "đã thay đổi" và Bác sĩ thấy giá trị, (2) khi lọc theo phạm vi của 000/002 chạy thật (hiện `history()` dựng `Target` không mang `residentId` nên người có quyền `ASSIGNED` luôn nhận 404; `ScopeAssignmentProvider` chưa ai gọi) thì trường chưa phân loại sẽ mặc định công khai nội bộ. `AuditLogHealthMaskingIT` chặn trôi: mọi trường lệnh thật ghi vào `audit_log` phải có trong phân loại. **Báo A**: `AuditLogQueryService.history` nên lấy `Target` từ `ScopeAssignmentProvider`; M01 chưa có provider này cho bản ghi con.
+- **Bằng chứng qua đời (T047)**: `ResidentStatusService.apply` gắn tệp bằng `FileApi.attach(fileId, "M01.DEATH_EVIDENCE", historyId)` ngay sau khi ghi dòng lịch sử; tệp không có thật → 404, đã gắn → 409 `FILE_ALREADY_ATTACHED`, cả lệnh rollback (không đổi trạng thái, không gắn tệp). Chỉ số nguyên mới tính là bằng chứng (`isIntegralNumber`). Bác sĩ cũng được kèm bằng chứng. `DeathEvidenceFilePermission`: tải khi có quyền xem `RESIDENCY_END_DEATH` của hồ sơ, **loại người thân** dù ma trận cho AC-10 xem. **Quyết định tạm thời của chủ dự án (2026-10-24), chờ A xác nhận nghiệp vụ**: giấy tờ do cơ sở y tế cấp là chuyên môn nội bộ; chỉ vai trò có quyền xem "Kết thúc lưu trú, qua đời" theo chính sách hiện tại được tải, không mở rộng thêm. Web `StatusTab` vẫn nhập tay mã tệp, chưa có ô tải lên (thuộc T052, chưa làm trong đợt này).
+- **Ảnh hồ sơ (T018)**: `ResidentProfileService` gắn ảnh khi tạo và khi đổi `photoFileId` (`M01.RESIDENT_PHOTO`, id hồ sơ); ảnh cũ vẫn gắn làm lịch sử (không xóa tệp). Trước sửa, ảnh không được gắn nên job dọn tệp chưa gắn xóa sau 24 giờ (test `NFR_08_attachedPhoto_isNotRemovedByTheUnattachedFileCleanup` đỏ rồi xanh). `ResidentPhotoFilePermission`: quyền xem hồ sơ trong phạm vi và thấy đủ nhóm nhận dạng.
+- **Kiểm thử** (MySQL 3307): `./mvnw clean verify` 186 đơn vị và kiến trúc, 856 tích hợp, 0 lỗi. Instance 3307 đã tắt giữa chừng và được bật lại bằng đúng data dir cũ.
+
+## Ghi chú triển khai *(2026-10-24, đợt 2 sau rà soát: T009, T081 → T083)*
+
+- **Thông báo M01 → M13 (T009)**: chín sự kiện cài `HasNotificationRequests` qua lớp `m01.api.events.Notices` (mức, nhóm nhận, khóa sự kiện theo research H-14, FR-054): `ReassessmentDue` (Nhẹ) và `ReassessmentOverdue` (Trung bình) → Bác sĩ trực; `CareLevelChangeRequestNeeded` (Trung bình) và `...Reminder` (Nhẹ), `MissingConsentReminder` (Nhẹ) → Hành chính; `MissingEndOfLifeWishReminder`, `SelfDeterminationReviewReminder` (Nhẹ) → Bác sĩ (trực, hoặc Bác sĩ đã nhận định qua `Staff`) và Điều dưỡng phụ trách; `TemporaryAbsenceOverdue` (Trung bình) → Trưởng tầng của tầng (theo phân bổ giường qua `BedAllocationApi`) và Hành chính, không có tầng thì Hành chính và Quản lý viện. Phần sức khỏe chỉ ở nội dung đầy đủ loại `HEALTH`; nội dung rút gọn và tiêu đề không có họ tên, trường sức khỏe. Sáu sự kiện thêm `Instant at` (thời điểm từ `Clock` của lệnh phát), `TemporaryAbsenceOverdue` thêm `floorAreaId`, `SelfDeterminationReviewReminder` thêm `assessingDoctorStaffId` (tra qua `AccountApi.byId`); không module nào khác dùng các hàm dựng này.
+- **Sự kiện mới `ResidentStatusNotice`**: Chuyển viện, Ghi nhận qua đời → người liên hệ chính, Khẩn cấp, `ABOUT_RESIDENT`, Q-354 `TRANSFER`/`DEATH` (Q-97, Q-353, Q-354), phát cùng `ResidentStatusChanged` trong `ResidentStatusService.apply`. **Lý do tách**: cho `ResidentStatusChanged` cài `HasNotificationRequests` thì `ResidentDeathListener` của 009 (nghe `ResidentStatusChanged`) bị luật `M13ArchTest.FR_001_exactlyOneListenerForNotificationRequests_inM13` của A đếm là listener thứ hai (phát hiện ở `clean verify`, đã tránh bằng sự kiện riêng, không sửa file của A). Tin báo qua đời có `occurredAt` bằng thời điểm qua đời nên 009 FR-015 không chặn.
+- **Người nhận thật** còn phụ thuộc người khác: `OnDutyDoctor` cần `CaTrucApi` (E); `AssignedNurse` cần `AssignmentApi.staffAssignedToResident` (E); `PrimaryContact` cần `FamilyNotificationPort` (E, 012). `ResidentNotificationsIntakeIT` kiểm yêu cầu hợp lệ không thiếu dấu nào (trừ `NO_RECIPIENT` tùy dữ liệu), chống trùng theo khóa sự kiện, lệnh trạng thái khác không gửi.
+- **Giấy tờ bệnh viện (T082)**: `ResidentStatusService` nhận `attachmentFileIds` trong `details` (REST gộp từ thân yêu cầu ở `StatusController`, đường cho module khác là `ResidentStatusApi.execute`, không đổi chữ ký): chỉ `RECORD_RETURN` từ `HOSPITALIZED` và `TRANSFER_OUT`, tối đa 10, trùng chỉ gắn một lần; lệnh khác → 422 `ATTACHMENTS_NOT_ACCEPTED`, quá 10 → 422 `TOO_MANY_ATTACHMENTS`. `FileApi.attach` vào dòng lịch sử (`M01.HOSPITAL_DOCUMENT`) cùng transaction: tệp không có → 404, đã gắn → 409 `FILE_ALREADY_ATTACHED`, cả lệnh rollback. `HospitalDocumentFilePermission`: quyền xem dị ứng, bệnh nền trong phạm vi (Hành chính, Kế toán không tải). Sửa lỗi ở cả hai provider tệp của lệnh trạng thái: bỏ `@Transactional(readOnly = true)` vì kiểm quyền theo phạm vi của 002 có thể ghi dấu khắc phục lỗi dữ liệu nguồn (provider người dùng thuộc phạm vi bị `TransientDataAccessResourceException`). `HospitalDocumentsIT` 10 test.
+- **Bản giả**: `FakeEndOfLifeWishes` cho 007, 006 (`@Import(FakeEndOfLifeWishes.Config.class)`, không nằm trong `FakeM01Config` vì `@Primary`).
+- **`FileApi.attachedTo` và `hospitalDocuments` (chủ dự án duyệt 2026-10-24)**: `FileApi` (A) thêm `List<FileView> attachedTo(String ownerType, long ownerId)` (`FileView(id, originalName, mimeType, sizeBytes)`, theo thứ tự tải lên, chỉ siêu dữ liệu), cài ở `FileService`/`FileStore.findAttached`; cộng thêm, không đổi `upload`, `attach`, `download` hay quyền tải. `ResidentStatusApi.hospitalDocuments(historyId)` (tên `giayToDinhKem` của hợp đồng) trả các tệp `M01.HOSPITAL_DOCUMENT` của dòng lịch sử, người gọi tải qua `GET /files/{id}` đã kiểm quyền. Ghi nhận thay đổi code của A ở docs/team-plan.md mục 8.
+- **Web `StatusTab` (T082, bố cục duyệt 2026-10-24)**: khối "Giấy tờ bệnh viện" ở Ghi nhận trở về (chỉ khi đang Điều trị tại bệnh viện) và Chuyển viện: chọn nhiều tệp, danh sách tên kèm nút "Bỏ", tối đa 10 (kiểm trước khi tải), tệp tải lên khi bấm xác nhận rồi gửi `attachmentFileIds`; Ghi nhận qua đời dùng `FileField` thay ô nhập mã tệp và gửi `details.evidenceFileId`. `FileField` (consents) thêm tham số `multiple`. `StatusTab.test.jsx` 17 test. App `mobile/` chưa mở nên T082 còn `[ ]`.
+
+## Ghi chú triển khai *(2026-10-24, đợt 3 sau rà soát: T013, T075)*
+
+- **Kiểm kê nhật ký của M01** (DBR-23, FR-049): mọi lệnh người dùng của M01 ghi đúng một dòng `audit_log` có `resident_id` (supersede ghi thêm một dòng cho bản cũ), kể cả lệnh do module khác gọi (`ResidentStatusApi.execute`) và `markChecked`; người thực hiện, vai trò, thời điểm do 000 điền từ người dùng hiện tại. `M01CommandAuditTrailIT` (12 test) kiểm từng lệnh; `M01AuditCompletenessIT` giữ phần đếm `INSERT` cho lệnh danh mục.
+- **Ba chỗ thiếu tìm ra và đã sửa trong M01**: (1) `CareLevelApiImpl.applyChange` (004 gọi khi yêu cầu thay đổi lưu trú được duyệt) đổi mức chăm sóc, nhóm 2, mà không ghi nhật ký; nay ghi `CARE_LEVEL_CHANGED` loại `M01.RESIDENT` (trước/sau `currentCareLevel`, căn cứ là yêu cầu phê duyệt, `effectiveFrom` ở chi tiết); trường `currentCareLevel` đã thuộc nhóm mức chăm sóc. (2) Đính chính lần đánh giá, hồ sơ sức khỏe ban đầu: dòng nhật ký `CORRECTION_ADDED` của 000 không có `resident_id` (`CorrectableRecordProvider` không cho biết người cao tuổi) nên tra theo người cao tuổi không thấy; hai provider của M01 ghi thêm dòng `RECORD_CORRECTED` cùng bản gốc, gắn người cao tuổi, trỏ tới bản đính chính (`correctionId`, `sequenceNo`, loại), không chép nội dung (có thể là dữ liệu sức khỏe). Đây là cách tạm trong phạm vi M01; cách đúng là SPI trả `residentId`, ghi ở docs/team-plan.md mục 8 cho A. (3) Phân loại trường: kiểm mọi trường lệnh ghi vào nhật ký của `M01.RESIDENT`, `M01.CONSENT`, `M01.END_OF_LIFE_WISH`, `M01.TREATMENT_WISH`; trường không phải dữ liệu nhạy cảm (`status`, `supersededById`, `source`, `consenterType`, `photoConsent`, `notificationConsent`, `consentedAt`, `evidenceFileId`, họ tên, ngày sinh, giới tính, mã hồ sơ) cố ý để nhóm công khai nội bộ, ghi thành danh sách cho phép trong test. **Chủ dự án chỉ đạo 2026-10-24**: `specialNotes` (văn bản tự do, có thể chứa tình trạng sức khỏe) của `M01.RESIDENT` và `familyMemberIdsAllowedHealthView` (người thân được xem sức khỏe) của `M01.CONSENT` thuộc nhóm `HEALTH`, không để công khai nội bộ chỉ vì Hành chính xem được trên giao diện. Phân loại chỉ dùng để che giá trị khi tra nhật ký (`AuditLogQueryService` là nơi duy nhất dùng), không đổi quyền xem hồ sơ hay bản đồng ý (kiểm bằng `M01CommandAuditTrailIT`: Hành chính vẫn xem `specialNotes` trên hồ sơ; `FieldVisibilityApi` thật cho Hành chính không xem được nhóm `HEALTH`, Bác sĩ xem được). Test không đọc qua `AuditLogQueryService.history` vì hàm đó trả 404 cho người xem theo phạm vi (lỗi của A đã báo ở đợt 1).
+- **Không coi là dữ liệu cần nhật ký**: `reassessment_notice`, `periodic_reminder`, `return_overdue_alert` là sổ theo dõi nhắc, cảnh báo do job ghi (không phải dữ liệu nhóm 2, 3 của người cao tuổi); thay đổi trạng thái thật đã có `RESIDENT_STATUS_CHANGED`.
+- **Chưa kiểm**: `AuditLogQueryService.history()` của A (đã báo ở đợt 1) vẫn chặn người xem theo phạm vi; test đọc thẳng `audit_log`, không qua API tra cứu.
+
+## Ghi chú triển khai *(2026-10-24, đợt 4: lượt hoàn thiện cuối của B trước khi Opus review)*
+
+- **Lưu giữ dữ liệu hết hạn (T011, T079; data-model mục 11)**: `ResidentRetention` (gốc `M01.RESIDENT`, CFG-M15-03, mốc là lúc hồ sơ vào trạng thái cuối) và bảy `ResidentChildRetention` (`M01.RESIDENT_STATUS_HISTORY`, `M01.CONSENT`, `M01.INITIAL_HEALTH_RECORD`, `M01.HEALTH_ITEM`, `M01.ASSESSMENT`, `M01.END_OF_LIFE_WISH`, `M01.TREATMENT_WISH`). **Quyết định thiết kế, rút ra từ một lỗi test bắt được**: bản ghi con chỉ có mặt để nhật ký và đính chính của chúng đi theo chuỗi; `referencesTo` của bản ghi con trả về hồ sơ nên mọi chuỗi bắt đầu từ bản ghi con đều kéo cả hồ sơ, và `delete` của bản ghi con không làm gì. Mọi dòng dữ liệu chỉ bị xóa trong `ResidentRetention.delete`, một transaction, theo thứ tự: bảng không nhật ký riêng, bảng con, bản ghi con theo mã tăng dần (vì `superseded_by_id` trỏ tới bản mới hơn), hồ sơ. Bản đầu cho bản ghi con tự là gốc chuỗi nên có thể bị xóa riêng khi hồ sơ còn được giữ (lịch sử trạng thái mất, hồ sơ còn); `ResidentRetentionIT` bắt được và đã sửa. Migration không đổi: quyền `DELETE` và trigger cho `eldercare_retention` đã có từ V001_02 → V001_10.
+- **Chưa xóa được thật** vì `AuditLogRetention` của A giữ mọi dòng nhật ký gắn người cao tuổi; `ResidentRetentionIT` mô phỏng bước đó qua kết nối lưu giữ và có thêm test chuỗi được giữ khi còn nhật ký. Tệp đính kèm chưa lưu giữ (xóa nội dung S3 cần quyết định). Cả hai hướng đều là giữ lại nhiều hơn, không mất dữ liệu.
+- **Gắn phạm vi bản ghi con (T011)**: `ChildScopeAssignment` cho bảy loại con, `Target` mang `residentId`, tầng để trống; mã lạ → không có người cao tuổi.
+- **`statusPeriods` (T049)**: dựng từ lịch sử trạng thái, lấy khoảng giao với [từ, đến], trả nguyên khoảng không cắt (người gọi, tức 003, tự tính phần giao); khoảng kết thúc đúng lúc `from` không giao.
+- **Đính chính lịch sử trạng thái (T050)**: `StatusHistoryCorrectionProvider` (loại `M01.RESIDENT_STATUS_HISTORY`): chỉ đính chính được `reason`; cách A cho người ghi gốc, trên hồ sơ trạng thái cuối chỉ cách C (người ghi gốc bị chặn như với lần đánh giá, đồng nghiệp cùng vai trò lập yêu cầu); `history()` hiển thị lý do đã đính chính, bản gốc giữ nguyên. Có ghi thêm dòng `RECORD_CORRECTED` gắn người cao tuổi như hai provider đính chính khác.
+- **Sự kiện T076**: `sourceModule = "M04"`, `itemType = "INTEREST"`, bản dựng sự kiện từ chối giá trị khác và id không dương; test đi qua kho sự kiện Modulith thật.
+- **Tab Danh mục (T072; Opus #12, #13)**: theo quyền thật `HEALTH_CATALOGS` từ `GET /me/permissions`; `AdminPage` bọc `PermissionsProvider` vì `App` chưa gắn.
+
+## Ghi chú triển khai *(2026-10-24, lượt sửa cuối sau Opus final review)*
+
+- **Opus #6 (High) đã sửa**: `reason`, `basis`, `conditionWaiver` của `StatusHistoryEntryBody` thuộc nhóm `HEALTH` (`@FieldGroup`, `VisibilityTarget` theo người cao tuổi của dòng, `hiddenFields` mới trong schema `StatusHistoryEntry` của api-001); áp cho cả `GET /residents/{id}/status-history` và `StatusCommandResult.history`. Hành chính, Kế toán, người thân chưa được chia sẻ sức khỏe vẫn thấy từ, đến, lệnh, thời điểm, người thực hiện; lý do đã đính chính cũng bị che. Quyền xem lịch sử (`RESIDENT_PROFILE VIEW`) không đổi. `HistoryEntry` của service thêm `residentId`. Web: `StatusTab` báo "lý do và căn cứ chỉ hiện với người được xem thông tin sức khỏe". Test: `StatusHistoryVisibilityIT` 7 test (Hành chính, Kế toán, Bác sĩ, Điều dưỡng được phân công và không được phân công, người thân có và không có trong bản đồng ý, đính chính, kết quả lệnh); `StatusEndpointsIT` sửa một dòng cũ (Hành chính không còn thấy lý do ở kết quả lệnh).
+- **`SelfHiddenFields` (002, "Đổi api" 2026-10-24)**: `ProfileBody` cài giao diện, cờ `hasTreatmentWish` `null` thì ẩn và ghi vào `hiddenFields` (Kế toán); `TreatmentWishVisibilityIT` thêm kiểm `hiddenFields` và kiểm người thấy cờ thì không bị liệt kê.
+- **Hai lớp A viết trong m01** (`ResidentProfileForAccount`, `ResidentAccountLockOnFinalStatus`): tương thích, `ResidentProfileForAccountIT`, `ResidentAccountFinalStatusIT` qua. Lưu ý `inResidence` của A chỉ đúng khi `IN_RESIDENCE` (Tạm vắng, Chuyển viện không tính).
+- **`ResidentStatisticsApi` (016)**: hợp đồng đủ (ba hàm, ba DTO) nhưng chưa có task 001 và chưa có bản cài hay bản giả; không làm trong lượt này, đề xuất lượt riêng sau PR 001 (team-plan mục 8).
+- **`SourceRecord` của `ResidentStatusNotice`** đổi thành `M01.RESIDENT_STATUS_HISTORY` (cùng loại với nhật ký, đính chính, lưu giữ); chưa có bản ghi nào dùng tên cũ.
+- **Retention**: theo quyết định chủ dự án, không xóa vật lý tệp S3, không thêm `FileApi.delete`; T011 giữ `[ ]`. Việc A phải xong trước khi bật xóa thật (team-plan mục 8): `AuditLogRetention` theo mốc hồ sơ, SPI phần đi kèm cho tệp, cơ chế khai tham chiếu giữa các module, quy tắc lifecycle S3 (bucket bật versioning).
+- **`checkOperations` (T071 `[x]`)**: bản tạm báo 0 lệch, chủ dự án duyệt nên `ApiContractIT` (file của A) đổi api-001 sang `checkOperations = true` (một dòng và dòng chú thích); `ApiContractIT` chính thức qua. Tổng 74/85 task `[x]`.
+- **Đồng bộ develop**: merge `origin/develop` `b049b1f`; xung đột chỉ ở `DESIGN.md` (phiên bản 5.20.1 cho bố cục tab Danh mục, giữ 5.20.0 của 002) và `docs/team-plan.md` (giữ đủ dòng A và B).
+- **Kiểm thử cuối (MySQL 3307)**: `./mvnw clean verify`: 244 test đơn vị và kiến trúc, 936 test tích hợp, 0 lỗi; lần chạy đầu dừng ở `spotless:check` vì `ResidentStatusNotice.java` lệch dòng sau `sed`, đã `spotless:apply` và `verify -DskipTests` BUILD SUCCESS. Vitest 247, lint sạch, build đạt (sau `npm ci` vì develop thêm `qrcode.react`).
+
+- **Chốt trước PR (2026-10-24)**: merge `origin/develop` `cc9761f` (PR #32 của 016, xung đột chỉ ở `DESIGN.md`, phiên bản 5.21.1); `./mvnw clean verify` 244 đơn vị, 948 tích hợp, 0 lỗi, BUILD SUCCESS; 259 Vitest, lint, build đạt; 74/85 task `[x]`.
+
+## Bàn giao cho Opus review cuối *(2026-10-24)*
+
+### 1. Tổng tiến độ 85 task của Phase 1 → 10
+- **73 task `[x]`**, **12 task `[ ]`**. Không đánh dấu `[x]` task còn phụ thuộc thật.
+- Đã hoàn thành: T001, T003 → T010, T012, T012a, T013, T013a, T014 → T018, T020 → T022, T024 → T032, T034 → T041, T043 → T051, T053 → T062, T064 → T070, T072, T075 → T081, T083.
+- Chưa hoàn thành (12):
+
+| Task | Điều kiện còn thiếu | Ai |
+| --- | --- | --- |
+| T002 | `ChiSoApi`, sự kiện `SuCoDaGhiNhan` do 007 khai báo, chưa có trong `develop` | D |
+| T011 | Lưu giữ tệp đính kèm: cần quyết cách xóa nội dung S3 (`FileApi` chưa có hàm xóa); phần còn lại xong | Chủ dự án |
+| T019 | Lọc theo tầng, phòng cần phân bổ giường của 003; hợp đồng api-001 chưa có tham số lọc này | C (003) |
+| T023, T033, T042, T052, T082 | Phần web đã xong; phần app `mobile/` chưa mở (CLAUDE.md) | Chủ dự án mở mobile |
+| T063 | Listener sự cố cần `IncidentRecorded` của 007 | D |
+| T071 | So sánh operation api-001 với `checkOperations = true`: file `ApiContractIT` của A | A |
+| T073 | Chạy lại `FR_045`, `FR_047` với bean `StatusTransitionParticipant` thật của 003 → 013 | C, D, E, B (004) |
+| T074 | `flutter test`, kịch bản quickstart mục 3, đo SC bằng người thật | Nghiệm thu |
+
+### 2. Kết quả xử lý 16 vấn đề của báo cáo Opus
+
+| # | Vấn đề | Kết quả | Bằng chứng |
+| --- | --- | --- | --- |
+| 1 | Tra nhật ký lộ dữ liệu sức khỏe (thiếu phân loại trường) | **Đã sửa** (đợt 1) và siết ở đợt 3: `specialNotes`, `familyMemberIdsAllowedHealthView` thuộc `HEALTH` | `AuditLogHealthMaskingIT`, `M01CommandAuditTrailIT` |
+| 2 | Bằng chứng qua đời chỉ kiểm "là số" | **Đã sửa** (đợt 1): kiểm tệp, gắn tệp, quyền tải, web tải tệp (đợt 2) | `RecordDeathIT` |
+| 3 | Ảnh không gắn tệp | **Đã sửa** (đợt 1) | `ResidentPhotoIT` |
+| 4 | M01 không gửi thông báo | **Đã sửa phía M01** (đợt 2); người nhận thật chờ E (BL-47) | `ResidentNotificationRequestsTest`, `ResidentNotificationsIntakeIT` |
+| 5 | Giấy tờ bệnh viện chưa làm | **Đã sửa** backend, web, `hospitalDocuments`; mobile chưa | `HospitalDocumentsIT`, `StatusTab.test.jsx` |
+| 6 | Lịch sử trạng thái có thể lộ lý do, căn cứ, miễn điều kiện | **Đã sửa (lượt cuối 2026-10-24)**: nhóm `HEALTH`, `hiddenFields` | `StatusHistoryVisibilityIT` 7 test |
+| 7 | Truy vết DBR-23 chưa đủ | **Đã sửa** (đợt 3); T075 từng ghi quá sớm, đã điều chỉnh | `M01CommandAuditTrailIT` 14 test |
+| 8 | Thiếu `RetentionProvider` | **Đã sửa phía M01**; chưa xóa thật do A và tệp chờ quyết định | `ResidentRetentionIT` 4 test |
+| 9 | Thiếu provider đính chính lịch sử trạng thái | **Đã sửa** | `StatusHistoryCorrectionIT` 4 test |
+| 10 | Hợp đồng sự kiện T076 còn lỏng | **Đã sửa**: bộ giá trị `M04`, `INTEREST`; glossary, module-interfaces, team-plan (014 do C) | `FR_023g_OpinionFromFeedbackIT` |
+| 11 | `statusPeriods` chưa cài | **Đã sửa** | `StatusPeriodsIT` 5 test |
+| 12 | Hành chính thấy tab Danh mục luôn nhận 403 | **Đã sửa**: ẩn tab khi không có quyền xem | `AdminPage.test.jsx` |
+| 13 | Nút sửa danh mục theo vai trò | **Đã sửa**: theo CREATE, UPDATE thật | `AdminPage.test.jsx` |
+| 14 | Test T076 tự khẳng định | **Đã sửa**: đi qua kho sự kiện Modulith | `FR_023g_OpinionFromFeedbackIT` |
+| 15 | T013a tên tiếng Việt | **Đã sửa**: `FR_023h_NoCapacityFlagIT` | `[x]` |
+| 16 | `specialNotes` xếp công khai nội bộ | **Đã sửa** theo chỉ đạo: nhóm `HEALTH` | `M01CommandAuditTrailIT` |
+
+Không còn vấn đề mở ở phía B. #4, #5, #8 đã xong phần B, còn phụ thuộc người khác hoặc mobile như bảng trên.
+
+### 3. Lỗi và hạn chế còn tồn tại
+
+| Mức | Vấn đề | Bằng chứng | Ai |
+| --- | --- | --- | --- |
+| Trung bình | Dữ liệu M01 hết hạn chưa bao giờ bị xóa thật: `AuditLogRetention` giữ nhật ký gắn người cao tuổi | `ResidentRetentionIT.FR_050_residentLinkedAuditLog_keepsTheWholeChain…` | A |
+| Thấp | Đính chính "Hủy ghi nhận" (VOID) áp dụng được cho dòng lịch sử trạng thái nhưng không đổi trạng thái hiện tại; provider không chặn được | không có test; do SPI của A | A |
+| Thấp | Đính chính không có `resident_id` ở dòng của 000; M01 ghi dòng phụ `RECORD_CORRECTED` (BL-48) | `M01CommandAuditTrailIT` | A |
+| Thấp | `AuditLogQueryService.history()` trả 404 cho người xem theo phạm vi | báo từ đợt 1 | A |
+| Thấp | Tệp đính kèm không được lưu giữ; nội dung S3 không bao giờ bị xóa | data-model mục 11 | Chủ dự án |
+| Thấp | `PermissionsProvider` chưa gắn ở `App`; `AdminPage` tự bọc | `AdminPage.jsx` | A |
+| Thấp | Giao diện web mới chưa nghiệm thu trên trình duyệt: `StatusTab` (giấy tờ bệnh viện, bằng chứng qua đời), tab Danh mục theo quyền | chỉ có Vitest | Chủ dự án |
+
+### 4. Kết quả kiểm thử cuối cùng (MySQL 3307; không đụng 3306, dữ liệu demo, lịch sử Flyway)
+- (Số liệu đợt 4; số liệu cuối xem ghi chú "lượt sửa cuối" ở trên: 244 đơn vị, 936 tích hợp, 247 Vitest) `./mvnw clean verify`: **199 test đơn vị và kiến trúc, 905 test tích hợp, 0 lỗi**, BUILD SUCCESS (gồm `ModuleBoundaryTest`, `LayerArchTest`, `M13ArchTest`, `ApiContractIT`).
+- Frontend: **237 Vitest**, `npm run lint` sạch, `npm run build` đạt. `prettier --check` còn báo 6 file lệch định dạng (cũ và file sửa có dòng cũ); không áp hàng loạt theo chỉ đạo.
+- Test mới của đợt 2 → 4: `HospitalDocumentsIT` 11, `ResidentNotificationRequestsTest` 12, `ResidentNotificationsIntakeIT` 5, `M01CommandAuditTrailIT` 14, `StatusPeriodsIT` 5, `StatusHistoryCorrectionIT` 4, `ResidentRetentionIT` 4, `ChildScopeAssignmentIT` 3, `FR_023g_OpinionFromFeedbackIT` 5, `AdminPage.test.jsx` 5, 7 test `StatusTab`.
+
+### 5. Thay đổi API, migration, file chung cần A xem
+- **Migration: không có** trong cả bốn đợt; không sửa migration đã áp dụng.
+- **`common.file`** (đợt 2, chủ dự án duyệt): `FileApi.attachedTo(ownerType, ownerId)`, record `FileView`; cộng thêm, không đổi `upload`, `attach`, `download`.
+- **Provider M01 cài cho 000, 002** (không sửa code A): `StatusHistoryCorrectionProvider`, `ResidentRetention` và bảy `ResidentChildRetention`, `ChildScopeAssignment` (bảy loại), phân loại trường `specialNotes` và `familyMemberIdsAllowedHealthView`.
+- **File chung đã sửa**: `frontend/src/features/admin/AdminPage.jsx` (bọc `PermissionsProvider`, ẩn tab theo quyền; T072 đã được duyệt), `docs/team-plan.md`, `specs/000-shared-foundation/glossary.md` (chỉ mục 8 của 001).
+- **Cần A**: `AuditLogRetention` (nhật ký gắn hồ sơ), `CorrectableRecordProvider.residentId` và kiểu đính chính (BL-48), `AuditLogQueryService.history()`, gắn `PermissionsProvider` ở `App`, bật `checkOperations` cho api-001. Chi tiết ở docs/team-plan.md mục 8.
+- **Cần chủ dự án quyết định**: cách lưu giữ tệp đính kèm (S3); che lý do, căn cứ lịch sử trạng thái (#6).
+
+### 6. Phần chưa nghiệm thu
+- Web: toàn bộ giao diện 001 chưa được chủ dự án nghiệm thu trên trình duyệt (T052, T072, T033, T042 ghi rõ).
+- Mobile: chưa mở nên T023, T033, T042, T052, T082 giữ `[ ]`; không có `flutter test`.
+- Quickstart mục 3 và đo SC (T074): chưa chạy.
+
+### 7. Git
+- Nhánh `impl/001-elder-profile-assessment`; stash `CP-001-P2-IMPL` còn nguyên. Chưa push, PR, merge.
+- Commit đợt 4: `71ebe67` (lưu giữ, gắn phạm vi, T011/T079), `613db2c` (`statusPeriods`, đính chính lịch sử, T049/T050), `5c41d25` (sự kiện T076, đổi tên T013a), `a1407aa` (tab Danh mục theo quyền, T072); commit tài liệu cuối cùng là HEAD (xem `git log`).
+- Đợt 3: `208c0a2`, `8153393`. Đợt 2: `3489df9`, `1495bcf`, `fc36c9f`, `91bb43a`. Đợt 1: `e960560`, `f35b9bd`, `842c6bc`, `5417206`.
+
+### 8. File và chức năng Opus cần kiểm tra kỹ
+1. `m01/internal/retention/service/ResidentRetention.java`, `ResidentChildRetention.java`, `ResidentRetentionBeans.java`: thứ tự xóa, FK tự tham chiếu, ranh giới "chỉ xóa cùng hồ sơ"; `ResidentRetentionIT`. Đây là mã xóa dữ liệu, kiểm kỹ nhất.
+2. `m01/internal/status/service/ResidentStatusService.java` (`periods`, `history` với đính chính, `apply` đính kèm tệp và phát `ResidentStatusNotice`) và `StatusHistoryCorrectionProvider.java`.
+3. `m01/internal/assessment/service/CareLevelApiImpl.applyChange` (nhật ký mới) và hai provider đính chính ghi `RECORD_CORRECTED`.
+4. `m01/api/events/*` (chín sự kiện `HasNotificationRequests`, `Notices`, `ResidentStatusNotice`, `OpinionRecordedFromFeedback`): mức, nhóm người nhận, khóa chống trùng.
+5. `m01/internal/status/service/HospitalDocumentFilePermission.java`, `DeathEvidenceFilePermission.java`, và `common/file` (`attachedTo`).
+6. Phân loại trường: `ResidentFieldClassification`, `ConsentFieldClassification` và danh sách "cố ý công khai nội bộ" trong `M01CommandAuditTrailIT`.
+7. Web: `frontend/src/features/status/StatusTab.jsx` (tải nhiều tệp), `features/admin/AdminPage.jsx`, `features/catalogs-m01/CatalogList.jsx`.

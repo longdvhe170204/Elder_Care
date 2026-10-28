@@ -3,6 +3,8 @@ package com.cambae.backend.m01.internal.wish.service;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m01.api.events.MissingEndOfLifeWishReminder;
 import com.cambae.backend.m01.api.events.SelfDeterminationReviewReminder;
+import com.cambae.backend.m15.account.api.AccountApi;
+import com.cambae.backend.m15.account.api.dto.AccountView;
 import com.cambae.backend.m15.parameter.api.ParameterApi;
 import com.cambae.backend.m15.parameter.api.ParameterCode;
 import java.time.Duration;
@@ -33,8 +35,15 @@ public class WishReminderService {
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
 
+    private final AccountApi accounts;
+
     WishReminderService(
-            JdbcTemplate jdbc, ParameterApi parameters, ApplicationEventPublisher events, BusinessTime time) {
+            JdbcTemplate jdbc,
+            ParameterApi parameters,
+            ApplicationEventPublisher events,
+            BusinessTime time,
+            AccountApi accounts) {
+        this.accounts = accounts;
         this.jdbc = jdbc;
         this.parameters = parameters;
         this.events = events;
@@ -76,7 +85,7 @@ public class WishReminderService {
                     number,
                     MISSING,
                     row[0]);
-            events.publishEvent(new MissingEndOfLifeWishReminder(row[0], number));
+            events.publishEvent(new MissingEndOfLifeWishReminder(row[0], number, now));
         }
         return due.size();
     }
@@ -86,12 +95,12 @@ public class WishReminderService {
     public int runReviews() {
         Instant now = time.now();
         List<long[]> due = jdbc.query(
-                "SELECT w.resident_id, w.id FROM end_of_life_wish w JOIN resident s ON s.id = w.resident_id"
+                "SELECT w.resident_id, w.id, w.assessing_doctor_id FROM end_of_life_wish w JOIN resident s ON s.id = w.resident_id"
                         + " WHERE w.status = 'ACTIVE' AND w.review_date <= ?"
                         + " AND s.status NOT IN ('RESIDENCY_ENDED', 'DECEASED', 'ADMISSION_CANCELLED')"
                         + " AND NOT EXISTS (SELECT 1 FROM periodic_reminder r WHERE r.type = ?"
                         + " AND r.resident_id = w.resident_id AND r.milestone_id = w.id)",
-                (rs, i) -> new long[] {rs.getLong(1), rs.getLong(2)},
+                (rs, i) -> new long[] {rs.getLong(1), rs.getLong(2), rs.getLong(3)},
                 time.today(),
                 REVIEW);
         int sent = 0;
@@ -106,11 +115,16 @@ public class WishReminderService {
                     utc(now),
                     utc(now));
             if (inserted == 1) {
-                events.publishEvent(new SelfDeterminationReviewReminder(row[0], row[1]));
+                events.publishEvent(new SelfDeterminationReviewReminder(row[0], row[1], staffIdOf(row[2]), now));
                 sent++;
             }
         }
         return sent;
+    }
+
+    /** Hồ sơ nhân viên của tài khoản Bác sĩ đã nhận định; không rõ thì báo Bác sĩ trực (FR-023i). */
+    private Long staffIdOf(long accountId) {
+        return accounts.byId(accountId).map(AccountView::staffId).orElse(null);
     }
 
     private static LocalDateTime utc(Instant instant) {

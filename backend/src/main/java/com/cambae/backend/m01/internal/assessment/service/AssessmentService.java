@@ -292,7 +292,7 @@ public class AssessmentService {
                 superseded = requests.supersedeByAssessment(residentId, id);
             }
             if (levelDiffers) {
-                events.publishEvent(new CareLevelChangeRequestNeeded(residentId, id, level));
+                events.publishEvent(new CareLevelChangeRequestNeeded(residentId, id, level, now));
                 changeRequestReminders.startReminding(residentId, id);
                 administratorNotified = true;
             }

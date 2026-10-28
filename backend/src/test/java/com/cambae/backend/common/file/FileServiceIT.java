@@ -160,6 +160,28 @@ class FileServiceIT extends MySqlIntegrationTestBase {
     }
 
     @Test
+    void attachedTo_listsMetadataOfAttachedFilesOnly_inUploadOrder() {
+        long first = files.upload("a.png", FileTypes.PNG, PNG, UPLOADER);
+        long second = files.upload("b.png", FileTypes.PNG, PNG, UPLOADER);
+        long unattached = files.upload("c.png", FileTypes.PNG, PNG, UPLOADER);
+        long elsewhere = files.upload("d.png", FileTypes.PNG, PNG, UPLOADER);
+        transactions.executeWithoutResult(s -> {
+            files.attach(first, OWNER_TYPE, 9_001);
+            files.attach(second, OWNER_TYPE, 9_001);
+            files.attach(elsewhere, OWNER_TYPE, 9_002);
+        });
+
+        var found = files.attachedTo(OWNER_TYPE, 9_001);
+
+        assertThat(found).extracting(FileView::id).containsExactly(first, second);
+        assertThat(found.get(0).originalName()).isEqualTo("a.png");
+        assertThat(found.get(0).mimeType()).isEqualTo(FileTypes.PNG);
+        assertThat(found.get(0).sizeBytes()).isEqualTo(PNG.length);
+        assertThat(files.attachedTo(OWNER_TYPE, 9_999)).isEmpty();
+        assertThat(found).extracting(FileView::id).doesNotContain(unattached, elsewhere);
+    }
+
+    @Test
     void attach_unknownFile_is404() {
         assertThatThrownBy(() -> transactions.executeWithoutResult(s -> files.attach(987_654_321L, OWNER_TYPE, 1)))
                 .isInstanceOf(NotFoundException.class);

@@ -224,7 +224,7 @@ public class ReassessmentNoticeService {
             return false;
         }
         long noticeId = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        events.publishEvent(new ReassessmentDue(residentId, noticeId, basis.name()));
+        events.publishEvent(new ReassessmentDue(residentId, noticeId, basis.name(), notifiedAt));
         return true;
     }
 

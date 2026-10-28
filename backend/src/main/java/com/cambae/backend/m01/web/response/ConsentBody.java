@@ -28,7 +28,9 @@ public record ConsentBody(
     /** Lý do hiện cho bản được thay thế (không có lý do do người nhập). */
     static final String SUPERSEDED_REASON = "Được thay thế bởi bản đồng ý mới";
 
-    @Schema(name = "CourtDecision")
+    @Schema(
+            name = "CourtDecision",
+            requiredProperties = {"number", "date", "court", "fileId"})
     public record CourtDecisionBody(String number, LocalDate date, String court, Long fileId) {}
 
     public record WithdrawalBody(Instant at, String reason, Long evidenceFileId, Long supersededById) {}

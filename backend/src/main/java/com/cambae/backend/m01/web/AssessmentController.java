@@ -77,6 +77,8 @@ class AssessmentController {
     }
 
     @GetMapping("/residents/{id}/assessments")
+    @ProblemResponses.Forbidden
+    @ApiResponse(responseCode = "200", description = "OK")
     List<AssessmentBody> list(@PathVariable long id) {
         return assessments.list(ResidentProfileService.target(id)).stream()
                 .map(AssessmentBody::of)
@@ -156,6 +158,7 @@ class AssessmentController {
     }
 
     @PostMapping("/assessments/{id}/correct")
+    @ApiResponse(responseCode = "201", description = "Đã lưu (cách A, B) hoặc yêu cầu phê duyệt Chờ duyệt (cách C)")
     ResponseEntity<CorrectionResultBody> correct(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,

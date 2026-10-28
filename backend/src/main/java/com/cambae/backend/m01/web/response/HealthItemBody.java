@@ -22,7 +22,13 @@ public record HealthItemBody(
         HealthItemStatus status,
         ExclusionBody exclusion) {
 
-    public record AllergenRef(long id, String name) {}
+    @Schema(name = "AllergenRef")
+    public record AllergenRef(
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            long id,
+
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            String name) {}
 
     public record ExclusionBody(Instant at, String by, String reason) {}
 

@@ -37,7 +37,9 @@ public record RecordConsentBody(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Long evidenceFileId) {
 
     /** Bằng chứng quyết định của Tòa án (schema {@code CourtDecision}); trường thiếu bị từ chối ở dịch vụ. */
-    @Schema(name = "CourtDecision")
+    @Schema(
+            name = "CourtDecision",
+            requiredProperties = {"number", "date", "court", "fileId"})
     public record CourtDecisionBody(String number, LocalDate date, String court, Long fileId) {}
 
     public RecordConsent command() {

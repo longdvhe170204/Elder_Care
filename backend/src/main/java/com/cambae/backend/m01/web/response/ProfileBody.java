@@ -4,6 +4,7 @@ import com.cambae.backend.m01.api.dto.ResidentStatus;
 import com.cambae.backend.m01.internal.profile.service.ResidentProfileService;
 import com.cambae.backend.m01.internal.profile.service.ResidentProfileService.ProfileView;
 import com.cambae.backend.m15.account.api.FieldGroup;
+import com.cambae.backend.m15.account.api.SelfHiddenFields;
 import com.cambae.backend.m15.account.api.VisibilityTarget;
 import com.cambae.backend.m15.account.api.dto.InfoGroup;
 import com.cambae.backend.m15.account.api.dto.Target;
@@ -27,7 +28,10 @@ public record ProfileBody(
         ResidentStatus status,
         Instant statusSince,
         String currentResidenceType,
-        @FieldGroup(InfoGroup.CARE_LEVEL) String currentCareLevel,
+
+        @FieldGroup(InfoGroup.CARE_LEVEL) @Schema(allowableValues = {"BASIC", "REGULAR", "SPECIAL"})
+        String currentCareLevel,
+
         List<String> careNeeds,
         String careNote,
         @FieldGroup(InfoGroup.HEALTH) List<Object> activeHealthItems,
@@ -38,7 +42,7 @@ public record ProfileBody(
         Set<String> allowedCommands,
         List<String> hiddenFields,
         @JsonIgnore @Schema(hidden = true) Target target)
-        implements VisibilityTarget {
+        implements VisibilityTarget, SelfHiddenFields {
 
     /**
      * {@code hasTreatmentWish} là {@code null} khi người xem không có quyền với nội dung phiếu và không phải Hành chính
@@ -74,5 +78,15 @@ public record ProfileBody(
     @JsonIgnore
     public Target visibilityTarget() {
         return target;
+    }
+
+    /**
+     * Cờ phiếu nguyện vọng khi điều trị không theo nhóm thông tin nên module tự khai (FR-023m, research H-18): {@code null}
+     * là người xem không được thấy cờ, 002 bỏ trường và ghi {@code hasTreatmentWish} vào {@code hiddenFields}.
+     */
+    @Override
+    @JsonIgnore
+    public Set<String> selfHiddenFields() {
+        return hasTreatmentWish == null ? Set.of("hasTreatmentWish") : Set.of();
     }
 }
