@@ -22,7 +22,6 @@ import com.cambae.backend.m01.internal.wish.service.EndOfLifeWishService;
 import com.cambae.backend.m01.internal.wish.service.TreatmentWishService;
 import com.cambae.backend.m15.correction.api.CorrectionApi;
 import com.cambae.backend.m15.correction.api.CorrectionType;
-import com.cambae.backend.m15.retention.api.RetentionDatabase;
 import com.cambae.backend.m15.retention.scheduling.ExpiredDataPurgeJob;
 import com.cambae.backend.support.FakePermissions;
 import com.cambae.backend.support.TestUsers;
@@ -80,9 +79,6 @@ class ResidentRetentionIT extends StatusTestBase {
 
     @Autowired
     TestClockControl clock;
-
-    @Autowired
-    RetentionDatabase retention;
 
     @AfterEach
     void resetClock() {
@@ -190,7 +186,6 @@ class ResidentRetentionIT extends StatusTestBase {
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM audit_log WHERE resident_id = ?", Integer.class, id))
                 .isPositive();
 
-        removeResidentLinkedAuditLog(id);
         runJobAfter(Duration.ofDays(11 * 366));
 
         for (String table : TABLES) {
@@ -212,31 +207,11 @@ class ResidentRetentionIT extends StatusTestBase {
                         "SELECT COUNT(*) FROM audit_log WHERE entity_type = 'M15.PURGE_RUN'", Integer.class))
                 .as("bản tóm tắt đợt xóa")
                 .isPositive();
-    }
-
-    /**
-     * {@code AuditLogRetention} của 000 (A) mới chỉ cho loại bỏ dòng nhật ký không gắn người cao tuổi ("giữ tới khi biết hạn
-     * của hồ sơ", plan 000 D5, {@code ExpiredDataPurgeIT.FR_050_logOfResidentRecord_isKept_…}), nên chuỗi có dòng nhật ký
-     * gắn hồ sơ chưa xóa được. Test này mô phỏng bước đó bằng cách xóa các dòng ấy qua kết nối lưu giữ, để kiểm phần của M01
-     * (ứng viên, chuỗi, thứ tự xóa, bảng con, đính chính) đã đúng; khi A cho phép loại bỏ nhật ký theo hạn của hồ sơ thì bỏ
-     * bước này (docs/team-plan.md mục 8).
-     */
-    private void removeResidentLinkedAuditLog(long residentId) {
-        retention.jdbc().update("DELETE FROM audit_log WHERE resident_id = ?", residentId);
-    }
-
-    @Test
-    void FR_050_residentLinkedAuditLog_keepsTheWholeChain_untilTheAuditRetentionKnowsTheResidentPeriod() {
-        long id = endedResidentWithEverything();
-
-        runJobAfter(Duration.ofDays(11 * 366));
-
-        assertThat(count("resident", id))
-                .as("chuỗi còn dòng nhật ký gắn hồ sơ nên được giữ nguyên")
-                .isEqualTo(1);
-        for (String table : TABLES) {
-            assertThat(count(table, id)).as("%s", table).isPositive();
-        }
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM audit_log WHERE resident_id = ? AND entity_type LIKE 'M01.%'",
+                        Integer.class, id))
+                .as("nhật ký gắn hồ sơ hết hạn cùng chuỗi (AuditLogRetention, FR-050)")
+                .isZero();
     }
 
     @Test

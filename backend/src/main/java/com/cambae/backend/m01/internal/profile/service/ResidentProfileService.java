@@ -278,8 +278,8 @@ public class ResidentProfileService {
     /**
      * Tra cứu trong phạm vi của người xem (FR-007, FR-035): tìm theo họ tên, mã hồ sơ hoặc số giấy tờ, lọc trạng thái,
      * mới nhất trước, phân trang theo con trỏ. Không dùng {@code @RequiresPermission}: quyền theo phân công không đạt
-     * với đối tượng chưa xác định, nên kiểm vai trò có khóa Xem rồi lọc bằng bộ lọc phạm vi. Phạm vi theo tầng hoặc
-     * phòng cần phân bổ giường của 003, nên hiện lọc theo tập hồ sơ mà 002 trả về.
+     * với đối tượng chưa xác định, nên kiểm vai trò có khóa Xem rồi lọc bằng bộ lọc phạm vi. Tầng, phòng được
+     * phân công đã được 002 đổi thành tập hồ sơ theo phân bổ giường của 003 (T019).
      */
     @Transactional(readOnly = true)
     public SearchPage search(String q, Set<ResidentStatus> statuses, String cursor, int limit) {

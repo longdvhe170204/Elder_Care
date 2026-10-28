@@ -47,4 +47,10 @@ public class FakeM01Config {
     FakeAbsences fakeAbsences() {
         return new FakeAbsences();
     }
+
+    @Bean
+    @Primary
+    FakeResidentStatistics fakeResidentStatistics() {
+        return new FakeResidentStatistics();
+    }
 }

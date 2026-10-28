@@ -13,6 +13,7 @@ import com.cambae.backend.m01.internal.health.service.HealthItemService;
 import com.cambae.backend.m01.internal.health.service.HealthItemService.ItemView;
 import com.cambae.backend.m01.internal.health.service.HealthItemService.RecordCommand;
 import java.time.Duration;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,21 +94,35 @@ class BR_M01_12_PendingCheckIT extends HealthTestBase {
         long resident = newResident();
         ItemView item = recordAllergy(resident);
 
-        api.markChecked(item.id(), HealthItemCheckSource.MEDICATION);
-        assertThat(pending(resident)).isTrue();
+        // 006 (PrescriptionAllergyListener) kiểm đơn thuốc ngay sau khi lệnh ghi mục commit; 011 chưa kiểm
+        assertThat(flags(item.id())).as("[chờ thuốc, chờ dinh dưỡng]").containsExactly(false, true);
+        assertThat(pending(resident)).as("cờ còn tới khi cả hai module kiểm").isTrue();
 
         api.markChecked(item.id(), HealthItemCheckSource.MEDICATION);
+        assertThat(flags(item.id())).as("gọi lặp không lỗi, không đổi cờ").containsExactly(false, true);
         assertThat(pending(resident)).isTrue();
 
         api.markChecked(item.id(), HealthItemCheckSource.NUTRITION);
+        assertThat(flags(item.id())).containsExactly(false, false);
         assertThat(pending(resident)).isFalse();
+
+        api.markChecked(item.id(), HealthItemCheckSource.NUTRITION);
+        assertThat(pending(resident)).as("gọi lặp sau khi gỡ cờ").isFalse();
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM audit_log WHERE entity_type = 'M01.HEALTH_ITEM' AND entity_id = ?"
                                 + " AND action = 'HEALTH_ITEM_CHECKED'",
                         Integer.class,
                         String.valueOf(item.id())))
-                // 3 lần gọi ở trên và 1 lần của listener 006 (PrescriptionAllergyListener) sau khi ghi mục
+                // 1 lần của listener 006 và 3 lần gọi ở trên: hiện mỗi lần gọi, kể cả lặp, ghi một dòng (A quyết có giữ
+                // không, docs/team-plan.md mục 8)
                 .isEqualTo(4);
+    }
+
+    private List<Boolean> flags(long itemId) {
+        return jdbc.queryForObject(
+                "SELECT pending_medication_check, pending_nutrition_check FROM health_item WHERE id = ?",
+                (rs, i) -> List.of(rs.getBoolean(1), rs.getBoolean(2)),
+                itemId);
     }
 
     @Test

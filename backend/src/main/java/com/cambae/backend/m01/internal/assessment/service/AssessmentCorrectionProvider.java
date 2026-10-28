@@ -1,6 +1,5 @@
 package com.cambae.backend.m01.internal.assessment.service;
 
-import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.Role;
 import com.cambae.backend.common.error.InvalidValueException;
 import com.cambae.backend.common.error.NotFoundException;
@@ -10,10 +9,6 @@ import com.cambae.backend.m01.internal.assessment.domain.Assessment;
 import com.cambae.backend.m01.internal.assessment.domain.AssessmentStatus;
 import com.cambae.backend.m01.internal.assessment.persistence.AssessmentRepository;
 import com.cambae.backend.m15.account.api.CurrentUser;
-import com.cambae.backend.m15.auditlog.api.AuditAction;
-import com.cambae.backend.m15.auditlog.api.AuditLogApi;
-import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
-import com.cambae.backend.m15.auditlog.api.Basis;
 import com.cambae.backend.m15.correction.api.CorrectionView;
 import com.cambae.backend.m15.correction.api.CreationMethod;
 import com.cambae.backend.m15.correction.api.spi.CorrectableRecordProvider;
@@ -38,19 +33,14 @@ class AssessmentCorrectionProvider implements CorrectableRecordProvider {
 
     private final AssessmentRepository assessments;
     private final AssessmentContents contents;
-    private static final AuditAction CORRECTED = new AuditAction("RECORD_CORRECTED", true);
-
     private final ResidentApi residents;
     private final ApplicationEventPublisher events;
-    private final AuditLogApi auditLog;
 
     AssessmentCorrectionProvider(
             AssessmentRepository assessments,
             AssessmentContents contents,
             ResidentApi residents,
-            ApplicationEventPublisher events,
-            AuditLogApi auditLog) {
-        this.auditLog = auditLog;
+            ApplicationEventPublisher events) {
         this.assessments = assessments;
         this.contents = contents;
         this.residents = residents;
@@ -75,6 +65,11 @@ class AssessmentCorrectionProvider implements CorrectableRecordProvider {
     @Override
     public Optional<Long> floorArea(long id) {
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<Long> residentId(long id) {
+        return assessments.findById(id).map(Assessment::getResidentId);
     }
 
     @Override
@@ -118,7 +113,6 @@ class AssessmentCorrectionProvider implements CorrectableRecordProvider {
     @Override
     public void afterCorrection(CorrectionView correction) {
         Assessment a = find(correction.originalRecordId());
-        linkToResident(correction, a.getResidentId());
         boolean latest = assessments
                 .findFirstByResidentIdAndStatusOrderByConfirmedAtDescIdDesc(
                         a.getResidentId(), AssessmentStatus.CONFIRMED)
@@ -129,27 +123,6 @@ class AssessmentCorrectionProvider implements CorrectableRecordProvider {
                 && contents.of(a).careLevel() != a.getCareLevel()) {
             events.publishEvent(new AssessmentCorrectedLevel(a.getResidentId(), a.getId(), correction.id()));
         }
-    }
-
-    /**
-     * Dòng nhật ký của 000 cho đính chính không mang {@code resident_id} (SPI không cho biết người cao tuổi), nên tra
-     * theo người cao tuổi sẽ không thấy đính chính. Ghi thêm một dòng cùng bản ghi gốc, gắn người cao tuổi, trỏ tới
-     * bản đính chính (DBR-23); không chép nội dung đính chính vì có thể là dữ liệu sức khỏe.
-     */
-    private void linkToResident(CorrectionView correction, long residentId) {
-        AuditLogEntry.Builder entry = AuditLogEntry.builder()
-                .action(CORRECTED)
-                .entity(correction.recordType(), correction.originalRecordId())
-                .resident(residentId)
-                .reason(new Reason(correction.reason()))
-                .details(Map.of(
-                        "correctionId", correction.id(),
-                        "sequenceNo", correction.sequenceNo(),
-                        "type", correction.type().name()));
-        if (correction.approvalRequestId() != null) {
-            entry.basis(new Basis(null, correction.approvalRequestId(), null, null));
-        }
-        auditLog.write(entry.build());
     }
 
     private Assessment find(long id) {

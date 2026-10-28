@@ -1,6 +1,5 @@
 package com.cambae.backend.m01.internal.status.service;
 
-import com.cambae.backend.common.Reason;
 import com.cambae.backend.common.Role;
 import com.cambae.backend.common.error.InvalidValueException;
 import com.cambae.backend.common.error.NotFoundException;
@@ -8,11 +7,6 @@ import com.cambae.backend.m01.api.ResidentApi;
 import com.cambae.backend.m01.internal.status.domain.ResidentStatusHistory;
 import com.cambae.backend.m01.internal.status.persistence.ResidentStatusHistoryRepository;
 import com.cambae.backend.m15.account.api.CurrentUser;
-import com.cambae.backend.m15.auditlog.api.AuditAction;
-import com.cambae.backend.m15.auditlog.api.AuditLogApi;
-import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
-import com.cambae.backend.m15.auditlog.api.Basis;
-import com.cambae.backend.m15.correction.api.CorrectionView;
 import com.cambae.backend.m15.correction.api.CreationMethod;
 import com.cambae.backend.m15.correction.api.spi.CorrectableRecordProvider;
 import java.util.LinkedHashMap;
@@ -32,20 +26,16 @@ class StatusHistoryCorrectionProvider implements CorrectableRecordProvider {
 
     static final String REASON = "reason";
     private static final int MAX_REASON = 2000;
-    private static final AuditAction CORRECTED = new AuditAction("RECORD_CORRECTED", true);
     // Vai trò có lệnh trạng thái: Hành chính, Bác sĩ, Điều dưỡng; Quản lý viện duyệt cách C
     private static final Set<Role> RECORDERS =
             Set.of(Role.NURSING_HOME_MANAGER, Role.DOCTOR, Role.NURSING_STAFF, Role.OFFICE_STAFF);
 
     private final ResidentStatusHistoryRepository histories;
     private final ResidentApi residents;
-    private final AuditLogApi auditLog;
 
-    StatusHistoryCorrectionProvider(
-            ResidentStatusHistoryRepository histories, ResidentApi residents, AuditLogApi auditLog) {
+    StatusHistoryCorrectionProvider(ResidentStatusHistoryRepository histories, ResidentApi residents) {
         this.histories = histories;
         this.residents = residents;
-        this.auditLog = auditLog;
     }
 
     @Override
@@ -66,6 +56,11 @@ class StatusHistoryCorrectionProvider implements CorrectableRecordProvider {
     @Override
     public Optional<Long> floorArea(long id) {
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<Long> residentId(long id) {
+        return histories.findById(id).map(ResidentStatusHistory::getResidentId);
     }
 
     @Override
@@ -94,27 +89,6 @@ class StatusHistoryCorrectionProvider implements CorrectableRecordProvider {
     @Override
     public boolean allows(CurrentUser user, CreationMethod method, long id) {
         return method == CreationMethod.C || !residents.isFinalStatus(find(id).getResidentId());
-    }
-
-    /**
-     * Dòng nhật ký của 000 cho đính chính không mang {@code resident_id} (SPI không cho biết người cao tuổi); ghi thêm một
-     * dòng cùng bản gốc gắn người cao tuổi, trỏ tới bản đính chính (cùng cách của hai provider đính chính khác, DBR-23).
-     */
-    @Override
-    public void afterCorrection(CorrectionView correction) {
-        AuditLogEntry.Builder entry = AuditLogEntry.builder()
-                .action(CORRECTED)
-                .entity(correction.recordType(), correction.originalRecordId())
-                .resident(find(correction.originalRecordId()).getResidentId())
-                .reason(new Reason(correction.reason()))
-                .details(Map.of(
-                        "correctionId", correction.id(),
-                        "sequenceNo", correction.sequenceNo(),
-                        "type", correction.type().name()));
-        if (correction.approvalRequestId() != null) {
-            entry.basis(new Basis(null, correction.approvalRequestId(), null, null));
-        }
-        auditLog.write(entry.build());
     }
 
     private ResidentStatusHistory find(long id) {

@@ -73,14 +73,14 @@ class StatusHistoryCorrectionIT extends StatusTestBase {
                         "SELECT reason FROM resident_status_history WHERE id = ?", String.class, historyId))
                 .as("bản gốc giữ nguyên")
                 .isEqualTo("Lý do cũ");
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM audit_log WHERE entity_type = ? AND entity_id = ? AND resident_id = ?",
-                        Long.class,
+        assertThat(jdbc.queryForList(
+                        "SELECT action FROM audit_log WHERE entity_type = ? AND entity_id = ? AND resident_id = ?",
+                        String.class,
                         TYPE,
                         String.valueOf(historyId),
                         id))
-                .as("nhật ký gắn người cao tuổi")
-                .isPositive();
+                .as("một dòng đính chính của 000, gắn người cao tuổi (L98)")
+                .containsExactly("CORRECTION_ADDED");
     }
 
     @Test

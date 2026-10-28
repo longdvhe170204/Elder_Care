@@ -6,9 +6,12 @@ import com.cambae.backend.m01.api.ResidentStatusApi;
 import com.cambae.backend.m01.api.dto.ResidentStatus;
 import com.cambae.backend.m01.api.spi.StatusTransitionParticipant;
 import com.cambae.backend.m01.internal.status.service.ResidentStatusService;
+import com.cambae.backend.m03.api.spi.ResidencyType;
 import com.cambae.backend.m15.auditlog.api.Basis;
 import com.cambae.backend.support.fake.m01.FakeAbsences;
 import com.cambae.backend.support.fake.m01.FakeStatusTransitionParticipant;
+import com.cambae.backend.support.fake.m03.FakeAllocationResidencySource;
+import com.cambae.backend.support.fake.m03.FakeM03Config;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +27,11 @@ import tools.jackson.databind.node.JsonNodeFactory;
 /**
  * Nền chung cho test trạng thái người cao tuổi của 001 US4 (T043 → T046): hai bản giả {@link
  * StatusTransitionParticipant} đứng cho 003, 004, 005, 006, 007, 010, 011, 012, 013 (đặt lại trước mỗi test) và bản giả
- * {@link FakeAbsences} của 004. Hồ sơ dựng bằng {@link #residentIn}: lịch sử trạng thái luôn khớp trạng thái hiện tại.
+ * {@link FakeAbsences} của 004. Participant thật của 003 ({@code AllocationStatusParticipant}) cần nguồn lưu trú của 004
+ * ({@code AllocationResidencySource}), chưa có bản thật nên dùng bản giả của 003 ({@link FakeM03Config}). Hồ sơ dựng bằng
+ * {@link #residentIn}: lịch sử trạng thái luôn khớp trạng thái hiện tại.
  */
-@Import(StatusTestBase.Fakes.class)
+@Import({StatusTestBase.Fakes.class, FakeM03Config.class})
 public abstract class StatusTestBase extends AssessmentTestBase {
 
     @TestConfiguration
@@ -67,6 +72,9 @@ public abstract class StatusTestBase extends AssessmentTestBase {
     protected ResidentStatusApi statusApi;
 
     @Autowired
+    private FakeAllocationResidencySource residency;
+
+    @Autowired
     private TransactionTemplate transactions;
 
     @BeforeEach
@@ -99,10 +107,14 @@ public abstract class StatusTestBase extends AssessmentTestBase {
         return new Reason("Lý do thử");
     }
 
-    /** Hồ sơ mới ở Đang tiếp nhận, chỉ có dòng lịch sử Tạo hồ sơ. */
+    /**
+     * Hồ sơ mới ở Đang tiếp nhận, chỉ có dòng lịch sử Tạo hồ sơ. Loại lưu trú Bán trú ở nguồn giả của 003 để participant
+     * của 003 không thêm điều kiện, tác động về giường (test này kiểm phần của M01; phần giường do 003 kiểm).
+     */
     protected long admissionResident() {
         long id = newResident();
         jdbc.update("UPDATE resident SET status = 'ADMISSION_IN_PROGRESS' WHERE id = ?", id);
+        residency.resident(id, ResidencyType.DAY_CARE, null, null, null, null);
         return id;
     }
 
