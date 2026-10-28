@@ -1,23 +1,24 @@
-import { Building2, TriangleAlert } from 'lucide-react'
+import { Building2 } from 'lucide-react'
 import { ResidentAvatar } from '@/common/ResidentAvatar'
 import { StatusBadge } from '@/common/StatusBadge'
 import { cn } from '@/lib/utils'
-import { DONE, sourceText } from './taskText'
+import { DONE, sourceText, timeText } from './taskText'
 
+// Việc gắn phòng, giường, khu vực hiện vị trí thay cho người cao tuổi (005 FR-030, CHK042)
 export function WhoLine({ task, muted }) {
-  if (task.floorTask) {
+  if (!task.nctId) {
     return (
       <div className="flex items-center gap-2.5">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground" aria-hidden="true">
           <Building2 className="size-4" />
         </span>
-        <span className={cn(muted && 'text-muted-foreground')}>Việc chung của tầng</span>
+        <span className={cn(muted && 'text-muted-foreground')}>{task.location ?? 'Việc chung của tầng'}</span>
       </div>
     )
   }
   return (
     <div className="flex items-center gap-2.5">
-      <ResidentAvatar name={task.resident} code={task.residentCode} initials={task.initials} />
+      <ResidentAvatar name={task.resident} code={String(task.nctId)} photo={task.photo} />
       <div className="flex min-w-0 flex-col">
         <span className={cn('truncate', muted && 'text-muted-foreground')}>{task.resident}</span>
         <span className="type-body-sm text-muted-foreground tabular-nums">{task.bed}</span>
@@ -35,8 +36,9 @@ export function AssigneeLine({ task }) {
   )
 }
 
-// Khối việc trong dòng thời gian ca (DESIGN.md 7.2 task-block, 6.3.0): đủ trường của spec 005 FR-030; không có
-// nút bên trong, bấm khối mở khung chi tiết. Nội dung là span để hợp lệ trong button.
+// Khối việc trong dòng thời gian ca (DESIGN.md 7.2 task-block): đúng các trường của hợp đồng CongViec theo
+// 005 FR-030, không thêm trường ngoài hợp đồng; kết quả việc đã đóng chỉ ở khung chi tiết. Không có nút bên trong,
+// bấm khối mở khung chi tiết. Nội dung là span để hợp lệ trong button.
 export function TaskBlock({ task, selected, onSelect }) {
   const done = DONE.includes(task.status)
   const overdue = task.status === 'Quá hạn'
@@ -54,42 +56,38 @@ export function TaskBlock({ task, selected, onSelect }) {
     >
       <span className="flex items-center justify-between gap-2">
         <span className={cn('type-caption tabular-nums', overdue ? 'text-destructive' : 'text-muted-foreground')}>
-          {task.from}–{task.to}
+          {timeText(task)}
         </span>
         <StatusBadge status={task.status} className="h-auto" />
       </span>
-      <span className={cn('type-label', done ? 'text-muted-foreground' : 'text-foreground')}>
-        {task.title}
-        {task.importance && task.importance !== 'Thường' && (
-          <span className="ml-1.5 type-caption text-muted-foreground">{task.importance}</span>
-        )}
-      </span>
-      {task.floorTask ? (
-        <span className="flex items-center gap-2">
-          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground" aria-hidden="true">
-            <Building2 className="size-3.5" />
-          </span>
-          Việc chung của tầng
+      <span className="flex flex-col">
+        <span className={cn('type-label', done ? 'text-muted-foreground' : 'text-foreground')}>
+          {task.title}
+          {task.importance && task.importance !== 'Thường' && (
+            <span className="ml-1.5 type-caption text-muted-foreground">{task.importance}</span>
+          )}
         </span>
-      ) : (
+        {task.content && <span className="text-muted-foreground">{task.content}</span>}
+      </span>
+      {task.nctId ? (
         <span className="flex items-center gap-2">
-          <ResidentAvatar name={task.resident} code={task.residentCode} initials={task.initials} className="size-6" />
+          <ResidentAvatar name={task.resident} code={String(task.nctId)} photo={task.photo} className="size-6" />
           <span className="truncate">
             {task.resident}, <span className="tabular-nums">{task.bed}</span>
           </span>
         </span>
-      )}
-      {done ? (
-        task.result && <span>{task.result}</span>
       ) : (
+        <span className="flex items-center gap-2">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground" aria-hidden="true">
+            <Building2 className="size-3.5" />
+          </span>
+          {task.location ?? 'Việc chung của tầng'}
+        </span>
+      )}
+      {!done && (
         <>
           <span className="text-muted-foreground">{sourceText(task)}</span>
-          {task.allergies?.length > 0 && (
-            <span className="flex items-start gap-1.5 text-warning-foreground">
-              <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-              Dị ứng: {task.allergies.join(', ')}
-            </span>
-          )}
+          {task.awaitingRemeasure && <span className="text-warning-foreground">Chờ đo lại</span>}
           {task.riskChoices?.map((c) => (
             <span key={c.choice} className="line-clamp-2">
               Lựa chọn của người cao tuổi: {c.choice}. Đã trao đổi rủi ro, xem lại {c.reviewOn}.
