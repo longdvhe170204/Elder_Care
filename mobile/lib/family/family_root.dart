@@ -3,7 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../common/auth/session_controller.dart';
 import '../common/widgets/not_designed_state.dart';
-import '../common/widgets/sky_background.dart';
+import '../common/widgets/page_body.dart';
 
 /// Gốc phần người thân (000 T007; 002 T047; Q-346, Q-305: cùng chức năng với cổng người thân trên web): màn của từng
 /// feature đặt ở `family/<feature>/` (mobile/README.md mục 2). Thanh điều hướng dưới (DESIGN.md 2.3, 15.4) thêm khi có
@@ -25,7 +25,7 @@ class FamilyRoot extends StatelessWidget {
         ),
       ],
     ),
-    body: const SkyBackground(
+    body: const PageBody(
       child: Align(
         alignment: Alignment.topCenter,
         child: NotDesignedState(

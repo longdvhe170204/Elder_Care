@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api/api_client.dart';
 import '../api/problem_message.dart';
-import '../widgets/sky_background.dart';
+import '../widgets/page_body.dart';
 import 'session_controller.dart';
 
 /// Đổi mật khẩu bắt buộc lần đầu (002 FR-006) cho cả ba loại tài khoản; [message] đổi lỗi thành câu báo theo phần app
@@ -55,7 +55,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Scaffold(
-      body: SkyBackground(
+      body: PageBody(
         child: Card(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -69,16 +69,25 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   Text(_error!, style: text.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.error)),
                 ],
                 const SizedBox(height: 16),
-                TextField(
-                  controller: _current,
-                  decoration: const InputDecoration(labelText: 'Mật khẩu nhân viên đưa'),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _next,
-                  decoration: InputDecoration(labelText: 'Mật khẩu mới', errorText: _newPasswordError),
-                  obscureText: true,
+                // Cho trình quản lý mật khẩu điền, lưu mật khẩu mới (DESIGN.md 15.5; WCAG 3.3.8)
+                AutofillGroup(
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _current,
+                        decoration: const InputDecoration(labelText: 'Mật khẩu nhân viên đưa'),
+                        obscureText: true,
+                        autofillHints: const [AutofillHints.password],
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _next,
+                        decoration: InputDecoration(labelText: 'Mật khẩu mới', errorText: _newPasswordError),
+                        obscureText: true,
+                        autofillHints: const [AutofillHints.newPassword],
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 16),
                 FilledButton(onPressed: _busy ? null : _save, child: const Text('Lưu mật khẩu mới')),
