@@ -1,6 +1,7 @@
 package com.cambae.backend.m01.internal.status.service;
 
 import com.cambae.backend.common.Reason;
+import com.cambae.backend.common.file.FileView;
 import com.cambae.backend.m01.api.ResidentStatusApi;
 import com.cambae.backend.m01.api.dto.Condition;
 import com.cambae.backend.m01.api.dto.ResidentStatus;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 
 /** Lệnh đổi trạng thái từ module khác (014, 007, 004) và xem trước điều kiện cho 004 (research H-03). */
@@ -28,6 +30,11 @@ class ResidentStatusApiImpl implements ResidentStatusApi {
             com.cambae.backend.m01.internal.status.persistence.ResidentStatusHistoryRepository histories) {
         this.status = status;
         this.histories = histories;
+    }
+
+    @Override
+    public List<FileView> hospitalDocuments(long historyId) {
+        return status.hospitalDocuments(historyId);
     }
 
     @Override
@@ -47,6 +54,7 @@ class ResidentStatusApiImpl implements ResidentStatusApi {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<StatusPeriod> statusPeriods(long residentId, Set<ResidentStatus> statuses, Instant from, Instant to) {
         if (statuses.isEmpty() || !from.isBefore(to)) return List.of();
         var entries = histories.findByResidentIdOrderByIdAsc(residentId).stream()

@@ -6,6 +6,8 @@ import com.cambae.backend.common.data.BusinessCommand;
 import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.error.NotFoundException;
 import com.cambae.backend.common.error.ReasonRequiredException;
+import com.cambae.backend.common.file.FileApi;
+import com.cambae.backend.common.file.FileView;
 import com.cambae.backend.common.time.BusinessTime;
 import com.cambae.backend.m01.api.dto.CommandContext;
 import com.cambae.backend.m01.api.dto.Condition;
@@ -15,6 +17,7 @@ import com.cambae.backend.m01.api.dto.StatusCommand;
 import com.cambae.backend.m01.api.dto.TransitionResult;
 import com.cambae.backend.m01.api.dto.Warning;
 import com.cambae.backend.m01.api.events.ResidentStatusChanged;
+import com.cambae.backend.m01.api.events.ResidentStatusNotice;
 import com.cambae.backend.m01.api.spi.StatusTransitionParticipant;
 import com.cambae.backend.m01.internal.health.service.ActorNames;
 import com.cambae.backend.m01.internal.profile.domain.Resident;
@@ -32,6 +35,8 @@ import com.cambae.backend.m15.auditlog.api.AuditAction;
 import com.cambae.backend.m15.auditlog.api.AuditLogApi;
 import com.cambae.backend.m15.auditlog.api.AuditLogEntry;
 import com.cambae.backend.m15.auditlog.api.Basis;
+import com.cambae.backend.m15.correction.api.CorrectionApi;
+import com.cambae.backend.m15.correction.api.CurrentValue;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -58,11 +63,25 @@ public class ResidentStatusService {
 
     static final AuditAction CHANGED = new AuditAction("RESIDENT_STATUS_CHANGED", false);
     static final String ENTITY_TYPE = "M01.RESIDENT";
+    /** Loại bản ghi của dòng lịch sử trạng thái trong đính chính của 000 (FR-049a). */
+    public static final String HISTORY_RECORD_TYPE = "M01.RESIDENT_STATUS_HISTORY";
 
     /** Chi tiết bắt buộc của Chuyển viện và Ghi nhận qua đời ngoài viện (CHK016, FR-047b). */
     private static final String BASIS_FIELD = "basis";
 
     private static final String EVIDENCE_FIELD = "evidenceFileId";
+
+    private static final String EVIDENCE_BASIS = "EVIDENCE_FILE";
+
+    /** Chủ sở hữu của tệp bằng chứng qua đời là dòng lịch sử trạng thái; quyền tải ở {@code DeathEvidenceFilePermission}. */
+    static final String DEATH_EVIDENCE_OWNER = "M01.DEATH_EVIDENCE";
+
+    /** Giấy tờ bệnh viện gắn vào dòng lịch sử của Ghi nhận trở về từ bệnh viện và Chuyển viện (FR-047c, research H-18). */
+    static final String HOSPITAL_DOCUMENT_OWNER = "M01.HOSPITAL_DOCUMENT";
+
+    private static final String ATTACHMENTS_FIELD = "attachmentFileIds";
+
+    private static final int MAX_ATTACHMENTS = 10;
 
     /** Lệnh các module khác được gọi qua {@code ResidentStatusApi} (research H-03; 004 FR-002). */
     private static final Set<StatusCommand> MODULE_COMMANDS = Set.of(
@@ -81,7 +100,9 @@ public class ResidentStatusService {
             StatusCommand.END_RESIDENCY,
             StatusCommand.RECORD_DEATH);
 
+    /** {@code residentId} cho giới hạn trường theo người cao tuổi của dòng (không ghi ra JSON). */
     public record HistoryEntry(
+            long residentId,
             ResidentStatus from,
             ResidentStatus to,
             String command,
@@ -104,6 +125,8 @@ public class ResidentStatusService {
     private final JsonMapper json;
     private final ActorNames names;
     private final ObjectProvider<CurrentUser> currentUser;
+    private final FileApi files;
+    private final ObjectProvider<CorrectionApi> corrections;
 
     ResidentStatusService(
             ResidentRepository residents,
@@ -115,7 +138,10 @@ public class ResidentStatusService {
             BusinessTime time,
             JsonMapper json,
             ActorNames names,
-            ObjectProvider<CurrentUser> currentUser) {
+            ObjectProvider<CurrentUser> currentUser,
+            FileApi files,
+            ObjectProvider<CorrectionApi> corrections) {
+        this.corrections = corrections;
         this.residents = residents;
         this.histories = histories;
         this.guard = guard;
@@ -126,6 +152,7 @@ public class ResidentStatusService {
         this.json = json;
         this.names = names;
         this.currentUser = currentUser;
+        this.files = files;
     }
 
     @BusinessCommand
@@ -257,9 +284,23 @@ public class ResidentStatusService {
     public List<HistoryEntry> history(Target target) {
         long id = target.residentId();
         residents.findById(id).orElseThrow(NotFoundException::new);
-        return histories.findByResidentIdOrderByIdAsc(id).stream()
-                .map(this::entry)
+        List<ResidentStatusHistory> rows = histories.findByResidentIdOrderByIdAsc(id);
+        // Lý do hiển thị là lý do đã đính chính (FR-049a, FR-030); bản gốc giữ nguyên ở bảng lịch sử
+        Map<Long, CurrentValue> corrected = rows.isEmpty()
+                ? Map.of()
+                : corrections
+                        .getObject()
+                        .current(
+                                HISTORY_RECORD_TYPE,
+                                rows.stream().map(ResidentStatusHistory::getId).toList());
+        return rows.stream()
+                .map(row -> entry(row, correctedReason(corrected.get(row.getId()))))
                 .toList();
+    }
+
+    /** Giấy tờ bệnh viện gắn với một dòng lịch sử trạng thái (001 T081, T082). */
+    public List<FileView> hospitalDocuments(long historyId) {
+        return files.attachedTo(HOSPITAL_DOCUMENT_OWNER, historyId);
     }
 
     /**
@@ -303,6 +344,7 @@ public class ResidentStatusService {
         }
         JsonNode body = details == null ? noDetails() : details;
         BasisRef basis = basisOf(command, from, user, body, moduleBasis);
+        List<Long> attachments = attachmentsOf(command, from, body);
         participants
                 .orderedStream()
                 .filter(p -> p.interestedCommands().contains(command))
@@ -331,6 +373,12 @@ public class ResidentStatusService {
                 basis == null ? null : basis.type(),
                 basis == null ? null : basis.id(),
                 evaluation.waiver() == null ? null : json.writeValueAsString(evaluation.waiver())));
+        // tệp không có hoặc đã gắn thì ném lỗi và cả lệnh rollback, kể cả tệp đã gắn trước đó trong vòng lặp (FR-047c)
+        attachments.forEach(fileId -> files.attach(fileId, HOSPITAL_DOCUMENT_OWNER, row.getId()));
+        if (basis != null && EVIDENCE_BASIS.equals(basis.type())) {
+            // tệp không tồn tại hoặc đã gắn thì ném lỗi và cả lệnh rollback (FR-047b, research H-13)
+            files.attach(basis.id(), DEATH_EVIDENCE_OWNER, row.getId());
+        }
         resident.changeStatus(to, now);
         residents.saveAndFlush(resident);
 
@@ -355,6 +403,9 @@ public class ResidentStatusService {
                     warnings.addAll(p.warnings(context));
                 });
         events.publishEvent(new ResidentStatusChanged(residentId, from, to, command, row.getId(), now));
+        if (command == StatusCommand.TRANSFER_OUT || command == StatusCommand.RECORD_DEATH) {
+            events.publishEvent(new ResidentStatusNotice(residentId, command, row.getId(), now));
+        }
         return new Outcome(to, row.getId(), entry(row), List.copyOf(warnings));
     }
 
@@ -437,7 +488,7 @@ public class ResidentStatusService {
         if (command == StatusCommand.RECORD_DEATH) {
             boolean doctor = user.roles().contains(Role.DOCTOR);
             JsonNode evidence = details.get(EVIDENCE_FIELD);
-            boolean hasEvidence = evidence != null && evidence.isNumber();
+            boolean hasEvidence = evidence != null && evidence.isIntegralNumber();
             if (from == ResidentStatus.IN_RESIDENCE && !doctor) {
                 throw new BusinessException(
                         HttpStatus.FORBIDDEN,
@@ -449,9 +500,32 @@ public class ResidentStatusService {
                         "EVIDENCE_REQUIRED",
                         "Hành chính ghi nhận qua đời ngoài viện phải kèm giấy tờ bằng chứng (FR-047b)");
             }
-            return hasEvidence ? new BasisRef("EVIDENCE_FILE", evidence.longValue()) : null;
+            return hasEvidence ? new BasisRef(EVIDENCE_BASIS, evidence.longValue()) : null;
         }
         return null;
+    }
+
+    /**
+     * Giấy tờ bệnh viện đính kèm (FR-047c): chỉ Ghi nhận trở về từ Điều trị tại bệnh viện và Chuyển viện nhận, không bắt
+     * buộc, tối đa {@value #MAX_ATTACHMENTS} tệp; lệnh khác có tệp thì 422, và một tệp liệt kê hai lần chỉ gắn một lần.
+     */
+    private static List<Long> attachmentsOf(StatusCommand command, ResidentStatus from, JsonNode details) {
+        JsonNode listed = details.get(ATTACHMENTS_FIELD);
+        if (listed == null || listed.isNull() || (listed.isArray() && listed.isEmpty())) {
+            return List.of();
+        }
+        boolean accepted = command == StatusCommand.TRANSFER_OUT
+                || (command == StatusCommand.RECORD_RETURN && from == ResidentStatus.HOSPITALIZED);
+        if (!accepted) {
+            throw invalidDetails("ATTACHMENTS_NOT_ACCEPTED", "Lệnh này không nhận tệp đính kèm");
+        }
+        if (!listed.isArray() || listed.valueStream().anyMatch(id -> !id.isIntegralNumber())) {
+            throw invalidDetails("INVALID_ATTACHMENTS", "Tệp đính kèm là danh sách mã tệp");
+        }
+        if (listed.size() > MAX_ATTACHMENTS) {
+            throw invalidDetails("TOO_MANY_ATTACHMENTS", "Tối đa " + MAX_ATTACHMENTS + " tệp đính kèm");
+        }
+        return listed.valueStream().map(JsonNode::longValue).distinct().toList();
     }
 
     private static BusinessException invalidDetails(String code, String message) {
@@ -462,20 +536,33 @@ public class ResidentStatusService {
         return tools.jackson.databind.node.JsonNodeFactory.instance.objectNode();
     }
 
+    private static String correctedReason(CurrentValue value) {
+        if (value != null && value.corrected() && !value.voided() && value.content() instanceof Map<?, ?> content) {
+            Object reason = content.get(StatusHistoryCorrectionProvider.REASON);
+            return reason == null ? null : reason.toString();
+        }
+        return null;
+    }
+
     private HistoryEntry entry(ResidentStatusHistory row) {
+        return entry(row, null);
+    }
+
+    private HistoryEntry entry(ResidentStatusHistory row, String correctedReason) {
         Map<String, Object> basis =
                 row.getBasisType() == null ? null : Map.of("type", row.getBasisType(), "id", row.getBasisId());
         Map<String, Object> waiver = row.getConditionWaiver() == null
                 ? null
                 : json.readValue(row.getConditionWaiver(), new tools.jackson.core.type.TypeReference<>() {});
         return new HistoryEntry(
+                row.getResidentId(),
                 row.getFromStatus(),
                 row.getToStatus(),
                 row.getCommand(),
                 row.getOccurredAt(),
                 names.of(row.getPerformedBy()),
                 row.isBySystem(),
-                row.getReason(),
+                correctedReason != null ? correctedReason : row.getReason(),
                 basis,
                 waiver);
     }

@@ -125,6 +125,8 @@ class ResidentController {
 
     @GetMapping
     @Tag(name = "profiles")
+    @ProblemResponses.Forbidden
+    @ApiResponse(responseCode = "200", description = "OK")
     ProfilePage search(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) List<ResidentStatus> status,
@@ -155,6 +157,8 @@ class ResidentController {
 
     @GetMapping("/{id}")
     @Tag(name = "profiles")
+    @ProblemResponses.NotFound
+    @ApiResponse(responseCode = "200", description = "OK")
     ResponseEntity<ProfileBody> get(@PathVariable long id) {
         ProfileView view = profiles.view(ResidentProfileService.target(id));
         return ResponseEntity.ok().eTag(VersionEtag.of(view.version())).body(body(view));

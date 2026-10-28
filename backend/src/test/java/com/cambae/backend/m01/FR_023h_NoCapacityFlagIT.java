@@ -24,7 +24,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
  */
 @AutoConfigureMockMvc
 @WithMockUser
-class FR_023h_KhongDauNangLucIT extends MySqlIntegrationTestBase {
+class FR_023h_NoCapacityFlagIT extends MySqlIntegrationTestBase {
 
     /** Từ chỉ dấu năng lực chung (tên cũ và tên glossary); không gồm {@code can_self_determine}. */
     private static final List<String> FORBIDDEN = List.of("nang_luc", "nangluc", "capacity");

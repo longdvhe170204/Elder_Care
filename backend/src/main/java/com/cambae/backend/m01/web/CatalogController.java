@@ -48,7 +48,18 @@ class CatalogController {
     @GetMapping
     @Tag(name = "catalogs")
     List<CatalogItemBody> list(
-            @PathVariable String type,
+            @PathVariable
+                    @Parameter(
+                            schema =
+                                    @Schema(
+                                            allowableValues = {
+                                                "allergens",
+                                                "allergy-severities",
+                                                "information-sources",
+                                                "care-needs",
+                                                "care-levels"
+                                            }))
+                    String type,
             @Parameter(description = "Chỉ với allergens") @RequestParam(required = false) AllergenGroup group,
             @RequestParam(required = false) CatalogStatus status) {
         return catalogs.list(type, group == null ? null : group.name(), Optional.ofNullable(status)).stream()
@@ -64,7 +75,20 @@ class CatalogController {
                 responseCode = "409",
                 content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
     })
-    ResponseEntity<CatalogItemBody> create(@PathVariable String type, @Valid @RequestBody CatalogItemBody body) {
+    ResponseEntity<CatalogItemBody> create(
+            @PathVariable
+                    @Parameter(
+                            schema =
+                                    @Schema(
+                                            allowableValues = {
+                                                "allergens",
+                                                "allergy-severities",
+                                                "information-sources",
+                                                "care-needs",
+                                                "care-levels"
+                                            }))
+                    String type,
+            @Valid @RequestBody CatalogItemBody body) {
         CatalogItemView created = catalogs.create(type, body.input());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .eTag(VersionEtag.of(created.version()))
