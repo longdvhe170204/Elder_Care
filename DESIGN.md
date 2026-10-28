@@ -1,6 +1,6 @@
 ---
 name: Elder_Care
-version: 6.5.1
+version: 6.6.0
 status: Đã duyệt (chủ dự án, 2026-10-16; mục 2.2 duyệt 2026-10-18; mục 15 duyệt 2026-10-18; mục 15.6 duyệt 2026-10-19; 6.0.0 hướng "Dòng thời gian ca" duyệt 2026-10-28)
 platforms: { web: frontend/, mobile: mobile/ }
 updated: 2026-10-28
@@ -52,7 +52,7 @@ colors:
     ink-muted: "#9AABC2"
     muted: "#1E2B44"
     line: "#2A3A52"
-    control-line: "#6E80A0"
+    control-line: "#7E8591"
     primary: "#E6EDF6"
     on-primary: "#0F1A2A"
     accent-ink: "#8DB4E2"
@@ -597,7 +597,7 @@ Công nghệ: React 19, Vite 8, JavaScript, Tailwind CSS v4, shadcn/ui (Base UI)
 
 - Đã có: khung chung (`AppShell`, menu theo vai trò, khối người dùng, nút sáng/tối), trạng thái màn chưa có và không có quyền, và ba màn mẫu: Tổng quan (dải số đếm, cảnh báo, lưới việc theo khung giờ có người phụ trách, sơ đồ giường theo phòng, thẻ bàn giao ca), Checklist ca (lưới thẻ có người phụ trách, dị ứng tách riêng, lựa chọn của người cao tuổi, loại lý do "Người cao tuổi từ chối"), Danh sách người cao tuổi (bảng kèm khung chi tiết có ảnh nhận diện, khối "Về người này" có sở thích theo nguồn và lịch sử ý kiến, lệnh Hoàn tất tiếp nhận có ý kiến vào ở khi xem bằng vai trò Hành chính). Theo mục 2.2 còn có: chi tiết sự cố hai phần (`incidents`, vai trò Người thân thấy bản cổng) và Người thân (`relatives`, mục menu mới theo dòng "Mong muốn về khách thăm, người đón" của Phụ lục 27).
 - Dị ứng hiện trên mọi thẻ thuốc (chủ dự án duyệt 2026-10-18 cho màn Phát thuốc; còn phải đối chiếu spec 006 và hợp đồng theo mục 13 điều 6). Từ 6.5.0 không hiện trên khối việc của Checklist ca: spec 005 và hợp đồng api-005 không có.
-- Đợt 3 (thẩm mỹ) chốt thành 6.0.0 (2026-10-28, hướng "Dòng thời gian ca"; mẫu trên canvas "Checklist ca: 3 hướng", hàng H3). **Đã áp trên web (nhánh `impl/000-design-v6`)**: token `index.css` (sáng, tối); `AppShell` (menu, link "Bỏ qua menu"); `PageHeader`; `StatusBadge` chữ màu; thanh lọc `ToggleGroup variant="filter"` (tab, chip dưới 768px); `CareNotes`; `DetailLayout`, `NowStrip`; màn mẫu Checklist ca (dòng thời gian, khung chi tiết, đồng bộ spec 005 và api-005). **Chưa áp**: bố cục riêng các màn web khác (mô tả màn bên dưới là theo 5.x), thanh trên gọn dưới 768px, cổng người thân, toàn bộ mobile (mục 15.7). Các công thức chưa sửa ở 6.0.0 (`dose-card`, `alert-card`, `notification-inbox` còn viền đỏ 1,5px) đổi theo mục 11 khi áp vào màn đó.
+- Đợt 3 (thẩm mỹ) chốt thành 6.0.0 (2026-10-28, hướng "Dòng thời gian ca"; mẫu trên canvas "Checklist ca: 3 hướng", hàng H3). **Đã áp trên web (nhánh `impl/000-design-v6`)**: token `index.css` (sáng, tối); `AppShell` (menu, link "Bỏ qua menu"); `PageHeader`; `StatusBadge` chữ màu; thanh lọc `ToggleGroup variant="filter"` (tab, chip dưới 768px); `CareNotes`; `DetailLayout`, `NowStrip`; màn mẫu Checklist ca (dòng thời gian, khung chi tiết, đồng bộ spec 005 và api-005). **Chưa áp**: bố cục riêng các màn web khác (mô tả màn bên dưới là theo 5.x), thanh trên gọn dưới 768px, cổng người thân, bố cục các màn mobile (mục 15.7; theme mobile đã áp). Các công thức chưa sửa ở 6.0.0 (`dose-card`, `alert-card`, `notification-inbox` còn viền đỏ 1,5px) đổi theo mục 11 khi áp vào màn đó.
 - Trợ năng (mục 9, 6.2.0), web chưa đạt: chưa có link "Bỏ qua menu" (2.4.1); hết phiên chỉ báo sau khi đã mất phiên, không báo trước, không giữ form (2.2.1, 2.2.5); Tổng quan tự làm mới 30 giây không có nút tạm dừng (2.2.2). Đã đạt: `lang="vi"`, `autoComplete` ở `LoginPage`, `ChangePasswordPage`. Các màn cũ chưa kiểm 12 điểm của mục 9.2.
 - Đã có trang chủ giới thiệu viện trong cổng người thân (mục 2.1), màn đăng nhập chung `/login` (002 T045: đăng nhập thật cho nhân viên và người thân, bố cục P1; `/change-password` khi buộc đổi mật khẩu; khung nhân viên dùng vai trò thật và nút Đăng xuất khi có phiên, không có phiên thì giữ ô đổi vai trò của bản mẫu) và cổng người thân `/family` với 11 màn P1 → P11 (mục 2.3). Chờ: ảnh thực tế được phép sử dụng, kênh liên hệ chính thức của viện.
 - Đã có màn mẫu Phát thuốc (M14): liều theo lịch nhóm theo giờ, khung xác nhận liều, thuốc khi cần.
@@ -634,6 +634,7 @@ Mục này nói cách áp các mục chung vào `mobile/`. Màu, chữ, trạng 
 - `ColorScheme` sáng và tối lấy từ token chung: `primary`/`onPrimary` là xanh đêm/trắng, `surface`/`onSurface` là thẻ/chữ chính, `onSurfaceVariant` là chữ phụ, `outline` là viền điều khiển, `outlineVariant` là đường kẻ, `error` là đỏ (chỉ việc gấp, mục 1 điều 4).
 - Tông trạng thái (mục 3.5), nhãn người nói (`source-tag`), ảnh đại diện (mục 3.6), màu menu và đầu màn xanh đêm đậm (mục 3.2) và các màu khác không có chỗ trong `ColorScheme` khai báo bằng một `ThemeExtension` riêng của dự án. `surface` của `Scaffold` là nền trang `#EEF2F6`.
 - Font Be Vietnam Pro 400, 500, 600 đóng gói trong app (assets), không tải lúc chạy, vì app phải dùng được khi mất mạng.
+- Theme ở `lib/common/theme/app_theme.dart` (6.6.0): `AppTheme.light()`, `dark()`, `resident()`; màu ngoài `ColorScheme` ở `Tones` (`canvas`, `header*` cho đầu màn, `brandGraphic`, chữ tông trạng thái, `attentionWash` cho khối dị ứng, `avatars`, `bed*`); bo góc `AppRadius` (`sm`, `menu`, `md`, `lg`; bo tròn hẳn dùng `StadiumBorder`). Thang chữ mục 4 trong `TextTheme`: `labelSmall`, `labelMedium` caption; `bodySmall` body-sm; `labelLarge`, `titleSmall` label; `bodyMedium`, `bodyLarge` body; `titleMedium` card-title; `titleLarge` title; `headlineSmall` metric; `headlineMedium` page; `displaySmall` clock. Thân màn trên nền trang dùng `PageBody` (lề 16), nhãn trạng thái dùng `StatusPill` với `StatusTone` theo mục 3.5.
 - Thang chữ mục 4 dùng làm logical px trong `TextTheme`. Chữ co giãn theo cỡ chữ của máy; không khóa `textScaler`. Màn phải dùng được khi cỡ chữ máy ở 200%.
 - Sáng, tối: mặc định sáng, đổi bằng nút trong app như mục 3.3, lựa chọn lưu trên máy; cách lưu ghi ở plan.
 
@@ -723,15 +724,15 @@ Cho tài khoản người cao tuổi (AC-16; nghiep-vu.md 14.6a, spec 012 mục 
 - (2026-10-27) App chung chuyển phần theo loại tài khoản (000 T006, T007): phần nhân viên, người thân mới có trạng thái "Phần nhân viên: chưa có màn", "Phần người thân: chưa có màn" trên thẻ trắng (mục 7.3); thanh điều hướng dưới (15.4) thêm khi có màn đầu tiên. Không thêm màu, không đổi quy định.
 - (2026-10-27, bố cục duyệt cùng ngày) Đăng nhập: màn chọn "Tôi là" (Nhân viên, Người thân, Người cao tuổi: quét mã QR), máy đã gắn người cao tuổi vào thẳng màn quét; form tên đăng nhập, mật khẩu cho nhân viên (kèm câu máy dùng chung), người thân. Phần nhân viên có thanh điều hướng dưới Đồng bộ, Chờ xem lại, Mở khóa sớm và nút "Đăng xuất" ở thanh tiêu đề; bottom sheet cho quyết định xem lại, mở khóa sớm (ô "Tôi đã gặp trực tiếp người này", lý do). Gói biểu tượng: `lucide_icons_flutter` (cùng tên với web: `CloudOff` cho Chờ xem lại).
 - (2026-10-28, chủ dự án duyệt) Đăng nhập app bỏ màn chọn "Tôi là": màn đầu là thẻ "Elder Care" có câu cho nhân viên, người thân kèm câu máy dùng chung, ô tên đăng nhập, mật khẩu, nút chính "Đăng nhập", nút viền "Người cao tuổi: quét mã QR" mở màn quét mã (theme chữ lớn). Backend gán kênh phiên theo loại tài khoản (kênh `MOBILE_APP`, api-002). Thay dòng trên ở phần màn chọn; phần nhân viên giữ nguyên.
-- (2026-10-28) Font trong app chỉ đóng gói Be Vietnam Pro 400 và 700 (`pubspec.yaml`), lệch mục 4 (400, 500, 600): đổi sang 400, 500, 600 khi áp theme 6.x.
-- (2026-10-28) WCAG 2.2 (6.1.0): form đăng nhập, đổi mật khẩu (`lib/common/auth/login_screen.dart`, `change_password_screen.dart`) và ô mật khẩu dự phòng của người cao tuổi (`qr_login_screen.dart`) chưa có `AutofillGroup`, `autofillHints` (3.3.8); sửa khi áp theme 6.x. Web: `LoginPage`, `ChangePasswordPage` đã có `autoComplete`.
-- (2026-10-28) 6.0.0 đổi nền, đầu màn, danh sách dòng (15.4) và khung chi tiết dài thành màn riêng (15.3); theme `app_theme.dart` và các màn đã có chưa áp. Mẫu trên canvas dùng nút menu ba gạch; khi cài giữ `NavigationBar` dưới theo 15.4.
+- (2026-10-28, 6.6.0) Đã áp theme 6.x (nhánh `impl/000-design-v6`): token sáng, tối theo 3.1, 3.2 (nền trang trơn, đỏ `#B42318`, viền điều khiển `#7E8591`, đường kẻ `#DDE3EA`); thẻ viền 1px bo 12, ô nhập bo 10; bỏ `SkyBackground` (nền dải trời), thay bằng `PageBody`; `StatusPill` chữ màu không nền, đủ bảy tông; font đóng gói 400, 500, 600 (bỏ 700); `AutofillGroup`, `autofillHints` ở đăng nhập, đổi mật khẩu, mật khẩu dự phòng của người cao tuổi (3.3.8). Chưa áp: đầu màn xanh đêm đậm, danh sách dòng (15.4), các widget công thức (15.3); chưa kiểm trên máy thật.
+- (2026-10-28) 6.0.0 đổi nền, đầu màn, danh sách dòng (15.4) và khung chi tiết dài thành màn riêng (15.3); các màn đã có chưa áp bố cục này (theme đã áp ở dòng 6.6.0). Mẫu trên canvas dùng nút menu ba gạch; khi cài giữ `NavigationBar` dưới theo 15.4.
 - Đã duyệt 2026-10-18: bố cục 15.4, bộ biểu tượng lucide. Cách lưu chế độ sáng tối và gói lucide cho Flutter chốt ở plan khi triển khai.
 
 ## 16. Lịch sử
 
 | Phiên bản | Ngày | Nội dung |
 | --- | --- | --- |
+| 6.6.0 | 2026-10-28 | Theme mobile theo 6.x (mục 15.2 thêm tên lớp theme, `Tones`, `AppRadius`, cách ánh xạ thang chữ vào `TextTheme`; 15.7 hiện trạng). Sửa frontmatter `dark.control-line` từ `#6E80A0` thành `#7E8591` cho khớp bảng 3.1, độ tương phản 3.4 và `index.css`. Không thêm màu |
 | 6.5.1 | 2026-10-28 | Ghi tên component dùng chung đã có (`DetailLayout`, `NowStrip`; mục 7.2) và hiện trạng áp 6.x trên web (mục 14). Không thêm quy định, màu |
 | 6.5.0 | 2026-10-28 | Theo yêu cầu chủ dự án: frontend chỉ hiện trường có trong spec và hợp đồng (mục 13 điều 6 mới). Checklist ca đồng bộ với spec 005 FR-030 và api-005: bỏ dị ứng và kết quả khỏi khối việc; thêm nội dung, thời điểm dự kiến khi khác đầu khung, vị trí, "tồn, chờ xác nhận", "Chờ đo lại"; khung chi tiết có lý do bắt buộc khi hoàn thành trễ việc Quan trọng, Bắt buộc, nút lệnh theo `lenhDuocPhep` (mục 7.2 `task-block`, `task-detail`). Ảnh đại diện chọn màu theo `nctId` (mục 3.6). Không thêm màu |
 | 6.4.0 | 2026-10-28 | Theo yêu cầu chủ dự án: khung chi tiết cố định (từ 1280px) chỉ hiện khi đã chọn một mục; mở màn thì danh sách rộng hết màn; khung có nút Đóng, Esc đóng, focus vào khung khi mở và trở về mục đã mở khi đóng (mục 5, 7.2 `detail-panel`). Áp ở Checklist ca. Không thêm màu |
