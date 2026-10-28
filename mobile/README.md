@@ -26,7 +26,7 @@ Thêm package: nhờ A (người giữ `pubspec.yaml`).
 | Thư mục | Nhiệm vụ | Ai sửa |
 | --- | --- | --- |
 | `main.dart`, `app.dart` | `main.dart` dựng phiên rồi chạy `ElderCareApp` (`app.dart`): một `MaterialApp`, màn theo trạng thái phiên, đăng nhập xong chuyển sang `staff/staff_root.dart`, `family/family_root.dart` hoặc `resident/resident_root.dart` theo loại tài khoản (000 T006, T007) | A |
-| `common/` | Dùng chung: theme (token của DESIGN.md frontmatter, mục 15.2), widget công thức (mục 7.2, 15: `task_card`, `status_pill`, `resident_avatar`…), client API, phiên đăng nhập, hàng đợi ngoại tuyến (drift) và phong bì đồng bộ (000 `OfflineEnvelope`), định dạng ngày giờ | A duyệt |
+| `common/` | Dùng chung: theme (token của DESIGN.md frontmatter, mục 15.2), widget công thức (mục 7.2, 15: dòng việc theo `task-block`, trạng thái chữ màu, `resident_avatar`…), client API, phiên đăng nhập, hàng đợi ngoại tuyến (drift) và phong bì đồng bộ (000 `OfflineEnvelope`), định dạng ngày giờ | A duyệt |
 | `staff/<module>/` | Phần nhân viên; ghi được khi mất mạng (Q-01) | Chủ module (docs/team-plan.md) |
 | `family/<module>/` | Phần người thân | Chủ module |
 | `resident/<module>/` | Phần người cao tuổi (DESIGN.md 15.6: chữ lớn, vùng bấm lớn, nút SOS) | Chủ module |
@@ -68,6 +68,7 @@ test/staff/care_tasks/
 - Client API: viết tay trong `common/api/api_client.dart` (Problem Details thành `ApiProblem`, mất mạng thành `ApiUnreachable`); script sinh client (000 T010b) làm khi phần nhân viên cần nhiều endpoint.
 - Kho token: `flutter_secure_storage` qua `common/auth/secure_store.dart` (test dùng `MemoryStore`).
 - Theme: `common/theme/app_theme.dart` (token DESIGN.md, `Tones` cho tông trạng thái, `AppTheme.resident` chữ x1,25 vùng bấm 56). Font Be Vietnam Pro 400, 700 đóng gói ở `assets/fonts/`; còn thiếu 500, 600.
+- **Chưa theo DESIGN.md 6.x** (2026-10-28): theme còn màu cũ; `widgets/sky_background.dart` (nền trời chuyển màu) và `widgets/status_pill.dart` (nhãn có nền) trái mục 1 điều 2, mục 3.5 mới. A đổi theme và hai widget này; tới khi xong, màn mới không dùng `SkyBackground`, không tự đặt màu nền, làm logic và test widget như thường (team-plan mục 8).
 - Lint, định dạng (000 T008b, 2026-10-27): `analysis_options.yaml` theo `flutter_lints` cộng sáu luật và `strict-casts`, `strict-raw-types`; `dart format` dòng 120 ký tự (`formatter.page_width`). `flutter analyze` phải sạch trước khi mở PR.
 - Hàng đợi ngoại tuyến (000 T100, 2026-10-27): `common/offline/offline_queue.dart` trên drift (`offline_database.dart`, mã sinh `*.g.dart` có trong kho). Module gọi `enqueue(accountId, recordType, content)` khi ghi lúc mất mạng (chỉ "ghi nhận thực hiện", Q-01), `sync(accountId)` khi có mạng; kết quả từng bản ghi lưu lại cho màn kết quả đồng bộ (002 T060). Gói thêm cùng bộ drift: `drift_flutter`, `drift_dev`, `build_runner`.
 - Đăng nhập (002 T046, T047; sửa 2026-10-28): màn đầu chung `common/auth/login_screen.dart` cho nhân viên, người thân (`SessionController.appLogin`, kênh `MOBILE_APP`: backend gán kênh phiên STAFF_APP hoặc FAMILY_APP theo loại tài khoản); nút phụ mở màn quét mã người cao tuổi do `app.dart` truyền vào; đổi mật khẩu chung `common/auth/change_password_screen.dart`; câu lỗi theo `detail` của backend (`common/api/problem_message.dart`), phần người cao tuổi giữ câu ngắn riêng. `ApiClient.post` nhận `headers` (`If-Match`).
@@ -79,4 +80,4 @@ test/staff/care_tasks/
 - Chủ module làm màn của feature mình trong `staff/<feature>/`, `family/<feature>/` theo tasks; thư mục chưa có thì tạo cùng PR đầu tiên.
 - Thứ tự nền của A trong `common/` và `main.dart`: 000 T006, T007 (điều hướng theo loại tài khoản, khung ba phần), T008b (lint), 002 T046, T047 (đăng nhập nhân viên trên thiết bị dùng chung, mở khóa sớm; đăng nhập người thân), 000 T100 (hàng đợi ngoại tuyến drift, phong bì `Idempotency-Key`, `thoiDiemThietBi`), 002 T060 (kết quả đồng bộ, chờ xem lại), 000 T010b (script sinh client khi số endpoint lớn).
 - Tới khi có hàng đợi ngoại tuyến: lệnh ghi của phần nhân viên gọi API trực tuyến qua `common/api/api_client.dart` và báo cần mạng khi `ApiUnreachable`; không tự viết hàng đợi riêng trong thư mục feature.
-- Màn chỉ dùng dữ liệu mẫu khi không có backend phải ghi rõ trong test; dữ liệu minh họa theo AGENTS.md mục 6.
+- Màn chỉ dùng dữ liệu mẫu khi không có backend phải ghi rõ trong test; dữ liệu minh họa theo AGENTS.md mục 6. Màn chỉ hiện trường có trong spec và hợp đồng (DESIGN.md mục 13 điều 6), cùng thứ tự và chữ với màn web tương ứng.

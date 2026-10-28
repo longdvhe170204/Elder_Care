@@ -232,7 +232,7 @@ export function AlertsPage({ role }) {
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
-          <ToggleGroup variant="filter" size="lg" value={[levelFilter]} onValueChange={(n) => n[0] && setLevelFilter(n[0])} className="flex-wrap" aria-label="Lọc theo mức">
+          <ToggleGroup variant="filter" size="lg" value={[levelFilter]} onValueChange={(n) => n[0] && setLevelFilter(n[0])} aria-label="Lọc theo mức">
             {['Tất cả', ...LEVELS].map((l) => (
               <ToggleGroupItem key={l} value={l} className="h-11 px-4">
                 {l} <span className="tabular-nums">{l === 'Tất cả' ? byView.length : byView.filter((a) => a.level === l).length}</span>

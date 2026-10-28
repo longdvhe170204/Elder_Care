@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { CareNote, ChoiceNote } from '@/common/CareNotes'
@@ -12,7 +11,7 @@ import { WhoLine } from './TaskCard'
 import { DONE, sourceText, timeText } from './taskText'
 
 // Khung chi tiết công việc (DESIGN.md 7.2 task-detail): thông tin việc, care-notes, form ghi nhận; nút chính ở
-// chân khung (005 US4 kịch bản 3–6, 10). Từ 1280px là khung cố định bên phải, hẹp hơn mở bằng Sheet.
+// chân khung (005 US4 kịch bản 3–6, 10). Đặt trong DetailLayout (khung cố định từ 1280px, hẹp hơn là Sheet).
 // Bản mẫu: kiểm tra trên màn chỉ để hiện lỗi tại ô; kiểm tra thật và trạng thái mới do backend trả.
 
 // Chỉ công việc Đến hạn hoặc Quá hạn mới ghi nhận được (bảng trạng thái công việc, mục 8.x nghiep-vu.md).
@@ -250,15 +249,5 @@ export function TaskDetail({ task, now, reasons, result, onSave, onNotDone, Titl
         </>
       )}
     </div>
-  )
-}
-
-export function TaskDetailSheet({ task, onOpenChange, ...props }) {
-  return (
-    <Sheet open={!!task} onOpenChange={onOpenChange}>
-      <SheetContent className="overflow-y-auto p-6 sm:max-w-lg">
-        {task && <TaskDetail task={task} Title={SheetTitle} Description={SheetDescription} {...props} />}
-      </SheetContent>
-    </Sheet>
   )
 }
