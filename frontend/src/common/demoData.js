@@ -25,26 +25,92 @@ export const DEMO_SHIFT = {
   start: '06:00',
   end: '14:00',
   now: '09:40',
-  residentsAssigned: 4,
 }
 
-export const DEMO_CARE_TASKS = [
-  { id: 't1', from: '07:00', to: '08:00', title: 'Hỗ trợ uống nước', kind: 'water', importance: 'Bắt buộc', source: 'Kế hoạch chăm sóc', status: 'Quá hạn', bed: '201-A', resident: '[Họ tên NCT 1]', residentCode: 'NCT-0001', initials: 'N1', careNote: '[Lưu ý chăm sóc minh họa]', assignee: '[NV chăm sóc 1]' },
-  { id: 't2', from: '08:00', to: '09:00', title: 'Hỗ trợ vận động', kind: 'simple', importance: 'Thường', source: 'Kế hoạch chăm sóc', status: 'Quá hạn', bed: '203-A', resident: '[Họ tên NCT 4]', residentCode: 'NCT-0004', initials: 'N4', carriedOver: true, assignee: '[NV chăm sóc 2]' },
-  { id: 't3', from: '09:30', to: '10:30', title: 'Hỗ trợ ăn bữa phụ', kind: 'meal', importance: 'Thường', source: 'Bữa ăn', status: 'Đến hạn', bed: '201-A', resident: '[Họ tên NCT 1]', residentCode: 'NCT-0001', initials: 'N1', careNote: '[Lưu ý chăm sóc minh họa]', assignee: '[NV chăm sóc 1]' },
-  { id: 't4', from: '09:00', to: '10:00', title: 'Đo huyết áp', kind: 'measure', unit: 'mmHg', importance: 'Bắt buộc', source: 'Lịch đo', status: 'Đến hạn', bed: '202-A', resident: '[Họ tên NCT 3]', residentCode: 'NCT-0003', initials: 'N3', assignee: '[Điều dưỡng 1]' },
-  { id: 't5', from: '09:30', to: '10:00', title: 'Thay tã', kind: 'quantity', unit: 'cái', importance: 'Thường', source: 'Kế hoạch chăm sóc', status: 'Đến hạn', bed: '203-A', resident: '[Họ tên NCT 4]', residentCode: 'NCT-0004', initials: 'N4', assignee: '[NV chăm sóc 2]' },
-  { id: 't6', from: '09:00', to: '11:00', title: '[Việc chung của tầng, minh họa]', kind: 'simple', importance: 'Thường', source: 'Giám sát', status: 'Đến hạn', floorTask: true, assignee: null },
-  { id: 't7', from: '11:00', to: '12:00', title: 'Hỗ trợ ăn bữa trưa', kind: 'meal', importance: 'Thường', source: 'Bữa ăn', status: 'Chưa đến hạn', bed: '201-B', resident: '[Họ tên NCT 2]', residentCode: 'NCT-0002', initials: 'N2', assignee: '[NV chăm sóc 1]' },
-  { id: 't8', from: '11:00', to: '11:30', title: 'Đo huyết áp', kind: 'measure', unit: 'mmHg', importance: 'Thường', source: 'Lịch đo', status: 'Chưa đến hạn', bed: '201-A', resident: '[Họ tên NCT 1]', residentCode: 'NCT-0001', initials: 'N1', assignee: '[Điều dưỡng 1]' },
-  { id: 't9', from: '12:30', to: '13:30', title: 'Hỗ trợ uống nước', kind: 'water', importance: 'Thường', source: 'Kế hoạch chăm sóc', status: 'Chưa đến hạn', bed: '202-A', resident: '[Họ tên NCT 3]', residentCode: 'NCT-0003', initials: 'N3', assignee: '[NV chăm sóc 2]' },
-  { id: 't10', from: '06:30', to: '07:00', title: 'Hỗ trợ vệ sinh cá nhân', kind: 'simple', importance: 'Thường', source: 'Kế hoạch chăm sóc', status: 'Hoàn thành', bed: '203-A', resident: '[Họ tên NCT 4]', residentCode: 'NCT-0004', initials: 'N4', result: 'Đã làm lúc 06:50', assignee: '[NV chăm sóc 2]' },
-  { id: 't11', from: '07:00', to: '08:00', title: 'Hỗ trợ ăn bữa sáng', kind: 'meal', importance: 'Thường', source: 'Bữa ăn', status: 'Hoàn thành', bed: '202-A', resident: '[Họ tên NCT 3]', residentCode: 'NCT-0003', initials: 'N3', result: 'Phần lớn', assignee: '[NV chăm sóc 1]' },
-  { id: 't12', from: '07:30', to: '08:00', title: 'Hỗ trợ uống nước', kind: 'water', importance: 'Thường', source: 'Kế hoạch chăm sóc', status: 'Không thực hiện', bed: '201-B', resident: '[Họ tên NCT 2]', residentCode: 'NCT-0002', initials: 'N2', result: 'Người cao tuổi từ chối', assignee: '[NV chăm sóc 1]' },
-]
+// Checklist ca theo đúng hình dạng hợp đồng api-005 (GET /checklist → Checklist, CongViec; GET /cong-viec/{id} →
+// CongViecChiTiet; GET /loai-cong-viec → LoaiCongViec). Tên trường tiếng Việt như hợp đồng tới khi được dịch
+// (research R-03); màn đọc qua lớp chuyển đổi features/care-tasks/checklistView.js. Không thêm trường ngoài hợp đồng.
+const at = (hhmm) => `2026-10-28T${hhmm}:00+07:00`
+const theNguoiCaoTuoi = (id) => {
+  const r = DEMO_RESIDENTS.find((x) => x.id === id)
+  return { hoTen: r.name, anh: r.photo ?? undefined, phongGiuong: r.room, luuYChamSoc: r.careNote || undefined }
+}
+// lenhDuocPhep: hợp đồng chưa liệt kê giá trị; tạm dùng tên theo đường dẫn lệnh (ghi-nhan, khong-thuc-hien)
+const MO = ['GHI_NHAN', 'KHONG_THUC_HIEN']
+const viec = (id, nctId, loaiCongViec, noiDung, canCu, duKien, dau, cuoi, mucQuanTrong, nguoiThucHien, trangThai, them = {}) => ({
+  id,
+  nctId,
+  theNguoiCaoTuoi: nctId ? theNguoiCaoTuoi(nctId) : undefined,
+  loaiCongViec,
+  noiDung,
+  canCu: { loai: canCu, id },
+  thoiDiemDuKien: at(duKien),
+  dauKhung: at(dau),
+  cuoiKhung: at(cuoi),
+  mucQuanTrong,
+  nguoiThucHien,
+  congViecChung: false,
+  trangThai,
+  choXacNhanDoLai: false,
+  soLanNhac: 0,
+  lenhDuocPhep: ['DEN_HAN', 'QUA_HAN'].includes(trangThai) ? MO : [],
+  ...them,
+})
 
-// Loại lý do Không thực hiện (Q-350): "Người cao tuổi từ chối" luôn có; các loại khác là danh mục nhóm 1.
-export const DEMO_NOT_DONE_REASONS = ['Người cao tuổi từ chối', '[Loại lý do minh họa 1]', '[Loại lý do minh họa 2]']
+export const DEMO_CHECKLIST = {
+  caId: 1,
+  taiLuc: at('09:40'),
+  congViec: [
+    viec(101, 1, 'Hỗ trợ uống nước', 'Uống 200 ml nước ấm', 'MUC_KE_HOACH', '07:00', '07:00', '08:00', 'BAT_BUOC', '[NV chăm sóc 1]', 'QUA_HAN'),
+    viec(102, 4, 'Hỗ trợ vận động', 'Đi bộ ở hành lang 10 phút', 'MUC_KE_HOACH', '08:00', '08:00', '09:00', 'THUONG', '[NV chăm sóc 2]', 'QUA_HAN', { dauTon: 'TON_TU_CA_TRUOC' }),
+    viec(103, 1, 'Hỗ trợ ăn bữa phụ', 'Bữa phụ sáng', 'BUA', '09:30', '09:30', '10:30', 'THUONG', '[NV chăm sóc 1]', 'DEN_HAN'),
+    viec(104, 3, 'Đo huyết áp', 'Đo tay trái, ngồi nghỉ 5 phút trước khi đo', 'LAN_DO', '09:00', '09:00', '10:00', 'BAT_BUOC', '[Điều dưỡng 1]', 'DEN_HAN', { choXacNhanDoLai: true }),
+    viec(105, 4, 'Thay tã', '', 'MUC_KE_HOACH', '09:45', '09:30', '10:00', 'THUONG', '[NV chăm sóc 2]', 'DEN_HAN'),
+    viec(106, null, 'Kiểm tra nhiệt độ phòng', 'Ghi nhiệt độ phòng sinh hoạt chung', 'GIAM_SAT', '09:00', '09:00', '11:00', 'THUONG', undefined, 'DEN_HAN', {
+      viTri: 'Phòng sinh hoạt chung, tầng 2',
+      congViecChung: true,
+    }),
+    viec(107, 2, 'Hỗ trợ ăn bữa trưa', 'Bữa trưa', 'BUA', '11:00', '11:00', '12:00', 'THUONG', '[NV chăm sóc 1]', 'CHUA_DEN_HAN'),
+    viec(108, 1, 'Đo huyết áp', '', 'LAN_DO', '11:00', '11:00', '11:30', 'THUONG', '[Điều dưỡng 1]', 'CHUA_DEN_HAN'),
+    viec(109, 3, 'Hỗ trợ uống nước', 'Uống 200 ml nước', 'MUC_KE_HOACH', '12:30', '12:30', '13:30', 'THUONG', '[NV chăm sóc 2]', 'CHUA_DEN_HAN'),
+    viec(110, 4, 'Hỗ trợ vệ sinh cá nhân', '', 'MUC_KE_HOACH', '06:30', '06:30', '07:00', 'THUONG', '[NV chăm sóc 2]', 'HOAN_THANH'),
+    viec(111, 3, 'Hỗ trợ ăn bữa sáng', 'Bữa sáng', 'BUA', '07:00', '07:00', '08:00', 'THUONG', '[NV chăm sóc 1]', 'HOAN_THANH'),
+    viec(112, 2, 'Hỗ trợ uống nước', 'Uống 150 ml nước', 'MUC_KE_HOACH', '07:30', '07:30', '08:00', 'THUONG', '[NV chăm sóc 1]', 'KHONG_THUC_HIEN'),
+  ],
+  thoaThuan: [
+    { nctId: 1, thoaThuan: [{ id: 1, luaChon: '[Lựa chọn minh họa: vẫn uống trà thường mỗi chiều]', ngayXemLai: '2026-11-17' }] },
+  ],
+  // Loại lý do Không thực hiện (Q-350): "Người cao tuổi từ chối" luôn có; các loại khác là danh mục nhóm 1.
+  loaiLyDoKhongThucHien: [
+    { id: 1, ten: 'Người cao tuổi từ chối', coDinh: true, trangThai: 'HIEU_LUC' },
+    { id: 2, ten: '[Loại lý do minh họa 1]', coDinh: false, trangThai: 'HIEU_LUC' },
+    { id: 3, ten: '[Loại lý do minh họa 2]', coDinh: false, trangThai: 'HIEU_LUC' },
+  ],
+  lieuThuoc: [],
+  canhBaoDangMo: [],
+  viecBanGiao: {},
+}
+
+// Kết quả của việc đã đóng chỉ có ở CongViecChiTiet (ketQua, lyDo), không có trong danh sách checklist
+export const DEMO_TASK_DETAILS = {
+  110: { ketQua: { giaTriHienHanh: {}, thoiDiemThucHien: at('06:50'), nguoiThucHien: '[NV chăm sóc 2]' } },
+  111: { ketQua: { giaTriHienHanh: { mucAn: 'Phần lớn' }, thoiDiemThucHien: at('07:40'), nguoiThucHien: '[NV chăm sóc 1]' } },
+  112: { lyDo: 'Người cao tuổi từ chối' },
+}
+
+// Danh mục loại công việc (LoaiCongViec). CongViec chỉ có tên loại, nên màn tra loaiKetQua theo tên; giá trị
+// loaiKetQua tạm đặt vì hợp đồng chưa liệt kê (chờ dịch hợp đồng 005).
+export const DEMO_TASK_TYPES = [
+  { id: 1, ten: 'Hỗ trợ uống nước', loaiKetQua: 'ML' },
+  { id: 2, ten: 'Hỗ trợ ăn bữa phụ', loaiKetQua: 'MUC_AN' },
+  { id: 3, ten: 'Hỗ trợ ăn bữa sáng', loaiKetQua: 'MUC_AN' },
+  { id: 4, ten: 'Hỗ trợ ăn bữa trưa', loaiKetQua: 'MUC_AN' },
+  { id: 5, ten: 'Đo huyết áp', loaiKetQua: 'CHI_SO', loaiChiSo: 'mmHg' },
+  { id: 6, ten: 'Thay tã', loaiKetQua: 'SO_LUONG' },
+  { id: 7, ten: 'Hỗ trợ vận động', loaiKetQua: 'KHONG_GIA_TRI' },
+  { id: 8, ten: 'Hỗ trợ vệ sinh cá nhân', loaiKetQua: 'KHONG_GIA_TRI' },
+  { id: 9, ten: 'Kiểm tra nhiệt độ phòng', loaiKetQua: 'KHONG_GIA_TRI' },
+]
 
 export const DEMO_MEAL_LEVELS = ['Ăn hết', 'Phần lớn', 'Một phần', 'Không ăn', 'Bỏ bữa']
 

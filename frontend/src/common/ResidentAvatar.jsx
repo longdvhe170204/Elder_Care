@@ -20,7 +20,11 @@ function toneOf(code) {
   return TONES[sum % TONES.length]
 }
 
-export function ResidentAvatar({ name, code, initials, className }) {
+// Có ảnh (theNguoiCaoTuoi.anh) thì hiện ảnh; tên luôn đứng cạnh nên ảnh để trang trí với trình đọc màn hình.
+export function ResidentAvatar({ name, code, initials, photo, className }) {
+  if (photo) {
+    return <img src={photo} alt="" className={cn('size-8 shrink-0 rounded-full object-cover', className)} />
+  }
   return (
     <span
       aria-hidden="true"

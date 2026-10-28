@@ -5,11 +5,11 @@ import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { AllergyNote, CareNote, ChoiceNote } from '@/common/CareNotes'
-import { DEMO_MEAL_LEVELS, DEMO_NOT_DONE_REASONS } from '@/common/demoData'
+import { CareNote, ChoiceNote } from '@/common/CareNotes'
+import { DEMO_MEAL_LEVELS } from '@/common/demoData'
 import { StatusBadge } from '@/common/StatusBadge'
 import { WhoLine } from './TaskCard'
-import { DONE, sourceText } from './taskText'
+import { DONE, sourceText, timeText } from './taskText'
 
 // Khung chi tiết công việc (DESIGN.md 7.2 task-detail): thông tin việc, care-notes, form ghi nhận; nút chính ở
 // chân khung (005 US4 kịch bản 3–6, 10). Từ 1280px là khung cố định bên phải, hẹp hơn mở bằng Sheet.
@@ -65,27 +65,38 @@ function ResultField({ task, value, onChange, invalid }) {
 
 const NUMERIC_KINDS = ['water', 'quantity']
 
-function RecordForm({ task, now, onSave, onNotDone }) {
+// Hoàn thành trễ việc Quan trọng, Bắt buộc phải có lý do (hợp đồng api-005 POST /cong-viec/{id}/ghi-nhan, GhiNhan.lyDo)
+const LATE_REASON_IMPORTANCE = ['Quan trọng', 'Bắt buộc']
+
+function RecordForm({ task, now, reasons, onSave, onNotDone }) {
   const [mode, setMode] = useState('result')
   const [value, setValue] = useState('')
   const [doneAt, setDoneAt] = useState(now)
   const [note, setNote] = useState('')
-  const [reasonType, setReasonType] = useState('')
+  const [lateReason, setLateReason] = useState('')
+  const [reasonId, setReasonId] = useState('')
   const [submitted, setSubmitted] = useState(false)
 
   const needsValue = task.kind !== 'simple'
   // ml, số lượng phải là số dương; giá trị đo để dạng chữ (ví dụ 120/80). Backend vẫn kiểm lại (422).
   const valueMissing =
     needsValue && (!value.trim() || (NUMERIC_KINDS.includes(task.kind) && !(Number(value.replace(',', '.')) > 0)))
-  const reasonMissing = !reasonType
+  const reasonMissing = !reasonId
   // Giờ 24h HH:mm (NFR-11); không sau thời điểm ghi (mục 8.6). Backend vẫn kiểm lại.
   const timeInvalid = !/^([01]\d|2[0-3]):[0-5]\d$/.test(doneAt) || doneAt > now
+  const needsLateReason = !timeInvalid && doneAt > task.to && LATE_REASON_IMPORTANCE.includes(task.importance)
+  const lateReasonMissing = needsLateReason && !lateReason.trim()
+  const canNotDo = task.commands.includes('KHONG_THUC_HIEN')
 
   function submit(event) {
     event.preventDefault()
     setSubmitted(true)
-    if (mode === 'result' && !valueMissing && !timeInvalid) onSave({ value, doneAt, note })
-    if (mode === 'not-done' && !reasonMissing) onNotDone({ reasonType, note: note.trim() })
+    if (mode === 'result' && !valueMissing && !timeInvalid && !lateReasonMissing) {
+      onSave({ value, doneAt, note, lateReason: needsLateReason ? lateReason.trim() : undefined })
+    }
+    if (mode === 'not-done' && !reasonMissing) {
+      onNotDone({ reasonId: Number(reasonId), reasonName: reasons.find((r) => String(r.id) === reasonId)?.ten, note: note.trim() })
+    }
   }
 
   return (
@@ -111,6 +122,23 @@ function RecordForm({ task, now, onSave, onNotDone }) {
                 <FieldDescription>Giờ 24h, không sau thời điểm ghi.</FieldDescription>
               )}
             </Field>
+            {needsLateReason && (
+              <Field data-invalid={(submitted && lateReasonMissing) || undefined}>
+                <FieldLabel htmlFor="late-reason">Lý do hoàn thành trễ</FieldLabel>
+                <Textarea
+                  id="late-reason"
+                  value={lateReason}
+                  onChange={(e) => setLateReason(e.target.value)}
+                  rows={2}
+                  aria-invalid={(submitted && lateReasonMissing) || undefined}
+                />
+                {submitted && lateReasonMissing ? (
+                  <FieldError>Nhập lý do: việc {task.importance} thực hiện sau {task.to}</FieldError>
+                ) : (
+                  <FieldDescription>Bắt buộc vì việc {task.importance} thực hiện sau cuối khung {task.to}.</FieldDescription>
+                )}
+              </Field>
+            )}
             <Field>
               <FieldLabel htmlFor="note">Ghi chú</FieldLabel>
               <Textarea id="note" value={note} onChange={(e) => setNote(e.target.value)} rows={3} />
@@ -124,14 +152,14 @@ function RecordForm({ task, now, onSave, onNotDone }) {
               <FieldLabel>Loại lý do</FieldLabel>
               <ToggleGroup
                 variant="outline"
-                value={reasonType ? [reasonType] : []}
-                onValueChange={(next) => setReasonType(next[0] ?? '')}
+                value={reasonId ? [reasonId] : []}
+                onValueChange={(next) => setReasonId(next[0] ?? '')}
                 className="flex w-full flex-col items-stretch"
                 aria-invalid={(submitted && reasonMissing) || undefined}
               >
-                {DEMO_NOT_DONE_REASONS.map((r) => (
-                  <ToggleGroupItem key={r} value={r} className="h-11 justify-start px-4">
-                    {r}
+                {reasons.map((r) => (
+                  <ToggleGroupItem key={r.id} value={String(r.id)} className="h-11 justify-start px-4">
+                    {r.ten}
                   </ToggleGroupItem>
                 ))}
               </ToggleGroup>
@@ -150,17 +178,19 @@ function RecordForm({ task, now, onSave, onNotDone }) {
         <Button type="submit" className="h-12">
           {mode === 'result' ? 'Lưu kết quả' : 'Ghi nhận không thực hiện'}
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          className="h-11"
-          onClick={() => {
-            setMode(mode === 'result' ? 'not-done' : 'result')
-            setSubmitted(false)
-          }}
-        >
-          {mode === 'result' ? 'Không thực hiện được…' : 'Quay lại ghi kết quả'}
-        </Button>
+        {canNotDo && (
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-11"
+            onClick={() => {
+              setMode(mode === 'result' ? 'not-done' : 'result')
+              setSubmitted(false)
+            }}
+          >
+            {mode === 'result' ? 'Không thực hiện được…' : 'Quay lại ghi kết quả'}
+          </Button>
+        )}
       </div>
     </form>
   )
@@ -177,8 +207,9 @@ function lateText(task, now) {
 }
 
 // Nội dung khung chi tiết; dùng chung cho khung cố định và Sheet. Title là tên việc (tiêu đề hộp thoại khi ở Sheet).
-export function TaskDetail({ task, now, canRecord, onSave, onNotDone, Title = 'h2', Description = 'p' }) {
-  const recordable = canRecord && RECORDABLE.includes(task.status)
+// Lệnh ghi nhận theo lenhDuocPhep của công việc (DESIGN.md mục 1 điều 8); kết quả việc đã đóng từ CongViecChiTiet.
+export function TaskDetail({ task, now, reasons, result, onSave, onNotDone, Title = 'h2', Description = 'p' }) {
+  const recordable = task.commands.includes('GHI_NHAN') && RECORDABLE.includes(task.status)
   const late = task.status === 'Quá hạn' ? lateText(task, now) : null
 
   return (
@@ -195,26 +226,27 @@ export function TaskDetail({ task, now, canRecord, onSave, onNotDone, Title = 'h
       <div className="flex flex-col gap-1">
         <Title className="type-title">{task.title}</Title>
         <Description className="type-body-sm text-muted-foreground">
-          <span className="tabular-nums">
-            {task.from}–{task.to}
-          </span>
-          , {sourceText(task)}, {task.assignee ? `phụ trách ${task.assignee}` : 'chưa ai nhận'}
+          <span className="tabular-nums">{timeText(task)}</span>, {sourceText(task)},{' '}
+          {task.assignee ? `phụ trách ${task.assignee}` : 'chưa ai nhận'}
         </Description>
+        {task.content && <p className="type-body-sm">{task.content}</p>}
       </div>
       <WhoLine task={task} />
-      <AllergyNote allergies={task.allergies} />
+      {task.awaitingRemeasure && (
+        <p className="type-body-sm text-warning-foreground">Chờ xác nhận đo lại</p>
+      )}
       <ChoiceNote choices={task.riskChoices} />
       <CareNote note={task.careNote} />
-      {DONE.includes(task.status) && task.result && (
+      {DONE.includes(task.status) && result && (
         <p className="type-body-sm">
           <span className="text-muted-foreground">Kết quả: </span>
-          {task.result}
+          {result}
         </p>
       )}
       {recordable && (
         <>
           <div className="h-px bg-border" />
-          <RecordForm key={task.id} task={task} now={now} onSave={onSave} onNotDone={onNotDone} />
+          <RecordForm key={task.id} task={task} now={now} reasons={reasons} onSave={onSave} onNotDone={onNotDone} />
         </>
       )}
     </div>
