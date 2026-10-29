@@ -140,7 +140,6 @@ class M07ResponseFieldsIT extends M07IntegrationTestBase {
                 null,
                 "5mg",
                 new BigDecimal("30"),
-                new BigDecimal("20"),
                 "viên",
                 LocalDate.now().plusYears(1),
                 "Nguyên vỉ",
@@ -173,7 +172,7 @@ class M07ResponseFieldsIT extends M07IntegrationTestBase {
         assertThat(item.medicationSource()).isEqualTo("FAMILY_SENT");
         assertThat(item.usableBatches()).singleElement().satisfies(b -> {
             assertThat(b.batchId()).isEqualTo(batch.getId());
-            assertThat(b.remainingQuantity()).isEqualByComparingTo("20");
+            assertThat(b.expiryDate()).isEqualTo(batch.getExpiryDate());
         });
     }
 
@@ -189,7 +188,6 @@ class M07ResponseFieldsIT extends M07IntegrationTestBase {
 
         assertThat(body.adverseReaction()).isEqualTo("Buồn nôn nhẹ");
         assertThat(body.note()).isEqualTo("Uống sau ăn");
-        assertThat(body.familyMedicationBatchId()).isEqualTo(batch.getId());
         assertThat(body.recordedAfterDisconnect()).isTrue();
         assertThat(body.administeredBy()).isEqualTo("Điều dưỡng Lan");
     }
@@ -247,7 +245,6 @@ class M07ResponseFieldsIT extends M07IntegrationTestBase {
                 false,
                 true,
                 false,
-                batch.getId(),
                 null,
                 time.now()));
         DoseReview review = reviewRepository.save(new DoseReview(result.getId(), null, null, null, null, time.now()));
@@ -278,7 +275,6 @@ class M07ResponseFieldsIT extends M07IntegrationTestBase {
                 null,
                 false,
                 null,
-                batch.getId(),
                 "Buồn nôn nhẹ",
                 "Uống sau ăn",
                 true,

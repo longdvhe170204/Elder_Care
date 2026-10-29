@@ -107,9 +107,9 @@ public enum ParameterCode {
     CFG_M07_04,
     /** Hạn hoàn thành đối chiếu thuốc (mặc định: 4 giờ) */
     CFG_M07_05,
-    /** Nhắc gia đình khi thuốc gửi sắp hết (mặc định: Còn dưới 5 ngày dùng) */
+    /** Bỏ theo Q-393, giữ mã (Phụ lục 25): nhắc gia đình khi thuốc gửi sắp hết */
     CFG_M07_06,
-    /** Mốc nhắc lần hai khi thuốc gia đình gửi sắp hết (mặc định: Còn dưới 2 ngày dùng (đối chiếu khi triển khai, 24.4)) */
+    /** Bỏ theo Q-393, giữ mã (Phụ lục 25): mốc nhắc lần hai khi thuốc gia đình gửi sắp hết */
     CFG_M07_07,
     /** Mốc Nhân viên bếp được chốt suất ăn (mặc định: 2 giờ trước bữa) */
     CFG_M08_01,
@@ -123,9 +123,9 @@ public enum ParameterCode {
     CFG_M08_06,
     /** Nhắc công bố thực đơn tuần kế tiếp (mặc định: 2 ngày trước ngày đầu tuần) */
     CFG_M08_07,
-    /** Nhắc lô nguyên liệu sắp hết hạn dùng (mặc định: 2 ngày) */
+    /** Bỏ theo Q-392, giữ mã (Phụ lục 25): nhắc lô nguyên liệu sắp hết hạn dùng */
     CFG_M08_08,
-    /** Chu kỳ kiểm kê kho nguyên liệu (mặc định: Hằng tháng) */
+    /** Bỏ theo Q-392, giữ mã (Phụ lục 25): chu kỳ kiểm kê kho nguyên liệu */
     CFG_M08_09,
     /** Ngưỡng tỷ lệ phục vụ: trọng số tối đa trên mỗi nhân viên, theo mẫu ca (Q-79, Q-205; trọng số ở CFG-M09-12) (mặc định: Theo cơ sở) */
     CFG_M09_01,

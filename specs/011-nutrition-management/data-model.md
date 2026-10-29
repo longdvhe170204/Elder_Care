@@ -260,6 +260,6 @@ Lưu giữ `THEO_HO_SO`. Không có chuyển `KHONG_SU_DUNG → DUOC_SU_DUNG`.
 | --- | --- |
 | DBR-15 | `suat_an_nguoi_than` là bản ghi nguồn chi phí; 010 nhận qua `SuKienTinhPhiNguon` (khóa `ma_su_kien_tinh_phi`) |
 | DBR-25 | Ngày, giờ bữa theo Asia/Ho_Chi_Minh |
-| DBR-31, DBR-36 | Kho nguyên liệu, mua sắm: thuộc plan 019, 017 |
+| DBR-36 | Mua sắm: thuộc plan 019 (DBR-31 kho nguyên liệu bỏ theo Q-392) |
 | DBR-27 | Mục 7; test bất biến (M-15) |
 | Ràng buộc nhóm 3 (000) | Trigger chặn UPDATE/DELETE trên bảng nhóm 3 ngoài cột đặt một lần |

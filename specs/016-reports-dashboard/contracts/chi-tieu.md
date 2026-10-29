@@ -47,4 +47,4 @@ Mã chỉ tiêu dùng trong REST (`/bao-cao/{nhom}`, `/chi-tiet/{maChiTieu}`) v�
 | `SD.THAP_CON_NO` | Số dư | 017 `SoDuThongKeApi.tinhTrang` | FR-020 |
 | `KB.CAN_LAM` | Khai báo tạm trú | 018 `KhaiBaoThongKeApi` | FR-020 |
 | `TS.QUA_HAN` | Tài sản | 019 `TaiSanThongKeApi.quaHan` | FR-020 |
-| `KHO.DUOI_TOI_THIEU`, `KHO.LO_SAP_HET_HAN` | Kho nguyên liệu | 019 `KhoThongKeApi` | FR-020 |
+| ~~`KHO.DUOI_TOI_THIEU`, `KHO.LO_SAP_HET_HAN`~~ | *(Bỏ theo Q-392)* | — | — |

@@ -45,7 +45,7 @@ Giao diện dùng (đã khai ở hợp đồng các feature):
 | Hoạt động, kiểm tra chất lượng, cô lập | `HoatDongThongKeApi` (014) |
 | Số dư | `SoDuThongKeApi` (017) |
 | Khai báo tạm trú | `KhaiBaoThongKeApi` (018) |
-| Tài sản, kho, mua sắm | `TaiSanThongKeApi`, `KhoThongKeApi`, `MuaSamThongKeApi` (019) |
+| Tài sản, mua sắm | `TaiSanThongKeApi`, `MuaSamThongKeApi` (019; kho bỏ theo Q-392) |
 | Lần loại bỏ dữ liệu, giá trị sau đính chính | `NhatKyApi` tóm tắt loại bỏ (000 FR-051); module nguồn trả giá trị hiện hành |
 
 `NguoiThanThongKeApi` (012), `DoGuiThongKeApi` (013), thống kê thông báo (009) không dùng ở giai đoạn này (Q-194).

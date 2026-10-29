@@ -24,8 +24,6 @@ public class RecordPrnBody {
 
     private Instant offlineDeviceTime;
 
-    private Long familyMedicationBatchId;
-
     private Instant administeredAt;
 
     private String adverseReaction;
@@ -72,14 +70,6 @@ public class RecordPrnBody {
 
     public void setOfflineDeviceTime(Instant offlineDeviceTime) {
         this.offlineDeviceTime = offlineDeviceTime;
-    }
-
-    public Long getFamilyMedicationBatchId() {
-        return familyMedicationBatchId;
-    }
-
-    public void setFamilyMedicationBatchId(Long familyMedicationBatchId) {
-        this.familyMedicationBatchId = familyMedicationBatchId;
     }
 
     public boolean isReported() {

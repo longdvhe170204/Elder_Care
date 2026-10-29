@@ -25,7 +25,6 @@ public record NewPrnAdministrationRequest(
 
         String adverseReaction,
         String note,
-        Long familyMedicationBatchId,
         ResultBasis basis,
         @Valid ExternalPersonRequest reportedBy,
         Boolean recordedAfterDisconnect) {}

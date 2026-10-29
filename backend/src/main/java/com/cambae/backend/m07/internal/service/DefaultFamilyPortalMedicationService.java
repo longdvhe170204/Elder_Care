@@ -60,15 +60,15 @@ public class DefaultFamilyPortalMedicationService implements FamilySentMedicatio
                             medName = med.getName() + " " + med.getConcentration();
                         }
                     }
-                    int remaining = b.getRemainingQuantity() != null
-                            ? b.getRemainingQuantity().intValue()
+                    int initial = b.getInitialQuantity() != null
+                            ? b.getInitialQuantity().intValue()
                             : 0;
                     return new FamilyMedicationView(
                             b.getId(),
                             b.getResidentId(),
                             medName != null ? medName : "Family Medication",
                             b.getStatus().name(),
-                            remaining,
+                            initial,
                             b.getUnit(),
                             b.getExpiryDate());
                 })
@@ -77,7 +77,7 @@ public class DefaultFamilyPortalMedicationService implements FamilySentMedicatio
 
     @Override
     public List<FamilyMedicationView> sentMedications(long residentId, long familyMemberId) {
-        // FR-049: Family member with active relationship views name, status, remaining qty, expiry date without needing
+        // FR-049: Family member with active relationship views name, status, received qty, expiry date without needing
         // consent form
         return byResident(residentId);
     }

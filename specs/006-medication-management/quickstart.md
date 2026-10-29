@@ -13,7 +13,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
   - ca ngày 07:00–18:00, ca đêm 18:00–07:00 tầng 2 (bản giả `DieuDuongCaPort`); phân công: D phụ trách A, C;
   - người cao tuổi: A, C nội trú Đang lưu trú tầng 2; A có dị ứng "Penicillin" (danh mục) và một mục dị ứng "khác"; hồ sơ E Đang tiếp nhận có 2 thuốc đang dùng khi tiếp nhận (001);
   - danh mục thuốc mẫu: Amlodipin 5 mg, Amlodipin + valsartan, Amoxicillin, Metformin 500 mg, Donepezil 5 mg, Paracetamol 500 mg, Insulin nhanh (cửa sổ ±15 phút), Morphin (kiểm soát đặc biệt), Clopidogrel 75 mg; Amlodipin có dịch vụ `THUOC_NGUON_VIEN` ở 004;
-  - CFG theo mặc định Phụ lục 25: CFG-M07-01 ±30 phút, CFG-M07-02 30 phút, CFG-M07-04 3 ngày, CFG-M07-05 4 giờ, CFG-M07-06 5 ngày, CFG-M07-07 2 ngày, CFG-M05-04 2, CFG-M15-08 24 giờ;
+  - CFG theo mặc định Phụ lục 25: CFG-M07-01 ±30 phút, CFG-M07-02 30 phút, CFG-M07-04 3 ngày, CFG-M07-05 4 giờ, CFG-M05-04 2, CFG-M15-08 24 giờ;
   - bản giả có công tắc qua `/api/v1/kiem-thu/gia-lap/{module}` (chỉ `test`, `demo`): `DieuDuongCaPort` (008), `ChuyenDiThuocPort` (014), `DeNghiMuaHoPort` (010), `QuanHeNguoiThanApi`, `NguoiDaiDienPort` (012); bộ ghi sự kiện để xem sự kiện gửi 007, 009, 010.
 
 ## 2. Chạy
@@ -62,7 +62,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Q29 | Trở về sớm 15:00 khi liều 20:00 thuộc lần giao; D xác nhận 20:00 trước khi Nhận lại | Liều 20:00 thôi thuộc lần giao, Chưa đến giờ; xác nhận được, phản hồi kèm nhắc Nhận lại; tính phí 1 viên | US5 #9, Q-60 |
 | Q30 | Đơn PRN Paracetamol 4 giờ, tối đa 4: 08:00; thử 11:00; 12:00, 16:00, 20:00; thử 00:30; 08:05 hôm sau; lần không lý do | 409 `somNhatDuocDung` 12:00; 409 08:00; 201; 422 | US6 #1 → #4, SC-006 |
 | Q31 | PRN ghi theo báo lại vượt giới hạn; PRN khi đơn Tạm dừng | 201 `vuotGioiHan`, 007 nhận cảnh báo; 409 | Edge Case, FR-024 |
-| Q32 | Tiếp nhận 30 viên Donepezil có toa; gắn đơn; xác nhận 26 liều; tiếp nhận hộp không toa | `CHO_DOI_CHIEU`; `DUOC_SU_DUNG`; số còn 4, 009 nhận `ThuocGuiSapHet` một lần (mốc 07 nếu vượt cả hai); chỉ được Chỉ giữ hộ | US7 #1 → #4, #6, SC-007 |
+| Q32 | Tiếp nhận 30 viên Donepezil có toa; gắn đơn; xác nhận liều; ghi Báo gia đình sắp hết; tiếp nhận hộp không toa *(Sửa 2026-10-29, Q-393)* | `CHO_DOI_CHIEU`; `DUOC_SU_DUNG`; liều không chọn lô, số lượng lúc tiếp nhận không đổi; 009 nhận một `ThuocGuiSapHet` cho mỗi lần báo; hộp không toa chỉ `CHI_GIU_HO` | US7 |
 | Q33 | Lô hạn 30/09, tua 01/10; xác nhận liều từ lô đó; lô về 0 rồi đến liều | `CHI_GIU_HO` "hết hạn dùng", thông báo; 409 `LO_KHONG_HOP_LE`; `DA_DUNG_HET`, 409 `CHUA_CO_THUOC`, ghi Không thực hiện | US7 #5, #8 |
 | Q34 | Hoàn trả 9 khi còn 10; Kiểm kê điều chỉnh về 9 rồi hoàn trả 9; Kết thúc lưu trú khi còn lô Chỉ giữ hộ | 409 `SO_LUONG_KHAC_SO_CON`; `DA_HOAN_TRA`; 409 `KT_C_THUOC_GUI` (miễn được) | US7 #7, BR-M07-19, FR-047 |
 | Q35 | Người thân không có bản đồng ý xem thuốc gửi, đơn, phiếu; có bản đồng ý | Thấy thuốc gửi, không thấy đơn, phiếu; thấy đơn và phiếu Đã xác nhận, không thấy liều | US7 #9, SC-013 |
@@ -79,7 +79,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 
 | Nhóm | Test | Kịch bản |
 | --- | --- | --- |
-| Hàm thuần | `ChuoiThoiDiemDonTest`, `BR_M07_01_LichThuocTest`, `BangChuyenLieuTest`, `BR_M07_06_TrungHoatChatDiUngTest`, `BR_M07_04_GioiHanPrnTest`, `BR_M07_13_TuChoiLienTiepTest`, `BR_M07_11_SoNgayConLaiTest`, `BR_M07_18_LoDungChungTest`, `XacDinhNguoiPhuTrachLieuTest` | Q3, Q6, Q10, Q12, Q30, Q32 |
+| Hàm thuần | `ChuoiThoiDiemDonTest`, `BR_M07_01_LichThuocTest`, `BangChuyenLieuTest`, `BR_M07_06_TrungHoatChatDiUngTest`, `BR_M07_04_GioiHanPrnTest`, `BR_M07_13_TuChoiLienTiepTest`, `XacDinhNguoiPhuTrachLieuTest` | Q3, Q6, Q10, Q12, Q30, Q32 |
 | Đơn thuốc | `BR_M07_05_QuyenKeDonIT`, `FR_012_DiUngMoiIT`, `DBR_14_DonThayTheIT`, `BR_M07_07_DoiLieuIT`, `BR_M07_15_HuyDoiLieuIT`, `BR_M07_16_CanCuCoSoKeIT`, `BR_M07_08_HetHanDonIT`, `DonThuocTriggerIT` | Q1 → Q5, Q16 → Q20 |
 | Lịch, liều | `SC_001_BayNgayIT`, `DBR_13_LieuDuyNhatIT`, `BR_M07_02_TreBoLoIT`, `BR_M07_12_XacNhanMotLanIT`, `FR_026_QuyenXacNhanIT`, `FR_026a_LieuChungTangIT`, `BR_M07_21_TangKhongDieuDuongIT`, `PhanUngIT`, `LieuDongThoiIT` | Q6 → Q13 |
 | Ngoại tuyến, kiểm soát đặc biệt | `FR_029_KsdbGhiSauMatKetNoiIT`, `FR_029_DongBoMuonIT`, `FR_029_HaiBanNgoaiTuyenIT` | Q14, Q15 |
@@ -87,7 +87,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Tiếp nhận thuốc cung ứng *(bổ sung 2026-10-11)* | `BR_M07_24_TiepNhanThuocCungUngIT` | Q41 → Q43 |
 | Vắng, mang theo | `BR_M07_03_VangMatIT`, `FR_027_MangTheoBaoLaiIT`, `FR_048a_GiaoNhanLaiIT`, `FR_048a_TroVeSomIT`, `FR_048b_KhongMangThuocIT`, `BR_M07_22_NhieuLanGiaoIT` | Q26 → Q29 |
 | PRN | `PrnDongThoiIT`, `FR_027_PrnVuotGioiHanIT` | Q30, Q31 |
-| Thuốc gửi | `BR_M07_10_ThuocGuiChuaDoiChieuIT`, `ThuocGuiSapHetIT`, `BR_M07_19_HoanTraIT`, `ThuocGuiSoLuongTriggerIT`, `ThuocMuaHoIT` | Q32 → Q34 |
+| Thuốc gửi | `BR_M07_10_ThuocGuiChuaDoiChieuIT`, `ThuocGuiSapHetIT` (Báo gia đình sắp hết), `BR_M07_19_HoanTraIT`, `ThuocMuaHoIT` | Q32 → Q34 |
 | Quyền xem | `FR_049_NguoiThanXemThuocIT`, `FR_049_TruongTangChiXemLieuIT` | Q5, Q35 |
 | Đính chính, chi phí | `FR_030_DinhChinhLieuIT`, `FR_030_DinhChinhChiPhiIT`, `BR_M07_14_SuKienTinhPhiIT` | Q8, Q28, Q36, Q37 |
 | Trạng thái cuối | `FR_047_TrangThaiCuoiIT`, `KT_C_ThuocGuiIT` | Q34, Q38 |
@@ -107,7 +107,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | SC-004 | Q9, Q20, Q23, Q33 với đồng hồ giả lập: chênh giữa mốc và chuyển trạng thái ≤ 1 phút; 0 liều Tạm dừng có cảnh báo |
 | SC-005 | Q21, Q24: mỗi lần tiếp nhận, trở về có `CanLapPhieuDoiChieu`; 0 phiếu `nguoi_lap_id` là Hệ thống; 0 liều Đến giờ khi chưa có phiếu Đã xác nhận |
 | SC-006 | Q30, `PrnDongThoiIT` |
-| SC-007 | Q32 → Q34, Q28: so `so_luong_con` với tổng biến động và số tính tay 100%; đúng một `ThuocGuiSapHet` mỗi lần vượt mốc |
+| SC-007 | Q32 → Q34, Q28 *(Sửa 2026-10-29, Q-393)*: 0 liều Đã dùng khi đơn không còn lô Được sử dụng chưa hết hạn; số lượng lúc tiếp nhận không đổi; đúng một `ThuocGuiSapHet` mỗi lần Báo gia đình sắp hết |
 | SC-008 | Q11 và `FR_026_QuyenXacNhanIT` |
 | SC-009 | Đo trên app: chạm liều → lưu ≤ 10 giây (nguồn viện, không kiểm soát đặc biệt, trực tuyến); `GET /lieu-thuoc/vong-phat-thuoc` 15 người ≤ 3 giây p95 (dữ liệu 300 người) |
 | SC-010 | Q38 |

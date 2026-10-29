@@ -73,15 +73,9 @@ record ChuyenDiDaDoi(long chuyenId, Set<Long> nctIds, Instant tu, Instant denDuK
 
 Bean thiếu: `LuotOLaiAnPort` → không tính người thân, màn tính sẵn ghi "chưa có dữ liệu ở lại"; `ChuyenDiBuaAnPort` → không trừ người đi chuyến đã lên lịch (người đã điểm danh rời viện vẫn trừ theo trạng thái của 001).
 
-### 1.7. Port nội bộ M08 (019)
+### 1.7. Port nội bộ M08 (019) *(Bỏ theo Q-392)*
 
-```java
-interface TonKhoNguyenLieuPort {           // 019 cài trong gói m08.kho
-  List<TonKhoView> tonHienHanh();          // FR-025a: chỉ hiển thị cho nhân viên bếp
-}
-```
-
-Bean thiếu → "chưa có dữ liệu kho".
+Không còn `TonKhoNguyenLieuPort`: hệ thống không quản lý kho nguyên liệu.
 
 ### 1.8. Sự kiện 011 phát (sau commit, qua outbox của 000)
 

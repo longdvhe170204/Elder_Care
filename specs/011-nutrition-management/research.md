@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## M-01. Vị trí trong backend
 
-**Quyết định**: Feature 011 thuộc module M08 – Dinh dưỡng (mục 12), gói `com.cambae.backend.m08`. Kho nguyên liệu (12.7, BR-M08-17 → 20) thuộc M08 nhưng ở feature 019; plan 019 thêm gói `m08.kho` và cài port nội bộ `TonKhoNguyenLieuPort` (M-12).
+**Quyết định**: Feature 011 thuộc module M08 – Dinh dưỡng (mục 12), gói `com.cambae.backend.m08`. Kho nguyên liệu (12.7, BR-M08-17 → 20) bỏ theo Q-392; không có gói `m08.kho`, port `TonKhoNguyenLieuPort` (M-12 không còn hiệu lực).
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -41,7 +41,6 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 | 011 → 008 | Đọc | `CaTrucApi.caDangDienRa`, `dangTrongCa`; điều dưỡng phụ trách qua `NhiemVuApi`/`PhanCongApi` |
 | 011 → 010 | Phát | `m11.api.SuKienTinhPhiNguon` / `SuKienTinhPhiNguonDaDoi` cho suất ăn người thân |
 | 011 ↔ 012, 014 | Họ → 011 | SPI khai báo ở `m08.api`: `LuotOLaiAnPort` (012), `ChuyenDiBuaAnPort` (014); sự kiện khai báo ở `m08.api` họ phát khi thay đổi (`LuotOLaiDaDoi`, `ChuyenDiDaDoi`) |
-| 011 ↔ 019 | Cùng M08 | Port nội bộ `TonKhoNguyenLieuPort` |
 | 011 → 009, 016 | Sự kiện; đọc | Thông báo cài `CoYeuCauThongBao`; 016 đọc `DinhDuongThongKeApi` |
 
 **Lý do**: Modulith `verify()` từ chối vòng (000 R-02).
@@ -95,7 +94,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 **Quyết định**:
 - `thuc_don` (nhóm 2): tuần (`ngay_dau_tuan`, thứ 2), trạng thái `NHAP | CHO_CONG_BO | CONG_BO | DA_AP_DUNG | DA_HUY`; cột sinh `khoa_tuan = IF(trang_thai <> 'DA_HUY', ngay_dau_tuan, NULL)` `UNIQUE` (FR-023). Nội dung `thuc_don_mon` (ngày, bữa, chế độ ăn, món, thứ tự) và `thuc_don_mon_thay_the` (thứ tự ưu tiên); sửa tự do khi Nháp (`If-Match`), sao chép từ thực đơn trước (món không còn Hiệu lực đánh dấu thay).
-- **Gửi kiểm tra** (FR-025, FR-025a): bắt buộc `xacNhanKiemTraCheBien = true` (lưu ghi chú, người, lúc); hiển thị trước: tồn kho nguyên liệu (`TonKhoNguyenLieuPort`, 019; thiếu bean thì "chưa có dữ liệu kho") và số người theo chế độ ăn trong tuần (không tên). Hàm thuần trong một lần:
+- **Gửi kiểm tra** (FR-025, FR-025a): bắt buộc `xacNhanKiemTraCheBien = true` (lưu ghi chú, người, lúc); hiển thị trước số người theo chế độ ăn trong tuần (không tên). Hàm thuần trong một lần:
   - `KiemTraDoPhu(noiDung, cheDoDangDung, buaPhucVu)`: chặn, liệt kê (chế độ ăn, ngày, bữa) thiếu; "chế độ ăn đang có người dùng" theo FR-027 (mặc định luôn có);
   - `LapMon(noiDung, tuanTruoc, tuanSau, cfg03)`: chuỗi ngày liên tiếp theo món và chế độ ăn, qua ranh giới tuần với thực đơn Công bố/Đã áp dụng liền kề; món thay thế không tính;
   - `CanhBaoDiUng(noiDung, nguoiTheoCheDo)`: món xung đột với ít nhất một người không có món thay thế phù hợp; số người (bếp), tên (Bác sĩ).
@@ -182,13 +181,9 @@ interface ChuyenDiBuaAnPort {              // 014 cài; chỉ đọc
 }
 record ChuyenDiDaDoi(long chuyenId, Set<Long> nctIds, Instant tu, Instant denDuKien, String loai, String khoaSuKien) {}
     // 014 phát: lên lịch, đổi người tham gia, gia hạn giờ về, hủy chuyến, đính chính điểm danh
-
-interface TonKhoNguyenLieuPort {           // 019 cài (gói m08.kho), nội bộ M08
-  List<TonKhoView> tonHienHanh();          // FR-025a: chỉ hiển thị
-}
 ```
 
-Bean thiếu: `LuotOLaiAnPort` → không tính người thân (và báo "chưa có dữ liệu" trong màn tính sẵn); `ChuyenDiBuaAnPort` → không trừ người đi chuyến đã lên lịch (người đã điểm danh rời viện vẫn trừ theo trạng thái Hoạt động bên ngoài của 001); `TonKhoNguyenLieuPort` → "chưa có dữ liệu kho".
+Bean thiếu: `LuotOLaiAnPort` → không tính người thân (và báo "chưa có dữ liệu" trong màn tính sẵn); `ChuyenDiBuaAnPort` → không trừ người đi chuyến đã lên lịch (người đã điểm danh rời viện vẫn trừ theo trạng thái Hoạt động bên ngoài của 001).
 
 ---
 
@@ -231,7 +226,7 @@ Trưởng tầng không xem bản gán, thực đơn qua chức năng 011 (Phụ
   - test đồng thời: hai lệnh chốt; hai bác sĩ áp dụng; xác nhận phát sinh và giao cùng lúc;
   - SC-008: quét mọi DTO, thông báo tới bếp không có trường sức khỏe;
   - đồng hồ giả lập cho CFG-M08-01, 03 → 07, giờ bữa;
-  - bản giả `LuotOLaiAnPort`, `ChuyenDiBuaAnPort`, `TonKhoNguyenLieuPort`.
+  - bản giả `LuotOLaiAnPort`, `ChuyenDiBuaAnPort`.
 - Tên test theo BR/FR (`BR_M08_01_ChotSuatIT`, `DBR_27_TongPhieuIT`).
 
 ---

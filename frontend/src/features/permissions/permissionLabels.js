@@ -76,7 +76,6 @@ export const FUNCTION_LABELS = {
   PAYMENT_NOTICE: 'Phiếu báo phí',
   SETTLEMENT_RECORD: 'Bảng quyết toán',
   ASSET_VEHICLE: 'Tài sản, lịch xe',
-  INGREDIENT_INVENTORY: 'Kho nguyên liệu',
   PURCHASE_REQUEST: 'Yêu cầu mua sắm',
 }
 

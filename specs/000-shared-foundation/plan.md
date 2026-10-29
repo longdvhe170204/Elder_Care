@@ -220,7 +220,7 @@ mobile/                          # một app chung cho nhân viên, người th�
 - `ParameterCode` (119 hằng) và `V000_04__parameter_initial_load.sql` sinh bằng `backend/tools/parameters/gen-parameters.cjs` từ chính Phụ lục 25 (mô tả, cột "Dùng tại" giữ nguyên chữ); `ParameterCodeTest` đối chiếu enum với Phụ lục 25 mỗi lần chạy test. Phân loại: 78 thời lượng, 28 bảng, 8 số nguyên, 4 tỷ lệ, 1 số tiền.
 - Giá trị dạng bảng: theo cấu trúc đã chốt ở plan sở hữu khi có (002: CFG-M15-01, 09, 10; 007: CFG-M06-03 nạp `{}` vì 007 nạp khoảng của từng chỉ số); còn lại 000 nạp cấu trúc tạm từ cột "Mặc định" (ví dụ CFG-M02-05 là bảng 6.7 theo Q-08), feature sở hữu chốt lại bằng migration của mình khi dịch hợp đồng.
 - "Theo cơ sở", "Viện nhập khi cài đặt" (CFG-M03-01, CFG-M09-01, CFG-M09-12, CFG-M11-10; giờ bữa trong CFG-M08-04) nạp `null`: không tự điền số ví dụ; đọc khi chưa đặt thì `IllegalStateException` nêu mã. Quản lý viện đặt sau khi cài.
-- `ParameterValue` thêm `asPeriod()` (ngoài danh sách T032) vì tháng, năm (CFG-M08-09, CFG-M14-01, CFG-M15-03, CFG-M15-04) không đổi được sang `Duration`.
+- `ParameterValue` thêm `asPeriod()` (ngoài danh sách T032) vì tháng, năm (CFG-M14-01, CFG-M15-03, CFG-M15-04; CFG-M08-09 bỏ theo Q-392) không đổi được sang `Duration`.
 - Bộ đệm `read()` chưa có đường xóa; T079 (đổi giá trị) xóa ở pha AFTER_COMMIT.
 - Nạp ban đầu ghi `effective_from = UTC_TIMESTAMP(6)` của MySQL (lúc cài), không đi qua `Clock` của ứng dụng.
 

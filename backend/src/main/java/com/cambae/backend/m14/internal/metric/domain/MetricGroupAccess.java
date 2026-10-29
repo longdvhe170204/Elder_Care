@@ -66,7 +66,6 @@ public final class MetricGroupAccess {
                         MetricGroup.MEDICATION_RECONCILIATIONS, FACILITY,
                         MetricGroup.CONTAINMENT_ZONES, FACILITY,
                         MetricGroup.HANDOVERS, FACILITY,
-                        MetricGroup.INVENTORY, FACILITY,
                         MetricGroup.CRITICAL_FLAGS, FACILITY));
 
         TABLE.put(

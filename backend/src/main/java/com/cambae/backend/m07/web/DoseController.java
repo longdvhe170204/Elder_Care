@@ -87,7 +87,6 @@ public class DoseController {
                 body.adverseReaction(),
                 body.note(),
                 Boolean.TRUE.equals(body.recordedAfterDisconnect()),
-                body.familyMedicationBatchId(),
                 null);
         return DoseBody.of(doseViews.view(doseAdministrationService.administerDose(
                 doseKey, request, currentUser.accountId(), null, businessTime.now())));
