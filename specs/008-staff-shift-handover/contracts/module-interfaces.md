@@ -2,11 +2,11 @@
 
 **Ngày**: 2026-10-10 | **Plan**: [../plan.md](../plan.md)
 
-Giao diện Java công khai ở `m09.api` và bản cài các SPI do module thấp hơn khai báo (research N-01, N-02). Module khác chỉ dùng các giao diện này (constitution X). Kiểu `DieuKien`, `CanCu`, `LyDo`, `NguoiDungHienTai`, `DoiTuong`, `VaiTro` theo 000, 001, 002. Mọi hàm ghi có ghi chú `MANDATORY` chạy trong transaction của lệnh gọi; hàm đọc không khóa.
+Giao diện Java công khai ở `staffing.api` và bản cài các SPI do module thấp hơn khai báo (research N-01, N-02). Module khác chỉ dùng các giao diện này (constitution X). Kiểu `DieuKien`, `CanCu`, `LyDo`, `NguoiDungHienTai`, `DoiTuong`, `VaiTro` theo 000, 001, 002. Mọi hàm ghi có ghi chú `MANDATORY` chạy trong transaction của lệnh gọi; hàm đọc không khóa.
 
 Plan làm sau (009, 011, 013, 014, 015, 016) giữ đúng chữ ký hoặc ghi rõ thay đổi.
 
-**Triển khai Phase 3, 2026-10-24**: `ShiftApi` có bản thật ở `m09.duty.internal.service.ShiftQueries`; bản giả chung vẫn là `support/fake/m09/FakeShifts`. Các SPI thấp hơn chưa có trên nhánh nên người dùng cho phép khai báo phần đọc ca tối thiểu: `m03.api.spi.LocationReferences`, `m04.api.spi.CareShiftPort`, `m07.api.spi.NursingShiftPort`, `m05.api.spi.AlertStaffPort`, cùng bản giả duy nhất tại `support/fake/m03`, `m04`, `m07`, `m05`. Chữ ký Java trong các interface và bảng dịch glossary mục 14.8 là phần đã cài; không phải toàn bộ SPI phân công/bàn giao trong bảng thiết kế bên dưới. Hàm phân công, giao Trưởng tầng nối ở T019–T021; trạng thái bàn giao/ca sau nối T026–T028. Không cài bản trả rỗng để giả là các phần này đã hoàn thành. C/D review trước khi gộp (team-plan mục 8).
+**Triển khai Phase 3, 2026-10-24**: `ShiftApi` có bản thật ở `staffing.duty.internal.service.ShiftQueries`; bản giả chung vẫn là `support/fake/staffing/FakeShifts`. Các SPI thấp hơn chưa có trên nhánh nên người dùng cho phép khai báo phần đọc ca tối thiểu: `roombedallocation.api.spi.LocationReferences`, `care.api.spi.CareShiftPort`, `medication.api.spi.NursingShiftPort`, `incident.api.spi.AlertStaffPort`, cùng bản giả duy nhất tại `support/fake/roombedallocation`, `care`, `medication`, `incident`. Chữ ký Java trong các interface và bảng dịch glossary mục 14.8 là phần đã cài; không phải toàn bộ SPI phân công/bàn giao trong bảng thiết kế bên dưới. Hàm phân công, giao Trưởng tầng nối ở T019–T021; trạng thái bàn giao/ca sau nối T026–T028. Không cài bản trả rỗng để giả là các phần này đã hoàn thành. C/D review trước khi gộp (team-plan mục 8).
 
 Truy vấn ca tại tầng dựa trên thời gian `[bắt đầu, kết thúc)` và lịch đã công bố, không chờ job cập nhật nhãn trạng thái; thành viên bị trừ từ mốc vắng/rút/rời ca và nghỉ đã duyệt. Nếu nhiều ca đang có hiệu lực cùng tầng tại cùng thời điểm, báo lỗi dữ liệu nguồn qua `InvalidPermissionDataException`, không chọn tùy ý một ca. Vai trò không xếp ca dùng `CFG_M13_06` qua `ParameterApi`.
 
@@ -18,15 +18,15 @@ Truy vấn ca tại tầng dựa trên thời gian `[bắt đầu, kết thúc)`
 
 | SPI (gói khai báo) | Bản cài của 008 | Dùng bởi |
 | --- | --- | --- |
-| `HoSoNhanVienApi` (`m15.taikhoan.api`; khai báo dạng SPI theo plan này, chữ ký giữ đúng 002) | `trangThai(nhanVienId, ngay)`, `chucDanhCoVaiTro(nhanVienId)`; `taoHoSoToiThieu(...)` cho lệnh khởi tạo Quản lý viện đầu tiên (002 A-03) | 002 FR-004, FR-004a, FR-011 |
-| `GiayPhepApi` (`m15.taikhoan.api`) | `hieuLuc(nhanVienId, loai, ngay)` theo `HieuLucChungChi` (tới hết ngày hết hạn); `sapHetHan(trongVong)` cho cảnh báo giấy phép hành nghề của 002 (CFG-M06-02) | 002 FR-037, FR-038, FR-039 |
-| `DanhMucPhamViHanhNgheApi` (`m15.taikhoan.api`) | Danh mục `pham_vi_hanh_nghe` | 002 FR-037, 007 FR-070 *(R-15: `pham_vi_hanh_nghe` → `danh_muc_chung`)* |
-| `PhanCongApi` (`m15.taikhoan.api`) | `dangHieuLuc(nhanVienId, t)`, `lichSu(nhanVienId, tu, den)` (FR-037a; gồm giao trưởng tầng, thành viên ca, người phụ trách ca) | 002 FR-028 → FR-035a |
-| `NhiemVuApi` (`m15.taikhoan.api`) | Mục 1.2 | 002 FR-019a → f, FR-031 |
-| `ThamChieuViTri` (`m03.api`) | Phân công Nháp, Tương lai, Hiệu lực; giao trưởng tầng đang/sẽ hiệu lực; ca chưa đóng hoặc hủy của vị trí; `daTungThamChieu` cho quyết định xóa | 003 FR-005 |
-| `NhanSuCaPort` (`m04.api`) | Giữ đúng chữ ký 005 mục 2.1; `phanCong` theo `XacDinhNhanVienChinh`; `banGiaoDaXacNhan(caTruocId)` | 005 FR-017, FR-024, FR-031, FR-047a |
-| `DieuDuongCaPort` (`m07.api`) | Giữ đúng chữ ký 006 mục 2.1 | 006 FR-026a, FR-028 |
-| `NhanSuCanhBaoPort` (`m05.api`) | Giữ đúng chữ ký 007 mục 2.1; `bacSiTruc(t)` theo FR-023 | 007 FR-031, FR-033, FR-037, FR-047b, FR-060 (c) |
+| `HoSoNhanVienApi` (`administration.taikhoan.api`; khai báo dạng SPI theo plan này, chữ ký giữ đúng 002) | `trangThai(nhanVienId, ngay)`, `chucDanhCoVaiTro(nhanVienId)`; `taoHoSoToiThieu(...)` cho lệnh khởi tạo Quản lý viện đầu tiên (002 A-03) | 002 FR-004, FR-004a, FR-011 |
+| `GiayPhepApi` (`administration.taikhoan.api`) | `hieuLuc(nhanVienId, loai, ngay)` theo `HieuLucChungChi` (tới hết ngày hết hạn); `sapHetHan(trongVong)` cho cảnh báo giấy phép hành nghề của 002 (CFG-M06-02) | 002 FR-037, FR-038, FR-039 |
+| `DanhMucPhamViHanhNgheApi` (`administration.taikhoan.api`) | Danh mục `pham_vi_hanh_nghe` | 002 FR-037, 007 FR-070 *(R-15: `pham_vi_hanh_nghe` → `danh_muc_chung`)* |
+| `PhanCongApi` (`administration.taikhoan.api`) | `dangHieuLuc(nhanVienId, t)`, `lichSu(nhanVienId, tu, den)` (FR-037a; gồm giao trưởng tầng, thành viên ca, người phụ trách ca) | 002 FR-028 → FR-035a |
+| `NhiemVuApi` (`administration.taikhoan.api`) | Mục 1.2 | 002 FR-019a → f, FR-031 |
+| `ThamChieuViTri` (`roombedallocation.api`) | Phân công Nháp, Tương lai, Hiệu lực; giao trưởng tầng đang/sẽ hiệu lực; ca chưa đóng hoặc hủy của vị trí; `daTungThamChieu` cho quyết định xóa | 003 FR-005 |
+| `NhanSuCaPort` (`care.api`) | Giữ đúng chữ ký 005 mục 2.1; `phanCong` theo `XacDinhNhanVienChinh`; `banGiaoDaXacNhan(caTruocId)` | 005 FR-017, FR-024, FR-031, FR-047a |
+| `DieuDuongCaPort` (`medication.api`) | Giữ đúng chữ ký 006 mục 2.1 | 006 FR-026a, FR-028 |
+| `NhanSuCanhBaoPort` (`incident.api`) | Giữ đúng chữ ký 007 mục 2.1; `bacSiTruc(t)` theo FR-023 | 007 FR-031, FR-033, FR-037, FR-047b, FR-060 (c) |
 | `DinhChinhDuocProvider` (000) | `M09.BAN_GIAO` (research N-10) | 000 R-08 |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | data-model mục 9, 10 | |
 | `GanPhamViProvider` (002) | `M09.LICH_CA`, `M09.CA`, `M09.PHAN_CONG`, `M09.BAN_GIAO`: tầng/khu của ca; `M09.NHAN_VIEN`, `M09.CHUNG_CHI`: nhân viên | 002 FR-034 |
@@ -45,7 +45,7 @@ Optional<Long> truongDoan(long chuyenId);  List<Long> nguoiDiCung(long chuyenId)
 List<Long> nguoiNhanTaiTang(long tangKhuVucId, long caId);          // 011 UC-76: TT, ĐD, CS có phân công trong tầng và ca
 ```
 
-### 1.3. `m09.api.CaTrucApi` (đọc; 009, 011, 013, 015, 016)
+### 1.3. `staffing.api.CaTrucApi` (đọc; 009, 011, 013, 015, 016)
 
 ```java
 Optional<CaView> caDangDienRa(long tangKhuVucId, Instant t);
@@ -58,7 +58,7 @@ List<Long> bacSiTruc(Instant t);                                    // 009 nhóm
 
 *(Bổ sung 2026-10-26, luật "Đổi api", chủ dự án duyệt; A cài trên nhánh `impl/009-shift-recipients`, E review)*: hai hàm cuối, mã `ShiftApi.staffOnShift`, `ShiftApi.onDutyDoctors` (glossary 15.5), cho 009 FR-007 (a) "nhân viên có ca đang diễn ra tại tầng/khu vực theo vai trò và chứng chỉ" và "Bác sĩ trực". Vai trò, chứng chỉ do 009 lọc (tài khoản, `LicenseApi.valid` ngày gửi). Bản cài dùng lại `ShiftQueries.doctors` của `NhanSuCanhBaoPort.bacSiTruc`; bản giả `FakeShifts.onDutyDoctor`, `reset`.
 
-### 1.4. `m09.api.NhanSuThongKeApi` (016; FR-037, FR-037a, FR-049 dòng 016)
+### 1.4. `staffing.api.NhanSuThongKeApi` (016; FR-037, FR-037a, FR-049 dòng 016)
 
 ```java
 Stream<LanTinhTyLeView> tyLePhucVu(PhamViLoc phamVi, LocalDate tu, LocalDate den);   // lần tính cuối trước khi ca kết thúc, dấu từng không đạt (Q-200)
@@ -70,9 +70,9 @@ Stream<LichSuPhanCongView> lichSuPhanCong(PhamViLoc phamVi, Instant tu, Instant 
 
 *(Bổ sung 2026-10-27, luật "Đổi api", A làm cho 016 US8, chủ dự án duyệt; E review)* `banGiaoDangMo(PhamViLoc phamVi)` (`openHandovers`): bàn giao Đã lập, Có ý kiến, hoặc Bản nháp của ca đang Chờ bàn giao, không giới hạn ngày ca (016 FR-020). `LanTinhTyLeView` thêm `staffCount`, `totalWeight`, `shiftTemplateId`, `shiftStartsAt`, `shiftEndsAt` (016 FR-070); `BanGiaoBaoCaoView` thêm `shiftEndsAt`; `ChungChiSapHetHanView` thêm `credentialGroup` (`PROFESSIONAL_LICENSE`, `TRAINING`).
 
-### 1.5. Port nội bộ M09 cho 015 (gói `m09.lichca.port`, `m09.phancong.port`)
+### 1.5. Port nội bộ M09 cho 015 (gói `staffing.lichca.port`, `staffing.phancong.port`)
 
-Theo research N-07 (`CaLenhPort`, `PhanCongLenhPort`, `KiemTraCongBoMoRong`). Chỉ `m09.doica`, `m09.xoayca` được dùng (ArchUnit). Khi 015 chưa có, `KiemTraCongBoMoRong` không có bean và lệnh công bố bỏ qua phần của 015.
+Theo research N-07 (`CaLenhPort`, `PhanCongLenhPort`, `KiemTraCongBoMoRong`). Chỉ `staffing.doica`, `staffing.xoayca` được dùng (ArchUnit). Khi 015 chưa có, `KiemTraCongBoMoRong` không có bean và lệnh công bố bỏ qua phần của 015.
 
 Bổ sung theo plan 015 (hợp đồng 015 mục 1.2, 1.4): `LichNhapLenhPort` (008 cài: `goNhanVienKhoiNhap`, `lichThang`; MANDATORY; sửa 2026-10-29, Q-397: bỏ `taoNhap`, `thayNoiDungNhap`) để nghỉ theo ngày gỡ nhân viên khỏi lịch Nháp; `NghiCoDuyetPort` (015 cài, 008 dùng khi sửa tay lịch Nháp và khi công bố, 008 FR-012, FR-016); *(Q-397: bỏ sự kiện `LichNhapDaLuu`, `GiayPhepDaDoiHieuLuc`, `DaoTaoDaDoiHieuLuc` dùng để 015 tính phủ.)*
 
@@ -99,7 +99,7 @@ Mỗi sự kiện mang khóa `loại + id + mốc` (NFR-04), mức, nhóm ngư�
 
 ## 2. 008 cần từ module khác
 
-### 2.1. SPI 008 khai báo ở `m09.api`, module khác cài
+### 2.1. SPI 008 khai báo ở `staffing.api`, module khác cài
 
 ```java
 interface DoGuiBanGiaoPort {                       // 013 cài; chỉ đọc
@@ -120,12 +120,12 @@ Bean thiếu thì nhóm (g), phần chuyến đi của nhóm (e) trả "chưa c�
 
 | Tên logic | Khai báo tiếng Anh |
 | --- | --- |
-| `DoGuiBanGiaoPort.dangGiu`, `.conDangGiu` | `m09.api.spi.HeldBelongingsHandoverPort.heldBy`, `.stillHeld` |
-| `ChuyenDiNhiemVuPort.truongDoan`, `.nguoiDiCung`, `.chuyenTrongCa` | `m09.api.spi.TripDutyPort.groupLeader`, `.companions`, `.inShift` |
+| `DoGuiBanGiaoPort.dangGiu`, `.conDangGiu` | `staffing.api.spi.HeldBelongingsHandoverPort.heldBy`, `.stillHeld` |
+| `ChuyenDiNhiemVuPort.truongDoan`, `.nguoiDiCung`, `.chuyenTrongCa` | `staffing.api.spi.TripDutyPort.groupLeader`, `.companions`, `.inShift` |
 | `DoGuiDangGiuView` | `HeldBelongingView(belongingId, holderStaffId, residentId, storageLocationId)`; vị trí lưu giữ có thể rỗng theo data-model 013 |
 | `ChuyenTrongCaView` | `TripInShiftView(tripId, staffIds, expectedReturnAt)` |
 
-Hai kiểu chỉ SPI dùng nằm cùng gói `api.spi`. Bản giả dùng chung ở `support/fake/m09/`: test `@Import(FakeM09Config.class)` rồi tiêm bản giả để đặt dữ liệu. `available(false)` mô phỏng nguồn không có dữ liệu bằng lỗi, tách biệt với kết quả rỗng khi nguồn hoạt động; cách xử lý khi thiếu bean vẫn theo đoạn trên. SPI nội bộ `KiemTraCongBoMoRong` ở mục 1.5 có tên triển khai `m09.shift.internal.service.port.ExtendedPublicationCheck.check(scheduleId)`; cảnh báo `PublicationWarning(code, description, details)` dùng tên trường của schema `Warning`.
+Hai kiểu chỉ SPI dùng nằm cùng gói `api.spi`. Bản giả dùng chung ở `support/fake/staffing/`: test `@Import(FakeM09Config.class)` rồi tiêm bản giả để đặt dữ liệu. `available(false)` mô phỏng nguồn không có dữ liệu bằng lỗi, tách biệt với kết quả rỗng khi nguồn hoạt động; cách xử lý khi thiếu bean vẫn theo đoạn trên. SPI nội bộ `KiemTraCongBoMoRong` ở mục 1.5 có tên triển khai `staffing.shift.internal.service.port.ExtendedPublicationCheck.check(scheduleId)`; cảnh báo `PublicationWarning(code, description, details)` dùng tên trường của schema `Warning`.
 
 ### 2.2. Sự kiện 008 nghe
 
@@ -144,7 +144,7 @@ Hai kiểu chỉ SPI dùng nằm cùng gói `api.spi`. Bản giả dùng chung �
 | `NghiepVuChuyenMonApi.loaiYeuCau(maNghiepVu)` (bổ sung theo plan này: loại giấy phép/đào tạo của nghiệp vụ "phát thuốc và xác nhận liều") | M15 (002) | FR-030 (Điều dưỡng phụ trách) | Bản giả |
 | `MucChamSocApi.hienHanh`, `taiNgay`; `TrangThaiNguoiCaoTuoiApi.khoangTrangThai`; `NguoiCaoTuoiApi.trangThai` | M01 (001) | FR-034, FR-039 (e) | Có sẵn |
 | `ViTriApi`, `LichSuViTriApi.theoViTriTrongNgay`, `CoCauViTriApi`, `CanhBaoBanGiaoApi.theoTang`; `TinhTrangGiuongApi.choSanSangQuaHan(tangId, t)` (bổ sung theo plan này) | M03 (003) | FR-026, FR-034, FR-039 (d), (e), (f) | Hàm cuối: bản giả |
-| `LuotVangApi.dangMo` (`m01.api`, 004 cài); `HopDongDocApi.lichDenTaiNgay` | M02 (004) | FR-039 (e), FR-034 | Có sẵn |
+| `LuotVangApi.dangMo` (`resident.api`, 004 cài); `HopDongDocApi.lichDenTaiNgay` | M02 (004) | FR-039 (e), FR-034 | Có sẵn |
 | `CongViecCaApi` (MANDATORY), `CongViecBanGiaoApi`; `LoaiCongViecApi.yeuCau(loaiCongViecId)` và `KeHoachChamSocApi.loaiCongViecHienHanh(nctId)` (bổ sung theo plan này) | M04 (005) | FR-004, FR-020, FR-027, FR-030, FR-031, FR-039 (a), FR-044 | Hai hàm cuối: bản giả |
 | `LieuBanGiaoApi` | M07 (006) | FR-039 (b), FR-040 | Có sẵn |
 | `CanhBaoBanGiaoApi` (`dangMo`, `khiXacNhanBanGiao` MANDATORY), `ChiSoApi.vuotNguongTrongKhoang` | M05, M06 (007) | FR-039 (c), (d), FR-044 | Có sẵn |
@@ -154,8 +154,8 @@ Hai kiểu chỉ SPI dùng nằm cùng gói `api.spi`. Bản giả dùng chung �
 ### 2.4. Ghi chú nối Phase 4 (2026-10-24)
 
 - `AssignmentApi`/`DutyApi` của 002 được M09 cài bằng `AssignmentQueries`/`DutyDirectory`; phần thay Phụ trách bộ phận tham gia transaction của lệnh gọi bằng `MANDATORY`. Các SPI đọc phân công của 005/006/007 được nối cùng bảng phân công; tên tiếng Anh ở glossary 14.9.
-- 001 đã có trên `origin/develop` (`b049b1f`, PR #23 tại `dc0c452`). 008 dùng đúng `m01.api.ResidentApi.isFinalStatus(long)` và `m01.api.events.ResidentStatusChanged`, với enum `ResidentStatus`/`StatusCommand` do B khai báo. Listener kết thúc/hủy phân công trực tiếp cùng transaction lệnh nguồn; cập nhật tỷ lệ thuộc T037. API/DTO và bản giả `FakeResidents` được đồng bộ từ B thay cho khai báo tạm, chưa gộp toàn bộ bản cài 001 vào nhánh E.
-- Khi test độc lập, dùng duy nhất `support/fake/m01/FakeResidents` qua `FakeM01Config`, đặt trạng thái tường minh bằng `resident`/`changeStatus`. `FakeLocations` và `FakeCareRequirements` là nguồn test cho API tối thiểu 003/005 đã được người dùng duyệt, chờ C review/cài thật. Không có bean giả trong ứng dụng thật; thiếu nguồn kiểm nghiệp vụ thì báo thiếu nguồn, riêng nhắc phân công giữ cờ chờ để thử lại.
+- 001 đã có trên `origin/develop` (`b049b1f`, PR #23 tại `dc0c452`). 008 dùng đúng `resident.api.ResidentApi.isFinalStatus(long)` và `resident.api.events.ResidentStatusChanged`, với enum `ResidentStatus`/`StatusCommand` do B khai báo. Listener kết thúc/hủy phân công trực tiếp cùng transaction lệnh nguồn; cập nhật tỷ lệ thuộc T037. API/DTO và bản giả `FakeResidents` được đồng bộ từ B thay cho khai báo tạm, chưa gộp toàn bộ bản cài 001 vào nhánh E.
+- Khi test độc lập, dùng duy nhất `support/fake/resident/FakeResidents` qua `FakeM01Config`, đặt trạng thái tường minh bằng `resident`/`changeStatus`. `FakeLocations` và `FakeCareRequirements` là nguồn test cho API tối thiểu 003/005 đã được người dùng duyệt, chờ C review/cài thật. Không có bean giả trong ứng dụng thật; thiếu nguồn kiểm nghiệp vụ thì báo thiếu nguồn, riêng nhắc phân công giữ cờ chờ để thử lại.
 - `AssignmentView.scopeEndsAt` là mốc ngừng cấp phạm vi khi kết thúc sớm, được người dùng duyệt; vẫn giữ constructor bảy tham số. Phạm vi không cộng CFG-M15-07 qua mốc này; lịch sử trước mốc vẫn truy được.
 - `FileApi` đã có bản cài trong develop sau 001. Nhánh E hiện vẫn dùng interface có sẵn và cần gộp develop có kiểm soát trước khi kiểm scan chứng chỉ với nguồn thật; không sao chép riêng dịch vụ lưu tệp hay tạo thêm fake tệp.
 
@@ -187,8 +187,8 @@ Chỉ cài phần tối thiểu cần cho task; Java là chữ ký cụ thể, b
 
 ### 2.7. Khai báo nguồn tỷ lệ Phase 7 được duyệt (2026-10-25)
 
-- B/004 review `m02.api.ContractReadApi.attendanceOn(long residentId, LocalDate date)` (tên logic `HopDongDocApi.lichDenTaiNgay`), trả `List<AttendanceScheduleView(date, arrivalTime, departureTime)>`. Nguồn trả lịch đã có hiệu lực trong đúng ngày, không qua đêm, không trường tài chính. Dùng duy nhất `FakeContractSchedules` trong `FakeM02Config`, có `available(false)` để phân biệt nguồn lỗi với danh sách rỗng; không có bean giả trong ứng dụng thật.
-- C/003 review các record ở `m03.api.events`: `AllocationStarted(allocationId, residentId, bedId, at)`, `AllocationClosed(allocationId, residentId, bedId, at, reason)`, `BedChanged(residentId, previousAllocationId, newAllocationId, previousFloorId, newFloorId, at)`; giữ đúng payload thiết kế 003 mục 1.11. Nguồn phát trong transaction, Modulith chuyển sau commit. Đây là khai báo, chưa phải bản cài lệnh phân bổ của C.
+- B/004 review `admission.api.ContractReadApi.attendanceOn(long residentId, LocalDate date)` (tên logic `HopDongDocApi.lichDenTaiNgay`), trả `List<AttendanceScheduleView(date, arrivalTime, departureTime)>`. Nguồn trả lịch đã có hiệu lực trong đúng ngày, không qua đêm, không trường tài chính. Dùng duy nhất `FakeContractSchedules` trong `FakeM02Config`, có `available(false)` để phân biệt nguồn lỗi với danh sách rỗng; không có bean giả trong ứng dụng thật.
+- C/003 review các record ở `roombedallocation.api.events`: `AllocationStarted(allocationId, residentId, bedId, at)`, `AllocationClosed(allocationId, residentId, bedId, at, reason)`, `BedChanged(residentId, previousAllocationId, newAllocationId, previousFloorId, newFloorId, at)`; giữ đúng payload thiết kế 003 mục 1.11. Nguồn phát trong transaction, Modulith chuyển sau commit. Đây là khai báo, chưa phải bản cài lệnh phân bổ của C.
 - C/003 review phần đọc `LocationStructureApi.daycareRestLocation()` theo hàm `viTriKhuNghiBanTru` đã có trong hợp đồng 003 mục 1.6. `FakeLocations` hiện có được mở rộng đặt vị trí nghỉ/đóng khoảng vị trí; không tạo bản giả thứ hai. Lịch đến bán trú không được suy từ giường nội trú.
 - M09 tính lại trực tiếp trong lệnh lưu/công bố/nghỉ việc; các port 015 dùng cùng `StaffingRatioService.recalculate(shiftId, "SHIFT_SWAP_015")` khi được cài ở Phase 8/015. Không nghe sự kiện mang `HasNotificationRequests`: chỉ M13 nghe khuôn này theo M13ArchTest. Listener của 001/003 dùng `ApplicationModuleListener`; lỗi nguồn giữ sự kiện để thử lại.
 - **Chủ dự án đã duyệt, E đã cài; A review**: `AuditLogApi.recordedBetween(String entityType, Instant from, Instant to, long afterId, int limit)`, khoảng `[from,to)`, id tăng dần/lớn hơn con trỏ, trang 1–200 dòng. Giữ nguyên `recorded` và `AuditLogRecord`; test đọc đủ 405 dòng. 008 gọi API này, không truy cập bảng nhật ký của A.

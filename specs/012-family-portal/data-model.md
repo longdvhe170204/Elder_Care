@@ -294,5 +294,5 @@ Không có bảng `ban_tin`, `ban_tin_phan`, `ban_tin_so_lieu`, `ban_tin_nhan_xe
 | FR-020a (một mong muốn Hiệu lực mỗi người, loại) | `khoa_hieu_luc` `UNIQUE`; trigger bất biến |
 | FR-020b (trái mong muốn chỉ qua Quản lý viện) | `CHECK` trên `yeu_cau_quyen`; `KiemTraYeuCau` *(R-15: `yeu_cau_quyen` → `ho_so_chung`)* |
 | Nhóm 3 (000) | Trigger chặn UPDATE/DELETE trên bảng nhóm 3 ngoài cột đặt một lần |
-| BR-M10-11 *(bổ sung 2026-10-18)* | `m10.kenhnct` lấy người cao tuổi từ tài khoản; DTO kênh không có trường bị cấm; ArchUnit (research F-18); truy vấn phản hồi cho AC-10 lọc `nguoi_gui_loai` |
+| BR-M10-11 *(bổ sung 2026-10-18)* | `family.kenhnct` lấy người cao tuổi từ tài khoản; DTO kênh không có trường bị cấm; ArchUnit (research F-18); truy vấn phản hồi cho AC-10 lọc `nguoi_gui_loai` |
 | BR-M10-12 *(bổ sung 2026-10-18)* | `phan_hoi_y_kien`; chặn Trả lời; lệnh `doi-loai` có lý do *(R-15: `phan_hoi_y_kien` → `su_kien_chung`)* |

@@ -70,7 +70,7 @@ Kết quả mong đợi: `verify` xanh, gồm `MaTranQuyenKhopNguonTest` (ma tr�
 
 ## 4. Test tự động: truy vết kịch bản → test
 
-| Spec | Lớp test (backend, `com.cambae.backend.m15.taikhoan…`) | Loại |
+| Spec | Lớp test (backend, `com.eldercare.backend.administration.taikhoan…`) | Loại |
 | --- | --- | --- |
 | US1 #1–13, FR-016 → FR-022, FR-041 → FR-044a | `MaTranQuyenKhopNguonTest`, `MaTranQuyenIT` (SC-001), `QuyenBaLopIT`, `GioiHanTruongIT`, `SuCoNgoaiPhamViIT`, `CanQuyenArchTest`, `PhamViBaoCaoLichSuIT` (#13) | Đơn vị, tích hợp, kiến trúc |
 | US2 #1–9, FR-001 → FR-006, FR-009, FR-011, FR-012 | `TaoTaiKhoanIT`, `NghiViecKhoaTaiKhoanIT`, `KhoaMoKhoaIT`, `LuonConQuanLyVienIT`, `KhongXoaTaiKhoanIT` | Tích hợp |

@@ -8,20 +8,20 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## B-01. Vị trí trong backend
 
-**Quyết định**: Feature 009 là module M13 – Thông báo (mục 17), gói `com.cambae.backend.m13`:
+**Quyết định**: Feature 009 là module M13 – Thông báo (mục 17), gói `com.eldercare.backend.notification`:
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
-| `m13.tiepnhan` | Listener chung, kiểm tra yêu cầu, chống trùng, danh sách lỗi gửi | A (FR-001 → FR-006) |
-| `m13.nguoinhan` | `XacDinhNguoiNhan`: nhóm, cách thay, lọc người thân, gộp trùng | B (FR-007 → FR-015) |
-| `m13.gui` | Kênh, chọn kênh theo mức và ca, gửi song song, gửi lại, gộp tin nhắn, kiểm nội dung kênh ngoài | C (FR-016 → FR-021) |
-| `m13.yentinh` | Giờ yên tĩnh, giữ và giải phóng | D (FR-022 → FR-025) |
-| `m13.khancap` | Xác nhận, lượt nhắc gọi, kết quả gọi, chuyển nhắc, chuỗi gọi | E (FR-026 → FR-032) |
-| `m13.hopthu` | Hộp thông báo, đã xem, ẩn, hiển thị theo quyền hiện hành | F (FR-033, FR-034) |
-| `m13.lienhe` | Danh sách "cần liên hệ trực tiếp" | C (FR-021) |
-| `m13.tracuu` | Lịch sử, lỗi gửi, dữ liệu cho module nguồn | F, G (FR-035 → FR-038) |
-| `m13.cauhinh` | Kênh và gắn kênh khác vào mức | G (FR-039, FR-040) |
-| `m13.lich`, `m13.api` | Job; giao diện công khai, SPI cho 012 | |
+| `notification.tiepnhan` | Listener chung, kiểm tra yêu cầu, chống trùng, danh sách lỗi gửi | A (FR-001 → FR-006) |
+| `notification.nguoinhan` | `XacDinhNguoiNhan`: nhóm, cách thay, lọc người thân, gộp trùng | B (FR-007 → FR-015) |
+| `notification.gui` | Kênh, chọn kênh theo mức và ca, gửi song song, gửi lại, gộp tin nhắn, kiểm nội dung kênh ngoài | C (FR-016 → FR-021) |
+| `notification.yentinh` | Giờ yên tĩnh, giữ và giải phóng | D (FR-022 → FR-025) |
+| `notification.khancap` | Xác nhận, lượt nhắc gọi, kết quả gọi, chuyển nhắc, chuỗi gọi | E (FR-026 → FR-032) |
+| `notification.hopthu` | Hộp thông báo, đã xem, ẩn, hiển thị theo quyền hiện hành | F (FR-033, FR-034) |
+| `notification.lienhe` | Danh sách "cần liên hệ trực tiếp" | C (FR-021) |
+| `notification.tracuu` | Lịch sử, lỗi gửi, dữ liệu cho module nguồn | F, G (FR-035 → FR-038) |
+| `notification.cauhinh` | Kênh và gắn kênh khác vào mức | G (FR-039, FR-040) |
+| `notification.lich`, `notification.api` | Job; giao diện công khai, SPI cho 012 | |
 
 **Lý do**: Constitution X, XIV ("mọi thông báo MUST đi qua dịch vụ thông báo chung, spec 009").
 
@@ -30,7 +30,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## B-02. Một khuôn yêu cầu thông báo cho mọi module (FR-001, FR-043a, 000 R-09)
 
 **Quyết định**:
-- Khuôn yêu cầu đặt ở gói kỹ thuật `com.cambae.backend.common.thongbao` (bổ sung vào hợp đồng `common` của 000), không ở `m13.api`, vì mọi module (kể cả 000 → 008 đã làm plan trước, và các module mà 009 phải đọc dữ liệu) cần phát yêu cầu mà không phụ thuộc M13:
+- Khuôn yêu cầu đặt ở gói kỹ thuật `com.eldercare.backend.common.thongbao` (bổ sung vào hợp đồng `common` của 000), không ở `notification.api`, vì mọi module (kể cả 000 → 008 đã làm plan trước, và các module mà 009 phải đọc dữ liệu) cần phát yêu cầu mà không phụ thuộc M13:
 
   ```java
   interface CoYeuCauThongBao {                     // sự kiện miền của module nguồn cài
@@ -51,14 +51,14 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
       Optional<MaTruongHopQ354> maTruongHop) {}                         // bổ sung 2026-10-18 (FR-001a, FR-014a)
   ```
 - Mỗi sự kiện mà plan 000 → 008 đã ghi "009 nghe" (mức, nhóm người nhận, loại thông tin, khóa) cài `CoYeuCauThongBao`; module nguồn tự dựng yêu cầu. 009 có **một** listener `@ApplicationModuleListener` cho kiểu `CoYeuCauThongBao` (Spring phân phát theo kiểu giao diện), nên mọi module nguồn dùng đúng một cách gửi (FR-001). Module làm plan sau cũng vậy.
-- Sự kiện chỉ để điều khiển 009 (không phải thông báo): `m05.api.YeuCauDungNhacGoiDien`, `m05.api.DaCoKetQuaXacNhanLai` (007) — listener riêng (B-08).
+- Sự kiện chỉ để điều khiển 009 (không phải thông báo): `incident.api.YeuCauDungNhacGoiDien`, `incident.api.DaCoKetQuaXacNhanLai` (007) — listener riêng (B-08).
 - Kiểm tra (FR-003): thiếu bản ghi nguồn, khóa, nhóm người nhận hoặc nội dung đầy đủ → lưu yêu cầu với kết quả `BI_TU_CHOI` và vào danh sách lỗi gửi; thiếu mức → Nhẹ, dấu `THIEU_MUC`; thiếu loại thông tin ở một phần → coi phần đó `SUC_KHOE`, dấu `THIEU_LOAI_THONG_TIN` (FR-013); Trung bình, Khẩn cấp thiếu nội dung rút gọn → nội dung mặc định cho kênh ngoài. Yêu cầu có nhóm người thân (loại (e), hoặc (d) `NGUOI_THAN`) mà thiếu `doiTuongThongTin` → coi là `VE_NGUOI_CAO_TUOI`, dấu `THIEU_DOI_TUONG_THONG_TIN` (FR-001a; bổ sung 2026-10-18). *(Bổ sung 2026-10-18, FR-022a)* Yêu cầu có nhóm `NGUOI_CAO_TUOI` mà mức khác Nhẹ hoặc có phần khác `CHUNG` → `BI_TU_CHOI`, mã `NHOM_NGUOI_CAO_TUOI_KHONG_HOP_LE`.
 - **Chống trùng** (FR-005, NFR-04): `yeu_cau_thong_bao` có `UNIQUE (loai_ban_ghi_nguon, id_ban_ghi_nguon, khoa_su_kien)`; lần nhận trùng ghi `lan_nhan_trung` (đếm) và không tạo thông báo.
 
 **Lý do**: Một khuôn duy nhất là yêu cầu của FR-001; đặt ở `common` tránh vòng phụ thuộc (M13 cần đọc dữ liệu của M01, M05, M09, M15). 000 R-09 đã chọn sự kiện có lưu trữ (outbox) làm đường đi.
 
 **Phương án đã cân nhắc**:
-- `ThongBaoApi.gui(...)` gọi đồng bộ trong `m13.api`: module thấp hơn phụ thuộc M13 → vòng; và lỗi gửi có thể làm hỏng lệnh nguồn (trái FR-006).
+- `ThongBaoApi.gui(...)` gọi đồng bộ trong `notification.api`: module thấp hơn phụ thuộc M13 → vòng; và lỗi gửi có thể làm hỏng lệnh nguồn (trái FR-006).
 - 009 cài một bộ chuyển cho từng kiểu sự kiện (hàng chục kiểu): 009 phải biết nghiệp vụ của mọi module, trái "module nguồn sở hữu mức, nhóm, nội dung".
 
 ---
@@ -84,7 +84,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
   | Loại | Biến thể | Nguồn tra cứu tại thời điểm gửi |
   | --- | --- | --- |
-  | (a) nhiệm vụ | `DIEU_DUONG_PHU_TRACH(nct)`, `NHAN_VIEN_PHAN_CONG(nct \| phong, vaiTro?)`, `NHAN_VIEN_CO_CA(tang, vaiTro[], chungChi[])`, `NGUOI_PHU_TRACH_CA(tang)`, `BAC_SI_TRUC`, `TRUONG_TANG(tang)`, `TRUONG_DOAN(chuyen)`, `PHU_TRACH_BO_PHAN(boPhan)` | `NhiemVuApi`, `PhanCongApi` (`m15.taikhoan.api`, 008 cài); `NhanSuCanhBaoPort`/`CaTrucApi` (008) |
+  | (a) nhiệm vụ | `DIEU_DUONG_PHU_TRACH(nct)`, `NHAN_VIEN_PHAN_CONG(nct \| phong, vaiTro?)`, `NHAN_VIEN_CO_CA(tang, vaiTro[], chungChi[])`, `NGUOI_PHU_TRACH_CA(tang)`, `BAC_SI_TRUC`, `TRUONG_TANG(tang)`, `TRUONG_DOAN(chuyen)`, `PHU_TRACH_BO_PHAN(boPhan)` | `NhiemVuApi`, `PhanCongApi` (`administration.taikhoan.api`, 008 cài); `NhanSuCanhBaoPort`/`CaTrucApi` (008) |
   | (b) vai trò toàn viện | `VAI_TRO(QUAN_LY_VIEN \| HANH_CHINH \| BAC_SI \| NHAN_VIEN_BEP \| KE_TOAN)` | `TaiKhoanApi` (002): tài khoản Hoạt động có vai trò |
   | (c) người có quyền | `NGUOI_CO_QUYEN_DUYET(loaiYeuCau, taiKhoanIds)` | Danh sách tài khoản do 000 tính sẵn khi phát sự kiện, đã lọc theo `gioiHanVaiTroDuyet` (sửa theo plan 004, Q-338: trước đây 009 tự gọi `NguoiDuyetApi.danhSach`) |
   | (d) gắn bản ghi nguồn | `NHAN_VIEN(id)`, `NGUOI_THAN(id)` (mang căn cứ: người lập, người thực hiện, người tạm nhận…) | Module nguồn đã phân giải |
@@ -153,7 +153,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 **Quyết định**:
 - `POST /thong-bao/{id}/xac-nhan` (trực tuyến; app chặn khi mất kết nối): thêm sự kiện `XAC_NHAN` (cách `TRONG_UNG_DUNG`, hoặc `XAC_NHAN_MUON` khi đang `KHONG_LIEN_LAC_DUOC`); dừng lượt nhắc gọi nếu mọi thông báo gộp vào lượt đã xác nhận (B-08). Mở thông báo chỉ ghi `XEM` (FR-026).
-- **"Xác nhận và tiếp nhận"** (FR-026a, Q-102): `POST /thong-bao/{id}/xac-nhan-va-tiep-nhan`. Transaction 1 ghi xác nhận và commit. Transaction 2 gọi `CanhBaoLenhApi.tiepNhan` hoặc `SuCoLenhApi.tiepNhan` của 007 (bổ sung theo plan này vào `m05.api`) với người dùng hiện tại; 007 tự kiểm quyền và trạng thái. 007 từ chối thì phản hồi 200 kèm `tiepNhan = TU_CHOI` và lý do (ví dụ `DA_CO_NGUOI_TIEP_NHAN` kèm người và thời điểm); xác nhận vẫn còn.
+- **"Xác nhận và tiếp nhận"** (FR-026a, Q-102): `POST /thong-bao/{id}/xac-nhan-va-tiep-nhan`. Transaction 1 ghi xác nhận và commit. Transaction 2 gọi `CanhBaoLenhApi.tiepNhan` hoặc `SuCoLenhApi.tiepNhan` của 007 (bổ sung theo plan này vào `incident.api`) với người dùng hiện tại; 007 tự kiểm quyền và trạng thái. 007 từ chối thì phản hồi 200 kèm `tiepNhan = TU_CHOI` và lý do (ví dụ `DA_CO_NGUOI_TIEP_NHAN` kèm người và thời điểm); xác nhận vẫn còn.
 - Nút "Xác nhận và tiếp nhận" chỉ hiện khi bản ghi nguồn là cảnh báo, sự cố đang cho phép tiếp nhận và người dùng có quyền: 009 hỏi `QuyenApi.lenhDuocPhep` (002) với đối tượng nguồn khi trả thông báo.
 
 **Lý do**: Hai bản ghi riêng, xác nhận không phụ thuộc kết quả tiếp nhận (FR-026a).

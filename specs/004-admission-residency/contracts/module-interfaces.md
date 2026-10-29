@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-07 | **Plan**: [../plan.md](../plan.md)
 
-Hợp đồng trong backend, ở gói `com.cambae.backend.m02.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của 004 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
+Hợp đồng trong backend, ở gói `com.eldercare.backend.admission.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của 004 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
 
 Chiều phụ thuộc theo research T-02: 004 phụ thuộc 000, 001, 002, 003. Các module 005, 010, 011, 012, 017, 018 phụ thuộc 004. Chỗ 004 cần dữ liệu của module phụ thuộc nó thì 004 khai báo SPI (mục 2.1), module đó cài.
 
@@ -14,14 +14,14 @@ Chiều phụ thuộc theo research T-02: 004 phụ thuộc 000, 001, 002, 003. 
 
 | SPI (gói khai báo) | Chữ ký (giữ như plan đã khai báo) | Dùng bởi |
 | --- | --- | --- |
-| `YeuCauDoiMucApi` (`m01.api`) | `void thayTheBoiDanhGia(long nctId, long danhGiaId)` (MANDATORY: chuyển yêu cầu đổi mức chưa kết thúc sang `DUOC_THAY_THE` qua `chuyenMoRong` của 000); `boolean coYeuCauDoiMucChuaKetThuc(long nctId)` | 001 FR-036, FR-036a |
-| `HopDongApi` (`m01.api`) | `Optional<LoaiLuuTru> loaiLuuTruHienHanh(long nctId, LocalDate ngay)`; `List<KhoangLoaiLuuTru> lichSuLoaiLuuTru(long nctId)` | 001 FR-009, FR-052, FR-053 |
-| `LuotVangApi` (`m01.api`) | `Optional<LuotVangView> dangMo(long nctId)` (kèm mốc dự kiến trở lại hiện hành) | 001 FR-050 |
-| `KetThucLuuTruApi` (`m15.taikhoan.api`) | `Optional<Instant> thoiDiemTrangThaiCuoi(long nctId)` | 002 FR-049, job `KhoaSauKetThucLuuTru` |
-| `NguonLuuTruChoPhanBo` (`m03.api`) | Theo [003 module-interfaces](../../003-room-bed-allocation/contracts/module-interfaces.md) mục 2.1 | 003 FR-018, FR-024, FR-030, FR-015, 004 FR-016 |
-| `DemLichDenBanTru` (`m03.api`) | Theo 003 mục 2.1; cách đếm ở research T-10 | 003 FR-040, Ngừng hiệu lực khu nghỉ |
-| `NguonYKienApi` (`m01.api`) | `kiemTra(nctId, nguon)` cho ý kiến về việc vào ở (bổ sung 2026-10-18, FR-001) | 001 mục 1.8b |
-| `ThamGiaChuyenTrangThai` (`m01.api`) | Bean `@Order(1)` (chạy đầu tiên; `canhBao` cho `HOAN_TAT_TIEP_NHAN` trả `CHUA_GHI_Y_KIEN_VAO_O`, `NCT_KHONG_DONG_Y_VAO_O`, bổ sung 2026-10-18) cho `HOAN_TAT_TIEP_NHAN`, `HUY_TIEP_NHAN`, `CHO_TAM_VANG`, `CHUYEN_VIEN`, `GHI_NHAN_TRO_VE`, `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`; cài `mienDieuKien` cho `KET_THUC_LUU_TRU` | Research T-03, T-08, T-09, T-13 |
+| `YeuCauDoiMucApi` (`resident.api`) | `void thayTheBoiDanhGia(long nctId, long danhGiaId)` (MANDATORY: chuyển yêu cầu đổi mức chưa kết thúc sang `DUOC_THAY_THE` qua `chuyenMoRong` của 000); `boolean coYeuCauDoiMucChuaKetThuc(long nctId)` | 001 FR-036, FR-036a |
+| `HopDongApi` (`resident.api`) | `Optional<LoaiLuuTru> loaiLuuTruHienHanh(long nctId, LocalDate ngay)`; `List<KhoangLoaiLuuTru> lichSuLoaiLuuTru(long nctId)` | 001 FR-009, FR-052, FR-053 |
+| `LuotVangApi` (`resident.api`) | `Optional<LuotVangView> dangMo(long nctId)` (kèm mốc dự kiến trở lại hiện hành) | 001 FR-050 |
+| `KetThucLuuTruApi` (`administration.taikhoan.api`) | `Optional<Instant> thoiDiemTrangThaiCuoi(long nctId)` | 002 FR-049, job `KhoaSauKetThucLuuTru` |
+| `NguonLuuTruChoPhanBo` (`roombedallocation.api`) | Theo [003 module-interfaces](../../003-room-bed-allocation/contracts/module-interfaces.md) mục 2.1 | 003 FR-018, FR-024, FR-030, FR-015, 004 FR-016 |
+| `DemLichDenBanTru` (`roombedallocation.api`) | Theo 003 mục 2.1; cách đếm ở research T-10 | 003 FR-040, Ngừng hiệu lực khu nghỉ |
+| `NguonYKienApi` (`resident.api`) | `kiemTra(nctId, nguon)` cho ý kiến về việc vào ở (bổ sung 2026-10-18, FR-001) | 001 mục 1.8b |
+| `ThamGiaChuyenTrangThai` (`resident.api`) | Bean `@Order(1)` (chạy đầu tiên; `canhBao` cho `HOAN_TAT_TIEP_NHAN` trả `CHUA_GHI_Y_KIEN_VAO_O`, `NCT_KHONG_DONG_Y_VAO_O`, bổ sung 2026-10-18) cho `HOAN_TAT_TIEP_NHAN`, `HUY_TIEP_NHAN`, `CHO_TAM_VANG`, `CHUYEN_VIEN`, `GHI_NHAN_TRO_VE`, `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`; cài `mienDieuKien` cho `KET_THUC_LUU_TRU` | Research T-03, T-08, T-09, T-13 |
 
 **Kiểu `chiTiet` 004 sở hữu** (trường `chiTiet` của lệnh trạng thái ở api-001):
 
@@ -140,7 +140,7 @@ DanhSachViecView xem(long nctId);
 
 ## 2. 004 cần từ module khác
 
-### 2.1. SPI 004 khai báo ở `m02.api`, module khác cài
+### 2.1. SPI 004 khai báo ở `admission.api`, module khác cài
 
 ```java
 interface NguoiDaiDienPort {          // 012 cài
@@ -155,7 +155,7 @@ interface BanGhiDonPort {             // 012 cài
 interface TrangThaiDatCocPort {       // 017 cài
   TrangThaiDatCoc trangThai(long hopDongId);   // CHUA_DAP_UNG | DA_DAP_UNG | KHONG_YEU_CAU, kèm căn cứ (FR-031)
 }
-    // bổ sung theo plan 017: 017 phát m11.api.TrangThaiDatCocDaDoi và DieuKienQuyetToanDaDoi khi kết quả đổi;
+    // bổ sung theo plan 017: 017 phát billing.api.TrangThaiDatCocDaDoi và DieuKienQuyetToanDaDoi khi kết quả đổi;
     // 004 dùng để làm mới màn điều kiện, giá trị vẫn đọc qua port
 interface KyCuoiPort {                // 010 cài; mọi hàm MANDATORY
   long taoKyCuoiNhap(long nctId, LocalDate ngayKetThucDuKien);   // FR-066 (1): tác động kèm lệnh lập hồ sơ kết thúc

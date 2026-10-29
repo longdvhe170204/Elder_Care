@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## C-01. Vị trí trong backend
 
-**Quyết định**: Feature 005 là module M04 (mục 8, phần 8.1 → 8.7). Gói `com.cambae.backend.m04` có các gói con:
+**Quyết định**: Feature 005 là module M04 (mục 8, phần 8.1 → 8.7). Gói `com.eldercare.backend.care` có các gói con:
 
 | Gói | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -41,7 +41,7 @@ Bảng `cham_soc_nct` (một dòng mỗi hồ sơ người cao tuổi) là đíc
 | 005 ↔ 001 | 005 → 001 | 005 cài `ThamGiaChuyenTrangThai`; đọc `NguoiCaoTuoiApi`, `DanhGiaApi.luuYHienHanh`, `TrangThaiNguoiCaoTuoiApi.khoangTrangThai`; nghe `DanhGiaDaDoiMucHoacNhuCau` |
 | 005 ↔ 003 | 005 → 003 | Đọc `ViTriApi.hienTai`, `CoCauViTriApi`; nghe `DaChuyenGiuong` |
 | 005 ↔ 004 | 005 → 004 | Đọc `HopDongDocApi.lichDenTaiNgay`; cài `TrangThaiCoMatBanTruPort`; nghe `PhuLucDaApDung`, `BaoVangBanTruDaGhi`, `NgayNghiBanTruDaDoi` |
-| 005 ↔ 006, 007, 008, 010, 011, 012, 014 | Các module này → 005 | Họ làm plan sau và cần gọi lệnh của 005 trong transaction của mình (vắng ca, xác nhận bàn giao, hủy nguồn, xác nhận đo lại, dời giờ về). 005 cần dữ liệu của họ qua SPI khai báo ở `m04.api` (module-interfaces mục 2.1): `NhanSuCaPort` (008), `NguonCongViecPort` (007, 011, 014 mỗi bên một bean), `ChiSoPort`, `CanhBaoDocPort` (007), `LieuThuocChecklistPort` (006), `BanGhiDonBanTruPort` (012), `KetQuaKiemTraPort` (014), `ThoiKhoaBieuNguonPort` (006, 012, 014) |
+| 005 ↔ 006, 007, 008, 010, 011, 012, 014 | Các module này → 005 | Họ làm plan sau và cần gọi lệnh của 005 trong transaction của mình (vắng ca, xác nhận bàn giao, hủy nguồn, xác nhận đo lại, dời giờ về). 005 cần dữ liệu của họ qua SPI khai báo ở `care.api` (module-interfaces mục 2.1): `NhanSuCaPort` (008), `NguonCongViecPort` (007, 011, 014 mỗi bên một bean), `ChiSoPort`, `CanhBaoDocPort` (007), `LieuThuocChecklistPort` (006), `BanGhiDonBanTruPort` (012), `KetQuaKiemTraPort` (014), `ThoiKhoaBieuNguonPort` (006, 012, 014) |
 | 005 → 007, 009, 010, 011, 016 | Sự kiện | Yêu cầu tạo/gộp/đóng cảnh báo, thông báo, sự kiện tính phí, ăn kém kéo dài: sự kiện ghi cùng transaction qua outbox (C-13) |
 
 **Lý do**: Modulith `verify()` từ chối vòng (000 R-02). 008 phải gọi 005 đồng bộ khi ca sau xác nhận bàn giao (FR-047 xét trạng thái "tại thời điểm xác nhận"), khi ghi vắng ca, nghỉ việc, đổi phân công (FR-024, FR-032). Nếu 005 gọi trực tiếp API của 008 thì có vòng; nên dữ liệu ca, phân công, chứng chỉ mà 005 cần đi qua `NhanSuCaPort`.

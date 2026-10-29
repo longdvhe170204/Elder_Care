@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-10 | **Plan**: [../plan.md](../plan.md)
 
-Feature 014 thêm gói con vào module M04 (cùng 005). Giao diện công khai ở `m04.api` (bổ sung vào các giao diện 005 đã khai), bản cài các SPI do module khác khai báo, và dịch vụ nội bộ dùng chung với 005 (research L-01, L-02). Kiểu `DieuKien`, `CanCu`, `LyDo`, `NguoiDungHienTai`, `DoiTuong` theo 000, 001, 002. Hàm ghi có ghi chú `MANDATORY` chạy trong transaction của lệnh gọi.
+Feature 014 thêm gói con vào module M04 (cùng 005). Giao diện công khai ở `care.api` (bổ sung vào các giao diện 005 đã khai), bản cài các SPI do module khác khai báo, và dịch vụ nội bộ dùng chung với 005 (research L-01, L-02). Kiểu `DieuKien`, `CanCu`, `LyDo`, `NguoiDungHienTai`, `DoiTuong` theo 000, 001, 002. Hàm ghi có ghi chú `MANDATORY` chạy trong transaction của lệnh gọi.
 
 ---
 
@@ -12,22 +12,22 @@ Feature 014 thêm gói con vào module M04 (cùng 005). Giao diện công khai �
 
 | SPI (gói khai báo) | Bản cài của 014 | Dùng bởi |
 | --- | --- | --- |
-| `NguonCongViecPort` (`m04.api`, 005) | `loaiQuanLy() = {BUOI_HOAT_DONG, LAM_LAI}`; `kiemTra(BUOI_HOAT_DONG, dangKyId, nctId, t)`: đăng ký còn hiệu lực, buổi khớp thời điểm; `kiemTra(LAM_LAI, ketQuaId, …)`: kết quả Không đạt trỏ công việc gốc | 005 FR-017, FR-026a |
-| `KetQuaKiemTraPort` (`m04.api`, 005) | `khongDat(ketQuaKiemTraId, congViecGocId)` kèm ca của danh sách | 005 FR-026a |
-| `ThoiKhoaBieuNguonPort` (`m04.api`, 005) | Buổi đã đăng ký, chuyến đi trong ngày | 005 FR-048 |
-| `ThamGiaChuyenTrangThai` (`m01.api`) | Bean `@Order` sau 005. Tác động `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN`: hủy đăng ký chưa diễn ra, gỡ khỏi người thường xuyên (FR-022); `CHUYEN_VIEN`, `GHI_NHAN_QUA_DOI` khi đang trong chuyến: người tham gia `ROI_DOAN` (FR-045). Không có điều kiện chặn | 001 H-02 |
-| `ChuyenDiThuocPort` (`m07.api`, 006) | `danhGiaDat(nctId, chuyenId)`, `khoangDi(chuyenId)` | 006 FR-048b |
-| `DiemDanhTruyVetPort` (`m05.api`, 007) | `cungThamGia(nctId, tu, den)`: buổi, thời điểm, người cùng Có mặt (kể cả chuyến) | 007 FR-060 (b) |
-| `ChuyenDiNhiemVuPort` (`m09.api`, 008) | `truongDoan`, `nguoiDiCung`, `chuyenTrongCa(tang, tu, den)` | 008 FR-039 (e); 002 FR-019 |
-| `ChuyenDiBuaAnPort` (`m08.api`, 011) | `trungGioBua(gioBua)`: chuyến Đã lên lịch/Đang đi trùng giờ bữa, người tham gia Được đi/Đã rời viện, dự kiến trở lại | 011 FR-034 |
+| `NguonCongViecPort` (`care.api`, 005) | `loaiQuanLy() = {BUOI_HOAT_DONG, LAM_LAI}`; `kiemTra(BUOI_HOAT_DONG, dangKyId, nctId, t)`: đăng ký còn hiệu lực, buổi khớp thời điểm; `kiemTra(LAM_LAI, ketQuaId, …)`: kết quả Không đạt trỏ công việc gốc | 005 FR-017, FR-026a |
+| `KetQuaKiemTraPort` (`care.api`, 005) | `khongDat(ketQuaKiemTraId, congViecGocId)` kèm ca của danh sách | 005 FR-026a |
+| `ThoiKhoaBieuNguonPort` (`care.api`, 005) | Buổi đã đăng ký, chuyến đi trong ngày | 005 FR-048 |
+| `ThamGiaChuyenTrangThai` (`resident.api`) | Bean `@Order` sau 005. Tác động `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN`: hủy đăng ký chưa diễn ra, gỡ khỏi người thường xuyên (FR-022); `CHUYEN_VIEN`, `GHI_NHAN_QUA_DOI` khi đang trong chuyến: người tham gia `ROI_DOAN` (FR-045). Không có điều kiện chặn | 001 H-02 |
+| `ChuyenDiThuocPort` (`medication.api`, 006) | `danhGiaDat(nctId, chuyenId)`, `khoangDi(chuyenId)` | 006 FR-048b |
+| `DiemDanhTruyVetPort` (`incident.api`, 007) | `cungThamGia(nctId, tu, den)`: buổi, thời điểm, người cùng Có mặt (kể cả chuyến) | 007 FR-060 (b) |
+| `ChuyenDiNhiemVuPort` (`staffing.api`, 008) | `truongDoan`, `nguoiDiCung`, `chuyenTrongCa(tang, tu, den)` | 008 FR-039 (e); 002 FR-019 |
+| `ChuyenDiBuaAnPort` (`nutrition.api`, 011) | `trungGioBua(gioBua)`: chuyến Đã lên lịch/Đang đi trùng giờ bữa, người tham gia Được đi/Đã rời viện, dự kiến trở lại | 011 FR-034 |
 | ~~`HoatDongBanTinPort`~~ | *(Bỏ theo Q-396: không còn bản tin)* | — |
-| `HoatDongKenhNctPort` (`m10.api`, 012) *(bổ sung 2026-10-18)* | `sapToi(nctId, tu, den)`: buổi của tầng và toàn viện, cờ có tên (L-16) | 012 FR-083 (c) |
-| `ChuyenDiSosPort` (`m05.api`, 007) *(bổ sung 2026-10-18)* | `dangDienRa(nctId)`: chuyến, trưởng đoàn, người đi cùng hiện tại (L-16) | 007 FR-047e |
-| `NgoaiTuyenHandler` (`m02.api`) | `M04.DIEM_DANH_BUOI`, `M04.DIEM_DANH_ROI_VIEN`, `M04.DIEM_DANH_VE`; lệnh Báo thiếu người, Kết thúc điểm danh về, ghi sự cố thiếu người: `batBuocTrucTuyen()` | Q-01, FR-046a |
+| `HoatDongKenhNctPort` (`family.api`, 012) *(bổ sung 2026-10-18)* | `sapToi(nctId, tu, den)`: buổi của tầng và toàn viện, cờ có tên (L-16) | 012 FR-083 (c) |
+| `ChuyenDiSosPort` (`incident.api`, 007) *(bổ sung 2026-10-18)* | `dangDienRa(nctId)`: chuyến, trưởng đoàn, người đi cùng hiện tại (L-16) | 007 FR-047e |
+| `NgoaiTuyenHandler` (`admission.api`) | `M04.DIEM_DANH_BUOI`, `M04.DIEM_DANH_ROI_VIEN`, `M04.DIEM_DANH_VE`; lệnh Báo thiếu người, Kết thúc điểm danh về, ghi sự cố thiếu người: `batBuocTrucTuyen()` | Q-01, FR-046a |
 | `DinhChinhDuocProvider` (000) | `M04.DIEM_DANH_BUOI` (gắn tầng), `M04.DIEM_DANH_CHUYEN` (Trưởng tầng của chuyến; FR-031a), `M04.KET_QUA_KIEM_TRA` | 000 FR-026 |
 | `GanPhamViProvider` (002) | `M04.BUOI`, `M04.DANG_KY`, `M04.CHUYEN_DI`, `M04.SO_THICH`: người cao tuổi / tầng của địa điểm; `M04.KIEM_TRA_CHAT_LUONG`: ca và tầng, chỉ người kiểm tra và Quản lý viện | 002 FR-034 |
 
-### 1.2. Giao diện mới ở `m04.api` cho module làm plan sau
+### 1.2. Giao diện mới ở `care.api` cho module làm plan sau
 
 ```java
 interface ChuyenDiNhiemVuLenhApi {           // 015 gọi; MANDATORY
@@ -48,10 +48,10 @@ interface HoatDongThongKeApi {               // 016
 }
 ```
 
-Lịch xe thuộc M03 (019): 014 gọi `m03.api.LichXeApi` (đọc) và `m03.api.LichXeLenhApi` (MANDATORY) do 019 cung cấp, vì M04 phụ thuộc M03 (sửa theo plan 019; trước đó plan này khai `LichXeChuyenPort` ở `m04.api` cho 019 cài, sẽ tạo vòng M03 ↔ M04):
+Lịch xe thuộc M03 (019): 014 gọi `roombedallocation.api.LichXeApi` (đọc) và `roombedallocation.api.LichXeLenhApi` (MANDATORY) do 019 cung cấp, vì M04 phụ thuộc M03 (sửa theo plan 019; trước đó plan này khai `LichXeChuyenPort` ở `care.api` cho 019 cài, sẽ tạo vòng M03 ↔ M04):
 
 ```java
-// m03.api (019 cung cấp)
+// roombedallocation.api (019 cung cấp)
 boolean coLichDaDat(long chuyenId, Instant gioRoi);                         // LichXeApi; FR-040
 KetQuaKiemTraDoi kiemTraDoi(long chuyenId, Instant roiMoi, Instant veMoi);  // LichXeApi; Q-239
 void theoChuyen(long chuyenId, LoaiThayDoiChuyen loai, Instant roiDuKien, Instant veDuKien, Optional<Instant> thucTe);
@@ -64,10 +64,10 @@ Khi 019 chưa có (bản giả), chuyến dùng xe của viện bị chặn rờ
 
 | Sự kiện | Người nghe | FR |
 | --- | --- | --- |
-| `m05.api.YeuCauTaoCanhBao` (`THIEU_NGUOI_KHI_VE` Khẩn cấp; `NGUY_CO_CO_LAP` Nhẹ) | 007 | FR-047, FR-055 |
-| `m05.api.YeuCauGhiDienBienCanhBao` (bổ sung vào hợp đồng 007 theo plan này) | 007 | FR-047, FR-056 |
-| `m11.api.SuKienTinhPhiNguon` / `SuKienTinhPhiNguonDaDoi` (`DIEM_DANH_HOAT_DONG`) | 010 | FR-032, FR-031 |
-| `m08.api.ChuyenDiDaDoi` | 011 | FR-034 |
+| `incident.api.YeuCauTaoCanhBao` (`THIEU_NGUOI_KHI_VE` Khẩn cấp; `NGUY_CO_CO_LAP` Nhẹ) | 007 | FR-047, FR-055 |
+| `incident.api.YeuCauGhiDienBienCanhBao` (bổ sung vào hợp đồng 007 theo plan này) | 007 | FR-047, FR-056 |
+| `billing.api.SuKienTinhPhiNguon` / `SuKienTinhPhiNguonDaDoi` (`DIEM_DANH_HOAT_DONG`) | 010 | FR-032, FR-031 |
+| `nutrition.api.ChuyenDiDaDoi` | 011 | FR-034 |
 | `ChuyenDiThayDoi` | 016 | FR-040 |
 | `BuoiDaHuy`, `BuoiDaDoi`, `BuoiDaKetThuc(buoiId)` | 005 nội bộ M04 (công việc "hoạt động") | FR-012, FR-013, FR-014a |
 | Thông báo (cài `CoYeuCauThongBao`) | 009 | FR-071 |

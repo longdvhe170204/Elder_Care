@@ -56,7 +56,7 @@ Kết quả mong đợi: `verify` xanh, gồm các nhóm test ở mục 4. Khở
 
 Mỗi kịch bản Given/When/Then của spec có ít nhất một test (constitution XV). Tên lớp test theo data-model mục 7.
 
-| Spec | Lớp test (backend, `com.cambae.backend.m15…`) | Loại |
+| Spec | Lớp test (backend, `com.eldercare.backend.administration…`) | Loại |
 | --- | --- | --- |
 | US1 #1–8, FR-001 → FR-010 | `DanhMucMauIT`, `NhomDuLieuArchTest`, `NhomGhiNhanCoTriggerIT`, `PhienBanKhongChongKhoangIT`, `LenhNghiepVuLyDoTest` | Tích hợp, kiến trúc |
 | US2 #1–8, FR-023 → FR-030 | `DinhChinhChonCachTest` (bảng quyết định A/B/C, CHK033), `DinhChinhIT`, `DinhChinhDongThoiIT`, `DinhChinhHienHanhViewIT` | Đơn vị, tích hợp |

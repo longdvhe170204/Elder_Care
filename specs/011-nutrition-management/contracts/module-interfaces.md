@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-10 | **Plan**: [../plan.md](../plan.md)
 
-Giao diện Java công khai ở `m08.api`, port nội bộ M08 cho 019, và bản cài các SPI do module thấp hơn khai báo (research M-02, M-12). Kiểu `DieuKien`, `CanCu`, `LyDo`, `NguoiDungHienTai`, `DoiTuong` theo 000, 001, 002. Hàm ghi có ghi chú `MANDATORY` chạy trong transaction của lệnh gọi.
+Giao diện Java công khai ở `nutrition.api`, port nội bộ M08 cho 019, và bản cài các SPI do module thấp hơn khai báo (research M-02, M-12). Kiểu `DieuKien`, `CanCu`, `LyDo`, `NguoiDungHienTai`, `DoiTuong` theo 000, 001, 002. Hàm ghi có ghi chú `MANDATORY` chạy trong transaction của lệnh gọi.
 
 ---
 
@@ -12,41 +12,41 @@ Giao diện Java công khai ở `m08.api`, port nội bộ M08 cho 019, và bả
 
 | SPI (gói khai báo) | Bản cài của 011 | Dùng bởi |
 | --- | --- | --- |
-| `ThamGiaChuyenTrangThai` (`m01.api`) | Bean `@Order` sau 006, trước 010. Không có điều kiện chặn. Tác động `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN`: bản gán Hiệu lực → `NGUNG`, Đề xuất/Chờ hiệu lực → `DA_HUY`; phát sinh "−1" cho bữa đã chốt chưa tới giờ (FR-015). `HOAN_TAT_TIEP_NHAN`: báo Bác sĩ khi chưa có bản gán (FR-014) | 001 H-02 |
-| `NguonCongViecPort` (`m04.api`) | `loaiQuanLy() = {BUA}`; `kiemTra(BUA, buaNgayId, nctId, t)`: bữa ngày tồn tại, người có trong lịch bữa, `t` khớp giờ bữa; `xacNhanPhucVu(buaNgayId, nctId)` theo research M-10 | 005 FR-017, 011 FR-042, FR-050 |
-| `NgoaiTuyenHandler` (`m02.api`) | `M08.XAC_NHAN_PHUC_VU` (ghi ngoại tuyến của app nhân viên, Q-01): kiểm tra lại khi đồng bộ; bị chặn thì trả lý do để app hiển thị | 002 |
+| `ThamGiaChuyenTrangThai` (`resident.api`) | Bean `@Order` sau 006, trước 010. Không có điều kiện chặn. Tác động `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN`: bản gán Hiệu lực → `NGUNG`, Đề xuất/Chờ hiệu lực → `DA_HUY`; phát sinh "−1" cho bữa đã chốt chưa tới giờ (FR-015). `HOAN_TAT_TIEP_NHAN`: báo Bác sĩ khi chưa có bản gán (FR-014) | 001 H-02 |
+| `NguonCongViecPort` (`care.api`) | `loaiQuanLy() = {BUA}`; `kiemTra(BUA, buaNgayId, nctId, t)`: bữa ngày tồn tại, người có trong lịch bữa, `t` khớp giờ bữa; `xacNhanPhucVu(buaNgayId, nctId)` theo research M-10 | 005 FR-017, 011 FR-042, FR-050 |
+| `NgoaiTuyenHandler` (`admission.api`) | `M08.XAC_NHAN_PHUC_VU` (ghi ngoại tuyến của app nhân viên, Q-01): kiểm tra lại khi đồng bộ; bị chặn thì trả lý do để app hiển thị | 002 |
 | `PhanLoaiTruongProvider`, `LuuTruProvider`, `DinhChinhDuocProvider` (000) | data-model; đính chính `M08.XAC_NHAN_PHUC_VU`, `M08.LUU_MAU` | 000 |
 | `GanPhamViProvider` (002) | `M08.BAN_GAN`, `M08.XAC_NHAN_PHUC_VU`, `M08.DO_AN_GIA_DINH`: người cao tuổi; `M08.PHIEU_BUA_AN`: tầng/khu | 002 FR-034 |
 
-### 1.2. `m08.api.CheDoAnApi` (006, 007, 012, 016)
+### 1.2. `nutrition.api.CheDoAnApi` (006, 007, 012, 016)
 
 ```java
 Optional<CheDoAnHienHanhView> hienHanh(long nctId);      // chế độ ăn, kết cấu, hạn chế riêng; mặc định nếu chưa gán (dấu CHUA_GAN)
 List<BanGanView> lichSu(long nctId);                      // 012 hiển thị khi có quyền xem sức khỏe
 ```
 
-### 1.3. `m08.api.ThucDonChungApi` (012; FR-028)
+### 1.3. `nutrition.api.ThucDonChungApi` (012; FR-028)
 
 ```java
 List<MonTheoBuaView> thucDonChung(LocalDate tuNgay, LocalDate denNgay);   // món của chế độ ăn mặc định theo ngày, bữa; không có thông tin cá nhân
 List<String> tenCheDoAn();
 ```
 
-### 1.3a. `m08.api.SuatAnDuKienApi` (012; FR-063; bổ sung 2026-10-18)
+### 1.3a. `nutrition.api.SuatAnDuKienApi` (012; FR-063; bổ sung 2026-10-18)
 
 ```java
 List<SuatDuKienView> cuaNguoiCaoTuoi(long nctId, LocalDate tuNgay, LocalDate denNgay);
     // ngày, bữa, tên món, laMonThayThe; không có chế độ ăn, kết cấu, dị ứng (research M-16)
 ```
 
-### 1.4. `m08.api.LichBuaApi` (005, 014)
+### 1.4. `nutrition.api.LichBuaApi` (005, 014)
 
 ```java
 List<BuaNgayView> buaTrongNgay(LocalDate ngay);                       // bữa ngày, giờ dự kiến, đã chốt chưa
 boolean coTrongLichBua(long buaNgayId, long nctId);                   // 005 lập công việc BUA
 ```
 
-### 1.5. `m08.api.DinhDuongThongKeApi` (016)
+### 1.5. `nutrition.api.DinhDuongThongKeApi` (016)
 
 ```java
 Stream<PhieuBaoCaoView> phieu(PhamViLoc phamVi, LocalDate tu, LocalDate den);   // trạng thái, giờ giao, trễ, sai lệch
@@ -54,7 +54,7 @@ Stream<SuatBaoCaoView> suat(PhamViLoc phamVi, LocalDate tu, LocalDate den);     
 Stream<DoAnGiaDinhView> doAnGiaDinh(PhamViLoc phamVi, LocalDate tu, LocalDate den);
 ```
 
-### 1.6. SPI khai báo ở `m08.api` cho module làm plan sau (research M-12)
+### 1.6. SPI khai báo ở `nutrition.api` cho module làm plan sau (research M-12)
 
 ```java
 interface LuotOLaiAnPort {                 // 012 cài; chỉ đọc
@@ -81,9 +81,9 @@ Không còn `TonKhoNguyenLieuPort`: hệ thống không quản lý kho nguyên l
 
 | Sự kiện | Người nghe | FR |
 | --- | --- | --- |
-| `m05.api.YeuCauTaoCanhBao` (`XUNG_DOT_DI_UNG_CHE_DO_AN`, nguồn `THUC_DON_MON`; `PHUC_VU_SUAT_DI_UNG`, nguồn `SUAT_DAC_BIET`) | 007 | FR-021, FR-049 |
-| `m05.api.YeuCauDongCanhBaoNguon` | 007 | FR-021 (dị ứng loại trừ, đổi món) |
-| `m11.api.SuKienTinhPhiNguon` / `SuKienTinhPhiNguonDaDoi` (`SUAT_AN_NGUOI_THAN`) | 010 | FR-043 |
+| `incident.api.YeuCauTaoCanhBao` (`XUNG_DOT_DI_UNG_CHE_DO_AN`, nguồn `THUC_DON_MON`; `PHUC_VU_SUAT_DI_UNG`, nguồn `SUAT_DAC_BIET`) | 007 | FR-021, FR-049 |
+| `incident.api.YeuCauDongCanhBaoNguon` | 007 | FR-021 (dị ứng loại trừ, đổi món) |
+| `billing.api.SuKienTinhPhiNguon` / `SuKienTinhPhiNguonDaDoi` (`SUAT_AN_NGUOI_THAN`) | 010 | FR-043 |
 | `BanGanCheDoAnDaHieuLuc(nctId, banGanId, cheDoAnId, ketCau, thoiDiem)` | 005 (nhắc xem kế hoạch ăn), 012 | FR-011 |
 | `PhieuDaGiao`, `PhieuCoSaiLech`, `PhieuGiaoTre` | 016 | FR-047, FR-048, FR-048a |
 | Thông báo (cài `CoYeuCauThongBao`) | 009 | FR-065 |

@@ -85,7 +85,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Đính chính | `BR_M04_14_DinhChinhIT`, `US7_4_DinhChinhCoTinhPhiIT` | Q34 |
 | Công việc chung | `BR_M04_13_CongViecChungIT`, `BR_M04_28_GanLaiIT`, `BR_M09_01_ChungChiCongViecIT` | Q36, Q37 |
 | Cơ sở dữ liệu | `MucKeHoachTriggerIT`, `CongViecTrangThaiCuoiTriggerIT`, `NhomBaTriggerIT` (000) mở rộng | Q5 |
-| Kiến trúc | `ApplicationModules.verify()`, ArchUnit cấm gọi API của 008, 007 trực tiếp từ `m04` | |
+| Kiến trúc | `ApplicationModules.verify()`, ArchUnit cấm gọi API của 008, 007 trực tiếp từ `care` | |
 | Web (Vitest) | Màn lập công việc hiện lỗi theo dòng và không có nút chép sẵn; checklist sắp Quá hạn lên đầu | Q9, Q19 |
 | App (`flutter_test`) | `ChecklistNgoaiTuyenTest` (dấu "chưa cập nhật"), `GhiNhanTheoLoaiTest`, `KetQuaDongBoTest` (BR-M15-20), `BanGhiBiTuChoiTest` (chuyển thành đính chính hoặc Ghi nhận phát sinh) | Q28, Q29 |
 

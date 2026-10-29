@@ -12,29 +12,29 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 | Gói | Nội dung | Mục spec |
 | --- | --- | --- |
-| `m06.danhmuc` | Danh mục chỉ số, thành phần, nhóm "sinh hiệu" | A (FR-001, FR-002) |
-| `m06.lichdo` | Lịch đo, `ChuoiMocDo`, bean `NguonCongViecPort` loại `LAN_DO` | A (FR-003 → FR-006) |
-| `m06.chiso` | Bản ghi chỉ số, so ngưỡng, đo lại, `ChiSoPort`, `NgoaiTuyenHandler` | B (FR-010 → FR-019) |
-| `m06.nguong` | Phiên bản ngưỡng, nhắc thiếu ngưỡng cá nhân | C (FR-020 → FR-025) |
-| `m06.giayphep` | Giấy phép cơ sở, số liên hệ của viện, `GiayPhepCoSoApi` | J (FR-070, FR-071, FR-075) |
-| `m06.kham` | Bản ghi khám và điều trị | J (FR-072 → FR-074) |
-| `m06.trangthai`, `m06.lich` | Bean trạng thái; job | FR-006, FR-022, FR-084 |
-| `m05.canhbao` | Cảnh báo: khóa loại, gộp, vòng đời, leo thang, bàn giao, `CanhBaoDocPort` | D (FR-026 → FR-038a) |
-| `m05.xuhuong` | Danh mục quy tắc xu hướng; sụt cân, bỏ lỡ lần đo, mất ngủ | E (FR-039 → FR-039c) |
-| `m05.suco` | Sự cố, diễn biến, đổi mức, đóng, hủy, đổi loại | F (FR-040 → FR-046b) |
-| `m05.khancap` | Thẻ thông tin khẩn cấp, đối chiếu nguyện vọng, chuyển viện, bản tóm tắt | G (FR-047 → FR-050) |
-| `m05.nguykich` | Dấu nguy kịch, xác nhận lại nguyện vọng, lựa chọn thực hiện | G1 (FR-050a → FR-050g) |
-| `m05.nga` | Khoảng theo dõi sau ngã, bean `NguonCongViecPort` loại `THEO_DOI_SAU_NGA` | H (FR-051, FR-052) |
-| `m05.laynhiem` | Danh sách tiếp xúc, tra cứu truy vết, khoanh vùng | I (FR-060 → FR-066) |
-| `m05.trangthai`, `m05.lich`, `m05.api` | Bean trạng thái, `MucViecSauQuaDoiPort`; job; giao diện công khai | FR-038, FR-084 |
+| `health.danhmuc` | Danh mục chỉ số, thành phần, nhóm "sinh hiệu" | A (FR-001, FR-002) |
+| `health.lichdo` | Lịch đo, `ChuoiMocDo`, bean `NguonCongViecPort` loại `LAN_DO` | A (FR-003 → FR-006) |
+| `health.chiso` | Bản ghi chỉ số, so ngưỡng, đo lại, `ChiSoPort`, `NgoaiTuyenHandler` | B (FR-010 → FR-019) |
+| `health.nguong` | Phiên bản ngưỡng, nhắc thiếu ngưỡng cá nhân | C (FR-020 → FR-025) |
+| `health.giayphep` | Giấy phép cơ sở, số liên hệ của viện, `GiayPhepCoSoApi` | J (FR-070, FR-071, FR-075) |
+| `health.kham` | Bản ghi khám và điều trị | J (FR-072 → FR-074) |
+| `health.trangthai`, `health.lich` | Bean trạng thái; job | FR-006, FR-022, FR-084 |
+| `incident.canhbao` | Cảnh báo: khóa loại, gộp, vòng đời, leo thang, bàn giao, `CanhBaoDocPort` | D (FR-026 → FR-038a) |
+| `incident.xuhuong` | Danh mục quy tắc xu hướng; sụt cân, bỏ lỡ lần đo, mất ngủ | E (FR-039 → FR-039c) |
+| `incident.suco` | Sự cố, diễn biến, đổi mức, đóng, hủy, đổi loại | F (FR-040 → FR-046b) |
+| `incident.khancap` | Thẻ thông tin khẩn cấp, đối chiếu nguyện vọng, chuyển viện, bản tóm tắt | G (FR-047 → FR-050) |
+| `incident.nguykich` | Dấu nguy kịch, xác nhận lại nguyện vọng, lựa chọn thực hiện | G1 (FR-050a → FR-050g) |
+| `incident.nga` | Khoảng theo dõi sau ngã, bean `NguonCongViecPort` loại `THEO_DOI_SAU_NGA` | H (FR-051, FR-052) |
+| `incident.laynhiem` | Danh sách tiếp xúc, tra cứu truy vết, khoanh vùng | I (FR-060 → FR-066) |
+| `incident.trangthai`, `incident.lich`, `incident.api` | Bean trạng thái, `MucViecSauQuaDoiPort`; job; giao diện công khai | FR-038, FR-084 |
 
-Chiều mã giữa hai module: `m05 → m06` (thẻ khẩn cấp, bản tóm tắt chuyển viện, quy tắc sụt cân đọc chỉ số; bean `NguonCongViecPort` của `m05` không cần `m06`). `m06` không gọi `m05`: kết quả so ngưỡng đi sang `m05` bằng sự kiện `m06.api.ChiSoDaXacNhan` sau commit.
+Chiều mã giữa hai module: `incident → health` (thẻ khẩn cấp, bản tóm tắt chuyển viện, quy tắc sụt cân đọc chỉ số; bean `NguonCongViecPort` của `incident` không cần `health`). `health` không gọi `incident`: kết quả so ngưỡng đi sang `incident` bằng sự kiện `health.api.ChiSoDaXacNhan` sau commit.
 
-**Lý do**: Constitution X chia gói theo M01–M15. BR-M05-xx và BR-M06-xx thuộc hai module khác nhau; một chiều `m05 → m06` khớp nghiệp vụ (cảnh báo dùng dữ liệu sức khỏe, không ngược lại).
+**Lý do**: Constitution X chia gói theo M01–M15. BR-M05-xx và BR-M06-xx thuộc hai module khác nhau; một chiều `incident → health` khớp nghiệp vụ (cảnh báo dùng dữ liệu sức khỏe, không ngược lại).
 
 **Phương án đã cân nhắc**:
-- Một gói `m05` cho cả feature: bị loại vì đặt dữ liệu M06 (giấy phép cơ sở mà 002 cần) trong module M05, sai ranh giới constitution X.
-- `m06` gọi đồng bộ `m05` để tạo cảnh báo trong cùng transaction ghi chỉ số: tạo vòng `m05 ↔ m06`; SC-002 cho phép cảnh báo xuất hiện trong 10 giây nên sự kiện sau commit là đủ.
+- Một gói `incident` cho cả feature: bị loại vì đặt dữ liệu M06 (giấy phép cơ sở mà 002 cần) trong module M05, sai ranh giới constitution X.
+- `health` gọi đồng bộ `incident` để tạo cảnh báo trong cùng transaction ghi chỉ số: tạo vòng `incident ↔ health`; SC-002 cho phép cảnh báo xuất hiện trong 10 giây nên sự kiện sau commit là đủ.
 
 ---
 
@@ -44,16 +44,16 @@ Chiều mã giữa hai module: `m05 → m06` (thẻ khẩn cấp, bản tóm t�
 
 | Cặp | Chiều mã | Cách giữ một chiều |
 | --- | --- | --- |
-| 007 → 000, 002 | 007 dùng | `NhatKyApi`, `ThamSoApi`, `DinhChinhApi`, `TepApi`, `QuyenApi`, `PhamViApi`, `QuyenXemTruongApi`, `NguoiDuyetApi`, `NguoiDungHienTai`; cài `NgoaiTuyenHandler`, `DinhChinhDuocProvider`, `PhanLoaiTruongProvider`, `LuuTruProvider`, `GanPhamViProvider`, `QuyenTepProvider`. `m06` cài `GiayPhepCoSoApi` (khai báo ở `m15.taikhoan.api`) |
+| 007 → 000, 002 | 007 dùng | `NhatKyApi`, `ThamSoApi`, `DinhChinhApi`, `TepApi`, `QuyenApi`, `PhamViApi`, `QuyenXemTruongApi`, `NguoiDuyetApi`, `NguoiDungHienTai`; cài `NgoaiTuyenHandler`, `DinhChinhDuocProvider`, `PhanLoaiTruongProvider`, `LuuTruProvider`, `GanPhamViProvider`, `QuyenTepProvider`. `health` cài `GiayPhepCoSoApi` (khai báo ở `administration.taikhoan.api`) |
 | 007 → 001 | 007 dùng | Cài `ThamGiaChuyenTrangThai` (hai bean, S-17); gọi `TrangThaiNguoiCaoTuoiApi.thucHien(CHUYEN_VIEN)` (đã có trong bảng người gọi của 001), `NguyenVongApi.hieuLuc`, `ghiPhienBan`; đọc `NguoiCaoTuoiApi`, `MucSucKhoeApi`, `DanhGiaApi.luuYHienHanh`, `BanDongYApi.baoGom`, `khoangTrangThai`. Cài `ChiSoApi.ganNhat` (001 khai báo); 001 nghe `SuCoDaGhiNhan` |
-| 007 → 003 | Đọc, cài | Đọc `LichSuViTriApi.cungPhong`, `theoNguoi`, `ViTriApi.hienTai`, `CoCauViTriApi`; cài `TinhTrangLayNhiemChoPhanBo` (khai báo ở `m03.api`); nghe `PhanBoDaDinhChinh`, `PhongDaDatCachLy` |
+| 007 → 003 | Đọc, cài | Đọc `LichSuViTriApi.cungPhong`, `theoNguoi`, `ViTriApi.hienTai`, `CoCauViTriApi`; cài `TinhTrangLayNhiemChoPhanBo` (khai báo ở `roombedallocation.api`); nghe `PhanBoDaDinhChinh`, `PhongDaDatCachLy` |
 | 007 → 004 | Cài, gọi | Cài `MucViecSauQuaDoiPort` (`CANH_BAO_SU_CO`); gọi `DanhSachViecSauQuaDoiApi.capNhat`; dùng mã điều kiện `KT_D_CANH_BAO_SU_CO` |
 | 007 → 005 | Cài, gọi | Cài `NguonCongViecPort` (hai bean), `ChiSoPort`, `CanhBaoDocPort`; gọi `CongViecDoChiSoApi.daXacNhan`, `NguonCongViecApi.nguonBiHuy`, `nguonDaDoi` (MANDATORY); đọc `CongViecThongKeApi.ketQuaTheoKhoang`; nghe `YeuCauCanhBao`, `YeuCauDongCanhBao` và hai sự kiện bổ sung (S-10) |
-| 007 → 006 | Đọc, nghe | `DonThuocApi.thuocDangDung`; nghe `m07.api.YeuCauCanhBao`, `YeuCauDongCanhBao` |
-| 007 ↔ 008, 009, 011, 012, 013, 014, 016 | Các module này → 007 | Họ làm plan sau. 007 cần dữ liệu của 008 (ca, phân công, Bác sĩ trực), 009 (nhật ký gửi), 012 (người liên hệ chính, người đại diện, lượt thăm), 014 (điểm danh hoạt động) qua SPI khai báo ở `m05.api` (module-interfaces mục 2.1). 008 gọi `CanhBaoBanGiaoApi`; 013, 014 gọi `SuCoLenhApi`; 011, 014 phát `m05.api.YeuCauTaoCanhBao`; 012, 014 đọc `KhoanhVungApi`; 016 đọc các API thống kê |
+| 007 → 006 | Đọc, nghe | `DonThuocApi.thuocDangDung`; nghe `medication.api.YeuCauCanhBao`, `YeuCauDongCanhBao` |
+| 007 ↔ 008, 009, 011, 012, 013, 014, 016 | Các module này → 007 | Họ làm plan sau. 007 cần dữ liệu của 008 (ca, phân công, Bác sĩ trực), 009 (nhật ký gửi), 012 (người liên hệ chính, người đại diện, lượt thăm), 014 (điểm danh hoạt động) qua SPI khai báo ở `incident.api` (module-interfaces mục 2.1). 008 gọi `CanhBaoBanGiaoApi`; 013, 014 gọi `SuCoLenhApi`; 011, 014 phát `incident.api.YeuCauTaoCanhBao`; 012, 014 đọc `KhoanhVungApi`; 016 đọc các API thống kê |
 | 007 → 009 | Sự kiện | Mọi thông báo là sự kiện ghi cùng transaction qua outbox (R-09, S-19) |
 
-**Lý do**: Modulith `verify()` từ chối vòng (000 R-02). 008 phải gọi 007 trong transaction xác nhận bàn giao (FR-037 chuyển người phụ trách "khi ca sau xác nhận"); 007 lại cần dữ liệu ca của 008. SPI ở `m05.api` cắt vòng này.
+**Lý do**: Modulith `verify()` từ chối vòng (000 R-02). 008 phải gọi 007 trong transaction xác nhận bàn giao (FR-037 chuyển người phụ trách "khi ca sau xác nhận"); 007 lại cần dữ liệu ca của 008. SPI ở `incident.api` cắt vòng này.
 
 **Phương án đã cân nhắc**: Dùng lại `NhanSuCaPort` (005) hoặc `DieuDuongCaPort` (006) cho dữ liệu ca: bị loại vì 007 cần thêm Bác sĩ trực, Trưởng tầng được giao, giờ kết thúc ca, ca chưa xác nhận bàn giao, phân công trong khoảng truy vết; mở rộng SPI của module khác làm hợp đồng của họ phụ thuộc nhu cầu của 007.
 
@@ -62,7 +62,7 @@ Chiều mã giữa hai module: `m05 → m06` (thẻ khẩn cấp, bản tóm t�
 ## S-03. Khóa và đồng thời
 
 **Quyết định**:
-- **Thứ tự khóa toàn hệ thống** (nối 006 D-03): `nguoi_cao_tuoi` (001) → `luu_tru_nct` (004) → `vi_tri_nct`, `giuong` (003) → `cham_soc_nct` (005) → `thuoc_nct` (006) → `chi_so_nct` (m06) → `theo_doi_nct` (m05) → dòng nghiệp vụ của 007 (cảnh báo, sự cố, dấu nguy kịch, danh sách tiếp xúc). Bean trạng thái của 007 chạy sau 006 theo `@Order` của 001. *(R-15: `luu_tru_nct`, `vi_tri_nct`, `cham_soc_nct`, `thuoc_nct`, `chi_so_nct`, `theo_doi_nct` → `trang_thai_nct`)*
+- **Thứ tự khóa toàn hệ thống** (nối 006 D-03): `nguoi_cao_tuoi` (001) → `luu_tru_nct` (004) → `vi_tri_nct`, `giuong` (003) → `cham_soc_nct` (005) → `thuoc_nct` (006) → `chi_so_nct` (health) → `theo_doi_nct` (incident) → dòng nghiệp vụ của 007 (cảnh báo, sự cố, dấu nguy kịch, danh sách tiếp xúc). Bean trạng thái của 007 chạy sau 006 theo `@Order` của 001. *(R-15: `luu_tru_nct`, `vi_tri_nct`, `cham_soc_nct`, `thuoc_nct`, `chi_so_nct`, `theo_doi_nct` → `trang_thai_nct`)*
 - **Gộp cảnh báo** (DBR-18, FR-030, SC-003): listener của mọi yêu cầu tạo cảnh báo chạy trong transaction riêng, khóa `theo_doi_nct` của người đó (`SELECT … FOR UPDATE`, tạo dòng nếu chưa có), rồi tìm cảnh báo đang mở theo `(nct_id, khoa_loai)`. Có thì gộp; không thì thêm. Lưới an toàn: cột sinh `khoa_mo = IF(trang_thai IN ('MOI','LEO_THANG','DA_TIEP_NHAN','DANG_XU_LY'), khoa_loai, NULL)` với `UNIQUE (nct_id, khoa_mo)`; vi phạm thì thử lại một lần (lần thử lại thấy cảnh báo đang mở và gộp). *(R-15: `theo_doi_nct` → `trang_thai_nct`)*
 - **Lệnh trên một cảnh báo, sự cố** (tiếp nhận, giao, xử lý, đóng, đổi mức, chuyển sự cố): khóa dòng cảnh báo hoặc dòng `su_co_xu_ly`, kiểm tra lại trên trạng thái mới. Lần tiếp nhận thứ hai trả 409 `DA_CO_NGUOI_TIEP_NHAN` kèm người và thời điểm (dùng cho "Xác nhận và tiếp nhận" của 009 FR-026a). Không dùng `If-Match`, giống 005 C-03. *(R-15: `su_co_xu_ly` → `su_co`)*
 - **Đo lại** (FR-016, FR-017): lệnh đo lại và job hết hạn đo lại cùng khóa dòng `ban_ghi_chi_so` đang `CHO_DO_LAI`; bên đến sau thấy `thoi_diem_xac_nhan` đã có và dừng (lệnh đo lại khi đó trả 409 `DA_XAC_NHAN_KHONG_DO_LAI`).
@@ -94,7 +94,7 @@ Chiều mã giữa hai module: `m05 → m06` (thẻ khẩn cấp, bản tóm t�
 
 **Quyết định**:
 - Bảng `lich_do` (nhóm 2) và `lich_do_chi_so` (một lịch nhiều chỉ số). Tần suất lưu bằng `kieu_tan_suat` (`MOC_GIO`, `MOI_N_GIO`, `THEO_THU`) và JSON tham số (mốc giờ, N, mốc gốc, các thứ). Nguồn chỉ có `CHI_DINH_BAC_SI` (Q-307); không có cột "sự cố nguồn". *(R-15: `lich_do` → `thiet_lap_theo_doi`; `lich_do_chi_so` → cột `JSON` của bảng cha)*
-- Hàm thuần `ChuoiMocDo(lichDo, tu, den)` trả các mốc đo trong khoảng. Hàm chỉ dùng để: kiểm tra căn cứ `LAN_DO` khi Người phụ trách ca lập công việc (bean `NguonCongViecPort` của `m06`: lịch Hiệu lực tại mốc, người khớp, mốc thuộc chuỗi, trả "theo chỉ định" để 005 buộc mức Bắt buộc theo mức quan trọng của lịch, 005 FR-023); hiển thị lịch đo dự kiến. **Không có bản ghi mốc đo** và không job nào sinh công việc (FR-004, Q-306).
+- Hàm thuần `ChuoiMocDo(lichDo, tu, den)` trả các mốc đo trong khoảng. Hàm chỉ dùng để: kiểm tra căn cứ `LAN_DO` khi Người phụ trách ca lập công việc (bean `NguonCongViecPort` của `health`: lịch Hiệu lực tại mốc, người khớp, mốc thuộc chuỗi, trả "theo chỉ định" để 005 buộc mức Bắt buộc theo mức quan trọng của lịch, 005 FR-023); hiển thị lịch đo dự kiến. **Không có bản ghi mốc đo** và không job nào sinh công việc (FR-004, Q-306).
 - Lệnh: Tạo (`HIEU_LUC` nếu bắt đầu không sau thời điểm lệnh, ngược lại `CHO_HIEU_LUC`), Thay đổi lịch đo (lịch mới `thay_the_cho`, lịch cũ `DA_NGUNG` tại thời điểm hiệu lực của lịch mới, cùng transaction, FR-005), Ngừng lịch đo. Job theo phút chuyển `CHO_HIEU_LUC → HIEU_LUC` và `HIEU_LUC → HET_HAN`. Trigger chặn đổi mọi cột nội dung (chỉ số, tần suất, bắt đầu, kết thúc, mức quan trọng) ở mọi trạng thái; chỉ cột trạng thái, `ngung_luc`, `ly_do_ngung` đổi được (FR-005).
 - Tác động lên 005 (FR-022 của 005; plan điểm báo lại 2):
   - Thay đổi lịch đo: gọi `NguonCongViecApi.nguonDaDoi(LAN_DO, lichCuId)` (MANDATORY): 005 báo Người phụ trách ca, Trưởng tầng; không hủy công việc.
@@ -122,8 +122,8 @@ Chiều mã giữa hai module: `m05 → m06` (thẻ khẩn cấp, bản tóm t�
   - `NGUY_HIEM` không có `xuLyNgay`: `CHO_DO_LAI`, `han_do_lai = thoi_diem_do + CFG-M06-04`; chưa phát gì cho cảnh báo.
   - Lần đo lại: `POST /ban-ghi-chi-so/{id}/do-lai`, người có quyền ghi chỉ số cho người đó (FR-016). Lần đo lại là bản ghi mới `do_lai_cho = id`, xác nhận ngay, không yêu cầu đo lại thêm; bản ghi đầu được xác nhận cùng lúc với nhãn `DA_DO_LAI` (trigger cho phép đúng một lần đặt `thoi_diem_xac_nhan`). Lần đo lại ngoài khoảng vật lý bị chặn như lần mới, bản ghi đầu vẫn chờ (Edge Case).
   - Job theo phút: `CHO_DO_LAI` có `han_do_lai <= bây giờ` → xác nhận với nhãn `CHUA_DO_LAI` (FR-017). Chạy bù xác nhận ngay (FR-084 b).
-- **Sau khi xác nhận** (trong transaction xác nhận): nếu có công việc nguồn thì gọi `CongViecDoChiSoApi.daXacNhan(congViecId, banGhiXacNhanId, thoiDiemDo, nguoiDoId)` (FR-018); phát `ChiSoDaXacNhan(banGhiId, nctId, chiSoId, muc, phienBanNguongId, congViecId, thoiDiemDo, nhan)` sau commit. Listener của `m05.canhbao` tạo hoặc gộp cảnh báo: `CANH_BAO` → Trung bình, `NGUY_HIEM` → Khẩn cấp, khóa loại `VUOT_NGUONG:<chiSo>` (FR-014, FR-028). Với lần đo lại, bản ghi nguồn của cảnh báo là lần đo lại; với `CHUA_DO_LAI` là chính bản ghi đầu.
-- **Đính chính** (FR-019): `DinhChinhDuocProvider` loại `M06.BAN_GHI_CHI_SO`; `daXacNhan` sai với bản ghi chờ đo lại (CHK040); `kiemTraNoiDung` chạy lại kiểm tra khoảng vật lý; `tangKhuVuc` là tầng của người cao tuổi lúc đo. `sauKhiDinhChinh`: so giá trị đính chính với **cùng phiên bản ngưỡng** đã áp cho bản gốc; phát `ChiSoDaDinhChinh(banGhiGocId, nctId, mucGoc, mucMoi)`; `m05` thông báo người phụ trách các cảnh báo có nguồn là bản ghi đó "nguồn đã được đính chính" (Nhẹ) và không đóng; nếu mức mới vượt mà mức gốc không vượt (hoặc nặng hơn) thì tạo hoặc gộp cảnh báo theo mức mới. Xu hướng dùng giá trị hiện hành qua `DinhChinhApi.hienHanh` kể từ thời điểm đính chính.
+- **Sau khi xác nhận** (trong transaction xác nhận): nếu có công việc nguồn thì gọi `CongViecDoChiSoApi.daXacNhan(congViecId, banGhiXacNhanId, thoiDiemDo, nguoiDoId)` (FR-018); phát `ChiSoDaXacNhan(banGhiId, nctId, chiSoId, muc, phienBanNguongId, congViecId, thoiDiemDo, nhan)` sau commit. Listener của `incident.canhbao` tạo hoặc gộp cảnh báo: `CANH_BAO` → Trung bình, `NGUY_HIEM` → Khẩn cấp, khóa loại `VUOT_NGUONG:<chiSo>` (FR-014, FR-028). Với lần đo lại, bản ghi nguồn của cảnh báo là lần đo lại; với `CHUA_DO_LAI` là chính bản ghi đầu.
+- **Đính chính** (FR-019): `DinhChinhDuocProvider` loại `M06.BAN_GHI_CHI_SO`; `daXacNhan` sai với bản ghi chờ đo lại (CHK040); `kiemTraNoiDung` chạy lại kiểm tra khoảng vật lý; `tangKhuVuc` là tầng của người cao tuổi lúc đo. `sauKhiDinhChinh`: so giá trị đính chính với **cùng phiên bản ngưỡng** đã áp cho bản gốc; phát `ChiSoDaDinhChinh(banGhiGocId, nctId, mucGoc, mucMoi)`; `incident` thông báo người phụ trách các cảnh báo có nguồn là bản ghi đó "nguồn đã được đính chính" (Nhẹ) và không đóng; nếu mức mới vượt mà mức gốc không vượt (hoặc nặng hơn) thì tạo hoặc gộp cảnh báo theo mức mới. Xu hướng dùng giá trị hiện hành qua `DinhChinhApi.hienHanh` kể từ thời điểm đính chính.
 - Cảnh báo Khẩn cấp từ chỉ số không tạo sự cố (FR-047a).
 
 **Lý do**: BR-M06-04 cần trạng thái chờ trước khi xác nhận; mẫu nhóm 3 có bản nháp của 000 R-05 cho đúng điều này mà không mở `UPDATE` sau xác nhận.
@@ -187,10 +187,10 @@ Chiều mã giữa hai module: `m05 → m06` (thẻ khẩn cấp, bản tóm t�
 
 **Quyết định**:
 - Listener sau commit (`@ApplicationModuleListener`, transaction riêng) cho:
-  - `m04.api.YeuCauCanhBao`, `m04.api.YeuCauDongCanhBao` (005);
-  - `m07.api.YeuCauCanhBao`, `m07.api.YeuCauDongCanhBao` (006);
-  - `m05.api.YeuCauTaoCanhBao`, `m05.api.YeuCauDongCanhBaoNguon` (khai báo ở `m05.api` cho 011, 014 và module làm plan sau);
-  - `m06.api.ChiSoDaXacNhan`, `ChiSoDaDinhChinh` (S-06).
+  - `care.api.YeuCauCanhBao`, `care.api.YeuCauDongCanhBao` (005);
+  - `medication.api.YeuCauCanhBao`, `medication.api.YeuCauDongCanhBao` (006);
+  - `incident.api.YeuCauTaoCanhBao`, `incident.api.YeuCauDongCanhBaoNguon` (khai báo ở `incident.api` cho 011, 014 và module làm plan sau);
+  - `health.api.ChiSoDaXacNhan`, `ChiSoDaDinhChinh` (S-06).
 - Mỗi sự kiện mang khóa `loại + id + mốc` (005, 006); bảng `su_kien_canh_bao_da_nhan (khoa UNIQUE)` chống xử lý trùng khi outbox giao lại (NFR-04).
 - Người cao tuổi đã ở trạng thái cuối: yêu cầu tạo bị bỏ qua và ghi nhật ký kỹ thuật (bảng FR-029 dòng Tạo: "chưa ở trạng thái cuối").
 - **Yêu cầu đóng** (FR-032): tìm mọi dòng `nguon_canh_bao` khớp (loại nguồn, id nguồn) của cảnh báo đang mở hoặc `CHUYEN_SU_CO`; đặt `da_xu_ly_luc`, `ly_do_xu_ly` (dòng nhóm 3 có cột xử lý một lần; trigger chỉ cho đặt từ `NULL`); thêm dòng `lich_su_canh_bao` "nguồn đã được xử lý". Nếu mọi nguồn đã xử lý: *(R-15: `nguon_canh_bao` → `su_kien_chung`; `lich_su_canh_bao` → `lich_su_chung`)*
@@ -210,7 +210,7 @@ Chiều mã giữa hai module: `m05 → m06` (thẻ khẩn cấp, bản tóm t�
 - **Sụt cân** (FR-039a): listener `ChiSoDaXacNhan` và `ChiSoDaDinhChinh` của chỉ số cân nặng. Hàm thuần `SutCan(lanDo, cacLanTruoc, cfg)`: lấy giá trị hiện hành cao nhất trong `[t − N ngày, t)` (qua `ChiSoApi.trongKhoang` + `DinhChinhApi.hienHanh`); không có lần nào thì không chạy (CHK042); giảm ≥ tỷ lệ thì tạo hoặc gộp `XU_HUONG:SUT_CAN` nêu hai lần đo, và phát `SutCanPhatHien(nctId, banGhiCaoNhatId, banGhiMoiId)` cho 011 (BR-M08-05, Q-283).
 - **Bỏ lỡ lần đo theo lịch** (FR-039b, Q-75): nguồn là (a) `YeuCauCanhBao(CONG_VIEC_BAT_BUOC_QUA_HAN)` của 005 với căn cứ `LAN_DO` (Trung bình); (b) sự kiện bổ sung của 005 `CongViecDoBiBo(congViecId, nctId, lichDoId, chiSoIds, lyDo: KHONG_THUC_HIEN | QUA_HAN_HET_CA, mucQuanTrong)` (mức cấu hình của quy tắc; Trung bình nếu Bắt buộc). Khóa `BO_LO_LAN_DO:<chiSo>`; mức cảnh báo là mức cao nhất đã gộp. Công việc Hủy và đóng do trạng thái cuối không tính (005 không phát). Yêu cầu đóng "đã thực hiện đúng khung" áp theo dòng nguồn (công việc), không theo khóa (CHK064).
 - **Mất ngủ kéo dài** (FR-039c): listener sự kiện bổ sung của 005 `KetQuaNguDaGhi(ketQuaId, nctId, ngay, nhomGiaTri)` (cả khi đính chính). Hàm thuần `DemDemMatNgu(ketQuaTheoNgay, ngayVang)`: lấy kết quả ngủ hiện hành mới nhất mỗi ngày (qua `CongViecThongKeApi.ketQuaTheoKhoang`), đếm ngày liên tiếp nhóm `MAT_NGU` lùi từ ngày của kết quả; ngày vắng (từ `khoangTrangThai`) không tính và không làm đứt chuỗi; ngày không có ghi nhận làm đứt chuỗi. Đủ CFG-M05-05 thì tạo hoặc gộp `XU_HUONG:MAT_NGU_KEO_DAI`.
-- **Từ chối cùng một thuốc**: 006 đếm (BR-M07-13) và gửi `YeuCauCanhBao(TU_CHOI_LIEN_TIEP)`; `m05` chỉ áp bật/tắt và mức của quy tắc `TU_CHOI_THUOC` trước khi tạo.
+- **Từ chối cùng một thuốc**: 006 đếm (BR-M07-13) và gửi `YeuCauCanhBao(TU_CHOI_LIEN_TIEP)`; `incident` chỉ áp bật/tắt và mức của quy tắc `TU_CHOI_THUOC` trước khi tạo.
 
 **Lý do**: Mỗi quy tắc chạy khi dữ liệu nguồn đổi, không cần job quét; hàm thuần kiểm thử bằng bảng (SC-001 kiểu dữ liệu).
 
@@ -280,7 +280,7 @@ Chiều mã giữa hai module: `m05 → m06` (thẻ khẩn cấp, bản tóm t�
   - `VE_NHA`: ghi lựa chọn; phát `CanChoTamVangVeNha(nctId, canhBaoId)` cho Hành chính, Trưởng tầng (Trung bình). Hệ thống không tự tạo lượt vắng; Hành chính hoặc Trưởng tầng thực hiện Cho tạm vắng ở 001/004 qua quy trình đón (Q-307; plan điểm báo lại 3).
   - `GIAM_NHE`: phát `LuaChonChamSocGiamNheDaGhi(nctId)` (tên 005 đã đề xuất); 005 báo điều dưỡng phụ trách xem xét kế hoạch.
 - **Đóng cảnh báo nguy kịch**: thêm điều kiện "có ít nhất một kết quả xác nhận lại và một lựa chọn" (409 `CHUA_XAC_NHAN_LAI` / `CHUA_CO_LUA_CHON`).
-- **Gỡ dấu**: Bác sĩ, lý do; bean `ThamGiaChuyenTrangThai` của `m05` tự gỡ khi `CHUYEN_VIEN` hoặc trạng thái cuối, lý do "tự gỡ theo trạng thái". Gỡ không đóng cảnh báo.
+- **Gỡ dấu**: Bác sĩ, lý do; bean `ThamGiaChuyenTrangThai` của `incident` tự gỡ khi `CHUYEN_VIEN` hoặc trạng thái cuối, lý do "tự gỡ theo trạng thái". Gỡ không đóng cảnh báo.
 - Đính chính kết quả, lựa chọn qua 000 (loại `M05.KET_QUA_XAC_NHAN_LAI`, `M05.LUA_CHON_THUC_HIEN`).
 
 ---
@@ -291,7 +291,7 @@ Chiều mã giữa hai module: `m05 → m06` (thẻ khẩn cấp, bản tóm t�
 - `khoang_theo_doi_sau_nga` (nhóm 2): `nct_id`, `su_co_id`, `moc`, `ket_thuc` (`moc + thời gian theo dõi` của CFG-M05-06), `khoang_do` (chốt lúc tạo), trạng thái `DANG_THEO_DOI | DUOC_THAY | KET_THUC_SOM | DA_HET`, lý do. Cột sinh `UNIQUE` một khoảng `DANG_THEO_DOI` mỗi người (FR-052). "Đang theo dõi sau ngã" tính lúc đọc: `DANG_THEO_DOI` và `bây giờ < ket_thuc`. *(R-15: `khoang_theo_doi_sau_nga` → `ho_so_chung`)*
 - Hàm thuần `MocTheoDoiSauNga(thoiDiemXayRa?, thoiDiemGhiNhan, khoangDo)` theo FR-051 (CHK013): `moc = max(xayRa, ghiNhan − khoangDo)` khi có thời điểm xảy ra, ngược lại `ghiNhan`; lần đo đầu `moc + khoangDo`.
 - Khi ghi sự cố Ngã (hoặc đổi loại sang Ngã) trong cùng transaction: khoảng cũ đang theo dõi → `DUOC_THAY`, thêm khoảng mới; phát `SuCoNgaDaGhiNhan(nctId, suCoId)` (005 đã đề xuất; 005 báo điều dưỡng xem xét kế hoạch), `CanLapCongViecTheoDoiSauNga(nctId, suCoId, moc, ketThuc, khoangDo)` cho Người phụ trách ca của tầng (Trung bình); `SuCoDaGhiNhan(canDanhGiaLai = true)` cho 001. Không tạo lịch đo hay công việc (Q-306, Q-307, SC-007).
-- Bean `NguonCongViecPort` của `m05` cho `THEO_DOI_SAU_NGA`: căn cứ là `su_co_id`; hợp lệ khi khoảng của sự cố đó `DANG_THEO_DOI` và thời điểm dự kiến trong `(moc, ket_thuc]`; ngoài khoảng thì 005 chặn (US6 Independent Test).
+- Bean `NguonCongViecPort` của `incident` cho `THEO_DOI_SAU_NGA`: căn cứ là `su_co_id`; hợp lệ khi khoảng của sự cố đó `DANG_THEO_DOI` và thời điểm dự kiến trong `(moc, ket_thuc]`; ngoài khoảng thì 005 chặn (US6 Independent Test).
 - **Kết thúc sớm** (Bác sĩ, lý do): khoảng → `KET_THUC_SOM`; gọi `NguonCongViecApi.nguonBiHuy(THEO_DOI_SAU_NGA, suCoId, lyDo)` trong cùng transaction. Hết thời gian: job theo phút chuyển `DA_HET`. Vắng mặt không kéo dài khoảng (US6 #5).
 
 ---
@@ -308,13 +308,13 @@ Chiều mã giữa hai module: `m05 → m06` (thẻ khẩn cấp, bản tóm t�
   Kết quả kèm nhóm, nguồn, khoảng tiếp xúc; các khoảng người nghi nhiễm vắng mặt (`khoangTrangThai` của 001) được đánh dấu (FR-060).
 - `danh_sach_tiep_xuc` (nhóm 2, một danh sách mỗi sự cố: `UNIQUE (su_co_id)`) và `nguoi_tiep_xuc` (nhóm 2 theo dòng: loại `NGUOI_CAO_TUOI | NHAN_VIEN | NGUOI_THAN | NGUOI_DI_CUNG`, tham chiếu, nhóm, nguồn, khoảng tiếp xúc, `theo_doi_tu`, `theo_doi_den`, `bi_loai_luc`, lý do). Lệnh theo bảng FR-061; quyền: Điều dưỡng trong phạm vi của người nghi nhiễm hoặc Bác sĩ (Q-68). *(R-15: `danh_sach_tiep_xuc`, `nguoi_tiep_xuc` → `ho_so_chung`)*
 - **Xác nhận, bổ sung** (FR-062): mỗi người cao tuổi mới: `theo_doi_tu = thời điểm xác nhận`, `theo_doi_den = + 7 ngày` (phần "trong 7 ngày" của CFG-M05-08); dấu "tiếp xúc" tính lúc đọc trên hợp các khoảng chưa bị loại của người đó (khoảng trùng gộp tới mốc muộn nhất). Phát `DaThemVaoDanhSachTiepXuc(nctId, thoiDiem)` (003 đã khai báo); `CanLapCongViecDoNhietDo(nctId, nguoiTiepXucId, tu, den, tanSuat)` cho Người phụ trách ca của tầng người đó (Trung bình); `ThongBaoTiepXuc` cho nhân viên và người thân trong danh sách (nhóm `NGUOI_TRONG_BAN_GHI_NGUON`, loại thông tin `CHUNG`, nội dung chỉ "tầng/khu vực, khoảng thời gian" và số liên hệ của viện; 009 FR-007 d, Q-112); `DanhSachTiepXucDaXacNhan` cho Quản lý viện (đầy đủ).
-- Bean `NguonCongViecPort` của `m05` cho `THEO_DOI_TIEP_XUC`: căn cứ là `nguoi_tiep_xuc.id`; hợp lệ khi dòng chưa bị loại, người khớp, thời điểm trong khoảng theo dõi. Người phụ trách ca vẫn được báo dù đã có lịch đo nhiệt độ của Bác sĩ (Edge Case); trùng căn cứ và thời điểm do 005 chặn.
+- Bean `NguonCongViecPort` của `incident` cho `THEO_DOI_TIEP_XUC`: căn cứ là `nguoi_tiep_xuc.id`; hợp lệ khi dòng chưa bị loại, người khớp, thời điểm trong khoảng theo dõi. Người phụ trách ca vẫn được báo dù đã có lịch đo nhiệt độ của Bác sĩ (Edge Case); trùng căn cứ và thời điểm do 005 chặn.
 - **Loại người**: `bi_loai_luc`, lý do; gọi `NguonCongViecApi.nguonBiHuy(THEO_DOI_TIEP_XUC, nguoiTiepXucId)`.
 - **Hành chính** chỉ xem `GET /su-co/{id}/nguoi-than-can-lien-he`: họ tên, quan hệ, số điện thoại, nội dung cần báo của người thân không có kênh nhận (CHK062). Endpoint khác của danh sách trả 403 với Hành chính.
 - `PhanBoDaDinhChinh` (003): danh sách có khoảng truy vết chứa khoảng đổi thì phát `DanhSachTiepXucCanXemLai` cho người xác nhận và các Bác sĩ (Nhẹ); không tự đổi danh sách (FR-061, Q-274).
 - **Khoanh vùng**: `khoanh_vung` (nhóm 2), `khoanh_vung_pham_vi` (tầng hoặc một khu vực; không có phòng, Q-69), `khoanh_vung_su_co` (≥ 1 sự cố lây nhiễm chưa đóng). Lệnh Khoanh vùng, Gỡ (Bác sĩ, Quản lý viện; lý do). Vùng tính theo cơ cấu hiện hành (`CoCauViTriApi`), nên phòng mới tạo trong tầng đang khoanh chịu chặn ngay (CHK043). *(R-15: `khoanh_vung` → `ho_so_chung`; `khoanh_vung_pham_vi`, `khoanh_vung_su_co` → cột `JSON` của bảng cha)*
 - `KhoanhVungApi` (đọc): `dangChiu(phongId | tangId | nctId, t)` trả các vùng bao; 012 (chặn đăng ký thăm), 014 (chặn đăng ký hoạt động, buổi trong vùng), 016 dùng. Bean `TinhTrangLayNhiemChoPhanBo` cho 003 (vùng đang khoanh; nghi nhiễm hoặc tiếp xúc). Phát `KhoanhVungDaTao(vungId, tangIds, khuVucIds)` (012 hủy lượt thăm đã duyệt, 014 hủy buổi, 009 thông báo Trưởng tầng, Hành chính, điều dưỡng có ca trong vùng) và `KhoanhVungDaGo(tangIds, khuVucIds)` (003 đã khai báo). Chặn còn khi còn ít nhất một vùng bao (Edge Case hai vùng chồng nhau).
-- **Cảnh báo không chặn** (FR-065, CHK008): bean trạng thái của `m05` cài `canhBao(nc)` cho `CHO_TAM_VANG`, `CHUYEN_VIEN`: người thuộc vùng đang khoanh thì trả cảnh báo "thuộc vùng đang khoanh vùng"; không thêm điều kiện chặn. Quy trình đón của 012 tự đọc `KhoanhVungApi`.
+- **Cảnh báo không chặn** (FR-065, CHK008): bean trạng thái của `incident` cài `canhBao(nc)` cho `CHO_TAM_VANG`, `CHUYEN_VIEN`: người thuộc vùng đang khoanh thì trả cảnh báo "thuộc vùng đang khoanh vùng"; không thêm điều kiện chặn. Quy trình đón của 012 tự đọc `KhoanhVungApi`.
 - **Đóng sự cố lây nhiễm** (FR-066): còn vùng `DANG_KHOANH_VUNG` mà tập sự cố gắn chỉ còn sự cố này thì 409 `CON_VUNG_KHOANH_CHI_GAN_SU_CO`. Đóng thì danh sách → `DA_KET_THUC`, dấu tiếp xúc giữ tới hết khoảng theo dõi.
 
 **Lý do**: Q-307 bỏ đề xuất, nên tra cứu là phép đọc có quyền, không phải bản ghi; dữ liệu nguồn nằm ở năm module nên đi qua giao diện của từng module (constitution X).
@@ -325,7 +325,7 @@ Chiều mã giữa hai module: `m05 → m06` (thẻ khẩn cấp, bản tóm t�
 
 **Quyết định**:
 - `giay_phep_co_so` (nhóm 1 có lịch sử): số, cơ quan cấp, ngày cấp, ngày hết hạn, `co_kham_chua_benh`, `thay_the_cho`, `thay_the_do_sai_sot`, `tep_scan_id`; bảng con `giay_phep_co_so_pham_vi` (mã phạm vi chuyên môn theo danh mục phạm vi hành nghề của 008). Không `UPDATE`, không `DELETE` (trigger); gia hạn, đổi phạm vi, sửa sai là bản mới; bản bị thay do sai sót không dùng để xét hiệu lực (FR-075). *(R-15: `giay_phep_co_so`, `giay_phep_co_so_pham_vi` → `danh_muc_chung`)*
-- `GiayPhepCoSoApi` (khai báo ở `m15.taikhoan.api`, `m06` cài): `coPhamVi(phamVi, ngay)` = tồn tại bản không bị thay do sai sót, `ngay_cap <= ngay <= ngay_het_han`, có `co_kham_chua_benh` và phạm vi đó (FR-071); `sapHetHan(trongVong)` cho job cảnh báo của 002 (CFG-M06-02). Không có công tắc riêng.
+- `GiayPhepCoSoApi` (khai báo ở `administration.taikhoan.api`, `health` cài): `coPhamVi(phamVi, ngay)` = tồn tại bản không bị thay do sai sót, `ngay_cap <= ngay <= ngay_het_han`, có `co_kham_chua_benh` và phạm vi đó (FR-071); `sapHetHan(trongVong)` cho job cảnh báo của 002 (CFG-M06-02). Không có công tắc riêng.
 - `so_lien_he_vien` (nhóm 1, một dòng): số điện thoại, ghi chú; đổi có nhật ký (FR-070, CHK057). `SoLienHeVienApi.hienHanh()` cho 009 và cho nội dung thông báo của 007. *(R-15: `so_lien_he_vien` → `danh_muc_chung`)*
 - `ban_ghi_kham` (nhóm 3): loại `KHAM | DANH_GIA | CHAN_DOAN | CHI_DINH | DIEU_TRI | KET_QUA`, nội dung, `co_so_thuc_hien` (`VIEN` hoặc tên cơ sở ngoài), người thực hiện (nhân viên hoặc tên ngoài), thời điểm, tệp đính kèm, người ghi. Kiểm tra: *(R-15: `ban_ghi_kham` → `su_kien_chung`)*
   - Bác sĩ ghi mọi loại; `CHAN_DOAN`, `CHI_DINH`, `DIEU_TRI` tại viện gọi `QuyenApi.coQuyen(nd, (KHAM_DIEU_TRI, CHUYEN_MON), doiTuong)`: 002 xét lớp pháp lý gồm giấy phép bác sĩ (008) và `GiayPhepCoSoApi` (FR-073, SC-010);
@@ -336,16 +336,16 @@ Chiều mã giữa hai module: `m05 → m06` (thẻ khẩn cấp, bản tóm t�
 
 ## S-17. Bean trạng thái và việc sau qua đời (FR-006, FR-022, FR-038, FR-050a, Edge Case trạng thái cuối)
 
-**Quyết định**: Hai bean `ThamGiaChuyenTrangThai`, `@Order` sau 006: `m06` rồi `m05`.
+**Quyết định**: Hai bean `ThamGiaChuyenTrangThai`, `@Order` sau 006: `health` rồi `incident`.
 
-| Lệnh | `m06` | `m05` |
+| Lệnh | `health` | `incident` |
 | --- | --- | --- |
 | `KET_THUC_LUU_TRU` | Tác động: lịch đo `HIEU_LUC`, `CHO_HIEU_LUC` → `DA_NGUNG` (lý do trạng thái cuối, gọi `nguonBiHuy`); ngưỡng cá nhân `HIEU_LUC` → `HET_HIEU_LUC`, `CHO_HIEU_LUC` → `DA_HUY` | Điều kiện `KT_D_CANH_BAO_SU_CO` (`coTheMien = true`): còn cảnh báo đang mở hoặc sự cố `MOI`, `DANG_XU_LY`, `DANG_THEO_DOI` (CHK061). Tác động: `dung_leo_thang`; dấu nguy kịch → `DA_GO`; khoảng theo dõi sau ngã → `DA_HET`; danh sách tiếp xúc giữ |
 | `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN` | Như trên | Như trên, không có điều kiện chặn |
 | `CHUYEN_VIEN` | — | Dấu nguy kịch → `DA_GO` "tự gỡ theo trạng thái"; `canhBao` khi thuộc vùng khoanh (S-15) |
 | `CHO_TAM_VANG` | — | `canhBao` khi thuộc vùng khoanh |
 
-- `MucViecSauQuaDoiPort` của `m05`: `ma() = CANH_BAO_SU_CO`; `CHUA_HOAN_THANH` khi còn cảnh báo đang mở hoặc sự cố mở; `KHONG_AP_DUNG` khi người đó chưa từng có; còn lại `HOAN_THANH`. Sau mỗi lệnh đóng cảnh báo, sự cố của người ở trạng thái cuối, `m05` gọi `DanhSachViecSauQuaDoiApi.capNhat(nctId)`.
+- `MucViecSauQuaDoiPort` của `incident`: `ma() = CANH_BAO_SU_CO`; `CHUA_HOAN_THANH` khi còn cảnh báo đang mở hoặc sự cố mở; `KHONG_AP_DUNG` khi người đó chưa từng có; còn lại `HOAN_THANH`. Sau mỗi lệnh đóng cảnh báo, sự cố của người ở trạng thái cuối, `incident` gọi `DanhSachViecSauQuaDoiApi.capNhat(nctId)`.
 - Cảnh báo có nguồn từ 005, 006 được đóng bởi yêu cầu đóng `TRANG_THAI_CUOI` mà các bean đó phát (S-09).
 
 ---
@@ -353,8 +353,8 @@ Chiều mã giữa hai module: `m05 → m06` (thẻ khẩn cấp, bản tóm t�
 ## S-18. Bàn giao ca (FR-037, BR-M05-05, BR-M09-08, Q-78, Q-94, Q-307)
 
 **Quyết định**:
-- `CanhBaoBanGiaoApi` (`m05.api`, đọc và MANDATORY) cho 008:
-  - `dangMo(tangKhuVucId, caId)`: cảnh báo, sự cố đang mở của người thuộc tầng (kể cả người vắng mặt theo quy tắc tầng của S-08), kèm người phụ trách, mức, hạn; `ChiSoBanGiaoApi.vuotNguongTrongCa(tang, tu, den)` (`m06.api`) cho chỉ số vượt ngưỡng trong ca. Người lập bàn giao tự ghi (Q-307); 007 không lập mục bàn giao.
+- `CanhBaoBanGiaoApi` (`incident.api`, đọc và MANDATORY) cho 008:
+  - `dangMo(tangKhuVucId, caId)`: cảnh báo, sự cố đang mở của người thuộc tầng (kể cả người vắng mặt theo quy tắc tầng của S-08), kèm người phụ trách, mức, hạn; `ChiSoBanGiaoApi.vuotNguongTrongCa(tang, tu, den)` (`health.api`) cho chỉ số vượt ngưỡng trong ca. Người lập bàn giao tự ghi (Q-307); 007 không lập mục bàn giao.
   - `khiXacNhanBanGiao(banGiaoId, caTruocId, caSauId, tangKhuVucId)` (MANDATORY, trong transaction xác nhận của 008): với mỗi cảnh báo, sự cố đang mở của tầng có người phụ trách "thuộc ca trước" (`NhanSuCanhBaoPort.coTenTrongCa(nguoi, caTruocId)`) và không phải Bác sĩ, Quản lý viện (CHK016), hoặc đang `tam_nhan_ban_giao`: người phụ trách mới = Điều dưỡng phụ trách người đó trong ca sau, không có thì Người phụ trách ca sau; giữ trạng thái, cấp, hạn; gỡ dấu tạm nhận; ghi lịch sử; phát `NguoiPhuTrachDaDoi` (Nhẹ).
 - **Tạm nhận** (FR-037 ngoại lệ, Q-94): job theo phút gọi `NhanSuCanhBaoPort.caDaBatDauChuaXacNhanBanGiao(tu, den)`; với mỗi (ca sau, tầng) chưa xử lý (`lan_chay_m05`), mục có người phụ trách thuộc ca trước và không có tên trong ca nào đang diễn ra được chuyển tạm sang Người phụ trách ca sau (không có thì Trưởng tầng được giao), đặt `tam_nhan_ban_giao = true`. Người tạm nhận thay Điều dưỡng phụ trách ở cấp 0 và người nhận FR-035; các cấp sau giữ. *(R-15: `lan_chay_m05` → `moc_da_nhac`)*
 
@@ -459,7 +459,7 @@ Mức (spec; dòng có * là plan áp nguyên tắc 3 bậc của 009 FR-043b, x
 ## S-23. Nút SOS của người cao tuổi *(bổ sung 2026-10-18; FR-026 (d), FR-047d → FR-047g, BR-M05-27, Q-369)*
 
 **Quyết định**:
-- **Endpoint**: `POST /sos` ở `m05.canhbao.web`, không qua bộ lọc phiên; header `X-Token-Thiet-Bi` và `X-Thiet-Bi`, `Idempotency-Key` cho mỗi lần bấm (app gửi lại khi mất phản hồi không tạo hai lần bấm). Đếm ngược 3 giây và nút Hủy là việc của app (012 FR-085, Q-372); Hủy thì app không gửi gì; máy chủ coi mỗi yêu cầu là một lần bấm.
+- **Endpoint**: `POST /sos` ở `incident.canhbao.web`, không qua bộ lọc phiên; header `X-Token-Thiet-Bi` và `X-Thiet-Bi`, `Idempotency-Key` cho mỗi lần bấm (app gửi lại khi mất phản hồi không tạo hai lần bấm). Đếm ngược 3 giây và nút Hủy là việc của app (012 FR-085, Q-372); Hủy thì app không gửi gì; máy chủ coi mỗi yêu cầu là một lần bấm.
 - **Xác định người**: `ThietBiGanApi.xacDinh(token)` (002); rỗng thì 401 `THIET_BI_KHONG_HOP_LE`.
 - **Điều kiện** (FR-047d), kiểm theo thứ tự, mỗi lỗi trả 409 kèm `lienHe` (số liên hệ của viện từ `SoLienHeVienApi`, số 115): Tạm vắng, Điều trị tại bệnh viện hoặc trạng thái cuối (`NguoiCaoTuoiApi.trangThai`) → `KHONG_O_VIEN`; người bán trú mà `CoMatBanTruApi.theoNgay` không phải `CO_MAT` → `KHONG_CO_MAT`. Hoạt động bên ngoài thì gửi được.
 - **Ghi nhận**: trong một transaction, thêm `lan_bam_sos` (phòng, giường lúc bấm từ `ViTriApi.hienTai`), rồi gọi đường tạo cảnh báo sẵn có (S-08) với loại `NCT_YEU_CAU_TRO_GIUP`, khóa `SOS`, mức Khẩn cấp, nguồn `SOS` = id lần bấm. Cảnh báo đang mở cùng khóa thì gộp (FR-028, FR-030), không tạo mới; mức đã Khẩn cấp nên không nâng. *(R-15: `lan_bam_sos` → `su_kien_chung`)*

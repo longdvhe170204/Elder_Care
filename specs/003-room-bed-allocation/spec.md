@@ -119,7 +119,7 @@ Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi 
 
 - Người nội trú vắng (Cho tạm vắng, Chuyển viện) luôn được giữ giường, không có hạn giữ: giường chuyển Đang giữ chỗ (người vắng), phân bổ giữ nguyên. Không còn nhánh "không giữ giường".
 - Giường chỉ được giải phóng khi Quản lý viện thực hiện lệnh "Giải phóng giường" của lượt vắng ở feature 004 (thay lệnh "Quyết định giữ giường" của Q-345); 004 báo Quản lý viện khi lượt vắng tới CFG-M02-05 ngày.
-- Sửa kịch bản US3-6, US3-8 (bỏ), FR-015, FR-024, FR-025a, bảng trạng thái giường và phân bổ. Mã m03 giữ nguyên giao diện `AllocationResidencySource.holdBedWhenAbsent` (004 luôn trả giữ, không hạn) và `BedAllocationCommandApi.releaseWhenAbsent`.
+- Sửa kịch bản US3-6, US3-8 (bỏ), FR-015, FR-024, FR-025a, bảng trạng thái giường và phân bổ. Mã roombedallocation giữ nguyên giao diện `AllocationResidencySource.holdBedWhenAbsent` (004 luôn trả giữ, không hạn) và `BedAllocationCommandApi.releaseWhenAbsent`.
 
 ## Phạm vi
 

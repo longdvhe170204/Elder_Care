@@ -1,0 +1,6 @@
+package com.eldercare.backend.roombedallocation.internal.allocation.domain;
+
+import com.eldercare.backend.roombedallocation.api.spi.CareLevelCode;
+
+/** Mức và nguồn dùng thực tế để kiểm theo Q-301. */
+public record CheckedCareLevel(CareLevelCode level, CareLevelSource source) {}
