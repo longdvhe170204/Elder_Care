@@ -15,8 +15,8 @@ Feature 014 là phần 8.8 → 8.10 và BR-M04-23 của module M04 (UC-29, UC-30
 6. Kiểm tra chất lượng: người kiểm tra tự chọn công việc đủ tỷ lệ, ghi kết quả, lập công việc làm lại (mục J; BR-M04-23, Q-307).
 
 Hướng kỹ thuật:
-- Thêm gói con vào `m04` cùng 005; dùng dịch vụ nội bộ của 005 (công việc, có mặt bán trú, công việc làm lại) và cài các SPI 005 đã khai cho 014 (research L-01, L-02).
-- Module phụ thuộc M04 (006, 007, 008, 011, 012) đã khai SPI cho 014; 014 cài. Với 015, 016 (làm sau), 014 khai `ChuyenDiNhiemVuLenhApi`, `ChuyenDiThayDoi`, `HoatDongThongKeApi` ở `m04.api`; lịch xe gọi API ở `m03.api` do 019 cung cấp (sửa theo plan 019).
+- Thêm gói con vào `care` cùng 005; dùng dịch vụ nội bộ của 005 (công việc, có mặt bán trú, công việc làm lại) và cài các SPI 005 đã khai cho 014 (research L-01, L-02).
+- Module phụ thuộc M04 (006, 007, 008, 011, 012) đã khai SPI cho 014; 014 cài. Với 015, 016 (làm sau), 014 khai `ChuyenDiNhiemVuLenhApi`, `ChuyenDiThayDoi`, `HoatDongThongKeApi` ở `care.api`; lịch xe gọi API ở `roombedallocation.api` do 019 cung cấp (sửa theo plan 019).
 - Điểm danh rời viện, về gọi lệnh hệ thống của 001 trong cùng transaction; 001 điều phối các bean (005, 006, 011…) như mọi lệnh trạng thái (L-08).
 - Điều kiện đăng ký, ngày tính, chuỗi cô lập, công việc đủ điều kiện, số mục tối thiểu, người kiểm tra là hàm thuần (L-05, L-09, L-10).
 - Hợp đồng 007 thêm `YeuCauGhiDienBienCanhBao` và `DauNghiNhiemDaDoi` (L-11).
@@ -32,8 +32,8 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ### Cập nhật 2026-10-18, lượt 3 (spec mục "Cập nhật 2026-10-18, lượt 3": Q-366, Q-369)
 
-- **Kênh người cao tuổi** (FR-068a): 014 cài SPI `m10.api.HoatDongKenhNctPort.sapToi(nctId, tu, den)`: buổi của tầng người cao tuổi và toàn viện, cờ đã có tên; không trả đánh giá khả năng tham gia, lý do không được đăng ký (research L-16).
-- **Nút SOS** (FR-068a): 014 cài SPI `m05.api.ChuyenDiSosPort.dangDienRa(nctId)`: chuyến mà người cao tuổi đã điểm danh rời viện, chưa điểm danh về; trưởng đoàn, người đi cùng hiện tại (007 research S-23).
+- **Kênh người cao tuổi** (FR-068a): 014 cài SPI `family.api.HoatDongKenhNctPort.sapToi(nctId, tu, den)`: buổi của tầng người cao tuổi và toàn viện, cờ đã có tên; không trả đánh giá khả năng tham gia, lý do không được đăng ký (research L-16).
+- **Nút SOS** (FR-068a): 014 cài SPI `incident.api.ChuyenDiSosPort.dangDienRa(nctId)`: chuyến mà người cao tuổi đã điểm danh rời viện, chưa điểm danh về; trưởng đoàn, người đi cùng hiện tại (007 research S-23).
 - **Nhắc buổi trong ngày** (FR-071): job 00:05 phát yêu cầu Nhẹ nhóm `NguoiCaoTuoi` (009 FR-007 (f)) cho buổi trong ngày mà người cao tuổi có tên; đăng ký trong ngày thì phát khi đăng ký. 009 giữ tới hết giờ yên tĩnh.
 - **Sở thích ghi từ phản hồi Mong muốn** (001 FR-023g): `so_thich` thêm `phan_hoi_id NULL`; lệnh ghi có `phanHoiId` thì phát `YKienDaGhiTuPhanHoi` (001 research H-17). *(R-15: `so_thich` → `ho_so_chung`)*
 
@@ -95,7 +95,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ; điểm còn lệch ghi ở mục báo lại |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-015 (trừ SC-011, 012 đã bỏ) có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 007 được bổ sung (mục "Đồng bộ") |
-| X. Kiến trúc | Đạt | Một khối; gói con của `m04`; module khác dùng `m04.api` hoặc SPI. Không có vòng (L-02) |
+| X. Kiến trúc | Đạt | Một khối; gói con của `care`; module khác dùng `care.api` hoặc SPI. Không có vòng (L-02) |
 | XI. Nghiệp vụ ở backend | Đạt | Điều kiện đăng ký, rời viện, chuỗi cô lập, tỷ lệ kiểm tra ở backend |
 | XII. Dữ liệu | Đạt | `UNIQUE` và trigger ở data-model; nhật ký trong transaction; `Clock` |
 | XIII. Tham số | Đạt | Như V |
@@ -134,7 +134,7 @@ specs/014-activity-care-quality/
 ├── quickstart.md                # Phase 1: kịch bản kiểm chứng Q1 → Q45, truy vết → test
 ├── contracts/
 │   ├── api-014.yaml             # OpenAPI 3.1: hoạt động, buổi, đăng ký, điểm danh, chuyến đi, tinh thần, kiểm tra, cổng
-│   └── module-interfaces.md     # SPI 014 cài, giao diện mới ở m04.api, sự kiện
+│   └── module-interfaces.md     # SPI 014 cài, giao diện mới ở care.api, sự kiện
 └── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
@@ -143,7 +143,7 @@ specs/014-activity-care-quality/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/com/cambae/backend/m04/
+backend/src/main/java/com/eldercare/backend/care/
 ├── api/           # (bổ sung) ChuyenDiNhiemVuLenhApi, ChuyenDiThayDoi, HoatDongThongKeApi
 ├── hoatdong/      {internal, web}   # loại, hoạt động, mẫu, người thường xuyên, BuoiTheoMau, lich/
 ├── buoi/          {internal, web}   # buổi, đăng ký, DieuKienDangKy, đồng ý về muộn, điểm danh
@@ -158,7 +158,7 @@ mobile/lib/nhan-vien/hoat-dong/   # điểm danh, chuyến đi, kiểm tra tại
 mobile/lib/nguoi-than/hoat-dong/  # buổi, chuyến, đồng ý về muộn
 ```
 
-**Structure Decision**: Theo R-02 của 000 và quyết định của plan 005: 014 thêm năm gói con vào `backend/…/m04`.
+**Structure Decision**: Theo R-02 của 000 và quyết định của plan 005: 014 thêm năm gói con vào `backend/…/care`.
 
 ## Complexity Tracking
 
@@ -172,7 +172,7 @@ mobile/lib/nguoi-than/hoat-dong/  # buổi, chuyến, đồng ý về muộn
 
 1. **007** ([../007-health-alert-incident/contracts/module-interfaces.md](../007-health-alert-incident/contracts/module-interfaces.md)): thêm sự kiện `YeuCauGhiDienBienCanhBao` (mục 1.13) và `DauNghiNhiemDaDoi` (bảng sự kiện 007 phát). 014 dùng `SuCoLenhApi.ghiNhan`, `themDienBien`, `YeuCauTaoCanhBao`, `KhoanhVungApi`, `SuCoApi.dau` như đã khai.
 2. **001, 005, 006, 008, 010, 011, 012**: cài và dùng các SPI, API, sự kiện đã khai đúng chữ ký (`DIEM_DANH_ROI_VIEN.chuyenId` giữ như 006 đề xuất). Không đổi.
-3. **015, 016, 019** (làm plan sau): 015 gọi `ChuyenDiNhiemVuLenhApi.goNhiemVu` trong lệnh đổi ca, nghỉ đột xuất; 019 cung cấp `m03.api.LichXeApi`, `LichXeLenhApi` mà 014 gọi (M04 → M03); 016 đọc `HoatDongThongKeApi` và nghe `ChuyenDiThayDoi`.
+3. **015, 016, 019** (làm plan sau): 015 gọi `ChuyenDiNhiemVuLenhApi.goNhiemVu` trong lệnh đổi ca, nghỉ đột xuất; 019 cung cấp `roombedallocation.api.LichXeApi`, `LichXeLenhApi` mà 014 gọi (M04 → M03); 016 đọc `HoatDongThongKeApi` và nghe `ChuyenDiThayDoi`.
 
 ## Điểm cần báo lại về tài liệu nguồn
 

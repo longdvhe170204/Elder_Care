@@ -10,7 +10,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## T-01. Vị trí trong backend
 
-**Quyết định**: Feature 004 là module M02 (mục 6). Gói `com.cambae.backend.m02` có các gói con:
+**Quyết định**: Feature 004 là module M02 (mục 6). Gói `com.eldercare.backend.admission` có các gói con:
 
 | Gói | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -38,15 +38,15 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 
 | Cặp | Chiều mã | Cách giữ một chiều |
 | --- | --- | --- |
-| 004 ↔ 001 | 004 → 001 | 004 cài `ThamGiaChuyenTrangThai` của 001 và gọi `MucChamSocApi`, `DanhGiaApi`, `TrangThaiNguoiCaoTuoiApi`. Các giao diện 001 cần từ 004 (`YeuCauDoiMucApi`, `HopDongApi`, `LuotVangApi`) chuyển thành SPI khai báo ở `m01.api`, M02 cài; chữ ký giữ như plan 001 |
-| 004 ↔ 002 | 004 → M15 | `KetThucLuuTruApi` mà 002 cần được khai báo ở `m15.taikhoan.api` dưới dạng SPI, M02 cài |
+| 004 ↔ 001 | 004 → 001 | 004 cài `ThamGiaChuyenTrangThai` của 001 và gọi `MucChamSocApi`, `DanhGiaApi`, `TrangThaiNguoiCaoTuoiApi`. Các giao diện 001 cần từ 004 (`YeuCauDoiMucApi`, `HopDongApi`, `LuotVangApi`) chuyển thành SPI khai báo ở `resident.api`, M02 cài; chữ ký giữ như plan 001 |
+| 004 ↔ 002 | 004 → M15 | `KetThucLuuTruApi` mà 002 cần được khai báo ở `administration.taikhoan.api` dưới dạng SPI, M02 cài |
 | 004 ↔ 003 | 004 → 003 | 004 gọi `PhanBoGiuongLenhApi`, `SucChuaBanTruApi`, `ViTriApi`, `PhongChoPhepApi`; 004 cài `NguonLuuTruChoPhanBo`, `DemLichDenBanTru` của 003 |
-| 004 ↔ 010, 017, 012, 005 | Các module này → 004 | 010 đọc đơn giá, nội dung hợp đồng, ngày lưu trú; 017 đọc hợp đồng; 012 hiện hợp đồng trên cổng; 005 đọc lịch đến. 004 cần lại một ít dữ liệu của họ qua SPI khai báo ở `m02.api`: `KyCuoiPort` (010), `TrangThaiDatCocPort` (017), `NguoiDaiDienPort`, `BanGhiDonPort` (012), `TrangThaiCoMatBanTruPort` (005), `MucViecSauQuaDoiPort` (010, 013, 006, 007, 017) |
+| 004 ↔ 010, 017, 012, 005 | Các module này → 004 | 010 đọc đơn giá, nội dung hợp đồng, ngày lưu trú; 017 đọc hợp đồng; 012 hiện hợp đồng trên cổng; 005 đọc lịch đến. 004 cần lại một ít dữ liệu của họ qua SPI khai báo ở `admission.api`: `KyCuoiPort` (010), `TrangThaiDatCocPort` (017), `NguoiDaiDienPort`, `BanGhiDonPort` (012), `TrangThaiCoMatBanTruPort` (005), `MucViecSauQuaDoiPort` (010, 013, 006, 007, 017) |
 | 004 → 009, 011, 018 | Sự kiện | 004 phát sự kiện sau commit (T-12) |
 
 Điều kiện kết thúc lưu trú (a) → (d), (h) không đi qua SPI của 004: 010, 013, 006, 007, 017 đã cài bean `ThamGiaChuyenTrangThai` cho lệnh `KET_THUC_LUU_TRU` của 001 (001 H-02). 004 hiển thị danh sách bằng `TrangThaiNguoiCaoTuoiApi.xemDieuKien` (T-09).
 
-**Lý do**: Modulith `verify()` từ chối vòng phụ thuộc (000 R-02). Plan 001 đã ghi "001 cần từ 004" mà chưa chọn chiều; chọn SPI ở `m01.api` giữ chữ ký đã thiết kế.
+**Lý do**: Modulith `verify()` từ chối vòng phụ thuộc (000 R-02). Plan 001 đã ghi "001 cần từ 004" mà chưa chọn chiều; chọn SPI ở `resident.api` giữ chữ ký đã thiết kế.
 
 **Phương án đã cân nhắc**: Sự kiện sau commit cho mọi tương tác: không đáp ứng "trong cùng một lần" của FR-002, FR-065, FR-070, FR-066 (1).
 

@@ -4,7 +4,7 @@
 
 Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đây không phải script SQL; migration viết ở giai đoạn triển khai. Quy ước kiểu, tên, cột chuẩn của nhóm 1, 2, 3 và mẫu trigger theo [data-model của 000](../000-shared-foundation/data-model.md) mục 1; không nhắc lại ở từng bảng. Người cao tuổi, nhân viên, người thân, ca, tầng/khu vực, phòng, công việc, đơn thuốc, lượt thăm, đồ gửi, tệp là tham chiếu logic (`BIGINT`), không có khóa ngoại sang module khác. Thời điểm lưu `DATETIME(6)` (000 R-04; DBR-25). Giá trị chỉ số lưu `DECIMAL(7,2)`.
 
-Bảng thuộc hai module: tiền tố mục "M06" là gói `m06`, "M05" là gói `m05` (research S-01).
+Bảng thuộc hai module: tiền tố mục "M06" là gói `health`, "M05" là gói `incident` (research S-01).
 
 ---
 

@@ -88,7 +88,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Nhiệm vụ | `NhiemVuApiIT` (người phụ trách ca theo thời điểm, thay Trưởng tầng, Bác sĩ trực nhiều người), `ThamChieuViTriIT` | Q26, Q37 |
 | Quyền riêng tư | `FR_052_GioiHanTruongNhanVienIT`, `FR_053_LyDoVangIT`, `FR_047_ChamSocXemBanGiaoIT`, `SC_012_ThongBaoNgoaiUngDungIT` | Q40, Q41 |
 | Bộ lập lịch | `ChayBuM09IT` | Q42 |
-| Kiến trúc | `ApplicationModules.verify()`; ArchUnit: chỉ `m09.doica`, `m09.xoayca` dùng port nội bộ; gói `..lich..` không lập ca, phân công, bàn giao | |
+| Kiến trúc | `ApplicationModules.verify()`; ArchUnit: chỉ `staffing.doica`, `staffing.xoayca` dùng port nội bộ; gói `..lich..` không lập ca, phân công, bàn giao | |
 | Web (Vitest) | Lịch Nháp (cảnh báo xác nhận, danh sách chặn công bố); màn bàn giao (danh sách nguồn không có nút "chép tất cả", mục không bỏ được, lỗi thiếu ghi chú) | Q3, Q8, Q27 → Q29 |
 | App (`flutter_test`) | `BanGiaoNgoaiTuyenChiXemTest`, `XoaBanGiaoKhiHetPhamViCaTest`, `GhiNhanVangCaTest` | Q22, Q38 |
 

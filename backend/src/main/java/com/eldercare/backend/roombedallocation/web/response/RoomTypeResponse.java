@@ -1,0 +1,28 @@
+package com.eldercare.backend.roombedallocation.web.response;
+
+import com.eldercare.backend.roombedallocation.api.spi.CareLevelCode;
+import com.eldercare.backend.roombedallocation.internal.structure.domain.RoomType;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Set;
+
+/** T017: phản hồi chỉ gồm trường hợp đồng, không serialize trực tiếp entity JPA. */
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record RoomTypeResponse(
+        long id,
+        String name,
+        int standardBeds,
+        Set<CareLevelCode> defaultCareLevels,
+        boolean servesLongTerm,
+        boolean servesShortTerm,
+        String status) {
+    public static RoomTypeResponse of(RoomType e) {
+        return new RoomTypeResponse(
+                e.getId(),
+                e.getName(),
+                e.standardBeds(),
+                e.careLevels(),
+                e.servesLongTerm(),
+                e.servesShortTerm(),
+                e.getStatus().name());
+    }
+}

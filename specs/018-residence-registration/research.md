@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## Z-01. Vị trí trong backend
 
-**Quyết định**: Feature 018 là phần 6.10 của module M02 (UC-80, UC-81; BR-M02-11 → 14), thêm gói `com.cambae.backend.m02.khaibao` cạnh các gói của 004. Gói dùng dịch vụ đọc hợp đồng của 004 trong cùng M02 qua lớp nội bộ (ArchUnit cho phép giữa các gói M02), không qua `m02.api`.
+**Quyết định**: Feature 018 là phần 6.10 của module M02 (UC-80, UC-81; BR-M02-11 → 14), thêm gói `com.eldercare.backend.admission.khaibao` cạnh các gói của 004. Gói dùng dịch vụ đọc hợp đồng của 004 trong cùng M02 qua lớp nội bộ (ArchUnit cho phép giữa các gói M02), không qua `admission.api`.
 
 **Lý do**: Constitution X chia gói theo M01–M15; Phụ lục 26.2 đặt UC-80, UC-81 ở 018, cùng Module 02 với 004 (mẫu 005 ↔ 014, 008 ↔ 015).
 
@@ -18,7 +18,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## Z-02. Chiều phụ thuộc
 
-**Quyết định**: 018 dùng: nội bộ M02 (hợp đồng, phụ lục, loại lưu trú, ngày bắt đầu/kết thúc; sự kiện nội bộ `TiepNhanHoanTat`, `PhuLucDaApDung`, `HopDongDaDoiTrangThai`, `HoSoKetThucDaHoanTat`, `QuaDoiDaGhiNhan`); 001 (`NguoiCaoTuoiApi.trangThai`, `TrangThaiNguoiCaoTuoiApi` lịch sử, địa chỉ thường trú trên hồ sơ để Hành chính đối chiếu); 000 (tham số, nhật ký, đính chính, tệp). Cài bean `ThamGiaChuyenTrangThai` (`m01.api`) cho tác động khi trạng thái cuối. Phát thông báo (009); 016 đọc `KhaiBaoThongKeApi` (`m02.api`). Không có SPI mới.
+**Quyết định**: 018 dùng: nội bộ M02 (hợp đồng, phụ lục, loại lưu trú, ngày bắt đầu/kết thúc; sự kiện nội bộ `TiepNhanHoanTat`, `PhuLucDaApDung`, `HopDongDaDoiTrangThai`, `HoSoKetThucDaHoanTat`, `QuaDoiDaGhiNhan`); 001 (`NguoiCaoTuoiApi.trangThai`, `TrangThaiNguoiCaoTuoiApi` lịch sử, địa chỉ thường trú trên hồ sơ để Hành chính đối chiếu); 000 (tham số, nhật ký, đính chính, tệp). Cài bean `ThamGiaChuyenTrangThai` (`resident.api`) cho tác động khi trạng thái cuối. Phát thông báo (009); 016 đọc `KhaiBaoThongKeApi` (`admission.api`). Không có SPI mới.
 
 ---
 

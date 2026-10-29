@@ -49,7 +49,7 @@ Mô tả dưới đây thay mô tả của các bảng đã gộp (mô tả cũ 
 
 **Chuyển dữ liệu (`V003_95`)**: `area`, `floor`, `room_type` (kèm `room_type_care_level`), `bed_transfer_reason`, `day_care_rest_area`, `day_care_session` vào `danh_muc_chung`, đổi `room.floor_id`, `room.room_type_id`, `bed_allocation.transfer_reason_id` và tham chiếu khu nghỉ, buổi bán trú ở module khác (đọc qua `LocationStructureApi`, không có khóa ngoại ngoài 003) theo id mới; `room_allowed_care_level` vào `room.allowed_care_levels`; `room_isolation_history` vào `lich_su_chung`; `bed_backfill_request` vào `ho_so_chung`; `resident_position` vào `trang_thai_nct`; `allocation_reminder` vào `moc_da_nhac`; hai bảng khóa vào `khoa_ky_thuat`. Viết lại `v_current_allocation`. `dinh_chinh` trỏ `M03.BED_ALLOCATION` giữ id.
 
-**Bảo đảm** (thay phần tương ứng ở các mục sau): một phân bổ hiện hành mỗi giường, mỗi người và không chồng thời gian (giữ ở `bed_allocation`); BR-M03-10 (giữ `CHECK`); mã tầng không trùng trong khu vực (`ma_khoa`); một khu nghỉ bán trú Hiệu lực (kiểm dưới khóa). Test m03 hiện có phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục), trừ `FR_035_LocationHistoryHttpIT` đang đỏ sẵn (team-plan mục 8).
+**Bảo đảm** (thay phần tương ứng ở các mục sau): một phân bổ hiện hành mỗi giường, mỗi người và không chồng thời gian (giữ ở `bed_allocation`); BR-M03-10 (giữ `CHECK`); mã tầng không trùng trong khu vực (`ma_khoa`); một khu nghỉ bán trú Hiệu lực (kiểm dưới khóa). Test roombedallocation hiện có phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục), trừ `FR_035_LocationHistoryHttpIT` đang đỏ sẵn (team-plan mục 8).
 
 **Bảng truy vết sau gộp** *(bổ sung 2026-10-30; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR, BR ở các mục sau theo bảng này)*:
 
@@ -60,9 +60,9 @@ Mô tả dưới đây thay mô tả của các bảng đã gộp (mô tả cũ 
 **Test phải đổi bảng đích** *(rà 2026-10-30; 50 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
 - Fixture dùng chung (`support/`, ảnh hưởng mọi module; sửa trong cùng PR, báo cả nhóm ở team-plan mục 8): `FR_018_FakeM03Test`, `FakeLocations`.
 - Test của module: `BR_M03_03_DayCareCapacityIT`, `BR_M03_21_ControlledTransferIT`, `BR_M03_22_BedCreationIT`, `BR_M03_25_DayCareParameterIT`, `DBR_09_AllocationSchemaIT`, `DBR_23_RecordTablesIT`, `DBR_26_BedSchemaIT`, `FR_001_StructureEntitiesTest`, `FR_001_StructureHttpIT`, `FR_001_StructureSchemaIT`, `FR_003_UniqueCodesIT`, `FR_005_DeactivateStructureIT`, `FR_008_RoomIsolationIT`, `FR_016_BedStateIT`, `FR_017_AllocationEntitiesIT`, `FR_017_AllocationQueriesIT`, `FR_017_StructureApiIT`, `FR_020_AllocationLocksIT`, `FR_022_AllocationHttpIT`, `FR_023_AllocationCommandsIT`, `FR_024_AllocationStatusParticipantIT`, `FR_027_BackfillSchemaIT`, `FR_028_ControlledTransferAtomicityIT`, `FR_035_LocationHistoryIT`, `FR_038_DayCareConcurrencyIT`, `FR_038_DayCareHttpIT`, `FR_038_DayCareSchemaIT`, `FR_041c_FloorAreaNameIT`, `FR_044_BedRemindersIT`, `FR_049_M03GovernanceIT`, `SC_008_BedReportingIT`, `StructureTestSupport`, `T064_BedListPerformanceIT`.
-- Test của m09 (chủ module review): `AssignmentIT`, `AssignmentSourcesTest`, `NextHandoverShiftTest`, `PostPublicationNotificationsTest`, `PostPublicationPortsIT`, `PrimaryAssigneeResolverTest`, `ShiftPortFakesTest`, `ShiftQueriesIT`, `ShiftScheduleIT`, `StaffStatisticsIT`, `StaffingRatioIT`, `StaffingSourceContractsTest`.
-- Test của m14 (chủ module review): `MetricLicenseStaffTest`.
-- Test của m15 (chủ module review): `AuditLogReportExportIT`, `RecordGroupTriggerIT`.
+- Test của staffing (chủ module review): `AssignmentIT`, `AssignmentSourcesTest`, `NextHandoverShiftTest`, `PostPublicationNotificationsTest`, `PostPublicationPortsIT`, `PrimaryAssigneeResolverTest`, `ShiftPortFakesTest`, `ShiftQueriesIT`, `ShiftScheduleIT`, `StaffStatisticsIT`, `StaffingRatioIT`, `StaffingSourceContractsTest`.
+- Test của reporting (chủ module review): `MetricLicenseStaffTest`.
+- Test của administration (chủ module review): `AuditLogReportExportIT`, `RecordGroupTriggerIT`.
 
 ---
 

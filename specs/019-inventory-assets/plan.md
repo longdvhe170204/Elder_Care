@@ -1,6 +1,6 @@
 # Implementation Plan: Tài sản, lịch xe và mua sắm của viện
 
-> **Sửa 2026-10-29 (Q-392):** hệ thống không quản lý kho nguyên liệu. Bỏ gói `m08.kho`, `m08.api.KhoThongKeApi`, port `TonKhoNguyenLieuPort`, `LichBuaApi` cho 019, bảng kho, DBR-31, BR-M08-17 → 20, CFG-M08-08, 09 và job kho. Các dòng còn nhắc kho trong plan này (Constitution Check, NFR, Complexity) không còn hiệu lực; mua nguyên liệu chỉ qua yêu cầu mua sắm, Kế toán so chứng từ với số tiền thực tế.
+> **Sửa 2026-10-29 (Q-392):** hệ thống không quản lý kho nguyên liệu. Bỏ gói `nutrition.kho`, `nutrition.api.KhoThongKeApi`, port `TonKhoNguyenLieuPort`, `LichBuaApi` cho 019, bảng kho, DBR-31, BR-M08-17 → 20, CFG-M08-08, 09 và job kho. Các dòng còn nhắc kho trong plan này (Constitution Check, NFR, Complexity) không còn hiệu lực; mua nguyên liệu chỉ qua yêu cầu mua sắm, Kế toán so chứng từ với số tiền thực tế.
 
 **Branch**: `019-inventory-assets` | **Date**: 2026-10-10 | **Spec**: [spec.md](spec.md)
 
@@ -11,14 +11,14 @@
 Feature 019 gồm ba phần thuộc hai module (UC-89, UC-90, UC-94, UC-95):
 1. *(Bỏ theo Q-392)* Kho nguyên liệu.
 2. Yêu cầu mua sắm của bộ phận: lập, Quản lý viện duyệt chi phí, ghi đã mua, Kế toán đối chiếu, xử lý lệch; gắn phiếu nhập, tài sản, bảo trì thuê ngoài (M11; BR-M11-17 → 20, DBR-36, Q-284).
-   *(Bổ sung 2026-10-11, FR-008d, Q-337)* Loại `THUOC` cho thuốc do viện cung cấp: Điều dưỡng lập được, dòng gắn đơn nguồn viện của người cao tuổi (đọc `m07.api`); 019 cài `YeuCauThuocCungUngPort` cho 006 ghi lần tiếp nhận; không có kho thuốc (research W-02, W-05).
+   *(Bổ sung 2026-10-11, FR-008d, Q-337)* Loại `THUOC` cho thuốc do viện cung cấp: Điều dưỡng lập được, dòng gắn đơn nguồn viện của người cao tuổi (đọc `medication.api`); 019 cài `YeuCauThuocCungUngPort` cho 006 ghi lần tiếp nhận; không có kho thuốc (research W-02, W-05).
 3. Tài sản theo bộ phận: trạng thái, vị trí, bảo trì, kiểm định, đăng kiểm, bảo hiểm, báo hỏng; giường là tài sản đồng bộ với trạng thái giường (M03; BR-M03-15, 17, 18, DBR-32).
 4. Lịch xe, điều kiện "có lịch xe" cho chuyến đi (M03; BR-M03-16).
 
 Hướng kỹ thuật:
-- Gói `m11.muasam`, `m03.taisan`, `m03.lichxe`, dùng các port nội bộ 003, 010 đã khai (research W-01, W-02).
-- M03 không phụ thuộc M11 (vì M11 → M02 → M03): `YeuCauMuaSamPort` khai ở `m03.api`, M11 cài.
-- Lịch xe cung cấp `m03.api.LichXeApi`, `LichXeLenhApi` cho 014 gọi; sửa hợp đồng 014 (bỏ `LichXeChuyenPort` ở `m04.api`) để tránh vòng M03 ↔ M04.
+- Gói `billing.muasam`, `roombedallocation.taisan`, `roombedallocation.lichxe`, dùng các port nội bộ 003, 010 đã khai (research W-01, W-02).
+- M03 không phụ thuộc M11 (vì M11 → M02 → M03): `YeuCauMuaSamPort` khai ở `roombedallocation.api`, M11 cài.
+- Lịch xe cung cấp `roombedallocation.api.LichXeApi`, `LichXeLenhApi` cho 014 gọi; sửa hợp đồng 014 (bỏ `LichXeChuyenPort` ở `care.api`) để tránh vòng M03 ↔ M04.
 - Trạng thái giường ↔ tài sản đổi cùng transaction qua port 003 (W-03, W-06).
 - Thanh lý tài sản là loại yêu cầu phê duyệt của 000.
 
@@ -56,7 +56,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - 4 thực thể có vòng đời (yêu cầu mua sắm, tài sản, lịch xe, thanh lý qua 000); 10 bảng (bỏ 7 bảng kho theo Q-392).
 - 3 job (mua sắm, tài sản hằng ngày; lịch xe theo phút).
 - 14 đường dẫn, 21 thao tác REST ([contracts/api-019.yaml](contracts/api-019.yaml)).
-- 2 port nội bộ cài, 3 dùng; 1 SPI mới ở `m03.api` (M11 cài); 2 API mới cho 014; 3 giao diện thống kê cho 016.
+- 2 port nội bộ cài, 3 dùng; 1 SPI mới ở `roombedallocation.api` (M11 cài); 2 API mới cho 014; 3 giao diện thống kê cho 016.
 
 Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chốt ở [research.md](research.md).
 
@@ -118,12 +118,12 @@ specs/019-inventory-assets/
 Cấu trúc dự kiến cho giai đoạn triển khai; giai đoạn thiết kế không tạo (CLAUDE.md).
 
 ```text
-backend/src/main/java/com/cambae/backend/
-├── m11/muasam/     {internal, web, lich}   # yêu cầu mua sắm, gắn nguồn, KiemTraVuot, KhopChungTu, YeuCauMuaSamPort (cài)
-├── m11/api/        # (bổ sung) YeuCauMuaSamApi, MuaSamThongKeApi
-├── m03/taisan/     {internal, web, lich}   # tài sản, lịch sử, AnhXaTrangThaiGiuong, TaiSanGiuongPort, thanh lý
-├── m03/lichxe/     {internal, web, lich}   # lịch xe, KiemTraDatLich, LichXeApi, LichXeLenhApi
-└── m03/api/        # (bổ sung) YeuCauMuaSamPort (SPI), LichXeApi, LichXeLenhApi, TaiSanThongKeApi
+backend/src/main/java/com/eldercare/backend/
+├── billing/muasam/     {internal, web, lich}   # yêu cầu mua sắm, gắn nguồn, KiemTraVuot, KhopChungTu, YeuCauMuaSamPort (cài)
+├── billing/api/        # (bổ sung) YeuCauMuaSamApi, MuaSamThongKeApi
+├── roombedallocation/taisan/     {internal, web, lich}   # tài sản, lịch sử, AnhXaTrangThaiGiuong, TaiSanGiuongPort, thanh lý
+├── roombedallocation/lichxe/     {internal, web, lich}   # lịch xe, KiemTraDatLich, LichXeApi, LichXeLenhApi
+└── roombedallocation/api/        # (bổ sung) YeuCauMuaSamPort (SPI), LichXeApi, LichXeLenhApi, TaiSanThongKeApi
 
 frontend/src/tinh-nang/mua-sam/  frontend/src/tinh-nang/tai-san/  frontend/src/tinh-nang/lich-xe/
 ```
@@ -134,13 +134,13 @@ frontend/src/tinh-nang/mua-sam/  frontend/src/tinh-nang/tai-san/  frontend/src/t
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
-| SPI `YeuCauMuaSamPort` ở `m03.api` | Tài sản (M03) gắn yêu cầu mua sắm (M11) trong cùng lệnh; M11 phụ thuộc gián tiếp M03 | M03 gọi M11: vòng; sự kiện sau commit: mất "chặn khi thiếu yêu cầu" trong lệnh (FR-008c) |
-| Lịch xe ở `m03.api` thay cho SPI ở `m04.api` | M03 cài SPI của M04 tạo vòng | Giữ SPI ở `m04.api`: Modulith `verify()` từ chối |
+| SPI `YeuCauMuaSamPort` ở `roombedallocation.api` | Tài sản (M03) gắn yêu cầu mua sắm (M11) trong cùng lệnh; M11 phụ thuộc gián tiếp M03 | M03 gọi M11: vòng; sự kiện sau commit: mất "chặn khi thiếu yêu cầu" trong lệnh (FR-008c) |
+| Lịch xe ở `roombedallocation.api` thay cho SPI ở `care.api` | M03 cài SPI của M04 tạo vòng | Giữ SPI ở `care.api`: Modulith `verify()` từ chối |
 | `mua_sam_gan_nguon` lưu số tiền nguồn | Kế toán đối chiếu tổng phiếu nhập, nguyên giá mà M11 không đọc được M08 (vòng) | M11 đọc M08: vòng *(R-15: `mua_sam_gan_nguon` → cột `JSON` của yêu cầu mua sắm)* |
 
 ## Đồng bộ với hợp đồng của feature khác
 
-1. **014** ([../014-activity-care-quality/contracts/module-interfaces.md](../014-activity-care-quality/contracts/module-interfaces.md) mục 1.2; research L-02, L-07, L-08; plan; quickstart): bỏ `LichXeChuyenPort` ở `m04.api`; 014 gọi `m03.api.LichXeApi` và `LichXeLenhApi.theoChuyen` (MANDATORY) trong lệnh của chuyến; `ChuyenDiThayDoi` chỉ còn cho 016.
+1. **014** ([../014-activity-care-quality/contracts/module-interfaces.md](../014-activity-care-quality/contracts/module-interfaces.md) mục 1.2; research L-02, L-07, L-08; plan; quickstart): bỏ `LichXeChuyenPort` ở `care.api`; 014 gọi `roombedallocation.api.LichXeApi` và `LichXeLenhApi.theoChuyen` (MANDATORY) trong lệnh của chuyến; `ChuyenDiThayDoi` chỉ còn cho 016.
 2. **003, 011, 010**: cài `TaiSanGiuongPort` (`TonKhoNguyenLieuPort` bỏ theo Q-392), dùng `GiuongTheoTaiSanPort`, `LichBuaApi` đúng chữ ký. 010 P-12 ghi "yêu cầu mua sắm không sinh khoản; 010 không cần port cho 019" — giữ nguyên.
 3. **008 / 002**: dùng `NhiemVuApi.boPhanCua`, `laPhuTrachBoPhan`, `phuTrachBoPhan` (đã khai). **009**: thông báo; **016** đọc ba giao diện thống kê.
 

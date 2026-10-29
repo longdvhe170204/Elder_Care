@@ -18,13 +18,13 @@ Các log nằm trong `C:/Users/nguye/AppData/Local/Temp/`; không chứa cấu h
 
 ## 2. Truy vết quy tắc tới test thật
 
-Tên file test trong bảng thuộc `backend/src/test/java/com/cambae/backend/m03/`, trừ nơi ghi khác. “Có test” chỉ nói phạm vi nêu trong cột cuối, không mặc định luồng/module khác đã tích hợp thật.
+Tên file test trong bảng thuộc `backend/src/test/java/com/eldercare/backend/roombedallocation/`, trừ nơi ghi khác. “Có test” chỉ nói phạm vi nêu trong cột cuối, không mặc định luồng/module khác đã tích hợp thật.
 
 | Mã gốc | File kiểm thực tế | Phạm vi và giới hạn |
 | --- | --- | --- |
 | DBR-09 | `DBR_09_AllocationSchemaIT`, `FR_020_AllocationConcurrencyIT`, `FR_020_AllocationLocksIT`, `FR_020_AllocationRetryIT` | Cột sinh/UNIQUE, overlap, khóa và10luồng; nguồn ngoài qua API/fake đúng chủ |
 | DBR-10 | `BR_M03_01_AllocationConditionsIT`, `DBR_26_BedSchemaIT` | Điều kiện FR-018 và CHECK thuộc tính giữ chỗ |
-| DBR-23 | `DBR_23_RecordTablesIT`; `m15/RecordGroupTriggerIT.DBR_23_m03SqlRecordTablesHaveBothAppendOnlyTriggers` | Hai bảng nhóm3: bed_state_history, room_isolation_history; app và admin đều bị chặn UPDATE/DELETE trên hàng thật |
+| DBR-23 | `DBR_23_RecordTablesIT`; `administration/RecordGroupTriggerIT.DBR_23_m03SqlRecordTablesHaveBothAppendOnlyTriggers` | Hai bảng nhóm3: bed_state_history, room_isolation_history; app và admin đều bị chặn UPDATE/DELETE trên hàng thật |
 | DBR-25 | `FR_016_BedStateIT.FR_016a_delayedExecutionStoresBothTimesAndReadsConfiguration`, `FR_044_BedRemindersIT` | Thời điểm thực tế/dự kiến, CFG ngưỡng trễ; chưa chứng minh chuyển theo lịch T032–T033 còn thiếu |
 | DBR-26 | `DBR_26_BedSchemaIT`, `BR_M03_09_BedReadinessIT` | Phụ thuộc trạng thái/CHECK, xác nhận sau đóng; nhánh chuyển đang chờ hiện503 khi thiếu provider |
 | DBR-32, phần003 | `BR_M03_22_BedCreationIT` | Ghi tăng tài sản cùng transaction qua fake019; không thay cho bean019 thật |
@@ -80,7 +80,7 @@ Chưa chạy được nguyên37kịch bản bằng profile demo. Endpoint công 
 - BedStatusApi/BedStatisticsApi dùng lịch sử trạng thái gốc để tái dựng state; số liệu phân bổ/nguồn người dùng view đã áp đính chính. Khoảng dùng nửa mở, cùng thời điểm phân xử bằng id. Khoảng Chờ sẵn sàng được cắt vào cửa sổ hỏi; deadline từ CFG-M03-04 tại lúc vào trạng thái, không từ đầu cửa sổ hỏi.
 - Resident scope của mỗi khoảng Chờ sẵn sàng gắn với người có phân bổ đã đóng gần nhất trước lần vào trạng thái đó; REUSE không có người vừa rời. Không dùng người ở đầu toàn bộ khoảng hỏi để cấp quyền cho mọi cửa sổ về sau.
 - Nguồn cấu hình phòng/tài sản hiện chỉ có dữ liệu hiện hành; API không bịa lịch sử của chúng. Fact giường có floor_area_id nhưng không lưu room_id; lịch sử cách ly phòng không có snapshot tầng. Quan hệ phòng/cơ cấu quá khứ trước khi thay đổi cha không tái dựng đầy đủ từ schema hiện tại. Không gọi bộ lọc điều kiện/phòng quá khứ là kiểm chứng đầy đủ khi thiếu dữ liệu này.
-- T063 mapping đúng:004→m02;007→m05/m06;008→m09;019→m03. Không có lớp production cài các SPI003 cần từ những feature đó trong checkout; m07 thuộc006 và m14 thuộc016, không dùng hai gói này để kết luận nguồn007/019.
+- T063 mapping đúng:004→admission;007→incident/health;008→staffing;019→roombedallocation. Không có lớp production cài các SPI003 cần từ những feature đó trong checkout; medication thuộc006 và reporting thuộc016, không dùng hai gói này để kết luận nguồn007/019.
 
 ## 5. Gate cuối và thứ tự còn lại
 

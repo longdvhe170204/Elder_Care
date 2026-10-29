@@ -4,7 +4,7 @@
 
 Tài liệu mô tả bảng, trường, ràng buộc và cách bảo đảm từng quy tắc. Đây không phải script SQL; migration được viết ở giai đoạn triển khai. Quy ước kiểu dữ liệu, nhóm dữ liệu và bảo đảm ở cơ sở dữ liệu theo [../000-shared-foundation/data-model.md](../000-shared-foundation/data-model.md) mục 1.
 
-Mọi bảng nằm trong schema của ứng dụng, thuộc module M15 (gói `m15.taikhoan`). Module khác không đọc các bảng này, chỉ gọi giao diện ở [contracts/module-interfaces.md](contracts/module-interfaces.md).
+Mọi bảng nằm trong schema của ứng dụng, thuộc module M15 (gói `administration.taikhoan`). Module khác không đọc các bảng này, chỉ gọi giao diện ở [contracts/module-interfaces.md](contracts/module-interfaces.md).
 
 ---
 
@@ -86,7 +86,7 @@ Mô tả dưới đây thay mô tả của các bảng đã gộp (mô tả cũ 
 **Test phải đổi bảng đích** *(rà 2026-10-30; 40 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
 - Fixture dùng chung (`support/`, ảnh hưởng mọi module; sửa trong cùng PR, báo cả nhóm ở team-plan mục 8): `TestUsers`.
 - Test của module: `AccountEventNotificationsTest`, `AccountFixtures`, `ApproverApiIT`, `AuditLogAtomicityIT`, `AuditLogSchedulerIT`, `BoundDeviceIT`, `CarePlanApprovalGrantIT`, `CurrentUserIT`, `FamilyCannotSeeResidentAccountIT`, `FirstManagerBootstrapIT`, `InactivityIT`, `IncidentOutOfScopeIT`, `LegalConditionIT`, `LoginQrCodeIT`, `LoginTemporaryLockIT`, `ManagerAlwaysExistsIT`, `MeControllerIT`, `MetricGroupRestrictionsIT`, `OfflinePendingReviewIT`, `OnlyManagerChangesPermissionsIT`, `PermissionCommands`, `PermissionDataErrorIT`, `PermissionMatrixIT`, `PermissionMatrixMatchesSourceIT`, `PracticeScopeIT`, `ProfessionalActivityIT`, `RequiresPermissionAspectTest`, `ResidentAccountFinalStatusIT`, `ResidentAccountLockIT`, `ResignationLockIT`, `RestrictWithinMatrixIT`, `RoleAssignmentIT`, `RolePermissionCalculatorIT`, `SourceDataErrorScopeIT`, `SyncResultIT`, `ThreeLayerPermissionIT`.
-- Test của m09 (chủ module review): `AssignmentIT`, `M09GovernanceIT`, `StaffStatisticsIT`.
+- Test của staffing (chủ module review): `AssignmentIT`, `M09GovernanceIT`, `StaffStatisticsIT`.
 
 ---
 

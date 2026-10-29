@@ -3,7 +3,7 @@ info:
   title: Elder Care – Feature 017 (số dư và thu chi)
   version: 2.0.0-design
   description: |
-    Hợp đồng REST của feature 017 (module M11, gói m11.sodu), lập lại 2026-10-22 theo spec viết lại (Q-377 → Q-379, Q-381, Q-385, Q-386).
+    Hợp đồng REST của feature 017 (module M11, gói billing.sodu), lập lại 2026-10-22 theo spec viết lại (Q-377 → Q-379, Q-381, Q-385, Q-386).
     Quy ước chung theo research R-03 của 000: tiền tố /api/v1, lỗi RFC 9457 có maLoi và dieuKienChuaThoa[], Idempotency-Key cho mọi lệnh ghi.
     Không có endpoint sửa, xóa, hủy giao dịch Đã xác nhận; sai sót đi qua giao dịch điều chỉnh có duyệt (FR-011). Không có giao dịch đảo,
     số phiếu thu chi, chốt quỹ ngày, nhập sao kê ngân hàng (Q-385).

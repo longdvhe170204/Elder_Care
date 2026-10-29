@@ -4,7 +4,7 @@
 
 Tài liệu mô tả bảng, trường, ràng buộc và cách bảo đảm từng quy tắc. Đây không phải script SQL; migration được viết ở giai đoạn triển khai. Quy ước kiểu dữ liệu, nhóm dữ liệu và bảo đảm ở cơ sở dữ liệu theo [../000-shared-foundation/data-model.md](../000-shared-foundation/data-model.md) mục 1.
 
-Mọi bảng thuộc module M01 (`com.cambae.backend.m01`), trừ bảng `tep` thuộc `common` (research H-13). Module khác không đọc các bảng này, chỉ gọi giao diện ở [contracts/module-interfaces.md](contracts/module-interfaces.md). Tham chiếu tới người thân (012), sự cố (007), lượt vắng (004), yêu cầu phê duyệt (000) là định danh logic, không có khóa ngoại chéo module (constitution X).
+Mọi bảng thuộc module M01 (`com.eldercare.backend.resident`), trừ bảng `tep` thuộc `common` (research H-13). Module khác không đọc các bảng này, chỉ gọi giao diện ở [contracts/module-interfaces.md](contracts/module-interfaces.md). Tham chiếu tới người thân (012), sự cố (007), lượt vắng (004), yêu cầu phê duyệt (000) là định danh logic, không có khóa ngoại chéo module (constitution X).
 
 ---
 
@@ -63,7 +63,7 @@ Mọi `CHECK` cũ giữ, mỗi `CHECK` thêm điều kiện `kind = …` (ví d�
 
 **Chuyển dữ liệu (`V001_95`)**: bốn danh mục và `care_level` vào `danh_muc_chung`, đổi `health_item.allergen_id`, `severity_id`, `source_id` theo id mới; `resident_status_history`, `care_level_history` vào `lich_su_chung`, đổi `file.owner_id` của `M01.GIAY_TO_BENH_VIEN` và `source_id` của thông báo đánh giá lại loại `STATUS_HISTORY` theo id mới; `initial_health_record`, `reassessment_notice` vào `ho_so_chung`; hai bảng nguyện vọng vào `wish`, ý kiến vào `su_kien_chung`, danh sách người được báo và người thân của bản đồng ý vào JSON; `assessment_care_need` vào `assessment.care_need_ids`; `periodic_reminder`, `return_overdue_alert` vào `moc_da_nhac`. Dòng đổi id ghi `legacy`; `dinh_chinh` trỏ đánh giá, mục sức khỏe giữ id (hai bảng giữ nguyên).
 
-**Bảo đảm** (thay phần tương ứng ở các mục sau): một bản đồng ý Hiệu lực mỗi người (`active_resident_id`), một nguyện vọng Hiệu lực mỗi loại mỗi người (`active_key`), một bản nháp đánh giá và một đánh giá đầu vào xác nhận mỗi người (cột sinh hiện có), một hồ sơ sức khỏe ban đầu mỗi người và không trùng thông báo đánh giá lại (`khoa_duy_nhat`). Test m01 hiện có phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục); thêm test chọn mục danh mục sai loại bị từ chối.
+**Bảo đảm** (thay phần tương ứng ở các mục sau): một bản đồng ý Hiệu lực mỗi người (`active_resident_id`), một nguyện vọng Hiệu lực mỗi loại mỗi người (`active_key`), một bản nháp đánh giá và một đánh giá đầu vào xác nhận mỗi người (cột sinh hiện có), một hồ sơ sức khỏe ban đầu mỗi người và không trùng thông báo đánh giá lại (`khoa_duy_nhat`). Test resident hiện có phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục); thêm test chọn mục danh mục sai loại bị từ chối.
 
 **Bảng truy vết sau gộp** *(bổ sung 2026-10-30; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR, BR ở các mục sau theo bảng này)*:
 
@@ -78,7 +78,7 @@ Mọi `CHECK` cũ giữ, mỗi `CHECK` thêm điều kiện `kind = …` (ví d�
 
 **Test phải đổi bảng đích** *(rà 2026-10-30; 30 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
 - Test của module: `AssessmentCorrectionIT`, `AssessmentTestBase`, `BR_M01_02_ReassessmentNoticeIT`, `BR_M01_06_ModuleCommandsIT`, `BR_M01_09_AssessmentIT`, `BR_M01_11_CatalogIT`, `CatalogSchemaIT`, `CompleteAdmissionConsentIT`, `CompleteAdmissionWishWarningsIT`, `ConsentIT`, `CreateProfileIT`, `EndOfLifeWishSignerIT`, `EndOfLifeWishVersionIT`, `FR_023h_KhongDauNangLucIT`, `HealthEndpointsIT`, `HealthItemImmutableIT`, `HealthTestBase`, `InitialHealthRecordIT`, `M01AuditCompletenessIT`, `MissingConsentReminderIT`, `MissingEndOfLifeWishReminderIT`, `RecordDeathIT`, `ResidentSchemaIT`, `SelfDeterminationReviewReminderIT`, `StatusHistoryIT`, `StatusTestBase`, `TreatmentWishVersionIT`, `WishTestBase`.
-- Test của m09 (chủ module review): `HandoverIT`, `StaffingRatioIT`.
+- Test của staffing (chủ module review): `HandoverIT`, `StaffingRatioIT`.
 
 ---
 

@@ -8,20 +8,20 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## N-01. Vị trí trong backend
 
-**Quyết định**: Feature 008 là module M09 – Nhân sự và ca trực (mục 13), gói `com.cambae.backend.m09`:
+**Quyết định**: Feature 008 là module M09 – Nhân sự và ca trực (mục 13), gói `com.eldercare.backend.staffing`:
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
-| `m09.nhanvien` | Hồ sơ nhân viên, trạng thái làm việc, bộ phận, Phụ trách bộ phận | A (FR-001 → FR-004) |
-| `m09.giayphep` | Loại giấy phép/đào tạo, phạm vi hành nghề, giấy phép/đào tạo của nhân viên, hiệu lực, cảnh báo hết hạn | A (FR-005 → FR-010) |
-| `m09.lichca` | Mẫu ca, lịch ca, ca, nhân viên trong ca, người phụ trách ca, Bác sĩ trực, lệnh sau công bố | B (FR-011 → FR-023) |
-| `m09.phancong` | Giao trưởng tầng, phân công, `XacDinhNhanVienChinh`, sao chép | C (FR-024 → FR-033) |
-| `m09.tyle` | Tỷ lệ phục vụ, lần tính | D (FR-034 → FR-037a) |
-| `m09.bangiao` | Bàn giao, mục, ý kiến, danh sách bản ghi nguồn, xác nhận | E (FR-038 → FR-047) |
-| `m09.nhiemvu` | `TraCuuCaService`: nhiệm vụ, ca, phân công theo thời điểm; bản cài các SPI của 002, 003, 005, 006, 007 | F (FR-049) |
-| `m09.lich`, `m09.api` | Job; giao diện công khai, SPI cho 013, 014, sự kiện | |
+| `staffing.nhanvien` | Hồ sơ nhân viên, trạng thái làm việc, bộ phận, Phụ trách bộ phận | A (FR-001 → FR-004) |
+| `staffing.giayphep` | Loại giấy phép/đào tạo, phạm vi hành nghề, giấy phép/đào tạo của nhân viên, hiệu lực, cảnh báo hết hạn | A (FR-005 → FR-010) |
+| `staffing.lichca` | Mẫu ca, lịch ca, ca, nhân viên trong ca, người phụ trách ca, Bác sĩ trực, lệnh sau công bố | B (FR-011 → FR-023) |
+| `staffing.phancong` | Giao trưởng tầng, phân công, `XacDinhNhanVienChinh`, sao chép | C (FR-024 → FR-033) |
+| `staffing.tyle` | Tỷ lệ phục vụ, lần tính | D (FR-034 → FR-037a) |
+| `staffing.bangiao` | Bàn giao, mục, ý kiến, danh sách bản ghi nguồn, xác nhận | E (FR-038 → FR-047) |
+| `staffing.nhiemvu` | `TraCuuCaService`: nhiệm vụ, ca, phân công theo thời điểm; bản cài các SPI của 002, 003, 005, 006, 007 | F (FR-049) |
+| `staffing.lich`, `staffing.api` | Job; giao diện công khai, SPI cho 013, 014, sự kiện | |
 
-Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũng thuộc M09; plan 015 thêm gói con vào cùng `m09` và dùng các port nội bộ ở `m09.lichca.port`, `m09.phancong.port` (N-07) thay vì API công khai, như mẫu 003 ↔ 019 (G-01) và 005 ↔ 014.
+Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũng thuộc M09; plan 015 thêm gói con vào cùng `staffing` và dùng các port nội bộ ở `staffing.lichca.port`, `staffing.phancong.port` (N-07) thay vì API công khai, như mẫu 003 ↔ 019 (G-01) và 005 ↔ 014.
 
 **Lý do**: Constitution X chia gói theo M01–M15; Phụ lục 26.2 đặt UC-49 → UC-53 ở 008, UC-50 phần xoay ca và UC-54 ở 015, cùng M09.
 
@@ -35,18 +35,18 @@ Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũn
 
 | Cặp | Chiều mã | Cách giữ một chiều |
 | --- | --- | --- |
-| 008 ↔ 002 | 008 → 002 | 002 làm plan trước và cần dữ liệu của 008 (FR-004, FR-019a, FR-028, FR-037). Các giao diện `HoSoNhanVienApi`, `GiayPhepApi`, `DanhMucPhamViHanhNgheApi`, `PhanCongApi`, `NhiemVuApi` được khai báo ở `m15.taikhoan.api` dưới dạng SPI, M09 cài (bổ sung theo plan này; chữ ký giữ đúng 002 module-interfaces mục 2). 008 gọi `TaiKhoanApi.khoaDoNghiViec`, `theoNhanVien`, `coVaiTro`; `QuyenApi`, `PhamViApi`, `NhatKyApi`, `ThamSoApi`, `DinhChinhApi` |
+| 008 ↔ 002 | 008 → 002 | 002 làm plan trước và cần dữ liệu của 008 (FR-004, FR-019a, FR-028, FR-037). Các giao diện `HoSoNhanVienApi`, `GiayPhepApi`, `DanhMucPhamViHanhNgheApi`, `PhanCongApi`, `NhiemVuApi` được khai báo ở `administration.taikhoan.api` dưới dạng SPI, M09 cài (bổ sung theo plan này; chữ ký giữ đúng 002 module-interfaces mục 2). 008 gọi `TaiKhoanApi.khoaDoNghiViec`, `theoNhanVien`, `coVaiTro`; `QuyenApi`, `PhamViApi`, `NhatKyApi`, `ThamSoApi`, `DinhChinhApi` |
 | 008 → 001 | Đọc, nghe | `MucChamSocApi.hienHanh`, `taiNgay`; `TrangThaiNguoiCaoTuoiApi.khoangTrangThai`; `NguoiCaoTuoiApi.trangThai`; nghe `MucChamSocDaDoi`, `NguoiCaoTuoiDaChuyenTrangThai` |
 | 008 → 003 | Đọc, cài | `ViTriApi`, `LichSuViTriApi.theoViTriTrongNgay`, `CoCauViTriApi`, `CanhBaoBanGiaoApi.theoTang`; cài `ThamChieuViTri`; nghe `PhanBoDaBatDau`, `PhanBoDaDong`, `DaChuyenGiuong` |
-| 008 → 004 | Đọc | `LuotVangApi.dangMo` (mốc dự kiến trở lại; khai báo ở `m01.api`, 004 cài); `HopDongDocApi.lichDenTaiNgay` (bán trú dự kiến có mặt, FR-034) |
+| 008 → 004 | Đọc | `LuotVangApi.dangMo` (mốc dự kiến trở lại; khai báo ở `resident.api`, 004 cài); `HopDongDocApi.lichDenTaiNgay` (bán trú dự kiến có mặt, FR-034) |
 | 008 → 005 | Cài, gọi | Cài `NhanSuCaPort`; gọi `CongViecCaApi` (MANDATORY), đọc `CongViecBanGiaoApi` |
 | 008 → 006 | Cài, đọc | Cài `DieuDuongCaPort`; đọc `LieuBanGiaoApi` |
 | 008 → 007 | Cài, gọi | Cài `NhanSuCanhBaoPort`; gọi `CanhBaoBanGiaoApi.dangMo`, `khiXacNhanBanGiao` (MANDATORY); đọc `ChiSoApi.vuotNguongTrongKhoang` |
-| 008 ↔ 013, 014 | 013, 014 → 008 | Họ làm plan sau. 008 cần đồ gửi có giá trị đang giữ (013) và chuyến đi, trưởng đoàn, người đi cùng (014) qua SPI khai báo ở `m09.api`: `DoGuiBanGiaoPort`, `ChuyenDiNhiemVuPort` |
-| 015 → 008 | Cùng module | Port nội bộ `m09.*.port` (N-07) |
+| 008 ↔ 013, 014 | 013, 014 → 008 | Họ làm plan sau. 008 cần đồ gửi có giá trị đang giữ (013) và chuyến đi, trưởng đoàn, người đi cùng (014) qua SPI khai báo ở `staffing.api`: `DoGuiBanGiaoPort`, `ChuyenDiNhiemVuPort` |
+| 015 → 008 | Cùng module | Port nội bộ `staffing.*.port` (N-07) |
 | 008 → 009, 016 | Sự kiện; đọc | Thông báo là sự kiện (N-14); 016 đọc `NhanSuThongKeApi` |
 
-**Lý do**: Modulith `verify()` từ chối vòng (000 R-02). 002 đã gọi tên các giao diện này trong plan của mình; đặt chúng ở `m15.taikhoan.api` giữ chiều `m09 → m15`.
+**Lý do**: Modulith `verify()` từ chối vòng (000 R-02). 002 đã gọi tên các giao diện này trong plan của mình; đặt chúng ở `administration.taikhoan.api` giữ chiều `staffing → administration`.
 
 **Phương án đã cân nhắc**: 002 đọc bảng của 008 qua view MySQL: truy cập dữ liệu module khác (constitution X).
 
@@ -113,7 +113,7 @@ Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũn
 - **Chuyển người phụ trách ca** (FR-019): đóng dòng `nguoi_phu_trach_ca` cũ, mở dòng mới; gỡ `thieu_nguoi_phu_trach`; nếu bàn giao của ca ở Bản nháp hoặc Có ý kiến thì đổi `ban_giao.nguoi_ban_giao_id`, giữ người viết trên từng ghi chú, phát `BanGiaoDangDoDaChuyen` cho người mới. *(R-15: `nguoi_phu_trach_ca` → `lich_su_chung`)*
 - **Ghi nhận vắng ca** (FR-020, Q-80, Q-81, Q-91): Trưởng tầng, hoặc Người phụ trách ca của chính ca đó trong khoảng phạm vi; khoảng cho phép `[bat_dau − CFG-M15-07, ket_thuc]`, ngoài khoảng 409 `NGOAI_KHOANG_GHI_VANG` kèm gợi dẫn sang 015. Trong cùng transaction: `vang_luc`; phân công của người đó trong ca → `DA_KET_THUC` (Hiệu lực) hoặc `DA_HUY` (Tương lai); `CongViecCaApi.khiVangCa`; nếu là người phụ trách thì bắt buộc `nguoiPhuTrachMoiId` hoặc gắn `thieu_nguoi_phu_trach` khi không ai đủ điều kiện; tính lại tỷ lệ; phát `NhanVienVangCa` (không nêu lý do, FR-053).
 - **Hủy ca** (FR-021): Quản lý viện, ca chưa bắt đầu; phân công `DA_HUY`; phát `CaDaHuy`.
-- **Port nội bộ cho 015** (gói `m09.lichca.port`, `m09.phancong.port`; ArchUnit chỉ cho `m09.doica`, `m09.xoayca` dùng):
+- **Port nội bộ cho 015** (gói `staffing.lichca.port`, `staffing.phancong.port`; ArchUnit chỉ cho `staffing.doica`, `staffing.xoayca` dùng):
 
   ```java
   interface CaLenhPort {                       // MANDATORY; cùng kiểm tra và tác động như lệnh REST tương ứng
