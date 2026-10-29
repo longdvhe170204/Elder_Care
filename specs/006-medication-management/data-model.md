@@ -24,7 +24,7 @@ Mô tả dưới đây thay các mục tương ứng khi cài 006 T069; cột kh
 
 **`medication_dose`** (`lieu_thuoc`) – nhóm 2, giữ nguyên (`UNIQUE (prescription_id, scheduled_time)`).
 
-**`dose_result`** (`ket_qua_lieu`) – nhóm 3, giữ mọi cột, trigger, quyền. Gộp `prn_administration`: thêm `kind ENUM('SCHEDULED','PRN') NOT NULL DEFAULT 'SCHEDULED'`, `prescription_id NULL`, `dosage NULL`, `dosage_unit NULL`, `exceeded_limit NULL`; `dose_id` `NULL` khi `PRN`. `CHECK ((kind = 'SCHEDULED') = (dose_id IS NOT NULL))`, `CHECK (kind = 'SCHEDULED' OR (prescription_id IS NOT NULL AND dosage IS NOT NULL))`. Cột của PRN trùng nghĩa dùng cột sẵn có (`administered_at`, `recorder_id` = `administered_by_id`, `reported_by_*`, `reason`, `adverse_reaction`, `note`, `device_recorded_at` = `offline_device_time`, `synced_after_permission_loss` = `recorded_after_disconnect`). Dòng PRN cấp id mới; `dinh_chinh`, `nhat_ky` trỏ `M07.PRN_ADMINISTRATION` được đổi sang `M07.DOSE_RESULT` + id mới ở lớp đọc theo `legacy`.
+**`dose_result`** (`ket_qua_lieu`) – nhóm 3, giữ mọi cột, trigger, quyền. Gộp `prn_administration`: thêm `kind ENUM('SCHEDULED','PRN') NOT NULL DEFAULT 'SCHEDULED'`, `prescription_id NULL`, `dosage NULL`, `dosage_unit NULL`, `exceeded_limit NULL`; `dose_id` `NULL` khi `PRN`. Chỉ mục `(kind, prescription_id, administered_at)` cho kiểm giới hạn PRN (BR-M07-04). `CHECK ((kind = 'SCHEDULED') = (dose_id IS NOT NULL))`, `CHECK (kind = 'SCHEDULED' OR (prescription_id IS NOT NULL AND dosage IS NOT NULL))`. Cột của PRN trùng nghĩa dùng cột sẵn có (`administered_at`, `recorder_id` = `administered_by_id`, `reported_by_*`, `reason`, `adverse_reaction`, `note`, `device_recorded_at` = `offline_device_time`, `synced_after_permission_loss` = `recorded_after_disconnect`). Dòng PRN cấp id mới; `dinh_chinh`, `nhat_ky` trỏ `M07.PRN_ADMINISTRATION` được đổi sang `M07.DOSE_RESULT` + id mới ở lớp đọc theo `legacy`.
 
 **`medication_reconciliation`** (`phieu_doi_chieu`) – nhóm 2 → 3, giữ mọi cột và `UNIQUE`. Thêm `lines JSON NOT NULL` (thay `reconciliation_item`: mảng `{itemOrder, source, prescriptionId, admissionMedicationItemId, medicationDescription, decision, reason, newPrescription, createdById, createdAt, discontinuedOutsideTicket, createdPrescriptionId}`); `khoa_luc` = `confirmed_at`, trigger chặn sửa khi đã xác nhận (thay trigger của dòng). Không trùng đơn, không trùng mục thuốc khi tiếp nhận trong một phiếu (hai `UNIQUE` cũ) kiểm ở domain.
 
@@ -41,7 +41,7 @@ Mô tả dưới đây thay các mục tương ứng khi cài 006 T069; cột kh
 | `no_medication_key` | Cột sinh `IF(kind = 'NO_MEDICATION', CONCAT(resident_id, ':', trip_id), NULL)` `UNIQUE` (thay `uq_resident_trip_no_med`) |
 | `khoa_luc`, `created_at` | `RETURN`, `NO_MEDICATION`, `SUPPLIED_INTAKE` khóa khi thêm (nhóm 3); `HANDOVER` khóa khi trạng thái cuối |
 
-Chỉ mục `(kind, resident_id, created_at)`, `(trip_id)`, `(procurement_request_id)`.
+Chỉ mục `(kind, resident_id, created_at)`, `(trip_id)`, `(procurement_request_id)`. `absence_interval_id` là khóa ngoại tới `simple_record.id`; domain kiểm dòng đó đúng loại `M07.ABSENCE_INTERVAL` (L1).
 
 **Loại ở bảng chung**:
 
@@ -58,7 +58,22 @@ Chỉ mục `(kind, resident_id, created_at)`, `(trip_id)`, `(procurement_reques
 
 **Chuyển dữ liệu (`V006_95`)**: `medication` (kèm hoạt chất) vào `danh_muc_chung`, đổi `medication_id` ở `prescription`, `medication_dose`, `family_medication_batch`, dòng tiếp nhận cung ứng; `prescription_active_ingredient`, `reconciliation_item`, `family_medication_prescription` vào JSON của bảng cha; `prn_administration` vào `dose_result` (đổi `dose_review.prn_usage_id` thành id mới); bảy bảng giao nhận vào `medication_handover` (đổi `no_medication_order_id` của khoảng vắng, `leave_handover_id` của kết quả liều); `prescription_issue`, `prescription_basis` vào `su_kien_chung`; `dose_review`, `medication_absence_interval`, `reconciliation_correction_request` vào `ho_so_chung`; `resident_medication` vào `trang_thai_nct`; `m07_job_run` vào `moc_da_nhac`.
 
-**Bảo đảm** (thay phần tương ứng ở các mục sau): một liều mỗi (đơn, giờ) (`UNIQUE` giữ); kết quả liều và lần dùng PRN không sửa, không xóa (trigger `dose_result` giữ); một phiếu đối chiếu đang mở và một phiếu khi tiếp nhận mỗi người (`UNIQUE` giữ); một khoảng vắng mở mỗi người và một lệnh không mang thuốc mỗi (người, chuyến) (`khoa_duy_nhat`, `no_medication_key`). Test m07 hiện có phải xanh không đổi kịch bản.
+**Bảo đảm** (thay phần tương ứng ở các mục sau): một liều mỗi (đơn, giờ) (`UNIQUE` giữ); kết quả liều và lần dùng PRN không sửa, không xóa (trigger `dose_result` giữ); một phiếu đối chiếu đang mở và một phiếu khi tiếp nhận mỗi người (`UNIQUE` giữ); một khoảng vắng mở mỗi người và một lệnh không mang thuốc mỗi (người, chuyến) (`khoa_duy_nhat`, `no_medication_key`). Test m07 hiện có phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục).
+
+**Bảng truy vết sau gộp** *(bổ sung 2026-10-30; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR, BR ở các mục sau theo bảng này)*:
+
+| Mã | Bảo đảm sau gộp | Test |
+| --- | --- | --- |
+| BR-M07-03 | Một khoảng vắng mở mỗi người: `ho_so_chung` loại `M07.ABSENCE_INTERVAL`, `khoa_duy_nhat` | test vắng mặt hiện có (`MedicationHandoverTest`, IT vắng mặt) |
+| BR-M07-04 | Giới hạn khoảng cách, số lần PRN: đọc `dose_result` loại `PRN` theo đơn và thời điểm; chỉ mục `(kind, prescription_id, administered_at)` (M2) | `BR_M07_04_PrnLimitTest`, IT PRN hiện có |
+| BR-M07-16 | Căn cứ cơ sở kê: `su_kien_chung` loại `M07.PRESCRIPTION_BASIS` | `BR_M07_16_ExternalPrescriberBasisIT` |
+| BR-M07-17 | Đề nghị đính chính phiếu: `ho_so_chung` loại `M07.RECONCILIATION_CORRECTION_REQUEST` | `MedicationReconciliationTest`, IT đính chính phiếu hiện có |
+| BR-M07-18 | Lô dùng chung cho nhiều đơn: `family_medication_batch.prescription_bindings`; chỉ mục nhiều giá trị `((CAST(prescription_bindings->'$[*].prescriptionId' AS UNSIGNED ARRAY)))` cho tra lô theo đơn (M2) | `FamilyMedicationTest` |
+
+**Test phải đổi bảng đích** *(rà 2026-10-30; 10 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
+- Test của module: `BR_M07_05_PrescriberAuthorityIT`, `BR_M07_07_DosageChangeIT`, `BR_M07_08_PrescriptionExpirationIT`, `BR_M07_15_CancelDosageChangeIT`, `BR_M07_16_ExternalPrescriberBasisIT`, `DBR_14_ReplacementPrescriptionIT`, `FR_012_NewAllergyIT`, `PrescriptionTriggerIT`.
+- Test của common (chủ module review): `RecipientGroupTest`.
+- Test của m14 (chủ module review): `DetailRowPolicyTest`.
 
 ---
 
