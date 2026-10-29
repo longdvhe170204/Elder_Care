@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getAccountsById } from '@/api'
 import { Button } from '@/components/ui/button'
-import { SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProblemAlert } from '@/common/ProblemAlert'
 import { StatusBadge } from '@/common/StatusBadge'
@@ -13,9 +12,9 @@ import { ResidentAccountSection } from './ResidentAccountSection'
 import { COMMANDS, LOCK_CAUSE_LABELS, STATUS_LABELS, TYPE_LABELS, profileLabel, roleNames } from './accountLabels'
 
 // Khung chi tiết tài khoản (002 T035; detail-panel DESIGN.md 7.2; FR-042): thông tin, rồi nút lệnh lấy đúng từ
-// allowedCommands backend trả; mỗi lệnh mở form ngay trong khung.
+// allowedCommands backend trả; mỗi lệnh mở form ngay trong khung. Title, Description do DetailLayout truyền.
 
-export function AccountDetail({ id, onChanged }) {
+export function AccountDetail({ id, onChanged, Title = 'h2', Description = 'p' }) {
   const [state, setState] = useState({ status: 'loading' })
   const [command, setCommand] = useState(null)
 
@@ -37,8 +36,8 @@ export function AccountDetail({ id, onChanged }) {
 
   if (state.status === 'loading') {
     return (
-      <div aria-busy="true" className="flex flex-col gap-2 px-4 pt-14">
-        <span className="sr-only">Đang tải tài khoản</span>
+      <div aria-busy="true" className="flex flex-col gap-2">
+        <Title className="sr-only">Đang tải tài khoản</Title>
         <Skeleton className="h-8" />
         <Skeleton className="h-24" />
       </div>
@@ -46,7 +45,8 @@ export function AccountDetail({ id, onChanged }) {
   }
   if (state.status === 'error') {
     return (
-      <div className="px-4 pt-14">
+      <div className="flex flex-col gap-2">
+        <Title className="sr-only">Tài khoản</Title>
         <ProblemAlert problem={state.problem} />
       </div>
     )
@@ -63,60 +63,56 @@ export function AccountDetail({ id, onChanged }) {
   }
 
   return (
-    <>
-      <SheetHeader className="gap-1 pt-6">
-        <SheetTitle className="type-title">{profileLabel(account)}</SheetTitle>
-        <SheetDescription>Tên đăng nhập: {account.username}</SheetDescription>
-      </SheetHeader>
-      <div className="flex flex-col gap-5 overflow-y-auto px-4 pb-6 type-body-sm">
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
-          <dt className="text-muted-foreground">Trạng thái</dt>
-          <dd className="flex flex-wrap items-center gap-2">
-            <StatusBadge status={STATUS_LABELS[account.status] ?? account.status} />
-            {account.lockCause && <span>{LOCK_CAUSE_LABELS[account.lockCause] ?? account.lockCause}</span>}
-            {account.lockedUntil && <span className="tabular-nums">tới {formatDateTime(account.lockedUntil)}</span>}
-          </dd>
-          <dt className="text-muted-foreground">Loại</dt>
-          <dd>{TYPE_LABELS[account.type] ?? account.type}</dd>
-          <dt className="text-muted-foreground">Vai trò</dt>
-          <dd>{account.roles?.length ? roleNames(account.roles) : 'Chưa có vai trò'}</dd>
-          <dt className="text-muted-foreground">Đăng nhập gần nhất</dt>
-          <dd className="tabular-nums">
-            {account.lastLoginAt ? formatDateTime(account.lastLoginAt) : 'Chưa đăng nhập'}
-          </dd>
-        </dl>
-
-        {command ? (
-          <AccountCommandForm
-            key={command}
-            command={command}
-            account={account}
-            etag={etag}
-            onDone={done}
-            onCancel={() => setCommand(null)}
-            onStale={() => {
-              setCommand(null)
-              load()
-            }}
-          />
-        ) : (
-          allowed.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {allowed.map((c) => (
-                <Button key={c} variant="outline" onClick={() => setCommand(c)}>
-                  {COMMANDS[c].label}
-                </Button>
-              ))}
-            </div>
-          )
-        )}
-
-        {account.type === 'RESIDENT' && <ResidentAccountSection account={account} etag={etag} onChanged={load} />}
-
-        {account.allowedCommands?.includes('restrict') && (
-          <AccountPermissions accountId={account.id} allowedCommands={account.allowedCommands} onChanged={load} />
-        )}
+    <div className="flex flex-col gap-5 type-body-sm">
+      <div className="flex flex-col gap-1">
+        <Title className="type-title">{profileLabel(account)}</Title>
+        <Description className="type-body-sm text-muted-foreground">Tên đăng nhập: {account.username}</Description>
       </div>
-    </>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
+        <dt className="text-muted-foreground">Trạng thái</dt>
+        <dd className="flex flex-wrap items-center gap-2">
+          <StatusBadge status={STATUS_LABELS[account.status] ?? account.status} />
+          {account.lockCause && <span>{LOCK_CAUSE_LABELS[account.lockCause] ?? account.lockCause}</span>}
+          {account.lockedUntil && <span className="tabular-nums">tới {formatDateTime(account.lockedUntil)}</span>}
+        </dd>
+        <dt className="text-muted-foreground">Loại</dt>
+        <dd>{TYPE_LABELS[account.type] ?? account.type}</dd>
+        <dt className="text-muted-foreground">Vai trò</dt>
+        <dd>{account.roles?.length ? roleNames(account.roles) : 'Chưa có vai trò'}</dd>
+        <dt className="text-muted-foreground">Đăng nhập gần nhất</dt>
+        <dd className="tabular-nums">{account.lastLoginAt ? formatDateTime(account.lastLoginAt) : 'Chưa đăng nhập'}</dd>
+      </dl>
+
+      {command ? (
+        <AccountCommandForm
+          key={command}
+          command={command}
+          account={account}
+          etag={etag}
+          onDone={done}
+          onCancel={() => setCommand(null)}
+          onStale={() => {
+            setCommand(null)
+            load()
+          }}
+        />
+      ) : (
+        allowed.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {allowed.map((c) => (
+              <Button key={c} variant="outline" onClick={() => setCommand(c)}>
+                {COMMANDS[c].label}
+              </Button>
+            ))}
+          </div>
+        )
+      )}
+
+      {account.type === 'RESIDENT' && <ResidentAccountSection account={account} etag={etag} onChanged={load} />}
+
+      {account.allowedCommands?.includes('restrict') && (
+        <AccountPermissions accountId={account.id} allowedCommands={account.allowedCommands} onChanged={load} />
+      )}
+    </div>
   )
 }

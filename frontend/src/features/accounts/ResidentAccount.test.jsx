@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { json, mockRoutes, problem } from '@/test/fetchRoutes'
+import { DetailHost } from '@/test/DetailHost'
 import { AccountList } from './AccountList'
 
 // 002 T095 (tên logic TaiKhoanNguoiCaoTuoi.test.jsx; US8; FR-067, FR-069, FR-070, FR-072, FR-073; bố cục duyệt
@@ -37,7 +38,7 @@ afterEach(() => {
 async function openDetail(item) {
   api.on('GET', '/accounts', json(200, { items: [item], nextCursor: null }))
   api.on('GET', `/accounts/${item.id}`, json(200, item, { ETag: '"7"' }))
-  render(<AccountList canCreate={false} canCreateResident />)
+  render(<DetailHost>{(host) => <AccountList canCreate={false} canCreateResident {...host} />}</DetailHost>)
   fireEvent.click(await screen.findByRole('button', { name: item.username }))
   return screen.findByRole('dialog')
 }
@@ -58,7 +59,7 @@ describe('Tài khoản người cao tuổi', () => {
       }),
     )
     api.on('POST', '/resident-accounts', json(201, { ...residentAccount(), temporaryPassword: 'Tam-123456' }))
-    render(<AccountList canCreate={false} canCreateResident />)
+    render(<DetailHost>{(host) => <AccountList canCreate={false} canCreateResident {...host} />}</DetailHost>)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Tạo tài khoản người cao tuổi' }))
     const sheet = await screen.findByRole('dialog')
@@ -84,7 +85,7 @@ describe('Tài khoản người cao tuổi', () => {
   it('FR_067_thieuXacNhan_baoTaiO_khongGui', async () => {
     api.on('GET', '/accounts', json(200, { items: [], nextCursor: null }))
     api.on('GET', '/residents', json(200, { items: [], nextCursor: null }))
-    render(<AccountList canCreate={false} canCreateResident />)
+    render(<DetailHost>{(host) => <AccountList canCreate={false} canCreateResident {...host} />}</DetailHost>)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Tạo tài khoản người cao tuổi' }))
     const sheet = await screen.findByRole('dialog')
@@ -98,7 +99,7 @@ describe('Tài khoản người cao tuổi', () => {
 
   it('khongPhaiHanhChinhHayQuanLy_khongCoNutTao', async () => {
     api.on('GET', '/accounts', json(200, { items: [], nextCursor: null }))
-    render(<AccountList canCreate={false} canCreateResident={false} />)
+    render(<DetailHost>{(host) => <AccountList canCreate={false} canCreateResident={false} {...host} />}</DetailHost>)
     await screen.findByText('Không có tài khoản khớp')
 
     expect(screen.queryByRole('button', { name: 'Tạo tài khoản người cao tuổi' })).toBeNull()

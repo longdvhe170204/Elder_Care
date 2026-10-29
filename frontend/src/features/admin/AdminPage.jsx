@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { DetailLayout } from '@/common/DetailLayout'
 import { PageHeader } from '@/common/PageHeader'
 import { AccountList } from '@/features/accounts/AccountList'
 import { ParameterList } from '@/features/parameters/ParameterList'
@@ -8,6 +9,7 @@ import { RolePermissions } from '@/features/permissions/RolePermissions'
 // Màn "Tài khoản, tham số" (Phụ lục 27, dòng "Tài khoản, phân quyền, tham số"). Tab Tài khoản: 002 T035; tab Phân
 // quyền: 002 T077 (chỉ Quản lý viện, backend trả 403 cho vai trò khác).
 // Chỉ Quản lý viện đổi tham số (BR-M15-04), tạo tài khoản nhân viên (FR-002); quyền thật do backend trả và kiểm.
+// Chi tiết của tab mở trong DetailLayout ở cấp màn để khung cao hết màn (DESIGN.md 5); đổi tab thì đóng khung.
 
 const SUBTITLES = {
   accounts: 'Tài khoản không xóa được; khóa, mở khóa, đổi vai trò đều ghi lý do.',
@@ -17,13 +19,24 @@ const SUBTITLES = {
 
 export function AdminPage({ role }) {
   const [tab, setTab] = useState('parameters')
+  const [detail, setDetail] = useState(null)
   return (
-    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6">
+    <DetailLayout
+      open={detail !== null}
+      detailKey={detail?.key}
+      onClose={() => setDetail(null)}
+      label={detail?.label}
+      renderDetail={(titles) => detail.render(titles)}
+    >
       <PageHeader title="Tài khoản, tham số" subtitle={SUBTITLES[tab]}>
         <ToggleGroup
           variant="outline"
           value={[tab]}
-          onValueChange={(next) => next[0] && setTab(next[0])}
+          onValueChange={(next) => {
+            if (!next[0]) return
+            setTab(next[0])
+            setDetail(null)
+          }}
           className="self-start"
         >
           <ToggleGroupItem value="accounts" className="h-10 px-4">
@@ -37,14 +50,18 @@ export function AdminPage({ role }) {
           </ToggleGroupItem>
         </ToggleGroup>
       </PageHeader>
-      {tab === 'parameters' && <ParameterList canChange={role === 'NURSING_HOME_MANAGER'} />}
+      {tab === 'parameters' && (
+        <ParameterList canChange={role === 'NURSING_HOME_MANAGER'} openedKey={detail?.key} onOpen={setDetail} />
+      )}
       {tab === 'accounts' && (
-          <AccountList
-            canCreate={role === 'NURSING_HOME_MANAGER'}
-            canCreateResident={role === 'NURSING_HOME_MANAGER' || role === 'OFFICE_STAFF'}
-          />
-        )}
+        <AccountList
+          canCreate={role === 'NURSING_HOME_MANAGER'}
+          canCreateResident={role === 'NURSING_HOME_MANAGER' || role === 'OFFICE_STAFF'}
+          openedKey={detail?.key}
+          onOpen={setDetail}
+        />
+      )}
       {tab === 'permissions' && <RolePermissions />}
-    </div>
+    </DetailLayout>
   )
 }

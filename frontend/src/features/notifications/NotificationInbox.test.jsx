@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { json, mockRoutes, problem } from '@/test/fetchRoutes'
+import { DetailHost } from '@/test/DetailHost'
 import { NotificationInbox } from './NotificationInbox'
 
 // 009 T035: hộp thông báo (FR-033 → FR-036; hợp đồng /me/notifications).
@@ -54,7 +55,7 @@ function inboxCalls() {
 describe('NotificationInbox', () => {
   it('FR_033_khanCapChuaXacNhanTachLenDau_demChuaXem', async () => {
     api.on('GET', '/me/notifications', json(200, PAGE))
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
 
     const urgent = await screen.findByRole('region', { name: 'Khẩn cấp chưa xác nhận' })
     expect(urgent).toHaveTextContent('Ngã trong phòng')
@@ -69,7 +70,7 @@ describe('NotificationInbox', () => {
 
   it('FR_033_locMucVaChuaXem_guiThamSo', async () => {
     api.on('GET', '/me/notifications', json(200, PAGE))
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
     await screen.findByRole('list', { name: 'Thông báo' })
 
     fireEvent.click(screen.getByRole('button', { name: 'Trung bình' }))
@@ -94,7 +95,7 @@ describe('NotificationInbox', () => {
         nextCursor: null,
       }),
     )
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
     const select = await screen.findByLabelText('Người cao tuổi')
     expect(within(select).getByRole('option', { name: 'Trần Thị Bình (NCT-2026-0502)' })).toBeInTheDocument()
 
@@ -110,7 +111,7 @@ describe('NotificationInbox', () => {
   it('FR_033_khongXemDuocHoSo_khongCoOLocNguoiCaoTuoi', async () => {
     api.on('GET', '/me/notifications', json(200, PAGE))
     api.on('GET', '/residents', problem(403, 'PERMISSION_DENIED'))
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
     await screen.findByRole('list', { name: 'Thông báo' })
     await vi.waitFor(() => expect(api.calls('GET', '/residents')).toHaveLength(1))
     expect(screen.queryByLabelText('Người cao tuổi')).toBeNull()
@@ -123,7 +124,7 @@ describe('NotificationInbox', () => {
       '/me/notifications/11',
       json(200, notification({ status: 'VIEWED', viewedAt: '2026-10-23T02:00:00Z', hiddenParts: ['HEALTH'] })),
     )
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
     fireEvent.click(await screen.findByRole('button', { name: 'Công việc quá hạn 30 phút' }))
 
     const dialog = await screen.findByRole('dialog')
@@ -138,7 +139,7 @@ describe('NotificationInbox', () => {
     api.on('GET', '/me/notifications', json(200, PAGE))
     api.on('GET', '/me/notifications/13', json(200, VIEWED))
     api.on('POST', '/me/notifications/13/hide', json(200, {}))
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
     fireEvent.click(await screen.findByRole('button', { name: 'Yêu cầu phê duyệt mới' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Ẩn khỏi danh sách' }))
 
@@ -150,7 +151,7 @@ describe('NotificationInbox', () => {
 
   it('loiTai_hienThuLai', async () => {
     api.on('GET', '/me/notifications', problem(403, 'PERMISSION_DENIED'))
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
     expect(await screen.findByText('Không tải được thông báo')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Thử lại' })).toBeInTheDocument()
   })
@@ -158,7 +159,7 @@ describe('NotificationInbox', () => {
   it('FR_026_xacNhanKhanCap_coIdempotencyKey_taiLai', async () => {
     api.on('GET', '/me/notifications', json(200, PAGE))
     api.on('POST', '/notifications/12/acknowledge', json(200, null))
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
     const urgent = await screen.findByRole('region', { name: 'Khẩn cấp chưa xác nhận' })
 
     fireEvent.click(within(urgent).getByRole('button', { name: 'Xác nhận đã nhận' }))
@@ -171,7 +172,7 @@ describe('NotificationInbox', () => {
   it('FR_026_daCoNguoiXacNhan_409_baoLyDo', async () => {
     api.on('GET', '/me/notifications', json(200, PAGE))
     api.on('POST', '/notifications/12/acknowledge', problem(409, 'ALREADY_ACKNOWLEDGED', { detail: 'Đã xác nhận' }))
-    render(<NotificationInbox />)
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
     const urgent = await screen.findByRole('region', { name: 'Khẩn cấp chưa xác nhận' })
 
     fireEvent.click(within(urgent).getByRole('button', { name: 'Xác nhận đã nhận' }))
