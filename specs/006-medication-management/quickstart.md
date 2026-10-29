@@ -44,7 +44,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Q11 | S, H, D2 xác nhận liều | 403 mỗi người | US2 #10, SC-008 |
 | Q12 | Bản giả 008 bỏ phân công A ca ngày; tua 07:30; D4 (tầng 2) xác nhận; D5 (tầng 3) xác nhận | H, P nhận `NctChuaCoDieuDuongPhuTrach` một lần; D4 200 căn cứ `LIEU_CHUNG_TANG`; D5 403 | US2 #11, FR-026a, SC-011 |
 | Q13 | Bản giả 008 không còn Điều dưỡng nào có ca tầng 2 | H, QL nhận `TangKhongCoDieuDuong` kèm liều sắp tới giờ; liều vẫn Trễ, Bỏ lỡ | BR-M07-21 |
-| Q14 | Morphin 22:00: gửi bản ghi ngoại tuyến; ghi trực tuyến lúc 22:50 với `ghiSauMatKetNoi`, thời điểm dùng 22:05; P xem lại | `TU_CHOI` `BAT_BUOC_TRUC_TUYEN`; `DA_DUNG` không nhãn trễ, `xem_lai_lieu` `CHO_XEM_LAI` cho P, 007 nhận yêu cầu đóng cảnh báo nếu có; P gắn `CHAP_NHAN` | US2 #12, FR-029, SC-012 |
+| Q14 | Morphin 22:00: gửi bản ghi ngoại tuyến; ghi trực tuyến lúc 22:50 với `ghiSauMatKetNoi`, thời điểm dùng 22:05; P xem lại | `TU_CHOI` `BAT_BUOC_TRUC_TUYEN`; `DA_DUNG` không nhãn trễ, `xem_lai_lieu` `CHO_XEM_LAI` cho P, 007 nhận yêu cầu đóng cảnh báo nếu có; P gắn `CHAP_NHAN` | US2 #12, FR-029, SC-012 *(R-15: `xem_lai_lieu` → `ho_so_chung`)* |
 | Q15 | Hai thiết bị ngoại tuyến cùng ghi Đã dùng một liều, đồng bộ lần lượt | Bản đầu đóng liều; bản sau `TU_CHOI` kèm người đóng; 007 nhận `NGHI_DUNG_TRUNG_LIEU` | BR-M07-20 |
 | Q16 | Sửa liều đơn Amlodipin qua API và `UPDATE` trực tiếp; sửa ghi chú | 404/405 (không có endpoint); trigger chặn; 200, nhật ký trước/sau | US3 #1, #2, SC-002 |
 | Q17 | B đổi liều 5 → 10 mg từ 14:00 hôm nay | Cùng lệnh: đơn cũ `DA_NGUNG` "thay thế", đơn mới `HIEU_LUC` trỏ đơn cũ; liều 08:00 hôm nay giữ Đã dùng; lịch ngày mai: 5 mg Đã hủy, 10 mg Chưa đến giờ | US3 #3, DBR-14 |
@@ -112,6 +112,6 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | SC-009 | Đo trên app: chạm liều → lưu ≤ 10 giây (nguồn viện, không kiểm soát đặc biệt, trực tuyến); `GET /lieu-thuoc/vong-phat-thuoc` 15 người ≤ 3 giây p95 (dữ liệu 300 người) |
 | SC-010 | Q38 |
 | SC-011 | Q12 |
-| SC-012 | Q14: mọi `xem_lai_lieu` có kết quả trước lần xác nhận bàn giao kế tiếp trong kịch bản (xem plan điểm báo lại 4) |
+| SC-012 | Q14: mọi `xem_lai_lieu` có kết quả trước lần xác nhận bàn giao kế tiếp trong kịch bản (xem plan điểm báo lại 4) *(R-15: `xem_lai_lieu` → `ho_so_chung`)* |
 | SC-013 | Q35 |
 | SC-014 | Q22, Q24 |

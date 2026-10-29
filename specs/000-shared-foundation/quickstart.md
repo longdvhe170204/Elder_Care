@@ -38,7 +38,7 @@ Kết quả mong đợi: `verify` xanh, gồm các nhóm test ở mục 4. Khở
 | K6 | Hành chính A lập yêu cầu `M15.MAU`, ngày hiệu lực là ngày mai, rồi gửi duyệt. Tua đồng hồ 25 giờ, chạy job nhắc | Sự kiện `YeuCauCanNhacNguoiDuyet` (CFG-M15-05 đã đổi thành 24 giờ ở K1). Yêu cầu vẫn `CHO_DUYET` | US5 #4 |
 | K7 | Tua thêm tới quá 96 giờ, chạy job nhắc | `YeuCauCanBaoQuanLyVien`; không tự hủy | US5 #4, FR-031a |
 | K8 | QLV và một QLV thứ hai cùng `duyet` với cùng `If-Match` | Một bên 200, một bên 409 `DA_DUOC_XU_LY` | US5 #12, FR-040 |
-| K9 | Tua tới ngày hiệu lực, chạy job áp dụng 3 lần | `DA_AP_DUNG`; đúng 1 dòng `ket_qua_ap_dung` | US5 #7, #11, SC-003 |
+| K9 | Tua tới ngày hiệu lực, chạy job áp dụng 3 lần | `DA_AP_DUNG`; đúng 1 dòng `ket_qua_ap_dung` | US5 #7, #11, SC-003 *(R-15: `ket_qua_ap_dung` → `yeu_cau_phe_duyet` (cột))* |
 | K10 | Yêu cầu thứ hai đã duyệt; tắt Bộ lập lịch 2 ngày qua ngày hiệu lực, rồi chạy | `apDungBu = true`; nhật ký có ngày hiệu lực và thời điểm áp dụng | US5 #9, FR-037a |
 | K11 | Yêu cầu thứ ba, bật "điều kiện không thỏa" ở handler mẫu, đến ngày | `AP_DUNG_KHONG_THANH`; có sự kiện báo người duyệt và người yêu cầu | US5 #8, FR-038 |
 | K12 | Yêu cầu thứ tư, bật "lỗi khi áp dụng" | Vẫn `DA_DUYET`; nhật ký `YC_AP_DUNG_LOI`; không có tác động. Tắt lỗi, chạy lại thì `DA_AP_DUNG` | US5 #10, FR-037b |

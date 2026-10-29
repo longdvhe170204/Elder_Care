@@ -6,32 +6,88 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ---
 
+## 0. Gộp bảng theo R-15 *(bổ sung 2026-10-29, bản 2)*
+
+Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/research.md) (bản 2, chủ dự án duyệt 2026-10-29, constitution XII 3.2.0); không đổi nghiệp vụ, API, quyền. Mô tả bảng ở các mục sau vẫn là căn cứ cột và ràng buộc: bảng gộp mang đủ cột của bảng cũ (cột riêng vào `JSON` hoặc cột `NULL` có `CHECK` theo `loai`); ràng buộc duy nhất thành `khoa_duy_nhat`; dòng nhóm 3 hoặc đã khóa có `khoa_luc` và trigger theo dòng. Bảy bảng chung ở [data-model 000 mục 8](../000-shared-foundation/data-model.md): `danh_muc_chung`, `lich_su_chung`, `su_kien_chung`, `ho_so_chung`, `trang_thai_nct`, `moc_da_nhac`, `khoa_ky_thuat`. Khi cài thấy bảng nào không thể gộp mà vẫn giữ được BR, DBR thì giữ và ghi lý do ở plan.
+
+- Giữ, gộp: `don_thuoc` (hoạt chất thành `JSON` ghi một lần); `lieu_thuoc`; `ket_qua_lieu` (+ `lan_dung_prn`, cột `kind`); `phieu_doi_chieu` (dòng thành `JSON`, khóa khi Đã xác nhận); `thuoc_gia_dinh_gui` (đơn liên kết thành `JSON`); `lan_giao_nhan_thuoc` = `lan_giao_thuoc` + `lan_nhan_lai_thuoc` + `lenh_khong_mang_thuoc` + `lan_tiep_nhan_thuoc_cung_ung` và bảng dòng (`medication_handover*`, `medication_return*`, `no_medication_order`, `supplied_medication_intake`).
+- `danh_muc_chung`: `thuoc` (hoạt chất trong `thuoc_tinh`).
+- `su_kien_chung`: `van_de_don_thuoc`, `can_cu_co_so_ke`.
+- `ho_so_chung`: `xem_lai_lieu`, `khoang_vang_thuoc`, `de_nghi_dinh_chinh_phieu`; `trang_thai_nct`: `thuoc_nct` (`resident_medication`, cột sinh hạn đối chiếu); `moc_da_nhac`: `m07_job_run` (lần chạy ra file log).
+- Còn 6 bảng riêng của feature.
+
+### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V006_95`)*
+
+Mô tả dưới đây thay các mục tương ứng khi cài 006 T069; cột không nhắc lại giữ như bảng đã cài (`V006_01` → `V006_14`). Sửa so với danh sách trên: `ket_qua_lieu` giữ bảng riêng (là đích của `dinh_chinh` `M07.DOSE_RESULT` và tách nhóm 3 khỏi lịch liều nhóm 2), `lan_dung_prn` gộp vào `ket_qua_lieu`; căn cứ cơ sở kê là sự kiện (ghi thêm khi gia hạn, thay thế). 006 còn 6 bảng.
+
+**`prescription`** (`don_thuoc`) – nhóm 2, giữ mọi cột. `medication_id` trỏ `danh_muc_chung.id` loại `M07.MEDICATION` (id mới). Thêm `active_ingredient_ids JSON NOT NULL` (thay `prescription_active_ingredient`, ghi khi tạo; trigger chặn đổi cột này).
+
+**`medication_dose`** (`lieu_thuoc`) – nhóm 2, giữ nguyên (`UNIQUE (prescription_id, scheduled_time)`).
+
+**`dose_result`** (`ket_qua_lieu`) – nhóm 3, giữ mọi cột, trigger, quyền. Gộp `prn_administration`: thêm `kind ENUM('SCHEDULED','PRN') NOT NULL DEFAULT 'SCHEDULED'`, `prescription_id NULL`, `dosage NULL`, `dosage_unit NULL`, `exceeded_limit NULL`; `dose_id` `NULL` khi `PRN`. `CHECK ((kind = 'SCHEDULED') = (dose_id IS NOT NULL))`, `CHECK (kind = 'SCHEDULED' OR (prescription_id IS NOT NULL AND dosage IS NOT NULL))`. Cột của PRN trùng nghĩa dùng cột sẵn có (`administered_at`, `recorder_id` = `administered_by_id`, `reported_by_*`, `reason`, `adverse_reaction`, `note`, `device_recorded_at` = `offline_device_time`, `synced_after_permission_loss` = `recorded_after_disconnect`). Dòng PRN cấp id mới; `dinh_chinh`, `nhat_ky` trỏ `M07.PRN_ADMINISTRATION` được đổi sang `M07.DOSE_RESULT` + id mới ở lớp đọc theo `legacy`.
+
+**`medication_reconciliation`** (`phieu_doi_chieu`) – nhóm 2 → 3, giữ mọi cột và `UNIQUE`. Thêm `lines JSON NOT NULL` (thay `reconciliation_item`: mảng `{itemOrder, source, prescriptionId, admissionMedicationItemId, medicationDescription, decision, reason, newPrescription, createdById, createdAt, discontinuedOutsideTicket, createdPrescriptionId}`); `khoa_luc` = `confirmed_at`, trigger chặn sửa khi đã xác nhận (thay trigger của dòng). Không trùng đơn, không trùng mục thuốc khi tiếp nhận trong một phiếu (hai `UNIQUE` cũ) kiểm ở domain.
+
+**`family_medication_batch`** (`thuoc_gia_dinh_gui`) – nhóm 2, giữ mọi cột sau `V006_14`. Thêm `prescription_bindings JSON NOT NULL` (thay `family_medication_prescription`: mảng `{prescriptionId, boundFrom, boundTo}`); trigger `trg_family_medication_batch_guard` hiện có giữ.
+
+**`medication_handover`** (`lan_giao_nhan_thuoc`, mở rộng) – nhóm 2, khóa theo dòng. Gộp `medication_handover`, `medication_handover_item`, `medication_handover_dose`, `medication_return`, `medication_return_item`, `no_medication_order`, `supplied_medication_intake`:
+
+| Cột | Ghi chú |
+| --- | --- |
+| `id`, `kind ENUM('HANDOVER','RETURN','NO_MEDICATION','SUPPLIED_INTAKE')` | Giữ id của `medication_handover`; loại khác cấp id mới |
+| `resident_id`, `trip_id`, `absence_interval_id`, `handover_id NULL` (lần nhận lại trỏ lần giao) | |
+| Cột của giao (`recipient_*`, `relationship`, `dispensed_by_id`, `handover_time`, `status`, `version`), nhận lại (`recorded_by_id`, `return_time`, `reason`), không mang (`reason`, `created_by_id`), tiếp nhận cung ứng (`procurement_line_id`, `procurement_request_id`, `prescription_id`, `medication_id`, `medication_name`, `concentration`, `dosage_form`, `quantity_received`, `unit`, `expiry_date`, `item_condition`, `intake_result`, `discrepancy`, `deliverer_name`, `receiver_id`, `received_at`) | `NULL` với loại khác; `CHECK` theo `kind` |
+| `lines JSON NULL` | Dòng thuốc giao `{prescriptionId, quantity, familyMedicationBatchId, medicationSource}`, liều mang theo `{doseId, revertedAt}`, dòng nhận lại `{prescriptionId, quantity}` |
+| `no_medication_key` | Cột sinh `IF(kind = 'NO_MEDICATION', CONCAT(resident_id, ':', trip_id), NULL)` `UNIQUE` (thay `uq_resident_trip_no_med`) |
+| `khoa_luc`, `created_at` | `RETURN`, `NO_MEDICATION`, `SUPPLIED_INTAKE` khóa khi thêm (nhóm 3); `HANDOVER` khóa khi trạng thái cuối |
+
+Chỉ mục `(kind, resident_id, created_at)`, `(trip_id)`, `(procurement_request_id)`.
+
+**Loại ở bảng chung**:
+
+| Bảng chung | `loai` | Nội dung | Ràng buộc chuyển về backend |
+| --- | --- | --- | --- |
+| `danh_muc_chung` | `M07.MEDICATION` | `ten` = tên; `{concentration, dosageForm, defaultRoute, usageUnit, beforeWindowMinutes, afterWindowMinutes, specialControl, activeIngredientIds[]}`; `ma` = khóa chuẩn hóa tên, hàm lượng, dạng | Không trùng (tên, hàm lượng, dạng) qua `ma_khoa` (thay `uq_medication_identity`); hoạt chất là mục `M01.ALLERGEN` nhóm `ACTIVE_INGREDIENT` |
+| `su_kien_chung` | `M07.PRESCRIPTION_ISSUE` | đối tượng `PRESCRIPTION`; `{reconciliationLineId, lineNumber, issueType, issueCode, duplicatePrescriptionId, allergyItemId, severity, activeIngredient, manualReviewRequired, confirmationReason}`; `nguoi_thuc_hien_id` = người xác nhận | Ghi cùng lệnh lập đơn |
+| `su_kien_chung` | `M07.PRESCRIPTION_BASIS` | đối tượng `PRESCRIPTION`; `{command, facilityName, prescriberName, prescribedDate, basisType, callerName, receiverName, calledAt, documentFileId}` | Tệp `documentFileId` gắn chủ `M07.PRESCRIPTION_BASIS` + id sự kiện |
+| `ho_so_chung` | `M07.DOSE_REVIEW` | đối tượng `DOSE_RESULT`; `{floorAreaId, reviewerCandidate, reviewerId, reviewedAt, note}`; `trang_thai` | `M07.DR:<doseResultId>` |
+| `ho_so_chung` | `M07.ABSENCE_INTERVAL` | `nct_id`; `{absenceType, fromTime, expectedToTime, actualToTime, absenceSessionId, tripId, noMedicationOrderId}`; `trang_thai` `OPEN`, `CLOSED` | `M07.AI:<residentId>` khi `OPEN` (thay `uq_open_absence_resident`) |
+| `ho_so_chung` | `M07.RECONCILIATION_CORRECTION_REQUEST` | đối tượng `RECONCILIATION`; `{correctedContent, reason, returnReason, confirmedById, confirmedAt, correctionId}`; `trang_thai` | |
+| `trang_thai_nct` | module `M07` | `{reconciliationDueAt, reconciliationReason, reconciliationWarnedAt}` | Thay `resident_medication`; cột sinh `m07_reconciliation_due_at` có chỉ mục cho job cảnh báo |
+| `moc_da_nhac` | `M07.JOB.<jobKey>` | `moc` = `checkpoint` | Thay `m07_job_run` (lần chạy ra `logs/jobs.log`) |
+
+**Chuyển dữ liệu (`V006_95`)**: `medication` (kèm hoạt chất) vào `danh_muc_chung`, đổi `medication_id` ở `prescription`, `medication_dose`, `family_medication_batch`, dòng tiếp nhận cung ứng; `prescription_active_ingredient`, `reconciliation_item`, `family_medication_prescription` vào JSON của bảng cha; `prn_administration` vào `dose_result` (đổi `dose_review.prn_usage_id` thành id mới); bảy bảng giao nhận vào `medication_handover` (đổi `no_medication_order_id` của khoảng vắng, `leave_handover_id` của kết quả liều); `prescription_issue`, `prescription_basis` vào `su_kien_chung`; `dose_review`, `medication_absence_interval`, `reconciliation_correction_request` vào `ho_so_chung`; `resident_medication` vào `trang_thai_nct`; `m07_job_run` vào `moc_da_nhac`.
+
+**Bảo đảm** (thay phần tương ứng ở các mục sau): một liều mỗi (đơn, giờ) (`UNIQUE` giữ); kết quả liều và lần dùng PRN không sửa, không xóa (trigger `dose_result` giữ); một phiếu đối chiếu đang mở và một phiếu khi tiếp nhận mỗi người (`UNIQUE` giữ); một khoảng vắng mở mỗi người và một lệnh không mang thuốc mỗi (người, chuyến) (`khoa_duy_nhat`, `no_medication_key`). Test m07 hiện có phải xanh không đổi kịch bản.
+
+---
+
 ## 1. Tổng quan
 
 | Bảng | Nhóm (1.5) | Mục spec |
 | --- | --- | --- |
-| `thuoc_nct` | 2 (kỹ thuật) | Đích khóa theo người, hạn đối chiếu (research D-01, D-13) |
-| `thuoc`, `thuoc_hoat_chat` | 1 | A |
+| `thuoc_nct` | 2 (kỹ thuật) | Đích khóa theo người, hạn đối chiếu (research D-01, D-13) *(R-15: `thuoc_nct` → `trang_thai_nct`)* |
+| `thuoc`, `thuoc_hoat_chat` | 1 | A *(R-15: `thuoc_hoat_chat` → `danh_muc_chung` (thuộc tính của thuốc))* |
 | `don_thuoc` | 2 | B |
-| `don_thuoc_hoat_chat`, `van_de_don_thuoc`, `can_cu_co_so_ke` | 3 | B (FR-004, FR-007, FR-013) |
+| `don_thuoc_hoat_chat`, `van_de_don_thuoc`, `can_cu_co_so_ke` | 3 | B (FR-004, FR-007, FR-013) *(R-15: `don_thuoc_hoat_chat` → cột `JSON` của `don_thuoc`; `van_de_don_thuoc`, `can_cu_co_so_ke` → `su_kien_chung`)* |
 | `lieu_thuoc` | 2 (do hệ thống điều khiển), chỉ dòng đã vật hóa | C |
 | `ket_qua_lieu` | 3 | C, E |
-| `xem_lai_lieu` | 2 | E (FR-029) |
-| `lan_dung_prn` | 3 | D |
-| `phieu_doi_chieu`, `dong_doi_chieu` | 2 khi Mở, Chờ xác nhận; 3 khi Đã xác nhận | F |
-| `lan_tiep_nhan_thuoc_cung_ung` *(bổ sung 2026-10-11, Q-337)* | 3 | I (FR-054, FR-055) |
-| `de_nghi_dinh_chinh_phieu` | 2 | F (FR-039) |
+| `xem_lai_lieu` | 2 | E (FR-029) *(R-15: `xem_lai_lieu` → `ho_so_chung`)* |
+| `lan_dung_prn` | 3 | D *(R-15: `lan_dung_prn` → `ket_qua_lieu` (`dose_result`))* |
+| `phieu_doi_chieu`, `dong_doi_chieu` | 2 khi Mở, Chờ xác nhận; 3 khi Đã xác nhận | F *(R-15: `dong_doi_chieu` → cột `JSON` của `phieu_doi_chieu`)* |
+| `lan_tiep_nhan_thuoc_cung_ung` *(bổ sung 2026-10-11, Q-337)* | 3 | I (FR-054, FR-055) *(R-15: `lan_tiep_nhan_thuoc_cung_ung` → `lan_giao_nhan_thuoc` (`medication_handover`))* |
+| `de_nghi_dinh_chinh_phieu` | 2 | F (FR-039) *(R-15: `de_nghi_dinh_chinh_phieu` → `ho_so_chung`)* |
 | `thuoc_gia_dinh_gui` | 2 | G |
-| `thuoc_gui_don` | 2 (liên kết) | G (FR-043) |
-| `khoang_vang_thuoc` | 2 | H (FR-048) |
-| `lan_giao_thuoc`, `lan_giao_thuoc_dong`, `lan_giao_lieu` | 3 (trạng thái do hệ thống) | H (FR-048a) |
-| `lan_nhan_lai_thuoc`, `lan_nhan_lai_thuoc_dong` | 3 | H (FR-048a) |
-| `lenh_khong_mang_thuoc` | 3 | H (FR-048b) |
+| `thuoc_gui_don` | 2 (liên kết) | G (FR-043) *(R-15: `thuoc_gui_don` → cột `JSON` của `thuoc_gia_dinh_gui`)* |
+| `khoang_vang_thuoc` | 2 | H (FR-048) *(R-15: `khoang_vang_thuoc` → `ho_so_chung`)* |
+| `lan_giao_thuoc`, `lan_giao_thuoc_dong`, `lan_giao_lieu` | 3 (trạng thái do hệ thống) | H (FR-048a) *(R-15: `lan_giao_thuoc` → `lan_giao_nhan_thuoc` (`medication_handover`))* |
+| `lan_nhan_lai_thuoc`, `lan_nhan_lai_thuoc_dong` | 3 | H (FR-048a) *(R-15: `lan_nhan_lai_thuoc` → `lan_giao_nhan_thuoc` (`medication_handover`))* |
+| `lenh_khong_mang_thuoc` | 3 | H (FR-048b) *(R-15: `lenh_khong_mang_thuoc` → `lan_giao_nhan_thuoc` (`medication_handover`))* |
 | `lan_chay_m07` | Kỹ thuật | Job (research D-19) |
 
 ---
 
-## 2. `thuoc_nct` – nhóm 2 (kỹ thuật)
+## 2. `thuoc_nct` – nhóm 2 (kỹ thuật) → gộp theo R-15: `thuoc_nct` → `trang_thai_nct`
 
 | Cột | Kiểu | Ghi chú | Nguồn |
 | --- | --- | --- | --- |
@@ -45,7 +101,7 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ## 3. Danh mục thuốc (mục A)
 
-### `thuoc` – nhóm 1
+### `thuoc` – nhóm 1 → gộp theo R-15: `thuoc` → `danh_muc_chung`
 
 | Cột | Kiểu | Ghi chú | Nguồn |
 | --- | --- | --- | --- |
@@ -54,9 +110,9 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | `kiem_soat_dac_biet` | `BOOLEAN` | | 8.6, FR-029 |
 | `trang_thai_hieu_luc` | Mẫu 000 | Ngừng hiệu lực: không chọn cho đơn mới | FR-002 |
 
-### `thuoc_hoat_chat` – nhóm 1 (bảng con)
+### `thuoc_hoat_chat` – nhóm 1 (bảng con) → gộp theo R-15: `thuoc_hoat_chat` → `danh_muc_chung` (thuộc tính của thuốc)
 
-`thuoc_id` FK, `di_nguyen_id` (danh mục dị nguyên nhóm thuốc của 001). Khóa chính hai cột. Sửa chỉ áp cho đơn lưu sau (đơn chép vào `don_thuoc_hoat_chat`).
+`thuoc_id` FK, `di_nguyen_id` (danh mục dị nguyên nhóm thuốc của 001). Khóa chính hai cột. Sửa chỉ áp cho đơn lưu sau (đơn chép vào `don_thuoc_hoat_chat`). *(R-15: `don_thuoc_hoat_chat` → cột `JSON` của `don_thuoc`)*
 
 `don_thuoc.thuoc_id` FK `ON DELETE RESTRICT`: thuốc đã có đơn không xóa được (FR-002).
 
@@ -119,15 +175,15 @@ Chỉ mục: `(nct_id, trang_thai)` cho lịch, trùng hoạt chất; `(trang_th
 | `HIEU_LUC`, `TAM_DUNG` | Hết ngày kết thúc | `HET_HAN` | `ViecHangNgayM07` |
 | `HIEU_LUC`, `TAM_DUNG`, `CHO_HIEU_LUC` | Trạng thái cuối của người cao tuổi | `DA_NGUNG` | Bean 001 |
 
-### `don_thuoc_hoat_chat` – nhóm 3
+### `don_thuoc_hoat_chat` – nhóm 3 → gộp theo R-15: `don_thuoc_hoat_chat` → cột `JSON` của `don_thuoc`
 
-`don_thuoc_id`, `di_nguyen_id`. Chép từ `thuoc_hoat_chat` lúc lưu đơn; dùng cho FR-007 (a), FR-012.
+`don_thuoc_id`, `di_nguyen_id`. Chép từ `thuoc_hoat_chat` lúc lưu đơn; dùng cho FR-007 (a), FR-012. *(R-15: `thuoc_hoat_chat` → `danh_muc_chung` (thuộc tính của thuốc))*
 
-### `van_de_don_thuoc` – nhóm 3
+### `van_de_don_thuoc` – nhóm 3 → gộp theo R-15: `van_de_don_thuoc` → `su_kien_chung`
 
 `id`, `don_thuoc_id` (hoặc `dong_doi_chieu_id` khi kiểm trên phiếu), `loai` (`TRUNG_HOAT_CHAT`, `XUNG_DOT_DI_UNG`, `DI_UNG_KHAC_CAN_XEM`), `don_trung_id`, `muc_di_ung_id`, `muc_do`, `hoat_chat`, `ly_do_xac_nhan` (bắt buộc trừ `DI_UNG_KHAC_CAN_XEM`), `nguoi_xac_nhan_id`, `thoi_diem`. Nguồn: FR-007, FR-008, SC-003.
 
-### `can_cu_co_so_ke` – nhóm 3
+### `can_cu_co_so_ke` – nhóm 3 → gộp theo R-15: `can_cu_co_so_ke` → `su_kien_chung`
 
 `id`, `don_thuoc_id`, `lenh` (`TAM_DUNG`, `TIEP_TUC`, `NGUNG`, `GIA_HAN`, `DOI_LIEU`), `co_so_ten`, `nguoi_chi_dinh`, `ngay`, `hinh_thuc` (`DON_MOI`, `GIAY_RA_VIEN`, `DIEN_THOAI`), `nguoi_goi`, `nguoi_tra_loi`, `thoi_diem_goi`, `tep_id`, `nguoi_ghi_id`, `thoi_diem`. `CHECK`: `hinh_thuc='DIEN_THOAI'` thì ba cột điện thoại không rỗng; ngược lại `tep_id` không rỗng. Nguồn: FR-013, BR-M07-16.
 
@@ -191,7 +247,7 @@ Chỉ mục: `(trang_thai, cua_so_tu)`, `(trang_thai, cua_so_den)`, `(trang_thai
 
 `CHECK`: `thoi_diem_dung <= COALESCE(thoi_diem_thiet_bi, thoi_diem)`; `loai='DA_DUNG'` thì `thoi_diem_dung` không rỗng. Trigger nhóm 3 của 000. Đính chính loại `M07.KET_QUA_LIEU`.
 
-### `xem_lai_lieu` – nhóm 2
+### `xem_lai_lieu` – nhóm 2 → gộp theo R-15: `xem_lai_lieu` → `ho_so_chung`
 
 `id`, `ket_qua_lieu_id` (`UNIQUE`), `lan_dung_prn_id`, `tang_khu_vuc_id`, `nguoi_xem_lai_du_kien` (`JSON`: một người hoặc danh sách), `trang_thai` (`CHO_XEM_LAI`, `CHAP_NHAN`, `CAN_DINH_CHINH`), `nguoi_xem_lai_id`, `xem_lai_luc`, `ghi_chu`. `CHECK (nguoi_xem_lai_id IS NULL OR nguoi_xem_lai_id <> nguoi_ghi_id)` với `nguoi_ghi_id` chép từ bản ghi. Nguồn: FR-029, Q-66, SC-012.
 
@@ -199,7 +255,7 @@ Chỉ mục: `(trang_thai, cua_so_tu)`, `(trang_thai, cua_so_den)`, `(trang_thai
 
 ## 6. Lần dùng PRN (mục D)
 
-### `lan_dung_prn` – nhóm 3
+### `lan_dung_prn` – nhóm 3 → gộp theo R-15: `lan_dung_prn` → `ket_qua_lieu` (`dose_result`)
 
 `id`, `don_thuoc_id`, `nct_id`, `thuoc_id`, `tang_khu_vuc_id`, `thoi_diem_dung`, `lieu_dung` (`CHECK (lieu_dung > 0)`; không vượt liều đơn kiểm ở backend), `ly_do` (bắt buộc), `phan_ung`, `ghi_chu`, `lan_giao_id` (không có `lo_thuoc_gui_id`, Q-393), `can_cu_quyen`, cột người báo lại như `ket_qua_lieu`, `vuot_gioi_han BOOLEAN`, `thoi_diem`, `thoi_diem_thiet_bi`, `nguoi_ghi_id`, `nhan_ghi_sau_mat_ket_noi`, `nhan_dong_bo_sau_mat_quyen`. Chỉ mục `(don_thuoc_id, thoi_diem_dung)`. Đính chính loại `M07.LAN_DUNG_PRN`. Nguồn: FR-024 → FR-025a.
 
@@ -238,11 +294,11 @@ Chỉ mục: `(trang_thai, cua_so_tu)`, `(trang_thai, cua_so_den)`, `(trang_thai
 | `MO`, `CHO_XAC_NHAN` | Tới hạn | Giữ nguyên, đặt `qua_han_luc` | `ViecTheoPhutM07` |
 | `MO`, `CHO_XAC_NHAN` | Chuyển lại bệnh viện; trạng thái cuối; Hủy tiếp nhận | `DA_HUY` | Bean 001 |
 
-### `dong_doi_chieu` – bảng con (theo nhóm của phiếu)
+### `dong_doi_chieu` – bảng con (theo nhóm của phiếu) → gộp theo R-15: `dong_doi_chieu` → cột `JSON` của `phieu_doi_chieu`
 
-`id`, `phieu_id`, `thu_tu`, `nguon` (`DON_HIEN_CO`, `DON_RA_VIEN`, `THUOC_DANG_DUNG_TIEP_NHAN`), `don_thuoc_id`, `muc_thuoc_dang_dung_id`, `mo_ta_thuoc` (tự do cho đơn ra viện), `quyet_dinh` (`TIEP_TUC`, `NGUNG`, `THAY_DOI_LIEU`, `THEM_MOI`), `ly_do`, `don_moi` (`JSON` theo FR-004, kèm cơ sở kê), `nguoi_ghi_id`, `ghi_luc`, `da_ngung_ngoai_phieu`, `don_tao_id`. `UNIQUE (phieu_id, don_thuoc_id)`, `UNIQUE (phieu_id, muc_thuoc_dang_dung_id)`. Vấn đề FR-007 lưu ở `van_de_don_thuoc` với `dong_doi_chieu_id`. Trigger: chặn `INSERT/UPDATE/DELETE` khi phiếu cha không ở `MO`, trừ cột `don_tao_id` trong lệnh xác nhận và `da_ngung_ngoai_phieu`.
+`id`, `phieu_id`, `thu_tu`, `nguon` (`DON_HIEN_CO`, `DON_RA_VIEN`, `THUOC_DANG_DUNG_TIEP_NHAN`), `don_thuoc_id`, `muc_thuoc_dang_dung_id`, `mo_ta_thuoc` (tự do cho đơn ra viện), `quyet_dinh` (`TIEP_TUC`, `NGUNG`, `THAY_DOI_LIEU`, `THEM_MOI`), `ly_do`, `don_moi` (`JSON` theo FR-004, kèm cơ sở kê), `nguoi_ghi_id`, `ghi_luc`, `da_ngung_ngoai_phieu`, `don_tao_id`. `UNIQUE (phieu_id, don_thuoc_id)`, `UNIQUE (phieu_id, muc_thuoc_dang_dung_id)`. Vấn đề FR-007 lưu ở `van_de_don_thuoc` với `dong_doi_chieu_id`. Trigger: chặn `INSERT/UPDATE/DELETE` khi phiếu cha không ở `MO`, trừ cột `don_tao_id` trong lệnh xác nhận và `da_ngung_ngoai_phieu`. *(R-15: `van_de_don_thuoc` → `su_kien_chung`)*
 
-### `de_nghi_dinh_chinh_phieu` – nhóm 2
+### `de_nghi_dinh_chinh_phieu` – nhóm 2 → gộp theo R-15: `de_nghi_dinh_chinh_phieu` → `ho_so_chung`
 
 `id`, `phieu_id`, `noi_dung_dung` (`JSON`), `ly_do`, `nguoi_lap_id` (phải là người gửi hoặc người xác nhận của phiếu), `trang_thai` (`CHO_XAC_NHAN`, `DA_XAC_NHAN`, `TRA_LAI`), `nguoi_xac_nhan_id` (`CHECK <> nguoi_lap_id`), `dinh_chinh_id` (000). Nguồn: FR-039, BR-M07-17.
 
@@ -284,7 +340,7 @@ Trigger `trg_tgdg_so_luong` (`BEFORE UPDATE`): chặn đổi `so_luong_ban_dau`;
 | `CHO_DOI_CHIEU`, `CHI_GIU_HO` | Hoàn trả | `DA_HOAN_TRA` | `POST /thuoc-gia-dinh-gui/{id}/hoan-tra` |
 | `CHO_DOI_CHIEU`, `CHI_GIU_HO` | Hủy theo yêu cầu gia đình | `DA_HUY_THEO_YEU_CAU` | `POST /thuoc-gia-dinh-gui/{id}/huy` |
 
-### `thuoc_gui_don` – nhóm 2 (liên kết)
+### `thuoc_gui_don` – nhóm 2 (liên kết) → gộp theo R-15: `thuoc_gui_don` → cột `JSON` của `thuoc_gia_dinh_gui`
 
 `lo_id`, `don_thuoc_id`, `tu`, `den` (rỗng khi còn gắn). Một đơn nhiều lô, một lô nhiều đơn cùng thuốc cùng người (FR-043, BR-M07-18; không tính số ngày còn, Q-393). Liên kết chuyển sang đơn thay thế: đóng dòng cũ (`den`), thêm dòng mới trong cùng lệnh.
 
@@ -296,19 +352,19 @@ Không theo dõi số lượng còn: không có biến động số lượng, Ki
 
 ## 9. Vắng mặt và thuốc mang theo (mục H)
 
-### `khoang_vang_thuoc` – nhóm 2
+### `khoang_vang_thuoc` – nhóm 2 → gộp theo R-15: `khoang_vang_thuoc` → `ho_so_chung`
 
 `id`, `nct_id`, `loai` (`TAM_VANG_KHONG_THUOC`, `TAM_VANG_MANG_THUOC`, `BENH_VIEN`, `CHUYEN_DI_MANG_THUOC`, `CHUYEN_DI_KHONG_THUOC`), `tu`, `den_du_kien`, `den_thuc_te`, `luot_vang_id`, `chuyen_id`, `lenh_trang_thai_id` (lịch sử trạng thái 001). Tối đa một khoảng mở mỗi người: cột sinh `mo_nct = IF(den_thuc_te IS NULL, nct_id, NULL)` `UNIQUE`. Nguồn: FR-048, BR-M07-03.
 
-### `lan_giao_thuoc` – nhóm 3 (trạng thái do hệ thống)
+### `lan_giao_thuoc` – nhóm 3 (trạng thái do hệ thống) → gộp theo R-15: `lan_giao_thuoc` → `lan_giao_nhan_thuoc` (`medication_handover`)
 
 `id`, `nct_id`, `khoang_vang_id`, `nguoi_nhan_loai` (`NHAN_VIEN`, `TRUONG_DOAN`, `NGUOI_THAN`), `nguoi_nhan_id`, `nguoi_nhan_ten`, `quan_he`, `nguoi_giao_id`, `thoi_diem`, `trang_thai` (`DANG_MANG_THEO`, `CHO_NHAN_LAI`, `DA_NHAN_LAI`). Chỉ cột `trang_thai` đổi được, theo bảng FR-048a (trigger). `lan_giao_thuoc_dong`: `lan_giao_id`, `don_thuoc_id`, `so_luong`, `lo_id`, `nguon_thuoc`. `lan_giao_lieu`: `lan_giao_id`, `lieu_thuoc_id` (`UNIQUE`), `thoi_thuoc_luc` (liều quay về khi trở về sớm, Q-60). Đính chính `M07.LAN_GIAO_THUOC`.
 
-### `lan_nhan_lai_thuoc` – nhóm 3
+### `lan_nhan_lai_thuoc` – nhóm 3 → gộp theo R-15: `lan_nhan_lai_thuoc` → `lan_giao_nhan_thuoc` (`medication_handover`)
 
 `id`, `lan_giao_id` (`UNIQUE`), `nguoi_ghi_id`, `thoi_diem`, `ly_do` (bắt buộc khi tổng 0); `lan_nhan_lai_thuoc_dong`: `don_thuoc_id`, `so_luong` (`CHECK >= 0`; ≤ số giao kiểm ở backend). Đính chính `M07.LAN_NHAN_LAI_THUOC`.
 
-### `lenh_khong_mang_thuoc` – nhóm 3
+### `lenh_khong_mang_thuoc` – nhóm 3 → gộp theo R-15: `lenh_khong_mang_thuoc` → `lan_giao_nhan_thuoc` (`medication_handover`)
 
 `id`, `nct_id`, `chuyen_id`, `ly_do`, `nguoi_ghi_id`, `thoi_diem`. `UNIQUE (nct_id, chuyen_id)`. Nguồn: FR-048b.
 
@@ -316,7 +372,7 @@ Không theo dõi số lượng còn: không có biến động số lượng, Ki
 
 ## 9a. Tiếp nhận thuốc cung ứng (mục I) *(bổ sung 2026-10-11, Q-337)*
 
-### `lan_tiep_nhan_thuoc_cung_ung` – nhóm 3
+### `lan_tiep_nhan_thuoc_cung_ung` – nhóm 3 → gộp theo R-15: `lan_tiep_nhan_thuoc_cung_ung` → `lan_giao_nhan_thuoc` (`medication_handover`)
 
 | Cột | Kiểu | Ghi chú | Nguồn |
 | --- | --- | --- | --- |
@@ -390,7 +446,7 @@ Danh mục thuốc không bị loại bỏ.
 | DBR-03 (phần 006) | `ThuocCongNguoiThanApi` theo bản đồng ý | `FR_049_NguoiThanXemThuocIT` |
 | BR-M07-01 | `LichThuoc.tinh`, vật hóa ở đầu cửa sổ | `BR_M07_01_LichThuocTest`, `SC_001_BayNgayIT` |
 | BR-M07-02 | Job theo phút | `BR_M07_02_TreBoLoIT` |
-| BR-M07-03 | `khoang_vang_thuoc`, bean | `BR_M07_03_VangMatIT` |
+| BR-M07-03 | `khoang_vang_thuoc`, bean | `BR_M07_03_VangMatIT` *(R-15: `khoang_vang_thuoc` → `ho_so_chung`)* |
 | BR-M07-04 | `KiemTraGioiHanPrn` | `BR_M07_04_GioiHanPrnTest`, `PrnDongThoiIT` |
 | BR-M07-05 | Quyền kê (D-05) | `BR_M07_05_QuyenKeDonIT` |
 | BR-M07-06 | `KiemTraDonMoi`; listener dị ứng | `BR_M07_06_TrungHoatChatDiUngTest`, `FR_012_DiUngMoiIT` |
@@ -403,9 +459,9 @@ Danh mục thuốc không bị loại bỏ.
 | BR-M07-13 | `DemTuChoiLienTiep`; phản ứng | `BR_M07_13_TuChoiLienTiepTest`, `PhanUngIT` |
 | BR-M07-14 | Sự kiện tính phí theo nguồn | `BR_M07_14_SuKienTinhPhiIT` |
 | BR-M07-15 | Ngừng đơn thay thế Chờ hiệu lực | `BR_M07_15_HuyDoiLieuIT` |
-| BR-M07-16 | `can_cu_co_so_ke` | `BR_M07_16_CanCuCoSoKeIT` |
-| BR-M07-17 | `de_nghi_dinh_chinh_phieu` | `BR_M07_17_DinhChinhPhieuIT` |
-| BR-M07-18 | `thuoc_gui_don`; nhóm dùng chung | `BR_M07_18_LoDungChungTest` |
+| BR-M07-16 | `can_cu_co_so_ke` | `BR_M07_16_CanCuCoSoKeIT` *(R-15: `can_cu_co_so_ke` → `su_kien_chung`)* |
+| BR-M07-17 | `de_nghi_dinh_chinh_phieu` | `BR_M07_17_DinhChinhPhieuIT` *(R-15: `de_nghi_dinh_chinh_phieu` → `ho_so_chung`)* |
+| BR-M07-18 | `thuoc_gui_don`; nhóm dùng chung | `BR_M07_18_LoDungChungTest` *(R-15: `thuoc_gui_don` → cột `JSON` của `thuoc_gia_dinh_gui`)* |
 | BR-M07-19 | Hoàn trả, hủy bằng số còn | `BR_M07_19_HoanTraIT` |
 | BR-M07-20 | Handler ngoại tuyến | `FR_029_HaiBanNgoaiTuyenIT` |
 | BR-M07-21 | Job đầu ca | `BR_M07_21_TangKhongDieuDuongIT` |

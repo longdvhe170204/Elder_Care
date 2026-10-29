@@ -98,7 +98,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M13 không b�
 | SC-005 | Q17, Q22 và quét nội dung mọi tin nhắn trong bộ kiểm thử |
 | SC-006 | Q30 |
 | SC-007 | Q14, Q24 |
-| SC-008 | Đo trên app: mở và xác nhận ≤ 2 thao tác; vận hành thử: tỷ lệ xác nhận trong CFG-M13-01 từ `thong_bao_trang_thai` |
+| SC-008 | Đo trên app: mở và xác nhận ≤ 2 thao tác; vận hành thử: tỷ lệ xác nhận trong CFG-M13-01 từ `thong_bao_trang_thai` *(R-15: `thong_bao_trang_thai` → `thong_bao` (cột dẫn xuất))* |
 | SC-009 | Q19 với 30 thông báo trong 60 phút |
 
 ## Kịch bản bổ sung 2026-10-18, lượt 3 (Q-366)

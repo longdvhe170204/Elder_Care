@@ -164,7 +164,7 @@ mobile/lib/nguoi-than/hoat-dong/  # buổi, chuyến, đồng ý về muộn
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
-| `chuyen_di` là bảng phụ của `buoi_hoat_dong` với trạng thái riêng | Spec có bảng trạng thái chuyến khác buổi trong viện; đăng ký, điểm danh, `UNIQUE` theo mẫu vẫn chung | Bảng chuyến độc lập: lặp mẫu lặp, đăng ký, tạo từ mẫu |
+| `chuyen_di` là bảng phụ của `buoi_hoat_dong` với trạng thái riêng | Spec có bảng trạng thái chuyến khác buổi trong viện; đăng ký, điểm danh, `UNIQUE` theo mẫu vẫn chung | Bảng chuyến độc lập: lặp mẫu lặp, đăng ký, tạo từ mẫu *(R-15: `chuyen_di` → `buoi_hoat_dong`)* |
 | Sự kiện `YeuCauGhiDienBienCanhBao` bổ sung cho 007 | FR-047, FR-056 cần diễn biến vào cảnh báo; 007 chưa có lệnh này | Đóng rồi mở cảnh báo: trái FR-056 "cảnh báo không tự đóng" |
 | `chuoi_co_lap` kỹ thuật | Tính chuỗi ngày tính mỗi đêm cho 300 người; xét lại khi đính chính | Tính lại toàn bộ lịch sử mỗi đêm: tốn, khó chạy bù |
 
@@ -189,3 +189,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 3. **Dấu nghi nhiễm**: FR-021a cần sự kiện khi dấu "nghi nhiễm" được gắn hoặc gỡ; bảng giao tiếp của 007 chưa liệt kê việc cung cấp sự kiện này cho 014. Plan thêm `DauNghiNhiemDaDoi` vào hợp đồng 007; đề nghị bổ sung dòng ở bảng giao tiếp của spec 007. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
 4. **Câu chữ còn lẫn** (không đổi nghiệp vụ): FR-002, FR-017, FR-027, FR-066, FR-067 và tiêu đề bảng trạng thái dẫn "4.4" (Permission Matrix của `docs/phan-tich-yeu-cau.md` đã bỏ; tra Phụ lục 27). *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
+
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Ánh xạ bảng ở data-model mục 0; task T034. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
+- Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
+- Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.

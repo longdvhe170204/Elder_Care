@@ -167,7 +167,7 @@ mobile/lib/nguoi-than/do-gui/     # xem, xác nhận, đồng ý
 | --- | --- | --- |
 | Cột suy ra trên `do_gui` | SC-008 tra cứu một đồ không mở bản ghi; điều kiện kết thúc, kiểm kê đọc nhanh | Tính từ bản ghi gần nhất mỗi lần đọc: truy vấn nặng cho danh sách |
 | Phiên bản từng đồ trong thân lệnh | Một lệnh có nhiều đồ; FR-011b đòi từ chối lệnh dựa trên trạng thái cũ | `If-Match` chỉ cho một tài nguyên |
-| `lan_chan_tra` ghi ở transaction riêng | Lần chặn phải còn sau khi lệnh Trả bị từ chối (FR-016) | Ghi chung transaction: bị rollback cùng lệnh |
+| `lan_chan_tra` ghi ở transaction riêng | Lần chặn phải còn sau khi lệnh Trả bị từ chối (FR-016) | Ghi chung transaction: bị rollback cùng lệnh *(R-15: `lan_chan_tra` → `ban_giao_do_gui` (`loai`))* |
 
 ## Đồng bộ với hợp đồng của feature khác
 
@@ -185,3 +185,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 2. **Mức thông báo nhắc đề nghị xử lý Chờ duyệt** (bảng FR-032 ghi "Nhẹ; theo feature 000 FR-031a"): plan dùng cơ chế nhắc của 000 (`NhacQuaHan`) với mức Nhẹ. Đề nghị bỏ vế "theo feature 000 FR-031a" ở cột mức để không lẫn với mức của 000. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
 3. **Câu chữ còn lẫn trong spec 013** (không đổi nghiệp vụ): FR-007, FR-029, bảng trạng thái đồ gửi dẫn "4.4" (Permission Matrix của `docs/phan-tich-yeu-cau.md` đã bỏ; tra Phụ lục 27); Assumptions dòng đầu dẫn mục 4.2 của tài liệu đã bỏ; điểm báo lại 16 còn yêu cầu 001 cung cấp sự kiện cờ đi lạc (không còn đúng sau Q-281). *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
+
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Ánh xạ bảng ở data-model mục 0; task T034. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
+- Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
+- Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.

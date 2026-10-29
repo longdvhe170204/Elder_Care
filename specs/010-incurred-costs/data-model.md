@@ -6,29 +6,41 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ---
 
+## 0. Gộp bảng theo R-15 *(bổ sung 2026-10-29, bản 2)*
+
+Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/research.md) (bản 2, chủ dự án duyệt 2026-10-29, constitution XII 3.2.0); không đổi nghiệp vụ, API, quyền. Mô tả bảng ở các mục sau vẫn là căn cứ cột và ràng buộc: bảng gộp mang đủ cột của bảng cũ (cột riêng vào `JSON` hoặc cột `NULL` có `CHECK` theo `loai`); ràng buộc duy nhất thành `khoa_duy_nhat`; dòng nhóm 3 hoặc đã khóa có `khoa_luc` và trigger theo dòng. Bảy bảng chung ở [data-model 000 mục 8](../000-shared-foundation/data-model.md): `danh_muc_chung`, `lich_su_chung`, `su_kien_chung`, `ho_so_chung`, `trang_thai_nct`, `moc_da_nhac`, `khoa_ky_thuat`. Khi cài thấy bảng nào không thể gộp mà vẫn giữ được BR, DBR thì giữ và ghi lý do ở plan.
+
+- Giữ, gộp (cùng 017, data-model 017 mục 0): `bang_chi_phi` (+ `ky_chi_phi`; tổng theo loại thành `JSON` khi chốt); `khoan_chi_phi`; `su_kien_tinh_phi`.
+- `lich_su_chung`: `lich_su_tinh_lai`; `su_kien_chung`: `bien_dong_nguon_sau_chot`, `de_nghi_gui_nguoi_dai_dien`, `quyet_dinh_mua_ho`.
+- `ho_so_chung`: `de_nghi_mua_ho`; `trang_thai_nct`: `chi_phi_nct`; `moc_da_nhac`: `su_kien_nguon_da_xu_ly`; `lan_xuat_ke_toan`, `lan_xuat_bang` → hành động nhật ký.
+- Số bảng 4 gồm cả bảng `giao_dich` của 017.
+- Còn 4 bảng riêng của feature.
+
+---
+
 ## 1. Tổng quan
 
 > **Sửa 2026-10-29 (Q-395):** bỏ dấu `CHO_QUYET_DINH`, `KHONG_CO_DONG_CHINH_SACH`; phí lưu trú nội trú có `he_so` 100% kể cả ngày vắng, ngày sau Giải phóng giường không lập được khoản. `he_so` còn dùng cho buổi bán trú.
 
 | Bảng | Nhóm (1.5) | Mục spec |
 | --- | --- | --- |
-| `chi_phi_nct` | 2 (kỹ thuật) | Đích khóa theo người (P-03) |
-| `ky_chi_phi` | 2 | A |
+| `chi_phi_nct` | 2 (kỹ thuật) | Đích khóa theo người (P-03) *(R-15: `chi_phi_nct` → `trang_thai_nct`)* |
+| `ky_chi_phi` | 2 | A *(R-15: `ky_chi_phi` → `bang_chi_phi`)* |
 | `bang_chi_phi` | 2 → 3 khi Đã chốt | A, G |
-| `bang_chi_phi_tong_loai` | 3 | A (tổng lúc chốt) |
+| `bang_chi_phi_tong_loai` | 3 | A (tổng lúc chốt) *(R-15: `bang_chi_phi_tong_loai` → cột `JSON` của `bang_chi_phi`)* |
 | `khoan_chi_phi` | 2 → 3 khi Đã chốt | B, C, D, E, F |
-| `lich_su_tinh_lai` | 3 | D (FR-018) |
-| `bien_dong_nguon_sau_chot` | 3 | F (FR-027) |
+| `lich_su_tinh_lai` | 3 | D (FR-018) *(R-15: `lich_su_tinh_lai` → `lich_su_chung`)* |
+| `bien_dong_nguon_sau_chot` | 3 | F (FR-027) *(R-15: `bien_dong_nguon_sau_chot` → `su_kien_chung`)* |
 | `su_kien_tinh_phi` | Kỹ thuật (chỉ mục) | B (P-04) |
-| `su_kien_nguon_da_xu_ly` | Kỹ thuật | B (chống trùng) |
-| `de_nghi_mua_ho`, `de_nghi_gui_nguoi_dai_dien` | 2 | E |
-| `quyet_dinh_mua_ho` | 3 | E |
-| `lan_xuat_ke_toan`, `lan_xuat_bang` | 3 | H (FR-041) |
+| `su_kien_nguon_da_xu_ly` | Kỹ thuật | B (chống trùng) *(R-15: `su_kien_nguon_da_xu_ly` → `moc_da_nhac`)* |
+| `de_nghi_mua_ho`, `de_nghi_gui_nguoi_dai_dien` | 2 | E *(R-15: `de_nghi_mua_ho` → `ho_so_chung`; `de_nghi_gui_nguoi_dai_dien` → `su_kien_chung`)* |
+| `quyet_dinh_mua_ho` | 3 | E *(R-15: `quyet_dinh_mua_ho` → `su_kien_chung`)* |
+| `lan_xuat_ke_toan`, `lan_xuat_bang` | 3 | H (FR-041) *(R-15: `lan_xuat_ke_toan`, `lan_xuat_bang` → hành động `nhat_ky`)* |
 | `lan_chay_m11` | Kỹ thuật | Job |
 
 ---
 
-## 2. `chi_phi_nct` – nhóm 2 (kỹ thuật)
+## 2. `chi_phi_nct` – nhóm 2 (kỹ thuật) → gộp theo R-15: `chi_phi_nct` → `trang_thai_nct`
 
 `nct_id` (khóa chính), `mien_hoan_thanh_tu NULL` (FR-036: thời điểm mục "chốt chi phí kỳ cuối" Hoàn thành sau qua đời), `phien_ban`.
 
@@ -36,7 +48,7 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ## 3. Kỳ và bảng (mục A, G)
 
-### `ky_chi_phi` – nhóm 2
+### `ky_chi_phi` – nhóm 2 → gộp theo R-15: `ky_chi_phi` → `bang_chi_phi`
 
 `id`, `thang` (`yyyy-MM`, `UNIQUE`), `tu_ngay`, `den_ngay` (luôn trọn tháng dương lịch, FR-001), `trang_thai` (`DANG_MO`, `CHO_CHOT`, `DA_CHOT`), `han_chot` (đặt khi sang `CHO_CHOT`, từ CFG-M11-01), `da_chot_luc`.
 
@@ -71,7 +83,7 @@ Trigger: khi `OLD.trang_thai = 'DA_CHOT'` chỉ cho đặt `lan_xuat_dau_id` t�
 | `CHO_CHOT` | Có khoản Nháp mới / khoản về Nháp | `DANG_MO` | Hệ thống | — |
 | `CHO_CHOT` | Chốt | `DA_CHOT` | Quản lý viện | Mọi khoản Đã duyệt hoặc Đã hủy |
 
-### `bang_chi_phi_tong_loai` – nhóm 3
+### `bang_chi_phi_tong_loai` – nhóm 3 → gộp theo R-15: `bang_chi_phi_tong_loai` → cột `JSON` của `bang_chi_phi`
 
 `bang_id`, `loai_chi_phi` (FR-014a), `tong`. Ghi khi chốt.
 
@@ -122,11 +134,11 @@ Trigger: chặn mọi đổi khi `OLD.trang_thai IN ('DA_CHOT','DA_HUY')`; chặ
 | `DA_KIEM_TRA`, `DA_DUYET` | Trả lại | `NHAP` | Quản lý viện | Lý do; bảng chưa chốt |
 | `DA_DUYET` | Chốt bảng | `DA_CHOT` | Hệ thống (trong lệnh chốt của Quản lý viện) | — |
 
-### `lich_su_tinh_lai` – nhóm 3
+### `lich_su_tinh_lai` – nhóm 3 → gộp theo R-15: `lich_su_tinh_lai` → `lich_su_chung`
 
 `khoan_id`, `thoi_diem`, `truoc` `JSON` (số lượng, đơn giá, hệ số, số tiền, dấu), `sau` `JSON`, `nguyen_nhan` (`NGUON_DINH_CHINH`, `NGAY_LUU_TRU_DOI`, `CO_MAT_DOI`, `NGAY_NGHI_BAN_TRU`, `NHAN_LAI_THUOC`, `CO_DON_GIA`, `HET_LAP_TRUOC`, `PHU_LUC`), `can_cu` (tham chiếu bản đính chính, sự kiện), `chuyen_ve_nhap` (bool).
 
-### `bien_dong_nguon_sau_chot` – nhóm 3
+### `bien_dong_nguon_sau_chot` – nhóm 3 → gộp theo R-15: `bien_dong_nguon_sau_chot` → `su_kien_chung`
 
 `id`, `khoan_goc_id`, `su_kien` (`DINH_CHINH`, `HUY_GHI_NHAN`, `QUYET_DINH_GIU_GIUONG`, `NHAN_LAI_THUOC`, `DOI_NGAY_KET_THUC`, `QUA_DOI`, `AP_DUNG_DOI_PHONG`), `gia_tri_truoc`, `gia_tri_sau` `JSON`, `tham_chieu`, `thoi_diem`. Khoản điều chỉnh do Hành chính lập trỏ `bien_dong_id` (FR-027).
 
@@ -138,7 +150,7 @@ Trigger: chặn mọi đổi khi `OLD.trang_thai IN ('DA_CHOT','DA_HUY')`; chặ
 
 `loai_nguon` (`KET_QUA_CONG_VIEC`, `LIEU`, `LAN_DUNG_PRN`, `LAN_GIAO`, `SUAT_AN_NGUOI_THAN`, `DEM_O_LAI`, `DIEM_DANH_HOAT_DONG`), `nguon_id`, `don_vi`, khóa chính ba cột; `nct_id`, `ngay_phat_sinh`, `thoi_diem`, `dich_vu_id NULL`, `thuoc_id NULL`, `so_luong_hien_hanh`, `da_huy`, `cap_nhat_luc`, `phien_ban`. Chỉ mục `(nct_id, loai_nguon, ngay_phat_sinh)`. Cập nhật bởi listener; không có lệnh người dùng. Ngày lưu trú, buổi bán trú không lưu ở đây (đọc `NgayLuuTruApi`).
 
-### `su_kien_nguon_da_xu_ly`
+### `su_kien_nguon_da_xu_ly` → gộp theo R-15: `su_kien_nguon_da_xu_ly` → `moc_da_nhac`
 
 `khoa` khóa chính, `xu_ly_luc` (NFR-04).
 
@@ -146,7 +158,7 @@ Trigger: chặn mọi đổi khi `OLD.trang_thai IN ('DA_CHOT','DA_HUY')`; chặ
 
 ## 6. Đề nghị mua hộ (mục E)
 
-### `de_nghi_mua_ho` – nhóm 2
+### `de_nghi_mua_ho` – nhóm 2 → gộp theo R-15: `de_nghi_mua_ho` → `ho_so_chung`
 
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
@@ -175,11 +187,11 @@ Trigger chặn mọi đổi khi trạng thái cuối (`TU_CHOI`, `HUY`, `DA_MUA`
 | `CHO_DONG_Y` (bổ sung) | Từ chối; Rút yêu cầu bổ sung | `DUOC_PHEP_MUA` (số cũ) | Người đại diện, Quản lý viện; Hành chính |
 | `DUOC_PHEP_MUA` | Ghi đã mua | `DA_MUA` | Hành chính |
 
-### `de_nghi_gui_nguoi_dai_dien`
+### `de_nghi_gui_nguoi_dai_dien` → gộp theo R-15: `de_nghi_gui_nguoi_dai_dien` → `su_kien_chung`
 
-`de_nghi_id`, `lan_gui` (1 = đầu, 2… = bổ sung), `nguoi_than_id`. Danh sách người đại diện Hiệu lực lúc gửi (FR-023a).
+`de_nghi_id`, `lan_gui` (1 = đầu, 2… = bổ sung), `nguoi_than_id`. Danh sách người đại diện Hiệu lực lúc gửi (FR-023a). *(R-15: `lan_gui` → `su_kien_chung`)*
 
-### `quyet_dinh_mua_ho` – nhóm 3
+### `quyet_dinh_mua_ho` – nhóm 3 → gộp theo R-15: `quyet_dinh_mua_ho` → `su_kien_chung`
 
 `de_nghi_id`, `loai` (`DONG_Y`, `TU_CHOI`, `RUT_BO_SUNG`, `XIN_BO_SUNG`), `so_cu`, `so_moi`, `nguoi_quyet_dinh_loai`, `nguoi_quyet_dinh_id`, `kenh` (`CONG_NGUOI_THAN`, `QUAN_LY_VIEN`, `HANH_CHINH`), `ly_do`, `so_du_khong_du` (dấu lúc quyết định, Q-219), `thoi_diem`.
 
@@ -187,11 +199,11 @@ Trigger chặn mọi đổi khi trạng thái cuối (`TU_CHOI`, `HUY`, `DA_MUA`
 
 ## 7. Xuất kế toán (mục H)
 
-### `lan_xuat_ke_toan` – nhóm 3
+### `lan_xuat_ke_toan` – nhóm 3 → gộp theo R-15: `lan_xuat_ke_toan` → hành động `nhat_ky`
 
 `id`, `ky_id`, `pham_vi` (`TOAN_BO`, `CHUA_TUNG_XUAT`), `dinh_dang` (`XLSX`, `CSV`), `nguoi_xuat_id`, `thoi_diem`, `so_bang`, `so_khoan`, `tong_tien`, `danh_sach_chua_chot` `JSON`.
 
-### `lan_xuat_bang` – nhóm 3
+### `lan_xuat_bang` – nhóm 3 → gộp theo R-15: `lan_xuat_bang` → hành động `nhat_ky`
 
 `lan_xuat_id`, `bang_id`, `lan_dau` (bool). Khóa chính hai cột đầu.
 

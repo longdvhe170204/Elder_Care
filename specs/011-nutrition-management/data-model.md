@@ -6,35 +6,48 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ---
 
+## 0. Gộp bảng theo R-15 *(bổ sung 2026-10-29, bản 2)*
+
+Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/research.md) (bản 2, chủ dự án duyệt 2026-10-29, constitution XII 3.2.0); không đổi nghiệp vụ, API, quyền. Mô tả bảng ở các mục sau vẫn là căn cứ cột và ràng buộc: bảng gộp mang đủ cột của bảng cũ (cột riêng vào `JSON` hoặc cột `NULL` có `CHECK` theo `loai`); ràng buộc duy nhất thành `khoa_duy_nhat`; dòng nhóm 3 hoặc đã khóa có `khoa_luc` và trigger theo dòng. Bảy bảng chung ở [data-model 000 mục 8](../000-shared-foundation/data-model.md): `danh_muc_chung`, `lich_su_chung`, `su_kien_chung`, `ho_so_chung`, `trang_thai_nct`, `moc_da_nhac`, `khoa_ky_thuat`. Khi cài thấy bảng nào không thể gộp mà vẫn giữ được BR, DBR thì giữ và ghi lý do ở plan.
+
+- Giữ, gộp: `ban_gan_che_do_an`; `thuc_don`; `lan_chot` (người được tính, suất theo chế độ thành `JSON`).
+- `danh_muc_chung`: `che_do_an`, `bua_an`, `loai_do_an_cam`, `mon_an` (thành phần, xác nhận Bác sĩ trong `thuoc_tinh`, `xac_nhan_boi`).
+- `su_kien_chung`: `thuc_don_kiem_tra`, `doi_mon`, `phat_sinh`, `yeu_cau_suat_bo_sung`, `sai_lech_phieu`, `phan_bo_sung`, `xac_nhan_phuc_vu`.
+- `ho_so_chung`: `phieu_bua_an` (suất đặc biệt thành `JSON`), `suat_an_nguoi_than`, `do_an_gia_dinh`, `luu_mau` (món thành `JSON`, món thêm sau phát sinh là sự kiện).
+- `khoa_ky_thuat`: `bua_ngay`; `moc_da_nhac`: `thong_bao_xem_lai`; `trang_thai_nct`: `dinh_duong_nct`.
+- Còn 3 bảng riêng của feature.
+
+---
+
 ## 1. Tổng quan
 
 | Bảng | Nhóm (1.5) | Mục spec |
 | --- | --- | --- |
-| `dinh_duong_nct` | 2 (kỹ thuật) | Đích khóa theo người (M-03) |
-| `che_do_an`, `che_do_an_han_che` | 1 | A (FR-001, FR-002) |
-| `mon_an` | 1 có xác nhận | A (FR-003, FR-004) |
+| `dinh_duong_nct` | 2 (kỹ thuật) | Đích khóa theo người (M-03) *(R-15: `dinh_duong_nct` → `trang_thai_nct`)* |
+| `che_do_an`, `che_do_an_han_che` | 1 | A (FR-001, FR-002) *(R-15: `che_do_an` → `danh_muc_chung`)* |
+| `mon_an` | 1 có xác nhận | A (FR-003, FR-004) *(R-15: `mon_an` → `danh_muc_chung`)* |
 | `mon_an_phien_ban`, `mon_an_phien_ban_thanh_phan`, `mon_an_phien_ban_che_do` | 3 (có bản chờ) | A |
-| `bua_an`, `loai_do_an_cam` | 1 | A (FR-006, FR-007) |
+| `bua_an`, `loai_do_an_cam` | 1 | A (FR-006, FR-007) *(R-15: `bua_an`, `loai_do_an_cam` → `danh_muc_chung`)* |
 | `ban_gan_che_do_an` | 2 | B |
 | `thuc_don`, `thuc_don_mon`, `thuc_don_mon_thay_the` | 2 | D |
-| `thuc_don_kiem_tra` | 3 | D (FR-025, FR-029) |
-| `doi_mon` | 3 | D (FR-031) |
-| `bua_ngay` | 2 (kỹ thuật) | E |
-| `lan_chot`, `nguoi_duoc_tinh`, `suat_theo_che_do` | 3 | E (FR-033 → FR-036a) |
-| `phat_sinh` | 3 (cột xác nhận đặt một lần) | E (FR-039 → FR-041) |
-| `yeu_cau_suat_bo_sung` | 3 | E (FR-040) |
-| `suat_an_nguoi_than` | 2 | E (FR-043) |
-| `phieu_bua_an`, `suat_dac_biet` | 2 | F |
-| `sai_lech_phieu`, `phan_bo_sung` | 3 (cột xử lý, giao, nhận đặt một lần) | F (FR-048, FR-048b) |
-| `xac_nhan_phuc_vu` | 3 | G |
-| `do_an_gia_dinh` | 2 | H |
-| `thong_bao_xem_lai` | Kỹ thuật | I |
-| `luu_mau`, `luu_mau_mon` | 3 | J |
+| `thuc_don_kiem_tra` | 3 | D (FR-025, FR-029) *(R-15: `thuc_don_kiem_tra` → `su_kien_chung`)* |
+| `doi_mon` | 3 | D (FR-031) *(R-15: `doi_mon` → `su_kien_chung`)* |
+| `bua_ngay` | 2 (kỹ thuật) | E *(R-15: `bua_ngay` → `khoa_ky_thuat`)* |
+| `lan_chot`, `nguoi_duoc_tinh`, `suat_theo_che_do` | 3 | E (FR-033 → FR-036a) *(R-15: `nguoi_duoc_tinh`, `suat_theo_che_do` → cột `JSON` của `lan_chot`)* |
+| `phat_sinh` | 3 (cột xác nhận đặt một lần) | E (FR-039 → FR-041) *(R-15: `phat_sinh` → `su_kien_chung`)* |
+| `yeu_cau_suat_bo_sung` | 3 | E (FR-040) *(R-15: `yeu_cau_suat_bo_sung` → `su_kien_chung`)* |
+| `suat_an_nguoi_than` | 2 | E (FR-043) *(R-15: `suat_an_nguoi_than` → `ho_so_chung`)* |
+| `phieu_bua_an`, `suat_dac_biet` | 2 | F *(R-15: `phieu_bua_an`, `suat_dac_biet` → `ho_so_chung`)* |
+| `sai_lech_phieu`, `phan_bo_sung` | 3 (cột xử lý, giao, nhận đặt một lần) | F (FR-048, FR-048b) *(R-15: `sai_lech_phieu`, `phan_bo_sung` → `su_kien_chung`)* |
+| `xac_nhan_phuc_vu` | 3 | G *(R-15: `xac_nhan_phuc_vu` → `su_kien_chung`)* |
+| `do_an_gia_dinh` | 2 | H *(R-15: `do_an_gia_dinh` → `ho_so_chung`)* |
+| `thong_bao_xem_lai` | Kỹ thuật | I *(R-15: `thong_bao_xem_lai` → `moc_da_nhac`)* |
+| `luu_mau`, `luu_mau_mon` | 3 | J *(R-15: `luu_mau`, `luu_mau_mon` → `ho_so_chung`)* |
 | `su_kien_m08_da_xu_ly`, `lan_chay_m08` | Kỹ thuật | Listener, job |
 
 ---
 
-## 2. `dinh_duong_nct` – nhóm 2 (kỹ thuật)
+## 2. `dinh_duong_nct` – nhóm 2 (kỹ thuật) → gộp theo R-15: `dinh_duong_nct` → `trang_thai_nct`
 
 `nct_id` (khóa chính), `phien_ban`. Mọi lệnh đổi bản gán, đồ ăn gia đình của một người khóa dòng này (M-03).
 
@@ -42,7 +55,7 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ## 3. Danh mục (mục A)
 
-### `che_do_an` – nhóm 1
+### `che_do_an` – nhóm 1 → gộp theo R-15: `che_do_an` → `danh_muc_chung`
 
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
@@ -53,7 +66,7 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 `che_do_an_han_che`: `che_do_an_id`, `di_nguyen_id`. Đổi danh sách chạy lại FR-005 với thực đơn chưa hết tuần (M-04).
 
-### `mon_an` – nhóm 1 có xác nhận
+### `mon_an` – nhóm 1 có xác nhận → gộp theo R-15: `mon_an` → `danh_muc_chung`
 
 | Cột | Ghi chú |
 | --- | --- |
@@ -77,11 +90,11 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | `HIEU_LUC` | Ngừng hiệu lực | `NGUNG_HIEU_LUC` | Nhân viên bếp; Bác sĩ | Lý do; không là món an toàn của chế độ ăn Hiệu lực |
 | `NHAP` | Hủy | `DA_HUY` | Nhân viên bếp | `tung_hieu_luc = false` |
 
-### `bua_an` – nhóm 1
+### `bua_an` – nhóm 1 → gộp theo R-15: `bua_an` → `danh_muc_chung`
 
 `id`, `ma` (khóa của CFG-M08-04), `ten`, `phuc_vu_noi_tru`, `phuc_vu_ban_tru`, `thu_tu`, `trang_thai`. Bữa đã có `lan_chot` không xóa được, chỉ Ngừng hiệu lực (FR-006).
 
-### `loai_do_an_cam` – nhóm 1
+### `loai_do_an_cam` – nhóm 1 → gộp theo R-15: `loai_do_an_cam` → `danh_muc_chung`
 
 `id`, `ten`, `mo_ta`, `trang_thai`.
 
@@ -129,13 +142,13 @@ Trigger: nội dung (`che_do_an_id`, `ket_cau`, hạn chế, chỉ định, căn
 | `ap_dung_luc` | Đặt bởi job hoặc lệnh công bố khi tuần đã bắt đầu | |
 | `phien_ban` | `If-Match` khi sửa Nháp | |
 
-`thuc_don_mon`: `id`, `thuc_don_id`, `ngay`, `bua_an_id`, `che_do_an_id`, `mon_an_id`, `thu_tu`. `thuc_don_mon_thay_the`: `thuc_don_mon_id`, `mon_an_id`, `uu_tien`. Sửa chỉ khi `NHAP` (trigger đối chiếu trạng thái thực đơn), trừ lệnh đổi món (FR-031) ghi kèm `doi_mon`.
+`thuc_don_mon`: `id`, `thuc_don_id`, `ngay`, `bua_an_id`, `che_do_an_id`, `mon_an_id`, `thu_tu`. `thuc_don_mon_thay_the`: `thuc_don_mon_id`, `mon_an_id`, `uu_tien`. Sửa chỉ khi `NHAP` (trigger đối chiếu trạng thái thực đơn), trừ lệnh đổi món (FR-031) ghi kèm `doi_mon`. *(R-15: `doi_mon` → `su_kien_chung`)*
 
-### `thuc_don_kiem_tra` – nhóm 3
+### `thuc_don_kiem_tra` – nhóm 3 → gộp theo R-15: `thuc_don_kiem_tra` → `su_kien_chung`
 
 `id`, `thuc_don_id`, `lan` (`GUI`, `CONG_BO`, `DOI_MON`), `ket_qua_do_phu` `JSON`, `canh_bao_lap_mon` `JSON`, `canh_bao_di_ung` `JSON` (số người; tên chỉ ở bản cho Bác sĩ), `xac_nhan_boi_id`, `xac_nhan_luc`.
 
-### `doi_mon` – nhóm 3
+### `doi_mon` – nhóm 3 → gộp theo R-15: `doi_mon` → `su_kien_chung`
 
 `id`, `thuc_don_id`, `ngay`, `bua_an_id`, `che_do_an_id`, `mon_truoc_id`, `mon_sau_id`, `ly_do`, `boi_id`, `luc`, `sau_chot` (đã tạo phát sinh).
 
@@ -143,7 +156,7 @@ Trigger: nội dung (`che_do_an_id`, `ket_cau`, hạn chế, chỉ định, căn
 
 ## 6. Chốt suất và phát sinh (mục E)
 
-### `bua_ngay` – nhóm 2 (kỹ thuật)
+### `bua_ngay` – nhóm 2 (kỹ thuật) → gộp theo R-15: `bua_ngay` → `khoa_ky_thuat`
 
 `id`, `bua_an_id`, `ngay`, `gio_du_kien` (chốt từ CFG-M08-04 lúc tạo), `nguong_giao_tre_phut`, `UNIQUE (bua_an_id, ngay)`; cột "đã làm lúc" cho job: `nhac_chot_luc`, `mon_an_toan_luc`, `suat_giu_luc`, `nhac_phat_sinh_luc`, `nhac_luu_mau_luc`.
 
@@ -151,15 +164,15 @@ Trigger: nội dung (`che_do_an_id`, `ket_cau`, hạn chế, chỉ định, căn
 
 `id`, `bua_ngay_id` `UNIQUE`, `chot_boi_id`, `chot_luc`, `chot_sau_gio_bua`, `thuc_don_id NULL` (`NULL` → dấu "chưa có thực đơn", FR-038), `tong_suat`.
 
-### `nguoi_duoc_tinh` – nhóm 3
+### `nguoi_duoc_tinh` – nhóm 3 → gộp theo R-15: `nguoi_duoc_tinh` → cột `JSON` của `lan_chot`
 
-`lan_chot_id`, `loai` (`NOI_TRU`, `BAN_TRU`, `NGUOI_THAN`), `nct_id`, `nguoi_than_id NULL`, `luot_o_lai_id NULL`, `tang_khu_vuc_id`, `che_do_an_id`, `ban_gan_id NULL` (`NULL` → `CHUA_GAN_CHE_DO_AN`), `ket_cau`, `dau` (tập: `DU_KIEN_TRO_VE`, `CAN_DOI_CHIEU`), `suat_dac_biet`.
+`lan_chot_id`, `loai` (`NOI_TRU`, `BAN_TRU`, `NGUOI_THAN`), `nct_id`, `nguoi_than_id NULL`, `luot_o_lai_id NULL`, `tang_khu_vuc_id`, `che_do_an_id`, `ban_gan_id NULL` (`NULL` → `CHUA_GAN_CHE_DO_AN`), `ket_cau`, `dau` (tập: `DU_KIEN_TRO_VE`, `CAN_DOI_CHIEU`), `suat_dac_biet`. *(R-15: `suat_dac_biet` → `ho_so_chung`)*
 
-### `suat_theo_che_do` – nhóm 3
+### `suat_theo_che_do` – nhóm 3 → gộp theo R-15: `suat_theo_che_do` → cột `JSON` của `lan_chot`
 
 `lan_chot_id`, `tang_khu_vuc_id`, `che_do_an_id`, `mon_an_id`, `mon_an_phien_ban_id`, `so_suat`.
 
-### `phat_sinh` – nhóm 3 (cột xác nhận đặt một lần)
+### `phat_sinh` – nhóm 3 (cột xác nhận đặt một lần) → gộp theo R-15: `phat_sinh` → `su_kien_chung`
 
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
@@ -170,11 +183,11 @@ Trigger: nội dung (`che_do_an_id`, `ket_cau`, hạn chế, chỉ định, căn
 | `doi_suat_dac_biet` `JSON NULL` | Suất đặc biệt trước/sau | FR-039 |
 | `tao_luc`, `bep_xac_nhan_boi_id`, `bep_xac_nhan_luc` | Đặt một lần | FR-039, FR-041 |
 
-### `yeu_cau_suat_bo_sung` – nhóm 3
+### `yeu_cau_suat_bo_sung` – nhóm 3 → gộp theo R-15: `yeu_cau_suat_bo_sung` → `su_kien_chung`
 
 `id`, `bua_ngay_id`, `tang_khu_vuc_id`, `nct_id`, `ly_do`, `boi_id`, `luc`, `bep_xac_nhan_luc` (đặt một lần). Chỉ lập sau giờ bữa tới hết ngưỡng giao trễ (FR-040).
 
-### `suat_an_nguoi_than` – nhóm 2
+### `suat_an_nguoi_than` – nhóm 2 → gộp theo R-15: `suat_an_nguoi_than` → `ho_so_chung`
 
 `id`, `lan_chot_id`, `bua_ngay_id`, `nguoi_than_id`, `nct_id`, `luot_o_lai_id`, `trang_thai` (`DA_GHI`, `DA_HUY`), `huy_luc`, `ma_su_kien_tinh_phi` (khóa nguồn cho 010). Hủy chỉ trước giờ bữa (FR-043).
 
@@ -182,7 +195,7 @@ Trigger: nội dung (`che_do_an_id`, `ket_cau`, hạn chế, chỉ định, căn
 
 ## 7. Phiếu bữa ăn (mục F)
 
-### `phieu_bua_an` – nhóm 2
+### `phieu_bua_an` – nhóm 2 → gộp theo R-15: `phieu_bua_an` → `ho_so_chung`
 
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
@@ -202,31 +215,31 @@ Trigger: nội dung (`che_do_an_id`, `ket_cau`, hạn chế, chỉ định, căn
 | `DA_CHUAN_BI` | Giao (FR-047) | `DA_GIAO` | Nhân viên bếp |
 | `DA_GIAO` | Xác nhận nhận / Báo sai lệch | `DA_NHAN` / `CO_SAI_LECH` | Người nhận tại tầng |
 | `CO_SAI_LECH` | Ghi xử lý | `DA_GIAO` | Nhân viên bếp |
-| `DA_GIAO`, `CO_SAI_LECH`, `DA_NHAN` | Phát sinh, suất bổ sung | Giữ nguyên (thêm `phan_bo_sung`) | Hệ thống |
+| `DA_GIAO`, `CO_SAI_LECH`, `DA_NHAN` | Phát sinh, suất bổ sung | Giữ nguyên (thêm `phan_bo_sung`) | Hệ thống *(R-15: `phan_bo_sung` → `su_kien_chung`)* |
 
-### `suat_dac_biet` – nhóm 2
+### `suat_dac_biet` – nhóm 2 → gộp theo R-15: `suat_dac_biet` → `ho_so_chung`
 
 `id`, `phieu_id`, `nct_id`, `nguoi_than_id NULL`, `phong`, `che_do_an_id`, `ket_cau`, `mon_an_id NULL`, `mon_an_phien_ban_id NULL`, `mon_thay_the_id NULL`, `dau` (tập: `THIEU_MON_THAY_THE`, `MON_AN_TOAN`, `CHUA_CO_MON`, `CHUA_GAN_CHE_DO_AN`, `DU_KIEN_TRO_VE`, `SUAT_GIU`, `CAN_DOI_CHIEU`), `xu_ly_boi_id`, `xu_ly_luc` (Bác sĩ chỉ định món, FR-037), `da_chuan_bi`, `trang_thai` (`HIEU_LUC`, `DA_BO`: người không còn được tính).
 
-### `sai_lech_phieu` – nhóm 3
+### `sai_lech_phieu` – nhóm 3 → gộp theo R-15: `sai_lech_phieu` → `su_kien_chung`
 
 `id`, `phieu_id`, `noi_dung`, `bao_boi_id`, `bao_luc`; xử lý đặt một lần: `cach_xu_ly` (`BO_SUNG_SUAT`, `DOI_SUAT`, `KHAC`), `mo_ta`, `xu_ly_boi_id`, `xu_ly_luc`.
 
-### `phan_bo_sung` – nhóm 3
+### `phan_bo_sung` – nhóm 3 → gộp theo R-15: `phan_bo_sung` → `su_kien_chung`
 
 `id`, `phieu_id`, `phat_sinh_id NULL`, `yeu_cau_bo_sung_id NULL` (đúng một khác `NULL`), `giao_boi_id`, `giao_luc`, `nhan_boi_id`, `nhan_luc` (đặt một lần).
 
-**DBR-27**: `SUM(suat_theo_che_do.so_suat)` của lần chốt + `SUM(phat_sinh.so_suat WHERE can_giao AND bep_xac_nhan_luc IS NOT NULL)` = tổng suất trên các phiếu (tính từ `suat_theo_che_do` + phát sinh gắn tầng). Chỉ lệnh chốt và lệnh xác nhận phát sinh đổi các số này, trong cùng transaction với khóa `bua_ngay` (M-09).
+**DBR-27**: `SUM(suat_theo_che_do.so_suat)` của lần chốt + `SUM(phat_sinh.so_suat WHERE can_giao AND bep_xac_nhan_luc IS NOT NULL)` = tổng suất trên các phiếu (tính từ `suat_theo_che_do` + phát sinh gắn tầng). Chỉ lệnh chốt và lệnh xác nhận phát sinh đổi các số này, trong cùng transaction với khóa `bua_ngay` (M-09). *(R-15: `suat_theo_che_do` → cột `JSON` của `lan_chot`; `bua_ngay` → `khoa_ky_thuat`)*
 
 ---
 
-## 8. `xac_nhan_phuc_vu` – nhóm 3 (mục G)
+## 8. `xac_nhan_phuc_vu` – nhóm 3 (mục G) → gộp theo R-15: `xac_nhan_phuc_vu` → `su_kien_chung`
 
 `id`, `suat_dac_biet_id`, `nct_id`, `bua_ngay_id`, `tang_khu_vuc_id`, `ket_qua` (`DUNG_SUAT`, `CHAN_XUNG_DOT_DA_AN`, `CHAN_XUNG_DOT_CHUA_AN`), `su_co_id NULL`, `canh_bao_nguon` (khóa nguồn đã gửi 007), `boi_id`, `luc`, `thiet_bi_luc NULL` (ghi ngoại tuyến, Q-01). Đính chính qua 000 (`M08.XAC_NHAN_PHUC_VU`).
 
 ---
 
-## 9. `do_an_gia_dinh` – nhóm 2 (mục H)
+## 9. `do_an_gia_dinh` – nhóm 2 (mục H) → gộp theo R-15: `do_an_gia_dinh` → `ho_so_chung`
 
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
@@ -243,9 +256,9 @@ Lưu giữ `THEO_HO_SO`. Không có chuyển `KHONG_SU_DUNG → DUOC_SU_DUNG`.
 
 ## 10. Xem lại, lưu mẫu (mục I, J)
 
-`thong_bao_xem_lai` (kỹ thuật): `id`, `nct_id`, `nguon` (`AN_KEM_KEO_DAI`, `SUT_CAN`), `nguon_id`, `luc`, `ban_gan_dang_dung_id`. Không có trạng thái (Q-307).
+`thong_bao_xem_lai` (kỹ thuật): `id`, `nct_id`, `nguon` (`AN_KEM_KEO_DAI`, `SUT_CAN`), `nguon_id`, `luc`, `ban_gan_dang_dung_id`. Không có trạng thái (Q-307). *(R-15: `thong_bao_xem_lai` → `moc_da_nhac`)*
 
-`luu_mau` (nhóm 3): `id`, `bua_ngay_id` `UNIQUE`, `boi_id`, `luc`, `vi_tri_luu`, `het_han_luu` (lúc + CFG-M08-06), cột hủy đặt một lần `huy_boi_id`, `huy_luc`. `luu_mau_mon`: `luu_mau_id`, `mon_an_id`, `da_luu`, `ly_do_khong_luu`, `them_sau_phat_sinh`.
+`luu_mau` (nhóm 3): `id`, `bua_ngay_id` `UNIQUE`, `boi_id`, `luc`, `vi_tri_luu`, `het_han_luu` (lúc + CFG-M08-06), cột hủy đặt một lần `huy_boi_id`, `huy_luc`. `luu_mau_mon`: `luu_mau_id`, `mon_an_id`, `da_luu`, `ly_do_khong_luu`, `them_sau_phat_sinh`. *(R-15: `luu_mau`, `luu_mau_mon` → `ho_so_chung`)*
 
 ---
 

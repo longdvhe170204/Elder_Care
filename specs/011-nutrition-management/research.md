@@ -50,10 +50,10 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## M-03. Khóa và đồng thời
 
 **Quyết định**:
-- **Thứ tự khóa**: … → `thuoc_nct` (006) → `chi_so_nct` (M06) → `theo_doi_nct` (M05) → `dinh_duong_nct` (M08, một dòng mỗi người) → `bua_ngay` (bữa trong ngày) → `phieu_bua_an` (theo `id` tăng) → dòng con. Bean trạng thái của 011 chạy sau 006 theo `@Order` của 001 (thứ tự 001 H-02).
-- **Bản gán** (FR-011, FR-012): khóa `dinh_duong_nct`; cột sinh `khoa_cho = IF(trang_thai IN ('DE_XUAT','CHO_HIEU_LUC'), nct_id, NULL)` `UNIQUE`, `khoa_hieu_luc = IF(trang_thai = 'HIEU_LUC', nct_id, NULL)` `UNIQUE`.
-- **Chốt suất** (FR-033): khóa `bua_ngay`; `UNIQUE (bua_ngay_id)` trên `lan_chot`; lệnh thứ hai 409 `DA_CHOT`.
-- **Phát sinh**: khóa `bua_ngay` để thứ tự phát sinh xác định; phiếu của tầng chưa có lập cùng lệnh xác nhận phát sinh `+` (`UNIQUE (bua_ngay_id, tang_khu_vuc_id)`, DBR-27).
+- **Thứ tự khóa**: … → `thuoc_nct` (006) → `chi_so_nct` (M06) → `theo_doi_nct` (M05) → `dinh_duong_nct` (M08, một dòng mỗi người) → `bua_ngay` (bữa trong ngày) → `phieu_bua_an` (theo `id` tăng) → dòng con. Bean trạng thái của 011 chạy sau 006 theo `@Order` của 001 (thứ tự 001 H-02). *(R-15: `thuoc_nct`, `chi_so_nct`, `theo_doi_nct`, `dinh_duong_nct` → `trang_thai_nct`; `bua_ngay` → `khoa_ky_thuat`; `phieu_bua_an` → `ho_so_chung`)*
+- **Bản gán** (FR-011, FR-012): khóa `dinh_duong_nct`; cột sinh `khoa_cho = IF(trang_thai IN ('DE_XUAT','CHO_HIEU_LUC'), nct_id, NULL)` `UNIQUE`, `khoa_hieu_luc = IF(trang_thai = 'HIEU_LUC', nct_id, NULL)` `UNIQUE`. *(R-15: `dinh_duong_nct` → `trang_thai_nct`)*
+- **Chốt suất** (FR-033): khóa `bua_ngay`; `UNIQUE (bua_ngay_id)` trên `lan_chot`; lệnh thứ hai 409 `DA_CHOT`. *(R-15: `bua_ngay` → `khoa_ky_thuat`)*
+- **Phát sinh**: khóa `bua_ngay` để thứ tự phát sinh xác định; phiếu của tầng chưa có lập cùng lệnh xác nhận phát sinh `+` (`UNIQUE (bua_ngay_id, tang_khu_vuc_id)`, DBR-27). *(R-15: `bua_ngay` → `khoa_ky_thuat`)*
 - **Lệnh trên một đối tượng** (xác nhận món, công bố/trả lại thực đơn, xác nhận đồ ăn, chuyển phiếu, nhận phiếu): khóa dòng, kiểm tra lại; lệnh thứ hai 409 `TRANG_THAI_DA_DOI` (000 FR-040). Sửa nội dung Nháp (thực đơn, món) dùng `If-Match`.
 
 ---
@@ -61,10 +61,10 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## M-04. Danh mục: chế độ ăn, món ăn có xác nhận, bữa, loại cấm (mục A, FR-001 → FR-007, Q-308)
 
 **Quyết định**:
-- `che_do_an` (nhóm 1): `lien_quan_dieu_tri`, `mac_dinh` (cột sinh `khoa_mac_dinh` `UNIQUE`: đúng một mặc định), danh sách hạn chế (dị nguyên), `mon_an_toan_id` (bắt buộc với chế độ ăn mới; kiểm FR-005). Ngừng hiệu lực bị chặn khi còn bản gán Hiệu lực/Chờ hiệu lực hoặc món trong thực đơn chưa hết tuần (FR-002). Sửa hạn chế: chạy lại FR-005 với thực đơn chưa hết tuần, báo Bác sĩ và Bếp; không tự đổi thực đơn.
-- `mon_an` (nhóm 1 có xác nhận): trạng thái `NHAP | CHO_XAC_NHAN | HIEU_LUC | NGUNG_HIEU_LUC | DA_HUY` theo bảng của spec; nội dung đã xác nhận ở `mon_an_phien_ban` (nhóm 3: thành phần, chế độ ăn phù hợp, kết cấu, xác nhận bởi, lúc). `mon_an.phien_ban_hieu_luc_id` trỏ phiên bản dùng cho kiểm tra, chốt, phục vụ; bản sửa chờ là một `mon_an_phien_ban` chưa xác nhận (`xac_nhan_luc NULL`), tối đa một (cột sinh `UNIQUE`). Xác nhận bản sửa: đặt `phien_ban_hieu_luc_id` mới, chạy lại kiểm tra thực đơn chưa hết tuần (FR-004) và FR-005 với chế độ ăn có món này làm món an toàn. Sửa tên, ghi chú không cần xác nhận.
+- `che_do_an` (nhóm 1): `lien_quan_dieu_tri`, `mac_dinh` (cột sinh `khoa_mac_dinh` `UNIQUE`: đúng một mặc định), danh sách hạn chế (dị nguyên), `mon_an_toan_id` (bắt buộc với chế độ ăn mới; kiểm FR-005). Ngừng hiệu lực bị chặn khi còn bản gán Hiệu lực/Chờ hiệu lực hoặc món trong thực đơn chưa hết tuần (FR-002). Sửa hạn chế: chạy lại FR-005 với thực đơn chưa hết tuần, báo Bác sĩ và Bếp; không tự đổi thực đơn. *(R-15: `che_do_an` → `danh_muc_chung`)*
+- `mon_an` (nhóm 1 có xác nhận): trạng thái `NHAP | CHO_XAC_NHAN | HIEU_LUC | NGUNG_HIEU_LUC | DA_HUY` theo bảng của spec; nội dung đã xác nhận ở `mon_an_phien_ban` (nhóm 3: thành phần, chế độ ăn phù hợp, kết cấu, xác nhận bởi, lúc). `mon_an.phien_ban_hieu_luc_id` trỏ phiên bản dùng cho kiểm tra, chốt, phục vụ; bản sửa chờ là một `mon_an_phien_ban` chưa xác nhận (`xac_nhan_luc NULL`), tối đa một (cột sinh `UNIQUE`). Xác nhận bản sửa: đặt `phien_ban_hieu_luc_id` mới, chạy lại kiểm tra thực đơn chưa hết tuần (FR-004) và FR-005 với chế độ ăn có món này làm món an toàn. Sửa tên, ghi chú không cần xác nhận. *(R-15: `mon_an` → `danh_muc_chung`)*
 - **Chọn nội dung theo thời điểm**: kiểm tra, chốt, phục vụ đọc phiên bản `HIEU_LUC` tại lúc đó (`phien_ban_hieu_luc_id`); lần chốt lưu id phiên bản món đã dùng.
-- `bua_an` (nhóm 1): tên, loại lưu trú phục vụ, thứ tự; giờ dự kiến và ngưỡng giao trễ ở CFG-M08-04 (kiểu `BANG` theo mã bữa). `loai_do_an_cam` (nhóm 1).
+- `bua_an` (nhóm 1): tên, loại lưu trú phục vụ, thứ tự; giờ dự kiến và ngưỡng giao trễ ở CFG-M08-04 (kiểu `BANG` theo mã bữa). `loai_do_an_cam` (nhóm 1). *(R-15: `bua_an`, `loai_do_an_cam` → `danh_muc_chung`)*
 - Thành phần thực phẩm mới: Bác sĩ thêm qua `DiNguyenApi.themDiNguyen` (nhóm "thực phẩm", 001 FR-018a); 011 không giữ danh mục riêng.
 
 ---
@@ -100,7 +100,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
   - `CanhBaoDiUng(noiDung, nguoiTheoCheDo)`: món xung đột với ít nhất một người không có món thay thế phù hợp; số người (bếp), tên (Bác sĩ).
   Cảnh báo phải được bếp xác nhận đã xem (`canh_bao_da_xac_nhan`, nhóm 3 gắn thực đơn).
 - **Công bố / Trả lại** (Bác sĩ): công bố chạy lại các kiểm tra với dữ liệu tại lúc công bố; độ phủ thiếu → chặn; cảnh báo mới → Bác sĩ xác nhận; tuần đã bắt đầu → thẳng `DA_AP_DUNG`. Trả lại bắt buộc lý do. Nhân viên bếp không có quyền công bố (403).
-- **Đổi món** (FR-031, FR-032): Nhân viên bếp, lý do; món Hiệu lực; bữa chưa qua giờ dự kiến; chạy lại độ phủ (chặn), lặp món, dị ứng; lưu `doi_mon` (nhóm 3, trước/sau); thông báo Bác sĩ (Nhẹ; Trung bình nếu bữa trong ngày); sau thời điểm chốt → phát sinh (M-08).
+- **Đổi món** (FR-031, FR-032): Nhân viên bếp, lý do; món Hiệu lực; bữa chưa qua giờ dự kiến; chạy lại độ phủ (chặn), lặp món, dị ứng; lưu `doi_mon` (nhóm 3, trước/sau); thông báo Bác sĩ (Nhẹ; Trung bình nếu bữa trong ngày); sau thời điểm chốt → phát sinh (M-08). *(R-15: `doi_mon` → `su_kien_chung`)*
 - Job hằng ngày: 00:00 thứ 2 `CONG_BO → DA_AP_DUNG`; mốc CFG-M08-07 nhắc (FR-027).
 - `ThucDonChungApi` cho 012 (FR-028): món theo ngày, bữa của chế độ mặc định và tên các chế độ ăn.
 
@@ -109,18 +109,18 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## M-08. Chốt suất, phát sinh, suất ăn người thân (mục E, FR-033 → FR-043, BR-M08-01, 09, 13, Q-306)
 
 **Quyết định**:
-- `bua_ngay` (bữa trong ngày; nhóm 2 kỹ thuật): bữa danh mục + ngày + giờ dự kiến (chốt từ CFG-M08-04 lúc tạo), lập khi cần (mở lệnh chốt, phát sinh, nhắc) — không phải bản ghi nghiệp vụ.
+- `bua_ngay` (bữa trong ngày; nhóm 2 kỹ thuật): bữa danh mục + ngày + giờ dự kiến (chốt từ CFG-M08-04 lúc tạo), lập khi cần (mở lệnh chốt, phát sinh, nhắc) — không phải bản ghi nghiệp vụ. *(R-15: `bua_ngay` → `khoa_ky_thuat`)*
 - **Tính sẵn khi mở lệnh** (`GET /bua-ngay/{id}/tinh-san`): hàm `NguoiDuocTinh(t, giờ bữa, …)` theo FR-034 với dữ liệu tại lúc gọi:
   - nội trú Đang lưu trú (`NguoiCaoTuoiApi.theoTrangThai`, `ViTriApi`), trừ lượt vắng / chuyến đi trùng giờ bữa (`LuotVangApi`, `ChuyenDiBuaAnPort`); người đang vắng có mốc trở lại ≤ giờ bữa → tính, dấu `DU_KIEN_TRO_VE`;
   - bán trú có lịch (`HopDongDocApi.lichDenTaiNgay`) trùng giờ bữa, không phải ngày nghỉ, trạng thái Chưa đến/Có mặt (`CoMatBanTruApi`), cộng buổi phát sinh Có mặt;
   - người thân Đang ở lại, có đăng ký ăn, bao trùm giờ bữa (`LuotOLaiAnPort`);
   - mỗi người: chế độ ăn (bản gán Hiệu lực hoặc mặc định), kết cấu, tầng/khu, suất đặc biệt (`ChonMonThayThe`, kết cấu khác thường, chỉ định riêng), danh sách cần đối chiếu (dị ứng "khác").
-- **Lệnh Chốt suất** (Nhân viên bếp, từ giờ bữa − CFG-M08-01): tính lại tại thời điểm lệnh (không tin số đã xem), ghi `lan_chot` (nhóm 3: người, thời điểm, dấu `CHOT_SAU_GIO_BUA`), `nguoi_duoc_tinh` (nhóm 3), `suat_theo_che_do` (nhóm 3, theo tầng/khu), `suat_an_nguoi_than` (nhóm 2: `DA_GHI`) và phát `SuKienTinhPhiNguon(SUAT_AN_NGUOI_THAN, …)` cho 010; lập `phieu_bua_an` mỗi tầng/khu có suất và `suat_dac_biet`. Món an toàn ngoài giờ hành chính (FR-037a i) áp ngay trong lệnh. Thông báo theo FR-065 (thiếu món thay thế, chưa có món, chưa có thực đơn, chốt sau giờ bữa: Trung bình). Hệ thống không tự chốt; job nhắc tại mốc (FR-033).
-- **Phát sinh** (FR-039): `phat_sinh` (nhóm 3): bữa ngày, tầng/khu, chế độ ăn, `so_suat` ±, người liên quan, loại thay đổi, sự kiện nguồn (khóa bỏ trùng), `can_giao` (false với ghi nhận suất giữ, FR-040a), `bep_xac_nhan_luc/boi` (cột đặt một lần), thời điểm. Tạo kèm:
+- **Lệnh Chốt suất** (Nhân viên bếp, từ giờ bữa − CFG-M08-01): tính lại tại thời điểm lệnh (không tin số đã xem), ghi `lan_chot` (nhóm 3: người, thời điểm, dấu `CHOT_SAU_GIO_BUA`), `nguoi_duoc_tinh` (nhóm 3), `suat_theo_che_do` (nhóm 3, theo tầng/khu), `suat_an_nguoi_than` (nhóm 2: `DA_GHI`) và phát `SuKienTinhPhiNguon(SUAT_AN_NGUOI_THAN, …)` cho 010; lập `phieu_bua_an` mỗi tầng/khu có suất và `suat_dac_biet`. Món an toàn ngoài giờ hành chính (FR-037a i) áp ngay trong lệnh. Thông báo theo FR-065 (thiếu món thay thế, chưa có món, chưa có thực đơn, chốt sau giờ bữa: Trung bình). Hệ thống không tự chốt; job nhắc tại mốc (FR-033). *(R-15: `nguoi_duoc_tinh`, `suat_theo_che_do` → cột `JSON` của `lan_chot`; `suat_an_nguoi_than`, `phieu_bua_an`, `suat_dac_biet` → `ho_so_chung`)*
+- **Phát sinh** (FR-039): `phat_sinh` (nhóm 3): bữa ngày, tầng/khu, chế độ ăn, `so_suat` ±, người liên quan, loại thay đổi, sự kiện nguồn (khóa bỏ trùng), `can_giao` (false với ghi nhận suất giữ, FR-040a), `bep_xac_nhan_luc/boi` (cột đặt một lần), thời điểm. Tạo kèm: *(R-15: `phat_sinh` → `su_kien_chung`)*
   - lệnh của 011 (áp dụng bản gán, đổi món, chỉ định món thay thế, xác nhận bản sửa món, yêu cầu suất bổ sung, phục vụ suất giữ);
   - listener sau commit cho thay đổi ở module khác (trở về, vắng, chuyển viện, điểm danh chuyến, trạng thái có mặt, chuyển giường, dị ứng, lượt ở lại, ngày khu nghỉ, trạng thái cuối) — mỗi sự kiện xét các bữa đã chốt chưa tới giờ (FR-039 "mỗi bữa một phát sinh"); SC-002 ≤ 5 phút;
   - hàm thuần `TinhPhatSinh(ketQuaChotCu, trangThaiMoi)` trả danh sách ± theo (tầng, chế độ ăn) và suất đặc biệt đổi.
-- **Sau giờ bữa** (FR-040): không tự tạo phát sinh; người nhận tại tầng lập `yeu_cau_suat_bo_sung` (gửi bếp như phát sinh) tới hết ngưỡng giao trễ.
+- **Sau giờ bữa** (FR-040): không tự tạo phát sinh; người nhận tại tầng lập `yeu_cau_suat_bo_sung` (gửi bếp như phát sinh) tới hết ngưỡng giao trễ. *(R-15: `yeu_cau_suat_bo_sung` → `su_kien_chung`)*
 - **Suất giữ** (FR-040a): job theo phút tại giờ bữa: suất `DU_KIEN_TRO_VE` của người chưa trở về → phát sinh "−1" `can_giao = false` nguồn `CHUA_TRO_VE_DUNG_DU_KIEN`, suất đánh dấu `SUAT_GIU`; người về trong ngưỡng → lệnh "phục vụ suất giữ" tạo "+1" `can_giao = false`; hết ngưỡng → người nhận ghi hủy bỏ.
 - **Món an toàn** (FR-037a ii): job theo phút tại giờ bữa − CFG-M08-05: suất `THIEU_MON_THAY_THE` hoặc chế độ thiếu món chưa được Bác sĩ xử lý → dùng món an toàn nếu không xung đột (phát sinh nếu sau chốt; thông báo Bác sĩ Nhẹ); xung đột → thông báo điều dưỡng phụ trách Trung bình.
 - **Nhắc** (FR-041): job theo phút: phát sinh `can_giao` chưa xác nhận tại giờ bữa − CFG-M08-05 → bếp, Bác sĩ (Trung bình); phát sinh tạo sau mốc → nhắc ngay.
@@ -132,11 +132,11 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## M-09. Phiếu bữa ăn (mục F, FR-044 → FR-048b, BR-M08-09 → 12, DBR-27)
 
 **Quyết định**:
-- `phieu_bua_an` (nhóm 2): `UNIQUE (bua_ngay_id, tang_khu_vuc_id)`; trạng thái `DA_CHOT | DA_CHUAN_BI | DA_GIAO | CO_SAI_LECH | DA_NHAN` theo bảng của spec; người, thời điểm giao, nhận; dấu phiếu (`CHUA_CO_THUC_DON`, `CHOT_SAU_GIO_BUA`).
-- `suat_dac_biet` (nhóm 2): phiếu, người, phòng, chế độ ăn, kết cấu, món (phiên bản), món thay thế, dấu (`THIEU_MON_THAY_THE`, `MON_AN_TOAN`, `CHUA_CO_MON`, `CHUA_GAN_CHE_DO_AN`, `DU_KIEN_TRO_VE`, `SUAT_GIU`), `da_chuan_bi`.
-- **DBR-27**: tổng suất trên các phiếu của bữa = số đã chốt + phát sinh `can_giao` đã xác nhận; bảo đảm bằng cách phiếu chỉ đổi qua lệnh chốt và lệnh xác nhận phát sinh (cùng transaction, khóa `bua_ngay`); test kiểm bất biến sau mọi kịch bản. Số suất được phục vụ (gồm phát sinh ghi nhận) tính riêng (FR-044).
-- **Giao** (FR-047): mọi suất đặc biệt đã chuẩn bị, không còn `THIEU_MON_THAY_THE` chưa xử lý, mọi phát sinh `can_giao` của tầng đã xác nhận, bữa có `luu_mau`.
-- **Nhận, sai lệch** (FR-048): người nhận tại tầng = `NhiemVuApi.nguoiNhanTaiTang(tang, ca)` (TT, ĐD, CS có phân công trong ca ± CFG-M15-07, Người phụ trách ca); khu bán trú: tầng/khu mà khu nghỉ gắn vào (003 FR-038). `sai_lech_phieu` (nhóm 3) + cột xử lý đặt một lần. **Phần bổ sung** (FR-048b) là bảng `phan_bo_sung` (phát sinh nguồn, giao, nhận) không đổi trạng thái phiếu.
+- `phieu_bua_an` (nhóm 2): `UNIQUE (bua_ngay_id, tang_khu_vuc_id)`; trạng thái `DA_CHOT | DA_CHUAN_BI | DA_GIAO | CO_SAI_LECH | DA_NHAN` theo bảng của spec; người, thời điểm giao, nhận; dấu phiếu (`CHUA_CO_THUC_DON`, `CHOT_SAU_GIO_BUA`). *(R-15: `phieu_bua_an` → `ho_so_chung`)*
+- `suat_dac_biet` (nhóm 2): phiếu, người, phòng, chế độ ăn, kết cấu, món (phiên bản), món thay thế, dấu (`THIEU_MON_THAY_THE`, `MON_AN_TOAN`, `CHUA_CO_MON`, `CHUA_GAN_CHE_DO_AN`, `DU_KIEN_TRO_VE`, `SUAT_GIU`), `da_chuan_bi`. *(R-15: `suat_dac_biet` → `ho_so_chung`)*
+- **DBR-27**: tổng suất trên các phiếu của bữa = số đã chốt + phát sinh `can_giao` đã xác nhận; bảo đảm bằng cách phiếu chỉ đổi qua lệnh chốt và lệnh xác nhận phát sinh (cùng transaction, khóa `bua_ngay`); test kiểm bất biến sau mọi kịch bản. Số suất được phục vụ (gồm phát sinh ghi nhận) tính riêng (FR-044). *(R-15: `bua_ngay` → `khoa_ky_thuat`)*
+- **Giao** (FR-047): mọi suất đặc biệt đã chuẩn bị, không còn `THIEU_MON_THAY_THE` chưa xử lý, mọi phát sinh `can_giao` của tầng đã xác nhận, bữa có `luu_mau`. *(R-15: `luu_mau` → `ho_so_chung`)*
+- **Nhận, sai lệch** (FR-048): người nhận tại tầng = `NhiemVuApi.nguoiNhanTaiTang(tang, ca)` (TT, ĐD, CS có phân công trong ca ± CFG-M15-07, Người phụ trách ca); khu bán trú: tầng/khu mà khu nghỉ gắn vào (003 FR-038). `sai_lech_phieu` (nhóm 3) + cột xử lý đặt một lần. **Phần bổ sung** (FR-048b) là bảng `phan_bo_sung` (phát sinh nguồn, giao, nhận) không đổi trạng thái phiếu. *(R-15: `sai_lech_phieu`, `phan_bo_sung` → `su_kien_chung`)*
 - **Giới hạn hiển thị cho bếp** (FR-046, SC-008): DTO bếp là lớp riêng `PhieuChoBep` chỉ có trường được phép và danh sách dấu đóng; không dùng giới hạn trường động, để không lọt trường khác. Dị ứng, danh sách cần đối chiếu chỉ ở DTO tầng (người có quyền xem dị ứng).
 - **Giao trễ** (FR-048a): job theo phút; một lần mỗi phiếu (`da_bao_tre_luc`); không áp cho phiếu `CHOT_SAU_GIO_BUA`.
 
@@ -150,7 +150,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
   2. sai người, không xung đột → 409 `SUAT_KHONG_DUNG_NGUOI`, không tạo sự cố;
   3. xung đột dị ứng → transaction riêng phát `YeuCauTaoCanhBao(PHUC_VU_SUAT_DI_UNG, TRUNG_BINH, loaiNguon = SUAT_DAC_BIET, nguonId = id)` (commit dù lệnh bị chặn), trả 409 `SUAT_CO_THANH_PHAN_DI_UNG` yêu cầu khai đã ăn/chưa ăn; gửi lại với `daAn = true` kèm sự cố → gọi `SuCoLenhApi.ghiNhan(lenh loại PHUC_VU_SAI_SUAT_AN, nguồn AN_UONG, mức theo triệu chứng, nd)` trong cùng transaction và lưu xác nhận (kết quả `CHAN_XUNG_DOT_DA_AN`) trỏ sự cố; `daAn = false` → lưu xác nhận `CHAN_XUNG_DOT_CHUA_AN`, không sự cố;
   4. chỉ xung đột hạn chế → 409 `SUAT_TRAI_HAN_CHE`.
-- `xac_nhan_phuc_vu` (nhóm 3) gắn tầng/khu; đính chính qua 000 (`M08.XAC_NHAN_PHUC_VU`).
+- `xac_nhan_phuc_vu` (nhóm 3) gắn tầng/khu; đính chính qua 000 (`M08.XAC_NHAN_PHUC_VU`). *(R-15: `xac_nhan_phuc_vu` → `su_kien_chung`)*
 - Người trong danh sách cần đối chiếu (FR-036a) cũng phải xác nhận; app hiện nhắc hỏi lại dị ứng trong hồ sơ.
 - `NguonCongViecPort.xacNhanPhucVu(buaId, nctId)` trả `true` khi người đó có suất thường và không thuộc danh sách cần đối chiếu, hoặc đã có xác nhận phục vụ thành công (FR-050).
 
@@ -159,9 +159,9 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## M-11. Đồ ăn gia đình, xem lại chế độ ăn, lưu mẫu (mục H, I, J)
 
 **Quyết định**:
-- `do_an_gia_dinh` (nhóm 2): trạng thái `KHONG_SU_DUNG | CAN_XAC_NHAN | DUOC_SU_DUNG | DA_KET_THUC`; ghi nhận chạy hàm thuần `DoiChieuDoAn(doAn, nguoi, danhMucCam)` → trạng thái và lý do (FR-053); `DiemNghiVan` theo FR-054. Không có lệnh từ Không sử dụng sang Được sử dụng. Hạn dùng: job theo phút chuyển Không sử dụng (FR-055). Người gửi có tài khoản và quan hệ Hiệu lực (`QuanHeNguoiThanApi`) nhận thông báo Nhẹ phần `CHUNG`, lý do sức khỏe ở phần `SUC_KHOE` (FR-057).
-- **Xem lại chế độ ăn** (FR-058, Q-307): listener `AnKemKeoDai` (005) và `SutCanPhatHien` (007): thông báo Bác sĩ Nhẹ kèm nguồn và chế độ ăn hiện hành; lưu `thong_bao_xem_lai` (kỹ thuật, để bản gán mới chọn tham chiếu, FR-059); không yêu cầu, không hạn, không nhắc lại.
-- **Lưu mẫu** (FR-060 → FR-062, Q-39, Q-146): `luu_mau` (nhóm 3, một mỗi bữa ngày, `UNIQUE`), `luu_mau_mon` (món, đã lưu, lý do không lưu); danh sách món cần lưu tính bằng hàm `MonCanLuuMau(thucDon, lanChot, phatSinh)`; ghi thêm món mới sau phát sinh; cột hủy mẫu đặt một lần; job nhắc quá CFG-M08-06.
+- `do_an_gia_dinh` (nhóm 2): trạng thái `KHONG_SU_DUNG | CAN_XAC_NHAN | DUOC_SU_DUNG | DA_KET_THUC`; ghi nhận chạy hàm thuần `DoiChieuDoAn(doAn, nguoi, danhMucCam)` → trạng thái và lý do (FR-053); `DiemNghiVan` theo FR-054. Không có lệnh từ Không sử dụng sang Được sử dụng. Hạn dùng: job theo phút chuyển Không sử dụng (FR-055). Người gửi có tài khoản và quan hệ Hiệu lực (`QuanHeNguoiThanApi`) nhận thông báo Nhẹ phần `CHUNG`, lý do sức khỏe ở phần `SUC_KHOE` (FR-057). *(R-15: `do_an_gia_dinh` → `ho_so_chung`)*
+- **Xem lại chế độ ăn** (FR-058, Q-307): listener `AnKemKeoDai` (005) và `SutCanPhatHien` (007): thông báo Bác sĩ Nhẹ kèm nguồn và chế độ ăn hiện hành; lưu `thong_bao_xem_lai` (kỹ thuật, để bản gán mới chọn tham chiếu, FR-059); không yêu cầu, không hạn, không nhắc lại. *(R-15: `thong_bao_xem_lai` → `moc_da_nhac`)*
+- **Lưu mẫu** (FR-060 → FR-062, Q-39, Q-146): `luu_mau` (nhóm 3, một mỗi bữa ngày, `UNIQUE`), `luu_mau_mon` (món, đã lưu, lý do không lưu); danh sách món cần lưu tính bằng hàm `MonCanLuuMau(thucDon, lanChot, phatSinh)`; ghi thêm món mới sau phát sinh; cột hủy mẫu đặt một lần; job nhắc quá CFG-M08-06. *(R-15: `luu_mau`, `luu_mau_mon` → `ho_so_chung`)*
 
 ---
 

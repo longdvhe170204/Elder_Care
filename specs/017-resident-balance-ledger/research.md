@@ -46,8 +46,8 @@ Không có SPI 017 khai báo cho module khác cài. Modulith `verify()` không c
 ## E-03. Khóa, đồng thời và bất biến
 
 **Quyết định**:
-- Nối chuỗi khóa của 010 (P-03): … → `so_du` (một dòng mỗi hồ sơ, giữ cả số dư cọc) → giao dịch.
-- Mọi giao dịch Đã xác nhận cập nhật `so_du.so_du` / `so_du_coc` trong cùng transaction dưới `SELECT … FOR UPDATE` dòng `so_du`; cặp cấn trừ cọc cập nhật cả hai cột trong cùng lệnh. Bất biến "số dư = tổng giao dịch Đã xác nhận" (FR-002, DBR-28) kiểm bằng test và truy vấn đối chiếu hằng đêm (ghi lỗi kỹ thuật, không tự sửa).
+- Nối chuỗi khóa của 010 (P-03): … → `so_du` (một dòng mỗi hồ sơ, giữ cả số dư cọc) → giao dịch. *(R-15: `so_du` → `trang_thai_nct`)*
+- Mọi giao dịch Đã xác nhận cập nhật `so_du.so_du` / `so_du_coc` trong cùng transaction dưới `SELECT … FOR UPDATE` dòng `so_du`; cặp cấn trừ cọc cập nhật cả hai cột trong cùng lệnh. Bất biến "số dư = tổng giao dịch Đã xác nhận" (FR-002, DBR-28) kiểm bằng test và truy vấn đối chiếu hằng đêm (ghi lỗi kỹ thuật, không tự sửa). *(R-15: `so_du` → `trang_thai_nct`)*
 - `UNIQUE (bang_chi_phi_id)` trên giao dịch thanh toán bảng (DBR-30); `UNIQUE (bang_chi_phi_id)` trên phiếu báo phí (DBR-37); cột sinh `khoa_hien_hanh` `UNIQUE` trên bảng quyết toán (DBR-38).
 - Mã giao dịch ngân hàng **không** `UNIQUE` (FR-007: trùng chỉ cảnh báo, một lần chuyển khoản được ghi thành nhiều giao dịch cùng mã); chỉ mục thường để tìm trùng.
 
@@ -56,13 +56,13 @@ Không có SPI 017 khai báo cho module khác cài. Modulith `verify()` không c
 ## E-04. Sổ, mã nộp tiền, VietQR (mục A; FR-001 → FR-004; DBR-28, DBR-29; Q-211, Q-225, Q-285, Q-335)
 
 **Quyết định**:
-- Listener `HopDongDaDoiTrangThai(… den = CHO_KY)` (004): nếu hồ sơ chưa có sổ → mở `so_du` (số dư 0, số dư cọc 0), cấp `ma_nop_tien` (tác động kèm lệnh gửi ký; idempotent theo `nct_id`). Hồ sơ mới của người quay lại có sổ mới (khóa theo `nct_id`).
+- Listener `HopDongDaDoiTrangThai(… den = CHO_KY)` (004): nếu hồ sơ chưa có sổ → mở `so_du` (số dư 0, số dư cọc 0), cấp `ma_nop_tien` (tác động kèm lệnh gửi ký; idempotent theo `nct_id`). Hồ sơ mới của người quay lại có sổ mới (khóa theo `nct_id`). *(R-15: `so_du` → `trang_thai_nct`)*
 - `ma_nop_tien`: `NCT` + 6 ký tự Base32 Crockford + 1 ký tự kiểm tra (mod 37), `UNIQUE`, không dùng lại; sinh ngẫu nhiên, thử lại khi trùng. Tìm theo mã không phân biệt hoa thường, bỏ khoảng trắng và gạch nối.
 - Thông tin nộp tiền: ngân hàng, mã BIN, số tài khoản, chủ tài khoản đọc từ CFG-M11-10 (`ThamSoApi`). Hàm thuần `VietQrPayload(bin, soTaiKhoan, noiDung)` dựng chuỗi EMVCo (merchant account `A000000727`, dịch vụ chuyển nhanh tới tài khoản, không trường số tiền, nội dung = mã nộp tiền, CRC16-CCITT). REST trả chuỗi payload; client vẽ ảnh. Trên PDF (phiếu báo phí), backend vẽ ảnh QR bằng **ZXing core** rồi chèn ảnh qua `PdfBieuMau`.
 - **Danh mục ngân hàng và CFG-M11-10** *(bổ sung 2026-10-22, chủ dự án duyệt)*:
-  - Bảng `ngan_hang` (nhóm 1, cố định): `ma_bin` (khóa, 6 chữ số NAPAS), `ten_viet_tat`, `ten_day_du`, `con_hieu_luc`. Nạp bằng migration từ danh sách mã BIN NAPAS công bố cho VietQR; ngân hàng mới, sáp nhập, ngừng thì viết migration mới (thêm dòng hoặc tắt `con_hieu_luc`), không xóa, không có màn sửa. Hệ thống không gọi dịch vụ ngoài để tra mã.
+  - Bảng `ngan_hang` (nhóm 1, cố định): `ma_bin` (khóa, 6 chữ số NAPAS), `ten_viet_tat`, `ten_day_du`, `con_hieu_luc`. Nạp bằng migration từ danh sách mã BIN NAPAS công bố cho VietQR; ngân hàng mới, sáp nhập, ngừng thì viết migration mới (thêm dòng hoặc tắt `con_hieu_luc`), không xóa, không có màn sửa. Hệ thống không gọi dịch vụ ngoài để tra mã. *(R-15: `ngan_hang` → `danh_muc_chung`)*
   - Giá trị CFG-M11-10 (kiểu bảng của 000) có ba trường: `maBin`, `soTaiKhoan`, `chuTaiKhoan`. Quản lý viện nhập trên màn Tham số của 000; ô ngân hàng là danh sách chọn lấy từ `GET /ngan-hang` của 017. Số tài khoản thật của viện không nằm trong mã nguồn hay migration; profile `demo` dùng tài khoản giả.
-  - Kiểm khi lưu: 000 hiện chỉ kiểm chung giá trị kiểu bảng. Plan thêm SPI `KiemTraGiaTriThamSo` ở `m15.thamso.api` (000; `ma()` trả mã tham số, `kiemTra(giaTri)` ném lỗi 422 kèm lý do) để 000 gọi trước khi lưu; 017 cài cho CFG-M11-10: `maBin` có trong `ngan_hang` và còn hiệu lực, `soTaiKhoan` chỉ gồm chữ số (6 → 19 ký tự), `chuTaiKhoan` không rỗng. 000 không biết gì về ngân hàng (ranh giới module).
+  - Kiểm khi lưu: 000 hiện chỉ kiểm chung giá trị kiểu bảng. Plan thêm SPI `KiemTraGiaTriThamSo` ở `m15.thamso.api` (000; `ma()` trả mã tham số, `kiemTra(giaTri)` ném lỗi 422 kèm lý do) để 000 gọi trước khi lưu; 017 cài cho CFG-M11-10: `maBin` có trong `ngan_hang` và còn hiệu lực, `soTaiKhoan` chỉ gồm chữ số (6 → 19 ký tự), `chuTaiKhoan` không rỗng. 000 không biết gì về ngân hàng (ranh giới module). *(R-15: `ngan_hang` → `danh_muc_chung`)*
   - CFG-M11-10 chưa có giá trị thì không có thông tin nộp tiền: cổng ẩn mục nộp tiền, phiếu báo phí in "Liên hệ Kế toán để biết tài khoản nộp tiền", không vẽ mã QR.
   - Ngân hàng của tài khoản đang dùng bị tắt hiệu lực sau đó: vẫn dựng VietQR theo `maBin` đã lưu (mã BIN không đổi khi ngân hàng chỉ đổi tên); Quản lý viện được báo ở lần lưu tham số kế tiếp.
 - Hiển thị (FR-004): số dư trên hồ sơ cho Kế toán, Hành chính, Quản lý viện (`BALANCE_LEDGER, XEM`); giao dịch thanh toán bảng chỉ hiện tổng (Q-133).
@@ -105,7 +105,7 @@ Không có SPI 017 khai báo cho module khác cài. Modulith `verify()` không c
 - Hàm thuần `PhiMotNgay(hopDong, ngay, lichBanTru, phiNgayCoSo)` theo FR-016 (tháng: `ChiPhiChoSoDuPort.phiNgayCoSo`; ngày: đơn giá ngày; bán trú tháng: giá ÷ số ngày tháng; bán trú buổi: giá buổi × số buổi có lịch 7 ngày tới ÷ 7).
 - Hàm thuần `TinhTrang(soDu, tongChuaChot, phiMotNgay, cfg04)` → `CON_NO | SAP_HET_TIEN | BINH_THUONG` và số ngày (làm tròn xuống); phí = 0 chỉ xét Còn nợ (FR-017).
 - Hàm thuần `QuyetDinhBao(cu, moi, lanBaoTruoc, conNoTu, cfg05, suKien)` theo bảng chuyển tình trạng (lần tính hằng ngày; nộp tiền về Bình thường; nộp tiền chưa đủ; điều chỉnh giảm được duyệt): trả tác động (báo ngay, đặt lại chu kỳ, giữ chu kỳ, báo "đã ghi nhận khoản nộp", nhắc lại, báo Quản lý viện).
-- Tình trạng lưu trên `so_du` (`tinh_trang`, `so_ngay_con_du`, `chu_ky_tu`, `lan_bao_truoc`, `con_no_tu`, `dung_nhac`); mỗi lần tính ghi `lich_su_tinh_trang` (nhóm 3).
+- Tình trạng lưu trên `so_du` (`tinh_trang`, `so_ngay_con_du`, `chu_ky_tu`, `lan_bao_truoc`, `con_no_tu`, `dung_nhac`); mỗi lần tính ghi `lich_su_tinh_trang` (nhóm 3). *(R-15: `so_du` → `trang_thai_nct`; `lich_su_tinh_trang` → `lich_su_chung`)*
 - **Job hằng ngày** 02:00: hồ sơ có hợp đồng Hiệu lực chưa trạng thái cuối, và hồ sơ trạng thái cuối còn nợ chưa "dừng nhắc" (FR-020); khóa `(nct_id, ngày, nguồn)` chống báo trùng khi chạy lại (SC-012). Giao dịch nộp tiền và điều chỉnh giảm khoản nộp tính lại ngay trong lệnh.
 - **Thông báo** người đại diện: mức Trung bình, hai phần `CHUNG` ("có thông báo về tài chính của [họ tên], vui lòng liên hệ Kế toán") và `CHI_PHI` (tình trạng, số dư, tổng chưa chốt, thông tin nộp tiền); nhóm `Representative(nctId)`; 009 lọc phần `CHI_PHI` theo quyền xem chi phí (BR-M13-04).
 - **Dừng nhắc** (FR-020): `POST /nguoi-cao-tuoi/{nctId}/so-du/dung-nhac` (Quản lý viện, lý do; chỉ hồ sơ trạng thái cuối còn nợ).
@@ -130,12 +130,12 @@ Không có SPI 017 khai báo cho module khác cài. Modulith `verify()` không c
 ## E-09. Xác nhận quyết toán và bảng quyết toán (FR-034; BR-M11-22; DBR-38; UC-101)
 
 **Quyết định**:
-- `POST /nguoi-cao-tuoi/{nctId}/quyet-toan/xac-nhan` (Kế toán, `SETTLEMENT_RECORD, THUC_HIEN`, khóa `so_du`). Điều kiện (409 kèm danh sách lý do):
+- `POST /nguoi-cao-tuoi/{nctId}/quyet-toan/xac-nhan` (Kế toán, `SETTLEMENT_RECORD, THUC_HIEN`, khóa `so_du`). Điều kiện (409 kèm danh sách lý do): *(R-15: `so_du` → `trang_thai_nct`)*
   - có hồ sơ kết thúc Đang chuẩn bị (`HoSoKetThucDocApi.dangChuanBi`), hoặc danh sách việc sau qua đời đang mở, hoặc hồ sơ trạng thái cuối có giao dịch sau lần xác nhận trước (FR-024);
   - ba ý tiền Đạt, hoặc `HoSoKetThucDocApi.coNgoaiLeQuyetToanDaDuyet(nctId)` (hồ sơ kết thúc lưu trú, 004 FR-064; danh sách việc sau qua đời, 004 FR-071a, Q-387);
   - không còn giao dịch Chờ duyệt (không miễn được).
 - Số liệu bảng (chụp lúc xác nhận, lưu `JSON` cùng phiên bản): thông tin viện (CFG-M11-11); người cao tuổi (`nhanDang`), người đại diện (`QuyenNguoiThanApi.nguoiDaiDien`); loại lưu trú, hợp đồng, ngày bắt đầu, ngày kết thúc dự kiến, trường hợp kết thúc (`HoSoKetThucDocApi.thongTinQuyetToan`); tổng bảng kỳ cuối theo loại (`ChiPhiChoSoDuPort.bangDaChot`); số dư trước quyết toán (số dư ngay trước giao dịch thanh toán bảng kỳ cuối); tiền cọc đã thu, đã cấn trừ, đã hoàn; các giao dịch nộp, hoàn kể từ thanh toán bảng kỳ cuối; số còn nợ hoặc còn phải hoàn (= số dư hiện tại; khác 0 chỉ khi có ngoại lệ); người xác nhận, thời điểm, số phiên bản.
-- Mỗi lần xác nhận: thêm phiên bản `bang_quyet_toan` mới, chuyển phiên bản trước sang không hiện hành (chỉ cột `hien_hanh`, trigger), dựng PDF bằng `PdfBieuMau` (dòng "Chứng từ này không thay thế hóa đơn"; khoản thuốc chỉ "Thuốc" và mã vật phẩm), `FileApi.upload` + `attach` (`M11.BANG_QUYET_TOAN`), nhật ký `BQT_XAC_NHAN`, thông báo người thân có quyền xem chi phí (Nhẹ, phần `CHI_PHI`), `DieuKienQuyetToanDaDoi`.
+- Mỗi lần xác nhận: thêm phiên bản `bang_quyet_toan` mới, chuyển phiên bản trước sang không hiện hành (chỉ cột `hien_hanh`, trigger), dựng PDF bằng `PdfBieuMau` (dòng "Chứng từ này không thay thế hóa đơn"; khoản thuốc chỉ "Thuốc" và mã vật phẩm), `FileApi.upload` + `attach` (`M11.BANG_QUYET_TOAN`), nhật ký `BQT_XAC_NHAN`, thông báo người thân có quyền xem chi phí (Nhẹ, phần `CHI_PHI`), `DieuKienQuyetToanDaDoi`. *(R-15: `bang_quyet_toan` → `su_kien_chung`)*
 - **Đính kèm bản ký** `POST /bang-quyet-toan/{id}/ban-ky` (Kế toán; phiên bản hiện hành; một lần mỗi phiên bản, trigger): gắn tệp (`M11.BAN_KY_QUYET_TOAN`); không đổi điều kiện.
 - Tải: `GET /bang-quyet-toan/{id}/file` trả đúng file đã lưu; mỗi lần tải ghi nhật ký `CHUNG_TU_TAI` (FR-037).
 
