@@ -69,7 +69,7 @@ Kết quả mong đợi: `verify` xanh. Bộ test gồm test kiến trúc (Modul
 
 ## 4. Test tự động: truy vết kịch bản → test
 
-| Spec | Lớp test (backend, `com.cambae.backend.m03…`) | Loại |
+| Spec | Lớp test (backend, `com.eldercare.backend.roombedallocation…`) | Loại |
 | --- | --- | --- |
 | US1 #1–8, FR-001 → FR-007 | `CoCauIT`, `MaDuyNhatIT`, `NgungHieuLucCoCauIT`, `FR_006_DoiChinhSachPhongIT`, `FR_007_KhongDoiChaIT`, `BR_M03_22_SoGiuongTieuChuanIT`, `Q_238_TaoGiuongGhiTangIT` | Tích hợp |
 | US2 #1–15, FR-017 → FR-023, FR-025a | `BR_M03_01_DieuKienPhanBoIT`, `BR_M03_02_HaiNguoiCungGiuongIT`, `DBR_09_KhongChongIT`, `FR_020_PhanBoDongThoiIT`, `FR_023_PhanBoBanDauIT`, `BR_M03_20_PhamViPhanBoBanDauIT`, `FR_022_DanhSachGiuongIT`, `BR_M03_19_TroVeChuaCoGiuongIT` | Tích hợp, đồng thời |

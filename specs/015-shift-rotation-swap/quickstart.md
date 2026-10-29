@@ -25,7 +25,7 @@ frontend/ npm ci && npm test && npm run dev
 mobile/  flutter test
 ```
 
-Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()`, ArchUnit (chỉ `m09.xoayca`, `m09.doica` dùng port `m09.*.port`), test cơ sở dữ liệu (data-model mục 7) và các nhóm test ở mục 4.
+Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()`, ArchUnit (chỉ `staffing.xoayca`, `staffing.doica` dùng port `staffing.*.port`), test cơ sở dữ liệu (data-model mục 7) và các nhóm test ở mục 4.
 
 ## 3. Kịch bản kiểm chứng đầu–cuối (profile demo)
 

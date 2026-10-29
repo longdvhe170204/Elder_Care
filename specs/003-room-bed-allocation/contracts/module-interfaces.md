@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-07 | **Plan**: [../plan.md](../plan.md)
 
-Hợp đồng trong backend, ở gói `com.cambae.backend.m03.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của 003 (constitution X). Ngoại lệ: báo cáo (016) và 007 được `JOIN` view `v_phan_bo_hien_hanh` (data-model mục 4), như 000 cho view đính chính. Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
+Hợp đồng trong backend, ở gói `com.eldercare.backend.roombedallocation.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của 003 (constitution X). Ngoại lệ: báo cáo (016) và 007 được `JOIN` view `v_phan_bo_hien_hanh` (data-model mục 4), như 000 cho view đính chính. Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
 
 Chiều phụ thuộc theo research G-02: 003 phụ thuộc 000, 001, 002; 004, 005, 007, 008, 011, 016 phụ thuộc 003. Chỗ 003 cần dữ liệu của module phụ thuộc nó thì 003 khai báo SPI (mục 2), module đó cài.
 
@@ -10,7 +10,7 @@ Chiều phụ thuộc theo research G-02: 003 phụ thuộc 000, 001, 002; 004, 
 
 ## 1. 003 cung cấp
 
-### 1.1. `PhanBoGiuongApi` (SPI khai báo ở `m15.taikhoan.api` cho 002; M03 cài)
+### 1.1. `PhanBoGiuongApi` (SPI khai báo ở `administration.taikhoan.api` cho 002; M03 cài)
 
 Giữ đúng chữ ký plan 002 đã khai báo ([../../002-account-permission/contracts/module-interfaces.md](../../002-account-permission/contracts/module-interfaces.md) mục 2). Interface nằm ở gói của 002 để tránh vòng M15 ↔ M03.
 
@@ -168,7 +168,7 @@ Mỗi sự kiện gửi 009 mang mức, nhóm người nhận, loại thông tin
 
 ## 2. 003 cần từ module khác
 
-### 2.1. SPI 003 khai báo ở `m03.api`, module khác cài
+### 2.1. SPI 003 khai báo ở `roombedallocation.api`, module khác cài
 
 ```java
 interface NguonLuuTruChoPhanBo {                 // 004 cài
@@ -218,7 +218,7 @@ Sự kiện 003 nghe: `KhoanhVungDaGo(tangIds, khuVucIds)`, `DaThemVaoDanhSachTi
 
 ## 3. Giao diện nội bộ M03 với phần tài sản (feature 019)
 
-Hai port ở gói `m03.giuong.port`, chỉ `m03.taisan` được dùng (ArchUnit). Mọi hàm `Propagation.MANDATORY`, chạy trong transaction của lệnh tài sản hoặc lệnh Tạo giường.
+Hai port ở gói `roombedallocation.giuong.port`, chỉ `roombedallocation.taisan` được dùng (ArchUnit). Mọi hàm `Propagation.MANDATORY`, chạy trong transaction của lệnh tài sản hoặc lệnh Tạo giường.
 
 ```java
 interface GiuongTheoTaiSanPort {                 // 003 cài, 019 gọi

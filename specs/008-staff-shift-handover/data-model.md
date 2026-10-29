@@ -49,7 +49,7 @@ Mô tả dưới đây thay mô tả của các bảng đã gộp (mô tả cũ 
 
 **Chuyển dữ liệu (`V008_95`)**: `department`, `credential_type`, `practice_scope`, `shift_template` vào `danh_muc_chung`, đổi khóa ngoại theo id mới; `credential_practice_scope` vào JSON; `department_lead_history`, `shift_lead_history` vào `lich_su_chung`; `shift_publication`, `handover_comment`, `handover_reply` (đổi `comment_id` thành `tra_loi_cho_id` mới), `staffing_ratio_calculation` vào `su_kien_chung`; `handover_item`, `handover_assessment` vào JSON của `shift_handover`; `floor_manager_assignment` vào `staff_assignment`; `staff_import_batch` vào `ho_so_chung`; `floor_scope_lock` vào `khoa_ky_thuat`; `m09_job_run` vào `moc_da_nhac`. `ShiftCommandPort`, `AssignmentCommandPort`, `DutyApi`, `AssignmentApi` giữ chữ ký (team-plan mục 8 dòng E (015)).
 
-**Bảo đảm** (thay phần tương ứng ở các mục sau): một bộ phận mỗi nhân viên tại một thời điểm (`staff_department` giữ); một người phụ trách mở mỗi bộ phận, mỗi ca (`khoa_mo`); một lịch mỗi (tháng, phạm vi) và một dòng mỗi (ca, nhân viên) (`UNIQUE` giữ); nội dung bàn giao khóa khi xác nhận (trigger `shift_handover`). Test m09 hiện có (gồm `M09RecordProtectionIT`, `PostPublicationPortsIT`) phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục); `StaffImportTransportIT` đang lỗi môi trường (team-plan mục 8).
+**Bảo đảm** (thay phần tương ứng ở các mục sau): một bộ phận mỗi nhân viên tại một thời điểm (`staff_department` giữ); một người phụ trách mở mỗi bộ phận, mỗi ca (`khoa_mo`); một lịch mỗi (tháng, phạm vi) và một dòng mỗi (ca, nhân viên) (`UNIQUE` giữ); nội dung bàn giao khóa khi xác nhận (trigger `shift_handover`). Test staffing hiện có (gồm `M09RecordProtectionIT`, `PostPublicationPortsIT`) phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục); `StaffImportTransportIT` đang lỗi môi trường (team-plan mục 8).
 
 **Bảng truy vết sau gộp** *(bổ sung 2026-10-30; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR, BR ở các mục sau theo bảng này)*:
 
@@ -61,7 +61,7 @@ Mô tả dưới đây thay mô tả của các bảng đã gộp (mô tả cũ 
 
 **Test phải đổi bảng đích** *(rà 2026-10-30; 33 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
 - Test của module: `AlertStaffPortIT`, `AssignmentGovernanceIT`, `AssignmentHttpIT`, `AssignmentIT`, `AssignmentSchemaIT`, `CredentialLifecycleIT`, `DepartmentCommandsIT`, `DepartmentDutyIT`, `HandoverIT`, `HandoverSchemaIT`, `M09GovernanceIT`, `M09JobCatchUpIT`, `M09RecordProtectionIT`, `PostPublicationPortsIT`, `PostPublicationShiftIT`, `ShiftGovernanceIT`, `ShiftHttpIT`, `ShiftLifecycleIT`, `ShiftQueriesIT`, `ShiftScheduleIT`, `ShiftSchemaIT`, `StaffCommandsHttpIT`, `StaffEmploymentIT`, `StaffModuleIntegrationIT`, `StaffProfileHttpIT`, `StaffSchemaIT`, `StaffSpiIT`, `StaffStatisticsIT`, `StaffStatisticsReportFieldsIT`, `StaffingRatioHttpIT`, `StaffingRatioSchemaIT`, `StaffingRatioWarningIT`.
-- Test của m14 (chủ module review): `FR_020_StaffingDashboardIT`.
+- Test của reporting (chủ module review): `FR_020_StaffingDashboardIT`.
 
 ---
 
@@ -340,4 +340,4 @@ Trigger: chặn mọi đổi khi `OLD.trang_thai = 'DA_XAC_NHAN'`; chặn đổi
 | BR-M04-13 (phần 008) | N-07 | `PostPublicationShiftIT` (FR-020 chỉ đúng ca, callback/rollback); C còn kiểm công việc thật tại T043b |
 | BR-M05-05 (phần 008) | N-10 | `HandoverIT.FR_044_confirmationCallbacksShareTransactionAndFailureRollsBackAllEffects`; C/D còn kiểm nguồn thật tại T043b |
 
-Tên lớp trên là tên thật dưới `backend/src/test/java/com/cambae/backend/m09/`; ma trận FR-048 → FR-060, kịch bản Q và SC ở [validation.md](validation.md). Các bài kiểm fixture/fake nguồn xác minh phần điều phối của 008; không thay nghiệm thu nghiệp vụ module nguồn hoặc mobile.
+Tên lớp trên là tên thật dưới `backend/src/test/java/com/eldercare/backend/staffing/`; ma trận FR-048 → FR-060, kịch bản Q và SC ở [validation.md](validation.md). Các bài kiểm fixture/fake nguồn xác minh phần điều phối của 008; không thay nghiệm thu nghiệp vụ module nguồn hoặc mobile.

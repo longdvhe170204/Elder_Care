@@ -36,7 +36,7 @@ Hai cột ghi cùng câu `INSERT` (trigger hiện có đã chặn sửa); backen
 
 **`push_device`** – kỹ thuật, giữ nguyên (token đẩy do 009 quản lý, không chuyển sang `thiet_bi` của 002).
 
-**Loại ở bảng chung** (JSON Schema ở `m13/internal/.../schema`, tên theo glossary mục 15):
+**Loại ở bảng chung** (JSON Schema ở `notification/internal/.../schema`, tên theo glossary mục 15):
 
 | Bảng chung | `loai` | Đối tượng | `noi_dung` / `thuoc_tinh` | `khoa_duy_nhat`, ràng buộc chuyển về backend |
 | --- | --- | --- | --- | --- |

@@ -1,4 +1,15 @@
 <!--
+Sync Impact Report (2026-10-30)
+- Phiên bản: 3.2.0 → 3.3.0 (MINOR: thêm nguyên tắc XVI; nguyên tắc X đặt tên gói theo module).
+- Nguyên tắc sửa:
+  - X. Kiến trúc: gói gốc `com.eldercare.backend` (trước là `com.cambae.backend`, Maven `groupId` `com.eldercare`); gói backend mang tên tiếng Anh của module (`resident` … `administration`, bảng ở research R-02 của 000) thay cho `m01` … `m15`; mã nghiệp vụ M01 … M15 giữ nguyên trong tài liệu và dữ liệu.
+- Mục thêm: XVI. Thiết kế mã theo SOLID (luật cụ thể, phần tự động kiểm bằng ArchUnit `SolidArchTest`; mã cũ sửa dần trong các task gộp R-15).
+- Cần cập nhật theo:
+  - ✅ specs/000-shared-foundation/research.md (R-02), glossary.md (mục 2); backend/README.md; CLAUDE.md; AGENTS.md; docs/team-plan.md; .github/CODEOWNERS; đường dẫn `BE/<module>/…` trong specs/*.
+  - ✅ mã: đổi gói, `LayerArchTest` liệt kê đủ 15 module, `SolidArchTest`, migration `V000_09__rename_module_packages.sql` (bảng EVENT_PUBLICATION).
+-->
+
+<!--
 Sync Impact Report (2026-10-29)
 - Phiên bản: 3.1.1 → 3.2.0 (MINOR: mở rộng nguyên tắc XII, cho phép bảo đảm nhóm 3 ở cơ sở dữ liệu theo dòng).
 - Nguyên tắc sửa:
@@ -140,7 +151,7 @@ Lý do: thiết kế dựa trên nghiệp vụ đã chốt; viết mã khi thi�
     (Q-305, Q-346, Q-365).
 - Cơ sở dữ liệu MUST là MySQL.
 - Backend MUST là một khối (không tách microservice), chia gói theo module nghiệp vụ M01–M15 của
-  `docs/business/nghiep-vu.md`; module gọi nhau qua giao diện của module, không truy cập trực tiếp dữ liệu
+  `docs/business/nghiep-vu.md`, mỗi gói mang tên tiếng Anh của module (bảng ở research R-02 của 000; sửa 3.3.0); module gọi nhau qua giao diện của module, không truy cập trực tiếp dữ liệu
   của module khác.
 - Phiên bản cụ thể (mặc định Java 25, Spring Boot 4.x, MySQL 8.0, React với JavaScript, Flutter
   bản stable) MUST được ghi ở plan.
@@ -207,6 +218,17 @@ mức và người nhận.
 
 Lý do: giữ chuỗi truy vết từ quy tắc tới mã (I) và nghiệm thu được (IV).
 
+### XVI. Thiết kế mã theo SOLID
+
+- **Một trách nhiệm (S)**: mỗi lớp service MUST phục vụ một nhóm use case của một chức năng (ví dụ cấp tài khoản, khóa tài khoản), không gom mọi lệnh của module vào một lớp; controller chỉ nhận yêu cầu, gọi service, trả phản hồi; lớp truy cập dữ liệu chỉ đọc, ghi.
+- **Mở để mở rộng (O)**: thêm loại mới (loại bản ghi đính chính, nguồn thông báo, loại ở bảng dùng chung, kênh gửi) MUST bằng cài thêm SPI hoặc strategy, không thêm nhánh `if`/`switch` theo loại vào mã dùng chung.
+- **Thay thế được (L)**: bản cài của interface `api`, `spi` và bản giả MUST giữ đúng hợp đồng của interface (điều kiện trước, sau, lỗi); test của interface chạy được trên cả bản thật và bản giả.
+- **Interface nhỏ (I)**: interface ở `api`, `spi` MUST chia theo người dùng (module gọi), không gom mọi hàm của module vào một interface.
+- **Phụ thuộc vào trừu tượng (D)**: lớp MUST phụ thuộc vào interface ở `api`, `spi` của module khác, không vào lớp cài; phụ thuộc MUST tiêm qua constructor (không tiêm vào trường, không setter, không tự `new` bean).
+- Phần kiểm tự động được MUST có ArchUnit (`SolidArchTest`, `LayerArchTest`, `ModuleBoundaryTest`); phần còn lại kiểm khi review. Mã mới MUST theo; mã cũ sửa dần trong các task chạm tới nó, không viết lại hàng loạt.
+
+Lý do: năm người cùng sửa một khối mã; lớp nhỏ, phụ thuộc vào interface và mở rộng bằng SPI giữ cho thay đổi của một người không lan sang module khác.
+
 ## Tài liệu nguồn
 
 - `docs/business/nghiep-vu.md`: quy tắc nghiệp vụ (BR, CFG), phân loại dữ liệu (mục 1.5), thuật ngữ
@@ -235,4 +257,4 @@ Lý do: giữ chuỗi truy vết từ quy tắc tới mã (I) và nghiệm thu �
   kể; PATCH khi làm rõ câu chữ.
 - Mỗi lần clarify, checklist, plan hoặc analyze MUST kiểm tra theo constitution hiện hành.
 
-**Version**: 3.2.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-29
+**Version**: 3.3.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-30

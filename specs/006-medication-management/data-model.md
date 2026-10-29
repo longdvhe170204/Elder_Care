@@ -59,7 +59,7 @@ Chỉ mục `(kind, resident_id, created_at)`, `(trip_id)`, `(procurement_reques
 
 **Chuyển dữ liệu (`V006_95`)**: `medication` (kèm hoạt chất) vào `danh_muc_chung`, đổi `medication_id` ở `prescription`, `medication_dose`, `family_medication_batch`, dòng tiếp nhận cung ứng; `prescription_active_ingredient`, `reconciliation_item`, `family_medication_prescription` vào JSON của bảng cha; `prn_administration` vào `dose_result` (đổi `dose_review.prn_usage_id` thành id mới); bảy bảng giao nhận vào `medication_handover` (đổi `no_medication_order_id` của khoảng vắng, `leave_handover_id` của kết quả liều); `prescription_issue`, `prescription_basis` vào `su_kien_chung`; `dose_review`, `medication_absence_interval`, `reconciliation_correction_request` vào `ho_so_chung`; `resident_medication` vào `trang_thai_nct`; `m07_job_run` vào `moc_da_nhac`.
 
-**Bảo đảm** (thay phần tương ứng ở các mục sau): một liều mỗi (đơn, giờ) (`UNIQUE` giữ); kết quả liều và lần dùng PRN không sửa, không xóa (trigger `dose_result` giữ); một phiếu đối chiếu đang mở và một phiếu khi tiếp nhận mỗi người (`UNIQUE` giữ); một khoảng vắng mở mỗi người và một lệnh không mang thuốc mỗi (người, chuyến) (`khoa_duy_nhat`, `no_medication_key`). Test m07 hiện có phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục).
+**Bảo đảm** (thay phần tương ứng ở các mục sau): một liều mỗi (đơn, giờ) (`UNIQUE` giữ); kết quả liều và lần dùng PRN không sửa, không xóa (trigger `dose_result` giữ); một phiếu đối chiếu đang mở và một phiếu khi tiếp nhận mỗi người (`UNIQUE` giữ); một khoảng vắng mở mỗi người và một lệnh không mang thuốc mỗi (người, chuyến) (`khoa_duy_nhat`, `no_medication_key`). Test medication hiện có phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục).
 
 **Bảng truy vết sau gộp** *(bổ sung 2026-10-30; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR, BR ở các mục sau theo bảng này)*:
 
@@ -74,7 +74,7 @@ Chỉ mục `(kind, resident_id, created_at)`, `(trip_id)`, `(procurement_reques
 **Test phải đổi bảng đích** *(rà 2026-10-30; 10 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
 - Test của module: `BR_M07_05_PrescriberAuthorityIT`, `BR_M07_07_DosageChangeIT`, `BR_M07_08_PrescriptionExpirationIT`, `BR_M07_15_CancelDosageChangeIT`, `BR_M07_16_ExternalPrescriberBasisIT`, `DBR_14_ReplacementPrescriptionIT`, `FR_012_NewAllergyIT`, `PrescriptionTriggerIT`.
 - Test của common (chủ module review): `RecipientGroupTest`.
-- Test của m14 (chủ module review): `DetailRowPolicyTest`.
+- Test của reporting (chủ module review): `DetailRowPolicyTest`.
 
 ---
 

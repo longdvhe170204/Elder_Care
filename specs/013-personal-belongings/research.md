@@ -8,18 +8,18 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## K-01. Vị trí trong backend
 
-**Quyết định**: Feature 013 là module M12 – Đồ gửi (mục 16), gói `com.cambae.backend.m12`.
+**Quyết định**: Feature 013 là module M12 – Đồ gửi (mục 16), gói `com.eldercare.backend.belongings`.
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
-| `m12.danhmuc` | Loại đồ (lịch sử dấu "cần đồng ý"), mức tình trạng, vị trí lưu giữ | A |
-| `m12.dogui` | Đồ gửi, bản ghi bàn giao, tách đồ, tính lại trạng thái, đính chính | B, C, D |
-| `m12.tra` | Lệnh Trả, xác minh người nhận, lần chặn trả, xác nhận người nhận khác | E |
-| `m12.dongy` | Đồng ý cho tự giữ | D (FR-015a) |
-| `m12.suco` | Thông báo thất lạc/hư hỏng, ghi hoặc liên kết sự cố 007 | F |
-| `m12.ketthuc` | Điều kiện `KT_B_DO_GUI`, mục `DO_GUI` sau qua đời, đề nghị xử lý đồ không người nhận | G |
-| `m12.kiemke` | Phiếu kiểm kê, đồ không rõ chủ | H2 |
-| `m12.trangthai`, `m12.lich`, `m12.api` | Bean trạng thái; job; giao diện công khai | |
+| `belongings.danhmuc` | Loại đồ (lịch sử dấu "cần đồng ý"), mức tình trạng, vị trí lưu giữ | A |
+| `belongings.dogui` | Đồ gửi, bản ghi bàn giao, tách đồ, tính lại trạng thái, đính chính | B, C, D |
+| `belongings.tra` | Lệnh Trả, xác minh người nhận, lần chặn trả, xác nhận người nhận khác | E |
+| `belongings.dongy` | Đồng ý cho tự giữ | D (FR-015a) |
+| `belongings.suco` | Thông báo thất lạc/hư hỏng, ghi hoặc liên kết sự cố 007 | F |
+| `belongings.ketthuc` | Điều kiện `KT_B_DO_GUI`, mục `DO_GUI` sau qua đời, đề nghị xử lý đồ không người nhận | G |
+| `belongings.kiemke` | Phiếu kiểm kê, đồ không rõ chủ | H2 |
+| `belongings.trangthai`, `belongings.lich`, `belongings.api` | Bean trạng thái; job; giao diện công khai | |
 
 ---
 
@@ -29,10 +29,10 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 | SPI / API | Người khai | Bản cài hoặc cách dùng của 013 |
 | --- | --- | --- |
-| `ThamGiaChuyenTrangThai` (`m01.api`) | 001 H-02 | Điều kiện `KT_B_DO_GUI` (`coTheMien = true`) cho `KET_THUC_LUU_TRU`; chặn Tiếp nhận, Giao sử dụng sau trạng thái cuối (FR-027) bằng đọc trạng thái, không cần tác động |
-| `MucViecSauQuaDoiPort` (`m02.api`) | 004 | `ma() = DO_GUI`; trạng thái theo FR-026 |
+| `ThamGiaChuyenTrangThai` (`resident.api`) | 001 H-02 | Điều kiện `KT_B_DO_GUI` (`coTheMien = true`) cho `KET_THUC_LUU_TRU`; chặn Tiếp nhận, Giao sử dụng sau trạng thái cuối (FR-027) bằng đọc trạng thái, không cần tác động |
+| `MucViecSauQuaDoiPort` (`admission.api`) | 004 | `ma() = DO_GUI`; trạng thái theo FR-026 |
 | `DanhSachViecSauQuaDoiApi.capNhat(nctId)` | 004 | Gọi sau mỗi lệnh đổi trạng thái đồ của người đã qua đời |
-| `DoGuiBanGiaoPort` (`m09.api`) | 008 | `dangGiu(nhanVienIds)`: đồ có giá trị Đang giữ theo người giữ (FR-014a) |
+| `DoGuiBanGiaoPort` (`staffing.api`) | 008 | `dangGiu(nhanVienIds)`: đồ có giá trị Đang giữ theo người giữ (FR-014a) |
 | `LoaiYeuCauHandler` (000) | 000 | `M12.XU_LY_DO_KHONG_NGUOI_NHAN` (`choTuDuyet = false`; K-09) |
 | `DinhChinhDuocProvider` (000) | 000 | `M12.BAN_GIAO_DO_GUI`, `M12.PHIEU_KIEM_KE` (K-05) |
 | `SuCoLenhApi.ghiNhan`, `themDienBien` (MANDATORY); `SuCoApi.xem` | 007 | K-07 |
@@ -197,5 +197,5 @@ Bác sĩ, Nhân viên chăm sóc, Nhân viên bếp, Kế toán: không có quy�
 
 **Quyết định**: Bean `DoGuiKenhNctPortImpl` đọc đồ của người cao tuổi ở trạng thái Đang giữ, Đang được sử dụng; trả tên đồ, trạng thái, mã ảnh. `QuyenTepProvider` `M12.ANH_DO_GUI` cho tài khoản AC-16 xem ảnh đồ của chính mình. Không có thao tác nào; trả đồ, xác nhận người nhận giữ nguyên (BR-M12-04, BR-M12-06).
 
-**Lý do**: SPI ở `m10.api` theo cách `HoatDongBanTinPort`, không tạo vòng M10 ↔ M12.
+**Lý do**: SPI ở `family.api` theo cách `HoatDongBanTinPort`, không tạo vòng M10 ↔ M12.
 

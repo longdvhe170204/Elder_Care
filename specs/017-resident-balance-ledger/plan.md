@@ -16,7 +16,7 @@ Feature 017 là phần 15.9, 15.9a của module M11 (UC-12, UC-85 → UC-88, UC-
 7. Sao kê số dư và báo cáo thu chi thu gọn, xuất Excel và PDF cùng số liệu; người thân tải sao kê (mục F; UC-88, Q-381, Q-386).
 
 Hướng kỹ thuật:
-- Gói `m11.sodu` trong M11 cùng 010; dùng port nội bộ `ChiPhiChoSoDuPort` của 010 (thêm `bangDaChot`, 010 research P-12), cài `SoDuMuaHoPort`; cài `TrangThaiDatCocPort`, `MucViecSauQuaDoiPort` (`QUYET_TOAN`) và bean `ThamGiaChuyenTrangThai` với hai mã điều kiện `KT_H_QUYET_TOAN`, `KT_H_XAC_NHAN_QUYET_TOAN` (004 research T-09, cập nhật 2026-10-22) (research E-01, E-02).
+- Gói `billing.sodu` trong M11 cùng 010; dùng port nội bộ `ChiPhiChoSoDuPort` của 010 (thêm `bangDaChot`, 010 research P-12), cài `SoDuMuaHoPort`; cài `TrangThaiDatCocPort`, `MucViecSauQuaDoiPort` (`QUYET_TOAN`) và bean `ThamGiaChuyenTrangThai` với hai mã điều kiện `KT_H_QUYET_TOAN`, `KT_H_XAC_NHAN_QUYET_TOAN` (004 research T-09, cập nhật 2026-10-22) (research E-01, E-02).
 - Số dư, số dư cọc lưu dẫn xuất trên `so_du`, cập nhật cùng transaction với giao dịch Đã xác nhận dưới khóa dòng `so_du`; bất biến đối chiếu bằng test và truy vấn hằng đêm (E-03). *(R-15: `so_du` → `trang_thai_nct`)*
 - Giao dịch cần duyệt là loại yêu cầu phê duyệt `M11.GIAO_DICH_SO_DU` của 000; duyệt kiểm lại giới hạn và người nhận tại lúc duyệt (E-06).
 - Chứng từ (phiếu báo phí, bảng quyết toán) và file xuất dựng bằng `common.bieumau` (PDF: OpenPDF, 007 research S-25; Excel: fastexcel, đã chọn ở 010), lưu S3 qua `FileApi` như tệp đính kèm (001 research H-13); tải lại trả đúng file đã lưu (E-09 → E-11).
@@ -87,7 +87,7 @@ Không còn mục NEEDS CLARIFICATION. Lựa chọn kỹ thuật ở [research.m
 | VII. Điểm chưa rõ | Đạt | Chỗ spec lệch nghiệp vụ đã hỏi chủ dự án (ý Chờ duyệt theo BR-M11-22); điểm còn lại ở "Điểm cần báo lại" |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-017 (trừ SC bỏ) có cách đo ở quickstart mục 5 |
 | IX. Phạm vi | Đạt | Không đổi nghiệp vụ; lập lại plan theo spec 2026-10-22 |
-| X. Kiến trúc | Đạt | Một khối; gói `m11.sodu`; port nội bộ có ArchUnit; không có vòng (E-02) |
+| X. Kiến trúc | Đạt | Một khối; gói `billing.sodu`; port nội bộ có ArchUnit; không có vòng (E-02) |
 | XI. Nghiệp vụ ở backend | Đạt | Giới hạn hoàn, tình trạng, điều kiện quyết toán, nội dung chứng từ ở backend; client chỉ vẽ mã QR |
 | XII. Dữ liệu | Đạt | Trigger nhóm 3; `UNIQUE` cho DBR-30, DBR-37, DBR-38; nhật ký trong transaction; `Clock` |
 | XIII. Tham số | Đạt | Như V |
@@ -135,7 +135,7 @@ specs/017-resident-balance-ledger/
 Đường dẫn là tên logic; đặt file theo [backend/README.md](../../backend/README.md) và research R-02 của 000 (`api/{dto, spi, events}`, `web/{request, response}`, `internal/<chức năng>/{service, domain, persistence, config}`).
 
 ```text
-backend/src/main/java/com/cambae/backend/m11/
+backend/src/main/java/com/eldercare/backend/billing/
 ├── api/           # (bổ sung) SoDuApi, SoDuThongKeApi, sự kiện 017
 └── sodu/
     ├── so/          # sổ, mã nộp tiền, VietQR, cổng người thân
@@ -146,14 +146,14 @@ backend/src/main/java/com/cambae/backend/m11/
     ├── xuat/        # sao kê, báo cáo thu chi
     └── lich/        # job hằng ngày
 
-backend/src/main/java/com/cambae/backend/common/bieumau/   # dùng chung, tạo ở 007 T104; 017 thêm VietQR ảnh nếu cần
+backend/src/main/java/com/eldercare/backend/common/bieumau/   # dùng chung, tạo ở 007 T104; 017 thêm VietQR ảnh nếu cần
 
 frontend/src/tinh-nang/so-du/          # so-du, nop-tien, giao-dich, tinh-trang, quyet-toan, phieu-bao-phi, xuat
 frontend/src/tinh-nang/cong-nguoi-than/so-du/
 mobile/lib/nguoi-than/so-du/           # số dư, mã QR, chứng từ, sao kê
 ```
 
-**Structure Decision**: Theo R-02 của 000 và 010 P-01: 017 thêm gói `m11.sodu` với bảy gói con.
+**Structure Decision**: Theo R-02 của 000 và 010 P-01: 017 thêm gói `billing.sodu` với bảy gói con.
 
 ## Complexity Tracking
 
@@ -170,7 +170,7 @@ mobile/lib/nguoi-than/so-du/           # số dư, mã QR, chứng từ, sao kê
 2. **010**: dùng `ChiPhiChoSoDuPort` (`tongChuaChot`, `phiNgayCoSo`, `bangDaChot` thêm 2026-10-22, 010 research P-12); cài `SoDuMuaHoPort`; nghe `BangChiPhiDaChot`.
 3. **012**: dùng `QuyenNguoiThanApi` (`quyenCoTacDung(XEM_CHI_PHI)`, `laNguoiDaiDien`, `nguoiDaiDien`); REST cổng của 017 phục vụ số dư, chứng từ, sao kê trên cổng (012 FR-046). **009**: thông báo cài khuôn `common.notification` (nhóm `Representative`, `FamilyWithRight(CHI_PHI)`, `FacilityRole(KE_TOAN)`, `Approvers`). **016** đọc `SoDuThongKeApi` (bỏ hàm chốt quỹ cũ).
 4. **007, `common`**: dùng `common.bieumau` (`PdfBieuMau`, `ExcelBieuMau`) do 007 T104 tạo; 017 cần thêm `FileApi` nhận kiểu `.xlsx` cho tệp hệ thống tạo (sửa nhỏ ở `common.tep`, chủ `common`). *(Đã xử lý 2026-10-22: gói `common.document`, `common.file.FileTypes`; xem Ghi chú triển khai.)*
-5. **000** *(bổ sung 2026-10-22)*: SPI mới `KiemTraGiaTriThamSo` ở `m15.thamso.api` để module sở hữu kiểm giá trị tham số kiểu bảng trước khi lưu; 017 cài cho CFG-M11-10 (`maBin`, `soTaiKhoan`, `chuTaiKhoan`). Màn Tham số của 000 hiện CFG-M11-10 với ô chọn ngân hàng lấy từ `GET /ngan-hang` của 017 (research E-04). *(Phần 000 đã xử lý 2026-10-22: `ParameterValueCheck` ở `m15.parameter.api.spi`.)*
+5. **000** *(bổ sung 2026-10-22)*: SPI mới `KiemTraGiaTriThamSo` ở `administration.thamso.api` để module sở hữu kiểm giá trị tham số kiểu bảng trước khi lưu; 017 cài cho CFG-M11-10 (`maBin`, `soTaiKhoan`, `chuTaiKhoan`). Màn Tham số của 000 hiện CFG-M11-10 với ô chọn ngân hàng lấy từ `GET /ngan-hang` của 017 (research E-04). *(Phần 000 đã xử lý 2026-10-22: `ParameterValueCheck` ở `administration.parameter.api.spi`.)*
 6. **000**: CFG-M11-11 kiểu bảng có trường logo; plan coi logo là id tệp `common.tep` (chưa có thì không in logo). Cần 000 thống nhất dạng giá trị khi làm màn tham số. *(Đã xử lý 2026-10-22: khóa JSON `name`, `address`, `taxCode`, `phone`, `logoFileId` theo `common.document.FacilityInfo`.)*
 
 ## Điểm cần báo lại về tài liệu nguồn
@@ -188,7 +188,7 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 Ghi khi triển khai (constitution XIV: lệch kỹ thuật ghi ở plan cùng lúc với mã). Tên tiếng Anh theo glossary mục 6.5 (phần `common`, tham số của 000) và mục 23.
 
 - *(2026-10-22, nhánh `impl/common-bieumau`, A)* **T003**: `common.file.FileTypes`: `SYSTEM_GENERATED` (PDF, JPEG, PNG, `.xlsx`) cho `FileApi.upload`, `USER_UPLOAD` (PDF, JPEG, PNG) cho `POST /files`; `check(mimeType, content, allowed)` kiểm kiểu khai báo khớp chữ ký đầu nội dung và giới hạn 10 MB, lỗi 422 `FILE_TYPE_NOT_ALLOWED`, `FILE_TOO_LARGE` (mã lỗi của hợp đồng 001). `FileApi` chưa có bản cài (001 T003, B): bản cài gọi `FileTypes.check(…, SYSTEM_GENERATED)`, controller `POST /files` gọi với `USER_UPLOAD` trước. Test `FileTypesTest`.
-- **T045, phần 000**: SPI `ParameterValueCheck` (tên logic `KiemTraGiaTriThamSo`; `code()`, `check(JsonNode value)` ném `InvalidValueException`, 422 `INVALID_VALUE` kèm lý do) ở `m15.parameter.api.spi`; `ParameterService.changeValue` gọi mọi bản cài có mã trùng, sau phần kiểm chung theo kiểu và ràng buộc, trước khi lưu; khôi phục về "Theo cơ sở" (`null`) thì không gọi. Bản giả `support/fake/m15/FakeParameterValueCheck` (nhận mọi giá trị tới khi gọi `reject`; test khai bean cho mã mình cần). Test `ParameterValueCheckIT`. Còn của 017: bảng `ngan_hang`, `GET /ngan-hang`, bản cài cho CFG-M11-10, ô chọn ngân hàng, `NganHangThamSoIT`. *(R-15: `ngan_hang` → `danh_muc_chung`)*
+- **T045, phần 000**: SPI `ParameterValueCheck` (tên logic `KiemTraGiaTriThamSo`; `code()`, `check(JsonNode value)` ném `InvalidValueException`, 422 `INVALID_VALUE` kèm lý do) ở `administration.parameter.api.spi`; `ParameterService.changeValue` gọi mọi bản cài có mã trùng, sau phần kiểm chung theo kiểu và ràng buộc, trước khi lưu; khôi phục về "Theo cơ sở" (`null`) thì không gọi. Bản giả `support/fake/administration/FakeParameterValueCheck` (nhận mọi giá trị tới khi gọi `reject`; test khai bean cho mã mình cần). Test `ParameterValueCheckIT`. Còn của 017: bảng `ngan_hang`, `GET /ngan-hang`, bản cài cho CFG-M11-10, ô chọn ngân hàng, `NganHangThamSoIT`. *(R-15: `ngan_hang` → `danh_muc_chung`)*
 - **Chứng từ**: dùng `common.document` (`PdfDocument`, `ExcelDocument`, 007 plan ghi chú triển khai). `PdfDocument` nhận thông tin viện từ module gọi: đọc `ParameterApi.read(CFG_M11_11)`, chưa đặt thì truyền `null`, có thì `asTable(FacilityInfo.class)`. Ảnh mã QR VietQR (T002, ZXing) chưa có hàm vẽ trên `PdfDocument`; 017 thêm khi làm phiếu báo phí.
 
 ## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*

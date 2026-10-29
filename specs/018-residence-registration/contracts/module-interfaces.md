@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-10 | **Plan**: [../plan.md](../plan.md)
 
-Feature 018 thêm gói `m02.khaibao` vào module M02 (cùng 004). Giao diện dưới đây gồm phần dùng nội bộ M02, bản cài SPI và giao diện công khai (research Z-01, Z-02).
+Feature 018 thêm gói `admission.khaibao` vào module M02 (cùng 004). Giao diện dưới đây gồm phần dùng nội bộ M02, bản cài SPI và giao diện công khai (research Z-01, Z-02).
 
 ## 1. Nội bộ M02 (004 → 018)
 
@@ -17,11 +17,11 @@ Feature 018 thêm gói `m02.khaibao` vào module M02 (cùng 004). Giao diện d�
 
 | SPI / API | Bản cài hoặc chữ ký | Dùng bởi |
 | --- | --- | --- |
-| `ThamGiaChuyenTrangThai` (`m01.api`) | Không điều kiện chặn (SC-004). Tác động `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN`: khai báo đang xử lý → Đã hủy; nghĩa vụ chưa đáp ứng → hủy | 001 H-02 |
+| `ThamGiaChuyenTrangThai` (`resident.api`) | Không điều kiện chặn (SC-004). Tác động `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN`: khai báo đang xử lý → Đã hủy; nghĩa vụ chưa đáp ứng → hủy | 001 H-02 |
 | `DinhChinhDuocProvider` (000) | `M02.KHAI_BAO` (lần nộp, kết quả, xác nhận thường trú cùng xã/phường; không gắn tầng) | 000 FR-026 |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | Lưu theo hồ sơ (CFG-M15-03) | 000 |
 | `QuyenTepProvider` (`common.tep`) | `M02.BANG_CHUNG_KHAI_BAO`: Hành chính, Quản lý viện | NFR-08 |
-| `m02.api.KhaiBaoThongKeApi` (016) | `tongHop()`: số người cần khai báo (chưa lập hoặc Cần khai báo), số quá hạn, số Hết hạn, số cần khai báo xóa | FR-011 |
+| `admission.api.KhaiBaoThongKeApi` (016) | `tongHop()`: số người cần khai báo (chưa lập hoặc Cần khai báo), số quá hạn, số Hết hạn, số cần khai báo xóa | FR-011 |
 
 Sự kiện 018 phát: thông báo (cài `CoYeuCauThongBao`) tới 009 theo FR-010; `KhaiBaoDaDoiTrangThai(khaiBaoId, nctId, tu, den)` cho 016.
 

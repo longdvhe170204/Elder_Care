@@ -22,7 +22,7 @@ mobile/   flutter test
 mobile/  flutter test
 ```
 
-Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M13 không bị module nào phụ thuộc ngoài qua `m13.api`; không có vòng M13 ↔ M10), test cơ sở dữ liệu (data-model mục 8) và các nhóm test ở mục 4.
+Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M13 không bị module nào phụ thuộc ngoài qua `notification.api`; không có vòng M13 ↔ M10), test cơ sở dữ liệu (data-model mục 8) và các nhóm test ở mục 4.
 
 ## 3. Kịch bản kiểm chứng đầu–cuối (profile demo)
 
@@ -83,7 +83,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M13 không b�
 | Khẩn cấp | `SC_001_KhanCapDongThoiIT`, `BR_M13_02_LuotNhacGoiIT`, `FR_027a_GopLuotIT`, `FR_028_ThatBaiMoiKenhIT`, `FR_029a_ChuoiGoiIT`, `FR_030a_ChuyenNhacIT`, `FR_026a_XacNhanVaTiepNhanIT`, `FR_032_MotLuotIT` | Q1 → Q7, Q32 → Q35 |
 | Hộp thư, tra cứu | `FR_034_HienThiTheoQuyenIT`, `BR_M13_05_LichSuGuiIT`, `FR_035_DuLieuChoNguonIT` | Q28 → Q31 |
 | Bộ lập lịch | `ChayBuM13IT` | Q37 |
-| Kiến trúc | `ApplicationModules.verify()`; ArchUnit: chỉ `m13` cài listener `CoYeuCauThongBao`; module khác không gọi kênh gửi trực tiếp | |
+| Kiến trúc | `ApplicationModules.verify()`; ArchUnit: chỉ `notification` cài listener `CoYeuCauThongBao`; module khác không gọi kênh gửi trực tiếp | |
 | Web (Vitest) | Hộp thông báo (Khẩn cấp lên đầu, xác nhận), luồng SSE, danh sách liên hệ trực tiếp | Q28, Q26 |
 | App (`flutter_test`) | `NhanDayTest`, `XacNhanHaiThaoTacTest` (SC-008), `XacNhanBatBuocTrucTuyenTest`, `GhiKetQuaGoiTest` | Q1 → Q3 |
 
