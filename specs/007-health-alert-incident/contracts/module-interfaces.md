@@ -101,7 +101,7 @@ List<VungView> dangChiuTheoNguoi(long nctId, Instant t);   // theo giường đa
 List<VungView> dangKhoanh();                                // dashboard (18.5)
 ```
 
-### 1.9. `m05.api.SucKhoeCongNguoiThanApi`, `BanTinSucKhoeApi` (012)
+### 1.9. `m05.api.SucKhoeCongNguoiThanApi` (012; `BanTinSucKhoeApi` bỏ theo Q-396)
 
 ```java
 List<SuCoNguoiThanView> suCo(long nctId, long nguoiThanId, Instant tu, Instant den);
@@ -109,9 +109,6 @@ List<SuCoNguoiThanView> suCo(long nctId, long nguoiThanId, Instant tu, Instant d
     // 012 ghi nhật ký lượt xem phần sức khỏe (NFR-08, 012 FR-048)
 record SuCoNguoiThanView(long suCoId, PhanChungSuCo phanChung, Optional<PhanSucKhoeSuCo> phanSucKhoe) {}
 List<ChiSoNguoiThanView> chiSo(long nctId, long nguoiThanId, Instant tu, Instant den);
-BanTinSucKhoeView choBanTin(long nctId, LocalDate tu, LocalDate den);
-    // FR-082: cân nặng và xu hướng, chỉ số chính, sự cố trong kỳ kèm mức (bỏ sự cố Đã hủy, FR-046a)
-    // sửa 2026-10-18 (Q-352): mỗi sự cố gồm phanChung (kèm mức, 012 FR-052) và phanSucKhoe; 012 lọc theo người nhận
 ```
 
 ### 1.10. `m05.api.CanhBaoThongKeApi`, `m06.api.ChiSoThongKeApi` (016; FR-081)
@@ -161,7 +158,7 @@ Stream<ChiSoBaoCaoView> chiSo(PhamViLoc phamVi, Instant tu, Instant den);
 | `LuaChonChamSocGiamNheDaGhi(nctId)` | 005 | FR-050d |
 | `SutCanPhatHien(nctId, banGhiCaoNhatId, banGhiMoiId)` | 011 (BR-M08-05) | FR-039a |
 | `DauNghiNhiemDaDoi(nctId, suCoId, daGan, thoiDiem)` (bổ sung theo plan 014): gắn hoặc gỡ dấu "nghi nhiễm" | 014 (hủy đăng ký, chuyển Không đi, báo trưởng đoàn; 014 FR-021a) | FR-060 |
-| `TacDongConHieuLuc(suCoId, danhSach)`; `SuCoDaHuyTrongBanTin(suCoId)` | 009; 012 | FR-046a |
+| `TacDongConHieuLuc(suCoId, danhSach)` | 009 | FR-046a |
 
 Mỗi sự kiện mang khóa `loại + id + mốc` (NFR-04) và, với sự kiện gửi 009, mức, nhóm người nhận, loại thông tin theo research S-19.
 

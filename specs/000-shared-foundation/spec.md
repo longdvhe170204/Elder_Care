@@ -364,7 +364,7 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 | Loại | Spec sở hữu (căn cứ) | Người lập | Người duyệt | Vòng đời |
 | --- | --- | --- | --- | --- |
 | Thay đổi lưu trú (gồm đổi mức chăm sóc, gia hạn, đổi phòng/giường khác giá) | 004 FR-037, FR-039, FR-043; 001; 003 FR-030 | Hành chính (kể cả sau đánh giá lại và chuyển giường gấp, Q-52, Q-306); Bác sĩ (chỉ đổi mức chăm sóc); hệ thống không tự lập (sửa câu 2026-10-11, Q-345) | Quản lý viện; Hành chính với thay đổi nhỏ (004 FR-043, Q-338) | Chung (FR-031) |
-| Điều chỉnh điểm ưu tiên danh sách chờ | 004 FR-011 | Hành chính | Quản lý viện | Chung |
+| ~~Điều chỉnh điểm ưu tiên danh sách chờ~~ | 004 FR-011 | Bỏ theo Q-394 (2026-10-29): không còn điểm; Hành chính đánh dấu Ưu tiên kèm lý do, không cần duyệt | — | — |
 | Duyệt điều khoản hợp đồng khác chuẩn | 004 FR-025a | Hành chính | Quản lý viện | Chung |
 | ~~Quyết định giữ giường khi vắng~~ | 004 (bảng phân nhóm dữ liệu) | Không còn là yêu cầu phê duyệt: Quản lý viện được báo và thực hiện lệnh "Quyết định giữ giường" của 004 (BR-M02-07, Q-307; sửa 2026-10-11, Q-345) | — | — |
 | Ngoại lệ điều kiện kết thúc lưu trú | 004 User Story 7, FR-063 → FR-065 | Hành chính | Quản lý viện | Chung |

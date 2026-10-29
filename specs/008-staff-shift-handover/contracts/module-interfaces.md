@@ -74,7 +74,7 @@ Stream<LichSuPhanCongView> lichSuPhanCong(PhamViLoc phamVi, Instant tu, Instant 
 
 Theo research N-07 (`CaLenhPort`, `PhanCongLenhPort`, `KiemTraCongBoMoRong`). Chỉ `m09.doica`, `m09.xoayca` được dùng (ArchUnit). Khi 015 chưa có, `KiemTraCongBoMoRong` không có bean và lệnh công bố bỏ qua phần của 015.
 
-Bổ sung theo plan 015 (hợp đồng 015 mục 1.2, 1.4): `LichNhapLenhPort` (008 cài: `taoNhap`, `thayNoiDungNhap`, `goNhanVienKhoiNhap`, `lichThang`; MANDATORY) để lệnh "Lập lịch từ mẫu xoay ca" và nghỉ theo ngày ghi lịch Nháp; `NghiCoDuyetPort` (015 cài, 008 dùng khi sửa tay lịch Nháp và khi công bố, 008 FR-012, FR-016); sự kiện nội bộ M09 008 phát thêm: `LichNhapDaLuu(lichCaId)`, `GiayPhepDaDoiHieuLuc(nhanVienId, giayPhepId)`, `DaoTaoDaDoiHieuLuc(nhanVienId, daoTaoId)` để 015 tính lại phủ (015 FR-007).
+Bổ sung theo plan 015 (hợp đồng 015 mục 1.2, 1.4): `LichNhapLenhPort` (008 cài: `goNhanVienKhoiNhap`, `lichThang`; MANDATORY; sửa 2026-10-29, Q-397: bỏ `taoNhap`, `thayNoiDungNhap`) để nghỉ theo ngày gỡ nhân viên khỏi lịch Nháp; `NghiCoDuyetPort` (015 cài, 008 dùng khi sửa tay lịch Nháp và khi công bố, 008 FR-012, FR-016); *(Q-397: bỏ sự kiện `LichNhapDaLuu`, `GiayPhepDaDoiHieuLuc`, `DaoTaoDaDoiHieuLuc` dùng để 015 tính phủ.)*
 
 ### 1.6. Sự kiện 008 phát (sau commit, qua outbox của 000)
 

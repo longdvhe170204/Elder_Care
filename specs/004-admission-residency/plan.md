@@ -1,5 +1,7 @@
 # Implementation Plan: Tiếp nhận và lưu trú
 
+> **Sửa 2026-10-29 (Q-394, Q-395):** danh sách chờ không có điểm ưu tiên (dấu Ưu tiên kèm lý do); phí khi vắng không có bảng hệ số, ghi đè theo hợp đồng, ngưỡng và quyết định giữ giường (nội trú tính như ngày lưu trú, báo Quản lý viện khi vắng tới CFG-M02-05 ngày, lệnh Giải phóng giường). Các mục về `TinhDiemUuTien`, `lich_su_diem`, `TraChinhSachVang`, `ngay_vang`, `quyet_dinh_giu_giuong` trong tài liệu này không còn hiệu lực; xem spec 004 mục Cập nhật 2026-10-29.
+
 **Branch**: `004-admission-residency` | **Date**: 2026-10-07, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/004-admission-residency/spec.md`

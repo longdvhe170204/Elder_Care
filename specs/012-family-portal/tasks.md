@@ -17,8 +17,8 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 ## Quy ước đường dẫn
 
 - `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
-- Module M10: `BE/m10/{api,nguoithan,quyen,don,tham,olai,cong,bantin,phanhoi,lich}/`
-- Web `frontend/src/tinh-nang/nguoi-than/{ho-so,yeu-cau-quyen,don,tham,o-lai,ban-tin,phan-hoi,cong-nguoi-than}/`; app nhân viên `mobile/lib/nhan-vien/nguoi-than/`; app người thân `mobile/lib/nguoi-than/`
+- Module M10: `BE/m10/{api,nguoithan,quyen,don,tham,olai,cong,phanhoi,lich}/`
+- Web `frontend/src/tinh-nang/nguoi-than/{ho-so,yeu-cau-quyen,don,tham,o-lai,phan-hoi,cong-nguoi-than}/`; app nhân viên `mobile/lib/nhan-vien/nguoi-than/`; app người thân `mobile/lib/nguoi-than/`
 
 ---
 
@@ -28,8 +28,8 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo khung gói `BE/m10/...` với `package-info.java`; ArchUnit `BT/m10/M10ArchTest.java`: gói `..lich..` không lập bản tin, không lập khoản (Q-306); DTO người thân không có trường nhật ký (research F-01)
-- [ ] T002 [P] Tạo bản giả `HoatDongBanTinPort` (014) trong `BT/support/gia012/` (contracts mục 1.4)
+- [ ] T001 Tạo khung gói `BE/m10/...` với `package-info.java`; ArchUnit `BT/m10/M10ArchTest.java`: gói `..lich..` không lập khoản (Q-306); DTO người thân không có trường nhật ký (research F-01)
+- [ ] T002 [P] *(Bỏ theo Q-396, 2026-10-29)* Không có bản giả `HoatDongBanTinPort`
 
 ---
 
@@ -39,11 +39,11 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T003 [P] Tạo `BE/m10/api/`: `QuyenNguoiThanApi`, `NguoiThanThongKeApi`, SPI `HoatDongBanTinPort`, sự kiện mục 1.5 (cài `CoYeuCauThongBao`; mỗi yêu cầu tới người thân khai `doiTuongThongTin` theo bảng research F-15, bổ sung 2026-10-18) (contracts mục 1.2 → 1.5)
+- [ ] T003 [P] Tạo `BE/m10/api/`: `QuyenNguoiThanApi`, `NguoiThanThongKeApi`, sự kiện mục 1.5 (cài `CoYeuCauThongBao`; mỗi yêu cầu tới người thân khai `doiTuongThongTin` theo bảng research F-15, bổ sung 2026-10-18) (contracts mục 1.2 → 1.5)
 - [ ] T004 Tạo `MIG/V012_01__nguoi_than.sql`: `nguoi_than_nct` (`nct_id` khóa chính), `nguoi_than` (số giấy tờ `CA_NHAN`; không xóa khi đã có quan hệ), `quan_he_nguoi_than` (`quan_he` `VO_CHONG|CON|CHAU|ANH_CHI_EM|KHAC`; sáu quyền; `trang_thai` `HIEU_LUC|DA_KET_THUC`; cột sinh `khoa_hieu_luc` với `UNIQUE (nguoi_than_id, nct_id, khoa_hieu_luc)`; cột sinh `khoa_lien_he_chinh` `UNIQUE`), `lich_su_quyen` (nhóm 3), `su_kien_m10_da_xu_ly`, `lan_chay_m10` (data-model mục 2, 10)
 - [ ] T005 [P] Cài hàm thuần `BE/m10/quyen/internal/QuyenCoTacDung.java` (quan hệ + bản đồng ý `BanDongYApi` tại thời điểm xem; DBR-03) và `BE/m10/nguoithan/internal/KiemTraDbr02.java` (≥ 1 đại diện, đúng 1 liên hệ chính) với test `BT/m10/QuyenCoTacDungTest.java`, `KiemTraDbr02Test.java` (research F-04, F-05)
 - [ ] T006 Cài bản cài SPI trong `BE/m10/nguoithan/internal/`: `QuanHeNguoiThanApi` (`hieuLuc`, `soDienThoaiDaDangKy`, `laNguoiDaiDienHieuLuc`, `thuocNguoiCaoTuoi`, `quyenDangBat`), `DieuKienChuThich` ² (người đại diện), `NguoiDaiDienPort` (004), `NguoiThanNhanThongBaoPort` (009), `NguoiThanKhanCapPort` (`nguoiLienHeChinh`, `nguoiDaiDien`) (007), `QuyenNguoiThanApi` (contracts mục 1.1, 1.2)
-- [ ] T007 Cài khung job `BE/m10/lich/ViecTheoPhutM10.java`, `ViecHangGioM10.java`, `ViecNuaDemM10.java`, `ViecBanTinM10.java` (ShedLock, chạy bù) và test `BT/m10/ChayBuM10IT.java` (research F-17)
+- [ ] T007 Cài khung job `BE/m10/lich/ViecTheoPhutM10.java`, `ViecHangGioM10.java`, `ViecNuaDemM10.java` (ShedLock, chạy bù) và test `BT/m10/ChayBuM10IT.java` (research F-17)
 - [ ] T008 [P] Cài provider: `PhanLoaiTruongProvider` (số giấy tờ → `CA_NHAN`), `LuuTruProvider` (`THEO_HO_SO`), `GanPhamViProvider` (`M10.*` theo người cao tuổi, gồm `M10.MONG_MUON` bổ sung 2026-10-18; `so_giay_to` của mong muốn → `CA_NHAN`), `QuyenTepProvider` (`M10.BANG_CHUNG`, `M10.PHIEU_DANG_KY`, `M10.PHAN_HOI`)
 
 **Checkpoint**: Quan hệ và quyền sẵn sàng cho 001, 002, 006, 011.
@@ -170,22 +170,12 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 ---
 
-## Phase 9: User Story 7 – Điều dưỡng soạn bản tin tuần, duyệt và gửi (Priority: P3)
+## Phase 9: User Story 7 – Bản tin tuần *(Bỏ theo Q-396, 2026-10-29)*
 
-**Goal**: Nhắc tại mốc; số liệu tính sẵn khi Điều dưỡng soạn; không soạn sẵn nội dung; giải thích sự cố; duyệt (hoặc duyệt thay sau 48 giờ); gửi; đính chính; không gửi khi quá kỳ, qua đời (FR-051 → FR-057, BR-M10-06, 08, 09).
+- [ ] T031 *(Bỏ theo Q-396, 2026-10-29)*
+- [ ] T032 *(Bỏ theo Q-396, 2026-10-29)*
+- [ ] T033 *(Bỏ theo Q-396, 2026-10-29)*
 
-**Independent Test**: Dữ liệu một tuần cho A; tới mốc thứ 2 có lời nhắc; Điều dưỡng soạn, duyệt, gửi; đính chính.
-
-### Tests cho User Story 7
-
-- [ ] T031 [P] [US7] Test đơn vị `BT/m10/NguoiDuyetBanTinTest.java` và `BT/m10/BR_M10_08_BanTinIT.java` (bổ sung 2026-10-18: yêu cầu gửi bản tin khai `VE_NGUOI_CAO_TUOI`; số liệu sự cố tách phần chung kèm mức và phần sức khỏe; FR-052, FR-054), `BR_M10_09_GiaiThichSuCoIT.java`, `FR_056_DinhChinhIT.java`, `FR_073_BaoBanTinChuaLapIT.java` (tới mốc kỳ kế tiếp, bản tin kỳ trước chưa lập hoặc chuyển Không gửi vì quá kỳ → báo Quản lý viện mức Nhẹ kèm tình trạng và các lần nhắc đã gửi; đồng hồ giả lập) (Q37 → Q42)
-
-### Implementation cho User Story 7
-
-- [ ] T032 [US7] Tạo bảng `ban_tin` (`trang_thai` `CHO_DUYET|DA_GUI|KHONG_GUI`; cột sinh `khoa_ky` `UNIQUE`; `ban_goc_id`), `ban_tin_phan`, `ban_tin_so_lieu`, `ban_tin_nhan_xet` trong `MIG/V012_08__ban_tin.sql`; cài `BE/m10/bantin/internal/BanTinService.java` (báo Quản lý viện theo FR-073 trong `ViecBanTinM10`; số liệu từ `KetQuaChamSocCongApi.tongHop`, `ChiSoApi`, `SuCoApi`, `ChiPhiCongNguoiThanApi`, `HoatDongBanTinPort`; gửi qua 009; `ThongBaoTraCuuApi.xemLuc`; `ViecBanTinM10` nhắc và báo duyệt thay) (research F-12)
-- [ ] T033 [US7] Tạo endpoint `/ban-tin`, `/{id}`, `/{id}/so-lieu`, `/{id}/{lenh}`, `/{id}/dinh-chinh`; màn web `frontend/src/tinh-nang/nguoi-than/ban-tin/` (không có nội dung soạn sẵn) với test Vitest; app nhân viên phần bản tin
-
-**Checkpoint**: Bản tin chạy độc lập.
 
 ---
 
@@ -217,7 +207,7 @@ description: "Danh sách task triển khai feature 012 – Người thân và c�
 
 - [ ] T062 [P] [US9] Test `BT/m10/FR_083_KenhNguoiCaoTuoiIT.java`, `FR_084_KenhKhongLoIT.java`: đủ năm phần; không có trường cấm; không mở được người khác; ArchUnit `m10.kenhnct` không gọi API sức khỏe, thuốc, chi phí, số dư (K1, K2; SC-011)
 - [ ] T063 [P] [US9] Test `BT/m10/FR_058a_PhanHoiNguoiCaoTuoiIT.java`, `BR_M10_12_MongMuonIT.java`: gửi qua kênh; ghi thay có và không có tài khoản; Mong muốn chỉ người cao tuổi; chặn Trả lời khi chưa gắn mục; `doi-loai` có lý do; ghi thay `dong-y-dong`; trả lời nhóm sức khỏe chỉ phần chung (K3, K4, K6 → K8)
-- [ ] T064 [P] [US9] Test `BT/m10/FR_086_NguoiThanKhongThayIT.java`: người thân không thấy phản hồi của người cao tuổi ở `/phan-hoi`, cổng, bản tin, thông báo (K5)
+- [ ] T064 [P] [US9] Test `BT/m10/FR_086_NguoiThanKhongThayIT.java`: người thân không thấy phản hồi của người cao tuổi ở `/phan-hoi`, cổng, thông báo (K5)
 
 ### Implementation cho User Story 9
 
@@ -281,6 +271,6 @@ US1 → US3 → US2 → US4 → US5 → US6 → US7 → US8; mỗi bước chạ
 
 ## Notes
 
-- 012 không tạo bản tin, không soạn sẵn nội dung, không tạo khoản chi phí, không tự từ chối yêu cầu (Q-306, Q-307)
+- 012 không tạo khoản chi phí, không tự từ chối yêu cầu (Q-306, Q-307)
 - Mọi mốc đọc `ThamSoApi` (CFG-M10-*)
 - Ghi đón chỉ trực tuyến
