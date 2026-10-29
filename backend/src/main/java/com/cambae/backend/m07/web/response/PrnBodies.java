@@ -23,7 +23,6 @@ public final class PrnBodies {
             String reason,
             String adverseReaction,
             String note,
-            Long familyMedicationBatchId,
 
             @Schema(description = "Họ tên người ghi") String administeredBy,
 
@@ -44,7 +43,6 @@ public final class PrnBodies {
                     a.getReason(),
                     a.getAdverseReaction(),
                     a.getNote(),
-                    a.getFamilyMedicationBatchId(),
                     names.apply(a.getAdministeredById()),
                     a.getReportedBy(),
                     a.isExceededLimit(),

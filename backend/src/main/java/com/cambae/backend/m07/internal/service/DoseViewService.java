@@ -18,7 +18,6 @@ import com.cambae.backend.m07.internal.persistence.MedicationHandoverDoseReposit
 import com.cambae.backend.m07.internal.persistence.MedicationHandoverRepository;
 import com.cambae.backend.m07.internal.service.response.DoseDetailView;
 import com.cambae.backend.m15.account.api.AccountApi;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -35,13 +34,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class DoseViewService {
 
-    /** Lô thuốc gia đình gửi dùng được cho liều (hiển thị, không chọn sẵn, Q-307). */
-    public record UsableBatch(long batchId, LocalDate expiryDate, BigDecimal remainingQuantity) {}
+    /** Lô thuốc gia đình gửi Được sử dụng của đơn, chỉ để hiển thị; xác nhận liều không chọn lô (Q-393). */
+    public record UsableBatch(long batchId, LocalDate expiryDate) {}
 
     /** Kết quả đã ghi của liều ({@code DoseResult} của api-006). */
     public record ResultView(
             Instant administeredAt,
-            Long familyMedicationBatchId,
             String basis,
             String reportedByType,
             Long reportedById,
@@ -139,7 +137,7 @@ public class DoseViewService {
     }
 
     /**
-     * Lô Được sử dụng, còn thuốc, chưa hết hạn, đang gắn với đơn (FR-044); dùng cho liều và thuốc cần mang (FR-048a).
+     * Lô Được sử dụng, chưa hết hạn, đang gắn với đơn (FR-044; không theo dõi số còn, Q-393); dùng cho liều và thuốc cần mang (FR-048a).
      */
     @Transactional(readOnly = true)
     public List<UsableBatch> usableBatches(Long residentId, long prescriptionId, MedicationSource source) {
@@ -152,15 +150,13 @@ public class DoseViewService {
         LocalDate today = businessTime.today();
         return batches.findByResidentIdAndStatus(residentId, FamilyMedicationBatchStatus.IN_USE).stream()
                 .filter(b -> bound.contains(b.getId()))
-                .filter(b -> b.getRemainingQuantity() != null
-                        && b.getRemainingQuantity().signum() > 0)
                 .filter(b -> b.getExpiryDate() == null || !b.getExpiryDate().isBefore(today))
                 .map(DoseViewService::usable)
                 .toList();
     }
 
     private static UsableBatch usable(FamilyMedicationBatch b) {
-        return new UsableBatch(b.getId(), b.getExpiryDate(), b.getRemainingQuantity());
+        return new UsableBatch(b.getId(), b.getExpiryDate());
     }
 
     /** Thời điểm dùng sau thời điểm qua đời ghi trong quá khứ: liều chỉ mang dấu cần rà soát (Edge Case, Q-329). */
@@ -180,7 +176,6 @@ public class DoseViewService {
                 : r.getAuthorityBasis() == DoseAuthorityBasis.LEAVE_MEDICATION ? "LEAVE_MEDICATION" : "REGULAR";
         return new ResultView(
                 r.getAdministeredAt(),
-                r.getFamilyMedicationLotId(),
                 basis,
                 r.getReportedByType(),
                 r.getReportedById(),

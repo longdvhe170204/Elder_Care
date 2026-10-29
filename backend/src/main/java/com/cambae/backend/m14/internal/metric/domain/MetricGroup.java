@@ -47,8 +47,6 @@ public enum MetricGroup {
     RESIDENCE_REGISTRATION,
     /** Tài sản quá hạn bảo trì, kiểm định, đăng kiểm, bảo hiểm (019). */
     ASSETS,
-    /** Nguyên liệu dưới tồn tối thiểu, lô sắp hết hạn (019). */
-    INVENTORY,
     /** Người đang mang dấu nguy kịch (007). */
     CRITICAL_FLAGS,
     /** Nhân sự và ca trực (mục I). */

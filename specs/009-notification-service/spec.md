@@ -440,8 +440,8 @@ Mỗi nhân viên và người thân có hộp thông báo của mình: thấy s
 | 005 | Phiên bản kế hoạch Chờ duyệt quá hạn (FR-005) | Người duyệt; Quản lý viện | Trung bình |
 | 005 | Báo xem xét kế hoạch chăm sóc (FR-011; sửa tên 2026-10-11, Q-306) | Điều dưỡng phụ trách | Nhẹ |
 | 006 | Đơn thuốc sắp hết hạn (FR-017) | Người kê hoặc Bác sĩ, Điều dưỡng phụ trách | Nhẹ |
-| 006 | Thuốc gia đình gửi sắp hết (FR-046) | Người liên hệ chính, người đại diện | Trung bình (Q-116); nội dung chia phần: "chung" — có thuốc gia đình gửi sắp hết, số ngày dùng còn lại, đề nghị liên hệ viện; "sức khỏe" — tên thuốc, hàm lượng (FR-013) |
-| 006 | *(bổ sung 2026-09-30)* Nhắc lần hai thuốc gia đình gửi sắp hết, mốc CFG-M07-07 (FR-046) | Người liên hệ chính, người đại diện, Điều dưỡng phụ trách | Trung bình (Q-247); nội dung chia phần như dòng trên |
+| 006 | Thuốc gia đình gửi sắp hết (FR-046; *sửa 2026-10-29, Q-393:* do Điều dưỡng ghi lệnh "Báo gia đình sắp hết") | Người liên hệ chính, người đại diện | Trung bình (Q-116); nội dung chia phần: "chung" — có thuốc gia đình gửi sắp hết, ghi chú của Điều dưỡng, đề nghị liên hệ viện; "sức khỏe" — tên thuốc, hàm lượng (FR-013) |
+| 006 | ~~Nhắc lần hai thuốc gia đình gửi sắp hết, mốc CFG-M07-07~~ *(bỏ theo Q-393)* | — | — |
 | 007 | *(bổ sung 2026-09-30)* Nhắc lại cảnh báo mang dấu "đã leo thang tối đa" (FR-034) | Quản lý viện, Trưởng tầng của tầng | Trung bình (Q-248) |
 | 012 | *(bổ sung 2026-09-30)* Yêu cầu thay đổi quyền, danh sách đón, dấu "được tự về", người đại diện đã có hiệu lực (FR-016) | Các người đại diện Hiệu lực khác, trừ người lập, người xác nhận | Nhẹ (Q-249) |
 | 006 | Nhắc liều Trễ; người cao tuổi chưa có điều dưỡng phụ trách (FR-026a); liều thuốc kiểm soát đặc biệt "chờ xem lại" (FR-029); phiếu đối chiếu thuốc cần hoàn thành (CFG-M07-05) | Điều dưỡng; Trưởng tầng, Người phụ trách ca | Trung bình |

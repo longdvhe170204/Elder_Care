@@ -58,6 +58,7 @@ public class DoseAdministrationService {
     private final ApplicationEventPublisher eventPublisher;
     private final BusinessTime businessTime;
     private final ParameterApi parameters;
+    private final FamilyMedicationService familyMedications;
 
     public DoseAdministrationService(
             MedicationDoseRepository doseRepository,
@@ -70,7 +71,8 @@ public class DoseAdministrationService {
             ResidentMedicationLock residentMedicationLock,
             ApplicationEventPublisher eventPublisher,
             BusinessTime businessTime,
-            ParameterApi parameters) {
+            ParameterApi parameters,
+            FamilyMedicationService familyMedications) {
         this.doseRepository = doseRepository;
         this.doseResultRepository = doseResultRepository;
         this.doseReviewRepository = doseReviewRepository;
@@ -82,6 +84,7 @@ public class DoseAdministrationService {
         this.eventPublisher = eventPublisher;
         this.businessTime = businessTime;
         this.parameters = parameters;
+        this.familyMedications = familyMedications;
     }
 
     /**
@@ -102,6 +105,16 @@ public class DoseAdministrationService {
                     HttpStatus.CONFLICT,
                     "REQUIRES_ONLINE",
                     "Thuốc kiểm soát đặc biệt bắt buộc trực tuyến, không được đồng bộ ngoại tuyến (BR-M07-20)");
+        }
+
+        // FR-044 (Q-393): nguồn gia đình gửi cần còn lô Được sử dụng chưa hết hạn dùng; liều thuộc lần giao không áp
+        if (dose.getMedicationSource() == MedicationSource.FAMILY_SENT
+                && request.leaveHandoverId() == null
+                && !familyMedications.hasUsableBatch(dose.getResidentId(), dose.getPrescriptionId())) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "NO_MEDICATION_AVAILABLE",
+                    "Đơn không còn lô thuốc gia đình gửi Được sử dụng chưa hết hạn dùng (FR-044)");
         }
 
         Instant administeredAt = request.administeredAt() != null ? request.administeredAt() : now;
@@ -150,7 +163,6 @@ public class DoseAdministrationService {
                 lateFlag,
                 request.offlineFlag(),
                 false,
-                request.familyMedicationLotId(),
                 request.leaveHandoverId(),
                 businessTime.now());
         doseResultRepository.save(result);
@@ -233,7 +245,6 @@ public class DoseAdministrationService {
                 request.offlineFlag(),
                 false,
                 null,
-                null,
                 businessTime.now());
         doseResultRepository.save(result);
 
@@ -282,7 +293,6 @@ public class DoseAdministrationService {
                 false,
                 request.offlineFlag(),
                 false,
-                null,
                 null,
                 businessTime.now());
         doseResultRepository.save(result);

@@ -116,7 +116,7 @@ List<KetQuaTiepNhanView> theoYeuCau(long yeuCauMuaSamId);   // mỗi dòng: các
 | `DonSapHetHan(donId, nguoiNhan)` | 009 (Nhẹ) | FR-017 |
 | `CanLapPhieuDoiChieu(nctId, lyDo, han)`; `PhieuDoiChieuDaGui`, `…DaTraLai` | 009 (Trung bình; Nhẹ) | FR-034, FR-035 |
 | `ThuocDangDungTiepNhanDaDoi(nctId, phieuId)` | 009 (Nhẹ; người thực hiện, người xác nhận) | FR-034a, BR-M07-22 |
-| `ThuocGuiSapHet(khoaNhom, moc, soThuTu, soNgayConLai)` | 009 (Trung bình; người liên hệ chính, người đại diện; thêm Điều dưỡng phụ trách với CFG-M07-07; nội dung chia phần `CHUNG`, `SUC_KHOE`) | FR-046 |
+| `ThuocGuiSapHet(loId, lanBao, ghiChu)` *(Sửa 2026-10-29, Q-393)* | 009 (Trung bình; người liên hệ chính, người đại diện; nội dung chia phần `CHUNG` kèm ghi chú, `SUC_KHOE`); phát khi Điều dưỡng ghi Báo gia đình sắp hết | FR-046 |
 | `ThuocGuiHetHanDung(loId)`; `ThuocGuiDaDungHet(loId)`; `ThuocGuiChuyenChiGiuHo(loId, lyDo)`; `HetThuocGuiKhiDenLieu(lieuKey)` | 009 | FR-041, US7 #8 |
 | `CanNhanLaiThuocMangTheo(lanGiaoId)` | 009 (Điều dưỡng phụ trách) | FR-048b, Q-58 |
 | `TiepNhanThuocKhongDat(lanTiepNhanId, yeuCauMuaSamId, nguoiLapNhanVienId, boPhanId, saiLech)` *(bổ sung 2026-10-11; sửa lượt 3)* | 009 (Nhẹ; `NhanVien(nguoiLapNhanVienId)` và `PhuTrachBoPhan(boPhanId)`: Phụ trách bộ phận hiện tại của bộ phận của yêu cầu; 009 gộp người trùng, 006 không tự gửi) | FR-055, Q-337 |

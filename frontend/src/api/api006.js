@@ -114,16 +114,16 @@ export const postReconciliationCorrectionsByIdConfirm = (params) => request('POS
 /** Trả lại đề nghị đính chính phiếu (FR-039) */
 export const postReconciliationCorrectionsByIdReturn = (params) => request('POST', '/reconciliation-corrections/{id}/return', params)
 
-/** Danh sách lô thuốc gia đình gửi, kèm số ngày dùng còn lại theo nhóm dùng chung (FR-040, FR-046, FR-049) */
+/** Danh sách lô thuốc gia đình gửi (FR-040, FR-049) */
 export const getResidentsByResidentIdFamilyMedications = (params) => request('GET', '/residents/{residentId}/family-medications', params)
 
 /** Tiếp nhận thuốc gia đình gửi (một lô) (FR-040, FR-041, FR-045) */
 export const postResidentsByResidentIdFamilyMedications = (params) => request('POST', '/residents/{residentId}/family-medications', params)
 
-/** Xem lô kèm đơn gắn và biến động số lượng (FR-041, FR-045) */
+/** Xem lô kèm đơn gắn (FR-041) */
 export const getFamilyMedicationsById = (params) => request('GET', '/family-medications/{id}', params)
 
-/** Xác nhận sử dụng, gắn một hoặc nhiều đơn nguồn gia đình gửi (FR-040, FR-041, FR-043, FR-046, BR-M07-10, BR-M07-18) */
+/** Xác nhận sử dụng, gắn một hoặc nhiều đơn nguồn gia đình gửi (FR-040, FR-041, FR-043, BR-M07-10, BR-M07-18) */
 export const postFamilyMedicationsByIdConfirmUse = (params) => request('POST', '/family-medications/{id}/confirm-use', params)
 
 /** Chỉ giữ hộ (bắt buộc lý do) (FR-041, BR-M07-10) */
@@ -132,13 +132,16 @@ export const postFamilyMedicationsByIdHoldOnly = (params) => request('POST', '/f
 /** Ngừng sử dụng (về Chỉ giữ hộ, gỡ liên kết đơn) (FR-041) */
 export const postFamilyMedicationsByIdStopUse = (params) => request('POST', '/family-medications/{id}/stop-use', params)
 
-/** Kiểm kê điều chỉnh số lượng (rơi vỡ, đếm lại) (FR-045) */
-export const postFamilyMedicationsByIdAdjustInventory = (params) => request('POST', '/family-medications/{id}/adjust-inventory', params)
+/** Ghi dùng hết (Được sử dụng → Đã dùng hết; Q-393) (FR-041, FR-045, BR-M07-11) */
+export const postFamilyMedicationsByIdMarkDepleted = (params) => request('POST', '/family-medications/{id}/mark-depleted', params)
 
-/** Hoàn trả (từ Chờ đối chiếu, Chỉ giữ hộ; số lượng bằng số còn) (FR-041, FR-045, BR-M07-19) */
+/** Báo gia đình sắp hết (lô Được sử dụng; không đổi trạng thái; Q-393) (FR-046, BR-M07-11) */
+export const postFamilyMedicationsByIdNotifyRunningLow = (params) => request('POST', '/family-medications/{id}/notify-running-low', params)
+
+/** Hoàn trả cả lô (từ Chờ đối chiếu, Chỉ giữ hộ; số lượng đếm thực tế) (FR-041, FR-045, BR-M07-19) */
 export const postFamilyMedicationsByIdReturn = (params) => request('POST', '/family-medications/{id}/return', params)
 
-/** Hủy theo yêu cầu gia đình (người đại diện yêu cầu; có người chứng kiến) (FR-041, FR-045, BR-M07-19) */
+/** Hủy cả lô theo yêu cầu gia đình (người đại diện yêu cầu; có người chứng kiến; quantity đếm thực tế) (FR-041, FR-045, BR-M07-19) */
 export const postFamilyMedicationsByIdDispose = (params) => request('POST', '/family-medications/{id}/dispose', params)
 
 /** Thuốc cần mang cho khoảng vắng hoặc chuyến đi (đơn có liều Mang theo, đơn PRN, lô dùng được) (FR-048a, FR-048b) */

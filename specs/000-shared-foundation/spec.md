@@ -375,7 +375,7 @@ Nhiều nghiệp vụ cần người có thẩm quyền duyệt trước khi tha
 | Thay đổi quyền người thân, danh sách được phép đón, ngoại lệ đón, dấu "được tự về" | 012 FR-020, FR-024 (Q-118, Q-125) | Người đại diện, Hành chính | Theo 012 | Riêng: Chờ xác nhận → Hiệu lực / Từ chối / Hủy |
 | Đề nghị mua hộ | 010 (BR-M11-07, UC-79) | Theo 010 | Người đại diện hoặc Quản lý viện, theo 010 | Riêng (FR-031 ghi rõ không dùng vòng đời chung) |
 | Xác nhận người nhận khác; đồng ý cho tự giữ | 013 FR-017b | Theo 013 | Theo 013 | Riêng |
-| Phiếu kiểm kê kho (chốt quỹ ngày của 017 đã bỏ theo Q-385) | 019 FR-010 (Q-233) | Nhân viên bếp | Quản lý viện | Riêng (bảng trạng thái của spec sở hữu) |
+| ~~Phiếu kiểm kê kho~~ *(bỏ theo Q-392; chốt quỹ ngày của 017 đã bỏ theo Q-385)* | — | — | — | — |
 | Khóa tài khoản người cao tuổi theo đề nghị của người thân *(bổ sung 2026-10-18)* | 002 FR-072 (Q-371) | Hành chính | Quản lý viện (không tự duyệt) | Chung |
 
 **Truy vết use case** *(constitution I; bổ sung 2026-10-01, CHK045)*: mục B (FR-011 → FR-022) — UC-69; mục D (FR-031 → FR-041) — UC-14. Mục A (FR-001 → FR-010), mục C (FR-023 → FR-030) và mục E (FR-042 → FR-051a) không có UC riêng ở Phụ lục 26: chúng là ràng buộc của mục 1.3, 1.5, 19.4, BR-M15-03, DBR-23 → DBR-25 và NFR-07, áp lên use case của mọi module.

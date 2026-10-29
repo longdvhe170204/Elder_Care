@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-10 | **Plan**: [../plan.md](../plan.md)
 
-Feature 019 thêm gói vào ba module: `m08.kho`, `m11.muasam`, `m03.taisan`, `m03.lichxe` (research W-01, W-02). Hàm ghi có ghi chú `MANDATORY` chạy trong transaction của lệnh gọi.
+Feature 019 thêm gói vào hai module: `m11.muasam`, `m03.taisan`, `m03.lichxe` (research W-01, W-02). Gói `m08.kho` bỏ theo Q-392. Hàm ghi có ghi chú `MANDATORY` chạy trong transaction của lệnh gọi.
 
 ---
 
@@ -12,21 +12,19 @@ Feature 019 thêm gói vào ba module: `m08.kho`, `m11.muasam`, `m03.taisan`, `m
 | --- | --- |
 | `GiuongTheoTaiSanPort` (M03, 003) | Dùng: `kiemTraLenhTaiSan`, `apLenhTaiSan`, `daGanDauChoChuyenNguoi`, `daGoDauChoChuyenNguoi`, `giuongTrongPhuHopChoNguoiDangNam` |
 | `TaiSanGiuongPort` (M03, 003) | Cài: `ghiTangChoGiuong` (trong lệnh Tạo giường), `mangDauChoChuyenNguoi`, `giuongMangDau` |
-| `TonKhoNguyenLieuPort` (M08, 011) | Cài: `tonHienHanh()` |
-| `LichBuaApi` (M08, 011) | Dùng: bữa ngày để chọn mục đích xuất |
 
 ---
 
 ## 2. Giao diện mới
 
-### 2.1. `m11.api.YeuCauMuaSamApi` (M08 kho gọi) và SPI `m03.api.YeuCauMuaSamPort` (M11 cài cho M03)
+### 2.1. SPI `m03.api.YeuCauMuaSamPort` (M11 cài cho M03; `m11.api.YeuCauMuaSamApi` cho kho bỏ theo Q-392)
 
 ```java
-// cùng chữ ký ở hai nơi; M11 cài cả hai bằng một dịch vụ
+// M11 cài
 List<DieuKien> kiemTraDuocDung(long yeuCauId, long boPhanId, LoaiMuaSam loai);
-    // FR-008c: yêu cầu Đã duyệt, cùng bộ phận, loại phù hợp (NGUYEN_LIEU | TAI_SAN | DICH_VU)
+    // FR-008c: yêu cầu Đã duyệt, cùng bộ phận, loại phù hợp (TAI_SAN | DICH_VU)
 void ganNguon(long yeuCauId, LoaiNguonMuaSam loaiNguon, long nguonId, long soTien);
-    // MANDATORY: PHIEU_NHAP | TAI_SAN | BAO_TRI; lỗi khi yêu cầu không còn Đã duyệt hoặc nguồn đã gắn (DBR-36)
+    // MANDATORY: TAI_SAN | BAO_TRI; lỗi khi yêu cầu không còn Đã duyệt hoặc nguồn đã gắn (DBR-36)
 ```
 
 M03 không gọi M11 trực tiếp vì M11 → M02 → M03; `YeuCauMuaSamPort` khai ở `m03.api`, M11 cài. Bean thiếu → lệnh ghi tăng tài sản mua mới, bảo trì thuê ngoài có chi phí bị chặn (mặc định an toàn).
@@ -52,8 +50,6 @@ Thay cho `LichXeChuyenPort` mà plan 014 khai ở `m04.api` (đã sửa hợp đ
 // m03.api.TaiSanThongKeApi
 Stream<TaiSanQuaHanView> quaHan();                                  // bảo trì, đăng kiểm, bảo hiểm (18.5)
 Stream<LichXeView> lichXe(LocalDate tu, LocalDate den);
-// m08.api.KhoThongKeApi
-Stream<NguyenLieuDuoiToiThieuView> duoiToiThieu();  Stream<LoSapHetHanView> loSapHetHan(int ngay);
 // m11.api.MuaSamThongKeApi
 Stream<YeuCauMuaSamView> theoBoPhan(LocalDate tu, LocalDate den);   // trạng thái, số được duyệt, thực tế (016 FR-055a)
 ```
@@ -68,8 +64,8 @@ Stream<YeuCauMuaSamView> theoBoPhan(LocalDate tu, LocalDate den);   // trạng t
 | `DinhChinhDuocProvider` (000) | `M03.TAI_SAN_LICH_SU` (vị trí, bảo trì, hư hỏng), `M03.LICH_XE` | 000 FR-026 |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | Nguyên giá, chi phí `TAI_CHINH` | 000 |
 | `YeuCauThuocCungUngPort` (`m07.api`, 006) *(bổ sung 2026-10-11, Q-337)* | Trả dòng của yêu cầu `THUOC` đã ghi đã mua (Chờ đối chiếu, Đã đối chiếu, Lệch), id nhân viên của người lập, `bo_phan_id` của yêu cầu (sửa 2026-10-11, lượt 3: 006 báo Phụ trách bộ phận hiện tại qua 009); khác thì rỗng | 006 FR-054, BR-M11-17 |
-| `GanPhamViProvider` (002) | `M08.KHO`: bộ phận Bếp; `M11.MUA_SAM`: bộ phận (với dòng loại `THUOC` do Điều dưỡng lập: thêm người cao tuổi của dòng, Q-337); `M03.TAI_SAN`: bộ phận quản lý và tầng của vị trí; `M03.LICH_XE`: toàn viện | 002 FR-034, FR-019f |
-| `QuyenTepProvider` (`common.tep`) | `M08.CHUNG_TU_NHAP`, `M11.CHUNG_TU_MUA_SAM`: người lập, Phụ trách bộ phận, Kế toán, Quản lý viện | NFR-08 |
+| `GanPhamViProvider` (002) | `M11.MUA_SAM`: bộ phận (với dòng loại `THUOC` do Điều dưỡng lập: thêm người cao tuổi của dòng, Q-337); `M03.TAI_SAN`: bộ phận quản lý và tầng của vị trí; `M03.LICH_XE`: toàn viện | 002 FR-034, FR-019f |
+| `QuyenTepProvider` (`common.tep`) | `M11.CHUNG_TU_MUA_SAM`: người lập, Phụ trách bộ phận, Kế toán, Quản lý viện | NFR-08 |
 
 ---
 
@@ -81,6 +77,6 @@ Stream<YeuCauMuaSamView> theoBoPhan(LocalDate tu, LocalDate den);   // trạng t
 | `HoSoNhanVienApi` (`m15.taikhoan.api`); `TaiKhoanApi.theoNhanVien` | 002/008 | Người lái; báo người lái có tài khoản (Q-298) |
 | `DiNguyenApi` | 001 | FR-001 |
 | `DonThuocApi.donNguonVienChuaKetThuc`, `TiepNhanThuocCungUngApi.theoYeuCau` (`m07.api`) *(bổ sung 2026-10-11)* | 006 | FR-008d: gắn dòng loại `THUOC` với đơn nguồn viện; hiển thị "Đã nhận" |
-| `NhatKyApi`, `ThamSoApi` (CFG-M03-02, 09, CFG-M08-08, 09, CFG-M11-07 → 09), kho tệp | 000 | Chung |
+| `NhatKyApi`, `ThamSoApi` (CFG-M03-02, 09, CFG-M11-07 → 09), kho tệp | 000 | Chung |
 
 Sự kiện 019 phát: thông báo (cài `CoYeuCauThongBao`) theo FR-021, gồm Khẩn cấp cho báo hỏng giường có người mức "mất an toàn"; `TaiSanDaDoiTrangThai`, `YeuCauMuaSamDaDoi` cho 016.

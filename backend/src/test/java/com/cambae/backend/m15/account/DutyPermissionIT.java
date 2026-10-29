@@ -47,8 +47,6 @@ class DutyPermissionIT extends MySqlIntegrationTestBase {
     private static final PermissionKey QUALITY_CHECK = new PermissionKey(Function.QUALITY_CHECK, Operation.CREATE);
     private static final PermissionKey BED_READY = new PermissionKey(Function.BED_READINESS, Operation.CREATE);
     private static final PermissionKey SCHEDULE_UPDATE = new PermissionKey(Function.SHIFT_SCHEDULE, Operation.UPDATE);
-    private static final PermissionKey APPROVE_INVENTORY =
-            new PermissionKey(Function.INGREDIENT_INVENTORY, Operation.APPROVE);
     private static final PermissionKey PURCHASE = new PermissionKey(Function.PURCHASE_REQUEST, Operation.CREATE);
     private static final PermissionKey MEAL_RECEIPT = new PermissionKey(Function.MEAL_RECEIPT, Operation.CONFIRM);
 
@@ -168,21 +166,8 @@ class DutyPermissionIT extends MySqlIntegrationTestBase {
     }
 
     @Test
-    void FR_019f_departmentLead_purchaseAndKitchenInventoryApproval_nonLeadDenied() {
-        long lead = fixtures.staffAccount("AC-07");
-        long colleague = fixtures.staffAccount("AC-07");
-        long kitchen = AccountFixtures.nextId();
-        duties.departmentLead(kitchen, fixtures.staffId(lead)).department(fixtures.staffId(colleague), kitchen);
-
-        PermissionResult approve =
-                permissions.hasPermission(fixtures.user(lead), APPROVE_INVENTORY, Target.UNSPECIFIED);
-        assertThat(approve.allowed()).isTrue();
-        assertThat(approve.basis()).contains(PermissionBasis.duty(Duty.DEPARTMENT_LEAD));
-        assertThat(permissions
-                        .hasPermission(fixtures.user(colleague), APPROVE_INVENTORY, Target.UNSPECIFIED)
-                        .failedLayer())
-                .contains(FailedLayer.ROLE);
-
+    void FR_019f_departmentLead_purchase_nonLeadDenied() {
+        // Q-392: bỏ duyệt kiểm kê kho của Phụ trách bộ phận Bếp; Nhân viên bếp đã có quyền mua sắm theo vai trò (³⁷)
         long caregiverLead = fixtures.staffAccount("AC-05");
         long laundry = AccountFixtures.nextId();
         duties.departmentLead(laundry, fixtures.staffId(caregiverLead));

@@ -66,7 +66,6 @@ public class PrnMedicationController {
         command.setReason(body.reason());
         command.setAdverseReaction(body.adverseReaction());
         command.setNote(body.note());
-        command.setFamilyMedicationBatchId(body.familyMedicationBatchId());
         // Ghi theo báo lại (FR-027): người báo lại ghi bằng họ tên
         if (body.basis() == ResultBasis.REPORTED_BY_OTHERS && body.reportedBy() != null) {
             command.setReportedBy(body.reportedBy().fullName());

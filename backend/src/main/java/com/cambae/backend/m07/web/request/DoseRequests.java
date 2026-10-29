@@ -30,7 +30,6 @@ public final class DoseRequests {
     /** api-006 {@code DoseResult}: Đã dùng, Từ chối, Không thực hiện. */
     public record DoseResultRequest(
             Instant administeredAt,
-            Long familyMedicationBatchId,
             ResultBasis basis,
             @Valid ExternalPersonRequest reportedBy,
             String adverseReaction,

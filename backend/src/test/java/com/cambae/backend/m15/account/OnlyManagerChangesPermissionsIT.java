@@ -95,7 +95,7 @@ class OnlyManagerChangesPermissionsIT extends MySqlIntegrationTestBase {
                         "AC-07",
                         "restrict",
                         commands.roleVersion("AC-07"),
-                        restrict("INGREDIENT_INVENTORY", "VIEW", "LOWER_SCOPE"))
+                        restrict("DISH_MENU", "VIEW", "LOWER_SCOPE"))
                 .andExpect(status().isOk());
 
         Map<String, Object> byAccount = jdbc.queryForMap(
@@ -114,9 +114,9 @@ class OnlyManagerChangesPermissionsIT extends MySqlIntegrationTestBase {
                 "SELECT entity_type, data_before, data_after FROM audit_log WHERE action = 'PERMISSION_RESTRICTED'"
                         + " AND entity_id = 'AC-07' ORDER BY id DESC LIMIT 1");
         assertThat(byRole.get("entity_type")).isEqualTo("M15.ROLE");
-        assertThat(String.valueOf(byRole.get("data_before"))).contains("INGREDIENT_INVENTORY/VIEW/FACILITY");
+        assertThat(String.valueOf(byRole.get("data_before"))).contains("DISH_MENU/VIEW/FACILITY");
         assertThat(String.valueOf(byRole.get("data_after")))
-                .contains("INGREDIENT_INVENTORY/VIEW/ASSIGNED")
-                .doesNotContain("INGREDIENT_INVENTORY/VIEW/FACILITY");
+                .contains("DISH_MENU/VIEW/ASSIGNED")
+                .doesNotContain("DISH_MENU/VIEW/FACILITY");
     }
 }

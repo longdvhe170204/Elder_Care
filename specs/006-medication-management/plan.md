@@ -1,5 +1,7 @@
 # Implementation Plan: Quản lý thuốc
 
+> *(Sửa 2026-10-29, Q-393)* Thuốc gia đình gửi không trừ số lượng theo liều, PRN, lần giao; không chọn lô khi xác nhận liều; không tính số ngày còn, không mốc nhắc CFG-M07-06, 07; thêm lệnh Ghi dùng hết, Báo gia đình sắp hết. Các dòng về biến động, `TinhSoNgayConLai`, chọn lô trong plan này không còn hiệu lực; việc sửa mã ở tasks T066 → T068.
+
 **Branch**: `006-medication-management` | **Date**: 2026-10-10, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/006-medication-management/spec.md`
@@ -156,7 +158,7 @@ backend/src/main/java/com/cambae/backend/m07/
 ├── lieu/          {internal, web}   # xác nhận, XacDinhNguoiPhuTrachLieu, DemTuChoiLienTiep, xem lại, NgoaiTuyenHandler
 ├── prn/           {internal, web}   # KiemTraGioiHanPrn, NgoaiTuyenHandler
 ├── doichieu/      {internal, web}   # phiếu, dòng, xác nhận hai người, đề nghị đính chính phiếu
-├── thuocgui/      {internal, web}   # lô, biến động, TinhSoNgayConLai, mốc nhắc, MucViecSauQuaDoiPort
+├── thuocgui/      {internal, web}   # lô, Ghi dùng hết, Báo gia đình sắp hết, MucViecSauQuaDoiPort (Q-393)
 ├── mangtheo/      {internal, web}   # khoảng vắng, lần giao, nhận lại, không mang thuốc
 ├── tiepnhanthuoc/ {internal, web}   # lần tiếp nhận thuốc cung ứng (mục I, D-21; bổ sung 2026-10-11)
 ├── trangthai/     {internal}        # bean ThamGiaChuyenTrangThai; cài LieuThuocChecklistPort, ThoiKhoaBieuNguonPort
@@ -209,7 +211,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
-1. **Số ngày dùng còn lại khi một lô gắn nhiều đơn.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
+1. **Số ngày dùng còn lại khi một lô gắn nhiều đơn.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; không còn áp dụng từ 2026-10-29: Q-393 bỏ tính số ngày còn.)*
    - FR-046 ghi "số ngày còn lại của mỗi đơn = tổng số lượng còn của các lô gắn đơn ÷ lượng dùng mỗi ngày của đơn"; FR-043 và BR-M07-18 ghi "tính trên tổng lượng dùng mỗi ngày của các đơn dùng chung lô".
    - Với một lô gắn cả đơn định kỳ và đơn PRN, công thức "của mỗi đơn" đếm cùng số thuốc hai lần và có thể gửi hai thông báo cho một thuốc.
    - Plan tính trên nhóm dùng chung (lô và đơn liên thông qua liên kết), một thông báo mỗi nhóm (research D-14). Khi không có lô dùng chung, kết quả trùng FR-046. Đề nghị sửa câu FR-046 theo BR-M07-18.

@@ -1,5 +1,7 @@
 # Quickstart: Kiểm chứng feature 019
 
+> **Sửa 2026-10-29 (Q-392):** hệ thống không quản lý kho nguyên liệu. Các mục về kho (nguyên liệu, lô, phiếu nhập, xuất, đảo, kiểm kê, cảnh báo hạn dùng, tồn tối thiểu, `m08.kho`) trong tài liệu này không còn hiệu lực; xem spec 019 mục Cập nhật 2026-10-29.
+
 **Ngày**: 2026-10-10 | **Plan**: [plan.md](plan.md)
 
 Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế chưa có mã nên các lệnh chưa chạy được. Hợp đồng xem [contracts/api-019.yaml](contracts/api-019.yaml) và [contracts/module-interfaces.md](contracts/module-interfaces.md); bảng xem [data-model.md](data-model.md).
@@ -44,7 +46,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M03 không ph
 | Q14 | 05:00: L1 còn 2 ngày tới hạn; Gạo dưới tồn tối thiểu | PB, B2 nhận Nhẹ; nhắc PB lập yêu cầu mua sắm; không có yêu cầu tự tạo | US3, FR-009, SC-003 |
 | Q15 | B2 lập phiếu kiểm kê có lệch không lý do; có lý do; B2 tự duyệt | 409; Chờ duyệt; 403 `TU_DUYET`; PB duyệt → điều chỉnh tồn | US3, FR-010 |
 | Q16 | PB lập phiếu kiểm kê | Người duyệt là QL | FR-010 |
-| Q17 | 011 mở màn gửi thực đơn | Thấy tồn kho qua `TonKhoNguyenLieuPort` | 011 FR-025a |
+| ~~Q17~~ | *(Bỏ theo Q-392)* | — | — |
 | Q18 | HC ghi tăng máy lọc nước gắn yêu cầu tài sản thiếu nguyên giá | 409 `THIEU_NGUYEN_GIA`; có nguyên giá → Sẵn sàng, kho tài sản | US4, FR-011, Q-294 |
 | Q19 | 003 tạo giường G305 | Tài sản giường tạo cùng lệnh, Sẵn sàng, bộ phận Chăm sóc | US5, Q-238 |
 | Q20 | PC đưa vào bảo trì G201 khi giường Trống; ghi kết quả Đạt | Giường Đang bảo trì → Trống (qua 003) | US5, FR-015, SC-004 |

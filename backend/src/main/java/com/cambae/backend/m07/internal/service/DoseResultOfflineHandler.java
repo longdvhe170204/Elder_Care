@@ -150,7 +150,6 @@ public class DoseResultOfflineHandler implements OfflineHandler<DoseResultOfflin
                                 content.adverseReaction(),
                                 content.note(),
                                 true,
-                                content.familyMedicationLotId(),
                                 content.leaveHandoverId()),
                         content.recorderId(),
                         null,

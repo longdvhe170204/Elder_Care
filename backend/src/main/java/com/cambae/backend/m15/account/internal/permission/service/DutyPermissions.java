@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
  * <ul>
  *   <li>FR-019a: Người phụ trách ca, "Xử lý việc quá hạn" trên tầng/khu của ca, trong khoảng FR-032;
  *   <li>FR-019e: Người phụ trách ca, "Kiểm tra chất lượng" khi ca không có Trưởng tầng được giao (Q-254, Q-262);
- *   <li>FR-019f: Phụ trách bộ phận, tài sản, yêu cầu mua sắm, duyệt kiểm kê kho nguyên liệu; đối tượng phải thuộc bộ
+ *   <li>FR-019f: Phụ trách bộ phận, tài sản, yêu cầu mua sắm (kiểm kê kho bỏ theo Q-392); đối tượng phải thuộc bộ
  *       phận của người đó, module sở hữu kiểm vì {@code Target} không mang bộ phận (13.1a, ³⁷);
  *   <li>FR-019g: Người phụ trách ca (mọi vai trò), "Xác nhận giường sẵn sàng" cho giường thuộc tầng/khu của ca (Q-313,
  *       ⁴⁰);
@@ -69,8 +69,7 @@ class DutyPermissions {
                     Limit.DEPARTMENT,
                     Stream.of(
                                     keys(Function.ASSET_VEHICLE, Operation.VIEW, Operation.CREATE, Operation.UPDATE),
-                                    keys(Function.PURCHASE_REQUEST, Operation.VIEW, Operation.CREATE, Operation.UPDATE),
-                                    keys(Function.INGREDIENT_INVENTORY, Operation.VIEW, Operation.APPROVE))
+                                    keys(Function.PURCHASE_REQUEST, Operation.VIEW, Operation.CREATE, Operation.UPDATE))
                             .flatMap(Set::stream)
                             .collect(Collectors.toUnmodifiableSet()),
                     Set.of()),

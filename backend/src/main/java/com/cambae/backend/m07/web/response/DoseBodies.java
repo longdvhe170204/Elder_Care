@@ -6,7 +6,6 @@ import com.cambae.backend.m07.internal.service.DoseViewService.DoseView;
 import com.cambae.backend.m07.internal.service.DoseViewService.ResultView;
 import com.cambae.backend.m07.internal.service.DoseViewService.UsableBatch;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -26,7 +25,6 @@ public final class DoseBodies {
 
     public record ResultBody(
             Instant administeredAt,
-            Long familyMedicationBatchId,
 
             @Schema(allowableValues = {"REGULAR", "LEAVE_MEDICATION", "REPORTED_BY_OTHERS"})
             String basis,
@@ -46,7 +44,6 @@ public final class DoseBodies {
                     : new PersonBody(r.reportedByType(), r.reportedById(), r.reportedByName(), r.relationship());
             return new ResultBody(
                     r.administeredAt(),
-                    r.familyMedicationBatchId(),
                     r.basis(),
                     reporter,
                     r.adverseReaction(),
@@ -56,7 +53,7 @@ public final class DoseBodies {
         }
     }
 
-    public record UsableBatchBody(Long batchId, LocalDate expiryDate, BigDecimal remainingQuantity) {}
+    public record UsableBatchBody(Long batchId, LocalDate expiryDate) {}
 
     /** api-006 {@code Dose}. */
     public record DoseBody(
@@ -166,7 +163,7 @@ public final class DoseBodies {
     }
 
     private static UsableBatchBody batch(UsableBatch b) {
-        return new UsableBatchBody(b.batchId(), b.expiryDate(), b.remainingQuantity());
+        return new UsableBatchBody(b.batchId(), b.expiryDate());
     }
 
     /** Bản ghi chờ xem lại (FR-029). */
