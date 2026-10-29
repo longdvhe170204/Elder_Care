@@ -1,5 +1,7 @@
 # Research: Chi phí phát sinh (010)
 
+> **Sửa 2026-10-29 (Q-395):** bỏ bảng hệ số phí khi vắng; nội trú vắng tính như ngày lưu trú, từ ngày Giải phóng giường không tính phí lưu trú; bỏ dấu "chờ quyết định", "không có dòng chính sách". Spec FR-005a, FR-007, FR-009 là căn cứ; chỗ nào dưới đây còn nhắc hệ số vắng theo 004 thì theo spec.
+
 **Ngày**: 2026-10-10 | **Plan**: [plan.md](plan.md) | **Spec**: [spec.md](spec.md)
 
 Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyết định nền R-01 → R-14 của 000 và các mẫu đã chốt ở 001 → 009 (H-02 bean trạng thái, C-02 / D-02 chiều phụ thuộc, D-17 sự kiện tính phí của 006, B-02 khuôn thông báo) được dùng lại, không quyết lại. Các quyết định dưới đây là kỹ thuật; chúng không đổi nghiệp vụ (constitution IX). Chỗ spec chưa rõ hoặc mâu thuẫn được ghi ở plan, mục "Điểm cần báo lại".

@@ -99,7 +99,7 @@ Mức chăm sóc dùng mã `CO_BAN`, `THUONG_XUYEN`, `DAC_BIET` của 001 (`MaMu
 | `ly_do_giu_cho` | `ENUM('NGUOI_VANG','HO_SO_CHO') NULL` | | FR-012 |
 | `giu_cho_nct_id` | `BIGINT NULL` | Người được giữ cho; với hồ sơ chờ là người Đang tiếp nhận của hồ sơ | FR-012, DBR-10 |
 | `giu_cho_ho_so_cho_id` | `BIGINT NULL` | | FR-012 |
-| `han_giu_cho` | `DATETIME(6) NULL` | `NULL` với người vắng khi mọi dòng chính sách đều giữ giường | FR-012 |
+| `han_giu_cho` | `DATETIME(6) NULL` | `NULL` với người vắng (giữ không hạn, Q-395) | FR-012 |
 | `da_bao_het_han_luc` | `DATETIME(6) NULL` | Chống báo lặp giữ người vắng hết hạn (G-09) | FR-015 |
 | `cho_san_sang_tu`, `han_xac_nhan_san_sang` | `DATETIME(6) NULL` | `han = tu + CFG-M03-04` đọc lúc vào trạng thái | FR-011a, FR-044 |
 | `phan_bo_vua_dong_id` | `BIGINT NULL` | Khóa ngoại `phan_bo_giuong`; phân bổ mà lần đóng đưa giường vào `CHO_SAN_SANG`. `NULL` khi vào từ Sử dụng lại | FR-045, DBR-26 |
@@ -220,7 +220,7 @@ Cột dấu trên phân bổ `DANG_HIEU_LUC`, `TUONG_LAI` đổi được (nhóm
 | — | Phân bổ giường (người chưa có giường, FR-025a); Chuyển giường; Hoàn tất tiếp nhận có đổi giường | `DANG_HIEU_LUC` | `POST /phan-bo-giuong`, `…/chuyen-giuong*`, bean | FR-018, FR-019; FR-030 khi khác đơn giá | Giường `DANG_SU_DUNG` (hoặc `DANG_GIU_CHO` với người vắng, FR-032); `DaChuyenGiuong` |
 | `TUONG_LAI` | Hoàn tất tiếp nhận; chuyển theo lịch tới ngày và giường `TRONG`; giường về `TRONG` khi `cho_giuong_san_sang` | `DANG_HIEU_LUC` | Bean (G-06); `thucHienChuyenTheoLich`; `XAC_NHAN_SAN_SANG`, gỡ dấu (019) | FR-018 tại thời điểm thực tế; giường `TRONG` hoặc giữ cho chính người | `bat_dau` = thời điểm thực tế; với chuyển: đóng phân bổ cũ |
 | `TUONG_LAI` | Hủy phân bổ tương lai; Hủy tiếp nhận; Kết thúc lưu trú, qua đời; đổi giường khi tiếp nhận; giường hỏng (FR-013a); chuyển theo lịch áp dụng không thành | `DA_HUY` | `POST …/huy`; bean; `GiuongTheoTaiSanPort`; `huyPhanBoTheoLich` | Có lý do | Giường hết bị khóa; bản ghi giữ lại |
-| `DANG_HIEU_LUC` | Chuyển giường; Kết thúc lưu trú; Ghi nhận qua đời; Giải phóng khi vắng; Tạm vắng không giữ giường | `DA_DONG` | Lệnh tương ứng | — | Giường `CHO_SAN_SANG`; `phan_bo_vua_dong_id` |
+| `DANG_HIEU_LUC` | Chuyển giường; Kết thúc lưu trú; Ghi nhận qua đời; Giải phóng khi vắng | `DA_DONG` | Lệnh tương ứng | — | Giường `CHO_SAN_SANG`; `phan_bo_vua_dong_id` |
 
 `DANG_HIEU_LUC` không đổi khi người cao tuổi vắng có giữ giường (FR-024). Người Đang tiếp nhận không bao giờ có phân bổ `DANG_HIEU_LUC` (FR-023): bean `HOAN_TAT_TIEP_NHAN` là đường duy nhất chuyển phân bổ ban đầu sang `DANG_HIEU_LUC`.
 

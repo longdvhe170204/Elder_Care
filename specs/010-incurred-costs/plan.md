@@ -1,5 +1,7 @@
 # Implementation Plan: Chi phí phát sinh
 
+> **Sửa 2026-10-29 (Q-395):** bỏ bảng hệ số phí khi vắng; nội trú vắng tính như ngày lưu trú, từ ngày Giải phóng giường không tính phí lưu trú; bỏ dấu "chờ quyết định", "không có dòng chính sách". Spec FR-005a, FR-007, FR-009 là căn cứ; chỗ nào dưới đây còn nhắc hệ số vắng theo 004 thì theo spec.
+
 **Branch**: `010-incurred-costs` | **Date**: 2026-10-10, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/010-incurred-costs/spec.md`

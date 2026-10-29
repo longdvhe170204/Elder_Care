@@ -16,122 +16,10 @@ servers:
 security:
   - phien: []
 tags:
-  - { name: xoay-ca, description: 'UC-50 phần lập từ mẫu; mục A, B' }
-  - { name: phu-ca, description: 'Mục A, C, F' }
   - { name: doi-ca, description: 'UC-54; mục D' }
   - { name: nghi, description: 'Mục E' }
-  - { name: loi-moi, description: 'Mục F' }
 
 paths:
-  /xoay-ca/mau:
-    get:
-      tags: [xoay-ca]
-      summary: Mẫu xoay ca
-      x-fr: [FR-001]
-      responses: { '200': { description: OK } }
-    post:
-      tags: [xoay-ca]
-      summary: Tạo, sửa, ngừng mẫu xoay ca (Quản lý viện); không chạm lịch đã lập
-      x-fr: [FR-001]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/MauXoayCa' } } } }
-      responses: { '200': { description: OK }, '422': { $ref: '#/components/responses/Loi' } }
-  /xoay-ca/nhom:
-    get:
-      tags: [xoay-ca]
-      summary: Nhóm xoay ca theo phạm vi
-      x-fr: [FR-002]
-      parameters: [ { name: tangKhuVucId, in: query, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: OK } }
-    post:
-      tags: [xoay-ca]
-      summary: Tạo nhóm xoay ca (Trưởng tầng tầng được giao; Quản lý viện; toàn viện chỉ Quản lý viện)
-      x-fr: [FR-002]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NhomXoayCa' } } } }
-      responses: { '201': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
-  /xoay-ca/nhom/{id}:
-    put:
-      tags: [xoay-ca]
-      summary: Sửa tên, thứ tự; ngừng nhóm (ngày ngừng, lý do); mẫu và ngày gốc không sửa được khi đã từng có thành viên
-      x-fr: [FR-002, FR-003]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NhomXoayCa' } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /xoay-ca/nhom/{id}/thanh-vien:
-    post:
-      tags: [xoay-ca]
-      summary: Thêm thành viên hoặc kết thúc tham gia (vị trí bắt đầu, ngày bắt đầu/kết thúc)
-      x-fr: [FR-003]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nhanVienId], properties: { nhanVienId: { type: integer, format: int64 }, viTriBatDau: { type: integer, minimum: 0 }, tuNgay: { type: string, format: date }, denNgay: { type: string, format: date } } } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /xoay-ca/lap-lich:
-    post:
-      tags: [xoay-ca]
-      summary: Lập lịch Nháp tháng M từ mẫu xoay ca cho một phạm vi; trả báo cáo lập lịch
-      x-fr: [FR-008, FR-009, FR-010, FR-011, FR-012, FR-014]
-      x-br: [BR-M09-09]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/PhamViThang' } } } }
-      responses: { '201': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/BaoCaoLapLich' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /xoay-ca/lap-lai/xem-truoc:
-    post:
-      tags: [xoay-ca]
-      summary: Xem trước các ca, phân công Nháp sẽ bị thay khi Lập lại (không ghi)
-      x-fr: [FR-013]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/PhamViThang' } } } }
-      responses: { '200': { description: OK } }
-  /xoay-ca/lap-lai:
-    post:
-      tags: [xoay-ca]
-      summary: Lập lại lịch Nháp (xác nhận, lý do); lịch Đã công bố bị từ chối
-      x-fr: [FR-013]
-      x-br: [BR-M09-09]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { allOf: [ { $ref: '#/components/schemas/PhamViThang' }, { type: object, required: [xacNhan, lyDo], properties: { xacNhan: { type: boolean, const: true }, lyDo: { $ref: '#/components/schemas/LyDo' } } } ] } } } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/BaoCaoLapLich' } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /xoay-ca/lan-lap-lich:
-    get:
-      tags: [xoay-ca]
-      summary: Các lần lập lịch và báo cáo
-      x-fr: [FR-012]
-      parameters: [ { name: thang, in: query, schema: { type: string } } ]
-      responses: { '200': { description: OK } }
-
-  /ca/{id}/phu:
-    get:
-      tags: [phu-ca]
-      summary: Tình trạng phủ hiện hành và lịch sử lần tính của ca
-      x-fr: [FR-006, FR-007]
-      x-br: [BR-M09-11]
-      parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK } }
-  /lich-ca/{id}/phu:
-    get:
-      tags: [phu-ca]
-      summary: Ca thiếu phủ, mục "thiếu ca", yêu cầu nghỉ theo ngày còn chờ của lịch (trước khi công bố)
-      x-fr: [FR-006a, FR-016, FR-017]
-      parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK } }
-  /canh-bao-thieu-phu:
-    get:
-      tags: [phu-ca]
-      summary: Cảnh báo thiếu phủ đang mở của người nhận (Trưởng tầng được giao; Quản lý viện)
-      x-fr: [FR-032, FR-035, FR-036]
-      responses: { '200': { description: OK } }
-  /ca/{id}/tra-cuu-nguoi-thay:
-    get:
-      tags: [phu-ca]
-      summary: Tra cứu nhân viên theo vai trò, lọc "đang không có ca"; sắp theo họ tên; kèm giờ đã làm, đã xếp trong tháng (không xếp hạng)
-      x-fr: [FR-033, FR-034, FR-037]
-      x-br: [BR-M09-11]
-      parameters:
-        - { $ref: '#/components/parameters/Id' }
-        - { name: vaiTro, in: query, required: true, schema: { type: string } }
-        - { name: dangKhongCoCa, in: query, schema: { type: boolean, default: true } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/UngVien' } } } } }, '403': { $ref: '#/components/responses/Loi' } }
-
   /doi-ca:
     get:
       tags: [doi-ca]
@@ -208,32 +96,6 @@ paths:
       requestBody: { content: { application/json: { schema: { $ref: '#/components/schemas/QuyetDinhNghi' } } } }
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
 
-  /loi-moi:
-    get:
-      tags: [loi-moi]
-      summary: Lời mời của tôi (người được mời chỉ thấy ngày, giờ, phạm vi, vai trò) hoặc do tôi gửi
-      x-fr: [FR-039, FR-045]
-      responses: { '200': { description: OK } }
-    post:
-      tags: [loi-moi]
-      summary: Gửi lời mời nhận ca thay cho một hoặc nhiều nhân viên do người nhận cảnh báo chọn
-      x-fr: [FR-033, FR-037, FR-039]
-      x-br: [BR-M09-11]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [caId, vaiTro, nhanVienIds], properties: { caId: { type: integer, format: int64 }, vaiTro: { type: string }, nhanVienIds: { type: array, minItems: 1, items: { type: integer, format: int64 } } } } } } }
-      responses: { '201': { description: 'Kết quả từng người (đã gửi / bị chặn kèm lý do)' }, '403': { $ref: '#/components/responses/Loi' } }
-  /loi-moi/{id}/{lenh}:
-    post:
-      tags: [loi-moi]
-      summary: "nhan (bổ sung ngay vào ca), tu-choi (người được mời), rut (người gửi)"
-      x-fr: [FR-038, FR-039]
-      parameters:
-        - { $ref: '#/components/parameters/Id' }
-        - { name: lenh, in: path, required: true, schema: { type: string, enum: [nhan, tu-choi, rut] } }
-        - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { content: { application/json: { schema: { type: object, properties: { lyDo: { type: string }, xacNhanCanhBao: { type: boolean } } } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-
 components:
   securitySchemes:
     phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
@@ -245,40 +107,13 @@ components:
       description: Lỗi theo RFC 9457 (research R-03 của 000)
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
     LoiChan:
-      description: 'TRANG_THAI_DA_DOI, DA_CO_LICH_THANG, KHONG_CO_NHOM_XOAY_CA, LICH_DA_CONG_BO, CHONG_KHOANG_THAM_GIA, KHONG_SUA_MAU_NHOM_DA_CO_THANH_VIEN, CA_KHONG_HOP_LE, KHAC_PHAM_VI, NGUOI_NHAN_KHONG_HOP_LE, VAI_TRO_KHONG_PHU_HOP, CA_DANG_TRONG_YEU_CAU_KHAC, CHONG_GIO, CAN_XAC_NHAN_CANH_BAO, CAN_NGUOI_PHU_TRACH, CHUA_CO_TRUONG_TANG_DUOC_GIAO, KHONG_THUOC_NHOM_XOAY_CA, THANG_DA_CONG_BO, NGUOI_DUOC_MOI_KHONG_HOP_LE, DA_CO_LOI_MOI_CHO, CA_KHONG_CON_THIEU_PHU, NGUOI_GUI_HET_QUYEN'
+      description: 'TRANG_THAI_DA_DOI, CA_KHONG_HOP_LE, KHAC_PHAM_VI, NGUOI_NHAN_KHONG_HOP_LE, VAI_TRO_KHONG_PHU_HOP, CA_DANG_TRONG_YEU_CAU_KHAC, CHONG_GIO, CAN_XAC_NHAN_CANH_BAO, CAN_NGUOI_PHU_TRACH, CHUA_CO_TRUONG_TANG_DUOC_GIAO, THANG_DA_CONG_BO'
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
   schemas:
     LyDo: { type: string, minLength: 1, maxLength: 2000 }
     Loi:
       type: object
       properties: { type: { type: string }, title: { type: string }, status: { type: integer }, detail: { type: string }, maLoi: { type: string }, dieuKienChuaThoa: { type: array, items: { type: object } } }
-    MauXoayCa:
-      type: object
-      required: [ten, loaiPhamVi, ngay]
-      properties: { id: { type: integer, format: int64 }, ten: { type: string }, loaiPhamVi: { type: string, enum: [TANG_KHU, TOAN_VIEN] }, ngay: { type: array, minItems: 1, items: { type: object, properties: { mauCaId: { type: integer, format: int64, description: 'Rỗng = Nghỉ' } } } }, trangThai: { type: string } }
-    NhomXoayCa:
-      type: object
-      required: [ten, phamViLoai, mauXoayCaId, ngayGoc]
-      properties: { ten: { type: string }, phamViLoai: { type: string, enum: [TANG_KHU, TOAN_VIEN] }, tangKhuVucId: { type: integer, format: int64 }, mauXoayCaId: { type: integer, format: int64 }, ngayGoc: { type: string, format: date }, thuTu: { type: integer }, ngungTu: { type: string, format: date }, lyDo: { type: string } }
-    PhamViThang:
-      type: object
-      required: [phamViLoai, thang]
-      properties: { phamViLoai: { type: string, enum: [TANG_KHU, TOAN_VIEN] }, tangKhuVucId: { type: integer, format: int64 }, thang: { type: string, pattern: '^[0-9]{4}-[0-9]{2}$' } }
-    BaoCaoLapLich:
-      type: object
-      properties:
-        lanLapId: { type: integer, format: int64 }
-        lichCaId: { type: integer, format: int64 }
-        soCa: { type: integer }
-        boQua: { type: array, items: { type: object } }
-        canhBao: { type: array, items: { type: object } }
-        caThieuPhu: { type: array, items: { type: object } }
-        thieuCa: { type: array, items: { type: object } }
-        chuaCoNguoiPhuTrach: { type: array, items: { type: integer, format: int64 } }
-        duoiNguongPhucVu: { type: array, items: { type: integer, format: int64 } }
-    UngVien:
-      type: object
-      properties: { nhanVienId: { type: integer, format: int64 }, hoTen: { type: string }, vaiTro: { type: array, items: { type: string } }, gioDaLam: { type: number }, gioDaXepConLai: { type: number }, canhBaoGioLienTuc: { type: boolean } }
     LapDoiCa:
       type: object
       required: [dang, caXId, nguoiNhanId, lyDo]
@@ -290,7 +125,6 @@ components:
         gioLienTuc: { type: array, items: { type: object } }
         phanCongKhongChuyenDuoc: { type: array, items: { type: object } }
         nguoiPhuTrachSauDoi: { type: object }
-        phuTruocSau: { type: object }
         tyLePhucVuTruocSau: { type: object }
         gioTrongThang: { type: object, description: 'Chỉ người duyệt' }
         chuyenDiChong: { type: array, items: { type: object } }

@@ -24,7 +24,6 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | `luot_o_lai`, `luot_o_lai_gia_han` | 2; 3 | F |
 | `dem_o_lai` | Kỹ thuật | F (FR-043) |
 | `nhat_ky_xem_suc_khoe` | 3 | G (FR-048) |
-| `ban_tin`, `ban_tin_phan`, `ban_tin_so_lieu`, `ban_tin_nhan_xet` | 2 → 3 khi đã gửi | H |
 | `phan_hoi` | 2 | I |
 | `phan_hoi_muc` | 3 | I (FR-065) |
 | `phan_hoi_y_kien` | 3 | I (FR-058b; bổ sung 2026-10-18) |
@@ -205,26 +204,13 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 
 ## 7. `nhat_ky_xem_suc_khoe` – nhóm 3 (mục G)
 
-`id`, `nguoi_than_id`, `nct_id`, `phan` (`DI_UNG_BENH_NEN`, `CHI_SO`, `CAN_NANG`, `THUOC`, `SU_CO`, `KET_QUA_CHAM_SOC`, `AN_UONG`, `CHE_DO_AN`, `LICH_KHAM`, `BAN_TIN`, `THONG_BAO`), `nguon` (`CONG`, `BAN_TIN`, `THONG_BAO`), `nguon_id NULL`, `luc`. Chỉ mục `(nct_id, luc)`, `(nguoi_than_id, luc)`.
+`id`, `nguoi_than_id`, `nct_id`, `phan` (`DI_UNG_BENH_NEN`, `CHI_SO`, `CAN_NANG`, `THUOC`, `SU_CO`, `KET_QUA_CHAM_SOC`, `AN_UONG`, `CHE_DO_AN`, `LICH_KHAM`, `THONG_BAO`), `nguon` (`CONG`, `THONG_BAO`), `nguon_id NULL`, `luc`. Chỉ mục `(nct_id, luc)`, `(nguoi_than_id, luc)`.
 
 ---
 
-## 8. Bản tin (mục H)
+## 8. Bản tin (mục H) *(Bỏ theo Q-396, 2026-10-29)*
 
-### `ban_tin` – nhóm 2 → 3 khi `DA_GUI`, `KHONG_GUI`
-
-| Cột | Ghi chú | Nguồn |
-| --- | --- | --- |
-| `id`, `nct_id`, `ky_tu`, `ky_den`, `moc` | Kỳ 7 ngày liền trước mốc | FR-051 |
-| `ban_goc_id NULL`, `ly_do_dinh_chinh NULL` | Bản đính chính | FR-056 |
-| `khoa_ky` sinh `IF(ban_goc_id IS NULL, CONCAT(nct_id, ':', ky_tu), NULL)` `UNIQUE` | Lệnh lập trùng bị chặn | FR-051 |
-| `trang_thai` (`CHO_DUYET`, `DA_GUI`, `KHONG_GUI`), `ly_do_khong_gui` (`QUA_KY`, `QUA_DOI`) | | FR-057 |
-| `lap_boi_id`, `lap_luc`, `duyet_boi_id`, `duyet_luc`, `duyet_thay`, `giai_thich_su_co NULL`, `muc_su_co_cao_nhat` | | FR-053, BR-M10-09 |
-| `gui_luc`, `yeu_cau_thong_bao_id` | Thời điểm xem từng người lấy từ 009 | FR-054 |
-| `da_dinh_chinh` | Đặt một lần khi có bản đính chính | FR-056 |
-| `nhac_48h_luc`, `bao_duyet_thay_luc` | | FR-055 |
-
-`ban_tin_phan` (`ban_tin_id`, `loai` `CHUNG`/`SUC_KHOE`/`CHI_PHI`, `noi_dung`); `ban_tin_so_lieu` (`ban_tin_id`, `ma`, `gia_tri` `JSON` lưu lúc duyệt, `loai_phan`; số liệu chi phí chỉ ở phần `CHI_PHI`); `ban_tin_nhan_xet` (nhóm 3: người, vai trò, nội dung, lúc). Trigger: khi `OLD.trang_thai <> 'CHO_DUYET'` chỉ cho đặt `da_dinh_chinh`.
+Không có bảng `ban_tin`, `ban_tin_phan`, `ban_tin_so_lieu`, `ban_tin_nhan_xet`.
 
 ---
 
@@ -261,7 +247,6 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 | DBR-25 | Ngày, mốc, khung theo Asia/Ho_Chi_Minh |
 | BR-M10-07 (một yêu cầu chờ) | `khoa_cho` `UNIQUE` |
 | BR-M10-03 (một lần dùng) | `khoa_da_dung` `UNIQUE`; ngoại lệ `ban_ghi_don_id` đặt một lần |
-| BR-M10-08 (một bản tin mỗi kỳ) | `khoa_ky` `UNIQUE` |
 | BR-M10-04 (đêm) | `dem_o_lai` `UNIQUE (luot_id, ngay)` |
 | FR-020a (một mong muốn Hiệu lực mỗi người, loại) | `khoa_hieu_luc` `UNIQUE`; trigger bất biến |
 | FR-020b (trái mong muốn chỉ qua Quản lý viện) | `CHECK` trên `yeu_cau_quyen`; `KiemTraYeuCau` |

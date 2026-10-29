@@ -8,6 +8,8 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ## 1. Tổng quan
 
+> **Sửa 2026-10-29 (Q-395):** bỏ dấu `CHO_QUYET_DINH`, `KHONG_CO_DONG_CHINH_SACH`; phí lưu trú nội trú có `he_so` 100% kể cả ngày vắng, ngày sau Giải phóng giường không lập được khoản. `he_so` còn dùng cho buổi bán trú.
+
 | Bảng | Nhóm (1.5) | Mục spec |
 | --- | --- | --- |
 | `chi_phi_nct` | 2 (kỹ thuật) | Đích khóa theo người (P-03) |
@@ -91,7 +93,7 @@ Trigger: khi `OLD.trang_thai = 'DA_CHOT'` chỉ cho đặt `lan_xuat_dau_id` t�
 | `so_luong`, `don_vi`, `don_gia NULL`, `he_so NULL`, `so_tien NULL` | `so_tien NULL` khi `THIEU_DON_GIA` | FR-008 → FR-013 |
 | `can_cu_don_gia` `JSON` | Phiên bản nội dung hợp đồng hoặc phiên bản đơn giá | FR-008 |
 | `gia_tri_nguon_da_dung` `JSON` | Giá trị ngày lưu trú, trạng thái có mặt, số lượng nguồn lúc tính | FR-005a |
-| `dau` `SET('THUOC_GOI','THIEU_DON_GIA','CHO_QUYET_DINH','KHONG_CO_DONG_CHINH_SACH','CHUA_VAO_O','LAP_TRUOC','PHAT_SINH_THUOC_KY_DA_CHOT','VUOT_SO_DONG_Y','MUA_GAP_VUOT','ANH_HUONG_KET_THUC')` | | FR-014 |
+| `dau` `SET('THUOC_GOI','THIEU_DON_GIA','CHUA_VAO_O','LAP_TRUOC','PHAT_SINH_THUOC_KY_DA_CHOT','VUOT_SO_DONG_Y','MUA_GAP_VUOT','ANH_HUONG_KET_THUC')` | | FR-014 |
 | `ly_do` | Bắt buộc với nhập tay, điều chỉnh | FR-021, FR-025 |
 | `khoan_goc_id NULL`, `ky_goc_id NULL`, `loai_dieu_chinh NULL`, `bien_dong_id NULL` | Điều chỉnh | FR-025, FR-027 |
 | `trang_thai` | `ENUM('NHAP','DA_KIEM_TRA','DA_DUYET','DA_CHOT','DA_HUY')` | Bảng khoản |

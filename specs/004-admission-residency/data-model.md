@@ -8,20 +8,21 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ## 1. Tổng quan
 
+> **Sửa 2026-10-29 (Q-394, Q-395):** bỏ `ho_so_cho_tinh_huong`, `lich_su_diem`, cột điểm của `ho_so_cho` (thêm dấu Ưu tiên); bỏ `hop_dong_chinh_sach_vang`, `ngay_vang`, `quyet_dinh_giu_giuong` và cột ngưỡng giữ giường của `luot_vang` (thêm thời điểm báo Quản lý viện, giải phóng giường).
+
 | Bảng | Nhóm (1.5) | Mục spec |
 | --- | --- | --- |
 | `luu_tru_nct` | 2 (kỹ thuật) | Khóa theo người, dấu "đã đóng" (FR-072) |
 | `luot_dang_ky` | 2 | A |
-| `ho_so_cho`, `ho_so_cho_tinh_huong` | 2 | B |
-| `lich_su_diem`, `lien_he_giuong` | 3 | B |
-| `hop_dong`, `hop_dong_dich_vu`, `hop_dong_chinh_sach_vang`, `hop_dong_lich_den` | 2 (sửa được chỉ ở Nháp) | C |
+| `ho_so_cho` | 2 | B |
+| `lien_he_giuong` | 3 | B |
+| `hop_dong`, `hop_dong_dich_vu`, `hop_dong_lich_den` | 2 (sửa được chỉ ở Nháp) | C |
 | `phien_ban_noi_dung_hop_dong` | 3 | C, F |
 | `dich_vu` | 1 | E |
 | `phien_ban_don_gia` | 1, theo phiên bản | E |
 | `phu_luc_hop_dong`, `yeu_cau_thay_doi_thuoc_tinh` | 2; chỉ mục kỹ thuật | F |
 | `luot_vang` | 2; bất biến khi đóng | G |
-| `lich_su_du_kien_tro_lai`, `quyet_dinh_giu_giuong`, `bao_vang_ban_tru` | 3 | G |
-| `ngay_vang` | Kết quả tính (kỹ thuật) | G, J |
+| `lich_su_du_kien_tro_lai`, `bao_vang_ban_tru` | 3 | G |
 | `ngay_nghi_ban_tru` | 2 | G |
 | `ho_so_ket_thuc` | 2 | H |
 | `ban_giao_nct`, `ngoai_le_dieu_kien` | 3 | H |
@@ -96,21 +97,19 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 | `luot_dang_ky_id` | `BIGINT` | Khóa ngoại | FR-007 |
 | `nct_id` | `BIGINT` | | |
 | `muc_cham_soc`, `muc_chua_danh_gia` | `ENUM`, `BOOLEAN` | Theo FR-008; cập nhật khi nhận `MucChamSocDaDoi` | FR-008 |
-| `diem_hien_hanh` | `INT` | Do `TinhDiemUuTien` ghi | FR-009 |
-| `diem_chi_tiet` | `JSON` | Thành phần: mức, thời gian chờ, tình huống, điều chỉnh | FR-009 |
+| `uu_tien` | `BOOLEAN` | Mặc định `false`; đổi bằng lệnh Đánh dấu ưu tiên, ghi nhật ký (Q-394) | FR-009 |
+| `ly_do_uu_tien` | `VARCHAR(2000) NULL` | Bắt buộc khi `uu_tien = true` (`CHECK`) | FR-009 |
 | `giuong_dang_giu_id` | `BIGINT NULL` | Giường đang giữ (hiển thị); hạn giữ là dữ liệu của 003 | FR-014 |
 | `moc_cap_nhat` | `DATETIME(6)` | Mốc tính CFG-M02-03 | FR-017 |
 | `trang_thai` | `ENUM('DANG_CHO','DA_LIEN_HE','DA_TIEP_NHAN','TU_CHOI','HUY_CHO')` | | Bảng mục B |
 | `nct_dang_mo` | Cột sinh `IF(trang_thai IN ('DANG_CHO','DA_LIEN_HE'), nct_id, NULL)` | `UNIQUE` | FR-007 |
 | `giuong_giu_duy_nhat` | Cột sinh `IF(trang_thai='DA_LIEN_HE', id, NULL)` cùng `giuong_dang_giu_id NOT NULL` khi `DA_LIEN_HE` (`CHECK`) | | FR-014 |
 
-`ho_so_cho_tinh_huong (ho_so_cho_id, ma_tinh_huong, trang_thai ENUM('XAC_NHAN','CHO_XAC_NHAN'))`: `ma_tinh_huong` là mã trong bảng CFG-M02-08. Dòng "từng lưu trú tại viện" được thêm sẵn ở `CHO_XAC_NHAN` (FR-007).
-
 **Bảng chuyển**: khớp bảng trạng thái hồ sơ chờ của spec. Lệnh Từ chối, Hủy chờ đi qua `HUY_TIEP_NHAN` của 001 (research T-03).
 
 | Từ | Lệnh / sự kiện | Đến | Gọi từ | Tác động |
 | --- | --- | --- | --- | --- |
-| — | Đưa vào danh sách chờ | `DANG_CHO` | `POST /ho-so-cho` | Lượt đăng ký `DANG_CHO`; tính điểm lần đầu |
+| — | Đưa vào danh sách chờ | `DANG_CHO` | `POST /ho-so-cho` | Lượt đăng ký `DANG_CHO` |
 | `DANG_CHO` | Ghi nhận đã liên hệ | `DA_LIEN_HE` | `POST /ho-so-cho/{id}/ghi-nhan-da-lien-he` | `giuChoHoSoCho` (003); dòng `lien_he_giuong` `LIEN_HE` |
 | `DA_LIEN_HE` | Hết hạn giữ chỗ | `DANG_CHO` | `hoSoChoHetHanGiuCho` (job của 003) | Dòng `HET_HAN`; `GiuongTrongCanChonHoSo` |
 | `DA_LIEN_HE` | Từ chối giường này | `DANG_CHO` | `POST …/tu-choi-giuong` | `huyGiuCho` (003); dòng `TU_CHOI_GIUONG`; `GiuongTrongCanChonHoSo` |
@@ -118,10 +117,7 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 | `DANG_CHO`, `DA_LIEN_HE` | Ghi nhận từ chối | `TU_CHOI` | `POST …/tu-choi` → `HUY_TIEP_NHAN` (001) | Như Hủy tiếp nhận (FR-002) |
 | `DANG_CHO`, `DA_LIEN_HE` | Hủy chờ | `HUY_CHO` | `POST …/huy-cho` → `HUY_TIEP_NHAN`; hoặc bean khi Hủy tiếp nhận từ 001 | Như trên; không gọi lại 001 |
 | `DANG_CHO` | Xác nhận còn nhu cầu | `DANG_CHO` | `POST …/xac-nhan-con-nhu-cau` | `moc_cap_nhat` = bây giờ |
-
-### `lich_su_diem` – nhóm 3
-
-`ho_so_cho_id`, `diem_cu`, `diem_moi`, `thanh_phan JSON`, `nguyen_nhan ENUM('TINH_HANG_NGAY','DOI_MUC','DOI_TINH_HUONG','DIEU_CHINH','DOI_BANG_DIEM','TAO')`, `yeu_cau_phe_duyet_id NULL` (điều chỉnh), `thoi_diem` (FR-010, FR-011). Dòng `TINH_HANG_NGAY` chỉ thêm khi điểm đổi.
+| `DANG_CHO`, `DA_LIEN_HE` | Đánh dấu ưu tiên (đặt, gỡ) | Giữ nguyên | `POST …/danh-dau-uu-tien` | Ghi nhật ký (Q-394) |
 
 ### `lien_he_giuong` – nhóm 3
 
@@ -161,7 +157,6 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 
 **Bảng con** (sửa được chỉ khi hợp đồng `NHAP` và không chờ duyệt điều khoản):
 - `hop_dong_dich_vu`: `dich_vu_id`, `thuoc_goi BOOLEAN`, `so_luong`, `don_gia_rieng NULL` (giá khác chuẩn), `don_gia_ghi NULL` (đặt khi Ghi nhận đã ký, FR-036). Kiểm khi Gửi ký: đúng một dòng dịch vụ `CHAM_SOC` và mức của dòng trùng `muc_cham_soc` (FR-025).
-- `hop_dong_chinh_sach_vang`: các dòng ghi đè cùng cấu trúc CFG-M02-05 (FR-050, FR-051). Không có dòng chồng khoảng ngày trong cùng loại lưu trú, loại vắng (backend).
 - `hop_dong_lich_den`: `thu_trong_tuan` hoặc `ngay`, `gio_den`, `gio_ve TIME`; `CHECK (gio_ve > gio_den)` (FR-019, Q-286).
 
 **Bảng chuyển hợp đồng** (khớp bảng của spec):
@@ -268,8 +263,8 @@ Nội dung của yêu cầu (giá trị trước/sau, ảnh hưởng chi phí, t
 | `don_vi_dua_di` | `VARCHAR NULL` | `BENH_VIEN` | FR-048 |
 | `nhan_vien_ban_giao_id` | `BIGINT` | | FR-048 |
 | `mang_thuoc` | `BOOLEAN` | Mặc định `false`; bắt buộc với Tạm vắng | FR-048 |
-| `giu_giuong_ban_dau` | `BOOLEAN` | Kết quả tra ngày 1 | FR-054 |
-| `da_bao_nguong_luc`, `ngay_xem_xet_lai` | | Ngưỡng giữ giường, quyết định giữ tiếp | FR-055, FR-056 |
+| `da_bao_quan_ly_luc` | `DATETIME(6) NULL` | Đặt một lần khi tới ngày vắng thứ CFG-M02-05 (Q-395) | FR-055 |
+| `giai_phong_giuong_luc`, `giai_phong_boi_id`, `ly_do_giai_phong` | `NULL` | Lệnh Giải phóng giường của Quản lý viện; từ ngày này không tính phí lưu trú | FR-055 |
 | `luot_truoc_id` | `BIGINT NULL` | Lượt Tạm vắng trước khi chuyển viện | FR-057 |
 | `trang_thai` | `ENUM('DANG_MO','DA_DONG')` | | |
 | `nct_dang_mo` | Cột sinh `IF(trang_thai='DANG_MO', nct_id, NULL)` | `UNIQUE` | |
@@ -279,25 +274,6 @@ Trigger `trg_luot_vang_khong_sua`: `SIGNAL` khi `OLD.trang_thai='DA_DONG'` (FR-0
 ### `lich_su_du_kien_tro_lai` – nhóm 3
 
 `luot_vang_id`, `gia_tri_cu`, `gia_tri_moi`, `ly_do`, `nguoi_thuc_hien_id`, `thoi_diem` (FR-049).
-
-### `ngay_vang` – kết quả tính
-
-| Cột | Ghi chú | Nguồn |
-| --- | --- | --- |
-| `luot_vang_id`, `ngay` | Khóa chính hai cột | FR-058 |
-| `so_thu_tu` | Ngày vắng thứ mấy của lượt | FR-052 |
-| `he_so` | `DECIMAL(5,2)` phần trăm | FR-052 |
-| `giu_giuong` | `BOOLEAN` | FR-052 |
-| `nguon_dong` | `ENUM('HOP_DONG','CO_SO','MAC_DINH')` cùng `dong_chinh_sach JSON` | FR-051, FR-053 |
-| `dau_cho_quyet_dinh`, `dau_khong_co_dong` | `BOOLEAN` | FR-053, FR-056 |
-| `quyet_dinh_id` | Quyết định đã đặt hệ số, nếu có | FR-056 |
-| `tinh_luc`, `thoi_diem_tham_so` | Bảng CFG-M02-05 dùng tại thời điểm nào | FR-052 |
-
-Dòng được ghi bởi job `NGAY_VANG` và chỉ được ghi lại khi có quyết định giữ giường hoặc đính chính lượt vắng. Mỗi lần ghi lại có nhật ký `M02_VANG_TINH_LAI` và sự kiện `NgayLuuTruDaDoi`. Bảng không thuộc ba nhóm của 1.5 (Complexity Tracking của plan).
-
-### `quyet_dinh_giu_giuong` – nhóm 3
-
-`luot_vang_id`, `ngay_nguong`, `lua_chon ENUM('GIU_TIEP','GIAI_PHONG','CHI_DAT_HE_SO')`, `he_so`, `ngay_xem_xet_lai NULL` (bắt buộc với `GIU_TIEP`), `ap_tu_ngay`, `ap_den_ngay NULL` (với `CHI_DAT_HE_SO` của lượt đã đóng, FR-061), `nguoi_quyet_dinh_id`, `thoi_diem`, `ly_do`. `CHECK (lua_chon <> 'GIU_TIEP' OR ngay_xem_xet_lai IS NOT NULL)` (FR-055).
 
 ### `bao_vang_ban_tru` – nhóm 3
 
@@ -420,12 +396,12 @@ Dịch vụ, phiên bản đơn giá là danh mục, không bị loại bỏ.
 | BR-M02-03 | Job `NHAC` | `BR_M02_03_NhacHoSoChoIT` |
 | BR-M02-04 | Handler `M02.THAY_DOI_LUU_TRU` | `BR_M02_04_ApDungPhuLucIT` |
 | BR-M02-05 | Job `HOP_DONG` | `BR_M02_05_NhacHopDongIT`, `FR_029_QuaHanHopDongIT` |
-| BR-M02-06 | `TraChinhSachVang`, job `NGAY_VANG` | `BR_M02_06_TraChinhSachTest`, `NgayVangIT` |
-| BR-M02-07 | Quyết định giữ giường | `BR_M02_07_QuyetDinhGiuGiuongIT` |
+| BR-M02-06 | Ngày lưu trú cho 010 (Q-395) | `BR_M02_06_NgayVangTinhPhiIT` |
+| BR-M02-07 | Báo Quản lý viện, lệnh Giải phóng giường (Q-395) | `BR_M02_07_GiaiPhongGiuongIT` |
 | BR-M02-08, 09 | Mục 5 | `DBR_06_HopDongKhongChongIT`, `BR_M02_09_NoiDungTaiNgayIT` |
-| BR-M02-10 | `TinhDiemUuTien`, job `TINH_DIEM` | `BR_M02_10_DiemUuTienTest`, `DiemHangNgayIT` |
+| BR-M02-10 | Lệnh Đánh dấu ưu tiên, thứ tự danh sách phù hợp (Q-394) | `BR_M02_10_UuTienIT` |
 | BR-M02-15, 16 | Lệnh cập nhật; loại thay đổi `LICH_DEN` | `CapNhatLuotDangKyIT`, `DoiLichDenIT` |
-| BR-M02-17, 18 | `TraChinhSachVang`; đính chính lượt vắng | `BR_M02_17_QuanLyQuyetDinhNgay1Test`, `BR_M02_18_DinhChinhVuotNguongIT` |
+| BR-M02-18 | Đính chính lượt vắng báo 010 (BR-M02-17 bỏ theo Q-395) | `BR_M02_18_DinhChinhLuotVangIT` |
 | BR-M02-19 | `lan_chay_theo_ngay` | `BR_M02_19_ChayBuIT` |
 | BR-M02-20 | Lượt trống theo FR-012 (plan, điểm báo lại 1) | `FR_012_LuotTrongIT` |
 | BR-M02-21 | `@NhomTruong(SUC_KHOE)` | `BR_M02_21_NguyenNhanTuVongIT` |

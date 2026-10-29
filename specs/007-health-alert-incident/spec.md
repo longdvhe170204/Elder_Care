@@ -199,7 +199,7 @@ Chủ dự án chốt Q-373 → Q-376 (docs/business/nghiep-vu.md 24.2; BR-M05-2
 - Bàn giao ca, phân công, ca trực, nhiệm vụ Bác sĩ trực, Người phụ trách ca, Điều dưỡng phụ trách: feature 008.
 - Kênh gửi, xác nhận đã xem, nhắc gọi điện khi thông báo khẩn cấp chưa được xác nhận, giờ yên tĩnh (BR-M13-01 → 05): feature 009. Spec này xác định **sự kiện** và **người nhận**.
 - Xung đột dị ứng với chế độ ăn, phục vụ sai suất ăn (BR-M08-02, BR-M08-14): feature 011 phát hiện và yêu cầu spec này tạo cảnh báo; sự cố do nhân viên ghi nhận (Q-307).
-- Hồ sơ người thân, người liên hệ chính, quyền của người thân, lượt thăm, chặn đăng ký thăm, bản tin định kỳ: feature 012.
+- Hồ sơ người thân, người liên hệ chính, quyền của người thân, lượt thăm, chặn đăng ký thăm: feature 012 (bản tin bỏ theo Q-396).
 - Hoạt động, điểm danh, hoạt động ngoài viện, chặn đăng ký hoạt động trong vùng khoanh, phát hiện thiếu người khi trở về (yêu cầu cảnh báo Khẩn cấp; lệnh "Báo thiếu người" ghi nhận sự cố): feature 014.
 - Báo cáo, dashboard: feature 016. Spec này cung cấp dữ liệu (18.3, 18.5).
 - Bệnh án điện tử chuyên sâu (1.2) và báo cáo bắt buộc gửi cơ quan y tế ngoài hệ thống: không thuộc hệ thống; spec chỉ ghi nhận việc đã báo.
@@ -784,7 +784,7 @@ Thuật ngữ (CHK015): "người phụ trách" của một cảnh báo hay sự
   - **mức dùng để xếp:** số cảnh báo, sự cố theo mức dùng mức hiện hành; thời gian từ tạo đến tiếp nhận theo mức dùng mức tại thời điểm tiếp nhận, vì hạn tiếp nhận và leo thang chạy theo mức lúc đó.
 
   *(Nguồn: 18.3, 18.5; FR-016, FR-033, FR-044; Q-199, Q-202, đồng bộ spec 016)*
-- **FR-082**: Hệ thống MUST cung cấp cho bản tin định kỳ (feature 012): cân nặng và xu hướng, các chỉ số chính, sự cố trong kỳ kèm mức (BR-M10-09 yêu cầu giải thích khi có sự cố Trung bình trở lên). *(Nguồn: 14.5, BR-M10-09)* **(Bổ sung 2026-10-18, Q-352)** Mỗi sự cố cung cấp cho bản tin và cho thông báo người thân MUST tách hai phần: phần chung (có sự cố, loại sự cố, mức sự cố, thời điểm, viện đã xử lý; Q-358) và phần sức khỏe (tổn thương, khám, chỉ số, điều trị, thuốc, nguyên nhân y tế, cùng mô tả, xử lý ban đầu, diễn biến; Q-358); feature 012 và 009 chỉ đưa phần sức khỏe tới người thân có quyền xem sức khỏe theo bản đồng ý (BR-M01-08). Sự cố liên quan bệnh truyền nhiễm áp Q-72.
+- **FR-082**: **(Sửa 2026-10-29, Q-396: bỏ phần cung cấp cho bản tin định kỳ)** **(Bổ sung 2026-10-18, Q-352)** Mỗi sự cố cung cấp cho cổng và cho thông báo người thân MUST tách hai phần: phần chung (có sự cố, loại sự cố, mức sự cố, thời điểm, viện đã xử lý; Q-358) và phần sức khỏe (tổn thương, khám, chỉ số, điều trị, thuốc, nguyên nhân y tế, cùng mô tả, xử lý ban đầu, diễn biến; Q-358); feature 012 và 009 chỉ đưa phần sức khỏe tới người thân có quyền xem sức khỏe theo bản đồng ý (BR-M01-08). Sự cố liên quan bệnh truyền nhiễm áp Q-72.
 - **FR-083**: Bảng tổng hợp giao tiếp với feature khác:
 
 | Chiều | Feature | Sự kiện / dữ liệu |
@@ -807,7 +807,7 @@ Thuật ngữ (CHK015): "người phụ trách" của một cảnh báo hay sự
 | Cung cấp | 009 | Sự kiện thông báo theo mức và người nhận (FR-033, FR-035, FR-043, FR-045a, FR-047, FR-062, FR-064); nhận lại thời điểm gửi, đã xem |
 | Nhận, Cung cấp | 011 | Nhận yêu cầu tạo cảnh báo xung đột dị ứng với chế độ ăn, thực đơn (mức Trung bình) và báo nguồn đã xử lý; nhận yêu cầu tạo cảnh báo Trung bình khi phục vụ suất có thành phần gây dị ứng bị chặn; sự cố "phục vụ sai suất ăn" do nhân viên ghi nhận (FR-040, Q-307). Gửi sự kiện "sụt cân" (FR-039a) |
 | Nhận, Cung cấp | 013 | Sự cố loại "đồ gửi thất lạc" / "đồ gửi hư hỏng" do người ghi lệnh đồ gửi ghi nhận (nguồn "đồ gửi", FR-040, FR-042, Q-307), liên kết sự cố với đồ gửi, diễn biến "đã tìm thấy", yêu cầu chuyển Đã hủy (FR-046b); cung cấp sự cố đã ghi để liên kết và trạng thái mở/đóng cho căn cứ điều kiện đồ gửi (feature 013 FR-021, FR-025) |
-| Nhận, Cung cấp | 012 | Nhận lượt thăm (FR-060) và người liên hệ chính; cung cấp trạng thái khoanh vùng, sự cố theo quyền, dữ liệu bản tin (FR-082) |
+| Nhận, Cung cấp | 012 | Nhận lượt thăm (FR-060) và người liên hệ chính; cung cấp trạng thái khoanh vùng, sự cố theo quyền (FR-082) |
 | Cung cấp | 014 | *(bổ sung 2026-10-10)* Sự kiện dấu "nghi nhiễm" được gắn hoặc gỡ (FR-060) cho feature 014 FR-021a; ghi diễn biến vào cảnh báo theo yêu cầu kèm lệnh của feature 014 (FR-086) |
 | Nhận, Cung cấp | 014 | Nhận điểm danh hoạt động; nhận yêu cầu tạo cảnh báo Khẩn cấp thiếu người khi về; lệnh "Báo thiếu người" của feature 014 ghi nhận sự cố "đi lạc hoặc không trở về" (Q-307); cung cấp trạng thái khoanh vùng |
 | Cung cấp | 016 | FR-081 (chỉ số đã xác nhận và mức vượt ngưỡng lúc đo; cảnh báo, sự cố với mức hiện hành, mức lúc tiếp nhận, thời điểm tạo, tiếp nhận, các lần leo thang; theo dõi; khoanh vùng; dấu loại sự cố) |

@@ -93,7 +93,7 @@ export const putShiftsById = (params) => request('PUT', '/shifts/{id}', params)
 /** Xóa ca (chỉ lịch Nháp; phân công Nháp xóa cùng) (FR-012, FR-025) */
 export const deleteShiftsById = (params) => request('DELETE', '/shifts/{id}', params)
 
-/** Điều kiện chặn và cảnh báo không chặn trước khi công bố (FR-014, FR-034, FR-010; phủ tối thiểu, nghỉ theo ngày của 015) (FR-016) */
+/** Điều kiện chặn và cảnh báo không chặn trước khi công bố (FR-014, FR-034, FR-010; nghỉ theo ngày của 015) (FR-016) */
 export const getShiftSchedulesByIdPublicationPreview = (params) => request('GET', '/shift-schedules/{id}/publication-preview', params)
 
 /** Công bố lịch (Trưởng tầng được giao; Quản lý viện; lịch toàn viện chỉ Quản lý viện) (FR-016, FR-027, FR-034, FR-055, BR-M09-03) */

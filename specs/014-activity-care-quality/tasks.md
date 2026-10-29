@@ -6,7 +6,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 **Input**: Tài liệu thiết kế ở `specs/014-activity-care-quality/` (plan.md, spec.md, research.md L-01 → L-15, data-model.md, contracts/api-014.yaml, contracts/module-interfaces.md, quickstart.md)
 
-**Prerequisites**: 000, 002 đã xong Phase 2; 005 đã xong (014 thêm gói con vào `m04`, dùng dịch vụ nội bộ công việc, có mặt bán trú, công việc làm lại); 001 (`TrangThaiNguoiCaoTuoiApi` cho điểm danh rời viện/về), 003 (lịch xe ở `m03.api` do 019 cung cấp), 004, 006 (`MangThuocChuyenDiApi`, SPI `ChuyenDiThuocPort`), 007 (`SuCoLenhApi`, `KhoanhVungApi`, `DiemDanhTruyVetPort`), 008 (`CaTrucApi`, `ChuyenDiNhiemVuPort`), 010 (`SuKienTinhPhiNguon`), 011 (`ChuyenDiBuaAnPort`), 012 (`QuyenNguoiThanApi`, `HoatDongBanTinPort`) đã có `api`.
+**Prerequisites**: 000, 002 đã xong Phase 2; 005 đã xong (014 thêm gói con vào `m04`, dùng dịch vụ nội bộ công việc, có mặt bán trú, công việc làm lại); 001 (`TrangThaiNguoiCaoTuoiApi` cho điểm danh rời viện/về), 003 (lịch xe ở `m03.api` do 019 cung cấp), 004, 006 (`MangThuocChuyenDiApi`, SPI `ChuyenDiThuocPort`), 007 (`SuCoLenhApi`, `KhoanhVungApi`, `DiemDanhTruyVetPort`), 008 (`CaTrucApi`, `ChuyenDiNhiemVuPort`), 010 (`SuKienTinhPhiNguon`), 011 (`ChuyenDiBuaAnPort`), 012 (`QuyenNguoiThanApi`) đã có `api`.
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4.
 
@@ -96,7 +96,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ### Implementation cho User Story 3
 
-- [ ] T014 [US3] Tạo bảng `diem_danh_buoi` (nhóm 3; `ket_qua` `CO_MAT|VANG|KHONG_GHI_NHAN`; `ly_do_vang` 5 giá trị) trong `MIG/V014_04__diem_danh_buoi.sql`; cài `BE/m04/buoi/internal/DiemDanhBuoiService.java` (hoàn tất điểm danh; phát `SuKienTinhPhiNguon`/`DaDoi`; `NgoaiTuyenHandler` `M04.DIEM_DANH_BUOI`; `DinhChinhDuocProvider` `M04.DIEM_DANH_BUOI`; `NguonCongViecPort` `BUOI_HOAT_DONG`; `DiemDanhTruyVetPort` cho 007; `HoatDongBanTinPort` cho 012; nhắc CFG-M04-06) và endpoint `POST /buoi/{id}/diem-danh`; app `mobile/lib/nhan-vien/hoat-dong/` (research L-06)
+- [ ] T014 [US3] Tạo bảng `diem_danh_buoi` (nhóm 3; `ket_qua` `CO_MAT|VANG|KHONG_GHI_NHAN`; `ly_do_vang` 5 giá trị) trong `MIG/V014_04__diem_danh_buoi.sql`; cài `BE/m04/buoi/internal/DiemDanhBuoiService.java` (hoàn tất điểm danh; phát `SuKienTinhPhiNguon`/`DaDoi`; `NgoaiTuyenHandler` `M04.DIEM_DANH_BUOI`; `DinhChinhDuocProvider` `M04.DIEM_DANH_BUOI`; `NguonCongViecPort` `BUOI_HOAT_DONG`; `DiemDanhTruyVetPort` cho 007; nhắc CFG-M04-06) và endpoint `POST /buoi/{id}/diem-danh`; app `mobile/lib/nhan-vien/hoat-dong/` (research L-06)
 
 **Checkpoint**: Điểm danh chạy độc lập.
 
@@ -185,7 +185,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 - [ ] T026 [P] Cài cổng người thân `GET /cong/nguoi-cao-tuoi/{nctId}/hoat-dong` (`QuyenNguoiThanApi`) và test `BT/m04/FR_068_CongHoatDongIT.java`; app `mobile/lib/nguoi-than/hoat-dong/` (research L-12)
 - [ ] T027 [P] Cài `HoatDongThongKeApi` (016); mở rộng `BT/common/HopDongApiTest.java` với `specs/014-activity-care-quality/contracts/api-014.yaml`
-- [ ] T028 Thay bản giả SPI 014 cài ở test 005, 006, 007, 008, 011, 012 (`NguonCongViecPort` `BUOI_HOAT_DONG`/`LAM_LAI`, `KetQuaKiemTraPort`, `ChuyenDiThuocPort`, `DiemDanhTruyVetPort`, `ChuyenDiNhiemVuPort`, `ChuyenDiBuaAnPort`, `HoatDongBanTinPort`) và chạy lại
+- [ ] T028 Thay bản giả SPI 014 cài ở test 005, 006, 007, 008, 011, 012 (`NguonCongViecPort` `BUOI_HOAT_DONG`/`LAM_LAI`, `KetQuaKiemTraPort`, `ChuyenDiThuocPort`, `DiemDanhTruyVetPort`, `ChuyenDiNhiemVuPort`, `ChuyenDiBuaAnPort`) và chạy lại
 - [ ] T029 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
 - [ ] T030 Rà truy vết: DBR-12 (tương tự), 15, 18, 23, 25 và BR-M04-15 → 18, 21 → 23 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-021a, FR-067, FR-068, FR-069, FR-070, FR-071 — mỗi FR có task hoặc test tương ứng (constitution XV)
 

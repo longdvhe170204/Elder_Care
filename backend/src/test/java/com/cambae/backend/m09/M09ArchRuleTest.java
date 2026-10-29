@@ -3,7 +3,6 @@ package com.cambae.backend.m09;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.cambae.backend.m09.duty.internal.service.ForbiddenPortCallerFixture;
-import com.cambae.backend.m09.rotation.internal.service.RotationPortCallerFixture;
 import com.cambae.backend.m09.scheduling.M09SchedulingFixtures;
 import com.cambae.backend.m09.shift.internal.service.port.ShiftCommandPortFixture;
 import com.cambae.backend.m09.swap.internal.service.SwapPortCallerFixture;
@@ -15,10 +14,9 @@ import org.junit.jupiter.api.Test;
 class M09ArchRuleTest {
 
     @Test
-    void FR_017_commandPortsAllowSwapAndRotationCallers() {
-        JavaClasses classes = new ClassFileImporter()
-                .importClasses(
-                        ShiftCommandPortFixture.class, SwapPortCallerFixture.class, RotationPortCallerFixture.class);
+    void FR_017_commandPortsAllowSwapCallers() {
+        JavaClasses classes =
+                new ClassFileImporter().importClasses(ShiftCommandPortFixture.class, SwapPortCallerFixture.class);
 
         assertThat(M09ArchTest.INTERNAL_COMMAND_PORTS.evaluate(classes).hasViolation())
                 .isFalse();

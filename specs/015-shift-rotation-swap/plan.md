@@ -1,5 +1,7 @@
 # Implementation Plan: Lịch ca xoay vòng, phủ ca tối thiểu, đổi ca và nghỉ đột xuất
 
+> **Sửa 2026-10-29 (Q-397):** bỏ mẫu xoay ca, nhóm xoay ca, lập lịch từ mẫu, phủ tối thiểu, thiếu ca, cảnh báo thiếu phủ, lời mời nhận ca; 015 chỉ còn đổi ca và nghỉ đột xuất. Nghỉ "theo ngày" mở cho mọi nhân viên, người lập chọn phạm vi. Phần dưới còn nhắc các phần đã bỏ thì bỏ qua; spec là căn cứ.
+
 **Branch**: `015-shift-rotation-swap` | **Date**: 2026-10-10 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/015-shift-rotation-swap/spec.md`
