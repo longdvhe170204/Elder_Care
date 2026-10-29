@@ -338,7 +338,7 @@ Bảng chứa cả dòng nhóm 2 và nhóm 3 (bảng chung `ho_so_chung` và cá
 | `xac_nhan_boi`, `xac_nhan_luc` | `NULL` | Loại cần xác nhận chuyên môn (món ăn) |
 | `phien_ban` | `INT` | Khóa lạc quan |
 
-Khóa ngoại từ bảng khác tới `danh_muc_chung.id` `ON DELETE RESTRICT`; lệnh của module kiểm đúng `loai` (`CatalogApi.require(loai, id)`). *(Bổ sung sau /speckit-analyze 2026-10-29, FR-002)* Loại danh mục có bảng khác tham chiếu không qua khóa ngoại (qua mã như `M01.CARE_LEVEL`, `M15.ROLE`, hoặc qua mảng id trong cột `JSON` như nhu cầu chăm sóc, mức chăm sóc cho phép, hoạt chất, phạm vi hành nghề) khai báo `xoaDuoc = false` trong JSON Schema của loại: `CatalogApi` từ chối lệnh xóa mục của loại đó (409 `DANH_MUC_DANG_DUOC_THAM_CHIEU`), chỉ cho Ngừng hiệu lực. FR-002 chỉ cho xóa mục chưa bị tham chiếu, nên cấm xóa vẫn đúng; loại có mọi tham chiếu qua khóa ngoại giữ cách xóa của mục 1.1.
+Khóa ngoại từ bảng khác tới `danh_muc_chung.id` `ON DELETE RESTRICT`; lệnh của module kiểm đúng `loai` (`CatalogApi.require(loai, id)`). *(Bổ sung sau /speckit-analyze 2026-10-29, FR-002)* Loại danh mục có bảng khác tham chiếu không qua khóa ngoại (qua mã như `M01.CARE_LEVEL`, `M15.ROLE`, hoặc qua mảng id trong cột `JSON` như nhu cầu chăm sóc, mức chăm sóc cho phép, hoạt chất, phạm vi hành nghề) khai báo `xoaDuoc = false` trong JSON Schema của loại: `CatalogApi` từ chối lệnh xóa mục của loại đó (409 `DANH_MUC_DA_DUOC_THAM_CHIEU`, mã `CATALOG_ITEM_IN_USE`), chỉ cho Ngừng hiệu lực. FR-002 chỉ cho xóa mục chưa bị tham chiếu, nên cấm xóa vẫn đúng; loại có mọi tham chiếu qua khóa ngoại giữ cách xóa của mục 1.1.
 
 ### `lich_su_chung` – nhóm 3, chỉ thêm (`status_history`)
 
