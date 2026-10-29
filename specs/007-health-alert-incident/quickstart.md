@@ -24,7 +24,7 @@ frontend/ npm ci && npm test && npm run dev
 mobile/   flutter test
 ```
 
-Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (chiều `m05 → m06`; không có vòng 007 ↔ 008, 007 ↔ 009, 007 ↔ 012, 007 ↔ 014), test cơ sở dữ liệu (data-model mục 12), test đồng thời và các nhóm test ở mục 4.
+Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (chiều `incident → health`; không có vòng 007 ↔ 008, 007 ↔ 009, 007 ↔ 012, 007 ↔ 014), test cơ sở dữ liệu (data-model mục 12), test đồng thời và các nhóm test ở mục 4.
 
 ## 3. Kịch bản kiểm chứng đầu–cuối (profile demo)
 
@@ -107,7 +107,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (chiều `m05 
 | Giấy phép, khám | `BR_M06_05_PhamViKhamIT`, `FR_072_DieuDuongGhiKhamIT`, `GiayPhepTriggerIT` | Q50, Q51 |
 | Nguy kịch | `BR_M05_15_NguyKichIT`, `DBR_34_DauNguyKichIT`, `BR_M05_16_XacNhanLaiIT`, `FR_050d_LuaChonIT` | Q53 → Q56 |
 | Trạng thái cuối, chạy bù | `FR_038_TrangThaiCuoiIT`, `KT_D_CanhBaoSuCoIT`, `BR_M05_25_ChayBuIT` | Q57, Q58 |
-| Kiến trúc | `ApplicationModules.verify()`; ArchUnit: `m06` không phụ thuộc `m05`; `m05`, `m06` không gọi API của 008, 009, 012, 014 (chỉ qua SPI mục 2.1); gói `..lich..` không tạo bản ghi nghiệp vụ | |
+| Kiến trúc | `ApplicationModules.verify()`; ArchUnit: `health` không phụ thuộc `incident`; `incident`, `health` không gọi API của 008, 009, 012, 014 (chỉ qua SPI mục 2.1); gói `..lich..` không tạo bản ghi nghiệp vụ | |
 | Web (Vitest) | Màn cảnh báo (lệnh theo `lenhDuocPhep`, 409 đã có người tiếp nhận); màn sự cố (chặn hồi sức, thẻ chỉ nhận dạng); tra cứu tiếp xúc không chọn sẵn ai | Q13, Q28, Q44 |
 | App (`flutter_test`) | `KichHoatKhanCapKhongNgoaiTuyenTest`, `GhiChiSoNgoaiTuyenTest`, `KetQuaDongBoChiSoTest` (BR-M15-20), `DoLaiTest`, `TheKhanCapTest` | Q2, Q27, Q31 |
 

@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-10 | **Plan**: [../plan.md](../plan.md)
 
-Giao diện Java công khai ở `m12.api` và bản cài các SPI do module thấp hơn khai báo (research K-02). Kiểu `DieuKien`, `CanCu`, `LyDo`, `NguoiDungHienTai`, `DoiTuong` theo 000, 001, 002. Hàm ghi có ghi chú `MANDATORY` chạy trong transaction của lệnh gọi.
+Giao diện Java công khai ở `belongings.api` và bản cài các SPI do module thấp hơn khai báo (research K-02). Kiểu `DieuKien`, `CanCu`, `LyDo`, `NguoiDungHienTai`, `DoiTuong` theo 000, 001, 002. Hàm ghi có ghi chú `MANDATORY` chạy trong transaction của lệnh gọi.
 
 ---
 
@@ -12,24 +12,24 @@ Giao diện Java công khai ở `m12.api` và bản cài các SPI do module th�
 
 | SPI (gói khai báo) | Bản cài của 013 | Dùng bởi |
 | --- | --- | --- |
-| `ThamGiaChuyenTrangThai` (`m01.api`) | Bean `@Order` sau 012. Điều kiện `KT_B_DO_GUI` (`coTheMien = true`) cho `KET_THUC_LUU_TRU` theo `DieuKienDoGui` (K-08); căn cứ liệt kê đồ chặn và đồ Thất lạc có sự cố mở "chặn qua điều kiện (d)". Không có tác động | 001 H-02, 004 T-09 |
-| `MucViecSauQuaDoiPort` (`m02.api`) | `ma() = DO_GUI`; `KHONG_AP_DUNG` / `HOAN_THANH` / `CHUA_HOAN_THANH` (FR-026) | 004 FR-071 |
-| `DoGuiBanGiaoPort` (`m09.api`) | `dangGiu(nhanVienIds)`: đồ có giá trị Đang giữ, người giữ, người cao tuổi, vị trí | 008 FR-039 (g) |
+| `ThamGiaChuyenTrangThai` (`resident.api`) | Bean `@Order` sau 012. Điều kiện `KT_B_DO_GUI` (`coTheMien = true`) cho `KET_THUC_LUU_TRU` theo `DieuKienDoGui` (K-08); căn cứ liệt kê đồ chặn và đồ Thất lạc có sự cố mở "chặn qua điều kiện (d)". Không có tác động | 001 H-02, 004 T-09 |
+| `MucViecSauQuaDoiPort` (`admission.api`) | `ma() = DO_GUI`; `KHONG_AP_DUNG` / `HOAN_THANH` / `CHUA_HOAN_THANH` (FR-026) | 004 FR-071 |
+| `DoGuiBanGiaoPort` (`staffing.api`) | `dangGiu(nhanVienIds)`: đồ có giá trị Đang giữ, người giữ, người cao tuổi, vị trí | 008 FR-039 (g) |
 | `LoaiYeuCauHandler` (000) | `M12.XU_LY_DO_KHONG_NGUOI_NHAN`: `choTuDuyet = false`, `kiemTraDieuKienApDung` loại đồ đã đổi trạng thái, `apDung` ghi bản ghi `XU_LY` (K-09) | 000 FR-031 |
 | `DinhChinhDuocProvider` (000) | `M12.BAN_GIAO_DO_GUI` (không gắn tầng; giới hạn FR-011a; `sauKhiDinhChinh` tính lại đồ), `M12.PHIEU_KIEM_KE` | 000 FR-026 (c) |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | data-model; bản ghi bàn giao thuộc danh sách bảo vệ BR-M15-03 | 000 |
 | `GanPhamViProvider` (002) | `M12.DO_GUI`, `M12.XAC_NHAN_NGUOI_NHAN`, `M12.DONG_Y_TU_GIU`: người cao tuổi; `M12.PHIEU_KIEM_KE`: toàn viện | 002 FR-034 |
 | `QuyenTepProvider` (`common.tep`) | `M12.ANH_DO_GUI`: Hành chính, Điều dưỡng (phạm vi), Quản lý viện, Trưởng tầng (phạm vi), người thân có `xemDoGui`; `M12.BAN_KY`, `M12.BIEN_BAN`: Hành chính, Quản lý viện | NFR-08, BR-M12-09 |
-| `DoGuiKenhNctPort` (`m10.api`) *(bổ sung 2026-10-18)* | `dangGiu(nctId)`: Đang giữ, Đang được sử dụng; tên, trạng thái, ảnh (K-16); `M12.ANH_DO_GUI` thêm người cao tuổi chủ đồ | 012 FR-083 (e) |
+| `DoGuiKenhNctPort` (`family.api`) *(bổ sung 2026-10-18)* | `dangGiu(nctId)`: Đang giữ, Đang được sử dụng; tên, trạng thái, ảnh (K-16); `M12.ANH_DO_GUI` thêm người cao tuổi chủ đồ | 012 FR-083 (e) |
 
-### 1.2. `m12.api.DoGuiApi` (đọc; 004 hiển thị căn cứ, 016)
+### 1.2. `belongings.api.DoGuiApi` (đọc; 004 hiển thị căn cứ, 016)
 
 ```java
 DieuKienDoGuiView dieuKien(long nctId);                 // FR-025: DAT | CHUA_DAT, danh sách đồ chặn, đồ Thất lạc có sự cố mở
 List<DoGuiView> theoNguoiCaoTuoi(long nctId);           // trạng thái, người giữ, vị trí, bản ghi gần nhất (SC-008)
 ```
 
-### 1.3. `m12.api.DoGuiThongKeApi` (016; Q-194 giai đoạn sau)
+### 1.3. `belongings.api.DoGuiThongKeApi` (016; Q-194 giai đoạn sau)
 
 ```java
 Stream<DoGuiBaoCaoView> theoKy(PhamViLoc phamVi, LocalDate tu, LocalDate den);   // thất lạc, hư hỏng, chưa trả sau kết thúc
@@ -71,4 +71,4 @@ Stream<PhieuKiemKeView> kiemKe(String maKy);
 | `NguoiCaoTuoiDaChuyenTrangThai` (001) | Vào trạng thái cuối: bắt đầu nhắc CFG-M12-02 (trừ Qua đời, theo 004 FR-072) | FR-027 |
 | `QuanHeDaDoi`, `QuyenNguoiThanDaDoi` (012) | Không đổi dữ liệu; quyền xét lại lúc dùng | FR-017, FR-030 |
 
-Mọi listener idempotent theo `khoaSuKien` (`su_kien_m12_da_xu_ly`).
+Mọi listener idempotent theo `khoaSuKien` (`su_kien_m12_da_xu_ly`). *(R-15: `su_kien_m12_da_xu_ly` → `moc_da_nhac`)*

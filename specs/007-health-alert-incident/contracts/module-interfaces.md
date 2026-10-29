@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-10 | **Plan**: [../plan.md](../plan.md)
 
-Giao diện Java công khai ở `m06.api` và `m05.api` (research S-01). Module khác chỉ dùng các giao diện này (constitution X). Kiểu `DieuKien`, `CanCu`, `LyDo`, `NguoiDungHienTai`, `DoiTuong` theo 000, 001, 002. Mọi hàm ghi có ghi chú `MANDATORY` chạy trong transaction của lệnh gọi; hàm đọc không khóa.
+Giao diện Java công khai ở `health.api` và `incident.api` (research S-01). Module khác chỉ dùng các giao diện này (constitution X). Kiểu `DieuKien`, `CanCu`, `LyDo`, `NguoiDungHienTai`, `DoiTuong` theo 000, 001, 002. Mọi hàm ghi có ghi chú `MANDATORY` chạy trong transaction của lệnh gọi; hàm đọc không khóa.
 
 Plan làm sau (008, 009, 011, 012, 013, 014, 016) giữ đúng chữ ký hoặc ghi rõ thay đổi.
 
@@ -14,15 +14,15 @@ Plan làm sau (008, 009, 011, 012, 013, 014, 016) giữ đúng chữ ký hoặc 
 
 | SPI (gói khai báo) | Bản cài | Dùng bởi |
 | --- | --- | --- |
-| `ThamGiaChuyenTrangThai` (`m01.api`) | Hai bean, `@Order` sau 006: `m06` rồi `m05`. Điều kiện `KT_D_CANH_BAO_SU_CO` (`coTheMien = true`) cho `KET_THUC_LUU_TRU`; tác động và `canhBao` theo research S-17 | 001 H-02 |
-| `ChiSoApi.ganNhat(nctId)` (`m01.api` khai báo theo plan 001) | `m06`: giá trị hiện hành gần nhất mỗi chỉ số kèm thời điểm | 001 FR-024 |
-| `GiayPhepCoSoApi` (`m15.taikhoan.api`) | `m06`: `coPhamVi(phamVi, ngay)`, `sapHetHan(trongVong)` (S-16) | 002 FR-037 (c), FR-039 |
-| `TinhTrangLayNhiemChoPhanBo` (`m03.api`) | `m05`: `vungDangKhoanh(t)` (tập tầng, khu vực); `thuocDanhSach(nctId, t)` = nghi nhiễm hoặc tiếp xúc | 003 FR-009, FR-045 |
-| `MucViecSauQuaDoiPort` (`m02.api`) | `m05`: `ma() = CANH_BAO_SU_CO` (S-17) | 004 FR-071 |
-| `NguonCongViecPort` (`m04.api`) | `m06`: `LAN_DO` (lịch đo; trả "theo chỉ định" và mức quan trọng của lịch). `m05`: `THEO_DOI_SAU_NGA` (căn cứ `suCoId`), `THEO_DOI_TIEP_XUC` (căn cứ `nguoiTiepXucId`), `CANH_BAO_UONG_NUOC` (căn cứ `canhBaoId` loại `UONG_NUOC_THIEU` đang mở) | 005 FR-017, FR-023 |
-| `ChiSoPort` (`m04.api`) | `m06`: `ghi(...)` trả `DA_LUU`, `BI_CHAN`, `CHO_DO_LAI` (S-06); giữ đúng chữ ký | 005 FR-034, BR-M04-10 |
-| `CanhBaoDocPort` (`m04.api`) | `m05`: `dangMo(nctIds)`; `theoCongViec(congViecIds)` qua `nguon_canh_bao` loại `CONG_VIEC` | 005 FR-029, FR-046 *(R-15: `nguon_canh_bao` → `su_kien_chung`)* |
-| `NgoaiTuyenHandler` (`m15.taikhoan.api`) | `m06`: `M06.BAN_GHI_CHI_SO` (gồm lần đo lại). Không có handler cho sự cố, kích hoạt khẩn cấp (bắt buộc trực tuyến) | 002 A-11, Q-01 |
+| `ThamGiaChuyenTrangThai` (`resident.api`) | Hai bean, `@Order` sau 006: `health` rồi `incident`. Điều kiện `KT_D_CANH_BAO_SU_CO` (`coTheMien = true`) cho `KET_THUC_LUU_TRU`; tác động và `canhBao` theo research S-17 | 001 H-02 |
+| `ChiSoApi.ganNhat(nctId)` (`resident.api` khai báo theo plan 001) | `health`: giá trị hiện hành gần nhất mỗi chỉ số kèm thời điểm | 001 FR-024 |
+| `GiayPhepCoSoApi` (`administration.taikhoan.api`) | `health`: `coPhamVi(phamVi, ngay)`, `sapHetHan(trongVong)` (S-16) | 002 FR-037 (c), FR-039 |
+| `TinhTrangLayNhiemChoPhanBo` (`roombedallocation.api`) | `incident`: `vungDangKhoanh(t)` (tập tầng, khu vực); `thuocDanhSach(nctId, t)` = nghi nhiễm hoặc tiếp xúc | 003 FR-009, FR-045 |
+| `MucViecSauQuaDoiPort` (`admission.api`) | `incident`: `ma() = CANH_BAO_SU_CO` (S-17) | 004 FR-071 |
+| `NguonCongViecPort` (`care.api`) | `health`: `LAN_DO` (lịch đo; trả "theo chỉ định" và mức quan trọng của lịch). `incident`: `THEO_DOI_SAU_NGA` (căn cứ `suCoId`), `THEO_DOI_TIEP_XUC` (căn cứ `nguoiTiepXucId`), `CANH_BAO_UONG_NUOC` (căn cứ `canhBaoId` loại `UONG_NUOC_THIEU` đang mở) | 005 FR-017, FR-023 |
+| `ChiSoPort` (`care.api`) | `health`: `ghi(...)` trả `DA_LUU`, `BI_CHAN`, `CHO_DO_LAI` (S-06); giữ đúng chữ ký | 005 FR-034, BR-M04-10 |
+| `CanhBaoDocPort` (`care.api`) | `incident`: `dangMo(nctIds)`; `theoCongViec(congViecIds)` qua `nguon_canh_bao` loại `CONG_VIEC` | 005 FR-029, FR-046 *(R-15: `nguon_canh_bao` → `su_kien_chung`)* |
+| `NgoaiTuyenHandler` (`administration.taikhoan.api`) | `health`: `M06.BAN_GHI_CHI_SO` (gồm lần đo lại). Không có handler cho sự cố, kích hoạt khẩn cấp (bắt buộc trực tuyến) | 002 A-11, Q-01 |
 | `DinhChinhDuocProvider` (000) | `M06.BAN_GHI_CHI_SO`, `M06.BAN_GHI_KHAM`, `M05.SU_CO`, `M05.DIEN_BIEN_SU_CO`, `M05.KET_QUA_XAC_NHAN_LAI`, `M05.LUA_CHON_THUC_HIEN` (S-06, S-11, S-13) | 000 R-08 |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | data-model mục 13, 14 | |
 | `GanPhamViProvider` (002) | Mọi loại của 007: người cao tuổi và tầng/khu; sự cố cơ sở vật chất: tầng/khu của sự cố; khoanh vùng: các tầng của vùng | 002 FR-034 |
@@ -30,7 +30,7 @@ Plan làm sau (008, 009, 011, 012, 013, 014, 016) giữ đúng chữ ký hoặc 
 
 **Kiểu `chiTiet` 007 đặt khi gọi 001**: `CHUYEN_VIEN.canCu = { suCoId }` hoặc `{ canhBaoNguyKichId }`, cùng các trường 004 sở hữu (`donViDuaDi`, `duKienTroLai`, `nhanVienBanGiaoId`).
 
-### 1.2. `m06.api.ChiSoApi` (đọc; 005, 007 nội bộ, 008, 012, 016)
+### 1.2. `health.api.ChiSoApi` (đọc; 005, 007 nội bộ, 008, 012, 016)
 
 ```java
 Map<Long, ChiSoGanNhatView> ganNhatMoiLoai(long nctId);                   // giá trị hiện hành (sau đính chính), thời điểm đo; FR-050
@@ -39,20 +39,20 @@ List<BanGhiChiSoView> vuotNguongTrongKhoang(long tangKhuVucId, Instant tu, Insta
 Set<Long> chiSoSinhHieu();                                                 // FR-051
 ```
 
-### 1.3. `m06.api.LichDoApi` (đọc; 005, 016)
+### 1.3. `health.api.LichDoApi` (đọc; 005, 016)
 
 ```java
 List<LichDoView> hieuLuc(long nctId, Instant t);
 List<Instant> mocDo(long lichDoId, Instant tu, Instant den);   // ChuoiMocDo: chỉ để hiển thị, không lập công việc (Q-306)
 ```
 
-### 1.4. `m06.api.SoLienHeVienApi` (009, 007)
+### 1.4. `health.api.SoLienHeVienApi` (009, 007)
 
 ```java
 SoLienHeView hienHanh();   // FR-070: số liên hệ của viện cho thông báo khẩn cấp, tiếp xúc
 ```
 
-### 1.5. `m05.api.CanhBaoBanGiaoApi` (008)
+### 1.5. `incident.api.CanhBaoBanGiaoApi` (008)
 
 ```java
 List<MucBanGiaoView> dangMo(long tangKhuVucId, long caId);
@@ -63,7 +63,7 @@ void khiXacNhanBanGiao(long banGiaoId, long caTruocId, long caSauId, long tangKh
     // chuyển người phụ trách các mục thuộc ca trước và các mục tạm nhận; gỡ dấu tạm nhận; giữ trạng thái, cấp, hạn
 ```
 
-### 1.6. `m05.api.SuCoLenhApi` (011, 013, 014; MANDATORY)
+### 1.6. `incident.api.SuCoLenhApi` (011, 013, 014; MANDATORY)
 
 ```java
 long ghiNhan(GhiNhanSuCo lenh, NguoiDungHienTai nd);
@@ -77,13 +77,13 @@ void tiepNhan(long suCoId, NguoiDungHienTai nd);
     // như POST /su-co/{id}/tiep-nhan; transaction riêng của 009; từ chối thì ném lỗi có maLoi (DA_CO_NGUOI_TIEP_NHAN…)
 ```
 
-`m05.api.CanhBaoLenhApi` (009; bổ sung theo plan 009):
+`incident.api.CanhBaoLenhApi` (009; bổ sung theo plan 009):
 
 ```java
 void tiepNhan(long canhBaoId, NguoiDungHienTai nd);   // như POST /canh-bao/{id}/tiep-nhan (FR-029, FR-036)
 ```
 
-### 1.7. `m05.api.SuCoApi`, `CanhBaoApi` (đọc; 012, 013, 016)
+### 1.7. `incident.api.SuCoApi`, `CanhBaoApi` (đọc; 012, 013, 016)
 
 ```java
 Optional<SuCoView> xem(long suCoId);                  // 013: trạng thái mở/đóng cho điều kiện đồ gửi (013 FR-021, FR-025)
@@ -92,7 +92,7 @@ boolean coMucDangMo(long nctId);                      // cảnh báo hoặc sự
 DauTheoDoiView dau(long nctId, Instant t);            // nghi nhiễm, tiếp xúc, theo dõi sau ngã, nguy kịch: thẻ người cao tuổi (005, 012)
 ```
 
-### 1.8. `m05.api.KhoanhVungApi` (đọc; 003 qua SPI, 012, 014, 016)
+### 1.8. `incident.api.KhoanhVungApi` (đọc; 003 qua SPI, 012, 014, 016)
 
 ```java
 List<VungView> dangChiuTheoPhong(long phongId, Instant t);
@@ -101,7 +101,7 @@ List<VungView> dangChiuTheoNguoi(long nctId, Instant t);   // theo giường đa
 List<VungView> dangKhoanh();                                // dashboard (18.5)
 ```
 
-### 1.9. `m05.api.SucKhoeCongNguoiThanApi` (012; `BanTinSucKhoeApi` bỏ theo Q-396)
+### 1.9. `incident.api.SucKhoeCongNguoiThanApi` (012; `BanTinSucKhoeApi` bỏ theo Q-396)
 
 ```java
 List<SuCoNguoiThanView> suCo(long nctId, long nguoiThanId, Instant tu, Instant den);
@@ -111,7 +111,7 @@ record SuCoNguoiThanView(long suCoId, PhanChungSuCo phanChung, Optional<PhanSucK
 List<ChiSoNguoiThanView> chiSo(long nctId, long nguoiThanId, Instant tu, Instant den);
 ```
 
-### 1.10. `m05.api.CanhBaoThongKeApi`, `m06.api.ChiSoThongKeApi` (016; FR-081)
+### 1.10. `incident.api.CanhBaoThongKeApi`, `health.api.ChiSoThongKeApi` (016; FR-081)
 
 ```java
 Stream<CanhBaoBaoCaoView> canhBao(PhamViLoc phamVi, Instant tu, Instant den);
@@ -125,16 +125,16 @@ Stream<ChiSoBaoCaoView> chiSo(PhamViLoc phamVi, Instant tu, Instant den);
     // lần đo đã xác nhận (lần đo lại thay bản ghi đầu; "chưa đo lại" được tính), mức vượt ngưỡng lúc đo theo thành phần nặng nhất
 ```
 
-### 1.11. Sự kiện `m06` phát (sau commit, qua outbox của 000)
+### 1.11. Sự kiện `health` phát (sau commit, qua outbox của 000)
 
 | Sự kiện | Người nghe | FR |
 | --- | --- | --- |
-| `ChiSoDaXacNhan(banGhiId, nctId, chiSoId, muc, phienBanNguongId, congViecId, thoiDiemDo, nhan)` | `m05` (cảnh báo, sụt cân), 016 | FR-013, FR-014 |
-| `ChiSoDaDinhChinh(banGhiGocId, nctId, chiSoId, mucGoc, mucMoi)` | `m05` | FR-019 |
+| `ChiSoDaXacNhan(banGhiId, nctId, chiSoId, muc, phienBanNguongId, congViecId, thoiDiemDo, nhan)` | `incident` (cảnh báo, sụt cân), 016 | FR-013, FR-014 |
+| `ChiSoDaDinhChinh(banGhiGocId, nctId, chiSoId, mucGoc, mucMoi)` | `incident` | FR-019 |
 | `LichDoDaDoi(lichDoId, nctId)` | 005 (khóa bỏ trùng) | FR-006 |
 | `NhacThieuNguongCaNhan(nctId)` | 009 (Nhẹ, `BAC_SI_TOAN_VIEN`) | FR-025 |
 
-### 1.12. Sự kiện `m05` phát
+### 1.12. Sự kiện `incident` phát
 
 | Sự kiện | Người nghe | FR |
 | --- | --- | --- |
@@ -162,7 +162,7 @@ Stream<ChiSoBaoCaoView> chiSo(PhamViLoc phamVi, Instant tu, Instant den);
 
 Mỗi sự kiện mang khóa `loại + id + mốc` (NFR-04) và, với sự kiện gửi 009, mức, nhóm người nhận, loại thông tin theo research S-19.
 
-### 1.13. Sự kiện `m05.api` cho module làm plan sau phát
+### 1.13. Sự kiện `incident.api` cho module làm plan sau phát
 
 ```java
 record YeuCauTaoCanhBao(long nctId, String loai, MucCanhBao muc, String loaiNguon, long nguonId,
@@ -178,7 +178,7 @@ record YeuCauGhiDienBienCanhBao(String loaiNguon, long nguonId, String maDienBie
 
 ## 2. 007 cần từ module khác
 
-### 2.1. SPI 007 khai báo ở `m05.api`, module khác cài
+### 2.1. SPI 007 khai báo ở `incident.api`, module khác cài
 
 ```java
 interface NhanSuCanhBaoPort {                      // 008 cài; chỉ đọc
@@ -223,11 +223,11 @@ Bean thiếu thì mặc định an toàn: không có `NhanSuCanhBaoPort` thì ng
 
 | Sự kiện | Module | Xử lý | FR |
 | --- | --- | --- | --- |
-| `m04.api.YeuCauCanhBao`, `YeuCauDongCanhBao` | 005 | S-09; công việc căn cứ `LAN_DO` dùng khóa `BO_LO_LAN_DO` | FR-026, FR-032, FR-039b |
-| `m04.api.CongViecDoBiBo(congViecId, nctId, lichDoId, chiSoIds, lyDo, mucQuanTrong)` (bổ sung theo plan này) | 005 | Quy tắc bỏ lỡ lần đo | FR-039b |
-| `m04.api.KetQuaNguDaGhi(ketQuaId, nctId, ngay, nhomGiaTri)` (bổ sung theo plan này; phát cả khi đính chính) | 005 | Quy tắc mất ngủ | FR-039c |
-| `m07.api.YeuCauCanhBao`, `YeuCauDongCanhBao` | 006 | S-09; áp bật/tắt quy tắc `TU_CHOI_THUOC` | FR-026, FR-032 |
-| `m05.api.YeuCauTaoCanhBao`, `YeuCauDongCanhBaoNguon` | 011, 014 | S-09 | FR-026 |
+| `care.api.YeuCauCanhBao`, `YeuCauDongCanhBao` | 005 | S-09; công việc căn cứ `LAN_DO` dùng khóa `BO_LO_LAN_DO` | FR-026, FR-032, FR-039b |
+| `care.api.CongViecDoBiBo(congViecId, nctId, lichDoId, chiSoIds, lyDo, mucQuanTrong)` (bổ sung theo plan này) | 005 | Quy tắc bỏ lỡ lần đo | FR-039b |
+| `care.api.KetQuaNguDaGhi(ketQuaId, nctId, ngay, nhomGiaTri)` (bổ sung theo plan này; phát cả khi đính chính) | 005 | Quy tắc mất ngủ | FR-039c |
+| `medication.api.YeuCauCanhBao`, `YeuCauDongCanhBao` | 006 | S-09; áp bật/tắt quy tắc `TU_CHOI_THUOC` | FR-026, FR-032 |
+| `incident.api.YeuCauTaoCanhBao`, `YeuCauDongCanhBaoNguon` | 011, 014 | S-09 | FR-026 |
 | `PhanBoDaDinhChinh(phanBoId, truoc, sau)` | 003 | `DanhSachTiepXucCanXemLai` | FR-061, Q-274 |
 | `ThamSoDaDoi(CFG-M05-*, CFG-M06-*)` | 000 | Xóa bộ đệm; không tính lại kết quả cũ | FR-002, Edge Case |
 

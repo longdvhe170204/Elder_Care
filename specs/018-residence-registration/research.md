@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## Z-01. Vị trí trong backend
 
-**Quyết định**: Feature 018 là phần 6.10 của module M02 (UC-80, UC-81; BR-M02-11 → 14), thêm gói `com.cambae.backend.m02.khaibao` cạnh các gói của 004. Gói dùng dịch vụ đọc hợp đồng của 004 trong cùng M02 qua lớp nội bộ (ArchUnit cho phép giữa các gói M02), không qua `m02.api`.
+**Quyết định**: Feature 018 là phần 6.10 của module M02 (UC-80, UC-81; BR-M02-11 → 14), thêm gói `com.eldercare.backend.admission.khaibao` cạnh các gói của 004. Gói dùng dịch vụ đọc hợp đồng của 004 trong cùng M02 qua lớp nội bộ (ArchUnit cho phép giữa các gói M02), không qua `admission.api`.
 
 **Lý do**: Constitution X chia gói theo M01–M15; Phụ lục 26.2 đặt UC-80, UC-81 ở 018, cùng Module 02 với 004 (mẫu 005 ↔ 014, 008 ↔ 015).
 
@@ -18,7 +18,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## Z-02. Chiều phụ thuộc
 
-**Quyết định**: 018 dùng: nội bộ M02 (hợp đồng, phụ lục, loại lưu trú, ngày bắt đầu/kết thúc; sự kiện nội bộ `TiepNhanHoanTat`, `PhuLucDaApDung`, `HopDongDaDoiTrangThai`, `HoSoKetThucDaHoanTat`, `QuaDoiDaGhiNhan`); 001 (`NguoiCaoTuoiApi.trangThai`, `TrangThaiNguoiCaoTuoiApi` lịch sử, địa chỉ thường trú trên hồ sơ để Hành chính đối chiếu); 000 (tham số, nhật ký, đính chính, tệp). Cài bean `ThamGiaChuyenTrangThai` (`m01.api`) cho tác động khi trạng thái cuối. Phát thông báo (009); 016 đọc `KhaiBaoThongKeApi` (`m02.api`). Không có SPI mới.
+**Quyết định**: 018 dùng: nội bộ M02 (hợp đồng, phụ lục, loại lưu trú, ngày bắt đầu/kết thúc; sự kiện nội bộ `TiepNhanHoanTat`, `PhuLucDaApDung`, `HopDongDaDoiTrangThai`, `HoSoKetThucDaHoanTat`, `QuaDoiDaGhiNhan`); 001 (`NguoiCaoTuoiApi.trangThai`, `TrangThaiNguoiCaoTuoiApi` lịch sử, địa chỉ thường trú trên hồ sơ để Hành chính đối chiếu); 000 (tham số, nhật ký, đính chính, tệp). Cài bean `ThamGiaChuyenTrangThai` (`resident.api`) cho tác động khi trạng thái cuối. Phát thông báo (009); 016 đọc `KhaiBaoThongKeApi` (`admission.api`). Không có SPI mới.
 
 ---
 
@@ -37,7 +37,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 **Quyết định**:
 - `khai_bao_tam_tru` (nhóm 2; nội dung nộp, kết quả, xóa là nhóm 3 qua cột đặt một lần và đính chính 000): trạng thái `CAN_KHAI_BAO | DA_NOP | DA_XAC_NHAN | HET_HAN | DA_XOA | DUOC_THAY_THE | DA_HUY`. *(R-15: `khai_bao_tam_tru` → `ho_so_chung`)*
 - DBR-33: cột sinh `khoa_dang_xu_ly = IF(trang_thai IN ('CAN_KHAI_BAO','DA_NOP'), nct_id, NULL)` `UNIQUE`; `khoa_xac_nhan = IF(trang_thai = 'DA_XAC_NHAN', nct_id, NULL)` `UNIQUE`. Ghi chấp nhận của khai báo mới chuyển khai báo Đã xác nhận cũ sang `DUOC_THAY_THE` trước trong cùng transaction (khóa `khai_bao_nct`). *(R-15: `khai_bao_nct` → `trang_thai_nct`)*
-- Ghi bị từ chối: về `CAN_KHAI_BAO`, hạn mới = thời điểm ghi + CFG-M02-12; lần nộp, lý do lưu ở `khai_bao_lan_nop` (nhóm 3).
+- Ghi bị từ chối: về `CAN_KHAI_BAO`, hạn mới = thời điểm ghi + CFG-M02-12; lần nộp, lý do lưu ở `khai_bao_lan_nop` (nhóm 3). *(R-15: `khai_bao_lan_nop` → `su_kien_chung`)*
 - Xác nhận "thường trú cùng xã/phường" (FR-001): cột `thuong_tru_cung_xa` + ghi chú; chuyển loại; cờ ở hồ sơ khai báo (`khai_bao_nct.thuong_tru_cung_xa`) để khai báo sau dùng loại Thông báo lưu trú; gỡ bằng đính chính khi còn Cần khai báo.
 - Đính chính kết quả ghi nhầm: `DinhChinhDuocProvider` `M02.KHAI_BAO` (không gắn tầng).
 

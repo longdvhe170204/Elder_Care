@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Các q
 
 ## A-01. Vị trí trong backend
 
-**Quyết định**: Feature 002 nằm ở module M15, gói `com.cambae.backend.m15.taikhoan`, chia bốn gói con:
+**Quyết định**: Feature 002 nằm ở module M15, gói `com.eldercare.backend.administration.taikhoan`, chia bốn gói con:
 
 | Gói con | Nội dung |
 | --- | --- |
@@ -19,7 +19,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Các q
 
 Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.api` công khai các giao diện mà 000 đã khai báo trước (`NguoiDungHienTai`, `QuyenApi`, `PhamViApi`, `QuyenXemTruongApi`, `NguoiDuyetApi`), giữ đúng chữ ký ở [../000-shared-foundation/contracts/module-interfaces.md](../000-shared-foundation/contracts/module-interfaces.md) mục 2.
 
-**Lý do**: Phụ lục 26.2 đặt UC-68, UC-70 ở feature 002 thuộc M15; 000 đã dành chỗ `m15/taikhoan` (plan 000, Project Structure).
+**Lý do**: Phụ lục 26.2 đặt UC-68, UC-70 ở feature 002 thuộc M15; 000 đã dành chỗ `administration/taikhoan` (plan 000, Project Structure).
 
 **Phương án đã cân nhắc**: Tách xác thực thành module riêng bị loại vì sinh module ngoài M01–M15 (constitution X).
 

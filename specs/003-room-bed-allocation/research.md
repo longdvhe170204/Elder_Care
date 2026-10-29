@@ -9,7 +9,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Các q
 ## G-01. Vị trí trong backend và ranh giới với feature 019
 
 **Quyết định**:
-- Feature 003 là phần "phòng và giường" của module M03 (mục 7). Gói `com.cambae.backend.m03` có các gói con:
+- Feature 003 là phần "phòng và giường" của module M03 (mục 7). Gói `com.eldercare.backend.roombedallocation` có các gói con:
   - `cocau`: khu vực, tầng, loại phòng, phòng, giường (thuộc tính danh mục), danh mục lý do chuyển giường;
   - `giuong`: trạng thái giường, bảng chuyển, lịch sử trạng thái, Xác nhận giường sẵn sàng, Tạm ngừng sử dụng;
   - `phanbo`: phân bổ, chuyển giường, nhập bù, dấu trên phân bổ, tra cứu lịch sử vị trí;
@@ -17,7 +17,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Các q
   - `bantru`: khu nghỉ bán trú, buổi, kiểm tra sức chứa;
   - `lich`: các job của 003 (G-09);
   - `api`: giao diện, DTO, sự kiện, SPI công khai.
-- Tài sản (7.7) cũng thuộc M03. Plan 019 dự kiến đặt phần tài sản ở `m03.taisan`. Hai feature gọi nhau qua giao diện nội bộ của module (`GiuongTheoTaiSanPort` do 003 cài, `TaiSanGiuongPort` do 019 cài; [contracts/module-interfaces.md](contracts/module-interfaces.md) mục 3). ArchUnit cấm `m03.taisan` đọc bảng của `m03.giuong`, `m03.phanbo` và ngược lại. Nếu plan 019 chọn đặt tài sản ở module khác, hai port đổi thành SPI công khai mà không đổi chữ ký.
+- Tài sản (7.7) cũng thuộc M03. Plan 019 dự kiến đặt phần tài sản ở `roombedallocation.taisan`. Hai feature gọi nhau qua giao diện nội bộ của module (`GiuongTheoTaiSanPort` do 003 cài, `TaiSanGiuongPort` do 019 cài; [contracts/module-interfaces.md](contracts/module-interfaces.md) mục 3). ArchUnit cấm `roombedallocation.taisan` đọc bảng của `roombedallocation.giuong`, `roombedallocation.phanbo` và ngược lại. Nếu plan 019 chọn đặt tài sản ở module khác, hai port đổi thành SPI công khai mà không đổi chữ ký.
 
 **Lý do**: Constitution X chia gói theo M01–M15. Đặt cả giường và tài sản giường trong M03 tránh vòng phụ thuộc giữa hai module (Tạo giường ghi tăng tài sản, Q-238; lệnh tài sản đổi trạng thái giường, Q-234), mà vẫn giữ ranh giới feature bằng port và ArchUnit.
 
@@ -32,9 +32,9 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Các q
 | Cặp | Chiều phụ thuộc mã | Cách giữ một chiều |
 | --- | --- | --- |
 | 003 ↔ 001 | 003 → 001 | 003 đọc `NguoiCaoTuoiApi`, `MucChamSocApi`, `TrangThaiNguoiCaoTuoiApi`; 003 cài SPI `ThamGiaChuyenTrangThai` của 001 |
-| 003 ↔ 002 (M15) | 003 → M15 | `PhanBoGiuongApi` mà 002 cần được khai báo trong `m15.taikhoan.api` dưới dạng SPI, M03 cài (chữ ký giữ như plan 002) |
-| 003 ↔ 004 | 004 → 003 | 004 gọi lệnh của 003 (`PhanBoGiuongLenhApi`, `SucChuaBanTruApi`). 003 cần dữ liệu lưu trú của 004 qua SPI `NguonLuuTruChoPhanBo`, `DemLichDenBanTru` khai báo ở `m03.api`, 004 cài |
-| 003 ↔ 007 | 007 → 003 | 007 đọc lịch sử vị trí, gọi tra cứu cùng phòng. 003 cần vùng khoanh vùng và danh sách nghi nhiễm, tiếp xúc qua SPI `TinhTrangLayNhiemChoPhanBo` khai báo ở `m03.api`, 007 cài |
+| 003 ↔ 002 (M15) | 003 → M15 | `PhanBoGiuongApi` mà 002 cần được khai báo trong `administration.taikhoan.api` dưới dạng SPI, M03 cài (chữ ký giữ như plan 002) |
+| 003 ↔ 004 | 004 → 003 | 004 gọi lệnh của 003 (`PhanBoGiuongLenhApi`, `SucChuaBanTruApi`). 003 cần dữ liệu lưu trú của 004 qua SPI `NguonLuuTruChoPhanBo`, `DemLichDenBanTru` khai báo ở `roombedallocation.api`, 004 cài |
+| 003 ↔ 007 | 007 → 003 | 007 đọc lịch sử vị trí, gọi tra cứu cùng phòng. 003 cần vùng khoanh vùng và danh sách nghi nhiễm, tiếp xúc qua SPI `TinhTrangLayNhiemChoPhanBo` khai báo ở `roombedallocation.api`, 007 cài |
 | 003 ↔ 008 | 008 → 003 | 008 kiểm vị trí của phân công. 003 cần biết vị trí còn phân công trỏ vào (FR-005 c) qua SPI `ThamChieuViTri`, 008 cài |
 | 003 → 005, 009, 011, 016 | Một chiều qua sự kiện | 003 phát sự kiện sau commit (G-12) |
 
@@ -78,7 +78,7 @@ Mỗi SPI chưa có bản cài thật thì test dùng bản giả giữ đúng c
 
 **Quyết định**:
 - `giuong.trang_thai` là một trong bảy mã `TRONG`, `DANG_SU_DUNG`, `DANG_GIU_CHO`, `CHO_SAN_SANG`, `DANG_BAO_TRI`, `TAM_NGUNG`, `KHONG_SU_DUNG`. Thuộc tính đi kèm (lý do giữ chỗ, người hoặc hồ sơ được giữ, hạn giữ, hạn xác nhận sẵn sàng, phân bổ vừa đóng) nằm trên cùng dòng, có `CHECK` ràng buộc theo trạng thái (data-model mục 3).
-- Bảng chuyển của spec (mục C) cài thành hằng bảng `BangChuyenTrangThaiGiuong`. Chỉ `GiuongTrangThaiService.chuyen(giuong, suKien, canCu)` (package-private trong `m03.giuong`) được ghi cột `trang_thai`; ArchUnit kiểm. Cặp không có trong bảng trả 409 `CHUYEN_KHONG_HOP_LE`. Không có endpoint đặt trạng thái giường (US4 #10, #11).
+- Bảng chuyển của spec (mục C) cài thành hằng bảng `BangChuyenTrangThaiGiuong`. Chỉ `GiuongTrangThaiService.chuyen(giuong, suKien, canCu)` (package-private trong `roombedallocation.giuong`) được ghi cột `trang_thai`; ArchUnit kiểm. Cặp không có trong bảng trả 409 `CHUYEN_KHONG_HOP_LE`. Không có endpoint đặt trạng thái giường (US4 #10, #11).
 - Mỗi lần chuyển thêm một dòng `lich_su_trang_thai_giuong` (nhóm 3) trong cùng transaction, gồm từ, đến, sự kiện, thời điểm thực tế, thời điểm dự kiến (với việc của Bộ lập lịch), người thực hiện, lý do, căn cứ (FR-016, FR-016a).
 - **Giường về Trống sau bảo trì**: trạng thái đích "Trống, hoặc Tạm ngừng sử dụng nếu giường vào bảo trì từ Tạm ngừng sử dụng" lấy từ dòng lịch sử gần nhất có `den = 'DANG_BAO_TRI'` (spec: "lấy từ lịch sử trạng thái giường").
 - **Chờ sẵn sàng**: khi vào trạng thái này, dòng giường lưu `cho_san_sang_tu`, `han_xac_nhan_san_sang = cho_san_sang_tu + CFG-M03-04` và `phan_bo_vua_dong_id` (rỗng khi vào từ Sử dụng lại, Q-261). `phan_bo_vua_dong_id` cho biết ai vừa rời giường (FR-045) và bảo đảm DBR-26: lệnh Xác nhận giường sẵn sàng chỉ hợp lệ khi giường đang `CHO_SAN_SANG`, nên luôn đến sau lần đóng phân bổ gần nhất.
@@ -285,7 +285,7 @@ Mỗi sự kiện gửi 009 mang mức, nhóm người nhận, loại thông tin
 | 001 `ThamGiaChuyenTrangThai` | `default List<CanhBao> canhBao(NguCanhLenh nc)` | FR-024a (1): cảnh báo trước khi xác nhận Ghi nhận trở về |
 | 001 `TrangThaiNguoiCaoTuoiApi` | `List<KhoangTrangThai> khoangTrangThai(long nctId, Set<TrangThaiNct> tt, Instant tu, Instant den)` | FR-027 (c), FR-036 |
 | 001 sự kiện | `ThongTinCaNhanDaCapNhat(nctId, truongDaDoi)` | FR-034, Edge Case đổi giới tính |
-| 002 `PhanBoGiuongApi` | Khai báo trong `m15.taikhoan.api` dưới dạng SPI, M03 cài; chữ ký giữ nguyên | Tránh vòng M15 ↔ M03 (G-02) |
+| 002 `PhanBoGiuongApi` | Khai báo trong `administration.taikhoan.api` dưới dạng SPI, M03 cài; chữ ký giữ nguyên | Tránh vòng M15 ↔ M03 (G-02) |
 
 Các bổ sung đã được ghi vào file `contracts/module-interfaces.md` của 000, 001, 002 kèm dòng "bổ sung theo plan 003".
 

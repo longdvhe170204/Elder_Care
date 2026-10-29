@@ -10,20 +10,20 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## P-01. Vị trí trong backend
 
-**Quyết định**: Feature 010 thuộc module M11 – Chi phí phát sinh (mục 15), gói `com.cambae.backend.m11`. Feature 017 (số dư, 15.9) và phần mua sắm của 019 (15.10) cũng thuộc M11; plan của chúng thêm gói con vào cùng `m11` và dùng port nội bộ (P-12), như mẫu 003 ↔ 019 và 008 ↔ 015.
+**Quyết định**: Feature 010 thuộc module M11 – Chi phí phát sinh (mục 15), gói `com.eldercare.backend.billing`. Feature 017 (số dư, 15.9) và phần mua sắm của 019 (15.10) cũng thuộc M11; plan của chúng thêm gói con vào cùng `billing` và dùng port nội bộ (P-12), như mẫu 003 ↔ 019 và 008 ↔ 015.
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
-| `m11.ky` | Kỳ chi phí của viện, bảng chi phí (thường, bổ sung, kỳ cuối), gửi chốt, chốt | A, G |
-| `m11.khoan` | Khoản chi phí, vòng đời, kiểm tra, duyệt, trả lại, hủy, tính lại, lịch sử | D |
-| `m11.nguon` | Chỉ mục sự kiện tính phí, tra cứu bản ghi nguồn, lập theo sự kiện (từng khoản, hàng loạt), listener nguồn đổi | B |
-| `m11.tinhgia` | Hàm thuần đơn giá và số tiền, thời gian tính phí | C |
-| `m11.dieuchinh` | Khoản điều chỉnh, biến động nguồn sau chốt | F |
-| `m11.muaho` | Đề nghị mua hộ, đồng ý, ghi đã mua | E |
-| `m11.kycuoi` | `KyCuoiPort`, điều kiện chi phí kỳ cuối, bean trạng thái, việc sau qua đời | G |
-| `m11.xuat` | Xuất kế toán | H |
-| `m11.cungcap` | Bảng chi phí cho cổng, tạm tính, tổng chưa chốt, thống kê | H |
-| `m11.lich`, `m11.api` | Job; giao diện công khai, sự kiện | |
+| `billing.ky` | Kỳ chi phí của viện, bảng chi phí (thường, bổ sung, kỳ cuối), gửi chốt, chốt | A, G |
+| `billing.khoan` | Khoản chi phí, vòng đời, kiểm tra, duyệt, trả lại, hủy, tính lại, lịch sử | D |
+| `billing.nguon` | Chỉ mục sự kiện tính phí, tra cứu bản ghi nguồn, lập theo sự kiện (từng khoản, hàng loạt), listener nguồn đổi | B |
+| `billing.tinhgia` | Hàm thuần đơn giá và số tiền, thời gian tính phí | C |
+| `billing.dieuchinh` | Khoản điều chỉnh, biến động nguồn sau chốt | F |
+| `billing.muaho` | Đề nghị mua hộ, đồng ý, ghi đã mua | E |
+| `billing.kycuoi` | `KyCuoiPort`, điều kiện chi phí kỳ cuối, bean trạng thái, việc sau qua đời | G |
+| `billing.xuat` | Xuất kế toán | H |
+| `billing.cungcap` | Bảng chi phí cho cổng, tạm tính, tổng chưa chốt, thống kê | H |
+| `billing.lich`, `billing.api` | Job; giao diện công khai, sự kiện | |
 
 ---
 
@@ -38,7 +38,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 | 010 → 004 | Cài, đọc, nghe | Cài `KyCuoiPort`, `MucViecSauQuaDoiPort` (`CHI_PHI_KY_CUOI`); đọc `HopDongDocApi`, `DonGiaApi` (gồm `donGiaTaiNgay(…, danhDauThamChieu = true)` MANDATORY), `NgayLuuTruApi`; nghe `NgayLuuTruDaDoi`, `PhuLucDaApDung`, `HoSoKetThuc*`, `NgayNghiBanTruDaDoi`, `BaoVangBanTruDaGhi`, `HopDongDaDoiTrangThai`, `PhienBanDonGiaDaTao` (bổ sung, P-05) |
 | 010 → 005 | Nghe, đọc | `KetQuaCoTinhPhi`, `KetQuaTinhPhiDaDinhChinh`, `TrangThaiCoMatDaXacDinh`, `TrangThaiCoMatDaDoi` |
 | 010 → 006 | Cài, nghe | Cài `DeNghiMuaHoPort`; nghe `SuKienTinhPhiThuoc`, `SuKienTinhPhiThuocDaDieuChinh`, `SuKienTinhPhiThuocDaDinhChinh` |
-| 010 ↔ 011, 012, 014 | Họ → 010 | Họ làm plan sau, phát `m11.api.SuKienTinhPhiNguon`, `SuKienTinhPhiNguonDaDoi` (P-04). Người đại diện đồng ý mua hộ đi qua REST của 010 với kiểm tra `NguoiDaiDienPort` (`m02.api`, 012 cài) |
+| 010 ↔ 011, 012, 014 | Họ → 010 | Họ làm plan sau, phát `billing.api.SuKienTinhPhiNguon`, `SuKienTinhPhiNguonDaDoi` (P-04). Người đại diện đồng ý mua hộ đi qua REST của 010 với kiểm tra `NguoiDaiDienPort` (`admission.api`, 012 cài) |
 | 010 ↔ 017, 019 | Cùng M11 | Port nội bộ (P-12) |
 | 010 → 009, 016 | Sự kiện; đọc | Thông báo cài `CoYeuCauThongBao` (009 B-02); 016 đọc `ChiPhiThongKeApi` |
 
@@ -63,7 +63,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 - **Hai loại nguồn**:
   1. **Tính từ 004, không lưu**: ngày lưu trú (`NgayLuuTruApi.theoKhoang`) và buổi bán trú có lịch hoặc phát sinh (`NgayLuuTruApi.buoiBanTru`, có trạng thái có mặt của 005 và hệ số). Đơn vị tính phí: `NGAY_LUU_TRU:<nct>:<ngay>`, `BUOI_BAN_TRU:<nct>:<ngay>:<buoi>`.
   2. **Có bản ghi ở module nguồn**: 005 (kết quả công việc tính phí, vật phẩm), 006 (liều, lần dùng PRN, lần giao), 011 (suất ăn người thân), 012 (lượt ở lại, mỗi đêm một đơn vị), 014 (lượt điểm danh có phí). 010 giữ **chỉ mục kỹ thuật** `su_kien_tinh_phi` dựng từ sự kiện của các module này: loại nguồn, id, đơn vị, người cao tuổi, ngày phát sinh, thời điểm, dịch vụ/vật phẩm/thuốc, số lượng hiện hành, đã hủy, phiên bản. Chỉ mục chỉ dùng cho tra cứu và cho việc tìm khoản khi nguồn đổi; không phải khoản, không có trạng thái "chưa lập".
-- **Sự kiện của module làm plan sau** (`m11.api`):
+- **Sự kiện của module làm plan sau** (`billing.api`):
   ```java
   record SuKienTinhPhiNguon(String loaiNguon, String nguonId, String donVi, long nctId, Optional<Long> dichVuId,
                             BigDecimal soLuong, LocalDate ngayPhatSinh, Instant thoiDiem, String khoaSuKien) {}
@@ -86,7 +86,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## P-05. Đơn giá và số tiền (mục C, FR-008 → FR-013, BR-M11-02, 03, 09, DBR-16)
 
 **Quyết định**:
-- Hàm thuần trong `m11.tinhgia`:
+- Hàm thuần trong `billing.tinhgia`:
   - `LamTronDong(x)`: nửa lên theo giá trị tuyệt đối (FR-013);
   - `PhiNgayLuuTru(giaThang, soNgayThang, laNgayCuoiThang, heSo)`: phí ngày cơ sở = `LamTronDong(giaThang / soNgay)`, ngày cuối tháng = `giaThang − (soNgay − 1) × co_so` (FR-009); áp hệ số rồi làm tròn;
   - `PhiBuoiBanTru(giaThang, cacBuoiCoLich, buoi, heSo)`: số buổi có lịch theo lịch đến của hợp đồng hiệu lực trừ ngày khu nghỉ, không đếm buổi phát sinh; buổi có lịch cuối nhận chênh lệch;
@@ -146,7 +146,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## P-10. Kỳ cuối, qua đời, điều kiện chi phí (FR-029, FR-034 → FR-036, BR-M11-08, Q-21, Q-26, Q-134, Q-141)
 
 **Quyết định**:
-- `KyCuoiPort` (`m02.api`, 010 cài; MANDATORY trong lệnh hồ sơ kết thúc của 004):
+- `KyCuoiPort` (`admission.api`, 010 cài; MANDATORY trong lệnh hồ sơ kết thúc của 004):
   - `taoKyCuoiNhap(nctId, E)`: lập hoặc đánh dấu bảng thường của kỳ chứa E là kỳ cuối, `den_ngay = E`; thông báo Hành chính; trả `bangId`;
   - `tinhLai(nctId, Emoi)`: kỳ cuối chưa chốt → khoản ngày sau Emoi → `DA_HUY` "đổi ngày kết thúc"; đã chốt → `bien_dong_nguon_sau_chot` loại `DOI_NGAY_KET_THUC` và thông báo; cập nhật `den_ngay`; tính lại điều kiện; *(R-15: `bien_dong_nguon_sau_chot` → `su_kien_chung`)*
   - `huyMocDung(nctId)`: bỏ dấu kỳ cuối, thông báo Hành chính.
@@ -174,7 +174,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## P-12. Port nội bộ M11 cho 017 và 019
 
-**Quyết định**: Gói `m11.cungcap.port`, `m11.muaho.port`; ArchUnit chỉ cho `m11.sodu`, `m11.muasam` dùng:
+**Quyết định**: Gói `billing.cungcap.port`, `billing.muaho.port`; ArchUnit chỉ cho `billing.sodu`, `billing.muasam` dùng:
 
 ```java
 interface ChiPhiChoSoDuPort {               // 010 cài, 017 dùng
@@ -190,7 +190,7 @@ interface SoDuMuaHoPort {                   // 017 cài, 010 dùng (mặc địn
 }
 ```
 
-Sự kiện `BangChiPhiDaChot`, `DeNghiMuaHo*` là sự kiện thường của `m11.api` (017 nghe như module khác). Yêu cầu mua sắm của 019 không sinh khoản (FR-023 Q-284); 010 không cần port cho 019.
+Sự kiện `BangChiPhiDaChot`, `DeNghiMuaHo*` là sự kiện thường của `billing.api` (017 nghe như module khác). Yêu cầu mua sắm của 019 không sinh khoản (FR-023 Q-284); 010 không cần port cho 019.
 
 ---
 

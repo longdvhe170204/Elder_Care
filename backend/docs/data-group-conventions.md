@@ -1,6 +1,6 @@
 # Quy ước nhóm dữ liệu cho bảng và mã
 
-Căn cứ: spec 000 mục A (FR-001 → FR-010), data-model 000 mục 1, research R-05. Mỗi module áp quy ước này cho bảng của mình. Mẫu chạy được ở `src/main/resources/db/migration/demo/V000_90__sample_data.sql` (dữ liệu mẫu, profile `demo`, `test`) và mã mẫu ở `src/test/java/com/cambae/backend/m15/sample/`.
+Căn cứ: spec 000 mục A (FR-001 → FR-010), data-model 000 mục 1, research R-05. Mỗi module áp quy ước này cho bảng của mình. Mẫu chạy được ở `src/main/resources/db/migration/demo/V000_90__sample_data.sql` (dữ liệu mẫu, profile `demo`, `test`) và mã mẫu ở `src/test/java/com/eldercare/backend/administration/sample/`.
 
 ## Nhóm 1 – Danh mục
 

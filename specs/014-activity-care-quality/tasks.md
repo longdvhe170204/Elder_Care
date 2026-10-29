@@ -6,7 +6,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 **Input**: Tài liệu thiết kế ở `specs/014-activity-care-quality/` (plan.md, spec.md, research.md L-01 → L-15, data-model.md, contracts/api-014.yaml, contracts/module-interfaces.md, quickstart.md)
 
-**Prerequisites**: 000, 002 đã xong Phase 2; 005 đã xong (014 thêm gói con vào `m04`, dùng dịch vụ nội bộ công việc, có mặt bán trú, công việc làm lại); 001 (`TrangThaiNguoiCaoTuoiApi` cho điểm danh rời viện/về), 003 (lịch xe ở `m03.api` do 019 cung cấp), 004, 006 (`MangThuocChuyenDiApi`, SPI `ChuyenDiThuocPort`), 007 (`SuCoLenhApi`, `KhoanhVungApi`, `DiemDanhTruyVetPort`), 008 (`CaTrucApi`, `ChuyenDiNhiemVuPort`), 010 (`SuKienTinhPhiNguon`), 011 (`ChuyenDiBuaAnPort`), 012 (`QuyenNguoiThanApi`) đã có `api`.
+**Prerequisites**: 000, 002 đã xong Phase 2; 005 đã xong (014 thêm gói con vào `care`, dùng dịch vụ nội bộ công việc, có mặt bán trú, công việc làm lại); 001 (`TrangThaiNguoiCaoTuoiApi` cho điểm danh rời viện/về), 003 (lịch xe ở `roombedallocation.api` do 019 cung cấp), 004, 006 (`MangThuocChuyenDiApi`, SPI `ChuyenDiThuocPort`), 007 (`SuCoLenhApi`, `KhoanhVungApi`, `DiemDanhTruyVetPort`), 008 (`CaTrucApi`, `ChuyenDiNhiemVuPort`), 010 (`SuKienTinhPhiNguon`), 011 (`ChuyenDiBuaAnPort`), 012 (`QuyenNguoiThanApi`) đã có `api`.
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4.
 
@@ -16,8 +16,8 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
-- Module M04 (phần 014): `BE/m04/{hoatdong,buoi,chuyendi,tinhthan,kiemtra}/`; bổ sung `BE/m04/api/`
+- `BE/` = `backend/src/main/java/com/eldercare/backend/`, `BT/` = `backend/src/test/java/com/eldercare/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- Module M04 (phần 014): `BE/care/{hoatdong,buoi,chuyendi,tinhthan,kiemtra}/`; bổ sung `BE/care/api/`
 - Web `frontend/src/tinh-nang/hoat-dong/{danh-muc,buoi,chuyen-di,tinh-than,kiem-tra-chat-luong}/`, `frontend/src/tinh-nang/cong-nguoi-than/hoat-dong/`; app nhân viên `mobile/lib/nhan-vien/hoat-dong/`; app người thân `mobile/lib/nguoi-than/hoat-dong/`
 
 ---
@@ -26,20 +26,20 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo năm gói con `BE/m04/{hoatdong,buoi,chuyendi,tinhthan,kiemtra}/`; ArchUnit `BT/m04/M04HoatDongArchTest.java`: gói `..lich..` không tạo buổi, danh sách, mục, công việc làm lại, sự cố (Q-306, Q-307) (research L-01)
+- [ ] T001 Tạo năm gói con `BE/care/{hoatdong,buoi,chuyendi,tinhthan,kiemtra}/`; ArchUnit `BT/care/M04HoatDongArchTest.java`: gói `..lich..` không tạo buổi, danh sách, mục, công việc làm lại, sự cố (Q-306, Q-307) (research L-01)
 
 ---
 
 ## Phase 2: Foundational (chặn mọi user story)
 
-**Purpose**: Giao diện mới ở `m04.api`, danh mục, hoạt động, mẫu lặp, khung job, listener.
+**Purpose**: Giao diện mới ở `care.api`, danh mục, hoạt động, mẫu lặp, khung job, listener.
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T002 [P] Bổ sung `BE/m04/api/`: `ChuyenDiNhiemVuLenhApi`, `ChuyenDiThayDoi`, `HoatDongThongKeApi`, sự kiện `BuoiDaHuy`, `BuoiDaDoi`, `BuoiDaKetThuc`; khai báo sự kiện phát cho module khác (`m05.api.YeuCauTaoCanhBao`, `YeuCauGhiDienBienCanhBao`, `m11.api.SuKienTinhPhiNguon`, `m08.api.ChuyenDiDaDoi`) (contracts mục 1.2, 1.3; research L-11); bổ sung 2026-10-18 (009 FR-001a): sự kiện có người nhận là người thân khai `doiTuongThongTin` theo research L-13, test hợp đồng kiểm mọi yêu cầu tới người thân có đối tượng
-- [ ] T003 Tạo `MIG/V014_01__hoat_dong.sql`: `hoat_dong_nct` (`nct_id` khóa chính), `loai_hoat_dong` (`hoat_dong_nhom`, `ngoai_vien`), `nhom_so_thich`, `loai_hoat_dong_nhom_so_thich`, `hoat_dong` (`pham_vi` `TANG|TOAN_VIEN`; giới hạn số lượng; thu phí – dịch vụ 004), `mau_lap_phien_ban` (có lịch sử), `nguoi_thuong_xuyen` (cột sinh `UNIQUE` bản đang hiệu lực), `su_kien_m04hd_da_xu_ly`, `lan_chay_m04hd` (data-model mục 2)
-- [ ] T004 Cài danh mục và hoạt động (Trưởng tầng lập; mẫu đổi theo phiên bản) trong `BE/m04/hoatdong/internal/HoatDongService.java` và controller `/hoat-dong/loai`, `/hoat-dong`, `/{id}`, `/{id}/{lenh}` (research L-04)
-- [ ] T005 Cài khung job `BE/m04/hoatdong/lich/ViecTheoPhutM04HoatDong.java`, `ViecHangNgayM04HoatDong.java` (00:00; ShedLock, chạy bù) và test `BT/m04/ChayBuM04HoatDongIT.java` (research L-15)
+- [ ] T002 [P] Bổ sung `BE/care/api/`: `ChuyenDiNhiemVuLenhApi`, `ChuyenDiThayDoi`, `HoatDongThongKeApi`, sự kiện `BuoiDaHuy`, `BuoiDaDoi`, `BuoiDaKetThuc`; khai báo sự kiện phát cho module khác (`incident.api.YeuCauTaoCanhBao`, `YeuCauGhiDienBienCanhBao`, `billing.api.SuKienTinhPhiNguon`, `nutrition.api.ChuyenDiDaDoi`) (contracts mục 1.2, 1.3; research L-11); bổ sung 2026-10-18 (009 FR-001a): sự kiện có người nhận là người thân khai `doiTuongThongTin` theo research L-13, test hợp đồng kiểm mọi yêu cầu tới người thân có đối tượng
+- [ ] T003 Tạo `MIG/V014_01__hoat_dong.sql`: `hoat_dong_nct` (`nct_id` khóa chính), `loai_hoat_dong` (`hoat_dong_nhom`, `ngoai_vien`), `nhom_so_thich`, `loai_hoat_dong_nhom_so_thich`, `hoat_dong` (`pham_vi` `TANG|TOAN_VIEN`; giới hạn số lượng; thu phí – dịch vụ 004), `mau_lap_phien_ban` (có lịch sử), `nguoi_thuong_xuyen` (cột sinh `UNIQUE` bản đang hiệu lực), `su_kien_m04hd_da_xu_ly`, `lan_chay_m04hd` (data-model mục 2) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `hoat_dong_nct` → `trang_thai_nct`; `loai_hoat_dong`, `nhom_so_thich`, `loai_hoat_dong_nhom_so_thich`, `hoat_dong` → `danh_muc_chung`; `mau_lap_phien_ban`, `nguoi_thuong_xuyen` → `ho_so_chung`; `su_kien_m04hd_da_xu_ly`, `lan_chay_m04hd` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [ ] T004 Cài danh mục và hoạt động (Trưởng tầng lập; mẫu đổi theo phiên bản) trong `BE/care/hoatdong/internal/HoatDongService.java` và controller `/hoat-dong/loai`, `/hoat-dong`, `/{id}`, `/{id}/{lenh}` (research L-04)
+- [ ] T005 Cài khung job `BE/care/hoatdong/lich/ViecTheoPhutM04HoatDong.java`, `ViecHangNgayM04HoatDong.java` (00:00; ShedLock, chạy bù) và test `BT/care/ChayBuM04HoatDongIT.java` (research L-15)
 - [ ] T006 [P] Cài provider: `GanPhamViProvider` (`M04.BUOI`, `M04.DANG_KY`, `M04.CHUYEN_DI`, `M04.SO_THICH`, `M04.KIEM_TRA_CHAT_LUONG`), `PhanLoaiTruongProvider`, `LuuTruProvider`; `ThoiKhoaBieuNguonPort` (005) cho buổi, chuyến trong ngày
 
 **Checkpoint**: Nền 014 sẵn sàng.
@@ -54,12 +54,12 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ### Tests cho User Story 1
 
-- [ ] T007 [P] [US1] Test đơn vị `BT/m04/BuoiTheoMauTest.java` và `BT/m04/BR_M04_21_TaoBuoiTuMauIT.java`, `FR_014a_HetNgayIT.java`: không tự tạo buổi; tạo lại không trùng; hết ngày → `DA_DIEM_DANH` (dấu) hoặc `KHONG_DIEM_DANH`, đăng ký chưa ghi → "Không ghi nhận" (Q1 → Q5)
+- [ ] T007 [P] [US1] Test đơn vị `BT/care/BuoiTheoMauTest.java` và `BT/care/BR_M04_21_TaoBuoiTuMauIT.java`, `FR_014a_HetNgayIT.java`: không tự tạo buổi; tạo lại không trùng; hết ngày → `DA_DIEM_DANH` (dấu) hoặc `KHONG_DIEM_DANH`, đăng ký chưa ghi → "Không ghi nhận" (Q1 → Q5)
 
 ### Implementation cho User Story 1
 
 - [ ] T008 [US1] Tạo bảng `buoi_hoat_dong` (`UNIQUE (hoat_dong_id, bat_dau)` kể cả Đã hủy; `nguon` `MAU|LE`; `trang_thai` `DA_LEN_LICH|DA_DIEM_DANH|KHONG_DIEM_DANH|DA_HUY`), `dang_ky_buoi` (`nguon` `THUONG_XUYEN|THEM_TAY|THEM_LUC_DIEM_DANH`; `trang_thai` `DA_DANG_KY|DA_HUY|DA_DIEM_DANH`) trong `MIG/V014_02__buoi.sql`
-- [ ] T009 [US1] Cài `BE/m04/buoi/internal/BuoiService.java` (tạo từ mẫu kèm đăng ký sẵn, buổi lẻ, dời, hủy; phát `BuoiDaHuy`, `BuoiDaDoi` cho phần công việc "hoạt động" của 005; việc hằng ngày hết ngày) và endpoint `/buoi`, `/buoi/{id}`, `/buoi/{id}/{lenh}`; màn web `frontend/src/tinh-nang/hoat-dong/buoi/` (research L-04)
+- [ ] T009 [US1] Cài `BE/care/buoi/internal/BuoiService.java` (tạo từ mẫu kèm đăng ký sẵn, buổi lẻ, dời, hủy; phát `BuoiDaHuy`, `BuoiDaDoi` cho phần công việc "hoạt động" của 005; việc hằng ngày hết ngày) và endpoint `/buoi`, `/buoi/{id}`, `/buoi/{id}/{lenh}`; màn web `frontend/src/tinh-nang/hoat-dong/buoi/` (research L-04)
 
 **Checkpoint**: Buổi từ mẫu chạy độc lập.
 
@@ -73,11 +73,11 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ### Tests cho User Story 2
 
-- [ ] T010 [P] [US2] Test đơn vị `BT/m04/DieuKienDangKyTest.java` và `BT/m04/BR_M04_15_DangKyIT.java` (hai đăng ký chỗ cuối đồng thời), `FR_016a_DongYVeMuonIT.java`, `FR_021_KhoanhVungIT.java` (Q6 → Q12)
+- [ ] T010 [P] [US2] Test đơn vị `BT/care/DieuKienDangKyTest.java` và `BT/care/BR_M04_15_DangKyIT.java` (hai đăng ký chỗ cuối đồng thời), `FR_016a_DongYVeMuonIT.java`, `FR_021_KhoanhVungIT.java` (Q6 → Q12)
 
 ### Implementation cho User Story 2
 
-- [ ] T011 [US2] Tạo bảng `dong_y_ve_muon` (`cach` `CONG|BAN_KY`; `trang_thai` `HIEU_LUC|DA_RUT|...`) trong `MIG/V014_03__dong_y_ve_muon.sql`; cài `BE/m04/buoi/internal/DangKyService.java` (đăng ký, hủy, hủy tự động; listener `KhoanhVungDaTao`, `DauNghiNhiemDaDoi`) và `DongYVeMuonService.java` (người đại diện qua `QuyenNguoiThanApi`; dời `gio_ve_du_kien_hien_hanh` của 005); bean `ThamGiaChuyenTrangThai` (`@Order` sau 005; trạng thái cuối hủy đăng ký, gỡ thường xuyên) (research L-05) *(R-15: `dong_y_ve_muon` → `ho_so_chung`)*
+- [ ] T011 [US2] Tạo bảng `dong_y_ve_muon` (`cach` `CONG|BAN_KY`; `trang_thai` `HIEU_LUC|DA_RUT|...`) trong `MIG/V014_03__dong_y_ve_muon.sql`; cài `BE/care/buoi/internal/DangKyService.java` (đăng ký, hủy, hủy tự động; listener `KhoanhVungDaTao`, `DauNghiNhiemDaDoi`) và `DongYVeMuonService.java` (người đại diện qua `QuyenNguoiThanApi`; dời `gio_ve_du_kien_hien_hanh` của 005); bean `ThamGiaChuyenTrangThai` (`@Order` sau 005; trạng thái cuối hủy đăng ký, gỡ thường xuyên) (research L-05) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `dong_y_ve_muon` → `ho_so_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 - [ ] T012 [US2] Tạo endpoint `/buoi/{id}/dang-ky`, `/dang-ky/{id}/huy`, `/dong-y-ve-muon`, `/{id}/rut`, `/cong/dong-y-ve-muon`, `/{id}/rut`; màn web đăng ký (cảnh báo cần xác nhận) với test Vitest; app người thân đồng ý về muộn
 
 **Checkpoint**: Đăng ký chạy độc lập.
@@ -92,11 +92,11 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ### Tests cho User Story 3
 
-- [ ] T013 [P] [US3] Test `BT/m04/BR_M04_18_SuKienTinhPhiIT.java`, `FR_031_DinhChinhIT.java`; app `mobile/test/nhan-vien/diem_danh_buoi_test.dart` (20 người trong thời gian SC-009) (Q13 → Q17)
+- [ ] T013 [P] [US3] Test `BT/care/BR_M04_18_SuKienTinhPhiIT.java`, `FR_031_DinhChinhIT.java`; app `mobile/test/nhan-vien/diem_danh_buoi_test.dart` (20 người trong thời gian SC-009) (Q13 → Q17)
 
 ### Implementation cho User Story 3
 
-- [ ] T014 [US3] Tạo bảng `diem_danh_buoi` (nhóm 3; `ket_qua` `CO_MAT|VANG|KHONG_GHI_NHAN`; `ly_do_vang` 5 giá trị) trong `MIG/V014_04__diem_danh_buoi.sql`; cài `BE/m04/buoi/internal/DiemDanhBuoiService.java` (hoàn tất điểm danh; phát `SuKienTinhPhiNguon`/`DaDoi`; `NgoaiTuyenHandler` `M04.DIEM_DANH_BUOI`; `DinhChinhDuocProvider` `M04.DIEM_DANH_BUOI`; `NguonCongViecPort` `BUOI_HOAT_DONG`; `DiemDanhTruyVetPort` cho 007; nhắc CFG-M04-06) và endpoint `POST /buoi/{id}/diem-danh`; app `mobile/lib/nhan-vien/hoat-dong/` (research L-06) *(R-15: `diem_danh_buoi` → `su_kien_chung`)*
+- [ ] T014 [US3] Tạo bảng `diem_danh_buoi` (nhóm 3; `ket_qua` `CO_MAT|VANG|KHONG_GHI_NHAN`; `ly_do_vang` 5 giá trị) trong `MIG/V014_04__diem_danh_buoi.sql`; cài `BE/care/buoi/internal/DiemDanhBuoiService.java` (hoàn tất điểm danh; phát `SuKienTinhPhiNguon`/`DaDoi`; `NgoaiTuyenHandler` `M04.DIEM_DANH_BUOI`; `DinhChinhDuocProvider` `M04.DIEM_DANH_BUOI`; `NguonCongViecPort` `BUOI_HOAT_DONG`; `DiemDanhTruyVetPort` cho 007; nhắc CFG-M04-06) và endpoint `POST /buoi/{id}/diem-danh`; app `mobile/lib/nhan-vien/hoat-dong/` (research L-06) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `diem_danh_buoi` → `su_kien_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 
 **Checkpoint**: Điểm danh chạy độc lập.
 
@@ -104,18 +104,18 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ## Phase 6: User Story 4 – Chuẩn bị và điểm danh rời viện cho hoạt động ngoài viện (Priority: P1)
 
-**Goal**: Chuyến đi: phân công trưởng đoàn và người đi cùng (`ChuyenDiNhiemVuPort` cho 008/002); đánh giá khả năng (Trưởng tầng của tầng người đó); thuốc mang theo (006); lịch xe (019 qua `m03.api`); điều kiện rời viện; điểm danh rời viện gọi `TrangThaiNguoiCaoTuoiApi.thucHien(DIEM_DANH_ROI_VIEN)` trong cùng transaction (FR-033 → FR-040, BR-M04-16).
+**Goal**: Chuyến đi: phân công trưởng đoàn và người đi cùng (`ChuyenDiNhiemVuPort` cho 008/002); đánh giá khả năng (Trưởng tầng của tầng người đó); thuốc mang theo (006); lịch xe (019 qua `roombedallocation.api`); điều kiện rời viện; điểm danh rời viện gọi `TrangThaiNguoiCaoTuoiApi.thucHien(DIEM_DANH_ROI_VIEN)` trong cùng transaction (FR-033 → FR-040, BR-M04-16).
 
 **Independent Test**: "Tham quan chùa" 07:00–13:00 với 4 đăng ký; trưởng đoàn và người đi cùng; 3 Đạt, 1 Không đạt; A có hai liều trong chuyến → thuốc cần mang; rời viện chặn khi chưa chuẩn bị thuốc.
 
 ### Tests cho User Story 4
 
-- [ ] T015 [P] [US4] Test `BT/m04/BR_M04_16_RoiVienIT.java`, `FR_035_NhiemVuIT.java`: rời viện từ hai thiết bị đồng thời; điều kiện (Đạt, thuốc `MangThuocChuyenDiApi.daChuanBi`, lịch xe); 001 chuyển `HOAT_DONG_BEN_NGOAI` cùng transaction, lỗi thì rollback; nghi nhiễm → `KHONG_DI` và báo trưởng đoàn (Q18 → Q25)
+- [ ] T015 [P] [US4] Test `BT/care/BR_M04_16_RoiVienIT.java`, `FR_035_NhiemVuIT.java`: rời viện từ hai thiết bị đồng thời; điều kiện (Đạt, thuốc `MangThuocChuyenDiApi.daChuanBi`, lịch xe); 001 chuyển `HOAT_DONG_BEN_NGOAI` cùng transaction, lỗi thì rollback; nghi nhiễm → `KHONG_DI` và báo trưởng đoàn (Q18 → Q25)
 
 ### Implementation cho User Story 4
 
-- [ ] T016 [US4] Tạo `MIG/V014_05__chuyen_di.sql`: `chuyen_di` (`buoi_id` khóa chính; `trang_thai` `DA_LEN_LICH|DANG_DI|DA_VE|DA_HUY`), `chuyen_di_gia_han` (nhóm 3), `nhiem_vu_chuyen` (`vai` `TRUONG_DOAN|DI_CUNG`), `nguoi_tham_gia` (`trang_thai` 7 giá trị), `danh_gia_kha_nang` (nhóm 3; `ket_qua` `DAT|KHONG_DAT`), `diem_danh_chuyen` (nhóm 3; `loai` `ROI_VIEN|VE`; `thoi_diem_thiet_bi`) (data-model mục 6) *(R-15: `chuyen_di` → `buoi_hoat_dong`; `nguoi_tham_gia` → `dang_ky_buoi`)*
-- [ ] T017 [US4] Cài `BE/m04/chuyendi/internal/ChuyenDiService.java` (phân công, đánh giá, rời viện; phát `ChuyenDiDaDoi`, `ChuyenDiThayDoi`; `ChuyenDiNhiemVuLenhApi` cho 015; `ChuyenDiThuocPort` (006), `ChuyenDiNhiemVuPort` (008), `ChuyenDiBuaAnPort` (011)) (research L-07, L-08)
+- [ ] T016 [US4] Tạo `MIG/V014_05__chuyen_di.sql`: `chuyen_di` (`buoi_id` khóa chính; `trang_thai` `DA_LEN_LICH|DANG_DI|DA_VE|DA_HUY`), `chuyen_di_gia_han` (nhóm 3), `nhiem_vu_chuyen` (`vai` `TRUONG_DOAN|DI_CUNG`), `nguoi_tham_gia` (`trang_thai` 7 giá trị), `danh_gia_kha_nang` (nhóm 3; `ket_qua` `DAT|KHONG_DAT`), `diem_danh_chuyen` (nhóm 3; `loai` `ROI_VIEN|VE`; `thoi_diem_thiet_bi`) (data-model mục 6) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `chuyen_di` → `buoi_hoat_dong`; `nguoi_tham_gia` → `dang_ky_buoi`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [ ] T017 [US4] Cài `BE/care/chuyendi/internal/ChuyenDiService.java` (phân công, đánh giá, rời viện; phát `ChuyenDiDaDoi`, `ChuyenDiThayDoi`; `ChuyenDiNhiemVuLenhApi` cho 015; `ChuyenDiThuocPort` (006), `ChuyenDiNhiemVuPort` (008), `ChuyenDiBuaAnPort` (011)) (research L-07, L-08)
 - [ ] T018 [US4] Tạo endpoint `/chuyen-di/{id}`, `/{id}/phan-cong`, `/{id}/danh-gia`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/hoat-dong/chuyen-di/`; app phần chuyến đi
 
 **Checkpoint**: Chuẩn bị chuyến đi chạy độc lập.
@@ -130,7 +130,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ### Tests cho User Story 5
 
-- [ ] T019 [P] [US5] Test `BT/m04/BR_M04_17_ThieuNguoiIT.java`, `FR_031a_DinhChinhChuyenIT.java`: hai lệnh Báo thiếu người đồng thời → một sự cố; Báo thiếu người chặn khi mất mạng (app); đính chính rời viện/về gọi `MangThuocChuyenDiApi.tinhLaiKhoang` và 001 `HUY_GHI_NHAN_ROI_VIEN` (Q26 → Q33)
+- [ ] T019 [P] [US5] Test `BT/care/BR_M04_17_ThieuNguoiIT.java`, `FR_031a_DinhChinhChuyenIT.java`: hai lệnh Báo thiếu người đồng thời → một sự cố; Báo thiếu người chặn khi mất mạng (app); đính chính rời viện/về gọi `MangThuocChuyenDiApi.tinhLaiKhoang` và 001 `HUY_GHI_NHAN_ROI_VIEN` (Q26 → Q33)
 
 ### Implementation cho User Story 5
 
@@ -148,11 +148,11 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ### Tests cho User Story 6
 
-- [ ] T021 [P] [US6] Test đơn vị `BT/m04/NgayTinhTest.java`, `CapNhatChuoiTest.java`, `TyLeThamGiaTest.java` và `BT/m04/BR_M04_22_CoLapIT.java` (30 kịch bản, SC-007), `FR_051_SoThichIT.java` (Q34 → Q36; bổ sung 2026-10-18, Q-363: mục của người cao tuổi và của người thân cùng nhóm cùng hiện hành, mục mới cùng nhóm cùng nguồn cần xác nhận thay, nguồn người thân không có quan hệ Hiệu lực → 422, cảnh báo đăng ký nêu nguồn)
+- [ ] T021 [P] [US6] Test đơn vị `BT/care/NgayTinhTest.java`, `CapNhatChuoiTest.java`, `TyLeThamGiaTest.java` và `BT/care/BR_M04_22_CoLapIT.java` (30 kịch bản, SC-007), `FR_051_SoThichIT.java` (Q34 → Q36; bổ sung 2026-10-18, Q-363: mục của người cao tuổi và của người thân cùng nhóm cùng hiện hành, mục mới cùng nhóm cùng nguồn cần xác nhận thay, nguồn người thân không có quan hệ Hiệu lực → 422, cảnh báo đăng ký nêu nguồn)
 
 ### Implementation cho User Story 6
 
-- [ ] T022 [US6] Tạo bảng `so_thich` (`muc` `THICH|KHONG_THICH`; `nguon_loai ENUM('NGUOI_CAO_TUOI','NGUOI_THAN','NHAN_VIEN_QUAN_SAT')`, `nguon_nguoi_than_id BIGINT NULL` với `CHECK ((nguon_loai = 'NGUOI_THAN') = (nguon_nguoi_than_id IS NOT NULL))` theo mẫu 001; cột sinh `khoa_hien_hanh` theo (nhóm, nguồn) `UNIQUE`; `trang_thai`; sửa 2026-10-18, Q-363), `chuoi_co_lap` (kỹ thuật) trong `MIG/V014_06__tinh_than.sql`; cài `BE/m04/tinhthan/internal/TinhThanService.java` (sở thích, hồ sơ tinh thần; việc 00:00 cập nhật chuỗi, `YeuCauTaoCanhBao` `NGUY_CO_CO_LAP` Nhẹ một lần mỗi chuỗi) và endpoint `/nguoi-cao-tuoi/{nctId}/so-thich`, `/so-thich/{id}/bo`, `/nguoi-cao-tuoi/{nctId}/ho-so-tinh-than`; màn web `frontend/src/tinh-nang/hoat-dong/tinh-than/` (research L-09)
+- [ ] T022 [US6] Tạo bảng `so_thich` (`muc` `THICH|KHONG_THICH`; `nguon_loai ENUM('NGUOI_CAO_TUOI','NGUOI_THAN','NHAN_VIEN_QUAN_SAT')`, `nguon_nguoi_than_id BIGINT NULL` với `CHECK ((nguon_loai = 'NGUOI_THAN') = (nguon_nguoi_than_id IS NOT NULL))` theo mẫu 001; cột sinh `khoa_hien_hanh` theo (nhóm, nguồn) `UNIQUE`; `trang_thai`; sửa 2026-10-18, Q-363), `chuoi_co_lap` (kỹ thuật) trong `MIG/V014_06__tinh_than.sql`; cài `BE/care/tinhthan/internal/TinhThanService.java` (sở thích, hồ sơ tinh thần; việc 00:00 cập nhật chuỗi, `YeuCauTaoCanhBao` `NGUY_CO_CO_LAP` Nhẹ một lần mỗi chuỗi) và endpoint `/nguoi-cao-tuoi/{nctId}/so-thich`, `/so-thich/{id}/bo`, `/nguoi-cao-tuoi/{nctId}/ho-so-tinh-than`; màn web `frontend/src/tinh-nang/hoat-dong/tinh-than/` (research L-09) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `so_thich` → `ho_so_chung`; `chuoi_co_lap` → `trang_thai_nct`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 
 **Checkpoint**: Tinh thần chạy độc lập.
 
@@ -166,11 +166,11 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ### Tests cho User Story 7
 
-- [ ] T023 [P] [US7] Test đơn vị `BT/m04/CongViecDuDieuKienTest.java`, `SoMucToiThieuTest.java`, `NguoiKiemTraTest.java` và `BT/m04/BR_M04_23_KiemTraChatLuongIT.java`, `FR_066_NguoiKiemTraIT.java` (Q37 → Q43)
+- [ ] T023 [P] [US7] Test đơn vị `BT/care/CongViecDuDieuKienTest.java`, `SoMucToiThieuTest.java`, `NguoiKiemTraTest.java` và `BT/care/BR_M04_23_KiemTraChatLuongIT.java`, `FR_066_NguoiKiemTraIT.java` (Q37 → Q43)
 
 ### Implementation cho User Story 7
 
-- [ ] T024 [US7] Tạo bảng `danh_sach_kiem_tra` (`UNIQUE (ca_id, tang_khu_vuc_id)`), `muc_kiem_tra` (`cong_viec_id UNIQUE`; `trang_thai` `CHO_KIEM_TRA|DAT|KHONG_DAT|KHONG_KIEM_TRA_DUOC|QUA_HAN_KIEM_TRA`), `ca_khong_danh_sach` (nhóm 3) trong `MIG/V014_07__kiem_tra.sql`; cài `BE/m04/kiemtra/internal/KiemTraChatLuongService.java` (kiểm tỷ lệ khi lập; Không đạt gọi lệnh lập công việc làm lại của 005 cùng transaction; `KetQuaKiemTraPort`; `NguonCongViecPort` `LAM_LAI`; `DinhChinhDuocProvider` `M04.KET_QUA_KIEM_TRA`; việc theo phút hết ca) (research L-10) *(R-15: `danh_sach_kiem_tra` → `ho_so_chung`; `muc_kiem_tra` → `su_kien_chung`)*
+- [ ] T024 [US7] Tạo bảng `danh_sach_kiem_tra` (`UNIQUE (ca_id, tang_khu_vuc_id)`), `muc_kiem_tra` (`cong_viec_id UNIQUE`; `trang_thai` `CHO_KIEM_TRA|DAT|KHONG_DAT|KHONG_KIEM_TRA_DUOC|QUA_HAN_KIEM_TRA`), `ca_khong_danh_sach` (nhóm 3) trong `MIG/V014_07__kiem_tra.sql`; cài `BE/care/kiemtra/internal/KiemTraChatLuongService.java` (kiểm tỷ lệ khi lập; Không đạt gọi lệnh lập công việc làm lại của 005 cùng transaction; `KetQuaKiemTraPort`; `NguonCongViecPort` `LAM_LAI`; `DinhChinhDuocProvider` `M04.KET_QUA_KIEM_TRA`; việc theo phút hết ca) (research L-10) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `danh_sach_kiem_tra` → `ho_so_chung`; `muc_kiem_tra` → `su_kien_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 - [ ] T025 [US7] Tạo endpoint `/kiem-tra-chat-luong/ca/{caId}`, `/muc-kiem-tra/{id}/ket-qua`; màn web `frontend/src/tinh-nang/hoat-dong/kiem-tra-chat-luong/` (không xếp hạng công việc) với test Vitest
 
 **Checkpoint**: Mọi user story của 014 chạy độc lập.
@@ -179,11 +179,11 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ## Phase 10: Polish & Cross-Cutting
 
-- [ ] T031 [P] *(Bổ sung 2026-10-18, Q-366, Q-369)* Test `BT/m04/FR_068a_KenhNguoiCaoTuoiIT.java`, `FR_071_NhacBuoiNguoiCaoTuoiIT.java`, `SoThichTuPhanHoiIT.java` (quickstart H1 → H4)
-- [ ] T032 *(Bổ sung 2026-10-18)* Cài `HoatDongKenhNctPortImpl`, `ChuyenDiSosPortImpl` trong `BE/m04/hoatdong/internal/` (research L-16)
+- [ ] T031 [P] *(Bổ sung 2026-10-18, Q-366, Q-369)* Test `BT/care/FR_068a_KenhNguoiCaoTuoiIT.java`, `FR_071_NhacBuoiNguoiCaoTuoiIT.java`, `SoThichTuPhanHoiIT.java` (quickstart H1 → H4)
+- [ ] T032 *(Bổ sung 2026-10-18)* Cài `HoatDongKenhNctPortImpl`, `ChuyenDiSosPortImpl` trong `BE/care/hoatdong/internal/` (research L-16)
 - [ ] T033 *(Bổ sung 2026-10-18)* Job nhắc buổi trong ngày cho nhóm `NguoiCaoTuoi` (00:05 và khi đăng ký trong ngày); thêm `so_thich.phan_hoi_id` (`MIG/V014_08__nguoi_cao_tuoi.sql`) và phát `YKienDaGhiTuPhanHoi`
 
-- [ ] T026 [P] Cài cổng người thân `GET /cong/nguoi-cao-tuoi/{nctId}/hoat-dong` (`QuyenNguoiThanApi`) và test `BT/m04/FR_068_CongHoatDongIT.java`; app `mobile/lib/nguoi-than/hoat-dong/` (research L-12)
+- [ ] T026 [P] Cài cổng người thân `GET /cong/nguoi-cao-tuoi/{nctId}/hoat-dong` (`QuyenNguoiThanApi`) và test `BT/care/FR_068_CongHoatDongIT.java`; app `mobile/lib/nguoi-than/hoat-dong/` (research L-12)
 - [ ] T027 [P] Cài `HoatDongThongKeApi` (016); mở rộng `BT/common/HopDongApiTest.java` với `specs/014-activity-care-quality/contracts/api-014.yaml`
 - [ ] T028 Thay bản giả SPI 014 cài ở test 005, 006, 007, 008, 011, 012 (`NguonCongViecPort` `BUOI_HOAT_DONG`/`LAM_LAI`, `KetQuaKiemTraPort`, `ChuyenDiThuocPort`, `DiemDanhTruyVetPort`, `ChuyenDiNhiemVuPort`, `ChuyenDiBuaAnPort`) và chạy lại
 - [ ] T029 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5

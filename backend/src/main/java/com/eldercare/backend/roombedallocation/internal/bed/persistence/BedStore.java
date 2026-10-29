@@ -1,0 +1,149 @@
+package com.eldercare.backend.roombedallocation.internal.bed.persistence;
+
+import com.eldercare.backend.roombedallocation.internal.bed.domain.Bed;
+import jakarta.persistence.EntityManager;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+/** T016: ghi thuộc tính giường, không có SQL ghi cột state. */
+@Repository
+public class BedStore {
+    private final EntityManager entities;
+    private final JdbcTemplate jdbc;
+    private final com.eldercare.backend.roombedallocation.internal.allocation.persistence.AllocationStore allocations;
+
+    public BedStore(
+            EntityManager entities,
+            JdbcTemplate jdbc,
+            com.eldercare.backend.roombedallocation.internal.allocation.persistence.AllocationStore allocations) {
+        this.entities = entities;
+        this.jdbc = jdbc;
+        this.allocations = allocations;
+    }
+
+    public Bed create(long roomId, String code) {
+        var bed = new Bed(roomId, code);
+        entities.persist(bed);
+        entities.flush();
+        return bed;
+    }
+
+    public long usableBeds(long roomId) {
+        return jdbc.queryForObject("SELECT COUNT(*) FROM bed WHERE room_id=? AND state<>'RETIRED'", Long.class, roomId);
+    }
+
+    public void refresh(Bed bed) {
+        entities.refresh(bed);
+    }
+
+    public Bed lock(long id) {
+        allocations.guardRooms(java.util.List.of(id));
+        var bed = entities.find(Bed.class, id, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+        if (bed == null) throw new com.eldercare.backend.common.error.NotFoundException();
+        return bed;
+    }
+
+    public void flush() {
+        entities.flush();
+    }
+
+    public boolean hasFutureAllocation(long bedId) {
+        return jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM v_current_allocation WHERE bed_id=? AND status='FUTURE'",
+                        Long.class,
+                        bedId)
+                > 0;
+    }
+
+    public java.util.List<com.eldercare.backend.roombedallocation.internal.bed.domain.BedHistoryEntry> history(
+            long bedId, long after) {
+        return jdbc.query(
+                "SELECT * FROM bed_state_history WHERE bed_id=? AND id>? ORDER BY id",
+                (rs, i) -> new com.eldercare.backend.roombedallocation.internal.bed.domain.BedHistoryEntry(
+                        rs.getLong("id"),
+                        rs.getString("from_state") == null
+                                ? null
+                                : com.eldercare.backend.roombedallocation.api.dto.BedStatus.valueOf(
+                                        rs.getString("from_state")),
+                        com.eldercare.backend.roombedallocation.api.dto.BedStatus.valueOf(rs.getString("to_state")),
+                        rs.getString("event"),
+                        instant(rs.getObject("occurred_at", java.time.LocalDateTime.class)),
+                        instant(rs.getObject("planned_at", java.time.LocalDateTime.class)),
+                        rs.getBoolean("executed_late"),
+                        rs.getObject("actor_id", Long.class),
+                        rs.getString("reason"),
+                        rs.getString("basis_type"),
+                        rs.getLong("basis_id"),
+                        rs.getObject("disinfected", Boolean.class),
+                        rs.getObject("ppe_used", Boolean.class),
+                        rs.getString("note")),
+                bedId,
+                after);
+    }
+
+    public java.util.Optional<com.eldercare.backend.roombedallocation.internal.bed.domain.BedDetails> details(long id) {
+        return rows(" WHERE b.id=?", java.util.List.of(id)).stream().findFirst();
+    }
+
+    public java.util.List<com.eldercare.backend.roombedallocation.internal.bed.domain.BedDetails> list(
+            Long areaId,
+            Long floorId,
+            Long roomId,
+            java.util.List<com.eldercare.backend.roombedallocation.api.dto.BedStatus> states) {
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        java.util.List<Object> args = new java.util.ArrayList<>();
+        if (areaId != null) {
+            where.append(" AND a.id=?");
+            args.add(areaId);
+        }
+        if (floorId != null) {
+            where.append(" AND f.id=?");
+            args.add(floorId);
+        }
+        if (roomId != null) {
+            where.append(" AND r.id=?");
+            args.add(roomId);
+        }
+        if (states != null && !states.isEmpty()) {
+            where.append(" AND b.state IN (")
+                    .append(String.join(",", java.util.Collections.nCopies(states.size(), "?")))
+                    .append(")");
+            states.forEach(s -> args.add(s.name()));
+        }
+        return rows(where.toString(), args);
+    }
+
+    private java.util.List<com.eldercare.backend.roombedallocation.internal.bed.domain.BedDetails> rows(
+            String where, java.util.List<Object> args) {
+        return jdbc.query(
+                "SELECT b.*,a.id area_id,a.name area_name,f.id floor_id,f.name floor_name,r.name room_name FROM bed b JOIN room r ON r.id=b.room_id JOIN floor f ON f.id=r.floor_id JOIN area a ON a.id=f.area_id"
+                        + where + " ORDER BY b.id",
+                (rs, i) -> new com.eldercare.backend.roombedallocation.internal.bed.domain.BedDetails(
+                        rs.getLong("id"),
+                        rs.getLong("room_id"),
+                        rs.getString("code"),
+                        com.eldercare.backend.roombedallocation.api.dto.BedStatus.valueOf(rs.getString("state")),
+                        rs.getInt("version"),
+                        new com.eldercare.backend.roombedallocation.api.dto.LocationView(
+                                rs.getLong("area_id"),
+                                rs.getString("area_name"),
+                                rs.getLong("floor_id"),
+                                rs.getString("floor_name"),
+                                rs.getLong("room_id"),
+                                rs.getString("room_name"),
+                                rs.getLong("id"),
+                                rs.getString("code")),
+                        rs.getString("hold_reason"),
+                        rs.getObject("hold_resident_id", Long.class),
+                        instant(rs.getObject("hold_until", java.time.LocalDateTime.class)),
+                        instant(rs.getObject("ready_deadline", java.time.LocalDateTime.class)),
+                        false,
+                        null,
+                        java.util.List.of()),
+                args.toArray());
+    }
+
+    private java.time.Instant instant(java.time.LocalDateTime value) {
+        return value == null ? null : value.toInstant(java.time.ZoneOffset.UTC);
+    }
+}

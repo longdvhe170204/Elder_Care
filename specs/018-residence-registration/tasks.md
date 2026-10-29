@@ -16,15 +16,15 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
-- Gói `BE/m02/khaibao/{internal,web,lich}/`; bổ sung `BE/m02/api/KhaiBaoThongKeApi.java`
+- `BE/` = `backend/src/main/java/com/eldercare/backend/`, `BT/` = `backend/src/test/java/com/eldercare/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- Gói `BE/admission/khaibao/{internal,web,lich}/`; bổ sung `BE/admission/api/KhaiBaoThongKeApi.java`
 - Web `frontend/src/tinh-nang/khai-bao-tam-tru/`
 
 ---
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo gói `BE/m02/khaibao/{internal,web,lich}/`; ArchUnit `BT/m02/KhaiBaoArchTest.java`: gói `..lich..` không tạo khai báo (Q-306) (research Z-01)
+- [ ] T001 Tạo gói `BE/admission/khaibao/{internal,web,lich}/`; ArchUnit `BT/admission/KhaiBaoArchTest.java`: gói `..lich..` không tạo khai báo (Q-306) (research Z-01)
 
 ---
 
@@ -34,9 +34,9 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T002 Tạo `MIG/V018_01__khai_bao.sql`: `khai_bao_nct` (`nct_id` khóa chính; `thuong_tru_cung_xa`; `phien_ban`), `khai_bao_tam_tru` (`loai` `DANG_KY_TAM_TRU|THONG_BAO_LUU_TRU`; `la_gia_han`; `trang_thai` `CAN_KHAI_BAO|DA_NOP|DA_XAC_NHAN|HET_HAN|DA_XOA|DUOC_THAY_THE|DA_HUY`; `ngay_het_han` bắt buộc khi Đăng ký tạm trú được chấp nhận; cột sinh `khoa_dang_xu_ly`, `khoa_xac_nhan` `UNIQUE`), `khai_bao_lan_nop` (nhóm 3; `kenh` `CONG_DICH_VU_CONG|TRUC_TIEP`; `ket_qua` `CHO|CHAP_NHAN|TU_CHOI` đặt một lần), `nghia_vu_khai_bao` (`moc_loai` `HOAN_TAT_TIEP_NHAN|NOI_TRU_HIEU_LUC|PHU_LUC_GIA_HAN|HET_HAN`), `nhac_khai_bao` (`UNIQUE (loai, nct_id, ngay)`) (data-model mục 2 → 4) *(R-15: `khai_bao_nct`, `nghia_vu_khai_bao` → `trang_thai_nct`; `khai_bao_tam_tru` → `ho_so_chung`)*
-- [ ] T003 [P] Cài hàm thuần `BE/m02/khaibao/internal/TongThoiGianLuuTru.java`, `LoaiKhaiBao.java` (thời gian lưu trú cộng dồn; CFG-M02-11) và test `BT/m02/TongThoiGianLuuTruTest.java`, `LoaiKhaiBaoTest.java` (research Z-03)
-- [ ] T004 Cài khung job `BE/m02/khaibao/lich/ViecKhaiBao.java` (ShedLock, chạy bù, không nhắc trùng) và test `BT/m02/ChayBuM02KhaiBaoIT.java` (research Z-06)
+- [ ] T002 Tạo `MIG/V018_01__khai_bao.sql`: `khai_bao_nct` (`nct_id` khóa chính; `thuong_tru_cung_xa`; `phien_ban`), `khai_bao_tam_tru` (`loai` `DANG_KY_TAM_TRU|THONG_BAO_LUU_TRU`; `la_gia_han`; `trang_thai` `CAN_KHAI_BAO|DA_NOP|DA_XAC_NHAN|HET_HAN|DA_XOA|DUOC_THAY_THE|DA_HUY`; `ngay_het_han` bắt buộc khi Đăng ký tạm trú được chấp nhận; cột sinh `khoa_dang_xu_ly`, `khoa_xac_nhan` `UNIQUE`), `khai_bao_lan_nop` (nhóm 3; `kenh` `CONG_DICH_VU_CONG|TRUC_TIEP`; `ket_qua` `CHO|CHAP_NHAN|TU_CHOI` đặt một lần), `nghia_vu_khai_bao` (`moc_loai` `HOAN_TAT_TIEP_NHAN|NOI_TRU_HIEU_LUC|PHU_LUC_GIA_HAN|HET_HAN`), `nhac_khai_bao` (`UNIQUE (loai, nct_id, ngay)`) (data-model mục 2 → 4) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `khai_bao_nct`, `nghia_vu_khai_bao` → `trang_thai_nct`; `khai_bao_tam_tru` → `ho_so_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [ ] T003 [P] Cài hàm thuần `BE/admission/khaibao/internal/TongThoiGianLuuTru.java`, `LoaiKhaiBao.java` (thời gian lưu trú cộng dồn; CFG-M02-11) và test `BT/admission/TongThoiGianLuuTruTest.java`, `LoaiKhaiBaoTest.java` (research Z-03)
+- [ ] T004 Cài khung job `BE/admission/khaibao/lich/ViecKhaiBao.java` (ShedLock, chạy bù, không nhắc trùng) và test `BT/admission/ChayBuM02KhaiBaoIT.java` (research Z-06)
 - [ ] T005 [P] Cài provider: `PhanLoaiTruongProvider`, `LuuTruProvider` (CFG-M15-03), `QuyenTepProvider` `M02.BANG_CHUNG_KHAI_BAO` (Hành chính, Quản lý viện), `GanPhamViProvider`
 
 **Checkpoint**: Nền 018 sẵn sàng.
@@ -51,12 +51,12 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 ### Tests cho User Story 1
 
-- [ ] T006 [P] [US1] Test `BT/m02/BR_M02_11_KhaiBaoIT.java`, `DBR_33_MotKhaiBaoIT.java` (một khai báo đang xử lý và một Đã xác nhận mỗi người; không tự tạo khai báo) (Q1 → Q6)
+- [ ] T006 [P] [US1] Test `BT/admission/BR_M02_11_KhaiBaoIT.java`, `DBR_33_MotKhaiBaoIT.java` (một khai báo đang xử lý và một Đã xác nhận mỗi người; không tự tạo khai báo) (Q1 → Q6)
 
 ### Implementation cho User Story 1
 
-- [ ] T007 [US1] Cài listener `TiepNhanHoanTat`, `HopDongDaDoiTrangThai` ghi `nghia_vu_khai_bao` trong `BE/m02/khaibao/internal/NghiaVuService.java`; nhắc lập, quá hạn theo CFG-M02-12 trong job (research Z-03) *(R-15: `nghia_vu_khai_bao` → `trang_thai_nct`)*
-- [ ] T008 [US1] Cài `BE/m02/khaibao/internal/KhaiBaoService.java` (lập, xác nhận thường trú cùng xã/phường; khóa `khai_bao_nct`) và `BE/m02/khaibao/web/KhaiBaoController.java` (`GET /khai-bao/can-lam`, `POST/GET /nguoi-cao-tuoi/{nctId}/khai-bao`, `POST /khai-bao/{id}/{lenh}`); màn web `frontend/src/tinh-nang/khai-bao-tam-tru/` *(R-15: `khai_bao_nct` → `trang_thai_nct`)*
+- [ ] T007 [US1] Cài listener `TiepNhanHoanTat`, `HopDongDaDoiTrangThai` ghi `nghia_vu_khai_bao` trong `BE/admission/khaibao/internal/NghiaVuService.java`; nhắc lập, quá hạn theo CFG-M02-12 trong job (research Z-03) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `nghia_vu_khai_bao` → `trang_thai_nct`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [ ] T008 [US1] Cài `BE/admission/khaibao/internal/KhaiBaoService.java` (lập, xác nhận thường trú cùng xã/phường; khóa `khai_bao_nct`) và `BE/admission/khaibao/web/KhaiBaoController.java` (`GET /khai-bao/can-lam`, `POST/GET /nguoi-cao-tuoi/{nctId}/khai-bao`, `POST /khai-bao/{id}/{lenh}`); màn web `frontend/src/tinh-nang/khai-bao-tam-tru/` **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `khai_bao_nct` → `trang_thai_nct`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 
 **Checkpoint**: Lập khai báo chạy độc lập.
 
@@ -70,7 +70,7 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 ### Tests cho User Story 2
 
-- [ ] T009 [P] [US2] Test `BT/m02/KhaiBaoNopKetQuaIT.java` (Q7 → Q10)
+- [ ] T009 [P] [US2] Test `BT/admission/KhaiBaoNopKetQuaIT.java` (Q7 → Q10)
 
 ### Implementation cho User Story 2
 
@@ -88,7 +88,7 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 ### Tests cho User Story 3
 
-- [ ] T011 [P] [US3] Test `BT/m02/BR_M02_12_GiaHanIT.java`, `BR_M02_14_ChuyenLoaiIT.java` (Q11 → Q17)
+- [ ] T011 [P] [US3] Test `BT/admission/BR_M02_12_GiaHanIT.java`, `BR_M02_14_ChuyenLoaiIT.java` (Q11 → Q17)
 
 ### Implementation cho User Story 3
 
@@ -104,11 +104,11 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 ### Tests cho User Story 4
 
-- [ ] T013 [P] [US4] Test `BT/m02/BR_M02_13_KhaiBaoXoaIT.java` (Q18, Q19)
+- [ ] T013 [P] [US4] Test `BT/admission/BR_M02_13_KhaiBaoXoaIT.java` (Q18, Q19)
 
 ### Implementation cho User Story 4
 
-- [ ] T014 [US4] Cài bean `ThamGiaChuyenTrangThai` trong `BE/m02/khaibao/internal/ThamGiaKhaiBao.java` (không điều kiện; tác động `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN`), nhắc khai báo xóa và lệnh ghi đã khai báo xóa (research Z-05)
+- [ ] T014 [US4] Cài bean `ThamGiaChuyenTrangThai` trong `BE/admission/khaibao/internal/ThamGiaKhaiBao.java` (không điều kiện; tác động `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN`), nhắc khai báo xóa và lệnh ghi đã khai báo xóa (research Z-05)
 
 **Checkpoint**: Mọi user story của 018 chạy độc lập.
 

@@ -14,7 +14,29 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - `lich_su_chung`: `lich_su_tinh_lai`; `su_kien_chung`: `bien_dong_nguon_sau_chot`, `de_nghi_gui_nguoi_dai_dien`, `quyet_dinh_mua_ho`.
 - `ho_so_chung`: `de_nghi_mua_ho`; `trang_thai_nct`: `chi_phi_nct`; `moc_da_nhac`: `su_kien_nguon_da_xu_ly`; `lan_xuat_ke_toan`, `lan_xuat_bang` → hành động nhật ký.
 - Số bảng 4 gồm cả bảng `giao_dich` của 017.
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `lan_chay_m11` → `moc_da_nhac`; `bang_chi_phi_tong_loai` → cột `JSON` của `bang_chi_phi`. Không thêm bảng riêng.
 - Còn 4 bảng riêng của feature.
+
+### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-30; sinh từ mục 0 và ràng buộc ở mô tả bảng các mục sau; chủ module rà, hoàn thiện khi viết migration, task T038)*
+
+Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (module M11; đổi sang tên tiếng Anh theo glossary khi dịch); `noi_dung`, `thuoc_tinh` hoặc `du_lieu` mang các cột của bảng cũ, có JSON Schema theo loại; bảng gộp riêng của feature có cột `kind` (hoặc `loai`) và cột `NULL` có `CHECK` theo loại. Mỗi dòng có ràng buộc ở bảng dưới cần một test tích hợp chứng minh ràng buộc vẫn giữ sau gộp (constitution XII), ghi vào bảng DBR áp dụng khi cài.
+
+**Bảng giữ hoặc là bảng đích** (giữ cột, ràng buộc như mô tả ở các mục sau; bảng đích nhận thêm cột của bảng gộp vào): `bang_chi_phi`, `khoan_chi_phi`, `su_kien_tinh_phi`.
+
+| Bảng cũ | Đích | Loại ở bảng chung | Ràng buộc của bảng cũ | Cách giữ sau gộp |
+| --- | --- | --- | --- | --- |
+| `chi_phi_nct` | `trang_thai_nct` | `M11.CHI_PHI_NCT` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `ky_chi_phi` | `bang_chi_phi` | — | `id`, `thang` (`yyyy-MM`, `UNIQUE`), `tu_ngay`, `den_ngay` (luôn trọn tháng dương lịch, FR-001), `trang_thai` (`DANG_MO`, `CHO_CHOT`, `DA_CHOT`), `han_chot` (đặt khi sang `CHO_CHOT`, từ CFG-M11-01), `da_chot_luc`. | cột sinh `UNIQUE` theo `kind` |
+| `bang_chi_phi_tong_loai` | cột `JSON` của `bang_chi_phi` | — | — | ghi cùng bản ghi cha; domain kiểm |
+| `lich_su_tinh_lai` | `lich_su_chung` | `M11.LICH_SU_TINH_LAI` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `bien_dong_nguon_sau_chot` | `su_kien_chung` | `M11.BIEN_DONG_NGUON_SAU_CHOT` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `su_kien_nguon_da_xu_ly` | `moc_da_nhac` | `M11.SU_KIEN_NGUON_DA_XU_LY` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `de_nghi_mua_ho` | `ho_so_chung` | `M11.DE_NGHI_MUA_HO` | Trigger chặn mọi đổi khi trạng thái cuối (`TU_CHOI`, `HUY`, `DA_MUA`). | trigger của bảng chung (chỉ thêm hoặc `khoa_luc`) |
+| `de_nghi_gui_nguoi_dai_dien` | `su_kien_chung` | `M11.DE_NGHI_GUI_NGUOI_DAI_DIEN` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `quyet_dinh_mua_ho` | `su_kien_chung` | `M11.QUYET_DINH_MUA_HO` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `lan_xuat_ke_toan` | hành động `nhat_ky` | — | — | cột vào `JSON` hoặc cột của bảng đích |
+| `lan_xuat_bang` | hành động `nhat_ky` | — | — | cột vào `JSON` hoặc cột của bảng đích |
+| `lan_chay_m11` | `moc_da_nhac` | `M11.LAN_CHAY_M11` | — | cột vào `JSON` hoặc cột của bảng đích |
 
 ---
 
@@ -36,7 +58,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 | `de_nghi_mua_ho`, `de_nghi_gui_nguoi_dai_dien` | 2 | E *(R-15: `de_nghi_mua_ho` → `ho_so_chung`; `de_nghi_gui_nguoi_dai_dien` → `su_kien_chung`)* |
 | `quyet_dinh_mua_ho` | 3 | E *(R-15: `quyet_dinh_mua_ho` → `su_kien_chung`)* |
 | `lan_xuat_ke_toan`, `lan_xuat_bang` | 3 | H (FR-041) *(R-15: `lan_xuat_ke_toan`, `lan_xuat_bang` → hành động `nhat_ky`)* |
-| `lan_chay_m11` | Kỹ thuật | Job |
+| `lan_chay_m11` | Kỹ thuật | Job *(R-15: `lan_chay_m11` → `moc_da_nhac`)* |
 
 ---
 

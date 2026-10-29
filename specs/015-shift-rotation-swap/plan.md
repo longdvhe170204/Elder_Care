@@ -18,7 +18,7 @@ Feature 015 là phần lịch ca xoay vòng của module M09 (mục 13.2; UC-50 
 7. Cảnh báo thiếu phủ; trưởng tầng tự tra cứu và mời người thay (mục F; Q-307).
 
 Hướng kỹ thuật:
-- Thêm ba gói con vào `m09` cùng 008; mọi thay đổi ca, phân công, người phụ trách đi qua port nội bộ của 008 (N-07) và hai port bổ sung `LichNhapLenhPort`, `NghiCoDuyetPort` (research X-01, X-03).
+- Thêm ba gói con vào `staffing` cùng 008; mọi thay đổi ca, phân công, người phụ trách đi qua port nội bộ của 008 (N-07) và hai port bổ sung `LichNhapLenhPort`, `NghiCoDuyetPort` (research X-01, X-03).
 - Xếp ca theo chu kỳ và lập lịch tháng là hàm thuần; tính phủ là bài toán phân người vào dòng yêu cầu bằng luồng cực đại với tie-break theo thứ tự khai báo (X-05, X-06).
 - Đổi ca, nghỉ đột xuất là loại yêu cầu phê duyệt của 000 với vòng đời ngoại lệ đã khai ở 000 FR-031; tác động khi duyệt trong một transaction (X-08, X-09).
 - Cảnh báo thiếu phủ một mở mỗi ca; tra cứu người thay không xếp hạng; lời mời nhận là lệnh bổ sung vào ca (X-10).
@@ -85,7 +85,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ; điểm còn lệch ghi ở mục báo lại |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-008 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 008 được bổ sung port, sự kiện nội bộ (mục "Đồng bộ") |
-| X. Kiến trúc | Đạt | Một khối; gói con của `m09`; port nội bộ có ArchUnit. Không có vòng (X-02) |
+| X. Kiến trúc | Đạt | Một khối; gói con của `staffing`; port nội bộ có ArchUnit. Không có vòng (X-02) |
 | XI. Nghiệp vụ ở backend | Đạt | Xếp ca, tính phủ, kiểm tra đổi ca, điều kiện người thay ở backend |
 | XII. Dữ liệu | Đạt | `UNIQUE` và trigger ở data-model mục 7; nhật ký trong transaction; `Clock` |
 | XIII. Tham số | Đạt | Như V; đổi CFG không phát bù mốc đã qua |
@@ -133,7 +133,7 @@ specs/015-shift-rotation-swap/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/com/cambae/backend/m09/
+backend/src/main/java/com/eldercare/backend/staffing/
 ├── api/           # (bổ sung) XoayCaThongKeApi
 ├── xoayca/        {internal, web, lich}   # mẫu, nhóm, MauCaTaiNgay, LapLichThang, lập lịch, lập lại
 ├── phuca/         {internal, web}         # DongApDung, TinhPhu, lần tính, cảnh báo thiếu phủ, KiemTraCongBoMoRong
@@ -145,7 +145,7 @@ frontend/src/tinh-nang/lich-ca/
 mobile/lib/nhan-vien/lich-ca/   # đổi ca, nghỉ, lời mời
 ```
 
-**Structure Decision**: Theo R-02 của 000 và 008 N-01: 015 thêm ba gói con vào `backend/…/m09`.
+**Structure Decision**: Theo R-02 của 000 và 008 N-01: 015 thêm ba gói con vào `backend/…/staffing`.
 
 ## Complexity Tracking
 

@@ -10,7 +10,7 @@ Bản lập lại bỏ toàn bộ phần của bản cũ không còn trong spec 
 
 ## E-01. Vị trí trong backend
 
-**Quyết định**: Gói `com.cambae.backend.m11.sodu` trong module M11 (010 P-01), cấu trúc trong gói theo R-02 của 000.
+**Quyết định**: Gói `com.eldercare.backend.billing.sodu` trong module M11 (010 P-01), cấu trúc trong gói theo R-02 của 000.
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -30,7 +30,7 @@ Bản lập lại bỏ toàn bộ phần của bản cũ không còn trong spec 
 
 | Cặp | Cách nối |
 | --- | --- |
-| 017 ↔ 010 (cùng M11) | Port nội bộ P-12: dùng `ChiPhiChoSoDuPort` (`tongChuaChot`, `phiNgayCoSo`, `bangDaChot`); cài `SoDuMuaHoPort.soDuKhongDu`. Nghe `m11.api.BangChiPhiDaChot` |
+| 017 ↔ 010 (cùng M11) | Port nội bộ P-12: dùng `ChiPhiChoSoDuPort` (`tongChuaChot`, `phiNgayCoSo`, `bangDaChot`); cài `SoDuMuaHoPort.soDuKhongDu`. Nghe `billing.api.BangChiPhiDaChot` |
 | 017 → 004 | Cài `TrangThaiDatCocPort`, `MucViecSauQuaDoiPort` (`QUYET_TOAN`), bean `ThamGiaChuyenTrangThai` (mã `KT_H_QUYET_TOAN`, `KT_H_XAC_NHAN_QUYET_TOAN`); đọc `HopDongDocApi` (`khoanDatCoc`, hợp đồng hiệu lực, lịch đến bán trú), `HoSoKetThucDocApi` (`dangChuanBi`, `thongTinQuyetToan`, `coNgoaiLeQuyetToanDaDuyet`), `DanhSachViecSauQuaDoiApi` (`xem`, `capNhat`); nghe `HopDongDaDoiTrangThai`, `KhoanCocDaDoi`, `HoSoKetThucDa*`, `QuaDoiDaGhiNhan`, `NgoaiLeKetThucDaDuyet` |
 | 017 → 001 | `NguoiCaoTuoiApi` (`trangThai`, `laTrangThaiCuoi`, `nhanDang`); nghe `NguoiCaoTuoiDaChuyenTrangThai` (Hủy tiếp nhận) |
 | 017 → 012 | `QuyenNguoiThanApi` (`quyenCoTacDung(XEM_CHI_PHI)`, `laNguoiDaiDien`, `nguoiDaiDien`) cho người nhận hoàn tiền, REST cổng, tên người đại diện trên chứng từ |
@@ -62,7 +62,7 @@ Không có SPI 017 khai báo cho module khác cài. Modulith `verify()` không c
 - **Danh mục ngân hàng và CFG-M11-10** *(bổ sung 2026-10-22, chủ dự án duyệt)*:
   - Bảng `ngan_hang` (nhóm 1, cố định): `ma_bin` (khóa, 6 chữ số NAPAS), `ten_viet_tat`, `ten_day_du`, `con_hieu_luc`. Nạp bằng migration từ danh sách mã BIN NAPAS công bố cho VietQR; ngân hàng mới, sáp nhập, ngừng thì viết migration mới (thêm dòng hoặc tắt `con_hieu_luc`), không xóa, không có màn sửa. Hệ thống không gọi dịch vụ ngoài để tra mã. *(R-15: `ngan_hang` → `danh_muc_chung`)*
   - Giá trị CFG-M11-10 (kiểu bảng của 000) có ba trường: `maBin`, `soTaiKhoan`, `chuTaiKhoan`. Quản lý viện nhập trên màn Tham số của 000; ô ngân hàng là danh sách chọn lấy từ `GET /ngan-hang` của 017. Số tài khoản thật của viện không nằm trong mã nguồn hay migration; profile `demo` dùng tài khoản giả.
-  - Kiểm khi lưu: 000 hiện chỉ kiểm chung giá trị kiểu bảng. Plan thêm SPI `KiemTraGiaTriThamSo` ở `m15.thamso.api` (000; `ma()` trả mã tham số, `kiemTra(giaTri)` ném lỗi 422 kèm lý do) để 000 gọi trước khi lưu; 017 cài cho CFG-M11-10: `maBin` có trong `ngan_hang` và còn hiệu lực, `soTaiKhoan` chỉ gồm chữ số (6 → 19 ký tự), `chuTaiKhoan` không rỗng. 000 không biết gì về ngân hàng (ranh giới module). *(R-15: `ngan_hang` → `danh_muc_chung`)*
+  - Kiểm khi lưu: 000 hiện chỉ kiểm chung giá trị kiểu bảng. Plan thêm SPI `KiemTraGiaTriThamSo` ở `administration.thamso.api` (000; `ma()` trả mã tham số, `kiemTra(giaTri)` ném lỗi 422 kèm lý do) để 000 gọi trước khi lưu; 017 cài cho CFG-M11-10: `maBin` có trong `ngan_hang` và còn hiệu lực, `soTaiKhoan` chỉ gồm chữ số (6 → 19 ký tự), `chuTaiKhoan` không rỗng. 000 không biết gì về ngân hàng (ranh giới module). *(R-15: `ngan_hang` → `danh_muc_chung`)*
   - CFG-M11-10 chưa có giá trị thì không có thông tin nộp tiền: cổng ẩn mục nộp tiền, phiếu báo phí in "Liên hệ Kế toán để biết tài khoản nộp tiền", không vẽ mã QR.
   - Ngân hàng của tài khoản đang dùng bị tắt hiệu lực sau đó: vẫn dựng VietQR theo `maBin` đã lưu (mã BIN không đổi khi ngân hàng chỉ đổi tên); Quản lý viện được báo ở lần lưu tham số kế tiếp.
 - Hiển thị (FR-004): số dư trên hồ sơ cho Kế toán, Hành chính, Quản lý viện (`BALANCE_LEDGER, XEM`); giao dịch thanh toán bảng chỉ hiện tổng (Q-133).
@@ -78,7 +78,7 @@ Không có SPI 017 khai báo cho module khác cài. Modulith `verify()` không c
 - **Tiền mặt** `POST /nguoi-cao-tuoi/{nctId}/nop-tien-mat`: sổ (`SO_DU` | `COC`), số tiền > 0, người nộp, thời điểm thu, ghi chú (ghi được số chứng từ của phần mềm kế toán). Giao dịch `NOP_TIEN_MAT` (sổ số dư) hoặc `THU_COC` phương thức `TIEN_MAT` (sổ cọc), Đã xác nhận ngay. Không cấp số, không in phiếu (FR-005).
 - **Chuyển khoản** `POST /nguoi-cao-tuoi/{nctId}/nop-chuyen-khoan`: tìm hồ sơ qua `GET /so-du/tim-theo-ma?ma=` (mã nộp tiền); thân: danh sách dòng (mỗi dòng: sổ, số tiền) cùng ngày nhận, mã giao dịch ngân hàng (bắt buộc), người nộp, ghi chú. Nhiều dòng (khác sổ) ghi trong một transaction cùng mã (FR-007; khác hồ sơ thì gọi lệnh cho từng hồ sơ). Mã đã có ở giao dịch khác (mọi hồ sơ, trừ các dòng của chính lệnh) và thân không có `xacNhanTrungMa = true` → 409 `MA_GIAO_DICH_DA_DUNG` kèm giao dịch trước; gửi lại với cờ thì lưu (DBR-29: cảnh báo, không chặn).
 - Mỗi giao dịch nộp: cập nhật sổ; tính lại tình trạng ngay (E-07, Q-252, Q-257); tính lại trạng thái đặt cọc khi sổ cọc đổi.
-- **Đặt cọc** (FR-006): hàm thuần `TrangThaiDatCoc(khoanCanCoc | KHONG_YEU_CAU, soDuCoc)` → `KHONG_YEU_CAU | DA_DAP_UNG | CHUA_DAP_UNG`. `TrangThaiDatCocPort.trangThai(hopDongId)` tính lúc gọi kèm giao dịch làm đổi gần nhất và Kế toán lập. Mỗi lần kết quả đổi (giao dịch cọc, điều chỉnh cọc được duyệt, `KhoanCocDaDoi`) phát `m11.api.TrangThaiDatCocDaDoi` cho 004.
+- **Đặt cọc** (FR-006): hàm thuần `TrangThaiDatCoc(khoanCanCoc | KHONG_YEU_CAU, soDuCoc)` → `KHONG_YEU_CAU | DA_DAP_UNG | CHUA_DAP_UNG`. `TrangThaiDatCocPort.trangThai(hopDongId)` tính lúc gọi kèm giao dịch làm đổi gần nhất và Kế toán lập. Mỗi lần kết quả đổi (giao dịch cọc, điều chỉnh cọc được duyệt, `KhoanCocDaDoi`) phát `billing.api.TrangThaiDatCocDaDoi` cho 004.
 - Hành chính không có quyền ghi (`BALANCE_LEDGER` chỉ `XEM`) → 403 (US2 #5).
 
 **Phương án đã cân nhắc**: Một endpoint cho cả tiền mặt và chuyển khoản (thân rẽ nhánh theo phương thức, khó kiểm trường bắt buộc); bắt `UNIQUE` mã ngân hàng (trái FR-007).
@@ -121,7 +121,7 @@ Không có SPI 017 khai báo cho module khác cài. Modulith `verify()` không c
   - `KT_H_QUYET_TOAN` (ba ý tiền: bảng kỳ cuối Đã chốt và có giao dịch thanh toán; số dư cọc 0; số dư 0): Đạt, Chưa đạt kèm lý do; "Đạt (ngoại lệ)" do 004 áp khi ngoại lệ đã duyệt;
   - `KT_H_XAC_NHAN_QUYET_TOAN`: Đạt khi không còn giao dịch Chờ duyệt **và** có phiên bản bảng quyết toán hiện hành **và** không có giao dịch Đã xác nhận nào của hồ sơ sau thời điểm xác nhận đó; không miễn được.
   - Bảng bổ sung chưa chốt không làm Chưa đạt (Q-134).
-- Bean `ThamGiaChuyenTrangThai` (`@Order` sau 013) trả hai mã cho `KET_THUC_LUU_TRU` (`coTheMien` như trên). Mỗi lần kết quả đổi phát `m11.api.DieuKienQuyetToanDaDoi(nctId)` để 004 làm mới màn điều kiện.
+- Bean `ThamGiaChuyenTrangThai` (`@Order` sau 013) trả hai mã cho `KET_THUC_LUU_TRU` (`coTheMien` như trên). Mỗi lần kết quả đổi phát `billing.api.DieuKienQuyetToanDaDoi(nctId)` để 004 làm mới màn điều kiện.
 - `MucViecSauQuaDoiPort` (`QUYET_TOAN`): `KHONG_AP_DUNG` khi hai sổ chưa từng có giao dịch khác 0; `HOAN_THANH` khi `KT_H_XAC_NHAN_QUYET_TOAN` Đạt và `KT_H_QUYET_TOAN` Đạt hoặc có ngoại lệ đã duyệt (`HoSoKetThucDocApi.coNgoaiLeQuyetToanDaDuyet`; 004 FR-071a, Q-387); gọi `DanhSachViecSauQuaDoiApi.capNhat` sau mỗi giao dịch, xác nhận của hồ sơ đã qua đời.
 - **Sau trạng thái cuối** (FR-024): job hằng ngày nhắc Kế toán mỗi CFG-M02-09 khi số dư khác 0 hoặc có giao dịch sau lần xác nhận cuối; dừng khi số dư 0 và đã xác nhận lại. Không mở lại hồ sơ.
 
@@ -159,9 +159,9 @@ Không có SPI 017 khai báo cho module khác cài. Modulith `verify()` không c
 **Quyết định**:
 - `POST /xuat/sao-ke` (Kế toán; Quản lý viện xem được): danh sách hồ sơ, khoảng, định dạng `XLSX | PDF`; khoảng > CFG-M14-01 → 422. Hàm thuần `SaoKe(soDuDauKy, soDuCocDauKy, giaoDich[])` bảo đảm đầu kỳ + tổng = cuối kỳ cho từng sổ (SC-009); chỉ giao dịch Đã xác nhận.
 - `POST /xuat/bao-cao-thu-chi`: khoảng, định dạng. Hàm thuần `BaoCaoThuChi(giaoDich[], soDuCuoiKhoang[])`: tổng nộp (`NOP_TIEN_MAT`, `NOP_CHUYEN_KHOAN`, `THU_COC`), tổng đã trừ theo bảng (`THANH_TOAN_BANG`, lấy trị tuyệt đối; bảng tổng âm làm giảm tổng), tổng hoàn (`HOAN_TIEN`, `HOAN_COC`), danh sách hồ sơ có số dư < 0 tại hết ngày cuối khoảng kèm số còn nợ (plan điểm báo lại 5). Không tách theo phương thức, không có tổng điều chỉnh, tổng hoàn cọc riêng (Q-386).
-- File dựng một lần, lưu qua `FileApi` (`M11.FILE_XUAT`), ghi `lan_xuat_so_du` (FR-027); tải lại trả đúng file. PDF có thông tin viện (CFG-M11-11).
+- File dựng một lần, lưu qua `FileApi` (`M11.FILE_XUAT`), ghi `lan_xuat_so_du` (FR-027); tải lại trả đúng file. PDF có thông tin viện (CFG-M11-11). *(R-15: `lan_xuat_so_du` → hành động `nhat_ky`)*
 - `common.tep` hiện chỉ nhận PDF, JPEG, PNG; plan thêm kiểu `.xlsx` cho tệp do hệ thống tạo (không mở cho `POST /tep`), sửa nhỏ ở `FileApi.upload` (chủ `common`).
-- **Cổng** `POST /cong/nguoi-cao-tuoi/{nctId}/sao-ke` (người thân có quyền xem chi phí; khoảng ≤ CFG-M14-01; `XLSX | PDF`) → cùng hàm, ghi `lan_xuat_so_du` với vai trò người thân, trả file.
+- **Cổng** `POST /cong/nguoi-cao-tuoi/{nctId}/sao-ke` (người thân có quyền xem chi phí; khoảng ≤ CFG-M14-01; `XLSX | PDF`) → cùng hàm, ghi `lan_xuat_so_du` với vai trò người thân, trả file. *(R-15: `lan_xuat_so_du` → hành động `nhat_ky`)*
 
 ---
 

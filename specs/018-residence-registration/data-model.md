@@ -12,7 +12,20 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 
 - `ho_so_chung`: `khai_bao_tam_tru` (loại `M02.RESIDENCE_DECLARATION`, trạng thái và kết quả khai báo trong `trang_thai`, `noi_dung`; cột sinh có chỉ mục cho hạn khai báo nếu job quét) *(sửa 2026-10-29, mục tiêu 79 bảng)*.
 - `trang_thai_nct`: `khai_bao_nct`, `nghia_vu_khai_bao` (trong `du_lieu`).
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `khai_bao_lan_nop` → `su_kien_chung`; `nhac_khai_bao` → `moc_da_nhac`. Không thêm bảng riêng.
 - Không còn bảng riêng.
+
+### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-30; sinh từ mục 0 và ràng buộc ở mô tả bảng các mục sau; chủ module rà, hoàn thiện khi viết migration, task T018)*
+
+Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (module M02; đổi sang tên tiếng Anh theo glossary khi dịch); `noi_dung`, `thuoc_tinh` hoặc `du_lieu` mang các cột của bảng cũ, có JSON Schema theo loại; bảng gộp riêng của feature có cột `kind` (hoặc `loai`) và cột `NULL` có `CHECK` theo loại. Mỗi dòng có ràng buộc ở bảng dưới cần một test tích hợp chứng minh ràng buộc vẫn giữ sau gộp (constitution XII), ghi vào bảng DBR áp dụng khi cài.
+
+| Bảng cũ | Đích | Loại ở bảng chung | Ràng buộc của bảng cũ | Cách giữ sau gộp |
+| --- | --- | --- | --- | --- |
+| `khai_bao_nct` | `trang_thai_nct` | `M02.KHAI_BAO_NCT` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `khai_bao_tam_tru` | `ho_so_chung` | `M02.KHAI_BAO_TAM_TRU` | / `khoa_dang_xu_ly` sinh `IF(trang_thai IN ('CAN_KHAI_BAO','DA_NOP'), nct_id, NULL)` `UNIQUE` / / DBR-33 /; / `khoa_xac_nhan` sinh `IF(trang_thai = 'DA_XAC_NHAN', nct_id, NULL)` `UNIQUE` / / DBR-33 /; `khai_bao_lan_nop` (nhóm 3): `khai_bao_id`, `ngay_nop`, `ke… | `khoa_duy_nhat` |
+| `nghia_vu_khai_bao` | `trang_thai_nct` | `M02.NGHIA_VU_KHAI_BAO` | `id`, `nct_id`, `moc_loai` (`HOAN_TAT_TIEP_NHAN`, `NOI_TRU_HIEU_LUC`, `PHU_LUC_GIA_HAN`, `HET_HAN`), `moc_luc`, `han`, `nguon_id` (hợp đồng / phụ lục / khai báo), `khai_bao_id NULL`, `da_nop`, `da_bao_ql_luc`, `huy_luc NULL`; `UNIQUE (nct_id, moc_loai, nguon_i… | `khoa_duy_nhat` |
+| `khai_bao_lan_nop` | `su_kien_chung` | `M02.KHAI_BAO_LAN_NOP` | `khai_bao_lan_nop` (nhóm 3): `khai_bao_id`, `ngay_nop`, `kenh` (`CONG_DICH_VU_CONG`, `TRUC_TIEP`), `co_quan`, `ma_ho_so`, `ket_qua` (`CHO`, `CHAP_NHAN`, `TU_CHOI`) đặt một lần, `ly_do_tu_choi`, `boi_id`, `luc`. | trigger của bảng chung (chỉ thêm hoặc `khoa_luc`) |
+| `nhac_khai_bao` | `moc_da_nhac` | `M02.NHAC_KHAI_BAO` | `nhac_khai_bao`: `loai` (`LAP`, `QUA_HAN`, `GIA_HAN`, `XOA`), `nct_id`, `ngay`; `UNIQUE` theo cả ba cột. | `khoa_duy_nhat` |
 
 ---
 
@@ -22,9 +35,9 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 | --- | --- | --- |
 | `khai_bao_nct` | 2 (kỹ thuật) | Đích khóa; cờ thường trú cùng xã/phường của hồ sơ *(R-15: `khai_bao_nct` → `trang_thai_nct`)* |
 | `khai_bao_tam_tru` | 2 (nội dung ghi là nhóm 3) | FR-003 → FR-005 *(R-15: `khai_bao_tam_tru` → `ho_so_chung`)* |
-| `khai_bao_lan_nop` | 3 | FR-003 (mỗi lần nộp, kết quả, từ chối) |
+| `khai_bao_lan_nop` | 3 | FR-003 (mỗi lần nộp, kết quả, từ chối) *(R-15: `khai_bao_lan_nop` → `su_kien_chung`)* |
 | `nghia_vu_khai_bao` | Kỹ thuật (đệm số liệu tính) | FR-001, FR-001a, FR-002, FR-006, FR-007 *(R-15: `nghia_vu_khai_bao` → `trang_thai_nct`)* |
-| `nhac_khai_bao` | Kỹ thuật | Chống nhắc trùng |
+| `nhac_khai_bao` | Kỹ thuật | Chống nhắc trùng *(R-15: `nhac_khai_bao` → `moc_da_nhac`)* |
 
 ---
 
@@ -49,7 +62,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 | `khoa_dang_xu_ly` sinh `IF(trang_thai IN ('CAN_KHAI_BAO','DA_NOP'), nct_id, NULL)` `UNIQUE` | | DBR-33 |
 | `khoa_xac_nhan` sinh `IF(trang_thai = 'DA_XAC_NHAN', nct_id, NULL)` `UNIQUE` | | DBR-33 |
 
-`khai_bao_lan_nop` (nhóm 3): `khai_bao_id`, `ngay_nop`, `kenh` (`CONG_DICH_VU_CONG`, `TRUC_TIEP`), `co_quan`, `ma_ho_so`, `ket_qua` (`CHO`, `CHAP_NHAN`, `TU_CHOI`) đặt một lần, `ly_do_tu_choi`, `boi_id`, `luc`.
+`khai_bao_lan_nop` (nhóm 3): `khai_bao_id`, `ngay_nop`, `kenh` (`CONG_DICH_VU_CONG`, `TRUC_TIEP`), `co_quan`, `ma_ho_so`, `ket_qua` (`CHO`, `CHAP_NHAN`, `TU_CHOI`) đặt một lần, `ly_do_tu_choi`, `boi_id`, `luc`. *(R-15: `khai_bao_lan_nop` → `su_kien_chung`)*
 
 | Từ | Lệnh / sự kiện | Đến | Người |
 | --- | --- | --- | --- |
@@ -68,7 +81,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 
 `id`, `nct_id`, `moc_loai` (`HOAN_TAT_TIEP_NHAN`, `NOI_TRU_HIEU_LUC`, `PHU_LUC_GIA_HAN`, `HET_HAN`), `moc_luc`, `han`, `nguon_id` (hợp đồng / phụ lục / khai báo), `khai_bao_id NULL`, `da_nop`, `da_bao_ql_luc`, `huy_luc NULL`; `UNIQUE (nct_id, moc_loai, nguon_id)`. Dựng lại được từ dữ liệu nguồn.
 
-`nhac_khai_bao`: `loai` (`LAP`, `QUA_HAN`, `GIA_HAN`, `XOA`), `nct_id`, `ngay`; `UNIQUE` theo cả ba cột.
+`nhac_khai_bao`: `loai` (`LAP`, `QUA_HAN`, `GIA_HAN`, `XOA`), `nct_id`, `ngay`; `UNIQUE` theo cả ba cột. *(R-15: `nhac_khai_bao` → `moc_da_nhac`)*
 
 ---
 
