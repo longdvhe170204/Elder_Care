@@ -9,6 +9,7 @@ Quy ước kiểu dữ liệu:
 - `thời điểm`: `DATETIME(6)` theo UTC (research R-04).
 - `ngày`: `DATE` theo Asia/Ho_Chi_Minh.
 - `JSON`: kiểu JSON của MySQL.
+- `tiền`: `DECIMAL(15,0)`, số nguyên đồng (VND); có dấu khi cột ghi cả khoản tăng và khoản giảm. Làm tròn nửa lên ở bước tính, trước khi lưu (plan 010, NFR-11). Không dùng `BIGINT`, `FLOAT`, `DOUBLE` cho tiền. *(Bổ sung 2026-10-29 sau audit cơ sở dữ liệu: 004, 010, 017 đang ghi ba kiểu khác nhau.)*
 - Tên bảng và cột: tiếng Việt không dấu, snake_case.
 
 ---
@@ -64,6 +65,7 @@ Bản ghi không có cột "đã đính chính" hay "đã hủy". Hai thông tin
 | Không sửa bản ghi nhóm 3 đã xác nhận | Trigger `trg_<bang>_khong_sua` `BEFORE UPDATE`: `SIGNAL SQLSTATE '45000'` khi `OLD.thoi_diem_xac_nhan IS NOT NULL`. Bảng không có nháp thì tài khoản `eldercare_app` không có quyền `UPDATE` | DBR-23, FR-009 |
 | Không xóa nhóm 3 và nhật ký | Trigger `trg_<bang>_khong_xoa` `BEFORE DELETE`: `SIGNAL` trừ khi `SUBSTRING_INDEX(USER(),'@',1) = 'eldercare_luu_tru'`. *(Sửa khi cài 2026-10-19: trong trigger, `CURRENT_USER()` là tài khoản tạo trigger nên điều kiện cũ luôn chặn; `USER()` là tài khoản đang kết nối. `MESSAGE_TEXT` viết ASCII vì chữ có dấu bị thành `?`.)* Tài khoản `eldercare_app` không có quyền `DELETE` trên các bảng này | FR-009, FR-048, FR-051 |
 | Danh sách bảo vệ BR-M15-03 | Cùng hai trigger trên, bắt buộc với: liều thuốc đã xác nhận, sự cố khẩn cấp, chi phí đã chốt, bàn giao đã xác nhận, bàn giao đồ gửi. Test tích hợp riêng cho từng bảng ở plan module sở hữu | FR-010 |
+| Bảng con của bản ghi đổi nhóm ("2 → 3") | Bảng dòng của một bản ghi nhóm 2 chuyển sang nhóm 3 khi chốt, xác nhận hoặc gửi (phiếu đối chiếu thuốc, bảng chi phí, bản tin, phiếu kiểm kê…) mang nhóm của bản ghi cha. Trigger `BEFORE UPDATE`, `BEFORE DELETE` trên bảng con đọc trạng thái của dòng cha và `SIGNAL SQLSTATE '45000'` khi cha đã ở trạng thái chốt; khi cha còn nháp hoặc mở thì dòng được thêm, sửa, xóa. Data-model của module ghi rõ trạng thái chốt của cha cho từng bảng con. *(Bổ sung 2026-10-29 sau audit cơ sở dữ liệu: `reconciliation_item` của 006 cài thiếu vì quy ước này chưa có.)* | DBR-23, FR-009 |
 | Danh sách bảng nhóm 3 | ArchUnit đọc `@NhomDuLieu(GHI_NHAN)`. Một test tích hợp đối chiếu danh sách này với `information_schema.TRIGGERS`; bảng nhóm 3 thiếu trigger thì test lỗi | FR-001 |
 
 ---
