@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api/problem_message.dart';
-import '../widgets/sky_background.dart';
+import '../widgets/page_body.dart';
 
 /// Màn đầu khi chưa đăng nhập (000 T006; 002 T046, T047; sửa 2026-10-28, chủ dự án duyệt): một form tên đăng nhập, mật
 /// khẩu cho nhân viên và người thân (kênh `MOBILE_APP`, backend gán kênh phiên theo loại tài khoản nên thời gian tự đăng
@@ -54,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Scaffold(
-      body: SkyBackground(
+      body: PageBody(
         child: Align(
           alignment: Alignment.topCenter,
           child: Card(
@@ -79,16 +79,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(_error!, style: text.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error)),
                   ],
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: _username,
-                    decoration: const InputDecoration(labelText: 'Tên đăng nhập'),
-                    autocorrect: false,
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _password,
-                    decoration: const InputDecoration(labelText: 'Mật khẩu'),
-                    obscureText: true,
+                  // Cho trình quản lý mật khẩu điền (DESIGN.md 15.5; WCAG 3.3.8)
+                  AutofillGroup(
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: _username,
+                          decoration: const InputDecoration(labelText: 'Tên đăng nhập'),
+                          autocorrect: false,
+                          autofillHints: const [AutofillHints.username],
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _password,
+                          decoration: const InputDecoration(labelText: 'Mật khẩu'),
+                          obscureText: true,
+                          autofillHints: const [AutofillHints.password],
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
                   FilledButton(onPressed: _busy ? null : _submit, child: const Text('Đăng nhập')),

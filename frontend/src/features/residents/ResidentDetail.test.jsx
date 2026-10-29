@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { json, mockRoutes, problem } from '@/test/fetchRoutes'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 import { ResidentDetail } from './ResidentDetail'
 
 // 001 T022: chi tiết hồ sơ và cập nhật thông tin cá nhân (US1 #6 → #9; FR-006, FR-007).
@@ -39,7 +39,7 @@ function open() {
   return render(
     <Sheet open>
       <SheetContent>
-        <ResidentDetail residentId={7} onChanged={() => {}} onClose={() => {}} />
+        <ResidentDetail residentId={7} onChanged={() => {}} Title={SheetTitle} Description={SheetDescription} />
       </SheetContent>
     </Sheet>,
   )
@@ -57,7 +57,7 @@ describe('ResidentDetail', () => {
     open()
 
     expect(await screen.findByText('Nguyễn Văn An')).toBeTruthy()
-    expect(screen.getByText('1948-03-14')).toBeTruthy()
+    expect(screen.getByText('14/03/1948')).toBeTruthy()
     expect(await screen.findByText(/NCT-2025-000003/)).toBeTruthy()
   })
 
@@ -111,7 +111,7 @@ describe('ResidentDetail', () => {
     expect(screen.getByRole('button', { name: 'Xem giá trị mới' })).toBeTruthy()
   })
 
-  it('001 T033: có tab Sức khỏe khi được xem phần sức khỏe, chuyển tab thì nạp hồ sơ ban đầu và mục sức khỏe', async () => {
+  it('001 T033: nút Sức khỏe mở khung riêng chồng lên hồ sơ, nạp hồ sơ ban đầu và mục sức khỏe (DESIGN.md 5)', async () => {
     routes()
     api.on('GET', '/residents/7/initial-health-record', json(200, { id: 5, confirmed: false, corrected: false }, { ETag: '"1"' }))
     api.on('GET', '/residents/7/health-items', json(200, []))
@@ -119,15 +119,13 @@ describe('ResidentDetail', () => {
     open()
     fireEvent.click(await screen.findByRole('button', { name: 'Sức khỏe' }))
 
-    expect(await screen.findByText('Hồ sơ sức khỏe ban đầu')).toBeTruthy()
-    expect(await screen.findByText('Chưa ghi nhận dị ứng, bệnh nền hay tiền sử bệnh')).toBeTruthy()
-    expect(screen.queryByText('Ngày sinh')).toBeNull()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Thông tin' }))
-    expect(await screen.findByText('Ngày sinh')).toBeTruthy()
+    const part = await screen.findByRole('dialog', { name: 'Sức khỏe: Nguyễn Văn An' })
+    expect(await within(part).findByText('Hồ sơ sức khỏe ban đầu')).toBeTruthy()
+    expect(await within(part).findByText('Chưa ghi nhận dị ứng, bệnh nền hay tiền sử bệnh')).toBeTruthy()
+    expect(within(part).queryByText('Ngày sinh')).toBeNull()
   })
 
-  it('001 T033: không có tab Sức khỏe khi backend bỏ phần sức khỏe theo quyền (hiddenFields)', async () => {
+  it('001 T033: không có nút Sức khỏe khi backend bỏ phần sức khỏe theo quyền (hiddenFields)', async () => {
     routes({ view: profile({ allowedCommands: [], hiddenFields: ['activeHealthItems'] }) })
 
     open()
