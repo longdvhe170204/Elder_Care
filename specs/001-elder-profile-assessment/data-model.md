@@ -62,7 +62,22 @@ Mọi `CHECK` cũ giữ, mỗi `CHECK` thêm điều kiện `kind = …` (ví d�
 
 **Chuyển dữ liệu (`V001_95`)**: bốn danh mục và `care_level` vào `danh_muc_chung`, đổi `health_item.allergen_id`, `severity_id`, `source_id` theo id mới; `resident_status_history`, `care_level_history` vào `lich_su_chung`, đổi `file.owner_id` của `M01.GIAY_TO_BENH_VIEN` và `source_id` của thông báo đánh giá lại loại `STATUS_HISTORY` theo id mới; `initial_health_record`, `reassessment_notice` vào `ho_so_chung`; hai bảng nguyện vọng vào `wish`, ý kiến vào `su_kien_chung`, danh sách người được báo và người thân của bản đồng ý vào JSON; `assessment_care_need` vào `assessment.care_need_ids`; `periodic_reminder`, `return_overdue_alert` vào `moc_da_nhac`. Dòng đổi id ghi `legacy`; `dinh_chinh` trỏ đánh giá, mục sức khỏe giữ id (hai bảng giữ nguyên).
 
-**Bảo đảm** (thay phần tương ứng ở các mục sau): một bản đồng ý Hiệu lực mỗi người (`active_resident_id`), một nguyện vọng Hiệu lực mỗi loại mỗi người (`active_key`), một bản nháp đánh giá và một đánh giá đầu vào xác nhận mỗi người (cột sinh hiện có), một hồ sơ sức khỏe ban đầu mỗi người và không trùng thông báo đánh giá lại (`khoa_duy_nhat`). Test m01 hiện có phải xanh không đổi kịch bản; thêm test chọn mục danh mục sai loại bị từ chối.
+**Bảo đảm** (thay phần tương ứng ở các mục sau): một bản đồng ý Hiệu lực mỗi người (`active_resident_id`), một nguyện vọng Hiệu lực mỗi loại mỗi người (`active_key`), một bản nháp đánh giá và một đánh giá đầu vào xác nhận mỗi người (cột sinh hiện có), một hồ sơ sức khỏe ban đầu mỗi người và không trùng thông báo đánh giá lại (`khoa_duy_nhat`). Test m01 hiện có phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục); thêm test chọn mục danh mục sai loại bị từ chối.
+
+**Bảng truy vết sau gộp** *(bổ sung 2026-10-30; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR, BR ở các mục sau theo bảng này)*:
+
+| Mã | Bảo đảm sau gộp | Test |
+| --- | --- | --- |
+| DBR-05 | Xác nhận đánh giá bắt buộc nhận xét và mức chăm sóc: `CHECK` của `assessment` giữ; mã mức kiểm qua `CatalogApi` loại `M01.CARE_LEVEL` (bỏ khóa ngoại) | `BR_M01_09_AssessmentIT`; mới `CareLevelCatalogReferenceIT` (mã không có trong danh mục bị từ chối ở `resident`, `assessment`, M1) |
+| DBR-39 | Một nguyện vọng Hiệu lực mỗi loại mỗi người: `wish.active_key` `UNIQUE` | `EndOfLifeWishVersionIT`, `TreatmentWishVersionIT` |
+| BR-M01-14 | Nguồn ý kiến: `su_kien_chung` loại `M01.WISH_OPINION`, kiểm nguồn ở domain | `BR_M01_14_OpinionSourceIT` |
+| BR-M01-01 | Một cảnh báo mỗi mốc trở lại: `moc_da_nhac` loại `M01.RETURN_OVERDUE_ALERT` | `BR_M01_01_TemporaryAbsenceOverdueIT` |
+| BR-M01-02 | Không trùng thông báo đánh giá lại: `ho_so_chung` loại `M01.REASSESSMENT_NOTICE`, `khoa_duy_nhat`; cột sinh hạn có chỉ mục | `BR_M01_02_ReassessmentNoticeIT` |
+| FR-046 | Lý do bắt buộc khi đổi trạng thái: `StatusHistoryApi` theo luật của thuộc tính `TRANG_THAI` | `StatusHistoryIT` |
+
+**Test phải đổi bảng đích** *(rà 2026-10-30; 30 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
+- Test của module: `AssessmentCorrectionIT`, `AssessmentTestBase`, `BR_M01_02_ReassessmentNoticeIT`, `BR_M01_06_ModuleCommandsIT`, `BR_M01_09_AssessmentIT`, `BR_M01_11_CatalogIT`, `CatalogSchemaIT`, `CompleteAdmissionConsentIT`, `CompleteAdmissionWishWarningsIT`, `ConsentIT`, `CreateProfileIT`, `EndOfLifeWishSignerIT`, `EndOfLifeWishVersionIT`, `FR_023h_KhongDauNangLucIT`, `HealthEndpointsIT`, `HealthItemImmutableIT`, `HealthTestBase`, `InitialHealthRecordIT`, `M01AuditCompletenessIT`, `MissingConsentReminderIT`, `MissingEndOfLifeWishReminderIT`, `RecordDeathIT`, `ResidentSchemaIT`, `SelfDeterminationReviewReminderIT`, `StatusHistoryIT`, `StatusTestBase`, `TreatmentWishVersionIT`, `WishTestBase`.
+- Test của m09 (chủ module review): `HandoverIT`, `StaffingRatioIT`.
 
 ---
 

@@ -71,7 +71,21 @@ Mô tả dưới đây thay các mục tương ứng khi cài 002 T098; cột kh
 
 **Chuyển dữ liệu (`V002_95`)**: ba bảng quyền vào `permission_assignment`; hai bảng mã QR, thiết bị gắn vào `device_credential` (đổi `login_qr_code_id` theo id mới); `role`, `field_visibility_rule`, `professional_activity` (kèm `professional_activity_practice_scope`) vào `danh_muc_chung`; `account_status_history` vào `lich_su_chung`; `pending_review_record`, `permission_data_error` vào `ho_so_chung`; `license_expiry_warning` vào `moc_da_nhac`. Ghi `legacy` cho dòng đổi id; `dinh_chinh`, `nhat_ky` trỏ `ROLE_ASSIGNMENT` giữ id.
 
-**Bảo đảm** (thay phần tương ứng ở các mục sau): một vai trò hiện hành mỗi tài khoản bằng `active_role_key`; một thiết bị gắn đang dùng mỗi tài khoản và mỗi máy bằng `active_account_id`, `active_device_id`; mã băm không trùng bằng `secret_hash`; bản ghi chờ xem lại không trùng khóa lặp lại và một lỗi dữ liệu quyền đang mở bằng `khoa_duy_nhat`. Test hiện có (`PermissionMatrixMatchesSourceIT`, các IT đăng nhập QR, gắn thiết bị, chờ xem lại, lỗi dữ liệu quyền) phải xanh không đổi kịch bản.
+**Bảo đảm** (thay phần tương ứng ở các mục sau): một vai trò hiện hành mỗi tài khoản bằng `active_role_key`; một thiết bị gắn đang dùng mỗi tài khoản và mỗi máy bằng `active_account_id`, `active_device_id`; mã băm không trùng bằng `secret_hash`; bản ghi chờ xem lại không trùng khóa lặp lại và một lỗi dữ liệu quyền đang mở bằng `khoa_duy_nhat`. Test hiện có (`PermissionMatrixMatchesSourceIT`, các IT đăng nhập QR, gắn thiết bị, chờ xem lại, lỗi dữ liệu quyền) phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục).
+
+**Bảng truy vết sau gộp** *(bổ sung 2026-10-30; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR, BR ở các mục sau theo bảng này)*:
+
+| Mã | Bảo đảm sau gộp | Test |
+| --- | --- | --- |
+| BR-M15-16 | Quyền tại thời điểm: `permission_assignment` (khoảng hiệu lực), trạng thái tài khoản ở `lich_su_chung` có `khoa_duy_nhat` | `PermissionsAsOfIT` |
+| BR-M15-19 | Phạm vi hành nghề của nghiệp vụ chuyên môn: `danh_muc_chung` loại `M15.PROFESSIONAL_ACTIVITY` (`practiceScopeIds` trỏ loại `M09.PRACTICE_SCOPE`) | `PracticeScopeIT` |
+| BR-M06-05 | Điều kiện pháp lý theo ngày: như trên, cùng `GiayPhepApi`, `GiayPhepCoSoApi` | `LegalConditionIT` |
+| BR-M15-24 | Một thiết bị gắn đang dùng mỗi tài khoản, mỗi máy: `device_credential.active_account_id`, `active_device_id` `UNIQUE` | `BoundDeviceIT`, `ResidentSessionNoTimeoutIT` |
+
+**Test phải đổi bảng đích** *(rà 2026-10-30; 40 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
+- Fixture dùng chung (`support/`, ảnh hưởng mọi module; sửa trong cùng PR, báo cả nhóm ở team-plan mục 8): `TestUsers`.
+- Test của module: `AccountEventNotificationsTest`, `AccountFixtures`, `ApproverApiIT`, `AuditLogAtomicityIT`, `AuditLogSchedulerIT`, `BoundDeviceIT`, `CarePlanApprovalGrantIT`, `CurrentUserIT`, `FamilyCannotSeeResidentAccountIT`, `FirstManagerBootstrapIT`, `InactivityIT`, `IncidentOutOfScopeIT`, `LegalConditionIT`, `LoginQrCodeIT`, `LoginTemporaryLockIT`, `ManagerAlwaysExistsIT`, `MeControllerIT`, `MetricGroupRestrictionsIT`, `OfflinePendingReviewIT`, `OnlyManagerChangesPermissionsIT`, `PermissionCommands`, `PermissionDataErrorIT`, `PermissionMatrixIT`, `PermissionMatrixMatchesSourceIT`, `PracticeScopeIT`, `ProfessionalActivityIT`, `RequiresPermissionAspectTest`, `ResidentAccountFinalStatusIT`, `ResidentAccountLockIT`, `ResignationLockIT`, `RestrictWithinMatrixIT`, `RoleAssignmentIT`, `RolePermissionCalculatorIT`, `SourceDataErrorScopeIT`, `SyncResultIT`, `ThreeLayerPermissionIT`.
+- Test của m09 (chủ module review): `AssignmentIT`, `M09GovernanceIT`, `StaffStatisticsIT`.
 
 ---
 

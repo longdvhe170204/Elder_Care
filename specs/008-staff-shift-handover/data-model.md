@@ -48,7 +48,19 @@ Mô tả dưới đây thay các mục tương ứng khi cài 008 T050; cột kh
 
 **Chuyển dữ liệu (`V008_95`)**: `department`, `credential_type`, `practice_scope`, `shift_template` vào `danh_muc_chung`, đổi khóa ngoại theo id mới; `credential_practice_scope` vào JSON; `department_lead_history`, `shift_lead_history` vào `lich_su_chung`; `shift_publication`, `handover_comment`, `handover_reply` (đổi `comment_id` thành `tra_loi_cho_id` mới), `staffing_ratio_calculation` vào `su_kien_chung`; `handover_item`, `handover_assessment` vào JSON của `shift_handover`; `floor_manager_assignment` vào `staff_assignment`; `staff_import_batch` vào `ho_so_chung`; `floor_scope_lock` vào `khoa_ky_thuat`; `m09_job_run` vào `moc_da_nhac`. `ShiftCommandPort`, `AssignmentCommandPort`, `DutyApi`, `AssignmentApi` giữ chữ ký (team-plan mục 8 dòng E (015)).
 
-**Bảo đảm** (thay phần tương ứng ở các mục sau): một bộ phận mỗi nhân viên tại một thời điểm (`staff_department` giữ); một người phụ trách mở mỗi bộ phận, mỗi ca (`khoa_mo`); một lịch mỗi (tháng, phạm vi) và một dòng mỗi (ca, nhân viên) (`UNIQUE` giữ); nội dung bàn giao khóa khi xác nhận (trigger `shift_handover`). Test m09 hiện có (gồm `M09RecordProtectionIT`, `PostPublicationPortsIT`) phải xanh không đổi kịch bản; `StaffImportTransportIT` đang lỗi môi trường (team-plan mục 8).
+**Bảo đảm** (thay phần tương ứng ở các mục sau): một bộ phận mỗi nhân viên tại một thời điểm (`staff_department` giữ); một người phụ trách mở mỗi bộ phận, mỗi ca (`khoa_mo`); một lịch mỗi (tháng, phạm vi) và một dòng mỗi (ca, nhân viên) (`UNIQUE` giữ); nội dung bàn giao khóa khi xác nhận (trigger `shift_handover`). Test m09 hiện có (gồm `M09RecordProtectionIT`, `PostPublicationPortsIT`) phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục); `StaffImportTransportIT` đang lỗi môi trường (team-plan mục 8).
+
+**Bảng truy vết sau gộp** *(bổ sung 2026-10-30; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR, BR ở các mục sau theo bảng này)*:
+
+| Mã | Bảo đảm sau gộp | Test |
+| --- | --- | --- |
+| DBR-20, BR-M09-07, 08 | Một bàn giao mỗi ca (`UNIQUE (shift_id)` giữ); nội dung khóa khi xác nhận (trigger `shift_handover` mở rộng cho `items`, `assessments`) | `HandoverIT`, `M09RecordProtectionIT` |
+| DBR-23 | Bản công bố lịch không sửa: `su_kien_chung` loại `M09.SHIFT_PUBLICATION` | `PostPublicationShiftIT` |
+| BR-M09-15 | Cắt quyền đúng mốc người phụ trách: `lich_su_chung` thuộc tính `NGUOI_PHU_TRACH`, `khoa_mo` | `DepartmentDutyIT`, `PostPublicationPortsIT` |
+
+**Test phải đổi bảng đích** *(rà 2026-10-30; 33 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
+- Test của module: `AlertStaffPortIT`, `AssignmentGovernanceIT`, `AssignmentHttpIT`, `AssignmentIT`, `AssignmentSchemaIT`, `CredentialLifecycleIT`, `DepartmentCommandsIT`, `DepartmentDutyIT`, `HandoverIT`, `HandoverSchemaIT`, `M09GovernanceIT`, `M09JobCatchUpIT`, `M09RecordProtectionIT`, `PostPublicationPortsIT`, `PostPublicationShiftIT`, `ShiftGovernanceIT`, `ShiftHttpIT`, `ShiftLifecycleIT`, `ShiftQueriesIT`, `ShiftScheduleIT`, `ShiftSchemaIT`, `StaffCommandsHttpIT`, `StaffEmploymentIT`, `StaffModuleIntegrationIT`, `StaffProfileHttpIT`, `StaffSchemaIT`, `StaffSpiIT`, `StaffStatisticsIT`, `StaffStatisticsReportFieldsIT`, `StaffingRatioHttpIT`, `StaffingRatioSchemaIT`, `StaffingRatioWarningIT`.
+- Test của m14 (chủ module review): `FR_020_StaffingDashboardIT`.
 
 ---
 
