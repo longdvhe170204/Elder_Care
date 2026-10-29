@@ -3,6 +3,7 @@ package com.cambae.backend.m07.internal.service;
 import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.error.NotFoundException;
 import com.cambae.backend.common.time.BusinessTime;
+import com.cambae.backend.m07.api.dto.MedicationSource;
 import com.cambae.backend.m07.internal.domain.Prescription;
 import com.cambae.backend.m07.internal.domain.PrescriptionStatus;
 import com.cambae.backend.m07.internal.domain.PrescriptionType;
@@ -35,17 +36,20 @@ public class PrnMedicationService {
     private final PrescriptionRepository prescriptionRepo;
     private final ResidentMedicationLock residentMedicationLock;
     private final BusinessTime businessTime;
+    private final FamilyMedicationService familyMedications;
 
     @Autowired
     public PrnMedicationService(
             PrnAdministrationRepository prnRepo,
             PrescriptionRepository prescriptionRepo,
             ResidentMedicationLock residentMedicationLock,
-            BusinessTime businessTime) {
+            BusinessTime businessTime,
+            FamilyMedicationService familyMedications) {
         this.prnRepo = prnRepo;
         this.prescriptionRepo = prescriptionRepo;
         this.residentMedicationLock = residentMedicationLock;
         this.businessTime = businessTime;
+        this.familyMedications = familyMedications;
     }
 
     @Transactional
@@ -64,6 +68,17 @@ public class PrnMedicationService {
         if (prescription.getStatus() != PrescriptionStatus.ACTIVE) {
             throw new BusinessException(
                     HttpStatus.CONFLICT, "INVALID_STATE", "PRN prescription is not in ACTIVE status");
+        }
+
+        // FR-044 (Q-393): nguồn gia đình gửi cần còn lô Được sử dụng chưa hết hạn; lần ghi theo báo lại (đang vắng)
+        // không áp
+        if (prescription.getMedicationSource() == MedicationSource.FAMILY_SENT
+                && body.getReportedBy() == null
+                && !familyMedications.hasUsableBatch(prescription.getResidentId(), prescriptionId)) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "NO_MEDICATION_AVAILABLE",
+                    "Đơn không còn lô thuốc gia đình gửi Được sử dụng chưa hết hạn dùng (FR-044)");
         }
 
         if (body.getReason() == null || body.getReason().isBlank()) {
@@ -157,7 +172,6 @@ public class PrnMedicationService {
                 body.getReportedBy(),
                 limitExceeded,
                 body.getOfflineDeviceTime(),
-                body.getFamilyMedicationBatchId(),
                 body.getAdverseReaction(),
                 body.getNote(),
                 body.isRecordedAfterDisconnect(),
@@ -242,7 +256,6 @@ public class PrnMedicationService {
         res.setExceededLimit(a.isExceededLimit());
         res.setAdverseReaction(a.getAdverseReaction());
         res.setNote(a.getNote());
-        res.setFamilyMedicationBatchId(a.getFamilyMedicationBatchId());
         res.setRecordedAfterDisconnect(a.isRecordedAfterDisconnect());
         return res;
     }

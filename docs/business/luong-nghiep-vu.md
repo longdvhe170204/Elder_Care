@@ -22,7 +22,7 @@ Quy ước:
 | Số dư, thu chi, báo sắp hết tiền, quyết toán | BF-16 | 017 | 6.5, 15.9 |
 | Nguy kịch và thực hiện nguyện vọng cuối đời | BF-17 | 007, 004 (Q-213) | 5.2, 9.5 |
 | Yêu cầu mua sắm của bộ phận, đối chiếu chứng từ | BF-18 | 019 | 13.1a, 15.10 |
-| Khai báo tạm trú, tài sản của viện, kho nguyên liệu | Không có BF riêng; mô tả bằng bảng trạng thái ở mục nghiệp vụ. 7.7 có bảng trạng thái tài sản và lịch xe (Q-231, Q-236, Q-240, Q-242, Q-243); 12.7 có bảng phiếu kiểm kê (Nhân viên bếp lập, Phụ trách bộ phận Bếp duyệt; nhập hàng mua gắn yêu cầu mua sắm, BF-18); giường tạo kèm tài sản và chỉ ngừng dùng bằng Thanh lý (7.1, Q-237, Q-238) | 018 (tạm trú), 019 (tài sản, kho) | 6.10, 7.7, 12.7 |
+| Khai báo tạm trú, tài sản của viện | Không có BF riêng; mô tả bằng bảng trạng thái ở mục nghiệp vụ. 7.7 có bảng trạng thái tài sản và lịch xe (Q-231, Q-236, Q-240, Q-242, Q-243); kho nguyên liệu (12.7) bỏ theo Q-392; giường tạo kèm tài sản và chỉ ngừng dùng bằng Thanh lý (7.1, Q-237, Q-238) | 018 (tạm trú), 019 (tài sản) | 6.10, 7.7 |
 | Thông báo và nhắc gọi điện | Không có BF (dịch vụ) | 009 | 17 |
 | Báo cáo và dashboard | Không có BF (dịch vụ) | 016 | 18 |
 
@@ -112,7 +112,7 @@ Bác sĩ xác định yêu cầu dinh dưỡng và duyệt; Nhân viên bếp l�
 | 1 | Bác sĩ | Xác định yêu cầu dinh dưỡng của từng người cao tuổi (bản gán chế độ ăn: chế độ ăn, dị ứng, bệnh lý, thực phẩm cần tránh, kết cấu); quản lý danh mục chế độ ăn và chọn món an toàn | Bản gán (nhóm 2); danh mục chế độ ăn (nhóm 1) | 12.1, BR-M08-03, Q-308 |
 | 1a | Nhân viên bếp; Bác sĩ | Bếp tạo món ăn và khai thành phần gây dị ứng (từ danh mục dị nguyên), chế độ ăn phù hợp, kết cấu chế biến được; Bác sĩ xác nhận hoặc trả lại kèm lý do. Sửa thành phần của món đã xác nhận cần Bác sĩ xác nhận lại | Món: chờ xác nhận → dùng được trong thực đơn | 12.1, Q-308 |
 | 2 | Nhân viên bếp | Lập thực đơn tuần (thứ 2 → chủ nhật) từ các món đã xác nhận: mỗi ngày, bữa, chế độ ăn gồm các món và món thay thế theo thứ tự ưu tiên | Thực đơn: Nháp | 12.2, Q-308 |
-| 3 | Nhân viên bếp; Hệ thống | Gửi kiểm tra: Bếp xác nhận đã kiểm tra khả năng chế biến, nguyên liệu, suất ăn, kèm ghi chú (hệ thống hiển thị tồn kho nguyên liệu và số người theo chế độ ăn, không đối chiếu định lượng). Hệ thống kiểm tra độ phủ: thiếu món thì chặn. Hệ thống cảnh báo lặp món [3 ngày] và món có thành phần dị ứng chưa có món thay thế | Qua kiểm tra: Chờ công bố; Bác sĩ được báo | BR-M08-06, 07, Q-220, Q-308 |
+| 3 | Nhân viên bếp; Hệ thống | Gửi kiểm tra: Bếp xác nhận đã kiểm tra khả năng chế biến, nguyên liệu, suất ăn, kèm ghi chú (hệ thống hiển thị số người theo chế độ ăn, không đối chiếu định lượng; không có tồn kho, Q-392). Hệ thống kiểm tra độ phủ: thiếu món thì chặn. Hệ thống cảnh báo lặp món [3 ngày] và món có thành phần dị ứng chưa có món thay thế | Qua kiểm tra: Chờ công bố; Bác sĩ được báo | BR-M08-06, 07, Q-308, Q-392 |
 | 4 | Nhân viên bếp | Rút lại nếu cần sửa | Chờ công bố → Nháp | 12.2 |
 | 5 | Bác sĩ | Duyệt: Công bố, kiểm tra độ phủ chạy lại với dữ liệu tại thời điểm công bố; hoặc Trả lại kèm lý do, Bếp được báo | Chờ công bố → Công bố (nếu tuần đã bắt đầu: chuyển thẳng Đã áp dụng); hoặc Chờ công bố → Nháp | 12.2, Q-142, Q-308 |
 | 6 | Hệ thống | Tới ngày đầu tuần | Công bố → Đã áp dụng | 12.2 |
@@ -224,7 +224,7 @@ Hệ thống không quản lý vệ sinh. Việc dọn giường, phòng và kh�
 | ---- | ------- | --------- | -------------------- | ------ |
 | 1 | Bác sĩ (kê đơn nội bộ khi có giấy phép); Bác sĩ hoặc Điều dưỡng (nhập đơn kê bên ngoài) | Nhập đơn. Hệ thống kiểm tra trùng hoạt chất và dị ứng; có vấn đề thì cảnh báo, chỉ tiếp tục khi có lý do | Đơn: Hiệu lực | UC-39, BR-M07-05, 06, BR-M06-05 |
 | 2 | Điều dưỡng | Tiếp nhận thuốc gia đình gửi | Thuốc gia đình gửi: Chờ đối chiếu → Được sử dụng / Chỉ giữ hộ | UC-44, 11.4 |
-| 2a | Hệ thống | Thuốc gia đình gửi còn dưới [5 ngày] dùng (CFG-M07-06): báo người thân. Còn dưới [2 ngày] (CFG-M07-07): nhắc lần hai cho người thân và báo Điều dưỡng phụ trách | — | BR-M07-11, Q-247 |
+| 2a | Điều dưỡng; Hệ thống | Thấy thuốc gia đình gửi sắp hết: Điều dưỡng ghi "Báo gia đình sắp hết" kèm ghi chú; hệ thống thông báo người thân (Trung bình). Hệ thống không trừ số lượng theo liều, không tự tính số ngày còn | Lô giữ trạng thái; dùng hết thì Điều dưỡng ghi Đã dùng hết | BR-M07-11, Q-393 |
 | 3 | Hệ thống | Lịch thuốc tính các liều từ đơn Hiệu lực loại định kỳ; không lập sẵn bản ghi liều. Bản ghi có khi Điều dưỡng ghi nhận (bước 4) | Liều: Chưa đến giờ | BR-M07-01, Q-306 |
 | 4 | Điều dưỡng (liều chung của tầng: mọi Điều dưỡng có ca tại tầng) | Xác nhận liều | Đến giờ → Đã dùng / Từ chối / Không thực hiện | UC-41, Q-61 |
 | 5 | Hệ thống | Quá cửa sổ: chuyển Trễ, nhắc. Quá thêm [30 phút]: chuyển Bỏ lỡ, tạo cảnh báo mức Trung bình (BF-06) | Trễ → Bỏ lỡ | BR-M07-02 |
@@ -593,14 +593,14 @@ Khởi phát: một bộ phận cần mua nguyên liệu, tài sản, thuốc do
 
 | Bước | Vai trò | Hoạt động | Trạng thái / kết quả | Căn cứ |
 | ---- | ------- | --------- | -------------------- | ------ |
-| 1 | Bộ lập lịch | Nguyên liệu dưới mức tồn tối thiểu hoặc tài sản tới hạn bảo trì: nhắc Phụ trách bộ phận | — | BR-M08-18, BR-M03-17 |
+| 1 | Bộ lập lịch | Tài sản tới hạn bảo trì: nhắc Phụ trách bộ phận (bếp tự theo dõi nguyên liệu ngoài hệ thống, Q-392) | — | BR-M03-17 |
 | 2 | Phụ trách bộ phận; Điều dưỡng (chỉ loại "thuốc") | Lập yêu cầu mua sắm: loại, các dòng, số tiền dự kiến, lý do, ngày cần; gửi duyệt | Yêu cầu: Nháp → Chờ duyệt | UC-94; 15.10 |
 | 3 | Quản lý viện | Duyệt về chi phí (được giảm số tiền, có lý do) hoặc từ chối có lý do | Chờ duyệt → Đã duyệt / Từ chối | 15.10 |
 | 4 | Bộ phận (Phụ trách bộ phận, nhân viên bộ phận) | Tự mua ngoài hệ thống; lưu chứng từ | — | 15.10 |
-| 5 | Nhân viên bếp; Phụ trách bộ phận | Nhập hàng vào hệ thống, gắn yêu cầu: phiếu nhập kho nguyên liệu (bộ phận Bếp), ghi tăng tài sản, ghi kết quả bảo trì thuê ngoài | Tồn kho tăng; tài sản Sẵn sàng | BR-M11-17; 12.7, 7.7 |
+| 5 | Phụ trách bộ phận | Ghi vào hệ thống, gắn yêu cầu: ghi tăng tài sản, ghi kết quả bảo trì thuê ngoài. Nguyên liệu không nhập kho (Q-392) | Tài sản Sẵn sàng | BR-M11-17; 7.7 |
 | 6 | Phụ trách bộ phận | Ghi đã mua: số tiền thực tế, ngày, nhà cung cấp, ảnh chứng từ. Vượt số được duyệt quá [10%] (CFG-M11-07) thì bị chặn, phải lập yêu cầu bổ sung | Đã duyệt → Chờ đối chiếu | BR-M11-18, UC-95 |
 | 6a | Điều dưỡng | Loại "thuốc": ghi lần tiếp nhận thuốc cung ứng (BF-07 bước 12) | Lần tiếp nhận: Đạt / Không đạt | BR-M07-24, BR-M11-17 |
-| 7 | Kế toán | Đối chiếu chứng từ với số đã ghi và hàng đã nhập: xác nhận khớp, trả lại (thiếu chứng từ) hoặc ghi lệch | Chờ đối chiếu → Đã đối chiếu / Đã duyệt / Lệch | BR-M11-19 |
+| 7 | Kế toán | Đối chiếu chứng từ với số đã ghi (loại tài sản: với tổng nguyên giá tài sản đã ghi tăng): xác nhận khớp, trả lại (thiếu chứng từ) hoặc ghi lệch | Chờ đối chiếu → Đã đối chiếu / Đã duyệt / Lệch | BR-M11-19 |
 | 8 | Quản lý viện | Xử lý yêu cầu Lệch: chấp nhận hoặc yêu cầu bộ phận hoàn tiền, có lý do | Lệch → Đã đối chiếu | 15.10 |
 | 9 | Bộ lập lịch | Đã duyệt quá [30 ngày] chưa ghi đã mua: nhắc Phụ trách bộ phận; Chờ đối chiếu quá [7 ngày]: nhắc Kế toán | — | BR-M11-20 |
 
@@ -609,7 +609,7 @@ Khởi phát: một bộ phận cần mua nguyên liệu, tài sản, thuốc do
 - Quản lý viện không vận hành kho, tài sản; chỉ duyệt yêu cầu mua sắm, duyệt thanh lý, chuyển tài sản giữa bộ phận và xử lý lệch (Q-284, 7.7, 19.3).
 - Yêu cầu mua sắm không sinh chi phí cho người cao tuổi. Mua hộ cho người cao tuổi theo đề nghị mua hộ (BF-09, BR-M11-07).
 - Hàng được tặng hoặc chuyển từ nơi khác nhập không cần yêu cầu mua sắm, nhưng phải ghi nguồn.
-- Yêu cầu Đã duyệt chỉ Hủy được khi chưa có phiếu nhập, tài sản hoặc kết quả bảo trì gắn vào; đã có thì phải ghi đã mua cho phần đã thực hiện (bước 6).
+- Yêu cầu Đã duyệt chỉ Hủy được khi chưa có tài sản hoặc kết quả bảo trì gắn vào; đã có thì phải ghi đã mua cho phần đã thực hiện (bước 6).
 - Kế toán không lập, không duyệt yêu cầu và không được giao nhiệm vụ Phụ trách bộ phận; Phụ trách bộ phận Hành chính – Kế toán là Hành chính (Q-293). Người ghi đã mua không tự đối chiếu.
 - Mỗi bộ phận luôn có một Phụ trách bộ phận; không ai làm thay, kể cả Quản lý viện. Bộ phận chưa có Phụ trách bộ phận thì bước 2, 5, 6 bị chặn và Quản lý viện được nhắc chỉ định (Q-292).
 - Với yêu cầu loại tài sản, Kế toán đối chiếu chứng từ với tổng nguyên giá các tài sản gắn yêu cầu; nguyên giá bắt buộc khi ghi tăng tài sản mua mới (Q-294).

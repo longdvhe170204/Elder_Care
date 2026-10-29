@@ -6,7 +6,7 @@
 
 ## Summary
 
-Feature 011 là phần dinh dưỡng của module M08 (mục 12.1 → 12.6; UC-45 → UC-48, UC-75 → UC-78). Kho nguyên liệu (12.7) thuộc feature 019. Feature cung cấp:
+Feature 011 là phần dinh dưỡng của module M08 (mục 12.1 → 12.6; UC-45 → UC-48, UC-75 → UC-78). Kho nguyên liệu (12.7) bỏ theo Q-392. Feature cung cấp:
 1. Danh mục chế độ ăn (hạn chế, món an toàn, mặc định), món ăn do Nhân viên bếp lập và Bác sĩ xác nhận, bữa ăn, loại đồ ăn bị cấm (mục A, Q-308).
 2. Bản gán chế độ ăn do Bác sĩ lập và áp dụng, có lý do chuyên môn khi thuộc FR-013 (a)–(d) (mục B, Q-283).
 3. Đối chiếu xung đột món với dị ứng và hạn chế ở mọi điểm (mục C).
@@ -17,7 +17,7 @@ Feature 011 là phần dinh dưỡng của module M08 (mục 12.1 → 12.6; UC-4
 8. Đồ ăn gia đình mang vào, báo Bác sĩ xem lại chế độ ăn, lưu mẫu thức ăn (mục H, I, J).
 
 Hướng kỹ thuật:
-- Gói `m08` với mười gói con; 019 thêm `m08.kho` và cài port nội bộ `TonKhoNguyenLieuPort` (research M-01, M-12).
+- Gói `m08` với mười gói con (research M-01); `m08.kho` và `TonKhoNguyenLieuPort` bỏ theo Q-392.
 - Món ăn có phiên bản nội dung đã xác nhận; kiểm tra, chốt, phục vụ đọc phiên bản Hiệu lực tại lúc đó (M-04).
 - `XungDot`, `CanLyDoChuyenMon`, `KiemTraDoPhu`, `LapMon`, `NguoiDuocTinh`, `TinhPhatSinh`, `ChonMonThayThe`, `DoiChieuDoAn`, `MonCanLuuMau` là hàm thuần kiểm thử bằng bảng.
 - Lệnh Chốt suất tính lại tại lúc lệnh, lập lần chốt, phiếu mỗi tầng/khu, suất ăn người thân trong một transaction có khóa `bua_ngay`; DBR-27 giữ bằng `UNIQUE (bua_ngay_id, tang_khu_vuc_id)` và việc chỉ hai lệnh (chốt, xác nhận phát sinh) đổi số suất (M-08, M-09).
@@ -51,7 +51,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - Test tích hợp MySQL cho `UNIQUE` (bản gán chờ và hiệu lực, lần chốt, phiếu, thực đơn mỗi tuần, chế độ mặc định) và trigger nhóm 3.
 - Test đồng thời: hai lệnh chốt; hai Bác sĩ áp dụng bản gán; xác nhận phát sinh và giao cùng lúc.
 - Đồng hồ giả lập cho CFG-M08-01, 03 → 07, giờ bữa, CFG-M13-06.
-- Bản giả `LuotOLaiAnPort`, `ChuyenDiBuaAnPort`, `TonKhoNguyenLieuPort` và bộ phát sự kiện của 001, 003, 004, 005, 007.
+- Bản giả `LuotOLaiAnPort`, `ChuyenDiBuaAnPort` và bộ phát sự kiện của 001, 003, 004, 005, 007.
 
 **Target Platform**: Như 000.
 - Web: danh mục, bản gán, thực đơn (lập, kiểm tra, công bố, đổi món), tính sẵn và chốt suất, phiếu và phát sinh cho bếp, phiếu cho tầng, đồ ăn gia đình, lưu mẫu.
@@ -147,7 +147,7 @@ backend/src/main/java/com/cambae/backend/m08/
 ├── danhmuc/       {internal, web}   # chế độ ăn, món và phiên bản, bữa, loại cấm
 ├── chedoan/       {internal, web}   # bản gán, CanLyDoChuyenMon, bean trạng thái
 ├── doichieu/      {internal}        # XungDot, ChonMonThayThe, listener dị ứng
-├── thucdon/       {internal, web, port}   # thực đơn, KiemTraDoPhu, LapMon, đổi món, TonKhoNguyenLieuPort
+├── thucdon/       {internal, web, port}   # thực đơn, KiemTraDoPhu, LapMon, đổi món
 ├── chotsuat/      {internal, web}   # bữa ngày, NguoiDuocTinh, lần chốt, TinhPhatSinh, suất giữ, món an toàn, suất người thân
 ├── phieu/         {internal, web}   # phiếu, suất đặc biệt, sai lệch, phần bổ sung, DTO bếp/tầng
 ├── phucvu/        {internal, web}   # xác nhận phục vụ, NguonCongViecPort (BUA), NgoaiTuyenHandler
@@ -162,7 +162,7 @@ frontend/src/tinh-nang/dinh-duong/
 mobile/lib/nhan-vien/dinh-duong/   # nhận phiếu, sai lệch, suất bổ sung, xác nhận phục vụ, đồ ăn gia đình
 ```
 
-**Structure Decision**: Theo R-02 của 000. Feature 011 nằm ở `backend/…/m08` với mười một gói con và gói `api`; 019 thêm `m08.kho`. Web có đủ chức năng; app nhân viên có phần việc tại tầng.
+**Structure Decision**: Theo R-02 của 000. Feature 011 nằm ở `backend/…/m08` với mười một gói con và gói `api`. Web có đủ chức năng; app nhân viên có phần việc tại tầng.
 
 ## Complexity Tracking
 
@@ -181,7 +181,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 2. **005**: sửa chú thích `xacNhanPhucVu` trong [../005-daily-care-tasks/contracts/module-interfaces.md](../005-daily-care-tasks/contracts/module-interfaces.md) từ "011 FR-040a" thành "011 FR-050" (không đổi chữ ký).
 3. **001, 003, 004, 005**: dùng API và sự kiện đã khai báo (001 `MucSucKhoeApi`, `DiNguyenApi`, `DiUng*`; 003 `ViTriApi`, `DaChuyenGiuong`; 004 `HopDongDocApi.lichDenTaiNgay`, `LuotVang*`, `NgayNghiBanTruDaDoi`, `BaoVangBanTruDaGhi`; 005 `NguonCongViecPort` loại `BUA` với `xacNhanPhucVu`, `nguonBiHuy`, `CoMatBanTruApi`, `AnKemKeoDai`). Không đổi.
 4. **010**: phát `m11.api.SuKienTinhPhiNguon` / `SuKienTinhPhiNguonDaDoi` loại `SUAT_AN_NGUOI_THAN`, đúng chữ ký 010 mục 1.5.
-5. **012** cài `LuotOLaiAnPort`, phát `LuotOLaiDaDoi`, đọc `ThucDonChungApi`, `CheDoAnApi`. **014** cài `ChuyenDiBuaAnPort`, phát `ChuyenDiDaDoi`. **019** (cùng M08) cài `TonKhoNguyenLieuPort`. **016** đọc `DinhDuongThongKeApi`. **009**: thông báo theo FR-065 cài `CoYeuCauThongBao`.
+5. **012** cài `LuotOLaiAnPort`, phát `LuotOLaiDaDoi`, đọc `ThucDonChungApi`, `CheDoAnApi`. **014** cài `ChuyenDiBuaAnPort`, phát `ChuyenDiDaDoi`. **016** đọc `DinhDuongThongKeApi`. **009**: thông báo theo FR-065 cài `CoYeuCauThongBao`.
 
 ## Điểm cần báo lại về tài liệu nguồn
 

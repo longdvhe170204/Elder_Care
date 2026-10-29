@@ -49,7 +49,6 @@ public class DashboardService {
             MetricGroup.BALANCES,
             MetricGroup.RESIDENCE_REGISTRATION,
             MetricGroup.ASSETS,
-            MetricGroup.INVENTORY,
             MetricGroup.CRITICAL_FLAGS,
             MetricGroup.FACILITY_LICENSES,
             MetricGroup.STAFF_LICENSES,

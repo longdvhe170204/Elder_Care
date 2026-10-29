@@ -1,4 +1,4 @@
-# Feature Specification: Kho nguyên liệu và tài sản của viện
+# Feature Specification: Tài sản, lịch xe và mua sắm của viện *(kho nguyên liệu bỏ theo Q-392)*
 
 **Feature Branch**: `019-inventory-assets`
 
@@ -63,83 +63,43 @@ Chủ dự án chốt Q-337 → Q-345 (docs/business/nghiep-vu.md 24.2) sau khi 
 
 - **Q-337**: yêu cầu mua sắm có thêm loại "thuốc" cho thuốc do viện cung cấp của từng người cao tuổi; Điều dưỡng lập, gửi, rút lại, hủy (FR-008d, bảng FR-008, FR-020); dòng gắn đơn thuốc nguồn viện (feature 006); lần tiếp nhận do feature 006 ghi; không tồn kho thuốc, không sinh chi phí cho người cao tuổi. Phạm vi, User Story 7 kịch bản 8, bảng giao tiếp (006), Key Entities, SC-007 sửa theo.
 
+### Cập nhật 2026-10-29 (đồng bộ Q-392, quyết định của chủ dự án)
+
+- **Q-392**: hệ thống không quản lý kho nguyên liệu. Bỏ User Story 1 → 3, FR-001 → FR-007, FR-009, FR-010, SC-001, SC-002, SC-006, các Key Entities nguyên liệu, lô, phiếu kho, phiếu kiểm kê, tham số CFG-M08-08, CFG-M08-09 (12.7, BR-M08-17 → 20, DBR-31, UC-91, UC-92). Bộ phận Bếp mua nguyên liệu bằng yêu cầu mua sắm loại "nguyên liệu"; Kế toán đối chiếu chứng từ với số tiền thực tế (loại tài sản vẫn đối chiếu với tổng nguyên giá). Sửa Phạm vi, User Story 7, Edge Cases, FR-008, FR-008b, FR-008c, FR-020, FR-021, SC-003, SC-007, bảng giao tiếp, Assumptions. Giữ số story, FR, SC để không đánh số lại.
+
 ## Phạm vi
 
-**Trong phạm vi** (nhóm chức năng "Dinh dưỡng và kho bếp" và "Tài sản và đồ gửi", 1.6; UC-89 → UC-92, UC-94, UC-95):
+**Trong phạm vi** (nhóm chức năng "Tài sản và đồ gửi", 1.6; UC-89, UC-90, UC-94, UC-95):
 
-1. Danh mục nguyên liệu; phiếu nhập theo lô, có kết quả kiểm tra đầu vào; phiếu xuất cho bữa, xuất hủy; tồn theo lô; phiếu đảo (12.7, UC-91, BR-M08-17, 18, 20, DBR-31).
-2. **(Sửa, 2026-10-06, Q-284)** Yêu cầu mua sắm của bộ phận: lập, gửi duyệt, Quản lý viện duyệt chi phí, ghi đã mua kèm chứng từ, Kế toán đối chiếu, xử lý lệch; gắn phiếu nhập, ghi tăng tài sản, bảo trì thuê ngoài với yêu cầu (15.10, UC-94, UC-95, BR-M11-17 → 20, CFG-M11-07 → 09, DBR-36, BF-18). Thay đề nghị nhập của Nhân viên bếp. **(Bổ sung, 2026-10-11, Q-337)** Yêu cầu loại "thuốc" cho thuốc do viện cung cấp của từng người cao tuổi, do Điều dưỡng lập (11.7, FR-008d).
-3. Kiểm kê kho theo chu kỳ, phiếu điều chỉnh có duyệt (UC-92, BR-M08-19, CFG-M08-09).
-4. Cảnh báo lô sắp hết hạn và nguyên liệu dưới tồn tối thiểu (BR-M08-18, CFG-M08-08).
+1. *(Bỏ theo Q-392)* Kho nguyên liệu.
+2. **(Sửa, 2026-10-06, Q-284)** Yêu cầu mua sắm của bộ phận: lập, gửi duyệt, Quản lý viện duyệt chi phí, ghi đã mua kèm chứng từ, Kế toán đối chiếu, xử lý lệch; gắn ghi tăng tài sản, bảo trì thuê ngoài với yêu cầu (15.10, UC-94, UC-95, BR-M11-17 → 20, CFG-M11-07 → 09, DBR-36, BF-18). Thay đề nghị nhập của Nhân viên bếp. **(Bổ sung, 2026-10-11, Q-337)** Yêu cầu loại "thuốc" cho thuốc do viện cung cấp của từng người cao tuổi, do Điều dưỡng lập (11.7, FR-008d).
+3. *(Bỏ theo Q-392)* Kiểm kê kho.
+4. *(Bỏ theo Q-392)* Cảnh báo lô sắp hết hạn, tồn tối thiểu.
 5. Danh mục tài sản; trạng thái, vị trí và lịch sử; bảo trì, kiểm định, đăng kiểm, bảo hiểm; báo hỏng (7.7, UC-89, BR-M03-17, 18, CFG-M03-09, DBR-32).
 6. Đồng bộ trạng thái tài sản của giường với trạng thái giường (BR-M03-15, Q-220).
 7. Lịch sử dụng xe đưa đón; điều kiện có lịch xe cho chuyến đi dùng xe của viện (UC-90, BR-M03-16, Q-220).
-8. **(Bổ sung, 2026-10-06, Q-284)** Bộ phận quản lý của tài sản (13.1a) và việc chuyển tài sản giữa bộ phận; kho nguyên liệu thuộc bộ phận Bếp.
+8. **(Bổ sung, 2026-10-06, Q-284)** Bộ phận quản lý của tài sản (13.1a) và việc chuyển tài sản giữa bộ phận.
 
 **Ngoài phạm vi**:
 
 - Quy tắc dùng chung: feature 000.
 - Trạng thái giường, phân bổ, bảo trì giường theo nghĩa phân bổ, xác nhận giường sẵn sàng và hư hỏng phát hiện khi dọn giường (BR-M03-05, BR-M03-13; sửa, 2026-10-06, Q-282): feature 003. Spec này **đồng bộ** trạng thái tài sản với trạng thái giường và **nhận** hư hỏng.
-- Thực đơn, chốt suất, phiếu bữa ăn: feature 011. Spec này không tự trừ kho theo định lượng món × số suất (Q-220).
+- Thực đơn, chốt suất, phiếu bữa ăn: feature 011.
 - Chuyến đi ngoài viện, điểm danh rời/về: feature 014. Spec này cung cấp lịch xe và điều kiện "có lịch xe".
-- Kho thuốc, vật tư y tế, vật phẩm tiêu hao tính phí (bỉm, tã, sữa); công nợ nhà cung cấp, khấu hao, hạch toán tài sản: ngoài hệ thống (1.2). Lần tiếp nhận thuốc cung ứng theo yêu cầu loại "thuốc": feature 006 FR-054 (bổ sung 2026-10-11, Q-337). *(Sửa, 2026-10-06, Q-284: yêu cầu mua sắm của bộ phận nay thuộc spec này; việc mua thực tế vẫn diễn ra ngoài hệ thống.)*
+- Kho nguyên liệu nấu ăn (Q-392), kho thuốc, vật tư y tế, vật phẩm tiêu hao tính phí (bỉm, tã, sữa); công nợ nhà cung cấp, khấu hao, hạch toán tài sản: ngoài hệ thống (1.2). Lần tiếp nhận thuốc cung ứng theo yêu cầu loại "thuốc": feature 006 FR-054 (bổ sung 2026-10-11, Q-337). *(Sửa, 2026-10-06, Q-284: yêu cầu mua sắm của bộ phận nay thuộc spec này; việc mua thực tế vẫn diễn ra ngoài hệ thống.)*
 - Đồ gửi của người cao tuổi: feature 013.
 - **(Bổ sung, 2026-10-06, Q-284)** Danh mục bộ phận, bộ phận của nhân viên, chỉ định Phụ trách bộ phận: feature 008 (FR-001a). Quyền theo nhiệm vụ Phụ trách bộ phận: feature 002 (FR-019f). Đề nghị mua hộ cho người cao tuổi: feature 010 (FR-023); yêu cầu mua sắm không sinh chi phí cho người cao tuổi.
-- Gửi thông báo: feature 009. Dashboard "tài sản quá hạn bảo trì", "nguyên liệu dưới tồn tối thiểu" (18.5): feature 016.
+- Gửi thông báo: feature 009. Dashboard "tài sản quá hạn bảo trì" (18.5): feature 016.
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Nhân viên bếp nhập kho nguyên liệu theo lô, gắn yêu cầu mua sắm, có kiểm tra đầu vào (Priority: P1) *(sửa 2026-10-06, Q-284)*
+### User Story 1 - Nhập kho nguyên liệu *(Bỏ theo Q-392)*
 
-Nhân viên bếp lập phiếu nhập gắn với một yêu cầu mua sắm Đã duyệt của bộ phận Bếp (hàng được tặng hoặc chuyển từ nơi khác thì ghi nguồn): nhà cung cấp, ngày nhập, chứng từ mua, từng dòng nguyên liệu với số lượng, đơn giá, số lô, hạn dùng, kết quả kiểm tra đầu vào. Dòng "không đạt" không vào tồn. Phiếu đã xác nhận không sửa; sai sót bằng phiếu đảo.
+### User Story 2 - Xuất nguyên liệu cho bữa *(Bỏ theo Q-392)*
 
-**Why this priority**: Không có nhập kho thì không có tồn; kiểm tra đầu vào là bước 1 của kiểm thực ba bước với bếp ăn tập thể (12.7).
+### User Story 3 - Kiểm kê kho, cảnh báo hạn dùng và tồn tối thiểu *(Bỏ theo Q-392)*
 
-**Independent Test**: Lập phiếu nhập 3 dòng gắn yêu cầu mua sắm Đã duyệt, một dòng "không đạt"; kiểm tra tồn theo lô; lập phiếu đảo cho một dòng nhập nhầm.
-
-**Acceptance Scenarios**:
-
-1. **Given** danh mục có "Thịt lợn" (kg) và "Gạo" (kg), **When** Nhân viên bếp lập phiếu nhập gắn yêu cầu mua sắm MS-01 Đã duyệt của bộ phận Bếp: 20 kg thịt lô L1 hạn 03/10, 50 kg gạo lô G1 hạn 01/03/2027, 10 kg thịt lô L2 kiểm tra "không đạt – có mùi", **Then** tồn thịt lô L1 là 20 kg, gạo G1 là 50 kg; lô L2 không vào tồn và được ghi lý do (12.7, DBR-31).
-2. **Given** phiếu nhập đã xác nhận, **When** bất kỳ ai tìm cách sửa hay xóa, **Then** không có thao tác đó; **When** Nhân viên bếp lập phiếu đảo cho dòng gạo nhập nhầm 50 thành 40, **Then** phiếu đảo trừ 50 kg lô G1 và phiếu nhập mới ghi 40 kg (BR-M08-20).
-3. **Given** phiếu đảo làm tồn của lô âm (gạo G1 đã xuất 45 kg), **When** lưu, **Then** hệ thống chặn (BR-M08-17).
-4. **Given** Nhân viên bếp, **When** lập phiếu nhập hàng mua mà không gắn yêu cầu mua sắm Đã duyệt của bộ phận Bếp, **Then** hệ thống chặn; **When** phiếu ghi nguồn "được tặng" kèm người tặng, **Then** được lưu không cần yêu cầu (BR-M11-17, DBR-36). **When** Quản lý viện tìm cách lập phiếu nhập, **Then** hệ thống từ chối (12.7, Phụ lục 27 ³⁴). *(Sửa 2026-10-06, Q-284.)*
-
----
-
-### User Story 2 - Nhân viên bếp xuất nguyên liệu cho bữa (Priority: P1) *(sửa 2026-10-06, Q-284: bỏ đề nghị nhập)*
-
-Nhân viên bếp lập phiếu xuất cho một bữa hoặc xuất hủy. Lô có hạn dùng sớm nhất phải được xuất trước: hệ thống hiển thị các lô còn tồn theo thứ tự hạn dùng, người xuất tự chọn lô; chọn lô khác lô hạn sớm nhất phải có lý do. Lô quá hạn chỉ được xuất hủy. Khi thiếu nguyên liệu, Phụ trách bộ phận Bếp lập yêu cầu mua sắm (User Story 7).
-
-**Why this priority**: Xuất kho hằng ngày là thao tác thường xuyên nhất của kho bếp.
-
-**Independent Test**: Hai lô thịt L1 (hạn 03/10), L3 (hạn 06/10); xuất cho bữa trưa 02/10; thử xuất lô quá hạn cho bữa.
-
-**Acceptance Scenarios**:
-
-1. **Given** tồn thịt L1 20 kg hạn 03/10 và L3 10 kg hạn 06/10, **When** bếp mở phiếu xuất thịt cho bữa trưa 02/10, chọn lô L1 và xuất 8 kg, **Then** danh sách lô hiện L1 trước L3, phiếu được ghi không cần lý do; tồn L1 còn 12 kg (BR-M08-17).
-2. **Given** như trên, **When** bếp chọn lô L3 thay cho L1 mà không nhập lý do, **Then** hệ thống chặn; có lý do thì được.
-3. **Given** lô L1 đã quá hạn ngày 04/10, **When** bếp xuất L1 cho bữa sáng 04/10, **Then** hệ thống chặn; **When** bếp xuất hủy L1 kèm lý do "hết hạn", **Then** được (BR-M08-18).
-4. **Given** bếp xuất 30 kg khi tồn chỉ 22 kg, **When** lưu, **Then** hệ thống chặn (BR-M08-17).
-5. *(Bỏ, 2026-10-06, Q-284)* Đề nghị nhập không còn; xem User Story 7.
-6. **Given** Bác sĩ (sửa, 2026-10-06, Q-283), **When** xem kho, **Then** thấy tồn theo nguyên liệu và lô; không lập được phiếu (Phụ lục 27).
-
----
-
-### User Story 3 - Kiểm kê kho và cảnh báo hạn dùng, tồn tối thiểu (Priority: P2)
-
-Mỗi tháng Nhân viên bếp đếm và lập phiếu kiểm kê: ghi tồn thực tế từng lô, hệ thống tính chênh lệch; chênh lệch cần lý do và chỉ điều chỉnh tồn khi Phụ trách bộ phận Bếp duyệt phiếu, hoặc Quản lý viện khi người lập là Phụ trách bộ phận Bếp (sửa, 2026-10-06, Q-284). Mỗi ngày hệ thống báo các lô sắp hết hạn và nguyên liệu dưới tồn tối thiểu.
-
-**Why this priority**: Giữ tồn trên hệ thống khớp thực tế và tránh dùng nguyên liệu hết hạn.
-
-**Independent Test**: Kiểm kê với 2 lô lệch; đồng hồ giả lập qua mốc hạn dùng và tồn tối thiểu.
-
-**Acceptance Scenarios**:
-
-1. **Given** CFG-M08-09 mặc định \[hằng tháng\], **When** tới kỳ kiểm kê mà chưa có phiếu kiểm kê, **Then** Nhân viên bếp và Phụ trách bộ phận Bếp được nhắc (BR-M08-19).
-2. **Given** tồn gạo G1 trên hệ thống 30 kg, thực tế 28 kg, **When** Nhân viên bếp B lập phiếu kiểm kê ghi 28 kg mà không có lý do, **Then** hệ thống chặn; có lý do "hao hụt" thì phiếu ở "Chờ duyệt", Phụ trách bộ phận Bếp P được báo; **When** P duyệt, **Then** tồn G1 thành 28 kg qua một điều chỉnh −2 kg (BR-M08-19, DBR-31; Clarification 2026-09-29).
-3. **Given** phiếu kiểm kê của B "Chờ duyệt", **When** P trả lại kèm lý do "đếm lại lô G1", **Then** phiếu chuyển "Bị trả lại", B được báo và lập phiếu mới; **When** B tìm cách duyệt phiếu của chính mình, **Then** hệ thống chặn. **Given** phiếu do chính P lập, **When** P tìm cách duyệt, **Then** hệ thống chặn; chỉ Quản lý viện duyệt được (12.7, Q-284).
-4. **Given** lô L3 hạn dùng 06/10, CFG-M08-08 mặc định \[2 ngày\], **When** Bộ lập lịch chạy ngày 04/10, **Then** Phụ trách bộ phận Bếp và Nhân viên bếp được báo lô L3 sắp hết hạn (BR-M08-18).
-5. **Given** "Gạo" có mức tồn tối thiểu 20 kg và tổng tồn còn 15 kg, **When** Bộ lập lịch chạy, **Then** Phụ trách bộ phận Bếp và Nhân viên bếp được báo, kèm nhắc lập yêu cầu mua sắm (BR-M08-18; sửa, Q-284).
+Hệ thống không quản lý kho nguyên liệu. Bộ phận Bếp mua nguyên liệu bằng yêu cầu mua sắm loại "nguyên liệu" (User Story 7); kiểm tra nguyên liệu đầu vào làm ngoài hệ thống. Giữ số story để không đánh số lại.
 
 ---
 
@@ -206,18 +166,18 @@ Trưởng tầng, Hành chính hoặc Quản lý viện đặt lịch dùng xe c
 
 ### User Story 7 - Bộ phận lập yêu cầu mua sắm; Quản lý viện duyệt chi phí; Kế toán đối chiếu chứng từ (Priority: P1) *(bổ sung 2026-10-06, Q-284)*
 
-Khi bộ phận cần chi tiền (mua nguyên liệu, mua tài sản, thuê sửa chữa, bảo trì), Phụ trách bộ phận lập yêu cầu mua sắm và gửi duyệt. Quản lý viện chỉ duyệt về chi phí, được giảm số tiền. Bộ phận tự mua ngoài hệ thống, nhập hàng vào hệ thống gắn với yêu cầu, rồi ghi đã mua kèm chứng từ. Kế toán đối chiếu chứng từ với số đã ghi và hàng đã nhập. Yêu cầu mua sắm không sinh chi phí cho người cao tuổi.
+Khi bộ phận cần chi tiền (mua nguyên liệu, mua tài sản, thuê sửa chữa, bảo trì), Phụ trách bộ phận lập yêu cầu mua sắm và gửi duyệt. Quản lý viện chỉ duyệt về chi phí, được giảm số tiền. Bộ phận tự mua ngoài hệ thống, ghi tăng tài sản hoặc kết quả bảo trì gắn với yêu cầu (nguyên liệu không nhập kho, Q-392), rồi ghi đã mua kèm chứng từ. Kế toán đối chiếu chứng từ với số đã ghi (loại tài sản: với tổng nguyên giá). Yêu cầu mua sắm không sinh chi phí cho người cao tuổi.
 
-**Why this priority**: Không có yêu cầu mua sắm Đã duyệt thì không lập được phiếu nhập kho hay ghi tăng tài sản mua mới (BR-M11-17), nên User Story 1, 4 phụ thuộc story này.
+**Why this priority**: Không có yêu cầu mua sắm Đã duyệt thì không ghi tăng được tài sản mua mới (BR-M11-17), nên User Story 4 phụ thuộc story này.
 
-**Independent Test**: Bộ phận Bếp lập yêu cầu 2.000.000 đồng; Quản lý viện duyệt giảm còn 1.800.000 đồng; nhập kho gắn yêu cầu; ghi đã mua 1.950.000 đồng (dưới 10%) rồi thử 2.100.000 đồng; Kế toán đối chiếu; đồng hồ giả lập qua CFG-M11-08, CFG-M11-09.
+**Independent Test**: Bộ phận Bếp lập yêu cầu 2.000.000 đồng; Quản lý viện duyệt giảm còn 1.800.000 đồng; ghi đã mua 1.950.000 đồng (dưới 10%) rồi thử 2.100.000 đồng; Kế toán đối chiếu; đồng hồ giả lập qua CFG-M11-08, CFG-M11-09.
 
 **Acceptance Scenarios**:
 
-1. **Given** Phụ trách bộ phận Bếp P, **When** P lập yêu cầu loại "nguyên liệu" gồm 50 kg gạo, 20 kg thịt, tổng dự kiến 2.000.000 đồng, lý do "gạo dưới tồn tối thiểu", ngày cần 10/10, rồi gửi duyệt, **Then** yêu cầu chuyển Chờ duyệt, Quản lý viện được báo; **When** P tìm cách sửa dòng, **Then** không có thao tác sửa; P Rút lại về Nháp để sửa (15.10).
+1. **Given** Phụ trách bộ phận Bếp P, **When** P lập yêu cầu loại "nguyên liệu" gồm 50 kg gạo, 20 kg thịt, tổng dự kiến 2.000.000 đồng, lý do "hết gạo cho tuần sau", ngày cần 10/10, rồi gửi duyệt, **Then** yêu cầu chuyển Chờ duyệt, Quản lý viện được báo; **When** P tìm cách sửa dòng, **Then** không có thao tác sửa; P Rút lại về Nháp để sửa (15.10).
 2. **Given** yêu cầu Chờ duyệt, **When** Quản lý viện duyệt và giảm số được duyệt xuống 1.800.000 đồng mà không có lý do, **Then** hệ thống chặn; có lý do thì yêu cầu Đã duyệt với số được duyệt 1.800.000 đồng, P được báo; **When** Quản lý viện từ chối kèm lý do, **Then** yêu cầu Từ chối (trạng thái cuối).
 3. **Given** yêu cầu Đã duyệt 1.800.000 đồng, CFG-M11-07 mặc định \[10%\], **When** P ghi đã mua 1.950.000 đồng kèm ảnh hóa đơn, nhà cung cấp, ngày mua, **Then** yêu cầu chuyển Chờ đối chiếu; **When** P ghi 2.100.000 đồng, **Then** hệ thống chặn và hướng P lập yêu cầu bổ sung cho phần vượt, tham chiếu yêu cầu gốc; **When** P ghi đã mua không có chứng từ, **Then** hệ thống chặn (BR-M11-18).
-4. **Given** yêu cầu Chờ đối chiếu với số thực tế 1.950.000 đồng, chứng từ 1.950.000 đồng và các phiếu nhập gắn yêu cầu tổng 1.950.000 đồng, **When** Kế toán xác nhận khớp, **Then** yêu cầu Đã đối chiếu; **When** chứng từ ghi 1.900.000 đồng, **Then** Kế toán ghi lệch kèm lý do và số lệch, yêu cầu chuyển Lệch, Quản lý viện được báo; **When** Quản lý viện chấp nhận lệch hoặc yêu cầu bộ phận hoàn tiền kèm lý do, **Then** yêu cầu Đã đối chiếu (BR-M11-19, 15.10).
+4. **Given** yêu cầu Chờ đối chiếu với số thực tế 1.950.000 đồng, chứng từ 1.950.000 đồng, **When** Kế toán xác nhận khớp, **Then** yêu cầu Đã đối chiếu; **When** chứng từ ghi 1.900.000 đồng, **Then** Kế toán ghi lệch kèm lý do và số lệch, yêu cầu chuyển Lệch, Quản lý viện được báo; **When** Quản lý viện chấp nhận lệch hoặc yêu cầu bộ phận hoàn tiền kèm lý do, **Then** yêu cầu Đã đối chiếu (BR-M11-19, 15.10).
 5. **Given** chứng từ bị thiếu, **When** Kế toán trả lại kèm lý do, **Then** yêu cầu về Đã duyệt để P ghi đã mua lại. ~~**Given** Kế toán K đang là Phụ trách bộ phận Hành chính – Kế toán và chính K ghi đã mua, **When** K tìm cách đối chiếu yêu cầu đó, **Then** hệ thống chặn (Phụ lục 27 ³⁸).~~ **(Sửa, 2026-10-06, Q-293)** **Given** Kế toán K, **When** K tìm cách lập yêu cầu mua sắm, **Then** hệ thống từ chối (Kế toán không được giao nhiệm vụ Phụ trách bộ phận, BR-M11-19, Phụ lục 27 ³⁸).
 6. **Given** yêu cầu Đã duyệt từ 01/10, CFG-M11-08 mặc định \[30 ngày\], **When** tới 31/10 chưa ghi đã mua, **Then** P được nhắc; **Given** yêu cầu Chờ đối chiếu từ 01/10, CFG-M11-09 mặc định \[7 ngày\], **When** tới 08/10 chưa đối chiếu, **Then** Kế toán được nhắc (BR-M11-20).
 7. **Given** Nhân viên chăm sóc không giữ nhiệm vụ Phụ trách bộ phận, **When** tìm cách lập yêu cầu mua sắm, **Then** hệ thống từ chối; ~~**Given** bộ phận Y tế chưa có Phụ trách bộ phận, **When** Quản lý viện lập yêu cầu thay, **Then** được~~ **(Sửa, 2026-10-06, Q-292)** **Given** bộ phận mới tạo chưa có Phụ trách bộ phận, **When** Quản lý viện tìm cách lập yêu cầu mua sắm, ghi tăng tài sản hay duyệt phiếu kiểm kê thay bộ phận đó, **Then** hệ thống từ chối và nhắc Quản lý viện chỉ định Phụ trách bộ phận (13.1a, Phụ lục 27 ³⁷).
@@ -227,16 +187,12 @@ Khi bộ phận cần chi tiền (mua nguyên liệu, mua tài sản, thuê sử
 
 ### Edge Cases
 
-- Nguyên liệu Ngừng hiệu lực khi còn tồn: vẫn xuất được tới hết tồn, không nhập thêm.
-- Phiếu xuất cho bữa đã qua: vẫn lập được; phiếu ghi cả thời điểm lập và bữa được chọn, để đối chiếu khi kiểm kê.
-- Hai người cùng xuất một lô gần hết: chỉ phiếu lưu trước thành công nếu tồn không đủ cho cả hai (DBR-31).
 - Tài sản chưa có vị trí (mới mua, để kho): trạng thái "Sẵn sàng", vị trí "kho tài sản".
 - Xe gia hạn đăng kiểm trong ngày đã có lịch: dấu "quá hạn" gỡ khi ghi lần đăng kiểm mới; lịch đã đặt trước đó không bị hủy tự động nếu hạn mới bao trùm.
 - Lịch xe quá giờ về dự kiến mà chưa trả xe: nhắc người đặt; không chặn lịch kế tiếp đã đặt nhưng báo xung đột cho Quản lý viện.
-- **(Bổ sung, 2026-10-06, Q-284)** Hàng được tặng hoặc chuyển từ nơi khác: nhập kho, ghi tăng tài sản không cần yêu cầu mua sắm nhưng phải ghi nguồn; không có chứng từ mua (BR-M11-17).
-- **(Bổ sung, 2026-10-06, Q-284)** Một yêu cầu mua sắm được thực hiện bằng nhiều phiếu nhập: tổng tiền các phiếu nhập gắn yêu cầu là số đã mua của yêu cầu; Kế toán đối chiếu với tổng này (BR-M11-19).
-- **(Bổ sung, 2026-10-06, Q-292)** Bộ phận chưa có Phụ trách bộ phận (mới tạo): mọi lệnh dành cho Phụ trách bộ phận của bộ phận đó bị chặn, không ai làm thay; Nhân viên bếp vẫn lập phiếu xuất, kiểm kê (phiếu kiểm kê chờ tới khi có người duyệt). Phụ trách bộ phận nghỉ việc, bị khóa tài khoản hoặc chuyển bộ phận thì feature 008 bắt buộc chỉ định người thay trong cùng lệnh, nên bộ phận đang hoạt động không rơi vào trường hợp này.
-- **(Bổ sung, 2026-10-06, Q-284)** Yêu cầu Đã duyệt nhưng bộ phận không mua nữa: Phụ trách bộ phận Hủy kèm lý do; phiếu nhập đã gắn yêu cầu thì không hủy được yêu cầu, phải ghi đã mua cho phần đã nhập. *(Q-290)*
+- **(Bổ sung, 2026-10-06, Q-284)** Hàng được tặng hoặc chuyển từ nơi khác: ghi tăng tài sản không cần yêu cầu mua sắm nhưng phải ghi nguồn; không có chứng từ mua (BR-M11-17).
+- **(Bổ sung, 2026-10-06, Q-292)** Bộ phận chưa có Phụ trách bộ phận (mới tạo): mọi lệnh dành cho Phụ trách bộ phận của bộ phận đó bị chặn, không ai làm thay. Phụ trách bộ phận nghỉ việc, bị khóa tài khoản hoặc chuyển bộ phận thì feature 008 bắt buộc chỉ định người thay trong cùng lệnh, nên bộ phận đang hoạt động không rơi vào trường hợp này.
+- **(Bổ sung, 2026-10-06, Q-284)** Yêu cầu Đã duyệt nhưng bộ phận không mua nữa: Phụ trách bộ phận Hủy kèm lý do; tài sản hoặc kết quả bảo trì đã gắn yêu cầu thì không hủy được yêu cầu, phải ghi đã mua cho phần đã thực hiện. *(Q-290)*
 
 ## Requirements *(mandatory)*
 
@@ -246,26 +202,23 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 
 | Dữ liệu | Nhóm (1.5) | Thao tác được phép |
 | --- | --- | --- |
-| Danh mục nguyên liệu, danh mục loại tài sản | 1 – Danh mục | Tạo, sửa, Ngừng hiệu lực (danh mục nguyên liệu: Phụ trách bộ phận Bếp; danh mục loại tài sản: Quản lý viện; sửa, Q-284) |
-| Phiếu nhập, phiếu xuất, phiếu đảo | 3 | Chỉ ghi thêm; sai sót bằng phiếu đảo (BR-M08-20) |
-| Lô nguyên liệu, tồn | 2 – dẫn xuất | Chỉ thay đổi qua phiếu nhập, xuất, đảo, điều chỉnh kiểm kê đã duyệt (DBR-31) |
+| Danh mục loại tài sản | 1 – Danh mục | Tạo, sửa, Ngừng hiệu lực (Quản lý viện; sửa, Q-284, Q-392) |
 | Yêu cầu mua sắm (thay đề nghị nhập, Q-284) | 2 → 3 khi ở trạng thái cuối | Theo bảng FR-008 |
-| Phiếu kiểm kê | 2 → 3 khi Đã duyệt | Theo bảng FR-010 |
 | Tài sản | 1 (thông tin mô tả) và 2 (trạng thái, vị trí) | Thông tin mô tả sửa được; trạng thái, vị trí chỉ qua lệnh ở bảng FR-013 (7.7) |
 | Lịch sử vị trí, lần bảo trì, kiểm định, đăng kiểm, hư hỏng | 3 | Chỉ ghi thêm; sai sót bằng đính chính |
 | Lịch sử dụng xe | 2 | Theo bảng FR-018 |
-| Tham số CFG-M03-09, CFG-M08-08, CFG-M08-09, CFG-M11-07 → CFG-M11-09 | 1 – Tham số | Cấu hình (Quản lý viện) |
+| Tham số CFG-M03-09, CFG-M11-07 → CFG-M11-09 | 1 – Tham số | Cấu hình (Quản lý viện) |
 
-#### A. Kho nguyên liệu
+#### A. Kho nguyên liệu *(bỏ theo Q-392)* và yêu cầu mua sắm
 
-- **FR-001**: Phụ trách bộ phận Bếp (sửa, 2026-10-06, Q-284) MUST quản lý danh mục nguyên liệu: tên, nhóm, đơn vị tính, thành phần gây dị ứng (chọn từ danh mục dị nguyên của feature 001), mức tồn tối thiểu, trạng thái Đang dùng / Ngừng hiệu lực. Nguyên liệu Ngừng hiệu lực MUST NOT được nhập thêm nhưng vẫn xuất được tới hết tồn. *(Nguồn: 12.7)*
-- **FR-002**: Nhân viên bếp (sửa, 2026-10-06, Q-284) MUST lập được phiếu nhập gồm: ngày nhập, nhà cung cấp (văn bản), yêu cầu mua sắm Đã duyệt của bộ phận Bếp mà phiếu thực hiện hoặc nguồn "được tặng" / "chuyển từ nơi khác" (ghi nguồn), chứng từ mua (hóa đơn, phiếu bán hàng, ảnh chụp; với hàng mua), các dòng (nguyên liệu, số lượng > 0, đơn giá, số lô, hạn dùng, kết quả kiểm tra đầu vào Đạt / Không đạt, ghi chú). Dòng Không đạt MUST có lý do và MUST NOT vào tồn. Phiếu có hiệu lực khi lưu (nhóm 3). Phiếu nhập hàng mua không gắn yêu cầu mua sắm Đã duyệt của bộ phận Bếp MUST NOT lưu được (FR-008c). *(Nguồn: 12.7; BR-M11-17, DBR-36)*
-- **FR-003**: Nhân viên bếp MUST lập được phiếu xuất (sửa, 2026-10-06, Q-284: Quản lý viện không thực hiện lệnh kho) gồm: ngày, mục đích (cho bữa: ngày, bữa; hủy do hết hạn hoặc hỏng; khác, bắt buộc ghi chú), các dòng (nguyên liệu, lô, số lượng), người xuất. **(Sửa, 2026-10-10, Q-307)** Người xuất tự chọn lô; hệ thống MUST hiển thị các lô còn tồn theo thứ tự hạn dùng (số liệu hiển thị) và MUST chặn dòng xuất từ lô có hạn muộn hơn khi còn lô hạn sớm hơn, trừ khi người xuất ghi lý do. Hệ thống MUST NOT tự chọn hay đề xuất lô. *(Nguồn: 12.7, BR-M08-17, Q-220, Q-307)*
-- **FR-004**: Tồn của mỗi lô MUST bằng nhập − xuất ± điều chỉnh đã duyệt, và MUST NOT âm; phiếu hoặc phiếu đảo làm một lô âm MUST bị chặn toàn bộ (feature 000 "hoặc toàn bộ, hoặc không"). Hai phiếu đồng thời trên cùng lô MUST cho kết quả như khi lưu lần lượt. *(Nguồn: BR-M08-17, DBR-31)*
-- **FR-005**: Lô đã quá hạn dùng MUST NOT được xuất cho bữa; chỉ được xuất với mục đích "hủy". *(Nguồn: BR-M08-18)*
-- **FR-006**: Phiếu nhập, phiếu xuất MUST NOT bị sửa hay xóa. Sai sót MUST xử lý bằng phiếu đảo trỏ đúng một phiếu gốc (toàn bộ hoặc một số dòng), có lý do, do người có quyền lập loại phiếu gốc lập. *(Nguồn: BR-M08-20, 1.5)*
-- **FR-007**: Nhập, xuất kho MUST NOT sinh chi phí cho người cao tuổi. Hệ thống MUST NOT tự trừ kho theo thực đơn, định lượng món hay số suất đã chốt. *(Nguồn: BR-M08-20, 12.7, Q-220)*
-- **FR-008**: **(Viết lại, 2026-10-06, Q-284)** Phụ trách bộ phận MUST lập được **yêu cầu mua sắm** của bộ phận mình gồm: bộ phận; người lập; loại (nguyên liệu / tài sản / dịch vụ sửa chữa, bảo trì / thuốc (bổ sung 2026-10-11, Q-337, FR-008d) / khác); các dòng (tên hàng hoặc dịch vụ, số lượng, đơn giá dự kiến, thành tiền); tổng số tiền dự kiến; lý do; ngày cần; tham chiếu (tài sản cần sửa, nguyên liệu dưới mức tồn tối thiểu) nếu có. Yêu cầu đã gửi MUST NOT sửa nội dung; muốn đổi thì Rút lại về Nháp. Yêu cầu mua sắm MUST NOT sinh khoản chi phí cho người cao tuổi (mua hộ theo feature 010). Đề nghị nhập của Nhân viên bếp bỏ. ~~Bộ phận chưa có Phụ trách bộ phận thì Quản lý viện thực hiện thay các lệnh của Phụ trách bộ phận (13.1a).~~ **(Sửa, 2026-10-06, Q-292)** Bộ phận chưa có Phụ trách bộ phận thì các lệnh của Phụ trách bộ phận MUST bị chặn, không ai làm thay, và Quản lý viện MUST được nhắc chỉ định (13.1a). Vòng đời: *(Nguồn: 15.10, UC-94, UC-95, BR-M11-17 → 19, DBR-36, BF-18)*
+- **FR-001**: *(Bỏ theo Q-392)*
+- **FR-002**: *(Bỏ theo Q-392)*
+- **FR-003**: *(Bỏ theo Q-392)*
+- **FR-004**: *(Bỏ theo Q-392)*
+- **FR-005**: *(Bỏ theo Q-392)*
+- **FR-006**: *(Bỏ theo Q-392)*
+- **FR-007**: *(Bỏ theo Q-392)*
+- **FR-008**: **(Viết lại, 2026-10-06, Q-284)** Phụ trách bộ phận MUST lập được **yêu cầu mua sắm** của bộ phận mình gồm: bộ phận; người lập; loại (nguyên liệu / tài sản / dịch vụ sửa chữa, bảo trì / thuốc (bổ sung 2026-10-11, Q-337, FR-008d) / khác); các dòng (tên hàng hoặc dịch vụ, số lượng, đơn giá dự kiến, thành tiền); tổng số tiền dự kiến; lý do; ngày cần; tham chiếu (tài sản cần sửa) nếu có. Yêu cầu đã gửi MUST NOT sửa nội dung; muốn đổi thì Rút lại về Nháp. Yêu cầu mua sắm MUST NOT sinh khoản chi phí cho người cao tuổi (mua hộ theo feature 010). Đề nghị nhập của Nhân viên bếp bỏ. ~~Bộ phận chưa có Phụ trách bộ phận thì Quản lý viện thực hiện thay các lệnh của Phụ trách bộ phận (13.1a).~~ **(Sửa, 2026-10-06, Q-292)** Bộ phận chưa có Phụ trách bộ phận thì các lệnh của Phụ trách bộ phận MUST bị chặn, không ai làm thay, và Quản lý viện MUST được nhắc chỉ định (13.1a). Vòng đời: *(Nguồn: 15.10, UC-94, UC-95, BR-M11-17 → 19, DBR-36, BF-18)*
 
 | Trạng thái hiện tại | Lệnh / sự kiện | Trạng thái kế tiếp | Ai thực hiện | Điều kiện | Tác động |
 | --- | --- | --- | --- | --- | --- |
@@ -276,7 +229,7 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 | Chờ duyệt | Duyệt, có thể giảm số tiền được duyệt | Đã duyệt | Quản lý viện | Bắt buộc lý do khi giảm | Báo người lập |
 | Chờ duyệt | Từ chối | Từ chối | Quản lý viện | Có lý do | Báo người lập |
 | Đã duyệt | Ghi đã mua: số tiền thực tế, ngày mua, nhà cung cấp, chứng từ | Chờ đối chiếu | Phụ trách bộ phận | FR-008a | Báo Kế toán |
-| Đã duyệt | Hủy (không mua nữa) | Đã hủy | Phụ trách bộ phận | Có lý do; chưa có phiếu nhập, tài sản hoặc kết quả bảo trì gắn với yêu cầu (Q-290) | — |
+| Đã duyệt | Hủy (không mua nữa) | Đã hủy | Phụ trách bộ phận | Có lý do; chưa có tài sản hoặc kết quả bảo trì gắn với yêu cầu (Q-290) | — |
 | Chờ đối chiếu | Xác nhận khớp | Đã đối chiếu | Kế toán | FR-008b | — |
 | Chờ đối chiếu | Trả lại (thiếu hoặc sai chứng từ) | Đã duyệt | Kế toán | Có lý do | Báo người lập |
 | Chờ đối chiếu | Ghi lệch | Lệch | Kế toán | Có lý do và số tiền lệch | Báo Quản lý viện |
@@ -285,21 +238,12 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 Đã đối chiếu, Từ chối, Đã hủy là trạng thái cuối.
 
 - **FR-008a** *(bổ sung, 2026-10-06, Q-284)*: "Ghi đã mua" MUST bắt buộc chứng từ (ảnh hóa đơn hoặc phiếu bán hàng). Số tiền thực tế vượt số được duyệt không quá CFG-M11-07 (mặc định \[10%\]) thì được ghi; vượt hơn MUST bị chặn, và bộ phận lập yêu cầu bổ sung cho phần vượt, tham chiếu yêu cầu gốc, Quản lý viện duyệt như yêu cầu mới. *(Nguồn: BR-M11-18)*
-- **FR-008b** *(bổ sung, 2026-10-06, Q-284)*: Kế toán MUST xác nhận khớp chỉ khi số tiền trên chứng từ bằng số tiền thực tế đã ghi, và (với loại nguyên liệu, tài sản) bằng tổng các phiếu nhập hoặc tổng nguyên giá các tài sản gắn với yêu cầu (**sửa, 2026-10-06, Q-294**). Kế toán MUST NOT lập hay duyệt yêu cầu mua sắm, trong mọi trường hợp (**sửa, Q-293:** Kế toán không được giao nhiệm vụ Phụ trách bộ phận); người ghi đã mua MUST NOT tự đối chiếu yêu cầu đó (Phụ lục 27 ³⁸). *(Nguồn: BR-M11-19, Q-293, Q-294)*
+- **FR-008b** *(bổ sung, 2026-10-06, Q-284)*: Kế toán MUST xác nhận khớp chỉ khi số tiền trên chứng từ bằng số tiền thực tế đã ghi, và (với loại tài sản) bằng tổng nguyên giá các tài sản gắn với yêu cầu (**sửa, 2026-10-06, Q-294**; loại nguyên liệu chỉ so với số tiền thực tế, Q-392). Kế toán MUST NOT lập hay duyệt yêu cầu mua sắm, trong mọi trường hợp (**sửa, Q-293:** Kế toán không được giao nhiệm vụ Phụ trách bộ phận); người ghi đã mua MUST NOT tự đối chiếu yêu cầu đó (Phụ lục 27 ³⁸). *(Nguồn: BR-M11-19, Q-293, Q-294)*
 - **FR-008d** *(bổ sung, 2026-10-11, Q-337)*: Yêu cầu loại "thuốc" dùng cho thuốc do viện cung cấp của người cao tuổi; Điều dưỡng (kể cả khi không là Phụ trách bộ phận) hoặc Phụ trách bộ phận MUST lập được, bộ phận của yêu cầu là bộ phận của người lập. Mỗi dòng MUST gồm người cao tuổi, đơn thuốc nguồn "viện cung cấp" Hiệu lực, Tạm dừng hoặc Chờ hiệu lực của người đó (feature 006), tên thuốc, hoạt chất, hàm lượng, dạng, số lượng, đơn vị, đơn giá dự kiến; yêu cầu MUST có mức ưu tiên (Thường / Gấp) và thời điểm cần thuốc, MAY có tài liệu liên quan. Người lập là Điều dưỡng được gửi, rút lại, hủy yêu cầu của mình; "Ghi đã mua" vẫn chỉ do Phụ trách bộ phận (FR-008a). Hệ thống MUST NOT tự lập yêu cầu loại này (Q-307). Yêu cầu không sinh chi phí cho người cao tuổi; chi phí thuốc vẫn tính theo liều ở feature 006, 010. Lần tiếp nhận thuốc do feature 006 ghi (FR-054); không có phiếu nhập hay tồn kho thuốc. Trạng thái "Đang cung ứng", "Đã giao", "Đã nhận" của tài liệu gốc ứng với Đã duyệt, đã ghi đã mua và có lần tiếp nhận Đạt cho mọi dòng (11.7). *(Nguồn: 11.7, 15.10, BR-M07-24, BR-M11-17, Q-337)*
-- **FR-008c** *(bổ sung, 2026-10-06, Q-284)*: Phiếu nhập kho nguyên liệu, lệnh ghi tăng tài sản mua mới và lệnh ghi kết quả bảo trì thuê ngoài có chi phí MUST gắn đúng một yêu cầu mua sắm đang ở Đã duyệt của cùng bộ phận; thiếu thì lệnh bị chặn. Hàng được tặng hoặc chuyển từ nơi khác được miễn, nhưng MUST ghi nguồn. Mỗi nhắc của BR-M11-20 theo FR-021. *(Nguồn: BR-M11-17, DBR-36)*
+- **FR-008c** *(bổ sung, 2026-10-06, Q-284; sửa Q-392)*: Lệnh ghi tăng tài sản mua mới và lệnh ghi kết quả bảo trì thuê ngoài có chi phí MUST gắn đúng một yêu cầu mua sắm đang ở Đã duyệt của cùng bộ phận; thiếu thì lệnh bị chặn. Hàng được tặng hoặc chuyển từ nơi khác được miễn, nhưng MUST ghi nguồn. Mỗi nhắc của BR-M11-20 theo FR-021. *(Nguồn: BR-M11-17, DBR-36)*
 
-- **FR-009**: Mỗi ngày, Bộ lập lịch MUST báo Phụ trách bộ phận Bếp và Nhân viên bếp (mức Nhẹ; sửa, 2026-10-06, Q-284): các lô còn tồn có hạn dùng trong CFG-M08-08 (mặc định \[2 ngày\]) hoặc đã quá hạn; các nguyên liệu Đang dùng có tổng tồn dưới mức tồn tối thiểu, kèm nhắc Phụ trách bộ phận Bếp lập yêu cầu mua sắm (FR-008). *(Nguồn: BR-M08-18)*
-- **FR-010**: Nhân viên bếp MUST đếm và lập phiếu kiểm kê theo chu kỳ CFG-M08-09 (mặc định \[hằng tháng\]); tới kỳ mà chưa có phiếu thì Nhân viên bếp và Phụ trách bộ phận Bếp được nhắc. Phiếu ghi tồn thực tế từng lô, hệ thống tính chênh lệch; dòng có chênh lệch khác 0 MUST có lý do. Phụ trách bộ phận Bếp duyệt; khi người lập là Phụ trách bộ phận Bếp thì Quản lý viện duyệt; người lập MUST NOT duyệt phiếu của chính mình (sửa, 2026-10-06, Q-284). Vòng đời: *(Nguồn: 12.7, BR-M08-19, Q-233)*
-
-| Trạng thái hiện tại | Lệnh / sự kiện | Trạng thái kế tiếp | Ai thực hiện | Điều kiện | Tác động |
-| --- | --- | --- | --- | --- | --- |
-| (chưa có) | Lập phiếu kiểm kê | Chờ duyệt | Nhân viên bếp | Có lý do cho mọi dòng lệch; chưa có phiếu Chờ duyệt cùng kỳ | Báo người duyệt |
-| Chờ duyệt | Duyệt | Đã duyệt | Phụ trách bộ phận Bếp; Quản lý viện khi người lập là Phụ trách bộ phận Bếp | Người duyệt khác người lập; tồn sau điều chỉnh không âm (có thể đã đổi do phiếu xuất sau khi lập) | Tạo điều chỉnh cho mọi dòng lệch; báo người lập |
-| Chờ duyệt | Trả lại | Bị trả lại | Như dòng trên | Có lý do | Báo người lập; lập phiếu mới để đếm lại |
-| Chờ duyệt | Hủy | Đã hủy | Người lập | Có lý do | — |
-
-Đã duyệt, Bị trả lại và Đã hủy là trạng thái cuối; phiếu đã lập không sửa được.
+- **FR-009**: *(Bỏ theo Q-392)*
+- **FR-010**: *(Bỏ theo Q-392)*
 
 #### B. Tài sản của viện
 
@@ -346,28 +290,22 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 
 #### D. Quyền, thông báo, giao tiếp
 
-- **FR-020**: **(Viết lại, 2026-10-06, Q-283, Q-284)** Quyền MUST theo Phụ lục 27 dòng "Kho nguyên liệu", "Tài sản, lịch xe", "Yêu cầu mua sắm" và 19.3: Nhân viên bếp lập phiếu nhập (gắn yêu cầu mua sắm), phiếu xuất cho bữa, xuất hủy, phiếu đảo và phiếu kiểm kê (³⁴); Phụ trách bộ phận Bếp quản lý danh mục nguyên liệu, duyệt và trả lại phiếu kiểm kê; Phụ trách bộ phận (nhiệm vụ, với bất kỳ vai trò nào, chỉ với bộ phận mình, ³⁷) ghi tăng, đưa vào sử dụng, bảo trì, chuyển vị trí tài sản, lập yêu cầu thanh lý; lập, gửi, rút lại, hủy yêu cầu mua sắm, ghi đã mua; **(bổ sung, 2026-10-11, Q-337)** Điều dưỡng lập, gửi, rút lại, hủy yêu cầu loại "thuốc" (⁴⁴); Kế toán đối chiếu chứng từ yêu cầu mua sắm (³⁸); Quản lý viện xem tồn kho và tài sản, duyệt yêu cầu mua sắm, duyệt thanh lý, chuyển tài sản giữa bộ phận, xử lý yêu cầu Lệch, duyệt phiếu kiểm kê khi người lập là Phụ trách bộ phận Bếp, cấu hình danh mục loại tài sản và tham số, đặt lịch xe; Quản lý viện MUST NOT thực hiện lệnh kho (12.7) và MUST NOT làm thay bất kỳ lệnh nào của Phụ trách bộ phận (**sửa, 2026-10-06, Q-292, Q-299**); Kế toán và Quản lý viện MUST NOT giữ nhiệm vụ Phụ trách bộ phận (Q-293, Q-299); Bác sĩ xem tồn (Q-283); Trưởng tầng báo hỏng, đưa vào bảo trì tài sản trong tầng mình và đặt lịch xe (³³); Hành chính đặt lịch xe và xem tài sản; vai trò khác và người thân không có quyền. *(Nguồn: Phụ lục 27 ³³, ³⁴, ³⁷, ³⁸; 19.3, 7.7, 12.7, 15.10; Q-233, Q-283, Q-284)*
-- **FR-021**: Feature này MUST yêu cầu feature 009 gửi (mức Nhẹ, trừ báo hỏng giường đang có người ở mức "mất an toàn" là Khẩn cấp cho Trưởng tầng và Người phụ trách ca của tầng, thêm Quản lý viện và Hành chính khi tầng hết giường Trống phù hợp, FR-015, Q-245, Q-256): lô sắp hết hạn, dưới tồn tối thiểu (FR-009); tới kỳ kiểm kê (Nhân viên bếp, Phụ trách bộ phận Bếp); phiếu kiểm kê chờ duyệt (người duyệt theo FR-010); phiếu kiểm kê được duyệt hoặc bị trả lại (người lập); **(sửa, 2026-10-06, Q-284)** yêu cầu mua sắm gửi duyệt (Quản lý viện), được duyệt, bị từ chối, bị trả lại (người lập), chờ đối chiếu (Kế toán), ghi lệch (Quản lý viện), Đã duyệt quá CFG-M11-08 chưa ghi đã mua (Phụ trách bộ phận), Chờ đối chiếu quá CFG-M11-09 (Kế toán) (BR-M11-20); tài sản bị báo hỏng (Phụ trách bộ phận quản lý tài sản); nhắc hạn và quá hạn bảo trì, đăng kiểm, bảo hiểm (FR-014); hư hỏng giường "chờ chuyển người"; lịch xe bị hủy, dời (**sửa, 2026-10-06, Q-298:** người đặt lịch, Phụ trách bộ phận quản lý xe, người lái nếu có tài khoản), quá giờ trả xe, xung đột lịch; **(bổ sung, Q-292)** lệnh bị chặn vì bộ phận chưa có Phụ trách bộ phận (Quản lý viện). *(Nguồn: 17)*
+- **FR-020**: **(Viết lại, 2026-10-06, Q-283, Q-284)** Quyền MUST theo Phụ lục 27 dòng "Tài sản, lịch xe", "Yêu cầu mua sắm" và 19.3 (dòng "Kho nguyên liệu" bỏ theo Q-392): Phụ trách bộ phận (nhiệm vụ, với bất kỳ vai trò nào, chỉ với bộ phận mình, ³⁷) ghi tăng, đưa vào sử dụng, bảo trì, chuyển vị trí tài sản, lập yêu cầu thanh lý; lập, gửi, rút lại, hủy yêu cầu mua sắm, ghi đã mua; **(bổ sung, 2026-10-11, Q-337)** Điều dưỡng lập, gửi, rút lại, hủy yêu cầu loại "thuốc" (⁴⁴); Kế toán đối chiếu chứng từ yêu cầu mua sắm (³⁸); Quản lý viện xem tài sản, duyệt yêu cầu mua sắm, duyệt thanh lý, chuyển tài sản giữa bộ phận, xử lý yêu cầu Lệch, cấu hình danh mục loại tài sản và tham số, đặt lịch xe; Quản lý viện MUST NOT làm thay bất kỳ lệnh nào của Phụ trách bộ phận (**sửa, 2026-10-06, Q-292, Q-299**); Kế toán và Quản lý viện MUST NOT giữ nhiệm vụ Phụ trách bộ phận (Q-293, Q-299); Trưởng tầng báo hỏng, đưa vào bảo trì tài sản trong tầng mình và đặt lịch xe (³³); Hành chính đặt lịch xe và xem tài sản; vai trò khác và người thân không có quyền. *(Nguồn: Phụ lục 27 ³³, ³⁷, ³⁸; 19.3, 7.7, 15.10; Q-284, Q-392)*
+- **FR-021**: Feature này MUST yêu cầu feature 009 gửi (mức Nhẹ, trừ báo hỏng giường đang có người ở mức "mất an toàn" là Khẩn cấp cho Trưởng tầng và Người phụ trách ca của tầng, thêm Quản lý viện và Hành chính khi tầng hết giường Trống phù hợp, FR-015, Q-245, Q-256): **(sửa, 2026-10-06, Q-284)** yêu cầu mua sắm gửi duyệt (Quản lý viện), được duyệt, bị từ chối, bị trả lại (người lập), chờ đối chiếu (Kế toán), ghi lệch (Quản lý viện), Đã duyệt quá CFG-M11-08 chưa ghi đã mua (Phụ trách bộ phận), Chờ đối chiếu quá CFG-M11-09 (Kế toán) (BR-M11-20); tài sản bị báo hỏng (Phụ trách bộ phận quản lý tài sản); nhắc hạn và quá hạn bảo trì, đăng kiểm, bảo hiểm (FR-014); hư hỏng giường "chờ chuyển người"; lịch xe bị hủy, dời (**sửa, 2026-10-06, Q-298:** người đặt lịch, Phụ trách bộ phận quản lý xe, người lái nếu có tài khoản), quá giờ trả xe, xung đột lịch; **(bổ sung, Q-292)** lệnh bị chặn vì bộ phận chưa có Phụ trách bộ phận (Quản lý viện). *(Nguồn: 17)*
 
 | Hướng | Feature | Nội dung | Dữ liệu tối thiểu |
 | --- | --- | --- | --- |
 | Nhận, Gửi | 003 | Nhận danh sách giường, trạng thái giường, phân bổ hiện tại và tương lai, hư hỏng phát hiện khi dọn giường (sửa, Q-282); gửi yêu cầu đổi trạng thái giường theo FR-015 (nơi ra lệnh duy nhất cho Đang bảo trì, Không sử dụng, Q-234), dấu "chờ chuyển người" và việc gỡ dấu (Q-235) | Giường, trạng thái, phân bổ, hư hỏng |
-| Nhận | 001 | Danh mục dị nguyên (FR-001) | Dị nguyên |
 | Nhận, Gửi | 006 | *(bổ sung, 2026-10-11, Q-337)* Nhận đơn thuốc nguồn viện để gắn dòng yêu cầu loại "thuốc" và kết quả tiếp nhận từng dòng (hiển thị "Đã nhận"); gửi yêu cầu loại "thuốc" đã ghi đã mua để Điều dưỡng ghi lần tiếp nhận (feature 006 FR-054) | Yêu cầu, dòng, người cao tuổi, đơn thuốc, thuốc, số lượng, trạng thái; kết quả tiếp nhận |
-| Nhận | 011 | Danh sách bữa (ngày, bữa) để chọn mục đích xuất | Ngày, bữa, giờ bữa |
 | Nhận | 008 | *(Bổ sung, Q-284)* Bộ phận của nhân viên, Phụ trách bộ phận hiện hành (feature 008 FR-001a) | Nhân viên, bộ phận, thời điểm |
 | Nhận, Gửi | 014 | Nhận chuyến đi (phương tiện, giờ rời, giờ về, dời, hủy, điểm danh rời đầu tiên, kết thúc điểm danh về); gửi điều kiện "có lịch xe" (FR-019) và trạng thái lịch xe | Chuyến, giờ, lịch xe, trạng thái |
 | Gửi | 009 | Thông báo ở FR-021 | Nguồn, mức, người nhận |
-| Gửi | 016 | Tài sản quá hạn bảo trì, đăng kiểm, bảo hiểm; nguyên liệu dưới tồn tối thiểu; lô sắp hết hạn (18.5) | Tài sản, dấu; nguyên liệu, tồn, mức tối thiểu |
+| Gửi | 016 | Tài sản quá hạn bảo trì, đăng kiểm, bảo hiểm (18.5) | Tài sản, dấu |
 | Gửi | 016 | *(Bổ sung, Q-284)* Yêu cầu mua sắm theo bộ phận, trạng thái, số tiền được duyệt và thực tế (BR-M11-20, feature 016 FR-055a) | Yêu cầu, bộ phận, trạng thái, số tiền |
 
 ### Key Entities *(include if feature involves data)*
 
-- **Nguyên liệu** – nhóm 1: các trường ở FR-001.
-- **Lô nguyên liệu (LO_NGUYEN_LIEU)** – nhóm 2 dẫn xuất: nguyên liệu, số lô, hạn dùng, tồn.
-- **Phiếu kho (PHIEU_KHO)** – nhóm 3: loại (nhập / xuất / đảo / điều chỉnh kiểm kê), ngày, mục đích, nhà cung cấp, yêu cầu mua sắm hoặc nguồn (tặng, chuyển), chứng từ mua, dòng (nguyên liệu, lô, số lượng, đơn giá, kết quả kiểm tra, lý do), người lập, phiếu gốc (với phiếu đảo).
 - **Yêu cầu mua sắm (YEU_CAU_MUA_SAM)** *(thay Đề nghị nhập, 2026-10-06, Q-284)* – nhóm 2, thành nhóm 3 khi ở trạng thái cuối: bộ phận, người lập, loại, các dòng (với loại "thuốc": người cao tuổi, đơn thuốc, hoạt chất, hàm lượng, dạng, đơn vị; mức ưu tiên, thời điểm cần; bổ sung 2026-10-11, Q-337), tổng dự kiến, số được duyệt và lý do giảm, lý do, ngày cần, tham chiếu, yêu cầu gốc (với yêu cầu bổ sung), số tiền thực tế, ngày mua, nhà cung cấp, chứng từ, kết quả đối chiếu, số lệch và cách xử lý, trạng thái, người duyệt, người đối chiếu.
-- **Phiếu kiểm kê** – nhóm 2 → 3: ngày, dòng (lô, tồn hệ thống, tồn thực tế, chênh lệch, lý do), trạng thái, người lập, người duyệt (Phụ trách bộ phận Bếp hoặc Quản lý viện).
 - **Tài sản (TAI_SAN)** – nhóm 1 và 2: các trường ở FR-011 (gồm bộ phận quản lý, yêu cầu mua sắm đã dùng để mua), trạng thái, vị trí hiện hành, dấu quá hạn, giường liên kết.
 - **Lịch sử vị trí, lần bảo trì, hư hỏng** – nhóm 3 (gồm cả lịch sử bộ phận quản lý, Q-284; lần bảo trì thuê ngoài có chi phí trỏ tới yêu cầu mua sắm): tài sản, thời điểm, nội dung, người thực hiện, đơn vị thực hiện, kết quả; với hư hỏng báo trên giường đang có người: mức ảnh hưởng (mất an toàn / không mất an toàn), dấu "chờ chuyển người", lần gỡ dấu kèm lý do, nội dung đã sửa và người sửa (Q-245, Q-265).
 - **Lịch xe (LICH_XE)** – nhóm 2: các trường ở FR-017, trạng thái, thời điểm xuất phát và trả thực tế.
@@ -376,20 +314,17 @@ Mọi yêu cầu dưới đây kế thừa feature 000. Phân nhóm dữ liệu:
 
 ### Measurable Outcomes
 
-- **SC-001**: Với bộ kiểm thử 200 phiếu nhập, xuất, đảo, điều chỉnh, 100% tồn từng lô khớp tính tay; 0 lô có tồn âm; 0 phiếu đã lưu bị sửa, xóa.
-- **SC-002**: 0 lần xuất cho bữa từ lô đã quá hạn dùng; 100% lần chọn lô không phải lô hạn sớm nhất có lý do.
-- **SC-003**: Với đồng hồ giả lập, 100% lô tới mốc CFG-M08-08 và 100% nguyên liệu dưới tồn tối thiểu được báo trong lần chạy đầu tiên; 100% tài sản tới mốc CFG-M03-09 được nhắc đúng ngày.
+- **SC-001**: *(Bỏ theo Q-392)*
+- **SC-002**: *(Bỏ theo Q-392)*
+- **SC-003**: Với đồng hồ giả lập, 100% tài sản tới mốc CFG-M03-09 được nhắc đúng ngày.
 - **SC-004**: 0 giường có trạng thái giường và trạng thái tài sản mâu thuẫn theo FR-015 sau bất kỳ lệnh nào.
 - **SC-005**: 0 cặp lịch xe chưa hủy chồng giờ trên cùng xe, trừ chồng giờ do gia hạn giờ về của chuyến đang đi (Q-236); 0 chuyến đi dùng xe của viện được điểm danh rời viện khi chưa có lịch xe.
-- **SC-006**: Nhân viên bếp lập xong một phiếu xuất 10 dòng cho một bữa trong không quá 3 phút.
-- **SC-007** *(bổ sung, 2026-10-06, Q-284)*: 0 phiếu nhập hàng mua, ghi tăng tài sản mua mới, kết quả bảo trì thuê ngoài có chi phí không gắn yêu cầu mua sắm Đã duyệt của cùng bộ phận; 0 lần ghi đã mua vượt số được duyệt quá CFG-M11-07; 0 yêu cầu được đối chiếu bởi chính người ghi đã mua; **(bổ sung, Q-292 → Q-294)** 0 lệnh của Phụ trách bộ phận do Quản lý viện hoặc Kế toán thực hiện; 0 tài sản gắn yêu cầu mua sắm thiếu nguyên giá; với đồng hồ giả lập, 100% yêu cầu quá CFG-M11-08 hoặc CFG-M11-09 được nhắc đúng người trong lần chạy đầu tiên. **(Bổ sung, 2026-10-11, Q-337)** 100% dòng của yêu cầu loại "thuốc" gắn một đơn nguồn viện chưa kết thúc của đúng người cao tuổi; 0 yêu cầu loại "thuốc" do hệ thống tự lập; 0 khoản chi phí người cao tuổi sinh từ yêu cầu mua sắm.
+- **SC-006**: *(Bỏ theo Q-392)*
+- **SC-007** *(bổ sung, 2026-10-06, Q-284)*: 0 lần ghi tăng tài sản mua mới, kết quả bảo trì thuê ngoài có chi phí không gắn yêu cầu mua sắm Đã duyệt của cùng bộ phận; 0 lần ghi đã mua vượt số được duyệt quá CFG-M11-07; 0 yêu cầu được đối chiếu bởi chính người ghi đã mua; **(bổ sung, Q-292 → Q-294)** 0 lệnh của Phụ trách bộ phận do Quản lý viện hoặc Kế toán thực hiện; 0 tài sản gắn yêu cầu mua sắm thiếu nguyên giá; với đồng hồ giả lập, 100% yêu cầu quá CFG-M11-08 hoặc CFG-M11-09 được nhắc đúng người trong lần chạy đầu tiên. **(Bổ sung, 2026-10-11, Q-337)** 100% dòng của yêu cầu loại "thuốc" gắn một đơn nguồn viện chưa kết thúc của đúng người cao tuổi; 0 yêu cầu loại "thuốc" do hệ thống tự lập; 0 khoản chi phí người cao tuổi sinh từ yêu cầu mua sắm.
 
 ## Assumptions
 
-- Số feature `019`; người dùng chọn gộp kho nguyên liệu và tài sản vào một spec, vì cùng do Quản lý viện quản lý (Q-209, Q-210, 2026-09-28). **(Sửa, 2026-10-06, Q-284)** Nay kho và tài sản do bộ phận tự quản lý; yêu cầu mua sắm cũng đặt ở spec này vì gắn trực tiếp với phiếu nhập, ghi tăng tài sản và bảo trì thuê ngoài.
-- Phiếu nhập, xuất có hiệu lực ngay khi lưu, không có trạng thái Nháp: 12.7 và BR-M08-20 chỉ nêu phiếu "đã xác nhận" và phiếu đảo.
-- Phiếu kiểm kê do Nhân viên bếp đếm và lập, Phụ trách bộ phận Bếp duyệt (Clarification 2026-09-29, Q-233; sửa, 2026-10-06, Q-284: Quản lý viện chỉ duyệt khi người lập là Phụ trách bộ phận Bếp), để tách người đếm khỏi người duyệt chênh lệch.
-- Đơn giá trên phiếu nhập chỉ để tham khảo; hệ thống không tính giá vốn hay giá trị tồn kho (1.2).
+- Số feature `019`; người dùng chọn gộp kho nguyên liệu và tài sản vào một spec, vì cùng do Quản lý viện quản lý (Q-209, Q-210, 2026-09-28). **(Sửa, 2026-10-06, Q-284)** Nay kho và tài sản do bộ phận tự quản lý; yêu cầu mua sắm cũng đặt ở spec này vì gắn trực tiếp với ghi tăng tài sản và bảo trì thuê ngoài. **(Sửa, 2026-10-29, Q-392)** Kho nguyên liệu bỏ; tên thư mục `019-inventory-assets` giữ nguyên.
 - Nhà cung cấp là văn bản tự do, không có danh mục nhà cung cấp ở giai đoạn này.
 - Cách chuyển trạng thái lịch xe và cách báo hỏng giường đang có người đã chốt ở Clarification 2026-09-29 (Q-231, Q-232). Chu kỳ nhắc chuyển người dùng lại CFG-M03-02 (vốn là chu kỳ nhắc chuyển giường khi phòng không còn phù hợp mức chăm sóc), không thêm tham số mới.
 

@@ -61,9 +61,6 @@ public class PrnAdministration {
     @Column(name = "offline_device_time")
     private Instant offlineDeviceTime;
 
-    @Column(name = "family_medication_batch_id")
-    private Long familyMedicationBatchId;
-
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -80,7 +77,6 @@ public class PrnAdministration {
             String reportedBy,
             boolean exceededLimit,
             Instant offlineDeviceTime,
-            Long familyMedicationBatchId,
             String adverseReaction,
             String note,
             boolean recordedAfterDisconnect,
@@ -98,7 +94,6 @@ public class PrnAdministration {
         this.reportedBy = reportedBy;
         this.exceededLimit = exceededLimit;
         this.offlineDeviceTime = offlineDeviceTime;
-        this.familyMedicationBatchId = familyMedicationBatchId;
         this.createdAt = now;
     }
 
@@ -144,10 +139,6 @@ public class PrnAdministration {
 
     public Instant getOfflineDeviceTime() {
         return offlineDeviceTime;
-    }
-
-    public Long getFamilyMedicationBatchId() {
-        return familyMedicationBatchId;
     }
 
     public Instant getCreatedAt() {

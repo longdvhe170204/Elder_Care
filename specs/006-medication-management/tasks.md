@@ -181,11 +181,11 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 
 ---
 
-## Phase 9: User Story 7 – Thuốc gia đình gửi: đối chiếu trước khi dùng và theo dõi số lượng (Priority: P2)
+## Phase 9: User Story 7 – Thuốc gia đình gửi: đối chiếu trước khi dùng (Priority: P2) *(sửa 2026-10-29, Q-393)*
 
-**Goal**: Lô Chờ đối chiếu không dùng được; gắn đơn khi Xác nhận sử dụng; số lượng chỉ đổi qua biến động; số ngày còn lại và mốc nhắc CFG-M07-06, 07; hoàn trả, hủy; hạn dùng; việc sau qua đời (FR-040 → FR-047, BR-M07-10, 11, 18, 19).
+**Goal**: Lô Chờ đối chiếu không dùng được; gắn đơn khi Xác nhận sử dụng; *(sửa Q-393)* không theo dõi số lượng còn, Điều dưỡng ghi Đã dùng hết và Báo gia đình sắp hết; hoàn trả, hủy ghi số lượng đếm thực tế; hạn dùng; việc sau qua đời (FR-040 → FR-047, BR-M07-10, 11, 18, 19).
 
-**Independent Test**: Tiếp nhận 30 viên Donepezil; Chờ đối chiếu, không gắn vào lịch; đối chiếu với đơn nguồn gia đình gửi; xác nhận 26 liều; kiểm số còn và nhắc sắp hết.
+**Independent Test**: Tiếp nhận 30 viên Donepezil; Chờ đối chiếu, không gắn vào lịch; đối chiếu với đơn nguồn gia đình gửi; xác nhận liều không chọn lô; ghi Báo gia đình sắp hết; Ghi dùng hết.
 
 ### Tests cho User Story 7
 
@@ -197,6 +197,14 @@ description: "Danh sách task triển khai feature 006 – Quản lý thuốc"
 - [x] T049 [US7] Tạo `MIG/V006_07__thuoc_gui.sql`: `thuoc_gia_dinh_gui` (`so_luong_ban_dau`, `so_luong_con DECIMAL(10,2)` với `CHECK (so_luong_con >= 0)`; `nguoi_giao_loai ENUM('NGUOI_THAN','TU_DO','NHAN_VIEN_MUA_HO')`; `trang_thai ENUM('CHO_DOI_CHIEU','DUOC_SU_DUNG','CHI_GIU_HO','DA_DUNG_HET','DA_HOAN_TRA','DA_HUY_THEO_YEU_CAU')`; trigger `trg_tgdg_so_luong` chỉ cho đổi khi `@m07_bien_dong = 1`), `thuoc_gui_don` (`lo_id`, `don_thuoc_id`, `tu`, `den`), `bien_dong_thuoc_gui` (nhóm 3; `loai` 9 giá trị; trigger đặt `@m07_bien_dong` và cập nhật `so_luong_con`), `moc_nhac_thuoc_gui` (khóa chính `(khoa_nhom, moc, so_thu_tu)`) (data-model mục 8)
 - [x] T050 [US7] Cài `BE/m07/thuocgui/internal/ThuocGuiService.java`: tiếp nhận (ảnh qua `TepApi`), xác nhận sử dụng (gắn đơn cùng thuốc cùng người), chỉ giữ hộ, ngừng sử dụng, kiểm kê điều chỉnh, hoàn trả, hủy (người thân hoặc người đại diện qua 012); `TinhSoNgayConLai`, mốc nhắc; việc hằng ngày `HET_HAN_DUNG`; `ThuocGiaDinhGuiApi`; `MucViecSauQuaDoiPort` `THUOC_GUI`; điều kiện `KT_C_THUOC_GUI` trong `ThamGiaM07.java` (research D-14)
 - [x] T051 [US7] Tạo `BE/m07/thuocgui/web/ThuocGuiController.java`: `POST/GET /nguoi-cao-tuoi/{nctId}/thuoc-gia-dinh-gui`, `GET /thuoc-gia-dinh-gui/{id}`, `POST …/xac-nhan-su-dung`, `/chi-giu-ho`, `/ngung-su-dung`, `/kiem-ke-dieu-chinh`, `/hoan-tra`, `/huy`; màn web `frontend/src/tinh-nang/thuoc-gia-dinh-gui/`, app `mobile/lib/nhan-vien/thuoc-gia-dinh-gui/`
+
+### Sửa theo Q-393 (2026-10-29)
+
+T047, T048 (phần số lượng, mốc nhắc), T049 (`so_luong_con`, biến động, mốc nhắc), T050 (Kiểm kê điều chỉnh, trừ số lượng), T051 (`/kiem-ke-dieu-chinh`) đã cài theo bản cũ; ba task dưới đây sửa lại theo spec, data-model, `api-006.yaml` mới.
+
+- [x] T066 [US7] Test trước, phải đỏ: liều và lần dùng PRN nguồn gia đình gửi không nhận lô, không đổi số lượng, bị chặn khi đơn không còn lô Được sử dụng chưa hết hạn (FR-044); Hoàn trả, Hủy ghi `finalQuantity` đếm thực tế, không còn 409 `QUANTITY_DIFFERS_FROM_REMAINING` (FR-045); `mark-depleted`; `notify-running-low` gửi 009 đúng một yêu cầu mức Trung bình và ghi nhật ký (FR-046, SC-007); `ApiContractIT` khớp `api-006.yaml` mới. Bỏ `BR_M07_11_SoNgayConLaiTest`, `BR_M07_18_LoDungChungTest`, phần mốc nhắc của `ThuocGuiSapHetIT`, `ThuocGuiSoLuongTriggerIT`
+- [x] T067 [US7] Migration mới (`MIG/V006_xx`): bỏ `family_medication_movement`, `family_medication_reminder`, `remaining_quantity` và `chk_batch_remaining_non_negative`, cột lô của `dose_result`, `prn_administration`; thêm `final_quantity`, `closed_at`, `closed_by_id`, `return_recipient_name`, `return_relationship`, `witness`; trigger chặn đổi `initial_quantity` và mọi đổi khi trạng thái cuối (data-model mục `thuoc_gia_dinh_gui`)
+- [x] T068 [US7] Sửa `FamilyMedicationService`, `FamilyMedicationController`, DTO, `DoseViewService`, `PrnMedicationService`, `MedicationHandoverService` theo `api-006.yaml`: bỏ `adjust-inventory`, `calculateDaysRemaining`, trừ, cộng số lượng; thêm `mark-depleted`, `notify-running-low` (sự kiện `ThuocGuiSapHet` cho 009); `npm run gen:api` cho `api006.js` và sửa màn thuốc gửi; xong thì báo A gỡ CFG-M07-06, 07
 
 **Checkpoint**: Thuốc gửi chạy độc lập.
 

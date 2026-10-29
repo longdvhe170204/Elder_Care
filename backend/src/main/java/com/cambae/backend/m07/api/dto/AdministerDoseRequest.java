@@ -15,5 +15,4 @@ public record AdministerDoseRequest(
         String adverseReaction,
         String note,
         boolean offlineFlag,
-        Long familyMedicationLotId,
         Long leaveHandoverId) {}

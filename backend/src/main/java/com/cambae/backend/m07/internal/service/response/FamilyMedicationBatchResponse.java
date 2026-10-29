@@ -5,22 +5,15 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
+/** Lô thuốc gia đình gửi; không có số lượng còn, biến động (Q-393). */
 public class FamilyMedicationBatchResponse {
-
     private String delivererType;
-
     private Long delivererId;
-
     private String delivererName;
-
     private String relationship;
-
     private Long purchaseRequestId;
-
     private Instant receivedAt;
-
     private List<Long> fileIds;
-
     private Long id;
     private Long residentId;
     private Long medicationId;
@@ -28,16 +21,15 @@ public class FamilyMedicationBatchResponse {
     private String customActiveIngredient;
     private String customConcentration;
     private BigDecimal initialQuantity;
-    private BigDecimal remainingQuantity;
     private String unit;
     private LocalDate expiryDate;
     private String packagingCondition;
     private boolean hasPrescription;
     private String status;
     private String statusReason;
-    private Integer daysRemaining;
     private List<Long> boundPrescriptionIds;
-    private List<MovementResponse> movements;
+    private BigDecimal finalQuantity;
+    private Instant closedAt;
 
     public String getDelivererType() {
         return delivererType;
@@ -95,73 +87,6 @@ public class FamilyMedicationBatchResponse {
         this.fileIds = fileIds;
     }
 
-    public static class MovementResponse {
-        private Long id;
-        private String movementType;
-        private BigDecimal quantity;
-        private BigDecimal remainingAfter;
-        private Instant movedAt;
-        private String reason;
-        private Long actorId;
-
-        public Long getId() {
-            return id;
-        }
-
-        public void setId(Long id) {
-            this.id = id;
-        }
-
-        public String getMovementType() {
-            return movementType;
-        }
-
-        public void setMovementType(String movementType) {
-            this.movementType = movementType;
-        }
-
-        public BigDecimal getQuantity() {
-            return quantity;
-        }
-
-        public void setQuantity(BigDecimal quantity) {
-            this.quantity = quantity;
-        }
-
-        public BigDecimal getRemainingAfter() {
-            return remainingAfter;
-        }
-
-        public void setRemainingAfter(BigDecimal remainingAfter) {
-            this.remainingAfter = remainingAfter;
-        }
-
-        public Instant getMovedAt() {
-            return movedAt;
-        }
-
-        public void setMovedAt(Instant movedAt) {
-            this.movedAt = movedAt;
-        }
-
-        public String getReason() {
-            return reason;
-        }
-
-        public void setReason(String reason) {
-            this.reason = reason;
-        }
-
-        public Long getActorId() {
-            return actorId;
-        }
-
-        public void setActorId(Long actorId) {
-            this.actorId = actorId;
-        }
-    }
-
-    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -218,14 +143,6 @@ public class FamilyMedicationBatchResponse {
         this.initialQuantity = initialQuantity;
     }
 
-    public BigDecimal getRemainingQuantity() {
-        return remainingQuantity;
-    }
-
-    public void setRemainingQuantity(BigDecimal remainingQuantity) {
-        this.remainingQuantity = remainingQuantity;
-    }
-
     public String getUnit() {
         return unit;
     }
@@ -274,14 +191,6 @@ public class FamilyMedicationBatchResponse {
         this.statusReason = statusReason;
     }
 
-    public Integer getDaysRemaining() {
-        return daysRemaining;
-    }
-
-    public void setDaysRemaining(Integer daysRemaining) {
-        this.daysRemaining = daysRemaining;
-    }
-
     public List<Long> getBoundPrescriptionIds() {
         return boundPrescriptionIds;
     }
@@ -290,11 +199,19 @@ public class FamilyMedicationBatchResponse {
         this.boundPrescriptionIds = boundPrescriptionIds;
     }
 
-    public List<MovementResponse> getMovements() {
-        return movements;
+    public BigDecimal getFinalQuantity() {
+        return finalQuantity;
     }
 
-    public void setMovements(List<MovementResponse> movements) {
-        this.movements = movements;
+    public void setFinalQuantity(BigDecimal finalQuantity) {
+        this.finalQuantity = finalQuantity;
+    }
+
+    public Instant getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(Instant closedAt) {
+        this.closedAt = closedAt;
     }
 }

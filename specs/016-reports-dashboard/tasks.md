@@ -203,6 +203,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 - [ ] T027 [P] Test `BT/m14/SC_008_ChiDocIT.java` (đếm bản ghi trước/sau mọi báo cáo; Q29) và hiệu năng báo cáo 12 tháng (SC-003; Q24)
 - [x] T028 [P] *(2026-10-24: `ApiContractIT`; `pending` còn `/dashboard`, `/metrics`, `/reports/{group}`, `/metric-details/{metricCode}`)* Mở rộng `BT/common/HopDongApiTest.java` với `specs/016-reports-dashboard/contracts/api-016.yaml`
+- [x] T105 *(bổ sung 2026-10-29, Q-392)* Bỏ nhóm chỉ tiêu kho nguyên liệu: `MetricGroup.INVENTORY`, chỉ tiêu `KHO.DUOI_TOI_THIEU`, `KHO.LO_SAP_HET_HAN` (contracts/chi-tieu.md) và các ô quyền của nhóm này; sửa test liên quan
 - [ ] T029 Chạy `./mvnw verify`, `npm test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
 - [ ] T030 Rà: mọi mã ở `contracts/chi-tieu.md` có `ChiTieu_*Test` (SC-001); DBR-25 (mốc theo Asia/Ho_Chi_Minh); FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-002, FR-004, FR-005, FR-006, FR-007, FR-008, FR-055, FR-055a — mỗi FR có task hoặc test tương ứng (constitution XV)
 

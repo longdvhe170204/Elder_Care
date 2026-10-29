@@ -25,7 +25,6 @@ export const METRIC_GROUP_LABELS = {
   BALANCES: 'Số dư thấp, còn nợ',
   RESIDENCE_REGISTRATION: 'Khai báo tạm trú',
   ASSETS: 'Tài sản quá hạn',
-  INVENTORY: 'Nguyên liệu, lô sắp hết hạn',
   CRITICAL_FLAGS: 'Dấu nguy kịch',
   STAFFING_SHIFTS: 'Nhân sự, ca trực',
 }

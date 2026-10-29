@@ -2,15 +2,15 @@ package com.cambae.backend.m07.internal.service;
 
 import com.cambae.backend.common.error.BusinessException;
 import com.cambae.backend.common.time.BusinessTime;
+import com.cambae.backend.m07.api.events.FamilyMedicationRunningLow;
 import com.cambae.backend.m07.internal.domain.*;
 import com.cambae.backend.m07.internal.persistence.*;
 import com.cambae.backend.m07.internal.service.request.*;
 import com.cambae.backend.m07.internal.service.response.FamilyMedicationBatchResponse;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.*;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,24 +21,27 @@ public class FamilyMedicationService {
 
     private final FamilyMedicationBatchRepository batchRepo;
     private final FamilyMedicationPrescriptionRepository batchPrescriptionRepo;
-    private final FamilyMedicationMovementRepository movementRepo;
     private final PrescriptionRepository prescriptionRepo;
+    private final MedicationRepository medicationRepo;
     private final ResidentMedicationLock residentMedicationLock;
+    private final ApplicationEventPublisher events;
     private final ObjectMapper objectMapper;
     private final BusinessTime businessTime;
 
     public FamilyMedicationService(
             FamilyMedicationBatchRepository batchRepo,
             FamilyMedicationPrescriptionRepository batchPrescriptionRepo,
-            FamilyMedicationMovementRepository movementRepo,
             PrescriptionRepository prescriptionRepo,
+            MedicationRepository medicationRepo,
             ResidentMedicationLock residentMedicationLock,
+            ApplicationEventPublisher events,
             BusinessTime businessTime) {
         this.batchRepo = batchRepo;
         this.batchPrescriptionRepo = batchPrescriptionRepo;
-        this.movementRepo = movementRepo;
         this.prescriptionRepo = prescriptionRepo;
+        this.medicationRepo = medicationRepo;
         this.residentMedicationLock = residentMedicationLock;
+        this.events = events;
         this.objectMapper = new ObjectMapper();
         this.businessTime = businessTime;
     }
@@ -71,7 +74,6 @@ public class FamilyMedicationService {
                 body.getCustomActiveIngredient(),
                 body.getCustomConcentration(),
                 body.getInitialQuantity(),
-                body.getInitialQuantity(), // remaining = initial
                 body.getUnit(),
                 body.getExpiryDate(),
                 body.getPackagingCondition(),
@@ -89,24 +91,7 @@ public class FamilyMedicationService {
                 businessTime.now());
 
         FamilyMedicationBatch saved = batchRepo.save(batch);
-
-        // Initial movement record (RECEIPT)
-        FamilyMedicationMovement movement = new FamilyMedicationMovement(
-                saved.getId(),
-                MovementType.RECEIPT,
-                saved.getInitialQuantity(),
-                saved.getRemainingQuantity(),
-                "RECEIPT",
-                saved.getId(),
-                receiverId,
-                businessTime.now(),
-                "Family medication received",
-                null,
-                null,
-                null);
-        movementRepo.save(movement);
-
-        return toResponse(saved, List.of(), List.of(movement), 0);
+        return toResponse(saved, List.of());
     }
 
     /**
@@ -224,264 +209,119 @@ public class FamilyMedicationService {
     }
 
     /**
-     * Adjust inventory quantity (FR-045).
-     */
-    public FamilyMedicationBatchResponse adjustInventory(Long batchId, AdjustInventoryBody body, Long actorId) {
-        FamilyMedicationBatch batch = batchRepo
-                .findById(batchId)
-                .orElseThrow(() -> new BusinessException(
-                        HttpStatus.NOT_FOUND, "NOT_FOUND", "Family-sent medication batch not found"));
-
-        residentMedicationLock.lock(batch.getResidentId());
-
-        BigDecimal diff = body.getActualQuantity().subtract(batch.getRemainingQuantity());
-        batch.updateRemainingQuantity(body.getActualQuantity(), businessTime.now());
-        batchRepo.save(batch);
-
-        FamilyMedicationMovement movement = new FamilyMedicationMovement(
-                batch.getId(),
-                MovementType.INVENTORY_ADJUSTMENT,
-                diff,
-                body.getActualQuantity(),
-                "INVENTORY_ADJUSTMENT",
-                null,
-                actorId,
-                businessTime.now(),
-                body.getReason(),
-                null,
-                null,
-                null);
-        movementRepo.save(movement);
-
-        return getBatch(batchId);
-    }
-
-    /**
-     * Return medication to family (FR-041, FR-045, BR-M07-19).
-     * Requires batch in PENDING_RECONCILIATION or HOLD_ONLY; return quantity must equal exactly the remaining quantity.
+     * Return the whole batch to family (FR-041, FR-045, BR-M07-19). Records the quantity counted at return; Q-393 keeps
+     * no remaining quantity, so any counted quantity is accepted.
      */
     public FamilyMedicationBatchResponse returnBatch(Long batchId, ReturnBatchBody body, Long actorId) {
-        FamilyMedicationBatch batch = batchRepo
-                .findById(batchId)
-                .orElseThrow(() -> new BusinessException(
-                        HttpStatus.NOT_FOUND, "NOT_FOUND", "Family-sent medication batch not found"));
-
-        residentMedicationLock.lock(batch.getResidentId());
-
-        if (batch.getStatus() != FamilyMedicationBatchStatus.PENDING_RECONCILIATION
-                && batch.getStatus() != FamilyMedicationBatchStatus.HOLD_ONLY) {
-            throw new BusinessException(
-                    HttpStatus.CONFLICT,
-                    "INVALID_STATE",
-                    "Can only return batches in PENDING_RECONCILIATION or HOLD_ONLY status");
-        }
-
-        if (body.getQuantity().compareTo(batch.getRemainingQuantity()) != 0) {
-            throw new BusinessException(
-                    HttpStatus.CONFLICT,
-                    "QUANTITY_DIFFERS_FROM_REMAINING",
-                    "Return quantity must exactly match remaining quantity (" + batch.getRemainingQuantity() + ")");
-        }
-
-        FamilyMedicationMovement movement = new FamilyMedicationMovement(
-                batch.getId(),
-                MovementType.RETURN,
-                body.getQuantity().negate(),
-                BigDecimal.ZERO,
-                "RETURN",
-                null,
-                actorId,
-                body.getReturnedAt() != null ? body.getReturnedAt() : businessTime.now(),
-                "Returned to family",
-                null,
+        FamilyMedicationBatch batch = closable(batchId, "return");
+        batch.markReturned(
+                "Returned to " + body.getRecipientName(),
+                body.getQuantity(),
                 body.getRecipientName(),
-                body.getRelationship());
-        movementRepo.save(movement);
-
-        batch.markReturned("Returned to " + body.getRecipientName(), businessTime.now());
+                body.getRelationship(),
+                actorId,
+                body.getReturnedAt() != null ? body.getReturnedAt() : businessTime.now());
         batchRepo.save(batch);
-
         return getBatch(batchId);
     }
 
-    /**
-     * Dispose batch per family request (FR-041, FR-045, BR-M07-19).
-     * Requires witness and reason; disposal quantity must equal exactly the remaining quantity.
-     */
+    /** Dispose the whole batch per family request (FR-041, FR-045, BR-M07-19); records counted quantity and witness. */
     public FamilyMedicationBatchResponse disposeBatch(Long batchId, DisposeBatchBody body, Long actorId) {
-        FamilyMedicationBatch batch = batchRepo
-                .findById(batchId)
-                .orElseThrow(() -> new BusinessException(
-                        HttpStatus.NOT_FOUND, "NOT_FOUND", "Family-sent medication batch not found"));
-
-        residentMedicationLock.lock(batch.getResidentId());
-
-        if (batch.getStatus() != FamilyMedicationBatchStatus.PENDING_RECONCILIATION
-                && batch.getStatus() != FamilyMedicationBatchStatus.HOLD_ONLY) {
-            throw new BusinessException(
-                    HttpStatus.CONFLICT,
-                    "INVALID_STATE",
-                    "Can only dispose batches in PENDING_RECONCILIATION or HOLD_ONLY status");
-        }
-
-        if (body.getQuantity().compareTo(batch.getRemainingQuantity()) != 0) {
-            throw new BusinessException(
-                    HttpStatus.CONFLICT,
-                    "QUANTITY_DIFFERS_FROM_REMAINING",
-                    "Disposal quantity must exactly match remaining quantity (" + batch.getRemainingQuantity() + ")");
-        }
-
-        FamilyMedicationMovement movement = new FamilyMedicationMovement(
-                batch.getId(),
-                MovementType.DISPOSAL,
-                body.getQuantity().negate(),
-                BigDecimal.ZERO,
-                "DISPOSAL",
-                null,
-                actorId,
-                businessTime.now(),
-                body.getReason(),
-                body.getWitness(),
-                null,
-                null);
-        movementRepo.save(movement);
-
-        batch.markDisposed(body.getReason(), businessTime.now());
+        FamilyMedicationBatch batch = closable(batchId, "dispose");
+        batch.markDisposed(body.getReason(), body.getQuantity(), body.getWitness(), actorId, businessTime.now());
         batchRepo.save(batch);
-
         return getBatch(batchId);
     }
 
-    /**
-     * Records inventory deduction when administering a dose or PRN (BR-M07-10, BR-M07-11).
-     */
-    public void recordUsage(
-            Long batchId, BigDecimal quantity, MovementType type, String sourceType, Long sourceId, Long actorId) {
-        FamilyMedicationBatch batch = batchRepo
-                .findById(batchId)
-                .orElseThrow(() -> new BusinessException(
-                        HttpStatus.NOT_FOUND, "NOT_FOUND", "Family-sent medication batch not found"));
-
-        if (batch.getStatus() != FamilyMedicationBatchStatus.IN_USE) {
-            throw new BusinessException(
-                    HttpStatus.CONFLICT,
-                    "BATCH_NOT_RECONCILED",
-                    "Family medication batch has not been reconciled and confirmed for use");
+    /** Ghi dùng hết (FR-041, FR-045, Q-393): lô Được sử dụng chuyển Đã dùng hết và gỡ liên kết đơn. */
+    public FamilyMedicationBatchResponse markDepleted(Long batchId, Long actorId) {
+        FamilyMedicationBatch batch = inUse(batchId);
+        for (FamilyMedicationPrescription link : batchPrescriptionRepo.findByBatchIdAndBoundToIsNull(batchId)) {
+            link.unbind(businessTime.now());
+            batchPrescriptionRepo.save(link);
         }
-
-        if (batch.getRemainingQuantity().compareTo(quantity) < 0) {
-            throw new BusinessException(
-                    HttpStatus.CONFLICT,
-                    "INSUFFICIENT_QUANTITY",
-                    "Remaining medication is insufficient (available: " + batch.getRemainingQuantity() + ", needed: "
-                            + quantity + ")");
-        }
-
-        BigDecimal newRemaining = batch.getRemainingQuantity().subtract(quantity);
-        batch.updateRemainingQuantity(newRemaining, businessTime.now());
+        batch.markDepleted(actorId, businessTime.now());
         batchRepo.save(batch);
+        return getBatch(batchId);
+    }
 
-        FamilyMedicationMovement movement = new FamilyMedicationMovement(
-                batch.getId(),
-                type,
-                quantity.negate(),
-                newRemaining,
-                sourceType,
-                sourceId,
-                actorId,
-                businessTime.now(),
-                "Deducted for medication administration",
-                null,
-                null,
-                null);
-        movementRepo.save(movement);
+    /** Báo gia đình sắp hết (FR-046, Q-393): không đổi trạng thái; 009 báo người liên hệ chính, người đại diện. */
+    public void notifyRunningLow(Long batchId, String note, Long actorId) {
+        FamilyMedicationBatch batch = inUse(batchId);
+        events.publishEvent(new FamilyMedicationRunningLow(
+                batch.getId(), batch.getResidentId(), medicationName(batch), note, actorId, businessTime.now()));
+    }
+
+    /** Đơn còn lô Được sử dụng chưa hết hạn dùng (FR-044): điều kiện xác nhận liều, lần dùng PRN nguồn gia đình gửi. */
+    @Transactional(readOnly = true)
+    public boolean hasUsableBatch(Long residentId, long prescriptionId) {
+        Set<Long> bound = new HashSet<>();
+        batchPrescriptionRepo
+                .findByPrescriptionIdAndBoundToIsNull(prescriptionId)
+                .forEach(l -> bound.add(l.getBatchId()));
+        LocalDate today = businessTime.today();
+        return batchRepo.findByResidentIdAndStatus(residentId, FamilyMedicationBatchStatus.IN_USE).stream()
+                .anyMatch(b -> bound.contains(b.getId())
+                        && (b.getExpiryDate() == null || !b.getExpiryDate().isBefore(today)));
     }
 
     @Transactional(readOnly = true)
     public FamilyMedicationBatchResponse getBatch(Long batchId) {
-        FamilyMedicationBatch batch = batchRepo
-                .findById(batchId)
-                .orElseThrow(() -> new BusinessException(
-                        HttpStatus.NOT_FOUND, "NOT_FOUND", "Không tìm thấy lô thuốc gia đình gửi"));
-
-        List<FamilyMedicationPrescription> activeLinks = batchPrescriptionRepo.findByBatchIdAndBoundToIsNull(batchId);
-        List<Long> boundPrescriptionIds = activeLinks.stream()
-                .map(FamilyMedicationPrescription::getPrescriptionId)
-                .toList();
-        List<FamilyMedicationMovement> movements = movementRepo.findByBatchIdOrderByMovedAtDesc(batchId);
-
-        int daysRemaining = calculateDaysRemaining(batch, boundPrescriptionIds);
-
-        return toResponse(batch, boundPrescriptionIds, movements, daysRemaining);
+        return toResponse(find(batchId), boundPrescriptionIds(batchId));
     }
 
     @Transactional(readOnly = true)
     public List<FamilyMedicationBatchResponse> listBatches(Long residentId) {
-        List<FamilyMedicationBatch> batches = batchRepo.findByResidentId(residentId);
-        return batches.stream()
-                .map(b -> {
-                    List<FamilyMedicationPrescription> activeLinks =
-                            batchPrescriptionRepo.findByBatchIdAndBoundToIsNull(b.getId());
-                    List<Long> boundPrescriptionIds = activeLinks.stream()
-                            .map(FamilyMedicationPrescription::getPrescriptionId)
-                            .toList();
-                    int daysRemaining = calculateDaysRemaining(b, boundPrescriptionIds);
-                    return toResponse(b, boundPrescriptionIds, List.of(), daysRemaining);
-                })
+        return batchRepo.findByResidentId(residentId).stream()
+                .map(b -> toResponse(b, boundPrescriptionIds(b.getId())))
                 .toList();
     }
 
-    /**
-     * Calculates days of medication remaining (BR-M07-11) based on total daily dose of bound prescriptions.
-     */
-    public int calculateDaysRemaining(FamilyMedicationBatch batch, List<Long> boundPrescriptionIds) {
-        if (batch.getStatus() != FamilyMedicationBatchStatus.IN_USE
-                || batch.getRemainingQuantity().compareTo(BigDecimal.ZERO) <= 0) {
-            return 0;
+    private List<Long> boundPrescriptionIds(Long batchId) {
+        return batchPrescriptionRepo.findByBatchIdAndBoundToIsNull(batchId).stream()
+                .map(FamilyMedicationPrescription::getPrescriptionId)
+                .toList();
+    }
+
+    private FamilyMedicationBatch find(Long batchId) {
+        return batchRepo
+                .findById(batchId)
+                .orElseThrow(() -> new BusinessException(
+                        HttpStatus.NOT_FOUND, "NOT_FOUND", "Không tìm thấy lô thuốc gia đình gửi"));
+    }
+
+    private FamilyMedicationBatch inUse(Long batchId) {
+        FamilyMedicationBatch batch = find(batchId);
+        residentMedicationLock.lock(batch.getResidentId());
+        if (batch.getStatus() != FamilyMedicationBatchStatus.IN_USE) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT, "INVALID_STATE", "Chỉ lô Được sử dụng mới ghi dùng hết hoặc báo sắp hết");
         }
+        return batch;
+    }
 
-        if (boundPrescriptionIds == null || boundPrescriptionIds.isEmpty()) {
-            return 0;
+    /** Hoàn trả, Hủy chỉ từ Chờ đối chiếu, Chỉ giữ hộ; lô Được sử dụng phải Ngừng sử dụng trước (11.4). */
+    private FamilyMedicationBatch closable(Long batchId, String action) {
+        FamilyMedicationBatch batch = find(batchId);
+        residentMedicationLock.lock(batch.getResidentId());
+        if (batch.getStatus() != FamilyMedicationBatchStatus.PENDING_RECONCILIATION
+                && batch.getStatus() != FamilyMedicationBatchStatus.HOLD_ONLY) {
+            throw new BusinessException(
+                    HttpStatus.CONFLICT,
+                    "INVALID_STATE",
+                    "Can only " + action + " batches in PENDING_RECONCILIATION or HOLD_ONLY status");
         }
+        return batch;
+    }
 
-        List<Prescription> boundPrescriptions = prescriptionRepo.findAllById(boundPrescriptionIds);
-        BigDecimal totalDailyDose = BigDecimal.ZERO;
-
-        for (Prescription p : boundPrescriptions) {
-            if (p.getStatus() != PrescriptionStatus.ACTIVE) {
-                continue;
+    private String medicationName(FamilyMedicationBatch batch) {
+        if (batch.getMedicationId() != null) {
+            var med = medicationRepo.findById(batch.getMedicationId()).orElse(null);
+            if (med != null) {
+                return med.getName() + " " + med.getConcentration();
             }
-
-            BigDecimal doseAmount = p.getDosage() != null ? p.getDosage() : BigDecimal.ONE;
-            int timesPerDay = 1;
-
-            if (p.getPrescriptionType() == PrescriptionType.PERIODIC) {
-                if (p.getFrequencyType() == FrequencyType.TIMED_SLOTS && p.getTimedSlots() != null) {
-                    try {
-                        List<String> slots = objectMapper.readValue(p.getTimedSlots(), new TypeReference<>() {});
-                        timesPerDay = Math.max(1, slots.size());
-                    } catch (Exception ignored) {
-                    }
-                } else if (p.getFrequencyType() == FrequencyType.EVERY_N_HOURS
-                        && p.getEveryNHours() != null
-                        && p.getEveryNHours() > 0) {
-                    timesPerDay = Math.max(1, 24 / p.getEveryNHours());
-                }
-            } else if (p.getPrescriptionType() == PrescriptionType.PRN) {
-                timesPerDay = p.getMaxDosesPer24h() != null && p.getMaxDosesPer24h() > 0 ? p.getMaxDosesPer24h() : 1;
-            }
-
-            BigDecimal dailyForPrescription = doseAmount.multiply(BigDecimal.valueOf(timesPerDay));
-            totalDailyDose = totalDailyDose.add(dailyForPrescription);
         }
-
-        if (totalDailyDose.compareTo(BigDecimal.ZERO) <= 0) {
-            return 0;
-        }
-
-        return batch.getRemainingQuantity()
-                .divide(totalDailyDose, 0, RoundingMode.FLOOR)
-                .intValue();
+        return batch.getCustomName() != null ? batch.getCustomName() : "thuốc gia đình gửi";
     }
 
     /** Danh sách id tệp lưu dạng JSON ở cột file_ids. */
@@ -496,12 +336,7 @@ public class FamilyMedicationService {
         }
     }
 
-    private FamilyMedicationBatchResponse toResponse(
-            FamilyMedicationBatch batch,
-            List<Long> boundPrescriptionIds,
-            List<FamilyMedicationMovement> movements,
-            int daysRemaining) {
-
+    private FamilyMedicationBatchResponse toResponse(FamilyMedicationBatch batch, List<Long> boundPrescriptionIds) {
         FamilyMedicationBatchResponse res = new FamilyMedicationBatchResponse();
         res.setId(batch.getId());
         res.setResidentId(batch.getResidentId());
@@ -510,14 +345,12 @@ public class FamilyMedicationService {
         res.setCustomActiveIngredient(batch.getCustomActiveIngredient());
         res.setCustomConcentration(batch.getCustomConcentration());
         res.setInitialQuantity(batch.getInitialQuantity());
-        res.setRemainingQuantity(batch.getRemainingQuantity());
         res.setUnit(batch.getUnit());
         res.setExpiryDate(batch.getExpiryDate());
         res.setPackagingCondition(batch.getPackagingCondition());
         res.setHasPrescription(batch.isHasPrescription());
         res.setStatus(batch.getStatus().name());
         res.setStatusReason(batch.getStatusReason());
-        res.setDaysRemaining(daysRemaining);
         res.setBoundPrescriptionIds(boundPrescriptionIds);
         res.setDelivererType(
                 batch.getDelivererType() == null
@@ -529,23 +362,8 @@ public class FamilyMedicationService {
         res.setPurchaseRequestId(batch.getPurchaseRequestId());
         res.setReceivedAt(batch.getReceivedAt());
         res.setFileIds(fileIds(batch.getFileIds()));
-
-        List<FamilyMedicationBatchResponse.MovementResponse> movementResponses = movements.stream()
-                .map(m -> {
-                    FamilyMedicationBatchResponse.MovementResponse mr =
-                            new FamilyMedicationBatchResponse.MovementResponse();
-                    mr.setId(m.getId());
-                    mr.setMovementType(m.getMovementType().name());
-                    mr.setQuantity(m.getQuantity());
-                    mr.setRemainingAfter(m.getRemainingAfter());
-                    mr.setMovedAt(m.getMovedAt());
-                    mr.setReason(m.getReason());
-                    mr.setActorId(m.getActorId());
-                    return mr;
-                })
-                .toList();
-
-        res.setMovements(movementResponses);
+        res.setFinalQuantity(batch.getFinalQuantity());
+        res.setClosedAt(batch.getClosedAt());
         return res;
     }
 }

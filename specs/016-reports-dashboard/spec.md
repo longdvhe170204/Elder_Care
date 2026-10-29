@@ -50,7 +50,7 @@
 ### Cập nhật 2026-10-06 (đồng bộ Q-280 → Q-288, quyết định của chủ dự án)
 
 - **Q-282**: bỏ báo cáo vệ sinh (tỷ lệ vệ sinh đúng hạn, công việc vệ sinh); báo cáo chăm sóc giữ thời gian giường ở trạng thái **Chờ sẵn sàng** (18.2, BR-M03-09). FR-033, nhóm chỉ tiêu "Vệ sinh phòng, khu vực" ở FR-010, phân bố giường, dashboard và các kịch bản đã sửa.
-- **Q-283, Q-282**: danh sách vai trò không có dashboard, báo cáo còn Nhân viên chăm sóc, Nhân viên bếp và người thân (mục 18). Bác sĩ thấy nhóm chỉ tiêu kho nguyên liệu vì có quyền xem tồn kho (Q-283) và quyền ở dòng "Dashboard, báo cáo".
+- **Q-283, Q-282**: danh sách vai trò không có dashboard, báo cáo còn Nhân viên chăm sóc, Nhân viên bếp và người thân (mục 18). Bác sĩ thấy nhóm chỉ tiêu kho nguyên liệu vì có quyền xem tồn kho (Q-283) và quyền ở dòng "Dashboard, báo cáo". *(Nhóm chỉ tiêu kho bỏ theo Q-392, 2026-10-29.)*
 - **Q-280**: dòng nguồn của nhóm "Yêu cầu đánh giá lại quá hạn" đổi tên thành "Đánh giá, mức chăm sóc"; không có chỉ tiêu nào dựng từ thang điểm.
 - **Q-284**: báo cáo chi phí (18.4) có thêm tổng chi mua sắm theo bộ phận, theo trạng thái (BR-M11-20); đây không phải chi phí của người cao tuổi. Thêm FR-055a và một dòng ở bảng FR-010.
 - **Q-287**: bỏ câu về lý do chỉ định hạn chế ở FR-014.
@@ -360,7 +360,7 @@ Người có quyền xem một báo cáo xuất được báo cáo đó ra file 
 | Số dư, thu chi: số người Sắp hết tiền, Còn nợ (bổ sung 2026-09-28, feature 017) | Toàn viện | — | — | — | Toàn viện | **Số dư, thu chi, đối soát** (QL "D", HC "X"); Sao kê, báo cáo thu chi |
 | Khai báo tạm trú cần làm (bổ sung 2026-09-29, feature 018) | Toàn viện | — | — | — | Toàn viện | **Khai báo tạm trú, lưu trú** (QL "X", HC "T") |
 | Tài sản quá hạn bảo trì, kiểm định, đăng kiểm, bảo hiểm (bổ sung 2026-09-29, feature 019) | Toàn viện | Tầng được giao (tài sản có vị trí trong tầng) | — | — | Toàn viện | **Tài sản, lịch xe** (QL "C, T"; TT, HC "T³³") |
-| Nguyên liệu dưới tồn tối thiểu, lô sắp hết hạn (bổ sung 2026-09-29, feature 019) | Toàn viện | — | Toàn viện | — | — | **Kho nguyên liệu** (**sửa, 2026-10-06, Q-283, Q-284:** QL "X, D"; Bác sĩ "X"; Nhân viên bếp "T" nhưng không có dashboard; ô Bác sĩ chủ dự án xác nhận 2026-10-06) |
+| ~~Nguyên liệu dưới tồn tối thiểu, lô sắp hết hạn~~ *(bỏ theo Q-392)* | — | — | — | — | — | — |
 | Người đang mang dấu nguy kịch (bổ sung 2026-09-29, feature 007) | Toàn viện | Tầng được giao | Toàn viện | Phạm vi phân công | — | **Dấu nguy kịch, xác nhận lại nguyện vọng** (QL, TT "X"; BS "T"; ĐD "T³¹"; HC "—") |
 | Nhân sự và ca trực (mục I) | Toàn viện | Tầng được giao; nhân viên có phân công tại tầng | — | — | — | **Lịch ca, phân công** (QL, TT "T, D"; vai trò khác "P" là lịch của chính mình, quy tắc 3); Yêu cầu đổi ca; Hồ sơ nhân viên, chứng chỉ |
 
@@ -400,7 +400,7 @@ Người có quyền xem một báo cáo xuất được báo cáo đó ra file 
 | Số dư thấp, còn nợ *(bổ sung 2026-09-28)* | Số hồ sơ đang ở tình trạng số dư "Sắp hết tiền" và "Còn nợ" theo lần tính gần nhất của feature 017 (bảng chuyển tình trạng số dư, BR-M11-13), kèm tổng số tiền còn nợ; danh sách chi tiết gồm họ tên, tình trạng, số dư, số ngày còn đủ tiền. Spec này không tự tính tình trạng | Feature 017 FR-016, FR-017 |
 | Khai báo tạm trú cần làm *(bổ sung 2026-09-29)* | Số khai báo "Cần khai báo" (tách số đã quá hạn khai báo), số khai báo Hết hạn, số việc khai báo xóa tạm trú chưa hoàn thành, lúc xem | Feature 018 FR-011 |
 | Tài sản quá hạn *(bổ sung 2026-09-29)* | Số tài sản đang mang dấu "quá hạn bảo trì", "quá hạn đăng kiểm", "quá hạn bảo hiểm", tách theo loại dấu; số tài sản tới mốc nhắc CFG-M03-09 (mặc định \[30 ngày\]); tài sản Đã thanh lý không tính | Feature 019 FR-014 |
-| Nguyên liệu dưới tồn tối thiểu *(bổ sung 2026-09-29)* | Số nguyên liệu Đang dùng có tổng tồn dưới mức tồn tối thiểu; số lô còn tồn có hạn dùng trong CFG-M08-08 (mặc định \[2 ngày\]) hoặc đã quá hạn, lúc xem | Feature 019 FR-009 |
+| ~~Nguyên liệu dưới tồn tối thiểu~~ *(bỏ theo Q-392)* | — | — |
 | Người đang mang dấu nguy kịch *(bổ sung 2026-09-29)* | Số người cao tuổi có dấu nguy kịch ở trạng thái Đang mở hoặc Tạm lúc xem, tách riêng số dấu Tạm (Điều dưỡng ghi khi không có Bác sĩ trực); không tính dấu Đã gỡ | Feature 007 FR-050a, FR-081 |
 | Giấy phép sắp hết hạn | Giấy phép của cơ sở hết hạn trong CFG-M06-02 (mặc định \[60 ngày\]) hoặc đã hết hạn | Giấy phép hoạt động của cơ sở (10.4); cùng mốc với cảnh báo của feature 002 FR-039 |
 | Giấy phép hành nghề/đào tạo sắp hết hạn | Giấy phép hành nghề hết hạn trong CFG-M06-02 (mặc định \[60 ngày\]); chứng chỉ đào tạo hết hạn trong CFG-M09-03 (mặc định \[60 ngày\]); kèm số ngày còn lại | Dữ liệu giấy phép, chứng chỉ: feature 008; cùng mốc với cảnh báo giấy phép hành nghề của feature 002 FR-039 và cảnh báo đào tạo của feature 008 |
