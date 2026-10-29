@@ -21,7 +21,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 
 ### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V002_95`)*
 
-Mô tả dưới đây thay các mục tương ứng khi cài 002 T098; cột không nhắc lại giữ như bảng đã cài (`V002_01` → `V002_13`).
+Mô tả dưới đây thay mô tả của các bảng đã gộp (mô tả cũ đã bỏ ở các mục sau, 2026-10-30; mã gộp ở 002 T098); cột không nhắc lại giữ như bảng đã cài (`V002_01` → `V002_13`).
 
 **Giữ nguyên**: `account` (mọi cột, `CHECK`, `UNIQUE`; trigger không xóa), `login_session` (`open_device_id` `UNIQUE`), `device`, `permission_matrix` (khóa chính `(role, function_code, operation)`; bỏ khóa ngoại tới `role` vì vai trò chuyển vào danh mục, backend kiểm theo `common.Role`).
 
@@ -100,16 +100,12 @@ Mô tả dưới đây thay các mục tương ứng khi cài 002 T098; cột kh
 | `thiet_bi` | Kỹ thuật | Lần kết nối gần nhất của thiết bị | FR-041c |
 | `thiet_bi_gan` | 2 | *(bổ sung 2026-10-18)* Thiết bị gắn với tài khoản người cao tuổi, token thiết bị | FR-070, FR-071 *(R-15: `thiet_bi_gan` → `thiet_bi_xac_thuc` (`device_credential`))* |
 | `ma_qr_dang_nhap` | 2 | *(bổ sung 2026-10-18)* Mã QR đăng nhập dùng một lần | FR-069 *(R-15: `ma_qr_dang_nhap` → `thiet_bi_xac_thuc` (`device_credential`))* |
-| `vai_tro` | 1, cố định | 10 vai trò (thêm AC-16, Q-365) | FR-016 |
 | `ma_tran_quyen` | 1, cố định | Quyền tối đa theo Phụ lục 27 và 19.3 | FR-018, FR-020 |
 | `gan_vai_tro` | 1 có lịch sử | Tài khoản – vai trò | FR-017, FR-026 *(R-15: `gan_vai_tro` → `quyen_tai_khoan` (`permission_assignment`))* |
 | `thu_hep_quyen` | 1 có lịch sử | Thu hẹp theo vai trò hoặc tài khoản | FR-025 *(R-15: `thu_hep_quyen` → `quyen_tai_khoan` (`permission_assignment`))* |
 | `quyen_gan_them` | 1 có lịch sử | Duyệt kế hoạch chăm sóc cho Điều dưỡng | FR-024 *(R-15: `quyen_gan_them` → `quyen_tai_khoan` (`permission_assignment`))* |
-| `quy_tac_xem_truong` | 1, cố định | Vai trò × nhóm thông tin | FR-022 *(R-15: `quy_tac_xem_truong` → `danh_muc_chung`)* |
 | `nghiep_vu_chuyen_mon`, `nghiep_vu_chuyen_mon_pham_vi` | 1 | Danh mục nghiệp vụ chuyên môn | FR-036, FR-037 *(R-15: `nghiep_vu_chuyen_mon`, `nghiep_vu_chuyen_mon_pham_vi` → `danh_muc_chung`)* |
 | `ban_ghi_cho_xem_lai` | 2 | Bản ghi ngoại tuyến thời điểm bất hợp lý | FR-041c *(R-15: `ban_ghi_cho_xem_lai` → `ho_so_chung`)* |
-| `loi_du_lieu_quyen` | Kỹ thuật | Gộp báo lỗi dữ liệu nguồn | FR-041b *(R-15: `loi_du_lieu_quyen` → `ho_so_chung`)* |
-| `da_canh_bao_giay_phep` | Kỹ thuật | Chống gửi lặp cảnh báo giấy phép | FR-039 *(R-15: `da_canh_bao_giay_phep` → `moc_da_nhac`)* |
 
 "Cố định" là nạp từ migration, không có API tạo, sửa, xóa; đổi bằng migration khi tài liệu nguồn đổi.
 
@@ -169,16 +165,7 @@ Mọi chuyển sang trạng thái khác `HOAT_DONG` kết thúc mọi phiên c�
 
 Lệnh không chuyển trạng thái nhưng có nhật ký: `POST …/cap-lai-mat-khau` (AC-01 với nhân viên; AC-01, AC-09 với người thân; có `cachXacMinh` với người thân; đặt `buoc_doi_mat_khau`) → `TK_CAP_LAI_MAT_KHAU`; `POST /xac-thuc/doi-mat-khau` → `TK_DOI_MAT_KHAU`; đăng nhập → `DANG_NHAP` / `DANG_NHAP_THAT_BAI`. *(Bổ sung 2026-10-18)* `POST …/ma-qr` → `QR_TAO`; `POST /xac-thuc/dang-nhap-qr` → `QR_DUNG`, `TB_GAN` (và `TB_GO` cho thiết bị cũ); `POST …/go-thiet-bi` → `TB_GO`.
 
-### `lich_su_trang_thai_tai_khoan` – nhóm 3, chỉ thêm → gộp theo R-15: `lich_su_trang_thai_tai_khoan` → `lich_su_chung`
-
-| Cột | Ghi chú |
-| --- | --- |
-| `id`, `tai_khoan_id` | |
-| `trang_thai`, `nguyen_nhan_khoa` | Trạng thái mới |
-| `hieu_luc_tu` | `DATETIME(6)`; `UNIQUE (tai_khoan_id, hieu_luc_tu)` |
-| `nguoi_thuc_hien_id`, `nhat_ky_id` | |
-
-Trạng thái tại thời điểm `t` là dòng có `hieu_luc_tu` lớn nhất mà `<= t` (FR-041a).
+### `lich_su_trang_thai_tai_khoan` *(gộp theo R-15 vào `lich_su_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ### `phien_dang_nhap` – kỹ thuật
 
@@ -204,44 +191,15 @@ Trạng thái tại thời điểm `t` là dòng có `hieu_luc_tu` lớn nhất 
 
 Lần kết nối trước khi ngoại tuyến được app gửi kèm phong bì đồng bộ và đối chiếu với `lan_ket_noi_cuoi` trước khi cập nhật (FR-041c).
 
-### `thiet_bi_gan` – nhóm 2 *(bổ sung 2026-10-18, Q-370)* → gộp theo R-15: `thiet_bi_gan` → `thiet_bi_xac_thuc` (`device_credential`)
+### `thiet_bi_gan` *(gộp theo R-15 vào `thiet_bi_xac_thuc` (`device_credential`); mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-| Cột | Ghi chú |
-| --- | --- |
-| `id`, `tai_khoan_id` | Tài khoản loại `NGUOI_CAO_TUOI` |
-| `ma_thiet_bi` | `CHAR(36)`, giá trị `X-Thiet-Bi` lúc gắn |
-| `ma_bam_token_thiet_bi` | `BINARY(32)`, `UNIQUE` (SHA-256 của token thiết bị, A-15) |
-| `gan_luc`, `ma_qr_id NULL` | Mã QR đã dùng để gắn; `NULL` khi gắn bằng mật khẩu dự phòng |
-| `go_luc NULL`, `go_boi NULL`, `ly_do_go NULL` | `ly_do_go`: `GAN_MAY_MOI`, `GO_THU_CONG` (kèm `lyDo`), `TAI_KHOAN_DA_KHOA` |
-
-- Tối đa một thiết bị đang gắn cho mỗi tài khoản: cột sinh `tai_khoan_dang_gan = IF(go_luc IS NULL, tai_khoan_id, NULL)` có `UNIQUE` (FR-070).
-- Một thiết bị gắn với tối đa một tài khoản: cột sinh `thiet_bi_dang_gan = IF(go_luc IS NULL, ma_thiet_bi, NULL)` có `UNIQUE` (FR-014a).
-- Chỉ thêm và đặt `go_*` một lần; không xóa.
-
-### `ma_qr_dang_nhap` – nhóm 2 *(bổ sung 2026-10-18, Q-370)* → gộp theo R-15: `ma_qr_dang_nhap` → `thiet_bi_xac_thuc` (`device_credential`)
-
-| Cột | Ghi chú |
-| --- | --- |
-| `id`, `tai_khoan_id` | |
-| `ma_bam` | `BINARY(32)`, `UNIQUE` (SHA-256 của mã) |
-| `tao_boi`, `tao_luc`, `het_han_luc` | `het_han_luc = tao_luc + CFG-M15-11` đọc lúc tạo |
-| `dung_luc NULL`, `ma_thiet_bi_dung NULL` | Đặt một lần khi dùng |
-| `vo_hieu_luc_luc NULL` | Đặt khi có mã mới của cùng tài khoản |
-
-- Mã dùng được khi `dung_luc`, `vo_hieu_luc_luc` đều `NULL` và `het_han_luc > bây giờ`; kiểm và đánh dấu dưới khóa dòng trong transaction đăng nhập (FR-069).
+### `ma_qr_dang_nhap` *(gộp theo R-15 vào `thiet_bi_xac_thuc` (`device_credential`); mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ---
 
 ## 3. Vai trò và quyền (mục C)
 
-### `vai_tro` – nhóm 1, cố định → gộp theo R-15: `vai_tro` → `danh_muc_chung`
-
-| Cột | Ghi chú |
-| --- | --- |
-| `ma` | `AC-01` … `AC-05`, `AC-07`, `AC-09`, `AC-10`, `AC-14`, `AC-16` (FR-016; AC-16 bổ sung 2026-10-18, Q-365) |
-| `ten`, `loai_tai_khoan` | `NHAN_VIEN`, `NGUOI_THAN` (AC-10) hoặc `NGUOI_CAO_TUOI` (AC-16) |
-| `pham_vi_thuc_hien` | `PHAN_CONG` (AC-02, 04, 05) hoặc `TOAN_VIEN` (AC-01, 03, 07, 09, 14); AC-10 theo quan hệ (FR-034, FR-045); AC-16 `BAN_THAN` (FR-068) |
-| `phien_ban_quyen` | Tăng khi thu hẹp theo vai trò (A-05) |
+### `vai_tro` *(gộp theo R-15 vào `danh_muc_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ### `ma_tran_quyen` – nhóm 1, cố định
 
@@ -263,115 +221,35 @@ Quy đổi ký hiệu theo research A-04. Các dòng `nguon = '19.3'` (điều c
 
 Danh sách đầy đủ được rà và chốt ở task nạp dữ liệu; test `MaTranQuyenKhopNguonTest` đối chiếu với tài liệu nguồn (research A-04).
 
-### `gan_vai_tro` – nhóm 1 có lịch sử → gộp theo R-15: `gan_vai_tro` → `quyen_tai_khoan` (`permission_assignment`)
+### `gan_vai_tro` *(gộp theo R-15 vào `quyen_tai_khoan` (`permission_assignment`); mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-| Cột | Ràng buộc |
-| --- | --- |
-| `id`, `tai_khoan_id`, `vai_tro` | |
-| `hieu_luc_tu`, `hieu_luc_den NULL` | `DATETIME(6)`; tại một thời điểm mỗi `(tai_khoan_id, vai_tro)` có tối đa một dòng còn hiệu lực: cột sinh `con_hieu_luc = IF(hieu_luc_den IS NULL, vai_tro, NULL)` có `UNIQUE (tai_khoan_id, con_hieu_luc)` |
-| `nguoi_gan_id`, `ly_do` | `ly_do NOT NULL` (FR-026) |
+### `thu_hep_quyen` *(gộp theo R-15 vào `quyen_tai_khoan` (`permission_assignment`); mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-Kiểm ở backend: vai trò cùng loại với tài khoản (FR-003); tài khoản nhân viên luôn còn ít nhất một vai trò (FR-004). *(Bổ sung 2026-10-18)* AC-16 là vai trò duy nhất của tài khoản người cao tuổi, gán lúc tạo (FR-067); `POST …/gan-vai-tro`, `…/go-vai-tro` từ chối tài khoản loại `NGUOI_CAO_TUOI` và từ chối gán AC-16 cho loại khác.
-
-### `thu_hep_quyen` – nhóm 1 có lịch sử → gộp theo R-15: `thu_hep_quyen` → `quyen_tai_khoan` (`permission_assignment`)
-
-| Cột | Ghi chú |
-| --- | --- |
-| `id` | |
-| `doi_tuong` | `VAI_TRO` hoặc `TAI_KHOAN` |
-| `vai_tro NULL`, `tai_khoan_id NULL` | Đúng một cột có giá trị theo `doi_tuong` (`CHECK`) |
-| `chuc_nang`, `loai_thao_tac` | |
-| `kieu` | `BO_THAO_TAC` hoặc `HA_PHAM_VI` |
-| `nhom_chi_tieu NULL`, `kenh NULL` | Chỉ với `DASHBOARD_BAO_CAO` (feature 016 FR-010a) |
-| `hieu_luc_tu`, `hieu_luc_den NULL`, `nguoi_thuc_hien_id`, `ly_do` | |
-
-### `quyen_gan_them` – nhóm 1 có lịch sử → gộp theo R-15: `quyen_gan_them` → `quyen_tai_khoan` (`permission_assignment`)
-
-| Cột | Ghi chú |
-| --- | --- |
-| `id`, `tai_khoan_id` | Tài khoản phải có vai trò AC-04 tại lúc gán |
-| `chuc_nang`, `loai_thao_tac` | `CHECK (chuc_nang='KE_HOACH_CHAM_SOC' AND loai_thao_tac='DUYET')` (FR-024, Q-07) |
-| `hieu_luc_tu`, `hieu_luc_den NULL`, `nguoi_thuc_hien_id`, `ly_do` | |
+### `quyen_gan_them` *(gộp theo R-15 vào `quyen_tai_khoan` (`permission_assignment`); mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ### Tính quyền vai trò
 
 Thứ tự ở research A-05. Quyền tại thời điểm `t` (FR-026a, BR-M15-16) dùng cùng thuật toán với các dòng có hiệu lực tại `t`.
 
-### `quy_tac_xem_truong` – nhóm 1, cố định → gộp theo R-15: `quy_tac_xem_truong` → `danh_muc_chung`
-
-| Cột | Ghi chú |
-| --- | --- |
-| `vai_tro`, `nhom_thong_tin` | Khóa chính |
-| `muc_xem` | `DAY_DU`, `CHI_CO_HAY_KHONG` (nguyện vọng với Hành chính, Kế toán), `KHONG` |
-
-Nguồn: 19.3, chú thích ⁵, ¹⁴, ¹⁶, ³⁰ của Phụ lục 27; spec FR-022. Ví dụ AC-09 và AC-14 với `SUC_KHOE`, `THUOC` là `KHONG`; với `MUC_CHAM_SOC` là `DAY_DU`.
+### `quy_tac_xem_truong` *(gộp theo R-15 vào `danh_muc_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ---
 
 ## 4. Điều kiện pháp lý (mục E)
 
-### `nghiep_vu_chuyen_mon` – nhóm 1 → gộp theo R-15: `nghiep_vu_chuyen_mon` → `danh_muc_chung`
+### `nghiep_vu_chuyen_mon` *(gộp theo R-15 vào `danh_muc_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-| Cột | Ghi chú |
-| --- | --- |
-| `id`, `ma`, `ten` | Theo mẫu nhóm 1 của 000 (`trang_thai`, `ten_hieu_luc`, `phien_ban`) |
-| `chuc_nang` | Khóa quyền áp dụng với `loai_thao_tac = CHUYEN_MON` |
-| `loai_giay_phep_yeu_cau` | Tham chiếu logic loại giấy phép/đào tạo của 008 |
-| `can_pham_vi_co_so` | `BOOLEAN` |
-| `mac_dinh` | `BOOLEAN`; `true` thì không ngừng hiệu lực được (FR-036) |
+### `nghiep_vu_chuyen_mon_pham_vi` *(gộp theo R-15 vào `danh_muc_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-Hai dòng mặc định: chẩn đoán và kê đơn nội bộ (bác sĩ, giấy phép đúng phạm vi, cần phạm vi khám chữa bệnh của cơ sở); phát thuốc và xác nhận liều (điều dưỡng, giấy phép còn hiệu lực).
-
-### `nghiep_vu_chuyen_mon_pham_vi` → gộp theo R-15: `nghiep_vu_chuyen_mon_pham_vi` → `danh_muc_chung`
-
-| Cột | Ghi chú |
-| --- | --- |
-| `nghiep_vu_id`, `pham_vi_hanh_nghe_id` | Khóa chính; `pham_vi_hanh_nghe_id` là mục của danh mục phạm vi hành nghề do 008 sở hữu (FR-037, BR-M15-19) |
-
-Thêm, sửa, ngừng hiệu lực chỉ AC-01, có `lyDo`, ghi nhật ký `NVCM_*` (FR-036).
-
-### `da_canh_bao_giay_phep` – kỹ thuật → gộp theo R-15: `da_canh_bao_giay_phep` → `moc_da_nhac`
-
-| Cột | Ghi chú |
-| --- | --- |
-| `loai` | `CO_SO` hoặc `NGUOI_HANH_NGHE` |
-| `giay_phep_id`, `ngay_het_han` | Khóa chính `(loai, giay_phep_id, ngay_het_han)` |
-| `canh_bao_luc` | |
+### `da_canh_bao_giay_phep` *(gộp theo R-15 vào `moc_da_nhac`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ---
 
 ## 5. Ngoại tuyến và lỗi dữ liệu nguồn (mục F)
 
-### `ban_ghi_cho_xem_lai` – nhóm 2 → gộp theo R-15: `ban_ghi_cho_xem_lai` → `ho_so_chung`
+### `ban_ghi_cho_xem_lai` *(gộp theo R-15 vào `ho_so_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-| Cột | Ghi chú |
-| --- | --- |
-| `id` | |
-| `loai_ban_ghi` | Mã do module đăng ký `NgoaiTuyenHandler`, ví dụ `M04.KET_QUA_CONG_VIEC` |
-| `noi_dung` | `JSON`, nội dung gốc từ thiết bị |
-| `idempotency_key` | `UNIQUE` cùng `nguoi_ghi_id` |
-| `nguoi_ghi_id`, `ma_thiet_bi`, `thoi_diem_thiet_bi`, `thoi_diem_dong_bo`, `lan_ket_noi_cuoi` | |
-| `ly_do_cho` | `MUON_HON_DONG_BO`, `SOM_HON_KET_NOI_CUOI`, `QUA_CFG_M15_08` |
-| `tang_khu_vuc_id NULL` | Người quyết định theo FR-041c, CHK056 |
-| `trang_thai` | `CHO_XEM_LAI` → `DA_CHAP_NHAN` / `DA_TU_CHOI` |
-| `nguoi_quyet_dinh_id`, `thoi_diem_quyet_dinh`, `ly_do_tu_choi`, `ket_qua_loai`, `ket_qua_id` | `ly_do_tu_choi` bắt buộc khi từ chối |
-| `phien_ban` | Khóa lạc quan; quyết định đầu tiên thắng (000 FR-040) |
-
-| Từ | Lệnh | Đến | Kiểm tra | Nhật ký |
-| --- | --- | --- | --- | --- |
-| — | đồng bộ, thời điểm thiết bị bất hợp lý | `CHO_XEM_LAI` | FR-041c (a)–(c) | `NT_CHO_XEM_LAI`; báo người quyết định |
-| `CHO_XEM_LAI` | `POST /ban-ghi-cho-xem-lai/{id}/chap-nhan` | `DA_CHAP_NHAN` | Trưởng tầng được giao của tầng; không có thì Người phụ trách ca đang diễn ra; không gắn tầng thì AC-01. `NgoaiTuyenHandler.apDung` ghi bản ghi thật, hiệu lực từ lúc chấp nhận | `NT_CHAP_NHAN` |
-| `CHO_XEM_LAI` | `POST …/tu-choi` | `DA_TU_CHOI` | Như trên; `lyDo` bắt buộc | `NT_TU_CHOI` |
-
-### `loi_du_lieu_quyen` – kỹ thuật → gộp theo R-15: `loi_du_lieu_quyen` → `ho_so_chung`
-
-| Cột | Ghi chú |
-| --- | --- |
-| `nguon`, `ban_ghi_id`, `loai_loi` | Khóa duy nhất của một lỗi đang mở (CHK059) |
-| `lan_dau_luc`, `lan_cuoi_luc`, `so_lan` | |
-| `da_khac_phuc_luc NULL` | Đặt khi lần kiểm tra kế tiếp đọc được dữ liệu hợp lệ |
-
-Lần đầu của một lỗi phát sự kiện `LoiDuLieuQuyen` tới 009 để báo Quản lý viện (FR-041b).
+### `loi_du_lieu_quyen` *(gộp theo R-15 vào `ho_so_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ---
 
