@@ -16,7 +16,7 @@ class M09ArchTest {
 
     static final ArchRule INTERNAL_COMMAND_PORTS = noClasses()
             .that()
-            .resideOutsideOfPackages("com.cambae.backend.m09.swap..", "com.cambae.backend.m09.rotation..")
+            .resideOutsideOfPackages("com.cambae.backend.m09.swap..")
             .should()
             .callMethodWhere(new DescribedPredicate<>("gọi port lệnh nội bộ của ca hoặc phân công") {
                 @Override
@@ -52,7 +52,7 @@ class M09ArchTest {
             .importPackages("com.cambae.backend");
 
     @Test
-    void FR_017_onlySwapAndRotationCallInternalCommandPorts() {
+    void FR_017_onlySwapCallsInternalCommandPorts() {
         INTERNAL_COMMAND_PORTS.check(MAIN_CLASSES);
     }
 

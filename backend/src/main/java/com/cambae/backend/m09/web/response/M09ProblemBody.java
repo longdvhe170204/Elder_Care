@@ -35,8 +35,7 @@ public record M09ProblemBody(
                         "REQUIRED_TRAINING_EXPIRED",
                         "BELOW_STAFFING_THRESHOLD",
                         "TASK_TYPE_REQUIREMENTS_NOT_MET",
-                        "APPROVED_LEAVE_DAY",
-                        "INSUFFICIENT_MINIMUM_COVERAGE"
+                        "APPROVED_LEAVE_DAY"
                     })
             String code,
 

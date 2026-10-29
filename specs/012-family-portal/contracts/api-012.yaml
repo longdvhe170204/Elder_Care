@@ -22,7 +22,6 @@ tags:
   - { name: tham, description: 'UC-57; mục E' }
   - { name: o-lai, description: 'Mục F' }
   - { name: cong, description: 'UC-56; mục G' }
-  - { name: ban-tin, description: 'UC-60; mục H' }
   - { name: phan-hoi, description: 'UC-59; mục I' }
 
 paths:
@@ -300,67 +299,6 @@ paths:
         - { name: den, in: query, schema: { type: string, format: date-time } }
       responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
 
-  /ban-tin:
-    get:
-      tags: [ban-tin]
-      summary: Bản tin theo kỳ, trạng thái; danh sách người cần lập của Điều dưỡng; người thân thấy bản đã gửi tới mình
-      x-fr: [FR-051, FR-057]
-      x-nguoi-than: true
-      parameters:
-        - { name: nctId, in: query, schema: { type: integer, format: int64 } }
-        - { name: kyTu, in: query, schema: { type: string, format: date } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BanTin' } } } } } }
-    post:
-      tags: [ban-tin]
-      summary: Lập bản tin cho (người cao tuổi, kỳ) đã qua mốc (Điều dưỡng); trùng kỳ → DA_CO_BAN_TIN
-      x-fr: [FR-051, FR-053]
-      x-br: [BR-M10-08]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nctId, kyTu], properties: { nctId: { type: integer, format: int64 }, kyTu: { type: string, format: date } } } } } }
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /ban-tin/{id}:
-    get:
-      tags: [ban-tin]
-      summary: Chi tiết bản tin
-      x-fr: [FR-052, FR-057]
-      parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } } } }
-    put:
-      tags: [ban-tin]
-      summary: Soạn nội dung các phần và chọn số liệu tổng hợp (Chờ duyệt); số liệu chi phí chỉ vào phần chi phí
-      x-fr: [FR-052, FR-053]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NoiDungBanTin' } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '412': { $ref: '#/components/responses/Loi' } }
-  /ban-tin/{id}/so-lieu:
-    get:
-      tags: [ban-tin]
-      summary: Số liệu tổng hợp của kỳ tính tại lúc gọi, chia theo loại thông tin; thiếu dữ liệu ghi "không có dữ liệu trong kỳ"
-      x-fr: [FR-052]
-      parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK } }
-  /ban-tin/{id}/{lenh}:
-    post:
-      tags: [ban-tin]
-      summary: "Nhận xét; duyệt (gửi qua 009; bắt buộc giải thích khi có sự cố mức Trung bình trở lên; Trưởng tầng duyệt thay sau CFG-M10-12)"
-      x-fr: [FR-053, FR-054]
-      x-br: [BR-M10-06, BR-M10-08, BR-M10-09]
-      parameters:
-        - { $ref: '#/components/parameters/Id' }
-        - { name: lenh, in: path, required: true, schema: { type: string, enum: [nhan-xet, duyet] } }
-        - { $ref: '#/components/parameters/IdempotencyKey' }
-      requestBody: { content: { application/json: { schema: { type: object, properties: { noiDung: { type: string }, giaiThichSuCo: { type: string } } } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /ban-tin/{id}/dinh-chinh:
-    post:
-      tags: [ban-tin]
-      summary: Lập bản tin đính chính trỏ về bản đã gửi (nội dung đúng, lý do); duyệt như bản thường
-      x-fr: [FR-056]
-      x-br: [BR-M10-08]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '201': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-
   /phan-hoi:
     get:
       tags: [phan-hoi]
@@ -609,14 +547,6 @@ components:
         - { $ref: '#/components/schemas/DangKyOLai' }
         - type: object
           properties: { id: { type: integer, format: int64 }, trangThai: { type: string, enum: [CHO_XAC_NHAN, DA_XAC_NHAN, TU_CHOI, DANG_O_LAI, DA_KET_THUC, HUY] }, batDauThucTe: { type: string, format: date-time }, ketThucThucTe: { type: string, format: date-time }, soDem: { type: integer, readOnly: true } }
-    BanTin:
-      type: object
-      properties: { id: { type: integer, format: int64 }, nctId: { type: integer, format: int64 }, kyTu: { type: string, format: date }, kyDen: { type: string, format: date }, trangThai: { type: string, enum: [CHO_DUYET, DA_GUI, KHONG_GUI] }, banGocId: { type: integer, format: int64 }, duyetThay: { type: boolean }, daDinhChinh: { type: boolean } }
-    NoiDungBanTin:
-      type: object
-      properties:
-        phan: { type: array, items: { type: object, required: [loai, noiDung], properties: { loai: { type: string, enum: [CHUNG, SUC_KHOE, CHI_PHI] }, noiDung: { type: string } } } }
-        soLieuChon: { type: array, items: { type: object, required: [ma, loaiPhan], properties: { ma: { type: string }, loaiPhan: { type: string, enum: [CHUNG, SUC_KHOE, CHI_PHI] } } } }
     GuiPhanHoi:
       type: object
       required: [nctId, loai, nhom, noiDung]

@@ -591,7 +591,7 @@ Một dòng: `so_dien_thoai`, `ghi_chu`, `phien_ban`. Đổi ghi nhật ký (FR-
 | BR-M05-23 | `canhBao` của bean trạng thái (S-15) | `BR_M05_23_VungKhoanhKhongChanIT` |
 | BR-M05-24 | Endpoint người thân cần liên hệ; `so_lien_he_vien` (S-15, S-16) | `BR_M05_24_HanhChinhTiepXucIT` |
 | BR-M05-25 | Job một cấp mỗi lần (S-08, S-21) | `BR_M05_25_ChayBuIT` |
-| BR-M05-26 | `SuCoDaHuyTrongBanTin` (S-11) | `BR_M05_26_SuCoHuyBanTinIT` |
+| BR-M05-26 | *(Bỏ theo Q-396)* | — |
 | BR-M06-01 | S-07 | `BR_M06_01_NguongApDungIT`, `SoNguongTest` |
 | BR-M06-02 | S-07 | `BR_M06_02_NhacThieuNguongIT` |
 | BR-M06-03 | S-06, S-08 | `BR_M06_03_TaoCanhBaoIT` |

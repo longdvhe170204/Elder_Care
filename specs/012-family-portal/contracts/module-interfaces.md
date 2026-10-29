@@ -22,7 +22,7 @@ Giao diện Java công khai ở `m10.api`, và bản cài các SPI do module th�
 | `NguoiThanKhanCapPort` (`m05.api`) | `nguoiLienHeChinh`, `nguoiDaiDien` (theo `thu_tu_lien_he`), `luotThamTrongKhoang` (FR-038) | 007 FR-047, FR-050b, FR-060 |
 | `NguoiThanNhanThongBaoPort` (`m13.api`) | `quanHeHieuLuc`, `thuTuGoi`, `lienHe` | 009 |
 | `LuotOLaiAnPort` (`m08.api`) | `dangOLaiCoDangKyAn(t)` | 011 FR-034 (c) |
-| `GanPhamViProvider` (002) | `M10.PHAN_HOI`, `M10.LUOT_THAM`, `M10.LUOT_O_LAI`, `M10.BAN_TIN`, `M10.YEU_CAU_QUYEN`, `M10.NGOAI_LE_DON`: người cao tuổi | 002 FR-034 |
+| `GanPhamViProvider` (002) | `M10.PHAN_HOI`, `M10.LUOT_THAM`, `M10.LUOT_O_LAI`, `M10.YEU_CAU_QUYEN`, `M10.NGOAI_LE_DON`: người cao tuổi | 002 FR-034 |
 | `PhanLoaiTruongProvider`, `LuuTruProvider`, `DinhChinhDuocProvider` (000) | data-model; đính chính `M10.LUOT_THAM` (giờ vào/ra), `M10.BAN_GHI_DON` | 000 |
 | `QuyenTepProvider` (`common.tep`) | `M10.BANG_CHUNG`, `M10.PHIEU_DANG_KY`: Hành chính, Quản lý viện; `M10.PHAN_HOI`: người gửi, người phụ trách, Quản lý viện | NFR-08 |
 
@@ -63,18 +63,13 @@ Optional<GiayToView> giayTo(long nguoiThanId);                        // 013
 ```java
 Stream<LuotThamBaoCaoView> luotTham(PhamViLoc phamVi, LocalDate tu, LocalDate den);
 Stream<PhanHoiBaoCaoView> phanHoi(PhamViLoc phamVi, LocalDate tu, LocalDate den);   // hạn, quá hạn, mức
-Stream<BanTinBaoCaoView> banTin(PhamViLoc phamVi, LocalDate tu, LocalDate den);     // đã gửi, duyệt thay, Không gửi
 ```
 
 ### 1.4. SPI khai báo ở `m10.api` cho module làm plan sau
 
 ```java
-interface HoatDongBanTinPort {     // 014 cài; chỉ đọc
-  OptionalInt soHoatDongDaThamGia(long nctId, LocalDate tu, LocalDate den);   // FR-052 "chung"
-}
+// HoatDongBanTinPort: *(Bỏ theo Q-396, 2026-10-29)*
 ```
-
-Bean thiếu → số liệu "không có dữ liệu trong kỳ".
 
 ```java
 interface HoatDongKenhNctPort {    // 014 cài; chỉ đọc; bổ sung 2026-10-18 (FR-083 (c), 014 FR-068a)
@@ -94,7 +89,7 @@ Bean thiếu → phần tương ứng của kênh hiện "chưa có dữ liệu"
 | `m08.api.LuotOLaiDaDoi` | 011 | FR-042 (a) |
 | `m11.api.SuKienTinhPhiNguon` / `SuKienTinhPhiNguonDaDoi` (`DEM_O_LAI`) | 010 | FR-042 (b), FR-043 |
 | `QuanHeDaDoi(nguoiThanId, nctId, quanHeId, loai)`; `QuyenNguoiThanDaDoi(quanHeId, quyen, giaTri, tuLuc)` | 002 (xóa đệm quyền), 009, 013 | FR-006, FR-013 |
-| `LuotThamDaVao`, `LuotThamDaRa`, `PhanHoiQuaHan`, `BanTinDaGui` | 016 | FR-033, FR-063, FR-054 |
+| `LuotThamDaVao`, `LuotThamDaRa`, `PhanHoiQuaHan` | 016 | FR-033, FR-063 |
 | Thông báo (cài `CoYeuCauThongBao`) | 009 | FR-069 |
 
 ---
@@ -109,7 +104,7 @@ Bean thiếu → phần tương ứng của kênh hiện "chưa có dữ liệu"
 | `HopDongDocApi`, `LuotVangApi`, `DieuKienTiepNhanApi` | 004 | FR-030 (d), FR-046 (4) | Bản giả |
 | `CoMatBanTruApi.theoNgay`, `diemDanhVe` (MANDATORY); `KetQuaChamSocCongApi` (bổ sung theo plan này) | 005 | FR-021 Viện đưa về, FR-030 (d), FR-046 (2), FR-052 | Bản giả |
 | `ThuocCongNguoiThanApi` | 006 | FR-046 (2) | Bản giả |
-| `SucKhoeCongNguoiThanApi`, `BanTinSucKhoeApi`, `KhoanhVungApi.dangChiuTheoNguoi`, `SuCoApi.theoNguoi` | 007 | FR-030 (c), FR-041, FR-046, FR-052, FR-053; sự cố tách `phanChung` / `phanSucKhoe` (007 research S-19a, sửa 2026-10-18) | Bản giả |
+| `SucKhoeCongNguoiThanApi`, `KhoanhVungApi.dangChiuTheoNguoi`, `SuCoApi.theoNguoi` | 007 | FR-030 (c), FR-041, FR-046, FR-052, FR-053; sự cố tách `phanChung` / `phanSucKhoe` (007 research S-19a, sửa 2026-10-18) | Bản giả |
 | `NguonYKienApi.kiemTra`; `BanDongYApi.daiDienPhapLuat` | 001 | FR-020a, FR-020c (bổ sung 2026-10-18) | Có sẵn sau 001 |
 | `ThongBaoTraCuuApi.xemLuc` | 009 | FR-054 | Bản giả |
 | `ChiPhiCongNguoiThanApi.tamTinh` | 010 | FR-052 | Bản giả |
@@ -133,7 +128,6 @@ TongHopAnUongView tongHop(long nctId, LocalDate tu, LocalDate den);      // tỷ
 | `BanDongYDaDoi` (001) | Cập nhật hiển thị "không có tác dụng"; không đổi giá trị quyền | FR-011 |
 | `LuotVangDaMo`, `BaoVangBanTruDaGhi` (004); `NguoiCaoTuoiDaChuyenTrangThai` (001) | Hủy lượt thăm trùng; nhắc kết thúc lượt ở lại | FR-036, FR-044 |
 | `KhoanhVungDaTao` (007) | Hủy lượt thăm trong vùng; báo khách đang vào | FR-037 |
-| `SuCoDaHuyTrongBanTin` (007) | Báo Hành chính, người duyệt bản tin | FR-056 |
-| `ThongBaoDaXem` (009) | Nhật ký xem sức khỏe khi bản có phần `SUC_KHOE`; thời điểm xem bản tin | FR-048, FR-054 |
+| `ThongBaoDaXem` (009) | Nhật ký xem sức khỏe khi bản có phần `SUC_KHOE` | FR-048 |
 
 Mọi listener idempotent theo `khoaSuKien` (`su_kien_m10_da_xu_ly`).

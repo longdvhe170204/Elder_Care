@@ -62,8 +62,8 @@ Không có phiên bản hiệu lực tại ngày thì trả rỗng; 010 ghi kho�
 
 ```java
 List<NgayLuuTruView> theoKhoang(long nctId, LocalDate tu, LocalDate den);
-    // mỗi ngày trong thời gian tính phí: hopDongId, phienBanNoiDungId, coMat | VANG, luotVangId, soThuTu, heSo,
-    // dau (CHO_QUYET_DINH, KHONG_CO_DONG, CHUA_VAO_O, QUA_HAN_HOP_DONG), ngoaiThoiGianTinhPhi (sau mốc dừng, sau ngày qua đời)
+    // mỗi ngày trong thời gian tính phí: hopDongId, phienBanNoiDungId, coMat | VANG, luotVangId, daGiaiPhongGiuong
+    // (Q-395: không có hệ số; sau giải phóng giường không tính phí lưu trú), dau (CHUA_VAO_O, QUA_HAN_HOP_DONG), ngoaiThoiGianTinhPhi (sau mốc dừng, sau ngày qua đời)
 List<BuoiBanTruView> buoiBanTru(long nctId, LocalDate tu, LocalDate den);
     // mỗi buổi có lịch: trạng thái có mặt (005), hệ số (FR-060), ngày khu bán trú nghỉ (FR-060a); buổi chưa xác định không có hệ số
 Optional<LocalDate> mocDungTinhPhi(long nctId);   // ngày kết thúc dự kiến (FR-066), ngày qua đời (FR-070), ngày Hủy tiếp nhận (FR-075a)
@@ -107,7 +107,6 @@ DanhSachViecView xem(long nctId);
 | SPI | Loại / đối tượng | Ghi chú |
 | --- | --- | --- |
 | `LoaiYeuCauHandler` (000) | `M02.THAY_DOI_LUU_TRU` | Research T-06; cài `kiemTraKhiDuyet`, `khiDuyet`, `gioiHanVaiTroDuyet` (thay đổi nhỏ, FR-043, Q-338; hàm này bổ sung vào SPI của 000 theo plan này); chuyển mở rộng `DUOC_THAY_THE` |
-| | `M02.DIEU_CHINH_DIEM` | `apDung` thêm điều chỉnh, tính lại điểm (FR-011) |
 | | `M02.DUYET_DIEU_KHOAN_HOP_DONG` | `kiemTraDieuKienApDung`: hợp đồng còn Nháp, băm nội dung khớp (FR-025a) |
 | | `M02.NGOAI_LE_KET_THUC` | `quyenTao` gồm Kế toán khi điều kiện là `KT_H_QUYET_TOAN`; `apDung` thêm `ngoai_le_dieu_kien` (FR-064), phát `NgoaiLeKetThucDaDuyet` (bổ sung 2026-10-22); `KT_H_XAC_NHAN_QUYET_TOAN` không lập được ngoại lệ |
 | `DinhChinhDuocProvider` (000) | `M02.LUOT_VANG`, `M02.BAN_GHI_QUA_DOI`, `M02.QUYET_DINH_GIU_GIUONG`, `M02.BAN_GIAO_NCT`, `M02.LICH_SU_DIEM` | `tangKhuVuc` rỗng (không gắn tầng); `sauKhiDinhChinh` của `M02.LUOT_VANG` tính lại ngày vắng (FR-061) |

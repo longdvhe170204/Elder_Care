@@ -1,5 +1,7 @@
 # Research: Người thân và cổng thông tin gia đình (012)
 
+> **Sửa 2026-10-29 (Q-396):** bỏ bản tin tuần (mục H, User Story 7, bảng `ban_tin*`, `/ban-tin`, `HoatDongBanTinPort`, `ViecBanTinM10`). Phần dưới còn nhắc bản tin thì bỏ qua; spec là căn cứ.
+
 **Ngày**: 2026-10-10 | **Plan**: [plan.md](plan.md) | **Spec**: [spec.md](spec.md)
 
 Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyết định nền R-01 → R-14 của 000 và các mẫu đã chốt ở 001 → 011 (H-02 bean trạng thái, C-02 / S-02 chiều phụ thuộc, A-08 giới hạn trường, B-02 khuôn thông báo, P-04 sự kiện tính phí) được dùng lại, không quyết lại. Các quyết định dưới đây là kỹ thuật; chúng không đổi nghiệp vụ (constitution IX). Chỗ spec chưa rõ hoặc mâu thuẫn được ghi ở plan, mục "Điểm cần báo lại".

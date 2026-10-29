@@ -45,7 +45,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 - [ ] T006 Cài `BE/m02/trangthai/internal/KhoaLuuTru.java`: khóa `luu_tru_nct` `FOR UPDATE` cho mọi lệnh 004 trên cùng người; lệnh dẫn tới Hủy tiếp nhận đi qua 001 để chỉ có một thứ tự khóa (research T-03)
 - [ ] T007 Tạo `MIG/V004_02__dich_vu.sql`: `dich_vu` (`loai ENUM('CHAM_SOC','PHI_LUU_TRU','BUOI_BAN_TRU','PHUC_HOI','HOAT_DONG','DUA_DI_KHAM','TIEM','NGUOI_THAN_O_LAI','SUAT_AN','THUOC_NGUON_VIEN','KHAC')`; `ky_tinh ENUM('THANG','NGAY','BUOI','LAN','DON_VI')`; `CHECK ((loai='CHAM_SOC') = (ma_muc IS NOT NULL))`; cột sinh `muc_hieu_luc` `UNIQUE`; `ten_hieu_luc UNIQUE`) và `phien_ban_don_gia` (`don_gia DECIMAL(15,0) >= 0`; `CHECK (hieu_luc_den IS NULL OR hieu_luc_den >= hieu_luc_tu)`; `da_tham_chieu`; trigger `trg_phien_ban_don_gia_khong_chong`, `trg_phien_ban_don_gia_khong_sua`) (data-model mục 6)
 - [ ] T008 Cài `BE/m02/dichvu/internal/DonGiaService.java` (`DonGiaApi`: đơn giá tại ngày, đánh dấu `da_tham_chieu`) (research T-05)
-- [ ] T009 Cài khung bean `BE/m02/trangthai/internal/ThamGiaM02.java` (`@Order(1)`, `lenhQuanTam` gồm 7 lệnh; `kiemTraChiTiet` cho các kiểu `chiTiet` ở contracts mục 1.1) và khung job `BE/m02/lich/ViecHangNgayM02.java` (00:15 và khi khởi động, ShedLock; chạy bù từng ngày D theo `lan_chay_theo_ngay`; năm việc `TINH_DIEM`, `NGAY_VANG`, `HOP_DONG`, `KET_THUC`, `NHAC` đăng ký dần ở các story) (research T-11; FR-077, BR-M02-19)
+- [ ] T009 Cài khung bean `BE/m02/trangthai/internal/ThamGiaM02.java` (`@Order(1)`, `lenhQuanTam` gồm 7 lệnh; `kiemTraChiTiet` cho các kiểu `chiTiet` ở contracts mục 1.1) và khung job `BE/m02/lich/ViecHangNgayM02.java` (00:15 và khi khởi động, ShedLock; chạy bù từng ngày D theo `lan_chay_theo_ngay`; bốn việc `BAO_VANG_DAI`, `HOP_DONG`, `KET_THUC`, `NHAC` đăng ký dần ở các story; `TINH_DIEM`, `NGAY_VANG` bỏ theo Q-394, Q-395) (research T-11; FR-077, BR-M02-19)
 - [ ] T010 [P] Cài SPI M02 cài cho module thấp hơn trong `BE/m02/trangthai/internal/`: `HopDongApi`, `LuotVangApi`, `YeuCauDoiMucApi` (001); `KetThucLuuTruApi` (002); `NguonLuuTruChoPhanBo`, `DemLichDenBanTru` (003) – khung trả dữ liệu từ bảng của các story, hoàn thiện ở story tương ứng (contracts mục 1.1)
 - [ ] T011 [P] Cài provider cho 000/002 trong `BE/m02/trangthai/internal/`: `PhanLoaiTruongProvider` (`TAI_CHINH` cho giá, cọc, dòng ghi đè; `SUC_KHOE` cho `nguyenNhan` qua đời; `y_kien_vao_o` là `CONG_KHAI_NOI_BO`), `LuuTruProvider` theo data-model mục 14, `GanPhamViProvider`, `QuyenTepProvider` (`M02.BAN_SCAN_HOP_DONG`, `M02.BANG_CHUNG_QUA_DOI`)
 - [ ] T012 [P] Test `BT/m02/BR_M02_19_ChayBuIT.java` (đồng hồ giả lập): tắt job 3 ngày rồi chạy → mỗi việc mỗi ngày chạy đúng một lần; chạy lại không trùng
@@ -78,24 +78,24 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 
 ---
 
-## Phase 4: User Story 2 – Danh sách chờ với điểm ưu tiên tự tính (Priority: P1)
+## Phase 4: User Story 2 – Danh sách chờ có dấu Ưu tiên (Priority: P1) *(sửa 2026-10-29, Q-394)*
 
-**Goal**: Hồ sơ chờ, điểm theo bảng CFG-M02-08, tính hằng ngày, điều chỉnh qua phê duyệt, danh sách phù hợp khi giường Trống, Hành chính tự chọn, giữ chỗ tạm (FR-007 → FR-018, BR-M02-01, 02, 03, 10, 20).
+**Goal**: Hồ sơ chờ, dấu Ưu tiên có lý do và nhật ký, danh sách phù hợp khi giường Trống (Ưu tiên trước, rồi ngày đăng ký), Hành chính tự chọn, giữ chỗ, hết hạn giữ chỗ, nhắc xác nhận còn nhu cầu (FR-007 → FR-018, BR-M02-01 → 03, 10).
 
 **Independent Test**: 6 hồ sơ chờ khác mức, ngày, tình huống, giới tính; tua đồng hồ; giải phóng giường → thông báo, danh sách phù hợp, thứ tự.
 
 ### Tests cho User Story 2
 
-- [ ] T020 [P] [US2] Test đơn vị `BT/m02/BR_M02_10_DiemUuTienTest.java` và `DiemHangNgayIT.java`, `DieuChinhDiemIT.java`: điểm theo thành phần; `lich_su_diem` chỉ thêm khi điểm đổi; điều chỉnh qua yêu cầu `M02.DIEU_CHINH_DIEM` (FR-009 → FR-011)
+- [ ] T020 [P] [US2] Test `BT/m02/BR_M02_10_UuTienIT.java`: đánh dấu, gỡ dấu Ưu tiên bắt buộc lý do, có nhật ký; danh sách phù hợp xếp Ưu tiên trước rồi ngày đăng ký (Q-394)
 - [ ] T021 [P] [US2] Test `BT/m02/BR_M02_01_DanhSachPhuHopIT.java`, `FR_012_LuotTrongIT.java`, `BR_M02_02_GiuChoIT.java`, `GhiNhanLienHeDongThoiIT.java`: danh sách phù hợp không chọn sẵn; hồ sơ đã liên hệ/từ chối giường bị loại khỏi lượt trống hiện tại; bỏ qua thứ tự phải có lý do; giữ chỗ CFG-M02-02, hết hạn về `DANG_CHO`; hai Hành chính liên hệ cùng giường chỉ một thành công
 - [ ] T022 [P] [US2] Test `BT/m02/FR_002_TuChoiHuyTiepNhanIT.java`, `BR_M02_03_NhacHoSoChoIT.java`: Từ chối, Hủy chờ đi qua `HUY_TIEP_NHAN` của 001; nhắc cập nhật hồ sơ chờ theo CFG-M02-03
 
 ### Implementation cho User Story 2
 
-- [ ] T023 [US2] Tạo `MIG/V004_04__danh_sach_cho.sql`: `ho_so_cho` (`trang_thai ENUM('DANG_CHO','DA_LIEN_HE','DA_TIEP_NHAN','TU_CHOI','HUY_CHO')`, `diem_chi_tiet JSON`, cột sinh `nct_dang_mo` `UNIQUE`, `CHECK` `giuong_dang_giu_id NOT NULL` khi `DA_LIEN_HE`), `ho_so_cho_tinh_huong` (`trang_thai ENUM('XAC_NHAN','CHO_XAC_NHAN')`), `lich_su_diem` (nhóm 3; `nguyen_nhan ENUM('TINH_HANG_NGAY','DOI_MUC','DOI_TINH_HUONG','DIEU_CHINH','DOI_BANG_DIEM','TAO')`), `lien_he_giuong` (nhóm 3; `ket_qua ENUM('LIEN_HE','TU_CHOI_GIUONG','HET_HAN')`, `ly_do_khong_theo_thu_tu NULL`) (data-model mục 4)
-- [ ] T024 [US2] Cài `BE/m02/danhsachcho/internal/TinhDiemUuTien.java` (bảng CFG-M02-08 đọc lúc chạy) và việc `TINH_DIEM` của job hằng ngày; listener `MucChamSocDaDoi`, `ThamSoDaDoi(CFG-M02-08)` (research T-07)
-- [ ] T025 [US2] Cài `BE/m02/danhsachcho/internal/HoSoChoService.java`: đưa vào danh sách, cập nhật tình huống, đề nghị điều chỉnh điểm (handler `M02.DIEU_CHINH_DIEM`), ghi nhận đã liên hệ (`giuChoHoSoCho` của 003), từ chối giường (`huyGiuCho`), từ chối/hủy chờ qua 001, xác nhận còn nhu cầu; listener `GiuongDaTrong` phát `GiuongTrongCanChonHoSo`; cài `hoSoChoHetHanGiuCho`, `daPhanBo` của `NguonLuuTruChoPhanBo`
-- [ ] T026 [US2] Tạo `BE/m02/danhsachcho/web/HoSoChoController.java`: `/ho-so-cho`, `/{id}`, `/{id}/lich-su-diem`, `/{id}/cap-nhat-tinh-huong`, `/{id}/de-nghi-dieu-chinh-diem`, `GET /giuong/{giuongId}/ho-so-phu-hop`, `/{id}/ghi-nhan-da-lien-he`, `/tu-choi-giuong`, `/tu-choi`, `/huy-cho`, `/xac-nhan-con-nhu-cau`
+- [ ] T023 [US2] Tạo `MIG/V004_04__danh_sach_cho.sql`: `ho_so_cho` (`trang_thai ENUM('DANG_CHO','DA_LIEN_HE','DA_TIEP_NHAN','TU_CHOI','HUY_CHO')`, `uu_tien BOOLEAN`, `ly_do_uu_tien` bắt buộc khi `uu_tien` (`CHECK`), cột sinh `nct_dang_mo` `UNIQUE`, `CHECK` `giuong_dang_giu_id NOT NULL` khi `DA_LIEN_HE`), `lien_he_giuong` (nhóm 3; `ket_qua ENUM('LIEN_HE','TU_CHOI_GIUONG','HET_HAN')`, `ly_do_khong_theo_thu_tu NULL`) (data-model mục 4; Q-394)
+- [ ] T024 [US2] *(Bỏ theo Q-394)* Không có `TinhDiemUuTien` và việc `TINH_DIEM`; listener `MucChamSocDaDoi` cập nhật mức chăm sóc của hồ sơ chờ làm ở T025
+- [ ] T025 [US2] Cài `BE/m02/danhsachcho/internal/HoSoChoService.java`: đưa vào danh sách, đánh dấu ưu tiên (ghi nhật ký), danh sách phù hợp theo FR-012, FR-010, ghi nhận đã liên hệ, từ chối giường, từ chối, hủy chờ, xác nhận còn nhu cầu; listener `MucChamSocDaDoi`
+- [ ] T026 [US2] Tạo `BE/m02/danhsachcho/web/HoSoChoController.java`: `/ho-so-cho`, `/{id}`, `/{id}/danh-dau-uu-tien`, các lệnh trạng thái, `GET /giuong/{giuongId}/ho-so-phu-hop` (api-004)
 - [ ] T027 [US2] Đăng ký phần nhắc hồ sơ chờ (CFG-M02-03, `HO_SO_CHO_CAP_NHAT`, `PHAN_BO_LAI`) vào việc `NHAC` của `ViecHangNgayM02.java`
 - [ ] T028 [P] [US2] Tạo màn web `frontend/src/tinh-nang/danh-sach-cho/` và test `HoSoPhuHop.test.jsx` (không chọn sẵn, lý do khi bỏ qua thứ tự)
 
@@ -117,7 +117,7 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 
 ### Implementation cho User Story 3
 
-- [ ] T032 [US3] Tạo `MIG/V004_05__hop_dong.sql`: `hop_dong` theo data-model mục 5 (`so_hop_dong VARCHAR(20) UNIQUE`; `ngay_ket_thuc` bắt buộc với `NOI_TRU_NGAN_NGAY` (`CHECK`); `ky_tinh_phi_luu_tru ENUM('THANG','NGAY','BUOI')`; `khoan_dat_coc DECIMAL(15,0) NULL`; `bam_noi_dung CHAR(64)`; `trang_thai ENUM('NHAP','CHO_KY','HIEU_LUC','KET_THUC','CHAM_DUT','DA_HUY')`; `CHECK (trang_thai <> 'CHAM_DUT' OR ly_do_cham_dut IS NOT NULL)`; trigger `trg_hop_dong_khoa_noi_dung`, `trg_hop_dong_khong_chong`), bảng con `hop_dong_dich_vu`, `hop_dong_chinh_sach_vang`, `hop_dong_lich_den` (`CHECK (gio_ve > gio_den)`) có trigger khóa khi cha ngoài Nháp, `phien_ban_noi_dung_hop_dong` (nhóm 3; `UNIQUE (hop_dong_id, so_thu_tu)`, `UNIQUE (hop_dong_id, hieu_luc_tu)`)
+- [ ] T032 [US3] Tạo `MIG/V004_05__hop_dong.sql`: `hop_dong` theo data-model mục 5 (`so_hop_dong VARCHAR(20) UNIQUE`; `ngay_ket_thuc` bắt buộc với `NOI_TRU_NGAN_NGAY` (`CHECK`); `ky_tinh_phi_luu_tru ENUM('THANG','NGAY','BUOI')`; `khoan_dat_coc DECIMAL(15,0) NULL`; `bam_noi_dung CHAR(64)`; `trang_thai ENUM('NHAP','CHO_KY','HIEU_LUC','KET_THUC','CHAM_DUT','DA_HUY')`; `CHECK (trang_thai <> 'CHAM_DUT' OR ly_do_cham_dut IS NOT NULL)`; trigger `trg_hop_dong_khoa_noi_dung`, `trg_hop_dong_khong_chong`), bảng con `hop_dong_dich_vu`, `hop_dong_lich_den` (`hop_dong_chinh_sach_vang` bỏ theo Q-395) (`CHECK (gio_ve > gio_den)`) có trigger khóa khi cha ngoài Nháp, `phien_ban_noi_dung_hop_dong` (nhóm 3; `UNIQUE (hop_dong_id, so_thu_tu)`, `UNIQUE (hop_dong_id, hieu_luc_tu)`)
 - [ ] T033 [US3] Cài `BE/m02/hopdong/internal/HopDongService.java`: lập (có người đại diện qua `NguoiDaiDienPort`), sửa Nháp (`If-Match`), gửi ký (đúng một dòng `CHAM_SOC` và mức trùng, FR-025), trả về nháp, ghi nhận đã ký (phiên bản 0, ghi `don_gia_ghi`, `da_tham_chieu`; bán trú kiểm sức chứa `SucChuaBanTruApi`; research T-10), hủy; khóa `luu_tru_nct`; nhật ký; phát `HopDongDaDoiTrangThai` (research T-04)
 - [ ] T034 [US3] Cài `BE/m02/hopdong/internal/XacDinhKhacChuan.java` và handler `M02.DUYET_DIEU_KHOAN_HOP_DONG` (`kiemTraDieuKienApDung`: hợp đồng còn Nháp, băm khớp) (FR-025a)
 - [ ] T035 [US3] Cài `HopDongDocApi` và `HopDongApi` (001) trên `phien_ban_noi_dung_hop_dong` (nội dung tại D: `hieu_luc_tu` lớn nhất `<= D`) trong `BE/m02/hopdong/internal/HopDongDocService.java`
@@ -171,24 +171,24 @@ description: "Danh sách task triển khai feature 004 – Tiếp nhận và lư
 
 ---
 
-## Phase 8: User Story 6 – Tạm vắng áp bảng chính sách phí và giữ giường (Priority: P2)
+## Phase 8: User Story 6 – Tạm vắng: tính như ngày lưu trú, giải phóng giường khi cần (Priority: P2) *(sửa 2026-10-29, Q-395)*
 
-**Goal**: Lượt vắng, tra chính sách (hợp đồng → cơ sở → mặc định), ngày vắng hằng ngày, ngưỡng và quyết định giữ giường, báo vắng và ngày nghỉ bán trú (FR-048 → FR-061, BR-M02-06, 07, 17, 18).
+**Goal**: Lượt vắng, gia hạn, trở về, chuyển viện; dữ liệu ngày vắng cho 010 (tính như ngày lưu trú, trừ sau giải phóng giường); báo Quản lý viện khi vắng tới CFG-M02-05 ngày; lệnh Giải phóng giường; báo vắng và ngày nghỉ bán trú (FR-048 → FR-061, BR-M02-06, 07, 18).
 
-**Independent Test**: Bảng mặc định 6.7; về nhà 5 ngày, nằm viện 35 ngày, ngắn ngày có ghi đè; kiểm hệ số từng ngày, giường, thông báo.
+**Independent Test**: Về nhà 5 ngày, nằm viện 35 ngày; kiểm dữ liệu ngày lưu trú cho 010, giường, thông báo ngày 30, giải phóng giường.
 
 ### Tests cho User Story 6
 
-- [ ] T048 [P] [US6] Test đơn vị `BT/m02/BR_M02_06_TraChinhSachTest.java` (phủ bảng 6.7) và `BR_M02_17_QuanLyQuyetDinhNgay1Test.java`
-- [ ] T049 [P] [US6] Test `BT/m02/NgayVangIT.java`, `BR_M02_07_QuyetDinhGiuGiuongIT.java`, `BR_M02_18_DinhChinhVuotNguongIT.java`, `FR_057_ChuyenVienKhiTamVangIT.java`: hệ số từng ngày; ngưỡng giữ giường báo Quản lý viện, không tự tạo yêu cầu quyết định; lệnh Quyết định giữ giường chỉ Quản lý viện, Trưởng tầng và Hành chính bị 403 (khóa `TAM_VANG_TRO_VE, TAO`, Q-345); giải phóng gọi `giaiPhongGiuongKhiVang`; đính chính lượt vắng tính lại ngày vắng và phát `NgayLuuTruDaDoi`; chuyển viện khi đang tạm vắng mở lượt mới trỏ `luot_truoc_id`
+- [ ] T048 [P] [US6] *(Bỏ theo Q-395)* Không có bảng chính sách để test tra bảng
+- [ ] T049 [P] [US6] Test `BT/m02/BR_M02_06_NgayVangTinhPhiIT.java`, `BR_M02_07_GiaiPhongGiuongIT.java`, `BR_M02_18_DinhChinhLuotVangIT.java`, `FR_057_ChuyenVienKhiTamVangIT.java`: ngày vắng nội trú tính như ngày lưu trú; báo Quản lý viện đúng một lần ở ngày CFG-M02-05; giải phóng giường dừng phí lưu trú từ ngày đó; đính chính báo 010 (Q-395)
 - [ ] T050 [P] [US6] Test `BT/m02/BanTruHeSoIT.java`, `NgayNghiBanTruIT.java`: báo vắng đủ hạn CFG-M02-06; ngày nghỉ bán trú khai báo muộn cần lý do; một ngày nghỉ Hiệu lực mỗi ngày
 
 ### Implementation cho User Story 6
 
-- [ ] T051 [US6] Tạo `MIG/V004_07__vang_mat.sql`: `luot_vang` (`loai_vang ENUM('VE_NHA','DI_CHOI_GIA_DINH','DI_KHAM_TRONG_NGAY','LY_DO_KHAC','BENH_VIEN')`; `du_kien_tro_lai` bắt buộc trừ `BENH_VIEN` (`CHECK`); `trang_thai ENUM('DANG_MO','DA_DONG')`; cột sinh `nct_dang_mo` `UNIQUE`; trigger `trg_luot_vang_khong_sua`), `lich_su_du_kien_tro_lai`, `quyet_dinh_giu_giuong` (`lua_chon ENUM('GIU_TIEP','GIAI_PHONG','CHI_DAT_HE_SO')`; `ngay_xem_xet_lai` bắt buộc với `GIU_TIEP`), `bao_vang_ban_tru` (nhóm 3), `ngay_vang` (khóa chính `(luot_vang_id, ngay)`, `he_so DECIMAL(5,2)`, `nguon_dong ENUM('HOP_DONG','CO_SO','MAC_DINH')`), `ngay_nghi_ban_tru` (`trang_thai ENUM('HIEU_LUC','DA_HUY')`, cột sinh `ngay_hieu_luc` `UNIQUE`) (data-model mục 8)
-- [ ] T052 [US6] Cài `BE/m02/vang/internal/TraChinhSachVang.java` (CFG-M02-05 đọc lúc chạy, ghi đè hợp đồng) và việc `NGAY_VANG` của job hằng ngày (ngưỡng, ngày xem xét lại, `XEM_XET_GIU_GIUONG`) (research T-08)
+- [ ] T051 [US6] Tạo `MIG/V004_07__vang_mat.sql`: `luot_vang` (`loai_vang ENUM('VE_NHA','DI_CHOI_GIA_DINH','DI_KHAM_TRONG_NGAY','LY_DO_KHAC','BENH_VIEN')`; `du_kien_tro_lai` bắt buộc trừ `BENH_VIEN` (`CHECK`); `trang_thai ENUM('DANG_MO','DA_DONG')`; cột sinh `nct_dang_mo` `UNIQUE`; `da_bao_quan_ly_luc`, `giai_phong_giuong_luc`, `giai_phong_boi_id`, `ly_do_giai_phong`; trigger `trg_luot_vang_khong_sua`), `lich_su_du_kien_tro_lai`, `bao_vang_ban_tru` (nhóm 3), `ngay_nghi_ban_tru` (`trang_thai ENUM('HIEU_LUC','DA_HUY')`, cột sinh `ngay_hieu_luc` `UNIQUE`) (data-model mục 8; Q-395). Đặt giá trị mới cho CFG-M02-05 (số ngày báo, hai tỷ lệ bán trú) bằng `parameter_history`
+- [ ] T052 [US6] Cài việc hằng ngày báo Quản lý viện khi lượt vắng tới ngày thứ CFG-M02-05 (một lần, `da_bao_quan_ly_luc`) và `NgayLuuTruApi` cho 010 (ngày vắng, đã giải phóng giường) (Q-395)
 - [ ] T053 [US6] Cài phần vắng của `ThamGiaM02.java`: `CHO_TAM_VANG` (bản ghi đón qua `BanGhiDonPort` và `daDung`; mở lượt vắng), `CHUYEN_VIEN` (mở/đổi lượt loại `BENH_VIEN`), `GHI_NHAN_TRO_VE` (đóng lượt); cài `giuGiuongKhiVang`, `LuotVangApi.dangMo`
-- [ ] T054 [US6] Cài `BE/m02/vang/internal/LuotVangService.java`: gia hạn dự kiến trở lại, quyết định giữ giường (khóa `TAM_VANG_TRO_VE, TAO` cộng kiểm `TaiKhoanApi.coVaiTro(QUAN_LY_VIEN)` trong service vì Trưởng tầng, Hành chính cũng có T ở dòng này, chú thích ⁸, Q-345; `giaiPhongGiuongKhiVang` của 003), báo vắng bán trú, ngày nghỉ bán trú; `DinhChinhDuocProvider` cho `M02.LUOT_VANG` (tính lại ngày vắng), `M02.QUYET_DINH_GIU_GIUONG`; `TrangThaiCoMatBanTruPort` dùng cho ngày bán trú
+- [ ] T054 [US6] Cài `BE/m02/vang/internal/LuotVangService.java`: gia hạn dự kiến trở lại, Giải phóng giường (chỉ Quản lý viện, kiểm `TaiKhoanApi.coVaiTro(QUAN_LY_VIEN)` trong service vì Trưởng tầng, Hành chính cũng có T ở dòng này, chú thích ⁸, Q-345; `giaiPhongGiuongKhiVang` của 003), báo vắng bán trú, ngày nghỉ bán trú; `DinhChinhDuocProvider` cho `M02.LUOT_VANG` (báo 010 tính lại); `TrangThaiCoMatBanTruPort` dùng cho ngày bán trú
 - [ ] T055 [US6] Tạo `BE/m02/vang/web/VangController.java`: `/luot-vang`, `/{id}`, `/{id}/gia-han-du-kien`, `/{id}/quyet-dinh-giu-giuong`, `/{id}/dinh-chinh`, `/bao-vang-ban-tru`, `/ngay-nghi-ban-tru`, `/{id}/huy`
 - [ ] T056 [P] [US6] Tạo màn web `frontend/src/tinh-nang/vang-mat/` và app `mobile/lib/nhan-vien/vang-mat/` (Cho tạm vắng, Gia hạn, Ghi nhận trở về; chỉ trực tuyến) với test `mobile/test/nhan-vien/cho_tam_vang_test.dart`, `gia_han_du_kien_test.dart`
 

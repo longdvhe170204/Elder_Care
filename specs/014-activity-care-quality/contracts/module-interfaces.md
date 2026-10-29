@@ -20,7 +20,7 @@ Feature 014 thêm gói con vào module M04 (cùng 005). Giao diện công khai �
 | `DiemDanhTruyVetPort` (`m05.api`, 007) | `cungThamGia(nctId, tu, den)`: buổi, thời điểm, người cùng Có mặt (kể cả chuyến) | 007 FR-060 (b) |
 | `ChuyenDiNhiemVuPort` (`m09.api`, 008) | `truongDoan`, `nguoiDiCung`, `chuyenTrongCa(tang, tu, den)` | 008 FR-039 (e); 002 FR-019 |
 | `ChuyenDiBuaAnPort` (`m08.api`, 011) | `trungGioBua(gioBua)`: chuyến Đã lên lịch/Đang đi trùng giờ bữa, người tham gia Được đi/Đã rời viện, dự kiến trở lại | 011 FR-034 |
-| `HoatDongBanTinPort` (`m10.api`, 012) | `soHoatDongDaThamGia(nctId, tu, den)`: số lượt Có mặt | 012 FR-052 |
+| ~~`HoatDongBanTinPort`~~ | *(Bỏ theo Q-396: không còn bản tin)* | — |
 | `HoatDongKenhNctPort` (`m10.api`, 012) *(bổ sung 2026-10-18)* | `sapToi(nctId, tu, den)`: buổi của tầng và toàn viện, cờ có tên (L-16) | 012 FR-083 (c) |
 | `ChuyenDiSosPort` (`m05.api`, 007) *(bổ sung 2026-10-18)* | `dangDienRa(nctId)`: chuyến, trưởng đoàn, người đi cùng hiện tại (L-16) | 007 FR-047e |
 | `NgoaiTuyenHandler` (`m02.api`) | `M04.DIEM_DANH_BUOI`, `M04.DIEM_DANH_ROI_VIEN`, `M04.DIEM_DANH_VE`; lệnh Báo thiếu người, Kết thúc điểm danh về, ghi sự cố thiếu người: `batBuocTrucTuyen()` | Q-01, FR-046a |
