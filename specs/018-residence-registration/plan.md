@@ -69,7 +69,7 @@ Không còn mục NEEDS CLARIFICATION.
 | NFR-01 Quy mô | Có | 300 hồ sơ; vài chục khai báo mỗi tháng |
 | NFR-02 Hiệu năng | Có | Mỗi lệnh ghi một khai báo dưới khóa `khai_bao_nct`; ghi nộp, kết quả ≤ 2 phút thao tác (SC-005) *(R-15: `khai_bao_nct` → `trang_thai_nct`)* |
 | NFR-03 Thông báo khẩn cấp | Không | Thông báo mức Nhẹ (FR-010) |
-| NFR-04 Tác vụ định kỳ | Có | Job hằng ngày cho 300 hồ sơ ≤ 1 phút; `nhac_khai_bao` `UNIQUE (loai, nct_id, ngay)` chống nhắc trùng; chạy bù (research Z-06) |
+| NFR-04 Tác vụ định kỳ | Có | Job hằng ngày cho 300 hồ sơ ≤ 1 phút; `nhac_khai_bao` `UNIQUE (loai, nct_id, ngay)` chống nhắc trùng; chạy bù (research Z-06) *(R-15: `nhac_khai_bao` → `moc_da_nhac`)* |
 | NFR-05 Khả dụng | Gián tiếp | Listener sự kiện của 004 idempotent theo mốc nghĩa vụ |
 | NFR-06 Sao lưu | Có | Bảng khai báo ở MySQL; bằng chứng ở kho tệp của 000 |
 | NFR-07 Lưu trữ | Có | Theo hồ sơ (CFG-M15-03, `LuuTruProvider`) |

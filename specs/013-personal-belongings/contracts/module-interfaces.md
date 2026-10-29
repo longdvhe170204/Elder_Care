@@ -71,4 +71,4 @@ Stream<PhieuKiemKeView> kiemKe(String maKy);
 | `NguoiCaoTuoiDaChuyenTrangThai` (001) | Vào trạng thái cuối: bắt đầu nhắc CFG-M12-02 (trừ Qua đời, theo 004 FR-072) | FR-027 |
 | `QuanHeDaDoi`, `QuyenNguoiThanDaDoi` (012) | Không đổi dữ liệu; quyền xét lại lúc dùng | FR-017, FR-030 |
 
-Mọi listener idempotent theo `khoaSuKien` (`su_kien_m12_da_xu_ly`).
+Mọi listener idempotent theo `khoaSuKien` (`su_kien_m12_da_xu_ly`). *(R-15: `su_kien_m12_da_xu_ly` → `moc_da_nhac`)*

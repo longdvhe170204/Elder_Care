@@ -61,7 +61,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()`, ArchUnit (ch�
 | Q29 | Xuất sao kê A 01/10 → 31/10 Excel rồi PDF | Đầu kỳ 1.000.000, hai giao dịch, cuối kỳ 1.700.000; PDF cùng số liệu, có thông tin viện | US8 #1, #7, FR-025 |
 | Q30 | Xuất báo cáo thu chi tháng 10 (nộp 55.000.000, trừ 48.000.000, hoàn 2.000.000, B nợ 1.500.000) | Ba tổng và danh sách còn nợ gồm B; không có giao dịch Chờ duyệt, Từ chối | US8 #2, #3, Q-386 |
 | Q31 | HC xuất báo cáo; xuất khoảng 13 tháng | 403; 422 `VUOT_KHOANG_XUAT` | US8 #4, #6 |
-| Q32 | Mỗi lần xuất; dữ liệu đổi rồi tải lại | Có `lan_xuat_so_du` đủ trường; file không đổi | US8 #5, FR-027 |
+| Q32 | Mỗi lần xuất; dữ liệu đổi rồi tải lại | Có `lan_xuat_so_du` đủ trường; file không đổi | US8 #5, FR-027 *(R-15: `lan_xuat_so_du` → hành động `nhat_ky`)* |
 | Q33 | R xuất sao kê trên cổng PDF; N thử | 200 file; 403 | FR-026 |
 | Q34 | A Còn nợ: DD phát thuốc, nhân viên ghi công việc, bếp chốt suất | Không lệnh nào bị chặn | US5 #5, FR-020 |
 | Q35 | Hồ sơ trạng thái cuối còn nợ; QL dừng nhắc có lý do; chạy job | Không nhắc nữa | FR-020 |

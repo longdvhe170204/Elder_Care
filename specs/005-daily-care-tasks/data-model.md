@@ -14,7 +14,30 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - `danh_muc_chung`: `loai_cong_viec`, `danh_muc_gia_tri_ket_qua`, `loai_ly_do_khong_thuc_hien`.
 - `lich_su_chung`: `lich_su_xu_ly_cong_viec`; `su_kien_chung`: `diem_danh_ban_tru`.
 - `ho_so_chung`: `co_mat_ban_tru`; `trang_thai_nct`: `cham_soc_nct`.
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `thoa_thuan_nguoi_tham_gia`, `thoa_thuan_y_kien` → `su_kien_chung`; `loai_cong_viec_chung_chi` → `danh_muc_chung` (thuộc tính của loại công việc); `lan_chay_m04` → `moc_da_nhac`. Không thêm bảng riêng.
 - Còn 3 bảng riêng của feature.
+
+### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-30; sinh từ mục 0 và ràng buộc ở mô tả bảng các mục sau; chủ module rà, hoàn thiện khi viết migration, task T064)*
+
+Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (module M04; đổi sang tên tiếng Anh theo glossary khi dịch); `noi_dung`, `thuoc_tinh` hoặc `du_lieu` mang các cột của bảng cũ, có JSON Schema theo loại; bảng gộp riêng của feature có cột `kind` (hoặc `loai`) và cột `NULL` có `CHECK` theo loại. Mỗi dòng có ràng buộc ở bảng dưới cần một test tích hợp chứng minh ràng buộc vẫn giữ sau gộp (constitution XII), ghi vào bảng DBR áp dụng khi cài.
+
+**Bảng giữ hoặc là bảng đích** (giữ cột, ràng buộc như mô tả ở các mục sau; bảng đích nhận thêm cột của bảng gộp vào): `ke_hoach_cham_soc`, `muc_ke_hoach`, `cong_viec`.
+
+| Bảng cũ | Đích | Loại ở bảng chung | Ràng buộc của bảng cũ | Cách giữ sau gộp |
+| --- | --- | --- | --- | --- |
+| `cham_soc_nct` | `trang_thai_nct` | `M04.CHAM_SOC_NCT` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `thoa_thuan_rui_ro` | `muc_ke_hoach` | — | / `nct_tham_gia` / `BOOLEAN` / `CHECK (nct_tham_gia OR NOT tu_quyet_duoc)` / FR-002a /; / `nguoi_quyet_dinh_loai` / `ENUM('NGUOI_CAO_TUOI','DAI_DIEN_NGUOI_BENH','BAC_SI')` / `CHECK (tu_quyet_duoc = (nguoi_quyet_dinh_loai = 'NGUOI_CAO_TUOI'))` / FR-002a, BR-M01… | `CHECK` thêm điều kiện `kind` |
+| `loai_cong_viec` | `danh_muc_chung` | `M04.LOAI_CONG_VIEC` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `danh_muc_gia_tri_ket_qua` | `danh_muc_chung` | `M04.DANH_MUC_GIA_TRI_KET_QUA` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `loai_ly_do_khong_thuc_hien` | `danh_muc_chung` | `M04.LOAI_LY_DO_KHONG_THUC_HIEN` | Cột chuẩn nhóm 1 (mẫu 000 mục 1.1) và `co_dinh BOOLEAN`. Migration nạp một dòng `co_dinh = true`, tên "Người cao tuổi từ chối"; `CHECK (NOT co_dinh OR trang_thai = 'HIEU_LUC')` và trigger chặn đổi `ten`, `co_dinh` của dòng cố định, nên dòng này không bị ngừng … | kiểm ở domain + test; trigger của bảng chung (chỉ thêm hoặc `khoa_luc`) |
+| `co_mat_ban_tru` | `ho_so_chung` | `M04.CO_MAT_BAN_TRU` | / `id`, `nct_id`, `ngay` / / `UNIQUE (nct_id, ngay)` / FR-012, CHK036 / | `khoa_duy_nhat` |
+| `diem_danh_ban_tru` | `su_kien_chung` | `M04.DIEM_DANH_BAN_TRU` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `ket_qua_ghi_nhan` | `cong_viec` | — | / `id`, `cong_viec_id` / `BIGINT` / `UNIQUE (cong_viec_id)` / FR-036 /; `CHECK`: `thoi_diem_thuc_hien <= COALESCE(thoi_diem_thiet_bi, thoi_diem)`. Trigger nhóm 3 của 000 (không sửa, không xóa). Chỉ mục `(nct_id, loai_ket_qua, thoi_diem_thuc_hien)` cho quy tắc … | cột sinh `UNIQUE` theo `kind`; `CHECK` thêm điều kiện `kind`; `khoa_luc` + trigger khóa theo dòng |
+| `lich_su_xu_ly_cong_viec` | `lich_su_chung` | `M04.LICH_SU_XU_LY_CONG_VIEC` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `thoa_thuan_nguoi_tham_gia` | `su_kien_chung` | `M04.THOA_THUAN_NGUOI_THAM_GIA` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `thoa_thuan_y_kien` | `su_kien_chung` | `M04.THOA_THUAN_Y_KIEN` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `loai_cong_viec_chung_chi` | `danh_muc_chung` (thuộc tính của loại công việc) | `M04.LOAI_CONG_VIEC_CHUNG_CHI` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `lan_chay_m04` | `moc_da_nhac` | `M04.LAN_CHAY_M04` | — | cột vào `JSON` hoặc cột của bảng đích |
 
 ---
 
@@ -33,7 +56,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 | `cong_viec` | 2 | C |
 | `ket_qua_ghi_nhan` | 3 | D *(R-15: `ket_qua_ghi_nhan` → `cong_viec`)* |
 | `lich_su_xu_ly_cong_viec` | 3 | C, D, G *(R-15: `lich_su_xu_ly_cong_viec` → `lich_su_chung`)* |
-| `lan_chay_m04` | Kỹ thuật | K |
+| `lan_chay_m04` | Kỹ thuật | K *(R-15: `lan_chay_m04` → `moc_da_nhac`)* |
 
 ---
 
@@ -135,7 +158,7 @@ Chỉ mục `(trang_thai, ngay_hieu_luc)` cho job hằng ngày; `(nct_id, ngay_h
 
 `thoa_thuan_nguoi_tham_gia (thoa_thuan_id, loai ENUM('NGUOI_THAN','NHAN_VIEN'), doi_tuong_id)`: khóa chính ba cột; người cao tuổi tham gia ghi ở `nct_tham_gia`.
 
-`thoa_thuan_y_kien`: `id`, `thoa_thuan_id`, cột nguồn theo mẫu data-model 001 mục 6a (`nguon_loai`, `nguon_nguoi_than_id`, `nguoi_ghi_id`, `thoi_diem`), `noi_dung VARCHAR(2000) NOT NULL`. Mỗi ý kiến một dòng (BR-M01-14).
+`thoa_thuan_y_kien`: `id`, `thoa_thuan_id`, cột nguồn theo mẫu data-model 001 mục 6a (`nguon_loai`, `nguon_nguoi_than_id`, `nguoi_ghi_id`, `thoi_diem`), `noi_dung VARCHAR(2000) NOT NULL`. Mỗi ý kiến một dòng (BR-M01-14). *(R-15: `thoa_thuan_y_kien` → `su_kien_chung`)*
 
 Cả ba bảng chịu cùng trigger khóa như `muc_ke_hoach` (`trg_thoa_thuan_*_khoa`: chặn `INSERT/UPDATE/DELETE` khi phiên bản cha không ở `NHAP`), nên nội dung đã duyệt không đổi; ý kiến đổi thì ghi ở phiên bản mới, phiên bản cũ vẫn tra được (FR-023g của 001).
 

@@ -17,6 +17,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - `lich_su_chung`: `lich_su_trang_thai_nct`, `lich_su_muc_cham_soc` (`mien_dieu_kien` vào `chi_tiet`; lý do bắt buộc FR-046 kiểm ở backend; tệp `M01.GIAY_TO_BENH_VIEN` trỏ id mới).
 - `su_kien_chung`: `nguyen_vong_y_kien`, `nguyen_vong_dieu_tri_y_kien`; cột `JSON` của bảng cha (ghi cùng lúc tạo): `ban_dong_y_nguoi_than`, `nguyen_vong_dieu_tri_nguoi_bao`.
 - `ho_so_chung`: `ho_so_suc_khoe_ban_dau` (`initial_health_record`, khóa khi xác nhận), `lan_bao_danh_gia_lai` (`reassessment_notice`); `moc_da_nhac`: `nhac_chu_ky`, `canh_bao_tro_lai`.
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `di_nguyen`, `muc_do_di_ung`, `nguon_thong_tin`, `nhu_cau_cham_soc` → `danh_muc_chung`; `tep` → giữ, thuộc `common` (tính ở 000). Không thêm bảng riêng.
 - Còn 5 bảng riêng của feature.
 
 ### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V001_95`)*
@@ -92,11 +93,11 @@ Mọi `CHECK` cũ giữ, mỗi `CHECK` thêm điều kiện `kind = …` (ví d�
 | `ban_dong_y`, `ban_dong_y_nguoi_than` | 2; bảng con chỉ thêm | Bản đồng ý và phạm vi người thân | FR-010 → FR-016 *(R-15: `ban_dong_y_nguoi_than` → cột `JSON` của `ban_dong_y`)* |
 | `ho_so_suc_khoe_ban_dau` | 3 có bản nháp | Hồ sơ sức khỏe ban đầu | FR-017 *(R-15: `ho_so_suc_khoe_ban_dau` → `ho_so_chung`)* |
 | `muc_suc_khoe` | 2, nội dung bất biến | Dị ứng, bệnh nền, tiền sử bệnh | FR-018 → FR-023 |
-| `di_nguyen`, `muc_do_di_ung`, `nguon_thong_tin` | 1 | Danh mục dùng cho mục sức khỏe | FR-018, FR-018a, BR-M01-11 |
+| `di_nguyen`, `muc_do_di_ung`, `nguon_thong_tin` | 1 | Danh mục dùng cho mục sức khỏe | FR-018, FR-018a, BR-M01-11 *(R-15: `di_nguyen`, `muc_do_di_ung`, `nguon_thong_tin` → `danh_muc_chung`)* |
 | `nguyen_vong_cuoi_doi`, `nguyen_vong_y_kien` | 2, có phiên bản; bảng con chỉ thêm | Phiếu nguyện vọng cuối đời; ý kiến khác có nguồn | FR-023a → FR-023f, FR-023g *(R-15: `nguyen_vong_cuoi_doi` → `nguyen_vong` (`wish`); `nguyen_vong_y_kien` → `su_kien_chung`)* |
 | `nguyen_vong_dieu_tri`, `nguyen_vong_dieu_tri_nguoi_bao`, `nguyen_vong_dieu_tri_y_kien` | 2, có phiên bản; bảng con chỉ thêm | Phiếu nguyện vọng khi điều trị (bổ sung 2026-10-22) | FR-023j → FR-023m, DBR-39 *(R-15: `nguyen_vong_dieu_tri` → `nguyen_vong` (`wish`); `nguyen_vong_dieu_tri_nguoi_bao` → cột `JSON` của `nguyen_vong`; `nguyen_vong_dieu_tri_y_kien` → `su_kien_chung`)* |
 | `danh_gia`, `danh_gia_nhu_cau` | 3 có bản nháp | Lần đánh giá và nhu cầu chăm sóc được chọn | FR-024 → FR-038 *(R-15: `danh_gia_nhu_cau` → cột `JSON` của `danh_gia`)* |
-| `nhu_cau_cham_soc` | 1 | Danh mục nhu cầu chăm sóc (Q-291) | FR-025, FR-029 |
+| `nhu_cau_cham_soc` | 1 | Danh mục nhu cầu chăm sóc (Q-291) | FR-025, FR-029 *(R-15: `nhu_cau_cham_soc` → `danh_muc_chung`)* |
 | `lan_bao_danh_gia_lai` | Kỹ thuật | Lần hệ thống báo bác sĩ cần đánh giá lại | FR-039 → FR-043 *(R-15: `lan_bao_danh_gia_lai` → `ho_so_chung`)* |
 | `nhac_chu_ky` | Kỹ thuật | Lần nhắc cuối của các nhắc theo chu kỳ; nhắc ngày xem lại nhận định | FR-012, FR-023d, FR-023i, FR-036 *(R-15: `nhac_chu_ky` → `moc_da_nhac`)* |
 | `canh_bao_tro_lai` | Kỹ thuật | Chống cảnh báo lặp khi tạm vắng quá hạn | FR-050 *(R-15: `canh_bao_tro_lai` → `moc_da_nhac`)* |
@@ -308,12 +309,12 @@ Bảo đảm:
 
 | Bảng | Cột riêng (ngoài cột chuẩn nhóm 1) | Người cấu hình | Khởi tạo |
 | --- | --- | --- | --- |
-| `di_nguyen` | `nhom ENUM('THUOC_HOAT_CHAT','THUC_PHAM','KHAC')` | `THUOC_HOAT_CHAT`: AC-01 (006 FR-002). `THUC_PHAM`: AC-03 (011 FR-003). `KHAC`: AC-01 (tạm, plan điểm báo lại 3) | Rỗng; nạp khi triển khai |
-| `muc_do_di_ung` | `thu_tu` | AC-01 | Nhẹ, Trung bình, Nặng (BR-M01-11) |
-| `nguon_thong_tin` | — | AC-01 | Người cao tuổi, Người thân, Hồ sơ y tế kèm theo, Bác sĩ khám |
-| `nhu_cau_cham_soc` | — | AC-01 | Hỗ trợ vận động, Theo dõi sức khỏe thường xuyên, Phục hồi sau tai biến, Phục hồi chức năng khác (Q-291) |
+| `di_nguyen` | `nhom ENUM('THUOC_HOAT_CHAT','THUC_PHAM','KHAC')` | `THUOC_HOAT_CHAT`: AC-01 (006 FR-002). `THUC_PHAM`: AC-03 (011 FR-003). `KHAC`: AC-01 (tạm, plan điểm báo lại 3) | Rỗng; nạp khi triển khai *(R-15: `di_nguyen` → `danh_muc_chung`)* |
+| `muc_do_di_ung` | `thu_tu` | AC-01 | Nhẹ, Trung bình, Nặng (BR-M01-11) *(R-15: `muc_do_di_ung` → `danh_muc_chung`)* |
+| `nguon_thong_tin` | — | AC-01 | Người cao tuổi, Người thân, Hồ sơ y tế kèm theo, Bác sĩ khám *(R-15: `nguon_thong_tin` → `danh_muc_chung`)* |
+| `nhu_cau_cham_soc` | — | AC-01 | Hỗ trợ vận động, Theo dõi sức khỏe thường xuyên, Phục hồi sau tai biến, Phục hồi chức năng khác (Q-291) *(R-15: `nhu_cau_cham_soc` → `danh_muc_chung`)* |
 
-Người cấu hình `muc_do_di_ung`, `nguon_thong_tin`, `nhu_cau_cham_soc` theo quyền cấu hình danh mục chung của Quản lý viện (UC-69, 19.2). Tài liệu nguồn chưa nêu dòng riêng ở Phụ lục 27 (plan, điểm báo lại 3). 006 và 011 tham chiếu `di_nguyen.id` bằng định danh logic và đọc danh mục qua `DiNguyenApi`.
+Người cấu hình `muc_do_di_ung`, `nguon_thong_tin`, `nhu_cau_cham_soc` theo quyền cấu hình danh mục chung của Quản lý viện (UC-69, 19.2). Tài liệu nguồn chưa nêu dòng riêng ở Phụ lục 27 (plan, điểm báo lại 3). 006 và 011 tham chiếu `di_nguyen.id` bằng định danh logic và đọc danh mục qua `DiNguyenApi`. *(R-15: `muc_do_di_ung`, `nguon_thong_tin`, `nhu_cau_cham_soc` → `danh_muc_chung`)*
 
 ---
 
@@ -588,7 +589,7 @@ Hồ sơ có hồ sơ sau liên kết tới (FR-004) không bị loại bỏ tr�
 | BR-M01-08 | Chú thích ¹ | `BR_M01_08_DongYIT` |
 | BR-M01-09 | Bảng chuyển đánh giá; quyền DUYET chỉ AC-03 | `BR_M01_09_DanhGiaIT` |
 | BR-M01-10 | `DanhGiaApi.luuYHienHanh` | `BR_M01_10_LuuYChamSocIT` |
-| BR-M01-11 | Danh mục `muc_do_di_ung`, `nguon_thong_tin` | `BR_M01_11_DanhMucIT` |
+| BR-M01-11 | Danh mục `muc_do_di_ung`, `nguon_thong_tin` | `BR_M01_11_DanhMucIT` *(R-15: `muc_do_di_ung`, `nguon_thong_tin` → `danh_muc_chung`)* |
 | BR-M01-12 | Cờ chờ kiểm tra; outbox; job thử lại | `BR_M01_12_ChoKiemTraIT` |
 | BR-M01-13 | `nhap_dang_mo UNIQUE`; lệnh Hủy nháp | `BR_M01_13_MotBanNhapIT` |
 | BR-M01-14 (phần 001) | Mẫu cột nguồn ý kiến; `NguonYKienApi`; `nguyen_vong_y_kien` | `BR_M01_14_NguonYKienIT` *(R-15: `nguyen_vong_y_kien` → `su_kien_chung`)* |

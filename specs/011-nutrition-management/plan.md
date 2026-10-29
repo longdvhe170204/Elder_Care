@@ -168,7 +168,7 @@ mobile/lib/nhan-vien/dinh-duong/   # nhận phiếu, sai lệch, suất bổ sun
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
-| Phiên bản nội dung món (`mon_an_phien_ban`) | FR-004a: món Hiệu lực có bản sửa chờ, nội dung đã xác nhận vẫn dùng; lần chốt, xác nhận phục vụ phải biết đúng nội dung đã dùng | Sửa thẳng món: mất nội dung đã xác nhận khi có bản sửa chờ, không truy được thành phần lúc phục vụ |
+| Phiên bản nội dung món (`mon_an_phien_ban`) | FR-004a: món Hiệu lực có bản sửa chờ, nội dung đã xác nhận vẫn dùng; lần chốt, xác nhận phục vụ phải biết đúng nội dung đã dùng | Sửa thẳng món: mất nội dung đã xác nhận khi có bản sửa chờ, không truy được thành phần lúc phục vụ *(R-15: `mon_an_phien_ban` → `ho_so_chung` (phiên bản món, khóa khi Bác sĩ xác nhận; thành phần, chế độ thành `JSON`))* |
 | Bảng `bua_ngay` kỹ thuật | Một điểm khóa cho chốt, phát sinh, phiếu của một bữa; giữ giờ bữa tại lúc tạo | Khóa theo (bữa, ngày) không có dòng: không khóa được bằng `SELECT … FOR UPDATE` *(R-15: `bua_ngay` → `khoa_ky_thuat`)* |
 | DTO bếp tách riêng | SC-008, SC-014 đòi 0 lần lộ dữ liệu sức khỏe | Lọc trường động theo vai trò: dễ lọt trường mới thêm |
 | SPI `LuotOLaiAnPort`, `ChuyenDiBuaAnPort` ở `m08.api` | 011 làm plan trước 012, 014 nhưng cần dữ liệu của họ (FR-034) | 011 phụ thuộc 012, 014: tạo vòng vì 012, 014 đọc thực đơn, lịch bữa |

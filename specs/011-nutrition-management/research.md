@@ -93,7 +93,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## M-07. Thực đơn tuần (mục D, FR-023 → FR-032, BR-M08-06 → 08, Q-308)
 
 **Quyết định**:
-- `thuc_don` (nhóm 2): tuần (`ngay_dau_tuan`, thứ 2), trạng thái `NHAP | CHO_CONG_BO | CONG_BO | DA_AP_DUNG | DA_HUY`; cột sinh `khoa_tuan = IF(trang_thai <> 'DA_HUY', ngay_dau_tuan, NULL)` `UNIQUE` (FR-023). Nội dung `thuc_don_mon` (ngày, bữa, chế độ ăn, món, thứ tự) và `thuc_don_mon_thay_the` (thứ tự ưu tiên); sửa tự do khi Nháp (`If-Match`), sao chép từ thực đơn trước (món không còn Hiệu lực đánh dấu thay).
+- `thuc_don` (nhóm 2): tuần (`ngay_dau_tuan`, thứ 2), trạng thái `NHAP | CHO_CONG_BO | CONG_BO | DA_AP_DUNG | DA_HUY`; cột sinh `khoa_tuan = IF(trang_thai <> 'DA_HUY', ngay_dau_tuan, NULL)` `UNIQUE` (FR-023). Nội dung `thuc_don_mon` (ngày, bữa, chế độ ăn, món, thứ tự) và `thuc_don_mon_thay_the` (thứ tự ưu tiên); sửa tự do khi Nháp (`If-Match`), sao chép từ thực đơn trước (món không còn Hiệu lực đánh dấu thay). *(R-15: `thuc_don_mon`, `thuc_don_mon_thay_the` → cột `JSON` của `thuc_don`)*
 - **Gửi kiểm tra** (FR-025, FR-025a): bắt buộc `xacNhanKiemTraCheBien = true` (lưu ghi chú, người, lúc); hiển thị trước số người theo chế độ ăn trong tuần (không tên). Hàm thuần trong một lần:
   - `KiemTraDoPhu(noiDung, cheDoDangDung, buaPhucVu)`: chặn, liệt kê (chế độ ăn, ngày, bữa) thiếu; "chế độ ăn đang có người dùng" theo FR-027 (mặc định luôn có);
   - `LapMon(noiDung, tuanTruoc, tuanSau, cfg03)`: chuỗi ngày liên tiếp theo món và chế độ ăn, qua ranh giới tuần với thực đơn Công bố/Đã áp dụng liền kề; món thay thế không tính;

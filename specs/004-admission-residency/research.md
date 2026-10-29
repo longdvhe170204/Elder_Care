@@ -67,7 +67,7 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 ## T-04. Hợp đồng và nội dung hiệu lực tại ngày D (mục C, FR-019 → FR-029, BR-M02-09)
 
 **Quyết định**:
-- **Bản nháp**: `hop_dong` (đầu hợp đồng) cùng các bảng con `hop_dong_dich_vu`, `hop_dong_chinh_sach_vang` (dòng ghi đè), `hop_dong_lich_den` (bán trú). Chỉ sửa được khi `NHAP` và không mang dấu "đang chờ duyệt điều khoản"; trigger chặn `UPDATE` nội dung ở trạng thái khác.
+- **Bản nháp**: `hop_dong` (đầu hợp đồng) cùng các bảng con `hop_dong_dich_vu`, `hop_dong_chinh_sach_vang` (dòng ghi đè), `hop_dong_lich_den` (bán trú). Chỉ sửa được khi `NHAP` và không mang dấu "đang chờ duyệt điều khoản"; trigger chặn `UPDATE` nội dung ở trạng thái khác. *(R-15: `hop_dong_dich_vu`, `hop_dong_lich_den` → cột `JSON` của `phien_ban_hop_dong`)*
 - **Phiên bản nội dung**: khi "Ghi nhận đã ký", hệ thống ghi phiên bản 0 vào `phien_ban_noi_dung_hop_dong` (nhóm 3, chỉ thêm). Phiên bản gồm toàn bộ nội dung ở dạng JSON cùng các cột hay đọc: loại lưu trú, mức, ngày kết thúc, loại phòng, khoản cọc. Đơn giá được ghi lại tại lúc ký (FR-036). Mỗi phụ lục áp dụng thêm một phiên bản, `hieu_luc_tu` là ngày hiệu lực thực tế. *(R-15: `phien_ban_noi_dung_hop_dong` → `phien_ban_hop_dong`)*
 - **Nội dung tại ngày D** (FR-024) là phiên bản có `hieu_luc_tu` lớn nhất mà không muộn hơn D. Không cần ghép phụ lục mỗi lần đọc.
 - Phụ lục luôn được áp dụng theo thứ tự ngày hiệu lực. Ngày hiệu lực thực tế là `max(mong muốn, ngày duyệt)` và việc áp dụng chạy vào đúng ngày đó, theo thứ tự ngày (000 R-10). Vì vậy phiên bản mới luôn dựng từ phiên bản mới nhất. FR-046 chặn hai yêu cầu cùng thuộc tính chờ hiệu lực cùng lúc.
@@ -238,7 +238,7 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 ## T-10. Lịch đến bán trú và sức chứa
 
 **Quyết định**:
-- **Lịch đến** là nội dung hợp đồng (`hop_dong_lich_den`: thứ trong tuần hoặc ngày cụ thể, giờ đến, giờ về). `CHECK (gio_ve > gio_den)` bảo đảm không qua 00:00 (FR-019, Q-286).
+- **Lịch đến** là nội dung hợp đồng (`hop_dong_lich_den`: thứ trong tuần hoặc ngày cụ thể, giờ đến, giờ về). `CHECK (gio_ve > gio_den)` bảo đảm không qua 00:00 (FR-019, Q-286). *(R-15: `hop_dong_lich_den` → cột `JSON` của `phien_ban_hop_dong`)*
 - **Kiểm sức chứa** (003 FR-039) ở hai lệnh làm lịch có hiệu lực ràng buộc:
   - "Ghi nhận đã ký" hợp đồng bán trú;
   - `kiemTraKhiDuyet` của yêu cầu đổi lịch đến hoặc đổi sang bán trú (FR-041).

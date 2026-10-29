@@ -38,10 +38,10 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 - [ ] T002 Bổ sung port trong `BE/m09/lichca/port/`: `LichNhapLenhPort` (chỉ `goNhanVienKhoiNhap`, `lichThang`; Q-397), `NghiCoDuyetPort`; cài ở gói `m09.lichca.internal` của 008 (contracts mục 1.2; research X-03)
 - [ ] T003 [P] Bổ sung `BE/m09/api/DoiCaThongKeApi.java` (yêu cầu, giờ làm theo tháng; Q-397: bỏ phủ, lời mời) và thông báo (cài `CoYeuCauThongBao`) (contracts mục 2.1, 2.3)
-- [ ] T004 *(Bỏ theo Q-397, 2026-10-29)* Không có bảng mẫu xoay ca, nhóm, `moc_nhac_lich`; `lan_chay_m09xc` tạo ở T007
+- [ ] T004 *(Bỏ theo Q-397, 2026-10-29)* Không có bảng mẫu xoay ca, nhóm, `moc_nhac_lich`; `lan_chay_m09xc` tạo ở T007 **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_chay_m09xc` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 - [ ] T005 [P] *(Bỏ theo Q-397, 2026-10-29)*
 - [ ] T006 [P] *(Bỏ theo Q-397, 2026-10-29)*
-- [ ] T007 Cài khung job `BE/m09/doica/lich/ViecM09DoiCa.java` (ShedLock, `lan_chay_m09xc`) cho Hết hiệu lực yêu cầu, tách ca theo giờ (Q-397: bỏ nhắc lập lịch, nhắc công bố, cảnh báo) (research X-13)
+- [ ] T007 Cài khung job `BE/m09/doica/lich/ViecM09DoiCa.java` (ShedLock, `lan_chay_m09xc`) cho Hết hiệu lực yêu cầu, tách ca theo giờ (Q-397: bỏ nhắc lập lịch, nhắc công bố, cảnh báo) (research X-13) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_chay_m09xc` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 - [ ] T008 [P] Cài provider: `GanPhamViProvider` (`M09.DOI_CA`, `M09.NGHI_DOT_XUAT`), `PhanLoaiTruongProvider` (lý do `LY_DO_NHAN_SU`), `LuuTruProvider` (≥ CFG-M15-04)
 
 **Checkpoint**: Nền 015 sẵn sàng.
@@ -72,7 +72,7 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 ### Implementation cho User Story 3
 
-- [ ] T018 [US3] Tạo bảng `yeu_cau_doi_ca` (`yeu_cau_id` khóa chính trỏ `yeu_cau_phe_duyet`; `dang` `HAI_CHIEU|NHAN_THAY`; `trang_thai` 7 giá trị đồng bộ qua `chuyenMoRong`), `yeu_cau_ca_mo` (`UNIQUE (ca_id, nhan_vien_id)`) trong `MIG/V015_04__doi_ca.sql` *(R-15: `yeu_cau_doi_ca` → `ho_so_chung`; `yeu_cau_ca_mo` → `khoa_duy_nhat` của `ho_so_chung`)*
+- [ ] T018 [US3] Tạo bảng `yeu_cau_doi_ca` (`yeu_cau_id` khóa chính trỏ `yeu_cau_phe_duyet`; `dang` `HAI_CHIEU|NHAN_THAY`; `trang_thai` 7 giá trị đồng bộ qua `chuyenMoRong`), `yeu_cau_ca_mo` (`UNIQUE (ca_id, nhan_vien_id)`) trong `MIG/V015_04__doi_ca.sql` **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `yeu_cau_doi_ca` → `ho_so_chung`; `yeu_cau_ca_mo` → `khoa_duy_nhat` của `ho_so_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 - [ ] T019 [US3] Cài handler `BE/m09/doica/internal/DoiCaHandler.java` cho `M09.DOI_CA` (`chuyenMoRong` cho `CHO_NGUOI_NHAN_DONG_Y`, `NGUOI_NHAN_TU_CHOI`, `HET_HIEU_LUC`; không có `NHAP`; `kiemTraKhiDuyet`; `khiDuyet` hoặc `apDung` gọi `CaLenhPort`, `PhanCongLenhPort`, `CongViecCaApi.khiKetThucPhanCong`, `ChuyenDiNhiemVuLenhApi.goNhiemVu`; tự duyệt Q-10) và `DoiCaService.java` (lập, đồng ý, từ chối, rút, hủy) (research X-08)
 - [ ] T020 [US3] Tạo endpoint `/doi-ca`, `/doi-ca/ca-cua-nguoi-nhan`, `/{id}/kiem-tra`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/lich-ca/doi-ca/`; app `mobile/lib/nhan-vien/lich-ca/` (SC-006 ≤ 2 phút) với test flutter
 
@@ -92,7 +92,7 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 ### Implementation cho User Story 4
 
-- [ ] T022 [US4] Tạo bảng `yeu_cau_nghi` (`dang` `THEO_CA|THEO_NGAY`; `lap_thay`), `yeu_cau_nghi_muc` (`ket_qua` `CHO|DUYET|TU_CHOI|DA_TACH|DA_ROI`), `nghi_theo_ngay` (nhóm 3; `UNIQUE (nhan_vien_id, ngay)`) trong `MIG/V015_05__nghi.sql` *(R-15: `yeu_cau_nghi` → `ho_so_chung`; `nghi_theo_ngay` → `su_kien_chung`)*
+- [ ] T022 [US4] Tạo bảng `yeu_cau_nghi` (`dang` `THEO_CA|THEO_NGAY`; `lap_thay`), `yeu_cau_nghi_muc` (`ket_qua` `CHO|DUYET|TU_CHOI|DA_TACH|DA_ROI`), `nghi_theo_ngay` (nhóm 3; `UNIQUE (nhan_vien_id, ngay)`) trong `MIG/V015_05__nghi.sql` **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `yeu_cau_nghi` → `ho_so_chung`; `nghi_theo_ngay` → `su_kien_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 - [ ] T023 [US4] Cài handler `BE/m09/doica/internal/NghiDotXuatHandler.java` (`DA_AP_DUNG_MOT_PHAN`, `HET_HIEU_LUC`; tác động qua `NghiCoDuyetPort`, `CaLenhPort`) và `NghiService.java` (tác động trước duyệt; tách ca theo giờ trong job; listener `LichCaDaCongBo`) (research X-09)
 - [ ] T024 [US4] Tạo endpoint `/nghi-dot-xuat`, `/{id}/truoc-khi-duyet`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/lich-ca/nghi/`; app phần nghỉ
 

@@ -130,4 +130,4 @@ TongHopAnUongView tongHop(long nctId, LocalDate tu, LocalDate den);      // tỷ
 | `KhoanhVungDaTao` (007) | Hủy lượt thăm trong vùng; báo khách đang vào | FR-037 |
 | `ThongBaoDaXem` (009) | Nhật ký xem sức khỏe khi bản có phần `SUC_KHOE` | FR-048 |
 
-Mọi listener idempotent theo `khoaSuKien` (`su_kien_m10_da_xu_ly`).
+Mọi listener idempotent theo `khoaSuKien` (`su_kien_m10_da_xu_ly`). *(R-15: `su_kien_m10_da_xu_ly` → `moc_da_nhac`)*

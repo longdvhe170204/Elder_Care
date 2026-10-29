@@ -38,7 +38,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T004 Tạo `MIG/V017_01__so_du.sql` theo data-model mục 2 → 7: `so_du` (`ma_nop_tien UNIQUE`), `giao_dich` (`CHECK` cặp sổ, loại, dấu số tiền; `ma_giao_dich_ngan_hang` chỉ mục thường; `bang_chi_phi_id UNIQUE`; trigger nhóm 2 → 3), `lich_su_tinh_trang` (`UNIQUE (nct_id, ngay, nguon)`), `phieu_bao_phi` (`UNIQUE ma_phieu`, `UNIQUE bang_chi_phi_id`), `bang_quyet_toan` (`UNIQUE (nct_id, phien_ban)`, cột sinh `khoa_hien_hanh UNIQUE`, trigger), `lan_xuat_so_du`, `lan_tai_chung_tu`, `su_kien_m11sd_da_xu_ly`, `lan_chay_m11sd`; trigger nhóm 3 theo mẫu 000 *(R-15: `so_du` → `trang_thai_nct`; `lich_su_tinh_trang` → `lich_su_chung`; `phieu_bao_phi`, `bang_quyet_toan` → `su_kien_chung`)*
+- [ ] T004 Tạo `MIG/V017_01__so_du.sql` theo data-model mục 2 → 7: `so_du` (`ma_nop_tien UNIQUE`), `giao_dich` (`CHECK` cặp sổ, loại, dấu số tiền; `ma_giao_dich_ngan_hang` chỉ mục thường; `bang_chi_phi_id UNIQUE`; trigger nhóm 2 → 3), `lich_su_tinh_trang` (`UNIQUE (nct_id, ngay, nguon)`), `phieu_bao_phi` (`UNIQUE ma_phieu`, `UNIQUE bang_chi_phi_id`), `bang_quyet_toan` (`UNIQUE (nct_id, phien_ban)`, cột sinh `khoa_hien_hanh UNIQUE`, trigger), `lan_xuat_so_du`, `lan_tai_chung_tu`, `su_kien_m11sd_da_xu_ly`, `lan_chay_m11sd`; trigger nhóm 3 theo mẫu 000 **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `so_du` → `trang_thai_nct`; `lich_su_tinh_trang` → `lich_su_chung`; `phieu_bao_phi`, `bang_quyet_toan` → `su_kien_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 - [ ] T005 [P] Khai báo ở `BE/m11/api/`: `SoDuApi` (`soDu`, `dieuKienQuyetToan`, `chungTu`), `SoDuThongKeApi` (`tinhTrang`, `thuChi`), sự kiện `TrangThaiDatCocDaDoi`, `DieuKienQuyetToanDaDoi`, `TinhTrangSoDuDaDoi`, `ChungTuDaPhatHanh` (module-interfaces mục 2.2 → 2.4) và bản giả `BT/support/fake/m11/` cho 004, 012, 016
 - [ ] T006 [P] Bản giả cho test của 017 trong `BT/support/`: `ChiPhiChoSoDuPort` (010, có `bangDaChot`), `HoSoKetThucDocApi` và phát sự kiện 004, `QuyenNguoiThanApi` (012) — dùng bản giả do người khai báo viết nếu đã có (docs/team-plan.md mục 3)
 - [ ] T007 Cài provider trong `BE/m11/sodu/`: `PhanLoaiTruongProvider` (`TAI_CHINH`), `LuuTruProvider` (`THEO_HO_SO`), `GanPhamViProvider`, `QuyenTepProvider` (`M11.PHIEU_BAO_PHI`, `M11.BANG_QUYET_TOAN`, `M11.BAN_KY_QUYET_TOAN`, `M11.FILE_XUAT`) theo research E-12; khóa `@RequiresPermission` theo bảng E-12
@@ -62,7 +62,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 - [ ] T010 [US1] Cài `BE/m11/sodu/so/` : listener `HopDongDaDoiTrangThai` mở sổ (idempotent), sinh `ma_nop_tien` có ký tự kiểm tra, `VietQrPayload` (CFG-M11-10), `GET /nguoi-cao-tuoi/{nctId}/so-du`, `GET /nguoi-cao-tuoi/{nctId}/giao-dich`, `GET /so-du/tim-theo-ma`, `GET /cong/nguoi-cao-tuoi/{nctId}/so-du` (kiểm `quyenCoTacDung(XEM_CHI_PHI)` mỗi lần) (research E-04)
 - [ ] T011 [P] [US1] Màn web số dư trên hồ sơ trong `frontend/src/tinh-nang/so-du/` và cổng `frontend/src/tinh-nang/cong-nguoi-than/so-du/` (vẽ mã QR từ chuỗi payload) cùng test Vitest; app `mobile/lib/nguoi-than/so-du/` theo mục "Giai đoạn hiện tại" của CLAUDE.md
-- [ ] T045 [US1] *(Bổ sung 2026-10-22; phần 000 xong 2026-10-22: SPI `ParameterValueCheck` ở `m15.parameter.api.spi`, `ParameterService` gọi trước khi lưu, bản giả `FakeParameterValueCheck`, `ParameterValueCheckIT`; còn phần của 017)* Danh mục ngân hàng cho CFG-M11-10 (research E-04): migration bảng `ngan_hang` và nạp danh sách mã BIN NAPAS (trong `MIG/V017_*` của 017); `GET /ngan-hang`; khai báo SPI `KiemTraGiaTriThamSo` ở `m15.thamso.api` và gọi trong lệnh đổi giá trị tham số của 000 (sửa `ParameterService`, chủ 000: A) cùng bản cài của 017 cho CFG-M11-10; ô chọn ngân hàng trên màn Tham số (`frontend/src/features/parameters/`); CFG-M11-10 chưa có giá trị thì ẩn thông tin nộp tiền; test `NganHangThamSoIT` (quickstart Q1a) *(R-15: `ngan_hang` → `danh_muc_chung`)*
+- [ ] T045 [US1] *(Bổ sung 2026-10-22; phần 000 xong 2026-10-22: SPI `ParameterValueCheck` ở `m15.parameter.api.spi`, `ParameterService` gọi trước khi lưu, bản giả `FakeParameterValueCheck`, `ParameterValueCheckIT`; còn phần của 017)* Danh mục ngân hàng cho CFG-M11-10 (research E-04): migration bảng `ngan_hang` và nạp danh sách mã BIN NAPAS (trong `MIG/V017_*` của 017); `GET /ngan-hang`; khai báo SPI `KiemTraGiaTriThamSo` ở `m15.thamso.api` và gọi trong lệnh đổi giá trị tham số của 000 (sửa `ParameterService`, chủ 000: A) cùng bản cài của 017 cho CFG-M11-10; ô chọn ngân hàng trên màn Tham số (`frontend/src/features/parameters/`); CFG-M11-10 chưa có giá trị thì ẩn thông tin nộp tiền; test `NganHangThamSoIT` (quickstart Q1a) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `ngan_hang` → `danh_muc_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 
 **Checkpoint**: Q1, Q2 xanh.
 
@@ -81,7 +81,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 ### Implementation cho User Story 2, 3
 
-- [ ] T014 [US2] Cài `BE/m11/sodu/giaodich/`: `POST /nguoi-cao-tuoi/{nctId}/nop-tien-mat`, `/nop-chuyen-khoan` dưới khóa `so_du`; cập nhật sổ; gọi tính lại tình trạng (để trống tới T021) và trạng thái đặt cọc; cài `TrangThaiDatCocPort`, phát `TrangThaiDatCocDaDoi`; listener `KhoanCocDaDoi` (research E-05) *(R-15: `so_du` → `trang_thai_nct`)*
+- [ ] T014 [US2] Cài `BE/m11/sodu/giaodich/`: `POST /nguoi-cao-tuoi/{nctId}/nop-tien-mat`, `/nop-chuyen-khoan` dưới khóa `so_du`; cập nhật sổ; gọi tính lại tình trạng (để trống tới T021) và trạng thái đặt cọc; cài `TrangThaiDatCocPort`, phát `TrangThaiDatCocDaDoi`; listener `KhoanCocDaDoi` (research E-05) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `so_du` → `trang_thai_nct`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 - [ ] T015 [P] [US3] Màn web ghi nhận tiền nộp trong `frontend/src/tinh-nang/so-du/` (tìm theo mã nộp tiền, hai dòng cọc và số dư, hộp xác nhận khi trùng mã) cùng test Vitest `NopChuyenKhoan.test.jsx`
 
 **Checkpoint**: Q3 → Q6 xanh; 004 nhận trạng thái đặt cọc.
@@ -114,7 +114,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 ### Implementation cho User Story 5
 
-- [ ] T020 [US5] Cài `BE/m11/sodu/tinhtrang/` (`PhiMotNgay`, `TinhTrang`, `QuyetDinhBao`, ghi `lich_su_tinh_trang`, thông báo theo FR-030 với phần `CHUNG` / `CHI_PHI`), `SoDuMuaHoPort`, lệnh `POST /nguoi-cao-tuoi/{nctId}/so-du/dung-nhac`, `GET /tinh-trang-so-du` *(R-15: `lich_su_tinh_trang` → `lich_su_chung`)*
+- [ ] T020 [US5] Cài `BE/m11/sodu/tinhtrang/` (`PhiMotNgay`, `TinhTrang`, `QuyetDinhBao`, ghi `lich_su_tinh_trang`, thông báo theo FR-030 với phần `CHUNG` / `CHI_PHI`), `SoDuMuaHoPort`, lệnh `POST /nguoi-cao-tuoi/{nctId}/so-du/dung-nhac`, `GET /tinh-trang-so-du` **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lich_su_tinh_trang` → `lich_su_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 - [ ] T021 [US5] Cài job `BE/m11/sodu/lich/ViecHangNgayM11SoDu.java` (02:00, ShedLock, chạy bù; phần tình trạng và đối chiếu bất biến sổ) và nối tính lại ngay trong lệnh nộp tiền (T014)
 - [ ] T022 [P] [US5] Màn web tình trạng số dư trong `frontend/src/tinh-nang/so-du/` (danh sách Sắp hết tiền, Còn nợ; dừng nhắc của Quản lý viện)
 
@@ -158,7 +158,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 ### Implementation cho User Story 7, 10
 
 - [ ] T031 [US7] Cài `BE/m11/sodu/quyettoan/`: `DieuKienQuyetToan`, bean `ThamGiaChuyenTrangThai` (hai mã), `MucViecSauQuaDoiPort` (`QUYET_TOAN`), listener `HoSoKetThucDa*`, `QuaDoiDaGhiNhan`, `NgoaiLeKetThucDaDuyet`, phát `DieuKienQuyetToanDaDoi`; phần nhắc sau trạng thái cuối của job T021 (research E-08)
-- [ ] T032 [US10] Cài lệnh `POST /nguoi-cao-tuoi/{nctId}/quyet-toan/xac-nhan` (chụp số liệu, dựng PDF bằng `PdfBieuMau`, `FileApi.upload` + `attach`, phiên bản), `GET /nguoi-cao-tuoi/{nctId}/quyet-toan`, `POST /bang-quyet-toan/{id}/ban-ky`, `GET /bang-quyet-toan/{id}/file` (ghi `lan_tai_chung_tu`) (research E-09)
+- [ ] T032 [US10] Cài lệnh `POST /nguoi-cao-tuoi/{nctId}/quyet-toan/xac-nhan` (chụp số liệu, dựng PDF bằng `PdfBieuMau`, `FileApi.upload` + `attach`, phiên bản), `GET /nguoi-cao-tuoi/{nctId}/quyet-toan`, `POST /bang-quyet-toan/{id}/ban-ky`, `GET /bang-quyet-toan/{id}/file` (ghi `lan_tai_chung_tu`) (research E-09) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_tai_chung_tu` → hành động `nhat_ky`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 - [ ] T033 [P] [US10] Màn web quyết toán trong `frontend/src/tinh-nang/so-du/` (hai mã điều kiện kèm lý do, nút xác nhận, phiên bản, tải PDF, đính kèm bản ký) cùng test Vitest `QuyetToan.test.jsx`
 
 **Checkpoint**: Q16 → Q23 xanh; 004 chạy Kết thúc lưu trú với bean thật của 017 (004 T106).
@@ -185,7 +185,7 @@ description: "Danh sách task triển khai feature 017 – Số dư và thu chi 
 
 **Independent Test**: Quickstart Q29 → Q33.
 
-- [ ] T037 [P] [US8] Test đơn vị `BT/m11/sodu/SaoKeTest.java`, `BaoCaoThuChiTest.java` và tích hợp `FR_025_XuatIT.java`, `FR_026_SaoKeCongIT.java` (Q29 → Q33): đầu kỳ + tổng = cuối kỳ từng sổ; chỉ Đã xác nhận; ba tổng và danh sách còn nợ theo số dư cuối khoảng; Excel và PDF cùng số liệu; khoảng > CFG-M14-01 → 422; HC 403; mỗi lần xuất ghi `lan_xuat_so_du`, file không đổi khi dữ liệu đổi (SC-009)
+- [ ] T037 [P] [US8] Test đơn vị `BT/m11/sodu/SaoKeTest.java`, `BaoCaoThuChiTest.java` và tích hợp `FR_025_XuatIT.java`, `FR_026_SaoKeCongIT.java` (Q29 → Q33): đầu kỳ + tổng = cuối kỳ từng sổ; chỉ Đã xác nhận; ba tổng và danh sách còn nợ theo số dư cuối khoảng; Excel và PDF cùng số liệu; khoảng > CFG-M14-01 → 422; HC 403; mỗi lần xuất ghi `lan_xuat_so_du`, file không đổi khi dữ liệu đổi (SC-009) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_xuat_so_du` → hành động `nhat_ky`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 - [ ] T038 [US8] Cài `BE/m11/sodu/xuat/`: `POST /xuat/sao-ke`, `POST /xuat/bao-cao-thu-chi`, `GET /xuat/{id}/file`, `POST /cong/nguoi-cao-tuoi/{nctId}/sao-ke` (fastexcel, `PdfBieuMau`, `FileApi`); `SoDuThongKeApi.thuChi`, `tinhTrang` cho 016 (research E-11)
 - [ ] T039 [P] [US8] Màn web xuất trong `frontend/src/tinh-nang/so-du/` và nút tải sao kê trên cổng
 

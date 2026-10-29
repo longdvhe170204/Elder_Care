@@ -108,7 +108,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 2. Port nội bộ M09 cho 015.
 3. Bảng `tang_ca_khoa`. *(R-15: `tang_ca_khoa` → `khoa_ky_thuat`)*
 4. `ban_cong_bo_lich` lưu bản gốc lúc công bố. *(R-15: `ban_cong_bo_lich` → `su_kien_chung`)*
-5. Ba job và bảng `lan_chay_m09`.
+5. Ba job và bảng `lan_chay_m09`. *(R-15: `lan_chay_m09` → `moc_da_nhac`)*
 
 ### Đáp ứng yêu cầu phi chức năng (constitution X)
 
@@ -407,7 +407,7 @@ mobile/lib/nhan-vien/
 | Port nội bộ `m09.*.port` cho 015 | 015 cùng M09, cần lệnh trên ca và phân công với cùng kiểm tra của 008 | Đặt ở `m09.api`: mở lệnh nội bộ cho module khác; 015 sửa thẳng bảng: lặp kiểm tra BR-M09-01, 03 |
 | `tang_ca_khoa` | Kiểm FR-024, FR-028 trên tập phân công, giao của một tầng; cần tuần tự theo tầng (SC-011) | Khóa dòng `ca`: không phủ giao Trưởng tầng (không gắn ca) và phân công chồng giữa hai ca *(R-15: `tang_ca_khoa` → `khoa_ky_thuat`)* |
 | `ban_cong_bo_lich` | FR-055 đòi lưu toàn bộ lịch, phân công lúc công bố làm bản gốc có nhật ký vì thay đổi ở Nháp không ghi từng lần | Ghi một nhật ký mỗi ca, mỗi phân công lúc công bố: hàng trăm bản ghi mỗi lần *(R-15: `ban_cong_bo_lich` → `su_kien_chung`)* |
-| Ba job, `lan_chay_m09` | Chuyển trạng thái ca, phân công theo giờ (FR-022, FR-027) và nhắc theo mốc (FR-039, FR-043, SC-001 ≤ 1 phút); chu kỳ là thông số vận hành, không có ở Phụ lục 25 | Tính mọi trạng thái lúc đọc: không có thời điểm chuyển để nhắc, đóng ca và báo cáo đúng hạn |
+| Ba job, `lan_chay_m09` | Chuyển trạng thái ca, phân công theo giờ (FR-022, FR-027) và nhắc theo mốc (FR-039, FR-043, SC-001 ≤ 1 phút); chu kỳ là thông số vận hành, không có ở Phụ lục 25 | Tính mọi trạng thái lúc đọc: không có thời điểm chuyển để nhắc, đóng ca và báo cáo đúng hạn *(R-15: `lan_chay_m09` → `moc_da_nhac`)* |
 
 ## Đồng bộ với hợp đồng của feature khác
 

@@ -133,7 +133,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 3. `nguon_canh_bao` một dòng mỗi phát sinh. *(R-15: `nguon_canh_bao` → `su_kien_chung`)*
 4. Tách `su_co` và `su_co_xu_ly`. *(R-15: `su_co_xu_ly` → `su_co`)*
 5. Bốn SPI khai báo ở `m05.api` cho 008, 009, 012, 014.
-6. Ba job và bảng `lan_chay_m05`, `lan_chay_m06`.
+6. Ba job và bảng `lan_chay_m05`, `lan_chay_m06`. *(R-15: `lan_chay_m05`, `lan_chay_m06` → `moc_da_nhac`)*
 
 ### Đáp ứng yêu cầu phi chức năng (constitution X)
 
@@ -229,7 +229,7 @@ mobile/lib/nguoi-than/suc-khoe/   # sự cố, chỉ số khi có bản đồng 
 | `nguon_canh_bao` một dòng mỗi phát sinh | Cần cho số lần, báo lặp lại 24 giờ trượt (FR-038a), tự đóng khi mọi nguồn đã xử lý (FR-032), nguồn cho checklist (005) | Đếm trên cảnh báo: mất mức và thời điểm từng lần; không biết nguồn nào đã xử lý *(R-15: `nguon_canh_bao` → `su_kien_chung`)* |
 | Tách `su_co` và `su_co_xu_ly` | Spec xếp nội dung nhóm 3 và trạng thái nhóm 2; DBR-19 cấm sửa nội dung sự cố Khẩn cấp | Một bảng trigger theo cột: dễ sót cột thêm sau, trái mẫu nhóm 3 của 000 *(R-15: `su_co_xu_ly` → `su_co`)* |
 | Bốn SPI khai báo ở `m05.api` (008, 009, 012, 014) | Các module này làm plan sau và gọi 007 (bàn giao, ghi sự cố, khoanh vùng); 007 cần lại dữ liệu ca, Bác sĩ trực, người liên hệ chính, lượt thăm, điểm danh, nhật ký gửi | 007 gọi thẳng API của họ: vòng phụ thuộc, Modulith từ chối |
-| Ba job, `lan_chay_m05`, `lan_chay_m06` | SC-004 đòi leo thang ≤ 1 phút; FR-084 đòi chạy bù đúng một cấp; tạm nhận bàn giao chạy đúng một lần mỗi ca. Chu kỳ và giờ chạy là thông số vận hành, không có trong Phụ lục 25 | Bộ hẹn giờ trong bộ nhớ: mất khi khởi động lại, vẫn phải quét để chạy bù |
+| Ba job, `lan_chay_m05`, `lan_chay_m06` | SC-004 đòi leo thang ≤ 1 phút; FR-084 đòi chạy bù đúng một cấp; tạm nhận bàn giao chạy đúng một lần mỗi ca. Chu kỳ và giờ chạy là thông số vận hành, không có trong Phụ lục 25 | Bộ hẹn giờ trong bộ nhớ: mất khi khởi động lại, vẫn phải quét để chạy bù *(R-15: `lan_chay_m05`, `lan_chay_m06` → `moc_da_nhac`)* |
 
 ## Đồng bộ với hợp đồng của feature khác
 

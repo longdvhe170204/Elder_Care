@@ -15,6 +15,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - `lich_su_chung`: `lich_su_phu_trach_bo_phan`, `nguoi_phu_trach_ca` (kiểu `KHOANG`).
 - `su_kien_chung`: `ban_cong_bo_lich`, `y_kien_ban_giao`, `phan_hoi_y_kien`, `lan_tinh_ty_le`.
 - `ho_so_chung`: `lan_import_nhan_vien`; `khoa_ky_thuat`: `tang_ca_khoa`; `moc_da_nhac`: `m09_job_run` (lần chạy ra file log).
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `lan_chay_m09` → `moc_da_nhac`; `chung_chi_pham_vi` → cột `JSON` của `chung_chi`. Không thêm bảng riêng.
 - Còn 8 bảng riêng của feature.
 
 ### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V008_95`)*
@@ -83,7 +84,7 @@ Mô tả dưới đây thay các mục tương ứng khi cài 008 T050; cột kh
 | `ban_giao` | 2 (trạng thái) | E (FR-038 → FR-047) |
 | `muc_ban_giao`, `nhan_dinh_ban_giao` | 3 có bản nháp | E (FR-039 → FR-041) *(R-15: `muc_ban_giao`, `nhan_dinh_ban_giao` → cột `JSON` của `ban_giao`)* |
 | `y_kien_ban_giao`, `phan_hoi_y_kien` | 3 | E (FR-042) *(R-15: `y_kien_ban_giao`, `phan_hoi_y_kien` → `su_kien_chung`)* |
-| `lan_chay_m09` | Kỹ thuật | Job (N-13) |
+| `lan_chay_m09` | Kỹ thuật | Job (N-13) *(R-15: `lan_chay_m09` → `moc_da_nhac`)* |
 
 ---
 

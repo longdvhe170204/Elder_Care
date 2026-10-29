@@ -13,7 +13,26 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - Giữ: `tai_san` (M03); yêu cầu mua sắm (M11, nguồn gắn thành `JSON`).
 - `lich_su_chung`: `tai_san_vi_tri`, `tai_san_bo_phan`; `su_kien_chung`: `tai_san_bao_tri`, `tai_san_hu_hong`.
 - `ho_so_chung`: `lich_xe`.
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `yeu_cau_mua_sam_dong` → cột `JSON` của `yeu_cau_mua_sam`; `loai_tai_san` → `danh_muc_chung`; `nhac_019` → `moc_da_nhac`; `mua_sam_gan_nguon` → cột `JSON` của `yeu_cau_mua_sam`. Không thêm bảng riêng.
 - Còn 2 bảng riêng của feature.
+
+### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-30; sinh từ mục 0 và ràng buộc ở mô tả bảng các mục sau; chủ module rà, hoàn thiện khi viết migration, task T029)*
+
+Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (module M03/M11; đổi sang tên tiếng Anh theo glossary khi dịch); `noi_dung`, `thuoc_tinh` hoặc `du_lieu` mang các cột của bảng cũ, có JSON Schema theo loại; bảng gộp riêng của feature có cột `kind` (hoặc `loai`) và cột `NULL` có `CHECK` theo loại. Mỗi dòng có ràng buộc ở bảng dưới cần một test tích hợp chứng minh ràng buộc vẫn giữ sau gộp (constitution XII), ghi vào bảng DBR áp dụng khi cài.
+
+**Bảng giữ hoặc là bảng đích** (giữ cột, ràng buộc như mô tả ở các mục sau): `tai_san` (M03), `yeu_cau_mua_sam` (M11).
+
+| Bảng cũ | Đích | Loại ở bảng chung | Ràng buộc của bảng cũ | Cách giữ sau gộp |
+| --- | --- | --- | --- | --- |
+| `lich_xe` | `ho_so_chung` | `M03.LICH_XE` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `tai_san_vi_tri` | `lich_su_chung` | `M03.TAI_SAN_VI_TRI` | - `tai_san_vi_tri` (nhóm 3): `tai_san_id`, `vi_tri` (khu vực, tầng, phòng, `BAI_XE`, `KHO_TAI_SAN`), `tu`, `den NULL`, `ly_do`, `boi_id`; cột sinh `khoa_mo = IF(den IS NULL, tai_san_id, NULL)` `UNIQUE` (không chồng khoảng; `den` đặt một lần). | `khoa_duy_nhat`; trigger của bảng chung (chỉ thêm hoặc `khoa_luc`) |
+| `tai_san_bo_phan` | `lich_su_chung` | `M03.TAI_SAN_BO_PHAN` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `tai_san_bao_tri` | `su_kien_chung` | `M03.TAI_SAN_BAO_TRI` | - `tai_san_bao_tri` (nhóm 3): `loai` (`BAO_TRI`, `KIEM_DINH`, `DANG_KIEM`, `BAO_HIEM`), `mo_luc`, `ket_qua` (`DAT`, `KHONG_DAT`) đặt một lần, ngày, nội dung, đơn vị, `thue_ngoai`, `chi_phi`, `yeu_cau_mua_sam_id NULL`. | trigger của bảng chung (chỉ thêm hoặc `khoa_luc`) |
+| `tai_san_hu_hong` | `su_kien_chung` | `M03.TAI_SAN_HU_HONG` | - `tai_san_hu_hong` (nhóm 3): mô tả, `nguon` (`BAO_HONG`, `DON_GIUONG`), `muc_anh_huong` (`MAT_AN_TOAN`, `KHONG_MAT_AN_TOAN`) `NULL`, `cho_chuyen_nguoi`, gỡ dấu (lý do, nội dung đã sửa, người sửa, lúc) đặt một lần. | trigger của bảng chung (chỉ thêm hoặc `khoa_luc`) |
+| `yeu_cau_mua_sam_dong` | cột `JSON` của `yeu_cau_mua_sam` | — | — | ghi cùng bản ghi cha; domain kiểm |
+| `loai_tai_san` | `danh_muc_chung` | `M03.LOAI_TAI_SAN` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `nhac_019` | `moc_da_nhac` | `M03.NHAC_019` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `mua_sam_gan_nguon` | cột `JSON` của yêu cầu mua sắm | — | `yeu_cau_mua_sam`: `id`, `bo_phan_id`, `lap_boi_id`, `loai` (`NGUYEN_LIEU`, `TAI_SAN`, `DICH_VU`, `THUOC`, `KHAC`; `THUOC` bổ sung 2026-10-11, Q-337), `muc_uu_tien NULL` (`THUONG`, `GAP`), `thoi_diem_can NULL`, `tep_lien_quan_ids NULL` (bắt buộc hai cột đầu kh | ghi cùng bản ghi cha; domain kiểm |
 
 ---
 
@@ -21,13 +40,13 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 
 | Bảng | Module | Nhóm (1.5) | Mục spec |
 | --- | --- | --- | --- |
-| `yeu_cau_mua_sam`, `yeu_cau_mua_sam_dong` | M11 | 2 → 3 | FR-008 |
+| `yeu_cau_mua_sam`, `yeu_cau_mua_sam_dong` | M11 | 2 → 3 | FR-008 *(R-15: `yeu_cau_mua_sam_dong` → cột `JSON` của `yeu_cau_mua_sam`)* |
 | `mua_sam_gan_nguon` | M11 | 3 | FR-008b, FR-008c, DBR-36 *(R-15: `mua_sam_gan_nguon` → cột `JSON` của yêu cầu mua sắm)* |
-| `loai_tai_san` | M03 | 1 | FR-011 |
+| `loai_tai_san` | M03 | 1 | FR-011 *(R-15: `loai_tai_san` → `danh_muc_chung`)* |
 | `tai_san` | M03 | 1 + 2 | FR-011 → FR-013 |
 | `tai_san_vi_tri`, `tai_san_bo_phan`, `tai_san_bao_tri`, `tai_san_hu_hong` | M03 | 3 | FR-012 → FR-016, DBR-32 *(R-15: `tai_san_vi_tri`, `tai_san_bo_phan` → `lich_su_chung`; `tai_san_bao_tri`, `tai_san_hu_hong` → `su_kien_chung`)* |
 | `lich_xe` | M03 | 2 | FR-017, FR-018 *(R-15: `lich_xe` → `ho_so_chung`)* |
-| `nhac_019` | M03/M11 | Kỹ thuật | Chống nhắc trùng |
+| `nhac_019` | M03/M11 | Kỹ thuật | Chống nhắc trùng *(R-15: `nhac_019` → `moc_da_nhac`)* |
 
 ---
 

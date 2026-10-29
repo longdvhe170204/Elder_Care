@@ -82,4 +82,4 @@ Bỏ `chotQuy` của bản cũ (Q-385).
 | `BangChiPhiDaChot` (010) | Giao dịch thanh toán bảng (một lần mỗi bảng) | FR-012 |
 | `DeNghiMuaHo*`, `KhoanChiPhiDaDoi` (010) | Không ghi; dấu mua hộ tính lúc 010 hỏi | FR-021 |
 
-Mọi listener idempotent theo khóa sự kiện (`su_kien_m11sd_da_xu_ly`).
+Mọi listener idempotent theo khóa sự kiện (`su_kien_m11sd_da_xu_ly`). *(R-15: `su_kien_m11sd_da_xu_ly` → `moc_da_nhac`)*

@@ -14,6 +14,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - `danh_muc_chung`: `thuoc` (hoạt chất trong `thuoc_tinh`).
 - `su_kien_chung`: `van_de_don_thuoc`, `can_cu_co_so_ke`.
 - `ho_so_chung`: `xem_lai_lieu`, `khoang_vang_thuoc`, `de_nghi_dinh_chinh_phieu`; `trang_thai_nct`: `thuoc_nct` (`resident_medication`, cột sinh hạn đối chiếu); `moc_da_nhac`: `m07_job_run` (lần chạy ra file log).
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `lan_giao_thuoc_dong`, `lan_giao_lieu`, `lan_nhan_lai_thuoc_dong` → cột `JSON` của `lan_giao_nhan_thuoc`; `lan_chay_m07` → `moc_da_nhac`; `thuoc_hoat_chat` → `danh_muc_chung` (thuộc tính của thuốc); `don_thuoc_hoat_chat` → cột `JSON` của `don_thuoc`; `dong_doi_chieu` → cột `JSON` của `phieu_doi_chieu`; `thuoc_gui_don` → cột `JSON` của `thuoc_gia_dinh_gui`. Không thêm bảng riêng.
 - Còn 6 bảng riêng của feature.
 
 ### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V006_95`)*
@@ -98,7 +99,7 @@ Chỉ mục `(kind, resident_id, created_at)`, `(trip_id)`, `(procurement_reques
 | `lan_giao_thuoc`, `lan_giao_thuoc_dong`, `lan_giao_lieu` | 3 (trạng thái do hệ thống) | H (FR-048a) *(R-15: `lan_giao_thuoc` → `lan_giao_nhan_thuoc` (`medication_handover`))* |
 | `lan_nhan_lai_thuoc`, `lan_nhan_lai_thuoc_dong` | 3 | H (FR-048a) *(R-15: `lan_nhan_lai_thuoc` → `lan_giao_nhan_thuoc` (`medication_handover`))* |
 | `lenh_khong_mang_thuoc` | 3 | H (FR-048b) *(R-15: `lenh_khong_mang_thuoc` → `lan_giao_nhan_thuoc` (`medication_handover`))* |
-| `lan_chay_m07` | Kỹ thuật | Job (research D-19) |
+| `lan_chay_m07` | Kỹ thuật | Job (research D-19) *(R-15: `lan_chay_m07` → `moc_da_nhac`)* |
 
 ---
 
@@ -373,11 +374,11 @@ Không theo dõi số lượng còn: không có biến động số lượng, Ki
 
 ### `lan_giao_thuoc` – nhóm 3 (trạng thái do hệ thống) → gộp theo R-15: `lan_giao_thuoc` → `lan_giao_nhan_thuoc` (`medication_handover`)
 
-`id`, `nct_id`, `khoang_vang_id`, `nguoi_nhan_loai` (`NHAN_VIEN`, `TRUONG_DOAN`, `NGUOI_THAN`), `nguoi_nhan_id`, `nguoi_nhan_ten`, `quan_he`, `nguoi_giao_id`, `thoi_diem`, `trang_thai` (`DANG_MANG_THEO`, `CHO_NHAN_LAI`, `DA_NHAN_LAI`). Chỉ cột `trang_thai` đổi được, theo bảng FR-048a (trigger). `lan_giao_thuoc_dong`: `lan_giao_id`, `don_thuoc_id`, `so_luong`, `lo_id`, `nguon_thuoc`. `lan_giao_lieu`: `lan_giao_id`, `lieu_thuoc_id` (`UNIQUE`), `thoi_thuoc_luc` (liều quay về khi trở về sớm, Q-60). Đính chính `M07.LAN_GIAO_THUOC`.
+`id`, `nct_id`, `khoang_vang_id`, `nguoi_nhan_loai` (`NHAN_VIEN`, `TRUONG_DOAN`, `NGUOI_THAN`), `nguoi_nhan_id`, `nguoi_nhan_ten`, `quan_he`, `nguoi_giao_id`, `thoi_diem`, `trang_thai` (`DANG_MANG_THEO`, `CHO_NHAN_LAI`, `DA_NHAN_LAI`). Chỉ cột `trang_thai` đổi được, theo bảng FR-048a (trigger). `lan_giao_thuoc_dong`: `lan_giao_id`, `don_thuoc_id`, `so_luong`, `lo_id`, `nguon_thuoc`. `lan_giao_lieu`: `lan_giao_id`, `lieu_thuoc_id` (`UNIQUE`), `thoi_thuoc_luc` (liều quay về khi trở về sớm, Q-60). Đính chính `M07.LAN_GIAO_THUOC`. *(R-15: `lan_giao_thuoc_dong`, `lan_giao_lieu` → cột `JSON` của `lan_giao_nhan_thuoc`)*
 
 ### `lan_nhan_lai_thuoc` – nhóm 3 → gộp theo R-15: `lan_nhan_lai_thuoc` → `lan_giao_nhan_thuoc` (`medication_handover`)
 
-`id`, `lan_giao_id` (`UNIQUE`), `nguoi_ghi_id`, `thoi_diem`, `ly_do` (bắt buộc khi tổng 0); `lan_nhan_lai_thuoc_dong`: `don_thuoc_id`, `so_luong` (`CHECK >= 0`; ≤ số giao kiểm ở backend). Đính chính `M07.LAN_NHAN_LAI_THUOC`.
+`id`, `lan_giao_id` (`UNIQUE`), `nguoi_ghi_id`, `thoi_diem`, `ly_do` (bắt buộc khi tổng 0); `lan_nhan_lai_thuoc_dong`: `don_thuoc_id`, `so_luong` (`CHECK >= 0`; ≤ số giao kiểm ở backend). Đính chính `M07.LAN_NHAN_LAI_THUOC`. *(R-15: `lan_nhan_lai_thuoc_dong` → cột `JSON` của `lan_giao_nhan_thuoc`)*
 
 ### `lenh_khong_mang_thuoc` – nhóm 3 → gộp theo R-15: `lenh_khong_mang_thuoc` → `lan_giao_nhan_thuoc` (`medication_handover`)
 

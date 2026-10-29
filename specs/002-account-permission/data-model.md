@@ -16,6 +16,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - `danh_muc_chung`: `vai_tro`, `quy_tac_xem_truong`, `nghiep_vu_chuyen_mon` (phạm vi trong `thuoc_tinh`).
 - `lich_su_chung`: `lich_su_trang_thai_tai_khoan`.
 - `ho_so_chung`: `ban_ghi_cho_xem_lai`, `loi_du_lieu_quyen` (lỗi đang mở: `khoa_duy_nhat` = nguồn, bản ghi, loại lỗi); `moc_da_nhac`: `da_canh_bao_giay_phep`.
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `nghiep_vu_chuyen_mon_pham_vi` → `danh_muc_chung`. Không thêm bảng riêng.
 - Còn 6 bảng riêng của feature.
 
 ### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V002_95`)*

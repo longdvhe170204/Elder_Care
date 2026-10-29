@@ -14,7 +14,21 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 
 - `ho_so_chung`: `yeu_cau_doi_ca`, `yeu_cau_nghi` (máy trạng thái hai bước ở domain của module; `khoa_duy_nhat` thay `yeu_cau_ca_mo`: một ca không nằm trong hai yêu cầu đang mở).
 - `su_kien_chung`: `nghi_theo_ngay`.
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `yeu_cau_nghi_muc` → cột `JSON` của yêu cầu nghỉ (`ho_so_chung`); `lan_chay_m09xc` → `moc_da_nhac`. Không thêm bảng riêng.
 - Còn 0 bảng riêng của feature.
+
+### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-30; sinh từ mục 0 và ràng buộc ở mô tả bảng các mục sau; chủ module rà, hoàn thiện khi viết migration, task T032)*
+
+Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (module M09; đổi sang tên tiếng Anh theo glossary khi dịch); `noi_dung`, `thuoc_tinh` hoặc `du_lieu` mang các cột của bảng cũ, có JSON Schema theo loại; bảng gộp riêng của feature có cột `kind` (hoặc `loai`) và cột `NULL` có `CHECK` theo loại. Mỗi dòng có ràng buộc ở bảng dưới cần một test tích hợp chứng minh ràng buộc vẫn giữ sau gộp (constitution XII), ghi vào bảng DBR áp dụng khi cài.
+
+| Bảng cũ | Đích | Loại ở bảng chung | Ràng buộc của bảng cũ | Cách giữ sau gộp |
+| --- | --- | --- | --- | --- |
+| `yeu_cau_doi_ca` | `ho_so_chung` | `M09.YEU_CAU_DOI_CA` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `yeu_cau_nghi` | `ho_so_chung` | `M09.YEU_CAU_NGHI` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `nghi_theo_ngay` | `su_kien_chung` | `M09.NGHI_THEO_NGAY` | `nhan_vien_id`, `ngay`, `yeu_cau_id`; `UNIQUE (nhan_vien_id, ngay)`. | `khoa_duy_nhat` |
+| `yeu_cau_ca_mo` | `khoa_duy_nhat` của `ho_so_chung` | `M09.YEU_CAU_CA_MO` | `ca_id`, `nhan_vien_id`, `yeu_cau_id`; `UNIQUE (ca_id, nhan_vien_id)`. Ghi khi lập; xóa khi yêu cầu vào trạng thái cuối hoặc mục rời yêu cầu. | `khoa_duy_nhat` |
+| `yeu_cau_nghi_muc` | cột `JSON` của yêu cầu nghỉ (`ho_so_chung`) | `M09.YEU_CAU_NGHI_MUC` | — | ghi cùng bản ghi cha; domain kiểm |
+| `lan_chay_m09xc` | `moc_da_nhac` | `M09.LAN_CHAY_M09XC` | — | cột vào `JSON` hoặc cột của bảng đích |
 
 ---
 
@@ -26,7 +40,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 | `yeu_cau_nghi`, `yeu_cau_nghi_muc` | 2 | E *(R-15: `yeu_cau_nghi` → `ho_so_chung`)* |
 | `nghi_theo_ngay` | 3 | E (FR-026a) *(R-15: `nghi_theo_ngay` → `su_kien_chung`)* |
 | `yeu_cau_ca_mo` | Kỹ thuật | D, E (một yêu cầu mở mỗi ca, nhân viên) *(R-15: `yeu_cau_ca_mo` → `khoa_duy_nhat` của `ho_so_chung`)* |
-| `lan_chay_m09xc` | Kỹ thuật | Job |
+| `lan_chay_m09xc` | Kỹ thuật | Job *(R-15: `lan_chay_m09xc` → `moc_da_nhac`)* |
 
 Cột 015 trên bảng 008 (`ca_nhan_vien.nghi_co_duyet_yeu_cau_id`, `can_cu_vao_ca`, `can_cu_roi_ca`, `roi_ca_luc`) đã khai ở data-model 008.
 
@@ -67,7 +81,7 @@ Cột 015 trên bảng 008 (`ca_nhan_vien.nghi_co_duyet_yeu_cau_id`, `can_cu_vao
 
 `yeu_cau_id` (khóa chính, loại `M09.NGHI_DOT_XUAT`), `dang` (`THEO_CA`, `THEO_NGAY`), `nhan_vien_id`, `pham_vi_loai`, `tang_khu_vuc_id NULL`, `lap_boi_id`, `lap_thay`, `ly_do` (`LY_DO_NHAN_SU`), `trang_thai` (`CHO_DUYET`, `DA_AP_DUNG`, `DA_AP_DUNG_MOT_PHAN`, `TU_CHOI`, `DA_HUY`, `HET_HIEU_LUC`), `nguoi_duyet_id`, `tu_duyet`, `moc_som_nhat`, `da_nhac_luc`.
 
-`yeu_cau_nghi_muc`: `yeu_cau_id`, `ca_id NULL`, `ngay NULL` (đúng một), `ket_qua` (`CHO`, `DUYET`, `TU_CHOI`, `DA_TACH`, `DA_ROI`), `ly_do_tu_choi`, `nguoi_phu_trach_moi_id NULL`, `ghi_chu` (gồm "xếp lại dù đã duyệt nghỉ" kèm người, lý do).
+`yeu_cau_nghi_muc`: `yeu_cau_id`, `ca_id NULL`, `ngay NULL` (đúng một), `ket_qua` (`CHO`, `DUYET`, `TU_CHOI`, `DA_TACH`, `DA_ROI`), `ly_do_tu_choi`, `nguoi_phu_trach_moi_id NULL`, `ghi_chu` (gồm "xếp lại dù đã duyệt nghỉ" kèm người, lý do). *(R-15: `yeu_cau_nghi_muc` → cột `JSON` của yêu cầu nghỉ (`ho_so_chung`))*
 
 | Từ | Lệnh / sự kiện | Đến | Người |
 | --- | --- | --- | --- |
