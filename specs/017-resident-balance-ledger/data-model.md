@@ -13,6 +13,25 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - Giữ: `giao_dich` (tính vào số bảng của 010).
 - `su_kien_chung`: `phieu_bao_phi`, `bang_quyet_toan` (loại `M11.FEE_NOTICE`, `M11.SETTLEMENT_STATEMENT`; mỗi phiên bản bảng quyết toán là một sự kiện, xác nhận quyết toán là sự kiện `M11.SETTLEMENT_CONFIRMATION` trỏ phiên bản; tệp PDF, Excel gắn chủ là id sự kiện) *(sửa 2026-10-29, mục tiêu 79 bảng)*.
 - `danh_muc_chung`: `ngan_hang`; `lich_su_chung`: `lich_su_tinh_trang`; `trang_thai_nct`: `so_du` (số dư dẫn xuất trong `du_lieu`, cột sinh có chỉ mục).
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `lan_xuat_so_du`, `lan_tai_chung_tu` → hành động `nhat_ky`; `su_kien_m11sd_da_xu_ly`, `lan_chay_m11sd` → `moc_da_nhac`. Không thêm bảng riêng.
+
+### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-30; sinh từ mục 0 và ràng buộc ở mô tả bảng các mục sau; chủ module rà, hoàn thiện khi viết migration, task T046)*
+
+Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (module M11; đổi sang tên tiếng Anh theo glossary khi dịch); `noi_dung`, `thuoc_tinh` hoặc `du_lieu` mang các cột của bảng cũ, có JSON Schema theo loại; bảng gộp riêng của feature có cột `kind` (hoặc `loai`) và cột `NULL` có `CHECK` theo loại. Mỗi dòng có ràng buộc ở bảng dưới cần một test tích hợp chứng minh ràng buộc vẫn giữ sau gộp (constitution XII), ghi vào bảng DBR áp dụng khi cài.
+
+**Bảng giữ hoặc là bảng đích** (giữ cột, ràng buộc như mô tả ở các mục sau; bảng đích nhận thêm cột của bảng gộp vào): `giao_dich`.
+
+| Bảng cũ | Đích | Loại ở bảng chung | Ràng buộc của bảng cũ | Cách giữ sau gộp |
+| --- | --- | --- | --- | --- |
+| `so_du` | `trang_thai_nct` | `M11.SO_DU` | / `ma_nop_tien` `UNIQUE` / Không đổi, không dùng lại (research E-04) / FR-001, DBR-28 / | `khoa_duy_nhat` |
+| `ngan_hang` | `danh_muc_chung` | `M11.NGAN_HANG` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `lich_su_tinh_trang` | `lich_su_chung` | `M11.LICH_SU_TINH_TRANG` | `id`, `nct_id`, `ngay`, `nguon` (`HANG_NGAY`, `GIAO_DICH:<id>`), `so_du`, `tong_chua_chot`, `phi_mot_ngay`, `so_ngay_con_du NULL`, `tinh_trang`, `da_bao` (`NGAY`, `NHAC_LAI`, `NOP_TIEN_DU`, `NOP_TIEN_CHUA_DU`, `BAO_QUAN_LY`, `KHONG`). `UNIQUE (nct_id, ngay, ng… | `khoa_duy_nhat` |
+| `phieu_bao_phi` | `su_kien_chung` | `M11.PHIEU_BAO_PHI` | / `id`, `ma_phieu` `UNIQUE` (`PBP-<yyyyMM>-<bangId>`) / / DBR-37 /; / `bang_chi_phi_id` `UNIQUE`, `loai_bang`, `ky`, `nct_id` / Một phiếu mỗi bảng / FR-031, DBR-37 / | `khoa_duy_nhat` |
+| `bang_quyet_toan` | `su_kien_chung` | `M11.BANG_QUYET_TOAN` | / `phien_ban` / `UNIQUE (nct_id, phien_ban)`; tăng dần mỗi hồ sơ / DBR-38 /; / `hien_hanh` / `BOOLEAN`; cột sinh `khoa_hien_hanh = IF(hien_hanh, nct_id, NULL)` `UNIQUE` / DBR-38 /; / `ban_ky_tep_id NULL`, `ban_ky_luc NULL`, `ban_ky_boi_id NULL` / Đặt một lần (… | `khoa_duy_nhat`; trigger của bảng chung (chỉ thêm hoặc `khoa_luc`) |
+| `lan_xuat_so_du` | hành động `nhat_ky` | — | — | cột vào `JSON` hoặc cột của bảng đích |
+| `lan_tai_chung_tu` | hành động `nhat_ky` | — | — | cột vào `JSON` hoặc cột của bảng đích |
+| `su_kien_m11sd_da_xu_ly` | `moc_da_nhac` | `M11.SU_KIEN_M11SD_DA_XU_LY` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `lan_chay_m11sd` | `moc_da_nhac` | `M11.LAN_CHAY_M11SD` | — | cột vào `JSON` hoặc cột của bảng đích |
 
 ---
 
@@ -25,9 +44,9 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 | `lich_su_tinh_trang` | 3 | D *(R-15: `lich_su_tinh_trang` → `lich_su_chung`)* |
 | `phieu_bao_phi` | 3 | J (FR-031, FR-032) *(R-15: `phieu_bao_phi` → `su_kien_chung`)* |
 | `bang_quyet_toan` | 3, có phiên bản | E, J (FR-034) *(R-15: `bang_quyet_toan` → `su_kien_chung`)* |
-| `lan_xuat_so_du` | 3 | F (FR-027) |
-| `lan_tai_chung_tu` | 3 | J (FR-037) |
-| `su_kien_m11sd_da_xu_ly`, `lan_chay_m11sd` | Kỹ thuật | Listener, job |
+| `lan_xuat_so_du` | 3 | F (FR-027) *(R-15: `lan_xuat_so_du` → hành động `nhat_ky`)* |
+| `lan_tai_chung_tu` | 3 | J (FR-037) *(R-15: `lan_tai_chung_tu` → hành động `nhat_ky`)* |
+| `su_kien_m11sd_da_xu_ly`, `lan_chay_m11sd` | Kỹ thuật | Listener, job *(R-15: `su_kien_m11sd_da_xu_ly`, `lan_chay_m11sd` → `moc_da_nhac`)* |
 | `ngan_hang` *(bổ sung 2026-10-22)* | 1, cố định | A (danh mục ngân hàng cho CFG-M11-10 và VietQR) *(R-15: `ngan_hang` → `danh_muc_chung`)* |
 
 Không còn các bảng của bản cũ: `day_so_phieu`, `chot_quy_ngay`, `chot_quy_ngay_phieu`, `lan_nhap_sao_ke`, `dong_sao_ke` (Q-385).
@@ -146,8 +165,8 @@ Trigger: chỉ cho `UPDATE` `hien_hanh` từ true sang false và ba cột bản 
 
 ## 7. Xuất và tải
 
-- `lan_xuat_so_du` (nhóm 3): `id`, `boi_id`, `vai_tro` (`KE_TOAN`, `QUAN_LY_VIEN`, `NGUOI_THAN`), `luc`, `loai` (`SAO_KE`, `THU_CHI`), `dinh_dang` (`XLSX`, `PDF`), `tu`, `den`, `pham_vi` `JSON` (danh sách hồ sơ), `so_dong`, `tep_id` (loại `M11.FILE_XUAT`). FR-027.
-- `lan_tai_chung_tu` (nhóm 3): `id`, `loai` (`PHIEU_BAO_PHI`, `BANG_QUYET_TOAN`, `FILE_XUAT`), `doi_tuong_id`, `dinh_dang`, `boi_id`, `vai_tro`, `luc`. FR-037 (cùng dòng nhật ký `CHUNG_TU_TAI`).
+- `lan_xuat_so_du` (nhóm 3): `id`, `boi_id`, `vai_tro` (`KE_TOAN`, `QUAN_LY_VIEN`, `NGUOI_THAN`), `luc`, `loai` (`SAO_KE`, `THU_CHI`), `dinh_dang` (`XLSX`, `PDF`), `tu`, `den`, `pham_vi` `JSON` (danh sách hồ sơ), `so_dong`, `tep_id` (loại `M11.FILE_XUAT`). FR-027. *(R-15: `lan_xuat_so_du` → hành động `nhat_ky`)*
+- `lan_tai_chung_tu` (nhóm 3): `id`, `loai` (`PHIEU_BAO_PHI`, `BANG_QUYET_TOAN`, `FILE_XUAT`), `doi_tuong_id`, `dinh_dang`, `boi_id`, `vai_tro`, `luc`. FR-037 (cùng dòng nhật ký `CHUNG_TU_TAI`). *(R-15: `lan_tai_chung_tu` → hành động `nhat_ky`)*
 
 ---
 

@@ -14,6 +14,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - `danh_muc_chung`: `kenh_thong_bao`.
 - `su_kien_chung`: `su_kien_thong_bao`, `lan_gui`, `ket_qua_lan_gui`, `luot_nhac_goi_thong_bao`, `chuyen_nhac`, `ket_qua_goi`, `ket_qua_lien_he`.
 - `ho_so_chung`: `lien_he_truc_tiep`; `moc_da_nhac`: `notification_request_duplicate`; `ho_so_chung`: `khung_gop_tin_nhan` (giữ dữ liệu khung, không chỉ để khóa); `moc_da_nhac`: `m13_job_run` (lần chạy ra file log); giữ `thiet_bi_day` (`push_device`).
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `lan_chay_m13` → `moc_da_nhac`; `yeu_cau_phan_noi_dung`, `yeu_cau_nhom_nhan` → cột `JSON` của `yeu_cau_thong_bao`. Không thêm bảng riêng.
 - Còn 4 bảng riêng của feature.
 
 ### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V009_95`)*
@@ -87,7 +88,7 @@ Hai cột ghi cùng câu `INSERT` (trigger hiện có đã chặn sửa); backen
 | `lien_he_truc_tiep` | 2 | C (FR-021) *(R-15: `lien_he_truc_tiep` → `ho_so_chung`)* |
 | `ket_qua_lien_he` | 3 | C (FR-021, FR-031) *(R-15: `ket_qua_lien_he` → `su_kien_chung`)* |
 | `thiet_bi_day` | Kỹ thuật | C (token FCM theo tài khoản, thiết bị; 002 cấp mã thiết bị) |
-| `lan_chay_m13` | Kỹ thuật | Job (B-10) |
+| `lan_chay_m13` | Kỹ thuật | Job (B-10) *(R-15: `lan_chay_m13` → `moc_da_nhac`)* |
 
 ---
 

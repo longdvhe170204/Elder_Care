@@ -185,8 +185,8 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
   - `BEFORE DELETE` theo mẫu `trg_<bang>_khong_xoa` của 000 (chỉ tài khoản `eldercare_luu_tru`).
 - **Loại trừ**: `POST /muc-suc-khoe/{id}/loai-tru` (lý do bắt buộc). Chuyển `HIEU_LUC → DA_LOAI_TRU` một chiều; trigger chặn chuyển ngược.
 - **Danh mục** (nhóm 1, mẫu 000 data-model 1.1):
-  - `di_nguyen`: nhóm `THUOC_HOAT_CHAT`, `THUC_PHAM`, `KHAC`. Quyền ghi theo nhóm: `THUOC_HOAT_CHAT` cho người có C ở "Danh mục thuốc" (Quản lý viện, 006 FR-002); `THUC_PHAM` cho Bác sĩ (011 FR-003). Nhóm `KHAC` chưa có nguồn quy định người ghi (plan, điểm báo lại 3); tạm cho Quản lý viện.
-  - `muc_do_di_ung`, `nguon_thong_tin` (BR-M01-11): Quản lý viện cấu hình; giá trị khởi tạo nạp bằng migration.
+  - `di_nguyen`: nhóm `THUOC_HOAT_CHAT`, `THUC_PHAM`, `KHAC`. Quyền ghi theo nhóm: `THUOC_HOAT_CHAT` cho người có C ở "Danh mục thuốc" (Quản lý viện, 006 FR-002); `THUC_PHAM` cho Bác sĩ (011 FR-003). Nhóm `KHAC` chưa có nguồn quy định người ghi (plan, điểm báo lại 3); tạm cho Quản lý viện. *(R-15: `di_nguyen` → `danh_muc_chung`)*
+  - `muc_do_di_ung`, `nguon_thong_tin` (BR-M01-11): Quản lý viện cấu hình; giá trị khởi tạo nạp bằng migration. *(R-15: `muc_do_di_ung`, `nguon_thong_tin` → `danh_muc_chung`)*
 - **Dị ứng loại "khác"** (FR-018a): `di_nguyen_id IS NULL` và có `noi_dung_van_ban`. Cột sinh `khong_kiem_tra_tu_dong` luôn đi kèm khi trả mục ra ngoài, kể cả qua `MucSucKhoeApi` cho thẻ thông tin khẩn cấp (007). Phản hồi tạo mục có cảnh báo `DI_UNG_KHONG_KIEM_TRA_TU_DONG`.
 - **Cảnh báo trùng** (FR-021): trước khi thêm, tìm mục `HIEU_LUC` cùng `di_nguyen_id`, hoặc cùng loại và cùng nội dung (so khớp như H-04). Có trùng thì trả 409 `MUC_SUC_KHOE_TRUNG`; client gửi lại với `xacNhanTrung = true`.
 - **Kiểm tra lại đơn thuốc, chế độ ăn** (FR-020, BR-M01-07, BR-M01-12):

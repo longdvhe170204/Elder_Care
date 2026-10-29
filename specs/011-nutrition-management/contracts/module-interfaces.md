@@ -115,4 +115,4 @@ Không còn `TonKhoNguyenLieuPort`: hệ thống không quản lý kho nguyên l
 | `SutCanPhatHien` (007) | Báo xem lại | FR-058 |
 | `LuotOLaiDaDoi` (012), `ChuyenDiDaDoi` (014) | Phát sinh; hủy suất ăn người thân | FR-039, FR-043 |
 
-Mọi listener idempotent theo `khoaSuKien` (`su_kien_m08_da_xu_ly`) và chỉ xét các bữa đã chốt chưa tới giờ.
+Mọi listener idempotent theo `khoaSuKien` (`su_kien_m08_da_xu_ly`) và chỉ xét các bữa đã chốt chưa tới giờ. *(R-15: `su_kien_m08_da_xu_ly` → `moc_da_nhac`)*

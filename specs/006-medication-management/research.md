@@ -184,7 +184,7 @@ Bảng `thuoc_nct` (một dòng mỗi hồ sơ người cao tuổi) là đích k
   Phân công mới trong ca làm lần đọc kế tiếp trả người mới (FR-026a "liều chưa đóng MUST chuyển về điều dưỡng được phân công") mà không cần 008 gọi 006. Mỗi lần đóng lưu `can_cu_quyen` (D-08) để 016 biết liều chung (FR-051).
 - **Thông báo một lần mỗi ca** "người cao tuổi chưa có điều dưỡng phụ trách": job theo phút, tại đầu ca và khi một liều của người đó tới đầu cửa sổ, nếu người đó không có phân công thì phát `NctChuaCoDieuDuongPhuTrach(nctId, caId)` cho Trưởng tầng và Người phụ trách ca (Trung bình, spec Cập nhật 2026-09-26 với 009); bảng `lan_chay_m07 (viec = NCT_CHUA_PHU_TRACH, moc = caId:nctId)` chặn gửi lặp.
 - **Nhắc Trễ của liều chung**: gửi mọi Điều dưỡng có ca tại tầng và Người phụ trách ca (FR-026a).
-- **Tầng không có Điều dưỡng nào có ca** (BR-M07-21): job theo phút, tại đầu ca và khi `dieuDuongCoCa(tang, bayGio)` rỗng lúc một liều tới đầu cửa sổ, phát `TangKhongCoDieuDuong(tang, caId, lieuSapToiGio[])` mức Trung bình cho Trưởng tầng và Quản lý viện; một lần mỗi (tầng, ca) qua `lan_chay_m07`. Liều vẫn theo vòng đời thường.
+- **Tầng không có Điều dưỡng nào có ca** (BR-M07-21): job theo phút, tại đầu ca và khi `dieuDuongCoCa(tang, bayGio)` rỗng lúc một liều tới đầu cửa sổ, phát `TangKhongCoDieuDuong(tang, caId, lieuSapToiGio[])` mức Trung bình cho Trưởng tầng và Quản lý viện; một lần mỗi (tầng, ca) qua `lan_chay_m07`. Liều vẫn theo vòng đời thường. *(R-15: `lan_chay_m07` → `moc_da_nhac`)*
 
 **Lý do**: Phân công thuộc 008 và đổi liên tục trong ca; tính lúc đọc tránh phải đồng bộ một cột người phụ trách trên hàng nghìn liều.
 

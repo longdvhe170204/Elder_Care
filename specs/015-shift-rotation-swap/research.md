@@ -125,7 +125,7 @@ interface NghiCoDuyetPort {         // 015 cài; 008 dùng
 ## X-09. Yêu cầu nghỉ đột xuất (mục E; Q-81, Q-91, Q-182, Q-184, Q-185, Q-187)
 
 **Quyết định**:
-- Loại yêu cầu `M09.NGHI_DOT_XUAT` với ngoại lệ vòng đời: `CHO_DUYET → DA_AP_DUNG | DA_AP_DUNG_MOT_PHAN | TU_CHOI | DA_HUY | HET_HIEU_LUC`; dạng `THEO_CA` / `THEO_NGAY`, chuyển `THEO_NGAY → THEO_CA` khi lịch công bố. Bảng `yeu_cau_nghi_muc` (ca hoặc ngày, kết quả từng mục `CHO`, `DUYET`, `TU_CHOI`, `DA_TACH`, `DA_ROI`, ghi chú "xếp lại dù đã duyệt nghỉ").
+- Loại yêu cầu `M09.NGHI_DOT_XUAT` với ngoại lệ vòng đời: `CHO_DUYET → DA_AP_DUNG | DA_AP_DUNG_MOT_PHAN | TU_CHOI | DA_HUY | HET_HIEU_LUC`; dạng `THEO_CA` / `THEO_NGAY`, chuyển `THEO_NGAY → THEO_CA` khi lịch công bố. Bảng `yeu_cau_nghi_muc` (ca hoặc ngày, kết quả từng mục `CHO`, `DUYET`, `TU_CHOI`, `DA_TACH`, `DA_ROI`, ghi chú "xếp lại dù đã duyệt nghỉ"). *(R-15: `yeu_cau_nghi_muc` → cột `JSON` của yêu cầu nghỉ (`ho_so_chung`))*
 - Lập: tách theo phạm vi thành nhiều yêu cầu trong cùng lệnh (FR-026, FR-026a); lập thay mang dấu.
 - **Duyệt (theo ca)**, một transaction cho các ca được duyệt: `CaLenhPort.roiCa(…, NGHI_CO_DUYET)`; hủy phân công Tương lai (`PhanCongLenhPort.huy`); `CongViecCaApi.khiNghiCoDuyet(nhanVienId, caIds)`; người phụ trách: người duyệt chọn trong lệnh, không có → `ganThieuNguoiPhuTrach` (lệnh vẫn thực hiện, Q-187); dấu Bác sĩ trực mất; `goNhiemVu` chuyến; tính lại phủ, mở cảnh báo nếu chuyển thiếu phủ; thông báo.
 - **Duyệt (theo ngày)**: ghi `nghi_theo_ngay (nhan_vien_id, ngay)` (nhóm 3, dùng cho `NghiCoDuyetPort`, `LapLichThang`); lịch Nháp có sẵn → gỡ nhân viên khỏi ca Nháp bắt đầu trong ngày qua `LichNhapLenhPort.thayNoiDungNhap` (chỉ phần của nhân viên đó; người phụ trách để trống và báo người lập lịch); tính lại phủ.

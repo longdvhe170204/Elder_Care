@@ -159,9 +159,9 @@ Không có SPI 017 khai báo cho module khác cài. Modulith `verify()` không c
 **Quyết định**:
 - `POST /xuat/sao-ke` (Kế toán; Quản lý viện xem được): danh sách hồ sơ, khoảng, định dạng `XLSX | PDF`; khoảng > CFG-M14-01 → 422. Hàm thuần `SaoKe(soDuDauKy, soDuCocDauKy, giaoDich[])` bảo đảm đầu kỳ + tổng = cuối kỳ cho từng sổ (SC-009); chỉ giao dịch Đã xác nhận.
 - `POST /xuat/bao-cao-thu-chi`: khoảng, định dạng. Hàm thuần `BaoCaoThuChi(giaoDich[], soDuCuoiKhoang[])`: tổng nộp (`NOP_TIEN_MAT`, `NOP_CHUYEN_KHOAN`, `THU_COC`), tổng đã trừ theo bảng (`THANH_TOAN_BANG`, lấy trị tuyệt đối; bảng tổng âm làm giảm tổng), tổng hoàn (`HOAN_TIEN`, `HOAN_COC`), danh sách hồ sơ có số dư < 0 tại hết ngày cuối khoảng kèm số còn nợ (plan điểm báo lại 5). Không tách theo phương thức, không có tổng điều chỉnh, tổng hoàn cọc riêng (Q-386).
-- File dựng một lần, lưu qua `FileApi` (`M11.FILE_XUAT`), ghi `lan_xuat_so_du` (FR-027); tải lại trả đúng file. PDF có thông tin viện (CFG-M11-11).
+- File dựng một lần, lưu qua `FileApi` (`M11.FILE_XUAT`), ghi `lan_xuat_so_du` (FR-027); tải lại trả đúng file. PDF có thông tin viện (CFG-M11-11). *(R-15: `lan_xuat_so_du` → hành động `nhat_ky`)*
 - `common.tep` hiện chỉ nhận PDF, JPEG, PNG; plan thêm kiểu `.xlsx` cho tệp do hệ thống tạo (không mở cho `POST /tep`), sửa nhỏ ở `FileApi.upload` (chủ `common`).
-- **Cổng** `POST /cong/nguoi-cao-tuoi/{nctId}/sao-ke` (người thân có quyền xem chi phí; khoảng ≤ CFG-M14-01; `XLSX | PDF`) → cùng hàm, ghi `lan_xuat_so_du` với vai trò người thân, trả file.
+- **Cổng** `POST /cong/nguoi-cao-tuoi/{nctId}/sao-ke` (người thân có quyền xem chi phí; khoảng ≤ CFG-M14-01; `XLSX | PDF`) → cùng hàm, ghi `lan_xuat_so_du` với vai trò người thân, trả file. *(R-15: `lan_xuat_so_du` → hành động `nhat_ky`)*
 
 ---
 

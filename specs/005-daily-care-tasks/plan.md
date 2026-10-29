@@ -107,7 +107,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 3. Lệnh lập công việc theo lô, từ chối cả lô.
 4. Tám SPI khai báo ở `m04.api` cho các module làm plan sau.
 5. `ChiSoPort` gọi đồng bộ, khác các yêu cầu tới 007 đi qua outbox.
-6. Hai job (theo phút, hằng ngày) và bảng `lan_chay_m04`.
+6. Hai job (theo phút, hằng ngày) và bảng `lan_chay_m04`. *(R-15: `lan_chay_m04` → `moc_da_nhac`)*
 
 ### Đáp ứng yêu cầu phi chức năng (constitution X)
 
@@ -194,7 +194,7 @@ mobile/lib/nhan-vien/
 | Lệnh lập theo lô, từ chối cả lô khi một dòng lỗi | Người phụ trách ca lập hàng trăm công việc trong giờ giao ca; "hoặc toàn bộ, hoặc không" của 000; trả đủ lỗi một lần | Mỗi công việc một lệnh: chậm, và lần lập dừng giữa chừng để lại ca lập dở |
 | Tám SPI khai báo ở `m04.api` (008, 007, 006, 011, 012, 014) | 008, 007, 011, 014 phải gọi lệnh của 005 trong transaction của họ, nên phụ thuộc 005; 005 cần lại dữ liệu của họ | 005 gọi thẳng API của họ: vòng phụ thuộc, Modulith từ chối |
 | `ChiSoPort` đồng bộ, các yêu cầu khác tới 007 qua outbox | Giá trị bị chặn hoặc cần đo lại thì công việc không được đóng (FR-034); chỉ biết khi 007 trả lời ngay | Outbox cho chỉ số: công việc đã đóng trong khi giá trị bị từ chối |
-| Job theo phút, job hằng ngày, bảng `lan_chay_m04` | SC-005 đòi chuyển và nhắc ≤ 1 phút; FR-052 đòi chạy bù không trùng; mốc theo ca, theo ngày chạy đúng một lần. Chu kỳ và giờ chạy là thông số vận hành, không có trong Phụ lục 25 | Mỗi việc một job: khó bảo đảm thứ tự (Hiệu lực kế hoạch trước, rồi có mặt đầu ngày) và nhiều khóa |
+| Job theo phút, job hằng ngày, bảng `lan_chay_m04` | SC-005 đòi chuyển và nhắc ≤ 1 phút; FR-052 đòi chạy bù không trùng; mốc theo ca, theo ngày chạy đúng một lần. Chu kỳ và giờ chạy là thông số vận hành, không có trong Phụ lục 25 | Mỗi việc một job: khó bảo đảm thứ tự (Hiệu lực kế hoạch trước, rồi có mặt đầu ngày) và nhiều khóa *(R-15: `lan_chay_m04` → `moc_da_nhac`)* |
 
 ## Điểm cần báo lại về tài liệu nguồn
 

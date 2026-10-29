@@ -14,6 +14,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - `danh_muc_chung`: `khu_vuc`, `tang` (`cha_id` là khu vực), `loai_phong` (mức chăm sóc trong `thuoc_tinh`), `ly_do_chuyen_giuong`, `khu_nghi_ban_tru`, `buoi_ban_tru` (sức chứa trong `thuoc_tinh`).
 - `lich_su_chung`: `lich_su_cach_ly_phong` (kiểu `KHOANG`).
 - `trang_thai_nct`: `vi_tri_nct` (`resident_position`); `ho_so_chung`: `yeu_cau_nhap_bu`; `moc_da_nhac`: `nhac_phan_bo`; `khoa_ky_thuat`: `allocation_write_guard`, `day_care_capacity_guard`.
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `phong_muc_cho_phep` → cột `JSON` của `phong`; `loai_phong_muc` → `danh_muc_chung`. Không thêm bảng riêng.
 - Còn 4 bảng riêng của feature.
 
 ### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V003_95`)*

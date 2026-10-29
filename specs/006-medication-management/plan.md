@@ -108,7 +108,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 3. `ket_qua_lieu` cho mọi lần đóng, kể cả do Hệ thống.
 4. Ba SPI khai báo ở `m07.api` cho 008, 014, 010.
 5. Bảng `khoang_vang_thuoc` giữ bản sao khoảng vắng, khoảng đi. *(R-15: `khoang_vang_thuoc` → `ho_so_chung`)*
-6. Hai job (theo phút, hằng ngày) và bảng `lan_chay_m07`.
+6. Hai job (theo phút, hằng ngày) và bảng `lan_chay_m07`. *(R-15: `lan_chay_m07` → `moc_da_nhac`)*
 
 ### Đáp ứng yêu cầu phi chức năng (constitution X)
 
@@ -117,7 +117,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | NFR-01 Quy mô | Có | 300 người, 60 người dùng đồng thời giờ giao ca; chỉ mục ở data-model mục 4, 5 |
 | NFR-02 Hiệu năng | Có | Vòng phát thuốc tính trong bộ nhớ từ một truy vấn đơn; xác nhận khóa một dòng |
 | NFR-03 Thông báo khẩn cấp | Không | 006 không có thông báo Khẩn cấp |
-| NFR-04 Tác vụ định kỳ | Có | Job theo phút; khóa dòng, cột `da_*_luc`, `lan_chay_m07` chống gửi trùng; khóa sự kiện cho bên nghe |
+| NFR-04 Tác vụ định kỳ | Có | Job theo phút; khóa dòng, cột `da_*_luc`, `lan_chay_m07` chống gửi trùng; khóa sự kiện cho bên nghe *(R-15: `lan_chay_m07` → `moc_da_nhac`)* |
 | NFR-05 Khả dụng | Có | Chạy bù khi khởi động (D-19); ngoại tuyến cho xác nhận tại giường |
 | NFR-06 Sao lưu | Gián tiếp | Dữ liệu ở MySQL |
 | NFR-07 Lưu trữ | Có | `LuuTruProvider` theo hồ sơ, CFG-M15-03 (data-model mục 13) |
@@ -195,7 +195,7 @@ mobile/lib/nguoi-than/thuoc/   # thuốc gửi; đơn, phiếu khi có bản đ�
 | `ket_qua_lieu` cho mọi lần đóng, kể cả Bỏ lỡ | Đính chính của 000 cần một bản gốc nhóm 3 (DBR-23); Bỏ lỡ → Đã dùng (US8 #4, FR-029) là đính chính trên lần đóng của Hệ thống | Đính chính trực tiếp dòng `lieu_thuoc`: dòng nhóm 2, vi phạm trigger trạng thái cuối |
 | Ba SPI khai báo ở `m07.api` (008, 014, 010) | 008, 014, 010 làm plan sau và cần gọi hoặc đọc 006; 006 cần lại dữ liệu ca, chuyến, mua hộ | 006 gọi thẳng API của họ: vòng phụ thuộc, Modulith từ chối |
 | Bảng `khoang_vang_thuoc` | Lịch thuốc cần khoảng vắng và khoảng đi (có/không mang thuốc) để tính Tạm dừng, Mang theo cho liều tương lai; ghi kèm lệnh trạng thái | Đọc lượt vắng của 004 và chuyến của 014 mỗi lần tính lịch: nhiều lời gọi trên đường đọc nóng; `LuotVangApi` chỉ trả lượt đang mở *(R-15: `khoang_vang_thuoc` → `ho_so_chung`)* |
-| Job theo phút, job hằng ngày, bảng `lan_chay_m07` | SC-004 đòi chuyển và nhắc ≤ 1 phút; NFR-04 đòi chạy bù không trùng; mốc theo ca chạy đúng một lần. Chu kỳ và giờ chạy là thông số vận hành, không có trong Phụ lục 25 | Mỗi việc một job: khó giữ thứ tự (đơn hiệu lực trước, rồi vật hóa liều) |
+| Job theo phút, job hằng ngày, bảng `lan_chay_m07` | SC-004 đòi chuyển và nhắc ≤ 1 phút; NFR-04 đòi chạy bù không trùng; mốc theo ca chạy đúng một lần. Chu kỳ và giờ chạy là thông số vận hành, không có trong Phụ lục 25 | Mỗi việc một job: khó giữ thứ tự (đơn hiệu lực trước, rồi vật hóa liều) *(R-15: `lan_chay_m07` → `moc_da_nhac`)* |
 
 ## Đồng bộ với hợp đồng của feature khác
 

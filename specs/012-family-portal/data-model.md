@@ -14,7 +14,38 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - `lich_su_chung`: `lich_su_quyen`; `su_kien_chung`: `phieu_dang_ky_nguoi_than`.
 - `ho_so_chung`: `dau_tu_ve`, `yeu_cau_quyen`, `mong_muon_nct`, `yeu_cau_ngoai_le_don`, `luot_tham`, `luot_o_lai`.
 - `trang_thai_nct`: `nguoi_than_nct`; `khoa_ky_thuat`: `khung_tham_ngay`, `dem_o_lai` (số đếm tính bằng truy vấn khi đã khóa); `nhat_ky_xem_suc_khoe` → hành động nhật ký (NFR-08).
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `phieu_dang_ky_dong` → cột `JSON` của phiếu đăng ký (`su_kien_chung`); `ban_ghi_don_su_kien`, `lan_chan_don`, `luot_o_lai_gia_han`, `phan_hoi_muc`, `phan_hoi_y_kien` → `su_kien_chung`; `luot_tham_di_cung` → cột `JSON` của lượt thăm (`ho_so_chung`); `su_kien_m10_da_xu_ly`, `lan_chay_m10` → `moc_da_nhac`. Không thêm bảng riêng.
 - Còn 4 bảng riêng của feature.
+
+### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-30; sinh từ mục 0 và ràng buộc ở mô tả bảng các mục sau; chủ module rà, hoàn thiện khi viết migration, task T075)*
+
+Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (module M10; đổi sang tên tiếng Anh theo glossary khi dịch); `noi_dung`, `thuoc_tinh` hoặc `du_lieu` mang các cột của bảng cũ, có JSON Schema theo loại; bảng gộp riêng của feature có cột `kind` (hoặc `loai`) và cột `NULL` có `CHECK` theo loại. Mỗi dòng có ràng buộc ở bảng dưới cần một test tích hợp chứng minh ràng buộc vẫn giữ sau gộp (constitution XII), ghi vào bảng DBR áp dụng khi cài.
+
+**Bảng giữ hoặc là bảng đích** (giữ cột, ràng buộc như mô tả ở các mục sau; bảng đích nhận thêm cột của bảng gộp vào): `nguoi_than`, `quan_he_nguoi_than`, `ban_ghi_don`, `phan_hoi`.
+
+| Bảng cũ | Đích | Loại ở bảng chung | Ràng buộc của bảng cũ | Cách giữ sau gộp |
+| --- | --- | --- | --- | --- |
+| `nguoi_than_nct` | `trang_thai_nct` | `M10.NGUOI_THAN_NCT` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `lich_su_quyen` | `lich_su_chung` | `M10.LICH_SU_QUYEN` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `dau_tu_ve` | `ho_so_chung` | `M10.DAU_TU_VE` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `phieu_dang_ky_nguoi_than` | `su_kien_chung` | `M10.PHIEU_DANG_KY_NGUOI_THAN` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `yeu_cau_quyen` | `ho_so_chung` | `M10.YEU_CAU_QUYEN` | / `khoa_cho` sinh `IF(trang_thai = 'CHO_XAC_NHAN', CONCAT(nct_id, ':', IFNULL(quan_he_id, 0), ':', IFNULL(quyen, loai)), NULL)` `UNIQUE` / / FR-018 /; / `trao_doi_voi_nct` `VARCHAR(2000) NULL` / Bắt buộc khi Quản lý viện duyệt yêu cầu có `trai_mong_muon_id` (`… | `khoa_duy_nhat` |
+| `mong_muon_nct` | `ho_so_chung` | `M10.MONG_MUON_NCT` | / `quan_he_id NULL`; `ho_ten NULL`, `so_giay_to NULL` / Có `quan_he_id` hoặc có cả họ tên và số giấy tờ (`CHECK`) / FR-020a /; / `khoa_hieu_luc` / Cột sinh `IF(trang_thai = 'HIEU_LUC', CONCAT(nct_id, ':', loai, ':', IFNULL(quan_he_id, CONCAT('G', so_giay_to)))… | kiểm ở domain + test |
+| `yeu_cau_ngoai_le_don` | `ho_so_chung` | `M10.YEU_CAU_NGOAI_LE_DON` | `id`, `nct_id`, `ho_ten`, `so_giay_to`, `quan_he`, `ly_do`, `lap_boi_id`, `trang_thai` (`CHO_XAC_NHAN`, `HIEU_LUC`, `DA_DUNG`, `HET_HAN`, `TU_CHOI`, `HUY`), `quyet_dinh_boi_id`, `cach` (`CONG`, `QL_DUYET`), `ly_do_quyet_dinh`, `hieu_luc_luc`, `het_han_luc` (lú… | cột vào `JSON` hoặc cột của bảng đích |
+| `khung_tham_ngay` | `khoa_ky_thuat` | — | — | cột vào `JSON` hoặc cột của bảng đích |
+| `luot_tham` | `ho_so_chung` | `M10.LUOT_THAM` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `luot_o_lai` | `ho_so_chung` | `M10.LUOT_O_LAI` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `dem_o_lai` | `khoa_ky_thuat` | — | `luot_id`, `ngay` (ngày bắt đầu của đêm), `UNIQUE (luot_id, ngay)`, `phat_luc`, `huy_luc NULL`. Một dòng mỗi lần lượt đi qua mốc 00:00; khóa nguồn gửi 010 là `luot_id:ngay`. | `khoa_duy_nhat` |
+| `nhat_ky_xem_suc_khoe` | hành động `nhat_ky` | — | — | cột vào `JSON` hoặc cột của bảng đích |
+| `phieu_dang_ky_dong` | cột `JSON` của phiếu đăng ký (`su_kien_chung`) | `M10.PHIEU_DANG_KY_DONG` | — | ghi cùng bản ghi cha; domain kiểm |
+| `ban_ghi_don_su_kien` | `su_kien_chung` | `M10.BAN_GHI_DON_SU_KIEN` | `ban_ghi_don_su_kien` (nhóm 3): `ban_ghi_don_id`, `loai` (`DA_DUNG`, `KHONG_DUNG`), `lenh_nguon NULL`, `nguon_id NULL`, `ly_do NULL`, `luc`; cột sinh `khoa_da_dung = IF(loai = 'DA_DUNG', ban_ghi_don_id, NULL)` `UNIQUE`. Trạng thái suy ra: không sự kiện → `CHUA | `khoa_duy_nhat` |
+| `lan_chan_don` | `su_kien_chung` | `M10.LAN_CHAN_DON` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `luot_o_lai_gia_han` | `su_kien_chung` | `M10.LUOT_O_LAI_GIA_HAN` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `phan_hoi_muc` | `su_kien_chung` | `M10.PHAN_HOI_MUC` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `phan_hoi_y_kien` | `su_kien_chung` | `M10.PHAN_HOI_Y_KIEN` | `phan_hoi_y_kien` (nhóm 3, bổ sung 2026-10-18): `phan_hoi_id`, `loai_muc` (`MONG_MUON_NCT` của 012, `SO_THICH` của 014 qua sự kiện `YKienDaGhiTuPhanHoi`), `muc_id`, `boi_id`, `luc`; `UNIQUE (phan_hoi_id, loai_muc, muc_id)`. Lệnh Trả lời của phản hồi `MONG_MUON | `khoa_duy_nhat` |
+| `luot_tham_di_cung` | cột `JSON` của lượt thăm (`ho_so_chung`) | `M10.LUOT_THAM_DI_CUNG` | — | ghi cùng bản ghi cha; domain kiểm |
+| `su_kien_m10_da_xu_ly` | `moc_da_nhac` | `M10.SU_KIEN_M10_DA_XU_LY` | - `su_kien_m10_da_xu_ly`: `khoa_su_kien` `UNIQUE`, `xu_ly_luc`. | `khoa_duy_nhat` |
+| `lan_chay_m10` | `moc_da_nhac` | `M10.LAN_CHAY_M10` | — | cột vào `JSON` hoặc cột của bảng đích |
 
 ---
 
@@ -29,7 +60,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 | `dau_tu_ve` | 2 | C (FR-013) *(R-15: `dau_tu_ve` → `ho_so_chung`)* |
 | `phieu_dang_ky_nguoi_than`, `phieu_dang_ky_dong` | 3 | B (FR-008) *(R-15: `phieu_dang_ky_nguoi_than` → `su_kien_chung`)* |
 | `yeu_cau_quyen` | 2 | C *(R-15: `yeu_cau_quyen` → `ho_so_chung`)* |
-| `ban_ghi_don`, `ban_ghi_don_su_kien`, `lan_chan_don` | 3 | D |
+| `ban_ghi_don`, `ban_ghi_don_su_kien`, `lan_chan_don` | 3 | D *(R-15: `ban_ghi_don_su_kien`, `lan_chan_don` → `su_kien_chung`)* |
 | `yeu_cau_ngoai_le_don` | 2 | D (FR-024) *(R-15: `yeu_cau_ngoai_le_don` → `ho_so_chung`)* |
 | `luot_tham`, `luot_tham_di_cung` | 2 | E *(R-15: `luot_tham` → `ho_so_chung`)* |
 | `khung_tham_ngay` | 2 (kỹ thuật) | E (FR-030 b) *(R-15: `khung_tham_ngay` → `khoa_ky_thuat`)* |
@@ -37,9 +68,9 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 | `dem_o_lai` | Kỹ thuật | F (FR-043) *(R-15: `dem_o_lai` → `khoa_ky_thuat`)* |
 | `nhat_ky_xem_suc_khoe` | 3 | G (FR-048) *(R-15: `nhat_ky_xem_suc_khoe` → hành động `nhat_ky`)* |
 | `phan_hoi` | 2 | I |
-| `phan_hoi_muc` | 3 | I (FR-065) |
+| `phan_hoi_muc` | 3 | I (FR-065) *(R-15: `phan_hoi_muc` → `su_kien_chung`)* |
 | `phan_hoi_y_kien` | 3 | I (FR-058b; bổ sung 2026-10-18) *(R-15: `phan_hoi_y_kien` → `su_kien_chung`)* |
-| `su_kien_m10_da_xu_ly`, `lan_chay_m10` | Kỹ thuật | Listener, job |
+| `su_kien_m10_da_xu_ly`, `lan_chay_m10` | Kỹ thuật | Listener, job *(R-15: `su_kien_m10_da_xu_ly`, `lan_chay_m10` → `moc_da_nhac`)* |
 
 ---
 
@@ -77,7 +108,7 @@ Lệnh: Lập quan hệ, Đổi liên hệ chính (lý do), Đặt người đ�
 
 ### `phieu_dang_ky_nguoi_than` – nhóm 3 → gộp theo R-15: `phieu_dang_ky_nguoi_than` → `su_kien_chung`
 
-`id`, `nct_id`, `nguoi_dai_dien_id`, `tep_scan_id` (bắt buộc), `ghi_boi_id`, `luc`. `phieu_dang_ky_dong`: `phieu_id`, `quan_he_id`, `quyen`, `yeu_cau_id` (yêu cầu `HIEU_LUC` tạo kèm).
+`id`, `nct_id`, `nguoi_dai_dien_id`, `tep_scan_id` (bắt buộc), `ghi_boi_id`, `luc`. `phieu_dang_ky_dong`: `phieu_id`, `quan_he_id`, `quyen`, `yeu_cau_id` (yêu cầu `HIEU_LUC` tạo kèm). *(R-15: `phieu_dang_ky_dong` → cột `JSON` của phiếu đăng ký (`su_kien_chung`))*
 
 ---
 
@@ -138,9 +169,9 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 | `thoi_diem`, `nhan_vien_ban_giao_id`, `ghi_boi_id` | | FR-021 (4), (5) |
 | `het_hieu_luc_luc NULL` | `thoi_diem` + CFG-M10-09; `NULL` với `VIEN_DUA_VE` | FR-027 |
 
-`ban_ghi_don_su_kien` (nhóm 3): `ban_ghi_don_id`, `loai` (`DA_DUNG`, `KHONG_DUNG`), `lenh_nguon NULL`, `nguon_id NULL`, `ly_do NULL`, `luc`; cột sinh `khoa_da_dung = IF(loai = 'DA_DUNG', ban_ghi_don_id, NULL)` `UNIQUE`. Trạng thái suy ra: không sự kiện → `CHUA_DUNG`; sự kiện gần nhất.
+`ban_ghi_don_su_kien` (nhóm 3): `ban_ghi_don_id`, `loai` (`DA_DUNG`, `KHONG_DUNG`), `lenh_nguon NULL`, `nguon_id NULL`, `ly_do NULL`, `luc`; cột sinh `khoa_da_dung = IF(loai = 'DA_DUNG', ban_ghi_don_id, NULL)` `UNIQUE`. Trạng thái suy ra: không sự kiện → `CHUA_DUNG`; sự kiện gần nhất. *(R-15: `ban_ghi_don_su_kien` → `su_kien_chung`)*
 
-`lan_chan_don` (nhóm 3): `nct_id`, `nguoi_don_khai` `JSON`, `ly_do` (`NGOAI_DANH_SACH`, `GIAY_TO_KHONG_KHOP`, `NGOAI_LE_HET_HAN`, `DAU_TU_VE_TAT`), `thuc_hien_boi_id`, `luc`.
+`lan_chan_don` (nhóm 3): `nct_id`, `nguoi_don_khai` `JSON`, `ly_do` (`NGOAI_DANH_SACH`, `GIAY_TO_KHONG_KHOP`, `NGOAI_LE_HET_HAN`, `DAU_TU_VE_TAT`), `thuc_hien_boi_id`, `luc`. *(R-15: `lan_chan_don` → `su_kien_chung`)*
 
 ### `yeu_cau_ngoai_le_don` – nhóm 2 → gộp theo R-15: `yeu_cau_ngoai_le_don` → `ho_so_chung`
 
@@ -173,7 +204,7 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 | `vao_luc`, `vao_boi_id`, `ra_luc`, `ra_boi_id`, `ly_do_huy`, `huy_boi` (người, Hành chính, Hệ thống) | | FR-033 → FR-037 |
 | `da_nhac_ra_luc` | Một lần | FR-034 |
 
-`luot_tham_di_cung`: `luot_id`, `ho_ten`, `quan_he`, `so_dien_thoai NULL`, `thuc_te_vao`, `them_luc_vao`.
+`luot_tham_di_cung`: `luot_id`, `ho_ten`, `quan_he`, `so_dien_thoai NULL`, `thuc_te_vao`, `them_luc_vao`. *(R-15: `luot_tham_di_cung` → cột `JSON` của lượt thăm (`ho_so_chung`))*
 
 | Từ | Lệnh / sự kiện | Đến | Người |
 | --- | --- | --- | --- |
@@ -197,7 +228,7 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 | `xac_nhan_boi_id`, `xac_nhan_luc`, `y_kien_cung_phong` `JSON NULL`, `ly_do_tu_choi`, `ly_do_huy` | | FR-040 |
 | `da_nhac_ket_thuc_luc` | | FR-044 |
 
-`luot_o_lai_gia_han` (nhóm 3): `luot_id`, `ket_thuc_du_kien_cu`, `moi`, `ly_do`, `boi_id`, `luc`.
+`luot_o_lai_gia_han` (nhóm 3): `luot_id`, `ket_thuc_du_kien_cu`, `moi`, `ly_do`, `boi_id`, `luc`. *(R-15: `luot_o_lai_gia_han` → `su_kien_chung`)*
 
 | Từ | Lệnh | Đến | Người |
 | --- | --- | --- | --- |
@@ -239,7 +270,7 @@ Không có bảng `ban_tin`, `ban_tin_phan`, `ban_tin_so_lieu`, `ban_tin_nhan_xe
 | `qua_han`, `han_da_leo_thang NULL` | Một lần mỗi hạn | FR-063 |
 | `da_phan_hoi_luc`, `dong_luc`, `cach_dong` (`NGUOI_GUI`, `TU_DONG`, `GHI_THAY` bổ sung 2026-10-18) | | FR-064 |
 
-`phan_hoi_muc` (nhóm 3): `phan_hoi_id`, `loai` (`NOI_DUNG`, `TRA_LOI`, `HUONG_XU_LY`, `GHI_CHU`, `GIAO_LAI`, `DOI_MUC`, `MO_LAI`, `DOI_LOAI` bổ sung 2026-10-18), `noi_dung`, `phan_loai_thong_tin` (`CHUNG`, `SUC_KHOE`), `tep_ids`, `boi_id`, `luc`.
+`phan_hoi_muc` (nhóm 3): `phan_hoi_id`, `loai` (`NOI_DUNG`, `TRA_LOI`, `HUONG_XU_LY`, `GHI_CHU`, `GIAO_LAI`, `DOI_MUC`, `MO_LAI`, `DOI_LOAI` bổ sung 2026-10-18), `noi_dung`, `phan_loai_thong_tin` (`CHUNG`, `SUC_KHOE`), `tep_ids`, `boi_id`, `luc`. *(R-15: `phan_hoi_muc` → `su_kien_chung`)*
 
 `phan_hoi_y_kien` (nhóm 3, bổ sung 2026-10-18): `phan_hoi_id`, `loai_muc` (`MONG_MUON_NCT` của 012, `SO_THICH` của 014 qua sự kiện `YKienDaGhiTuPhanHoi`), `muc_id`, `boi_id`, `luc`; `UNIQUE (phan_hoi_id, loai_muc, muc_id)`. Lệnh Trả lời của phản hồi `MONG_MUON` kiểm có ít nhất một dòng (BR-M10-12). *(R-15: `phan_hoi_y_kien` → `su_kien_chung`)*
 
@@ -247,8 +278,8 @@ Không có bảng `ban_tin`, `ban_tin_phan`, `ban_tin_so_lieu`, `ban_tin_nhan_xe
 
 ## 10. Kỹ thuật
 
-- `su_kien_m10_da_xu_ly`: `khoa_su_kien` `UNIQUE`, `xu_ly_luc`.
-- `lan_chay_m10`: `ten_viec`, `moc`, `bat_dau`, `ket_thuc`, `ket_qua`.
+- `su_kien_m10_da_xu_ly`: `khoa_su_kien` `UNIQUE`, `xu_ly_luc`. *(R-15: `su_kien_m10_da_xu_ly` → `moc_da_nhac`)*
+- `lan_chay_m10`: `ten_viec`, `moc`, `bat_dau`, `ket_thuc`, `ket_qua`. *(R-15: `lan_chay_m10` → `moc_da_nhac`)*
 
 ## 11. DBR và quy tắc
 

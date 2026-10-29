@@ -37,7 +37,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 **Quyết định**:
 - `khai_bao_tam_tru` (nhóm 2; nội dung nộp, kết quả, xóa là nhóm 3 qua cột đặt một lần và đính chính 000): trạng thái `CAN_KHAI_BAO | DA_NOP | DA_XAC_NHAN | HET_HAN | DA_XOA | DUOC_THAY_THE | DA_HUY`. *(R-15: `khai_bao_tam_tru` → `ho_so_chung`)*
 - DBR-33: cột sinh `khoa_dang_xu_ly = IF(trang_thai IN ('CAN_KHAI_BAO','DA_NOP'), nct_id, NULL)` `UNIQUE`; `khoa_xac_nhan = IF(trang_thai = 'DA_XAC_NHAN', nct_id, NULL)` `UNIQUE`. Ghi chấp nhận của khai báo mới chuyển khai báo Đã xác nhận cũ sang `DUOC_THAY_THE` trước trong cùng transaction (khóa `khai_bao_nct`). *(R-15: `khai_bao_nct` → `trang_thai_nct`)*
-- Ghi bị từ chối: về `CAN_KHAI_BAO`, hạn mới = thời điểm ghi + CFG-M02-12; lần nộp, lý do lưu ở `khai_bao_lan_nop` (nhóm 3).
+- Ghi bị từ chối: về `CAN_KHAI_BAO`, hạn mới = thời điểm ghi + CFG-M02-12; lần nộp, lý do lưu ở `khai_bao_lan_nop` (nhóm 3). *(R-15: `khai_bao_lan_nop` → `su_kien_chung`)*
 - Xác nhận "thường trú cùng xã/phường" (FR-001): cột `thuong_tru_cung_xa` + ghi chú; chuyển loại; cờ ở hồ sơ khai báo (`khai_bao_nct.thuong_tru_cung_xa`) để khai báo sau dùng loại Thông báo lưu trú; gỡ bằng đính chính khi còn Cần khai báo.
 - Đính chính kết quả ghi nhầm: `DinhChinhDuocProvider` `M02.KHAI_BAO` (không gắn tầng).
 

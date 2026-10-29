@@ -99,4 +99,4 @@ Khi 019 chưa có (bản giả), chuyến dùng xe của viện bị chặn rờ
 | Công việc bị Hủy ghi nhận (005, nội bộ) | Mục kiểm tra Không kiểm tra được | FR-062 |
 | `NguoiCaoTuoiDaChuyenTrangThai` (001) | Tạm vắng, Điều trị bệnh viện: hiển thị sẵn "Vắng – đang vắng mặt"; chuỗi cô lập bỏ qua ngày | FR-028, FR-054 |
 
-Mọi listener idempotent theo `khoaSuKien` (`su_kien_m04hd_da_xu_ly`).
+Mọi listener idempotent theo `khoaSuKien` (`su_kien_m04hd_da_xu_ly`). *(R-15: `su_kien_m04hd_da_xu_ly` → `moc_da_nhac`)*
