@@ -4,7 +4,6 @@ import { Alert, AlertAction, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { Field, FieldLabel } from '@/components/ui/field'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { ProblemAlert } from '@/common/ProblemAlert'
@@ -17,7 +16,8 @@ import { LEVEL_LABELS, label } from './notificationLabels'
 // Hộp thông báo (009 T035; FR-033 → FR-036; DESIGN.md `notification-inbox`). Khẩn cấp chưa xác nhận lên đầu (backend
 // sắp), mỗi dòng có nút "Xác nhận đã nhận" (FR-026); thông báo mới qua SSE thì tải lại trang đầu, mất luồng thì hỏi lại
 // mỗi 60 giây. Lọc theo người cao tuổi: danh sách trang đầu của GET /residents (001, trong phạm vi); vai trò không xem được hồ
-// sơ (403) thì không có ô lọc.
+// sơ (403) thì không có ô lọc. Chi tiết mở trong DetailLayout của màn Thông báo (DESIGN.md 5): onOpen nhận
+// { key, label, render }, openedKey là mục đang mở, onClose đóng khung.
 
 const LEVELS = ['URGENT', 'MEDIUM', 'LOW']
 const STREAM_URL = '/api/v1/notifications/stream'
@@ -36,12 +36,11 @@ function toQuery({ level, unread, eventType, residentId }, cursor) {
 
 const isOpenUrgent = (n) => n.level === 'URGENT' && !n.acknowledgedAt
 
-export function NotificationInbox() {
+export function NotificationInbox({ openedKey, onOpen, onClose }) {
   const [filter, setFilter] = useState({ level: '', unread: false, eventType: '', residentId: '' })
   const [state, setState] = useState({ status: 'loading', items: [], nextCursor: null })
   const [eventTypes, setEventTypes] = useState([])
   const [residents, setResidents] = useState(null)
-  const [opened, setOpened] = useState(null)
   const [announcement, setAnnouncement] = useState('')
 
   const load = useCallback(async (nextFilter, cursor) => {
@@ -108,11 +107,23 @@ export function NotificationInbox() {
     setState((s) => ({ ...s, items: s.items.map((n) => (n.id === data.id ? data : n)) }))
   }, [])
 
-  const hide = useCallback((id) => {
-    setState((s) => ({ ...s, items: s.items.filter((n) => n.id !== id) }))
-    setOpened(null)
-    setAnnouncement('Đã ẩn thông báo khỏi danh sách')
-  }, [])
+  const hide = useCallback(
+    (id) => {
+      setState((s) => ({ ...s, items: s.items.filter((n) => n.id !== id) }))
+      onClose()
+      setAnnouncement('Đã ẩn thông báo khỏi danh sách')
+    },
+    [onClose],
+  )
+
+  function open(id) {
+    onOpen({
+      key: `notification-${id}`,
+      label: 'Chi tiết thông báo',
+      render: (titles) => <NotificationDetail key={id} id={id} onOpened={replace} onHidden={hide} {...titles} />,
+    })
+  }
+  const isOpen = (id) => openedKey === `notification-${id}`
 
   const urgent = state.items.filter(isOpenUrgent)
   const rest = state.items.filter((n) => !isOpenUrgent(n))
@@ -223,7 +234,8 @@ export function NotificationInbox() {
               <li key={n.id} className="rounded-xl border-[1.5px] border-destructive p-3">
                 <UrgentItem
                   notification={n}
-                  onOpen={() => setOpened(n.id)}
+                  selected={isOpen(n.id)}
+                  onOpen={() => open(n.id)}
                   onAcknowledged={() => {
                     setAnnouncement('Đã xác nhận thông báo khẩn cấp')
                     load(filter)
@@ -247,10 +259,15 @@ export function NotificationInbox() {
           ) : (
             <ul aria-label="Thông báo" className="flex flex-col">
               {rest.map((n) => (
-                <li key={n.id} className="border-b py-3 last:border-b-0">
+                <li
+                  key={n.id}
+                  data-state={isOpen(n.id) ? 'selected' : undefined}
+                  className="-mx-2 border-b px-2 py-3 last:border-b-0 data-[state=selected]:bg-accent"
+                >
                   <NotificationRow
                     notification={n}
-                    onOpen={() => setOpened(n.id)}
+                    selected={isOpen(n.id)}
+                    onOpen={() => open(n.id)}
                     status={n.viewedAt ? 'Đã xem' : 'Chưa xem'}
                   />
                 </li>
@@ -269,18 +286,12 @@ export function NotificationInbox() {
           )}
         </section>
       )}
-
-      <Sheet open={opened !== null} onOpenChange={(open) => !open && setOpened(null)}>
-        <SheetContent className="sm:max-w-lg">
-          {opened !== null && <NotificationDetail key={opened} id={opened} onOpened={replace} onHidden={hide} />}
-        </SheetContent>
-      </Sheet>
     </div>
   )
 }
 
 // Một thông báo Khẩn cấp chưa xác nhận: nút chính "Xác nhận đã nhận"; mở thông báo không phải xác nhận (FR-026)
-function UrgentItem({ notification, onOpen, onAcknowledged }) {
+function UrgentItem({ notification, selected, onOpen, onAcknowledged }) {
   const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState(null)
   // Một khóa cho mỗi thông báo: bấm lại khi mạng chập chờn không ghi hai lần
@@ -304,7 +315,7 @@ function UrgentItem({ notification, onOpen, onAcknowledged }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <NotificationRow notification={notification} onOpen={onOpen} status="Chưa xác nhận" />
+      <NotificationRow notification={notification} selected={selected} onOpen={onOpen} status="Chưa xác nhận" />
       <ProblemAlert problem={failure} />
       <Button className="self-start" disabled={busy} onClick={acknowledge}>
         Xác nhận đã nhận
@@ -313,13 +324,13 @@ function UrgentItem({ notification, onOpen, onAcknowledged }) {
   )
 }
 
-function NotificationRow({ notification: n, onOpen, status }) {
+function NotificationRow({ notification: n, selected, onOpen, status }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={label(LEVEL_LABELS, n.level)} />
-          <Button variant="link" className="h-auto p-0 type-label" onClick={onOpen}>
+          <Button variant="link" className="h-auto p-0 type-label" aria-pressed={selected} onClick={onOpen}>
             {n.title}
           </Button>
         </div>

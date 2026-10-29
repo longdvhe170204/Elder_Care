@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { DetailLayout } from '@/common/DetailLayout'
 import { PageHeader } from '@/common/PageHeader'
 import { DeliveryErrors } from './DeliveryErrors'
 import { DirectContacts } from './DirectContacts'
@@ -9,6 +10,7 @@ import { NotificationInbox } from './NotificationInbox'
 
 // Mục menu "Thông báo" (009 T035, T028; bố cục duyệt 2026-10-23, DESIGN.md 5.19.0). Tab theo bảng quyền FR-039 của spec
 // 009 (Phụ lục 27 không có dòng thông báo): chỉ để hiển thị, backend vẫn kiểm từng lệnh và trả 403.
+// Chi tiết của tab mở trong DetailLayout ở cấp màn để khung cao hết màn (DESIGN.md 5); đổi tab thì đóng khung.
 
 const QL = 'NURSING_HOME_MANAGER'
 const TT = 'FLOOR_MANAGER'
@@ -45,16 +47,28 @@ const TABS = [
 export function NotificationsPage({ role }) {
   const tabs = TABS.filter((t) => !t.roles || t.roles.includes(role))
   const [tab, setTab] = useState('inbox')
+  const [detail, setDetail] = useState(null)
+  const closeDetail = () => setDetail(null)
   const current = tabs.find((t) => t.value === tab) ?? tabs[0]
 
   return (
-    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6">
+    <DetailLayout
+      open={detail !== null}
+      detailKey={detail?.key}
+      onClose={closeDetail}
+      label={detail?.label}
+      renderDetail={(titles) => detail.render(titles)}
+    >
       <PageHeader title="Thông báo" subtitle={current.subtitle}>
         {tabs.length > 1 && (
           <ToggleGroup
             variant="outline"
             value={[current.value]}
-            onValueChange={(next) => next[0] && setTab(next[0])}
+            onValueChange={(next) => {
+              if (!next[0]) return
+              setTab(next[0])
+              setDetail(null)
+            }}
             className="flex-wrap self-start"
           >
             {tabs.map((t) => (
@@ -65,11 +79,13 @@ export function NotificationsPage({ role }) {
           </ToggleGroup>
         )}
       </PageHeader>
-      {current.value === 'inbox' && <NotificationInbox />}
-      {current.value === 'history' && <NotificationHistory />}
+      {current.value === 'inbox' && (
+        <NotificationInbox openedKey={detail?.key} onOpen={setDetail} onClose={closeDetail} />
+      )}
+      {current.value === 'history' && <NotificationHistory openedKey={detail?.key} onOpen={setDetail} />}
       {current.value === 'errors' && <DeliveryErrors />}
       {current.value === 'direct-contacts' && <DirectContacts canRecord={role === HC} />}
       {current.value === 'channels' && <NotificationChannels />}
-    </div>
+    </DetailLayout>
   )
 }

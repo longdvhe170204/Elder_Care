@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { json, mockRoutes, problem } from '@/test/fetchRoutes'
+import { DetailHost } from '@/test/DetailHost'
 import { ParameterList } from './ParameterList'
 
 // 000 T081: màn tham số (US4 #1, #3, #6; FR-011, FR-013, FR-019; hợp đồng /parameters).
@@ -39,7 +40,7 @@ afterEach(() => {
 describe('ParameterList', () => {
   it('US4_1_hienDanhSach_giaTri_ngayDoi_timTheoMaHoacMoTa', async () => {
     api.on('GET', '/parameters', json(200, LIST))
-    render(<ParameterList canChange />)
+    render(<DetailHost>{(host) => <ParameterList canChange {...host} />}</DetailHost>)
 
     const rows = (await screen.findAllByRole('row')).slice(1)
     expect(rows).toHaveLength(2)
@@ -54,7 +55,7 @@ describe('ParameterList', () => {
 
   it('locTheoModule_goiQueryModule', async () => {
     api.on('GET', '/parameters', json(200, LIST))
-    render(<ParameterList canChange />)
+    render(<DetailHost>{(host) => <ParameterList canChange {...host} />}</DetailHost>)
     await screen.findAllByRole('row')
 
     fireEvent.change(screen.getByLabelText('Module'), { target: { value: 'M15' } })
@@ -63,7 +64,7 @@ describe('ParameterList', () => {
 
   it('US4_6_403_hienKhongCoQuyen', async () => {
     api.on('GET', '/parameters', problem(403, 'PERMISSION_DENIED'))
-    render(<ParameterList canChange={false} />)
+    render(<DetailHost>{(host) => <ParameterList canChange={false} {...host} />}</DetailHost>)
     expect(await screen.findByText('Bạn không có quyền xem tham số vận hành')).toBeInTheDocument()
   })
 
@@ -73,7 +74,7 @@ describe('ParameterList', () => {
     api.on('POST', '/parameters/CFG-M15-05/change-value', () =>
       json(200, { ...LIST[1], currentValue: { value: 72, unit: 'HOURS' }, version: 3 }, { ETag: '"3"' }),
     )
-    render(<ParameterList canChange />)
+    render(<DetailHost>{(host) => <ParameterList canChange {...host} />}</DetailHost>)
 
     fireEvent.click(await screen.findByRole('button', { name: 'CFG-M15-05' }))
     const panel = await screen.findByRole('dialog')
@@ -113,7 +114,7 @@ describe('ParameterList', () => {
         },
       ]),
     )
-    render(<ParameterList canChange={false} />)
+    render(<DetailHost>{(host) => <ParameterList canChange={false} {...host} />}</DetailHost>)
 
     fireEvent.click(await screen.findByRole('button', { name: 'CFG-M15-05' }))
     const panel = await screen.findByRole('dialog')
@@ -132,5 +133,20 @@ describe('ParameterList', () => {
         ),
       ).toBe(true),
     )
+  })
+
+  // DESIGN.md 5 detail-panel: khung có tiêu đề là mã tham số; dòng đang mở được đánh dấu
+  it('moChiTiet_khungCoTieuDe_dongDangMoDuocDanhDau', async () => {
+    api.on('GET', '/parameters', json(200, LIST))
+    api.on('GET', '/parameters/CFG-M15-05', json(200, LIST[1], { ETag: '"2"' }))
+    render(<DetailHost>{(host) => <ParameterList canChange={false} {...host} />}</DetailHost>)
+
+    const trigger = await screen.findByRole('button', { name: 'CFG-M15-05' })
+    expect(trigger).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(trigger)
+
+    expect(await screen.findByRole('dialog', { name: 'CFG-M15-05' })).toBeInTheDocument()
+    expect(trigger).toHaveAttribute('aria-pressed', 'true')
+    expect(trigger.closest('tr')).toHaveAttribute('data-state', 'selected')
   })
 })

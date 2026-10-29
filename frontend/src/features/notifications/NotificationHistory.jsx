@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { StatusBadge } from '@/common/StatusBadge'
@@ -13,7 +12,8 @@ import { formatDateTime } from '@/common/dateTime'
 import { CHANNEL_LABELS, LEVEL_LABELS, RESULT_LABELS, basisLabel, label, recipientLabel } from './notificationLabels'
 
 // Lịch sử gửi (009 T035; FR-037): Quản lý viện toàn viện, Trưởng tầng các tầng được giao (backend lọc). Lượt nhắc gọi
-// hiện khi có 009 US1.
+// hiện khi có 009 US1. Chi tiết mở trong DetailLayout của màn Thông báo (DESIGN.md 5): onOpen nhận
+// { key, label, render }, openedKey là mục đang mở.
 
 const EMPTY_FILTER = { from: '', to: '', sourceRecordType: '', sourceRecordId: '' }
 
@@ -24,10 +24,9 @@ function channelText(c) {
   return `${label(CHANNEL_LABELS, c.channel)}: ${c.result ? label(RESULT_LABELS, c.result) : 'Đang gửi'}`
 }
 
-export function NotificationHistory() {
+export function NotificationHistory({ openedKey, onOpen }) {
   const [filter, setFilter] = useState(EMPTY_FILTER)
   const [state, setState] = useState({ status: 'loading', rows: [] })
-  const [opened, setOpened] = useState(null)
 
   const load = useCallback(async (f) => {
     setState({ status: 'loading', rows: [] })
@@ -121,59 +120,77 @@ export function NotificationHistory() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {state.rows.map((r, i) => (
-              <TableRow key={`${r.requestId}-${r.recipient}-${i}`} className="align-top">
-                <TableCell className="tabular-nums">
-                  <Button variant="link" className="h-auto p-0 tabular-nums" onClick={() => setOpened(r)}>
-                    {formatDateTime(r.receivedAt)}
-                  </Button>
-                </TableCell>
-                <TableCell className="whitespace-normal">{`${r.sourceRecord.type} ${r.sourceRecord.id}`}</TableCell>
-                <TableCell className="whitespace-normal">
-                  {recipientLabel(r.recipient)}
-                  <span className="block type-caption text-muted-foreground">{r.basis.map(basisLabel).join(', ')}</span>
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={label(LEVEL_LABELS, r.level)} />
-                </TableCell>
-                <TableCell className="whitespace-normal">
-                  {r.channels.length === 0 ? (
-                    <span className="text-muted-foreground">Chưa có lần gửi</span>
-                  ) : (
-                    r.channels.map((c, j) => (
-                      <span key={j} className="block">
-                        {channelText(c)}
-                      </span>
-                    ))
-                  )}
-                </TableCell>
-                <TableCell className="whitespace-normal tabular-nums">
-                  {r.sentAt ? formatDateTime(r.sentAt) : 'Chưa gửi'}
-                  <span className="block type-caption text-muted-foreground">
-                    {r.viewedAt ? `Xem ${formatDateTime(r.viewedAt)}` : 'Chưa xem'}
-                  </span>
-                </TableCell>
-              </TableRow>
-            ))}
+            {state.rows.map((r, i) => {
+              const key = `history-${r.requestId}-${r.recipient}-${i}`
+              return (
+                <TableRow
+                  key={key}
+                  data-state={openedKey === key ? 'selected' : undefined}
+                  className="align-top data-[state=selected]:bg-accent"
+                >
+                  <TableCell className="tabular-nums">
+                    <Button
+                      variant="link"
+                      className="h-auto p-0 tabular-nums"
+                      aria-pressed={openedKey === key}
+                      onClick={() =>
+                        onOpen({
+                          key,
+                          label: 'Chi tiết lượt gửi',
+                          render: (titles) => <HistoryDetail row={r} {...titles} />,
+                        })
+                      }
+                    >
+                      {formatDateTime(r.receivedAt)}
+                    </Button>
+                  </TableCell>
+                  <TableCell className="whitespace-normal">{`${r.sourceRecord.type} ${r.sourceRecord.id}`}</TableCell>
+                  <TableCell className="whitespace-normal">
+                    {recipientLabel(r.recipient)}
+                    <span className="block type-caption text-muted-foreground">
+                      {r.basis.map(basisLabel).join(', ')}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={label(LEVEL_LABELS, r.level)} />
+                  </TableCell>
+                  <TableCell className="whitespace-normal">
+                    {r.channels.length === 0 ? (
+                      <span className="text-muted-foreground">Chưa có lần gửi</span>
+                    ) : (
+                      r.channels.map((c, j) => (
+                        <span key={j} className="block">
+                          {channelText(c)}
+                        </span>
+                      ))
+                    )}
+                  </TableCell>
+                  <TableCell className="whitespace-normal tabular-nums">
+                    {r.sentAt ? formatDateTime(r.sentAt) : 'Chưa gửi'}
+                    <span className="block type-caption text-muted-foreground">
+                      {r.viewedAt ? `Xem ${formatDateTime(r.viewedAt)}` : 'Chưa xem'}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       )}
-
-      <Sheet open={opened !== null} onOpenChange={(open) => !open && setOpened(null)}>
-        <SheetContent className="sm:max-w-lg">{opened && <HistoryDetail row={opened} />}</SheetContent>
-      </Sheet>
     </section>
   )
 }
 
-function HistoryDetail({ row: r }) {
+function HistoryDetail({ row: r, Title, Description }) {
   return (
-    <>
-      <SheetHeader className="gap-1 pt-6">
-        <SheetTitle className="type-title">{recipientLabel(r.recipient)}</SheetTitle>
-        <SheetDescription>{`${r.sourceRecord.type} ${r.sourceRecord.id}, yêu cầu ${r.requestId}`}</SheetDescription>
-      </SheetHeader>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 px-4 pb-6 type-body-sm">
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-1">
+        <Title className="type-title">{recipientLabel(r.recipient)}</Title>
+        <Description className="type-body-sm text-muted-foreground">
+          {`${r.sourceRecord.type} ${r.sourceRecord.id}, yêu cầu ${r.requestId}`}
+        </Description>
+      </div>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 type-body-sm">
         <dt className="text-muted-foreground">Mức</dt>
         <dd>{label(LEVEL_LABELS, r.level)}</dd>
         <dt className="text-muted-foreground">Căn cứ</dt>
@@ -209,6 +226,6 @@ function HistoryDetail({ row: r }) {
           </>
         )}
       </dl>
-    </>
+    </div>
   )
 }
