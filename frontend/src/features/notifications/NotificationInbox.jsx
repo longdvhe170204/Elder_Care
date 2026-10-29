@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Pause, Play } from 'lucide-react'
 import { getMeNotifications, getResidents, postNotificationsByIdAcknowledge } from '@/api'
 import { Alert, AlertAction, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -17,10 +18,12 @@ import { LEVEL_LABELS, label } from './notificationLabels'
 // sắp), mỗi dòng có nút "Xác nhận đã nhận" (FR-026); thông báo mới qua SSE thì tải lại trang đầu, mất luồng thì hỏi lại
 // mỗi 60 giây. Lọc theo người cao tuổi: danh sách trang đầu của GET /residents (001, trong phạm vi); vai trò không xem được hồ
 // sơ (403) thì không có ô lọc. Chi tiết mở trong DetailLayout của màn Thông báo (DESIGN.md 5): onOpen nhận
-// { key, label, render }, openedKey là mục đang mở, onClose đóng khung.
+// { key, label, render }, openedKey là mục đang mở, onClose đóng khung. Lần tải lại do SSE hay hỏi định kỳ là yêu cầu
+// nền (X-Background-Refresh, luồng SSE dùng tham số backgroundRefresh; 002 T047a: không đếm lại giờ phiên); tạm dừng
+// được (DESIGN.md 9.3, tiêu chí 2.2.2): đóng luồng, ngừng hỏi, tiếp tục thì tải lại ngay.
 
 const LEVELS = ['URGENT', 'MEDIUM', 'LOW']
-const STREAM_URL = '/api/v1/notifications/stream'
+const STREAM_URL = '/api/v1/notifications/stream?backgroundRefresh=true'
 const POLL_MS = 60_000
 const SELECT_CLASS = 'h-10 w-full rounded-md border border-input bg-transparent px-3'
 
@@ -42,13 +45,17 @@ export function NotificationInbox({ openedKey, onOpen, onClose }) {
   const [eventTypes, setEventTypes] = useState([])
   const [residents, setResidents] = useState(null)
   const [announcement, setAnnouncement] = useState('')
+  const [paused, setPaused] = useState(false)
 
-  const load = useCallback(async (nextFilter, cursor) => {
+  const load = useCallback(async (nextFilter, cursor, background = false) => {
     setState((s) =>
       cursor ? { ...s, loadingMore: true } : { ...s, status: s.status === 'ready' ? 'ready' : 'loading' },
     )
     try {
-      const { data } = await getMeNotifications({ query: toQuery(nextFilter, cursor) })
+      const { data } = await getMeNotifications({
+        query: toQuery(nextFilter, cursor),
+        headers: background ? { 'X-Background-Refresh': 'true' } : {},
+      })
       setState((s) => ({
         status: 'ready',
         items: cursor ? [...s.items, ...data.items] : data.items,
@@ -69,19 +76,21 @@ export function NotificationInbox({ openedKey, onOpen, onClose }) {
   }, [load, filter])
 
   useEffect(() => {
+    if (paused) return
+    const poll = () => load(filter, undefined, true)
     const refresh = () => {
       setAnnouncement('Có thông báo mới')
-      load(filter)
+      poll()
     }
     if (typeof EventSource === 'undefined') {
-      const timer = setInterval(() => load(filter), POLL_MS)
+      const timer = setInterval(poll, POLL_MS)
       return () => clearInterval(timer)
     }
     const source = new EventSource(STREAM_URL, { withCredentials: true })
     let timer = null
     source.addEventListener('notification', refresh)
     source.onerror = () => {
-      if (!timer) timer = setInterval(() => load(filter), POLL_MS)
+      if (!timer) timer = setInterval(poll, POLL_MS)
     }
     source.onopen = () => {
       clearInterval(timer)
@@ -91,7 +100,12 @@ export function NotificationInbox({ openedKey, onOpen, onClose }) {
       source.close()
       clearInterval(timer)
     }
-  }, [load, filter])
+  }, [load, filter, paused])
+
+  function togglePaused() {
+    if (paused) load(filter)
+    setPaused(!paused)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -132,9 +146,18 @@ export function NotificationInbox({ openedKey, onOpen, onClose }) {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 rounded-2xl border bg-card p-4 md:p-5">
         {state.status === 'ready' && (
-          <p className="type-body">
-            {`${state.unreadCount ?? 0} chưa xem, ${state.urgentCount ?? 0} khẩn cấp chưa xác nhận. Thông báo mới hiện ngay khi đến.`}
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="type-body">
+              {`${state.unreadCount ?? 0} chưa xem, ${state.urgentCount ?? 0} khẩn cấp chưa xác nhận. `}
+              {paused
+                ? 'Đã tạm dừng tự làm mới: thông báo mới chưa hiện cho tới khi bạn tiếp tục.'
+                : 'Thông báo mới hiện ngay khi đến.'}
+            </p>
+            <Button variant="outline" className="h-11" onClick={togglePaused}>
+              {paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
+              {paused ? 'Tiếp tục tự làm mới' : 'Tạm dừng tự làm mới'}
+            </Button>
+          </div>
         )}
         <div className="flex flex-wrap items-end gap-3">
           <ToggleGroup
