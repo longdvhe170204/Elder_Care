@@ -36,7 +36,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ### Cập nhật 2026-10-22 (spec mục "Cập nhật 2026-10-22": Q-378, Q-380, Q-385)
 
-- **Gửi 017 chi tiết khoản Đã chốt** (FR-042, bảng giao tiếp "Gửi 017"; 017 FR-031, FR-032, FR-034): port nội bộ `ChiPhiChoSoDuPort` thêm `bangDaChot(bangId)` trả bảng (loại, kỳ, tổng, tổng theo loại từ `bang_chi_phi_tong_loai`) và khoản Đã chốt (ngày phát sinh, loại, mô tả, số lượng, đơn vị, đơn giá, thành tiền; khoản điều chỉnh kèm kỳ gốc; khoản thuốc chỉ "Thuốc" và mã vật phẩm theo FR-019). Chỉ đọc, dữ liệu đã có; không thêm bảng, không đổi REST (research P-12).
+- **Gửi 017 chi tiết khoản Đã chốt** (FR-042, bảng giao tiếp "Gửi 017"; 017 FR-031, FR-032, FR-034): port nội bộ `ChiPhiChoSoDuPort` thêm `bangDaChot(bangId)` trả bảng (loại, kỳ, tổng, tổng theo loại từ `bang_chi_phi_tong_loai`) và khoản Đã chốt (ngày phát sinh, loại, mô tả, số lượng, đơn vị, đơn giá, thành tiền; khoản điều chỉnh kèm kỳ gốc; khoản thuốc chỉ "Thuốc" và mã vật phẩm theo FR-019). Chỉ đọc, dữ liệu đã có; không thêm bảng, không đổi REST (research P-12). *(R-15: `bang_chi_phi_tong_loai` → cột `JSON` của `bang_chi_phi`)*
 - **Q-380 (sửa theo Q-385)**: phí chấm dứt sớm là khoản nhập tay có lý do của FR-021 vào bảng kỳ cuối, Quản lý viện duyệt từng khoản; không thêm loại khoản, tham số hay cách tính.
 - **Q-385**: 017 không còn đối soát chuyển khoản; không ảnh hưởng 010.
 
@@ -107,7 +107,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 **Kiểm lại sau Phase 1**: Đạt. Thiết kế không thêm vai trò, trạng thái hay quy tắc nghiệp vụ ngoài spec. Có bốn bổ sung kỹ thuật, giải thích ở Complexity Tracking:
 1. Chỉ mục kỹ thuật sự kiện tính phí.
 2. Port nội bộ M11 cho 017.
-3. Bảng `bien_dong_nguon_sau_chot`.
+3. Bảng `bien_dong_nguon_sau_chot`. *(R-15: `bien_dong_nguon_sau_chot` → `su_kien_chung`)*
 4. Thư viện ghi XLSX.
 
 ### Đáp ứng yêu cầu phi chức năng (constitution X)
@@ -181,7 +181,7 @@ mobile/lib/nguoi-than/chi-phi/   # bảng, tạm tính, đồng ý mua hộ
 | --- | --- | --- |
 | Chỉ mục kỹ thuật `su_kien_tinh_phi` | Tra cứu nguồn theo người, loại, khoảng ngày (FR-005) và tìm khoản khi nguồn đổi (FR-020) trên năm module | Gọi API đọc của từng module mỗi lần tra cứu: 005, 006 không có API tìm theo tính phí; vẫn cần ánh xạ nguồn → khoản |
 | Port nội bộ M11 (`ChiPhiChoSoDuPort`, `SoDuMuaHoPort`) | 017 cùng module cần tổng chưa chốt, phí ngày cơ sở; 010 cần dấu số dư không đủ | Đặt ở `m11.api`: mở dữ liệu nội bộ cho mọi module |
-| `bien_dong_nguon_sau_chot` | FR-027 đòi báo kèm khoản gốc, sự kiện, giá trị trước/sau và khoản điều chỉnh trỏ về sự kiện gây ra; không được tính sẵn số chênh lệch | Chỉ gửi thông báo: mất liên kết khoản điều chỉnh → sự kiện |
+| `bien_dong_nguon_sau_chot` | FR-027 đòi báo kèm khoản gốc, sự kiện, giá trị trước/sau và khoản điều chỉnh trỏ về sự kiện gây ra; không được tính sẵn số chênh lệch | Chỉ gửi thông báo: mất liên kết khoản điều chỉnh → sự kiện *(R-15: `bien_dong_nguon_sau_chot` → `su_kien_chung`)* |
 | Thư viện ghi XLSX | Q-05 chọn Excel/CSV; kế toán quen Excel | Chỉ CSV: lỗi mã hóa khi mở bằng Excel ở một số máy; vẫn giữ CSV làm tùy chọn |
 
 ## Đồng bộ với hợp đồng của feature khác
@@ -207,3 +207,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
    - Assumptions còn câu dẫn `docs/phan-tich-yeu-cau.md` mục 4.2 (đã bỏ).
 
 4. **Mức thông báo nhắc đề nghị mua hộ chờ đồng ý** (bảng FR-044 ghi "Theo feature 000 FR-031a"): plan dùng Trung bình như dòng 000 của bảng 009 FR-043b. Đề nghị ghi mức cụ thể vào FR-044. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
+
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Ánh xạ bảng ở data-model mục 0; task T038. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
+- Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
+- Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.

@@ -108,7 +108,7 @@ DanhSachViecView xem(long nctId);
 | --- | --- | --- |
 | `LoaiYeuCauHandler` (000) | `M02.THAY_DOI_LUU_TRU` | Research T-06; cài `kiemTraKhiDuyet`, `khiDuyet`, `gioiHanVaiTroDuyet` (thay đổi nhỏ, FR-043, Q-338; hàm này bổ sung vào SPI của 000 theo plan này); chuyển mở rộng `DUOC_THAY_THE` |
 | | `M02.DUYET_DIEU_KHOAN_HOP_DONG` | `kiemTraDieuKienApDung`: hợp đồng còn Nháp, băm nội dung khớp (FR-025a) |
-| | `M02.NGOAI_LE_KET_THUC` | `quyenTao` gồm Kế toán khi điều kiện là `KT_H_QUYET_TOAN`; `apDung` thêm `ngoai_le_dieu_kien` (FR-064), phát `NgoaiLeKetThucDaDuyet` (bổ sung 2026-10-22); `KT_H_XAC_NHAN_QUYET_TOAN` không lập được ngoại lệ |
+| | `M02.NGOAI_LE_KET_THUC` | `quyenTao` gồm Kế toán khi điều kiện là `KT_H_QUYET_TOAN`; `apDung` thêm `ngoai_le_dieu_kien` (FR-064), phát `NgoaiLeKetThucDaDuyet` (bổ sung 2026-10-22); `KT_H_XAC_NHAN_QUYET_TOAN` không lập được ngoại lệ *(R-15: `ngoai_le_dieu_kien` → `su_kien_chung`)* |
 | `DinhChinhDuocProvider` (000) | `M02.LUOT_VANG`, `M02.BAN_GHI_QUA_DOI`, `M02.QUYET_DINH_GIU_GIUONG`, `M02.BAN_GIAO_NCT`, `M02.LICH_SU_DIEM` | `tangKhuVuc` rỗng (không gắn tầng); `sauKhiDinhChinh` của `M02.LUOT_VANG` tính lại ngày vắng (FR-061) |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | data-model mục 13, 14 | |
 | `GanPhamViProvider` (002) | Mọi loại của 004 | Trả `DoiTuong` với `nguoiCaoTuoiId` |

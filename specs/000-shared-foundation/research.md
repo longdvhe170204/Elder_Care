@@ -154,6 +154,8 @@ Feature 000 nằm trong **M15 – Quản trị hệ thống**, vì tham số (BR
 
    Quy ước đặt tên và mẫu trigger nằm ở [data-model.md](data-model.md#quy-uoc-bao-dam-o-co-so-du-lieu). Migration sinh ở giai đoạn triển khai.
 
+*(Sửa 2026-10-29, constitution XII 3.2.0, R-15)* Bảng chứa cả dòng nhóm 2 và nhóm 3 (bảng gộp, `ho_so_chung`) không chặn được bằng quyền theo bảng ở lớp 3: dùng cột `khoa_luc` và trigger theo dòng (data-model mục 8). Quyền chỉ `SELECT, INSERT` vẫn áp cho bảng chỉ chứa nhóm 3. Ở lớp mã nguồn, entity của bảng nhiều nhóm gắn `@NhomDuLieu(NHIEU_NHOM)` và bắt buộc có trường `khoaLuc`; ArchUnit (`NhomDuLieuArchTest`) kiểm mỗi entity có đúng một chú thích, entity `NHIEU_NHOM` có `khoaLuc` và không có setter công khai; `NhomGhiNhanCoTriggerIT` kiểm entity `GHI_NHAN` có trigger không sửa, không xóa và entity `NHIEU_NHOM` có trigger khóa theo dòng. FR-001 vẫn đúng: mỗi **loại dữ liệu** (mỗi `loai`, `kind`) thuộc đúng một nhóm, khai báo ở data-model của module.
+
 "Đã được đính chính" và "Hủy ghi nhận" không ghi ngược vào bản gốc. Chúng được suy ra từ bảng `dinh_chinh` (R-08), nên bản gốc không bao giờ bị `UPDATE`.
 
 **Lý do**: Constitution XII yêu cầu không có UPDATE hay DELETE trên bản ghi đã xác nhận, kể cả với tài khoản Quản lý viện. Chặn ở cơ sở dữ liệu giữ được điều này ngay cả khi mã có lỗi (SC-002).
@@ -299,12 +301,12 @@ Feature 009 (M13) lắng nghe các sự kiện này và gửi thông báo (const
   - `maThamSoNhac()`: tùy chọn, mã CFG riêng của module.
 - **Áp dụng đúng một lần (FR-037, SC-003)**:
   - mỗi lần áp dụng chạy trong một transaction riêng: khóa dòng yêu cầu bằng `SELECT … FOR UPDATE`, kiểm tra còn `DA_DUYET`, gọi `kiemTraDieuKienApDung`, rồi gọi `apDung`, rồi chuyển `DA_AP_DUNG`, rồi ghi nhật ký;
-  - `UNIQUE (yeu_cau_phe_duyet_id)` trên bảng `ket_qua_ap_dung` chặn trùng ngay cả khi có lỗi logic;
+  - `UNIQUE (yeu_cau_phe_duyet_id)` trên bảng `ket_qua_ap_dung` chặn trùng ngay cả khi có lỗi logic; *(R-15: `ket_qua_ap_dung` → `yeu_cau_phe_duyet` (cột))*
   - lần kích hoạt sau thấy trạng thái đã kết thúc thì không làm gì.
 - **Lỗi khi áp dụng (FR-037b)**: transaction rollback, yêu cầu vẫn `DA_DUYET`. Một transaction riêng (`REQUIRES_NEW`) ghi nhật ký `AP_DUNG_LOI` kèm nguyên nhân.
 - **Điều kiện không thỏa (FR-038)**: chuyển `AP_DUNG_KHONG_THANH`, ghi `dieuKienChuaThoa` vào lý do, phát `YeuCauApDungKhongThanh`.
 - **Bộ lập lịch**:
-  - Spring `@Scheduled`; mỗi lần chạy có một dòng `lan_chay_lich` (id, job, bắt đầu, kết thúc, kết quả), dùng làm "định danh lần chạy" trong căn cứ nhật ký (FR-045);
+  - Spring `@Scheduled`; mỗi lần chạy có một dòng `lan_chay_lich` (id, job, bắt đầu, kết thúc, kết quả), dùng làm "định danh lần chạy" trong căn cứ nhật ký (FR-045); *(R-15: `lan_chay_lich` → file `logs/jobs.log`)*
   - job `ApDungYeuCauDenHan` chạy lúc 00:05 hằng ngày và khi ứng dụng khởi động. Nó lấy mọi yêu cầu `DA_DUYET` có `ngay_hieu_luc_thuc_te <= hôm nay`, sắp theo `(ngay_hieu_luc_thuc_te, thoi_diem_quyet_dinh)`, áp dụng lần lượt (FR-037a, BR-M15-10);
   - "Áp dụng bù" là yêu cầu có ngày hiệu lực thực tế trước ngày chạy. Nhật ký mang dấu `apDungBu = true` cùng cả hai mốc;
   - job `NhacYeuCauChoDuyet` chạy mỗi 15 phút (chu kỳ kỹ thuật, không phải tham số nghiệp vụ). Hai cột `da_nhac_luc` và `da_bao_qlv_luc` chống nhắc lặp. Cách tính theo giờ liên tục từ `thoi_diem_gui_duyet`. Khi không còn người duyệt thì báo Quản lý viện ngay ở mốc CFG-M15-05 (BR-M15-09).
@@ -389,3 +391,36 @@ Hàng đợi trên thiết bị dùng drift (SQLite) trong app nhân viên. Quy 
   - Web dùng Vitest và React Testing Library cho màn hình tham số, nhật ký (hiện "đã thay đổi"), duyệt yêu cầu, xử lý 412;
   - Flutter dùng `flutter_test` cho màn duyệt yêu cầu trên app nhân viên.
   - Không có BR của 000 thực hiện ở client nên không bắt buộc test BR ở client (XV); các test trên kiểm tra hiển thị.
+---
+
+## R-15. Gộp bảng cơ sở dữ liệu (bổ sung 2026-10-29, sửa cùng ngày lần 2, chủ dự án duyệt)
+
+**Quyết định**: Giảm số bảng từ khoảng 300 (data-model của 20 feature) xuống 79 (chủ dự án chốt 2026-10-29). Không đổi nghiệp vụ, API, quyền. Ánh xạ từng bảng ở mục "0. Gộp bảng theo R-15" đầu data-model của mỗi feature; phần mô tả bảng cũ bên dưới vẫn là căn cứ cột và ràng buộc.
+
+1. **Luật gộp**:
+   - **Nhóm theo dòng** (constitution XII, 3.2.0): một bảng được chứa dòng nhóm 2 và nhóm 3. Dòng nhóm 3, hoặc dòng nhóm 2 đã khóa (xác nhận, chốt, đóng), có `khoa_luc NOT NULL`; trigger `BEFORE UPDATE` chặn đổi mọi cột của dòng đã khóa, trừ các cột trạng thái dẫn xuất được liệt kê ở data-model của bảng; trigger `BEFORE DELETE` theo R-05. Lớp quyền tài khoản theo bảng của R-05 chỉ còn áp cho bảng chỉ chứa nhóm 3 (`nhat_ky`, `dinh_chinh`, `lich_su_tham_so`, `lich_su_chung`, `su_kien_chung`);
+   - bản ghi con gộp vào cha khi quan hệ 1–1 hoặc ghi một lần cùng cha (cột hoặc `JSON`); bản ghi con ghi thêm dần thành dòng của `su_kien_chung`;
+   - giữ bảng riêng khi có `CHECK`, `UNIQUE`, khóa ngoại bảo đảm BR, DBR mà bảng chung không biểu diễn được, hoặc là đích tham chiếu của nhiều bảng: `lich_su_trang_thai_giuong` (BR-M03-10), `lich_su_tham_so` (DBR-24), `nhan_vien_bo_phan` (DBR-36), `phien_ban_don_gia` (DBR-08), `ban_giao_do_gui` (BR-M15-03), `dose_result` (006: đích của đính chính `M07.DOSE_RESULT`, tách nhóm 3 khỏi lịch liều), `device_credential` (002: tra mã băm mỗi lần đăng nhập), `push_device` (009: token đẩy do 009 quản lý, không mở API sang 002);
+   - ràng buộc duy nhất của bảng cũ chuyển thành cột `khoa_duy_nhat VARCHAR(200) NULL UNIQUE` do backend đặt theo luật của từng `loai` (đặt `NULL` khi dòng hết hiệu lực); test tích hợp của module chứng minh từng ràng buộc;
+   - cột trong `JSON` mà job quét hoặc báo cáo lọc thì thêm cột sinh có chỉ mục (migration của module sở hữu, tên cột có tiền tố module).
+2. **Bảy bảng dùng chung** (data-model 000 mục 8):
+   - `danh_muc_chung` (nhóm 1): mọi danh mục, kể cả danh mục có thuộc tính chuyên môn (`thuoc` và hoạt chất, `mon_an` và thành phần dị ứng, xác nhận của Bác sĩ, `dich_vu`, `giay_phep_co_so`, `vai_tro`, `tang`, `khu_vuc`); thuộc tính riêng trong `thuoc_tinh JSON`, kiểm bằng JSON Schema của `loai`. Thuộc tính theo phiên bản vẫn ở bảng phiên bản (`phien_ban_don_gia`);
+   - `lich_su_chung` (nhóm 3): lịch sử trạng thái, lịch sử phụ trách dạng "từ … đến …";
+   - `su_kien_chung` (nhóm 3): mọi bản ghi con ghi thêm dần (ý kiến, phản hồi, diễn biến, kết quả gọi, lần gửi, sai lệch, điểm danh, kết quả kiểm tra, bàn giao trong quy trình) và bản ghi nhóm 3 nhỏ không có bảng cha riêng;
+   - `ho_so_chung` (nhóm 2, khóa theo dòng): đối tượng nhỏ có máy trạng thái đơn giản, không là đích khóa ngoại của bảng khác ngoài bảng chung; nội dung trong `noi_dung JSON`, máy trạng thái ở lớp domain của module;
+   - `moc_da_nhac` (kỹ thuật, chỉ thêm): dấu "đã nhắc", "đã cảnh báo", "đã xử lý sự kiện", lần chạy cần biết đã chạy;
+   - `khoa_ky_thuat` (kỹ thuật): dòng chỉ dùng để khóa (`SELECT … FOR UPDATE`);
+   - `trang_thai_nct` (nhóm 2 kỹ thuật): thay mọi bảng `*_nct` của module, khóa chính `(nct_id, module)`, dữ liệu riêng trong `du_lieu JSON`.
+   `danh_muc_chung`, `lich_su_chung`, `su_kien_chung`, `ho_so_chung`, `trang_thai_nct` thuộc phần mới `m15.shared`; module ghi, đọc qua `CatalogApi`, `StatusHistoryApi`, `RecordEventApi`, `SimpleRecordApi`, `ResidentModuleStateApi` ở `m15.shared.api` (constitution X: không truy cập trực tiếp dữ liệu module khác; mỗi dòng ghi `module` sở hữu, API chỉ cho module đọc, ghi dòng của mình trừ khi `loai` khai báo cho đọc chung). `moc_da_nhac`, `khoa_ky_thuat` ở `common` (`ReminderMarkers`, `TechnicalLocks`). Job loại bỏ dữ liệu (R-11) xóa dòng bảng chung theo `(loai_doi_tuong, doi_tuong_id)` hoặc `nct_id` của chuỗi bản ghi module trả về.
+3. **Nhật ký nghiệp vụ giữ trong cơ sở dữ liệu** (`nhat_ky`, R-06): nghiệp vụ 19.4, BR-M15-11, NFR-07. Các bảng "lần xuất", "lần in", "lần xem" (010, 007, 012) thành hành động nhật ký.
+4. **Log kỹ thuật ra file**: lần chạy job (`scheduler_run`, `m07_job_run`, `m09_job_run`, `m13_job_run`) ghi bằng structured logging của Spring Boot (`logging.structured.format.file`), file `logs/jobs.log`, xoay theo ngày, giữ 180 ngày, sao lưu cùng thư mục log (backend/docs/operations.md). Mã lần chạy (UUID) đưa vào MDC `jobRunId` và `can_cu.lanChayLichId` của nhật ký (FR-045). Nhật ký giữ 10 năm (NFR-07) còn file log giữ 180 ngày, nên bản ghi nhật ký của Bộ lập lịch phải tự đủ căn cứ: ghi cả mã job, thời điểm chạy và mã quy tắc hoặc yêu cầu phê duyệt (FR-045); mã lần chạy chỉ dùng để tra chi tiết trong 180 ngày. Giữ trong cơ sở dữ liệu: `khoa_lap_lai`, `event_publication`, `shedlock`.
+5. **Bảng đã cài**: không sửa migration cũ. Mỗi chủ module viết migration mới: tạo hoặc mở rộng bảng gộp, chép dữ liệu, đổi khóa ngoại, `DROP TABLE` bảng cũ. Dòng chép ghi `legacy = {bang, id}` trong `JSON` của dòng; tệp đính kèm (`tep.chu_so_huu_id`) cập nhật theo id mới trong cùng migration. Bảng là đích của `dinh_chinh` hoặc được `nhat_ky` trỏ theo id: bảng gộp giữ nguyên id của bảng đó (bảng gộp vào cấp id mới), `loaiBanGhi` của đính chính và `doi_tuong_loai` của nhật ký cũ được ánh xạ sang loại mới ở lớp đọc (không sửa dòng nhật ký). Migration chung của A (`V000_09`) tạo bảy bảng, trigger, quyền trước migration module. *(Bổ sung cùng ngày)* Migration gộp của module đánh số `V<NNN>_95` để chạy sau dữ liệu mẫu `demo/V<NNN>_90…` trên cơ sở dữ liệu mới (Flyway xếp theo số; ví dụ `demo/V002_90` ghi `account_status_history`, `role_assignment` nên phải chạy trước `V002_95`); không sửa script demo đã chạy (đổi checksum), dữ liệu mẫu cũ được migration gộp chép như dữ liệu thật; script demo viết sau khi gộp đánh số từ `_97` và ghi vào bảng mới. Phần module thêm vào bảng dùng chung (cột sinh, chỉ mục) đặt ở file riêng `V<NNN>_94__shared_<mô tả>.sql`, A review (CODEOWNERS); không sửa định nghĩa khác của bảng chung.
+
+**Lý do**: Viện khoảng 40 nhân viên; nhiều bảng chỉ khác tên mà cùng cấu trúc (danh mục, lịch sử, sự kiện con, đối tượng nhỏ có trạng thái, dấu đã nhắc, khóa). Chủ dự án đặt mục tiêu 70–80 bảng để migration, entity, test và sao lưu gọn hơn.
+
+**Đánh đổi chấp nhận**: bản ghi trong bảng chung mất cột có kiểu, khóa ngoại và `CHECK` riêng; bảo đảm chuyển về lớp domain, service của module và test tích hợp (constitution XII: DBR được bảo đảm bằng ràng buộc cơ sở dữ liệu hoặc kiểm tra ở backend, plan chỉ rõ cách). Báo cáo (016) đọc qua API của module như trước, không đọc JSON trực tiếp. Bảo vệ nhóm 3 ở cơ sở dữ liệu với bảng chứa nhiều nhóm dựa vào trigger theo dòng thay cho quyền theo bảng.
+
+**Phương án đã cân nhắc**:
+- Bản 1 cùng ngày (khoảng 190 bảng, giữ luật nhóm theo bảng): thay bằng bản này theo yêu cầu 70–80 bảng của chủ dự án.
+- Rút gọn nghiệp vụ để giảm bảng (Q-398 → Q-401 đề xuất: danh sách tiếp xúc, phiếu bữa ăn, kiểm tra chất lượng, người thân ở lại): không cần cho mục tiêu số bảng sau khi có `ho_so_chung`, `su_kien_chung`; chủ dự án xét riêng.
+- Ghi nhật ký nghiệp vụ ra file: bị loại vì mất màn xem lịch sử theo quyền và không bảo đảm giữ 10 năm cùng hồ sơ.

@@ -166,6 +166,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 - [ ] T037 Chạy kiểm thử đầu–cuối với sự kiện thật của 001 → 008 (một sự kiện mỗi module) và đo NFR-03 (Khẩn cấp ≤ 10 giây)
 - [ ] T038 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
 - [ ] T039 Rà truy vết data-model mục 11: BR-M13-01 → 05, FR-007 (f), FR-022a, BR-M10-06 (phần 009), DBR-03 (phần 009), FR-005, FR-012, FR-032, FR-001a, FR-014 và FR-014a (bổ sung 2026-10-18) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-039, FR-040, FR-041, FR-042, FR-043, FR-043a, FR-043b — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T043 *(bổ sung 2026-10-29, research R-15 bản 2 của 000; chờ A xong 000 T108)* Gộp bảng đã cài theo data-model mục 0: migration `V009_95` tạo bảng gộp hoặc cột `JSON`, chép dữ liệu (dòng chép sang bảng chung ghi `chi_tiet.legacy`), đổi khóa ngoại và `tep.chu_so_huu_id`, `DROP TABLE` bảng cũ; giữ id của bảng nhóm 3 là đích của `dinh_chinh`, `nhat_ky` (R-15 mục 5); sửa entity, lớp truy cập dữ liệu, service sang `CatalogApi`, `StatusHistoryApi`, `RecordEventApi`, `SimpleRecordApi`, `ResidentModuleStateApi`, `ReminderMarkers`, `TechnicalLocks`; job ghi lần chạy ra file log. Test: toàn bộ test của module xanh như trước khi gộp, test bảo vệ nhóm dữ liệu (trigger, quyền `eldercare_app`) cho bảng gộp, test migration chép đủ số dòng trên dữ liệu demo; không đổi API (`ApiContractIT` xanh)
 
 ---
 

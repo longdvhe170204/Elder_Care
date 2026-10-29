@@ -41,9 +41,9 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 - [ ] T003 [P] Tạo `BE/m11/api/`: `ChiPhiCongNguoiThanApi`, `ChiPhiKyCuoiApi`, `ChiPhiThongKeApi`, record `SuKienTinhPhiNguon`, `SuKienTinhPhiNguonDaDoi` (cho 011, 012, 014 phát) và sự kiện `BangChiPhiDaChot`, `DeNghiMuaHoDaGui/DaQuyetDinh/DaHuy/DaMua`, `KhoanChiPhiDaDoi` (thông báo cài `CoYeuCauThongBao`, loại `CHI_PHI`, không tên thuốc) (contracts mục 1.2 → 1.6); bổ sung 2026-10-18 (009 FR-001a): sự kiện có người nhận là người thân khai `doiTuongThongTin` theo research P-13, test hợp đồng kiểm mọi yêu cầu tới người thân có đối tượng
 - [ ] T004 [P] Tạo port nội bộ `BE/m11/cungcap/port/ChiPhiChoSoDuPort.java` (`tongChuaChot`, `phiNgayCoSo`) và `BE/m11/muaho/port/SoDuMuaHoPort.java` (`soDuKhongDu`; không có bean thì không đặt dấu) (research P-12)
-- [ ] T005 Tạo `MIG/V010_01__chi_phi.sql`: `chi_phi_nct` (`nct_id` khóa chính, `mien_hoan_thanh_tu`), `ky_chi_phi` (`thang` `UNIQUE`; `trang_thai` `DANG_MO|CHO_CHOT|DA_CHOT`; `han_chot`), `bang_chi_phi` (`UNIQUE (ky_id, nct_id, loai_bang)`; `loai_bang` `THUONG|BO_SUNG`; `trang_thai` `DANG_MO|CHO_CHOT|DA_CHOT`; trigger sau chốt chỉ cho đặt `lan_xuat_dau_id` từ `NULL`), `bang_chi_phi_tong_loai` (nhóm 3), `khoan_chi_phi` (`loai_chi_phi ENUM` 10 loại FR-014a; `nguon_sinh ENUM('THEO_SU_KIEN','NHAP_TAY','MUA_HO','DIEU_CHINH')`; `so_tien NULL` khi `THIEU_DON_GIA`; `dau SET(...)` 10 giá trị ở data-model mục 4; `trang_thai ENUM('NHAP','DA_KIEM_TRA','DA_DUYET','DA_CHOT','DA_HUY')`; cột sinh `khoa_don_vi_hieu_luc` `UNIQUE`; năm chỉ mục; trigger chặn đổi khi `DA_CHOT`/`DA_HUY` và chặn đổi số tiền khi không có `@tinh_lai`), `lich_su_tinh_lai` (nhóm 3), `su_kien_tinh_phi` (khóa chính `(loai_nguon, nguon_id, don_vi)`), `su_kien_nguon_da_xu_ly`, `lan_chay_m11` (data-model mục 2 → 5)
+- [ ] T005 Tạo `MIG/V010_01__chi_phi.sql`: `chi_phi_nct` (`nct_id` khóa chính, `mien_hoan_thanh_tu`), `ky_chi_phi` (`thang` `UNIQUE`; `trang_thai` `DANG_MO|CHO_CHOT|DA_CHOT`; `han_chot`), `bang_chi_phi` (`UNIQUE (ky_id, nct_id, loai_bang)`; `loai_bang` `THUONG|BO_SUNG`; `trang_thai` `DANG_MO|CHO_CHOT|DA_CHOT`; trigger sau chốt chỉ cho đặt `lan_xuat_dau_id` từ `NULL`), `bang_chi_phi_tong_loai` (nhóm 3), `khoan_chi_phi` (`loai_chi_phi ENUM` 10 loại FR-014a; `nguon_sinh ENUM('THEO_SU_KIEN','NHAP_TAY','MUA_HO','DIEU_CHINH')`; `so_tien NULL` khi `THIEU_DON_GIA`; `dau SET(...)` 10 giá trị ở data-model mục 4; `trang_thai ENUM('NHAP','DA_KIEM_TRA','DA_DUYET','DA_CHOT','DA_HUY')`; cột sinh `khoa_don_vi_hieu_luc` `UNIQUE`; năm chỉ mục; trigger chặn đổi khi `DA_CHOT`/`DA_HUY` và chặn đổi số tiền khi không có `@tinh_lai`), `lich_su_tinh_lai` (nhóm 3), `su_kien_tinh_phi` (khóa chính `(loai_nguon, nguon_id, don_vi)`), `su_kien_nguon_da_xu_ly`, `lan_chay_m11` (data-model mục 2 → 5) *(R-15: `chi_phi_nct` → `trang_thai_nct`; `ky_chi_phi` → `bang_chi_phi`; `bang_chi_phi_tong_loai` → cột `JSON` của `bang_chi_phi`; `lich_su_tinh_lai` → `lich_su_chung`; `su_kien_nguon_da_xu_ly` → `moc_da_nhac`)*
 - [ ] T006 [P] Cài hàm thuần `BE/m11/tinhgia/internal/LamTronDong.java`, `PhiNgayLuuTru.java` (chia giá tháng), `PhiBuoiBanTru.java`, `ThoiGianTinhPhi.java` và test `BT/m11/LamTronDongTest.java`, `BR_M11_09_ChiaGiaThangTest.java` (12 tháng, SC-002), `PhiBuoiBanTruTest.java`, `ThoiGianTinhPhiTest.java` (research P-05)
-- [ ] T007 Cài `BE/m11/ky/internal/KhoaChiPhi.java` (khóa `chi_phi_nct`, bảng; research P-03) và khung job `BE/m11/lich/ViecHangNgayM11.java` (00:20) và `ViecHangGioM11.java` (ShedLock, chạy bù) với test `BT/m11/ChayBuM11IT.java`
+- [ ] T007 Cài `BE/m11/ky/internal/KhoaChiPhi.java` (khóa `chi_phi_nct`, bảng; research P-03) và khung job `BE/m11/lich/ViecHangNgayM11.java` (00:20) và `ViecHangGioM11.java` (ShedLock, chạy bù) với test `BT/m11/ChayBuM11IT.java` *(R-15: `chi_phi_nct` → `trang_thai_nct`)*
 - [ ] T008 [P] Cài provider: `PhanLoaiTruongProvider` (số tiền, đơn giá, tổng, lý do → `TAI_CHINH`; tên thuốc → `THUOC`), `LuuTruProvider` theo data-model mục 10, `GanPhamViProvider`, `QuyenTepProvider` `M11.CHUNG_TU_MUA_HO`; không đăng ký `DinhChinhDuocProvider`
 
 **Checkpoint**: Nền 010 sẵn sàng.
@@ -62,7 +62,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 ### Implementation cho User Story 1
 
-- [ ] T010 [US1] Cài listener chỉ mục `BE/m11/nguon/internal/ChiMucSuKienListener.java` cho `KetQuaCoTinhPhi` (005), `SuKienTinhPhiThuoc` (006), `SuKienTinhPhiNguon` (011, 012, 014); chống trùng `su_kien_nguon_da_xu_ly` (research P-04)
+- [ ] T010 [US1] Cài listener chỉ mục `BE/m11/nguon/internal/ChiMucSuKienListener.java` cho `KetQuaCoTinhPhi` (005), `SuKienTinhPhiThuoc` (006), `SuKienTinhPhiNguon` (011, 012, 014); chống trùng `su_kien_nguon_da_xu_ly` (research P-04) *(R-15: `su_kien_nguon_da_xu_ly` → `moc_da_nhac`)*
 - [ ] T011 [US1] Cài `BE/m11/nguon/internal/TraCuuNguonService.java` (gộp chỉ mục với ngày lưu trú `NgayLuuTruApi` và buổi bán trú tính lúc tra cứu; không lọc "chưa lập khoản") và `LapKhoanService.java` (từng khoản và hàng loạt; tạo bảng `DANG_MO` khi khoản đầu tiên; đơn giá qua `TinhDonGia` US2)
 - [ ] T012 [US1] Tạo `BE/m11/nguon/web/NguonController.java` (`GET /chi-phi/ban-ghi-nguon`, `POST /chi-phi/khoan/theo-su-kien`) và màn web `frontend/src/tinh-nang/chi-phi/tra-cuu-nguon/` (không có bộ lọc "chưa lập khoản", hiển thị nguồn bị bỏ qua) với test Vitest
 
@@ -101,7 +101,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 ### Implementation cho User Story 3
 
-- [ ] T017 [US3] Cài `BE/m11/khoan/internal/KhoanService.java` (bảng chuyển khoản: kiểm tra, bỏ kiểm tra, duyệt có lý do chấp nhận vượt, trả lại, hủy) và `BE/m11/ky/internal/BangChiPhiService.java` (gửi chốt với `BienDongKy`, trả lại, chốt nguyên tử dưới khóa bảng: khoản → `DA_CHOT`, `bang_chi_phi_tong_loai`, `tong`, kỳ → `DA_CHOT` khi bảng cuối, phát `BangChiPhiDaChot`) (research P-06 → P-08)
+- [ ] T017 [US3] Cài `BE/m11/khoan/internal/KhoanService.java` (bảng chuyển khoản: kiểm tra, bỏ kiểm tra, duyệt có lý do chấp nhận vượt, trả lại, hủy) và `BE/m11/ky/internal/BangChiPhiService.java` (gửi chốt với `BienDongKy`, trả lại, chốt nguyên tử dưới khóa bảng: khoản → `DA_CHOT`, `bang_chi_phi_tong_loai`, `tong`, kỳ → `DA_CHOT` khi bảng cuối, phát `BangChiPhiDaChot`) (research P-06 → P-08) *(R-15: `bang_chi_phi_tong_loai` → cột `JSON` của `bang_chi_phi`)*
 - [ ] T018 [US3] Đăng ký việc hằng ngày: tạo kỳ ngày 1, `DANG_MO → CHO_CHOT` hết tháng (`han_chot` CFG-M11-01), gỡ dấu lập trước, nhắc hạn chốt và người chưa có bảng thường
 - [ ] T019 [US3] Tạo `BE/m11/khoan/web/KhoanController.java` (`GET /chi-phi/khoan/{id}`, `POST /chi-phi/khoan/kiem-tra`, `/{id}/bo-kiem-tra`, `/duyet`, `/{id}/tra-lai`, `/{id}/huy`) và `BE/m11/ky/web/BangController.java` (`GET /chi-phi/bang`, `/{id}`, `POST /{id}/gui-chot`, `/tra-lai`, `/chot` với `If-Match`, `GET /chi-phi/ky`); màn web `frontend/src/tinh-nang/chi-phi/bang-chi-phi/`
 
@@ -117,12 +117,12 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 ### Tests cho User Story 4
 
-- [ ] T020 [P] [US4] Test `BT/m11/BR_M11_05_TinhLaiIT.java`, `FR_027_BaoSauChotIT.java`, `FR_026_TongKhongAmIT.java`: tính lại ghi `lich_su_tinh_lai`; khoản Đã kiểm tra/Đã duyệt về Nháp; sau chốt chỉ ghi biến động, không tính sẵn số chênh lệch; điều chỉnh vượt làm tổng âm bị chặn (Q7, Q25, Q26)
+- [ ] T020 [P] [US4] Test `BT/m11/BR_M11_05_TinhLaiIT.java`, `FR_027_BaoSauChotIT.java`, `FR_026_TongKhongAmIT.java`: tính lại ghi `lich_su_tinh_lai`; khoản Đã kiểm tra/Đã duyệt về Nháp; sau chốt chỉ ghi biến động, không tính sẵn số chênh lệch; điều chỉnh vượt làm tổng âm bị chặn (Q7, Q25, Q26) *(R-15: `lich_su_tinh_lai` → `lich_su_chung`)*
 
 ### Implementation cho User Story 4
 
-- [ ] T021 [US4] Cài listener nguồn đổi `BE/m11/nguon/internal/NguonDoiListener.java` (`KetQuaTinhPhiDaDinhChinh`, `SuKienTinhPhiThuocDaDieuChinh/DaDinhChinh`, `NgayLuuTruDaDoi`, `TrangThaiCoMatDaDoi`, `NgayNghiBanTruDaDoi`, `BaoVangBanTruDaGhi`, `SuKienTinhPhiNguonDaDoi`): tính lại với `@tinh_lai`, về Nháp, hủy; sau chốt thêm `bien_dong_nguon_sau_chot` và báo Hành chính (research P-06)
-- [ ] T022 [US4] Tạo bảng `bien_dong_nguon_sau_chot` (nhóm 3) trong `MIG/V010_02__bien_dong.sql`; cài `BE/m11/dieuchinh/internal/DieuChinhService.java` (lập khoản điều chỉnh, bảng bổ sung khi kỳ đã chốt, kiểm tổng không âm dưới khóa bảng gốc) và endpoint `POST /chi-phi/khoan/{id}/dieu-chinh`, `GET /chi-phi/bien-dong-sau-chot`; màn web `frontend/src/tinh-nang/chi-phi/dieu-chinh/` (không có số chênh lệch tính sẵn)
+- [ ] T021 [US4] Cài listener nguồn đổi `BE/m11/nguon/internal/NguonDoiListener.java` (`KetQuaTinhPhiDaDinhChinh`, `SuKienTinhPhiThuocDaDieuChinh/DaDinhChinh`, `NgayLuuTruDaDoi`, `TrangThaiCoMatDaDoi`, `NgayNghiBanTruDaDoi`, `BaoVangBanTruDaGhi`, `SuKienTinhPhiNguonDaDoi`): tính lại với `@tinh_lai`, về Nháp, hủy; sau chốt thêm `bien_dong_nguon_sau_chot` và báo Hành chính (research P-06) *(R-15: `bien_dong_nguon_sau_chot` → `su_kien_chung`)*
+- [ ] T022 [US4] Tạo bảng `bien_dong_nguon_sau_chot` (nhóm 3) trong `MIG/V010_02__bien_dong.sql`; cài `BE/m11/dieuchinh/internal/DieuChinhService.java` (lập khoản điều chỉnh, bảng bổ sung khi kỳ đã chốt, kiểm tổng không âm dưới khóa bảng gốc) và endpoint `POST /chi-phi/khoan/{id}/dieu-chinh`, `GET /chi-phi/bien-dong-sau-chot`; màn web `frontend/src/tinh-nang/chi-phi/dieu-chinh/` (không có số chênh lệch tính sẵn) *(R-15: `bien_dong_nguon_sau_chot` → `su_kien_chung`)*
 
 **Checkpoint**: Sai sót xử lý đúng.
 
@@ -158,7 +158,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 ### Implementation cho User Story 6
 
-- [ ] T026 [US6] Tạo `MIG/V010_03__mua_ho.sql`: `de_nghi_mua_ho` (`trang_thai ENUM('NHAP','CHO_DONG_Y','DUOC_PHEP_MUA','TU_CHOI','HUY','DA_MUA')`; `dang_cho_bo_sung`; trigger chặn đổi khi trạng thái cuối), `de_nghi_gui_nguoi_dai_dien`, `quyet_dinh_mua_ho` (nhóm 3; `loai` `DONG_Y|TU_CHOI|RUT_BO_SUNG|XIN_BO_SUNG`)
+- [ ] T026 [US6] Tạo `MIG/V010_03__mua_ho.sql`: `de_nghi_mua_ho` (`trang_thai ENUM('NHAP','CHO_DONG_Y','DUOC_PHEP_MUA','TU_CHOI','HUY','DA_MUA')`; `dang_cho_bo_sung`; trigger chặn đổi khi trạng thái cuối), `de_nghi_gui_nguoi_dai_dien`, `quyet_dinh_mua_ho` (nhóm 3; `loai` `DONG_Y|TU_CHOI|RUT_BO_SUNG|XIN_BO_SUNG`) *(R-15: `de_nghi_mua_ho` → `ho_so_chung`; `de_nghi_gui_nguoi_dai_dien`, `quyet_dinh_mua_ho` → `su_kien_chung`)*
 - [ ] T027 [US6] Cài `BE/m11/muaho/internal/DeNghiMuaHoService.java` (bảng chuyển data-model mục 6; người đại diện qua `NguoiDaiDienPort`; ghi đã mua tạo khoản `MUA_HO`, chứng từ qua `TepApi`; `DeNghiMuaHoPort` cho 006), khoản nhập tay trong `KhoanService.java`, nhắc trong `ViecHangGioM11` (research P-09)
 - [ ] T028 [US6] Tạo endpoint `POST /chi-phi/khoan/nhap-tay`, `/de-nghi-mua-ho`, `/{id}/gui`, `/dong-y`, `/tu-choi`, `/xin-bo-sung`, `/rut-bo-sung`, `/huy`, `/ghi-da-mua`; màn web `frontend/src/tinh-nang/chi-phi/mua-ho/`; app `mobile/lib/nguoi-than/chi-phi/` (đồng ý/từ chối) với test flutter
 
@@ -178,7 +178,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 ### Implementation cho User Story 7
 
-- [ ] T030 [US7] Tạo bảng `lan_xuat_ke_toan`, `lan_xuat_bang` (nhóm 3) trong `MIG/V010_04__xuat.sql`; cài `BE/m11/xuat/internal/XuatKeToanService.java` (nhật ký hành động; đặt `lan_xuat_dau_id`) và `BE/m11/cungcap/internal/` (`ChiPhiCongNguoiThanApi`, `ChiPhiThongKeApi`, `ChiPhiChoSoDuPort`; tên thuốc đọc qua 006 khi được phép) (research P-11)
+- [ ] T030 [US7] Tạo bảng `lan_xuat_ke_toan`, `lan_xuat_bang` (nhóm 3) trong `MIG/V010_04__xuat.sql`; cài `BE/m11/xuat/internal/XuatKeToanService.java` (nhật ký hành động; đặt `lan_xuat_dau_id`) và `BE/m11/cungcap/internal/` (`ChiPhiCongNguoiThanApi`, `ChiPhiThongKeApi`, `ChiPhiChoSoDuPort`; tên thuốc đọc qua 006 khi được phép) (research P-11) *(R-15: `lan_xuat_ke_toan`, `lan_xuat_bang` → hành động `nhat_ky`)*
 - [ ] T031 [US7] Tạo endpoint `POST /chi-phi/ky/{id}/xuat`, `GET /nguoi-cao-tuoi/{nctId}/chi-phi/bang`, `/chi-phi/tam-tinh`; màn web `frontend/src/tinh-nang/chi-phi/xuat-ke-toan/`, `frontend/src/tinh-nang/cong-nguoi-than/chi-phi/`; app người thân phần bảng và tạm tính
 
 **Checkpoint**: Mọi user story của 010 chạy độc lập.
@@ -187,7 +187,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 ### Bổ sung 2026-10-22 (FR-042, bảng giao tiếp "Gửi 017"; Q-378, Q-380)
 
-- [ ] T036 [P] [US7] Test `BT/m11/BangDaChotPortIT.java` (quickstart P1): đủ khoản Đã chốt, tổng theo loại khớp `bang_chi_phi_tong_loai`; khoản thuốc không có tên thuốc; khoản điều chỉnh có kỳ gốc; bảng chưa chốt trả rỗng; thêm ca phí chấm dứt sớm ngoài danh mục (P2) vào `BR_M11_04_NhapTayIT`
+- [ ] T036 [P] [US7] Test `BT/m11/BangDaChotPortIT.java` (quickstart P1): đủ khoản Đã chốt, tổng theo loại khớp `bang_chi_phi_tong_loai`; khoản thuốc không có tên thuốc; khoản điều chỉnh có kỳ gốc; bảng chưa chốt trả rỗng; thêm ca phí chấm dứt sớm ngoài danh mục (P2) vào `BR_M11_04_NhapTayIT` *(R-15: `bang_chi_phi_tong_loai` → cột `JSON` của `bang_chi_phi`)*
 - [ ] T037 [US7] Thêm `bangDaChot` vào `ChiPhiChoSoDuPort` (`BE/m11/cungcap/port/`) và cài trong `BE/m11/cungcap/internal/` (research P-12); cập nhật bản giả cho test của 017 (luật "Đổi api")
 
 ## Phase 10: Polish & Cross-Cutting
@@ -196,6 +196,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 - [ ] T033 Thay bản giả `KyCuoiPort`, `DeNghiMuaHoPort`, `MucViecSauQuaDoiPort` ở test của 004, 006 bằng bản cài của 010 và chạy lại; khi 011, 012, 014, 017 có bản thật chạy lại US1, US6
 - [ ] T034 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
 - [ ] T035 Rà truy vết data-model mục 11: DBR-15, 16, 17, 23 và BR-M11-01 → 09, BR-M02-06 (phần 010), BR-M10-10 (phần 010) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-028, FR-043, FR-044 — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T038 *(bổ sung 2026-10-29, research R-15 bản 2 của 000)* Khi viết migration và entity của feature, áp data-model mục 0: không tạo các bảng đã gộp, dùng bảng gộp, cột `JSON` và bảng chung (`CatalogApi`, `StatusHistoryApi`, `RecordEventApi`, `SimpleRecordApi`, `ResidentModuleStateApi`, `ReminderMarkers`, `TechnicalLocks`); test bảo vệ nhóm dữ liệu viết cho bảng gộp
 
 ---
 

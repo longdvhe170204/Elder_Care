@@ -40,7 +40,7 @@ java -jar backend.jar --eldercare.bootstrap-manager.run-once=true --eldercare.bo
 | `REMIND_PENDING_REQUESTS` | 15 phút một lần | nhắc, báo Quản lý viện theo CFG-M15-05, CFG-M15-06 |
 | `PURGE_EXPIRED_DATA` | 02:30 ngày 1 hằng tháng | loại bỏ dữ liệu hết hạn lưu giữ (FR-051) |
 
-Lịch là thông số kỹ thuật, không phải CFG. Lịch hai job đầu đổi được bằng `eldercare.jobs.apply-due-requests.cron`, `eldercare.jobs.remind-pending-requests.cron` (giá trị `-` là tắt; chỉ profile `test` tắt). ShedLock (bảng `shedlock`) giữ cho mỗi job không chạy chồng khi có nhiều bản ứng dụng. Mỗi lần chạy có một dòng trong `scheduler_run` (`result` là `SUCCEEDED` hoặc `FAILED`); kiểm bảng này khi theo dõi.
+Lịch là thông số kỹ thuật, không phải CFG. Lịch hai job đầu đổi được bằng `eldercare.jobs.apply-due-requests.cron`, `eldercare.jobs.remind-pending-requests.cron` (giá trị `-` là tắt; chỉ profile `test` tắt). ShedLock (bảng `shedlock`) giữ cho mỗi job không chạy chồng khi có nhiều bản ứng dụng. Mỗi lần chạy có một dòng trong `scheduler_run` (`result` là `SUCCEEDED` hoặc `FAILED`); kiểm bảng này khi theo dõi. *(Khi xong 000 T108, research R-15)* Bảng `scheduler_run` bỏ; mỗi lần chạy ghi một dòng JSON vào `logs/jobs.log` (mã lần chạy `jobRunId`, job, bắt đầu, kết thúc, kết quả, số bản ghi xử lý); theo dõi bằng file này.
 
 ## 4. Sao lưu hằng ngày
 
@@ -55,8 +55,9 @@ Lịch là thông số kỹ thuật, không phải CFG. Lịch hai job đầu đ
    `--single-transaction` cho bản chụp nhất quán của bảng InnoDB mà không khóa ứng dụng. Phải có `--triggers`: trigger chỉ ghi thêm của nhóm 3 và nhật ký là một phần của quy tắc (R-05).
 2. Chép bản sao lưu ra nơi lưu trữ khác máy chủ cơ sở dữ liệu (mã hóa khi lưu, vì có dữ liệu sức khỏe).
 3. Xóa bản quá 30 ngày. Không giữ bản sao lưu lâu hơn 30 ngày: bản cũ chứa dữ liệu đã hết hạn lưu giữ và đã bị loại bỏ.
-4. Tệp đính kèm trên AWS S3 (001) sao lưu theo cơ chế của bucket (versioning, lifecycle 30 ngày); cấu hình cụ thể ghi ở plan 001.
-5. Hằng tháng khôi phục thử một bản vào máy riêng, đo thời gian (phải dưới 4 giờ), ghi kết quả.
+4. *(Khi xong 000 T108, research R-15)* Thư mục `logs/` của máy chủ ứng dụng (lần chạy job, xoay theo ngày): nén file của ngày trước, chép ra nơi lưu trữ cùng bản sao lưu cơ sở dữ liệu; giữ 180 ngày rồi xóa (cấu hình `logging.file.*` và `logging.structured.format.file` trong `application.yml`).
+5. Tệp đính kèm trên AWS S3 (001) sao lưu theo cơ chế của bucket (versioning, lifecycle 30 ngày); cấu hình cụ thể ghi ở plan 001.
+6. Hằng tháng khôi phục thử một bản vào máy riêng, đo thời gian (phải dưới 4 giờ), ghi kết quả.
 
 ## 5. Khôi phục
 

@@ -8,14 +8,24 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ---
 
+## 0. Gộp bảng theo R-15 *(bổ sung 2026-10-29, bản 2)*
+
+Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/research.md) (bản 2, chủ dự án duyệt 2026-10-29, constitution XII 3.2.0); không đổi nghiệp vụ, API, quyền. Mô tả bảng ở các mục sau vẫn là căn cứ cột và ràng buộc: bảng gộp mang đủ cột của bảng cũ (cột riêng vào `JSON` hoặc cột `NULL` có `CHECK` theo `loai`); ràng buộc duy nhất thành `khoa_duy_nhat`; dòng nhóm 3 hoặc đã khóa có `khoa_luc` và trigger theo dòng. Bảy bảng chung ở [data-model 000 mục 8](../000-shared-foundation/data-model.md): `danh_muc_chung`, `lich_su_chung`, `su_kien_chung`, `ho_so_chung`, `trang_thai_nct`, `moc_da_nhac`, `khoa_ky_thuat`. Khi cài thấy bảng nào không thể gộp mà vẫn giữ được BR, DBR thì giữ và ghi lý do ở plan.
+
+- `ho_so_chung`: `yeu_cau_doi_ca`, `yeu_cau_nghi` (máy trạng thái hai bước ở domain của module; `khoa_duy_nhat` thay `yeu_cau_ca_mo`: một ca không nằm trong hai yêu cầu đang mở).
+- `su_kien_chung`: `nghi_theo_ngay`.
+- Còn 0 bảng riêng của feature.
+
+---
+
 ## 1. Tổng quan
 
 | Bảng | Nhóm (1.5) | Mục spec |
 | --- | --- | --- |
-| `yeu_cau_doi_ca` | 2 | D |
-| `yeu_cau_nghi`, `yeu_cau_nghi_muc` | 2 | E |
-| `nghi_theo_ngay` | 3 | E (FR-026a) |
-| `yeu_cau_ca_mo` | Kỹ thuật | D, E (một yêu cầu mở mỗi ca, nhân viên) |
+| `yeu_cau_doi_ca` | 2 | D *(R-15: `yeu_cau_doi_ca` → `ho_so_chung`)* |
+| `yeu_cau_nghi`, `yeu_cau_nghi_muc` | 2 | E *(R-15: `yeu_cau_nghi` → `ho_so_chung`)* |
+| `nghi_theo_ngay` | 3 | E (FR-026a) *(R-15: `nghi_theo_ngay` → `su_kien_chung`)* |
+| `yeu_cau_ca_mo` | Kỹ thuật | D, E (một yêu cầu mở mỗi ca, nhân viên) *(R-15: `yeu_cau_ca_mo` → `khoa_duy_nhat` của `ho_so_chung`)* |
 | `lan_chay_m09xc` | Kỹ thuật | Job |
 
 Cột 015 trên bảng 008 (`ca_nhan_vien.nghi_co_duyet_yeu_cau_id`, `can_cu_vao_ca`, `can_cu_roi_ca`, `roi_ca_luc`) đã khai ở data-model 008.
@@ -28,7 +38,7 @@ Cột 015 trên bảng 008 (`ca_nhan_vien.nghi_co_duyet_yeu_cau_id`, `can_cu_vao
 
 ---
 
-## 4. `yeu_cau_doi_ca` – nhóm 2 (mục D)
+## 4. `yeu_cau_doi_ca` – nhóm 2 (mục D) → gộp theo R-15: `yeu_cau_doi_ca` → `ho_so_chung`
 
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
@@ -53,7 +63,7 @@ Cột 015 trên bảng 008 (`ca_nhan_vien.nghi_co_duyet_yeu_cau_id`, `can_cu_vao
 
 ## 5. Nghỉ đột xuất (mục E)
 
-### `yeu_cau_nghi` – nhóm 2
+### `yeu_cau_nghi` – nhóm 2 → gộp theo R-15: `yeu_cau_nghi` → `ho_so_chung`
 
 `yeu_cau_id` (khóa chính, loại `M09.NGHI_DOT_XUAT`), `dang` (`THEO_CA`, `THEO_NGAY`), `nhan_vien_id`, `pham_vi_loai`, `tang_khu_vuc_id NULL`, `lap_boi_id`, `lap_thay`, `ly_do` (`LY_DO_NHAN_SU`), `trang_thai` (`CHO_DUYET`, `DA_AP_DUNG`, `DA_AP_DUNG_MOT_PHAN`, `TU_CHOI`, `DA_HUY`, `HET_HIEU_LUC`), `nguoi_duyet_id`, `tu_duyet`, `moc_som_nhat`, `da_nhac_luc`.
 
@@ -67,11 +77,11 @@ Cột 015 trên bảng 008 (`ca_nhan_vien.nghi_co_duyet_yeu_cau_id`, `can_cu_vao
 | `CHO_DUYET` | Mọi ca/ngày đã rời; nghỉ việc | `HET_HIEU_LUC` | Hệ thống |
 | `CHO_DUYET` (theo ngày) | Lịch tháng công bố | `CHO_DUYET` (theo ca) | Hệ thống |
 
-### `nghi_theo_ngay` – nhóm 3
+### `nghi_theo_ngay` – nhóm 3 → gộp theo R-15: `nghi_theo_ngay` → `su_kien_chung`
 
 `nhan_vien_id`, `ngay`, `yeu_cau_id`; `UNIQUE (nhan_vien_id, ngay)`.
 
-### `yeu_cau_ca_mo` – kỹ thuật
+### `yeu_cau_ca_mo` – kỹ thuật → gộp theo R-15: `yeu_cau_ca_mo` → `khoa_duy_nhat` của `ho_so_chung`
 
 `ca_id`, `nhan_vien_id`, `yeu_cau_id`; `UNIQUE (ca_id, nhan_vien_id)`. Ghi khi lập; xóa khi yêu cầu vào trạng thái cuối hoặc mục rời yêu cầu.
 
@@ -88,5 +98,5 @@ Cột 015 trên bảng 008 (`ca_nhan_vien.nghi_co_duyet_yeu_cau_id`, `can_cu_vao
 | DBR-21 (008) | Thêm vào ca qua `CaLenhPort.themVaoCa` (kiểm chồng giờ dưới khóa `nhan_vien`) |
 | DBR-25 | Giờ ca theo Asia/Ho_Chi_Minh |
 | BR-M09-10 | Vòng đời đổi ca; `KiemTraDoiCa` lúc duyệt |
-| Một yêu cầu mở mỗi (ca, nhân viên) | `yeu_cau_ca_mo` `UNIQUE` |
-| Nhóm 3 (000) | Trigger trên `nghi_theo_ngay` |
+| Một yêu cầu mở mỗi (ca, nhân viên) | `yeu_cau_ca_mo` `UNIQUE` *(R-15: `yeu_cau_ca_mo` → `khoa_duy_nhat` của `ho_so_chung`)* |
+| Nhóm 3 (000) | Trigger trên `nghi_theo_ngay` *(R-15: `nghi_theo_ngay` → `su_kien_chung`)* |

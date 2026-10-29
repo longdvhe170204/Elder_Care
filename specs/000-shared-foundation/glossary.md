@@ -210,7 +210,7 @@ Loại yêu cầu, loại bản ghi của module khác (ví dụ `M02.THAY_DOI_L
 | `yeu_cau_phe_duyet`, `ket_qua_ap_dung` | `approval_request`, `application_result` |
 | `dinh_chinh`, `chuoi_dinh_chinh` | `correction`, `correction_chain` |
 | `khoa_lap_lai` (`khoa`, `nguoi_dung_id`, `ma_bam_yeu_cau`, `ket_qua_json`, `het_han_luc`) | `idempotency_key` (`key_value`, `username`, `request_hash`, `result_json`, `expires_at`) |
-| `lan_chay_lich` | `scheduler_run` |
+| `lan_chay_lich` | `scheduler_run` *(bỏ theo R-15 khi xong T108: lần chạy ra `logs/jobs.log`)* |
 | `event_publication`, `shedlock` | giữ nguyên (Spring Modulith, ShedLock) |
 | `v_dinh_chinh_moi_nhat`, `v_ban_ghi_da_huy` | `v_latest_correction`, `v_voided_record` |
 | `trg_<bang>_khong_sua`, `trg_<bang>_khong_xoa` | `trg_<table>_no_update`, `trg_<table>_no_delete` |
@@ -313,6 +313,25 @@ Loại yêu cầu, loại bản ghi của module khác (ví dụ `M02.THAY_DOI_L
 | `MaTruongHopQ354` (`KHAN_CAP_NGUOI_LIEN_HE_CHINH`, `DANH_SACH_TIEP_XUC`, `XAC_NHAN_LAI_NGUYEN_VONG`, `CHUYEN_VIEN`, `QUA_DOI`) | `Q354Case` (`PRIMARY_CONTACT_EMERGENCY`, `CONTACT_LIST`, `WISH_RECONFIRMATION`, `TRANSFER`, `DEATH`) |
 | `NhomNhan` (`VaiTroToanVien`, `NguoiCoQuyenDuyet`…), `CachThay` (`MAC_DINH`, `KHONG_THAY`, `NGUOI_THAY_CHI_DINH`) | `RecipientGroup` (`FacilityRole`, `Approvers`…; 009 dịch các biến thể còn lại), `Substitution` (`Default`, `NoSubstitute`, `Designated`) |
 | test `ModuleBoundaryTest`, `HopDongApiTest` | `ModuleBoundaryTest`, `ApiContractIT` |
+
+### 6.6. Bảng dùng chung sau gộp *(bổ sung 2026-10-29, research R-15; sửa lần 2 cùng ngày)*
+
+| Tên logic | Mã |
+| --- | --- |
+| phần `m15.shared` | `m15.shared` (`CatalogApi`, `StatusHistoryApi`, `RecordEventApi`, `SimpleRecordApi`, `ResidentModuleStateApi`) |
+| `danh_muc_chung` (`loai`, `module`, `ma`, `ten`, `cha_id`, `thu_tu`, `trang_thai`, `ten_hieu_luc`, `thuoc_tinh`, `xac_nhan_boi`, `xac_nhan_luc`, `phien_ban`) | `catalog_item` (`catalog_type`, `module`, `code`, `name`, `parent_id`, `sort_order`, `status`, `active_name`, `attributes`, `confirmed_by`, `confirmed_at`, `version`) |
+| `lich_su_chung` (`loai_doi_tuong`, `doi_tuong_id`, `thuoc_tinh`, `kieu`, `gia_tri_truoc`, `gia_tri`, `gia_tri_id`, `tu`, `den`, `lenh`, `nguoi_thuc_hien_id`, `do_he_thong`, `ly_do`, `can_cu_loai`, `can_cu_id`, `chi_tiet`, `khoa_mo`) | `status_history` (`entity_type`, `entity_id`, `attribute`, `kind`, `value_before`, `value`, `value_id`, `starts_at`, `ends_at`, `command`, `actor_id`, `by_system`, `reason`, `basis_type`, `basis_id`, `details`, `open_key`) |
+| `kieu` `MOC`, `KHOANG` | `POINT`, `PERIOD` |
+| `su_kien_chung` (`loai`, `noi_dung`, `tra_loi_cho_id`, `thoi_diem_xac_nhan`, `khoa_duy_nhat`) | `record_event` (`kind`, `content`, `reply_to_id`, `confirmed_at`, `unique_key`) |
+| `ho_so_chung` (`loai`, `nct_id`, `trang_thai`, `noi_dung`, `hieu_luc_tu`, `hieu_luc_den`, `khoa_duy_nhat`, `khoa_luc`) | `simple_record` (`kind`, `resident_id`, `status`, `content`, `effective_from`, `effective_to`, `unique_key`, `locked_at`) |
+| `trang_thai_nct` (`nct_id`, `module`, `du_lieu`) | `resident_module_state` (`resident_id`, `module`, `data`) |
+| `moc_da_nhac` (`loai`, `moc`) | `reminder_marker` (`kind`, `marker`); lớp `ReminderMarkers` (`common`) |
+| `khoa_ky_thuat` (`khoa`) | `technical_lock` (`lock_key`); lớp `TechnicalLocks` (`common`) |
+| cột `ma_khoa` của `danh_muc_chung` | `code_key` |
+| bảng gộp của feature đã cài: `nguyen_vong` (001), `quyen_tai_khoan`, `thiet_bi_xac_thuc` (002), `lan_giao_nhan_thuoc` (006, mở rộng `medication_handover`) | `wish`, `permission_assignment`, `device_credential`, `medication_handover`; cột phân loại `kind` |
+| cột `khoa_luc`, trigger `trg_<bang>_khoa_dong` | `locked_at`, `trg_<table>_row_lock` |
+| `legacy` (`bang`, `id`) | `legacy` (`table`, `id`) |
+| file log lần chạy job | `logs/jobs.log`; khóa MDC `jobRunId` |
 
 ## 7. Feature 002 *(bổ sung 2026-10-19, khi dịch `contracts/api-002.yaml`)*
 

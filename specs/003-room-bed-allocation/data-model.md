@@ -6,19 +6,65 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ---
 
+## 0. Gộp bảng theo R-15 *(bổ sung 2026-10-29, bản 2)*
+
+Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/research.md) (bản 2, chủ dự án duyệt 2026-10-29, constitution XII 3.2.0); không đổi nghiệp vụ, API, quyền. Mô tả bảng ở các mục sau vẫn là căn cứ cột và ràng buộc: bảng gộp mang đủ cột của bảng cũ (cột riêng vào `JSON` hoặc cột `NULL` có `CHECK` theo `loai`); ràng buộc duy nhất thành `khoa_duy_nhat`; dòng nhóm 3 hoặc đã khóa có `khoa_luc` và trigger theo dòng. Bảy bảng chung ở [data-model 000 mục 8](../000-shared-foundation/data-model.md): `danh_muc_chung`, `lich_su_chung`, `su_kien_chung`, `ho_so_chung`, `trang_thai_nct`, `moc_da_nhac`, `khoa_ky_thuat`. Khi cài thấy bảng nào không thể gộp mà vẫn giữ được BR, DBR thì giữ và ghi lý do ở plan.
+
+- Giữ, gộp: `phong` (mức chăm sóc cho phép thành `JSON`); `giuong`; `lich_su_trang_thai_giuong` (`CHECK` BR-M03-10); `phan_bo_giuong`. Tài sản của 019 (M03): `tai_san`, xem data-model 019 mục 0.
+- `danh_muc_chung`: `khu_vuc`, `tang` (`cha_id` là khu vực), `loai_phong` (mức chăm sóc trong `thuoc_tinh`), `ly_do_chuyen_giuong`, `khu_nghi_ban_tru`, `buoi_ban_tru` (sức chứa trong `thuoc_tinh`).
+- `lich_su_chung`: `lich_su_cach_ly_phong` (kiểu `KHOANG`).
+- `trang_thai_nct`: `vi_tri_nct` (`resident_position`); `ho_so_chung`: `yeu_cau_nhap_bu`; `moc_da_nhac`: `nhac_phan_bo`; `khoa_ky_thuat`: `allocation_write_guard`, `day_care_capacity_guard`.
+- Còn 4 bảng riêng của feature.
+
+### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V003_95`)*
+
+Mô tả dưới đây thay các mục tương ứng khi cài 003 T066; cột không nhắc lại giữ như bảng đã cài (`V003_01` → `V003_06`).
+
+**`room`** (`phong`) – nhóm 1. Giữ mọi cột và `uq_room_code`. `floor_id` trỏ `danh_muc_chung.id` loại `M03.FLOOR`; `room_type_id` trỏ loại `M03.ROOM_TYPE` (id mới). Thêm `allowed_care_levels JSON NOT NULL` (thay `room_allowed_care_level`, mảng mã `M01.CARE_LEVEL`).
+
+**`bed`** (`giuong`) – giữ nguyên mọi cột, `CHECK`, `uq_bed_room_code`, khóa ngoại.
+
+**`bed_state_history`** (`lich_su_trang_thai_giuong`) – giữ nguyên (R-15: `CHECK` BR-M03-10).
+
+**`bed_allocation`** (`phan_bo_giuong`) – giữ nguyên mọi cột, ba `UNIQUE` cột sinh, `CHECK`, trigger chống chồng thời gian. `transfer_reason_id` trỏ `danh_muc_chung.id` loại `M03.BED_TRANSFER_REASON` (id mới).
+
+**View `v_current_allocation`** – viết lại: `JOIN catalog_item f ON f.id = r.floor_id`, `f.parent_id AS area_id` thay `JOIN floor`.
+
+**Loại ở bảng chung**:
+
+| Bảng chung | `loai` | Nội dung | Ràng buộc chuyển về backend |
+| --- | --- | --- | --- |
+| `danh_muc_chung` | `M03.AREA` | `ma` = mã khu vực | `UNIQUE` mã theo `ma_khoa` |
+| `danh_muc_chung` | `M03.FLOOR` | `cha_id` = khu vực; `ma` = mã tầng; `{buildingName}` | Mã không trùng trong khu vực (`ma_khoa` gồm `cha_id`, thay `uq_floor_area_code`) |
+| `danh_muc_chung` | `M03.ROOM_TYPE` | `{standardBeds, servesLongTerm, servesShortTerm, careLevels[]}` | `standardBeds > 0`, phục vụ ít nhất một loại lưu trú (thay hai `CHECK`) |
+| `danh_muc_chung` | `M03.BED_TRANSFER_REASON` | `ma` = mã; `{medicalSafety, fixed}` | Lý do cố định không sửa, không ngừng |
+| `danh_muc_chung` | `M03.DAY_CARE_REST_AREA` | `{floorId, areaId}` (đúng một trong hai) | Một khu nghỉ Hiệu lực (thay `active_singleton`): lệnh kích hoạt khóa `khoa_ky_thuat` `M03.KHU_NGHI` rồi kiểm |
+| `danh_muc_chung` | `M03.DAY_CARE_SESSION` | `{startTime, endTime}` | `endTime > startTime` trong một ngày |
+| `lich_su_chung` | thuộc tính `CACH_LY`, đối tượng `PHONG` | kiểu `MOC`; `gia_tri` `ISOLATE`, `LIFT`; `ly_do` bắt buộc; `can_cu_loai` `INCIDENT` khi có sự cố | Lý do không rỗng (thay `chk_isolation_reason`) |
+| `ho_so_chung` | `M03.BED_BACKFILL_REQUEST` | `nct_id`; đối tượng `APPROVAL_REQUEST`; `{currentAllocationId, newBedId, transferAt}`; khóa khi thêm | Một dòng mỗi yêu cầu phê duyệt (`khoa_duy_nhat` `M03.BBR:<approvalRequestId>`); cột sinh `m03_new_bed_id`, `m03_transfer_at` có chỉ mục cho kiểm chồng thời gian |
+| `trang_thai_nct` | module `M03` | `{withoutBedSince, waitingHoldBedIds[]}` | Thay `resident_position`; khóa dòng như cũ |
+| `moc_da_nhac` | `M03.ALLOCATION_REMINDER.<flagType>` | đối tượng `target_type`, `target_id`; `moc` = `START` khi bắt đầu, số lần mỗi lần nhắc | Thay `allocation_reminder` (số lần, lần cuối tính từ các dòng; xóa cờ thành dòng `END`) |
+| `khoa_ky_thuat` | `M03.PHAN_BO`, `M03.SUC_CHUA_BAN_TRU` | | Thay `allocation_write_guard`, `day_care_capacity_guard` |
+
+**Chuyển dữ liệu (`V003_95`)**: `area`, `floor`, `room_type` (kèm `room_type_care_level`), `bed_transfer_reason`, `day_care_rest_area`, `day_care_session` vào `danh_muc_chung`, đổi `room.floor_id`, `room.room_type_id`, `bed_allocation.transfer_reason_id` và tham chiếu khu nghỉ, buổi bán trú ở module khác (đọc qua `LocationStructureApi`, không có khóa ngoại ngoài 003) theo id mới; `room_allowed_care_level` vào `room.allowed_care_levels`; `room_isolation_history` vào `lich_su_chung`; `bed_backfill_request` vào `ho_so_chung`; `resident_position` vào `trang_thai_nct`; `allocation_reminder` vào `moc_da_nhac`; hai bảng khóa vào `khoa_ky_thuat`. Viết lại `v_current_allocation`. `dinh_chinh` trỏ `M03.BED_ALLOCATION` giữ id.
+
+**Bảo đảm** (thay phần tương ứng ở các mục sau): một phân bổ hiện hành mỗi giường, mỗi người và không chồng thời gian (giữ ở `bed_allocation`); BR-M03-10 (giữ `CHECK`); mã tầng không trùng trong khu vực (`ma_khoa`); một khu nghỉ bán trú Hiệu lực (kiểm dưới khóa). Test m03 hiện có phải xanh không đổi kịch bản, trừ `FR_035_LocationHistoryHttpIT` đang đỏ sẵn (team-plan mục 8).
+
+---
+
 ## 1. Tổng quan
 
 | Bảng | Nhóm (1.5) | Ghi chú |
 | --- | --- | --- |
-| `khu_vuc`, `tang`, `loai_phong`, `loai_phong_muc`, `phong`, `phong_muc_cho_phep` | 1 | `phong.dang_cach_ly` đổi qua lệnh (nhóm 2), mục 5 |
-| `ly_do_chuyen_giuong` | 1 | Danh mục lý do, có cờ "y tế/an toàn" (FR-030) |
+| `khu_vuc`, `tang`, `loai_phong`, `loai_phong_muc`, `phong`, `phong_muc_cho_phep` | 1 | `phong.dang_cach_ly` đổi qua lệnh (nhóm 2), mục 5 *(R-15: `loai_phong`, `loai_phong_muc` → `danh_muc_chung`)* |
+| `ly_do_chuyen_giuong` | 1 | Danh mục lý do, có cờ "y tế/an toàn" (FR-030) *(R-15: `ly_do_chuyen_giuong` → `danh_muc_chung`)* |
 | `giuong` | 1 cho mã, 2 cho trạng thái | Mục 3 |
 | `lich_su_trang_thai_giuong` | 3, chỉ thêm | Gồm lần Xác nhận giường sẵn sàng (FR-044, FR-045) |
 | `phan_bo_giuong` | 2; bất biến khi Đã đóng, Đã hủy | Mục 4 |
-| `vi_tri_nct` | 2 (kỹ thuật) | Một dòng mỗi người cao tuổi: khóa tuần tự, dấu "chưa có giường" |
-| `lich_su_cach_ly_phong` | 3, chỉ thêm | Mục 5 |
-| `khu_nghi_ban_tru`, `buoi_ban_tru` | 1 | Mục 6 |
-| `yeu_cau_nhap_bu`, `nhac_phan_bo` | Kỹ thuật | Mục 7 |
+| `vi_tri_nct` | 2 (kỹ thuật) | Một dòng mỗi người cao tuổi: khóa tuần tự, dấu "chưa có giường" *(R-15: `vi_tri_nct` → `trang_thai_nct`)* |
+| `lich_su_cach_ly_phong` | 3, chỉ thêm | Mục 5 *(R-15: `lich_su_cach_ly_phong` → `lich_su_chung`)* |
+| `khu_nghi_ban_tru`, `buoi_ban_tru` | 1 | Mục 6 *(R-15: `khu_nghi_ban_tru`, `buoi_ban_tru` → `danh_muc_chung`)* |
+| `yeu_cau_nhap_bu`, `nhac_phan_bo` | Kỹ thuật | Mục 7 *(R-15: `yeu_cau_nhap_bu` → `ho_so_chung`; `nhac_phan_bo` → `moc_da_nhac`)* |
 
 Mức chăm sóc dùng mã `CO_BAN`, `THUONG_XUYEN`, `DAC_BIET` của 001 (`MaMucChamSoc`). Cột lưu `ENUM` cùng giá trị, không khóa ngoại sang bảng của M01 (constitution X). Người cao tuổi, tài khoản, sự cố, yêu cầu phê duyệt là tham chiếu logic (`BIGINT`), không có khóa ngoại sang module khác.
 
@@ -26,7 +72,7 @@ Mức chăm sóc dùng mã `CO_BAN`, `THUONG_XUYEN`, `DAC_BIET` của 001 (`MaMu
 
 ## 2. Cơ cấu vị trí (mục A, FR-001 → FR-007)
 
-### `khu_vuc` – nhóm 1
+### `khu_vuc` – nhóm 1 → gộp theo R-15: `khu_vuc` → `danh_muc_chung`
 
 | Cột | Kiểu | Ràng buộc | Nguồn |
 | --- | --- | --- | --- |
@@ -34,7 +80,7 @@ Mức chăm sóc dùng mã `CO_BAN`, `THUONG_XUYEN`, `DAC_BIET` của 001 (`MaMu
 | `ma` | `VARCHAR(20)` | `UNIQUE` (duy nhất trong viện, kể cả mục đã Ngừng hiệu lực) | FR-003 |
 | `ten` | `VARCHAR(100)` | | |
 
-### `tang` – nhóm 1
+### `tang` – nhóm 1 → gộp theo R-15: `tang` → `danh_muc_chung`
 
 | Cột | Kiểu | Ràng buộc | Nguồn |
 | --- | --- | --- | --- |
@@ -43,7 +89,7 @@ Mức chăm sóc dùng mã `CO_BAN`, `THUONG_XUYEN`, `DAC_BIET` của 001 (`MaMu
 | `ten` | `VARCHAR(100)` | | |
 | `ten_toa_nha` | `VARCHAR(100) NULL` | | FR-001, Assumptions |
 
-### `loai_phong` – nhóm 1; `loai_phong_muc`
+### `loai_phong` – nhóm 1; `loai_phong_muc` → gộp theo R-15: `loai_phong`, `loai_phong_muc` → `danh_muc_chung`
 
 | Cột | Kiểu | Ràng buộc | Nguồn |
 | --- | --- | --- | --- |
@@ -64,7 +110,7 @@ Mức chăm sóc dùng mã `CO_BAN`, `THUONG_XUYEN`, `DAC_BIET` của 001 (`MaMu
 | `chinh_sach_gioi_tinh` | `ENUM('NAM','NU','KHONG_GIOI_HAN')` | | FR-004 |
 | `dang_cach_ly` | `BOOLEAN` | Mặc định `false`; chỉ đổi qua lệnh ở mục 5 | FR-008 |
 
-`phong_muc_cho_phep (phong_id, ma_muc)`: khi tạo phòng sao từ `loai_phong_muc`; Quản lý viện thu hẹp hoặc mở rộng sau (FR-004).
+`phong_muc_cho_phep (phong_id, ma_muc)`: khi tạo phòng sao từ `loai_phong_muc`; Quản lý viện thu hẹp hoặc mở rộng sau (FR-004). *(R-15: `loai_phong_muc` → `danh_muc_chung`)*
 
 **Lệnh và kiểm tra ở backend**:
 - **Sửa chính sách giới tính, danh sách mức** (FR-006): khóa các dòng `giuong` của phòng, chạy kiểm (a), (c) cho mọi phân bổ `DANG_HIEU_LUC`, `TUONG_LAI` của phòng. Vi phạm thì 409 liệt kê người cao tuổi.
@@ -76,7 +122,7 @@ Mức chăm sóc dùng mã `CO_BAN`, `THUONG_XUYEN`, `DAC_BIET` của 001 (`MaMu
   Khi chặn, 409 liệt kê đối tượng gây chặn.
 - **Xóa**: chỉ khu vực, tầng, phòng, loại phòng chưa từng được tham chiếu. Khóa ngoại `RESTRICT` trong 003, cộng `ThamChieuViTri.daTungThamChieu` cho tham chiếu từ module khác. Giường không có lệnh xóa: giường tạo nhầm thì Thanh lý tài sản (Q-237).
 
-### `ly_do_chuyen_giuong` – nhóm 1
+### `ly_do_chuyen_giuong` – nhóm 1 → gộp theo R-15: `ly_do_chuyen_giuong` → `danh_muc_chung`
 
 | Cột | Kiểu | Ràng buộc | Nguồn |
 | --- | --- | --- | --- |
@@ -176,7 +222,7 @@ Khớp bảng trạng thái giường của spec (mục C). Cột "Gọi từ" c
 | `ket_thuc_du_kien` | `DATETIME(6) NULL` | Nội trú ngắn ngày, từ hợp đồng (004) | FR-017 |
 | `ket_thuc_hieu_dung` | Cột sinh `COALESCE(ket_thuc, ket_thuc_du_kien, '9999-12-31')` | Dùng xét chồng (research G-03) | FR-019 |
 | `ly_do_bat_dau`, `ly_do_ket_thuc`, `ly_do_huy` | `VARCHAR(2000)` | `ly_do_ket_thuc` kèm mã: `CHUYEN_GIUONG`, `KET_THUC_LUU_TRU`, `QUA_DOI`, `GIAI_PHONG_KHI_VANG`, `VANG_KHONG_GIU_GIUONG` | FR-017 |
-| `ly_do_chuyen_id` | `BIGINT NULL` | Khóa ngoại `ly_do_chuyen_giuong`; với phân bổ mở bằng chuyển giường | FR-030 |
+| `ly_do_chuyen_id` | `BIGINT NULL` | Khóa ngoại `ly_do_chuyen_giuong`; với phân bổ mở bằng chuyển giường | FR-030 *(R-15: `ly_do_chuyen_giuong` → `danh_muc_chung`)* |
 | `nguoi_mo_id`, `nguoi_dong_id` | `BIGINT NULL` | `NULL` khi là Bộ lập lịch | FR-017 |
 | `can_cu_loai`, `can_cu_id` | `VARCHAR(40)`, `BIGINT NULL` | `LENH`, `YEU_CAU_THAY_DOI_LUU_TRU`, `YEU_CAU_NHAP_BU`, `LENH_TRANG_THAI_NCT` | FR-017 |
 | `phan_bo_truoc_id` | `BIGINT NULL` | Khóa ngoại tự trỏ; phân bổ mở bằng chuyển giường | FR-017, FR-028 |
@@ -224,7 +270,7 @@ Cột dấu trên phân bổ `DANG_HIEU_LUC`, `TUONG_LAI` đổi được (nhóm
 
 `DANG_HIEU_LUC` không đổi khi người cao tuổi vắng có giữ giường (FR-024). Người Đang tiếp nhận không bao giờ có phân bổ `DANG_HIEU_LUC` (FR-023): bean `HOAN_TAT_TIEP_NHAN` là đường duy nhất chuyển phân bổ ban đầu sang `DANG_HIEU_LUC`.
 
-### `vi_tri_nct` – nhóm 2 (kỹ thuật)
+### `vi_tri_nct` – nhóm 2 (kỹ thuật) → gộp theo R-15: `vi_tri_nct` → `trang_thai_nct`
 
 | Cột | Kiểu | Ghi chú | Nguồn |
 | --- | --- | --- | --- |
@@ -249,7 +295,7 @@ Các cột của `phan_bo_giuong` với `giuong_id`, `bat_dau`, `ket_thuc` thay 
 | Không cách ly | `POST /phong/{id}/dat-cach-ly` | Đang cách ly | AC-01, AC-03 | Lý do (FR-008) | Phòng chịu chặn (FR-009, FR-010); `PhongDaDatCachLy` |
 | Đang cách ly | `POST /phong/{id}/go-cach-ly` | Không cách ly | AC-01, AC-03 | Lý do | Gỡ dấu "chờ bác sĩ xác nhận vùng cách ly" nếu phòng không còn thuộc vùng khoanh vùng (FR-024a (c)); `PhongDaGoCachLy` |
 
-### `lich_su_cach_ly_phong` – nhóm 3, chỉ thêm
+### `lich_su_cach_ly_phong` – nhóm 3, chỉ thêm → gộp theo R-15: `lich_su_cach_ly_phong` → `lich_su_chung`
 
 | Cột | Kiểu | Ghi chú |
 | --- | --- | --- |
@@ -262,7 +308,7 @@ Các cột của `phan_bo_giuong` với `giuong_id`, `bat_dau`, `ket_thuc` thay 
 
 ## 6. Khu nghỉ bán trú (mục G, FR-038 → FR-042)
 
-### `khu_nghi_ban_tru` – nhóm 1, duy nhất
+### `khu_nghi_ban_tru` – nhóm 1, duy nhất → gộp theo R-15: `khu_nghi_ban_tru` → `danh_muc_chung`
 
 | Cột | Kiểu | Ràng buộc | Nguồn |
 | --- | --- | --- | --- |
@@ -272,7 +318,7 @@ Các cột của `phan_bo_giuong` với `giuong_id`, `bat_dau`, `ket_thuc` thay 
 
 Ngừng hiệu lực bị chặn khi `DemLichDenBanTru.coLichTuongLai()` (004) trả có (Edge Case). Sức chứa không lưu; luôn là CFG-M03-01.
 
-### `buoi_ban_tru` – nhóm 1
+### `buoi_ban_tru` – nhóm 1 → gộp theo R-15: `buoi_ban_tru` → `danh_muc_chung`
 
 | Cột | Kiểu | Ràng buộc | Nguồn |
 | --- | --- | --- | --- |
@@ -285,7 +331,7 @@ Sửa khung giờ hoặc thêm, ngừng buổi kích hoạt đếm lại (resear
 
 ## 7. Bảng kỹ thuật
 
-### `yeu_cau_nhap_bu`
+### `yeu_cau_nhap_bu` → gộp theo R-15: `yeu_cau_nhap_bu` → `ho_so_chung`
 
 | Cột | Ghi chú |
 | --- | --- |
@@ -294,7 +340,7 @@ Sửa khung giờ hoặc thêm, ngừng buổi kích hoạt đếm lại (resear
 
 Dòng được thêm cùng lúc lập yêu cầu. Dấu chỉ hiện khi `YeuCauPheDuyetApi.xem` trả trạng thái chưa kết thúc. Bảng không được `UPDATE`.
 
-### `nhac_phan_bo`
+### `nhac_phan_bo` → gộp theo R-15: `nhac_phan_bo` → `moc_da_nhac`
 
 | Cột | Ghi chú |
 | --- | --- |
@@ -313,7 +359,7 @@ Dòng được thêm khi đặt dấu và xóa khi gỡ dấu, trong cùng trans
 | Mỗi người tối đa một đang hiệu lực, một tương lai | `UNIQUE(nct_dang_hieu_luc)`, `UNIQUE(nct_tuong_lai)` | DBR-09, FR-019 |
 | Khoảng của cùng giường không chồng | Khóa `giuong` (backend) và trigger `trg_phan_bo_giuong_khong_chong` | DBR-09, FR-020 |
 | Phân bổ đã đóng, đã hủy bất biến | Trigger `trg_phan_bo_giuong_khong_sua` | FR-026, BR-M03-07 |
-| Nhóm 3 chỉ thêm | Trigger `_khong_sua`, `_khong_xoa` trên `lich_su_trang_thai_giuong`, `lich_su_cach_ly_phong` | DBR-23 |
+| Nhóm 3 chỉ thêm | Trigger `_khong_sua`, `_khong_xoa` trên `lich_su_trang_thai_giuong`, `lich_su_cach_ly_phong` | DBR-23 *(R-15: `lich_su_cach_ly_phong` → `lich_su_chung`)* |
 | Thuộc tính giường khớp trạng thái | `CHECK` mục 3 | FR-012, DBR-26 |
 | Xác nhận sẵn sàng có khử khuẩn khi bắt buộc | `CHECK` trên `lich_su_trang_thai_giuong` | BR-M03-10 |
 | Một khu nghỉ bán trú Hiệu lực | `UNIQUE(hieu_luc_duy_nhat)` | FR-038 |
@@ -330,7 +376,7 @@ Dòng được thêm khi đặt dấu và xóa khi gỡ dấu, trong cùng trans
 | `M03_CO_CAU_TAO`, `_SUA`, `_NGUNG`, `_KICH_HOAT`, `_XOA` | Khu vực, tầng, loại phòng, phòng, giường, lý do chuyển, khu nghỉ, buổi | Trường đổi | Cảnh báo `VUOT_SO_GIUONG_TIEU_CHUAN` |
 | `M03_GIUONG_CHUYEN` | Giường | `trangThai` | `suKien`, `canCu`, `thoiDiemDuKien`, `thucHienTre` |
 | `M03_PB_PHAN_BO`, `M03_PB_CHUYEN`, `M03_PB_DONG`, `M03_PB_HUY` | Phân bổ, người cao tuổi | Vị trí cũ, vị trí mới (khu – tầng – phòng – giường), thời điểm | `nhapBu`, `bacSiChiDinhId`, `lyDoChuyen`, `yTeAnToan`, `nguonMuc` |
-| `M03_PB_DAU` | Phân bổ, `vi_tri_nct` | Dấu trước, sau | Loại dấu, căn cứ |
+| `M03_PB_DAU` | Phân bổ, `vi_tri_nct` | Dấu trước, sau | Loại dấu, căn cứ *(R-15: `vi_tri_nct` → `trang_thai_nct`)* |
 | `M03_CACH_LY` | Phòng | `dangCachLy` | `suCoId` |
 | `M03_BAN_TRU_CANH_BAO_VUOT` | Khu nghỉ | — | Danh sách buổi vượt |
 | `M03_NHAC`, `M03_BAO` | Theo việc | — | Mốc dự kiến, `thucHienTre`, căn cứ CFG |
@@ -347,7 +393,7 @@ Dòng được thêm khi đặt dấu và xóa khi gỡ dấu, trong cùng trans
 | `M03.LICH_SU_TRANG_THAI_GIUONG` | `KHONG_GAN_HO_SO` | `thoi_diem` | Đính chính `M03.XAC_NHAN_SAN_SANG` |
 | `M03.LICH_SU_CACH_LY_PHONG` | `KHONG_GAN_HO_SO` | `thoi_diem` | — |
 
-Bảng kỹ thuật `yeu_cau_nhap_bu`, `nhac_phan_bo` bị xóa cùng chuỗi của đối tượng chúng trỏ tới.
+Bảng kỹ thuật `yeu_cau_nhap_bu`, `nhac_phan_bo` bị xóa cùng chuỗi của đối tượng chúng trỏ tới. *(R-15: `yeu_cau_nhap_bu` → `ho_so_chung`; `nhac_phan_bo` → `moc_da_nhac`)*
 
 ---
 

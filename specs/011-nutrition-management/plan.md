@@ -20,7 +20,7 @@ Hướng kỹ thuật:
 - Gói `m08` với mười gói con (research M-01); `m08.kho` và `TonKhoNguyenLieuPort` bỏ theo Q-392.
 - Món ăn có phiên bản nội dung đã xác nhận; kiểm tra, chốt, phục vụ đọc phiên bản Hiệu lực tại lúc đó (M-04).
 - `XungDot`, `CanLyDoChuyenMon`, `KiemTraDoPhu`, `LapMon`, `NguoiDuocTinh`, `TinhPhatSinh`, `ChonMonThayThe`, `DoiChieuDoAn`, `MonCanLuuMau` là hàm thuần kiểm thử bằng bảng.
-- Lệnh Chốt suất tính lại tại lúc lệnh, lập lần chốt, phiếu mỗi tầng/khu, suất ăn người thân trong một transaction có khóa `bua_ngay`; DBR-27 giữ bằng `UNIQUE (bua_ngay_id, tang_khu_vuc_id)` và việc chỉ hai lệnh (chốt, xác nhận phát sinh) đổi số suất (M-08, M-09).
+- Lệnh Chốt suất tính lại tại lúc lệnh, lập lần chốt, phiếu mỗi tầng/khu, suất ăn người thân trong một transaction có khóa `bua_ngay`; DBR-27 giữ bằng `UNIQUE (bua_ngay_id, tang_khu_vuc_id)` và việc chỉ hai lệnh (chốt, xác nhận phát sinh) đổi số suất (M-08, M-09). *(R-15: `bua_ngay` → `khoa_ky_thuat`)*
 - Thay đổi ở module khác thành phát sinh qua listener sau commit, idempotent theo khóa sự kiện, chỉ xét bữa đã chốt chưa tới giờ (M-08).
 - DTO cho bếp là lớp riêng không có trường sức khỏe (SC-008, SC-014; M-09).
 - Lịch bữa cho 005 qua bean `NguonCongViecPort` loại `BUA` (kèm `xacNhanPhucVu`); bữa bị bỏ vì vắng gọi `nguonBiHuy` (M-08).
@@ -69,7 +69,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 **Constraints**:
 - Không có thao tác sửa trạng thái; mỗi lệnh một endpoint (constitution XI).
 - Lần chốt, người được tính, phát sinh, xác nhận phục vụ, sai lệch, lưu mẫu không bị `UPDATE`, `DELETE` ngoài cột đặt một lần (constitution XII).
-- Bếp không nhận dữ liệu sức khỏe (FR-046). Nhật ký trong transaction (000 FR-047). CFG đọc lúc chạy; giờ bữa chốt vào `bua_ngay` lúc tạo.
+- Bếp không nhận dữ liệu sức khỏe (FR-046). Nhật ký trong transaction (000 FR-047). CFG đọc lúc chạy; giờ bữa chốt vào `bua_ngay` lúc tạo. *(R-15: `bua_ngay` → `khoa_ky_thuat`)*
 
 **Scale/Scope**:
 - 7 thực thể có vòng đời (món, bản gán, thực đơn, phiếu, đồ ăn gia đình, suất ăn người thân, suất đặc biệt); khoảng 35 bảng (gồm bảng con, kỹ thuật).
@@ -97,7 +97,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | X. Kiến trúc | Đạt | Một khối; gói `m08`; module khác dùng `m08.api`. Không có vòng (M-02). REST; MySQL; hai client (Q-346) |
 | XI. Nghiệp vụ ở backend | Đạt | Đối chiếu, độ phủ, tính suất, phát sinh, chặn phục vụ ở backend; client chỉ hiển thị |
 | XII. Dữ liệu | Đạt | DBR-27 bằng `UNIQUE` và lệnh đổi số suất duy nhất; nhóm 3 bằng trigger; nhật ký trong transaction; `Clock` |
-| XIII. Tham số | Đạt | Như V; giờ bữa lưu trên `bua_ngay` để đổi CFG-M08-04 không làm lệch bữa đã chốt |
+| XIII. Tham số | Đạt | Như V; giờ bữa lưu trên `bua_ngay` để đổi CFG-M08-04 không làm lệch bữa đã chốt *(R-15: `bua_ngay` → `khoa_ky_thuat`)* |
 | XIV. Ngoại tuyến, thông báo | Đạt | Xác nhận phục vụ ghi ngoại tuyến qua `NgoaiTuyenHandler`, kiểm tra lại khi đồng bộ. Thông báo theo mức FR-065; cảnh báo qua 007 |
 | XV. Truy vết, kiểm thử | Đạt | Tên test theo BR, FR; mỗi BR-M08-01 → 16 có test (quickstart mục 4) |
 
@@ -169,7 +169,7 @@ mobile/lib/nhan-vien/dinh-duong/   # nhận phiếu, sai lệch, suất bổ sun
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
 | Phiên bản nội dung món (`mon_an_phien_ban`) | FR-004a: món Hiệu lực có bản sửa chờ, nội dung đã xác nhận vẫn dùng; lần chốt, xác nhận phục vụ phải biết đúng nội dung đã dùng | Sửa thẳng món: mất nội dung đã xác nhận khi có bản sửa chờ, không truy được thành phần lúc phục vụ |
-| Bảng `bua_ngay` kỹ thuật | Một điểm khóa cho chốt, phát sinh, phiếu của một bữa; giữ giờ bữa tại lúc tạo | Khóa theo (bữa, ngày) không có dòng: không khóa được bằng `SELECT … FOR UPDATE` |
+| Bảng `bua_ngay` kỹ thuật | Một điểm khóa cho chốt, phát sinh, phiếu của một bữa; giữ giờ bữa tại lúc tạo | Khóa theo (bữa, ngày) không có dòng: không khóa được bằng `SELECT … FOR UPDATE` *(R-15: `bua_ngay` → `khoa_ky_thuat`)* |
 | DTO bếp tách riêng | SC-008, SC-014 đòi 0 lần lộ dữ liệu sức khỏe | Lọc trường động theo vai trò: dễ lọt trường mới thêm |
 | SPI `LuotOLaiAnPort`, `ChuyenDiBuaAnPort` ở `m08.api` | 011 làm plan trước 012, 014 nhưng cần dữ liệu của họ (FR-034) | 011 phụ thuộc 012, 014: tạo vòng vì 012, 014 đọc thực đơn, lịch bữa |
 
@@ -193,3 +193,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 
 3. **Câu chữ còn lẫn trong spec 011** (không đổi nghiệp vụ): *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - FR-048, mục F, FR-063 còn dẫn "4.4" (Permission Matrix của `docs/phan-tich-yeu-cau.md` đã bỏ); plan tra theo Phụ lục 27 qua bảng ánh xạ của Phụ lục 26.
+
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Ánh xạ bảng ở data-model mục 0; task T046. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
+- Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
+- Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.

@@ -34,7 +34,7 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T002 Tạo `MIG/V018_01__khai_bao.sql`: `khai_bao_nct` (`nct_id` khóa chính; `thuong_tru_cung_xa`; `phien_ban`), `khai_bao_tam_tru` (`loai` `DANG_KY_TAM_TRU|THONG_BAO_LUU_TRU`; `la_gia_han`; `trang_thai` `CAN_KHAI_BAO|DA_NOP|DA_XAC_NHAN|HET_HAN|DA_XOA|DUOC_THAY_THE|DA_HUY`; `ngay_het_han` bắt buộc khi Đăng ký tạm trú được chấp nhận; cột sinh `khoa_dang_xu_ly`, `khoa_xac_nhan` `UNIQUE`), `khai_bao_lan_nop` (nhóm 3; `kenh` `CONG_DICH_VU_CONG|TRUC_TIEP`; `ket_qua` `CHO|CHAP_NHAN|TU_CHOI` đặt một lần), `nghia_vu_khai_bao` (`moc_loai` `HOAN_TAT_TIEP_NHAN|NOI_TRU_HIEU_LUC|PHU_LUC_GIA_HAN|HET_HAN`), `nhac_khai_bao` (`UNIQUE (loai, nct_id, ngay)`) (data-model mục 2 → 4)
+- [ ] T002 Tạo `MIG/V018_01__khai_bao.sql`: `khai_bao_nct` (`nct_id` khóa chính; `thuong_tru_cung_xa`; `phien_ban`), `khai_bao_tam_tru` (`loai` `DANG_KY_TAM_TRU|THONG_BAO_LUU_TRU`; `la_gia_han`; `trang_thai` `CAN_KHAI_BAO|DA_NOP|DA_XAC_NHAN|HET_HAN|DA_XOA|DUOC_THAY_THE|DA_HUY`; `ngay_het_han` bắt buộc khi Đăng ký tạm trú được chấp nhận; cột sinh `khoa_dang_xu_ly`, `khoa_xac_nhan` `UNIQUE`), `khai_bao_lan_nop` (nhóm 3; `kenh` `CONG_DICH_VU_CONG|TRUC_TIEP`; `ket_qua` `CHO|CHAP_NHAN|TU_CHOI` đặt một lần), `nghia_vu_khai_bao` (`moc_loai` `HOAN_TAT_TIEP_NHAN|NOI_TRU_HIEU_LUC|PHU_LUC_GIA_HAN|HET_HAN`), `nhac_khai_bao` (`UNIQUE (loai, nct_id, ngay)`) (data-model mục 2 → 4) *(R-15: `khai_bao_nct`, `nghia_vu_khai_bao` → `trang_thai_nct`; `khai_bao_tam_tru` → `ho_so_chung`)*
 - [ ] T003 [P] Cài hàm thuần `BE/m02/khaibao/internal/TongThoiGianLuuTru.java`, `LoaiKhaiBao.java` (thời gian lưu trú cộng dồn; CFG-M02-11) và test `BT/m02/TongThoiGianLuuTruTest.java`, `LoaiKhaiBaoTest.java` (research Z-03)
 - [ ] T004 Cài khung job `BE/m02/khaibao/lich/ViecKhaiBao.java` (ShedLock, chạy bù, không nhắc trùng) và test `BT/m02/ChayBuM02KhaiBaoIT.java` (research Z-06)
 - [ ] T005 [P] Cài provider: `PhanLoaiTruongProvider`, `LuuTruProvider` (CFG-M15-03), `QuyenTepProvider` `M02.BANG_CHUNG_KHAI_BAO` (Hành chính, Quản lý viện), `GanPhamViProvider`
@@ -55,8 +55,8 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 
 ### Implementation cho User Story 1
 
-- [ ] T007 [US1] Cài listener `TiepNhanHoanTat`, `HopDongDaDoiTrangThai` ghi `nghia_vu_khai_bao` trong `BE/m02/khaibao/internal/NghiaVuService.java`; nhắc lập, quá hạn theo CFG-M02-12 trong job (research Z-03)
-- [ ] T008 [US1] Cài `BE/m02/khaibao/internal/KhaiBaoService.java` (lập, xác nhận thường trú cùng xã/phường; khóa `khai_bao_nct`) và `BE/m02/khaibao/web/KhaiBaoController.java` (`GET /khai-bao/can-lam`, `POST/GET /nguoi-cao-tuoi/{nctId}/khai-bao`, `POST /khai-bao/{id}/{lenh}`); màn web `frontend/src/tinh-nang/khai-bao-tam-tru/`
+- [ ] T007 [US1] Cài listener `TiepNhanHoanTat`, `HopDongDaDoiTrangThai` ghi `nghia_vu_khai_bao` trong `BE/m02/khaibao/internal/NghiaVuService.java`; nhắc lập, quá hạn theo CFG-M02-12 trong job (research Z-03) *(R-15: `nghia_vu_khai_bao` → `trang_thai_nct`)*
+- [ ] T008 [US1] Cài `BE/m02/khaibao/internal/KhaiBaoService.java` (lập, xác nhận thường trú cùng xã/phường; khóa `khai_bao_nct`) và `BE/m02/khaibao/web/KhaiBaoController.java` (`GET /khai-bao/can-lam`, `POST/GET /nguoi-cao-tuoi/{nctId}/khai-bao`, `POST /khai-bao/{id}/{lenh}`); màn web `frontend/src/tinh-nang/khai-bao-tam-tru/` *(R-15: `khai_bao_nct` → `trang_thai_nct`)*
 
 **Checkpoint**: Lập khai báo chạy độc lập.
 
@@ -119,6 +119,7 @@ description: "Danh sách task triển khai feature 018 – Khai báo tạm trú,
 - [ ] T015 [P] Cài `KhaiBaoThongKeApi.tongHop()` (016); mở rộng `BT/common/HopDongApiTest.java` với `specs/018-residence-registration/contracts/api-018.yaml`
 - [ ] T016 Chạy `./mvnw verify`, `npm test` và kịch bản quickstart.md mục 3
 - [ ] T017 Rà truy vết: DBR-25, 33 và BR-M02-11 → 14 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-009, FR-010, FR-011 — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T018 *(bổ sung 2026-10-29, research R-15 bản 2 của 000)* Khi viết migration và entity của feature, áp data-model mục 0: không tạo các bảng đã gộp, dùng bảng gộp, cột `JSON` và bảng chung (`CatalogApi`, `StatusHistoryApi`, `RecordEventApi`, `SimpleRecordApi`, `ResidentModuleStateApi`, `ReminderMarkers`, `TechnicalLocks`); test bảo vệ nhóm dữ liệu viết cho bảng gộp
 
 ---
 

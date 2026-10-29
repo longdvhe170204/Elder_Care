@@ -10,7 +10,7 @@ Plan làm sau (009, 011, 013, 014, 015, 016) giữ đúng chữ ký hoặc ghi r
 
 Truy vấn ca tại tầng dựa trên thời gian `[bắt đầu, kết thúc)` và lịch đã công bố, không chờ job cập nhật nhãn trạng thái; thành viên bị trừ từ mốc vắng/rút/rời ca và nghỉ đã duyệt. Nếu nhiều ca đang có hiệu lực cùng tầng tại cùng thời điểm, báo lỗi dữ liệu nguồn qua `InvalidPermissionDataException`, không chọn tùy ý một ca. Vai trò không xếp ca dùng `CFG_M13_06` qua `ParameterApi`.
 
-**Chốt Phase 9, 2026-10-26:** không đổi chữ ký Java hay HTTP. `DutyApi.shiftLead(floor, at)` và phần người phụ trách của `AssignmentApi.history` đọc khoảng `shift_lead_history`, không suy quá khứ từ `work_shift.lead_staff_id` hoặc cờ thiếu người hiện tại. Lịch sử người cũ được giữ; `scopeEndsAt` cắt đúng mốc chuyển/vắng/rời, kết ca thường vẫn theo biên CFG của 002. `StaffModuleIntegrationIT` dùng SPI M09/ScopeApi A thật; `AlertStaffPortIT` kiểm K1 bằng nguồn thật. Test nghiệp vụ 005–007 và US13 007 còn T043b/T049b, xem [validation.md](../validation.md); không thay fake test bằng bean giả trong ứng dụng.
+**Chốt Phase 9, 2026-10-26:** không đổi chữ ký Java hay HTTP. `DutyApi.shiftLead(floor, at)` và phần người phụ trách của `AssignmentApi.history` đọc khoảng `shift_lead_history`, không suy quá khứ từ `work_shift.lead_staff_id` hoặc cờ thiếu người hiện tại. Lịch sử người cũ được giữ; `scopeEndsAt` cắt đúng mốc chuyển/vắng/rời, kết ca thường vẫn theo biên CFG của 002. `StaffModuleIntegrationIT` dùng SPI M09/ScopeApi A thật; `AlertStaffPortIT` kiểm K1 bằng nguồn thật. Test nghiệp vụ 005–007 và US13 007 còn T043b/T049b, xem [validation.md](../validation.md); không thay fake test bằng bean giả trong ứng dụng. *(R-15: `shift_lead_history` → `lich_su_chung`)*
 
 ---
 
@@ -20,7 +20,7 @@ Truy vấn ca tại tầng dựa trên thời gian `[bắt đầu, kết thúc)`
 | --- | --- | --- |
 | `HoSoNhanVienApi` (`m15.taikhoan.api`; khai báo dạng SPI theo plan này, chữ ký giữ đúng 002) | `trangThai(nhanVienId, ngay)`, `chucDanhCoVaiTro(nhanVienId)`; `taoHoSoToiThieu(...)` cho lệnh khởi tạo Quản lý viện đầu tiên (002 A-03) | 002 FR-004, FR-004a, FR-011 |
 | `GiayPhepApi` (`m15.taikhoan.api`) | `hieuLuc(nhanVienId, loai, ngay)` theo `HieuLucChungChi` (tới hết ngày hết hạn); `sapHetHan(trongVong)` cho cảnh báo giấy phép hành nghề của 002 (CFG-M06-02) | 002 FR-037, FR-038, FR-039 |
-| `DanhMucPhamViHanhNgheApi` (`m15.taikhoan.api`) | Danh mục `pham_vi_hanh_nghe` | 002 FR-037, 007 FR-070 |
+| `DanhMucPhamViHanhNgheApi` (`m15.taikhoan.api`) | Danh mục `pham_vi_hanh_nghe` | 002 FR-037, 007 FR-070 *(R-15: `pham_vi_hanh_nghe` → `danh_muc_chung`)* |
 | `PhanCongApi` (`m15.taikhoan.api`) | `dangHieuLuc(nhanVienId, t)`, `lichSu(nhanVienId, tu, den)` (FR-037a; gồm giao trưởng tầng, thành viên ca, người phụ trách ca) | 002 FR-028 → FR-035a |
 | `NhiemVuApi` (`m15.taikhoan.api`) | Mục 1.2 | 002 FR-019a → f, FR-031 |
 | `ThamChieuViTri` (`m03.api`) | Phân công Nháp, Tương lai, Hiệu lực; giao trưởng tầng đang/sẽ hiệu lực; ca chưa đóng hoặc hủy của vị trí; `daTungThamChieu` cho quyết định xóa | 003 FR-005 |

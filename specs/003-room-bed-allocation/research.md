@@ -53,7 +53,7 @@ Mỗi SPI chưa có bản cài thật thì test dùng bản giả giữ đúng c
 **Quyết định**:
 1. **Khóa theo thứ tự cố định**. Mọi lệnh làm đổi phân bổ hoặc trạng thái giường mở transaction và khóa `SELECT … FOR UPDATE` theo thứ tự:
    1. dòng `nguoi_cao_tuoi` của M01, chỉ khi lệnh đi qua `ChuyenTrangThaiService` của 001 (001 tự khóa trước khi gọi bean của 003);
-   2. dòng `vi_tri_nct` của người cao tuổi (bảng của 003, mỗi người một dòng, tạo khi cần bằng `INSERT … ON DUPLICATE KEY UPDATE`);
+   2. dòng `vi_tri_nct` của người cao tuổi (bảng của 003, mỗi người một dòng, tạo khi cần bằng `INSERT … ON DUPLICATE KEY UPDATE`); *(R-15: `vi_tri_nct` → `trang_thai_nct`)*
    3. các dòng `giuong` liên quan, theo `id` tăng dần.
 
    003 không bao giờ gọi API ghi của 001, nên không có đường khóa ngược. Lỗi deadlock của MySQL (`CannotAcquireLockException`) được thử lại tối đa hai lần trong cùng yêu cầu HTTP.
@@ -65,7 +65,7 @@ Mỗi SPI chưa có bản cài thật thì test dùng bản giả giữ đúng c
 4. **Khoảng dùng để xét chồng** là nửa mở `[bắt đầu, kết thúc)` (FR-019). Kết thúc hiệu dụng là cột sinh `ket_thuc_hieu_dung = COALESCE(ket_thuc, ket_thuc_du_kien, '9999-12-31')`. Nhờ đó phân bổ nội trú ngắn ngày có kết thúc dự kiến nằm trước được một phân bổ tương lai (US2 #6), còn phân bổ không có kết thúc chặn mọi phân bổ sau nó trên cùng giường.
 5. **Mã lỗi**: vi phạm (g) có mã `PB_CHONG_THOI_GIAN`, mô tả "Giường đã được phân bổ trong khoảng thời gian này" (BR-M03-02). Vi phạm ràng buộc `UNIQUE` hay trigger do lỗi mã được ánh xạ về cùng mã, không trả 500.
 
-**Lý do**: MySQL không có ràng buộc loại trừ khoảng (000 data-model 1.2). Khóa dòng giường tuần tự hóa mọi lệnh trên cùng giường; khóa `vi_tri_nct` tuần tự hóa mọi lệnh trên cùng người. SC-001 đòi đúng cả với 10 người dùng trong cùng một giây; test đồng thời ở G-16.
+**Lý do**: MySQL không có ràng buộc loại trừ khoảng (000 data-model 1.2). Khóa dòng giường tuần tự hóa mọi lệnh trên cùng giường; khóa `vi_tri_nct` tuần tự hóa mọi lệnh trên cùng người. SC-001 đòi đúng cả với 10 người dùng trong cùng một giây; test đồng thời ở G-16. *(R-15: `vi_tri_nct` → `trang_thai_nct`)*
 
 **Phương án đã cân nhắc**:
 - Khóa lạc quan bằng `phien_ban` trên giường: lệnh đến sau bị từ chối kể cả khi vẫn hợp lệ, trái FR-020.
@@ -112,7 +112,7 @@ Mỗi SPI chưa có bản cài thật thì test dùng bản giả giữ đúng c
 - **Bất biến sau đóng**: trigger `trg_phan_bo_giuong_khong_sua` chặn `UPDATE` khi `OLD.trang_thai IN ('DA_DONG','DA_HUY')`; không có endpoint sửa. Sai sót đi đường đính chính của 000 (G-10).
 - **Nhập bù** (FR-027) là tham số `thoiDiemChuyen` trong quá khứ của lệnh Chuyển giường:
   - lùi không quá CFG-M03-07: thực hiện ngay, đánh dấu `nhap_bu`, lưu `thoi_diem_nhap_thuc`;
-  - lùi xa hơn: lập yêu cầu phê duyệt loại `M03.NHAP_BU_PHAN_BO` (000 FR-031, bảng loại yêu cầu) qua `YeuCauPheDuyetApi.lap`, người lập là người thực hiện lệnh. Handler của 003 kiểm tra lại toàn bộ điều kiện khi áp dụng. Bảng chỉ mục `yeu_cau_nhap_bu` ghi người cao tuổi và giường của yêu cầu để tra cứu FR-035 gắn dấu "có nhập bù đang chờ duyệt" (CHK051);
+  - lùi xa hơn: lập yêu cầu phê duyệt loại `M03.NHAP_BU_PHAN_BO` (000 FR-031, bảng loại yêu cầu) qua `YeuCauPheDuyetApi.lap`, người lập là người thực hiện lệnh. Handler của 003 kiểm tra lại toàn bộ điều kiện khi áp dụng. Bảng chỉ mục `yeu_cau_nhap_bu` ghi người cao tuổi và giường của yêu cầu để tra cứu FR-035 gắn dấu "có nhập bù đang chờ duyệt" (CHK051); *(R-15: `yeu_cau_nhap_bu` → `ho_so_chung`)*
   - (c) chồng khoảng vắng: `TrangThaiNguoiCaoTuoiApi.khoangTrangThai` (bổ sung vào hợp đồng 001, G-13) trả các khoảng Tạm vắng, Điều trị tại bệnh viện, Hoạt động bên ngoài.
 
 **Lý do**: Một lệnh phân bổ khớp UC-20 và cách người dùng nghĩ ("chọn giường cho người này"); kiểu bản ghi do trạng thái quyết định đúng FR-023, FR-025a. Một thành phần kiểm tra dùng chung cho danh sách và lệnh bảo đảm SC-002 và SC-005.
@@ -123,14 +123,14 @@ Mỗi SPI chưa có bản cài thật thì test dùng bản giả giữ đúng c
 
 ## G-06. Tham gia máy trạng thái người cao tuổi (001 H-02)
 
-**Quyết định**: 003 cài một bean `PhanBoThamGiaChuyenTrangThai`, `@Order` sau 004 (004 mở hoặc đóng lượt vắng, hợp đồng trước). Bean không tự khóa `nguoi_cao_tuoi`; nó khóa `vi_tri_nct` và giường theo G-03 trong `thucHienTacDong`, rồi kiểm tra lại.
+**Quyết định**: 003 cài một bean `PhanBoThamGiaChuyenTrangThai`, `@Order` sau 004 (004 mở hoặc đóng lượt vắng, hợp đồng trước). Bean không tự khóa `nguoi_cao_tuoi`; nó khóa `vi_tri_nct` và giường theo G-03 trong `thucHienTacDong`, rồi kiểm tra lại. *(R-15: `vi_tri_nct` → `trang_thai_nct`)*
 
 | Lệnh của 001 | Điều kiện (`kiemTraDieuKien`) | Tác động (`thucHienTacDong`) |
 | --- | --- | --- |
 | `HOAN_TAT_TIEP_NHAN` | Chỉ khi loại lưu trú là nội trú: có phân bổ Tương lai; giường đặt trước `TRONG` hoặc giữ chỗ cho chính người này, không mang dấu, FR-018 thỏa theo mức hiện hành. Khác đi thì vi phạm `GIUONG_DAT_TRUOC_CHUA_SAN_SANG` hoặc liệt kê vi phạm FR-018, trừ khi `chiTiet.doiPhanBoSangGiuongId` là giường `TRONG` thỏa FR-018 (FR-023, Q-50) | Phân bổ chuyển `DANG_HIEU_LUC`, `bat_dau` là thời điểm lệnh; giường sang `DANG_SU_DUNG`. Có đổi giường thì phân bổ cũ `DA_HUY` (lý do "đổi giường khi tiếp nhận") và mở phân bổ mới. Kết thúc giữ chỗ hồ sơ chờ của người này ở giường khác (004 FR-016) |
 | `HUY_TIEP_NHAN` | — | Phân bổ Tương lai `DA_HUY`; giường đang giữ chỗ cho hồ sơ chờ của người này về `TRONG` (không qua Chờ sẵn sàng) |
 | `CHO_TAM_VANG`, `CHUYEN_VIEN` | — | Hỏi `NguonLuuTruChoPhanBo.giuGiuongKhiVang(nctId)` (004 đã mở lượt vắng ở bean chạy trước). Giữ giường: giường `DANG_GIU_CHO` lý do `NGUOI_VANG`, hạn theo kết quả, phân bổ giữ nguyên (FR-024). Không giữ: đóng phân bổ tại thời điểm rời viện, giường `CHO_SAN_SANG` |
-| `GHI_NHAN_TRO_VE` | — (không chặn, FR-024a, FR-025a) | Có phân bổ đang hiệu lực: giường về `DANG_SU_DUNG`. Phòng đang chịu chặn cách ly: đặt dấu "chờ bác sĩ xác nhận vùng cách ly", phát `TroVePhongCachLy` (Khẩn cấp, Q-114). Không có phân bổ: đặt dấu "chưa có giường" trên `vi_tri_nct` |
+| `GHI_NHAN_TRO_VE` | — (không chặn, FR-024a, FR-025a) | Có phân bổ đang hiệu lực: giường về `DANG_SU_DUNG`. Phòng đang chịu chặn cách ly: đặt dấu "chờ bác sĩ xác nhận vùng cách ly", phát `TroVePhongCachLy` (Khẩn cấp, Q-114). Không có phân bổ: đặt dấu "chưa có giường" trên `vi_tri_nct` *(R-15: `vi_tri_nct` → `trang_thai_nct`)* |
 | `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI` | — | Đóng phân bổ tại thời điểm hiệu lực của lệnh, hủy phân bổ Tương lai, giường `CHO_SAN_SANG`, gỡ dấu "chưa có giường" (FR-025, CHK004) |
 
 - **Cảnh báo trước khi xác nhận** (FR-024a (1)): SPI của 001 cần thêm `default List<CanhBao> canhBao(NguCanhLenh nc)`. 001 gọi hàm này trong `GET …/dieu-kien/{lenh}` và trả kèm phản hồi lệnh, cùng cách 001 đã trả `THIEU_BAN_DONG_Y`. Bổ sung này được ghi vào hợp đồng 001 (plan, mục "Đồng bộ").
@@ -175,7 +175,7 @@ Mỗi SPI chưa có bản cài thật thì test dùng bản giả giữ đúng c
 ## G-08. Cách ly phòng và khoanh vùng (mục B, FR-008 → FR-010)
 
 **Quyết định**:
-- `phong.dang_cach_ly` (boolean) đổi qua hai lệnh `POST /phong/{id}/dat-cach-ly` và `/go-cach-ly`, bắt buộc lý do, `suCoId` tùy chọn (tham chiếu logic, không khóa ngoại sang 007). Mỗi lệnh thêm một dòng `lich_su_cach_ly_phong` (nhóm 3).
+- `phong.dang_cach_ly` (boolean) đổi qua hai lệnh `POST /phong/{id}/dat-cach-ly` và `/go-cach-ly`, bắt buộc lý do, `suCoId` tùy chọn (tham chiếu logic, không khóa ngoại sang 007). Mỗi lệnh thêm một dòng `lich_su_cach_ly_phong` (nhóm 3). *(R-15: `lich_su_cach_ly_phong` → `lich_su_chung`)*
 - **Phòng chịu chặn cách ly** tại thời điểm t: `dang_cach_ly`, hoặc `tang_id` thuộc tập tầng đang khoanh vùng, hoặc khu vực của phòng thuộc tập khu vực đang khoanh vùng. Hai tập lấy một lần mỗi lệnh từ SPI `TinhTrangLayNhiemChoPhanBo.vungDangKhoanh(t)` (007 cài). Danh sách giường dùng hai tập này như tham số `NOT IN`.
 - **Gỡ chặn**: gỡ cách ly phòng, hoặc nhận sự kiện `KhoanhVungDaGo` của 007, thì 003 gỡ dấu "chờ bác sĩ xác nhận vùng cách ly" trên các phân bổ của phòng không còn chịu chặn (FR-024a (c)).
 - **Bác sĩ xác nhận ở lại** `POST /phan-bo-giuong/{id}/xac-nhan-o-lai-vung-cach-ly`: AC-03 bất kỳ đang Hoạt động, có lý do; ghi người, lý do, thời điểm lên phân bổ và nhật ký (FR-024a (a), CHK057).
@@ -189,13 +189,13 @@ Mỗi SPI chưa có bản cài thật thì test dùng bản giả giữ đúng c
 
 ## G-09. Bộ lập lịch của 003 (FR-016a)
 
-**Quyết định**: Bốn job, mỗi job chạy mỗi 15 phút (chu kỳ kỹ thuật như 000, 001) và khi ứng dụng khởi động, có ShedLock và một dòng `lan_chay_lich` (000 R-10). Job chỉ chuyển trạng thái theo thời gian, nhắc, báo; không tạo phân bổ hay bản ghi nghiệp vụ (000 FR-010a).
+**Quyết định**: Bốn job, mỗi job chạy mỗi 15 phút (chu kỳ kỹ thuật như 000, 001) và khi ứng dụng khởi động, có ShedLock và một dòng `lan_chay_lich` (000 R-10). Job chỉ chuyển trạng thái theo thời gian, nhắc, báo; không tạo phân bổ hay bản ghi nghiệp vụ (000 FR-010a). *(R-15: `lan_chay_lich` → file `logs/jobs.log`)*
 
 | Job | FR | Việc | Chống lặp |
 | --- | --- | --- | --- |
 | `HetHanGiuCho` | FR-015 | Giữ cho hồ sơ chờ quá `han_giu_cho`: giường về `TRONG`, gọi `NguonLuuTruChoPhanBo.hoSoChoHetHanGiuCho` trong cùng transaction để 004 trả hồ sơ về Đang chờ, phát `GiuongDaTrong`. Giữ cho người vắng quá hạn: không giải phóng, phát `GiuChoNguoiVangHetHan` để 004 xử lý theo BR-M02-07 | Trạng thái giường đổi (hồ sơ chờ); cột `da_bao_het_han_luc` (người vắng) |
 | `BaoQuaBatDauDuKien` | FR-023 | Phân bổ ban đầu `TUONG_LAI` quá `bat_dau` mà người vẫn Đang tiếp nhận: báo Hành chính | Cột `da_bao_qua_bat_dau_cho` lưu mốc đã báo; mốc đổi thì báo lại |
-| `NhacChuKyPhanBo` | FR-025a, FR-030, FR-034 | Nhắc theo CFG-M03-02 cho dấu "chưa có giường" (Hành chính), "chờ lập yêu cầu thay đổi lưu trú" (Hành chính), "chờ chuyển về phòng cùng giá" và "phòng không còn phù hợp" (Trưởng tầng phụ trách, Hành chính) | Bảng `nhac_phan_bo` lưu lần nhắc cuối cho mỗi (đối tượng, loại dấu); dấu gỡ thì xóa dòng nên không nhắc nữa (SC-013) |
+| `NhacChuKyPhanBo` | FR-025a, FR-030, FR-034 | Nhắc theo CFG-M03-02 cho dấu "chưa có giường" (Hành chính), "chờ lập yêu cầu thay đổi lưu trú" (Hành chính), "chờ chuyển về phòng cùng giá" và "phòng không còn phù hợp" (Trưởng tầng phụ trách, Hành chính) | Bảng `nhac_phan_bo` lưu lần nhắc cuối cho mỗi (đối tượng, loại dấu); dấu gỡ thì xóa dòng nên không nhắc nữa (SC-013) *(R-15: `nhac_phan_bo` → `moc_da_nhac`)* |
 | `NhacGiuongChoSanSang` | FR-044 | Giường `CHO_SAN_SANG` quá `han_xac_nhan_san_sang`: nhắc Trưởng tầng được giao của tầng một lần | Cột `da_nhac_san_sang_luc`, đặt lại khi giường vào `CHO_SAN_SANG` lần sau |
 
 - **Thời điểm ghi** (FR-016a): mọi việc ghi thời điểm thực tế (`Clock`) cùng thời điểm dự kiến (hạn giữ, mốc nhắc, 00:00 ngày hiệu lực). Trễ hơn CFG-M03-08 thì bản ghi (phân bổ, lịch sử giường) mang `thuc_hien_tre = true` và 003 phát `ViecLichTre` cho Quản lý viện. Lần nhắc, báo không có bản ghi nghiệp vụ; mốc dự kiến và cờ trễ nằm trong `chi_tiet` của nhật ký.
@@ -238,8 +238,8 @@ Mỗi SPI chưa có bản cài thật thì test dùng bản giả giữ đúng c
 ## G-11. Khu nghỉ bán trú và sức chứa (mục G, FR-038 → FR-042)
 
 **Quyết định**:
-- `khu_nghi_ban_tru` có cột sinh `hieu_luc_duy_nhat = IF(trang_thai='HIEU_LUC', 1, NULL)` với `UNIQUE`, nên cơ sở dữ liệu chặn khu Hiệu lực thứ hai (FR-038). Khu nghỉ gắn đúng một tầng hoặc một khu vực (`CHECK`).
-- `buoi_ban_tru` (nhóm 1) có tên, `gio_bat_dau`, `gio_ket_thuc` (`TIME`). Kiểm không chồng khung giờ ở backend dưới khóa dòng khu nghỉ.
+- `khu_nghi_ban_tru` có cột sinh `hieu_luc_duy_nhat = IF(trang_thai='HIEU_LUC', 1, NULL)` với `UNIQUE`, nên cơ sở dữ liệu chặn khu Hiệu lực thứ hai (FR-038). Khu nghỉ gắn đúng một tầng hoặc một khu vực (`CHECK`). *(R-15: `khu_nghi_ban_tru` → `danh_muc_chung`)*
+- `buoi_ban_tru` (nhóm 1) có tên, `gio_bat_dau`, `gio_ket_thuc` (`TIME`). Kiểm không chồng khung giờ ở backend dưới khóa dòng khu nghỉ. *(R-15: `buoi_ban_tru` → `danh_muc_chung`)*
 - **Kiểm tra sức chứa** khi 004 đăng ký hoặc đổi lịch đến (004 sở hữu lịch đến):
   1. 004 gọi `SucChuaBanTruApi.khoa()` (MANDATORY, `FOR UPDATE` trên dòng khu nghỉ), nên mọi đăng ký được tuần tự hóa;
   2. 004 gọi `buoiBiChiem(ngay, gioDen, gioVe)`. Hàm trả các buổi có khung giao `[gioDen, gioVe)`, theo cùng quy ước nửa mở với FR-019 (FR-039, Q-47);

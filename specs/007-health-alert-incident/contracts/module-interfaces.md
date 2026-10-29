@@ -21,7 +21,7 @@ Plan làm sau (008, 009, 011, 012, 013, 014, 016) giữ đúng chữ ký hoặc 
 | `MucViecSauQuaDoiPort` (`m02.api`) | `m05`: `ma() = CANH_BAO_SU_CO` (S-17) | 004 FR-071 |
 | `NguonCongViecPort` (`m04.api`) | `m06`: `LAN_DO` (lịch đo; trả "theo chỉ định" và mức quan trọng của lịch). `m05`: `THEO_DOI_SAU_NGA` (căn cứ `suCoId`), `THEO_DOI_TIEP_XUC` (căn cứ `nguoiTiepXucId`), `CANH_BAO_UONG_NUOC` (căn cứ `canhBaoId` loại `UONG_NUOC_THIEU` đang mở) | 005 FR-017, FR-023 |
 | `ChiSoPort` (`m04.api`) | `m06`: `ghi(...)` trả `DA_LUU`, `BI_CHAN`, `CHO_DO_LAI` (S-06); giữ đúng chữ ký | 005 FR-034, BR-M04-10 |
-| `CanhBaoDocPort` (`m04.api`) | `m05`: `dangMo(nctIds)`; `theoCongViec(congViecIds)` qua `nguon_canh_bao` loại `CONG_VIEC` | 005 FR-029, FR-046 |
+| `CanhBaoDocPort` (`m04.api`) | `m05`: `dangMo(nctIds)`; `theoCongViec(congViecIds)` qua `nguon_canh_bao` loại `CONG_VIEC` | 005 FR-029, FR-046 *(R-15: `nguon_canh_bao` → `su_kien_chung`)* |
 | `NgoaiTuyenHandler` (`m15.taikhoan.api`) | `m06`: `M06.BAN_GHI_CHI_SO` (gồm lần đo lại). Không có handler cho sự cố, kích hoạt khẩn cấp (bắt buộc trực tuyến) | 002 A-11, Q-01 |
 | `DinhChinhDuocProvider` (000) | `M06.BAN_GHI_CHI_SO`, `M06.BAN_GHI_KHAM`, `M05.SU_CO`, `M05.DIEN_BIEN_SU_CO`, `M05.KET_QUA_XAC_NHAN_LAI`, `M05.LUA_CHON_THUC_HIEN` (S-06, S-11, S-13) | 000 R-08 |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | data-model mục 13, 14 | |

@@ -71,12 +71,12 @@ interface NghiCoDuyetPort {         // 015 cài; 008 dùng
 ## X-04. Khóa và đồng thời
 
 **Quyết định**:
-- Nối thứ tự khóa của 008 N-03: `nhan_vien` (theo `id` tăng) → `tang_ca_khoa` → `lich_ca` → `ca` → `phan_cong`; 015 thêm `yeu_cau_doi_ca` / `yeu_cau_nghi` / `canh_bao_thieu_phu` / `loi_moi` sau `ca`.
+- Nối thứ tự khóa của 008 N-03: `nhan_vien` (theo `id` tăng) → `tang_ca_khoa` → `lich_ca` → `ca` → `phan_cong`; 015 thêm `yeu_cau_doi_ca` / `yeu_cau_nghi` / `canh_bao_thieu_phu` / `loi_moi` sau `ca`. *(R-15: `tang_ca_khoa` → `khoa_ky_thuat`; `yeu_cau_doi_ca`, `yeu_cau_nghi` → `ho_so_chung`)*
 - **Đổi ca**: lệnh Duyệt khóa `nhan_vien` của A, B (theo `id`), rồi `ca` X, Y (theo `id`), rồi yêu cầu; kiểm FR-021 với dữ liệu tại lúc duyệt.
 - **Ca không ở hai yêu cầu mở** (FR-019, FR-026): bảng `yeu_cau_ca_mo (ca_id, nhan_vien_id)` `UNIQUE`, dòng xóa khi yêu cầu vào trạng thái cuối hoặc ca rời yêu cầu (bảng kỹ thuật, không phải nhóm 3).
 - **Một lời mời Chờ trả lời mỗi (ca, nhân viên)**: cột sinh `UNIQUE`.
 - **Một cảnh báo thiếu phủ mở mỗi ca**: cột sinh `khoa_mo = IF(trang_thai = 'DANG_MO', ca_id, NULL)` `UNIQUE`.
-- **Lập lịch từ mẫu**: khóa `tang_ca_khoa` của phạm vi (hoặc khóa toàn viện), kiểm "chưa có lịch tháng" trong khóa; hai lệnh song song → một thành công.
+- **Lập lịch từ mẫu**: khóa `tang_ca_khoa` của phạm vi (hoặc khóa toàn viện), kiểm "chưa có lịch tháng" trong khóa; hai lệnh song song → một thành công. *(R-15: `tang_ca_khoa` → `khoa_ky_thuat`)*
 
 ---
 
@@ -113,7 +113,7 @@ interface NghiCoDuyetPort {         // 015 cài; 008 dùng
 ## X-08. Yêu cầu đổi ca (mục D; BR-M09-10, UC-54, Q-179, Q-191, Q-185, Q-187, Q-10)
 
 **Quyết định**:
-- Loại yêu cầu phê duyệt `M09.DOI_CA` của 000 với ngoại lệ vòng đời đã khai ở 000 FR-031: `CHO_NGUOI_NHAN_DONG_Y → CHO_DUYET → DA_AP_DUNG`, cuối `NGUOI_NHAN_TU_CHOI`, `TU_CHOI`, `DA_HUY`, `HET_HIEU_LUC`. Handler cài `chuyenMoRong()` cho hai trạng thái riêng; bảng nghiệp vụ `yeu_cau_doi_ca` giữ dạng, A, X, B, Y, kết quả kiểm tra từng bước.
+- Loại yêu cầu phê duyệt `M09.DOI_CA` của 000 với ngoại lệ vòng đời đã khai ở 000 FR-031: `CHO_NGUOI_NHAN_DONG_Y → CHO_DUYET → DA_AP_DUNG`, cuối `NGUOI_NHAN_TU_CHOI`, `TU_CHOI`, `DA_HUY`, `HET_HIEU_LUC`. Handler cài `chuyenMoRong()` cho hai trạng thái riêng; bảng nghiệp vụ `yeu_cau_doi_ca` giữ dạng, A, X, B, Y, kết quả kiểm tra từng bước. *(R-15: `yeu_cau_doi_ca` → `ho_so_chung`)*
 - Hàm thuần `KiemTraDoiCa(yc, trangThaiSauDoi)` → (a) chặn chồng giờ; (b) cảnh báo vượt CFG-M09-02; (c) phân công không chuyển được; (d) người phụ trách sau đổi; (e) phủ trước/sau (`TinhPhu`); (f) tỷ lệ phục vụ trước/sau (008); (g) giờ làm trong tháng (chỉ người duyệt); (h) chuyến đi chồng (cảnh báo). Chạy lúc lập, đồng ý, duyệt với dữ liệu tại thời điểm đó.
 - Xem ca của B khi chọn Y (FR-020): endpoint trả DTO chỉ ngày, giờ, mẫu ca của các ca thỏa FR-019.
 - **Duyệt** (FR-024), một transaction: `CaLenhPort.roiCa`/`themVaoCa` cho A, B; với mỗi phân công Tương lai: `PhanCongLenhPort.huy` + `kiemTra`/`lap` cho người kia, không đạt thì `CongViecCaApi.khiKetThucPhanCong` và nhắc trưởng tầng; người phụ trách: B nếu đạt 008 FR-015, nếu không người duyệt chọn trong thân lệnh, không có → 409 `CAN_NGUOI_PHU_TRACH` (Q-187); `doiNguoiPhuTrach` (hiệu lực như 008 FR-019); dấu Bác sĩ trực chuyển; `ChuyenDiNhiemVuLenhApi.goNhiemVu` nếu chồng chuyến; tính lại phủ; thông báo.
@@ -175,7 +175,7 @@ Riêng tư: lý do nghỉ, đổi ca mang `@NhomTruong(LY_DO_NHAN_SU)` (008), ch
 - **Kiểm thử**:
   - test bảng `MauCaTaiNgay`, `LapLichThang` (SC-001: 3 mẫu × 4 tháng, ca đêm cuối tháng), `DongApDung`, `TinhPhu` (người nhiều vai trò, tie-break), `KiemTraDoiCa`, `DieuKienNguoiThay`, `GioTrongThang`;
   - bộ 200 yêu cầu (SC-004) gồm đồng thời, ca bị hủy khi chờ, duyệt một phần, nghỉ theo ngày trước/sau công bố;
-  - Test tích hợp MySQL: `UNIQUE` cảnh báo mở mỗi ca, lời mời chờ, `yeu_cau_ca_mo`; trigger nhóm 3;
+  - Test tích hợp MySQL: `UNIQUE` cảnh báo mở mỗi ca, lời mời chờ, `yeu_cau_ca_mo`; trigger nhóm 3; *(R-15: `yeu_cau_ca_mo` → `khoa_duy_nhat` của `ho_so_chung`)*
   - test đồng thời: hai lệnh lập lịch cùng phạm vi; duyệt đổi ca cùng lúc với ghi vắng ca; hai người nhận lời mời cho chỗ cuối;
   - đồng hồ giả lập cho CFG-M09-02, 06, 10, 11, CFG-M15-05, 06.
 - Tên test theo BR/FR (`BR_M09_09_LapLichTuMauIT`, `BR_M09_11_ThieuPhuIT`).

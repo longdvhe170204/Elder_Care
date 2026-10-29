@@ -59,7 +59,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 ### Implementation cho User Story 1
 
-- [ ] T009 [US1] Tạo bảng `dong_y_tu_giu` (`cach` `CONG|BAN_KY|TRONG_LENH_TIEP_NHAN`; `trang_thai` `HIEU_LUC|DA_RUT|HET_HIEU_LUC`; cột sinh `khoa_hieu_luc` `UNIQUE`) trong `MIG/V013_02__dong_y.sql`
+- [ ] T009 [US1] Tạo bảng `dong_y_tu_giu` (`cach` `CONG|BAN_KY|TRONG_LENH_TIEP_NHAN`; `trang_thai` `HIEU_LUC|DA_RUT|HET_HIEU_LUC`; cột sinh `khoa_hieu_luc` `UNIQUE`) trong `MIG/V013_02__dong_y.sql` *(R-15: `dong_y_tu_giu` → `do_gui` (cột))*
 - [ ] T010 [US1] Cài `BE/m12/dogui/internal/TiepNhanService.java` (Tiếp nhận, Tiếp nhận và giao ngay; người thực hiện Hành chính hoặc Điều dưỡng trong phạm vi; ảnh qua `TepApi`; đồ có giá trị theo CFG-M12-01 lúc lệnh) và `BE/m12/dongy/internal/DongYTuGiuService.java` (người đại diện qua cổng hoặc bản ký) (research K-04, K-06)
 - [ ] T011 [US1] Tạo endpoint `/nguoi-cao-tuoi/{nctId}/do-gui`, `/do-gui/{id}`, `/dong-y-tu-giu`, `/dong-y-tu-giu/{id}/rut`, `/cong/dong-y-tu-giu`, `/cong/dong-y-tu-giu/{id}/rut`; màn web `frontend/src/tinh-nang/do-gui/tiep-nhan/`; app `mobile/lib/nhan-vien/do-gui/` (ảnh, chặn thao tác khi mất mạng) với test flutter
 
@@ -99,7 +99,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 ### Implementation cho User Story 3
 
-- [ ] T017 [US3] Tạo `MIG/V013_03__tra.sql`: `lan_tra` (nhóm 3; `nguoi_nhan_loai` `NGUOI_THAN|NGUOI_CAO_TUOI|NGUOI_KHAC`), `lan_chan_tra` (nhóm 3; `ly_do` 4 giá trị), `xac_nhan_nguoi_nhan` (`trang_thai` `CHO_XAC_NHAN|HIEU_LUC|TU_CHOI|HUY|DA_DUNG|HET_HAN`; `cach` `CONG|BAN_KY|QL_DUYET_THAY`; khóa sau khi lập), `xac_nhan_nguoi_nhan_do`, `bang_chung_lien_he` (nhóm 3) (data-model mục 5)
+- [ ] T017 [US3] Tạo `MIG/V013_03__tra.sql`: `lan_tra` (nhóm 3; `nguoi_nhan_loai` `NGUOI_THAN|NGUOI_CAO_TUOI|NGUOI_KHAC`), `lan_chan_tra` (nhóm 3; `ly_do` 4 giá trị), `xac_nhan_nguoi_nhan` (`trang_thai` `CHO_XAC_NHAN|HIEU_LUC|TU_CHOI|HUY|DA_DUNG|HET_HAN`; `cach` `CONG|BAN_KY|QL_DUYET_THAY`; khóa sau khi lập), `xac_nhan_nguoi_nhan_do`, `bang_chung_lien_he` (nhóm 3) (data-model mục 5) *(R-15: `lan_tra`, `lan_chan_tra` → `ban_giao_do_gui` (`loai`); `xac_nhan_nguoi_nhan` → `ho_so_chung`)*
 - [ ] T018 [US3] Cài `BE/m12/tra/internal/TraService.java` (lệnh Trả theo `NguoiNhanHopLe` qua `QuyenNguoiThanApi`; lần chặn) và `XacNhanNguoiNhanService.java` (lập, xác nhận, từ chối, duyệt thay, hủy; việc theo phút Hết hạn; báo Quản lý viện khi đủ điều kiện duyệt thay) (research K-06)
 - [ ] T019 [US3] Tạo endpoint `POST /do-gui/tra`, `/xac-nhan-nguoi-nhan`, `/{id}/bang-chung-lien-he`, `/{id}/{lenh}`, `/cong/xac-nhan-nguoi-nhan/{id}/{lenh}`; màn web `frontend/src/tinh-nang/do-gui/tra/`; app người thân xác nhận người nhận khác với test flutter
 
@@ -139,7 +139,7 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 ### Implementation cho User Story 5
 
 - [ ] T024 [US5] Cài `BE/m12/ketthuc/internal/DieuKienDoGui.java`, bean `ThamGiaChuyenTrangThai` (`@Order` sau 012; `KT_B_DO_GUI` `coTheMien = true`), `MucViecSauQuaDoiPort` `DO_GUI`, handler `M12.XU_LY_DO_KHONG_NGUOI_NHAN` (`choTuDuyet = false`; `apDung` ghi bản ghi `XU_LY`); listener `HoSoKetThucDaLap`, `NguoiCaoTuoiDaChuyenTrangThai`; nhắc CFG-M12-02 (research K-08, K-09)
-- [ ] T025 [US5] Tạo bảng `phieu_kiem_ke` (`trang_thai` `CHO_KIEM_KE|HOAN_THANH|DA_HUY`; `UNIQUE (vi_tri_id, ma_ky)`), `phieu_kiem_ke_dong`, `do_khong_ro_chu` trong `MIG/V013_04__kiem_ke.sql`; cài `BE/m12/kiemke/internal/KiemKeService.java` (Hành chính lập; hoàn thành phát sinh bản ghi; `DinhChinhDuocProvider` `M12.PHIEU_KIEM_KE`; nhắc chu kỳ) (research K-10)
+- [ ] T025 [US5] Tạo bảng `phieu_kiem_ke` (`trang_thai` `CHO_KIEM_KE|HOAN_THANH|DA_HUY`; `UNIQUE (vi_tri_id, ma_ky)`), `phieu_kiem_ke_dong`, `do_khong_ro_chu` trong `MIG/V013_04__kiem_ke.sql`; cài `BE/m12/kiemke/internal/KiemKeService.java` (Hành chính lập; hoàn thành phát sinh bản ghi; `DinhChinhDuocProvider` `M12.PHIEU_KIEM_KE`; nhắc chu kỳ) (research K-10) *(R-15: `phieu_kiem_ke` → `ho_so_chung`)*
 - [ ] T026 [US5] Tạo endpoint `GET /nguoi-cao-tuoi/{nctId}/do-gui/dieu-kien-ket-thuc`, `/kiem-ke`, `/{id}`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/do-gui/kiem-ke/`, `frontend/src/tinh-nang/do-gui/xu-ly-do/`
 
 **Checkpoint**: Kết thúc và kiểm kê chạy độc lập.
@@ -168,10 +168,11 @@ description: "Danh sách task triển khai feature 013 – Quản lý đồ gử
 
 - [ ] T033 [US6] *(Bổ sung 2026-10-18, Q-366)* Cài `BE/m12/dogui/internal/DoGuiKenhNctPortImpl.java` và thêm AC-16 chủ đồ vào `QuyenTepProvider` `M12.ANH_DO_GUI`; test `BT/m12/FR_030a_DoGuiKenhNguoiCaoTuoiIT.java` (quickstart G1; research K-16)
 
-- [ ] T029 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/013-personal-belongings/contracts/api-013.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho `ban_giao_do_gui`, `lan_tra` (BR-M15-03)
+- [ ] T029 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/013-personal-belongings/contracts/api-013.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho `ban_giao_do_gui`, `lan_tra` (BR-M15-03) *(R-15: `lan_tra` → `ban_giao_do_gui` (`loai`))*
 - [ ] T030 Thay bản giả `DoGuiBanGiaoPort` (008), `MucViecSauQuaDoiPort` `DO_GUI` (004) bằng bản cài của 013 và chạy lại test 004, 008
 - [ ] T031 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
 - [ ] T032 Rà truy vết: DBR-22, 23, 25 và BR-M12-01 → 09 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-001, FR-001a, FR-002, FR-026, FR-026a, FR-027, FR-027a, FR-028a, FR-028c, FR-029, FR-031, FR-031a, FR-032 — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T034 *(bổ sung 2026-10-29, research R-15 bản 2 của 000)* Khi viết migration và entity của feature, áp data-model mục 0: không tạo các bảng đã gộp, dùng bảng gộp, cột `JSON` và bảng chung (`CatalogApi`, `StatusHistoryApi`, `RecordEventApi`, `SimpleRecordApi`, `ResidentModuleStateApi`, `ReminderMarkers`, `TechnicalLocks`); test bảo vệ nhóm dữ liệu viết cho bảng gộp
 
 ---
 

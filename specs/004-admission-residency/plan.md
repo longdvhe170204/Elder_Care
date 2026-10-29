@@ -22,7 +22,7 @@ Feature 004 là module M02 (mục 6). Nó cung cấp:
 Hướng kỹ thuật:
 - Nội dung hợp đồng lưu thành phiên bản chỉ thêm: phiên bản 0 lúc ký, mỗi phụ lục thêm một phiên bản. "Nội dung tại ngày D" là một truy vấn có chỉ mục (research T-04).
 - Ràng buộc đưa xuống MySQL:
-  - khóa dòng `luu_tru_nct` cùng trigger chống chồng hợp đồng, chống chồng phiên bản đơn giá;
+  - khóa dòng `luu_tru_nct` cùng trigger chống chồng hợp đồng, chống chồng phiên bản đơn giá; *(R-15: `luu_tru_nct` → `trang_thai_nct`)*
   - trigger khóa nội dung hợp đồng ngoài Nháp;
   - cột sinh `UNIQUE` cho "một bản ghi mở mỗi người" (data-model mục 12).
 - Mọi tác động lên trạng thái người cao tuổi đi qua SPI `ThamGiaChuyenTrangThai` của 001; bean của 004 chạy đầu tiên. Lệnh danh sách chờ dẫn tới Hủy tiếp nhận cũng đi qua 001, nên chỉ có một thứ tự khóa (T-03).
@@ -40,7 +40,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ### Cập nhật 2026-10-18 (spec mục "Cập nhật 2026-10-18" và "Cập nhật 2026-10-18, lượt 2": Q-356, 009 FR-001a)
 
-- **Ý kiến của người cao tuổi về việc vào ở** (FR-001, Q-356): bảng con `y_kien_vao_o` của lượt đăng ký (nhóm 2, nội dung bất biến, thay thế bằng bản mới) có nguồn theo mẫu 001 (`NguonYKienApi`); lệnh `POST /luot-dang-ky/{id}/y-kien-vao-o` của Hành chính (research T-09a, data-model mục 3).
+- **Ý kiến của người cao tuổi về việc vào ở** (FR-001, Q-356): bảng con `y_kien_vao_o` của lượt đăng ký (nhóm 2, nội dung bất biến, thay thế bằng bản mới) có nguồn theo mẫu 001 (`NguonYKienApi`); lệnh `POST /luot-dang-ky/{id}/y-kien-vao-o` của Hành chính (research T-09a, data-model mục 3). *(R-15: `y_kien_vao_o` → `ho_so_tiep_nhan`)*
 - **Hoàn tất tiếp nhận** (FR-004a): ý kiến không là điều kiện. Danh sách điều kiện trả `yKienVaoO` hiện hành kèm nguồn; bean `ThamGiaM02` trả `canhBao` `CHUA_GHI_Y_KIEN_VAO_O` khi chưa có ý kiến và `NCT_KHONG_DONG_Y_VAO_O` khi ý kiến hiện hành là "Không đồng ý"; lý do của lệnh đã bắt buộc theo 001 FR-046 và lưu ở lịch sử trạng thái của 001 (plan 001, điểm báo lại 12). Tác động của lệnh ghi lại ý kiến hiện hành lúc tiếp nhận lên lượt đăng ký.
 - **Đối tượng thông tin** (FR-078, 009 FR-001a): 004 không tự gửi thông báo nào tới người thân; thông báo qua đời do 001 phát (mã Q-354 `QUA_DOI`); dấu `viecSauQuaDoi` cho module khác giữ nguyên (research T-12).
 - Không thêm thư viện, vai trò, trạng thái. Điểm báo lại 9 bên dưới.
@@ -52,7 +52,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - **Cổng người thân** (FR-068): `DieuKienTiepNhanApi.dieuKienKetThuc` giữ nguyên; bảng quyết toán do 012 lấy từ 017 (017 FR-038), 004 không lưu file quyết toán.
 - **Sửa sai tiền cọc** (Q-385): không còn giao dịch đảo, số phiếu thu; 017 báo trạng thái đặt cọc mới sau điều chỉnh có duyệt, 004 xử lý như mọi lần đổi trạng thái (FR-032 giữ nguyên).
 - **Q-380 (sửa theo Q-385)**: không có thời hạn báo trước, không thêm tham số; phí chấm dứt sớm là khoản nhập tay của 010. 004 không đổi.
-- **Q-387** (FR-071a, chốt 2026-10-22 sau plan): ngoại lệ cho mục quyết toán của danh sách việc sau qua đời dùng cùng loại yêu cầu `M02.NGOAI_LE_KET_THUC` với mã `KT_H_QUYET_TOAN`; `ngoai_le_dieu_kien` thêm `nct_id`, `ho_so_ket_thuc_id` được rỗng khi căn cứ là danh sách việc sau qua đời; endpoint mới `POST /nguoi-cao-tuoi/{nctId}/viec-sau-qua-doi/yeu-cau-ngoai-le-quyet-toan` (Hành chính, Kế toán); `HoSoKetThucDocApi.coNgoaiLeQuyetToanDaDuyet` trả cả hai căn cứ; `NgoaiLeKetThucDaDuyet` mang `hoSoKetThucId` rỗng khi qua đời (research T-13).
+- **Q-387** (FR-071a, chốt 2026-10-22 sau plan): ngoại lệ cho mục quyết toán của danh sách việc sau qua đời dùng cùng loại yêu cầu `M02.NGOAI_LE_KET_THUC` với mã `KT_H_QUYET_TOAN`; `ngoai_le_dieu_kien` thêm `nct_id`, `ho_so_ket_thuc_id` được rỗng khi căn cứ là danh sách việc sau qua đời; endpoint mới `POST /nguoi-cao-tuoi/{nctId}/viec-sau-qua-doi/yeu-cau-ngoai-le-quyet-toan` (Hành chính, Kế toán); `HoSoKetThucDocApi.coNgoaiLeQuyetToanDaDuyet` trả cả hai căn cứ; `NgoaiLeKetThucDaDuyet` mang `hoSoKetThucId` rỗng khi qua đời (research T-13). *(R-15: `ngoai_le_dieu_kien` → `su_kien_chung`)*
 - Không thêm bảng, thư viện, vai trò, trạng thái.
 
 ## Technical Context
@@ -125,9 +125,9 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 **Kiểm lại sau Phase 1 (2026-10-22)**: Đạt. Q-379, Q-385 chỉ thêm một mã điều kiện không miễn được do 017 trả, một API đọc và một sự kiện cho 017; không thêm bảng, trạng thái, vai trò. Điểm báo lại 10.
 
 **Kiểm lại sau Phase 1**: Đạt. Thiết kế không thêm vai trò, trạng thái hay quy tắc nghiệp vụ ngoài spec. Có năm bổ sung kỹ thuật, giải thích ở Complexity Tracking:
-1. Bảng `luu_tru_nct` làm đích khóa theo người.
+1. Bảng `luu_tru_nct` làm đích khóa theo người. *(R-15: `luu_tru_nct` → `trang_thai_nct`)*
 2. Phiên bản nội dung hợp đồng, cùng cột sao `ngay_ket_thuc_hien_hanh`.
-3. Bảng kết quả tính `ngay_vang`, `muc_viec_sau_qua_doi`.
+3. Bảng kết quả tính `ngay_vang`, `muc_viec_sau_qua_doi`. *(R-15: `muc_viec_sau_qua_doi` → `trang_thai_nct`)*
 4. Lệnh chuyển trạng thái không dùng `If-Match`.
 5. Các giao diện bổ sung vào hợp đồng 000, 001, 002, 003.
 
@@ -209,9 +209,9 @@ mobile/lib/nguoi-than/
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
-| Bảng `luu_tru_nct` (một dòng mỗi người) | Đích khóa tuần tự cho DBR-06 và cho các lệnh của 004 trên cùng người; giữ dấu "hồ sơ lưu trú đã đóng" (FR-072) | Khóa dòng `nguoi_cao_tuoi` của M01 là truy cập dữ liệu module khác |
+| Bảng `luu_tru_nct` (một dòng mỗi người) | Đích khóa tuần tự cho DBR-06 và cho các lệnh của 004 trên cùng người; giữ dấu "hồ sơ lưu trú đã đóng" (FR-072) | Khóa dòng `nguoi_cao_tuoi` của M01 là truy cập dữ liệu module khác *(R-15: `luu_tru_nct` → `trang_thai_nct`)* |
 | Phiên bản nội dung hợp đồng, cùng cột sao `ngay_ket_thuc_hien_hanh` trên hợp đồng Hiệu lực | FR-024 đòi trả nội dung tại ngày bất kỳ cho 001, 003, 005, 010; DBR-06 cần ngày kết thúc sau gia hạn để kiểm chồng bằng trigger | Ghép phụ lục mỗi lần đọc thì mọi module đọc phải cài lại logic ghép; không có cột ngày kết thúc hiện hành thì trigger không kiểm được |
-| Bảng kết quả tính `ngay_vang`, `muc_viec_sau_qua_doi`, được ghi lại khi có quyết định, đính chính hoặc module sở hữu báo | FR-052 đòi lưu kết quả theo ngày, dùng bảng hiện hành tại lúc tính và không đổi khi bảng đổi; FR-071 đòi trạng thái mục tự cập nhật. Mỗi lần ghi lại có nhật ký | Tính lại mỗi lần đọc thì không giữ được "bảng tại lúc tính" |
+| Bảng kết quả tính `ngay_vang`, `muc_viec_sau_qua_doi`, được ghi lại khi có quyết định, đính chính hoặc module sở hữu báo | FR-052 đòi lưu kết quả theo ngày, dùng bảng hiện hành tại lúc tính và không đổi khi bảng đổi; FR-071 đòi trạng thái mục tự cập nhật. Mỗi lần ghi lại có nhật ký | Tính lại mỗi lần đọc thì không giữ được "bảng tại lúc tính" *(R-15: `muc_viec_sau_qua_doi` → `trang_thai_nct`)* |
 | Lệnh chuyển trạng thái (hồ sơ chờ, hợp đồng, hồ sơ kết thúc) không dùng `If-Match` | Edge Case "lệnh đến sau được kiểm tra lại trên trạng thái mới" | `If-Match` từ chối cả lệnh còn hợp lệ. Cùng lý do với 001 H-02, 003 G-03 |
 | Giao diện bổ sung vào hợp đồng 000 (`dongDoTrangThaiCuoi`), 001 (người gọi `HUY_TIEP_NHAN`; ba giao diện thành SPI), 002 (`KetThucLuuTruApi` thành SPI), 003 (`thuocTinhPhanBo`, `batDauLuotTrong`) | FR-065, FR-070 đóng yêu cầu khi trạng thái cuối; FR-002 Hủy tiếp nhận từ danh sách chờ; FR-012 cần thuộc tính phòng và lượt trống; Modulith cần một chiều phụ thuộc | Không bổ sung thì phải đọc dữ liệu module khác hoặc tạo vòng phụ thuộc |
 | Một job hằng ngày lúc 00:15 và bảng `lan_chay_theo_ngay` | FR-077 đòi chạy bù từng ngày theo thứ tự và không trùng. Giờ chạy là thông số vận hành, không có trong Phụ lục 25; chạy sau job áp dụng yêu cầu 00:05 của 000 để ngày vắng dùng nội dung hợp đồng đã áp dụng | Mỗi việc một job riêng thì thứ tự giữa các việc của cùng ngày không bảo đảm |
@@ -260,3 +260,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 9. **(2026-10-18) Q-356 "bắt buộc lý do" đã có sẵn ở 001 FR-046.** Mọi lệnh chuyển trạng thái do người dùng thực hiện, gồm Hoàn tất tiếp nhận, đã bắt buộc lý do. Plan không thêm trường lý do riêng; cảnh báo `NCT_KHONG_DONG_Y_VAO_O` hiện ý kiến để người thực hiện ghi lý do nói tới nó. Nếu ý định là một lý do riêng cho ý kiến "Không đồng ý", cần sửa FR-004a cho rõ (cùng nội dung plan 001 điểm báo lại 12). *(Đã xử lý 2026-10-18: Q-361: lý do của lệnh; thiết kế giữ nguyên, spec FR-004a đã làm rõ)*
 
 10. **(2026-10-22) Spec 004 User Story 4 kịch bản 4 còn chữ "được đảo ở feature 017".** Q-385 bỏ giao dịch đảo (sai sót bằng điều chỉnh có duyệt, 017 FR-011); Clarification 2026-09-28 và bảng nhóm dữ liệu của spec 004 đã sửa nhưng kịch bản 4 chưa. Plan, tasks theo điều chỉnh có duyệt (T039 sửa câu chữ). Đề nghị sửa kịch bản 4 của spec khi đồng bộ. *(Đã xử lý 2026-10-22: spec đã sửa.)*
+
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Ánh xạ bảng ở data-model mục 0; task T110. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
+- Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
+- Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.
