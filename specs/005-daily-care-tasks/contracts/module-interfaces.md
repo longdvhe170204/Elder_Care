@@ -15,7 +15,7 @@ Chiều phụ thuộc theo research C-02: 005 phụ thuộc 000, 001, 002, 003, 
 | SPI (gói khai báo) | Bản cài của 005 | Dùng bởi |
 | --- | --- | --- |
 | `ThamGiaChuyenTrangThai` (`m01.api`) | Bean `@Order` sau 004, 003. Không có điều kiện chặn. Tác động theo bảng dưới | 001 H-02 |
-| `TrangThaiCoMatBanTruPort` (`m02.api`) | `trangThai(nctId, ngay, buoiId)` đọc `co_mat_ban_tru`: `CO_MAT` (gồm `DA_VE`), `VANG_CO_BAO`, `VANG_KHONG_BAO`; rỗng khi `CHUA_DEN` hoặc `DA_HUY_NGAY_NGHI` | 004 FR-060 |
+| `TrangThaiCoMatBanTruPort` (`m02.api`) | `trangThai(nctId, ngay, buoiId)` đọc `co_mat_ban_tru`: `CO_MAT` (gồm `DA_VE`), `VANG_CO_BAO`, `VANG_KHONG_BAO`; rỗng khi `CHUA_DEN` hoặc `DA_HUY_NGAY_NGHI` | 004 FR-060 *(R-15: `co_mat_ban_tru` → `ho_so_chung`)* |
 | `NgoaiTuyenHandler` (`m15.taikhoan.api`) | `M04.KET_QUA_CONG_VIEC`, `M04.GHI_NHAN_PHAT_SINH` (research C-14) | 002 A-11 |
 | `DinhChinhDuocProvider` (000) | `M04.KET_QUA_GHI_NHAN` (`tangKhuVuc` = tầng/khu của công việc; `choPhep` sai với kết quả đo chỉ số; `sauKhiDinhChinh` phát sự kiện cho 010 khi có tính phí); `M04.DIEM_DANH_BAN_TRU` (`sauKhiDinhChinh` cập nhật giờ trên dòng có mặt) | 000 R-08 |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | data-model mục 10, 11 | |

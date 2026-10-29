@@ -1,4 +1,17 @@
 <!--
+Sync Impact Report (2026-10-29)
+- Phiên bản: 3.1.1 → 3.2.0 (MINOR: mở rộng nguyên tắc XII, cho phép bảo đảm nhóm 3 ở cơ sở dữ liệu theo dòng).
+- Nguyên tắc sửa:
+  - XII. Dữ liệu: một bảng được chứa bản ghi của nhiều nhóm; bản ghi nhóm 3, bản ghi đã xác nhận MUST được chặn UPDATE, DELETE
+    ở cơ sở dữ liệu theo dòng (trigger) và có test tích hợp chứng minh. Chủ dự án duyệt để gộp bảng còn khoảng 80 (research R-15 của 000).
+- Mục thêm, bỏ: không.
+- Cần cập nhật theo:
+  - ✅ specs/000-shared-foundation/research.md (R-05, R-15), data-model.md (mục 8), glossary.md (6.6), tasks.md (T108).
+  - ✅ mục 0 data-model của 001 → 019 (trừ 016), task gộp của từng feature.
+  - ⚠ plan.md của từng feature: ghi cách bảo đảm DBR với bảng gộp khi làm task gộp (XII).
+-->
+
+<!--
 Sync Impact Report (2026-10-19)
 - Phiên bản: 3.1.0 → 3.1.1 (PATCH: đồng bộ nguyên tắc X với Q-365; số client và kiến trúc giữ nguyên).
 - Nguyên tắc sửa:
@@ -156,6 +169,9 @@ bị vượt qua.
 
 - Bản ghi nhóm 3 MUST chỉ được thêm; đính chính là bản ghi mới trỏ tới bản gốc; MUST NOT có
   UPDATE hay DELETE trên bản ghi đã xác nhận.
+- Một bảng MAY chứa bản ghi của nhiều nhóm. Khi đó bản ghi nhóm 3 và bản ghi đã xác nhận MUST được chặn
+  UPDATE, DELETE ở cơ sở dữ liệu theo dòng (trigger theo trạng thái khóa của dòng), không chỉ ở mã, và
+  MUST có test tích hợp chứng minh (sửa 3.2.0).
 - Mọi thay đổi MUST được ghi nhật ký với người thực hiện, thời điểm, giá trị trước/sau và lý do
   (19.4).
 - Thời gian MUST theo NFR-09 và DBR-25 (múi giờ Asia/Ho_Chi_Minh, đồng hồ máy chủ, trừ bản ghi
@@ -219,4 +235,4 @@ Lý do: giữ chuỗi truy vết từ quy tắc tới mã (I) và nghiệm thu �
   kể; PATCH khi làm rõ câu chữ.
 - Mỗi lần clarify, checklist, plan hoặc analyze MUST kiểm tra theo constitution hiện hành.
 
-**Version**: 3.1.1 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-19
+**Version**: 3.2.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-10-29

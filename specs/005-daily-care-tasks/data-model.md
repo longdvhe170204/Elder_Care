@@ -6,26 +6,38 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ---
 
+## 0. Gộp bảng theo R-15 *(bổ sung 2026-10-29, bản 2)*
+
+Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/research.md) (bản 2, chủ dự án duyệt 2026-10-29, constitution XII 3.2.0); không đổi nghiệp vụ, API, quyền. Mô tả bảng ở các mục sau vẫn là căn cứ cột và ràng buộc: bảng gộp mang đủ cột của bảng cũ (cột riêng vào `JSON` hoặc cột `NULL` có `CHECK` theo `loai`); ràng buộc duy nhất thành `khoa_duy_nhat`; dòng nhóm 3 hoặc đã khóa có `khoa_luc` và trigger theo dòng. Bảy bảng chung ở [data-model 000 mục 8](../000-shared-foundation/data-model.md): `danh_muc_chung`, `lich_su_chung`, `su_kien_chung`, `ho_so_chung`, `trang_thai_nct`, `moc_da_nhac`, `khoa_ky_thuat`. Khi cài thấy bảng nào không thể gộp mà vẫn giữ được BR, DBR thì giữ và ghi lý do ở plan.
+
+- Giữ, gộp: `ke_hoach_cham_soc`; `muc_ke_hoach` (+ `thoa_thuan_rui_ro`, cột `loai`); `cong_viec` (+ `ket_qua_ghi_nhan`, khóa theo dòng khi hoàn thành).
+- `danh_muc_chung`: `loai_cong_viec`, `danh_muc_gia_tri_ket_qua`, `loai_ly_do_khong_thuc_hien`.
+- `lich_su_chung`: `lich_su_xu_ly_cong_viec`; `su_kien_chung`: `diem_danh_ban_tru`.
+- `ho_so_chung`: `co_mat_ban_tru`; `trang_thai_nct`: `cham_soc_nct`.
+- Còn 3 bảng riêng của feature.
+
+---
+
 ## 1. Tổng quan
 
 | Bảng | Nhóm (1.5) | Mục spec |
 | --- | --- | --- |
-| `cham_soc_nct` | 2 (kỹ thuật) | Đích khóa theo người (research C-01) |
+| `cham_soc_nct` | 2 (kỹ thuật) | Đích khóa theo người (research C-01) *(R-15: `cham_soc_nct` → `trang_thai_nct`)* |
 | `ke_hoach_cham_soc` | 2, theo phiên bản | A |
 | `muc_ke_hoach` | 2, sửa được chỉ khi phiên bản Nháp | A |
-| `thoa_thuan_rui_ro`, `thoa_thuan_nguoi_tham_gia`, `thoa_thuan_y_kien` | 2, sửa được chỉ khi phiên bản Nháp | A (FR-002a; bổ sung 2026-10-18) |
-| `loai_ly_do_khong_thuc_hien` | 1 | C, D (FR-028a; bổ sung 2026-10-18) |
-| `loai_cong_viec`, `loai_cong_viec_chung_chi`, `danh_muc_gia_tri_ket_qua` | 1 | E, D (FR-034) |
-| `co_mat_ban_tru` | 2 | B |
-| `diem_danh_ban_tru` | 3 | B |
+| `thoa_thuan_rui_ro`, `thoa_thuan_nguoi_tham_gia`, `thoa_thuan_y_kien` | 2, sửa được chỉ khi phiên bản Nháp | A (FR-002a; bổ sung 2026-10-18) *(R-15: `thoa_thuan_rui_ro` → `muc_ke_hoach`)* |
+| `loai_ly_do_khong_thuc_hien` | 1 | C, D (FR-028a; bổ sung 2026-10-18) *(R-15: `loai_ly_do_khong_thuc_hien` → `danh_muc_chung`)* |
+| `loai_cong_viec`, `loai_cong_viec_chung_chi`, `danh_muc_gia_tri_ket_qua` | 1 | E, D (FR-034) *(R-15: `loai_cong_viec`, `danh_muc_gia_tri_ket_qua` → `danh_muc_chung`)* |
+| `co_mat_ban_tru` | 2 | B *(R-15: `co_mat_ban_tru` → `ho_so_chung`)* |
+| `diem_danh_ban_tru` | 3 | B *(R-15: `diem_danh_ban_tru` → `su_kien_chung`)* |
 | `cong_viec` | 2 | C |
-| `ket_qua_ghi_nhan` | 3 | D |
-| `lich_su_xu_ly_cong_viec` | 3 | C, D, G |
+| `ket_qua_ghi_nhan` | 3 | D *(R-15: `ket_qua_ghi_nhan` → `cong_viec`)* |
+| `lich_su_xu_ly_cong_viec` | 3 | C, D, G *(R-15: `lich_su_xu_ly_cong_viec` → `lich_su_chung`)* |
 | `lan_chay_m04` | Kỹ thuật | K |
 
 ---
 
-## 2. `cham_soc_nct` – nhóm 2 (kỹ thuật)
+## 2. `cham_soc_nct` – nhóm 2 (kỹ thuật) → gộp theo R-15: `cham_soc_nct` → `trang_thai_nct`
 
 | Cột | Kiểu | Ghi chú |
 | --- | --- | --- |
@@ -98,7 +110,7 @@ Chỉ mục `(trang_thai, ngay_hieu_luc)` cho job hằng ngày; `(nct_id, ngay_h
 
 `CHECK`: `kieu_tan_suat='MOI_N_GIO'` thì `n_gio BETWEEN 1 AND 23` và `moc_bat_dau IS NOT NULL`; `moc_bat_dau IS NULL` thì khung không dùng (khung bằng cả ca).
 
-### `thoa_thuan_rui_ro` – nhóm 2 (sửa chỉ khi phiên bản cha `NHAP`) *(bổ sung 2026-10-18, FR-002a, Q-349; research C-18)*
+### `thoa_thuan_rui_ro` – nhóm 2 (sửa chỉ khi phiên bản cha `NHAP`) *(bổ sung 2026-10-18, FR-002a, Q-349; research C-18)* → gộp theo R-15: `thoa_thuan_rui_ro` → `muc_ke_hoach`
 
 "Mục loại thỏa thuận lựa chọn có rủi ro" của spec được lưu ở bảng riêng, không ở `muc_ke_hoach`: mục này không có tần suất, mốc giờ, vai trò, nên không bao giờ là căn cứ lập công việc (`loai_can_cu` không có giá trị trỏ tới bảng này).
 
@@ -131,7 +143,7 @@ Cả ba bảng chịu cùng trigger khóa như `muc_ke_hoach` (`trg_thoa_thuan_*
 
 ## 4. Danh mục (mục E)
 
-### `loai_cong_viec` – nhóm 1
+### `loai_cong_viec` – nhóm 1 → gộp theo R-15: `loai_cong_viec` → `danh_muc_chung`
 
 | Cột | Kiểu | Ghi chú | Nguồn |
 | --- | --- | --- | --- |
@@ -148,11 +160,11 @@ Cả ba bảng chịu cùng trigger khóa như `muc_ke_hoach` (`trg_thoa_thuan_*
 
 `loai_cong_viec_chung_chi (loai_cong_viec_id, ma_chung_chi)`: khóa chính hai cột. Đọc trực tiếp mỗi lần giao, nhận, phân lại (BR-M09-01).
 
-### `danh_muc_gia_tri_ket_qua` – nhóm 1
+### `danh_muc_gia_tri_ket_qua` – nhóm 1 → gộp theo R-15: `danh_muc_gia_tri_ket_qua` → `danh_muc_chung`
 
 `loai` (`NGU_CHAT_LUONG`, `TAM_TRANG`, `HANH_VI`), `ma`, `ten`, `nhom_quy_tac` (`MAT_NGU`, `TIEU_CUC`, `NULL`), cột chuẩn nhóm 1. Dùng cho FR-034, BR-M04-11, 007 FR-039c.
 
-### `loai_ly_do_khong_thuc_hien` – nhóm 1 *(bổ sung 2026-10-18, FR-028a, Q-350)*
+### `loai_ly_do_khong_thuc_hien` – nhóm 1 *(bổ sung 2026-10-18, FR-028a, Q-350)* → gộp theo R-15: `loai_ly_do_khong_thuc_hien` → `danh_muc_chung`
 
 Cột chuẩn nhóm 1 (mẫu 000 mục 1.1) và `co_dinh BOOLEAN`. Migration nạp một dòng `co_dinh = true`, tên "Người cao tuổi từ chối"; `CHECK (NOT co_dinh OR trang_thai = 'HIEU_LUC')` và trigger chặn đổi `ten`, `co_dinh` của dòng cố định, nên dòng này không bị ngừng hay đổi nghĩa. Quản lý viện tạo, sửa, ngừng các loại khác (quyền như danh mục loại công việc). Tên loại mô tả việc đã xảy ra; đây là quy ước khi cấu hình, không kiểm bằng mã.
 
@@ -160,7 +172,7 @@ Cột chuẩn nhóm 1 (mẫu 000 mục 1.1) và `co_dinh BOOLEAN`. Migration n�
 
 ## 5. Có mặt bán trú (mục B)
 
-### `co_mat_ban_tru` – nhóm 2
+### `co_mat_ban_tru` – nhóm 2 → gộp theo R-15: `co_mat_ban_tru` → `ho_so_chung`
 
 | Cột | Kiểu | Ghi chú | Nguồn |
 | --- | --- | --- | --- |
@@ -170,7 +182,7 @@ Cột chuẩn nhóm 1 (mẫu 000 mục 1.1) và `co_dinh BOOLEAN`. Migration n�
 | `dang_ky_ve_muon_id` | `BIGINT NULL` | Đăng ký của 014 làm dời giờ về | FR-018a |
 | `trang_thai` | `ENUM('CHUA_DEN','CO_MAT','DA_VE','VANG_CO_BAO','VANG_KHONG_BAO','DA_HUY_NGAY_NGHI')` | | FR-013 |
 | `buoi_phat_sinh` | `BOOLEAN` | | FR-013, Q-140 |
-| `diem_danh_den_id`, `diem_danh_ve_id` | `BIGINT NULL` | Trỏ `diem_danh_ban_tru` | FR-013 |
+| `diem_danh_den_id`, `diem_danh_ve_id` | `BIGINT NULL` | Trỏ `diem_danh_ban_tru` | FR-013 *(R-15: `diem_danh_ban_tru` → `su_kien_chung`)* |
 | `bao_vang_id`, `bao_vang_muon_id` | `BIGINT NULL` | Bản ghi báo vắng của 004 | FR-013, FR-014 |
 | `da_bao_het_ngay_luc` | `DATETIME(6) NULL` | Một lần báo FR-019 | FR-019 |
 | `phien_ban` | `INT` | | |
@@ -191,7 +203,7 @@ Chỉ mục `(trang_thai, ngay, gio_den_du_kien)` cho chuyển Vắng không bá
 
 `DA_HUY_NGAY_NGHI` là cách lưu "không còn trạng thái có mặt cho buổi đó" (bảng FR-013 dòng 3): 010 không tính phí, 004 `TrangThaiCoMatBanTruPort` trả rỗng.
 
-### `diem_danh_ban_tru` – nhóm 3
+### `diem_danh_ban_tru` – nhóm 3 → gộp theo R-15: `diem_danh_ban_tru` → `su_kien_chung`
 
 `id`, `co_mat_id`, `loai` (`DEN`, `VE`), `thoi_diem_thuc_te`, `loai_ve` (`QUA_DON`, `TU_VE`, `VIEN_DUA_VE`; chỉ với `VE`), `ban_ghi_don_id`, `nguoi_thuc_hien_id`, `thoi_diem`, `tang_khu_vuc_id` (khu bán trú). Đính chính loại `M04.DIEM_DANH_BAN_TRU` (FR-015).
 
@@ -223,7 +235,7 @@ Chỉ mục `(trang_thai, ngay, gio_den_du_kien)` cho chuyển Vắng không bá
 | `trang_thai` | `ENUM('CHUA_DEN_HAN','DEN_HAN','QUA_HAN','HOAN_THANH','HOAN_THANH_TRE','KHONG_THUC_HIEN','HUY')` | | FR-026 |
 | `den_han_luc`, `qua_han_luc`, `dong_luc` | `DATETIME(6) NULL` | Thời điểm chuyển thật (có thể là lúc chạy bù) | FR-052 |
 | `ly_do` | `VARCHAR(2000) NULL` | Khi Hủy, Hoàn thành trễ; với Không thực hiện do nhân viên là ghi chú, không bắt buộc (FR-028a) | FR-023, FR-028a |
-| `loai_ly_do_id` | `BIGINT NULL` FK `loai_ly_do_khong_thuc_hien` | `CHECK (trang_thai <> 'KHONG_THUC_HIEN' OR dong_boi_loai <> 'NHAN_VIEN' OR loai_ly_do_id IS NOT NULL)`; Không thực hiện do hệ thống đóng giữ `quy_tac_dong`, không có loại (FR-028a câu cuối) | FR-028a (bổ sung 2026-10-18) |
+| `loai_ly_do_id` | `BIGINT NULL` FK `loai_ly_do_khong_thuc_hien` | `CHECK (trang_thai <> 'KHONG_THUC_HIEN' OR dong_boi_loai <> 'NHAN_VIEN' OR loai_ly_do_id IS NOT NULL)`; Không thực hiện do hệ thống đóng giữ `quy_tac_dong`, không có loại (FR-028a câu cuối) | FR-028a (bổ sung 2026-10-18) *(R-15: `loai_ly_do_khong_thuc_hien` → `danh_muc_chung`)* |
 | `dong_boi_loai`, `dong_boi_id`, `can_cu_quyen`, `quy_tac_dong` | Theo research C-08 | | FR-028 |
 | `cho_xac_nhan_do_lai` | `BOOLEAN` | | FR-034 (đo chỉ số) |
 | `da_nhac_luc`, `da_bao_nptc_luc`, `da_bao_leo_thang_luc`, `so_lan_nhac` | | | FR-043, FR-044, FR-046 |
@@ -258,7 +270,7 @@ Chỉ mục: `(trang_thai, dau_khung)`, `(trang_thai, cuoi_khung)`, `(trang_thai
 
 ## 7. Ghi nhận (mục D)
 
-### `ket_qua_ghi_nhan` – nhóm 3
+### `ket_qua_ghi_nhan` – nhóm 3 → gộp theo R-15: `ket_qua_ghi_nhan` → `cong_viec`
 
 | Cột | Kiểu | Ghi chú | Nguồn |
 | --- | --- | --- | --- |
@@ -280,7 +292,7 @@ Chỉ mục: `(trang_thai, dau_khung)`, `(trang_thai, cuoi_khung)`, `(trang_thai
 
 `CHECK`: `thoi_diem_thuc_hien <= COALESCE(thoi_diem_thiet_bi, thoi_diem)`. Trigger nhóm 3 của 000 (không sửa, không xóa). Chỉ mục `(nct_id, loai_ket_qua, thoi_diem_thuc_hien)` cho quy tắc mục F.
 
-### `lich_su_xu_ly_cong_viec` – nhóm 3
+### `lich_su_xu_ly_cong_viec` – nhóm 3 → gộp theo R-15: `lich_su_xu_ly_cong_viec` → `lich_su_chung`
 
 `id`, `cong_viec_id`, `loai` (`NHAC`, `NHAC_GOP`, `BAO_NPTC`, `BAO_TRUONG_TANG`, `YEU_CAU_CANH_BAO`, `YEU_CAU_DONG_CANH_BAO`, `NHAN_VIEC`, `PHAN_LAI`, `THANH_CHUNG`, `GHI_VAO_BAN_GIAO`, `CHUYEN_CA`, `HE_THONG_DONG_SAU_BAN_GIAO`, `HE_THONG_DONG_TRANG_THAI_CUOI`), `nguoi_id`, `can_cu`, `truoc`, `sau` (JSON: người thực hiện trước/sau), `ly_do`, `thoi_diem`, `chay_bu`. Dùng cho FR-031, FR-045, FR-046 ("số lần đã nhắc"), US5 #7.
 
@@ -296,11 +308,11 @@ Chỉ mục: `(trang_thai, dau_khung)`, `(trang_thai, cuoi_khung)`, `(trang_thai
 
 | Bảo đảm | Cách làm | DBR / FR |
 | --- | --- | --- |
-| Tối đa một phiên bản Hiệu lực mỗi người; khoảng không giao | Cột sinh `hieu_luc_nct UNIQUE`; kiểm khoảng dưới khóa `cham_soc_nct` | DBR-11, FR-004 |
+| Tối đa một phiên bản Hiệu lực mỗi người; khoảng không giao | Cột sinh `hieu_luc_nct UNIQUE`; kiểm khoảng dưới khóa `cham_soc_nct` | DBR-11, FR-004 *(R-15: `cham_soc_nct` → `trang_thai_nct`)* |
 | Tối đa một phiên bản Nháp / Chờ duyệt / Chờ hiệu lực | Cột sinh `mo_nct UNIQUE` | FR-004 |
 | Mục kế hoạch chỉ sửa ở Nháp | Trigger `trg_muc_ke_hoach_khoa` | FR-004, BR-M04-19 |
-| Thỏa thuận lựa chọn có rủi ro chỉ sửa ở Nháp; người quyết định khớp nhận định | Trigger `trg_thoa_thuan_*_khoa`; `CHECK` trên `thoa_thuan_rui_ro` | FR-002a, BR-M04-19 |
-| Không thực hiện do nhân viên có loại lý do; loại "Người cao tuổi từ chối" luôn hiệu lực | `CHECK` trên `cong_viec`; `CHECK` và trigger trên `loai_ly_do_khong_thuc_hien` | FR-028a |
+| Thỏa thuận lựa chọn có rủi ro chỉ sửa ở Nháp; người quyết định khớp nhận định | Trigger `trg_thoa_thuan_*_khoa`; `CHECK` trên `thoa_thuan_rui_ro` | FR-002a, BR-M04-19 *(R-15: `thoa_thuan_rui_ro` → `muc_ke_hoach`)* |
+| Không thực hiện do nhân viên có loại lý do; loại "Người cao tuổi từ chối" luôn hiệu lực | `CHECK` trên `cong_viec`; `CHECK` và trigger trên `loai_ly_do_khong_thuc_hien` | FR-028a *(R-15: `loai_ly_do_khong_thuc_hien` → `danh_muc_chung`)* |
 | Ngày hiệu lực muộn hơn ngày duyệt | Backend trong lệnh Duyệt; `CHECK (duyet_luc IS NULL OR ngay_hieu_luc > DATE(duyet_luc))` | Q-34, SC-010 |
 | Công việc duy nhất theo (căn cứ, thời điểm dự kiến), bỏ qua Hủy | Cột sinh `khoa_trung UNIQUE` | DBR-12, FR-021 |
 | Kiểm tra đầu ca, giám sát một lần mỗi (ca, điều dưỡng) | Cột sinh `khoa_chuyen_mon_ca UNIQUE` | FR-029, BR-M04-24 |
@@ -364,8 +376,8 @@ Danh mục loại công việc, giá trị kết quả, loại lý do Không th�
 | BR-M04-27 | Handler ngoại tuyến | `BR_M04_27_DongBoCongViecDaDongIT`, test Flutter |
 | BR-M04-28 | `CongViecCaApi.khiDoiPhanCong`; `TRUNG_KHUNG_PHIEN_BAN_CU` | `BR_M04_28_GanLaiIT` |
 | BR-M04-29 | `da_nhac_luc` một lần | `BR_M04_29_NhacMotLanIT` |
-| FR-002a, BR-M01-14, 15 (phần 005) | `thoa_thuan_rui_ro` và bảng con; không là căn cứ công việc | `FR_002a_ThoaThuanRuiRoIT` |
-| FR-028a | `loai_ly_do_khong_thuc_hien`; `CHECK` trên `cong_viec` | `FR_028a_LoaiLyDoKhongThucHienIT` |
+| FR-002a, BR-M01-14, 15 (phần 005) | `thoa_thuan_rui_ro` và bảng con; không là căn cứ công việc | `FR_002a_ThoaThuanRuiRoIT` *(R-15: `thoa_thuan_rui_ro` → `muc_ke_hoach`)* |
+| FR-028a | `loai_ly_do_khong_thuc_hien`; `CHECK` trên `cong_viec` | `FR_028a_LoaiLyDoKhongThucHienIT` *(R-15: `loai_ly_do_khong_thuc_hien` → `danh_muc_chung`)* |
 | BR-M09-01 (phần 005) | `NhanSuCaPort.duDieuKien` | `BR_M09_01_ChungChiCongViecIT` |
 | BR-M09-08 (phần 005) | `khiXacNhanBanGiao`, job tồn chờ | `FR_047_TuDongDongSauBanGiaoIT`, `FR_047a_TonChoXacNhanIT` |
 | BR-M15-20 (phần 005) | Kết quả đồng bộ từng bản ghi | Test Flutter `KetQuaDongBoTest` |

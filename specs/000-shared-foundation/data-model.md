@@ -65,7 +65,7 @@ Bản ghi không có cột "đã đính chính" hay "đã hủy". Hai thông tin
 | Không sửa bản ghi nhóm 3 đã xác nhận | Trigger `trg_<bang>_khong_sua` `BEFORE UPDATE`: `SIGNAL SQLSTATE '45000'` khi `OLD.thoi_diem_xac_nhan IS NOT NULL`. Bảng không có nháp thì tài khoản `eldercare_app` không có quyền `UPDATE` | DBR-23, FR-009 |
 | Không xóa nhóm 3 và nhật ký | Trigger `trg_<bang>_khong_xoa` `BEFORE DELETE`: `SIGNAL` trừ khi `SUBSTRING_INDEX(USER(),'@',1) = 'eldercare_luu_tru'`. *(Sửa khi cài 2026-10-19: trong trigger, `CURRENT_USER()` là tài khoản tạo trigger nên điều kiện cũ luôn chặn; `USER()` là tài khoản đang kết nối. `MESSAGE_TEXT` viết ASCII vì chữ có dấu bị thành `?`.)* Tài khoản `eldercare_app` không có quyền `DELETE` trên các bảng này | FR-009, FR-048, FR-051 |
 | Danh sách bảo vệ BR-M15-03 | Cùng hai trigger trên, bắt buộc với: liều thuốc đã xác nhận, sự cố khẩn cấp, chi phí đã chốt, bàn giao đã xác nhận, bàn giao đồ gửi. Test tích hợp riêng cho từng bảng ở plan module sở hữu | FR-010 |
-| Bảng con của bản ghi đổi nhóm ("2 → 3") | Bảng dòng của một bản ghi nhóm 2 chuyển sang nhóm 3 khi chốt, xác nhận hoặc gửi (phiếu đối chiếu thuốc, bảng chi phí, bản tin, phiếu kiểm kê…) mang nhóm của bản ghi cha. Trigger `BEFORE UPDATE`, `BEFORE DELETE` trên bảng con đọc trạng thái của dòng cha và `SIGNAL SQLSTATE '45000'` khi cha đã ở trạng thái chốt; khi cha còn nháp hoặc mở thì dòng được thêm, sửa, xóa. Data-model của module ghi rõ trạng thái chốt của cha cho từng bảng con. *(Bổ sung 2026-10-29 sau audit cơ sở dữ liệu: `reconciliation_item` của 006 cài thiếu vì quy ước này chưa có.)* | DBR-23, FR-009 |
+| Bảng con của bản ghi đổi nhóm ("2 → 3") | Bảng dòng của một bản ghi nhóm 2 chuyển sang nhóm 3 khi chốt, xác nhận hoặc gửi (phiếu đối chiếu thuốc, bảng chi phí, bản tin, phiếu kiểm kê…) mang nhóm của bản ghi cha. Trigger `BEFORE UPDATE`, `BEFORE DELETE` trên bảng con đọc trạng thái của dòng cha và `SIGNAL SQLSTATE '45000'` khi cha đã ở trạng thái chốt; khi cha còn nháp hoặc mở thì dòng được thêm, sửa, xóa. Data-model của module ghi rõ trạng thái chốt của cha cho từng bảng con. *(Bổ sung 2026-10-29 sau audit cơ sở dữ liệu: `reconciliation_item` của 006 cài thiếu vì quy ước này chưa có.)* | DBR-23, FR-009 *(R-15: `reconciliation_item` → cột `JSON` của `phieu_doi_chieu`)* |
 | Danh sách bảng nhóm 3 | ArchUnit đọc `@NhomDuLieu(GHI_NHAN)`. Một test tích hợp đối chiếu danh sách này với `information_schema.TRIGGERS`; bảng nhóm 3 thiếu trigger thì test lỗi | FR-001 |
 
 ---
@@ -144,7 +144,7 @@ Chỉ mục:
 - `(nguoi_yeu_cau_id, trang_thai)`;
 - `(loai, trang_thai)`.
 
-### `ket_qua_ap_dung` – nhóm 3
+### `ket_qua_ap_dung` – nhóm 3 → gộp theo R-15: `ket_qua_ap_dung` → `yeu_cau_phe_duyet` (cột)
 
 | Cột | Ràng buộc |
 | --- | --- |
@@ -215,9 +215,9 @@ Vòng đời riêng của 012 (Chờ xác nhận → Hiệu lực / Từ chối 
 
 *(Cài 2026-10-19: bảng `correction`, cột theo glossary mục 6; khóa ngoại `approval_request_id` thêm ở V000_07.)*
 
-### `chuoi_dinh_chinh` – dữ liệu kỹ thuật, không thuộc nhóm nghiệp vụ
+### `chuoi_dinh_chinh` – dữ liệu kỹ thuật, không thuộc nhóm nghiệp vụ → gộp theo R-15: `chuoi_dinh_chinh` → `dinh_chinh` (cột gốc, nếu không phá view)
 
-*(Cài 2026-10-19: bảng `correction_chain` gồm `correction_count`, `voided`; tuần tự hóa bằng khóa dòng `SELECT … FOR UPDATE` thay cho cột `phien_ban` khóa lạc quan, nên không cần thử lại.)*
+*(Cài 2026-10-19: bảng `correction_chain` gồm `correction_count`, `voided`; tuần tự hóa bằng khóa dòng `SELECT … FOR UPDATE` thay cho cột `phien_ban` khóa lạc quan, nên không cần thử lại.)* *(R-15: `correction_chain` → `dinh_chinh` (cột gốc, nếu không phá view))*
 
 | Cột | Ý nghĩa |
 | --- | --- |
@@ -282,7 +282,7 @@ Bảo đảm:
 
 | Bảng | Mục đích | Ghi chú |
 | --- | --- | --- |
-| `lan_chay_lich` | Định danh lần chạy job (FR-045): `id`, `job`, `bat_dau`, `ket_thuc`, `ket_qua`, `so_xu_ly` | Dữ liệu kỹ thuật |
+| `lan_chay_lich` | Định danh lần chạy job (FR-045): `id`, `job`, `bat_dau`, `ket_thuc`, `ket_qua`, `so_xu_ly` | Dữ liệu kỹ thuật *(R-15: `lan_chay_lich` → file `logs/jobs.log`)* |
 | `khoa_lap_lai` | `Idempotency-Key`: `(khoa, nguoi_dung_id)` là khóa chính, cùng `ma_bam_yeu_cau`, `ket_qua_json`, `het_han_luc` | Giữ 7 ngày (kỹ thuật, không phải CFG). *(Sửa khi cài 2026-10-19)* Người gửi lưu bằng tên đăng nhập (`username`) thay cho `nguoi_dung_id`, vì gói `common` không được phụ thuộc M15 (xem plan, Ghi chú triển khai) |
 | `event_publication` | Event Publication Registry của Spring Modulith (R-09) | Do thư viện quản lý |
 | `shedlock` | Khóa job (R-10) | Do thư viện quản lý |
@@ -310,3 +310,63 @@ Cột "Nơi kiểm thử" ghi tên lớp test trong mã (tiếng Anh, glossary m
 | BR-M15-10 | Thứ tự `(ngay_hieu_luc_thuc_te, thoi_diem_quyet_dinh)` | `CatchUpApplyIT` |
 | BR-M15-11 | `NhatKyQueryService` che `lyDo` | `AuditLogFieldMaskingIT` |
 | BR-M15-12, 13 | `LoaiBoDuLieuHetHan` theo chuỗi | `ExpiredDataPurgeIT` |
+---
+
+## 8. Bảng dùng chung sau gộp (research R-15, bổ sung 2026-10-29, sửa lần 2 cùng ngày)
+
+Bảy bảng thay danh mục, lịch sử, bản ghi con, đối tượng nhỏ, dấu đã nhắc, khóa và bảng trạng thái theo người của mọi module. Ánh xạ từng bảng cũ ở mục 0 data-model của mỗi feature. Cột `module` (`M01` … `M15`) ghi module sở hữu dòng. Cột `JSON` của các bảng dưới đây có JSON Schema theo `loai`, khai báo ở data-model của module sở hữu loại.
+
+### Khóa theo dòng (constitution XII 3.2.0)
+
+Bảng chứa cả dòng nhóm 2 và nhóm 3 (bảng chung `ho_so_chung` và các bảng gộp của module) có cột `khoa_luc DATETIME(6) NULL`: dòng nhóm 3 đặt khi thêm, dòng nhóm 2 đặt khi xác nhận, chốt, đóng. Trigger `trg_<bang>_khoa_dong` `BEFORE UPDATE`: `SIGNAL SQLSTATE '45000'` khi `OLD.khoa_luc IS NOT NULL` và có cột ngoài danh sách cột dẫn xuất của bảng thay đổi; trigger `trg_<bang>_khong_xoa` theo mục 1.4 cho dòng đã khóa. `RecordGroupTriggerIT` kiểm mọi bảng có `khoa_luc` đều có hai trigger.
+
+### `danh_muc_chung` – nhóm 1 (`catalog_item`)
+
+| Cột | Kiểu | Ghi chú |
+| --- | --- | --- |
+| `id` | `BIGINT` | Khóa chính |
+| `loai` | `VARCHAR(40)` | Mã loại danh mục (glossary mục 6.6) |
+| `module` | `VARCHAR(8)` | Module sở hữu loại |
+| `ma` | `VARCHAR(40) NULL` | Mã cố định khi loại có mã |
+| `ma_khoa` | Cột sinh `IF(ma IS NULL, NULL, CONCAT(loai, ':', IFNULL(cha_id, 0), ':', ma))` `UNIQUE` | Mã không trùng trong cùng loại và cùng cha (tầng trong khu vực) |
+| `ten` | `VARCHAR(200)` | |
+| `cha_id` | `BIGINT NULL` | Khóa ngoại tới chính bảng (tầng thuộc khu vực) |
+| `thu_tu` | `INT` | |
+| `trang_thai` | `ENUM('HIEU_LUC','NGUNG_HIEU_LUC')` | Mục 1.1 |
+| `ten_hieu_luc` | Cột sinh `IF(trang_thai='HIEU_LUC', CONCAT(loai, ':', IFNULL(cha_id, 0), ':', ten), NULL)` `UNIQUE` | BR-M15-06 theo loại |
+| `thuoc_tinh` | `JSON NULL` | Hoạt chất của thuốc, thành phần dị ứng và xác nhận Bác sĩ của món ăn, sức chứa buổi bán trú, giờ mẫu ca, thành phần chỉ số… |
+| `xac_nhan_boi`, `xac_nhan_luc` | `NULL` | Loại cần xác nhận chuyên môn (món ăn) |
+| `phien_ban` | `INT` | Khóa lạc quan |
+
+Khóa ngoại từ bảng khác tới `danh_muc_chung.id` `ON DELETE RESTRICT`; lệnh của module kiểm đúng `loai` (`CatalogApi.require(loai, id)`). *(Bổ sung sau /speckit-analyze 2026-10-29, FR-002)* Loại danh mục có bảng khác tham chiếu không qua khóa ngoại (qua mã như `M01.CARE_LEVEL`, `M15.ROLE`, hoặc qua mảng id trong cột `JSON` như nhu cầu chăm sóc, mức chăm sóc cho phép, hoạt chất, phạm vi hành nghề) khai báo `xoaDuoc = false` trong JSON Schema của loại: `CatalogApi` từ chối lệnh xóa mục của loại đó (409 `DANH_MUC_DANG_DUOC_THAM_CHIEU`), chỉ cho Ngừng hiệu lực. FR-002 chỉ cho xóa mục chưa bị tham chiếu, nên cấm xóa vẫn đúng; loại có mọi tham chiếu qua khóa ngoại giữ cách xóa của mục 1.1.
+
+### `lich_su_chung` – nhóm 3, chỉ thêm (`status_history`)
+
+`id`, `loai_doi_tuong VARCHAR(40)`, `doi_tuong_id BIGINT`, `thuoc_tinh VARCHAR(40)`, `module`, `kieu ENUM('MOC','KHOANG')`, `gia_tri_truoc`, `gia_tri VARCHAR(100) NULL`, `gia_tri_id BIGINT NULL`, `tu DATETIME(6)`, `den DATETIME(6) NULL` (chỉ `KHOANG`, đặt một lần), `lenh VARCHAR(40) NULL`, `nguoi_thuc_hien_id NULL`, `do_he_thong BOOLEAN`, `ly_do VARCHAR(2000) NULL`, `can_cu_loai`, `can_cu_id`, `chi_tiet JSON NULL`, `tang_khu_vuc_id NULL`, `khoa_duy_nhat VARCHAR(200) NULL UNIQUE` (thay `UNIQUE` riêng của bảng lịch sử cũ, ví dụ `(account_id, effective_from)`), cột sinh `khoa_mo = IF(kieu='KHOANG' AND den IS NULL, CONCAT(loai_doi_tuong, ':', doi_tuong_id, ':', thuoc_tinh), NULL)` `UNIQUE`. Chỉ mục `(loai_doi_tuong, doi_tuong_id, thuoc_tinh, tu)`. `eldercare_app`: `SELECT, INSERT, UPDATE(den)`; trigger chỉ cho đặt `den` từ `NULL` một lần.
+
+### `su_kien_chung` – nhóm 3, chỉ thêm (`record_event`)
+
+`id`, `loai_doi_tuong`, `doi_tuong_id`, `module`, `loai VARCHAR(60)`, `noi_dung JSON`, `tra_loi_cho_id NULL` (khóa ngoại tới chính bảng), `nguoi_thuc_hien_id NULL`, `do_he_thong BOOLEAN`, `thoi_diem`, `thoi_diem_thiet_bi NULL`, `thoi_diem_xac_nhan NULL` (loại có bản nháp, mục 1.4), `tang_khu_vuc_id NULL` (000 FR-026 b), `khoa_duy_nhat VARCHAR(200) NULL UNIQUE`. Chỉ mục `(loai_doi_tuong, doi_tuong_id, loai, thoi_diem)`. `eldercare_app`: `SELECT, INSERT`, `UPDATE` chỉ khi `thoi_diem_xac_nhan IS NULL` (trigger). Đích của `dinh_chinh` theo `loaiBanGhi = <module>.<loai>`.
+
+### `ho_so_chung` – nhóm 2, khóa theo dòng (`simple_record`)
+
+`id`, `loai VARCHAR(60)`, `module`, `nct_id BIGINT NULL`, `loai_doi_tuong NULL`, `doi_tuong_id NULL` (bản ghi cha), `trang_thai VARCHAR(30)`, `noi_dung JSON`, `hieu_luc_tu`, `hieu_luc_den` `NULL`, `khoa_duy_nhat VARCHAR(200) NULL UNIQUE`, `khoa_luc NULL`, `tao_luc`, `tao_boi`, `phien_ban`. Chỉ mục `(loai, nct_id, trang_thai)`, `(loai, loai_doi_tuong, doi_tuong_id)`. Chỉ đổi trạng thái qua lệnh của module (constitution XI); khóa theo dòng ở trên.
+
+### `trang_thai_nct` – nhóm 2 kỹ thuật (`resident_module_state`)
+
+Khóa chính `(nct_id, module)`, `du_lieu JSON`, `phien_ban`, `cap_nhat_luc`. Lệnh của module khóa dòng của mình (`SELECT … FOR UPDATE`). Cột hạn mà job quét (ví dụ hạn đối chiếu thuốc 006) là cột sinh có chỉ mục, do migration của module thêm.
+
+### `moc_da_nhac` – kỹ thuật, chỉ thêm (`common`, `reminder_marker`)
+
+`id`, `loai VARCHAR(60)`, `loai_doi_tuong`, `doi_tuong_id`, `moc VARCHAR(80)`, `thoi_diem`, `chi_tiet JSON NULL`. `UNIQUE (loai, loai_doi_tuong, doi_tuong_id, moc)`. `eldercare_app`: `SELECT, INSERT`.
+
+### `khoa_ky_thuat` – kỹ thuật (`common`, `technical_lock`)
+
+`khoa VARCHAR(200)` khóa chính, `phien_ban INT`, `cap_nhat_luc`. Lệnh cần tuần tự hóa: `INSERT IGNORE` rồi `SELECT … FOR UPDATE`. `eldercare_app`: `SELECT, INSERT, UPDATE`.
+
+### Bảng của 000 sau gộp
+
+- `ket_qua_ap_dung` (`application_result`, nhóm 3, 1–1) thành cột của `yeu_cau_phe_duyet`, khóa theo dòng khi áp dụng.
+- `chuoi_dinh_chinh` (`correction_chain`) thành cột gốc của `dinh_chinh` nếu không phá `v_latest_correction` (không thì giữ, ghi ở plan).
+- `lan_chay_lich` (`scheduler_run`) ra file log (R-15 mục 4).
+- Còn lại: `tham_so`, `lich_su_tham_so`, `yeu_cau_phe_duyet`, `dinh_chinh`, `nhat_ky`, `tep`, `khoa_lap_lai`, `event_publication`, `shedlock` và bảy bảng chung: 16 bảng.

@@ -47,7 +47,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Q16 | BS công bố sau khi dữ liệu đổi làm thiếu độ phủ | Chặn; dữ liệu đúng → Công bố; tuần đã bắt đầu → Đã áp dụng | US3, FR-029 |
 | Q17 | Tới 00:00 thứ 2 | Công bố → Đã áp dụng | FR-030 |
 | Q18 | 2 ngày trước tuần mới chưa có thực đơn Công bố | Nhắc B1, B2 (và BS) | BR-M08-16 |
-| Q19 | B1 đổi món bữa trưa hôm nay sau khi chốt | `doi_mon` ghi trước/sau; BS nhận thông báo Trung bình; phát sinh cho các tầng | US3, FR-031 |
+| Q19 | B1 đổi món bữa trưa hôm nay sau khi chốt | `doi_mon` ghi trước/sau; BS nhận thông báo Trung bình; phát sinh cho các tầng | US3, FR-031 *(R-15: `doi_mon` → `su_kien_chung`)* |
 | Q20 | B1 mở tính sẵn bữa trưa lúc 08:00 (trước mốc 09:00) và chốt | Xem được; chốt 409 `CHUA_TOI_MOC_CHOT` | US4, FR-033 |
 | Q21 | Chốt bữa trưa lúc 09:00 | Lần chốt; C (về 11:00) được tính dấu `DU_KIEN_TRO_VE`; E tính khi thứ 2/4/6 và chưa báo vắng; phiếu mỗi tầng lập cùng lệnh | US4, FR-034, FR-044 |
 | Q22 | B1 và B2 chốt cùng lúc | Một thành công, một 409 `DA_CHOT` | US4 |

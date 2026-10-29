@@ -6,6 +6,17 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ---
 
+## 0. Gộp bảng theo R-15 *(bổ sung 2026-10-29, bản 2)*
+
+Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/research.md) (bản 2, chủ dự án duyệt 2026-10-29, constitution XII 3.2.0); không đổi nghiệp vụ, API, quyền. Mô tả bảng ở các mục sau vẫn là căn cứ cột và ràng buộc: bảng gộp mang đủ cột của bảng cũ (cột riêng vào `JSON` hoặc cột `NULL` có `CHECK` theo `loai`); ràng buộc duy nhất thành `khoa_duy_nhat`; dòng nhóm 3 hoặc đã khóa có `khoa_luc` và trigger theo dòng. Bảy bảng chung ở [data-model 000 mục 8](../000-shared-foundation/data-model.md): `danh_muc_chung`, `lich_su_chung`, `su_kien_chung`, `ho_so_chung`, `trang_thai_nct`, `moc_da_nhac`, `khoa_ky_thuat`. Khi cài thấy bảng nào không thể gộp mà vẫn giữ được BR, DBR thì giữ và ghi lý do ở plan.
+
+- Giữ, gộp: `buoi_hoat_dong` (+ `chuyen_di`, 1–1); `dang_ky_buoi` (+ `nguoi_tham_gia` của chuyến).
+- `su_kien_chung`: `diem_danh_buoi` (lượt có mặt có thu phí là nguồn tính phí, `loaiBanGhi` `M04.DIEM_DANH_BUOI`), kết quả `muc_kiem_tra`.
+- `ho_so_chung`: `dong_y_ve_muon`, `danh_sach_kiem_tra` (mục thành `JSON`).
+- Còn 2 bảng riêng của feature.
+
+---
+
 ## 1. Tổng quan
 
 | Bảng | Nhóm (1.5) | Mục spec |
@@ -17,15 +28,15 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | `nguoi_thuong_xuyen` | 2 | B |
 | `buoi_hoat_dong` | 2 | C |
 | `dang_ky_buoi` | 2 | D |
-| `dong_y_ve_muon` | 2 | D (FR-016a) |
-| `diem_danh_buoi` | 3 | F |
-| `chuyen_di`, `chuyen_di_gia_han`, `nhiem_vu_chuyen` | 2; 3; 2 | G, H |
-| `nguoi_tham_gia` | 2 | G, H |
+| `dong_y_ve_muon` | 2 | D (FR-016a) *(R-15: `dong_y_ve_muon` → `ho_so_chung`)* |
+| `diem_danh_buoi` | 3 | F *(R-15: `diem_danh_buoi` → `su_kien_chung`)* |
+| `chuyen_di`, `chuyen_di_gia_han`, `nhiem_vu_chuyen` | 2; 3; 2 | G, H *(R-15: `chuyen_di` → `buoi_hoat_dong`)* |
+| `nguoi_tham_gia` | 2 | G, H *(R-15: `nguoi_tham_gia` → `dang_ky_buoi`)* |
 | `danh_gia_kha_nang` | 3 | G (FR-036) |
 | `diem_danh_chuyen` | 3 | H |
 | `so_thich` | 2 | I |
 | `chuoi_co_lap` | Kỹ thuật | I (FR-054) |
-| `danh_sach_kiem_tra`, `muc_kiem_tra`, `ca_khong_danh_sach` | 2; 2 → 3 khi có kết quả; 3 | J |
+| `danh_sach_kiem_tra`, `muc_kiem_tra`, `ca_khong_danh_sach` | 2; 2 → 3 khi có kết quả; 3 | J *(R-15: `danh_sach_kiem_tra` → `ho_so_chung`; `muc_kiem_tra` → `su_kien_chung`)* |
 | `su_kien_m04hd_da_xu_ly`, `lan_chay_m04hd` | Kỹ thuật | Listener, job |
 
 ---
@@ -75,13 +86,13 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | `DA_DANG_KY` | Hủy tự động | `DA_HUY` | Hệ thống |
 | `DA_DANG_KY` | Ghi kết quả điểm danh; hết ngày | `DA_DIEM_DANH` | Người điểm danh; Bộ lập lịch (Không ghi nhận) |
 
-### `dong_y_ve_muon` – nhóm 2
+### `dong_y_ve_muon` – nhóm 2 → gộp theo R-15: `dong_y_ve_muon` → `ho_so_chung`
 
 `id`, `nct_id`, `buoi_id`, `nguoi_dai_dien_id`, `cach` (`CONG`, `BAN_KY`), `tep_ban_ky_id NULL`, `gio_ve_du_kien_moi`, `ghi_nhan_boi_id`, `luc`, `trang_thai` (`HIEU_LUC`, `DA_RUT`, `DA_DUNG`, `HET_HIEU_LUC`), `rut_boi`, `rut_luc`; `UNIQUE` (buổi, người cao tuổi) cho bản Hiệu lực.
 
 ---
 
-## 5. `diem_danh_buoi` – nhóm 3 (mục F)
+## 5. `diem_danh_buoi` – nhóm 3 (mục F) → gộp theo R-15: `diem_danh_buoi` → `su_kien_chung`
 
 `id`, `dang_ky_id`, `buoi_id`, `nct_id`, `ket_qua` (`CO_MAT`, `VANG`, `KHONG_GHI_NHAN`), `ly_do_vang` (`TU_CHOI`, `SUC_KHOE`, `DANG_VANG_MAT`, `KHONG_DEN`, `KHAC`), `muc_tham_gia` (`TICH_CUC`, `BINH_THUONG`, `THU_DONG`, `BO_GIUA_CHUNG`), `muc_giao_tiep`, `tinh_trang_sau`, `ghi_chu`, `ghi_nhan_muon`, `boi_id`, `luc`, `thoi_diem_thiet_bi NULL`, `tang_khu_vuc_id` (tầng gắn đính chính); `UNIQUE (dang_ky_id)` cho bản hiện hành (đính chính theo 000).
 
@@ -89,7 +100,7 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ## 6. Chuyến đi (mục G, H)
 
-### `chuyen_di` – nhóm 2
+### `chuyen_di` – nhóm 2 → gộp theo R-15: `chuyen_di` → `buoi_hoat_dong`
 
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
@@ -114,7 +125,7 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | `DANG_DI` | Kết thúc điểm danh về | `DA_VE` | Trưởng đoàn, Trưởng tầng |
 | `DA_VE` | Điểm danh về muộn | `DA_VE` | Trưởng đoàn, Trưởng tầng |
 
-### `nguoi_tham_gia` – nhóm 2
+### `nguoi_tham_gia` – nhóm 2 → gộp theo R-15: `nguoi_tham_gia` → `dang_ky_buoi`
 
 `id`, `buoi_id`, `nct_id`, `dang_ky_id`, `trang_thai` (`DA_DANG_KY`, `DUOC_DI`, `KHONG_DI`, `DA_ROI_VIEN`, `DA_VE`, `THIEU_KHI_VE`, `ROI_DOAN`), `ly_do`, `su_co_thieu_nguoi_id NULL` (đặt một lần), `canh_bao_thieu_nguoi_da_yeu_cau`.
 
@@ -147,11 +158,11 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ## 8. Kiểm tra chất lượng (mục J)
 
-### `danh_sach_kiem_tra` – nhóm 2
+### `danh_sach_kiem_tra` – nhóm 2 → gộp theo R-15: `danh_sach_kiem_tra` → `ho_so_chung`
 
 `id`, `ca_id`, `tang_khu_vuc_id`, `lap_boi_id`, `vai_tro_lap` (`TRUONG_TANG`, `NGUOI_PHU_TRACH_CA`), `lap_luc`, `so_du_dieu_kien_luc_lap`, `da_bao_ql_qua_han_luc`; `UNIQUE (ca_id, tang_khu_vuc_id)`.
 
-### `muc_kiem_tra` – nhóm 2 → 3 khi có kết quả
+### `muc_kiem_tra` – nhóm 2 → 3 khi có kết quả → gộp theo R-15: `muc_kiem_tra` → `su_kien_chung`
 
 `id`, `danh_sach_id`, `cong_viec_id` `UNIQUE`, `nguoi_thuc_hien_goc_id`, `trang_thai` (`CHO_KIEM_TRA`, `DAT`, `KHONG_DAT`, `KHONG_KIEM_TRA_DUOC`, `QUA_HAN_KIEM_TRA`), `kiem_tra_boi_id`, `vai_tro_kiem_tra`, `ghi_chu`, `tep_anh_ids`, `cong_viec_lam_lai_id NULL`, `luc`. Trigger: khi `OLD.trang_thai <> 'CHO_KIEM_TRA'` chặn mọi đổi (đính chính theo 000).
 

@@ -34,7 +34,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Q2 | T xếp S vào ca 12:00–20:00 tầng 3 khi S có ca ngày tầng 2 | 409 `CHONG_CA` nêu ca bị chồng | US2 #2, DBR-21 |
 | Q3 | T xếp S vào ca đêm cùng ngày ca ngày | 409 `CAN_XAC_NHAN_CANH_BAO` 24 giờ > 16; gửi lại có lý do: 200 | US2 #3, FR-014 |
 | Q4 | T công bố khi còn ca thiếu người phụ trách; chỉ định S làm người phụ trách | 409 liệt kê ca; 409 vai trò | US2 #4, #5 |
-| Q5 | T công bố lịch hợp lệ; S mở `/toi/ca` | Lịch `DA_CONG_BO`; mỗi nhân viên nhận `LichCaDaCongBo` chỉ ca của mình; phân công Nháp → Tương lai/Hiệu lực; `ban_cong_bo_lich` có bản ghi; S chỉ thấy ca của mình | US2 #6, FR-054 |
+| Q5 | T công bố lịch hợp lệ; S mở `/toi/ca` | Lịch `DA_CONG_BO`; mỗi nhân viên nhận `LichCaDaCongBo` chỉ ca của mình; phân công Nháp → Tương lai/Hiệu lực; `ban_cong_bo_lich` có bản ghi; S chỉ thấy ca của mình | US2 #6, FR-054 *(R-15: `ban_cong_bo_lich` → `su_kien_chung`)* |
 | Q6 | T xóa S khỏi ca đã công bố | 405/409 (không có thao tác) | US2 #7 |
 | Q7 | T chuyển người phụ trách ca đêm từ E sang F khi bàn giao của ca đang Bản nháp có ghi chú của E | F là người phụ trách và người bàn giao; ghi chú giữ tên E; F nhận thông báo; E mất quyền | US2 #8, #10, FR-019 |
 | Q8 | Phân công Nháp E làm Điều dưỡng phụ trách khi giấy phép còn hạn; giấy phép hết hạn rồi công bố; công bố với `loaiBoPhanCong` | 201 Nháp; 409 `PHAN_CONG_KHONG_DAT` kèm lý do; 200 | US2 #9, FR-016, Q-82 |
@@ -114,7 +114,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | # | Thao tác | Kết quả mong đợi | Spec |
 | --- | --- | --- | --- |
 | I1 | QLV tải mẫu, điền 40 dòng hợp lệ, gọi `xem-truoc` | 200, 40 dòng, `loi` rỗng, `xacNhanDuoc = true`; 0 hồ sơ mới | US4 #10, FR-001b |
-| I2 | Gọi `xac-nhan` với cùng file | 201, 40 hồ sơ `DANG_LAM_VIEC`, `nguon = IMPORT`, không tài khoản, không bộ phận; một `lan_import_nhan_vien`; nhật ký `NV_IMPORT` có tên file, 40 id | US4 #10, FR-001c |
+| I2 | Gọi `xac-nhan` với cùng file | 201, 40 hồ sơ `DANG_LAM_VIEC`, `nguon = IMPORT`, không tài khoản, không bộ phận; một `lan_import_nhan_vien`; nhật ký `NV_IMPORT` có tên file, 40 id | US4 #10, FR-001c *(R-15: `lan_import_nhan_vien` → `ho_so_chung`)* |
 | I3 | File dòng 7 thiếu chức danh, dòng 12 số 9 chữ số | `loi` có (7, "Chức danh", `THIEU_O_BAT_BUOC`), (12, "Số điện thoại", `DIEN_THOAI_SAI_DINH_DANG`); `xac-nhan` 409, 0 hồ sơ | US4 #11 |
 | I4 | Hồ sơ S (Nghỉ việc) số 0912345678; file có dòng số đó, hai dòng khác cùng một số | `TRUNG_HO_SO` kèm id S; `TRUNG_DONG_TRONG_FILE` kèm số dòng | US4 #12 |
 | I5 | Xem trước không lỗi; tạo tay hồ sơ trùng số với dòng 5; xác nhận | 409 `IMPORT_CO_DONG_LOI` báo dòng 5; 0 hồ sơ | US4 #13 |

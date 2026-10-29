@@ -47,3 +47,6 @@
 /specs/012-family-portal/                           @ptlog18
 /specs/015-shift-rotation-swap/                     @ptlog18
 /specs/017-resident-balance-ledger/                 @ptlog18
+
+# Phần module thêm vào bảng dùng chung của R-15 (research R-15 mục 5): A review
+/backend/src/main/resources/db/migration/*__shared_*.sql @longdvhe170204

@@ -16,7 +16,7 @@ Feature 003 là phần phòng và giường của module M03 (mục 7). Nó cung
 7. Khu nghỉ bán trú duy nhất với sức chứa theo buổi (mục G).
 
 Hướng kỹ thuật:
-- Khóa dòng theo thứ tự cố định: người cao tuổi (khi lệnh đi qua 001), rồi `vi_tri_nct`, rồi giường theo `id`. Mọi điều kiện kiểm sau khi khóa, nên lệnh đến sau được kiểm lại trên trạng thái mới. Cơ sở dữ liệu là lưới an toàn: cột sinh có `UNIQUE` cho "một đang hiệu lực mỗi giường, mỗi người", trigger chống chồng khoảng, trigger bất biến khi đã đóng (research G-03).
+- Khóa dòng theo thứ tự cố định: người cao tuổi (khi lệnh đi qua 001), rồi `vi_tri_nct`, rồi giường theo `id`. Mọi điều kiện kiểm sau khi khóa, nên lệnh đến sau được kiểm lại trên trạng thái mới. Cơ sở dữ liệu là lưới an toàn: cột sinh có `UNIQUE` cho "một đang hiệu lực mỗi giường, mỗi người", trigger chống chồng khoảng, trigger bất biến khi đã đóng (research G-03). *(R-15: `vi_tri_nct` → `trang_thai_nct`)*
 - Một điểm ghi trạng thái giường với bảng chuyển cài trong mã; mỗi lần chuyển thêm một dòng lịch sử (G-04).
 - Một thành phần kiểm tra FR-018 dùng chung cho danh sách giường và lệnh, nên danh sách và lệnh không lệch nhau (G-05).
 - Tác động lên giường từ lệnh trạng thái của 001 đi qua SPI `ThamGiaChuyenTrangThai`, trong cùng transaction (G-06).
@@ -98,8 +98,8 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | XV. Truy vết, kiểm thử | Đạt | Tên test theo BR, FR. Mỗi BR của 003 có test tích hợp (data-model mục 11). Không có BR nào của 003 thực hiện ở client |
 
 **Kiểm lại sau Phase 1**: Đạt. Thiết kế không thêm vai trò, trạng thái hay quy tắc nghiệp vụ ngoài spec. Có bốn bổ sung kỹ thuật, giải thích ở Complexity Tracking:
-1. Bảng `vi_tri_nct` làm đích khóa theo người.
-2. Bảng kỹ thuật `yeu_cau_nhap_bu`, `nhac_phan_bo`.
+1. Bảng `vi_tri_nct` làm đích khóa theo người. *(R-15: `vi_tri_nct` → `trang_thai_nct`)*
+2. Bảng kỹ thuật `yeu_cau_nhap_bu`, `nhac_phan_bo`. *(R-15: `yeu_cau_nhap_bu` → `ho_so_chung`; `nhac_phan_bo` → `moc_da_nhac`)*
 3. Lệnh phân bổ, chuyển giường không dùng `If-Match`.
 4. Năm giao diện bổ sung vào hợp đồng 000, 001, 002 (G-13).
 
@@ -174,9 +174,9 @@ mobile/lib/nhan-vien/
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
 | Lệnh phân bổ, chuyển giường, đổi trạng thái giường không dùng `If-Match` (khác R-03 "lệnh sửa bắt buộc `If-Match`") | FR-020, FR-033 đòi lệnh đến sau được kiểm tra lại trên trạng thái mới, chỉ bị từ chối khi không còn hợp lệ | `If-Match` từ chối cả lệnh đến sau còn hợp lệ. Cùng lý do với 001 H-02 |
-| Bảng `vi_tri_nct` (một dòng mỗi người) | Cần một dòng của 003 để khóa tuần tự mọi lệnh trên cùng người, và để giữ dấu "chưa có giường" (FR-025a) | Khóa dòng `nguoi_cao_tuoi` của M01 từ lệnh của 003 là truy cập dữ liệu module khác (constitution X) |
+| Bảng `vi_tri_nct` (một dòng mỗi người) | Cần một dòng của 003 để khóa tuần tự mọi lệnh trên cùng người, và để giữ dấu "chưa có giường" (FR-025a) | Khóa dòng `nguoi_cao_tuoi` của M01 từ lệnh của 003 là truy cập dữ liệu module khác (constitution X) *(R-15: `vi_tri_nct` → `trang_thai_nct`)* |
 | Trigger chống chồng khoảng song song với khóa ở backend | DBR-09 cần một bảo đảm ở cơ sở dữ liệu khi mã có lỗi (constitution XII); MySQL không có ràng buộc loại trừ khoảng | Chỉ kiểm ở backend thì một lỗi mã là phá được SC-001 |
-| Bảng kỹ thuật `yeu_cau_nhap_bu`, `nhac_phan_bo`; cột `da_bao_*`, `da_nhac_*` trên `giuong`, `phan_bo_giuong` | Chống báo, nhắc lặp (NFR-04); gắn dấu "có nhập bù đang chờ duyệt" mà không đọc JSON của 000. Mỗi lần báo, nhắc vẫn ghi nhật ký | Suy từ bảng thông báo của 009 thì 003 đọc dữ liệu module khác |
+| Bảng kỹ thuật `yeu_cau_nhap_bu`, `nhac_phan_bo`; cột `da_bao_*`, `da_nhac_*` trên `giuong`, `phan_bo_giuong` | Chống báo, nhắc lặp (NFR-04); gắn dấu "có nhập bù đang chờ duyệt" mà không đọc JSON của 000. Mỗi lần báo, nhắc vẫn ghi nhật ký | Suy từ bảng thông báo của 009 thì 003 đọc dữ liệu module khác *(R-15: `yeu_cau_nhap_bu` → `ho_so_chung`; `nhac_phan_bo` → `moc_da_nhac`)* |
 | Năm giao diện bổ sung vào hợp đồng 000, 001, 002 (G-13) | FR-029 cần tác động lúc duyệt; FR-024a cần cảnh báo trước lệnh; FR-027, FR-036 cần khoảng trạng thái; FR-034 cần sự kiện đổi giới tính; Modulith cần một chiều phụ thuộc M03 → M15 | Không bổ sung thì phải sao chép dữ liệu của module khác hoặc dùng sự kiện sau commit, trái các yêu cầu "trong cùng một lần" |
 | Chu kỳ job 15 phút đặt trong cấu hình ứng dụng, không phải mã CFG | Thông số vận hành, không có trong Phụ lục 25. Trễ tối đa 15 phút, dưới ngưỡng mặc định của CFG-M03-08 | Thêm mã CFG thì phải sửa tài liệu nguồn chỉ vì thông số kỹ thuật |
 
@@ -541,3 +541,10 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - Final review có2finding P2; thêm2test RED đúng lỗi (`003-p11-review-red.log`:7IT/2failure/0error). Đã bỏ residentsAt(from) cho cả dải: mỗi Window đọc người của phân bổ CLOSED gần nhất trước lần vào trạng thái, REUSE không có người vừa rời. Cấu hình deadline được tính/materialize trong transaction trước khi trả Stream. `003-p11-review-green.log`:7IT+25kiến trúc xanh, exit0/48.887giây. Final: fixed cả2finding, không có minor được reviewer báo, không yêu cầu re-review.
 - T064 frontend250test/38file, lint/build qua (`003-p11-web-*.log`, build933ms), còn cảnh báo chunk. Flutter SDK có sẵn: chạy flutter test, pub get các phụ thuộc đã khai báo xong nhưng process exit1 trước test vì Windows thiếu symlink/Developer Mode; không tự bật cài đặt hệ thống, không thêm package hoặc đổi manifest/lockfile.
 - Kiểm cuối nền `003-p11-clean-verify-final.log` exit1/04:09phút:393unit/kiến trúc xanh;1073IT có6failure+9error,0skip;227IT M03 xanh (218cũ+9mới).15lỗi vẫn8lớpM01 đã bàn giaoB, không sửa source/testB. ApiContractIT và cả hai kiểm trigger xanh; spotless1328file sạch. Lượt danh sách300giường cuối có trung vị77.5ms/max85ms. Giữ T061–T065[ ] theo gate toàn kho và các phần chưa đủ; verification.md ghi rõ mapping/quickstart/SC/giới hạn, không tuyên bố toàn bộ003 hoàn tất.
+
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Lược đồ sau gộp và cách chuyển dữ liệu: data-model mục 0, 0.1; task T066.
+- Bảo đảm DBR, BR sau gộp (XII): ràng buộc của bảng giữ riêng giữ nguyên; ràng buộc của bảng đã gộp chuyển theo cột "ràng buộc chuyển về backend" và đoạn "Bảo đảm" của data-model 0.1 (`khoa_duy_nhat`, cột sinh `UNIQUE`, `CHECK` theo `kind`, quyền theo cột, trigger khóa theo dòng, kiểm ở domain). Mỗi ràng buộc chuyển về domain có test tích hợp; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR áp dụng trong data-model.
+- Hiệu năng (NFR): truy vấn trên bảng chung dùng chỉ mục `(loai_doi_tuong, doi_tuong_id, loai)` và cột sinh có chỉ mục khai báo ở 0.1; chạy lại phần đo của quickstart sau khi gộp.
+- Dòng nhắc bảng cũ trong plan, research, tasks có ghi chú "R-15:" chỉ bảng đích.

@@ -17,7 +17,7 @@ Feature 017 là phần 15.9, 15.9a của module M11 (UC-12, UC-85 → UC-88, UC-
 
 Hướng kỹ thuật:
 - Gói `m11.sodu` trong M11 cùng 010; dùng port nội bộ `ChiPhiChoSoDuPort` của 010 (thêm `bangDaChot`, 010 research P-12), cài `SoDuMuaHoPort`; cài `TrangThaiDatCocPort`, `MucViecSauQuaDoiPort` (`QUYET_TOAN`) và bean `ThamGiaChuyenTrangThai` với hai mã điều kiện `KT_H_QUYET_TOAN`, `KT_H_XAC_NHAN_QUYET_TOAN` (004 research T-09, cập nhật 2026-10-22) (research E-01, E-02).
-- Số dư, số dư cọc lưu dẫn xuất trên `so_du`, cập nhật cùng transaction với giao dịch Đã xác nhận dưới khóa dòng `so_du`; bất biến đối chiếu bằng test và truy vấn hằng đêm (E-03).
+- Số dư, số dư cọc lưu dẫn xuất trên `so_du`, cập nhật cùng transaction với giao dịch Đã xác nhận dưới khóa dòng `so_du`; bất biến đối chiếu bằng test và truy vấn hằng đêm (E-03). *(R-15: `so_du` → `trang_thai_nct`)*
 - Giao dịch cần duyệt là loại yêu cầu phê duyệt `M11.GIAO_DICH_SO_DU` của 000; duyệt kiểm lại giới hạn và người nhận tại lúc duyệt (E-06).
 - Chứng từ (phiếu báo phí, bảng quyết toán) và file xuất dựng bằng `common.bieumau` (PDF: OpenPDF, 007 research S-25; Excel: fastexcel, đã chọn ở 010), lưu S3 qua `FileApi` như tệp đính kèm (001 research H-13); tải lại trả đúng file đã lưu (E-09 → E-11).
 - Mã QR VietQR: chuỗi EMVCo dựng trong mã (CRC16); ảnh QR in trên PDF: ZXing core tính ma trận, `PdfBieuMau` vẽ thành ô vuông; client web, app vẽ ảnh từ chuỗi (E-04).
@@ -159,7 +159,7 @@ mobile/lib/nguoi-than/so-du/           # số dư, mã QR, chứng từ, sao kê
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
-| Số dư lưu dẫn xuất trên `so_du` | Hiển thị, tình trạng, dấu mua hộ đọc thường xuyên; FR-002 giữ bằng cập nhật cùng transaction và đối chiếu hằng đêm | Cộng tổng giao dịch mỗi lần đọc: chậm cho job 300 hồ sơ, cổng |
+| Số dư lưu dẫn xuất trên `so_du` | Hiển thị, tình trạng, dấu mua hộ đọc thường xuyên; FR-002 giữ bằng cập nhật cùng transaction và đối chiếu hằng đêm | Cộng tổng giao dịch mỗi lần đọc: chậm cho job 300 hồ sơ, cổng *(R-15: `so_du` → `trang_thai_nct`)* |
 | Mã nộp tiền có ký tự kiểm tra | Giảm nhận nhầm người khi Kế toán đọc nội dung chuyển khoản gõ sai | Mã tuần tự: sai một chữ số vẫn ra hồ sơ khác |
 | Lưu file chứng từ ở S3 thay vì dựng lại | FR-037: tải lại phải trả đúng file đã phát hành dù dữ liệu nguồn đổi | Dựng lại từ số liệu chụp: phụ thuộc phiên bản thư viện, font; không bảo đảm giống byte |
 | Hai mã điều kiện quyết toán cho 004 | FR-064 (004), BR-M11-22: ngoại lệ chỉ miễn ba ý tiền, không miễn ý xác nhận và ý Chờ duyệt | Một mã: ngoại lệ sẽ miễn cả ý xác nhận |
@@ -188,5 +188,11 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 Ghi khi triển khai (constitution XIV: lệch kỹ thuật ghi ở plan cùng lúc với mã). Tên tiếng Anh theo glossary mục 6.5 (phần `common`, tham số của 000) và mục 23.
 
 - *(2026-10-22, nhánh `impl/common-bieumau`, A)* **T003**: `common.file.FileTypes`: `SYSTEM_GENERATED` (PDF, JPEG, PNG, `.xlsx`) cho `FileApi.upload`, `USER_UPLOAD` (PDF, JPEG, PNG) cho `POST /files`; `check(mimeType, content, allowed)` kiểm kiểu khai báo khớp chữ ký đầu nội dung và giới hạn 10 MB, lỗi 422 `FILE_TYPE_NOT_ALLOWED`, `FILE_TOO_LARGE` (mã lỗi của hợp đồng 001). `FileApi` chưa có bản cài (001 T003, B): bản cài gọi `FileTypes.check(…, SYSTEM_GENERATED)`, controller `POST /files` gọi với `USER_UPLOAD` trước. Test `FileTypesTest`.
-- **T045, phần 000**: SPI `ParameterValueCheck` (tên logic `KiemTraGiaTriThamSo`; `code()`, `check(JsonNode value)` ném `InvalidValueException`, 422 `INVALID_VALUE` kèm lý do) ở `m15.parameter.api.spi`; `ParameterService.changeValue` gọi mọi bản cài có mã trùng, sau phần kiểm chung theo kiểu và ràng buộc, trước khi lưu; khôi phục về "Theo cơ sở" (`null`) thì không gọi. Bản giả `support/fake/m15/FakeParameterValueCheck` (nhận mọi giá trị tới khi gọi `reject`; test khai bean cho mã mình cần). Test `ParameterValueCheckIT`. Còn của 017: bảng `ngan_hang`, `GET /ngan-hang`, bản cài cho CFG-M11-10, ô chọn ngân hàng, `NganHangThamSoIT`.
+- **T045, phần 000**: SPI `ParameterValueCheck` (tên logic `KiemTraGiaTriThamSo`; `code()`, `check(JsonNode value)` ném `InvalidValueException`, 422 `INVALID_VALUE` kèm lý do) ở `m15.parameter.api.spi`; `ParameterService.changeValue` gọi mọi bản cài có mã trùng, sau phần kiểm chung theo kiểu và ràng buộc, trước khi lưu; khôi phục về "Theo cơ sở" (`null`) thì không gọi. Bản giả `support/fake/m15/FakeParameterValueCheck` (nhận mọi giá trị tới khi gọi `reject`; test khai bean cho mã mình cần). Test `ParameterValueCheckIT`. Còn của 017: bảng `ngan_hang`, `GET /ngan-hang`, bản cài cho CFG-M11-10, ô chọn ngân hàng, `NganHangThamSoIT`. *(R-15: `ngan_hang` → `danh_muc_chung`)*
 - **Chứng từ**: dùng `common.document` (`PdfDocument`, `ExcelDocument`, 007 plan ghi chú triển khai). `PdfDocument` nhận thông tin viện từ module gọi: đọc `ParameterApi.read(CFG_M11_11)`, chưa đặt thì truyền `null`, có thì `asTable(FacilityInfo.class)`. Ảnh mã QR VietQR (T002, ZXing) chưa có hàm vẽ trên `PdfDocument`; 017 thêm khi làm phiếu báo phí.
+
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Ánh xạ bảng ở data-model mục 0; task T046. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
+- Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
+- Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.
