@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../common/widgets/sky_background.dart';
+import '../../common/widgets/page_body.dart';
 
 const _weekdays = ['thứ Hai', 'thứ Ba', 'thứ Tư', 'thứ Năm', 'thứ Sáu', 'thứ Bảy', 'Chủ nhật'];
 
@@ -22,7 +22,7 @@ class TodayScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Scaffold(
-      body: SkyBackground(
+      body: PageBody(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

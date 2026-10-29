@@ -128,9 +128,11 @@ class OfflineBand extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tones = Theme.of(context).extension<Tones>()!;
     return DecoratedBox(
-      decoration: BoxDecoration(color: tones.neutralWash, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Text('Đang ngoại tuyến. Bản ghi sẽ đồng bộ khi có mạng.', style: Theme.of(context).textTheme.bodyMedium),

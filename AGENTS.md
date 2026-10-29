@@ -57,7 +57,7 @@ Theo [frontend/README.md](frontend/README.md) và [mobile/README.md](mobile/READ
 
 ## 6. AI không được làm
 
-- Không bịa dữ liệu người cao tuổi, quy tắc, quyền; dữ liệu minh họa chỉ ở `frontend/src/common/demoData.js`, tên dạng `[Họ tên NCT 1]`.
+- Không bịa dữ liệu người cao tuổi, quy tắc, quyền; dữ liệu minh họa chỉ ở `frontend/src/common/demoData.js`, tên người hư cấu, đúng hình dạng hợp đồng (DESIGN.md mục 8, 13 điều 6); màn không hiện trường ngoài spec và hợp đồng.
 - Không ghi mật khẩu, khóa API vào kho mã (dùng biến môi trường).
 - Không tắt, bỏ qua, xóa test cho xanh; không sửa test của người khác cho khớp mã của mình.
 - Không đổi `pom.xml`, `package.json`, `pubspec.yaml`, `CLAUDE.md`, `common/` khi không phải A.
