@@ -72,7 +72,7 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 ### Implementation cho User Story 3
 
-- [ ] T018 [US3] Tạo bảng `yeu_cau_doi_ca` (`yeu_cau_id` khóa chính trỏ `yeu_cau_phe_duyet`; `dang` `HAI_CHIEU|NHAN_THAY`; `trang_thai` 7 giá trị đồng bộ qua `chuyenMoRong`), `yeu_cau_ca_mo` (`UNIQUE (ca_id, nhan_vien_id)`) trong `MIG/V015_04__doi_ca.sql`
+- [ ] T018 [US3] Tạo bảng `yeu_cau_doi_ca` (`yeu_cau_id` khóa chính trỏ `yeu_cau_phe_duyet`; `dang` `HAI_CHIEU|NHAN_THAY`; `trang_thai` 7 giá trị đồng bộ qua `chuyenMoRong`), `yeu_cau_ca_mo` (`UNIQUE (ca_id, nhan_vien_id)`) trong `MIG/V015_04__doi_ca.sql` *(R-15: `yeu_cau_doi_ca` → `ho_so_chung`; `yeu_cau_ca_mo` → `khoa_duy_nhat` của `ho_so_chung`)*
 - [ ] T019 [US3] Cài handler `BE/m09/doica/internal/DoiCaHandler.java` cho `M09.DOI_CA` (`chuyenMoRong` cho `CHO_NGUOI_NHAN_DONG_Y`, `NGUOI_NHAN_TU_CHOI`, `HET_HIEU_LUC`; không có `NHAP`; `kiemTraKhiDuyet`; `khiDuyet` hoặc `apDung` gọi `CaLenhPort`, `PhanCongLenhPort`, `CongViecCaApi.khiKetThucPhanCong`, `ChuyenDiNhiemVuLenhApi.goNhiemVu`; tự duyệt Q-10) và `DoiCaService.java` (lập, đồng ý, từ chối, rút, hủy) (research X-08)
 - [ ] T020 [US3] Tạo endpoint `/doi-ca`, `/doi-ca/ca-cua-nguoi-nhan`, `/{id}/kiem-tra`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/lich-ca/doi-ca/`; app `mobile/lib/nhan-vien/lich-ca/` (SC-006 ≤ 2 phút) với test flutter
 
@@ -92,7 +92,7 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 ### Implementation cho User Story 4
 
-- [ ] T022 [US4] Tạo bảng `yeu_cau_nghi` (`dang` `THEO_CA|THEO_NGAY`; `lap_thay`), `yeu_cau_nghi_muc` (`ket_qua` `CHO|DUYET|TU_CHOI|DA_TACH|DA_ROI`), `nghi_theo_ngay` (nhóm 3; `UNIQUE (nhan_vien_id, ngay)`) trong `MIG/V015_05__nghi.sql`
+- [ ] T022 [US4] Tạo bảng `yeu_cau_nghi` (`dang` `THEO_CA|THEO_NGAY`; `lap_thay`), `yeu_cau_nghi_muc` (`ket_qua` `CHO|DUYET|TU_CHOI|DA_TACH|DA_ROI`), `nghi_theo_ngay` (nhóm 3; `UNIQUE (nhan_vien_id, ngay)`) trong `MIG/V015_05__nghi.sql` *(R-15: `yeu_cau_nghi` → `ho_so_chung`; `nghi_theo_ngay` → `su_kien_chung`)*
 - [ ] T023 [US4] Cài handler `BE/m09/doica/internal/NghiDotXuatHandler.java` (`DA_AP_DUNG_MOT_PHAN`, `HET_HIEU_LUC`; tác động qua `NghiCoDuyetPort`, `CaLenhPort`) và `NghiService.java` (tác động trước duyệt; tách ca theo giờ trong job; listener `LichCaDaCongBo`) (research X-09)
 - [ ] T024 [US4] Tạo endpoint `/nghi-dot-xuat`, `/{id}/truoc-khi-duyet`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/lich-ca/nghi/`; app phần nghỉ
 
@@ -112,6 +112,7 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 - [ ] T029 *(Bỏ theo Q-397, 2026-10-29)* Không còn `KiemTraCongBoMoRong`; 008 hiển thị nghỉ theo ngày còn chờ qua `NghiCoDuyetPort`
 - [ ] T030 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC-004, SC-006 theo quickstart mục 5
 - [ ] T031 Rà truy vết: DBR-21 (qua 008), DBR-25 và BR-M09-10 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-040, FR-041, FR-042, FR-043, FR-044, FR-045, FR-046 — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T032 *(bổ sung 2026-10-29, research R-15 bản 2 của 000)* Khi viết migration và entity của feature, áp data-model mục 0: không tạo các bảng đã gộp, dùng bảng gộp, cột `JSON` và bảng chung (`CatalogApi`, `StatusHistoryApi`, `RecordEventApi`, `SimpleRecordApi`, `ResidentModuleStateApi`, `ReminderMarkers`, `TechnicalLocks`); test bảo vệ nhóm dữ liệu viết cho bảng gộp
 
 ---
 

@@ -6,31 +6,41 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ---
 
+## 0. Gộp bảng theo R-15 *(bổ sung 2026-10-29, bản 2)*
+
+Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/research.md) (bản 2, chủ dự án duyệt 2026-10-29, constitution XII 3.2.0); không đổi nghiệp vụ, API, quyền. Mô tả bảng ở các mục sau vẫn là căn cứ cột và ràng buộc: bảng gộp mang đủ cột của bảng cũ (cột riêng vào `JSON` hoặc cột `NULL` có `CHECK` theo `loai`); ràng buộc duy nhất thành `khoa_duy_nhat`; dòng nhóm 3 hoặc đã khóa có `khoa_luc` và trigger theo dòng. Bảy bảng chung ở [data-model 000 mục 8](../000-shared-foundation/data-model.md): `danh_muc_chung`, `lich_su_chung`, `su_kien_chung`, `ho_so_chung`, `trang_thai_nct`, `moc_da_nhac`, `khoa_ky_thuat`. Khi cài thấy bảng nào không thể gộp mà vẫn giữ được BR, DBR thì giữ và ghi lý do ở plan.
+
+- Giữ: `giao_dich` (tính vào số bảng của 010).
+- `su_kien_chung`: `phieu_bao_phi`, `bang_quyet_toan` (loại `M11.FEE_NOTICE`, `M11.SETTLEMENT_STATEMENT`; mỗi phiên bản bảng quyết toán là một sự kiện, xác nhận quyết toán là sự kiện `M11.SETTLEMENT_CONFIRMATION` trỏ phiên bản; tệp PDF, Excel gắn chủ là id sự kiện) *(sửa 2026-10-29, mục tiêu 79 bảng)*.
+- `danh_muc_chung`: `ngan_hang`; `lich_su_chung`: `lich_su_tinh_trang`; `trang_thai_nct`: `so_du` (số dư dẫn xuất trong `du_lieu`, cột sinh có chỉ mục).
+
+---
+
 ## 1. Tổng quan
 
 | Bảng | Nhóm (1.5) | Mục spec |
 | --- | --- | --- |
-| `so_du` | 2 dẫn xuất | A, D (một dòng mỗi hồ sơ: số dư, số dư cọc, mã nộp tiền, tình trạng) |
+| `so_du` | 2 dẫn xuất | A, D (một dòng mỗi hồ sơ: số dư, số dư cọc, mã nộp tiền, tình trạng) *(R-15: `so_du` → `trang_thai_nct`)* |
 | `giao_dich` | 2 → 3 khi Đã xác nhận | B, C |
-| `lich_su_tinh_trang` | 3 | D |
-| `phieu_bao_phi` | 3 | J (FR-031, FR-032) |
-| `bang_quyet_toan` | 3, có phiên bản | E, J (FR-034) |
+| `lich_su_tinh_trang` | 3 | D *(R-15: `lich_su_tinh_trang` → `lich_su_chung`)* |
+| `phieu_bao_phi` | 3 | J (FR-031, FR-032) *(R-15: `phieu_bao_phi` → `su_kien_chung`)* |
+| `bang_quyet_toan` | 3, có phiên bản | E, J (FR-034) *(R-15: `bang_quyet_toan` → `su_kien_chung`)* |
 | `lan_xuat_so_du` | 3 | F (FR-027) |
 | `lan_tai_chung_tu` | 3 | J (FR-037) |
 | `su_kien_m11sd_da_xu_ly`, `lan_chay_m11sd` | Kỹ thuật | Listener, job |
-| `ngan_hang` *(bổ sung 2026-10-22)* | 1, cố định | A (danh mục ngân hàng cho CFG-M11-10 và VietQR) |
+| `ngan_hang` *(bổ sung 2026-10-22)* | 1, cố định | A (danh mục ngân hàng cho CFG-M11-10 và VietQR) *(R-15: `ngan_hang` → `danh_muc_chung`)* |
 
 Không còn các bảng của bản cũ: `day_so_phieu`, `chot_quy_ngay`, `chot_quy_ngay_phieu`, `lan_nhap_sao_ke`, `dong_sao_ke` (Q-385).
 
 ---
 
-## 2. `so_du` – nhóm 2 dẫn xuất
+## 2. `so_du` – nhóm 2 dẫn xuất → gộp theo R-15: `so_du` → `trang_thai_nct`
 
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
 | `nct_id` (khóa chính), `mo_luc`, `hop_dong_mo_id` | Mở khi hợp đồng đầu tiên chuyển Chờ ký | FR-001 |
 | `ma_nop_tien` `UNIQUE` | Không đổi, không dùng lại (research E-04) | FR-001, DBR-28 |
-| `so_du`, `so_du_coc` | = tổng giao dịch Đã xác nhận của từng sổ | FR-002, DBR-28 |
+| `so_du`, `so_du_coc` | = tổng giao dịch Đã xác nhận của từng sổ | FR-002, DBR-28 *(R-15: `so_du` → `trang_thai_nct`)* |
 | `tinh_trang` (`BINH_THUONG`, `SAP_HET_TIEN`, `CON_NO`), `so_ngay_con_du NULL`, `chu_ky_tu`, `lan_bao_truoc`, `con_no_tu` | | FR-016 → FR-019 |
 | `dung_nhac`, `dung_nhac_boi_id`, `dung_nhac_ly_do` | Chỉ hồ sơ trạng thái cuối còn nợ | FR-020 |
 | `can_hoan_coc_tu NULL`, `nhac_hoan_coc_luc NULL` | Hợp đồng hủy trước Hiệu lực, Hủy tiếp nhận còn cọc | FR-015a |
@@ -41,7 +51,7 @@ Chỉ cập nhật trong transaction ghi giao dịch Đã xác nhận, lần tí
 
 ---
 
-## 2a. `ngan_hang` – nhóm 1, cố định *(bổ sung 2026-10-22; research E-04)*
+## 2a. `ngan_hang` – nhóm 1, cố định *(bổ sung 2026-10-22; research E-04)* → gộp theo R-15: `ngan_hang` → `danh_muc_chung`
 
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
@@ -85,15 +95,15 @@ Chỉ mục `(nct_id, so, trang_thai, xac_nhan_luc)` (sổ, sao kê), `(ma_giao_
 
 ---
 
-## 4. `lich_su_tinh_trang` – nhóm 3
+## 4. `lich_su_tinh_trang` – nhóm 3 → gộp theo R-15: `lich_su_tinh_trang` → `lich_su_chung`
 
-`id`, `nct_id`, `ngay`, `nguon` (`HANG_NGAY`, `GIAO_DICH:<id>`), `so_du`, `tong_chua_chot`, `phi_mot_ngay`, `so_ngay_con_du NULL`, `tinh_trang`, `da_bao` (`NGAY`, `NHAC_LAI`, `NOP_TIEN_DU`, `NOP_TIEN_CHUA_DU`, `BAO_QUAN_LY`, `KHONG`). `UNIQUE (nct_id, ngay, nguon)` (SC-012, NFR-04).
+`id`, `nct_id`, `ngay`, `nguon` (`HANG_NGAY`, `GIAO_DICH:<id>`), `so_du`, `tong_chua_chot`, `phi_mot_ngay`, `so_ngay_con_du NULL`, `tinh_trang`, `da_bao` (`NGAY`, `NHAC_LAI`, `NOP_TIEN_DU`, `NOP_TIEN_CHUA_DU`, `BAO_QUAN_LY`, `KHONG`). `UNIQUE (nct_id, ngay, nguon)` (SC-012, NFR-04). *(R-15: `so_du` → `trang_thai_nct`)*
 
-**Bảng chuyển tình trạng** (khớp bảng của spec mục D): thực hiện bằng hàm `QuyetDinhBao` (research E-07); tình trạng hiện tại lưu ở `so_du`.
+**Bảng chuyển tình trạng** (khớp bảng của spec mục D): thực hiện bằng hàm `QuyetDinhBao` (research E-07); tình trạng hiện tại lưu ở `so_du`. *(R-15: `so_du` → `trang_thai_nct`)*
 
 ---
 
-## 5. `phieu_bao_phi` – nhóm 3 *(Q-377, Q-378)*
+## 5. `phieu_bao_phi` – nhóm 3 *(Q-377, Q-378)* → gộp theo R-15: `phieu_bao_phi` → `su_kien_chung`
 
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
@@ -109,7 +119,7 @@ Không `UPDATE`, `DELETE` (mẫu 000). Không có trạng thái: phát hành là
 
 ---
 
-## 6. `bang_quyet_toan` – nhóm 3, có phiên bản *(Q-379, Q-385)*
+## 6. `bang_quyet_toan` – nhóm 3, có phiên bản *(Q-379, Q-385)* → gộp theo R-15: `bang_quyet_toan` → `su_kien_chung`
 
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
@@ -154,14 +164,14 @@ Trigger: chỉ cho `UPDATE` `hien_hanh` từ true sang false và ba cột bản 
 | Mã | Cách bảo đảm | Test |
 | --- | --- | --- |
 | DBR-17 | Giao dịch Đã xác nhận không sửa (trigger); thanh toán bảng không điều chỉnh (backend) | `DBR_17_GiaoDichKhongSuaIT` |
-| DBR-28 | `so_du` = tổng giao dịch Đã xác nhận, cập nhật cùng transaction; đối chiếu hằng đêm; mã nộp tiền `UNIQUE` | `DBR_28_SoDuBatBienIT`, SC-001 |
+| DBR-28 | `so_du` = tổng giao dịch Đã xác nhận, cập nhật cùng transaction; đối chiếu hằng đêm; mã nộp tiền `UNIQUE` | `DBR_28_SoDuBatBienIT`, SC-001 *(R-15: `so_du` → `trang_thai_nct`)* |
 | DBR-29 | Mã nộp tiền `UNIQUE`; mã giao dịch ngân hàng trùng → cảnh báo, không chặn | `BR_M11_12_ChuyenKhoanIT` |
 | DBR-30 | `UNIQUE (bang_chi_phi_id)` trên giao dịch thanh toán bảng | `DBR_30_ThanhToanBangIT` |
-| DBR-37 | `UNIQUE (ma_phieu)`, `UNIQUE (bang_chi_phi_id)` trên `phieu_bao_phi`; không `UPDATE`, `DELETE` | `BR_M11_21_PhieuBaoPhiIT` |
+| DBR-37 | `UNIQUE (ma_phieu)`, `UNIQUE (bang_chi_phi_id)` trên `phieu_bao_phi`; không `UPDATE`, `DELETE` | `BR_M11_21_PhieuBaoPhiIT` *(R-15: `phieu_bao_phi` → `su_kien_chung`)* |
 | DBR-38 | `UNIQUE (nct_id, phien_ban)`; `khoa_hien_hanh` `UNIQUE`; trigger | `BR_M11_22_XacNhanQuyetToanIT` |
 | BR-M11-10, 11, 14 | Bảng chuyển mục 3; `GioiHanHoan`; handler duyệt | `BR_M11_10_DieuChinhIT`, `BR_M11_11_ThanhToanBangIT`, `BR_M11_14_HoanTienIT` |
 | BR-M11-12, 16 | Lệnh nộp tiền mặt, chuyển khoản | `BR_M11_12_ChuyenKhoanIT`, `BR_M11_16_TienMatIT` |
 | BR-M11-13 | `TinhTrang`, `QuyetDinhBao`, job | `BR_M11_13_TinhTrangIT` |
 | BR-M11-15 | `SoDuMuaHoPort` | `BR_M11_15_DauMuaHoIT` |
-| BR-M11-21, 23 | `phieu_bao_phi`; `common.bieumau`; tệp | `BR_M11_21_PhieuBaoPhiIT`, `BR_M11_23_ChungTuIT` |
-| BR-M11-22 | `bang_quyet_toan`; `DieuKienQuyetToan` | `BR_M11_22_XacNhanQuyetToanIT`, `FR_022_DieuKienQuyetToanIT` |
+| BR-M11-21, 23 | `phieu_bao_phi`; `common.bieumau`; tệp | `BR_M11_21_PhieuBaoPhiIT`, `BR_M11_23_ChungTuIT` *(R-15: `phieu_bao_phi` → `su_kien_chung`)* |
+| BR-M11-22 | `bang_quyet_toan`; `DieuKienQuyetToan` | `BR_M11_22_XacNhanQuyetToanIT`, `FR_022_DieuKienQuyetToanIT` *(R-15: `bang_quyet_toan` → `su_kien_chung`)* |

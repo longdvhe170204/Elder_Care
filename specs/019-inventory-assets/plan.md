@@ -136,7 +136,7 @@ frontend/src/tinh-nang/mua-sam/  frontend/src/tinh-nang/tai-san/  frontend/src/t
 | --- | --- | --- |
 | SPI `YeuCauMuaSamPort` ở `m03.api` | Tài sản (M03) gắn yêu cầu mua sắm (M11) trong cùng lệnh; M11 phụ thuộc gián tiếp M03 | M03 gọi M11: vòng; sự kiện sau commit: mất "chặn khi thiếu yêu cầu" trong lệnh (FR-008c) |
 | Lịch xe ở `m03.api` thay cho SPI ở `m04.api` | M03 cài SPI của M04 tạo vòng | Giữ SPI ở `m04.api`: Modulith `verify()` từ chối |
-| `mua_sam_gan_nguon` lưu số tiền nguồn | Kế toán đối chiếu tổng phiếu nhập, nguyên giá mà M11 không đọc được M08 (vòng) | M11 đọc M08: vòng |
+| `mua_sam_gan_nguon` lưu số tiền nguồn | Kế toán đối chiếu tổng phiếu nhập, nguyên giá mà M11 không đọc được M08 (vòng) | M11 đọc M08: vòng *(R-15: `mua_sam_gan_nguon` → cột `JSON` của yêu cầu mua sắm)* |
 
 ## Đồng bộ với hợp đồng của feature khác
 
@@ -153,3 +153,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
 2. **Thanh lý tài sản không có bảng trạng thái riêng** (FR-013 ghi "Phụ trách bộ phận lập yêu cầu, Quản lý viện duyệt"): plan dùng yêu cầu phê duyệt chung của 000 (`M03.THANH_LY_TAI_SAN`). Đề nghị ghi rõ ở 7.7 rằng thanh lý đi qua vòng đời yêu cầu phê duyệt chung (6.6). *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
 3. **Trưởng tầng báo hỏng tài sản "trong tầng mình"** (FR-013, FR-020): tài sản có vị trí tầng, phòng; tài sản ở "kho tài sản", "bãi xe" không thuộc tầng nào nên chỉ Phụ trách bộ phận báo hỏng được. Plan hiểu như vậy; đề nghị xác nhận ở Phụ lục 27 ³³. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
+
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Ánh xạ bảng ở data-model mục 0; task T029. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
+- Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
+- Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.

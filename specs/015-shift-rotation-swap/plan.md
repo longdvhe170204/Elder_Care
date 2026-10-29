@@ -153,7 +153,7 @@ mobile/lib/nhan-vien/lich-ca/   # đổi ca, nghỉ, lời mời
 | --- | --- | --- |
 | Luồng cực đại khi tính phủ | FR-006 đòi số dòng đạt lớn nhất khi người có nhiều vai trò, kết quả duy nhất | Tham lam theo thứ tự: sai khi người nhiều vai trò bị xếp vào dòng đầu |
 | `LichNhapLenhPort`, `NghiCoDuyetPort` bổ sung vào M09 | Lịch Nháp thuộc 008; nghỉ theo ngày thuộc 015 nhưng 008 cần cảnh báo khi sửa tay | 015 ghi thẳng bảng lịch: phá ranh giới gói đã chốt ở 008 N-07 |
-| `yeu_cau_ca_mo` kỹ thuật | Một ca của một nhân viên không nằm trong hai yêu cầu mở (FR-019, FR-026) | Kiểm bằng truy vấn không khóa: hai yêu cầu đồng thời cùng lọt |
+| `yeu_cau_ca_mo` kỹ thuật | Một ca của một nhân viên không nằm trong hai yêu cầu mở (FR-019, FR-026) | Kiểm bằng truy vấn không khóa: hai yêu cầu đồng thời cùng lọt *(R-15: `yeu_cau_ca_mo` → `khoa_duy_nhat` của `ho_so_chung`)* |
 
 ## Đồng bộ với hợp đồng của feature khác
 
@@ -169,3 +169,8 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
    - FR-023, FR-040 và tiêu đề bảng FR-040 dẫn "Permission Matrix 4.4" (của `docs/phan-tich-yeu-cau.md` đã bỏ; tra Phụ lục 27, 19.3 là căn cứ); Assumptions dòng đầu dẫn mục 4.2 của tài liệu đã bỏ;
    - điểm báo lại 1 còn liệt kê ca toàn viện của "vệ sinh" (vai trò đã bỏ theo Q-282).
 
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Ánh xạ bảng ở data-model mục 0; task T032. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
+- Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
+- Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.

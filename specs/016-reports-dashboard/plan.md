@@ -199,3 +199,7 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
 - Q-390: lần Chờ sẵn sàng có lúc bắt đầu trong khoảng; đọc `awaitingReady` tới lúc xem để lần kết thúc sau cuối khoảng vẫn đủ thời gian; vượt hạn là `to` sau `deadline` của 003.
 - `BED.EMPTY_AWAITING_TRANSFER` (Trống – chờ xử lý hư hỏng) khai trong `chi-tieu.md` nhưng chưa cài: dấu của 019 ở port nội bộ M03 chưa có bản cài; cài chỉ tiêu trả 0 sẽ sai nghĩa.
 - Test chỉ tiêu dùng stub cục bộ của `BedStatisticsApi` trong lớp test (bản giả chung không có lý do giữ chỗ, phòng cách ly); `FakeBedAllocations` cho số người.
+
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Feature không có bảng. Số liệu đọc qua API của module như trước, không đọc bảng chung trực tiếp; API module giữ nguyên nên báo cáo và bảng truy vết số liệu không đổi.

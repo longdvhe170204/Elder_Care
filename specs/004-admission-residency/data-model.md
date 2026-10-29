@@ -6,33 +6,46 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ---
 
+## 0. Gộp bảng theo R-15 *(bổ sung 2026-10-29, bản 2)*
+
+Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/research.md) (bản 2, chủ dự án duyệt 2026-10-29, constitution XII 3.2.0); không đổi nghiệp vụ, API, quyền. Mô tả bảng ở các mục sau vẫn là căn cứ cột và ràng buộc: bảng gộp mang đủ cột của bảng cũ (cột riêng vào `JSON` hoặc cột `NULL` có `CHECK` theo `loai`); ràng buộc duy nhất thành `khoa_duy_nhat`; dòng nhóm 3 hoặc đã khóa có `khoa_luc` và trigger theo dòng. Bảy bảng chung ở [data-model 000 mục 8](../000-shared-foundation/data-model.md): `danh_muc_chung`, `lich_su_chung`, `su_kien_chung`, `ho_so_chung`, `trang_thai_nct`, `moc_da_nhac`, `khoa_ky_thuat`. Khi cài thấy bảng nào không thể gộp mà vẫn giữ được BR, DBR thì giữ và ghi lý do ở plan.
+
+- Giữ, gộp: `ho_so_tiep_nhan` = `luot_dang_ky` + `ho_so_cho` + `y_kien_vao_o` (cùng nhóm 2); `hop_dong`; `phien_ban_hop_dong` = `phien_ban_noi_dung_hop_dong` (nhóm 3) + `phu_luc_hop_dong` (nhóm 2), khóa theo dòng; `phien_ban_don_gia` (DBR-08); `luot_vang` (+ `ngay_nghi_ban_tru`, `bao_vang_ban_tru` theo `loai`, khóa theo dòng); `ket_thuc_luu_tru` = `ho_so_ket_thuc` + `ban_ghi_qua_doi` (cột `loai`, khóa theo dòng).
+- `danh_muc_chung`: `dich_vu`.
+- `lich_su_chung`: `lich_su_du_kien_tro_lai`.
+- `su_kien_chung`: `lien_he_giuong`, `ban_giao_nct`, `ngoai_le_dieu_kien`.
+- `trang_thai_nct`: `luu_tru_nct`, `muc_viec_sau_qua_doi` (trong `du_lieu`); `khoa_ky_thuat`: `yeu_cau_thay_doi_thuoc_tinh`.
+- Còn 6 bảng riêng của feature.
+
+---
+
 ## 1. Tổng quan
 
-> **Sửa 2026-10-29 (Q-394, Q-395):** bỏ `ho_so_cho_tinh_huong`, `lich_su_diem`, cột điểm của `ho_so_cho` (thêm dấu Ưu tiên); bỏ `hop_dong_chinh_sach_vang`, `ngay_vang`, `quyet_dinh_giu_giuong` và cột ngưỡng giữ giường của `luot_vang` (thêm thời điểm báo Quản lý viện, giải phóng giường).
+> **Sửa 2026-10-29 (Q-394, Q-395):** bỏ `ho_so_cho_tinh_huong`, `lich_su_diem`, cột điểm của `ho_so_cho` (thêm dấu Ưu tiên); bỏ `hop_dong_chinh_sach_vang`, `ngay_vang`, `quyet_dinh_giu_giuong` và cột ngưỡng giữ giường của `luot_vang` (thêm thời điểm báo Quản lý viện, giải phóng giường). *(R-15: `ho_so_cho` → `ho_so_tiep_nhan`)*
 
 | Bảng | Nhóm (1.5) | Mục spec |
 | --- | --- | --- |
-| `luu_tru_nct` | 2 (kỹ thuật) | Khóa theo người, dấu "đã đóng" (FR-072) |
-| `luot_dang_ky` | 2 | A |
-| `ho_so_cho` | 2 | B |
-| `lien_he_giuong` | 3 | B |
+| `luu_tru_nct` | 2 (kỹ thuật) | Khóa theo người, dấu "đã đóng" (FR-072) *(R-15: `luu_tru_nct` → `trang_thai_nct`)* |
+| `luot_dang_ky` | 2 | A *(R-15: `luot_dang_ky` → `ho_so_tiep_nhan`)* |
+| `ho_so_cho` | 2 | B *(R-15: `ho_so_cho` → `ho_so_tiep_nhan`)* |
+| `lien_he_giuong` | 3 | B *(R-15: `lien_he_giuong` → `su_kien_chung`)* |
 | `hop_dong`, `hop_dong_dich_vu`, `hop_dong_lich_den` | 2 (sửa được chỉ ở Nháp) | C |
-| `phien_ban_noi_dung_hop_dong` | 3 | C, F |
-| `dich_vu` | 1 | E |
+| `phien_ban_noi_dung_hop_dong` | 3 | C, F *(R-15: `phien_ban_noi_dung_hop_dong` → `phien_ban_hop_dong`)* |
+| `dich_vu` | 1 | E *(R-15: `dich_vu` → `danh_muc_chung`)* |
 | `phien_ban_don_gia` | 1, theo phiên bản | E |
-| `phu_luc_hop_dong`, `yeu_cau_thay_doi_thuoc_tinh` | 2; chỉ mục kỹ thuật | F |
+| `phu_luc_hop_dong`, `yeu_cau_thay_doi_thuoc_tinh` | 2; chỉ mục kỹ thuật | F *(R-15: `phu_luc_hop_dong` → `phien_ban_hop_dong`; `yeu_cau_thay_doi_thuoc_tinh` → `khoa_ky_thuat`)* |
 | `luot_vang` | 2; bất biến khi đóng | G |
-| `lich_su_du_kien_tro_lai`, `bao_vang_ban_tru` | 3 | G |
-| `ngay_nghi_ban_tru` | 2 | G |
-| `ho_so_ket_thuc` | 2 | H |
-| `ban_giao_nct`, `ngoai_le_dieu_kien` | 3 | H |
-| `ban_ghi_qua_doi` | 3 | I |
-| `muc_viec_sau_qua_doi` | 2 (kết quả tính) | I |
+| `lich_su_du_kien_tro_lai`, `bao_vang_ban_tru` | 3 | G *(R-15: `lich_su_du_kien_tro_lai` → `lich_su_chung`; `bao_vang_ban_tru` → `luot_vang`)* |
+| `ngay_nghi_ban_tru` | 2 | G *(R-15: `ngay_nghi_ban_tru` → `luot_vang`)* |
+| `ho_so_ket_thuc` | 2 | H *(R-15: `ho_so_ket_thuc` → `ket_thuc_luu_tru`)* |
+| `ban_giao_nct`, `ngoai_le_dieu_kien` | 3 | H *(R-15: `ban_giao_nct`, `ngoai_le_dieu_kien` → `su_kien_chung`)* |
+| `ban_ghi_qua_doi` | 3 | I *(R-15: `ban_ghi_qua_doi` → `ket_thuc_luu_tru`)* |
+| `muc_viec_sau_qua_doi` | 2 (kết quả tính) | I *(R-15: `muc_viec_sau_qua_doi` → `trang_thai_nct`)* |
 | `lan_chay_theo_ngay`, `nhac_m02` | Kỹ thuật | K |
 
 ---
 
-## 2. `luu_tru_nct` – nhóm 2 (kỹ thuật)
+## 2. `luu_tru_nct` – nhóm 2 (kỹ thuật) → gộp theo R-15: `luu_tru_nct` → `trang_thai_nct`
 
 | Cột | Kiểu | Ghi chú | Nguồn |
 | --- | --- | --- | --- |
@@ -46,7 +59,7 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ## 3. Đăng ký tiếp nhận (mục A)
 
-### `luot_dang_ky` – nhóm 2
+### `luot_dang_ky` – nhóm 2 → gộp theo R-15: `luot_dang_ky` → `ho_so_tiep_nhan`
 
 | Cột | Kiểu | Ràng buộc | Nguồn |
 | --- | --- | --- | --- |
@@ -67,16 +80,16 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | `DANG_XU_LY` | Đưa vào danh sách chờ | `DANG_CHO` | `POST /ho-so-cho` | FR-007 | Tạo hồ sơ chờ |
 | `DANG_CHO` | Hồ sơ chờ Đã tiếp nhận | `DANG_XU_LY` | `daPhanBo` (003) | — | — |
 | `DANG_XU_LY` | Hoàn tất tiếp nhận (001) | `DA_TIEP_NHAN` | Bean 004 | FR-004; ý kiến vào ở chỉ cảnh báo (FR-004a) | Sự kiện `TiepNhanHoanTat` (018); đặt `y_kien_luc_tiep_nhan_id` |
-| `DANG_XU_LY`, `DANG_CHO` | Ghi ý kiến về việc vào ở | không đổi | `POST …/{id}/y-kien-vao-o` (AC-09) | FR-001 | Dòng `y_kien_vao_o` mới; dòng Hiệu lực cũ `DUOC_THAY_THE` |
+| `DANG_XU_LY`, `DANG_CHO` | Ghi ý kiến về việc vào ở | không đổi | `POST …/{id}/y-kien-vao-o` (AC-09) | FR-001 | Dòng `y_kien_vao_o` mới; dòng Hiệu lực cũ `DUOC_THAY_THE` *(R-15: `y_kien_vao_o` → `ho_so_tiep_nhan`)* |
 | `DANG_XU_LY`, `DANG_CHO` | Hủy tiếp nhận (001) | `DA_HUY` | Bean 004 | — | FR-002 |
 
 ---
 
-### `y_kien_vao_o` – nhóm 2, nội dung bất biến *(bổ sung 2026-10-18; FR-001, FR-004a, Q-356; research T-09a)*
+### `y_kien_vao_o` – nhóm 2, nội dung bất biến *(bổ sung 2026-10-18; FR-001, FR-004a, Q-356; research T-09a)* → gộp theo R-15: `y_kien_vao_o` → `ho_so_tiep_nhan`
 
 | Cột | Kiểu | Ràng buộc | Nguồn |
 | --- | --- | --- | --- |
-| `id`, `luot_dang_ky_id` | `BIGINT` | Khóa ngoại tới `luot_dang_ky` | FR-001 |
+| `id`, `luot_dang_ky_id` | `BIGINT` | Khóa ngoại tới `luot_dang_ky` | FR-001 *(R-15: `luot_dang_ky` → `ho_so_tiep_nhan`)* |
 | `y_kien` | `ENUM('DONG_Y','KHONG_DONG_Y','KHONG_BAY_TO_DUOC')` | `NOT NULL` | FR-001, Q-356 |
 | `nguon_loai`, `nguon_nguoi_than_id`, `nguoi_ghi_id`, `thoi_diem` | Mẫu cột nguồn 001 data-model mục 6a | | FR-001, 001 FR-023g |
 | `ghi_chu` | `VARCHAR(2000) NULL` | | FR-001 |
@@ -84,19 +97,19 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | `thay_the_boi_id` | `BIGINT NULL` | | FR-001 |
 | `luot_hieu_luc` | Cột sinh `IF(trang_thai = 'HIEU_LUC', luot_dang_ky_id, NULL)` | `UNIQUE` | FR-001 |
 
-Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LUC → DUOC_THAY_THE`; không xóa. Phân loại trường `CONG_KHAI_NOI_BO`; lưu giữ `THEO_HO_SO` cùng `luot_dang_ky`.
+Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LUC → DUOC_THAY_THE`; không xóa. Phân loại trường `CONG_KHAI_NOI_BO`; lưu giữ `THEO_HO_SO` cùng `luot_dang_ky`. *(R-15: `luot_dang_ky` → `ho_so_tiep_nhan`)*
 
 ---
 
 ## 4. Danh sách chờ (mục B)
 
-### `ho_so_cho` – nhóm 2
+### `ho_so_cho` – nhóm 2 → gộp theo R-15: `ho_so_cho` → `ho_so_tiep_nhan`
 
 | Cột | Kiểu | Ràng buộc | Nguồn |
 | --- | --- | --- | --- |
 | `luot_dang_ky_id` | `BIGINT` | Khóa ngoại | FR-007 |
 | `nct_id` | `BIGINT` | | |
-| `muc_cham_soc`, `muc_chua_danh_gia` | `ENUM`, `BOOLEAN` | Theo FR-008; cập nhật khi nhận `MucChamSocDaDoi` | FR-008 |
+| `muc_cham_soc`, `muc_chua_danh_gia` | `ENUM`, `BOOLEAN` | Theo FR-008; cập nhật khi nhận `MucChamSocDaDoi` | FR-008 *(R-15: `muc_cham_soc` → `danh_muc_chung`)* |
 | `uu_tien` | `BOOLEAN` | Mặc định `false`; đổi bằng lệnh Đánh dấu ưu tiên, ghi nhật ký (Q-394) | FR-009 |
 | `ly_do_uu_tien` | `VARCHAR(2000) NULL` | Bắt buộc khi `uu_tien = true` (`CHECK`) | FR-009 |
 | `giuong_dang_giu_id` | `BIGINT NULL` | Giường đang giữ (hiển thị); hạn giữ là dữ liệu của 003 | FR-014 |
@@ -110,7 +123,7 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 | Từ | Lệnh / sự kiện | Đến | Gọi từ | Tác động |
 | --- | --- | --- | --- | --- |
 | — | Đưa vào danh sách chờ | `DANG_CHO` | `POST /ho-so-cho` | Lượt đăng ký `DANG_CHO` |
-| `DANG_CHO` | Ghi nhận đã liên hệ | `DA_LIEN_HE` | `POST /ho-so-cho/{id}/ghi-nhan-da-lien-he` | `giuChoHoSoCho` (003); dòng `lien_he_giuong` `LIEN_HE` |
+| `DANG_CHO` | Ghi nhận đã liên hệ | `DA_LIEN_HE` | `POST /ho-so-cho/{id}/ghi-nhan-da-lien-he` | `giuChoHoSoCho` (003); dòng `lien_he_giuong` `LIEN_HE` *(R-15: `lien_he_giuong` → `su_kien_chung`)* |
 | `DA_LIEN_HE` | Hết hạn giữ chỗ | `DANG_CHO` | `hoSoChoHetHanGiuCho` (job của 003) | Dòng `HET_HAN`; `GiuongTrongCanChonHoSo` |
 | `DA_LIEN_HE` | Từ chối giường này | `DANG_CHO` | `POST …/tu-choi-giuong` | `huyGiuCho` (003); dòng `TU_CHOI_GIUONG`; `GiuongTrongCanChonHoSo` |
 | `DANG_CHO`, `DA_LIEN_HE` | Phân bổ giường (003) | `DA_TIEP_NHAN` | `daPhanBo` | Lượt đăng ký `DANG_XU_LY` |
@@ -119,7 +132,7 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 | `DANG_CHO` | Xác nhận còn nhu cầu | `DANG_CHO` | `POST …/xac-nhan-con-nhu-cau` | `moc_cap_nhat` = bây giờ |
 | `DANG_CHO`, `DA_LIEN_HE` | Đánh dấu ưu tiên (đặt, gỡ) | Giữ nguyên | `POST …/danh-dau-uu-tien` | Ghi nhật ký (Q-394) |
 
-### `lien_he_giuong` – nhóm 3
+### `lien_he_giuong` – nhóm 3 → gộp theo R-15: `lien_he_giuong` → `su_kien_chung`
 
 `ho_so_cho_id`, `giuong_id`, `ket_qua ENUM('LIEN_HE','TU_CHOI_GIUONG','HET_HAN')`, `thoi_diem`, `nguoi_thuc_hien_id`, `ly_do`, `ly_do_khong_theo_thu_tu NULL` (FR-014). Dùng để loại hồ sơ khỏi "lượt trống hiện tại" (FR-012) và truy vết công bằng (BR-M02-10).
 
@@ -137,7 +150,7 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 | `ngay_bat_dau` | `DATE` | | FR-019 |
 | `ngay_ket_thuc` | `DATE NULL` | Bắt buộc với `NOI_TRU_NGAN_NGAY` (`CHECK`) | FR-019 |
 | `ngay_ket_thuc_hien_hanh` | `DATE NULL` | Bản sao ngày kết thúc của phiên bản nội dung mới nhất; chỉ handler áp dụng phụ lục ghi | FR-022 |
-| `muc_cham_soc` | `ENUM` mức | | FR-019, FR-025 |
+| `muc_cham_soc` | `ENUM` mức | | FR-019, FR-025 *(R-15: `muc_cham_soc` → `danh_muc_chung`)* |
 | `loai_phong_id`, `giuong_id` | `BIGINT NULL` | Nội trú: loại phòng hoặc giường | FR-019 |
 | `nguoi_dai_dien_ky_id` | `BIGINT NULL` | Bắt buộc khi Ghi nhận đã ký | FR-021, DBR-02 |
 | `ngay_ky`, `tep_ban_scan_id` | | Bắt buộc khi Ghi nhận đã ký | FR-021 |
@@ -153,10 +166,10 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 
 **Trigger**:
 - `trg_hop_dong_khoa_noi_dung` (`BEFORE UPDATE`): `SIGNAL` khi đổi cột nội dung (mọi cột trừ `trang_thai`, `ly_do_cham_dut`, `ngay_ky`, `nguoi_dai_dien_ky_id`, `tep_ban_scan_id`, `ngay_ket_thuc_hien_hanh`, `dau_qua_han_tu`, `da_bao_qlv_qua_han_luc`, `dang_cho_duyet_dieu_khoan`, `yeu_cau_duyet_dieu_khoan_id`, `bam_noi_dung`, `phien_ban`) mà `OLD.trang_thai <> 'NHAP' OR OLD.dang_cho_duyet_dieu_khoan`. Bảng con có trigger tương tự theo trạng thái của hợp đồng cha (FR-020, FR-023, DBR-06).
-- `trg_hop_dong_khong_chong` (`BEFORE UPDATE` khi `NEW.trang_thai='HIEU_LUC'` hoặc đổi `ngay_ket_thuc_hien_hanh`): `SIGNAL` nếu có hợp đồng `HIEU_LUC` khác cùng `nct_id` giao khoảng `[ngay_bat_dau, COALESCE(ngay_ket_thuc_hien_hanh,'9999-12-31')]` gồm cả hai đầu. Lưới an toàn; cơ chế chính là khóa `luu_tru_nct` (DBR-06, FR-022).
+- `trg_hop_dong_khong_chong` (`BEFORE UPDATE` khi `NEW.trang_thai='HIEU_LUC'` hoặc đổi `ngay_ket_thuc_hien_hanh`): `SIGNAL` nếu có hợp đồng `HIEU_LUC` khác cùng `nct_id` giao khoảng `[ngay_bat_dau, COALESCE(ngay_ket_thuc_hien_hanh,'9999-12-31')]` gồm cả hai đầu. Lưới an toàn; cơ chế chính là khóa `luu_tru_nct` (DBR-06, FR-022). *(R-15: `luu_tru_nct` → `trang_thai_nct`)*
 
 **Bảng con** (sửa được chỉ khi hợp đồng `NHAP` và không chờ duyệt điều khoản):
-- `hop_dong_dich_vu`: `dich_vu_id`, `thuoc_goi BOOLEAN`, `so_luong`, `don_gia_rieng NULL` (giá khác chuẩn), `don_gia_ghi NULL` (đặt khi Ghi nhận đã ký, FR-036). Kiểm khi Gửi ký: đúng một dòng dịch vụ `CHAM_SOC` và mức của dòng trùng `muc_cham_soc` (FR-025).
+- `hop_dong_dich_vu`: `dich_vu_id`, `thuoc_goi BOOLEAN`, `so_luong`, `don_gia_rieng NULL` (giá khác chuẩn), `don_gia_ghi NULL` (đặt khi Ghi nhận đã ký, FR-036). Kiểm khi Gửi ký: đúng một dòng dịch vụ `CHAM_SOC` và mức của dòng trùng `muc_cham_soc` (FR-025). *(R-15: `muc_cham_soc` → `danh_muc_chung`)*
 - `hop_dong_lich_den`: `thu_trong_tuan` hoặc `ngay`, `gio_den`, `gio_ve TIME`; `CHECK (gio_ve > gio_den)` (FR-019, Q-286).
 
 **Bảng chuyển hợp đồng** (khớp bảng của spec):
@@ -176,7 +189,7 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 | `HIEU_LUC` | Kết thúc sớm; Ghi nhận qua đời; Hủy tiếp nhận | `CHAM_DUT` | Bean | Mục H, I | Lý do chấm dứt |
 | `HIEU_LUC` | Qua ngày kết thúc, chưa gia hạn, chưa kết thúc | `HIEU_LUC` (dấu) | Job `HOP_DONG` | — | FR-029 |
 
-### `phien_ban_noi_dung_hop_dong` – nhóm 3
+### `phien_ban_noi_dung_hop_dong` – nhóm 3 → gộp theo R-15: `phien_ban_noi_dung_hop_dong` → `phien_ban_hop_dong`
 
 | Cột | Kiểu | Ghi chú | Nguồn |
 | --- | --- | --- | --- |
@@ -185,7 +198,7 @@ Trigger chỉ cho `UPDATE` `trang_thai`, `thay_the_boi_id` theo chiều `HIEU_LU
 | `hieu_luc_tu` | `DATE` | Phiên bản 0: ngày bắt đầu; phụ lục: ngày hiệu lực thực tế; `UNIQUE (hop_dong_id, hieu_luc_tu)` | FR-024 |
 | `phu_luc_id` | `BIGINT NULL` | `NULL` ở phiên bản 0 | DBR-07 |
 | `noi_dung` | `JSON` | Toàn bộ nội dung, gồm dịch vụ kèm đơn giá đã ghi, dòng ghi đè, lịch đến | FR-024, FR-036 |
-| `loai_luu_tru`, `muc_cham_soc`, `ngay_ket_thuc`, `loai_phong_id`, `khoan_dat_coc` | | Cột đọc nhanh, trích từ `noi_dung` | |
+| `loai_luu_tru`, `muc_cham_soc`, `ngay_ket_thuc`, `loai_phong_id`, `khoan_dat_coc` | | Cột đọc nhanh, trích từ `noi_dung` | *(R-15: `muc_cham_soc` → `danh_muc_chung`)* |
 
 Nội dung tại ngày D: phiên bản `hieu_luc_tu` lớn nhất `<= D` của hợp đồng `HIEU_LUC`, `KET_THUC` hoặc `CHAM_DUT` có khoảng chứa D (research T-04). Chỉ mục `(hop_dong_id, hieu_luc_tu)`.
 
@@ -193,7 +206,7 @@ Nội dung tại ngày D: phiên bản `hieu_luc_tu` lớn nhất `<= D` của h
 
 ## 6. Dịch vụ và đơn giá (mục E)
 
-### `dich_vu` – nhóm 1
+### `dich_vu` – nhóm 1 → gộp theo R-15: `dich_vu` → `danh_muc_chung`
 
 | Cột | Kiểu | Ràng buộc | Nguồn |
 | --- | --- | --- | --- |
@@ -214,14 +227,14 @@ Nội dung tại ngày D: phiên bản `hieu_luc_tu` lớn nhất `<= D` của h
 | `hieu_luc_tu`, `hieu_luc_den` | `DATE`, `DATE NULL` | `CHECK (hieu_luc_den IS NULL OR hieu_luc_den >= hieu_luc_tu)` | FR-035 |
 | `da_tham_chieu` | `BOOLEAN` | Hợp đồng ký hoặc 010 lập khoản thì đặt | FR-035 |
 
-- Trigger `trg_phien_ban_don_gia_khong_chong` (`BEFORE INSERT`, `BEFORE UPDATE`) là lưới an toàn cho DBR-08; cơ chế chính là khóa dòng `dich_vu`.
+- Trigger `trg_phien_ban_don_gia_khong_chong` (`BEFORE INSERT`, `BEFORE UPDATE`) là lưới an toàn cho DBR-08; cơ chế chính là khóa dòng `dich_vu`. *(R-15: `dich_vu` → `danh_muc_chung`)*
 - Trigger `trg_phien_ban_don_gia_khong_sua`: `SIGNAL` khi đổi `don_gia` hoặc `hieu_luc_tu` mà `OLD.da_tham_chieu`. Chỉ cho đặt `hieu_luc_den` khi nó đang `NULL` (đóng khoảng).
 
 ---
 
 ## 7. Yêu cầu thay đổi và phụ lục (mục F)
 
-### `phu_luc_hop_dong` – nhóm 2
+### `phu_luc_hop_dong` – nhóm 2 → gộp theo R-15: `phu_luc_hop_dong` → `phien_ban_hop_dong`
 
 | Cột | Kiểu | Ràng buộc | Nguồn |
 | --- | --- | --- | --- |
@@ -239,7 +252,7 @@ Nội dung tại ngày D: phiên bản `hieu_luc_tu` lớn nhất `<= D` của h
 | `CHO_HIEU_LUC` | Yêu cầu được áp dụng | `DA_AP_DUNG` | `apDung` (cùng transaction với mọi tác động FR-042) |
 | `CHO_HIEU_LUC` | Yêu cầu Áp dụng không thành, Hủy, đóng do trạng thái cuối | `KHONG_AP_DUNG` | Listener `YeuCauApDungKhongThanh`, `YeuCauDaHuy`; bean trạng thái cuối |
 
-### `yeu_cau_thay_doi_thuoc_tinh` (chỉ mục kỹ thuật, FR-046)
+### `yeu_cau_thay_doi_thuoc_tinh` (chỉ mục kỹ thuật, FR-046) → gộp theo R-15: `yeu_cau_thay_doi_thuoc_tinh` → `khoa_ky_thuat`
 
 `yeu_cau_phe_duyet_id`, `nct_id`, `thuoc_tinh` (một dòng mỗi loại thay đổi), `cho_hieu_luc BOOLEAN`, cột sinh `khoa = IF(cho_hieu_luc, CONCAT(nct_id,':',thuoc_tinh), NULL)` có `UNIQUE`. Đặt `cho_hieu_luc = true` trong `khiDuyet`, `false` khi phụ lục rời `CHO_HIEU_LUC`. Duyệt yêu cầu thứ hai cùng thuộc tính vi phạm `UNIQUE`; backend kiểm trước để trả 409 có mô tả.
 
@@ -271,15 +284,15 @@ Nội dung của yêu cầu (giá trị trước/sau, ảnh hưởng chi phí, t
 
 Trigger `trg_luot_vang_khong_sua`: `SIGNAL` khi `OLD.trang_thai='DA_DONG'` (FR-061). Sai sót đi đính chính `M02.LUOT_VANG` (`ve_luc`, `roi_luc`).
 
-### `lich_su_du_kien_tro_lai` – nhóm 3
+### `lich_su_du_kien_tro_lai` – nhóm 3 → gộp theo R-15: `lich_su_du_kien_tro_lai` → `lich_su_chung`
 
 `luot_vang_id`, `gia_tri_cu`, `gia_tri_moi`, `ly_do`, `nguoi_thuc_hien_id`, `thoi_diem` (FR-049).
 
-### `bao_vang_ban_tru` – nhóm 3
+### `bao_vang_ban_tru` – nhóm 3 → gộp theo R-15: `bao_vang_ban_tru` → `luot_vang`
 
 `nct_id`, `ngay`, `buoi_id NULL` (cả ngày nếu rỗng), `thoi_diem_gia_dinh_bao`, `du_han` (tính tại lúc ghi: lịch đến − thời điểm báo ≥ CFG-M02-06), `nguoi_ghi_id`, `thoi_diem` (FR-060).
 
-### `ngay_nghi_ban_tru` – nhóm 2
+### `ngay_nghi_ban_tru` – nhóm 2 → gộp theo R-15: `ngay_nghi_ban_tru` → `luot_vang`
 
 `ngay`, `ly_do`, `trang_thai ENUM('HIEU_LUC','DA_HUY')`, cột sinh `ngay_hieu_luc` có `UNIQUE`, `khai_bao_muon BOOLEAN` (ngày đã qua: lý do bắt buộc) (FR-060a).
 
@@ -287,7 +300,7 @@ Trigger `trg_luot_vang_khong_sua`: `SIGNAL` khi `OLD.trang_thai='DA_DONG'` (FR-0
 
 ## 9. Kết thúc lưu trú (mục H)
 
-### `ho_so_ket_thuc` – nhóm 2
+### `ho_so_ket_thuc` – nhóm 2 → gộp theo R-15: `ho_so_ket_thuc` → `ket_thuc_luu_tru`
 
 | Cột | Kiểu | Ràng buộc | Nguồn |
 | --- | --- | --- | --- |
@@ -305,11 +318,11 @@ Trigger `trg_luot_vang_khong_sua`: `SIGNAL` khi `OLD.trang_thai='DA_DONG'` (FR-0
 
 Bảng chuyển khớp dòng "Hồ sơ kết thúc lưu trú" của spec. Đổi ngày qua `POST …/doi-ngay` (lý do) gọi `KyCuoiPort.tinhLai` và gỡ dấu "quá ngày dự kiến" khi ngày mới không sớm hơn hôm nay. Hủy qua `POST …/huy` (lý do) gọi `KyCuoiPort.huyMocDung`. Hoàn tất qua bean `KET_THUC_LUU_TRU`. Bean `GHI_NHAN_QUA_DOI` chuyển hồ sơ sang `DA_HUY`, lý do "Qua đời".
 
-### `ban_giao_nct` – nhóm 3
+### `ban_giao_nct` – nhóm 3 → gộp theo R-15: `ban_giao_nct` → `su_kien_chung`
 
 `ho_so_ket_thuc_id`, `loai_nguoi_nhan ENUM('NGUOI_THAN','CO_SO_TIEP_NHAN')`, `nguoi_than_id NULL`, `ten_co_so NULL`, `thoi_diem_ban_giao`, `nhan_vien_ban_giao_id`, `nguoi_ghi_id`, `thoi_diem` (FR-063 (e)). Điều kiện (e) Đạt khi có ít nhất một dòng chưa bị Hủy ghi nhận (000 `v_ban_ghi_da_huy`).
 
-### `ngoai_le_dieu_kien` – nhóm 3
+### `ngoai_le_dieu_kien` – nhóm 3 → gộp theo R-15: `ngoai_le_dieu_kien` → `su_kien_chung`
 
 `ho_so_ket_thuc_id` (*sửa 2026-10-22, Q-387:* `NULL` khi căn cứ là danh sách việc sau qua đời), `nct_id` (*bổ sung 2026-10-22*), `ma_dieu_kien ENUM('KT_A_CHI_PHI','KT_B_DO_GUI','KT_C_THUOC_GUI','KT_D_CANH_BAO_SU_CO','KT_H_QUYET_TOAN')`, `yeu_cau_phe_duyet_id` (`UNIQUE`), `thoi_diem`. Không có `KT_E_BAN_GIAO` (FR-064). `CHECK (ho_so_ket_thuc_id IS NOT NULL OR ma_dieu_kien = 'KT_H_QUYET_TOAN')` (FR-071a). Dòng do `apDung` của `M02.NGOAI_LE_KET_THUC` thêm.
 
@@ -317,7 +330,7 @@ Bảng chuyển khớp dòng "Hồ sơ kết thúc lưu trú" của spec. Đổi
 
 ## 10. Qua đời (mục I)
 
-### `ban_ghi_qua_doi` – nhóm 3
+### `ban_ghi_qua_doi` – nhóm 3 → gộp theo R-15: `ban_ghi_qua_doi` → `ket_thuc_luu_tru`
 
 | Cột | Ghi chú | Nguồn |
 | --- | --- | --- |
@@ -330,7 +343,7 @@ Bảng chuyển khớp dòng "Hồ sơ kết thúc lưu trú" của spec. Đổi
 
 Bổ sung nguyên nhân đi đính chính `M02.BAN_GHI_QUA_DOI`.
 
-### `muc_viec_sau_qua_doi` – kết quả tính
+### `muc_viec_sau_qua_doi` – kết quả tính → gộp theo R-15: `muc_viec_sau_qua_doi` → `trang_thai_nct`
 
 `ban_ghi_qua_doi_id`, `ma_muc ENUM('DO_GUI','THUOC_GUI','CHI_PHI_KY_CUOI','CANH_BAO_SU_CO','QUYET_TOAN')`, `trang_thai ENUM('CHUA_HOAN_THANH','HOAN_THANH','KHONG_AP_DUNG')`, `can_cu`, `cap_nhat_luc`. Khóa chính `(ban_ghi_qua_doi_id, ma_muc)`. Ghi lại khi `MucViecSauQuaDoiPort` trả kết quả khác (research T-13). Mọi dòng xong thì `luu_tru_nct.da_dong_luc` được đặt.
 
@@ -347,11 +360,11 @@ Bổ sung nguyên nhân đi đính chính `M02.BAN_GHI_QUA_DOI`.
 
 | Bảo đảm | Cách làm | DBR / FR |
 | --- | --- | --- |
-| Tối đa một hợp đồng Hiệu lực tại một thời điểm | Khóa `luu_tru_nct` và trigger `trg_hop_dong_khong_chong` | DBR-06, FR-022 |
+| Tối đa một hợp đồng Hiệu lực tại một thời điểm | Khóa `luu_tru_nct` và trigger `trg_hop_dong_khong_chong` | DBR-06, FR-022 *(R-15: `luu_tru_nct` → `trang_thai_nct`)* |
 | Hợp đồng ngoài Nháp không sửa nội dung | Trigger `trg_hop_dong_khoa_noi_dung` và trigger bảng con | DBR-06, FR-020, FR-023 |
 | Phụ lục gắn yêu cầu đã duyệt | `yeu_cau_phe_duyet_id NOT NULL UNIQUE`; chỉ `khiDuyet` tạo | DBR-07 |
 | Phụ lục không sớm hơn ngày bắt đầu hợp đồng | Backend khi lập và khi duyệt | DBR-07, FR-040 |
-| Phiên bản đơn giá không chồng khoảng; không sửa khi đã tham chiếu | Khóa `dich_vu`, hai trigger | DBR-08, FR-035 |
+| Phiên bản đơn giá không chồng khoảng; không sửa khi đã tham chiếu | Khóa `dich_vu`, hai trigger | DBR-08, FR-035 *(R-15: `dich_vu` → `danh_muc_chung`)* |
 | Một lượt đăng ký, hồ sơ chờ, hồ sơ kết thúc, lượt vắng mở mỗi người | Cột sinh `UNIQUE` | FR-001, FR-007, FR-062 |
 | Một dịch vụ chăm sóc Hiệu lực mỗi mức | Cột sinh `UNIQUE` | Q-297 |
 | Một yêu cầu chờ hiệu lực mỗi thuộc tính | Cột sinh `UNIQUE` | FR-046 |
@@ -406,7 +419,7 @@ Dịch vụ, phiên bản đơn giá là danh mục, không bị loại bỏ.
 | BR-M02-20 | Lượt trống theo FR-012 (plan, điểm báo lại 1) | `FR_012_LuotTrongIT` |
 | BR-M02-21 | `@NhomTruong(SUC_KHOE)` | `BR_M02_21_NguyenNhanTuVongIT` |
 | BR-M02-22 | FR-004 (e), FR-025, FR-025b | `BR_M02_22_MucHopDongIT` |
-| FR-001, FR-004a (Q-356) | `y_kien_vao_o`, `luot_hieu_luc` `UNIQUE`; cảnh báo của bean | `FR_004a_YKienVaoOIT` |
+| FR-001, FR-004a (Q-356) | `y_kien_vao_o`, `luot_hieu_luc` `UNIQUE`; cảnh báo của bean | `FR_004a_YKienVaoOIT` *(R-15: `y_kien_vao_o` → `ho_so_tiep_nhan`)* |
 | FR-043 (Q-338) | `LaThayDoiNho`; `gioiHanVaiTroDuyet` của handler `M02.THAY_DOI_LUU_TRU` (research T-06) | `FR_043_ThayDoiNhoIT`, `LaThayDoiNhoTest` |
 
 BR-M02-11 → 14 (khai báo tạm trú) thuộc feature 018; 004 chỉ phát sự kiện (FR-033b).

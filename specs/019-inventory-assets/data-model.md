@@ -6,16 +6,27 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ---
 
+## 0. Gộp bảng theo R-15 *(bổ sung 2026-10-29, bản 2)*
+
+Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/research.md) (bản 2, chủ dự án duyệt 2026-10-29, constitution XII 3.2.0); không đổi nghiệp vụ, API, quyền. Mô tả bảng ở các mục sau vẫn là căn cứ cột và ràng buộc: bảng gộp mang đủ cột của bảng cũ (cột riêng vào `JSON` hoặc cột `NULL` có `CHECK` theo `loai`); ràng buộc duy nhất thành `khoa_duy_nhat`; dòng nhóm 3 hoặc đã khóa có `khoa_luc` và trigger theo dòng. Bảy bảng chung ở [data-model 000 mục 8](../000-shared-foundation/data-model.md): `danh_muc_chung`, `lich_su_chung`, `su_kien_chung`, `ho_so_chung`, `trang_thai_nct`, `moc_da_nhac`, `khoa_ky_thuat`. Khi cài thấy bảng nào không thể gộp mà vẫn giữ được BR, DBR thì giữ và ghi lý do ở plan.
+
+- Giữ: `tai_san` (M03); yêu cầu mua sắm (M11, nguồn gắn thành `JSON`).
+- `lich_su_chung`: `tai_san_vi_tri`, `tai_san_bo_phan`; `su_kien_chung`: `tai_san_bao_tri`, `tai_san_hu_hong`.
+- `ho_so_chung`: `lich_xe`.
+- Còn 2 bảng riêng của feature.
+
+---
+
 ## 1. Tổng quan
 
 | Bảng | Module | Nhóm (1.5) | Mục spec |
 | --- | --- | --- | --- |
 | `yeu_cau_mua_sam`, `yeu_cau_mua_sam_dong` | M11 | 2 → 3 | FR-008 |
-| `mua_sam_gan_nguon` | M11 | 3 | FR-008b, FR-008c, DBR-36 |
+| `mua_sam_gan_nguon` | M11 | 3 | FR-008b, FR-008c, DBR-36 *(R-15: `mua_sam_gan_nguon` → cột `JSON` của yêu cầu mua sắm)* |
 | `loai_tai_san` | M03 | 1 | FR-011 |
 | `tai_san` | M03 | 1 + 2 | FR-011 → FR-013 |
-| `tai_san_vi_tri`, `tai_san_bo_phan`, `tai_san_bao_tri`, `tai_san_hu_hong` | M03 | 3 | FR-012 → FR-016, DBR-32 |
-| `lich_xe` | M03 | 2 | FR-017, FR-018 |
+| `tai_san_vi_tri`, `tai_san_bo_phan`, `tai_san_bao_tri`, `tai_san_hu_hong` | M03 | 3 | FR-012 → FR-016, DBR-32 *(R-15: `tai_san_vi_tri`, `tai_san_bo_phan` → `lich_su_chung`; `tai_san_bao_tri`, `tai_san_hu_hong` → `su_kien_chung`)* |
+| `lich_xe` | M03 | 2 | FR-017, FR-018 *(R-15: `lich_xe` → `ho_so_chung`)* |
 | `nhac_019` | M03/M11 | Kỹ thuật | Chống nhắc trùng |
 
 ---
@@ -28,9 +39,9 @@ Không còn bảng kho: `nguyen_lieu`, `nguyen_lieu_di_nguyen`, `lo_nguyen_lieu`
 
 ## 3. Yêu cầu mua sắm (M11)
 
-`yeu_cau_mua_sam`: `id`, `bo_phan_id`, `lap_boi_id`, `loai` (`NGUYEN_LIEU`, `TAI_SAN`, `DICH_VU`, `THUOC`, `KHAC`; `THUOC` bổ sung 2026-10-11, Q-337), `muc_uu_tien NULL` (`THUONG`, `GAP`), `thoi_diem_can NULL`, `tep_lien_quan_ids NULL` (bắt buộc hai cột đầu khi `THUOC`, `CHECK`), `tong_du_kien`, `so_duoc_duyet`, `ly_do_giam`, `ly_do`, `ngay_can`, `tham_chieu` `JSON`, `yeu_cau_goc_id NULL`, `so_tien_thuc_te`, `ngay_mua`, `nha_cung_cap`, `tep_chung_tu_ids`, `ghi_da_mua_boi_id`, `ket_qua_doi_chieu`, `so_lech`, `cach_xu_ly_lech`, `doi_chieu_boi_id`, `trang_thai` (`NHAP`, `CHO_DUYET`, `DA_DUYET`, `CHO_DOI_CHIEU`, `LECH`, `DA_DOI_CHIEU`, `TU_CHOI`, `DA_HUY`), `da_nhac_mua_luc`, `da_nhac_doi_chieu_luc`, `phien_ban`. Dòng: tên, số lượng, đơn giá dự kiến, thành tiền; với `THUOC` thêm `nct_id`, `don_thuoc_id`, `hoat_chat`, `ham_luong`, `dang_thuoc`, `don_vi` (bắt buộc, kiểm ở backend vì phụ thuộc loại của yêu cầu cha; FR-008d). Trigger: nội dung khóa khi rời `NHAP`. Không có `mua_sam_gan_nguon` cho `THUOC` (lần tiếp nhận ở 006).
+`yeu_cau_mua_sam`: `id`, `bo_phan_id`, `lap_boi_id`, `loai` (`NGUYEN_LIEU`, `TAI_SAN`, `DICH_VU`, `THUOC`, `KHAC`; `THUOC` bổ sung 2026-10-11, Q-337), `muc_uu_tien NULL` (`THUONG`, `GAP`), `thoi_diem_can NULL`, `tep_lien_quan_ids NULL` (bắt buộc hai cột đầu khi `THUOC`, `CHECK`), `tong_du_kien`, `so_duoc_duyet`, `ly_do_giam`, `ly_do`, `ngay_can`, `tham_chieu` `JSON`, `yeu_cau_goc_id NULL`, `so_tien_thuc_te`, `ngay_mua`, `nha_cung_cap`, `tep_chung_tu_ids`, `ghi_da_mua_boi_id`, `ket_qua_doi_chieu`, `so_lech`, `cach_xu_ly_lech`, `doi_chieu_boi_id`, `trang_thai` (`NHAP`, `CHO_DUYET`, `DA_DUYET`, `CHO_DOI_CHIEU`, `LECH`, `DA_DOI_CHIEU`, `TU_CHOI`, `DA_HUY`), `da_nhac_mua_luc`, `da_nhac_doi_chieu_luc`, `phien_ban`. Dòng: tên, số lượng, đơn giá dự kiến, thành tiền; với `THUOC` thêm `nct_id`, `don_thuoc_id`, `hoat_chat`, `ham_luong`, `dang_thuoc`, `don_vi` (bắt buộc, kiểm ở backend vì phụ thuộc loại của yêu cầu cha; FR-008d). Trigger: nội dung khóa khi rời `NHAP`. Không có `mua_sam_gan_nguon` cho `THUOC` (lần tiếp nhận ở 006). *(R-15: `mua_sam_gan_nguon` → cột `JSON` của yêu cầu mua sắm)*
 
-`mua_sam_gan_nguon` (nhóm 3): `yeu_cau_id`, `loai_nguon` (`TAI_SAN`, `BAO_TRI`; `PHIEU_NHAP` bỏ theo Q-392), `nguon_id`, `so_tien`, `luc`; `UNIQUE (loai_nguon, nguon_id)` (một nguồn gắn đúng một yêu cầu, DBR-36).
+`mua_sam_gan_nguon` (nhóm 3): `yeu_cau_id`, `loai_nguon` (`TAI_SAN`, `BAO_TRI`; `PHIEU_NHAP` bỏ theo Q-392), `nguon_id`, `so_tien`, `luc`; `UNIQUE (loai_nguon, nguon_id)` (một nguồn gắn đúng một yêu cầu, DBR-36). *(R-15: `mua_sam_gan_nguon` → cột `JSON` của yêu cầu mua sắm)*
 
 | Từ | Lệnh | Đến | Người |
 | --- | --- | --- | --- |
@@ -57,10 +68,10 @@ Không còn bảng kho: `nguyen_lieu`, `nguyen_lieu_di_nguyen`, `lo_nguyen_lieu`
 | `qua_han_bao_tri`, `qua_han_dang_kiem`, `qua_han_bao_hiem`, `cho_chuyen_nguoi` | | FR-014, FR-015 |
 | `phien_ban` | | |
 
-- `tai_san_vi_tri` (nhóm 3): `tai_san_id`, `vi_tri` (khu vực, tầng, phòng, `BAI_XE`, `KHO_TAI_SAN`), `tu`, `den NULL`, `ly_do`, `boi_id`; cột sinh `khoa_mo = IF(den IS NULL, tai_san_id, NULL)` `UNIQUE` (không chồng khoảng; `den` đặt một lần).
-- `tai_san_bo_phan` (nhóm 3): bộ phận cũ, mới, lý do, người, lúc.
-- `tai_san_bao_tri` (nhóm 3): `loai` (`BAO_TRI`, `KIEM_DINH`, `DANG_KIEM`, `BAO_HIEM`), `mo_luc`, `ket_qua` (`DAT`, `KHONG_DAT`) đặt một lần, ngày, nội dung, đơn vị, `thue_ngoai`, `chi_phi`, `yeu_cau_mua_sam_id NULL`.
-- `tai_san_hu_hong` (nhóm 3): mô tả, `nguon` (`BAO_HONG`, `DON_GIUONG`), `muc_anh_huong` (`MAT_AN_TOAN`, `KHONG_MAT_AN_TOAN`) `NULL`, `cho_chuyen_nguoi`, gỡ dấu (lý do, nội dung đã sửa, người sửa, lúc) đặt một lần.
+- `tai_san_vi_tri` (nhóm 3): `tai_san_id`, `vi_tri` (khu vực, tầng, phòng, `BAI_XE`, `KHO_TAI_SAN`), `tu`, `den NULL`, `ly_do`, `boi_id`; cột sinh `khoa_mo = IF(den IS NULL, tai_san_id, NULL)` `UNIQUE` (không chồng khoảng; `den` đặt một lần). *(R-15: `tai_san_vi_tri` → `lich_su_chung`)*
+- `tai_san_bo_phan` (nhóm 3): bộ phận cũ, mới, lý do, người, lúc. *(R-15: `tai_san_bo_phan` → `lich_su_chung`)*
+- `tai_san_bao_tri` (nhóm 3): `loai` (`BAO_TRI`, `KIEM_DINH`, `DANG_KIEM`, `BAO_HIEM`), `mo_luc`, `ket_qua` (`DAT`, `KHONG_DAT`) đặt một lần, ngày, nội dung, đơn vị, `thue_ngoai`, `chi_phi`, `yeu_cau_mua_sam_id NULL`. *(R-15: `tai_san_bao_tri` → `su_kien_chung`)*
+- `tai_san_hu_hong` (nhóm 3): mô tả, `nguon` (`BAO_HONG`, `DON_GIUONG`), `muc_anh_huong` (`MAT_AN_TOAN`, `KHONG_MAT_AN_TOAN`) `NULL`, `cho_chuyen_nguoi`, gỡ dấu (lý do, nội dung đã sửa, người sửa, lúc) đặt một lần. *(R-15: `tai_san_hu_hong` → `su_kien_chung`)*
 - Thanh lý dùng yêu cầu phê duyệt của 000, loại `M03.THANH_LY_TAI_SAN` (Phụ trách bộ phận lập, Quản lý viện duyệt; `apDung` chuyển tài sản `DA_THANH_LY`, với giường gọi `apLenhTaiSan(THANH_LY)`); không có bảng riêng.
 
 | Từ | Lệnh / sự kiện | Đến | Người |
@@ -75,7 +86,7 @@ Không còn bảng kho: `nguyen_lieu`, `nguyen_lieu_di_nguyen`, `lo_nguyen_lieu`
 
 ---
 
-## 5. `lich_xe` (M03)
+## 5. `lich_xe` (M03) → gộp theo R-15: `lich_xe` → `ho_so_chung`
 
 `id`, `xe_id` (tài sản loại xe), `di_du_kien`, `ve_du_kien`, `muc_dich` (`CHUYEN_DI`, `DI_KHAM`, `CHUYEN_VIEN_KHONG_CAP_CUU`, `KHAC`), `chuyen_di_id NULL`, `nct_id NULL`, `nguoi_lai_id` (hồ sơ nhân viên), `dat_boi_id`, `trang_thai` (`DA_DAT`, `DANG_DUNG`, `DA_HOAN_THANH`, `DA_HUY`), `xuat_phat_luc`, `tra_luc`, `ly_do_huy`, `da_nhac_qua_gio_luc`, `phien_ban`. Chỉ mục `(xe_id, di_du_kien, ve_du_kien)`.
 
@@ -96,7 +107,7 @@ Không còn bảng kho: `nguyen_lieu`, `nguyen_lieu_di_nguyen`, `lo_nguyen_lieu`
 | Mã | Cách bảo đảm |
 | --- | --- |
 | DBR-32 | `giuong_id` `UNIQUE`; tài sản giường tạo kèm lệnh Tạo giường; trạng thái giường ↔ tài sản đổi cùng transaction qua port 003 |
-| DBR-36 | `mua_sam_gan_nguon` `UNIQUE (loai_nguon, nguon_id)`; tài sản mua, bảo trì thuê ngoài kiểm yêu cầu Đã duyệt cùng bộ phận trong lệnh |
+| DBR-36 | `mua_sam_gan_nguon` `UNIQUE (loai_nguon, nguon_id)`; tài sản mua, bảo trì thuê ngoài kiểm yêu cầu Đã duyệt cùng bộ phận trong lệnh *(R-15: `mua_sam_gan_nguon` → cột `JSON` của yêu cầu mua sắm)* |
 | BR-M03-16 | `KiemTraDatLich` dưới khóa xe |
 | BR-M11-18 | `KiemTraVuot` theo CFG-M11-07 |
 | BR-M11-19 | Người đối chiếu ≠ người ghi đã mua; Kế toán không lập |

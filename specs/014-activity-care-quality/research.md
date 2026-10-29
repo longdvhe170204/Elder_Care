@@ -44,9 +44,9 @@ Gói của 014 dùng dịch vụ nội bộ của 005 trong cùng `m04` (công v
 ## L-03. Khóa và đồng thời
 
 **Quyết định**:
-- **Thứ tự khóa** (nối chuỗi của 005): `nguoi_cao_tuoi` (001) → … → `cham_soc_nct` (005) → `buoi_hoat_dong` / `chuyen_di` → `dang_ky_buoi` (theo `id` tăng) → `hoat_dong_nct` (014, một dòng mỗi người cao tuổi, cho sở thích và chuỗi cô lập).
+- **Thứ tự khóa** (nối chuỗi của 005): `nguoi_cao_tuoi` (001) → … → `cham_soc_nct` (005) → `buoi_hoat_dong` / `chuyen_di` → `dang_ky_buoi` (theo `id` tăng) → `hoat_dong_nct` (014, một dòng mỗi người cao tuổi, cho sở thích và chuỗi cô lập). *(R-15: `cham_soc_nct` → `trang_thai_nct`; `chuyen_di` → `buoi_hoat_dong`)*
 - **Sức chứa buổi** (FR-015 (a)): khóa `buoi_hoat_dong` `FOR UPDATE`, đếm đăng ký còn hiệu lực trong khóa.
-- **Chồng thời gian** (FR-016): kiểm trong khóa `cham_soc_nct` của người cao tuổi.
+- **Chồng thời gian** (FR-016): kiểm trong khóa `cham_soc_nct` của người cao tuổi. *(R-15: `cham_soc_nct` → `trang_thai_nct`)*
 - **Buổi duy nhất** (FR-007): `UNIQUE (hoat_dong_id, bat_dau)` trên buổi, kể cả buổi Đã hủy (buổi hủy thủ công không tạo lại).
 - **Danh sách kiểm tra** (FR-059): `UNIQUE (ca_id, tang_khu_vuc_id)`; mỗi công việc tối đa một mục: `UNIQUE (cong_viec_id)` trên mục.
 - **Sự cố thiếu người mở** (FR-048): cột `su_co_thieu_nguoi_id` trên người tham gia đặt một lần; lệnh thứ hai bị chặn (sau khi sự cố đóng, 007 cho ghi mới qua lệnh điểm danh về muộn rồi đi lại — không có trong spec; giữ một lần cho mỗi lượt đi).
@@ -70,7 +70,7 @@ Gói của 014 dùng dịch vụ nội bộ của 005 trong cùng `m04` (công v
 - Hàm thuần `DieuKienDangKy(buoi, nct, dangKyKhac, lichBanTru, vung, dauNghiNhiem, dongYVeMuon, t)` trả lỗi chặn (FR-015 (a), (c) → (g), FR-016) và cảnh báo không chặn (FR-018, FR-052). Dữ liệu: `KhoanhVungApi.dangChiuTheoNguoi` và theo phòng của địa điểm; `SuCoApi.dau(nctId, t).nghiNhiem`; `CoMatBanTruApi`, `HopDongDocApi.lichDenTaiNgay`; lưu ý chăm sóc từ `DanhGiaApi` (001); sở thích "không thích" (sửa 2026-10-18, Q-363: cảnh báo liệt kê từng mục "không thích" hiện hành kèm nguồn, kể cả khi mục của chính người cao tuổi là "thích").
 - Cảnh báo: lệnh không có `xacNhanCanhBao = true` → 409 `CAN_XAC_NHAN_CANH_BAO` kèm danh sách; có → lưu dấu và danh sách đã hiển thị. Thông tin sức khỏe chi tiết qua giới hạn trường của 002.
 - `dang_ky_buoi` (nhóm 2): `DA_DANG_KY | DA_HUY | DA_DIEM_DANH`, nguồn (`THUONG_XUYEN`, `THEM_TAY`, `THEM_LUC_DIEM_DANH`), cảnh báo đã xác nhận. Đăng ký mới → bean `NguonCongViecPort` (`BUOI_HOAT_DONG`) cho 005 lập công việc "hoạt động" (005 tự lập theo kế hoạch; 014 chỉ trả căn cứ); hủy → `NguonCongViecApi.nguonBiHuy(BUOI_HOAT_DONG, dangKyId, …)` (MANDATORY).
-- **Đồng ý về muộn** (FR-016a): `dong_y_ve_muon` (nhóm 2) `HIEU_LUC | DA_RUT | DA_DUNG | HET_HIEU_LUC`; ghi bởi Hành chính (bản ký) hoặc người đại diện qua REST cổng của 014 (`QuyenNguoiThanApi.laNguoiDaiDien`). Khi đăng ký được lưu: `CoMatBanTruApi.doiGioVe(nct, ngay, gioKetThuc hoặc gioVeDuKien, dangKyId)` (MANDATORY); gia hạn chuyến → gọi lại với giờ mới; rút hoặc hủy → `traGioVe` (MANDATORY). Job theo phút: tới giờ bắt đầu → `DA_DUNG`.
+- **Đồng ý về muộn** (FR-016a): `dong_y_ve_muon` (nhóm 2) `HIEU_LUC | DA_RUT | DA_DUNG | HET_HIEU_LUC`; ghi bởi Hành chính (bản ký) hoặc người đại diện qua REST cổng của 014 (`QuyenNguoiThanApi.laNguoiDaiDien`). Khi đăng ký được lưu: `CoMatBanTruApi.doiGioVe(nct, ngay, gioKetThuc hoặc gioVeDuKien, dangKyId)` (MANDATORY); gia hạn chuyến → gọi lại với giờ mới; rút hoặc hủy → `traGioVe` (MANDATORY). Job theo phút: tới giờ bắt đầu → `DA_DUNG`. *(R-15: `dong_y_ve_muon` → `ho_so_chung`)*
 - **Hủy tự động**: listener `KhoanhVungDaTao` (FR-021), dấu nghi nhiễm qua `DauNghiNhiemDaDoi` (FR-021a), trạng thái cuối qua bean `ThamGiaChuyenTrangThai` (FR-022, cùng transaction lệnh của 001).
 
 ---
@@ -78,7 +78,7 @@ Gói của 014 dùng dịch vụ nội bộ của 005 trong cùng `m04` (công v
 ## L-06. Điểm danh buổi trong viện (mục F; BR-M04-18, Q-169, Q-173)
 
 **Quyết định**:
-- `diem_danh_buoi` (nhóm 3): đăng ký, kết quả (`CO_MAT`, `VANG`, `KHONG_GHI_NHAN`), lý do vắng, mức tham gia, mức giao tiếp, tình trạng sau, ghi chú, `ghi_nhan_muon`, người, thời điểm, thời điểm thiết bị. Ghi ngoại tuyến qua `NgoaiTuyenHandler` `M04.DIEM_DANH_BUOI` (Q-01), so theo thời điểm thiết bị (DBR-25).
+- `diem_danh_buoi` (nhóm 3): đăng ký, kết quả (`CO_MAT`, `VANG`, `KHONG_GHI_NHAN`), lý do vắng, mức tham gia, mức giao tiếp, tình trạng sau, ghi chú, `ghi_nhan_muon`, người, thời điểm, thời điểm thiết bị. Ghi ngoại tuyến qua `NgoaiTuyenHandler` `M04.DIEM_DANH_BUOI` (Q-01), so theo thời điểm thiết bị (DBR-25). *(R-15: `diem_danh_buoi` → `su_kien_chung`)*
 - Hiển thị sẵn "Vắng – đang vắng mặt / không đến" từ trạng thái người cao tuổi và `CoMatBanTruApi`.
 - Hoàn tất điểm danh khi mọi đăng ký còn hiệu lực có kết quả → buổi `DA_DIEM_DANH`.
 - **Sự kiện tính phí** (FR-032): mỗi lượt Có mặt ở hoạt động có thu phí → `SuKienTinhPhiNguon(DIEM_DANH_HOAT_DONG, nguonId = diemDanhId, donVi = LUOT, dichVuId của hoạt động, ngày của buổi)`; đính chính → `SuKienTinhPhiNguonDaDoi` hoặc sự kiện mới (FR-031). Không tạo khoản (Q-306).
@@ -91,7 +91,7 @@ Gói của 014 dùng dịch vụ nội bộ của 005 trong cùng `m04` (công v
 ## L-07. Chuyến đi: chuẩn bị (mục G; BR-M04-16, Q-161, Q-171, Q-172, Q-214, Q-220)
 
 **Quyết định**:
-- Chuyến là `buoi_hoat_dong` loại ngoài viện với bảng phụ `chuyen_di` (điểm đến, giờ rời, giờ về dự kiến, phương tiện, `xe_cua_vien`, trạng thái riêng `DA_LEN_LICH | DANG_DI | DA_VE | DA_HUY`, dấu "quá giờ về", "trưởng đoàn tạm từ xa"), `chuyen_di_gia_han` (nhóm 3), `nhiem_vu_chuyen` (trưởng đoàn, người đi cùng; lịch sử), `nguoi_tham_gia` (trạng thái theo bảng người tham gia).
+- Chuyến là `buoi_hoat_dong` loại ngoài viện với bảng phụ `chuyen_di` (điểm đến, giờ rời, giờ về dự kiến, phương tiện, `xe_cua_vien`, trạng thái riêng `DA_LEN_LICH | DANG_DI | DA_VE | DA_HUY`, dấu "quá giờ về", "trưởng đoàn tạm từ xa"), `chuyen_di_gia_han` (nhóm 3), `nhiem_vu_chuyen` (trưởng đoàn, người đi cùng; lịch sử), `nguoi_tham_gia` (trạng thái theo bảng người tham gia). *(R-15: `chuyen_di` → `buoi_hoat_dong`; `nguoi_tham_gia` → `dang_ky_buoi`)*
 - **Phân công** (FR-035): trưởng đoàn có vai trò Trưởng tầng/Nhân viên chăm sóc/Điều dưỡng; mọi người phân công có tài khoản Hoạt động và tên trong ca chồng thời gian (`CaTrucApi.dangTrongCa` theo khoảng). Phạm vi dữ liệu của họ do 002 tính qua `ChuyenDiNhiemVuPort` (008 → 002 `NhiemVuApi`).
 - **Đánh giá khả năng** (FR-036): chỉ Trưởng tầng của tầng người cao tuổi; màn hiển thị lưu ý chăm sóc, nghi nhiễm, cảnh báo/sự cố mở, liều trong khoảng đi (006 qua `ChuyenDiThuocPort.danhGiaDat` do chính 014 cài trả khoảng, 006 tự tính liều). Đạt → `DUOC_DI`, thông báo điều dưỡng phụ trách chuẩn bị thuốc.
 - **Dời, hủy** (FR-038a): dời cùng ngày giữ đánh giá; khác ngày → người tham gia về `DA_DANG_KY`; gọi `MangThuocChuyenDiApi.chuyenThayDoi` (MANDATORY) cho người đã có lần giao.
@@ -127,7 +127,7 @@ Gói của 014 dùng dịch vụ nội bộ của 005 trong cùng `m04` (công v
 ## L-10. Kiểm tra chất lượng (mục J; BR-M04-23, Q-163, Q-168, Q-174, Q-254, Q-262, Q-270, Q-306, Q-307)
 
 **Quyết định**:
-- `danh_sach_kiem_tra` (nhóm 2: ca, tầng, người lập, vai trò, dấu "không có danh sách"), `muc_kiem_tra` (nhóm 2 → kết quả nhóm 3: `CHO_KIEM_TRA | DAT | KHONG_DAT | KHONG_KIEM_TRA_DUOC | QUA_HAN_KIEM_TRA`, người kiểm tra, vai trò, ghi chú, ảnh, công việc làm lại).
+- `danh_sach_kiem_tra` (nhóm 2: ca, tầng, người lập, vai trò, dấu "không có danh sách"), `muc_kiem_tra` (nhóm 2 → kết quả nhóm 3: `CHO_KIEM_TRA | DAT | KHONG_DAT | KHONG_KIEM_TRA_DUOC | QUA_HAN_KIEM_TRA`, người kiểm tra, vai trò, ghi chú, ảnh, công việc làm lại). *(R-15: `danh_sach_kiem_tra` → `ho_so_chung`; `muc_kiem_tra` → `su_kien_chung`)*
 - Hàm thuần `CongViecDuDieuKien(congViec, ca, truongTang, nguoiPhuTrachCaTaiLucHoanThanh)` (FR-060) và `SoMucToiThieu(soDuDieuKien, cfg11)` = trần(tỷ lệ × n), tối thiểu 1 khi n ≥ 1. Danh sách công việc đủ điều kiện đọc từ 005 nội bộ M04 (công việc của ca, thời điểm hoàn thành, người thực hiện, đính chính).
 - `NguoiKiemTra(ca, nd, t)` (FR-066): Trưởng tầng được giao; hoặc Người phụ trách ca khi Trưởng tầng được giao không có tên trong ca hoặc có bản ghi vắng ca / nghỉ đột xuất đã duyệt (từ thời điểm hiệu lực); Người phụ trách ca không ghi cho mục mình thực hiện. Đọc `CaTrucApi.caKhongCoTruongTang`, `NhiemVuApi`.
 - **Ghi Không đạt** (FR-064): một lệnh gồm kết quả và công việc làm lại; 014 gọi dịch vụ nội bộ của 005 lập công việc làm lại (căn cứ `LAM_LAI`, trỏ kết quả kiểm tra) trong cùng transaction; 005 kiểm qua `KetQuaKiemTraPort.khongDat` do 014 cài. Người thực hiện công việc gốc được báo; người thực hiện không được báo khi công việc được chọn.
