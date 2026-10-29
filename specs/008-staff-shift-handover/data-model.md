@@ -15,11 +15,12 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - `lich_su_chung`: `lich_su_phu_trach_bo_phan`, `nguoi_phu_trach_ca` (kiểu `KHOANG`).
 - `su_kien_chung`: `ban_cong_bo_lich`, `y_kien_ban_giao`, `phan_hoi_y_kien`, `lan_tinh_ty_le`.
 - `ho_so_chung`: `lan_import_nhan_vien`; `khoa_ky_thuat`: `tang_ca_khoa`; `moc_da_nhac`: `m09_job_run` (lần chạy ra file log).
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `lan_chay_m09` → `moc_da_nhac`; `chung_chi_pham_vi` → cột `JSON` của `chung_chi`. Không thêm bảng riêng.
 - Còn 8 bảng riêng của feature.
 
 ### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V008_95`)*
 
-Mô tả dưới đây thay các mục tương ứng khi cài 008 T050; cột không nhắc lại giữ như bảng đã cài (`V008_01` → `V008_08`).
+Mô tả dưới đây thay mô tả của các bảng đã gộp (mô tả cũ đã bỏ ở các mục sau, 2026-10-30; mã gộp ở 008 T050); cột không nhắc lại giữ như bảng đã cài (`V008_01` → `V008_08`).
 
 **Giữ nguyên**: `staff_profile` (bỏ khóa ngoại `import_batch_id` vì lần import chuyển vào `ho_so_chung`), `staff_department` (DBR-36, `open_staff_id`, trigger đóng một lần), `shift_schedule` (`uq_shift_schedule_month`), `work_shift`, `shift_staff` (`uq_shift_staff`) cùng trigger hiện có. `staff_department.department_id`, `work_shift.template_id`, `credential.credential_type_id` trỏ `danh_muc_chung.id` (id mới).
 
@@ -48,7 +49,19 @@ Mô tả dưới đây thay các mục tương ứng khi cài 008 T050; cột kh
 
 **Chuyển dữ liệu (`V008_95`)**: `department`, `credential_type`, `practice_scope`, `shift_template` vào `danh_muc_chung`, đổi khóa ngoại theo id mới; `credential_practice_scope` vào JSON; `department_lead_history`, `shift_lead_history` vào `lich_su_chung`; `shift_publication`, `handover_comment`, `handover_reply` (đổi `comment_id` thành `tra_loi_cho_id` mới), `staffing_ratio_calculation` vào `su_kien_chung`; `handover_item`, `handover_assessment` vào JSON của `shift_handover`; `floor_manager_assignment` vào `staff_assignment`; `staff_import_batch` vào `ho_so_chung`; `floor_scope_lock` vào `khoa_ky_thuat`; `m09_job_run` vào `moc_da_nhac`. `ShiftCommandPort`, `AssignmentCommandPort`, `DutyApi`, `AssignmentApi` giữ chữ ký (team-plan mục 8 dòng E (015)).
 
-**Bảo đảm** (thay phần tương ứng ở các mục sau): một bộ phận mỗi nhân viên tại một thời điểm (`staff_department` giữ); một người phụ trách mở mỗi bộ phận, mỗi ca (`khoa_mo`); một lịch mỗi (tháng, phạm vi) và một dòng mỗi (ca, nhân viên) (`UNIQUE` giữ); nội dung bàn giao khóa khi xác nhận (trigger `shift_handover`). Test m09 hiện có (gồm `M09RecordProtectionIT`, `PostPublicationPortsIT`) phải xanh không đổi kịch bản; `StaffImportTransportIT` đang lỗi môi trường (team-plan mục 8).
+**Bảo đảm** (thay phần tương ứng ở các mục sau): một bộ phận mỗi nhân viên tại một thời điểm (`staff_department` giữ); một người phụ trách mở mỗi bộ phận, mỗi ca (`khoa_mo`); một lịch mỗi (tháng, phạm vi) và một dòng mỗi (ca, nhân viên) (`UNIQUE` giữ); nội dung bàn giao khóa khi xác nhận (trigger `shift_handover`). Test staffing hiện có (gồm `M09RecordProtectionIT`, `PostPublicationPortsIT`) phải xanh, giữ kịch bản nghiệp vụ và đổi bảng đích trong test (danh sách cuối mục); `StaffImportTransportIT` đang lỗi môi trường (team-plan mục 8).
+
+**Bảng truy vết sau gộp** *(bổ sung 2026-10-30; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR, BR ở các mục sau theo bảng này)*:
+
+| Mã | Bảo đảm sau gộp | Test |
+| --- | --- | --- |
+| DBR-20, BR-M09-07, 08 | Một bàn giao mỗi ca (`UNIQUE (shift_id)` giữ); nội dung khóa khi xác nhận (trigger `shift_handover` mở rộng cho `items`, `assessments`) | `HandoverIT`, `M09RecordProtectionIT` |
+| DBR-23 | Bản công bố lịch không sửa: `su_kien_chung` loại `M09.SHIFT_PUBLICATION` | `PostPublicationShiftIT` |
+| BR-M09-15 | Cắt quyền đúng mốc người phụ trách: `lich_su_chung` thuộc tính `NGUOI_PHU_TRACH`, `khoa_mo` | `DepartmentDutyIT`, `PostPublicationPortsIT` |
+
+**Test phải đổi bảng đích** *(rà 2026-10-30; 33 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
+- Test của module: `AlertStaffPortIT`, `AssignmentGovernanceIT`, `AssignmentHttpIT`, `AssignmentIT`, `AssignmentSchemaIT`, `CredentialLifecycleIT`, `DepartmentCommandsIT`, `DepartmentDutyIT`, `HandoverIT`, `HandoverSchemaIT`, `M09GovernanceIT`, `M09JobCatchUpIT`, `M09RecordProtectionIT`, `PostPublicationPortsIT`, `PostPublicationShiftIT`, `ShiftGovernanceIT`, `ShiftHttpIT`, `ShiftLifecycleIT`, `ShiftQueriesIT`, `ShiftScheduleIT`, `ShiftSchemaIT`, `StaffCommandsHttpIT`, `StaffEmploymentIT`, `StaffModuleIntegrationIT`, `StaffProfileHttpIT`, `StaffSchemaIT`, `StaffSpiIT`, `StaffStatisticsIT`, `StaffStatisticsReportFieldsIT`, `StaffingRatioHttpIT`, `StaffingRatioSchemaIT`, `StaffingRatioWarningIT`.
+- Test của reporting (chủ module review): `FR_020_StaffingDashboardIT`.
 
 ---
 
@@ -65,13 +78,11 @@ Mô tả dưới đây thay các mục tương ứng khi cài 008 T050; cột kh
 | `lich_ca`, `ca`, `ca_nhan_vien` | 2 | B (FR-012 → FR-023) |
 | `nguoi_phu_trach_ca` | 3 (lịch sử) | B (FR-019, FR-037a) *(R-15: `nguoi_phu_trach_ca` → `lich_su_chung`)* |
 | `ban_cong_bo_lich` | 3 | B (FR-055) *(R-15: `ban_cong_bo_lich` → `su_kien_chung`)* |
-| `tang_ca_khoa` | Kỹ thuật | C (khóa theo tầng, N-03) *(R-15: `tang_ca_khoa` → `khoa_ky_thuat`)* |
 | `giao_truong_tang`, `phan_cong` | 2 | C (FR-024 → FR-032) *(R-15: `giao_truong_tang` → `phan_cong` (`staff_assignment`))* |
 | `lan_tinh_ty_le` | 3 | D (FR-037) *(R-15: `lan_tinh_ty_le` → `su_kien_chung`)* |
 | `ban_giao` | 2 (trạng thái) | E (FR-038 → FR-047) |
 | `muc_ban_giao`, `nhan_dinh_ban_giao` | 3 có bản nháp | E (FR-039 → FR-041) *(R-15: `muc_ban_giao`, `nhan_dinh_ban_giao` → cột `JSON` của `ban_giao`)* |
 | `y_kien_ban_giao`, `phan_hoi_y_kien` | 3 | E (FR-042) *(R-15: `y_kien_ban_giao`, `phan_hoi_y_kien` → `su_kien_chung`)* |
-| `lan_chay_m09` | Kỹ thuật | Job (N-13) |
 
 ---
 
@@ -102,19 +113,9 @@ Trigger `BEFORE DELETE` chặn mọi xóa (FR-001). `BEFORE UPDATE` chặn đổ
 | `DANG_LAM_VIEC` | Cho nghỉ việc | `NGHI_VIEC` (tại `nghi_viec_hieu_luc`) | Quản lý viện | Lý do; hiệu lực ≥ bây giờ; Phụ trách bộ phận cần người thay |
 | `NGHI_VIEC` | Nhận lại làm việc | `DANG_LAM_VIEC` | Quản lý viện | Lý do |
 
-### `lan_import_nhan_vien` – nhóm 3 *(bổ sung 2026-10-22, Q-382; research N-16)* → gộp theo R-15: `lan_import_nhan_vien` → `ho_so_chung`
+### `lan_import_nhan_vien` *(gộp theo R-15 vào `ho_so_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-| Cột | Kiểu | Ghi chú | Nguồn |
-| --- | --- | --- | --- |
-| `id`, `nguoi_thuc_hien_id`, `thoi_diem` | | | FR-001c |
-| `ten_file` | `VARCHAR(255)` | Không lưu nội dung file | FR-001c |
-| `so_dong` | `INT` | `<=` CFG-M09-13 lúc thực hiện | FR-001b |
-
-Danh sách hồ sơ đã tạo là các `nhan_vien` có `lan_import_id` này (và nằm trong nhật ký `NV_IMPORT`). Không `UPDATE`, `DELETE`.
-
-### `bo_phan` – nhóm 1 → gộp theo R-15: `bo_phan` → `danh_muc_chung`
-
-`id`, `ten`, `phu_trach_id NULL` (nhân viên), `trang_thai_hieu_luc`, `phien_ban`. Khởi tạo: Y tế, Chăm sóc, Bếp, Hành chính – Kế toán (Q-284).
+### `bo_phan` *(gộp theo R-15 vào `danh_muc_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ### `nhan_vien_bo_phan` – lịch sử
 
@@ -122,21 +123,15 @@ Danh sách hồ sơ đã tạo là các `nhan_vien` có `lan_import_id` này (v�
 
 Triển khai Phase 9: bảng thật `staff_department`; migration V008_08 bổ sung trigger chỉ đóng `ends_at` một lần, không đổi nhân viên/bộ phận/thời điểm đầu/người ghi/lý do, không sửa bản đã đóng. Xóa chỉ qua tài khoản lưu giữ khi đủ điều kiện; quyền ứng dụng chỉ INSERT và UPDATE(ends_at). M09RecordProtectionIT kiểm cả quản trị, DepartmentCommandsIT kiểm lệnh chuyển bộ phận vẫn hợp lệ.
 
-### `lich_su_phu_trach_bo_phan` – nhóm 3 → gộp theo R-15: `lich_su_phu_trach_bo_phan` → `lich_su_chung`
-
-`bo_phan_id`, `nhan_vien_id`, `tu`, `den NULL`, `nguoi_chi_dinh_id`, `ly_do`. Một dòng mở mỗi bộ phận: cột sinh `khoa_mo = IF(den IS NULL, bo_phan_id, NULL)` `UNIQUE`; dòng chỉ được đặt `den` một lần.
+### `lich_su_phu_trach_bo_phan` *(gộp theo R-15 vào `lich_su_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ---
 
 ## 3. Giấy phép, đào tạo (mục A)
 
-### `loai_chung_chi` – nhóm 1 → gộp theo R-15: `loai_chung_chi` → `danh_muc_chung`
+### `loai_chung_chi` *(gộp theo R-15 vào `danh_muc_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-`id`, `ten`, `nhom` (`GIAY_PHEP_HANH_NGHE`, `DAO_TAO`), `co_thoi_han`, `bat_buoc_voi_vai_tro` `JSON` (tập `VaiTro`), `co_pham_vi`, `trang_thai_hieu_luc`.
-
-### `pham_vi_hanh_nghe` – nhóm 1 → gộp theo R-15: `pham_vi_hanh_nghe` → `danh_muc_chung`
-
-`ma`, `ten`, `trang_thai_hieu_luc`. Dùng chung cho 002, 007 qua `DanhMucPhamViHanhNgheApi`.
+### `pham_vi_hanh_nghe` *(gộp theo R-15 vào `danh_muc_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ### `chung_chi` – nhóm 1 có lịch sử
 
@@ -151,17 +146,13 @@ Triển khai Phase 9: bảng thật `staff_department`; migration V008_08 bổ s
 
 Chỉ mục `(nhan_vien_id, loai_id)`. Trigger chặn `DELETE`; `UPDATE` chỉ cho các cột thu hồi, cột job và cột sửa sai đi kèm biến phiên `@sua_sai` (FR-006). Tình trạng hiệu lực không lưu: hàm `HieuLucChungChi` (research N-05).
 
-### `chung_chi_pham_vi` → gộp theo R-15: `chung_chi_pham_vi` → cột `JSON` của `chung_chi`
-
-`chung_chi_id`, `ma_pham_vi`. Khóa chính hai cột.
+### `chung_chi_pham_vi` *(gộp theo R-15 vào cột `JSON` của `chung_chi`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ---
 
 ## 4. Mẫu ca, lịch ca, ca (mục B)
 
-### `mau_ca` – nhóm 1 → gộp theo R-15: `mau_ca` → `danh_muc_chung`
-
-`id`, `ten`, `gio_bat_dau`, `gio_ket_thuc` (`TIME`; ≤ bắt đầu là qua ngày, bằng nhau là 24 giờ), `loai_pham_vi` (`TANG`, `KHU_VUC`, `TOAN_VIEN`), `yeu_cau_ban_giao` (mặc định theo loại phạm vi), `trang_thai_hieu_luc`. Sửa không ảnh hưởng ca đã tạo (ca chép giờ).
+### `mau_ca` *(gộp theo R-15 vào `danh_muc_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ### `lich_ca` – nhóm 2
 
@@ -202,25 +193,17 @@ Trigger: chặn mọi đổi khi `OLD.trang_thai IN ('DA_DONG','DA_HUY')` trừ 
 
 "Có tên trong ca tại t" = dòng tồn tại, `vang_luc`, `rut_do_nghi_viec_luc`, `roi_ca_luc` không có hoặc sau `t`, không nghỉ có duyệt.
 
-### `nguoi_phu_trach_ca` – nhóm 3 (lịch sử) → gộp theo R-15: `nguoi_phu_trach_ca` → `lich_su_chung`
+### `nguoi_phu_trach_ca` *(gộp theo R-15 vào `lich_su_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-`ca_id`, `nhan_vien_id`, `tu`, `den NULL`, `can_cu` (`LAP_LICH`, `CHUYEN`, `VANG_CA`, `DOI_CA_015`), `nguoi_thuc_hien_id`, `ly_do`. Một dòng mở mỗi ca: cột sinh `khoa_mo = IF(den IS NULL, ca_id, NULL)` `UNIQUE` (FR-015). Chỉ được đặt `den` một lần.
-
-### `ban_cong_bo_lich` – nhóm 3 → gộp theo R-15: `ban_cong_bo_lich` → `su_kien_chung`
-
-`lich_ca_id`, `cong_bo_luc`, `noi_dung` `JSON` (ca, nhân viên, người phụ trách, phân công lúc công bố). FR-055 "bản gốc có nhật ký".
+### `ban_cong_bo_lich` *(gộp theo R-15 vào `su_kien_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ---
 
 ## 5. Giao trưởng tầng, phân công (mục C)
 
-### `tang_ca_khoa` – kỹ thuật → gộp theo R-15: `tang_ca_khoa` → `khoa_ky_thuat`
+### `tang_ca_khoa` *(gộp theo R-15 vào `khoa_ky_thuat`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-`tang_khu_vuc_id` khóa chính. Đích khóa cho lệnh phân công, giao trưởng tầng (N-03).
-
-### `giao_truong_tang` – nhóm 2 → gộp theo R-15: `giao_truong_tang` → `phan_cong` (`staff_assignment`)
-
-`id`, `nhan_vien_id`, `tang_khu_vuc_id`, `tu`, `den NULL`, `trang_thai` (`HIEU_LUC`, `DA_KET_THUC`), `nguoi_giao_id`, `ly_do`, `phien_ban`. Không chồng thời gian trên cùng tầng (FR-024): kiểm ở backend dưới khóa `tang_ca_khoa`. Rút ngắn đặt `den` sớm hơn (không lùi trước bây giờ). *(R-15: `tang_ca_khoa` → `khoa_ky_thuat`)*
+### `giao_truong_tang` *(gộp theo R-15 vào `phan_cong` (`staff_assignment`); mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ### `phan_cong` – nhóm 2
 
@@ -254,9 +237,7 @@ Chỉ mục `(ca_id, trang_thai)`, `(nhan_vien_id, bat_dau)`, `(loai_doi_tuong, 
 
 ## 6. Tỷ lệ phục vụ (mục D)
 
-### `lan_tinh_ty_le` – nhóm 3 → gộp theo R-15: `lan_tinh_ty_le` → `su_kien_chung`
-
-`id`, `ca_id`, `thoi_diem`, `su_kien` (`LUU_NHAP`, `CONG_BO`, `VANG_CA`, `BO_SUNG`, `NGHI_VIEC`, `DOI_CA_015`, `MUC_CHAM_SOC`, `PHAN_BO`, `VANG_MAT_NCT`, `TRANG_THAI_CUOI`), `tong_trong_so` `DECIMAL(8,2)`, `so_nhan_vien`, `ty_le` `DECIMAL(8,2) NULL` (rỗng khi không có nhân viên), `nguong`, `dat`. Chỉ mục `(ca_id, thoi_diem)`.
+### `lan_tinh_ty_le` *(gộp theo R-15 vào `su_kien_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ---
 
@@ -285,19 +266,11 @@ Trigger: chặn mọi đổi khi `OLD.trang_thai = 'DA_XAC_NHAN'`; chặn đổi
 | `DA_LAP` | Gửi ý kiến | `CO_Y_KIEN` | Người phụ trách ca sau; TT | Nội dung |
 | `CO_Y_KIEN` | Bổ sung và gửi lại | `DA_LAP` | Người bàn giao; TT | Phản hồi từng ý kiến |
 
-### `muc_ban_giao` – nhóm 3 có bản nháp → gộp theo R-15: `muc_ban_giao` → cột `JSON` của `ban_giao`
+### `muc_ban_giao` *(gộp theo R-15 vào cột `JSON` của `ban_giao`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-`id`, `ban_giao_id`, `nhom` (`CONG_VIEC`, `LIEU`, `CHI_SO`, `CANH_BAO`, `SU_CO`, `BIEN_DONG_NCT`, `GIUONG_CHO_SAN_SANG`, `DO_GUI`, `VAN_DE_THEO_DOI`), `nguon_loai`, `nguon_id` (chuỗi, ví dụ `lieuKey`), `nct_id NULL`, `phong_id NULL` (một trong hai bắt buộc với `VAN_DE_THEO_DOI`, FR-051), `mo_ta`, `ghi_chu`, `nguoi_ghi_chu_id`, `trang_thai_nguon_luc_chot`, `phan` (`DA_CHOT`, `PHAT_SINH_SAU_KHI_LAP`, `DA_XU_LY_TRONG_CA`), `them_boi_id`, `them_luc`. Không có cột "tự lập".
+### `nhan_dinh_ban_giao` *(gộp theo R-15 vào cột `JSON` của `ban_giao`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-Trigger: khi `ban_giao.chot_luc IS NOT NULL`, dòng `DA_CHOT`, `DA_XU_LY_TRONG_CA` không `UPDATE`, `DELETE`; dòng `PHAT_SINH_SAU_KHI_LAP` chỉ thêm; khi `DA_XAC_NHAN` mọi dòng khóa. Ở Bản nháp: xóa dòng nhóm `CHI_SO`, `BIEN_DONG_NCT` bị chặn (Q-88).
-
-### `nhan_dinh_ban_giao` – nhóm 3 có bản nháp → gộp theo R-15: `nhan_dinh_ban_giao` → cột `JSON` của `ban_giao`
-
-`ban_giao_id`, `loai` (`CHUNG`, `THEO_NGUOI_CAO_TUOI`), `nct_id NULL`, `noi_dung`, `nguoi_viet_id`. Cùng trigger khóa sau `chot_luc`.
-
-### `y_kien_ban_giao`, `phan_hoi_y_kien` – nhóm 3 → gộp theo R-15: `y_kien_ban_giao`, `phan_hoi_y_kien` → `su_kien_chung`
-
-`y_kien_ban_giao`: `ban_giao_id`, `nguoi_gui_id`, `noi_dung`, `thoi_diem`. `phan_hoi_y_kien`: `y_kien_id`, `nguoi_viet_id`, `noi_dung`, `thoi_diem`. Chỉ thêm. *(R-15: `y_kien_ban_giao`, `phan_hoi_y_kien` → `su_kien_chung`)*
+### `y_kien_ban_giao`, `phan_hoi_y_kien` *(gộp theo R-15 vào `su_kien_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ---
 
@@ -367,4 +340,4 @@ Trigger: khi `ban_giao.chot_luc IS NOT NULL`, dòng `DA_CHOT`, `DA_XU_LY_TRONG_C
 | BR-M04-13 (phần 008) | N-07 | `PostPublicationShiftIT` (FR-020 chỉ đúng ca, callback/rollback); C còn kiểm công việc thật tại T043b |
 | BR-M05-05 (phần 008) | N-10 | `HandoverIT.FR_044_confirmationCallbacksShareTransactionAndFailureRollsBackAllEffects`; C/D còn kiểm nguồn thật tại T043b |
 
-Tên lớp trên là tên thật dưới `backend/src/test/java/com/cambae/backend/m09/`; ma trận FR-048 → FR-060, kịch bản Q và SC ở [validation.md](validation.md). Các bài kiểm fixture/fake nguồn xác minh phần điều phối của 008; không thay nghiệm thu nghiệp vụ module nguồn hoặc mobile.
+Tên lớp trên là tên thật dưới `backend/src/test/java/com/eldercare/backend/staffing/`; ma trận FR-048 → FR-060, kịch bản Q và SC ở [validation.md](validation.md). Các bài kiểm fixture/fake nguồn xác minh phần điều phối của 008; không thay nghiệm thu nghiệp vụ module nguồn hoặc mobile.

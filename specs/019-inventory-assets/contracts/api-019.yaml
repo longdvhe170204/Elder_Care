@@ -3,7 +3,7 @@ info:
   title: Elder Care – Feature 019 (mua sắm, tài sản, lịch xe)
   version: 1.0.0-design
   description: |
-    Hợp đồng REST của feature 019 (M11 m11.muasam, M03 m03.taisan, m03.lichxe). Kho nguyên liệu (M08 m08.kho) bỏ theo Q-392. Quy ước chung theo research R-03 của 000:
+    Hợp đồng REST của feature 019 (M11 billing.muasam, M03 roombedallocation.taisan, roombedallocation.lichxe). Kho nguyên liệu (M08 nutrition.kho) bỏ theo Q-392. Quy ước chung theo research R-03 của 000:
     tiền tố /api/v1, lỗi RFC 9457 có maLoi và dieuKienChuaThoa[], Idempotency-Key cho mọi lệnh ghi.
     Hệ thống không tạo yêu cầu mua sắm (Q-306).
     Lệnh của Phụ trách bộ phận bị chặn khi bộ phận chưa có Phụ trách bộ phận (BO_PHAN_CHUA_CO_PHU_TRACH; Q-292).

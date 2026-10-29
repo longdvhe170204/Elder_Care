@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-07 | **Plan**: [../plan.md](../plan.md)
 
-Hợp đồng trong backend, ở gói `com.cambae.backend.m01.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của M01 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
+Hợp đồng trong backend, ở gói `com.eldercare.backend.resident.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của M01 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
 
 Mục 1.1 giữ đúng chữ ký `NguoiCaoTuoiApi` mà plan 002 đã khai báo ([../../002-account-permission/contracts/module-interfaces.md](../../002-account-permission/contracts/module-interfaces.md) mục 2) và bổ sung phần còn thiếu.
 
@@ -181,8 +181,8 @@ Mỗi sự kiện gửi 009 mang mức, nhóm người nhận, loại thông tin
 | `HopDongApi.loaiLuuTruHienHanh(nctId, ngay)`; `lichSuLoaiLuuTru(nctId)` | 004 | FR-009, FR-052, FR-053 | Bản giả |
 | `LuotVangApi.dangMo()` trả mốc dự kiến trở lại | 004 (FR-048, FR-049) | FR-050 | Bản giả |
 
-Ba giao diện trên được khai báo trong `m01.api` dưới dạng SPI, M02 cài, để không có vòng M01 ↔ M02 (bổ sung theo plan 004, research T-02); chữ ký giữ nguyên.
-| `QuanHeNguoiThanApi.thuocNguoiCaoTuoi(nguoiThanId, nctId)` (SPI khai báo ở `m15.taikhoan.api`, M10 cài; theo plan 012). Từ 2026-10-18 (Q-348) 001 không dùng `laNguoiDaiDienHieuLuc` cho FR-011, FR-023c. *(Bổ sung 2026-10-22)* Dùng thêm cho người cần báo, người trả lời của phiếu nguyện vọng khi điều trị (FR-023j); họ tên, quan hệ, số điện thoại của người cần báo lấy bằng `hieuLuc`, `soDienThoaiDaDangKy` và họ tên người thân (`FamilyRelationshipApi.familyMemberName`, 002 T032a) của cùng SPI, không thêm hàm | M10 (012) | FR-011, FR-023c, FR-023g, FR-023j, phạm vi bản đồng ý | Bản giả |
+Ba giao diện trên được khai báo trong `resident.api` dưới dạng SPI, M02 cài, để không có vòng M01 ↔ M02 (bổ sung theo plan 004, research T-02); chữ ký giữ nguyên.
+| `QuanHeNguoiThanApi.thuocNguoiCaoTuoi(nguoiThanId, nctId)` (SPI khai báo ở `administration.taikhoan.api`, M10 cài; theo plan 012). Từ 2026-10-18 (Q-348) 001 không dùng `laNguoiDaiDienHieuLuc` cho FR-011, FR-023c. *(Bổ sung 2026-10-22)* Dùng thêm cho người cần báo, người trả lời của phiếu nguyện vọng khi điều trị (FR-023j); họ tên, quan hệ, số điện thoại của người cần báo lấy bằng `hieuLuc`, `soDienThoaiDaDangKy` và họ tên người thân (`FamilyRelationshipApi.familyMemberName`, 002 T032a) của cùng SPI, không thêm hàm | M10 (012) | FR-011, FR-023c, FR-023g, FR-023j, phạm vi bản đồng ý | Bản giả |
 | `ChiSoApi.ganNhat(nctId)` | M06 (007) | FR-024 | Bản giả trả rỗng |
 | Sự kiện `SuCoDaGhiNhan(suCoId, nctId, loai, muc, canDanhGiaLai)` (thêm `canDanhGiaLai` theo plan 007: Trung bình trở lên hoặc Ngã, trừ đồ gửi; phát lại khi sự cố nâng lên Trung bình hoặc đổi loại sang Ngã). 001 chỉ báo đánh giá lại khi `canDanhGiaLai = true`, khóa bỏ trùng `(suCoId, mốc)` | M05 (007) | FR-040 | Không có thì không báo căn cứ sau sự cố |
 | `NhiemVuApi`: bác sĩ trực, Điều dưỡng phụ trách, Trưởng tầng của tầng | M09 (008) qua 002 | Người nhận ở research H-14 | Bản giả |

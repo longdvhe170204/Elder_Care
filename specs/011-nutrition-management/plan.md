@@ -17,7 +17,7 @@ Feature 011 là phần dinh dưỡng của module M08 (mục 12.1 → 12.6; UC-4
 8. Đồ ăn gia đình mang vào, báo Bác sĩ xem lại chế độ ăn, lưu mẫu thức ăn (mục H, I, J).
 
 Hướng kỹ thuật:
-- Gói `m08` với mười gói con (research M-01); `m08.kho` và `TonKhoNguyenLieuPort` bỏ theo Q-392.
+- Gói `nutrition` với mười gói con (research M-01); `nutrition.kho` và `TonKhoNguyenLieuPort` bỏ theo Q-392.
 - Món ăn có phiên bản nội dung đã xác nhận; kiểm tra, chốt, phục vụ đọc phiên bản Hiệu lực tại lúc đó (M-04).
 - `XungDot`, `CanLyDoChuyenMon`, `KiemTraDoPhu`, `LapMon`, `NguoiDuocTinh`, `TinhPhatSinh`, `ChonMonThayThe`, `DoiChieuDoAn`, `MonCanLuuMau` là hàm thuần kiểm thử bằng bảng.
 - Lệnh Chốt suất tính lại tại lúc lệnh, lập lần chốt, phiếu mỗi tầng/khu, suất ăn người thân trong một transaction có khóa `bua_ngay`; DBR-27 giữ bằng `UNIQUE (bua_ngay_id, tang_khu_vuc_id)` và việc chỉ hai lệnh (chốt, xác nhận phát sinh) đổi số suất (M-08, M-09). *(R-15: `bua_ngay` → `khoa_ky_thuat`)*
@@ -35,7 +35,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ### Cập nhật 2026-10-18, lượt 3 (spec mục "Cập nhật 2026-10-18, lượt 3": Q-366)
 
-- **Suất ăn dự kiến cho kênh người cao tuổi** (FR-063 dòng "Người cao tuổi"): hàm đọc mới `m08.api.SuatAnDuKienApi.cuaNguoiCaoTuoi(nctId, tu, den)` cho 012: món dự kiến theo ngày, bữa từ thực đơn đã Công bố hoặc Đã áp dụng và chế độ ăn hiện hành của người cao tuổi, kèm món thay thế; chỉ trả tên món (research M-16). Không thêm bảng.
+- **Suất ăn dự kiến cho kênh người cao tuổi** (FR-063 dòng "Người cao tuổi"): hàm đọc mới `nutrition.api.SuatAnDuKienApi.cuaNguoiCaoTuoi(nctId, tu, den)` cho 012: món dự kiến theo ngày, bữa từ thực đơn đã Công bố hoặc Đã áp dụng và chế độ ăn hiện hành của người cao tuổi, kèm món thay thế; chỉ trả tên món (research M-16). Không thêm bảng.
 
 ## Technical Context
 
@@ -94,7 +94,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ; điểm còn lệch ghi ở mục báo lại |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-014 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 007 được ghi thêm 011 là bên gọi `SuCoLenhApi` (mục "Đồng bộ") |
-| X. Kiến trúc | Đạt | Một khối; gói `m08`; module khác dùng `m08.api`. Không có vòng (M-02). REST; MySQL; hai client (Q-346) |
+| X. Kiến trúc | Đạt | Một khối; gói `nutrition`; module khác dùng `nutrition.api`. Không có vòng (M-02). REST; MySQL; hai client (Q-346) |
 | XI. Nghiệp vụ ở backend | Đạt | Đối chiếu, độ phủ, tính suất, phát sinh, chặn phục vụ ở backend; client chỉ hiển thị |
 | XII. Dữ liệu | Đạt | DBR-27 bằng `UNIQUE` và lệnh đổi số suất duy nhất; nhóm 3 bằng trigger; nhật ký trong transaction; `Clock` |
 | XIII. Tham số | Đạt | Như V; giờ bữa lưu trên `bua_ngay` để đổi CFG-M08-04 không làm lệch bữa đã chốt *(R-15: `bua_ngay` → `khoa_ky_thuat`)* |
@@ -142,7 +142,7 @@ specs/011-nutrition-management/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/com/cambae/backend/m08/
+backend/src/main/java/com/eldercare/backend/nutrition/
 ├── api/           # CheDoAnApi, ThucDonChungApi, LichBuaApi, DinhDuongThongKeApi, LuotOLaiAnPort, ChuyenDiBuaAnPort, sự kiện
 ├── danhmuc/       {internal, web}   # chế độ ăn, món và phiên bản, bữa, loại cấm
 ├── chedoan/       {internal, web}   # bản gán, CanLyDoChuyenMon, bean trạng thái
@@ -162,16 +162,16 @@ frontend/src/tinh-nang/dinh-duong/
 mobile/lib/nhan-vien/dinh-duong/   # nhận phiếu, sai lệch, suất bổ sung, xác nhận phục vụ, đồ ăn gia đình
 ```
 
-**Structure Decision**: Theo R-02 của 000. Feature 011 nằm ở `backend/…/m08` với mười một gói con và gói `api`. Web có đủ chức năng; app nhân viên có phần việc tại tầng.
+**Structure Decision**: Theo R-02 của 000. Feature 011 nằm ở `backend/…/nutrition` với mười một gói con và gói `api`. Web có đủ chức năng; app nhân viên có phần việc tại tầng.
 
 ## Complexity Tracking
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
-| Phiên bản nội dung món (`mon_an_phien_ban`) | FR-004a: món Hiệu lực có bản sửa chờ, nội dung đã xác nhận vẫn dùng; lần chốt, xác nhận phục vụ phải biết đúng nội dung đã dùng | Sửa thẳng món: mất nội dung đã xác nhận khi có bản sửa chờ, không truy được thành phần lúc phục vụ |
+| Phiên bản nội dung món (`mon_an_phien_ban`) | FR-004a: món Hiệu lực có bản sửa chờ, nội dung đã xác nhận vẫn dùng; lần chốt, xác nhận phục vụ phải biết đúng nội dung đã dùng | Sửa thẳng món: mất nội dung đã xác nhận khi có bản sửa chờ, không truy được thành phần lúc phục vụ *(R-15: `mon_an_phien_ban` → `ho_so_chung` (phiên bản món, khóa khi Bác sĩ xác nhận; thành phần, chế độ thành `JSON`))* |
 | Bảng `bua_ngay` kỹ thuật | Một điểm khóa cho chốt, phát sinh, phiếu của một bữa; giữ giờ bữa tại lúc tạo | Khóa theo (bữa, ngày) không có dòng: không khóa được bằng `SELECT … FOR UPDATE` *(R-15: `bua_ngay` → `khoa_ky_thuat`)* |
 | DTO bếp tách riêng | SC-008, SC-014 đòi 0 lần lộ dữ liệu sức khỏe | Lọc trường động theo vai trò: dễ lọt trường mới thêm |
-| SPI `LuotOLaiAnPort`, `ChuyenDiBuaAnPort` ở `m08.api` | 011 làm plan trước 012, 014 nhưng cần dữ liệu của họ (FR-034) | 011 phụ thuộc 012, 014: tạo vòng vì 012, 014 đọc thực đơn, lịch bữa |
+| SPI `LuotOLaiAnPort`, `ChuyenDiBuaAnPort` ở `nutrition.api` | 011 làm plan trước 012, 014 nhưng cần dữ liệu của họ (FR-034) | 011 phụ thuộc 012, 014: tạo vòng vì 012, 014 đọc thực đơn, lịch bữa |
 
 ## Đồng bộ với hợp đồng của feature khác
 
@@ -180,7 +180,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 1. **007** (đã ghi vào [../007-health-alert-incident/contracts/module-interfaces.md](../007-health-alert-incident/contracts/module-interfaces.md) mục 1.6): 011 là bên gọi `SuCoLenhApi.ghiNhan` khi khai "đã ăn" (loại `PHUC_VU_SAI_SUAT_AN`, nguồn `AN_UONG`). 011 phát `YeuCauTaoCanhBao` với `loaiNguon = THUC_DON_MON` hoặc `SUAT_DAC_BIET` và `nguonId` kiểu số, đúng chữ ký mục 1.13; nghe `SutCanPhatHien`.
 2. **005**: sửa chú thích `xacNhanPhucVu` trong [../005-daily-care-tasks/contracts/module-interfaces.md](../005-daily-care-tasks/contracts/module-interfaces.md) từ "011 FR-040a" thành "011 FR-050" (không đổi chữ ký).
 3. **001, 003, 004, 005**: dùng API và sự kiện đã khai báo (001 `MucSucKhoeApi`, `DiNguyenApi`, `DiUng*`; 003 `ViTriApi`, `DaChuyenGiuong`; 004 `HopDongDocApi.lichDenTaiNgay`, `LuotVang*`, `NgayNghiBanTruDaDoi`, `BaoVangBanTruDaGhi`; 005 `NguonCongViecPort` loại `BUA` với `xacNhanPhucVu`, `nguonBiHuy`, `CoMatBanTruApi`, `AnKemKeoDai`). Không đổi.
-4. **010**: phát `m11.api.SuKienTinhPhiNguon` / `SuKienTinhPhiNguonDaDoi` loại `SUAT_AN_NGUOI_THAN`, đúng chữ ký 010 mục 1.5.
+4. **010**: phát `billing.api.SuKienTinhPhiNguon` / `SuKienTinhPhiNguonDaDoi` loại `SUAT_AN_NGUOI_THAN`, đúng chữ ký 010 mục 1.5.
 5. **012** cài `LuotOLaiAnPort`, phát `LuotOLaiDaDoi`, đọc `ThucDonChungApi`, `CheDoAnApi`. **014** cài `ChuyenDiBuaAnPort`, phát `ChuyenDiDaDoi`. **016** đọc `DinhDuongThongKeApi`. **009**: thông báo theo FR-065 cài `CoYeuCauThongBao`.
 
 ## Điểm cần báo lại về tài liệu nguồn

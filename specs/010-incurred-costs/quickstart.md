@@ -89,7 +89,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Cung cấp | `FR_039_XuatKeToanIT` (SC-009), `FR_019_TenThuocIT`, `FR_038_TamTinhIT`, `FR_038a_TongChuaChotIT` | Q38 → Q40 |
 | Quyền | `FR_017_TachQuyenIT` | Q41 |
 | Bộ lập lịch | `ChayBuM11IT` | Q42 |
-| Kiến trúc | `ApplicationModules.verify()`; ArchUnit: chỉ `m11.sodu`, `m11.muasam` dùng port nội bộ; gói `..lich..` không lập khoản, bảng (trừ kỳ của viện) | |
+| Kiến trúc | `ApplicationModules.verify()`; ArchUnit: chỉ `billing.sodu`, `billing.muasam` dùng port nội bộ; gói `..lich..` không lập khoản, bảng (trừ kỳ của viện) | |
 | Web (Vitest) | Tra cứu nguồn không có bộ lọc "chưa lập khoản"; lập hàng loạt hiển thị nguồn bị bỏ qua; khoản theo sự kiện không có ô nhập số tiền; màn biến động sau chốt không có số chênh lệch tính sẵn | Q4, Q25 |
 | App (`flutter_test`) | Người đại diện đồng ý/từ chối mua hộ; tạm tính chi phí | Q34, Q40 |
 

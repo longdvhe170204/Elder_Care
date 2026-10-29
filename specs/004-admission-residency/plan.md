@@ -115,7 +115,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ. BR-M02-20 lệch FR-012: plan theo FR-012, báo lại ở điểm 1. Lệnh "đăng ký lịch đến" chưa rõ: plan chọn cách hẹp, báo lại ở điểm 4 |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-012 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 000, 001, 002, 003 được bổ sung giao diện, không đổi hành vi đã thiết kế |
-| X. Kiến trúc | Đạt | Một khối; gói `m02`; module khác chỉ dùng `m02.api`. Không có vòng phụ thuộc (T-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `admission`; module khác chỉ dùng `admission.api`. Không có vòng phụ thuộc (T-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Điều kiện, bảng chuyển, quyền, giới hạn trường ở backend. Mỗi lệnh có `POST …/{id}/<lenh>` riêng; lệnh trạng thái người cao tuổi dùng endpoint của 001 với `chiTiet` do 004 kiểm |
 | XII. Dữ liệu | Đạt | DBR-06 có khóa và trigger; DBR-07 có `UNIQUE NOT NULL`; DBR-08 có khóa và trigger; nhóm 3 theo mẫu của 000; nhật ký trong transaction; thời gian theo `Clock` |
 | XIII. Tham số | Đạt | Như V. Bảng CFG-M02-05, CFG-M02-08 đọc giá trị hiện hành tại lúc tính (FR-052, FR-077) |
@@ -138,7 +138,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | NFR-01 Quy mô | Có | Vài trăm người, vài trăm hợp đồng, khoảng 100 hồ sơ chờ; chỉ mục ở data-model |
 | NFR-02 Hiệu năng | Có | Lệnh khóa ít dòng; nội dung tại ngày là một truy vấn; danh sách điều kiện gộp từ API có chỉ mục |
 | NFR-03 Thông báo khẩn cấp | Gián tiếp | Thông báo qua đời Khẩn cấp do 001, 009 gửi từ sự kiện của lệnh (Q-97); 004 không chặn đường đó |
-| NFR-04 Tác vụ định kỳ | Có | `lan_chay_theo_ngay` bảo đảm mỗi việc mỗi ngày một lần; nhắc gộp; khóa sự kiện (T-11) |
+| NFR-04 Tác vụ định kỳ | Có | `lan_chay_theo_ngay` bảo đảm mỗi việc mỗi ngày một lần; nhắc gộp; khóa sự kiện (T-11) *(R-15: `lan_chay_theo_ngay` → `moc_da_nhac`)* |
 | NFR-05 Khả dụng | Có | Chạy bù từng ngày khi khởi động lại (FR-077) |
 | NFR-06 Sao lưu | Gián tiếp | Dữ liệu ở MySQL; tệp theo 001 H-13 |
 | NFR-07 Lưu trữ | Có | `LuuTruProvider` theo hồ sơ cho mọi bảng gắn người cao tuổi (data-model mục 14) |
@@ -170,7 +170,7 @@ specs/004-admission-residency/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/com/cambae/backend/m02/
+backend/src/main/java/com/eldercare/backend/admission/
 ├── api/          # HopDongDocApi, DonGiaApi, NgayLuuTruApi, DieuKienTiepNhanApi, DanhSachViecSauQuaDoiApi,
 │                 # SPI 004 khai báo (KyCuoiPort, TrangThaiDatCocPort, NguoiDaiDienPort, BanGhiDonPort,
 │                 # TrangThaiCoMatBanTruPort, MucViecSauQuaDoiPort), sự kiện
@@ -203,7 +203,7 @@ mobile/lib/nguoi-than/
 └── luu-tru/                 # tiến trình tiếp nhận, lượt vắng, tiến trình kết thúc
 ```
 
-**Structure Decision**: Theo R-02 của 000. Feature 004 nằm ở `backend/…/m02` với mười gói con nghiệp vụ, gói `trangthai` gom các SPI cài cho module thấp hơn, gói `lich` và gói `api`. Web có đủ chức năng. App nhân viên chỉ có các thao tác vắng mặt tại tầng. App người thân có phần xem và gửi yêu cầu của người đại diện.
+**Structure Decision**: Theo R-02 của 000. Feature 004 nằm ở `backend/…/admission` với mười gói con nghiệp vụ, gói `trangthai` gom các SPI cài cho module thấp hơn, gói `lich` và gói `api`. Web có đủ chức năng. App nhân viên chỉ có các thao tác vắng mặt tại tầng. App người thân có phần xem và gửi yêu cầu của người đại diện.
 
 ## Complexity Tracking
 
@@ -214,7 +214,7 @@ mobile/lib/nguoi-than/
 | Bảng kết quả tính `ngay_vang`, `muc_viec_sau_qua_doi`, được ghi lại khi có quyết định, đính chính hoặc module sở hữu báo | FR-052 đòi lưu kết quả theo ngày, dùng bảng hiện hành tại lúc tính và không đổi khi bảng đổi; FR-071 đòi trạng thái mục tự cập nhật. Mỗi lần ghi lại có nhật ký | Tính lại mỗi lần đọc thì không giữ được "bảng tại lúc tính" *(R-15: `muc_viec_sau_qua_doi` → `trang_thai_nct`)* |
 | Lệnh chuyển trạng thái (hồ sơ chờ, hợp đồng, hồ sơ kết thúc) không dùng `If-Match` | Edge Case "lệnh đến sau được kiểm tra lại trên trạng thái mới" | `If-Match` từ chối cả lệnh còn hợp lệ. Cùng lý do với 001 H-02, 003 G-03 |
 | Giao diện bổ sung vào hợp đồng 000 (`dongDoTrangThaiCuoi`), 001 (người gọi `HUY_TIEP_NHAN`; ba giao diện thành SPI), 002 (`KetThucLuuTruApi` thành SPI), 003 (`thuocTinhPhanBo`, `batDauLuotTrong`) | FR-065, FR-070 đóng yêu cầu khi trạng thái cuối; FR-002 Hủy tiếp nhận từ danh sách chờ; FR-012 cần thuộc tính phòng và lượt trống; Modulith cần một chiều phụ thuộc | Không bổ sung thì phải đọc dữ liệu module khác hoặc tạo vòng phụ thuộc |
-| Một job hằng ngày lúc 00:15 và bảng `lan_chay_theo_ngay` | FR-077 đòi chạy bù từng ngày theo thứ tự và không trùng. Giờ chạy là thông số vận hành, không có trong Phụ lục 25; chạy sau job áp dụng yêu cầu 00:05 của 000 để ngày vắng dùng nội dung hợp đồng đã áp dụng | Mỗi việc một job riêng thì thứ tự giữa các việc của cùng ngày không bảo đảm |
+| Một job hằng ngày lúc 00:15 và bảng `lan_chay_theo_ngay` | FR-077 đòi chạy bù từng ngày theo thứ tự và không trùng. Giờ chạy là thông số vận hành, không có trong Phụ lục 25; chạy sau job áp dụng yêu cầu 00:05 của 000 để ngày vắng dùng nội dung hợp đồng đã áp dụng | Mỗi việc một job riêng thì thứ tự giữa các việc của cùng ngày không bảo đảm *(R-15: `lan_chay_theo_ngay` → `moc_da_nhac`)* |
 
 ## Điểm cần báo lại về tài liệu nguồn
 
@@ -253,8 +253,8 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
    - [../000-shared-foundation/contracts/module-interfaces.md](../000-shared-foundation/contracts/module-interfaces.md): thêm `YeuCauPheDuyetApi.dongDoTrangThaiCuoi`.
    - [../001-elder-profile-assessment/contracts/module-interfaces.md](../001-elder-profile-assessment/contracts/module-interfaces.md):
      - thêm 004 (`HUY_TIEP_NHAN`) vào bảng người gọi `TrangThaiNguoiCaoTuoiApi.thucHien`;
-     - ghi `YeuCauDoiMucApi`, `HopDongApi`, `LuotVangApi` là SPI khai báo ở `m01.api`, M02 cài.
-   - [../002-account-permission/contracts/module-interfaces.md](../002-account-permission/contracts/module-interfaces.md): ghi `KetThucLuuTruApi` là SPI khai báo ở `m15.taikhoan.api`, M02 cài.
+     - ghi `YeuCauDoiMucApi`, `HopDongApi`, `LuotVangApi` là SPI khai báo ở `resident.api`, M02 cài.
+   - [../002-account-permission/contracts/module-interfaces.md](../002-account-permission/contracts/module-interfaces.md): ghi `KetThucLuuTruApi` là SPI khai báo ở `administration.taikhoan.api`, M02 cài.
    - [../003-room-bed-allocation/contracts/module-interfaces.md](../003-room-bed-allocation/contracts/module-interfaces.md): thêm `PhongChoPhepApi.thuocTinhPhanBo`, `TinhTrangGiuongApi.batDauLuotTrong`, `ViTriApi.phanBoHienHanhHoacTuongLai`.
 
 9. **(2026-10-18) Q-356 "bắt buộc lý do" đã có sẵn ở 001 FR-046.** Mọi lệnh chuyển trạng thái do người dùng thực hiện, gồm Hoàn tất tiếp nhận, đã bắt buộc lý do. Plan không thêm trường lý do riêng; cảnh báo `NCT_KHONG_DONG_Y_VAO_O` hiện ý kiến để người thực hiện ghi lý do nói tới nó. Nếu ý định là một lý do riêng cho ý kiến "Không đồng ý", cần sửa FR-004a cho rõ (cùng nội dung plan 001 điểm báo lại 12). *(Đã xử lý 2026-10-18: Q-361: lý do của lệnh; thiết kế giữ nguyên, spec FR-004a đã làm rõ)*

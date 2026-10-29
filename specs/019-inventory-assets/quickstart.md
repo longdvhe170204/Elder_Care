@@ -1,6 +1,6 @@
 # Quickstart: Kiểm chứng feature 019
 
-> **Sửa 2026-10-29 (Q-392):** hệ thống không quản lý kho nguyên liệu. Các mục về kho (nguyên liệu, lô, phiếu nhập, xuất, đảo, kiểm kê, cảnh báo hạn dùng, tồn tối thiểu, `m08.kho`) trong tài liệu này không còn hiệu lực; xem spec 019 mục Cập nhật 2026-10-29.
+> **Sửa 2026-10-29 (Q-392):** hệ thống không quản lý kho nguyên liệu. Các mục về kho (nguyên liệu, lô, phiếu nhập, xuất, đảo, kiểm kê, cảnh báo hạn dùng, tồn tối thiểu, `nutrition.kho`) trong tài liệu này không còn hiệu lực; xem spec 019 mục Cập nhật 2026-10-29.
 
 **Ngày**: 2026-10-10 | **Plan**: [plan.md](plan.md)
 
@@ -24,7 +24,7 @@ backend/  ./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
 frontend/ npm ci && npm test && npm run dev
 ```
 
-Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M03 không phụ thuộc M04, M08, M09, M11; `YeuCauMuaSamPort` khai ở `m03.api`), ArchUnit port nội bộ M03, M08, M11, test cơ sở dữ liệu (data-model mục 6).
+Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M03 không phụ thuộc M04, M08, M09, M11; `YeuCauMuaSamPort` khai ở `roombedallocation.api`), ArchUnit port nội bộ M03, M08, M11, test cơ sở dữ liệu (data-model mục 6).
 
 ## 3. Kịch bản kiểm chứng (profile demo)
 
@@ -76,7 +76,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M03 không ph
 | Tài sản | `BR_M03_15_GiuongTaiSanIT` (SC-004), `BR_M03_17_HanBaoTriIT`, `BR_M03_18_HuHongIT`, `DBR_32_TaiSanGiuongIT` | Q18 → Q26 |
 | Lịch xe | `BR_M03_16_LichXeIT` (SC-005), `FR_018_TheoChuyenIT` | Q27 → Q32 |
 | Đồng thời | Hai phiếu xuất chỗ cuối; hai lịch xe cùng giờ; báo hỏng cùng lúc với phân bổ | Q12, Q27 |
-| Kiến trúc | `ApplicationModules.verify()`; ArchUnit: chỉ `m03.taisan` dùng port giường; job không tạo phiếu, yêu cầu, lịch (Q-306) | |
+| Kiến trúc | `ApplicationModules.verify()`; ArchUnit: chỉ `roombedallocation.taisan` dùng port giường; job không tạo phiếu, yêu cầu, lịch (Q-306) | |
 | Web (Vitest) | Màn xuất kho hiện lô theo thứ tự hạn dùng, không chọn sẵn; màn báo hỏng giường hiện tiêu chí "mất an toàn" | Q10, Q21 |
 
 ## 5. Tiêu chí hoàn tất

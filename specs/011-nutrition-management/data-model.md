@@ -15,7 +15,47 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 - `su_kien_chung`: `thuc_don_kiem_tra`, `doi_mon`, `phat_sinh`, `yeu_cau_suat_bo_sung`, `sai_lech_phieu`, `phan_bo_sung`, `xac_nhan_phuc_vu`.
 - `ho_so_chung`: `phieu_bua_an` (suất đặc biệt thành `JSON`), `suat_an_nguoi_than`, `do_an_gia_dinh`, `luu_mau` (món thành `JSON`, món thêm sau phát sinh là sự kiện).
 - `khoa_ky_thuat`: `bua_ngay`; `moc_da_nhac`: `thong_bao_xem_lai`; `trang_thai_nct`: `dinh_duong_nct`.
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `che_do_an_han_che` → `danh_muc_chung` (thuộc tính của chế độ ăn); `mon_an_phien_ban`, `mon_an_phien_ban_thanh_phan`, `mon_an_phien_ban_che_do` → `ho_so_chung` (phiên bản món, khóa khi Bác sĩ xác nhận; thành phần, chế độ thành `JSON`); `thuc_don_mon`, `thuc_don_mon_thay_the` → cột `JSON` của `thuc_don`; `su_kien_m08_da_xu_ly`, `lan_chay_m08` → `moc_da_nhac`; `nguoi_duoc_tinh`, `suat_theo_che_do` → cột `JSON` của `lan_chot`; `suat_dac_biet`, `luu_mau_mon` → `ho_so_chung`. Không thêm bảng riêng.
 - Còn 3 bảng riêng của feature.
+
+### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-30; sinh từ mục 0 và ràng buộc ở mô tả bảng các mục sau; chủ module rà, hoàn thiện khi viết migration, task T046)*
+
+Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (module M08; đổi sang tên tiếng Anh theo glossary khi dịch); `noi_dung`, `thuoc_tinh` hoặc `du_lieu` mang các cột của bảng cũ, có JSON Schema theo loại; bảng gộp riêng của feature có cột `kind` (hoặc `loai`) và cột `NULL` có `CHECK` theo loại. Mỗi dòng có ràng buộc ở bảng dưới cần một test tích hợp chứng minh ràng buộc vẫn giữ sau gộp (constitution XII), ghi vào bảng DBR áp dụng khi cài.
+
+**Bảng giữ hoặc là bảng đích** (giữ cột, ràng buộc như mô tả ở các mục sau; bảng đích nhận thêm cột của bảng gộp vào): `ban_gan_che_do_an`, `thuc_don`, `lan_chot`.
+
+| Bảng cũ | Đích | Loại ở bảng chung | Ràng buộc của bảng cũ | Cách giữ sau gộp |
+| --- | --- | --- | --- | --- |
+| `dinh_duong_nct` | `trang_thai_nct` | `M08.DINH_DUONG_NCT` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `che_do_an` | `danh_muc_chung` | `M08.CHE_DO_AN` | / `mac_dinh`; `khoa_mac_dinh` sinh `IF(mac_dinh AND trang_thai = 'HIEU_LUC', 1, NULL)` `UNIQUE` / Đúng một chế độ mặc định / FR-014 / | `khoa_duy_nhat` |
+| `mon_an` | `danh_muc_chung` | `M08.MON_AN` | `mon_an_phien_ban` (nhóm 3 có bản chờ): `id`, `mon_an_id`, `so` (tăng), `ket_cau` (`THUONG`, `MEM`, `XAY_NHUYEN`), `khong_co_thanh_phan_trong_danh_muc`, `gui_boi_id`, `gui_luc`, `trang_thai` (`NHAP`, `CHO_XAC_NHAN`, `DA_XAC_NHAN`, `DA_TRA_LAI`, `DA_RUT`), `ly_… | cột vào `JSON` hoặc cột của bảng đích |
+| `bua_an` | `danh_muc_chung` | `M08.BUA_AN` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `loai_do_an_cam` | `danh_muc_chung` | `M08.LOAI_DO_AN_CAM` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `thuc_don_kiem_tra` | `su_kien_chung` | `M08.THUC_DON_KIEM_TRA` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `doi_mon` | `su_kien_chung` | `M08.DOI_MON` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `bua_ngay` | `khoa_ky_thuat` | — | `id`, `bua_an_id`, `ngay`, `gio_du_kien` (chốt từ CFG-M08-04 lúc tạo), `nguong_giao_tre_phut`, `UNIQUE (bua_an_id, ngay)`; cột "đã làm lúc" cho job: `nhac_chot_luc`, `mon_an_toan_luc`, `suat_giu_luc`, `nhac_phat_sinh_luc`, `nhac_luu_mau_luc`. | `khoa_duy_nhat` |
+| `nguoi_duoc_tinh` | cột `JSON` của `lan_chot` | — | — | ghi cùng bản ghi cha; domain kiểm |
+| `suat_theo_che_do` | cột `JSON` của `lan_chot` | — | — | ghi cùng bản ghi cha; domain kiểm |
+| `phat_sinh` | `su_kien_chung` | `M08.PHAT_SINH` | / `khoa_su_kien` `UNIQUE` / Sự kiện nguồn + bữa ngày (chống trùng NFR-04) / M-08 /; / `tao_luc`, `bep_xac_nhan_boi_id`, `bep_xac_nhan_luc` / Đặt một lần / FR-039, FR-041 / | `khoa_duy_nhat`; trigger của bảng chung (chỉ thêm hoặc `khoa_luc`) |
+| `yeu_cau_suat_bo_sung` | `su_kien_chung` | `M08.YEU_CAU_SUAT_BO_SUNG` | `id`, `bua_ngay_id`, `tang_khu_vuc_id`, `nct_id`, `ly_do`, `boi_id`, `luc`, `bep_xac_nhan_luc` (đặt một lần). Chỉ lập sau giờ bữa tới hết ngưỡng giao trễ (FR-040). | trigger của bảng chung (chỉ thêm hoặc `khoa_luc`) |
+| `suat_an_nguoi_than` | `ho_so_chung` | `M08.SUAT_AN_NGUOI_THAN` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `phieu_bua_an` | `ho_so_chung` | `M08.PHIEU_BUA_AN` | / `id`, `bua_ngay_id`, `tang_khu_vuc_id` / `UNIQUE (bua_ngay_id, tang_khu_vuc_id)` / FR-044, DBR-27 / | `khoa_duy_nhat` |
+| `suat_dac_biet` | `ho_so_chung` | `M08.SUAT_DAC_BIET` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `sai_lech_phieu` | `su_kien_chung` | `M08.SAI_LECH_PHIEU` | `id`, `phieu_id`, `noi_dung`, `bao_boi_id`, `bao_luc`; xử lý đặt một lần: `cach_xu_ly` (`BO_SUNG_SUAT`, `DOI_SUAT`, `KHAC`), `mo_ta`, `xu_ly_boi_id`, `xu_ly_luc`. | trigger của bảng chung (chỉ thêm hoặc `khoa_luc`) |
+| `phan_bo_sung` | `su_kien_chung` | `M08.PHAN_BO_SUNG` | `id`, `phieu_id`, `phat_sinh_id NULL`, `yeu_cau_bo_sung_id NULL` (đúng một khác `NULL`), `giao_boi_id`, `giao_luc`, `nhan_boi_id`, `nhan_luc` (đặt một lần). | trigger của bảng chung (chỉ thêm hoặc `khoa_luc`) |
+| `xac_nhan_phuc_vu` | `su_kien_chung` | `M08.XAC_NHAN_PHUC_VU` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `do_an_gia_dinh` | `ho_so_chung` | `M08.DO_AN_GIA_DINH` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `luu_mau` | `ho_so_chung` | `M08.LUU_MAU` | `luu_mau` (nhóm 3): `id`, `bua_ngay_id` `UNIQUE`, `boi_id`, `luc`, `vi_tri_luu`, `het_han_luu` (lúc + CFG-M08-06), cột hủy đặt một lần `huy_boi_id`, `huy_luc`. `luu_mau_mon`: `luu_mau_id`, `mon_an_id`, `da_luu`, `ly_do_khong_luu`, `them_sau_phat_sinh`. | `khoa_duy_nhat`; trigger của bảng chung (chỉ thêm hoặc `khoa_luc`) |
+| `thong_bao_xem_lai` | `moc_da_nhac` | `M08.THONG_BAO_XEM_LAI` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `che_do_an_han_che` | `danh_muc_chung` (thuộc tính của chế độ ăn) | `M08.CHE_DO_AN_HAN_CHE` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `mon_an_phien_ban` | `ho_so_chung` (phiên bản món, khóa khi Bác sĩ xác nhận; thành phần, chế độ thành `JSON`) | `M08.MON_AN_PHIEN_BAN` | `mon_an_phien_ban` (nhóm 3 có bản chờ): `id`, `mon_an_id`, `so` (tăng), `ket_cau` (`THUONG`, `MEM`, `XAY_NHUYEN`), `khong_co_thanh_phan_trong_danh_muc`, `gui_boi_id`, `gui_luc`, `trang_thai` (`NHAP`, `CHO_XAC_NHAN`, `DA_XAC_NHAN`, `DA_TRA_LAI`, `DA_RUT`), `ly_ | ghi cùng bản ghi cha; domain kiểm |
+| `mon_an_phien_ban_thanh_phan` | `ho_so_chung` (phiên bản món, khóa khi Bác sĩ xác nhận; thành phần, chế độ thành `JSON`) | `M08.MON_AN_PHIEN_BAN_THANH_PHAN` | — | ghi cùng bản ghi cha; domain kiểm |
+| `mon_an_phien_ban_che_do` | `ho_so_chung` (phiên bản món, khóa khi Bác sĩ xác nhận; thành phần, chế độ thành `JSON`) | `M08.MON_AN_PHIEN_BAN_CHE_DO` | — | ghi cùng bản ghi cha; domain kiểm |
+| `thuc_don_mon` | cột `JSON` của `thuc_don` | — | `thuc_don_mon`: `id`, `thuc_don_id`, `ngay`, `bua_an_id`, `che_do_an_id`, `mon_an_id`, `thu_tu`. `thuc_don_mon_thay_the`: `thuc_don_mon_id`, `mon_an_id`, `uu_tien`. Sửa chỉ khi `NHAP` (trigger đối chiếu trạng thái thực đơn), trừ lệnh đổi món (FR-031) ghi kèm ` | `khoa_luc` + trigger khóa theo dòng |
+| `thuc_don_mon_thay_the` | cột `JSON` của `thuc_don` | — | `thuc_don_mon`: `id`, `thuc_don_id`, `ngay`, `bua_an_id`, `che_do_an_id`, `mon_an_id`, `thu_tu`. `thuc_don_mon_thay_the`: `thuc_don_mon_id`, `mon_an_id`, `uu_tien`. Sửa chỉ khi `NHAP` (trigger đối chiếu trạng thái thực đơn), trừ lệnh đổi món (FR-031) ghi kèm ` | `khoa_luc` + trigger khóa theo dòng |
+| `su_kien_m08_da_xu_ly` | `moc_da_nhac` | `M08.SU_KIEN_M08_DA_XU_LY` | - `su_kien_m08_da_xu_ly`: `khoa_su_kien` `UNIQUE`, `xu_ly_luc` (listener idempotent). | `khoa_duy_nhat` |
+| `lan_chay_m08` | `moc_da_nhac` | `M08.LAN_CHAY_M08` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `luu_mau_mon` | `ho_so_chung` | `M08.LUU_MAU_MON` | `luu_mau` (nhóm 3): `id`, `bua_ngay_id` `UNIQUE`, `boi_id`, `luc`, `vi_tri_luu`, `het_han_luu` (lúc + CFG-M08-06), cột hủy đặt một lần `huy_boi_id`, `huy_luc`. `luu_mau_mon`: `luu_mau_id`, `mon_an_id`, `da_luu`, `ly_do_khong_luu`, `them_sau_phat_sinh`. | `khoa_duy_nhat`; trigger của bảng chung (chỉ thêm hoặc `khoa_luc`) |
 
 ---
 
@@ -26,10 +66,10 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 | `dinh_duong_nct` | 2 (kỹ thuật) | Đích khóa theo người (M-03) *(R-15: `dinh_duong_nct` → `trang_thai_nct`)* |
 | `che_do_an`, `che_do_an_han_che` | 1 | A (FR-001, FR-002) *(R-15: `che_do_an` → `danh_muc_chung`)* |
 | `mon_an` | 1 có xác nhận | A (FR-003, FR-004) *(R-15: `mon_an` → `danh_muc_chung`)* |
-| `mon_an_phien_ban`, `mon_an_phien_ban_thanh_phan`, `mon_an_phien_ban_che_do` | 3 (có bản chờ) | A |
+| `mon_an_phien_ban`, `mon_an_phien_ban_thanh_phan`, `mon_an_phien_ban_che_do` | 3 (có bản chờ) | A *(R-15: `mon_an_phien_ban`, `mon_an_phien_ban_thanh_phan`, `mon_an_phien_ban_che_do` → `ho_so_chung` (phiên bản món, khóa khi Bác sĩ xác nhận; thành phần, chế độ thành `JSON`))* |
 | `bua_an`, `loai_do_an_cam` | 1 | A (FR-006, FR-007) *(R-15: `bua_an`, `loai_do_an_cam` → `danh_muc_chung`)* |
 | `ban_gan_che_do_an` | 2 | B |
-| `thuc_don`, `thuc_don_mon`, `thuc_don_mon_thay_the` | 2 | D |
+| `thuc_don`, `thuc_don_mon`, `thuc_don_mon_thay_the` | 2 | D *(R-15: `thuc_don_mon`, `thuc_don_mon_thay_the` → cột `JSON` của `thuc_don`)* |
 | `thuc_don_kiem_tra` | 3 | D (FR-025, FR-029) *(R-15: `thuc_don_kiem_tra` → `su_kien_chung`)* |
 | `doi_mon` | 3 | D (FR-031) *(R-15: `doi_mon` → `su_kien_chung`)* |
 | `bua_ngay` | 2 (kỹ thuật) | E *(R-15: `bua_ngay` → `khoa_ky_thuat`)* |
@@ -43,7 +83,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 | `do_an_gia_dinh` | 2 | H *(R-15: `do_an_gia_dinh` → `ho_so_chung`)* |
 | `thong_bao_xem_lai` | Kỹ thuật | I *(R-15: `thong_bao_xem_lai` → `moc_da_nhac`)* |
 | `luu_mau`, `luu_mau_mon` | 3 | J *(R-15: `luu_mau`, `luu_mau_mon` → `ho_so_chung`)* |
-| `su_kien_m08_da_xu_ly`, `lan_chay_m08` | Kỹ thuật | Listener, job |
+| `su_kien_m08_da_xu_ly`, `lan_chay_m08` | Kỹ thuật | Listener, job *(R-15: `su_kien_m08_da_xu_ly`, `lan_chay_m08` → `moc_da_nhac`)* |
 
 ---
 
@@ -64,7 +104,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 | `mon_an_toan_id NULL` | Bắt buộc khi tạo mới; món Hiệu lực, phù hợp, không chứa hạn chế (kiểm FR-005) | FR-001, FR-037a |
 | `trang_thai` (`HIEU_LUC`, `NGUNG_HIEU_LUC`) | Ngừng bị chặn khi còn bản gán Hiệu lực/Chờ hiệu lực hoặc món trong thực đơn chưa hết tuần | FR-002 |
 
-`che_do_an_han_che`: `che_do_an_id`, `di_nguyen_id`. Đổi danh sách chạy lại FR-005 với thực đơn chưa hết tuần (M-04).
+`che_do_an_han_che`: `che_do_an_id`, `di_nguyen_id`. Đổi danh sách chạy lại FR-005 với thực đơn chưa hết tuần (M-04). *(R-15: `che_do_an_han_che` → `danh_muc_chung` (thuộc tính của chế độ ăn))*
 
 ### `mon_an` – nhóm 1 có xác nhận → gộp theo R-15: `mon_an` → `danh_muc_chung`
 
@@ -77,7 +117,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 | `ly_do_ngung`, `ngung_boi_id`, `ngung_luc` | |
 | `phien_ban` | `If-Match` |
 
-`mon_an_phien_ban` (nhóm 3 có bản chờ): `id`, `mon_an_id`, `so` (tăng), `ket_cau` (`THUONG`, `MEM`, `XAY_NHUYEN`), `khong_co_thanh_phan_trong_danh_muc`, `gui_boi_id`, `gui_luc`, `trang_thai` (`NHAP`, `CHO_XAC_NHAN`, `DA_XAC_NHAN`, `DA_TRA_LAI`, `DA_RUT`), `ly_do_tra_lai`, `xac_nhan_boi_id`, `xac_nhan_luc`. Cột sinh `khoa_cho = IF(trang_thai IN ('NHAP','CHO_XAC_NHAN'), mon_an_id, NULL)` `UNIQUE` (tối đa một bản đang soạn hoặc chờ). Trigger: khi `OLD.trang_thai = 'DA_XAC_NHAN'` chặn mọi đổi. Con: `mon_an_phien_ban_thanh_phan (phien_ban_id, di_nguyen_id)`, `mon_an_phien_ban_che_do (phien_ban_id, che_do_an_id)`.
+`mon_an_phien_ban` (nhóm 3 có bản chờ): `id`, `mon_an_id`, `so` (tăng), `ket_cau` (`THUONG`, `MEM`, `XAY_NHUYEN`), `khong_co_thanh_phan_trong_danh_muc`, `gui_boi_id`, `gui_luc`, `trang_thai` (`NHAP`, `CHO_XAC_NHAN`, `DA_XAC_NHAN`, `DA_TRA_LAI`, `DA_RUT`), `ly_do_tra_lai`, `xac_nhan_boi_id`, `xac_nhan_luc`. Cột sinh `khoa_cho = IF(trang_thai IN ('NHAP','CHO_XAC_NHAN'), mon_an_id, NULL)` `UNIQUE` (tối đa một bản đang soạn hoặc chờ). Trigger: khi `OLD.trang_thai = 'DA_XAC_NHAN'` chặn mọi đổi. Con: `mon_an_phien_ban_thanh_phan (phien_ban_id, di_nguyen_id)`, `mon_an_phien_ban_che_do (phien_ban_id, che_do_an_id)`. *(R-15: `mon_an_phien_ban` → `ho_so_chung` (phiên bản món, khóa khi Bác sĩ xác nhận; thành phần, chế độ thành `JSON`))*
 
 **Bảng chuyển** (khớp bảng trạng thái món của spec):
 
@@ -86,7 +126,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 | — | Tạo | `NHAP` | Nhân viên bếp | — |
 | `NHAP` | Gửi xác nhận | `CHO_XAC_NHAN` | Nhân viên bếp | Có thành phần hoặc dấu không có; ≥ 1 chế độ ăn phù hợp |
 | `CHO_XAC_NHAN` | Xác nhận / Trả lại / Rút lại | `HIEU_LUC` / `NHAP` / `NHAP` | Bác sĩ / Bác sĩ (lý do) / Nhân viên bếp | — |
-| `HIEU_LUC` | Gửi bản sửa; xác nhận, trả lại, rút bản sửa | `HIEU_LUC` | Nhân viên bếp; Bác sĩ | Bản sửa là `mon_an_phien_ban` mới; xác nhận đặt `phien_ban_hieu_luc_id` |
+| `HIEU_LUC` | Gửi bản sửa; xác nhận, trả lại, rút bản sửa | `HIEU_LUC` | Nhân viên bếp; Bác sĩ | Bản sửa là `mon_an_phien_ban` mới; xác nhận đặt `phien_ban_hieu_luc_id` *(R-15: `mon_an_phien_ban` → `ho_so_chung` (phiên bản món, khóa khi Bác sĩ xác nhận; thành phần, chế độ thành `JSON`))* |
 | `HIEU_LUC` | Ngừng hiệu lực | `NGUNG_HIEU_LUC` | Nhân viên bếp; Bác sĩ | Lý do; không là món an toàn của chế độ ăn Hiệu lực |
 | `NHAP` | Hủy | `DA_HUY` | Nhân viên bếp | `tung_hieu_luc = false` |
 
@@ -264,8 +304,8 @@ Lưu giữ `THEO_HO_SO`. Không có chuyển `KHONG_SU_DUNG → DUOC_SU_DUNG`.
 
 ## 11. Kỹ thuật
 
-- `su_kien_m08_da_xu_ly`: `khoa_su_kien` `UNIQUE`, `xu_ly_luc` (listener idempotent).
-- `lan_chay_m08`: `ten_viec`, `moc`, `bat_dau`, `ket_thuc`, `ket_qua` (chạy bù).
+- `su_kien_m08_da_xu_ly`: `khoa_su_kien` `UNIQUE`, `xu_ly_luc` (listener idempotent). *(R-15: `su_kien_m08_da_xu_ly` → `moc_da_nhac`)*
+- `lan_chay_m08`: `ten_viec`, `moc`, `bat_dau`, `ket_thuc`, `ket_qua` (chạy bù). *(R-15: `lan_chay_m08` → `moc_da_nhac`)*
 
 ## 12. DBR áp dụng
 

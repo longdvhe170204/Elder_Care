@@ -8,21 +8,21 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## M-01. Vị trí trong backend
 
-**Quyết định**: Feature 011 thuộc module M08 – Dinh dưỡng (mục 12), gói `com.cambae.backend.m08`. Kho nguyên liệu (12.7, BR-M08-17 → 20) bỏ theo Q-392; không có gói `m08.kho`, port `TonKhoNguyenLieuPort` (M-12 không còn hiệu lực).
+**Quyết định**: Feature 011 thuộc module M08 – Dinh dưỡng (mục 12), gói `com.eldercare.backend.nutrition`. Kho nguyên liệu (12.7, BR-M08-17 → 20) bỏ theo Q-392; không có gói `nutrition.kho`, port `TonKhoNguyenLieuPort` (M-12 không còn hiệu lực).
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
-| `m08.danhmuc` | Chế độ ăn, món ăn và bản sửa chờ xác nhận, bữa ăn, loại đồ ăn bị cấm | A |
-| `m08.chedoan` | Bản gán chế độ ăn | B |
-| `m08.doichieu` | Hàm thuần `XungDot`, `ChonMonThayThe`, kiểm tra FR-005 | C |
-| `m08.thucdon` | Thực đơn tuần, kiểm tra độ phủ, lặp món, dị ứng, đổi món | D |
-| `m08.chotsuat` | Bữa trong ngày, lần chốt, người được tính, suất, phát sinh, suất ăn người thân, món an toàn | E |
-| `m08.phieu` | Phiếu bữa ăn, suất đặc biệt, sai lệch, phần bổ sung | F |
-| `m08.phucvu` | Xác nhận phục vụ | G |
-| `m08.doangiadinh` | Đồ ăn gia đình mang vào | H |
-| `m08.xemlai` | Thông báo xem lại chế độ ăn | I |
-| `m08.luumau` | Lưu mẫu thức ăn | J |
-| `m08.trangthai`, `m08.lich`, `m08.api` | Bean trạng thái; job; giao diện công khai | |
+| `nutrition.danhmuc` | Chế độ ăn, món ăn và bản sửa chờ xác nhận, bữa ăn, loại đồ ăn bị cấm | A |
+| `nutrition.chedoan` | Bản gán chế độ ăn | B |
+| `nutrition.doichieu` | Hàm thuần `XungDot`, `ChonMonThayThe`, kiểm tra FR-005 | C |
+| `nutrition.thucdon` | Thực đơn tuần, kiểm tra độ phủ, lặp món, dị ứng, đổi món | D |
+| `nutrition.chotsuat` | Bữa trong ngày, lần chốt, người được tính, suất, phát sinh, suất ăn người thân, món an toàn | E |
+| `nutrition.phieu` | Phiếu bữa ăn, suất đặc biệt, sai lệch, phần bổ sung | F |
+| `nutrition.phucvu` | Xác nhận phục vụ | G |
+| `nutrition.doangiadinh` | Đồ ăn gia đình mang vào | H |
+| `nutrition.xemlai` | Thông báo xem lại chế độ ăn | I |
+| `nutrition.luumau` | Lưu mẫu thức ăn | J |
+| `nutrition.trangthai`, `nutrition.lich`, `nutrition.api` | Bean trạng thái; job; giao diện công khai | |
 
 ---
 
@@ -37,10 +37,10 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 | 011 → 003 | Đọc, nghe | `ViTriApi.hienTai`, `taiThoiDiem`; khu bán trú; nghe `DaChuyenGiuong` |
 | 011 → 004 | Đọc, nghe | `HopDongDocApi.lichDenTaiNgay`, `LuotVangApi.dangMo`; nghe `LuotVangDaMo/DaGiaHan/DaDong`, `NgayNghiBanTruDaDoi`, `BaoVangBanTruDaGhi`, `PhuLucDaApDung` |
 | 011 → 005 | Cài, gọi, nghe | Cài `NguonCongViecPort` (loại `BUA`, kèm `xacNhanPhucVu`); gọi `NguonCongViecApi.nguonBiHuy(BUA, …)` (MANDATORY); đọc `CoMatBanTruApi`; nghe `TrangThaiCoMatDaXacDinh`, `TrangThaiCoMatDaDoi`, `AnKemKeoDai` |
-| 011 → 007 | Phát, gọi, nghe | Phát `m05.api.YeuCauTaoCanhBao`, `YeuCauDongCanhBaoNguon`; gọi `SuCoLenhApi.ghiNhan` (MANDATORY) khi khai "đã ăn"; nghe `SutCanPhatHien` |
+| 011 → 007 | Phát, gọi, nghe | Phát `incident.api.YeuCauTaoCanhBao`, `YeuCauDongCanhBaoNguon`; gọi `SuCoLenhApi.ghiNhan` (MANDATORY) khi khai "đã ăn"; nghe `SutCanPhatHien` |
 | 011 → 008 | Đọc | `CaTrucApi.caDangDienRa`, `dangTrongCa`; điều dưỡng phụ trách qua `NhiemVuApi`/`PhanCongApi` |
-| 011 → 010 | Phát | `m11.api.SuKienTinhPhiNguon` / `SuKienTinhPhiNguonDaDoi` cho suất ăn người thân |
-| 011 ↔ 012, 014 | Họ → 011 | SPI khai báo ở `m08.api`: `LuotOLaiAnPort` (012), `ChuyenDiBuaAnPort` (014); sự kiện khai báo ở `m08.api` họ phát khi thay đổi (`LuotOLaiDaDoi`, `ChuyenDiDaDoi`) |
+| 011 → 010 | Phát | `billing.api.SuKienTinhPhiNguon` / `SuKienTinhPhiNguonDaDoi` cho suất ăn người thân |
+| 011 ↔ 012, 014 | Họ → 011 | SPI khai báo ở `nutrition.api`: `LuotOLaiAnPort` (012), `ChuyenDiBuaAnPort` (014); sự kiện khai báo ở `nutrition.api` họ phát khi thay đổi (`LuotOLaiDaDoi`, `ChuyenDiDaDoi`) |
 | 011 → 009, 016 | Sự kiện; đọc | Thông báo cài `CoYeuCauThongBao`; 016 đọc `DinhDuongThongKeApi` |
 
 **Lý do**: Modulith `verify()` từ chối vòng (000 R-02).
@@ -93,7 +93,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## M-07. Thực đơn tuần (mục D, FR-023 → FR-032, BR-M08-06 → 08, Q-308)
 
 **Quyết định**:
-- `thuc_don` (nhóm 2): tuần (`ngay_dau_tuan`, thứ 2), trạng thái `NHAP | CHO_CONG_BO | CONG_BO | DA_AP_DUNG | DA_HUY`; cột sinh `khoa_tuan = IF(trang_thai <> 'DA_HUY', ngay_dau_tuan, NULL)` `UNIQUE` (FR-023). Nội dung `thuc_don_mon` (ngày, bữa, chế độ ăn, món, thứ tự) và `thuc_don_mon_thay_the` (thứ tự ưu tiên); sửa tự do khi Nháp (`If-Match`), sao chép từ thực đơn trước (món không còn Hiệu lực đánh dấu thay).
+- `thuc_don` (nhóm 2): tuần (`ngay_dau_tuan`, thứ 2), trạng thái `NHAP | CHO_CONG_BO | CONG_BO | DA_AP_DUNG | DA_HUY`; cột sinh `khoa_tuan = IF(trang_thai <> 'DA_HUY', ngay_dau_tuan, NULL)` `UNIQUE` (FR-023). Nội dung `thuc_don_mon` (ngày, bữa, chế độ ăn, món, thứ tự) và `thuc_don_mon_thay_the` (thứ tự ưu tiên); sửa tự do khi Nháp (`If-Match`), sao chép từ thực đơn trước (món không còn Hiệu lực đánh dấu thay). *(R-15: `thuc_don_mon`, `thuc_don_mon_thay_the` → cột `JSON` của `thuc_don`)*
 - **Gửi kiểm tra** (FR-025, FR-025a): bắt buộc `xacNhanKiemTraCheBien = true` (lưu ghi chú, người, lúc); hiển thị trước số người theo chế độ ăn trong tuần (không tên). Hàm thuần trong một lần:
   - `KiemTraDoPhu(noiDung, cheDoDangDung, buaPhucVu)`: chặn, liệt kê (chế độ ăn, ngày, bữa) thiếu; "chế độ ăn đang có người dùng" theo FR-027 (mặc định luôn có);
   - `LapMon(noiDung, tuanTruoc, tuanSau, cfg03)`: chuỗi ngày liên tiếp theo món và chế độ ăn, qua ranh giới tuần với thực đơn Công bố/Đã áp dụng liền kề; món thay thế không tính;
@@ -167,7 +167,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## M-12. Port và SPI cho module làm plan sau
 
-**Quyết định** (`m08.api` cho 012, 014; port nội bộ cho 019):
+**Quyết định** (`nutrition.api` cho 012, 014; port nội bộ cho 019):
 
 ```java
 interface LuotOLaiAnPort {                 // 012 cài; chỉ đọc

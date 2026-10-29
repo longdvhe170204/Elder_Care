@@ -17,8 +17,8 @@ Feature 008 là module M09 (mục 13.1 → 13.5; UC-49, UC-50 phần lập và c
 8. *(Bổ sung 2026-10-22, Q-382)* Import danh sách nhân viên bằng Excel: xem trước, hoặc toàn bộ hoặc không (FR-001b, FR-001c; UC-102).
 
 Hướng kỹ thuật:
-- Gói `m09` với bảy gói con; 015 (cùng M09) dùng port nội bộ, không qua API công khai (research N-01, N-07).
-- 002 đã gọi tên `HoSoNhanVienApi`, `GiayPhepApi`, `DanhMucPhamViHanhNgheApi`, `PhanCongApi`, `NhiemVuApi`; chúng được khai báo dạng SPI ở `m15.taikhoan.api` và M09 cài, giữ chiều `m09 → m15` (N-02).
+- Gói `staffing` với bảy gói con; 015 (cùng M09) dùng port nội bộ, không qua API công khai (research N-01, N-07).
+- 002 đã gọi tên `HoSoNhanVienApi`, `GiayPhepApi`, `DanhMucPhamViHanhNgheApi`, `PhanCongApi`, `NhiemVuApi`; chúng được khai báo dạng SPI ở `administration.taikhoan.api` và M09 cài, giữ chiều `staffing → administration` (N-02).
 - Hiệu lực chứng chỉ, chuỗi ca liên tục, nhân viên chính, ca sau, tỷ lệ phục vụ, mục nghiêm trọng là hàm thuần kiểm thử bằng bảng (N-05, N-06, N-08 → N-10).
 - Chồng ca, nhân viên chính trùng, Trưởng tầng chồng không đưa được vào `UNIQUE`; kiểm ở backend dưới khóa `nhan_vien` và `tang_ca_khoa` (N-03). DBR-20 bằng `UNIQUE (ca_id)`. *(R-15: `tang_ca_khoa` → `khoa_ky_thuat`)*
 - Bàn giao: `ban_giao` giữ trạng thái; mục, nhận định là nhóm 3 có bản nháp, trigger khóa sau `chot_luc`; danh sách bản ghi nguồn là phép đọc song song sang 003 → 007, 013, 014 (N-10, Q-307).
@@ -96,7 +96,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ. Mâu thuẫn về nhật ký xem bàn giao và câu chữ còn sót trước Q-307 được báo lại (điểm 1, 2) |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-012 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 002, 003, 005 được bổ sung khai báo (mục "Đồng bộ") |
-| X. Kiến trúc | Đạt | Một khối; gói `m09`; module khác chỉ dùng `m09.api` và các SPI họ khai báo. Không có vòng phụ thuộc (N-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `staffing`; module khác chỉ dùng `staffing.api` và các SPI họ khai báo. Không có vòng phụ thuộc (N-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Chồng ca, chứng chỉ, nhân viên chính, công bố, điều kiện bàn giao kiểm ở backend. Mỗi lệnh có `POST …/{id}/<lenh>` riêng |
 | XII. Dữ liệu | Đạt | DBR-20 bằng `UNIQUE`; DBR-21, DBR-36 bằng kiểm tra dưới khóa và `UNIQUE` cột sinh; nhóm 3 theo mẫu 000; nhật ký trong transaction; `Clock` |
 | XIII. Tham số | Đạt | Như V. CFG-M09-01 theo mẫu ca, CFG-M09-12 trọng số theo mức (kiểu bảng) |
@@ -104,11 +104,11 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | XV. Truy vết, kiểm thử | Đạt | Tên test theo BR, FR. Mỗi BR của 008 có test (data-model mục 11). Không có BR thực hiện ở client; test Flutter kiểm hiển thị và chặn ngoại tuyến |
 
 **Kiểm lại sau Phase 1**: Đạt. Thiết kế không thêm vai trò, trạng thái hay quy tắc nghiệp vụ ngoài spec. Có năm bổ sung kỹ thuật, giải thích ở Complexity Tracking:
-1. Năm giao diện của 002 khai báo dạng SPI ở `m15.taikhoan.api`.
+1. Năm giao diện của 002 khai báo dạng SPI ở `administration.taikhoan.api`.
 2. Port nội bộ M09 cho 015.
 3. Bảng `tang_ca_khoa`. *(R-15: `tang_ca_khoa` → `khoa_ky_thuat`)*
 4. `ban_cong_bo_lich` lưu bản gốc lúc công bố. *(R-15: `ban_cong_bo_lich` → `su_kien_chung`)*
-5. Ba job và bảng `lan_chay_m09`.
+5. Ba job và bảng `lan_chay_m09`. *(R-15: `lan_chay_m09` → `moc_da_nhac`)*
 
 ### Đáp ứng yêu cầu phi chức năng (constitution X)
 
@@ -149,7 +149,7 @@ specs/008-staff-shift-handover/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/com/cambae/backend/m09/
+backend/src/main/java/com/eldercare/backend/staffing/
 ├── api/           # CaTrucApi, NhanSuThongKeApi, SPI (DoGuiBanGiaoPort, ChuyenDiNhiemVuPort), sự kiện
 ├── nhanvien/      {internal, web}   # hồ sơ, trạng thái, nghỉ việc, bộ phận, Phụ trách bộ phận
 ├── giayphep/      {internal, web}   # loại, phạm vi hành nghề, chứng chỉ, HieuLucChungChi, cảnh báo
@@ -175,7 +175,7 @@ mobile/lib/nhan-vien/
 └── phan-cong/               # cho Trưởng tầng
 ```
 
-**Structure Decision**: Theo R-02 của 000. Feature 008 nằm ở `backend/…/m09` với sáu gói con nghiệp vụ, gói `nhiemvu` gom bản cài SPI cho module khác, gói `lich` và gói `api`. Feature 015 thêm gói con vào cùng `m09` và dùng port nội bộ. Web có đủ chức năng. App nhân viên có ca của tôi, bàn giao và ghi vắng ca. App người thân không có màn của 008.
+**Structure Decision**: Theo R-02 của 000. Feature 008 nằm ở `backend/…/staffing` với sáu gói con nghiệp vụ, gói `nhiemvu` gom bản cài SPI cho module khác, gói `lich` và gói `api`. Feature 015 thêm gói con vào cùng `staffing` và dùng port nội bộ. Web có đủ chức năng. App nhân viên có ca của tôi, bàn giao và ghi vắng ca. App người thân không có màn của 008.
 
 ## Ghi chú triển khai
 
@@ -185,15 +185,15 @@ mobile/lib/nhan-vien/
 - **Phạm vi bản nháp**: dịch nốt đường dẫn, schema/response, tham số, trường JSON, enum, mã lỗi và tên khai báo phiên sang tiếng Anh. Giữ các tên đã dịch của hồ sơ nhân viên, `Reason` và `ReasonBody`; bảng đối chiếu đầy đủ ở glossary mục 14. Không thêm hoặc bớt thao tác, trường hay quy tắc.
 - **Đối chiếu đã chạy**: YAML hợp lệ, không khóa trùng; đủ 48 đường dẫn, 60 thao tác HTTP, 24 schema, 199 tham chiếu nội bộ phân biệt hoa thường. So sánh cấu trúc trước/sau theo bảng đổi tên xác nhận giữ nguyên kiểu, `required`, `format`, giới hạn, enum, HTTP status, `x-fr`, `x-br` và các mã nghiệp vụ. Glossary ngoài mục 14 được giữ nguyên.
 - **Thứ tự**: thực hiện Phase 1 T001 → T002 bằng test trước, chạy test của task cùng các kiểm tra kiến trúc; cuối phase mới chạy `clean verify` và đánh `[x]`.
-- **Áp dụng R-02 khi triển khai**: chỉ tạo gói có lớp, dùng `api/{dto,spi,events}`, `web/{request,response}`, `internal/.../{service,domain,persistence,config}`, `scheduling`; không tạo các gói tiếng Việt từ đường dẫn logic trong tasks. Bản giả do 008 khai báo đặt ở `support/fake/m09/`.
+- **Áp dụng R-02 khi triển khai**: chỉ tạo gói có lớp, dùng `api/{dto,spi,events}`, `web/{request,response}`, `internal/.../{service,domain,persistence,config}`, `scheduling`; không tạo các gói tiếng Việt từ đường dẫn logic trong tasks. Bản giả do 008 khai báo đặt ở `support/fake/staffing/`.
 - **Điều chỉnh kỹ thuật T001**: giữ module gốc đã có, tạo gói có lớp theo R-02; không tạo các gói rỗng chỉ để đủ cây thư mục logic cũ. Luật kiến trúc có test với trường hợp được phép/bị cấm để vẫn kiểm chứng được khi Phase 1 chưa có dịch vụ nghiệp vụ.
-- **Điều chỉnh kỹ thuật T002/T003**: đưa khai báo tối thiểu của hai SPI đồ gửi/chuyến đi đã có trong hợp đồng từ T003 lên T002 để bản giả biên dịch được; T003 còn API tra cứu ca, thống kê và sự kiện. `KiemTraCongBoMoRong` là SPI nội bộ theo N-07, nằm ở `m09.shift.internal.service.port` vì phần 015 cài và lệnh công bố của 008 gọi. Luật "chỉ 015 gọi port" áp cho port lệnh ca/phân công/lịch nháp, không áp cho SPI kiểm tra mở rộng có chiều gọi ngược này.
+- **Điều chỉnh kỹ thuật T002/T003**: đưa khai báo tối thiểu của hai SPI đồ gửi/chuyến đi đã có trong hợp đồng từ T003 lên T002 để bản giả biên dịch được; T003 còn API tra cứu ca, thống kê và sự kiện. `KiemTraCongBoMoRong` là SPI nội bộ theo N-07, nằm ở `staffing.shift.internal.service.port` vì phần 015 cài và lệnh công bố của 008 gọi. Luật "chỉ 015 gọi port" áp cho port lệnh ca/phân công/lịch nháp, không áp cho SPI kiểm tra mở rộng có chiều gọi ngược này.
 
 ### 2026-10-23 — Phase 1 T001, T002 (E)
 
 - **Phạm vi**: hai luật `M09ArchTest`, test chứng minh luật bắt được vi phạm, hai SPI công khai + kiểu dùng riêng, SPI kiểm tra công bố nội bộ và ba bản giả dùng chung. Chưa có controller, migration, job hay dịch vụ nghiệp vụ; T003 vẫn chưa xong.
-- **Khai báo SPI**: `HeldBelongingsHandoverPort`, `TripDutyPort` cùng record ở `m09.api.spi`, có `@NamedInterface` cho `api`, `api.spi`. Chữ ký giữ đúng hợp đồng mục 2.1, dịch tên theo glossary 14.6. Các view trước đây chỉ có tên, chưa có cấu trúc: chọn các id tối thiểu và vị trí lưu giữ (013 mục 1.1), nhân viên đang đi và giờ về dự kiến (FR-039 e); không thêm luật lọc hoặc quyền mới.
-- **Kiểm tra công bố**: `ExtendedPublicationCheck`, `PublicationWarning` ở `m09.shift.internal.service.port`; cảnh báo giữ `code`, `description`, `details` như schema `Warning`. Đây là SPI nội bộ cho 015, không mở ra module khác. Không dùng port lệnh cho chiều gọi ngược này.
+- **Khai báo SPI**: `HeldBelongingsHandoverPort`, `TripDutyPort` cùng record ở `staffing.api.spi`, có `@NamedInterface` cho `api`, `api.spi`. Chữ ký giữ đúng hợp đồng mục 2.1, dịch tên theo glossary 14.6. Các view trước đây chỉ có tên, chưa có cấu trúc: chọn các id tối thiểu và vị trí lưu giữ (013 mục 1.1), nhân viên đang đi và giờ về dự kiến (FR-039 e); không thêm luật lọc hoặc quyền mới.
+- **Kiểm tra công bố**: `ExtendedPublicationCheck`, `PublicationWarning` ở `staffing.shift.internal.service.port`; cảnh báo giữ `code`, `description`, `details` như schema `Warning`. Đây là SPI nội bộ cho 015, không mở ra module khác. Không dùng port lệnh cho chiều gọi ngược này.
 - **Bản giả**: `FakeM09Config` là `@TestConfiguration`, ba bean `@Primary`, chỉ test import mới có. Dữ liệu mặc định rỗng; test chủ động đặt dữ liệu, chuyển nguồn có/không dữ liệu qua `available`. Không thêm controller thử nghiệm vào hợp đồng HTTP. Bản giả chuyến lọc khoảng đi thực tế `[departedAt, returnedAt)` giao khoảng ca và đúng tầng/khu; `returnedAt = null` giữ chuyến đang đi kể cả quá giờ về dự kiến. Danh sách đầu vào được sao chép để test không vô tình đổi dữ liệu đã đặt.
 - **TDD T001**: viết `M09ArchRuleTest` và các lớp thử trước; lệnh `./mvnw -o -B '-Dtest=M09ArchRuleTest,*ArchTest,ModuleBoundaryTest' test` đỏ ở bước biên dịch do chưa có `M09ArchTest`. Sau khi cài luật: 27 test qua, 0 lỗi/thất bại/bỏ qua. Bốn test riêng kiểm lời gọi được phép, bị cấm, năm lệnh tạo bản ghi trong job và chuyển trạng thái được phép.
 - **TDD T002**: viết `FakeM09Test` trước; lệnh `./mvnw -o -B '-Dtest=FakeM09Test,*ArchTest,ModuleBoundaryTest' test` đỏ ở bước biên dịch do chưa có SPI và bản giả. Sau khi cài: 34 test qua, 0 lỗi/thất bại/bỏ qua (11 test bản giả). Có kiểm phạm vi người giữ, thay người giữ/trả đồ, chuyến tiếp giáp ca, chuyến chưa về đã quá giờ, nguồn không có dữ liệu và `@Primary` khi cùng tồn tại bản cài khác.
@@ -270,7 +270,7 @@ mobile/lib/nhan-vien/
 ### Phase 5 — backend/web bàn giao, 2026-10-24 → 2026-10-25 (E)
 
 - **Phạm vi và duyệt**: bắt đầu từ Git sạch `06d5e35` trên `impl/008-staff-shift-handover`; không commit/push/merge/đổi nhánh. Chủ dự án đã duyệt API nguồn tối thiểu C/D và bản giả chung, GET tìm bàn giao theo ca, `Long nextShiftId` nhận null, `TripInShiftView.residentIds/departedAt` (giữ constructor cũ), `AlertHandoverApi.currentStatus`, hàm đọc `BedStatusApi.currentState`, cài riêng `ResidentStatusApi.statusPeriods` theo hợp đồng sẵn có. TASK/DOSE/ALERT/INCIDENT phải chọn nguồn, ghi tự do dùng FOLLOW_UP_ISSUE. Không sửa lệnh trạng thái 001, spec hay nghiệp vụ gốc; không thêm thư viện. T030 mobile chưa mở theo CLAUDE.md.
-- **TDD và tổ chức**: T023 viết đỏ trước hai lớp thuần `NextHandoverShift`/`CriticalHandoverItem` (13 test). Các test MySQL `HandoverSchemaIT`/`HandoverIT` đỏ trước bảng, lệnh, trigger, nguồn, đính chính/lưu giữ và các sửa hồi quy. `ResidentStatusPeriodsTest` đỏ trước hàm đọc B; test web đỏ trước thay demo bằng API và trước màn đính chính. Lớp thực đặt dưới `m09/handover/{internal/{domain,persistence,service},web/{request,response}}`, theo README/R-02, không dùng đường dẫn logic trong tasks.
+- **TDD và tổ chức**: T023 viết đỏ trước hai lớp thuần `NextHandoverShift`/`CriticalHandoverItem` (13 test). Các test MySQL `HandoverSchemaIT`/`HandoverIT` đỏ trước bảng, lệnh, trigger, nguồn, đính chính/lưu giữ và các sửa hồi quy. `ResidentStatusPeriodsTest` đỏ trước hàm đọc B; test web đỏ trước thay demo bằng API và trước màn đính chính. Lớp thực đặt dưới `staffing/handover/{internal/{domain,persistence,service},web/{request,response}}`, theo README/R-02, không dùng đường dẫn logic trong tasks.
 - **Ca sau, nguồn, trạng thái**: lọc đúng loại/id phạm vi, bỏ Nháp/Hủy/không yêu cầu bàn giao; chọn ca bắt đầu sớm nhất sau giờ bắt đầu ca trước trong CFG-M09-09 tính từ cuối ca. Hòa giờ dùng id để ổn định, không thêm ưu tiên nghiệp vụ. Đọc nguồn song song bằng virtual threads sẵn có của Java 25; nguồn lỗi hiện `dataUnavailable`, không coi là rỗng. Các nguồn trạng thái/tạm vắng độc lập: thiếu API 004 không làm mất lịch sử 001 đã đọc được. `statusPeriods` giữ biên lịch sử thật, khoảng nửa mở, kể cả nhiều lần trở về; chỉ đọc repository B, không sửa lệnh. Giường dùng trạng thái thật, đồ gửi dùng `stillHeld`; biến mất khỏi danh sách quá hạn không chứng minh đã xử lý. Nguồn thiếu/không rõ trạng thái không cho ghi đã xử lý.
 - **Rà soát nguồn lần cuối**: test FR_040_closedDoseStatusAloneCannotProveResidentIdentityForNewItem đã đỏ trước khi bỏ đường suy đoán nguồn từ trạng thái đơn lẻ. Mục mới phải khớp nguồn trong danh sách hợp lệ của ca; mục đã thêm đúng giữ định danh và vẫn đọc trạng thái mới khi nguồn đã đóng/đồ đã trả/giường rời chờ. Không đổi hợp đồng 006 hay thêm dữ liệu đối tượng vào API trạng thái; tránh gắn liều đóng của người khác vào người đang trong phạm vi. Lượt verify đang chạy được dừng để sửa rồi chạy lại đầy đủ, không dùng kết quả dở làm bằng chứng hoàn thành.
 - **T026 và dữ liệu**: migration mới chưa merge `V008_04__shift_handovers.sql`, năm bảng bàn giao/mục/nhận định/ý kiến/phản hồi. UNIQUE ca; trigger giữ nguồn chỉ số/biến động ngay ở nháp, khóa bản gốc khi chốt và toàn bộ sau xác nhận, ý kiến/phản hồi chỉ thêm. Không thêm FK tới bảng C/D. `finalized_by` ghi người hoàn tất thực tế cho đính chính. `source_keys_at_finalization` chỉ là khóa định danh nguồn tham khảo tại lúc chốt, do lệnh người dùng ghi; không sao chép nội dung nguồn hay tự lập mục. Nhờ đó bản ghi nhập muộn với giờ kế hoạch cũ vẫn được nhận biết là phát sinh sau khi lập; nguồn chưa sẵn sàng lúc chốt hiện rõ chưa phân loại được, không suy đoán.
@@ -403,18 +403,18 @@ mobile/lib/nhan-vien/
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
-| Năm giao diện của 002 khai báo dạng SPI ở `m15.taikhoan.api`, M09 cài | 002 làm plan trước, cần dữ liệu nhân sự mỗi yêu cầu (phạm vi, nhiệm vụ, giấy phép); 008 lại gọi `QuyenApi`, `NhatKyApi` của M15 | Gọi thẳng `m09` từ `m15`: vòng phụ thuộc, Modulith từ chối |
-| Port nội bộ `m09.*.port` cho 015 | 015 cùng M09, cần lệnh trên ca và phân công với cùng kiểm tra của 008 | Đặt ở `m09.api`: mở lệnh nội bộ cho module khác; 015 sửa thẳng bảng: lặp kiểm tra BR-M09-01, 03 |
+| Năm giao diện của 002 khai báo dạng SPI ở `administration.taikhoan.api`, M09 cài | 002 làm plan trước, cần dữ liệu nhân sự mỗi yêu cầu (phạm vi, nhiệm vụ, giấy phép); 008 lại gọi `QuyenApi`, `NhatKyApi` của M15 | Gọi thẳng `staffing` từ `administration`: vòng phụ thuộc, Modulith từ chối |
+| Port nội bộ `staffing.*.port` cho 015 | 015 cùng M09, cần lệnh trên ca và phân công với cùng kiểm tra của 008 | Đặt ở `staffing.api`: mở lệnh nội bộ cho module khác; 015 sửa thẳng bảng: lặp kiểm tra BR-M09-01, 03 |
 | `tang_ca_khoa` | Kiểm FR-024, FR-028 trên tập phân công, giao của một tầng; cần tuần tự theo tầng (SC-011) | Khóa dòng `ca`: không phủ giao Trưởng tầng (không gắn ca) và phân công chồng giữa hai ca *(R-15: `tang_ca_khoa` → `khoa_ky_thuat`)* |
 | `ban_cong_bo_lich` | FR-055 đòi lưu toàn bộ lịch, phân công lúc công bố làm bản gốc có nhật ký vì thay đổi ở Nháp không ghi từng lần | Ghi một nhật ký mỗi ca, mỗi phân công lúc công bố: hàng trăm bản ghi mỗi lần *(R-15: `ban_cong_bo_lich` → `su_kien_chung`)* |
-| Ba job, `lan_chay_m09` | Chuyển trạng thái ca, phân công theo giờ (FR-022, FR-027) và nhắc theo mốc (FR-039, FR-043, SC-001 ≤ 1 phút); chu kỳ là thông số vận hành, không có ở Phụ lục 25 | Tính mọi trạng thái lúc đọc: không có thời điểm chuyển để nhắc, đóng ca và báo cáo đúng hạn |
+| Ba job, `lan_chay_m09` | Chuyển trạng thái ca, phân công theo giờ (FR-022, FR-027) và nhắc theo mốc (FR-039, FR-043, SC-001 ≤ 1 phút); chu kỳ là thông số vận hành, không có ở Phụ lục 25 | Tính mọi trạng thái lúc đọc: không có thời điểm chuyển để nhắc, đóng ca và báo cáo đúng hạn *(R-15: `lan_chay_m09` → `moc_da_nhac`)* |
 
 ## Đồng bộ với hợp đồng của feature khác
 
 Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của feature liên quan giữ đúng hoặc ghi rõ thay đổi.
 
 1. **002** (đã ghi bổ sung vào [../002-account-permission/contracts/module-interfaces.md](../002-account-permission/contracts/module-interfaces.md) mục 2):
-   - `HoSoNhanVienApi`, `GiayPhepApi`, `DanhMucPhamViHanhNgheApi`, `PhanCongApi`, `NhiemVuApi` khai báo dạng SPI ở `m15.taikhoan.api`, M09 cài; chữ ký giữ đúng. `NhiemVuApi` thêm `nguoiThayTruongTang(tang, t)` (Q-90), `boPhanCua(nv, t)` (019, DBR-36), `laPhuTrachBoPhan(nv)` (002 dùng trước khi khóa tài khoản người đang là Phụ trách bộ phận).
+   - `HoSoNhanVienApi`, `GiayPhepApi`, `DanhMucPhamViHanhNgheApi`, `PhanCongApi`, `NhiemVuApi` khai báo dạng SPI ở `administration.taikhoan.api`, M09 cài; chữ ký giữ đúng. `NhiemVuApi` thêm `nguoiThayTruongTang(tang, t)` (Q-90), `boPhanCua(nv, t)` (019, DBR-36), `laPhuTrachBoPhan(nv)` (002 dùng trước khi khóa tài khoản người đang là Phụ trách bộ phận).
    - Hàm đọc mới `NghiepVuChuyenMonApi.loaiYeuCau(maNghiepVu)` để 008 biết loại giấy phép của "phát thuốc và xác nhận liều" (FR-030).
 2. **003** (đã ghi bổ sung vào [../003-room-bed-allocation/contracts/module-interfaces.md](../003-room-bed-allocation/contracts/module-interfaces.md) mục 1.8): hàm đọc `TinhTrangGiuongApi.choSanSangQuaHan(tangId, t)` cho nhóm (f) của danh sách bản ghi nguồn bàn giao (FR-039 f). 008 cài `ThamChieuViTri` đúng chữ ký.
 3. **005** (đã ghi bổ sung vào [../005-daily-care-tasks/contracts/module-interfaces.md](../005-daily-care-tasks/contracts/module-interfaces.md) mục 1.2): hàm đọc `LoaiCongViecApi.yeuCau(loaiCongViecId)` (vai trò, chứng chỉ yêu cầu; FR-030) và `KeHoachChamSocApi.loaiCongViecHienHanh(nctId)` (FR-031). 008 cài `NhanSuCaPort`, gọi `CongViecCaApi`, `CongViecBanGiaoApi` đúng chữ ký.

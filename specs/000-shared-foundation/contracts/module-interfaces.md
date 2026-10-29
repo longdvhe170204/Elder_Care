@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-06 | **Plan**: [../plan.md](../plan.md)
 
-Đây là hợp đồng trong backend, ở gói `com.cambae.backend.m15.<goi>.api` và `com.cambae.backend.common`. *(Sửa 2026-10-21, research R-02)* SPI module khác cài nằm ở `api.spi`: `RequestTypeHandler` (`approval`), `FieldClassificationProvider` (`auditlog`), `CorrectableRecordProvider` (`correction`), `RetentionProvider` (`retention`); DTO phản hồi yêu cầu phê duyệt dùng chung ở `approval.api.dto`. Module khác chỉ được dùng các giao diện này, không đọc bảng của 000 (constitution X). Ngoại lệ duy nhất: báo cáo được `JOIN` hai view `v_dinh_chinh_moi_nhat` và `v_ban_ghi_da_huy` (data-model mục 4).
+Đây là hợp đồng trong backend, ở gói `com.eldercare.backend.administration.<goi>.api` và `com.eldercare.backend.common`. *(Sửa 2026-10-21, research R-02)* SPI module khác cài nằm ở `api.spi`: `RequestTypeHandler` (`approval`), `FieldClassificationProvider` (`auditlog`), `CorrectableRecordProvider` (`correction`), `RetentionProvider` (`retention`); DTO phản hồi yêu cầu phê duyệt dùng chung ở `approval.api.dto`. Module khác chỉ được dùng các giao diện này, không đọc bảng của 000 (constitution X). Ngoại lệ duy nhất: báo cáo được `JOIN` hai view `v_dinh_chinh_moi_nhat` và `v_ban_ghi_da_huy` (data-model mục 4).
 
 Chữ ký viết dạng Java rút gọn, chỉ để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
 
@@ -25,7 +25,7 @@ Chữ ký viết dạng Java rút gọn, chỉ để mô tả hợp đồng; mã
 | `TepApi` (`common.tep`; bổ sung theo plan 001, research H-13) | `taiLen(...)` trả `tepId`; `gan(tepId, loaiChuSoHuu, idChuSoHuu)` trong transaction của lệnh (MANDATORY), tệp đã gắn không gắn lại; SPI `QuyenTepProvider` của module sở hữu quyết quyền tải xuống. *(Bổ sung 2026-10-22, 017 research E-11)* `taiLen` nhận PDF, JPEG, PNG và `.xlsx` cho tệp hệ thống tạo; `POST /tep` chỉ PDF, JPEG, PNG (`FileTypes`) | NFR-08 |
 | `common.bieumau` *(bổ sung 2026-10-22, 007 research S-25, T104)* | `PdfBieuMau` (A4, đầu trang thông tin viện CFG-M11-11 do module gọi truyền vào, bảng, ô ký, số trang, `dongDau`), `ExcelBieuMau` (ghi bảng có định dạng tiền, ngày; đọc `.xlsx` theo mẫu, sai mẫu 422) | 007 FR-050h; 008 FR-001b; 017 FR-025, FR-031 → FR-037 |
 
-### 1.2. `m15.nhatky.api.NhatKyApi`
+### 1.2. `administration.nhatky.api.NhatKyApi`
 
 ```java
 void ghi(BanGhiNhatKy banGhi);   // Propagation.MANDATORY: phải nằm trong transaction của lệnh (FR-047)
@@ -47,7 +47,7 @@ BanGhiNhatKy.builder()
 - *(Đổi api 2026-10-24, 016 US9)* `banGhiDaGhi(hanhDong, loaiDoiTuong, doiTuongId, nguoiThucHienId)` (`AuditLogApi.recorded`, trả `AuditLogRecord`): bản ghi của một hành động trên một loại đối tượng, mới nhất trước, tối đa 200 dòng; tham số rỗng là không lọc. Cho module ghi đọc lại hành động của mình (016: danh sách lần xuất, quyền tải tệp xuất). Không kiểm quyền, không che trường: module gọi tự kiểm.
 - *(Đổi api 2026-10-25, chủ dự án duyệt E cài; chờ A review)* `AuditLogApi.recordedBetween(String entityType, Instant from, Instant to, long afterId, int limit)` trả `List<AuditLogRecord>` hiện có: khoảng `[from,to)`, id tăng dần và lớn hơn `afterId` (trang đầu 0), `limit` từ 1 đến 200. Trang kế tiếp dùng id cuối trang trước; dừng khi ít hơn limit dòng. Module gọi tự kiểm quyền và che trường. 008 dùng đọc đủ lịch sử căn cứ nhiệm vụ; giữ nguyên `recorded` và kiểu bản ghi cũ. Test `AuditLogPagingIT` kiểm hơn 200 dòng, thứ tự/mốc thời gian, actor và API cũ.
 
-### 1.3. `m15.nhatky.api.PhanLoaiTruongProvider` (SPI, module sở hữu cài)
+### 1.3. `administration.nhatky.api.PhanLoaiTruongProvider` (SPI, module sở hữu cài)
 
 ```java
 String loaiDoiTuong();
@@ -56,7 +56,7 @@ Map<String, NhomThongTin> phanLoaiTruong();   // ví dụ diUng → SUC_KHOE; tr
 
 `NhatKyQueryService` dùng SPI này cùng `QuyenXemTruongApi` (002) để che trường và che `lyDo` (FR-049, BR-M15-11). Thiếu provider cho một loại đối tượng thì chỉ Quản lý viện xem được lịch sử của loại đó. Đây là mặc định an toàn.
 
-### 1.4. `m15.thamso.api.ThamSoApi`
+### 1.4. `administration.thamso.api.ThamSoApi`
 
 ```java
 GiaTriThamSo doc(MaThamSo ma);                         // giá trị hiện hành; gọi một lần mỗi lần kiểm tra quy tắc (FR-018)
@@ -65,10 +65,10 @@ GiaTriThamSo docTaiThoiDiem(MaThamSo ma, Instant t);   // FR-019
 ```
 
 - Sự kiện `ThamSoDaDoi(ma, giaTriTruoc, giaTriSau, thoiDiem)` phát sau commit. Module chỉ dùng sự kiện để cập nhật bộ đệm của mình, không dùng để tính lại kết quả cũ (FR-017).
-- *(Bổ sung 2026-10-22, 017 research E-04)* SPI `KiemTraGiaTriThamSo` (`m15.thamso.api`, module sở hữu dữ liệu liên quan cài): `ma()` trả mã tham số, `kiemTra(giaTri)` ném 422 kèm lý do. Lệnh đổi giá trị gọi mọi bản cài có mã trùng sau phần kiểm chung, trước khi lưu; khôi phục về "Theo cơ sở" thì không gọi. 017 cài cho CFG-M11-10.
+- *(Bổ sung 2026-10-22, 017 research E-04)* SPI `KiemTraGiaTriThamSo` (`administration.thamso.api`, module sở hữu dữ liệu liên quan cài): `ma()` trả mã tham số, `kiemTra(giaTri)` ném 422 kèm lý do. Lệnh đổi giá trị gọi mọi bản cài có mã trùng sau phần kiểm chung, trước khi lưu; khôi phục về "Theo cơ sở" thì không gọi. 017 cài cho CFG-M11-10.
 - `MaThamSo` là enum của toàn bộ mã ở Phụ lục 25. Module không được viết cứng giá trị mặc định trong mã (constitution XIII); test ArchUnit cấm hằng số thời lượng trong gói `service` của module.
 
-### 1.5. `m15.pheduyet.api.YeuCauPheDuyetApi`
+### 1.5. `administration.pheduyet.api.YeuCauPheDuyetApi`
 
 ```java
 YeuCauView lap(LapYeuCau lenh);                 // dùng khi lệnh của một actor ở module khác lập kèm yêu cầu; người lập là actor đó (FR-010a, Q-307)
@@ -128,7 +128,7 @@ Sự kiện phát sau commit:
 
 **Danh sách người duyệt** *(bổ sung theo plan 004, Q-338)*: `danhSachNguoiDuyet` là danh sách tài khoản do 000 tính tại thời điểm phát sự kiện: `NguoiDuyetApi.danhSach(handler.quyenDuyet(), DoiTuong.tuPhamVi(handler.phamVi(yc)))`, rồi nếu `gioiHanVaiTroDuyet(yc)` có giá trị thì giữ tài khoản có ít nhất một vai trò trong tập (`TaiKhoanApi.coVaiTro`). Cùng danh sách này quyết định `conNguoiDuyet` của `NhacQuaHan` (BR-M15-09) và điều kiện "người duyệt không phải Quản lý viện" ở mốc CFG-M15-06 (FR-031a): mọi tài khoản trong danh sách đều là Quản lý viện thì không phát `YeuCauCanBaoQuanLyVien(QUA_CFG_M15_06)`. Yêu cầu thông báo của các sự kiện trên dùng nhóm `NguoiCoQuyenDuyet` mang sẵn danh sách này (009 contracts mục 1.1); 009 không tự tra lại `NguoiDuyetApi` cho yêu cầu của 000.
 
-### 1.6. `m15.dinhchinh.api.DinhChinhApi`
+### 1.6. `administration.dinhchinh.api.DinhChinhApi`
 
 ```java
 KetQuaDinhChinh taoDinhChinh(String loaiBanGhi, long idGoc, KieuDinhChinh kieu, Object noiDungDung, LyDo lyDo);
@@ -156,7 +156,7 @@ Sự kiện: `DaDinhChinh(loaiBanGhi, idGoc, kieu, dinhChinhId)`.
 
 Không có provider nghĩa là loại đó không có đính chính: chi phí đã chốt, giao dịch số dư (1.5, DBR-17). Gọi đính chính cho các loại này thì trả 409 `KHONG_HO_TRO_DINH_CHINH`.
 
-### 1.7. `m15.luutru.api.LuuTruProvider` (SPI)
+### 1.7. `administration.luutru.api.LuuTruProvider` (SPI)
 
 ```java
 String loaiDuLieu();

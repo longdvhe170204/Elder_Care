@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## D-01. Vị trí trong backend
 
-**Quyết định**: Feature 006 là module M07 (mục 11). Gói `com.cambae.backend.m07` có các gói con:
+**Quyết định**: Feature 006 là module M07 (mục 11). Gói `com.eldercare.backend.medication` có các gói con:
 
 | Gói | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -42,13 +42,13 @@ Bảng `thuoc_nct` (một dòng mỗi hồ sơ người cao tuổi) là đích k
 | 006 → 003 | Đọc | `ViTriApi.hienTai` (tầng/khu của người cao tuổi lúc xét liều) |
 | 006 ↔ 004 | 006 → 004 | Cài `MucViecSauQuaDoiPort` (`THUOC_GUI`); gọi `DanhSachViecSauQuaDoiApi.capNhat`; đọc `DonGiaApi.thuocNguonVien` chỉ để hiển thị cảnh báo thiếu mục vật phẩm (FR-003); nghe `LuotVangDaGiaHan` |
 | 006 → 005 | 006 cài SPI của 005 | `LieuThuocChecklistPort`, `ThoiKhoaBieuNguonPort` (005 module-interfaces mục 2.1; giữ đúng chữ ký) |
-| 006 ↔ 007, 008, 010, 012, 014, 016 | Các module này → 006 | Họ làm plan sau. 006 cần dữ liệu của 008 (ca, phân công điều dưỡng, Người phụ trách ca, bàn giao đã xác nhận), 014 (chuyến đi), 010 (đề nghị mua hộ) qua SPI khai báo ở `m07.api`: `DieuDuongCaPort` (008), `ChuyenDiThuocPort` (014), `DeNghiMuaHoPort` (010). 007, 008, 012, 016 đọc API của 006; 014 gọi `MangThuocChuyenDiApi` (MANDATORY) |
+| 006 ↔ 007, 008, 010, 012, 014, 016 | Các module này → 006 | Họ làm plan sau. 006 cần dữ liệu của 008 (ca, phân công điều dưỡng, Người phụ trách ca, bàn giao đã xác nhận), 014 (chuyến đi), 010 (đề nghị mua hộ) qua SPI khai báo ở `medication.api`: `DieuDuongCaPort` (008), `ChuyenDiThuocPort` (014), `DeNghiMuaHoPort` (010). 007, 008, 012, 016 đọc API của 006; 014 gọi `MangThuocChuyenDiApi` (MANDATORY) |
 | 006 → 007, 009, 010 | Sự kiện | Yêu cầu tạo/đóng cảnh báo, thông báo, sự kiện tính phí đi qua outbox ghi cùng transaction (D-17) |
-| 006 ↔ 019 (M11) *(bổ sung 2026-10-11, Q-337)* | M11 → M07 | 019 cài SPI `YeuCauThuocCungUngPort` khai báo ở `m07.api` (cùng chiều với `DeNghiMuaHoPort` mà 010, cùng M11, đã cài) để 006 đọc dòng của yêu cầu mua sắm loại "thuốc" đã ghi đã mua; 019 đọc `DonThuocApi.donNguonVienChuaKetThuc` và `TiepNhanThuocCungUngApi` của `m07.api`. M07 không gọi `m11.api`, nên không có vòng (D-21) |
+| 006 ↔ 019 (M11) *(bổ sung 2026-10-11, Q-337)* | M11 → M07 | 019 cài SPI `YeuCauThuocCungUngPort` khai báo ở `medication.api` (cùng chiều với `DeNghiMuaHoPort` mà 010, cùng M11, đã cài) để 006 đọc dòng của yêu cầu mua sắm loại "thuốc" đã ghi đã mua; 019 đọc `DonThuocApi.donNguonVienChuaKetThuc` và `TiepNhanThuocCungUngApi` của `medication.api`. M07 không gọi `billing.api`, nên không có vòng (D-21) |
 
 **Lý do**: Modulith `verify()` từ chối vòng (000 R-02). 007 cần "thuốc đang dùng" cho thẻ khẩn cấp (FR-050) nên phụ thuộc 006; nếu 006 gọi đồng bộ 007 để tạo cảnh báo thì có vòng.
 
-**Phương án đã cân nhắc**: Dùng lại `NhanSuCaPort` của `m04.api` cho dữ liệu ca: bị loại vì 006 cần thêm "Điều dưỡng có ca tại tầng" và "người được phân công tại thời điểm" mà 005 không khai báo; mở rộng SPI của 005 làm hợp đồng 005 phụ thuộc nhu cầu của 006.
+**Phương án đã cân nhắc**: Dùng lại `NhanSuCaPort` của `care.api` cho dữ liệu ca: bị loại vì 006 cần thêm "Điều dưỡng có ca tại tầng" và "người được phân công tại thời điểm" mà 005 không khai báo; mở rộng SPI của 005 làm hợp đồng 005 phụ thuộc nhu cầu của 006.
 
 ---
 
@@ -184,7 +184,7 @@ Bảng `thuoc_nct` (một dòng mỗi hồ sơ người cao tuổi) là đích k
   Phân công mới trong ca làm lần đọc kế tiếp trả người mới (FR-026a "liều chưa đóng MUST chuyển về điều dưỡng được phân công") mà không cần 008 gọi 006. Mỗi lần đóng lưu `can_cu_quyen` (D-08) để 016 biết liều chung (FR-051).
 - **Thông báo một lần mỗi ca** "người cao tuổi chưa có điều dưỡng phụ trách": job theo phút, tại đầu ca và khi một liều của người đó tới đầu cửa sổ, nếu người đó không có phân công thì phát `NctChuaCoDieuDuongPhuTrach(nctId, caId)` cho Trưởng tầng và Người phụ trách ca (Trung bình, spec Cập nhật 2026-09-26 với 009); bảng `lan_chay_m07 (viec = NCT_CHUA_PHU_TRACH, moc = caId:nctId)` chặn gửi lặp.
 - **Nhắc Trễ của liều chung**: gửi mọi Điều dưỡng có ca tại tầng và Người phụ trách ca (FR-026a).
-- **Tầng không có Điều dưỡng nào có ca** (BR-M07-21): job theo phút, tại đầu ca và khi `dieuDuongCoCa(tang, bayGio)` rỗng lúc một liều tới đầu cửa sổ, phát `TangKhongCoDieuDuong(tang, caId, lieuSapToiGio[])` mức Trung bình cho Trưởng tầng và Quản lý viện; một lần mỗi (tầng, ca) qua `lan_chay_m07`. Liều vẫn theo vòng đời thường.
+- **Tầng không có Điều dưỡng nào có ca** (BR-M07-21): job theo phút, tại đầu ca và khi `dieuDuongCoCa(tang, bayGio)` rỗng lúc một liều tới đầu cửa sổ, phát `TangKhongCoDieuDuong(tang, caId, lieuSapToiGio[])` mức Trung bình cho Trưởng tầng và Quản lý viện; một lần mỗi (tầng, ca) qua `lan_chay_m07`. Liều vẫn theo vòng đời thường. *(R-15: `lan_chay_m07` → `moc_da_nhac`)*
 
 **Lý do**: Phân công thuộc 008 và đổi liên tục trong ca; tính lúc đọc tránh phải đồng bộ một cột người phụ trách trên hàng nghìn liều.
 
@@ -407,11 +407,11 @@ Gửi 010: `SuKienTinhPhiThuoc(nguon: LIEU | LAN_DUNG_PRN | LAN_GIAO, id, nctId,
 
 **Quyết định**:
 - **Bảng** `lan_tiep_nhan_thuoc_cung_ung` (nhóm 3, data-model mục 9a): mỗi lần kiểm một dòng của yêu cầu mua sắm loại "thuốc" (019) là một bản ghi Đạt hoặc Không đạt; giao nhiều đợt, giao bù là nhiều bản ghi. Không có số lượng tồn, không đổi đơn, liều, không phát `SuKienTinhPhiThuoc` (chi phí cho người cao tuổi vẫn theo liều, BR-M07-14). *(R-15: `lan_tiep_nhan_thuoc_cung_ung` → `lan_giao_nhan_thuoc` (`medication_handover`))*
-- **Dữ liệu yêu cầu**: đọc qua SPI `YeuCauThuocCungUngPort` ở `m07.api`, 019 (M11) cài. Port chỉ trả dòng khi yêu cầu đã ghi đã mua (Chờ đối chiếu, Đã đối chiếu, Lệch; BR-M11-17); rỗng thì 409. Bảng của 006 không khóa ngoại sang bảng của M11.
+- **Dữ liệu yêu cầu**: đọc qua SPI `YeuCauThuocCungUngPort` ở `medication.api`, 019 (M11) cài. Port chỉ trả dòng khi yêu cầu đã ghi đã mua (Chờ đối chiếu, Đã đối chiếu, Lệch; BR-M11-17); rỗng thì 409. Bảng của 006 không khóa ngoại sang bảng của M11.
 - **Quyền**: khóa `(TIEP_NHAN_THUOC_CUNG_UNG, TAO)` cho Điều dưỡng; phạm vi là người cao tuổi của dòng, theo quy tắc phạm vi T của Điều dưỡng (19.3: Điều dưỡng thực hiện trong phạm vi phân công; BR-M15-01; 002 A-04). Quyết định của chủ dự án 2026-10-11; không phải quy tắc mới. Chú thích ⁴⁴ chỉ mô tả, kiểm ở 006 (U2).
 - **Không đạt** (FR-055): phát `TiepNhanThuocKhongDat` cho 009, mức Nhẹ, người nhận là người lập yêu cầu (`NhanVien`) và Phụ trách bộ phận hiện tại của bộ phận của yêu cầu (`PhuTrachBoPhan(boPhanId)` của 009, `boPhanId` lấy từ port là bộ phận gắn với yêu cầu lúc lập; sửa 2026-10-11, lượt 3). 006 chỉ phát một sự kiện; xác định người, người thay và gộp người trùng do 009 (FR-012), 006 không tự gửi. Hệ thống không lập yêu cầu mới, không hủy yêu cầu (Q-307).
 - **"Đã nhận"** là số liệu tính khi đọc (`TiepNhanThuocCungUngApi.theoYeuCau`): mọi dòng có ít nhất một lần Đạt.
 
 **Lý do**: Giữ một chiều M11 → M07 như `DeNghiMuaHoPort` (D-02); không tạo kho thuốc (1.2, Q-337).
 
-**Phương án đã cân nhắc**: Đặt lần tiếp nhận ở 019 (M11): 019 không có quyền và dữ liệu thuốc của người cao tuổi, và Điều dưỡng ghi nhận trong luồng thuốc; 006 gọi `m11.api` để đọc yêu cầu: tạo vòng M07 ↔ M11 vì M11 đã phụ thuộc M07.
+**Phương án đã cân nhắc**: Đặt lần tiếp nhận ở 019 (M11): 019 không có quyền và dữ liệu thuốc của người cao tuổi, và Điều dưỡng ghi nhận trong luồng thuốc; 006 gọi `billing.api` để đọc yêu cầu: tạo vòng M07 ↔ M11 vì M11 đã phụ thuộc M07.

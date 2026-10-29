@@ -10,7 +10,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## T-01. Vị trí trong backend
 
-**Quyết định**: Feature 004 là module M02 (mục 6). Gói `com.cambae.backend.m02` có các gói con:
+**Quyết định**: Feature 004 là module M02 (mục 6). Gói `com.eldercare.backend.admission` có các gói con:
 
 | Gói | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -38,15 +38,15 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 
 | Cặp | Chiều mã | Cách giữ một chiều |
 | --- | --- | --- |
-| 004 ↔ 001 | 004 → 001 | 004 cài `ThamGiaChuyenTrangThai` của 001 và gọi `MucChamSocApi`, `DanhGiaApi`, `TrangThaiNguoiCaoTuoiApi`. Các giao diện 001 cần từ 004 (`YeuCauDoiMucApi`, `HopDongApi`, `LuotVangApi`) chuyển thành SPI khai báo ở `m01.api`, M02 cài; chữ ký giữ như plan 001 |
-| 004 ↔ 002 | 004 → M15 | `KetThucLuuTruApi` mà 002 cần được khai báo ở `m15.taikhoan.api` dưới dạng SPI, M02 cài |
+| 004 ↔ 001 | 004 → 001 | 004 cài `ThamGiaChuyenTrangThai` của 001 và gọi `MucChamSocApi`, `DanhGiaApi`, `TrangThaiNguoiCaoTuoiApi`. Các giao diện 001 cần từ 004 (`YeuCauDoiMucApi`, `HopDongApi`, `LuotVangApi`) chuyển thành SPI khai báo ở `resident.api`, M02 cài; chữ ký giữ như plan 001 |
+| 004 ↔ 002 | 004 → M15 | `KetThucLuuTruApi` mà 002 cần được khai báo ở `administration.taikhoan.api` dưới dạng SPI, M02 cài |
 | 004 ↔ 003 | 004 → 003 | 004 gọi `PhanBoGiuongLenhApi`, `SucChuaBanTruApi`, `ViTriApi`, `PhongChoPhepApi`; 004 cài `NguonLuuTruChoPhanBo`, `DemLichDenBanTru` của 003 |
-| 004 ↔ 010, 017, 012, 005 | Các module này → 004 | 010 đọc đơn giá, nội dung hợp đồng, ngày lưu trú; 017 đọc hợp đồng; 012 hiện hợp đồng trên cổng; 005 đọc lịch đến. 004 cần lại một ít dữ liệu của họ qua SPI khai báo ở `m02.api`: `KyCuoiPort` (010), `TrangThaiDatCocPort` (017), `NguoiDaiDienPort`, `BanGhiDonPort` (012), `TrangThaiCoMatBanTruPort` (005), `MucViecSauQuaDoiPort` (010, 013, 006, 007, 017) |
+| 004 ↔ 010, 017, 012, 005 | Các module này → 004 | 010 đọc đơn giá, nội dung hợp đồng, ngày lưu trú; 017 đọc hợp đồng; 012 hiện hợp đồng trên cổng; 005 đọc lịch đến. 004 cần lại một ít dữ liệu của họ qua SPI khai báo ở `admission.api`: `KyCuoiPort` (010), `TrangThaiDatCocPort` (017), `NguoiDaiDienPort`, `BanGhiDonPort` (012), `TrangThaiCoMatBanTruPort` (005), `MucViecSauQuaDoiPort` (010, 013, 006, 007, 017) |
 | 004 → 009, 011, 018 | Sự kiện | 004 phát sự kiện sau commit (T-12) |
 
 Điều kiện kết thúc lưu trú (a) → (d), (h) không đi qua SPI của 004: 010, 013, 006, 007, 017 đã cài bean `ThamGiaChuyenTrangThai` cho lệnh `KET_THUC_LUU_TRU` của 001 (001 H-02). 004 hiển thị danh sách bằng `TrangThaiNguoiCaoTuoiApi.xemDieuKien` (T-09).
 
-**Lý do**: Modulith `verify()` từ chối vòng phụ thuộc (000 R-02). Plan 001 đã ghi "001 cần từ 004" mà chưa chọn chiều; chọn SPI ở `m01.api` giữ chữ ký đã thiết kế.
+**Lý do**: Modulith `verify()` từ chối vòng phụ thuộc (000 R-02). Plan 001 đã ghi "001 cần từ 004" mà chưa chọn chiều; chọn SPI ở `resident.api` giữ chữ ký đã thiết kế.
 
 **Phương án đã cân nhắc**: Sự kiện sau commit cho mọi tương tác: không đáp ứng "trong cùng một lần" của FR-002, FR-065, FR-070, FR-066 (1).
 
@@ -67,7 +67,7 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 ## T-04. Hợp đồng và nội dung hiệu lực tại ngày D (mục C, FR-019 → FR-029, BR-M02-09)
 
 **Quyết định**:
-- **Bản nháp**: `hop_dong` (đầu hợp đồng) cùng các bảng con `hop_dong_dich_vu`, `hop_dong_chinh_sach_vang` (dòng ghi đè), `hop_dong_lich_den` (bán trú). Chỉ sửa được khi `NHAP` và không mang dấu "đang chờ duyệt điều khoản"; trigger chặn `UPDATE` nội dung ở trạng thái khác.
+- **Bản nháp**: `hop_dong` (đầu hợp đồng) cùng các bảng con `hop_dong_dich_vu`, `hop_dong_chinh_sach_vang` (dòng ghi đè), `hop_dong_lich_den` (bán trú). Chỉ sửa được khi `NHAP` và không mang dấu "đang chờ duyệt điều khoản"; trigger chặn `UPDATE` nội dung ở trạng thái khác. *(R-15: `hop_dong_dich_vu`, `hop_dong_lich_den` → cột `JSON` của `phien_ban_hop_dong`)*
 - **Phiên bản nội dung**: khi "Ghi nhận đã ký", hệ thống ghi phiên bản 0 vào `phien_ban_noi_dung_hop_dong` (nhóm 3, chỉ thêm). Phiên bản gồm toàn bộ nội dung ở dạng JSON cùng các cột hay đọc: loại lưu trú, mức, ngày kết thúc, loại phòng, khoản cọc. Đơn giá được ghi lại tại lúc ký (FR-036). Mỗi phụ lục áp dụng thêm một phiên bản, `hieu_luc_tu` là ngày hiệu lực thực tế. *(R-15: `phien_ban_noi_dung_hop_dong` → `phien_ban_hop_dong`)*
 - **Nội dung tại ngày D** (FR-024) là phiên bản có `hieu_luc_tu` lớn nhất mà không muộn hơn D. Không cần ghép phụ lục mỗi lần đọc.
 - Phụ lục luôn được áp dụng theo thứ tự ngày hiệu lực. Ngày hiệu lực thực tế là `max(mong muốn, ngày duyệt)` và việc áp dụng chạy vào đúng ngày đó, theo thứ tự ngày (000 R-10). Vì vậy phiên bản mới luôn dựng từ phiên bản mới nhất. FR-046 chặn hai yêu cầu cùng thuộc tính chờ hiệu lực cùng lúc.
@@ -238,7 +238,7 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 ## T-10. Lịch đến bán trú và sức chứa
 
 **Quyết định**:
-- **Lịch đến** là nội dung hợp đồng (`hop_dong_lich_den`: thứ trong tuần hoặc ngày cụ thể, giờ đến, giờ về). `CHECK (gio_ve > gio_den)` bảo đảm không qua 00:00 (FR-019, Q-286).
+- **Lịch đến** là nội dung hợp đồng (`hop_dong_lich_den`: thứ trong tuần hoặc ngày cụ thể, giờ đến, giờ về). `CHECK (gio_ve > gio_den)` bảo đảm không qua 00:00 (FR-019, Q-286). *(R-15: `hop_dong_lich_den` → cột `JSON` của `phien_ban_hop_dong`)*
 - **Kiểm sức chứa** (003 FR-039) ở hai lệnh làm lịch có hiệu lực ràng buộc:
   - "Ghi nhận đã ký" hợp đồng bán trú;
   - `kiemTraKhiDuyet` của yêu cầu đổi lịch đến hoặc đổi sang bán trú (FR-041).

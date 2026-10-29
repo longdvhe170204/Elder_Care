@@ -79,7 +79,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 
 ## 4. Test tự động: truy vết kịch bản → test
 
-| Spec | Lớp test (backend, `com.cambae.backend.m02…`) | Loại |
+| Spec | Lớp test (backend, `com.eldercare.backend.admission…`) | Loại |
 | --- | --- | --- |
 | US1, FR-001 → FR-006 | `LuotDangKyIT`, `CapNhatLuotDangKyIT`, `FR_004_DanhSachKhopLenhIT`, `BR_M02_22_MucHopDongIT`, `TienTrinhIT` | Tích hợp |
 | US2, FR-007 → FR-018 | `BR_M02_10_DiemUuTienTest`, `DiemHangNgayIT`, `DieuChinhDiemIT`, `BR_M02_01_DanhSachPhuHopIT`, `FR_012_LuotTrongIT`, `BR_M02_02_GiuChoIT`, `FR_002_TuChoiHuyTiepNhanIT`, `BR_M02_03_NhacHoSoChoIT`, `GhiNhanLienHeDongThoiIT` | Đơn vị, tích hợp, đồng thời |

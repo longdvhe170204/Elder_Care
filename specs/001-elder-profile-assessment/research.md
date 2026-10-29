@@ -8,20 +8,20 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Đây 
 
 ## H-01. Vị trí trong backend
 
-**Quyết định**: Feature 001 là module **M01** (`com.cambae.backend.m01`). Gói con:
+**Quyết định**: Feature 001 là module **M01** (`com.eldercare.backend.resident`). Gói con:
 
 | Gói | Nội dung | FR |
 | --- | --- | --- |
-| `m01.api` | Giao diện công khai, DTO, sự kiện, SPI `ThamGiaChuyenTrangThai` | Mọi giao diện ở [contracts/module-interfaces.md](contracts/module-interfaces.md) |
-| `m01.hoso` | Hồ sơ cá nhân, tra cứu, liên kết hồ sơ trước | FR-001 → FR-009 |
-| `m01.trangthai` | Máy trạng thái người cao tuổi, lịch sử trạng thái, mức chăm sóc hiện hành | FR-044 → FR-053 |
-| `m01.dongy` | Bản đồng ý chia sẻ dữ liệu | FR-010 → FR-016 |
-| `m01.suckhoe` | Hồ sơ sức khỏe ban đầu, mục sức khỏe, danh mục dị nguyên, mức độ, nguồn thông tin | FR-017 → FR-023 |
-| `m01.nguyenvong` | Phiếu nguyện vọng cuối đời | FR-023a → FR-023f |
-| `m01.danhgia` | Lần đánh giá, nhu cầu chăm sóc, báo đánh giá lại | FR-024 → FR-043 |
-| `m01.lich` | Job của Bộ lập lịch (H-12) | FR-012, FR-023d, FR-036, FR-039 → FR-041, FR-050 |
+| `resident.api` | Giao diện công khai, DTO, sự kiện, SPI `ThamGiaChuyenTrangThai` | Mọi giao diện ở [contracts/module-interfaces.md](contracts/module-interfaces.md) |
+| `resident.hoso` | Hồ sơ cá nhân, tra cứu, liên kết hồ sơ trước | FR-001 → FR-009 |
+| `resident.trangthai` | Máy trạng thái người cao tuổi, lịch sử trạng thái, mức chăm sóc hiện hành | FR-044 → FR-053 |
+| `resident.dongy` | Bản đồng ý chia sẻ dữ liệu | FR-010 → FR-016 |
+| `resident.suckhoe` | Hồ sơ sức khỏe ban đầu, mục sức khỏe, danh mục dị nguyên, mức độ, nguồn thông tin | FR-017 → FR-023 |
+| `resident.nguyenvong` | Phiếu nguyện vọng cuối đời | FR-023a → FR-023f |
+| `resident.danhgia` | Lần đánh giá, nhu cầu chăm sóc, báo đánh giá lại | FR-024 → FR-043 |
+| `resident.lich` | Job của Bộ lập lịch (H-12) | FR-012, FR-023d, FR-036, FR-039 → FR-041, FR-050 |
 
-Mỗi gói con chia `internal` (service, repository, entity) và `web` (controller). Chỉ `m01.api` được module khác dùng (Spring Modulith, 000 R-02).
+Mỗi gói con chia `internal` (service, repository, entity) và `web` (controller). Chỉ `resident.api` được module khác dùng (Spring Modulith, 000 R-02).
 
 **Lý do**: Constitution X; spec 001 là Module 01 (mục 5) của tài liệu nguồn.
 
@@ -113,7 +113,7 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
   - Chỉ mục `(ho_ten_so_khop, ngay_sinh)`.
   - Có trùng thì trả 409 `CO_THE_TRUNG_HO_SO` kèm danh sách. Client gửi lại với `xacNhanKhongTrung = true`; nhật ký ghi lần xác nhận này.
 - **Cập nhật thông tin cá nhân** (FR-006): `POST …/{id}/cap-nhat-thong-tin`, bắt buộc `If-Match` và `lyDo`. Nhật ký ghi các trường đổi, trước và sau.
-- **Chặn trên hồ sơ trạng thái cuối** (BR-M01-05, FR-049): mọi lệnh ghi của M01 gọi `HoSoMoGuard.kiemTra(nctId, ngoaiLe)` đầu tiên. Guard từ chối với 409 `HO_SO_DA_DONG`, trừ hai ngoại lệ: "Rút lại đồng ý" và đính chính đi đường (c) của 000 (H-10). Một test ArchUnit buộc mọi phương thức `@LenhNghiepVu` trong `m01` phải gọi guard này.
+- **Chặn trên hồ sơ trạng thái cuối** (BR-M01-05, FR-049): mọi lệnh ghi của M01 gọi `HoSoMoGuard.kiemTra(nctId, ngoaiLe)` đầu tiên. Guard từ chối với 409 `HO_SO_DA_DONG`, trừ hai ngoại lệ: "Rút lại đồng ý" và đính chính đi đường (c) của 000 (H-10). Một test ArchUnit buộc mọi phương thức `@LenhNghiepVu` trong `resident` phải gọi guard này.
 
 **Lý do**: Cột sinh cùng `UNIQUE` đưa DBR-01 xuống cơ sở dữ liệu, đúng constitution XII, mà không phải tự viết khóa.
 
@@ -185,8 +185,8 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
   - `BEFORE DELETE` theo mẫu `trg_<bang>_khong_xoa` của 000 (chỉ tài khoản `eldercare_luu_tru`).
 - **Loại trừ**: `POST /muc-suc-khoe/{id}/loai-tru` (lý do bắt buộc). Chuyển `HIEU_LUC → DA_LOAI_TRU` một chiều; trigger chặn chuyển ngược.
 - **Danh mục** (nhóm 1, mẫu 000 data-model 1.1):
-  - `di_nguyen`: nhóm `THUOC_HOAT_CHAT`, `THUC_PHAM`, `KHAC`. Quyền ghi theo nhóm: `THUOC_HOAT_CHAT` cho người có C ở "Danh mục thuốc" (Quản lý viện, 006 FR-002); `THUC_PHAM` cho Bác sĩ (011 FR-003). Nhóm `KHAC` chưa có nguồn quy định người ghi (plan, điểm báo lại 3); tạm cho Quản lý viện.
-  - `muc_do_di_ung`, `nguon_thong_tin` (BR-M01-11): Quản lý viện cấu hình; giá trị khởi tạo nạp bằng migration.
+  - `di_nguyen`: nhóm `THUOC_HOAT_CHAT`, `THUC_PHAM`, `KHAC`. Quyền ghi theo nhóm: `THUOC_HOAT_CHAT` cho người có C ở "Danh mục thuốc" (Quản lý viện, 006 FR-002); `THUC_PHAM` cho Bác sĩ (011 FR-003). Nhóm `KHAC` chưa có nguồn quy định người ghi (plan, điểm báo lại 3); tạm cho Quản lý viện. *(R-15: `di_nguyen` → `danh_muc_chung`)*
+  - `muc_do_di_ung`, `nguon_thong_tin` (BR-M01-11): Quản lý viện cấu hình; giá trị khởi tạo nạp bằng migration. *(R-15: `muc_do_di_ung`, `nguon_thong_tin` → `danh_muc_chung`)*
 - **Dị ứng loại "khác"** (FR-018a): `di_nguyen_id IS NULL` và có `noi_dung_van_ban`. Cột sinh `khong_kiem_tra_tu_dong` luôn đi kèm khi trả mục ra ngoài, kể cả qua `MucSucKhoeApi` cho thẻ thông tin khẩn cấp (007). Phản hồi tạo mục có cảnh báo `DI_UNG_KHONG_KIEM_TRA_TU_DONG`.
 - **Cảnh báo trùng** (FR-021): trước khi thêm, tìm mục `HIEU_LUC` cùng `di_nguyen_id`, hoặc cùng loại và cùng nội dung (so khớp như H-04). Có trùng thì trả 409 `MUC_SUC_KHOE_TRUNG`; client gửi lại với `xacNhanTrung = true`.
 - **Kiểm tra lại đơn thuốc, chế độ ăn** (FR-020, BR-M01-07, BR-M01-12):
@@ -324,7 +324,7 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
 | `NhacXemLaiNhanDinh` (bổ sung 2026-10-18) | FR-023i, Q-360 | Phiếu nguyện vọng Hiệu lực có `ngay_xem_lai_nhan_dinh` ≤ hôm nay, hồ sơ chưa ở trạng thái cuối: nhắc một lần Bác sĩ đã nhận định (`NhanVien(bacSiNhanDinhId)`, không thay) và Điều dưỡng phụ trách, mức Nhẹ | `nhac_chu_ky` loại `XEM_LAI_NHAN_DINH`, `moc_id` = id phiếu *(R-15: `nhac_chu_ky` → `moc_da_nhac`)* |
 | `ThuLaiKiemTraDiUng` | BR-M01-12 | Phát lại `DiUngDaGhiNhan` cho mục còn cờ quá 15 phút | Listener của 006, 011 idempotent theo `mucId` |
 
-- Các job chỉ chuyển trạng thái theo thời gian, nhắc, cảnh báo (000 FR-010a). Bảng job được ghi là bảng kỹ thuật: `lan_bao_danh_gia_lai`, `nhac_chu_ky`, `canh_bao_tro_lai`. ArchUnit của 000 kiểm gói `m01.lich` không gọi repository tạo bản ghi nghiệp vụ. *(R-15: `lan_bao_danh_gia_lai` → `ho_so_chung`; `nhac_chu_ky`, `canh_bao_tro_lai` → `moc_da_nhac`)*
+- Các job chỉ chuyển trạng thái theo thời gian, nhắc, cảnh báo (000 FR-010a). Bảng job được ghi là bảng kỹ thuật: `lan_bao_danh_gia_lai`, `nhac_chu_ky`, `canh_bao_tro_lai`. ArchUnit của 000 kiểm gói `resident.lich` không gọi repository tạo bản ghi nghiệp vụ. *(R-15: `lan_bao_danh_gia_lai` → `ho_so_chung`; `nhac_chu_ky`, `canh_bao_tro_lai` → `moc_da_nhac`)*
 - Gia hạn dự kiến trở lại (004 FR-049) tạo mốc mới, nên `canh_bao_tro_lai` có khóa mới và cảnh báo được tính lại (Edge Case). *(R-15: `canh_bao_tro_lai` → `moc_da_nhac`)*
 - NFR-04: với 300 người cao tuổi, mỗi job chỉ là vài truy vấn có chỉ mục, xong trong vài giây.
 
@@ -336,7 +336,7 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
 
 ## H-13. Tệp đính kèm (dùng chung)
 
-**Quyết định**: Plan 000 chưa có cơ chế tệp. 001 là feature đầu tiên cần tệp: ảnh người cao tuổi, bản scan bản đồng ý, bằng chứng rút lại, phiếu nguyện vọng, giấy tờ qua đời. Vì vậy 001 chốt một thành phần kỹ thuật dùng chung `com.cambae.backend.common.tep`; đã ghi bổ sung vào hợp đồng của 000.
+**Quyết định**: Plan 000 chưa có cơ chế tệp. 001 là feature đầu tiên cần tệp: ảnh người cao tuổi, bản scan bản đồng ý, bằng chứng rút lại, phiếu nguyện vọng, giấy tờ qua đời. Vì vậy 001 chốt một thành phần kỹ thuật dùng chung `com.eldercare.backend.common.tep`; đã ghi bổ sung vào hợp đồng của 000.
 
 - **Lưu nội dung** *(Sửa 2026-10-19, chủ dự án chọn AWS S3)*: trong bucket AWS S3 riêng tư (chặn mọi truy cập công khai, mã hóa phía máy chủ SSE-S3, bật versioning), khóa đối tượng là UUID; MySQL chỉ giữ siêu dữ liệu ở bảng `tep`. Dịch vụ tệp gọi S3 qua AWS SDK for Java v2 (`software.amazon.awssdk:s3`, bean `S3Client`) để tải lên, tải xuống, xóa và xử lý kết quả hoặc lỗi trả về. Tên bucket, region đọc từ cấu hình (`AWS_REGION`, `ELDERCARE_S3_BUCKET`); thông tin đăng nhập theo chuỗi mặc định của SDK (biến môi trường, hồ sơ AWS hoặc IAM role), không ghi vào kho mã.
   - **Region và pháp lý: chờ chủ dự án chốt.** AWS chưa có region ở Việt Nam; lưu bản scan, ảnh, giấy tờ sức khỏe ở region nước ngoài là chuyển dữ liệu cá nhân nhạy cảm ra nước ngoài theo Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15 và Nghị định 356/2025/NĐ-CP (cùng nhóm Q-03, 24.4). Xem plan, "Điểm cần báo lại".
@@ -402,7 +402,7 @@ Nội dung cho kênh ngoài ứng dụng không chứa họ tên hay thông tin 
 ## H-16. Nguồn của ý kiến và không có dấu năng lực *(bổ sung 2026-10-18; FR-023g, FR-023h; Q-347, Q-348)*
 
 **Quyết định**:
-- **Kiểu dùng chung**: `m01.api` công khai record `NguonYKien(LoaiNguonYKien loai, Long nguoiThanId)` với `LoaiNguonYKien = NGUOI_CAO_TUOI | NGUOI_THAN | NHAN_VIEN_QUAN_SAT`, và `NguonYKienApi.kiemTra(long nctId, NguonYKien nguon)`: `NGUOI_THAN` thì người thân phải có quan hệ Hiệu lực với người cao tuổi lúc ghi (qua `QuanHeNguoiThanApi.thuocNguoiCaoTuoi`), ngược lại `nguoiThanId` phải rỗng; sai thì ném lỗi 422 `NGUON_Y_KIEN_KHONG_HOP_LE`.
+- **Kiểu dùng chung**: `resident.api` công khai record `NguonYKien(LoaiNguonYKien loai, Long nguoiThanId)` với `LoaiNguonYKien = NGUOI_CAO_TUOI | NGUOI_THAN | NHAN_VIEN_QUAN_SAT`, và `NguonYKienApi.kiemTra(long nctId, NguonYKien nguon)`: `NGUOI_THAN` thì người thân phải có quan hệ Hiệu lực với người cao tuổi lúc ghi (qua `QuanHeNguoiThanApi.thuocNguoiCaoTuoi`), ngược lại `nguoiThanId` phải rỗng; sai thì ném lỗi 422 `NGUON_Y_KIEN_KHONG_HOP_LE`.
 - **Mẫu lưu**: mỗi bảng ghi ý kiến tự có cột `nguon_loai`, `nguon_nguoi_than_id`, `nguoi_ghi_id`, `thoi_diem` theo data-model mục 6a; nội dung và nguồn không sửa; thay đổi là dòng mới. Hợp đồng REST của mỗi feature chép đúng schema `NguonYKien` (và `NhanDinhTuQuyet` khi cần) của api-001.yaml, vì hợp đồng mỗi feature tự đứng, không `$ref` sang file khác. Nơi dùng: 001 (`nguyen_vong_y_kien`), 004 (ý kiến về việc vào ở, Q-356), 005 (thỏa thuận lựa chọn có rủi ro), 012 (mong muốn về khách thăm, người đón), 014 (sở thích). *(R-15: `nguyen_vong_y_kien` → `su_kien_chung`)*
 - **Không có dấu năng lực** (FR-023h): không cột, không trường, không trạng thái năng lực chung. Nhận định gắn với quyết định tầng 2 (phiếu nguyện vọng ở 001; thỏa thuận ở 005). Test kiến trúc `FR_023h_KhongDauNangLucArchTest` quét `information_schema.COLUMNS` và OpenAPI (data-model mục 6a).
 
