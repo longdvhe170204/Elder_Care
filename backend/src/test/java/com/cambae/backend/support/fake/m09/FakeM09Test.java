@@ -99,7 +99,8 @@ class FakeM09Test {
     @Test
     void FR_016_publicationWarningsAreScopedToScheduleAndSnapshotInput() {
         var fake = new FakeExtendedPublicationChecks();
-        var warning = new PublicationWarning("INSUFFICIENT_MINIMUM_COVERAGE", "Chưa đủ phủ tối thiểu", Map.of());
+        var warning =
+                new PublicationWarning("APPROVED_LEAVE_DAY", "Có yêu cầu nghỉ theo ngày chưa quyết định", Map.of());
         var warnings = new ArrayList<>(List.of(warning));
         fake.warnings(1L, warnings);
         warnings.clear();

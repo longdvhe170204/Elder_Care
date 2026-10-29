@@ -170,11 +170,11 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 8
 
-- [ ] T023 [P] [US8] *(2026-10-27: xong phần 008: `MetricShiftStaffingRatioTest`, `MetricShiftHandoversTest`, `MetricLicenseStaffTest`, `FR_020_StaffingDashboardIT`; còn phần 015 chờ `XoayCaThongKeApi`)* Test `ChiTieu_NS_*Test` trong `BT/m14/chitieu/` (Q22, Q23)
+- [ ] T023 [P] [US8] *(2026-10-27: xong phần 008: `MetricShiftStaffingRatioTest`, `MetricShiftHandoversTest`, `MetricLicenseStaffTest`, `FR_020_StaffingDashboardIT`; còn phần 015 chờ `DoiCaThongKeApi`; 2026-10-29 Q-397 bỏ chỉ tiêu thiếu phủ, thiếu ca, lời mời)* Test `ChiTieu_NS_*Test` trong `BT/m14/chitieu/` (Q22, Q23)
 
 ### Implementation cho User Story 8
 
-- [ ] T024 [US8] *(2026-10-27: xong `SHIFT.STAFFING_RATIO`, `SHIFT.UNCONFIRMED_HANDOVERS`, `LICENSE.STAFF` qua `StaffStatisticsApi` thật; màn web dùng tab "Nhân sự, ca" có sẵn; còn `SHIFT.UNDER_COVERAGE`, `MISSING_SHIFTS`, `REQUESTS`, `INVITATIONS`, `WORKING_HOURS` chờ 015)* Cài chỉ tiêu nhân sự, ca qua `NhanSuThongKeApi` (008), `XoayCaThongKeApi` (015); màn web `frontend/src/tinh-nang/bao-cao/nhan-su-ca/`
+- [ ] T024 [US8] *(2026-10-27: xong `SHIFT.STAFFING_RATIO`, `SHIFT.UNCONFIRMED_HANDOVERS`, `LICENSE.STAFF` qua `StaffStatisticsApi` thật; màn web dùng tab "Nhân sự, ca" có sẵn; còn `REQUESTS`, `WORKING_HOURS` chờ 015; `SHIFT.UNDER_COVERAGE`, `MISSING_SHIFTS`, `INVITATIONS` bỏ theo Q-397)* Cài chỉ tiêu nhân sự, ca qua `NhanSuThongKeApi` (008), `DoiCaThongKeApi` (015); màn web `frontend/src/tinh-nang/bao-cao/nhan-su-ca/`
 
 ---
 

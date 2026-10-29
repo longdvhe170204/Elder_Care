@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Test đặt cảnh báo theo lịch để mô phỏng 015, không tính phủ hoặc quyết định nghỉ thay cho 015. */
+/** Test đặt cảnh báo theo lịch để mô phỏng 015, không quyết định nghỉ thay cho 015. */
 public class FakeExtendedPublicationChecks implements ExtendedPublicationCheck {
 
     private final Map<Long, List<PublicationWarning>> warnings = new LinkedHashMap<>();

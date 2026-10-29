@@ -15,8 +15,8 @@ Quy ước:
 
 | Luồng | Mã BF | Spec sở hữu | Mục nghiệp vụ |
 | ----- | ----- | ----------- | ------------- |
-| Người thân tự phục vụ: đăng ký thăm, đón, phản hồi, bản tin, người thân ở lại | BF-12 | 012 | 14.1 → 14.7 |
-| Lập lịch ca, xoay ca, đổi ca, nghỉ đột xuất, bàn giao ca | BF-13 | 008, 015 | 13.2 → 13.5 |
+| Người thân tự phục vụ: đăng ký thăm, đón, phản hồi, người thân ở lại (bản tin bỏ theo Q-396) | BF-12 | 012 | 14.1 → 14.7 |
+| Lập lịch ca, đổi ca, nghỉ đột xuất, bàn giao ca (xoay ca bỏ theo Q-397) | BF-13 | 008, 015 | 13.2 → 13.5 |
 | Đồ gửi: tiếp nhận, bàn giao, trả, kiểm kê | BF-14 | 013 | 16 |
 | Hoạt động, chuyến đi ngoài viện, kiểm tra chất lượng | BF-15 | 014 | 8.8 → 8.10, BR-M04-23 |
 | Số dư, thu chi, báo sắp hết tiền, quyết toán | BF-16 | 017 | 6.5, 15.9 |
@@ -41,7 +41,7 @@ Khởi phát: gia đình liên hệ trực tiếp với viện. Kết thúc: ng�
 | 4 | Bác sĩ (Điều dưỡng hỗ trợ lập nháp) | Đánh giá đầu vào: xem hồ sơ sức khỏe ban đầu và chỉ số đo khi tiếp nhận; ghi nhận xét đánh giá (gồm lưu ý chăm sóc) | Lần đánh giá: Nháp | UC-05, 5.3 |
 | 6 | Bác sĩ | Chọn mức chăm sóc (một trong ba mức), nhu cầu chăm sóc nếu có và xác nhận lần đánh giá. Điều dưỡng lập kế hoạch chăm sóc bằng tay từ nhận xét (BF-08). Mức khác mức của hợp đồng đang có thì Hành chính được báo (mức Trung bình, Q-302); phòng của phân bổ đặt trước không cho phép mức mới thì phân bổ mang dấu "phòng không còn phù hợp" (Q-301) | Lần đánh giá: Đã xác nhận; mức chăm sóc hiện hành | BR-M01-09, BR-M02-22, BR-M03-01 |
 | 7a | Hành chính | Có giường phù hợp: sang bước 8 | — | 6.1 |
-| 7b | Hành chính, Hệ thống | Không có giường: đưa vào danh sách chờ. Hệ thống tính điểm ưu tiên hằng ngày; khi giường về Trống thì báo Hành chính. Hành chính tự chọn hồ sơ từ danh sách chờ phù hợp (sắp theo điểm, chọn người không đứng đầu thì ghi lý do), liên hệ, giữ chỗ [48 giờ] | Hồ sơ chờ: Đang chờ → Đã liên hệ → Đã tiếp nhận (khi được phân bổ giường) | 6.2, BR-M02-01, 02, 10, Q-29, Q-307 |
+| 7b | Hành chính, Hệ thống | Không có giường: đưa vào danh sách chờ; Hành chính đánh dấu "Ưu tiên" khi cần, kèm lý do (Q-394). Khi giường về Trống thì báo Hành chính. Hành chính tự chọn hồ sơ từ danh sách chờ phù hợp (hồ sơ Ưu tiên trước, rồi theo ngày đăng ký; chọn người không đứng đầu thì ghi lý do), liên hệ, giữ chỗ [48 giờ] | Hồ sơ chờ: Đang chờ → Đã liên hệ → Đã tiếp nhận (khi được phân bổ giường) | 6.2, BR-M02-01, 02, 10, Q-29, Q-307, Q-394 |
 | 8 | Hành chính (hoặc Trưởng tầng trong phạm vi tầng) | Phân bổ giường, có thể đặt trước cho ngày vào; thường làm cùng lúc lập hợp đồng (bước 9). Chưa có đánh giá đầu vào thì kiểm tra phòng theo mức của hợp đồng, chưa có hợp đồng thì theo mức dự kiến của lượt đăng ký (Q-301) | Phân bổ tương lai; giường bị giữ | UC-20, BR-M03-01, Q-42, Q-301 |
 | 9 | Hành chính; Quản lý viện | Lập hợp đồng: Hành chính chọn loại lưu trú, mức chăm sóc và dịch vụ theo thỏa thuận với gia đình (dịch vụ chăm sóc ứng với mức đã chọn). Hợp đồng có điều khoản khác chuẩn thì Quản lý viện duyệt trước khi gửi ký | Hợp đồng: Nháp → Chờ ký | UC-11, 6.3, 6.4, Q-23, Q-300 |
 | 10 | Người đại diện, Hành chính | Người đại diện ký; hành chính ghi nhận đã ký (ngày ký, bản scan). Với nội trú, phải có phân bổ giường trước | Hợp đồng: Hiệu lực | 6.3, Q-28 |
@@ -350,9 +350,9 @@ Hệ thống không quản lý vệ sinh. Việc dọn giường, phòng và kh�
 
 ---
 
-## BF-12 – Người thân: quyền, thăm, đón, ở lại, phản hồi và bản tin
+## BF-12 – Người thân: quyền, thăm, đón, ở lại và phản hồi
 
-Khởi phát: Hành chính lập quan hệ người thân cho một người cao tuổi. Luồng gồm sáu phần nối tiếp theo nhu cầu của gia đình: A. quyền (bước 1–5); B. thăm (6–9); C. đón (10); D. ở lại (11–14); E. phản hồi (15–17); F. bản tin (18–19).
+Khởi phát: Hành chính lập quan hệ người thân cho một người cao tuổi. Luồng gồm năm phần nối tiếp theo nhu cầu của gia đình: A. quyền (bước 1–5); B. thăm (6–9); C. đón (10); D. ở lại (11–14); E. phản hồi (15–17). Phần F bản tin (bước 18–19) bỏ theo Q-396.
 
 | Bước | Vai trò | Hoạt động | Trạng thái / kết quả | Căn cứ |
 | ---- | ------- | --------- | -------------------- | ------ |
@@ -373,8 +373,6 @@ Khởi phát: Hành chính lập quan hệ người thân cho một người cao
 | 15 | Người thân | Gửi phản hồi, khiếu nại. Hệ thống giao theo nhóm nội dung: chăm sóc, sinh hoạt, ăn uống, sức khỏe, thuốc cho Trưởng tầng được giao (không có thì Quản lý viện); chi phí, hợp đồng, khác cho Hành chính. Khiếu nại mặc định mức Cao, còn lại Thường | Phản hồi: Mới | 14.7, Q-122 |
 | 16 | Người phụ trách | Nhận xử lý rồi trả lời kèm hướng xử lý. Hạn: mức Cao [24 giờ], Thường [72 giờ]; quá hạn thì leo thang lên Quản lý viện | Mới → Đang xử lý → Đã phản hồi | BR-M10-05 |
 | 17 | Người gửi; Hệ thống | Người gửi đồng ý đóng, hoặc hệ thống tự đóng sau [7 ngày] (CFG-M10-02); người gửi mở lại được, có lý do, hạn tính mới | Đã phản hồi → Đóng / Mở lại | 14.7, spec 012 FR-061 |
-| 18 | Điều dưỡng phụ trách; Hệ thống | Theo lịch [thứ 2 hằng tuần] (CFG-M10-03), hệ thống nhắc; Điều dưỡng phụ trách soạn bản tin, xem số liệu tổng hợp hệ thống tính từ dữ liệu đã ghi nhận; nội dung gửi được lọc theo quyền của từng người thân | Bản tin: Chờ duyệt | 14.5, BR-M10-08, Q-306, Q-307 |
-| 19 | Điều dưỡng phụ trách | Thêm nhận xét; có sự cố mức Trung bình trở lên trong kỳ thì bắt buộc phần giải thích; duyệt trong [48 giờ] | Chờ duyệt → Đã gửi; bản tin đã gửi không sửa | BR-M10-08, BR-M10-09, Q-129 |
 
 **Nhánh ngoại lệ**
 
@@ -388,7 +386,6 @@ Khởi phát: Hành chính lập quan hệ người thân cho một người cao
 | Đổi khung thăm hoặc không đến nữa | Người đăng ký, Hành chính | Hủy lượt trước giờ bắt đầu khung (Hành chính: có lý do); đổi khung bằng hủy rồi đăng ký lại | spec 012 FR-035 |
 | Người cao tuổi chuyển Tạm vắng, Điều trị tại bệnh viện hoặc trạng thái cuối khi có lượt Đang ở lại | Hệ thống; Hành chính, Trưởng tầng | Hành chính và Trưởng tầng được nhắc kết thúc lượt; lượt không tự kết thúc | spec 012 FR-044 |
 | Lượt ở lại chưa bắt đầu không còn cần | Hành chính | Hủy lượt Chờ xác nhận hoặc Đã xác nhận, có lý do | spec 012 FR-045 |
-| Bản tin quá CFG-M10-12 chưa duyệt | Trưởng tầng được giao; Hệ thống | Trưởng tầng được giao duyệt thay (vẫn bắt buộc phần giải thích). Tới mốc của kỳ sau mà bản tin chưa được lập hoặc chưa duyệt: bản tin (nếu có) chuyển Không gửi, báo Quản lý viện | BR-M10-08, Q-124 |
 
 **Điểm đã làm rõ**
 
@@ -403,19 +400,19 @@ Khởi phát: Hành chính lập quan hệ người thân cho một người cao
 
 ## BF-13 – Lịch ca, đổi ca, nghỉ đột xuất và bàn giao ca
 
-Khởi phát: tới hạn lập lịch ca tháng kế tiếp (nhắc theo CFG-M09-06). Kết thúc: ca đóng sau khi bàn giao được xác nhận. Ranh giới feature: spec 015 sở hữu lập lịch từ mẫu xoay ca, đổi ca, nghỉ đột xuất và phủ tối thiểu; spec 008 sở hữu lịch ca, các lệnh trên ca và bàn giao (Q-77).
+Khởi phát: tới hạn lập lịch ca tháng kế tiếp. Kết thúc: ca đóng sau khi bàn giao được xác nhận. Ranh giới feature: spec 015 sở hữu đổi ca và nghỉ đột xuất (Q-397); spec 008 sở hữu lịch ca, các lệnh trên ca và bàn giao (Q-77).
 
 | Bước | Vai trò | Hoạt động | Trạng thái / kết quả | Căn cứ |
 | ---- | ------- | --------- | -------------------- | ------ |
-| 1 | Quản lý viện; Trưởng tầng (tầng được giao) hoặc Quản lý viện | Quản lý viện cấu hình mẫu xoay ca và yêu cầu phủ tối thiểu; Trưởng tầng hoặc Quản lý viện lập nhóm xoay ca (nhóm toàn viện chỉ Quản lý viện) | Mẫu, nhóm xoay ca | 13.2, CFG-M09-07, Q-190 |
-| 2 | Trưởng tầng (tầng được giao) hoặc Quản lý viện (lịch toàn viện); Hệ thống | Lập bản nháp lịch ca tháng từ mẫu xoay ca; tới [15 ngày] trước đầu tháng (CFG-M09-06) mà chưa có lịch thì hệ thống nhắc. Lệnh không tạo ca rỗng, báo "thiếu ca", áp nghỉ đột xuất dạng "theo ngày" đã duyệt | Lịch: Nháp; ca: Nháp | BR-M09-09, Q-189, Q-184, Q-306 |
+| 1 | — | *(Bỏ theo Q-397: mẫu xoay ca, nhóm xoay ca, phủ tối thiểu)* | — | Q-397 |
+| 2 | Trưởng tầng (tầng được giao) hoặc Quản lý viện (lịch toàn viện) | Lập lịch ca tháng bằng tay (feature 008); xếp nhân viên vào ngày đã nghỉ có duyệt thì hệ thống cảnh báo | Lịch: Nháp; ca: Nháp | BR-M09-09, Q-184, Q-397 |
 | 3 | Trưởng tầng (tầng được giao); Quản lý viện (lịch toàn viện) | Chỉnh lịch Nháp, soạn phân công; hệ thống tính tỷ lệ phục vụ theo ngưỡng CFG-M09-01 và trọng số CFG-M09-12, chỉ cảnh báo | Lịch: Nháp | BR-M09-02, Q-79, Q-205 |
-| 4 | Người lập lịch | Công bố. Bị chặn khi còn ca thiếu người phụ trách, tầng chưa có Trưởng tầng được giao cho cả tháng, hoặc còn phân công không hợp lệ. Còn ca thiếu phủ hoặc thiếu ca vẫn công bố được, kèm lý do; mỗi ca thiếu phủ mở cảnh báo cho Trưởng tầng. Nhắc công bố theo CFG-M09-10 | Lịch, ca: Đã công bố; phân công soạn sẵn có hiệu lực và được kiểm tra lại | 13.2, 13.4, Q-86, Q-178, Q-82 |
+| 4 | Người lập lịch | Công bố. Bị chặn khi còn ca thiếu người phụ trách, tầng chưa có Trưởng tầng được giao cho cả tháng, hoặc còn phân công không hợp lệ. | Lịch, ca: Đã công bố; phân công soạn sẵn có hiệu lực và được kiểm tra lại | 13.2, 13.4, Q-86, Q-82 |
 | 5 | Người nhường ca; người nhận ca | Người nhường lập yêu cầu đổi ca (hai chiều hoặc nhận thay một chiều, cùng phạm vi); người nhận đồng ý | Yêu cầu đổi ca: Chờ người nhận đồng ý → Chờ duyệt | BR-M09-10, Q-179, Q-191 |
 | 6 | Trưởng tầng được giao của phạm vi; Quản lý viện (ca toàn viện) | Duyệt: kiểm tra giấy phép, đào tạo (BR-M09-01), chồng giờ và giờ làm liên tục (BR-M09-03). Phân công của người nhường chuyển cho người nhận nếu đạt BR-M09-01, không đạt thì thành việc chung | Chờ duyệt → Đã áp dụng / Từ chối | BR-M09-10, Q-177, Q-187 |
 | 7 | Nhân viên; Trưởng tầng lập thay cho nhân viên tầng mình; Quản lý viện lập thay cho ca toàn viện | Lập yêu cầu nghỉ đột xuất: "theo ca" cho ca đã công bố chưa bắt đầu, hoặc "theo ngày" cho tháng chưa công bố | Yêu cầu nghỉ: Chờ duyệt | 13.2, Q-184 |
 | 8 | Người duyệt như bước 6 | Duyệt tất cả, duyệt một phần theo từng ca hoặc ngày, hoặc từ chối | Chờ duyệt → Đã áp dụng / Đã áp dụng một phần / Từ chối; người nghỉ ở "Nghỉ có duyệt", không tính phủ | 13.2, Q-182 |
-| 9 | Hệ thống; Trưởng tầng | Ca không đạt phủ tối thiểu (do nghỉ, đổi ca, vắng ca, nghỉ việc, giấy phép hết hiệu lực): cảnh báo Trưởng tầng; Trưởng tầng tự chọn người đang không có ca (xem được số giờ đã làm trong tháng) và gửi lời mời nhận ca thay | Người nhận lời mời đầu tiên được bổ sung ngay vào ca | BR-M09-11, Q-180, Q-183, Q-188, Q-307 |
+| 9 | Trưởng tầng | Ca thiếu người (do nghỉ, đổi ca, vắng ca, nghỉ việc): Trưởng tầng tự bổ sung nhân viên vào ca (feature 008); không có cảnh báo thiếu phủ, lời mời nhận ca thay (Q-397) | Ca có thêm người | BR-M09-11, Q-397 |
 | 10 | Hệ thống | Tới giờ bắt đầu ca | Ca: Đã công bố → Đang diễn ra; phạm vi dữ liệu theo ca có hiệu lực từ [2 giờ] trước giờ ca (CFG-M15-07) | 13.2, BR-M15-02 |
 | 11 | Trưởng tầng hoặc Người phụ trách ca của ca đó | Ghi nhận vắng ca, từ giờ bắt đầu ca trừ [2 giờ] tới giờ kết thúc ca; công việc của người vắng thành việc chung | Chỉ ảnh hưởng ca đó | 13.2, Q-80, Q-81, Q-91, BR-M04-13 |
 | 12 | Người phụ trách ca; Hệ thống | Từ [30 phút] trước khi kết thúc ca (CFG-M09-04), lập bàn giao; chưa lập thì hệ thống nhắc. Bàn giao do người lập tự ghi, gồm: công việc chưa hoàn thành; liều Trễ, Bỏ lỡ, Từ chối, Mang theo chờ ghi nhận; chỉ số vượt ngưỡng; cảnh báo, sự cố đang mở; biến động người cao tuổi; giường Chờ sẵn sàng quá hạn; đồ có giá trị do nhân viên hết ca đang giữ. Hệ thống không lập sẵn mục | Bàn giao: Bản nháp; mục có nguồn đã kết thúc thì người lập ghi đã xử lý hoặc bỏ | BR-M09-06, Q-88, Q-158, Q-306, Q-307 |
@@ -435,13 +432,12 @@ Khởi phát: tới hạn lập lịch ca tháng kế tiếp (nhắc theo CFG-M0
 | Người nhận rút đồng ý hoặc từ chối; người nhường hủy | Người nhận; người nhường | Yêu cầu chuyển Người nhận từ chối / Đã hủy | spec 015 bảng trạng thái yêu cầu đổi ca |
 | Người nhường là người phụ trách ca mà không ai đủ điều kiện thay | Người duyệt | Không duyệt được đổi ca. Nghỉ đột xuất vẫn duyệt được, kèm xử lý người phụ trách ca | BR-M09-10, BR-M09-11, Q-187 |
 | Hủy ca đã công bố chưa bắt đầu | Quản lý viện | Chỉ Quản lý viện, có lý do | 13.2 |
-| Nhân viên chuyển Nghỉ việc | Hệ thống | Khóa tài khoản ngay; công việc tương lai chuyển về việc chung; ca thiếu phủ được cảnh báo | BR-M09-04, BR-M09-11 |
+| Nhân viên chuyển Nghỉ việc | Hệ thống | Khóa tài khoản ngay; công việc tương lai chuyển về việc chung | BR-M09-04 |
 
 **Điểm đã làm rõ**
 
 - Người lập bàn giao là **Người phụ trách ca** (Trưởng tầng hoặc Điều dưỡng có tên trong ca), không phải mọi Điều dưỡng (2.4, 13.5).
 - Người duyệt đổi ca và nghỉ đột xuất là Trưởng tầng được giao của phạm vi; ca toàn viện do Quản lý viện duyệt (Q-177).
-- Lịch còn ca thiếu phủ vẫn công bố được, nhưng phải có lý do và mở cảnh báo cho từng ca (Q-178).
 - Tỷ lệ phục vụ dùng hai tham số riêng: ngưỡng CFG-M09-01 và trọng số CFG-M09-12 (Q-205).
 
 ---

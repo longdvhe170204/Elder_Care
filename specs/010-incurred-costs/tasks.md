@@ -72,7 +72,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 ## Phase 4: User Story 2 – Đơn giá và số tiền đúng căn cứ (Priority: P1)
 
-**Goal**: Đơn giá theo nội dung hợp đồng tại ngày phát sinh hoặc phiên bản đơn giá; thuộc gói 0 đồng; hệ số vắng từ 004; thiếu đơn giá thì đánh dấu, tính lại khi có phiên bản (FR-008 → FR-013, DBR-16, BR-M11-02, 03, 09, BR-M02-06 phần 010).
+**Goal**: Đơn giá theo nội dung hợp đồng tại ngày phát sinh hoặc phiên bản đơn giá; thuộc gói 0 đồng; ngày vắng nội trú tính như ngày lưu trú, chặn sau Giải phóng giường (Q-395); thiếu đơn giá thì đánh dấu, tính lại khi có phiên bản (FR-008 → FR-013, DBR-16, BR-M11-02, 03, 09, BR-M02-06 phần 010).
 
 **Independent Test**: Hợp đồng giá tháng 9.300.000 đồng tháng 10 (31 ngày) có gói gồm tã; phiên bản "đưa đi khám" đổi giữa tháng; phụ lục đổi giá tháng từ 20/11 → số tiền từng khoản đúng.
 
@@ -82,7 +82,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 ### Implementation cho User Story 2
 
-- [ ] T014 [US2] Cài `BE/m11/tinhgia/internal/TinhDonGia.java` (`HopDongDocApi.noiDungTaiNgay`, `DonGiaApi`, gói, hệ số `NgayLuuTruApi`, `PhiNgayLuuTru`, `LamTronDong`; ghi `can_cu_don_gia`, `gia_tri_nguon_da_dung`) và listener `PhienBanDonGiaDaTao`, `PhuLucDaApDung` (research P-05)
+- [ ] T014 [US2] Cài `BE/m11/tinhgia/internal/TinhDonGia.java` (`HopDongDocApi.noiDungTaiNgay`, `DonGiaApi`, gói, `NgayLuuTruApi` (vắng, đã giải phóng giường; Q-395), `PhiNgayLuuTru`, `LamTronDong`; ghi `can_cu_don_gia`, `gia_tri_nguon_da_dung`) và listener `PhienBanDonGiaDaTao`, `PhuLucDaApDung` (research P-05)
 
 **Checkpoint**: Số tiền đúng căn cứ.
 
@@ -113,7 +113,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 **Goal**: Nguồn đổi trước chốt → tính lại, về Nháp hoặc hủy, có lịch sử; sau chốt → biến động và báo Hành chính, Hành chính lập khoản điều chỉnh (có thể bảng bổ sung); tổng gốc + điều chỉnh ≥ 0 (FR-018 → FR-020, FR-025 → FR-027, BR-M11-05).
 
-**Independent Test**: Đính chính số lượng tã khi bảng mở; hủy ghi nhận một liều sau chốt; quyết định giữ giường về muộn sau chốt; Hành chính lập miễn giảm → kết quả từng tình huống.
+**Independent Test**: Đính chính số lượng tã khi bảng mở; hủy ghi nhận một liều sau chốt; đính chính ngày giải phóng giường sau chốt; Hành chính lập miễn giảm → kết quả từng tình huống.
 
 ### Tests cho User Story 4
 
