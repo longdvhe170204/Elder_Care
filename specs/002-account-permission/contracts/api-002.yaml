@@ -8,6 +8,9 @@ info:
     Tên định danh tiếng Anh theo glossary.md của 000, mục 7 (dịch 2026-10-19; bản tên logic tiếng Việt ở lịch sử git).
     Xác thực: token phiên opaque (research A-02). Web gửi bằng cookie HttpOnly kèm header X-Requested-From;
     app gửi Authorization: Bearer. Mọi yêu cầu gửi X-Device-Id.
+    Yêu cầu tự làm mới không do người dùng thao tác (Tổng quan, hộp thông báo) gửi X-Background-Refresh: true
+    (luồng SSE không gửi được header thì thêm tham số backgroundRefresh=true vào URL):
+    phiên vẫn được kiểm nhưng không đếm lại thời gian không thao tác CFG-M15-10 (FR-013a; bổ sung 2026-10-29, chủ dự án duyệt).
     Truy vết: mỗi operation có x-fr (FR của spec 002) và x-br khi có.
 servers:
   - url: /api/v1
@@ -709,6 +712,7 @@ components:
         fullName: { type: string }
         roles: { type: array, items: { type: string } }
         mustChangePassword: { type: boolean }
+        sessionIdleTimeoutSeconds: { type: integer, format: int64, description: 'CFG-M15-10 của kênh phiên hiện tại, tính bằng giây; null khi kênh không tự đăng xuất (BR-M15-24). Chỉ GET /me trả; phản hồi đăng nhập để null. Web dùng để báo trước khi hết phiên (bổ sung 2026-10-29, chủ dự án duyệt)' }
     Account:
       type: object
       properties:

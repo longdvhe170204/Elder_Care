@@ -4,10 +4,12 @@ import com.cambae.backend.common.Role;
 import com.cambae.backend.m15.account.api.AccountApi;
 import com.cambae.backend.m15.account.api.CurrentUser;
 import com.cambae.backend.m15.account.internal.auth.service.AccountService;
+import com.cambae.backend.m15.account.internal.auth.service.SessionService;
 import com.cambae.backend.m15.account.internal.permission.domain.PermissionViews.EffectivePermission;
 import com.cambae.backend.m15.account.internal.permission.service.AccountPermissionsQuery;
 import com.cambae.backend.m15.account.web.response.UserInfo;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.Duration;
 import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,16 +30,19 @@ class MeController {
     private final AccountApi accounts;
     private final AccountPermissionsQuery permissions;
     private final AccountService accountService;
+    private final SessionService sessions;
 
     MeController(
             ObjectProvider<CurrentUser> currentUser,
             AccountApi accounts,
             AccountPermissionsQuery permissions,
-            AccountService accountService) {
+            AccountService accountService,
+            SessionService sessions) {
         this.currentUser = currentUser;
         this.accounts = accounts;
         this.permissions = permissions;
         this.accountService = accountService;
+        this.sessions = sessions;
     }
 
     @GetMapping
@@ -49,7 +54,8 @@ class MeController {
                 user.type(),
                 accounts.fullName(user.accountId()).orElse(null),
                 user.roles().stream().map(Role::code).sorted().toList(),
-                mustChange);
+                mustChange,
+                sessions.idleLimit(user.channel()).map(Duration::toSeconds).orElse(null));
     }
 
     @GetMapping("/permissions")

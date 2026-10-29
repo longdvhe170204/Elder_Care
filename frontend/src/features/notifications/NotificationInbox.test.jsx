@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { json, mockRoutes, problem } from '@/test/fetchRoutes'
 import { DetailHost } from '@/test/DetailHost'
 import { NotificationInbox } from './NotificationInbox'
@@ -43,6 +43,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.useRealTimers()
   vi.unstubAllGlobals()
 })
 
@@ -53,6 +54,26 @@ function inboxCalls() {
 }
 
 describe('NotificationInbox', () => {
+  // DESIGN.md 9.3 (2.2.2) và 002 T047a: không có SSE (jsdom) thì hỏi lại định kỳ bằng yêu cầu nền; tạm dừng được
+  it('tuLamMoi_yeuCauNen_tamDungThiNgung', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    api.on('GET', '/me/notifications', json(200, PAGE))
+    render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
+    await screen.findByText('Ngã trong phòng')
+
+    act(() => vi.advanceTimersByTime(60_000))
+    await vi.waitFor(() => expect(inboxCalls()).toHaveLength(2))
+    expect(api.fetchMock.mock.calls.at(-1)[1].headers['X-Background-Refresh']).toBe('true')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tạm dừng tự làm mới' }))
+    expect(screen.getByText(/Đã tạm dừng tự làm mới/)).toBeInTheDocument()
+    act(() => vi.advanceTimersByTime(180_000))
+    expect(inboxCalls()).toHaveLength(2)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục tự làm mới' }))
+    await vi.waitFor(() => expect(inboxCalls()).toHaveLength(3))
+  })
+
   it('FR_033_khanCapChuaXacNhanTachLenDau_demChuaXem', async () => {
     api.on('GET', '/me/notifications', json(200, PAGE))
     render(<DetailHost>{(host) => <NotificationInbox {...host} />}</DetailHost>)
