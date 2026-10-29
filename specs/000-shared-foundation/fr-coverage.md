@@ -48,7 +48,7 @@ Quy ước: "(phạm vi)" = task ghi dải, ví dụ "FR-023 → FR-030"; "(mụ
 | FR-037a | Áp dụng bù | T085, T093 | m15/approval/CatchUpApplyIT#US5_9_missedDays_applyInOrder_markedCatchUp | COVERED |
 | FR-037b | Toàn bộ hoặc không | T028, T086, T093 | m15/approval/ApplyFailureIT#US5_10_…; m15/auditlog/AuditLogAtomicityIT#FR_037b_writeOutsideTransaction_survivesRollbackOfCaller | COVERED |
 | FR-038 | Áp dụng không thành | T086 | m15/approval/ApplyFailureIT#US5_8_conditionNoLongerMet_endsApplyFailed_withoutEffect (thông báo thật thuộc 009; test kiểm sự kiện) | COVERED |
-| FR-039 | Kết quả trỏ về yêu cầu | T092 (phạm vi); T089 (`ket_qua_ap_dung`) | m15/approval/ApplyOnceIT#US5_7_11_jobRunThreeTimes_appliesExactlyOnce_withResultReference | COVERED |
+| FR-039 | Kết quả trỏ về yêu cầu | T092 (phạm vi); T089 (kết quả áp dụng: cột của `yeu_cau_phe_duyet` sau R-15, T108) | m15/approval/ApplyOnceIT#US5_7_11_jobRunThreeTimes_appliesExactlyOnce_withResultReference | COVERED |
 | FR-040 | Quyết định đồng thời | T015, T018, T088 | m15/approval/ConcurrentDecisionIT (2 FR_040_*); common/web/VersionEtagTest; ProblemDetailsHandlerIT; RequestTransitionTableTest | COVERED |
 | FR-041 | Chuyển trạng thái ghi nhật ký | T092 (phạm vi) | m15/approval/ApprovalLifecycleIT (gián tiếp: auditActions khớp REQUEST_CREATED, REQUEST_DRAFT_EDITED, REQUEST_SUBMITTED); ApplyOnceIT, ConcurrentDecisionIT kiểm REQUEST_APPLIED, REQUEST_APPROVED | COVERED |
 | FR-042 | Mọi thay đổi nhóm 2, 3 có nhật ký | Tiêu đề "Nhật ký – phần ghi" (FR-042 → FR-047), mục tiêu phase US3; T061 (ghi SC-001, DBR-23) | m15/auditlog/AuditLogCompletenessIT (3 phương thức SC_001_*) | COVERED |
