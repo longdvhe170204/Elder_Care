@@ -9,7 +9,7 @@
 Feature 018 là phần 6.10 của module M02 (UC-80, UC-81; BR-M02-11 → 14; DBR-33). Hành chính lập khai báo khi được nhắc, ghi nộp và kết quả; hệ thống xác định loại khai báo theo thời gian lưu trú cộng dồn, nhắc quá hạn, nhắc gia hạn, chuyển Hết hạn, nhắc khai báo xóa; không nộp hồ sơ thay, không kết nối Cổng dịch vụ công.
 
 Hướng kỹ thuật:
-- Gói `m02.khaibao` cạnh 004 trong M02, đọc hợp đồng qua dịch vụ nội bộ M02 (research Z-01).
+- Gói `admission.khaibao` cạnh 004 trong M02, đọc hợp đồng qua dịch vụ nội bộ M02 (research Z-01).
 - Nghĩa vụ khai báo là số liệu tính, giữ đệm kỹ thuật `nghia_vu_khai_bao` để nhắc đúng ngày, chạy bù (Z-03). *(R-15: `nghia_vu_khai_bao` → `trang_thai_nct`)*
 - `TongThoiGianLuuTru`, `LoaiKhaiBao` là hàm thuần (Z-03); DBR-33 bằng hai cột sinh `UNIQUE` (Z-04).
 - Bean trạng thái không chặn lệnh nào; hủy khai báo đang xử lý khi trạng thái cuối (Z-05).
@@ -53,7 +53,7 @@ Không còn mục NEEDS CLARIFICATION.
 | VII. Điểm chưa rõ | Đạt | Điểm còn lệch ghi ở mục báo lại |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-005 ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế |
-| X. Kiến trúc | Đạt | Gói con của `m02`; không có vòng |
+| X. Kiến trúc | Đạt | Gói con của `admission`; không có vòng |
 | XI. Nghiệp vụ ở backend | Đạt | Loại, hạn, nghĩa vụ ở backend |
 | XII. Dữ liệu | Đạt | DBR-33 bằng `UNIQUE`; nhật ký trong transaction |
 | XIII. Tham số | Đạt | Hạn chốt lúc ghi mốc; đổi CFG không đổi hạn đã có |
@@ -96,12 +96,12 @@ specs/018-residence-registration/
 Cấu trúc dự kiến cho giai đoạn triển khai; giai đoạn thiết kế không tạo (CLAUDE.md).
 
 ```text
-backend/src/main/java/com/cambae/backend/m02/khaibao/   {internal, web, lich}   # nghĩa vụ, khai báo, TongThoiGianLuuTru, LoaiKhaiBao, bean trạng thái
-backend/src/main/java/com/cambae/backend/m02/api/       # (bổ sung) KhaiBaoThongKeApi
+backend/src/main/java/com/eldercare/backend/admission/khaibao/   {internal, web, lich}   # nghĩa vụ, khai báo, TongThoiGianLuuTru, LoaiKhaiBao, bean trạng thái
+backend/src/main/java/com/eldercare/backend/admission/api/       # (bổ sung) KhaiBaoThongKeApi
 frontend/src/tinh-nang/khai-bao-tam-tru/
 ```
 
-**Structure Decision**: Theo R-02 của 000 và 004: 018 thêm gói `m02.khaibao`.
+**Structure Decision**: Theo R-02 của 000 và 004: 018 thêm gói `admission.khaibao`.
 
 ## Complexity Tracking
 

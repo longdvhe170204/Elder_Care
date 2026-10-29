@@ -14,10 +14,10 @@ Feature 015 thêm gói con vào module M09 (cùng 008). Giao diện dưới đâ
 
 `CaLenhPort` (`themVaoCa`, `roiCa`, `doiNguoiPhuTrach`, `ganThieuNguoiPhuTrach`), `PhanCongLenhPort` (`kiemTra`, `lap`, `huy`). Căn cứ 015 truyền: `CanCuVaoCa.DOI_CA | NHAN_THAY | LOI_MOI`, `CanCuRoiCa.DOI_CA | NGHI_CO_DUYET` kèm mã yêu cầu hoặc lời mời.
 
-### 1.2. Bổ sung theo plan này (gói `m09.lichca.port`)
+### 1.2. Bổ sung theo plan này (gói `staffing.lichca.port`)
 
 ```java
-interface LichNhapLenhPort {        // 008 cài; MANDATORY; chỉ m09.doica dùng (Q-397: bỏ taoNhap, thayNoiDungNhap)
+interface LichNhapLenhPort {        // 008 cài; MANDATORY; chỉ staffing.doica dùng (Q-397: bỏ taoNhap, thayNoiDungNhap)
   void goNhanVienKhoiNhap(long lichCaId, long nhanVienId, LocalDate ngay, CanCu canCu);
       // 015 FR-026a: gỡ khỏi ca Nháp bắt đầu trong ngày và phân công Nháp; người phụ trách để trống
   Optional<LichView> lichThang(PhamViCa phamVi, YearMonth thang);
@@ -46,7 +46,7 @@ interface NghiCoDuyetPort {         // 015 cài; 008 dùng
 
 ## 2. 015 cung cấp ra ngoài M09
 
-### 2.1. `m09.api.DoiCaThongKeApi` (016; FR-042; đổi tên 2026-10-29, Q-397)
+### 2.1. `staffing.api.DoiCaThongKeApi` (016; FR-042; đổi tên 2026-10-29, Q-397)
 
 ```java
 Stream<YeuCauNhanSuView> yeuCau(PhamViLoc phamVi, LocalDate tu, LocalDate den);     // loại, trạng thái cuối, thời gian lập → quyết định

@@ -93,7 +93,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Trạng thái cuối | `FR_047_TrangThaiCuoiIT`, `KT_C_ThuocGuiIT` | Q34, Q38 |
 | Bộ lập lịch | `ChayBuM07IT` | Q39 |
 | Cơ sở dữ liệu | `DonThuocTriggerIT`, `LieuTrangThaiCuoiTriggerIT`, `PhieuDoiChieuTriggerIT`, `ThuocGuiSoLuongTriggerIT`, `NhomBaTriggerIT` (000) mở rộng | Q16 |
-| Kiến trúc | `ApplicationModules.verify()`, ArchUnit cấm gọi API của 007, 008, 010, 014, 019 (M11) trực tiếp từ `m07` (chỉ qua SPI mục 2.1) | |
+| Kiến trúc | `ApplicationModules.verify()`, ArchUnit cấm gọi API của 007, 008, 010, 014, 019 (M11) trực tiếp từ `medication` (chỉ qua SPI mục 2.1) | |
 | Web (Vitest) | Màn nhập đơn hiện vấn đề cần lý do; phiếu đối chiếu không có nút chép sẵn, lỗi thiếu dòng; thuốc gửi không chọn sẵn lô | Q3, Q22, Q32 |
 | App (`flutter_test`) | `XacNhanLieuNgoaiTuyenTest`, `KsdbKhongVaoHangDoiTest`, `ChonLoThuocGuiTest`, `KetQuaDongBoThuocTest` (BR-M15-20), `BanGhiLieuBiTuChoiTest` | Q14, Q15, Q32 |
 

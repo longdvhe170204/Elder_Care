@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-10 | **Plan**: [../plan.md](../plan.md)
 
-Giao diện Java công khai ở `m11.api`, port nội bộ M11 cho 017, 019, và bản cài các SPI do module thấp hơn khai báo (research P-02, P-12). Kiểu `DieuKien`, `CanCu`, `LyDo`, `NguoiDungHienTai`, `DoiTuong` theo 000, 001, 002. Hàm ghi có ghi chú `MANDATORY` chạy trong transaction của lệnh gọi.
+Giao diện Java công khai ở `billing.api`, port nội bộ M11 cho 017, 019, và bản cài các SPI do module thấp hơn khai báo (research P-02, P-12). Kiểu `DieuKien`, `CanCu`, `LyDo`, `NguoiDungHienTai`, `DoiTuong` theo 000, 001, 002. Hàm ghi có ghi chú `MANDATORY` chạy trong transaction của lệnh gọi.
 
 ---
 
@@ -12,15 +12,15 @@ Giao diện Java công khai ở `m11.api`, port nội bộ M11 cho 017, 019, và
 
 | SPI (gói khai báo) | Bản cài của 010 | Dùng bởi |
 | --- | --- | --- |
-| `ThamGiaChuyenTrangThai` (`m01.api`) | Bean `@Order` sau 007. Điều kiện `KT_A_CHI_PHI` (`coTheMien = true`) cho `KET_THUC_LUU_TRU`; tác động `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN` theo research P-10 | 001 H-02, 004 T-09 |
-| `KyCuoiPort` (`m02.api`) | `taoKyCuoiNhap`, `tinhLai`, `huyMocDung` (MANDATORY; research P-10); giữ đúng chữ ký 004 | 004 FR-066 |
-| `MucViecSauQuaDoiPort` (`m02.api`) | `ma() = CHI_PHI_KY_CUOI`; `HOAN_THANH` khi kỳ cuối và bảng bổ sung tồn tại lúc qua đời đã chốt (FR-036) | 004 FR-071 |
-| `DeNghiMuaHoPort` (`m07.api`) | `daMua(deNghiId, nctId)`: đề nghị `DA_MUA`, mục, số lượng, nhân viên mua (Q-139) | 006 FR-040 |
+| `ThamGiaChuyenTrangThai` (`resident.api`) | Bean `@Order` sau 007. Điều kiện `KT_A_CHI_PHI` (`coTheMien = true`) cho `KET_THUC_LUU_TRU`; tác động `GHI_NHAN_QUA_DOI`, `HUY_TIEP_NHAN` theo research P-10 | 001 H-02, 004 T-09 |
+| `KyCuoiPort` (`admission.api`) | `taoKyCuoiNhap`, `tinhLai`, `huyMocDung` (MANDATORY; research P-10); giữ đúng chữ ký 004 | 004 FR-066 |
+| `MucViecSauQuaDoiPort` (`admission.api`) | `ma() = CHI_PHI_KY_CUOI`; `HOAN_THANH` khi kỳ cuối và bảng bổ sung tồn tại lúc qua đời đã chốt (FR-036) | 004 FR-071 |
+| `DeNghiMuaHoPort` (`medication.api`) | `daMua(deNghiId, nctId)`: đề nghị `DA_MUA`, mục, số lượng, nhân viên mua (Q-139) | 006 FR-040 |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | data-model mục 9, 10 | |
 | `GanPhamViProvider` (002) | `M11.BANG_CHI_PHI`, `M11.KHOAN_CHI_PHI`, `M11.DE_NGHI_MUA_HO`: người cao tuổi | 002 FR-034 |
 | `QuyenTepProvider` (`common.tep`) | `M11.CHUNG_TU_MUA_HO`: Hành chính, Quản lý viện, Kế toán, người đại diện của người đó | NFR-08 |
 
-### 1.2. `m11.api.ChiPhiCongNguoiThanApi` (012; FR-037, FR-038)
+### 1.2. `billing.api.ChiPhiCongNguoiThanApi` (012; FR-037, FR-038)
 
 ```java
 List<BangChiPhiView> bangDaChot(long nctId, NguoiDungHienTai nguoiThan);          // tên thuốc theo quyền (FR-019)
@@ -28,13 +28,13 @@ TamTinhView tamTinh(long nctId, LocalDate tu, LocalDate den, NguoiDungHienTai nd
 List<DeNghiMuaHoView> deNghiChoDongY(long nctId, long nguoiThanId);                // FR-023a; kèm dấu số dư không đủ (Q-219)
 ```
 
-### 1.3. `m11.api.ChiPhiKyCuoiApi` (004 hiển thị danh sách điều kiện)
+### 1.3. `billing.api.ChiPhiKyCuoiApi` (004 hiển thị danh sách điều kiện)
 
 ```java
 TrangThaiDieuKien dieuKienKyCuoi(long nctId);   // FR-034a: DAT | CHUA_DAT kèm lý do (bảng chưa chốt, ngày thiếu khoản, điều chỉnh ảnh hưởng chưa chốt)
 ```
 
-### 1.4. `m11.api.ChiPhiThongKeApi` (016; 18.4, 18.5)
+### 1.4. `billing.api.ChiPhiThongKeApi` (016; 18.4, 18.5)
 
 ```java
 Stream<KhoanBaoCaoView> khoan(PhamViLoc phamVi, LocalDate tu, LocalDate den);
@@ -43,7 +43,7 @@ Stream<BangBaoCaoView> bang(Optional<Long> kyId);    // thường/bổ sung, k�
 Stream<KyView> ky();
 ```
 
-### 1.5. Sự kiện `m11.api` cho module làm plan sau phát (011, 012, 014)
+### 1.5. Sự kiện `billing.api` cho module làm plan sau phát (011, 012, 014)
 
 ```java
 record SuKienTinhPhiNguon(String loaiNguon, String nguonId, String donVi, long nctId, Optional<Long> dichVuId,
@@ -67,7 +67,7 @@ record SuKienTinhPhiNguonDaDoi(String loaiNguon, String nguonId, String donVi, O
 
 ## 2. Port nội bộ M11 (017, 019)
 
-Theo research P-12 (`ChiPhiChoSoDuPort` 010 cài; `SoDuMuaHoPort` 017 cài). *(Bổ sung 2026-10-22, FR-042, Q-378)* `ChiPhiChoSoDuPort.bangDaChot(bangId)` trả chi tiết khoản Đã chốt và tổng theo loại cho phiếu báo phí, bảng quyết toán của 017 (chữ ký ở research P-12). Chỉ `m11.sodu`, `m11.muasam` được dùng (ArchUnit). Khi 017 chưa có, `SoDuMuaHoPort` không có bean và đề nghị không mang dấu "số dư không đủ".
+Theo research P-12 (`ChiPhiChoSoDuPort` 010 cài; `SoDuMuaHoPort` 017 cài). *(Bổ sung 2026-10-22, FR-042, Q-378)* `ChiPhiChoSoDuPort.bangDaChot(bangId)` trả chi tiết khoản Đã chốt và tổng theo loại cho phiếu báo phí, bảng quyết toán của 017 (chữ ký ở research P-12). Chỉ `billing.sodu`, `billing.muasam` được dùng (ArchUnit). Khi 017 chưa có, `SoDuMuaHoPort` không có bean và đề nghị không mang dấu "số dư không đủ".
 
 ---
 
@@ -93,7 +93,7 @@ Theo research P-12 (`ChiPhiChoSoDuPort` 010 cài; `SoDuMuaHoPort` 017 cài). *(B
 | Giao diện | Module (feature) | Dùng cho | Khi chưa có |
 | --- | --- | --- | --- |
 | `HopDongDocApi`, `DonGiaApi` (`donGiaTaiNgay` MANDATORY khi đánh dấu tham chiếu, `donGiaHopDong`, `dichVuChamSoc`, `thuocNguonVien`), `NgayLuuTruApi` | M02 (004) | P-04, P-05 | Có sẵn |
-| `NguoiDaiDienPort.laNguoiDaiDienHieuLuc`, `coNguoiDaiDien` (`m02.api`, 012 cài) | M10 (012) | FR-023, FR-023a | Bản giả |
+| `NguoiDaiDienPort.laNguoiDaiDienHieuLuc`, `coNguoiDaiDien` (`admission.api`, 012 cài) | M10 (012) | FR-023, FR-023a | Bản giả |
 | `NguoiCaoTuoiApi.trangThai`, `thoiDiemTrangThaiCuoi` | M01 (001) | FR-011, FR-036 | Có sẵn |
 | `DanhSachViecSauQuaDoiApi.capNhat` | M02 (004) | FR-036 | Có sẵn |
 | `QuyenApi`, `QuyenXemTruongApi` (tên thuốc theo quyền), `NguoiDungHienTai` | M15 (002) | P-06, P-14 | Có sẵn |

@@ -10,16 +10,16 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## X-01. Vị trí trong backend
 
-**Quyết định**: Feature 015 thuộc module M09 (mục 13.2 phần lịch ca xoay vòng; UC-50 phần lập từ mẫu, UC-54), thêm gói con vào `com.cambae.backend.m09` (008 N-01).
+**Quyết định**: Feature 015 thuộc module M09 (mục 13.2 phần lịch ca xoay vòng; UC-50 phần lập từ mẫu, UC-54), thêm gói con vào `com.eldercare.backend.staffing` (008 N-01).
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
-| `m09.xoayca` | Mẫu xoay ca, nhóm xoay ca, thành viên, lập lịch từ mẫu, lập lại, báo cáo lập lịch | A, B |
-| `m09.phuca` | Yêu cầu phủ tối thiểu (đọc CFG-M09-07), tính phủ, lần tính, cảnh báo thiếu phủ, mục "thiếu ca", kiểm tra khi công bố | A, C, F |
-| `m09.doica` | Yêu cầu đổi ca, yêu cầu nghỉ đột xuất (theo ca, theo ngày), lời mời nhận ca thay, tra cứu người thay | D, E, F |
-| `m09.xoayca.lich`, `m09.doica.lich` | Job | |
+| `staffing.xoayca` | Mẫu xoay ca, nhóm xoay ca, thành viên, lập lịch từ mẫu, lập lại, báo cáo lập lịch | A, B |
+| `staffing.phuca` | Yêu cầu phủ tối thiểu (đọc CFG-M09-07), tính phủ, lần tính, cảnh báo thiếu phủ, mục "thiếu ca", kiểm tra khi công bố | A, C, F |
+| `staffing.doica` | Yêu cầu đổi ca, yêu cầu nghỉ đột xuất (theo ca, theo ngày), lời mời nhận ca thay, tra cứu người thay | D, E, F |
+| `staffing.xoayca.lich`, `staffing.doica.lich` | Job | |
 
-015 chỉ đổi ca, phân công, người phụ trách qua port nội bộ của 008 (`CaLenhPort`, `PhanCongLenhPort`, bổ sung `LichNhapLenhPort`; X-03); ArchUnit chỉ cho `m09.doica`, `m09.xoayca` dùng các port này (008 N-07).
+015 chỉ đổi ca, phân công, người phụ trách qua port nội bộ của 008 (`CaLenhPort`, `PhanCongLenhPort`, bổ sung `LichNhapLenhPort`; X-03); ArchUnit chỉ cho `staffing.doica`, `staffing.xoayca` dùng các port này (008 N-07).
 
 ---
 
@@ -34,7 +34,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 | 015 → 005 | `CongViecCaApi.khiNghiCoDuyet`, `khiKetThucPhanCong` (MANDATORY; đã khai cho 015) |
 | 015 → 006 | Không gọi: liều chung suy ra từ `DieuDuongCaPort` (008 cài) vốn đã loại người nghỉ có duyệt |
 | 015 → 007 | Không gọi: khi ca không còn Bác sĩ trực, 007 đọc `NhanSuCanhBaoPort` (008 cài) lúc chọn người nhận (007 FR-047b) |
-| 015 → 014 | `ChuyenDiNhiemVuLenhApi.goNhiemVu(nhanVienId, caId, canCu)` (MANDATORY, `m04.api`, plan 014); đọc `ChuyenDiNhiemVuPort` (008 → 014) để hiển thị FR-021 (h), FR-027 |
+| 015 → 014 | `ChuyenDiNhiemVuLenhApi.goNhiemVu(nhanVienId, caId, canCu)` (MANDATORY, `care.api`, plan 014); đọc `ChuyenDiNhiemVuPort` (008 → 014) để hiển thị FR-021 (h), FR-027 |
 | 015 → 009, 016 | Thông báo cài `CoYeuCauThongBao`; 016 đọc `XoayCaThongKeApi` |
 
 **Lý do**: 015 làm plan sau 005, 008, 014 nên gọi thẳng API của họ; không tạo vòng (Modulith `verify()`).
@@ -43,10 +43,10 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## X-03. Port nội bộ M09 dùng và bổ sung
 
-**Quyết định**: Dùng `CaLenhPort`, `PhanCongLenhPort`, cài `KiemTraCongBoMoRong` theo 008 N-07. Bổ sung theo plan này (gói `m09.lichca.port`):
+**Quyết định**: Dùng `CaLenhPort`, `PhanCongLenhPort`, cài `KiemTraCongBoMoRong` theo 008 N-07. Bổ sung theo plan này (gói `staffing.lichca.port`):
 
 ```java
-interface LichNhapLenhPort {        // 008 cài; MANDATORY; chỉ m09.xoayca dùng
+interface LichNhapLenhPort {        // 008 cài; MANDATORY; chỉ staffing.xoayca dùng
   long taoNhap(PhamViCa phamVi, YearMonth thang, List<CaNhap> ca, CanCu canCu);
       // tạo lịch Nháp, ca, ca_nhan_vien với can_cu_vao_ca = LAP_LICH; kiểm FR-013, FR-014 của 008 theo từng dòng;
       // ném lỗi khi phạm vi đã có lịch tháng (015 FR-014)

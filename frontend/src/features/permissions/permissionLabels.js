@@ -1,4 +1,4 @@
-// Nhãn tiếng Việt cho quyền (002 US7; Phụ lục 27, glossary 7.3). Tên chức năng chép từ m15.account.api.dto.Function
+// Nhãn tiếng Việt cho quyền (002 US7; Phụ lục 27, glossary 7.3). Tên chức năng chép từ administration.account.api.dto.Function
 // (76 dòng Phụ lục 27, cùng thứ tự); đổi Function thì đổi file này.
 
 export const FUNCTION_LABELS = {

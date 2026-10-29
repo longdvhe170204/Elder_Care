@@ -22,7 +22,7 @@ frontend/ npm ci && npm test && npm run dev
 mobile/   flutter test
 ```
 
-Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()`, ArchUnit (chỉ `m11.sodu` dùng port P-12), test cơ sở dữ liệu (data-model mục 9) và nhóm test ở mục 4.
+Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()`, ArchUnit (chỉ `billing.sodu` dùng port P-12), test cơ sở dữ liệu (data-model mục 9) và nhóm test ở mục 4.
 
 ## 3. Kịch bản kiểm chứng đầu–cuối (profile demo)
 
@@ -69,7 +69,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()`, ArchUnit (ch�
 
 ## 4. Test tự động: truy vết kịch bản → test
 
-| Spec | Lớp test (backend, `com.cambae.backend.m11.sodu…`) | Loại |
+| Spec | Lớp test (backend, `com.eldercare.backend.billing.sodu…`) | Loại |
 | --- | --- | --- |
 | US1, FR-001 → FR-004 | `MoSoIT`, `VietQrPayloadTest`, `SoDuHienThiIT`, `CongSoDuIT` | Đơn vị, tích hợp |
 | US2, US3, FR-005 → FR-007 | `BR_M11_16_TienMatIT`, `BR_M11_12_ChuyenKhoanIT`, `TrangThaiDatCocTest`, `FR_006_DatCocIT` | Đơn vị, tích hợp |

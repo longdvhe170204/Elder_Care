@@ -18,15 +18,15 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
-- Module M09 (phần 015): `BE/m09/{xoayca,phuca,doica}/`; port bổ sung ở `BE/m09/lichca/port/`
+- `BE/` = `backend/src/main/java/com/eldercare/backend/`, `BT/` = `backend/src/test/java/com/eldercare/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- Module M09 (phần 015): `BE/staffing/{xoayca,phuca,doica}/`; port bổ sung ở `BE/staffing/lichca/port/`
 - Web `frontend/src/tinh-nang/lich-ca/{xoay-ca,phu-ca,doi-ca,nghi,loi-moi}/`; app nhân viên `mobile/lib/nhan-vien/lich-ca/`
 
 ---
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo gói con `BE/m09/doica/` (Q-397: bỏ `xoayca`, `phuca`); mở rộng ArchUnit `BT/m09/M09ArchTest.java` (008 T001): chỉ `m09.doica` dùng port nội bộ; gói `..lich..` không lập lịch, không chỉ định người phụ trách (research X-01)
+- [ ] T001 Tạo gói con `BE/staffing/doica/` (Q-397: bỏ `xoayca`, `phuca`); mở rộng ArchUnit `BT/staffing/M09ArchTest.java` (008 T001): chỉ `staffing.doica` dùng port nội bộ; gói `..lich..` không lập lịch, không chỉ định người phụ trách (research X-01)
 
 ---
 
@@ -36,12 +36,12 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T002 Bổ sung port trong `BE/m09/lichca/port/`: `LichNhapLenhPort` (chỉ `goNhanVienKhoiNhap`, `lichThang`; Q-397), `NghiCoDuyetPort`; cài ở gói `m09.lichca.internal` của 008 (contracts mục 1.2; research X-03)
-- [ ] T003 [P] Bổ sung `BE/m09/api/DoiCaThongKeApi.java` (yêu cầu, giờ làm theo tháng; Q-397: bỏ phủ, lời mời) và thông báo (cài `CoYeuCauThongBao`) (contracts mục 2.1, 2.3)
+- [ ] T002 Bổ sung port trong `BE/staffing/lichca/port/`: `LichNhapLenhPort` (chỉ `goNhanVienKhoiNhap`, `lichThang`; Q-397), `NghiCoDuyetPort`; cài ở gói `staffing.lichca.internal` của 008 (contracts mục 1.2; research X-03)
+- [ ] T003 [P] Bổ sung `BE/staffing/api/DoiCaThongKeApi.java` (yêu cầu, giờ làm theo tháng; Q-397: bỏ phủ, lời mời) và thông báo (cài `CoYeuCauThongBao`) (contracts mục 2.1, 2.3)
 - [ ] T004 *(Bỏ theo Q-397, 2026-10-29)* Không có bảng mẫu xoay ca, nhóm, `moc_nhac_lich`; `lan_chay_m09xc` tạo ở T007 **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_chay_m09xc` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 - [ ] T005 [P] *(Bỏ theo Q-397, 2026-10-29)*
 - [ ] T006 [P] *(Bỏ theo Q-397, 2026-10-29)*
-- [ ] T007 Cài khung job `BE/m09/doica/lich/ViecM09DoiCa.java` (ShedLock, `lan_chay_m09xc`) cho Hết hiệu lực yêu cầu, tách ca theo giờ (Q-397: bỏ nhắc lập lịch, nhắc công bố, cảnh báo) (research X-13) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_chay_m09xc` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [ ] T007 Cài khung job `BE/staffing/doica/lich/ViecM09DoiCa.java` (ShedLock, `lan_chay_m09xc`) cho Hết hiệu lực yêu cầu, tách ca theo giờ (Q-397: bỏ nhắc lập lịch, nhắc công bố, cảnh báo) (research X-13) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_chay_m09xc` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 - [ ] T008 [P] Cài provider: `GanPhamViProvider` (`M09.DOI_CA`, `M09.NGHI_DOT_XUAT`), `PhanLoaiTruongProvider` (lý do `LY_DO_NHAN_SU`), `LuuTruProvider` (≥ CFG-M15-04)
 
 **Checkpoint**: Nền 015 sẵn sàng.
@@ -68,12 +68,12 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 ### Tests cho User Story 3
 
-- [ ] T017 [P] [US3] Test đơn vị `BT/m09/KiemTraDoiCaTest.java` và `BT/m09/BR_M09_10_DoiCaIT.java`: duyệt đổi ca và vắng ca đồng thời; một yêu cầu mở mỗi (ca, nhân viên); chỉ A thấy lý do từ chối của B (Q13 → Q20, Q34)
+- [ ] T017 [P] [US3] Test đơn vị `BT/staffing/KiemTraDoiCaTest.java` và `BT/staffing/BR_M09_10_DoiCaIT.java`: duyệt đổi ca và vắng ca đồng thời; một yêu cầu mở mỗi (ca, nhân viên); chỉ A thấy lý do từ chối của B (Q13 → Q20, Q34)
 
 ### Implementation cho User Story 3
 
 - [ ] T018 [US3] Tạo bảng `yeu_cau_doi_ca` (`yeu_cau_id` khóa chính trỏ `yeu_cau_phe_duyet`; `dang` `HAI_CHIEU|NHAN_THAY`; `trang_thai` 7 giá trị đồng bộ qua `chuyenMoRong`), `yeu_cau_ca_mo` (`UNIQUE (ca_id, nhan_vien_id)`) trong `MIG/V015_04__doi_ca.sql` **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `yeu_cau_doi_ca` → `ho_so_chung`; `yeu_cau_ca_mo` → `khoa_duy_nhat` của `ho_so_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
-- [ ] T019 [US3] Cài handler `BE/m09/doica/internal/DoiCaHandler.java` cho `M09.DOI_CA` (`chuyenMoRong` cho `CHO_NGUOI_NHAN_DONG_Y`, `NGUOI_NHAN_TU_CHOI`, `HET_HIEU_LUC`; không có `NHAP`; `kiemTraKhiDuyet`; `khiDuyet` hoặc `apDung` gọi `CaLenhPort`, `PhanCongLenhPort`, `CongViecCaApi.khiKetThucPhanCong`, `ChuyenDiNhiemVuLenhApi.goNhiemVu`; tự duyệt Q-10) và `DoiCaService.java` (lập, đồng ý, từ chối, rút, hủy) (research X-08)
+- [ ] T019 [US3] Cài handler `BE/staffing/doica/internal/DoiCaHandler.java` cho `M09.DOI_CA` (`chuyenMoRong` cho `CHO_NGUOI_NHAN_DONG_Y`, `NGUOI_NHAN_TU_CHOI`, `HET_HIEU_LUC`; không có `NHAP`; `kiemTraKhiDuyet`; `khiDuyet` hoặc `apDung` gọi `CaLenhPort`, `PhanCongLenhPort`, `CongViecCaApi.khiKetThucPhanCong`, `ChuyenDiNhiemVuLenhApi.goNhiemVu`; tự duyệt Q-10) và `DoiCaService.java` (lập, đồng ý, từ chối, rút, hủy) (research X-08)
 - [ ] T020 [US3] Tạo endpoint `/doi-ca`, `/doi-ca/ca-cua-nguoi-nhan`, `/{id}/kiem-tra`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/lich-ca/doi-ca/`; app `mobile/lib/nhan-vien/lich-ca/` (SC-006 ≤ 2 phút) với test flutter
 
 **Checkpoint**: Đổi ca chạy độc lập.
@@ -88,12 +88,12 @@ description: "Danh sách task triển khai feature 015 – Lịch ca xoay vòng,
 
 ### Tests cho User Story 4
 
-- [ ] T021 [P] [US4] Test `BT/m09/FR_029_NghiTheoCaIT.java`, `FR_026a_NghiTheoNgayIT.java` (Q21 → Q27)
+- [ ] T021 [P] [US4] Test `BT/staffing/FR_029_NghiTheoCaIT.java`, `FR_026a_NghiTheoNgayIT.java` (Q21 → Q27)
 
 ### Implementation cho User Story 4
 
 - [ ] T022 [US4] Tạo bảng `yeu_cau_nghi` (`dang` `THEO_CA|THEO_NGAY`; `lap_thay`), `yeu_cau_nghi_muc` (`ket_qua` `CHO|DUYET|TU_CHOI|DA_TACH|DA_ROI`), `nghi_theo_ngay` (nhóm 3; `UNIQUE (nhan_vien_id, ngay)`) trong `MIG/V015_05__nghi.sql` **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `yeu_cau_nghi` → `ho_so_chung`; `nghi_theo_ngay` → `su_kien_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
-- [ ] T023 [US4] Cài handler `BE/m09/doica/internal/NghiDotXuatHandler.java` (`DA_AP_DUNG_MOT_PHAN`, `HET_HIEU_LUC`; tác động qua `NghiCoDuyetPort`, `CaLenhPort`) và `NghiService.java` (tác động trước duyệt; tách ca theo giờ trong job; listener `LichCaDaCongBo`) (research X-09)
+- [ ] T023 [US4] Cài handler `BE/staffing/doica/internal/NghiDotXuatHandler.java` (`DA_AP_DUNG_MOT_PHAN`, `HET_HIEU_LUC`; tác động qua `NghiCoDuyetPort`, `CaLenhPort`) và `NghiService.java` (tác động trước duyệt; tách ca theo giờ trong job; listener `LichCaDaCongBo`) (research X-09)
 - [ ] T024 [US4] Tạo endpoint `/nghi-dot-xuat`, `/{id}/truoc-khi-duyet`, `/{id}/{lenh}`; màn web `frontend/src/tinh-nang/lich-ca/nghi/`; app phần nghỉ
 
 **Checkpoint**: Nghỉ đột xuất chạy độc lập.

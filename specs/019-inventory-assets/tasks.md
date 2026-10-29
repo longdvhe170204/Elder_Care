@@ -6,7 +6,7 @@ description: "Danh sách task triển khai feature 019 – Mua sắm, tài sản
 
 **Input**: Tài liệu thiết kế ở `specs/019-inventory-assets/` (plan.md, spec.md, research.md W-01 → W-09, data-model.md, contracts/api-019.yaml, contracts/module-interfaces.md, quickstart.md)
 
-**Prerequisites**: 000, 002 đã xong Phase 2; 003 (port `GiuongTheoTaiSanPort`, khai báo `TaiSanGiuongPort`), 008 (`NhiemVuApi.boPhanCua`, `laPhuTrachBoPhan`, bộ phận), 010 (gói `m11`), 011 (port `TonKhoNguyenLieuPort`, `LichBuaApi` không còn cần, Q-392), 014 (lệnh chuyến đi gọi `LichXeLenhApi`), 006 (`DonThuocApi.donNguonVienChuaKetThuc`, `TiepNhanThuocCungUngApi`, SPI `YeuCauThuocCungUngPort` ở `m07.api`; bổ sung 2026-10-11, Q-337) đã có `api`.
+**Prerequisites**: 000, 002 đã xong Phase 2; 003 (port `GiuongTheoTaiSanPort`, khai báo `TaiSanGiuongPort`), 008 (`NhiemVuApi.boPhanCua`, `laPhuTrachBoPhan`, bộ phận), 010 (gói `billing`), 011 (port `TonKhoNguyenLieuPort`, `LichBuaApi` không còn cần, Q-392), 014 (lệnh chuyến đi gọi `LichXeLenhApi`), 006 (`DonThuocApi.donNguonVienChuaKetThuc`, `TiepNhanThuocCungUngApi`, SPI `YeuCauThuocCungUngPort` ở `medication.api`; bổ sung 2026-10-11, Q-337) đã có `api`.
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4.
 
@@ -16,26 +16,26 @@ description: "Danh sách task triển khai feature 019 – Mua sắm, tài sản
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
-- Ba gói: `BE/m11/muasam/`, `BE/m03/taisan/`, `BE/m03/lichxe/` (mỗi gói `{internal, web, lich}`); bổ sung `BE/m03/api/`, `BE/m11/api/`
+- `BE/` = `backend/src/main/java/com/eldercare/backend/`, `BT/` = `backend/src/test/java/com/eldercare/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
+- Ba gói: `BE/billing/muasam/`, `BE/roombedallocation/taisan/`, `BE/roombedallocation/lichxe/` (mỗi gói `{internal, web, lich}`); bổ sung `BE/roombedallocation/api/`, `BE/billing/api/`
 - Web `frontend/src/tinh-nang/{mua-sam,tai-san,lich-xe}/`
 
 ---
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo ba gói `BE/m11/muasam/`, `BE/m03/taisan/`, `BE/m03/lichxe/`; ArchUnit `BT/m03/TaiSanArchTest.java`: chỉ `m03.taisan` dùng port giường; job không tạo phiếu, yêu cầu, lịch (Q-306); M03 không phụ thuộc M11 (research W-01, W-02)
+- [ ] T001 Tạo ba gói `BE/billing/muasam/`, `BE/roombedallocation/taisan/`, `BE/roombedallocation/lichxe/`; ArchUnit `BT/roombedallocation/TaiSanArchTest.java`: chỉ `roombedallocation.taisan` dùng port giường; job không tạo phiếu, yêu cầu, lịch (Q-306); M03 không phụ thuộc M11 (research W-01, W-02)
 
 ---
 
 ## Phase 2: Foundational (chặn mọi user story)
 
-**Purpose**: Khai báo giao diện mới ở `m03.api`, `m11.api`; khung job.
+**Purpose**: Khai báo giao diện mới ở `roombedallocation.api`, `billing.api`; khung job.
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T002 [P] Tạo `BE/m03/api/`: SPI `YeuCauMuaSamPort` (M11 cài), `LichXeApi`, `LichXeLenhApi`, `TaiSanThongKeApi`; `BE/m11/api/`: `MuaSamThongKeApi`; thông báo (cài `CoYeuCauThongBao`) (contracts mục 2.1 → 2.3)
-- [ ] T003 Tạo bảng kỹ thuật `nhac_019` trong `MIG/V019_01__nhac.sql` và khung job (`BE/m11/muasam/lich/`, `BE/m03/taisan/lich/`, `BE/m03/lichxe/lich/`; ShedLock, chạy bù, không nhắc trùng) (research W-09) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `nhac_019` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [ ] T002 [P] Tạo `BE/roombedallocation/api/`: SPI `YeuCauMuaSamPort` (M11 cài), `LichXeApi`, `LichXeLenhApi`, `TaiSanThongKeApi`; `BE/billing/api/`: `MuaSamThongKeApi`; thông báo (cài `CoYeuCauThongBao`) (contracts mục 2.1 → 2.3)
+- [ ] T003 Tạo bảng kỹ thuật `nhac_019` trong `MIG/V019_01__nhac.sql` và khung job (`BE/billing/muasam/lich/`, `BE/roombedallocation/taisan/lich/`, `BE/roombedallocation/lichxe/lich/`; ShedLock, chạy bù, không nhắc trùng) (research W-09) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `nhac_019` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 - [ ] T004 [P] Cài provider: `PhanLoaiTruongProvider` (nguyên giá, chi phí → `TAI_CHINH`), `LuuTruProvider`, `GanPhamViProvider` (`M11.MUA_SAM` bộ phận; `M03.TAI_SAN` bộ phận và tầng của vị trí; `M03.LICH_XE` toàn viện), `QuyenTepProvider` (`M11.CHUNG_TU_MUA_SAM`) (research W-08)
 
 **Checkpoint**: Nền 019 sẵn sàng.
@@ -50,14 +50,14 @@ description: "Danh sách task triển khai feature 019 – Mua sắm, tài sản
 
 ### Tests cho User Story 7
 
-- [ ] T005 [P] [US7] Test đơn vị `BT/m11/KiemTraVuotTest.java`, `KhopChungTuTest.java` và `BT/m11/BR_M11_17_MuaSamIT.java`, `BR_M11_18_VuotIT.java`, `BR_M11_19_DoiChieuIT.java`, `BR_M11_20_NhacIT.java`, `DBR_36_GanNguonIT.java` (Q1 → Q9)
+- [ ] T005 [P] [US7] Test đơn vị `BT/billing/KiemTraVuotTest.java`, `KhopChungTuTest.java` và `BT/billing/BR_M11_17_MuaSamIT.java`, `BR_M11_18_VuotIT.java`, `BR_M11_19_DoiChieuIT.java`, `BR_M11_20_NhacIT.java`, `DBR_36_GanNguonIT.java` (Q1 → Q9)
 
 ### Implementation cho User Story 7
 
 - [ ] T006 [US7] Tạo `MIG/V019_02__mua_sam.sql`: `yeu_cau_mua_sam` (`loai` `NGUYEN_LIEU|TAI_SAN|DICH_VU|THUOC|KHAC`; `muc_uu_tien`, `thoi_diem_can` (`CHECK` bắt buộc khi `THUOC`), `tep_lien_quan_ids` (không bắt buộc); dòng thêm `nct_id`, `don_thuoc_id`, `hoat_chat`, `ham_luong`, `dang_thuoc`, `don_vi` (FR-008d, Q-337); `trang_thai` `NHAP|CHO_DUYET|DA_DUYET|TU_CHOI|CHO_DOI_CHIEU|LECH|DA_DOI_CHIEU|DA_HUY`), `yeu_cau_mua_sam_dong`, `mua_sam_gan_nguon` (nhóm 3; `loai_nguon` `PHIEU_NHAP|TAI_SAN|BAO_TRI`; `UNIQUE (loai_nguon, nguon_id)`) (data-model mục 3) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `mua_sam_gan_nguon` → cột `JSON` của yêu cầu mua sắm; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
-- [ ] T007 [US7] Cài `BE/m11/muasam/internal/MuaSamService.java` (bảng chuyển data-model mục 3; quyền Phụ trách bộ phận qua `NhiemVuApi`; Điều dưỡng chỉ lập, gửi, rút lại, hủy loại `THUOC`, dòng gắn đơn qua `DonThuocApi.donNguonVienChuaKetThuc` và người cao tuổi trong phạm vi phân công; mọi người lập loại `THUOC` phải xem được `SUC_KHOE` của người cao tuổi của dòng (`QuyenXemTruongApi`) mới gắn được đơn (research W-05); Kế toán không lập, người đối chiếu ≠ người ghi đã mua; loại `THUOC` đối chiếu chỉ chứng từ với số thực tế), `YeuCauMuaSamApi` cho M08, `YeuCauMuaSamPortImpl` cho M03 (kiểm yêu cầu Đã duyệt cùng bộ phận khi gắn nguồn); nhắc trong job (research W-05)
-- [ ] T027 [US7] Cài `BE/m11/muasam/internal/YeuCauThuocCungUngPortImpl.java` (SPI `m07.api.YeuCauThuocCungUngPort`, research W-05) và hiển thị "Đã nhận" từ `TiepNhanThuocCungUngApi.theoYeuCau` trên chi tiết yêu cầu (bổ sung 2026-10-11, Q-337)
-- [ ] T028 [P] [US7] Test `BT/m11/FR_008d_YeuCauThuocIT.java`: Điều dưỡng không là Phụ trách bộ phận lập yêu cầu `THUOC` gắn đơn nguồn viện Hiệu lực của người cao tuổi trong phạm vi → 201, gửi duyệt → Chờ duyệt và báo Quản lý viện; dòng gắn đơn gia đình gửi hoặc đơn Đã ngừng → 409; người cao tuổi ngoài phạm vi phân công → 403; thiếu mức ưu tiên hoặc thời điểm cần → 422; Điều dưỡng lập loại `NGUYEN_LIEU` → 403; Điều dưỡng ghi đã mua → 403; Phụ trách bộ phận Bếp (không xem được `SUC_KHOE`) lập yêu cầu `THUOC` gắn đơn → 403 và không được cấp thêm quyền xem; Phụ trách bộ phận Y tế xem được thì lập được; dòng thiếu `nctId` hoặc `donThuocId` → 422; đơn không thuộc người cao tuổi của dòng → 409; `YeuCauThuocCungUngPort` trả `boPhanId` của yêu cầu, không đổi khi người lập chuyển bộ phận; sau khi Phụ trách bộ phận ghi đã mua, `YeuCauThuocCungUngPort` trả dòng; trước đó trả rỗng; không có khoản chi phí người cao tuổi (spec 019 US7 #8; FR-008d, BR-M11-17, Q-337)
+- [ ] T007 [US7] Cài `BE/billing/muasam/internal/MuaSamService.java` (bảng chuyển data-model mục 3; quyền Phụ trách bộ phận qua `NhiemVuApi`; Điều dưỡng chỉ lập, gửi, rút lại, hủy loại `THUOC`, dòng gắn đơn qua `DonThuocApi.donNguonVienChuaKetThuc` và người cao tuổi trong phạm vi phân công; mọi người lập loại `THUOC` phải xem được `SUC_KHOE` của người cao tuổi của dòng (`QuyenXemTruongApi`) mới gắn được đơn (research W-05); Kế toán không lập, người đối chiếu ≠ người ghi đã mua; loại `THUOC` đối chiếu chỉ chứng từ với số thực tế), `YeuCauMuaSamApi` cho M08, `YeuCauMuaSamPortImpl` cho M03 (kiểm yêu cầu Đã duyệt cùng bộ phận khi gắn nguồn); nhắc trong job (research W-05)
+- [ ] T027 [US7] Cài `BE/billing/muasam/internal/YeuCauThuocCungUngPortImpl.java` (SPI `medication.api.YeuCauThuocCungUngPort`, research W-05) và hiển thị "Đã nhận" từ `TiepNhanThuocCungUngApi.theoYeuCau` trên chi tiết yêu cầu (bổ sung 2026-10-11, Q-337)
+- [ ] T028 [P] [US7] Test `BT/billing/FR_008d_YeuCauThuocIT.java`: Điều dưỡng không là Phụ trách bộ phận lập yêu cầu `THUOC` gắn đơn nguồn viện Hiệu lực của người cao tuổi trong phạm vi → 201, gửi duyệt → Chờ duyệt và báo Quản lý viện; dòng gắn đơn gia đình gửi hoặc đơn Đã ngừng → 409; người cao tuổi ngoài phạm vi phân công → 403; thiếu mức ưu tiên hoặc thời điểm cần → 422; Điều dưỡng lập loại `NGUYEN_LIEU` → 403; Điều dưỡng ghi đã mua → 403; Phụ trách bộ phận Bếp (không xem được `SUC_KHOE`) lập yêu cầu `THUOC` gắn đơn → 403 và không được cấp thêm quyền xem; Phụ trách bộ phận Y tế xem được thì lập được; dòng thiếu `nctId` hoặc `donThuocId` → 422; đơn không thuộc người cao tuổi của dòng → 409; `YeuCauThuocCungUngPort` trả `boPhanId` của yêu cầu, không đổi khi người lập chuyển bộ phận; sau khi Phụ trách bộ phận ghi đã mua, `YeuCauThuocCungUngPort` trả dòng; trước đó trả rỗng; không có khoản chi phí người cao tuổi (spec 019 US7 #8; FR-008d, BR-M11-17, Q-337)
 - [ ] T008 [US7] Tạo endpoint `/mua-sam`, `/mua-sam/{id}`, `/mua-sam/{id}/{lenh}`; màn web `frontend/src/tinh-nang/mua-sam/`
 
 **Checkpoint**: Mua sắm chạy độc lập.
@@ -78,12 +78,12 @@ T009 → T015 bỏ: hệ thống không quản lý kho nguyên liệu (nhập, x
 
 ### Tests cho User Story 4
 
-- [ ] T016 [P] [US4] Test `BT/m03/BR_M03_17_HanBaoTriIT.java`, `BR_M03_18_HuHongIT.java` (Q18 → Q21, Q24 → Q26)
+- [ ] T016 [P] [US4] Test `BT/roombedallocation/BR_M03_17_HanBaoTriIT.java`, `BR_M03_18_HuHongIT.java` (Q18 → Q21, Q24 → Q26)
 
 ### Implementation cho User Story 4
 
 - [ ] T017 [US4] Tạo `MIG/V019_05__tai_san.sql`: `loai_tai_san`, `tai_san` (`ma UNIQUE`; `nguon` `MUA|TANG|CHUYEN|GIUONG_003`; `giuong_id NULL UNIQUE`; `trang_thai` `SAN_SANG|DANG_SU_DUNG|HONG|DANG_BAO_TRI|DA_THANH_LY`; dấu quá hạn), `tai_san_vi_tri` (nhóm 3; cột sinh `khoa_mo` `UNIQUE`), `tai_san_bo_phan`, `tai_san_bao_tri` (`loai` `BAO_TRI|KIEM_DINH|DANG_KIEM|BAO_HIEM`; `ket_qua` `DAT|KHONG_DAT` đặt một lần), `tai_san_hu_hong` (`muc_anh_huong` `MAT_AN_TOAN|KHONG_MAT_AN_TOAN`) (data-model mục 4) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `tai_san_vi_tri`, `tai_san_bo_phan` → `lich_su_chung`; `tai_san_bao_tri`, `tai_san_hu_hong` → `su_kien_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
-- [ ] T018 [US4] Cài `BE/m03/taisan/internal/TaiSanService.java` (bảng chuyển; gắn nguồn mua sắm qua `YeuCauMuaSamPort`; bảo trì thuê ngoài gắn yêu cầu), handler `M03.THANH_LY_TAI_SAN` (`choTuDuyet = false`), `DinhChinhDuocProvider` `M03.TAI_SAN_LICH_SU`, job dấu quá hạn; endpoint `/tai-san`, `/tai-san/loai`, `/tai-san/{id}`, `/tai-san/{id}/{lenh}`; màn web `frontend/src/tinh-nang/tai-san/` (research W-06)
+- [ ] T018 [US4] Cài `BE/roombedallocation/taisan/internal/TaiSanService.java` (bảng chuyển; gắn nguồn mua sắm qua `YeuCauMuaSamPort`; bảo trì thuê ngoài gắn yêu cầu), handler `M03.THANH_LY_TAI_SAN` (`choTuDuyet = false`), `DinhChinhDuocProvider` `M03.TAI_SAN_LICH_SU`, job dấu quá hạn; endpoint `/tai-san`, `/tai-san/loai`, `/tai-san/{id}`, `/tai-san/{id}/{lenh}`; màn web `frontend/src/tinh-nang/tai-san/` (research W-06)
 
 ---
 
@@ -95,11 +95,11 @@ T009 → T015 bỏ: hệ thống không quản lý kho nguyên liệu (nhập, x
 
 ### Tests cho User Story 5
 
-- [ ] T019 [P] [US5] Test đơn vị `BT/m03/AnhXaTrangThaiGiuongTest.java` và `BT/m03/BR_M03_15_GiuongTaiSanIT.java` (SC-004), `DBR_32_TaiSanGiuongIT.java` (báo hỏng cùng lúc với phân bổ) (Q20 → Q23)
+- [ ] T019 [P] [US5] Test đơn vị `BT/roombedallocation/AnhXaTrangThaiGiuongTest.java` và `BT/roombedallocation/BR_M03_15_GiuongTaiSanIT.java` (SC-004), `DBR_32_TaiSanGiuongIT.java` (báo hỏng cùng lúc với phân bổ) (Q20 → Q23)
 
 ### Implementation cho User Story 5
 
-- [ ] T020 [US5] Cài `BE/m03/taisan/internal/TaiSanGiuongPortImpl.java` (`ghiTangChoGiuong`, `mangDauChoChuyenNguoi`, `giuongMangDau`) và `AnhXaTrangThaiGiuong` nối lệnh tài sản của giường với `GiuongTheoTaiSanPort` trong `TaiSanService.java`; màn báo hỏng giường hiện tiêu chí "mất an toàn" với test Vitest
+- [ ] T020 [US5] Cài `BE/roombedallocation/taisan/internal/TaiSanGiuongPortImpl.java` (`ghiTangChoGiuong`, `mangDauChoChuyenNguoi`, `giuongMangDau`) và `AnhXaTrangThaiGiuong` nối lệnh tài sản của giường với `GiuongTheoTaiSanPort` trong `TaiSanService.java`; màn báo hỏng giường hiện tiêu chí "mất an toàn" với test Vitest
 
 ---
 
@@ -111,11 +111,11 @@ T009 → T015 bỏ: hệ thống không quản lý kho nguyên liệu (nhập, x
 
 ### Tests cho User Story 6
 
-- [ ] T021 [P] [US6] Test đơn vị `BT/m03/KiemTraDatLichTest.java` và `BT/m03/BR_M03_16_LichXeIT.java` (SC-005; hai lịch cùng giờ đồng thời), `FR_018_TheoChuyenIT.java` (Q27 → Q32)
+- [ ] T021 [P] [US6] Test đơn vị `BT/roombedallocation/KiemTraDatLichTest.java` và `BT/roombedallocation/BR_M03_16_LichXeIT.java` (SC-005; hai lịch cùng giờ đồng thời), `FR_018_TheoChuyenIT.java` (Q27 → Q32)
 
 ### Implementation cho User Story 6
 
-- [ ] T022 [US6] Tạo bảng `lich_xe` (`muc_dich` `CHUYEN_DI|DI_KHAM|CHUYEN_VIEN_KHONG_CAP_CUU|KHAC`; `trang_thai` `DA_DAT|DANG_DUNG|DA_HOAN_THANH|DA_HUY`) trong `MIG/V019_06__lich_xe.sql`; cài `BE/m03/lichxe/internal/LichXeService.java` (`KiemTraDatLich`; `LichXeApi`, `LichXeLenhApi`; báo người lái có tài khoản; `DinhChinhDuocProvider` `M03.LICH_XE`) và endpoint `/lich-xe`, `/lich-xe/{id}/{lenh}`; màn web `frontend/src/tinh-nang/lich-xe/` (research W-07) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lich_xe` → `ho_so_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [ ] T022 [US6] Tạo bảng `lich_xe` (`muc_dich` `CHUYEN_DI|DI_KHAM|CHUYEN_VIEN_KHONG_CAP_CUU|KHAC`; `trang_thai` `DA_DAT|DANG_DUNG|DA_HOAN_THANH|DA_HUY`) trong `MIG/V019_06__lich_xe.sql`; cài `BE/roombedallocation/lichxe/internal/LichXeService.java` (`KiemTraDatLich`; `LichXeApi`, `LichXeLenhApi`; báo người lái có tài khoản; `DinhChinhDuocProvider` `M03.LICH_XE`) và endpoint `/lich-xe`, `/lich-xe/{id}/{lenh}`; màn web `frontend/src/tinh-nang/lich-xe/` (research W-07) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lich_xe` → `ho_so_chung`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 
 **Checkpoint**: Mọi user story của 019 chạy độc lập.
 

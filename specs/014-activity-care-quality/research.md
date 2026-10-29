@@ -8,34 +8,34 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## L-01. Vị trí trong backend
 
-**Quyết định**: Feature 014 là phần 8.8 → 8.10 và BR-M04-23 của module M04, thêm gói con vào `com.cambae.backend.m04` (plan 005, Structure Decision).
+**Quyết định**: Feature 014 là phần 8.8 → 8.10 và BR-M04-23 của module M04, thêm gói con vào `com.eldercare.backend.care` (plan 005, Structure Decision).
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
-| `m04.hoatdong` | Loại hoạt động, hoạt động, mẫu lặp, người tham gia thường xuyên | A, B |
-| `m04.buoi` | Buổi trong viện, tạo từ mẫu, dời, hủy, đăng ký, đồng ý về muộn, điểm danh | C, D, F |
-| `m04.chuyendi` | Chuyến đi: phân công, đánh giá khả năng, rời viện, gia hạn, về, thiếu người | G, H |
-| `m04.tinhthan` | Sở thích, hồ sơ tinh thần, chuỗi cô lập | I |
-| `m04.kiemtra` | Danh sách kiểm tra chất lượng, mục, kết quả | J |
-| `m04.hoatdong.lich`, `m04.api` (bổ sung) | Job; giao diện công khai và bản cài SPI | |
+| `care.hoatdong` | Loại hoạt động, hoạt động, mẫu lặp, người tham gia thường xuyên | A, B |
+| `care.buoi` | Buổi trong viện, tạo từ mẫu, dời, hủy, đăng ký, đồng ý về muộn, điểm danh | C, D, F |
+| `care.chuyendi` | Chuyến đi: phân công, đánh giá khả năng, rời viện, gia hạn, về, thiếu người | G, H |
+| `care.tinhthan` | Sở thích, hồ sơ tinh thần, chuỗi cô lập | I |
+| `care.kiemtra` | Danh sách kiểm tra chất lượng, mục, kết quả | J |
+| `care.hoatdong.lich`, `care.api` (bổ sung) | Job; giao diện công khai và bản cài SPI | |
 
-Gói của 014 dùng dịch vụ nội bộ của 005 trong cùng `m04` (công việc "hoạt động", công việc làm lại, có mặt bán trú) qua lớp `internal` được ArchUnit cho phép giữa các gói của M04, không qua `m04.api`.
+Gói của 014 dùng dịch vụ nội bộ của 005 trong cùng `care` (công việc "hoạt động", công việc làm lại, có mặt bán trú) qua lớp `internal` được ArchUnit cho phép giữa các gói của M04, không qua `care.api`.
 
 ---
 
 ## L-02. Chiều phụ thuộc giữa module
 
-**Quyết định**: M04 phụ thuộc 000 → 003 (đã có). 014 thêm phụ thuộc gì ra ngoài M04 thì chỉ được tới module **không** phụ thuộc M04; với module phụ thuộc M04 (006, 007, 008, 010, 011, 012, 015, 016, 019), 014 dùng SPI đã khai ở module đó hoặc khai SPI mới ở `m04.api`.
+**Quyết định**: M04 phụ thuộc 000 → 003 (đã có). 014 thêm phụ thuộc gì ra ngoài M04 thì chỉ được tới module **không** phụ thuộc M04; với module phụ thuộc M04 (006, 007, 008, 010, 011, 012, 015, 016, 019), 014 dùng SPI đã khai ở module đó hoặc khai SPI mới ở `care.api`.
 
 | Cặp | Cách nối |
 | --- | --- |
 | 014 → 001 | `TrangThaiNguoiCaoTuoiApi` với lệnh hệ thống `DIEM_DANH_ROI_VIEN`, `DIEM_DANH_VE`, `HUY_GHI_NHAN_ROI_VIEN` (`doHeThong = true`), `chiTiet.chuyenId` (001 mục 1.2; 006 đọc `chiTiet.chuyenId`) |
 | 014 → 002, 003, 004 | `QuyenApi`, `PhamViApi`; vị trí, khu vực; lịch đến bán trú (`HopDongDocApi`) |
-| 014 ↔ 006 | 006 → M04. 014 cài `ChuyenDiThuocPort` (`m07.api`); gọi `MangThuocChuyenDiApi` (`daChuanBi`, `chuyenThayDoi`, `tinhLaiKhoang` MANDATORY) |
-| 014 ↔ 007 | 007 → M04. 014 cài `DiemDanhTruyVetPort` (`m05.api`); gọi `SuCoLenhApi.ghiNhan`, `themDienBien` (MANDATORY); phát `m05.api.YeuCauTaoCanhBao` (`THIEU_NGUOI_KHI_VE` Khẩn cấp, `NGUY_CO_CO_LAP` Nhẹ) và `m05.api.YeuCauGhiDienBienCanhBao` (bổ sung theo plan này, L-11); đọc `KhoanhVungApi`, `SuCoApi.dau` (nghi nhiễm); nghe `KhoanhVungDaTao`, `DauNghiNhiemDaDoi` (bổ sung theo plan này) |
-| 014 ↔ 008 | 008 → M04. 014 cài `ChuyenDiNhiemVuPort` (`m09.api`); đọc `CaTrucApi` (ca chồng chuyến, người kiểm tra, mốc kết ca) |
-| 014 → 010, 011, 012 | Phát `m11.api.SuKienTinhPhiNguon*` (`DIEM_DANH_HOAT_DONG`); cài `ChuyenDiBuaAnPort`, phát `m08.api.ChuyenDiDaDoi`; cài `HoatDongBanTinPort` (`m10.api`), đọc `QuyenNguoiThanApi` |
-| 014 ↔ 015, 016, 019 | Họ làm plan sau. 014 khai ở `m04.api`: `ChuyenDiNhiemVuLenhApi` (015 gọi khi đổi ca, nghỉ đột xuất), sự kiện `ChuyenDiThayDoi` (016), `HoatDongThongKeApi` (016). Lịch xe: 014 gọi `m03.api.LichXeApi`, `LichXeLenhApi` (MANDATORY) do 019 cung cấp trong M03 (M04 → M03 hợp lệ; sửa theo plan 019) |
+| 014 ↔ 006 | 006 → M04. 014 cài `ChuyenDiThuocPort` (`medication.api`); gọi `MangThuocChuyenDiApi` (`daChuanBi`, `chuyenThayDoi`, `tinhLaiKhoang` MANDATORY) |
+| 014 ↔ 007 | 007 → M04. 014 cài `DiemDanhTruyVetPort` (`incident.api`); gọi `SuCoLenhApi.ghiNhan`, `themDienBien` (MANDATORY); phát `incident.api.YeuCauTaoCanhBao` (`THIEU_NGUOI_KHI_VE` Khẩn cấp, `NGUY_CO_CO_LAP` Nhẹ) và `incident.api.YeuCauGhiDienBienCanhBao` (bổ sung theo plan này, L-11); đọc `KhoanhVungApi`, `SuCoApi.dau` (nghi nhiễm); nghe `KhoanhVungDaTao`, `DauNghiNhiemDaDoi` (bổ sung theo plan này) |
+| 014 ↔ 008 | 008 → M04. 014 cài `ChuyenDiNhiemVuPort` (`staffing.api`); đọc `CaTrucApi` (ca chồng chuyến, người kiểm tra, mốc kết ca) |
+| 014 → 010, 011, 012 | Phát `billing.api.SuKienTinhPhiNguon*` (`DIEM_DANH_HOAT_DONG`); cài `ChuyenDiBuaAnPort`, phát `nutrition.api.ChuyenDiDaDoi`; cài `HoatDongBanTinPort` (`family.api`), đọc `QuyenNguoiThanApi` |
+| 014 ↔ 015, 016, 019 | Họ làm plan sau. 014 khai ở `care.api`: `ChuyenDiNhiemVuLenhApi` (015 gọi khi đổi ca, nghỉ đột xuất), sự kiện `ChuyenDiThayDoi` (016), `HoatDongThongKeApi` (016). Lịch xe: 014 gọi `roombedallocation.api.LichXeApi`, `LichXeLenhApi` (MANDATORY) do 019 cung cấp trong M03 (M04 → M03 hợp lệ; sửa theo plan 019) |
 
 **Lý do**: Modulith `verify()` từ chối vòng (000 R-02). 005 đã khai sẵn các SPI cho 014 trong cùng M04 (`NguonCongViecPort` loại `BUOI_HOAT_DONG`, `LAM_LAI`; `KetQuaKiemTraPort`; `ThoiKhoaBieuNguonPort`), 014 cài như bean nội bộ.
 
@@ -95,14 +95,14 @@ Gói của 014 dùng dịch vụ nội bộ của 005 trong cùng `m04` (công v
 - **Phân công** (FR-035): trưởng đoàn có vai trò Trưởng tầng/Nhân viên chăm sóc/Điều dưỡng; mọi người phân công có tài khoản Hoạt động và tên trong ca chồng thời gian (`CaTrucApi.dangTrongCa` theo khoảng). Phạm vi dữ liệu của họ do 002 tính qua `ChuyenDiNhiemVuPort` (008 → 002 `NhiemVuApi`).
 - **Đánh giá khả năng** (FR-036): chỉ Trưởng tầng của tầng người cao tuổi; màn hiển thị lưu ý chăm sóc, nghi nhiễm, cảnh báo/sự cố mở, liều trong khoảng đi (006 qua `ChuyenDiThuocPort.danhGiaDat` do chính 014 cài trả khoảng, 006 tự tính liều). Đạt → `DUOC_DI`, thông báo điều dưỡng phụ trách chuẩn bị thuốc.
 - **Dời, hủy** (FR-038a): dời cùng ngày giữ đánh giá; khác ngày → người tham gia về `DA_DANG_KY`; gọi `MangThuocChuyenDiApi.chuyenThayDoi` (MANDATORY) cho người đã có lần giao.
-- **Cung cấp khoảng đi** (FR-034): phát `m08.api.ChuyenDiDaDoi` (011), `m04.api.ChuyenDiThayDoi` (016) và gọi `LichXeLenhApi.theoChuyen` (019, MANDATORY) với chuyến dùng xe của viện ở mỗi thay đổi; 006 đọc qua `ChuyenDiThuocPort.khoangDi`.
+- **Cung cấp khoảng đi** (FR-034): phát `nutrition.api.ChuyenDiDaDoi` (011), `care.api.ChuyenDiThayDoi` (016) và gọi `LichXeLenhApi.theoChuyen` (019, MANDATORY) với chuyến dùng xe của viện ở mỗi thay đổi; 006 đọc qua `ChuyenDiThuocPort.khoangDi`.
 
 ---
 
 ## L-08. Rời viện, trong chuyến, trở về (mục H; BR-M04-16, BR-M04-17, Q-166, Q-170, Q-307)
 
 **Quyết định**:
-- **Điểm danh rời viện** (FR-040, FR-041): kiểm trưởng đoàn, đánh giá Đạt, `MangThuocChuyenDiApi.daChuanBi`, trạng thái Đang lưu trú (bán trú: đã điểm danh đến), mốc CFG-M04-13, xe của viện có lịch Đã đặt (`m03.api.LichXeApi.coLichDaDat`; chưa có lịch → chặn "chưa có lịch xe"). Trong cùng transaction cho mỗi người: bản ghi `diem_danh_chuyen` loại `ROI_VIEN` (nhóm 3); `TrangThaiNguoiCaoTuoiApi.thucHien(DIEM_DANH_ROI_VIEN, chiTiet{chuyenId, thoiDiem})` (001 gọi bean 005, 006, 011… theo `@Order`, gồm hủy công việc trong khoảng và liều Mang theo); phát `SuKienTinhPhiNguon` (thu phí; ngày rời thực tế). Người đầu tiên → chuyến `DANG_DI`. *(R-15: `diem_danh_chuyen` → `su_kien_chung`)*
+- **Điểm danh rời viện** (FR-040, FR-041): kiểm trưởng đoàn, đánh giá Đạt, `MangThuocChuyenDiApi.daChuanBi`, trạng thái Đang lưu trú (bán trú: đã điểm danh đến), mốc CFG-M04-13, xe của viện có lịch Đã đặt (`roombedallocation.api.LichXeApi.coLichDaDat`; chưa có lịch → chặn "chưa có lịch xe"). Trong cùng transaction cho mỗi người: bản ghi `diem_danh_chuyen` loại `ROI_VIEN` (nhóm 3); `TrangThaiNguoiCaoTuoiApi.thucHien(DIEM_DANH_ROI_VIEN, chiTiet{chuyenId, thoiDiem})` (001 gọi bean 005, 006, 011… theo `@Order`, gồm hủy công việc trong khoảng và liều Mang theo); phát `SuKienTinhPhiNguon` (thu phí; ngày rời thực tế). Người đầu tiên → chuyến `DANG_DI`. *(R-15: `diem_danh_chuyen` → `su_kien_chung`)*
 - **Điểm danh về** (FR-044): bản ghi `VE`; `TrangThaiNguoiCaoTuoiApi.thucHien(DIEM_DANH_VE, …)`; `CongViecVangMatApi.tinhLai` qua bean của 005 trong lệnh 001. Người "Thiếu khi về" về muộn → `SuCoLenhApi.themDienBien(…, DA_TRO_VE)` nếu có sự cố, hoặc `YeuCauGhiDienBienCanhBao` cho cảnh báo.
 - **Ngoại tuyến** (FR-046a): `NgoaiTuyenHandler` `M04.DIEM_DANH_ROI_VIEN`, `M04.DIEM_DANH_VE`; "Báo thiếu người", "Kết thúc điểm danh về", ghi sự cố thiếu người: `batBuocTrucTuyen()`.
 - **Báo thiếu người** (FR-046, FR-048): `SuCoLenhApi.ghiNhan(loai DI_LAC_KHONG_TRO_VE, muc KHAN_CAP, nguon HOAT_DONG_NGOAI_VIEN, chuyến, trưởng đoàn, nơi và lúc thấy lần cuối, nd)` (MANDATORY); người tham gia → `THIEU_KHI_VE`, đặt `su_co_thieu_nguoi_id` một lần.
@@ -138,7 +138,7 @@ Gói của 014 dùng dịch vụ nội bộ của 005 trong cùng `m04` (công v
 
 ## L-11. Bổ sung hợp đồng 007: diễn biến cảnh báo
 
-**Quyết định**: Thêm sự kiện `m05.api.YeuCauGhiDienBienCanhBao(String loaiNguon, long nguonId, String maDienBien, String noiDung, String khoaSuKien)`: 007 ghi diễn biến vào cảnh báo đang mở của nguồn đó (không đổi trạng thái, không đóng). 014 dùng cho `CO_LAP` ("đã tham gia hoạt động nhóm", FR-056) và `NGUOI_THAM_GIA_CHUYEN` ("đã trở về", FR-047 khi chưa có sự cố). Không có cảnh báo mở → bỏ qua.
+**Quyết định**: Thêm sự kiện `incident.api.YeuCauGhiDienBienCanhBao(String loaiNguon, long nguonId, String maDienBien, String noiDung, String khoaSuKien)`: 007 ghi diễn biến vào cảnh báo đang mở của nguồn đó (không đổi trạng thái, không đóng). 014 dùng cho `CO_LAP` ("đã tham gia hoạt động nhóm", FR-056) và `NGUOI_THAM_GIA_CHUYEN` ("đã trở về", FR-047 khi chưa có sự cố). Không có cảnh báo mở → bỏ qua.
 
 **Lý do**: 007 chưa có lệnh ghi diễn biến cảnh báo từ module khác; dùng sự kiện để 014 không phải chờ transaction của 007 (diễn biến không phải điều kiện của lệnh 014).
 
@@ -199,5 +199,5 @@ Nhiệm vụ trưởng đoàn, người đi cùng chỉ mở các lệnh của c
 - Nhắc buổi trong ngày: khóa `(dang_ky_id, NHAC_NCT)`; chỉ khi người cao tuổi có tài khoản (`TaiKhoanApi.theoNguoiCaoTuoi`).
 - `so_thich.phan_hoi_id`: nhận ở lệnh ghi sở thích; phát `YKienDaGhiTuPhanHoi` cùng transaction.
 
-**Lý do**: SPI khai báo ở module dùng (`m10.api`, `m05.api`) như các SPI 014 đang cài, không tạo vòng.
+**Lý do**: SPI khai báo ở module dùng (`family.api`, `incident.api`) như các SPI 014 đang cài, không tạo vòng.
 
