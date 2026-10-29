@@ -33,9 +33,6 @@ public class FamilyMedicationBatch {
     @Column(name = "initial_quantity", nullable = false, precision = 10, scale = 2)
     private BigDecimal initialQuantity;
 
-    @Column(name = "remaining_quantity", nullable = false, precision = 10, scale = 2)
-    private BigDecimal remainingQuantity;
-
     @Column(name = "unit", nullable = false, length = 50)
     private String unit;
 
@@ -86,6 +83,25 @@ public class FamilyMedicationBatch {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    /** Số đếm thực tế khi Hoàn trả, Hủy (Q-393). */
+    @Column(name = "final_quantity", precision = 10, scale = 2)
+    private BigDecimal finalQuantity;
+
+    @Column(name = "closed_at")
+    private Instant closedAt;
+
+    @Column(name = "closed_by_id")
+    private Long closedById;
+
+    @Column(name = "return_recipient_name")
+    private String returnRecipientName;
+
+    @Column(name = "return_relationship", length = 100)
+    private String returnRelationship;
+
+    @Column(name = "witness")
+    private String witness;
+
     public FamilyMedicationBatch() {}
 
     public FamilyMedicationBatch(
@@ -95,7 +111,6 @@ public class FamilyMedicationBatch {
             String customActiveIngredient,
             String customConcentration,
             BigDecimal initialQuantity,
-            BigDecimal remainingQuantity,
             String unit,
             LocalDate expiryDate,
             String packagingCondition,
@@ -117,7 +132,6 @@ public class FamilyMedicationBatch {
         this.customActiveIngredient = customActiveIngredient;
         this.customConcentration = customConcentration;
         this.initialQuantity = initialQuantity;
-        this.remainingQuantity = remainingQuantity;
         this.unit = unit;
         this.expiryDate = expiryDate;
         this.packagingCondition = packagingCondition;
@@ -136,15 +150,6 @@ public class FamilyMedicationBatch {
         this.updatedAt = now;
     }
 
-    public void updateRemainingQuantity(BigDecimal newRemaining, Instant now) {
-        this.remainingQuantity = newRemaining;
-        if (this.remainingQuantity.compareTo(BigDecimal.ZERO) == 0
-                && this.status == FamilyMedicationBatchStatus.IN_USE) {
-            this.status = FamilyMedicationBatchStatus.DEPLETED;
-        }
-        this.updatedAt = now;
-    }
-
     public void markInUse(Long medicationId, Instant now) {
         this.medicationId = medicationId;
         this.status = FamilyMedicationBatchStatus.IN_USE;
@@ -158,17 +163,38 @@ public class FamilyMedicationBatch {
         this.updatedAt = now;
     }
 
-    public void markReturned(String reason, Instant now) {
-        this.status = FamilyMedicationBatchStatus.RETURNED;
-        this.statusReason = reason;
-        this.remainingQuantity = BigDecimal.ZERO;
-        this.updatedAt = now;
+    /** Ghi dùng hết (Q-393): Điều dưỡng ghi, không do hệ thống tính. */
+    public void markDepleted(Long actorId, Instant now) {
+        this.status = FamilyMedicationBatchStatus.DEPLETED;
+        close(actorId, now);
     }
 
-    public void markDisposed(String reason, Instant now) {
+    public void markReturned(
+            String reason,
+            BigDecimal countedQuantity,
+            String recipientName,
+            String relationship,
+            Long actorId,
+            Instant now) {
+        this.status = FamilyMedicationBatchStatus.RETURNED;
+        this.statusReason = reason;
+        this.finalQuantity = countedQuantity;
+        this.returnRecipientName = recipientName;
+        this.returnRelationship = relationship;
+        close(actorId, now);
+    }
+
+    public void markDisposed(String reason, BigDecimal countedQuantity, String witness, Long actorId, Instant now) {
         this.status = FamilyMedicationBatchStatus.DISPOSED;
         this.statusReason = reason;
-        this.remainingQuantity = BigDecimal.ZERO;
+        this.finalQuantity = countedQuantity;
+        this.witness = witness;
+        close(actorId, now);
+    }
+
+    private void close(Long actorId, Instant now) {
+        this.closedById = actorId;
+        this.closedAt = now;
         this.updatedAt = now;
     }
 
@@ -199,10 +225,6 @@ public class FamilyMedicationBatch {
 
     public BigDecimal getInitialQuantity() {
         return initialQuantity;
-    }
-
-    public BigDecimal getRemainingQuantity() {
-        return remainingQuantity;
     }
 
     public String getUnit() {
@@ -267,5 +289,29 @@ public class FamilyMedicationBatch {
 
     public Instant getUpdatedAt() {
         return updatedAt;
+    }
+
+    public BigDecimal getFinalQuantity() {
+        return finalQuantity;
+    }
+
+    public Instant getClosedAt() {
+        return closedAt;
+    }
+
+    public Long getClosedById() {
+        return closedById;
+    }
+
+    public String getReturnRecipientName() {
+        return returnRecipientName;
+    }
+
+    public String getReturnRelationship() {
+        return returnRelationship;
+    }
+
+    public String getWitness() {
+        return witness;
     }
 }

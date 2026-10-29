@@ -12,7 +12,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
   - chế độ ăn: Thường (mặc định, món an toàn "Cháo trắng"), Tiểu đường (liên quan điều trị, hạn chế "đường"), Mềm; dị nguyên thực phẩm "tôm", "đậu phộng", "đường";
   - người cao tuổi: A nội trú tầng 2, dị ứng "tôm"; C nội trú tầng 3, đang vắng nằm viện tới 11:00; D nội trú chưa có bản gán; E bán trú lịch thứ 2, 4, 6; F nội trú có dị ứng loại "khác";
   - bữa: sáng 06:30, trưa 11:00, tối 17:00; CFG theo mặc định Phụ lục 25 (CFG-M08-01 2 giờ, CFG-M08-03 3 ngày, CFG-M08-04 30 phút, CFG-M08-05 30 phút, CFG-M08-06 24 giờ, CFG-M08-07 2 ngày; CFG-M13-06 giờ hành chính bác sĩ);
-  - bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}`: `LuotOLaiAnPort` và `LuotOLaiDaDoi` (012), `ChuyenDiBuaAnPort` và `ChuyenDiDaDoi` (014), `TonKhoNguyenLieuPort` (019); bộ phát sự kiện thử cho 001, 003, 004, 005, 007.
+  - bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}`: `LuotOLaiAnPort` và `LuotOLaiDaDoi` (012), `ChuyenDiBuaAnPort` và `ChuyenDiDaDoi` (014); bộ phát sự kiện thử cho 001, 003, 004, 005, 007.
 
 ## 2. Chạy
 
@@ -40,7 +40,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 | Q9 | Ngừng món là món an toàn của chế độ Thường | 409 `LA_MON_AN_TOAN` | Bảng trạng thái món |
 | Q10 | Ghi dị ứng "đậu phộng" mới cho A (001) khi thực đơn tuần có món đậu phộng không có món thay thế | 007 nhận `YeuCauTaoCanhBao` mức Trung bình; BS được báo; bữa đã chốt chưa phục vụ có phát sinh; `daKiemTra(AN)` được gọi | US2, FR-021 |
 | Q11 | B1 tạo thực đơn tuần sau, thiếu món bữa tối Tiểu đường thứ 4; gửi kiểm tra | 409 `THIEU_DO_PHU` liệt kê (Tiểu đường, thứ 4, tối) cùng mọi cảnh báo trong một lần | US3, SC-009 |
-| Q12 | Gửi kiểm tra không tích xác nhận kiểm tra chế biến | 409 (FR-025a); màn trước khi gửi hiện tồn kho (hoặc "chưa có dữ liệu kho") và số người theo chế độ ăn, không tên | US3 |
+| Q12 | Gửi kiểm tra không tích xác nhận kiểm tra chế biến | 409 (FR-025a); màn trước khi gửi hiện số người theo chế độ ăn, không tên | US3 |
 | Q13 | Món giống nhau 3 ngày liên tiếp, trong đó 1 ngày thuộc tuần trước đã công bố | Cảnh báo lặp món qua ranh giới tuần; món thay thế không tính | US3, FR-026 |
 | Q14 | Món có tôm trong chế độ Thường (A ăn Thường, không có món thay thế phù hợp) | Bếp thấy "1 người"; BS thấy tên A | US3, SC-014 |
 | Q15 | B1 gọi công bố | 403 | US3, Q-308 |

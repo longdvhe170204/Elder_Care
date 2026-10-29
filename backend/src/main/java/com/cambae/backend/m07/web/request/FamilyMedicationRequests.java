@@ -7,7 +7,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -70,15 +69,10 @@ public final class FamilyMedicationRequests {
 
             UseBasis basis) {}
 
-    /** Kiểm kê điều chỉnh số lượng (FR-045). */
-    public record AdjustInventoryRequest(
-            @Schema(requiredMode = RequiredMode.REQUIRED) @NotNull @PositiveOrZero
-            BigDecimal actualQuantity,
+    /** Báo gia đình sắp hết, ghi chú tùy chọn (FR-046, Q-393). */
+    public record NotifyRunningLowRequest(@Size(max = 2000) String note) {}
 
-            @Schema(requiredMode = RequiredMode.REQUIRED) @NotBlank @Size(max = 2000)
-            String reason) {}
-
-    /** Hoàn trả, số lượng bằng số còn (BR-M07-19). */
+    /** Hoàn trả cả lô, số lượng đếm thực tế (BR-M07-19, Q-393). */
     public record ReturnFamilyMedicationRequest(
             @Schema(requiredMode = RequiredMode.REQUIRED) @NotNull
             BigDecimal quantity,

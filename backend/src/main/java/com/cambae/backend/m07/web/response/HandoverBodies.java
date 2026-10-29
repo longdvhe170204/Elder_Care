@@ -96,7 +96,7 @@ public final class HandoverBodies {
                             ? null
                             : m.getMedicationSource().name(),
                     usableBatches.stream()
-                            .map(b -> new UsableBatchBody(b.batchId(), b.expiryDate(), b.remainingQuantity()))
+                            .map(b -> new UsableBatchBody(b.batchId(), b.expiryDate()))
                             .toList(),
                     m.getTotalQuantityNeeded(),
                     m.getScheduledTimes());

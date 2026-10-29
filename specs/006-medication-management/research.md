@@ -269,6 +269,8 @@ Bảng `thuoc_nct` (một dòng mỗi hồ sơ người cao tuổi) là đích k
 
 ## D-14. Thuốc gia đình gửi (mục G, FR-040 → FR-046, BR-M07-10, 11, 18, 19)
 
+> *(Sửa 2026-10-29, Q-393)* Thuốc gia đình gửi làm đơn giản: không còn `so_luong_con`, bảng `bien_dong_thuoc_gui`, `moc_nhac_thuoc_gui`, hàm `TinhSoNgayConLai`, lệnh Kiểm kê điều chỉnh, cột lô ở `ket_qua_lieu`, `lan_dung_prn`. Thêm lệnh Ghi dùng hết, Báo gia đình sắp hết (sự kiện `ThuocGuiSapHet(loId, lanBao, ghiChu)` cho 009, ghi nhật ký). Hoàn trả, Hủy ghi số lượng đếm thực tế, cả lô. Các gạch đầu dòng về biến động, số ngày còn lại, mốc nhắc dưới đây chỉ còn là lịch sử.
+
 **Quyết định**:
 - **Lô** `thuoc_gia_dinh_gui` (nhóm 2): trường FR-040, `thuoc_id` (rỗng khi ghi tự do cho tới lúc Xác nhận sử dụng, CHK015), `ten_tu_do`, `hoat_chat_tu_do`, `so_luong_ban_dau`, `so_luong_con`, `don_vi`, `han_dung`, `tinh_trang_bao_bi`, `co_toa`, tệp ảnh, `nguoi_giao_loai` (`NGUOI_THAN`, `TU_DO`, `NHAN_VIEN_MUA_HO`), `nguoi_giao_id`, `nguoi_giao_ten`, `quan_he`, `de_nghi_mua_ho_id`, `trang_thai` (`CHO_DOI_CHIEU`, `DUOC_SU_DUNG`, `CHI_GIU_HO`, `DA_DUNG_HET`, `DA_HOAN_TRA`, `DA_HUY_THEO_YEU_CAU`). Bảng nối `thuoc_gui_don (lo_id, don_thuoc_id, tu, den)` nhiều–nhiều (FR-043, BR-M07-18).
 - **Biến động** `bien_dong_thuoc_gui` (nhóm 3): `lo_id`, `loai` (`TIEP_NHAN`, `DUNG_LIEU`, `DUNG_PRN`, `DINH_CHINH_LIEU`, `GIAO_MANG_THEO`, `NHAN_LAI`, `KIEM_KE_DIEU_CHINH`, `HOAN_TRA`, `HUY`), `so_luong` (có dấu), `nguon_loai`, `nguon_id`, người, thời điểm, lý do. `so_luong_con` chỉ đổi qua trigger `AFTER INSERT` của bảng này (cộng `so_luong`); trigger `BEFORE UPDATE` trên lô chặn đổi `so_luong_con` khi biến phiên `@m07_bien_dong` không được đặt bởi trigger kia; `CHECK (so_luong_con >= 0)` (FR-045, SC-007).
@@ -283,7 +285,7 @@ Bảng `thuoc_nct` (một dòng mỗi hồ sơ người cao tuổi) là đích k
   - Chạy sau mỗi biến động làm giảm và sau Xác nhận sử dụng; so `truoc`, `sau`: vượt xuống CFG-M07-07 (kể cả vượt cả hai mốc, hoặc lần đầu đã dưới) thì một sự kiện `ThuocGuiSapHet(moc = M07_07)` và đánh dấu cả hai mốc; chỉ vượt CFG-M07-06 thì `ThuocGuiSapHet(moc = M07_06)`; lên lại ≥ mốc thì tăng `so_thu_tu` cho lần sau. Khóa sự kiện `(khoa_nhom, moc, so_thu_tu)` (009 FR-005).
 - **Điều kiện kết thúc lưu trú, việc sau qua đời** (FR-047, Q-64): bean `ThamGiaChuyenTrangThai` trả `DieuKien("KT_C_THUOC_GUI", coTheMien = true)` khi còn lô `CHO_DOI_CHIEU`, `DUOC_SU_DUNG`, `CHI_GIU_HO` hoặc lần giao chưa `DA_NHAN_LAI`; `MucViecSauQuaDoiPort` mã `THUOC_GUI` trả trạng thái từ cùng điều kiện; mỗi lệnh Hoàn trả, Hủy, Nhận lại gọi `DanhSachViecSauQuaDoiApi.capNhat(nctId)` khi người đó đã qua đời.
 
-**Lý do**: Biến động là nguồn sự thật của số lượng (BR-M07-11, SC-007); trigger giữ `so_luong_con` khớp tổng mà không cần tính lại mỗi lần đọc.
+**Lý do**: *(Sửa 2026-10-29, Q-393)* Chủ dự án chọn bỏ theo dõi số lượng còn để phần thuốc gửi không thành một kho nhỏ; việc báo gia đình do Điều dưỡng quyết định.
 
 **Phương án đã cân nhắc**: Không lưu `so_luong_con`, luôn cộng biến động: đọc checklist và cổng người thân phải cộng hàng trăm dòng mỗi lô.
 

@@ -23,8 +23,6 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 | `de_nghi_dinh_chinh_phieu` | 2 | F (FR-039) |
 | `thuoc_gia_dinh_gui` | 2 | G |
 | `thuoc_gui_don` | 2 (liên kết) | G (FR-043) |
-| `bien_dong_thuoc_gui` | 3 | G (FR-045) |
-| `moc_nhac_thuoc_gui` | Kỹ thuật | G (FR-046) |
 | `khoang_vang_thuoc` | 2 | H (FR-048) |
 | `lan_giao_thuoc`, `lan_giao_thuoc_dong`, `lan_giao_lieu` | 3 (trạng thái do hệ thống) | H (FR-048a) |
 | `lan_nhan_lai_thuoc`, `lan_nhan_lai_thuoc_dong` | 3 | H (FR-048a) |
@@ -189,7 +187,7 @@ Chỉ mục: `(trang_thai, cua_so_tu)`, `(trang_thai, cua_so_den)`, `(trang_thai
 | `nguoi_bao_lai_loai`, `nguoi_bao_lai_id`, `nguoi_bao_lai_ten`, `quan_he` | | Bắt buộc với `GHI_THEO_BAO_LAI` | FR-027 |
 | `phan_ung`, `ly_do`, `ghi_chu` | `VARCHAR(2000) NULL` | `ly_do` bắt buộc với `TU_CHOI`, `KHONG_THUC_HIEN` | FR-020, FR-021 |
 | `nhan_dung_tre`, `nhan_ghi_sau_mat_ket_noi`, `nhan_dong_bo_sau_mat_quyen` | `BOOLEAN` | | FR-021, FR-029, 002 A-11 |
-| `lo_thuoc_gui_id`, `lan_giao_id` | `BIGINT NULL` | | FR-044, FR-048a |
+| `lan_giao_id` | `BIGINT NULL` | `lo_thuoc_gui_id` bỏ theo Q-393: liều không chọn lô | FR-048a |
 
 `CHECK`: `thoi_diem_dung <= COALESCE(thoi_diem_thiet_bi, thoi_diem)`; `loai='DA_DUNG'` thì `thoi_diem_dung` không rỗng. Trigger nhóm 3 của 000. Đính chính loại `M07.KET_QUA_LIEU`.
 
@@ -203,7 +201,7 @@ Chỉ mục: `(trang_thai, cua_so_tu)`, `(trang_thai, cua_so_den)`, `(trang_thai
 
 ### `lan_dung_prn` – nhóm 3
 
-`id`, `don_thuoc_id`, `nct_id`, `thuoc_id`, `tang_khu_vuc_id`, `thoi_diem_dung`, `lieu_dung` (`CHECK (lieu_dung > 0)`; không vượt liều đơn kiểm ở backend), `ly_do` (bắt buộc), `phan_ung`, `ghi_chu`, `lo_thuoc_gui_id`, `lan_giao_id`, `can_cu_quyen`, cột người báo lại như `ket_qua_lieu`, `vuot_gioi_han BOOLEAN`, `thoi_diem`, `thoi_diem_thiet_bi`, `nguoi_ghi_id`, `nhan_ghi_sau_mat_ket_noi`, `nhan_dong_bo_sau_mat_quyen`. Chỉ mục `(don_thuoc_id, thoi_diem_dung)`. Đính chính loại `M07.LAN_DUNG_PRN`. Nguồn: FR-024 → FR-025a.
+`id`, `don_thuoc_id`, `nct_id`, `thuoc_id`, `tang_khu_vuc_id`, `thoi_diem_dung`, `lieu_dung` (`CHECK (lieu_dung > 0)`; không vượt liều đơn kiểm ở backend), `ly_do` (bắt buộc), `phan_ung`, `ghi_chu`, `lan_giao_id` (không có `lo_thuoc_gui_id`, Q-393), `can_cu_quyen`, cột người báo lại như `ket_qua_lieu`, `vuot_gioi_han BOOLEAN`, `thoi_diem`, `thoi_diem_thiet_bi`, `nguoi_ghi_id`, `nhan_ghi_sau_mat_ket_noi`, `nhan_dong_bo_sau_mat_quyen`. Chỉ mục `(don_thuoc_id, thoi_diem_dung)`. Đính chính loại `M07.LAN_DUNG_PRN`. Nguồn: FR-024 → FR-025a.
 
 ---
 
@@ -259,7 +257,7 @@ Chỉ mục: `(trang_thai, cua_so_tu)`, `(trang_thai, cua_so_den)`, `(trang_thai
 | `id`, `nct_id` | `BIGINT` | | FR-040 |
 | `thuoc_id` | `BIGINT NULL` FK | Rỗng khi ghi tự do tới lúc Xác nhận sử dụng | FR-040 (CHK015) |
 | `ten_tu_do`, `hoat_chat_tu_do`, `ham_luong` | `VARCHAR NULL` | | FR-040 |
-| `so_luong_ban_dau`, `so_luong_con` | `DECIMAL(10,2)` | `so_luong_con` chỉ đổi qua trigger biến động; `CHECK (so_luong_con >= 0)` | FR-045, BR-M07-11 |
+| `so_luong_ban_dau` | `DECIMAL(10,2)` | Số lượng lúc tiếp nhận, không đổi sau đó; không có `so_luong_con` (Q-393) | FR-045, BR-M07-11 |
 | `don_vi`, `han_dung`, `tinh_trang_bao_bi`, `co_toa`, `tep_ids` | | | FR-040 |
 | `nguoi_giao_loai` | `ENUM('NGUOI_THAN','TU_DO','NHAN_VIEN_MUA_HO')` | | FR-040 |
 | `nguoi_giao_id`, `nguoi_giao_ten`, `quan_he` | | | FR-040 |
@@ -267,8 +265,9 @@ Chỉ mục: `(trang_thai, cua_so_tu)`, `(trang_thai, cua_so_den)`, `(trang_thai
 | `nguoi_nhan_id`, `tiep_nhan_luc` | | | FR-040 |
 | `trang_thai` | `ENUM('CHO_DOI_CHIEU','DUOC_SU_DUNG','CHI_GIU_HO','DA_DUNG_HET','DA_HOAN_TRA','DA_HUY_THEO_YEU_CAU')` | | FR-041 |
 | `ly_do_trang_thai` | `VARCHAR(2000) NULL` | Chỉ giữ hộ, Ngừng sử dụng, hết hạn dùng | FR-041 |
+| `so_luong_ket_thuc`, `ket_thuc_luc`, `ket_thuc_boi_id`, `nguoi_nhan_tra_ten`, `quan_he_nguoi_nhan_tra`, `nguoi_chung_kien` | `NULL` | Ghi một lần khi Hoàn trả hoặc Hủy: số lượng đếm thực tế, người nhận (hoàn trả) hoặc người chứng kiến (hủy) (Q-393) | FR-041, FR-045 |
 
-Trigger `trg_tgdg_so_luong` (`BEFORE UPDATE`): chặn đổi `so_luong_con` trừ khi biến phiên `@m07_bien_dong = 1` (chỉ trigger của `bien_dong_thuoc_gui` đặt); chặn mọi đổi khi trạng thái cũ là cuối (FR-042). Chỉ mục `(nct_id, trang_thai)`, `(trang_thai, han_dung)`.
+Trigger `trg_tgdg_so_luong` (`BEFORE UPDATE`): chặn đổi `so_luong_ban_dau`; chặn mọi đổi khi trạng thái cũ là cuối (FR-042). *(Sửa 2026-10-29, Q-393: bỏ cột số lượng còn và biến động.)* Chỉ mục `(nct_id, trang_thai)`, `(trang_thai, han_dung)`.
 
 **Bảng chuyển** (khớp bảng FR-041):
 
@@ -280,21 +279,18 @@ Trigger `trg_tgdg_so_luong` (`BEFORE UPDATE`): chặn đổi `so_luong_con` tr�
 | `DUOC_SU_DUNG` | Ngừng sử dụng | `CHI_GIU_HO` | `POST /thuoc-gia-dinh-gui/{id}/ngung-su-dung` |
 | `DUOC_SU_DUNG` | Đơn gắn kết thúc không có đơn thay thế cùng thuốc | `CHI_GIU_HO` | Lệnh đơn; job |
 | `DUOC_SU_DUNG` | Qua ngày hạn dùng | `CHI_GIU_HO` | `ViecHangNgayM07` |
-| `DUOC_SU_DUNG` | `so_luong_con` về 0 | `DA_DUNG_HET` | Cùng transaction của biến động |
+| `DUOC_SU_DUNG` | Ghi dùng hết | `DA_DUNG_HET` | `POST /thuoc-gia-dinh-gui/{id}/ghi-dung-het` |
+| `DUOC_SU_DUNG` | Báo gia đình sắp hết (không đổi trạng thái) | `DUOC_SU_DUNG` | `POST /thuoc-gia-dinh-gui/{id}/bao-sap-het` |
 | `CHO_DOI_CHIEU`, `CHI_GIU_HO` | Hoàn trả | `DA_HOAN_TRA` | `POST /thuoc-gia-dinh-gui/{id}/hoan-tra` |
 | `CHO_DOI_CHIEU`, `CHI_GIU_HO` | Hủy theo yêu cầu gia đình | `DA_HUY_THEO_YEU_CAU` | `POST /thuoc-gia-dinh-gui/{id}/huy` |
 
 ### `thuoc_gui_don` – nhóm 2 (liên kết)
 
-`lo_id`, `don_thuoc_id`, `tu`, `den` (rỗng khi còn gắn). Một đơn nhiều lô, một lô nhiều đơn cùng thuốc cùng người (FR-043, BR-M07-18). Liên kết chuyển sang đơn thay thế: đóng dòng cũ (`den`), thêm dòng mới trong cùng lệnh.
+`lo_id`, `don_thuoc_id`, `tu`, `den` (rỗng khi còn gắn). Một đơn nhiều lô, một lô nhiều đơn cùng thuốc cùng người (FR-043, BR-M07-18; không tính số ngày còn, Q-393). Liên kết chuyển sang đơn thay thế: đóng dòng cũ (`den`), thêm dòng mới trong cùng lệnh.
 
-### `bien_dong_thuoc_gui` – nhóm 3
+### `bien_dong_thuoc_gui`, `moc_nhac_thuoc_gui` *(Bỏ theo Q-393)*
 
-`id`, `lo_id`, `loai` (`TIEP_NHAN`, `DUNG_LIEU`, `DUNG_PRN`, `DINH_CHINH_LIEU`, `GIAO_MANG_THEO`, `NHAN_LAI`, `KIEM_KE_DIEU_CHINH`, `HOAN_TRA`, `HUY`), `so_luong` (có dấu), `so_luong_con_sau`, `nguon_loai`, `nguon_id` (kết quả liều, lần dùng PRN, đính chính, lần giao, lần nhận lại), `nguoi_id`, `thoi_diem`, `ly_do` (bắt buộc với `KIEM_KE_DIEU_CHINH`), `nguoi_chung_kien` (với `HUY`), `nguoi_nhan_ten`, `quan_he` (với `HOAN_TRA`). Trigger `AFTER INSERT` đặt `@m07_bien_dong = 1`, cộng vào `so_luong_con`, xóa biến. Nguồn: FR-045, SC-007.
-
-### `moc_nhac_thuoc_gui` – kỹ thuật
-
-`khoa_nhom`, `moc` (`M07_06`, `M07_07`), `so_thu_tu`, `da_bao` (`BOOLEAN`), `so_ngay_lan_tinh_cuoi`. Khóa chính `(khoa_nhom, moc, so_thu_tu)`. Nguồn: FR-046, Q-247, Q-264.
+Không theo dõi số lượng còn: không có biến động số lượng, Kiểm kê điều chỉnh, tính số ngày còn và mốc nhắc tự động. Lần "Báo gia đình sắp hết" ghi nhật ký (`nhat_ky`, 000) và gửi thông báo qua 009, không có bảng riêng.
 
 ---
 
@@ -354,7 +350,7 @@ Trigger nhóm 3 của 000 chặn `UPDATE`, `DELETE`; sai sót sửa bằng đín
 | Không lập sẵn liều cho ngày tới | Chỉ job tại đầu cửa sổ và lệnh của actor thêm dòng `lieu_thuoc`; test SC-001 đếm dòng có `cua_so_tu > bây giờ` không gắn lần giao = 0 | Q-306, SC-001 |
 | Tối đa một phiếu mở; một phiếu tiếp nhận chưa hủy | Cột sinh `mo_nct`, `tiep_nhan_nct` `UNIQUE` | FR-034a, FR-035 |
 | Quy tắc hai người của phiếu | `CHECK` người xác nhận ≠ người gửi; backend kiểm khác mọi người ghi dòng | FR-038, SC-014 |
-| Số lượng thuốc gửi chỉ đổi qua biến động, không âm | Trigger biến động; `CHECK (so_luong_con >= 0)` | FR-045, BR-M07-11, SC-007 |
+| Số lượng lúc tiếp nhận không đổi | Trigger `trg_tgdg_so_luong` | FR-045, SC-007 (Q-393) |
 | Một khoảng vắng mở mỗi người | Cột sinh `mo_nct` `UNIQUE` | FR-048 |
 | Kết quả, lần dùng PRN, biến động, lần giao, lần nhận lại, căn cứ chỉ thêm; đính chính trỏ đúng một bản gốc | Trigger nhóm 3 của 000; `dinh_chinh` của 000 | DBR-23, FR-030 |
 | Chi phí có nguồn | Sự kiện `SuKienTinhPhiThuoc` mang loại nguồn và id; 010 giữ DBR-15 | DBR-15, FR-033 |

@@ -18,6 +18,7 @@ import com.cambae.backend.m07.internal.domain.PrnAdministration;
 import com.cambae.backend.m07.internal.persistence.PrescriptionRepository;
 import com.cambae.backend.m07.internal.persistence.PrnAdministrationRepository;
 import com.cambae.backend.m07.internal.persistence.ResidentMedicationLock;
+import com.cambae.backend.m07.internal.service.FamilyMedicationService;
 import com.cambae.backend.m07.internal.service.PrnMedicationService;
 import com.cambae.backend.m07.internal.service.request.RecordPrnBody;
 import com.cambae.backend.m07.internal.service.response.PrnAdministrationResponse;
@@ -56,7 +57,11 @@ class BR_M07_04_PrnLimitTest {
         residentMedicationLock = mock(ResidentMedicationLock.class);
 
         prnService = new PrnMedicationService(
-                prnRepo, prescriptionRepo, residentMedicationLock, new BusinessTime(Clock.systemUTC()));
+                prnRepo,
+                prescriptionRepo,
+                residentMedicationLock,
+                new BusinessTime(Clock.systemUTC()),
+                mock(FamilyMedicationService.class));
     }
 
     private void setId(Object entity, Long id) {
@@ -118,7 +123,6 @@ class BR_M07_04_PrnLimitTest {
                 1L,
                 null,
                 false,
-                null,
                 null,
                 null,
                 null,

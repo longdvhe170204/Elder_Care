@@ -195,7 +195,6 @@ public class M07JobService {
                     false,
                     false,
                     null,
-                    null,
                     businessTime.now());
             doseResultRepository.save(result);
 

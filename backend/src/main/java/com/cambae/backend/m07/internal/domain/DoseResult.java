@@ -83,9 +83,6 @@ public class DoseResult {
     @Column(name = "synced_after_permission_loss", nullable = false)
     private boolean syncedAfterPermissionLoss = false;
 
-    @Column(name = "family_medication_lot_id")
-    private Long familyMedicationLotId;
-
     @Column(name = "leave_handover_id")
     private Long leaveHandoverId;
 
@@ -110,7 +107,6 @@ public class DoseResult {
             boolean lateFlag,
             boolean offlineFlag,
             boolean syncedAfterPermissionLoss,
-            Long familyMedicationLotId,
             Long leaveHandoverId,
             Instant now) {
         this.doseId = doseId;
@@ -132,7 +128,6 @@ public class DoseResult {
         this.lateFlag = lateFlag;
         this.offlineFlag = offlineFlag;
         this.syncedAfterPermissionLoss = syncedAfterPermissionLoss;
-        this.familyMedicationLotId = familyMedicationLotId;
         this.leaveHandoverId = leaveHandoverId;
     }
 
@@ -214,10 +209,6 @@ public class DoseResult {
 
     public boolean isSyncedAfterPermissionLoss() {
         return syncedAfterPermissionLoss;
-    }
-
-    public Long getFamilyMedicationLotId() {
-        return familyMedicationLotId;
     }
 
     public Long getLeaveHandoverId() {

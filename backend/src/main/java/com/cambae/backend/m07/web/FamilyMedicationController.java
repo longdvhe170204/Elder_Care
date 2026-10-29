@@ -2,15 +2,14 @@ package com.cambae.backend.m07.web;
 
 import com.cambae.backend.common.error.web.ProblemBody;
 import com.cambae.backend.m07.internal.service.FamilyMedicationService;
-import com.cambae.backend.m07.internal.service.request.AdjustInventoryBody;
 import com.cambae.backend.m07.internal.service.request.ConfirmBatchUseBody;
 import com.cambae.backend.m07.internal.service.request.DisposeBatchBody;
 import com.cambae.backend.m07.internal.service.request.ReceiveBatchBody;
 import com.cambae.backend.m07.internal.service.request.ReturnBatchBody;
 import com.cambae.backend.m07.web.request.DoseRequests.PersonType;
-import com.cambae.backend.m07.web.request.FamilyMedicationRequests.AdjustInventoryRequest;
 import com.cambae.backend.m07.web.request.FamilyMedicationRequests.ConfirmUseRequest;
 import com.cambae.backend.m07.web.request.FamilyMedicationRequests.DisposeRequest;
+import com.cambae.backend.m07.web.request.FamilyMedicationRequests.NotifyRunningLowRequest;
 import com.cambae.backend.m07.web.request.FamilyMedicationRequests.ReceiveFamilyMedicationRequest;
 import com.cambae.backend.m07.web.request.FamilyMedicationRequests.ReturnFamilyMedicationRequest;
 import com.cambae.backend.m07.web.request.ReasonRequest;
@@ -32,7 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Thuốc gia đình gửi theo api-006 (thẻ {@code family-medication}; FR-040 → FR-046). */
+/** Thuốc gia đình gửi theo api-006 (thẻ {@code family-medication}; FR-040 → FR-046; Q-393 không theo dõi số còn). */
 @RestController
 @Tag(name = "family-medication")
 public class FamilyMedicationController {
@@ -139,16 +138,32 @@ public class FamilyMedicationController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/api/v1/family-medications/{id}/adjust-inventory")
-    @ApiResponse(responseCode = "200", description = "OK", content = @Content)
-    public ResponseEntity<Void> adjustInventory(
+    @PostMapping("/api/v1/family-medications/{id}/mark-depleted")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Đã dùng hết", content = @Content),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<Void> markDepleted(
+            @PathVariable("id") Long id,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+        familyMedicationService.markDepleted(id, currentUser.accountId());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/api/v1/family-medications/{id}/notify-running-low")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Đã gửi yêu cầu thông báo", content = @Content),
+        @ApiResponse(
+                responseCode = "409",
+                content = @Content(mediaType = PROBLEM, schema = @Schema(implementation = ProblemBody.class)))
+    })
+    public ResponseEntity<Void> notifyRunningLow(
             @PathVariable("id") Long id,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-            @Valid @RequestBody AdjustInventoryRequest body) {
-        AdjustInventoryBody command = new AdjustInventoryBody();
-        command.setActualQuantity(body.actualQuantity());
-        command.setReason(body.reason());
-        familyMedicationService.adjustInventory(id, command, currentUser.accountId());
+            @Valid @RequestBody(required = false) NotifyRunningLowRequest body) {
+        familyMedicationService.notifyRunningLow(id, body == null ? null : body.note(), currentUser.accountId());
         return ResponseEntity.ok().build();
     }
 

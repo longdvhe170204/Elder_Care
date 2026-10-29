@@ -1,12 +1,12 @@
 ---
-description: "Danh sách task triển khai feature 019 – Kho nguyên liệu, mua sắm, tài sản và lịch xe"
+description: "Danh sách task triển khai feature 019 – Mua sắm, tài sản và lịch xe (kho nguyên liệu bỏ theo Q-392)"
 ---
 
-# Tasks: Kho nguyên liệu và tài sản của viện (019)
+# Tasks: Tài sản, lịch xe và mua sắm của viện (019; kho nguyên liệu bỏ theo Q-392)
 
 **Input**: Tài liệu thiết kế ở `specs/019-inventory-assets/` (plan.md, spec.md, research.md W-01 → W-09, data-model.md, contracts/api-019.yaml, contracts/module-interfaces.md, quickstart.md)
 
-**Prerequisites**: 000, 002 đã xong Phase 2; 003 (port `GiuongTheoTaiSanPort`, khai báo `TaiSanGiuongPort`), 008 (`NhiemVuApi.boPhanCua`, `laPhuTrachBoPhan`, bộ phận), 010 (gói `m11`), 011 (port `TonKhoNguyenLieuPort`, `LichBuaApi`), 014 (lệnh chuyến đi gọi `LichXeLenhApi`), 006 (`DonThuocApi.donNguonVienChuaKetThuc`, `TiepNhanThuocCungUngApi`, SPI `YeuCauThuocCungUngPort` ở `m07.api`; bổ sung 2026-10-11, Q-337) đã có `api`.
+**Prerequisites**: 000, 002 đã xong Phase 2; 003 (port `GiuongTheoTaiSanPort`, khai báo `TaiSanGiuongPort`), 008 (`NhiemVuApi.boPhanCua`, `laPhuTrachBoPhan`, bộ phận), 010 (gói `m11`), 011 (port `TonKhoNguyenLieuPort`, `LichBuaApi` không còn cần, Q-392), 014 (lệnh chuyến đi gọi `LichXeLenhApi`), 006 (`DonThuocApi.donNguonVienChuaKetThuc`, `TiepNhanThuocCungUngApi`, SPI `YeuCauThuocCungUngPort` ở `m07.api`; bổ sung 2026-10-11, Q-337) đã có `api`.
 
 **Tests**: Bắt buộc (constitution XV). Tên lớp test theo quickstart.md mục 4.
 
@@ -17,26 +17,26 @@ description: "Danh sách task triển khai feature 019 – Kho nguyên liệu, m
 ## Quy ước đường dẫn
 
 - `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`, `MIG/` = `backend/src/main/resources/db/migration/`
-- Bốn gói: `BE/m08/kho/`, `BE/m11/muasam/`, `BE/m03/taisan/`, `BE/m03/lichxe/` (mỗi gói `{internal, web, lich}`); bổ sung `BE/m03/api/`, `BE/m08/api/`, `BE/m11/api/`
-- Web `frontend/src/tinh-nang/{kho,mua-sam,tai-san,lich-xe}/`
+- Ba gói: `BE/m11/muasam/`, `BE/m03/taisan/`, `BE/m03/lichxe/` (mỗi gói `{internal, web, lich}`); bổ sung `BE/m03/api/`, `BE/m11/api/`
+- Web `frontend/src/tinh-nang/{mua-sam,tai-san,lich-xe}/`
 
 ---
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo bốn gói `BE/m08/kho/`, `BE/m11/muasam/`, `BE/m03/taisan/`, `BE/m03/lichxe/`; ArchUnit `BT/m03/TaiSanArchTest.java`: chỉ `m03.taisan` dùng port giường; job không tạo phiếu, yêu cầu, lịch (Q-306); M03 không phụ thuộc M11 (research W-01, W-02)
+- [ ] T001 Tạo ba gói `BE/m11/muasam/`, `BE/m03/taisan/`, `BE/m03/lichxe/`; ArchUnit `BT/m03/TaiSanArchTest.java`: chỉ `m03.taisan` dùng port giường; job không tạo phiếu, yêu cầu, lịch (Q-306); M03 không phụ thuộc M11 (research W-01, W-02)
 
 ---
 
 ## Phase 2: Foundational (chặn mọi user story)
 
-**Purpose**: Khai báo giao diện mới ở `m03.api`, `m08.api`, `m11.api`; khung job.
+**Purpose**: Khai báo giao diện mới ở `m03.api`, `m11.api`; khung job.
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [ ] T002 [P] Tạo `BE/m03/api/`: SPI `YeuCauMuaSamPort` (M11 cài), `LichXeApi`, `LichXeLenhApi`, `TaiSanThongKeApi`; `BE/m11/api/`: `YeuCauMuaSamApi`, `MuaSamThongKeApi`; `BE/m08/api/KhoThongKeApi.java`; thông báo (cài `CoYeuCauThongBao`) (contracts mục 2.1 → 2.3)
-- [ ] T003 Tạo bảng kỹ thuật `nhac_019` trong `MIG/V019_01__nhac.sql` và khung job ba gói (`BE/m08/kho/lich/`, `BE/m11/muasam/lich/`, `BE/m03/taisan/lich/`, `BE/m03/lichxe/lich/`; ShedLock, chạy bù, không nhắc trùng) (research W-09)
-- [ ] T004 [P] Cài provider: `PhanLoaiTruongProvider` (nguyên giá, chi phí → `TAI_CHINH`), `LuuTruProvider`, `GanPhamViProvider` (`M08.KHO` bộ phận Bếp; `M11.MUA_SAM` bộ phận; `M03.TAI_SAN` bộ phận và tầng của vị trí; `M03.LICH_XE` toàn viện), `QuyenTepProvider` (`M08.CHUNG_TU_NHAP`, `M11.CHUNG_TU_MUA_SAM`) (research W-08)
+- [ ] T002 [P] Tạo `BE/m03/api/`: SPI `YeuCauMuaSamPort` (M11 cài), `LichXeApi`, `LichXeLenhApi`, `TaiSanThongKeApi`; `BE/m11/api/`: `MuaSamThongKeApi`; thông báo (cài `CoYeuCauThongBao`) (contracts mục 2.1 → 2.3)
+- [ ] T003 Tạo bảng kỹ thuật `nhac_019` trong `MIG/V019_01__nhac.sql` và khung job (`BE/m11/muasam/lich/`, `BE/m03/taisan/lich/`, `BE/m03/lichxe/lich/`; ShedLock, chạy bù, không nhắc trùng) (research W-09)
+- [ ] T004 [P] Cài provider: `PhanLoaiTruongProvider` (nguyên giá, chi phí → `TAI_CHINH`), `LuuTruProvider`, `GanPhamViProvider` (`M11.MUA_SAM` bộ phận; `M03.TAI_SAN` bộ phận và tầng của vị trí; `M03.LICH_XE` toàn viện), `QuyenTepProvider` (`M11.CHUNG_TU_MUA_SAM`) (research W-08)
 
 **Checkpoint**: Nền 019 sẵn sàng.
 
@@ -46,7 +46,7 @@ description: "Danh sách task triển khai feature 019 – Kho nguyên liệu, m
 
 **Goal**: Yêu cầu mua sắm của bộ phận (Phụ trách bộ phận); Quản lý viện duyệt có thể giảm; ghi đã mua; Kế toán (khác người ghi đã mua) đối chiếu, khớp, lệch; vượt theo CFG-M11-07; gắn nguồn (phiếu nhập, tài sản, bảo trì thuê ngoài) một nguồn một yêu cầu; nhắc CFG-M11-08, 09 (FR-008 → FR-008c, BR-M11-17 → 20, DBR-36, Q-284).
 
-**Independent Test**: Bếp lập 2.000.000 đồng; Quản lý viện duyệt giảm còn 1.800.000; nhập kho gắn yêu cầu; ghi đã mua 1.950.000 → lệch; Kế toán ghi lệch; Quản lý viện chấp nhận.
+**Independent Test**: Bếp lập 2.000.000 đồng; Quản lý viện duyệt giảm còn 1.800.000; ghi đã mua 1.950.000 → lệch; Kế toán ghi lệch; Quản lý viện chấp nhận.
 
 ### Tests cho User Story 7
 
@@ -64,56 +64,9 @@ description: "Danh sách task triển khai feature 019 – Kho nguyên liệu, m
 
 ---
 
-## Phase 4: User Story 1 – Nhập kho nguyên liệu theo lô có kiểm tra đầu vào (Priority: P1)
+## Phase 4 → 6: User Story 1 → 3 – Kho nguyên liệu *(Bỏ theo Q-392)*
 
-**Goal**: Danh mục nguyên liệu (thành phần dị nguyên qua `DiNguyenApi`); phiếu nhập theo lô gắn yêu cầu mua sắm Đã duyệt; dòng "không đạt" không vào tồn; phiếu đảo cho dòng nhầm; tồn lô chỉ đổi qua phiếu dưới khóa lô (FR-001 → FR-004, FR-006, BR-M08-17, BR-M08-20, DBR-31).
-
-**Independent Test**: Phiếu nhập 3 dòng gắn yêu cầu Đã duyệt, một dòng "không đạt" → tồn theo lô đúng; phiếu đảo một dòng nhập nhầm.
-
-### Tests cho User Story 1
-
-- [ ] T009 [P] [US1] Test `BT/m08/BR_M08_17_TonKhoIT.java`, `BR_M08_20_PhieuDaoIT.java`, `DBR_31_TonKhongAmIT.java` (SC-001: 200 phiếu; `CHECK ton >= 0`; phiếu nhóm 3 không sửa) (Q10, Q14 → Q16)
-
-### Implementation cho User Story 1
-
-- [ ] T010 [US1] Tạo `MIG/V019_03__kho.sql`: `nguyen_lieu` (`trang_thai` `DANG_DUNG|NGUNG_HIEU_LUC`; `ton_toi_thieu`), `nguyen_lieu_di_nguyen`, `lo_nguyen_lieu` (`ton CHECK >= 0`; `UNIQUE (nguyen_lieu_id, so_lo, han_dung)`), `phieu_kho` (nhóm 3; `loai` `NHAP|XUAT|DAO|DIEU_CHINH`; `muc_dich` `CHO_BUA|HUY|KHAC`), `phieu_kho_dong` (data-model mục 2)
-- [ ] T011 [US1] Cài `BE/m08/kho/internal/KhoService.java` (danh mục; phiếu nhập gắn yêu cầu qua `YeuCauMuaSamApi`; phiếu đảo; khóa lô; `TonKhoNguyenLieuPort` cho 011) và endpoint `/kho/nguyen-lieu`, `/kho/phieu`; màn web `frontend/src/tinh-nang/kho/` (research W-04)
-
-**Checkpoint**: Nhập kho chạy độc lập.
-
----
-
-## Phase 5: User Story 2 – Xuất nguyên liệu cho bữa (Priority: P1)
-
-**Goal**: Phiếu xuất cho bữa (bữa ngày qua `LichBuaApi`) với lô hiển thị theo thứ tự hạn dùng (không chọn sẵn, Q-307), chọn lô khác lô hạn sớm nhất cần lý do; lô quá hạn chỉ xuất hủy; không tự trừ kho (FR-005, FR-006, BR-M08-18).
-
-**Independent Test**: Lô thịt L1 (hạn 03/10), L3 (hạn 06/10); xuất cho bữa trưa 02/10; thử xuất lô quá hạn cho bữa (bị chặn).
-
-### Tests cho User Story 2
-
-- [ ] T012 [P] [US2] Test đơn vị `BT/m08/ThuTuLoTheoHanTest.java`, `BT/m08/BR_M08_17_LyDoChonLoIT.java` và `BT/m08/BR_M08_18_HanDungIT.java` (hai phiếu xuất chỗ cuối đồng thời) (Q10 → Q12)
-
-### Implementation cho User Story 2
-
-- [ ] T013 [US2] Cài `ThuTuLoTheoHan` và phiếu xuất (cho bữa, hủy, khác; kiểm lý do chọn lô, FR-003) trong `KhoService.java`; endpoint `GET /kho/lo-theo-han`; màn xuất kho hiện lô theo thứ tự hạn dùng, không chọn sẵn, với test Vitest
-
-**Checkpoint**: P1 hoàn tất.
-
----
-
-## Phase 6: User Story 3 – Kiểm kê kho, cảnh báo hạn dùng và tồn tối thiểu (Priority: P2)
-
-**Goal**: Phiếu kiểm kê một chờ duyệt mỗi kỳ; Phụ trách bộ phận Bếp duyệt (Quản lý viện khi người lập là Phụ trách); điều chỉnh tồn khi duyệt; cảnh báo hạn dùng CFG-M08-08 và tồn tối thiểu CFG-M08-09 (FR-007, FR-009, FR-010, BR-M08-19).
-
-**Independent Test**: Kiểm kê với 2 lô lệch; đồng hồ giả lập qua mốc hạn dùng và tồn tối thiểu.
-
-### Tests cho User Story 3
-
-- [ ] T014 [P] [US3] Test `BT/m08/BR_M08_19_KiemKeIT.java` (Q13, Q17)
-
-### Implementation cho User Story 3
-
-- [ ] T015 [US3] Tạo bảng `phieu_kiem_ke_kho` (`trang_thai` `CHO_DUYET|DA_DUYET|BI_TRA_LAI|DA_HUY`; cột sinh `khoa_cho` `UNIQUE`), `phieu_kiem_ke_kho_dong` trong `MIG/V019_04__kiem_ke_kho.sql`; cài `BE/m08/kho/internal/KiemKeKhoService.java` (duyệt tạo phiếu `DIEU_CHINH`) và cảnh báo trong job; endpoint `/kho/kiem-ke`, `/kho/kiem-ke/{id}/{lenh}`; `KhoThongKeApi`
+T009 → T015 bỏ: hệ thống không quản lý kho nguyên liệu (nhập, xuất, lô, kiểm kê, cảnh báo hạn dùng, tồn tối thiểu). Giữ mã task để không đánh số lại.
 
 ---
 
@@ -171,35 +124,34 @@ description: "Danh sách task triển khai feature 019 – Kho nguyên liệu, m
 ## Phase 10: Polish & Cross-Cutting
 
 - [ ] T023 [P] Cài `TaiSanThongKeApi`, `MuaSamThongKeApi` (016); mở rộng `BT/common/HopDongApiTest.java` với `specs/019-inventory-assets/contracts/api-019.yaml`; mở rộng `NhomGhiNhanCoTriggerIT`
-- [ ] T024 Thay bản giả `TaiSanGiuongPort` (003 T002), `TonKhoNguyenLieuPort` (011 T002), `YeuCauThuocCungUngPort` (006 T062, bổ sung 2026-10-11) bằng bản cài của 019 và chạy lại test 003, 011, 014 (lịch xe), 006 US9
+- [ ] T024 Thay bản giả `TaiSanGiuongPort` (003 T002), `YeuCauThuocCungUngPort` (006 T062, bổ sung 2026-10-11) bằng bản cài của 019 và chạy lại test 003, 011, 014 (lịch xe), 006 US9
 - [ ] T025 Chạy `./mvnw verify`, `npm test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
-- [ ] T026 Rà truy vết: DBR-31, 32, 36 và BR-M03-15 → 18, BR-M08-17 → 20, BR-M11-17 → 20, FR-008d (bổ sung 2026-10-11) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-019, FR-020, FR-021 — mỗi FR có task hoặc test tương ứng (constitution XV)
+- [ ] T026 Rà truy vết: DBR-32, 36 và BR-M03-15 → 18, BR-M11-17 → 20, FR-008d (bổ sung 2026-10-11) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-019, FR-020, FR-021 — mỗi FR có task hoặc test tương ứng (constitution XV)
 
 ---
 
 ## Dependencies & Execution Order
 
 - **Setup → Foundational**: chặn mọi story
-- **US7 (P1)** → **US1 → US2 (P1)**
-- **US3 (P2)**: sau US1; **US4 → US5 (P2)**; **US6 (P2)**: sau US4 (xe là tài sản)
+- **US7 (P1)**; US1 → US3 bỏ theo Q-392
+- **US4 → US5 (P2)**; **US6 (P2)**: sau US4 (xe là tài sản)
 
 ### Parallel Opportunities
 
-- T002, T004 song song; US4 song song với US1–US3
+- T002, T004 song song
 
 ## Parallel Example: P2
 
 ```text
-Task: "T014 BR_M08_19_KiemKeIT"
 Task: "T016 BR_M03_17 + BR_M03_18"
 ```
 
 ## Implementation Strategy
 
-- MVP: Phase 1–2 → US7 → US1 → US2; kiểm chứng mua sắm → nhập → xuất cho bữa
-- Sau đó US4 → US5 (giường), US6 (lịch xe cho 014), US3
+- MVP: Phase 1–2 → US7; kiểm chứng mua sắm
+- Sau đó US4 → US5 (giường), US6 (lịch xe cho 014)
 
 ## Notes
 
-- 019 không tự trừ kho, không tạo yêu cầu mua sắm, phiếu, lịch xe; tài sản giường chỉ tạo kèm lệnh Tạo giường của 003 (Q-306, Q-307)
-- Mọi mốc đọc `ThamSoApi` (CFG-M03-02, 09, CFG-M08-08, 09, CFG-M11-07 → 09)
+- 019 không tạo yêu cầu mua sắm, phiếu, lịch xe; tài sản giường chỉ tạo kèm lệnh Tạo giường của 003 (Q-306, Q-307)
+- Mọi mốc đọc `ThamSoApi` (CFG-M03-02, 09, CFG-M11-07 → 09)

@@ -19,7 +19,6 @@ public class PrnAdministrationResponse {
     private boolean exceededLimit;
     private String adverseReaction;
     private String note;
-    private Long familyMedicationBatchId;
     private boolean recordedAfterDisconnect;
 
     public Long getId() {
@@ -116,14 +115,6 @@ public class PrnAdministrationResponse {
 
     public void setNote(String note) {
         this.note = note;
-    }
-
-    public Long getFamilyMedicationBatchId() {
-        return familyMedicationBatchId;
-    }
-
-    public void setFamilyMedicationBatchId(Long familyMedicationBatchId) {
-        this.familyMedicationBatchId = familyMedicationBatchId;
     }
 
     public boolean isRecordedAfterDisconnect() {
