@@ -90,6 +90,67 @@ class RecordGroupTriggerIT extends MySqlIntegrationTestBase {
                         assertThat(triggers).contains("trg_" + table + "_row_lock", "trg_" + table + "_no_delete"));
     }
 
+    /**
+     * Audit cơ sở dữ liệu F-04: nguồn nhóm dữ liệu không phụ thuộc {@code @Entity}. Mỗi bảng khai nhóm bằng
+     * {@code @Entity} + {@code @DataGroup} hoặc bằng COMMENT của bảng ({@code DataGroup=CATALOG|BUSINESS|RECORD|MULTIPLE|
+     * TECHNICAL}); bảng nhóm 3 khai bằng COMMENT có hai trigger chặn sửa, xóa. Bảng có sẵn chưa khai ở
+     * {@link #PENDING_DATA_GROUP}, chủ module khai khi làm migration gộp bảng {@code _95} (research R-15).
+     */
+    @Test
+    void F_04_everyTable_declaresDataGroup_andRecordTablesHaveTriggers() throws SQLException {
+        java.util.Map<String, String> entityGroups = new java.util.HashMap<>();
+        new ClassFileImporter()
+                .importPackages("com.eldercare.backend").stream()
+                        .filter(c -> c.isAnnotatedWith(Entity.class) && c.isAnnotatedWith(DataGroup.class))
+                        .forEach(c -> entityGroups.put(
+                                c.getAnnotationOfType(Table.class).name().toLowerCase(),
+                                c.getAnnotationOfType(DataGroup.class).value().name()));
+        java.util.Map<String, String> commentGroups = new java.util.HashMap<>();
+        List<String> tables = new ArrayList<>();
+        Set<String> triggers = new HashSet<>();
+        java.util.regex.Pattern group = java.util.regex.Pattern.compile("DataGroup=([A-Z]+)");
+        try (Connection c = adminConnection();
+                Statement st = c.createStatement()) {
+            try (ResultSet rs = st.executeQuery("SELECT LOWER(TABLE_NAME), TABLE_COMMENT FROM information_schema.TABLES"
+                    + " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE = 'BASE TABLE'"
+                    + " AND TABLE_NAME <> 'flyway_schema_history'")) {
+                while (rs.next()) {
+                    tables.add(rs.getString(1));
+                    java.util.regex.Matcher m = group.matcher(rs.getString(2));
+                    if (m.find()) {
+                        commentGroups.put(rs.getString(1), m.group(1));
+                    }
+                }
+            }
+            try (ResultSet rs = st.executeQuery(
+                    "SELECT LOWER(TRIGGER_NAME) FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA = DATABASE()")) {
+                while (rs.next()) {
+                    triggers.add(rs.getString(1));
+                }
+            }
+        }
+
+        List<String> problems = new ArrayList<>();
+        for (String table : tables) {
+            String byEntity = entityGroups.get(table);
+            String byComment = commentGroups.get(table);
+            if (byEntity == null && byComment == null && !PENDING_DATA_GROUP.contains(table)) {
+                problems.add(table + ": chưa khai nhóm (COMMENT DataGroup=… hoặc @Entity @DataGroup)");
+            }
+            if (byEntity != null && byComment != null && !byEntity.equals(byComment)) {
+                problems.add(table + ": @DataGroup " + byEntity + " khác COMMENT " + byComment);
+            }
+            if ("RECORD".equals(byComment)
+                    && !triggers.containsAll(List.of("trg_" + table + "_no_update", "trg_" + table + "_no_delete"))) {
+                problems.add(table + ": nhóm 3 thiếu trigger no_update, no_delete");
+            }
+            if (PENDING_DATA_GROUP.contains(table) && (byEntity != null || byComment != null)) {
+                problems.add(table + ": đã khai nhóm, xóa khỏi PENDING_DATA_GROUP");
+            }
+        }
+        assertThat(problems).isEmpty();
+    }
+
     @Test
     void SC_002_appAccount_cannotUpdateOrDeleteRecords() {
         jdbc.update(
@@ -137,4 +198,100 @@ class RecordGroupTriggerIT extends MySqlIntegrationTestBase {
             }
         }
     }
+
+    /** Bảng có sẵn chưa khai nhóm (rà 2026-10-30); chủ module khai khi làm migration gộp bảng, xong thì xóa dòng. */
+    private static final Set<String> PENDING_DATA_GROUP = Set.of(
+            // B (001)
+            "assessment_care_need",
+            "care_level",
+            "care_level_history",
+            "consent",
+            "consent_family_member",
+            "end_of_life_wish",
+            "end_of_life_wish_opinion",
+            "file",
+            "periodic_reminder",
+            "reassessment_notice",
+            "return_overdue_alert",
+            "treatment_wish",
+            "treatment_wish_notify",
+            "treatment_wish_opinion",
+            // A (002, T098)
+            "account",
+            "account_status_history",
+            "additional_grant",
+            "bound_device",
+            "device",
+            "field_visibility_rule",
+            "license_expiry_warning",
+            "login_qr_code",
+            "login_session",
+            "pending_review_record",
+            "permission_data_error",
+            "permission_matrix",
+            "permission_restriction",
+            "professional_activity",
+            "professional_activity_practice_scope",
+            "role",
+            "role_assignment",
+            // C (003, T066)
+            "allocation_write_guard",
+            "bed_backfill_request",
+            "bed_state_history",
+            "day_care_capacity_guard",
+            "room_allowed_care_level",
+            "room_isolation_history",
+            "room_type_care_level",
+            // D (006, T069)
+            "m07_job_run",
+            "medication_active_ingredient",
+            "prescription_active_ingredient",
+            "resident_medication",
+            // E (008, T050)
+            "credential",
+            "credential_practice_scope",
+            "credential_type",
+            "department",
+            "department_lead_history",
+            "floor_manager_assignment",
+            "floor_scope_lock",
+            "handover_assessment",
+            "handover_comment",
+            "handover_item",
+            "handover_reply",
+            "m09_job_run",
+            "practice_scope",
+            "shift_handover",
+            "shift_lead_history",
+            "shift_publication",
+            "shift_schedule",
+            "shift_staff",
+            "shift_template",
+            "staff_assignment",
+            "staff_department",
+            "staff_import_batch",
+            "staff_profile",
+            "staffing_ratio_calculation",
+            "work_shift",
+            // A (009, T043)
+            "call_reminder",
+            "call_reminder_handoff",
+            "call_reminder_notification",
+            "call_reminder_state",
+            "call_result",
+            "delivery_attempt",
+            "delivery_result",
+            "direct_contact",
+            "direct_contact_result",
+            "m13_job_run",
+            "notification",
+            "notification_channel",
+            "notification_event",
+            "notification_request",
+            "notification_request_content",
+            "notification_request_duplicate",
+            "notification_request_recipient_group",
+            "notification_state",
+            "push_device",
+            "sms_batch_window");
 }
