@@ -260,10 +260,12 @@ boolean isMarked(String kind, String entityType, long entityId, String marker);
 void lock(String lockKey);                                                       // INSERT IGNORE rồi SELECT … FOR UPDATE, giữ tới hết transaction
 ```
 
-Lưu giữ và đọc bản ghi đã chuyển (phần 2 của T108):
+Lưu giữ và đọc bản ghi đã chuyển (phần 2 của T108, cài 2026-10-30):
 
-- `SharedRowRetention` (`administration.shared.api`, chỉ `administration.retention` gọi): `deleteFor(Collection<EntityRef>)`, `deleteForResidents(Collection<Long>)` qua `RetentionDatabase`, trong transaction của chuỗi (R-11).
-- SPI `LegacyRecordTypeSource` (`administration.shared.api.spi`, module cài khi gộp bảng): `Map<String, String> legacyRecordTypes()` (loại bản ghi cũ → loại mới, R-15 mục 5); `administration.correction`, `administration.auditlog` dùng khi đọc đính chính, nhật ký của bản ghi đã chuyển.
+- `SharedRowRetention` (`administration.shared.api`, chỉ `administration.retention` gọi): `deleteFor(Collection<EntityRef>)` xóa dòng `status_history`, `record_event`, `simple_record`, `reminder_marker` có đối tượng là bản ghi (đối tượng `SharedRowRetention.RESIDENT` = `M01.RESIDENT` thì thêm `deleteForResidents`); `deleteForResidents(Collection<Long>)` xóa `simple_record`, `resident_module_state` theo `resident_id`; qua `RetentionDatabase`, trong transaction của chuỗi (R-11). Job loại bỏ gọi với mọi bản ghi của chuỗi: `entity_type` của dòng bảng chung trùng `RetentionProvider.dataType()` của bản ghi cha.
+- SPI `LegacyRecordTypeSource` (`administration.shared.api.spi`, module cài khi gộp bảng): `Map<String, String> legacyRecordTypes()` (loại bản ghi cũ → loại mới, R-15 mục 5); `administration.correction`, `administration.auditlog`, `administration.retention` đọc qua `RecordTypeAliases` (`administration.shared.api`: `withLegacy(type)` là loại cùng các loại cũ, `current(type)` là loại mới) khi đọc chuỗi đính chính, giá trị hiện hành, nhật ký và khi loại bỏ; bản đính chính mới của loại mới nối tiếp số thứ tự, Hủy ghi nhận của chuỗi loại cũ. Một loại cũ chỉ ánh xạ tới một loại mới (khởi động báo lỗi nếu trùng).
+
+`Basis.schedulerRunId` (`administration.auditlog.api`) đổi `Long` → `String` (UUID của lần chạy, `SchedulerRuns.start` trả về; research R-15 mục 4; "Đổi api" 2026-10-30, chủ dự án duyệt). `common.data.DataGroup.Group.MULTIPLE` cho entity của bảng chứa nhiều nhóm, bắt buộc trường `lockedAt` (R-05).
 
 Bản giả cho module khác: `support/fake/shared/` (`FakeCatalogApi`, `FakeStatusHistoryApi`, `FakeRecordEventApi`, `FakeSimpleRecordApi`, `FakeResidentModuleStateApi`, giữ dữ liệu trong bộ nhớ); hợp đồng từng interface là test `*ApiContract` chạy trên cả bản thật (`*ApiIT`) và bản giả (`Fake*ApiTest`).
 

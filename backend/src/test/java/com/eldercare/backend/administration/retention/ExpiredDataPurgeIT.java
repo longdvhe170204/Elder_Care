@@ -15,6 +15,7 @@ import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.support.FakePermissions;
+import com.eldercare.backend.support.JobLogCapture;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
 import java.sql.Connection;
@@ -93,7 +94,7 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
         user.set(NURSE);
     }
 
-    private long runJob() {
+    private String runJob() {
         user.set(SCHEDULER);
         try {
             return job.run();
@@ -179,7 +180,7 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
                 String.valueOf(id));
     }
 
-    private Map<String, Object> summary(long runId) {
+    private Map<String, Object> summary(String runId) {
         return jdbc.queryForMap(
                 "SELECT actor_type, exempt_from_purge,"
                         + " JSON_EXTRACT(basis, '$.schedulerRunId') AS run_id,"
@@ -188,7 +189,7 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
                         + " JSON_EXTRACT(details, '$.parameters.\"CFG-M15-04\"') AS parameter,"
                         + " JSON_EXTRACT(details, '$.stopped') AS stopped"
                         + " FROM audit_log WHERE action = 'EXPIRED_DATA_PURGED' AND entity_id = ?",
-                String.valueOf(runId));
+                runId);
     }
 
     @Test
@@ -198,7 +199,7 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
         long kept = floorRecord(recent);
         logFor(FLOOR, kept, recent, null);
 
-        long runId = runJob();
+        String runId = runJob();
 
         assertThat(exists("sample_floor_record", old)).isFalse();
         assertThat(logsOf(FLOOR, old)).isZero();
@@ -206,11 +207,63 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
         assertThat(logsOf(FLOOR, kept)).isEqualTo(1);
         Map<String, Object> summary = summary(runId);
         assertThat(summary).containsEntry("actor_type", "SCHEDULER").containsEntry("exempt_from_purge", true);
-        assertThat(String.valueOf(summary.get("run_id"))).isEqualTo(String.valueOf(runId));
+        assertThat(String.valueOf(summary.get("run_id"))).isEqualTo("\"" + runId + "\"");
         assertThat(String.valueOf(summary.get("records"))).isEqualTo("1");
         assertThat(String.valueOf(summary.get("logs"))).isEqualTo("1");
         assertThat(summary.get("parameter")).isNotNull();
         assertThat(String.valueOf(summary.get("stopped"))).isEqualTo("false");
+    }
+
+    /** Dòng bảng dùng chung của bản ghi (lịch sử, bản ghi con, đối tượng nhỏ, dấu đã nhắc), research R-15 mục 2. */
+    private void sharedRowsFor(String type, long id) {
+        jdbc.update(
+                "INSERT INTO status_history (entity_type, entity_id, attribute, module, kind, value, starts_at,"
+                        + " by_system) VALUES (?, ?, 'status', 'M15', 'POINT', 'A', UTC_TIMESTAMP(6), FALSE)",
+                type,
+                id);
+        jdbc.update(
+                "INSERT INTO record_event (entity_type, entity_id, module, kind, content, by_system, occurred_at,"
+                        + " confirmed_at) VALUES (?, ?, 'M15', 'M15.TEST_EVENT', '{}', FALSE, UTC_TIMESTAMP(6),"
+                        + " UTC_TIMESTAMP(6))",
+                type,
+                id);
+        jdbc.update(
+                "INSERT INTO simple_record (kind, module, entity_type, entity_id, status, content, created_at,"
+                        + " created_by, version, locked_at) VALUES ('M15.TEST_RECORD', 'M15', ?, ?, 'DONE', '{}',"
+                        + " UTC_TIMESTAMP(6), 1, 0, UTC_TIMESTAMP(6))",
+                type,
+                id);
+        jdbc.update(
+                "INSERT INTO reminder_marker (kind, entity_type, entity_id, marker, marked_at) VALUES"
+                        + " ('M15.TEST', ?, ?, 'm', UTC_TIMESTAMP(6))",
+                type,
+                id);
+    }
+
+    private int sharedRowsOf(String type, long id) {
+        int n = 0;
+        for (String table : new String[] {"status_history", "record_event", "simple_record", "reminder_marker"}) {
+            n += jdbc.queryForObject(
+                    "SELECT COUNT(*) FROM " + table + " WHERE entity_type = ? AND entity_id = ?",
+                    Integer.class,
+                    type,
+                    id);
+        }
+        return n;
+    }
+
+    @Test
+    void R_15_sharedRowsOfPurgedRecord_arePurgedInTheSameChain() {
+        long old = floorRecord(expired);
+        sharedRowsFor(FLOOR, old);
+        long kept = floorRecord(recent);
+        sharedRowsFor(FLOOR, kept);
+
+        runJob();
+
+        assertThat(exists("sample_floor_record", old)).isFalse();
+        assertThat(sharedRowsOf(FLOOR, old)).isZero();
+        assertThat(sharedRowsOf(FLOOR, kept)).isEqualTo(4);
     }
 
     @Test
@@ -302,18 +355,18 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
                 OFFICE,
                 original);
         jdbc.update(
-                "INSERT INTO application_result (approval_request_id, result_type, result_id, recorded_at)"
-                        + " VALUES (?, 'M15.CORRECTION', ?, ?)",
-                requestId,
+                "UPDATE approval_request SET result_type = 'M15.CORRECTION', result_id = ?, result_recorded_at = ?"
+                        + " WHERE id = ?",
                 String.valueOf(correctionId),
-                LocalDateTime.ofInstant(expired, ZoneOffset.UTC));
+                LocalDateTime.ofInstant(expired, ZoneOffset.UTC),
+                requestId);
 
         runJob();
 
         assertThat(exists("approval_request", requestId)).isTrue();
         assertThat(exists("correction", correctionId)).isTrue();
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM application_result WHERE approval_request_id = ?",
+                        "SELECT COUNT(*) FROM approval_request WHERE id = ? AND result_type IS NOT NULL",
                         Integer.class,
                         requestId))
                 .isEqualTo(1);
@@ -327,7 +380,12 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
         logFor(FLOOR, second, expired, null);
         control.failOnDelete(second);
 
-        long runId = runJob();
+        String runId;
+        Object result;
+        try (JobLogCapture log = new JobLogCapture()) {
+            runId = runJob();
+            result = log.result(runId);
+        }
 
         assertThat(exists("sample_floor_record", first)).isFalse();
         assertThat(exists("sample_floor_record", second)).isTrue();
@@ -335,15 +393,14 @@ class ExpiredDataPurgeIT extends MySqlIntegrationTestBase {
         Map<String, Object> summary = summary(runId);
         assertThat(String.valueOf(summary.get("records"))).isEqualTo("1");
         assertThat(String.valueOf(summary.get("stopped"))).isEqualTo("true");
-        assertThat(jdbc.queryForObject("SELECT result FROM scheduler_run WHERE id = ?", String.class, runId))
-                .isEqualTo("FAILED");
+        assertThat(result).isEqualTo("FAILED");
     }
 
     @Test
     void FR_051_appAccountCannotDelete_retentionCannotDeleteSummary() throws SQLException {
         long record = floorRecord(recent);
         logFor(FLOOR, record, recent, null);
-        long runId = runJob();
+        String runId = runJob();
 
         assertThatThrownBy(() -> jdbc.update("DELETE FROM sample_floor_record WHERE id = ?", record))
                 .isInstanceOf(DataAccessException.class);

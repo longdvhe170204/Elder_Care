@@ -7,6 +7,7 @@ import com.eldercare.backend.notification.internal.job.service.M13DailyTask;
 import com.eldercare.backend.notification.internal.job.service.M13FastTask;
 import com.eldercare.backend.notification.scheduling.M13DailyJob;
 import com.eldercare.backend.notification.scheduling.M13FastJob;
+import com.eldercare.backend.support.JobLogCapture;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -130,10 +131,11 @@ class NFR_04_M13CatchUpIT extends M13IntegrationTestBase {
     void B_10_fastJob_runsEveryTask_evenWhenOneFails() {
         int before = Tasks.FAST_RUNS.get();
 
-        long runId = fast.run();
+        try (JobLogCapture log = new JobLogCapture()) {
+            String runId = fast.run();
 
-        assertThat(Tasks.FAST_RUNS.get()).isEqualTo(before + 1);
-        assertThat(jdbc.queryForObject("SELECT result FROM scheduler_run WHERE id = ?", String.class, runId))
-                .isEqualTo("FAILED");
+            assertThat(Tasks.FAST_RUNS.get()).isEqualTo(before + 1);
+            assertThat(log.result(runId)).isEqualTo("FAILED");
+        }
     }
 }

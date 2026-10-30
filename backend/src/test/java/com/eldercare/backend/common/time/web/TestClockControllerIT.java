@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.time.TestClockControl;
+import com.eldercare.backend.support.JobLogCapture;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import java.time.Duration;
 import java.time.Instant;
@@ -67,42 +68,35 @@ class TestClockControllerIT extends MySqlIntegrationTestBase {
     @Test
     void NFR_13_runJobs_runsM13FastAndDailyAtSimulatedTime() throws Exception {
         // 009: hai job của M13 chạy tay được ở profile test, demo (chủ dự án duyệt thêm vào runJobs 2026-10-22)
-        int fastBefore = runs("M13_FAST");
+        try (JobLogCapture log = new JobLogCapture()) {
+            mvc.perform(
+                            post("/api/v1/testing/clock")
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(
+                                            "{\"setTo\":\"2031-03-17T08:00:00+07:00\",\"runJobs\":[\"M13_FAST\",\"M13_DAILY\"]}"))
+                    .andExpect(status().isOk());
 
-        mvc.perform(post("/api/v1/testing/clock")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"setTo\":\"2031-03-17T08:00:00+07:00\",\"runJobs\":[\"M13_FAST\",\"M13_DAILY\"]}"))
-                .andExpect(status().isOk());
-
-        assertThat(runs("M13_FAST")).isGreaterThan(fastBefore);
-        // Job hằng ngày chạy một lần mỗi ngày nghiệp vụ: đã có lần chạy cho ngày giả lập
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM scheduler_run WHERE job = 'M13_DAILY'"
-                                + " AND started_at >= '2031-03-17 00:30:00' AND started_at < '2031-03-18 00:00:00'",
-                        Integer.class))
-                .isEqualTo(1);
+            assertThat(log.starts("M13_FAST")).isPositive();
+            // Job hằng ngày chạy một lần cho ngày giả lập
+            assertThat(log.starts("M13_DAILY")).isEqualTo(1);
+        }
     }
 
     @Test
     void NFR_13_runJobs_runsM03HoldExpiryAndFutureAllocation() throws Exception {
         // 003 (FR-015, FR-023, research G-09): hai job của M03 chạy tay được (chủ dự án duyệt thêm vào runJobs
         // 2026-10-26)
-        int holdsBefore = runs("EXPIRE_BED_HOLDS");
-        int futureBefore = runs("REPORT_FUTURE_ALLOCATION_PAST_START");
+        try (JobLogCapture log = new JobLogCapture()) {
+            mvc.perform(post("/api/v1/testing/clock")
+                            .with(csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"runJobs\":[\"EXPIRE_BED_HOLDS\",\"REPORT_FUTURE_ALLOCATION_PAST_START\"]}"))
+                    .andExpect(status().isOk());
 
-        mvc.perform(post("/api/v1/testing/clock")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"runJobs\":[\"EXPIRE_BED_HOLDS\",\"REPORT_FUTURE_ALLOCATION_PAST_START\"]}"))
-                .andExpect(status().isOk());
-
-        assertThat(runs("EXPIRE_BED_HOLDS")).isGreaterThan(holdsBefore);
-        assertThat(runs("REPORT_FUTURE_ALLOCATION_PAST_START")).isGreaterThan(futureBefore);
-    }
-
-    private int runs(String job) {
-        return jdbc.queryForObject("SELECT COUNT(*) FROM scheduler_run WHERE job = ?", Integer.class, job);
+            assertThat(log.starts("EXPIRE_BED_HOLDS")).isPositive();
+            assertThat(log.starts("REPORT_FUTURE_ALLOCATION_PAST_START")).isPositive();
+        }
     }
 
     @Test

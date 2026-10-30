@@ -55,7 +55,7 @@ public class HoldExpiryProcessor {
     }
 
     @Transactional
-    public boolean expire(BedHoldStore.Held held, long runId) {
+    public boolean expire(BedHoldStore.Held held, String runId) {
         locks.lock(held.residentId(), List.of(held.bedId()));
         var now = time.now();
         if (!store.stillExpired(held.bedId(), now)) return false;

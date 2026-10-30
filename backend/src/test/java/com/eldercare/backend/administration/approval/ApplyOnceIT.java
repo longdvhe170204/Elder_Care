@@ -2,11 +2,13 @@ package com.eldercare.backend.administration.approval;
 
 import static com.eldercare.backend.administration.approval.ApprovalFixtures.MANAGER;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataAccessException;
 import tools.jackson.databind.JsonNode;
 
 /**
@@ -36,6 +38,21 @@ class ApplyOnceIT extends ApprovalTestBase {
         assertThat(lastAudit(id, "REQUEST_APPLIED", "actor_type")).isEqualTo("SCHEDULER");
         assertThat(lastAudit(id, "REQUEST_APPLIED", "JSON_EXTRACT(basis, '$.approvalRequestId')"))
                 .isEqualTo(String.valueOf(id));
+    }
+
+    /** Constitution XII 3.2.0, R-15: yêu cầu đã áp dụng khóa theo dòng; kết quả áp dụng là cột của yêu cầu. */
+    @Test
+    void XII_appliedRequest_isRowLocked() throws Exception {
+        LocalDate due = time.today().plusDays(3);
+        long id = approved(due);
+        moveTo(due);
+        runApplyJob();
+
+        assertThat(jdbc.queryForObject(
+                        "SELECT locked_at IS NOT NULL FROM approval_request WHERE id = ?", Boolean.class, id))
+                .isTrue();
+        assertThatThrownBy(() -> jdbc.update("UPDATE approval_request SET closing_reason = 'x' WHERE id = ?", id))
+                .isInstanceOf(DataAccessException.class);
     }
 
     @Test

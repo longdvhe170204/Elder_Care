@@ -40,7 +40,7 @@ java -jar backend.jar --eldercare.bootstrap-manager.run-once=true --eldercare.bo
 | `REMIND_PENDING_REQUESTS` | 15 phút một lần | nhắc, báo Quản lý viện theo CFG-M15-05, CFG-M15-06 |
 | `PURGE_EXPIRED_DATA` | 02:30 ngày 1 hằng tháng | loại bỏ dữ liệu hết hạn lưu giữ (FR-051) |
 
-Lịch là thông số kỹ thuật, không phải CFG. Lịch hai job đầu đổi được bằng `eldercare.jobs.apply-due-requests.cron`, `eldercare.jobs.remind-pending-requests.cron` (giá trị `-` là tắt; chỉ profile `test` tắt). ShedLock (bảng `shedlock`) giữ cho mỗi job không chạy chồng khi có nhiều bản ứng dụng. Mỗi lần chạy có một dòng trong `scheduler_run` (`result` là `SUCCEEDED` hoặc `FAILED`); kiểm bảng này khi theo dõi. *(Khi xong 000 T108, research R-15)* Bảng `scheduler_run` bỏ; mỗi lần chạy ghi một dòng JSON vào `logs/jobs.log` (mã lần chạy `jobRunId`, job, bắt đầu, kết thúc, kết quả, số bản ghi xử lý); theo dõi bằng file này.
+Lịch là thông số kỹ thuật, không phải CFG. Lịch hai job đầu đổi được bằng `eldercare.jobs.apply-due-requests.cron`, `eldercare.jobs.remind-pending-requests.cron` (giá trị `-` là tắt; chỉ profile `test` tắt). ShedLock (bảng `shedlock`) giữ cho mỗi job không chạy chồng khi có nhiều bản ứng dụng. Từ 000 T108 (research R-15 mục 4, `V000_11`) bảng `scheduler_run` bỏ: mỗi lần chạy ghi hai dòng JSON dạng ECS (`event` `START`, `FINISH`; `job`, `jobRunId` là UUID, `result` `SUCCEEDED` hoặc `FAILED`, `processedCount`) vào `<eldercare.logging.jobs-dir>/jobs.log` (mặc định `logs/` cạnh thư mục chạy ứng dụng; profile `test` ghi `target/logs/`), cấu hình ở `src/main/resources/logback-spring.xml`. File xoay theo ngày (`jobs.YYYY-MM-DD.log`), giữ 180 ngày; sao lưu thư mục log cùng lịch sao lưu mục 4. Nhật ký của Bộ lập lịch ghi `basis.schedulerRunId` = `jobRunId` để tra chi tiết trong 180 ngày; sau đó nhật ký vẫn đủ căn cứ (mã quy tắc hoặc yêu cầu phê duyệt, thời điểm).
 
 ## 4. Sao lưu hằng ngày
 
@@ -96,7 +96,7 @@ Sau mỗi đợt `PURGE_EXPIRED_DATA`, xuất bản tóm tắt (`audit_log` có 
 
 ## 8. Theo dõi
 
-- `scheduler_run` có `result = 'FAILED'` hoặc job không có dòng mới quá hai chu kỳ: kiểm log ứng dụng.
+- `jobs.log` có dòng `"result":"FAILED"` hoặc job không có dòng `START` mới quá hai chu kỳ: tìm theo `jobRunId` trong log ứng dụng.
 - Nhật ký `REQUEST_APPLY_ERROR`: yêu cầu áp dụng lỗi, vẫn Đã duyệt và được thử lại ở lần chạy sau; lặp lại thì báo nhóm phát triển.
 - Bảng `EVENT_PUBLICATION` có dòng chưa hoàn tất lâu: sự kiện chưa giao xong, được giao lại khi khởi động (R-09).
 

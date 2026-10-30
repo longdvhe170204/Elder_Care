@@ -25,8 +25,8 @@ public class RemindPendingRequestsJob implements ScheduledJob {
         reminder.run();
     }
 
-    /** Chạy một đợt, trả id lần chạy ({@code scheduler_run}). */
-    public long run() {
+    /** Chạy một đợt, trả mã lần chạy (UUID). */
+    public String run() {
         return reminder.run();
     }
 

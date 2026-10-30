@@ -60,7 +60,7 @@ class AuditLogSchedulerIT extends MySqlIntegrationTestBase {
         AuditLogEntry entry = AuditLogEntry.builder()
                 .action(APPLY)
                 .entity("M15.SAMPLE", id)
-                .basis(new Basis(null, 5L, null, 9L))
+                .basis(new Basis(null, 5L, null, "4f1c2d3e-0000-4000-8000-000000000009"))
                 .build();
 
         tx.executeWithoutResult(s -> auditLog.write(entry));

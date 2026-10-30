@@ -21,6 +21,7 @@ import com.eldercare.backend.administration.correction.api.spi.CorrectableRecord
 import com.eldercare.backend.administration.correction.internal.domain.Correction;
 import com.eldercare.backend.administration.correction.internal.domain.CorrectionMethodSelector;
 import com.eldercare.backend.administration.correction.internal.persistence.CorrectionRepository;
+import com.eldercare.backend.administration.shared.api.RecordTypeAliases;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;
@@ -33,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.ObjectProvider;
@@ -60,6 +62,7 @@ class CorrectionService implements CorrectionApi {
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
     private final JsonMapper json;
+    private final RecordTypeAliases aliases;
     private final ObjectProvider<CurrentUser> currentUser;
     private final ObjectProvider<ScopeApi> scope;
     private final ObjectProvider<AccountApi> accounts;
@@ -74,6 +77,7 @@ class CorrectionService implements CorrectionApi {
             ApplicationEventPublisher events,
             BusinessTime time,
             JsonMapper json,
+            RecordTypeAliases aliases,
             ObjectProvider<CurrentUser> currentUser,
             ObjectProvider<ScopeApi> scope,
             ObjectProvider<AccountApi> accounts,
@@ -86,6 +90,7 @@ class CorrectionService implements CorrectionApi {
         this.events = events;
         this.time = time;
         this.json = json;
+        this.aliases = aliases;
         this.currentUser = currentUser;
         this.scope = scope;
         this.accounts = accounts;
@@ -162,11 +167,12 @@ class CorrectionService implements CorrectionApi {
 
     /** Bản gốc còn đính chính được không, xét tại lúc áp dụng yêu cầu (FR-029, FR-038). */
     boolean isVoided(String recordType, long originalRecordId) {
+        Set<String> types = aliases.withLegacy(recordType);
         return Boolean.TRUE.equals(jdbc.query(
-                "SELECT voided FROM correction_chain WHERE record_type = ? AND original_record_id = ?",
+                "SELECT MAX(voided) FROM correction_chain WHERE record_type IN (" + placeholders(types.size())
+                        + ") AND original_record_id = ?",
                 rs -> rs.next() ? rs.getBoolean(1) : null,
-                recordType,
-                originalRecordId));
+                args(types, List.of(originalRecordId))));
     }
 
     boolean isConfirmed(String recordType, long originalRecordId) {
@@ -223,10 +229,27 @@ class CorrectionService implements CorrectionApi {
             long actorId,
             CreationMethod method,
             Long approvalRequestId) {
-        jdbc.update(
+        int created = jdbc.update(
                 "INSERT IGNORE INTO correction_chain (record_type, original_record_id) VALUES (?, ?)",
                 recordType,
                 originalRecordId);
+        Set<String> legacy = new java.util.LinkedHashSet<>(aliases.withLegacy(recordType));
+        legacy.remove(recordType);
+        if (created == 1 && !legacy.isEmpty()) {
+            // Bản gốc đã có đính chính ghi với loại cũ trước khi gộp bảng: số thứ tự, Hủy ghi nhận nối tiếp (R-15 mục
+            // 5)
+            Map<String, Object> old = jdbc.queryForMap(
+                    "SELECT IFNULL(MAX(correction_count), 0) AS n, IFNULL(MAX(voided), FALSE) AS v FROM correction_chain"
+                            + " WHERE record_type IN (" + placeholders(legacy.size()) + ") AND original_record_id = ?",
+                    args(legacy, List.of(originalRecordId)));
+            jdbc.update(
+                    "UPDATE correction_chain SET correction_count = ?, voided = ? WHERE record_type = ?"
+                            + " AND original_record_id = ?",
+                    ((Number) old.get("n")).intValue(),
+                    ((Number) old.get("v")).intValue() == 1,
+                    recordType,
+                    originalRecordId);
+        }
         Map<String, Object> chain = jdbc.queryForMap(
                 "SELECT correction_count, voided FROM correction_chain"
                         + " WHERE record_type = ? AND original_record_id = ? FOR UPDATE",
@@ -262,24 +285,27 @@ class CorrectionService implements CorrectionApi {
         if (originalRecordIds.isEmpty()) {
             return result;
         }
-        String in = originalRecordIds.stream().map(id -> "?").collect(Collectors.joining(","));
-        Object[] args = java.util.stream.Stream.concat(
-                        java.util.stream.Stream.of(recordType), originalRecordIds.stream())
-                .toArray();
+        Set<String> types = aliases.withLegacy(recordType);
+        String where = " WHERE record_type IN (" + placeholders(types.size()) + ") AND original_record_id IN ("
+                + placeholders(originalRecordIds.size()) + ")";
+        Object[] args = args(types, originalRecordIds);
         Map<Long, Object> latest = new HashMap<>();
+        Map<Long, Long> latestId = new HashMap<>();
         jdbc.query(
-                "SELECT original_record_id, corrected_content FROM v_latest_correction WHERE record_type = ?"
-                        + " AND original_record_id IN (" + in + ")",
+                "SELECT original_record_id, corrected_content, correction_id FROM v_latest_correction" + where,
                 rs -> {
-                    latest.put(rs.getLong(1), parse(rs.getString(2)));
+                    long id = rs.getLong(1);
+                    if (rs.getLong(3) > latestId.getOrDefault(id, 0L)) {
+                        latestId.put(id, rs.getLong(3));
+                        latest.put(id, parse(rs.getString(2)));
+                    }
                 },
                 args);
         Map<Long, Boolean> chains = new HashMap<>();
         jdbc.query(
-                "SELECT original_record_id, voided FROM correction_chain WHERE record_type = ?"
-                        + " AND original_record_id IN (" + in + ")",
+                "SELECT original_record_id, voided FROM correction_chain" + where,
                 rs -> {
-                    chains.put(rs.getLong(1), rs.getBoolean(2));
+                    chains.merge(rs.getLong(1), rs.getBoolean(2), Boolean::logicalOr);
                 },
                 args);
         for (Long id : originalRecordIds) {
@@ -295,10 +321,12 @@ class CorrectionService implements CorrectionApi {
         if (!provider.isConfirmed(originalRecordId)) {
             throw new NotFoundException();
         }
-        List<CorrectionView> list =
-                corrections.findByRecordTypeAndOriginalRecordIdOrderBySequenceNo(recordType, originalRecordId).stream()
-                        .map(this::view)
-                        .toList();
+        List<CorrectionView> list = corrections
+                .findByRecordTypeInAndOriginalRecordIdOrderBySequenceNo(
+                        aliases.withLegacy(recordType), originalRecordId)
+                .stream()
+                .map(this::view)
+                .toList();
         CurrentValue current = current(recordType, List.of(originalRecordId)).get(originalRecordId);
         Object original = provider.originalContent(originalRecordId);
         return new CorrectionChainView(
@@ -328,7 +356,7 @@ class CorrectionService implements CorrectionApi {
     private CorrectionView view(Correction c) {
         return new CorrectionView(
                 c.getId(),
-                c.getRecordType(),
+                aliases.current(c.getRecordType()),
                 c.getOriginalRecordId(),
                 c.getSequenceNo(),
                 c.getType(),
@@ -349,6 +377,14 @@ class CorrectionService implements CorrectionApi {
             after.put("correctedContent", view.correctedContent());
         }
         return after;
+    }
+
+    private static String placeholders(int n) {
+        return String.join(", ", java.util.Collections.nCopies(n, "?"));
+    }
+
+    private static Object[] args(Collection<String> types, Collection<?> rest) {
+        return java.util.stream.Stream.concat(types.stream(), rest.stream()).toArray();
     }
 
     private Object parse(String value) {

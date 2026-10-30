@@ -17,12 +17,11 @@ import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
-/** Đọc, ghi bảng {@code approval_request} và {@code application_result} bằng JDBC (data-model mục 3). */
+/** Đọc, ghi bảng {@code approval_request} (kết quả áp dụng là cột, research R-15) bằng JDBC (data-model mục 3). */
 @Component
 public class ApprovalRequestStore {
 
-    public static final String COLUMNS = "SELECT r.*, a.result_type, a.result_id FROM approval_request r"
-            + " LEFT JOIN application_result a ON a.approval_request_id = r.id";
+    public static final String COLUMNS = "SELECT r.* FROM approval_request r";
 
     private final JdbcTemplate jdbc;
     private final JsonMapper json;
@@ -95,14 +94,18 @@ public class ApprovalRequestStore {
         jdbc.update("UPDATE approval_request SET " + assignments + " WHERE id = ?", all);
     }
 
+    /** Ghi kết quả áp dụng một lần (FR-037, FR-039); đã có kết quả thì lỗi. */
     public void insertResult(long id, ResultRef result, Instant at) {
-        jdbc.update(
-                "INSERT INTO application_result (approval_request_id, result_type, result_id, recorded_at)"
-                        + " VALUES (?, ?, ?, ?)",
-                id,
+        int updated = jdbc.update(
+                "UPDATE approval_request SET result_type = ?, result_id = ?, result_recorded_at = ? WHERE id = ?"
+                        + " AND result_type IS NULL",
                 result.type(),
                 result.id(),
-                utc(at));
+                utc(at),
+                id);
+        if (updated != 1) {
+            throw new IllegalStateException("Yêu cầu " + id + " đã có kết quả áp dụng");
+        }
     }
 
     public String toJson(JsonNode node) {

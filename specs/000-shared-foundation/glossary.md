@@ -330,6 +330,11 @@ Loại yêu cầu, loại bản ghi của module khác (ví dụ `M02.THAY_DOI_L
 | cột `khoa_luc`, trigger `trg_<bang>_khoa_dong` | `locked_at`, `trg_<table>_row_lock` |
 | `legacy` (`bang`, `id`) | `legacy` (`table`, `id`) |
 | file log lần chạy job | `logs/jobs.log`; khóa MDC `jobRunId` |
+| `@NhomDuLieu(NHIEU_NHOM)`, trường `khoaLuc` | `@DataGroup(MULTIPLE)`, trường `lockedAt` |
+| bảng ánh xạ loại bản ghi cũ (SPI), tra loại cũ và mới | `LegacyRecordTypeSource` (`legacyRecordTypes`, `administration.shared.api.spi`); `RecordTypeAliases` (`withLegacy`, `current`) |
+| xóa dòng bảng chung khi loại bỏ dữ liệu | `SharedRowRetention` (`deleteFor`, `deleteForResidents`, `RESIDENT`) |
+| `ket_qua_ap_dung` sau gộp: cột kết quả áp dụng của `yeu_cau_phe_duyet`, `khoa_luc` | `approval_request` (`result_type`, `result_id`, `result_recorded_at`, `locked_at`) |
+| thư mục file log job | thuộc tính `eldercare.logging.jobs-dir`; `logback-spring.xml`, logger `jobs` |
 
 ## 7. Feature 002 *(bổ sung 2026-10-19, khi dịch `contracts/api-002.yaml`)*
 
