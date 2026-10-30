@@ -1,11 +1,10 @@
 package com.eldercare.backend.administration.approval.internal.service;
 
-import com.eldercare.backend.administration.approval.api.ApprovalStatus;
+import com.eldercare.backend.administration.approval.internal.persistence.ApprovalRequestStore;
 import com.eldercare.backend.common.scheduling.SchedulerRuns;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 /**
@@ -19,12 +18,12 @@ public class PendingRequestReminder {
 
     private static final Logger LOG = LoggerFactory.getLogger(PendingRequestReminder.class);
 
-    private final JdbcTemplate jdbc;
+    private final ApprovalRequestStore store;
     private final ReminderTransaction transaction;
     private final SchedulerRuns runs;
 
-    PendingRequestReminder(JdbcTemplate jdbc, ReminderTransaction transaction, SchedulerRuns runs) {
-        this.jdbc = jdbc;
+    PendingRequestReminder(ApprovalRequestStore store, ReminderTransaction transaction, SchedulerRuns runs) {
+        this.store = store;
         this.transaction = transaction;
         this.runs = runs;
     }
@@ -32,10 +31,7 @@ public class PendingRequestReminder {
     /** Chạy một đợt, trả mã lần chạy (UUID). */
     public String run() {
         String runId = runs.start(JOB);
-        List<Long> pending = jdbc.queryForList(
-                "SELECT id FROM approval_request WHERE status = ? AND escalated_at IS NULL ORDER BY submitted_at, id",
-                Long.class,
-                ApprovalStatus.PENDING_APPROVAL);
+        List<Long> pending = store.pendingNotEscalated();
         int processed = 0;
         boolean failed = false;
         for (long id : pending) {
