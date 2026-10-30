@@ -10,9 +10,9 @@ import com.eldercare.backend.notification.internal.delivery.domain.ChannelSelect
 import com.eldercare.backend.notification.internal.delivery.domain.ChannelSelection.Recipient;
 import com.eldercare.backend.notification.internal.delivery.domain.SendResult;
 import com.eldercare.backend.notification.internal.delivery.domain.SmsBatching;
+import com.eldercare.backend.notification.internal.delivery.domain.SmsWindow;
 import com.eldercare.backend.notification.internal.delivery.persistence.DeliveryStore;
 import com.eldercare.backend.notification.internal.delivery.persistence.SmsWindowStore;
-import com.eldercare.backend.notification.internal.delivery.persistence.SmsWindowStore.Window;
 import com.eldercare.backend.notification.internal.persistence.NotificationStore;
 import com.eldercare.backend.staffing.api.ShiftApi;
 import java.time.Instant;
@@ -91,8 +91,8 @@ public class OutOfAppPlanner {
 
     /** Tin nhắn Trung bình: dồn vào khung đang mở (rỗng), hoặc gửi ngay và mở khung (id lần gửi). */
     private Optional<Long> batchedOrNow(Target t, String address, Instant at) {
-        Optional<Window> open = windows.openFor(t.key());
-        if (open.isPresent() && !SmsBatching.batch(open.map(Window::endsAt), at)) {
+        Optional<SmsWindow> open = windows.openFor(t.key());
+        if (open.isPresent() && !SmsBatching.batch(open.map(SmsWindow::endsAt), at)) {
             closer.close(open.get().id(), at);
             open = windows.openFor(t.key());
         }

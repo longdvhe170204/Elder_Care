@@ -33,7 +33,10 @@ class FR_005_DeduplicationIT extends M13IntegrationTestBase {
 
     private int duplicates(Object requestId) {
         return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM notification_request_duplicate WHERE request_id = ?", Integer.class, requestId);
+                "SELECT COUNT(*) FROM reminder_marker WHERE kind = 'M13.REQUEST_DUPLICATE'"
+                        + " AND entity_type = 'M13.NOTIFICATION_REQUEST' AND entity_id = ?",
+                Integer.class,
+                requestId);
     }
 
     @Test

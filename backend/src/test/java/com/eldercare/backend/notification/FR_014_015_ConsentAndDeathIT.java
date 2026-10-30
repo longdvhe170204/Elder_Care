@@ -169,15 +169,15 @@ class FR_014_015_ConsentAndDeathIT extends M13IntegrationTestBase {
 
     private Map<String, Object> state(long requestId, long familyMemberId) {
         return jdbc.queryForMap(
-                "SELECT n.id, s.status FROM notification n JOIN notification_state s ON s.notification_id = n.id"
-                        + " WHERE n.request_id = ? AND n.recipient_type = 'FAMILY_MEMBER' AND n.recipient_id = ?",
+                "SELECT n.id, n.status FROM notification n WHERE n.request_id = ? AND n.recipient_type = 'FAMILY_MEMBER' AND n.recipient_id = ?",
                 requestId,
                 familyMemberId);
     }
 
     private String notSentReason(Map<String, Object> state) {
         return jdbc.queryForObject(
-                "SELECT reason FROM notification_event WHERE notification_id = ? AND type = 'NOT_SENT'",
+                "SELECT e.content->>'$.reason' FROM record_event e WHERE e.kind = 'M13.NOTIFICATION_EVENT' AND e.entity_type = 'M13.NOTIFICATION' AND e.entity_id = ?"
+                        + " AND e.content->>'$.type' = 'NOT_SENT'",
                 String.class,
                 ((Number) state.get("id")).longValue());
     }
