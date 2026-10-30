@@ -1,6 +1,6 @@
 package com.eldercare.backend.staffing.shift.internal.service.port;
 
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 
 /** Căn cứ rời ca của 015; sourceId của APPROVED_LEAVE là yêu cầu nghỉ được duyệt. */
 public record ShiftDepartureBasis(Kind kind, long sourceId) {

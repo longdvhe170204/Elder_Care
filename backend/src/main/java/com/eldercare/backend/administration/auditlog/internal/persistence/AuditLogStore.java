@@ -1,6 +1,6 @@
 package com.eldercare.backend.administration.auditlog.internal.persistence;
 
-import com.eldercare.backend.administration.auditlog.api.AuditLogRecord;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogRecord;
 import com.eldercare.backend.administration.auditlog.internal.domain.AuditLogCriteria;
 import com.eldercare.backend.administration.auditlog.internal.domain.AuditLogRow;
 import java.sql.ResultSet;

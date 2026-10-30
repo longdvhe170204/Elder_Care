@@ -1,7 +1,7 @@
 package com.eldercare.backend.administration.sample;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.administration.correction.api.CorrectionPermissions;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionPermissions;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.support.FakePermissions;
 import com.eldercare.backend.support.SwitchableUser;

@@ -1,10 +1,10 @@
 package com.eldercare.backend.roombedallocation.internal.bed.service;
 
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ReasonRequiredException;
@@ -153,7 +153,7 @@ public class BedStateService {
     /** Giữ nguyên trạng thái khi người đang tạm vắng chuyển viện; chỉ đồng bộ hạn từ nguồn lưu trú. */
     @Transactional(propagation = Propagation.MANDATORY)
     public void refreshAbsentHold(
-            long bedId, BedHold hold, com.eldercare.backend.administration.auditlog.api.Basis basis) {
+            long bedId, BedHold hold, com.eldercare.backend.administration.auditlog.api.dto.Basis basis) {
         store.lock(bedId);
         if (hold.reason() != HoldReason.ABSENT_RESIDENT || !store.refreshAbsentHold(bedId, hold)) throw invalid();
         audit.write(AuditLogEntry.builder()

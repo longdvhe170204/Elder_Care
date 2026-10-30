@@ -16,7 +16,7 @@ import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
 import com.eldercare.backend.administration.account.api.spi.AssignmentView;
 import com.eldercare.backend.administration.account.api.spi.Duty;
 import com.eldercare.backend.administration.account.internal.auth.domain.ActiveSession;
-import com.eldercare.backend.administration.correction.api.CreationMethod;
+import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.administration.correction.internal.domain.CorrectionMethodSelector;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;

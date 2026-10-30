@@ -1,6 +1,7 @@
 package com.eldercare.backend.roombedallocation.internal.history.service;
 
 import com.eldercare.backend.administration.correction.api.*;
+import com.eldercare.backend.administration.correction.api.dto.*;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.error.*;
 import com.eldercare.backend.roombedallocation.internal.bed.persistence.ReadinessCorrectionStore;

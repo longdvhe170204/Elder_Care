@@ -1,8 +1,8 @@
 package com.eldercare.backend.administration.correction.api.spi;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.administration.correction.api.CorrectionView;
-import com.eldercare.backend.administration.correction.api.CreationMethod;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionView;
+import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import java.util.Optional;
 
 /**

@@ -2,7 +2,7 @@ package com.eldercare.backend.administration.approval.internal.service;
 
 import com.eldercare.backend.administration.approval.api.OverdueReminder;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Duration;
 import java.time.Instant;

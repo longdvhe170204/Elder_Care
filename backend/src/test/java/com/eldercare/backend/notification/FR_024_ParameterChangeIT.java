@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.awaitility.Awaitility.await;
 
-import com.eldercare.backend.administration.parameter.api.ParameterChanged;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.events.ParameterChanged;
 import com.eldercare.backend.common.notification.ContentPart;
 import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.common.notification.InformationSubject;

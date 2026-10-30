@@ -1,7 +1,7 @@
 package com.eldercare.backend.administration.account.api;
 
 import com.eldercare.backend.administration.account.api.dto.AccountView;
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.Role;
 import java.util.List;
 import java.util.Optional;

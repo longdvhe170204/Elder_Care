@@ -1,7 +1,9 @@
 package com.eldercare.backend.staffing.handover.internal.service;
 
 import com.eldercare.backend.administration.auditlog.api.*;
+import com.eldercare.backend.administration.auditlog.api.dto.*;
 import com.eldercare.backend.administration.parameter.api.*;
+import com.eldercare.backend.administration.parameter.api.dto.*;
 import com.eldercare.backend.staffing.api.events.*;
 import com.eldercare.backend.staffing.handover.internal.persistence.HandoverStore;
 import com.eldercare.backend.staffing.internal.service.M09TimedTask;

@@ -1,7 +1,7 @@
 package com.eldercare.backend.notification.internal.delivery.service;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.notification.api.dto.RecipientType;
 import com.eldercare.backend.notification.internal.channel.persistence.ChannelStore;

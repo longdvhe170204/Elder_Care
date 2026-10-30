@@ -1,7 +1,7 @@
 package com.eldercare.backend.notification.internal.directcontact.service;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.notification.api.dto.RecipientType;
 import com.eldercare.backend.notification.api.spi.FamilyContactView;

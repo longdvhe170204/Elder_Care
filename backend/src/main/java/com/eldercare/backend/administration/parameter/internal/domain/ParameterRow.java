@@ -1,6 +1,6 @@
 package com.eldercare.backend.administration.parameter.internal.domain;
 
-import com.eldercare.backend.administration.parameter.api.ParameterKind;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterKind;
 import java.time.Instant;
 import tools.jackson.databind.JsonNode;
 

@@ -1,6 +1,6 @@
 package com.eldercare.backend.staffing.shift.internal.service;
 
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.staffing.shift.internal.service.port.*;
 import java.util.List;
 import org.springframework.stereotype.Service;

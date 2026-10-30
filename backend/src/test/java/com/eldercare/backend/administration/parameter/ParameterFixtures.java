@@ -1,7 +1,7 @@
 package com.eldercare.backend.administration.parameter;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.administration.parameter.api.ParameterPermissions;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterPermissions;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.support.FakePermissions;
 import com.eldercare.backend.support.SwitchableUser;

@@ -138,7 +138,7 @@ public class BedController {
     }
 
     private static <T> T correctedValue(
-            com.eldercare.backend.administration.correction.api.CurrentValue value,
+            com.eldercare.backend.administration.correction.api.dto.CurrentValue value,
             String field,
             T original,
             Class<T> type) {

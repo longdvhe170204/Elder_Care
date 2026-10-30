@@ -1,6 +1,6 @@
 package com.eldercare.backend.administration.retention.api;
 
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 
 /**
  * Thời hạn lưu giữ của một loại dữ liệu (contracts/module-interfaces.md mục 1.7; FR-050): theo hồ sơ người cao tuổi

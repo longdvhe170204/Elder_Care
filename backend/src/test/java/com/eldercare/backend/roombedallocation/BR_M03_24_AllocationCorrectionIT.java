@@ -3,6 +3,7 @@ package com.eldercare.backend.roombedallocation;
 import static org.assertj.core.api.Assertions.*;
 
 import com.eldercare.backend.administration.correction.api.*;
+import com.eldercare.backend.administration.correction.api.dto.*;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;

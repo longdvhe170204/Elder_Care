@@ -7,7 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.administration.approval.api.ApproverReminderDue;
+import com.eldercare.backend.administration.approval.api.events.ApproverReminderDue;
 import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;

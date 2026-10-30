@@ -2,6 +2,7 @@ package com.eldercare.backend.roombedallocation.internal.bed.service;
 
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.administration.parameter.api.*;
+import com.eldercare.backend.administration.parameter.api.dto.*;
 import com.eldercare.backend.common.error.*;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.roombedallocation.api.*;

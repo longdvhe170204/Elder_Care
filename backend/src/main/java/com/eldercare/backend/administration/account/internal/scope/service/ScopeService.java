@@ -19,7 +19,7 @@ import com.eldercare.backend.administration.account.internal.permission.domain.P
 import com.eldercare.backend.administration.account.internal.permission.service.RolePermissionCalculator;
 import com.eldercare.backend.administration.account.internal.persistence.AccountStore;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Duration;

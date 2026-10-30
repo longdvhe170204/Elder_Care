@@ -1,5 +1,8 @@
 package com.eldercare.backend.administration.auditlog.api;
 
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogRecord;
 import java.time.Instant;
 import java.util.List;
 

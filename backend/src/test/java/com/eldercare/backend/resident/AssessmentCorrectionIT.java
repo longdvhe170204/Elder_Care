@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.administration.correction.api.CorrectionApi;
 import com.eldercare.backend.administration.correction.api.CorrectionResult;
-import com.eldercare.backend.administration.correction.api.CorrectionType;
-import com.eldercare.backend.administration.correction.api.CreationMethod;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
+import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;

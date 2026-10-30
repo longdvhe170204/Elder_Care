@@ -1,8 +1,8 @@
 package com.eldercare.backend.administration.correction.web.response;
 
-import com.eldercare.backend.administration.correction.api.CorrectionType;
-import com.eldercare.backend.administration.correction.api.CorrectionView;
-import com.eldercare.backend.administration.correction.api.CreationMethod;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionView;
+import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import java.time.Instant;
 import java.util.function.LongFunction;
 

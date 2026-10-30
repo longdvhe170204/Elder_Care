@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.eldercare.backend.administration.parameter.api.*;
+import com.eldercare.backend.administration.parameter.api.dto.*;
+import com.eldercare.backend.administration.parameter.api.events.*;
 import com.eldercare.backend.roombedallocation.api.dto.SessionDate;
 import com.eldercare.backend.roombedallocation.api.events.DayCareOverCapacity;
 import com.eldercare.backend.roombedallocation.internal.daycare.service.DayCareParameterListener;

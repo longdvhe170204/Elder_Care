@@ -1,6 +1,6 @@
 package com.eldercare.backend.staffing.assignment.internal.service;
 
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.staffing.assignment.internal.domain.AssignmentInput;
 import com.eldercare.backend.staffing.assignment.internal.service.port.AssignmentCommandPort;

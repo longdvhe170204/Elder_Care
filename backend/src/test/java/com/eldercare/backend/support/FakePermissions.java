@@ -20,7 +20,7 @@ import com.eldercare.backend.administration.account.api.dto.ReviewRecipient;
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.dto.Visibility;
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.Role;
 import java.time.Instant;
 import java.util.ArrayList;

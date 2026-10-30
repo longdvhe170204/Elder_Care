@@ -1,6 +1,6 @@
 package com.eldercare.backend.support.fake.administration;
 
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.parameter.api.spi.ParameterValueCheck;
 import com.eldercare.backend.common.error.InvalidValueException;
 import java.util.ArrayList;

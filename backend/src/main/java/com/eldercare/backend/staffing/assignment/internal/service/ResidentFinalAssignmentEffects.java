@@ -1,6 +1,7 @@
 package com.eldercare.backend.staffing.assignment.internal.service;
 
 import com.eldercare.backend.administration.auditlog.api.*;
+import com.eldercare.backend.administration.auditlog.api.dto.*;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.resident.api.events.ResidentStatusChanged;
 import com.eldercare.backend.staffing.api.events.AssignmentChanged;

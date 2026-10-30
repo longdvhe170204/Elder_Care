@@ -1,7 +1,7 @@
 package com.eldercare.backend.resident.web.response;
 
 import com.eldercare.backend.administration.correction.api.CorrectionResult;
-import com.eldercare.backend.administration.correction.api.CreationMethod;
+import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Kết quả đính chính (contracts/api-001.yaml, schema {@code CorrectionResult}): đã lưu hoặc chờ duyệt (cách C). */
