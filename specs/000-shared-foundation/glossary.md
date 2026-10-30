@@ -323,8 +323,8 @@ Loại yêu cầu, loại bản ghi của module khác (ví dụ `M02.THAY_DOI_L
 | `su_kien_chung` (`loai`, `noi_dung`, `tra_loi_cho_id`, `thoi_diem_xac_nhan`, `khoa_duy_nhat`) | `record_event` (`kind`, `content`, `reply_to_id`, `confirmed_at`, `unique_key`) |
 | `ho_so_chung` (`loai`, `nct_id`, `trang_thai`, `noi_dung`, `hieu_luc_tu`, `hieu_luc_den`, `khoa_duy_nhat`, `khoa_luc`) | `simple_record` (`kind`, `resident_id`, `status`, `content`, `effective_from`, `effective_to`, `unique_key`, `locked_at`) |
 | `trang_thai_nct` (`nct_id`, `module`, `du_lieu`) | `resident_module_state` (`resident_id`, `module`, `data`) |
-| `moc_da_nhac` (`loai`, `moc`) | `reminder_marker` (`kind`, `marker`); lớp `ReminderMarkers` (`common`) |
-| `khoa_ky_thuat` (`khoa`) | `technical_lock` (`lock_key`); lớp `TechnicalLocks` (`common`) |
+| `moc_da_nhac` (`loai`, `moc`, `thoi_diem`) | `reminder_marker` (`kind`, `marker`, `marked_at`); lớp `ReminderMarkers` (`common`) |
+| `khoa_ky_thuat` (`khoa`, `cap_nhat_luc`) | `technical_lock` (`lock_key`, `updated_at`); lớp `TechnicalLocks` (`common`) |
 | cột `ma_khoa` của `danh_muc_chung` | `code_key` |
 | bảng gộp của feature đã cài: `nguyen_vong` (001), `quyen_tai_khoan`, `thiet_bi_xac_thuc` (002), `lan_giao_nhan_thuoc` (006, mở rộng `medication_handover`) | `wish`, `permission_assignment`, `device_credential`, `medication_handover`; cột phân loại `kind` |
 | cột `khoa_luc`, trigger `trg_<bang>_khoa_dong` | `locked_at`, `trg_<table>_row_lock` |
