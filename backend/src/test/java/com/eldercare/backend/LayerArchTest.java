@@ -77,7 +77,7 @@ class LayerArchTest {
         "com.eldercare.backend.staffing..internal.service.port"
     };
 
-    /** Câu SQL chuyển vào lớp {@code *Store} trong {@code persistence}: A (administration, notification), B (resident), E (staffing). */
+    /** Câu SQL chuyển vào lớp {@code *Store} trong {@code persistence}: A (administration), B (resident), E (staffing). */
     private static final Set<String> PENDING_JDBC_OUTSIDE_PERSISTENCE = Set.of(
             "administration.approval.internal.service.DueRequestApplication",
             "administration.approval.internal.service.PendingRequestReminder",
@@ -85,9 +85,6 @@ class LayerArchTest {
             "administration.auditlog.internal.service.AuditLogService",
             "administration.correction.internal.service.CorrectionService",
             "administration.parameter.internal.service.ParameterService",
-            "notification.internal.governance.service.DirectContactResultCorrection",
-            "notification.internal.governance.service.NotificationScopeAssignment",
-            "notification.internal.urgent.service.CallResultCorrection",
             "resident.internal.assessment.service.CareLevelChangeRequestReminderService",
             "resident.internal.assessment.service.ReassessmentNoticeService",
             "resident.internal.consent.service.MissingConsentReminderService",
@@ -142,14 +139,8 @@ class LayerArchTest {
             "administration.retention.api.RetentionDatabase",
             "care.api.MedicationChecklistItem");
 
-    /** Record lồng chuyển ra {@code domain}: A (administration, notification), B (resident), C (roombedallocation). */
+    /** Record lồng chuyển ra {@code domain}: B (resident), C (roombedallocation). */
     private static final Set<String> PENDING_NESTED_RECORD_OWNERS = Set.of(
-            "notification.internal.delivery.persistence.DeliveryStore",
-            "notification.internal.delivery.persistence.SmsWindowStore",
-            "notification.internal.directcontact.persistence.DirectContactStore",
-            "notification.internal.persistence.NotificationStore",
-            "notification.internal.quiethours.persistence.HeldNotificationStore",
-            "notification.internal.urgent.persistence.CallReminderStore",
             "resident.internal.profile.persistence.ResidentLookup",
             "resident.internal.wish.persistence.EndOfLifeWishStore",
             "resident.internal.wish.persistence.TreatmentWishStore",

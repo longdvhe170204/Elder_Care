@@ -10,6 +10,7 @@ import com.eldercare.backend.notification.api.dto.RecipientType;
 import com.eldercare.backend.notification.internal.lookup.domain.DeliveryError;
 import com.eldercare.backend.notification.internal.lookup.domain.HistoryFilter;
 import com.eldercare.backend.notification.internal.lookup.domain.SentNotification;
+import com.eldercare.backend.notification.internal.persistence.M13Sql;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -31,10 +32,9 @@ public class LookupStore {
 
     private static final String SENT = "SELECT n.id, n.request_id, r.source_group, r.source_record_type,"
             + " r.source_record_id, n.level, n.recipient_type, n.recipient_id, n.basis, r.information_subject,"
-            + " n.q354_case, r.received_at, s.status, s.sent_at, s.viewed_at, s.acknowledged_at,"
-            + " s.acknowledgement_method, r.flags"
-            + " FROM notification n JOIN notification_request r ON r.id = n.request_id"
-            + " JOIN notification_state s ON s.notification_id = n.id";
+            + " n.q354_case, r.received_at, n.status, n.sent_at, n.viewed_at, n.acknowledged_at,"
+            + " n.acknowledgement_method, r.flags"
+            + " FROM notification n JOIN notification_request r ON r.id = n.request_id";
 
     private final JdbcTemplate jdbc;
     private final JsonMapper json;
@@ -55,7 +55,7 @@ public class LookupStore {
     public Optional<Instant> viewedAt(long notificationId) {
         return jdbc
                 .query(
-                        "SELECT viewed_at FROM notification_state WHERE notification_id = ?",
+                        "SELECT viewed_at FROM notification WHERE id = ?",
                         (rs, i) -> instant(rs, "viewed_at"),
                         notificationId)
                 .stream()
@@ -108,9 +108,10 @@ public class LookupStore {
     /** Kết quả từng lần gửi của thông báo (lần chưa có kết quả thì kết quả rỗng). */
     public List<ChannelResult> channels(long notificationId) {
         return jdbc.query(
-                "SELECT a.channel, d.result, COALESCE(d.occurred_at, a.scheduled_at) AS at FROM delivery_attempt a"
-                        + " LEFT JOIN delivery_result d ON d.attempt_id = a.id WHERE a.notification_id = ?"
-                        + " ORDER BY a.id",
+                "SELECT " + M13Sql.channel("a") + " AS channel, d.m13_result AS result,"
+                        + " COALESCE(d.occurred_at, a.occurred_at) AS at FROM record_event a"
+                        + " LEFT JOIN record_event d ON " + M13Sql.resultOf("d", "a") + " WHERE " + M13Sql.attempts("a")
+                        + " AND a.entity_id = ? ORDER BY a.id",
                 (rs, i) -> new ChannelResult(rs.getString("channel"), rs.getString("result"), instant(rs, "at")),
                 notificationId);
     }
@@ -134,15 +135,13 @@ public class LookupStore {
                 + " JOIN notification_request r ON r.id = n.request_id";
         if (type == null || type.equals("DELIVERY_FAILED")) {
             rows.addAll(jdbc.query(
-                    notification + " JOIN notification_state s ON s.notification_id = n.id"
-                            + " WHERE s.status = 'DELIVERY_FAILED'",
-                    LookupStore::error,
-                    "DELIVERY_FAILED"));
+                    notification + " WHERE n.status = 'DELIVERY_FAILED'", LookupStore::error, "DELIVERY_FAILED"));
         }
         if (type == null || type.equals("INVALID_CONTENT")) {
             rows.addAll(jdbc.query(
-                    notification + " WHERE EXISTS (SELECT 1 FROM delivery_attempt a JOIN delivery_result d"
-                            + " ON d.attempt_id = a.id WHERE a.notification_id = n.id AND d.result = 'INVALID_CONTENT')",
+                    notification + " WHERE EXISTS (SELECT 1 FROM record_event a JOIN record_event d ON "
+                            + M13Sql.resultOf("d", "a") + " WHERE " + M13Sql.attempts("a")
+                            + " AND a.entity_id = n.id AND d.m13_result = 'INVALID_CONTENT')",
                     LookupStore::error,
                     "INVALID_CONTENT"));
         }

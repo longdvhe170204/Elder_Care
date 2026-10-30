@@ -4,10 +4,12 @@ import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.InvalidValueException;
+import com.eldercare.backend.notification.internal.directcontact.domain.RecordedContactResult;
+import com.eldercare.backend.notification.internal.directcontact.persistence.DirectContactStore;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -21,10 +23,10 @@ class DirectContactResultCorrection implements CorrectableRecordProvider {
     static final String TYPE = "M13.DIRECT_CONTACT_RESULT";
     private static final Set<String> RESULTS = Set.of("CONTACTED", "UNREACHABLE");
 
-    private final JdbcTemplate jdbc;
+    private final DirectContactStore store;
 
-    DirectContactResultCorrection(JdbcTemplate jdbc) {
-        this.jdbc = jdbc;
+    DirectContactResultCorrection(DirectContactStore store) {
+        this.store = store;
     }
 
     @Override
@@ -34,13 +36,12 @@ class DirectContactResultCorrection implements CorrectableRecordProvider {
 
     @Override
     public boolean isConfirmed(long id) {
-        return !jdbc.queryForList("SELECT id FROM direct_contact_result WHERE id = ?", Long.class, id)
-                .isEmpty();
+        return store.result(id).isPresent();
     }
 
     @Override
     public long originalRecorder(long id) {
-        return jdbc.queryForObject("SELECT contacted_by FROM direct_contact_result WHERE id = ?", Long.class, id);
+        return store.result(id).orElseThrow().contactedBy();
     }
 
     /** Liên hệ trực tiếp do Hành chính làm cho toàn viện, không gắn tầng. */
@@ -52,16 +53,7 @@ class DirectContactResultCorrection implements CorrectableRecordProvider {
     /** Người cao tuổi của yêu cầu thông báo mà dòng liên hệ trực tiếp thuộc về. */
     @Override
     public Optional<Long> residentId(long id) {
-        return jdbc
-                .queryForList(
-                        "SELECT q.resident_id FROM direct_contact_result r JOIN direct_contact d ON d.id = r.direct_contact_id"
-                                + " JOIN notification n ON n.id = d.notification_id"
-                                + " JOIN notification_request q ON q.id = n.request_id WHERE r.id = ?",
-                        Long.class,
-                        id)
-                .stream()
-                .filter(java.util.Objects::nonNull)
-                .findFirst();
+        return store.result(id).map(RecordedContactResult::residentId);
     }
 
     @Override
@@ -83,7 +75,12 @@ class DirectContactResultCorrection implements CorrectableRecordProvider {
 
     @Override
     public Object originalContent(long id) {
-        return jdbc.queryForMap(
-                "SELECT result, reason, note, occurred_at AS occurredAt FROM direct_contact_result WHERE id = ?", id);
+        RecordedContactResult r = store.result(id).orElseThrow();
+        Map<String, Object> content = new LinkedHashMap<>();
+        content.put("result", r.content().result());
+        content.put("reason", r.content().reason());
+        content.put("note", r.content().note());
+        content.put("occurredAt", r.content().occurredAt());
+        return content;
     }
 }

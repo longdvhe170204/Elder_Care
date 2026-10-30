@@ -4,13 +4,13 @@ import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.ParameterCode;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.notification.api.dto.RecipientType;
+import com.eldercare.backend.notification.internal.delivery.domain.BatchedAttempt;
 import com.eldercare.backend.notification.internal.delivery.domain.ChannelSelection;
 import com.eldercare.backend.notification.internal.delivery.domain.SendResult;
 import com.eldercare.backend.notification.internal.delivery.domain.SmsBatching;
+import com.eldercare.backend.notification.internal.delivery.domain.SmsWindow;
 import com.eldercare.backend.notification.internal.delivery.persistence.DeliveryStore;
 import com.eldercare.backend.notification.internal.delivery.persistence.SmsWindowStore;
-import com.eldercare.backend.notification.internal.delivery.persistence.SmsWindowStore.Batched;
-import com.eldercare.backend.notification.internal.delivery.persistence.SmsWindowStore.Window;
 import com.eldercare.backend.notification.internal.domain.DeliveryOutcome;
 import com.eldercare.backend.notification.internal.job.service.M13FastTask;
 import com.eldercare.backend.notification.internal.persistence.NotificationStore;
@@ -98,17 +98,17 @@ public class SmsWindowCloser implements M13FastTask {
 
     /** Đóng một khung trong transaction của người gọi; trả lần gửi tin tổng hợp nếu có tin dồn. */
     public Optional<Long> close(long windowId, Instant now) {
-        Optional<Window> found = windows.lockOpen(windowId);
+        Optional<SmsWindow> found = windows.lockOpen(windowId);
         if (found.isEmpty()) {
             return Optional.empty();
         }
-        Window w = found.get();
-        List<Batched> batched = windows.batched(w.id());
+        SmsWindow w = found.get();
+        List<BatchedAttempt> batched = windows.batched(w.id());
         if (batched.isEmpty()) {
             windows.close(w.id(), now, null);
             return Optional.empty();
         }
-        Batched carrier = batched.getLast();
+        BatchedAttempt carrier = batched.getLast();
         long digest = notifications.planAttempt(
                 carrier.notificationId(),
                 ChannelSelection.SMS,
@@ -117,7 +117,7 @@ public class SmsWindowCloser implements M13FastTask {
                 w.recipientKey().startsWith(RecipientType.STAFF.name() + ":")
                         ? SmsBatching.digest(batched.size(), places(batched))
                         : SmsBatching.digest(batched.size()));
-        for (Batched b : batched) {
+        for (BatchedAttempt b : batched) {
             deliveries.insertResult(b.attemptId(), SendResult.of(DeliveryOutcome.BATCHED), digest, now);
             notifications.recompute(b.notificationId());
         }
@@ -132,7 +132,7 @@ public class SmsWindowCloser implements M13FastTask {
     }
 
     /** Tầng/khu vực và ca của các thông báo dồn, theo thứ tự, không lặp (008 FR-059). */
-    private List<String> places(List<Batched> batched) {
+    private List<String> places(List<BatchedAttempt> batched) {
         LocationStructureApi locations = structure.getIfAvailable();
         if (locations == null) {
             return List.of();

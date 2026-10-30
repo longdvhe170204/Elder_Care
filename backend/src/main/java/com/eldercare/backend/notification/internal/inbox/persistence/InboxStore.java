@@ -27,14 +27,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class InboxStore {
 
-    private static final String COLUMNS = "SELECT n.id, n.request_id, n.recipient_type, n.recipient_id, s.level,"
-            + " r.event_type, r.title, n.visible_parts, n.identity_only, s.status, s.sent_at, s.viewed_at,"
-            + " s.acknowledged_at, s.acknowledgement_method, s.hidden, r.resident_id, r.floor_area_id,"
+    private static final String COLUMNS = "SELECT n.id, n.request_id, n.recipient_type, n.recipient_id, n.level,"
+            + " r.event_type, r.title, n.visible_parts, n.identity_only, n.status, n.sent_at, n.viewed_at,"
+            + " n.acknowledged_at, n.acknowledgement_method, n.hidden, r.resident_id, r.floor_area_id,"
             + " r.source_record_type, r.source_record_id"
-            + " FROM notification_state s JOIN notification n ON n.id = s.notification_id"
-            + " JOIN notification_request r ON r.id = n.request_id";
+            + " FROM notification n JOIN notification_request r ON r.id = n.request_id";
 
-    private static final String URGENT_FIRST = "IF(s.level = 'URGENT' AND s.acknowledged_at IS NULL, 1, 0)";
+    private static final String URGENT_FIRST = "IF(n.level = 'URGENT' AND n.acknowledged_at IS NULL, 1, 0)";
 
     private final JdbcTemplate jdbc;
 
@@ -45,14 +44,14 @@ public class InboxStore {
     /** Thông báo đã gửi, chưa ẩn của người nhận; Khẩn cấp chưa xác nhận trước, rồi mới gửi trước. */
     public List<InboxItem> page(String recipientKey, InboxFilter filter, InboxCursor after, int size) {
         StringBuilder sql = new StringBuilder(
-                COLUMNS + " WHERE s.recipient_key = ? AND s.hidden = FALSE AND s.sent_at IS NOT NULL");
+                COLUMNS + " WHERE n.recipient_key = ? AND n.hidden = FALSE AND n.sent_at IS NOT NULL");
         List<Object> args = new ArrayList<>(List.of(recipientKey));
         if (filter.level() != null) {
-            sql.append(" AND s.level = ?");
+            sql.append(" AND n.level = ?");
             args.add(filter.level().name());
         }
         if (Boolean.TRUE.equals(filter.unread())) {
-            sql.append(" AND s.viewed_at IS NULL");
+            sql.append(" AND n.viewed_at IS NULL");
         }
         if (filter.eventType() != null) {
             sql.append(" AND r.event_type = ?");
@@ -63,12 +62,12 @@ public class InboxStore {
             args.add(filter.residentId());
         }
         if (after != null) {
-            sql.append(" AND (" + URGENT_FIRST + ", s.sent_at, n.id) < (?, ?, ?)");
+            sql.append(" AND (" + URGENT_FIRST + ", n.sent_at, n.id) < (?, ?, ?)");
             args.add(after.urgentUnacknowledged());
             args.add(utc(after.sentAt()));
             args.add(after.id());
         }
-        sql.append(" ORDER BY " + URGENT_FIRST + " DESC, s.sent_at DESC, n.id DESC LIMIT ?");
+        sql.append(" ORDER BY " + URGENT_FIRST + " DESC, n.sent_at DESC, n.id DESC LIMIT ?");
         args.add(size);
         return jdbc.query(sql.toString(), InboxStore::row, args.toArray());
     }
@@ -76,7 +75,7 @@ public class InboxStore {
     public Optional<InboxItem> find(long notificationId, String recipientKey) {
         return jdbc
                 .query(
-                        COLUMNS + " WHERE n.id = ? AND s.recipient_key = ?",
+                        COLUMNS + " WHERE n.id = ? AND n.recipient_key = ?",
                         InboxStore::row,
                         notificationId,
                         recipientKey)
@@ -87,9 +86,9 @@ public class InboxStore {
     /** Số chưa xem và số Khẩn cấp chưa xác nhận trong hộp (không tính thông báo đã ẩn). */
     public int[] counts(String recipientKey) {
         return jdbc.queryForObject(
-                "SELECT COALESCE(SUM(s.viewed_at IS NULL), 0), COALESCE(SUM(s.level = 'URGENT' AND s.acknowledged_at IS NULL), 0)"
-                        + " FROM notification_state s WHERE s.recipient_key = ? AND s.hidden = FALSE"
-                        + " AND s.sent_at IS NOT NULL",
+                "SELECT COALESCE(SUM(n.viewed_at IS NULL), 0), COALESCE(SUM(n.level = 'URGENT' AND n.acknowledged_at IS NULL), 0)"
+                        + " FROM notification n WHERE n.recipient_key = ? AND n.hidden = FALSE"
+                        + " AND n.sent_at IS NOT NULL",
                 (rs, i) -> new int[] {rs.getInt(1), rs.getInt(2)},
                 recipientKey);
     }
@@ -97,7 +96,9 @@ public class InboxStore {
     /** Các phần nội dung của yêu cầu theo thứ tự. */
     public List<ContentPart> content(long requestId) {
         return jdbc.query(
-                "SELECT information_type, content FROM notification_request_content WHERE request_id = ? ORDER BY seq",
+                "SELECT c.information_type, c.content FROM notification_request r, JSON_TABLE(r.contents, '$[*]'"
+                        + " COLUMNS (seq INT PATH '$.seq', information_type VARCHAR(20) PATH '$.informationType',"
+                        + " content VARCHAR(4000) PATH '$.content')) c WHERE r.id = ? ORDER BY c.seq",
                 (rs, i) -> new ContentPart(InformationType.valueOf(rs.getString(1)), rs.getString(2)),
                 requestId);
     }
