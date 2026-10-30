@@ -2,10 +2,14 @@ package com.eldercare.backend.support.fake.medication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.eldercare.backend.medication.api.dto.DoseReportView;
+import com.eldercare.backend.medication.api.dto.DoseStatus;
+import com.eldercare.backend.medication.api.dto.ReconciliationReportView;
 import com.eldercare.backend.medication.api.dto.TimeInterval;
 import com.eldercare.backend.medication.api.spi.ProcurementMedicationLineView;
 import com.eldercare.backend.medication.api.spi.PurchaseAssistanceView;
 import com.eldercare.backend.medication.api.spi.ShiftView;
+import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -84,5 +88,34 @@ class FakeM07Test {
 
         assertThat(fake.lineRecordedPurchased(401L)).contains(line);
         assertThat(fake.lineRecordedPurchased(999L)).isEmpty();
+    }
+
+    @Test
+    void FR_051_fakeMedicationStatistics_returnsConfiguredDoseAndReconciliationRows() {
+        FakeMedicationStatistics fake = new FakeMedicationStatistics();
+        Instant at = Instant.parse("2026-10-22T08:00:00Z");
+        DoseReportView dose = new DoseReportView(
+                "101-202610220800",
+                201L,
+                1L,
+                301L,
+                at,
+                DoseStatus.ADMINISTERED,
+                9001L,
+                null,
+                false,
+                false,
+                false,
+                false,
+                null);
+        ReconciliationReportView reconciliation =
+                new ReconciliationReportView(401L, 201L, "ADMISSION", "CONFIRMED", at, false);
+
+        fake.doses(List.of(dose)).reconciliations(List.of(reconciliation));
+
+        assertThat(fake.dosesInPeriod(ScopeFilter.FACILITY, at.minusSeconds(60), at.plusSeconds(60)))
+                .containsExactly(dose);
+        assertThat(fake.reconciliationsInPeriod(ScopeFilter.FACILITY, at.minusSeconds(60), at.plusSeconds(60)))
+                .containsExactly(reconciliation);
     }
 }

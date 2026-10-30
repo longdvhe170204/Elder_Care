@@ -1,6 +1,7 @@
 package com.eldercare.backend.medication.internal.persistence;
 
 import com.eldercare.backend.medication.internal.domain.DoseResult;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Repository;
 public interface DoseResultRepository extends JpaRepository<DoseResult, Long> {
 
     Optional<DoseResult> findByDoseId(Long doseId);
+
+    List<DoseResult> findByDoseIdIn(Collection<Long> doseIds);
 
     List<DoseResult> findByResidentIdOrderByRecordedAtDesc(Long residentId);
 }

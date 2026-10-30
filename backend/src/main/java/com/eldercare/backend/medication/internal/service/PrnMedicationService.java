@@ -3,7 +3,10 @@ package com.eldercare.backend.medication.internal.service;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
+import com.eldercare.backend.medication.api.events.BilledSource;
+import com.eldercare.backend.medication.api.events.MedicationBilledEvent;
 import com.eldercare.backend.medication.internal.domain.Prescription;
 import com.eldercare.backend.medication.internal.domain.PrescriptionStatus;
 import com.eldercare.backend.medication.internal.domain.PrescriptionType;
@@ -22,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +40,9 @@ public class PrnMedicationService {
     private final PrescriptionRepository prescriptionRepo;
     private final ResidentMedicationLock residentMedicationLock;
     private final BusinessTime businessTime;
-    private final FamilyMedicationService familyMedications;
+    private final FamilyMedicationService familyMedication;
+    private final ApplicationEventPublisher events;
+    private final ResidentLocationApi locations;
 
     @Autowired
     public PrnMedicationService(
@@ -44,12 +50,16 @@ public class PrnMedicationService {
             PrescriptionRepository prescriptionRepo,
             ResidentMedicationLock residentMedicationLock,
             BusinessTime businessTime,
-            FamilyMedicationService familyMedications) {
+            FamilyMedicationService familyMedication,
+            ApplicationEventPublisher events,
+            ResidentLocationApi locations) {
         this.prnRepo = prnRepo;
         this.prescriptionRepo = prescriptionRepo;
         this.residentMedicationLock = residentMedicationLock;
         this.businessTime = businessTime;
-        this.familyMedications = familyMedications;
+        this.familyMedication = familyMedication;
+        this.events = events;
+        this.locations = locations;
     }
 
     @Transactional
@@ -74,7 +84,7 @@ public class PrnMedicationService {
         // không áp
         if (prescription.getMedicationSource() == MedicationSource.FAMILY_SENT
                 && body.getReportedBy() == null
-                && !familyMedications.hasUsableBatch(prescription.getResidentId(), prescriptionId)) {
+                && !familyMedication.hasUsableBatch(prescription.getResidentId(), prescriptionId)) {
             throw new BusinessException(
                     HttpStatus.CONFLICT,
                     "NO_MEDICATION_AVAILABLE",
@@ -175,9 +185,22 @@ public class PrnMedicationService {
                 body.getAdverseReaction(),
                 body.getNote(),
                 body.isRecordedAfterDisconnect(),
+                locations
+                        .at(prescription.getResidentId(), adminTime)
+                        .map(location -> location.floorId())
+                        .orElse(null),
                 businessTime.now());
 
         PrnAdministration saved = prnRepo.save(prn);
+        if (prescription.getMedicationSource() == MedicationSource.FACILITY) {
+            events.publishEvent(new MedicationBilledEvent(
+                    BilledSource.PRN_ADMINISTRATION,
+                    saved.getId(),
+                    prescription.getResidentId(),
+                    prescription.getMedicationId(),
+                    saved.getDosage(),
+                    saved.getAdministeredAt()));
+        }
         return toResponse(saved);
     }
 
