@@ -21,6 +21,12 @@ public interface FamilyRelationshipApi {
     /** Người thân có quan hệ Hiệu lực với người cao tuổi. */
     boolean belongsToResident(long familyMemberId, long residentId);
 
+    /**
+     * Loại quan hệ Hiệu lực của người thân với người cao tuổi; rỗng khi không có quan hệ Hiệu lực (001 phiếu nguyện vọng khi
+     * điều trị, 007 phiếu tóm tắt chuyển viện). Web hiện nhãn tiếng Việt theo mã.
+     */
+    Optional<FamilyRelationshipType> relationship(long familyMemberId, long residentId);
+
     /** Họ tên trên hồ sơ người thân, cho {@code AccountApi.fullName} (002 T032a). */
     Optional<String> familyMemberName(long familyMemberId);
 }
