@@ -1,14 +1,14 @@
 package com.eldercare.backend.administration.approval.internal.domain;
 
-import static com.eldercare.backend.administration.approval.api.ApprovalStatus.APPLIED;
-import static com.eldercare.backend.administration.approval.api.ApprovalStatus.APPLY_FAILED;
-import static com.eldercare.backend.administration.approval.api.ApprovalStatus.APPROVED;
-import static com.eldercare.backend.administration.approval.api.ApprovalStatus.CANCELLED;
-import static com.eldercare.backend.administration.approval.api.ApprovalStatus.DRAFT;
-import static com.eldercare.backend.administration.approval.api.ApprovalStatus.PENDING_APPROVAL;
-import static com.eldercare.backend.administration.approval.api.ApprovalStatus.REJECTED;
+import static com.eldercare.backend.administration.approval.api.dto.ApprovalStatus.APPLIED;
+import static com.eldercare.backend.administration.approval.api.dto.ApprovalStatus.APPLY_FAILED;
+import static com.eldercare.backend.administration.approval.api.dto.ApprovalStatus.APPROVED;
+import static com.eldercare.backend.administration.approval.api.dto.ApprovalStatus.CANCELLED;
+import static com.eldercare.backend.administration.approval.api.dto.ApprovalStatus.DRAFT;
+import static com.eldercare.backend.administration.approval.api.dto.ApprovalStatus.PENDING_APPROVAL;
+import static com.eldercare.backend.administration.approval.api.dto.ApprovalStatus.REJECTED;
 
-import com.eldercare.backend.administration.approval.api.ExtendedTransitions;
+import com.eldercare.backend.administration.approval.api.dto.ExtendedTransitions;
 import com.eldercare.backend.common.error.BusinessException;
 import java.util.EnumMap;
 import java.util.Map;

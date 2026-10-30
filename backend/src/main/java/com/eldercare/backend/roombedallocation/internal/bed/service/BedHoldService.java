@@ -2,7 +2,9 @@ package com.eldercare.backend.roombedallocation.internal.bed.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.auditlog.api.*;
+import com.eldercare.backend.administration.auditlog.api.dto.*;
 import com.eldercare.backend.administration.parameter.api.*;
+import com.eldercare.backend.administration.parameter.api.dto.*;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.error.*;
 import com.eldercare.backend.common.time.BusinessTime;

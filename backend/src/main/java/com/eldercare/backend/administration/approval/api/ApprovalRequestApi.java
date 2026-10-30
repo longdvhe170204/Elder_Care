@@ -1,6 +1,10 @@
 package com.eldercare.backend.administration.approval.api;
 
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestDetails;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
+import com.eldercare.backend.administration.approval.api.dto.CreateRequest;
+import com.eldercare.backend.administration.approval.api.dto.ResultRef;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import java.util.Optional;
 
 /** Yêu cầu phê duyệt cho module khác (contracts/module-interfaces.md mục 1.5; FR-031 → FR-041). */

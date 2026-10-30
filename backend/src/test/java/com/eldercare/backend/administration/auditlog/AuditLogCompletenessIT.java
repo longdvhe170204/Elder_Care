@@ -4,7 +4,7 @@ import static com.eldercare.backend.administration.sample.CorrectionFixtures.NUR
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.administration.correction.api.CorrectionApi;
-import com.eldercare.backend.administration.correction.api.CorrectionType;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import com.eldercare.backend.administration.sample.CorrectionFixtures;
 import com.eldercare.backend.administration.sample.SampleFloorRecordProvider;
 import com.eldercare.backend.administration.sample.SampleService;

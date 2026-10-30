@@ -1,6 +1,6 @@
 package com.eldercare.backend.resident;
 
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.resident.api.ResidentStatusApi;

@@ -1,6 +1,6 @@
 package com.eldercare.backend.administration.parameter.api.spi;
 
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import tools.jackson.databind.JsonNode;
 
 /**

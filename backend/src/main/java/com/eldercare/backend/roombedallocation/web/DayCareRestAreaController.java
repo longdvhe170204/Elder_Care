@@ -1,6 +1,7 @@
 package com.eldercare.backend.roombedallocation.web;
 
 import com.eldercare.backend.administration.parameter.api.*;
+import com.eldercare.backend.administration.parameter.api.dto.*;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.web.VersionEtag;
 import com.eldercare.backend.roombedallocation.internal.daycare.service.*;

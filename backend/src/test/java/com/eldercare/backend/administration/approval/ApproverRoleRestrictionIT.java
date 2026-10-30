@@ -8,8 +8,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.administration.approval.api.ApproverReminderDue;
-import com.eldercare.backend.administration.approval.api.RequestSubmitted;
+import com.eldercare.backend.administration.approval.api.events.ApproverReminderDue;
+import com.eldercare.backend.administration.approval.api.events.RequestSubmitted;
 import com.eldercare.backend.common.Role;
 import java.time.Duration;
 import java.time.Instant;

@@ -1,6 +1,6 @@
 package com.eldercare.backend.roombedallocation.internal.bed.domain;
 
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.roombedallocation.api.dto.LocationView;
 import java.util.List;

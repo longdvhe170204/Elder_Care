@@ -5,7 +5,7 @@ import com.eldercare.backend.administration.account.api.ApproverApi;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.account.api.dto.AccountView;
-import com.eldercare.backend.administration.approval.api.ApprovalRequestView;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
 import com.eldercare.backend.administration.approval.api.spi.RequestTypeHandler;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.InvalidValueException;

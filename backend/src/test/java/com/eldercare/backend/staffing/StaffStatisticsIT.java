@@ -248,7 +248,7 @@ class StaffStatisticsIT extends MySqlIntegrationTestBase {
         long id = shift("FLOOR", floor), staff = staff();
         var deadline = start.plusSeconds(28800)
                 .plus(parameters
-                        .read(com.eldercare.backend.administration.parameter.api.ParameterCode.CFG_M09_05)
+                        .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M09_05)
                         .asDuration());
         long handover = AssignmentFixtures.insert(
                 jdbc,

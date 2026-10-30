@@ -6,8 +6,8 @@ import com.eldercare.backend.administration.account.internal.auth.domain.Account
 import com.eldercare.backend.administration.account.internal.auth.domain.Binding;
 import com.eldercare.backend.administration.account.internal.auth.persistence.DeviceBindings;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.error.BusinessException;
 import java.util.HashMap;

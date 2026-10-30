@@ -1,10 +1,10 @@
 package com.eldercare.backend.administration.auditlog.internal.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
-import com.eldercare.backend.administration.auditlog.api.AuditLogRecord;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogRecord;
 import com.eldercare.backend.administration.auditlog.internal.persistence.AuditLogStore;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;

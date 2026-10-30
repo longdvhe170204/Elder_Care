@@ -241,7 +241,7 @@ class SC_008_BedReportingIT extends StructureTestSupport {
         try (var result = statistics().awaitingReady(floorScope(), at, at.plusSeconds(7200))) {
             org.mockito.Mockito.verify(target)
                     .readAt(
-                            com.eldercare.backend.administration.parameter.api.ParameterCode.CFG_M03_04,
+                            com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M03_04,
                             at.plusSeconds(3600));
             assertThat(result).hasSize(1);
         }

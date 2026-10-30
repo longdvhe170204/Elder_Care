@@ -1,6 +1,7 @@
 package com.eldercare.backend.administration.correction.api;
 
-import com.eldercare.backend.administration.approval.api.ApprovalRequestView;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionView;
 
 /** Kết quả lệnh đính chính: đã lưu (cách A, B) hoặc chờ duyệt (cách C) (FR-026). */
 public sealed interface CorrectionResult {

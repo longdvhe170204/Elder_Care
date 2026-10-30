@@ -1,6 +1,6 @@
 package com.eldercare.backend.administration.account.internal.offline.domain;
 
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 
 /** Hành động nhật ký của bản ghi chờ xem lại (data-model mục 6: {@code NT_CHO_XEM_LAI}, {@code NT_CHAP_NHAN}, {@code NT_TU_CHOI}). */
 public final class OfflineAuditActions {

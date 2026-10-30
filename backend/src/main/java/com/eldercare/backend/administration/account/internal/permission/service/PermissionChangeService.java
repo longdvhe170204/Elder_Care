@@ -18,9 +18,9 @@ import com.eldercare.backend.administration.account.internal.permission.domain.P
 import com.eldercare.backend.administration.account.internal.permission.domain.PermissionViews.RolePermissions;
 import com.eldercare.backend.administration.account.internal.permission.persistence.PermissionChanges;
 import com.eldercare.backend.administration.account.internal.persistence.AccountStore;
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;

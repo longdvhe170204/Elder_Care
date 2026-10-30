@@ -2,10 +2,10 @@ package com.eldercare.backend.administration.approval.api.spi;
 
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.Target;
-import com.eldercare.backend.administration.approval.api.ApprovalRequestView;
-import com.eldercare.backend.administration.approval.api.ExtendedTransitions;
-import com.eldercare.backend.administration.approval.api.ResultRef;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
+import com.eldercare.backend.administration.approval.api.dto.ExtendedTransitions;
+import com.eldercare.backend.administration.approval.api.dto.ResultRef;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.UnmetCondition;
 import java.time.LocalDate;

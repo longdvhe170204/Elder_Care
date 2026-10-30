@@ -1,6 +1,6 @@
 package com.eldercare.backend.roombedallocation.internal.bed.domain;
 /** T008: dữ liệu của máy trạng thái giường, research G-04. */
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.Reason;
 import java.time.Instant;
 

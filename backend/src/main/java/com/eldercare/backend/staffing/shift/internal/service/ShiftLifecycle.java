@@ -1,6 +1,7 @@
 package com.eldercare.backend.staffing.shift.internal.service;
 
 import com.eldercare.backend.administration.auditlog.api.*;
+import com.eldercare.backend.administration.auditlog.api.dto.*;
 import com.eldercare.backend.staffing.api.events.ShiftEnded;
 import com.eldercare.backend.staffing.api.events.ShiftStarted;
 import com.eldercare.backend.staffing.internal.service.M09TimedTask;

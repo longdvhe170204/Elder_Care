@@ -135,12 +135,12 @@ class FR_038_DayCareConcurrencyIT extends StructureTestSupport {
         var created = service.createSession(prefix + " A", LocalTime.of(7, 0), LocalTime.NOON)
                 .session();
         assertThat(created.startTime()).isEqualTo(LocalTime.of(7, 0));
-        org.mockito.Mockito.doReturn(new com.eldercare.backend.administration.parameter.api.ParameterValue(
-                        com.eldercare.backend.administration.parameter.api.ParameterCode.CFG_M03_01,
-                        com.eldercare.backend.administration.parameter.api.ParameterKind.INTEGER,
+        org.mockito.Mockito.doReturn(new com.eldercare.backend.administration.parameter.api.dto.ParameterValue(
+                        com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M03_01,
+                        com.eldercare.backend.administration.parameter.api.dto.ParameterKind.INTEGER,
                         tools.jackson.databind.json.JsonMapper.builder().build().readTree("3")))
                 .when(parameters)
-                .read(com.eldercare.backend.administration.parameter.api.ParameterCode.CFG_M03_01);
+                .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M03_01);
         var transaction = new org.springframework.transaction.support.TransactionTemplate(transactions);
         transaction.setIsolationLevel(org.springframework.transaction.TransactionDefinition.ISOLATION_REPEATABLE_READ);
         try (var executor = Executors.newSingleThreadExecutor()) {
