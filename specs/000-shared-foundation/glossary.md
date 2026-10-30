@@ -442,7 +442,8 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | chú thích `@CanQuyen(chucNang, thaoTac)`, `@NhomTruong` | `@RequiresPermission(function, operation)`, `@FieldGroup` |
 | SPI `PhanBoGiuongApi` (`dangMo`, `nguoiCaoTuoiTai`), `PhanBoView` | `BedAllocationApi` (`openAt`, `residentsIn`), `BedAllocationView` (`allocationId`, `bedId`, `roomId`, `floorAreaId`) |
 | SPI `TenTangKhuVucApi` (`ten`) *(bổ sung 2026-10-27)* | `FloorAreaNameApi` (`name`); bản cài M03 `FloorAreaNamesForAccount` |
-| SPI `QuanHeNguoiThanApi` (`hieuLuc`, `soDienThoaiDaDangKy`, `laNguoiDaiDienHieuLuc`, `thuocNguoiCaoTuoi`), `QuanHeView` | `FamilyRelationshipApi` (`active`, `registeredPhoneNumber`, `isActiveRepresentative`, `belongsToResident`), `FamilyRelationshipView` (`relationshipId`, `residentId`) |
+| SPI `QuanHeNguoiThanApi` (`hieuLuc`, `soDienThoaiDaDangKy`, `laNguoiDaiDienHieuLuc`, `thuocNguoiCaoTuoi`, `loaiQuanHe`), `QuanHeView` | `FamilyRelationshipApi` (`active`, `registeredPhoneNumber`, `isActiveRepresentative`, `belongsToResident`, `relationship`), `FamilyRelationshipView` (`relationshipId`, `residentId`) |
+| `LoaiQuanHe` (`VO_CHONG`, `CON`, `CHAU`, `ANH_CHI_EM`, `KHAC`; 012 `quan_he_nguoi_than.quan_he`) *(bổ sung 2026-10-30)* | `FamilyRelationshipType` (`SPOUSE`, `CHILD`, `GRANDCHILD`, `SIBLING`, `OTHER`) |
 | SPI `KetThucLuuTruApi.thoiDiemTrangThaiCuoi` | `ResidencyEndApi.finalStatusAt` |
 | SPI phần `NguoiCaoTuoiApi` 002 dùng (`trangThai`, `hoTen`; 2026-10-24, M01 cài để tránh vòng M15 ↔ M01) | `ResidentProfileApi.profile` → `ResidentProfileView` (`fullName`, `inResidence`, `finalStatus`) |
 | `TaiKhoanApi.khoaKhiNctTrangThaiCuoi` (M01 gọi từ listener `NguoiCaoTuoiDaChuyenTrangThai`) | `AccountApi.lockResidentOnFinalStatus` |
