@@ -58,7 +58,7 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 ### Implementation cho User Story 1
 
-- [ ] T008 [US1] Tạo bảng `buoi_hoat_dong` (`UNIQUE (hoat_dong_id, bat_dau)` kể cả Đã hủy; `nguon` `MAU|LE`; `trang_thai` `DA_LEN_LICH|DA_DIEM_DANH|KHONG_DIEM_DANH|DA_HUY`), `dang_ky_buoi` (`nguon` `THUONG_XUYEN|THEM_TAY|THEM_LUC_DIEM_DANH`; `trang_thai` `DA_DANG_KY|DA_HUY|DA_DIEM_DANH`) trong `MIG/V014_02__buoi.sql`
+- [ ] T008 [US1] Tạo bảng `buoi_hoat_dong` (`UNIQUE (hoat_dong_id, bat_dau)` kể cả Đã hủy; `nguon` `MAU|LE`; `trang_thai` `DA_LEN_LICH|DA_DIEM_DANH|KHONG_DIEM_DANH|DA_HUY`), `dang_ky_buoi` (`nguon` `THUONG_XUYEN|THEM_TAY|THEM_LUC_DIEM_DANH`; `trang_thai` `DA_DANG_KY|DA_HUY|DA_DIEM_DANH`) trong `MIG/V014_02__buoi.sql` **Theo R-15 (data-model mục 0; bổ sung 2026-10-30): giữ `buoi_hoat_dong`, `dang_ky_buoi` (bảng đích); cột của `chuyen_di` (1–1) thêm vào `buoi_hoat_dong` ở T016, người tham gia chuyến vào `dang_ky_buoi`.**
 - [ ] T009 [US1] Cài `BE/care/buoi/internal/BuoiService.java` (tạo từ mẫu kèm đăng ký sẵn, buổi lẻ, dời, hủy; phát `BuoiDaHuy`, `BuoiDaDoi` cho phần công việc "hoạt động" của 005; việc hằng ngày hết ngày) và endpoint `/buoi`, `/buoi/{id}`, `/buoi/{id}/{lenh}`; màn web `frontend/src/tinh-nang/hoat-dong/buoi/` (research L-04)
 
 **Checkpoint**: Buổi từ mẫu chạy độc lập.
@@ -181,14 +181,14 @@ description: "Danh sách task triển khai feature 014 – Hoạt động và ch
 
 - [ ] T031 [P] *(Bổ sung 2026-10-18, Q-366, Q-369)* Test `BT/care/FR_068a_KenhNguoiCaoTuoiIT.java`, `FR_071_NhacBuoiNguoiCaoTuoiIT.java`, `SoThichTuPhanHoiIT.java` (quickstart H1 → H4)
 - [ ] T032 *(Bổ sung 2026-10-18)* Cài `HoatDongKenhNctPortImpl`, `ChuyenDiSosPortImpl` trong `BE/care/hoatdong/internal/` (research L-16)
-- [ ] T033 *(Bổ sung 2026-10-18)* Job nhắc buổi trong ngày cho nhóm `NguoiCaoTuoi` (00:05 và khi đăng ký trong ngày); thêm `so_thich.phan_hoi_id` (`MIG/V014_08__nguoi_cao_tuoi.sql`) và phát `YKienDaGhiTuPhanHoi`
+- [ ] T033 *(Bổ sung 2026-10-18)* Job nhắc buổi trong ngày cho nhóm `NguoiCaoTuoi` (00:05 và khi đăng ký trong ngày); thêm `so_thich.phan_hoi_id` (`MIG/V014_08__nguoi_cao_tuoi.sql`) và phát `YKienDaGhiTuPhanHoi` **Theo R-15 (data-model mục 0; bổ sung 2026-10-30): `so_thich` là loại `M04.SO_THICH` của `ho_so_chung`, nên `phan_hoi_id` là trường trong `noi_dung` (record của loại), không thêm cột; `V014_08` không còn sửa bảng `so_thich`.**
 
 - [ ] T026 [P] Cài cổng người thân `GET /cong/nguoi-cao-tuoi/{nctId}/hoat-dong` (`QuyenNguoiThanApi`) và test `BT/care/FR_068_CongHoatDongIT.java`; app `mobile/lib/nguoi-than/hoat-dong/` (research L-12)
 - [ ] T027 [P] Cài `HoatDongThongKeApi` (016); mở rộng `BT/common/HopDongApiTest.java` với `specs/014-activity-care-quality/contracts/api-014.yaml`
 - [ ] T028 Thay bản giả SPI 014 cài ở test 005, 006, 007, 008, 011, 012 (`NguonCongViecPort` `BUOI_HOAT_DONG`/`LAM_LAI`, `KetQuaKiemTraPort`, `ChuyenDiThuocPort`, `DiemDanhTruyVetPort`, `ChuyenDiNhiemVuPort`, `ChuyenDiBuaAnPort`) và chạy lại
 - [ ] T029 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
 - [ ] T030 Rà truy vết: DBR-12 (tương tự), 15, 18, 23, 25 và BR-M04-15 → 18, 21 → 23 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-021a, FR-067, FR-068, FR-069, FR-070, FR-071 — mỗi FR có task hoặc test tương ứng (constitution XV)
-- [ ] T034 *(bổ sung 2026-10-29, research R-15 bản 2 của 000)* Khi viết migration và entity của feature, áp data-model mục 0: không tạo các bảng đã gộp, dùng bảng gộp, cột `JSON` và bảng chung (`CatalogApi`, `StatusHistoryApi`, `RecordEventApi`, `SimpleRecordApi`, `ResidentModuleStateApi`, `ReminderMarkers`, `TechnicalLocks`); test bảo vệ nhóm dữ liệu viết cho bảng gộp
+- [ ] T034 *(bổ sung 2026-10-29, research R-15 bản 2 của 000)* Khi viết migration và entity của feature, áp data-model mục 0: không tạo các bảng đã gộp, dùng bảng gộp, cột `JSON` và bảng chung (`CatalogApi`, `StatusHistoryApi`, `RecordEventApi`, `SimpleRecordApi`, `ResidentModuleStateApi`, `ReminderMarkers`, `TechnicalLocks`); test bảo vệ nhóm dữ liệu viết cho bảng gộp *(2026-10-30, audit cơ sở dữ liệu F-04, PR #63)* Mọi bảng tạo hoặc gộp khai nhóm dữ liệu: entity bằng `@DataGroup`, bảng JDBC bằng `COMMENT = 'DataGroup=CATALOG|BUSINESS|RECORD|MULTIPLE|TECHNICAL'` (backend/README.md mục 4); bảng `RECORD` có `trg_<bảng>_no_update`, `trg_<bảng>_no_delete`; bảng chứa nhóm 2 và nhóm 3 dùng `@DataGroup(MULTIPLE)`, cột `locked_at`, trigger `trg_<bảng>_row_lock`; dòng bảng chung đặt `entity_type` trùng `RetentionProvider.dataType()` của bản ghi cha; job dùng `SchedulerRuns` (module-interfaces 000 mục 1.8). `RecordGroupTriggerIT` kiểm.
 
 ---
 
