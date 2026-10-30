@@ -25,8 +25,8 @@ public class M13FastJob implements ScheduledJob {
         jobs.runFast();
     }
 
-    /** Chạy một lượt, trả id lần chạy ({@code scheduler_run}). */
-    public long run() {
+    /** Chạy một lượt, trả mã lần chạy (UUID). */
+    public String run() {
         return jobs.runFast();
     }
 

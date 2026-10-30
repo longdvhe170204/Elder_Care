@@ -28,8 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Một lần áp dụng yêu cầu Đã duyệt, trong transaction riêng (research R-10; FR-037, FR-037a, FR-038, FR-039): khóa dòng,
- * kiểm còn Đã duyệt và đã đến ngày, kiểm điều kiện, gọi handler, thêm {@code application_result} (khóa chính chặn áp
- * dụng hai lần), chuyển Đã áp dụng, ghi nhật ký. Handler ném lỗi thì cả transaction rollback.
+ * kiểm còn Đã duyệt và đã đến ngày, kiểm điều kiện, gọi handler, ghi kết quả áp dụng (chỉ ghi được
+ * một lần, dòng khóa khi áp dụng), chuyển Đã áp dụng, ghi nhật ký. Handler ném lỗi thì cả transaction rollback.
  */
 @Component
 class ApplyTransaction {
@@ -61,7 +61,7 @@ class ApplyTransaction {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Outcome apply(long id, Long schedulerRunId) {
+    public Outcome apply(long id, String schedulerRunId) {
         ApprovalRequestView request = store.lock(id).orElse(null);
         LocalDate today = time.today();
         if (request == null
@@ -97,10 +97,12 @@ class ApplyTransaction {
         boolean catchUp = effective.isBefore(today);
         store.update(
                 id,
-                "status = ?, applied_at = ?, catch_up_applied = ?",
+                // Yêu cầu đã áp dụng khóa theo dòng (constitution XII, R-15)
+                "status = ?, applied_at = ?, catch_up_applied = ?, locked_at = ?",
                 table.next(request.status(), Command.APPLY),
                 ApprovalRequestStore.utc(now),
-                catchUp);
+                catchUp,
+                ApprovalRequestStore.utc(now));
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("actualEffectiveDate", effective.toString());
         details.put("appliedAt", now.toString());

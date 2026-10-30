@@ -27,7 +27,7 @@ public class RequestApplier {
     }
 
     /** Trả {@code true} khi lần này đã xử lý xong (áp dụng hoặc áp dụng không thành). */
-    public boolean applySafely(long id, Long schedulerRunId) {
+    public boolean applySafely(long id, String schedulerRunId) {
         try {
             return transaction.apply(id, schedulerRunId) != ApplyTransaction.Outcome.NOT_APPLICABLE;
         } catch (RuntimeException e) {

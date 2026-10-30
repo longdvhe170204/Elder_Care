@@ -40,7 +40,7 @@ public class BedReadinessReminderProcessor {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public boolean remind(long bed, long run) {
+    public boolean remind(long bed, String run) {
         locks.guardWrites(true);
         locks.guardRooms(List.of(bed));
         locks.lockBed(bed);

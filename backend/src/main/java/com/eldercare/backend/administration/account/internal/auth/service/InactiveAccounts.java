@@ -52,9 +52,9 @@ public class InactiveAccounts {
         this.transaction = transaction;
     }
 
-    /** Chạy một đợt, trả id lần chạy ({@code scheduler_run}). */
-    public long run() {
-        long runId = runs.start(JOB);
+    /** Chạy một đợt, trả mã lần chạy (UUID). */
+    public String run() {
+        String runId = runs.start(JOB);
         Instant cutoff =
                 time.now().minus(parameters.read(ParameterCode.CFG_M15_02).asDuration());
         int processed = 0;
@@ -73,7 +73,7 @@ public class InactiveAccounts {
         return runId;
     }
 
-    private boolean markInactive(long accountId, Instant cutoff, long runId) {
+    private boolean markInactive(long accountId, Instant cutoff, String runId) {
         Account account = store.lock(accountId).orElseThrow();
         if (account.type() != AccountType.FAMILY_MEMBER
                 || account.status() != AccountStatus.ACTIVE

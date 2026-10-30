@@ -57,7 +57,7 @@ public class BedReadinessReminderJob implements ScheduledJob {
 
     @Override
     public void runNow() {
-        long run = runs.start(name());
+        String run = runs.start(name());
         int count = 0;
         try {
             for (var row : store.due(time.now())) if (processor.remind(row.bedId(), run)) count++;

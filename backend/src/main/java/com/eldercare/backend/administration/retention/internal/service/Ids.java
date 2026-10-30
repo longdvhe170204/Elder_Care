@@ -8,6 +8,11 @@ final class Ids {
 
     private Ids() {}
 
+    /** Chuỗi {@code ?, ?, …} cho mệnh đề {@code IN} có tham số. */
+    static String placeholders(int n) {
+        return String.join(", ", java.util.Collections.nCopies(n, "?"));
+    }
+
     static String inList(Collection<Long> ids) {
         if (ids.isEmpty()) {
             throw new IllegalArgumentException("Danh sách id rỗng");

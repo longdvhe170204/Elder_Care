@@ -2,6 +2,7 @@ package com.eldercare.backend.administration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.eldercare.backend.archfixture.datagroup.MultipleGroupWithoutLockedAt;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.data.DataGroup;
@@ -10,6 +11,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import jakarta.persistence.Entity;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,5 +70,27 @@ class DataGroupArchTest {
         assertThat(withoutReason)
                 .as("lệnh bắt buộc lý do nhưng không nhận Reason")
                 .isEmpty();
+    }
+
+    /** R-05 (constitution XII 3.2.0): entity của bảng chứa nhiều nhóm có trường {@code lockedAt} (cột {@code locked_at}). */
+    @Test
+    void R_05_multipleGroupEntities_haveLockedAt() {
+        JavaClasses fixtures = new ClassFileImporter().importPackages("com.eldercare.backend.archfixture.datagroup");
+        JavaClasses main = new ClassFileImporter()
+                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                .importPackages("com.eldercare.backend");
+
+        assertThat(withoutLockedAt(fixtures)).containsExactly(MultipleGroupWithoutLockedAt.class.getName());
+        assertThat(withoutLockedAt(main)).as("entity nhiều nhóm thiếu lockedAt").isEmpty();
+    }
+
+    private static List<String> withoutLockedAt(JavaClasses classes) {
+        return classes.stream()
+                .filter(c -> c.isAnnotatedWith(DataGroup.class))
+                .filter(c -> c.getAnnotationOfType(DataGroup.class).value() == DataGroup.Group.MULTIPLE)
+                .filter(c ->
+                        c.getAllFields().stream().noneMatch(f -> f.getName().equals("lockedAt")))
+                .map(JavaClass::getName)
+                .toList();
     }
 }

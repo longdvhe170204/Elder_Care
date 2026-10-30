@@ -11,6 +11,8 @@ import com.eldercare.backend.administration.retention.api.RetentionKind;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider.DataRef;
 import com.eldercare.backend.administration.retention.internal.service.AttachedRetention.Attached;
+import com.eldercare.backend.administration.shared.api.SharedRowRetention;
+import com.eldercare.backend.administration.shared.api.dto.EntityRef;
 import com.eldercare.backend.common.scheduling.SchedulerRuns;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Instant;
@@ -62,6 +64,7 @@ public class ExpiredDataPurge {
     private final BusinessTime time;
     private final SchedulerRuns runs;
     private final AuditLogApi auditLog;
+    private final SharedRowRetention sharedRows;
 
     ExpiredDataPurge(
             ObjectProvider<RetentionProvider> providers,
@@ -69,18 +72,20 @@ public class ExpiredDataPurge {
             ParameterApi parameters,
             BusinessTime time,
             SchedulerRuns runs,
-            AuditLogApi auditLog) {
+            AuditLogApi auditLog,
+            SharedRowRetention sharedRows) {
         this.providers = providers;
         this.database = database;
         this.parameters = parameters;
         this.time = time;
         this.runs = runs;
         this.auditLog = auditLog;
+        this.sharedRows = sharedRows;
     }
 
-    /** Chạy một đợt, trả id lần chạy ({@code scheduler_run}). */
-    public long run() {
-        long runId = runs.start(JOB);
+    /** Chạy một đợt, trả mã lần chạy (UUID). */
+    public String run() {
+        String runId = runs.start(JOB);
         Tally tally = new Tally();
         Map<ParameterCode, JsonNode> applied = new EnumMap<>(ParameterCode.class);
         boolean stopped = false;
@@ -132,7 +137,7 @@ public class ExpiredDataPurge {
                 return;
             }
             chain(root, byType, candidates, attached, cutoffs).ifPresent(chain -> {
-                database.transaction().executeWithoutResult(status -> chain.delete(byType));
+                database.transaction().executeWithoutResult(status -> chain.delete(byType, sharedRows));
                 deleted.addAll(chain.records());
                 tally.add(chain, candidates);
             });
@@ -184,12 +189,16 @@ public class ExpiredDataPurge {
     private record Chain(List<DataRef> records, Map<AttachedRetention, List<Attached>> parts) {
 
         /** Xóa phần đi kèm trước, rồi bản ghi theo thứ tự ngược (bản trỏ tới trước bản bị trỏ). */
-        void delete(Map<String, RetentionProvider> byType) {
+        void delete(Map<String, RetentionProvider> byType, SharedRowRetention sharedRows) {
             parts.forEach((part, found) -> {
                 if (!found.isEmpty()) {
                     part.delete(found.stream().map(Attached::id).toList());
                 }
             });
+            // Dòng bảng dùng chung của bản ghi (lịch sử, bản ghi con, đối tượng nhỏ, dấu đã nhắc), research R-15 mục 2
+            sharedRows.deleteFor(records.stream()
+                    .map(r -> new EntityRef(r.dataType(), r.id()))
+                    .toList());
             for (DataRef record : records.reversed()) {
                 byType.get(record.dataType()).delete(List.of(record.id()));
             }

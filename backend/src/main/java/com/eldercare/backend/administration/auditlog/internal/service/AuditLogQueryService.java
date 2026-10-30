@@ -11,6 +11,7 @@ import com.eldercare.backend.administration.account.api.dto.Visibility;
 import com.eldercare.backend.administration.account.api.spi.ScopeAssignmentProvider;
 import com.eldercare.backend.administration.auditlog.api.AuditLogPermissions;
 import com.eldercare.backend.administration.auditlog.api.spi.FieldClassificationProvider;
+import com.eldercare.backend.administration.shared.api.RecordTypeAliases;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
@@ -62,6 +63,7 @@ public class AuditLogQueryService {
     private final ObjectProvider<FieldClassificationProvider> classifications;
     private final ObjectProvider<AccountApi> accounts;
     private final ObjectProvider<ScopeAssignmentProvider> scopeAssignments;
+    private final RecordTypeAliases aliases;
 
     AuditLogQueryService(
             JdbcTemplate jdbc,
@@ -72,7 +74,8 @@ public class AuditLogQueryService {
             ObjectProvider<FieldVisibilityApi> fieldVisibility,
             ObjectProvider<FieldClassificationProvider> classifications,
             ObjectProvider<AccountApi> accounts,
-            ObjectProvider<ScopeAssignmentProvider> scopeAssignments) {
+            ObjectProvider<ScopeAssignmentProvider> scopeAssignments,
+            RecordTypeAliases aliases) {
         this.jdbc = jdbc;
         this.json = json;
         this.currentUser = currentUser;
@@ -82,6 +85,7 @@ public class AuditLogQueryService {
         this.classifications = classifications;
         this.accounts = accounts;
         this.scopeAssignments = scopeAssignments;
+        this.aliases = aliases;
     }
 
     /** Bộ lọc tra cứu toàn viện; trường {@code null} là không lọc. */
@@ -137,8 +141,8 @@ public class AuditLogQueryService {
         List<String> where = new ArrayList<>();
         List<Object> args = new ArrayList<>();
         if (filter.entityType() != null) {
-            where.add("entity_type = ?");
-            args.add(filter.entityType());
+            // Gồm nhật ký ghi với loại cũ trước khi gộp bảng (research R-15 mục 5)
+            where.add(entityTypeIn(filter.entityType(), args));
         }
         if (filter.entityId() != null) {
             where.add("entity_id = ?");
@@ -190,8 +194,10 @@ public class AuditLogQueryService {
                         || !scope.getObject().inScope(user, target))) {
             throw new NotFoundException();
         }
-        List<Object> args = new ArrayList<>(List.of(entityType, entityId));
-        return page(user, new ArrayList<>(List.of("entity_type = ?", "entity_id = ?")), args, cursor);
+        List<Object> args = new ArrayList<>();
+        List<String> where = new ArrayList<>(List.of(entityTypeIn(entityType, args), "entity_id = ?"));
+        args.add(entityId);
+        return page(user, where, args, cursor);
     }
 
     /** Đối tượng kèm người cao tuổi, tầng do module sở hữu cho biết; không có provider hoặc id không phải số thì chỉ loại, id. */
@@ -289,6 +295,13 @@ public class AuditLogQueryService {
                         FieldClassificationProvider::entityType, FieldClassificationProvider::fieldGroups));
     }
 
+    /** Điều kiện loại đối tượng gồm loại cũ ánh xạ về {@code entityType}; thêm tham số vào {@code args}. */
+    private String entityTypeIn(String entityType, List<Object> args) {
+        var types = aliases.withLegacy(entityType);
+        args.addAll(types);
+        return "entity_type IN (" + String.join(", ", java.util.Collections.nCopies(types.size(), "?")) + ")";
+    }
+
     private Row row(ResultSet rs) throws SQLException {
         return new Row(
                 rs.getLong("id"),
@@ -298,7 +311,7 @@ public class AuditLogQueryService {
                 rs.getObject("actor_id", Long.class),
                 rs.getString("role"),
                 rs.getString("action"),
-                rs.getString("entity_type"),
+                aliases.current(rs.getString("entity_type")),
                 rs.getString("entity_id"),
                 rs.getObject("resident_id", Long.class),
                 readMap(rs.getString("data_before")),

@@ -77,7 +77,14 @@ class RecordGroupTriggerIT extends MySqlIntegrationTestBase {
             }
         }
 
-        assertThat(tables).contains("simple_record");
+        // Entity @DataGroup(MULTIPLE) phải nằm ở bảng có locked_at (R-05)
+        List<String> multipleGroupTables = new ClassFileImporter()
+                .importPackages("com.eldercare.backend").stream()
+                        .filter(c -> c.isAnnotatedWith(Entity.class) && c.isAnnotatedWith(DataGroup.class))
+                        .filter(c -> c.getAnnotationOfType(DataGroup.class).value() == DataGroup.Group.MULTIPLE)
+                        .map(c -> c.getAnnotationOfType(Table.class).name())
+                        .toList();
+        assertThat(tables).contains("simple_record").containsAll(multipleGroupTables);
         assertThat(tables)
                 .allSatisfy(table ->
                         assertThat(triggers).contains("trg_" + table + "_row_lock", "trg_" + table + "_no_delete"));

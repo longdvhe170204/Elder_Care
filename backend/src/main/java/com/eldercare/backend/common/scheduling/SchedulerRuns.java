@@ -1,61 +1,55 @@
 package com.eldercare.backend.common.scheduling;
 
 import com.eldercare.backend.common.time.BusinessTime;
-import java.sql.PreparedStatement;
-import java.sql.Statement;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
+import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
 /**
- * Ghi lần chạy của job vào {@code scheduler_run}; id lần chạy dùng làm {@code schedulerRunId} trong căn cứ nhật ký
- * (FR-045). Thời điểm lấy từ đồng hồ của ứng dụng.
+ * Ghi lần chạy của job ra {@code logs/jobs.log} (log có cấu trúc, logger {@code jobs}, research R-15 mục 4): mã lần chạy là
+ * UUID, đặt vào MDC {@code jobRunId} trong lúc chạy và dùng làm {@code schedulerRunId} trong căn cứ nhật ký (FR-045).
+ * Thời điểm lấy từ đồng hồ của ứng dụng.
  */
 @Component
 public class SchedulerRuns {
+
+    public static final String MDC_KEY = "jobRunId";
+    private static final Logger JOBS = LoggerFactory.getLogger("jobs");
 
     public enum Result {
         SUCCEEDED,
         FAILED
     }
 
-    private final JdbcTemplate jdbc;
     private final BusinessTime time;
 
-    public SchedulerRuns(JdbcTemplate jdbc, BusinessTime time) {
-        this.jdbc = jdbc;
+    public SchedulerRuns(BusinessTime time) {
         this.time = time;
     }
 
-    /** Bắt đầu một lần chạy, trả id lần chạy. */
-    public long start(String job) {
-        GeneratedKeyHolder key = new GeneratedKeyHolder();
-        jdbc.update(
-                connection -> {
-                    PreparedStatement ps = connection.prepareStatement(
-                            "INSERT INTO scheduler_run (job, started_at) VALUES (?, ?)",
-                            Statement.RETURN_GENERATED_KEYS);
-                    ps.setString(1, job);
-                    ps.setObject(2, now());
-                    return ps;
-                },
-                key);
-        return key.getKey().longValue();
+    /** Bắt đầu một lần chạy, trả mã lần chạy. */
+    public String start(String job) {
+        String runId = UUID.randomUUID().toString();
+        MDC.put(MDC_KEY, runId);
+        JOBS.atInfo()
+                .addKeyValue("job", job)
+                .addKeyValue("event", "START")
+                .addKeyValue("businessTime", time.now())
+                .log("Bắt đầu {}", job);
+        return runId;
     }
 
     /** Kết thúc lần chạy với kết quả và số bản ghi đã xử lý. */
-    public void finish(long runId, Result result, int processedCount) {
-        jdbc.update(
-                "UPDATE scheduler_run SET finished_at = ?, result = ?, processed_count = ? WHERE id = ?",
-                now(),
-                result.name(),
-                processedCount,
-                runId);
-    }
-
-    private LocalDateTime now() {
-        return LocalDateTime.ofInstant(time.now(), ZoneOffset.UTC);
+    public void finish(String runId, Result result, int processedCount) {
+        try (MDC.MDCCloseable ignored = MDC.putCloseable(MDC_KEY, runId)) {
+            JOBS.atInfo()
+                    .addKeyValue("event", "FINISH")
+                    .addKeyValue("result", result.name())
+                    .addKeyValue("processedCount", processedCount)
+                    .addKeyValue("businessTime", time.now())
+                    .log("Kết thúc lần chạy: {}", result);
+        }
     }
 }

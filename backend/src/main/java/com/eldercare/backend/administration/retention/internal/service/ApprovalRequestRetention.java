@@ -16,8 +16,8 @@ import org.springframework.stereotype.Component;
 /**
  * Lưu giữ yêu cầu phê duyệt (000 T072; FR-050, FR-051a): chỉ yêu cầu đã ở trạng thái cuối, theo CFG-M15-04 tính từ
  * mốc cuối cùng (lập, quyết định, áp dụng). Yêu cầu gắn hồ sơ người cao tuổi tính hạn từ ngày kết thúc lưu trú, chưa có
- * giao diện của 001 nên chưa hết hạn (plan 000, D5). Kết quả áp dụng ({@code application_result}) và bản đính chính
- * cách C trỏ về yêu cầu: còn thì giữ yêu cầu; dòng {@code application_result} xóa cùng yêu cầu.
+ * giao diện của 001 nên chưa hết hạn (plan 000, D5). Kết quả áp dụng (cột của yêu cầu, R-15) và bản đính chính
+ * cách C trỏ về yêu cầu: còn thì giữ yêu cầu.
  */
 @Component
 class ApprovalRequestRetention implements RetentionProvider {
@@ -67,7 +67,7 @@ class ApprovalRequestRetention implements RetentionProvider {
     public Set<DataRef> referencesTo(long id) {
         Set<DataRef> refs = new LinkedHashSet<>();
         jdbc.query(
-                "SELECT result_type, result_id FROM application_result WHERE approval_request_id = ?"
+                "SELECT result_type, result_id FROM approval_request WHERE id = ? AND result_type IS NOT NULL"
                         + " AND result_type <> ? AND result_id REGEXP '^[0-9]+$'",
                 rs -> {
                     refs.add(new DataRef(rs.getString(1), Long.parseLong(rs.getString(2))));
@@ -86,7 +86,6 @@ class ApprovalRequestRetention implements RetentionProvider {
     @Override
     public void delete(Collection<Long> ids) {
         String in = Ids.inList(ids);
-        database.jdbc().update("DELETE FROM application_result WHERE approval_request_id IN (" + in + ")");
         database.jdbc().update("DELETE FROM approval_request WHERE id IN (" + in + ")");
     }
 }

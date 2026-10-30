@@ -56,7 +56,7 @@ class ReminderTransaction {
 
     /** Trả {@code true} khi lần này đã nhắc hoặc đã báo Quản lý viện. */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public boolean remind(long id, long schedulerRunId) {
+    public boolean remind(long id, String schedulerRunId) {
         ApprovalRequestView request = store.lock(id).orElse(null);
         if (request == null || !ApprovalStatus.PENDING_APPROVAL.equals(request.status())) {
             return false;
@@ -107,7 +107,7 @@ class ReminderTransaction {
             AuditAction action,
             ApprovalRequestView request,
             ParameterCode rule,
-            long schedulerRunId,
+            String schedulerRunId,
             Map<String, Object> details) {
         auditLog.write(AuditLogEntry.builder()
                 .action(action)
