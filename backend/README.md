@@ -103,9 +103,15 @@ administration/approval/
 | Module khác chỉ dùng gói `api` (và gói con) của module mình; không vòng phụ thuộc | `ModuleBoundaryTest` (Spring Modulith) |
 | Mỗi gói `api` và gói con có `package-info.java` gắn `@NamedInterface` | `ApiNamedInterfaceArchTest` |
 | Trong M15, phần này chỉ dùng gói `api` của phần kia | `M15PartBoundaryArchTest` |
-| Lớp trong `internal` nằm ở `service`, `domain`, `persistence` hoặc `config` | `LayerArchTest` |
+| Gói cấp một của module chỉ là `api`, `web`, `internal`, `scheduling` (M15 thêm một cấp phần) | `LayerArchTest` |
+| Lớp trong `internal` nằm ở `service`, `domain`, `persistence` hoặc `config`; tầng không có gói con | `LayerArchTest` |
 | `web` không dùng `persistence`, `JdbcTemplate`, Spring Data; `api` không dùng `internal`, `web` | `LayerArchTest` |
 | `domain` không dùng `service`, `persistence`, `web`; `persistence` không dùng `service`, `web`; `service` không dùng `web` | `LayerArchTest` |
+| Chỉ `persistence` dùng JDBC (`org.springframework.jdbc`); ngoại lệ: phần `administration.retention` và lớp cài `RetentionProvider` | `LayerArchTest` |
+| Gốc `api` chỉ chứa interface, chú thích; record, enum ở `api/dto`, sự kiện ở `api/events` | `LayerArchTest` |
+| Lớp `persistence` không khai báo record lồng; record trả về đặt ở `domain` | `LayerArchTest` |
+
+Chỗ lệch có sẵn trước luật (rà 2026-10-30) ghi ở các hằng `PENDING_*` của `LayerArchTest`, kèm chủ module; người sửa xóa dòng tương ứng, không thêm dòng mới.
 | Mọi `@BusinessCommand` có `@RequiresPermission` (hoặc trong danh sách tự kiểm) | `RequiresPermissionArchTest` |
 | Job chỉ làm việc FR-010a cho phép; `@Scheduled` nằm trong `ScheduledJob` | `SchedulerScopeArchTest` |
 | Không gọi `Instant.now()`; thời gian qua `BusinessTime`/`Clock` | `TimeArchTest` |
