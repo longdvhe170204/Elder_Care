@@ -319,3 +319,8 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7; mỗi bước chạy `./mvn
 - Không có API sửa ma trận quyền; ma trận chỉ đổi bằng migration khi tài liệu nguồn đổi
 - Không đệm phạm vi và trạng thái phiên giữa các yêu cầu
 - Mọi mốc thời gian đọc `ThamSoApi` (CFG-M15-01, 02, 07 → 10, CFG-M01-04)
+
+## Phase 11: Convergence
+
+- [ ] T099 Ngoại lệ phạm vi của ghi sự cố chỉ áp cho người cao tuổi chưa ở trạng thái cuối: `PermissionService` đọc `ResidencyEndApi` (qua `ObjectProvider`, không có bản cài thì giữ như hiện nay) và từ chối ở lớp phạm vi khi người cao tuổi đã ở trạng thái cuối tại thời điểm kiểm; test viết trước bằng bản giả `ResidencyEndApi` per FR-044a (partial)
+- [ ] T100 Quyền riêng của từng người thân: thêm `FamilyRelationshipApi.rightEnabled(familyMemberId, residentId, right, at)` theo `QuanHeNguoiThanApi.quyenDangBat` ở module-interfaces 012 ("Đổi api", báo E), bản giả trả quyền đang bật; lớp quyền của người thân xét quyền riêng (xem sức khỏe, chi phí) khi có bản cài per FR-046, US6/AC2 (partial)

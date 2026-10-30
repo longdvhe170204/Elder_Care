@@ -1,10 +1,9 @@
 package com.eldercare.backend.administration.approval.internal.service;
 
-import com.eldercare.backend.administration.approval.api.ApprovalStatus;
+import com.eldercare.backend.administration.approval.internal.persistence.ApprovalRequestStore;
 import com.eldercare.backend.common.scheduling.SchedulerRuns;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.util.List;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 /**
@@ -17,13 +16,13 @@ public class DueRequestApplication {
 
     static final String JOB = "APPLY_DUE_REQUESTS";
 
-    private final JdbcTemplate jdbc;
+    private final ApprovalRequestStore store;
     private final RequestApplier applier;
     private final SchedulerRuns runs;
     private final BusinessTime time;
 
-    DueRequestApplication(JdbcTemplate jdbc, RequestApplier applier, SchedulerRuns runs, BusinessTime time) {
-        this.jdbc = jdbc;
+    DueRequestApplication(ApprovalRequestStore store, RequestApplier applier, SchedulerRuns runs, BusinessTime time) {
+        this.store = store;
         this.applier = applier;
         this.runs = runs;
         this.time = time;
@@ -32,12 +31,7 @@ public class DueRequestApplication {
     /** Chạy một đợt, trả mã lần chạy (UUID). */
     public String run() {
         String runId = runs.start(JOB);
-        List<Long> due = jdbc.queryForList(
-                "SELECT id FROM approval_request WHERE status = ? AND actual_effective_date <= ?"
-                        + " ORDER BY actual_effective_date, decided_at, id",
-                Long.class,
-                ApprovalStatus.APPROVED,
-                time.today());
+        List<Long> due = store.dueApproved(time.today());
         int processed = 0;
         for (long id : due) {
             if (applier.applySafely(id, runId)) {
