@@ -6,7 +6,6 @@ import com.eldercare.backend.administration.account.api.spi.OfflineHandler;
 import com.eldercare.backend.administration.account.internal.offline.domain.OfflineAuditActions;
 import com.eldercare.backend.administration.account.internal.offline.domain.PendingReviewRecord;
 import com.eldercare.backend.administration.account.internal.offline.domain.ReviewStatus;
-import com.eldercare.backend.administration.account.internal.offline.persistence.PendingReviewRecords;
 import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;

@@ -13,10 +13,10 @@ import com.eldercare.backend.administration.account.internal.permission.domain.P
 import com.eldercare.backend.administration.account.internal.permission.domain.PermissionViews.AccountPermissions;
 import com.eldercare.backend.administration.account.internal.permission.domain.PermissionViews.EffectivePermission;
 import com.eldercare.backend.administration.account.internal.permission.domain.PermissionViews.RestrictionKind;
+import com.eldercare.backend.administration.account.internal.permission.domain.PermissionViews.RestrictionRow;
 import com.eldercare.backend.administration.account.internal.permission.domain.PermissionViews.RoleInfo;
 import com.eldercare.backend.administration.account.internal.permission.domain.PermissionViews.RolePermissions;
 import com.eldercare.backend.administration.account.internal.permission.persistence.PermissionChanges;
-import com.eldercare.backend.administration.account.internal.permission.persistence.PermissionChanges.RestrictionRow;
 import com.eldercare.backend.administration.account.internal.persistence.AccountStore;
 import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
@@ -63,6 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PermissionChangeService {
 
     private final PermissionChanges changes;
+    private final RoleCatalog roles;
     private final AccountStore accounts;
     private final AccountPermissionsQuery permissions;
     private final RolePermissionCalculator calculator;
@@ -72,6 +73,7 @@ public class PermissionChangeService {
 
     PermissionChangeService(
             PermissionChanges changes,
+            RoleCatalog roles,
             AccountStore accounts,
             AccountPermissionsQuery permissions,
             RolePermissionCalculator calculator,
@@ -79,6 +81,7 @@ public class PermissionChangeService {
             AuditLogApi auditLog,
             BusinessTime time) {
         this.changes = changes;
+        this.roles = roles;
         this.accounts = accounts;
         this.permissions = permissions;
         this.calculator = calculator;
@@ -98,14 +101,14 @@ public class PermissionChangeService {
     @Transactional(readOnly = true)
     public List<RoleInfo> roles() {
         AccountService.requireManager(currentUser.getObject());
-        return changes.roles();
+        return roles.roles();
     }
 
     @RequiresPermission(function = Function.ACCOUNT_PERMISSION_PARAMETER, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public RoleResult role(String role) {
         AccountService.requireManager(currentUser.getObject());
-        int version = changes.roleVersion(role).orElseThrow(NotFoundException::new);
+        int version = roles.version(role).orElseThrow(NotFoundException::new);
         return new RoleResult(roleView(role), version);
     }
 
@@ -209,10 +212,10 @@ public class PermissionChangeService {
     /** So và tăng {@code role.permission_version} trong một câu lệnh; trả quyền của vai trò trước thay đổi. */
     private RolePermissions lockedRole(String role, String ifMatch, CurrentUser user) {
         AccountService.requireManager(user);
-        int version = changes.roleVersion(role).orElseThrow(NotFoundException::new);
+        int version = roles.version(role).orElseThrow(NotFoundException::new);
         RolePermissions before = roleView(role);
         VersionEtag.requireMatch(ifMatch, version, before);
-        if (!changes.bumpRoleVersion(role, version)) {
+        if (!roles.bumpVersion(role, version)) {
             throw new VersionMismatchException(roleView(role));
         }
         return before;
@@ -236,7 +239,7 @@ public class PermissionChangeService {
                 .reason(reason)
                 .details(details)
                 .build());
-        return new RoleResult(after, changes.roleVersion(role).orElseThrow());
+        return new RoleResult(after, roles.version(role).orElseThrow());
     }
 
     private RoleAssignmentService.Result accountChanged(

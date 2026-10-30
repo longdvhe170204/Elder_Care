@@ -93,8 +93,7 @@ class RolePermissionCalculatorIT extends MySqlIntegrationTestBase {
             assertThat(calculator.at(accountantOnly, time.now())).doesNotContainKey(key);
             assertThat(calculator.at(accountantAndManager, time.now())).containsKey(key);
         } finally {
-            jdbc.update(
-                    "UPDATE permission_restriction SET effective_to = ? WHERE id = ?", utc(time.now()), restriction);
+            jdbc.update("UPDATE permission_assignment SET effective_to = ? WHERE id = ?", utc(time.now()), restriction);
         }
     }
 
@@ -120,8 +119,9 @@ class RolePermissionCalculatorIT extends MySqlIntegrationTestBase {
         long nurse = account("AC-04");
         assertThat(calculator.at(nurse, time.now())).doesNotContainKey(CARE_PLAN_APPROVE);
         jdbc.update("""
-                INSERT INTO additional_grant (account_id, function_code, operation, effective_from, actor_id, reason)
-                VALUES (?, 'CARE_PLAN', 'APPROVE', ?, 1, 'Test')
+                INSERT INTO permission_assignment (kind, applies_to, account_id, function_code, operation,
+                                                   effective_from, actor_id, reason)
+                VALUES ('ADDITIONAL_GRANT', 'ACCOUNT', ?, 'CARE_PLAN', 'APPROVE', ?, 1, 'Test')
                 """, nurse, utc(ago(1)));
 
         assertThat(calculator.at(nurse, time.now()).get(CARE_PLAN_APPROVE))
@@ -168,7 +168,8 @@ class RolePermissionCalculatorIT extends MySqlIntegrationTestBase {
         long id = jdbc.queryForObject("SELECT id FROM account WHERE staff_id = ?", Long.class, staffId);
         for (String role : roles) {
             jdbc.update(
-                    "INSERT INTO role_assignment (account_id, role, effective_from, reason) VALUES (?, ?, ?, 'Test')",
+                    "INSERT INTO permission_assignment (kind, applies_to, account_id, role, effective_from, reason)"
+                            + " VALUES ('ROLE_ASSIGNMENT', 'ACCOUNT', ?, ?, ?, 'Test')",
                     id,
                     role,
                     created);
@@ -187,9 +188,10 @@ class RolePermissionCalculatorIT extends MySqlIntegrationTestBase {
             Instant to) {
         jdbc.update(
                 """
-                INSERT INTO permission_restriction (applies_to, role, account_id, function_code, operation, kind,
-                                                    metric_group, effective_from, effective_to, actor_id, reason)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'Test')
+                INSERT INTO permission_assignment (kind, applies_to, role, account_id, function_code, operation,
+                                                   restriction_kind, metric_group, effective_from, effective_to,
+                                                   actor_id, reason)
+                VALUES ('RESTRICTION', ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'Test')
                 """,
                 appliesTo,
                 role,
@@ -200,7 +202,7 @@ class RolePermissionCalculatorIT extends MySqlIntegrationTestBase {
                 metricGroup,
                 utc(from),
                 to == null ? null : utc(to));
-        return jdbc.queryForObject("SELECT MAX(id) FROM permission_restriction", Long.class);
+        return jdbc.queryForObject("SELECT MAX(id) FROM permission_assignment WHERE kind = 'RESTRICTION'", Long.class);
     }
 
     private static RoleGrant role(PermissionScope scope) {

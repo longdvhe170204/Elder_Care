@@ -94,7 +94,9 @@ class RestrictWithinMatrixIT extends MySqlIntegrationTestBase {
         commands.account(manager, careStaff, "restrict", "\"0\"", restrict("CARE_PLAN", "VIEW", "LOWER_SCOPE"))
                 .andExpect(status().isConflict());
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM permission_restriction WHERE account_id = ?", Integer.class, careStaff))
+                        "SELECT COUNT(*) FROM permission_assignment WHERE kind = 'RESTRICTION' AND account_id = ?",
+                        Integer.class,
+                        careStaff))
                 .isZero();
     }
 
@@ -177,7 +179,8 @@ class RestrictWithinMatrixIT extends MySqlIntegrationTestBase {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("NO_MANAGER_LEFT"));
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM permission_restriction WHERE role = 'AC-01' AND effective_to IS NULL",
+                        "SELECT COUNT(*) FROM permission_assignment WHERE kind = 'RESTRICTION' AND role = 'AC-01'"
+                                + " AND effective_to IS NULL",
                         Integer.class))
                 .isZero();
     }

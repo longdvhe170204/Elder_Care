@@ -10,7 +10,10 @@ import com.eldercare.backend.administration.account.api.spi.AssignmentApi;
 import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
 import com.eldercare.backend.administration.account.api.spi.DutyApi;
 import com.eldercare.backend.administration.account.api.spi.FootnoteCondition;
+import com.eldercare.backend.administration.account.internal.permission.domain.FieldVisibilityAttributes;
 import com.eldercare.backend.administration.account.internal.permission.domain.PermissionScope;
+import com.eldercare.backend.administration.shared.api.CatalogApi;
+import com.eldercare.backend.administration.shared.api.dto.CatalogItem;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.util.HashMap;
@@ -18,12 +21,11 @@ import java.util.Map;
 import java.util.Set;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Fallback;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 /**
  * Mức xem theo nhóm thông tin (002 T023; research A-08; FR-022, FR-034, BR-M15-11): xét từng vai trò của tài khoản,
- * mức của vai trò ({@code field_visibility_rule}, không có dòng là {@code FULL}) chỉ tính khi đối tượng nằm trong phạm
+ * mức của vai trò (danh mục {@code M15.FIELD_VISIBILITY}, không có mục là {@code FULL}) chỉ tính khi đối tượng nằm trong phạm
  * vi của chính vai trò đó ({@code role.execution_scope}: toàn viện, hoặc {@code ScopeApi.inScope}); rồi lấy mức cao
  * nhất. Hai bảng là nhóm 1 cố định nạp bằng migration (không có API sửa) nên đọc một lần. Người thân xem nhóm sức
  * khỏe, thuốc, nguyện vọng chỉ khi điều kiện chú thích ¹ (bản đồng ý bao gồm người đó, 001) thỏa ở chính lần xem
@@ -34,7 +36,8 @@ import org.springframework.stereotype.Service;
 @Fallback
 class FieldVisibilityService implements FieldVisibilityApi {
 
-    private final JdbcTemplate jdbc;
+    private final CatalogApi catalog;
+    private final RoleCatalog roleCatalog;
     private final ScopeApi scope;
     private final ObjectProvider<FootnoteCondition> conditions;
     private final BusinessTime time;
@@ -48,14 +51,16 @@ class FieldVisibilityService implements FieldVisibilityApi {
     private volatile Map<String, PermissionScope> executionScopes;
 
     FieldVisibilityService(
-            JdbcTemplate jdbc,
+            CatalogApi catalog,
+            RoleCatalog roleCatalog,
             ScopeApi scope,
             ObjectProvider<FootnoteCondition> conditions,
             BusinessTime time,
             ObjectProvider<AssignmentApi> assignments,
             ObjectProvider<DutyApi> duties,
             ObjectProvider<com.eldercare.backend.administration.account.api.spi.StaffAbsenceApi> absences) {
-        this.jdbc = jdbc;
+        this.catalog = catalog;
+        this.roleCatalog = roleCatalog;
         this.scope = scope;
         this.conditions = conditions;
         this.time = time;
@@ -173,16 +178,14 @@ class FieldVisibilityService implements FieldVisibilityApi {
         if (rules != null) {
             return;
         }
+        // Mã mục <vai trò>:<nhóm thông tin> (data-model 002 mục 0.1)
         Map<String, Map<InfoGroup, Visibility>> loaded = new HashMap<>();
-        jdbc.query("SELECT role, info_group, visibility FROM field_visibility_rule", rs -> {
-            loaded.computeIfAbsent(rs.getString(1), r -> new HashMap<>())
-                    .put(InfoGroup.valueOf(rs.getString(2)), Visibility.valueOf(rs.getString(3)));
-        });
-        Map<String, PermissionScope> scopes = new HashMap<>();
-        jdbc.query("SELECT code, execution_scope FROM role", rs -> {
-            scopes.put(rs.getString(1), PermissionScope.valueOf(rs.getString(2)));
-        });
-        executionScopes = Map.copyOf(scopes);
+        for (CatalogItem<FieldVisibilityAttributes> rule : catalog.list(FieldVisibilityAttributes.KIND, null, false)) {
+            String[] key = rule.code().split(":", 2);
+            loaded.computeIfAbsent(key[0], r -> new HashMap<>())
+                    .put(InfoGroup.valueOf(key[1]), rule.attributes().visibility());
+        }
+        executionScopes = Map.copyOf(roleCatalog.executionScopes());
         rules = Map.copyOf(loaded);
     }
 }

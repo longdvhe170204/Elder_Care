@@ -204,15 +204,16 @@ class SyncResultIT extends MySqlIntegrationTestBase {
 
     /** Tài khoản bị khóa tại thời điểm đã cho: lịch sử trạng thái, phiên kết thúc như lệnh khóa (FR-013). */
     private void lockAt(Instant at) {
+        String history = "INSERT INTO status_history (entity_type, entity_id, attribute, module, kind, value,"
+                + " starts_at, by_system, details) VALUES ('M15.ACCOUNT', ?, 'STATUS', 'M15', 'POINT', ?, ?, TRUE, ?)";
         jdbc.update(
-                "INSERT INTO account_status_history (account_id, status, effective_from) VALUES (?, 'ACTIVE', ?)",
+                history,
                 account,
-                LocalDateTime.ofInstant(now.minus(Duration.ofDays(1)), ZoneOffset.UTC));
+                "ACTIVE",
+                LocalDateTime.ofInstant(now.minus(Duration.ofDays(1)), ZoneOffset.UTC),
+                "{\"lockCause\": null}");
         jdbc.update(
-                "INSERT INTO account_status_history (account_id, status, lock_cause, effective_from)"
-                        + " VALUES (?, 'LOCKED', 'MANUAL', ?)",
-                account,
-                LocalDateTime.ofInstant(at, ZoneOffset.UTC));
+                history, account, "LOCKED", LocalDateTime.ofInstant(at, ZoneOffset.UTC), "{\"lockCause\": \"MANUAL\"}");
         jdbc.update("UPDATE account SET status = 'LOCKED', lock_cause = 'MANUAL' WHERE id = ?", account);
         jdbc.update(
                 "UPDATE login_session SET ended_at = ?, end_reason = 'ACCOUNT_LEFT_ACTIVE' WHERE account_id = ?",

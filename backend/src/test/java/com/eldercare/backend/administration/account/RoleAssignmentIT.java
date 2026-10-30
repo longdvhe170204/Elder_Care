@@ -91,7 +91,8 @@ class RoleAssignmentIT extends MySqlIntegrationTestBase {
         command(account, "remove-role", "\"1\"", "{\"role\":\"AC-05\",\"reason\":\"Thử gỡ hết\"}")
                 .andExpect(status().isConflict());
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM role_assignment WHERE account_id = ? AND effective_to IS NOT NULL",
+                        "SELECT COUNT(*) FROM permission_assignment WHERE kind = 'ROLE_ASSIGNMENT' AND account_id = ?"
+                                + " AND effective_to IS NOT NULL",
                         Integer.class,
                         account))
                 .isEqualTo(1);

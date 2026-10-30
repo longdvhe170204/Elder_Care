@@ -75,7 +75,9 @@ class BoundDeviceIT extends MySqlIntegrationTestBase {
                         SessionTokens.hash(old[0])))
                 .isEqualTo("DEVICE_UNBOUND");
         assertThat(jdbc.queryForObject(
-                        "SELECT unbind_reason FROM bound_device WHERE device_id = ?", String.class, oldDevice))
+                        "SELECT end_reason FROM device_credential WHERE kind = 'BOUND_DEVICE' AND device_id = ?",
+                        String.class,
+                        oldDevice))
                 .isEqualTo("NEW_DEVICE_BOUND");
         assertThat(boundDevices.identify(old[1])).isEmpty();
         assertThat(boundDevices.identify(fresh[1])).isPresent();
@@ -95,7 +97,10 @@ class BoundDeviceIT extends MySqlIntegrationTestBase {
         mvc.perform(AccountFixtures.login(username, "Matkhau123", "STAFF_APP", device))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("DEVICE_ALREADY_BOUND"));
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM bound_device WHERE account_id = ?", Integer.class, other))
+        assertThat(jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM device_credential WHERE kind = 'BOUND_DEVICE' AND account_id = ?",
+                        Integer.class,
+                        other))
                 .isZero();
     }
 
@@ -116,7 +121,10 @@ class BoundDeviceIT extends MySqlIntegrationTestBase {
         mvc.perform(get("/api/v1/me").header("Authorization", bearer(session[0])))
                 .andExpect(status().isUnauthorized());
         assertThat(boundDevices.identify(session[1])).isEmpty();
-        assertThat(jdbc.queryForMap("SELECT unbind_reason, unbind_note FROM bound_device WHERE device_id = ?", device))
+        assertThat(jdbc.queryForMap(
+                        "SELECT end_reason AS unbind_reason, end_note AS unbind_note FROM device_credential"
+                                + " WHERE kind = 'BOUND_DEVICE' AND device_id = ?",
+                        device))
                 .containsEntry("unbind_reason", "MANUAL")
                 .containsEntry("unbind_note", "Báo mất máy");
         String current =
@@ -160,7 +168,8 @@ class BoundDeviceIT extends MySqlIntegrationTestBase {
         assertThat(boundDevices.identify(deviceToken))
                 .hasValueSatisfying(d -> assertThat(d.deviceId()).isEqualTo(device));
         assertThat(jdbc.queryForObject(
-                        "SELECT login_qr_code_id IS NULL FROM bound_device WHERE device_id = ? AND unbound_at IS NULL",
+                        "SELECT login_qr_code_id IS NULL FROM device_credential WHERE kind = 'BOUND_DEVICE' AND device_id = ?"
+                                + " AND ended_at IS NULL",
                         Boolean.class,
                         device))
                 .isTrue();

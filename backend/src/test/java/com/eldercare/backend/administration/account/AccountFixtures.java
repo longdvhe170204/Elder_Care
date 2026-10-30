@@ -46,7 +46,8 @@ class AccountFixtures {
         long accountId = jdbc.queryForObject("SELECT id FROM account WHERE staff_id = ?", Long.class, staffId);
         for (String role : roles) {
             jdbc.update(
-                    "INSERT INTO role_assignment (account_id, role, effective_from, reason) VALUES (?, ?, ?, 'Test')",
+                    "INSERT INTO permission_assignment (kind, applies_to, account_id, role, effective_from, reason)"
+                            + " VALUES ('ROLE_ASSIGNMENT', 'ACCOUNT', ?, ?, ?, 'Test')",
                     accountId,
                     role,
                     created);
@@ -72,7 +73,8 @@ class AccountFixtures {
         long accountId =
                 jdbc.queryForObject("SELECT id FROM account WHERE family_member_id = ?", Long.class, familyMemberId);
         jdbc.update(
-                "INSERT INTO role_assignment (account_id, role, effective_from, reason) VALUES (?, 'AC-10', ?, 'Test')",
+                "INSERT INTO permission_assignment (kind, applies_to, account_id, role, effective_from, reason)"
+                        + " VALUES ('ROLE_ASSIGNMENT', 'ACCOUNT', ?, 'AC-10', ?, 'Test')",
                 accountId,
                 created);
         return accountId;
@@ -91,7 +93,8 @@ class AccountFixtures {
                 """, "resident-" + residentId, residentId, created, created);
         long accountId = jdbc.queryForObject("SELECT id FROM account WHERE resident_id = ?", Long.class, residentId);
         jdbc.update(
-                "INSERT INTO role_assignment (account_id, role, effective_from, reason) VALUES (?, 'AC-16', ?, 'Test')",
+                "INSERT INTO permission_assignment (kind, applies_to, account_id, role, effective_from, reason)"
+                        + " VALUES ('ROLE_ASSIGNMENT', 'ACCOUNT', ?, 'AC-16', ?, 'Test')",
                 accountId,
                 created);
         return accountId;
@@ -110,7 +113,7 @@ class AccountFixtures {
     ActiveSession user(long accountId) {
         Set<Role> roles = EnumSet.noneOf(Role.class);
         for (String code : jdbc.queryForList(
-                "SELECT role FROM role_assignment WHERE account_id = ? AND effective_to IS NULL",
+                "SELECT role FROM permission_assignment WHERE kind = 'ROLE_ASSIGNMENT' AND account_id = ? AND effective_to IS NULL",
                 String.class,
                 accountId)) {
             Arrays.stream(Role.values()).filter(r -> r.code().equals(code)).forEach(roles::add);

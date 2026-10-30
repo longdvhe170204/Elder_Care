@@ -148,7 +148,8 @@ public class TestUsers {
 
     private void assignRole(long accountId, Role role) {
         jdbc.update(
-                "INSERT INTO role_assignment (account_id, role, effective_from, reason) VALUES (?, ?, ?, 'Test')",
+                "INSERT INTO permission_assignment (kind, applies_to, account_id, role, effective_from, reason)"
+                        + " VALUES ('ROLE_ASSIGNMENT', 'ACCOUNT', ?, ?, ?, 'Test')",
                 accountId,
                 role.code(),
                 utc(time.now().minus(Duration.ofDays(1))));

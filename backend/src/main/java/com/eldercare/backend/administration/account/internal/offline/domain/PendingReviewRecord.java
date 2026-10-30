@@ -2,7 +2,10 @@ package com.eldercare.backend.administration.account.internal.offline.domain;
 
 import java.time.Instant;
 
-/** Một dòng {@code pending_review_record} (data-model mục 5); {@code content} là JSON gốc từ thiết bị. */
+/**
+ * Một bản ghi chờ xem lại ({@code simple_record} loại {@code M15.PENDING_REVIEW_RECORD}, data-model mục 0.1);
+ * {@code content} là JSON gốc từ thiết bị.
+ */
 public record PendingReviewRecord(
         long id,
         String recordType,
