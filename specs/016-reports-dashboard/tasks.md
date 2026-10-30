@@ -164,9 +164,9 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ## Phase 10: User Story 8 – Báo cáo nhân sự và ca trực (Priority: P3)
 
-**Goal**: Ca, thiếu phủ, đổi ca, nghỉ, tỷ lệ phục vụ, chứng chỉ (FR-070 → FR-073).
+**Goal**: Ca, đổi ca, nghỉ, tỷ lệ phục vụ, chứng chỉ (FR-070 → FR-073; thiếu phủ, thiếu ca, lời mời bỏ theo Q-397).
 
-**Independent Test**: Tháng 11 tầng 2 với 60 ca, 4 ca thiếu phủ (20 giờ), 1 mục thiếu ca đã công bố, 6 yêu cầu đổi ca → số đúng.
+**Independent Test**: Tháng 11 tầng 2 với 60 ca, 6 yêu cầu đổi ca → số đúng (ca thiếu phủ, mục thiếu ca bỏ theo Q-397).
 
 ### Tests cho User Story 8
 
