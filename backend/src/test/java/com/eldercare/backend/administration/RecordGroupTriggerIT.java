@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -52,6 +53,34 @@ class RecordGroupTriggerIT extends MySqlIntegrationTestBase {
         assertThat(tables)
                 .allSatisfy(table ->
                         assertThat(triggers).contains("trg_" + table + "_no_update", "trg_" + table + "_no_delete"));
+    }
+
+    /** Constitution XII 3.2.0, research R-15: bảng chứa nhiều nhóm có cột {@code locked_at} và hai trigger theo dòng. */
+    @Test
+    void XII_everyTableWithLockedAt_hasRowLockAndNoDeleteTriggers() throws SQLException {
+        List<String> tables = new ArrayList<>();
+        Set<String> triggers = new HashSet<>();
+        try (Connection c = adminConnection();
+                Statement st = c.createStatement()) {
+            try (ResultSet rs = st.executeQuery("SELECT LOWER(TABLE_NAME) FROM information_schema.COLUMNS"
+                    // shedlock là bảng khóa job của thư viện ShedLock, cột locked_at không phải khóa theo dòng
+                    + " WHERE TABLE_SCHEMA = DATABASE() AND COLUMN_NAME = 'locked_at' AND TABLE_NAME <> 'shedlock'")) {
+                while (rs.next()) {
+                    tables.add(rs.getString(1));
+                }
+            }
+            try (ResultSet rs = st.executeQuery(
+                    "SELECT LOWER(TRIGGER_NAME) FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA = DATABASE()")) {
+                while (rs.next()) {
+                    triggers.add(rs.getString(1));
+                }
+            }
+        }
+
+        assertThat(tables).contains("simple_record");
+        assertThat(tables)
+                .allSatisfy(table ->
+                        assertThat(triggers).contains("trg_" + table + "_row_lock", "trg_" + table + "_no_delete"));
     }
 
     @Test
