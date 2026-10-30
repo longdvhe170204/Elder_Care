@@ -296,6 +296,8 @@ mobile/                          # một app chung cho nhân viên, người th�
 
 **Dịch vụ ngoài (2026-10-19)**: chủ dự án chọn AWS S3 cho tệp, FCM cho thông báo đẩy, dịch vụ SMS bên ngoài. Giao diện của 000 không đổi: `FileApi`, `FilePermissionProvider` (T036) giữ nguyên, 001 cài bằng S3 (001 research H-13); khuôn thông báo `common.notification` (T034) không phụ thuộc kênh, 009 gửi qua FCM và bộ chuyển SMS (009 research B-05). Region S3, nghĩa vụ chuyển dữ liệu ra nước ngoài và nhà cung cấp SMS chờ chủ dự án chốt (plan 001, 009).
 
+- T108 phần 1 (chủ dự án duyệt 2026-10-30): chữ ký API bảng chung ở module-interfaces mục 1.8. Lệch kỹ thuật so với R-15: nội dung `JSON` của dòng bảng chung là record Java của module, kiểm bằng Bean Validation khi ghi (`SharedContent`), thay JSON Schema theo loại; không thêm thư viện, cấu trúc khai một nơi. Quyền sở hữu loại kiểm bằng `SharedKindArchTest` (mã loại trùng tiền tố module khai báo, loại đặt ở `api` phải `readableByOtherModules()`). API không tự ghi nhật ký; module gọi ghi bằng giá trị trước/sau trả về. `record_event.reply_to_id` dùng `ON DELETE CASCADE` vì trả lời cùng chuỗi bản ghi bị loại bỏ cùng đợt (R-11), tài khoản ứng dụng không có quyền xóa. Lớp cài danh mục đặt tên `CatalogItemService` vì trùng tên bean với `CatalogService` của resident. T108 chia hai PR: phần 1 (bảy bảng, API, bản giả) gỡ chặn cho B, C, D, E; phần 2 (`application_result`, chuỗi đính chính, `scheduler_run` ra file log, job loại bỏ với bảng chung, `LegacyRecordTypeSource`, `@DataGroup` nhiều nhóm).
+
 ## Điểm cần báo lại về tài liệu nguồn
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới, rồi sửa `docs/business/nghiep-vu.md` và spec 000.
