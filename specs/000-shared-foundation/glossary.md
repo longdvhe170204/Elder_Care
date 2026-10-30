@@ -335,6 +335,8 @@ Loại yêu cầu, loại bản ghi của module khác (ví dụ `M02.THAY_DOI_L
 | xóa dòng bảng chung khi loại bỏ dữ liệu | `SharedRowRetention` (`deleteFor`, `deleteForResidents`, `RESIDENT`) |
 | `ket_qua_ap_dung` sau gộp: cột kết quả áp dụng của `yeu_cau_phe_duyet`, `khoa_luc` | `approval_request` (`result_type`, `result_id`, `result_recorded_at`, `locked_at`) |
 | thư mục file log job | thuộc tính `eldercare.logging.jobs-dir`; `logback-spring.xml`, logger `jobs` |
+| khai nhóm dữ liệu của bảng không có entity; nhóm kỹ thuật | COMMENT của bảng `DataGroup=…`; giá trị `TECHNICAL` (chỉ ở COMMENT) |
+| job dọn dữ liệu kỹ thuật (khóa chống lặp, sự kiện đã giao xong) | `CLEAN_TECHNICAL_DATA`; `TechnicalDataCleanup`, `TechnicalDataCleanupJob` (`common.scheduling`) |
 
 ## 7. Feature 002 *(bổ sung 2026-10-19, khi dịch `contracts/api-002.yaml`)*
 

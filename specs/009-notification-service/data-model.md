@@ -150,6 +150,10 @@ Không `UPDATE`, không `DELETE` (mẫu 000).
 
 ### `khung_gop_tin_nhan` *(gộp theo R-15 vào `ho_so_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
+### `notification_request_duplicate` – kỹ thuật *(ghi 2026-10-30 theo audit cơ sở dữ liệu)*
+
+Bảng đã cài ở `V009_01`: một dòng mỗi lần nhận trùng yêu cầu (`request_id`, `received_at`, FR-005), không sửa dòng yêu cầu. Theo R-15 gộp vào `moc_da_nhac` (mục 0, 009 T043).
+
 ### `thiet_bi_day` – kỹ thuật
 
 `tai_khoan_id`, `ma_thiet_bi` (002), `ung_dung` (`APP_NHAN_VIEN`, `APP_NGUOI_THAN`, `APP_NGUOI_CAO_TUOI` bổ sung 2026-10-18), `fcm_token`, `cap_nhat_luc`, `vo_hieu_luc`. Token hết hạn (FCM trả lỗi) thì đặt `vo_hieu_luc`.

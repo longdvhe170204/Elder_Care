@@ -85,7 +85,9 @@ public class TestClockController {
         REMIND_CARE_LEVEL_CHANGE_REQUEST,
         // Hai job của M03 (003 FR-015, FR-023, research G-09; chủ dự án duyệt 2026-10-26)
         EXPIRE_BED_HOLDS,
-        REPORT_FUTURE_ALLOCATION_PAST_START
+        REPORT_FUTURE_ALLOCATION_PAST_START,
+        // Dọn dữ liệu kỹ thuật (audit cơ sở dữ liệu F-11, F-12; chủ dự án duyệt 2026-10-30)
+        CLEAN_TECHNICAL_DATA
     }
 
     public record ClockResponse(OffsetDateTime now, boolean simulated) {}
