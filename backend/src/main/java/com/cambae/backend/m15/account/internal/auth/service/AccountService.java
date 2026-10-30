@@ -485,9 +485,33 @@ public class AccountService implements AccountApi {
     }
 
     /** Căn cứ mở khóa sớm của người dùng với tài khoản (FR-019c); không đủ thì từ chối. */
+    /** Ứng viên mở khóa sớm của màn app nhân viên (FR-019c): id, họ tên, khóa tới, phiên bản cho {@code If-Match}. */
+    public record EarlyUnlockCandidate(long accountId, String fullName, Instant lockedUntil, long version) {}
+
+    /**
+     * Tài khoản nhân viên đang Khóa tạm mà người dùng được mở khóa sớm theo cùng luật của lệnh (FR-019c): Quản lý viện
+     * thấy mọi tài khoản; Trưởng tầng, Người phụ trách ca thấy người cùng tầng và ca; người khác nhận danh sách trống.
+     */
+    @Transactional(readOnly = true)
+    public List<EarlyUnlockCandidate> earlyUnlockCandidates() {
+        CurrentUser user = currentUser.getObject();
+        return store.temporarilyLockedStaff(time.now()).stream()
+                .filter(a -> authority(user, a).isPresent())
+                .map(a -> new EarlyUnlockCandidate(a.id(), fullName(a.id()).orElse(null), a.lockedUntil(), a.version()))
+                .toList();
+    }
+
     private String earlyUnlockAuthority(CurrentUser user, Account account) {
+        return authority(user, account)
+                .orElseThrow(() -> new PermissionDeniedException(
+                        "PERMISSION_DENIED",
+                        "Chỉ Quản lý viện, Trưởng tầng hoặc Người phụ trách ca cùng tầng và ca mở khóa sớm (FR-019c)",
+                        Map.of("failedLayer", "SCOPE")));
+    }
+
+    private Optional<String> authority(CurrentUser user, Account account) {
         if (user.roles().contains(Role.NURSING_HOME_MANAGER)) {
-            return Role.NURSING_HOME_MANAGER.name();
+            return Optional.of(Role.NURSING_HOME_MANAGER.name());
         }
         AssignmentApi api = assignments.getIfAvailable();
         if (account.type() == AccountType.STAFF && user.staffId().isPresent() && api != null) {
@@ -502,19 +526,16 @@ public class AccountService implements AccountApi {
                     }
                     if (mine.kind() == AssignmentKind.SHIFT_LEAD
                             && theirs.shiftId().equals(mine.shiftId())) {
-                        return AssignmentKind.SHIFT_LEAD.name();
+                        return Optional.of(AssignmentKind.SHIFT_LEAD.name());
                     }
                     if (mine.kind() == AssignmentKind.FLOOR_MANAGER
                             && user.roles().contains(Role.FLOOR_MANAGER)) {
-                        return AssignmentKind.FLOOR_MANAGER.name();
+                        return Optional.of(AssignmentKind.FLOOR_MANAGER.name());
                     }
                 }
             }
         }
-        throw new PermissionDeniedException(
-                "PERMISSION_DENIED",
-                "Chỉ Quản lý viện, Trưởng tầng hoặc Người phụ trách ca cùng tầng và ca mở khóa sớm (FR-019c)",
-                Map.of("failedLayer", "SCOPE"));
+        return Optional.empty();
     }
 
     /** Lệnh trên tài khoản người thân: Hành chính hoặc Quản lý viện (FR-051, chú thích ¹²). */

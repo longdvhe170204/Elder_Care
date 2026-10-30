@@ -14,6 +14,8 @@ Chiều phụ thuộc theo research C-02: 005 phụ thuộc 000, 001, 002, 003, 
 
 Mục1.11 đã có28event ở `api.events`; `CareEventContext(sourceType, sourceId, milestone, occurredAt, floorAreaId, recipients)` là metadata kỹ thuật. `milestone` phải ổn định theo sự kiện nghiệp vụ, không đổi thành giờ phát lại. Khóa tính từ lớp+id+hash(namespace+mốc); TaskSourceChanged phân biệt SourceType, nhắc thỏa thuận phân biệt reviewDateType. `CareNotice` cài HasNotificationRequests; nhóm nhận do producer trong story cung cấp đúng C-13. Chưa có producer/listener/outbox story nên khai báo không là bằng chứng đã giao tới007/009/010/011. `RiskAgreementReviewReminder` tương ứng NhacXemLaiThoaThuan của C-18/Q-360, bổ sung vào nhóm sự kiện review vốn chưa có dòng riêng trong bảng.
 
+**Đồng bộ tiếng Anh khi merge 2026-10-28, chủ dự án duyệt**: giữ chữ ký đã có consumer M09: `TaskTypeApi.requirements(long): TaskRequirements`; `ShiftTaskApi.onAbsence(long,long)`, `onResignation(long,Instant)`, `onApprovedLeave(long,Set<Long>)`, `onAssignmentChanged`, `onAssignmentEnded`; `onHandoverConfirmed(long,long,Long,Set<Long>,Instant): HandoverTransferResult`. `nextShiftId` nullable khi chưa có ca sau; không tự mở ca hoặc chuyển null sang id giả. Giữ đủ bốn hàm CarePlanApi. Kiểu NamedInterface api là `checklist`. Đây là đồng bộ khai báo, chưa có bản cài story.
+
 ### 1.1. SPI khai báo ở module thấp hơn, M04 cài
 
 | SPI (gói khai báo) | Bản cài của 005 | Dùng bởi |

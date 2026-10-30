@@ -9,7 +9,7 @@ public class FakeM04ApiFixture {
     private final Map<Key, Supplier<?>> replies = new HashMap<>();
 
     public void reply(Class<?> api, String method, List<?> arguments, Supplier<?> result) {
-        replies.put(new Key(api, method, List.copyOf(arguments)), result);
+        replies.put(new Key(api, method, Collections.unmodifiableList(new ArrayList<>(arguments))), result);
     }
 
     public <T> T api(Class<T> type) {
@@ -21,7 +21,7 @@ public class FakeM04ApiFixture {
                     case "equals" -> proxy == args[0];
                     default -> throw new IllegalStateException(method.getName());
                 };
-            Key key = new Key(type, method.getName(), args == null ? List.of() : List.of(args));
+            Key key = new Key(type, method.getName(), args == null ? List.of() : Arrays.asList(args));
             Supplier<?> result = replies.get(key);
             if (result == null)
                 throw new IllegalStateException(

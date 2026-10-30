@@ -55,7 +55,9 @@ public class FakeAssignments implements AssignmentApi {
         return assignments.stream()
                 .filter(e -> target.test(e.assignment()))
                 .filter(e -> !e.assignment().from().isAfter(at)
-                        && (e.assignment().to() == null || e.assignment().to().isAfter(at)))
+                        && (e.assignment().to() == null || e.assignment().to().isAfter(at))
+                        && (e.assignment().scopeEndsAt() == null
+                                || e.assignment().scopeEndsAt().isAfter(at)))
                 .map(Entry::staffId)
                 .distinct()
                 .toList();
@@ -70,6 +72,7 @@ public class FakeAssignments implements AssignmentApi {
                 .filter(e -> e.staffId() == staffId)
                 .map(Entry::assignment)
                 .filter(a -> a.from().isBefore(to) && (a.to() == null || a.to().isAfter(from)))
+                .filter(a -> a.scopeEndsAt() == null || a.scopeEndsAt().isAfter(from))
                 .toList();
     }
 }

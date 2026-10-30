@@ -29,12 +29,17 @@ describe('App', () => {
         mustChangePassword: false,
       }),
     )
+    // Menu theo quyền thật (002 FR-042): chỉ có Checklist ca, không có Tổng quan nên mở mục đầu tiên được phép
+    api.on('GET', '/me/permissions', json(200, [{ function: 'TASK_CHECKLIST', operation: 'VIEW' }]))
     api.on('POST', '/auth/logout', new Response(null, { status: 204 }))
     render(<App />)
 
     expect(await screen.findByText('Lê Văn Trưởng Tầng')).toBeInTheDocument()
     expect(screen.getByText('Trưởng tầng')).toBeInTheDocument()
     expect(screen.queryByLabelText('Xem với vai trò')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Checklist ca' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Tổng quan' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Phát thuốc' })).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Đăng xuất' }))
     await waitFor(() => expect(api.calls('POST', '/auth/logout')).toHaveLength(1))

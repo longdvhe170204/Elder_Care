@@ -12,7 +12,6 @@ import com.cambae.backend.m14.internal.scope.service.ReportPeriods;
 import com.cambae.backend.m14.internal.scope.service.ReportPeriods.ReportPeriod;
 import com.cambae.backend.m14.internal.scope.service.ReportScopeService;
 import com.cambae.backend.m15.account.api.CurrentUser;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -54,21 +53,18 @@ public class MetricDetailService {
     public MetricDetail details(
             CurrentUser user, String metricCode, LocalDate from, LocalDate to, String breakdownKey, int page) {
         MetricSource<?> source = catalog.source(metricCode).orElseThrow(NotFoundException::new);
-        Instant start;
-        Instant end;
-        ReportScope scope;
+        List<DetailRow> rows;
         if (from == null && to == null) {
             LocalDate today = time.today();
-            start = time.startOfDay(today);
-            end = time.startOfDay(today.plusDays(1));
-            scope = scopes.dashboard(user, source.metric().group());
+            ReportScope scope = scopes.dashboard(user, source.metric().group());
+            rows = evaluator.currentDetails(
+                    user, source, scope, time.startOfDay(today), time.startOfDay(today.plusDays(1)), breakdownKey);
         } else {
             ReportPeriod period = periods.check(from, to);
-            start = period.start();
-            end = period.end();
-            scope = scopes.period(user, source.metric().group(), start, end);
+            ReportScope scope = scopes.period(user, source.metric().group(), period.start(), period.end());
+            rows = evaluator.details(
+                    user, source, scope, period.start(), period.end(), ReportFilters.NONE, breakdownKey);
         }
-        List<DetailRow> rows = evaluator.details(user, source, scope, start, end, ReportFilters.NONE, breakdownKey);
         int first = Math.min(rows.size(), (Math.max(page, 1) - 1) * PAGE_SIZE);
         return new MetricDetail(metricCode, rows.size(), rows.subList(first, Math.min(rows.size(), first + PAGE_SIZE)));
     }

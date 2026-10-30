@@ -9,6 +9,49 @@ import java.util.Set;
  * Nhóm người nhận ({@code NhomNhan}; 009 research B-04, contracts/module-interfaces.md mục 1.1). 009 phân giải nhóm
  * thành người nhận tại thời điểm gửi theo phân công hiện tại (BR-M13-04).
  */
+@com.fasterxml.jackson.annotation.JsonTypeInfo(
+        use = com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME,
+        property = "kind")
+@com.fasterxml.jackson.annotation.JsonSubTypes({
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(
+            value = RecipientGroup.AssignedNurse.class,
+            name = "ASSIGNED_NURSE"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(
+            value = RecipientGroup.AssignedStaff.class,
+            name = "ASSIGNED_STAFF"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(
+            value = RecipientGroup.OnShiftStaff.class,
+            name = "ON_SHIFT_STAFF"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = RecipientGroup.ShiftLead.class, name = "SHIFT_LEAD"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(
+            value = RecipientGroup.OnDutyDoctor.class,
+            name = "ON_DUTY_DOCTOR"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(
+            value = RecipientGroup.FloorManager.class,
+            name = "FLOOR_MANAGER"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = RecipientGroup.TripLeader.class, name = "TRIP_LEADER"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(
+            value = RecipientGroup.DepartmentLead.class,
+            name = "DEPARTMENT_LEAD"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(
+            value = RecipientGroup.FacilityRole.class,
+            name = "FACILITY_ROLE"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = RecipientGroup.Approvers.class, name = "APPROVERS"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = RecipientGroup.Staff.class, name = "STAFF"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(
+            value = RecipientGroup.FamilyMember.class,
+            name = "FAMILY_MEMBER"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(
+            value = RecipientGroup.PrimaryContact.class,
+            name = "PRIMARY_CONTACT"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(
+            value = RecipientGroup.Representative.class,
+            name = "REPRESENTATIVE"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(
+            value = RecipientGroup.FamilyWithRight.class,
+            name = "FAMILY_WITH_RIGHT"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = RecipientGroup.Resident.class, name = "RESIDENT")
+})
 public sealed interface RecipientGroup {
 
     /** Nhóm loại (a) theo nhiệm vụ: luôn kèm cách thay khi không có người (FR-010, Q-110). */

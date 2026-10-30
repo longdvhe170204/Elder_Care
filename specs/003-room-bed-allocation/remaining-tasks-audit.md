@@ -1,21 +1,23 @@
 # Rà soát task còn lại của Spec 003 — 2026-10-25
 
+**Cập nhật riêng 2026-10-28**: T012/T015 đã được đối chiếu lại, bổ sung 6 ca và đóng sau test xanh; hiện tasks có22/65 task[x],43task[ ]. Phần dưới giữ bối cảnh snapshot25/10 cho các task khác, không dùng kết luận nguồn008/M01/mobile khi đó làm hiện trạng. Bằng chứng mới ở tasks/plan và progress; gate toàn kho vẫn còn15lỗiM01.
+
+**Cập nhật riêng 2026-10-29**: T029 đóng sau15ca mới/bộ hẹp43IT xanh; 003 hiện23/65task[x],42task[ ]. T032 đã có BedTransferService/BedTransferStore nhưng còn nhánh có dấu giá: chủ dự án giữ SPI, trả503 và bảo toàn dữ liệu/nhắc thay vì suy giá hợp đồng. T033/T034/T036 vẫn còn dở. Phần dưới giữ snapshot lịch sử; kết quả clean verify mới ghi ở plan/progress.
+
 ## Phạm vi và cách đọc
 
 Đối chiếu `tasks.md`, ghi chú triển khai trong `plan.md`, `verification.md` và source hiện có. Đây là lượt rà soát, không triển khai thêm, không chạy lại build/test và không đánh checkbox. Kết quả kiểm dưới đây là bằng chứng của lượt Phase 11 gần nhất, không phải kết quả chạy mới.
 
-`tasks.md` có 65 task: 20 task `[x]`, **45 task `[ ]`**. Phase 1–2 không còn task bỏ trống; Phase 6 đã đánh T037, T041. Checkbox trống không đồng nghĩa chưa viết code. Một task có thể đồng thời còn phần chưa cài, nguồn tích hợp chưa có và gate nghiệm thu chưa đạt.
+`tasks.md` hiện có 65 task: 23 task `[x]`, **42 task `[ ]`** (cập nhật T029 ngày 2026-10-29). Phase 1–2 không còn task bỏ trống; Phase 6 đã đánh T037, T041. Checkbox trống không đồng nghĩa chưa viết code. Một task có thể đồng thời còn phần chưa cài, nguồn tích hợp chưa có và gate nghiệm thu chưa đạt.
 
 Gate chung: lượt nền `mvnw.cmd clean verify` gần nhất kết thúc exit 1; 393 test đơn vị/kiến trúc xanh, 1073 IT có 6 failure + 9 error, không skip; 227 IT M03 xanh. 15 lỗi thuộc 8 lớp M01 đã nêu trong `verification.md` và `Working-history.md`. Frontend 250 test xanh, lint/build qua. Theo yêu cầu cuối phase phải clean verify qua trước khi đánh `[x]`, chưa thể đóng các task chỉ mới qua kiểm hẹp. Các lỗi toàn kho này không giải thích thay cho những chức năng còn thiếu bên dưới.
 
-## Danh sách đủ 45 task
+## Danh sách task còn trống (42 task sau cập nhật T029)
 
-### Phase 3 — 3 task
+### Phase 3 — còn 1 task sau cập nhật 2026-10-28
 
 | Task | Thực tế và lý do còn mở |
 |---|---|
-| T012 | Test chính sách phòng/đổi cha đã được bổ sung qua `FR_006_RoomPolicyIT`, `FR_006_RoomPolicyConcurrencyIT` và các test cấu trúc. Lý do chờ API M01 ban đầu đã được giải quyết cho phần này; còn gate chung, không nên tiếp tục ghi là chưa có test. |
-| T015 | `StructureService` đã cài CRUD, kiểm chính sách/tham chiếu, có kiểm hẹp xanh. Bản thật `LocationReferences` từ 008 chưa có để nghiệm thu tích hợp; test dùng fake của hợp đồng. Còn gate chung, không phải toàn bộ service chưa cài. |
 | T017 | Controller và API nội bộ phần cấu trúc đã có. Nhánh đổi phòng của giường chưa từng phân bổ vẫn trả 503 vì chưa có thao tác đồng bộ vị trí tài sản được duyệt; giường đã có phân bổ bị chặn theo FR-007. Cần chốt hợp đồng tài sản cho nhánh còn thiếu và qua gate chung. |
 
 ### Phase 4 — 7 task
@@ -30,18 +32,17 @@ Gate chung: lượt nền `mvnw.cmd clean verify` gần nhất kết thúc exit 
 | T027 | HTTP danh sách/tạo/chi tiết/hủy/giường phù hợp/vị trí/tổng hợp đã cài, được `ApiContractIT` kiểm. Còn gate chung; endpoint chuyển thường thuộc T036 vẫn thiếu, không gộp thành toàn bộ T027 chưa làm. |
 | T028 | Web `BedAllocationForm`, `BedAllocationsPanel`, bảng giường và test đã có; frontend kiểm xanh. Còn gate cuối phase, dữ liệu backend thật đầy đủ cho nghiệm thu liên thông. |
 
-### Phase 5 — 8 task
+### Phase 5 — còn 7 task sau cập nhật T029
 
 | Task | Thực tế và lý do còn mở |
 |---|---|
-| T029 | Chưa có bộ test đầy đủ cho chuyển thường và hai lệnh chuyển thường đồng thời. Test `ControlledTransferService` ở Phase 9 chỉ chứng minh luồng ngoại lệ kiểm soát lây nhiễm, không thay thế task này. Cần T032. |
 | T030 | Chưa có kiểm trọn luồng giữ trước/áp dụng chuyển theo lịch/chờ sẵn sàng/thất bại hủy. Thiếu implementation T033; tích hợp yêu cầu lưu trú 004 thật sẽ làm sau. |
 | T031 | Đã có kiểm đánh giá lại phù hợp, nhưng chưa đủ chuyển gấp khác giá, kết quả yêu cầu sau chuyển và workflow nhập bù. Cần T032–T035; không thể dùng test schema nhập bù để coi workflow đã đạt. |
-| T032 | **Chưa cài chuyển giường thường**. Hiện chỉ có `ControlledTransferService` cho Phase 9. Đây là phần implementation của chính 003; checker/locks và API M01 cơ bản đã có để tiếp tục trong phạm vi hợp đồng hiện hành. |
-| T033 | **Chưa có bean thực thi `BedAllocationCommandApi`** và các lệnh chuyển theo lịch/kết quả yêu cầu sau chuyển gấp. Interface đã khai báo; không phải chờ người khác khai báo thay 003. Cần T032 và nối 004 cho kiểm tích hợp sau đó. |
-| T034 | Migration `V003_04__bed_backfill_request.sql` và test schema đã có; **handler `M03.NHAP_BU_PHAN_BO` chưa cài**. Cần lệnh chuyển và khoảng vắng. `ResidentStatusApiImpl.statusPeriods()` của M01 hiện ném `UnsupportedOperationException`, cần B hoàn thiện nguồn này. |
+| T032 | Đã cài chuyển trực tiếp và tạo dấu nhắc khác giá,15ca test xanh. Còn chuyển từ phân bổ có dấu giá: chủ dự án giữ SPI, tạm503/bảo toàn dữ liệu, chưa đủ nguồn so với giá hợp đồng. Giữ task mở; không gộp thành T033/T034/T036 đã xong. |
+| T033 | **Chưa có bean thực thi `BedAllocationCommandApi`** và các lệnh chuyển theo lịch/kết quả yêu cầu sau chuyển gấp. Interface đã khai báo; không phải chờ người khác khai báo thay 003. Nối cơ chế chuyển với T032 khi cài T033 và kiểm nguồn004 sau đó. |
+| T034 | Migration `V003_04__bed_backfill_request.sql` và test schema đã có; **handler `M03.NHAP_BU_PHAN_BO` chưa cài**. Cần handler nhập bù và cơ chế áp dụng thời điểm quá khứ; nguồn M01 statusPeriods đã có bản thật trên develop. |
 | T035 | `AllocationSuitabilityListener` đã nghe 3 sự kiện M01: `CareLevelChanged`, `InitialAssessmentConfirmed`, `PersonalInfoUpdated`; service/marker đã kiểm. Còn listener sự kiện đổi loại lưu trú do 004 cung cấp, và gate chung. |
-| T036 | Contract chuyển thường đã dịch/duyệt; web form/panel đã có. **`POST /bed-allocations/{id}/transfer` chưa có controller**, vẫn nằm trong pending của `ApiContractIT`; cần T032/T034. Mobile nhân viên chưa được mở theo CLAUDE.md, giữ phần đó chưa làm. |
+| T036 | Contract chuyển thường đã dịch/duyệt; web form/panel đã có. **`POST /bed-allocations/{id}/transfer` chưa có controller**, vẫn nằm trong pending của `ApiContractIT`; cần T032/T034. Mobile nhân viên đã mở theo CLAUDE.md từ2026-10-27; phần chuyển giường mobile chưa cài. |
 
 ### Phase 6 — 6 task
 
@@ -107,4 +108,4 @@ Gate chung: lượt nền `mvnw.cmd clean verify` gần nhất kết thúc exit 
 3. **Quyết định chưa mở/đã từ chối**: đổi phòng giường cần đồng bộ tài sản; dấu nhập bù HTTP theo giường; version/UI và danh sách người có lịch bán trú; mở enum clock 000; mobile nhân viên chưa mở. Không tự suy yêu cầu rà soát thành duyệt những thay đổi này.
 4. **Nghiệm thu**: sau các task nguồn mới chạy lại phạm vi liên quan, kiểm QA/demo/hiệu năng còn thiếu, cuối cùng clean verify nền. Chỉ đánh `[x]` khi đủ nội dung từng task và gate đã được yêu cầu; không phải chỉ sửa 15 lỗi M01 là mọi task còn lại tự hoàn tất.
 
-Không có Phase 12 trong `tasks.md`. Không thay đổi code, contract, nghiệp vụ hoặc trạng thái 65 checkbox trong lượt rà soát này.
+Không có Phase 12 trong `tasks.md`. Lượt snapshot 25/10 không thay đổi code/contract/nghiệp vụ/checkbox. Riêng cập nhật 28/10 đã đánh T012/T015 sau khi kiểm đủ bằng chứng và test xanh; không thay đổi các checkbox khác.

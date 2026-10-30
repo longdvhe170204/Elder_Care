@@ -132,6 +132,13 @@ class FR_035_LocationHistoryHttpIT extends StructureTestSupport {
 
     @Test
     void FR_036_missingM01AbsenceSourceFailsClosed() throws Exception {
+        org.mockito.Mockito.doThrow(new UnsupportedOperationException("Nguồn khoảng vắng không sẵn sàng"))
+                .when(statuses)
+                .statusPeriods(
+                        org.mockito.ArgumentMatchers.anyLong(),
+                        org.mockito.ArgumentMatchers.anySet(),
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.any());
         long otherBed = TestUsers.nextId();
         jdbc.update("INSERT INTO bed(id,room_id,code) VALUES(?,?,'G2')", otherBed, room);
         jdbc.update(
@@ -144,6 +151,65 @@ class FR_035_LocationHistoryHttpIT extends StructureTestSupport {
                         .param("to", "2026-01-02T00:00:00Z"))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.errorCode").value("SOURCE_UNAVAILABLE"));
+    }
+
+    @Test
+    void FR_036_roommateAbsencesUseRealM01HistoryAndClipToOverlap() throws Exception {
+        long otherBed = TestUsers.nextId(), other = TestUsers.nextId();
+        jdbc.update("INSERT INTO bed(id,room_id,code) VALUES(?,?,'G2')", otherBed, room);
+        for (long person : java.util.List.of(resident, other)) {
+            jdbc.update(
+                    "INSERT INTO resident(id,full_name,date_of_birth,gender,status,status_since,created_at,created_by) VALUES(?,?,'1950-01-01','FEMALE','IN_RESIDENCE',?,?,?)",
+                    person,
+                    person == resident ? "[Họ tên NCT 1]" : "[Họ tên NCT 2]",
+                    Timestamp.from(time.now()),
+                    Timestamp.from(time.now()),
+                    user.accountId());
+        }
+        jdbc.update(
+                "INSERT INTO bed_allocation(resident_id,bed_id,status,start_at,end_at,checked_care_level,care_level_source) VALUES(?,?,'CLOSED','2026-01-01 01:00:00','2026-01-01 02:00:00','BASIC','CURRENT')",
+                other,
+                otherBed);
+        statusHistory(
+                resident, "IN_RESIDENCE", "TEMPORARILY_ABSENT", "GRANT_TEMPORARY_ABSENCE", "2026-01-01T00:30:00Z");
+        statusHistory(resident, "TEMPORARILY_ABSENT", "IN_RESIDENCE", "RECORD_RETURN", "2026-01-01T01:15:00Z");
+        statusHistory(other, "IN_RESIDENCE", "TEMPORARILY_ABSENT", "GRANT_TEMPORARY_ABSENCE", "2026-01-01T01:30:00Z");
+        statusHistory(other, "TEMPORARILY_ABSENT", "IN_RESIDENCE", "RECORD_RETURN", "2026-01-01T02:30:00Z");
+        statusHistory(other, "IN_RESIDENCE", "HOSPITALIZED", "TRANSFER_OUT", "2026-01-02T12:00:00Z");
+        statusHistory(other, "HOSPITALIZED", "IN_RESIDENCE", "RECORD_RETURN", "2026-01-02T13:00:00Z");
+
+        // Không stub statusPeriods: yêu cầu HTTP phải đi qua bản đọc lịch sử M01 thật.
+        mvc.perform(get("/api/v1/location-history/roommates")
+                        .param("residentId", Long.toString(resident))
+                        .param("from", "2026-01-01T00:00:00Z")
+                        .param("to", "2026-01-03T00:00:00Z"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].residentId").value(other))
+                .andExpect(jsonPath("$[0].fullName").value("[Họ tên NCT 2]"))
+                .andExpect(jsonPath("$[0].overlaps[0].from").value("2026-01-01T01:00:00Z"))
+                .andExpect(jsonPath("$[0].overlaps[0].to").value("2026-01-01T02:00:00Z"))
+                .andExpect(jsonPath("$[0].absences.length()").value(2))
+                .andExpect(jsonPath("$[0].absences[0].residentId").value(resident))
+                .andExpect(jsonPath("$[0].absences[0].type").value("TEMPORARILY_ABSENT"))
+                .andExpect(jsonPath("$[0].absences[0].from").value("2026-01-01T01:00:00Z"))
+                .andExpect(jsonPath("$[0].absences[0].to").value("2026-01-01T01:15:00Z"))
+                .andExpect(jsonPath("$[0].absences[1].residentId").value(other))
+                .andExpect(jsonPath("$[0].absences[1].from").value("2026-01-01T01:30:00Z"))
+                .andExpect(jsonPath("$[0].absences[1].to").value("2026-01-01T02:00:00Z"));
+    }
+
+    private void statusHistory(long person, String from, String to, String command, String at) {
+        jdbc.update(
+                "INSERT INTO resident_status_history(id,resident_id,from_status,to_status,command,occurred_at,performed_by,reason) VALUES(?,?,?,?,?,?,?,?)",
+                TestUsers.nextId(),
+                person,
+                from,
+                to,
+                command,
+                Timestamp.from(java.time.Instant.parse(at)),
+                user.accountId(),
+                "Dữ liệu kiểm thử FR-036");
     }
 
     @Test

@@ -44,17 +44,17 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 - [ ] T005 Tạo `MIG/V005_01__nen_m04.sql`: `cham_soc_nct` (`nct_id` khóa chính, `phien_ban`), `lan_chay_m04 (viec, moc)` khóa chính hai cột; `loai_cong_viec` (mẫu nhóm 1; `nhom ENUM(...)` 18 giá trị ở data-model mục 4, `UONG_THUOC` không chọn được cho mục kế hoạch; `chuyen_mon BOOLEAN`; `loai_ket_qua ENUM('AN_UONG','ML','GIA_TRI_DO','VAN_DONG','NGU','TAM_TRANG','HANH_VI','SO_LUONG_VAT_PHAM','DA_THUC_HIEN','KHONG_GHI')`; `muc_mac_dinh ENUM('THUONG','QUAN_TRONG','BAT_BUOC')`; `khung_truoc`, `khung_sau SMALLINT NULL` – `NULL` dùng CFG-M04-02; `co_tinh_phi`, `dich_vu_id`, `gioi_han_tren`, `loai_chi_so`), `loai_cong_viec_chung_chi (loai_cong_viec_id, ma_chung_chi)`, `danh_muc_gia_tri_ket_qua` (`loai` `NGU_CHAT_LUONG|TAM_TRANG|HANH_VI`, `nhom_quy_tac` `MAT_NGU|TIEU_CUC|NULL`)
 - [ ] T006 Cài `BE/m04/trangthai/internal/KhoaChamSoc.java` (khóa `cham_soc_nct` theo thứ tự research C-03) và khung job `BE/m04/lich/ViecTheoPhutM04.java` (mỗi phút, ShedLock, chạy bù, nhắc gộp) và `ViecHangNgayM04.java` (00:00 và khi khởi động; `lan_chay_m04`) – các việc đăng ký dần ở story (research C-12; NFR-04, SC-005)
 - [ ] T007 Cài danh mục loại công việc, giá trị kết quả (AC-01; tạo, sửa, ngừng hiệu lực) trong `BE/m04/danhmuc/internal/LoaiCongViecService.java` và `BE/m04/danhmuc/web/DanhMucM04Controller.java` (`/loai-cong-viec`, `/{id}`, `/{id}/ngung-hieu-luc`, `/danh-muc-gia-tri-ket-qua`) (FR-038; research C-15)
-- [ ] T007a Tạo `MIG/V005_01a__loai_ly_do.sql` và cài danh mục loại lý do Không thực hiện trong `BE/m04/danhmuc/internal/LoaiLyDoService.java`, endpoint `/loai-ly-do-khong-thuc-hien`, `/{id}`, `/{id}/ngung-hieu-luc` trong `DanhMucM04Controller`: mẫu nhóm 1 cộng `co_dinh BOOLEAN`; nạp dòng cố định "Người cao tuổi từ chối"; `CHECK (NOT co_dinh OR trang_thai = 'HIEU_LUC')`; trigger chặn đổi `ten`, `co_dinh` của dòng cố định; sửa hoặc ngừng dòng cố định → 409 `LOAI_LY_DO_CO_DINH`; test `BT/m04/FR_028a_LoaiLyDoKhongThucHienIT.java` (phần danh mục) viết trước (FR-028a, research C-18; bổ sung 2026-10-18)
+- [x] T007a Tạo `MIG/V005_01a__loai_ly_do.sql` và cài danh mục loại lý do Không thực hiện trong `BE/m04/danhmuc/internal/LoaiLyDoService.java`, endpoint `/loai-ly-do-khong-thuc-hien`, `/{id}`, `/{id}/ngung-hieu-luc` trong `DanhMucM04Controller`: mẫu nhóm 1 cộng `co_dinh BOOLEAN`; nạp dòng cố định "Người cao tuổi từ chối"; `CHECK (NOT co_dinh OR trang_thai = 'HIEU_LUC')`; trigger chặn đổi `ten`, `co_dinh` của dòng cố định; sửa hoặc ngừng dòng cố định → 409 `LOAI_LY_DO_CO_DINH`; test `BT/m04/FR_028a_LoaiLyDoKhongThucHienIT.java` (phần danh mục) viết trước (FR-028a, research C-18; bổ sung 2026-10-18)
 - [ ] T008 [P] Cài provider cho 000/002 trong `BE/m04/trangthai/internal/`: `PhanLoaiTruongProvider` (`SUC_KHOE` cho giá trị kết quả, `noi_dung` mục và công việc, mọi trường thỏa thuận và ý kiến, loại lý do và ghi chú Không thực hiện; `CONG_KHAI_NOI_BO` cho trạng thái, thời điểm, có mặt), `LuuTruProvider` theo data-model mục 11, `GanPhamViProvider` (`M04.KE_HOACH`, `M04.CONG_VIEC`, `M04.KET_QUA_GHI_NHAN`, `M04.CO_MAT_BAN_TRU`)
 - [ ] T009 [P] Test kiến trúc `BT/m04/M04ArchTest.java`: cấm gói `m04` gọi API của 008, 007 trực tiếp (chỉ qua SPI); cấm gói `m04.lich` gọi lệnh tạo công việc (Q-306)
 
 **Triển khai 2026-10-27** (chưa đóng phase): T003 đã có 11 API/DTO và fake (8 SPI ở T002 giữ nguyên); T004 có28event; T005 dùng `V005_01__care_foundation.sql`, tên bảng/cột theo glossary11.2. T006 dùng `internal/status/{service,persistence}` và `internal/scheduling/{service,persistence}`, hai job ở `scheduling/`. T008 có provider/readiness cho bảng story chưa tạo; T009 có ArchTest và fixture vi phạm, bao gồm work của scheduler. Test scoped tương ứng xanh, đang chờ clean verify cuối.
 
-**T007/T007a chưa xong**: bản dịch12operation/schema HTTP đã được chủ dự án duyệt và test contract xanh; chưa cài service/controller vì thiếu khóa quyền trong Function/Phụ lục27, câu hỏi kiểm AC-01/SELF_CHECKED hay chờ A chưa có trả lời (contracts/phase2-permission-review.md). T007a mới xong schema/trigger/test SQL: migration thực tế `V005_01_1__non_performance_reason_type.sql` thay `V005_01a` để Flyway nhận version số. Không coi YAML/SQL xanh là kiểm HTTP hoặc toàn task đã xong. Giữ checkbox trống đến gate và điều kiện hoàn tất từng task.
+**Cập nhật T007/T007a 2026-10-28**: A đã công bố Function.CARE_TASK_CATALOG theo Q-391. C dùng @RequiresPermission CREATE/UPDATE cho lệnh và VIEW cho truy vấn, không dùng SELF_CHECKED. T007a đã cài domain/store/service/controller cho đúng bốn operation hợp đồng, dùng migration đã merge V005_01_1__non_performance_reason_type.sql; không tạo migration trùng. T007 còn thiếu service/controller loại công việc và giá trị kết quả. Kết quả kiểm T007a và gate toàn kho ghi ở plan mục T007a ngày 2026-10-28.
 
 **Kiểm cuối 2026-10-27**: clean verify nền exit1/04:32phút;474unit/kiến trúc xanh,1112IT còn6failure+9error ở đúng8lớpM01 đã bàn giaoB;27kiểm mới Phase2 xanh, Spotless1509file sạch. Giữ toàn bộ checkbox Phase2[ ]; không sửa B để ép gate.
 
-**Checkpoint**: Nền 005 chưa nghiệm thu; chủ dự án đã chọn phương án 2 ngày 2026-10-27: chờ A công bố khóa quyền chính thức, không dùng AC-01 trực tiếp/SELF_CHECKED. Ưu tiên tiếp theo T007 → T007a (service/HTTP) khi có khóa quyền, rồi chạy lại kiểm cuối phase trước Phase3/T010. Bản dịch HTTP Phase 3 tại contracts/phase3-api-review.md đã được duyệt bằng trả lời "1" và áp dụng vào YAML cùng test hợp đồng; chưa bắt đầu implementation story Phase 3, chưa hoàn tất T016/T016a.
+**Checkpoint**: Nền 005 chưa nghiệm thu; khóa quyền đã có, không còn chờ A ở điểm quyền. Chủ dự án chọn cài T007a trước, T007 là việc tiếp theo sau kiểm T007a. Giữ điều kiện hoàn tất nền trước Phase3/T010. Bản dịch HTTP Phase 3 đã được duyệt, chưa bắt đầu implementation story Phase 3, chưa hoàn tất T016/T016a. ApiContractIT chung chưa đăng ký api-005; chủ dự án chọn giữ file A nguyên trạng và bàn giao A review bốn operation T007a, các operation chưa cài tiếp tục pending.
 
 ---
 
@@ -79,7 +79,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 - [ ] T016a [US1] Cài lệnh thỏa thuận trong `BE/m04/kehoach/internal/ThoaThuanService.java` và `PUT /ke-hoach-cham-soc/{id}/thoa-thuan` trong `KeHoachController` (`If-Match`; chỉ Nháp; bác sĩ nhận định có AC-03; người quyết định theo nhận định, người đại diện của người bệnh kiểm `QuanHeNguoiThanApi.thuocNguoiCaoTuoi`; mỗi ý kiến qua `NguonYKienApi.kiemTra`; ngày xem lại lưu để nhắc) và việc `XEM_LAI_THOA_THUAN` của `ViecHangNgayM04` (phát `NhacXemLaiThoaThuan` một lần mỗi ngày xem lại cho Điều dưỡng phụ trách và Bác sĩ đã nhận định; test `FR_002a_NhacXemLaiIT.java` viết trước, Q43) (FR-002a, Q-360, research C-18; bổ sung 2026-10-18)
 - [ ] T017 [P] [US1] Tạo màn web `frontend/src/tinh-nang/ke-hoach-cham-soc/` (phiên bản, mục, thỏa thuận lựa chọn có rủi ro với nhận định của Bác sĩ, người quyết định, ý kiến có nguồn tách riêng từng người, duyệt, so sánh) và `frontend/src/tinh-nang/loai-cong-viec/`
 
-**Checkpoint**: Kế hoạch chăm sóc chạy độc lập.
+**Checkpoint**: Nền 005 chưa nghiệm thu; khóa quyền đã có, không còn chờ A ở điểm quyền. Chủ dự án chọn cài T007a trước, T007 là việc tiếp theo sau kiểm T007a. Giữ điều kiện hoàn tất nền trước Phase3/T010. Bản dịch HTTP Phase 3 đã được duyệt, chưa bắt đầu implementation story Phase 3, chưa hoàn tất T016/T016a. ApiContractIT chung chưa đăng ký api-005; chủ dự án chọn giữ file A nguyên trạng và bàn giao A review bốn operation T007a, các operation chưa cài tiếp tục pending.
 
 ---
 
@@ -104,7 +104,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 - [ ] T025 [US2] Tạo `BE/m04/congviec/web/CongViecController.java`: `GET /ca/{caId}/du-lieu-nguon` (dữ liệu nguồn để người lập tự nhập, không chọn sẵn), `GET /ca/{caId}/cong-viec`, `POST /ca/{caId}/cong-viec/lap`, `POST /cong-viec/phat-sinh`, `POST /cong-viec/{id}/lam-lai`, `GET /cong-viec/{id}`, `POST /cong-viec/{id}/huy`; cài `NguonCongViecApi` (MANDATORY)
 - [ ] T026 [P] [US2] Tạo màn web `frontend/src/tinh-nang/lap-cong-viec-ca/` (lỗi theo dòng, không có nút chép sẵn) với test Vitest, và app `mobile/lib/nhan-vien/lap-cong-viec-ca/`
 
-**Checkpoint**: Lập công việc chạy độc lập.
+**Checkpoint**: Nền 005 chưa nghiệm thu; khóa quyền đã có, không còn chờ A ở điểm quyền. Chủ dự án chọn cài T007a trước, T007 là việc tiếp theo sau kiểm T007a. Giữ điều kiện hoàn tất nền trước Phase3/T010. Bản dịch HTTP Phase 3 đã được duyệt, chưa bắt đầu implementation story Phase 3, chưa hoàn tất T016/T016a. ApiContractIT chung chưa đăng ký api-005; chủ dự án chọn giữ file A nguyên trạng và bàn giao A review bốn operation T007a, các operation chưa cài tiếp tục pending.
 
 ---
 
@@ -125,7 +125,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 - [ ] T030 [US3] Đăng ký việc hằng ngày `CO_MAT_DAU_NGAY` (lịch đến của 004 → `CHUA_DEN`/`VANG_CO_BAO`), `BAN_TRU_HET_NGAY` và việc theo phút Vắng không báo (CFG-M02-07, phát `VangKhongBao`)
 - [ ] T031 [US3] Tạo `BE/m04/comat/web/CoMatController.java`: `GET /co-mat-ban-tru`, `POST /co-mat-ban-tru/diem-danh-den`, `POST …/{id}/diem-danh-ve`, `POST /diem-danh-ban-tru/{id}/dinh-chinh`; màn web `frontend/src/tinh-nang/diem-danh-ban-tru/` và app `mobile/lib/nhan-vien/diem-danh-ban-tru/`
 
-**Checkpoint**: Bán trú chạy độc lập.
+**Checkpoint**: Nền 005 chưa nghiệm thu; khóa quyền đã có, không còn chờ A ở điểm quyền. Chủ dự án chọn cài T007a trước, T007 là việc tiếp theo sau kiểm T007a. Giữ điều kiện hoàn tất nền trước Phase3/T010. Bản dịch HTTP Phase 3 đã được duyệt, chưa bắt đầu implementation story Phase 3, chưa hoàn tất T016/T016a. ApiContractIT chung chưa đăng ký api-005; chủ dự án chọn giữ file A nguyên trạng và bàn giao A review bốn operation T007a, các operation chưa cài tiếp tục pending.
 
 ---
 
@@ -151,7 +151,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 - [ ] T040 [P] [US4] Tạo app `mobile/lib/nhan-vien/checklist/` (tải, lưu ngoại tuyến, dấu "chưa cập nhật"), `ghi-nhan/` (theo loại kết quả, Không thực hiện chọn loại lý do từ danh mục đã lưu và ghi chú tùy chọn, Ghi nhận phát sinh, bản ghi bị từ chối; thẻ người cao tuổi hiện thỏa thuận), `dong-bo/` và test `mobile/test/nhan-vien/checklist_ngoai_tuyen_test.dart`, `ghi_nhan_theo_loai_test.dart`, `ket_qua_dong_bo_test.dart` (BR-M15-20), `ban_ghi_bi_tu_choi_test.dart`
 - [ ] T041 [P] [US4] Tạo màn web `frontend/src/tinh-nang/checklist/` (công việc sắp Quá hạn lên đầu; thỏa thuận trên thẻ người cao tuổi; Không thực hiện chọn loại lý do) với test Vitest
 
-**Checkpoint**: Checklist và ghi nhận chạy độc lập, kể cả ngoại tuyến.
+**Checkpoint**: Nền 005 chưa nghiệm thu; khóa quyền đã có, không còn chờ A ở điểm quyền. Chủ dự án chọn cài T007a trước, T007 là việc tiếp theo sau kiểm T007a. Giữ điều kiện hoàn tất nền trước Phase3/T010. Bản dịch HTTP Phase 3 đã được duyệt, chưa bắt đầu implementation story Phase 3, chưa hoàn tất T016/T016a. ApiContractIT chung chưa đăng ký api-005; chủ dự án chọn giữ file A nguyên trạng và bàn giao A review bốn operation T007a, các operation chưa cài tiếp tục pending.
 
 ---
 
@@ -172,7 +172,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 - [ ] T045 [US5] Cài `CongViecBanGiaoApi` (danh sách công việc chưa đóng của ca cho bàn giao, BR-M09-06) và `CongViecCaApi.khiXacNhanBanGiao` trong `BE/m04/quahan/internal/BanGiaoCongViec.java`
 - [ ] T046 [US5] Tạo `BE/m04/quahan/web/QuaHanController.java` (`GET /cong-viec/qua-han`) và màn web `frontend/src/tinh-nang/viec-qua-han/`, app `mobile/lib/nhan-vien/viec-qua-han/`
 
-**Checkpoint**: P1 hoàn tất.
+**Checkpoint**: Nền 005 chưa nghiệm thu; khóa quyền đã có, không còn chờ A ở điểm quyền. Chủ dự án chọn cài T007a trước, T007 là việc tiếp theo sau kiểm T007a. Giữ điều kiện hoàn tất nền trước Phase3/T010. Bản dịch HTTP Phase 3 đã được duyệt, chưa bắt đầu implementation story Phase 3, chưa hoàn tất T016/T016a. ApiContractIT chung chưa đăng ký api-005; chủ dự án chọn giữ file A nguyên trạng và bàn giao A review bốn operation T007a, các operation chưa cài tiếp tục pending.
 
 ---
 
@@ -191,7 +191,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 
 - [ ] T049 [US6] Cài `BE/m04/quytac/internal/DanhGiaNuocUong.java`, `DemChuoiBuaKem.java`, `DemNgayTamTrang.java` (đọc qua `DinhChinhApi.hienHanh`; CFG-M04 đọc lúc chạy) và nối: mốc nước vào việc theo phút; chuỗi bữa và tâm trạng gọi sau khi ghi nhận/đính chính; phát `YeuCauCanhBao`, `AnKemKeoDai` (research C-11)
 
-**Checkpoint**: Quy tắc mục F chạy độc lập.
+**Checkpoint**: Nền 005 chưa nghiệm thu; khóa quyền đã có, không còn chờ A ở điểm quyền. Chủ dự án chọn cài T007a trước, T007 là việc tiếp theo sau kiểm T007a. Giữ điều kiện hoàn tất nền trước Phase3/T010. Bản dịch HTTP Phase 3 đã được duyệt, chưa bắt đầu implementation story Phase 3, chưa hoàn tất T016/T016a. ApiContractIT chung chưa đăng ký api-005; chủ dự án chọn giữ file A nguyên trạng và bàn giao A review bốn operation T007a, các operation chưa cài tiếp tục pending.
 
 ---
 
@@ -209,7 +209,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 
 - [ ] T051 [US7] Cài `DinhChinhDuocProvider` `M04.KET_QUA_GHI_NHAN` trong `BE/m04/ghinhan/internal/KetQuaDinhChinhProvider.java` (`tangKhuVuc` = tầng/khu công việc; `sauKhiDinhChinh` phát sự kiện cho 010 và chạy lại quy tắc F) và endpoint `POST /ket-qua-ghi-nhan/{id}/dinh-chinh` trong `GhiNhanController.java`
 
-**Checkpoint**: Đính chính chạy độc lập.
+**Checkpoint**: Nền 005 chưa nghiệm thu; khóa quyền đã có, không còn chờ A ở điểm quyền. Chủ dự án chọn cài T007a trước, T007 là việc tiếp theo sau kiểm T007a. Giữ điều kiện hoàn tất nền trước Phase3/T010. Bản dịch HTTP Phase 3 đã được duyệt, chưa bắt đầu implementation story Phase 3, chưa hoàn tất T016/T016a. ApiContractIT chung chưa đăng ký api-005; chủ dự án chọn giữ file A nguyên trạng và bàn giao A review bốn operation T007a, các operation chưa cài tiếp tục pending.
 
 ---
 
@@ -227,7 +227,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 
 - [ ] T053 [US8] Cài listener `BE/m04/kehoach/internal/BaoXemXetKeHoach.java` cho `DanhGiaDaDoiMucHoacNhuCau` (001), `PhuLucDaApDung` (004), `SuCoNgaDaGhiNhan`, `LuaChonChamSocGiamNheDaGhi`, `LichDoDaDoi` (007) phát `CanXemXetKeHoach`, `NguonCongViecDaDoi`
 
-**Checkpoint**: Báo xem xét kế hoạch chạy.
+**Checkpoint**: Nền 005 chưa nghiệm thu; khóa quyền đã có, không còn chờ A ở điểm quyền. Chủ dự án chọn cài T007a trước, T007 là việc tiếp theo sau kiểm T007a. Giữ điều kiện hoàn tất nền trước Phase3/T010. Bản dịch HTTP Phase 3 đã được duyệt, chưa bắt đầu implementation story Phase 3, chưa hoàn tất T016/T016a. ApiContractIT chung chưa đăng ký api-005; chủ dự án chọn giữ file A nguyên trạng và bàn giao A review bốn operation T007a, các operation chưa cài tiếp tục pending.
 
 ---
 
@@ -248,7 +248,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 - [ ] T057 [US9] Cài bean `ThamGiaChuyenTrangThai` của 005 trong `BE/m04/trangthai/internal/ThamGiaM04.java` (`@Order` sau 004, 003; tác động theo bảng contracts mục 1.1), `NguonCongViecApi.nguonBiHuy`, `CongViecVangMatApi.tinhLai` (research C-08)
 - [ ] T058 [US9] Cài `BE/m04/thoikhoabieu/internal/ThoiKhoaBieuService.java` (gộp công việc và `ThoiKhoaBieuNguonPort` của 006, 012, 014; chỉ xem) và endpoint `GET /nguoi-cao-tuoi/{nctId}/thoi-khoa-bieu`; màn web `frontend/src/tinh-nang/thoi-khoa-bieu/` (FR-048)
 
-**Checkpoint**: Mọi user story của 005 chạy độc lập.
+**Checkpoint**: Nền 005 chưa nghiệm thu; khóa quyền đã có, không còn chờ A ở điểm quyền. Chủ dự án chọn cài T007a trước, T007 là việc tiếp theo sau kiểm T007a. Giữ điều kiện hoàn tất nền trước Phase3/T010. Bản dịch HTTP Phase 3 đã được duyệt, chưa bắt đầu implementation story Phase 3, chưa hoàn tất T016/T016a. ApiContractIT chung chưa đăng ký api-005; chủ dự án chọn giữ file A nguyên trạng và bàn giao A review bốn operation T007a, các operation chưa cài tiếp tục pending.
 
 ---
 
@@ -309,3 +309,5 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8 → US9; mỗi bư�
 - 005 không sinh, không gợi ý công việc (Q-306, Q-307); job chỉ chuyển trạng thái theo giờ, nhắc, báo, yêu cầu cảnh báo
 - Mọi mốc đọc `ThamSoApi` (CFG-M04-*, CFG-M02-07, CFG-M15-05, 06)
 - Ngoại tuyến chỉ cho ghi nhận thực hiện (Q-01)
+
+**Đồng bộ merge 2026-10-28**: T003 giữ tên API/DTO M04 đã có caller M09 trên develop (onAbsence, onResignation, TaskRequirements, HandoverTransferResult; Long nextShiftId). Giữ đủ API đọc kế hoạch và onApprovedLeave của 005. Fake SPI và fake consumer ghép tại cấu hình chung, kiểm cùng FakeM04ApiConfig bằng T003_MergedApiCompatibilityTest. Không đánh xong phase hoặc story trong lượt này; chi tiết ở plan mục Đồng bộ merge.

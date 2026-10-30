@@ -33,7 +33,7 @@ class T003_FakePublicApiTest {
                     fixture.reply(CarePlanApi.class, "waterTargetMl", List.of(1L, day), () -> Optional.of(1234));
                     assertThat(api.waterTargetMl(1, day)).contains(1234);
                     assertThatThrownBy(() -> api.waterTargetMl(2, day)).isInstanceOf(IllegalStateException.class);
-                    assertThatThrownBy(() -> context.getBean(ShiftTaskApi.class).onShiftAbsence(1, 2))
+                    assertThatThrownBy(() -> context.getBean(ShiftTaskApi.class).onAbsence(1, 2))
                             .isInstanceOf(IllegalStateException.class);
                     fixture.reset();
                     assertThatThrownBy(() -> api.waterTargetMl(1, day)).isInstanceOf(IllegalStateException.class);

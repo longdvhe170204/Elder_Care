@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ActiveAssignments {
 
-    // ObjectProvider: 008, 003 cài; trước đó chỉ test khai bản giả
+    // ObjectProvider: 008, 003 đã cài; context không có bean (test không nạp module đó) thì dùng mặc định an toàn
     private final ObjectProvider<AssignmentApi> assignments;
     private final ObjectProvider<BedAllocationApi> bedAllocations;
     private final ParameterApi parameters;
@@ -45,7 +45,8 @@ public class ActiveAssignments {
     /** Phân công của nhân viên góp vào phạm vi tại {@code at}. */
     public List<AssignmentView> at(long staffId, Instant at) {
         Duration margin = margin();
-        return assignments.getObject().history(staffId, at.minus(margin), at.plus(margin)).stream()
+        // DATETIME(6): lấy dư một microgiây để không mất đầu biên; covers vẫn kiểm đúng thời điểm.
+        return history(staffId, at.minus(margin), at.plus(margin).plusNanos(1000)).stream()
                 .filter(a -> covers(a, at, margin))
                 .toList();
     }
@@ -53,13 +54,21 @@ public class ActiveAssignments {
     /** Phân công có khoảng góp giao với {@code [from, to)} (FR-035a). */
     public List<AssignmentView> during(long staffId, Instant from, Instant to) {
         Duration margin = margin();
-        return assignments.getObject().history(staffId, from.minus(margin), to.plus(margin)).stream()
+        return history(staffId, from.minus(margin), to.plus(margin)).stream()
                 .filter(a -> {
                     Duration m = a.shiftId() != null ? margin : Duration.ZERO;
                     return a.from().minus(m).isBefore(to)
-                            && (a.to() == null || a.to().plus(m).isAfter(from));
+                            && (a.to() == null || a.to().plus(m).isAfter(from))
+                            && (a.scopeEndsAt() == null || a.scopeEndsAt().isAfter(from));
                 })
                 .toList();
+    }
+
+    // Không có bean AssignmentApi thì không có phân công nào góp vào phạm vi (mặc định an toàn, như bedOf), không ném
+    // lỗi
+    private List<AssignmentView> history(long staffId, Instant from, Instant to) {
+        AssignmentApi api = assignments.getIfAvailable();
+        return api == null ? List.of() : api.history(staffId, from, to);
     }
 
     /** Phân bổ giường đang mở của người cao tuổi tại {@code at}. */
@@ -92,6 +101,8 @@ public class ActiveAssignments {
 
     static boolean covers(AssignmentView a, Instant at, Duration margin) {
         Duration m = a.shiftId() != null ? margin : Duration.ZERO;
-        return !at.isBefore(a.from().minus(m)) && (a.to() == null || at.isBefore(a.to().plus(m)));
+        return !at.isBefore(a.from().minus(m))
+                && (a.to() == null || at.isBefore(a.to().plus(m)))
+                && (a.scopeEndsAt() == null || at.isBefore(a.scopeEndsAt()));
     }
 }

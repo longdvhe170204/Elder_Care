@@ -31,7 +31,11 @@ class M13RecordGroupTriggerIT extends MySqlIntegrationTestBase {
             "notification_event",
             "delivery_attempt",
             "delivery_result",
-            "direct_contact_result");
+            "direct_contact_result",
+            "call_reminder",
+            "call_reminder_notification",
+            "call_reminder_handoff",
+            "call_result");
 
     @Autowired
     JdbcTemplate jdbc;

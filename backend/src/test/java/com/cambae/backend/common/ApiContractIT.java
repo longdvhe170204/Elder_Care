@@ -67,21 +67,29 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of(),
                     Set.of(),
                     true),
-            // 003: Phase 3 đã cài; operation Phase 4/5 đã duyệt vẫn pending khi chưa có controller.
+            // 008 T006: kiểm ngay các controller nền; giảm PENDING khi cài từng story (phần T042 lấy sớm).
+            new Contract(
+                    Path.of("..", "specs", "008-staff-shift-handover", "contracts", "api-008.yaml"),
+                    Set.of(),
+                    Set.of(),
+                    true),
+            // 003 (A review 2026-10-26): còn chuyển giường trực tiếp (FR-028) chưa có controller
             new Contract(
                     Path.of("..", "specs", "003-room-bed-allocation", "contracts", "api-003.yaml"),
                     Set.of("POST /api/v1/bed-allocations/{id}/transfer"),
                     Set.of(),
                     true),
-            // 009 T034 (2026-10-22, kéo phần T036 lên khi cài controller đầu tiên của US5); US3 xong 2026-10-23; còn
-            // US1
+            // 006 (dịch 2026-10-26 sau PR #34)
+            new Contract(
+                    Path.of("..", "specs", "006-medication-management", "contracts", "api-006.yaml"),
+                    Set.of(),
+                    Set.of(),
+                    true),
+            // 009 T034 (2026-10-22, kéo phần T036 lên khi cài controller đầu tiên của US5); US3 xong 2026-10-23; lượt
+            // nhắc gọi US1 xong 2026-10-26; còn "Xác nhận và tiếp nhận" chờ lệnh tiếp nhận của 007
             new Contract(
                     Path.of("..", "specs", "009-notification-service", "contracts", "api-009.yaml"),
-                    Set.of(
-                            "POST /api/v1/notifications/{id}/acknowledge-and-take-charge",
-                            "GET /api/v1/me/call-reminders",
-                            "GET /api/v1/call-reminders/{id}",
-                            "POST /api/v1/call-reminders/{id}/results"),
+                    Set.of("POST /api/v1/notifications/{id}/acknowledge-and-take-charge"),
                     Set.of(),
                     true),
             // 016 T028 (2026-10-24): đủ endpoint sau T009 (dashboard), khung báo cáo và danh sách chi tiết

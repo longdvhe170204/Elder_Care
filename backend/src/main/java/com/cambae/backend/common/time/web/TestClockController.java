@@ -82,7 +82,10 @@ public class TestClockController {
         MISSING_CONSENT_REMINDER,
         NOTIFY_PERIODIC_REASSESSMENT,
         ALERT_OVERDUE_REASSESSMENT,
-        REMIND_CARE_LEVEL_CHANGE_REQUEST
+        REMIND_CARE_LEVEL_CHANGE_REQUEST,
+        // Hai job của M03 (003 FR-015, FR-023, research G-09; chủ dự án duyệt 2026-10-26)
+        EXPIRE_BED_HOLDS,
+        REPORT_FUTURE_ALLOCATION_PAST_START
     }
 
     public record ClockResponse(OffsetDateTime now, boolean simulated) {}

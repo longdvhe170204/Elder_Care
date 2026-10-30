@@ -21,9 +21,13 @@ import tools.jackson.databind.JsonNode;
 class ResidentStatusApiImpl implements ResidentStatusApi {
 
     private final ResidentStatusService status;
+    private final com.cambae.backend.m01.internal.status.persistence.ResidentStatusHistoryRepository histories;
 
-    ResidentStatusApiImpl(ResidentStatusService status) {
+    ResidentStatusApiImpl(
+            ResidentStatusService status,
+            com.cambae.backend.m01.internal.status.persistence.ResidentStatusHistoryRepository histories) {
         this.status = status;
+        this.histories = histories;
     }
 
     @Override
@@ -44,7 +48,21 @@ class ResidentStatusApiImpl implements ResidentStatusApi {
 
     @Override
     public List<StatusPeriod> statusPeriods(long residentId, Set<ResidentStatus> statuses, Instant from, Instant to) {
-        // Khoảng Tạm vắng, Điều trị tại bệnh viện, Hoạt động bên ngoài cho 003 (T049 phần đọc), làm khi 003 cần.
-        throw new UnsupportedOperationException("statusPeriods chưa cài");
+        if (statuses.isEmpty() || !from.isBefore(to)) return List.of();
+        var entries = histories.findByResidentIdOrderByIdAsc(residentId).stream()
+                .sorted(java.util.Comparator.comparing(
+                        com.cambae.backend.m01.internal.status.domain.ResidentStatusHistory::getOccurredAt))
+                .toList();
+        var result = new java.util.ArrayList<StatusPeriod>();
+        for (int i = 0; i < entries.size(); i++) {
+            var entry = entries.get(i);
+            Instant end = i + 1 < entries.size() ? entries.get(i + 1).getOccurredAt() : null;
+            if (statuses.contains(entry.getToStatus())
+                    && entry.getOccurredAt().isBefore(to)
+                    && (end == null || end.isAfter(from))
+                    && (end == null || end.isAfter(entry.getOccurredAt())))
+                result.add(new StatusPeriod(entry.getToStatus(), entry.getOccurredAt(), Optional.ofNullable(end)));
+        }
+        return List.copyOf(result);
     }
 }

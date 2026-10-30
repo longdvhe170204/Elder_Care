@@ -26,8 +26,16 @@ public record NotifiedPersonView(
     /** Kết quả một lần gửi trên một kênh. */
     public record ChannelResult(String channel, String result, Instant at) {}
 
-    /** Lượt nhắc gọi chứa thông báo này và các kết quả gọi. */
-    public record CallReminderSummary(long callReminderId, String status, List<CallOutcome> results) {}
+    /**
+     * Một lượt nhắc gọi của chuỗi gọi chứa thông báo này, kèm người cần gọi của lượt (người nhận, hoặc người thân kế tiếp
+     * theo FR-029a) và các kết quả gọi (FR-031, Q-388).
+     */
+    public record CallReminderSummary(
+            long callReminderId,
+            RecipientType personToCallType,
+            long personToCallId,
+            String status,
+            List<CallOutcome> results) {}
 
     /** Một kết quả gọi. */
     public record CallOutcome(String result, Instant calledAt) {}

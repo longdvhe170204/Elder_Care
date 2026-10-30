@@ -64,6 +64,21 @@ class SchedulerScopeArchTest {
                     "com.cambae.backend.m13.scheduling.M13DailyJob",
                     "nhắc liên hệ trực tiếp còn chờ (009 research B-10)"),
             Map.entry(
+                    "com.cambae.backend.m09.scheduling.M09MinuteJob",
+                    "chuyển trạng thái theo giờ và nhắc, không lập ca/phân công/bàn giao (008 N-13)"),
+            Map.entry(
+                    "com.cambae.backend.m09.scheduling.M09HourlyJob",
+                    "nhắc ca sắp bắt đầu dưới ngưỡng phục vụ (008 N-13)"),
+            Map.entry(
+                    "com.cambae.backend.m09.scheduling.M09DailyJob",
+                    "cảnh báo đào tạo và nhắc bộ phận thiếu phụ trách (008 N-13)"),
+            Map.entry(
+                    "com.cambae.backend.m07.scheduling.M07MinuteJob",
+                    "việc theo phút m07: quét cửa sổ liều, trễ, bỏ lỡ (006 research D-19)"),
+            Map.entry(
+                    "com.cambae.backend.m07.scheduling.M07DailyJob",
+                    "việc hàng ngày m07: đối chiếu thuốc, cảnh báo hết hạn đơn (006 research D-19)"),
+            Map.entry(
                     "com.cambae.backend.m01.scheduling.RetryAllergyChecksJob",
                     "phát lại sự kiện kiểm tra dị ứng; không tạo bản ghi nghiệp vụ (001 BR-M01-12, research H-12)"),
             Map.entry(

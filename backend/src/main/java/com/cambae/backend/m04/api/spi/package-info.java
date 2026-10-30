@@ -1,3 +1,3 @@
-/** SPI do 005 khai báo; các kiểu lồng chỉ phục vụ hợp đồng SPI, không phải DTO HTTP. */
-@org.springframework.modulith.NamedInterface("daily-care-spi")
+/** Giao diện công khai theo README backend, khai báo tối thiểu được người dùng duyệt cho 008 T015. */
+@org.springframework.modulith.NamedInterface
 package com.cambae.backend.m04.api.spi;

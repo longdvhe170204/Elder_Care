@@ -61,6 +61,17 @@ public class MetricEvaluator {
         return detailsOf(user, capture(source), scope, from, to, filters, key);
     }
 
+    /** Giá trị "lúc xem" của dashboard ({@link MetricSource#current}). */
+    public MetricValue current(MetricSource<?> source, ReportScope scope, Instant from, Instant to) {
+        return currentOf(capture(source), scope, from, to);
+    }
+
+    /** Dòng chi tiết của con số dashboard, đã giới hạn trường. */
+    public List<DetailRow> currentDetails(
+            CurrentUser user, MetricSource<?> source, ReportScope scope, Instant from, Instant to, String key) {
+        return currentDetailsOf(user, capture(source), scope, from, to, key);
+    }
+
     @SuppressWarnings("unchecked")
     private static <R extends MetricRecord> MetricSource<R> capture(MetricSource<?> source) {
         return (MetricSource<R>) source;
@@ -70,6 +81,21 @@ public class MetricEvaluator {
             MetricSource<R> source, ReportScope scope, Instant from, Instant to, ReportFilters filters) {
         return source.metric()
                 .included(source.records(scope.rough(), from, to, filters), r -> scope.covers(r) && filters.matches(r));
+    }
+
+    private static <R extends MetricRecord> List<R> currentIncluded(
+            MetricSource<R> source, ReportScope scope, Instant from, Instant to) {
+        return source.metric().included(source.current(scope.rough(), from, to), scope::covers);
+    }
+
+    private <R extends MetricRecord> MetricValue currentOf(
+            MetricSource<R> source, ReportScope scope, Instant from, Instant to) {
+        return source.metric().compute(currentIncluded(source, scope, from, to));
+    }
+
+    private <R extends MetricRecord> List<DetailRow> currentDetailsOf(
+            CurrentUser user, MetricSource<R> source, ReportScope scope, Instant from, Instant to, String key) {
+        return rows.apply(user, source.metric().details(currentIncluded(source, scope, from, to), key));
     }
 
     private <R extends MetricRecord> MetricValue valueOf(

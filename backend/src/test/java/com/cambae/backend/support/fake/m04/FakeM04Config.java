@@ -22,7 +22,7 @@ public class FakeM04Config {
         return new FakeShiftStaff(switches);
     }
 
-    @Bean
+    @Bean("fakeM04VitalSigns")
     @Primary
     FakeVitalSigns fakeVitalSigns(FakeM04Switches switches) {
         return new FakeVitalSigns(switches);
@@ -92,5 +92,16 @@ public class FakeM04Config {
     @Bean
     FakeM04Controller fakeM04Controller(FakeM04Switches switches) {
         return new FakeM04Controller(switches);
+    }
+
+    @Bean
+    public FakeCareRequirements fakeCareRequirements() {
+        return new FakeCareRequirements();
+    }
+
+    @Bean
+    @Primary
+    public FakeCareShifts fakeCareShifts() {
+        return new FakeCareShifts();
     }
 }

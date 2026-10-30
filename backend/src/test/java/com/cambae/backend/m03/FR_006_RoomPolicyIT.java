@@ -19,6 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class FR_006_RoomPolicyIT extends StructureTestSupport {
     @Autowired
+    com.cambae.backend.m03.internal.bed.service.BedService beds;
+
+    @Autowired
     FakeAllocationResidencySource residency;
 
     private long resident(String gender, String level, String status) {
@@ -133,5 +136,28 @@ class FR_006_RoomPolicyIT extends StructureTestSupport {
                                 GenderPolicy.UNRESTRICTED,
                                 Set.of(CareLevelCode.BASIC))))
                 .isInstanceOf(ConditionNotMetException.class);
+    }
+
+    @Test
+    void FR_007_bedWithAllocationHistoryCannotChangeRoom() {
+        allocation(resident("FEMALE", "BASIC", "IN_RESIDENCE"), "ACTIVE");
+        var otherRoom = structures.create(
+                StructureKind.ROOM,
+                StructureChange.room(
+                        floor,
+                        type,
+                        "NEW" + room,
+                        "Phòng đích",
+                        GenderPolicy.UNRESTRICTED,
+                        Set.of(CareLevelCode.BASIC)));
+
+        assertThatThrownBy(() -> beds.update(bed, "\"0\"", otherRoom.getId(), "G1"))
+                .isInstanceOfSatisfying(
+                        ConditionNotMetException.class,
+                        error -> assertThat(error.unmetConditions())
+                                .anySatisfy(condition ->
+                                        assertThat(condition.code()).isEqualTo("FR-007")));
+        assertThat(jdbc.queryForObject("SELECT room_id FROM bed WHERE id=?", Long.class, bed))
+                .isEqualTo(room);
     }
 }

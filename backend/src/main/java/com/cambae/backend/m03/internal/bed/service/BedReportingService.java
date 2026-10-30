@@ -7,6 +7,7 @@ import com.cambae.backend.m03.api.dto.*;
 import com.cambae.backend.m03.api.spi.*;
 import com.cambae.backend.m03.internal.bed.domain.BedAssetPort;
 import com.cambae.backend.m03.internal.bed.domain.BedReportingSnapshot.*;
+import com.cambae.backend.m03.internal.bed.domain.HoldReason;
 import com.cambae.backend.m03.internal.bed.persistence.BedReportingStore;
 import com.cambae.backend.m15.account.api.dto.ScopeFilter;
 import com.cambae.backend.m15.parameter.api.*;
@@ -70,7 +71,18 @@ public class BedReportingService implements BedStatusApi, BedStatisticsApi, BedH
 
     @Override
     public Stream<BedStateOnDate> stateAt(ScopeFilter scope, Instant at) {
-        return states(scope, at).stream().map(s -> new BedStateOnDate(s.bedId(), s.floorId(), s.state(), at));
+        return states(scope, at).stream()
+                .map(s -> new BedStateOnDate(s.bedId(), s.floorId(), s.state(), at, s.roomId(), holdReason(s)));
+    }
+
+    /** Hai sự kiện vào Đang giữ chỗ của bảng chuyển G-04 xác định lý do giữ. */
+    private static String holdReason(State s) {
+        if (s.state() != BedStatus.HELD) return null;
+        return switch (s.event()) {
+            case "HOLD_WAITING_RECORD" -> HoldReason.WAITING_RECORD.name();
+            case "ABSENT_KEEP_BED" -> HoldReason.ABSENT_RESIDENT.name();
+            default -> throw new IllegalStateException("Không xác định được lý do giữ chỗ của giường " + s.bedId());
+        };
     }
 
     @Override
@@ -174,7 +186,12 @@ public class BedReportingService implements BedStatusApi, BedStatisticsApi, BedH
                     var start = w.state().at().isBefore(from) ? from : w.state().at();
                     var end = w.until() == null || w.until().isAfter(to) ? to : w.until();
                     return new AwaitingReadyInterval(
-                            w.state().bedId(), w.state().floorId(), start, end, deadline(w.state()));
+                            w.state().bedId(),
+                            w.state().floorId(),
+                            start,
+                            end,
+                            deadline(w.state()),
+                            w.state().at());
                 })
                 .filter(w -> w.from().isBefore(w.to()))
                 .toList()

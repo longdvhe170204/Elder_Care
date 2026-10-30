@@ -32,15 +32,26 @@ class ApiClient {
   /// Mã thiết bị gửi kèm mọi yêu cầu (`X-Device-Id`, 002 FR-014a, FR-070).
   String? deviceId;
 
+  /// Lần cuối backend trả lời (kể cả trả lỗi); hàng đợi ngoại tuyến gửi kèm khi đồng bộ (002 FR-041c).
+  DateTime? lastConnectedAt;
+
   Future<Map<String, dynamic>?> get(String path) => _send('GET', path, null);
 
-  Future<Map<String, dynamic>?> post(String path, Map<String, dynamic> body) => _send('POST', path, body);
+  /// `headers`: ví dụ `If-Match` của lệnh trên đối tượng có phiên bản (000 FR-040).
+  Future<Map<String, dynamic>?> post(String path, Map<String, dynamic> body, {Map<String, String>? headers}) =>
+      _send('POST', path, body, headers);
 
-  Future<Map<String, dynamic>?> _send(String method, String path, Map<String, dynamic>? body) async {
+  Future<Map<String, dynamic>?> _send(
+    String method,
+    String path,
+    Map<String, dynamic>? body, [
+    Map<String, String>? headers,
+  ]) async {
     final request = http.Request(method, Uri.parse('$baseUrl/api/v1$path'));
     request.headers['Accept'] = 'application/json, application/problem+json';
     if (token != null) request.headers['Authorization'] = 'Bearer $token';
     if (deviceId != null) request.headers['X-Device-Id'] = deviceId!;
+    if (headers != null) request.headers.addAll(headers);
     if (body != null) {
       request.headers['Content-Type'] = 'application/json';
       request.body = jsonEncode(body);
@@ -51,6 +62,7 @@ class ApiClient {
     } on Exception {
       throw ApiUnreachable();
     }
+    lastConnectedAt = DateTime.now().toUtc();
     final text = utf8.decode(response.bodyBytes);
     final decoded = text.isEmpty ? null : jsonDecode(text);
     if (response.statusCode >= 400) {

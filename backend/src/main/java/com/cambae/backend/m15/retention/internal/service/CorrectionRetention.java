@@ -38,7 +38,7 @@ class CorrectionRetention implements AttachedRetention {
     }
 
     @Override
-    public List<Attached> attachedTo(DataRef record, Instant cutoff) {
+    public List<Attached> attachedTo(DataRef record, RetentionKind recordKind, Instant cutoff) {
         return jdbc.query(
                 "SELECT id, recorded_at FROM correction WHERE record_type = ? AND original_record_id = ?",
                 (rs, i) -> {

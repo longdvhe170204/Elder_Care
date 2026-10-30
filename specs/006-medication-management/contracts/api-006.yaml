@@ -4,154 +4,162 @@ info:
   version: 1.0.0-design
   description: |
     Hợp đồng REST của feature 006 (module M07). Quy ước chung theo research R-03 của 000:
-    tiền tố /api/v1, lỗi RFC 9457 có maLoi và dieuKienChuaThoa[], If-Match cho lệnh sửa nội dung
+    tiền tố /api/v1, lỗi RFC 9457 có errorCode và unmetConditions[], If-Match cho lệnh sửa nội dung
     (danh mục thuốc, ghi chú hướng dẫn của đơn, danh sách dòng của phiếu đối chiếu đang Mở), Idempotency-Key cho mọi lệnh ghi.
+    Tên định danh tiếng Anh theo glossary.md của 000, mục 12 (dịch 2026-10-26, chủ dự án duyệt; bản tên logic tiếng Việt ở lịch sử git).
     Lệnh chuyển trạng thái không dùng If-Match; backend khóa dòng và kiểm tra lại trên trạng thái mới (research D-03).
-    Liều không có bản ghi lập sẵn (Q-306): liều được định danh bằng lieuKey = {donThuocId}-{yyyyMMddHHmm}
+    Liều không có bản ghi lập sẵn (Q-306): liều được định danh bằng doseKey = {prescriptionId}-{yyyyMMddHHmm}
     (thời điểm dự kiến, Asia/Ho_Chi_Minh). Lệnh trên liều chưa có dòng sẽ vật hóa dòng trong cùng transaction (research D-06).
-    Lần xác nhận thứ hai trên liều đã đóng trả 409 LIEU_DA_XAC_NHAN kèm dongBoi và noiDungBiTuChoi.
+    Lần xác nhận thứ hai trên liều đã đóng trả 409 DOSE_ALREADY_CLOSED kèm closedBy và rejectedContent.
     Bản ghi ngoại tuyến (xác nhận liều, lần dùng PRN của thuốc không kiểm soát đặc biệt) đi qua endpoint đồng bộ chung của api-002
-    với loại M07.KET_QUA_LIEU, M07.LAN_DUNG_PRN; nội dung giống thân của lệnh trực tuyến (research D-11).
+    với loại M07.DOSE_RESULT, M07.PRN_ADMINISTRATION; nội dung giống thân của lệnh trực tuyến (research D-11).
     Các lệnh Hoàn tất tiếp nhận, Cho tạm vắng, Chuyển viện, Ghi nhận trở về, Kết thúc lưu trú, Qua đời, Hủy tiếp nhận là endpoint của api-001;
     điểm danh rời viện/về của chuyến đi thuộc 014. 006 chỉ tham gia bằng bean (module-interfaces mục 1.1).
-    Đính chính đi qua khung của api-000 với loại M07.KET_QUA_LIEU, M07.LAN_DUNG_PRN, M07.LAN_GIAO_THUOC, M07.LAN_NHAN_LAI_THUOC;
+    Đính chính đi qua khung của api-000 với loại M07.DOSE_RESULT, M07.PRN_ADMINISTRATION, M07.MEDICATION_HANDOVER, M07.MEDICATION_RETURN;
     đính chính phiếu đối chiếu đi qua đề nghị hai người ở file này (research D-12).
-    Trường SUC_KHOE bị bỏ khỏi phản hồi theo 002 và liệt kê trong truongBiAn. Người thân dùng cùng các GET thuốc gia đình gửi,
+    Trường HEALTH bị bỏ khỏi phản hồi theo 002 và liệt kê trong hiddenFields. Người thân dùng cùng các GET thuốc gia đình gửi,
     đơn thuốc, phiếu đối chiếu; backend lọc theo FR-049 (đơn và phiếu cần bản đồng ý; không có liều).
     Truy vết: mỗi operation có x-fr (FR của spec 006) và x-br khi có.
 servers:
   - url: /api/v1
 security:
-  - phien: []
+  - session: []
 tags:
-  - { name: danh-muc-thuoc, description: '11.1; mục A' }
-  - { name: don-thuoc, description: 'UC-39, UC-40; mục B' }
-  - { name: lieu, description: 'UC-41; mục C, E' }
+  - { name: medication-catalog, description: '11.1; mục A' }
+  - { name: prescription, description: 'UC-39, UC-40; mục B' }
+  - { name: dose, description: 'UC-41; mục C, E' }
   - { name: prn, description: 'UC-42; mục D' }
-  - { name: doi-chieu, description: 'UC-43; mục F' }
-  - { name: thuoc-gui, description: 'UC-44; mục G' }
-  - { name: mang-theo, description: '8.9, 11.3; mục H' }
+  - { name: reconciliation, description: 'UC-43; mục F' }
+  - { name: family-medication, description: 'UC-44; mục G' }
+  - { name: leave-medication, description: '8.9, 11.3; mục H' }
+  - { name: supplied-medication, description: '11.7; mục I' }
 
 paths:
   # ---------------- Danh mục thuốc ----------------
-  /thuoc:
+  /medications:
     get:
-      tags: [danh-muc-thuoc]
+      tags: [medication-catalog]
       summary: Tra danh mục thuốc
-      description: 'Quản lý viện, Bác sĩ, Điều dưỡng. Kèm dấu chuaCoMucVatPham với thuốc chưa có dịch vụ THUOC_NGUON_VIEN ở 004 (FR-003).'
+      description: 'Quản lý viện, Bác sĩ, Điều dưỡng. Kèm dấu missingPricingItem với thuốc chưa có dịch vụ FACILITY_MEDICATION ở 004 (FR-003).'
       x-fr: [FR-001, FR-003]
-      parameters: [ { name: q, in: query, schema: { type: string } }, { name: hieuLuc, in: query, schema: { type: boolean } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Thuoc' } } } } } }
+      parameters: [ { name: q, in: query, schema: { type: string } }, { name: active, in: query, schema: { type: boolean } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Medication' } } } } } }
     post:
-      tags: [danh-muc-thuoc]
+      tags: [medication-catalog]
       summary: Thêm thuốc (Quản lý viện)
       x-fr: [FR-001, FR-002]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Thuoc' } } } }
-      responses: { '201': { description: Đã thêm }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /thuoc/{id}:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Medication' } } } }
+      responses: { '201': { description: Đã thêm }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /medications/{id}:
+    get:
+      tags: [medication-catalog]
+      summary: Xem thuốc kèm ETag để sửa (bổ sung khi dịch 2026-10-26 cho If-Match của PUT)
+      x-fr: [FR-001, FR-002]
+      parameters: [ { $ref: '#/components/parameters/Id' } ]
+      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/Medication' } } } }, '404': { $ref: '#/components/responses/Problem' } }
     put:
-      tags: [danh-muc-thuoc]
+      tags: [medication-catalog]
       summary: Sửa thuốc (Quản lý viện)
       description: 'Đổi hoạt chất, cửa sổ chỉ áp cho đơn lưu sau và liều chưa tới đầu cửa sổ (FR-002). Không có DELETE; thuốc có đơn tham chiếu chỉ Ngừng hiệu lực.'
       x-fr: [FR-002]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Thuoc' } } } }
-      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Loi' } }
-  /thuoc/{id}/ngung-hieu-luc:
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Medication' } } } }
+      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Problem' } }
+  /medications/{id}/deactivate:
     post:
-      tags: [danh-muc-thuoc]
+      tags: [medication-catalog]
       summary: Ngừng hiệu lực thuốc
       x-fr: [FR-002]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
       responses: { '200': { description: OK } }
 
   # ---------------- Đơn thuốc ----------------
-  /nguoi-cao-tuoi/{nctId}/don-thuoc:
+  /residents/{residentId}/prescriptions:
     get:
-      tags: [don-thuoc]
+      tags: [prescription]
       summary: Danh sách và lịch sử đơn (chuỗi thay thế)
-      description: 'Bác sĩ, Quản lý viện mọi người; Điều dưỡng trong phạm vi; Trưởng tầng 403; Người thân chỉ khi có bản đồng ý bao gồm người đó (FR-049). Đơn nguồn gia đình gửi có dấu chuaCoThuoc (FR-009).'
+      description: 'Bác sĩ, Quản lý viện mọi người; Điều dưỡng trong phạm vi; Trưởng tầng 403; Người thân chỉ khi có bản đồng ý bao gồm người đó (FR-049). Đơn nguồn gia đình gửi có dấu noMedicationAvailable (FR-009).'
       x-fr: [FR-016a, FR-049, FR-009]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { name: trangThai, in: query, schema: { type: array, items: { $ref: '#/components/schemas/TrangThaiDon' } } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DonThuoc' } } } } }, '403': { $ref: '#/components/responses/Loi' } }
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { name: status, in: query, schema: { type: array, items: { $ref: '#/components/schemas/PrescriptionStatus' } } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Prescription' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
     post:
-      tags: [don-thuoc]
+      tags: [prescription]
       summary: Nhập đơn (nội bộ hoặc bên ngoài)
       description: |
-        Đơn nội bộ: Bác sĩ có quyền (DON_THUOC, CHUYEN_MON), thiếu thì 403 DIEU_KIEN_PHAP_LY (BR-M07-05).
-        Đơn bên ngoài: Bác sĩ, Điều dưỡng, bắt buộc coSoKe. Có phiếu đối chiếu Mở/Chờ xác nhận thì 409 DANG_CO_PHIEU_DOI_CHIEU (FR-037).
-        Kiểm trùng hoạt chất và dị ứng (FR-007): còn vấn đề chưa có lý do thì 409 CAN_XAC_NHAN_VAN_DE kèm vanDe[]; gửi lại với xacNhanVanDe[].
-        Mục dị ứng loại "khác" trả trong canXemXet[] và không chặn (FR-008).
+        Đơn nội bộ: Bác sĩ có quyền (PRESCRIPTION, PROFESSIONAL), thiếu thì 403 LEGAL_CONDITION_NOT_MET (BR-M07-05).
+        Đơn bên ngoài: Bác sĩ, Điều dưỡng, bắt buộc prescriber. Có phiếu đối chiếu Mở/Chờ xác nhận thì 409 RECONCILIATION_IN_PROGRESS (FR-037).
+        Kiểm trùng hoạt chất và dị ứng (FR-007): còn vấn đề chưa có lý do thì 409 ISSUES_REQUIRE_CONFIRMATION kèm issues[]; gửi lại với issueConfirmations[].
+        Mục dị ứng loại "khác" trả trong reviewItems[] và không chặn (FR-008).
       x-fr: [FR-004, FR-005, FR-006, FR-007, FR-008, FR-010, FR-011, FR-037]
       x-br: [BR-M07-05, BR-M07-06]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DonThuocMoi' } } } }
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NewPrescription' } } } }
       responses:
-        '201': { description: 'Hiệu lực hoặc Chờ hiệu lực', content: { application/json: { schema: { $ref: '#/components/schemas/DonThuoc' } } } }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { $ref: '#/components/responses/LoiVanDe' }
-        '422': { $ref: '#/components/responses/Loi' }
-  /nguoi-cao-tuoi/{nctId}/don-thuoc/kiem-tra:
+        '201': { description: 'Hiệu lực hoặc Chờ hiệu lực', content: { application/json: { schema: { $ref: '#/components/schemas/Prescription' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/IssuesProblem' }
+        '422': { $ref: '#/components/responses/Problem' }
+  /residents/{residentId}/prescriptions/check:
     post:
-      tags: [don-thuoc]
+      tags: [prescription]
       summary: Xem trước kết quả kiểm tra trùng hoạt chất và dị ứng (không ghi)
       x-fr: [FR-007, FR-008]
-      parameters: [ { $ref: '#/components/parameters/NctId' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DonThuocMoi' } } } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { vanDe: { type: array, items: { $ref: '#/components/schemas/VanDe' } }, canXemXet: { type: array, items: { $ref: '#/components/schemas/VanDe' } } } } } } } }
-  /don-thuoc/{id}:
+      parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NewPrescription' } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { issues: { type: array, items: { $ref: '#/components/schemas/Issue' } }, reviewItems: { type: array, items: { $ref: '#/components/schemas/Issue' } } } } } } } }
+  /prescriptions/{id}:
     get:
-      tags: [don-thuoc]
-      summary: Xem đơn, kèm vấn đề đã xác nhận, căn cứ, lô gắn, lenhDuocPhep[]
+      tags: [prescription]
+      summary: Xem đơn, kèm vấn đề đã xác nhận, căn cứ, lô gắn, allowedCommands[]
       x-fr: [FR-004, FR-013, FR-016a]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/DonThuoc' } } } } }
-  /don-thuoc/{id}/ghi-chu:
+      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/Prescription' } } } } }
+  /prescriptions/{id}/instruction-note:
     patch:
-      tags: [don-thuoc]
+      tags: [prescription]
       summary: Sửa ghi chú hướng dẫn (trường duy nhất sửa được)
       description: 'Người có quyền nhập đơn đó; lưu trước/sau ở nhật ký. Mọi trường khác bị chặn (FR-014, DBR-14).'
       x-fr: [FR-014]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ghiChuHuongDan], properties: { ghiChuHuongDan: { type: string, maxLength: 2000 } } } } } }
-      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Loi' } }
-  /don-thuoc/{id}/tam-dung:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [instructionNote], properties: { instructionNote: { type: string, maxLength: 2000 } } } } } }
+      responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Problem' } }
+  /prescriptions/{id}/suspend:
     post:
-      tags: [don-thuoc]
+      tags: [prescription]
       summary: Tạm dừng đơn
-      description: 'Bác sĩ; Điều dưỡng chỉ với đơn bên ngoài kèm canCuCoSoKe (BR-M07-16). Liều chưa tới từ thời điểm tạm dừng thành Tạm dừng.'
+      description: 'Bác sĩ; Điều dưỡng chỉ với đơn bên ngoài kèm externalBasis (BR-M07-16). Liều chưa tới từ thời điểm tạm dừng thành Tạm dừng.'
       x-fr: [FR-011, FR-013]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LenhDon' }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /don-thuoc/{id}/tiep-tuc:
+      requestBody: { $ref: '#/components/requestBodies/PrescriptionCommand' }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+  /prescriptions/{id}/resume:
     post:
-      tags: [don-thuoc]
+      tags: [prescription]
       summary: Tiếp tục đơn
       description: 'Chỉ khi đơn Tạm dừng do lệnh (không phải "chờ đối chiếu") và không có phiếu đối chiếu mở (FR-037).'
       x-fr: [FR-011, FR-037]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LenhDon' }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /don-thuoc/{id}/ngung:
+      requestBody: { $ref: '#/components/requestBodies/PrescriptionCommand' }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+  /prescriptions/{id}/discontinue:
     post:
-      tags: [don-thuoc]
+      tags: [prescription]
       summary: Ngừng đơn (ngay hoặc từ một thời điểm tương lai)
       description: |
-        ngungTu không trước thời điểm lệnh. Ngừng đơn thay thế còn Chờ hiệu lực là hủy thay đổi: đơn cũ thôi bị ngừng (BR-M07-15).
-        Ngừng đơn cũ sớm hơn hiệu lực của đơn thay thế: phản hồi kèm canhBao KHOANG_KHONG_CO_LIEU. Được phép cả khi có phiếu mở (dòng tương ứng đánh dấu đã ngừng ngoài phiếu).
+        discontinueAt không trước thời điểm lệnh. Ngừng đơn thay thế còn Chờ hiệu lực là hủy thay đổi: đơn cũ thôi bị ngừng (BR-M07-15).
+        Ngừng đơn cũ sớm hơn hiệu lực của đơn thay thế: phản hồi kèm warnings NO_DOSE_GAP. Được phép cả khi có phiếu mở (dòng tương ứng đánh dấu đã ngừng ngoài phiếu).
       x-fr: [FR-011, FR-015, FR-016, FR-037]
       x-br: [BR-M07-07, BR-M07-15]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody:
         required: true
-        content: { application/json: { schema: { allOf: [ { $ref: '#/components/schemas/LenhDonThan' }, { type: object, properties: { ngungTu: { type: string, format: date-time } } } ] } } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { canhBao: { type: array, items: { type: object } } } } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /don-thuoc/{id}/doi-lieu:
+        content: { application/json: { schema: { allOf: [ { $ref: '#/components/schemas/PrescriptionCommandBody' }, { type: object, properties: { discontinueAt: { type: string, format: date-time } } } ] } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: object, properties: { warnings: { type: array, items: { type: object } } } } } } }, '409': { $ref: '#/components/responses/Blocked' } }
+  /prescriptions/{id}/change-dosage:
     post:
-      tags: [don-thuoc]
+      tags: [prescription]
       summary: Đổi liều / đổi thuốc (ngừng đơn cũ và tạo đơn thay thế trong một lệnh)
       description: 'Đơn thay thế qua FR-007 (bỏ qua chính đơn bị thay thế); với đơn nội bộ cần quyền kê đơn. Một phần lỗi thì không phần nào áp dụng (DBR-14).'
       x-fr: [FR-011, FR-016, FR-016a, FR-007, FR-043]
@@ -159,635 +167,721 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody:
         required: true
-        content: { application/json: { schema: { type: object, required: [donThayThe, hieuLucTu, lyDo], properties: { donThayThe: { $ref: '#/components/schemas/DonThuocMoi' }, hieuLucTu: { type: string, format: date-time }, lyDo: { $ref: '#/components/schemas/LyDo' }, canCuCoSoKe: { $ref: '#/components/schemas/CanCuCoSoKe' } } } } }
-      responses: { '201': { description: Đơn thay thế, content: { application/json: { schema: { $ref: '#/components/schemas/DonThuoc' } } } }, '409': { $ref: '#/components/responses/LoiVanDe' } }
-  /don-thuoc/{id}/gia-han:
+        content: { application/json: { schema: { type: object, required: [newPrescription, effectiveFrom, reason], properties: { newPrescription: { $ref: '#/components/schemas/NewPrescription' }, effectiveFrom: { type: string, format: date-time }, reason: { $ref: '#/components/schemas/Reason' }, externalBasis: { $ref: '#/components/schemas/ExternalBasis' } } } } }
+      responses: { '201': { description: Đơn thay thế, content: { application/json: { schema: { $ref: '#/components/schemas/Prescription' } } } }, '409': { $ref: '#/components/responses/IssuesProblem' } }
+  /prescriptions/{id}/extend:
     post:
-      tags: [don-thuoc]
+      tags: [prescription]
       summary: Gia hạn (ngày kết thúc muộn hơn hoặc bỏ ngày kết thúc)
       x-fr: [FR-015, FR-017]
       x-br: [BR-M07-08]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody:
         required: true
-        content: { application/json: { schema: { allOf: [ { $ref: '#/components/schemas/LenhDonThan' }, { type: object, properties: { ngayKetThucMoi: { type: [string, 'null'], format: date } } } ] } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
+        content: { application/json: { schema: { allOf: [ { $ref: '#/components/schemas/PrescriptionCommandBody' }, { type: object, properties: { newEndedAt: { type: [string, 'null'], format: date } } } ] } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
 
   # ---------------- Lịch thuốc và liều ----------------
-  /nguoi-cao-tuoi/{nctId}/lich-thuoc:
+  /residents/{residentId}/medication-schedule:
     get:
-      tags: [lieu]
+      tags: [dose]
       summary: Lịch thuốc của một người cao tuổi trong khoảng (tính từ đơn, ghép liều đã vật hóa)
       description: 'Không tạo bản ghi (Q-306). Trưởng tầng xem liều, trạng thái nhưng không thấy chi tiết đơn (FR-049).'
       x-fr: [FR-018, FR-019, FR-020, FR-021, FR-049]
       x-br: [BR-M07-01]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { name: tu, in: query, required: true, schema: { type: string, format: date-time } }, { name: den, in: query, required: true, schema: { type: string, format: date-time } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Lieu' } } } } } }
-  /lieu-thuoc/vong-phat-thuoc:
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { name: from, in: query, required: true, schema: { type: string, format: date-time } }, { name: to, in: query, required: true, schema: { type: string, format: date-time } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Dose' } } } } } }
+  /medication-doses/rounds:
     get:
-      tags: [lieu]
+      tags: [dose]
       summary: Liều của vòng phát thuốc cho Điều dưỡng hiện tại (được phân công, liều chung của tầng, Người phụ trách ca)
       description: 'Kèm liều Mang theo chờ ghi nhận và lần giao Chờ nhận lại (FR-028). Mục tiêu ≤ 3 giây (SC-009).'
       x-fr: [FR-026, FR-026a, FR-028]
-      parameters: [ { name: tu, in: query, schema: { type: string, format: date-time } }, { name: den, in: query, schema: { type: string, format: date-time } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Lieu' } } } } } }
-  /lieu-thuoc/{lieuKey}:
+      parameters: [ { name: floorAreaId, in: query, description: 'Lọc theo tầng (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)', schema: { type: integer, format: int64 } }, { name: from, in: query, schema: { type: string, format: date-time } }, { name: to, in: query, schema: { type: string, format: date-time } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Dose' } } } } } }
+  /medication-doses/{doseKey}:
     get:
-      tags: [lieu]
+      tags: [dose]
       summary: Xem liều, kèm danh sách lô được dùng (không chọn sẵn), kết quả, chuỗi đính chính
       x-fr: [FR-020, FR-044]
-      parameters: [ { $ref: '#/components/parameters/LieuKey' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Lieu' } } } }, '404': { $ref: '#/components/responses/Loi' } }
-  /lieu-thuoc/{lieuKey}/da-dung:
+      parameters: [ { $ref: '#/components/parameters/DoseKey' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Dose' } } } }, '404': { $ref: '#/components/responses/Problem' } }
+  /medication-doses/{doseKey}/administer:
     post:
-      tags: [lieu]
+      tags: [dose]
       summary: Xác nhận Đã dùng (Đến giờ, Trễ, Mang theo)
       description: |
         Điều dưỡng có giấy phép phát thuốc và: được phân công trong ca, giữ nhiệm vụ Người phụ trách ca, hoặc có ca tại tầng khi liều chung (FR-026, FR-026a).
-        Liều Mang theo: canCu MANG_THEO (đi cùng) hoặc GHI_THEO_BAO_LAI kèm nguoiBaoLai (FR-027). Nguồn gia đình gửi: bắt buộc loThuocGuiId trừ liều thuộc lần giao (FR-044).
-        Thuốc kiểm soát đặc biệt chỉ trực tuyến; ghiSauMatKetNoi = true khi ghi sau mất kết nối, bản ghi chuyển Chờ xem lại (FR-029).
-        Phản hồi có thể kèm nhac GHI_NHAN_LAI_THUOC_MANG_THEO (không chặn, Q-60).
+        Liều Mang theo: basis LEAVE_MEDICATION (đi cùng) hoặc REPORTED_BY_OTHERS kèm reportedBy (FR-027). Nguồn gia đình gửi: bắt buộc familyMedicationBatchId trừ liều thuộc lần giao (FR-044).
+        Thuốc kiểm soát đặc biệt chỉ trực tuyến; recordedAfterDisconnect = true khi ghi sau mất kết nối, bản ghi chuyển Chờ xem lại (FR-029).
+        Phản hồi có thể kèm reminder RECORD_LEAVE_MEDICATION_RETURN (không chặn, Q-60).
       x-fr: [FR-021, FR-026, FR-026a, FR-027, FR-029, FR-031, FR-033, FR-044, FR-048a]
       x-br: [BR-M07-11, BR-M07-12, BR-M07-13, BR-M07-14]
-      parameters: [ { $ref: '#/components/parameters/LieuKey' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/XacNhanLieu' } } } }
+      parameters: [ { $ref: '#/components/parameters/DoseKey' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DoseResult' } } } }
       responses:
-        '200': { description: Đã dùng, content: { application/json: { schema: { $ref: '#/components/schemas/Lieu' } } } }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { $ref: '#/components/responses/LoiLieuDaXacNhan' }
-        '422': { $ref: '#/components/responses/Loi' }
-  /lieu-thuoc/{lieuKey}/tu-choi:
+        '200': { description: Đã dùng, content: { application/json: { schema: { $ref: '#/components/schemas/Dose' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/DoseAlreadyClosed' }
+        '422': { $ref: '#/components/responses/Problem' }
+  /medication-doses/{doseKey}/refuse:
     post:
-      tags: [lieu]
+      tags: [dose]
       summary: Ghi Từ chối (bắt buộc lý do)
       description: 'Đủ CFG-M05-04 lần từ chối liên tiếp cùng thuốc thì 007 nhận yêu cầu cảnh báo (FR-032).'
       x-fr: [FR-021, FR-026, FR-032]
       x-br: [BR-M07-13]
-      parameters: [ { $ref: '#/components/parameters/LieuKey' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/XacNhanLieu' } } } }
-      responses: { '200': { description: Từ chối }, '409': { $ref: '#/components/responses/LoiLieuDaXacNhan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /lieu-thuoc/{lieuKey}/khong-thuc-hien:
+      parameters: [ { $ref: '#/components/parameters/DoseKey' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DoseResult' } } } }
+      responses: { '200': { description: Từ chối }, '409': { $ref: '#/components/responses/DoseAlreadyClosed' }, '422': { $ref: '#/components/responses/Problem' } }
+  /medication-doses/{doseKey}/skip:
     post:
-      tags: [lieu]
+      tags: [dose]
       summary: Ghi Không thực hiện (bắt buộc lý do)
       x-fr: [FR-021, FR-023, FR-026, FR-027]
-      parameters: [ { $ref: '#/components/parameters/LieuKey' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/XacNhanLieu' } } } }
-      responses: { '200': { description: Không thực hiện }, '409': { $ref: '#/components/responses/LoiLieuDaXacNhan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /xem-lai-lieu:
+      parameters: [ { $ref: '#/components/parameters/DoseKey' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/DoseResult' } } } }
+      responses: { '200': { description: Không thực hiện }, '409': { $ref: '#/components/responses/DoseAlreadyClosed' }, '422': { $ref: '#/components/responses/Problem' } }
+  /dose-reviews:
     get:
-      tags: [lieu]
+      tags: [dose]
       summary: Bản ghi thuốc kiểm soát đặc biệt "ghi sau mất kết nối" chờ xem lại trong phạm vi
       x-fr: [FR-029]
-      parameters: [ { name: trangThai, in: query, schema: { type: string, enum: [CHO_XEM_LAI, CHAP_NHAN, CAN_DINH_CHINH] } } ]
-      responses: { '200': { description: OK } }
-  /xem-lai-lieu/{id}/ket-qua:
+      parameters: [ { name: status, in: query, schema: { type: string, enum: [PENDING_REVIEW, ACCEPTED, REQUIRES_CORRECTION] } } ]
+      responses: { '200': { description: 'OK (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)', content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DoseReview' } } } } } }
+  /dose-reviews/{id}/result:
     post:
-      tags: [lieu]
+      tags: [dose]
       summary: Gắn kết quả xem lại (Điều dưỡng khác người ghi)
-      description: 'Chỉ gắn kết quả, không thay bản ghi. CAN_DINH_CHINH thì người xem lại hoặc người ghi gốc tạo đính chính qua api-000 (Q-66).'
+      description: 'Chỉ gắn kết quả, không thay bản ghi. REQUIRES_CORRECTION thì người xem lại hoặc người ghi gốc tạo đính chính qua api-000 (Q-66).'
       x-fr: [FR-029]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ketQua], properties: { ketQua: { type: string, enum: [CHAP_NHAN, CAN_DINH_CHINH] }, ghiChu: { type: string } } } } } }
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [result], properties: { result: { type: string, enum: [ACCEPTED, REQUIRES_CORRECTION] }, note: { type: string } } } } } }
+      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Problem' } }
 
   # ---------------- PRN ----------------
-  /don-thuoc/{id}/lan-dung-prn:
+  /prescriptions/{id}/prn-administrations:
     get:
       tags: [prn]
       summary: Các lần dùng của đơn PRN (cả chuỗi thay thế) và thời điểm sớm nhất được dùng tiếp
       x-fr: [FR-024, FR-025]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK } }
+      responses: { '200': { description: 'OK (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)', content: { application/json: { schema: { $ref: '#/components/schemas/PrnHistory' } } } } }
     post:
       tags: [prn]
       summary: Ghi một lần dùng PRN
       description: |
-        Bắt buộc lyDo; lieuDung không vượt liều đơn; đơn Hiệu lực; người cao tuổi có mặt (trừ FR-027).
-        Chặn 409 VUOT_GIOI_HAN_PRN kèm somNhatDuocDung khi chưa đủ khoảng cách hoặc đã đạt số lần trong 24 giờ trượt (toàn chuỗi thay thế); không có thao tác vượt chặn.
-        canCu GHI_THEO_BAO_LAI: được lưu kể cả khi vượt, gắn vuotGioiHan và yêu cầu cảnh báo (FR-027).
+        Bắt buộc reason; dosage không vượt liều đơn; đơn Hiệu lực; người cao tuổi có mặt (trừ FR-027).
+        Chặn 409 PRN_LIMIT_EXCEEDED kèm earliestAllowedAt khi chưa đủ khoảng cách hoặc đã đạt số lần trong 24 giờ trượt (toàn chuỗi thay thế); không có thao tác vượt chặn.
+        basis REPORTED_BY_OTHERS: được lưu kể cả khi vượt, gắn exceededLimit và yêu cầu cảnh báo (FR-027).
       x-fr: [FR-024, FR-025, FR-025a, FR-027]
       x-br: [BR-M07-04]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LanDungPrnMoi' } } } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NewPrnAdministration' } } } }
       responses:
         '201': { description: Đã dùng }
-        '409': { $ref: '#/components/responses/LoiPrn' }
-        '422': { $ref: '#/components/responses/Loi' }
+        '409': { $ref: '#/components/responses/PrnProblem' }
+        '422': { $ref: '#/components/responses/Problem' }
 
   # ---------------- Đối chiếu thuốc ----------------
-  /nguoi-cao-tuoi/{nctId}/phieu-doi-chieu:
+  /residents/{residentId}/medication-reconciliations:
     get:
-      tags: [doi-chieu]
+      tags: [reconciliation]
       summary: Các phiếu đối chiếu; kèm hạn đối chiếu hiện hành và dữ liệu nguồn (đơn chờ đối chiếu, thuốc đang dùng khi tiếp nhận) để hiển thị
       description: 'Không có danh sách gợi ý hay nút chép sẵn (Q-307). Người thân chỉ thấy phiếu Đã xác nhận khi có bản đồng ý (FR-049).'
       x-fr: [FR-034, FR-034a, FR-049]
-      parameters: [ { $ref: '#/components/parameters/NctId' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/PhieuDoiChieu' } } } } } }
+      parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Reconciliation' } } } } } }
     post:
-      tags: [doi-chieu]
+      tags: [reconciliation]
       summary: Lập phiếu (Bác sĩ, Điều dưỡng)
-      description: 'lyDo TIEP_NHAN được lập khi hồ sơ Đang tiếp nhận (lập trước, chưa có hạn) hoặc sau Hoàn tất tiếp nhận; TRO_VE_BENH_VIEN sau Ghi nhận trở về. Đã có phiếu mở thì 409 DA_CO_PHIEU_MO.'
+      description: 'reason ADMISSION được lập khi hồ sơ Đang tiếp nhận (lập trước, chưa có hạn) hoặc sau Hoàn tất tiếp nhận; HOSPITAL_RETURN sau Ghi nhận trở về. Đã có phiếu mở thì 409 OPEN_RECONCILIATION_EXISTS.'
       x-fr: [FR-034, FR-034a, FR-034b, FR-035]
       x-br: [BR-M07-09, BR-M07-25]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { type: string, enum: [TIEP_NHAN, TRO_VE_BENH_VIEN, THEO_YEU_CAU_CHUYEN_MON] }, lyDoLap: { type: string, description: 'Bắt buộc khi lyDo = THEO_YEU_CAU_CHUYEN_MON (FR-034b): không tạm dừng đơn, không có hạn' } } } } } }
-      responses: { '201': { description: Mở, headers: { ETag: { $ref: '#/components/headers/ETag' } } }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /tiep-nhan-thuoc-cung-ung:
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { type: string, enum: [ADMISSION, HOSPITAL_RETURN, PROFESSIONAL_REQUEST] }, reasonDetail: { type: string, description: 'Bắt buộc khi reason = PROFESSIONAL_REQUEST (FR-034b): không tạm dừng đơn, không có hạn' } } } } } }
+      responses: { '201': { description: Mở, headers: { ETag: { $ref: '#/components/headers/ETag' } } }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
+  /supplied-medication-intakes:
     post:
-      tags: [tiep-nhan-thuoc]
+      tags: [supplied-medication]
       summary: Ghi lần tiếp nhận thuốc cung ứng (Điều dưỡng) cho một dòng của yêu cầu mua sắm loại "thuốc" đã ghi đã mua
-      description: 'Không đạt bắt buộc saiLech, lyDo. Không tạo tồn kho, không tính phí, không đổi đơn hay liều (FR-054, BR-M07-24). Yêu cầu chưa ghi đã mua: 409.'
+      description: 'NOT_PASSED bắt buộc discrepancy, reason. Không tạo tồn kho, không tính phí, không đổi đơn hay liều (FR-054, BR-M07-24). Yêu cầu chưa ghi đã mua: 409.'
       x-fr: [FR-054, FR-055]
       x-br: [BR-M07-24, BR-M11-17]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LanTiepNhanThuocGhi' } } } }
-      responses: { '201': { description: Đã ghi }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NewSuppliedMedicationIntake' } } } }
+      responses: { '201': { description: Đã ghi }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' }, '422': { $ref: '#/components/responses/Problem' } }
     get:
-      tags: [tiep-nhan-thuoc]
-      summary: Các lần tiếp nhận theo yêu cầu mua sắm, kèm daNhan
+      tags: [supplied-medication]
+      summary: Các lần tiếp nhận theo yêu cầu mua sắm
+      description: '"Đã nhận" (mọi dòng có lần Đạt) do 019 tính qua ProcurementIntakeApi (module-interfaces mục 1.8a), không trả ở đây (chủ dự án chọn 2026-10-26).'
       x-fr: [FR-054]
-      parameters: [ { name: yeuCauMuaSamId, in: query, required: true, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: OK }, '403': { $ref: '#/components/responses/Loi' } }
-  /phieu-doi-chieu/{id}:
+      parameters: [ { name: purchaseRequestId, in: query, required: true, schema: { type: integer, format: int64 } } ]
+      responses: { '200': { description: 'OK (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)', content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/SuppliedMedicationIntake' } } } } }, '403': { $ref: '#/components/responses/Problem' } }
+  /medication-reconciliations/{id}:
     get:
-      tags: [doi-chieu]
-      summary: Xem phiếu kèm dòng, dấu "thuốc đã bỏ khỏi hồ sơ" (tính lúc đọc), lịch sử, lenhDuocPhep[]
+      tags: [reconciliation]
+      summary: Xem phiếu kèm dòng, dấu "thuốc đã bỏ khỏi hồ sơ" (tính lúc đọc), lịch sử, allowedCommands[]
       x-fr: [FR-035, FR-038, FR-034a]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/PhieuDoiChieu' } } } } }
-  /phieu-doi-chieu/{id}/dong:
+      responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/Reconciliation' } } } } }
+  /medication-reconciliations/{id}/items:
     put:
-      tags: [doi-chieu]
+      tags: [reconciliation]
       summary: Thay danh sách dòng và quyết định (chỉ khi Mở)
-      description: 'Dòng Thay đổi liều, Thêm mới kiểm FR-007 và đủ trường FR-004 ngay trên phiếu; vấn đề chưa có lý do trả 409 CAN_XAC_NHAN_VAN_DE theo dòng.'
+      description: 'Dòng CHANGE_DOSE, ADD_NEW kiểm FR-007 và đủ trường FR-004 ngay trên phiếu; vấn đề chưa có lý do trả 409 ISSUES_REQUIRE_CONFIRMATION theo dòng.'
       x-fr: [FR-035, FR-036, FR-007]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DongDoiChieu' } } } } }
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiVanDe' }, '412': { $ref: '#/components/responses/Loi' } }
-  /phieu-doi-chieu/{id}/gui-xac-nhan:
+      requestBody: { required: true, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ReconciliationItem' } } } } }
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/IssuesProblem' }, '412': { $ref: '#/components/responses/Problem' } }
+  /medication-reconciliations/{id}/submit:
     post:
-      tags: [doi-chieu]
+      tags: [reconciliation]
       summary: Gửi xác nhận
-      description: 'Chặn 409 THIEU_DONG khi còn đơn Tạm dừng chưa có dòng, thuốc đang dùng khi tiếp nhận chưa có dòng, dòng thiếu quyết định, dòng Ngừng thiếu lý do (FR-034, FR-034a).'
+      description: 'Chặn 409 MISSING_ITEMS khi còn đơn Tạm dừng chưa có dòng, thuốc đang dùng khi tiếp nhận chưa có dòng, dòng thiếu quyết định, dòng DISCONTINUE thiếu lý do (FR-034, FR-034a).'
       x-fr: [FR-034, FR-034a, FR-035]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '200': { description: Chờ xác nhận }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /phieu-doi-chieu/{id}/tra-lai:
+      responses: { '200': { description: Chờ xác nhận }, '409': { $ref: '#/components/responses/Blocked' } }
+  /medication-reconciliations/{id}/return:
     post:
-      tags: [doi-chieu]
+      tags: [reconciliation]
       summary: Trả lại về Mở (bắt buộc lý do)
       x-fr: [FR-035]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
       responses: { '200': { description: Mở } }
-  /phieu-doi-chieu/{id}/xac-nhan:
+  /medication-reconciliations/{id}/confirm:
     post:
-      tags: [doi-chieu]
+      tags: [reconciliation]
       summary: Xác nhận phiếu và áp quyết định từng dòng trong một lệnh
       description: |
-        Người xác nhận là Bác sĩ hoặc Điều dưỡng khác người gửi và mọi người đã ghi quyết định (409 QUY_TAC_HAI_NGUOI).
-        Phiếu có dòng tạo đơn nội bộ: người xác nhận cần quyền kê đơn (403 CAN_BAC_SI_KE_DON). Lập trước khi hồ sơ Đang tiếp nhận:
+        Người xác nhận là Bác sĩ hoặc Điều dưỡng khác người gửi và mọi người đã ghi quyết định (409 TWO_PERSON_RULE).
+        Phiếu có dòng tạo đơn nội bộ: người xác nhận cần quyền kê đơn (403 PRESCRIBING_DOCTOR_REQUIRED). Lập trước khi hồ sơ Đang tiếp nhận:
         đơn tạo ra Chờ hiệu lực dấu "chờ tiếp nhận". Một dòng lỗi thì không dòng nào được áp dụng.
       x-fr: [FR-036, FR-038, FR-034a]
       x-br: [BR-M07-09]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '200': { description: Đã xác nhận }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /phieu-doi-chieu/{id}/de-nghi-dinh-chinh:
+      responses: { '200': { description: Đã xác nhận }, '403': { $ref: '#/components/responses/Problem' }, '409': { $ref: '#/components/responses/Blocked' } }
+  /medication-reconciliations/{id}/propose-correction:
     post:
-      tags: [doi-chieu]
+      tags: [reconciliation]
       summary: Lập đề nghị đính chính phiếu Đã xác nhận (người thực hiện hoặc người xác nhận của phiếu)
       description: 'Có hiệu lực khi một Bác sĩ hoặc Điều dưỡng khác người lập xác nhận; chỉ sửa nội dung ghi trên phiếu, không đổi đơn thuốc (FR-039, BR-M07-17).'
       x-fr: [FR-039]
       x-br: [BR-M07-17]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [noiDungDung, lyDo], properties: { noiDungDung: { type: object, additionalProperties: true }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
-      responses: { '201': { description: Chờ xác nhận }, '403': { $ref: '#/components/responses/Loi' } }
-  /de-nghi-dinh-chinh-phieu/{id}/xac-nhan:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [correctedContent, reason], properties: { correctedContent: { type: object, additionalProperties: true }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      responses: { '201': { description: Chờ xác nhận }, '403': { $ref: '#/components/responses/Problem' } }
+  /reconciliation-corrections/{id}/confirm:
     post:
-      tags: [doi-chieu]
+      tags: [reconciliation]
       summary: Xác nhận đề nghị đính chính phiếu (tạo bản đính chính của 000 trong cùng lệnh)
       x-fr: [FR-039]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /de-nghi-dinh-chinh-phieu/{id}/tra-lai:
+      responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Blocked' } }
+  /reconciliation-corrections/{id}/return:
     post:
-      tags: [doi-chieu]
+      tags: [reconciliation]
       summary: Trả lại đề nghị đính chính phiếu
       x-fr: [FR-039]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
       responses: { '200': { description: OK } }
 
   # ---------------- Thuốc gia đình gửi ----------------
-  /nguoi-cao-tuoi/{nctId}/thuoc-gia-dinh-gui:
+  /residents/{residentId}/family-medications:
     get:
-      tags: [thuoc-gui]
+      tags: [family-medication]
       summary: Danh sách lô thuốc gia đình gửi, kèm số ngày dùng còn lại theo nhóm dùng chung
       description: 'Người thân có quan hệ Hiệu lực xem tên, trạng thái, số lượng còn, hạn dùng mà không cần bản đồng ý (FR-049, CHK051).'
       x-fr: [FR-040, FR-046, FR-049]
-      parameters: [ { $ref: '#/components/parameters/NctId' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ThuocGui' } } } } } }
+      parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/FamilyMedicationBatch' } } } } } }
     post:
-      tags: [thuoc-gui]
+      tags: [family-medication]
       summary: Tiếp nhận thuốc gia đình gửi (một lô)
-      description: 'Điều dưỡng. Thuốc mua hộ: deNghiMuaHoId của đề nghị Đã mua (010), người giao là nhân viên mua (Q-139). Thuốc hết hạn dùng vẫn được ghi nhận.'
+      description: 'Điều dưỡng. Thuốc mua hộ: purchaseAssistanceId của đề nghị Đã mua (010), người giao là nhân viên mua (Q-139). Thuốc hết hạn dùng vẫn được ghi nhận.'
       x-fr: [FR-040, FR-041, FR-045]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/TiepNhanThuocGui' } } } }
-      responses: { '201': { description: Chờ đối chiếu }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /thuoc-gia-dinh-gui/{id}:
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ReceiveFamilyMedication' } } } }
+      responses: { '201': { description: Chờ đối chiếu }, '409': { $ref: '#/components/responses/Blocked' } }
+  /family-medications/{id}:
     get:
-      tags: [thuoc-gui]
+      tags: [family-medication]
       summary: Xem lô kèm đơn gắn và biến động số lượng
       x-fr: [FR-041, FR-045]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ThuocGui' } } } } }
-  /thuoc-gia-dinh-gui/{id}/xac-nhan-su-dung:
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/FamilyMedicationBatch' } } } } }
+  /family-medications/{id}/confirm-use:
     post:
-      tags: [thuoc-gui]
+      tags: [family-medication]
       summary: Xác nhận sử dụng, gắn một hoặc nhiều đơn nguồn gia đình gửi
-      description: 'Lô ghi tự do phải chọn thuocId. Cùng thuốc hoặc cùng hoạt chất và hàm lượng; có toa hoặc đơn của viện; chưa hết hạn dùng; bao bì nhận diện được.'
+      description: 'Lô ghi tự do phải chọn medicationId. Cùng thuốc hoặc cùng hoạt chất và hàm lượng; có toa hoặc đơn của viện; chưa hết hạn dùng; bao bì nhận diện được.'
       x-fr: [FR-040, FR-041, FR-043, FR-046]
       x-br: [BR-M07-10, BR-M07-18]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [donThuocIds, baoBiNhanDienDuoc], properties: { donThuocIds: { type: array, minItems: 1, items: { type: integer, format: int64 } }, thuocId: { type: integer, format: int64 }, baoBiNhanDienDuoc: { type: boolean }, canCu: { type: string, enum: [TOA_GIA_DINH, DON_CUA_VIEN] } } } } } }
-      responses: { '200': { description: Được sử dụng }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /thuoc-gia-dinh-gui/{id}/chi-giu-ho:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [prescriptionIds, packagingRecognizable], properties: { prescriptionIds: { type: array, minItems: 1, items: { type: integer, format: int64 } }, medicationId: { type: integer, format: int64 }, packagingRecognizable: { type: boolean }, basis: { type: string, enum: [FAMILY_PRESCRIPTION, FACILITY_PRESCRIPTION] } } } } } }
+      responses: { '200': { description: Được sử dụng }, '409': { $ref: '#/components/responses/Blocked' } }
+  /family-medications/{id}/hold-only:
     post:
-      tags: [thuoc-gui]
+      tags: [family-medication]
       summary: Chỉ giữ hộ (bắt buộc lý do)
       x-fr: [FR-041]
       x-br: [BR-M07-10]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
       responses: { '200': { description: Chỉ giữ hộ } }
-  /thuoc-gia-dinh-gui/{id}/ngung-su-dung:
+  /family-medications/{id}/stop-use:
     post:
-      tags: [thuoc-gui]
+      tags: [family-medication]
       summary: Ngừng sử dụng (về Chỉ giữ hộ, gỡ liên kết đơn)
       x-fr: [FR-041]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
       responses: { '200': { description: Chỉ giữ hộ } }
-  /thuoc-gia-dinh-gui/{id}/kiem-ke-dieu-chinh:
+  /family-medications/{id}/adjust-inventory:
     post:
-      tags: [thuoc-gui]
+      tags: [family-medication]
       summary: Kiểm kê điều chỉnh số lượng (rơi vỡ, đếm lại)
       x-fr: [FR-045]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [soLuongThucTe, lyDo], properties: { soLuongThucTe: { type: number, minimum: 0 }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [actualQuantity, reason], properties: { actualQuantity: { type: number, minimum: 0 }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '200': { description: OK } }
-  /thuoc-gia-dinh-gui/{id}/hoan-tra:
+  /family-medications/{id}/return:
     post:
-      tags: [thuoc-gui]
+      tags: [family-medication]
       summary: Hoàn trả (từ Chờ đối chiếu, Chỉ giữ hộ; số lượng bằng số còn)
-      description: 'Người nhận thuộc danh sách người thân hoặc được người đại diện chỉ định. Số lượng khác số còn thì 409 SO_LUONG_KHAC_SO_CON (BR-M07-19).'
+      description: 'Người nhận thuộc danh sách người thân hoặc được người đại diện chỉ định. Số lượng khác số còn thì 409 QUANTITY_DIFFERS_FROM_REMAINING (BR-M07-19).'
       x-fr: [FR-041, FR-045]
       x-br: [BR-M07-19]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [soLuong, nguoiNhan, thoiDiem], properties: { soLuong: { type: number }, nguoiNhan: { $ref: '#/components/schemas/NguoiNgoai' }, thoiDiem: { type: string, format: date-time } } } } } }
-      responses: { '200': { description: Đã hoàn trả }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /thuoc-gia-dinh-gui/{id}/huy:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [quantity, recipient, returnedAt], properties: { quantity: { type: number }, recipient: { $ref: '#/components/schemas/ExternalPerson' }, returnedAt: { type: string, format: date-time } } } } } }
+      responses: { '200': { description: Đã hoàn trả }, '409': { $ref: '#/components/responses/Blocked' } }
+  /family-medications/{id}/dispose:
     post:
-      tags: [thuoc-gui]
+      tags: [family-medication]
       summary: Hủy theo yêu cầu gia đình (người đại diện yêu cầu; có người chứng kiến)
       x-fr: [FR-041, FR-045]
       x-br: [BR-M07-19]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [soLuong, nguoiDaiDienId, cachNhanYeuCau, nguoiChungKien, lyDo], properties: { soLuong: { type: number }, nguoiDaiDienId: { type: integer, format: int64 }, cachNhanYeuCau: { type: string }, nguoiChungKien: { type: string }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
-      responses: { '200': { description: Đã hủy theo yêu cầu gia đình }, '409': { $ref: '#/components/responses/LoiChan' } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [quantity, representativeId, requestMethod, witness, reason], properties: { quantity: { type: number }, representativeId: { type: integer, format: int64 }, requestMethod: { type: string }, witness: { type: string }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      responses: { '200': { description: Đã hủy theo yêu cầu gia đình }, '409': { $ref: '#/components/responses/Blocked' } }
 
   # ---------------- Mang theo ----------------
-  /nguoi-cao-tuoi/{nctId}/thuoc-can-mang:
+  /residents/{residentId}/medications-to-bring:
     get:
-      tags: [mang-theo]
+      tags: [leave-medication]
       summary: Thuốc cần mang cho khoảng vắng hoặc chuyến đi (đơn có liều Mang theo, đơn PRN, lô dùng được)
       x-fr: [FR-048a, FR-048b]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { name: chuyenId, in: query, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: OK } }
-  /nguoi-cao-tuoi/{nctId}/lan-giao-thuoc:
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { name: tripId, in: query, schema: { type: integer, format: int64 } } ]
+      responses: { '200': { description: 'OK (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)', content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MedicationToBring' } } } } } }
+  /residents/{residentId}/medication-handovers:
     get:
-      tags: [mang-theo]
+      tags: [leave-medication]
       summary: Các lần giao thuốc mang theo
       x-fr: [FR-048a]
-      parameters: [ { $ref: '#/components/parameters/NctId' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LanGiao' } } } } } }
+      parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MedicationHandover' } } } } } }
     post:
-      tags: [mang-theo]
+      tags: [leave-medication]
       summary: Giao thuốc mang theo
       description: 'Trừ lô gia đình gửi (điều kiện chọn lô như FR-044); với nguồn viện, lần giao là sự kiện tính phí theo số lượng giao. Một lượt vắng có thể có nhiều lần giao (BR-M07-22).'
       x-fr: [FR-048a]
       x-br: [BR-M07-11, BR-M07-14, BR-M07-22]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LanGiaoMoi' } } } }
-      responses: { '201': { description: Đang mang theo }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /lan-giao-thuoc/{id}/nhan-lai:
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/NewMedicationHandover' } } } }
+      responses: { '201': { description: Đang mang theo }, '409': { $ref: '#/components/responses/Blocked' } }
+  /medication-handovers/{id}/return:
     post:
-      tags: [mang-theo]
+      tags: [leave-medication]
       summary: Nhận lại thuốc mang theo (kể cả số lượng 0 kèm lý do)
       x-fr: [FR-048a, FR-047]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [dong], properties: { dong: { type: array, items: { type: object, required: [donThuocId, soLuong], properties: { donThuocId: { type: integer, format: int64 }, soLuong: { type: number, minimum: 0 } } } }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
-      responses: { '200': { description: Đã nhận lại }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /nguoi-cao-tuoi/{nctId}/khong-mang-thuoc:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [items], properties: { items: { type: array, items: { type: object, required: [prescriptionId, quantity], properties: { prescriptionId: { type: integer, format: int64 }, quantity: { type: number, minimum: 0 } } } }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      responses: { '200': { description: Đã nhận lại }, '409': { $ref: '#/components/responses/Blocked' } }
+  /residents/{residentId}/no-medication-orders:
     post:
-      tags: [mang-theo]
+      tags: [leave-medication]
       summary: Lệnh "Không mang thuốc" cho một chuyến đi (Điều dưỡng)
       description: 'Người cao tuổi phải được đánh giá Đạt cho chuyến (014). Liều trong khoảng đi thành Tạm dừng như Tạm vắng không mang thuốc.'
       x-fr: [FR-048b]
       x-br: [BR-M07-03]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [chuyenId, lyDo], properties: { chuyenId: { type: integer, format: int64 }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
-      responses: { '201': { description: Đã ghi }, '409': { $ref: '#/components/responses/LoiChan' } }
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [tripId, reason], properties: { tripId: { type: integer, format: int64 }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
+      responses: { '201': { description: Đã ghi }, '409': { $ref: '#/components/responses/Blocked' } }
 
 components:
   securitySchemes:
-    phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
+    session: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
   parameters:
     Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
-    NctId: { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } }
-    LieuKey: { name: lieuKey, in: path, required: true, schema: { type: string, pattern: '^[0-9]+-[0-9]{12}$' }, description: '{donThuocId}-{yyyyMMddHHmm}' }
+    ResidentId: { name: residentId, in: path, required: true, schema: { type: integer, format: int64 } }
+    DoseKey: { name: doseKey, in: path, required: true, schema: { type: string, pattern: '^[0-9]+-[0-9]{12}$' }, description: '{prescriptionId}-{yyyyMMddHHmm}' }
     IfMatch: { name: If-Match, in: header, required: true, schema: { type: string } }
     IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
   headers:
     ETag: { schema: { type: string } }
   requestBodies:
-    LyDo:
+    Reason:
       required: true
-      content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } }
-    LenhDon:
+      content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { $ref: '#/components/schemas/Reason' } } } } }
+    PrescriptionCommand:
       required: true
-      content: { application/json: { schema: { $ref: '#/components/schemas/LenhDonThan' } } }
+      content: { application/json: { schema: { $ref: '#/components/schemas/PrescriptionCommandBody' } } }
   responses:
-    Loi:
+    Problem:
       description: Lỗi theo RFC 9457 (research R-03 của 000)
-      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
-    LoiChan:
-      description: 'DIEU_KIEN_CHUA_THOA, CHUYEN_KHONG_HOP_LE, DANG_CO_PHIEU_DOI_CHIEU, DA_CO_PHIEU_MO, THIEU_DONG, QUY_TAC_HAI_NGUOI, LO_KHONG_HOP_LE, CHUA_CO_THUOC, HET_HAN_DUNG, SO_LUONG_KHAC_SO_CON, BAT_BUOC_TRUC_TUYEN…'
-      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Loi' } } }
-    LoiVanDe:
-      description: 'CAN_XAC_NHAN_VAN_DE (FR-007): liệt kê đơn trùng hoạt chất và mục dị ứng (mức độ) chưa có lý do xác nhận; với phiếu đối chiếu kèm số dòng'
-      content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Loi' }, { type: object, properties: { vanDe: { type: array, items: { $ref: '#/components/schemas/VanDe' } } } } ] } } }
-    LoiLieuDaXacNhan:
-      description: 'LIEU_DA_XAC_NHAN (DBR-13): kèm người đóng, thời điểm và nội dung bị từ chối để chuyển thành đính chính'
-      content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Loi' }, { type: object, properties: { dongBoi: { type: string }, dongLuc: { type: string, format: date-time }, trangThai: { $ref: '#/components/schemas/TrangThaiLieu' }, noiDungBiTuChoi: { $ref: '#/components/schemas/XacNhanLieu' } } } ] } } }
-    LoiPrn:
-      description: 'VUOT_GIOI_HAN_PRN (BR-M07-04): kèm somNhatDuocDung và điều kiện vi phạm'
-      content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Loi' }, { type: object, properties: { somNhatDuocDung: { type: string, format: date-time }, viPham: { type: array, items: { type: string, enum: [KHOANG_CACH_TOI_THIEU, SO_LAN_24H] } } } } ] } } }
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    Blocked:
+      description: 'CONDITION_NOT_MET, INVALID_TRANSITION, RECONCILIATION_IN_PROGRESS, OPEN_RECONCILIATION_EXISTS, MISSING_ITEMS, TWO_PERSON_RULE, INVALID_BATCH, NO_MEDICATION_AVAILABLE, EXPIRED_MEDICATION, QUANTITY_DIFFERS_FROM_REMAINING, REQUIRES_ONLINE…'
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+    IssuesProblem:
+      description: 'ISSUES_REQUIRE_CONFIRMATION (FR-007): liệt kê đơn trùng hoạt chất và mục dị ứng (mức độ) chưa có lý do xác nhận; với phiếu đối chiếu kèm số dòng'
+      content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Problem' }, { type: object, properties: { issues: { type: array, items: { $ref: '#/components/schemas/Issue' } } } } ] } } }
+    DoseAlreadyClosed:
+      description: 'DOSE_ALREADY_CLOSED (DBR-13): kèm người đóng, thời điểm và nội dung bị từ chối để chuyển thành đính chính'
+      content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Problem' }, { type: object, properties: { closedBy: { type: string }, closedAt: { type: string, format: date-time }, status: { $ref: '#/components/schemas/DoseStatus' }, rejectedContent: { $ref: '#/components/schemas/DoseResult' } } } ] } } }
+    PrnProblem:
+      description: 'PRN_LIMIT_EXCEEDED (BR-M07-04): kèm earliestAllowedAt và điều kiện vi phạm'
+      content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Problem' }, { type: object, properties: { earliestAllowedAt: { type: string, format: date-time }, violations: { type: array, items: { type: string, enum: [MIN_INTERVAL, MAX_PER_24H] } } } } ] } } }
   schemas:
-    LyDo: { type: string, minLength: 1, maxLength: 2000 }
-    TrangThaiDon: { type: string, enum: [CHO_HIEU_LUC, HIEU_LUC, TAM_DUNG, DA_NGUNG, HET_HAN] }
-    TrangThaiLieu: { type: string, enum: [CHUA_DEN_GIO, DEN_GIO, TRE, BO_LO, DA_DUNG, TU_CHOI, KHONG_THUC_HIEN, TAM_DUNG, MANG_THEO, DA_HUY] }
-    TrangThaiThuocGui: { type: string, enum: [CHO_DOI_CHIEU, DUOC_SU_DUNG, CHI_GIU_HO, DA_DUNG_HET, DA_HOAN_TRA, DA_HUY_THEO_YEU_CAU] }
-    Loi:
+    Reason: { type: string, minLength: 1, maxLength: 2000 }
+    PrescriptionStatus: { type: string, enum: [PENDING_EFFECTIVE, ACTIVE, SUSPENDED, DISCONTINUED, EXPIRED] }
+    DoseStatus: { type: string, enum: [UPCOMING, DUE, LATE, MISSED, ADMINISTERED, REFUSED, NOT_ADMINISTERED, SUSPENDED, LEAVE_MEDICATION, CANCELLED] }
+    FamilyMedicationStatus: { type: string, enum: [PENDING_RECONCILIATION, IN_USE, HOLD_ONLY, DEPLETED, RETURNED, DISPOSED] }
+    Problem:
       type: object
+      description: RFC 9457 cùng errorCode (000 R-03), giống schema Problem của api-000, api-002, api-009.
+      required: [type, title, status, errorCode]
       properties:
-        type: { type: string }
+        type: { type: string, format: uri }
         title: { type: string }
         status: { type: integer }
         detail: { type: string }
-        maLoi: { type: string }
-        dieuKienChuaThoa: { type: array, items: { type: object, properties: { ma: { type: string }, moTa: { type: string }, canCu: { type: string } } } }
-    Thuoc:
+        errorCode: { type: string }
+        unmetConditions: { type: array, items: { type: object, properties: { code: { type: string }, description: { type: string }, basis: { type: string, description: "BR/FR, ví dụ BR-M07-05" }, module: { type: string, description: "Feature sở hữu điều kiện" }, waivable: { type: boolean, description: "Miễn được qua yêu cầu phê duyệt (004)" } } } }
+        currentValue: { description: 'Khi 412: tài nguyên hiện hành' }
+        candidates: { type: array, items: { type: object } }
+        failedLayer: { type: string, enum: [ROLE, SCOPE, LEGAL, SOURCE_DATA] }
+        license: { type: object, properties: { name: { type: string }, expiryDate: { type: string, format: date } } }
+        unlocksAt: { type: string, format: date-time, description: 'Khi 423 ACCOUNT_TEMPORARILY_LOCKED (002 FR-014)' }
+    Medication:
       type: object
-      required: [ten, hamLuong, dangBaoChe, duongDungMacDinh, donViDung, hoatChat]
+      required: [name, concentration, dosageForm, defaultRoute, usageUnit, allergenIds]
       properties:
         id: { type: integer, format: int64 }
-        ten: { type: string }
-        hamLuong: { type: string }
-        dangBaoChe: { type: string }
-        duongDungMacDinh: { type: string }
-        donViDung: { type: string }
-        hoatChat: { type: array, minItems: 1, items: { type: integer, format: int64 }, description: 'id dị nguyên nhóm thuốc của 001' }
-        cuaSoTruocPhut: { type: integer }
-        cuaSoSauPhut: { type: integer }
-        kiemSoatDacBiet: { type: boolean }
-        hieuLuc: { type: boolean }
-        chuaCoMucVatPham: { type: boolean, readOnly: true }
-    TanSuat:
+        name: { type: string }
+        concentration: { type: string }
+        dosageForm: { type: string }
+        defaultRoute: { type: string }
+        usageUnit: { type: string }
+        allergenIds: { type: array, minItems: 1, items: { type: integer, format: int64 }, description: 'id dị nguyên nhóm thuốc của 001 (hoạt chất)' }
+        beforeWindowMinutes: { type: integer }
+        afterWindowMinutes: { type: integer }
+        specialControl: { type: boolean }
+        active: { type: boolean }
+        missingPricingItem: { type: boolean, readOnly: true }
+    Frequency:
       type: object
-      required: [kieu]
+      required: [type]
       properties:
-        kieu: { type: string, enum: [CAC_MOC, MOI_N_GIO, NGAY_TRONG_TUAN] }
-        cacMoc: { type: array, items: { type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$' } }
-        nGio: { type: integer, minimum: 1 }
-        mocDau: { type: string, format: date-time }
-        ngayTrongTuan: { type: array, items: { type: integer, minimum: 1, maximum: 7 } }
-    CoSoKe:
+        type: { type: string, enum: [TIMED_SLOTS, EVERY_N_HOURS, DAYS_OF_WEEK] }
+        timedSlots: { type: array, items: { type: string, pattern: '^[0-2][0-9]:[0-5][0-9]$' } }
+        everyNHours: { type: integer, minimum: 1 }
+        firstSlot: { type: string, format: date-time }
+        daysOfWeek: { type: array, items: { type: integer, minimum: 1, maximum: 7 } }
+    Prescriber:
       type: object
-      required: [loai]
+      required: [type]
       properties:
-        loai: { type: string, enum: [NOI_BO, BEN_NGOAI] }
-        tenCoSo: { type: string }
-        nguoiKe: { type: string }
-        ngayKe: { type: string, format: date }
-        tepDonId: { type: integer, format: int64 }
-    CanCuCoSoKe:
+        type: { type: string, enum: [INTERNAL, EXTERNAL] }
+        facilityName: { type: string }
+        prescriberName: { type: string }
+        prescribedAt: { type: string, format: date }
+        prescriptionFileId: { type: integer, format: int64 }
+    ExternalBasis:
       type: object
       description: 'BR-M07-16; bắt buộc cho lệnh của Điều dưỡng trên đơn bên ngoài'
-      required: [tenCoSo, nguoiChiDinh, ngay, hinhThuc]
+      required: [facilityName, prescriberName, prescribedDate, basisType]
       properties:
-        tenCoSo: { type: string }
-        nguoiChiDinh: { type: string }
-        ngay: { type: string, format: date }
-        hinhThuc: { type: string, enum: [DON_MOI, GIAY_RA_VIEN, DIEN_THOAI] }
-        nguoiGoi: { type: string }
-        nguoiTraLoi: { type: string }
-        thoiDiemGoi: { type: string, format: date-time }
-        tepId: { type: integer, format: int64 }
-    LenhDonThan:
+        facilityName: { type: string }
+        prescriberName: { type: string, description: 'Người chỉ định' }
+        prescribedDate: { type: string, format: date }
+        basisType: { type: string, enum: [NEW_PRESCRIPTION, DISCHARGE_PAPER, PHONE_ORDER] }
+        callerName: { type: string }
+        receiverName: { type: string }
+        calledAt: { type: string, format: date-time }
+        documentFileId: { type: integer, format: int64 }
+    PrescriptionCommandBody:
       type: object
-      required: [lyDo]
+      required: [reason]
       properties:
-        lyDo: { $ref: '#/components/schemas/LyDo' }
-        canCuCoSoKe: { $ref: '#/components/schemas/CanCuCoSoKe' }
-    VanDe:
+        reason: { $ref: '#/components/schemas/Reason' }
+        externalBasis: { $ref: '#/components/schemas/ExternalBasis' }
+    Issue:
       type: object
       properties:
-        maVanDe: { type: string }
-        loai: { type: string, enum: [TRUNG_HOAT_CHAT, XUNG_DOT_DI_UNG, DI_UNG_KHAC_CAN_XEM] }
-        hoatChat: { type: string }
-        donTrungId: { type: integer, format: int64 }
-        mucDiUngId: { type: integer, format: int64 }
-        mucDo: { type: string }
-        khongKiemTraTuDong: { type: boolean }
-        dong: { type: integer, description: 'Số dòng khi kiểm trên phiếu đối chiếu' }
-    DonThuocMoi:
+        issueCode: { type: string }
+        issueType: { type: string, enum: [DUPLICATE_ACTIVE_INGREDIENT, ALLERGY_CONFLICT, OTHER_ALLERGY_REVIEW] }
+        activeIngredient: { type: string }
+        duplicatePrescriptionId: { type: integer, format: int64 }
+        allergyItemId: { type: integer, format: int64 }
+        severity: { type: string }
+        notAutoChecked: { type: boolean }
+        lineNumber: { type: integer, description: 'Số dòng khi kiểm trên phiếu đối chiếu' }
+    NewPrescription:
       type: object
-      required: [thuocId, lieu, duongDung, loaiDon, batDauLuc, nguonThuoc, coSoKe]
+      required: [medicationId, dosage, route, prescriptionType, startedAt, medicationSource, prescriber]
       properties:
-        thuocId: { type: integer, format: int64 }
-        lieu: { type: number, exclusiveMinimum: 0 }
-        duongDung: { type: string }
-        loaiDon: { type: string, enum: [DINH_KY, PRN] }
-        tanSuat: { $ref: '#/components/schemas/TanSuat' }
-        khoangCachToiThieuPhut: { type: integer, minimum: 1 }
-        soLanToiDa24h: { type: integer, minimum: 1 }
-        batDauLuc: { type: string, format: date-time }
-        ngayKetThuc: { type: string, format: date }
-        nguonThuoc: { type: string, enum: [VIEN, GIA_DINH_GUI] }
-        coSoKe: { $ref: '#/components/schemas/CoSoKe' }
-        ghiChuHuongDan: { type: string }
-        xacNhanVanDe: { type: array, items: { type: object, required: [maVanDe, lyDo], properties: { maVanDe: { type: string }, lyDo: { $ref: '#/components/schemas/LyDo' } } } }
-    DonThuoc:
+        medicationId: { type: integer, format: int64 }
+        dosage: { type: number, exclusiveMinimum: 0 }
+        route: { type: string }
+        prescriptionType: { type: string, enum: [PERIODIC, PRN] }
+        frequency: { $ref: '#/components/schemas/Frequency' }
+        minIntervalMinutes: { type: integer, minimum: 1 }
+        maxDosesPer24h: { type: integer, minimum: 1 }
+        startedAt: { type: string, format: date-time }
+        endedAt: { type: string, format: date }
+        medicationSource: { type: string, enum: [FACILITY, FAMILY_SENT] }
+        prescriber: { $ref: '#/components/schemas/Prescriber' }
+        instructionNote: { type: string }
+        issueConfirmations: { type: array, items: { type: object, required: [issueCode, reason], properties: { issueCode: { type: string }, reason: { $ref: '#/components/schemas/Reason' } } } }
+    Prescription:
       allOf:
-        - $ref: '#/components/schemas/DonThuocMoi'
+        - $ref: '#/components/schemas/NewPrescription'
         - type: object
           properties:
             id: { type: integer, format: int64 }
-            nctId: { type: integer, format: int64 }
-            trangThai: { $ref: '#/components/schemas/TrangThaiDon' }
-            lyDoTamDung: { type: string, enum: [LENH, CHO_DOI_CHIEU] }
-            dauChoTiepNhan: { type: boolean }
-            ngungTu: { type: string, format: date-time }
-            thayTheChoId: { type: integer, format: int64 }
-            biThayTheBoiId: { type: integer, format: int64 }
-            chuaCoThuoc: { type: boolean }
-            vanDeDaXacNhan: { type: array, items: { $ref: '#/components/schemas/VanDe' } }
-            loGan: { type: array, items: { type: integer, format: int64 } }
-            lenhDuocPhep: { type: array, items: { type: string } }
-            truongBiAn: { type: array, items: { type: string } }
-    Lieu:
+            residentId: { type: integer, format: int64 }
+            status: { $ref: '#/components/schemas/PrescriptionStatus' }
+            suspensionReason: { type: string, enum: [ORDER, RECONCILIATION_PENDING] }
+            pendingAdmission: { type: boolean }
+            suspendedFrom: { type: string, format: date-time }
+            replacesId: { type: integer, format: int64 }
+            replacedById: { type: integer, format: int64 }
+            noMedicationAvailable: { type: boolean }
+            confirmedIssues: { type: array, items: { $ref: '#/components/schemas/Issue' } }
+            boundBatchIds: { type: array, items: { type: integer, format: int64 } }
+            allowedCommands: { type: array, items: { type: string } }
+            hiddenFields: { type: array, items: { type: string } }
+    Dose:
       type: object
       properties:
-        lieuKey: { type: string }
-        nctId: { type: integer, format: int64 }
-        donThuocId: { type: integer, format: int64 }
-        thoiDiemDuKien: { type: string, format: date-time }
-        cuaSoTu: { type: string, format: date-time }
-        cuaSoDen: { type: string, format: date-time }
-        trangThai: { $ref: '#/components/schemas/TrangThaiLieu' }
-        trangThaiHienHanh: { $ref: '#/components/schemas/TrangThaiLieu', description: 'Sau đính chính' }
-        daVatHoa: { type: boolean }
-        lieuChungTang: { type: boolean }
-        tonChoXacNhanBanGiao: { type: boolean }
-        choGhiNhanSauTroVe: { type: boolean }
-        batBuocTrucTuyen: { type: boolean }
-        nguonThuoc: { type: string, enum: [VIEN, GIA_DINH_GUI] }
-        loDuocDung: { type: array, items: { type: object, properties: { loId: { type: integer, format: int64 }, hanDung: { type: string, format: date }, soLuongCon: { type: number } } }, description: 'Hiển thị, không chọn sẵn (Q-307)' }
-        lanGiaoId: { type: integer, format: int64 }
-        ketQua: { $ref: '#/components/schemas/XacNhanLieu' }
-        dongBoi: { type: string }
-        canRaSoat: { type: boolean, description: 'Thời điểm dùng sau thời điểm qua đời ghi trong quá khứ (Edge Case)' }
-        truongBiAn: { type: array, items: { type: string } }
-    XacNhanLieu:
+        doseKey: { type: string }
+        residentId: { type: integer, format: int64 }
+        prescriptionId: { type: integer, format: int64 }
+        scheduledTime: { type: string, format: date-time }
+        windowFrom: { type: string, format: date-time }
+        windowTo: { type: string, format: date-time }
+        status: { $ref: '#/components/schemas/DoseStatus' }
+        currentStatus: { $ref: '#/components/schemas/DoseStatus', description: 'Sau đính chính' }
+        materialized: { type: boolean }
+        floorShared: { type: boolean }
+        pendingHandoverConfirmation: { type: boolean }
+        awaitingRecordAfterReturn: { type: boolean }
+        requiresOnline: { type: boolean }
+        medicationSource: { type: string, enum: [FACILITY, FAMILY_SENT] }
+        usableBatches: { type: array, items: { type: object, properties: { batchId: { type: integer, format: int64 }, expiryDate: { type: string, format: date }, remainingQuantity: { type: number } } }, description: 'Hiển thị, không chọn sẵn (Q-307)' }
+        handoverId: { type: integer, format: int64 }
+        result: { $ref: '#/components/schemas/DoseResult' }
+        closedBy: { type: string }
+        needsReview: { type: boolean, description: 'Thời điểm dùng sau thời điểm qua đời ghi trong quá khứ (Edge Case)' }
+        hiddenFields: { type: array, items: { type: string } }
+    DoseResult:
       type: object
       properties:
-        thoiDiemDung: { type: string, format: date-time }
-        loThuocGuiId: { type: integer, format: int64 }
-        canCu: { type: string, enum: [THUONG, MANG_THEO, GHI_THEO_BAO_LAI] }
-        nguoiBaoLai: { $ref: '#/components/schemas/NguoiNgoai' }
-        phanUng: { type: string }
-        lyDo: { $ref: '#/components/schemas/LyDo' }
-        ghiChu: { type: string }
-        ghiSauMatKetNoi: { type: boolean, description: 'Chỉ cho thuốc kiểm soát đặc biệt ghi trực tuyến sau khi mất kết nối (FR-029)' }
-    LanDungPrnMoi:
+        administeredAt: { type: string, format: date-time }
+        familyMedicationBatchId: { type: integer, format: int64 }
+        basis: { type: string, enum: [REGULAR, LEAVE_MEDICATION, REPORTED_BY_OTHERS] }
+        reportedBy: { $ref: '#/components/schemas/ExternalPerson' }
+        adverseReaction: { type: string }
+        reason: { $ref: '#/components/schemas/Reason' }
+        note: { type: string }
+        recordedAfterDisconnect: { type: boolean, description: 'Chỉ cho thuốc kiểm soát đặc biệt ghi trực tuyến sau khi mất kết nối (FR-029)' }
+    NewPrnAdministration:
       type: object
-      required: [thoiDiemDung, lieuDung, lyDo]
+      required: [administeredAt, dosage, reason]
       properties:
-        thoiDiemDung: { type: string, format: date-time }
-        lieuDung: { type: number, exclusiveMinimum: 0 }
-        lyDo: { $ref: '#/components/schemas/LyDo' }
-        phanUng: { type: string }
-        ghiChu: { type: string }
-        loThuocGuiId: { type: integer, format: int64 }
-        canCu: { type: string, enum: [THUONG, MANG_THEO, GHI_THEO_BAO_LAI] }
-        nguoiBaoLai: { $ref: '#/components/schemas/NguoiNgoai' }
-        ghiSauMatKetNoi: { type: boolean }
-    NguoiNgoai:
+        administeredAt: { type: string, format: date-time }
+        dosage: { type: number, exclusiveMinimum: 0 }
+        reason: { $ref: '#/components/schemas/Reason' }
+        adverseReaction: { type: string }
+        note: { type: string }
+        familyMedicationBatchId: { type: integer, format: int64 }
+        basis: { type: string, enum: [REGULAR, LEAVE_MEDICATION, REPORTED_BY_OTHERS] }
+        reportedBy: { $ref: '#/components/schemas/ExternalPerson' }
+        recordedAfterDisconnect: { type: boolean }
+    ExternalPerson:
       type: object
       properties:
-        loai: { type: string, enum: [NHAN_VIEN, NGUOI_THAN, TU_DO] }
+        type: { type: string, enum: [STAFF, FAMILY_MEMBER, FREE] }
         id: { type: integer, format: int64 }
-        hoTen: { type: string }
-        quanHe: { type: string }
-    DongDoiChieu:
+        fullName: { type: string }
+        relationship: { type: string }
+    ReconciliationItem:
       type: object
-      required: [nguon]
-      properties:
-        id: { type: integer, format: int64 }
-        nguon: { type: string, enum: [DON_HIEN_CO, DON_RA_VIEN, THUOC_DANG_DUNG_TIEP_NHAN] }
-        donThuocId: { type: integer, format: int64 }
-        mucThuocDangDungId: { type: integer, format: int64 }
-        moTaThuoc: { type: string }
-        quyetDinh: { type: string, enum: [TIEP_TUC, NGUNG, THAY_DOI_LIEU, THEM_MOI] }
-        lyDo: { type: string }
-        donMoi: { $ref: '#/components/schemas/DonThuocMoi' }
-        daNgungNgoaiPhieu: { type: boolean, readOnly: true }
-        thuocDaBoKhoiHoSo: { type: boolean, readOnly: true, description: 'Tính lúc đọc (BR-M07-22)' }
-        donTaoId: { type: integer, format: int64, readOnly: true }
-    LanTiepNhanThuocGhi:
-      type: object
-      required: [dongYeuCauId, hamLuong, dangThuoc, soLuongNhan, donVi, hanDung, tinhTrang, ketQua, nguoiGiao]
-      properties:
-        dongYeuCauId: { type: integer, format: int64 }
-        hamLuong: { type: string }
-        dangThuoc: { type: string }
-        soLuongNhan: { type: number }
-        donVi: { type: string }
-        hanDung: { type: string, format: date }
-        tinhTrang: { type: string }
-        ketQua: { type: string, enum: [DAT, KHONG_DAT] }
-        saiLech: { type: string }
-        lyDo: { type: string }
-        nguoiGiao: { type: string }
-    PhieuDoiChieu:
-      type: object
+      required: [source]
       properties:
         id: { type: integer, format: int64 }
-        nctId: { type: integer, format: int64 }
-        lyDo: { type: string, enum: [TIEP_NHAN, TRO_VE_BENH_VIEN, THEO_YEU_CAU_CHUYEN_MON] }
-        lyDoLap: { type: string }
-        trangThai: { type: string, enum: [MO, CHO_XAC_NHAN, DA_XAC_NHAN, DA_HUY] }
-        hanLuc: { type: string, format: date-time }
-        quaHan: { type: boolean }
-        nguoiLap: { type: string }
-        nguoiGui: { type: string }
-        nguoiXacNhan: { type: string }
-        dong: { type: array, items: { $ref: '#/components/schemas/DongDoiChieu' } }
-        lenhDuocPhep: { type: array, items: { type: string } }
-    TiepNhanThuocGui:
+        source: { type: string, enum: [CURRENT_PRESCRIPTION, DISCHARGE_PRESCRIPTION, ADMISSION_CURRENT_MEDICATION] }
+        prescriptionId: { type: integer, format: int64 }
+        admissionMedicationItemId: { type: integer, format: int64 }
+        medicationDescription: { type: string }
+        decision: { type: string, enum: [CONTINUE, DISCONTINUE, CHANGE_DOSE, ADD_NEW] }
+        reason: { type: string }
+        newPrescription: { $ref: '#/components/schemas/NewPrescription' }
+        discontinuedOutsideTicket: { type: boolean, readOnly: true }
+        medicationRemovedFromProfile: { type: boolean, readOnly: true, description: 'Tính lúc đọc (BR-M07-22)' }
+        createdPrescriptionId: { type: integer, format: int64, readOnly: true }
+    NewSuppliedMedicationIntake:
       type: object
-      required: [hamLuong, soLuong, donVi, hanDung, tinhTrangBaoBi, coToa, nguoiGiao, thoiDiem]
+      required: [requestLineId, concentration, dosageForm, receivedQuantity, unit, expiryDate, condition, result, delivererName]
       properties:
-        thuocId: { type: integer, format: int64 }
-        tenTuDo: { type: string }
-        hoatChatTuDo: { type: string }
-        hamLuong: { type: string }
-        soLuong: { type: number, exclusiveMinimum: 0 }
-        donVi: { type: string }
-        hanDung: { type: string, format: date }
-        tinhTrangBaoBi: { type: string }
-        coToa: { type: boolean }
-        tepIds: { type: array, items: { type: integer, format: int64 } }
-        nguoiGiao: { $ref: '#/components/schemas/NguoiNgoai' }
-        deNghiMuaHoId: { type: integer, format: int64 }
-        thoiDiem: { type: string, format: date-time }
-    ThuocGui:
+        requestLineId: { type: integer, format: int64 }
+        concentration: { type: string }
+        dosageForm: { type: string }
+        receivedQuantity: { type: number }
+        unit: { type: string }
+        expiryDate: { type: string, format: date }
+        condition: { type: string }
+        result: { type: string, enum: [PASSED, NOT_PASSED] }
+        discrepancy: { type: string }
+        reason: { type: string }
+        delivererName: { type: string }
+    SuppliedMedicationIntake:
+      type: object
+      description: 'Lần tiếp nhận thuốc cung ứng (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)'
+      properties:
+        id: { type: integer, format: int64 }
+        requestLineId: { type: integer, format: int64 }
+        purchaseRequestId: { type: integer, format: int64 }
+        residentId: { type: integer, format: int64 }
+        prescriptionId: { type: integer, format: int64 }
+        medicationName: { type: string }
+        concentration: { type: string }
+        dosageForm: { type: string }
+        receivedQuantity: { type: number }
+        unit: { type: string }
+        expiryDate: { type: string, format: date }
+        condition: { type: string }
+        result: { type: string, enum: [PASSED, NOT_PASSED] }
+        discrepancy: { type: string }
+        reason: { type: string }
+        delivererName: { type: string }
+        receiverName: { type: string, description: 'Họ tên người nhận' }
+        receivedAt: { type: string, format: date-time }
+    PrnAdministration:
+      type: object
+      description: 'Một lần dùng PRN (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)'
+      properties:
+        id: { type: integer, format: int64 }
+        prescriptionId: { type: integer, format: int64 }
+        residentId: { type: integer, format: int64 }
+        administeredAt: { type: string, format: date-time }
+        dosage: { type: number }
+        dosageUnit: { type: string }
+        reason: { type: string }
+        adverseReaction: { type: string }
+        note: { type: string }
+        familyMedicationBatchId: { type: integer, format: int64 }
+        administeredBy: { type: string, description: 'Họ tên người ghi' }
+        reportedBy: { type: string, description: 'Họ tên người báo lại (FR-027)' }
+        exceededLimit: { type: boolean }
+        recordedAfterDisconnect: { type: boolean }
+    PrnHistory:
+      type: object
+      description: 'Các lần dùng của chuỗi đơn PRN và thời điểm sớm nhất được dùng tiếp (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)'
+      properties:
+        prescriptionId: { type: integer, format: int64 }
+        administrations: { type: array, items: { $ref: '#/components/schemas/PrnAdministration' } }
+        earliestNextAllowedTime: { type: string, format: date-time }
+        canAdministerNow: { type: boolean }
+    DoseReview:
+      type: object
+      description: 'Bản ghi chờ xem lại (FR-029) (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)'
+      properties:
+        id: { type: integer, format: int64 }
+        doseKey: { type: string, description: 'Khi bản ghi là liều' }
+        doseResultId: { type: integer, format: int64 }
+        prnAdministrationId: { type: integer, format: int64 }
+        residentId: { type: integer, format: int64 }
+        medicationName: { type: string }
+        administeredAt: { type: string, format: date-time }
+        floorAreaId: { type: integer, format: int64 }
+        status: { type: string, enum: [PENDING_REVIEW, ACCEPTED, REQUIRES_CORRECTION] }
+        recordedBy: { type: string, description: 'Họ tên người ghi; người xem lại phải khác người này' }
+        reviewedBy: { type: string, description: 'Họ tên người xem lại' }
+        reviewedAt: { type: string, format: date-time }
+        note: { type: string }
+    MedicationToBring:
+      type: object
+      description: 'Thuốc cần mang (FR-048a, FR-048b) (bổ sung khi sửa operation, chủ dự án duyệt 2026-10-26)'
+      properties:
+        prescriptionId: { type: integer, format: int64 }
+        medicationName: { type: string }
+        dosage: { type: number }
+        dosageUnit: { type: string }
+        prescriptionType: { type: string, enum: [PERIODIC, PRN] }
+        medicationSource: { type: string, enum: [FACILITY, FAMILY_SENT] }
+        usableBatches: { type: array, items: { type: object, properties: { batchId: { type: integer, format: int64 }, expiryDate: { type: string, format: date }, remainingQuantity: { type: number } } }, description: 'Lô gia đình gửi dùng được của đơn (FR-044); hiển thị, không chọn sẵn (Q-307)' }
+        totalQuantityNeeded: { type: number, description: 'Rỗng khi chưa biết giờ về hoặc đơn PRN' }
+        scheduledTimes: { type: array, items: { type: string, format: date-time } }
+    Reconciliation:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        residentId: { type: integer, format: int64 }
+        reason: { type: string, enum: [ADMISSION, HOSPITAL_RETURN, PROFESSIONAL_REQUEST] }
+        reasonDetail: { type: string }
+        status: { type: string, enum: [OPEN, PENDING_CONFIRMATION, CONFIRMED, CANCELLED] }
+        deadlineAt: { type: string, format: date-time }
+        overdue: { type: boolean }
+        createdBy: { type: string }
+        submittedBy: { type: string }
+        confirmedBy: { type: string }
+        items: { type: array, items: { $ref: '#/components/schemas/ReconciliationItem' } }
+        allowedCommands: { type: array, items: { type: string } }
+    ReceiveFamilyMedication:
+      type: object
+      required: [concentration, quantity, unit, expiryDate, packagingCondition, hasPrescription, deliverer, receivedAt]
+      properties:
+        medicationId: { type: integer, format: int64 }
+        customName: { type: string }
+        customActiveIngredient: { type: string }
+        concentration: { type: string }
+        quantity: { type: number, exclusiveMinimum: 0 }
+        unit: { type: string }
+        expiryDate: { type: string, format: date }
+        packagingCondition: { type: string }
+        hasPrescription: { type: boolean }
+        fileIds: { type: array, items: { type: integer, format: int64 } }
+        deliverer: { $ref: '#/components/schemas/ExternalPerson' }
+        purchaseAssistanceId: { type: integer, format: int64 }
+        receivedAt: { type: string, format: date-time }
+    FamilyMedicationBatch:
       allOf:
-        - $ref: '#/components/schemas/TiepNhanThuocGui'
+        - $ref: '#/components/schemas/ReceiveFamilyMedication'
         - type: object
           properties:
             id: { type: integer, format: int64 }
-            trangThai: { $ref: '#/components/schemas/TrangThaiThuocGui' }
-            soLuongCon: { type: number }
-            donGan: { type: array, items: { type: integer, format: int64 } }
-            soNgayConLai: { type: number }
-            bienDong: { type: array, items: { type: object, properties: { loai: { type: string }, soLuong: { type: number }, thoiDiem: { type: string, format: date-time }, nguon: { type: string } } } }
-    LanGiaoMoi:
+            status: { $ref: '#/components/schemas/FamilyMedicationStatus' }
+            remainingQuantity: { type: number }
+            boundPrescriptionIds: { type: array, items: { type: integer, format: int64 } }
+            daysRemaining: { type: number }
+            movements: { type: array, items: { type: object, properties: { movementType: { type: string }, quantity: { type: number }, movedAt: { type: string, format: date-time }, source: { type: string } } } }
+    NewMedicationHandover:
       type: object
-      required: [nguoiNhan, dong]
+      required: [recipient, items]
       properties:
-        chuyenId: { type: integer, format: int64 }
-        nguoiNhan: { $ref: '#/components/schemas/NguoiNgoai' }
-        dong: { type: array, minItems: 1, items: { type: object, required: [donThuocId, soLuong], properties: { donThuocId: { type: integer, format: int64 }, soLuong: { type: number, exclusiveMinimum: 0 }, loThuocGuiId: { type: integer, format: int64 } } } }
-    LanGiao:
+        tripId: { type: integer, format: int64 }
+        recipient: { $ref: '#/components/schemas/ExternalPerson' }
+        items: { type: array, minItems: 1, items: { type: object, required: [prescriptionId, quantity], properties: { prescriptionId: { type: integer, format: int64 }, quantity: { type: number, exclusiveMinimum: 0 }, familyMedicationBatchId: { type: integer, format: int64 } } } }
+    MedicationHandover:
       allOf:
-        - $ref: '#/components/schemas/LanGiaoMoi'
+        - $ref: '#/components/schemas/NewMedicationHandover'
         - type: object
           properties:
             id: { type: integer, format: int64 }
-            trangThai: { type: string, enum: [DANG_MANG_THEO, CHO_NHAN_LAI, DA_NHAN_LAI] }
-            thoiDiem: { type: string, format: date-time }
-            lieu: { type: array, items: { type: object, properties: { lieuKey: { type: string }, thoiThuoc: { type: boolean } } } }
+            status: { type: string, enum: [HANDED_OVER, WAITING_RETURN, RETURNED] }
+            handoverTime: { type: string, format: date-time }
+            doses: { type: array, items: { type: object, properties: { doseKey: { type: string }, reverted: { type: boolean } } } }

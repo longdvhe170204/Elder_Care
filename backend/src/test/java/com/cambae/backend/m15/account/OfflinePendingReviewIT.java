@@ -21,7 +21,9 @@ import com.cambae.backend.support.MySqlIntegrationTestBase;
 import com.cambae.backend.support.fake.m15.FakeAssignments;
 import com.cambae.backend.support.fake.m15.FakeBedAllocations;
 import com.cambae.backend.support.fake.m15.FakeDuties;
+import com.cambae.backend.support.fake.m15.FakeFloorAreaNames;
 import com.cambae.backend.support.fake.m15.FakeM15Config;
+import com.cambae.backend.support.fake.m15.FakeStaffProfiles;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -70,6 +72,12 @@ class OfflinePendingReviewIT extends MySqlIntegrationTestBase {
 
     @Autowired
     CareNotes careNotes;
+
+    @Autowired
+    FakeStaffProfiles staffProfiles;
+
+    @Autowired
+    FakeFloorAreaNames floorNames;
 
     @Autowired
     ApplicationEvents events;
@@ -173,6 +181,25 @@ class OfflinePendingReviewIT extends MySqlIntegrationTestBase {
         mvc.perform(get("/api/v1/pending-review-records").header("Authorization", bearer(caregiverToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[*].id", not(hasItem((int) id))));
+    }
+
+    @Test
+    void FR_041c_listShowsRecorderName_floorName_version() throws Exception {
+        long id = pendingRecord(resident);
+        staffProfiles.name(fixtures.staffId(caregiver), "[Họ tên NV 1]");
+        floorNames.name(floor, "Tầng 2");
+
+        mvc.perform(get("/api/v1/pending-review-records").header("Authorization", bearer(floorManagerToken)))
+                .andExpect(status().isOk())
+                .andExpect(
+                        jsonPath("$.items[?(@.id == " + id + ")].recorderName").value("[Họ tên NV 1]"))
+                .andExpect(
+                        jsonPath("$.items[?(@.id == " + id + ")].floorAreaName").value("Tầng 2"))
+                .andExpect(jsonPath("$.items[?(@.id == " + id + ")].version").value(0));
+        decide(floorManagerToken, id, "accept", "\"0\"", "")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.version").value(1))
+                .andExpect(jsonPath("$.recorderName").value("[Họ tên NV 1]"));
     }
 
     @Test

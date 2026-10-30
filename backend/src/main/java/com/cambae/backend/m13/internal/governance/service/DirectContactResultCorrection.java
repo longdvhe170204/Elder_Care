@@ -49,6 +49,21 @@ class DirectContactResultCorrection implements CorrectableRecordProvider {
         return Optional.empty();
     }
 
+    /** Người cao tuổi của yêu cầu thông báo mà dòng liên hệ trực tiếp thuộc về. */
+    @Override
+    public Optional<Long> residentId(long id) {
+        return jdbc
+                .queryForList(
+                        "SELECT q.resident_id FROM direct_contact_result r JOIN direct_contact d ON d.id = r.direct_contact_id"
+                                + " JOIN notification n ON n.id = d.notification_id"
+                                + " JOIN notification_request q ON q.id = n.request_id WHERE r.id = ?",
+                        Long.class,
+                        id)
+                .stream()
+                .filter(java.util.Objects::nonNull)
+                .findFirst();
+    }
+
     @Override
     public boolean canRecord(CurrentUser user) {
         return user.roles().contains(Role.OFFICE_STAFF);

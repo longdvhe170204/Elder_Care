@@ -340,7 +340,7 @@ Gửi 010: `KetQuaCoTinhPhi`, `KetQuaTinhPhiDaDinhChinh`, `TrangThaiCoMatDaXacDi
 | Xem kết quả ghi nhận (Bác sĩ) | `CHECKLIST_GHI_NHAN, XEM` | Bác sĩ xem mọi kết quả, không checklist, không lệnh (FR-049, chú thích ²²) |
 | Xử lý việc quá hạn, hủy, phân lại | `XU_LY_VIEC_QUA_HAN, THUC_HIEN` | Trưởng tầng; Người phụ trách ca theo chú thích ⁹ (chỉ Quá hạn, trừ hủy) |
 | Điểm danh bán trú | `DIEM_DANH_BAN_TRU, THUC_HIEN` | HC, CS, ĐD (²⁷); TT, QL xem |
-| Danh mục loại công việc; loại lý do Không thực hiện (FR-028a, bổ sung 2026-10-18) | `LOAI_CONG_VIEC, CAU_HINH` | Quản lý viện |
+| Danh mục loại công việc, giá trị kết quả, loại lý do Không thực hiện (Q-391, cập nhật 2026-10-28) | `Function.CARE_TASK_CATALOG`, `Operation.VIEW/CREATE/UPDATE` | Quản lý viện cấu hình; TT, BS, ĐD, CS xem; vai trò khác không có quyền |
 | Xem việc quá hạn toàn viện | `XU_LY_VIEC_QUA_HAN, XEM` | Quản lý viện (FR-045) |
 
 Kết quả ghi nhận, lưu ý chăm sóc mang `@NhomTruong(SUC_KHOE)` theo 002 A-08; Bếp, Hành chính không thấy (Hành chính chỉ thấy trạng thái có mặt).

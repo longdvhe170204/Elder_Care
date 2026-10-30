@@ -2,6 +2,9 @@ package com.cambae.backend.m15.account;
 
 import static com.cambae.backend.m15.account.AccountFixtures.bearer;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -12,6 +15,7 @@ import com.cambae.backend.m15.account.api.spi.AssignmentView;
 import com.cambae.backend.support.MySqlIntegrationTestBase;
 import com.cambae.backend.support.fake.m15.FakeAssignments;
 import com.cambae.backend.support.fake.m15.FakeM15Config;
+import com.cambae.backend.support.fake.m15.FakeStaffProfiles;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -51,6 +55,9 @@ class EarlyUnlockIT extends MySqlIntegrationTestBase {
 
     @Autowired
     FakeAssignments assignments;
+
+    @Autowired
+    FakeStaffProfiles staffProfiles;
 
     AccountFixtures fixtures;
 
@@ -116,6 +123,39 @@ class EarlyUnlockIT extends MySqlIntegrationTestBase {
         earlyUnlock(office, nurse, body).andExpect(status().isForbidden());
         assertThat(jdbc.queryForObject("SELECT status FROM account WHERE id = ?", String.class, nurse))
                 .isEqualTo("TEMPORARILY_LOCKED");
+    }
+
+    @Test
+    void FR_019c_candidates_onlyTemporarilyLockedStaffOfMyFloorAndShift() throws Exception {
+        long nurse = temporarilyLocked(fixtures.staffAccount("AC-04"));
+        staffProfiles.name(fixtures.staffId(nurse), "[Họ tên NV 1]");
+        assignments.assign(fixtures.staffId(nurse), shift(AssignmentKind.SHIFT_MEMBER, FLOOR_2));
+        long otherFloor = temporarilyLocked(fixtures.staffAccount("AC-05"));
+        assignments.assign(fixtures.staffId(otherFloor), shift(AssignmentKind.SHIFT_MEMBER, FLOOR_1));
+        long expired = fixtures.staffAccount("AC-05");
+        jdbc.update(
+                "UPDATE account SET status = 'TEMPORARILY_LOCKED', locked_until = ? WHERE id = ?",
+                LocalDateTime.ofInstant(time.now().minus(Duration.ofMinutes(1)), ZoneOffset.UTC),
+                expired);
+        assignments.assign(fixtures.staffId(expired), shift(AssignmentKind.SHIFT_MEMBER, FLOOR_2));
+        long lead = fixtures.staffAccount("AC-04");
+        assignments.assign(fixtures.staffId(lead), shift(AssignmentKind.SHIFT_LEAD, FLOOR_2));
+        String office = fixtures.session(fixtures.staffAccount("AC-09"));
+
+        mvc.perform(get("/api/v1/early-unlock-candidates").header("Authorization", bearer(fixtures.session(lead))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].accountId", hasItem((int) nurse)))
+                .andExpect(jsonPath("$.items[*].accountId", not(hasItem((int) otherFloor))))
+                .andExpect(jsonPath("$.items[*].accountId", not(hasItem((int) expired))))
+                .andExpect(jsonPath("$.items[?(@.accountId == " + nurse + ")].fullName")
+                        .value("[Họ tên NV 1]"))
+                .andExpect(jsonPath("$.items[?(@.accountId == " + nurse + ")].lockedUntil")
+                        .isNotEmpty())
+                .andExpect(jsonPath("$.items[?(@.accountId == " + nurse + ")].version")
+                        .value(0));
+        mvc.perform(get("/api/v1/early-unlock-candidates").header("Authorization", bearer(office)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].accountId", not(hasItem((int) nurse))));
     }
 
     @Test
