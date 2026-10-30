@@ -1,7 +1,5 @@
 package com.eldercare.backend.administration.account.internal.permission.service;
 
-import com.eldercare.backend.administration.account.api.dto.Function;
-import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.spi.FootnoteCondition;
 import com.eldercare.backend.administration.account.internal.permission.domain.FootnoteRules;
@@ -10,12 +8,10 @@ import com.eldercare.backend.administration.account.internal.permission.domain.P
 import com.eldercare.backend.administration.account.internal.permission.domain.PermissionViews.AccountPermissions;
 import com.eldercare.backend.administration.account.internal.permission.domain.PermissionViews.EffectivePermission;
 import com.eldercare.backend.administration.account.internal.permission.domain.PermissionViews.Restriction;
-import com.eldercare.backend.administration.account.internal.permission.domain.PermissionViews.RestrictionKind;
 import com.eldercare.backend.administration.account.internal.permission.domain.RoleGrant;
+import com.eldercare.backend.administration.account.internal.permission.persistence.PermissionReads;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -23,7 +19,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,17 +35,17 @@ public class AccountPermissionsQuery {
 
     private final RolePermissionCalculator roles;
     private final ObjectProvider<FootnoteCondition> conditions;
-    private final JdbcTemplate jdbc;
+    private final PermissionReads reads;
     private final BusinessTime time;
 
     AccountPermissionsQuery(
             RolePermissionCalculator roles,
             ObjectProvider<FootnoteCondition> conditions,
-            JdbcTemplate jdbc,
+            PermissionReads reads,
             BusinessTime time) {
         this.roles = roles;
         this.conditions = conditions;
-        this.jdbc = jdbc;
+        this.reads = reads;
         this.time = time;
     }
 
@@ -93,50 +88,28 @@ public class AccountPermissionsQuery {
 
     private AccountPermissions at(
             long accountId, Instant at, String status, List<String> roleCodes, List<EffectivePermission> current) {
-        LocalDateTime t = LocalDateTime.ofInstant(at, ZoneOffset.UTC);
-        String active = " effective_from <= ? AND (effective_to IS NULL OR effective_to > ?)";
-        List<Restriction> byRole = restrictions(
-                "SELECT pr.id, pr.function_code, pr.operation, pr.kind, pr.effective_from, pr.reason"
-                        + " FROM permission_restriction pr JOIN role_assignment ra ON ra.role = pr.role"
-                        + " AND ra.account_id = ? AND ra.effective_from <= ?"
-                        + " AND (ra.effective_to IS NULL OR ra.effective_to > ?) WHERE pr.applies_to = 'ROLE'"
-                        + " AND pr.effective_from <= ? AND (pr.effective_to IS NULL OR pr.effective_to > ?)"
-                        + " ORDER BY pr.id",
-                accountId,
-                t,
-                t,
-                t,
-                t);
-        List<Restriction> byAccount = restrictions(
-                "SELECT id, function_code, operation, kind, effective_from, reason FROM permission_restriction"
-                        + " WHERE applies_to = 'ACCOUNT' AND account_id = ? AND" + active + " ORDER BY id",
-                accountId,
-                t,
-                t);
-        List<EffectivePermission> grants = jdbc.query(
-                "SELECT function_code, operation FROM additional_grant WHERE account_id = ? AND" + active,
-                (rs, i) -> new EffectivePermission(
-                        Function.valueOf(rs.getString(1)).name(),
-                        Operation.valueOf(rs.getString(2)),
+        List<EffectivePermission> grants = reads.grants(accountId, at).stream()
+                .map(k -> new EffectivePermission(
+                        k.function().name(),
+                        k.operation(),
                         PermissionScope.ASSIGNED,
                         List.of(),
-                        GrantSource.ADDITIONAL_GRANT),
+                        GrantSource.ADDITIONAL_GRANT))
+                .toList();
+        return new AccountPermissions(
                 accountId,
-                t,
-                t);
-        return new AccountPermissions(accountId, at, status, roleCodes, byRole, byAccount, grants, current);
+                at,
+                status,
+                roleCodes,
+                reads.roleRestrictions(accountId, at),
+                reads.accountRestrictions(accountId, at),
+                grants,
+                current);
     }
 
     /** Thu hẹp theo vai trò đang hiệu lực của một vai trò, theo thứ tự lập. */
     public List<Restriction> roleRestrictions(String role) {
-        LocalDateTime t = LocalDateTime.ofInstant(time.now(), ZoneOffset.UTC);
-        return restrictions(
-                "SELECT id, function_code, operation, kind, effective_from, reason FROM permission_restriction"
-                        + " WHERE applies_to = 'ROLE' AND role = ? AND effective_from <= ?"
-                        + " AND (effective_to IS NULL OR effective_to > ?) ORDER BY id",
-                role,
-                t,
-                t);
+        return reads.restrictionsOfRole(role, time.now());
     }
 
     private static EffectivePermission view(PermissionKey key, RoleGrant g) {
@@ -146,18 +119,5 @@ public class AccountPermissionsQuery {
                 g.scope(),
                 g.footnotes().stream().sorted().toList(),
                 g.source());
-    }
-
-    private List<Restriction> restrictions(String sql, Object... args) {
-        return jdbc.query(
-                sql,
-                (rs, i) -> new Restriction(
-                        rs.getLong(1),
-                        rs.getString(2),
-                        Operation.valueOf(rs.getString(3)),
-                        RestrictionKind.valueOf(rs.getString(4)),
-                        rs.getObject(5, LocalDateTime.class).toInstant(ZoneOffset.UTC),
-                        rs.getString(6)),
-                args);
     }
 }

@@ -9,19 +9,13 @@ import com.eldercare.backend.administration.account.api.dto.PermissionBasis;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.PermissionResult;
 import com.eldercare.backend.administration.account.api.dto.Target;
+import com.eldercare.backend.administration.account.internal.persistence.AccountStore;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.context.annotation.Fallback;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 /**
@@ -34,12 +28,12 @@ import org.springframework.stereotype.Service;
 @Fallback
 class ApproverService implements ApproverApi {
 
-    private final JdbcTemplate jdbc;
+    private final AccountStore accounts;
     private final PermissionApi permissions;
     private final BusinessTime time;
 
-    ApproverService(JdbcTemplate jdbc, PermissionApi permissions, BusinessTime time) {
-        this.jdbc = jdbc;
+    ApproverService(AccountStore accounts, PermissionApi permissions, BusinessTime time) {
+        this.accounts = accounts;
         this.permissions = permissions;
         this.time = time;
     }
@@ -64,27 +58,9 @@ class ApproverService implements ApproverApi {
 
     /** Tài khoản nhân viên đang Hoạt động cùng vai trò đang gán. */
     private List<CurrentUser> candidates() {
-        LocalDateTime now = LocalDateTime.ofInstant(time.now(), ZoneOffset.UTC);
-        Map<Long, Candidate> byAccount = new LinkedHashMap<>();
-        jdbc.query(
-                "SELECT a.id, a.staff_id, r.role FROM account a JOIN role_assignment r ON r.account_id = a.id"
-                        + " WHERE a.type = 'STAFF' AND (a.status = 'ACTIVE'"
-                        + " OR (a.status = 'TEMPORARILY_LOCKED' AND a.locked_until <= ?))"
-                        + " AND r.effective_from <= ? AND (r.effective_to IS NULL OR r.effective_to > ?)"
-                        + " ORDER BY a.id",
-                rs -> {
-                    long staffId = rs.getLong(2);
-                    Candidate c = byAccount.computeIfAbsent(
-                            rs.getLong(1), id -> new Candidate(id, staffId, EnumSet.noneOf(Role.class)));
-                    String code = rs.getString(3);
-                    Arrays.stream(Role.values())
-                            .filter(r -> r.code().equals(code))
-                            .forEach(c.roles()::add);
-                },
-                now,
-                now,
-                now);
-        return List.copyOf(byAccount.values());
+        return accounts.staffWithRolesAt(time.now()).stream()
+                .map(s -> (CurrentUser) new Candidate(s.accountId(), s.staffId(), s.roles()))
+                .toList();
     }
 
     /** Người dùng dựng từ tài khoản để hỏi quyền, không có phiên. */

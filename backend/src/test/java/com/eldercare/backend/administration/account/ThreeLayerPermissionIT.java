@@ -124,9 +124,9 @@ class ThreeLayerPermissionIT extends MySqlIntegrationTestBase {
                 .isTrue();
 
         jdbc.update("""
-                INSERT INTO permission_restriction (applies_to, account_id, function_code, operation, kind,
-                                                    effective_from, actor_id, reason)
-                VALUES ('ACCOUNT', ?, 'TASK_CHECKLIST', 'CREATE', 'REMOVE_OPERATION', ?, 1, 'Test')
+                INSERT INTO permission_assignment (kind, applies_to, account_id, function_code, operation,
+                                                   restriction_kind, effective_from, actor_id, reason)
+                VALUES ('RESTRICTION', 'ACCOUNT', ?, 'TASK_CHECKLIST', 'CREATE', 'REMOVE_OPERATION', ?, 1, 'Test')
                 """, caregiver.accountId(), utc(time.now().minus(Duration.ofSeconds(1))));
         jdbc.update(
                 "UPDATE account SET permission_version = permission_version + 1 WHERE id = ?", caregiver.accountId());
@@ -212,7 +212,8 @@ class ThreeLayerPermissionIT extends MySqlIntegrationTestBase {
                 """, "three-layer-it-" + staffId, staffId, created, created);
         long accountId = jdbc.queryForObject("SELECT id FROM account WHERE staff_id = ?", Long.class, staffId);
         jdbc.update(
-                "INSERT INTO role_assignment (account_id, role, effective_from, reason) VALUES (?, ?, ?, 'Test')",
+                "INSERT INTO permission_assignment (kind, applies_to, account_id, role, effective_from, reason)"
+                        + " VALUES ('ROLE_ASSIGNMENT', 'ACCOUNT', ?, ?, ?, 'Test')",
                 accountId,
                 role.code(),
                 created);

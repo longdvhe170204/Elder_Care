@@ -8,8 +8,8 @@ import com.eldercare.backend.administration.account.internal.auth.domain.Account
 import com.eldercare.backend.administration.account.internal.auth.domain.ActiveSession;
 import com.eldercare.backend.administration.account.internal.auth.domain.LoginRules;
 import com.eldercare.backend.administration.account.internal.auth.domain.LoginRules.Decision;
+import com.eldercare.backend.administration.account.internal.auth.domain.QrCode;
 import com.eldercare.backend.administration.account.internal.auth.persistence.DeviceBindings;
-import com.eldercare.backend.administration.account.internal.auth.persistence.DeviceBindings.QrCode;
 import com.eldercare.backend.administration.account.internal.domain.Account;
 import com.eldercare.backend.administration.account.internal.persistence.AccountStore;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;

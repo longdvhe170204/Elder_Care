@@ -18,6 +18,7 @@ import com.eldercare.backend.administration.account.api.spi.ResidencyEndApi;
 import com.eldercare.backend.administration.account.internal.legal.service.LegalConditionService;
 import com.eldercare.backend.administration.account.internal.permission.domain.FootnoteRules;
 import com.eldercare.backend.administration.account.internal.permission.domain.PermissionScope;
+import com.eldercare.backend.administration.account.internal.permission.domain.PermissionViews.RestrictionRow;
 import com.eldercare.backend.administration.account.internal.permission.domain.RoleGrant;
 import com.eldercare.backend.administration.account.internal.permission.persistence.PermissionChanges;
 import com.eldercare.backend.administration.account.internal.scope.service.PermissionDataErrors;
@@ -146,7 +147,7 @@ class PermissionService implements PermissionApi {
                 Map.copyOf(byRole), detailed(restrictions.activeRestrictions(null, user.accountId())));
     }
 
-    private static List<MetricGroupRestrictions.Restriction> detailed(List<PermissionChanges.RestrictionRow> rows) {
+    private static List<MetricGroupRestrictions.Restriction> detailed(List<RestrictionRow> rows) {
         return rows.stream()
                 .filter(r -> r.key().function() == Function.DASHBOARD_REPORT
                         && (r.metricGroup() != null || r.channel() != null))
@@ -193,7 +194,7 @@ class PermissionService implements PermissionApi {
                 return PermissionResult.denied(FailedLayer.SCOPE);
             }
         } catch (InvalidPermissionDataException e) {
-            dataErrors.record(e);
+            dataErrors.record(e, user.accountId());
             return key.equals(INCIDENT_CREATE) && target.residentId() != null
                     ? PermissionResult.allowed(PermissionBasis.OUT_OF_SCOPE)
                     : PermissionResult.denied(FailedLayer.SOURCE_DATA);

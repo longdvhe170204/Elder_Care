@@ -46,7 +46,8 @@ class ManagerAlwaysExistsIT extends MySqlIntegrationTestBase {
     @BeforeEach
     void onlyManagersOfThisTest() {
         jdbc.update(
-                "UPDATE role_assignment SET effective_to = ? WHERE role = 'AC-01' AND effective_to IS NULL",
+                "UPDATE permission_assignment SET effective_to = ? WHERE kind = 'ROLE_ASSIGNMENT' AND role = 'AC-01'"
+                        + " AND effective_to IS NULL",
                 LocalDateTime.ofInstant(time.now(), ZoneOffset.UTC));
         fixtures = new AccountFixtures(jdbc, time);
     }

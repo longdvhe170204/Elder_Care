@@ -6,28 +6,24 @@ import com.eldercare.backend.administration.account.api.spi.ExpiringLicense;
 import com.eldercare.backend.administration.account.api.spi.FacilityLicenseApi;
 import com.eldercare.backend.administration.account.api.spi.LicenseApi;
 import com.eldercare.backend.administration.account.internal.legal.domain.ProfessionalActivity;
-import com.eldercare.backend.administration.account.internal.legal.persistence.ProfessionalActivities;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.common.data.ReminderMarkers;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Period;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DuplicateKeyException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Cảnh báo giấy phép sắp hết hạn (002 T066; research A-09; FR-039): giấy phép cơ sở (007) và người hành nghề (008) hết
- * hạn trong CFG-M06-02; mỗi {@code (loại, giấy phép, ngày hết hạn)} một lần nhờ bảng {@code license_expiry_warning}, gia
- * hạn đổi ngày nên lần sau lại cảnh báo. Sự kiện {@code LicenseExpiring} nêu tên nghiệp vụ chuyên môn đang hiệu lực sẽ
+ * hạn trong CFG-M06-02; mỗi {@code (loại, giấy phép, ngày hết hạn)} một lần nhờ dấu đã nhắc
+ * {@code M15.LICENSE_EXPIRY_WARNING} ({@code reminder_marker}, 002 T098), gia hạn đổi ngày nên lần sau lại cảnh báo. Sự kiện {@code LicenseExpiring} nêu tên nghiệp vụ chuyên môn đang hiệu lực sẽ
  * bị tắt và người liên quan (người hành nghề; giấy phép cơ sở chưa nêu người). 009 gửi Quản lý viện.
  */
 @Service
@@ -35,7 +31,9 @@ public class LicenseExpiryWarnings {
 
     public static final String JOB = "WARN_EXPIRING_LICENSES";
 
-    private final JdbcTemplate jdbc;
+    private static final String MARKER_KIND = "M15.LICENSE_EXPIRY_WARNING";
+
+    private final ReminderMarkers markers;
     private final BusinessTime time;
     private final ParameterApi parameters;
     private final ProfessionalActivities activities;
@@ -45,14 +43,14 @@ public class LicenseExpiryWarnings {
     private final ObjectProvider<FacilityLicenseApi> facility;
 
     LicenseExpiryWarnings(
-            JdbcTemplate jdbc,
+            ReminderMarkers markers,
             BusinessTime time,
             ParameterApi parameters,
             ProfessionalActivities activities,
             ApplicationEventPublisher events,
             ObjectProvider<LicenseApi> licenses,
             ObjectProvider<FacilityLicenseApi> facility) {
-        this.jdbc = jdbc;
+        this.markers = markers;
         this.time = time;
         this.parameters = parameters;
         this.activities = activities;
@@ -96,17 +94,7 @@ public class LicenseExpiryWarnings {
     }
 
     private boolean firstWarning(String kind, long licenseId, LocalDate expiryDate) {
-        try {
-            jdbc.update(
-                    "INSERT INTO license_expiry_warning (kind, license_id, expiry_date, warned_at) VALUES (?, ?, ?, ?)",
-                    kind,
-                    licenseId,
-                    expiryDate,
-                    LocalDateTime.ofInstant(time.now(), ZoneOffset.UTC));
-            return true;
-        } catch (DuplicateKeyException e) {
-            return false;
-        }
+        return markers.mark(MARKER_KIND, kind, licenseId, expiryDate.toString(), null);
     }
 
     private List<String> affected(Predicate<ProfessionalActivity> condition) {

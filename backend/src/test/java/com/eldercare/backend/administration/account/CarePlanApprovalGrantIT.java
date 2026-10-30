@@ -110,7 +110,9 @@ class CarePlanApprovalGrantIT extends MySqlIntegrationTestBase {
         commands.account(manager, careStaff, "grant-care-plan-approval", "\"0\"", PermissionCommands.REASON)
                 .andExpect(status().isConflict());
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM additional_grant WHERE account_id = ?", Integer.class, careStaff))
+                        "SELECT COUNT(*) FROM permission_assignment WHERE kind = 'ADDITIONAL_GRANT' AND account_id = ?",
+                        Integer.class,
+                        careStaff))
                 .isZero();
     }
 

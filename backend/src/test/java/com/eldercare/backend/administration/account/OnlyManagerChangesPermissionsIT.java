@@ -72,13 +72,15 @@ class OnlyManagerChangesPermissionsIT extends MySqlIntegrationTestBase {
                     .andExpect(status().isForbidden());
         }
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM permission_restriction WHERE account_id = ?"
-                                + " OR (role = 'AC-04' AND effective_to IS NULL)",
+                        "SELECT COUNT(*) FROM permission_assignment WHERE kind = 'RESTRICTION' AND (account_id = ?"
+                                + " OR (role = 'AC-04' AND effective_to IS NULL))",
                         Integer.class,
                         nurse))
                 .isZero();
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM additional_grant WHERE account_id = ?", Integer.class, nurse))
+                        "SELECT COUNT(*) FROM permission_assignment WHERE kind = 'ADDITIONAL_GRANT' AND account_id = ?",
+                        Integer.class,
+                        nurse))
                 .isZero();
     }
 
