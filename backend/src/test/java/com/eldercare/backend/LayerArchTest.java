@@ -79,16 +79,6 @@ class LayerArchTest {
 
     /** Câu SQL chuyển vào lớp {@code *Store} trong {@code persistence}: A (administration, notification), B (resident), E (staffing). */
     private static final Set<String> PENDING_JDBC_OUTSIDE_PERSISTENCE = Set.of(
-            "administration.account.internal.auth.service.FirstManagerBootstrap",
-            "administration.account.internal.auth.service.SessionService",
-            "administration.account.internal.legal.service.LicenseExpiryWarnings",
-            "administration.account.internal.offline.service.SyncService",
-            "administration.account.internal.permission.service.AccountPermissionsQuery",
-            "administration.account.internal.permission.service.ApproverService",
-            "administration.account.internal.permission.service.FieldVisibilityService",
-            "administration.account.internal.permission.service.RolePermissionCalculator",
-            "administration.account.internal.scope.service.PermissionDataErrors",
-            "administration.account.internal.scope.service.ScopeService",
             "administration.approval.internal.service.DueRequestApplication",
             "administration.approval.internal.service.PendingRequestReminder",
             "administration.auditlog.internal.service.AuditLogQueryService",
@@ -154,9 +144,6 @@ class LayerArchTest {
 
     /** Record lồng chuyển ra {@code domain}: A (administration, notification), B (resident), C (roombedallocation). */
     private static final Set<String> PENDING_NESTED_RECORD_OWNERS = Set.of(
-            "administration.account.internal.auth.persistence.DeviceBindings",
-            "administration.account.internal.legal.persistence.ProfessionalActivities",
-            "administration.account.internal.permission.persistence.PermissionChanges",
             "notification.internal.delivery.persistence.DeliveryStore",
             "notification.internal.delivery.persistence.SmsWindowStore",
             "notification.internal.directcontact.persistence.DirectContactStore",

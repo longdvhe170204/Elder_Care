@@ -1,5 +1,8 @@
 package com.eldercare.backend.administration.account.internal.auth.persistence;
 
+import com.eldercare.backend.administration.account.internal.auth.domain.Binding;
+import com.eldercare.backend.administration.account.internal.auth.domain.DeviceOwner;
+import com.eldercare.backend.administration.account.internal.auth.domain.QrCode;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -12,8 +15,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
 
 /**
- * Bảng {@code login_qr_code}, {@code bound_device} của tài khoản người cao tuổi (002 T090, T092; data-model mục 2;
- * research A-15). Mã QR và token thiết bị chỉ lưu SHA-256. Chỉ thêm dòng và đặt cột dùng, vô hiệu, gỡ một lần.
+ * Mã QR đăng nhập ({@code LOGIN_QR_CODE}) và thiết bị gắn ({@code BOUND_DEVICE}) của tài khoản người cao tuổi ở
+ * {@code device_credential} (002 T090, T092, T098; data-model mục 0.1; research A-15). Mã QR và token thiết bị chỉ lưu
+ * SHA-256. Chỉ thêm dòng và đặt cột dùng, vô hiệu, gỡ một lần.
  */
 @Component
 public class DeviceBindings {
@@ -26,24 +30,11 @@ public class DeviceBindings {
         this.time = time;
     }
 
-    /** Một mã QR; dùng được khi chưa dùng, chưa vô hiệu và {@code expiresAt} sau thời điểm kiểm (FR-069). */
-    public record QrCode(long id, long accountId, Instant expiresAt, boolean used, boolean revoked) {
-
-        public boolean usableAt(Instant now) {
-            return !used && !revoked && expiresAt.isAfter(now);
-        }
-    }
-
-    /** Thiết bị đang gắn của một tài khoản. */
-    public record Binding(long id, long accountId, String deviceId, Instant boundAt) {}
-
-    /** Kết quả tra token thiết bị: người cao tuổi, tài khoản, thiết bị và trạng thái tài khoản lúc tra. */
-    public record DeviceOwner(long residentId, long accountId, String deviceId, String accountStatus) {}
-
     /** Vô hiệu mọi mã chưa dùng của tài khoản (mã mới thay mã cũ, FR-069). */
     public void revokeUnusedCodes(long accountId) {
         jdbc.update(
-                "UPDATE login_qr_code SET revoked_at = ? WHERE account_id = ? AND used_at IS NULL AND revoked_at IS NULL",
+                "UPDATE device_credential SET revoked_at = ? WHERE kind = 'LOGIN_QR_CODE' AND account_id = ?"
+                        + " AND used_at IS NULL AND revoked_at IS NULL",
                 now(),
                 accountId);
     }
@@ -54,8 +45,8 @@ public class DeviceBindings {
         jdbc.update(
                 connection -> {
                     PreparedStatement ps = connection.prepareStatement(
-                            "INSERT INTO login_qr_code (account_id, code_hash, created_by, created_at, expires_at)"
-                                    + " VALUES (?, ?, ?, ?, ?)",
+                            "INSERT INTO device_credential (kind, account_id, secret_hash, created_by, created_at,"
+                                    + " expires_at) VALUES ('LOGIN_QR_CODE', ?, ?, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS);
                     ps.setLong(1, accountId);
                     ps.setBytes(2, codeHash);
@@ -73,7 +64,7 @@ public class DeviceBindings {
         return jdbc
                 .query(
                         "SELECT id, account_id, expires_at, used_at IS NOT NULL, revoked_at IS NOT NULL"
-                                + " FROM login_qr_code WHERE code_hash = ? FOR UPDATE",
+                                + " FROM device_credential WHERE kind = 'LOGIN_QR_CODE' AND secret_hash = ? FOR UPDATE",
                         (rs, i) -> new QrCode(
                                 rs.getLong(1),
                                 rs.getLong(2),
@@ -86,7 +77,11 @@ public class DeviceBindings {
     }
 
     public void markCodeUsed(long codeId, String deviceId) {
-        jdbc.update("UPDATE login_qr_code SET used_at = ?, used_device_id = ? WHERE id = ?", now(), deviceId, codeId);
+        jdbc.update(
+                "UPDATE device_credential SET used_at = ?, device_id = ? WHERE id = ? AND kind = 'LOGIN_QR_CODE'",
+                now(),
+                deviceId,
+                codeId);
     }
 
     /** Thiết bị đang gắn của tài khoản, khóa dòng. */
@@ -103,7 +98,7 @@ public class DeviceBindings {
     public Optional<Binding> activeOfAccount(long accountId) {
         return jdbc
                 .query(
-                        "SELECT id, account_id, device_id, bound_at FROM bound_device WHERE active_account_id = ?",
+                        "SELECT id, account_id, device_id, created_at FROM device_credential WHERE active_account_id = ?",
                         (rs, i) -> binding(rs),
                         accountId)
                 .stream()
@@ -112,8 +107,8 @@ public class DeviceBindings {
 
     public void bind(long accountId, String deviceId, byte[] deviceTokenHash, Long qrCodeId) {
         jdbc.update(
-                "INSERT INTO bound_device (account_id, device_id, device_token_hash, bound_at, login_qr_code_id)"
-                        + " VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO device_credential (kind, account_id, device_id, secret_hash, created_at, login_qr_code_id)"
+                        + " VALUES ('BOUND_DEVICE', ?, ?, ?, ?, ?)",
                 accountId,
                 deviceId,
                 deviceTokenHash,
@@ -124,8 +119,8 @@ public class DeviceBindings {
     /** Gỡ một lần: {@code NEW_DEVICE_BOUND}, {@code MANUAL} (kèm lý do), {@code ACCOUNT_LOCKED}. */
     public void unbind(long bindingId, String reason, Long actorId, String note) {
         jdbc.update(
-                "UPDATE bound_device SET unbound_at = ?, unbind_reason = ?, unbound_by = ?, unbind_note = ?"
-                        + " WHERE id = ? AND unbound_at IS NULL",
+                "UPDATE device_credential SET ended_at = ?, end_reason = ?, ended_by = ?, end_note = ?"
+                        + " WHERE id = ? AND kind = 'BOUND_DEVICE' AND ended_at IS NULL",
                 now(),
                 reason,
                 actorId,
@@ -148,9 +143,9 @@ public class DeviceBindings {
     public Optional<DeviceOwner> owner(byte[] deviceTokenHash) {
         return jdbc
                 .query(
-                        "SELECT a.resident_id, a.id, b.device_id, a.status FROM bound_device b"
-                                + " JOIN account a ON a.id = b.account_id"
-                                + " WHERE b.device_token_hash = ? AND b.unbound_at IS NULL AND a.type = 'RESIDENT'",
+                        "SELECT a.resident_id, a.id, b.device_id, a.status FROM device_credential b"
+                                + " JOIN account a ON a.id = b.account_id WHERE b.kind = 'BOUND_DEVICE'"
+                                + " AND b.secret_hash = ? AND b.ended_at IS NULL AND a.type = 'RESIDENT'",
                         (rs, i) -> new DeviceOwner(rs.getLong(1), rs.getLong(2), rs.getString(3), rs.getString(4)),
                         deviceTokenHash)
                 .stream()
@@ -160,7 +155,7 @@ public class DeviceBindings {
     private Optional<Binding> active(String condition, Object value) {
         return jdbc
                 .query(
-                        "SELECT id, account_id, device_id, bound_at FROM bound_device WHERE " + condition
+                        "SELECT id, account_id, device_id, created_at FROM device_credential WHERE " + condition
                                 + " FOR UPDATE",
                         (rs, i) -> binding(rs),
                         value)

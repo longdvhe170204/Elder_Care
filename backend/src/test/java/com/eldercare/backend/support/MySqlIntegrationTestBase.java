@@ -9,8 +9,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.flywaydb.core.Flyway;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -65,6 +67,28 @@ public abstract class MySqlIntegrationTestBase {
         return DriverManager.getConnection(db.schemaUrl(), RETENTION_USER, db.retentionPassword());
     }
 
+    /**
+     * Schema tạm {@code <schema test>_<suffix>} cùng máy chủ cho test migration chép dữ liệu (research R-15): tạo lại
+     * schema, trả Flyway chỉ gồm {@code db/migration} (không dữ liệu mẫu) để test chạy tới phiên bản cần, ghi dữ liệu
+     * cũ rồi chạy migration gộp. Gọi {@link #dropScratchSchema} khi xong.
+     */
+    protected static Flyway scratchFlyway(String suffix) {
+        TestDatabase db = prepareDatabase();
+        TestDatabase scratch = db.withSchema(db.schema() + "_" + suffix);
+        scratch.recreate();
+        return Flyway.configure()
+                .dataSource(scratch.schemaUrl(), db.adminUser(), db.adminPassword())
+                .locations("classpath:db/migration")
+                .placeholders(Map.of("appPassword", db.appPassword(), "retentionPassword", db.retentionPassword()))
+                .load();
+    }
+
+    /** Xóa schema tạm của {@link #scratchFlyway} và quyền của hai tài khoản trên schema đó. */
+    protected static void dropScratchSchema(String suffix) {
+        TestDatabase db = prepareDatabase();
+        db.withSchema(db.schema() + "_" + suffix).drop();
+    }
+
     private static synchronized TestDatabase prepareDatabase() {
         if (database == null) {
             database = TestDatabase.fromEnvironment();
@@ -110,6 +134,10 @@ public abstract class MySqlIntegrationTestBase {
             return value == null || value.isBlank() ? randomPassword() : value;
         }
 
+        TestDatabase withSchema(String other) {
+            return new TestDatabase(serverUrl, other, query, adminUser, adminPassword, appPassword, retentionPassword);
+        }
+
         String schemaUrl() {
             return serverUrl + schema + (query == null ? "" : "?" + query);
         }
@@ -126,6 +154,17 @@ public abstract class MySqlIntegrationTestBase {
             }
         }
 
+        void drop() {
+            try (Connection c = DriverManager.getConnection(serverUrl, adminUser, adminPassword);
+                    Statement s = c.createStatement()) {
+                s.execute("DROP DATABASE IF EXISTS `" + schema + "`");
+                revokeOnSchema(s, "'" + APP_USER + "'@'%'");
+                revokeOnSchema(s, "'" + RETENTION_USER + "'@'%'");
+            } catch (SQLException e) {
+                throw new IllegalStateException("Không xóa được schema " + schema + ": " + e.getMessage(), e);
+            }
+        }
+
         /**
          * Tài khoản MySQL dùng chung cả máy (schema {@code elder_care} của profile demo cũng dùng): không xóa tài khoản,
          * chỉ gỡ quyền trên schema test để Flyway cấp lại từ đầu; quyền trên schema khác giữ nguyên.
@@ -135,6 +174,10 @@ public abstract class MySqlIntegrationTestBase {
             String identified = " IDENTIFIED BY '" + password.replace("'", "''") + "'";
             s.execute("CREATE USER IF NOT EXISTS " + account + identified);
             s.execute("ALTER USER " + account + identified);
+            revokeOnSchema(s, account);
+        }
+
+        private void revokeOnSchema(Statement s, String account) throws SQLException {
             Pattern onSchema = Pattern.compile(" ON `" + Pattern.quote(schema) + "`\\.(\\*|`[^`]+`) TO ");
             List<String> targets = new ArrayList<>();
             try (ResultSet grants = s.executeQuery("SHOW GRANTS FOR " + account)) {

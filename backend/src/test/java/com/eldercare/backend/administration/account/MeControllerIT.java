@@ -80,7 +80,8 @@ class MeControllerIT extends MySqlIntegrationTestBase {
                 """, "me-it-" + staffId, staffId, mustChange, created, created);
         long accountId = jdbc.queryForObject("SELECT id FROM account WHERE staff_id = ?", Long.class, staffId);
         jdbc.update(
-                "INSERT INTO role_assignment (account_id, role, effective_from, reason) VALUES (?, ?, ?, 'Test')",
+                "INSERT INTO permission_assignment (kind, applies_to, account_id, role, effective_from, reason)"
+                        + " VALUES ('ROLE_ASSIGNMENT', 'ACCOUNT', ?, ?, ?, 'Test')",
                 accountId,
                 role,
                 created);

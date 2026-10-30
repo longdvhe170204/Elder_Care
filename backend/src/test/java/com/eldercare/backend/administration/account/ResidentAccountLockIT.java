@@ -78,7 +78,9 @@ class ResidentAccountLockIT extends MySqlIntegrationTestBase {
                 .andExpect(status().isUnauthorized());
         assertThat(boundDevices.identify(session[1])).isEmpty();
         assertThat(jdbc.queryForObject(
-                        "SELECT unbind_reason FROM bound_device WHERE account_id = ?", String.class, account))
+                        "SELECT end_reason FROM device_credential WHERE kind = 'BOUND_DEVICE' AND account_id = ?",
+                        String.class,
+                        account))
                 .isEqualTo("ACCOUNT_LOCKED");
 
         logins.command(office, account, "unlock-resident", version(), "{}").andExpect(status().isUnprocessableEntity());

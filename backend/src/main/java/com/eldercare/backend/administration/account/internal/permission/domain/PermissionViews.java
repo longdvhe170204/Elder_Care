@@ -1,6 +1,7 @@
 package com.eldercare.backend.administration.account.internal.permission.domain;
 
 import com.eldercare.backend.administration.account.api.dto.Operation;
+import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.List;
@@ -24,6 +25,16 @@ public final class PermissionViews {
         REMOVE_OPERATION,
         LOWER_SCOPE
     }
+
+    /** Dòng thu hẹp cho lệnh đổi quyền, theo vai trò ({@code role}) hoặc theo tài khoản ({@code accountId}). */
+    public record RestrictionRow(
+            long id,
+            String role,
+            Long accountId,
+            PermissionKey key,
+            RestrictionKind kind,
+            String metricGroup,
+            String channel) {}
 
     @Schema(name = "Restriction")
     public record Restriction(
