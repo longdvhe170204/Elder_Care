@@ -42,8 +42,8 @@ public class ExpiredDataPurgeJob implements ScheduledJob {
         }
     }
 
-    /** Chạy một đợt, trả id lần chạy ({@code scheduler_run}). */
-    public long run() {
+    /** Chạy một đợt, trả mã lần chạy (UUID). */
+    public String run() {
         return purge.run();
     }
 

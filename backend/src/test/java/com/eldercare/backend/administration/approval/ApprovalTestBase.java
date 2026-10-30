@@ -104,7 +104,7 @@ abstract class ApprovalTestBase extends MySqlIntegrationTestBase {
         clock.setTo(date.atTime(LocalTime.of(0, 10)).atZone(BusinessTime.ZONE).toInstant());
     }
 
-    long runApplyJob() {
+    String runApplyJob() {
         user.set(SCHEDULER);
         try {
             return applyJob.run();
@@ -113,7 +113,7 @@ abstract class ApprovalTestBase extends MySqlIntegrationTestBase {
         }
     }
 
-    long runRemindJob() {
+    String runRemindJob() {
         user.set(SCHEDULER);
         try {
             return remindJob.run();
@@ -130,7 +130,7 @@ abstract class ApprovalTestBase extends MySqlIntegrationTestBase {
 
     int results(long id) {
         return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM application_result WHERE approval_request_id = ?", Integer.class, id);
+                "SELECT COUNT(*) FROM approval_request WHERE id = ? AND result_type IS NOT NULL", Integer.class, id);
     }
 
     String lastAudit(long id, String action, String column) {

@@ -23,7 +23,7 @@ public class JobRunStore {
         return n != null && n > 0;
     }
 
-    public void markCompleted(String job, LocalDate day, long schedulerRunId, Instant at) {
+    public void markCompleted(String job, LocalDate day, String schedulerRunId, Instant at) {
         jdbc.update(
                 "INSERT INTO m13_job_run (job, business_date, scheduler_run_id, completed_at) VALUES (?, ?, ?, ?)",
                 job,

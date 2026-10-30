@@ -20,6 +20,12 @@ public @interface DataGroup {
         /** Nhóm 2 – Nghiệp vụ có trạng thái: chỉ đổi qua lệnh nghiệp vụ hoặc phiên bản mới (FR-005). */
         BUSINESS,
         /** Nhóm 3 – Ghi nhận đã xác nhận: chỉ thêm và đính chính (FR-009). */
-        RECORD
+        RECORD,
+        /**
+         * Bảng chứa dòng nhóm 2 và nhóm 3 (bảng gộp, research R-15): entity có trường {@code lockedAt}; dòng nhóm 3 hoặc
+         * nhóm 2 đã khóa bị trigger theo dòng chặn sửa, xóa (constitution XII 3.2.0, R-05). Mỗi loại dòng vẫn thuộc đúng
+         * một nhóm, khai ở data-model của module (FR-001).
+         */
+        MULTIPLE
     }
 }

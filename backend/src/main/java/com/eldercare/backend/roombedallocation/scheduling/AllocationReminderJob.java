@@ -57,7 +57,7 @@ public class AllocationReminderJob implements ScheduledJob {
 
     @Override
     public void runNow() {
-        long run = runs.start(name());
+        String run = runs.start(name());
         int count = 0;
         try {
             for (var row : store.candidates()) if (processor.remind(row, run)) count++;
