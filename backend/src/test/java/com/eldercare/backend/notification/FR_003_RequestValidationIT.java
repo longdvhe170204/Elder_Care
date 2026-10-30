@@ -65,12 +65,15 @@ class FR_003_RequestValidationIT extends M13IntegrationTestBase {
         assertThat(row.get("received_at")).isNotNull();
         assertThat(row.get("flags")).isEqualTo("MISSING_INFORMATION_TYPE");
         assertThat(jdbc.queryForList(
-                        "SELECT information_type FROM notification_request_content WHERE request_id = ? ORDER BY seq",
+                        "SELECT c.information_type FROM notification_request r, JSON_TABLE(r.contents, '$[*]' COLUMNS"
+                                + " (seq INT PATH '$.seq', information_type VARCHAR(20) PATH '$.informationType')) c"
+                                + " WHERE r.id = ? ORDER BY c.seq",
                         String.class,
                         row.get("id")))
                 .containsExactly("GENERAL", "HEALTH");
         assertThat(jdbc.queryForList(
-                        "SELECT group_code FROM notification_request_recipient_group WHERE request_id = ?",
+                        "SELECT g.group_code FROM notification_request r, JSON_TABLE(r.recipient_groups, '$[*]'"
+                                + " COLUMNS (group_code VARCHAR(40) PATH '$.groupCode')) g WHERE r.id = ?",
                         String.class,
                         row.get("id")))
                 .containsExactly("FacilityRole");

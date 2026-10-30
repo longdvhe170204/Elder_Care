@@ -99,8 +99,7 @@ class FR_024_ParameterChangeIT extends M13IntegrationTestBase {
 
     private Map<String, Object> state(long notificationId) {
         return jdbc.queryForMap(
-                "SELECT status, scheduled_send_at, sent_at FROM notification_state WHERE notification_id = ?",
-                notificationId);
+                "SELECT status, scheduled_send_at, sent_at FROM notification WHERE id = ?", notificationId);
     }
 
     @Test

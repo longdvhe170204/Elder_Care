@@ -4,10 +4,12 @@ import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.correction.api.CreationMethod;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
 import com.eldercare.backend.common.error.InvalidValueException;
+import com.eldercare.backend.notification.internal.urgent.domain.CallResultRow;
+import com.eldercare.backend.notification.internal.urgent.persistence.CallReminderStore;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -21,11 +23,11 @@ class CallResultCorrection implements CorrectableRecordProvider {
     static final String TYPE = "M13.CALL_RESULT";
     private static final Set<String> REASONS = Set.of("NO_ANSWER", "WRONG_NUMBER", "NO_NUMBER", "OTHER");
 
-    private final JdbcTemplate jdbc;
+    private final CallReminderStore store;
     private final CallReminderRouting routing;
 
-    CallResultCorrection(JdbcTemplate jdbc, CallReminderRouting routing) {
-        this.jdbc = jdbc;
+    CallResultCorrection(CallReminderStore store, CallReminderRouting routing) {
+        this.store = store;
         this.routing = routing;
     }
 
@@ -36,40 +38,23 @@ class CallResultCorrection implements CorrectableRecordProvider {
 
     @Override
     public boolean isConfirmed(long id) {
-        return !jdbc.queryForList("SELECT id FROM call_result WHERE id = ?", Long.class, id)
-                .isEmpty();
+        return store.callResult(id).isPresent();
     }
 
     @Override
     public long originalRecorder(long id) {
-        return jdbc.queryForObject("SELECT called_by FROM call_result WHERE id = ?", Long.class, id);
+        return store.callResult(id).orElseThrow().calledBy();
     }
 
     @Override
     public Optional<Long> floorArea(long id) {
-        return jdbc
-                .queryForList(
-                        "SELECT r.floor_area_id FROM call_result c JOIN call_reminder r ON r.id = c.call_reminder_id"
-                                + " WHERE c.id = ?",
-                        Long.class,
-                        id)
-                .stream()
-                .filter(java.util.Objects::nonNull)
-                .findFirst();
+        return store.callResultScope(id).map(s -> s.floorAreaId());
     }
 
     /** Người cao tuổi của lượt nhắc gọi; lượt không gắn người cao tuổi (FR-027a) thì rỗng. */
     @Override
     public Optional<Long> residentId(long id) {
-        return jdbc
-                .queryForList(
-                        "SELECT r.resident_id FROM call_result c JOIN call_reminder r ON r.id = c.call_reminder_id"
-                                + " WHERE c.id = ?",
-                        Long.class,
-                        id)
-                .stream()
-                .filter(java.util.Objects::nonNull)
-                .findFirst();
+        return store.callResultScope(id).map(s -> s.residentId());
     }
 
     @Override
@@ -100,9 +85,14 @@ class CallResultCorrection implements CorrectableRecordProvider {
 
     @Override
     public Object originalContent(long id) {
-        return jdbc.queryForMap(
-                "SELECT result, reason, note, answered_by AS answeredBy, called_at AS calledAt,"
-                        + " called_phone_number AS calledPhoneNumber FROM call_result WHERE id = ?",
-                id);
+        CallResultRow r = store.callResult(id).orElseThrow();
+        Map<String, Object> content = new LinkedHashMap<>();
+        content.put("result", r.result());
+        content.put("reason", r.reason());
+        content.put("note", r.note());
+        content.put("answeredBy", r.answeredBy());
+        content.put("calledAt", r.calledAt());
+        content.put("calledPhoneNumber", r.calledPhoneNumber());
+        return content;
     }
 }

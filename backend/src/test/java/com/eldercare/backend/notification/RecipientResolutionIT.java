@@ -163,7 +163,8 @@ class RecipientResolutionIT extends M13IntegrationTestBase {
 
     private List<String> outcomes(long requestId) {
         return jdbc.queryForList(
-                "SELECT outcome FROM notification_request_recipient_group WHERE request_id = ? ORDER BY seq",
+                "SELECT g.outcome FROM notification_request r, JSON_TABLE(r.recipient_groups, '$[*]' COLUMNS"
+                        + " (seq INT PATH '$.seq', outcome VARCHAR(40) PATH '$.outcome')) g WHERE r.id = ? ORDER BY g.seq",
                 String.class,
                 requestId);
     }
@@ -185,8 +186,9 @@ class RecipientResolutionIT extends M13IntegrationTestBase {
         assertThat(outcomes(id)).containsExactly("HAS_RECIPIENTS");
         // Lần gửi dự kiến trong ứng dụng (kênh khác chọn ở US3)
         assertThat(jdbc.queryForObject(
-                        "SELECT channel FROM delivery_attempt a JOIN notification n ON n.id = a.notification_id"
-                                + " WHERE n.request_id = ?",
+                        "SELECT a.content->>'$.channel' FROM record_event a JOIN notification n ON n.id = a.entity_id"
+                                + " WHERE a.kind = 'M13.DELIVERY_ATTEMPT' AND a.entity_type = 'M13.NOTIFICATION'"
+                                + " AND n.request_id = ?",
                         String.class,
                         id))
                 .isEqualTo("IN_APP");
