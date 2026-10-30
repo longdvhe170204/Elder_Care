@@ -3,7 +3,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../common/auth/session_controller.dart';
 import '../common/offline/offline_queue.dart';
-import '../common/theme/app_theme.dart';
 import 'early_unlock/early_unlock_screen.dart';
 import 'pending_review/pending_review_screen.dart';
 import 'sync_results/sync_results_screen.dart';
@@ -33,7 +32,6 @@ class _StaffRootState extends State<StaffRoot> {
   @override
   Widget build(BuildContext context) {
     final tabs = _tabs;
-    final tones = Theme.of(context).extension<Tones>()!;
     return Scaffold(
       appBar: AppBar(
         title: Text(tabs[_index].$1),
@@ -45,18 +43,8 @@ class _StaffRootState extends State<StaffRoot> {
           ),
         ],
       ),
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: tones.canvasGradient,
-            stops: const [0, 0.58, 1],
-          ),
-        ),
-        child: SizedBox.expand(
-          child: KeyedSubtree(key: ValueKey(_index), child: tabs[_index].$3()),
-        ),
+      body: SizedBox.expand(
+        child: KeyedSubtree(key: ValueKey(_index), child: tabs[_index].$3()),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,

@@ -1,6 +1,0 @@
-package com.cambae.backend.m01.api.dto;
-
-import java.util.Set;
-
-/** Miễn điều kiện bằng yêu cầu phê duyệt đã duyệt (chỉ 004). */
-public record ConditionWaiver(long approvalRequestId, Set<String> conditionCodes) {}

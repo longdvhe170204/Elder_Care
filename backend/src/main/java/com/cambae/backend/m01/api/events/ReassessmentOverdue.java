@@ -1,6 +1,0 @@
-package com.cambae.backend.m01.api.events;
-
-import java.time.Instant;
-
-/** Quá hạn đánh giá lại; 009 nhắc Bác sĩ, mức Trung bình. Khóa sự kiện (residentId, dueAt). */
-public record ReassessmentOverdue(long residentId, Instant dueAt) {}

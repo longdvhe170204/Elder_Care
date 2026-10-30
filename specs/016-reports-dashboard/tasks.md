@@ -16,15 +16,15 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ## Quy ước đường dẫn
 
-- `BE/` = `backend/src/main/java/com/cambae/backend/`, `BT/` = `backend/src/test/java/com/cambae/backend/`
-- Module M14: `BE/m14/{chitieu,phamvi,dashboard,baocao,chitiet,xuat}/`; không có bảng riêng (data-model mục 1)
+- `BE/` = `backend/src/main/java/com/eldercare/backend/`, `BT/` = `backend/src/test/java/com/eldercare/backend/`
+- Module M14: `BE/reporting/{chitieu,phamvi,dashboard,baocao,chitiet,xuat}/`; không có bảng riêng (data-model mục 1)
 - Web `frontend/src/tinh-nang/bao-cao/{dashboard,nguoi-cao-tuoi,cham-soc,chat-luong,suc-khoe-thuoc,chi-phi,nhan-su-ca,chi-tiet}/`
 
 ---
 
 ## Phase 1: Setup
 
-- [x] T001 Tạo khung gói `BE/m14/{chitieu,phamvi,dashboard,baocao,chitiet,xuat}/`; ArchUnit `BT/m14/M14ArchTest.java`: cấm gọi API lệnh của module khác, cấm repository ghi; mọi service `@Transactional(readOnly = true)` trừ ghi nhật ký xuất (research O-01, O-09) *(2026-10-24: gói theo R-02 `m14.internal.{metric, scope}`, `dashboard`, `report`, `detail`, `export` tạo cùng lớp của US; luật ArchUnit: không `jdbc`, `data`, `jakarta.persistence`, `ApplicationEventPublisher`, không lớp `*Command*`, `*Port` của module khác, service ngoài `export` gắn `@Transactional(readOnly = true)`)*
+- [x] T001 Tạo khung gói `BE/reporting/{chitieu,phamvi,dashboard,baocao,chitiet,xuat}/`; ArchUnit `BT/reporting/M14ArchTest.java`: cấm gọi API lệnh của module khác, cấm repository ghi; mọi service `@Transactional(readOnly = true)` trừ ghi nhật ký xuất (research O-01, O-09) *(2026-10-24: gói theo R-02 `reporting.internal.{metric, scope}`, `dashboard`, `report`, `detail`, `export` tạo cùng lớp của US; luật ArchUnit: không `jdbc`, `data`, `jakarta.persistence`, `ApplicationEventPublisher`, không lớp `*Command*`, `*Port` của module khác, service ngoài `export` gắn `@Transactional(readOnly = true)`)*
 - [x] T002 [P] Thêm thư viện tạo XLSX (fastexcel, đã chọn ở 010; sửa 2026-10-22 cho khớp research O-08) vào `backend/pom.xml` nếu 010 chưa thêm *(2026-10-22: fastexcel, fastexcel-reader 0.20.2 đã thêm cùng `common.document`, 007 T104)*
 
 ---
@@ -35,8 +35,8 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 **⚠️ CRITICAL**: Xong phase này mới làm user story.
 
-- [x] T003 Tạo mô hình đọc `BE/m14/chitieu/ChiTieu.java`, `GiaTriChiTieu.java` (nhãn `KHONG_CO_DU_LIEU`, `CHUA_CAU_HINH`, `NGAY_CHUA_KET_THUC`, `CHO_XEM_LAI:n`, `LOAI_BO_LUU_TRU:loai`), `DongChiTiet.java` và khung đăng ký chỉ tiêu cố định trong mã: mỗi mã ở `contracts/chi-tieu.md` có hàm tính thuần và hàm chi tiết trên cùng tập bản ghi đã lọc (data-model mục 2; research O-05; FR-003, FR-009) *(2026-10-24: `Metric` (phép `Count`, `Ratio`, `Aggregate`), `MetricValue`, `DetailRow`, `MetricRecord`, `MetricCatalog`; tỷ lệ là phần trăm một chữ số thập phân; nhãn `DAY_NOT_ENDED`, `PURGED_BY_RETENTION`, `NOT_CONFIGURED`, `PROVISIONAL` gắn ở tầng báo cáo; test `MetricTest`)*
-- [x] T004 Cài `BE/m14/phamvi/PhamViBaoCao.java` (dựng từ `PhamViApi.boLoc`/`boLocLichSu` của 002 và lịch sử ca 008; lọc hai bước: lấy tập bản ghi theo phạm vi thô rồi lọc theo khoảng thời gian của từng phạm vi) và `QuyenNhomChiTieu.java` (nhóm quyền FR-010; thu hẹp `DASHBOARD_BAO_CAO` theo `nhom_chi_tieu`, `kenh`) với test `BT/m14/PhamViBaoCaoTest.java` (research O-03) *(2026-10-24: xong bảng FR-010 `MetricGroupAccess`, `ReportScope`, `ReportScopeService` (phạm vi theo ca từ `AssignmentApi.history` của 008, ± CFG-M15-07), test `ReportScopeTest`, `MetricGroupAccessTest`; thu hẹp chi tiết theo `metric_group`, `channel` qua `PermissionApi.metricGroupRestrictions` ("Đổi api" 002, chủ dự án duyệt 2026-10-24), áp theo vai trò trước khi hợp rồi theo tài khoản; dòng rút gọn xét `FieldVisibilityApi.canViewByRole`; test 002 `MetricGroupRestrictionsIT`)*
+- [x] T003 Tạo mô hình đọc `BE/reporting/chitieu/ChiTieu.java`, `GiaTriChiTieu.java` (nhãn `KHONG_CO_DU_LIEU`, `CHUA_CAU_HINH`, `NGAY_CHUA_KET_THUC`, `CHO_XEM_LAI:n`, `LOAI_BO_LUU_TRU:loai`), `DongChiTiet.java` và khung đăng ký chỉ tiêu cố định trong mã: mỗi mã ở `contracts/chi-tieu.md` có hàm tính thuần và hàm chi tiết trên cùng tập bản ghi đã lọc (data-model mục 2; research O-05; FR-003, FR-009) *(2026-10-24: `Metric` (phép `Count`, `Ratio`, `Aggregate`), `MetricValue`, `DetailRow`, `MetricRecord`, `MetricCatalog`; tỷ lệ là phần trăm một chữ số thập phân; nhãn `DAY_NOT_ENDED`, `PURGED_BY_RETENTION`, `NOT_CONFIGURED`, `PROVISIONAL` gắn ở tầng báo cáo; test `MetricTest`)*
+- [x] T004 Cài `BE/reporting/phamvi/PhamViBaoCao.java` (dựng từ `PhamViApi.boLoc`/`boLocLichSu` của 002 và lịch sử ca 008; lọc hai bước: lấy tập bản ghi theo phạm vi thô rồi lọc theo khoảng thời gian của từng phạm vi) và `QuyenNhomChiTieu.java` (nhóm quyền FR-010; thu hẹp `DASHBOARD_BAO_CAO` theo `nhom_chi_tieu`, `kenh`) với test `BT/reporting/PhamViBaoCaoTest.java` (research O-03) *(2026-10-24: xong bảng FR-010 `MetricGroupAccess`, `ReportScope`, `ReportScopeService` (phạm vi theo ca từ `AssignmentApi.history` của 008, ± CFG-M15-07), test `ReportScopeTest`, `MetricGroupAccessTest`; thu hẹp chi tiết theo `metric_group`, `channel` qua `PermissionApi.metricGroupRestrictions` ("Đổi api" 002, chủ dự án duyệt 2026-10-24), áp theo vai trò trước khi hợp rồi theo tài khoản; dòng rút gọn xét `FieldVisibilityApi.canViewByRole`; test 002 `MetricGroupRestrictionsIT`)*
 - [x] T005 [P] Cài giới hạn trường cho DTO và cột file (`@NhomTruong`; tên người cao tuổi rút gọn Q-196; tên thuốc ẩn với vai trò không xem) (research O-04) *(2026-10-24: `DetailRowPolicy` dùng chung cho màn hình và file: dòng rút gọn Q-196, kết quả theo nhóm thông tin, mã vật phẩm thay tên thuốc; `@FieldGroup` trên DTO phản hồi thêm cùng controller ở US; test `DetailRowPolicyTest`)*
 - [x] T006 [P] Bổ sung kiểm CFG-M14-01 (khoảng tối đa) dùng chung cho báo cáo và xuất (FR-060) *(2026-10-24: `ReportPeriods`, lỗi 422 `RANGE_EXCEEDS_MAXIMUM`; test `FR_060_ReportPeriodTest`)*
 
@@ -52,12 +52,12 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 1
 
-- [ ] T007 [P] [US1] *(2026-10-27: xong phần giường `MetricBedStatusTest`; các mã khác chờ nguồn)* Test `ChiTieu_*Test` cho các mã dashboard (`NCT.DANG_LUU_TRU`, `GIUONG.TRANG_THAI`, `CV.HOM_NAY`, `CV.QUA_HAN`, `HD.*`, `SK.CANH_BAO`, `SK.SU_CO`…) trong `BT/m14/chitieu/` (SC-001; Q14 → Q16); test hiệu năng dashboard 60 người dùng (SC-002) trong `BT/m14/DashboardHieuNangIT.java`
+- [ ] T007 [P] [US1] *(2026-10-27: xong phần giường `MetricBedStatusTest`; các mã khác chờ nguồn)* Test `ChiTieu_*Test` cho các mã dashboard (`NCT.DANG_LUU_TRU`, `GIUONG.TRANG_THAI`, `CV.HOM_NAY`, `CV.QUA_HAN`, `HD.*`, `SK.CANH_BAO`, `SK.SU_CO`…) trong `BT/reporting/chitieu/` (SC-001; Q14 → Q16); test hiệu năng dashboard 60 người dùng (SC-002) trong `BT/reporting/DashboardHieuNangIT.java`
 
 ### Implementation cho User Story 1
 
-- [ ] T008 [US1] *(2026-10-27: xong `BED.STATUS`, `BED.USABLE`, `BED.ISOLATED_ROOMS`; `BED.EMPTY_AWAITING_TRANSFER` chờ 019; mã khác chờ nguồn)* Cài hàm tính và chi tiết cho các chỉ tiêu dashboard trong `BE/m14/chitieu/` gọi `*ThongKeApi` tương ứng (contracts/chi-tieu.md)
-- [x] T009 [US1] *(2026-10-24: `DashboardService` theo nhóm của bảng FR-020, bộ đệm 20 giây theo (nhóm, phạm vi), ETag; chạy tuần tự, ghi chú ở plan; `GET /dashboard`, `GET /metrics`; test `FR_020_DashboardIT`)* Cài `BE/m14/dashboard/internal/DashboardService.java` (khối theo vai trò, song song, bộ đệm trong tiến trình 20 giây, ETag) và `BE/m14/dashboard/web/DashboardController.java` (`GET /dashboard`, `GET /chi-tieu`) (research O-06)
+- [ ] T008 [US1] *(2026-10-27: xong `BED.STATUS`, `BED.USABLE`, `BED.ISOLATED_ROOMS`; `BED.EMPTY_AWAITING_TRANSFER` chờ 019; mã khác chờ nguồn)* Cài hàm tính và chi tiết cho các chỉ tiêu dashboard trong `BE/reporting/chitieu/` gọi `*ThongKeApi` tương ứng (contracts/chi-tieu.md)
+- [x] T009 [US1] *(2026-10-24: `DashboardService` theo nhóm của bảng FR-020, bộ đệm 20 giây theo (nhóm, phạm vi), ETag; chạy tuần tự, ghi chú ở plan; `GET /dashboard`, `GET /metrics`; test `FR_020_DashboardIT`)* Cài `BE/reporting/dashboard/internal/DashboardService.java` (khối theo vai trò, song song, bộ đệm trong tiến trình 20 giây, ETag) và `BE/reporting/dashboard/web/DashboardController.java` (`GET /dashboard`, `GET /chi-tieu`) (research O-06)
 - [x] T010 [P] [US1] *(2026-10-24: bố cục duyệt, DESIGN.md 5.21.0; `src/features/dashboard/DashboardPage.jsx` thay bản mẫu Tổng quan; test `DashboardPage.test.jsx`)* Tạo màn web `frontend/src/tinh-nang/bao-cao/dashboard/` (định nghĩa chỉ tiêu tại chỗ; "—" khi mẫu số 0; làm mới 30 giây với ETag) với test Vitest
 
 **Checkpoint**: Dashboard chạy độc lập.
@@ -72,7 +72,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 2
 
-- [ ] T011 [P] [US2] Test `BT/m14/FR_012_PhamViTheoThoiGianIT.java` (SC-011), bộ 11 tài khoản `BT/m14/SC_004_PhamViIT.java`, `FR_014_GioiHanTruongIT.java`, `FR_042a_SuCoHanhChinhIT.java`, `SC_005_TenThuocIT.java` (Q3 → Q11)
+- [ ] T011 [P] [US2] Test `BT/reporting/FR_012_PhamViTheoThoiGianIT.java` (SC-011), bộ 11 tài khoản `BT/reporting/SC_004_PhamViIT.java`, `FR_014_GioiHanTruongIT.java`, `FR_042a_SuCoHanhChinhIT.java`, `SC_005_TenThuocIT.java` (Q3 → Q11)
 
 ### Implementation cho User Story 2
 
@@ -90,11 +90,11 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 3
 
-- [ ] T013 [P] [US3] *(2026-10-27: xong `ChiTieu_GIUONG_*` = `MetricBedStatusTest`; `NCT` chờ 001)* Test `ChiTieu_NCT_*Test`, `ChiTieu_GIUONG_*Test` trong `BT/m14/chitieu/`
+- [ ] T013 [P] [US3] *(2026-10-27: xong `ChiTieu_GIUONG_*` = `MetricBedStatusTest`; `NCT` chờ 001)* Test `ChiTieu_NCT_*Test`, `ChiTieu_GIUONG_*Test` trong `BT/reporting/chitieu/`
 
 ### Implementation cho User Story 3
 
-- [ ] T014 [US3] *(2026-10-27: xong `BED.STATUS`, `BED.OCCUPANTS` của FR-024 tại ngày đã qua; 2026-10-24: xong phần khung `GET /reports/{group}` (`ReportController`, `ReportService`, test `ReportApiIT`) và màn `src/features/reports/` dùng chung cho mọi nhóm; còn chỉ tiêu nhóm người cao tuổi, giường chờ `*ThongKeApi` của 001, 003, 004)* Cài chỉ tiêu nhóm người cao tuổi, giường và `BE/m14/baocao/internal/BaoCaoService.java` + `BE/m14/baocao/web/BaoCaoController.java` (`GET /bao-cao/{nhom}`) (research O-07); màn web `frontend/src/tinh-nang/bao-cao/nguoi-cao-tuoi/`
+- [ ] T014 [US3] *(2026-10-27: xong `BED.STATUS`, `BED.OCCUPANTS` của FR-024 tại ngày đã qua; 2026-10-24: xong phần khung `GET /reports/{group}` (`ReportController`, `ReportService`, test `ReportApiIT`) và màn `src/features/reports/` dùng chung cho mọi nhóm; còn chỉ tiêu nhóm người cao tuổi, giường chờ `*ThongKeApi` của 001, 003, 004)* Cài chỉ tiêu nhóm người cao tuổi, giường và `BE/reporting/baocao/internal/BaoCaoService.java` + `BE/reporting/baocao/web/BaoCaoController.java` (`GET /bao-cao/{nhom}`) (research O-07); màn web `frontend/src/tinh-nang/bao-cao/nguoi-cao-tuoi/`
 
 ---
 
@@ -138,7 +138,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 6
 
-- [ ] T019 [P] [US6] Test `BT/m14/SC_007_KhopBangChotIT.java` (Q18, Q19)
+- [ ] T019 [P] [US6] Test `BT/reporting/SC_007_KhopBangChotIT.java` (Q18, Q19)
 
 ### Implementation cho User Story 6
 
@@ -154,11 +154,11 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 7
 
-- [ ] T021 [P] [US7] Test `BT/m14/FR_009_ChiTietKhopSoIT.java` (SC-006; Q12, Q13)
+- [ ] T021 [P] [US7] Test `BT/reporting/FR_009_ChiTietKhopSoIT.java` (SC-006; Q12, Q13)
 
 ### Implementation cho User Story 7
 
-- [ ] T022 [US7] *(2026-10-24: xong `GET /metric-details/{metricCode}` (`MetricDetailService`, phân trang 50 dòng) và khung `MetricDetailSheet`; còn test FR-012, FR-014 của US7 với nguồn thật)* Cài `BE/m14/chitiet/internal/ChiTietService.java` và `BE/m14/chitiet/web/ChiTietController.java` (`GET /chi-tiet/{maChiTieu}`; phân trang; giới hạn trường); màn web `frontend/src/tinh-nang/bao-cao/chi-tiet/`
+- [ ] T022 [US7] *(2026-10-24: xong `GET /metric-details/{metricCode}` (`MetricDetailService`, phân trang 50 dòng) và khung `MetricDetailSheet`; còn test FR-012, FR-014 của US7 với nguồn thật)* Cài `BE/reporting/chitiet/internal/ChiTietService.java` và `BE/reporting/chitiet/web/ChiTietController.java` (`GET /chi-tiet/{maChiTieu}`; phân trang; giới hạn trường); màn web `frontend/src/tinh-nang/bao-cao/chi-tiet/`
 
 ---
 
@@ -170,11 +170,11 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 8
 
-- [ ] T023 [P] [US8] *(2026-10-27: xong phần 008: `MetricShiftStaffingRatioTest`, `MetricShiftHandoversTest`, `MetricLicenseStaffTest`, `FR_020_StaffingDashboardIT`; còn phần 015 chờ `XoayCaThongKeApi`)* Test `ChiTieu_NS_*Test` trong `BT/m14/chitieu/` (Q22, Q23)
+- [ ] T023 [P] [US8] *(2026-10-27: xong phần 008: `MetricShiftStaffingRatioTest`, `MetricShiftHandoversTest`, `MetricLicenseStaffTest`, `FR_020_StaffingDashboardIT`; còn phần 015 chờ `DoiCaThongKeApi`; 2026-10-29 Q-397 bỏ chỉ tiêu thiếu phủ, thiếu ca, lời mời)* Test `ChiTieu_NS_*Test` trong `BT/reporting/chitieu/` (Q22, Q23)
 
 ### Implementation cho User Story 8
 
-- [ ] T024 [US8] *(2026-10-27: xong `SHIFT.STAFFING_RATIO`, `SHIFT.UNCONFIRMED_HANDOVERS`, `LICENSE.STAFF` qua `StaffStatisticsApi` thật; màn web dùng tab "Nhân sự, ca" có sẵn; còn `SHIFT.UNDER_COVERAGE`, `MISSING_SHIFTS`, `REQUESTS`, `INVITATIONS`, `WORKING_HOURS` chờ 015)* Cài chỉ tiêu nhân sự, ca qua `NhanSuThongKeApi` (008), `XoayCaThongKeApi` (015); màn web `frontend/src/tinh-nang/bao-cao/nhan-su-ca/`
+- [ ] T024 [US8] *(2026-10-27: xong `SHIFT.STAFFING_RATIO`, `SHIFT.UNCONFIRMED_HANDOVERS`, `LICENSE.STAFF` qua `StaffStatisticsApi` thật; màn web dùng tab "Nhân sự, ca" có sẵn; còn `REQUESTS`, `WORKING_HOURS` chờ 015; `SHIFT.UNDER_COVERAGE`, `MISSING_SHIFTS`, `INVITATIONS` bỏ theo Q-397)* Cài chỉ tiêu nhân sự, ca qua `NhanSuThongKeApi` (008), `DoiCaThongKeApi` (015); màn web `frontend/src/tinh-nang/bao-cao/nhan-su-ca/`
 
 ---
 
@@ -186,11 +186,11 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 9
 
-- [x] T025 [P] [US9] *(2026-10-24: `FR_061_ExportContentTest`, `FR_062_ExportAuditIT`; chỉ tiêu giả `TEST.MISSED_DOSES`, ghi chú Phase 11 ở plan)* Test đơn vị `BT/m14/FR_061_NoiDungXuatTest.java` và `BT/m14/FR_062_NhatKyXuatIT.java` (Q25 → Q28)
+- [x] T025 [P] [US9] *(2026-10-24: `FR_061_ExportContentTest`, `FR_062_ExportAuditIT`; chỉ tiêu giả `TEST.MISSED_DOSES`, ghi chú Phase 11 ở plan)* Test đơn vị `BT/reporting/FR_061_NoiDungXuatTest.java` và `BT/reporting/FR_062_NhatKyXuatIT.java` (Q25 → Q28)
 
 ### Implementation cho User Story 9
 
-- [x] T026 [US9] *(2026-10-24: `m14.internal.export`, fastexcel qua `common.document` thay POI; lần xuất đọc bằng `AuditLogApi.recorded`)* Cài `BE/m14/xuat/internal/XuatBaoCaoService.java` (`YeuCauXuat`; POI; `NhatKyApi.ghi` `XUAT_BAO_CAO` với bộ lọc ở `chi_tiet`; `TepApi`; `QuyenTepProvider` `M14.BAO_CAO_XUAT`: người xuất, Quản lý viện) và endpoint `POST /bao-cao/{nhom}/xuat`, `GET /bao-cao/lan-xuat` (research O-08)
+- [x] T026 [US9] *(2026-10-24: `reporting.internal.export`, fastexcel qua `common.document` thay POI; lần xuất đọc bằng `AuditLogApi.recorded`)* Cài `BE/reporting/xuat/internal/XuatBaoCaoService.java` (`YeuCauXuat`; POI; `NhatKyApi.ghi` `XUAT_BAO_CAO` với bộ lọc ở `chi_tiet`; `TepApi`; `QuyenTepProvider` `M14.BAO_CAO_XUAT`: người xuất, Quản lý viện) và endpoint `POST /bao-cao/{nhom}/xuat`, `GET /bao-cao/lan-xuat` (research O-08)
 
 **Checkpoint**: Mọi user story của 016 chạy độc lập.
 
@@ -201,8 +201,9 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 - [ ] T031 [US5] *(Bổ sung 2026-10-18, Q-369)* Thêm chỉ tiêu cảnh báo SOS vào nhóm sức khỏe (research O-12) và màn `frontend/src/tinh-nang/bao-cao/suc-khoe-thuoc/`; test `ChiTieu_SK_CanhBaoSosTest` (quickstart B1)
 - [ ] T032 [US5] *(Bổ sung 2026-10-22, Q-374, Q-375)* Mở rộng chỉ tiêu của T031 thành `SK.CANH_BAO_SOS_HO_TRO` (research O-13, contracts/chi-tieu.md): dòng nút hỗ trợ khẩn cấp, thời gian tạo → tới nơi, số "không ghi mốc tới nơi", dòng "chưa rõ tầng"; test `ChiTieu_SK_CanhBaoSosHoTroTest` (quickstart B1, B2); cần 007 T096 (`daToiNoiLuc`, `NUT_HO_TRO` trong `CanhBaoThongKeApi`), bản giả trước đó
 
-- [ ] T027 [P] Test `BT/m14/SC_008_ChiDocIT.java` (đếm bản ghi trước/sau mọi báo cáo; Q29) và hiệu năng báo cáo 12 tháng (SC-003; Q24)
+- [ ] T027 [P] Test `BT/reporting/SC_008_ChiDocIT.java` (đếm bản ghi trước/sau mọi báo cáo; Q29) và hiệu năng báo cáo 12 tháng (SC-003; Q24)
 - [x] T028 [P] *(2026-10-24: `ApiContractIT`; `pending` còn `/dashboard`, `/metrics`, `/reports/{group}`, `/metric-details/{metricCode}`)* Mở rộng `BT/common/HopDongApiTest.java` với `specs/016-reports-dashboard/contracts/api-016.yaml`
+- [x] T105 *(bổ sung 2026-10-29, Q-392)* Bỏ nhóm chỉ tiêu kho nguyên liệu: `MetricGroup.INVENTORY`, chỉ tiêu `KHO.DUOI_TOI_THIEU`, `KHO.LO_SAP_HET_HAN` (contracts/chi-tieu.md) và các ô quyền của nhóm này; sửa test liên quan
 - [ ] T029 Chạy `./mvnw verify`, `npm test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
 - [ ] T030 Rà: mọi mã ở `contracts/chi-tieu.md` có `ChiTieu_*Test` (SC-001); DBR-25 (mốc theo Asia/Ho_Chi_Minh); FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-002, FR-004, FR-005, FR-006, FR-007, FR-008, FR-055, FR-055a — mỗi FR có task hoặc test tương ứng (constitution XV)
 

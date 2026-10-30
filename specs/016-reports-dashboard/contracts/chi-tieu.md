@@ -38,7 +38,7 @@ Mã chỉ tiêu dùng trong REST (`/bao-cao/{nhom}`, `/chi-tiet/{maChiTieu}`) v�
 | `SK.NGUY_KICH` | Dấu nguy kịch | 007 | FR-020 |
 | `CA.BAN_GIAO_CHUA_XAC_NHAN` | Bàn giao | 008 `NhanSuThongKeApi.banGiao`; *(2026-10-27)* `banGiaoDangMo` (`openHandovers`) | FR-020 |
 | `CA.TY_LE_PHUC_VU` | Tỷ lệ phục vụ | 008 `tyLePhucVu` | FR-020, FR-070 |
-| `CA.THIEU_PHU`, `CA.THIEU_CA` | Nhân sự và ca trực | 015 `XoayCaThongKeApi.phu`, `thieuCaDaCongBo` | FR-071 |
+| ~~`CA.THIEU_PHU`, `CA.THIEU_CA`~~ | *(Bỏ theo Q-397)* | — | FR-071 |
 | `CA.YEU_CAU`, `CA.LOI_MOI` | Nhân sự và ca trực | 015 `yeuCau`, `loiMoi` | FR-072 |
 | `CA.GIO_LAM` | Nhân sự và ca trực (QL, TT được giao) | 015 `gioLamTheoThang` | FR-073 |
 | `GP.CO_SO`, `GP.NHAN_VIEN` | Giấy phép | 007 `GiayPhepCoSoApi`; 008 `chungChiSapHetHan` | FR-020 |
@@ -47,4 +47,4 @@ Mã chỉ tiêu dùng trong REST (`/bao-cao/{nhom}`, `/chi-tiet/{maChiTieu}`) v�
 | `SD.THAP_CON_NO` | Số dư | 017 `SoDuThongKeApi.tinhTrang` | FR-020 |
 | `KB.CAN_LAM` | Khai báo tạm trú | 018 `KhaiBaoThongKeApi` | FR-020 |
 | `TS.QUA_HAN` | Tài sản | 019 `TaiSanThongKeApi.quaHan` | FR-020 |
-| `KHO.DUOI_TOI_THIEU`, `KHO.LO_SAP_HET_HAN` | Kho nguyên liệu | 019 `KhoThongKeApi` | FR-020 |
+| ~~`KHO.DUOI_TOI_THIEU`, `KHO.LO_SAP_HET_HAN`~~ | *(Bỏ theo Q-392)* | — | — |

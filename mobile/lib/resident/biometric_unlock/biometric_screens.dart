@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../common/auth/session_controller.dart';
-import '../../common/widgets/sky_background.dart';
+import '../../common/widgets/page_body.dart';
 
 /// Hỏi một lần sau lần đăng nhập đầu (002 FR-074; DESIGN.md 15.6). Không có mã PIN.
 class BiometricOfferScreen extends StatelessWidget {
@@ -13,7 +13,7 @@ class BiometricOfferScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Scaffold(
-      body: SkyBackground(
+      body: PageBody(
         child: Card(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -49,7 +49,7 @@ class LockedScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Scaffold(
-      body: SkyBackground(
+      body: PageBody(
         child: Card(
           child: Padding(
             padding: const EdgeInsets.all(20),
