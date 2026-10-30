@@ -9,9 +9,9 @@ import com.eldercare.backend.administration.account.api.spi.PracticeScopeCatalog
 import com.eldercare.backend.administration.account.api.spi.PracticeScopeView;
 import com.eldercare.backend.administration.account.internal.auth.service.AccountService;
 import com.eldercare.backend.administration.account.internal.legal.domain.ProfessionalActivity;
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;

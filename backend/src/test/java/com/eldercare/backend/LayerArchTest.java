@@ -95,43 +95,8 @@ class LayerArchTest {
             "staffing.staff.internal.service.StaffEmploymentEffects",
             "staffing.staff.internal.service.StaffService");
 
-    /** A: record, enum ở gốc {@code api} chuyển vào {@code api.dto}, sự kiện vào {@code api.events}; C (005): care. */
-    private static final Set<String> PENDING_API_ROOT_TYPES = Set.of(
-            "administration.approval.api.ApprovalCommands",
-            "administration.approval.api.ApprovalRequestDetails",
-            "administration.approval.api.ApprovalRequestView",
-            "administration.approval.api.ApprovalStatus",
-            "administration.approval.api.ApproverReminderDue",
-            "administration.approval.api.CreateRequest",
-            "administration.approval.api.ExtendedTransitions",
-            "administration.approval.api.ManagerEscalationDue",
-            "administration.approval.api.Notices",
-            "administration.approval.api.RequestApplied",
-            "administration.approval.api.RequestApplyFailed",
-            "administration.approval.api.RequestCancelled",
-            "administration.approval.api.RequestCreated",
-            "administration.approval.api.RequestDecided",
-            "administration.approval.api.RequestSubmitted",
-            "administration.approval.api.ResultRef",
-            "administration.auditlog.api.AuditAction",
-            "administration.auditlog.api.AuditLogEntry",
-            "administration.auditlog.api.AuditLogPermissions",
-            "administration.auditlog.api.AuditLogRecord",
-            "administration.auditlog.api.Basis",
-            "administration.correction.api.CorrectionChainView",
-            "administration.correction.api.CorrectionMade",
-            "administration.correction.api.CorrectionPermissions",
-            "administration.correction.api.CorrectionType",
-            "administration.correction.api.CorrectionView",
-            "administration.correction.api.CreationMethod",
-            "administration.correction.api.CurrentValue",
-            "administration.parameter.api.ParameterChanged",
-            "administration.parameter.api.ParameterCode",
-            "administration.parameter.api.ParameterKind",
-            "administration.parameter.api.ParameterPermissions",
-            "administration.parameter.api.ParameterValue",
-            "administration.retention.api.RetentionDatabase",
-            "care.api.MedicationChecklistItem");
+    /** C (005): care; record, enum ở gốc {@code api} chuyển vào {@code api.dto}. */
+    private static final Set<String> PENDING_API_ROOT_TYPES = Set.of("care.api.MedicationChecklistItem");
 
     /** Record lồng chuyển ra {@code domain}: B (resident), C (roombedallocation). */
     private static final Set<String> PENDING_NESTED_RECORD_OWNERS = Set.of(

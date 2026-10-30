@@ -4,9 +4,9 @@ import static com.eldercare.backend.administration.auditlog.AuditLogFixtures.MAN
 import static com.eldercare.backend.administration.sample.SampleLegacyRecordTypes.LEGACY_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.auditlog.internal.service.AuditLogQueryService;
 import com.eldercare.backend.administration.sample.SampleFloorRecordProvider;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;

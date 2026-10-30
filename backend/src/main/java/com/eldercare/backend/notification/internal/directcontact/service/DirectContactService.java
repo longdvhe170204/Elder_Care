@@ -1,9 +1,9 @@
 package com.eldercare.backend.notification.internal.directcontact.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;

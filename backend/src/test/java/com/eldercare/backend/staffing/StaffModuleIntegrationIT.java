@@ -7,7 +7,7 @@ import com.eldercare.backend.administration.account.api.ScopeApi;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.*;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.care.api.spi.CareShiftPort;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.*;

@@ -153,7 +153,7 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
         originalParameters.put(
                 code,
                 parameters
-                        .read(com.eldercare.backend.administration.parameter.api.ParameterCode.valueOf(code))
+                        .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.valueOf(code))
                         .raw());
         changeParameter(code, Map.of("value", value));
     }
@@ -260,7 +260,7 @@ class PostPublicationShiftIT extends MySqlIntegrationTestBase {
     @Test
     void FR_020_reportingWindowRejectsEarlyAndLate_andAcceptsEndInstant() throws Exception {
         clock.setTo(from.minus(parameters
-                        .read(com.eldercare.backend.administration.parameter.api.ParameterCode.CFG_M15_07)
+                        .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M15_07)
                         .asDuration())
                 .minusSeconds(1));
         command("record-absence", token(head), reason(worker.staffId()))

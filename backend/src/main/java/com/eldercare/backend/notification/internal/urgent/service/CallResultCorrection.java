@@ -1,7 +1,7 @@
 package com.eldercare.backend.notification.internal.urgent.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.administration.correction.api.CreationMethod;
+import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.notification.internal.urgent.domain.CallResultRow;

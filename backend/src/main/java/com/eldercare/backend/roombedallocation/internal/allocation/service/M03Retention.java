@@ -2,7 +2,7 @@ package com.eldercare.backend.roombedallocation.internal.allocation.service;
 
 import com.eldercare.backend.administration.account.api.spi.ResidencyEndApi;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.administration.retention.api.RetentionDatabase;
 import com.eldercare.backend.administration.retention.api.RetentionKind;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
