@@ -180,3 +180,22 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
 - `GET /reports/{group}`: `date` là báo cáo tại một ngày (từ ngày đó tới ngày đó); khoảng chứa hôm nay thì mọi giá trị thêm nhãn `DAY_NOT_ENDED` (cả file xuất); báo cáo chi phí có ghi chú FR-050. Bộ lọc tầng trên web chờ danh mục tầng của 003.
 - `GET /metric-details/{metricCode}`: không có khoảng thì như dashboard (hôm nay, phạm vi hiện hành, kênh `DASHBOARD`); 50 dòng mỗi trang; `asOf` nhận nhưng chưa dùng (nguồn chưa trả số liệu tại một thời điểm); mã không có thì 404.
 - Dải "Cần xử lý ngay" (`dashboard-urgent`) chưa có trên web: cần chỉ tiêu cảnh báo, sự cố leo thang tối đa của 007.
+
+### US8 phần 008 (2026-10-27, nhánh `impl/016-staffing-metrics`)
+
+- "Đổi api" trên M09 (chủ dự án duyệt, E review): `StaffingRatioView` thêm `staffCount`, `totalWeight`, `shiftTemplateId`, `shiftStartsAt`, `shiftEndsAt` (đề xuất ban đầu chỉ có `shiftStartsAt`; thêm `shiftEndsAt` để biết ca đang diễn ra, ca đã kết thúc); `HandoverReportView` thêm `shiftEndsAt`; hàm mới `StaffStatisticsApi.openHandovers(scope)` (Đã lập, Có ý kiến, Bản nháp của ca Chờ bàn giao, không giới hạn ngày ca); `ExpiringCredentialView` thêm `credentialGroup`. Bản giả `FakeStaffStatistics.openHandovers` lọc theo trạng thái. Không đổi hàm cũ, không thêm migration.
+- Lệch kỹ thuật trong khung: `MetricSource.current(rough, from, to)` (mặc định gọi `records`) là đường "lúc xem" của dashboard và `GET /metric-details` không khoảng (`MetricEvaluator.current`, `currentDetails`). Lý do: dashboard truyền khoảng hôm nay cho mọi nguồn nên `SHIFT.STAFFING_RATIO` không phân biệt được ca hiện tại (FR-020) với ca đã diễn ra (FR-070) dùng cùng mã. Nguồn khác giữ nguyên hành vi.
+- `SHIFT.STAFFING_RATIO` (`m14.internal.staffing.service.StaffingRatioMetric`): đếm ca, chia khóa `MET`, `NOT_MET`, `NOT_CONFIGURED`. Dashboard: ca đang diễn ra (ca qua đêm từ hôm qua), không đạt theo lần tính mới nhất. Báo cáo: ca đã kết thúc có giờ bắt đầu trong khoảng (xếp tháng theo giờ bắt đầu ca), không đạt theo dấu "từng không đạt" (Q-200). Ngưỡng rỗng là `NOT_CONFIGURED`. Dòng chi tiết có tỷ lệ, ngưỡng, số nhân viên, tổng trọng số, mẫu ca; "tổng hợp theo tầng, mẫu ca" của FR-070 hiện qua bộ lọc tầng và dòng chi tiết (một khóa chia nhóm mỗi chỉ tiêu).
+- `SHIFT.UNCONFIRMED_HANDOVERS` (`UnconfirmedHandoversMetric`): nguồn `openHandovers`, chia theo trạng thái, `waitingMinutes` từ giờ kết thúc ca.
+- `LICENSE.STAFF` (`m14.internal.license.service.StaffLicenseMetric`): một lần gọi `expiringCredentials` với mốc lớn hơn của CFG-M06-02, CFG-M09-03 rồi lọc theo `credentialGroup`; chia theo nhóm; họ tên qua `ShiftApi.staff`. Trưởng tầng (Q-389): nhân viên có dòng `assignmentHistory(phạm vi, lúc xem, hết cửa sổ)`; `floorAreaId` của bản ghi là một tầng trong phạm vi, chỉ để lọc bước 2.
+- Web: không đổi (tab "Nhân sự, ca" và khối dashboard dùng chung); khóa chia nhóm hiện nguyên mã như các chỉ tiêu khác.
+- Còn chờ 015 (`XoayCaThongKeApi`): FR-071 → FR-073. T023, T024 chưa đánh `[x]`.
+
+### Chỉ tiêu giường (2026-10-27, nhánh `impl/016-bed-metrics`)
+
+- "Đổi api" trên M03 (chủ dự án duyệt, C review): `BedStateOnDate` thêm `roomId`, `holdReason` (suy từ sự kiện `HOLD_WAITING_RECORD`, `ABSENT_KEEP_BED` của lịch sử, không thêm cột); `AwaitingReadyInterval` thêm `startedAt`. Bản giả `FakeHandoverLocations` truyền `0L`, `null`, `awaitingSince` cho trường mới. Không đổi hàm, không migration.
+- Mã con (chủ dự án duyệt; khung mỗi mã một số và một khóa chia nhóm): `BED.STATUS` (tổng giường, chia theo trạng thái, giữ chỗ tách `HELD_WAITING_RECORD`, `HELD_ABSENT_RESIDENT`), `BED.USABLE`, `BED.ISOLATED_ROOMS`, `BED.OCCUPANTS` (chia theo tầng; phòng ở dòng chi tiết) trong nhóm `BEDS`; `BED.AWAITING_READY` (trung bình phút), `BED.AWAITING_READY_MAX`, `BED.AWAITING_READY_OVERDUE` (chia theo tầng) trong nhóm `BED_AWAITING_READY`.
+- Thời điểm: lúc xem là hiện tại; báo cáo là ngay trước cuối khoảng, không quá lúc xem (FR-024 tại một ngày đã qua).
+- Q-390: lần Chờ sẵn sàng có lúc bắt đầu trong khoảng; đọc `awaitingReady` tới lúc xem để lần kết thúc sau cuối khoảng vẫn đủ thời gian; vượt hạn là `to` sau `deadline` của 003.
+- `BED.EMPTY_AWAITING_TRANSFER` (Trống – chờ xử lý hư hỏng) khai trong `chi-tieu.md` nhưng chưa cài: dấu của 019 ở port nội bộ M03 chưa có bản cài; cài chỉ tiêu trả 0 sẽ sai nghĩa.
+- Test chỉ tiêu dùng stub cục bộ của `BedStatisticsApi` trong lớp test (bản giả chung không có lý do giữ chỗ, phòng cách ly); `FakeBedAllocations` cho số người.

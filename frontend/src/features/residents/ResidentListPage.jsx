@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Search, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Separator } from '@/components/ui/separator'
@@ -111,59 +112,83 @@ function AboutPerson({ resident, onOpenHistory }) {
   )
 }
 
-function DetailPanel({ resident, role, notice, onOpenHistory, onCompleteAdmission }) {
+// Chi tiết mở bằng hộp ở giữa màn khi bấm một dòng (chủ dự án chọn 2026-10-26, DESIGN.md mục 5, ngoại lệ của
+// khung chi tiết Sheet bên phải): bên trái hồ sơ, an toàn, hôm nay; bên phải về người này.
+function ResidentDetailDialog({ resident, role, notice, onClose, onOpenHistory, onCompleteAdmission }) {
   return (
-    <Card className="h-fit xl:sticky xl:top-6">
-      <CardHeader className="gap-3">
+    <Dialog open={!!resident} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-h-[85vh] gap-5 overflow-y-auto rounded-2xl p-6 [scrollbar-width:none] sm:max-w-3xl [&::-webkit-scrollbar]:hidden">
+        {resident && (
+          <DetailBody
+            resident={resident}
+            role={role}
+            notice={notice}
+            onOpenHistory={onOpenHistory}
+            onCompleteAdmission={onCompleteAdmission}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function DetailBody({ resident, role, notice, onOpenHistory, onCompleteAdmission }) {
+  return (
+    <>
+      <DialogHeader className="gap-3 pr-8">
         <div className="flex items-center gap-3">
           <ResidentPhoto resident={resident} />
           <div className="flex min-w-0 flex-col gap-0.5">
-            <CardTitle className="type-title font-semibold">{resident.name}</CardTitle>
-            <span className="type-body-sm text-muted-foreground">
+            <DialogTitle className="type-title font-semibold">{resident.name}</DialogTitle>
+            <DialogDescription className="type-body-sm">
               {resident.code}, phòng {resident.room}
-            </span>
+            </DialogDescription>
           </div>
         </div>
         <StatusBadge status={resident.status} />
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <Separator />
-        <Section title="Hồ sơ">
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 type-body-sm">
-            <div className="flex flex-col">
-              <dt className="text-muted-foreground">Mức chăm sóc</dt>
-              <dd className="font-medium">{resident.careLevel}</dd>
+      </DialogHeader>
+      <Separator />
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="flex flex-col gap-4">
+          <Section title="Hồ sơ">
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 type-body-sm">
+              <div className="flex flex-col">
+                <dt className="text-muted-foreground">Mức chăm sóc</dt>
+                <dd className="font-medium">{resident.careLevel}</dd>
+              </div>
+              <div className="flex flex-col">
+                <dt className="text-muted-foreground">Loại hình lưu trú</dt>
+                <dd className="font-medium">{resident.stayType}</dd>
+              </div>
+            </dl>
+          </Section>
+          <Section title="An toàn">
+            {resident.allergies.length === 0 && !resident.careNote ? (
+              <p className="type-body-sm">Chưa ghi nhận dị ứng hay lưu ý chăm sóc.</p>
+            ) : (
+              <>
+                <AllergyNote allergies={resident.allergies} />
+                <CareNote note={resident.careNote} />
+              </>
+            )}
+          </Section>
+          <Section title="Hôm nay">
+            <div className="grid grid-cols-3 gap-2">
+              <TodayFigure value={resident.today.tasks} label="công việc" />
+              <TodayFigure value={resident.today.overdue} label="quá hạn" urgent={resident.today.overdue > 0} />
+              <TodayFigure value={resident.today.doses} label="liều thuốc" />
             </div>
-            <div className="flex flex-col">
-              <dt className="text-muted-foreground">Loại hình lưu trú</dt>
-              <dd className="font-medium">{resident.stayType}</dd>
-            </div>
-          </dl>
-        </Section>
-        <Section title="An toàn">
-          {resident.allergies.length === 0 && !resident.careNote ? (
-            <p className="type-body-sm">Chưa ghi nhận dị ứng hay lưu ý chăm sóc.</p>
-          ) : (
-            <>
-              <AllergyNote allergies={resident.allergies} />
-              <CareNote note={resident.careNote} />
-            </>
-          )}
-        </Section>
+          </Section>
+        </div>
         <Section title="Về người này">
           <AboutPerson resident={resident} onOpenHistory={onOpenHistory} />
         </Section>
-        <Section title="Hôm nay">
-          <div className="grid grid-cols-3 gap-2">
-            <TodayFigure value={resident.today.tasks} label="công việc" />
-            <TodayFigure value={resident.today.overdue} label="quá hạn" urgent={resident.today.overdue > 0} />
-            <TodayFigure value={resident.today.doses} label="liều thuốc" />
-          </div>
-        </Section>
-        <Separator />
+      </div>
+      <Separator />
+      <div className="flex flex-col gap-2">
         {/* Bản mẫu: Hoàn tất tiếp nhận do Hành chính thực hiện (Phụ lục 27); lệnh thật theo danh sách lệnh được phép */}
         {resident.status === 'Đang tiếp nhận' && role === 'OFFICE_STAFF' && (
-          <Button className="h-11" onClick={onCompleteAdmission}>
+          <Button className="h-11 self-start" onClick={onCompleteAdmission}>
             Hoàn tất tiếp nhận
           </Button>
         )}
@@ -173,8 +198,8 @@ function DetailPanel({ resident, role, notice, onOpenHistory, onCompleteAdmissio
         <p className="type-caption text-muted-foreground">
           Các lệnh (Cho tạm vắng, Ghi nhận trở về…) hiện theo danh sách lệnh được phép do backend trả.
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </>
   )
 }
 
@@ -184,7 +209,7 @@ const PREFERENCE_RECORDERS = ['FLOOR_MANAGER', 'NURSING_STAFF', 'CAREGIVER']
 export function ResidentListPage({ role }) {
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('Tất cả')
-  const [selectedId, setSelectedId] = useState(DEMO_RESIDENTS[0].id)
+  const [selectedId, setSelectedId] = useState(null)
   const [historyGroup, setHistoryGroup] = useState(null)
   const [admitting, setAdmitting] = useState(false)
   const [notice, setNotice] = useState('')
@@ -198,6 +223,10 @@ export function ResidentListPage({ role }) {
       (!q || [r.name, r.code, r.room].some((v) => v.toLowerCase().includes(q))),
   )
   const selected = DEMO_RESIDENTS.find((r) => r.id === selectedId)
+  const open = (id) => {
+    setSelectedId(id)
+    setNotice('')
+  }
   const countOf = (s) => (s === 'Tất cả' ? DEMO_RESIDENTS.length : DEMO_RESIDENTS.filter((r) => r.status === s).length)
 
   return (
@@ -252,80 +281,77 @@ export function ResidentListPage({ role }) {
         </SheetContent>
       </Sheet>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <Card className="h-fit py-0">
-          {rows.length === 0 ? (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle>Không có người cao tuổi khớp điều kiện</EmptyTitle>
-                <EmptyDescription>Đổi từ khóa tìm hoặc chọn "Tất cả".</EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="h-11 pl-4">Họ tên</TableHead>
-                  <TableHead>Phòng</TableHead>
-                  <TableHead>Mức chăm sóc</TableHead>
-                  <TableHead>Loại hình</TableHead>
-                  <TableHead className="pr-4">Trạng thái</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow
-                    key={r.id}
-                    onClick={() => setSelectedId(r.id)}
-                    data-state={r.id === selectedId ? 'selected' : undefined}
-                    className="cursor-pointer data-[state=selected]:bg-muted data-[state=selected]:shadow-[inset_3px_0_0_var(--primary)]"
-                  >
-                    <TableCell className="py-3 pl-4">
-                      {/* Nút tên để chọn dòng bằng bàn phím; bấm chuột vào cả dòng cũng chọn */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedId(r.id)
-                          setNotice('')
-                        }}
-                        aria-pressed={r.id === selectedId}
-                        className="flex items-center gap-3 rounded-lg text-left"
-                      >
-                        <ResidentAvatar name={r.name} code={r.code} initials={r.initials} />
-                        <span className="flex flex-col">
-                          <span className="flex items-center gap-1.5 font-medium">
-                            {r.name}
-                            {r.openAlert && (
-                              <TriangleAlert className="size-3.5 text-destructive" aria-label="Có cảnh báo đang mở" />
-                            )}
-                          </span>
-                          <span className="type-caption text-muted-foreground">{r.code}</span>
+      <Card className="py-0">
+        {rows.length === 0 ? (
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>Không có người cao tuổi khớp điều kiện</EmptyTitle>
+              <EmptyDescription>Đổi từ khóa tìm hoặc chọn "Tất cả".</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="h-11 pl-4">Họ tên</TableHead>
+                <TableHead>Phòng</TableHead>
+                <TableHead>Mức chăm sóc</TableHead>
+                <TableHead>Loại hình</TableHead>
+                <TableHead className="pr-4">Trạng thái</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((r) => (
+                <TableRow
+                  key={r.id}
+                  onClick={() => open(r.id)}
+                  data-state={r.id === selectedId ? 'selected' : undefined}
+                  className="cursor-pointer data-[state=selected]:bg-muted data-[state=selected]:shadow-[inset_3px_0_0_var(--primary)]"
+                >
+                  <TableCell className="py-3 pl-4">
+                    {/* Nút tên để chọn dòng bằng bàn phím; bấm chuột vào cả dòng cũng chọn */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        open(r.id)
+                      }}
+                      aria-haspopup="dialog"
+                      className="flex items-center gap-3 rounded-lg text-left"
+                    >
+                      <ResidentAvatar name={r.name} code={r.code} initials={r.initials} />
+                      <span className="flex flex-col">
+                        <span className="flex items-center gap-1.5 font-medium">
+                          {r.name}
+                          {r.openAlert && (
+                            <TriangleAlert className="size-3.5 text-destructive" aria-label="Có cảnh báo đang mở" />
+                          )}
                         </span>
-                      </button>
-                    </TableCell>
-                    <TableCell className="tabular-nums">{r.room}</TableCell>
-                    <TableCell>{r.careLevel}</TableCell>
-                    <TableCell className="whitespace-normal text-muted-foreground">{r.stayType}</TableCell>
-                    <TableCell className="pr-4">
-                      <StatusBadge status={r.status} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </Card>
-
-        {selected && (
-          <DetailPanel
-            resident={selected}
-            role={role}
-            notice={notice}
-            onOpenHistory={setHistoryGroup}
-            onCompleteAdmission={() => setAdmitting(true)}
-          />
+                        <span className="type-caption text-muted-foreground">{r.code}</span>
+                      </span>
+                    </button>
+                  </TableCell>
+                  <TableCell className="tabular-nums">{r.room}</TableCell>
+                  <TableCell>{r.careLevel}</TableCell>
+                  <TableCell className="whitespace-normal text-muted-foreground">{r.stayType}</TableCell>
+                  <TableCell className="pr-4">
+                    <StatusBadge status={r.status} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
-      </div>
+      </Card>
+
+      <ResidentDetailDialog
+        resident={selected}
+        role={role}
+        notice={notice}
+        onClose={() => setSelectedId(null)}
+        onOpenHistory={setHistoryGroup}
+        onCompleteAdmission={() => setAdmitting(true)}
+      />
 
       {selected && (
         <>

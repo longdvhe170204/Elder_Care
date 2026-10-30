@@ -11,7 +11,12 @@ Mã chỉ tiêu dùng trong REST (`/bao-cao/{nhom}`, `/chi-tiet/{maChiTieu}`) v�
 | `NCT.BIEN_DONG` | Người cao tuổi | 001 `bienDong` | FR-023 |
 | `NCT.DANH_SACH_CHO` | Danh sách chờ | 004 `LuuTruThongKeApi.danhSachCho` | FR-025 |
 | `GIUONG.TRANG_THAI` | Phòng, giường | 003 `TinhTrangGiuongApi.demTheoTrangThai`, `GiuongThongKeApi.trangThaiTaiNgay`; 019 dấu chờ chuyển người | FR-020, FR-024 |
-| `GIUONG.CHO_SAN_SANG` | Thời gian giường Chờ sẵn sàng | 003 `GiuongThongKeApi.choSanSang` | FR-033 |
+| `GIUONG.CO_THE_DUNG` *(bổ sung 2026-10-27)* | Phòng, giường | 003 `GiuongThongKeApi.trangThaiTaiNgay` | FR-020 (tổng giường có thể dùng, Q-246) |
+| `GIUONG.PHONG_CACH_LY` *(bổ sung 2026-10-27)* | Phòng, giường | 003 `GiuongThongKeApi.phongCachLy` | FR-020 |
+| `GIUONG.SO_NGUOI` *(bổ sung 2026-10-27)* | Phòng, giường | 003 `PhanBoGiuongApi.nguoiTrongPhamVi`, `dangHieuLuc` | FR-024 (số người theo tầng, phòng) |
+| `GIUONG.TRONG_CHO_CHUYEN` *(bổ sung 2026-10-27, chưa cài: chờ 019)* | Phòng, giường | 019 dấu chờ chuyển người | FR-020 |
+| `GIUONG.CHO_SAN_SANG` | Thời gian giường Chờ sẵn sàng | 003 `GiuongThongKeApi.choSanSang` | FR-033 (trung bình theo tầng; mốc xếp khoảng Q-390) |
+| `GIUONG.CHO_SAN_SANG_DAI_NHAT`, `GIUONG.CHO_SAN_SANG_VUOT_HAN` *(bổ sung 2026-10-27)* | Thời gian giường Chờ sẵn sàng | 003 `GiuongThongKeApi.choSanSang` | FR-033 (dài nhất; số lần vượt CFG-M03-04) |
 | `CV.HOM_NAY`, `CV.QUA_HAN` | Công việc | 005 `CongViecThongKeApi` | FR-020 |
 | `CV.THEO_TRANG_THAI` | Công việc | 005 | FR-030 |
 | `CV.TY_LE_DUNG_HAN_BAT_BUOC` | Công việc | 005 | FR-031 |
@@ -31,7 +36,7 @@ Mã chỉ tiêu dùng trong REST (`/bao-cao/{nhom}`, `/chi-tiet/{maChiTieu}`) v�
 | `THUOC.DOI_CHIEU_QUA_HAN` | Phiếu đối chiếu | 006 | FR-044 |
 | `SK.KHOANH_VUNG` | Khu đang khoanh vùng | 007 `KhoanhVungApi.dangKhoanh` | FR-020 |
 | `SK.NGUY_KICH` | Dấu nguy kịch | 007 | FR-020 |
-| `CA.BAN_GIAO_CHUA_XAC_NHAN` | Bàn giao | 008 `NhanSuThongKeApi.banGiao` | FR-020 |
+| `CA.BAN_GIAO_CHUA_XAC_NHAN` | Bàn giao | 008 `NhanSuThongKeApi.banGiao`; *(2026-10-27)* `banGiaoDangMo` (`openHandovers`) | FR-020 |
 | `CA.TY_LE_PHUC_VU` | Tỷ lệ phục vụ | 008 `tyLePhucVu` | FR-020, FR-070 |
 | `CA.THIEU_PHU`, `CA.THIEU_CA` | Nhân sự và ca trực | 015 `XoayCaThongKeApi.phu`, `thieuCaDaCongBo` | FR-071 |
 | `CA.YEU_CAU`, `CA.LOI_MOI` | Nhân sự và ca trực | 015 `yeuCau`, `loiMoi` | FR-072 |

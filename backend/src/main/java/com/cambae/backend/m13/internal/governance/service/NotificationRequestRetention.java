@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -70,6 +71,21 @@ class NotificationRequestRetention implements RetentionProvider {
     public void delete(Collection<Long> ids) {
         String in = ids.stream().map(String::valueOf).collect(Collectors.joining(",", "(", ")"));
         JdbcTemplate r = database.jdbc();
+        // Lượt nhắc gọi của các thông báo, kèm mọi lượt cùng chuỗi gọi (data-model mục 6, 10)
+        List<Long> reminders = r.queryForList(
+                "SELECT x.id FROM call_reminder x WHERE COALESCE(x.call_chain_id, x.id) IN (SELECT"
+                        + " COALESCE(c.call_chain_id, c.id) FROM call_reminder c JOIN call_reminder_notification l"
+                        + " ON l.call_reminder_id = c.id WHERE l.notification_id IN (" + NOTIFICATIONS + in + "))",
+                Long.class);
+        if (!reminders.isEmpty()) {
+            String rin = reminders.stream().map(String::valueOf).collect(Collectors.joining(",", "(", ")"));
+            r.update("DELETE FROM call_result WHERE call_reminder_id IN " + rin);
+            r.update("DELETE FROM call_reminder_handoff WHERE call_reminder_id IN " + rin);
+            r.update("DELETE FROM call_reminder_state WHERE call_reminder_id IN " + rin);
+            r.update("DELETE FROM call_reminder_notification WHERE call_reminder_id IN " + rin);
+            r.update("DELETE FROM call_reminder WHERE call_chain_id IS NOT NULL AND id IN " + rin);
+            r.update("DELETE FROM call_reminder WHERE id IN " + rin);
+        }
         r.update("DELETE FROM direct_contact_result WHERE direct_contact_id IN (SELECT id FROM direct_contact"
                 + " WHERE notification_id IN (" + NOTIFICATIONS + in + "))");
         r.update("DELETE FROM direct_contact WHERE notification_id IN (" + NOTIFICATIONS + in + ")");

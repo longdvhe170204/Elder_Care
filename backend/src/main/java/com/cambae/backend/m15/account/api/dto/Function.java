@@ -30,6 +30,7 @@ public enum Function {
     OVERDUE_TASK_HANDLING("Xử lý việc quá hạn"),
     ACTIVITY_OUTING("Hoạt động, ngoài viện"),
     QUALITY_CHECK("Kiểm tra chất lượng"),
+    CARE_TASK_CATALOG("Danh mục công việc chăm sóc"),
     VITAL_SIGN("Chỉ số sức khỏe"),
     ALERT_THRESHOLD("Ngưỡng cảnh báo"),
     ALERT_HANDLING("Xử lý cảnh báo"),

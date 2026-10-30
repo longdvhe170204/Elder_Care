@@ -32,6 +32,7 @@ paths:
         Sai tên đăng nhập và sai mật khẩu trả cùng mã LOGIN_FAILED (FR-014).
         Mật khẩu đúng nhưng tài khoản không Hoạt động: ACCOUNT_TEMPORARILY_LOCKED (kèm unlocksAt) hoặc ACCOUNT_CONTACT_FACILITY.
         Đăng nhập kết thúc mọi phiên đang mở trên cùng thiết bị (FR-014a, BR-M15-15).
+        Kênh MOBILE_APP (app chung, bổ sung 2026-10-28, chủ dự án duyệt): một màn đăng nhập cho nhân viên và người thân; kênh phiên gán theo loại tài khoản sau khi đúng mật khẩu nên thời gian tự đăng xuất theo kênh (CFG-M15-10) giữ nguyên; tài khoản người cao tuổi trả 422 INVALID_VALUE.
       x-fr: [FR-007, FR-008, FR-010, FR-014, FR-014a, FR-015]
       x-br: [BR-M15-05, BR-M15-15, BR-M15-24]
       security: []
@@ -46,7 +47,7 @@ paths:
               properties:
                 username: { type: string }
                 password: { type: string, format: password }
-                channel: { type: string, enum: [WEB, STAFF_APP, FAMILY_APP, RESIDENT_APP], description: 'RESIDENT_APP gắn thiết bị và trả thêm deviceToken (FR-069, FR-070)' }
+                channel: { type: string, enum: [WEB, STAFF_APP, FAMILY_APP, RESIDENT_APP, MOBILE_APP], description: 'RESIDENT_APP gắn thiết bị và trả thêm deviceToken (FR-069, FR-070); MOBILE_APP là app chung: kênh phiên gán theo loại tài khoản, nhân viên STAFF_APP, người thân FAMILY_APP (FR-013a), tài khoản người cao tuổi bị từ chối (đăng nhập bằng mã QR)' }
       responses:
         '200':
           description: Đăng nhập thành công. Web nhận cookie phiên; app nhận token trong body.
@@ -222,6 +223,14 @@ paths:
       responses:
         '200': { $ref: '#/components/responses/AccountOk' }
         '403': { $ref: '#/components/responses/Problem' }
+  /early-unlock-candidates:
+    get:
+      tags: [accounts]
+      summary: Tài khoản nhân viên đang Khóa tạm người dùng được mở khóa sớm (bổ sung 2026-10-27, màn app nhân viên)
+      description: Cùng luật với lệnh early-unlock. Quản lý viện thấy mọi tài khoản nhân viên Khóa tạm; Trưởng tầng, Người phụ trách ca thấy người cùng tầng và ca; người khác nhận danh sách trống.
+      x-fr: [FR-019c]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EarlyUnlockCandidatePage' } } } }
   /accounts/{id}/reactivate:
     post:
       tags: [accounts]
@@ -799,16 +808,31 @@ components:
         recordType: { type: string, example: M04.CARE_TASK_RESULT }
         content: { type: object, description: Nội dung gốc từ thiết bị }
         recorderId: { type: integer, format: int64, description: Tài khoản người ghi }
+        recorderName: { type: string, description: 'Bổ sung 2026-10-27: họ tên người ghi để hiển thị' }
         deviceTime: { type: string, format: date-time }
         syncedAt: { type: string, format: date-time }
         lastConnectedAt: { type: string, format: date-time }
         pendingReason: { type: string, enum: [LATER_THAN_SYNC, EARLIER_THAN_LAST_CONNECTION, EXCEEDS_CFG_M15_08] }
         floorAreaId: { type: integer, format: int64, description: 'Rỗng: không gắn tầng, Quản lý viện quyết định' }
+        floorAreaName: { type: string, description: 'Bổ sung 2026-10-27: tên tầng/khu vực để hiển thị (M03 cài FloorAreaNameApi); rỗng khi không gắn tầng' }
         status: { type: string, enum: [PENDING_REVIEW, ACCEPTED, REJECTED] }
         decidedBy: { type: integer, format: int64 }
         decidedAt: { type: string, format: date-time }
         rejectionReason: { type: string }
         reference: { type: string, description: Tham chiếu bản ghi thật khi đã chấp nhận }
+        version: { type: integer, format: int64, description: 'Bổ sung 2026-10-27: phiên bản dòng, gửi lại trong If-Match' }
+    EarlyUnlockCandidate:
+      type: object
+      description: Bổ sung 2026-10-27 (FR-019c)
+      properties:
+        accountId: { type: integer, format: int64 }
+        fullName: { type: string }
+        lockedUntil: { type: string, format: date-time }
+        version: { type: integer, format: int64, description: 'Gửi lại trong If-Match của early-unlock' }
+    EarlyUnlockCandidatePage:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/EarlyUnlockCandidate' } }
     PendingReviewRecordPage:
       type: object
       properties:

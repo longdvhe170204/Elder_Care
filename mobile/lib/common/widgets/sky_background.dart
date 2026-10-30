@@ -20,7 +20,9 @@ class SkyBackground extends StatelessWidget {
           stops: const [0, 0.58, 1],
         ),
       ),
-      child: SafeArea(child: Padding(padding: const EdgeInsets.all(16), child: child)),
+      child: SafeArea(
+        child: Padding(padding: const EdgeInsets.all(16), child: child),
+      ),
     );
   }
 }

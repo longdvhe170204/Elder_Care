@@ -28,7 +28,8 @@ public class HoldExpiryJob implements ScheduledJob {
             BusinessTime time,
             SchedulerRuns runs,
             Environment environment,
-            @Value("${eldercare.jobs.expire-bed-holds.on-startup:true}") boolean startup) {
+            @Value("${eldercare.jobs.expire-bed-holds.on-startup:${eldercare.scheduling.enabled:true}}")
+                    boolean startup) {
         this.store = store;
         this.processor = processor;
         this.time = time;

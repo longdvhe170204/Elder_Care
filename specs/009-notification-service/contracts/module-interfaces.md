@@ -69,6 +69,8 @@ Optional<Instant> xemLuc(long thongBaoId);    // BR-M10-06 (012 bản tin)
 
 Bản cài `NhatKyThongBaoPort` của 007 (`m05.api`) ủy cho `theoNguon`.
 
+*(Bổ sung 2026-10-27, Q-388, luật "Đổi api", chủ dự án duyệt)*: "lượt nhắc" trong `NguoiDaThongBaoView` là mọi lượt của chuỗi gọi chứa thông báo (cả lượt gọi người thân kế tiếp, FR-029a), mỗi lượt kèm người cần gọi (loại, id) và kết quả gọi; mã `NotifiedPersonView.CallReminderSummary` (`callReminderId`, `personToCallType`, `personToCallId`, `status`, `results`). Thông báo của người nhận chỉ Đã xác nhận qua cuộc gọi khi gọi được chính người đó; gọi được người thân kế tiếp thì xem ở lượt tương ứng.
+
 ### 1.3. SPI 009 cài cho module khác
 
 | SPI (gói khai báo) | Bản cài | Dùng bởi |

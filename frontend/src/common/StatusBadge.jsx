@@ -27,6 +27,7 @@ const STATUS_TONE = {
   'Hư hỏng': 'attention',
   'Chờ duyệt': 'attention',
   'Áp dụng không thành': 'attention',
+  'Chờ xem lại': 'attention',
   'Hoàn thành': 'settled',
   'Đã dùng': 'settled',
   'Đã đóng': 'settled',

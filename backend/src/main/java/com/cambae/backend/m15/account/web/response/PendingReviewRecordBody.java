@@ -12,13 +12,16 @@ public record PendingReviewRecordBody(
         String recordType,
         Map<String, Object> content,
         Long recorderId,
+        String recorderName,
         Instant deviceTime,
         Instant syncedAt,
         Instant lastConnectedAt,
         PendingReason pendingReason,
         Long floorAreaId,
+        String floorAreaName,
         ReviewStatus status,
         Long decidedBy,
         Instant decidedAt,
         String rejectionReason,
-        String reference) {}
+        String reference,
+        Long version) {}

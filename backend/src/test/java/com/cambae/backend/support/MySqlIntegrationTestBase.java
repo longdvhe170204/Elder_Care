@@ -4,8 +4,13 @@ import java.net.URI;
 import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -15,8 +20,9 @@ import org.springframework.test.context.DynamicPropertySource;
  * Lớp cơ sở cho test tích hợp chạy trên MySQL cài trên máy (research R-14).
  *
  * <p>Đọc {@code TEST_DB_URL} (ví dụ {@code jdbc:mysql://localhost:3306/eldercare_test}), {@code TEST_DB_ADMIN_USER},
- * {@code TEST_DB_ADMIN_PASSWORD}. Mỗi lần chạy JVM: xóa và tạo lại schema test, tạo lại hai tài khoản
- * {@code eldercare_app} và {@code eldercare_retention} (R-05) với mật khẩu ngẫu nhiên, rồi để Flyway chạy bằng tài
+ * {@code TEST_DB_ADMIN_PASSWORD}. Mỗi lần chạy JVM: xóa và tạo lại schema test, tạo hai tài khoản {@code eldercare_app}
+ * và {@code eldercare_retention} (R-05) nếu chưa có, gỡ quyền của chúng trên schema test (giữ quyền trên schema khác) và
+ * đặt mật khẩu theo {@code DB_PASSWORD}, {@code DB_RETENTION_PASSWORD} nếu có, không có thì ngẫu nhiên, rồi để Flyway chạy bằng tài
  * khoản quản trị (thêm dữ liệu mẫu {@code db/migration/demo} như profile demo, 000 T048). Quyền của hai tài khoản do migration cấp
  * ({@code V000_00} và migration của từng bảng). Ứng dụng kết nối bằng {@code eldercare_app}.
  */
@@ -94,8 +100,14 @@ public abstract class MySqlIntegrationTestBase {
                     uri.getQuery(),
                     requireEnv("TEST_DB_ADMIN_USER"),
                     requireEnv("TEST_DB_ADMIN_PASSWORD"),
-                    randomPassword(),
-                    randomPassword());
+                    passwordFor("DB_PASSWORD"),
+                    passwordFor("DB_RETENTION_PASSWORD"));
+        }
+
+        /** Mật khẩu của profile demo nếu có (tài khoản dùng chung, đổi mật khẩu thì demo không đăng nhập được). */
+        private static String passwordFor(String name) {
+            String value = System.getenv(name);
+            return value == null || value.isBlank() ? randomPassword() : value;
         }
 
         String schemaUrl() {
@@ -107,16 +119,35 @@ public abstract class MySqlIntegrationTestBase {
                     Statement s = c.createStatement()) {
                 s.execute("DROP DATABASE IF EXISTS `" + schema + "`");
                 s.execute("CREATE DATABASE `" + schema + "` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci");
-                recreateUser(s, APP_USER, appPassword);
-                recreateUser(s, RETENTION_USER, retentionPassword);
+                prepareUser(s, APP_USER, appPassword);
+                prepareUser(s, RETENTION_USER, retentionPassword);
             } catch (SQLException e) {
                 throw new IllegalStateException("Không dựng được schema test " + schema + ": " + e.getMessage(), e);
             }
         }
 
-        private static void recreateUser(Statement s, String user, String password) throws SQLException {
-            s.execute("DROP USER IF EXISTS '" + user + "'@'%'");
-            s.execute("CREATE USER '" + user + "'@'%' IDENTIFIED BY '" + password + "'");
+        /**
+         * Tài khoản MySQL dùng chung cả máy (schema {@code elder_care} của profile demo cũng dùng): không xóa tài khoản,
+         * chỉ gỡ quyền trên schema test để Flyway cấp lại từ đầu; quyền trên schema khác giữ nguyên.
+         */
+        private void prepareUser(Statement s, String user, String password) throws SQLException {
+            String account = "'" + user + "'@'%'";
+            String identified = " IDENTIFIED BY '" + password.replace("'", "''") + "'";
+            s.execute("CREATE USER IF NOT EXISTS " + account + identified);
+            s.execute("ALTER USER " + account + identified);
+            Pattern onSchema = Pattern.compile(" ON `" + Pattern.quote(schema) + "`\\.(\\*|`[^`]+`) TO ");
+            List<String> targets = new ArrayList<>();
+            try (ResultSet grants = s.executeQuery("SHOW GRANTS FOR " + account)) {
+                while (grants.next()) {
+                    Matcher m = onSchema.matcher(grants.getString(1));
+                    if (m.find()) {
+                        targets.add(m.group(1));
+                    }
+                }
+            }
+            for (String target : targets) {
+                s.execute("REVOKE ALL PRIVILEGES ON `" + schema + "`." + target + " FROM " + account);
+            }
         }
 
         private static String requireEnv(String name) {

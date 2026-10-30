@@ -16,4 +16,10 @@ public interface ProfessionalActivityApi {
 
     /** Loại giấy phép/đào tạo yêu cầu (mã loại của 008) của mục đang hiệu lực; rỗng khi chưa cấu hình hoặc không có. */
     Optional<String> requiredLicenseType(String activityCode);
+
+    /** 008 T009, R-11: còn nghiệp vụ tham chiếu loại, kể cả mục đã ngừng hiệu lực. */
+    boolean usesCredentialType(String code);
+
+    /** 008 T009, R-11: còn mục phạm vi được tham chiếu, không xoá danh mục trước bản ghi dùng nó. */
+    boolean usesPracticeScope(long id);
 }

@@ -11,9 +11,10 @@ export class ApiError extends Error {
   }
 }
 
-// params: { path, query, body, headers } — path thay {tên} trong đường dẫn
+// params: { path, query, body, headers, responseType } — path thay {tên} trong đường dẫn
 export async function request(method, template, params = {}) {
-  const { path = {}, query, body, headers = {} } = params
+  const { path = {}, query, body, headers = {}, responseType } = params
+  const multipart = typeof FormData !== 'undefined' && body instanceof FormData
   let url = BASE_URL + template.replace(/\{(\w+)\}/g, (_, name) => {
     if (path[name] === undefined) throw new Error(`Thiếu tham số đường dẫn ${name}`)
     return encodeURIComponent(path[name])
@@ -31,16 +32,16 @@ export async function request(method, template, params = {}) {
     method,
     credentials: 'include',
     headers: {
-      Accept: 'application/json',
-      ...(body !== undefined && { 'Content-Type': 'application/json' }),
+      Accept: responseType === 'blob' ? '*/*' : 'application/json',
+      ...(body !== undefined && !multipart && { 'Content-Type': 'application/json' }),
       // 002 research A-02: lệnh ghi qua cookie phiên phải kèm header này (chặn CSRF)
       ...(!['GET', 'HEAD'].includes(method) && { 'X-Requested-From': 'web' }),
       ...headers,
     },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? undefined : multipart ? body : JSON.stringify(body),
   })
   const type = response.headers.get('Content-Type') || ''
-  const data = type.includes('json') ? await response.json() : null
+  const data = type.includes('json') ? await response.json() : response.ok && responseType === 'blob' ? await response.blob() : null
   if (!response.ok) throw new ApiError(response.status, data)
   return { data, etag: response.headers.get('ETag'), status: response.status }
 }

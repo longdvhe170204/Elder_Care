@@ -22,7 +22,8 @@ public class ApplyDueRequestsJob implements ScheduledJob {
 
     public ApplyDueRequestsJob(
             DueRequestApplication application,
-            @Value("${eldercare.jobs.apply-due-requests.on-startup:true}") boolean onStartup) {
+            @Value("${eldercare.jobs.apply-due-requests.on-startup:${eldercare.scheduling.enabled:true}}")
+                    boolean onStartup) {
         this.application = application;
         this.onStartup = onStartup;
     }

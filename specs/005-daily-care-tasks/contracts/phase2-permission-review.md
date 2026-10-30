@@ -13,3 +13,7 @@ Phương án đề nghị: như tiền lệ M13 không có dòng thông báo tro
 Phương án còn lại: chờ A công bố dòng quyền/enum chính thức theo nghiệp vụ đã được chủ dự án chốt, rồi dùng `@RequiresPermission` đúng khóa đó. Không mượn `TASK_CHECKLIST` hoặc `SHIFT_TASK_PLANNING` vì đây là chức năng khác.
 
 Trong lúc chờ: chỉ làm API/sự kiện, schema, khóa/job, provider, kiến trúc, bản dịch và test hợp đồng. Đã có migration lý do cố định; **chưa có service/controller danh mục**, chưa sửa SELF_CHECKED, không để endpoint ghi chạy thiếu quyền. T007/T007a tiếp tục `[ ]`.
+
+**Cập nhật sau merge 2026-10-28**: A đã công bố Function.CARE_TASK_CATALOG theo Q-391 trên develop. Điểm chờ A ở trên đã được giải quyết; C còn cài T007/T007a bằng @RequiresPermission với CREATE/UPDATE cho lệnh, VIEW cho truy vấn theo dòng bàn giao mục 8. Không dùng SELF_CHECKED hoặc kiểm AC-01 trực tiếp. Lượt này chỉ đồng bộ merge, chưa cài danh mục.
+
+**T007a 2026-10-28**: NonPerformanceReasonService đã dùng CARE_TASK_CATALOG với VIEW/CREATE/UPDATE; kiểm vai trò thật theo Q-391. Phần còn lại là sáu lệnh và hai GET của T007; không còn chờ A công bố quyền. Không cài phương án SELF_CHECKED nêu trong lịch sử.

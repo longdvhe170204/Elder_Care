@@ -1,5 +1,9 @@
 # Giao diện giữa module: Feature 002
 
+**Bổ sung được người dùng duyệt 2026-10-25, 008 Phase 8 (chờ A review)**: SPI chỉ đọc `m15.account.api.spi.StaffAbsenceApi.canViewReason(CurrentUser user, long absenceId)` do M09 cài. `absenceId` là id dòng thành viên ca đã ghi vắng, cũng là định danh `M09.STAFF_ABSENCE`. M09 xét người ghi, Trưởng tầng được giao trong phạm vi và Quản lý viện; không trả nội dung lý do qua SPI. `FieldVisibilityService` dùng SPI cho `InfoGroup.STAFF_REASON`, thiếu nguồn/định danh không hợp lệ thì che. Dùng chung `support/fake/m15/FakeStaffAbsences` (chỉ nạp Config khi test chủ động import); không có fake production. Không đổi endpoint HTTP 002 hay nhóm dữ liệu nhân viên khác.
+
+**Bổ sung được người dùng duyệt 2026-10-23, khi triển khai 008 Phase 2**: `InfoGroup` thêm `STAFF_CONTACT`, `STAFF_RESTRICTED`, `STAFF_REASON` cho FR-052/FR-053 của 008; không dùng CONTACT chung cho nhân viên. `ProfessionalActivityApi` thêm hai hàm đọc `boolean usesCredentialType(String code)` và `boolean usesPracticeScope(long id)`; xét cả mục đã ngừng hiệu lực để job lưu giữ của 008 không xoá danh mục còn tham chiếu (000 R-11). Không đổi endpoint HTTP 002; ghi chú và test ở plan 008, team-plan mục 8 để A review.
+
 **Ngày**: 2026-10-07 | **Plan**: [../plan.md](../plan.md)
 
 Hợp đồng trong backend, ở gói `com.cambae.backend.m15.taikhoan.api` (mã: `m15.account.api`; *sửa 2026-10-21*: record, enum ở `api.dto`, SPI module khác cài ở mục 1.7 → 1.9 và mục 2 ở `api.spi`, sự kiện ở `api.events`; 000 research R-02). Module khác chỉ dùng các giao diện này, không đọc bảng của 002 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
@@ -140,7 +144,7 @@ DoiTuong ganPhamVi(long id);                // tầng/khu, người cao tuổi, 
 | Sự kiện | Người nhận (009 xử lý) | FR |
 | --- | --- | --- |
 | `TaiKhoanDaTao(taiKhoanId, loai)` | Không gửi; dùng cho báo cáo | FR-015 |
-| `TaiKhoanDoiTrangThai(taiKhoanId, tu, den, nguyenNhan)` | Không gửi thông báo; app nhận qua phiên kết thúc | FR-015 |
+| `TaiKhoanDoiTrangThai(taiKhoanId, tu, den, nguyenNhan)` *(2026-10-27: `nguyenNhan` là nguyên nhân khóa của trạng thái mới, rỗng khi trạng thái mới không có nguyên nhân khóa; phát ở mọi lần thêm dòng lịch sử trạng thái, kể cả Đã khóa đổi nguyên nhân)* | Không gửi thông báo; app nhận qua phiên kết thúc | FR-015 |
 | `BanGhiDongBoSauMatQuyen(loaiBanGhi, id, tangKhuVucId)` | Trưởng tầng của tầng; Người phụ trách ca nếu chưa có Trưởng tầng; Quản lý viện nếu không gắn tầng | FR-041a, CHK056 |
 | `BanGhiChoXemLai(id, tangKhuVucId)` | Như trên | FR-041c |
 | `LoiDuLieuQuyen(nguon, banGhiId, loaiLoi)` | Quản lý viện | FR-041b |
@@ -171,6 +175,7 @@ Chỉ endpoint nút SOS của 007 gọi hàm này (ArchUnit kiểm). Token thi�
 
 `HoSoNhanVienApi`, `GiayPhepApi`, `DanhMucPhamViHanhNgheApi`, `PhanCongApi`, `NhiemVuApi` được khai báo trong `m15.taikhoan.api` dưới dạng SPI, M09 cài, để không có vòng M15 ↔ M09 (bổ sung theo plan 008, research N-02); chữ ký giữ nguyên. 002 cung cấp thêm cho 008 hàm đọc `NghiepVuChuyenMonApi.loaiYeuCau(maNghiepVu)` (loại giấy phép/đào tạo của nghiệp vụ chuyên môn; 008 FR-030).
 | `PhanBoGiuongApi.dangMo(nguoiCaoTuoiId, thoiDiem)`; `nguoiCaoTuoiTai(phamVi, thoiDiem)`. Khai báo trong `m15.taikhoan.api` dưới dạng SPI, M03 cài, để không có vòng M15 ↔ M03 (bổ sung theo plan 003, research G-02) | M03 (003) | FR-029, FR-030 | Bản giả |
+| *(Bổ sung 2026-10-27, "Đổi api" trên M03, chủ dự án duyệt)* `TenTangKhuVucApi.ten(tangKhuVucId)` trả tên tầng để hiện ở màn bản ghi chờ xem lại. Khai báo trong `m15.taikhoan.api` dưới dạng SPI, M03 cài, để không có vòng M15 ↔ M03 | M03 (003) | FR-041c | Bản giả; chưa có bản cài thì `floorAreaName` rỗng |
 | `NguoiCaoTuoiApi.trangThai(id)`; `nhanDang(id)`; điều kiện chú thích ¹ (bản đồng ý) | M01 (001) | FR-044a, FR-046, FR-049 | Bản giả |
 | `QuanHeNguoiThanApi.hieuLuc(nguoiThanId)`; `soDienThoaiDaDangKy(nguoiThanId)`; *(bổ sung 2026-10-20)* `hoTenNguoiThan(nguoiThanId)` (T032a); điều kiện chú thích ² (người đại diện) và quyền theo người thân. Khai báo trong `m15.taikhoan.api` dưới dạng SPI, M10 cài, để không có vòng M15 ↔ M10; 001, 006, 011 dùng cùng khai báo (bổ sung theo plan 012, research F-14; chữ ký hợp nhất ở hợp đồng 012 mục 1.1) | M10 (012) | FR-045 → FR-052 | Bản giả |
 | `KetThucLuuTruApi.thoiDiemTrangThaiCuoi(nguoiCaoTuoiId)`. Khai báo trong `m15.taikhoan.api` dưới dạng SPI, M02 cài, để không có vòng M15 ↔ M02 (bổ sung theo plan 004, research T-02) | M02 (004) | FR-049, job `KhoaSauKetThucLuuTru` | Bản giả |
