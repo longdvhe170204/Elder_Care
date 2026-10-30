@@ -1,4 +1,6 @@
-# Specification Quality Checklist: Kho nguyên liệu và tài sản của viện
+# Specification Quality Checklist: Tài sản, lịch xe và mua sắm của viện
+
+> **Sửa 2026-10-29 (Q-392):** hệ thống không quản lý kho nguyên liệu. Các mục về kho (nguyên liệu, lô, phiếu nhập, xuất, đảo, kiểm kê, cảnh báo hạn dùng, tồn tối thiểu, `nutrition.kho`) trong tài liệu này không còn hiệu lực; xem spec 019 mục Cập nhật 2026-10-29.
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-09-28

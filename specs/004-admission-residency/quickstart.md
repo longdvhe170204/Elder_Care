@@ -1,5 +1,7 @@
 # Quickstart: Kiểm chứng feature 004
 
+> **Sửa 2026-10-29 (Q-394, Q-395):** danh sách chờ không có điểm ưu tiên (dấu Ưu tiên kèm lý do); phí khi vắng không có bảng hệ số, ghi đè theo hợp đồng, ngưỡng và quyết định giữ giường (nội trú tính như ngày lưu trú, báo Quản lý viện khi vắng tới CFG-M02-05 ngày, lệnh Giải phóng giường). Các mục về `TinhDiemUuTien`, `lich_su_diem`, `TraChinhSachVang`, `ngay_vang`, `quyet_dinh_giu_giuong` trong tài liệu này không còn hiệu lực; xem spec 004 mục Cập nhật 2026-10-29.
+
 **Ngày**: 2026-10-07 | **Plan**: [plan.md](plan.md)
 
 Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế chưa có mã nên các lệnh chưa chạy được. Hợp đồng xem [contracts/api-004.yaml](contracts/api-004.yaml) và [contracts/module-interfaces.md](contracts/module-interfaces.md); bảng và ràng buộc xem [data-model.md](data-model.md).
@@ -77,7 +79,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (không có v�
 
 ## 4. Test tự động: truy vết kịch bản → test
 
-| Spec | Lớp test (backend, `com.cambae.backend.m02…`) | Loại |
+| Spec | Lớp test (backend, `com.eldercare.backend.admission…`) | Loại |
 | --- | --- | --- |
 | US1, FR-001 → FR-006 | `LuotDangKyIT`, `CapNhatLuotDangKyIT`, `FR_004_DanhSachKhopLenhIT`, `BR_M02_22_MucHopDongIT`, `TienTrinhIT` | Tích hợp |
 | US2, FR-007 → FR-018 | `BR_M02_10_DiemUuTienTest`, `DiemHangNgayIT`, `DieuChinhDiemIT`, `BR_M02_01_DanhSachPhuHopIT`, `FR_012_LuotTrongIT`, `BR_M02_02_GiuChoIT`, `FR_002_TuChoiHuyTiepNhanIT`, `BR_M02_03_NhacHoSoChoIT`, `GhiNhanLienHeDongThoiIT` | Đơn vị, tích hợp, đồng thời |

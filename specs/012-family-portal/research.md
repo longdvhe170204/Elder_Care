@@ -1,5 +1,7 @@
 # Research: Người thân và cổng thông tin gia đình (012)
 
+> **Sửa 2026-10-29 (Q-396):** bỏ bản tin tuần (mục H, User Story 7, bảng `ban_tin*`, `/ban-tin`, `HoatDongBanTinPort`, `ViecBanTinM10`). Phần dưới còn nhắc bản tin thì bỏ qua; spec là căn cứ.
+
 **Ngày**: 2026-10-10 | **Plan**: [plan.md](plan.md) | **Spec**: [spec.md](spec.md)
 
 Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyết định nền R-01 → R-14 của 000 và các mẫu đã chốt ở 001 → 011 (H-02 bean trạng thái, C-02 / S-02 chiều phụ thuộc, A-08 giới hạn trường, B-02 khuôn thông báo, P-04 sự kiện tính phí) được dùng lại, không quyết lại. Các quyết định dưới đây là kỹ thuật; chúng không đổi nghiệp vụ (constitution IX). Chỗ spec chưa rõ hoặc mâu thuẫn được ghi ở plan, mục "Điểm cần báo lại".
@@ -8,42 +10,42 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## F-01. Vị trí trong backend
 
-**Quyết định**: Feature 012 là module M10 – Người thân (mục 14), gói `com.cambae.backend.m10`.
+**Quyết định**: Feature 012 là module M10 – Người thân (mục 14), gói `com.eldercare.backend.family`.
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
-| `m10.nguoithan` | Hồ sơ người thân, quan hệ, vai trò, thứ tự liên hệ, phiếu đăng ký người thân | A |
-| `m10.quyen` | Quyền theo quan hệ, yêu cầu thay đổi quyền (BR-M10-07), dấu "được tự về", tính quyền có tác dụng | B, C |
-| `m10.don` | Bản ghi đón, lần chặn đón, yêu cầu ngoại lệ đón | D |
-| `m10.tham` | Lượt thăm, giữ chỗ khung | E |
-| `m10.olai` | Lượt người thân ở lại, đêm tính phí | F |
-| `m10.cong` | Cổng: tổng quan, các phần sức khỏe gọi module nguồn, nhật ký lượt xem sức khỏe | G |
-| `m10.bantin` | Bản tin tuần, số liệu tổng hợp, đính chính | H |
-| `m10.phanhoi` | Phản hồi, khiếu nại, hạn, leo thang | I |
-| `m10.kenhnct` *(bổ sung 2026-10-18)* | Kênh người cao tuổi: năm phần thông tin của chính người cao tuổi | G2 |
-| `m10.trangthai`, `m10.lich`, `m10.api` | Bean trạng thái; job; giao diện công khai và bản cài SPI | |
+| `family.nguoithan` | Hồ sơ người thân, quan hệ, vai trò, thứ tự liên hệ, phiếu đăng ký người thân | A |
+| `family.quyen` | Quyền theo quan hệ, yêu cầu thay đổi quyền (BR-M10-07), dấu "được tự về", tính quyền có tác dụng | B, C |
+| `family.don` | Bản ghi đón, lần chặn đón, yêu cầu ngoại lệ đón | D |
+| `family.tham` | Lượt thăm, giữ chỗ khung | E |
+| `family.olai` | Lượt người thân ở lại, đêm tính phí | F |
+| `family.cong` | Cổng: tổng quan, các phần sức khỏe gọi module nguồn, nhật ký lượt xem sức khỏe | G |
+| `family.bantin` | Bản tin tuần, số liệu tổng hợp, đính chính | H |
+| `family.phanhoi` | Phản hồi, khiếu nại, hạn, leo thang | I |
+| `family.kenhnct` *(bổ sung 2026-10-18)* | Kênh người cao tuổi: năm phần thông tin của chính người cao tuổi | G2 |
+| `family.trangthai`, `family.lich`, `family.api` | Bean trạng thái; job; giao diện công khai và bản cài SPI | |
 
 ---
 
 ## F-02. Chiều phụ thuộc giữa module
 
-**Quyết định**: 012 phụ thuộc 000 → 011. Mọi chỗ module thấp hơn cần dữ liệu người thân đã được khai báo SPI ở module đó; M10 cài. Riêng số hoạt động cho bản tin, 012 khai SPI `HoatDongBanTinPort` ở `m10.api` cho 014 cài (F-14).
+**Quyết định**: 012 phụ thuộc 000 → 011. Mọi chỗ module thấp hơn cần dữ liệu người thân đã được khai báo SPI ở module đó; M10 cài. Riêng số hoạt động cho bản tin, 012 khai SPI `HoatDongBanTinPort` ở `family.api` cho 014 cài (F-14).
 
 | SPI (gói khai báo) | Người khai | Bản cài 012 |
 | --- | --- | --- |
-| `QuanHeNguoiThanApi` (`m15.taikhoan.api`) | 002 (dùng bởi 001, 002, 006, 011) | Quan hệ Hiệu lực, người đại diện, quyền, số điện thoại đã đăng ký (F-04) |
-| `DieuKienChuThich` ² (`m15.quyen.api`) | 002 A-05 | Chú thích ² "chỉ người đại diện" |
-| `ThamGiaChuyenTrangThai` (`m01.api`) | 001 H-02 | Điều kiện DBR-02 (Hoàn tất tiếp nhận); tác động trạng thái cuối, vắng (F-13) |
-| `NguoiDaiDienPort`, `BanGhiDonPort` (`m02.api`) | 004 | F-04, F-07 |
-| `BanGhiDonBanTruPort`, `ThoiKhoaBieuNguonPort` (`m04.api`) | 005 | F-07; lượt thăm cho thời khóa biểu (FR-048 của 005) |
-| `NguoiThanKhanCapPort` (`m05.api`) | 007 | Liên hệ chính, người đại diện, lượt thăm cho truy vết (FR-038) |
-| `NguoiThanNhanThongBaoPort` (`m13.api`) | 009 | Quan hệ, quyền, thứ tự gọi (FR-012) |
-| `LuotOLaiAnPort` + sự kiện `LuotOLaiDaDoi` (`m08.api`) | 011 | F-09 |
-| `m11.api.SuKienTinhPhiNguon*` | 010 | Đêm ở lại (F-09) |
+| `QuanHeNguoiThanApi` (`administration.taikhoan.api`) | 002 (dùng bởi 001, 002, 006, 011) | Quan hệ Hiệu lực, người đại diện, quyền, số điện thoại đã đăng ký (F-04) |
+| `DieuKienChuThich` ² (`administration.quyen.api`) | 002 A-05 | Chú thích ² "chỉ người đại diện" |
+| `ThamGiaChuyenTrangThai` (`resident.api`) | 001 H-02 | Điều kiện DBR-02 (Hoàn tất tiếp nhận); tác động trạng thái cuối, vắng (F-13) |
+| `NguoiDaiDienPort`, `BanGhiDonPort` (`admission.api`) | 004 | F-04, F-07 |
+| `BanGhiDonBanTruPort`, `ThoiKhoaBieuNguonPort` (`care.api`) | 005 | F-07; lượt thăm cho thời khóa biểu (FR-048 của 005) |
+| `NguoiThanKhanCapPort` (`incident.api`) | 007 | Liên hệ chính, người đại diện, lượt thăm cho truy vết (FR-038) |
+| `NguoiThanNhanThongBaoPort` (`notification.api`) | 009 | Quan hệ, quyền, thứ tự gọi (FR-012) |
+| `LuotOLaiAnPort` + sự kiện `LuotOLaiDaDoi` (`nutrition.api`) | 011 | F-09 |
+| `billing.api.SuKienTinhPhiNguon*` | 010 | Đêm ở lại (F-09) |
 
 012 đọc: `NguoiCaoTuoiApi`, `BanDongYApi`, `MucSucKhoeApi` (001); `ViTriApi`, khu nghỉ bán trú (003); `HopDongDocApi`, `LuotVangApi`, `DieuKienTiepNhanApi` (004); `CoMatBanTruApi` (gồm `diemDanhVe` MANDATORY), `KeHoachChamSocApi`, `KetQuaChamSocCongApi` (005, bổ sung theo plan này, F-10); `ThuocCongNguoiThanApi` (006); `SucKhoeCongNguoiThanApi`, `BanTinSucKhoeApi`, `KhoanhVungApi`, `SuCoApi` (007); `NhiemVuApi` (Trưởng tầng được giao, 008 qua 002); `ThongBaoTraCuuApi` (009); `ChiPhiCongNguoiThanApi` (010); `CheDoAnApi`, `ThucDonChungApi` (011). Gọi `TaiKhoanApi.xetLaiNguoiThan` (002, MANDATORY) khi kết thúc quan hệ.
 
-013, 014, 016, 017, 018 làm plan sau, phụ thuộc 012 qua `m10.api` (F-14); phần cổng của họ (đồ gửi, hoạt động và đồng ý về muộn, số dư) do REST của chính họ phục vụ, kiểm quyền người thân qua `QuyenNguoiThanApi`.
+013, 014, 016, 017, 018 làm plan sau, phụ thuộc 012 qua `family.api` (F-14); phần cổng của họ (đồ gửi, hoạt động và đồng ý về muộn, số dư) do REST của chính họ phục vụ, kiểm quyền người thân qua `QuyenNguoiThanApi`.
 
 **Lý do**: Modulith `verify()` từ chối vòng (000 R-02). Cách 010 phục vụ chi phí cho người thân (REST của 010, kiểm quyền qua 012) được dùng lại.
 
@@ -54,8 +56,8 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## F-03. Khóa và đồng thời
 
 **Quyết định**:
-- **Thứ tự khóa**: … → `chi_phi_nct` (M11) → `nguoi_than_nct` (M10, một dòng mỗi người cao tuổi) → `nguoi_than` (theo `id` tăng) → `khung_tham_ngay` → dòng con. Bean trạng thái của 012 chạy sau 010 (`@Order` của 001).
-- **DBR-02**: mọi lệnh đổi quan hệ, vai trò của một người cao tuổi khóa `nguoi_than_nct`, áp thay đổi, rồi kiểm lại bất biến trước commit (F-05). Cột sinh `khoa_lien_he_chinh = IF(trang_thai = 'HIEU_LUC' AND la_lien_he_chinh, nct_id, NULL)` `UNIQUE`.
+- **Thứ tự khóa**: … → `chi_phi_nct` (M11) → `nguoi_than_nct` (M10, một dòng mỗi người cao tuổi) → `nguoi_than` (theo `id` tăng) → `khung_tham_ngay` → dòng con. Bean trạng thái của 012 chạy sau 010 (`@Order` của 001). *(R-15: `chi_phi_nct`, `nguoi_than_nct` → `trang_thai_nct`; `khung_tham_ngay` → `khoa_ky_thuat`)*
+- **DBR-02**: mọi lệnh đổi quan hệ, vai trò của một người cao tuổi khóa `nguoi_than_nct`, áp thay đổi, rồi kiểm lại bất biến trước commit (F-05). Cột sinh `khoa_lien_he_chinh = IF(trang_thai = 'HIEU_LUC' AND la_lien_he_chinh, nct_id, NULL)` `UNIQUE`. *(R-15: `nguoi_than_nct` → `trang_thai_nct`)*
 - **Yêu cầu thay đổi quyền** (FR-018): cột sinh `khoa_cho = IF(trang_thai = 'CHO_XAC_NHAN', CONCAT(doi_tuong, ':', quyen), NULL)` `UNIQUE`, với `doi_tuong` là quan hệ hoặc người cao tuổi (dấu "được tự về"). Yêu cầu tắt "được phép đón" hủy yêu cầu bật đang chờ trong cùng transaction.
 - **Sức chứa khung thăm** (FR-030 b, SC-004): dòng `khung_tham_ngay (ngay, gio_bat_dau, gio_ket_thuc)` khóa `FOR UPDATE`; tổng số người tính lại trong khóa; đăng ký ghi nhận trước giữ chỗ. 20 đăng ký đồng thời cho chỗ cuối: một thành công.
 - **Quyết định trên yêu cầu, ngoại lệ, lượt ở lại, phản hồi**: khóa dòng, kiểm tra lại; lệnh thứ hai 409 `TRANG_THAI_DA_DOI` (000 FR-040).
@@ -65,9 +67,9 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## F-04. Quan hệ, vai trò, quyền và quyền có tác dụng (mục A, B; DBR-02, DBR-03)
 
 **Quyết định**:
-- `nguoi_than` (nhóm 1) và `quan_he_nguoi_than` (nhóm 2) với sáu cột quyền (`xem_suc_khoe`, `xem_chi_phi`, `nhan_khan`, `dang_ky_tham`, `duoc_phep_don`, `yeu_cau_dich_vu`), `la_dai_dien`, `la_lien_he_chinh`, `thu_tu_lien_he`. Quyền chỉ đổi qua yêu cầu (F-06) hoặc tác động tự động của FR-009, FR-010, FR-006. Lịch sử từng quyền lưu ở `lich_su_quyen` (nhóm 3: quan hệ, quyền, giá trị, từ lúc, yêu cầu nguồn) để trả lời "tại thời điểm T ai được phép đón" (FR-068) bằng truy vấn khoảng.
+- `nguoi_than` (nhóm 1) và `quan_he_nguoi_than` (nhóm 2) với sáu cột quyền (`xem_suc_khoe`, `xem_chi_phi`, `nhan_khan`, `dang_ky_tham`, `duoc_phep_don`, `yeu_cau_dich_vu`), `la_dai_dien`, `la_lien_he_chinh`, `thu_tu_lien_he`. Quyền chỉ đổi qua yêu cầu (F-06) hoặc tác động tự động của FR-009, FR-010, FR-006. Lịch sử từng quyền lưu ở `lich_su_quyen` (nhóm 3: quan hệ, quyền, giá trị, từ lúc, yêu cầu nguồn) để trả lời "tại thời điểm T ai được phép đón" (FR-068) bằng truy vấn khoảng. *(R-15: `lich_su_quyen` → `lich_su_chung`)*
 - Hàm thuần `QuyenCoTacDung(quanHe, quyen, banDongY, t)`: quyền đang bật và, với `XEM_SUC_KHOE`, bản đồng ý Hiệu lực bao gồm người thân (FR-011). Kết quả "bật nhưng không có tác dụng" hiển thị cho Hành chính và người thân.
-- **Bản cài `QuanHeNguoiThanApi`** (khai báo ở `m15.taikhoan.api`, F-14): `hieuLuc(nguoiThanId)`, `soDienThoaiDaDangKy`, `laNguoiDaiDienHieuLuc(nguoiThanId, nctId, t)`, `thuocNguoiCaoTuoi`, `quyenDangBat(nguoiThanId, nctId, quyen, t)`. Người được đề nghị làm người đại diện khi yêu cầu còn Chờ xác nhận không là người đại diện (FR-005). 002 FR-046 ghép lớp quyền của 002 với lớp này; 012 không tính phạm vi tài khoản.
+- **Bản cài `QuanHeNguoiThanApi`** (khai báo ở `administration.taikhoan.api`, F-14): `hieuLuc(nguoiThanId)`, `soDienThoaiDaDangKy`, `laNguoiDaiDienHieuLuc(nguoiThanId, nctId, t)`, `thuocNguoiCaoTuoi`, `quyenDangBat(nguoiThanId, nctId, quyen, t)`. Người được đề nghị làm người đại diện khi yêu cầu còn Chờ xác nhận không là người đại diện (FR-005). 002 FR-046 ghép lớp quyền của 002 với lớp này; 012 không tính phạm vi tài khoản.
 - `NguoiDaiDienPort` (004) và `QuanHeNguoiThanApi.laNguoiDaiDienHieuLuc` dùng chung một hàm nội bộ.
 - **Kết thúc quan hệ** (FR-006): trong cùng transaction: bỏ khỏi danh sách đón (bản ghi đón chưa dùng → Không dùng), hủy lượt thăm tương lai do người đó đăng ký, hủy yêu cầu Chờ xác nhận của người đó, gọi `TaiKhoanApi.xetLaiNguoiThan` (MANDATORY).
 
@@ -86,11 +88,11 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## F-06. Yêu cầu thay đổi quyền (mục C, FR-013 → FR-020; Q-118, Q-126, Q-127, Q-249, Q-267)
 
 **Quyết định**:
-- `yeu_cau_quyen` (nhóm 2): loại (`QUYEN`, `TU_VE`, `DAT_DAI_DIEN`, `THOI_DAI_DIEN`), quan hệ hoặc người cao tuổi, quyền, giá trị mới, thông tin người đón mới, nguồn (`QUAY`, `CONG`, `PHIEU_DANG_KY`), người lập, lý do, trạng thái `CHO_XAC_NHAN | HIEU_LUC | TU_CHOI | HUY`, cách xác nhận (`CONG`, `BAN_KY`, `QL_DUYET`), bằng chứng (tệp), thời điểm hiệu lực. Vòng đời riêng, không dùng `yeu_cau_phe_duyet` của 000 (FR-020); nhật ký, lý do, khóa theo 000.
+- `yeu_cau_quyen` (nhóm 2): loại (`QUYEN`, `TU_VE`, `DAT_DAI_DIEN`, `THOI_DAI_DIEN`), quan hệ hoặc người cao tuổi, quyền, giá trị mới, thông tin người đón mới, nguồn (`QUAY`, `CONG`, `PHIEU_DANG_KY`), người lập, lý do, trạng thái `CHO_XAC_NHAN | HIEU_LUC | TU_CHOI | HUY`, cách xác nhận (`CONG`, `BAN_KY`, `QL_DUYET`), bằng chứng (tệp), thời điểm hiệu lực. Vòng đời riêng, không dùng `yeu_cau_phe_duyet` của 000 (FR-020); nhật ký, lý do, khóa theo 000. *(R-15: `yeu_cau_quyen` → `ho_so_chung`)*
 - Hàm thuần `KiemTraYeuCau(yc, quanHe, banDongY, nguoiLap)` (FR-013, FR-014, FR-007, FR-011): chạy lúc lập và lúc xác nhận/duyệt.
-- Lập bởi người đại diện qua cổng hoặc Hành chính kèm bản ký → thẳng `HIEU_LUC` (FR-015 a, b). Yêu cầu tắt `duoc_phep_don` hoặc tắt `TU_VE`: áp ngay khi lập (quyền về false, bản ghi đón chưa dùng của người đó → Không dùng), trạng thái yêu cầu vẫn Chờ xác nhận; Từ chối/Hủy → khôi phục từ thời điểm có kết quả (ghi `lich_su_quyen` mới, không hồi tố).
-- Áp khi Hiệu lực: cập nhật cột quyền, ghi `lich_su_quyen`; giá trị hiện hành là của yêu cầu có thời điểm Hiệu lực muộn nhất (khóa `nguoi_than_nct` bảo đảm thứ tự). Thông báo Q-249 tính tập người đại diện **sau** khi áp (Q-267).
-- **Phiếu đăng ký người thân** (FR-008): `phieu_dang_ky_nguoi_than` (nhóm 3: bản scan bắt buộc, người đại diện ký, danh sách (người thân, quyền)); lệnh ghi phiếu tạo mỗi quyền một yêu cầu `HIEU_LUC` cách xác nhận `BAN_KY`, vẫn qua `KiemTraYeuCau`; một quyền không đạt → cả phiếu bị chặn kèm danh sách lý do.
+- Lập bởi người đại diện qua cổng hoặc Hành chính kèm bản ký → thẳng `HIEU_LUC` (FR-015 a, b). Yêu cầu tắt `duoc_phep_don` hoặc tắt `TU_VE`: áp ngay khi lập (quyền về false, bản ghi đón chưa dùng của người đó → Không dùng), trạng thái yêu cầu vẫn Chờ xác nhận; Từ chối/Hủy → khôi phục từ thời điểm có kết quả (ghi `lich_su_quyen` mới, không hồi tố). *(R-15: `lich_su_quyen` → `lich_su_chung`)*
+- Áp khi Hiệu lực: cập nhật cột quyền, ghi `lich_su_quyen`; giá trị hiện hành là của yêu cầu có thời điểm Hiệu lực muộn nhất (khóa `nguoi_than_nct` bảo đảm thứ tự). Thông báo Q-249 tính tập người đại diện **sau** khi áp (Q-267). *(R-15: `lich_su_quyen` → `lich_su_chung`; `nguoi_than_nct` → `trang_thai_nct`)*
+- **Phiếu đăng ký người thân** (FR-008): `phieu_dang_ky_nguoi_than` (nhóm 3: bản scan bắt buộc, người đại diện ký, danh sách (người thân, quyền)); lệnh ghi phiếu tạo mỗi quyền một yêu cầu `HIEU_LUC` cách xác nhận `BAN_KY`, vẫn qua `KiemTraYeuCau`; một quyền không đạt → cả phiếu bị chặn kèm danh sách lý do. *(R-15: `phieu_dang_ky_nguoi_than` → `su_kien_chung`)*
 - **Trái mong muốn** (FR-020b, bổ sung 2026-10-18): F-06a.
 - **Nhắc** (FR-019): job hằng giờ, `NhacQuaHan` của 000 với mốc CFG-M10-11 (nhắc người đại diện + Quản lý viện; báo Quản lý viện); không tự Từ chối.
 
@@ -99,21 +101,21 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## F-07. Quy trình đón, ngoại lệ đón (mục D, FR-021 → FR-028; BR-M10-03, Q-121, Q-125, Q-295)
 
 **Quyết định**:
-- **Lệnh Ghi đón** (`POST /nguoi-cao-tuoi/{id}/don`) chỉ trực tuyến (FR-028; không đăng ký `NgoaiTuyenHandler`). Kiểm: người thực hiện có quyền lệnh nguồn theo loại đón (FR-022, qua `QuyenApi` với khóa của lệnh nguồn: `M01.CHO_TAM_VANG`, `M04.DIEM_DANH_VE`, `M02.KET_THUC_LUU_TRU`) và phạm vi; người đón thuộc danh sách tại thời điểm (`lich_su_quyen`) hoặc có ngoại lệ `HIEU_LUC` cho đúng (người cao tuổi, số giấy tờ); số giấy tờ xuất trình khớp số đã đăng ký. Không đạt → ghi `lan_chan_don` (nhóm 3, transaction riêng để còn sau rollback) và 409 `CHAN_DON` kèm lý do; Trưởng tầng được báo Nhẹ.
+- **Lệnh Ghi đón** (`POST /nguoi-cao-tuoi/{id}/don`) chỉ trực tuyến (FR-028; không đăng ký `NgoaiTuyenHandler`). Kiểm: người thực hiện có quyền lệnh nguồn theo loại đón (FR-022, qua `QuyenApi` với khóa của lệnh nguồn: `M01.CHO_TAM_VANG`, `M04.DIEM_DANH_VE`, `M02.KET_THUC_LUU_TRU`) và phạm vi; người đón thuộc danh sách tại thời điểm (`lich_su_quyen`) hoặc có ngoại lệ `HIEU_LUC` cho đúng (người cao tuổi, số giấy tờ); số giấy tờ xuất trình khớp số đã đăng ký. Không đạt → ghi `lan_chan_don` (nhóm 3, transaction riêng để còn sau rollback) và 409 `CHAN_DON` kèm lý do; Trưởng tầng được báo Nhẹ. *(R-15: `lich_su_quyen` → `lich_su_chung`)*
 - **Loại "Tự về"**: không người đón; kiểm dấu `TU_VE` đang bật; nhân viên tiễn bắt buộc.
 - **Loại "Viện đưa về"** (Q-295): người đưa về là người có quyền Điểm danh về; lệnh ghi bản ghi đón và gọi `CoMatBanTruApi.diemDanhVe(…, VIEN_DUA_VE)` (MANDATORY) trong cùng transaction; bản ghi mang sự kiện `DA_DUNG` ngay, không áp CFG-M10-09.
-- `ban_ghi_don` (nhóm 3) + `ban_ghi_don_su_kien` (nhóm 3: `DA_DUNG` kèm lệnh nguồn và id, `KHONG_DUNG` kèm lý do). Trạng thái suy ra từ sự kiện gần nhất: `CHUA_DUNG`, `DA_DUNG`, `KHONG_DUNG`. `UNIQUE (ban_ghi_don_id)` trên sự kiện `DA_DUNG` (một lần dùng).
+- `ban_ghi_don` (nhóm 3) + `ban_ghi_don_su_kien` (nhóm 3: `DA_DUNG` kèm lệnh nguồn và id, `KHONG_DUNG` kèm lý do). Trạng thái suy ra từ sự kiện gần nhất: `CHUA_DUNG`, `DA_DUNG`, `KHONG_DUNG`. `UNIQUE (ban_ghi_don_id)` trên sự kiện `DA_DUNG` (một lần dùng). *(R-15: `ban_ghi_don_su_kien` → `su_kien_chung`)*
 - **Bản cài port** (004 `BanGhiDonPort`, 005 `BanGhiDonBanTruPort`): `banGhiDonHopLe` / `hopLe` trả bản ghi `CHUA_DUNG`, đúng người cao tuổi, chưa quá CFG-M10-09, loại phù hợp lệnh. Bổ sung theo plan này hàm `daDung(banGhiDonId, lenhNguon, nguonId)` (MANDATORY) cho 004 (Cho tạm vắng, bàn giao khi Kết thúc lưu trú) và 005 (Điểm danh về): ghi sự kiện `DA_DUNG` trong transaction của lệnh nguồn; gọi lần hai → lỗi `BAN_GHI_DON_DA_DUNG` (rollback lệnh nguồn).
 - **Hết hiệu lực** (FR-027): job theo phút ghi `KHONG_DUNG` cho bản ghi `CHUA_DUNG` quá CFG-M10-09 (giá trị đọc lúc ghi đón, lưu `het_hieu_luc_luc`).
-- **Ngoại lệ đón** (FR-024): `yeu_cau_ngoai_le_don` (nhóm 2) `CHO_XAC_NHAN | HIEU_LUC | DA_DUNG | HET_HAN | TU_CHOI | HUY`; `het_han_luc` = lúc Hiệu lực + CFG-M10-08; `ban_ghi_don_id` đặt một lần khi dùng; job chuyển Hết hạn. Thông báo Quản lý viện gửi ngay (`CachThay.KhongThay` giờ yên tĩnh của 009 không áp cho nhân viên), người đại diện mức Trung bình theo giờ yên tĩnh.
+- **Ngoại lệ đón** (FR-024): `yeu_cau_ngoai_le_don` (nhóm 2) `CHO_XAC_NHAN | HIEU_LUC | DA_DUNG | HET_HAN | TU_CHOI | HUY`; `het_han_luc` = lúc Hiệu lực + CFG-M10-08; `ban_ghi_don_id` đặt một lần khi dùng; job chuyển Hết hạn. Thông báo Quản lý viện gửi ngay (`CachThay.KhongThay` giờ yên tĩnh của 009 không áp cho nhân viên), người đại diện mức Trung bình theo giờ yên tĩnh. *(R-15: `yeu_cau_ngoai_le_don` → `ho_so_chung`)*
 
 ---
 
 ## F-08. Lượt thăm (mục E, FR-029 → FR-039; BR-M10-02, Q-119, Q-120)
 
 **Quyết định**:
-- `luot_tham` (nhóm 2): `DA_DUYET | DA_VAO | DA_RA | KHONG_DEN | HUY`; khung (giờ bắt đầu, kết thúc) chép từ CFG-M10-04 lúc đăng ký (FR-032); `nguoi_di_cung` (bảng con: họ tên, quan hệ, số điện thoại tùy chọn, `thuc_te_vao`).
-- Hàm thuần `KiemTraDangKyTham(khung, cfg04, cfg05, cfg06, trangThaiNct, luotVang, lichBanTru, vung, t, nguon)` trả danh sách lý do theo (a) → (e); không đạt → 422 `KHONG_DAT_DIEU_KIEN_THAM` kèm mọi lý do, không tạo lượt. (c) dùng `KhoanhVungApi.dangChiuTheoNguoi`, theo khu nghỉ bán trú, và khu tiếp khách (mã khu cấu hình của 003). Đạt → `DA_DUYET` và giữ chỗ trong khóa `khung_tham_ngay` (F-03).
+- `luot_tham` (nhóm 2): `DA_DUYET | DA_VAO | DA_RA | KHONG_DEN | HUY`; khung (giờ bắt đầu, kết thúc) chép từ CFG-M10-04 lúc đăng ký (FR-032); `nguoi_di_cung` (bảng con: họ tên, quan hệ, số điện thoại tùy chọn, `thuc_te_vao`). *(R-15: `luot_tham` → `ho_so_chung`)*
+- Hàm thuần `KiemTraDangKyTham(khung, cfg04, cfg05, cfg06, trangThaiNct, luotVang, lichBanTru, vung, t, nguon)` trả danh sách lý do theo (a) → (e); không đạt → 422 `KHONG_DAT_DIEU_KIEN_THAM` kèm mọi lý do, không tạo lượt. (c) dùng `KhoanhVungApi.dangChiuTheoNguoi`, theo khu nghỉ bán trú, và khu tiếp khách (mã khu cấu hình của 003). Đạt → `DA_DUYET` và giữ chỗ trong khóa `khung_tham_ngay` (F-03). *(R-15: `khung_tham_ngay` → `khoa_ky_thuat`)*
 - Vào (FR-033): kiểm lại (c), (d); ghi người thực tế (thêm tên người không có trong danh sách trước khi vào; tổng ≤ số đã đăng ký). Ra: giờ ra ≤ thời điểm ghi, ≥ giờ vào.
 - **Tự động**: job theo phút: hết khung chưa Vào → `KHONG_DEN`; Đã vào quá giờ kết thúc + CFG-M10-07 → nhắc Hành chính một lần. Listener: `LuotVangDaMo`, `BaoVangBanTruDaGhi` (004), `NguoiCaoTuoiDaChuyenTrangThai` (Điều trị bệnh viện, trạng thái cuối) → hủy lượt trùng thời gian (FR-036); `KhoanhVungDaTao` (007) → hủy lượt có giường trong vùng chưa kết thúc khung, liệt kê cho Hành chính và Trưởng tầng, báo Hành chính lượt Đang vào (FR-037). Hủy trả chỗ.
 - Bản cài `NguoiThanKhanCapPort.luotThamTrongKhoang` (FR-038) và `ThoiKhoaBieuNguonPort.theoNgay` (lượt Đã duyệt, Đã vào trong ngày).
@@ -123,11 +125,11 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## F-09. Người thân ở lại (mục F, FR-040 → FR-045; BR-M10-04, Q-123, Q-128)
 
 **Quyết định**:
-- `luot_o_lai` (nhóm 2): `CHO_XAC_NHAN | DA_XAC_NHAN | TU_CHOI | DANG_O_LAI | DA_KET_THUC | HUY`; bắt đầu, kết thúc dự kiến (lịch sử gia hạn ở `luot_o_lai_gia_han`, nhóm 3), thực tế; vị trí; `dang_ky_an`; ý kiến người cùng phòng (bắt buộc khi phòng có ≥ 2 giường đang sử dụng, `ViTriApi`).
-- Giới hạn chồng thời gian (FR-040): kiểm trong khóa `nguoi_than_nct` và khóa `nguoi_than`: số lượt `DA_XAC_NHAN`, `DANG_O_LAI` chồng của người cao tuổi ≤ CFG-M10-10; người thân không có hai lượt mở chồng.
+- `luot_o_lai` (nhóm 2): `CHO_XAC_NHAN | DA_XAC_NHAN | TU_CHOI | DANG_O_LAI | DA_KET_THUC | HUY`; bắt đầu, kết thúc dự kiến (lịch sử gia hạn ở `luot_o_lai_gia_han`, nhóm 3), thực tế; vị trí; `dang_ky_an`; ý kiến người cùng phòng (bắt buộc khi phòng có ≥ 2 giường đang sử dụng, `ViTriApi`). *(R-15: `luot_o_lai` → `ho_so_chung`)*
+- Giới hạn chồng thời gian (FR-040): kiểm trong khóa `nguoi_than_nct` và khóa `nguoi_than`: số lượt `DA_XAC_NHAN`, `DANG_O_LAI` chồng của người cao tuổi ≤ CFG-M10-10; người thân không có hai lượt mở chồng. *(R-15: `nguoi_than_nct` → `trang_thai_nct`)*
 - Chặn khoanh vùng/cách ly và trạng thái (FR-041) lúc đăng ký, xác nhận, bắt đầu.
-- **Đêm tính phí** (FR-043): hàm thuần `SoDem(batDau, ketThuc)` đếm số mốc 00:00. Job 00:00: mỗi lượt `DANG_O_LAI` bắt đầu trước mốc → phát `SuKienTinhPhiNguon(DEM_O_LAI, nguonId = luotId + ngày bắt đầu đêm, donVi = DEM, ngayPhatSinh = ngày bắt đầu đêm)`; lưu `dem_o_lai` (kỹ thuật, `UNIQUE (luot_id, ngay)`) để chống trùng và chạy bù. Kết thúc ghi giờ thực tế sớm hơn một mốc đã phát → `SuKienTinhPhiNguonDaDoi(daHuy = true)` cho đêm đó. Không tạo khoản (Q-306).
-- **Cho 011**: bản cài `LuotOLaiAnPort.dangOLaiCoDangKyAn(t)`; phát `m08.api.LuotOLaiDaDoi` khi Bắt đầu, Gia hạn, Kết thúc, Hủy.
+- **Đêm tính phí** (FR-043): hàm thuần `SoDem(batDau, ketThuc)` đếm số mốc 00:00. Job 00:00: mỗi lượt `DANG_O_LAI` bắt đầu trước mốc → phát `SuKienTinhPhiNguon(DEM_O_LAI, nguonId = luotId + ngày bắt đầu đêm, donVi = DEM, ngayPhatSinh = ngày bắt đầu đêm)`; lưu `dem_o_lai` (kỹ thuật, `UNIQUE (luot_id, ngay)`) để chống trùng và chạy bù. Kết thúc ghi giờ thực tế sớm hơn một mốc đã phát → `SuKienTinhPhiNguonDaDoi(daHuy = true)` cho đêm đó. Không tạo khoản (Q-306). *(R-15: `dem_o_lai` → `khoa_ky_thuat`)*
+- **Cho 011**: bản cài `LuotOLaiAnPort.dangOLaiCoDangKyAn(t)`; phát `nutrition.api.LuotOLaiDaDoi` khi Bắt đầu, Gia hạn, Kết thúc, Hủy.
 - Người cao tuổi rời viện khi có lượt Đang ở lại (FR-044): listener nhắc Hành chính và Trưởng tầng (Trung bình); không tự kết thúc.
 
 ---
@@ -137,7 +139,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 **Quyết định**:
 - Một màn cổng, bốn loại thông tin. Web và app người thân dựng màn bằng các REST:
   - 012 phục vụ: danh sách người cao tuổi của người thân, thẻ **chung** (họ tên, ảnh, phòng, trạng thái, lượt vắng, lịch đến/về bán trú, lượt thăm, phản hồi, bản tin của mình, thực đơn chung qua `ThucDonChungApi`), phần **sức khỏe** (cổng trung gian, F-11), phần **hợp đồng** (`HopDongDocApi`, `DieuKienTiepNhanApi`; chỉ người đại diện).
-  - REST của feature sở hữu: chi phí, mua hộ (010); số dư (017); đồ gửi (013); hoạt động, đồng ý về muộn (014); thông báo (009). Các feature đó kiểm quyền qua `m10.api.QuyenNguoiThanApi`.
+  - REST của feature sở hữu: chi phí, mua hộ (010); số dư (017); đồ gửi (013); hoạt động, đồng ý về muộn (014); thông báo (009). Các feature đó kiểm quyền qua `family.api.QuyenNguoiThanApi`.
 - Kiểm quyền người thân ở backend theo `QuyenCoTacDung` tại thời điểm xem; client chỉ ẩn nút. DTO trả cho người thân là lớp riêng, chỉ giá trị hiện hành (FR-047).
 - **Sự cố trên cổng** (FR-046, Q-352, bổ sung 2026-10-18): thẻ chung gồm phần chung của sự cố (kèm mức) cho mọi người thân có quan hệ, lấy từ `SucKhoeCongNguoiThanApi.suCo` của 007 (`phanChung`); phần sức khỏe của sự cố đi qua F-11 như các mục sức khỏe khác và chỉ khi có quyền xem sức khỏe có tác dụng; nhật ký xem chỉ ghi cho phần sức khỏe.
 - Mục đồ gửi (FR-046b): `QuyenNguoiThanApi.xemDoGui(nguoiThanId, nctId, t)` = người đại diện hoặc `duoc_phep_don` đang bật; 013 dùng.
@@ -148,7 +150,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## F-11. Phần sức khỏe và nhật ký lượt xem (FR-046 (2), FR-048)
 
 **Quyết định**:
-- 012 là điểm ghi duy nhất của `nhat_ky_xem_suc_khoe` (nhóm 3). Phần sức khỏe trên cổng đi qua `GET /cong/nguoi-cao-tuoi/{id}/suc-khoe/{phan}` của 012; 012 kiểm `QuyenCoTacDung(XEM_SUC_KHOE)`, gọi API nguồn (dị ứng, bệnh nền: 001 `MucSucKhoeApi`; chỉ số, cân nặng, sự cố: 007 `SucKhoeCongNguoiThanApi`; thuốc: 006 `ThuocCongNguoiThanApi`; kết quả chăm sóc, tỷ lệ ăn, lượng nước: 005 `KetQuaChamSocCongApi`; chế độ ăn riêng: 011 `CheDoAnApi`; lịch khám bên ngoài: 004 lượt vắng loại khám) và ghi nhật ký trong cùng yêu cầu. Chú thích "ghi nhật ký xem" ở hợp đồng 006, 007 được hiểu là do 012 ghi (sửa chú thích, mục Đồng bộ của plan).
+- 012 là điểm ghi duy nhất của `nhat_ky_xem_suc_khoe` (nhóm 3). Phần sức khỏe trên cổng đi qua `GET /cong/nguoi-cao-tuoi/{id}/suc-khoe/{phan}` của 012; 012 kiểm `QuyenCoTacDung(XEM_SUC_KHOE)`, gọi API nguồn (dị ứng, bệnh nền: 001 `MucSucKhoeApi`; chỉ số, cân nặng, sự cố: 007 `SucKhoeCongNguoiThanApi`; thuốc: 006 `ThuocCongNguoiThanApi`; kết quả chăm sóc, tỷ lệ ăn, lượng nước: 005 `KetQuaChamSocCongApi`; chế độ ăn riêng: 011 `CheDoAnApi`; lịch khám bên ngoài: 004 lượt vắng loại khám) và ghi nhật ký trong cùng yêu cầu. Chú thích "ghi nhật ký xem" ở hợp đồng 006, 007 được hiểu là do 012 ghi (sửa chú thích, mục Đồng bộ của plan). *(R-15: `nhat_ky_xem_suc_khoe` → hành động `nhat_ky`)*
 - Lượt mở thông báo, bản tin có phần sức khỏe (FR-048): listener `ThongBaoDaXem` (009) ghi một dòng với nguồn `THONG_BAO` hoặc `BAN_TIN` khi bản đã gửi người đó có phần `SUC_KHOE`.
 - Quản lý viện tra cứu nhật ký (`GET /nhat-ky-xem-suc-khoe`); người thân không có đường dẫn.
 
@@ -158,7 +160,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 **Quyết định**:
 - `ban_tin` (nhóm 2 khi `CHO_DUYET`, nhóm 3 khi `DA_GUI` / `KHONG_GUI`): người cao tuổi, kỳ (`ky_tu`, `ky_den`, `moc`), `ban_goc_id NULL`; cột sinh `khoa_ky = IF(ban_goc_id IS NULL, CONCAT(nct_id, ':', ky_tu), NULL)` `UNIQUE` (lệnh lập trùng bị chặn). `ban_tin_phan` (loại `CHUNG`, `SUC_KHOE`, `CHI_PHI`; nội dung), `ban_tin_so_lieu` (mã số liệu, giá trị lưu lúc duyệt, phần), `ban_tin_nhan_xet` (nhóm 3), `giai_thich_su_co`, người duyệt, `duyet_thay`.
-- **Số liệu tổng hợp** (FR-052): `GET /ban-tin/{id}/so-lieu` tính lúc gọi từ 005 (`KetQuaChamSocCongApi.tongHop`), 007 (`BanTinSucKhoeApi.choBanTin`; sửa 2026-10-18 theo Q-352: phần chung của mỗi sự cố, kèm mức, vào nhóm số liệu `CHUNG`, phần sức khỏe vào nhóm `SUC_KHOE`), 010 (`ChiPhiCongNguoiThanApi.tamTinh` dạng tổng theo loại), 014 (số hoạt động đã tham gia qua SPI `HoatDongBanTinPort` khai ở `m10.api`, 014 cài vì làm plan sau; bean thiếu → "không có dữ liệu trong kỳ"). Không soạn sẵn nội dung (Q-307).
+- **Số liệu tổng hợp** (FR-052): `GET /ban-tin/{id}/so-lieu` tính lúc gọi từ 005 (`KetQuaChamSocCongApi.tongHop`), 007 (`BanTinSucKhoeApi.choBanTin`; sửa 2026-10-18 theo Q-352: phần chung của mỗi sự cố, kèm mức, vào nhóm số liệu `CHUNG`, phần sức khỏe vào nhóm `SUC_KHOE`), 010 (`ChiPhiCongNguoiThanApi.tamTinh` dạng tổng theo loại), 014 (số hoạt động đã tham gia qua SPI `HoatDongBanTinPort` khai ở `family.api`, 014 cài vì làm plan sau; bean thiếu → "không có dữ liệu trong kỳ"). Không soạn sẵn nội dung (Q-307).
 - **Duyệt** (FR-053, BR-M10-09): người duyệt là Điều dưỡng có phạm vi lúc thao tác, hoặc Trưởng tầng được giao sau CFG-M10-12 kể từ mốc (dấu `duyet_thay`). Mức sự cố cao nhất trong kỳ theo `SuCoApi.theoNguoi(…, chiChuaHuy = true)` mức cao nhất từng có (Q-129) ≥ Trung bình → bắt buộc `giai_thich_su_co`. Duyệt → `DA_GUI`, phát `YeuCauThongBao` mức Nhẹ tới mọi người thân có quan hệ Hiệu lực, `doiTuongThongTin = VE_NGUOI_CAO_TUOI`, phần theo loại thông tin; 009 lọc theo mục "nhận thông báo" của bản đồng ý (FR-054, Q-353; sửa 2026-10-18) rồi theo quyền từng người (SC-007), ghi thời điểm gửi và xem (BR-M10-06). Người cao tuổi chưa có bản đồng ý Hiệu lực thì không người thân nào nhận; bản tin vẫn ở `DA_GUI` và xem được trên cổng theo quan hệ (spec "Điểm cần báo lại" 2, 3 của lượt 2026-10-18).
 - **Đính chính** (FR-056): bản mới `ban_goc_id` trỏ bản gốc, lý do; người nhận theo quan hệ, quyền hiện hành. Listener `SuCoDaHuyTrongBanTin` (007) → báo Hành chính và người đã duyệt; không tự gửi.
 - **Job** (theo lịch CFG-M10-03, đầu ngày mốc): nhắc lập cho người đủ điều kiện (FR-051, loại trừ người vắng cả kỳ); bản tin `CHO_DUYET` kỳ trước → `KHONG_GUI`; báo Quản lý viện danh sách chưa lập / Không gửi (FR-073). Job theo giờ: mốc 48 giờ (nhắc Trưởng tầng), mốc CFG-M10-12 (báo Trưởng tầng có thể duyệt thay). Hệ thống không tạo bản tin (SC-006).
@@ -168,12 +170,12 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## F-13. Phản hồi, khiếu nại (mục I, FR-058 → FR-066; BR-M10-05, Q-122)
 
 **Quyết định**:
-- `phan_hoi` (nhóm 2 cho trạng thái): `MOI | DANG_XU_LY | DA_PHAN_HOI | MO_LAI | DONG`; loại, nhóm nội dung, mức (`CAO`, `THUONG`), `han_xu_ly`, `moc_tinh_han` (gửi hoặc Mở lại gần nhất), người phụ trách, `da_leo_thang_cho_han` (giá trị hạn đã leo thang: một lần mỗi hạn), cách đóng. Nội dung, trả lời, hướng xử lý, ghi chú ở `phan_hoi_muc` (nhóm 3, loại `NOI_DUNG`, `TRA_LOI`, `HUONG_XU_LY`, `GHI_CHU`, `GIAO_LAI`, `DOI_MUC`).
+- `phan_hoi` (nhóm 2 cho trạng thái): `MOI | DANG_XU_LY | DA_PHAN_HOI | MO_LAI | DONG`; loại, nhóm nội dung, mức (`CAO`, `THUONG`), `han_xu_ly`, `moc_tinh_han` (gửi hoặc Mở lại gần nhất), người phụ trách, `da_leo_thang_cho_han` (giá trị hạn đã leo thang: một lần mỗi hạn), cách đóng. Nội dung, trả lời, hướng xử lý, ghi chú ở `phan_hoi_muc` (nhóm 3, loại `NOI_DUNG`, `TRA_LOI`, `HUONG_XU_LY`, `GHI_CHU`, `GIAO_LAI`, `DOI_MUC`). *(R-15: `phan_hoi_muc` → `su_kien_chung`)*
 - Người phụ trách mặc định theo FR-059 (Trưởng tầng được giao qua `NhiemVuApi`; Hành chính là nhóm: phụ trách là "Hành chính" cho tới khi một người Nhận xử lý). Trả lời nhóm "sức khỏe, thuốc" xếp `SUC_KHOE`; người gửi không có quyền có tác dụng → cảnh báo lúc soạn, bản cho người gửi chỉ phần `CHUNG`.
 - Hạn = `moc_tinh_han` + CFG-M10-01 theo mức (đọc lúc tính); đổi mức tính lại; hạn mới đã qua → leo thang ngay.
 - Job theo phút: quá hạn chưa Đã phản hồi → dấu quá hạn, thông báo Quản lý viện Trung bình một lần (SC-005 ≤ 5 phút); Đã phản hồi quá CFG-M10-02 → `DONG` cách "tự đóng".
 - `GanPhamViProvider` `M10.PHAN_HOI` theo người cao tuổi; Quản lý viện xem mọi phản hồi.
-- *(Bổ sung 2026-10-18, Q-366, Q-371)* Người gửi là người thân hoặc chính người cao tuổi (`nguoi_gui_loai`); người cao tuổi gửi qua `/kenh-nguoi-cao-tuoi/phan-hoi`; Hành chính, Điều dưỡng có phạm vi ghi thay qua `POST /phan-hoi` với `nguoiGuiLoai = NGUOI_CAO_TUOI`, nguồn `GHI_TRUC_TIEP`. Loại `MONG_MUON` chỉ khi người gửi là người cao tuổi; loại này bắt buộc chủ đề `chuDeMongMuon` (`KHACH_THAM_NGUOI_DON` / `KHAC`) và hệ thống đặt nhóm nội dung sẵn có theo FR-059: khách thăm, người đón → `KHAC` (Hành chính), còn lại → `CHAM_SOC` (Trưởng tầng); không thêm nhóm mới. Lệnh `gan-y-kien` thêm dòng `phan_hoi_y_kien` sau khi kiểm mục `mong_muon_nct` có nguồn người cao tuổi, cùng người; mục ở module khác (sở thích, thói quen của 014) được gắn khi 012 nghe `YKienDaGhiTuPhanHoi` (001 research H-17), với cùng điều kiện; `tra-loi` loại Mong muốn khi chưa có dòng nào → 409 `CHUA_GAN_Y_KIEN`. Lệnh `doi-loai` (Mong muốn → Góp ý, Hỏi đáp, có lý do) không đổi mức, hạn.
+- *(Bổ sung 2026-10-18, Q-366, Q-371)* Người gửi là người thân hoặc chính người cao tuổi (`nguoi_gui_loai`); người cao tuổi gửi qua `/kenh-nguoi-cao-tuoi/phan-hoi`; Hành chính, Điều dưỡng có phạm vi ghi thay qua `POST /phan-hoi` với `nguoiGuiLoai = NGUOI_CAO_TUOI`, nguồn `GHI_TRUC_TIEP`. Loại `MONG_MUON` chỉ khi người gửi là người cao tuổi; loại này bắt buộc chủ đề `chuDeMongMuon` (`KHACH_THAM_NGUOI_DON` / `KHAC`) và hệ thống đặt nhóm nội dung sẵn có theo FR-059: khách thăm, người đón → `KHAC` (Hành chính), còn lại → `CHAM_SOC` (Trưởng tầng); không thêm nhóm mới. Lệnh `gan-y-kien` thêm dòng `phan_hoi_y_kien` sau khi kiểm mục `mong_muon_nct` có nguồn người cao tuổi, cùng người; mục ở module khác (sở thích, thói quen của 014) được gắn khi 012 nghe `YKienDaGhiTuPhanHoi` (001 research H-17), với cùng điều kiện; `tra-loi` loại Mong muốn khi chưa có dòng nào → 409 `CHUA_GAN_Y_KIEN`. Lệnh `doi-loai` (Mong muốn → Góp ý, Hỏi đáp, có lý do) không đổi mức, hạn. *(R-15: `phan_hoi_y_kien` → `su_kien_chung`; `mong_muon_nct` → `ho_so_chung`)*
 - *(Bổ sung 2026-10-18)* Người cao tuổi không có tài khoản: `dong-y-dong`, `mo-lai` do Hành chính, Điều dưỡng có phạm vi ghi thay (`cach_dong = GHI_THAY`). Nhóm "sức khỏe, thuốc" của người cao tuổi: phần trả lời trên kênh chỉ `CHUNG`; người phụ trách thấy nhắc "trả lời trực tiếp" (FR-058a (b)).
 - *(Bổ sung 2026-10-18, FR-086)* Mọi truy vấn phản hồi cho tài khoản AC-10 lọc `nguoi_gui_loai = NGUOI_THAN`; bản tin và thông báo của 012 không nêu phản hồi của người cao tuổi.
 
@@ -182,10 +184,10 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## F-14. Giao diện cho module làm plan sau và SPI cho module thấp hơn
 
 **Quyết định**:
-- **Đồng bộ hợp đồng 002**: `QuanHeNguoiThanApi` được khai báo trong `m15.taikhoan.api` dưới dạng SPI, M10 cài (như `HoSoNhanVienApi` theo plan 008); 001, 006, 011 dùng cùng khai báo đó. Chữ ký hợp nhất ở [contracts/module-interfaces.md](contracts/module-interfaces.md) mục 1.1.
-- `m10.api.QuyenNguoiThanApi` (013, 014, 016, 017, 018): quan hệ Hiệu lực, quyền có tác dụng, người đại diện, liên hệ chính, người được phép đón tại thời điểm, giấy tờ tùy thân (013 xác minh người nhận), `xemDoGui`.
-- `m10.api.HoatDongBanTinPort` (014 cài; chỉ đọc): số hoạt động đã tham gia trong kỳ. Bean thiếu → "không có dữ liệu trong kỳ".
-- Sự kiện `m10.api`: `QuanHeDaDoi`, `QuyenNguoiThanDaDoi` (002 xóa đệm quyền, 009, 013), `LuotThamDaVao/DaRa` (016), `PhanHoiQuaHan` (016), `BanTinDaGui` (016).
+- **Đồng bộ hợp đồng 002**: `QuanHeNguoiThanApi` được khai báo trong `administration.taikhoan.api` dưới dạng SPI, M10 cài (như `HoSoNhanVienApi` theo plan 008); 001, 006, 011 dùng cùng khai báo đó. Chữ ký hợp nhất ở [contracts/module-interfaces.md](contracts/module-interfaces.md) mục 1.1.
+- `family.api.QuyenNguoiThanApi` (013, 014, 016, 017, 018): quan hệ Hiệu lực, quyền có tác dụng, người đại diện, liên hệ chính, người được phép đón tại thời điểm, giấy tờ tùy thân (013 xác minh người nhận), `xemDoGui`.
+- `family.api.HoatDongBanTinPort` (014 cài; chỉ đọc): số hoạt động đã tham gia trong kỳ. Bean thiếu → "không có dữ liệu trong kỳ".
+- Sự kiện `family.api`: `QuanHeDaDoi`, `QuyenNguoiThanDaDoi` (002 xóa đệm quyền, 009, 013), `LuotThamDaVao/DaRa` (016), `PhanHoiQuaHan` (016), `BanTinDaGui` (016).
 
 ---
 
@@ -244,7 +246,7 @@ Không thông báo nào của 012 cần mã Q-354. Nội dung rút gọn cho tin
 ## F-06a. Mong muốn về khách thăm, người đón và yêu cầu trái mong muốn *(bổ sung 2026-10-18; FR-020a → FR-020c; Q-347, Q-348, Q-351)*
 
 **Quyết định**:
-- **Bảng** `mong_muon_nct` (nhóm 2; data-model mục 3a): người được nói tới là quan hệ (`quan_he_id`) hoặc người ngoài (họ tên, số giấy tờ); loại `THAM | DON`; `muon BOOLEAN`; nguồn theo mẫu 001 (`NguonYKienApi.kiemTra`); người ghi, thời điểm; `HIEU_LUC | DUOC_THAY_THE`. Tối đa một mong muốn Hiệu lực mỗi (người cao tuổi, người được nói tới, loại): cột sinh `UNIQUE`. Ghi mới cho cùng khóa thì bản cũ chuyển Được thay thế trong cùng transaction; nội dung không sửa (trigger).
+- **Bảng** `mong_muon_nct` (nhóm 2; data-model mục 3a): người được nói tới là quan hệ (`quan_he_id`) hoặc người ngoài (họ tên, số giấy tờ); loại `THAM | DON`; `muon BOOLEAN`; nguồn theo mẫu 001 (`NguonYKienApi.kiemTra`); người ghi, thời điểm; `HIEU_LUC | DUOC_THAY_THE`. Tối đa một mong muốn Hiệu lực mỗi (người cao tuổi, người được nói tới, loại): cột sinh `UNIQUE`. Ghi mới cho cùng khóa thì bản cũ chuyển Được thay thế trong cùng transaction; nội dung không sửa (trigger). *(R-15: `mong_muon_nct` → `ho_so_chung`)*
 - **Lệnh**: `POST /nguoi-cao-tuoi/{nctId}/mong-muon` (Hành chính, Trưởng tầng, Điều dưỡng có phạm vi; khóa quyền `MONG_MUON_NCT` theo dòng Phụ lục 27 "Mong muốn về khách thăm, người đón": TAO cho HC, TT, ĐD; XEM cho QL; Q-364); `GET` trả danh sách Hiệu lực và lịch sử. Người thân không có lệnh này.
 - **Kiểm trái mong muốn** trong `KiemTraYeuCau` (lúc lập, lúc xác nhận, lúc duyệt, và cho từng dòng phiếu): yêu cầu bật `dang_ky_tham` / `duoc_phep_don` cho người có mong muốn Hiệu lực nguồn `NGUOI_CAO_TUOI` `muon = false` cùng loại, hoặc tắt hai quyền đó của người có mong muốn `muon = true`, là "trái mong muốn". Khi đó: không có hiệu lực bằng cổng hay bản ký; xác nhận của người đại diện bị từ chối 409 `CAN_QUAN_LY_DUYET_TRAI_MONG_MUON`; Quản lý viện duyệt phải có `lyDo` và `traoDoiVoiNguoiCaoTuoi`. Ngoại lệ: tắt `duoc_phep_don` vẫn áp ngay (FR-017). Yêu cầu do người đại diện theo pháp luật lập (`BanDongYApi.daiDienPhapLuat(nctId)` của 001 trả đúng người lập) không bị coi là trái (FR-020c); mong muốn vẫn hiển thị.
 - **Phiếu đăng ký** (FR-008): dòng trái mong muốn tạo yêu cầu `CHO_XAC_NHAN` (đánh dấu `trai_mong_muon_id`) thay vì `HIEU_LUC`; dòng khác vẫn Hiệu lực. Thay quy tắc cũ "một quyền không đạt → cả phiếu bị chặn" chỉ cho trường hợp trái mong muốn; lỗi khác vẫn chặn cả phiếu.
@@ -260,14 +262,14 @@ Không thông báo nào của 012 cần mã Q-354. Nội dung rút gọn cho tin
 ## F-18. Kênh người cao tuổi *(bổ sung 2026-10-18; mục G2, FR-083 → FR-086, BR-M10-11; Q-365, Q-366, Q-369)*
 
 **Quyết định**:
-- Gói `m10.kenhnct`, REST `/kenh-nguoi-cao-tuoi/{hom-nay | thuc-don | hoat-dong | luot-tham | do-gui | phan-hoi}`; `@CanQuyen(KENH_NGUOI_CAO_TUOI, XEM)`; người cao tuổi lấy từ tài khoản đăng nhập, không nhận `nctId` trong đường dẫn, nên không mở được dữ liệu người khác (FR-084).
+- Gói `family.kenhnct`, REST `/kenh-nguoi-cao-tuoi/{hom-nay | thuc-don | hoat-dong | luot-tham | do-gui | phan-hoi}`; `@CanQuyen(KENH_NGUOI_CAO_TUOI, XEM)`; người cao tuổi lấy từ tài khoản đăng nhập, không nhận `nctId` trong đường dẫn, nên không mở được dữ liệu người khác (FR-084).
 - Nguồn từng phần (FR-083): (a) hôm nay = lượt thăm Đã duyệt trong ngày (012), buổi hoạt động trong ngày (`HoatDongKenhNctPort`), lịch đến/về bán trú (`CoMatBanTruApi.theoNgay`); không gọi `KetQuaChamSocCongApi` (không có công việc chăm sóc, giờ thuốc); (b) thực đơn tuần đã công bố (`ThucDonChungApi`) và suất dự kiến (`SuatAnDuKienApi.cuaNguoiCaoTuoi`: món, món thay thế; không có tên chế độ ăn, dị ứng); (c) `HoatDongKenhNctPort.sapToi(nctId, tu, den)`: buổi của tầng và toàn viện, có tên hay chưa; (d) lượt thăm Đã duyệt: ngày, khung, họ tên người thăm; (e) `DoGuiKenhNctPort.dangGiu(nctId)`: tên, trạng thái, ảnh.
-- DTO kênh là lớp riêng; ArchUnit chặn `m10.kenhnct` gọi `SucKhoeCongNguoiThanApi`, `ThuocCongNguoiThanApi`, `ChiPhiCongNguoiThanApi` và API số dư (FR-084).
+- DTO kênh là lớp riêng; ArchUnit chặn `family.kenhnct` gọi `SucKhoeCongNguoiThanApi`, `ThuocCongNguoiThanApi`, `ChiPhiCongNguoiThanApi` và API số dư (FR-084).
 - **Nhắc lượt thăm** (FR-069): job 00:05 phát `NhacLuotThamNct` cho mỗi lượt Đã duyệt trong ngày của người cao tuổi có tài khoản; lượt tạo trong ngày phát khi tạo. 009 giữ tới hết giờ yên tĩnh. Khóa `(luot_tham_id, NHAC_NCT)`.
 - *(Bổ sung 2026-10-22, Q-373, Q-374)* Màn trạng thái SOS hiện `DA_TIEP_NHAN` là "[họ tên] đang tới", `DA_TOI` là "[họ tên] đã tới"; khi `guiViTri` app xin quyền vị trí "khi đang dùng ứng dụng" (lần đầu bấm SOS; từ chối thì không hỏi lại trong phiên, SOS vẫn gửi) và gửi `POST /sos/{lanBamId}/vi-tri` theo `chuKyGuiViTriGiay`; dừng khi `guiViTri = false`, nhận 409 hoặc đóng ứng dụng (007 research S-24).
 - **App** (`mobile/lib/nguoi-cao-tuoi/`): màn đầu "Hôm nay" có nút SOS; chạm một lần thì đếm ngược 3 giây với nút Hủy lớn (Q-372), hết giờ hoặc chạm lần nữa mới gọi `POST /sos` của 007; hỏi `GET /sos/hien-tai` mỗi 5 giây khi màn trạng thái mở; lưu `lienHe` nhận được gần nhất (cùng số mặc định 115) để hiện khi mất kết nối hay bị từ chối; lần mở đầu hiện thông báo "nút SOS không thay chuông gọi" (FR-085). Màn xem dùng phiên; nút SOS dùng token thiết bị (002 A-15).
 
-**Lý do**: Một chỗ dựng và một DTO cho cả kênh giữ chặt FR-084. SPI ở `m10.api` cho 013, 014 theo cách `HoatDongBanTinPort` đã làm, không tạo vòng M10 ↔ M12, M10 ↔ M04.
+**Lý do**: Một chỗ dựng và một DTO cho cả kênh giữ chặt FR-084. SPI ở `family.api` cho 013, 014 theo cách `HoatDongBanTinPort` đã làm, không tạo vòng M10 ↔ M12, M10 ↔ M04.
 
 **Phương án đã cân nhắc**: Mỗi feature sở hữu tự phục vụ REST cho kênh như cổng người thân (F-10): giới hạn trường rải ở năm nơi, khó kiểm FR-084. Dùng lại REST cổng người thân với vai trò mới: cổng có nhiều phần người cao tuổi không được thấy, dễ lộ.
 

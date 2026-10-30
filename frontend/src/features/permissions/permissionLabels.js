@@ -1,4 +1,4 @@
-// Nhãn tiếng Việt cho quyền (002 US7; Phụ lục 27, glossary 7.3). Tên chức năng chép từ m15.account.api.dto.Function
+// Nhãn tiếng Việt cho quyền (002 US7; Phụ lục 27, glossary 7.3). Tên chức năng chép từ administration.account.api.dto.Function
 // (76 dòng Phụ lục 27, cùng thứ tự); đổi Function thì đổi file này.
 
 export const FUNCTION_LABELS = {
@@ -8,7 +8,7 @@ export const FUNCTION_LABELS = {
   HEALTH_CATALOGS: 'Danh mục dị nguyên, mức độ dị ứng, nguồn thông tin, nhu cầu chăm sóc',
   ASSESSMENT_CARE_LEVEL: 'Đánh giá, mức chăm sóc',
   ADMISSION_CONTRACT_DEPOSIT: 'Tiếp nhận, hợp đồng, đặt cọc',
-  WAITING_LIST: 'Danh sách chờ, điểm ưu tiên',
+  WAITING_LIST: 'Danh sách chờ, dấu ưu tiên',
   RESIDENCY_CHANGE_REQUEST: 'Yêu cầu thay đổi lưu trú',
   ABSENCE_RETURN: 'Tạm vắng, trở về',
   RESIDENCY_END_DEATH: 'Kết thúc lưu trú, qua đời',
@@ -58,7 +58,6 @@ export const FUNCTION_LABELS = {
   FAMILY_STAY: 'Người thân ở lại',
   FEEDBACK: 'Phản hồi, khiếu nại',
   RESIDENT_CHANNEL: 'Kênh người cao tuổi',
-  PERIODIC_NEWSLETTER: 'Bản tin định kỳ',
   COST_ADJUSTMENT: 'Chi phí, khoản điều chỉnh',
   PERIOD_CLOSING: 'Chốt kỳ, xuất kế toán',
   PURCHASE_ON_BEHALF: 'Đề nghị mua hộ',
@@ -76,7 +75,6 @@ export const FUNCTION_LABELS = {
   PAYMENT_NOTICE: 'Phiếu báo phí',
   SETTLEMENT_RECORD: 'Bảng quyết toán',
   ASSET_VEHICLE: 'Tài sản, lịch xe',
-  INGREDIENT_INVENTORY: 'Kho nguyên liệu',
   PURCHASE_REQUEST: 'Yêu cầu mua sắm',
 }
 

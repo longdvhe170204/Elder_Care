@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-09 | **Plan**: [../plan.md](../plan.md)
 
-Hợp đồng trong backend, ở gói `com.cambae.backend.m04.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của 005 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
+Hợp đồng trong backend, ở gói `com.eldercare.backend.care.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của 005 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
 
 Chiều phụ thuộc theo research C-02: 005 phụ thuộc 000, 001, 002, 003, 004. Các module 006, 007, 008, 010, 011, 012, 014, 015, 016 phụ thuộc 005. Chỗ 005 cần dữ liệu của module phụ thuộc nó thì 005 khai báo SPI (mục 2.1), module đó cài. Plan của các module này phải giữ đúng chữ ký hoặc ghi rõ thay đổi.
 
@@ -20,9 +20,9 @@ Mục1.11 đã có28event ở `api.events`; `CareEventContext(sourceType, source
 
 | SPI (gói khai báo) | Bản cài của 005 | Dùng bởi |
 | --- | --- | --- |
-| `ThamGiaChuyenTrangThai` (`m01.api`) | Bean `@Order` sau 004, 003. Không có điều kiện chặn. Tác động theo bảng dưới | 001 H-02 |
-| `TrangThaiCoMatBanTruPort` (`m02.api`) | `trangThai(nctId, ngay, buoiId)` đọc `co_mat_ban_tru`: `CO_MAT` (gồm `DA_VE`), `VANG_CO_BAO`, `VANG_KHONG_BAO`; rỗng khi `CHUA_DEN` hoặc `DA_HUY_NGAY_NGHI` | 004 FR-060 |
-| `NgoaiTuyenHandler` (`m15.taikhoan.api`) | `M04.KET_QUA_CONG_VIEC`, `M04.GHI_NHAN_PHAT_SINH` (research C-14) | 002 A-11 |
+| `ThamGiaChuyenTrangThai` (`resident.api`) | Bean `@Order` sau 004, 003. Không có điều kiện chặn. Tác động theo bảng dưới | 001 H-02 |
+| `TrangThaiCoMatBanTruPort` (`admission.api`) | `trangThai(nctId, ngay, buoiId)` đọc `co_mat_ban_tru`: `CO_MAT` (gồm `DA_VE`), `VANG_CO_BAO`, `VANG_KHONG_BAO`; rỗng khi `CHUA_DEN` hoặc `DA_HUY_NGAY_NGHI` | 004 FR-060 *(R-15: `co_mat_ban_tru` → `ho_so_chung`)* |
+| `NgoaiTuyenHandler` (`administration.taikhoan.api`) | `M04.KET_QUA_CONG_VIEC`, `M04.GHI_NHAN_PHAT_SINH` (research C-14) | 002 A-11 |
 | `DinhChinhDuocProvider` (000) | `M04.KET_QUA_GHI_NHAN` (`tangKhuVuc` = tầng/khu của công việc; `choPhep` sai với kết quả đo chỉ số; `sauKhiDinhChinh` phát sự kiện cho 010 khi có tính phí); `M04.DIEM_DANH_BAN_TRU` (`sauKhiDinhChinh` cập nhật giờ trên dòng có mặt) | 000 R-08 |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | data-model mục 10, 11 | |
 | `GanPhamViProvider` (002) | `M04.KE_HOACH`, `M04.CONG_VIEC`, `M04.KET_QUA_GHI_NHAN`, `M04.CO_MAT_BAN_TRU`: trả `DoiTuong` với người cao tuổi và tầng/khu | 002 FR-034 |
@@ -170,7 +170,7 @@ Mỗi sự kiện mang khóa `loại + id + mốc` để bên nghe bỏ trùng (
 
 ## 2. 005 cần từ module khác
 
-### 2.1. SPI 005 khai báo ở `m04.api`, module khác cài
+### 2.1. SPI 005 khai báo ở `care.api`, module khác cài
 
 **Triển khai T002, 2026-10-26**: chữ ký logic bên dưới được giữ nguyên số phương thức/đối số và ánh xạ sang tiếng Anh trong `m04.api.spi` theo glossary mục 11. Đưa phần khai báo tám SPI lên T002 để fake có interface thật; API khác của T003 vẫn chưa cài. Bản giả duy nhất do 005 sở hữu là `support/fake/m04/FakeM04Config`, import tường minh ở test/demo.
 

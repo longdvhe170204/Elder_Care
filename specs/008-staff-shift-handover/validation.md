@@ -1,6 +1,6 @@
 # Kiểm chứng và phần chờ nghiệm thu 008
 
-Chốt ngày 2026-10-26, Phase 9 trên `impl/008-staff-shift-handover`, HEAD đầu phiên `668fe1d`. Tài liệu này ghi bằng chứng đã chạy và việc còn thiếu; không thay đổi spec/nghiệp vụ. Tên lớp test dưới đây là tên thật trong `backend/src/test/java/com/cambae/backend/m09/`.
+Chốt ngày 2026-10-26, Phase 9 trên `impl/008-staff-shift-handover`, HEAD đầu phiên `668fe1d`. Tài liệu này ghi bằng chứng đã chạy và việc còn thiếu; không thay đổi spec/nghiệp vụ. Tên lớp test dưới đây là tên thật trong `backend/src/test/java/com/eldercare/backend/staffing/`.
 
 ## 1. Kết quả đã chạy
 

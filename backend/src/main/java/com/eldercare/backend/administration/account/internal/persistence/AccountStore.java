@@ -1,0 +1,584 @@
+package com.eldercare.backend.administration.account.internal.persistence;
+
+import com.eldercare.backend.administration.account.api.dto.AccountStatus;
+import com.eldercare.backend.administration.account.api.dto.AccountType;
+import com.eldercare.backend.administration.account.api.events.AccountCreated;
+import com.eldercare.backend.administration.account.api.events.AccountStatusChanged;
+import com.eldercare.backend.administration.account.internal.domain.Account;
+import com.eldercare.backend.administration.account.internal.domain.AccountStatusDetails;
+import com.eldercare.backend.administration.account.internal.domain.StaffRoles;
+import com.eldercare.backend.administration.shared.api.StatusHistoryApi;
+import com.eldercare.backend.administration.shared.api.dto.HistoryEntry;
+import com.eldercare.backend.administration.shared.api.dto.HistoryKind;
+import com.eldercare.backend.common.Role;
+import com.eldercare.backend.common.time.BusinessTime;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.stereotype.Component;
+
+/**
+ * Đọc, ghi {@code account}, gán vai trò ở {@code permission_assignment}, {@code login_session} cho lệnh tài khoản (002
+ * T030, T031; data-model mục 2, 3); lịch sử trạng thái qua {@link StatusHistoryApi} (002 T098, research R-15). JDBC như
+ * phần còn lại của M15; không có entity JPA (plan 002 ghi chú T030).
+ * Tạo tài khoản và mỗi lần chuyển trạng thái phát sự kiện trong transaction của lệnh, qua outbox (FR-015,
+ * module-interfaces mục 1.10).
+ */
+@Component
+public class AccountStore {
+
+    private static final String COLUMNS =
+            "id, username, type, staff_id, family_member_id, resident_id, status, lock_cause,"
+                    + " locked_until, last_login_at, version, permission_version";
+
+    private final JdbcTemplate jdbc;
+    private final BusinessTime time;
+    private final ApplicationEventPublisher events;
+    private final StatusHistoryApi statusHistory;
+
+    AccountStore(
+            JdbcTemplate jdbc, BusinessTime time, ApplicationEventPublisher events, StatusHistoryApi statusHistory) {
+        this.jdbc = jdbc;
+        this.time = time;
+        this.events = events;
+        this.statusHistory = statusHistory;
+    }
+
+    public Optional<Account> find(long id) {
+        return jdbc.query("SELECT " + COLUMNS + " FROM account WHERE id = ?", AccountStore::row, id).stream()
+                .findFirst();
+    }
+
+    /** Khóa dòng cho lệnh trạng thái, phân quyền (kiểm lại trên trạng thái mới, 000 FR-040). */
+    public Optional<Account> lock(long id) {
+        return jdbc.query("SELECT " + COLUMNS + " FROM account WHERE id = ? FOR UPDATE", AccountStore::row, id).stream()
+                .findFirst();
+    }
+
+    /** Tài khoản nhân viên đang Khóa tạm chưa hết hạn tại {@code now} (ứng viên mở khóa sớm, FR-019c). */
+    public List<Account> temporarilyLockedStaff(Instant now) {
+        return jdbc.query(
+                "SELECT " + COLUMNS + " FROM account WHERE type = 'STAFF' AND status = 'TEMPORARILY_LOCKED'"
+                        + " AND locked_until > ? ORDER BY locked_until, id",
+                AccountStore::row,
+                utc(now));
+    }
+
+    public Optional<Account> byStaff(long staffId) {
+        return jdbc.query("SELECT " + COLUMNS + " FROM account WHERE staff_id = ?", AccountStore::row, staffId).stream()
+                .findFirst();
+    }
+
+    public Optional<Account> byFamilyMember(long familyMemberId) {
+        return jdbc
+                .query(
+                        "SELECT " + COLUMNS + " FROM account WHERE family_member_id = ?",
+                        AccountStore::row,
+                        familyMemberId)
+                .stream()
+                .findFirst();
+    }
+
+    /** Trang theo id tăng dần; {@code afterId} là con trỏ trang trước. */
+    public List<Account> page(AccountType type, AccountStatus status, String q, Long afterId, int size) {
+        StringBuilder sql = new StringBuilder("SELECT " + COLUMNS + " FROM account WHERE 1 = 1");
+        List<Object> args = new ArrayList<>();
+        if (type != null) {
+            sql.append(" AND type = ?");
+            args.add(type.name());
+        }
+        if (status != null) {
+            sql.append(" AND status = ?");
+            args.add(status.name());
+        }
+        if (q != null && !q.isBlank()) {
+            sql.append(" AND username LIKE ?");
+            args.add("%" + q.strip() + "%");
+        }
+        if (afterId != null) {
+            sql.append(" AND id > ?");
+            args.add(afterId);
+        }
+        sql.append(" ORDER BY id LIMIT ?");
+        args.add(size);
+        return jdbc.query(sql.toString(), AccountStore::row, args.toArray());
+    }
+
+    /** Tài khoản Hoạt động hoặc Khóa tạm đang có vai trò (009 FR-008). */
+    public List<Account> activeWithRole(Role role) {
+        return jdbc.query(
+                "SELECT " + COLUMNS + " FROM account WHERE status IN ('ACTIVE', 'TEMPORARILY_LOCKED') AND id IN"
+                        + " (SELECT account_id FROM permission_assignment WHERE kind = 'ROLE_ASSIGNMENT' AND role = ?"
+                        + " AND effective_to IS NULL"
+                        + " AND effective_from <= ?) ORDER BY id",
+                AccountStore::row,
+                role.code(),
+                utc(time.now()));
+    }
+
+    /** Vai trò đang gán (còn hiệu lực lúc này). */
+    public Set<Role> roles(long accountId) {
+        Set<Role> roles = EnumSet.noneOf(Role.class);
+        jdbc.query(
+                "SELECT role FROM permission_assignment WHERE kind = 'ROLE_ASSIGNMENT' AND account_id = ?"
+                        + " AND effective_to IS NULL AND effective_from <= ?",
+                rs -> {
+                    roles.add(role(rs.getString(1)));
+                },
+                accountId,
+                utc(time.now()));
+        return roles;
+    }
+
+    /** Có quyền Duyệt kế hoạch chăm sóc gán thêm đang hiệu lực (FR-024; cho {@code allowedCommands}). */
+    public boolean hasCarePlanApprovalGrant(long accountId) {
+        LocalDateTime now = utc(time.now());
+        Integer rows = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM permission_assignment WHERE kind = 'ADDITIONAL_GRANT' AND account_id = ?"
+                        + " AND effective_from <= ?"
+                        + " AND (effective_to IS NULL OR effective_to > ?)",
+                Integer.class,
+                accountId,
+                now,
+                now);
+        return rows != null && rows > 0;
+    }
+
+    /** Vai trò gán tại {@code at} ({@code effective_from <= at < effective_to}; FR-026a). */
+    public Set<Role> rolesAt(long accountId, Instant at) {
+        Set<Role> roles = EnumSet.noneOf(Role.class);
+        jdbc.query(
+                "SELECT role FROM permission_assignment WHERE kind = 'ROLE_ASSIGNMENT' AND account_id = ?"
+                        + " AND effective_from <= ?"
+                        + " AND (effective_to IS NULL OR effective_to > ?)",
+                rs -> {
+                    roles.add(role(rs.getString(1)));
+                },
+                accountId,
+                utc(at),
+                utc(at));
+        return roles;
+    }
+
+    /**
+     * Trạng thái tại {@code at} theo lịch sử trạng thái (FR-026a): dòng gần nhất không sau {@code at}; chưa có dòng nào
+     * trước {@code at} mà có dòng sau thì Hoạt động (tài khoản tạo ra ở trạng thái Hoạt động); không có lịch sử (dữ liệu
+     * trước T031) thì trạng thái hiện tại.
+     */
+    public AccountStatus statusAt(long accountId, Instant at, AccountStatus current) {
+        return historyStatusAt(accountId, at)
+                .orElseGet(() -> hasStatusHistory(accountId) ? AccountStatus.ACTIVE : current);
+    }
+
+    /** Trạng thái theo dòng lịch sử gần nhất không sau {@code at}; rỗng khi chưa có dòng nào tới {@code at}. */
+    public Optional<AccountStatus> historyStatusAt(long accountId, Instant at) {
+        return statusHistory
+                .at(AccountStatusDetails.TRACK, accountId, at)
+                .map(row -> AccountStatus.valueOf(row.value()));
+    }
+
+    /** Hoạt động, hoặc Khóa tạm đã hết hạn tại {@code at} (dùng được như Hoạt động, FR-008). */
+    public boolean activeOrUnlockedAt(long accountId, Instant at) {
+        Integer active = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM account WHERE id = ? AND (status = 'ACTIVE'"
+                        + " OR (status = 'TEMPORARILY_LOCKED' AND locked_until <= ?))",
+                Integer.class,
+                accountId,
+                utc(at));
+        return active != null && active > 0;
+    }
+
+    /** Tài khoản đã có dòng lịch sử trạng thái nào chưa. */
+    public boolean hasStatusHistory(long accountId) {
+        return !statusHistory.list(AccountStatusDetails.TRACK, accountId).isEmpty();
+    }
+
+    /**
+     * Số tài khoản Hoạt động khác {@code excludedAccountId} đang có vai trò Quản lý viện; khóa các dòng đó để hai lệnh
+     * đồng thời không cùng thấy "còn người khác" (FR-012; research A-05).
+     */
+    public int otherActiveManagers(long excludedAccountId) {
+        return jdbc.queryForList(
+                        "SELECT ra.account_id FROM permission_assignment ra JOIN account a ON a.id = ra.account_id"
+                                + " WHERE ra.kind = 'ROLE_ASSIGNMENT' AND ra.role = 'AC-01' AND ra.effective_to IS NULL"
+                                + " AND a.status = 'ACTIVE'"
+                                + " AND ra.account_id <> ? FOR UPDATE",
+                        Long.class,
+                        excludedAccountId)
+                .size();
+    }
+
+    /** Tài khoản Hoạt động đang có vai trò tại {@code at} (người quyết định bản ghi chờ xem lại không gắn tầng, CHK056). */
+    public List<Long> activeWithRoleAt(Role role, Instant at) {
+        return jdbc.queryForList(
+                "SELECT a.id FROM account a JOIN permission_assignment r ON r.account_id = a.id"
+                        + " WHERE r.kind = 'ROLE_ASSIGNMENT' AND r.role = ? AND r.effective_from <= ?"
+                        + " AND (r.effective_to IS NULL OR r.effective_to > ?) AND a.status = 'ACTIVE'",
+                Long.class,
+                role.code(),
+                utc(at),
+                utc(at));
+    }
+
+    /**
+     * Tài khoản nhân viên Hoạt động (hoặc Khóa tạm đã hết hạn) cùng vai trò đang gán tại {@code at}, theo id (ứng viên
+     * người duyệt, FR-031a).
+     */
+    public List<StaffRoles> staffWithRolesAt(Instant at) {
+        LocalDateTime t = utc(at);
+        Map<Long, StaffRoles> byAccount = new LinkedHashMap<>();
+        jdbc.query(
+                "SELECT a.id, a.staff_id, r.role FROM account a JOIN permission_assignment r ON r.account_id = a.id"
+                        + " WHERE r.kind = 'ROLE_ASSIGNMENT' AND a.type = 'STAFF' AND (a.status = 'ACTIVE'"
+                        + " OR (a.status = 'TEMPORARILY_LOCKED' AND a.locked_until <= ?))"
+                        + " AND r.effective_from <= ? AND (r.effective_to IS NULL OR r.effective_to > ?)"
+                        + " ORDER BY a.id",
+                rs -> {
+                    long staffId = rs.getLong(2);
+                    byAccount
+                            .computeIfAbsent(
+                                    rs.getLong(1), id -> new StaffRoles(id, staffId, EnumSet.noneOf(Role.class)))
+                            .roles()
+                            .add(role(rs.getString(3)));
+                },
+                t,
+                t,
+                t);
+        return List.copyOf(byAccount.values());
+    }
+
+    /**
+     * Dòng gán vai trò Quản lý viện đang hiệu lực, khóa khoảng chỉ mục: hai lần khởi tạo đồng thời không cùng thấy "chưa
+     * có Quản lý viện" (BR-M15-22).
+     */
+    public List<Long> lockManagerAssignments() {
+        return jdbc.queryForList(
+                "SELECT id FROM permission_assignment WHERE kind = 'ROLE_ASSIGNMENT' AND role = 'AC-01'"
+                        + " AND effective_to IS NULL FOR UPDATE",
+                Long.class);
+    }
+
+    /**
+     * Tài khoản Quản lý viện đầu tiên (BR-M15-22): người tạo {@code NULL}, không phát {@code AccountCreated} như khi Quản
+     * lý viện tạo tài khoản.
+     */
+    public long insertFirstManager(long staffId, String username, String passwordHash) {
+        LocalDateTime now = utc(time.now());
+        GeneratedKeyHolder key = new GeneratedKeyHolder();
+        jdbc.update(
+                connection -> {
+                    PreparedStatement ps = connection.prepareStatement(
+                            "INSERT INTO account (username, type, staff_id, status, password_hash,"
+                                    + " must_change_password, inactivity_reference_at, created_at, created_by)"
+                                    + " VALUES (?, 'STAFF', ?, 'ACTIVE', ?, TRUE, ?, ?, NULL)",
+                            Statement.RETURN_GENERATED_KEYS);
+                    ps.setString(1, username);
+                    ps.setLong(2, staffId);
+                    ps.setString(3, passwordHash);
+                    ps.setObject(4, now);
+                    ps.setObject(5, now);
+                    return ps;
+                },
+                key);
+        return key.getKey().longValue();
+    }
+
+    public long insertStaff(long staffId, String username, String passwordHash, Long createdBy) {
+        return insert("staff_id", AccountType.STAFF, staffId, username, passwordHash, createdBy);
+    }
+
+    /** Tài khoản người thân (FR-050), buộc đổi mật khẩu lần đầu như tài khoản nhân viên. */
+    public long insertFamily(long familyMemberId, String username, String passwordHash, Long createdBy) {
+        return insert("family_member_id", AccountType.FAMILY_MEMBER, familyMemberId, username, passwordHash, createdBy);
+    }
+
+    /** Tài khoản người cao tuổi (FR-067), buộc đổi mật khẩu lần đầu như bảng chuyển trạng thái của spec. */
+    public long insertResident(long residentId, String username, String passwordHash, Long createdBy) {
+        return insert("resident_id", AccountType.RESIDENT, residentId, username, passwordHash, createdBy);
+    }
+
+    private long insert(
+            String linkColumn, AccountType type, long linkId, String username, String passwordHash, Long createdBy) {
+        LocalDateTime now = utc(time.now());
+        GeneratedKeyHolder key = new GeneratedKeyHolder();
+        jdbc.update(
+                connection -> {
+                    PreparedStatement ps = connection.prepareStatement(
+                            "INSERT INTO account (username, type, " + linkColumn + ", status, password_hash,"
+                                    + " must_change_password, inactivity_reference_at, created_at, created_by)"
+                                    + " VALUES (?, '" + type.name() + "', ?, 'ACTIVE', ?, TRUE, ?, ?, ?)",
+                            Statement.RETURN_GENERATED_KEYS);
+                    ps.setString(1, username);
+                    ps.setLong(2, linkId);
+                    ps.setString(3, passwordHash);
+                    ps.setObject(4, now);
+                    ps.setObject(5, now);
+                    ps.setObject(6, createdBy);
+                    return ps;
+                },
+                key);
+        long accountId = key.getKey().longValue();
+        events.publishEvent(new AccountCreated(accountId, type));
+        return accountId;
+    }
+
+    /** Tăng {@code version} khi lệnh đổi phần hiển thị của tài khoản mà không đổi trạng thái (gỡ thiết bị, FR-070). */
+    public void bumpVersion(long accountId) {
+        jdbc.update("UPDATE account SET version = version + 1 WHERE id = ?", accountId);
+    }
+
+    /** Tài khoản người cao tuổi theo hồ sơ (FR-067). */
+    public Optional<Account> byResident(long residentId) {
+        return jdbc
+                .query("SELECT " + COLUMNS + " FROM account WHERE resident_id = ?", AccountStore::row, residentId)
+                .stream()
+                .findFirst();
+    }
+
+    /**
+     * Chuyển trạng thái, tăng {@code version}, thêm một dòng lịch sử (data-model mục 2), phát {@code AccountStatusChanged}
+     * với nguyên nhân khóa (rỗng khi trạng thái mới không có nguyên nhân khóa).
+     */
+    public void changeStatus(long accountId, AccountStatus status, String lockCause, Long actorId) {
+        AccountStatus from = currentStatus(accountId);
+        LocalDateTime now = utc(time.now());
+        jdbc.update(
+                "UPDATE account SET status = ?, lock_cause = ?, locked_until = NULL, version = version + 1,"
+                        + " inactivity_reference_at = IF(? = 'ACTIVE', ?, inactivity_reference_at) WHERE id = ?",
+                status.name(),
+                lockCause,
+                status.name(),
+                now,
+                accountId);
+        history(accountId, status, lockCause, actorId);
+        events.publishEvent(new AccountStatusChanged(accountId, from, status, lockCause));
+    }
+
+    private AccountStatus currentStatus(long accountId) {
+        return AccountStatus.valueOf(
+                jdbc.queryForObject("SELECT status FROM account WHERE id = ?", String.class, accountId));
+    }
+
+    /** Thêm một dòng lịch sử trạng thái; {@code actorId} {@code null} là Bộ lập lịch hoặc khởi tạo hệ thống. */
+    public void history(long accountId, AccountStatus status, String lockCause, Long actorId) {
+        Instant now = time.now();
+        statusHistory.add(
+                AccountStatusDetails.TRACK,
+                accountId,
+                new HistoryEntry<>(
+                        HistoryKind.POINT,
+                        null,
+                        status.name(),
+                        null,
+                        now,
+                        null,
+                        actorId,
+                        actorId == null,
+                        null,
+                        null,
+                        null,
+                        new AccountStatusDetails(lockCause, null),
+                        null,
+                        AccountStatusDetails.uniqueKey(accountId, now)));
+    }
+
+    /** Kết thúc mọi phiên đang mở của tài khoản trong transaction của lệnh (FR-013). */
+    public void endSessions(long accountId, String reason) {
+        jdbc.update(
+                "UPDATE login_session SET ended_at = ?, end_reason = ? WHERE account_id = ? AND ended_at IS NULL",
+                utc(time.now()),
+                reason,
+                accountId);
+    }
+
+    public void resetPassword(long accountId, String passwordHash) {
+        jdbc.update(
+                "UPDATE account SET password_hash = ?, must_change_password = TRUE, failed_login_count = 0 WHERE id = ?",
+                passwordHash,
+                accountId);
+    }
+
+    public void addRole(long accountId, Role role, Long assignedBy, String reason) {
+        jdbc.update(
+                "INSERT INTO permission_assignment (kind, applies_to, account_id, role, effective_from, actor_id, reason)"
+                        + " VALUES ('ROLE_ASSIGNMENT', 'ACCOUNT', ?, ?, ?, ?, ?)",
+                accountId,
+                role.code(),
+                utc(time.now()),
+                assignedBy,
+                reason);
+    }
+
+    /** Đóng dòng gán vai trò đang hiệu lực; trả số dòng đã đóng. */
+    public int closeRole(long accountId, Role role) {
+        return jdbc.update(
+                "UPDATE permission_assignment SET effective_to = ? WHERE kind = 'ROLE_ASSIGNMENT' AND account_id = ?"
+                        + " AND role = ? AND effective_to IS NULL",
+                utc(time.now()),
+                accountId,
+                role.code());
+    }
+
+    public void bumpPermissionVersion(long accountId) {
+        jdbc.update("UPDATE account SET permission_version = permission_version + 1 WHERE id = ?", accountId);
+    }
+
+    // --- Đăng nhập, mật khẩu (US3) ---------------------------------------------------------------------------
+
+    /** Khóa dòng theo tên đăng nhập cho lệnh đăng nhập (đếm sai, chuyển khóa tạm trong cùng transaction). */
+    public Optional<Account> lockByUsername(String username) {
+        return jdbc
+                .query("SELECT " + COLUMNS + " FROM account WHERE username = ? FOR UPDATE", AccountStore::row, username)
+                .stream()
+                .findFirst();
+    }
+
+    public String passwordHash(long accountId) {
+        return jdbc.queryForObject("SELECT password_hash FROM account WHERE id = ?", String.class, accountId);
+    }
+
+    public boolean mustChangePassword(long accountId) {
+        return Boolean.TRUE.equals(
+                jdbc.queryForObject("SELECT must_change_password FROM account WHERE id = ?", Boolean.class, accountId));
+    }
+
+    /** Tăng bộ đếm sai bằng một câu lệnh (research A-03); trả giá trị mới. */
+    public int recordFailedLogin(long accountId) {
+        jdbc.update("UPDATE account SET failed_login_count = failed_login_count + 1 WHERE id = ?", accountId);
+        return jdbc.queryForObject("SELECT failed_login_count FROM account WHERE id = ?", Integer.class, accountId);
+    }
+
+    public void resetFailedLogins(long accountId) {
+        jdbc.update("UPDATE account SET failed_login_count = 0 WHERE id = ?", accountId);
+    }
+
+    /** Chuyển Khóa tạm tới {@code until} (FR-008), tăng {@code version}, thêm dòng lịch sử; Bộ lập lịch thực hiện. */
+    public void temporarilyLock(long accountId, Instant until) {
+        AccountStatus from = currentStatus(accountId);
+        jdbc.update(
+                "UPDATE account SET status = 'TEMPORARILY_LOCKED', lock_cause = NULL, locked_until = ?,"
+                        + " version = version + 1 WHERE id = ?",
+                utc(until),
+                accountId);
+        history(accountId, AccountStatus.TEMPORARILY_LOCKED, null, null);
+        events.publishEvent(new AccountStatusChanged(accountId, from, AccountStatus.TEMPORARILY_LOCKED, null));
+    }
+
+    /** Đăng nhập thành công: bộ đếm về 0, lưu lần đăng nhập, đặt lại mốc tính Không hoạt động (FR-008, FR-010). */
+    public void recordLogin(long accountId) {
+        LocalDateTime now = utc(time.now());
+        jdbc.update(
+                "UPDATE account SET failed_login_count = 0, last_login_at = ?, inactivity_reference_at = ? WHERE id = ?",
+                now,
+                now,
+                accountId);
+    }
+
+    public void changePassword(long accountId, String passwordHash) {
+        jdbc.update(
+                "UPDATE account SET password_hash = ?, must_change_password = FALSE WHERE id = ?",
+                passwordHash,
+                accountId);
+    }
+
+    /** Kích hoạt lại thì buộc đổi mật khẩu (bảng trạng thái FR-007). */
+    public void requirePasswordChange(long accountId) {
+        jdbc.update("UPDATE account SET must_change_password = TRUE WHERE id = ?", accountId);
+    }
+
+    /** Mở phiên; kết thúc trước mọi phiên đang mở trên thiết bị, của bất kỳ tài khoản nào (FR-014a, BR-M15-15). */
+    public void openSession(byte[] tokenHash, long accountId, String deviceId, String channel) {
+        LocalDateTime now = utc(time.now());
+        jdbc.update(
+                "UPDATE login_session SET ended_at = ?, end_reason = 'DEVICE_SIGNED_IN_ELSEWHERE'"
+                        + " WHERE device_id = ? AND ended_at IS NULL",
+                now,
+                deviceId);
+        jdbc.update(
+                "INSERT INTO login_session (token_hash, account_id, device_id, channel, started_at, last_active_at)"
+                        + " VALUES (?, ?, ?, ?, ?, ?)",
+                tokenHash,
+                accountId,
+                deviceId,
+                channel,
+                now,
+                now);
+    }
+
+    public void endSession(byte[] tokenHash, String reason) {
+        jdbc.update(
+                "UPDATE login_session SET ended_at = ?, end_reason = ? WHERE token_hash = ? AND ended_at IS NULL",
+                utc(time.now()),
+                reason,
+                tokenHash);
+    }
+
+    /** Tài khoản người thân Hoạt động có mốc tính trước {@code before} (FR-010; job Không hoạt động). */
+    public List<Long> familyActiveSince(Instant before) {
+        return jdbc.queryForList(
+                "SELECT id FROM account WHERE type = 'FAMILY_MEMBER' AND status = 'ACTIVE'"
+                        + " AND inactivity_reference_at < ? ORDER BY id",
+                Long.class,
+                utc(before));
+    }
+
+    /** Tài khoản người thân chưa Đã khóa (job khóa sau kết thúc lưu trú, FR-049). */
+    public List<Long> familyNotLocked() {
+        return jdbc.queryForList(
+                "SELECT id FROM account WHERE type = 'FAMILY_MEMBER' AND status <> 'LOCKED' ORDER BY id", Long.class);
+    }
+
+    public Instant inactivityReference(long accountId) {
+        return jdbc.queryForObject(
+                        "SELECT inactivity_reference_at FROM account WHERE id = ?", LocalDateTime.class, accountId)
+                .toInstant(ZoneOffset.UTC);
+    }
+
+    static Role role(String code) {
+        for (Role role : Role.values()) {
+            if (role.code().equals(code)) {
+                return role;
+            }
+        }
+        throw new IllegalStateException("Vai trò không có trong common.Role: " + code);
+    }
+
+    private static Account row(ResultSet rs, int i) throws SQLException {
+        return new Account(
+                rs.getLong("id"),
+                rs.getString("username"),
+                AccountType.valueOf(rs.getString("type")),
+                rs.getObject("staff_id", Long.class),
+                rs.getObject("family_member_id", Long.class),
+                rs.getObject("resident_id", Long.class),
+                AccountStatus.valueOf(rs.getString("status")),
+                rs.getString("lock_cause"),
+                instant(rs, "locked_until"),
+                instant(rs, "last_login_at"),
+                rs.getInt("version"),
+                rs.getInt("permission_version"));
+    }
+
+    private static Instant instant(ResultSet rs, String column) throws SQLException {
+        LocalDateTime value = rs.getObject(column, LocalDateTime.class);
+        return value == null ? null : value.toInstant(ZoneOffset.UTC);
+    }
+
+    private static LocalDateTime utc(Instant instant) {
+        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+    }
+}

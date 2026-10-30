@@ -39,8 +39,9 @@ java -jar backend.jar --eldercare.bootstrap-manager.run-once=true --eldercare.bo
 | `APPLY_DUE_REQUESTS` | phút 05, 20, 35, 50 mỗi giờ (gồm 00:05) và lúc ứng dụng khởi động | áp dụng bù yêu cầu Đã duyệt sau gián đoạn (FR-037a) |
 | `REMIND_PENDING_REQUESTS` | 15 phút một lần | nhắc, báo Quản lý viện theo CFG-M15-05, CFG-M15-06 |
 | `PURGE_EXPIRED_DATA` | 02:30 ngày 1 hằng tháng | loại bỏ dữ liệu hết hạn lưu giữ (FR-051) |
+| `CLEAN_TECHNICAL_DATA` | 03:15 hằng ngày (`eldercare.jobs.clean-technical-data.cron`) | xóa `idempotency_key` đã qua `expires_at`, `EVENT_PUBLICATION` đã giao xong quá 7 ngày (audit F-11, F-12) |
 
-Lịch là thông số kỹ thuật, không phải CFG. Lịch hai job đầu đổi được bằng `eldercare.jobs.apply-due-requests.cron`, `eldercare.jobs.remind-pending-requests.cron` (giá trị `-` là tắt; chỉ profile `test` tắt). ShedLock (bảng `shedlock`) giữ cho mỗi job không chạy chồng khi có nhiều bản ứng dụng. Mỗi lần chạy có một dòng trong `scheduler_run` (`result` là `SUCCEEDED` hoặc `FAILED`); kiểm bảng này khi theo dõi.
+Lịch là thông số kỹ thuật, không phải CFG. Lịch hai job đầu đổi được bằng `eldercare.jobs.apply-due-requests.cron`, `eldercare.jobs.remind-pending-requests.cron` (giá trị `-` là tắt; chỉ profile `test` tắt). ShedLock (bảng `shedlock`) giữ cho mỗi job không chạy chồng khi có nhiều bản ứng dụng. Từ 000 T108 (research R-15 mục 4, `V000_11`) bảng `scheduler_run` bỏ: mỗi lần chạy ghi hai dòng JSON dạng ECS (`event` `START`, `FINISH`; `job`, `jobRunId` là UUID, `result` `SUCCEEDED` hoặc `FAILED`, `processedCount`) vào `<eldercare.logging.jobs-dir>/jobs.log` (mặc định `logs/` cạnh thư mục chạy ứng dụng; profile `test` ghi `target/logs/`), cấu hình ở `src/main/resources/logback-spring.xml`. File xoay theo ngày (`jobs.YYYY-MM-DD.log`), giữ 180 ngày; sao lưu thư mục log cùng lịch sao lưu mục 4. Nhật ký của Bộ lập lịch ghi `basis.schedulerRunId` = `jobRunId` để tra chi tiết trong 180 ngày; sau đó nhật ký vẫn đủ căn cứ (mã quy tắc hoặc yêu cầu phê duyệt, thời điểm).
 
 ## 4. Sao lưu hằng ngày
 
@@ -55,8 +56,9 @@ Lịch là thông số kỹ thuật, không phải CFG. Lịch hai job đầu đ
    `--single-transaction` cho bản chụp nhất quán của bảng InnoDB mà không khóa ứng dụng. Phải có `--triggers`: trigger chỉ ghi thêm của nhóm 3 và nhật ký là một phần của quy tắc (R-05).
 2. Chép bản sao lưu ra nơi lưu trữ khác máy chủ cơ sở dữ liệu (mã hóa khi lưu, vì có dữ liệu sức khỏe).
 3. Xóa bản quá 30 ngày. Không giữ bản sao lưu lâu hơn 30 ngày: bản cũ chứa dữ liệu đã hết hạn lưu giữ và đã bị loại bỏ.
-4. Tệp đính kèm trên AWS S3 (001) sao lưu theo cơ chế của bucket (versioning, lifecycle 30 ngày); cấu hình cụ thể ghi ở plan 001.
-5. Hằng tháng khôi phục thử một bản vào máy riêng, đo thời gian (phải dưới 4 giờ), ghi kết quả.
+4. *(Khi xong 000 T108, research R-15)* Thư mục `logs/` của máy chủ ứng dụng (lần chạy job, xoay theo ngày): nén file của ngày trước, chép ra nơi lưu trữ cùng bản sao lưu cơ sở dữ liệu; giữ 180 ngày rồi xóa (cấu hình `logging.file.*` và `logging.structured.format.file` trong `application.yml`).
+5. Tệp đính kèm trên AWS S3 (001) sao lưu theo cơ chế của bucket (versioning, lifecycle 30 ngày); cấu hình cụ thể ghi ở plan 001.
+6. Hằng tháng khôi phục thử một bản vào máy riêng, đo thời gian (phải dưới 4 giờ), ghi kết quả.
 
 ## 5. Khôi phục
 
@@ -95,7 +97,7 @@ Sau mỗi đợt `PURGE_EXPIRED_DATA`, xuất bản tóm tắt (`audit_log` có 
 
 ## 8. Theo dõi
 
-- `scheduler_run` có `result = 'FAILED'` hoặc job không có dòng mới quá hai chu kỳ: kiểm log ứng dụng.
+- `jobs.log` có dòng `"result":"FAILED"` hoặc job không có dòng `START` mới quá hai chu kỳ: tìm theo `jobRunId` trong log ứng dụng.
 - Nhật ký `REQUEST_APPLY_ERROR`: yêu cầu áp dụng lỗi, vẫn Đã duyệt và được thử lại ở lần chạy sau; lặp lại thì báo nhóm phát triển.
 - Bảng `EVENT_PUBLICATION` có dòng chưa hoàn tất lâu: sự kiện chưa giao xong, được giao lại khi khởi động (R-09).
 

@@ -6,28 +6,89 @@ Tài liệu mô tả bảng, cột, ràng buộc. Đây không phải script SQL
 
 ---
 
+## 0. Gộp bảng theo R-15 *(bổ sung 2026-10-29, bản 2)*
+
+Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/research.md) (bản 2, chủ dự án duyệt 2026-10-29, constitution XII 3.2.0); không đổi nghiệp vụ, API, quyền. Mô tả bảng ở các mục sau vẫn là căn cứ cột và ràng buộc: bảng gộp mang đủ cột của bảng cũ (cột riêng vào `JSON` hoặc cột `NULL` có `CHECK` theo `loai`); ràng buộc duy nhất thành `khoa_duy_nhat`; dòng nhóm 3 hoặc đã khóa có `khoa_luc` và trigger theo dòng. Bảy bảng chung ở [data-model 000 mục 8](../000-shared-foundation/data-model.md): `danh_muc_chung`, `lich_su_chung`, `su_kien_chung`, `ho_so_chung`, `trang_thai_nct`, `moc_da_nhac`, `khoa_ky_thuat`. Khi cài thấy bảng nào không thể gộp mà vẫn giữ được BR, DBR thì giữ và ghi lý do ở plan.
+
+- Giữ, gộp: `yeu_cau_thong_bao` (nội dung, nhóm nhận thành `JSON`); `thong_bao` (+ `thong_bao_trang_thai`: cột trạng thái dẫn xuất được sửa sau khóa); `luot_nhac_goi` (+ `luot_nhac_goi_trang_thai`, như trên).
+- `danh_muc_chung`: `kenh_thong_bao`.
+- `su_kien_chung`: `su_kien_thong_bao`, `lan_gui`, `ket_qua_lan_gui`, `luot_nhac_goi_thong_bao`, `chuyen_nhac`, `ket_qua_goi`, `ket_qua_lien_he`.
+- `ho_so_chung`: `lien_he_truc_tiep`; `moc_da_nhac`: `notification_request_duplicate`; `ho_so_chung`: `khung_gop_tin_nhan` (giữ dữ liệu khung, không chỉ để khóa); `moc_da_nhac`: `m13_job_run` (lần chạy ra file log); giữ `thiet_bi_day` (`push_device`).
+- Bảng phụ, bảng con *(bổ sung 2026-10-30, rà đủ tên bảng của data-model)*: `lan_chay_m13` → `moc_da_nhac`; `yeu_cau_phan_noi_dung`, `yeu_cau_nhom_nhan` → cột `JSON` của `yeu_cau_thong_bao`. Không thêm bảng riêng.
+- Còn 4 bảng riêng của feature.
+
+### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V009_95`)*
+
+Mô tả dưới đây thay các mục 2 → 7 khi cài 009 T043; cột không nhắc lại giữ như bảng đã cài (`V009_01` → `V009_04`).
+
+**`notification_request`** (`yeu_cau_thong_bao`) – nhóm 3, chỉ thêm. Giữ mọi cột, `UNIQUE (source_record_type, source_record_id, event_key)`, `CHECK` lý do từ chối, trigger không sửa, không xóa. Thêm:
+
+| Cột | Kiểu | Thay cho |
+| --- | --- | --- |
+| `contents` | `JSON NOT NULL` | `notification_request_content`: mảng `{seq, informationType, content}`, `seq` không trùng |
+| `recipient_groups` | `JSON NOT NULL` | `notification_request_recipient_group`: mảng `{seq, groupCode, params, substitution, substituteGroup, outcome}` |
+
+Hai cột ghi cùng câu `INSERT` (trigger hiện có đã chặn sửa); backend kiểm JSON Schema `M13.RequestContents`, `M13.RecipientGroups` trước khi ghi.
+
+**`notification`** (`thong_bao`) – nhóm 3, khóa theo dòng (`khoa_luc` = `created_at`). Giữ mọi cột, `UNIQUE (request_id, recipient_type, recipient_id)`. Thêm các cột dẫn xuất của `notification_state` (bỏ bảng): `status`, `scheduled_send_at`, `sent_at`, `viewed_at`, `acknowledged_at`, `acknowledgement_method`, `hidden`, `resident_id`; `recipient_key` thành cột sinh `CONCAT(recipient_type, ':', recipient_id)`. Chỉ mục `(recipient_key, sent_at)`, `(status, scheduled_send_at)`, `(level, status, sent_at)` như `notification_state`. Quyền `eldercare_app`: `SELECT, INSERT`, `UPDATE (status, scheduled_send_at, sent_at, viewed_at, acknowledged_at, acknowledgement_method, hidden)` (quyền theo cột); trigger `trg_notification_row_lock` chặn đổi mọi cột khác.
+
+**`call_reminder`** (`luot_nhac_goi`) – nhóm 3, khóa theo dòng (`khoa_luc` = `created_at`). Giữ mọi cột. Thêm cột dẫn xuất của `call_reminder_state` (bỏ bảng): `status`, `final_result`, `stop_reason`, `due_at`, `current_staff_id`, `callee_key`; cột sinh `pending_key` `UNIQUE` và chỉ mục `(status, due_at)` như cũ. Quyền theo cột `UPDATE (status, final_result, stop_reason, due_at, current_staff_id)`; trigger chặn đổi cột khác.
+
+**`push_device`** – kỹ thuật, giữ nguyên (token đẩy do 009 quản lý, không chuyển sang `thiet_bi` của 002).
+
+**Loại ở bảng chung** (JSON Schema ở `notification/internal/.../schema`, tên theo glossary mục 15):
+
+| Bảng chung | `loai` | Đối tượng | `noi_dung` / `thuoc_tinh` | `khoa_duy_nhat`, ràng buộc chuyển về backend |
+| --- | --- | --- | --- | --- |
+| `danh_muc_chung` | `M13.NOTIFICATION_CHANNEL` | — | `ma` = mã kênh; `{enabled, levels[], config}` | `UNIQUE (loai, ma)` |
+| `su_kien_chung` | `M13.NOTIFICATION_EVENT` | `NOTIFICATION` | `{type, acknowledgementMethod, reason, scheduledSendAt}`; `nguoi_thuc_hien_id` = `actor_id` | `M13.NE:<notificationId>:<type>` với `SEND`, `NOT_SENT`, `VIEW`, `ACKNOWLEDGE` (thay `once_key`); `acknowledgementMethod` có khi và chỉ khi `ACKNOWLEDGE`; `scheduledSendAt` bắt buộc với `HOLD`, `RESCHEDULE` |
+| `su_kien_chung` | `M13.DELIVERY_ATTEMPT` | `NOTIFICATION` | `{channel, address, attemptNo, scheduledAt, batchWindowId, content}` | `M13.DA:<notificationId>:<channel>:<attemptNo>`; cột sinh `m13_scheduled_at` có chỉ mục cho job gửi |
+| `su_kien_chung` | `M13.DELIVERY_RESULT` | `DELIVERY_ATTEMPT` (id sự kiện lần gửi) | `{result, reason, digestAttemptId}` | `M13.DR:<attemptId>` (một kết quả mỗi lần gửi) |
+| `su_kien_chung` | `M13.CALL_REMINDER_NOTIFICATION` | `CALL_REMINDER` | `{notificationId, mergedAt}` | `M13.CRN:<notificationId>` |
+| `su_kien_chung` | `M13.CALL_REMINDER_HANDOFF` | `CALL_REMINDER` | `{previousStaffId, remindedStaffId, tier, reason, dueAt}` | — |
+| `su_kien_chung` | `M13.CALL_RESULT` | `CALL_REMINDER` | `{calledAt, calledPhoneNumber, result, reason, answeredBy, note, supplementary}`; `nguoi_thuc_hien_id` = `called_by` | `reason` bắt buộc khi `NOT_REACHED`, `note` bắt buộc khi `REACHED` |
+| `su_kien_chung` | `M13.DIRECT_CONTACT_RESULT` | `DIRECT_CONTACT` (id hồ sơ) | `{occurredAt, result, reason, note}`; `nguoi_thuc_hien_id` = `contacted_by` | `M13.DCR:<directContactId>`; `reason` bắt buộc khi `UNREACHABLE` |
+| `ho_so_chung` | `M13.DIRECT_CONTACT` | `NOTIFICATION` | `{familyMemberId, fullName, relationship, phoneNumber, shortContent, remindedAt}`; `trang_thai` `PENDING`, `CONTACTED`, `UNREACHABLE` | `M13.DC:<notificationId>`; `khoa_luc` đặt khi rời `PENDING` (thay `trg_direct_contact_final`) |
+| `ho_so_chung` | `M13.SMS_BATCH_WINDOW` | — | `{recipientKey, startedAt, endsAt, firstAttemptId, digestAttemptId}`; `trang_thai` `OPEN`, `CLOSED` | `M13.SBW:<recipientKey>` khi `OPEN`, `NULL` khi đóng (thay `open_key`); cột sinh `m13_window_ends_at` có chỉ mục |
+| `moc_da_nhac` | `M13.REQUEST_DUPLICATE` | `NOTIFICATION_REQUEST` | `moc` = thời điểm nhận bản trùng | |
+| `moc_da_nhac` | `M13.JOB_DONE` | `JOB` (mã job) | `moc` = ngày nghiệp vụ (thay `m13_job_run`; lần chạy ra `logs/jobs.log`) | |
+
+**Chuyển dữ liệu (`V009_95`)**: chép `notification_request_content`, `notification_request_recipient_group` vào JSON; `notification_state` vào `notification` (migration chạy bằng tài khoản Flyway: xóa trigger cũ, chép, tạo trigger mới); `call_reminder_state` vào `call_reminder`; các bảng sự kiện, kết quả, liên hệ trực tiếp, khung gộp tin, bản trùng, `m13_job_run` vào bảng chung, cấp id mới, ghi `legacy`. Các id tham chiếu trong JSON (`digestAttemptId`, `firstAttemptId`, `batchWindowId`) đổi sang id mới theo bảng ánh xạ tạm trong migration. `delivery_attempt` không là đích của `dinh_chinh`.
+
+**Bảo đảm DBR, FR** (thay phần tương ứng ở mục 8): một sự kiện `SEND`, `VIEW`, `ACKNOWLEDGE` mỗi thông báo và một kết quả mỗi lần gửi bằng `khoa_duy_nhat`; một lượt nhắc gọi đang chờ mỗi người cần gọi bằng `pending_key`; một khung gộp tin mở mỗi người nhận bằng `khoa_duy_nhat`. Test: `NotificationEventOnceIT`, `DeliveryResultOnceIT`, `CallReminderPendingUniqueIT`, `SmsBatchWindowOpenUniqueIT` (viết mới hoặc đổi từ test hiện có), `RecordGroupTriggerIT` với `notification`, `call_reminder`.
+
+**Bảng truy vết sau gộp** *(bổ sung 2026-10-30; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR, BR ở các mục sau theo bảng này)*:
+
+| Mã | Bảo đảm sau gộp | Test |
+| --- | --- | --- |
+| FR-005 | Không trùng yêu cầu: `UNIQUE (source_record_type, source_record_id, event_key)` giữ; bản trùng ở `moc_da_nhac` | `FR_005_DeduplicationIT` |
+| FR-012 | Một thông báo mỗi người nhận mỗi yêu cầu: `UNIQUE (request_id, recipient_type, recipient_id)` giữ | test nhận người nhận hiện có |
+| FR-032 | Một lượt nhắc gọi đang chờ mỗi người cần gọi: `call_reminder.pending_key` `UNIQUE` | `BR_M13_02_CallReminderIT` |
+| NFR (L2) | Sự kiện thông báo, lần gửi vào `su_kien_chung` (bảng lớn nhất): truy vấn theo `(loai_doi_tuong, doi_tuong_id, loai)`; hộp thông báo đọc `notification` (cột dẫn xuất có chỉ mục) | đo lại phần NFR của quickstart sau T043 |
+
+**Test phải đổi bảng đích** *(rà 2026-10-30; 23 file đọc, ghi thẳng bảng cũ bằng SQL)*: giữ kịch bản nghiệp vụ, chỉ đổi bảng, cột đích.
+- Test của module: `BR_M13_01_ChannelSelectionIT`, `BR_M13_02_CallReminderIT`, `BR_M13_03_QuietHoursIT`, `BR_M13_04_ShiftGroupsIT`, `CallReminderTestBase`, `FR_003_RequestValidationIT`, `FR_005_DeduplicationIT`, `FR_014_015_ConsentAndDeathIT`, `FR_016_ChannelConfigIT`, `FR_016a_OffShiftIT`, `FR_016b_SmsBatchingIT`, `FR_021_DirectContactIT`, `FR_022a_ResidentRecipientIT`, `FR_024_ParameterChangeIT`, `FR_026_AcknowledgeIT`, `FR_029a_CallResultIT`, `FR_031_CorrectionResidentIT`, `InboxIT`, `M13ProvidersIT`, `M13RecordGroupTriggerIT`, `NFR_03_DeliveryDispatcherIT`, `NFR_04_M13CatchUpIT`, `RecipientResolutionIT`.
+
+---
+
 ## 1. Tổng quan
 
 | Bảng | Nhóm (1.5) | Mục spec |
 | --- | --- | --- |
-| `kenh_thong_bao` | 1 | G (FR-016, FR-039) |
-| `yeu_cau_thong_bao`, `yeu_cau_phan_noi_dung`, `yeu_cau_nhom_nhan` | 3 | A (FR-001 → FR-005) |
+| `kenh_thong_bao` | 1 | G (FR-016, FR-039) *(R-15: `kenh_thong_bao` → `danh_muc_chung`)* |
+| `yeu_cau_thong_bao`, `yeu_cau_phan_noi_dung`, `yeu_cau_nhom_nhan` | 3 | A (FR-001 → FR-005) *(R-15: `yeu_cau_phan_noi_dung`, `yeu_cau_nhom_nhan` → cột `JSON` của `yeu_cau_thong_bao`)* |
 | `thong_bao` | 3 | B, F (một người nhận một dòng) |
-| `su_kien_thong_bao` | 3 | F (FR-044, trạng thái suy ra) |
-| `thong_bao_trang_thai` | Kỹ thuật (dẫn xuất) | F (research B-09) |
-| `lan_gui`, `ket_qua_lan_gui` | 3 | C (FR-018) |
-| `khung_gop_tin_nhan` | Kỹ thuật | C (FR-016b) |
-| `luot_nhac_goi`, `luot_nhac_goi_thong_bao`, `chuyen_nhac` | 3 | E (FR-027 → FR-030a) |
-| `luot_nhac_goi_trang_thai` | Kỹ thuật (dẫn xuất) | E (FR-030, FR-032) |
-| `ket_qua_goi` | 3 | E (FR-030, FR-031) |
-| `lien_he_truc_tiep` | 2 | C (FR-021) |
-| `ket_qua_lien_he` | 3 | C (FR-021, FR-031) |
+| `su_kien_thong_bao` | 3 | F (FR-044, trạng thái suy ra) *(R-15: `su_kien_thong_bao` → `su_kien_chung`)* |
+| `lan_gui`, `ket_qua_lan_gui` | 3 | C (FR-018) *(R-15: `lan_gui`, `ket_qua_lan_gui` → `su_kien_chung`)* |
+| `luot_nhac_goi`, `luot_nhac_goi_thong_bao`, `chuyen_nhac` | 3 | E (FR-027 → FR-030a) *(R-15: `luot_nhac_goi_thong_bao`, `chuyen_nhac` → `su_kien_chung`)* |
+| `ket_qua_goi` | 3 | E (FR-030, FR-031) *(R-15: `ket_qua_goi` → `su_kien_chung`)* |
+| `lien_he_truc_tiep` | 2 | C (FR-021) *(R-15: `lien_he_truc_tiep` → `ho_so_chung`)* |
+| `ket_qua_lien_he` | 3 | C (FR-021, FR-031) *(R-15: `ket_qua_lien_he` → `su_kien_chung`)* |
 | `thiet_bi_day` | Kỹ thuật | C (token FCM theo tài khoản, thiết bị; 002 cấp mã thiết bị) |
-| `lan_chay_m13` | Kỹ thuật | Job (B-10) |
 
 ---
 
-## 2. `kenh_thong_bao` – nhóm 1
+## 2. `kenh_thong_bao` – nhóm 1 → gộp theo R-15: `kenh_thong_bao` → `danh_muc_chung`
 
 `ma` (`TRONG_UNG_DUNG`, `CONG_NGUOI_THAN`, `TIN_NHAN`, `KHAC_*`; khóa chính), `ten`, `bat`, `muc_gan` `SET('NHE','TRUNG_BINH','KHAN_CAP')` (chỉ với kênh khác; mặc định Khẩn cấp), `cau_hinh` `JSON` (thông tin nhà cung cấp; không có bí mật, bí mật ở cấu hình triển khai), `phien_ban`. Đổi có nhật ký và lý do (FR-040).
 
@@ -52,13 +113,9 @@ Tài liệu mô tả bảng, cột, ràng buộc. Đây không phải script SQL
 | `ma_truong_hop` | `ENUM('KHAN_CAP_NGUOI_LIEN_HE_CHINH','DANH_SACH_TIEP_XUC','XAC_NHAN_LAI_NGUYEN_VONG','CHUYEN_VIEN','QUA_DOI') NULL` | Mã Q-354 do module nguồn khai | FR-001a, FR-014a (bổ sung 2026-10-18) |
 Lần nhận trùng (FR-005) không sửa dòng nhóm 3: mỗi lần ghi một dòng ở bảng kỹ thuật `yeu_cau_nhan_trung (yeu_cau_id, thoi_diem)`; view tra cứu đếm số dòng.
 
-### `yeu_cau_phan_noi_dung` – nhóm 3
+### `yeu_cau_phan_noi_dung` *(gộp theo R-15 vào cột `JSON` của `yeu_cau_thong_bao`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-`yeu_cau_id`, `thu_tu`, `loai_thong_tin` (`CHUNG`, `SUC_KHOE`, `CHI_PHI`, `THAM_NOM`, `HOP_DONG`; thiếu → `SUC_KHOE`), `noi_dung`.
-
-### `yeu_cau_nhom_nhan` – nhóm 3
-
-`yeu_cau_id`, `thu_tu`, `nhom` (mã biến thể `NhomNhan`, research B-04), `tham_so` `JSON`, `cach_thay` (`MAC_DINH`, `KHONG_THAY`, `NGUOI_THAY_CHI_DINH`), `nhom_thay` `JSON NULL`, `ket_qua` (`CO_NGUOI`, `THAY`, `BO_QUA_KHONG_THAY`, `KHONG_CO`).
+### `yeu_cau_nhom_nhan` *(gộp theo R-15 vào cột `JSON` của `yeu_cau_thong_bao`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ---
 
@@ -79,43 +136,23 @@ Lần nhận trùng (FR-005) không sửa dòng nhóm 3: mỗi lần ghi một d
 
 Không `UPDATE`, không `DELETE` (mẫu 000).
 
-### `su_kien_thong_bao` – nhóm 3
+### `su_kien_thong_bao` *(gộp theo R-15 vào `su_kien_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-`thong_bao_id`, `loai` (`GIU`, `TAI_DINH_THOI`, `GUI`, `KHONG_GUI`, `XEM`, `XAC_NHAN`, `KHONG_LIEN_LAC_DUOC`, `AN`), `cach_xac_nhan` (`TRONG_UNG_DUNG`, `QUA_CUOC_GOI`, `XAC_NHAN_MUON`, `XAC_NHAN_MUON_QUA_CUOC_GOI`), `ly_do`, `gui_du_kien` (với `GIU`, `TAI_DINH_THOI`), `nguoi_thuc_hien_id NULL` (rỗng = Hệ thống), `thoi_diem`. `UNIQUE (thong_bao_id, loai)` với `loai IN ('XEM','XAC_NHAN','GUI','KHONG_GUI')` qua cột sinh (xem lần đầu, xác nhận một lần; FR-034).
-
-### `thong_bao_trang_thai` – kỹ thuật (dẫn xuất)
-
-`thong_bao_id` (khóa chính), `trang_thai` (`CHO_HET_GIO_YEN_TINH`, `KHONG_GUI`, `DA_GUI`, `GUI_THAT_BAI`, `DA_XEM`, `DA_XAC_NHAN`, `KHONG_LIEN_LAC_DUOC`), `gui_du_kien`, `gui_luc`, `xem_luc`, `xac_nhan_luc`, `cach_xac_nhan`, `an`, `nguoi_nhan_key` (để lọc hộp thư), `muc`, `nct_id`. Cập nhật cùng transaction với `su_kien_thong_bao`, `ket_qua_lan_gui`; chỉ mục `(nguoi_nhan_key, gui_luc)`, `(trang_thai, gui_du_kien)`, `(muc, trang_thai, gui_luc)`.
-
-**Bảng chuyển** (khớp FR-044; trạng thái tính từ sự kiện):
-
-| Từ | Sự kiện | Đến | Người | Điều kiện |
-| --- | --- | --- | --- | --- |
-| — | Xác định người nhận | `CHO_HET_GIO_YEN_TINH` | Hệ thống | Người thân (Nhẹ/Trung bình) hoặc người cao tuổi (Nhẹ), trong giờ yên tĩnh |
-| — | Xác định người nhận | `DA_GUI` / `GUI_THAT_BAI` | Hệ thống | Còn lại |
-| `CHO_HET_GIO_YEN_TINH` | Tới `gui_du_kien` | `DA_GUI` / `GUI_THAT_BAI` | Hệ thống | Còn đủ điều kiện |
-| `CHO_HET_GIO_YEN_TINH` | Tới `gui_du_kien` | `KHONG_GUI` | Hệ thống | Không còn đủ điều kiện; người cao tuổi Qua đời |
-| `DA_GUI` | Mở | `DA_XEM` | Người nhận | — |
-| `DA_GUI`, `DA_XEM` (Khẩn cấp) | Xác nhận | `DA_XAC_NHAN` | Người nhận | Trực tuyến |
-| `DA_GUI`, `DA_XEM`, `GUI_THAT_BAI` (Khẩn cấp) | Kết quả gọi "Đã liên lạc được" | `DA_XAC_NHAN` | Người gọi | — |
-| `DA_GUI`, `DA_XEM`, `GUI_THAT_BAI` (Khẩn cấp) | Mọi lượt nhắc của thông báo "Không liên lạc được" | `KHONG_LIEN_LAC_DUOC` | Hệ thống | Không còn lượt Chờ |
-| `KHONG_LIEN_LAC_DUOC` | Xác nhận / lần gọi bổ sung "Đã liên lạc được" | `DA_XAC_NHAN` | Người nhận / người gọi | Xác nhận muộn |
+### `thong_bao_trang_thai` *(gộp theo R-15 vào `thong_bao` (cột dẫn xuất); mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ---
 
 ## 5. Gửi theo kênh (mục C)
 
-### `lan_gui` – nhóm 3
+### `lan_gui` *(gộp theo R-15 vào `su_kien_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-`id`, `thong_bao_id`, `kenh`, `dia_chi` (số điện thoại, token; hiển thị che một phần), `lan_thu` (1 + số lần gửi lại), `du_kien_luc`. `UNIQUE (thong_bao_id, kenh, lan_thu)` (gửi lại không trùng, NFR-04).
+### `ket_qua_lan_gui` *(gộp theo R-15 vào `su_kien_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-### `ket_qua_lan_gui` – nhóm 3
+### `khung_gop_tin_nhan` *(gộp theo R-15 vào `ho_so_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-`lan_gui_id`, `ket_qua` (`DA_GUI`, `THAT_BAI`, `KENH_CHUA_CAU_HINH`, `KHONG_CO_DIA_CHI`, `BO_QUA_NGOAI_CA`, `DA_GOP`, `NOI_DUNG_KHONG_HOP_LE`), `ly_do`, `tin_tong_hop_id NULL` (với `DA_GOP`), `thoi_diem`. `UNIQUE (lan_gui_id)`.
+### `notification_request_duplicate` – kỹ thuật *(ghi 2026-10-30 theo audit cơ sở dữ liệu)*
 
-### `khung_gop_tin_nhan` – kỹ thuật
-
-`nguoi_nhan_key`, `bat_dau`, `ket_thuc`, `da_dong_luc`, `tin_tong_hop_lan_gui_id NULL`. Cột sinh `khoa_mo = IF(da_dong_luc IS NULL, nguoi_nhan_key, NULL)` `UNIQUE` (một khung mở mỗi người).
+Bảng đã cài ở `V009_01`: một dòng mỗi lần nhận trùng yêu cầu (`request_id`, `received_at`, FR-005), không sửa dòng yêu cầu. Theo R-15 gộp vào `moc_da_nhac` (mục 0, 009 T043).
 
 ### `thiet_bi_day` – kỹ thuật
 
@@ -129,46 +166,21 @@ Không `UPDATE`, không `DELETE` (mẫu 000).
 
 `id`, `chuoi_goi_id` (bằng `id` của lượt đầu chuỗi), `loai_nguoi_can_goi` (`NHAN_VIEN`, `NGUOI_THAN`), `nguoi_can_goi_id`, `nct_id NULL`, `nguon_khi_khong_nct` (loại, id) `NULL`, `tang_khu_vuc_id NULL`, `tao_luc`, `ly_do_tao` (`QUA_HAN_XAC_NHAN`, `GUI_THAT_BAI`, `KHONG_LIEN_LAC_NGUOI_TRUOC`).
 
-### `luot_nhac_goi_thong_bao` – nhóm 3
+### `luot_nhac_goi_thong_bao` *(gộp theo R-15 vào `su_kien_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-`luot_id`, `thong_bao_id` `UNIQUE` (mỗi thông báo tối đa một lượt tự động, FR-032), `gop_luc`.
+### `chuyen_nhac` *(gộp theo R-15 vào `su_kien_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-### `chuyen_nhac` – nhóm 3
+### `luot_nhac_goi_trang_thai` *(gộp theo R-15 vào `luot_nhac_goi` (cột dẫn xuất); mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-`luot_id`, `nguoi_duoc_nhac_truoc_id NULL`, `nguoi_duoc_nhac_id`, `ly_do` (`KHOI_TAO`, `QUA_HAN`, `HET_CA`, `GOP_CAP_NHAT`, `NHAC_LAI_QLV`), `han_luc` (`thoi_diem + CFG-M13-04`), `thoi_diem`.
-
-### `luot_nhac_goi_trang_thai` – kỹ thuật (dẫn xuất)
-
-`luot_id` (khóa chính), `trang_thai` (`CHO_KET_QUA`, `DA_CO_KET_QUA`, `DA_DUNG`), `ket_qua_cuoi`, `ly_do_dung`, `han_luc`, `nguoi_duoc_nhac_hien_tai_id`, `khoa_cho` (cột sinh, research B-08) `UNIQUE` — tối đa một lượt Chờ mỗi (người cần gọi, người cao tuổi) (FR-032, Q-100).
-
-**Bảng chuyển** (khớp FR-030):
-
-| Từ | Sự kiện | Đến | Người |
-| --- | --- | --- | --- |
-| — | Gửi lượt nhắc | `CHO_KET_QUA` | Hệ thống |
-| `CHO_KET_QUA` | Kết quả "Đã liên lạc được" | `DA_CO_KET_QUA` | Người có quyền gọi |
-| `CHO_KET_QUA` | Kết quả "Không liên lạc được" | `DA_CO_KET_QUA` (không liên lạc được) | Người có quyền gọi |
-| `CHO_KET_QUA` | Gộp thêm thông báo | `CHO_KET_QUA` | Hệ thống |
-| `CHO_KET_QUA` | Người nhận tự xác nhận mọi thông báo của lượt | `DA_DUNG` | Hệ thống |
-| `CHO_KET_QUA` | Người cần gọi không còn đủ điều kiện | `DA_DUNG` | Hệ thống |
-| `CHO_KET_QUA` | Quá hạn CFG-M13-04; người được nhắc hết ca | `CHO_KET_QUA` | Hệ thống |
-| `CHO_KET_QUA` | Sự cố hạ mức khỏi Khẩn cấp; đã có kết quả xác nhận lại (nguy kịch) | `DA_DUNG` | Hệ thống |
-
-### `ket_qua_goi` – nhóm 3
-
-`id`, `luot_id`, `nguoi_goi_id`, `goi_luc`, `so_da_goi`, `ket_qua` (`DA_LIEN_LAC`, `KHONG_LIEN_LAC`), `ly_do` (`KHONG_NGHE_MAY`, `SAI_SO`, `KHONG_CO_SO`, khác), `nguoi_nghe_may`, `ghi_chu`, `bo_sung` (lần gọi bổ sung, FR-029a), `tao_luc`. Đính chính qua 000 (loại `M13.KET_QUA_GOI`).
+### `ket_qua_goi` *(gộp theo R-15 vào `su_kien_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ---
 
 ## 7. Liên hệ trực tiếp (FR-021)
 
-### `lien_he_truc_tiep` – nhóm 2
+### `lien_he_truc_tiep` *(gộp theo R-15 vào `ho_so_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
-`id`, `thong_bao_id` `UNIQUE`, `nguoi_than_id NULL`, `ho_ten`, `quan_he`, `so_dien_thoai`, `noi_dung_rut_gon`, `trang_thai` (`CHO_LIEN_HE`, `DA_LIEN_HE`, `KHONG_LIEN_HE_DUOC`), `da_nhac_luc`, `phien_ban`. Trigger chặn mọi đổi khi trạng thái cuối.
-
-### `ket_qua_lien_he` – nhóm 3
-
-`lien_he_id`, `nguoi_lien_he_id` (Hành chính), `thoi_diem`, `ket_qua`, `ly_do` (bắt buộc khi không liên hệ được), `ghi_chu`.
+### `ket_qua_lien_he` *(gộp theo R-15 vào `su_kien_chung`; mô tả cũ đã bỏ 2026-10-30, lược đồ và ràng buộc ở mục 0.1)*
 
 ---
 
@@ -178,9 +190,9 @@ Không `UPDATE`, không `DELETE` (mẫu 000).
 | --- | --- | --- |
 | Yêu cầu duy nhất theo (bản ghi nguồn, khóa sự kiện) | `UNIQUE` trên `yeu_cau_thong_bao` | FR-005, NFR-04 |
 | Mỗi người nhận tối đa một thông báo mỗi yêu cầu | `UNIQUE (yeu_cau_id, loai_nguoi_nhan, nguoi_nhan_id)` | FR-012 |
-| Mỗi thông báo thuộc tối đa một lượt nhắc tự động | `UNIQUE (thong_bao_id)` trên `luot_nhac_goi_thong_bao` | FR-032 |
+| Mỗi thông báo thuộc tối đa một lượt nhắc tự động | `UNIQUE (thong_bao_id)` trên `luot_nhac_goi_thong_bao` | FR-032 *(R-15: `luot_nhac_goi_thong_bao` → `su_kien_chung`)* |
 | Tối đa một lượt Chờ mỗi (người cần gọi, người cao tuổi) | `UNIQUE khoa_cho` | FR-032, Q-100 |
-| Xem lần đầu, xác nhận một lần | `UNIQUE` cột sinh trên `su_kien_thong_bao` | FR-034 |
+| Xem lần đầu, xác nhận một lần | `UNIQUE` cột sinh trên `su_kien_thong_bao` | FR-034 *(R-15: `su_kien_thong_bao` → `su_kien_chung`)* |
 | Thông báo, lần gửi, xác nhận, kết quả gọi không sửa, không xóa | Nhóm 3 theo mẫu 000 (tài khoản `eldercare_app` không có `UPDATE`, `DELETE`) | FR-036 |
 | Gửi lại không trùng | `UNIQUE (thong_bao_id, kenh, lan_thu)` | FR-018, NFR-04 |
 | Một khung gộp mở mỗi người | `UNIQUE khoa_mo` | FR-016b |
@@ -190,7 +202,7 @@ Không `UPDATE`, không `DELETE` (mẫu 000).
 
 ## 9. Nhật ký và phân loại trường
 
-- Nhật ký (`NhatKyApi`) cho lệnh người dùng: xác nhận Khẩn cấp, kết quả gọi, liên hệ trực tiếp, cấu hình kênh (lý do). Hoạt động của hệ thống được ghi ở `su_kien_thong_bao`, `ket_qua_lan_gui`, `chuyen_nhac` (người thực hiện Hệ thống, sự kiện kích hoạt) (FR-040; research B-13).
+- Nhật ký (`NhatKyApi`) cho lệnh người dùng: xác nhận Khẩn cấp, kết quả gọi, liên hệ trực tiếp, cấu hình kênh (lý do). Hoạt động của hệ thống được ghi ở `su_kien_thong_bao`, `ket_qua_lan_gui`, `chuyen_nhac` (người thực hiện Hệ thống, sự kiện kích hoạt) (FR-040; research B-13). *(R-15: `su_kien_thong_bao`, `ket_qua_lan_gui`, `chuyen_nhac` → `su_kien_chung`)*
 - `PhanLoaiTruongProvider`: `yeu_cau_phan_noi_dung.noi_dung` theo `loai_thong_tin`; số điện thoại → `LIEN_HE`.
 
 ---

@@ -22,7 +22,7 @@ frontend/ npm ci && npm test && npm run dev
 mobile/   flutter test
 ```
 
-Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()`, ArchUnit (chỉ `m11.sodu` dùng port P-12), test cơ sở dữ liệu (data-model mục 9) và nhóm test ở mục 4.
+Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()`, ArchUnit (chỉ `billing.sodu` dùng port P-12), test cơ sở dữ liệu (data-model mục 9) và nhóm test ở mục 4.
 
 ## 3. Kịch bản kiểm chứng đầu–cuối (profile demo)
 
@@ -61,7 +61,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()`, ArchUnit (ch�
 | Q29 | Xuất sao kê A 01/10 → 31/10 Excel rồi PDF | Đầu kỳ 1.000.000, hai giao dịch, cuối kỳ 1.700.000; PDF cùng số liệu, có thông tin viện | US8 #1, #7, FR-025 |
 | Q30 | Xuất báo cáo thu chi tháng 10 (nộp 55.000.000, trừ 48.000.000, hoàn 2.000.000, B nợ 1.500.000) | Ba tổng và danh sách còn nợ gồm B; không có giao dịch Chờ duyệt, Từ chối | US8 #2, #3, Q-386 |
 | Q31 | HC xuất báo cáo; xuất khoảng 13 tháng | 403; 422 `VUOT_KHOANG_XUAT` | US8 #4, #6 |
-| Q32 | Mỗi lần xuất; dữ liệu đổi rồi tải lại | Có `lan_xuat_so_du` đủ trường; file không đổi | US8 #5, FR-027 |
+| Q32 | Mỗi lần xuất; dữ liệu đổi rồi tải lại | Có `lan_xuat_so_du` đủ trường; file không đổi | US8 #5, FR-027 *(R-15: `lan_xuat_so_du` → hành động `nhat_ky`)* |
 | Q33 | R xuất sao kê trên cổng PDF; N thử | 200 file; 403 | FR-026 |
 | Q34 | A Còn nợ: DD phát thuốc, nhân viên ghi công việc, bếp chốt suất | Không lệnh nào bị chặn | US5 #5, FR-020 |
 | Q35 | Hồ sơ trạng thái cuối còn nợ; QL dừng nhắc có lý do; chạy job | Không nhắc nữa | FR-020 |
@@ -69,7 +69,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()`, ArchUnit (ch�
 
 ## 4. Test tự động: truy vết kịch bản → test
 
-| Spec | Lớp test (backend, `com.cambae.backend.m11.sodu…`) | Loại |
+| Spec | Lớp test (backend, `com.eldercare.backend.billing.sodu…`) | Loại |
 | --- | --- | --- |
 | US1, FR-001 → FR-004 | `MoSoIT`, `VietQrPayloadTest`, `SoDuHienThiIT`, `CongSoDuIT` | Đơn vị, tích hợp |
 | US2, US3, FR-005 → FR-007 | `BR_M11_16_TienMatIT`, `BR_M11_12_ChuyenKhoanIT`, `TrangThaiDatCocTest`, `FR_006_DatCocIT` | Đơn vị, tích hợp |

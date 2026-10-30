@@ -21,10 +21,10 @@ Module M14 chỉ đọc qua giao diện thống kê và API đọc của module 
 | `ChiPhiThongKeApi` | 010 | |
 | `DinhDuongThongKeApi` | 011 | |
 | `HoatDongThongKeApi` | 014 | |
-| `XoayCaThongKeApi` | 015 | |
+| `DoiCaThongKeApi` (tên cũ `XoayCaThongKeApi`; Q-397) | 015 | |
 | `SoDuThongKeApi` | 017 | |
 | `KhaiBaoThongKeApi` | 018 | |
-| `TaiSanThongKeApi`, `KhoThongKeApi`, `MuaSamThongKeApi` | 019 | |
+| `TaiSanThongKeApi`, `MuaSamThongKeApi` | 019 | `KhoThongKeApi` bỏ theo Q-392 |
 
 Không dùng ở giai đoạn này (Q-194): `NguoiThanThongKeApi` (012), `DoGuiThongKeApi` (013), thống kê thông báo (009).
 

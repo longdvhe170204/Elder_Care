@@ -1,5 +1,7 @@
 # Implementation Plan: Chi phí phát sinh
 
+> **Sửa 2026-10-29 (Q-395):** bỏ bảng hệ số phí khi vắng; nội trú vắng tính như ngày lưu trú, từ ngày Giải phóng giường không tính phí lưu trú; bỏ dấu "chờ quyết định", "không có dòng chính sách". Spec FR-005a, FR-007, FR-009 là căn cứ; chỗ nào dưới đây còn nhắc hệ số vắng theo 004 thì theo spec.
+
 **Branch**: `010-incurred-costs` | **Date**: 2026-10-10, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/010-incurred-costs/spec.md`
@@ -17,7 +19,7 @@ Feature 010 là phần chi phí phát sinh của module M11 (mục 15.1 → 15.8
 8. Bảng chi phí và tạm tính cho người thân, dữ liệu cho 017, 016, xuất kế toán (mục H).
 
 Hướng kỹ thuật:
-- Gói `m11` với tám gói con; 017 và phần mua sắm của 019 (cùng M11) dùng port nội bộ (research P-01, P-12).
+- Gói `billing` với tám gói con; 017 và phần mua sắm của 019 (cùng M11) dùng port nội bộ (research P-01, P-12).
 - Ngày lưu trú và buổi bán trú tính từ 004 lúc tra cứu và lúc lập, không lưu; nguồn của 005, 006, 011, 012, 014 vào một **chỉ mục kỹ thuật** dựng từ sự kiện, chỉ để tra cứu và tìm khoản khi nguồn đổi; không có danh sách "chưa lập khoản" (P-04).
 - Đơn giá, chia giá tháng, buổi bán trú, thời gian tính phí, biến động, điều kiện kỳ cuối, tạm tính là hàm thuần kiểm thử bằng bảng (P-05, P-07, P-08, P-10, P-11).
 - DBR-15 bằng cột sinh `UNIQUE` theo (nguồn, đơn vị) cho khoản đang hiệu lực; DBR-17 bằng trigger trạng thái cuối của bảng và khoản (data-model mục 8).
@@ -34,7 +36,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ### Cập nhật 2026-10-22 (spec mục "Cập nhật 2026-10-22": Q-378, Q-380, Q-385)
 
-- **Gửi 017 chi tiết khoản Đã chốt** (FR-042, bảng giao tiếp "Gửi 017"; 017 FR-031, FR-032, FR-034): port nội bộ `ChiPhiChoSoDuPort` thêm `bangDaChot(bangId)` trả bảng (loại, kỳ, tổng, tổng theo loại từ `bang_chi_phi_tong_loai`) và khoản Đã chốt (ngày phát sinh, loại, mô tả, số lượng, đơn vị, đơn giá, thành tiền; khoản điều chỉnh kèm kỳ gốc; khoản thuốc chỉ "Thuốc" và mã vật phẩm theo FR-019). Chỉ đọc, dữ liệu đã có; không thêm bảng, không đổi REST (research P-12).
+- **Gửi 017 chi tiết khoản Đã chốt** (FR-042, bảng giao tiếp "Gửi 017"; 017 FR-031, FR-032, FR-034): port nội bộ `ChiPhiChoSoDuPort` thêm `bangDaChot(bangId)` trả bảng (loại, kỳ, tổng, tổng theo loại từ `bang_chi_phi_tong_loai`) và khoản Đã chốt (ngày phát sinh, loại, mô tả, số lượng, đơn vị, đơn giá, thành tiền; khoản điều chỉnh kèm kỳ gốc; khoản thuốc chỉ "Thuốc" và mã vật phẩm theo FR-019). Chỉ đọc, dữ liệu đã có; không thêm bảng, không đổi REST (research P-12). *(R-15: `bang_chi_phi_tong_loai` → cột `JSON` của `bang_chi_phi`)*
 - **Q-380 (sửa theo Q-385)**: phí chấm dứt sớm là khoản nhập tay có lý do của FR-021 vào bảng kỳ cuối, Quản lý viện duyệt từng khoản; không thêm loại khoản, tham số hay cách tính.
 - **Q-385**: 017 không còn đối soát chuyển khoản; không ảnh hưởng 010.
 
@@ -95,7 +97,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ; điểm còn lệch ghi ở mục báo lại |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-012 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 004 được bổ sung một sự kiện (mục "Đồng bộ") |
-| X. Kiến trúc | Đạt | Một khối; gói `m11`; module khác dùng `m11.api`. Không có vòng (P-02). REST; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `billing`; module khác dùng `billing.api`. Không có vòng (P-02). REST; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Đơn giá, điều kiện lập, chốt, vượt mua hộ, điều kiện kỳ cuối ở backend. Mỗi lệnh có endpoint riêng |
 | XII. Dữ liệu | Đạt | DBR-15, 17 bằng `UNIQUE` và trigger; DBR-16 bằng căn cứ đơn giá lưu theo khoản; nhật ký trong transaction; `Clock` |
 | XIII. Tham số | Đạt | Như V; CFG-M11-02 lúc gửi được lưu trên đề nghị (FR-023) |
@@ -105,7 +107,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 **Kiểm lại sau Phase 1**: Đạt. Thiết kế không thêm vai trò, trạng thái hay quy tắc nghiệp vụ ngoài spec. Có bốn bổ sung kỹ thuật, giải thích ở Complexity Tracking:
 1. Chỉ mục kỹ thuật sự kiện tính phí.
 2. Port nội bộ M11 cho 017.
-3. Bảng `bien_dong_nguon_sau_chot`.
+3. Bảng `bien_dong_nguon_sau_chot`. *(R-15: `bien_dong_nguon_sau_chot` → `su_kien_chung`)*
 4. Thư viện ghi XLSX.
 
 ### Đáp ứng yêu cầu phi chức năng (constitution X)
@@ -147,7 +149,7 @@ specs/010-incurred-costs/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/com/cambae/backend/m11/
+backend/src/main/java/com/eldercare/backend/billing/
 ├── api/           # ChiPhiCongNguoiThanApi, ChiPhiKyCuoiApi, ChiPhiThongKeApi, SuKienTinhPhiNguon*, sự kiện
 ├── ky/            {internal, web}   # kỳ, bảng, gửi chốt, chốt, BienDongKy
 ├── khoan/         {internal, web}   # vòng đời, kiểm tra, duyệt, tính lại, lịch sử
@@ -171,15 +173,15 @@ frontend/src/tinh-nang/chi-phi/
 mobile/lib/nguoi-than/chi-phi/   # bảng, tạm tính, đồng ý mua hộ
 ```
 
-**Structure Decision**: Theo R-02 của 000. Feature 010 nằm ở `backend/…/m11` với chín gói con và gói `api`; 017 và phần mua sắm của 019 thêm gói con vào cùng `m11`. Web có đủ chức năng. App người thân có bảng, tạm tính và đồng ý mua hộ.
+**Structure Decision**: Theo R-02 của 000. Feature 010 nằm ở `backend/…/billing` với chín gói con và gói `api`; 017 và phần mua sắm của 019 thêm gói con vào cùng `billing`. Web có đủ chức năng. App người thân có bảng, tạm tính và đồng ý mua hộ.
 
 ## Complexity Tracking
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
 | Chỉ mục kỹ thuật `su_kien_tinh_phi` | Tra cứu nguồn theo người, loại, khoảng ngày (FR-005) và tìm khoản khi nguồn đổi (FR-020) trên năm module | Gọi API đọc của từng module mỗi lần tra cứu: 005, 006 không có API tìm theo tính phí; vẫn cần ánh xạ nguồn → khoản |
-| Port nội bộ M11 (`ChiPhiChoSoDuPort`, `SoDuMuaHoPort`) | 017 cùng module cần tổng chưa chốt, phí ngày cơ sở; 010 cần dấu số dư không đủ | Đặt ở `m11.api`: mở dữ liệu nội bộ cho mọi module |
-| `bien_dong_nguon_sau_chot` | FR-027 đòi báo kèm khoản gốc, sự kiện, giá trị trước/sau và khoản điều chỉnh trỏ về sự kiện gây ra; không được tính sẵn số chênh lệch | Chỉ gửi thông báo: mất liên kết khoản điều chỉnh → sự kiện |
+| Port nội bộ M11 (`ChiPhiChoSoDuPort`, `SoDuMuaHoPort`) | 017 cùng module cần tổng chưa chốt, phí ngày cơ sở; 010 cần dấu số dư không đủ | Đặt ở `billing.api`: mở dữ liệu nội bộ cho mọi module |
+| `bien_dong_nguon_sau_chot` | FR-027 đòi báo kèm khoản gốc, sự kiện, giá trị trước/sau và khoản điều chỉnh trỏ về sự kiện gây ra; không được tính sẵn số chênh lệch | Chỉ gửi thông báo: mất liên kết khoản điều chỉnh → sự kiện *(R-15: `bien_dong_nguon_sau_chot` → `su_kien_chung`)* |
 | Thư viện ghi XLSX | Q-05 chọn Excel/CSV; kế toán quen Excel | Chỉ CSV: lỗi mã hóa khi mở bằng Excel ở một số máy; vẫn giữ CSV làm tùy chọn |
 
 ## Đồng bộ với hợp đồng của feature khác
@@ -188,7 +190,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 
 1. **004** (đã ghi bổ sung vào [../004-admission-residency/contracts/module-interfaces.md](../004-admission-residency/contracts/module-interfaces.md) mục 1.8): sự kiện `PhienBanDonGiaDaTao(dichVuId, hieuLucTu, hieuLucDen)` khi tạo phiên bản đơn giá (kể cả hiệu lực lùi cho khoảng chưa có phiên bản, DBR-08), để 010 tính lại khoản thiếu đơn giá (FR-012). 010 cài `KyCuoiPort`, `MucViecSauQuaDoiPort` (`CHI_PHI_KY_CUOI`), dùng `KT_A_CHI_PHI` và các API, sự kiện của 004 như đã khai báo.
 2. **005, 006**: dùng các sự kiện tính phí đã khai báo (005 C-13, 006 D-17); 010 cài `DeNghiMuaHoPort` đúng chữ ký. Không đổi.
-3. **011, 012, 014**: phát `m11.api.SuKienTinhPhiNguon`, `SuKienTinhPhiNguonDaDoi` cho suất ăn người thân, đêm ở lại, điểm danh có phí ([contracts/module-interfaces.md](contracts/module-interfaces.md) mục 1.5). **012** cài `NguoiDaiDienPort` (đã khai báo ở 004) và đọc `ChiPhiCongNguoiThanApi`.
+3. **011, 012, 014**: phát `billing.api.SuKienTinhPhiNguon`, `SuKienTinhPhiNguonDaDoi` cho suất ăn người thân, đêm ở lại, điểm danh có phí ([contracts/module-interfaces.md](contracts/module-interfaces.md) mục 1.5). **012** cài `NguoiDaiDienPort` (đã khai báo ở 004) và đọc `ChiPhiCongNguoiThanApi`.
 4. **017** (cùng M11): cài `SoDuMuaHoPort`; dùng `ChiPhiChoSoDuPort` (*2026-10-22:* thêm `bangDaChot` cho phiếu báo phí, bảng quyết toán); nghe `BangChiPhiDaChot` (đúng một lần mỗi bảng) và `DeNghiMuaHo*`. **016** đọc `ChiPhiThongKeApi`. **009**: thông báo theo FR-044 cài `CoYeuCauThongBao`.
 
 ## Điểm cần báo lại về tài liệu nguồn
@@ -205,3 +207,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
    - Assumptions còn câu dẫn `docs/phan-tich-yeu-cau.md` mục 4.2 (đã bỏ).
 
 4. **Mức thông báo nhắc đề nghị mua hộ chờ đồng ý** (bảng FR-044 ghi "Theo feature 000 FR-031a"): plan dùng Trung bình như dòng 000 của bảng 009 FR-043b. Đề nghị ghi mức cụ thể vào FR-044. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
+
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Ánh xạ bảng ở data-model mục 0; task T038. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
+- Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
+- Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.

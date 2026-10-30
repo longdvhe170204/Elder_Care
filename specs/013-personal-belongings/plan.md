@@ -17,7 +17,7 @@ Feature 013 là module M12 – Đồ gửi (mục 16; UC-65; DBR-22). Nó cung c
 8. Cổng người thân chỉ cho người đại diện và người có quyền đón (FR-030; BR-M12-09).
 
 Hướng kỹ thuật:
-- Gói `m12` với bảy gói con (research K-01). 013 cài các SPI 001, 004, 008, 000 đã khai cho mình; không khai SPI mới (K-02).
+- Gói `belongings` với bảy gói con (research K-01). 013 cài các SPI 001, 004, 008, 000 đã khai cho mình; không khai SPI mới (K-02).
 - Trạng thái, người giữ, vị trí của đồ là cột suy ra từ bản ghi bàn giao hiện hành gần nhất, cập nhật cùng transaction với lệnh và đính chính (K-04, K-05).
 - Mỗi lệnh gửi phiên bản từng đồ; khóa theo người cao tuổi rồi theo đồ (K-03).
 - Người nhận hợp lệ, điều kiện kết thúc, bằng chứng liên hệ là hàm thuần (K-06, K-08, K-09).
@@ -34,7 +34,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ### Cập nhật 2026-10-18, lượt 3 (spec mục "Cập nhật 2026-10-18, lượt 3": Q-366)
 
-- **Đồ gửi trên kênh người cao tuổi** (FR-030a): 013 cài SPI `m10.api.DoGuiKenhNctPort.dangGiu(nctId)` (012 module-interfaces 1.4): đồ ở Đang giữ, Đang được sử dụng, tên, trạng thái, ảnh; không có lịch sử bàn giao, yêu cầu xác nhận, đồng ý cho tự giữ (research K-16). Ảnh trả qua `QuyenTepProvider` `M12.ANH_DO_GUI` thêm người cao tuổi chủ đồ. Không thêm bảng.
+- **Đồ gửi trên kênh người cao tuổi** (FR-030a): 013 cài SPI `family.api.DoGuiKenhNctPort.dangGiu(nctId)` (012 module-interfaces 1.4): đồ ở Đang giữ, Đang được sử dụng, tên, trạng thái, ảnh; không có lịch sử bàn giao, yêu cầu xác nhận, đồng ý cho tự giữ (research K-16). Ảnh trả qua `QuyenTepProvider` `M12.ANH_DO_GUI` thêm người cao tuổi chủ đồ. Không thêm bảng.
 
 ## Technical Context
 
@@ -93,7 +93,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ; điểm còn lệch ghi ở mục báo lại |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-012 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 007 được ghi chú (mục "Đồng bộ") |
-| X. Kiến trúc | Đạt | Một khối; gói `m12`. Không có vòng (K-02) |
+| X. Kiến trúc | Đạt | Một khối; gói `belongings`. Không có vòng (K-02) |
 | XI. Nghiệp vụ ở backend | Đạt | Người nhận hợp lệ, điều kiện kết thúc, tách đồ, kiểm kê ở backend |
 | XII. Dữ liệu | Đạt | DBR-22 bằng `tiep_nhan_goc_id` và bất biến tổng số lượng; nhóm 3 bằng trigger; nhật ký trong transaction; `Clock` |
 | XIII. Tham số | Đạt | Như V; dấu đồ có giá trị lưu trên bản ghi lúc lệnh |
@@ -141,7 +141,7 @@ specs/013-personal-belongings/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/com/cambae/backend/m12/
+backend/src/main/java/com/eldercare/backend/belongings/
 ├── api/           # DoGuiApi, DoGuiThongKeApi, sự kiện; bản cài SPI
 ├── danhmuc/       {internal, web}   # loại đồ, mức tình trạng, vị trí
 ├── dogui/         {internal, web}   # đồ, bản ghi bàn giao, KiemTraLenhBanGiao, TachDo, đính chính
@@ -159,7 +159,7 @@ mobile/lib/nhan-vien/do-gui/      # tiếp nhận, bàn giao, trả (ảnh, ch�
 mobile/lib/nguoi-than/do-gui/     # xem, xác nhận, đồng ý
 ```
 
-**Structure Decision**: Theo R-02 của 000. Feature 013 nằm ở `backend/…/m12` với bảy gói con và gói `api`.
+**Structure Decision**: Theo R-02 của 000. Feature 013 nằm ở `backend/…/belongings` với bảy gói con và gói `api`.
 
 ## Complexity Tracking
 
@@ -167,7 +167,7 @@ mobile/lib/nguoi-than/do-gui/     # xem, xác nhận, đồng ý
 | --- | --- | --- |
 | Cột suy ra trên `do_gui` | SC-008 tra cứu một đồ không mở bản ghi; điều kiện kết thúc, kiểm kê đọc nhanh | Tính từ bản ghi gần nhất mỗi lần đọc: truy vấn nặng cho danh sách |
 | Phiên bản từng đồ trong thân lệnh | Một lệnh có nhiều đồ; FR-011b đòi từ chối lệnh dựa trên trạng thái cũ | `If-Match` chỉ cho một tài nguyên |
-| `lan_chan_tra` ghi ở transaction riêng | Lần chặn phải còn sau khi lệnh Trả bị từ chối (FR-016) | Ghi chung transaction: bị rollback cùng lệnh |
+| `lan_chan_tra` ghi ở transaction riêng | Lần chặn phải còn sau khi lệnh Trả bị từ chối (FR-016) | Ghi chung transaction: bị rollback cùng lệnh *(R-15: `lan_chan_tra` → `ban_giao_do_gui` (`loai`))* |
 
 ## Đồng bộ với hợp đồng của feature khác
 
@@ -185,3 +185,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 2. **Mức thông báo nhắc đề nghị xử lý Chờ duyệt** (bảng FR-032 ghi "Nhẹ; theo feature 000 FR-031a"): plan dùng cơ chế nhắc của 000 (`NhacQuaHan`) với mức Nhẹ. Đề nghị bỏ vế "theo feature 000 FR-031a" ở cột mức để không lẫn với mức của 000. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
 3. **Câu chữ còn lẫn trong spec 013** (không đổi nghiệp vụ): FR-007, FR-029, bảng trạng thái đồ gửi dẫn "4.4" (Permission Matrix của `docs/phan-tich-yeu-cau.md` đã bỏ; tra Phụ lục 27); Assumptions dòng đầu dẫn mục 4.2 của tài liệu đã bỏ; điểm báo lại 16 còn yêu cầu 001 cung cấp sự kiện cờ đi lạc (không còn đúng sau Q-281). *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
+
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Ánh xạ bảng ở data-model mục 0; task T034. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
+- Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
+- Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.

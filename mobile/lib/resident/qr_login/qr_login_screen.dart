@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../common/auth/session_controller.dart';
-import '../../common/widgets/sky_background.dart';
+import '../../common/theme/app_theme.dart';
+import '../../common/widgets/page_body.dart';
 import 'login_messages.dart';
 
 /// Khung quét mã; test thay bằng bản giả gọi thẳng [onCode].
@@ -63,7 +64,7 @@ class _QrLoginScreenState extends State<QrLoginScreen> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Scaffold(
-      body: SkyBackground(
+      body: PageBody(
         child: Card(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -111,33 +112,40 @@ class _QrLoginScreenState extends State<QrLoginScreen> {
       const SizedBox(height: 16),
       Expanded(
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           child: widget.scannerBuilder((code) => _run(() => widget.session.qrLogin(code))),
         ),
       ),
     ],
   );
 
-  Widget _passwordForm(TextTheme text) => ListView(
-    children: [
-      Text('Đăng nhập bằng mật khẩu', style: text.headlineMedium),
-      const SizedBox(height: 16),
-      TextField(
-        controller: _username,
-        decoration: const InputDecoration(labelText: 'Tên đăng nhập'),
-        autocorrect: false,
-      ),
-      const SizedBox(height: 12),
-      TextField(
-        controller: _password,
-        decoration: const InputDecoration(labelText: 'Mật khẩu'),
-        obscureText: true,
-      ),
-      const SizedBox(height: 16),
-      FilledButton(
-        onPressed: _busy ? null : () => _run(() => widget.session.passwordLogin(_username.text.trim(), _password.text)),
-        child: const Text('Đăng nhập'),
-      ),
-    ],
+  // Cho trình quản lý mật khẩu điền (DESIGN.md 15.5; WCAG 3.3.8)
+  Widget _passwordForm(TextTheme text) => AutofillGroup(
+    child: ListView(
+      children: [
+        Text('Đăng nhập bằng mật khẩu', style: text.headlineMedium),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _username,
+          decoration: const InputDecoration(labelText: 'Tên đăng nhập'),
+          autocorrect: false,
+          autofillHints: const [AutofillHints.username],
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _password,
+          decoration: const InputDecoration(labelText: 'Mật khẩu'),
+          obscureText: true,
+          autofillHints: const [AutofillHints.password],
+        ),
+        const SizedBox(height: 16),
+        FilledButton(
+          onPressed: _busy
+              ? null
+              : () => _run(() => widget.session.passwordLogin(_username.text.trim(), _password.text)),
+          child: const Text('Đăng nhập'),
+        ),
+      ],
+    ),
   );
 }

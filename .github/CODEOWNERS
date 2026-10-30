@@ -4,46 +4,49 @@
 *                                                   @longdvhe170204
 
 # A: nền tảng, tài khoản, thông báo, báo cáo
-/backend/src/main/java/com/cambae/backend/common/   @longdvhe170204
-/backend/src/main/java/com/cambae/backend/m13/      @longdvhe170204
-/backend/src/main/java/com/cambae/backend/m14/      @longdvhe170204
-/backend/src/main/java/com/cambae/backend/m15/      @longdvhe170204
+/backend/src/main/java/com/eldercare/backend/common/   @longdvhe170204
+/backend/src/main/java/com/eldercare/backend/notification/      @longdvhe170204
+/backend/src/main/java/com/eldercare/backend/reporting/      @longdvhe170204
+/backend/src/main/java/com/eldercare/backend/administration/      @longdvhe170204
 /backend/pom.xml                                    @longdvhe170204
 /frontend/package.json                              @longdvhe170204
 /CLAUDE.md                                          @longdvhe170204
 
 # B: người cao tuổi, lưu trú, đồ dùng
-/backend/src/main/java/com/cambae/backend/m01/      @AAnh004
-/backend/src/main/java/com/cambae/backend/m02/      @AAnh004
-/backend/src/main/java/com/cambae/backend/m12/      @AAnh004
+/backend/src/main/java/com/eldercare/backend/resident/      @AAnh004
+/backend/src/main/java/com/eldercare/backend/admission/      @AAnh004
+/backend/src/main/java/com/eldercare/backend/belongings/      @AAnh004
 /specs/001-elder-profile-assessment/                @AAnh004
 /specs/004-admission-residency/                     @AAnh004
 /specs/013-personal-belongings/                     @AAnh004
 /specs/018-residence-registration/                  @AAnh004
 
 # C: phòng giường, chăm sóc, hoạt động, kho
-/backend/src/main/java/com/cambae/backend/m03/      @HungNX-nguyen
-/backend/src/main/java/com/cambae/backend/m04/      @HungNX-nguyen
+/backend/src/main/java/com/eldercare/backend/roombedallocation/      @HungNX-nguyen
+/backend/src/main/java/com/eldercare/backend/care/      @HungNX-nguyen
 /specs/003-room-bed-allocation/                     @HungNX-nguyen
 /specs/005-daily-care-tasks/                        @HungNX-nguyen
 /specs/014-activity-care-quality/                   @HungNX-nguyen
 /specs/019-inventory-assets/                        @HungNX-nguyen
 
 # D: y tế
-/backend/src/main/java/com/cambae/backend/m05/      @03coc08
-/backend/src/main/java/com/cambae/backend/m06/      @03coc08
-/backend/src/main/java/com/cambae/backend/m07/      @03coc08
-/backend/src/main/java/com/cambae/backend/m08/      @03coc08
+/backend/src/main/java/com/eldercare/backend/incident/      @03coc08
+/backend/src/main/java/com/eldercare/backend/health/      @03coc08
+/backend/src/main/java/com/eldercare/backend/medication/      @03coc08
+/backend/src/main/java/com/eldercare/backend/nutrition/      @03coc08
 /specs/006-medication-management/                   @03coc08
 /specs/007-health-alert-incident/                   @03coc08
 /specs/011-nutrition-management/                    @03coc08
 
 # E: nhân sự, ca, người thân, tài chính
-/backend/src/main/java/com/cambae/backend/m09/      @ptlog18
-/backend/src/main/java/com/cambae/backend/m10/      @ptlog18
-/backend/src/main/java/com/cambae/backend/m11/      @ptlog18
+/backend/src/main/java/com/eldercare/backend/staffing/      @ptlog18
+/backend/src/main/java/com/eldercare/backend/family/      @ptlog18
+/backend/src/main/java/com/eldercare/backend/billing/      @ptlog18
 /specs/008-staff-shift-handover/                    @ptlog18
 /specs/010-incurred-costs/                          @ptlog18
 /specs/012-family-portal/                           @ptlog18
 /specs/015-shift-rotation-swap/                     @ptlog18
 /specs/017-resident-balance-ledger/                 @ptlog18
+
+# Phần module thêm vào bảng dùng chung của R-15 (research R-15 mục 5): A review
+/backend/src/main/resources/db/migration/*__shared_*.sql @longdvhe170204

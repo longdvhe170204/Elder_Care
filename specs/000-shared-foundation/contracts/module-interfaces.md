@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-06 | **Plan**: [../plan.md](../plan.md)
 
-Đây là hợp đồng trong backend, ở gói `com.cambae.backend.m15.<goi>.api` và `com.cambae.backend.common`. *(Sửa 2026-10-21, research R-02)* SPI module khác cài nằm ở `api.spi`: `RequestTypeHandler` (`approval`), `FieldClassificationProvider` (`auditlog`), `CorrectableRecordProvider` (`correction`), `RetentionProvider` (`retention`); DTO phản hồi yêu cầu phê duyệt dùng chung ở `approval.api.dto`. Module khác chỉ được dùng các giao diện này, không đọc bảng của 000 (constitution X). Ngoại lệ duy nhất: báo cáo được `JOIN` hai view `v_dinh_chinh_moi_nhat` và `v_ban_ghi_da_huy` (data-model mục 4).
+Đây là hợp đồng trong backend, ở gói `com.eldercare.backend.administration.<goi>.api` và `com.eldercare.backend.common`. *(Sửa 2026-10-21, research R-02)* SPI module khác cài nằm ở `api.spi`: `RequestTypeHandler` (`approval`), `FieldClassificationProvider` (`auditlog`), `CorrectableRecordProvider` (`correction`), `RetentionProvider` (`retention`); DTO phản hồi yêu cầu phê duyệt dùng chung ở `approval.api.dto`. Module khác chỉ được dùng các giao diện này, không đọc bảng của 000 (constitution X). Ngoại lệ duy nhất: báo cáo được `JOIN` hai view `v_dinh_chinh_moi_nhat` và `v_ban_ghi_da_huy` (data-model mục 4).
 
 Chữ ký viết dạng Java rút gọn, chỉ để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
 
@@ -25,7 +25,7 @@ Chữ ký viết dạng Java rút gọn, chỉ để mô tả hợp đồng; mã
 | `TepApi` (`common.tep`; bổ sung theo plan 001, research H-13) | `taiLen(...)` trả `tepId`; `gan(tepId, loaiChuSoHuu, idChuSoHuu)` trong transaction của lệnh (MANDATORY), tệp đã gắn không gắn lại; SPI `QuyenTepProvider` của module sở hữu quyết quyền tải xuống. *(Bổ sung 2026-10-22, 017 research E-11)* `taiLen` nhận PDF, JPEG, PNG và `.xlsx` cho tệp hệ thống tạo; `POST /tep` chỉ PDF, JPEG, PNG (`FileTypes`) | NFR-08 |
 | `common.bieumau` *(bổ sung 2026-10-22, 007 research S-25, T104)* | `PdfBieuMau` (A4, đầu trang thông tin viện CFG-M11-11 do module gọi truyền vào, bảng, ô ký, số trang, `dongDau`), `ExcelBieuMau` (ghi bảng có định dạng tiền, ngày; đọc `.xlsx` theo mẫu, sai mẫu 422) | 007 FR-050h; 008 FR-001b; 017 FR-025, FR-031 → FR-037 |
 
-### 1.2. `m15.nhatky.api.NhatKyApi`
+### 1.2. `administration.nhatky.api.NhatKyApi`
 
 ```java
 void ghi(BanGhiNhatKy banGhi);   // Propagation.MANDATORY: phải nằm trong transaction của lệnh (FR-047)
@@ -47,7 +47,7 @@ BanGhiNhatKy.builder()
 - *(Đổi api 2026-10-24, 016 US9)* `banGhiDaGhi(hanhDong, loaiDoiTuong, doiTuongId, nguoiThucHienId)` (`AuditLogApi.recorded`, trả `AuditLogRecord`): bản ghi của một hành động trên một loại đối tượng, mới nhất trước, tối đa 200 dòng; tham số rỗng là không lọc. Cho module ghi đọc lại hành động của mình (016: danh sách lần xuất, quyền tải tệp xuất). Không kiểm quyền, không che trường: module gọi tự kiểm.
 - *(Đổi api 2026-10-25, chủ dự án duyệt E cài; chờ A review)* `AuditLogApi.recordedBetween(String entityType, Instant from, Instant to, long afterId, int limit)` trả `List<AuditLogRecord>` hiện có: khoảng `[from,to)`, id tăng dần và lớn hơn `afterId` (trang đầu 0), `limit` từ 1 đến 200. Trang kế tiếp dùng id cuối trang trước; dừng khi ít hơn limit dòng. Module gọi tự kiểm quyền và che trường. 008 dùng đọc đủ lịch sử căn cứ nhiệm vụ; giữ nguyên `recorded` và kiểu bản ghi cũ. Test `AuditLogPagingIT` kiểm hơn 200 dòng, thứ tự/mốc thời gian, actor và API cũ.
 
-### 1.3. `m15.nhatky.api.PhanLoaiTruongProvider` (SPI, module sở hữu cài)
+### 1.3. `administration.nhatky.api.PhanLoaiTruongProvider` (SPI, module sở hữu cài)
 
 ```java
 String loaiDoiTuong();
@@ -56,7 +56,7 @@ Map<String, NhomThongTin> phanLoaiTruong();   // ví dụ diUng → SUC_KHOE; tr
 
 `NhatKyQueryService` dùng SPI này cùng `QuyenXemTruongApi` (002) để che trường và che `lyDo` (FR-049, BR-M15-11). Thiếu provider cho một loại đối tượng thì chỉ Quản lý viện xem được lịch sử của loại đó. Đây là mặc định an toàn.
 
-### 1.4. `m15.thamso.api.ThamSoApi`
+### 1.4. `administration.thamso.api.ThamSoApi`
 
 ```java
 GiaTriThamSo doc(MaThamSo ma);                         // giá trị hiện hành; gọi một lần mỗi lần kiểm tra quy tắc (FR-018)
@@ -65,10 +65,10 @@ GiaTriThamSo docTaiThoiDiem(MaThamSo ma, Instant t);   // FR-019
 ```
 
 - Sự kiện `ThamSoDaDoi(ma, giaTriTruoc, giaTriSau, thoiDiem)` phát sau commit. Module chỉ dùng sự kiện để cập nhật bộ đệm của mình, không dùng để tính lại kết quả cũ (FR-017).
-- *(Bổ sung 2026-10-22, 017 research E-04)* SPI `KiemTraGiaTriThamSo` (`m15.thamso.api`, module sở hữu dữ liệu liên quan cài): `ma()` trả mã tham số, `kiemTra(giaTri)` ném 422 kèm lý do. Lệnh đổi giá trị gọi mọi bản cài có mã trùng sau phần kiểm chung, trước khi lưu; khôi phục về "Theo cơ sở" thì không gọi. 017 cài cho CFG-M11-10.
+- *(Bổ sung 2026-10-22, 017 research E-04)* SPI `KiemTraGiaTriThamSo` (`administration.thamso.api`, module sở hữu dữ liệu liên quan cài): `ma()` trả mã tham số, `kiemTra(giaTri)` ném 422 kèm lý do. Lệnh đổi giá trị gọi mọi bản cài có mã trùng sau phần kiểm chung, trước khi lưu; khôi phục về "Theo cơ sở" thì không gọi. 017 cài cho CFG-M11-10.
 - `MaThamSo` là enum của toàn bộ mã ở Phụ lục 25. Module không được viết cứng giá trị mặc định trong mã (constitution XIII); test ArchUnit cấm hằng số thời lượng trong gói `service` của module.
 
-### 1.5. `m15.pheduyet.api.YeuCauPheDuyetApi`
+### 1.5. `administration.pheduyet.api.YeuCauPheDuyetApi`
 
 ```java
 YeuCauView lap(LapYeuCau lenh);                 // dùng khi lệnh của một actor ở module khác lập kèm yêu cầu; người lập là actor đó (FR-010a, Q-307)
@@ -128,7 +128,7 @@ Sự kiện phát sau commit:
 
 **Danh sách người duyệt** *(bổ sung theo plan 004, Q-338)*: `danhSachNguoiDuyet` là danh sách tài khoản do 000 tính tại thời điểm phát sự kiện: `NguoiDuyetApi.danhSach(handler.quyenDuyet(), DoiTuong.tuPhamVi(handler.phamVi(yc)))`, rồi nếu `gioiHanVaiTroDuyet(yc)` có giá trị thì giữ tài khoản có ít nhất một vai trò trong tập (`TaiKhoanApi.coVaiTro`). Cùng danh sách này quyết định `conNguoiDuyet` của `NhacQuaHan` (BR-M15-09) và điều kiện "người duyệt không phải Quản lý viện" ở mốc CFG-M15-06 (FR-031a): mọi tài khoản trong danh sách đều là Quản lý viện thì không phát `YeuCauCanBaoQuanLyVien(QUA_CFG_M15_06)`. Yêu cầu thông báo của các sự kiện trên dùng nhóm `NguoiCoQuyenDuyet` mang sẵn danh sách này (009 contracts mục 1.1); 009 không tự tra lại `NguoiDuyetApi` cho yêu cầu của 000.
 
-### 1.6. `m15.dinhchinh.api.DinhChinhApi`
+### 1.6. `administration.dinhchinh.api.DinhChinhApi`
 
 ```java
 KetQuaDinhChinh taoDinhChinh(String loaiBanGhi, long idGoc, KieuDinhChinh kieu, Object noiDungDung, LyDo lyDo);
@@ -156,7 +156,7 @@ Sự kiện: `DaDinhChinh(loaiBanGhi, idGoc, kieu, dinhChinhId)`.
 
 Không có provider nghĩa là loại đó không có đính chính: chi phí đã chốt, giao dịch số dư (1.5, DBR-17). Gọi đính chính cho các loại này thì trả 409 `KHONG_HO_TRO_DINH_CHINH`.
 
-### 1.7. `m15.luutru.api.LuuTruProvider` (SPI)
+### 1.7. `administration.luutru.api.LuuTruProvider` (SPI)
 
 ```java
 String loaiDuLieu();
@@ -167,6 +167,108 @@ void xoa(Collection<Long> ids);                      // chỉ được gọi b�
 ```
 
 Job `LoaiBoDuLieuHetHan` của 000 dùng các provider này để dựng chuỗi và xóa (research R-11).
+
+### 1.8. Bảng dùng chung sau gộp: `administration.shared.api`, `common` *(chủ dự án duyệt 2026-10-30; T108)*
+
+Căn cứ: research R-15, data-model mục 8, glossary 6.6. Interface ở `administration.shared.api`, record và enum trong chữ ký ở `administration.shared.api.dto`. Tên theo glossary; lỗi theo `common.error` (409 `ConditionNotMetException`, 412 `VersionMismatchException`, 404 `NotFoundException`, 422 `InvalidValueException`). API không tự ghi nhật ký: module gọi ghi `AuditLogApi` trong cùng transaction bằng giá trị trước/sau API trả về, như hiện nay. Mọi lệnh ghi chạy trong transaction của lệnh gọi (`MANDATORY`).
+
+**Loại dòng và quyền sở hữu.** Mỗi loại là một hằng `SharedKind<T>` khai ở gói của module sở hữu, mã `<module>.<KIND>` (`M03.FLOOR`); cột `module` của dòng lấy từ tiền tố. Nội dung `JSON` là record `T` của module: Jackson đọc ghi, Bean Validation kiểm khi ghi (thay JSON Schema, điểm cần duyệt 1). `SharedKindArchTest` kiểm: hằng `SharedKind` chỉ khai trong module có mã trùng tiền tố, mã không trùng nhau; API chỉ trả dòng loại của module khác khi loại đặt `sharedRead`.
+
+```java
+public record SharedKind<T>(String code, Class<T> content, boolean sharedRead, boolean deletable) {
+    static <T> SharedKind<T> of(String code, Class<T> content);   // sharedRead = false, deletable = true
+    SharedKind<T> readableByOtherModules();
+    SharedKind<T> notDeletable();                                   // FR-002: loại có tham chiếu không qua khóa ngoại
+    String module();                                                // "M03"
+}
+record Change<V>(V before, V after) {}
+record EntityRef(String entityType, long entityId) {}             // entityType "M01.RESIDENT"
+```
+
+`CatalogApi` (`catalog_item`, nhóm 1; FR-002, FR-003, BR-M15-06):
+
+```java
+<T> CatalogItem<T> create(SharedKind<T> kind, NewCatalogItem<T> item);          // 409 khi trùng active_name hoặc code_key
+<T> CatalogItem<T> require(SharedKind<T> kind, long id);                         // 404 khi không có hoặc khác loại
+<T> CatalogItem<T> requireActive(SharedKind<T> kind, long id);                   // thêm 409 khi Ngừng hiệu lực (chọn cho nghiệp vụ mới)
+<T> Optional<CatalogItem<T>> findByCode(SharedKind<T> kind, Long parentId, String code);
+<T> List<CatalogItem<T>> list(SharedKind<T> kind, Long parentId, boolean activeOnly); // theo sort_order, name
+<T> Change<CatalogItem<T>> update(SharedKind<T> kind, long id, int version, String name, int sortOrder, T attributes);
+<T> Change<CatalogItem<T>> deactivate(SharedKind<T> kind, long id, int version);
+<T> Change<CatalogItem<T>> reactivate(SharedKind<T> kind, long id, int version); // 409 nêu mục trùng tên đang Hiệu lực
+<T> Change<CatalogItem<T>> confirm(SharedKind<T> kind, long id, int version, long confirmedBy); // xác nhận chuyên môn (món ăn)
+<T> CatalogItem<T> delete(SharedKind<T> kind, long id);                           // 409 CATALOG_ITEM_IN_USE khi !deletable hoặc còn khóa ngoại
+record NewCatalogItem<T>(String code, String name, Long parentId, int sortOrder, T attributes) {}
+record CatalogItem<T>(long id, String code, String name, Long parentId, int sortOrder, CatalogStatus status, T attributes, Long confirmedBy, Instant confirmedAt, int version) {}
+```
+
+`StatusHistoryApi` (`status_history`, nhóm 3, chỉ thêm; `ends_at` đặt một lần):
+
+```java
+public record HistoryTrack<D>(String entityType, String attribute, Class<D> details) {} // module theo tiền tố entityType
+<D> long add(HistoryTrack<D> track, long entityId, HistoryEntry<D> entry);   // PERIOD: 409 khi đang có khoảng mở (open_key); unique_key trùng: 409
+<D> Optional<HistoryRow<D>> closeOpen(HistoryTrack<D> track, long entityId, Instant endsAt);
+<D> Optional<HistoryRow<D>> open(HistoryTrack<D> track, long entityId);
+<D> Optional<HistoryRow<D>> at(HistoryTrack<D> track, long entityId, Instant at);
+<D> List<HistoryRow<D>> list(HistoryTrack<D> track, long entityId);             // theo starts_at
+record HistoryEntry<D>(HistoryKind kind, String valueBefore, String value, Long valueId, Instant startsAt, String command, Long actorId, boolean bySystem, Reason reason, String basisType, Long basisId, D details, Long floorAreaId, String uniqueKey) {}
+record HistoryRow<D>(long id, HistoryKind kind, String valueBefore, String value, Long valueId, Instant startsAt, Instant endsAt, String command, Long actorId, boolean bySystem, String reason, String basisType, Long basisId, D details, Long floorAreaId) {}
+enum HistoryKind { POINT, PERIOD }
+```
+
+`RecordEventApi` (`record_event`, nhóm 3; loại có bản nháp sửa được tới khi xác nhận, mục 1.4):
+
+```java
+<T> RecordEvent<T> add(SharedKind<T> kind, EntityRef parent, NewRecordEvent<T> event); // unique_key trùng: 409 ALREADY_PROCESSED
+<T> RecordEvent<T> updateDraft(SharedKind<T> kind, long id, T content);                 // 409 khi đã xác nhận
+<T> RecordEvent<T> confirm(SharedKind<T> kind, long id, Instant confirmedAt);
+<T> RecordEvent<T> require(SharedKind<T> kind, long id);
+<T> Optional<RecordEvent<T>> findByUniqueKey(SharedKind<T> kind, String uniqueKey);
+<T> List<RecordEvent<T>> list(SharedKind<T> kind, EntityRef parent);                     // theo occurred_at, id
+record NewRecordEvent<T>(T content, Long replyToId, Long actorId, boolean bySystem, Instant occurredAt, Instant deviceAt, Instant confirmedAt, Long floorAreaId, String uniqueKey) {} // confirmedAt null là nháp
+record RecordEvent<T>(long id, EntityRef parent, T content, Long replyToId, Long actorId, boolean bySystem, Instant occurredAt, Instant deviceAt, Instant confirmedAt, Long floorAreaId) {}
+```
+
+`SimpleRecordApi` (`simple_record`, nhóm 2, khóa theo dòng; máy trạng thái ở domain của module):
+
+```java
+<T> SimpleRecord<T> create(SharedKind<T> kind, NewSimpleRecord<T> record);
+<T> SimpleRecord<T> require(SharedKind<T> kind, long id);
+<T> SimpleRecord<T> lockForUpdate(SharedKind<T> kind, long id);                  // SELECT … FOR UPDATE
+<T> Change<SimpleRecord<T>> change(SharedKind<T> kind, long id, int version, RecordChange<T> change); // 409 RECORD_LOCKED khi đã khóa
+<T> Optional<SimpleRecord<T>> findByUniqueKey(SharedKind<T> kind, String uniqueKey);
+<T> List<SimpleRecord<T>> listByResident(SharedKind<T> kind, long residentId, Set<String> statuses);
+<T> List<SimpleRecord<T>> listByParent(SharedKind<T> kind, EntityRef parent);
+<T> List<SimpleRecord<T>> listByStatus(SharedKind<T> kind, Set<String> statuses); // theo id; statuses không rỗng (đổi api 2026-10-30, 002 T098; chỉ mục (kind, status) ở V000_14)
+record NewSimpleRecord<T>(Long residentId, EntityRef parent, String status, T content, LocalDate effectiveFrom, LocalDate effectiveTo, String uniqueKey, long createdBy, boolean lock) {}
+record RecordChange<T>(String status, T content, LocalDate effectiveTo, String uniqueKey, boolean lock) {} // uniqueKey null để nhả ràng buộc khi hết hiệu lực
+record SimpleRecord<T>(long id, Long residentId, EntityRef parent, String status, T content, LocalDate effectiveFrom, LocalDate effectiveTo, String uniqueKey, Instant lockedAt, Instant createdAt, long createdBy, int version) {}
+```
+
+`ResidentModuleStateApi` (`resident_module_state`, khóa `(resident_id, module)`):
+
+```java
+<T> Optional<T> get(SharedKind<T> kind, long residentId);
+<T> Optional<T> lockForUpdate(SharedKind<T> kind, long residentId);              // SELECT … FOR UPDATE
+<T> void save(SharedKind<T> kind, long residentId, T data);                       // thêm hoặc thay, sau lockForUpdate
+```
+
+`common.data.ReminderMarkers`, `common.data.TechnicalLocks` (`reminder_marker`, `technical_lock`):
+
+```java
+boolean mark(String kind, String entityType, long entityId, String marker, Object details); // true khi vừa ghi, đã có thì false (INSERT IGNORE)
+boolean isMarked(String kind, String entityType, long entityId, String marker);
+void lock(String lockKey);                                                       // INSERT IGNORE rồi SELECT … FOR UPDATE, giữ tới hết transaction
+```
+
+Lưu giữ và đọc bản ghi đã chuyển (phần 2 của T108, cài 2026-10-30):
+
+- `SharedRowRetention` (`administration.shared.api`, chỉ `administration.retention` gọi): `deleteFor(Collection<EntityRef>)` xóa dòng `status_history`, `record_event`, `simple_record`, `reminder_marker` có đối tượng là bản ghi (đối tượng `SharedRowRetention.RESIDENT` = `M01.RESIDENT` thì thêm `deleteForResidents`); `deleteForResidents(Collection<Long>)` xóa `simple_record`, `resident_module_state` theo `resident_id`; qua `RetentionDatabase`, trong transaction của chuỗi (R-11). Job loại bỏ gọi với mọi bản ghi của chuỗi: `entity_type` của dòng bảng chung trùng `RetentionProvider.dataType()` của bản ghi cha.
+- SPI `LegacyRecordTypeSource` (`administration.shared.api.spi`, module cài khi gộp bảng): `Map<String, String> legacyRecordTypes()` (loại bản ghi cũ → loại mới, R-15 mục 5); `administration.correction`, `administration.auditlog`, `administration.retention` đọc qua `RecordTypeAliases` (`administration.shared.api`: `withLegacy(type)` là loại cùng các loại cũ, `current(type)` là loại mới) khi đọc chuỗi đính chính, giá trị hiện hành, nhật ký và khi loại bỏ; bản đính chính mới của loại mới nối tiếp số thứ tự, Hủy ghi nhận của chuỗi loại cũ. Một loại cũ chỉ ánh xạ tới một loại mới (khởi động báo lỗi nếu trùng).
+
+`Basis.schedulerRunId` (`administration.auditlog.api`) đổi `Long` → `String` (UUID của lần chạy, `SchedulerRuns.start` trả về; research R-15 mục 4; "Đổi api" 2026-10-30, chủ dự án duyệt). `common.data.DataGroup.Group.MULTIPLE` cho entity của bảng chứa nhiều nhóm, bắt buộc trường `lockedAt` (R-05).
+
+Bản giả cho module khác: `support/fake/shared/` (`FakeCatalogApi`, `FakeStatusHistoryApi`, `FakeRecordEventApi`, `FakeSimpleRecordApi`, `FakeResidentModuleStateApi`, giữ dữ liệu trong bộ nhớ); hợp đồng từng interface là test `*ApiContract` chạy trên cả bản thật (`*ApiIT`) và bản giả (`Fake*ApiTest`).
 
 ---
 

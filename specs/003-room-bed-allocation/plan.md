@@ -16,7 +16,7 @@ Feature 003 là phần phòng và giường của module M03 (mục 7). Nó cung
 7. Khu nghỉ bán trú duy nhất với sức chứa theo buổi (mục G).
 
 Hướng kỹ thuật:
-- Khóa dòng theo thứ tự cố định: người cao tuổi (khi lệnh đi qua 001), rồi `vi_tri_nct`, rồi giường theo `id`. Mọi điều kiện kiểm sau khi khóa, nên lệnh đến sau được kiểm lại trên trạng thái mới. Cơ sở dữ liệu là lưới an toàn: cột sinh có `UNIQUE` cho "một đang hiệu lực mỗi giường, mỗi người", trigger chống chồng khoảng, trigger bất biến khi đã đóng (research G-03).
+- Khóa dòng theo thứ tự cố định: người cao tuổi (khi lệnh đi qua 001), rồi `vi_tri_nct`, rồi giường theo `id`. Mọi điều kiện kiểm sau khi khóa, nên lệnh đến sau được kiểm lại trên trạng thái mới. Cơ sở dữ liệu là lưới an toàn: cột sinh có `UNIQUE` cho "một đang hiệu lực mỗi giường, mỗi người", trigger chống chồng khoảng, trigger bất biến khi đã đóng (research G-03). *(R-15: `vi_tri_nct` → `trang_thai_nct`)*
 - Một điểm ghi trạng thái giường với bảng chuyển cài trong mã; mỗi lần chuyển thêm một dòng lịch sử (G-04).
 - Một thành phần kiểm tra FR-018 dùng chung cho danh sách giường và lệnh, nên danh sách và lệnh không lệch nhau (G-05).
 - Tác động lên giường từ lệnh trạng thái của 001 đi qua SPI `ThamGiaChuyenTrangThai`, trong cùng transaction (G-06).
@@ -90,7 +90,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ. Ba chỗ spec mâu thuẫn hoặc thiếu được báo lại (điểm 2, 3, 4); thiết kế theo FR, không theo ví dụ |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-014 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng của 000, 001, 002 được bổ sung giao diện (G-13), không đổi hành vi đã thiết kế |
-| X. Kiến trúc | Đạt | Một khối; gói `m03`; module khác chỉ dùng `m03.api`. Không có vòng phụ thuộc: module thấp khai báo SPI (G-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `roombedallocation`; module khác chỉ dùng `roombedallocation.api`. Không có vòng phụ thuộc: module thấp khai báo SPI (G-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | FR-018, bảng chuyển, quyền, phạm vi đều ở backend. `lenhDuocPhep` chỉ để hiển thị. Mỗi lệnh có `POST …/{id}/<lenh>` riêng, kể cả hai kiểu chuyển giường |
 | XII. Dữ liệu | Đạt | DBR-09 có `UNIQUE` trên cột sinh, trigger và khóa; DBR-26 có bảng chuyển và `CHECK`; BR-M03-10 có `CHECK`; nhóm 3 theo mẫu trigger của 000; nhật ký trong transaction; thời gian theo `Clock` (data-model mục 8) |
 | XIII. Tham số | Đạt | Như V. Sức chứa khu nghỉ không lưu riêng, luôn là CFG-M03-01 |
@@ -98,8 +98,8 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | XV. Truy vết, kiểm thử | Đạt | Tên test theo BR, FR. Mỗi BR của 003 có test tích hợp (data-model mục 11). Không có BR nào của 003 thực hiện ở client |
 
 **Kiểm lại sau Phase 1**: Đạt. Thiết kế không thêm vai trò, trạng thái hay quy tắc nghiệp vụ ngoài spec. Có bốn bổ sung kỹ thuật, giải thích ở Complexity Tracking:
-1. Bảng `vi_tri_nct` làm đích khóa theo người.
-2. Bảng kỹ thuật `yeu_cau_nhap_bu`, `nhac_phan_bo`.
+1. Bảng `vi_tri_nct` làm đích khóa theo người. *(R-15: `vi_tri_nct` → `trang_thai_nct`)*
+2. Bảng kỹ thuật `yeu_cau_nhap_bu`, `nhac_phan_bo`. *(R-15: `yeu_cau_nhap_bu` → `ho_so_chung`; `nhac_phan_bo` → `moc_da_nhac`)*
 3. Lệnh phân bổ, chuyển giường không dùng `If-Match`.
 4. Năm giao diện bổ sung vào hợp đồng 000, 001, 002 (G-13).
 
@@ -142,7 +142,7 @@ specs/003-room-bed-allocation/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/com/cambae/backend/m03/
+backend/src/main/java/com/eldercare/backend/roombedallocation/
 ├── api/                       # PhanBoGiuongLenhApi, ViTriApi, LichSuViTriApi, SucChuaBanTruApi, CoCauViTriApi,
 │                              # PhongChoPhepApi, TinhTrangGiuongApi, CanhBaoBanGiaoApi, SPI 003 khai báo, sự kiện
 ├── cocau/      {internal, web}     # khu vực, tầng, loại phòng, phòng, giường (danh mục), lý do chuyển
@@ -167,16 +167,16 @@ mobile/lib/nhan-vien/
 └── cach-ly-phong/             # Bác sĩ: đặt, gỡ, xác nhận ở lại
 ```
 
-**Structure Decision**: Theo R-02 của 000. Feature 003 nằm ở `backend/…/m03` với năm gói con nghiệp vụ, gói `lich` và gói `api` công khai. Phần tài sản (019) sẽ ở `m03.taisan` và chỉ gọi 003 qua port `m03.giuong.port` (G-01). Web có đủ chức năng của 003. App nhân viên có các thao tác tại tầng. App người thân không có màn của 003.
+**Structure Decision**: Theo R-02 của 000. Feature 003 nằm ở `backend/…/roombedallocation` với năm gói con nghiệp vụ, gói `lich` và gói `api` công khai. Phần tài sản (019) sẽ ở `roombedallocation.taisan` và chỉ gọi 003 qua port `roombedallocation.giuong.port` (G-01). Web có đủ chức năng của 003. App nhân viên có các thao tác tại tầng. App người thân không có màn của 003.
 
 ## Complexity Tracking
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
 | Lệnh phân bổ, chuyển giường, đổi trạng thái giường không dùng `If-Match` (khác R-03 "lệnh sửa bắt buộc `If-Match`") | FR-020, FR-033 đòi lệnh đến sau được kiểm tra lại trên trạng thái mới, chỉ bị từ chối khi không còn hợp lệ | `If-Match` từ chối cả lệnh đến sau còn hợp lệ. Cùng lý do với 001 H-02 |
-| Bảng `vi_tri_nct` (một dòng mỗi người) | Cần một dòng của 003 để khóa tuần tự mọi lệnh trên cùng người, và để giữ dấu "chưa có giường" (FR-025a) | Khóa dòng `nguoi_cao_tuoi` của M01 từ lệnh của 003 là truy cập dữ liệu module khác (constitution X) |
+| Bảng `vi_tri_nct` (một dòng mỗi người) | Cần một dòng của 003 để khóa tuần tự mọi lệnh trên cùng người, và để giữ dấu "chưa có giường" (FR-025a) | Khóa dòng `nguoi_cao_tuoi` của M01 từ lệnh của 003 là truy cập dữ liệu module khác (constitution X) *(R-15: `vi_tri_nct` → `trang_thai_nct`)* |
 | Trigger chống chồng khoảng song song với khóa ở backend | DBR-09 cần một bảo đảm ở cơ sở dữ liệu khi mã có lỗi (constitution XII); MySQL không có ràng buộc loại trừ khoảng | Chỉ kiểm ở backend thì một lỗi mã là phá được SC-001 |
-| Bảng kỹ thuật `yeu_cau_nhap_bu`, `nhac_phan_bo`; cột `da_bao_*`, `da_nhac_*` trên `giuong`, `phan_bo_giuong` | Chống báo, nhắc lặp (NFR-04); gắn dấu "có nhập bù đang chờ duyệt" mà không đọc JSON của 000. Mỗi lần báo, nhắc vẫn ghi nhật ký | Suy từ bảng thông báo của 009 thì 003 đọc dữ liệu module khác |
+| Bảng kỹ thuật `yeu_cau_nhap_bu`, `nhac_phan_bo`; cột `da_bao_*`, `da_nhac_*` trên `giuong`, `phan_bo_giuong` | Chống báo, nhắc lặp (NFR-04); gắn dấu "có nhập bù đang chờ duyệt" mà không đọc JSON của 000. Mỗi lần báo, nhắc vẫn ghi nhật ký | Suy từ bảng thông báo của 009 thì 003 đọc dữ liệu module khác *(R-15: `yeu_cau_nhap_bu` → `ho_so_chung`; `nhac_phan_bo` → `moc_da_nhac`)* |
 | Năm giao diện bổ sung vào hợp đồng 000, 001, 002 (G-13) | FR-029 cần tác động lúc duyệt; FR-024a cần cảnh báo trước lệnh; FR-027, FR-036 cần khoảng trạng thái; FR-034 cần sự kiện đổi giới tính; Modulith cần một chiều phụ thuộc M03 → M15 | Không bổ sung thì phải sao chép dữ liệu của module khác hoặc dùng sự kiện sau commit, trái các yêu cầu "trong cùng một lần" |
 | Chu kỳ job 15 phút đặt trong cấu hình ứng dụng, không phải mã CFG | Thông số vận hành, không có trong Phụ lục 25. Trễ tối đa 15 phút, dưới ngưỡng mặc định của CFG-M03-08 | Thêm mã CFG thì phải sửa tài liệu nguồn chỉ vì thông số kỹ thuật |
 
@@ -218,7 +218,7 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 8. **(Đồng bộ với plan 000, 001, 002, đã sửa trong plan này)** Các bổ sung ở research G-13 đã được ghi vào: *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
    - [../000-shared-foundation/contracts/module-interfaces.md](../000-shared-foundation/contracts/module-interfaces.md): `LoaiYeuCauHandler.kiemTraKhiDuyet`, `khiDuyet`;
    - [../001-elder-profile-assessment/contracts/module-interfaces.md](../001-elder-profile-assessment/contracts/module-interfaces.md): `ThamGiaChuyenTrangThai.canhBao`, `TrangThaiNguoiCaoTuoiApi.khoangTrangThai`, sự kiện `ThongTinCaNhanDaCapNhat`;
-   - [../002-account-permission/contracts/module-interfaces.md](../002-account-permission/contracts/module-interfaces.md): `PhanBoGiuongApi` là SPI khai báo ở `m15.taikhoan.api`, M03 cài.
+   - [../002-account-permission/contracts/module-interfaces.md](../002-account-permission/contracts/module-interfaces.md): `PhanBoGiuongApi` là SPI khai báo ở `administration.taikhoan.api`, M03 cài.
 
 ## Ghi chú triển khai
 
@@ -229,7 +229,7 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - Port `TaiSanGiuongPort` được đặt tên `BedAssetPort` tại `internal/bed/domain`; đây là cổng nội bộ cùng module, không mở tài sản thành module mới. Cổng chiều ngược lại `GiuongTheoTaiSanPort` và luật ranh giới cụ thể cho phần tài sản còn thuộc T004/019.
 - T002 cần kiểu để `implements`, nên kéo lên đúng bốn khai báo SPI từ T004 và các kiểu chữ ký liên quan; T004 vẫn chưa đánh xong. SPI nằm ở `api/spi`, kiểu dùng chung cho cơ cấu/bán trú ở `api/dto`; mỗi gói API có `@NamedInterface`. Không đổi số hàm hay ý nghĩa chữ ký trong contracts mục 2.1, mục 3.
 - `CareLevelCode` và `ResidencyType` là mã trao đổi của SPI M03; bộ chuyển đổi ở 004 sẽ ánh xạ dữ liệu của 001/004 sang các mã đó, không khai báo hộ API M01. Phase 1 không cần bean M01; prerequisite M01 vẫn cần được xác nhận trước các task nghiệp vụ dùng hồ sơ/chuyển trạng thái.
-- Bản giả đặt tại `support/fake/m03/`, chỉ dùng `@TestConfiguration` + `@Import(FakeM03Config.class)`, các bean `@Primary`. Không có bean giả trong ứng dụng chạy thật, không có endpoint giả lập mới. Công tắc trong test là các hàm đặt dữ liệu và `reset()`; endpoint kiểm thử/demo mô tả trong G-16 chưa thuộc phần này.
+- Bản giả đặt tại `support/fake/roombedallocation/`, chỉ dùng `@TestConfiguration` + `@Import(FakeM03Config.class)`, các bean `@Primary`. Không có bean giả trong ứng dụng chạy thật, không có endpoint giả lập mới. Công tắc trong test là các hàm đặt dữ liệu và `reset()`; endpoint kiểm thử/demo mô tả trong G-16 chưa thuộc phần này.
 - Bản giả mặc định không có dữ liệu, không có vùng khoanh/dấu tài sản. Nguồn lưu trú giữ riêng mức theo hợp đồng và đăng ký; bộ đếm bán trú lọc ngày/buổi; tình trạng lây nhiễm trả trạng thái theo mốc truyền vào; tham chiếu vị trí giữ lịch sử sau khi gỡ tham chiếu hiện tại; cổng tài sản không ghi dữ liệu. Lệnh gọi lại nguồn lưu trú được ghi trong bộ nhớ để test kiểm.
 - TDD: T001 có 2 assertion thất bại trước khi tạo khung; sau cài, test task và các ArchTest/ModuleBoundaryTest qua 23/23. T002 ban đầu chưa biên dịch vì thiếu kiểu, sau khi dựng chữ ký và khung bản giả có 5/7 test hành vi thất bại; sau cài bộ đặt dữ liệu, test task và các ArchTest/ModuleBoundaryTest qua 28/28. Java đã chạy `spotless:apply`.
 - Máy có JDK 25 ở `E:\JAVA\JDK_GE\INS_25`; dùng `JAVA_HOME` riêng cho từng lệnh, không đổi cấu hình máy. Maven wrapper đã được phép ghi cache sau lần thử đầu bị sandbox chặn. Chưa có `TEST_DB_URL`, `TEST_DB_ADMIN_USER`, `TEST_DB_ADMIN_PASSWORD` trong môi trường process/user/machine; kết quả kiểm cuối phase sẽ được ghi tiếp sau khi lệnh nền kết thúc.
@@ -418,7 +418,7 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 
 - Sửa khóa phòng–giường sau RED tái hiện deadlock: M01 resident → M03 resident_position → shared room guards theo id → bed locks theo id. StructureService sửa phòng giữ exclusive room trước bed; BedStore.lock cũng guard phòng, BedStateStore chỉ FOR UPDATE OF b và đọc room FOR SHARE, không nâng room thành exclusive. Cấu trúc này vẫn cho hai lệnh trên hai giường cùng phòng chạy đồng thời.
 - Kiểm overlap bằng FOR SHARE trên toàn v_current_allocation không dùng được: InnoDB status đã xác nhận 53 row lock S, bao gồm bản ghi phân bổ không liên quan; hai FUTURE cùng nâng lên ACTIVE tạo deadlock. Ngoài ra MAX(sequence_no) lồng trong view correction giữ snapshot RR nên có thể bỏ sót đính chính vừa commit. Test mới đã RED cả hai ca (003-m01-current-overlap-red.log: 1 failure +1 error).
-- Hướng sửa chỉ M03: AllocationCurrentReadPool và CurrentAllocationOverlapStore đọc nguyên view bằng plain SELECT READ_COMMITTED, kết nối chỉ đọc/autoCommit, pool riêng tối đa mặc định 2 (eldercare.m03.current-allocation-read-pool-size). Dùng driver/property/tài khoản của DataSource chính, không thêm thư viện, không thêm bean DataSource, không đổi cấu hình toàn hệ thống. Đóng Connection/PreparedStatement/ResultSet ngay sau truy vấn, không dùng DataSourceUtils/JdbcTemplate để tránh bind connection phụ vào transaction nguồn. Do dùng pool riêng, không cần connection rảnh trong pool lệnh khi mọi parent đang giữ connection.
+- Hướng sửa chỉ M03: AllocationCurrentReadPool và CurrentAllocationOverlapStore đọc nguyên view bằng plain SELECT READ_COMMITTED, kết nối chỉ đọc/autoCommit, pool riêng tối đa mặc định 2 (eldercare.roombedallocation.current-allocation-read-pool-size). Dùng driver/property/tài khoản của DataSource chính, không thêm thư viện, không thêm bean DataSource, không đổi cấu hình toàn hệ thống. Đóng Connection/PreparedStatement/ResultSet ngay sau truy vấn, không dùng DataSourceUtils/JdbcTemplate để tránh bind connection phụ vào transaction nguồn. Do dùng pool riêng, không cần connection rảnh trong pool lệnh khi mọi parent đang giữ connection.
 - Phạm vi bắt buộc của phép đọc độc lập: chỉ checkCurrent trong COMPLETE_ADMISSION, sau toàn bộ khóa và trước lần ghi bed_allocation đầu tiên của participant; loại FUTURE của parent bằng id. Mọi kiểm khác dùng dữ liệu nguồn hoặc current locking read trong parent; mọi ghi, audit, event vẫn ở transaction nguồn và rollback cùng M01. Không dùng helper này cho luồng đã ghi allocation chưa commit cần nhìn thấy. Reviewer chỉ đọc đã xác nhận call site hiện tại đáp ứng điều kiện này, không còn finding P1/P2 trong pool/store.
 - Sau sửa overlap: 20 FR024 +25 ArchTest xanh (003-m01-current-overlap-green.log). Thêm ca 5 parent transaction vét toàn bộ pool chính size 5, đang chạy trong clean verify cuối. Không kết luận ca này xanh trước khi có kết quả.
 - Clean verify lượt đầu: 392 unit/kiến trúc xanh; 990 IT có 5 failure +10 error. Một error M03 là deadlock đã sửa ở trên; 14 lỗi còn lại thuộc fixture/contract M01 khi nạp thêm participant/controller 003. Theo quyết định giữ M01 cho B, không sửa các test đó để cho xanh; đã thêm bàn giao ở team-plan mục 8. B cần cô lập participant thật M03 khỏi fixture StatusTestBase đang có hai participant giả, và giới hạn ResidentContractIT vào contract 001, vì endpoint location thuộc contract 003. Không đổi hợp đồng hoặc nới điều kiện production để làm test cũ qua.
@@ -486,7 +486,7 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - Lớp đặt trong internal/isolation/{domain,persistence,service}, web/{request,response}; migration V003_06__room_isolation_history.sql. Không chép đường dẫn logic của tasks. Lịch sử là append-only, sự cố chỉ tham chiếu logic tới007. Không thêm thư viện.
 - Đặt/gỡ cách ly dùng allocation_write_guard độc quyền trước khóa room để đồng bộ với thứ tự khóa của các writer phân bổ/M01. Chỉ thay room.isolated và version; không đổi trạng thái giường hoặc tự tạo phiếu. JPA Room.isolated đã updatable=false, nên Store ghi SQL lệnh riêng và refresh ảnh phản hồi. Gỡ phòng chỉ xóa dấu chờ bác sĩ khi nguồn007 xác nhận phòng hết chịu chặn; thiếu nguồn trả503, không giả hết khoanh.
 - T055 dùng ControlledTransferService riêng cho ngoại lệ kiểm soát lây nhiễm, tái sử dụng AllocationLocks/Checker/CommandStore/BedStateService. Chỉ miễn ALLOCATION_ISOLATION, giữ những điều kiện FR018 khác. Nguyên tử đóng phân bổ cũ/mở mới/đổi hai giường; giữ cùng hạn/lý do giữ giường của người vắng theo FR032. Lý do danh mục cố định INFECTION_CONTROL (nhóm y tế/an toàn), không dựng lại luồng chuyển thông thường Phase5 còn thiếu. Bác sĩ kiểm AccountApi.hasRole và ghi id vào phân bổ/audit; sự kiện DoctorAssignedToAllocation báo đúng hồ sơ nhân viên của tài khoản đã chọn.
-- T054 chưa thể nối listener sự kiện007: checkout m07 chỉ có package-info, chưa có kiểu API/fake ContainmentLifted/ContactAdded do D sở hữu. Không tự khai báo lớp m07 hoặc fake thứ hai. Vẫn cài phần lệnh gỡ cách ly phòng; phần tự gỡ dấu khi007 phát sự kiện và xử lý thêm danh sách tiếp xúc giữ chờ D.
+- T054 chưa thể nối listener sự kiện007: checkout medication chỉ có package-info, chưa có kiểu API/fake ContainmentLifted/ContactAdded do D sở hữu. Không tự khai báo lớp medication hoặc fake thứ hai. Vẫn cài phần lệnh gỡ cách ly phòng; phần tự gỡ dấu khi007 phát sự kiện và xử lý thêm danh sách tiếp xúc giữ chờ D.
 - CLAUDE.md/mobile README hiện chỉ mở mobile người cao tuổi; phần nhân viên của T056 để[ ], không triển khai Flutter. Backend/web không chờ mobile theo quy định hiện hành.
 - TDD: FR_008_RoomIsolationIT có3test RED 404 trước controller (003-p9-isolation-red.log), rồi xanh cùng ArchTests (003-p9-isolation-green.log). BR_M03_21_ControlledTransferIT có4test RED404 trước T055. Lần compile đầu T055 sai constructor PermissionDeniedException, đã sửa theo API hiện có; chưa ghi xanh trước kết quả lượt mới.
 
@@ -531,7 +531,7 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - Khoảng Chờ sẵn sàng giao với [from,to), deadline tính từ lúc thật vào Chờ sẵn sàng và ParameterApi.readAt(CFG-M03-04,entryAt), không lấy CFG hiện tại cho quá khứ. stateAt trả Stream từ dữ liệu đã materialize trong transaction, không giữ cursor JDBC ra ngoài. Luợt Trống giữ qua hold WAITING_RECORD, bị cắt bởi sử dụng/bảo trì/tạm ngừng/ngừng dùng. Cảnh báo bàn giao chỉ dấu chờ bác sĩ, không tự lập mục giường quá hạn.
 - countAvailable đọc trạng thái tại t, nguồn007 tại t, cấu hình phòng và dấu tài sản mà các API hiện có cung cấp; không bịa lịch sử cấu hình/tài sản vì các nguồn đó chưa có thao tác đọc lịch sử. Trường floor lịch sử giường dùng floor_area_id trên fact; room và cơ cấu còn theo quan hệ lưu hiện tại (giới hạn dữ liệu cần ghi rõ khi rà T065).
 - T062: ApiContractIT đã đăng ký003 và chỉ còn pending chuyển thường Phase5; không xóa pending để giả hoàn tất. Test trigger chung chỉ quét @Entity nên thiếu bảng room_isolation_history chỉ có SQL; mở rộng đúng2bảng nhóm3 của003, không nới test của module khác.
-- T063: đối chiếu team-plan mục1 đúng mapping:004→m02;007→m05/m06;008→m09;019→m03 (phầnm11 quaAPI E). m02/m05/m06/m09 chỉ có package-info; tìm toàn production không có lớp cài AllocationResidencySource/AllocationInfectionStatus/LocationReferences/BedAssetPort. Chưa có các provider thật cần kiểm; không thay fake bằng bean không tồn tại, không tạo fake production. Một số ghi chú lượt trước đã nhầm đường dẫn m07(006) và m14(016); không lấy nhầm đó làm bằng chứng T063.
+- T063: đối chiếu team-plan mục1 đúng mapping:004→admission;007→incident/health;008→staffing;019→roombedallocation (phầnm11 quaAPI E). admission/incident/health/staffing chỉ có package-info; tìm toàn production không có lớp cài AllocationResidencySource/AllocationInfectionStatus/LocationReferences/BedAssetPort. Chưa có các provider thật cần kiểm; không thay fake bằng bean không tồn tại, không tạo fake production. Một số ghi chú lượt trước đã nhầm đường dẫn medication(006) và reporting(016); không lấy nhầm đó làm bằng chứng T063.
 - T064: chạy kiểm backend/web và Flutter hiện có nếu môi trường cho phép; app nhân viên vẫn chưa mở. Đo API danh sách300giường<1giây theo task riêng, không gọi đó là SC-005 hoàn tất: quickstart5 còn yêu cầu60người dùng,10lần thao tác Hành chính, trung vị<2phút. Kịch bản demo cần đối chiếu phần có/thiếu, không ghi đã chạy nếu chỉ có test backend tương ứng.
 - T065: lập verification.md với file/method thực tế và khoảng trống; giữ mã BR/DBR/FR gốc và tên logic của bảng11, không sửa spec/nghiệp vụ. Không đánh[x] trước clean verify cuối và đủ yêu cầu từng task.
 
@@ -567,3 +567,52 @@ Review phát hiện chuỗi chuyển sau khi đã có dấu khác giá có thể
 TDD: test chuyển thường viết trước, chạy đỏ13ca vì thiếu bean; lượt fixture đầu có trùng tên danh mục nên đã thêm id vào tên rồi chạy đỏ lại. Sau cài13/13xanh. Hai ca hồi quy cho hai dấu chờ chạy đỏ (lệnh chuyển vẫn thành công), rồi mới thêm guard. Test mới BR_M03_07_BedTransferIT không có transaction bao ngoài, kiểm nguồn lỗi sau đổi giường hoàn tác, hai lệnh đồng thời chỉ một thành công, payload tầng cũ/mới và audit. Kết quả kiểm hẹp/cuối bổ sung bên dưới.
 
 **Kết quả cuối 2026-10-29**: bộ hẹp43IT/7lớp xanh, gồm15ca mới; clean verify nền sau nạp backend/.env/JDK25 kết thúc exit1/09:31phút. XML xác nhận680unit/kiến trúc xanh;1483IT có7failure+9error,0skip:15lỗi/8lớpM01 khớp baseline, thêm1failure ApiContractIT đúng ba route T007a chưa đăng ký theo lựa chọn giữ file chung A. M03 toàn bộ252IT/52lớp xanh; M15 tham số không tái hiện lỗi cũ. Spotless:check riêng exit0. Đóng T029, giữ T032 một phần và không nghiệm thu Phase5/T063; 003 hiện23/65task[x],42[ ]. Không sửa nguồn004/007/019, không đổi API, không sửa migration đã merge, không sửa frontend/mobile. Log C:/Users/nguye/AppData/Local/Temp/eldercare-t032-clean-verify-20261029.log, eldercare-t032-scoped-final-20261029.log và eldercare-t032-spotless-20261029.log. Chưa commit/push/PR/hoàn tất merge.
+
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Lược đồ sau gộp và cách chuyển dữ liệu: data-model mục 0, 0.1; task T066.
+- Bảo đảm DBR, BR sau gộp (XII): ràng buộc của bảng giữ riêng giữ nguyên; ràng buộc của bảng đã gộp chuyển theo cột "ràng buộc chuyển về backend" và đoạn "Bảo đảm" của data-model 0.1 (`khoa_duy_nhat`, cột sinh `UNIQUE`, `CHECK` theo `kind`, quyền theo cột, trigger khóa theo dòng, kiểm ở domain). Mỗi ràng buộc chuyển về domain có test tích hợp; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR áp dụng trong data-model.
+- Hiệu năng (NFR): truy vấn trên bảng chung dùng chỉ mục `(loai_doi_tuong, doi_tuong_id, loai)` và cột sinh có chỉ mục khai báo ở 0.1; chạy lại phần đo của quickstart sau khi gộp.
+- Dòng nhắc bảng cũ trong plan, research, tasks có ghi chú "R-15:" chỉ bảng đích.
+
+## Ghép package và tài liệu 2026-10-30
+
+Giữ các bản cài C và guard503 cho chuyển còn dấu giá theo quyết định giữ SPI, đổi namespace sang com.eldercare.backend.roombedallocation. Tasks giữ trạng thái có bằng chứng của HEAD, không nhận các checkbox đánh sẵn trong develop khi chưa đủ phạm vi; thêm T066/R-15 làm việc riêng. Giữ lịch sử fixture FR036 đã sửa và dữ liệu M01 thật, không đổi thành statusPeriods còn stub. Bằng chứng test trước đổi package là lịch sử; kết quả sau ghép ghi ở progress ngày30/10 và plan005 mục ghép develop.
+
+Kết quả sau ghép30/10:252IT M03/52lớp xanh,709unit/kiến trúc xanh;1536IT toàn kho có7failure+9error (15M01baseline+1ApiContractIT chờ A), không có lỗi M03. Spotless sạch. Giữ T032 có nhánh503 theo lựa chọn chủ dự án; T033/T034/T036 và các task chưa đủ phạm vi vẫn mở. Không dùng nhật ký kiểm trước merge làm bằng chứng mới.
+
+
+## Review UUID lần chạy M03 — 2026-10-30
+
+C đã review đổi Basis.schedulerRunId Long→String của000 T108 phần2: bốn job dùng SchedulerRuns, ba processor ghi nhật ký giữ String UUID; UUID nằm trong JSON basis, không ghi vào basis_id dạng số. FutureAllocationPastStartJob chỉ dùng mã cho log, processor cảnh báo không ghi audit. Không đổi source/API/migration; bổ sung kiểm liên kết UUID từ audit_log sang jobs.log trong FR_015_HoldExpiryIT và FR_044_BedRemindersIT. Chi tiết và lệnh ở verification.md mục6.
+
+Kiểm mới:4test kiến trúc+12IT xanh,0failure/error/skip,exit0; Spotless:apply giới hạn đúng hai file test. Đây là review và bổ sung kiểm cho implementation hiện có, chưa làm T066 hoặc clean verify toàn kho. Team-plan chỉ bỏ phần C của dòng review UUID, giữ B; kết quả ghi progress. Không đánh thêm checkbox hoặc hoàn tất merge.
+
+
+## Review consumer M03 cho002/008/016 — 2026-10-30
+
+Đối chiếu adapter tên tầng, BedStateOnDate/AwaitingReadyInterval/BedFlagView, consumer phân công/bàn giao008, chỉ tiêu016, ba sự kiện phân bổ thật và trigger003. Kiểm mới19unit/6lớp+105IT/9lớp xanh,0failure/error/skip,exit0; lệnh và giới hạn ở verification.md mục7. Không sửa source/test/API/migration hoặc checkbox, chưa chạy clean verify toàn kho/chưa làm T066.
+
+Review phát hiện fake chung FakeHandoverLocations còn roomId=0/holdReason=null và chưa giao khoảng from/to; chuyển dòng review trường báo cáo thành việc C sửa fake với test trước. AllocationHandoverApi/LocationApi chưa có bean thật; BedHandoverAlertApi/ResidentLocationApi có bản thật nhưng không tự thay thế hai hợp đồng đó. Giữ dòng nguồn C và dòng chốt sự kiện cũ. Tài liệu008 còn currentState trong khi caller đã dùng BedStatisticsApi.stateAt: bàn giao E đồng bộ, không đổi API003. Xóa riêng hai dòng C review đã hoàn tất; các phần A/E/D vẫn chờ, kết quả ghi progress. Chưa commit/push/hoàn tất merge.
+
+
+## Sửa fake báo cáo giường và người cao tuổi của đính chính — 2026-10-30
+
+Phạm vi được chủ dự án cho tiếp tục: sửa FakeHandoverLocations ở support/fake/roombedallocation và AllocationCorrectionProvider,không đổi hợp đồng API hoặc migration. Kế hoạch kiểm: (1) thêm test fake chứng minh metadata phòng/lý do giữ,phạm vi phòng và giao khoảng nửa mở; chạy đỏ trước khi cài; (2) giữ hàm fixture state(long,String),bổ sung fixture trạng thái đầy đủ,dùng metadata thay id0 và giữ startedAt khi cắt from/to; (3) thêm test đính chính thật kiểm audit_log.resident_id theo bản gốc,chạy đỏ rồi ghi đè residentId qua AllocationCorrectionStore hiện có; (4) chạy hồi quy fake,bàn giao,báo cáo,đính chính và kiến trúc; Spotless giới hạn file thay đổi,verify toàn kho cuối lượt nếu môi trường cho phép; cập nhật đúng phần dòng chờ đã làm xong. Không đánh hoàn tất T047/T066 hoặc phase từ hai sửa hẹp này.
+
+
+Kết quả hai sửa hẹp (2026-10-30): FakeHandoverLocations giữ metadata thật từ fixture,thêm state(BedStateOnDate),giữ hàm state(long,String),giao khoảng nhưng giữ startedAt,lọc phạm vi trước kiểm lý do giữ. AllocationCorrectionProvider.residentId đọc người cao tuổi từ bản gốc qua store hiện có;không thêm audit riêng hoặc đổi API. Đã thấy5test fake assertion đỏ,1IT audit NULL đỏ và1ca scope lỗi đỏ trước từng sửa;kiểm cuối17unit/kiến trúc+44IT xanh,0failure/error/skip,Spotless4file đạt. Reviewer độc lập không còn finding trên bản cuối. Chi tiết ở verification.md mục9.
+
+Verify toàn kho trước chỉnh scope fixture cuối:714unit xanh,1537IT có17lỗi;16phương thức trùng log mốc và1ca M01 lệch thời gian thêm,đã ghi bàn giaoB,không tái hiện khi chạy riêng. Không ghi gate xanh hoặc đóng T047/T066;tasks chỉ bổ sung yêu cầu residentId và ghi chú hai sửa. Team-plan gỡ phầnC làm xong tại checkout,giữ phầnE,chưa commit/push/hoàn tất merge hoặc vào develop. Không có thay đổi glossary nghiệp vụ hay migration;không sửa PENDING_*.
+
+
+## AllocationHandoverApi — 2026-10-31
+
+Chủ dự án xác nhận triển khai sau khi rà mốc createdAt. Điều tra: ReturnedToIsolatedRoom có notification.occurredAt nhưng không phải nguồn lưu bền cho truy vấn; cờ awaiting_doctor_confirmation không có mốc riêng,nhật ký hiện tại chưa ghi một lần đặt dấu có thể đọc chính xác cho mọi luồng. Không lấy start_at hoặc đọc bảng outbox của000 làm mốc cảnh báo.
+
+Thiết kế kỹ thuật: V003_07 thêm doctor_confirmation_requested_at DATETIME(6) NULL vào bảng bed_allocation được giữ sau R-15,không thêm bảng mới/không sửa migration đã merge. AllocationCommandStore.awaitingDoctor ghi mốc từ BusinessTime hiện có khi cờ đổi false→true,giữ mốc khi cờ đãtrue; dấu mang sang phân bổ mới trong ControlledTransferStore.metadata được ghi mốc của lệnh chuyển. Dữ liệu cũ thiếu mốc giữNULL,không backfill bằng thời điểm đoán. BedReportingStore đọc timestamp từ bảng gốc kết hợp view đã áp đính chính; BedReportingService cài thêm AllocationHandoverApi bằng cùng nguồn phân bổ đang Hiệu lực,chờ bác sĩ,cùng tầng,còn khoảng hiệu lực và mốc đặt dấu không sau lúc hỏi. createdAt của nguồn cũ có thểnull;008 có snapshot nguồn và xử lý thời gian rỗng ở nhánh dự phòng. Giữ chữ ký interface/DTO/HTTP cũ.
+
+Test trước: nguồn thật và mapping id/người/phòng,mốc mới khác start_at,đúng tầng/trạng thái/thời điểm,dấu gỡ không trả,legacyNULL; kiểm writer qua lệnh trở về và chuyển kiểm soát,giữ mốc khi vẫn pending; thêm kiểm consumer008 qua endpoint source-records với nguồn003 thật ở test củaC. Sau đỏ mới thêm migration/implementation,rồi chạy bộ liên quan,kiến trúc/Spotless và verify toàn backend. T061/T063 không tự đóng cả phase;LocationApi cũ và R-15 vẫn là việc riêng. Không sửa source/test củaE hoặc đưa fake vào production.
+
+Kết quả kiểm liên quan:39IT/3lớp xanh,0failure/error/skip;Spotless đúng10file đạt. Test HTTP008 dùng fixture đã commit để worker đọc song song nhìn thấy nguồn003,đóng phân bổ/gỡ dấu và hủy ca của test sau kiểm. Review độc lập không còn finding. Kết quả verify toàn kho ghi ở verification.md mục10 khi kết thúc;không đánh hoàn tất T061/T063 hoặc R-15. Team-plan còn LocationApi và A/E review consumer.
+Verify bản cuối exit1/27:02phút:715unit xanh,1542IT có17lỗi;16phương thức trùng log trước và1failure hiệu năngT064 mới. M03 có257/258IT qua,care35/staffing251 xanh;Spotless toàn kho sạch. T064 max1410ms trong verify và1355ms khi chạy riêng,cùng vượt1000ms;không gán là lỗi thoáng qua,không giảm ngưỡng. Thêm việcC theo dõi hiệu năng danh sách giường,tách khỏi implementation nguồn bàn giao;chi tiết ở verification mục10. Chưa nghiệm thu toàn phase/gate.

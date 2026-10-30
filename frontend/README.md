@@ -23,7 +23,7 @@ Thêm component shadcn: `npx shadcn@latest add <tên>` (sinh vào `src/component
 | Thư mục | Nhiệm vụ | Ai sửa |
 | --- | --- | --- |
 | `api/` | Client sinh từ hợp đồng (`npm run gen:api`). Mỗi endpoint một hàm, ví dụ `getParameters`, `postApprovalRequestsByIdApprove`; `request()` trả `{ data, etag, status }`, lỗi ném `ApiError(status, problem)` | Không ai sửa tay. Trùng khi gộp nhánh thì chạy lại `npm run gen:api` |
-| `common/` | Dùng chung cho mọi feature: khung ứng dụng và menu (`layout/`), lỗi (`problem.js`, `ProblemAlert.jsx`), ngày giờ (`dateTime.js`), trạng thái màn (`PageState.jsx`), đầu trang (`PageHeader.jsx`), nhãn trạng thái (`StatusBadge.jsx`), đính chính (`correction/`), dữ liệu minh họa (`demoData.js`) | A duyệt mọi thay đổi |
+| `common/` | Dùng chung cho mọi feature: khung ứng dụng và menu (`layout/`), lỗi (`problem.js`, `ProblemAlert.jsx`), ngày giờ (`dateTime.js`), trạng thái màn (`PageState.jsx`), đầu trang (`PageHeader.jsx`), nhãn trạng thái (`StatusBadge.jsx`), ghi chú an toàn (`CareNotes.jsx`), ảnh đại diện (`ResidentAvatar.jsx`), danh sách và khung chi tiết (`DetailLayout.jsx`, `useWide.js`), dải "Cần làm ngay" (`NowStrip.jsx`), đính chính (`correction/`), dữ liệu minh họa (`demoData.js`) | A duyệt mọi thay đổi |
 | `features/<tên>/` | Màn hình của một feature (bảng mục 2) | Chủ feature |
 | `components/ui/` | Component shadcn; chỉ đổi qua biến thể `cva` theo DESIGN.md | A duyệt |
 | `lib/` | Tiện ích nhỏ không phụ thuộc nghiệp vụ | A duyệt |
@@ -86,8 +86,10 @@ features/parameters/
 5. **Quyền**: nút hiện theo `allowedCommands` hoặc `/me/permissions` do backend trả; vai trò trên màn chỉ để hiển thị. Không tự suy quyền từ vai trò khi backend đã trả.
 6. **Ngày giờ**: chỉ dùng `formatDate`, `formatDateTime` trong `common/dateTime.js` (dd/MM/yyyy HH:mm, giờ Việt Nam). Gửi lên backend dạng ISO-8601 có `+07:00`.
 7. **Chữ trên màn**: tiếng Việt, theo DESIGN.md mục 8. Tên trong mã tiếng Anh theo glossary.
-8. **Giao diện**: màu, chữ, khoảng cách chỉ qua token và lớp `type-*` của `index.css`; không viết mã màu thô. Component shadcn trước, tự viết sau. Trạng thái mới thêm vào `StatusBadge` và DESIGN.md mục 3.5 trong cùng thay đổi.
-9. **Dữ liệu minh họa** chỉ ở `common/demoData.js`, tên dạng `[Họ tên NCT 1]`; màn đã có API thì không dùng dữ liệu minh họa.
+8. **Giao diện** (DESIGN.md 6.x): màu, chữ, khoảng cách chỉ qua token và lớp `type-*` của `index.css`; không viết mã màu thô, không gradient. Dùng component có sẵn trước: `PageHeader` (đầu màn không bọc thẻ), `StatusBadge` (trạng thái chữ màu), `CareNotes`, `DetailLayout` (màn danh sách có chi tiết: khung cố định bên phải từ 1280px chỉ hiện khi chọn, hẹp hơn là `Sheet`; không tự viết lại), `NowStrip`, `ToggleGroup variant="filter"` (tab từ 768px, chip dưới 768px; không truyền `flex-wrap`). Màn mẫu tham khảo: `features/care-tasks/ShiftChecklistPage.jsx`. Trạng thái mới thêm vào `StatusBadge` và DESIGN.md mục 3.5 trong cùng thay đổi.
+9. **Dữ liệu minh họa** chỉ ở `common/demoData.js`, đầu file ghi rõ là minh họa, tên người hư cấu tiếng Việt (DESIGN.md mục 8); màn đã có API thì không dùng dữ liệu minh họa.
+10. **Chỉ trường của spec và hợp đồng** (DESIGN.md mục 13 điều 6): màn chỉ hiện trường có trong spec của feature và `contracts/api-NNN.yaml`; thiếu trường thì báo chủ module (team-plan mục 8), không tự lấy từ module khác. Dữ liệu minh họa viết đúng hình dạng hợp đồng và đọc qua một lớp chuyển đổi trong feature (mẫu: `features/care-tasks/checklistView.js` kèm test), để khi có client sinh từ hợp đồng chỉ sửa lớp đó.
+11. **Trợ năng**: 12 điểm của DESIGN.md mục 9.2 phải đạt trước khi mở PR có màn mới hoặc màn sửa.
 
 ## 5. Test
 

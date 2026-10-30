@@ -26,11 +26,17 @@ export async function uploadFile(file) {
   return (await response.json()).fileId
 }
 
-// Mở nội dung tệp ở thẻ mới
-export async function openFile(id) {
+// Nạp nội dung tệp vào bộ nhớ trình duyệt, trả URL tạm (ví dụ ảnh nhận diện); nơi gọi giải phóng bằng
+// URL.revokeObjectURL khi không dùng nữa
+export async function loadFileUrl(id) {
   const response = await fetch(`${BASE_URL}/${encodeURIComponent(id)}`, { credentials: 'include' })
   if (!response.ok) throw await failure(response)
-  const url = URL.createObjectURL(await response.blob())
+  return URL.createObjectURL(await response.blob())
+}
+
+// Mở nội dung tệp ở thẻ mới
+export async function openFile(id) {
+  const url = await loadFileUrl(id)
   window.open(url, '_blank', 'noopener')
   // đủ thời gian để thẻ mới nạp xong rồi giải phóng bộ nhớ
   setTimeout(() => URL.revokeObjectURL(url), 60_000)

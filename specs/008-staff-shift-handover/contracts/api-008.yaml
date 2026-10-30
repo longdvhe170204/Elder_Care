@@ -9,7 +9,7 @@ info:
     Lệnh chuyển trạng thái không dùng If-Match; backend khóa dòng và kiểm tra lại (research N-03); lệnh thứ hai trên cùng bàn giao trả 409 STATE_CHANGED.
     Cảnh báo không chặn (giờ làm liên tục FR-014, đào tạo bắt buộc FR-010) trả 409 WARNING_CONFIRMATION_REQUIRED; gửi lại với confirmWarnings = true và reason.
     Hoàn tất, gửi ý kiến, bổ sung, xác nhận bàn giao bắt buộc trực tuyến (FR-060); không có loại ngoại tuyến cho 008.
-    Đổi ca, nghỉ đột xuất, xoay ca, phủ tối thiểu thuộc api-015; 015 dùng port nội bộ của M09 (research N-07).
+    Đổi ca, nghỉ đột xuất thuộc api-015 (xoay ca, phủ tối thiểu bỏ theo Q-397); 015 dùng port nội bộ của M09 (research N-07).
     Đính chính bàn giao đi qua khung của api-000 với loại M09.BAN_GIAO.
     Trường nhóm hạn chế của hồ sơ nhân viên (FR-052) và lý do vắng ca (FR-053) bị bỏ khỏi phản hồi theo 002 và liệt kê trong hiddenFields.
     Truy vết: mỗi operation có x-fr (FR của spec 008) và x-br khi có.
@@ -266,7 +266,7 @@ paths:
   /shift-schedules/{id}/publication-preview:
     get:
       tags: [shift-schedules]
-      summary: Điều kiện chặn và cảnh báo không chặn trước khi công bố (FR-014, FR-034, FR-010; phủ tối thiểu, nghỉ theo ngày của 015)
+      summary: Điều kiện chặn và cảnh báo không chặn trước khi công bố (FR-014, FR-034, FR-010; nghỉ theo ngày của 015)
       x-fr: [FR-016]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SchedulePublicationPreview' } } } } }
@@ -561,7 +561,7 @@ components:
         warnings: { type: array, items: { $ref: '#/components/schemas/Warning' } }
     Warning:
       type: object
-      properties: { code: { type: string, enum: [CONTINUOUS_WORK_HOURS, REQUIRED_TRAINING_EXPIRED, BELOW_STAFFING_THRESHOLD, TASK_TYPE_REQUIREMENTS_NOT_MET, APPROVED_LEAVE_DAY, INSUFFICIENT_MINIMUM_COVERAGE] }, description: { type: string }, details: { type: object } }
+      properties: { code: { type: string, enum: [CONTINUOUS_WORK_HOURS, REQUIRED_TRAINING_EXPIRED, BELOW_STAFFING_THRESHOLD, TASK_TYPE_REQUIREMENTS_NOT_MET, APPROVED_LEAVE_DAY] }, description: { type: string }, details: { type: object } }
     ResultWithWarnings:
       type: object
       properties: { id: { type: integer, format: int64 }, warnings: { type: array, items: { $ref: '#/components/schemas/Warning' } } }

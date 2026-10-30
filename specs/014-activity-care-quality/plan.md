@@ -15,8 +15,8 @@ Feature 014 là phần 8.8 → 8.10 và BR-M04-23 của module M04 (UC-29, UC-30
 6. Kiểm tra chất lượng: người kiểm tra tự chọn công việc đủ tỷ lệ, ghi kết quả, lập công việc làm lại (mục J; BR-M04-23, Q-307).
 
 Hướng kỹ thuật:
-- Thêm gói con vào `m04` cùng 005; dùng dịch vụ nội bộ của 005 (công việc, có mặt bán trú, công việc làm lại) và cài các SPI 005 đã khai cho 014 (research L-01, L-02).
-- Module phụ thuộc M04 (006, 007, 008, 011, 012) đã khai SPI cho 014; 014 cài. Với 015, 016 (làm sau), 014 khai `ChuyenDiNhiemVuLenhApi`, `ChuyenDiThayDoi`, `HoatDongThongKeApi` ở `m04.api`; lịch xe gọi API ở `m03.api` do 019 cung cấp (sửa theo plan 019).
+- Thêm gói con vào `care` cùng 005; dùng dịch vụ nội bộ của 005 (công việc, có mặt bán trú, công việc làm lại) và cài các SPI 005 đã khai cho 014 (research L-01, L-02).
+- Module phụ thuộc M04 (006, 007, 008, 011, 012) đã khai SPI cho 014; 014 cài. Với 015, 016 (làm sau), 014 khai `ChuyenDiNhiemVuLenhApi`, `ChuyenDiThayDoi`, `HoatDongThongKeApi` ở `care.api`; lịch xe gọi API ở `roombedallocation.api` do 019 cung cấp (sửa theo plan 019).
 - Điểm danh rời viện, về gọi lệnh hệ thống của 001 trong cùng transaction; 001 điều phối các bean (005, 006, 011…) như mọi lệnh trạng thái (L-08).
 - Điều kiện đăng ký, ngày tính, chuỗi cô lập, công việc đủ điều kiện, số mục tối thiểu, người kiểm tra là hàm thuần (L-05, L-09, L-10).
 - Hợp đồng 007 thêm `YeuCauGhiDienBienCanhBao` và `DauNghiNhiemDaDoi` (L-11).
@@ -32,10 +32,10 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ### Cập nhật 2026-10-18, lượt 3 (spec mục "Cập nhật 2026-10-18, lượt 3": Q-366, Q-369)
 
-- **Kênh người cao tuổi** (FR-068a): 014 cài SPI `m10.api.HoatDongKenhNctPort.sapToi(nctId, tu, den)`: buổi của tầng người cao tuổi và toàn viện, cờ đã có tên; không trả đánh giá khả năng tham gia, lý do không được đăng ký (research L-16).
-- **Nút SOS** (FR-068a): 014 cài SPI `m05.api.ChuyenDiSosPort.dangDienRa(nctId)`: chuyến mà người cao tuổi đã điểm danh rời viện, chưa điểm danh về; trưởng đoàn, người đi cùng hiện tại (007 research S-23).
+- **Kênh người cao tuổi** (FR-068a): 014 cài SPI `family.api.HoatDongKenhNctPort.sapToi(nctId, tu, den)`: buổi của tầng người cao tuổi và toàn viện, cờ đã có tên; không trả đánh giá khả năng tham gia, lý do không được đăng ký (research L-16).
+- **Nút SOS** (FR-068a): 014 cài SPI `incident.api.ChuyenDiSosPort.dangDienRa(nctId)`: chuyến mà người cao tuổi đã điểm danh rời viện, chưa điểm danh về; trưởng đoàn, người đi cùng hiện tại (007 research S-23).
 - **Nhắc buổi trong ngày** (FR-071): job 00:05 phát yêu cầu Nhẹ nhóm `NguoiCaoTuoi` (009 FR-007 (f)) cho buổi trong ngày mà người cao tuổi có tên; đăng ký trong ngày thì phát khi đăng ký. 009 giữ tới hết giờ yên tĩnh.
-- **Sở thích ghi từ phản hồi Mong muốn** (001 FR-023g): `so_thich` thêm `phan_hoi_id NULL`; lệnh ghi có `phanHoiId` thì phát `YKienDaGhiTuPhanHoi` (001 research H-17).
+- **Sở thích ghi từ phản hồi Mong muốn** (001 FR-023g): `so_thich` thêm `phan_hoi_id NULL`; lệnh ghi có `phanHoiId` thì phát `YKienDaGhiTuPhanHoi` (001 research H-17). *(R-15: `so_thich` → `ho_so_chung`)*
 
 ## Technical Context
 
@@ -95,7 +95,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ; điểm còn lệch ghi ở mục báo lại |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-015 (trừ SC-011, 012 đã bỏ) có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 007 được bổ sung (mục "Đồng bộ") |
-| X. Kiến trúc | Đạt | Một khối; gói con của `m04`; module khác dùng `m04.api` hoặc SPI. Không có vòng (L-02) |
+| X. Kiến trúc | Đạt | Một khối; gói con của `care`; module khác dùng `care.api` hoặc SPI. Không có vòng (L-02) |
 | XI. Nghiệp vụ ở backend | Đạt | Điều kiện đăng ký, rời viện, chuỗi cô lập, tỷ lệ kiểm tra ở backend |
 | XII. Dữ liệu | Đạt | `UNIQUE` và trigger ở data-model; nhật ký trong transaction; `Clock` |
 | XIII. Tham số | Đạt | Như V |
@@ -134,7 +134,7 @@ specs/014-activity-care-quality/
 ├── quickstart.md                # Phase 1: kịch bản kiểm chứng Q1 → Q45, truy vết → test
 ├── contracts/
 │   ├── api-014.yaml             # OpenAPI 3.1: hoạt động, buổi, đăng ký, điểm danh, chuyến đi, tinh thần, kiểm tra, cổng
-│   └── module-interfaces.md     # SPI 014 cài, giao diện mới ở m04.api, sự kiện
+│   └── module-interfaces.md     # SPI 014 cài, giao diện mới ở care.api, sự kiện
 └── tasks.md                     # Phase 2 (/speckit-tasks)
 ```
 
@@ -143,7 +143,7 @@ specs/014-activity-care-quality/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/com/cambae/backend/m04/
+backend/src/main/java/com/eldercare/backend/care/
 ├── api/           # (bổ sung) ChuyenDiNhiemVuLenhApi, ChuyenDiThayDoi, HoatDongThongKeApi
 ├── hoatdong/      {internal, web}   # loại, hoạt động, mẫu, người thường xuyên, BuoiTheoMau, lich/
 ├── buoi/          {internal, web}   # buổi, đăng ký, DieuKienDangKy, đồng ý về muộn, điểm danh
@@ -158,21 +158,21 @@ mobile/lib/nhan-vien/hoat-dong/   # điểm danh, chuyến đi, kiểm tra tại
 mobile/lib/nguoi-than/hoat-dong/  # buổi, chuyến, đồng ý về muộn
 ```
 
-**Structure Decision**: Theo R-02 của 000 và quyết định của plan 005: 014 thêm năm gói con vào `backend/…/m04`.
+**Structure Decision**: Theo R-02 của 000 và quyết định của plan 005: 014 thêm năm gói con vào `backend/…/care`.
 
 ## Complexity Tracking
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
-| `chuyen_di` là bảng phụ của `buoi_hoat_dong` với trạng thái riêng | Spec có bảng trạng thái chuyến khác buổi trong viện; đăng ký, điểm danh, `UNIQUE` theo mẫu vẫn chung | Bảng chuyến độc lập: lặp mẫu lặp, đăng ký, tạo từ mẫu |
+| `chuyen_di` là bảng phụ của `buoi_hoat_dong` với trạng thái riêng | Spec có bảng trạng thái chuyến khác buổi trong viện; đăng ký, điểm danh, `UNIQUE` theo mẫu vẫn chung | Bảng chuyến độc lập: lặp mẫu lặp, đăng ký, tạo từ mẫu *(R-15: `chuyen_di` → `buoi_hoat_dong`)* |
 | Sự kiện `YeuCauGhiDienBienCanhBao` bổ sung cho 007 | FR-047, FR-056 cần diễn biến vào cảnh báo; 007 chưa có lệnh này | Đóng rồi mở cảnh báo: trái FR-056 "cảnh báo không tự đóng" |
-| `chuoi_co_lap` kỹ thuật | Tính chuỗi ngày tính mỗi đêm cho 300 người; xét lại khi đính chính | Tính lại toàn bộ lịch sử mỗi đêm: tốn, khó chạy bù |
+| `chuoi_co_lap` kỹ thuật | Tính chuỗi ngày tính mỗi đêm cho 300 người; xét lại khi đính chính | Tính lại toàn bộ lịch sử mỗi đêm: tốn, khó chạy bù *(R-15: `chuoi_co_lap` → `trang_thai_nct`)* |
 
 ## Đồng bộ với hợp đồng của feature khác
 
 1. **007** ([../007-health-alert-incident/contracts/module-interfaces.md](../007-health-alert-incident/contracts/module-interfaces.md)): thêm sự kiện `YeuCauGhiDienBienCanhBao` (mục 1.13) và `DauNghiNhiemDaDoi` (bảng sự kiện 007 phát). 014 dùng `SuCoLenhApi.ghiNhan`, `themDienBien`, `YeuCauTaoCanhBao`, `KhoanhVungApi`, `SuCoApi.dau` như đã khai.
 2. **001, 005, 006, 008, 010, 011, 012**: cài và dùng các SPI, API, sự kiện đã khai đúng chữ ký (`DIEM_DANH_ROI_VIEN.chuyenId` giữ như 006 đề xuất). Không đổi.
-3. **015, 016, 019** (làm plan sau): 015 gọi `ChuyenDiNhiemVuLenhApi.goNhiemVu` trong lệnh đổi ca, nghỉ đột xuất; 019 cung cấp `m03.api.LichXeApi`, `LichXeLenhApi` mà 014 gọi (M04 → M03); 016 đọc `HoatDongThongKeApi` và nghe `ChuyenDiThayDoi`.
+3. **015, 016, 019** (làm plan sau): 015 gọi `ChuyenDiNhiemVuLenhApi.goNhiemVu` trong lệnh đổi ca, nghỉ đột xuất; 019 cung cấp `roombedallocation.api.LichXeApi`, `LichXeLenhApi` mà 014 gọi (M04 → M03); 016 đọc `HoatDongThongKeApi` và nghe `ChuyenDiThayDoi`.
 
 ## Điểm cần báo lại về tài liệu nguồn
 
@@ -189,3 +189,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 3. **Dấu nghi nhiễm**: FR-021a cần sự kiện khi dấu "nghi nhiễm" được gắn hoặc gỡ; bảng giao tiếp của 007 chưa liệt kê việc cung cấp sự kiện này cho 014. Plan thêm `DauNghiNhiemDaDoi` vào hợp đồng 007; đề nghị bổ sung dòng ở bảng giao tiếp của spec 007. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
 4. **Câu chữ còn lẫn** (không đổi nghiệp vụ): FR-002, FR-017, FR-027, FR-066, FR-067 và tiêu đề bảng trạng thái dẫn "4.4" (Permission Matrix của `docs/phan-tich-yeu-cau.md` đã bỏ; tra Phụ lục 27). *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
+
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Ánh xạ bảng ở data-model mục 0; task T034. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
+- Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
+- Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.

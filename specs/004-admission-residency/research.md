@@ -1,5 +1,7 @@
 # Research: Tiếp nhận và lưu trú (004)
 
+> **Sửa 2026-10-29 (Q-394, Q-395):** danh sách chờ không có điểm ưu tiên (dấu Ưu tiên kèm lý do); phí khi vắng không có bảng hệ số, ghi đè theo hợp đồng, ngưỡng và quyết định giữ giường (nội trú tính như ngày lưu trú, báo Quản lý viện khi vắng tới CFG-M02-05 ngày, lệnh Giải phóng giường). Các mục về `TinhDiemUuTien`, `lich_su_diem`, `TraChinhSachVang`, `ngay_vang`, `quyet_dinh_giu_giuong` trong tài liệu này không còn hiệu lực; xem spec 004 mục Cập nhật 2026-10-29.
+
 **Ngày**: 2026-10-07 | **Plan**: [plan.md](plan.md) | **Spec**: [spec.md](spec.md)
 
 Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyết định nền R-01 → R-14 (000), A-01 → A-14 (002), H-01 → H-15 (001), G-01 → G-16 (003) được dẫn lại, không quyết lại. Không mục nào đổi nghiệp vụ (constitution IX); chỗ spec hoặc nguồn còn thiếu ghi ở "Điểm cần báo lại" của plan.
@@ -8,7 +10,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## T-01. Vị trí trong backend
 
-**Quyết định**: Feature 004 là module M02 (mục 6). Gói `com.cambae.backend.m02` có các gói con:
+**Quyết định**: Feature 004 là module M02 (mục 6). Gói `com.eldercare.backend.admission` có các gói con:
 
 | Gói | Nội dung | Mục spec |
 | --- | --- | --- |
@@ -24,7 +26,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 | `lich` | Job hằng ngày (T-11) | K |
 | `api` | Giao diện, DTO, sự kiện, SPI công khai | |
 
-Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là đích khóa tuần tự cho mọi lệnh của 004 trên cùng người và giữ dấu "hồ sơ lưu trú đã đóng" (FR-072).
+Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là đích khóa tuần tự cho mọi lệnh của 004 trên cùng người và giữ dấu "hồ sơ lưu trú đã đóng" (FR-072). *(R-15: `luu_tru_nct` → `trang_thai_nct`)*
 
 **Lý do**: Constitution X. Mỗi hồ sơ người cao tuổi là một lần lưu trú, vì người quay lại có hồ sơ mới (001 FR-004), nên dấu "đã đóng" đặt theo hồ sơ là đúng nghĩa FR-072.
 
@@ -36,15 +38,15 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 
 | Cặp | Chiều mã | Cách giữ một chiều |
 | --- | --- | --- |
-| 004 ↔ 001 | 004 → 001 | 004 cài `ThamGiaChuyenTrangThai` của 001 và gọi `MucChamSocApi`, `DanhGiaApi`, `TrangThaiNguoiCaoTuoiApi`. Các giao diện 001 cần từ 004 (`YeuCauDoiMucApi`, `HopDongApi`, `LuotVangApi`) chuyển thành SPI khai báo ở `m01.api`, M02 cài; chữ ký giữ như plan 001 |
-| 004 ↔ 002 | 004 → M15 | `KetThucLuuTruApi` mà 002 cần được khai báo ở `m15.taikhoan.api` dưới dạng SPI, M02 cài |
+| 004 ↔ 001 | 004 → 001 | 004 cài `ThamGiaChuyenTrangThai` của 001 và gọi `MucChamSocApi`, `DanhGiaApi`, `TrangThaiNguoiCaoTuoiApi`. Các giao diện 001 cần từ 004 (`YeuCauDoiMucApi`, `HopDongApi`, `LuotVangApi`) chuyển thành SPI khai báo ở `resident.api`, M02 cài; chữ ký giữ như plan 001 |
+| 004 ↔ 002 | 004 → M15 | `KetThucLuuTruApi` mà 002 cần được khai báo ở `administration.taikhoan.api` dưới dạng SPI, M02 cài |
 | 004 ↔ 003 | 004 → 003 | 004 gọi `PhanBoGiuongLenhApi`, `SucChuaBanTruApi`, `ViTriApi`, `PhongChoPhepApi`; 004 cài `NguonLuuTruChoPhanBo`, `DemLichDenBanTru` của 003 |
-| 004 ↔ 010, 017, 012, 005 | Các module này → 004 | 010 đọc đơn giá, nội dung hợp đồng, ngày lưu trú; 017 đọc hợp đồng; 012 hiện hợp đồng trên cổng; 005 đọc lịch đến. 004 cần lại một ít dữ liệu của họ qua SPI khai báo ở `m02.api`: `KyCuoiPort` (010), `TrangThaiDatCocPort` (017), `NguoiDaiDienPort`, `BanGhiDonPort` (012), `TrangThaiCoMatBanTruPort` (005), `MucViecSauQuaDoiPort` (010, 013, 006, 007, 017) |
+| 004 ↔ 010, 017, 012, 005 | Các module này → 004 | 010 đọc đơn giá, nội dung hợp đồng, ngày lưu trú; 017 đọc hợp đồng; 012 hiện hợp đồng trên cổng; 005 đọc lịch đến. 004 cần lại một ít dữ liệu của họ qua SPI khai báo ở `admission.api`: `KyCuoiPort` (010), `TrangThaiDatCocPort` (017), `NguoiDaiDienPort`, `BanGhiDonPort` (012), `TrangThaiCoMatBanTruPort` (005), `MucViecSauQuaDoiPort` (010, 013, 006, 007, 017) |
 | 004 → 009, 011, 018 | Sự kiện | 004 phát sự kiện sau commit (T-12) |
 
 Điều kiện kết thúc lưu trú (a) → (d), (h) không đi qua SPI của 004: 010, 013, 006, 007, 017 đã cài bean `ThamGiaChuyenTrangThai` cho lệnh `KET_THUC_LUU_TRU` của 001 (001 H-02). 004 hiển thị danh sách bằng `TrangThaiNguoiCaoTuoiApi.xemDieuKien` (T-09).
 
-**Lý do**: Modulith `verify()` từ chối vòng phụ thuộc (000 R-02). Plan 001 đã ghi "001 cần từ 004" mà chưa chọn chiều; chọn SPI ở `m01.api` giữ chữ ký đã thiết kế.
+**Lý do**: Modulith `verify()` từ chối vòng phụ thuộc (000 R-02). Plan 001 đã ghi "001 cần từ 004" mà chưa chọn chiều; chọn SPI ở `resident.api` giữ chữ ký đã thiết kế.
 
 **Phương án đã cân nhắc**: Sự kiện sau commit cho mọi tương tác: không đáp ứng "trong cùng một lần" của FR-002, FR-065, FR-070, FR-066 (1).
 
@@ -53,7 +55,7 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 ## T-03. Khóa và đồng thời
 
 **Quyết định**:
-- **Thứ tự khóa toàn hệ thống** (nối tiếp 003 G-03): `nguoi_cao_tuoi` (001, chỉ khi lệnh đi qua 001), rồi `luu_tru_nct` (004), rồi dòng nghiệp vụ của 004 (hợp đồng, hồ sơ chờ, lượt vắng, hồ sơ kết thúc), rồi `vi_tri_nct` và `giuong` (003).
+- **Thứ tự khóa toàn hệ thống** (nối tiếp 003 G-03): `nguoi_cao_tuoi` (001, chỉ khi lệnh đi qua 001), rồi `luu_tru_nct` (004), rồi dòng nghiệp vụ của 004 (hợp đồng, hồ sơ chờ, lượt vắng, hồ sơ kết thúc), rồi `vi_tri_nct` và `giuong` (003). *(R-15: `luu_tru_nct`, `vi_tri_nct` → `trang_thai_nct`)*
 - **Lệnh hồ sơ chờ dẫn tới Hủy tiếp nhận** (FR-002: Từ chối, Hủy chờ): lệnh của 004 không khóa hồ sơ chờ trước. Nó gọi `TrangThaiNguoiCaoTuoiApi.thucHien(HUY_TIEP_NHAN, chiTiet = {hoSoChoId, lenhHoSoCho})`; 001 khóa người cao tuổi rồi gọi bean của 004, và bean thực hiện chuyển hồ sơ chờ sang trạng thái được yêu cầu. Một đường duy nhất giữ đúng thứ tự khóa. Khi Hủy tiếp nhận đến từ 001, bean thấy không có `lenhHoSoCho` nên chuyển hồ sơ chờ sang Hủy chờ mà không gọi lại 001 (FR-002 câu cuối). Việc này cần thêm 004 vào bảng người gọi của `TrangThaiNguoiCaoTuoiApi.thucHien` ở hợp đồng 001.
 - **Lệnh có nhiều lệnh đến gần đồng thời** (Edge Case cuối; duyệt hai yêu cầu, hai người cùng "Đã liên hệ"): khóa dòng rồi kiểm tra lại trên trạng thái mới, không dùng `If-Match`, giống 001 H-02, 003 G-03. `If-Match` chỉ dùng cho lệnh sửa nội dung (sửa hợp đồng Nháp, cập nhật lượt đăng ký, danh mục).
 - **Deadlock** giữa "Ghi nhận đã liên hệ" (khóa hồ sơ chờ rồi giường) và phân bổ của 003 (khóa giường rồi gọi `daPhanBo` khóa hồ sơ chờ) là hiếm. MySQL phát hiện, và lệnh thua được thử lại tối đa hai lần như 003 G-03.
@@ -65,13 +67,13 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 ## T-04. Hợp đồng và nội dung hiệu lực tại ngày D (mục C, FR-019 → FR-029, BR-M02-09)
 
 **Quyết định**:
-- **Bản nháp**: `hop_dong` (đầu hợp đồng) cùng các bảng con `hop_dong_dich_vu`, `hop_dong_chinh_sach_vang` (dòng ghi đè), `hop_dong_lich_den` (bán trú). Chỉ sửa được khi `NHAP` và không mang dấu "đang chờ duyệt điều khoản"; trigger chặn `UPDATE` nội dung ở trạng thái khác.
-- **Phiên bản nội dung**: khi "Ghi nhận đã ký", hệ thống ghi phiên bản 0 vào `phien_ban_noi_dung_hop_dong` (nhóm 3, chỉ thêm). Phiên bản gồm toàn bộ nội dung ở dạng JSON cùng các cột hay đọc: loại lưu trú, mức, ngày kết thúc, loại phòng, khoản cọc. Đơn giá được ghi lại tại lúc ký (FR-036). Mỗi phụ lục áp dụng thêm một phiên bản, `hieu_luc_tu` là ngày hiệu lực thực tế.
+- **Bản nháp**: `hop_dong` (đầu hợp đồng) cùng các bảng con `hop_dong_dich_vu`, `hop_dong_chinh_sach_vang` (dòng ghi đè), `hop_dong_lich_den` (bán trú). Chỉ sửa được khi `NHAP` và không mang dấu "đang chờ duyệt điều khoản"; trigger chặn `UPDATE` nội dung ở trạng thái khác. *(R-15: `hop_dong_dich_vu`, `hop_dong_lich_den` → cột `JSON` của `phien_ban_hop_dong`)*
+- **Phiên bản nội dung**: khi "Ghi nhận đã ký", hệ thống ghi phiên bản 0 vào `phien_ban_noi_dung_hop_dong` (nhóm 3, chỉ thêm). Phiên bản gồm toàn bộ nội dung ở dạng JSON cùng các cột hay đọc: loại lưu trú, mức, ngày kết thúc, loại phòng, khoản cọc. Đơn giá được ghi lại tại lúc ký (FR-036). Mỗi phụ lục áp dụng thêm một phiên bản, `hieu_luc_tu` là ngày hiệu lực thực tế. *(R-15: `phien_ban_noi_dung_hop_dong` → `phien_ban_hop_dong`)*
 - **Nội dung tại ngày D** (FR-024) là phiên bản có `hieu_luc_tu` lớn nhất mà không muộn hơn D. Không cần ghép phụ lục mỗi lần đọc.
 - Phụ lục luôn được áp dụng theo thứ tự ngày hiệu lực. Ngày hiệu lực thực tế là `max(mong muốn, ngày duyệt)` và việc áp dụng chạy vào đúng ngày đó, theo thứ tự ngày (000 R-10). Vì vậy phiên bản mới luôn dựng từ phiên bản mới nhất. FR-046 chặn hai yêu cầu cùng thuộc tính chờ hiệu lực cùng lúc.
 - **Không chồng thời gian** (DBR-06, FR-022):
   - `hop_dong.ngay_ket_thuc_hien_hanh` là bản sao của ngày kết thúc ở phiên bản mới nhất; chỉ handler áp dụng phụ lục ghi cột này;
-  - lệnh "Ghi nhận đã ký" và lệnh duyệt yêu cầu đổi thời gian khóa `luu_tru_nct`, rồi kiểm không có hợp đồng `HIEU_LUC` khác giao khoảng `[ngay_bat_dau, ngay_ket_thuc_hien_hanh]` (gồm cả hai đầu; ngày kết thúc rỗng coi là vô hạn);
+  - lệnh "Ghi nhận đã ký" và lệnh duyệt yêu cầu đổi thời gian khóa `luu_tru_nct`, rồi kiểm không có hợp đồng `HIEU_LUC` khác giao khoảng `[ngay_bat_dau, ngay_ket_thuc_hien_hanh]` (gồm cả hai đầu; ngày kết thúc rỗng coi là vô hạn); *(R-15: `luu_tru_nct` → `trang_thai_nct`)*
   - trigger `trg_hop_dong_khong_chong` là lưới an toàn khi mã có lỗi.
 - **Số hợp đồng** `HD-<năm>-<id 6 chữ số>`, cùng cách cấp mã như 001 H-04.
 - **Điều khoản khác chuẩn** (FR-025a): hàm `XacDinhKhacChuan` so giá với phiên bản đơn giá tại ngày bắt đầu, và so dòng ghi đè với CFG-M02-05.
@@ -94,9 +96,9 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 ## T-05. Dịch vụ và phiên bản đơn giá (mục E, FR-034 → FR-036, DBR-08)
 
 **Quyết định**:
-- `dich_vu` (nhóm 1) có loại: `CHAM_SOC` (kèm `ma_muc`, tối đa một dịch vụ Hiệu lực mỗi mức qua cột sinh `UNIQUE`), `PHI_LUU_TRU` (kèm `loai_phong_id` của 003), `BUOI_BAN_TRU`, `PHUC_HOI`, `HOAT_DONG`, `DUA_DI_KHAM`, `TIEM`, `NGUOI_THAN_O_LAI`, `SUAT_AN`, `THUOC_NGUON_VIEN` (kèm `thuoc_id` của 006), `KHAC`. Mỗi dịch vụ có `ky_tinh` (`THANG`, `NGAY`, `BUOI`, `LAN`, `DON_VI`).
+- `dich_vu` (nhóm 1) có loại: `CHAM_SOC` (kèm `ma_muc`, tối đa một dịch vụ Hiệu lực mỗi mức qua cột sinh `UNIQUE`), `PHI_LUU_TRU` (kèm `loai_phong_id` của 003), `BUOI_BAN_TRU`, `PHUC_HOI`, `HOAT_DONG`, `DUA_DI_KHAM`, `TIEM`, `NGUOI_THAN_O_LAI`, `SUAT_AN`, `THUOC_NGUON_VIEN` (kèm `thuoc_id` của 006), `KHAC`. Mỗi dịch vụ có `ky_tinh` (`THANG`, `NGAY`, `BUOI`, `LAN`, `DON_VI`). *(R-15: `dich_vu` → `danh_muc_chung`)*
 - `phien_ban_don_gia` theo mẫu 000 mục 1.2:
-  - khóa dòng `dich_vu`, kiểm `NOT EXISTS` khoảng giao, rồi thêm;
+  - khóa dòng `dich_vu`, kiểm `NOT EXISTS` khoảng giao, rồi thêm; *(R-15: `dich_vu` → `danh_muc_chung`)*
   - trigger `trg_phien_ban_don_gia_khong_chong` là lưới an toàn;
   - tạo phiên bản mới thì đặt `hieu_luc_den` của phiên bản đang mở là ngày liền trước. Đây là lệnh "đóng khoảng", được phép kể cả khi phiên bản đã được tham chiếu, vì không đổi giá hay ngày bắt đầu;
   - phiên bản hiệu lực lùi (FR-035) chỉ cho khoảng chưa có phiên bản. Kết thúc của nó bị cắt ở ngày liền trước phiên bản kế tiếp; không có khoảng trống thì bị chặn.
@@ -115,8 +117,8 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 - **Người lập** (FR-039): Hành chính; Bác sĩ chỉ loại đổi mức; người đại diện tạo ở Nháp qua cổng (kiểm `NguoiDaiDienPort`), Hành chính được báo để hoàn thiện. Hệ thống không tự lập. Không có job nhắc ở 004: việc nhắc lập yêu cầu đổi mức là job `NhacLapYeuCauDoiMuc` của 001 (dùng `coYeuCauDoiMucChuaKetThuc` do 004 cài), việc nhắc sau chuyển gấp là job của 003. Khi Hành chính lập yêu cầu tham chiếu một lệnh chuyển giường, 004 gọi `PhanBoGiuongLenhApi.daLapYeuCauSauChuyenGap` trong cùng transaction.
 - **Thay đổi nhỏ** *(bổ sung 2026-10-11, FR-043, Q-338)*: `thayDoiNho` là số liệu tính lúc đọc, không lưu trong nội dung JSON (sửa 2026-10-11 sau audit). Lý do: nội dung khóa từ Chờ duyệt (000 FR-033) và SPI của 000 không có điểm gắn lúc gửi duyệt; nếu điền lúc lập, sửa Nháp thì hợp đồng đổi giữa lần sửa cuối và lúc gửi duyệt làm dấu lưu sai, và lệnh `sua-noi-dung` chung của 000 có thể ghi đè trường này. Tính lúc đọc trên hợp đồng hiện hành nên dấu hiển thị ở mọi thời điểm (gồm lúc gửi duyệt, FR-043) luôn trùng với kết quả kiểm lúc duyệt. Hàm thuần `LaThayDoiNho(noiDung, noiDungHopDongHienHanh)` đúng khi tập loại thay đổi chỉ có `DICH_VU`, mọi dịch vụ được thêm hoặc bớt mang dấu thuộc gói (`hop_dong_dich_vu.thuoc_goi`, FR-019) và ảnh hưởng chi phí bằng 0 ở mọi khoản. Handler cài `gioiHanVaiTroDuyet(yc)` (000, bổ sung theo plan 004): tính lại `LaThayDoiNho` trên hợp đồng hiện hành; đúng thì trả rỗng (Quản lý viện, Hành chính đều duyệt được theo Phụ lục 27 ô D và D⁴²), sai thì trả `{QUAN_LY_VIEN}`. Kiểm lại lúc duyệt là bước "kiểm tra lại khi duyệt" của FR-043: dấu lúc gửi là đúng mà nay sai thì Hành chính bị chặn. 000 dùng cùng giới hạn cho `lenhDuocPhep`, nhắc và người nhận thông báo, nên Hành chính không được nhắc với yêu cầu không phải thay đổi nhỏ.
 - **Lúc duyệt** (hai hàm bổ sung vào `LoaiYeuCauHandler` theo plan 003):
-  - `kiemTraKhiDuyet` chạy FR-041, FR-046 (`UNIQUE` theo cột sinh trên bảng chỉ mục `yeu_cau_thay_doi_thuoc_tinh`), FR-022 với ngày kết thúc mới, FR-040. Vi phạm thì 409 liệt kê đủ;
-  - `khiDuyet` tạo `phu_luc_hop_dong` ở `CHO_HIEU_LUC` (DBR-07), gọi `datTruocChuyenTheoLich` của 003 khi có đổi giường, và giữ chỗ sức chứa khi có lịch đến mới.
+  - `kiemTraKhiDuyet` chạy FR-041, FR-046 (`UNIQUE` theo cột sinh trên bảng chỉ mục `yeu_cau_thay_doi_thuoc_tinh`), FR-022 với ngày kết thúc mới, FR-040. Vi phạm thì 409 liệt kê đủ; *(R-15: `yeu_cau_thay_doi_thuoc_tinh` → `khoa_ky_thuat`)*
+  - `khiDuyet` tạo `phu_luc_hop_dong` ở `CHO_HIEU_LUC` (DBR-07), gọi `datTruocChuyenTheoLich` của 003 khi có đổi giường, và giữ chỗ sức chứa khi có lịch đến mới. *(R-15: `phu_luc_hop_dong` → `phien_ban_hop_dong`)*
 - **Áp dụng** (`apDung`, job 000 vào ngày hiệu lực, trong một transaction):
   - thêm phiên bản nội dung;
   - đổi mức qua `MucChamSocApi.apDungThayDoi` (001), đổi dịch vụ chăm sóc theo mức mới (Q-297);
@@ -145,7 +147,7 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 - **Danh sách phù hợp với một giường** (FR-012):
   - thuộc tính phòng (chính sách giới tính, mức cho phép, loại hình phục vụ, đang chịu chặn cách ly) lấy từ `PhongChoPhepApi.thuocTinhPhanBo(giuongId)` của 003; giới tính từ 001;
   - "lượt trống hiện tại" bắt đầu ở `TinhTrangGiuongApi.batDauLuotTrong(giuongId)` của 003;
-  - hồ sơ đã liên hệ, từ chối hay hết hạn với chính giường này từ mốc đó bị loại, theo bảng `lien_he_giuong` (nhóm 3);
+  - hồ sơ đã liên hệ, từ chối hay hết hạn với chính giường này từ mốc đó bị loại, theo bảng `lien_he_giuong` (nhóm 3); *(R-15: `lien_he_giuong` → `su_kien_chung`)*
   - sắp theo điểm giảm dần, rồi ngày đăng ký, rồi thời điểm tạo hồ sơ.
 
   Hai hàm `thuocTinhPhanBo`, `batDauLuotTrong` được bổ sung vào hợp đồng 003 (plan, mục "Đồng bộ").
@@ -154,7 +156,7 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
   - khóa hồ sơ chờ, tính lại danh sách phù hợp tại lúc lệnh;
   - chọn hồ sơ không đứng đầu (sau khi bỏ các hồ sơ đã liên hệ, từ chối, hết hạn trong lượt) thì bắt buộc `lyDoKhongTheoThuTu`;
   - gọi `giuChoHoSoCho` (003); một hồ sơ chỉ giữ một giường, bảo đảm bằng cột sinh `UNIQUE`.
-- **Hết hạn giữ chỗ** do job `HetHanGiuCho` của 003 (003 G-09). 004 cài `hoSoChoHetHanGiuCho` để đưa hồ sơ về Đang chờ, ghi dòng `lien_he_giuong` kết quả `HET_HAN` và phát `GiuongTrongCanChonHoSo` cho giường đó (FR-015). 004 không có job riêng cho việc này.
+- **Hết hạn giữ chỗ** do job `HetHanGiuCho` của 003 (003 G-09). 004 cài `hoSoChoHetHanGiuCho` để đưa hồ sơ về Đang chờ, ghi dòng `lien_he_giuong` kết quả `HET_HAN` và phát `GiuongTrongCanChonHoSo` cho giường đó (FR-015). 004 không có job riêng cho việc này. *(R-15: `lien_he_giuong` → `su_kien_chung`)*
 - **Phân bổ giường** (FR-016): `daPhanBo(nctId, phanBoId)` do 003 gọi trong transaction phân bổ. Hồ sơ chuyển Đã tiếp nhận, lượt đăng ký về Đang xử lý; 003 tự trả giường đang giữ khác về Trống.
 - **"Từng lưu trú tại viện"** (FR-007): khi tạo hồ sơ chờ, nếu `NguoiCaoTuoiApi` cho biết có hồ sơ trước ở Kết thúc lưu trú, tình huống được đánh dấu sẵn ở trạng thái "chờ xác nhận". Hành chính xác nhận hoặc bỏ kèm lý do. Đây là đánh dấu do nguồn quy định (FR-007, Q-275), không phải gợi ý.
 
@@ -180,12 +182,12 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
   - "Giải phóng" gọi `giaiPhongGiuongKhiVang` (003) trong cùng transaction.
   - "Giữ tiếp" lưu ngày xem xét lại; job báo lại Quản lý viện vào ngày đó.
   - Lượt vắng đã đóng (đính chính vượt ngưỡng, FR-061): quyết định chỉ đặt hệ số, không gọi 003.
-- **Gia hạn dự kiến trở lại**: `POST /luot-vang/{id}/gia-han-du-kien` có lý do, thêm dòng `lich_su_du_kien_tro_lai`, phát `LuotVangDaGiaHan` (001 tính lại mốc quá hạn qua `LuotVangApi`; 011 tính suất).
+- **Gia hạn dự kiến trở lại**: `POST /luot-vang/{id}/gia-han-du-kien` có lý do, thêm dòng `lich_su_du_kien_tro_lai`, phát `LuotVangDaGiaHan` (001 tính lại mốc quá hạn qua `LuotVangApi`; 011 tính suất). *(R-15: `lich_su_du_kien_tro_lai` → `lich_su_chung`)*
 - **Đóng lượt vắng**: bean cho `GHI_NHAN_TRO_VE`, `KET_THUC_LUU_TRU`, `GHI_NHAN_QUA_DOI`. Lượt đã đóng bất biến (trigger). Sai sót đi đường đính chính `M02.LUOT_VANG`; `sauKhiDinhChinh` tính lại các ngày bị ảnh hưởng (FR-061, BR-M02-18).
 - **Bán trú** (FR-060, FR-060a):
   - báo vắng `POST /bao-vang-ban-tru` (nhóm 3) lưu thời điểm gia đình báo; hệ thống tự xác định "báo trước đủ CFG-M02-06";
   - trạng thái có mặt lấy từ `TrangThaiCoMatBanTruPort` (005); hệ số tra dòng bán trú của CFG-M02-05;
-  - ngày khu bán trú nghỉ `ngay_nghi_ban_tru` (nhóm 2, `UNIQUE` ngày đang hiệu lực); khai báo cho ngày đã qua bắt buộc lý do; phát `NgayNghiBanTruDaDoi` cho 005, 010, 011.
+  - ngày khu bán trú nghỉ `ngay_nghi_ban_tru` (nhóm 2, `UNIQUE` ngày đang hiệu lực); khai báo cho ngày đã qua bắt buộc lý do; phát `NgayNghiBanTruDaDoi` cho 005, 010, 011. *(R-15: `ngay_nghi_ban_tru` → `luot_vang`)*
 
 ---
 
@@ -224,7 +226,7 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
   - trong cùng transaction gọi `KyCuoiPort.taoKyCuoiNhap(nctId, ngayKetThucDuKien)` (010). Đây là tác động kèm lệnh, được phép theo Q-306;
   - đổi ngày gọi `KyCuoiPort.tinhLai`; hủy gọi `KyCuoiPort.huyMocDung`.
 - **Bàn giao** `POST /ho-so-ket-thuc/{id}/ban-giao` (nhóm 3): người nhận (người thân hoặc cơ sở tiếp nhận), thời điểm, nhân viên bàn giao.
-- **Ngoại lệ** là loại yêu cầu `M02.NGOAI_LE_KET_THUC`, lập bởi Hành chính, hoặc Kế toán với (h); `apDung` thêm dòng `ngoai_le_dieu_kien` và phát `NgoaiLeKetThucDaDuyet` (017 nghe, bổ sung 2026-10-22).
+- **Ngoại lệ** là loại yêu cầu `M02.NGOAI_LE_KET_THUC`, lập bởi Hành chính, hoặc Kế toán với (h); `apDung` thêm dòng `ngoai_le_dieu_kien` và phát `NgoaiLeKetThucDaDuyet` (017 nghe, bổ sung 2026-10-22). *(R-15: `ngoai_le_dieu_kien` → `su_kien_chung`)*
 - **Cho 017** *(bổ sung 2026-10-22; 017 FR-022, FR-034)*: `HoSoKetThucDocApi` trả hồ sơ kết thúc Đang chuẩn bị, thông tin cho bảng quyết toán (loại lưu trú, hợp đồng, ngày bắt đầu, ngày kết thúc dự kiến, trường hợp kết thúc; người qua đời là `QUA_DOI` cùng ngày qua đời) và ngoại lệ (h) đã duyệt. 017 tự quyết dùng cho điều kiện nào; 004 không đọc sổ của 017.
 
 - **Ý kiến về việc vào ở** (FR-004a, bổ sung 2026-10-18): xem T-09a.
@@ -236,7 +238,7 @@ Một bảng `luu_tru_nct` (một dòng mỗi hồ sơ người cao tuổi) là 
 ## T-10. Lịch đến bán trú và sức chứa
 
 **Quyết định**:
-- **Lịch đến** là nội dung hợp đồng (`hop_dong_lich_den`: thứ trong tuần hoặc ngày cụ thể, giờ đến, giờ về). `CHECK (gio_ve > gio_den)` bảo đảm không qua 00:00 (FR-019, Q-286).
+- **Lịch đến** là nội dung hợp đồng (`hop_dong_lich_den`: thứ trong tuần hoặc ngày cụ thể, giờ đến, giờ về). `CHECK (gio_ve > gio_den)` bảo đảm không qua 00:00 (FR-019, Q-286). *(R-15: `hop_dong_lich_den` → cột `JSON` của `phien_ban_hop_dong`)*
 - **Kiểm sức chứa** (003 FR-039) ở hai lệnh làm lịch có hiệu lực ràng buộc:
   - "Ghi nhận đã ký" hợp đồng bán trú;
   - `kiemTraKhiDuyet` của yêu cầu đổi lịch đến hoặc đổi sang bán trú (FR-041).
@@ -288,7 +290,7 @@ Sự kiện không gửi thông báo, dành cho module khác: `HopDongDaDoiTrang
 **Quyết định**:
 - **Bean của 004 cho `GHI_NHAN_QUA_DOI`**:
   - `kiemTraChiTiet` kiểm thời điểm, địa điểm, người phát hiện, người xác nhận, nguyên nhân (tùy chọn), tệp bằng chứng (bắt buộc khi Hành chính thực hiện; quyền theo 001 FR-047b);
-  - `thucHienTacDong` thêm `ban_ghi_qua_doi` (nhóm 3); hợp đồng Chấm dứt "Qua đời"; đóng lượt vắng tại thời điểm qua đời; hồ sơ kết thúc đang mở sang Đã hủy và chép các điều kiện chưa đạt sang danh sách việc; hồ sơ chờ sang Hủy chờ; đóng yêu cầu mở; tạo `muc_viec_sau_qua_doi` cho năm mục (FR-071).
+  - `thucHienTacDong` thêm `ban_ghi_qua_doi` (nhóm 3); hợp đồng Chấm dứt "Qua đời"; đóng lượt vắng tại thời điểm qua đời; hồ sơ kết thúc đang mở sang Đã hủy và chép các điều kiện chưa đạt sang danh sách việc; hồ sơ chờ sang Hủy chờ; đóng yêu cầu mở; tạo `muc_viec_sau_qua_doi` cho năm mục (FR-071). *(R-15: `ban_ghi_qua_doi` → `ket_thuc_luu_tru`; `muc_viec_sau_qua_doi` → `trang_thai_nct`)*
 - **Trạng thái từng mục** lấy từ `MucViecSauQuaDoiPort` (010, 013, 006, 007, 017 cài; trả `HOAN_THANH`, `CHUA_HOAN_THANH`, `KHONG_AP_DUNG` kèm căn cứ). Hệ thống tính lại khi:
   - mở màn danh sách;
   - job nhắc chạy (CFG-M02-09);
@@ -297,7 +299,7 @@ Sự kiện không gửi thông báo, dành cho module khác: `HopDongDaDoiTrang
   Mọi mục xong thì đặt `luu_tru_nct.da_dong_luc` và dừng nhắc (FR-072). Dấu không gỡ được sau đó (FR-072 câu cuối).
 - **Giới hạn trường** (FR-069, BR-M02-21): `nguyenNhan` mang `@NhomTruong(SUC_KHOE)`. Hành chính và Kế toán không xem được, kể cả người đã ghi; người thân xem theo chú thích ¹. Bằng chứng do Hành chính tải lên thì người tải xem được (`QuyenTepProvider`).
 - **Bổ sung nguyên nhân** đi đường đính chính `M02.BAN_GHI_QUA_DOI`.
-- **Ngoại lệ mục quyết toán khi qua đời** *(bổ sung 2026-10-22, FR-071a, Q-387)*: `POST /nguoi-cao-tuoi/{nctId}/viec-sau-qua-doi/yeu-cau-ngoai-le-quyet-toan` (Hành chính, Kế toán; lý do) lập yêu cầu `M02.NGOAI_LE_KET_THUC` với `maDieuKien = KT_H_QUYET_TOAN`, căn cứ là danh sách việc sau qua đời đang mở; mục khác không lập được. `apDung` thêm `ngoai_le_dieu_kien` (`ho_so_ket_thuc_id` rỗng, `nct_id`), phát `NgoaiLeKetThucDaDuyet(null, nctId, KT_H_QUYET_TOAN)`. Mục chỉ Hoàn thành khi 017 trả `HOAN_THANH` (ba ý tiền miễn bằng ngoại lệ và Kế toán đã xác nhận quyết toán, không còn giao dịch Chờ duyệt); 004 không tự đổi trạng thái mục.
+- **Ngoại lệ mục quyết toán khi qua đời** *(bổ sung 2026-10-22, FR-071a, Q-387)*: `POST /nguoi-cao-tuoi/{nctId}/viec-sau-qua-doi/yeu-cau-ngoai-le-quyet-toan` (Hành chính, Kế toán; lý do) lập yêu cầu `M02.NGOAI_LE_KET_THUC` với `maDieuKien = KT_H_QUYET_TOAN`, căn cứ là danh sách việc sau qua đời đang mở; mục khác không lập được. `apDung` thêm `ngoai_le_dieu_kien` (`ho_so_ket_thuc_id` rỗng, `nct_id`), phát `NgoaiLeKetThucDaDuyet(null, nctId, KT_H_QUYET_TOAN)`. Mục chỉ Hoàn thành khi 017 trả `HOAN_THANH` (ba ý tiền miễn bằng ngoại lệ và Kế toán đã xác nhận quyết toán, không còn giao dịch Chờ duyệt); 004 không tự đổi trạng thái mục. *(R-15: `ngoai_le_dieu_kien` → `su_kien_chung`)*
 
 ---
 
@@ -327,7 +329,7 @@ Nội dung tài chính của hợp đồng (FR-028) mang `@NhomTruong(TAI_CHINH)
 **Quyết định**:
 - Mọi bảng gắn hồ sơ người cao tuổi (lượt đăng ký, hồ sơ chờ, hợp đồng và phiên bản, phụ lục, lượt vắng, ngày vắng, quyết định, hồ sơ kết thúc, bàn giao, qua đời, danh sách việc) đăng ký `LuuTruProvider` loại `THEO_HO_SO`.
 - Dịch vụ, phiên bản đơn giá là danh mục, không bị loại bỏ.
-- `ngay_nghi_ban_tru` theo `KHONG_GAN_HO_SO`.
+- `ngay_nghi_ban_tru` theo `KHONG_GAN_HO_SO`. *(R-15: `ngay_nghi_ban_tru` → `luot_vang`)*
 - Hành động nhật ký: `M02_DANG_KY_*`, `M02_HO_SO_CHO_*`, `M02_DIEM`, `M02_HOP_DONG_*`, `M02_PHU_LUC_*`, `M02_VANG_*`, `M02_KET_THUC_*`, `M02_QUA_DOI`, `M02_DICH_VU_*`, `M02_NHAC`, `M02_BAO`. Nhật ký ghi kèm dấu "áp dụng bù" và "chạy bù" khi có.
 
 ---
@@ -347,11 +349,11 @@ Nội dung tài chính của hợp đồng (FR-028) mang `@NhomTruong(TAI_CHINH)
 ## T-09a. Ý kiến của người cao tuổi về việc vào ở *(bổ sung 2026-10-18; FR-001, FR-004a; Q-356, Q-347)*
 
 **Quyết định**:
-- **Bảng** `y_kien_vao_o` (data-model mục 3): mỗi lần ghi một dòng gắn `luot_dang_ky`; `y_kien` `DONG_Y | KHONG_DONG_Y | KHONG_BAY_TO_DUOC`; nguồn theo mẫu cột 001 data-model mục 6a, kiểm bằng `NguonYKienApi.kiemTra`; ghi chú; `HIEU_LUC | DUOC_THAY_THE`. Tối đa một dòng Hiệu lực mỗi lượt (cột sinh `UNIQUE`); ghi mới thì dòng cũ chuyển Được thay thế trong cùng transaction dưới khóa `luu_tru_nct`. Nội dung không sửa, không xóa (trigger).
+- **Bảng** `y_kien_vao_o` (data-model mục 3): mỗi lần ghi một dòng gắn `luot_dang_ky`; `y_kien` `DONG_Y | KHONG_DONG_Y | KHONG_BAY_TO_DUOC`; nguồn theo mẫu cột 001 data-model mục 6a, kiểm bằng `NguonYKienApi.kiemTra`; ghi chú; `HIEU_LUC | DUOC_THAY_THE`. Tối đa một dòng Hiệu lực mỗi lượt (cột sinh `UNIQUE`); ghi mới thì dòng cũ chuyển Được thay thế trong cùng transaction dưới khóa `luu_tru_nct`. Nội dung không sửa, không xóa (trigger). *(R-15: `y_kien_vao_o`, `luot_dang_ky` → `ho_so_tiep_nhan`; `luu_tru_nct` → `trang_thai_nct`)*
 - **Lệnh** `POST /luot-dang-ky/{id}/y-kien-vao-o`: Hành chính (khóa `TIEP_NHAN_HOP_DONG_DAT_COC, TAO` như lập lượt đăng ký, T-14); lượt ở `DANG_XU_LY` hoặc `DANG_CHO`. `GET /luot-dang-ky/{id}` trả ý kiến hiện hành và lịch sử.
 - **Danh sách điều kiện** (FR-004a): `DanhSachDieuKien.yKienVaoO` (hiện hành kèm nguồn, hoặc rỗng); không phải một dòng điều kiện, không ảnh hưởng Đạt / Chưa đạt.
-- **Lệnh Hoàn tất tiếp nhận**: `ThamGiaM02.canhBao(nc)` cho `HOAN_TAT_TIEP_NHAN` trả `CHUA_GHI_Y_KIEN_VAO_O` hoặc `NCT_KHONG_DONG_Y_VAO_O` (kèm nguồn, người ghi, thời điểm); 001 trả cảnh báo trong `GET …/dieu-kien/{lenh}` và trong phản hồi lệnh (001 SPI `canhBao`). Lệnh vẫn thực hiện được. Lý do bắt buộc theo 001 FR-046 (`LenhTrangThai.lyDo`), lưu ở `lich_su_trang_thai_nct`. `thucHienTacDong` đặt `luot_dang_ky.y_kien_luc_tiep_nhan_id` = dòng Hiệu lực lúc đó (rỗng nếu chưa có) để tra cứu sau.
+- **Lệnh Hoàn tất tiếp nhận**: `ThamGiaM02.canhBao(nc)` cho `HOAN_TAT_TIEP_NHAN` trả `CHUA_GHI_Y_KIEN_VAO_O` hoặc `NCT_KHONG_DONG_Y_VAO_O` (kèm nguồn, người ghi, thời điểm); 001 trả cảnh báo trong `GET …/dieu-kien/{lenh}` và trong phản hồi lệnh (001 SPI `canhBao`). Lệnh vẫn thực hiện được. Lý do bắt buộc theo 001 FR-046 (`LenhTrangThai.lyDo`), lưu ở `lich_su_trang_thai_nct`. `thucHienTacDong` đặt `luot_dang_ky.y_kien_luc_tiep_nhan_id` = dòng Hiệu lực lúc đó (rỗng nếu chưa có) để tra cứu sau. *(R-15: `lich_su_trang_thai_nct` → `lich_su_chung`)*
 
 **Lý do**: Q-356 cho ý kiến không chặn; cảnh báo qua SPI sẵn có của 001 không cần đổi 001.
 
-**Phương án đã cân nhắc**: Một cột `y_kien` trên `luot_dang_ky` sửa tại chỗ: mất ý kiến cũ, trái "ý kiến cũ vẫn tra cứu được"; bị loại.
+**Phương án đã cân nhắc**: Một cột `y_kien` trên `luot_dang_ky` sửa tại chỗ: mất ý kiến cũ, trái "ý kiến cũ vẫn tra cứu được"; bị loại. *(R-15: `luot_dang_ky` → `ho_so_tiep_nhan`)*

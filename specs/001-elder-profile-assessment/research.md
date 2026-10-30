@@ -8,20 +8,20 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Đây 
 
 ## H-01. Vị trí trong backend
 
-**Quyết định**: Feature 001 là module **M01** (`com.cambae.backend.m01`). Gói con:
+**Quyết định**: Feature 001 là module **M01** (`com.eldercare.backend.resident`). Gói con:
 
 | Gói | Nội dung | FR |
 | --- | --- | --- |
-| `m01.api` | Giao diện công khai, DTO, sự kiện, SPI `ThamGiaChuyenTrangThai` | Mọi giao diện ở [contracts/module-interfaces.md](contracts/module-interfaces.md) |
-| `m01.hoso` | Hồ sơ cá nhân, tra cứu, liên kết hồ sơ trước | FR-001 → FR-009 |
-| `m01.trangthai` | Máy trạng thái người cao tuổi, lịch sử trạng thái, mức chăm sóc hiện hành | FR-044 → FR-053 |
-| `m01.dongy` | Bản đồng ý chia sẻ dữ liệu | FR-010 → FR-016 |
-| `m01.suckhoe` | Hồ sơ sức khỏe ban đầu, mục sức khỏe, danh mục dị nguyên, mức độ, nguồn thông tin | FR-017 → FR-023 |
-| `m01.nguyenvong` | Phiếu nguyện vọng cuối đời | FR-023a → FR-023f |
-| `m01.danhgia` | Lần đánh giá, nhu cầu chăm sóc, báo đánh giá lại | FR-024 → FR-043 |
-| `m01.lich` | Job của Bộ lập lịch (H-12) | FR-012, FR-023d, FR-036, FR-039 → FR-041, FR-050 |
+| `resident.api` | Giao diện công khai, DTO, sự kiện, SPI `ThamGiaChuyenTrangThai` | Mọi giao diện ở [contracts/module-interfaces.md](contracts/module-interfaces.md) |
+| `resident.hoso` | Hồ sơ cá nhân, tra cứu, liên kết hồ sơ trước | FR-001 → FR-009 |
+| `resident.trangthai` | Máy trạng thái người cao tuổi, lịch sử trạng thái, mức chăm sóc hiện hành | FR-044 → FR-053 |
+| `resident.dongy` | Bản đồng ý chia sẻ dữ liệu | FR-010 → FR-016 |
+| `resident.suckhoe` | Hồ sơ sức khỏe ban đầu, mục sức khỏe, danh mục dị nguyên, mức độ, nguồn thông tin | FR-017 → FR-023 |
+| `resident.nguyenvong` | Phiếu nguyện vọng cuối đời | FR-023a → FR-023f |
+| `resident.danhgia` | Lần đánh giá, nhu cầu chăm sóc, báo đánh giá lại | FR-024 → FR-043 |
+| `resident.lich` | Job của Bộ lập lịch (H-12) | FR-012, FR-023d, FR-036, FR-039 → FR-041, FR-050 |
 
-Mỗi gói con chia `internal` (service, repository, entity) và `web` (controller). Chỉ `m01.api` được module khác dùng (Spring Modulith, 000 R-02).
+Mỗi gói con chia `internal` (service, repository, entity) và `web` (controller). Chỉ `resident.api` được module khác dùng (Spring Modulith, 000 R-02).
 
 **Lý do**: Constitution X; spec 001 là Module 01 (mục 5) của tài liệu nguồn.
 
@@ -113,7 +113,7 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
   - Chỉ mục `(ho_ten_so_khop, ngay_sinh)`.
   - Có trùng thì trả 409 `CO_THE_TRUNG_HO_SO` kèm danh sách. Client gửi lại với `xacNhanKhongTrung = true`; nhật ký ghi lần xác nhận này.
 - **Cập nhật thông tin cá nhân** (FR-006): `POST …/{id}/cap-nhat-thong-tin`, bắt buộc `If-Match` và `lyDo`. Nhật ký ghi các trường đổi, trước và sau.
-- **Chặn trên hồ sơ trạng thái cuối** (BR-M01-05, FR-049): mọi lệnh ghi của M01 gọi `HoSoMoGuard.kiemTra(nctId, ngoaiLe)` đầu tiên. Guard từ chối với 409 `HO_SO_DA_DONG`, trừ hai ngoại lệ: "Rút lại đồng ý" và đính chính đi đường (c) của 000 (H-10). Một test ArchUnit buộc mọi phương thức `@LenhNghiepVu` trong `m01` phải gọi guard này.
+- **Chặn trên hồ sơ trạng thái cuối** (BR-M01-05, FR-049): mọi lệnh ghi của M01 gọi `HoSoMoGuard.kiemTra(nctId, ngoaiLe)` đầu tiên. Guard từ chối với 409 `HO_SO_DA_DONG`, trừ hai ngoại lệ: "Rút lại đồng ý" và đính chính đi đường (c) của 000 (H-10). Một test ArchUnit buộc mọi phương thức `@LenhNghiepVu` trong `resident` phải gọi guard này.
 
 **Lý do**: Cột sinh cùng `UNIQUE` đưa DBR-01 xuống cơ sở dữ liệu, đúng constitution XII, mà không phải tự viết khóa.
 
@@ -162,7 +162,7 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
 
 **Quyết định**:
 - **Tối đa một bản Hiệu lực** (FR-013): cột sinh `dang_hieu_luc = IF(trang_thai = 'HIEU_LUC', nguoi_cao_tuoi_id, NULL)` có `UNIQUE`. Ghi nhận bản mới khi đã có bản Hiệu lực thì làm trong một transaction, theo thứ tự: khóa dòng người cao tuổi, chuyển bản cũ `DA_RUT_LAI` với lý do "được thay thế" và `thay_the_boi_id`, rồi thêm bản mới.
-- **Phạm vi người thân**: bảng con `ban_dong_y_nguoi_than` chỉ thêm, ghi cùng lúc với bản đồng ý. Đổi phạm vi là ghi bản mới (US5 #6).
+- **Phạm vi người thân**: bảng con `ban_dong_y_nguoi_than` chỉ thêm, ghi cùng lúc với bản đồng ý. Đổi phạm vi là ghi bản mới (US5 #6). *(R-15: `ban_dong_y_nguoi_than` → cột `JSON` của `ban_dong_y`)*
 - **Người ký thay** (FR-011, sửa 2026-10-18 theo Q-348): `nguoiDongYLoai` là `NGUOI_CAO_TUOI` hoặc `DAI_DIEN_PHAP_LUAT`. Với `DAI_DIEN_PHAP_LUAT`: bắt buộc số, ngày, Tòa án và tệp scan quyết định của Tòa án (`CHECK` ở cơ sở dữ liệu, 422 `THIEU_QUYET_DINH_TOA_AN` ở API); người ký là người thân có quan hệ Hiệu lực với người cao tuổi, kiểm bằng `QuanHeNguoiThanApi.thuocNguoiCaoTuoi` (409 `NGUOI_KY_KHONG_HOP_LE`). Không gọi `laNguoiDaiDienHieuLuc`: vai trò "người đại diện" của 012 không cho quyền ký thay. Bỏ `lyDoDaiDien`. Người cao tuổi không tự ký được mà chưa có quyết định của Tòa án: không có đường ghi (Q-355, chốt 2026-10-19); hồ sơ tiếp tục thiếu bản đồng ý và chịu nhắc FR-012.
 - **Mục "nhận thông báo"** (Q-353): `dongYThongBao` giữ là một giá trị cho cả bản; 009 dùng nó để lọc người nhận thông báo không khẩn có nội dung về người cao tuổi (plan 009). M01 không đổi cách lưu.
 - **Rút lại** (FR-014, FR-014a): `POST /ban-dong-y/{id}/rut-lai`, bắt buộc lý do và tệp bằng chứng. Guard H-04 cho phép lệnh này trên hồ sơ trạng thái cuối. Ghi nhận bản mới trên hồ sơ trạng thái cuối bị chặn.
@@ -185,8 +185,8 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
   - `BEFORE DELETE` theo mẫu `trg_<bang>_khong_xoa` của 000 (chỉ tài khoản `eldercare_luu_tru`).
 - **Loại trừ**: `POST /muc-suc-khoe/{id}/loai-tru` (lý do bắt buộc). Chuyển `HIEU_LUC → DA_LOAI_TRU` một chiều; trigger chặn chuyển ngược.
 - **Danh mục** (nhóm 1, mẫu 000 data-model 1.1):
-  - `di_nguyen`: nhóm `THUOC_HOAT_CHAT`, `THUC_PHAM`, `KHAC`. Quyền ghi theo nhóm: `THUOC_HOAT_CHAT` cho người có C ở "Danh mục thuốc" (Quản lý viện, 006 FR-002); `THUC_PHAM` cho Bác sĩ (011 FR-003). Nhóm `KHAC` chưa có nguồn quy định người ghi (plan, điểm báo lại 3); tạm cho Quản lý viện.
-  - `muc_do_di_ung`, `nguon_thong_tin` (BR-M01-11): Quản lý viện cấu hình; giá trị khởi tạo nạp bằng migration.
+  - `di_nguyen`: nhóm `THUOC_HOAT_CHAT`, `THUC_PHAM`, `KHAC`. Quyền ghi theo nhóm: `THUOC_HOAT_CHAT` cho người có C ở "Danh mục thuốc" (Quản lý viện, 006 FR-002); `THUC_PHAM` cho Bác sĩ (011 FR-003). Nhóm `KHAC` chưa có nguồn quy định người ghi (plan, điểm báo lại 3); tạm cho Quản lý viện. *(R-15: `di_nguyen` → `danh_muc_chung`)*
+  - `muc_do_di_ung`, `nguon_thong_tin` (BR-M01-11): Quản lý viện cấu hình; giá trị khởi tạo nạp bằng migration. *(R-15: `muc_do_di_ung`, `nguon_thong_tin` → `danh_muc_chung`)*
 - **Dị ứng loại "khác"** (FR-018a): `di_nguyen_id IS NULL` và có `noi_dung_van_ban`. Cột sinh `khong_kiem_tra_tu_dong` luôn đi kèm khi trả mục ra ngoài, kể cả qua `MucSucKhoeApi` cho thẻ thông tin khẩn cấp (007). Phản hồi tạo mục có cảnh báo `DI_UNG_KHONG_KIEM_TRA_TU_DONG`.
 - **Cảnh báo trùng** (FR-021): trước khi thêm, tìm mục `HIEU_LUC` cùng `di_nguyen_id`, hoặc cùng loại và cùng nội dung (so khớp như H-04). Có trùng thì trả 409 `MUC_SUC_KHOE_TRUNG`; client gửi lại với `xacNhanTrung = true`.
 - **Kiểm tra lại đơn thuốc, chế độ ăn** (FR-020, BR-M01-07, BR-M01-12):
@@ -209,7 +209,7 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
 ## H-08. Hồ sơ sức khỏe ban đầu
 
 **Quyết định**:
-- Bảng `ho_so_suc_khoe_ban_dau`, mỗi người cao tuổi tối đa một dòng (`UNIQUE nguoi_cao_tuoi_id`). Đây là nhóm 3 có bản nháp: `PUT` sửa được khi `thoi_diem_xac_nhan IS NULL`; Bác sĩ `POST …/xac-nhan`; trigger `trg_ho_so_suc_khoe_ban_dau_khong_sua` chặn sửa sau xác nhận (000 data-model 1.4).
+- Bảng `ho_so_suc_khoe_ban_dau`, mỗi người cao tuổi tối đa một dòng (`UNIQUE nguoi_cao_tuoi_id`). Đây là nhóm 3 có bản nháp: `PUT` sửa được khi `thoi_diem_xac_nhan IS NULL`; Bác sĩ `POST …/xac-nhan`; trigger `trg_ho_so_suc_khoe_ban_dau_khong_sua` chặn sửa sau xác nhận (000 data-model 1.4). *(R-15: `ho_so_suc_khoe_ban_dau` → `ho_so_chung`)*
 - Đính chính sau xác nhận: M01 cài `DinhChinhDuocProvider` cho loại `M01.HO_SO_SUC_KHOE_BAN_DAU`:
   - `tangKhuVuc` trả rỗng, vì bản ghi không gắn tầng; đi cách (a) người ghi gốc, hoặc (c) yêu cầu phê duyệt;
   - trên hồ sơ trạng thái cuối, `choPhep` chỉ cho cách (c) (FR-049a).
@@ -223,7 +223,7 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
 ## H-09. Phiếu nguyện vọng cuối đời
 
 **Quyết định**:
-- **Phiên bản** (DBR-34, FR-023b): bảng `nguyen_vong_cuoi_doi` chỉ thêm phiên bản. Cột sinh `dang_hieu_luc` có `UNIQUE` (tối đa một phiên bản Hiệu lực). Ghi phiên bản mới thì làm trong một transaction: chuyển phiên bản cũ sang `DUOC_THAY_THE`, đặt `thay_the_boi_id`, rồi thêm phiên bản mới. Trigger chỉ cho `UPDATE` hai cột `trang_thai`, `thay_the_boi_id`, và chỉ theo chiều `HIEU_LUC → DUOC_THAY_THE`.
+- **Phiên bản** (DBR-34, FR-023b): bảng `nguyen_vong_cuoi_doi` chỉ thêm phiên bản. Cột sinh `dang_hieu_luc` có `UNIQUE` (tối đa một phiên bản Hiệu lực). Ghi phiên bản mới thì làm trong một transaction: chuyển phiên bản cũ sang `DUOC_THAY_THE`, đặt `thay_the_boi_id`, rồi thêm phiên bản mới. Trigger chỉ cho `UPDATE` hai cột `trang_thai`, `thay_the_boi_id`, và chỉ theo chiều `HIEU_LUC → DUOC_THAY_THE`. *(R-15: `nguyen_vong_cuoi_doi` → `nguyen_vong` (`wish`))*
 - **Người ký** (FR-023c, Q-216):
   - phiếu ghi `bac_si_nhan_dinh_id`, phải có vai trò AC-03 lúc ghi;
   - (sửa 2026-10-18, Q-348) Bác sĩ ghi nhận định cho chính phiếu: `tuQuyetDuoc`, thời điểm, `cachHoTroHieu`, `ngayXemLaiNhanDinh` (bắt buộc cả ba);
@@ -231,7 +231,7 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
   - `false` thì người ký là người đại diện của người bệnh (`DAI_DIEN_NGUOI_BENH`, kèm `cachChonDaiDien` = `NCT_DA_CHON` hoặc `GIA_DINH_CHON`) hoặc người đại diện theo pháp luật (`DAI_DIEN_PHAP_LUAT`, kèm số và tệp quyết định của Tòa án). Cả hai là người thân có quan hệ Hiệu lực, kiểm bằng `QuanHeNguoiThanApi.thuocNguoiCaoTuoi`; không dùng `laNguoiDaiDienHieuLuc`;
   - sai thì trả 409 `NGUOI_KY_KHONG_HOP_LE`;
   - tới ngày xem lại, job `NhacXemLaiNhanDinh` nhắc một lần (FR-023i, Q-360; H-12); phiếu bị thay trước ngày đó thì không nhắc.
-- **Ý kiến khác** (FR-023c, FR-023g): mỗi ý kiến khác lựa chọn là một dòng `nguyen_vong_y_kien` có nguồn (H-16), ghi cùng phiên bản; không gộp vào `ghiChu`.
+- **Ý kiến khác** (FR-023c, FR-023g): mỗi ý kiến khác lựa chọn là một dòng `nguyen_vong_y_kien` có nguồn (H-16), ghi cùng phiên bản; không gộp vào `ghiChu`. *(R-15: `nguyen_vong_y_kien` → `su_kien_chung`)*
 - **Nguồn phiên bản**: `TIEP_NHAN`, `YEU_CAU_GIA_DINH`, `XAC_NHAN_LAI_NGUY_KICH`. Nguồn cuối do 007 gọi `NguyenVongApi.ghiPhienBan(...)` khi ghi kết quả xác nhận lại (BR-M05-16).
 - **Hiển thị**: theo H-05, nhóm `NGUYEN_VONG`.
 - **Cho 007**: `NguyenVongApi.hieuLuc(nctId)` để dùng trên thẻ thông tin khẩn cấp và cảnh báo nguy kịch (FR-023).
@@ -250,7 +250,7 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
   - cột sinh `dau_vao_da_xac_nhan = IF(loai = 'DAU_VAO' AND trang_thai = 'DA_XAC_NHAN', nguoi_cao_tuoi_id, NULL)` có `UNIQUE`: tối đa một đánh giá đầu vào Đã xác nhận (FR-034);
   - `CHECK (trang_thai <> 'DA_XAC_NHAN' OR (nhan_xet IS NOT NULL AND muc_cham_soc IS NOT NULL))` (DBR-05, FR-028);
   - trigger chặn mọi `UPDATE` khi trạng thái cũ là `DA_XAC_NHAN` hoặc `DA_HUY`.
-- **Nhu cầu chăm sóc**: bảng con `danh_gia_nhu_cau`. Trigger chặn thêm hay xóa khi lần đánh giá cha không còn Nháp. Không đòi lý do khi chọn (FR-029).
+- **Nhu cầu chăm sóc**: bảng con `danh_gia_nhu_cau`. Trigger chặn thêm hay xóa khi lần đánh giá cha không còn Nháp. Không đòi lý do khi chọn (FR-029). *(R-15: `danh_gia_nhu_cau` → cột `JSON` của `danh_gia`)*
 - **Lệnh**:
 
   | Lệnh | Người thực hiện | Kiểm tra chính |
@@ -262,7 +262,7 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
 
 - **Tham khảo khi mở lần đánh giá** (FR-024): `GET /danh-gia/{id}` trả kèm hồ sơ sức khỏe ban đầu, các mục Hiệu lực và chỉ số gần nhất. Chỉ số lấy qua `ChiSoApi.ganNhat(nctId)` của 007. Không có trường điểm hay mức đề xuất.
 - **Tác động khi xác nhận**, trong cùng transaction:
-  1. **Đầu vào, hoặc đánh giá lại khi Đang tiếp nhận** (FR-033, FR-035): đặt `nguoi_cao_tuoi.muc_cham_soc_hien_hanh`; thêm dòng `lich_su_muc_cham_soc` (căn cứ: lần đánh giá, hiệu lực từ thời điểm xác nhận); phát `DanhGiaDauVaoDaXacNhan` cho 004 (004 FR-025b).
+  1. **Đầu vào, hoặc đánh giá lại khi Đang tiếp nhận** (FR-033, FR-035): đặt `nguoi_cao_tuoi.muc_cham_soc_hien_hanh`; thêm dòng `lich_su_muc_cham_soc` (căn cứ: lần đánh giá, hiệu lực từ thời điểm xác nhận); phát `DanhGiaDauVaoDaXacNhan` cho 004 (004 FR-025b). *(R-15: `lich_su_muc_cham_soc` → `lich_su_chung`)*
   2. **Đánh giá lại khi đã lưu trú, khác mức hiện hành** (FR-036): không đổi mức. Gọi `YeuCauDoiMucApi.thayTheBoiDanhGia(nctId, danhGiaId)` của 004, chạy MANDATORY trong cùng transaction. Hàm này chuyển yêu cầu đổi mức chưa kết thúc (Nháp, Chờ duyệt, Đã duyệt) sang `DUOC_THAY_THE` (FR-036a). Sau đó bắt đầu nhắc Hành chính (H-12) và phát `CanLapYeuCauDoiMuc` cho 009.
   3. **Đánh giá lại trùng mức hiện hành**: vẫn gọi `thayTheBoiDanhGia` (FR-036a). Không báo Hành chính.
   4. **Mức hoặc tập nhu cầu khác lần Đã xác nhận trước** (FR-043, Q-296): phát `DanhGiaDaDoiMucHoacNhuCau` cho 005.
@@ -287,7 +287,7 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
 
 **Quyết định**:
 
-- **Không có bản ghi yêu cầu** (Q-307). M01 giữ bảng kỹ thuật `lan_bao_danh_gia_lai`, ghi mỗi lần hệ thống báo bác sĩ. Đây là nhật ký thông báo của chính module, giống `lan_chay_lich` của 000. Không có lệnh, không có trạng thái nghiệp vụ, người dùng không tạo được.
+- **Không có bản ghi yêu cầu** (Q-307). M01 giữ bảng kỹ thuật `lan_bao_danh_gia_lai`, ghi mỗi lần hệ thống báo bác sĩ. Đây là nhật ký thông báo của chính module, giống `lan_chay_lich` của 000. Không có lệnh, không có trạng thái nghiệp vụ, người dùng không tạo được. *(R-15: `lan_bao_danh_gia_lai` → `ho_so_chung`; `lan_chay_lich` → file `logs/jobs.log`)*
 - **Căn cứ và nguồn**:
 
   | Căn cứ | Nguồn | Khóa chống trùng |
@@ -312,20 +312,20 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
 
 ## H-12. Bộ lập lịch của 001
 
-**Quyết định**: Bảy job dùng `@Scheduled` cùng ShedLock, chu kỳ kỹ thuật 15 phút như 000 R-10. Mốc nghiệp vụ đọc từ `ThamSoApi` mỗi lần chạy. Mỗi lần chạy có một dòng `lan_chay_lich`.
+**Quyết định**: Bảy job dùng `@Scheduled` cùng ShedLock, chu kỳ kỹ thuật 15 phút như 000 R-10. Mốc nghiệp vụ đọc từ `ThamSoApi` mỗi lần chạy. Mỗi lần chạy có một dòng `lan_chay_lich`. *(R-15: `lan_chay_lich` → file `logs/jobs.log`)*
 
 | Job | Quy tắc | Việc làm | Chống lặp |
 | --- | --- | --- | --- |
-| `BaoDanhGiaLaiDinhKy` | FR-039, BR-M01-02 | Thêm `lan_bao_danh_gia_lai` (DINH_KY), phát sự kiện báo bác sĩ | `UNIQUE` ở H-11 |
+| `BaoDanhGiaLaiDinhKy` | FR-039, BR-M01-02 | Thêm `lan_bao_danh_gia_lai` (DINH_KY), phát sự kiện báo bác sĩ | `UNIQUE` ở H-11 *(R-15: `lan_bao_danh_gia_lai` → `ho_so_chung`)* |
 | `CanhBaoQuaHanDanhGiaLai` | FR-041 | Cảnh báo bác sĩ một lần mỗi người mỗi lần quá hạn | Cột `da_canh_bao_qua_han_luc` |
 | `NhacThieuDongYNguyenVong` | FR-012, FR-023d, SC-013 | Người ở Đang lưu trú, Tạm vắng, Hoạt động bên ngoài, Điều trị tại bệnh viện mà thiếu bản đồng ý (hoặc phiếu) Hiệu lực: nhắc Hành chính (hoặc Bác sĩ, Điều dưỡng phụ trách) mỗi CFG-M01-06 | `nhac_chu_ky.lan_nhac_cuoi` |
-| `NhacLapYeuCauDoiMuc` | FR-036 | Lần đánh giá lại gần nhất khác mức hiện hành và 004 báo không có yêu cầu đổi mức chưa kết thúc: nhắc Hành chính mỗi CFG-M03-02 | `nhac_chu_ky` |
+| `NhacLapYeuCauDoiMuc` | FR-036 | Lần đánh giá lại gần nhất khác mức hiện hành và 004 báo không có yêu cầu đổi mức chưa kết thúc: nhắc Hành chính mỗi CFG-M03-02 | `nhac_chu_ky` *(R-15: `nhac_chu_ky` → `moc_da_nhac`)* |
 | `CanhBaoQuaHanTroLai` | FR-050, BR-M01-01 | Lượt vắng đang mở (004 `LuotVangApi.dangMo()`) đã quá mốc dự kiến cộng CFG-M01-01: cảnh báo Trưởng tầng và Hành chính | `canh_bao_tro_lai (luot_vang_id, moc_du_kien)` |
-| `NhacXemLaiNhanDinh` (bổ sung 2026-10-18) | FR-023i, Q-360 | Phiếu nguyện vọng Hiệu lực có `ngay_xem_lai_nhan_dinh` ≤ hôm nay, hồ sơ chưa ở trạng thái cuối: nhắc một lần Bác sĩ đã nhận định (`NhanVien(bacSiNhanDinhId)`, không thay) và Điều dưỡng phụ trách, mức Nhẹ | `nhac_chu_ky` loại `XEM_LAI_NHAN_DINH`, `moc_id` = id phiếu |
+| `NhacXemLaiNhanDinh` (bổ sung 2026-10-18) | FR-023i, Q-360 | Phiếu nguyện vọng Hiệu lực có `ngay_xem_lai_nhan_dinh` ≤ hôm nay, hồ sơ chưa ở trạng thái cuối: nhắc một lần Bác sĩ đã nhận định (`NhanVien(bacSiNhanDinhId)`, không thay) và Điều dưỡng phụ trách, mức Nhẹ | `nhac_chu_ky` loại `XEM_LAI_NHAN_DINH`, `moc_id` = id phiếu *(R-15: `nhac_chu_ky` → `moc_da_nhac`)* |
 | `ThuLaiKiemTraDiUng` | BR-M01-12 | Phát lại `DiUngDaGhiNhan` cho mục còn cờ quá 15 phút | Listener của 006, 011 idempotent theo `mucId` |
 
-- Các job chỉ chuyển trạng thái theo thời gian, nhắc, cảnh báo (000 FR-010a). Bảng job được ghi là bảng kỹ thuật: `lan_bao_danh_gia_lai`, `nhac_chu_ky`, `canh_bao_tro_lai`. ArchUnit của 000 kiểm gói `m01.lich` không gọi repository tạo bản ghi nghiệp vụ.
-- Gia hạn dự kiến trở lại (004 FR-049) tạo mốc mới, nên `canh_bao_tro_lai` có khóa mới và cảnh báo được tính lại (Edge Case).
+- Các job chỉ chuyển trạng thái theo thời gian, nhắc, cảnh báo (000 FR-010a). Bảng job được ghi là bảng kỹ thuật: `lan_bao_danh_gia_lai`, `nhac_chu_ky`, `canh_bao_tro_lai`. ArchUnit của 000 kiểm gói `resident.lich` không gọi repository tạo bản ghi nghiệp vụ. *(R-15: `lan_bao_danh_gia_lai` → `ho_so_chung`; `nhac_chu_ky`, `canh_bao_tro_lai` → `moc_da_nhac`)*
+- Gia hạn dự kiến trở lại (004 FR-049) tạo mốc mới, nên `canh_bao_tro_lai` có khóa mới và cảnh báo được tính lại (Edge Case). *(R-15: `canh_bao_tro_lai` → `moc_da_nhac`)*
 - NFR-04: với 300 người cao tuổi, mỗi job chỉ là vài truy vấn có chỉ mục, xong trong vài giây.
 
 **Lý do**: Constitution XIII; NFR-04 (chạy lại không gửi trùng).
@@ -336,7 +336,7 @@ Mọi kiểm tra của H-02 (bảng chuyển, khóa dòng, điều kiện, tác 
 
 ## H-13. Tệp đính kèm (dùng chung)
 
-**Quyết định**: Plan 000 chưa có cơ chế tệp. 001 là feature đầu tiên cần tệp: ảnh người cao tuổi, bản scan bản đồng ý, bằng chứng rút lại, phiếu nguyện vọng, giấy tờ qua đời. Vì vậy 001 chốt một thành phần kỹ thuật dùng chung `com.cambae.backend.common.tep`; đã ghi bổ sung vào hợp đồng của 000.
+**Quyết định**: Plan 000 chưa có cơ chế tệp. 001 là feature đầu tiên cần tệp: ảnh người cao tuổi, bản scan bản đồng ý, bằng chứng rút lại, phiếu nguyện vọng, giấy tờ qua đời. Vì vậy 001 chốt một thành phần kỹ thuật dùng chung `com.eldercare.backend.common.tep`; đã ghi bổ sung vào hợp đồng của 000.
 
 - **Lưu nội dung** *(Sửa 2026-10-19, chủ dự án chọn AWS S3)*: trong bucket AWS S3 riêng tư (chặn mọi truy cập công khai, mã hóa phía máy chủ SSE-S3, bật versioning), khóa đối tượng là UUID; MySQL chỉ giữ siêu dữ liệu ở bảng `tep`. Dịch vụ tệp gọi S3 qua AWS SDK for Java v2 (`software.amazon.awssdk:s3`, bean `S3Client`) để tải lên, tải xuống, xóa và xử lý kết quả hoặc lỗi trả về. Tên bucket, region đọc từ cấu hình (`AWS_REGION`, `ELDERCARE_S3_BUCKET`); thông tin đăng nhập theo chuỗi mặc định của SDK (biến môi trường, hồ sơ AWS hoặc IAM role), không ghi vào kho mã.
   - **Region và pháp lý: chờ chủ dự án chốt.** AWS chưa có region ở Việt Nam; lưu bản scan, ảnh, giấy tờ sức khỏe ở region nước ngoài là chuyển dữ liệu cá nhân nhạy cảm ra nước ngoài theo Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15 và Nghị định 356/2025/NĐ-CP (cùng nhóm Q-03, 24.4). Xem plan, "Điểm cần báo lại".
@@ -402,8 +402,8 @@ Nội dung cho kênh ngoài ứng dụng không chứa họ tên hay thông tin 
 ## H-16. Nguồn của ý kiến và không có dấu năng lực *(bổ sung 2026-10-18; FR-023g, FR-023h; Q-347, Q-348)*
 
 **Quyết định**:
-- **Kiểu dùng chung**: `m01.api` công khai record `NguonYKien(LoaiNguonYKien loai, Long nguoiThanId)` với `LoaiNguonYKien = NGUOI_CAO_TUOI | NGUOI_THAN | NHAN_VIEN_QUAN_SAT`, và `NguonYKienApi.kiemTra(long nctId, NguonYKien nguon)`: `NGUOI_THAN` thì người thân phải có quan hệ Hiệu lực với người cao tuổi lúc ghi (qua `QuanHeNguoiThanApi.thuocNguoiCaoTuoi`), ngược lại `nguoiThanId` phải rỗng; sai thì ném lỗi 422 `NGUON_Y_KIEN_KHONG_HOP_LE`.
-- **Mẫu lưu**: mỗi bảng ghi ý kiến tự có cột `nguon_loai`, `nguon_nguoi_than_id`, `nguoi_ghi_id`, `thoi_diem` theo data-model mục 6a; nội dung và nguồn không sửa; thay đổi là dòng mới. Hợp đồng REST của mỗi feature chép đúng schema `NguonYKien` (và `NhanDinhTuQuyet` khi cần) của api-001.yaml, vì hợp đồng mỗi feature tự đứng, không `$ref` sang file khác. Nơi dùng: 001 (`nguyen_vong_y_kien`), 004 (ý kiến về việc vào ở, Q-356), 005 (thỏa thuận lựa chọn có rủi ro), 012 (mong muốn về khách thăm, người đón), 014 (sở thích).
+- **Kiểu dùng chung**: `resident.api` công khai record `NguonYKien(LoaiNguonYKien loai, Long nguoiThanId)` với `LoaiNguonYKien = NGUOI_CAO_TUOI | NGUOI_THAN | NHAN_VIEN_QUAN_SAT`, và `NguonYKienApi.kiemTra(long nctId, NguonYKien nguon)`: `NGUOI_THAN` thì người thân phải có quan hệ Hiệu lực với người cao tuổi lúc ghi (qua `QuanHeNguoiThanApi.thuocNguoiCaoTuoi`), ngược lại `nguoiThanId` phải rỗng; sai thì ném lỗi 422 `NGUON_Y_KIEN_KHONG_HOP_LE`.
+- **Mẫu lưu**: mỗi bảng ghi ý kiến tự có cột `nguon_loai`, `nguon_nguoi_than_id`, `nguoi_ghi_id`, `thoi_diem` theo data-model mục 6a; nội dung và nguồn không sửa; thay đổi là dòng mới. Hợp đồng REST của mỗi feature chép đúng schema `NguonYKien` (và `NhanDinhTuQuyet` khi cần) của api-001.yaml, vì hợp đồng mỗi feature tự đứng, không `$ref` sang file khác. Nơi dùng: 001 (`nguyen_vong_y_kien`), 004 (ý kiến về việc vào ở, Q-356), 005 (thỏa thuận lựa chọn có rủi ro), 012 (mong muốn về khách thăm, người đón), 014 (sở thích). *(R-15: `nguyen_vong_y_kien` → `su_kien_chung`)*
 - **Không có dấu năng lực** (FR-023h): không cột, không trường, không trạng thái năng lực chung. Nhận định gắn với quyết định tầng 2 (phiếu nguyện vọng ở 001; thỏa thuận ở 005). Test kiến trúc `FR_023h_KhongDauNangLucArchTest` quét `information_schema.COLUMNS` và OpenAPI (data-model mục 6a).
 
 **Lý do**: BR-M01-14 cần một định nghĩa nguồn dùng chung cho năm feature; mỗi module vẫn giữ bảng của mình (constitution X), nên chia sẻ kiểu và lệnh kiểm, không chia sẻ bảng.
@@ -416,7 +416,7 @@ Nội dung cho kênh ngoài ứng dụng không chứa họ tên hay thông tin 
 
 ## H-17. Liên kết mục ý kiến với phản hồi Mong muốn *(bổ sung 2026-10-18; FR-023g, Q-366)*
 
-**Quyết định**: Mẫu cột nguồn ý kiến có thêm cột tùy chọn `phan_hoi_id BIGINT NULL` (tham chiếu logic, không khóa ngoại chéo module); chỉ bảng có lệnh ghi mục từ phản hồi Mong muốn mới thêm cột (hiện là `so_thich` của 014); 012 gắn `mong_muon_nct` bằng `phan_hoi_y_kien` trong cùng module. Lệnh ghi mục của module sở hữu nhận `phanHoiId` tùy chọn; khi có, cùng transaction ghi sự kiện `YKienDaGhiTuPhanHoi(phanHoiId, moduleNguon, loaiMuc, mucId, nctId, nguon)` qua outbox. 012 nghe và thêm dòng `phan_hoi_y_kien` nếu phản hồi thuộc đúng người cao tuổi và nguồn là `NGUOI_CAO_TUOI`; sai thì bỏ qua và ghi lỗi kỹ thuật.
+**Quyết định**: Mẫu cột nguồn ý kiến có thêm cột tùy chọn `phan_hoi_id BIGINT NULL` (tham chiếu logic, không khóa ngoại chéo module); chỉ bảng có lệnh ghi mục từ phản hồi Mong muốn mới thêm cột (hiện là `so_thich` của 014); 012 gắn `mong_muon_nct` bằng `phan_hoi_y_kien` trong cùng module. Lệnh ghi mục của module sở hữu nhận `phanHoiId` tùy chọn; khi có, cùng transaction ghi sự kiện `YKienDaGhiTuPhanHoi(phanHoiId, moduleNguon, loaiMuc, mucId, nctId, nguon)` qua outbox. 012 nghe và thêm dòng `phan_hoi_y_kien` nếu phản hồi thuộc đúng người cao tuổi và nguồn là `NGUOI_CAO_TUOI`; sai thì bỏ qua và ghi lỗi kỹ thuật. *(R-15: `mong_muon_nct` → `ho_so_chung`; `phan_hoi_y_kien` → `su_kien_chung`)*
 
 **Lý do**: Mục nằm ở bảng của module sở hữu (001 mục 6a); 012 không đọc được bảng đó, còn module sở hữu gọi 012 sẽ tạo vòng M04 ↔ M10. Sự kiện giữ một chiều.
 
@@ -427,18 +427,18 @@ Nội dung cho kênh ngoài ứng dụng không chứa họ tên hay thông tin 
 ## H-18. Phiếu nguyện vọng khi điều trị và giấy tờ bệnh viện *(bổ sung 2026-10-22; FR-023, FR-023j → FR-023m, FR-047c; Q-383, Q-384)*
 
 **Quyết định**:
-- **Phiên bản** (DBR-39, FR-023k): bảng `nguyen_vong_dieu_tri` theo đúng mẫu của H-09: chỉ thêm phiên bản; cột sinh `dang_hieu_luc` có `UNIQUE`; ghi phiên bản mới trong một transaction chuyển bản cũ sang `HET_HIEU_LUC` (tên trạng thái theo DBR-39, khác `DUOC_THAY_THE` của phiếu cuối đời), đặt `thay_the_boi_id`, thêm bản mới; trigger chỉ cho `UPDATE` hai cột đó theo chiều `HIEU_LUC → HET_HIEU_LUC`. Không có lệnh sửa, xóa.
+- **Phiên bản** (DBR-39, FR-023k): bảng `nguyen_vong_dieu_tri` theo đúng mẫu của H-09: chỉ thêm phiên bản; cột sinh `dang_hieu_luc` có `UNIQUE`; ghi phiên bản mới trong một transaction chuyển bản cũ sang `HET_HIEU_LUC` (tên trạng thái theo DBR-39, khác `DUOC_THAY_THE` của phiếu cuối đời), đặt `thay_the_boi_id`, thêm bản mới; trigger chỉ cho `UPDATE` hai cột đó theo chiều `HIEU_LUC → HET_HIEU_LUC`. Không có lệnh sửa, xóa. *(R-15: `nguyen_vong_dieu_tri` → `nguyen_vong` (`wish`))*
 - **Trường** (FR-023j): một hoặc hai bệnh viện ưu tiên lưu thành hai cặp cột (`bv1_*` bắt buộc, `bv2_*` tùy chọn, `CHECK` đủ cặp); bảo hiểm y tế ba cột tùy chọn; `hoi_gia_dinh_truoc BOOLEAN NOT NULL`; `nguoi_di_kem ENUM(GIA_DINH,VIEN_CU_NHAN_VIEN,TUY_TINH_HUONG)`; `ghi_chu`; người trả lời theo mẫu cột nguồn ý kiến (H-16); bản ký tùy chọn (`ban_ky_tep_id NULL`).
 - **Người cần báo**: bảng con `nguyen_vong_dieu_tri_nguoi_bao (nguyen_vong_dieu_tri_id, nguoi_than_id)`, 0..n dòng, mỗi người thân phải có quan hệ Hiệu lực lúc ghi (`QuanHeNguoiThanApi.thuocNguoiCaoTuoi`, sai → 409 `NGUOI_THAN_KHONG_HOP_LE`). Chủ dự án chọn 0..n, không bắt buộc (2026-10-22). `hoiGiaDinhTruoc = true` mà rỗng thì phản hồi kèm cảnh báo `CHUA_CO_NGUOI_CAN_BAO`.
-- **Ý kiến khác** (BR-M01-14): ý kiến người cao tuổi là nội dung phiếu; ý kiến gia đình khác là dòng `nguyen_vong_dieu_tri_y_kien` theo mẫu cột nguồn (data-model mục 6a), kiểm bằng `NguonYKienApi.kiemTra`. Phiếu không có nhận định "tự quyết được" (FR-023j không yêu cầu; FR-023h vẫn đúng vì không có cột năng lực).
+- **Ý kiến khác** (BR-M01-14): ý kiến người cao tuổi là nội dung phiếu; ý kiến gia đình khác là dòng `nguyen_vong_dieu_tri_y_kien` theo mẫu cột nguồn (data-model mục 6a), kiểm bằng `NguonYKienApi.kiemTra`. Phiếu không có nhận định "tự quyết được" (FR-023j không yêu cầu; FR-023h vẫn đúng vì không có cột năng lực). *(R-15: `nguyen_vong_dieu_tri_y_kien` → `su_kien_chung`)*
 - **Quyền và hiển thị** (FR-023m): khóa `DI_UNG_BENH_NEN` (XEM, TAO); nội dung nhóm `SUC_KHOE` (Hành chính, Kế toán `KHONG`; người thân theo chú thích ¹). Hồ sơ có cờ `coNguyenVongDieuTri` (đúng/sai, tính lúc đọc từ phiên bản Hiệu lực, không lưu cột): 001 chỉ đưa cờ vào DTO khi người xem có `(DI_UNG_BENH_NEN, XEM)` với người cao tuổi đó hoặc `(HO_SO_NGUOI_CAO_TUOI, TAO)` (Hành chính); Kế toán và vai trò khác không có cờ, trường nằm trong `truongBiAn`. Không dùng nhóm `NGUYEN_VONG` vì nhóm đó cho Kế toán `CHI_CO_HAY_KHONG`; quy tắc xem trường của 002 không tách theo trường (chủ dự án chọn 2026-10-22, plan điểm báo lại 13).
-- **Hoàn tất tiếp nhận** (FR-023l): `ThamGiaM01` trả cảnh báo `THIEU_NGUYEN_VONG_DIEU_TRI` khi chưa có phiên bản Hiệu lực; không thêm điều kiện chặn, không thêm dòng `nhac_chu_ky`.
+- **Hoàn tất tiếp nhận** (FR-023l): `ThamGiaM01` trả cảnh báo `THIEU_NGUYEN_VONG_DIEU_TRI` khi chưa có phiên bản Hiệu lực; không thêm điều kiện chặn, không thêm dòng `nhac_chu_ky`. *(R-15: `nhac_chu_ky` → `moc_da_nhac`)*
 - **Cho 007** (FR-023): `NguyenVongApi.dieuTriHieuLuc(nctId)` trả bản đọc (bệnh viện ưu tiên, bảo hiểm y tế, hỏi trước, người cần báo kèm họ tên và số điện thoại lấy qua 012, người đi kèm, ghi chú) cho thẻ thông tin khẩn cấp, lệnh Chuyển viện và phiếu tóm tắt chuyển viện. 007 không ghi phiếu này.
-- **Giấy tờ bệnh viện** (FR-047c, BR-M05-32): `LenhTrangThai` có thêm `tepDinhKemIds` (tối đa 10 tệp, kiểu và kích thước theo H-13), chỉ nhận ở `GHI_NHAN_TRO_VE` từ `DIEU_TRI_BENH_VIEN` và ở `CHUYEN_VIEN` (007 truyền qua `TrangThaiNguoiCaoTuoiApi.thucHien`); lệnh khác có `tepDinhKemIds` → 422 `KHONG_NHAN_TEP_DINH_KEM`. Tệp gắn vào dòng `lich_su_trang_thai_nct` với loại chủ sở hữu `M01.GIAY_TO_BENH_VIEN` trong transaction của lệnh; `QuyenTepProvider` cho tải khi có `(DI_UNG_BENH_NEN, XEM)` trong phạm vi. 006 đọc danh sách tệp bằng `TrangThaiNguoiCaoTuoiApi.giayToDinhKem(lichSuId)` (lấy `lichSuId` từ sự kiện `NguoiCaoTuoiDaChuyenTrangThai`) để hiện cạnh phiếu đối chiếu thuốc (BR-M07-16).
+- **Giấy tờ bệnh viện** (FR-047c, BR-M05-32): `LenhTrangThai` có thêm `tepDinhKemIds` (tối đa 10 tệp, kiểu và kích thước theo H-13), chỉ nhận ở `GHI_NHAN_TRO_VE` từ `DIEU_TRI_BENH_VIEN` và ở `CHUYEN_VIEN` (007 truyền qua `TrangThaiNguoiCaoTuoiApi.thucHien`); lệnh khác có `tepDinhKemIds` → 422 `KHONG_NHAN_TEP_DINH_KEM`. Tệp gắn vào dòng `lich_su_trang_thai_nct` với loại chủ sở hữu `M01.GIAY_TO_BENH_VIEN` trong transaction của lệnh; `QuyenTepProvider` cho tải khi có `(DI_UNG_BENH_NEN, XEM)` trong phạm vi. 006 đọc danh sách tệp bằng `TrangThaiNguoiCaoTuoiApi.giayToDinhKem(lichSuId)` (lấy `lichSuId` từ sự kiện `NguoiCaoTuoiDaChuyenTrangThai`) để hiện cạnh phiếu đối chiếu thuốc (BR-M07-16). *(R-15: `lich_su_trang_thai_nct` → `lich_su_chung`)*
 
 **Lý do**: FR-023j → FR-023m dựng theo mẫu nguyện vọng cuối đời đã có (H-09) để dùng lại trigger, cột sinh và test; giấy tờ bệnh viện dùng thành phần tệp có sẵn (H-13), không thêm bảng.
 
 **Phương án đã cân nhắc**:
-- Gộp vào bảng `nguyen_vong_cuoi_doi` bằng cột loại: hai phiếu có trường, trạng thái, người ký và điều kiện khác nhau; `UNIQUE` theo loại làm `CHECK` phức tạp; bị loại.
+- Gộp vào bảng `nguyen_vong_cuoi_doi` bằng cột loại: hai phiếu có trường, trạng thái, người ký và điều kiện khác nhau; `UNIQUE` theo loại làm `CHECK` phức tạp; bị loại. *(R-15: `nguyen_vong_cuoi_doi` → `nguyen_vong` (`wish`))*
 - Bảng con cho bệnh viện ưu tiên: spec giới hạn một hoặc hai bệnh viện, hai cặp cột đủ và `CHECK` đơn giản hơn.
 - Đính kèm giấy tờ vào bảng của 004 (lượt vắng): FR-047c thuộc lệnh trạng thái của 001; lượt Điều trị tại bệnh viện không có bảng riêng ở 004.

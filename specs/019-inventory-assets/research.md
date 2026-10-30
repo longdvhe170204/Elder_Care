@@ -1,8 +1,10 @@
-# Research: Kho nguyên liệu và tài sản của viện (019)
+# Research: Tài sản, lịch xe và mua sắm của viện (019)
+
+> **Sửa 2026-10-29 (Q-392):** hệ thống không quản lý kho nguyên liệu. Các mục về kho (nguyên liệu, lô, phiếu nhập, xuất, đảo, kiểm kê, cảnh báo hạn dùng, tồn tối thiểu, `nutrition.kho`) trong tài liệu này không còn hiệu lực; xem spec 019 mục Cập nhật 2026-10-29.
 
 **Ngày**: 2026-10-10 | **Plan**: [plan.md](plan.md) | **Spec**: [spec.md](spec.md)
 
-Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyết định nền R-01 → R-14 của 000 và các mẫu đã chốt ở 001 → 018 (G-01 ranh giới 003 ↔ 019, M-12 port kho của 011, P-12 port M11, N-02 SPI ở `m15.taikhoan.api`, B-02 khuôn thông báo) được dùng lại, không quyết lại. Các quyết định dưới đây là kỹ thuật; chúng không đổi nghiệp vụ (constitution IX). Chỗ spec chưa rõ hoặc mâu thuẫn được ghi ở plan, mục "Điểm cần báo lại".
+Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyết định nền R-01 → R-14 của 000 và các mẫu đã chốt ở 001 → 018 (G-01 ranh giới 003 ↔ 019, M-12 port kho của 011, P-12 port M11, N-02 SPI ở `administration.taikhoan.api`, B-02 khuôn thông báo) được dùng lại, không quyết lại. Các quyết định dưới đây là kỹ thuật; chúng không đổi nghiệp vụ (constitution IX). Chỗ spec chưa rõ hoặc mâu thuẫn được ghi ở plan, mục "Điểm cần báo lại".
 
 ---
 
@@ -12,10 +14,10 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 | Phần | Module, gói | Mục nguồn | Mục spec |
 | --- | --- | --- | --- |
-| Kho nguyên liệu, kiểm kê | M08, `m08.kho` | 12.7, BR-M08-17 → 20 | A (FR-001 → FR-007, FR-009, FR-010) |
-| Yêu cầu mua sắm, đối chiếu | M11, `m11.muasam` | 15.10, BR-M11-17 → 20 | A (FR-008 → FR-008c) |
-| Tài sản, bảo trì, báo hỏng, giường là tài sản | M03, `m03.taisan` | 7.7, BR-M03-15, 17, 18 | B |
-| Lịch xe | M03, `m03.lichxe` | 7.7, BR-M03-16 | C |
+| Kho nguyên liệu, kiểm kê | M08, `nutrition.kho` | 12.7, BR-M08-17 → 20 | A (FR-001 → FR-007, FR-009, FR-010) |
+| Yêu cầu mua sắm, đối chiếu | M11, `billing.muasam` | 15.10, BR-M11-17 → 20 | A (FR-008 → FR-008c) |
+| Tài sản, bảo trì, báo hỏng, giường là tài sản | M03, `roombedallocation.taisan` | 7.7, BR-M03-15, 17, 18 | B |
+| Lịch xe | M03, `roombedallocation.lichxe` | 7.7, BR-M03-16 | C |
 
 **Lý do**: 003 G-01, 011 M-01, 010 P-01 đã dành chỗ cho 019 trong ba module này và khai port nội bộ tương ứng.
 
@@ -29,16 +31,16 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 | Cặp | Cách nối |
 | --- | --- |
-| `m03.taisan` ↔ `m03.giuong` (003) | Port nội bộ M03: dùng `GiuongTheoTaiSanPort`; cài `TaiSanGiuongPort` (003 hợp đồng mục 3) |
-| `m08.kho` ↔ `m08` (011) | Cài `TonKhoNguyenLieuPort`; đọc `LichBuaApi` (bữa ngày) để chọn mục đích xuất |
-| M03, M08 → bộ phận (008) | `NhiemVuApi.boPhanCua`, `laPhuTrachBoPhan`, `phuTrachBoPhan(boPhanId)` qua `m15.taikhoan.api` (008 cài; 008 N-02) — không phụ thuộc M09 trực tiếp |
-| M08 kho → M11 mua sắm | `m11.api.YeuCauMuaSamApi` (M08 đã phụ thuộc M11 từ 011): `kiemTraDuocDung`, `ganNguon` (MANDATORY) |
-| M03 → M11 mua sắm | M11 → M02 → M03 nên M03 không gọi M11 trực tiếp. SPI `YeuCauMuaSamPort` khai ở `m03.api`, M11 cài (cùng chữ ký `kiemTraDuocDung`, `ganNguon`) |
-| M11 mua sắm → M07 (006) *(bổ sung 2026-10-11, Q-337)* | M11 đọc `m07.api.DonThuocApi.donNguonVienChuaKetThuc` (gắn dòng loại "thuốc"), `TiepNhanThuocCungUngApi.theoYeuCau` (hiển thị "Đã nhận"); M11 cài SPI `m07.api.YeuCauThuocCungUngPort` cho 006 đọc dòng đã ghi đã mua. Cùng chiều với `DeNghiMuaHoPort` mà 010 (M11) đã cài; M07 không gọi `m11.api`, nên không có vòng |
-| M04 (014) → M03 lịch xe | 019 cung cấp `m03.api.LichXeApi` (đọc) và `LichXeLenhApi` (MANDATORY); 014 gọi trong lệnh của chuyến. Sửa hợp đồng 014 (trước đó 014 khai `LichXeChuyenPort` ở `m04.api` cho 019 cài, sẽ tạo vòng M03 ↔ M04) |
+| `roombedallocation.taisan` ↔ `roombedallocation.giuong` (003) | Port nội bộ M03: dùng `GiuongTheoTaiSanPort`; cài `TaiSanGiuongPort` (003 hợp đồng mục 3) |
+| `nutrition.kho` ↔ `nutrition` (011) | Cài `TonKhoNguyenLieuPort`; đọc `LichBuaApi` (bữa ngày) để chọn mục đích xuất |
+| M03, M08 → bộ phận (008) | `NhiemVuApi.boPhanCua`, `laPhuTrachBoPhan`, `phuTrachBoPhan(boPhanId)` qua `administration.taikhoan.api` (008 cài; 008 N-02) — không phụ thuộc M09 trực tiếp |
+| M08 kho → M11 mua sắm | `billing.api.YeuCauMuaSamApi` (M08 đã phụ thuộc M11 từ 011): `kiemTraDuocDung`, `ganNguon` (MANDATORY) |
+| M03 → M11 mua sắm | M11 → M02 → M03 nên M03 không gọi M11 trực tiếp. SPI `YeuCauMuaSamPort` khai ở `roombedallocation.api`, M11 cài (cùng chữ ký `kiemTraDuocDung`, `ganNguon`) |
+| M11 mua sắm → M07 (006) *(bổ sung 2026-10-11, Q-337)* | M11 đọc `medication.api.DonThuocApi.donNguonVienChuaKetThuc` (gắn dòng loại "thuốc"), `TiepNhanThuocCungUngApi.theoYeuCau` (hiển thị "Đã nhận"); M11 cài SPI `medication.api.YeuCauThuocCungUngPort` cho 006 đọc dòng đã ghi đã mua. Cùng chiều với `DeNghiMuaHoPort` mà 010 (M11) đã cài; M07 không gọi `billing.api`, nên không có vòng |
+| M04 (014) → M03 lịch xe | 019 cung cấp `roombedallocation.api.LichXeApi` (đọc) và `LichXeLenhApi` (MANDATORY); 014 gọi trong lệnh của chuyến. Sửa hợp đồng 014 (trước đó 014 khai `LichXeChuyenPort` ở `care.api` cho 019 cài, sẽ tạo vòng M03 ↔ M04) |
 | M08 → M01 | `DiNguyenApi` (thành phần gây dị ứng của nguyên liệu) |
 | M03 → M15 | `HoSoNhanVienApi` (người lái, có thể không có tài khoản), `TaiKhoanApi.theoNhanVien` (báo người lái có tài khoản) |
-| 019 → 009, 016 | Thông báo cài `CoYeuCauThongBao`; 016 đọc `TaiSanThongKeApi` (`m03.api`), `KhoThongKeApi` (`m08.api`), `MuaSamThongKeApi` (`m11.api`) |
+| 019 → 009, 016 | Thông báo cài `CoYeuCauThongBao`; 016 đọc `TaiSanThongKeApi` (`roombedallocation.api`), `KhoThongKeApi` (`nutrition.api`), `MuaSamThongKeApi` (`billing.api`) |
 
 **Lý do**: Modulith `verify()` từ chối vòng (000 R-02).
 
@@ -75,28 +77,28 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 **Quyết định**:
 - `yeu_cau_mua_sam` (nhóm 2 → 3 ở trạng thái cuối): bộ phận, người lập, loại (`NGUYEN_LIEU`, `TAI_SAN`, `DICH_VU`, `KHAC`), dòng, tổng dự kiến, số được duyệt, lý do giảm, ngày cần, tham chiếu, yêu cầu gốc (bổ sung), số tiền thực tế, ngày mua, nhà cung cấp, chứng từ, kết quả đối chiếu, số lệch, cách xử lý; trạng thái `NHAP | CHO_DUYET | DA_DUYET | CHO_DOI_CHIEU | LECH | DA_DOI_CHIEU | TU_CHOI | DA_HUY`. Vòng đời riêng (bảng FR-008), không dùng `yeu_cau_phe_duyet` của 000 vì có bước sau duyệt (mua, đối chiếu); nhật ký, lý do, khóa theo 000.
 - Người lập phải là Phụ trách bộ phận của bộ phận đó tại thời điểm lệnh (`NhiemVuApi.laPhuTrachBoPhan`); Kế toán, Quản lý viện không được (Q-293, Q-299). **(Bổ sung 2026-10-11, FR-008d, Q-337)** Ngoại lệ duy nhất: loại `THUOC` thì vai trò Điều dưỡng cũng lập, gửi, rút lại, hủy được dù không là Phụ trách bộ phận; bộ phận của yêu cầu là bộ phận của người lập (`NhiemVuApi.boPhanCua`). Điều dưỡng lập loại khác bị 403. "Ghi đã mua" mọi loại vẫn chỉ Phụ trách bộ phận.
-- **Loại `THUOC`** *(bổ sung 2026-10-11, FR-008d, Q-337)*: yêu cầu có thêm `muc_uu_tien` (`THUONG`, `GAP`), `thoi_diem_can`, tài liệu liên quan; mỗi dòng có thêm người cao tuổi, đơn thuốc, hoạt chất, hàm lượng, dạng, đơn vị. Khi lập và sửa Nháp, mỗi dòng phải gắn một đơn trong `DonThuocApi.donNguonVienChuaKetThuc(nctId)` (nguồn viện, Hiệu lực, Tạm dừng, Chờ hiệu lực), nếu không thì 409. Điều dưỡng lập: người cao tuổi của mỗi dòng phải trong phạm vi phân công của người lập (19.3: quyền T của Điều dưỡng trong phạm vi phân công; BR-M15-01; 002 A-04), quyết định của chủ dự án 2026-10-11; không phải quy tắc mới. Phụ trách bộ phận (³⁷, mọi vai trò) giữ quyền lập loại `THUOC`, không có quy tắc cấm riêng theo loại; khi lập, sửa Nháp, mỗi dòng gắn đơn chỉ được nếu người lập xem được thông tin thuốc của người cao tuổi đó (`QuyenXemTruongApi.duocXem(nd, SUC_KHOE, doiTuong) = DAY_DU`, không thì 403) và đơn thuộc `donNguonVienChuaKetThuc(nctId)` (không thì 409). 019 không cấp thêm quyền xem `SUC_KHOE`; Phụ trách bộ phận không xem được thuốc thì không gắn được dòng. Hệ thống không tự lập yêu cầu (Q-307). Không có phiếu nhập, tồn kho hay `mua_sam_gan_nguon` cho thuốc; lần tiếp nhận do 006 ghi (006 FR-054). Yêu cầu loại này không sinh chi phí cho người cao tuổi.
-- `mua_sam_gan_nguon` (nhóm 3): yêu cầu, loại nguồn (`PHIEU_NHAP`, `TAI_SAN`, `BAO_TRI`), id, số tiền (tổng phiếu nhập / nguyên giá / chi phí bảo trì). `ganNguon` chỉ khi yêu cầu `DA_DUYET` và cùng bộ phận, loại phù hợp. Hủy yêu cầu Đã duyệt bị chặn khi đã có nguồn gắn (Q-290).
+- **Loại `THUOC`** *(bổ sung 2026-10-11, FR-008d, Q-337)*: yêu cầu có thêm `muc_uu_tien` (`THUONG`, `GAP`), `thoi_diem_can`, tài liệu liên quan; mỗi dòng có thêm người cao tuổi, đơn thuốc, hoạt chất, hàm lượng, dạng, đơn vị. Khi lập và sửa Nháp, mỗi dòng phải gắn một đơn trong `DonThuocApi.donNguonVienChuaKetThuc(nctId)` (nguồn viện, Hiệu lực, Tạm dừng, Chờ hiệu lực), nếu không thì 409. Điều dưỡng lập: người cao tuổi của mỗi dòng phải trong phạm vi phân công của người lập (19.3: quyền T của Điều dưỡng trong phạm vi phân công; BR-M15-01; 002 A-04), quyết định của chủ dự án 2026-10-11; không phải quy tắc mới. Phụ trách bộ phận (³⁷, mọi vai trò) giữ quyền lập loại `THUOC`, không có quy tắc cấm riêng theo loại; khi lập, sửa Nháp, mỗi dòng gắn đơn chỉ được nếu người lập xem được thông tin thuốc của người cao tuổi đó (`QuyenXemTruongApi.duocXem(nd, SUC_KHOE, doiTuong) = DAY_DU`, không thì 403) và đơn thuộc `donNguonVienChuaKetThuc(nctId)` (không thì 409). 019 không cấp thêm quyền xem `SUC_KHOE`; Phụ trách bộ phận không xem được thuốc thì không gắn được dòng. Hệ thống không tự lập yêu cầu (Q-307). Không có phiếu nhập, tồn kho hay `mua_sam_gan_nguon` cho thuốc; lần tiếp nhận do 006 ghi (006 FR-054). Yêu cầu loại này không sinh chi phí cho người cao tuổi. *(R-15: `mua_sam_gan_nguon` → cột `JSON` của yêu cầu mua sắm)*
+- `mua_sam_gan_nguon` (nhóm 3): yêu cầu, loại nguồn (`PHIEU_NHAP`, `TAI_SAN`, `BAO_TRI`), id, số tiền (tổng phiếu nhập / nguyên giá / chi phí bảo trì). `ganNguon` chỉ khi yêu cầu `DA_DUYET` và cùng bộ phận, loại phù hợp. Hủy yêu cầu Đã duyệt bị chặn khi đã có nguồn gắn (Q-290). *(R-15: `mua_sam_gan_nguon` → cột `JSON` của yêu cầu mua sắm)*
 - Ghi đã mua (FR-008a): chứng từ bắt buộc; hàm `KiemTraVuot(soDuocDuyet, thucTe, cfg07)`; vượt → 409 kèm hướng dẫn lập yêu cầu bổ sung (`yeu_cau_goc_id`).
 - Đối chiếu (FR-008b): hàm `KhopChungTu(chungTu, thucTe, tongNguon, loai)`; người ghi đã mua không đối chiếu (Phụ lục 27 ³⁸). Với `THUOC` (và `DICH_VU`, `KHAC`) không có tổng nguồn, chỉ so chứng từ với số tiền thực tế (FR-008b chỉ đòi tổng nguồn với nguyên liệu, tài sản).
-- Bản cài `YeuCauThuocCungUngPort` (`m07.api`, bổ sung 2026-10-11): trả dòng của yêu cầu `THUOC` ở `CHO_DOI_CHIEU`, `DA_DOI_CHIEU`, `LECH` (BR-M11-17), kèm id nhân viên của người lập và `bo_phan_id` của yêu cầu (gắn lúc lập, không đổi khi người lập chuyển bộ phận; 006 dùng để báo Phụ trách bộ phận hiện tại, 006 FR-055, sửa 2026-10-11 lượt 3); trạng thái khác trả rỗng. Kiểu trả về là `DongYeuCauThuocView` ở 006 contracts mục 2.1 (không có id thuốc; 006 lấy từ đơn).
+- Bản cài `YeuCauThuocCungUngPort` (`medication.api`, bổ sung 2026-10-11): trả dòng của yêu cầu `THUOC` ở `CHO_DOI_CHIEU`, `DA_DOI_CHIEU`, `LECH` (BR-M11-17), kèm id nhân viên của người lập và `bo_phan_id` của yêu cầu (gắn lúc lập, không đổi khi người lập chuyển bộ phận; 006 dùng để báo Phụ trách bộ phận hiện tại, 006 FR-055, sửa 2026-10-11 lượt 3); trạng thái khác trả rỗng. Kiểu trả về là `DongYeuCauThuocView` ở 006 contracts mục 2.1 (không có id thuốc; 006 lấy từ đơn).
 - Job hằng ngày: Đã duyệt quá CFG-M11-08 chưa ghi đã mua → nhắc Phụ trách bộ phận; Chờ đối chiếu quá CFG-M11-09 → nhắc Kế toán (BR-M11-20).
-- Bản cài `YeuCauMuaSamPort` (`m03.api`) ủy cho cùng dịch vụ của `YeuCauMuaSamApi`.
+- Bản cài `YeuCauMuaSamPort` (`roombedallocation.api`) ủy cho cùng dịch vụ của `YeuCauMuaSamApi`.
 
 ---
 
 ## W-06. Tài sản (mục B; BR-M03-15, 17, 18, DBR-32, Q-238, Q-242, Q-243, Q-284, Q-294)
 
 **Quyết định**:
-- `loai_tai_san` (nhóm 1, Quản lý viện), `tai_san` (nhóm 1 mô tả + nhóm 2 trạng thái, vị trí, bộ phận): mã `UNIQUE`, loại, tên, bộ phận quản lý, yêu cầu mua sắm, ngày đưa vào sử dụng, nguyên giá, lịch bảo trì/kiểm định (chu kỳ, hạn kế tiếp), với xe: biển số, số chỗ, hạn đăng kiểm, hạn bảo hiểm; `giuong_id` `UNIQUE` (loại giường); trạng thái `SAN_SANG | DANG_SU_DUNG | HONG | DANG_BAO_TRI | DA_THANH_LY`; dấu `qua_han_bao_tri`, `qua_han_dang_kiem`, `qua_han_bao_hiem`, `cho_chuyen_nguoi`.
-- Lịch sử (nhóm 3): `tai_san_vi_tri` (không chồng khoảng: cột sinh `UNIQUE` một vị trí mở), `tai_san_bo_phan`, `tai_san_bao_tri` (lần bảo trì/kiểm định/đăng kiểm/bảo hiểm; thuê ngoài có chi phí gắn yêu cầu mua sắm), `tai_san_hu_hong` (mức ảnh hưởng, dấu chờ chuyển người, gỡ dấu kèm nội dung đã sửa, người sửa).
+- `loai_tai_san` (nhóm 1, Quản lý viện), `tai_san` (nhóm 1 mô tả + nhóm 2 trạng thái, vị trí, bộ phận): mã `UNIQUE`, loại, tên, bộ phận quản lý, yêu cầu mua sắm, ngày đưa vào sử dụng, nguyên giá, lịch bảo trì/kiểm định (chu kỳ, hạn kế tiếp), với xe: biển số, số chỗ, hạn đăng kiểm, hạn bảo hiểm; `giuong_id` `UNIQUE` (loại giường); trạng thái `SAN_SANG | DANG_SU_DUNG | HONG | DANG_BAO_TRI | DA_THANH_LY`; dấu `qua_han_bao_tri`, `qua_han_dang_kiem`, `qua_han_bao_hiem`, `cho_chuyen_nguoi`. *(R-15: `loai_tai_san` → `danh_muc_chung`)*
+- Lịch sử (nhóm 3): `tai_san_vi_tri` (không chồng khoảng: cột sinh `UNIQUE` một vị trí mở), `tai_san_bo_phan`, `tai_san_bao_tri` (lần bảo trì/kiểm định/đăng kiểm/bảo hiểm; thuê ngoài có chi phí gắn yêu cầu mua sắm), `tai_san_hu_hong` (mức ảnh hưởng, dấu chờ chuyển người, gỡ dấu kèm nội dung đã sửa, người sửa). *(R-15: `tai_san_vi_tri`, `tai_san_bo_phan` → `lich_su_chung`; `tai_san_bao_tri`, `tai_san_hu_hong` → `su_kien_chung`)*
 - **Ghi tăng** (FR-011): không phải loại giường; mua mới: `YeuCauMuaSamPort.kiemTraDuocDung(…, TAI_SAN)`, nguyên giá bắt buộc, `ganNguon(TAI_SAN, id, nguyenGia)`. Giường: bản cài `TaiSanGiuongPort.ghiTangChoGiuong(giuongId)` trong lệnh Tạo giường của 003 (Sẵn sàng, bộ phận Chăm sóc, vị trí phòng).
 - **Lệnh trạng thái** theo bảng FR-013. Với loại giường (FR-015), hàm thuần `AnhXaTrangThaiGiuong(lenh, coNguoi, tamNgung)` → `LenhTaiSanGiuong` (`BAO_TRI`, `SAN_SANG`, `THANH_LY`) hoặc "ghi hư hỏng, gắn dấu chờ chuyển người"; gọi `GiuongTheoTaiSanPort.kiemTraLenhTaiSan` rồi `apLenhTaiSan` (MANDATORY), `daGanDauChoChuyenNguoi` / `daGoDauChoChuyenNguoi`. Kết quả bảo trì đạt với giường Tạm ngừng sử dụng → giường về Tạm ngừng (Q-246, xử lý ở 003).
 - **Báo hỏng giường có người** (Q-245, Q-256, Q-265): mức ảnh hưởng bắt buộc; "mất an toàn" → `YeuCauThongBao` Khẩn cấp cho Trưởng tầng và Người phụ trách ca của tầng; nếu `giuongTrongPhuHopChoNguoiDangNam` rỗng ở tầng → thêm Quản lý viện, Hành chính, kèm danh sách tầng khác (hoặc "không còn giường phù hợp trong viện"). Gỡ dấu "đã sửa tại chỗ": Trưởng tầng (tầng mình) hoặc Quản lý viện; mức mất an toàn cần nội dung đã sửa, người sửa.
 - **Thanh lý** (FR-013): loại yêu cầu phê duyệt `M03.THANH_LY_TAI_SAN` của 000 (Phụ trách bộ phận lập, Quản lý viện duyệt, không tự duyệt); `apDung` chuyển `DA_THANH_LY`, với giường gọi `apLenhTaiSan(THANH_LY)` (Q-51 của 003 áp cho phân bổ tương lai).
 - **Chuyển vị trí giường** (FR-012, Q-243): chặn khi giường đã từng có phân bổ (003).
 - **Chuyển bộ phận**: Quản lý viện, lý do; lịch sử.
-- **Hư hỏng từ dọn giường** (FR-016): 003 ghi hư hỏng; Trưởng tầng hoặc Phụ trách bộ phận xác nhận gắn tài sản (`tai_san_hu_hong` nguồn `DON_GIUONG`), MAY dẫn tới Báo hỏng.
+- **Hư hỏng từ dọn giường** (FR-016): 003 ghi hư hỏng; Trưởng tầng hoặc Phụ trách bộ phận xác nhận gắn tài sản (`tai_san_hu_hong` nguồn `DON_GIUONG`), MAY dẫn tới Báo hỏng. *(R-15: `tai_san_hu_hong` → `su_kien_chung`)*
 - **Job hằng ngày**: nhắc trước hạn CFG-M03-09; quá hạn → gắn dấu, nhắc mỗi ngày; giường mang dấu chờ chuyển người còn người → nhắc Trưởng tầng mỗi CFG-M03-02; giường mang dấu đã Trống → nhắc báo hỏng lại.
 
 ---
@@ -104,9 +106,9 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 ## W-07. Lịch xe (mục C; BR-M03-16, Q-220, Q-231, Q-236, Q-239, Q-240, Q-295, Q-298)
 
 **Quyết định**:
-- `lich_xe` (nhóm 2): xe (tài sản loại xe), giờ đi, giờ về dự kiến, mục đích (`CHUYEN_DI`, `DI_KHAM`, `CHUYEN_VIEN_KHONG_CAP_CUU`, `KHAC`), tham chiếu (chuyến, người cao tuổi), người lái (hồ sơ nhân viên), người đặt, trạng thái `DA_DAT | DANG_DUNG | DA_HOAN_THANH | DA_HUY`, xuất phát/trả thực tế, `da_nhac_qua_gio`.
+- `lich_xe` (nhóm 2): xe (tài sản loại xe), giờ đi, giờ về dự kiến, mục đích (`CHUYEN_DI`, `DI_KHAM`, `CHUYEN_VIEN_KHONG_CAP_CUU`, `KHAC`), tham chiếu (chuyến, người cao tuổi), người lái (hồ sơ nhân viên), người đặt, trạng thái `DA_DAT | DANG_DUNG | DA_HOAN_THANH | DA_HUY`, xuất phát/trả thực tế, `da_nhac_qua_gio`. *(R-15: `lich_xe` → `ho_so_chung`)*
 - Hàm thuần `KiemTraDatLich(xe, lichKhac[], tu, den, laGiaHan)`: chồng giờ với lịch chưa hủy (trừ gia hạn của lịch Đang dùng), xe Hỏng/Đang bảo trì/Đã thanh lý, dấu quá hạn đăng kiểm, bảo hiểm tại giờ đi.
-- `LichXeApi` (đọc, `m03.api`): `coLichDaDat(chuyenId, gioRoi)`, `kiemTraDoi(chuyenId, roiMoi, veMoi)`.
+- `LichXeApi` (đọc, `roombedallocation.api`): `coLichDaDat(chuyenId, gioRoi)`, `kiemTraDoi(chuyenId, roiMoi, veMoi)`.
 - `LichXeLenhApi.theoChuyen(chuyenId, loai, roiDuKien, veDuKien, thucTe)` (MANDATORY, trong lệnh của 014): `DOI` (dời lịch, kiểm lại; không thỏa → ném lỗi, 014 chặn lệnh dời), `HUY` (Đã hủy, báo người đặt, Phụ trách bộ phận quản lý xe, người lái có tài khoản), `ROI_VIEN_DAU` (Đang dùng), `GIA_HAN` (dời giờ về, không chặn khi chồng; chồng → báo Quản lý viện và người đặt lịch kế tiếp), `HUY_ROI_VIEN_CUOI` (về Đã đặt, bỏ thời điểm xuất phát), `KET_THUC_VE` (Đã hoàn thành).
 - Lệnh của người: đặt lịch, dời, hủy, ghi xuất phát, ghi trả xe (người đặt, Quản lý viện). Job theo phút: lịch Đang dùng quá giờ về → nhắc người đặt một lần; chồng lịch kế tiếp → báo Quản lý viện.
 - Không có ghi ngoại tuyến cho lịch xe.

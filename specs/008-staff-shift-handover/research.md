@@ -8,20 +8,20 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## N-01. Vị trí trong backend
 
-**Quyết định**: Feature 008 là module M09 – Nhân sự và ca trực (mục 13), gói `com.cambae.backend.m09`:
+**Quyết định**: Feature 008 là module M09 – Nhân sự và ca trực (mục 13), gói `com.eldercare.backend.staffing`:
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
-| `m09.nhanvien` | Hồ sơ nhân viên, trạng thái làm việc, bộ phận, Phụ trách bộ phận | A (FR-001 → FR-004) |
-| `m09.giayphep` | Loại giấy phép/đào tạo, phạm vi hành nghề, giấy phép/đào tạo của nhân viên, hiệu lực, cảnh báo hết hạn | A (FR-005 → FR-010) |
-| `m09.lichca` | Mẫu ca, lịch ca, ca, nhân viên trong ca, người phụ trách ca, Bác sĩ trực, lệnh sau công bố | B (FR-011 → FR-023) |
-| `m09.phancong` | Giao trưởng tầng, phân công, `XacDinhNhanVienChinh`, sao chép | C (FR-024 → FR-033) |
-| `m09.tyle` | Tỷ lệ phục vụ, lần tính | D (FR-034 → FR-037a) |
-| `m09.bangiao` | Bàn giao, mục, ý kiến, danh sách bản ghi nguồn, xác nhận | E (FR-038 → FR-047) |
-| `m09.nhiemvu` | `TraCuuCaService`: nhiệm vụ, ca, phân công theo thời điểm; bản cài các SPI của 002, 003, 005, 006, 007 | F (FR-049) |
-| `m09.lich`, `m09.api` | Job; giao diện công khai, SPI cho 013, 014, sự kiện | |
+| `staffing.nhanvien` | Hồ sơ nhân viên, trạng thái làm việc, bộ phận, Phụ trách bộ phận | A (FR-001 → FR-004) |
+| `staffing.giayphep` | Loại giấy phép/đào tạo, phạm vi hành nghề, giấy phép/đào tạo của nhân viên, hiệu lực, cảnh báo hết hạn | A (FR-005 → FR-010) |
+| `staffing.lichca` | Mẫu ca, lịch ca, ca, nhân viên trong ca, người phụ trách ca, Bác sĩ trực, lệnh sau công bố | B (FR-011 → FR-023) |
+| `staffing.phancong` | Giao trưởng tầng, phân công, `XacDinhNhanVienChinh`, sao chép | C (FR-024 → FR-033) |
+| `staffing.tyle` | Tỷ lệ phục vụ, lần tính | D (FR-034 → FR-037a) |
+| `staffing.bangiao` | Bàn giao, mục, ý kiến, danh sách bản ghi nguồn, xác nhận | E (FR-038 → FR-047) |
+| `staffing.nhiemvu` | `TraCuuCaService`: nhiệm vụ, ca, phân công theo thời điểm; bản cài các SPI của 002, 003, 005, 006, 007 | F (FR-049) |
+| `staffing.lich`, `staffing.api` | Job; giao diện công khai, SPI cho 013, 014, sự kiện | |
 
-Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũng thuộc M09; plan 015 thêm gói con vào cùng `m09` và dùng các port nội bộ ở `m09.lichca.port`, `m09.phancong.port` (N-07) thay vì API công khai, như mẫu 003 ↔ 019 (G-01) và 005 ↔ 014.
+Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũng thuộc M09; plan 015 thêm gói con vào cùng `staffing` và dùng các port nội bộ ở `staffing.lichca.port`, `staffing.phancong.port` (N-07) thay vì API công khai, như mẫu 003 ↔ 019 (G-01) và 005 ↔ 014.
 
 **Lý do**: Constitution X chia gói theo M01–M15; Phụ lục 26.2 đặt UC-49 → UC-53 ở 008, UC-50 phần xoay ca và UC-54 ở 015, cùng M09.
 
@@ -35,18 +35,18 @@ Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũn
 
 | Cặp | Chiều mã | Cách giữ một chiều |
 | --- | --- | --- |
-| 008 ↔ 002 | 008 → 002 | 002 làm plan trước và cần dữ liệu của 008 (FR-004, FR-019a, FR-028, FR-037). Các giao diện `HoSoNhanVienApi`, `GiayPhepApi`, `DanhMucPhamViHanhNgheApi`, `PhanCongApi`, `NhiemVuApi` được khai báo ở `m15.taikhoan.api` dưới dạng SPI, M09 cài (bổ sung theo plan này; chữ ký giữ đúng 002 module-interfaces mục 2). 008 gọi `TaiKhoanApi.khoaDoNghiViec`, `theoNhanVien`, `coVaiTro`; `QuyenApi`, `PhamViApi`, `NhatKyApi`, `ThamSoApi`, `DinhChinhApi` |
+| 008 ↔ 002 | 008 → 002 | 002 làm plan trước và cần dữ liệu của 008 (FR-004, FR-019a, FR-028, FR-037). Các giao diện `HoSoNhanVienApi`, `GiayPhepApi`, `DanhMucPhamViHanhNgheApi`, `PhanCongApi`, `NhiemVuApi` được khai báo ở `administration.taikhoan.api` dưới dạng SPI, M09 cài (bổ sung theo plan này; chữ ký giữ đúng 002 module-interfaces mục 2). 008 gọi `TaiKhoanApi.khoaDoNghiViec`, `theoNhanVien`, `coVaiTro`; `QuyenApi`, `PhamViApi`, `NhatKyApi`, `ThamSoApi`, `DinhChinhApi` |
 | 008 → 001 | Đọc, nghe | `MucChamSocApi.hienHanh`, `taiNgay`; `TrangThaiNguoiCaoTuoiApi.khoangTrangThai`; `NguoiCaoTuoiApi.trangThai`; nghe `MucChamSocDaDoi`, `NguoiCaoTuoiDaChuyenTrangThai` |
 | 008 → 003 | Đọc, cài | `ViTriApi`, `LichSuViTriApi.theoViTriTrongNgay`, `CoCauViTriApi`, `CanhBaoBanGiaoApi.theoTang`; cài `ThamChieuViTri`; nghe `PhanBoDaBatDau`, `PhanBoDaDong`, `DaChuyenGiuong` |
-| 008 → 004 | Đọc | `LuotVangApi.dangMo` (mốc dự kiến trở lại; khai báo ở `m01.api`, 004 cài); `HopDongDocApi.lichDenTaiNgay` (bán trú dự kiến có mặt, FR-034) |
+| 008 → 004 | Đọc | `LuotVangApi.dangMo` (mốc dự kiến trở lại; khai báo ở `resident.api`, 004 cài); `HopDongDocApi.lichDenTaiNgay` (bán trú dự kiến có mặt, FR-034) |
 | 008 → 005 | Cài, gọi | Cài `NhanSuCaPort`; gọi `CongViecCaApi` (MANDATORY), đọc `CongViecBanGiaoApi` |
 | 008 → 006 | Cài, đọc | Cài `DieuDuongCaPort`; đọc `LieuBanGiaoApi` |
 | 008 → 007 | Cài, gọi | Cài `NhanSuCanhBaoPort`; gọi `CanhBaoBanGiaoApi.dangMo`, `khiXacNhanBanGiao` (MANDATORY); đọc `ChiSoApi.vuotNguongTrongKhoang` |
-| 008 ↔ 013, 014 | 013, 014 → 008 | Họ làm plan sau. 008 cần đồ gửi có giá trị đang giữ (013) và chuyến đi, trưởng đoàn, người đi cùng (014) qua SPI khai báo ở `m09.api`: `DoGuiBanGiaoPort`, `ChuyenDiNhiemVuPort` |
-| 015 → 008 | Cùng module | Port nội bộ `m09.*.port` (N-07) |
+| 008 ↔ 013, 014 | 013, 014 → 008 | Họ làm plan sau. 008 cần đồ gửi có giá trị đang giữ (013) và chuyến đi, trưởng đoàn, người đi cùng (014) qua SPI khai báo ở `staffing.api`: `DoGuiBanGiaoPort`, `ChuyenDiNhiemVuPort` |
+| 015 → 008 | Cùng module | Port nội bộ `staffing.*.port` (N-07) |
 | 008 → 009, 016 | Sự kiện; đọc | Thông báo là sự kiện (N-14); 016 đọc `NhanSuThongKeApi` |
 
-**Lý do**: Modulith `verify()` từ chối vòng (000 R-02). 002 đã gọi tên các giao diện này trong plan của mình; đặt chúng ở `m15.taikhoan.api` giữ chiều `m09 → m15`.
+**Lý do**: Modulith `verify()` từ chối vòng (000 R-02). 002 đã gọi tên các giao diện này trong plan của mình; đặt chúng ở `administration.taikhoan.api` giữ chiều `staffing → administration`.
 
 **Phương án đã cân nhắc**: 002 đọc bảng của 008 qua view MySQL: truy cập dữ liệu module khác (constitution X).
 
@@ -55,9 +55,9 @@ Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũn
 ## N-03. Khóa và đồng thời
 
 **Quyết định**:
-- **Thứ tự khóa trong M09**: `nhan_vien` (theo `id` tăng) → `tang_ca_khoa` (theo `tang_khu_vuc_id` tăng) → `lich_ca` → `ca` → `phan_cong` → `ban_giao`. Khi lệnh của 008 gọi sang 005, 007 (vắng ca, nghỉ việc, xác nhận bàn giao), các module đó khóa dòng của mình sau các khóa trên; 005, 006, 007 đọc 008 không khóa, nên không có vòng chờ.
+- **Thứ tự khóa trong M09**: `nhan_vien` (theo `id` tăng) → `tang_ca_khoa` (theo `tang_khu_vuc_id` tăng) → `lich_ca` → `ca` → `phan_cong` → `ban_giao`. Khi lệnh của 008 gọi sang 005, 007 (vắng ca, nghỉ việc, xác nhận bàn giao), các module đó khóa dòng của mình sau các khóa trên; 005, 006, 007 đọc 008 không khóa, nên không có vòng chờ. *(R-15: `tang_ca_khoa` → `khoa_ky_thuat`)*
 - **Chồng ca của một nhân viên** (FR-013, DBR-21): mọi lệnh thêm nhân viên vào ca khóa dòng `nhan_vien`, rồi kiểm tra trên `ca_nhan_vien` còn hiệu lực của người đó. Khoảng thời gian không đưa được vào `UNIQUE` nên kiểm ở backend dưới khóa; test đồng thời chứng minh.
-- **Phân công, giao trưởng tầng** (FR-024, FR-028, SC-011): khóa `tang_ca_khoa` của tầng/khu (dòng kỹ thuật, tạo khi tạo tầng hoặc khi lần đầu dùng), rồi kiểm tra chồng; lệnh đến sau thấy dữ liệu của lệnh trước và bị từ chối (FR-028 "lệnh ghi nhận sau bị từ chối").
+- **Phân công, giao trưởng tầng** (FR-024, FR-028, SC-011): khóa `tang_ca_khoa` của tầng/khu (dòng kỹ thuật, tạo khi tạo tầng hoặc khi lần đầu dùng), rồi kiểm tra chồng; lệnh đến sau thấy dữ liệu của lệnh trước và bị từ chối (FR-028 "lệnh ghi nhận sau bị từ chối"). *(R-15: `tang_ca_khoa` → `khoa_ky_thuat`)*
 - **Bàn giao** (FR-042, DBR-20): `UNIQUE (ca_id)` trên `ban_giao`; lệnh trạng thái khóa dòng `ban_giao` và kiểm tra lại; lệnh thứ hai trả 409 `TRANG_THAI_DA_DOI`. Không dùng `If-Match` cho lệnh trạng thái (005 C-03); lệnh sửa mục ở Bản nháp dùng `If-Match` vì nhiều người cùng sửa (FR-040: người bàn giao và Điều dưỡng có tên trong ca).
 - **Lịch Nháp**: sửa tự do dùng `If-Match` trên `lich_ca.phien_ban`.
 - **Tính tỷ lệ phục vụ đồng thời** (Edge Case): khóa dòng `ca` khi ghi lần tính; lần tính sau đọc dữ liệu mới nhất nên phản ánh cả hai thay đổi; cột `dang_duoi_nguong` chống cảnh báo trùng (FR-036).
@@ -70,7 +70,7 @@ Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũn
 - `nhan_vien`: phần mô tả (nhóm 1: họ tên, chức danh, chuyên môn, ngày bắt đầu, liên hệ) và `trang_thai` (nhóm 2: `DANG_LAM_VIEC`, `NGHI_VIEC`) chung một bảng; trạng thái chỉ đổi qua lệnh (trigger chặn đổi `trang_thai` khi không kèm biến phiên `@lenh_trang_thai_nv`, mẫu 000). `tai_khoan_id` tham chiếu logic tới 002, có thể rỗng (Q-282). Không `DELETE` (trigger), chỉ Nghỉ việc.
 - **Cho nghỉ việc** (FR-003, FR-004): lệnh ghi `nghi_viec_hieu_luc`. Hiệu lực ngay thì tác động chạy trong cùng transaction; hiệu lực tương lai thì job theo phút (N-16) chạy đúng một lần tại mốc (cột `da_ap_nghi_viec_luc`). Tác động FR-004 trong một transaction: (a) `TaiKhoanApi.khoaDoNghiViec`; (b) rút khỏi ca kết thúc sau mốc (`ca_nhan_vien.rut_do_nghi_viec`); (c) kết thúc phân công, giao trưởng tầng; (d) `CongViecCaApi.khiNghiViec`; (e) ca người đó phụ trách gắn `thieu_nguoi_phu_trach`, phát `CaThieuNguoiPhuTrach`; (f), (g) chuyển quyền bàn giao (tính lúc đọc từ dấu thiếu người phụ trách, N-12); (h) tính lại tỷ lệ phục vụ. Lỗi ở một bước rollback cả lệnh.
 - **Nhận lại làm việc**: lý do; không mở tài khoản; không khôi phục ca, phân công.
-- **Bộ phận** (FR-001a, Q-284, Q-292, Q-293, Q-299, DBR-36): `bo_phan` (nhóm 1, `phu_trach_id NOT NULL` sau khi có người), `nhan_vien_bo_phan` (lịch sử: `tu`, `den`), `lich_su_phu_trach_bo_phan` (nhóm 3). Bất biến:
+- **Bộ phận** (FR-001a, Q-284, Q-292, Q-293, Q-299, DBR-36): `bo_phan` (nhóm 1, `phu_trach_id NOT NULL` sau khi có người), `nhan_vien_bo_phan` (lịch sử: `tu`, `den`), `lich_su_phu_trach_bo_phan` (nhóm 3). Bất biến: *(R-15: `lich_su_phu_trach_bo_phan` → `lich_su_chung`)*
   - mỗi nhân viên có tài khoản thuộc đúng một bộ phận tại một thời điểm (trừ tài khoản Quản lý viện): cột sinh `khoa_hien_hanh = IF(den IS NULL, nhan_vien_id, NULL)` `UNIQUE`; đổi bộ phận là đóng dòng cũ và mở dòng mới cùng transaction;
   - Phụ trách bộ phận thuộc bộ phận đó, có tài khoản Hoạt động, không có vai trò AC-01, AC-14 (`TaiKhoanApi.coVaiTro`), Phụ trách bộ phận Hành chính – Kế toán có vai trò Hành chính;
   - lệnh Cho nghỉ việc, đổi bộ phận của người đang là Phụ trách bộ phận bắt buộc `nguoiThayId` (409 `CAN_NGUOI_THAY_PHU_TRACH`); 002 gọi `NhiemVuApi.laPhuTrachBoPhan` trước khi khóa tài khoản để áp cùng điều kiện;
@@ -81,7 +81,7 @@ Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũn
 ## N-05. Giấy phép, đào tạo (FR-005 → FR-010, BR-M09-01, 05, BR-M06-05)
 
 **Quyết định**:
-- `loai_chung_chi` (nhóm 1): nhóm `GIAY_PHEP_HANH_NGHE | DAO_TAO`, `co_thoi_han`, `bat_buoc_voi_vai_tro` (tập), `co_pham_vi`. Khởi tạo: giấy phép hành nghề bác sĩ, điều dưỡng, đào tạo sơ cứu. `pham_vi_hanh_nghe` (nhóm 1): danh mục dùng chung cho 002 (`nghiep_vu_chuyen_mon_pham_vi`), 007 (giấy phép cơ sở) qua `DanhMucPhamViHanhNgheApi`.
+- `loai_chung_chi` (nhóm 1): nhóm `GIAY_PHEP_HANH_NGHE | DAO_TAO`, `co_thoi_han`, `bat_buoc_voi_vai_tro` (tập), `co_pham_vi`. Khởi tạo: giấy phép hành nghề bác sĩ, điều dưỡng, đào tạo sơ cứu. `pham_vi_hanh_nghe` (nhóm 1): danh mục dùng chung cho 002 (`nghiep_vu_chuyen_mon_pham_vi`), 007 (giấy phép cơ sở) qua `DanhMucPhamViHanhNgheApi`. *(R-15: `loai_chung_chi`, `pham_vi_hanh_nghe`, `nghiep_vu_chuyen_mon_pham_vi` → `danh_muc_chung`)*
 - `chung_chi` (nhóm 1 có lịch sử): số, đơn vị cấp, ngày cấp, ngày hết hạn, `thay_the_cho`, `thu_hoi_tu`, lý do thu hồi, tệp scan; bảng con phạm vi. Lệnh Thêm, Gia hạn (bản mới, bản cũ "Đã thay thế" suy ra từ `thay_the_cho`), Ghi nhận thu hồi, Sửa sai (lý do, nhật ký trước/sau; FR-006). Không `DELETE`.
 - **Hiệu lực** là hàm thuần `HieuLucChungChi(banGhi, thoiDiem)` theo FR-007: Còn hiệu lực từ 00:00 ngày cấp tới hết 23:59:59 ngày hết hạn (Asia/Ho_Chi_Minh, 002 FR-038), chưa thu hồi, chưa bị thay. `coHieuLucTrongKhoang(nhanVien, loai, t1, t2)` đúng khi một bản cùng loại Còn hiệu lực tại mọi thời điểm trong `[t1, t2]` (ca qua đêm: US3 #2). `GiayPhepApi.hieuLuc` của 002 dùng cùng hàm.
 - **Cảnh báo sắp hết hạn** (FR-008, BR-M09-05): job hằng ngày 00:10 xét đào tạo bắt buộc với vai trò hoặc được nhiệm vụ phân công hiện tại/tương lai yêu cầu, hết hạn trong CFG-M09-03 mà chưa có bản gia hạn: phát `ChungChiSapHetHan(chungChiId, ngayHetHan)` một lần (cột `da_canh_bao_luc`); gia hạn thì phát `CanhBaoChungChiDaDong`. Giấy phép hành nghề dùng CFG-M06-02 và thuộc 002 FR-039; 008 chỉ cung cấp `GiayPhepApi.sapHetHan`.
@@ -94,13 +94,13 @@ Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũn
 ## N-06. Mẫu ca, lịch ca, ca (FR-011 → FR-017, FR-022, FR-023)
 
 **Quyết định**:
-- `mau_ca` (nhóm 1): giờ bắt đầu, giờ kết thúc (`LocalTime`), loại phạm vi, `yeu_cau_ban_giao`; ca qua ngày khi kết thúc ≤ bắt đầu, bằng nhau là 24 giờ (FR-011, CHK042).
+- `mau_ca` (nhóm 1): giờ bắt đầu, giờ kết thúc (`LocalTime`), loại phạm vi, `yeu_cau_ban_giao`; ca qua ngày khi kết thúc ≤ bắt đầu, bằng nhau là 24 giờ (FR-011, CHK042). *(R-15: `mau_ca` → `danh_muc_chung`)*
 - `lich_ca` (nhóm 2): tháng, phạm vi, trạng thái `NHAP | DA_CONG_BO`. `ca` (nhóm 2): `lich_ca_id`, `mau_ca_id`, `bat_dau`, `ket_thuc` (`DATETIME`, chép từ mẫu, chỉnh được ở Nháp), phạm vi, `yeu_cau_ban_giao` (chép từ mẫu), `nguoi_phu_trach_id`, `thieu_nguoi_phu_trach`, trạng thái theo bảng FR-022. Ca thuộc lịch của tháng chứa giờ bắt đầu.
 - `ca_nhan_vien` (nhóm 2): nhân viên trong ca, `bac_si_truc`, `vang_luc`, lý do vắng, người ghi, `rut_do_nghi_viec`, `bo_sung_luc`, lý do bổ sung; cột cho 015 (`nghi_co_duyet_yeu_cau_id`, `can_cu_vao_ca`, `can_cu_roi_ca`) do 015 đặt qua port. Dòng chỉ thêm và đặt cột; không xóa sau công bố (lịch sử, FR-037a). Ở Nháp gỡ nhân viên là xóa dòng.
-- `nguoi_phu_trach_ca` (lịch sử, nhóm 3): ca, nhân viên, từ, đến, căn cứ — nguồn của `PhamViApi.nguoiPhuTrachCa(tang, t)` và FR-037a.
+- `nguoi_phu_trach_ca` (lịch sử, nhóm 3): ca, nhân viên, từ, đến, căn cứ — nguồn của `PhamViApi.nguoiPhuTrachCa(tang, t)` và FR-037a. *(R-15: `nguoi_phu_trach_ca` → `lich_su_chung`)*
 - **Kiểm tra khi xếp** (mọi lệnh thêm nhân viên): FR-002 (Đang làm việc, tài khoản không Đã khóa, có vai trò xếp ca qua `TaiKhoanApi.theoNhanVien`); FR-013 chồng giờ (chặn); FR-014 chuỗi liên tục bằng hàm thuần `ChuoiCaLienTuc(caCuaNhanVien, caMoi)` (ca tiếp giáp nối nhau) > CFG-M09-02 → phản hồi 409 `CAN_XAC_NHAN_CANH_BAO` trừ khi thân lệnh có `xacNhanCanhBao = true` và `lyDo`; FR-010 cảnh báo đào tạo.
 - **Công bố** (FR-016): người có quyền (Trưởng tầng được giao của phạm vi hoặc Quản lý viện; lịch toàn viện chỉ Quản lý viện). Kiểm tra: ca có yêu cầu bàn giao đều có người phụ trách; tầng có giao trưởng tầng phủ cả tháng (trừ lịch toàn viện); phân công Nháp đạt FR-028, FR-030 tại thời điểm công bố (không đạt thì 409 kèm danh sách; thân lệnh có `loaiBoPhanCong[]` để loại trong cùng lệnh); phần kiểm tra của 015 qua port `KiemTraCongBoMoRong` (phủ tối thiểu, nghỉ theo ngày; 015 FR-006a, FR-017, FR-026a). Trả `canhBao[]` tổng hợp (FR-014, FR-034, FR-010) trước khi xác nhận (`GET …/xem-truoc-cong-bo`). Tự công bố: lý do bắt buộc, nhật ký `tuDuyet` (Q-10); một lý do dùng chung cho tự duyệt và công bố khi thiếu phủ.
-- Khi công bố, trong cùng transaction: ca → `DA_CONG_BO`; phân công Nháp → `TUONG_LAI` / `HIEU_LUC`; ghi `ban_cong_bo_lich` (nhóm 3, JSON toàn bộ ca, nhân viên, phân công tại thời điểm công bố; FR-055 "bản gốc có nhật ký"); tính tỷ lệ phục vụ mọi ca; phát `LichCaDaCongBo(lichId, nhanVienIds)` (mỗi người nhận chỉ ca của mình, FR-054).
+- Khi công bố, trong cùng transaction: ca → `DA_CONG_BO`; phân công Nháp → `TUONG_LAI` / `HIEU_LUC`; ghi `ban_cong_bo_lich` (nhóm 3, JSON toàn bộ ca, nhân viên, phân công tại thời điểm công bố; FR-055 "bản gốc có nhật ký"); tính tỷ lệ phục vụ mọi ca; phát `LichCaDaCongBo(lichId, nhanVienIds)` (mỗi người nhận chỉ ca của mình, FR-054). *(R-15: `ban_cong_bo_lich` → `su_kien_chung`)*
 - **Chuyển trạng thái theo giờ** (job theo phút): `DA_CONG_BO → DANG_DIEN_RA` tại `bat_dau`; `DANG_DIEN_RA → DA_DONG` hoặc `CHO_BAN_GIAO` tại `ket_thuc` theo trạng thái bàn giao (FR-022); phát `CaDaBatDau`, `CaDaKetThuc` (013, 005, 006, 007 dùng làm khóa bỏ trùng). Phạm vi dữ liệu theo ca do 002 tính từ giờ ca, không phụ thuộc job.
 - **Bác sĩ trực** (FR-023): `ca_nhan_vien.bac_si_truc` trên ca phạm vi toàn viện; `bacSiTruc(t)` = mọi Bác sĩ có dòng đó, không vắng, trong ca `DANG_DIEN_RA` chứa `t` (nhiều người được).
 
@@ -110,10 +110,10 @@ Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũn
 
 **Quyết định**:
 - **Bổ sung nhân viên vào ca** (FR-018): như kiểm tra khi xếp; phạm vi dữ liệu có ngay (002 tính từ dòng mới); phát `NhanVienDaBoSungVaoCa`.
-- **Chuyển người phụ trách ca** (FR-019): đóng dòng `nguoi_phu_trach_ca` cũ, mở dòng mới; gỡ `thieu_nguoi_phu_trach`; nếu bàn giao của ca ở Bản nháp hoặc Có ý kiến thì đổi `ban_giao.nguoi_ban_giao_id`, giữ người viết trên từng ghi chú, phát `BanGiaoDangDoDaChuyen` cho người mới.
+- **Chuyển người phụ trách ca** (FR-019): đóng dòng `nguoi_phu_trach_ca` cũ, mở dòng mới; gỡ `thieu_nguoi_phu_trach`; nếu bàn giao của ca ở Bản nháp hoặc Có ý kiến thì đổi `ban_giao.nguoi_ban_giao_id`, giữ người viết trên từng ghi chú, phát `BanGiaoDangDoDaChuyen` cho người mới. *(R-15: `nguoi_phu_trach_ca` → `lich_su_chung`)*
 - **Ghi nhận vắng ca** (FR-020, Q-80, Q-81, Q-91): Trưởng tầng, hoặc Người phụ trách ca của chính ca đó trong khoảng phạm vi; khoảng cho phép `[bat_dau − CFG-M15-07, ket_thuc]`, ngoài khoảng 409 `NGOAI_KHOANG_GHI_VANG` kèm gợi dẫn sang 015. Trong cùng transaction: `vang_luc`; phân công của người đó trong ca → `DA_KET_THUC` (Hiệu lực) hoặc `DA_HUY` (Tương lai); `CongViecCaApi.khiVangCa`; nếu là người phụ trách thì bắt buộc `nguoiPhuTrachMoiId` hoặc gắn `thieu_nguoi_phu_trach` khi không ai đủ điều kiện; tính lại tỷ lệ; phát `NhanVienVangCa` (không nêu lý do, FR-053).
 - **Hủy ca** (FR-021): Quản lý viện, ca chưa bắt đầu; phân công `DA_HUY`; phát `CaDaHuy`.
-- **Port nội bộ cho 015** (gói `m09.lichca.port`, `m09.phancong.port`; ArchUnit chỉ cho `m09.doica`, `m09.xoayca` dùng):
+- **Port nội bộ cho 015** (gói `staffing.lichca.port`, `staffing.phancong.port`; ArchUnit chỉ cho `staffing.doica`, `staffing.xoayca` dùng):
 
   ```java
   interface CaLenhPort {                       // MANDATORY; cùng kiểm tra và tác động như lệnh REST tương ứng
@@ -136,7 +136,7 @@ Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũn
 ## N-08. Giao trưởng tầng và phân công (FR-024 → FR-033)
 
 **Quyết định**:
-- `giao_truong_tang` (nhóm 2): nhân viên (vai trò Trưởng tầng), tầng/khu, `tu`, `den` (tùy chọn), trạng thái `HIEU_LUC | DA_KET_THUC`; lệnh Giao, Kết thúc/rút ngắn (lý do). Chồng thời gian trên cùng tầng bị chặn dưới khóa `tang_ca_khoa` (FR-024, SC-011).
+- `giao_truong_tang` (nhóm 2): nhân viên (vai trò Trưởng tầng), tầng/khu, `tu`, `den` (tùy chọn), trạng thái `HIEU_LUC | DA_KET_THUC`; lệnh Giao, Kết thúc/rút ngắn (lý do). Chồng thời gian trên cùng tầng bị chặn dưới khóa `tang_ca_khoa` (FR-024, SC-011). *(R-15: `giao_truong_tang` → `phan_cong` (`staff_assignment`); `tang_ca_khoa` → `khoa_ky_thuat`)*
 - **Tầng chưa có Trưởng tầng** (FR-024, Q-90): `NhiemVuApi.truongTangDuocGiao(tang, t)` rỗng thì `NhiemVuApi.nguoiThayTruongTang(tang, t)` trả Người phụ trách ca đang diễn ra của tầng; 002 cho các lệnh bàn giao, tạm nhận theo căn cứ `THAY_TRUONG_TANG`. Job đầu mỗi ca phát `TangChuaCoTruongTang` cho Quản lý viện tới khi có giao.
 - `phan_cong` (nhóm 2): ca, nhân viên, đối tượng (`TANG | KHU_VUC | PHONG | NGUOI_CAO_TUOI`, id), `loai_cong_viec_id` (tùy chọn), vai trò phân công (`VaiTro` hệ thống + `CHINH | HO_TRO`), `dieu_duong_phu_trach`, `bat_dau`, `ket_thuc`, `ket_thuc_thuc_te`, trạng thái (`NHAP`, `TUONG_LAI`, `HIEU_LUC`, `DA_KET_THUC`, `DA_HUY`), lý do, nguồn (`LAP_TAY`, `SAO_CHEP`, `DOI_CA_015`). Bảng chuyển FR-027; Tương lai → Hiệu lực → Đã kết thúc theo giờ do job theo phút.
 - **Kiểm tra lập** (FR-025, FR-028, FR-028a, FR-030):
@@ -159,7 +159,7 @@ Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũn
   - trọng số: mức chăm sóc hiện hành (`MucChamSocApi.hienHanh`) ánh xạ qua CFG-M09-12; yêu cầu đổi mức chưa áp dụng không tính (CHK049);
   - nhân viên được tính: có tên trong ca, không vắng, không nghỉ có duyệt, có vai trò Điều dưỡng hoặc Nhân viên chăm sóc, mỗi người một lần;
   - ngưỡng: CFG-M09-01 theo mẫu ca (kiểu `BANG`); không có nhân viên được tính mà có người dự kiến → dưới ngưỡng.
-- Mỗi lần tính ghi `lan_tinh_ty_le` (nhóm 3): ca, thời điểm, sự kiện kích hoạt, tổng trọng số, số nhân viên, tỷ lệ, ngưỡng, đạt/không đạt (FR-037). Báo cáo ca đã qua lấy lần tính cuối trước khi ca kết thúc và dấu "từng không đạt" (Q-200) qua `NhanSuThongKeApi`.
+- Mỗi lần tính ghi `lan_tinh_ty_le` (nhóm 3): ca, thời điểm, sự kiện kích hoạt, tổng trọng số, số nhân viên, tỷ lệ, ngưỡng, đạt/không đạt (FR-037). Báo cáo ca đã qua lấy lần tính cuối trước khi ca kết thúc và dấu "từng không đạt" (Q-200) qua `NhanSuThongKeApi`. *(R-15: `lan_tinh_ty_le` → `su_kien_chung`)*
 - **Khi nào tính lại** (FR-035): lưu ca Nháp; công bố; vắng ca, bổ sung, nghỉ việc; lệnh 015 qua port; listener sau commit `MucChamSocDaDoi`, `PhanBoDaBatDau`, `PhanBoDaDong`, `DaChuyenGiuong`, `NguoiCaoTuoiDaChuyenTrangThai` cho các ca chưa đóng của tầng liên quan (từ thời điểm hiệu lực).
 - **Cảnh báo** (FR-036): lịch Nháp: trả trong phản hồi; lịch đã công bố: chuyển từ đạt sang không đạt thì phát `CaDuoiNguongPhucVu` (Trưởng tầng; thêm Quản lý viện khi ca bắt đầu trong CFG-M09-08); cột `ca.dang_duoi_nguong` chống phát lại khi còn không đạt. Job hằng giờ xét ca sắp bắt đầu trong CFG-M09-08 đang dưới ngưỡng mà Quản lý viện chưa được báo (`da_bao_qlv_duoi_nguong_luc`).
 
@@ -168,7 +168,7 @@ Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũn
 ## N-10. Bàn giao (FR-038 → FR-047, BR-M09-06 → 08, DBR-20, Q-307)
 
 **Quyết định**:
-- **Bảng**: `ban_giao` (nhóm 2 cho trạng thái; `UNIQUE (ca_id)`, DBR-20): ca trước, ca sau (tính lúc lập, cập nhật được tới khi xác nhận nếu lịch đổi), người bàn giao, người xác nhận, trạng thái `BAN_NHAP | DA_LAP | CO_Y_KIEN | DA_XAC_NHAN`, `chot_luc`, `xac_nhan_luc`, căn cứ quyền; `muc_ban_giao` (nhóm 3 có bản nháp): nhóm (a) → (g) hoặc `VAN_DE_THEO_DOI`, nguồn (loại, id), người cao tuổi hoặc phòng, mô tả, trạng thái nguồn lúc chốt, ghi chú (người viết), `phan` (`DA_CHOT`, `PHAT_SINH_SAU_KHI_LAP`, `DA_XU_LY_TRONG_CA`); `nhan_dinh_ban_giao` (chung, theo người cao tuổi); `y_kien_ban_giao`, `phan_hoi_y_kien` (nhóm 3).
+- **Bảng**: `ban_giao` (nhóm 2 cho trạng thái; `UNIQUE (ca_id)`, DBR-20): ca trước, ca sau (tính lúc lập, cập nhật được tới khi xác nhận nếu lịch đổi), người bàn giao, người xác nhận, trạng thái `BAN_NHAP | DA_LAP | CO_Y_KIEN | DA_XAC_NHAN`, `chot_luc`, `xac_nhan_luc`, căn cứ quyền; `muc_ban_giao` (nhóm 3 có bản nháp): nhóm (a) → (g) hoặc `VAN_DE_THEO_DOI`, nguồn (loại, id), người cao tuổi hoặc phòng, mô tả, trạng thái nguồn lúc chốt, ghi chú (người viết), `phan` (`DA_CHOT`, `PHAT_SINH_SAU_KHI_LAP`, `DA_XU_LY_TRONG_CA`); `nhan_dinh_ban_giao` (chung, theo người cao tuổi); `y_kien_ban_giao`, `phan_hoi_y_kien` (nhóm 3). *(R-15: `muc_ban_giao`, `nhan_dinh_ban_giao` → cột `JSON` của `ban_giao`; `y_kien_ban_giao`, `phan_hoi_y_kien` → `su_kien_chung`)*
 - **Trigger**: mục `DA_CHOT`, nhận định không đổi khi `ban_giao.chot_luc IS NOT NULL`; mục `PHAT_SINH_SAU_KHI_LAP`, ý kiến, phản hồi chỉ thêm; mọi bảng con không đổi khi `DA_XAC_NHAN`.
 - **Ca sau** (FR-038): hàm thuần `XacDinhCaSau(caTruoc, caCungPhamVi, cfg09_09)`: ca có yêu cầu bàn giao cùng phạm vi bắt đầu sau giờ bắt đầu ca trước và không muộn hơn giờ kết thúc; không có thì ca bắt đầu sớm nhất sau giờ kết thúc trong CFG-M09-09; không có thì người xác nhận là Trưởng tầng được giao.
 - **Lập** (FR-039): từ `ket_thuc − CFG-M09-04` (hoặc `bat_dau` nếu ca ngắn hơn); người phụ trách ca, hoặc Trưởng tầng khi người phụ trách đã ra khỏi phạm vi ca, vắng, nghỉ việc, hoặc ca thiếu người phụ trách (FR-041, FR-019); tầng chưa có Trưởng tầng thì người thay theo N-08. Không có mục nào được lập sẵn.
@@ -217,7 +217,7 @@ Feature 015 (đổi ca, xoay ca, nghỉ đột xuất, phủ tối thiểu) cũn
 | `DieuDuongCaPort` (006) | Theo chữ ký 006; `dieuDuongCoCa(tang, t)` = Điều dưỡng có tên trong ca đang diễn ra của tầng, không vắng |
 | `NhanSuCanhBaoPort` (007) | Theo chữ ký 007; *(bổ sung 2026-10-22, 007 FR-047i)* `dangTrongCa` (cùng quy tắc `CaTrucApi.dangTrongCa`), `tangTrongCa` (tầng của ca đang diễn ra có tên người đó, không vắng), `tangDangCoCa` (tầng có ca đang diễn ra) |
 
-Các hàm "tại thời điểm t" đọc dữ liệu lịch sử (`nguoi_phu_trach_ca`, `ket_thuc_thuc_te`, `vang_luc`), nên cùng cho phạm vi báo cáo khoảng đã qua (002 `boLocLichSu`, FR-037a).
+Các hàm "tại thời điểm t" đọc dữ liệu lịch sử (`nguoi_phu_trach_ca`, `ket_thuc_thuc_te`, `vang_luc`), nên cùng cho phạm vi báo cáo khoảng đã qua (002 `boLocLichSu`, FR-037a). *(R-15: `nguoi_phu_trach_ca` → `lich_su_chung`)*
 
 ---
 
@@ -277,7 +277,7 @@ Các hàm "tại thời điểm t" đọc dữ liệu lịch sử (`nguoi_phu_tr
 
 **Quyết định**:
 - **Lưu giữ** (FR-047, FR-057, 000 R-11): bàn giao và bảng con giữ tới khi hết hạn của mọi người cao tuổi có mục trong bàn giao (`LuuTruProvider` trả `THEO_HO_SO` với tập người; chuỗi tham chiếu là cả bàn giao, không loại bỏ từng phần); hồ sơ nhân viên, chứng chỉ, ca, phân công, lần tính tỷ lệ: `KHONG_GAN_HO_SO` (CFG-M15-04) và không ngắn hơn bản ghi tham chiếu tới chúng.
-- **Nhật ký** (FR-055): mọi lệnh nhóm 2 có nhật ký kèm căn cứ quyền; thay đổi trên lịch Nháp không ghi từng lần, công bố lưu `ban_cong_bo_lich`; thay đổi do hệ thống ghi người thực hiện "Hệ thống" và sự kiện kích hoạt.
+- **Nhật ký** (FR-055): mọi lệnh nhóm 2 có nhật ký kèm căn cứ quyền; thay đổi trên lịch Nháp không ghi từng lần, công bố lưu `ban_cong_bo_lich`; thay đổi do hệ thống ghi người thực hiện "Hệ thống" và sự kiện kích hoạt. *(R-15: `ban_cong_bo_lich` → `su_kien_chung`)*
 - **Kiểm thử** (000 R-14, constitution XV):
   - test bảng cho hàm thuần `HieuLucChungChi`, `ChuoiCaLienTuc`, `XacDinhNhanVienChinh`, `XacDinhCaSau`, `TinhTyLePhucVu`, `MucNghiemTrong`;
   - SC-005: bộ 200 lần xếp ca và phân công dựng từ bảng tính tay;
@@ -295,7 +295,7 @@ Các hàm "tại thời điểm t" đọc dữ liệu lịch sử (`nguoi_phu_tr
 **Quyết định**:
 - **File mẫu** `GET /nhan-vien/import/mau`: dựng bằng `ExcelBieuMau` (fastexcel) theo bố cục ở plan điểm báo lại 8; cột Số điện thoại định dạng chữ.
 - **Xem trước** `POST /nhan-vien/import/xem-truoc` (multipart, quyền `HO_SO_NHAN_VIEN, THUC_HIEN` = Quản lý viện): chỉ nhận `.xlsx` (kiểm cả kiểu MIME và chữ ký ZIP), tối đa 5 MB; đọc bằng `fastexcel-reader` (đọc luồng, dừng khi vượt CFG-M09-13 + 1 dòng hoặc giới hạn số ô; kích thước nén và giải nén có giới hạn); tiêu đề sai → 422 `FILE_KHONG_DUNG_MAU`; số dòng dữ liệu (bỏ dòng trống hoàn toàn) > CFG-M09-13 → 422 `QUA_SO_DONG` (đọc tham số lúc chạy). Mỗi dòng qua `KiemTraDongImport` (hàm thuần, test bảng): ô bắt buộc, ngày (ô ngày hoặc `dd/MM/yyyy`), điện thoại `^0\d{9}$` sau khi bỏ khoảng trắng, dấu chấm, gạch nối, email; trùng trong file (map theo số chuẩn); trùng hồ sơ đã có qua `nhan_vien.dien_thoai_chuan` (mọi trạng thái). Trả `soDong`, `dong[]` (dữ liệu đã chuẩn hóa), `loi[]` (`dong`, `cot`, `maLoi`, `lyDo`, `trungVoi`: hồ sơ id hoặc số dòng). Không ghi gì, không nhật ký.
-- **Xác nhận** `POST /nhan-vien/import/xac-nhan` (multipart cùng file, `Idempotency-Key`): đọc và kiểm tra lại như xem trước; khóa trùng bằng `SELECT … FOR UPDATE` trên chỉ mục `dien_thoai_chuan` với tập số của file (khóa khoảng chặn lệnh tạo tay chen vào trong lúc tạo); còn lỗi → 409 `IMPORT_CO_DONG_LOI` kèm `loi[]`, không tạo gì; ngược lại trong một transaction: thêm `lan_import_nhan_vien`, thêm từng `nhan_vien` (`DANG_LAM_VIEC`, `nguon = IMPORT`, `lan_import_id`, `tai_khoan_id` rỗng, không bộ phận), một dòng nhật ký `NV_IMPORT` (người, thời điểm, tên file, số dòng, danh sách id; FR-001c). Không sửa hồ sơ có sẵn. File không lưu (FR-001c): chỉ đọc trong bộ nhớ.
+- **Xác nhận** `POST /nhan-vien/import/xac-nhan` (multipart cùng file, `Idempotency-Key`): đọc và kiểm tra lại như xem trước; khóa trùng bằng `SELECT … FOR UPDATE` trên chỉ mục `dien_thoai_chuan` với tập số của file (khóa khoảng chặn lệnh tạo tay chen vào trong lúc tạo); còn lỗi → 409 `IMPORT_CO_DONG_LOI` kèm `loi[]`, không tạo gì; ngược lại trong một transaction: thêm `lan_import_nhan_vien`, thêm từng `nhan_vien` (`DANG_LAM_VIEC`, `nguon = IMPORT`, `lan_import_id`, `tai_khoan_id` rỗng, không bộ phận), một dòng nhật ký `NV_IMPORT` (người, thời điểm, tên file, số dòng, danh sách id; FR-001c). Không sửa hồ sơ có sẵn. File không lưu (FR-001c): chỉ đọc trong bộ nhớ. *(R-15: `lan_import_nhan_vien` → `ho_so_chung`)*
 - **Tạo tay** giữ như cũ; service ghi `dien_thoai_chuan` cho mọi hồ sơ (tạo, sửa) để lần import sau so được. Migration điền `dien_thoai_chuan` cho dữ liệu cũ.
 - **Hiệu năng** (SC-013 ≤ 10 giây với 500 dòng): một truy vấn `IN` cho tập số; chèn theo lô JDBC.
 - **Web**: màn import trong `frontend/src/tinh-nang/nhan-vien/` (tải mẫu, chọn file, bảng xem trước tô dòng lỗi theo cột, nút xác nhận chỉ bật khi không lỗi). Không có ở app.

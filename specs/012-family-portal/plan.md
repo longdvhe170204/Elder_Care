@@ -1,5 +1,7 @@
 # Implementation Plan: Người thân và cổng thông tin gia đình
 
+> **Sửa 2026-10-29 (Q-396):** bỏ bản tin tuần (mục H, User Story 7, bảng `ban_tin*`, `/ban-tin`, `HoatDongBanTinPort`, `ViecBanTinM10`). Phần dưới còn nhắc bản tin thì bỏ qua; spec là căn cứ.
+
 **Branch**: `012-family-portal` | **Date**: 2026-10-10, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/012-family-portal/spec.md`
@@ -19,12 +21,12 @@ Feature 012 là module M10 – Người thân (mục 14.1 → 14.8; UC-55 → UC
 10. *(Bổ sung 2026-10-18)* Kênh người cao tuổi: năm phần thông tin của chính người cao tuổi, phản hồi của người cao tuổi (kể cả ghi thay, loại Mong muốn), nút SOS và trạng thái (mục G2; Q-365, Q-366, Q-369, Q-371).
 
 Hướng kỹ thuật:
-- Gói `m10` với tám gói con (research F-01). 012 cài chín SPI do module thấp hơn khai báo; `QuanHeNguoiThanApi` được hợp nhất thành SPI ở `m15.taikhoan.api` để 001, 002, 006, 011 không phụ thuộc M10 (F-02, F-14).
+- Gói `family` với tám gói con (research F-01). 012 cài chín SPI do module thấp hơn khai báo; `QuanHeNguoiThanApi` được hợp nhất thành SPI ở `administration.taikhoan.api` để 001, 002, 006, 011 không phụ thuộc M10 (F-02, F-14).
 - Quyền có tác dụng là hàm thuần trên quan hệ và bản đồng ý tại thời điểm xem; lịch sử quyền nhóm 3 trả lời "ai được phép đón tại T" (F-04).
 - DBR-02 bằng cột sinh `UNIQUE` (≤ 1 liên hệ chính) và kiểm bất biến dưới khóa theo người cao tuổi; điều kiện `DBR_02` cho Hoàn tất tiếp nhận (F-05).
 - Bản ghi đón nhóm 3 với sự kiện `DA_DUNG` / `KHONG_DUNG`; 004, 005 đánh dấu dùng qua `daDung` trong transaction lệnh nguồn (F-07).
-- Sức chứa khung thăm bằng dòng khóa `khung_tham_ngay` (F-08); đêm ở lại phát sự kiện tính phí cho 010 lúc 00:00 (F-09).
-- Phần sức khỏe trên cổng đi qua 012 để kiểm quyền và ghi nhật ký tại một chỗ; chi phí, số dư, đồ gửi, hoạt động do REST của 010, 017, 013, 014 phục vụ và kiểm quyền qua `m10.api.QuyenNguoiThanApi` (F-10, F-11).
+- Sức chứa khung thăm bằng dòng khóa `khung_tham_ngay` (F-08); đêm ở lại phát sự kiện tính phí cho 010 lúc 00:00 (F-09). *(R-15: `khung_tham_ngay` → `khoa_ky_thuat`)*
+- Phần sức khỏe trên cổng đi qua 012 để kiểm quyền và ghi nhật ký tại một chỗ; chi phí, số dư, đồ gửi, hoạt động do REST của 010, 017, 013, 014 phục vụ và kiểm quyền qua `family.api.QuyenNguoiThanApi` (F-10, F-11).
 
 Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 - 012 không tạo bản tin, không soạn sẵn nội dung, không tạo khoản chi phí, không tự Từ chối yêu cầu, không tự kết thúc lượt ở lại, không tự gửi bản tin đính chính;
@@ -32,7 +34,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ### Cập nhật 2026-10-18 (spec mục "Cập nhật 2026-10-18": Q-347, Q-348, Q-351 → Q-353)
 
-- **Mong muốn về khách thăm, người đón** (FR-020a): bảng `mong_muon_nct` (nhóm 2, nội dung bất biến, thay thế bằng bản mới) có nguồn theo mẫu 001 (`NguonYKienApi`); ghi bởi Hành chính, Trưởng tầng, Điều dưỡng có phạm vi (research F-06a, data-model mục 3a).
+- **Mong muốn về khách thăm, người đón** (FR-020a): bảng `mong_muon_nct` (nhóm 2, nội dung bất biến, thay thế bằng bản mới) có nguồn theo mẫu 001 (`NguonYKienApi`); ghi bởi Hành chính, Trưởng tầng, Điều dưỡng có phạm vi (research F-06a, data-model mục 3a). *(R-15: `mong_muon_nct` → `ho_so_chung`)*
 - **Yêu cầu trái mong muốn** (FR-020b, FR-020c): `KiemTraYeuCau` thêm kiểm trái mong muốn; yêu cầu hoặc dòng phiếu trái mong muốn chỉ Hiệu lực qua Quản lý viện duyệt kèm lý do và nội dung đã trao đổi với người cao tuổi; bỏ người đón vẫn hiệu lực ngay; người đại diện theo pháp luật (đọc qua `BanDongYApi.daiDienPhapLuat` của 001) không bị chặn. Cảnh báo "quyền trái mong muốn đang hiệu lực" tính lúc đọc, không job.
 - **Sự cố trên cổng và bản tin** (FR-046, FR-052, Q-352): dùng `SuCoNguoiThanView` của 007 (phần chung kèm mức cho mọi người thân có quan hệ; phần sức khỏe khi có quyền xem sức khỏe).
 - **Bản tin và thông báo** (FR-054, FR-069, Q-353): mọi yêu cầu tới người thân khai đối tượng thông tin theo 009 FR-001a (bảng ở research F-15); bản tin là `VE_NGUOI_CAO_TUOI`, 009 lọc theo mục "nhận thông báo".
@@ -41,8 +43,8 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ### Cập nhật 2026-10-18, lượt 3 (spec mục "Cập nhật 2026-10-18, lượt 3": Q-365 → Q-371)
 
-- **Kênh người cao tuổi** (FR-083, FR-084): gói mới `m10.kenhnct`, REST `/kenh-nguoi-cao-tuoi/**` chỉ cho tài khoản AC-16, phạm vi `BAN_THAN` của 002; DTO riêng không có trường sức khỏe, chi phí, số dư, hợp đồng (research F-18). 012 dựng cả năm phần ở một chỗ: lượt thăm (012), lịch đến/về bán trú (`CoMatBanTruApi` của 005), thực đơn và suất ăn dự kiến (`ThucDonChungApi`, `SuatAnDuKienApi` mới của 011), hoạt động sắp tới (SPI mới `HoatDongKenhNctPort`, 014 cài), đồ gửi (SPI mới `DoGuiKenhNctPort`, 013 cài).
-- **Phản hồi của người cao tuổi** (FR-058, FR-058a, FR-058b, FR-066, FR-086): `phan_hoi` thêm `nguoi_gui_loai`, `ghi_thay_boi_id`, loại `MONG_MUON`, nguồn `KENH_NGUOI_CAO_TUOI`, `GHI_TRUC_TIEP`; bảng `phan_hoi_y_kien` gắn mục ý kiến; lệnh `doi-loai`, `gan-y-kien`; Trả lời loại Mong muốn bị chặn khi chưa gắn mục; mọi truy vấn của người thân lọc `nguoi_gui_loai = NGUOI_THAN` (research F-13, F-18).
+- **Kênh người cao tuổi** (FR-083, FR-084): gói mới `family.kenhnct`, REST `/kenh-nguoi-cao-tuoi/**` chỉ cho tài khoản AC-16, phạm vi `BAN_THAN` của 002; DTO riêng không có trường sức khỏe, chi phí, số dư, hợp đồng (research F-18). 012 dựng cả năm phần ở một chỗ: lượt thăm (012), lịch đến/về bán trú (`CoMatBanTruApi` của 005), thực đơn và suất ăn dự kiến (`ThucDonChungApi`, `SuatAnDuKienApi` mới của 011), hoạt động sắp tới (SPI mới `HoatDongKenhNctPort`, 014 cài), đồ gửi (SPI mới `DoGuiKenhNctPort`, 013 cài).
+- **Phản hồi của người cao tuổi** (FR-058, FR-058a, FR-058b, FR-066, FR-086): `phan_hoi` thêm `nguoi_gui_loai`, `ghi_thay_boi_id`, loại `MONG_MUON`, nguồn `KENH_NGUOI_CAO_TUOI`, `GHI_TRUC_TIEP`; bảng `phan_hoi_y_kien` gắn mục ý kiến; lệnh `doi-loai`, `gan-y-kien`; Trả lời loại Mong muốn bị chặn khi chưa gắn mục; mọi truy vấn của người thân lọc `nguoi_gui_loai = NGUOI_THAN` (research F-13, F-18). *(R-15: `phan_hoi_y_kien` → `su_kien_chung`)*
 - **Thông báo** (FR-069): nhắc lượt thăm trong ngày và phản hồi đã trả lời gửi nhóm `NguoiCaoTuoi` của 009, mức Nhẹ, phần `CHUNG` (research F-15).
 - **Nút SOS** (FR-085): giao diện ở app người cao tuổi; lệnh `/sos` thuộc 007 (007 research S-23); app giữ số liên hệ nhận được gần nhất để hiện khi mất kết nối. *(2026-10-22: thêm "đang tới", "đã tới", gửi vị trí GPS, xem mục "Cập nhật 2026-10-22".)*
 - Gói, bảng, SPI mới ở trên; không đổi bảng khác. Điểm báo lại 10 bên dưới.
@@ -112,7 +114,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ; điểm còn lệch ghi ở mục báo lại |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-010 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 001, 002, 004, 005, 006, 007 được bổ sung (mục "Đồng bộ") |
-| X. Kiến trúc | Đạt | Một khối; gói `m10`; module khác dùng `m10.api` hoặc SPI ở module thấp hơn. Không có vòng (F-02) |
+| X. Kiến trúc | Đạt | Một khối; gói `family`; module khác dùng `family.api` hoặc SPI ở module thấp hơn. Không có vòng (F-02) |
 | XI. Nghiệp vụ ở backend | Đạt | Điều kiện thăm, đón, DBR-02, quyền có tác dụng, hạn phản hồi ở backend; client chỉ hiển thị |
 | XII. Dữ liệu | Đạt | DBR-02, DBR-03 ở data-model mục 11; nhóm 3 bằng trigger; nhật ký trong transaction; `Clock` |
 | XIII. Tham số | Đạt | Như V; khung thăm chép vào lượt, CFG-M10-09 chép vào bản ghi đón lúc ghi |
@@ -160,7 +162,7 @@ specs/012-family-portal/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/com/cambae/backend/m10/
+backend/src/main/java/com/eldercare/backend/family/
 ├── api/           # QuyenNguoiThanApi, NguoiThanThongKeApi, HoatDongBanTinPort, sự kiện; bản cài SPI
 ├── nguoithan/     {internal, web}   # hồ sơ, quan hệ, KiemTraDbr02, phiếu đăng ký
 ├── quyen/         {internal, web}   # yêu cầu quyền, QuyenCoTacDung, lịch sử quyền, dấu tự về
@@ -179,29 +181,29 @@ mobile/lib/nhan-vien/nguoi-than/   # ghi đón, vào/ra, bản tin, phản hồi
 mobile/lib/nguoi-than/             # cổng, thăm, yêu cầu, phản hồi, bản tin
 ```
 
-**Structure Decision**: Theo R-02 của 000. Feature 012 nằm ở `backend/…/m10` với tám gói con và gói `api`. Web có đủ chức năng; app di động chung (Q-346) chia phần nhân viên và phần người thân theo loại tài khoản.
+**Structure Decision**: Theo R-02 của 000. Feature 012 nằm ở `backend/…/family` với tám gói con và gói `api`. Web có đủ chức năng; app di động chung (Q-346) chia phần nhân viên và phần người thân theo loại tài khoản.
 
 ## Complexity Tracking
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
-| Hợp nhất `QuanHeNguoiThanApi` thành SPI ở `m15.taikhoan.api` | 001, 002 (plan trước) gọi dữ liệu quan hệ của 012 | Để 001, 002 phụ thuộc M10: vòng M10 ↔ M01, M15 |
-| `lich_su_quyen` nhóm 3 | FR-068 đòi biết ai được phép đón tại thời điểm bất kỳ; FR-017 khôi phục không hồi tố | Dựng lại từ nhật ký 000: nhật ký là dữ liệu kiểm toán, không dùng làm nguồn nghiệp vụ |
+| Hợp nhất `QuanHeNguoiThanApi` thành SPI ở `administration.taikhoan.api` | 001, 002 (plan trước) gọi dữ liệu quan hệ của 012 | Để 001, 002 phụ thuộc M10: vòng M10 ↔ M01, M15 |
+| `lich_su_quyen` nhóm 3 | FR-068 đòi biết ai được phép đón tại thời điểm bất kỳ; FR-017 khôi phục không hồi tố | Dựng lại từ nhật ký 000: nhật ký là dữ liệu kiểm toán, không dùng làm nguồn nghiệp vụ *(R-15: `lich_su_quyen` → `lich_su_chung`)* |
 | Sự kiện bản ghi đón tách bảng | Bản ghi đón là nhóm 3 nhưng có "Đã dùng", "Không dùng" (phân loại dữ liệu của spec) | Cột trạng thái trên bản ghi: phá ràng buộc nhóm 3 |
-| `khung_tham_ngay` kỹ thuật | Sức chứa chung cho cả viện cần một điểm khóa (SC-004) | Đếm không khóa: hai đăng ký cùng lấy chỗ cuối |
+| `khung_tham_ngay` kỹ thuật | Sức chứa chung cho cả viện cần một điểm khóa (SC-004) | Đếm không khóa: hai đăng ký cùng lấy chỗ cuối *(R-15: `khung_tham_ngay` → `khoa_ky_thuat`)* |
 | Cổng sức khỏe đi qua 012 | Một chỗ kiểm quyền có tác dụng và ghi nhật ký xem (SC-002) | Mỗi module tự ghi: nhật ký nằm rải rác, khó bảo đảm 100% |
 
 ## Đồng bộ với hợp đồng của feature khác
 
 Plan này bổ sung các điểm dưới đây vào hợp đồng của feature đã làm plan; chữ ký cũ giữ nguyên.
 
-1. **002** ([../002-account-permission/contracts/module-interfaces.md](../002-account-permission/contracts/module-interfaces.md) mục 2): `QuanHeNguoiThanApi` khai báo trong `m15.taikhoan.api` dưới dạng SPI, M10 cài; chữ ký hợp nhất ở [contracts/module-interfaces.md](contracts/module-interfaces.md) mục 1.1. **001** ghi chú cùng khai báo.
+1. **002** ([../002-account-permission/contracts/module-interfaces.md](../002-account-permission/contracts/module-interfaces.md) mục 2): `QuanHeNguoiThanApi` khai báo trong `administration.taikhoan.api` dưới dạng SPI, M10 cài; chữ ký hợp nhất ở [contracts/module-interfaces.md](contracts/module-interfaces.md) mục 1.1. **001** ghi chú cùng khai báo.
 2. **004**: `BanGhiDonPort.daDung(banGhiDonId, lenhNguon, nguonId)` (MANDATORY) gọi trong lệnh Cho tạm vắng và bàn giao khi Kết thúc lưu trú.
 3. **005**: `BanGhiDonBanTruPort.daDung(banGhiDonId, diemDanhId)` (MANDATORY) gọi trong lệnh Điểm danh về; thêm `KetQuaChamSocCongApi` (`ketQua`, `tongHop`) cho cổng và bản tin.
 4. **006, 007**: chú thích "ghi nhật ký xem" của `ThuocCongNguoiThanApi`, `SucKhoeCongNguoiThanApi` sửa thành "012 ghi nhật ký lượt xem".
 5. **009, 010, 011**: cài `NguoiThanNhanThongBaoPort`, `LuotOLaiAnPort`, phát `SuKienTinhPhiNguon(DEM_O_LAI)` và `LuotOLaiDaDoi` đúng chữ ký đã khai báo. Không đổi.
-6. **013, 014, 016, 017, 018** (làm plan sau): dùng `m10.api.QuyenNguoiThanApi` để phục vụ phần cổng của mình; **014** cài `HoatDongBanTinPort` và giữ bản ghi "đồng ý về muộn" (FR-046d) ở REST của 014 với người đại diện kiểm qua `QuyenNguoiThanApi.laNguoiDaiDien`.
-7. *(Bổ sung 2026-10-18)* **002**: `TaiKhoanApi.theoNguoiCaoTuoi`, phạm vi `BAN_THAN`. **007**: REST `/sos` cho app. **011**: hàm đọc mới `SuatAnDuKienApi.cuaNguoiCaoTuoi(nctId, tu, den)` ở `m08.api` (011 FR-063). **013** cài `DoGuiKenhNctPort` (013 FR-030a), **014** cài `HoatDongKenhNctPort` (014 FR-068a), cả hai khai báo ở `m10.api`. **009**: nhóm `NguoiCaoTuoi`. **001**, **014**: sự kiện `YKienDaGhiTuPhanHoi` (001 module-interfaces 1.8b) để gắn mục sở thích, thói quen vào phản hồi Mong muốn (FR-058b).
+6. **013, 014, 016, 017, 018** (làm plan sau): dùng `family.api.QuyenNguoiThanApi` để phục vụ phần cổng của mình; **014** cài `HoatDongBanTinPort` và giữ bản ghi "đồng ý về muộn" (FR-046d) ở REST của 014 với người đại diện kiểm qua `QuyenNguoiThanApi.laNguoiDaiDien`.
+7. *(Bổ sung 2026-10-18)* **002**: `TaiKhoanApi.theoNguoiCaoTuoi`, phạm vi `BAN_THAN`. **007**: REST `/sos` cho app. **011**: hàm đọc mới `SuatAnDuKienApi.cuaNguoiCaoTuoi(nctId, tu, den)` ở `nutrition.api` (011 FR-063). **013** cài `DoGuiKenhNctPort` (013 FR-030a), **014** cài `HoatDongKenhNctPort` (014 FR-068a), cả hai khai báo ở `family.api`. **009**: nhóm `NguoiCaoTuoi`. **001**, **014**: sự kiện `YKienDaGhiTuPhanHoi` (001 module-interfaces 1.8b) để gắn mục sở thích, thói quen vào phản hồi Mong muốn (FR-058b).
 
 ## Điểm cần báo lại về tài liệu nguồn
 
@@ -227,3 +229,8 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 
 10. **(2026-10-18) Màn kênh người cao tuổi là màn mới của app chung.** DESIGN.md mục 15 chưa có màn cho người cao tuổi (chữ lớn, một việc mỗi màn, nút SOS ở màn đầu). Không phải điểm nghiệp vụ; đề nghị bổ sung mục 15 trước khi dựng màn mẫu.
 
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Ánh xạ bảng ở data-model mục 0; task T075. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
+- Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
+- Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.
