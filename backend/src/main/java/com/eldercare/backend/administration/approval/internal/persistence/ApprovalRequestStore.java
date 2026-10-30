@@ -2,6 +2,7 @@ package com.eldercare.backend.administration.approval.internal.persistence;
 
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.approval.api.ApprovalRequestView;
+import com.eldercare.backend.administration.approval.api.ApprovalStatus;
 import com.eldercare.backend.administration.approval.api.ResultRef;
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -156,5 +157,23 @@ public class ApprovalRequestStore {
     private static LocalDate date(ResultSet rs, String column) throws SQLException {
         Date value = rs.getDate(column);
         return value == null ? null : value.toLocalDate();
+    }
+
+    /** Yêu cầu Đã duyệt đến hạn tại {@code today}, theo (ngày hiệu lực thực tế, thời điểm quyết định) (FR-037). */
+    public List<Long> dueApproved(LocalDate today) {
+        return jdbc.queryForList(
+                "SELECT id FROM approval_request WHERE status = ? AND actual_effective_date <= ?"
+                        + " ORDER BY actual_effective_date, decided_at, id",
+                Long.class,
+                ApprovalStatus.APPROVED,
+                today);
+    }
+
+    /** Yêu cầu Chờ duyệt chưa leo thang, theo thời điểm gửi (FR-031a). */
+    public List<Long> pendingNotEscalated() {
+        return jdbc.queryForList(
+                "SELECT id FROM approval_request WHERE status = ? AND escalated_at IS NULL ORDER BY submitted_at, id",
+                Long.class,
+                ApprovalStatus.PENDING_APPROVAL);
     }
 }

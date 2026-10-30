@@ -15,8 +15,11 @@ import com.eldercare.backend.administration.parameter.api.ParameterKind;
 import com.eldercare.backend.administration.parameter.api.ParameterPermissions;
 import com.eldercare.backend.administration.parameter.api.ParameterValue;
 import com.eldercare.backend.administration.parameter.api.spi.ParameterValueCheck;
+import com.eldercare.backend.administration.parameter.internal.domain.ParameterHistoryRow;
+import com.eldercare.backend.administration.parameter.internal.domain.ParameterRow;
 import com.eldercare.backend.administration.parameter.internal.domain.ParameterValidator;
 import com.eldercare.backend.administration.parameter.internal.domain.ParameterValidator.Definition;
+import com.eldercare.backend.administration.parameter.internal.persistence.ParameterStore;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.NotFoundException;
@@ -24,11 +27,7 @@ import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.VersionMismatchException;
 import com.eldercare.backend.common.time.BusinessTime;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +35,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -56,10 +54,7 @@ public class ParameterService implements ParameterApi {
     static final String ENTITY = "M15.PARAMETER";
     static final AuditAction PARAMETER_CHANGED = new AuditAction("PARAMETER_CHANGED", true);
 
-    private static final String COLUMNS = "SELECT code, description, kind, unit, constraints, default_value,"
-            + " current_value, used_in, version, changed_at FROM parameter";
-
-    private final JdbcTemplate jdbc;
+    private final ParameterStore store;
     private final JsonMapper json;
     private final BusinessTime time;
     private final AuditLogApi auditLog;
@@ -72,7 +67,7 @@ public class ParameterService implements ParameterApi {
     private final Map<ParameterCode, ParameterValue> cache = new ConcurrentHashMap<>();
 
     ParameterService(
-            JdbcTemplate jdbc,
+            ParameterStore store,
             JsonMapper json,
             BusinessTime time,
             AuditLogApi auditLog,
@@ -81,7 +76,7 @@ public class ParameterService implements ParameterApi {
             ObjectProvider<PermissionApi> permissions,
             ObjectProvider<AccountApi> accounts,
             ObjectProvider<ParameterValueCheck> valueChecks) {
-        this.jdbc = jdbc;
+        this.store = store;
         this.json = json;
         this.time = time;
         this.auditLog = auditLog;
@@ -133,26 +128,16 @@ public class ParameterService implements ParameterApi {
 
     @Override
     public ParameterValue readAt(ParameterCode code, Instant at) {
-        List<String> values = jdbc.queryForList(
-                "SELECT value FROM parameter_history WHERE code = ? AND effective_from <= ?"
-                        + " ORDER BY effective_from DESC LIMIT 1",
-                String.class,
-                code.code(),
-                utc(at));
-        if (values.isEmpty()) {
-            throw new IllegalStateException(code.code() + " chưa có giá trị tại " + at);
-        }
-        return new ParameterValue(code, kindOf(code), json.readTree(values.getFirst()));
+        JsonNode value = store.valueAt(code.code(), at)
+                .orElseThrow(() -> new IllegalStateException(code.code() + " chưa có giá trị tại " + at));
+        return new ParameterValue(code, store.kind(code.code()), value);
     }
 
     /** Danh sách tham số, lọc theo module (ví dụ {@code M15}) nếu có (FR-011). */
     @Transactional(readOnly = true)
     public List<ParameterView> list(String module) {
         require(ParameterPermissions.VIEW);
-        if (module == null) {
-            return jdbc.query(COLUMNS + " ORDER BY code", (rs, i) -> view(rs));
-        }
-        return jdbc.query(COLUMNS + " WHERE code LIKE ? ORDER BY code", (rs, i) -> view(rs), "CFG-" + module + "-%");
+        return store.list(module).stream().map(ParameterService::view).toList();
     }
 
     /** Chi tiết một tham số; mã không có hoặc người xem không có quyền thì 404 (hợp đồng chỉ khai 404). */
@@ -171,19 +156,10 @@ public class ParameterService implements ParameterApi {
             throw new NotFoundException();
         }
         find(code);
-        List<Row> rows = jdbc.query(
-                "SELECT value, effective_from, actor_id, reason, is_default_restore FROM parameter_history"
-                        + " WHERE code = ? ORDER BY effective_from",
-                (rs, i) -> new Row(
-                        json.readTree(rs.getString("value")),
-                        rs.getObject("effective_from", LocalDateTime.class).toInstant(ZoneOffset.UTC),
-                        rs.getObject("actor_id", Long.class),
-                        rs.getString("reason"),
-                        rs.getBoolean("is_default_restore")),
-                code);
+        List<ParameterHistoryRow> rows = store.history(code);
         List<HistoryEntry> entries = new ArrayList<>();
         for (int i = 0; i < rows.size(); i++) {
-            Row row = rows.get(i);
+            ParameterHistoryRow row = rows.get(i);
             Instant to = i + 1 < rows.size() ? rows.get(i + 1).from() : null;
             if (asOf == null || (!row.from().isAfter(asOf) && (to == null || asOf.isBefore(to)))) {
                 entries.add(new HistoryEntry(
@@ -226,26 +202,10 @@ public class ParameterService implements ParameterApi {
                     .forEach(check -> check.check(next));
         }
         Instant now = time.now();
-        int updated = jdbc.update(
-                "UPDATE parameter SET current_value = ?, version = version + 1, changed_at = ?, changed_by = ?"
-                        + " WHERE code = ? AND version = ?",
-                json.writeValueAsString(next),
-                utc(now),
-                user.accountId(),
-                code,
-                expected);
-        if (updated == 0) {
+        if (!store.changeValue(code, next, now, user.accountId(), expected)) {
             throw new VersionMismatchException(find(code));
         }
-        jdbc.update(
-                "INSERT INTO parameter_history (code, value, effective_from, actor_id, reason, is_default_restore)"
-                        + " VALUES (?, ?, ?, ?, ?, ?)",
-                code,
-                json.writeValueAsString(next),
-                utc(now),
-                user.accountId(),
-                reason.value(),
-                restoreDefault);
+        store.addHistory(code, next, now, user.accountId(), reason.value(), restoreDefault);
         Map<String, Object> before = new HashMap<>();
         before.put("value", current.currentValue());
         Map<String, Object> after = new HashMap<>();
@@ -297,11 +257,7 @@ public class ParameterService implements ParameterApi {
     }
 
     private ParameterView find(String code) {
-        List<ParameterView> found = jdbc.query(COLUMNS + " WHERE code = ?", (rs, i) -> view(rs), code);
-        if (found.isEmpty()) {
-            throw new NotFoundException();
-        }
-        return found.getFirst();
+        return store.find(code).map(ParameterService::view).orElseThrow(NotFoundException::new);
     }
 
     /** Tham số mà {@code target} tham chiếu, hoặc tham chiếu tới {@code target} (ràng buộc {@code greaterThan}). */
@@ -309,13 +265,8 @@ public class ParameterService implements ParameterApi {
         String referenced = target.constraints() != null && target.constraints().has("greaterThan")
                 ? target.constraints().get("greaterThan").asString()
                 : null;
-        return jdbc
-                .query(
-                        COLUMNS + " WHERE code = ? OR JSON_UNQUOTE(JSON_EXTRACT(constraints, '$.greaterThan')) = ?",
-                        (rs, i) -> view(rs),
-                        referenced,
-                        target.code())
-                .stream()
+        return store.related(referenced, target.code()).stream()
+                .map(ParameterService::view)
                 .map(ParameterService::definition)
                 .toList();
     }
@@ -337,39 +288,21 @@ public class ParameterService implements ParameterApi {
         }
     }
 
-    private ParameterView view(ResultSet rs) throws SQLException {
-        LocalDateTime changedAt = rs.getObject("changed_at", LocalDateTime.class);
-        String constraints = rs.getString("constraints");
+    private static ParameterView view(ParameterRow r) {
         return new ParameterView(
-                rs.getString("code"),
-                rs.getString("description"),
-                ParameterKind.valueOf(rs.getString("kind")),
-                rs.getString("unit"),
-                constraints == null ? null : json.readTree(constraints),
-                json.readTree(rs.getString("default_value")),
-                json.readTree(rs.getString("current_value")),
-                rs.getString("used_in"),
-                rs.getInt("version"),
-                changedAt == null ? null : changedAt.toInstant(ZoneOffset.UTC));
+                r.code(),
+                r.description(),
+                r.kind(),
+                r.unit(),
+                r.constraints(),
+                r.defaultValue(),
+                r.currentValue(),
+                r.usedIn(),
+                r.version(),
+                r.changedAt());
     }
 
     private ParameterValue load(ParameterCode code) {
-        Map<String, Object> row =
-                jdbc.queryForMap("SELECT kind, current_value FROM parameter WHERE code = ?", code.code());
-        return new ParameterValue(
-                code,
-                ParameterKind.valueOf((String) row.get("kind")),
-                json.readTree(row.get("current_value").toString()));
+        return new ParameterValue(code, store.kind(code.code()), store.currentValue(code.code()));
     }
-
-    private ParameterKind kindOf(ParameterCode code) {
-        return ParameterKind.valueOf(
-                jdbc.queryForObject("SELECT kind FROM parameter WHERE code = ?", String.class, code.code()));
-    }
-
-    private static LocalDateTime utc(Instant instant) {
-        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
-    }
-
-    private record Row(JsonNode value, Instant from, Long actorId, String reason, boolean defaultRestore) {}
 }

@@ -18,8 +18,10 @@ import com.eldercare.backend.administration.correction.api.CorrectionView;
 import com.eldercare.backend.administration.correction.api.CreationMethod;
 import com.eldercare.backend.administration.correction.api.CurrentValue;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
+import com.eldercare.backend.administration.correction.internal.domain.ChainState;
 import com.eldercare.backend.administration.correction.internal.domain.Correction;
 import com.eldercare.backend.administration.correction.internal.domain.CorrectionMethodSelector;
+import com.eldercare.backend.administration.correction.internal.persistence.CorrectionChainStore;
 import com.eldercare.backend.administration.correction.internal.persistence.CorrectionRepository;
 import com.eldercare.backend.administration.shared.api.RecordTypeAliases;
 import com.eldercare.backend.common.Reason;
@@ -29,7 +31,6 @@ import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.json.JsonMapper;
@@ -57,7 +57,7 @@ class CorrectionService implements CorrectionApi {
 
     private final Map<String, CorrectableRecordProvider> providers;
     private final CorrectionRepository corrections;
-    private final JdbcTemplate jdbc;
+    private final CorrectionChainStore chains;
     private final AuditLogApi auditLog;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
@@ -72,7 +72,7 @@ class CorrectionService implements CorrectionApi {
     CorrectionService(
             List<CorrectableRecordProvider> providers,
             CorrectionRepository corrections,
-            JdbcTemplate jdbc,
+            CorrectionChainStore chains,
             AuditLogApi auditLog,
             ApplicationEventPublisher events,
             BusinessTime time,
@@ -85,7 +85,7 @@ class CorrectionService implements CorrectionApi {
         this.providers = providers.stream()
                 .collect(Collectors.toMap(CorrectableRecordProvider::recordType, Function.identity()));
         this.corrections = corrections;
-        this.jdbc = jdbc;
+        this.chains = chains;
         this.auditLog = auditLog;
         this.events = events;
         this.time = time;
@@ -167,12 +167,7 @@ class CorrectionService implements CorrectionApi {
 
     /** Bản gốc còn đính chính được không, xét tại lúc áp dụng yêu cầu (FR-029, FR-038). */
     boolean isVoided(String recordType, long originalRecordId) {
-        Set<String> types = aliases.withLegacy(recordType);
-        return Boolean.TRUE.equals(jdbc.query(
-                "SELECT MAX(voided) FROM correction_chain WHERE record_type IN (" + placeholders(types.size())
-                        + ") AND original_record_id = ?",
-                rs -> rs.next() ? rs.getBoolean(1) : null,
-                args(types, List.of(originalRecordId))));
+        return chains.isVoided(aliases.withLegacy(recordType), originalRecordId);
     }
 
     boolean isConfirmed(String recordType, long originalRecordId) {
@@ -229,42 +224,20 @@ class CorrectionService implements CorrectionApi {
             long actorId,
             CreationMethod method,
             Long approvalRequestId) {
-        int created = jdbc.update(
-                "INSERT IGNORE INTO correction_chain (record_type, original_record_id) VALUES (?, ?)",
-                recordType,
-                originalRecordId);
+        boolean created = chains.create(recordType, originalRecordId);
         Set<String> legacy = new java.util.LinkedHashSet<>(aliases.withLegacy(recordType));
         legacy.remove(recordType);
-        if (created == 1 && !legacy.isEmpty()) {
+        if (created && !legacy.isEmpty()) {
             // Bản gốc đã có đính chính ghi với loại cũ trước khi gộp bảng: số thứ tự, Hủy ghi nhận nối tiếp (R-15 mục
             // 5)
-            Map<String, Object> old = jdbc.queryForMap(
-                    "SELECT IFNULL(MAX(correction_count), 0) AS n, IFNULL(MAX(voided), FALSE) AS v FROM correction_chain"
-                            + " WHERE record_type IN (" + placeholders(legacy.size()) + ") AND original_record_id = ?",
-                    args(legacy, List.of(originalRecordId)));
-            jdbc.update(
-                    "UPDATE correction_chain SET correction_count = ?, voided = ? WHERE record_type = ?"
-                            + " AND original_record_id = ?",
-                    ((Number) old.get("n")).intValue(),
-                    ((Number) old.get("v")).intValue() == 1,
-                    recordType,
-                    originalRecordId);
+            chains.save(recordType, originalRecordId, chains.stateOf(legacy, originalRecordId));
         }
-        Map<String, Object> chain = jdbc.queryForMap(
-                "SELECT correction_count, voided FROM correction_chain"
-                        + " WHERE record_type = ? AND original_record_id = ? FOR UPDATE",
-                recordType,
-                originalRecordId);
-        if (Boolean.TRUE.equals(chain.get("voided"))) {
+        ChainState chain = chains.lock(recordType, originalRecordId);
+        if (chain.voided()) {
             throw voided();
         }
-        int sequenceNo = ((Number) chain.get("correction_count")).intValue() + 1;
-        jdbc.update(
-                "UPDATE correction_chain SET correction_count = ?, voided = ? WHERE record_type = ? AND original_record_id = ?",
-                sequenceNo,
-                type == CorrectionType.VOID,
-                recordType,
-                originalRecordId);
+        int sequenceNo = chain.correctionCount() + 1;
+        chains.save(recordType, originalRecordId, new ChainState(sequenceNo, type == CorrectionType.VOID));
         return corrections.append(new Correction(
                 recordType,
                 originalRecordId,
@@ -286,30 +259,11 @@ class CorrectionService implements CorrectionApi {
             return result;
         }
         Set<String> types = aliases.withLegacy(recordType);
-        String where = " WHERE record_type IN (" + placeholders(types.size()) + ") AND original_record_id IN ("
-                + placeholders(originalRecordIds.size()) + ")";
-        Object[] args = args(types, originalRecordIds);
-        Map<Long, Object> latest = new HashMap<>();
-        Map<Long, Long> latestId = new HashMap<>();
-        jdbc.query(
-                "SELECT original_record_id, corrected_content, correction_id FROM v_latest_correction" + where,
-                rs -> {
-                    long id = rs.getLong(1);
-                    if (rs.getLong(3) > latestId.getOrDefault(id, 0L)) {
-                        latestId.put(id, rs.getLong(3));
-                        latest.put(id, parse(rs.getString(2)));
-                    }
-                },
-                args);
-        Map<Long, Boolean> chains = new HashMap<>();
-        jdbc.query(
-                "SELECT original_record_id, voided FROM correction_chain" + where,
-                rs -> {
-                    chains.merge(rs.getLong(1), rs.getBoolean(2), Boolean::logicalOr);
-                },
-                args);
+        Map<Long, String> latest = chains.latestContent(types, originalRecordIds);
+        Map<Long, Boolean> voided = chains.voided(types, originalRecordIds);
         for (Long id : originalRecordIds) {
-            result.put(id, new CurrentValue(latest.get(id), chains.containsKey(id), chains.getOrDefault(id, false)));
+            String content = latest.get(id);
+            result.put(id, new CurrentValue(parse(content), voided.containsKey(id), voided.getOrDefault(id, false)));
         }
         return result;
     }
@@ -377,14 +331,6 @@ class CorrectionService implements CorrectionApi {
             after.put("correctedContent", view.correctedContent());
         }
         return after;
-    }
-
-    private static String placeholders(int n) {
-        return String.join(", ", java.util.Collections.nCopies(n, "?"));
-    }
-
-    private static Object[] args(Collection<String> types, Collection<?> rest) {
-        return java.util.stream.Stream.concat(types.stream(), rest.stream()).toArray();
     }
 
     private Object parse(String value) {

@@ -211,3 +211,7 @@ US2 → US1 → US3 → US4 → US5; mỗi bước chạy `./mvnw verify` và k�
 - 009 không tạo yêu cầu gọi điện hay việc giao; không tự đổi mức hay quyết định sự kiện cần thông báo (Q-306, Q-307)
 - Mọi mốc đọc `ThamSoApi` (CFG-M13-*)
 - Xác nhận Khẩn cấp bắt buộc trực tuyến
+
+## Phase 9: Convergence
+
+- [ ] T044 Đo lại phần NFR của quickstart sau gộp bảng T043 (job gửi tìm lần gửi chưa có kết quả, hộp thông báo, lượt nhắc gọi đọc `record_event`, `simple_record` bằng phép nối): Khẩn cấp ≤ 10 giây (NFR-03) trên dữ liệu demo cỡ thật; chậm thì thêm cột sinh, chỉ mục có tiền tố `m13_` ở file `_94` mới per NFR-03, plan: Gộp bảng theo R-15 (partial)

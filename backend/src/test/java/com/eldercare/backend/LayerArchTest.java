@@ -77,14 +77,8 @@ class LayerArchTest {
         "com.eldercare.backend.staffing..internal.service.port"
     };
 
-    /** Câu SQL chuyển vào lớp {@code *Store} trong {@code persistence}: A (administration), B (resident), E (staffing). */
+    /** Câu SQL chuyển vào lớp {@code *Store} trong {@code persistence}: B (resident), E (staffing). */
     private static final Set<String> PENDING_JDBC_OUTSIDE_PERSISTENCE = Set.of(
-            "administration.approval.internal.service.DueRequestApplication",
-            "administration.approval.internal.service.PendingRequestReminder",
-            "administration.auditlog.internal.service.AuditLogQueryService",
-            "administration.auditlog.internal.service.AuditLogService",
-            "administration.correction.internal.service.CorrectionService",
-            "administration.parameter.internal.service.ParameterService",
             "resident.internal.assessment.service.CareLevelChangeRequestReminderService",
             "resident.internal.assessment.service.ReassessmentNoticeService",
             "resident.internal.consent.service.MissingConsentReminderService",

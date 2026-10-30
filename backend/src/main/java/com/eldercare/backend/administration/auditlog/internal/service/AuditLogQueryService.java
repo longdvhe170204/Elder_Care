@@ -11,18 +11,18 @@ import com.eldercare.backend.administration.account.api.dto.Visibility;
 import com.eldercare.backend.administration.account.api.spi.ScopeAssignmentProvider;
 import com.eldercare.backend.administration.auditlog.api.AuditLogPermissions;
 import com.eldercare.backend.administration.auditlog.api.spi.FieldClassificationProvider;
+import com.eldercare.backend.administration.auditlog.internal.domain.AuditLogCriteria;
+import com.eldercare.backend.administration.auditlog.internal.domain.AuditLogRow;
+import com.eldercare.backend.administration.auditlog.internal.persistence.AuditLogStore;
 import com.eldercare.backend.administration.shared.api.RecordTypeAliases;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,11 +30,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Tra cứu nhật ký (research R-06; FR-049, BR-M15-11, SC-006). Quản lý viện tra cứu toàn viện; nhân viên chỉ xem lịch
@@ -50,12 +47,7 @@ public class AuditLogQueryService {
     static final int PAGE_SIZE = 50;
 
     private static final Map<String, Object> CHANGED = Map.of("changed", true);
-    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
-    private static final String COLUMNS = "SELECT id, occurred_at, device_time, actor_type, actor_id, role, action,"
-            + " entity_type, entity_id, resident_id, data_before, data_after, reason, basis, details FROM audit_log";
-
-    private final JdbcTemplate jdbc;
-    private final JsonMapper json;
+    private final AuditLogStore store;
     private final ObjectProvider<CurrentUser> currentUser;
     private final ObjectProvider<PermissionApi> permissions;
     private final ObjectProvider<ScopeApi> scope;
@@ -66,8 +58,7 @@ public class AuditLogQueryService {
     private final RecordTypeAliases aliases;
 
     AuditLogQueryService(
-            JdbcTemplate jdbc,
-            JsonMapper json,
+            AuditLogStore store,
             ObjectProvider<CurrentUser> currentUser,
             ObjectProvider<PermissionApi> permissions,
             ObjectProvider<ScopeApi> scope,
@@ -76,8 +67,7 @@ public class AuditLogQueryService {
             ObjectProvider<AccountApi> accounts,
             ObjectProvider<ScopeAssignmentProvider> scopeAssignments,
             RecordTypeAliases aliases) {
-        this.jdbc = jdbc;
-        this.json = json;
+        this.store = store;
         this.currentUser = currentUser;
         this.permissions = permissions;
         this.scope = scope;
@@ -138,39 +128,18 @@ public class AuditLogQueryService {
                 .allowed()) {
             throw new PermissionDeniedException("Chỉ Quản lý viện tra cứu nhật ký toàn viện");
         }
-        List<String> where = new ArrayList<>();
-        List<Object> args = new ArrayList<>();
-        if (filter.entityType() != null) {
-            // Gồm nhật ký ghi với loại cũ trước khi gộp bảng (research R-15 mục 5)
-            where.add(entityTypeIn(filter.entityType(), args));
-        }
-        if (filter.entityId() != null) {
-            where.add("entity_id = ?");
-            args.add(filter.entityId());
-        }
-        if (filter.actorId() != null) {
-            where.add("actor_id = ?");
-            args.add(filter.actorId());
-        }
-        if (filter.actions() != null && !filter.actions().isEmpty()) {
-            where.add("action IN ("
-                    + String.join(",", Collections.nCopies(filter.actions().size(), "?")) + ")");
-            args.addAll(filter.actions());
-        }
-        if (filter.from() != null) {
-            where.add("occurred_at >= ?");
-            args.add(utc(filter.from()));
-        }
-        if (filter.to() != null) {
-            where.add("occurred_at <= ?");
-            args.add(utc(filter.to()));
-        }
-        if (filter.selfApproved() != null) {
-            // Dấu tự duyệt nằm ở chi tiết (FR-035); dòng không có dấu là không tự duyệt
-            where.add("COALESCE(JSON_CONTAINS(details, 'true', '$.selfApproved'), 0) = ?");
-            args.add(filter.selfApproved() ? 1 : 0);
-        }
-        return page(user, where, args, cursor);
+        // Gồm nhật ký ghi với loại cũ trước khi gộp bảng (research R-15 mục 5)
+        Collection<String> types = filter.entityType() == null ? null : aliases.withLegacy(filter.entityType());
+        return page(
+                user,
+                types,
+                filter.entityId(),
+                filter.actorId(),
+                filter.actions(),
+                filter.from(),
+                filter.to(),
+                filter.selfApproved(),
+                cursor);
     }
 
     /** Lịch sử một đối tượng: Quản lý viện, hoặc nhân viên có quyền xem đối tượng trong phạm vi (cột P). */
@@ -194,10 +163,7 @@ public class AuditLogQueryService {
                         || !scope.getObject().inScope(user, target))) {
             throw new NotFoundException();
         }
-        List<Object> args = new ArrayList<>();
-        List<String> where = new ArrayList<>(List.of(entityTypeIn(entityType, args), "entity_id = ?"));
-        args.add(entityId);
-        return page(user, where, args, cursor);
+        return page(user, aliases.withLegacy(entityType), entityId, null, null, null, null, null, cursor);
     }
 
     /** Đối tượng kèm người cao tuổi, tầng do module sở hữu cho biết; không có provider hoặc id không phải số thì chỉ loại, id. */
@@ -217,19 +183,35 @@ public class AuditLogQueryService {
                 .orElse(bare);
     }
 
-    private Page page(CurrentUser user, List<String> where, List<Object> args, String cursor) {
-        if (cursor != null) {
-            Cursor after = Cursor.parse(cursor);
-            where.add("(occurred_at < ? OR (occurred_at = ? AND id < ?))");
-            args.add(after.occurredAt());
-            args.add(after.occurredAt());
-            args.add(after.id());
-        }
-        String sql = COLUMNS + (where.isEmpty() ? "" : " WHERE " + String.join(" AND ", where))
-                + " ORDER BY occurred_at DESC, id DESC LIMIT " + (PAGE_SIZE + 1);
-        List<Row> rows = jdbc.query(sql, (rs, i) -> row(rs), args.toArray());
+    private Page page(
+            CurrentUser user,
+            Collection<String> entityTypes,
+            String entityId,
+            Long actorId,
+            List<String> actions,
+            Instant from,
+            Instant to,
+            Boolean selfApproved,
+            String cursor) {
+        Cursor after = cursor == null ? null : Cursor.parse(cursor);
+        List<AuditLogRow> rows = store
+                .page(
+                        new AuditLogCriteria(
+                                entityTypes,
+                                entityId,
+                                actorId,
+                                actions,
+                                from,
+                                to,
+                                selfApproved,
+                                after == null ? null : after.occurredAt(),
+                                after == null ? null : after.id()),
+                        PAGE_SIZE + 1)
+                .stream()
+                .map(r -> r.withEntityType(aliases.current(r.entityType())))
+                .toList();
         boolean more = rows.size() > PAGE_SIZE;
-        List<Row> shown = more ? rows.subList(0, PAGE_SIZE) : rows;
+        List<AuditLogRow> shown = more ? rows.subList(0, PAGE_SIZE) : rows;
         Map<String, Map<String, InfoGroup>> groups = classificationsByType();
         List<Entry> items = shown.stream().map(r -> mask(user, r, groups)).toList();
         String next =
@@ -237,7 +219,7 @@ public class AuditLogQueryService {
         return new Page(items, next);
     }
 
-    private Entry mask(CurrentUser user, Row row, Map<String, Map<String, InfoGroup>> groups) {
+    private Entry mask(CurrentUser user, AuditLogRow row, Map<String, Map<String, InfoGroup>> groups) {
         Map<String, InfoGroup> fields = groups.getOrDefault(row.entityType(), Map.of());
         Target target = new Target(row.entityType(), row.entityId(), row.residentId(), null);
         Map<InfoGroup, Boolean> visible = new EnumMap<>(InfoGroup.class);
@@ -294,57 +276,6 @@ public class AuditLogQueryService {
                 .collect(Collectors.toMap(
                         FieldClassificationProvider::entityType, FieldClassificationProvider::fieldGroups));
     }
-
-    /** Điều kiện loại đối tượng gồm loại cũ ánh xạ về {@code entityType}; thêm tham số vào {@code args}. */
-    private String entityTypeIn(String entityType, List<Object> args) {
-        var types = aliases.withLegacy(entityType);
-        args.addAll(types);
-        return "entity_type IN (" + String.join(", ", java.util.Collections.nCopies(types.size(), "?")) + ")";
-    }
-
-    private Row row(ResultSet rs) throws SQLException {
-        return new Row(
-                rs.getLong("id"),
-                rs.getObject("occurred_at", LocalDateTime.class),
-                rs.getObject("device_time", LocalDateTime.class),
-                rs.getString("actor_type"),
-                rs.getObject("actor_id", Long.class),
-                rs.getString("role"),
-                rs.getString("action"),
-                aliases.current(rs.getString("entity_type")),
-                rs.getString("entity_id"),
-                rs.getObject("resident_id", Long.class),
-                readMap(rs.getString("data_before")),
-                readMap(rs.getString("data_after")),
-                rs.getString("reason"),
-                readMap(rs.getString("basis")),
-                readMap(rs.getString("details")));
-    }
-
-    private Map<String, Object> readMap(String value) {
-        return value == null ? null : json.readValue(value, MAP);
-    }
-
-    private static LocalDateTime utc(Instant instant) {
-        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
-    }
-
-    private record Row(
-            long id,
-            LocalDateTime occurredAt,
-            LocalDateTime deviceTime,
-            String actorType,
-            Long actorId,
-            String role,
-            String action,
-            String entityType,
-            String entityId,
-            Long residentId,
-            Map<String, Object> before,
-            Map<String, Object> after,
-            String reason,
-            Map<String, Object> basis,
-            Map<String, Object> details) {}
 
     /** Con trỏ trang: thời điểm (micro giây UTC) và id của dòng cuối trang trước. */
     private record Cursor(LocalDateTime occurredAt, long id) {

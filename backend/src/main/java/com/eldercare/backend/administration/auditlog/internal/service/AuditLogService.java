@@ -5,21 +5,16 @@ import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
 import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
 import com.eldercare.backend.administration.auditlog.api.AuditLogRecord;
+import com.eldercare.backend.administration.auditlog.internal.persistence.AuditLogStore;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -29,19 +24,13 @@ import tools.jackson.databind.json.JsonMapper;
 @Service
 class AuditLogService implements AuditLogApi {
 
-    private static final String INSERT = "INSERT INTO audit_log (occurred_at, device_time, actor_type, actor_id, role,"
-            + " action, entity_type, entity_id, resident_id, data_before, data_after, reason, basis, details,"
-            + " exempt_from_purge) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
-
-    private final JdbcTemplate jdbc;
+    private final AuditLogStore store;
     private final BusinessTime time;
     private final JsonMapper json;
     private final ObjectProvider<CurrentUser> currentUser;
 
-    AuditLogService(JdbcTemplate jdbc, BusinessTime time, JsonMapper json, ObjectProvider<CurrentUser> currentUser) {
-        this.jdbc = jdbc;
+    AuditLogService(AuditLogStore store, BusinessTime time, JsonMapper json, ObjectProvider<CurrentUser> currentUser) {
+        this.store = store;
         this.time = time;
         this.json = json;
         this.currentUser = currentUser;
@@ -77,30 +66,7 @@ class AuditLogService implements AuditLogApi {
     @Override
     @Transactional(readOnly = true)
     public List<AuditLogRecord> recorded(AuditAction action, String entityType, String entityId, Long actorAccountId) {
-        StringBuilder sql = new StringBuilder(
-                "SELECT id, occurred_at, actor_type, actor_id, role, entity_id, reason, details FROM audit_log"
-                        + " WHERE action = ? AND entity_type = ?");
-        List<Object> args = new ArrayList<>(List.of(action.code(), entityType));
-        if (entityId != null) {
-            sql.append(" AND entity_id = ?");
-            args.add(entityId);
-        }
-        if (actorAccountId != null) {
-            sql.append(" AND actor_type = 'USER' AND actor_id = ?");
-            args.add(actorAccountId);
-        }
-        sql.append(" ORDER BY occurred_at DESC, id DESC LIMIT ").append(RECORDED_LIMIT);
-        return jdbc.query(
-                sql.toString(),
-                (rs, i) -> new AuditLogRecord(
-                        rs.getLong("id"),
-                        rs.getObject("occurred_at", LocalDateTime.class).toInstant(ZoneOffset.UTC),
-                        "USER".equals(rs.getString("actor_type")) ? rs.getLong("actor_id") : null,
-                        rs.getString("role"),
-                        rs.getString("entity_id"),
-                        rs.getString("reason"),
-                        rs.getString("details") == null ? null : json.readValue(rs.getString("details"), MAP)),
-                args.toArray());
+        return store.recorded(action.code(), entityType, entityId, actorAccountId, RECORDED_LIMIT);
     }
 
     private void insert(AuditLogEntry entry) {
@@ -128,29 +94,13 @@ class AuditLogService implements AuditLogApi {
                 || limit > RECORDED_LIMIT) {
             throw new IllegalArgumentException("Khoảng nhật ký hoặc trang đọc không hợp lệ");
         }
-        return jdbc.query(
-                "SELECT id, occurred_at, actor_type, actor_id, role, entity_id, reason, details FROM audit_log"
-                        + " WHERE entity_type=? AND occurred_at>=? AND occurred_at<? AND id>? ORDER BY id LIMIT ?",
-                (rs, i) -> new AuditLogRecord(
-                        rs.getLong("id"),
-                        rs.getObject("occurred_at", LocalDateTime.class).toInstant(ZoneOffset.UTC),
-                        "USER".equals(rs.getString("actor_type")) ? rs.getLong("actor_id") : null,
-                        rs.getString("role"),
-                        rs.getString("entity_id"),
-                        rs.getString("reason"),
-                        rs.getString("details") == null ? null : json.readValue(rs.getString("details"), MAP)),
-                entityType,
-                utc(from),
-                utc(to),
-                afterId,
-                limit);
+        return store.recordedBetween(entityType, from, to, afterId, limit);
     }
 
     private void insert(AuditLogEntry entry, String actorType, Long actorId, String role) {
-        jdbc.update(
-                INSERT,
-                utc(time.now()),
-                entry.deviceTime() == null ? null : utc(entry.deviceTime()),
+        store.insert(
+                time.now(),
+                entry.deviceTime(),
                 actorType,
                 actorId,
                 role,
@@ -176,11 +126,6 @@ class AuditLogService implements AuditLogApi {
                 .min(Comparator.naturalOrder())
                 .map(Role::code)
                 .orElse(null);
-    }
-
-    /** Cột DATETIME(6) lưu UTC (R-04); LocalDateTime được driver gửi nguyên, không đổi múi giờ. */
-    private static LocalDateTime utc(Instant instant) {
-        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }
 
     private String toJson(Object value) {
