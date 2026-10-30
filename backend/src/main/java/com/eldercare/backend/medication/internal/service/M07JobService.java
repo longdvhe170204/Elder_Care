@@ -1,9 +1,11 @@
 package com.eldercare.backend.medication.internal.service;
 
-import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
+import com.eldercare.backend.medication.api.dto.NursingShiftView;
+import com.eldercare.backend.medication.api.events.FloorWithoutNurse;
 import com.eldercare.backend.medication.api.events.MedicationAlertRequestedEvent;
+import com.eldercare.backend.medication.api.spi.NursingShiftPort;
 import com.eldercare.backend.medication.internal.domain.DoseAuthorityBasis;
 import com.eldercare.backend.medication.internal.domain.DoseCancellationReason;
 import com.eldercare.backend.medication.internal.domain.DoseResult;
@@ -19,10 +21,14 @@ import com.eldercare.backend.medication.internal.persistence.M07JobRunStore;
 import com.eldercare.backend.medication.internal.persistence.MedicationDoseRepository;
 import com.eldercare.backend.medication.internal.persistence.MedicationRepository;
 import com.eldercare.backend.medication.internal.persistence.PrescriptionRepository;
+import com.eldercare.backend.administration.parameter.api.ParameterApi;
+import com.eldercare.backend.administration.parameter.api.ParameterCode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -47,6 +53,8 @@ public class M07JobService {
     private final ApplicationEventPublisher eventPublisher;
     private final BusinessTime businessTime;
     private final ParameterApi parameters;
+    private final ResidentLocationApi locations;
+    private final NursingShiftPort shifts;
 
     public M07JobService(
             M07JobRunStore jobRunStore,
@@ -58,7 +66,9 @@ public class M07JobService {
             DoseAdministrationService doseAdministrationService,
             ApplicationEventPublisher eventPublisher,
             BusinessTime businessTime,
-            ParameterApi parameters) {
+            ParameterApi parameters,
+            ResidentLocationApi locations,
+            NursingShiftPort shifts) {
         this.jobRunStore = jobRunStore;
         this.prescriptionRepository = prescriptionRepository;
         this.medicationRepository = medicationRepository;
@@ -69,6 +79,8 @@ public class M07JobService {
         this.eventPublisher = eventPublisher;
         this.businessTime = businessTime;
         this.parameters = parameters;
+        this.locations = locations;
+        this.shifts = shifts;
     }
 
     /**
@@ -88,6 +100,9 @@ public class M07JobService {
         // (2) ACTIVE -> DISCONTINUED when discontinueAt is reached
         transitionScheduledSuspensions(now);
 
+        // BR-M07-21: thông báo một lần mỗi tầng/ca khi không có Điều dưỡng nhưng có liều sắp tới.
+        notifyFloorsWithoutNurse(now);
+
         // (3) Materialize doses at window start
         materializeWindowDoses(now);
 
@@ -100,6 +115,59 @@ public class M07JobService {
         // (6) Close SUSPENDED doses past window end
         expireSuspendedDoses(now);
     }
+
+    private void notifyFloorsWithoutNurse(Instant now) {
+        Map<FloorShift, Integer> upcomingByShift = new LinkedHashMap<>();
+        for (Prescription prescription : prescriptionRepository.findByStatus(PrescriptionStatus.ACTIVE)) {
+            if (prescription.getPrescriptionType() == PrescriptionType.PRN) {
+                continue;
+            }
+            Long floorId = locations
+                    .at(prescription.getResidentId(), now)
+                    .map(location -> location.floorId())
+                    .orElse(null);
+            if (floorId == null) {
+                continue;
+            }
+            NursingShiftView shift = shifts.shiftAt(floorId, now).orElse(null);
+            if (shift == null || !shifts.nursesWithShift(floorId, now).isEmpty()) {
+                continue;
+            }
+            Instant from = now.isAfter(shift.startsAt()) ? now : shift.startsAt();
+            if (!from.isBefore(shift.endsAt())) {
+                continue;
+            }
+            Medication medication = medicationRepository
+                    .findById(prescription.getMedicationId())
+                    .orElse(null);
+            int count = Math.toIntExact(scheduleCalculator
+                    .calculate(
+                            prescription,
+                            medication,
+                            from,
+                            shift.endsAt(),
+                            now,
+                            new ScheduleContext(prescription.getResidentId(), List.of(), floorId))
+                    .stream()
+                    .filter(slot -> !slot.windowTo().isBefore(now))
+                    .count());
+            if (count > 0) {
+                upcomingByShift.merge(new FloorShift(floorId, shift.id()), count, Integer::sum);
+            }
+        }
+
+        for (Map.Entry<FloorShift, Integer> entry : upcomingByShift.entrySet()) {
+            FloorShift key = entry.getKey();
+            String checkpoint = key.floorAreaId() + ":" + key.shiftId();
+            if (jobRunStore.isCompleted("FLOOR_WITHOUT_NURSE", checkpoint)) {
+                continue;
+            }
+            eventPublisher.publishEvent(new FloorWithoutNurse(key.floorAreaId(), key.shiftId(), entry.getValue(), now));
+            jobRunStore.recordCompletion("FLOOR_WITHOUT_NURSE", checkpoint, "COMPLETED", null, now);
+        }
+    }
+
+    private record FloorShift(long floorAreaId, long shiftId) {}
 
     private void transitionPendingPrescriptions(Instant now) {
         List<Prescription> pending =

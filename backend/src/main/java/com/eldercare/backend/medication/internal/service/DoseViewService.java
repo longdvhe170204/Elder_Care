@@ -1,11 +1,15 @@
 package com.eldercare.backend.medication.internal.service;
 
-import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.resident.api.ResidentApi;
+import com.eldercare.backend.resident.api.dto.ResidentStatus;
+import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
+import com.eldercare.backend.medication.api.spi.NursingShiftPort;
 import com.eldercare.backend.medication.internal.domain.DoseAuthorityBasis;
 import com.eldercare.backend.medication.internal.domain.DoseResult;
 import com.eldercare.backend.medication.internal.domain.DoseStatus;
+import com.eldercare.backend.medication.internal.domain.DoseTransitionTable;
 import com.eldercare.backend.medication.internal.domain.FamilyMedicationBatch;
 import com.eldercare.backend.medication.internal.domain.FamilyMedicationBatchStatus;
 import com.eldercare.backend.medication.internal.domain.HandoverStatus;
@@ -16,11 +20,14 @@ import com.eldercare.backend.medication.internal.persistence.FamilyMedicationPre
 import com.eldercare.backend.medication.internal.persistence.MedicationHandoverDoseRepository;
 import com.eldercare.backend.medication.internal.persistence.MedicationHandoverRepository;
 import com.eldercare.backend.medication.internal.service.response.DoseDetailView;
-import com.eldercare.backend.resident.api.ResidentApi;
-import com.eldercare.backend.resident.api.dto.ResidentStatus;
+import com.eldercare.backend.administration.account.api.AccountApi;
+import com.eldercare.backend.administration.correction.api.CorrectionApi;
+import com.eldercare.backend.administration.correction.api.CurrentValue;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -50,10 +57,7 @@ public class DoseViewService {
             String note,
             boolean recordedAfterDisconnect) {}
 
-    /**
-     * Liều đã ghép. {@code pendingHandoverConfirmation} cần bàn giao ca của 008 ({@code CaTrucApi} chưa có) nên là
-     * {@code null}: chưa xác định, không phải {@code false}.
-     */
+    /** Liều đã ghép. */
     public record DoseView(
             DoseDetailView dose,
             String currentStatus,
@@ -75,6 +79,9 @@ public class DoseViewService {
     private final AccountApi accounts;
     private final ResidentApi residents;
     private final BusinessTime businessTime;
+    private final ResidentLocationApi locations;
+    private final NursingShiftPort shifts;
+    private final CorrectionApi corrections;
 
     public DoseViewService(
             DoseResultRepository results,
@@ -84,7 +91,10 @@ public class DoseViewService {
             FamilyMedicationPrescriptionRepository batchLinks,
             AccountApi accounts,
             ResidentApi residents,
-            BusinessTime businessTime) {
+            BusinessTime businessTime,
+            ResidentLocationApi locations,
+            NursingShiftPort shifts,
+            CorrectionApi corrections) {
         this.results = results;
         this.handoverDoses = handoverDoses;
         this.handovers = handovers;
@@ -93,6 +103,9 @@ public class DoseViewService {
         this.accounts = accounts;
         this.residents = residents;
         this.businessTime = businessTime;
+        this.locations = locations;
+        this.shifts = shifts;
+        this.corrections = corrections;
     }
 
     @Transactional(readOnly = true)
@@ -110,9 +123,9 @@ public class DoseViewService {
                         .orElse(false);
         return new DoseView(
                 d,
-                d.status() == null ? null : d.status().name(),
+                currentStatus(d, result.orElse(null)),
                 d.doseId() != null,
-                null,
+                pendingHandoverConfirmation(d),
                 awaitingRecord,
                 d.specialControl(),
                 usableBatches(d),
@@ -123,6 +136,53 @@ public class DoseViewService {
                         .orElse(null),
                 result.map(r -> afterDeath(d.residentId(), r.getAdministeredAt()))
                         .orElse(false));
+    }
+
+    private String currentStatus(DoseDetailView dose, DoseResult result) {
+        String original = result != null && result.getResultType() != null
+                ? result.getResultType().name()
+                : dose.status() == null ? null : dose.status().name();
+        if (result == null || result.getId() == null) {
+            return original;
+        }
+        CurrentValue current = corrections
+                .current(DoseResultOfflineHandler.RECORD_TYPE, List.of(result.getId()))
+                .get(result.getId());
+        if (current == null || !current.corrected() || current.voided()) {
+            return original;
+        }
+        if (current.content() instanceof Map<?, ?> content && content.get("resultType") instanceof String value) {
+            try {
+                return com.eldercare.backend.medication.internal.domain.DoseResultType.valueOf(value)
+                        .name();
+            } catch (IllegalArgumentException ignored) {
+                return original;
+            }
+        }
+        return original;
+    }
+
+    private boolean pendingHandoverConfirmation(DoseDetailView dose) {
+        if (dose.status() == null
+                || DoseTransitionTable.isTerminal(dose.status())
+                || dose.residentId() == null
+                || dose.scheduledTime() == null
+                || dose.assignedNurseId() == null) {
+            return false;
+        }
+        Instant now = businessTime.now();
+        Long floorId = locations
+                .at(dose.residentId(), dose.scheduledTime())
+                .map(location -> location.floorId())
+                .orElse(null);
+        if (floorId == null) {
+            return false;
+        }
+        return shifts.shiftAt(floorId, dose.scheduledTime())
+                .filter(previousShift -> !now.isBefore(previousShift.endsAt()))
+                .filter(previousShift -> !shifts.inProgressShiftMember(dose.assignedNurseId(), now))
+                .map(previousShift -> !shifts.handoverConfirmed(previousShift.id()))
+                .orElse(false);
     }
 
     @Transactional(readOnly = true)

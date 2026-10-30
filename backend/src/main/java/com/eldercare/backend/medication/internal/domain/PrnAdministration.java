@@ -28,6 +28,9 @@ public class PrnAdministration {
     @Column(name = "resident_id", nullable = false)
     private Long residentId;
 
+    @Column(name = "floor_area_id")
+    private Long floorAreaId;
+
     @Column(name = "administered_at", nullable = false)
     private Instant administeredAt;
 
@@ -81,11 +84,46 @@ public class PrnAdministration {
             String note,
             boolean recordedAfterDisconnect,
             Instant now) {
+        this(
+                prescriptionId,
+                residentId,
+                administeredAt,
+                dosage,
+                dosageUnit,
+                reason,
+                administeredById,
+                reportedBy,
+                exceededLimit,
+                offlineDeviceTime,
+                adverseReaction,
+                note,
+                recordedAfterDisconnect,
+                null,
+                now);
+    }
+
+    public PrnAdministration(
+            Long prescriptionId,
+            Long residentId,
+            Instant administeredAt,
+            BigDecimal dosage,
+            String dosageUnit,
+            String reason,
+            Long administeredById,
+            String reportedBy,
+            boolean exceededLimit,
+            Instant offlineDeviceTime,
+            String adverseReaction,
+            String note,
+            boolean recordedAfterDisconnect,
+            Long floorAreaId,
+            Instant now) {
         this.prescriptionId = prescriptionId;
         this.adverseReaction = adverseReaction;
         this.note = note;
         this.recordedAfterDisconnect = recordedAfterDisconnect;
         this.residentId = residentId;
+        this.floorAreaId = floorAreaId;
         this.administeredAt = administeredAt != null ? administeredAt : now;
         this.dosage = dosage;
         this.dosageUnit = dosageUnit;
@@ -107,6 +145,10 @@ public class PrnAdministration {
 
     public Long getResidentId() {
         return residentId;
+    }
+
+    public Long getFloorAreaId() {
+        return floorAreaId;
     }
 
     public Instant getAdministeredAt() {

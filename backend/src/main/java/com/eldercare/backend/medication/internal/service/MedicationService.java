@@ -33,7 +33,8 @@ public class MedicationService {
     @RequiresPermission(function = Function.MEDICATION_CATALOG, operation = Operation.VIEW)
     @Transactional(readOnly = true)
     public List<MedicationDetailView> list(String q, Boolean activeOnly) {
-        MedicationStatus status = (activeOnly != null && activeOnly) ? MedicationStatus.ACTIVE : null;
+        MedicationStatus status =
+                activeOnly == null ? null : (activeOnly ? MedicationStatus.ACTIVE : MedicationStatus.INACTIVE);
         return medications.search(q, status).stream().map(this::toView).toList();
     }
 

@@ -32,12 +32,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 /**
- * Offline synchronization handler for {@code M07.KET_QUA_LIEU} (FR-029, BR-M07-20; research D-11).
+ * Offline synchronization handler for {@code M07.DOSE_RESULT} (FR-029, BR-M07-20; research D-11).
  */
 @Component
 public class DoseResultOfflineHandler implements OfflineHandler<DoseResultOfflineContent> {
 
-    public static final String RECORD_TYPE = "M07.KET_QUA_LIEU";
+    public static final String RECORD_TYPE = "M07.DOSE_RESULT";
 
     private final DoseAdministrationService doseAdministrationService;
     private final MedicationDoseRepository doseRepository;
@@ -103,6 +103,7 @@ public class DoseResultOfflineHandler implements OfflineHandler<DoseResultOfflin
     @Override
     public String apply(DoseResultOfflineContent content, SyncOutcome outcome, Instant effectiveAt) {
         DoseAdministrationService.ParsedDoseKey parsed = doseAdministrationService.parseDoseKey(content.doseKey());
+        DoseResultType type = content.resultType() != null ? content.resultType() : DoseResultType.ADMINISTERED;
         Optional<MedicationDose> optDose =
                 doseRepository.findByPrescriptionIdAndScheduledTime(parsed.prescriptionId(), parsed.scheduledTime());
 
@@ -121,21 +122,23 @@ public class DoseResultOfflineHandler implements OfflineHandler<DoseResultOfflin
                         businessTime.now());
                 doseReviewRepository.save(review);
 
-                eventPublisher.publishEvent(new MedicationAlertRequestedEvent(
-                        "POSSIBLE_DUPLICATE_DOSE",
-                        "TRUNG_BINH",
-                        content.residentId(),
-                        "doseKey:" + content.doseKey(),
-                        "dup:" + content.doseKey(),
-                        effectiveAt,
-                        List.of()));
+                if (existingResult.get().getResultType() == DoseResultType.ADMINISTERED
+                        && type == DoseResultType.ADMINISTERED) {
+                    eventPublisher.publishEvent(new MedicationAlertRequestedEvent(
+                            "POSSIBLE_DUPLICATE_DOSE",
+                            "TRUNG_BINH",
+                            content.residentId(),
+                            "doseKey:" + content.doseKey(),
+                            "dup:" + content.doseKey(),
+                            effectiveAt,
+                            List.of()));
+                }
 
                 return "dose_review:" + review.getId();
             }
         }
 
         // Apply normal administration, refusal, or skip
-        DoseResultType type = content.resultType() != null ? content.resultType() : DoseResultType.ADMINISTERED;
         DoseDetailView view = switch (type) {
             case ADMINISTERED ->
                 doseAdministrationService.administerDose(

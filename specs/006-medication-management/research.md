@@ -215,7 +215,7 @@ Bảng `thuoc_nct` (một dòng mỗi hồ sơ người cao tuổi) là đích k
 
 **Quyết định**:
 - **Phạm vi ngoại tuyến**: xác nhận liều (Đã dùng, Từ chối, Không thực hiện) và lần dùng PRN của thuốc không có dấu kiểm soát đặc biệt. Mọi lệnh khác (đơn thuốc, phiếu đối chiếu, thuốc gia đình gửi, giao và nhận lại thuốc mang theo, đính chính) chỉ trực tuyến.
-- **Hai `NgoaiTuyenHandler`** (002 A-11): `M07.KET_QUA_LIEU`, `M07.LAN_DUNG_PRN`. `khoaQuyen = (PHAT_THUOC, CHUYEN_MON)`; `apDung` gọi cùng service với lệnh trực tuyến, `thoi_diem_thiet_bi` là thời điểm ghi; quyền và giấy phép kiểm theo thời điểm thiết bị (`coQuyenTaiThoiDiem`). `kiemTraNoiDung` từ chối bản ghi của thuốc kiểm soát đặc biệt với lý do `BAT_BUOC_TRUC_TUYEN`; app không cho đưa các liều này vào hàng đợi (dấu `batBuocTrucTuyen` trong dữ liệu checklist).
+- **Hai `NgoaiTuyenHandler`** (002 A-11): `M07.DOSE_RESULT`, `M07.PRN_ADMINISTRATION`. `khoaQuyen = (PHAT_THUOC, CHUYEN_MON)`; `apDung` gọi cùng service với lệnh trực tuyến, `thoi_diem_thiet_bi` là thời điểm ghi; quyền và giấy phép kiểm theo thời điểm thiết bị (`coQuyenTaiThoiDiem`). `kiemTraNoiDung` từ chối bản ghi của thuốc kiểm soát đặc biệt với lý do `BAT_BUOC_TRUC_TUYEN`; app không cho đưa các liều này vào hàng đợi (dấu `batBuocTrucTuyen` trong dữ liệu checklist).
 - **Trạng thái khi đồng bộ muộn**: xét theo `thoi_diem_dung` trên thiết bị. Liều đã `TRE` hoặc `BO_LO` mà thời điểm dùng trong cửa sổ:
   - `TRE` → `DA_DUNG` không nhãn trễ (bảng chuyển có dòng này cho bản ghi có `thoi_diem_thiet_bi`);
   - `BO_LO` là trạng thái cuối do Hệ thống đóng: handler ghi bản ghi đến thành **đính chính** của `ket_qua_lieu` loại `BO_LO` (D-12, người tạo là người ghi), trạng thái hiện hành Đã dùng, phát `YeuCauDongCanhBao(lieuId, DA_DUNG_TRONG_CUA_SO)`. Cách này giữ trigger trạng thái cuối và DBR-13.
@@ -233,7 +233,7 @@ Bảng `thuoc_nct` (một dòng mỗi hồ sơ người cao tuổi) là đích k
 ## D-12. Đính chính (FR-030, FR-039, BR-M07-12, 17, DBR-23)
 
 **Quyết định**:
-- **`DinhChinhDuocProvider` `M07.KET_QUA_LIEU`, `M07.LAN_DUNG_PRN`** (000 R-08):
+- **`DinhChinhDuocProvider` `M07.DOSE_RESULT`, `M07.PRN_ADMINISTRATION`** (000 R-08):
   - `tangKhuVuc` = tầng của người cao tuổi lúc ghi gốc (lưu trên bản ghi);
   - `choPhep` thu hẹp theo FR-030: người tạo phải đáp ứng giấy phép phát thuốc và là người ghi gốc; hoặc Điều dưỡng giữ nhiệm vụ Người phụ trách ca của tầng; hoặc, với bản ghi do Hệ thống đóng (`BO_LO`, `KHONG_THUC_HIEN` do trạng thái cuối), Điều dưỡng phụ trách người cao tuổi trong ca của liều. Trưởng tầng không là Điều dưỡng bị chặn dù 000 cho cách B;
   - kiểu `DOI_KET_QUA` (đổi loại và thời điểm dùng, ví dụ Đã dùng → Không thực hiện, Bỏ lỡ → Đã dùng lúc 08:20) và `SUA_NOI_DUNG` (phản ứng, ghi chú);
