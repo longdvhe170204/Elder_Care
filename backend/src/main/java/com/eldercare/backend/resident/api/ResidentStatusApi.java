@@ -3,6 +3,7 @@ package com.eldercare.backend.resident.api;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.auditlog.api.Basis;
 import com.eldercare.backend.common.Reason;
+import com.eldercare.backend.common.file.FileView;
 import com.eldercare.backend.resident.api.dto.Condition;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
@@ -34,6 +35,13 @@ public interface ResidentStatusApi {
 
     /** Danh sách điều kiện chưa thỏa, cho 004 FR-004. */
     List<Condition> previewConditions(long residentId, StatusCommand command);
+
+    /**
+     * Giấy tờ bệnh viện gắn vào dòng lịch sử của lệnh Ghi nhận trở về, Chuyển viện (FR-047c, BR-M05-32; 006 hiện cạnh
+     * phiếu đối chiếu thuốc). {@code historyId} lấy từ {@code ResidentStatusChanged}. Chỉ siêu dữ liệu; tải xuống đi qua
+     * {@code GET /files/{id}} và kiểm quyền xem dị ứng, bệnh nền của người cao tuổi đó.
+     */
+    List<FileView> hospitalDocuments(long historyId);
 
     /** Khoảng Tạm vắng, Điều trị tại bệnh viện, Hoạt động bên ngoài (003 FR-027 c, FR-036); đọc, không khóa. */
     List<StatusPeriod> statusPeriods(long residentId, Set<ResidentStatus> statuses, Instant from, Instant to);

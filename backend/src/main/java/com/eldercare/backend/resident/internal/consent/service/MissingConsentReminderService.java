@@ -74,7 +74,7 @@ public class MissingConsentReminderService {
                     number,
                     TYPE,
                     row[0]);
-            events.publishEvent(new MissingConsentReminder(row[0], number));
+            events.publishEvent(new MissingConsentReminder(row[0], number, now));
         }
         return due.size();
     }
