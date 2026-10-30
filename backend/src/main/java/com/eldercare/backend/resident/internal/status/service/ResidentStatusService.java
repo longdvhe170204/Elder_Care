@@ -420,9 +420,7 @@ public class ResidentStatusService {
             if (moduleBasis.sourceRecordId() != null) {
                 return new BasisRef("SOURCE_RECORD", moduleBasis.sourceRecordId());
             }
-            if (moduleBasis.schedulerRunId() != null) {
-                return new BasisRef("SCHEDULER_RUN", moduleBasis.schedulerRunId());
-            }
+            // Mã lần chạy là UUID (000 R-15 mục 4), không vừa cột basis_id; nhật ký giữ schedulerRunId
             return null;
         }
         if (command == StatusCommand.TRANSFER_OUT) {

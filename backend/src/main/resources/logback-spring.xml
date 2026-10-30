@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Log của ứng dụng: mặc định của Spring Boot (console). Lần chạy job (logger "jobs", SchedulerRuns) ghi riêng ra
+  <jobs-dir>/jobs.log dạng log có cấu trúc ECS, MDC jobRunId; xoay theo ngày, giữ 180 ngày (research R-15 mục 4).
+-->
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+    <springProperty name="jobsDir" source="eldercare.logging.jobs-dir" defaultValue="logs"/>
+
+    <appender name="JOBS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${jobsDir}/jobs.log</file>
+        <encoder class="org.springframework.boot.logging.logback.StructuredLogEncoder">
+            <format>ecs</format>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${jobsDir}/jobs.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>180</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="jobs" level="INFO" additivity="false">
+        <appender-ref ref="JOBS"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

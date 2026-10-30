@@ -2,9 +2,10 @@ package com.eldercare.backend.administration.auditlog.api;
 
 /**
  * Căn cứ của thay đổi do hệ thống thực hiện (FR-045): mã quy tắc (BR hoặc CFG), yêu cầu phê duyệt, bản ghi nguồn,
- * lần chạy của Bộ lập lịch. Cần ít nhất một thành phần.
+ * lần chạy của Bộ lập lịch (UUID, chi tiết lần chạy ở {@code logs/jobs.log}, research R-15 mục 4). Cần ít nhất một thành
+ * phần.
  */
-public record Basis(String ruleCode, Long approvalRequestId, Long sourceRecordId, Long schedulerRunId) {
+public record Basis(String ruleCode, Long approvalRequestId, Long sourceRecordId, String schedulerRunId) {
 
     public Basis {
         if (ruleCode == null && approvalRequestId == null && sourceRecordId == null && schedulerRunId == null) {

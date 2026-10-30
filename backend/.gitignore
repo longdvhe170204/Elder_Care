@@ -35,3 +35,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Log lần chạy job (logback-spring.xml) ###
+logs/

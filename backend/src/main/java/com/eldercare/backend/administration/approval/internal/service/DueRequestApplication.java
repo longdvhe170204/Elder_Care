@@ -29,9 +29,9 @@ public class DueRequestApplication {
         this.time = time;
     }
 
-    /** Chạy một đợt, trả id lần chạy ({@code scheduler_run}). */
-    public long run() {
-        long runId = runs.start(JOB);
+    /** Chạy một đợt, trả mã lần chạy (UUID). */
+    public String run() {
+        String runId = runs.start(JOB);
         List<Long> due = jdbc.queryForList(
                 "SELECT id FROM approval_request WHERE status = ? AND actual_effective_date <= ?"
                         + " ORDER BY actual_effective_date, decided_at, id",

@@ -45,8 +45,8 @@ public class M13Jobs {
     }
 
     /** Một lượt job 20 giây; trả id lần chạy. */
-    public long runFast() {
-        long runId = runs.start(FAST);
+    public String runFast() {
+        String runId = runs.start(FAST);
         int processed = 0;
         boolean failed = false;
         for (M13FastTask task : fastTasks) {
@@ -69,7 +69,7 @@ public class M13Jobs {
                 || store.completed(DAILY, today)) {
             return;
         }
-        long runId = runs.start(DAILY);
+        String runId = runs.start(DAILY);
         int processed = 0;
         boolean failed = false;
         for (M13DailyTask task : dailyTasks) {

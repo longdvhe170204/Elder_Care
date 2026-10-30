@@ -57,7 +57,7 @@ public class HoldExpiryJob implements ScheduledJob {
 
     @Override
     public void runNow() {
-        long id = runs.start(name());
+        String id = runs.start(name());
         int count = 0;
         try {
             for (var held : store.expired(time.now())) if (processor.expire(held, id)) count++;

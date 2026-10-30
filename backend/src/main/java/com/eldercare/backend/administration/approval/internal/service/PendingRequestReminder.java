@@ -29,9 +29,9 @@ public class PendingRequestReminder {
         this.runs = runs;
     }
 
-    /** Chạy một đợt, trả id lần chạy ({@code scheduler_run}). */
-    public long run() {
-        long runId = runs.start(JOB);
+    /** Chạy một đợt, trả mã lần chạy (UUID). */
+    public String run() {
+        String runId = runs.start(JOB);
         List<Long> pending = jdbc.queryForList(
                 "SELECT id FROM approval_request WHERE status = ? AND escalated_at IS NULL ORDER BY submitted_at, id",
                 Long.class,

@@ -2,6 +2,7 @@ package com.eldercare.backend.administration.retention.internal.service;
 
 import com.eldercare.backend.administration.retention.api.RetentionDatabase;
 import com.eldercare.backend.administration.retention.api.RetentionKind;
+import com.eldercare.backend.administration.shared.api.RecordTypeAliases;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -22,10 +23,12 @@ class AuditLogRetention implements AttachedRetention {
 
     private final JdbcTemplate jdbc;
     private final RetentionDatabase database;
+    private final RecordTypeAliases aliases;
 
-    AuditLogRetention(JdbcTemplate jdbc, RetentionDatabase database) {
+    AuditLogRetention(JdbcTemplate jdbc, RetentionDatabase database, RecordTypeAliases aliases) {
         this.jdbc = jdbc;
         this.database = database;
+        this.aliases = aliases;
     }
 
     @Override
@@ -45,17 +48,22 @@ class AuditLogRetention implements AttachedRetention {
     @Override
     public List<Attached> attachedTo(DataRef record, RetentionKind recordKind, Instant cutoff) {
         boolean residentExpired = recordKind instanceof RetentionKind.ResidentRecord;
+        // Gồm nhật ký ghi với loại cũ trước khi gộp bảng (research R-15 mục 5)
+        var types = aliases.withLegacy(record.dataType());
         return jdbc.query(
                 "SELECT id, occurred_at, (resident_id IS NULL OR ?) AND NOT exempt_from_purge AS purgeable FROM audit_log"
-                        + " WHERE entity_type = ? AND entity_id = ?",
+                        + " WHERE entity_type IN (" + Ids.placeholders(types.size()) + ") AND entity_id = ?",
                 (rs, i) -> {
                     Instant at =
                             rs.getObject("occurred_at", LocalDateTime.class).toInstant(ZoneOffset.UTC);
                     return new Attached(rs.getLong("id"), at, rs.getBoolean("purgeable") && at.isBefore(cutoff));
                 },
-                residentExpired,
-                record.dataType(),
-                String.valueOf(record.id()));
+                java.util.stream.Stream.of(
+                                java.util.stream.Stream.<Object>of(residentExpired),
+                                types.stream(),
+                                java.util.stream.Stream.<Object>of(String.valueOf(record.id())))
+                        .flatMap(s -> s)
+                        .toArray());
     }
 
     @Override

@@ -40,7 +40,7 @@ public class AllocationReminderProcessor {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public boolean remind(AllocationReminderStore.Key key, long run) {
+    public boolean remind(AllocationReminderStore.Key key, String run) {
         var resident = store.resident(key);
         if (resident == null) {
             store.delete(key);

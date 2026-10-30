@@ -67,7 +67,7 @@ public class FutureAllocationPastStartJob implements ScheduledJob {
 
     @Override
     public void runNow() {
-        long run = runs.start(name());
+        String run = runs.start(name());
         int count = 0;
         try {
             var admissions = new HashSet<>(residents.byStatus(Set.of(ResidentStatus.ADMISSION_IN_PROGRESS)));

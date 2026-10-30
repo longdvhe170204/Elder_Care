@@ -179,7 +179,9 @@ class ApprovalLifecycleIT extends MySqlIntegrationTestBase {
                 .andExpect(jsonPath("$.status").value("REJECTED"))
                 .andExpect(jsonPath("$.decisionComment").value("Thiếu chứng từ"));
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM application_result WHERE approval_request_id = ?", Integer.class, id))
+                        "SELECT COUNT(*) FROM approval_request WHERE id = ? AND result_type IS NOT NULL",
+                        Integer.class,
+                        id))
                 .isZero();
     }
 
