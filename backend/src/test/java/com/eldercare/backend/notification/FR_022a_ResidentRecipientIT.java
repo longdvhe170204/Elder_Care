@@ -108,9 +108,8 @@ class FR_022a_ResidentRecipientIT extends M13IntegrationTestBase {
                 .longValue();
 
         Map<String, Object> n = jdbc.queryForMap(
-                "SELECT n.id, n.recipient_type, n.recipient_id, n.account_id, s.status, s.scheduled_send_at"
-                        + " FROM notification n JOIN notification_state s ON s.notification_id = n.id"
-                        + " WHERE n.request_id = ?",
+                "SELECT n.id, n.recipient_type, n.recipient_id, n.account_id, n.status, n.scheduled_send_at"
+                        + " FROM notification n WHERE n.request_id = ?",
                 requestId);
         assertThat(n)
                 .containsEntry("recipient_type", "RESIDENT")
@@ -125,10 +124,11 @@ class FR_022a_ResidentRecipientIT extends M13IntegrationTestBase {
         long id = ((Number) n.get("id")).longValue();
         await().atMost(Duration.ofSeconds(10))
                 .until(() -> "SENT"
-                        .equals(jdbc.queryForObject(
-                                "SELECT status FROM notification_state WHERE notification_id = ?", String.class, id)));
+                        .equals(jdbc.queryForObject("SELECT status FROM notification WHERE id = ?", String.class, id)));
         assertThat(jdbc.queryForObject(
-                        "SELECT channel FROM delivery_attempt WHERE notification_id = ?", String.class, id))
+                        "SELECT a.content->>'$.channel' FROM record_event a WHERE a.kind = 'M13.DELIVERY_ATTEMPT' AND a.entity_type = 'M13.NOTIFICATION' AND a.entity_id = ?",
+                        String.class,
+                        id))
                 .isEqualTo("IN_APP");
     }
 

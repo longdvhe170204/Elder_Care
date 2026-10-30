@@ -50,7 +50,9 @@ class FR_016_ChannelConfigIT extends M13IntegrationTestBase {
 
     @AfterEach
     void restore() {
-        jdbc.update("UPDATE notification_channel SET enabled = FALSE, levels = 'URGENT' WHERE code = 'SMS'");
+        jdbc.update(
+                "UPDATE catalog_item SET attributes = JSON_SET(attributes, '$.enabled', CAST('false' AS JSON),"
+                        + " '$.levels', JSON_ARRAY('URGENT')) WHERE catalog_type = 'M13.NOTIFICATION_CHANNEL' AND code = 'SMS'");
     }
 
     private String etag() throws Exception {
@@ -79,7 +81,10 @@ class FR_016_ChannelConfigIT extends M13IntegrationTestBase {
         change(etag, "{\"code\":\"SMS\",\"enabled\":true,\"reason\":\"Đã có nhà cung cấp\"}")
                 .andExpect(status().isOk());
 
-        assertThat(jdbc.queryForObject("SELECT enabled FROM notification_channel WHERE code = 'SMS'", Boolean.class))
+        assertThat(jdbc.queryForObject(
+                        "SELECT attributes->>'$.enabled' = 'true' FROM catalog_item"
+                                + " WHERE catalog_type = 'M13.NOTIFICATION_CHANNEL' AND code = 'SMS'",
+                        Boolean.class))
                 .isTrue();
         assertThat(jdbc.queryForObject(
                         "SELECT reason FROM audit_log WHERE action = 'NOTIFICATION_CHANNEL_CHANGED' AND entity_id = 'SMS'"

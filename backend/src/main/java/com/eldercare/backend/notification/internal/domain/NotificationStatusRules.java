@@ -9,7 +9,7 @@ import java.util.Optional;
 
 /**
  * Trạng thái thông báo theo bảng FR-044 ({@code TrangThaiThongBao}; research B-09, data-model mục 4): hàm thuần trên
- * sự kiện ghi thêm và kết quả lần gửi. Bảng {@code notification_state} chỉ lưu kết quả của hàm này để truy vấn nhanh.
+ * sự kiện ghi thêm và kết quả lần gửi. Cột trạng thái của {@code notification} chỉ lưu kết quả của hàm này để truy vấn nhanh.
  */
 public final class NotificationStatusRules {
 

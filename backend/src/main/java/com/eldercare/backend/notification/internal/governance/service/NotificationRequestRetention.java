@@ -3,9 +3,17 @@ package com.eldercare.backend.notification.internal.governance.service;
 import com.eldercare.backend.administration.retention.api.RetentionDatabase;
 import com.eldercare.backend.administration.retention.api.RetentionKind;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
+import com.eldercare.backend.administration.shared.api.SharedRowRetention;
+import com.eldercare.backend.administration.shared.api.dto.EntityRef;
+import com.eldercare.backend.notification.internal.directcontact.domain.DirectContactContent;
+import com.eldercare.backend.notification.internal.domain.DeliveryAttemptContent;
+import com.eldercare.backend.notification.internal.domain.NotificationEventContent;
+import com.eldercare.backend.notification.internal.persistence.M13Sql;
+import com.eldercare.backend.notification.internal.urgent.domain.CallReminderEvents;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -26,15 +34,15 @@ class NotificationRequestRetention implements RetentionProvider {
     static final String TYPE = "M13.NOTIFICATION_REQUEST";
 
     private static final String NOTIFICATIONS = "SELECT id FROM notification WHERE request_id IN ";
-    private static final String ATTEMPTS = "SELECT a.id FROM delivery_attempt a JOIN notification n ON n.id ="
-            + " a.notification_id WHERE n.request_id IN ";
 
     private final JdbcTemplate jdbc;
     private final RetentionDatabase database;
+    private final SharedRowRetention sharedRows;
 
-    NotificationRequestRetention(JdbcTemplate jdbc, RetentionDatabase database) {
+    NotificationRequestRetention(JdbcTemplate jdbc, RetentionDatabase database, SharedRowRetention sharedRows) {
         this.jdbc = jdbc;
         this.database = database;
+        this.sharedRows = sharedRows;
     }
 
     @Override
@@ -67,36 +75,51 @@ class NotificationRequestRetention implements RetentionProvider {
         return Set.of();
     }
 
+    /**
+     * Xóa yêu cầu cùng thông báo, lượt nhắc gọi (kèm mọi lượt cùng chuỗi gọi) và dòng con ở bảng chung (009 T043,
+     * data-model mục 0.1, 6, 10): sự kiện, lần gửi, liên hệ trực tiếp gắn thông báo; kết quả gắn lần gửi, mục liên hệ;
+     * thông báo gộp, chuyển nhắc, kết quả gọi gắn lượt. Dấu bản trùng gắn yêu cầu do job loại bỏ xóa.
+     */
     @Override
     public void delete(Collection<Long> ids) {
         String in = ids.stream().map(String::valueOf).collect(Collectors.joining(",", "(", ")"));
         JdbcTemplate r = database.jdbc();
-        // Lượt nhắc gọi của các thông báo, kèm mọi lượt cùng chuỗi gọi (data-model mục 6, 10)
-        List<Long> reminders = r.queryForList(
-                "SELECT x.id FROM call_reminder x WHERE COALESCE(x.call_chain_id, x.id) IN (SELECT"
-                        + " COALESCE(c.call_chain_id, c.id) FROM call_reminder c JOIN call_reminder_notification l"
-                        + " ON l.call_reminder_id = c.id WHERE l.notification_id IN (" + NOTIFICATIONS + in + "))",
-                Long.class);
+        List<Long> notifications = r.queryForList(NOTIFICATIONS + in, Long.class);
+        List<Long> reminders = notifications.isEmpty()
+                ? List.of()
+                : r.queryForList(
+                        "SELECT x.id FROM call_reminder x WHERE COALESCE(x.call_chain_id, x.id) IN (SELECT"
+                                + " COALESCE(c.call_chain_id, c.id) FROM call_reminder c JOIN record_event l"
+                                + " ON l.entity_id = c.id AND l.entity_type = 'M13.CALL_REMINDER'"
+                                + " AND l.kind = 'M13.CALL_REMINDER_NOTIFICATION'"
+                                + " WHERE JSON_VALUE(l.content, '$.notificationId' RETURNING SIGNED) IN ("
+                                + NOTIFICATIONS + in + "))",
+                        Long.class);
+        List<EntityRef> children = new ArrayList<>();
+        notifications.forEach(id -> children.add(new EntityRef(NotificationEventContent.NOTIFICATION, id)));
+        reminders.forEach(id -> children.add(new EntityRef(CallReminderEvents.CALL_REMINDER, id)));
+        if (!notifications.isEmpty()) {
+            String nin = notifications.stream().map(String::valueOf).collect(Collectors.joining(",", "(", ")"));
+            r.queryForList(
+                            "SELECT id FROM record_event a WHERE " + M13Sql.attempts("a") + " AND a.entity_id IN "
+                                    + nin,
+                            Long.class)
+                    .forEach(id -> children.add(new EntityRef(DeliveryAttemptContent.KIND.code(), id)));
+            r.queryForList(
+                            "SELECT id FROM simple_record WHERE kind = 'M13.DIRECT_CONTACT'"
+                                    + " AND entity_type = 'M13.NOTIFICATION' AND entity_id IN " + nin,
+                            Long.class)
+                    .forEach(id -> children.add(new EntityRef(DirectContactContent.KIND.code(), id)));
+        }
+        if (!children.isEmpty()) {
+            sharedRows.deleteFor(children);
+        }
         if (!reminders.isEmpty()) {
             String rin = reminders.stream().map(String::valueOf).collect(Collectors.joining(",", "(", ")"));
-            r.update("DELETE FROM call_result WHERE call_reminder_id IN " + rin);
-            r.update("DELETE FROM call_reminder_handoff WHERE call_reminder_id IN " + rin);
-            r.update("DELETE FROM call_reminder_state WHERE call_reminder_id IN " + rin);
-            r.update("DELETE FROM call_reminder_notification WHERE call_reminder_id IN " + rin);
             r.update("DELETE FROM call_reminder WHERE call_chain_id IS NOT NULL AND id IN " + rin);
             r.update("DELETE FROM call_reminder WHERE id IN " + rin);
         }
-        r.update("DELETE FROM direct_contact_result WHERE direct_contact_id IN (SELECT id FROM direct_contact"
-                + " WHERE notification_id IN (" + NOTIFICATIONS + in + "))");
-        r.update("DELETE FROM direct_contact WHERE notification_id IN (" + NOTIFICATIONS + in + ")");
-        r.update("DELETE FROM delivery_result WHERE attempt_id IN (" + ATTEMPTS + in + ")");
-        r.update("DELETE FROM delivery_attempt WHERE notification_id IN (" + NOTIFICATIONS + in + ")");
-        r.update("DELETE FROM notification_event WHERE notification_id IN (" + NOTIFICATIONS + in + ")");
-        r.update("DELETE FROM notification_state WHERE notification_id IN (" + NOTIFICATIONS + in + ")");
         r.update("DELETE FROM notification WHERE request_id IN " + in);
-        r.update("DELETE FROM notification_request_content WHERE request_id IN " + in);
-        r.update("DELETE FROM notification_request_recipient_group WHERE request_id IN " + in);
-        r.update("DELETE FROM notification_request_duplicate WHERE request_id IN " + in);
         r.update("DELETE FROM notification_request WHERE id IN " + in);
     }
 }

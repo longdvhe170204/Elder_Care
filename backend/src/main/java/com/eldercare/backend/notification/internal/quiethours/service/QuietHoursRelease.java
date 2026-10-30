@@ -14,8 +14,8 @@ import com.eldercare.backend.notification.internal.delivery.service.OutOfAppPlan
 import com.eldercare.backend.notification.internal.domain.NotificationEventType;
 import com.eldercare.backend.notification.internal.job.service.M13FastTask;
 import com.eldercare.backend.notification.internal.persistence.NotificationStore;
+import com.eldercare.backend.notification.internal.quiethours.domain.HeldNotification;
 import com.eldercare.backend.notification.internal.quiethours.persistence.HeldNotificationStore;
-import com.eldercare.backend.notification.internal.quiethours.persistence.HeldNotificationStore.Held;
 import com.eldercare.backend.notification.internal.recipient.domain.ConsentScope;
 import com.eldercare.backend.notification.internal.recipient.domain.ContentFilter;
 import com.eldercare.backend.notification.internal.recipient.service.RecipientPhones;
@@ -106,11 +106,12 @@ public class QuietHoursRelease implements M13FastTask {
     }
 
     private boolean release(long id, Instant now) {
-        Optional<Held> found = held.lock(id).filter(h -> !h.scheduledSendAt().isAfter(now));
+        Optional<HeldNotification> found =
+                held.lock(id).filter(h -> !h.scheduledSendAt().isAfter(now));
         if (found.isEmpty()) {
             return false;
         }
-        Held h = found.get();
+        HeldNotification h = found.get();
         if (h.recipientType() == RecipientType.FAMILY_MEMBER
                 && h.residentId() != null
                 && !h.afterDeath()
@@ -147,7 +148,7 @@ public class QuietHoursRelease implements M13FastTask {
     }
 
     /** Người cao tuổi còn tài khoản Hoạt động hoặc Khóa tạm; rỗng khi không còn đủ điều kiện. */
-    private Optional<Optional<Long>> residentAccount(Held h) {
+    private Optional<Optional<Long>> residentAccount(HeldNotification h) {
         return accounts.getObject()
                 .byResident(h.recipientId())
                 .filter(a -> a.status() == AccountStatus.ACTIVE || a.status() == AccountStatus.TEMPORARILY_LOCKED)
@@ -158,7 +159,7 @@ public class QuietHoursRelease implements M13FastTask {
      * Người thân còn thuộc ít nhất một nhóm đã gửi tới họ (quan hệ, người liên hệ chính, người đại diện, quyền), qua phạm
      * vi đồng ý và còn ít nhất một phần nội dung được xem (FR-013, FR-014, FR-025); trả tài khoản cổng hiện hành nếu có.
      */
-    private Optional<Optional<Long>> familyAccount(Held h) {
+    private Optional<Optional<Long>> familyAccount(HeldNotification h) {
         FamilyNotificationPort port = family.getIfAvailable();
         if (port == null) {
             return Optional.empty();

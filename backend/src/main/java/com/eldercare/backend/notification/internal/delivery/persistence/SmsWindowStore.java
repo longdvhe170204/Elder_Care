@@ -1,112 +1,110 @@
 package com.eldercare.backend.notification.internal.delivery.persistence;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
+import com.eldercare.backend.administration.shared.api.SimpleRecordApi;
+import com.eldercare.backend.administration.shared.api.dto.RecordChange;
+import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
+import com.eldercare.backend.notification.internal.delivery.domain.BatchedAttempt;
+import com.eldercare.backend.notification.internal.delivery.domain.SmsBatchWindowContent;
+import com.eldercare.backend.notification.internal.delivery.domain.SmsWindow;
+import com.eldercare.backend.notification.internal.persistence.M13SharedRows;
+import com.eldercare.backend.notification.internal.persistence.M13Sql;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
+import tools.jackson.databind.json.JsonMapper;
 
-/** Khung gộp tin nhắn Trung bình ({@code khung_gop_tin_nhan}; FR-016b, data-model mục 6). */
+/**
+ * Khung gộp tin nhắn Trung bình ({@code khung_gop_tin_nhan}; FR-016b) ở {@code simple_record} loại
+ * {@code M13.SMS_BATCH_WINDOW} (009 T043, data-model mục 0.1): một khung mở mỗi người nhận nhờ {@code unique_key}.
+ */
 @Repository
 public class SmsWindowStore {
 
-    public record Window(long id, String recipientKey, Instant endsAt) {}
-
-    /** Tin dồn trong khung, chưa có kết quả. */
-    /** Lần gửi đang dồn, kèm tầng/khu vực và thời điểm sự kiện của yêu cầu (tin tổng hợp gửi nhân viên). */
-    public record Batched(long attemptId, long notificationId, String address, Long floorAreaId, Instant occurredAt) {}
-
     private final JdbcTemplate jdbc;
+    private final JsonMapper json;
+    private final SimpleRecordApi records;
+    private final M13SharedRows shared;
 
-    SmsWindowStore(JdbcTemplate jdbc) {
+    SmsWindowStore(JdbcTemplate jdbc, JsonMapper json, SimpleRecordApi records, M13SharedRows shared) {
         this.jdbc = jdbc;
+        this.json = json;
+        this.records = records;
+        this.shared = shared;
     }
 
     /** Khung đang mở của người nhận, khóa dòng. */
-    public Optional<Window> openFor(String recipientKey) {
+    public Optional<SmsWindow> openFor(String recipientKey) {
         return jdbc
                 .query(
-                        "SELECT id, recipient_key, ends_at FROM sms_batch_window WHERE open_key = ? FOR UPDATE",
-                        (rs, i) -> new Window(
-                                rs.getLong(1), rs.getString(2), instant(rs.getObject(3, LocalDateTime.class))),
-                        recipientKey)
+                        "SELECT id, content FROM simple_record WHERE unique_key = ? FOR UPDATE",
+                        (rs, i) -> window(rs.getLong(1), json.readValue(rs.getString(2), SmsBatchWindowContent.class)),
+                        SmsBatchWindowContent.openKey(recipientKey))
                 .stream()
                 .findFirst();
     }
 
     /** Mở khung; người nhận đã có khung mở thì ném {@code DuplicateKeyException}. */
     public long open(String recipientKey, Instant startedAt, Instant endsAt, long firstAttemptId) {
-        GeneratedKeyHolder key = new GeneratedKeyHolder();
-        jdbc.update(
-                connection -> {
-                    PreparedStatement ps = connection.prepareStatement(
-                            "INSERT INTO sms_batch_window (recipient_key, started_at, ends_at, first_attempt_id)"
-                                    + " VALUES (?, ?, ?, ?)",
-                            Statement.RETURN_GENERATED_KEYS);
-                    ps.setString(1, recipientKey);
-                    ps.setObject(2, utc(startedAt));
-                    ps.setObject(3, utc(endsAt));
-                    ps.setLong(4, firstAttemptId);
-                    return ps;
-                },
-                key);
-        return key.getKey().longValue();
+        return shared.createRecord(
+                SmsBatchWindowContent.KIND,
+                null,
+                SmsBatchWindowContent.OPEN,
+                new SmsBatchWindowContent(recipientKey, startedAt, endsAt, firstAttemptId, null, null),
+                SmsBatchWindowContent.openKey(recipientKey));
     }
 
-    /** Id khung mở đã hết hạn. */
+    /** Id khung mở đã hết hạn, theo thời điểm hết hạn. */
     public List<Long> due(Instant now) {
-        return jdbc.queryForList(
-                "SELECT id FROM sms_batch_window WHERE closed_at IS NULL AND ends_at <= ? ORDER BY ends_at",
-                Long.class,
-                utc(now));
+        return records.listByStatus(SmsBatchWindowContent.KIND, Set.of(SmsBatchWindowContent.OPEN)).stream()
+                .filter(w -> !w.content().endsAt().isAfter(now))
+                .sorted(Comparator.comparing(w -> w.content().endsAt()))
+                .map(SimpleRecord::id)
+                .toList();
     }
 
     /** Khóa và đọc khung còn mở. */
-    public Optional<Window> lockOpen(long windowId) {
-        return jdbc
-                .query(
-                        "SELECT id, recipient_key, ends_at FROM sms_batch_window WHERE id = ? AND closed_at IS NULL"
-                                + " FOR UPDATE",
-                        (rs, i) -> new Window(
-                                rs.getLong(1), rs.getString(2), instant(rs.getObject(3, LocalDateTime.class))),
-                        windowId)
-                .stream()
-                .findFirst();
+    public Optional<SmsWindow> lockOpen(long windowId) {
+        SimpleRecord<SmsBatchWindowContent> w = records.lockForUpdate(SmsBatchWindowContent.KIND, windowId);
+        return SmsBatchWindowContent.OPEN.equals(w.status())
+                ? Optional.of(window(w.id(), w.content()))
+                : Optional.empty();
     }
 
-    public List<Batched> batched(long windowId) {
+    public List<BatchedAttempt> batched(long windowId) {
         return jdbc.query(
-                "SELECT a.id, a.notification_id, a.address, q.floor_area_id, COALESCE(q.occurred_at, q.received_at)"
-                        + " FROM delivery_attempt a JOIN notification n ON n.id = a.notification_id"
-                        + " JOIN notification_request q ON q.id = n.request_id WHERE a.batch_window_id = ?"
-                        + " AND NOT EXISTS (SELECT 1 FROM delivery_result r WHERE r.attempt_id = a.id) ORDER BY a.id",
-                (rs, i) -> new Batched(
+                "SELECT a.id, a.entity_id, JSON_VALUE(a.content, '$.address'), q.floor_area_id,"
+                        + " COALESCE(q.occurred_at, q.received_at) FROM record_event a"
+                        + " JOIN notification n ON n.id = a.entity_id JOIN notification_request q ON q.id = n.request_id"
+                        + " WHERE a.m13_batch_window_id = ? AND " + M13Sql.attempts("a")
+                        + " AND NOT EXISTS (SELECT 1 FROM record_event r WHERE " + M13Sql.resultOf("r", "a") + ")"
+                        + " ORDER BY a.id",
+                (rs, i) -> new BatchedAttempt(
                         rs.getLong(1),
                         rs.getLong(2),
                         rs.getString(3),
                         rs.getObject(4, Long.class),
-                        instant(rs.getObject(5, LocalDateTime.class))),
+                        rs.getObject(5, LocalDateTime.class).toInstant(ZoneOffset.UTC)),
                 windowId);
     }
 
+    /** Đóng khung (đã khóa bằng {@link #lockOpen}), nhả khóa khung mở của người nhận. */
     public void close(long windowId, Instant at, Long digestAttemptId) {
-        jdbc.update(
-                "UPDATE sms_batch_window SET closed_at = ?, digest_attempt_id = ? WHERE id = ?",
-                utc(at),
-                digestAttemptId,
-                windowId);
+        SimpleRecord<SmsBatchWindowContent> w = records.require(SmsBatchWindowContent.KIND, windowId);
+        records.change(
+                SmsBatchWindowContent.KIND,
+                windowId,
+                w.version(),
+                new RecordChange<>(
+                        SmsBatchWindowContent.CLOSED, w.content().closed(at, digestAttemptId), null, null, false));
     }
 
-    private static LocalDateTime utc(Instant at) {
-        return LocalDateTime.ofInstant(at, ZoneOffset.UTC);
-    }
-
-    private static Instant instant(LocalDateTime at) {
-        return at.toInstant(ZoneOffset.UTC);
+    private static SmsWindow window(long id, SmsBatchWindowContent c) {
+        return new SmsWindow(id, c.recipientKey(), c.endsAt());
     }
 }

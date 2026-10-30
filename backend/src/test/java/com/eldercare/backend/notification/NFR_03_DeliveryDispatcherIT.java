@@ -6,8 +6,8 @@ import static org.awaitility.Awaitility.await;
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.notification.api.dto.RecipientType;
 import com.eldercare.backend.notification.internal.delivery.service.DeliveryDispatcher;
+import com.eldercare.backend.notification.internal.domain.NewNotification;
 import com.eldercare.backend.notification.internal.persistence.NotificationStore;
-import com.eldercare.backend.notification.internal.persistence.NotificationStore.NewNotification;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -62,8 +62,9 @@ class NFR_03_DeliveryDispatcherIT extends M13IntegrationTestBase {
         String key = UUID.randomUUID().toString();
         jdbc.update(
                 "INSERT INTO notification_request (source_module, event_type, source_record_type, source_record_id,"
-                        + " event_key, level, title, received_at, intake_result) VALUES ('M05', 'TEST', 'M05.INCIDENT',"
-                        + " ?, ?, ?, 'Sự cố mới', UTC_TIMESTAMP(6), 'VALID')",
+                        + " event_key, level, title, received_at, intake_result, contents, recipient_groups) VALUES ('M05',"
+                        + " 'TEST', 'M05.INCIDENT',"
+                        + " ?, ?, ?, 'Sự cố mới', UTC_TIMESTAMP(6), 'VALID', JSON_ARRAY(), JSON_ARRAY())",
                 key,
                 key,
                 level.name());
@@ -101,15 +102,17 @@ class NFR_03_DeliveryDispatcherIT extends M13IntegrationTestBase {
     }
 
     private String result(long attemptId) {
-        List<String> r =
-                jdbc.queryForList("SELECT result FROM delivery_result WHERE attempt_id = ?", String.class, attemptId);
+        List<String> r = jdbc.queryForList(
+                "SELECT m13_result FROM record_event WHERE kind = 'M13.DELIVERY_RESULT' AND entity_id = ?",
+                String.class,
+                attemptId);
         return r.isEmpty() ? null : r.getFirst();
     }
 
     private String status(long attemptId) {
         return jdbc.queryForObject(
-                "SELECT s.status FROM notification_state s JOIN delivery_attempt a ON a.notification_id ="
-                        + " s.notification_id WHERE a.id = ?",
+                "SELECT n.status FROM notification n JOIN record_event a ON a.entity_id = n.id WHERE a.id = ?"
+                        + " AND a.kind = 'M13.DELIVERY_ATTEMPT'",
                 String.class,
                 attemptId);
     }
@@ -145,7 +148,9 @@ class NFR_03_DeliveryDispatcherIT extends M13IntegrationTestBase {
         await().atMost(Duration.ofSeconds(10)).until(() -> result(attempt) != null);
         await().during(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(3)).until(() -> true);
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM delivery_result WHERE attempt_id = ?", Integer.class, attempt))
+                        "SELECT COUNT(*) FROM record_event WHERE kind = 'M13.DELIVERY_RESULT' AND entity_id = ?",
+                        Integer.class,
+                        attempt))
                 .isEqualTo(1);
     }
 

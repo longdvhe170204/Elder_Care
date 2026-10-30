@@ -2,7 +2,12 @@ package com.eldercare.backend.notification.internal.delivery.persistence;
 
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.notification.internal.delivery.domain.AttemptContext;
+import com.eldercare.backend.notification.internal.delivery.domain.Retry;
 import com.eldercare.backend.notification.internal.delivery.domain.SendResult;
+import com.eldercare.backend.notification.internal.domain.DeliveryAttemptContent;
+import com.eldercare.backend.notification.internal.domain.DeliveryResultContent;
+import com.eldercare.backend.notification.internal.persistence.M13SharedRows;
+import com.eldercare.backend.notification.internal.persistence.M13Sql;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -17,20 +22,25 @@ import org.springframework.stereotype.Repository;
 public class DeliveryStore {
 
     private final JdbcTemplate jdbc;
+    private final M13SharedRows shared;
 
-    public DeliveryStore(JdbcTemplate jdbc) {
+    public DeliveryStore(JdbcTemplate jdbc, M13SharedRows shared) {
         this.jdbc = jdbc;
+        this.shared = shared;
     }
 
     /** Lần gửi chưa có kết quả; rỗng khi không có hoặc đã gửi xong. */
     public Optional<AttemptContext> pending(long attemptId) {
         return jdbc
                 .query(
-                        "SELECT a.id, a.notification_id, a.channel, a.address, n.account_id, n.level, r.title,"
-                                + " COALESCE(a.content, r.short_content)"
-                                + " FROM delivery_attempt a JOIN notification n ON n.id = a.notification_id"
+                        "SELECT a.id, a.entity_id, " + M13Sql.channel("a") + ", JSON_VALUE(a.content, '$.address'),"
+                                + " n.account_id, n.level, r.title,"
+                                + " COALESCE(JSON_VALUE(a.content, '$.content'), r.short_content)"
+                                + " FROM record_event a JOIN notification n ON n.id = a.entity_id"
                                 + " JOIN notification_request r ON r.id = n.request_id"
-                                + " WHERE a.id = ? AND NOT EXISTS (SELECT 1 FROM delivery_result x WHERE x.attempt_id = a.id)",
+                                + " WHERE a.id = ? AND " + M13Sql.attempts("a")
+                                + " AND NOT EXISTS (SELECT 1 FROM record_event x WHERE " + M13Sql.resultOf("x", "a")
+                                + ")",
                         (rs, i) -> new AttemptContext(
                                 rs.getLong(1),
                                 rs.getLong(2),
@@ -53,14 +63,14 @@ public class DeliveryStore {
     /** Ghi kết quả kèm lần gửi tin tổng hợp (với {@code BATCHED}, FR-018). */
     public boolean insertResult(long attemptId, SendResult result, Long digestAttemptId, Instant at) {
         try {
-            jdbc.update(
-                    "INSERT INTO delivery_result (attempt_id, result, reason, digest_attempt_id, occurred_at)"
-                            + " VALUES (?, ?, ?, ?, ?)",
+            shared.addEvent(
+                    DeliveryResultContent.KIND,
+                    DeliveryAttemptContent.KIND.code(),
                     attemptId,
-                    result.outcome().name(),
-                    result.reason().orElse(null),
-                    digestAttemptId,
-                    utc(at));
+                    new DeliveryResultContent(result.outcome(), result.reason().orElse(null), digestAttemptId),
+                    null,
+                    at,
+                    DeliveryResultContent.uniqueKey(attemptId));
             return true;
         } catch (DuplicateKeyException e) {
             return false;
@@ -68,16 +78,14 @@ public class DeliveryStore {
     }
 
     /** Lần gửi kênh ngoài lỗi tạm cần gửi lại (FR-018): lần mới nhất của kênh, số lần thử chưa vượt giới hạn. */
-    public record Retry(long notificationId, String channel, String address, String content) {}
-
     public List<Retry> retryable(int maxAttemptNo, int limit) {
         return jdbc.query(
-                "SELECT a.notification_id, a.channel, a.address, a.content FROM delivery_attempt a"
-                        + " JOIN delivery_result r ON r.attempt_id = a.id"
-                        + " WHERE a.channel <> 'IN_APP' AND a.channel <> 'FAMILY_PORTAL' AND r.result = 'FAILED'"
-                        + " AND r.reason LIKE 'TEMPORARY%' AND a.attempt_no <= ?"
-                        + " AND a.attempt_no = (SELECT MAX(x.attempt_no) FROM delivery_attempt x"
-                        + " WHERE x.notification_id = a.notification_id AND x.channel = a.channel)"
+                "SELECT a.entity_id, " + M13Sql.channel("a") + ", JSON_VALUE(a.content, '$.address'),"
+                        + " JSON_VALUE(a.content, '$.content') FROM record_event r JOIN record_event a"
+                        + " ON " + M13Sql.resultOf("r", "a") + " AND " + M13Sql.attempts("a")
+                        + " WHERE r.m13_result = 'FAILED' AND JSON_VALUE(r.content, '$.reason') LIKE 'TEMPORARY%'"
+                        + " AND " + M13Sql.channel("a") + " NOT IN ('IN_APP', 'FAMILY_PORTAL')"
+                        + " AND " + M13Sql.attemptNo("a") + " <= ? AND " + M13Sql.latestOfChannel("a")
                         + " ORDER BY a.id LIMIT ?",
                 (rs, i) -> new Retry(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4)),
                 maxAttemptNo,

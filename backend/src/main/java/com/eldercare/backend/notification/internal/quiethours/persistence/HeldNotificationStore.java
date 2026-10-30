@@ -4,6 +4,7 @@ import com.eldercare.backend.common.notification.InformationSubject;
 import com.eldercare.backend.common.notification.InformationType;
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.notification.api.dto.RecipientType;
+import com.eldercare.backend.notification.internal.quiethours.domain.HeldNotification;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -20,21 +21,6 @@ import tools.jackson.databind.json.JsonMapper;
 @Repository
 public class HeldNotificationStore {
 
-    /** Thông báo đang giữ cùng yêu cầu của nó, đủ để xét lại người nhận (FR-025). */
-    public record Held(
-            long id,
-            RecipientType recipientType,
-            long recipientId,
-            List<String> basis,
-            NotificationLevel level,
-            Long residentId,
-            Optional<InformationSubject> informationSubject,
-            boolean hasQ354Case,
-            boolean invalidOutOfAppContent,
-            boolean afterDeath,
-            Set<InformationType> requestParts,
-            Instant scheduledSendAt) {}
-
     private final JdbcTemplate jdbc;
     private final JsonMapper json;
 
@@ -46,10 +32,8 @@ public class HeldNotificationStore {
     /** Id thông báo đang giữ có thời điểm gửi dự kiến tới {@code now}, theo thứ tự tiếp nhận yêu cầu (FR-025). */
     public List<Long> due(Instant now, int limit) {
         return jdbc.queryForList(
-                "SELECT s.notification_id FROM notification_state s"
-                        + " JOIN notification n ON n.id = s.notification_id"
-                        + " JOIN notification_request r ON r.id = n.request_id"
-                        + " WHERE s.status = 'HELD_FOR_QUIET_HOURS' AND s.scheduled_send_at <= ?"
+                "SELECT n.id FROM notification n JOIN notification_request r ON r.id = n.request_id"
+                        + " WHERE n.status = 'HELD_FOR_QUIET_HOURS' AND n.scheduled_send_at <= ?"
                         + " ORDER BY r.received_at, n.id LIMIT ?",
                 Long.class,
                 utc(now),
@@ -59,47 +43,41 @@ public class HeldNotificationStore {
     /** Mọi thông báo đang giữ, để tính lại thời điểm gửi khi CFG-M13-02 đổi (FR-024). */
     public List<Long> allHeld() {
         return jdbc.queryForList(
-                "SELECT notification_id FROM notification_state WHERE status = 'HELD_FOR_QUIET_HOURS'"
-                        + " ORDER BY notification_id",
-                Long.class);
+                "SELECT id FROM notification WHERE status = 'HELD_FOR_QUIET_HOURS' ORDER BY id", Long.class);
     }
 
     /** Thông báo người thân đang giữ về người cao tuổi này (FR-015, FR-025: qua đời trước giờ gửi). */
     public List<Long> heldForFamilyOf(long residentId) {
         return jdbc.queryForList(
-                "SELECT s.notification_id FROM notification_state s"
-                        + " JOIN notification n ON n.id = s.notification_id"
-                        + " JOIN notification_request r ON r.id = n.request_id"
-                        + " WHERE s.status = 'HELD_FOR_QUIET_HOURS' AND n.recipient_type = 'FAMILY_MEMBER'"
+                "SELECT n.id FROM notification n JOIN notification_request r ON r.id = n.request_id"
+                        + " WHERE n.status = 'HELD_FOR_QUIET_HOURS' AND n.recipient_type = 'FAMILY_MEMBER'"
                         + " AND r.resident_id = ? ORDER BY r.received_at, n.id",
                 Long.class,
                 residentId);
     }
 
-    /** Khóa dòng trạng thái rồi đọc; rỗng khi thông báo không còn đang giữ (lượt khác đã xử lý). */
-    public Optional<Held> lock(long notificationId) {
+    /** Khóa dòng thông báo rồi đọc; rỗng khi thông báo không còn đang giữ (lượt khác đã xử lý). */
+    public Optional<HeldNotification> lock(long notificationId) {
         List<String> status = jdbc.queryForList(
-                "SELECT status FROM notification_state WHERE notification_id = ? FOR UPDATE",
-                String.class,
-                notificationId);
+                "SELECT status FROM notification WHERE id = ? FOR UPDATE", String.class, notificationId);
         if (status.isEmpty() || !"HELD_FOR_QUIET_HOURS".equals(status.getFirst())) {
             return Optional.empty();
         }
         Set<InformationType> parts = EnumSet.noneOf(InformationType.class);
         jdbc.queryForList(
-                        "SELECT c.information_type FROM notification_request_content c"
-                                + " JOIN notification n ON n.request_id = c.request_id WHERE n.id = ?",
+                        "SELECT c.information_type FROM notification n JOIN notification_request r"
+                                + " ON r.id = n.request_id, JSON_TABLE(r.contents, '$[*]' COLUMNS"
+                                + " (information_type VARCHAR(20) PATH '$.informationType')) c WHERE n.id = ?",
                         String.class,
                         notificationId)
                 .forEach(t -> parts.add(InformationType.valueOf(t)));
         return Optional.of(jdbc.queryForObject(
                 "SELECT n.recipient_type, n.recipient_id, n.basis, n.level, r.resident_id, r.information_subject,"
-                        + " r.q354_case, s.scheduled_send_at, FIND_IN_SET('INVALID_OUT_OF_APP_CONTENT', r.flags) > 0,"
+                        + " r.q354_case, n.scheduled_send_at, FIND_IN_SET('INVALID_OUT_OF_APP_CONTENT', r.flags) > 0,"
                         + " FIND_IN_SET('AFTER_DEATH', r.flags) > 0"
                         + " FROM notification n"
-                        + " JOIN notification_request r ON r.id = n.request_id"
-                        + " JOIN notification_state s ON s.notification_id = n.id WHERE n.id = ?",
-                (rs, i) -> new Held(
+                        + " JOIN notification_request r ON r.id = n.request_id WHERE n.id = ?",
+                (rs, i) -> new HeldNotification(
                         notificationId,
                         RecipientType.valueOf(rs.getString(1)),
                         rs.getLong(2),

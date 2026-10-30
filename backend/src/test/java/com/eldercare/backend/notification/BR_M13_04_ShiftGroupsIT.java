@@ -132,7 +132,8 @@ class BR_M13_04_ShiftGroupsIT extends M13IntegrationTestBase {
 
     private List<String> outcomes(long requestId) {
         return jdbc.queryForList(
-                "SELECT outcome FROM notification_request_recipient_group WHERE request_id = ? ORDER BY seq",
+                "SELECT g.outcome FROM notification_request r, JSON_TABLE(r.recipient_groups, '$[*]' COLUMNS"
+                        + " (seq INT PATH '$.seq', outcome VARCHAR(40) PATH '$.outcome')) g WHERE r.id = ? ORDER BY g.seq",
                 String.class,
                 requestId);
     }

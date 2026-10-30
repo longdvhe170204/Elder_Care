@@ -6,9 +6,9 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.notification.api.dto.RecipientType;
 import com.eldercare.backend.notification.internal.job.service.M13FastTask;
 import com.eldercare.backend.notification.internal.persistence.NotificationStore;
+import com.eldercare.backend.notification.internal.urgent.domain.DueNotification;
+import com.eldercare.backend.notification.internal.urgent.domain.Reminder;
 import com.eldercare.backend.notification.internal.urgent.persistence.CallReminderStore;
-import com.eldercare.backend.notification.internal.urgent.persistence.CallReminderStore.DueNotification;
-import com.eldercare.backend.notification.internal.urgent.persistence.CallReminderStore.Reminder;
 import java.time.Instant;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -112,6 +112,7 @@ public class CallReminderCreation implements M13FastTask {
             // Không ai trong thứ tự FR-029 đủ điều kiện: xét lại ở nhịp sau
             return false;
         }
+        Instant due = now.plus(parameters.read(ParameterCode.CFG_M13_04).asDuration());
         long id = store.insertReminder(
                 null,
                 d.calleeType(),
@@ -121,9 +122,10 @@ public class CallReminderCreation implements M13FastTask {
                 d.sourceRecordId(),
                 d.floorAreaId(),
                 d.deliveryFailed() ? "DELIVERY_FAILED" : "UNACKNOWLEDGED",
+                due,
+                to.get().staffId(),
+                key,
                 now);
-        Instant due = now.plus(parameters.read(ParameterCode.CFG_M13_04).asDuration());
-        store.insertState(id, due, to.get().staffId(), key);
         store.link(id, d.notificationId(), now);
         actions.assign(id, null, to.get(), "INITIAL", due, now);
         return true;

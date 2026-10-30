@@ -12,7 +12,7 @@ import com.eldercare.backend.common.notification.NotificationRequest;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.notification.SourceGroup;
 import com.eldercare.backend.common.notification.SourceRecord;
-import com.eldercare.backend.notification.internal.urgent.persistence.CallReminderStore.Reminder;
+import com.eldercare.backend.notification.internal.urgent.domain.Reminder;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
