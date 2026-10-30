@@ -110,6 +110,7 @@ administration/approval/
 | Chỉ `persistence` dùng JDBC (`org.springframework.jdbc`); ngoại lệ: phần `administration.retention` và lớp cài `RetentionProvider` | `LayerArchTest` |
 | Gốc `api` chỉ chứa interface, chú thích; record, enum ở `api/dto`, sự kiện ở `api/events` | `LayerArchTest` |
 | Lớp `persistence` không khai báo record lồng; record trả về đặt ở `domain` | `LayerArchTest` |
+| Mọi bảng khai nhóm dữ liệu: entity bằng `@DataGroup`, bảng JDBC bằng `COMMENT = 'DataGroup=CATALOG\|BUSINESS\|RECORD\|MULTIPLE\|TECHNICAL'` khi tạo bảng; bảng `RECORD` có `trg_<bảng>_no_update`, `trg_<bảng>_no_delete` | `RecordGroupTriggerIT` (audit F-04) |
 
 Chỗ lệch có sẵn trước luật (rà 2026-10-30) ghi ở các hằng `PENDING_*` của `LayerArchTest`, kèm chủ module; người sửa xóa dòng tương ứng, không thêm dòng mới.
 | Mọi `@BusinessCommand` có `@RequiresPermission` (hoặc trong danh sách tự kiểm) | `RequiresPermissionArchTest` |

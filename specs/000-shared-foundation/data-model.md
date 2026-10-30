@@ -283,11 +283,15 @@ Bảo đảm:
 | Bảng | Mục đích | Ghi chú |
 | --- | --- | --- |
 | `lan_chay_lich` | Định danh lần chạy job (FR-045): `id`, `job`, `bat_dau`, `ket_thuc`, `ket_qua`, `so_xu_ly` | Dữ liệu kỹ thuật *(R-15: `lan_chay_lich` → file `logs/jobs.log`)* |
-| `khoa_lap_lai` | `Idempotency-Key`: `(khoa, nguoi_dung_id)` là khóa chính, cùng `ma_bam_yeu_cau`, `ket_qua_json`, `het_han_luc` | Giữ 7 ngày (kỹ thuật, không phải CFG). *(Sửa khi cài 2026-10-19)* Người gửi lưu bằng tên đăng nhập (`username`) thay cho `nguoi_dung_id`, vì gói `common` không được phụ thuộc M15 (xem plan, Ghi chú triển khai) |
-| `event_publication` | Event Publication Registry của Spring Modulith (R-09) | Do thư viện quản lý |
+| `khoa_lap_lai` (`idempotency_key`) | `Idempotency-Key`: `(khoa, nguoi_dung_id)` là khóa chính, cùng `ma_bam_yeu_cau`, `ket_qua_json`, `het_han_luc` | Giữ 7 ngày (kỹ thuật, không phải CFG). *(Audit F-11, 2026-10-30)* Job `CLEAN_TECHNICAL_DATA` (03:15 hằng ngày) xóa dòng đã qua `het_han_luc`. *(Sửa khi cài 2026-10-19)* Người gửi lưu bằng tên đăng nhập (`username`) thay cho `nguoi_dung_id`, vì gói `common` không được phụ thuộc M15 (xem plan, Ghi chú triển khai) |
+| `event_publication` (`EVENT_PUBLICATION`) | Event Publication Registry của Spring Modulith (R-09) | Do thư viện quản lý. *(Audit F-12, 2026-10-30)* Sự kiện đã giao xong giữ 7 ngày để tra sự cố (thông số kỹ thuật), job `CLEAN_TECHNICAL_DATA` xóa sau đó; sự kiện chưa giao xong giữ để giao lại khi khởi động |
 | `shedlock` | Khóa job (R-10) | Do thư viện quản lý |
+| `chuoi_dinh_chinh` (`correction_chain`) | Bộ đếm số thứ tự, cờ Hủy ghi nhận của chuỗi đính chính (mục 4) | Kỹ thuật; giữ bảng riêng sau R-15 (plan, T108 phần 2) |
+| `moc_da_nhac` (`reminder_marker`), `khoa_ky_thuat` (`technical_lock`) | Dấu đã nhắc, dòng khóa (mục 8) | Kỹ thuật |
 
 Các bảng kỹ thuật không thuộc ba nhóm nghiệp vụ, nên không ghi nhật ký nghiệp vụ.
+
+*(Audit F-04, 2026-10-30)* Mọi bảng khai nhóm dữ liệu: bảng có entity JPA bằng `@DataGroup`, bảng còn lại bằng COMMENT của bảng `DataGroup=CATALOG|BUSINESS|RECORD|MULTIPLE|TECHNICAL` (`V000_13` cho bảng của 000). `RecordGroupTriggerIT` kiểm mọi bảng có nhóm, bảng `RECORD` có hai trigger, bảng có `locked_at` có trigger theo dòng; bảng có sẵn chưa khai nằm ở `PENDING_DATA_GROUP` của test, chủ module khai khi làm migration gộp `_95`.
 
 ---
 
