@@ -1,6 +1,6 @@
 package com.eldercare.backend.administration.account.internal.permission.domain;
 
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 
 /**
  * Hành động nhật ký đổi quyền (002 US7; data-model mục 6, glossary mục 7): {@code QUYEN_THU_HEP},

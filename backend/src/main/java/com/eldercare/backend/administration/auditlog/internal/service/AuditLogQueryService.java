@@ -9,7 +9,7 @@ import com.eldercare.backend.administration.account.api.dto.InfoGroup;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.dto.Visibility;
 import com.eldercare.backend.administration.account.api.spi.ScopeAssignmentProvider;
-import com.eldercare.backend.administration.auditlog.api.AuditLogPermissions;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogPermissions;
 import com.eldercare.backend.administration.auditlog.api.spi.FieldClassificationProvider;
 import com.eldercare.backend.administration.auditlog.internal.domain.AuditLogCriteria;
 import com.eldercare.backend.administration.auditlog.internal.domain.AuditLogRow;

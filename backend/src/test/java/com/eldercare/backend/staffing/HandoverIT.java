@@ -635,7 +635,7 @@ class HandoverIT extends MySqlIntegrationTestBase {
         corrections.create(
                 "M09.HANDOVER",
                 id,
-                com.eldercare.backend.administration.correction.api.CorrectionType.AMEND_CONTENT,
+                com.eldercare.backend.administration.correction.api.dto.CorrectionType.AMEND_CONTENT,
                 Map.of("generalAssessment", "Nhận định đã đính chính"),
                 new com.eldercare.backend.common.Reason("Sửa nhận định sau kiểm tra"));
         assertThat(service.general(id)).isEqualTo("Nhận định đã đính chính");
@@ -801,7 +801,7 @@ class HandoverIT extends MySqlIntegrationTestBase {
                 .findFirst()
                 .orElseThrow();
         var period = parameters
-                .read(com.eldercare.backend.administration.parameter.api.ParameterCode.CFG_M15_03)
+                .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M15_03)
                 .asPeriod();
         residents.changeStatus(resident, com.eldercare.backend.resident.api.dto.ResidentStatus.RESIDENCY_ENDED, ends);
         clock.setTo(ends.atZone(BusinessTime.ZONE).plus(period).plusSeconds(1).toInstant());

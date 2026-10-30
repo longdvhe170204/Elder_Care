@@ -1,6 +1,6 @@
 package com.eldercare.backend.administration.parameter.internal.persistence;
 
-import com.eldercare.backend.administration.parameter.api.ParameterKind;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterKind;
 import com.eldercare.backend.administration.parameter.internal.domain.ParameterHistoryRow;
 import com.eldercare.backend.administration.parameter.internal.domain.ParameterRow;
 import java.sql.ResultSet;

@@ -15,10 +15,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.correction.api.CorrectionApi;
-import com.eldercare.backend.administration.correction.api.CorrectionChainView;
 import com.eldercare.backend.administration.correction.api.CorrectionResult;
-import com.eldercare.backend.administration.correction.api.CorrectionType;
-import com.eldercare.backend.administration.correction.api.CreationMethod;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionChainView;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
+import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.administration.sample.CorrectionFixtures;
 import com.eldercare.backend.administration.sample.SampleFloorRecordProvider;
 import com.eldercare.backend.administration.sample.SampleOfficeRecordProvider;

@@ -1,9 +1,9 @@
 package com.eldercare.backend.administration.approval.internal.persistence;
 
 import com.eldercare.backend.administration.account.api.dto.Target;
-import com.eldercare.backend.administration.approval.api.ApprovalRequestView;
-import com.eldercare.backend.administration.approval.api.ApprovalStatus;
-import com.eldercare.backend.administration.approval.api.ResultRef;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalStatus;
+import com.eldercare.backend.administration.approval.api.dto.ResultRef;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;

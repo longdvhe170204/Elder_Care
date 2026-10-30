@@ -3,6 +3,7 @@ package com.eldercare.backend.staffing.assignment.internal.service;
 import com.eldercare.backend.administration.account.api.*;
 import com.eldercare.backend.administration.account.api.dto.*;
 import com.eldercare.backend.administration.auditlog.api.*;
+import com.eldercare.backend.administration.auditlog.api.dto.*;
 import com.eldercare.backend.common.*;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.*;
