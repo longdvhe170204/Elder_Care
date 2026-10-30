@@ -977,6 +977,10 @@ Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phas
 
 *Chủ feature điền khi dịch `contracts/api-007.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
 
+| Tên logic | Mã |
+| --- | --- |
+| sự kiện `SuCoDaGhiNhan(suCoId, nctId, loai, muc, canDanhGiaLai)` | `IncidentRecorded(incidentId, residentId, type, level, needsReassessment)` |
+
 
 ## 14. Feature 008 (`008-staff-shift-handover`, E)
 
