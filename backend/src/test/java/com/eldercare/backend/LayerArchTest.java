@@ -1,13 +1,20 @@
 package com.eldercare.backend;
 
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
+import com.eldercare.backend.administration.retention.api.RetentionDatabase;
+import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -52,19 +59,133 @@ class LayerArchTest {
     private static final String[] DOMAIN = inModules("..internal..domain..");
     private static final String[] PERSISTENCE = inModules("..internal..persistence..");
 
-    /** Lớp trong {@code internal} nằm ở một tầng; module lớn có gói chức năng ở giữa ({@code internal.auth.service}). */
+    /*
+     * Chỗ lệch có sẵn trước các luật trên (rà 2026-10-30), chủ module sửa khi converge feature của mình (team-plan mục
+     * 8). Sửa xong thì xóa dòng; không thêm dòng mới.
+     */
+
+    /** E (008): chức năng của staffing chuyển vào {@code staffing.internal.<chức năng>}, controller vào {@code staffing.web}. */
+    private static final String[] PENDING_MODULE_ROOT_PACKAGES = Stream.of(
+                    "assignment", "credential", "duty", "handover", "ratio", "shift", "staff")
+            .map(part -> "com.eldercare.backend.staffing." + part + "..")
+            .toArray(String[]::new);
+
+    /** D (006): request, response của medication về {@code medication.web}; E (008): {@code service.port} về {@code service}. */
+    private static final String[] PENDING_LAYER_SUB_PACKAGES = {
+        "com.eldercare.backend.medication.internal.service.request",
+        "com.eldercare.backend.medication.internal.service.response",
+        "com.eldercare.backend.staffing..internal.service.port"
+    };
+
+    /** Câu SQL chuyển vào lớp {@code *Store} trong {@code persistence}: A (administration, notification), B (resident), E (staffing). */
+    private static final Set<String> PENDING_JDBC_OUTSIDE_PERSISTENCE = Set.of(
+            "administration.account.internal.auth.service.FirstManagerBootstrap",
+            "administration.account.internal.auth.service.SessionService",
+            "administration.account.internal.legal.service.LicenseExpiryWarnings",
+            "administration.account.internal.offline.service.SyncService",
+            "administration.account.internal.permission.service.AccountPermissionsQuery",
+            "administration.account.internal.permission.service.ApproverService",
+            "administration.account.internal.permission.service.FieldVisibilityService",
+            "administration.account.internal.permission.service.RolePermissionCalculator",
+            "administration.account.internal.scope.service.PermissionDataErrors",
+            "administration.account.internal.scope.service.ScopeService",
+            "administration.approval.internal.service.DueRequestApplication",
+            "administration.approval.internal.service.PendingRequestReminder",
+            "administration.auditlog.internal.service.AuditLogQueryService",
+            "administration.auditlog.internal.service.AuditLogService",
+            "administration.correction.internal.service.CorrectionService",
+            "administration.parameter.internal.service.ParameterService",
+            "notification.internal.governance.service.DirectContactResultCorrection",
+            "notification.internal.governance.service.NotificationScopeAssignment",
+            "notification.internal.urgent.service.CallResultCorrection",
+            "resident.internal.assessment.service.CareLevelChangeRequestReminderService",
+            "resident.internal.assessment.service.ReassessmentNoticeService",
+            "resident.internal.consent.service.MissingConsentReminderService",
+            "resident.internal.status.service.TemporaryAbsenceOverdueAlert",
+            "resident.internal.wish.service.WishReminderService",
+            "staffing.assignment.internal.service.AssignmentReminders",
+            "staffing.credential.internal.service.CredentialInvalidityEffects",
+            "staffing.credential.internal.service.CredentialReminders",
+            "staffing.credential.internal.service.CredentialService",
+            "staffing.duty.internal.service.PracticeScopeLookup",
+            "staffing.handover.internal.service.HandoverCorrection",
+            "staffing.internal.config.M09GovernanceConfig",
+            "staffing.shift.internal.service.ShiftLifecycle",
+            "staffing.staff.internal.service.StaffEmploymentEffects",
+            "staffing.staff.internal.service.StaffService");
+
+    /** A: record, enum ở gốc {@code api} chuyển vào {@code api.dto}, sự kiện vào {@code api.events}; C (005): care. */
+    private static final Set<String> PENDING_API_ROOT_TYPES = Set.of(
+            "administration.approval.api.ApprovalCommands",
+            "administration.approval.api.ApprovalRequestDetails",
+            "administration.approval.api.ApprovalRequestView",
+            "administration.approval.api.ApprovalStatus",
+            "administration.approval.api.ApproverReminderDue",
+            "administration.approval.api.CreateRequest",
+            "administration.approval.api.ExtendedTransitions",
+            "administration.approval.api.ManagerEscalationDue",
+            "administration.approval.api.Notices",
+            "administration.approval.api.RequestApplied",
+            "administration.approval.api.RequestApplyFailed",
+            "administration.approval.api.RequestCancelled",
+            "administration.approval.api.RequestCreated",
+            "administration.approval.api.RequestDecided",
+            "administration.approval.api.RequestSubmitted",
+            "administration.approval.api.ResultRef",
+            "administration.auditlog.api.AuditAction",
+            "administration.auditlog.api.AuditLogEntry",
+            "administration.auditlog.api.AuditLogPermissions",
+            "administration.auditlog.api.AuditLogRecord",
+            "administration.auditlog.api.Basis",
+            "administration.correction.api.CorrectionChainView",
+            "administration.correction.api.CorrectionMade",
+            "administration.correction.api.CorrectionPermissions",
+            "administration.correction.api.CorrectionType",
+            "administration.correction.api.CorrectionView",
+            "administration.correction.api.CreationMethod",
+            "administration.correction.api.CurrentValue",
+            "administration.parameter.api.ParameterChanged",
+            "administration.parameter.api.ParameterCode",
+            "administration.parameter.api.ParameterKind",
+            "administration.parameter.api.ParameterPermissions",
+            "administration.parameter.api.ParameterValue",
+            "administration.retention.api.RetentionDatabase",
+            "care.api.MedicationChecklistItem");
+
+    /** Record lồng chuyển ra {@code domain}: A (administration, notification), B (resident), C (roombedallocation). */
+    private static final Set<String> PENDING_NESTED_RECORD_OWNERS = Set.of(
+            "administration.account.internal.auth.persistence.DeviceBindings",
+            "administration.account.internal.legal.persistence.ProfessionalActivities",
+            "administration.account.internal.permission.persistence.PermissionChanges",
+            "notification.internal.delivery.persistence.DeliveryStore",
+            "notification.internal.delivery.persistence.SmsWindowStore",
+            "notification.internal.directcontact.persistence.DirectContactStore",
+            "notification.internal.persistence.NotificationStore",
+            "notification.internal.quiethours.persistence.HeldNotificationStore",
+            "notification.internal.urgent.persistence.CallReminderStore",
+            "resident.internal.profile.persistence.ResidentLookup",
+            "resident.internal.wish.persistence.EndOfLifeWishStore",
+            "resident.internal.wish.persistence.TreatmentWishStore",
+            "roombedallocation.internal.allocation.persistence.AllocationReminderStore",
+            "roombedallocation.internal.bed.persistence.BedAssetStateStore",
+            "roombedallocation.internal.bed.persistence.BedHoldStore",
+            "roombedallocation.internal.bed.persistence.BedReadinessStore");
+
+    /**
+     * Lớp trong {@code internal} nằm ở một tầng; module lớn có gói chức năng ở giữa ({@code internal.auth.service}). Tầng
+     * không có gói con ({@code service.request}, {@code service.port}).
+     */
     @ArchTest
     static final ArchRule internalClassesLiveInALayer = classes()
             .that()
             .resideInAnyPackage(inModules("..internal.."))
             .and()
+            .resideOutsideOfPackages(PENDING_LAYER_SUB_PACKAGES)
+            .and()
             .doNotHaveSimpleName("package-info")
             .should()
             .resideInAnyPackage(inModules(
-                    "..internal..service..",
-                    "..internal..domain..",
-                    "..internal..persistence..",
-                    "..internal..config.."))
+                    "..internal..service", "..internal..domain", "..internal..persistence", "..internal..config"))
             .allowEmptyShould(true);
 
     /** Controller chỉ gọi service; không đọc ghi dữ liệu trực tiếp (yêu cầu tổ chức lại, mục 3.2). */
@@ -114,4 +235,77 @@ class LayerArchTest {
             .dependOnClassesThat()
             .resideInAnyPackage(concat(inModules("..internal.."), WEB))
             .allowEmptyShould(true);
+
+    /**
+     * Gói cấp một của module chỉ là {@code api}, {@code web}, {@code internal}, {@code scheduling}; M15 thêm một cấp phần
+     * ({@code administration.approval.api}). Module lớn chia chức năng trong {@code internal}, không ở gốc module.
+     */
+    @ArchTest
+    static final ArchRule moduleTopLevelPackages = classes()
+            .that()
+            .resideInAnyPackage(inModules(".."))
+            .and()
+            .resideOutsideOfPackages(PENDING_MODULE_ROOT_PACKAGES)
+            .and()
+            .doNotHaveSimpleName("package-info")
+            .should()
+            .resideInAnyPackage(Stream.of(MODULES)
+                    .flatMap(module -> Stream.of("api", "web", "internal", "scheduling")
+                            .map(top -> "com.eldercare.backend." + module
+                                    + (module.equals("administration") ? ".*." : ".") + top + ".."))
+                    .toArray(String[]::new))
+            .allowEmptyShould(true);
+
+    /**
+     * Chỉ {@code persistence} đọc ghi bảng bằng JDBC; service gọi lớp {@code *Store} (README backend mục 3). Phần
+     * {@code administration.retention} và lớp cài {@link RetentionProvider} dùng kết nối {@code eldercare_retention} của
+     * {@link RetentionDatabase} (research R-05, R-11 của 000).
+     */
+    @ArchTest
+    static final ArchRule jdbcOnlyInPersistence = noClasses()
+            .that()
+            .resideInAnyPackage(inModules(".."))
+            .and()
+            .resideOutsideOfPackages(
+                    concat(PERSISTENCE, new String[] {"com.eldercare.backend.administration.retention.."}))
+            .and(not(assignableTo(RetentionProvider.class)))
+            .and(not(pending(PENDING_JDBC_OUTSIDE_PERSISTENCE)))
+            .should()
+            .dependOnClassesThat()
+            .resideInAnyPackage("org.springframework.jdbc..")
+            .allowEmptyShould(true);
+
+    /** Gốc {@code api} chỉ chứa interface và chú thích; record, enum đặt ở {@code api.dto}, sự kiện ở {@code api.events}. */
+    @ArchTest
+    static final ArchRule apiRootHoldsInterfacesOnly = classes()
+            .that()
+            .resideInAnyPackage(inModules("..api"))
+            .and()
+            .areTopLevelClasses()
+            .and()
+            .doNotHaveSimpleName("package-info")
+            .and(not(pending(PENDING_API_ROOT_TYPES)))
+            .should()
+            .beInterfaces()
+            .allowEmptyShould(true);
+
+    /** Lớp persistence trả record của {@code domain}, không khai báo record lồng (README backend mục 2). */
+    @ArchTest
+    static final ArchRule noNestedRecordsInPersistence = noClasses()
+            .that()
+            .resideInAnyPackage(PERSISTENCE)
+            .and()
+            .areNestedClasses()
+            .and(not(pending(PENDING_NESTED_RECORD_OWNERS)))
+            .should()
+            .beRecords()
+            .allowEmptyShould(true);
+
+    /** Lớp (kể cả lớp lồng, lambda) có lớp ngoài cùng nằm trong danh sách chờ sửa; tên tính từ gói gốc. */
+    private static DescribedPredicate<JavaClass> pending(Set<String> outerClasses) {
+        return DescribedPredicate.describe(
+                "trong danh sách chờ sửa",
+                c -> outerClasses.contains(
+                        c.getName().replace("com.eldercare.backend.", "").replaceAll("\\$.*", "")));
+    }
 }
