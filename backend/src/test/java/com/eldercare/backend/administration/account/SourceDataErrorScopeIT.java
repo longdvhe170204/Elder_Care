@@ -93,7 +93,9 @@ class SourceDataErrorScopeIT extends MySqlIntegrationTestBase {
                         .map(e -> List.of(e.source(), e.errorKind())))
                 .containsExactly(List.of("M09.ASSIGNMENT", "FLOOR_INACTIVE"));
         assertThat(jdbc.queryForObject(
-                        "SELECT occurrences FROM permission_data_error WHERE record_id = ? AND fixed_at IS NULL",
+                        "SELECT JSON_VALUE(content, '$.occurrences' RETURNING SIGNED) FROM simple_record WHERE kind = 'M15.PERMISSION_DATA_ERROR'"
+                                + " AND JSON_VALUE(content, '$.recordId' RETURNING SIGNED) = ?"
+                                + " AND status = 'OPEN'",
                         Integer.class,
                         staffId))
                 .isGreaterThanOrEqualTo(2);

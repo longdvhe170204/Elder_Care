@@ -13,17 +13,17 @@ import com.eldercare.backend.administration.account.api.spi.BedAllocationView;
 import com.eldercare.backend.administration.account.api.spi.DutyApi;
 import com.eldercare.backend.administration.account.api.spi.FamilyRelationshipApi;
 import com.eldercare.backend.administration.account.api.spi.ResidencyEndApi;
+import com.eldercare.backend.administration.account.internal.domain.Account;
 import com.eldercare.backend.administration.account.internal.permission.domain.FootnoteRules;
 import com.eldercare.backend.administration.account.internal.permission.domain.PermissionScope;
 import com.eldercare.backend.administration.account.internal.permission.service.RolePermissionCalculator;
+import com.eldercare.backend.administration.account.internal.persistence.AccountStore;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.ParameterCode;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Fallback;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 /**
@@ -52,7 +51,7 @@ class ScopeService implements ScopeApi {
     private final BusinessTime time;
     private final ActiveAssignments assignments;
     private final RolePermissionCalculator roles;
-    private final JdbcTemplate jdbc;
+    private final AccountStore accounts;
     // ObjectProvider: 008, 003 cài; trước đó chỉ test khai bản giả
     private final ObjectProvider<BedAllocationApi> bedAllocations;
     private final ObjectProvider<DutyApi> duties;
@@ -65,7 +64,7 @@ class ScopeService implements ScopeApi {
             BusinessTime time,
             ActiveAssignments assignments,
             RolePermissionCalculator roles,
-            JdbcTemplate jdbc,
+            AccountStore accounts,
             ObjectProvider<BedAllocationApi> bedAllocations,
             ObjectProvider<DutyApi> duties,
             ObjectProvider<FamilyRelationshipApi> familyRelationships,
@@ -74,7 +73,7 @@ class ScopeService implements ScopeApi {
         this.time = time;
         this.assignments = assignments;
         this.roles = roles;
-        this.jdbc = jdbc;
+        this.accounts = accounts;
         this.bedAllocations = bedAllocations;
         this.duties = duties;
         this.familyRelationships = familyRelationships;
@@ -219,14 +218,7 @@ class ScopeService implements ScopeApi {
                 return new ReviewRecipient(Set.of(decider.get()));
             }
         }
-        return new ReviewRecipient(Set.copyOf(jdbc.queryForList(
-                "SELECT a.id FROM account a JOIN role_assignment r ON r.account_id = a.id"
-                        + " WHERE r.role = ? AND r.effective_from <= ? AND (r.effective_to IS NULL OR r.effective_to > ?)"
-                        + " AND a.status = 'ACTIVE'",
-                Long.class,
-                Role.NURSING_HOME_MANAGER.code(),
-                utc(time.now()),
-                utc(time.now()))));
+        return new ReviewRecipient(Set.copyOf(accounts.activeWithRoleAt(Role.NURSING_HOME_MANAGER, time.now())));
     }
 
     /** Có phương án toàn viện không vướng chú thích chặn ở lớp vai trò (FR-034). */
@@ -292,11 +284,6 @@ class ScopeService implements ScopeApi {
     }
 
     private Optional<Long> accountOfStaff(long staffId) {
-        return jdbc.queryForList("SELECT id FROM account WHERE staff_id = ?", Long.class, staffId).stream()
-                .findFirst();
-    }
-
-    private static LocalDateTime utc(Instant instant) {
-        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+        return accounts.byStaff(staffId).map(Account::id);
     }
 }

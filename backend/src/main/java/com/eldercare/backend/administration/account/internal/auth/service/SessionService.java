@@ -1,23 +1,18 @@
 package com.eldercare.backend.administration.account.internal.auth.service;
 
 import com.eldercare.backend.administration.account.api.dto.AccessChannel;
-import com.eldercare.backend.administration.account.api.dto.AccountType;
 import com.eldercare.backend.administration.account.internal.auth.domain.ActiveSession;
+import com.eldercare.backend.administration.account.internal.auth.domain.SessionRow;
+import com.eldercare.backend.administration.account.internal.auth.persistence.SessionStore;
+import com.eldercare.backend.administration.account.internal.persistence.AccountStore;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
 import com.eldercare.backend.administration.parameter.api.ParameterCode;
-import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
 
@@ -29,12 +24,14 @@ import tools.jackson.databind.JsonNode;
 @Service
 public class SessionService {
 
-    private final JdbcTemplate jdbc;
+    private final SessionStore sessions;
+    private final AccountStore accounts;
     private final BusinessTime time;
     private final ParameterApi parameters;
 
-    SessionService(JdbcTemplate jdbc, BusinessTime time, ParameterApi parameters) {
-        this.jdbc = jdbc;
+    SessionService(SessionStore sessions, AccountStore accounts, BusinessTime time, ParameterApi parameters) {
+        this.sessions = sessions;
+        this.accounts = accounts;
         this.time = time;
         this.parameters = parameters;
     }
@@ -55,131 +52,56 @@ public class SessionService {
      */
     public Optional<ActiveSession> resolveForSync(String token) {
         byte[] hash = SessionTokens.hash(token);
-        Optional<SyncRow> row = jdbc
-                .query(
-                        "SELECT s.account_id, s.device_id, s.channel, s.last_active_at, a.type, a.staff_id,"
-                                + " a.family_member_id, a.must_change_password, s.ended_at IS NULL, a.resident_id FROM login_session s"
-                                + " JOIN account a ON a.id = s.account_id"
-                                + " WHERE s.token_hash = ? AND (s.end_reason IS NULL OR s.end_reason <> 'LOGOUT')",
-                        (rs, i) -> new SyncRow(
-                                new OpenRow(
-                                        rs.getLong(1),
-                                        rs.getString(2),
-                                        AccessChannel.valueOf(rs.getString(3)),
-                                        rs.getObject(4, LocalDateTime.class).toInstant(ZoneOffset.UTC),
-                                        AccountType.valueOf(rs.getString(5)),
-                                        Optional.ofNullable(rs.getObject(6, Long.class)),
-                                        Optional.ofNullable(rs.getObject(7, Long.class)),
-                                        rs.getBoolean(8),
-                                        Optional.ofNullable(rs.getObject(10, Long.class))),
-                                rs.getBoolean(9)),
-                        hash)
-                .stream()
-                .findFirst();
+        Optional<SessionRow> row = sessions.forSync(hash);
         if (row.isEmpty()) {
             return Optional.empty();
         }
-        OpenRow found = row.get().session();
+        SessionRow found = row.get();
         Instant now = time.now();
-        if (row.get().open()) {
-            Optional<Duration> limit = idleLimit(found.channel());
-            String column = limit.isPresent()
-                            && Duration.between(found.lastActiveAt(), now).compareTo(limit.get()) > 0
-                    ? "ended_at = ?, end_reason = 'TIMED_OUT'"
-                    : "last_active_at = ?";
-            jdbc.update(
-                    "UPDATE login_session SET " + column + " WHERE token_hash = ? AND ended_at IS NULL",
-                    utc(now),
-                    hash);
+        if (found.open()) {
+            if (idle(found, now)) {
+                sessions.timeOut(hash, now);
+            } else {
+                sessions.touch(hash, now);
+            }
         }
-        return Optional.of(new ActiveSession(
-                found.accountId(),
-                found.type(),
-                found.staffId(),
-                found.familyMemberId(),
-                roles(found.accountId(), now),
-                found.deviceId(),
-                found.channel(),
-                found.residentId()));
+        return Optional.of(session(found, now));
     }
 
     /** Như {@link #resolve} kèm cờ buộc đổi mật khẩu cho bộ lọc phiên. */
     public Optional<Resolved> resolveRequest(String token) {
         byte[] hash = SessionTokens.hash(token);
-        Optional<OpenRow> row = jdbc
-                .query(
-                        "SELECT s.account_id, s.device_id, s.channel, s.last_active_at, a.type, a.staff_id,"
-                                + " a.family_member_id, a.must_change_password, a.resident_id FROM login_session s"
-                                + " JOIN account a ON a.id = s.account_id"
-                                + " WHERE s.token_hash = ? AND s.ended_at IS NULL",
-                        (rs, i) -> new OpenRow(
-                                rs.getLong(1),
-                                rs.getString(2),
-                                AccessChannel.valueOf(rs.getString(3)),
-                                rs.getObject(4, LocalDateTime.class).toInstant(ZoneOffset.UTC),
-                                AccountType.valueOf(rs.getString(5)),
-                                Optional.ofNullable(rs.getObject(6, Long.class)),
-                                Optional.ofNullable(rs.getObject(7, Long.class)),
-                                rs.getBoolean(8),
-                                Optional.ofNullable(rs.getObject(9, Long.class))),
-                        hash)
-                .stream()
-                .findFirst();
+        Optional<SessionRow> row = sessions.open(hash);
         if (row.isEmpty()) {
             return Optional.empty();
         }
-        OpenRow open = row.get();
+        SessionRow open = row.get();
         Instant now = time.now();
-        Optional<Duration> limit = idleLimit(open.channel());
-        if (limit.isPresent() && Duration.between(open.lastActiveAt(), now).compareTo(limit.get()) > 0) {
-            jdbc.update(
-                    "UPDATE login_session SET ended_at = ?, end_reason = 'TIMED_OUT'"
-                            + " WHERE token_hash = ? AND ended_at IS NULL",
-                    utc(now),
-                    hash);
+        if (idle(open, now)) {
+            sessions.timeOut(hash, now);
             return Optional.empty();
         }
-        jdbc.update(
-                "UPDATE login_session SET last_active_at = ? WHERE token_hash = ? AND ended_at IS NULL",
-                utc(now),
-                hash);
-        jdbc.update(
-                "INSERT INTO device (device_id, last_connected_at, last_account_id) VALUES (?, ?, ?) AS new"
-                        + " ON DUPLICATE KEY UPDATE last_connected_at = new.last_connected_at,"
-                        + " last_account_id = new.last_account_id",
-                open.deviceId(),
-                utc(now),
-                open.accountId());
-        return Optional.of(new Resolved(
-                new ActiveSession(
-                        open.accountId(),
-                        open.type(),
-                        open.staffId(),
-                        open.familyMemberId(),
-                        roles(open.accountId(), now),
-                        open.deviceId(),
-                        open.channel(),
-                        open.residentId()),
-                open.mustChangePassword()));
+        sessions.touch(hash, now);
+        sessions.recordConnection(open.deviceId(), now, open.accountId());
+        return Optional.of(new Resolved(session(open, now), open.mustChangePassword()));
     }
 
-    /** Vai trò đang hiệu lực tại {@code at} (research A-05: {@code effective_from <= t < effective_to}). */
-    private Set<Role> roles(long accountId, Instant at) {
-        Map<String, Role> byCode = new HashMap<>();
-        for (Role role : Role.values()) {
-            byCode.put(role.code(), role);
-        }
-        Set<Role> roles = EnumSet.noneOf(Role.class);
-        jdbc.query(
-                "SELECT role FROM role_assignment WHERE account_id = ? AND effective_from <= ?"
-                        + " AND (effective_to IS NULL OR effective_to > ?)",
-                rs -> {
-                    roles.add(byCode.get(rs.getString(1)));
-                },
-                accountId,
-                utc(at),
-                utc(at));
-        return Set.copyOf(roles);
+    private boolean idle(SessionRow row, Instant now) {
+        Optional<Duration> limit = idleLimit(row.channel());
+        return limit.isPresent() && Duration.between(row.lastActiveAt(), now).compareTo(limit.get()) > 0;
+    }
+
+    /** Vai trò đang hiệu lực tại {@code now} (research A-05: {@code effective_from <= t < effective_to}). */
+    private ActiveSession session(SessionRow row, Instant now) {
+        return new ActiveSession(
+                row.accountId(),
+                row.type(),
+                row.staffId(),
+                row.familyMemberId(),
+                Set.copyOf(accounts.rolesAt(row.accountId(), now)),
+                row.deviceId(),
+                row.channel(),
+                row.residentId());
     }
 
     /** CFG-M15-10 theo kênh: {@code {"value", "unit"}} hoặc {@code {"noLimit": true}} (kênh người cao tuổi, BR-M15-24). */
@@ -194,21 +116,4 @@ public class SessionService {
         return Optional.of(Duration.of(
                 v.get("value").longValue(), ChronoUnit.valueOf(v.get("unit").asString())));
     }
-
-    private static LocalDateTime utc(Instant instant) {
-        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
-    }
-
-    private record OpenRow(
-            long accountId,
-            String deviceId,
-            AccessChannel channel,
-            Instant lastActiveAt,
-            AccountType type,
-            Optional<Long> staffId,
-            Optional<Long> familyMemberId,
-            boolean mustChangePassword,
-            Optional<Long> residentId) {}
-
-    private record SyncRow(OpenRow session, boolean open) {}
 }

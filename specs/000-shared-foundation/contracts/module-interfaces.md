@@ -239,6 +239,7 @@ record RecordEvent<T>(long id, EntityRef parent, T content, Long replyToId, Long
 <T> Optional<SimpleRecord<T>> findByUniqueKey(SharedKind<T> kind, String uniqueKey);
 <T> List<SimpleRecord<T>> listByResident(SharedKind<T> kind, long residentId, Set<String> statuses);
 <T> List<SimpleRecord<T>> listByParent(SharedKind<T> kind, EntityRef parent);
+<T> List<SimpleRecord<T>> listByStatus(SharedKind<T> kind, Set<String> statuses); // theo id; statuses không rỗng (đổi api 2026-10-30, 002 T098; chỉ mục (kind, status) ở V000_14)
 record NewSimpleRecord<T>(Long residentId, EntityRef parent, String status, T content, LocalDate effectiveFrom, LocalDate effectiveTo, String uniqueKey, long createdBy, boolean lock) {}
 record RecordChange<T>(String status, T content, LocalDate effectiveTo, String uniqueKey, boolean lock) {} // uniqueKey null để nhả ràng buộc khi hết hiệu lực
 record SimpleRecord<T>(long id, Long residentId, EntityRef parent, String status, T content, LocalDate effectiveFrom, LocalDate effectiveTo, String uniqueKey, Instant lockedAt, Instant createdAt, long createdBy, int version) {}

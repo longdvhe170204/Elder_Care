@@ -10,7 +10,6 @@ import com.eldercare.backend.administration.account.api.spi.FacilityLicenseApi;
 import com.eldercare.backend.administration.account.api.spi.LicenseApi;
 import com.eldercare.backend.administration.account.api.spi.LicenseValidity;
 import com.eldercare.backend.administration.account.internal.legal.domain.ProfessionalActivity;
-import com.eldercare.backend.administration.account.internal.legal.persistence.ProfessionalActivities;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Instant;
 import java.time.LocalDate;

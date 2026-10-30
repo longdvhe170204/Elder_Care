@@ -87,6 +87,16 @@ public class SimpleRecordStore {
                 args.toArray());
     }
 
+    public List<SimpleRow> listByStatus(String kind, Collection<String> statuses) {
+        List<Object> args = new ArrayList<>(List.of(kind));
+        args.addAll(statuses);
+        return jdbc.query(
+                COLUMNS + " WHERE kind = ? AND status IN ("
+                        + String.join(", ", statuses.stream().map(s -> "?").toList()) + ") ORDER BY id",
+                (rs, i) -> row(rs),
+                args.toArray());
+    }
+
     public List<SimpleRow> listByParent(String kind, String entityType, long entityId) {
         return jdbc.query(
                 COLUMNS + " WHERE kind = ? AND entity_type = ? AND entity_id = ? ORDER BY id",

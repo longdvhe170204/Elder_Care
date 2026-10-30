@@ -263,7 +263,7 @@ class OfflinePendingReviewIT extends MySqlIntegrationTestBase {
                 .andExpect(jsonPath("$.results[0].result").value("PENDING_REVIEW"));
         long id = ((Number) pending(key).get("id")).longValue();
         jdbc.update(
-                "UPDATE pending_review_record SET content = JSON_SET(content, '$.note', ?) WHERE id = ?",
+                "UPDATE simple_record SET content = JSON_SET(content, '$.content.note', ?) WHERE id = ?",
                 "pending-" + id,
                 id);
         return id;
@@ -271,7 +271,9 @@ class OfflinePendingReviewIT extends MySqlIntegrationTestBase {
 
     private java.util.Map<String, Object> pending(String key) {
         return jdbc.queryForMap(
-                "SELECT id, pending_reason, status, floor_area_id FROM pending_review_record WHERE idempotency_key = ?",
+                "SELECT id, content->>'$.pendingReason' AS pending_reason, status,"
+                        + " JSON_VALUE(content, '$.floorAreaId' RETURNING SIGNED) AS floor_area_id FROM simple_record"
+                        + " WHERE kind = 'M15.PENDING_REVIEW_RECORD' AND content->>'$.idempotencyKey' = ?",
                 key);
     }
 

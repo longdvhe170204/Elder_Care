@@ -71,8 +71,8 @@ class ResignationLockIT extends MySqlIntegrationTestBase {
                         "SELECT end_reason FROM login_session WHERE account_id = ?", String.class, account))
                 .isEqualTo("ACCOUNT_LEFT_ACTIVE");
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM account_status_history WHERE account_id = ? AND status = 'LOCKED'"
-                                + " AND lock_cause = 'RESIGNATION'",
+                        "SELECT COUNT(*) FROM status_history WHERE entity_type = 'M15.ACCOUNT' AND attribute = 'STATUS' AND entity_id = ? AND value = 'LOCKED'"
+                                + " AND details->>'$.lockCause' = 'RESIGNATION'",
                         Integer.class,
                         account))
                 .isEqualTo(1);

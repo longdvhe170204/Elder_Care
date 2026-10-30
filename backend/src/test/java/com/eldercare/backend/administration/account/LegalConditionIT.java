@@ -77,7 +77,8 @@ class LegalConditionIT extends MySqlIntegrationTestBase {
     /** Quản lý viện đã cấu hình loại giấy phép của hai mục mặc định. */
     static void configureDefaults(JdbcTemplate jdbc) {
         jdbc.update(
-                "UPDATE professional_activity SET required_license_type = ? WHERE code IN (?, ?)",
+                "UPDATE catalog_item SET attributes = JSON_SET(attributes, '$.requiredLicenseType', ?)"
+                        + " WHERE catalog_type = 'M15.PROFESSIONAL_ACTIVITY' AND code IN (?, ?)",
                 LICENSE_TYPE,
                 ProfessionalActivityApi.INTERNAL_DIAGNOSIS_PRESCRIBING,
                 ProfessionalActivityApi.MEDICATION_ADMINISTRATION);

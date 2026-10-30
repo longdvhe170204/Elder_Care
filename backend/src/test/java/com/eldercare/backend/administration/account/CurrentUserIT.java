@@ -124,7 +124,8 @@ class CurrentUserIT extends MySqlIntegrationTestBase {
 
     private void assignRole(long accountId, String role, Instant from, Instant to) {
         jdbc.update(
-                "INSERT INTO role_assignment (account_id, role, effective_from, effective_to, reason) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO permission_assignment (kind, applies_to, account_id, role, effective_from, effective_to, reason)"
+                        + " VALUES ('ROLE_ASSIGNMENT', 'ACCOUNT', ?, ?, ?, ?, ?)",
                 accountId,
                 role,
                 utc(from),
