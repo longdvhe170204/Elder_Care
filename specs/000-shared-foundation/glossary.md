@@ -1036,6 +1036,40 @@ Các operation chưa dịch ở story khác vẫn giữ tên; tham chiếu tới
 | Tạo/sửa/ngừng loại lý do | NON_PERFORMANCE_REASON_CREATED / NON_PERFORMANCE_REASON_UPDATED / NON_PERFORMANCE_REASON_DEACTIVATED |
 | LOAI_LY_DO_CO_DINH | REASON_TYPE_FIXED (409); dùng lại DUPLICATE_NAME (409), INVALID_VALUE (422), VERSION_MISMATCH (412), REASON_REQUIRED (422) |
 | Quyền danh mục (Q-391, thay ghi chú C-16 cũ) | Function.CARE_TASK_CATALOG: VIEW/CREATE/UPDATE |
+### 11.5. Nền R-15 và danh mục T007 (2026-10-31)
+
+| Thuật ngữ | Mã triển khai |
+| --- | --- |
+| Loại công việc, giá trị kết quả, loại lý do Không thực hiện | `CareCatalogKinds.TASK_TYPES/RESULT_VALUES/REASONS`; `M04.TASK_TYPE`, `M04.RESULT_VALUE`, `M04.NON_PERFORMANCE_REASON_TYPE` |
+| Nội dung riêng của danh mục | `TaskTypeAttributes`, `ResultValueAttributes`, `ReasonAttributes` |
+| ID danh mục trước gộp | `LegacyCatalogId(table,id)`; `attributes.legacy`,adapter giữIDcôngkhai cũ |
+| Lệnh danh mục và nguồn yêu cầu loại công việc | `CareCatalogService`, `CareCatalogStore`, `CareTaskTypeLookup` cài `TaskTypeApi` |
+| HTTP danh mục đã duyệt | `CareCatalogController`; `TaskTypeWrite/Response`, `ResultValueWrite/Response` |
+| Khóa theo người, dấu xử lý theo ngày | `CareResidentState`, `CareLockStore` qua `ResidentModuleStateApi`; `CareMilestoneStore` qua `ReminderMarkers` |
+| Migration nền sau gộp | `V005_95__care_foundation_consolidation.sql` |
+
+### 11.6. Kế hoạch theo phiên bản Phase 3 (2026-10-31)
+
+| Thuật ngữ | Mã triển khai |
+| --- | --- |
+| Phiên bản, mục, nội dung mục | `CarePlan`, `CarePlanItem`, `CarePlanItemData`; `care_plan`, `care_plan_item` |
+| Bảng chuyển, chuỗi thời điểm, so sánh | `CarePlanTransitions`, `CarePlanItemSequence`, `CarePlanComparison`; `CarePlanDifference` giữ được khung null của Nháp |
+| Kho/lệnh/nguồn đọc kế hoạch | `CarePlanStore`, `CarePlanService`, `CarePlanQueries` (cài `CarePlanApi`) |
+| Thỏa thuận, người quyết định, người tham gia, ý kiến | `CareRiskAgreement`, `RiskDecisionMaker`, `RiskParticipant`, `RiskOpinion`, `RiskOpinionEntry` |
+| Loại mục trong bảng gộp | `TASK`, `RISK_AGREEMENT`; mọi căn cứ công việc chỉ lấy `TASK` |
+| Loại con bảng chung | `CareRiskKinds.PARTICIPANTS/OPINIONS`; `M04.RISK_PARTICIPANT`, `M04.RISK_OPINION`, parent `M04.RISK_AGREEMENT` |
+| Kho/lệnh thỏa thuận | `CareRiskStore`, `CareRiskService` |
+| Bước hiệu lực, nhắc duyệt, nhắc xem lại | `CarePlanActivation`, `CarePlanApprovalReminders`, `CareRiskReview`; tên bước `CARE_PLAN_EFFECTIVE`, `CARE_PLAN_APPROVAL_REMINDER`, `CARE_RISK_REVIEW` |
+| Thông báo theo người có quyền duyệt | `CarePlanNotices`; từng `RecipientGroup.Approvers` chỉ mang một account để giới hạn payload |
+| Lệnh được phép của phiên bản | `replaceItems`, `replaceRiskAgreements`, `submit`, `approve`, `return`, `cancel`, `withdrawApproval` |
+| Lỗi kế hoạch thiếu mục, hồ sơ cuối, nguồn người lập chưa sẵn sàng | `EMPTY_PLAN` (409), `RESIDENT_FINAL_STATUS` (409), `CARE_SOURCE_UNAVAILABLE` (503) |
+| Nhật ký lệnh kế hoạch | `CARE_PLAN_CREATED`, `CARE_PLAN_ITEMS_REPLACED`, `CARE_PLAN_RISKS_REPLACED`, `CARE_PLAN_SUBMITTED`, `CARE_PLAN_APPROVED`, `CARE_PLAN_SELF_APPROVED`, `CARE_PLAN_RETURN`, `CARE_PLAN_CANCEL`, `CARE_PLAN_WITHDRAW` |
+| Nhật ký job kế hoạch | `CARE_PLAN_EFFECTIVE`, `CARE_PLAN_EXPIRED`, `CARE_PLAN_APPROVAL_REMINDER` |
+| Migration kế hoạch và trigger con theo phiên bản | `V005_96__care_plan_revisions.sql` |
+| Màn web T017 | `features/care-tasks/CarePlanPage`, `CarePlanDetail`, `CarePlanItemsForm`, `CareRiskAgreementsForm`, `CareCatalogPage`; menu `care-plans`, `care-catalogs` |
+| Phiên bản danh mục chỉ đọc được chủ dự án duyệt31/10 | `version` trên `TaskType`, `ResultValue`, `NonPerformanceReasonType`; gửi lại bằng `If-Match` khi sửa |
+| Lý do thông báo Trả lại, được chủ dự án duyệt31/10 | `CarePlanReturned.reason`; `String`, null cho constructor/sự kiện cũ; chỉ trong `ContentPart(HEALTH, reason)`, không có trong `title`/`shortContent` |
+
 ## 12. Feature 006 (`006-medication-management`, D)
 
 ### 12.1. Bảng và cột nền tảng (T005, `V006_01__medication_foundation.sql`)

@@ -8,6 +8,8 @@ import { homeOf, primaryRole } from '@/common/session'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ResidentListPage } from '@/features/residents/ResidentListPage'
 import { ShiftChecklistPage } from '@/features/care-tasks/ShiftChecklistPage'
+import { CarePlanPage } from '@/features/care-tasks/CarePlanPage'
+import { CareCatalogPage } from '@/features/care-tasks/CareCatalogPage'
 import { AlertsPage } from '@/features/alerts/AlertsPage'
 import { AdminPage } from '@/features/admin/AdminPage'
 import { ApprovalInbox } from '@/features/approval-requests/ApprovalInbox'
@@ -34,6 +36,8 @@ const PAGES = {
   shifts: ShiftsPage,
   staff: StaffPage,
   'care-tasks': ShiftChecklistPage,
+  'care-plans': CarePlanPage,
+  'care-catalogs': CareCatalogPage,
   incidents: IncidentDetailPage,
   medication: MedicationPage,
   'medication-catalog': MedicationCatalogPage,

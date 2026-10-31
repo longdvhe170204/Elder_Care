@@ -9,6 +9,7 @@ import com.eldercare.backend.administration.retention.api.RetentionKind;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider;
 import com.eldercare.backend.resident.api.dto.*;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
+import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.resident.*;
 import java.time.Instant;
 import java.util.*;
@@ -36,27 +37,30 @@ class T008_CareGovernanceIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_051_profileAndUnlinkedCandidatesUseDifferentClocksAndRetentionConnection() throws Exception {
-        // Fixture DDL của chính M04 cho provider tương lai, không đưa schema story vào migration Phase2.
+        // Kế hoạch dùng schema thật T012; phần công việc vẫn là fixture cho story Phase4 chưa cài.
+        long planId = TestUsers.nextId(), residentId = TestUsers.nextId();
         try (var connection = adminConnection();
                 var statement = connection.createStatement()) {
-            statement.execute("CREATE TABLE care_plan(id BIGINT PRIMARY KEY,resident_id BIGINT NOT NULL)");
             try {
                 statement.execute(
                         "CREATE TABLE care_task(id BIGINT PRIMARY KEY,resident_id BIGINT NULL,floor_area_id BIGINT NOT NULL,planned_at DATETIME(6) NOT NULL)");
                 try {
-                    statement.execute("INSERT INTO care_plan VALUES (1,99110)");
-                    statement.execute("INSERT INTO care_task VALUES (2,99110,7,'1999-01-01'),(3,NULL,7,'1999-01-01')");
-                    statement.execute("GRANT DELETE ON care_plan TO 'eldercare_retention'@'%'");
+                    statement.execute(
+                            "INSERT INTO care_plan(id,resident_id,revision,status,created_by,created_at) VALUES ("
+                                    + planId + "," + residentId + ",1,'DRAFT',1,'1999-01-01')");
+                    statement.execute("INSERT INTO care_task VALUES (2," + residentId
+                            + ",7,'1999-01-01'),(3,NULL,7,'1999-01-01')");
                     residents
-                            .resident(99110, "[Họ tên NCT 1]", Gender.MALE, ResidentStatus.RESIDENCY_ENDED)
-                            .changeStatus(99110, ResidentStatus.RESIDENCY_ENDED, Instant.parse("2000-01-01T00:00:00Z"));
+                            .resident(residentId, "[Họ tên NCT 1]", Gender.MALE, ResidentStatus.RESIDENCY_ENDED)
+                            .changeStatus(
+                                    residentId, ResidentStatus.RESIDENCY_ENDED, Instant.parse("2000-01-01T00:00:00Z"));
                     var cutoff = Instant.parse("2001-01-01T00:00:00Z");
                     var plan = retention.stream()
                             .filter(p -> p.dataType().equals("M04.CARE_PLAN"))
                             .findFirst()
                             .orElseThrow();
                     assertThat(plan.expiredCandidates(cutoff, 10).map(RetentionProvider.Candidate::id))
-                            .containsExactly(1L);
+                            .contains(planId);
                     var task = retention.stream()
                             .filter(p -> p.dataType().equals("M04.TASK"))
                             .findFirst()
@@ -78,14 +82,14 @@ class T008_CareGovernanceIT extends MySqlIntegrationTestBase {
                             .assignScope(3);
                     assertThat(scope.residentId()).isNull();
                     assertThat(scope.floorAreaId()).isEqualTo(7L);
-                    plan.delete(List.of(1L));
-                    assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM care_plan", Integer.class))
+                    plan.delete(List.of(planId));
+                    assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM care_plan WHERE id=?", Integer.class, planId))
                             .isZero();
                 } finally {
                     statement.execute("DROP TABLE care_task");
                 }
             } finally {
-                statement.execute("DROP TABLE care_plan");
+                statement.execute("DELETE FROM care_plan WHERE id=" + planId);
             }
         }
     }
@@ -151,5 +155,54 @@ class T008_CareGovernanceIT extends MySqlIntegrationTestBase {
                 .findFirst();
         assertThat(unlinked).isPresent();
         assertThat(unlinked.get().retentionKind()).isInstanceOf(RetentionKind.NotResidentLinked.class);
+    }
+
+    @Test
+    @org.springframework.transaction.annotation.Transactional
+    void FR_050_retentionSeparatesTaskAndRiskKindsAndTraversesBothFromThePlan() {
+        long residentId = TestUsers.nextId(),
+                planId = TestUsers.nextId(),
+                riskId = TestUsers.nextId(),
+                taskId = TestUsers.nextId(),
+                typeId = TestUsers.nextId();
+        residents
+                .resident(residentId, "[Họ tên kiểm thử]", Gender.MALE, ResidentStatus.RESIDENCY_ENDED)
+                .changeStatus(residentId, ResidentStatus.RESIDENCY_ENDED, Instant.parse("2000-01-01T00:00:00Z"));
+        jdbc.update(
+                "INSERT INTO care_plan(id,resident_id,revision,status,created_by,created_at) VALUES(?,?,1,'DRAFT',1,'1999-01-01')",
+                planId,
+                residentId);
+        jdbc.update(
+                "INSERT INTO catalog_item(id,catalog_type,module,name,status,attributes) VALUES(?,'M04.TASK_TYPE','M04',?,'ACTIVE','{}')",
+                typeId,
+                "Loại retention " + typeId);
+        jdbc.update(
+                "INSERT INTO care_plan_item(id,care_plan_id,kind,task_type_id,frequency_type,data) VALUES(?,?,'TASK',?,'ONCE_PER_SHIFT','{}')",
+                taskId,
+                planId,
+                typeId);
+        jdbc.update(
+                "INSERT INTO care_plan_item(id,care_plan_id,kind,data,choice,discussed_risks,resident_participates,assessing_doctor_id,can_self_determine,support_method,assessment_at,assessment_review_date,decision_maker_type,review_date) VALUES(?,?,'RISK_AGREEMENT','{}','Lựa chọn','Đã trao đổi',TRUE,1,TRUE,'Đã hỗ trợ','2026-10-31','2026-11-30','RESIDENT','2026-11-30')",
+                riskId,
+                planId);
+        var providers =
+                retention.stream().collect(java.util.stream.Collectors.toMap(RetentionProvider::dataType, p -> p));
+        var cutoff = Instant.parse("2001-01-01T00:00:00Z");
+        assertThat(providers
+                        .get("M04.CARE_PLAN_ITEM")
+                        .expiredCandidates(cutoff, 100)
+                        .map(RetentionProvider.Candidate::id))
+                .contains(taskId)
+                .doesNotContain(riskId);
+        assertThat(providers
+                        .get("M04.RISK_AGREEMENT")
+                        .expiredCandidates(cutoff, 100)
+                        .map(RetentionProvider.Candidate::id))
+                .contains(riskId)
+                .doesNotContain(taskId);
+        assertThat(providers.get("M04.CARE_PLAN").referencesTo(planId))
+                .contains(
+                        new RetentionProvider.DataRef("M04.CARE_PLAN_ITEM", taskId),
+                        new RetentionProvider.DataRef("M04.RISK_AGREEMENT", riskId));
     }
 }

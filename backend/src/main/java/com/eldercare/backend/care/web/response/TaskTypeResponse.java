@@ -7,10 +7,11 @@ import com.eldercare.backend.common.data.CatalogStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Set;
 
-/** Không đưa version,attributes hoặc id vật lý vào body hợp đồng. */
+/** Version chỉ đọc để client gửi If-Match khi sửa danh mục. */
 @Schema(name = "TaskType")
 public record TaskTypeResponse(
         long id,
+        @Schema(accessMode = Schema.AccessMode.READ_ONLY) int version,
         String name,
         String group,
         boolean professional,
@@ -29,6 +30,7 @@ public record TaskTypeResponse(
         var a = row.attributes();
         return new TaskTypeResponse(
                 CareCatalogKinds.publicId(row),
+                row.version(),
                 row.name(),
                 a.group(),
                 a.professional(),

@@ -10,6 +10,39 @@ import org.junit.jupiter.api.Test;
 
 class NFR_04_CareEventsTest {
     @Test
+    void FR_003_returnedPlanLegacyConstructorAndSerializedEventRemainReadable() {
+        var context = new com.eldercare.backend.care.api.dto.CareEventContext(
+                "M04.CARE_PLAN", 7, "RETURN:2", AT, Optional.empty(), List.of(new RecipientGroup.Staff(4, "CREATOR")));
+        var legacy = new com.eldercare.backend.care.api.events.CarePlanReturned(7, 8, context);
+        var json = tools.jackson.databind.json.JsonMapper.builder().build();
+        String oldJson = json.writeValueAsString(legacy);
+        oldJson = oldJson.replace(",\"reason\":null", "");
+        var replay = json.readValue(oldJson, com.eldercare.backend.care.api.events.CarePlanReturned.class);
+        assertThat(replay.reason()).isNull();
+        assertThat(replay.notificationRequests().getFirst().content())
+                .containsExactly(new ContentPart(InformationType.GENERAL, "Thông tin chăm sóc cần xem xét"));
+        var current = new com.eldercare.backend.care.api.events.CarePlanReturned(7, 8, context, "Cần xem lại");
+        var restored = json.readValue(
+                json.writeValueAsString(current), com.eldercare.backend.care.api.events.CarePlanReturned.class);
+        assertThat(restored.reason()).isEqualTo("Cần xem lại");
+        assertThat(restored.eventKey()).isEqualTo(legacy.eventKey());
+    }
+
+    @Test
+    void FR_003_maximumEscapedReasonIsNotTruncatedDuringSerialization() {
+        var context = new com.eldercare.backend.care.api.dto.CareEventContext(
+                "M04.CARE_PLAN", 7, "RETURN:2", AT, Optional.empty(), List.of(new RecipientGroup.Staff(4, "CREATOR")));
+        var event = new com.eldercare.backend.care.api.events.CarePlanReturned(
+                7, 8, context, new com.eldercare.backend.common.Reason("\"".repeat(2000)).value());
+        String serialized =
+                tools.jackson.databind.json.JsonMapper.builder().build().writeValueAsString(event);
+        var replay = tools.jackson.databind.json.JsonMapper.builder()
+                .build()
+                .readValue(serialized, com.eldercare.backend.care.api.events.CarePlanReturned.class);
+        assertThat(replay.reason()).isEqualTo(event.reason());
+    }
+
+    @Test
     void NFR_04_sameIdAndMilestoneInDifferentSourceNamespacesHaveDifferentKeys() {
         var a = new com.eldercare.backend.care.api.dto.CareEventContext(
                 "M08.MEAL", 7, "version:2", AT, Optional.empty(), List.of());

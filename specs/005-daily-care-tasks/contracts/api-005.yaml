@@ -58,6 +58,7 @@ paths:
   # ---------------- Kế hoạch chăm sóc ----------------
   /residents/{residentId}/care-plans:
     get:
+      x-implementation-phase: 3
       operationId: listCarePlans
       tags: [ke-hoach]
       summary: Lịch sử phiên bản kế hoạch của một người cao tuổi
@@ -66,6 +67,7 @@ paths:
       parameters: [ { $ref: '#/components/parameters/ResidentId' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CarePlan' } } } } }, '403': { $ref: '#/components/responses/CarePlanProblem' } }
     post:
+      x-implementation-phase: 3
       operationId: createCarePlan
       tags: [ke-hoach]
       summary: Lập phiên bản Nháp (Điều dưỡng)
@@ -78,6 +80,7 @@ paths:
         '409': { $ref: '#/components/responses/CarePlanConditionProblem' }
   /care-plans/{id}:
     get:
+      x-implementation-phase: 3
       operationId: getCarePlan
       tags: [ke-hoach]
       summary: Xem phiên bản kèm mục
@@ -86,6 +89,7 @@ paths:
       responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/CarePlan' } } } } }
   /care-plans/{id}/items:
     put:
+      x-implementation-phase: 3
       operationId: replaceCarePlanItems
       tags: [ke-hoach]
       summary: Thay toàn bộ danh sách mục của bản Nháp
@@ -97,6 +101,7 @@ paths:
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' }, '412': { $ref: '#/components/responses/CarePlanProblem' }, '422': { $ref: '#/components/responses/CarePlanProblem' } }
   /care-plans/{id}/risk-agreements:
     put:
+      x-implementation-phase: 3
       operationId: replaceCarePlanRiskAgreements
       tags: [ke-hoach]
       summary: Thay toàn bộ danh sách thỏa thuận lựa chọn có rủi ro của bản Nháp (bổ sung 2026-10-18)
@@ -110,6 +115,7 @@ paths:
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' }, '412': { $ref: '#/components/responses/CarePlanProblem' }, '422': { $ref: '#/components/responses/CarePlanProblem' } }
   /care-plans/{id}/submit:
     post:
+      x-implementation-phase: 3
       operationId: submitCarePlan
       tags: [ke-hoach]
       summary: Gửi duyệt kèm ngày hiệu lực đề xuất
@@ -120,6 +126,7 @@ paths:
       responses: { '200': { description: Chờ duyệt }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
   /care-plans/{id}/approve:
     post:
+      x-implementation-phase: 3
       operationId: approveCarePlan
       tags: [ke-hoach]
       summary: Duyệt (Bác sĩ; Điều dưỡng được gán quyền)
@@ -131,6 +138,7 @@ paths:
       responses: { '200': { description: Chờ hiệu lực }, '403': { $ref: '#/components/responses/CarePlanProblem' }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
   /care-plans/{id}/return:
     post:
+      x-implementation-phase: 3
       operationId: returnCarePlan
       tags: [ke-hoach]
       summary: Trả lại về Nháp (bắt buộc lý do)
@@ -140,6 +148,7 @@ paths:
       responses: { '200': { description: Nháp }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' }, '422': { $ref: '#/components/responses/CarePlanProblem' } }
   /care-plans/{id}/cancel:
     post:
+      x-implementation-phase: 3
       operationId: cancelCarePlan
       tags: [ke-hoach]
       summary: Hủy phiên bản Nháp hoặc Chờ duyệt (người lập, người có quyền duyệt)
@@ -149,6 +158,7 @@ paths:
       responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
   /care-plans/{id}/withdraw-approval:
     post:
+      x-implementation-phase: 3
       operationId: withdrawCarePlanApproval
       tags: [ke-hoach]
       summary: Thu hồi duyệt trước ngày hiệu lực
@@ -158,6 +168,7 @@ paths:
       responses: { '200': { description: Đã hủy }, '409': { $ref: '#/components/responses/CarePlanConditionProblem' } }
   /care-plans/compare:
     get:
+      x-implementation-phase: 3
       operationId: compareCarePlans
       tags: [ke-hoach]
       summary: So sánh hai phiên bản (mục thêm, bớt, đổi)
@@ -380,11 +391,13 @@ paths:
   # ---------------- Danh mục ----------------
   /task-types:
     get:
+      x-implementation-phase: 2
       tags: [danh-muc]
       summary: Danh mục loại công việc
       x-fr: [FR-038]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/TaskType' } } } } } }
     post:
+      x-implementation-phase: 2
       tags: [danh-muc]
       summary: Tạo loại công việc (Quản lý viện)
       x-fr: [FR-038]
@@ -393,6 +406,7 @@ paths:
       responses: { '201': { description: Đã tạo }, '409': { $ref: '#/components/responses/CareCatalogProblem' } }
   /task-types/{id}:
     put:
+      x-implementation-phase: 2
       tags: [danh-muc]
       summary: Sửa loại công việc (chỉ áp cho mục, công việc tạo sau; chứng chỉ áp ngay)
       x-fr: [FR-038]
@@ -401,6 +415,7 @@ paths:
       responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/CareCatalogProblem' } }
   /task-types/{id}/deactivate:
     post:
+      x-implementation-phase: 2
       tags: [danh-muc]
       summary: Ngừng hiệu lực loại công việc
       x-fr: [FR-038]
@@ -409,11 +424,13 @@ paths:
       responses: { '200': { description: OK } }
   /non-performance-reason-types:
     get:
+      x-implementation-phase: 2
       tags: [danh-muc]
       summary: Danh mục loại lý do Không thực hiện (bổ sung 2026-10-18)
       x-fr: [FR-028a]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/NonPerformanceReasonType' } } } } } }
     post:
+      x-implementation-phase: 2
       tags: [danh-muc]
       summary: Tạo loại lý do (Quản lý viện)
       x-fr: [FR-028a]
@@ -422,6 +439,7 @@ paths:
       responses: { '201': { description: Đã tạo }, '409': { $ref: '#/components/responses/CareCatalogProblem' } }
   /non-performance-reason-types/{id}:
     put:
+      x-implementation-phase: 2
       tags: [danh-muc]
       summary: Sửa tên loại lý do; loại cố định 409 REASON_TYPE_FIXED
       x-fr: [FR-028a]
@@ -430,6 +448,7 @@ paths:
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/CareCatalogProblem' }, '412': { $ref: '#/components/responses/CareCatalogProblem' } }
   /non-performance-reason-types/{id}/deactivate:
     post:
+      x-implementation-phase: 2
       tags: [danh-muc]
       summary: Ngừng hiệu lực loại lý do; loại cố định 409 REASON_TYPE_FIXED
       x-fr: [FR-028a]
@@ -438,11 +457,13 @@ paths:
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/CareCatalogProblem' } }
   /result-values:
     get:
+      x-implementation-phase: 2
       tags: [danh-muc]
       summary: Giá trị kết quả (chất lượng ngủ, tâm trạng, hành vi) kèm nhóm quy tắc
       x-fr: [FR-034, FR-042]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ResultValue' } } } } } }
     post:
+      x-implementation-phase: 2
       tags: [danh-muc]
       summary: Thêm giá trị (Quản lý viện)
       x-fr: [FR-034]
@@ -453,6 +474,7 @@ paths:
   # Hai operation T007 được chủ dự án duyệt bổ sung ngày 2026-10-27.
   /result-values/{id}:
     put:
+      x-implementation-phase: 2
       tags: [danh-muc]
       summary: Sửa giá trị kết quả
       x-fr: [FR-034, FR-038]
@@ -461,6 +483,7 @@ paths:
       responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/CareCatalogProblem' } }
   /result-values/{id}/deactivate:
     post:
+      x-implementation-phase: 2
       tags: [danh-muc]
       summary: Ngừng hiệu lực giá trị kết quả
       x-fr: [FR-034, FR-038]
@@ -614,7 +637,7 @@ components:
         reviewDate: { type: string, format: date }
     NonPerformanceReasonType:
       type: object
-      properties: { id: { type: integer, format: int64 }, name: { type: string }, fixed: { type: boolean }, status: { type: string, enum: [ACTIVE, INACTIVE] } }
+      properties: { id: { type: integer, format: int64 }, version: { type: integer, readOnly: true, description: 'Phiên bản để gửi If-Match khi sửa; chủ dự án duyệt 2026-10-31' }, name: { type: string }, fixed: { type: boolean }, status: { type: string, enum: [ACTIVE, INACTIVE] } }
     CarePlan:
       type: object
       properties:
@@ -747,6 +770,7 @@ components:
       type: object
       properties:
         id: { type: integer, format: int64 }
+        version: { type: integer, readOnly: true, description: 'Phiên bản để gửi If-Match khi sửa; chủ dự án duyệt 2026-10-31' }
         name: { type: string }
         group: { type: string }
         professional: { type: boolean }
@@ -763,7 +787,7 @@ components:
         status: { type: string, enum: [ACTIVE, INACTIVE] }
     ResultValue:
       type: object
-      properties: { id: { type: integer, format: int64 }, type: { type: string, enum: [SLEEP_QUALITY, MOOD, BEHAVIOR] }, code: { type: string }, name: { type: string }, ruleGroup: { type: string, enum: [INSOMNIA, NEGATIVE] }, status: { type: string } }
+      properties: { id: { type: integer, format: int64 }, version: { type: integer, readOnly: true, description: 'Phiên bản để gửi If-Match khi sửa; chủ dự án duyệt 2026-10-31' }, type: { type: string, enum: [SLEEP_QUALITY, MOOD, BEHAVIOR] }, code: { type: string }, name: { type: string }, ruleGroup: { type: string, enum: [INSOMNIA, NEGATIVE] }, status: { type: string } }
     MucThoiKhoaBieu:
       type: object
       properties: { thoiDiem: { type: string, format: date-time }, nguon: { type: string, enum: [CONG_VIEC, LIEU_THUOC, BUOI_HOAT_DONG, LICH_THAM, LICH_DEN_VE] }, moTa: { type: string }, trangThai: { type: string } }

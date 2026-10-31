@@ -6,6 +6,7 @@ import com.eldercare.backend.administration.shared.api.CatalogApi;
 import com.eldercare.backend.administration.shared.api.dto.*;
 import com.eldercare.backend.common.error.*;
 import java.util.List;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
@@ -32,7 +33,7 @@ public class CareCatalogStore {
     public <T> CatalogItem<T> create(SharedKind<T> kind, String name, T attributes) {
         try {
             return catalogs.create(kind, new NewCatalogItem<>(null, name, null, 0, attributes));
-        } catch (ConditionNotMetException duplicate) {
+        } catch (ConditionNotMetException | DataIntegrityViolationException duplicate) {
             throw duplicate();
         }
     }
@@ -41,7 +42,7 @@ public class CareCatalogStore {
         try {
             return catalogs.update(kind, before.id(), before.version(), name, before.sortOrder(), attributes)
                     .after();
-        } catch (ConditionNotMetException duplicate) {
+        } catch (ConditionNotMetException | DataIntegrityViolationException duplicate) {
             throw duplicate();
         }
     }

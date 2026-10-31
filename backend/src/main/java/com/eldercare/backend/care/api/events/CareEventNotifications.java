@@ -8,6 +8,16 @@ final class CareEventNotifications {
 
     static NotificationRequest create(
             CareNotice event, NotificationLevel level, List<RecipientGroup> recipients, String key) {
+        String title = "Thông tin chăm sóc cần xem xét";
+        return create(event, level, recipients, key, List.of(new ContentPart(InformationType.GENERAL, title)));
+    }
+
+    static NotificationRequest create(
+            CareNotice event,
+            NotificationLevel level,
+            List<RecipientGroup> recipients,
+            String key,
+            List<ContentPart> content) {
         var context = event.context();
         String title = "Thông tin chăm sóc cần xem xét";
         return new NotificationRequest(
@@ -20,7 +30,7 @@ final class CareEventNotifications {
                 event.notificationResidentId(),
                 context.floorAreaId(),
                 recipients,
-                List.of(new ContentPart(InformationType.GENERAL, title)),
+                content,
                 Optional.of(title),
                 Optional.of(title),
                 Optional.empty(),

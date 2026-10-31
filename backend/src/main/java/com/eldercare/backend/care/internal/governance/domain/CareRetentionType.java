@@ -3,8 +3,9 @@ package com.eldercare.backend.care.internal.governance.domain;
 public enum CareRetentionType {
     CARE_PLAN("care_plan", true),
     CARE_PLAN_ITEM("care_plan_item", true),
-    RISK_AGREEMENT("care_risk_agreement", true),
-    RISK_OPINION("care_risk_opinion", true),
+    RISK_AGREEMENT("care_plan_item", true),
+    // Con record_event được SharedRowRetention của 000 loại bỏ cùng thỏa thuận, không quét độc lập.
+    RISK_OPINION("record_event", true),
     TASK("care_task", true),
     LOCATION_TASK("care_task", false),
     CARE_RESULT("care_result", true),

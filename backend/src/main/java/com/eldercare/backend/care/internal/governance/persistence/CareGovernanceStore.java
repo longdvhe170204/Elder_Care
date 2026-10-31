@@ -62,21 +62,19 @@ public class CareGovernanceStore {
     }
 
     public List<CareRetentionRow> rows(CareRetentionType type) {
+        if (type == CareRetentionType.RISK_OPINION) return List.of();
         if (!exists(type.table())) return List.of();
         String sql = switch (type) {
             case CARE_PLAN, DAY_CARE_ATTENDANCE -> "SELECT id,resident_id,NULL planned_at FROM " + type.table();
             case CARE_PLAN_ITEM ->
                 exists("care_plan")
-                        ? "SELECT c.id,p.resident_id,NULL planned_at FROM care_plan_item c JOIN care_plan p ON p.id=c.care_plan_id"
+                        ? "SELECT c.id,p.resident_id,NULL planned_at FROM care_plan_item c JOIN care_plan p ON p.id=c.care_plan_id WHERE c.kind='TASK'"
                         : null;
             case RISK_AGREEMENT ->
                 exists("care_plan")
-                        ? "SELECT c.id,p.resident_id,NULL planned_at FROM care_risk_agreement c JOIN care_plan p ON p.id=c.care_plan_id"
+                        ? "SELECT c.id,p.resident_id,NULL planned_at FROM care_plan_item c JOIN care_plan p ON p.id=c.care_plan_id WHERE c.kind='RISK_AGREEMENT'"
                         : null;
-            case RISK_OPINION ->
-                exists("care_plan") && exists("care_risk_agreement")
-                        ? "SELECT c.id,p.resident_id,NULL planned_at FROM care_risk_opinion c JOIN care_risk_agreement a ON a.id=c.agreement_id JOIN care_plan p ON p.id=a.care_plan_id"
-                        : null;
+            case RISK_OPINION -> null;
             case TASK, LOCATION_TASK ->
                 "SELECT id,resident_id,planned_at FROM care_task WHERE resident_id IS "
                         + (type.profile() ? "NOT NULL" : "NULL");
@@ -109,12 +107,11 @@ public class CareGovernanceStore {
         Set<DataRef> result = new LinkedHashSet<>();
         switch (type) {
             case CARE_PLAN -> {
-                refs(result, "care_plan_item", "care_plan_id", id, "M04.CARE_PLAN_ITEM");
-                refs(result, "care_risk_agreement", "care_plan_id", id, "M04.RISK_AGREEMENT");
+                itemRefs(result, "care_plan_id", id);
                 refs(result, "care_plan", "previous_plan_id", id, "M04.CARE_PLAN");
             }
             case CARE_PLAN_ITEM -> {
-                refs(result, "care_plan_item", "source_item_id", id, "M04.CARE_PLAN_ITEM");
+                itemRefs(result, "source_item_id", id);
                 if (exists("care_task") && column("care_task", "basis_id"))
                     result.addAll(jdbc.query(
                             "SELECT id,resident_id FROM care_task WHERE basis_type='CARE_PLAN_ITEM' AND basis_id=?",
@@ -123,8 +120,8 @@ public class CareGovernanceStore {
                             id));
             }
             case RISK_AGREEMENT -> {
-                refs(result, "care_risk_opinion", "agreement_id", id, "M04.RISK_OPINION");
-                refs(result, "care_risk_agreement", "source_agreement_id", id, "M04.RISK_AGREEMENT");
+                // Con bảng chung bị 000 xóa trước cha qua SharedRowRetention.deleteFor(EntityRef).
+                itemRefs(result, "source_item_id", id);
             }
             case TASK, LOCATION_TASK -> {
                 refs(
@@ -161,11 +158,29 @@ public class CareGovernanceStore {
                     id));
     }
 
+    private void itemRefs(Set<DataRef> result, String field, long id) {
+        if (exists("care_plan_item"))
+            result.addAll(jdbc.query(
+                    "SELECT id,kind FROM care_plan_item WHERE " + field + "=?",
+                    (rs, i) -> new DataRef(
+                            rs.getString("kind").equals("TASK") ? "M04.CARE_PLAN_ITEM" : "M04.RISK_AGREEMENT",
+                            rs.getLong("id")),
+                    id));
+    }
+
     public void delete(JdbcTemplate retention, CareRetentionType type, Collection<Long> ids) {
+        if (type == CareRetentionType.RISK_OPINION) {
+            if (!ids.isEmpty())
+                throw new IllegalArgumentException("Ý kiến là con bảng chung, chỉ 000 xóa cùng thỏa thuận");
+            return;
+        }
         if (ids.isEmpty() || !exists(type.table())) return;
         String marks = String.join(",", Collections.nCopies(ids.size(), "?"));
-        if (type == CareRetentionType.RISK_AGREEMENT && exists("care_risk_participant"))
-            retention.update("DELETE FROM care_risk_participant WHERE agreement_id IN (" + marks + ")", ids.toArray());
-        retention.update("DELETE FROM " + type.table() + " WHERE id IN (" + marks + ")", ids.toArray());
+        String kind = switch (type) {
+            case CARE_PLAN_ITEM -> " AND kind='TASK'";
+            case RISK_AGREEMENT -> " AND kind='RISK_AGREEMENT'";
+            default -> "";
+        };
+        retention.update("DELETE FROM " + type.table() + " WHERE id IN (" + marks + ")" + kind, ids.toArray());
     }
 }
