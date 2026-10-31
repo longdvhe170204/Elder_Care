@@ -3,6 +3,7 @@ package com.eldercare.backend.support.fake.administration;
 import com.eldercare.backend.administration.account.api.spi.FamilyRelationshipApi;
 import com.eldercare.backend.administration.account.api.spi.FamilyRelationshipType;
 import com.eldercare.backend.administration.account.api.spi.FamilyRelationshipView;
+import com.eldercare.backend.common.notification.FamilyRight;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ public class FakeFamilyRelationships implements FamilyRelationshipApi {
     private final Set<Long> representatives = new HashSet<>();
     private final Map<Long, String> phoneNumbers = new HashMap<>();
     private final Map<Long, FamilyRelationshipType> types = new HashMap<>();
+    private final Set<String> disabledRights = new HashSet<>();
     private long nextId = 1;
 
     /** Quan hệ Hiệu lực mới, loại {@code OTHER}; trả id quan hệ. */
@@ -70,6 +72,17 @@ public class FakeFamilyRelationships implements FamilyRelationshipApi {
     public boolean isActiveRepresentative(long familyMemberId, long residentId, Instant at) {
         return active(familyMemberId).stream()
                 .anyMatch(r -> r.residentId() == residentId && representatives.contains(r.relationshipId()));
+    }
+
+    /** Tắt một quyền riêng của người thân với người cao tuổi; mặc định mọi quyền đang bật. */
+    public FakeFamilyRelationships disable(long familyMemberId, long residentId, FamilyRight right) {
+        disabledRights.add(familyMemberId + ":" + residentId + ":" + right);
+        return this;
+    }
+
+    @Override
+    public boolean rightEnabled(long familyMemberId, long residentId, FamilyRight right, Instant at) {
+        return !disabledRights.contains(familyMemberId + ":" + residentId + ":" + right);
     }
 
     public FakeFamilyRelationships name(long familyMemberId, String fullName) {
