@@ -2,7 +2,7 @@ package com.eldercare.backend.medication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.medication.internal.config.MedicationConfig;
+import com.eldercare.backend.medication.internal.governance.config.MedicationConfig;
 import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 

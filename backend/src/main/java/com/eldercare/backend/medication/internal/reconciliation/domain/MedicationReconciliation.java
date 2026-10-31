@@ -1,0 +1,213 @@
+package com.eldercare.backend.medication.internal.reconciliation.domain;
+
+import com.eldercare.backend.common.data.DataGroup;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+/**
+ * Medication reconciliation entity (FR-034 -> FR-039; research D-13, D-16).
+ */
+@Entity
+@DataGroup(DataGroup.Group.MULTIPLE)
+@Table(name = "medication_reconciliation")
+public class MedicationReconciliation {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "resident_id", nullable = false)
+    private Long residentId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private ReconciliationReason reason;
+
+    @Column(name = "reason_detail", length = 2000)
+    private String reasonDetail;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private ReconciliationStatus status = ReconciliationStatus.OPEN;
+
+    @Column(name = "deadline_at")
+    private Instant deadlineAt;
+
+    @Column(name = "overdue_at")
+    private Instant overdueAt;
+
+    @Column(name = "created_by_id", nullable = false)
+    private Long createdById;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    @Column(name = "submitted_by_id")
+    private Long submittedById;
+
+    @Column(name = "submitted_at")
+    private Instant submittedAt;
+
+    @Column(name = "confirmed_by_id")
+    private Long confirmedById;
+
+    @Column(name = "confirmed_at")
+    private Instant confirmedAt;
+
+    @Column(name = "locked_at")
+    private Instant lockedAt;
+
+    @Column(name = "return_reason", length = 2000)
+    private String returnReason;
+
+    @Column(name = "cancel_reason", length = 2000)
+    private String cancelReason;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "`lines`", nullable = false, columnDefinition = "json")
+    private List<ReconciliationItem> lines = new ArrayList<>();
+
+    @Version
+    @Column(nullable = false)
+    private int version;
+
+    protected MedicationReconciliation() {}
+
+    public MedicationReconciliation(
+            Long residentId,
+            ReconciliationReason reason,
+            String reasonDetail,
+            Instant deadlineAt,
+            Long createdById,
+            Instant createdAt,
+            Instant now) {
+        this.residentId = residentId;
+        this.reason = reason;
+        this.reasonDetail = reasonDetail;
+        this.deadlineAt = deadlineAt;
+        this.createdById = createdById;
+        this.createdAt = createdAt != null ? createdAt : now;
+        this.status = ReconciliationStatus.OPEN;
+    }
+
+    public void submit(Long submittedById, Instant submittedAt) {
+        this.status = ReconciliationStatus.PENDING_CONFIRMATION;
+        this.submittedById = submittedById;
+        this.submittedAt = submittedAt;
+        this.returnReason = null;
+    }
+
+    public void returnForEdit(String reason) {
+        this.status = ReconciliationStatus.OPEN;
+        this.returnReason = reason;
+    }
+
+    public void confirm(Long confirmedById, Instant confirmedAt) {
+        this.status = ReconciliationStatus.CONFIRMED;
+        this.confirmedById = confirmedById;
+        this.confirmedAt = confirmedAt;
+        this.lockedAt = confirmedAt;
+    }
+
+    public void cancel(String reason) {
+        this.status = ReconciliationStatus.CANCELLED;
+        this.cancelReason = reason;
+    }
+
+    public void markOverdue(Instant overdueAt) {
+        this.overdueAt = overdueAt;
+    }
+
+    // --- Getters & Setters ---
+
+    public Long getId() {
+        return id;
+    }
+
+    public Long getResidentId() {
+        return residentId;
+    }
+
+    public ReconciliationReason getReason() {
+        return reason;
+    }
+
+    public String getReasonDetail() {
+        return reasonDetail;
+    }
+
+    public ReconciliationStatus getStatus() {
+        return status;
+    }
+
+    public Instant getDeadlineAt() {
+        return deadlineAt;
+    }
+
+    public Instant getOverdueAt() {
+        return overdueAt;
+    }
+
+    public Long getCreatedById() {
+        return createdById;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Long getSubmittedById() {
+        return submittedById;
+    }
+
+    public Instant getSubmittedAt() {
+        return submittedAt;
+    }
+
+    public Long getConfirmedById() {
+        return confirmedById;
+    }
+
+    public Instant getConfirmedAt() {
+        return confirmedAt;
+    }
+
+    public Instant getLockedAt() {
+        return lockedAt;
+    }
+
+    public String getReturnReason() {
+        return returnReason;
+    }
+
+    public String getCancelReason() {
+        return cancelReason;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public List<ReconciliationItem> getLines() {
+        return lines.stream()
+                .sorted(Comparator.comparingInt(ReconciliationItem::getItemOrder))
+                .toList();
+    }
+
+    public void replaceLines(List<ReconciliationItem> lines) {
+        this.lines = new ArrayList<>(lines == null ? List.of() : lines);
+    }
+}

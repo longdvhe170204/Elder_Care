@@ -7,10 +7,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.eldercare.backend.common.Reason;
-import com.eldercare.backend.medication.internal.service.MedicationService;
-import com.eldercare.backend.medication.internal.service.MedicationService.CreateMedicationCommand;
-import com.eldercare.backend.medication.internal.service.MedicationService.MedicationDetailView;
-import com.eldercare.backend.medication.internal.service.MedicationService.UpdateMedicationCommand;
+import com.eldercare.backend.medication.internal.catalog.service.MedicationService;
+import com.eldercare.backend.medication.internal.catalog.service.MedicationService.CreateMedicationCommand;
+import com.eldercare.backend.medication.internal.catalog.service.MedicationService.MedicationDetailView;
+import com.eldercare.backend.medication.internal.catalog.service.MedicationService.UpdateMedicationCommand;
 import com.eldercare.backend.medication.web.MedicationController;
 import com.eldercare.backend.medication.web.request.MedicationRequest;
 import com.eldercare.backend.medication.web.request.ReasonRequest;

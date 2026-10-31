@@ -70,11 +70,8 @@ class LayerArchTest {
             .map(part -> "com.eldercare.backend.staffing." + part + "..")
             .toArray(String[]::new);
 
-    /** D (006): request, response của medication về {@code medication.web}; E (008): {@code service.port} về {@code service}. */
-    private static final String[] PENDING_LAYER_SUB_PACKAGES = {
-        "com.eldercare.backend.medication.internal.service.request",
-        "com.eldercare.backend.medication.internal.service.response",
-        "com.eldercare.backend.staffing..internal.service.port"
+    /** E (008): {@code service.port} về {@code service}. */
+    private static final String[] PENDING_LAYER_SUB_PACKAGES = {"com.eldercare.backend.staffing..internal.service.port"
     };
 
     /** Câu SQL chuyển vào lớp {@code *Store} trong {@code persistence}: A (administration, notification), B (resident), E (staffing). */

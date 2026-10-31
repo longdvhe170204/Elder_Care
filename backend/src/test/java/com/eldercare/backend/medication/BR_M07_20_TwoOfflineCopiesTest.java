@@ -9,18 +9,18 @@ import static org.mockito.Mockito.when;
 
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.medication.api.events.MedicationAlertRequestedEvent;
-import com.eldercare.backend.medication.internal.domain.DoseResult;
-import com.eldercare.backend.medication.internal.domain.DoseResultType;
-import com.eldercare.backend.medication.internal.domain.DoseReview;
-import com.eldercare.backend.medication.internal.domain.MedicationDose;
-import com.eldercare.backend.medication.internal.persistence.DoseResultRepository;
-import com.eldercare.backend.medication.internal.persistence.DoseReviewRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationDoseRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationRepository;
-import com.eldercare.backend.medication.internal.persistence.PrescriptionRepository;
-import com.eldercare.backend.medication.internal.service.DoseAdministrationService;
-import com.eldercare.backend.medication.internal.service.DoseResultOfflineContent;
-import com.eldercare.backend.medication.internal.service.DoseResultOfflineHandler;
+import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
+import com.eldercare.backend.medication.internal.dose.domain.DoseResult;
+import com.eldercare.backend.medication.internal.dose.domain.DoseResultType;
+import com.eldercare.backend.medication.internal.dose.domain.DoseReview;
+import com.eldercare.backend.medication.internal.dose.domain.MedicationDose;
+import com.eldercare.backend.medication.internal.dose.persistence.DoseResultRepository;
+import com.eldercare.backend.medication.internal.dose.persistence.DoseReviewRepository;
+import com.eldercare.backend.medication.internal.dose.persistence.MedicationDoseRepository;
+import com.eldercare.backend.medication.internal.dose.service.DoseAdministrationService;
+import com.eldercare.backend.medication.internal.dose.service.DoseResultOfflineContent;
+import com.eldercare.backend.medication.internal.dose.service.DoseResultOfflineHandler;
+import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
 import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.Optional;
@@ -100,7 +100,6 @@ class BR_M07_20_TwoOfflineCopiesTest {
                 201L,
                 resultType,
                 Instant.parse("2026-10-28T01:05:00Z"),
-                null,
                 null,
                 null,
                 null,

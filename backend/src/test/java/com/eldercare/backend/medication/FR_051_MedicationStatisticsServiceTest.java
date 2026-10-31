@@ -4,28 +4,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
+import com.eldercare.backend.administration.correction.api.CorrectionApi;
+import com.eldercare.backend.administration.correction.api.CurrentValue;
 import com.eldercare.backend.medication.api.dto.DoseReportView;
 import com.eldercare.backend.medication.api.dto.DoseStatus;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
 import com.eldercare.backend.medication.api.dto.NursingShiftView;
 import com.eldercare.backend.medication.api.dto.ReconciliationReportView;
 import com.eldercare.backend.medication.api.spi.NursingShiftPort;
-import com.eldercare.backend.medication.internal.domain.DoseAuthorityBasis;
-import com.eldercare.backend.medication.internal.domain.DoseResult;
-import com.eldercare.backend.medication.internal.domain.DoseResultType;
-import com.eldercare.backend.medication.internal.domain.DoseReview;
-import com.eldercare.backend.medication.internal.domain.MedicationDose;
-import com.eldercare.backend.medication.internal.domain.MedicationReconciliation;
-import com.eldercare.backend.medication.internal.domain.ReconciliationReason;
-import com.eldercare.backend.medication.internal.persistence.DoseResultRepository;
-import com.eldercare.backend.medication.internal.persistence.DoseReviewRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationDoseRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationReconciliationRepository;
-import com.eldercare.backend.medication.internal.service.DefaultMedicationStatisticsService;
-import com.eldercare.backend.medication.internal.service.DoseResultOfflineHandler;
-import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
-import com.eldercare.backend.administration.correction.api.CorrectionApi;
-import com.eldercare.backend.administration.correction.api.CurrentValue;
+import com.eldercare.backend.medication.internal.dose.domain.DoseAuthorityBasis;
+import com.eldercare.backend.medication.internal.dose.domain.DoseResult;
+import com.eldercare.backend.medication.internal.dose.domain.DoseResultType;
+import com.eldercare.backend.medication.internal.dose.domain.DoseReview;
+import com.eldercare.backend.medication.internal.dose.domain.MedicationDose;
+import com.eldercare.backend.medication.internal.dose.persistence.DoseResultRepository;
+import com.eldercare.backend.medication.internal.dose.persistence.DoseReviewRepository;
+import com.eldercare.backend.medication.internal.dose.persistence.MedicationDoseRepository;
+import com.eldercare.backend.medication.internal.dose.service.DoseResultOfflineHandler;
+import com.eldercare.backend.medication.internal.governance.service.DefaultMedicationStatisticsService;
+import com.eldercare.backend.medication.internal.reconciliation.domain.MedicationReconciliation;
+import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationReason;
+import com.eldercare.backend.medication.internal.reconciliation.persistence.MedicationReconciliationRepository;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -63,12 +63,27 @@ class FR_051_MedicationStatisticsServiceTest {
         Instant from = Instant.parse("2026-10-28T00:00:00Z");
         Instant scheduled = Instant.parse("2026-10-28T01:00:00Z");
         Instant to = Instant.parse("2026-10-28T03:00:00Z");
-        MedicationDose included =
-                dose(101L, 10L, 201L, 11L, scheduled, com.eldercare.backend.medication.internal.domain.DoseStatus.ADMINISTERED);
-        MedicationDose outsideScope =
-                dose(102L, 20L, 202L, 22L, scheduled, com.eldercare.backend.medication.internal.domain.DoseStatus.ADMINISTERED);
-        MedicationDose atExclusiveEnd =
-                dose(103L, 30L, 203L, 11L, to, com.eldercare.backend.medication.internal.domain.DoseStatus.ADMINISTERED);
+        MedicationDose included = dose(
+                101L,
+                10L,
+                201L,
+                11L,
+                scheduled,
+                com.eldercare.backend.medication.internal.dose.domain.DoseStatus.ADMINISTERED);
+        MedicationDose outsideScope = dose(
+                102L,
+                20L,
+                202L,
+                22L,
+                scheduled,
+                com.eldercare.backend.medication.internal.dose.domain.DoseStatus.ADMINISTERED);
+        MedicationDose atExclusiveEnd = dose(
+                103L,
+                30L,
+                203L,
+                11L,
+                to,
+                com.eldercare.backend.medication.internal.dose.domain.DoseStatus.ADMINISTERED);
         DoseResult result = result(501L, 101L, 201L, 11L, DoseAuthorityBasis.FLOOR_SHARED, true, true);
         DoseReview review = new DoseReview(501L, null, 11L, "[88]", null, scheduled);
         review.accept(88L, null, scheduled.plusSeconds(60));
@@ -105,7 +120,12 @@ class FR_051_MedicationStatisticsServiceTest {
         Instant scheduled = Instant.parse("2026-10-28T02:00:00Z");
         Instant to = Instant.parse("2026-10-28T03:00:00Z");
         MedicationDose carried = dose(
-                104L, 40L, 204L, 12L, scheduled, com.eldercare.backend.medication.internal.domain.DoseStatus.LEAVE_MEDICATION);
+                104L,
+                40L,
+                204L,
+                12L,
+                scheduled,
+                com.eldercare.backend.medication.internal.dose.domain.DoseStatus.LEAVE_MEDICATION);
 
         when(doses.findAll()).thenReturn(List.of(carried));
         when(results.findByDoseIdIn(List.of(104L))).thenReturn(List.of());
@@ -149,7 +169,7 @@ class FR_051_MedicationStatisticsServiceTest {
             long residentId,
             long floorId,
             Instant scheduled,
-            com.eldercare.backend.medication.internal.domain.DoseStatus status) {
+            com.eldercare.backend.medication.internal.dose.domain.DoseStatus status) {
         MedicationDose dose = new MedicationDose(
                 prescriptionId,
                 residentId,
@@ -195,7 +215,6 @@ class FR_051_MedicationStatisticsServiceTest {
                 late,
                 offline,
                 false,
-                null,
                 null,
                 Instant.parse("2026-10-28T01:11:00Z"));
         setId(result, id);
