@@ -1,7 +1,7 @@
 package com.eldercare.backend.resident.internal.status.service;
 
 import com.eldercare.backend.administration.account.api.AccountApi;
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.events.ResidentStatusChanged;
 import java.util.Set;

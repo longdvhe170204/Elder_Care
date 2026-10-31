@@ -73,14 +73,16 @@ class FR_016a_OffShiftIT extends M13IntegrationTestBase {
         users = new TestUsers(jdbc, time);
         floor = TestUsers.nextId();
         locations.floor(floor, null);
-        jdbc.update("UPDATE notification_channel SET enabled = TRUE WHERE code = 'SMS'");
+        jdbc.update("UPDATE catalog_item SET attributes = JSON_SET(attributes, '$.enabled', CAST('true' AS JSON))"
+                + " WHERE catalog_type = 'M13.NOTIFICATION_CHANNEL' AND code = 'SMS'");
         sms.reset();
         clock.setTo(at("2030-03-04T10:00:00"));
     }
 
     @AfterEach
     void reset() {
-        jdbc.update("UPDATE notification_channel SET enabled = FALSE WHERE code = 'SMS'");
+        jdbc.update("UPDATE catalog_item SET attributes = JSON_SET(attributes, '$.enabled', CAST('false' AS JSON))"
+                + " WHERE catalog_type = 'M13.NOTIFICATION_CHANNEL' AND code = 'SMS'");
         clock.reset();
         sms.reset();
         shifts.reset();
@@ -136,9 +138,10 @@ class FR_016a_OffShiftIT extends M13IntegrationTestBase {
 
     private List<String> smsResults(String key) {
         return jdbc.queryForList(
-                "SELECT r.result FROM delivery_attempt a JOIN notification n ON n.id = a.notification_id"
+                "SELECT r.m13_result FROM record_event a JOIN notification n ON n.id = a.entity_id"
                         + " JOIN notification_request q ON q.id = n.request_id"
-                        + " JOIN delivery_result r ON r.attempt_id = a.id WHERE q.event_key = ? AND a.channel = 'SMS'",
+                        + " JOIN record_event r ON r.kind = 'M13.DELIVERY_RESULT' AND r.entity_type = 'M13.DELIVERY_ATTEMPT' AND r.entity_id = a.id WHERE a.kind = 'M13.DELIVERY_ATTEMPT' AND a.entity_type = 'M13.NOTIFICATION'"
+                        + " AND q.event_key = ? AND a.content->>'$.channel' = 'SMS'",
                 String.class,
                 key);
     }

@@ -1,7 +1,9 @@
 package com.eldercare.backend.roombedallocation.internal.bed.service;
 
 import com.eldercare.backend.administration.auditlog.api.*;
+import com.eldercare.backend.administration.auditlog.api.dto.*;
 import com.eldercare.backend.administration.parameter.api.*;
+import com.eldercare.backend.administration.parameter.api.dto.*;
 import com.eldercare.backend.common.notification.*;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.roombedallocation.api.dto.BedNotificationContext;

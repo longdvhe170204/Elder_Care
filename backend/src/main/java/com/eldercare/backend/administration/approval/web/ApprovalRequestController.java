@@ -1,10 +1,10 @@
 package com.eldercare.backend.administration.approval.web;
 
 import com.eldercare.backend.administration.account.api.AccountApi;
-import com.eldercare.backend.administration.approval.api.ApprovalRequestDetails;
-import com.eldercare.backend.administration.approval.api.ApprovalRequestView;
-import com.eldercare.backend.administration.approval.api.CreateRequest;
 import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestBody;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestDetails;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
+import com.eldercare.backend.administration.approval.api.dto.CreateRequest;
 import com.eldercare.backend.administration.approval.internal.service.ApprovalRequestService;
 import com.eldercare.backend.administration.approval.internal.service.ApprovalRequestService.Inbox;
 import com.eldercare.backend.administration.approval.internal.service.ApprovalRequestService.Page;

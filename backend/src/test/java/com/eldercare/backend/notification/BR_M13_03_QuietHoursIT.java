@@ -120,8 +120,7 @@ class BR_M13_03_QuietHoursIT extends M13IntegrationTestBase {
 
     private Map<String, Object> state(long requestId, long familyMemberId) {
         return jdbc.queryForMap(
-                "SELECT n.id, s.status, s.scheduled_send_at, s.sent_at FROM notification n"
-                        + " JOIN notification_state s ON s.notification_id = n.id"
+                "SELECT n.id, n.status, n.scheduled_send_at, n.sent_at FROM notification n"
                         + " WHERE n.request_id = ? AND n.recipient_type = 'FAMILY_MEMBER' AND n.recipient_id = ?",
                 requestId,
                 familyMemberId);
@@ -129,12 +128,15 @@ class BR_M13_03_QuietHoursIT extends M13IntegrationTestBase {
 
     private int attempts(long notificationId) {
         return jdbc.queryForObject(
-                "SELECT COUNT(*) FROM delivery_attempt WHERE notification_id = ?", Integer.class, notificationId);
+                "SELECT COUNT(*) FROM record_event a WHERE a.kind = 'M13.DELIVERY_ATTEMPT' AND a.entity_type = 'M13.NOTIFICATION' AND a.entity_id = ?",
+                Integer.class,
+                notificationId);
     }
 
     private String notSentReason(long notificationId) {
         return jdbc.queryForObject(
-                "SELECT reason FROM notification_event WHERE notification_id = ? AND type = 'NOT_SENT'",
+                "SELECT e.content->>'$.reason' FROM record_event e WHERE e.kind = 'M13.NOTIFICATION_EVENT' AND e.entity_type = 'M13.NOTIFICATION' AND e.entity_id = ?"
+                        + " AND e.content->>'$.type' = 'NOT_SENT'",
                 String.class,
                 notificationId);
     }
@@ -183,8 +185,7 @@ class BR_M13_03_QuietHoursIT extends M13IntegrationTestBase {
         assertNear(s.get("sent_at"), at("2030-03-04T23:10:00"));
         assertNear(
                 jdbc.queryForObject(
-                        "SELECT s.sent_at FROM notification n JOIN notification_state s ON s.notification_id = n.id"
-                                + " WHERE n.request_id = ? AND n.recipient_id = ?",
+                        "SELECT n.sent_at FROM notification n WHERE n.request_id = ? AND n.recipient_id = ?",
                         LocalDateTime.class,
                         staff,
                         accountant.staffId()),
@@ -219,14 +220,16 @@ class BR_M13_03_QuietHoursIT extends M13IntegrationTestBase {
                         "SELECT received_at FROM notification_request WHERE id = ?", LocalDateTime.class, first),
                 at("2030-03-04T22:30:00"));
         assertThat(jdbc.queryForList(
-                        "SELECT notification_id FROM notification_event WHERE type = 'SEND' AND notification_id IN (?, ?)"
-                                + " ORDER BY id",
+                        "SELECT e.entity_id FROM record_event e WHERE e.kind = 'M13.NOTIFICATION_EVENT' AND e.entity_type = 'M13.NOTIFICATION' AND e.content->>'$.type' = 'SEND'"
+                                + " AND e.entity_id IN (?, ?) ORDER BY e.id",
                         Long.class,
                         firstId,
                         secondId))
                 .containsExactly(firstId, secondId);
         assertThat(jdbc.queryForObject(
-                        "SELECT channel FROM delivery_attempt WHERE notification_id = ?", String.class, firstId))
+                        "SELECT a.content->>'$.channel' FROM record_event a WHERE a.kind = 'M13.DELIVERY_ATTEMPT' AND a.entity_type = 'M13.NOTIFICATION' AND a.entity_id = ?",
+                        String.class,
+                        firstId))
                 .isEqualTo("FAMILY_PORTAL");
 
         assertThat(release.run()).isZero();
