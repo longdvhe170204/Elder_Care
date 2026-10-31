@@ -2,11 +2,11 @@ package com.eldercare.backend.medication.web;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.common.error.web.ProblemBody;
-import com.eldercare.backend.medication.internal.service.FamilyMedicationService;
-import com.eldercare.backend.medication.internal.service.request.ConfirmBatchUseBody;
-import com.eldercare.backend.medication.internal.service.request.DisposeBatchBody;
-import com.eldercare.backend.medication.internal.service.request.ReceiveBatchBody;
-import com.eldercare.backend.medication.internal.service.request.ReturnBatchBody;
+import com.eldercare.backend.medication.internal.family.domain.ConfirmBatchUseBody;
+import com.eldercare.backend.medication.internal.family.domain.DisposeBatchBody;
+import com.eldercare.backend.medication.internal.family.domain.ReceiveBatchBody;
+import com.eldercare.backend.medication.internal.family.domain.ReturnBatchBody;
+import com.eldercare.backend.medication.internal.family.service.FamilyMedicationService;
 import com.eldercare.backend.medication.web.request.DoseRequests.PersonType;
 import com.eldercare.backend.medication.web.request.FamilyMedicationRequests.ConfirmUseRequest;
 import com.eldercare.backend.medication.web.request.FamilyMedicationRequests.DisposeRequest;

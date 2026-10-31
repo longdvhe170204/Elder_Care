@@ -3,21 +3,21 @@ package com.eldercare.backend.medication;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.medication.api.dto.MedicationSource;
-import com.eldercare.backend.medication.internal.domain.FrequencyType;
-import com.eldercare.backend.medication.internal.domain.Medication;
-import com.eldercare.backend.medication.internal.domain.Prescription;
-import com.eldercare.backend.medication.internal.domain.PrescriptionStatus;
-import com.eldercare.backend.medication.internal.domain.PrescriptionType;
-import com.eldercare.backend.medication.internal.domain.TerminationReason;
-import com.eldercare.backend.medication.internal.persistence.MedicationRepository;
-import com.eldercare.backend.medication.internal.persistence.PrescriptionRepository;
-import com.eldercare.backend.medication.internal.service.PrescriptionService;
-import com.eldercare.backend.medication.internal.service.request.ChangeDosageBody;
-import com.eldercare.backend.medication.internal.service.request.CreatePrescriptionBody;
-import com.eldercare.backend.medication.internal.service.request.DiscontinuePrescriptionBody;
-import com.eldercare.backend.medication.internal.service.request.FrequencyBody;
-import com.eldercare.backend.medication.internal.service.request.PrescriberBody;
-import com.eldercare.backend.medication.internal.service.response.PrescriptionResponse;
+import com.eldercare.backend.medication.internal.catalog.domain.Medication;
+import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
+import com.eldercare.backend.medication.internal.prescription.domain.ChangeDosageBody;
+import com.eldercare.backend.medication.internal.prescription.domain.CreatePrescriptionBody;
+import com.eldercare.backend.medication.internal.prescription.domain.DiscontinuePrescriptionBody;
+import com.eldercare.backend.medication.internal.prescription.domain.FrequencyBody;
+import com.eldercare.backend.medication.internal.prescription.domain.FrequencyType;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriberBody;
+import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionResponse;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionType;
+import com.eldercare.backend.medication.internal.prescription.domain.TerminationReason;
+import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
+import com.eldercare.backend.medication.internal.prescription.service.PrescriptionService;
 import com.eldercare.backend.support.TestUsers;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -51,7 +51,8 @@ class BR_M07_15_CancelDosageChangeIT extends M07IntegrationTestBase {
     @BeforeEach
     void setUp() {
         jdbc.update(
-                "INSERT INTO resident_medication (resident_id, version) VALUES (?, 0) "
+                "INSERT INTO resident_module_state (resident_id, module, data, version, updated_at)"
+                        + " VALUES (?, 'M07', JSON_OBJECT(), 0, UTC_TIMESTAMP(6)) "
                         + "ON DUPLICATE KEY UPDATE version = version",
                 residentId);
 
@@ -86,7 +87,7 @@ class BR_M07_15_CancelDosageChangeIT extends M07IntegrationTestBase {
                 now.minus(5, ChronoUnit.DAYS),
                 null,
                 MedicationSource.FACILITY,
-                com.eldercare.backend.medication.internal.domain.PrescriberType.INTERNAL,
+                com.eldercare.backend.medication.internal.prescription.domain.PrescriberType.INTERNAL,
                 null,
                 null,
                 10L,

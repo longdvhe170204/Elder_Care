@@ -2,6 +2,7 @@ package com.eldercare.backend.support.fake.medication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.medication.api.dto.DoseReportView;
 import com.eldercare.backend.medication.api.dto.DoseStatus;
 import com.eldercare.backend.medication.api.dto.ReconciliationReportView;
@@ -9,7 +10,6 @@ import com.eldercare.backend.medication.api.dto.TimeInterval;
 import com.eldercare.backend.medication.api.spi.ProcurementMedicationLineView;
 import com.eldercare.backend.medication.api.spi.PurchaseAssistanceView;
 import com.eldercare.backend.medication.api.spi.ShiftView;
-import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;

@@ -12,24 +12,24 @@ import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
-import com.eldercare.backend.roombedallocation.api.dto.LocationView;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
 import com.eldercare.backend.medication.api.dto.NursingShiftView;
 import com.eldercare.backend.medication.api.events.FloorWithoutNurse;
 import com.eldercare.backend.medication.api.spi.NursingShiftPort;
-import com.eldercare.backend.medication.internal.domain.DoseStatus;
-import com.eldercare.backend.medication.internal.domain.Prescription;
-import com.eldercare.backend.medication.internal.domain.PrescriptionType;
-import com.eldercare.backend.medication.internal.persistence.DoseResultRepository;
-import com.eldercare.backend.medication.internal.persistence.M07JobRunStore;
-import com.eldercare.backend.medication.internal.persistence.MedicationDoseRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationRepository;
-import com.eldercare.backend.medication.internal.persistence.PrescriptionRepository;
-import com.eldercare.backend.medication.internal.service.CalculatedDoseSlot;
-import com.eldercare.backend.medication.internal.service.DoseAdministrationService;
-import com.eldercare.backend.medication.internal.service.M07JobService;
-import com.eldercare.backend.medication.internal.service.MedicationScheduleCalculator;
+import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
+import com.eldercare.backend.medication.internal.dose.domain.DoseStatus;
+import com.eldercare.backend.medication.internal.dose.persistence.DoseResultRepository;
+import com.eldercare.backend.medication.internal.dose.persistence.MedicationDoseRepository;
+import com.eldercare.backend.medication.internal.dose.service.DoseAdministrationService;
+import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionType;
+import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
+import com.eldercare.backend.medication.internal.schedule.persistence.M07JobRunStore;
+import com.eldercare.backend.medication.internal.schedule.service.CalculatedDoseSlot;
+import com.eldercare.backend.medication.internal.schedule.service.M07JobService;
+import com.eldercare.backend.medication.internal.schedule.service.MedicationScheduleCalculator;
+import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
+import com.eldercare.backend.roombedallocation.api.dto.LocationView;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -97,7 +97,7 @@ class BR_M07_21_FloorWithoutNurseTest {
                                 new RecipientGroup.FacilityRole(Role.NURSING_HOME_MANAGER));
             });
         });
-        verify(runs).recordCompletion("FLOOR_WITHOUT_NURSE", "11:91", "COMPLETED", null, now);
+        verify(runs).recordCompletion("FLOOR_WITHOUT_NURSE", "11:91", "COMPLETED");
     }
 
     private static CalculatedDoseSlot slot(long id, Instant scheduled) {

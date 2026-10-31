@@ -1,9 +1,9 @@
 package com.eldercare.backend.support.fake.medication;
 
+import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.medication.api.MedicationStatisticsApi;
 import com.eldercare.backend.medication.api.dto.DoseReportView;
 import com.eldercare.backend.medication.api.dto.ReconciliationReportView;
-import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Stream;

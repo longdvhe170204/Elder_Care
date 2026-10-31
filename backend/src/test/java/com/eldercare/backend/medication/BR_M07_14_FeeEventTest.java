@@ -13,20 +13,21 @@ import com.eldercare.backend.medication.api.dto.AdministerDoseRequest;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
 import com.eldercare.backend.medication.api.events.BilledSource;
 import com.eldercare.backend.medication.api.events.MedicationBilledEvent;
-import com.eldercare.backend.medication.internal.domain.DoseAuthorityBasis;
-import com.eldercare.backend.medication.internal.domain.DoseResult;
-import com.eldercare.backend.medication.internal.domain.DoseStatus;
-import com.eldercare.backend.medication.internal.domain.MedicationDose;
-import com.eldercare.backend.medication.internal.domain.Prescription;
-import com.eldercare.backend.medication.internal.persistence.DoseResultRepository;
-import com.eldercare.backend.medication.internal.persistence.DoseReviewRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationDoseRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationRepository;
-import com.eldercare.backend.medication.internal.persistence.PrescriptionRepository;
-import com.eldercare.backend.medication.internal.persistence.ResidentMedicationLock;
-import com.eldercare.backend.medication.internal.service.DoseAdministrationService;
-import com.eldercare.backend.medication.internal.service.DoseAssigneeResolver;
-import com.eldercare.backend.medication.internal.service.MedicationScheduleCalculator;
+import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
+import com.eldercare.backend.medication.internal.dose.domain.DoseAuthorityBasis;
+import com.eldercare.backend.medication.internal.dose.domain.DoseResult;
+import com.eldercare.backend.medication.internal.dose.domain.DoseStatus;
+import com.eldercare.backend.medication.internal.dose.domain.MedicationDose;
+import com.eldercare.backend.medication.internal.dose.persistence.DoseResultRepository;
+import com.eldercare.backend.medication.internal.dose.persistence.DoseReviewRepository;
+import com.eldercare.backend.medication.internal.dose.persistence.MedicationDoseRepository;
+import com.eldercare.backend.medication.internal.dose.service.DoseAdministrationService;
+import com.eldercare.backend.medication.internal.dose.service.DoseAssigneeResolver;
+import com.eldercare.backend.medication.internal.family.service.FamilyMedicationService;
+import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
+import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
+import com.eldercare.backend.medication.internal.reconciliation.persistence.ResidentMedicationLock;
+import com.eldercare.backend.medication.internal.schedule.service.MedicationScheduleCalculator;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -86,7 +87,8 @@ class BR_M07_14_FeeEventTest {
                 mock(ResidentMedicationLock.class),
                 events,
                 time,
-                M07TestParameters.defaults());
+                M07TestParameters.defaults(),
+                mock(FamilyMedicationService.class));
         String doseKey = MedicationScheduleCalculator.doseKey(10L, scheduled);
 
         service.administerDose(doseKey, request(now, null), 77L, 11L, now);
@@ -107,7 +109,7 @@ class BR_M07_14_FeeEventTest {
 
     private static AdministerDoseRequest request(Instant administeredAt, Long leaveHandoverId) {
         return new AdministerDoseRequest(
-                administeredAt, null, null, null, null, null, null, null, false, null, leaveHandoverId);
+                administeredAt, null, null, null, null, null, null, null, false, leaveHandoverId);
     }
 
     private static void setId(Object entity, long id) {
