@@ -23,6 +23,7 @@ import com.eldercare.backend.administration.account.internal.permission.domain.R
 import com.eldercare.backend.administration.account.internal.permission.persistence.PermissionChanges;
 import com.eldercare.backend.administration.account.internal.scope.service.PermissionDataErrors;
 import com.eldercare.backend.common.Role;
+import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Instant;
 import java.util.EnumMap;
@@ -74,6 +75,7 @@ class PermissionService implements PermissionApi {
     // 004 cài
     private final ObjectProvider<ResidencyEndApi> residencyEnds;
     private final PermissionChanges restrictions;
+    private final FamilyRights familyRights;
 
     PermissionService(
             RolePermissionCalculator roles,
@@ -84,7 +86,8 @@ class PermissionService implements PermissionApi {
             LegalConditionService legal,
             BusinessTime time,
             ObjectProvider<ResidencyEndApi> residencyEnds,
-            PermissionChanges restrictions) {
+            PermissionChanges restrictions,
+            FamilyRights familyRights) {
         this.roles = roles;
         this.scope = scope;
         this.conditions = conditions;
@@ -94,6 +97,7 @@ class PermissionService implements PermissionApi {
         this.time = time;
         this.residencyEnds = residencyEnds;
         this.restrictions = restrictions;
+        this.familyRights = familyRights;
     }
 
     @Override
@@ -177,6 +181,12 @@ class PermissionService implements PermissionApi {
             Map<String, FootnoteCondition> registered = registeredConditions();
             List<RoleGrant> passing = grants.getOrDefault(key, Set.of()).stream()
                     .filter(g -> g.footnotes().stream().allMatch(c -> satisfied(c, registered, user, target, at)))
+                    // Quyền riêng của người thân (FR-045 (3), T100): chú thích ¹ cần xem sức khỏe, chi phí cần xem chi
+                    // phí
+                    .filter(g -> !g.footnotes().contains("1")
+                            || familyRights.enabled(user, target, FamilyRight.VIEW_HEALTH, at))
+                    .filter(g -> key.function() != Function.COST_ADJUSTMENT
+                            || familyRights.enabled(user, target, FamilyRight.VIEW_COSTS, at))
                     .toList();
             // 2. Nhiệm vụ khi vai trò hoặc phạm vi không thỏa; giới hạn của nhiệm vụ là phạm vi của quyền đó
             if (passing.isEmpty()) {
