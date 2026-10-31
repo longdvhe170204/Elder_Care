@@ -1,7 +1,7 @@
 package com.eldercare.backend.administration.account.internal.auth.service;
 
 import com.eldercare.backend.administration.account.internal.persistence.AccountStore;
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.scheduling.SchedulerRuns;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

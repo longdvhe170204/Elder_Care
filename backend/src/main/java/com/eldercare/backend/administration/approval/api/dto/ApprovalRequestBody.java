@@ -1,8 +1,5 @@
 package com.eldercare.backend.administration.approval.api.dto;
 
-import com.eldercare.backend.administration.approval.api.ApprovalRequestDetails;
-import com.eldercare.backend.administration.approval.api.ApprovalRequestView;
-import com.eldercare.backend.administration.approval.api.ResultRef;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.time.LocalDate;

@@ -14,8 +14,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.administration.approval.api.RequestDecided;
-import com.eldercare.backend.administration.approval.api.RequestSubmitted;
+import com.eldercare.backend.administration.approval.api.events.RequestDecided;
+import com.eldercare.backend.administration.approval.api.events.RequestSubmitted;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.support.FakePermissions;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;

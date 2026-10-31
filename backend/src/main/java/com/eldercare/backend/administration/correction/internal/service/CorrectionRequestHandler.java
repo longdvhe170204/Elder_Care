@@ -2,12 +2,12 @@ package com.eldercare.backend.administration.correction.internal.service;
 
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.Target;
-import com.eldercare.backend.administration.approval.api.ApprovalRequestView;
-import com.eldercare.backend.administration.approval.api.ResultRef;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
+import com.eldercare.backend.administration.approval.api.dto.ResultRef;
 import com.eldercare.backend.administration.approval.api.spi.RequestTypeHandler;
-import com.eldercare.backend.administration.correction.api.CorrectionPermissions;
-import com.eldercare.backend.administration.correction.api.CorrectionType;
-import com.eldercare.backend.administration.correction.api.CorrectionView;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionPermissions;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionView;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.InvalidValueException;

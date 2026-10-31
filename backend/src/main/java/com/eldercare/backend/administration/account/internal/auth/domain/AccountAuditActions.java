@@ -1,6 +1,6 @@
 package com.eldercare.backend.administration.account.internal.auth.domain;
 
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 
 /** Hành động nhật ký của tài khoản (data-model mục 6; glossary mục 7): {@code TK_*}, {@code VT_*}. */
 public final class AccountAuditActions {

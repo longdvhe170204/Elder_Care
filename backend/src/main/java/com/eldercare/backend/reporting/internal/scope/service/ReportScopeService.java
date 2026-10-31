@@ -14,7 +14,7 @@ import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
 import com.eldercare.backend.administration.account.api.spi.AssignmentView;
 import com.eldercare.backend.administration.account.api.spi.InvalidPermissionDataException;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.reporting.internal.metric.domain.GroupScope;
