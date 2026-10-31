@@ -45,7 +45,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (M14 chỉ ph�
 | Q18 | Báo cáo chi phí chế độ "đã chốt" tháng 9 | Khớp tổng bảng Đã chốt và dòng tổng kiểm soát file kế toán; ghi chú "không phải báo cáo tài chính" | US6, FR-050, FR-055, SC-007 |
 | Q19 | Chế độ "tạm tính"; khoản điều chỉnh sau chốt | Nhãn tạm tính; khoản điều chỉnh xếp theo kỳ chứa kèm kỳ gốc | FR-051, FR-052 |
 | Q20 | Hành chính xem báo cáo chi phí theo thuốc | Chỉ mã vật phẩm | FR-054, SC-005 |
-| Q21 | Báo cáo nhân sự của T2 | Tỷ lệ phục vụ lần tính cuối kèm "từng không đạt"; ca thiếu phủ; không có lý do nghỉ | US8, FR-070 → FR-072 |
+| Q21 | Báo cáo nhân sự của T2 | Tỷ lệ phục vụ lần tính cuối kèm "từng không đạt"; yêu cầu đổi ca, nghỉ đột xuất theo trạng thái cuối (ca thiếu phủ bỏ theo Q-397); không có lý do nghỉ | US8, FR-070 → FR-072 |
 | Q22 | Người phụ trách ca xem giờ làm theo nhân viên | 403 | FR-073 |
 | Q23 | Chọn khoảng 13 tháng | 422 `VUOT_KHOANG_TOI_DA` | FR-060, SC-003 |
 | Q24 | Báo cáo 12 tháng toàn viện | ≤ 30 giây | SC-003 |
