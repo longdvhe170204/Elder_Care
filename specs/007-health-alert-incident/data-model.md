@@ -29,10 +29,10 @@ Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (mod
 
 | Bảng cũ | Đích | Loại ở bảng chung | Ràng buộc của bảng cũ | Cách giữ sau gộp |
 | --- | --- | --- | --- | --- |
-| `chi_so_nct` | `trang_thai_nct` | `M05.CHI_SO_NCT` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `chi_so_nct` | `trang_thai_nct` | `M06.RESIDENT_VITAL_SIGNS` | — | cột vào `JSON` hoặc cột của bảng đích |
 | `theo_doi_nct` | `trang_thai_nct` | `M05.THEO_DOI_NCT` | — | cột vào `JSON` hoặc cột của bảng đích |
-| `chi_so` | `danh_muc_chung` | `M05.CHI_SO` | / `id`, `ma`, `ten`, `don_vi`, `thu_tu` / / `UNIQUE (ma)`; sáu chỉ số khởi tạo `HUYET_AP`, `NHIP_TIM`, `NHIET_DO`, `SPO2`, `DUONG_HUYET`, `CAN_NANG` / FR-001 / | `khoa_duy_nhat` |
-| `chi_so_thanh_phan` | `danh_muc_chung` | `M05.CHI_SO_THANH_PHAN` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `chi_so` | `danh_muc_chung` | `M06.VITAL_SIGN` | / `id`, `ma`, `ten`, `don_vi`, `thu_tu` / / `UNIQUE (ma)`; sáu chỉ số khởi tạo `HUYET_AP`, `NHIP_TIM`, `NHIET_DO`, `SPO2`, `DUONG_HUYET`, `CAN_NANG` / FR-001 / | `catalog_item.code_key`, `active_name`; thuộc tính `{unit, vitalSign}`. Không xóa loại có tham chiếu; FK từ bản ghi chỉ số. |
+| `chi_so_thanh_phan` | `danh_muc_chung` | `M06.VITAL_SIGN_COMPONENT` | — | cột vào `JSON` hoặc cột của bảng đích |
 | `quy_tac_xu_huong` | `danh_muc_chung` | `M05.QUY_TAC_XU_HUONG` | — | cột vào `JSON` hoặc cột của bảng đích |
 | `loai_su_co` | `danh_muc_chung` | `M05.LOAI_SU_CO` | — | cột vào `JSON` hoặc cột của bảng đích |
 | `loai_dien_bien` | `danh_muc_chung` | `M05.LOAI_DIEN_BIEN` | — | cột vào `JSON` hoặc cột của bảng đích |
@@ -199,6 +199,12 @@ Chỉ mục `(nct_id, trang_thai)`. Trigger `BEFORE UPDATE`: chặn đổi mọi
 ## 5. Bản ghi chỉ số (M06, mục B)
 
 ### `ban_ghi_chi_so` – nhóm 3 có bản nháp
+
+**Lược đồ thực tế (2026-10-31, T012 đọc trước):** `vital_sign_record` (`V007_01__vital_sign_record.sql`), `COMMENT='DataGroup=MULTIPLE'`, domain `VitalSignRecord` có `@DataGroup(MULTIPLE)` và `lockedAt`. Các mã loại health ở mục 0.1 dùng M06 theo `SharedKindArchTest`, sửa tiền tố M05 nhầm của bảng sinh tự động. Không di chuyển ID vì 007 chưa có bảng cũ.
+
+- Thành phần gộp vào `components` JSON dạng `{ "VALUE": { "value": 71.25, "level": "NORMAL" } }`; giữ mức từng thành phần tại lúc đo, không chỉ giữ giá trị. CHECK JSON Schema giữ miền số `DECIMAL(7,2)` và tập mức; không có bảng con.
+- `locked_at` và `confirmed_at` cùng rỗng ở `AWAITING_REMEASUREMENT`, cùng có và bằng nhau ở `CONFIRMED`/`REMEASURED`. Trigger `trg_vital_sign_record_row_lock` giữ toàn bộ dữ liệu gốc, chỉ cho chuyển xác nhận một lần và thêm `NOT_REMEASURED`. Trigger `no_delete` chỉ cho tài khoản retention xóa.
+- DBR-23/FR-009, FR-012 và R-15: `VitalSignSchemaIT` kiểm khóa dòng, quyền xóa, thời điểm đo, JSON thành phần. Phần đọc T013 kiểm `LatestVitalSignReadIT`: giá trị hiện hành qua `CorrectionApi.current("M06.VITAL_SIGN_RECORD", ids)`, loại bản hủy, dùng mốc đo gốc và vị trí lịch sử qua `ResidentLocationApi.at`. Không đổi mức tại lúc đo cho nguồn bàn giao (Q-88).
 
 | Cột | Kiểu | Ghi chú | Nguồn |
 | --- | --- | --- | --- |

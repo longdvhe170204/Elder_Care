@@ -980,6 +980,17 @@ Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phas
 | Tên logic | Mã |
 | --- | --- |
 | sự kiện `SuCoDaGhiNhan(suCoId, nctId, loai, muc, canDanhGiaLai)` | `IncidentRecorded(incidentId, residentId, type, level, needsReassessment)` |
+| `ChiSoApi.ganNhatMoiLoai` (`ganNhat` là tên logic 001 dùng), `ChiSoGanNhatView` | `VitalSignApi.latestPerType`, `LatestVitalSignView` (`recordId`, `indicatorId`, `indicatorCode`, `indicatorName`, `unit`, `values`, `measuredAt`) |
+| Đọc lịch sử, nhóm sinh hiệu | `VitalSignApi.withinRange`, `vitalSignIndicatorIds`; `VitalSignReadingView`; `VitalSignLevel`, `VitalSignConfirmationStatus`, `VitalSignLabel` |
+| Lịch đo, liên hệ viện, thống kê chỉ số | `MeasurementScheduleApi`, `MeasurementScheduleView`, `MeasurementFrequency`; `FacilityContactApi`, `FacilityContactView`; `VitalSignStatisticsApi`, `VitalSignReportView` |
+| Chỉ số đã xác nhận, đã đính chính; lịch đo đã đổi; nhắc thiếu ngưỡng cá nhân | `VitalSignConfirmed`, `VitalSignCorrected`, `MeasurementScheduleChanged`, `MissingPersonalThresholdReminder` (gói `health.api.events`) |
+| Bản ghi chỉ số, thành phần gộp JSON, danh mục chỉ số M06 | `vital_sign_record`, `VitalSignRecord`, `VitalSignComponent`; `HealthCatalogs.VITAL_SIGN` (`M06.VITAL_SIGN`), `VitalSignAttributes(unit, vitalSign)` |
+| Nguồn đọc thật chỉ số M06 | `DefaultVitalSignApi`, `VitalSignRecordStore`; loại đính chính `M06.VITAL_SIGN_RECORD` |
+| `NguoiThanKhanCapPort` (`nguoiLienHeChinh`, `nguoiDaiDien`, `luotThamTrongKhoang`) | `EmergencyFamilyPort` (`primaryContact`, `representatives`, `visitsInRange`); `EmergencyFamilyContactView`, `VisitTraceView`, `VisitTracePersonView` |
+| `DiemDanhTruyVetPort.cungThamGia`, `BuoiCungThamGiaView` | `AttendanceTracePort.coAttendance`, `ActivityAttendanceTraceView` |
+| `NhatKyThongBaoPort.theoNguon`, `DaThongBaoView` | `NotificationLogPort.bySource`, `IncidentNotificationView` (`recipientType`, `recipientId`, `channel`, `sentAt`, `viewedAt`) |
+| gói chức năng M06: danh mục, lịch đo, chỉ số, ngưỡng, giấy phép, khám, tham gia trạng thái | `health.internal.catalog`, `schedule`, `measurement`, `threshold`, `license`, `examination`, `governance` (cùng dưới `health.internal`) |
+| gói chức năng M05: cảnh báo, xu hướng, sự cố, khẩn cấp, nguy kịch, ngã, lây nhiễm, tham gia trạng thái | `incident.internal.alert`, `trend`, `incident`, `emergency`, `critical`, `fall`, `infection`, `governance` (cùng dưới `incident.internal`) |
 
 
 ## 14. Feature 008 (`008-staff-shift-handover`, E)
