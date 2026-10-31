@@ -22,7 +22,17 @@ const transition = async (u, id, cmd, body) => {
   const cur = await get(u, `/approval-requests/${id}`);
   return call(u, 'POST', `/approval-requests/${id}/${cmd}`, body, { 'If-Match': cur.etag });
 };
-const notes = async (u) => (await get(u, '/me/notifications')).body;
+// Đọc hết các trang: thông báo của lần chạy trước (đồng hồ đã tua xa hơn) có thể chiếm trang đầu
+const notes = async (u) => {
+  const items = [];
+  let cursor = null;
+  do {
+    const page = (await get(u, '/me/notifications' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : ''))).body;
+    items.push(...(page.items || []));
+    cursor = page.nextCursor;
+  } while (cursor);
+  return { items };
+};
 const noteTypes = (page) => JSON.stringify(page);
 const newRequest = async (u, key, effective, submit = true) =>
   (await call(u, 'POST', '/approval-requests', { type: 'M15.SAMPLE', content: { key }, requestedEffectiveDate: effective, reason: 'Quickstart ' + key, submitImmediately: submit })).body;
@@ -151,11 +161,12 @@ const newRequest = async (u, key, effective, submit = true) =>
   r = await call(DD, 'POST', `/corrections/M15.SAMPLE_RECORD/${f17.id}`, { type: 'AMEND_CONTENT', correctedContent: { note: 'sau khi hủy' }, reason: 'Quickstart K17: sửa sau khi hủy' });
   check('K17', 'VOID rồi AMEND_CONTENT: 409 RECORD_VOIDED', v17.status === 201 && r.status === 409 && r.body?.errorCode === 'RECORD_VOIDED', { v17: v17.status, r });
 
-  // K18: che trường
+  // K18: QLV thấy đủ; Hành chính không có phân công nên hồ sơ mẫu ngoài phạm vi (quickstart sửa 2026-11-01)
   const p18 = (await call(QLV, 'POST', '/testing/sample-data/profile-changes', {})).body;
+  const q18 = await get(QLV, `/audit-logs/entities/${p18.entityType}/${p18.entityId}`);
+  const i18 = q18.body?.items?.[0];
   r = await get(HC_A, `/audit-logs/entities/${p18.entityType}/${p18.entityId}`);
-  const i18 = r.body?.items?.[0];
-  check('K18', 'Hành chính: address hiện giá trị, allergies {changed:true}, reason null, reasonHidden', r.status === 200 && i18?.dataAfter?.address === '34 Trần Phú' && i18?.dataAfter?.allergies?.changed === true && i18?.reason == null && i18?.reasonHidden === true, r);
+  check('K18', 'QLV: 200, thấy address, allergies và reason; Hành chính: 404', q18.status === 200 && i18?.dataAfter?.address === '34 Trần Phú' && i18?.dataAfter?.allergies === 'Penicillin' && i18?.reason != null && r.status === 404, { qlv: q18, hc: r.status });
 
   // K19: lọc tự duyệt
   r = await get(QLV, '/audit-logs?selfApproved=true');
