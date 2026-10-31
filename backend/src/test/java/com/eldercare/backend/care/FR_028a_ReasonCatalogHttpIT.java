@@ -62,7 +62,10 @@ class FR_028a_ReasonCatalogHttpIT extends MySqlIntegrationTestBase {
 
     private long row() {
         long id = TestUsers.nextId();
-        jdbc.update("INSERT INTO care_non_performance_reason_type(id,name) VALUES(?,?)", id, "Lý do " + id);
+        jdbc.update(
+                "INSERT INTO catalog_item(id,catalog_type,module,name,status,attributes) VALUES(?,'M04.NON_PERFORMANCE_REASON_TYPE','M04',?,'ACTIVE',JSON_OBJECT('fixed',FALSE))",
+                id,
+                "Lý do " + id);
         return id;
     }
 
@@ -76,7 +79,7 @@ class FR_028a_ReasonCatalogHttpIT extends MySqlIntegrationTestBase {
                 .andExpect(status().isCreated())
                 .andExpect(content().string(""))
                 .andExpect(header().string("ETag", "\"0\""));
-        long id = jdbc.queryForObject("SELECT id FROM care_non_performance_reason_type WHERE name=?", Long.class, name);
+        long id = jdbc.queryForObject("SELECT id FROM catalog_item WHERE name=?", Long.class, name);
         mvc.perform(get(URL))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.id == " + id + ")].fixed").value(org.hamcrest.Matchers.contains(false)))
@@ -116,7 +119,9 @@ class FR_028a_ReasonCatalogHttpIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_028a_fixedReasonCannotBeRenamedOrDeactivated() throws Exception {
-        long id = jdbc.queryForObject("SELECT id FROM care_non_performance_reason_type WHERE fixed=TRUE", Long.class);
+        long id = jdbc.queryForObject(
+                "SELECT COALESCE(JSON_EXTRACT(attributes,'$.legacy.id'),id) FROM catalog_item WHERE catalog_type='M04.NON_PERFORMANCE_REASON_TYPE' AND JSON_EXTRACT(attributes,'$.fixed')=TRUE",
+                Long.class);
         mvc.perform(put(URL + "/" + id)
                         .header("Idempotency-Key", "reason-" + TestUsers.nextId())
                         .header("If-Match", "\"0\"")
@@ -131,7 +136,9 @@ class FR_028a_ReasonCatalogHttpIT extends MySqlIntegrationTestBase {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("REASON_TYPE_FIXED"));
         assertThat(jdbc.queryForObject(
-                        "SELECT name FROM care_non_performance_reason_type WHERE id=?", String.class, id))
+                        "SELECT name FROM catalog_item WHERE catalog_type='M04.NON_PERFORMANCE_REASON_TYPE' AND COALESCE(JSON_EXTRACT(attributes,'$.legacy.id'),id)=?",
+                        String.class,
+                        id))
                 .isEqualTo("Người cao tuổi từ chối");
     }
 
@@ -146,8 +153,7 @@ class FR_028a_ReasonCatalogHttpIT extends MySqlIntegrationTestBase {
                 .andExpect(status().isPreconditionFailed())
                 .andExpect(jsonPath("$.errorCode").value("VERSION_MISMATCH"))
                 .andExpect(jsonPath("$.currentValue.version").value(0));
-        assertThat(jdbc.queryForObject(
-                        "SELECT name FROM care_non_performance_reason_type WHERE id=?", String.class, id))
+        assertThat(jdbc.queryForObject("SELECT name FROM catalog_item WHERE id=?", String.class, id))
                 .isEqualTo("Lý do " + id);
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM audit_log WHERE entity_type='M04.NON_PERFORMANCE_REASON_TYPE' AND entity_id=?",
@@ -188,8 +194,7 @@ class FR_028a_ReasonCatalogHttpIT extends MySqlIntegrationTestBase {
                             .content("{\"name\":\"" + name + "\"}"))
                     .andExpect(status().isCreated());
         }
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM care_non_performance_reason_type WHERE name=?", Integer.class, name))
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM catalog_item WHERE name=?", Integer.class, name))
                 .isEqualTo(1);
     }
 
@@ -211,8 +216,7 @@ class FR_028a_ReasonCatalogHttpIT extends MySqlIntegrationTestBase {
                         .content("{}"))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.errorCode").value("REASON_REQUIRED"));
-        assertThat(jdbc.queryForObject(
-                        "SELECT status FROM care_non_performance_reason_type WHERE id=?", String.class, id))
+        assertThat(jdbc.queryForObject("SELECT status FROM catalog_item WHERE id=?", String.class, id))
                 .isEqualTo("ACTIVE");
     }
 
@@ -269,12 +273,11 @@ class FR_028a_ReasonCatalogHttpIT extends MySqlIntegrationTestBase {
             };
             mvc.perform(request.contentType(MediaType.APPLICATION_JSON)).andExpect(status().isBadRequest());
         }
-        assertThat(jdbc.queryForMap("SELECT name,status,version FROM care_non_performance_reason_type WHERE id=?", id))
+        assertThat(jdbc.queryForMap("SELECT name,status,version FROM catalog_item WHERE id=?", id))
                 .containsEntry("name", "Lý do " + id)
                 .containsEntry("status", "ACTIVE")
                 .containsEntry("version", 0);
-        assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM care_non_performance_reason_type WHERE name=?", Integer.class, name))
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM catalog_item WHERE name=?", Integer.class, name))
                 .isZero();
     }
 

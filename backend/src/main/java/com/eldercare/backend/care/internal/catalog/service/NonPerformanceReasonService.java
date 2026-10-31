@@ -85,9 +85,8 @@ public class NonPerformanceReasonService {
                         row.getVersion()));
         mutable(row);
         String before = row.getName();
-        row.rename(name);
         try {
-            store.flush();
+            row = store.rename(row, name);
         } catch (DataIntegrityViolationException duplicate) {
             throw duplicateName();
         }
@@ -108,8 +107,7 @@ public class NonPerformanceReasonService {
         var row = store.lock(id);
         mutable(row);
         String before = row.getStatus().name();
-        row.deactivate();
-        store.flush();
+        row = store.deactivate(row);
         log(
                 row,
                 "DEACTIVATED",

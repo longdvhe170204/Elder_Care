@@ -1,19 +1,31 @@
 package com.eldercare.backend.care.internal.scheduling.persistence;
 
+import com.eldercare.backend.common.data.ReminderMarkers;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
-import org.springframework.jdbc.core.JdbcTemplate;
+import java.util.HexFormat;
+import java.util.Map;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class CareMilestoneStore {
-    private final JdbcTemplate jdbc;
+    private final ReminderMarkers markers;
 
-    public CareMilestoneStore(JdbcTemplate jdbc) {
-        this.jdbc = jdbc;
+    public CareMilestoneStore(ReminderMarkers markers) {
+        this.markers = markers;
     }
 
     public boolean claim(String job, LocalDate date) {
-        return jdbc.update("INSERT IGNORE INTO m04_job_milestone(job,milestone) VALUES (?,?)", job, date.toString())
-                == 1;
+        try {
+            String marker = HexFormat.of()
+                    .formatHex(MessageDigest.getInstance("SHA-256")
+                            .digest((job + ":" + date).getBytes(StandardCharsets.UTF_8)));
+            return markers.mark(
+                    "M04.DAILY_WORK", "M04.DAILY_WORK", 0, marker, Map.of("job", job, "milestone", date.toString()));
+        } catch (NoSuchAlgorithmException error) {
+            throw new IllegalStateException("JDK thiếu SHA-256", error);
+        }
     }
 }

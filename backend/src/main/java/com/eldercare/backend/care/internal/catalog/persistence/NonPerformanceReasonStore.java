@@ -1,41 +1,58 @@
 package com.eldercare.backend.care.internal.catalog.persistence;
 
-import com.eldercare.backend.care.internal.catalog.domain.NonPerformanceReasonType;
+import static com.eldercare.backend.care.internal.catalog.domain.CareCatalogKinds.REASONS;
+
+import com.eldercare.backend.administration.shared.api.CatalogApi;
+import com.eldercare.backend.administration.shared.api.dto.NewCatalogItem;
+import com.eldercare.backend.care.internal.catalog.domain.*;
+import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.NotFoundException;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
 import java.util.List;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Repository;
 
-/** Truy cập duy nhất danh mục loại lý do, không đọc bảng của story công việc. */
+/** T007a: mọi truy cập bảng chung qua API của chủ bảng. */
 @Repository
 public class NonPerformanceReasonStore {
-    private final EntityManager entities;
+    private final CatalogApi catalogs;
 
-    public NonPerformanceReasonStore(EntityManager entities) {
-        this.entities = entities;
+    public NonPerformanceReasonStore(CatalogApi catalogs) {
+        this.catalogs = catalogs;
     }
 
     public List<NonPerformanceReasonType> list() {
-        return entities.createQuery(
-                        "SELECT r FROM NonPerformanceReasonType r ORDER BY r.id", NonPerformanceReasonType.class)
-                .getResultList();
+        return catalogs.list(REASONS, null, false).stream()
+                .map(NonPerformanceReasonType::of)
+                .sorted(java.util.Comparator.comparingLong(NonPerformanceReasonType::id))
+                .toList();
     }
 
     public NonPerformanceReasonType lock(long id) {
-        var row = entities.find(NonPerformanceReasonType.class, id, LockModeType.PESSIMISTIC_WRITE);
-        if (row == null) throw new NotFoundException();
-        return row;
+        return list().stream().filter(row -> row.id() == id).findFirst().orElseThrow(NotFoundException::new);
     }
 
     public NonPerformanceReasonType create(String name) {
-        var row = new NonPerformanceReasonType(name);
-        entities.persist(row);
-        entities.flush();
-        return row;
+        try {
+            return NonPerformanceReasonType.of(catalogs.create(
+                    REASONS, new NewCatalogItem<>(null, name, null, 0, new ReasonAttributes(false, null))));
+        } catch (ConditionNotMetException duplicate) {
+            throw new DataIntegrityViolationException("Trùng tên danh mục", duplicate);
+        }
     }
 
-    public void flush() {
-        entities.flush();
+    public NonPerformanceReasonType rename(NonPerformanceReasonType row, String name) {
+        var original = catalogs.require(REASONS, row.catalogId());
+        try {
+            return NonPerformanceReasonType.of(catalogs.update(
+                            REASONS, row.catalogId(), row.version(), name, original.sortOrder(), original.attributes())
+                    .after());
+        } catch (ConditionNotMetException duplicate) {
+            throw new DataIntegrityViolationException("Trùng tên danh mục", duplicate);
+        }
+    }
+
+    public NonPerformanceReasonType deactivate(NonPerformanceReasonType row) {
+        return NonPerformanceReasonType.of(
+                catalogs.deactivate(REASONS, row.catalogId(), row.version()).after());
     }
 }

@@ -50,7 +50,10 @@ class FR_028a_ReasonCatalogAtomicityIT extends MySqlIntegrationTestBase {
         long id = TestUsers.nextId();
         String name = "Lý do rollback " + id;
         if (!command.equals("create")) {
-            jdbc.update("INSERT INTO care_non_performance_reason_type(id,name) VALUES(?,?)", id, name);
+            jdbc.update(
+                    "INSERT INTO catalog_item(id,catalog_type,module,name,status,attributes) VALUES(?,'M04.NON_PERFORMANCE_REASON_TYPE','M04',?,'ACTIVE',JSON_OBJECT('fixed',FALSE))",
+                    id,
+                    name);
         }
         AuditLogApi target = AopTestUtils.getUltimateTargetObject(audit);
         doThrow(new IllegalStateException("audit unavailable")).when(target).write(any());
@@ -64,12 +67,10 @@ class FR_028a_ReasonCatalogAtomicityIT extends MySqlIntegrationTestBase {
                         .contentType(MediaType.APPLICATION_JSON)))
                 .hasRootCauseMessage("audit unavailable");
         if (command.equals("create")) {
-            assertThat(jdbc.queryForObject(
-                            "SELECT COUNT(*) FROM care_non_performance_reason_type WHERE name=?", Integer.class, name))
+            assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM catalog_item WHERE name=?", Integer.class, name))
                     .isZero();
         } else {
-            assertThat(jdbc.queryForMap(
-                            "SELECT name,status,version FROM care_non_performance_reason_type WHERE id=?", id))
+            assertThat(jdbc.queryForMap("SELECT name,status,version FROM catalog_item WHERE id=?", id))
                     .containsEntry("name", name)
                     .containsEntry("status", "ACTIVE")
                     .containsEntry("version", 0);

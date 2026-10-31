@@ -1,26 +1,35 @@
 package com.eldercare.backend.care.internal.catalog.domain;
 
-import com.eldercare.backend.common.data.CatalogBase;
-import com.eldercare.backend.common.data.DataGroup;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.eldercare.backend.administration.shared.api.dto.CatalogItem;
+import com.eldercare.backend.common.data.CatalogStatus;
 
-/** FR-028a: danh mục nhóm 1; dòng cố định do migration lập và MySQL bảo vệ. */
-@Entity
-@Table(name = "care_non_performance_reason_type")
-@DataGroup(DataGroup.Group.CATALOG)
-public class NonPerformanceReasonType extends CatalogBase {
-    @Column(nullable = false, updatable = false)
-    private boolean fixed;
-
-    protected NonPerformanceReasonType() {}
-
-    public NonPerformanceReasonType(String name) {
-        super(name);
+/** Snapshot danh mục từ CatalogApi; không còn entity/bảng riêng sau R-15. */
+public record NonPerformanceReasonType(
+        long catalogId, long id, String name, boolean fixed, CatalogStatus status, int version) {
+    public static NonPerformanceReasonType of(CatalogItem<ReasonAttributes> row) {
+        var legacy = row.attributes().legacy();
+        return new NonPerformanceReasonType(
+                row.id(),
+                legacy == null ? row.id() : legacy.id(),
+                row.name(),
+                row.attributes().fixed(),
+                row.status(),
+                row.version());
     }
 
-    public boolean fixed() {
-        return fixed;
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public CatalogStatus getStatus() {
+        return status;
+    }
+
+    public int getVersion() {
+        return version;
     }
 }

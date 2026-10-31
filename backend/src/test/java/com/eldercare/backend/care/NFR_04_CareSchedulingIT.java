@@ -25,31 +25,16 @@ class NFR_04_CareSchedulingIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_006_existingResidentRowDoesNotDeadlockOnLockUpgrade() throws Exception {
-        jdbc.update("INSERT INTO care_resident_lock(resident_id) VALUES (99103)");
-        var barrier = new CyclicBarrier(2);
-        var proxy = net.ttddyy.dsproxy.support.ProxyDataSourceBuilder.create(dataSource)
-                .afterQuery((execution, queries) -> {
-                    if (queries.stream().anyMatch(q -> q.getQuery().startsWith("INSERT"))) {
-                        try {
-                            barrier.await(500, TimeUnit.MILLISECONDS);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                            throw new IllegalStateException(e);
-                        } catch (BrokenBarrierException | TimeoutException ignored) {
-                        }
-                    }
-                })
-                .build();
-        var local = new com.eldercare.backend.care.internal.status.persistence.CareLockStore(new JdbcTemplate(proxy));
-        var transaction =
-                new TransactionTemplate(new org.springframework.jdbc.datasource.DataSourceTransactionManager(proxy));
+        jdbc.update(
+                "INSERT INTO resident_module_state(resident_id,module,data,version,updated_at) VALUES(99103,'M04',JSON_OBJECT('version',0),0,'2026-10-31')");
+        var transaction = new TransactionTemplate(manager);
         try (var executor = Executors.newFixedThreadPool(2)) {
-            var one = executor.submit(() -> transaction.executeWithoutResult(tx -> local.lock(List.of(99103L))));
-            var two = executor.submit(() -> transaction.executeWithoutResult(tx -> local.lock(List.of(99103L))));
+            var one = executor.submit(() -> transaction.executeWithoutResult(tx -> locks.lock(List.of(99103L))));
+            var two = executor.submit(() -> transaction.executeWithoutResult(tx -> locks.lock(List.of(99103L))));
             one.get(10, TimeUnit.SECONDS);
             two.get(10, TimeUnit.SECONDS);
         } finally {
-            jdbc.update("DELETE FROM care_resident_lock WHERE resident_id=99103");
+            cleanup("DELETE FROM resident_module_state WHERE module='M04' AND resident_id=99103");
         }
     }
 
@@ -94,11 +79,11 @@ class NFR_04_CareSchedulingIT extends MySqlIntegrationTestBase {
             for (var future : futures) future.get(10, TimeUnit.SECONDS);
             assertThat(finished.get()).isEqualTo(2);
             assertThat(jdbc.queryForObject(
-                            "SELECT COUNT(*) FROM care_resident_lock WHERE resident_id IN (99101,99102)",
+                            "SELECT COUNT(*) FROM resident_module_state WHERE module='M04' AND resident_id IN (99101,99102)",
                             Integer.class))
                     .isEqualTo(2);
         } finally {
-            jdbc.update("DELETE FROM care_resident_lock WHERE resident_id IN (99101,99102)");
+            cleanup("DELETE FROM resident_module_state WHERE module='M04' AND resident_id IN (99101,99102)");
         }
     }
 
@@ -123,13 +108,15 @@ class NFR_04_CareSchedulingIT extends MySqlIntegrationTestBase {
         try {
             assertThatThrownBy(() -> runner.run(work, day, at)).isInstanceOf(IllegalStateException.class);
             assertThat(jdbc.queryForObject(
-                            "SELECT COUNT(*) FROM m04_job_milestone WHERE job='TEST_RETRY'", Integer.class))
+                            "SELECT COUNT(*) FROM reminder_marker WHERE kind='M04.DAILY_WORK' AND JSON_UNQUOTE(JSON_EXTRACT(details,'$.job'))='TEST_RETRY'",
+                            Integer.class))
                     .isZero();
             assertThat(runner.run(work, day, at)).isEqualTo(1);
             assertThat(runner.run(work, day, at.plusSeconds(60))).isZero();
             assertThat(calls.get()).isEqualTo(2);
         } finally {
-            jdbc.update("DELETE FROM m04_job_milestone WHERE job='TEST_RETRY'");
+            cleanup(
+                    "DELETE FROM reminder_marker WHERE kind='M04.DAILY_WORK' AND JSON_UNQUOTE(JSON_EXTRACT(details,'$.job'))='TEST_RETRY'");
         }
     }
 
@@ -165,7 +152,17 @@ class NFR_04_CareSchedulingIT extends MySqlIntegrationTestBase {
             assertThat(seen).containsExactly(at);
             assertThat(days).containsExactly(LocalDate.of(2026, 10, 26), LocalDate.of(2026, 10, 27));
         } finally {
-            jdbc.update("DELETE FROM m04_job_milestone WHERE job='TEST_CATCHUP'");
+            cleanup(
+                    "DELETE FROM reminder_marker WHERE kind='M04.DAILY_WORK' AND JSON_UNQUOTE(JSON_EXTRACT(details,'$.job'))='TEST_CATCHUP'");
+        }
+    }
+
+    private void cleanup(String sql) {
+        try (var connection = adminConnection();
+                var statement = connection.createStatement()) {
+            statement.executeUpdate(sql);
+        } catch (java.sql.SQLException error) {
+            throw new IllegalStateException(error);
         }
     }
 }

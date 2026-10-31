@@ -36,7 +36,10 @@ public class CareMinuteJob implements ScheduledJob {
     @EventListener(ApplicationReadyEvent.class)
     @SchedulerLock(name = "CARE_MINUTE")
     public void atStartup() {
-        if (!environment.acceptsProfiles(Profiles.of("test"))) runNow();
+        if (environment.getProperty(
+                "eldercare.jobs.care-minute.on-startup",
+                Boolean.class,
+                environment.getProperty(SchedulingConfig.ENABLED, Boolean.class, true))) runNow();
     }
 
     @Override

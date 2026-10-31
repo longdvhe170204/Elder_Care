@@ -42,7 +42,10 @@ public class CareDailyJob implements ScheduledJob {
     @EventListener(ApplicationReadyEvent.class)
     @SchedulerLock(name = "CARE_DAILY")
     public void atStartup() {
-        if (!environment.acceptsProfiles(Profiles.of("test"))) runNow();
+        if (environment.getProperty(
+                "eldercare.jobs.care-daily.on-startup",
+                Boolean.class,
+                environment.getProperty(SchedulingConfig.ENABLED, Boolean.class, true))) runNow();
     }
 
     @Override
