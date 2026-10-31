@@ -3,12 +3,15 @@ package com.eldercare.backend.administration.approval;
 import static com.eldercare.backend.administration.approval.ApprovalFixtures.MANAGER;
 import static com.eldercare.backend.administration.approval.ApprovalFixtures.MANAGER_2;
 import static com.eldercare.backend.administration.approval.ApprovalFixtures.OFFICE_A;
+import static com.eldercare.backend.administration.approval.ApprovalFixtures.OFFICE_B;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.support.FakePermissions;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,5 +85,25 @@ class AccountChangeAfterDecisionIT extends ApprovalTestBase {
         runApplyJob();
         assertThat(read(approvedId).get("status").asString()).isEqualTo("APPLIED");
         assertThat(effects(approvedId)).isEqualTo(1);
+    }
+
+    @Test
+    void FR_034a_draftOfLockedRequester_noOneCanSubmit_staysDraft() throws Exception {
+        user.set(OFFICE_A);
+        long draft = api.create(time.today().plusDays(30), false).get("id").asLong();
+
+        permissions.account(FakePermissions.user(OFFICE_A.accountId()));
+        user.set(FakePermissions.user(OFFICE_A.accountId()));
+        api.submit(draft).andExpect(status().isForbidden());
+        for (CurrentUser other : List.of(OFFICE_B, MANAGER)) {
+            user.set(other);
+            assertThat(api.submit(draft).andReturn().getResponse().getStatus())
+                    .as("gửi duyệt thay bởi " + other.accountId())
+                    .isIn(403, 404, 409);
+        }
+        runRemindJob();
+        runApplyJob();
+
+        assertThat(read(draft).get("status").asString()).isEqualTo("DRAFT");
     }
 }
