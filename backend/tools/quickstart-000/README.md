@@ -23,4 +23,4 @@ node tools/quickstart-000/run-k1-k21.cjs
 
 ## Kết quả 2026-11-01
 
-21/22 kiểm tra đạt (K6 có hai kiểm tra). K18 trả 404: Hành chính xem nhật ký theo phạm vi phân công (Phụ lục 27, cột P), hồ sơ mẫu không gắn người cao tuổi, tầng và Hành chính ở demo không có phân công; kịch bản K18 được kiểm bằng `AuditLogFieldMaskingIT` với bản giả quyền.
+22/22 kiểm tra đạt (K6 có hai kiểm tra), sau khi sửa K18 theo quyền thật: Hành chính xem nhật ký theo phân công (Phụ lục 27, cột P), ở demo không có phân công nên hồ sơ mẫu trả 404; Quản lý viện thấy đủ. Che trường cho người xem trong phạm vi kiểm bằng `AuditLogFieldMaskingIT`.
