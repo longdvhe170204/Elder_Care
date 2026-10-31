@@ -1,26 +1,27 @@
 package com.eldercare.backend.care.internal.status.persistence;
 
+import com.eldercare.backend.administration.shared.api.ResidentModuleStateApi;
+import com.eldercare.backend.administration.shared.api.dto.SharedKind;
+import com.eldercare.backend.care.internal.status.domain.CareResidentState;
 import java.util.Collection;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /** C-03: khóa tăng dần để các lô chồng nhau không đảo thứ tự khóa. */
 @Repository
 public class CareLockStore {
-    private final JdbcTemplate jdbc;
+    private static final SharedKind<CareResidentState> STATE =
+            SharedKind.of("M04.CARE_RESIDENT_STATE", CareResidentState.class);
+    private final ResidentModuleStateApi states;
 
-    public CareLockStore(JdbcTemplate jdbc) {
-        this.jdbc = jdbc;
+    public CareLockStore(ResidentModuleStateApi states) {
+        this.states = states;
     }
 
     public void lock(Collection<Long> residentIds) {
         for (long id : residentIds.stream().distinct().sorted().toList()) {
-            // Upsert lấy exclusive lock ngay cả khi dòng đã có; tránh nâng shared lock của INSERT IGNORE.
-            jdbc.update(
-                    "INSERT INTO care_resident_lock(resident_id) VALUES (?) ON DUPLICATE KEY UPDATE resident_id=resident_id",
-                    id);
-            jdbc.queryForObject(
-                    "SELECT resident_id FROM care_resident_lock WHERE resident_id=? FOR UPDATE", Long.class, id);
+            // Upsert trước SELECT FOR UPDATE để không nâng khóa gap/shared khi hai lệnh cùng tạo dòng.
+            states.save(STATE, id, states.get(STATE, id).orElse(new CareResidentState(0)));
+            states.lockForUpdate(STATE, id);
         }
     }
 }
