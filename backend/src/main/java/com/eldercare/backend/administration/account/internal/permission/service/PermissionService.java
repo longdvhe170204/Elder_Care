@@ -44,7 +44,8 @@ import org.springframework.stereotype.Service;
  *   <li>nhiệm vụ ({@link DutyPermissions}, T053) khi vai trò hoặc phạm vi không thỏa; căn cứ là nhiệm vụ;
  *   <li>phạm vi: phương án toàn viện thì qua; theo phân công, theo quan hệ thì đối tượng phải cụ thể và
  *       {@code ScopeApi.inScope}; trượt thì lớp {@code SCOPE}. {@code (INCIDENT_EMERGENCY, CREATE)} trên một người cao
- *       tuổi được miễn lớp này (FR-044a); căn cứ là ngoài phạm vi khi người ghi không xem được hồ sơ người đó
+ *       tuổi chưa ở trạng thái cuối tại {@code at} được miễn lớp này, đã ở trạng thái cuối thì lớp {@code SCOPE} (FR-044a,
+ *       T099); căn cứ là ngoài phạm vi khi người ghi không xem được hồ sơ người đó
  *       ({@code (RESIDENT_PROFILE, VIEW)} theo vai trò ∩ phạm vi; chủ dự án chọn 2026-10-20, US1 #9). Người thân với
  *       người cao tuổi đã ở trạng thái cuối (còn trong phạm vi tới hết CFG-M01-04) chỉ có {@code VIEW} (FR-049, US6 #7);
  *   <li>pháp lý ({@code LegalConditionService}, T064): thao tác {@code PROFESSIONAL} kiểm giấy phép người hành nghề và
@@ -181,8 +182,11 @@ class PermissionService implements PermissionApi {
             if (passing.isEmpty()) {
                 return byDuty(user, key, target, at, FailedLayer.ROLE);
             }
-            // 3. Phạm vi; ghi sự cố trên một người cao tuổi được miễn (FR-044a)
+            // 3. Phạm vi; ghi sự cố trên một người cao tuổi chưa ở trạng thái cuối được miễn (FR-044a, T099)
             if (key.equals(INCIDENT_CREATE) && target.residentId() != null) {
+                if (ended(target, at)) {
+                    return PermissionResult.denied(FailedLayer.SCOPE);
+                }
                 return evaluate(user, PROFILE_VIEW, target, at, grants).allowed()
                         ? PermissionResult.allowed(PermissionBasis.ROLE)
                         : PermissionResult.allowed(PermissionBasis.OUT_OF_SCOPE);
@@ -195,9 +199,12 @@ class PermissionService implements PermissionApi {
             }
         } catch (InvalidPermissionDataException e) {
             dataErrors.record(e, user.accountId());
-            return key.equals(INCIDENT_CREATE) && target.residentId() != null
-                    ? PermissionResult.allowed(PermissionBasis.OUT_OF_SCOPE)
-                    : PermissionResult.denied(FailedLayer.SOURCE_DATA);
+            if (key.equals(INCIDENT_CREATE) && target.residentId() != null) {
+                return ended(target, at)
+                        ? PermissionResult.denied(FailedLayer.SCOPE)
+                        : PermissionResult.allowed(PermissionBasis.OUT_OF_SCOPE);
+            }
+            return PermissionResult.denied(FailedLayer.SOURCE_DATA);
         }
         // 4. Pháp lý (T064)
         return legal.denial(user, key, at).orElseGet(() -> PermissionResult.allowed(PermissionBasis.ROLE));
@@ -226,7 +233,7 @@ class PermissionService implements PermissionApi {
         return in;
     }
 
-    /** Người cao tuổi của đối tượng đã ở trạng thái cuối tại {@code at} (004). */
+    /** Người cao tuổi của đối tượng đã ở trạng thái cuối tại {@code at} (004); chưa có bản cài thì coi là chưa. */
     private boolean ended(Target target, Instant at) {
         ResidencyEndApi ends = residencyEnds.getIfAvailable();
         return target.residentId() != null
