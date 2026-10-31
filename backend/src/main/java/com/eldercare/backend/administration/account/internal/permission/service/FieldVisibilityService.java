@@ -15,6 +15,7 @@ import com.eldercare.backend.administration.account.internal.permission.domain.P
 import com.eldercare.backend.administration.shared.api.CatalogApi;
 import com.eldercare.backend.administration.shared.api.dto.CatalogItem;
 import com.eldercare.backend.common.Role;
+import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +45,7 @@ class FieldVisibilityService implements FieldVisibilityApi {
     private final ObjectProvider<AssignmentApi> assignments;
     private final ObjectProvider<DutyApi> duties;
     private final ObjectProvider<com.eldercare.backend.administration.account.api.spi.StaffAbsenceApi> absences;
+    private final FamilyRights familyRights;
     private static final Set<InfoGroup> CONSENT_GROUPS =
             Set.of(InfoGroup.HEALTH, InfoGroup.MEDICATION, InfoGroup.WISHES);
 
@@ -58,7 +60,8 @@ class FieldVisibilityService implements FieldVisibilityApi {
             BusinessTime time,
             ObjectProvider<AssignmentApi> assignments,
             ObjectProvider<DutyApi> duties,
-            ObjectProvider<com.eldercare.backend.administration.account.api.spi.StaffAbsenceApi> absences) {
+            ObjectProvider<com.eldercare.backend.administration.account.api.spi.StaffAbsenceApi> absences,
+            FamilyRights familyRights) {
         this.catalog = catalog;
         this.roleCatalog = roleCatalog;
         this.scope = scope;
@@ -67,6 +70,7 @@ class FieldVisibilityService implements FieldVisibilityApi {
         this.assignments = assignments;
         this.duties = duties;
         this.absences = absences;
+        this.familyRights = familyRights;
     }
 
     @Override
@@ -90,7 +94,9 @@ class FieldVisibilityService implements FieldVisibilityApi {
             boolean inRoleScope = roleScope == PermissionScope.FACILITY
                     || (!target.equals(Target.UNSPECIFIED) && scope.inScope(user, target));
             if (inRoleScope
-                    && (role != Role.FAMILY_MEMBER || !CONSENT_GROUPS.contains(group) || consented(user, target))) {
+                    && (role != Role.FAMILY_MEMBER
+                            || ((!CONSENT_GROUPS.contains(group) || consented(user, target))
+                                    && familyRight(user, group, target)))) {
                 best = level;
             }
         }
@@ -157,6 +163,14 @@ class FieldVisibilityService implements FieldVisibilityApi {
             }
         }
         return best;
+    }
+
+    /** Quyền riêng của người thân (FR-045 (3), T100): sức khỏe, thuốc, nguyện vọng cần xem sức khỏe; chi phí cần xem chi phí. */
+    private boolean familyRight(CurrentUser user, InfoGroup group, Target target) {
+        if (CONSENT_GROUPS.contains(group)) {
+            return familyRights.enabled(user, target, FamilyRight.VIEW_HEALTH, time.now());
+        }
+        return group != InfoGroup.COSTS || familyRights.enabled(user, target, FamilyRight.VIEW_COSTS, time.now());
     }
 
     private boolean consented(CurrentUser user, Target target) {
