@@ -23,6 +23,7 @@ class FR_038_CatalogContractTest {
         assertThat(api.getComponents().getSchemas().get("TaskType").getProperties())
                 .containsOnlyKeys(
                         "id",
+                        "version",
                         "name",
                         "group",
                         "professional",
@@ -41,8 +42,17 @@ class FR_038_CatalogContractTest {
                         .getSchemas()
                         .get("NonPerformanceReasonType")
                         .getProperties())
-                .containsOnlyKeys("id", "name", "fixed", "status");
+                .containsOnlyKeys("id", "version", "name", "fixed", "status");
         assertThat(api.getComponents().getSchemas().get("ResultValue").getProperties())
-                .containsOnlyKeys("id", "type", "code", "name", "ruleGroup", "status");
+                .containsOnlyKeys("id", "version", "type", "code", "name", "ruleGroup", "status");
+        for (String schema : List.of("TaskType", "ResultValue", "NonPerformanceReasonType")) {
+            assertThat(((io.swagger.v3.oas.models.media.Schema<?>) api.getComponents()
+                                    .getSchemas()
+                                    .get(schema)
+                                    .getProperties()
+                                    .get("version"))
+                            .getReadOnly())
+                    .isTrue();
+        }
     }
 }

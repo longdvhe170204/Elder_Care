@@ -83,7 +83,7 @@ class FR_028a_ReasonCatalogHttpIT extends MySqlIntegrationTestBase {
         mvc.perform(get(URL))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.id == " + id + ")].fixed").value(org.hamcrest.Matchers.contains(false)))
-                .andExpect(jsonPath("$[?(@.id == " + id + ")].version").isEmpty());
+                .andExpect(jsonPath("$[?(@.id == " + id + ")].version").value(org.hamcrest.Matchers.contains(0)));
         mvc.perform(put(URL + "/" + id)
                         .header("Idempotency-Key", "reason-" + TestUsers.nextId())
                         .header("If-Match", "\"0\"")
@@ -304,6 +304,6 @@ class FR_028a_ReasonCatalogHttpIT extends MySqlIntegrationTestBase {
                         .getSchemas()
                         .get("NonPerformanceReasonType")
                         .getProperties())
-                .containsOnlyKeys("id", "name", "fixed", "status");
+                .containsOnlyKeys("id", "version", "name", "fixed", "status");
     }
 }

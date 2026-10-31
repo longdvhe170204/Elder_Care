@@ -57,6 +57,9 @@ export const NAV_GROUPS = [
     items: [
       // Dòng "Checklist, ghi nhận công việc"
       { key: 'care-tasks', label: 'Checklist ca', icon: 'ListChecks', functions: ['TASK_CHECKLIST'], roles: [QL, TT, BS, DD, CS] },
+      // Dòng "Kế hoạch chăm sóc" và "Danh mục loại công việc chăm sóc" (005 T017, Phụ lục 27).
+      { key: 'care-plans', label: 'Kế hoạch chăm sóc', icon: 'ClipboardCheck', functions: ['CARE_PLAN'], roles: [QL, TT, BS, DD, CS] },
+      { key: 'care-catalogs', label: 'Danh mục chăm sóc', icon: 'BookOpen', functions: ['CARE_TASK_CATALOG'], roles: [QL, TT, BS, DD, CS] },
       // Dòng "Phát thuốc, thuốc khi cần"
       { key: 'medication', label: 'Phát thuốc', icon: 'Pill', functions: ['MEDICATION_ADMINISTRATION'], roles: [QL, TT, BS, DD] },
       // Dòng "Danh mục thuốc"

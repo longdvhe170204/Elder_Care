@@ -78,11 +78,13 @@ class FR_038_CareCatalogHttpIT extends MySqlIntegrationTestBase {
         mvc.perform(get("/api/v1/" + path))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.id == " + id + ")]").isNotEmpty())
-                .andExpect(jsonPath("$[?(@.id == " + id + ")].version").isEmpty());
+                .andExpect(jsonPath("$[?(@.id == " + id + ")].version").value(org.hamcrest.Matchers.contains(0)));
         String updated = body(path, "Đổi " + id);
         mvc.perform(write(put("/api/v1/" + path + "/" + id).header("If-Match", "\"0\""), updated))
                 .andExpect(status().isOk())
                 .andExpect(header().string("ETag", "\"1\""));
+        mvc.perform(get("/api/v1/" + path))
+                .andExpect(jsonPath("$[?(@.id == " + id + ")].version").value(org.hamcrest.Matchers.contains(1)));
         mvc.perform(write(put("/api/v1/" + path + "/" + id).header("If-Match", "\"0\""), updated))
                 .andExpect(status().isPreconditionFailed());
         mvc.perform(write(post("/api/v1/" + path + "/" + id + "/deactivate"), "{\"reason\":\"Không dùng nữa\"}"))

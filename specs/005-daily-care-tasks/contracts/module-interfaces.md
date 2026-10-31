@@ -267,3 +267,17 @@ Bean `NguonCongViecPort` thiếu cho một loại căn cứ thì lệnh lập c�
 | `QuyenApi`, `PhamViApi` (`boLoc`, `nguoiPhuTrachCa`, `truongTangDuocGiao`), `NguoiDuyetApi`, `NguoiDungHienTai` | M15 (002) | Research C-16 | Có sẵn |
 | `NhatKyApi`, `ThamSoApi`, `DinhChinhApi`, `NhacQuaHan`, `common` | M15 (000) | Mọi lệnh | Có sẵn |
 | Bản cài các SPI mục 2.1 | 006, 007, 008, 011, 012, 014 | | Bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}` |
+
+## Bản cài nền danh mục ngày2026-10-31
+
+TaskTypeApi.requirements cóproviderthật CareTaskTypeLookup,đọc CareCatalogStore/CatalogApi mỗi lần;chứngchỉ thayđổi áp ngay theoFR-038,khôngcache. CarePlanApi và các API story khác vẫn mới khai báo/fake,chưa cóprovidernghiệpvụ. Không đổi chữkýDTO/APIcôngkhai. ID danh mục đãchuyển giữgiátrịcũ qua attributes.legacy;IDvậtlýcatalog_item làchi tiếtlưutrữ,không rò vàoresponse hoặc thayIDnhậtký.
+
+## Bản cài kế hoạch Phase 3 tại checkout — 2026-10-31
+
+CarePlanApi có nguồn thật CarePlanQueries: effectiveOn đọc các khoảng EFFECTIVE/EXPIRED tại ngày, waterTargetMl lấy mục tiêu duy nhất theo quyết định chủ dự án31/10, hasEffectivePlan và currentTaskTypes đọc ngày nghiệp vụ hiện tại. @Fallback chỉ để fake do005 sở hữu được ưu tiên khi test/demo chủ động import. Không đổi chữ ký DTO/API này. Các API công việc/attendance story sau vẫn còn chờ provider, không coi Phase3 là hoàn tất mọi API005.
+
+HTTP ba danh mục TaskType/ResultValue/NonPerformanceReasonType thêm version chỉ đọc, chủ dự án chọn phương án2 ngày31/10; dùng version từng dòng GET để gửi If-Match khi sửa. 11 operation kế hoạch và12 operation danh mục có x-implementation-phase cho client web; phần chưa dịch chưa được sinh.
+
+**Đổi api được chủ dự án duyệt31/10:** `CarePlanReturned(long planId, long residentId, CareEventContext context, String reason)`. Giữ constructor ba tham số cũ, reason=null cho caller/sự kiện cũ. Producer Trả lại truyền nguyên Reason.value; reason chỉ vào ContentPart HEALTH, title/shortContent giữ nội dung chung. Không thay eventKey, nhóm nhận hoặc mức LOW. Không sửa chữ ký API khác hay hợp đồng HTTP.
+
+**Điều kiện chưa đạt:** lý do hợp lệ2000dấu ngoặc kép tạo JSON4233ký tự với context fixture, vượt EVENT_PUBLICATION.SERIALIZED_EVENT VARCHAR(4000). Chủ dự án chọn chờ A mở rộng outbox trước, không duyệt C đổi schema nền. Bản cài reason trong checkout chưa được nghiệm thu/merge trước khi giải quyết ca lưu payload tối đa; không cắt lý do và không giảm giới hạn hợp đồng. Bàn giao A tại team-plan mục8.

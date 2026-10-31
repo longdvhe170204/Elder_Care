@@ -5,11 +5,13 @@ import static com.eldercare.backend.care.internal.catalog.domain.CareCatalogKind
 import com.eldercare.backend.care.api.TaskTypeApi;
 import com.eldercare.backend.care.api.dto.TaskRequirements;
 import com.eldercare.backend.care.internal.catalog.persistence.CareCatalogStore;
+import org.springframework.context.annotation.Fallback;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Chứng chỉ được đọc mỗi lần,không lưu cache làm chậm hiệu lực thay đổi FR-038. */
 @Service
+@Fallback
 @Transactional(readOnly = true)
 public class CareTaskTypeLookup implements TaskTypeApi {
     private final CareCatalogStore store;
