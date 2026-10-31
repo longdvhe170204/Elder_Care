@@ -26,7 +26,7 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 
 ## Phase 1: Setup
 
-- [ ] T001 Thêm Firebase Admin SDK (Java) vào `backend/pom.xml`; `firebase_messaging` vào `mobile/pubspec.yaml`, `mobile/pubspec.yaml`; cấu hình khóa dịch vụ FCM qua biến môi trường trong `backend/src/main/resources/application.yml` (research B-05) *(2026-10-21: phần backend xong, `firebase-admin` 9.11.0, khóa qua `FIREBASE_CREDENTIALS`; phần mobile chờ mở mobile)*
+- [x] T001 Thêm Firebase Admin SDK (Java) vào `backend/pom.xml`; `firebase_messaging` vào `mobile/pubspec.yaml`, `mobile/pubspec.yaml`; cấu hình khóa dịch vụ FCM qua biến môi trường trong `backend/src/main/resources/application.yml` (research B-05) *(2026-10-21: phần backend xong, `firebase-admin` 9.11.0, khóa qua `FIREBASE_CREDENTIALS`; phần mobile chờ mở mobile)* *(2026-11-01: phần mobile xong, `firebase_messaging: ^17.0.1` ở `mobile/pubspec.yaml` và `pubspec.lock`, thêm ở commit 420d50be của 002 T097; tệp cấu hình Firebase của Android, iOS và mã nhận thông báo thuộc task khác)*
 - [x] T002 [P] Tạo khung gói `BE/notification/{api,tiepnhan,nguoinhan,gui,yentinh,khancap,hopthu,lienhe,tracuu,cauhinh,lich}/`; ArchUnit `BT/notification/M13ArchTest.java`: chỉ `notification` cài listener `CoYeuCauThongBao`; module khác không gọi kênh gửi trực tiếp
 - [x] T003 [P] Tạo bản giả `NguoiThanNhanThongBaoPort` (012) trong `BT/support/gia009/` và bản giả `NhaCungCapTinNhan` ghi lại tin đã gửi (contracts mục 2.1)
 
