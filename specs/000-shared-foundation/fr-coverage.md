@@ -41,7 +41,7 @@ Quy ước: "(phạm vi)" = task ghi dải, ví dụ "FR-023 → FR-030"; "(mụ
 | FR-032 | Trường của yêu cầu | T083, T092 (phạm vi); T089 (cột bảng) | administration/approval/ApprovalLifecycleIT#US5_1_create_isDraft_withRequesterTypeContentDateReason | COVERED |
 | FR-033 | Chỉ sửa nội dung ở Nháp | T083, T092 (phạm vi) | administration/approval/ApprovalLifecycleIT#FR_033_draftEditable_withReason_thenLockedAfterSubmit; RequestTransitionTableTest | COVERED |
 | FR-034 | Quyền duyệt và phạm vi | T105; T083, T092 (phạm vi) | administration/approval/ApprovalLifecycleIT#US5_14_withoutPermissionOrOutOfScope_cannotCreateOrDecide; ApproverRoleRestrictionIT#Q_338_… (quyền lấy từ bản giả 002) | COVERED |
-| FR-034a | Quyền xét lúc quyết định | T105, T109 | administration/approval/ApproverRoleRestrictionIT#FR_034a_restrictionIsEvaluatedAtEachDecision_andOffMeansAsBefore; AccountChangeAfterDecisionIT (quyết định giữ hiệu lực khi người duyệt mất quyền, bị khóa; người yêu cầu bị khóa, mất quyền tạo: Chờ duyệt vẫn duyệt, từ chối được, Đã duyệt vẫn áp dụng, không tự đổi trạng thái; khóa giả lập bằng bản giả quyền). Chưa có test cho "yêu cầu Nháp của người đó giữ nguyên ở Nháp" | COVERED (một phần) |
+| FR-034a | Quyền xét lúc quyết định | T105, T109 | administration/approval/ApproverRoleRestrictionIT#FR_034a_restrictionIsEvaluatedAtEachDecision_andOffMeansAsBefore; AccountChangeAfterDecisionIT (quyết định giữ hiệu lực khi người duyệt mất quyền, bị khóa; người yêu cầu bị khóa, mất quyền tạo: Chờ duyệt vẫn duyệt, từ chối được, Đã duyệt vẫn áp dụng, không tự đổi trạng thái; khóa giả lập bằng bản giả quyền).; FR_034a_draftOfLockedRequester_noOneCanSubmit_staysDraft (Nháp của người bị khóa giữ nguyên, không ai gửi duyệt được) | COVERED |
 | FR-035 | Tự duyệt có lý do, đánh dấu | T088, T105 | administration/approval/SelfApprovalIT (gồm FR_035_typeDisallowingSelfApproval_isBlocked); ApproverRoleRestrictionIT | COVERED |
 | FR-036 | Từ chối có lý do, không tác động | T083 (phạm vi) | administration/approval/ApprovalLifecycleIT#US5_5_reject_requiresComment_andCreatesNoEffect; CorrectionApprovalIT#FR_036_rejected_noCorrection | COVERED |
 | FR-037 | Áp dụng đúng một lần | T084, T093 | administration/approval/ApplyOnceIT (3 phương thức); common/web/IdempotencyFilterIT | COVERED |
@@ -66,7 +66,7 @@ Quy ước: "(phạm vi)" = task ghi dải, ví dụ "FR-023 → FR-030"; "(mụ
 
 ## Tổng
 
-- COVERED: 58 (FR-034a chỉ có test một phần; FR-004, FR-010a, FR-017 thêm test 2026-10-19 theo chủ dự án)
+- COVERED: 58 (FR-034a đủ test từ 2026-11-01, T109 và lớp `AccountChangeAfterDecisionIT`; FR-004, FR-010a, FR-017 thêm test 2026-10-19 theo chủ dự án)
 - TASK_ONLY: 0
 - DELEGATED: 0 (không FR nào giao trọn cho feature khác; phần giao một phần ghi trong cột Test: FR-031a, FR-038 cho 009; FR-034, FR-034a, FR-043, FR-049 cho 002; FR-043a cho 002, 016)
 - GAP: 0
