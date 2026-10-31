@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 
 import com.eldercare.backend.administration.account.api.spi.*;
 import com.eldercare.backend.administration.parameter.api.*;
+import com.eldercare.backend.administration.parameter.api.dto.*;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import java.time.*;
 import org.junit.jupiter.api.Test;

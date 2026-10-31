@@ -23,9 +23,9 @@ import com.eldercare.backend.administration.account.internal.offline.persistence
 import com.eldercare.backend.administration.account.internal.persistence.AccountStore;
 import com.eldercare.backend.administration.account.internal.scope.service.ActiveAssignments;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.offline.SyncOutcome;
 import com.eldercare.backend.common.offline.SyncResult;

@@ -1,6 +1,6 @@
 package com.eldercare.backend.roombedallocation.web.request;
 
-import com.eldercare.backend.administration.correction.api.CorrectionType;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import jakarta.validation.constraints.*;
 import java.util.Map;
 

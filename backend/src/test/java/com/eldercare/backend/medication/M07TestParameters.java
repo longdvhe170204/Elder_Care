@@ -1,9 +1,9 @@
 package com.eldercare.backend.medication;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
-import com.eldercare.backend.administration.parameter.api.ParameterKind;
-import com.eldercare.backend.administration.parameter.api.ParameterValue;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterKind;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
 import java.time.Instant;
 import java.util.Map;
 import tools.jackson.databind.json.JsonMapper;

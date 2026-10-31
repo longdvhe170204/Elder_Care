@@ -1,7 +1,7 @@
 package com.eldercare.backend.administration.correction.internal.domain;
 
-import com.eldercare.backend.administration.correction.api.CorrectionType;
-import com.eldercare.backend.administration.correction.api.CreationMethod;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
+import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.common.data.DataGroup;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

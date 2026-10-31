@@ -5,6 +5,7 @@ import com.eldercare.backend.administration.account.api.dto.*;
 import com.eldercare.backend.administration.account.api.spi.DutyApi;
 import com.eldercare.backend.administration.account.api.spi.ScopeAssignmentProvider;
 import com.eldercare.backend.administration.correction.api.*;
+import com.eldercare.backend.administration.correction.api.dto.*;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.InvalidValueException;

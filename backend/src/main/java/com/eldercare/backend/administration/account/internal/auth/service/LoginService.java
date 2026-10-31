@@ -13,10 +13,10 @@ import com.eldercare.backend.administration.account.internal.auth.persistence.De
 import com.eldercare.backend.administration.account.internal.domain.Account;
 import com.eldercare.backend.administration.account.internal.persistence.AccountStore;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;

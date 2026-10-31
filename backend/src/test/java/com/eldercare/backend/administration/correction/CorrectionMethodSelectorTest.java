@@ -3,7 +3,7 @@ package com.eldercare.backend.administration.correction;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.administration.correction.api.CreationMethod;
+import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.administration.correction.internal.domain.CorrectionMethodSelector;
 import com.eldercare.backend.administration.correction.internal.domain.CorrectionMethodSelector.Facts;
 import com.eldercare.backend.common.Role;

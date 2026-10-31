@@ -1,7 +1,7 @@
 package com.eldercare.backend.resident.internal.assessment.service;
 
 import com.eldercare.backend.administration.correction.api.CorrectionApi;
-import com.eldercare.backend.administration.correction.api.CurrentValue;
+import com.eldercare.backend.administration.correction.api.dto.CurrentValue;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.internal.assessment.domain.Assessment;
 import java.util.HashMap;
