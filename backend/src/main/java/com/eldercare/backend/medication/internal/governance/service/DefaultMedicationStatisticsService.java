@@ -4,7 +4,7 @@ import static java.util.stream.Collectors.toMap;
 
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.administration.correction.api.CorrectionApi;
-import com.eldercare.backend.administration.correction.api.CurrentValue;
+import com.eldercare.backend.administration.correction.api.dto.CurrentValue;
 import com.eldercare.backend.medication.api.MedicationStatisticsApi;
 import com.eldercare.backend.medication.api.dto.DoseReportView;
 import com.eldercare.backend.medication.api.dto.DoseStatus;

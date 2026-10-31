@@ -134,7 +134,7 @@ class FR_021_DirectContactIT extends M13IntegrationTestBase {
 
     private long contactOf(long notificationId) {
         return jdbc.queryForObject(
-                "SELECT id FROM direct_contact WHERE notification_id = ?", Long.class, notificationId);
+                "SELECT id FROM simple_record WHERE unique_key = CONCAT('M13.DC:', ?)", Long.class, notificationId);
     }
 
     private String bearer(TestUser u) {
@@ -158,10 +158,14 @@ class FR_021_DirectContactIT extends M13IntegrationTestBase {
         detector.run();
 
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM direct_contact WHERE notification_id = ?", Integer.class, medium))
+                        "SELECT COUNT(*) FROM simple_record WHERE unique_key = CONCAT('M13.DC:', ?)",
+                        Integer.class,
+                        medium))
                 .isEqualTo(1);
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM direct_contact WHERE notification_id = ?", Integer.class, low))
+                        "SELECT COUNT(*) FROM simple_record WHERE unique_key = CONCAT('M13.DC:', ?)",
+                        Integer.class,
+                        low))
                 .isZero();
         TestUser office = users.staff(Role.OFFICE_STAFF);
         long id = contactOf(medium);
@@ -195,7 +199,10 @@ class FR_021_DirectContactIT extends M13IntegrationTestBase {
                 .andExpect(jsonPath("$[?(@.id == " + id + ")].status").value("CONTACTED"));
         mvc.perform(get(URL).header("Authorization", bearer(nurse))).andExpect(status().isForbidden());
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM direct_contact_result WHERE direct_contact_id = ?", Integer.class, id))
+                        "SELECT COUNT(*) FROM record_event WHERE kind = 'M13.DIRECT_CONTACT_RESULT'"
+                                + " AND entity_type = 'M13.DIRECT_CONTACT' AND entity_id = ?",
+                        Integer.class,
+                        id))
                 .isEqualTo(1);
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM audit_log WHERE action = 'DIRECT_CONTACT_RECORDED' AND entity_id = ?",
@@ -215,7 +222,9 @@ class FR_021_DirectContactIT extends M13IntegrationTestBase {
         List<Map<String, Object>> requests = awaitRequests(key, 1);
         assertThat(requests.getFirst()).containsEntry("intake_result", "VALID");
         assertThat(jdbc.queryForList(
-                        "SELECT group_code FROM notification_request_recipient_group WHERE request_id = ? ORDER BY seq",
+                        "SELECT g.group_code FROM notification_request r, JSON_TABLE(r.recipient_groups, '$[*]'"
+                                + " COLUMNS (seq INT PATH '$.seq', group_code VARCHAR(40) PATH '$.groupCode')) g"
+                                + " WHERE r.id = ? ORDER BY g.seq",
                         String.class,
                         requests.getFirst().get("id")))
                 .containsExactly("FacilityRole", "FacilityRole");

@@ -3,6 +3,7 @@ package com.eldercare.backend.roombedallocation.internal.allocation.service;
 import com.eldercare.backend.administration.account.api.*;
 import com.eldercare.backend.administration.account.api.dto.*;
 import com.eldercare.backend.administration.correction.api.*;
+import com.eldercare.backend.administration.correction.api.dto.*;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
 import com.eldercare.backend.common.error.*;
 import com.eldercare.backend.roombedallocation.api.events.BedAllocationCorrected;

@@ -1,6 +1,6 @@
 package com.eldercare.backend.administration.approval.api;
 
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import java.time.Instant;
 
 /**

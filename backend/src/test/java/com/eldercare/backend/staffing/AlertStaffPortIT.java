@@ -3,7 +3,7 @@ package com.eldercare.backend.staffing;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.care.api.spi.CareShiftPort;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;

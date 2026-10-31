@@ -1,7 +1,7 @@
 package com.eldercare.backend.medication.internal.schedule.service;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.medication.internal.catalog.domain.Medication;
 import com.eldercare.backend.medication.internal.dose.domain.DoseCancellationReason;
 import com.eldercare.backend.medication.internal.dose.domain.DoseStatus;

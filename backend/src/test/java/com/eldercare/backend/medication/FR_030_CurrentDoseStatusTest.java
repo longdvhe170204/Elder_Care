@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 
 import com.eldercare.backend.administration.account.api.AccountApi;
 import com.eldercare.backend.administration.correction.api.CorrectionApi;
-import com.eldercare.backend.administration.correction.api.CurrentValue;
+import com.eldercare.backend.administration.correction.api.dto.CurrentValue;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
 import com.eldercare.backend.medication.api.spi.NursingShiftPort;

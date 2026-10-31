@@ -2,7 +2,7 @@ package com.eldercare.backend.roombedallocation;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.roombedallocation.internal.bed.domain.BedAssetCommand;
 import com.eldercare.backend.roombedallocation.internal.bed.service.BedService;

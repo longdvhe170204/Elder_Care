@@ -103,7 +103,8 @@ class NFR_04_M13CatchUpIT extends M13IntegrationTestBase {
 
         assertThat(Tasks.DAILY_RUNS).containsExactly(LocalDate.of(2030, 3, 4));
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM m13_job_run WHERE job = 'M13_DAILY' AND business_date = '2030-03-04'",
+                        "SELECT COUNT(*) FROM reminder_marker WHERE kind = 'M13.JOB_DONE' AND entity_type = 'M13_DAILY'"
+                                + " AND marker = '2030-03-04'",
                         Integer.class))
                 .isEqualTo(1);
     }
