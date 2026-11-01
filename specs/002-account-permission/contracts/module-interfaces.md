@@ -46,12 +46,15 @@ record KetQuaQuyen(boolean duocPhep, Optional<Lop> lopKhongThoa,     // VAI_TRO 
 - Chú thích dùng ở service: `@CanQuyen(chucNang = …, thaoTac = …)`; interceptor gọi `coQuyen` trước lệnh, ném `KhongCoQuyen` (403) hoặc `KhongTimThay` (404) theo FR-043.
 - *(Bổ sung 2026-10-24, "Đổi api" cho 016 FR-010a, chủ dự án duyệt)* `ThuHepNhomChiTieu thuHepNhomChiTieu(NguoiDungHienTai nd)` (mã `PermissionApi.metricGroupRestrictions`, `MetricGroupRestrictions`): các dòng thu hẹp đang hiệu lực của `DASHBOARD_BAO_CAO` có `nhom_chi_tieu` hoặc `kenh` (loại `BO_THAO_TAC`, `HA_PHAM_VI`; kênh `DASHBOARD`, `BAO_CAO` mã `ReportChannel`), tách theo từng vai trò và theo tài khoản để 016 áp đúng thứ tự A-05. Thu hẹp mức khóa đã trừ trong `tapQuyen`. Mặc định của interface là không có thu hẹp.
 
+- *(Bổ sung 2026-11-01, "Đổi api" cho 016 FR-016, chủ dự án duyệt)* `ghiLoiDuLieuQuyen(NguoiDungHienTai nd, DuLieuQuyenKhongHopLe loi)` (mã `PermissionApi.recordDataError`): người gọi bắt lỗi khi đọc phạm vi thì ghi và báo Quản lý viện như lần kiểm quyền (FR-041b); mặc định không ghi để bản giả cũ không phải sửa.
+
 ### 1.3. `PhamViApi`
 
 ```java
 boolean trongPhamVi(NguoiDungHienTai nd, DoiTuong doiTuong);                    // khai báo ở 000
 PhamViLoc boLoc(NguoiDungHienTai nd, KhoaQuyen khoa);                            // FR-035: TOAN_VIEN hoặc tập id
 PhamViLoc boLocLichSu(NguoiDungHienTai nd, KhoaQuyen khoa, Instant tu, Instant den); // FR-035a; chỉ để đọc
+PhamViLoc boLocPhanCong(NguoiDungHienTai nd, Set<LoaiPhanCong> loai);            // bổ sung 2026-11-01, "Đổi api" cho 016 FR-015; chỉ để đọc
 Optional<Long> nguoiPhuTrachCa(long tangKhuVucId, Instant thoiDiem);             // khai báo ở 000; lấy từ 008
 Optional<Long> truongTangDuocGiao(long tangKhuVucId);                            // khai báo ở 000; lấy từ 008
 NguoiNhanXemLai nguoiQuyetDinhXemLai(Optional<Long> tangKhuVucId);               // FR-041c, CHK056

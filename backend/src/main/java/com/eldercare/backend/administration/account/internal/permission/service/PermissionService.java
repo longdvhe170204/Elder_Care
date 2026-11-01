@@ -119,6 +119,11 @@ class PermissionService implements PermissionApi {
 
     /** Khóa có ít nhất một phương án không vướng chú thích nhiệm vụ hay chú thích điều kiện chưa có bản cài (FR-042). */
     @Override
+    public void recordDataError(CurrentUser user, InvalidPermissionDataException error) {
+        dataErrors.record(error, user.accountId());
+    }
+
+    @Override
     public Set<PermissionKey> permissions(CurrentUser user) {
         if (user.isScheduler()) {
             return Set.of();

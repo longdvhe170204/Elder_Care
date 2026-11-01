@@ -4,8 +4,10 @@ import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.ReviewRecipient;
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.administration.account.api.dto.Target;
+import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Phạm vi dữ liệu, tính trong từng yêu cầu (FR-028 → FR-035a; 002 research A-07). Người phụ trách ca, trưởng tầng được
@@ -27,6 +29,12 @@ public interface ScopeApi {
 
     /** Bộ lọc phạm vi hiện hành của khóa quyền (FR-035). */
     ScopeFilter filter(CurrentUser user, PermissionKey key);
+
+    /**
+     * Bộ lọc hiện hành chỉ từ các loại phân công đã cho, không xét quyền toàn viện: báo cáo của tài khoản nhiều vai trò
+     * áp phạm vi theo từng vai trò trước khi hợp (016 FR-015). Chỉ để đọc.
+     */
+    ScopeFilter assignedFilter(CurrentUser user, Set<AssignmentKind> kinds);
 
     /** Bộ lọc dựng từ lịch sử phân công trong khoảng đã qua, chỉ để đọc (FR-035a); không gọi từ lệnh nghiệp vụ. */
     ScopeFilter historyFilter(CurrentUser user, PermissionKey key, Instant from, Instant to);
