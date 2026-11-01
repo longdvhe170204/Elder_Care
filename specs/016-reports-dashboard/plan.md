@@ -210,6 +210,11 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
 - FR-016: "Đổi api" 002 `PermissionApi.recordDataError` ghi lỗi và báo Quản lý viện khi M14 bắt `InvalidPermissionDataException`; thay ghi chú ở Phase 1, 2.
 - Hợp đồng (chủ dự án duyệt 2026-11-01): `Report.filterOptions` (`facilityWide`, `floorAreas`), `/metric-details` nhận bộ lọc của báo cáo (trước đó danh sách bỏ qua bộ lọc nên lệch số, FR-009). Web: bộ lọc tầng trên màn Báo cáo; phạm vi toàn viện lấy danh mục `GET /floors`, không gọi được thì không hiện; chi tiết và file xuất cùng bộ lọc.
 
+### T021, T027 phần chạy được (2026-11-01, nhánh `impl/016-detail-readonly`)
+
+- `SC_008_ReadOnlyIT` so `CHECKSUM TABLE` mọi bảng trước và sau khi xem; bỏ `login_session`, `device` (mỗi yêu cầu ghi lần kết nối cuối, không phải dữ liệu nghiệp vụ). Lần xuất chỉ đổi `audit_log`, `file`, `idempotency_key`.
+- Dòng rút gọn luôn `canOpenRecord = false` (`DetailRow.asReduced`), nghiêm hơn FR-012 (mở được khi quyền hiện hành ở feature sở hữu cho phép, ví dụ quyền "X" của Trưởng tầng ở dòng phát thuốc). Xét lại khi có chỉ tiêu thật: M14 cần biết khóa quyền của từng loại bản ghi nguồn.
+
 ## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
 
 - Feature không có bảng. Số liệu đọc qua API của module như trước, không đọc bảng chung trực tiếp; API module giữ nguyên nên báo cáo và bảng truy vết số liệu không đổi.
