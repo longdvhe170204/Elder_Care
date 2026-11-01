@@ -20,7 +20,7 @@ import { problemOf } from '@/common/problem'
 // Hộp xuất báo cáo (016 FR-060 → FR-062; DESIGN.md `export-dialog`). Chỉ Quản lý viện có ô định danh người cao tuổi và
 // mục đích (bắt buộc khi chọn, Q-198); vai trò khác chỉ xuất tổng hợp. Backend ghi nhật ký trước khi trả mã tệp.
 
-export function ExportDialog({ open, onOpenChange, group, groupLabel, from, to, canIdentify, onExported }) {
+export function ExportDialog({ open, onOpenChange, group, groupLabel, from, to, floorAreaId, floorName, canIdentify, onExported }) {
   const [includeIdentity, setIncludeIdentity] = useState(false)
   const [purpose, setPurpose] = useState('')
   const [purposeError, setPurposeError] = useState(null)
@@ -56,6 +56,7 @@ export function ExportDialog({ open, onOpenChange, group, groupLabel, from, to, 
         body: {
           from,
           to,
+          filters: floorAreaId ? { floorAreaId: [floorAreaId] } : undefined,
           includeIdentity,
           purpose: purpose.trim() || undefined,
           format: 'XLSX',
@@ -79,7 +80,8 @@ export function ExportDialog({ open, onOpenChange, group, groupLabel, from, to, 
         <DialogHeader>
           <DialogTitle>Xuất báo cáo {groupLabel.toLowerCase()}</DialogTitle>
           <DialogDescription>
-            {formatDate(from)} – {formatDate(to)}. File XLSX cùng số với màn hình, lần xuất được ghi vào nhật ký.
+            {formatDate(from)} – {formatDate(to)}
+            {floorName ? `, ${floorName}` : ''}. File XLSX cùng số với màn hình, lần xuất được ghi vào nhật ký.
           </DialogDescription>
         </DialogHeader>
         {result ? (
