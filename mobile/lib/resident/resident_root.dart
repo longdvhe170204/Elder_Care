@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../common/api/api_client.dart';
 import 'today/today_screen.dart';
 
 /// Gốc phần người cao tuổi sau khi đăng nhập (002 T097; DESIGN.md 15.6): không có thanh điều hướng dưới, màn đầu
-/// "Hôm nay" là nơi về. Đăng nhập, đổi mật khẩu, mở khóa sinh trắc học do `ElderCareApp` (`lib/app.dart`) chọn theo
-/// trạng thái phiên.
+/// "Hôm nay" là nơi về. Đăng nhập, đổi mật khẩu, mở khóa sinh trắc học do `ElderCareApp` chuyển theo trạng thái phiên.
 class ResidentRoot extends StatelessWidget {
-  const ResidentRoot({super.key});
+  const ResidentRoot({super.key, required this.api});
+
+  final ApiClient api;
 
   @override
-  Widget build(BuildContext context) => const TodayScreen();
+  Widget build(BuildContext context) => TodayScreen(api: api);
 }
