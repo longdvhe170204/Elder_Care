@@ -15,7 +15,7 @@ class FakePush implements PushMessaging {
   int? initial;
   int permissionRequests = 0;
   final refresh = StreamController<String>.broadcast();
-  final received = StreamController<void>.broadcast();
+  final received = StreamController<String?>.broadcast();
   final opened = StreamController<int>.broadcast();
 
   @override
@@ -31,7 +31,7 @@ class FakePush implements PushMessaging {
   Stream<String> get tokenRefresh => refresh.stream;
 
   @override
-  Stream<void> get onMessage => received.stream;
+  Stream<String?> get onMessage => received.stream;
 
   @override
   Stream<int> get onOpened => opened.stream;
