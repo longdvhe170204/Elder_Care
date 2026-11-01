@@ -12,8 +12,8 @@ abstract class PushMessaging {
 
   Stream<String> get tokenRefresh;
 
-  /// Có thông báo khi app đang mở.
-  Stream<void> get onMessage;
+  /// Có thông báo khi app đang mở, kèm mức (`data.level` của `InAppSender`).
+  Stream<String?> get onMessage;
 
   /// Mã thông báo người dùng bấm khi app đang chạy nền.
   Stream<int> get onOpened;
@@ -39,7 +39,7 @@ class NoPushMessaging implements PushMessaging {
   Stream<String> get tokenRefresh => const Stream.empty();
 
   @override
-  Stream<void> get onMessage => const Stream.empty();
+  Stream<String?> get onMessage => const Stream.empty();
 
   @override
   Stream<int> get onOpened => const Stream.empty();
@@ -81,7 +81,7 @@ class FirebasePushMessaging implements PushMessaging {
   Stream<String> get tokenRefresh => _messaging.onTokenRefresh;
 
   @override
-  Stream<void> get onMessage => FirebaseMessaging.onMessage;
+  Stream<String?> get onMessage => FirebaseMessaging.onMessage.map((message) => message.data['level'] as String?);
 
   @override
   Stream<int> get onOpened =>
