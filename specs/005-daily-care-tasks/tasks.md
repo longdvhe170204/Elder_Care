@@ -110,6 +110,9 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 
 ## Phase 5: User Story 3 – Người bán trú chỉ có công việc trong thời gian có mặt (Priority: P1)
 
+**Bản cài tại checkout 2026-11-01, chưa nghiệm thu:** T027 có test ma trận/schema/luồng; T028 dùng `simple_record`/`record_event` và `V005_94__shared_day_care_attendance.sql`; T029 có service/API đọc/checkout/giờ về/callback và AMEND_CONTENT; T030 có bước ngày/phút trên khung hiện có; T031 có bốn HTTP đã duyệt, web đăng ký màn/menu và widget mobile tiêm gateway. Bộ liên quan trước sửa hợp đồng cuối:46unit/Arch+29IT xanh; web374test, mobile52test xanh. Clean verify đầu dừng ở756unit/2failure do test đếmAPI cũ và componentYAML chèn sai cấp. Đã sửa count/hợp đồng và kiểm parser tĩnh; chưa chạy Maven lại vì automatic approval review hết hạn mức. Chủ dự án chọn chờ VOID và nhánh đổi khỏiDAY_CARE; retention chuỗi shared/correction chờA, nguồn/type004 chờB, adaptermobile chờA. Giữ T027–T031[ ]; chi tiết và thứ tự tiếp trong Working-history.md/plan.
+
+
 **Goal**: Trạng thái có mặt theo ngày, điểm danh đến/về qua bản ghi đón, Vắng không báo theo CFG-M02-07, giờ về dự kiến, báo còn có mặt hết ngày (FR-012 → FR-016, FR-018, FR-018a, FR-019, BR-M04-02).
 
 **Independent Test**: E có lịch 07:30–16:30; lập trước điểm danh bị chặn; điểm danh đến 08:10 → Người phụ trách ca được báo, lập được từ 08:10; điểm danh về 15:00 → công việc sau đó bị hủy.
@@ -331,3 +334,5 @@ T007a đã có service/HTTP và23test xanh trên bảng riêng ngày2026-10-28; 
 **Gate nền31/10 đã kết thúc**: cleanverify cuối exit1/09:50phút,721unit/kiếntrúc xanh,1563IT còn7failure+9error/0skip ở16phươngthức M01/ApiContractIT đãnêu trongplan;care56IT,roombedallocation258IT,staffing251IT đều xanh;Spotless2250file sạch. Giữcheckbox và checkpoint Phase2,chưa bắt đầu implementationPhase3. RàsoátPhase3 chỉxácđịnh thứtự/điềukiện ởWorking-history.md,không đánh task hoặc coi YAMLtest làruntime.
 
 **Gate cuối lượt 2026-11-01:** `005-p4-clean-verify-final2.log` exit1/10:14 phút;751unit/Arch xanh;1629IT có8failure+10error/0skip;31ITPhase4 và6ITT008 xanh,Spotless2323file sạch. Đối chiếu đủ tên:16phươngthức baselinePhase3 còn nguyên,thêm ca outbox reason đã biết và ParameterAsOfIT/A mới(expected20M/actual10M). Giữ tất cảcheckboxPhase4[ ];các lựa chọn hoãn ởđềxuấtmục7 vẫn chưahoànthành. KhôngcàiT044/Phase7 hoặcT027/Phase5. Chi tiết bằng chứng/file/luồng/thứtựtiếp ởWorking-history.md vàplan.
+
+**Checkpoint trước duyệt API Phase5 2026-11-01 (lịch sử):** T027 có `FR_013_AttendanceTransitionsTest`/`AttendanceTransitions` thuần; T028 có `FR_012_AttendanceSchemaIT` và migration `V005_94__shared_day_care_attendance.sql` trên `simple_record` theo R-15. Chưa cài luồng T029–T031; đề xuất API ở `phase5-contract-proposal.md` đang chờ duyệt, không áp dụng mặc định. Các checkbox T027–T031 giữ `[ ]`; kết quả test/việc chờ ghi trong plan và Working-history.md. Chưa đến gate clean verify cuối phase.

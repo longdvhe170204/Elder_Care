@@ -14,7 +14,7 @@ class T003_PublicCareApiTest {
         Map<String, Integer> contracts = Map.ofEntries(
                 Map.entry("CarePlanApi", 4),
                 Map.entry("TaskTypeApi", 1),
-                Map.entry("DayCareAttendanceApi", 6),
+                Map.entry("DayCareAttendanceApi", 7),
                 Map.entry("ShiftTaskApi", 6),
                 Map.entry("HandoverTaskApi", 3),
                 Map.entry("TaskSourceApi", 2),
@@ -39,7 +39,7 @@ class T003_PublicCareApiTest {
             assertThat(api.getAnnotation(Transactional.class)).isNotNull();
             assertThat(api.getAnnotation(Transactional.class).propagation()).isEqualTo(Propagation.MANDATORY);
         }
-        for (String method : new String[] {"changeReturnTime", "restoreReturnTime", "checkOut", "recordedInHandover"}) {
+        for (String method : new String[] {"changeReturnTime", "restoreReturnTime", "checkOut", "refreshCalendar", "recordedInHandover"}) {
             String apiName = method.equals("recordedInHandover") ? "HandoverTaskApi" : "DayCareAttendanceApi";
             var found = java.util.Arrays.stream(Class.forName("com.eldercare.backend.care.api." + apiName)
                             .getDeclaredMethods())
