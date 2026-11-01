@@ -71,3 +71,24 @@ export const putResultValuesById = (params) => request('PUT', '/result-values/{i
 
 /** Ngừng hiệu lực giá trị kết quả (FR-034, FR-038) */
 export const postResultValuesByIdDeactivate = (params) => request('POST', '/result-values/{id}/deactivate', params)
+
+/** Dữ liệu nguồn của ca để người lập đối chiếu (FR-017) */
+export const getShiftsByShiftIdSourceData = (params) => request('GET', '/shifts/{shiftId}/source-data', params)
+
+/** Công việc đã lập của ca (Người phụ trách ca, Trưởng tầng, Quản lý viện) (FR-017, FR-045) */
+export const getShiftsByShiftIdCareTasks = (params) => request('GET', '/shifts/{shiftId}/care-tasks', params)
+
+/** Lập công việc của ca theo lô (FR-002, FR-006, FR-017, FR-018, FR-021, FR-023, FR-024, FR-029, BR-M04-01, BR-M04-02, BR-M04-24, BR-M04-26, BR-M04-28, BR-M09-01) */
+export const postShiftsByShiftIdCareTasksPlan = (params) => request('POST', '/shifts/{shiftId}/care-tasks/plan', params)
+
+/** Tạo công việc phát sinh (Trưởng tầng, Điều dưỡng) (FR-025, FR-023) */
+export const postCareTasksAdHoc = (params) => request('POST', '/care-tasks/ad-hoc', params)
+
+/** Lập công việc làm lại sau kiểm tra chất lượng Không đạt (người kiểm tra của 014) (FR-026a, BR-M04-23) */
+export const postCareTasksByIdRework = (params) => request('POST', '/care-tasks/{id}/rework', params)
+
+/** Xem công việc, kết quả và lịch sử xử lý (FR-023, FR-028, FR-046) */
+export const getCareTasksById = (params) => request('GET', '/care-tasks/{id}', params)
+
+/** Hủy công việc Chưa đến hạn (chỉ Trưởng tầng, bắt buộc lý do) (FR-026, FR-022, BR-M04-03) */
+export const postCareTasksByIdCancel = (params) => request('POST', '/care-tasks/{id}/cancel', params)

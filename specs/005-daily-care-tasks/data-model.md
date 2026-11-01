@@ -423,3 +423,9 @@ care_resident_lock thành resident_module_state moduleM04,data.version giữ gi�
 - Retention: CARE_PLAN_ITEM chỉ kind TASK; RISK_AGREEMENT chỉ kind RISK_AGREEMENT, kể cả dòng inactive để không bỏ dữ liệu lịch sử. Con record_event không có chu kỳ quét/xóa độc lập củacare; ExpiredDataPurge/SharedRowRetention.deleteFor(parent) của000 xử lý trước khi xóa cha. Tham chiếu source_item_id và previous_plan_id giữ chuỗi phiên bản.
 - Bảo đảm đã kiểm: BR_M04_19_CarePlanSchemaIT8ca, FR_003_CarePlanLifecycleIT15ca, FR_003_CarePlanConcurrencyIT2ca, T008_CareGovernanceIT6ca trong các gate hẹp đã ghi plan. Chưa suy các số này thành clean verify hoặc nghiệm thu T064 toàn feature.
 - Bổ sung cuối31/10: LifecycleIT hiện22ca, ConcurrencyIT3ca sau các test null/OpenAPI/ranh giới khóa. Clean verify cuối có90ITcare xanh; toàn kho còn7failure+9error của16phương thức baselineA/B, giữ nguyên điều kiện nghiệm thu.
+
+## Ánh xạ vật lý Phase 4 tại checkout — 2026-11-01
+
+T020 dùng V005_97__shift_care_tasks.sql mới, không sửa migration đã merge. care_task nhóm BUSINESS chứa cột cho trạng thái, căn cứ, ca, vị trí, thời điểm/khung, người thực hiện, version và các generated UNIQUE theo mục 6. Snapshot nội dung/loại kết quả/tính phí/chứng chỉ ở JSON data có kiểu CareTaskData; task_type_id vật lý và publicTaskTypeId trong snapshot giữ ánh xạ danh mục đã gộp. Trạng thái cuối bị trigger chặn UPDATE.
+
+Lịch sử xử lý không tạo care_task_history: HistoryTrack M04.TASK/HANDLING qua StatusHistoryApi, details CareTaskHandling; nhắc lúc lập muộn dùng ReminderMarkers với M04.TASK_OVERDUE/INITIAL. Dữ liệu ghi nhận/đính chính của Phase 6/8 chưa được coi đã cài bằng schema này. T024 nhắc ca chưa có công việc còn chờ nguồn liệt kê ca, không tạo bảng riêng hay dùng id 0 làm sentinel.
