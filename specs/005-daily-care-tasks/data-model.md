@@ -443,3 +443,9 @@ AttendanceKinds.DAYS dùng simple_record kind M04.DAY_CARE_ATTENDANCE, resident_
 Hai loại cùng parent M01.RESIDENT để metadata raw gắn hồ sơ, nhưng retention chưa đủ: alias005 còn bảng cũ và genericpurge chưa enumerate record gốc để kiểm thời hạn correction. Gate này chờA, không khẳng định đã xóa an toàn toànchuỗi. ScopeAssignmentProvider M04.DAY_CARE_ATTENDANCE đã đọc bản ghi thật qua AttendanceStore/APIshared và floorAreaId snapshot. Audit ghi diff trường thay đổi, gồm giờ hiện hành và id bản ghi/đăng ký/báo vắng để truy vết.
 
 Chủ dự án chọn chờ VOID và chờ thống nhất nhánh đổi khỏiDAY_CARE với B. Không thêm trạng thái ngoài AttendanceStatus hoặc tự khôi phục/hủy thêm công việc khi chưa có quy tắc. Đính chính giờ hiện cập nhật projection/phát AttendanceChanged, giữ task đóng theo FR-026; tác động dây chuyền khi sửa giờ về cần thống nhất trước khi coi phần đó đủ nghiệp vụ.
+
+### Ánh xạ triển khai Phase 6 — 01/11/2026
+
+R-15: kết quả dùng id và dòng care_task của task, nhận biết bằng result_performed_at. V005_98 thêm numeric/code/json cùng metadata performed/recorded/device, quyền, người ghi, nhãn muộn/mất quyền, nguồn chỉ số/bữa, pending_result và awaiting_remeasurement; CHECK buộc kết quả hoàn chỉnh, không cho payload dở dang, trigger bảo vệ ghi nhận khỏi UPDATE/DELETE trái nhóm3. V005_99 thêm carryover cho đọc việc tồn (lệnh sinh dấu thuộc Phase7). V005_100 liên kết reason_type_id tới catalog_item.id vật lý, response/audit giữ public id đã chọn. Không tạo bảng care_result riêng.
+
+CareTaskData chụp cấu hình kết quả tại lệnh lập; resultConfigurationCaptured phân biệt không đặt upperLimit một cách tường minh với snapshot cũ chưa có trường. ML legacy không có bằng chứng cấu hình bị chặn, không backfill từ danh mục hiện tại. M04.TASK↔M04.CARE_RESULT là hai định danh logic cùng dòng: graph retention kiểm đủ attachment cả hai trước xóa vật lý tại TASK; seen-set xử lý vòng.

@@ -326,8 +326,9 @@ paths:
 
 
 
-  /cong-viec/{id}/nhan-viec:
+  /care-tasks/{id}/claim:
     post:
+      x-implementation-phase: 6
       tags: [checklist]
       summary: Nhận công việc chung, hoặc Người phụ trách ca nhận việc về mình
       x-fr: [FR-031, FR-033]
@@ -354,45 +355,49 @@ paths:
   # ---------------- Checklist, ghi nhận ----------------
   /checklist:
     get:
+      x-implementation-phase: 6
       tags: [checklist]
       summary: Checklist của tôi trong ca
       description: 'Công việc được giao, tồn, công việc chung phù hợp; điều dưỡng thêm liều thuốc, bàn giao, cảnh báo, kiểm tra đầu ca. Sắp theo thời điểm, Quá hạn lên đầu. Kèm taiLuc cho app lưu ngoại tuyến (FR-035).'
       x-fr: [FR-029, FR-030, FR-031, FR-035]
-      parameters: [ { name: caId, in: query, required: true, schema: { type: integer, format: int64 } } ]
+      parameters: [ { name: shiftId, in: query, required: true, schema: { type: integer, format: int64 } } ]
       responses: { '200': { description: OK, headers: { ETag: { $ref: '#/components/headers/ETag' } }, content: { application/json: { schema: { $ref: '#/components/schemas/Checklist' } } } } }
-  /cong-viec/{id}/ghi-nhan:
+  /care-tasks/{id}/record:
     post:
+      x-implementation-phase: 6
       tags: [checklist]
       summary: Ghi nhận hoàn thành
       description: |
         Quyền: được giao, Trưởng tầng; Người phụ trách ca chỉ khi Quá hạn và trong phạm vi ca (FR-033). Đến hạn → Hoàn thành;
         Quá hạn → Hoàn thành (thời điểm thực hiện trong khung) hoặc Hoàn thành trễ (bắt buộc lý do với Quan trọng, Bắt buộc).
-        Đo chỉ số: 422 GIA_TRI_BI_CHAN, hoặc 202 CHO_DO_LAI (công việc chưa đóng). Ăn uống chưa xác nhận phục vụ: 409
-        CHUA_XAC_NHAN_PHUC_VU (FR-040a). Công việc đã đóng: 409 CONG_VIEC_DA_DONG (FR-036).
+        Đo chỉ số: 422 VALUE_BLOCKED, hoặc 202 AWAITING_REMEASUREMENT (công việc chưa đóng). Ăn uống chưa xác nhận phục vụ: 409
+        SERVICE_NOT_CONFIRMED (FR-040a). Công việc đã đóng: 409 CARE_TASK_CLOSED (FR-036).
       x-fr: [FR-026, FR-033, FR-034, FR-035, FR-036, FR-040a, FR-041, FR-044]
       x-br: [BR-M04-06, BR-M04-10, BR-M04-12]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/GhiNhan' } } } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CareResultWrite' } } } }
       responses:
-        '200': { description: Đã đóng, content: { application/json: { schema: { $ref: '#/components/schemas/CongViecChiTiet' } } } }
+        '200': { description: Đã đóng, content: { application/json: { schema: { $ref: '#/components/schemas/CareTaskDetail' } } } }
         '202': { description: Chờ xác nhận đo lại }
         '403': { $ref: '#/components/responses/Loi' }
-        '409': { $ref: '#/components/responses/LoiDaDong' }
+        '409': { $ref: '#/components/responses/CareTaskClosed' }
         '422': { $ref: '#/components/responses/Loi' }
-  /cong-viec/{id}/khong-thuc-hien:
+  /care-tasks/{id}/not-perform:
     post:
+      x-implementation-phase: 6
       tags: [checklist]
       summary: Ghi nhận không thực hiện (bắt buộc loại lý do; ghi chú tùy chọn)
-      description: 'Sửa 2026-10-18 (Q-350): loaiLyDoId là loại đang hiệu lực của danh mục loai-ly-do-khong-thuc-hien; "Người cao tuổi từ chối" luôn có.'
+      description: 'Sửa 2026-10-18 (Q-350): reasonTypeId là loại đang hiệu lực của danh mục loai-ly-do-khong-thuc-hien; "Người cao tuổi từ chối" luôn có.'
       x-fr: [FR-026, FR-027, FR-028a, FR-033, FR-044]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [loaiLyDoId], properties: { loaiLyDoId: { type: integer, format: int64 }, ghiChu: { type: string, maxLength: 2000 } } } } } }
-      responses: { '200': { description: Không thực hiện }, '409': { $ref: '#/components/responses/LoiDaDong' } }
-  /ghi-nhan-phat-sinh:
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [reasonTypeId], properties: { reasonTypeId: { type: integer, format: int64 }, note: { type: string, maxLength: 2000 } } } } } }
+      responses: { '200': { description: Không thực hiện }, '409': { $ref: '#/components/responses/CareTaskClosed' } }
+  /ad-hoc-care-recordings:
     post:
+      x-implementation-phase: 6
       tags: [checklist]
       summary: Ghi nhận phát sinh (TT, ĐD, CS)
-      description: 'Tạo công việc phát sinh giao cho người ghi và ghi kết quả trong một lệnh, vào thẳng Hoàn thành (Q-36). Có công việc cùng loại Đến hạn/Quá hạn mà chưa gửi daXemCongViecCungLoai thì 200 trả congViecCungLoai, chưa ghi gì.'
+      description: 'Tạo công việc phát sinh giao cho người ghi và ghi kết quả trong một lệnh, vào thẳng Hoàn thành (Q-36). Có công việc cùng loại Đến hạn/Quá hạn mà chưa gửi sameTypeTasksReviewed thì 200 trả sameTypeTasks, chưa ghi gì.'
       x-fr: [FR-025, FR-026, FR-035]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody:
@@ -401,17 +406,17 @@ paths:
           application/json:
             schema:
               allOf:
-                - $ref: '#/components/schemas/GhiNhan'
+                - $ref: '#/components/schemas/CareResultWrite'
                 - type: object
-                  required: [nctId, loaiCongViecId]
+                  required: [residentId, taskTypeId]
                   properties:
-                    nctId: { type: integer, format: int64 }
-                    loaiCongViecId: { type: integer, format: int64 }
-                    daXemCongViecCungLoai: { type: boolean }
-                    congViecGocId: { type: integer, format: int64, description: 'Khi chuyển từ bản ghi bị từ chối vì trạng thái cuối (CHK056)' }
+                    residentId: { type: integer, format: int64 }
+                    taskTypeId: { type: integer, format: int64 }
+                    sameTypeTasksReviewed: { type: boolean }
+                    originalTaskId: { type: integer, format: int64, description: 'Khi chuyển từ bản ghi bị từ chối vì trạng thái cuối (CHK056)' }
       responses:
-        '200': { description: Có công việc cùng loại đang mở, content: { application/json: { schema: { type: object, properties: { congViecCungLoai: { type: array, items: { $ref: '#/components/schemas/CongViec' } } } } } } }
-        '201': { description: Đã ghi, content: { application/json: { schema: { $ref: '#/components/schemas/CongViecChiTiet' } } } }
+        '200': { description: Có công việc cùng loại đang mở, content: { application/json: { schema: { type: object, properties: { sameTypeTasks: { type: array, items: { $ref: '#/components/schemas/CareTask' } } } } } } }
+        '201': { description: Đã ghi, content: { application/json: { schema: { $ref: '#/components/schemas/CareTaskDetail' } } } }
         '409': { $ref: '#/components/responses/LoiChan' }
   /ket-qua-ghi-nhan/{id}/dinh-chinh:
     post:
@@ -423,17 +428,18 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/DinhChinh' }
       responses: { '201': { description: Đã lưu }, '403': { $ref: '#/components/responses/Loi' } }
-  /nguoi-cao-tuoi/{nctId}/ket-qua-ghi-nhan:
+  /residents/{residentId}/care-results:
     get:
+      x-implementation-phase: 6
       tags: [checklist]
       summary: Lịch sử kết quả ghi nhận (gồm Bác sĩ chỉ xem)
       x-fr: [FR-037, FR-049]
       parameters:
-        - { $ref: '#/components/parameters/NctId' }
-        - { name: tu, in: query, schema: { type: string, format: date-time } }
-        - { name: den, in: query, schema: { type: string, format: date-time } }
-        - { name: loai, in: query, schema: { type: array, items: { type: string } } }
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/KetQua' } } } } } }
+        - { name: residentId, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+        - { name: types, in: query, schema: { type: array, items: { type: string } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CareTaskResult' } } } } } }
 
   # ---------------- Danh mục ----------------
   /task-types:
@@ -824,6 +830,19 @@ components:
     LoiDaDong:
       description: 'CONG_VIEC_DA_DONG (FR-036): kèm người đóng, thời điểm và nội dung bị từ chối để chuyển thành đính chính hoặc Ghi nhận phát sinh'
       content: { application/problem+json: { schema: { allOf: [ { $ref: '#/components/schemas/Loi' }, { type: object, properties: { dongBoi: { type: string }, dongLuc: { type: string, format: date-time }, trangThai: { $ref: '#/components/schemas/TrangThaiCongViec' }, noiDungBiTuChoi: { $ref: '#/components/schemas/GhiNhan' } } } ] } } }
+    CareTaskClosed:
+      description: 'CARE_TASK_CLOSED: giữ nội dung để chuyển thành đính chính hoặc Ghi nhận phát sinh'
+      content:
+        application/problem+json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/CareCatalogProblem'
+              - type: object
+                properties:
+                  closedBy: { type: string }
+                  closedAt: { type: string, format: date-time }
+                  status: { $ref: '#/components/schemas/CareTaskStatus' }
+                  rejectedContent: { $ref: '#/components/schemas/CareResultWrite' }
   schemas:
     Importance: { type: string, enum: [NORMAL, IMPORTANT, MANDATORY] }
     Reason: { type: string, minLength: 1, maxLength: 2000 }
@@ -1037,6 +1056,16 @@ components:
             quyTacDong: { type: string }
             lichSuXuLy: { type: array, items: { type: object, properties: { loai: { type: string }, nguoi: { type: string }, canCu: { type: string }, thoiDiem: { type: string, format: date-time }, lyDo: { type: string } } } }
             truongBiAn: { type: array, items: { type: string } }
+    CareResultWrite:
+      type: object
+      properties:
+        performedAt: { type: string, format: date-time, description: 'Mặc định là lúc ghi; không sau lúc ghi, không trước đầu khung' }
+        numericValue: { type: number }
+        codeValue: { type: string }
+        jsonValue: { type: object, additionalProperties: true }
+        upperLimitConfirmed: { type: boolean }
+        note: { type: string }
+        reason: { $ref: '#/components/schemas/Reason' }
     GhiNhan:
       type: object
       properties:
@@ -1066,14 +1095,14 @@ components:
     Checklist:
       type: object
       properties:
-        caId: { type: integer, format: int64 }
-        taiLuc: { type: string, format: date-time }
-        congViec: { type: array, items: { $ref: '#/components/schemas/CongViec' } }
-        thoaThuan: { type: array, description: 'Thỏa thuận lựa chọn có rủi ro của phiên bản Hiệu lực, theo người cao tuổi (FR-030, bổ sung 2026-10-18)', items: { type: object, properties: { nctId: { type: integer, format: int64 }, thoaThuan: { type: array, items: { $ref: '#/components/schemas/RiskAgreement' } } } } }
-        loaiLyDoKhongThucHien: { type: array, description: 'Để app ghi ngoại tuyến (FR-028a)', items: { $ref: '#/components/schemas/NonPerformanceReasonType' } }
-        lieuThuoc: { type: array, items: { type: object, additionalProperties: true }, description: 'Chỉ điều dưỡng; từ 006, chỉ hiển thị' }
-        canhBaoDangMo: { type: array, items: { type: object, additionalProperties: true } }
-        viecBanGiao: { type: object, additionalProperties: true }
+        shiftId: { type: integer, format: int64 }
+        loadedAt: { type: string, format: date-time }
+        tasks: { type: array, items: { $ref: '#/components/schemas/CareTask' } }
+        riskAgreements: { type: array, description: 'Thỏa thuận lựa chọn có rủi ro của phiên bản Hiệu lực, theo người cao tuổi (FR-030, bổ sung 2026-10-18)', items: { type: object, properties: { residentId: { type: integer, format: int64 }, agreements: { type: array, items: { $ref: '#/components/schemas/RiskAgreement' } } } } }
+        nonPerformanceReasonTypes: { type: array, description: 'Để app ghi ngoại tuyến (FR-028a)', items: { $ref: '#/components/schemas/NonPerformanceReasonType' } }
+        medicationDoses: { type: array, items: { type: object, additionalProperties: true }, description: 'Chỉ điều dưỡng; từ 006, chỉ hiển thị' }
+        openAlerts: { type: array, items: { type: object, additionalProperties: true } }
+        handoverTasks: { type: object, additionalProperties: true }
     DuLieuNguonCa:
       type: object
       properties:
@@ -1203,6 +1232,11 @@ components:
           type: string
         taskType:
           type: string
+        resultType:
+          type: string
+          readOnly: true
+          enum: [EATING, ML, MEASURED_VALUE, MOVEMENT, SLEEP, MOOD, BEHAVIOR, ITEM_QUANTITY, PERFORMED, NONE]
+          description: Loại kết quả từ snapshot tại lúc lập công việc (FR-038).
         content:
           type: string
         basis:

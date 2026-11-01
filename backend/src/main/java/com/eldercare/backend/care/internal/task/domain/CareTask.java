@@ -30,4 +30,6 @@ public record CareTask(
         CareTaskData data,
         long createdBy,
         Instant createdAt,
-        int version) {}
+        int version,
+        boolean awaitingRemeasurement,
+        String carryover) {}

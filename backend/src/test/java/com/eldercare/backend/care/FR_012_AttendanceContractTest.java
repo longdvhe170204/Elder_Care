@@ -8,16 +8,22 @@ import java.time.*;
 import org.junit.jupiter.api.Test;
 
 class FR_012_AttendanceContractTest {
-    @Test void FR_015_correctionRequestIsARealReusableComponentNotAnOperationChild()throws Exception{
-        var api=new io.swagger.v3.parser.OpenAPIV3Parser().readContents(Files.readString(Path.of("../specs/005-daily-care-tasks/contracts/api-005.yaml"))).getOpenAPI();
-        var request=api.getComponents().getRequestBodies().get("DayCareAttendanceCorrection");
+    @Test
+    void FR_015_correctionRequestIsARealReusableComponentNotAnOperationChild() throws Exception {
+        var api = new io.swagger.v3.parser.OpenAPIV3Parser()
+                .readContents(Files.readString(Path.of("../specs/005-daily-care-tasks/contracts/api-005.yaml")))
+                .getOpenAPI();
+        var request = api.getComponents().getRequestBodies().get("DayCareAttendanceCorrection");
         assertThat(request).isNotNull();
-        var schema=request.getContent().get("application/json").getSchema();
-        assertThat(schema.getRequired()).containsExactly("type","reason");
-        assertThat(schema.getProperties()).containsOnlyKeys("type","correctedContent","reason");
-        assertThat(api.getPaths().get("/day-care-attendances/check-in").getPost()).isNotNull();
-        assertThat(api.getPaths().get("/day-care-attendances/{id}/check-out").getPost()).isNotNull();
+        var schema = request.getContent().get("application/json").getSchema();
+        assertThat(schema.getRequired()).containsExactlyInAnyOrder("type", "reason");
+        assertThat(schema.getProperties()).containsOnlyKeys("type", "correctedContent", "reason");
+        assertThat(api.getPaths().get("/day-care-attendances/check-in").getPost())
+                .isNotNull();
+        assertThat(api.getPaths().get("/day-care-attendances/{id}/check-out").getPost())
+                .isNotNull();
     }
+
     @Test
     void FR_012_fourApprovedOperationsAreTranslated() throws Exception {
         String yaml = Files.readString(Path.of("../specs/005-daily-care-tasks/contracts/api-005.yaml"));

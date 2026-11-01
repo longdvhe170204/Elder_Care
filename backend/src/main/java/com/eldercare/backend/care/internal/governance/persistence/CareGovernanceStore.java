@@ -5,6 +5,7 @@ import com.eldercare.backend.administration.account.api.spi.InvalidPermissionDat
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider.DataRef;
 import com.eldercare.backend.care.internal.attendance.persistence.AttendanceStore;
 import com.eldercare.backend.care.internal.governance.domain.*;
+import com.eldercare.backend.common.time.BusinessTime;
 import java.time.*;
 import java.util.*;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -51,7 +52,7 @@ public class CareGovernanceStore {
         String table = switch (type) {
             case "M04.CARE_PLAN" -> "care_plan";
             case "M04.TASK" -> "care_task";
-            case "M04.CARE_RESULT" -> "care_result";
+            case "M04.CARE_RESULT" -> "care_task";
             case "M04.DAY_CARE_ATTENDANCE" -> "care_day_attendance";
             default -> throw new IllegalArgumentException("Loại phạm vi không thuộc M04");
         };
@@ -59,7 +60,8 @@ public class CareGovernanceStore {
         String floor = column(table, "floor_area_id") ? "floor_area_id" : "NULL";
         return jdbc
                 .query(
-                        "SELECT resident_id," + floor + " FROM " + table + " WHERE id=?",
+                        "SELECT resident_id," + floor + " FROM " + table + " WHERE id=?"
+                                + (type.equals("M04.CARE_RESULT") ? " AND result_performed_at IS NOT NULL" : ""),
                         (rs, i) -> new Target(
                                 type, Long.toString(id), rs.getObject(1, Long.class), rs.getObject(2, Long.class)),
                         id)
@@ -92,7 +94,7 @@ public class CareGovernanceStore {
                         + (type.profile() ? "NOT NULL" : "NULL");
             case CARE_RESULT, LOCATION_CARE_RESULT ->
                 exists("care_task")
-                        ? "SELECT c.id,COALESCE(c.resident_id,t.resident_id) resident_id,t.planned_at FROM care_result c LEFT JOIN care_task t ON t.id=c.task_id WHERE COALESCE(c.resident_id,t.resident_id) IS "
+                        ? "SELECT id,resident_id,planned_at FROM care_task WHERE result_performed_at IS NOT NULL AND resident_id IS "
                                 + (type.profile() ? "NOT NULL" : "NULL")
                         : null;
             case TASK_HISTORY, LOCATION_TASK_HISTORY ->
@@ -111,7 +113,7 @@ public class CareGovernanceStore {
             return new CareRetentionRow(
                     rs.getLong("id"),
                     rs.getObject("resident_id", Long.class),
-                    planned == null ? null : planned.toInstant(ZoneOffset.UTC));
+                    planned == null ? null : planned.atZone(BusinessTime.ZONE).toInstant());
         });
     }
 
@@ -136,12 +138,13 @@ public class CareGovernanceStore {
                 itemRefs(result, "source_item_id", id);
             }
             case TASK, LOCATION_TASK -> {
-                refs(
-                        result,
-                        "care_result",
-                        "task_id",
-                        id,
-                        type.profile() ? "M04.CARE_RESULT" : "M04.LOCATION_CARE_RESULT");
+                if (exists("care_task")
+                        && column("care_task", "result_performed_at")
+                        && Boolean.TRUE.equals(jdbc.queryForObject(
+                                "SELECT EXISTS(SELECT 1 FROM care_task WHERE id=? AND result_performed_at IS NOT NULL)",
+                                Boolean.class,
+                                id)))
+                    result.add(new DataRef(type.profile() ? "M04.CARE_RESULT" : "M04.LOCATION_CARE_RESULT", id));
                 refs(
                         result,
                         "care_task_history",
@@ -157,6 +160,8 @@ public class CareGovernanceStore {
             }
             case DAY_CARE_ATTENDANCE ->
                 refs(result, "care_attendance_record", "attendance_id", id, "M04.ATTENDANCE_RECORD");
+            case CARE_RESULT, LOCATION_CARE_RESULT ->
+                result.add(new DataRef(type.profile() ? "M04.TASK" : "M04.LOCATION_TASK", id));
             default -> {}
         }
         return Set.copyOf(result);
@@ -181,6 +186,8 @@ public class CareGovernanceStore {
     }
 
     public void delete(JdbcTemplate retention, CareRetentionType type, Collection<Long> ids) {
+        // R-15: cả hai định danh có trong graph để kiểm attachment; chỉ TASK xóa dòng vật lý.
+        if (type == CareRetentionType.CARE_RESULT || type == CareRetentionType.LOCATION_CARE_RESULT) return;
         if (type == CareRetentionType.RISK_OPINION) {
             if (!ids.isEmpty())
                 throw new IllegalArgumentException("Ý kiến là con bảng chung, chỉ 000 xóa cùng thỏa thuận");

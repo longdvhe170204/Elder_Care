@@ -39,7 +39,9 @@ class T003_PublicCareApiTest {
             assertThat(api.getAnnotation(Transactional.class)).isNotNull();
             assertThat(api.getAnnotation(Transactional.class).propagation()).isEqualTo(Propagation.MANDATORY);
         }
-        for (String method : new String[] {"changeReturnTime", "restoreReturnTime", "checkOut", "refreshCalendar", "recordedInHandover"}) {
+        for (String method : new String[] {
+            "changeReturnTime", "restoreReturnTime", "checkOut", "refreshCalendar", "recordedInHandover"
+        }) {
             String apiName = method.equals("recordedInHandover") ? "HandoverTaskApi" : "DayCareAttendanceApi";
             var found = java.util.Arrays.stream(Class.forName("com.eldercare.backend.care.api." + apiName)
                             .getDeclaredMethods())

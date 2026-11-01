@@ -255,7 +255,7 @@ class BR_M04_02_DayCareAttendanceIT extends MySqlIntegrationTestBase {
     private long task(long owner, Instant planned, String state) {
         long id = TestUsers.nextId();
         String data = json.writeValueAsString(new com.eldercare.backend.care.internal.task.domain.CareTaskData(
-                1, "Loại test", "Công việc test", "PERFORMED", false, null, Set.of()));
+                1, "Loại test", "Công việc test", "PERFORMED", false, null, Set.of(), null, null, true));
         jdbc.update(
                 "INSERT INTO care_task(id,resident_id,task_type_id,basis_type,shift_id,floor_area_id,planned_at,window_from,window_to,importance,performer_role,status,data,created_by,created_at) VALUES(?,?,1,'AD_HOC',?,?, ?,?,?,'NORMAL','CAREGIVER',?,?,?,?)",
                 id,

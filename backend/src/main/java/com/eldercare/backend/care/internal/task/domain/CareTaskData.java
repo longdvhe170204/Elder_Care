@@ -10,7 +10,10 @@ public record CareTaskData(
         String resultType,
         boolean billable,
         Long serviceId,
-        Set<String> certificates) {
+        Set<String> certificates,
+        Integer upperLimit,
+        String vitalSignType,
+        Boolean resultConfigurationCaptured) {
     public CareTaskData {
         certificates = Set.copyOf(certificates);
     }

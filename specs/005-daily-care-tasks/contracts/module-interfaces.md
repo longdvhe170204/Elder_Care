@@ -1,5 +1,12 @@
 # Giao diện giữa module: Feature 005
 
+### Ghi chú triển khai Phase 6 (01/11/2026)
+
+- Sáu operation HTTP đã dịch tại phase6-contract-proposal.md mục1–3; mục5 CareTask.resultType chỉ đọc từ snapshot được chủ dự án duyệt bổ sung. CareTaskResponse/Checklist/CareTaskDetail cùng dùng trường này; không thêm chữ ký Java API/SPI.
+- CareVitalSignTasks cài VitalSignTaskApi hiện có, callback MANDATORY. Pending giữ mở; callback cùng người/giờ gốc đóng bằng vitalSignRecordId, không chép giá trị đo đầu thành giá trị đã xác nhận. Callback khác người/giờ và phát sinh đo chỉ số chờ D/007 theo lựa chọn chủ dự án; không tự thêm metadata/hợp đồng.
+- PublicCareResults cài PublicCareResultApi.results: đọc theo lô, overlay CorrectionApi.current, bỏ VOID, chỉ chia sẻ numericValue/codeValue/jsonValue. 012 chịu trách nhiệm quyền/đồng ý/nhật ký xem. summary trả CARE_SOURCE_UNAVAILABLE khi chưa có công thức đã thống nhất E/012.
+- M04.KET_QUA_CONG_VIEC/M04.GHI_NHAN_PHAT_SINH chưa có handler vì payload mục4 chưa duyệt, chờ A. BillableCareResultRecorded.quantity chờ E/010; lệnh billable tạm chặn trước lưu, không phát số lượng tự suy đoán. Không coi các provider/consumer này đã tích hợp nguồn thật.
+
 **Ngày**: 2026-10-09 | **Plan**: [../plan.md](../plan.md)
 
 Hợp đồng trong backend, ở gói `com.eldercare.backend.care.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của 005 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.

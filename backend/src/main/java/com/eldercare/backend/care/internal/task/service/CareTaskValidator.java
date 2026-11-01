@@ -218,7 +218,10 @@ public class CareTaskValidator {
                 planItem == null ? type.resultType() : planItem.resultType().name(),
                 planItem == null ? type.billable() : planItem.billable(),
                 type.serviceId(),
-                type.certificates());
+                type.certificates(),
+                type.upperLimit(),
+                type.vitalSignType(),
+                true);
         var task = new CareTask(
                 0,
                 d.residentId(),
@@ -241,7 +244,9 @@ public class CareTaskValidator {
                 data,
                 actor,
                 now,
-                0);
+                0,
+                false,
+                null);
         if (tasks.duplicate(task)) errors.add(special ? "SHIFT_CHECK_ALREADY_EXISTS" : "DUPLICATE_BASIS");
         if (tasks.overlapsOldPlan(task)) errors.add("OLD_REVISION_WINDOW_OVERLAP");
         return new CareTaskValidation(task, List.copyOf(errors));

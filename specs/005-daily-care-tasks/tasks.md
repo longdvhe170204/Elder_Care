@@ -134,6 +134,10 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 
 ## Phase 6: User Story 4 – Checklist theo ca và ghi nhận kết quả theo loại (Priority: P1)
 
+**Tiếp nhận 2026-11-01:** T032 đặt tại `care/internal/result/domain/CareResultTiming.java`, test `care/FR_035_CareResultTimingTest.java`; các đường dẫn bên dưới vẫn là tên logic. Bản dịch sáu operation T039 đã được chủ dự án duyệt tại `phase6-contract-proposal.md`. Chỉ đánh `[x]` sau kiểm cuối phase theo yêu cầu; các gate Phase 5 không được coi là đã giải quyết.
+
+**Phạm vi kiểm Phase6 hiện tại:** T035 dùng V005_98/99/100 theo R-15, không chép tên migration logic. CareTask.resultType readOnly đã duyệt bổ sung. T033/T036 tính phí chờ E/010; T034/T037 chờ A chốt payload; T036/T039 nhánh đo phát sinh/callback khác metadata chờ D/007, summary chờ E/012. T040 có cache/checklist/form trực tuyến một phần, chưa tích hợp đầy đủ shell/danh mục mảng/offline. Giữ checkbox cho các task chưa đủ điều kiện; chi tiết và lý do kỹ thuật ở plan/Working-history.
+
 **Goal**: Checklist theo ca và phân công, công việc chung, nhận việc; ghi nhận theo loại kết quả, đo chỉ số qua `ChiSoPort`, xác nhận phục vụ bữa, Ghi nhận phát sinh, ghi muộn, ngoại tuyến, sự kiện tính phí (FR-029 → FR-037, FR-040a, FR-041, FR-051, BR-M04-10, 12, 27, BR-M15-20).
 
 **Independent Test**: Nhân viên chăm sóc phân công 5 người ca ngày → checklist đúng 5 người và công việc chung của tầng; ghi uống nước 200 ml và một công việc khác.
@@ -336,3 +340,5 @@ T007a đã có service/HTTP và23test xanh trên bảng riêng ngày2026-10-28; 
 **Gate cuối lượt 2026-11-01:** `005-p4-clean-verify-final2.log` exit1/10:14 phút;751unit/Arch xanh;1629IT có8failure+10error/0skip;31ITPhase4 và6ITT008 xanh,Spotless2323file sạch. Đối chiếu đủ tên:16phươngthức baselinePhase3 còn nguyên,thêm ca outbox reason đã biết và ParameterAsOfIT/A mới(expected20M/actual10M). Giữ tất cảcheckboxPhase4[ ];các lựa chọn hoãn ởđềxuấtmục7 vẫn chưahoànthành. KhôngcàiT044/Phase7 hoặcT027/Phase5. Chi tiết bằng chứng/file/luồng/thứtựtiếp ởWorking-history.md vàplan.
 
 **Checkpoint trước duyệt API Phase5 2026-11-01 (lịch sử):** T027 có `FR_013_AttendanceTransitionsTest`/`AttendanceTransitions` thuần; T028 có `FR_012_AttendanceSchemaIT` và migration `V005_94__shared_day_care_attendance.sql` trên `simple_record` theo R-15. Chưa cài luồng T029–T031; đề xuất API ở `phase5-contract-proposal.md` đang chờ duyệt, không áp dụng mặc định. Các checkbox T027–T031 giữ `[ ]`; kết quả test/việc chờ ghi trong plan và Working-history.md. Chưa đến gate clean verify cuối phase.
+
+Kết quả kiểm ngày01/11/2026: scoped61unit/kiến trúc+67IT xanh; web389test/lint/build qua; mobile64test/analyzer qua. Clean verify nền exit1/20:54phút:772unit/kiến trúc xanh,1713IT còn8failure+10error đã đối chiếu18tên lỗi với lịch sửPhase4;Spotless2387file sạch. Không có tên test Phase6 đỏ nhưng còn các gate đã chọn chờ và kiểm trực quan chưa đạt; giữ[] toànphase, chi tiết Working-history/plan/progress. Chưa tiếp nhậnT042.

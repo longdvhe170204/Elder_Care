@@ -7,7 +7,7 @@ import { PermissionDeniedState } from '@/common/PageState'
 import { homeOf, primaryRole } from '@/common/session'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ResidentListPage } from '@/features/residents/ResidentListPage'
-import { ShiftChecklistPage } from '@/features/care-tasks/ShiftChecklistPage'
+import { CareChecklistPage } from '@/features/care-tasks/CareChecklistPage'
 import { CarePlanPage } from '@/features/care-tasks/CarePlanPage'
 import { ShiftTaskPlanningPage } from '@/features/care-tasks/ShiftTaskPlanningPage'
 import { DayCareAttendancePage } from '@/features/care-tasks/DayCareAttendancePage'
@@ -37,7 +37,7 @@ const PAGES = {
   residents: ResidentListPage,
   shifts: ShiftsPage,
   staff: StaffPage,
-  'care-tasks': ShiftChecklistPage,
+  'care-tasks': CareChecklistPage,
   'care-plans': CarePlanPage,
   'care-task-planning': ShiftTaskPlanningPage,
   'day-care-attendance': DayCareAttendancePage,

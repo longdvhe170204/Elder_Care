@@ -14,6 +14,7 @@ public record CareTaskResponse(
         ResidentCard residentCard,
         String location,
         String taskType,
+        @Schema(accessMode = Schema.AccessMode.READ_ONLY) ResultType resultType,
         String content,
         Basis basis,
         Instant plannedAt,
@@ -39,6 +40,7 @@ public record CareTaskResponse(
                 resident,
                 t.locationId() == null ? null : t.locationType() + " " + t.locationId(),
                 t.data().taskTypeName(),
+                ResultType.valueOf(t.data().resultType()),
                 health ? t.data().content() : null,
                 new Basis(t.basisType(), t.basisId()),
                 t.plannedAt(),
@@ -47,9 +49,9 @@ public record CareTaskResponse(
                 t.importance(),
                 performer,
                 t.performerId() == null,
-                null,
+                t.carryover(),
                 t.status(),
-                false,
+                t.awaitingRemeasurement(),
                 0,
                 commands);
     }
