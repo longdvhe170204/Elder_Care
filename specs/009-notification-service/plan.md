@@ -66,7 +66,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 **Target Platform**: Như 000.
 - Web: hộp thông báo (nhân viên, cổng người thân), luồng SSE, lượt nhắc gọi và ghi kết quả, danh sách liên hệ trực tiếp, lịch sử, lỗi gửi, cấu hình kênh.
-- App nhân viên: nhận đẩy, hộp thông báo (xem ngoại tuyến), xác nhận trực tuyến, "Xác nhận và tiếp nhận", lượt nhắc gọi và ghi kết quả.
+- App nhân viên: nhận đẩy, hộp thông báo, xác nhận trực tuyến, "Xác nhận và tiếp nhận", lượt nhắc gọi và ghi kết quả.
 - App người thân: nhận đẩy, hộp thông báo, xác nhận thông báo Khẩn cấp.
 
 **Project Type**: Web service (REST `/api/v1`, SSE), một web client và một mobile client chung (Q-346).
@@ -128,7 +128,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | NFR-02 Hiệu năng | Có | Hộp thông báo đọc bảng dẫn xuất; xác nhận một dòng sự kiện |
 | NFR-03 Thông báo khẩn cấp | Có | Outbox giao ngay sau commit, hàng Khẩn cấp riêng, gửi song song mọi kênh, FCM |
 | NFR-04 Tác vụ định kỳ | Có | `UNIQUE` lượt nhắc, lần gửi lại, khung gộp; chạy bù khi khởi động |
-| NFR-05 Khả dụng | Có | Outbox giao lại khi listener lỗi; hộp thông báo xem ngoại tuyến ở app |
+| NFR-05 Khả dụng | Có | Outbox giao lại khi listener lỗi |
 | NFR-06 Sao lưu | Gián tiếp | Dữ liệu ở MySQL |
 | NFR-07 Lưu trữ | Có | Không ngắn hơn CFG-M15-04 và bản ghi nguồn (data-model mục 10) |
 | NFR-08 Bảo mật | Có | Lọc phần nội dung theo quyền hiện hành; kênh ngoài không có sức khỏe; số điện thoại che một phần |
@@ -376,8 +376,8 @@ Còn chờ, thuộc task khác: FR-026a, dừng theo sự kiện của 007 (T017
 - Tab Thông báo đứng đầu phần nhân viên, mở mặc định, huy hiệu số Khẩn cấp chưa xác nhận. Khẩn cấp tới khi đang ở tab khác thì hiện dải báo, vì khi app đang mở máy không hiện thông báo hệ thống; `PushMessaging.onMessage` nay kèm `data.level`.
 - Hộp và chi tiết chuyển từ `family/notifications/` sang `common/notifications/` (`NotificationInbox`, `NotificationScreen`, `AcknowledgeActions`) để hai phần cùng công thức. Chi tiết có nút xác nhận cố định ở chân màn: trước đó người thân từ màn hình khóa mất ba thao tác, lệch SC-008. Loại sự kiện, người cao tuổi chuyển vào chip "Lọc thêm" để việc khẩn không bị đẩy xuống.
 - `ApiClient.getList` cho endpoint trả mảng (`GET /me/call-reminders`).
-- Không làm "hộp thông báo xem ngoại tuyến" dù mục phạm vi và mô tả api-009 có ghi: spec chỉ ghi MAY; lưu nội dung xuống máy dùng chung có thể lộ phần đã hết quyền xem (FR-034). Mất mạng thì báo lỗi kèm "Thử lại".
-- Lệch cần chốt: app chỉ cho chọn ba lý do của FR-030, hợp đồng và `CallResultService` có thêm `OTHER`. FR-030 ghi người nghe máy bắt buộc, FR-031 ghi "nếu khác người cần gọi", backend không kiểm; app theo FR-031.
+- Không làm hộp thông báo xem ngoại tuyến (chủ dự án chốt 2026-11-01, đã bỏ khỏi mục phạm vi và mô tả api-009): spec chỉ ghi MAY; lưu nội dung xuống máy dùng chung có thể lộ phần đã hết quyền xem (FR-034). Mất mạng thì báo lỗi kèm "Thử lại".
+- Lý do "Không liên lạc được" chỉ có ba giá trị của FR-030: chủ dự án chốt 2026-11-01 gỡ `OTHER` khỏi hợp đồng, backend, glossary. Kết quả gọi lưu ở `record_event` nên không cần migration; chưa có bản ghi `OTHER` nào ở schema demo. FR-030 ghi người nghe máy bắt buộc, FR-031 ghi "nếu khác người cần gọi", backend không kiểm; app theo FR-031.
 - Backend `CallReminderQueries` luôn trả `relationship` rỗng, `handoffs` chỉ có mã nhân viên: màn hiện "Người thân" và lịch sử không kèm tên. Hợp đồng chỉ có `residentId` nên màn không hiện tên người cao tuổi.
 - Web có màn lượt nhắc gọi từ T035a (cùng ngày).
 - Đã thử trên máy ảo Android 12 với backend `QuickstartDemoApplication`: hộp, huy hiệu, xác nhận thật (`IN_APP`), báo cần mạng khi tắt mạng, cỡ chữ 200%, nút gọi mở trình quay số. Demo chưa có hồ sơ nhân viên nên job không tạo được lượt nhắc; màn lượt nhắc và ghi kết quả thử qua proxy tạm trả dữ liệu đúng hợp đồng. Dải báo Khẩn cấp qua FCM thật chưa thử được, chỉ có test.
