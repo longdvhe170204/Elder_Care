@@ -1,27 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../../common/api/problem_message.dart';
-import '../../common/format/date_time.dart';
-import '../../common/notifications/notification_api.dart';
-import '../../common/notifications/notification_labels.dart';
-import '../../common/widgets/header_app_bar.dart';
-import '../../common/widgets/status_pill.dart';
+import '../api/problem_message.dart';
+import '../format/date_time.dart';
+import '../widgets/header_app_bar.dart';
+import '../widgets/status_pill.dart';
+import 'acknowledge_actions.dart';
+import 'notification_api.dart';
+import 'notification_labels.dart';
 
-/// Chi tiết thông báo của người thân (009 T031; FR-034, FR-036), màn riêng, cùng thứ tự với web. Mở là ghi xem lần đầu
-/// (backend); nội dung theo quyền hiện hành: phần đã hết quyền thay bằng dòng khóa, không lộ nội dung cũ. Trả `true` khi đã
-/// ẩn khỏi danh sách.
-class FamilyNotificationScreen extends StatefulWidget {
-  const FamilyNotificationScreen({super.key, required this.notifications, required this.id});
+/// Nút mở bản ghi nguồn ở chi tiết thông báo; `null` là không có nút.
+typedef SourceAction = Widget? Function(BuildContext context, Map<String, dynamic> notification);
+
+/// Chi tiết thông báo của nhân viên, người thân (009 T022, T031; FR-026, FR-034, FR-036), màn riêng, cùng thứ tự với web.
+/// Mở là ghi xem lần đầu (backend), không phải xác nhận; nội dung theo quyền hiện hành: phần đã hết quyền thay bằng dòng
+/// khóa, không lộ nội dung cũ. Khẩn cấp chưa xác nhận có nút cố định ở chân màn: từ màn hình khóa bấm thông báo rồi xác nhận
+/// là hai thao tác (SC-008). Trả `true` khi đã ẩn khỏi danh sách.
+class NotificationScreen extends StatefulWidget {
+  const NotificationScreen({super.key, required this.notifications, required this.id, this.sourceAction});
 
   final NotificationApi notifications;
   final int id;
+  final SourceAction? sourceAction;
 
   @override
-  State<FamilyNotificationScreen> createState() => _FamilyNotificationScreenState();
+  State<NotificationScreen> createState() => _NotificationScreenState();
 }
 
-class _FamilyNotificationScreenState extends State<FamilyNotificationScreen> {
+class _NotificationScreenState extends State<NotificationScreen> {
   final _hideKey = newIdempotencyKey();
   Map<String, dynamic>? _notification;
   Object? _loadError;
@@ -75,7 +81,19 @@ class _FamilyNotificationScreenState extends State<FamilyNotificationScreen> {
           ? Padding(padding: const EdgeInsets.all(16), child: Text(backendMessage(_loadError!)))
           : n == null
           ? const Center(child: CircularProgressIndicator())
-          : SafeArea(child: _content(context, n)),
+          : SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: _content(context, n)),
+                  if (isOpenUrgent(n))
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: AcknowledgeActions(notification: n, notifications: widget.notifications, onDone: _load),
+                    ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -90,6 +108,7 @@ class _FamilyNotificationScreenState extends State<FamilyNotificationScreen> {
     final sentAt = n['sentAt'] as String?;
     final viewedAt = n['viewedAt'] as String?;
     final acknowledgedAt = n['acknowledgedAt'] as String?;
+    final source = widget.sourceAction?.call(context, n);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -106,6 +125,14 @@ class _FamilyNotificationScreenState extends State<FamilyNotificationScreen> {
         _Line('Gửi lúc', sentAt == null ? 'Chưa gửi' : formatDateTime(DateTime.parse(sentAt))),
         _Line('Xem lần đầu', viewedAt == null ? 'Chưa xem' : formatDateTime(DateTime.parse(viewedAt))),
         if (acknowledgedAt != null) _Line('Xác nhận lúc', formatDateTime(DateTime.parse(acknowledgedAt))),
+        if (n['identityOnly'] == true)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Text(
+              'Bạn nhận thay vì không có người nhận; chỉ xem được thông tin nhận dạng của người cao tuổi.',
+              style: text.bodyMedium,
+            ),
+          ),
         for (final type in parts)
           Padding(
             padding: const EdgeInsets.only(top: 12),
@@ -135,6 +162,7 @@ class _FamilyNotificationScreenState extends State<FamilyNotificationScreen> {
               ),
             ),
           ),
+        if (source != null) ...[const SizedBox(height: 16), source],
         if (_failure != null) ...[
           const SizedBox(height: 12),
           Text(_failure!, style: text.bodyMedium?.copyWith(color: theme.colorScheme.error)),

@@ -61,6 +61,16 @@ class NotificationApi {
 
   Future<void> acknowledge(int id, String key) =>
       _api.post('/notifications/$id/acknowledge', const {}, headers: {'Idempotency-Key': key});
+
+  /// Xác nhận và tiếp nhận nguồn (FR-026a): trả `true` khi tiếp nhận thành công; bị 007 từ chối thì xác nhận vẫn được ghi.
+  Future<bool> acknowledgeAndTakeCharge(int id, String key) async {
+    final body = await _api.post(
+      '/notifications/$id/acknowledge-and-take-charge',
+      const {},
+      headers: {'Idempotency-Key': key},
+    );
+    return (body?['takeCharge'] as Map<String, dynamic>?)?['result'] == 'SUCCEEDED';
+  }
 }
 
 /// UUID v4 cho `Idempotency-Key`.

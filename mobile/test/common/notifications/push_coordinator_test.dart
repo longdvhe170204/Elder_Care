@@ -80,6 +80,20 @@ void main() {
     expect(coordinator.takeOpened(), isNull);
   });
 
+  test('T022_urgentMessage_reportedOnce_otherLevelsNot', () async {
+    final push = FakePush();
+    final coordinator = await started(push);
+
+    push.received.add('LOW');
+    await pumpEventQueue();
+    expect(coordinator.takeUrgent(), isFalse);
+
+    push.received.add('URGENT');
+    await pumpEventQueue();
+    expect(coordinator.takeUrgent(), isTrue);
+    expect(coordinator.takeUrgent(), isFalse);
+  });
+
   test('T031_tappedNotification_kept_takenOnce', () async {
     final push = FakePush();
     final coordinator = await started(push);
