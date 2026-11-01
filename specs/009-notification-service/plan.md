@@ -326,3 +326,28 @@ Ghi khi triển khai (constitution XIV: lệch kỹ thuật ghi ở plan cùng l
 - Dòng nhắc bảng cũ trong plan, research, tasks có ghi chú "R-15:" chỉ bảng đích.
 - **T043** (2026-10-30, nhánh `impl/009-table-consolidation`): `V009_95` giữ 4 bảng (`notification_request` thêm cột JSON nội dung, nhóm nhận; `notification`, `call_reminder` thêm cột dẫn xuất, khóa theo dòng; `push_device`), chép 16 bảng cũ vào bảng chung (đổi id tham chiếu chéo qua bảng ánh xạ tạm), `V009_94` thêm cột sinh `m13_batch_window_id`, `m13_result`. Lệch so với data-model 0.1 (ghi ở 0.1): thời điểm dự kiến của lần gửi dùng `occurred_at`; liên kết đính chính, nhật ký cũ tới id đã đổi đứt. Quy ước đọc mới (chủ dự án duyệt): M13 đọc dòng loại `M13.*` bằng SQL trong `persistence` (`M13Sql`), ghi qua API (`M13SharedRows` đổi lỗi trùng `unique_key` thành `DuplicateKeyException` nên service giữ cách xử lý lượt chạy đồng thời), vì API theo đối tượng cha không làm được phép nối, `NOT EXISTS` của job gửi, hộp thông báo, lượt nhắc gọi (research R-15 mục 2). SQL của `CallResultCorrection`, `DirectContactResultCorrection`, `NotificationScopeAssignment` chuyển vào `persistence`, record lồng của 6 lớp `persistence` ra `domain` (bỏ 9 dòng notification ở `PENDING_*` của `LayerArchTest`).
 - **T044** (2026-11-01, nhánh `impl/009-nfr-remeasure`): đo lại NFR sau gộp bảng trên dữ liệu một năm theo NFR-01 (365.000 yêu cầu, 1.095.000 thông báo, 5,8 triệu dòng `record_event` gồm 1 triệu dòng module khác). `SC_001_UrgentConcurrencyIT` (tên logic `SC_001_KhanCapDongThoiIT` ở quickstart mục 5) không chạy trong `verify`: cần `-Deldercare.perf=true` và `TEST_DB_URL` schema đuôi `_perf`, sinh dữ liệu khoảng 8 phút, không ghi binlog; lệnh ở chú thích lớp. Kết quả: SC-001 đạt (160 lần đẩy, tối đa dưới 0,5 giây); bốn truy vấn quá 1 giây (gửi lại lỗi tạm, hộp thông báo, liên hệ trực tiếp, lượt nhắc gọi gần 1 giây) xuống ≤ 10 ms nhờ `V009_96` (cột sinh, chỉ mục; `InboxStore`, `DeliveryStore.retryable` đọc cột sinh). Lệch tasks: tasks ghi "file `_94` mới", cài ở `V009_96` vì `_94` đã chạy; cột `urgent_unacknowledged` ở `notification` (bảng riêng của M13) nên không có tiền tố `m13_`. Còn: `LookupStore.errors` (danh sách lỗi gửi) 1,3–1,9 giây vì `FIND_IN_SET` trên `notification_request.flags` quét toàn bảng, có từ trước T043, chỉ đo, không sửa trong T044.
+
+## Rà truy vết T039 (2026-11-01, nhánh `impl/009-traceability`)
+
+Tên test ở data-model mục 11 là tên logic; bảng dưới là lớp thật.
+
+| Mã | Test thật |
+| --- | --- |
+| BR-M13-01 | `ChannelSelectionTest`, `BR_M13_01_ChannelSelectionIT`, `FR_016a_OffShiftIT`, `FR_016b_SmsBatchingIT` |
+| BR-M13-02 | `BR_M13_02_CallReminderIT`, `FR_029a_CallResultIT`, `CallReminderTargetTest` |
+| BR-M13-03 | `BR_M13_03_QuietHoursIT`, `QuietHoursTest` |
+| BR-M13-04 | `BR_M13_04_ShiftGroupsIT`, `RecipientResolutionIT`, `SC_004_RecipientTableIT` |
+| BR-M13-05, BR-M10-06 (phần 009) | `NotificationLookupIT` (căn cứ, trạng thái, kênh, thời điểm xem); mã trường hợp ở `RecipientResolutionIT` |
+| FR-001a, FR-014, FR-014a | `ConsentScopeTest`, `RecipientResolutionIT`, `FR_014_015_ConsentAndDeathIT` |
+| DBR-03 (phần 009) | `ContentFilterTest` |
+| FR-007 (f), FR-022a | `FR_022a_ResidentRecipientIT` |
+| FR-005, FR-012, FR-032 | `FR_005_DeduplicationIT`, `RecipientResolutionIT`, `BR_M13_02_CallReminderIT`, `M13RecordGroupTriggerIT` |
+| FR-039 | `FR_016_ChannelConfigIT`, `FR_021_DirectContactIT`, `NotificationLookupIT`, `InboxIT`, `NotificationAdmin.test.jsx` |
+| FR-040 | `FR_016_ChannelConfigIT` (nhật ký, lý do), `RecipientResolutionIT.FR_040_…` (Hệ thống, sự kiện kích hoạt) |
+| FR-041 | `M13ProvidersIT` |
+| FR-042 | Không có lớp riêng: `BR_M13_03_QuietHoursIT`, `FR_016a_OffShiftIT`, `FR_016b_SmsBatchingIT`, `FR_024_ParameterChangeIT`, `CallReminderTestBase` (FR-030a, FR-032) chạy trên đồng hồ giả lập |
+| FR-043 | `M13ArchTest` (một cách gửi duy nhất), các SPI ở contracts/module-interfaces.md; dòng cung cấp cho 016 là giai đoạn sau (Q-194) |
+| FR-043a, FR-043b | Yêu cầu với spec nguồn, 009 kiểm phần nhận ở `RequestValidationTest`, `FR_003_RequestValidationIT`; mức mặc định từng thông báo kiểm ở module nguồn (`AccountEventNotificationsTest`) |
+| FR-002, FR-009 *(ngoài danh sách T039, chưa có test)* | `RecipientResolutionIT.FR_002_…`, `FR_009_…`; `notificationLabels.test.js` |
+
+Còn chờ, thuộc task khác: FR-026a, dừng theo sự kiện của 007 (T017, T019, T021, chờ D); người cần gọi không còn đủ điều kiện (T019, chờ E); đầu–cuối với sự kiện thật (T037). Các SC đo ở T038.
