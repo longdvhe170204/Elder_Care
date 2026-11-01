@@ -3,13 +3,16 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../common/auth/session_controller.dart';
 import '../common/offline/offline_queue.dart';
+import '../common/theme/app_theme.dart';
+import '../common/widgets/header_app_bar.dart';
+import 'approval_requests/approval_inbox_screen.dart';
 import 'early_unlock/early_unlock_screen.dart';
 import 'pending_review/pending_review_screen.dart';
 import 'sync_results/sync_results_screen.dart';
 
 /// Gốc phần nhân viên (000 T007; 002 T046, T060; DESIGN.md 15.4): thanh tiêu đề theo màn kèm nút "Đăng xuất" (máy dùng
 /// chung tại tầng, FR-014a), thanh điều hướng dưới. Màn của từng feature thêm vào [_tabs] (tối đa 5 mục, mục thứ 6 trở
-/// đi gom vào "Thêm"); hiện có Đồng bộ, Chờ xem lại, Mở khóa sớm. Biểu tượng lucide cùng tên với web.
+/// đi gom vào "Thêm"); hiện có Đồng bộ, Chờ xem lại, Mở khóa sớm, Phê duyệt. Biểu tượng lucide cùng tên với web.
 class StaffRoot extends StatefulWidget {
   const StaffRoot({super.key, required this.session, required this.queue});
 
@@ -23,26 +26,43 @@ class StaffRoot extends StatefulWidget {
 class _StaffRootState extends State<StaffRoot> {
   int _index = 0;
 
+  /// Tab đã áp đầu màn xanh đêm của DESIGN.md 15.4; tab khác giữ thanh của theme tới khi đổi (15.7).
+  static const _headerTabs = {'Phê duyệt'};
+
   List<(String, IconData, Widget Function())> get _tabs => [
     ('Đồng bộ', LucideIcons.refreshCw, () => SyncResultsScreen(queue: widget.queue, session: widget.session)),
     ('Chờ xem lại', LucideIcons.cloudOff, () => PendingReviewScreen(api: widget.session.api)),
     ('Mở khóa sớm', LucideIcons.lockOpen, () => EarlyUnlockScreen(api: widget.session.api)),
+    ('Phê duyệt', LucideIcons.clipboardCheck, () => ApprovalInboxScreen(api: widget.session.api)),
   ];
 
   @override
   Widget build(BuildContext context) {
     final tabs = _tabs;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(tabs[_index].$1),
-        actions: [
-          TextButton.icon(
-            onPressed: () => widget.session.signOut(),
-            icon: const Icon(LucideIcons.logOut),
-            label: const Text('Đăng xuất'),
-          ),
-        ],
-      ),
+      appBar: _headerTabs.contains(tabs[_index].$1)
+          ? headerAppBar(
+              context,
+              title: tabs[_index].$1,
+              actions: [
+                TextButton.icon(
+                  style: TextButton.styleFrom(foregroundColor: Theme.of(context).extension<Tones>()!.headerInkStrong),
+                  onPressed: () => widget.session.signOut(),
+                  icon: const Icon(LucideIcons.logOut),
+                  label: const Text('Đăng xuất'),
+                ),
+              ],
+            )
+          : AppBar(
+              title: Text(tabs[_index].$1),
+              actions: [
+                TextButton.icon(
+                  onPressed: () => widget.session.signOut(),
+                  icon: const Icon(LucideIcons.logOut),
+                  label: const Text('Đăng xuất'),
+                ),
+              ],
+            ),
       body: SizedBox.expand(
         child: KeyedSubtree(key: ValueKey(_index), child: tabs[_index].$3()),
       ),

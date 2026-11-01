@@ -5,6 +5,12 @@ String formatDateTime(DateTime value) {
   return '${two(vn.day)}/${two(vn.month)}/${vn.year} ${two(vn.hour)}:${two(vn.minute)}';
 }
 
+/// Ngày dd/MM/yyyy của giá trị không có giờ (`yyyy-MM-dd` của API).
+String formatDate(String isoDate) {
+  final parts = isoDate.split('-');
+  return '${parts[2]}/${parts[1]}/${parts[0]}';
+}
+
 /// Giờ HH:mm theo giờ Việt Nam.
 String formatTime(DateTime value) {
   final vn = value.toUtc().add(const Duration(hours: 7));
