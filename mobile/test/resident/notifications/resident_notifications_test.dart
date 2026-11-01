@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/common/api/api_client.dart';
+import 'package:mobile/common/notifications/push_coordinator.dart';
 import 'package:mobile/common/theme/app_theme.dart';
 import 'package:mobile/resident/today/today_screen.dart';
 
 import '../../support/fake_backend.dart';
+import '../../support/fake_push.dart';
 
 // 009 T042 (tên logic thong_bao_test; FR-022a; DESIGN.md 15.6): người cao tuổi xem thông báo từ thẻ ở màn "Hôm nay": chữ lớn,
 // nút "Quay lại" có chữ, mỗi màn một việc, không có thao tác ẩn hay xác nhận. Nhận đẩy chờ cấu hình Firebase.
@@ -117,6 +119,27 @@ void main() {
     expect(find.text('Gặp ở phòng khách tầng 1.'), findsOneWidget);
     expect(find.text('Ẩn khỏi danh sách'), findsNothing);
     expect(find.text('Xác nhận đã nhận'), findsNothing);
+  });
+
+  testWidgets('T042_tappedPush_opensThatNotification_updatesCount', (tester) async {
+    final fake = FakePush();
+    late PushCoordinator push;
+    await tester.runAsync(() async => push = await startedPush(backend, fake, 'RESIDENT'));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.resident(Brightness.light),
+        home: TodayScreen(api: backend.client(), push: push),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.runAsync(() async {
+      fake.opened.add(1);
+      await pumpEventQueue();
+    });
+    await tester.pumpAndSettle();
+
+    expect(find.text('Gặp ở phòng khách tầng 1.'), findsOneWidget);
   });
 
   testWidgets('T042_empty', (tester) async {

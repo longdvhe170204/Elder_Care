@@ -6,6 +6,7 @@ import '../../common/api/problem_message.dart';
 import '../../common/format/date_time.dart';
 import '../../common/notifications/notification_api.dart';
 import '../../common/notifications/notification_labels.dart';
+import '../../common/notifications/push_coordinator.dart';
 import '../../common/theme/app_theme.dart';
 import '../../common/widgets/status_pill.dart';
 import 'family_notification_screen.dart';
@@ -14,11 +15,14 @@ const _levels = [(null, 'Tất cả mức'), ('URGENT', 'Khẩn cấp'), ('MEDIU
 
 /// Hộp thông báo người thân trên app (009 T031; FR-033 → FR-036), cùng công thức `notification-inbox` với web (Q-305):
 /// khối "Khẩn cấp chưa xác nhận" trên cùng có nút xác nhận, dưới là danh sách dòng; lọc mức, chưa xem, loại sự kiện,
-/// người cao tuổi. Kéo xuống để tải lại; đẩy FCM thêm khi có cấu hình Firebase.
+/// người cao tuổi. Kéo xuống để tải lại; có đẩy thì tải lại ngay.
 class FamilyInboxScreen extends StatefulWidget {
-  const FamilyInboxScreen({super.key, required this.api});
+  const FamilyInboxScreen({super.key, required this.api, this.push});
 
   final ApiClient api;
+
+  /// Nhận đẩy: có thông báo thì tải lại, bấm thông báo thì mở đúng thông báo đó (009 T031).
+  final PushCoordinator? push;
 
   @override
   State<FamilyInboxScreen> createState() => _FamilyInboxScreenState();
@@ -43,6 +47,24 @@ class _FamilyInboxScreenState extends State<FamilyInboxScreen> {
     super.initState();
     _load();
     _loadResidents();
+    widget.push?.addListener(_onPush);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _openPending());
+  }
+
+  @override
+  void dispose() {
+    widget.push?.removeListener(_onPush);
+    super.dispose();
+  }
+
+  void _onPush() {
+    _load();
+    _openPending();
+  }
+
+  void _openPending() {
+    final id = widget.push?.takeOpened();
+    if (id != null && mounted) _openById(id);
   }
 
   NotificationFilter get _filter =>
@@ -81,15 +103,17 @@ class _FamilyInboxScreenState extends State<FamilyInboxScreen> {
     _load();
   }
 
-  Future<void> _open(Map<String, dynamic> notification) async {
+  Future<void> _open(Map<String, dynamic> notification) => _openById(notification['id'] as int);
+
+  Future<void> _openById(int id) async {
     final hidden = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => FamilyNotificationScreen(notifications: _notifications, id: notification['id'] as int),
+        builder: (_) => FamilyNotificationScreen(notifications: _notifications, id: id),
       ),
     );
     if (!mounted) return;
     if (hidden ?? false) {
-      setState(() => _items = _items?.where((n) => n['id'] != notification['id']).toList());
+      setState(() => _items = _items?.where((n) => n['id'] != id).toList());
     }
     await _load();
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../common/auth/session_controller.dart';
+import '../common/notifications/push_coordinator.dart';
 import '../common/theme/app_theme.dart';
 import '../common/widgets/header_app_bar.dart';
 import 'notifications/family_inbox_screen.dart';
@@ -10,9 +11,10 @@ import 'notifications/family_inbox_screen.dart';
 /// feature đặt ở `family/<feature>/` (mobile/README.md mục 2). Hiện có một màn Thông báo (009 T031); thanh điều hướng
 /// dưới (DESIGN.md 15.4) thêm khi có màn thứ hai.
 class FamilyRoot extends StatelessWidget {
-  const FamilyRoot({super.key, required this.session});
+  const FamilyRoot({super.key, required this.session, this.push});
 
   final SessionController session;
+  final PushCoordinator? push;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -28,6 +30,6 @@ class FamilyRoot extends StatelessWidget {
         ),
       ],
     ),
-    body: FamilyInboxScreen(api: session.api),
+    body: FamilyInboxScreen(api: session.api, push: push),
   );
 }
