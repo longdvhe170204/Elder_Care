@@ -216,69 +216,6 @@ paths:
       responses: { '201': { description: Đã lưu hoặc tạo yêu cầu (000 cách C) }, '403': { $ref: '#/components/responses/Loi' } }
 
   # ---------------- Lập công việc, vòng đời ----------------
-  /ca/{caId}/du-lieu-nguon:
-    get:
-      tags: [cong-viec]
-      summary: Dữ liệu nguồn của ca để người lập đối chiếu
-      description: 'Mục kế hoạch Hiệu lực, lần đo, bữa, buổi đã đăng ký, việc theo dõi, người có mặt và phân công. Chỉ là dữ liệu đã có; không có danh sách công việc đề xuất hay chép sẵn (Q-307).'
-      x-fr: [FR-017]
-      parameters: [ { $ref: '#/components/parameters/CaId' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/DuLieuNguonCa' } } } } }
-  /ca/{caId}/cong-viec:
-    get:
-      tags: [cong-viec]
-      summary: Công việc đã lập của ca (Người phụ trách ca, Trưởng tầng, Quản lý viện)
-      x-fr: [FR-017, FR-045]
-      parameters: [ { $ref: '#/components/parameters/CaId' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CongViec' } } } } } }
-  /ca/{caId}/cong-viec/lap:
-    post:
-      tags: [cong-viec]
-      summary: Lập công việc của ca theo lô
-      description: |
-        Người phụ trách ca từ batDauCa − CFG-M04-01; Trưởng tầng cho mọi ca đã công bố của tầng. Mọi dòng được kiểm tra
-        (research C-07); một dòng lỗi thì cả lô bị từ chối, 409 kèm loiTheoDong. Trạng thái lúc lập theo đồng hồ (BR-M04-26).
-      x-fr: [FR-002, FR-006, FR-017, FR-018, FR-021, FR-023, FR-024, FR-029]
-      x-br: [BR-M04-01, BR-M04-02, BR-M04-24, BR-M04-26, BR-M04-28, BR-M09-01]
-      parameters: [ { $ref: '#/components/parameters/CaId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: array, minItems: 1, items: { $ref: '#/components/schemas/CongViecGhi' } } } } }
-      responses:
-        '201': { description: Đã lập, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CongViec' } } } } }
-        '403': { $ref: '#/components/responses/Loi' }
-        '409': { $ref: '#/components/responses/LoiTheoDong' }
-  /cong-viec/phat-sinh:
-    post:
-      tags: [cong-viec]
-      summary: Tạo công việc phát sinh (Trưởng tầng, Điều dưỡng)
-      x-fr: [FR-025, FR-023]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CongViecGhi' } } } }
-      responses: { '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/CongViec' } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /cong-viec/{id}/lam-lai:
-    post:
-      tags: [cong-viec]
-      summary: Lập công việc làm lại sau kiểm tra chất lượng Không đạt (người kiểm tra của 014)
-      x-fr: [FR-026a]
-      x-br: [BR-M04-23]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ketQuaKiemTraId, thoiDiemDuKien], properties: { ketQuaKiemTraId: { type: integer, format: int64 }, thoiDiemDuKien: { type: string, format: date-time }, nguoiThucHienId: { type: integer, format: int64 }, congViecChung: { type: boolean } } } } } }
-      responses: { '201': { description: Đã lập }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /cong-viec/{id}:
-    get:
-      tags: [cong-viec]
-      summary: Xem công việc, kết quả và lịch sử xử lý
-      x-fr: [FR-023, FR-028, FR-046]
-      parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CongViecChiTiet' } } } } }
-  /cong-viec/{id}/huy:
-    post:
-      tags: [cong-viec]
-      summary: Hủy công việc Chưa đến hạn (chỉ Trưởng tầng, bắt buộc lý do)
-      x-fr: [FR-026, FR-022]
-      x-br: [BR-M04-03]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
-      responses: { '200': { description: Hủy }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
   /cong-viec/{id}/nhan-viec:
     post:
       tags: [checklist]
@@ -500,10 +437,219 @@ paths:
       parameters: [ { $ref: '#/components/parameters/NctId' }, { name: ngay, in: query, required: true, schema: { type: string, format: date } } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/MucThoiKhoaBieu' } } } } } }
 
+  /shifts/{shiftId}/source-data:
+    get:
+      tags:
+        - cong-viec
+      summary: Dữ liệu nguồn của ca để người lập đối chiếu
+      description: Mục kế hoạch Hiệu lực, lần đo, bữa, buổi đã đăng ký, việc theo dõi, người có mặt và phân công. Chỉ là dữ liệu đã có; không có
+        danh sách công việc đề xuất hay chép sẵn (Q-307).
+      x-fr:
+        - FR-017
+      parameters:
+        - $ref: "#/components/parameters/CareShiftId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareShiftSourceData"
+      operationId: getCareShiftSourceData
+      x-implementation-phase: 4
+  /shifts/{shiftId}/care-tasks:
+    get:
+      tags:
+        - cong-viec
+      summary: Công việc đã lập của ca (Người phụ trách ca, Trưởng tầng, Quản lý viện)
+      x-fr:
+        - FR-017
+        - FR-045
+      parameters:
+        - $ref: "#/components/parameters/CareShiftId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CareTask"
+      operationId: listShiftCareTasks
+      x-implementation-phase: 4
+  /shifts/{shiftId}/care-tasks/plan:
+    post:
+      tags:
+        - cong-viec
+      summary: Lập công việc của ca theo lô
+      description: |
+        Người phụ trách ca từ batDauCa − CFG-M04-01; Trưởng tầng cho mọi ca đã công bố của tầng. Mọi dòng được kiểm tra
+        (research C-07); một dòng lỗi thì cả lô bị từ chối, 409 kèm loiTheoDong. Trạng thái lúc lập theo đồng hồ (BR-M04-26).
+      x-fr:
+        - FR-002
+        - FR-006
+        - FR-017
+        - FR-018
+        - FR-021
+        - FR-023
+        - FR-024
+        - FR-029
+      x-br:
+        - BR-M04-01
+        - BR-M04-02
+        - BR-M04-24
+        - BR-M04-26
+        - BR-M04-28
+        - BR-M09-01
+      parameters:
+        - $ref: "#/components/parameters/CareShiftId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              items:
+                $ref: "#/components/schemas/CareTaskWrite"
+      responses:
+        "201":
+          description: Đã lập
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CareTask"
+        "403":
+          $ref: "#/components/responses/CarePlanProblem"
+        "409":
+          description: Lỗi theo dòng, không lưu cả lô
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/CareTaskRowProblem"
+      operationId: planShiftCareTasks
+      x-implementation-phase: 4
+  /care-tasks/ad-hoc:
+    post:
+      tags:
+        - cong-viec
+      summary: Tạo công việc phát sinh (Trưởng tầng, Điều dưỡng)
+      x-fr:
+        - FR-025
+        - FR-023
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareTaskWrite"
+      responses:
+        "201":
+          description: Đã tạo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareTask"
+        "409":
+          $ref: "#/components/responses/CarePlanProblem"
+      operationId: createAdHocCareTask
+      x-implementation-phase: 4
+  /care-tasks/{id}/rework:
+    post:
+      tags:
+        - cong-viec
+      summary: Lập công việc làm lại sau kiểm tra chất lượng Không đạt (người kiểm tra của 014)
+      x-fr:
+        - FR-026a
+      x-br:
+        - BR-M04-23
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - qualityCheckResultId
+                - plannedAt
+              properties:
+                qualityCheckResultId:
+                  type: integer
+                  format: int64
+                plannedAt:
+                  type: string
+                  format: date-time
+                performerId:
+                  type: integer
+                  format: int64
+                shared:
+                  type: boolean
+      responses:
+        "201":
+          description: Đã lập
+        "409":
+          $ref: "#/components/responses/CarePlanProblem"
+      operationId: createCareTaskRework
+      x-implementation-phase: 4
+  /care-tasks/{id}:
+    get:
+      tags:
+        - cong-viec
+      summary: Xem công việc, kết quả và lịch sử xử lý
+      x-fr:
+        - FR-023
+        - FR-028
+        - FR-046
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareTaskDetail"
+      operationId: getCareTask
+      x-implementation-phase: 4
+  /care-tasks/{id}/cancel:
+    post:
+      tags:
+        - cong-viec
+      summary: Hủy công việc Chưa đến hạn (chỉ Trưởng tầng, bắt buộc lý do)
+      x-fr:
+        - FR-026
+        - FR-022
+      x-br:
+        - BR-M04-03
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/CarePlanReason"
+      responses:
+        "200":
+          description: Hủy
+        "403":
+          $ref: "#/components/responses/CarePlanProblem"
+        "409":
+          $ref: "#/components/responses/CarePlanProblem"
+      operationId: cancelCareTask
+      x-implementation-phase: 4
+
 components:
   securitySchemes:
     phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
   parameters:
+    CareShiftId: { name: shiftId, in: path, required: true, schema: { type: integer, format: int64 } }
     Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
     ResidentId: { name: residentId, in: path, required: true, schema: { type: integer, format: int64 } }
     NctId: { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } }
@@ -811,3 +957,289 @@ components:
         at: { type: string, format: date-time, readOnly: true }
         supportMethod: { type: string, minLength: 1 }
         reviewDate: { type: string, format: date }
+
+    CareTaskWrite:
+      type: object
+      required:
+        - taskTypeId
+        - basis
+        - plannedAt
+        - importance
+      properties:
+        residentId:
+          type: integer
+          format: int64
+        location:
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - ROOM
+                - BED
+                - FLOOR
+                - AREA
+            id:
+              type: integer
+              format: int64
+        taskTypeId:
+          type: integer
+          format: int64
+        basis:
+          type: object
+          required:
+            - type
+          properties:
+            type:
+              $ref: "#/components/schemas/CareTaskBasisType"
+            id:
+              type: integer
+              format: int64
+        content:
+          type: string
+        plannedAt:
+          type: string
+          format: date-time
+        windowBeforeMinutes:
+          type: integer
+        windowAfterMinutes:
+          type: integer
+        importance:
+          $ref: "#/components/schemas/Importance"
+        performerId:
+          type: integer
+          format: int64
+        shared:
+          type: boolean
+    CareTask:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        residentId:
+          type: integer
+          format: int64
+        residentCard:
+          type: object
+          properties:
+            fullName:
+              type: string
+            photo:
+              type: string
+            roomBed:
+              type: string
+            careNotes:
+              type: string
+              description: SUC_KHOE
+        location:
+          type: string
+        taskType:
+          type: string
+        content:
+          type: string
+        basis:
+          type: object
+          properties:
+            type:
+              $ref: "#/components/schemas/CareTaskBasisType"
+            id:
+              type: integer
+              format: int64
+        plannedAt:
+          type: string
+          format: date-time
+        windowFrom:
+          type: string
+          format: date-time
+        windowTo:
+          type: string
+          format: date-time
+        importance:
+          $ref: "#/components/schemas/Importance"
+        performer:
+          type: string
+        shared:
+          type: boolean
+        carryover:
+          type: string
+          enum:
+            - FROM_PREVIOUS_SHIFT
+            - AWAITING_CONFIRMATION
+        status:
+          $ref: "#/components/schemas/CareTaskStatus"
+        awaitingRemeasurementConfirmation:
+          type: boolean
+        reminderCount:
+          type: integer
+        allowedCommands:
+          type: array
+          items:
+            type: string
+    CareTaskDetail:
+      allOf:
+        - $ref: "#/components/schemas/CareTask"
+        - type: object
+          properties:
+            result:
+              $ref: "#/components/schemas/CareTaskResult"
+            reason:
+              type: string
+            closedBy:
+              type: string
+            closureRule:
+              type: string
+            handlingHistory:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  actor:
+                    type: string
+                  basis:
+                    type: string
+                  at:
+                    type: string
+                    format: date-time
+                  reason:
+                    type: string
+            hiddenFields:
+              type: array
+              items:
+                type: string
+    CareTaskResult:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        taskId:
+          type: integer
+          format: int64
+        resultType:
+          type: string
+        currentValue:
+          type: object
+          additionalProperties: true
+        corrected:
+          type: boolean
+        recordingCancelled:
+          type: boolean
+        performedAt:
+          type: string
+          format: date-time
+        deviceAt:
+          type: string
+          format: date-time
+        lateRecording:
+          type: boolean
+        performer:
+          type: string
+        permissionBasis:
+          type: string
+          enum:
+            - ASSIGNED
+            - FLOOR_MANAGER_ROLE
+            - SHIFT_LEAD_DUTY
+        vitalSignRecordId:
+          type: integer
+          format: int64
+        recordedAt:
+          type: string
+          format: date-time
+    CareShiftSourceData:
+      type: object
+      properties:
+        shift:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+            startsAt:
+              type: string
+              format: date-time
+            endsAt:
+              type: string
+              format: date-time
+            floorAreaId:
+              type: integer
+              format: int64
+        residents:
+          type: array
+          items:
+            type: object
+            properties:
+              residentId:
+                type: integer
+                format: int64
+              attendance:
+                type: string
+              assignments:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+              planItems:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CarePlanItem"
+              otherSources:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      $ref: "#/components/schemas/CareTaskBasisType"
+                    id:
+                      type: integer
+                      format: int64
+                    at:
+                      type: string
+                      format: date-time
+                    description:
+                      type: string
+    CareTaskBasisType:
+      type: string
+      enum:
+        - CARE_PLAN_ITEM
+        - MEASUREMENT
+        - MEAL
+        - ACTIVITY_SESSION
+        - POST_FALL_MONITORING
+        - CONTACT_MONITORING
+        - WATER_INTAKE_ALERT
+        - SHIFT_START_CHECK
+        - SUPERVISION
+        - AD_HOC
+        - AD_HOC_RECORDING
+        - REWORK
+    CareTaskStatus:
+      type: string
+      enum:
+        - NOT_YET_DUE
+        - DUE
+        - OVERDUE
+        - COMPLETED
+        - COMPLETED_LATE
+        - NOT_PERFORMED
+        - CANCELLED
+    CareTaskRowProblem:
+      allOf:
+        - $ref: "#/components/schemas/CareCatalogProblem"
+        - type: object
+          properties:
+            rowErrors:
+              type: array
+              items:
+                type: object
+                properties:
+                  row:
+                    type: integer
+                    minimum: 1
+                  codes:
+                    type: array
+                    items:
+                      type: string

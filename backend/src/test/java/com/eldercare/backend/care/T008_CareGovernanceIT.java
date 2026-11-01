@@ -37,58 +37,89 @@ class T008_CareGovernanceIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_051_profileAndUnlinkedCandidatesUseDifferentClocksAndRetentionConnection() throws Exception {
-        // Kế hoạch dùng schema thật T012; phần công việc vẫn là fixture cho story Phase4 chưa cài.
-        long planId = TestUsers.nextId(), residentId = TestUsers.nextId();
+        // Phase4 đã có bảng thật; fixture chỉ thêm/xóa các id riêng, không tạo hoặc drop bảng.
+        long planId = TestUsers.nextId(),
+                residentId = TestUsers.nextId(),
+                linkedId = TestUsers.nextId(),
+                locationId = TestUsers.nextId(),
+                floor = TestUsers.nextId();
         try (var connection = adminConnection();
                 var statement = connection.createStatement()) {
             try {
-                statement.execute(
-                        "CREATE TABLE care_task(id BIGINT PRIMARY KEY,resident_id BIGINT NULL,floor_area_id BIGINT NOT NULL,planned_at DATETIME(6) NOT NULL)");
-                try {
-                    statement.execute(
-                            "INSERT INTO care_plan(id,resident_id,revision,status,created_by,created_at) VALUES ("
-                                    + planId + "," + residentId + ",1,'DRAFT',1,'1999-01-01')");
-                    statement.execute("INSERT INTO care_task VALUES (2," + residentId
-                            + ",7,'1999-01-01'),(3,NULL,7,'1999-01-01')");
-                    residents
-                            .resident(residentId, "[Họ tên NCT 1]", Gender.MALE, ResidentStatus.RESIDENCY_ENDED)
-                            .changeStatus(
-                                    residentId, ResidentStatus.RESIDENCY_ENDED, Instant.parse("2000-01-01T00:00:00Z"));
-                    var cutoff = Instant.parse("2001-01-01T00:00:00Z");
-                    var plan = retention.stream()
-                            .filter(p -> p.dataType().equals("M04.CARE_PLAN"))
-                            .findFirst()
-                            .orElseThrow();
-                    assertThat(plan.expiredCandidates(cutoff, 10).map(RetentionProvider.Candidate::id))
-                            .contains(planId);
-                    var task = retention.stream()
-                            .filter(p -> p.dataType().equals("M04.TASK"))
-                            .findFirst()
-                            .orElseThrow();
-                    assertThat(task.expiredCandidates(cutoff, 10).map(RetentionProvider.Candidate::id))
-                            .containsExactly(2L);
-                    var unlinked = retention.stream()
-                            .filter(p -> p.dataType().equals("M04.LOCATION_TASK"))
-                            .findFirst()
-                            .orElseThrow();
-                    assertThat(unlinked.expiredCandidates(cutoff, 10).map(RetentionProvider.Candidate::id))
-                            .containsExactly(3L);
-                    assertThat(task.expiredCandidates(Instant.parse("1999-12-31T00:00:00Z"), 10))
-                            .isEmpty();
-                    var scope = scopes.stream()
-                            .filter(p -> p.entityType().equals("M04.TASK"))
-                            .findFirst()
-                            .orElseThrow()
-                            .assignScope(3);
-                    assertThat(scope.residentId()).isNull();
-                    assertThat(scope.floorAreaId()).isEqualTo(7L);
-                    plan.delete(List.of(planId));
-                    assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM care_plan WHERE id=?", Integer.class, planId))
-                            .isZero();
-                } finally {
-                    statement.execute("DROP TABLE care_task");
-                }
+                jdbc.update(
+                        "INSERT INTO care_plan(id,resident_id,revision,status,created_by,created_at) VALUES (?,?,1,'DRAFT',1,'1999-01-01')",
+                        planId,
+                        residentId);
+                String insert =
+                        "INSERT INTO care_task(id,resident_id,location_type,location_id,task_type_id,basis_type,shift_id,floor_area_id,planned_at,window_from,window_to,importance,performer_role,status,data,created_by,created_at) VALUES(?,?,?,?,?, ?,?,?,'1999-01-01','1999-01-01','1999-01-01','NORMAL','NURSING_STAFF','CANCELLED','{}',1,'1999-01-01')";
+                jdbc.update(
+                        insert,
+                        linkedId,
+                        residentId,
+                        null,
+                        null,
+                        TestUsers.nextId(),
+                        "AD_HOC",
+                        TestUsers.nextId(),
+                        floor);
+                jdbc.update(
+                        insert,
+                        locationId,
+                        null,
+                        "FLOOR",
+                        floor,
+                        TestUsers.nextId(),
+                        "SHIFT_START_CHECK",
+                        TestUsers.nextId(),
+                        floor);
+                residents
+                        .resident(residentId, "[Họ tên NCT 1]", Gender.MALE, ResidentStatus.RESIDENCY_ENDED)
+                        .changeStatus(
+                                residentId, ResidentStatus.RESIDENCY_ENDED, Instant.parse("2000-01-01T00:00:00Z"));
+                var cutoff = Instant.parse("2001-01-01T00:00:00Z");
+                var plan = retention.stream()
+                        .filter(p -> p.dataType().equals("M04.CARE_PLAN"))
+                        .findFirst()
+                        .orElseThrow();
+                assertThat(plan.expiredCandidates(cutoff, 10000).map(RetentionProvider.Candidate::id))
+                        .contains(planId);
+                var task = retention.stream()
+                        .filter(p -> p.dataType().equals("M04.TASK"))
+                        .findFirst()
+                        .orElseThrow();
+                assertThat(task.expiredCandidates(cutoff, 10000).map(RetentionProvider.Candidate::id))
+                        .contains(linkedId)
+                        .doesNotContain(locationId);
+                var unlinked = retention.stream()
+                        .filter(p -> p.dataType().equals("M04.LOCATION_TASK"))
+                        .findFirst()
+                        .orElseThrow();
+                assertThat(unlinked.expiredCandidates(cutoff, 10000).map(RetentionProvider.Candidate::id))
+                        .contains(locationId)
+                        .doesNotContain(linkedId);
+                assertThat(task.expiredCandidates(Instant.parse("1999-12-31T00:00:00Z"), 10000)
+                                .map(RetentionProvider.Candidate::id))
+                        .doesNotContain(linkedId);
+                var scope = scopes.stream()
+                        .filter(p -> p.entityType().equals("M04.TASK"))
+                        .findFirst()
+                        .orElseThrow()
+                        .assignScope(locationId);
+                assertThat(scope.residentId()).isNull();
+                assertThat(scope.floorAreaId()).isEqualTo(floor);
+                task.delete(List.of(linkedId));
+                unlinked.delete(List.of(locationId));
+                assertThat(jdbc.queryForObject(
+                                "SELECT COUNT(*) FROM care_task WHERE id IN (?,?)",
+                                Integer.class,
+                                linkedId,
+                                locationId))
+                        .isZero();
+                plan.delete(List.of(planId));
+                assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM care_plan WHERE id=?", Integer.class, planId))
+                        .isZero();
             } finally {
+                statement.execute("DELETE FROM care_task WHERE id IN (" + linkedId + "," + locationId + ")");
                 statement.execute("DELETE FROM care_plan WHERE id=" + planId);
             }
         }

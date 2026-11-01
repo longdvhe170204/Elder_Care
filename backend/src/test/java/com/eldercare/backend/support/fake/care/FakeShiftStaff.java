@@ -9,6 +9,18 @@ import java.util.*;
 public class FakeShiftStaff implements ShiftStaffPort {
     private final FakeM04Switches switches;
     private final Map<Long, ShiftView> shifts = new LinkedHashMap<>();
+    private final Map<Long, List<ShiftMemberView>> members = new HashMap<>();
+
+    public void members(long shiftId, List<ShiftMemberView> values) {
+        members.put(shiftId, List.copyOf(values));
+    }
+
+    @Override
+    public List<ShiftMemberView> members(long shiftId) {
+        check();
+        return members.getOrDefault(shiftId, List.of());
+    }
+
     private final Map<Long, Long> leads = new HashMap<>();
     private final Map<Pair, List<CareAssignmentView>> assignments = new HashMap<>();
     private final Map<At, List<Long>> nurses = new HashMap<>();
@@ -136,6 +148,7 @@ public class FakeShiftStaff implements ShiftStaffPort {
 
     public void reset() {
         shifts.clear();
+        members.clear();
         leads.clear();
         assignments.clear();
         nurses.clear();

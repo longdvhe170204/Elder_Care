@@ -281,3 +281,26 @@ HTTP ba danh mục TaskType/ResultValue/NonPerformanceReasonType thêm version c
 **Đổi api được chủ dự án duyệt31/10:** `CarePlanReturned(long planId, long residentId, CareEventContext context, String reason)`. Giữ constructor ba tham số cũ, reason=null cho caller/sự kiện cũ. Producer Trả lại truyền nguyên Reason.value; reason chỉ vào ContentPart HEALTH, title/shortContent giữ nội dung chung. Không thay eventKey, nhóm nhận hoặc mức LOW. Không sửa chữ ký API khác hay hợp đồng HTTP.
 
 **Điều kiện chưa đạt:** lý do hợp lệ2000dấu ngoặc kép tạo JSON4233ký tự với context fixture, vượt EVENT_PUBLICATION.SERIALIZED_EVENT VARCHAR(4000). Chủ dự án chọn chờ A mở rộng outbox trước, không duyệt C đổi schema nền. Bản cài reason trong checkout chưa được nghiệm thu/merge trước khi giải quyết ca lưu payload tối đa; không cắt lý do và không giảm giới hạn hợp đồng. Bàn giao A tại team-plan mục8.
+
+## Bổ sung đã duyệt Phase 4 — 2026-11-01
+
+Chủ dự án trả lời “1” duyệt `phase4-contract-proposal.md` mục 1–3. Bảy operation HTTP T025 và các schema đã dịch sang tiếng Anh trong api-005.yaml, giữ method/status/required/header; lỗi theo dòng từ 1.
+
+Bổ sung không đổi chữ ký cũ:
+
+```java
+// TaskSourcePort: mỗi nguồn chỉ đọc dữ liệu thuộc managedTypes() trong [from,to).
+List<SourceView> sources(long residentId, Instant from, Instant to);
+record SourceView(SourceType type, long id, Instant at, String description) {}
+// ShiftStaffPort: người còn có mặt trong lịch ca đã công bố.
+List<ShiftMemberView> members(long shiftId);
+record ShiftMemberView(long staffId, Role role) {}
+```
+
+005 sửa đúng FakeTaskSource/FakeShiftStaff hiện có, kể cả reset fixture; không tạo fake thứ hai hoặc production fake. E008 cần cài ShiftStaffPort thật; D007/D011/C014 cài sources trong provider nguồn sở hữu. Kết quả test fixture không phải bằng chứng tích hợp nguồn thật.
+
+T025 đã có CareTaskSources cài TaskSourceApi: MANDATORY, sourceCancelled khóa các cư dân tăng dần rồi dòng công việc, chỉ hủy NOT_YET_DUE thực tế chưa tới đầu khung; việc đã tới hạn được cập nhật theo giờ và giữ để đóng theo FR-027. sourceChanged chỉ phát TaskSourceChanged theo người, không hủy hoặc tạo công việc; milestone chứa residentId để nguồn dùng chung không đụng khóa sự kiện.
+
+Ngoài phần đã duyệt, ongoingShifts (mục 5) và sửa ApiClient mobile của A (mục 6) đang chờ; chưa thêm chữ ký/hay sửa file nền.
+
+**Quyết định tiếp 2026-11-01:** chủ dự án không duyệt triển khai ongoingShifts hoặc cho C sửa ApiClient nền trong lượt này; T024 chờ E, T026 adapter production chờ A. Cảnh báo MANDATORY gắn vị trí chờ thống nhất với 007 vì AlertRequested yêu cầu residentId. Không đổi các hợp đồng này; không dùng id giả. Mục ghi chờ duyệt ở trên là trạng thái trước câu trả lời, được thay thế bằng quyết định hoãn này.

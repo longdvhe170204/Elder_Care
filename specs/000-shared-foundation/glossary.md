@@ -1070,6 +1070,26 @@ Các operation chưa dịch ở story khác vẫn giữ tên; tham chiếu tới
 | Phiên bản danh mục chỉ đọc được chủ dự án duyệt31/10 | `version` trên `TaskType`, `ResultValue`, `NonPerformanceReasonType`; gửi lại bằng `If-Match` khi sửa |
 | Lý do thông báo Trả lại, được chủ dự án duyệt31/10 | `CarePlanReturned.reason`; `String`, null cho constructor/sự kiện cũ; chỉ trong `ContentPart(HEALTH, reason)`, không có trong `title`/`shortContent` |
 
+### 11.7. Lập công việc Phase 4 (2026-11-01)
+
+| Thuật ngữ | Mã triển khai |
+| --- | --- |
+| Lệnh nhập, snapshot, công việc và kết quả kiểm | `CareTaskDraft`, `CareTaskData`, `CareTask`, `CareTaskValidation` |
+| Bảng chuyển và trạng thái lúc lập | `CareTaskTransitions.next/initialStatus` |
+| Kiểm từng dòng, lệnh lô, nguồn đọc | `CareTaskValidator`, `CareTaskService`, `CareTaskQueries` |
+| Kho công việc và thông tin đóng | `CareTaskStore`, `CareTaskClosure`; `care_task` |
+| Lịch sử xử lý dùng chung | `CareTaskHandling`; `HistoryTrack(M04.TASK,HANDLING)` qua `StatusHistoryApi` |
+| Callback hủy/đổi nguồn | `CareTaskSources` cài `TaskSourceApi`, MANDATORY |
+| Bước tới hạn, nhắc khi lập muộn | `CareTaskDueStep`, `CareTaskNotices`; marker `M04.TASK_OVERDUE` |
+| Đọc nguồn/nhân sự đã duyệt | `TaskSourcePort.sources`/`SourceView`, `ShiftStaffPort.members`/`ShiftMemberView` |
+| Lỗi theo dòng từ 1 | `rowErrors[{row,codes}]`, HTTP 409 `UNMET_CONDITIONS` |
+| Mã kiểm từng dòng C-07 | `RESIDENT_NOT_STAYING`, `RESIDENT_ABSENT`, `DAY_CARE_NOT_PRESENT`, `OUTSIDE_SHIFT`, `PLAN_ITEM_MISMATCH`, `INVALID_BASIS`, `MEDICATION_IS_NOT_A_TASK`, `INVALID_PERFORMER`, `MISSING_CERTIFICATE`, `DUPLICATE_BASIS`, `OLD_REVISION_WINDOW_OVERLAP`, `SHIFT_CHECK_ALREADY_EXISTS` |
+| Khóa công việc đã tới hạn/đóng | HTTP 409 `TASK_CLOSED`; không hủy việc đã thực tế tới đầu khung khi job chậm |
+| Migration mới T020 | `V005_97__shift_care_tasks.sql`, BUSINESS; `duplicate_key`, `shift_check_key` |
+| Màn web/mobile T026 | `ShiftTaskPlanningPage`, menu `care-task-planning`; `ShiftTaskPlanningScreen`, `CareTaskPlanningGateway` (chưa có adapter production) |
+
+Chủ dự án chọn hoãn mục 5–6: không công bố `ongoingShifts`, không sửa client mobile của A; cảnh báo MANDATORY gắn vị trí cũng chờ thống nhất với 007 (đề xuất mục 7).
+
 ## 12. Feature 006 (`006-medication-management`, D)
 
 ### 12.1. Bảng và cột nền tảng (T005, `V006_01__medication_foundation.sql`)

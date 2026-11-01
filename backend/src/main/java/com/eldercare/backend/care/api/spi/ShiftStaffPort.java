@@ -8,6 +8,11 @@ import java.util.*;
 public interface ShiftStaffPort {
     Optional<ShiftView> shift(long shiftId);
 
+    /** Thành viên còn có mặt trong lịch ca đã công bố; kiểm vai trò công việc gắn vị trí. */
+    List<ShiftMemberView> members(long shiftId);
+
+    record ShiftMemberView(long staffId, Role role) {}
+
     List<ShiftView> publishedShifts(long floorAreaId, Instant from, Instant to);
 
     Optional<ShiftView> shiftContaining(long floorAreaId, Instant at);

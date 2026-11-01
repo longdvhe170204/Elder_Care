@@ -11,6 +11,21 @@ public class FakeTaskSource implements TaskSourcePort {
     private final Set<SourceType> types;
     private final Map<Reference, SourceValidation> results = new HashMap<>();
     private final Map<MealResident, Boolean> served = new HashMap<>();
+    private final Map<Long, List<SourceView>> sources = new HashMap<>();
+
+    public void sources(long residentId, List<SourceView> values) {
+        if (values.stream().anyMatch(v -> !types.contains(v.type())))
+            throw new IllegalArgumentException("Loại căn cứ không thuộc nguồn " + module);
+        sources.put(residentId, List.copyOf(values));
+    }
+
+    @Override
+    public List<SourceView> sources(long residentId, Instant from, Instant to) {
+        switches.requireEnabled(module);
+        return sources.getOrDefault(residentId, List.of()).stream()
+                .filter(v -> !v.at().isBefore(from) && v.at().isBefore(to))
+                .toList();
+    }
 
     public FakeTaskSource(FakeM04Switches switches, String module, Set<SourceType> types) {
         this.switches = switches;
@@ -48,6 +63,7 @@ public class FakeTaskSource implements TaskSourcePort {
 
     public void reset() {
         results.clear();
+        sources.clear();
         served.clear();
     }
 
