@@ -1090,6 +1090,29 @@ Các operation chưa dịch ở story khác vẫn giữ tên; tham chiếu tới
 
 Chủ dự án chọn hoãn mục 5–6: không công bố `ongoingShifts`, không sửa client mobile của A; cảnh báo MANDATORY gắn vị trí cũng chờ thống nhất với 007 (đề xuất mục 7).
 
+### 11.8. Có mặt bán trú Phase 5 — bản cài 2026-11-01
+
+| Thuật ngữ | Mã triển khai |
+| --- | --- |
+| Bảng chuyển FR-013 | `AttendanceTransitions` |
+| Snapshot hồ sơ và bản ghi điểm danh | `AttendanceData`, `AttendanceRecordData`, `AttendanceKinds`, `AttendanceDaySource` |
+| Lưu hồ sơ nhóm2/bản ghi nhóm3 | `AttendanceStore` qua `SimpleRecordApi`/`RecordEventApi`; kind `M04.DAY_CARE_ATTENDANCE`, `M04.ATTENDANCE_RECORD` |
+| Nguồn, lệnh và projection API | `AttendanceSources`, `AttendanceService`, `AttendanceQueries` (@Fallback) |
+| Kết quả về cùng danh sách việc hủy | `AttendanceCheckoutResult`, `DayCareCheckoutResponse` |
+| Các bước theo lịch | `AttendanceDayStartWork` (`DAY_CARE_DAY_START`), `AttendanceClockWork`, `AttendanceDayEndWork` (`DAY_CARE_DAY_END`) |
+| Mốc báo hết ngày | `M04.ATTENDANCE_DAY_END`, entity `M04.DAY_CARE_ATTENDANCE`, marker ngày |
+| Đính chính giờ | `AttendanceCorrectionProvider`, `AttendanceCorrectionWrite`, `DayCareAttendanceCorrectionController`; AMEND_CONTENT, VOID chưa hỗ trợ |
+| Nguồn ngày nghỉ/báo vắng đã duyệt | `DayCareCalendarPort.CalendarView(holiday,timelyAbsenceId,lateAbsenceId)`; fixture `FakeDayCareCalendar` |
+| Callback đã duyệt | `DayCareAttendanceApi.refreshCalendar(residentId,date)` MANDATORY, giữ chữ ký cũ |
+| Bốn HTTP | `/day-care-attendances`, `/day-care-attendances/check-in`, `/day-care-attendances/{id}/check-out`, `/day-care-attendance-records/{id}/correct` |
+| Request/response | `DayCareCheckInWrite`, `DayCareCheckOutWrite`, `DayCareAttendanceResponse`; requestBody `DayCareAttendanceCorrection` |
+| Màn web/mobile | `DayCareAttendancePage`, menu `day-care-attendance`; `DayCareAttendanceScreen`, `DayCareAttendanceGateway`, `DayCareAttendanceData` |
+| Lỗi điều kiện | `DAY_CARE_NOT_STAYING`, `ATTENDANCE_STATE_CONFLICT`, `INVALID_PICKUP_RECORD`; thiếu nguồn `CARE_SOURCE_UNAVAILABLE`; VOID dùng `CORRECTION_NOT_SUPPORTED` của khung chung |
+| Migration và cột/index riêng M04 | `V005_94__shared_day_care_attendance.sql`; `m04_attendance_date`, `m04_expected_arrival`, `uq_m04_attendance_day`, `ck_m04_attendance_state`, `ix_m04_attendance_due`, `ix_m04_attendance_day` |
+| Test | `FR_013_AttendanceTransitionsTest`, `FR_012_AttendanceSchemaIT`, `FR_012_AttendanceContractTest`, `BR_M04_02_DayCareAttendanceIT`, `FR_015_AttendanceCorrectionControllerTest` |
+
+API mục1–3 của đề xuất đã được duyệt. Chiều mã giữ care→admission: adapter/listener thuộc care, nguồn API/sự kiện004 do B công bố. Chưa nghiệm thu nguồn thật, nhánh đổi khỏiDAY_CARE, VOID, retention correction chain hoặc adapter mobile. Không coi raw parent M01.RESIDENT đã bảo đảm lưu giữ toàn chuỗi.
+
 ## 12. Feature 006 (`006-medication-management`, D)
 
 ### 12.1. Bảng và cột nền tảng (T005, `V006_01__medication_foundation.sql`)

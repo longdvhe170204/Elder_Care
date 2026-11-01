@@ -36,6 +36,18 @@ export const postCarePlansByIdWithdrawApproval = (params) => request('POST', '/c
 /** So sánh hai phiên bản (mục thêm, bớt, đổi) (FR-008) */
 export const getCarePlansCompare = (params) => request('GET', '/care-plans/compare', params)
 
+/** Trạng thái có mặt theo ngày của khu bán trú (FR-012, FR-013, FR-016, FR-049) */
+export const getDayCareAttendances = (params) => request('GET', '/day-care-attendances', params)
+
+/** Điểm danh đến (Hành chính, Nhân viên chăm sóc, Điều dưỡng) (FR-013, FR-018, FR-016, BR-M04-02) */
+export const postDayCareAttendancesCheckIn = (params) => request('POST', '/day-care-attendances/check-in', params)
+
+/** Điểm danh về với bản ghi đón của 012 (FR-013, FR-019, BR-M04-02) */
+export const postDayCareAttendancesByIdCheckOut = (params) => request('POST', '/day-care-attendances/{id}/check-out', params)
+
+/** Đính chính giờ đến/về (loại M04.DIEM_DANH_BAN_TRU) (FR-015) */
+export const postDayCareAttendanceRecordsByIdCorrect = (params) => request('POST', '/day-care-attendance-records/{id}/correct', params)
+
 /** Danh mục loại công việc (FR-038) */
 export const getTaskTypes = (params) => request('GET', '/task-types', params)
 

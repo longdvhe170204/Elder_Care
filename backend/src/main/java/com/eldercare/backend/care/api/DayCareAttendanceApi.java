@@ -8,6 +8,10 @@ import org.springframework.transaction.annotation.*;
 
 /** T003: contracts 005 mục 1.2–1.10a; hành vi do story tương ứng cài. */
 public interface DayCareAttendanceApi {
+    /** 004 gọi cùng transaction khi thay lịch/ngày nghỉ/báo vắng; giữ các chữ ký cũ. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    void refreshCalendar(long residentId, LocalDate date);
+
     Optional<AttendanceView> onDate(long residentId, LocalDate date);
 
     Optional<LocalTime> returnTimeOn(long residentId, LocalDate date);

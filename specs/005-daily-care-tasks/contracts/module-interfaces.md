@@ -304,3 +304,16 @@ T025 đã có CareTaskSources cài TaskSourceApi: MANDATORY, sourceCancelled kh�
 Ngoài phần đã duyệt, ongoingShifts (mục 5) và sửa ApiClient mobile của A (mục 6) đang chờ; chưa thêm chữ ký/hay sửa file nền.
 
 **Quyết định tiếp 2026-11-01:** chủ dự án không duyệt triển khai ongoingShifts hoặc cho C sửa ApiClient nền trong lượt này; T024 chờ E, T026 adapter production chờ A. Cảnh báo MANDATORY gắn vị trí chờ thống nhất với 007 vì AlertRequested yêu cầu residentId. Không đổi các hợp đồng này; không dùng id giả. Mục ghi chờ duyệt ở trên là trạng thái trước câu trả lời, được thay thế bằng quyết định hoãn này.
+
+## Cập nhật đã duyệt Phase 5 — 2026-11-01
+
+Chủ dự án chọn “1” cho toàn bộ phase5-contract-proposal.md mục1–3. Đã thêm `DayCareCalendarPort.onDate(residentId,date): CalendarView(holiday,timelyAbsenceId,lateAbsenceId)` và `DayCareAttendanceApi.refreshCalendar(residentId,date)` MANDATORY; giữ chữ ký cũ. FakeDayCareCalendar trong support/fake/care là fixture duy nhất, chưa đặt ngày thì báo lỗi; FakeM04Config đăng ký opt-in, không production fake. HTTP bốn operation/schema/request riêng đã dịch và sinh client bằng npm run gen:api (34operation005 tổng cộng).
+
+Provider thực hiện DayCareAttendanceApi là AttendanceQueries @Fallback; dữ liệu nhóm2 qua SimpleRecordApi, nhóm3 qua RecordEventApi; callback giờ về/checkout/calendar giữ transaction của caller. `inRange` gồm hai ngày biên theo khoảng LocalDate; `returnTimeOn` đọc giờ về hiện hành sau014 thay đổi/khôi phục theo đúng registrationId. Callback checkout012 kiểm bản ghi đón và loại đối chiếu với nguồn012, không nhận loại từ HTTPclient.
+
+**Cách ghép nguồn bắt buộc theo C-02:** care đã dùng ContractReadApi của admission, nên B không cài trực tiếp care.spi hoặc gọi care.api trong module admission. B công bố API/sự kiện004; adapter/listener thuộc care sẽ đọc API và gọi callback đồng bộ cùng transaction. Điều chỉnh câu giao việc “B cài SPI/call callback” trong đề xuất trước; không đổi các chữ ký đã duyệt. Chưa có nguồn/types004 thật để viết adapter, không ngầm ghi đã tích hợp.
+
+**Điều kiện chưa đạt:** callback sau đổi khỏi DAY_CARE đang409, có thể rollback lệnh004/job; VOID chưa chốt, endpoint005 chặn trước tạo request còn generic000 cần A nối capability; retention alias/shared correction chain cần A xử lý; TrangThaiCoMatBanTruPort chưa có kiểu thật của B và mobile transport list còn chờ A. Giữ các gate riêng, không dùng test fake làm chứng cứ production hoặc đóng phase.
+
+
+**Ghi chú khi merge — ưu tiên listener của B/E (chủ dự án đã chốt):** nếu nhánh ghép đã có listener và kiểu sự kiện nguồn tương ứng do B/E cung cấp, ưu tiên dùng bản của B/E thay cho đường tích hợp tạm đã làm ở005. Đối chiếu và hợp nhất adapter/callback hiện có để mỗi sự kiện chỉ được xử lý một lần; bỏ phần tích hợp tạm bị thay thế khi đã kiểm tương đương. Giữ chữ ký API cũ và bàn giao B/E review trước khi ghép. Chỗ đặt lớp và chiều phụ thuộc vẫn theo C-02; nếu hợp đồng khác nhau thì ghi rõ chênh lệch để review/duyệt, không tự đổi chữ ký hoặc giữ hai listener chạy trùng. Ghi chú này là quy tắc cho lần merge sau, chưa xác nhận B/E đã có listener và chưa thay mã nguồn hiện tại.

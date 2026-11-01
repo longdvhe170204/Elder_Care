@@ -179,43 +179,153 @@ paths:
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/CarePlanComparison' } } } } }
 
   # ---------------- Có mặt bán trú ----------------
-  /co-mat-ban-tru:
+  /day-care-attendances:
     get:
-      tags: [co-mat]
+      tags:
+        - day-care-attendance
       summary: Trạng thái có mặt theo ngày của khu bán trú
-      x-fr: [FR-012, FR-013, FR-016, FR-049]
-      parameters: [ { name: ngay, in: query, required: true, schema: { type: string, format: date } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CoMat' } } } } } }
-  /co-mat-ban-tru/diem-danh-den:
-    post:
-      tags: [co-mat]
-      summary: Điểm danh đến (Hành chính, Nhân viên chăm sóc, Điều dưỡng)
-      description: 'Từ Chưa đến, Vắng không báo; hoặc ngày không có lịch / ngày khu nghỉ (buổi phát sinh, Q-140). Người cao tuổi phải Đang lưu trú. Chỉ trực tuyến. Báo Người phụ trách ca khu bán trú (FR-018).'
-      x-fr: [FR-013, FR-018, FR-016]
-      x-br: [BR-M04-02]
-      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nctId], properties: { nctId: { type: integer, format: int64 }, thoiDiem: { type: string, format: date-time, description: 'Mặc định là lúc lệnh' } } } } } }
-      responses: { '200': { description: Có mặt, content: { application/json: { schema: { $ref: '#/components/schemas/CoMat' } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /co-mat-ban-tru/{id}/diem-danh-ve:
-    post:
-      tags: [co-mat]
-      summary: Điểm danh về với bản ghi đón của 012
-      description: 'Bản ghi đón hợp lệ hoặc loại Tự về khi dấu "được tự về" có tác dụng (Q-125). Viện đưa về đi qua lệnh ghi bàn giao của 012 (Q-295). Hủy công việc Chưa đến hạn sau giờ về (FR-019).'
-      x-fr: [FR-013, FR-019]
-      x-br: [BR-M04-02]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [banGhiDonId], properties: { banGhiDonId: { type: integer, format: int64 }, thoiDiem: { type: string, format: date-time } } } } } }
-      responses: { '200': { description: Đã về, content: { application/json: { schema: { type: object, properties: { coMat: { $ref: '#/components/schemas/CoMat' }, congViecDaHuy: { type: array, items: { type: integer, format: int64 } } } } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /diem-danh-ban-tru/{id}/dinh-chinh:
-    post:
-      tags: [co-mat]
-      summary: Đính chính giờ đến/về (loại M04.DIEM_DANH_BAN_TRU)
-      x-fr: [FR-015]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/DinhChinh' }
-      responses: { '201': { description: Đã lưu hoặc tạo yêu cầu (000 cách C) }, '403': { $ref: '#/components/responses/Loi' } }
+      x-fr:
+        - FR-012
+        - FR-013
+        - FR-016
+        - FR-049
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DayCareAttendance"
+      x-implementation-phase: 5
+      operationId: listDayCareAttendances
 
-  # ---------------- Lập công việc, vòng đời ----------------
+
+  /day-care-attendances/check-in:
+    post:
+      tags:
+        - day-care-attendance
+      summary: Điểm danh đến (Hành chính, Nhân viên chăm sóc, Điều dưỡng)
+      description: Từ Chưa đến, Vắng không báo; hoặc ngày không có lịch / ngày khu nghỉ (buổi phát sinh, Q-140). Người cao
+        tuổi phải Đang lưu trú. Chỉ trực tuyến. Báo Người phụ trách ca khu bán trú (FR-018).
+      x-fr:
+        - FR-013
+        - FR-018
+        - FR-016
+      x-br:
+        - BR-M04-02
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - residentId
+              properties:
+                residentId:
+                  type: integer
+                  format: int64
+                at:
+                  type: string
+                  format: date-time
+                  description: Mặc định là lúc lệnh
+      responses:
+        "200":
+          description: Có mặt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DayCareAttendance"
+        "409":
+          $ref: "#/components/responses/LoiChan"
+      x-implementation-phase: 5
+      operationId: checkInDayCare
+
+
+  /day-care-attendances/{id}/check-out:
+    post:
+      tags:
+        - day-care-attendance
+      summary: Điểm danh về với bản ghi đón của 012
+      description: Bản ghi đón hợp lệ hoặc loại Tự về khi dấu "được tự về" có tác dụng (Q-125). Viện đưa về đi qua lệnh ghi
+        bàn giao của 012 (Q-295). Hủy công việc Chưa đến hạn sau giờ về (FR-019).
+      x-fr:
+        - FR-013
+        - FR-019
+      x-br:
+        - BR-M04-02
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - pickupRecordId
+              properties:
+                pickupRecordId:
+                  type: integer
+                  format: int64
+                at:
+                  type: string
+                  format: date-time
+      responses:
+        "200":
+          description: Đã về
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  attendance:
+                    $ref: "#/components/schemas/DayCareAttendance"
+                  cancelledTaskIds:
+                    type: array
+                    items:
+                      type: integer
+                      format: int64
+        "409":
+          $ref: "#/components/responses/LoiChan"
+      x-implementation-phase: 5
+      operationId: checkOutDayCare
+
+
+  /day-care-attendance-records/{id}/correct:
+    post:
+      tags:
+        - day-care-attendance
+      summary: Đính chính giờ đến/về (loại M04.DIEM_DANH_BAN_TRU)
+      x-fr:
+        - FR-015
+      parameters:
+        - $ref: "#/components/parameters/Id"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/DayCareAttendanceCorrection"
+      responses:
+        "201":
+          description: Đã lưu hoặc tạo yêu cầu (000 cách C)
+        "403":
+          $ref: "#/components/responses/Loi"
+      x-implementation-phase: 5
+      operationId: correctDayCareAttendance
+
+
+
   /cong-viec/{id}/nhan-viec:
     post:
       tags: [checklist]
@@ -679,6 +789,18 @@ components:
               kieu: { type: string, enum: [SUA_NOI_DUNG, HUY_GHI_NHAN] }
               noiDungDung: { type: object, additionalProperties: true }
               lyDo: { $ref: '#/components/schemas/LyDo' }
+    DayCareAttendanceCorrection:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [type, reason]
+            properties:
+              type: { type: string, enum: [AMEND_CONTENT, VOID] }
+              correctedContent: { type: object, additionalProperties: true }
+              reason: { $ref: '#/components/schemas/Reason' }
+
   responses:
     CarePlanProblem:
       description: Lỗi kế hoạch theo RFC 9457
@@ -808,6 +930,51 @@ components:
         added: { type: array, items: { $ref: '#/components/schemas/CarePlanItem' } }
         removed: { type: array, items: { $ref: '#/components/schemas/CarePlanItem' } }
         changed: { type: array, items: { type: object, properties: { before: { $ref: '#/components/schemas/CarePlanItem' }, after: { $ref: '#/components/schemas/CarePlanItem' }, changedFields: { type: array, items: { type: string } } } } }
+    DayCareAttendance:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        residentId:
+          type: integer
+          format: int64
+        date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+            - NOT_ARRIVED
+            - PRESENT
+            - LEFT
+            - REPORTED_ABSENT
+            - UNREPORTED_ABSENT
+            - HOLIDAY_CANCELLED
+        expectedArrival:
+          type: string
+        expectedReturn:
+          type: string
+        currentExpectedReturn:
+          type: string
+        arrivedAt:
+          type: string
+          format: date-time
+        leftAt:
+          type: string
+          format: date-time
+        checkoutType:
+          type: string
+          enum:
+            - PICKUP
+            - SELF_RETURN
+            - INSTITUTE_RETURN
+        adHocSession:
+          type: boolean
+        lateAbsenceReported:
+          type: boolean
+
+
     CoMat:
       type: object
       properties:

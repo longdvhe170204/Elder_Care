@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** T015: chỉ áp dụng phiên bản đã duyệt; không lập kế hoạch hoặc công việc. */
 @Component
+@org.springframework.core.annotation.Order(0)
 public class CarePlanActivation implements CareDailyWork {
     private final CarePlanStore store;
     private final CareLockStore locks;

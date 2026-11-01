@@ -12,6 +12,12 @@ import org.springframework.context.annotation.*;
 @Profile({"test", "demo"})
 public class FakeM04Config {
     @Bean
+    @Primary
+    public FakeDayCareCalendar fakeDayCareCalendar() {
+        return new FakeDayCareCalendar();
+    }
+
+    @Bean
     FakeM04Switches fakeM04Switches() {
         return new FakeM04Switches();
     }

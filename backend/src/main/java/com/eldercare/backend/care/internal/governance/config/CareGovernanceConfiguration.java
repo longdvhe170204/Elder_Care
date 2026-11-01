@@ -100,6 +100,14 @@ public class CareGovernanceConfiguration {
                         Map.entry("status", InfoGroup.INTERNAL_PUBLIC),
                         Map.entry("expectedArrival", InfoGroup.INTERNAL_PUBLIC),
                         Map.entry("expectedReturn", InfoGroup.INTERNAL_PUBLIC),
+                        Map.entry("currentExpectedReturn", InfoGroup.INTERNAL_PUBLIC),
+                        Map.entry("checkoutType", InfoGroup.INTERNAL_PUBLIC),
+                        Map.entry("adHocSession", InfoGroup.INTERNAL_PUBLIC),
+                        Map.entry("arrivalRecordId", InfoGroup.INTERNAL_PUBLIC),
+                        Map.entry("departureRecordId", InfoGroup.INTERNAL_PUBLIC),
+                        Map.entry("returnRegistrationId", InfoGroup.INTERNAL_PUBLIC),
+                        Map.entry("timelyAbsenceId", InfoGroup.INTERNAL_PUBLIC),
+                        Map.entry("lateAbsenceId", InfoGroup.INTERNAL_PUBLIC),
                         Map.entry("arrivedAt", InfoGroup.INTERNAL_PUBLIC),
                         Map.entry("leftAt", InfoGroup.INTERNAL_PUBLIC)));
     }

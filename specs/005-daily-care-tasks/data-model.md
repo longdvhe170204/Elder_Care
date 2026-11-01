@@ -429,3 +429,17 @@ care_resident_lock thành resident_module_state moduleM04,data.version giữ gi�
 T020 dùng V005_97__shift_care_tasks.sql mới, không sửa migration đã merge. care_task nhóm BUSINESS chứa cột cho trạng thái, căn cứ, ca, vị trí, thời điểm/khung, người thực hiện, version và các generated UNIQUE theo mục 6. Snapshot nội dung/loại kết quả/tính phí/chứng chỉ ở JSON data có kiểu CareTaskData; task_type_id vật lý và publicTaskTypeId trong snapshot giữ ánh xạ danh mục đã gộp. Trạng thái cuối bị trigger chặn UPDATE.
 
 Lịch sử xử lý không tạo care_task_history: HistoryTrack M04.TASK/HANDLING qua StatusHistoryApi, details CareTaskHandling; nhắc lúc lập muộn dùng ReminderMarkers với M04.TASK_OVERDUE/INITIAL. Dữ liệu ghi nhận/đính chính của Phase 6/8 chưa được coi đã cài bằng schema này. T024 nhắc ca chưa có công việc còn chờ nguồn liệt kê ca, không tạo bảng riêng hay dùng id 0 làm sentinel.
+
+## Ánh xạ vật lý T028 Phase 5 — checkpoint 2026-11-01
+
+`co_mat_ban_tru` dùng `simple_record`, kind `M04.DAY_CARE_ATTENDANCE`: resident_id là người cao tuổi, effective_from là ngày nghiệp vụ, status dùng AttendanceStatus. Migration `V005_94__shared_day_care_attendance.sql` thêm cột sinh/index chỉ cho kind này; UNIQUE `(resident_id,m04_attendance_date)` chặn trùng ngay cả writer không đặt unique_key. Mỗi loại khác có m04_attendance_date=NULL nên không bị áp luật của005. `m04_expected_arrival` lấy content.expectedArrival để tạo chỉ mục giờ đến. API shared được dùng khi cài runtime tiếp; không cho module005 SQL trực tiếp bảng chung.
+
+`diem_danh_ban_tru` sẽ dùng `record_event`, kind `M04.ATTENDANCE_RECORD`, parent EntityRef của attendance; chỉ lệnh người dùng thêm bản ghi đã xác nhận. Chưa có runtime/payload điểm danh trong checkpoint này; không coi migration là đã cài T029. Đề xuất dịch HTTP/calendar/callback còn chờ chủ dự án duyệt.
+
+## Ánh xạ runtime Phase5 sau duyệt — 2026-11-01
+
+AttendanceKinds.DAYS dùng simple_record kind M04.DAY_CARE_ATTENDANCE, resident_id/ngày effective_from/status ở cột chung; AttendanceData giữ floorAreaId, expectedArrival/expectedReturn/currentExpectedReturn, returnRegistrationId, arrivalRecordId/departureRecordId, arrivedAt/leftAt, checkoutType, adHocSession, timelyAbsenceId/lateAbsenceId. AttendanceKinds.RECORDS dùng record_event kind M04.ATTENDANCE_RECORD; AttendanceRecordData giữ attendanceId, direction ARRIVE/LEAVE, at thực tế, checkoutType/pickupRecordId. occurred_at/confirmed_at là lúc ghi qua BusinessTime; gốc đã xác nhận không sửa khi đính chính.
+
+Hai loại cùng parent M01.RESIDENT để metadata raw gắn hồ sơ, nhưng retention chưa đủ: alias005 còn bảng cũ và genericpurge chưa enumerate record gốc để kiểm thời hạn correction. Gate này chờA, không khẳng định đã xóa an toàn toànchuỗi. ScopeAssignmentProvider M04.DAY_CARE_ATTENDANCE đã đọc bản ghi thật qua AttendanceStore/APIshared và floorAreaId snapshot. Audit ghi diff trường thay đổi, gồm giờ hiện hành và id bản ghi/đăng ký/báo vắng để truy vết.
+
+Chủ dự án chọn chờ VOID và chờ thống nhất nhánh đổi khỏiDAY_CARE với B. Không thêm trạng thái ngoài AttendanceStatus hoặc tự khôi phục/hủy thêm công việc khi chưa có quy tắc. Đính chính giờ hiện cập nhật projection/phát AttendanceChanged, giữ task đóng theo FR-026; tác động dây chuyền khi sửa giờ về cần thống nhất trước khi coi phần đó đủ nghiệp vụ.

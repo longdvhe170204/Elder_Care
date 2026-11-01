@@ -70,6 +70,14 @@ public class CareTaskStore {
         return jdbc.query("SELECT * FROM care_task WHERE shift_id=? ORDER BY planned_at,id", this::row, id);
     }
 
+    public List<CareTask> notYetDueFrom(long resident, Instant at) {
+        return jdbc.query(
+                "SELECT * FROM care_task WHERE resident_id=? AND status='NOT_YET_DUE' AND planned_at>=? ORDER BY id",
+                this::row,
+                resident,
+                local(at));
+    }
+
     public List<CareTask> forSource(SourceType type, long id) {
         return jdbc.query(
                 "SELECT * FROM care_task WHERE basis_type=? AND basis_id=? ORDER BY id", this::row, type.name(), id);

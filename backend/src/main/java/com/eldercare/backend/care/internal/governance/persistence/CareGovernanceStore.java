@@ -3,6 +3,7 @@ package com.eldercare.backend.care.internal.governance.persistence;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.InvalidPermissionDataException;
 import com.eldercare.backend.administration.retention.api.spi.RetentionProvider.DataRef;
+import com.eldercare.backend.care.internal.attendance.persistence.AttendanceStore;
 import com.eldercare.backend.care.internal.governance.domain.*;
 import java.time.*;
 import java.util.*;
@@ -13,9 +14,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class CareGovernanceStore {
     private final JdbcTemplate jdbc;
+    private final AttendanceStore attendance;
 
-    public CareGovernanceStore(JdbcTemplate jdbc) {
+    public CareGovernanceStore(JdbcTemplate jdbc, AttendanceStore attendance) {
         this.jdbc = jdbc;
+        this.attendance = attendance;
     }
 
     public boolean exists(String table) {
@@ -36,6 +39,15 @@ public class CareGovernanceStore {
     }
 
     public Target scope(String type, long id) {
+        if (type.equals("M04.DAY_CARE_ATTENDANCE")) {
+            try {
+                var row = attendance.require(id);
+                return new Target(
+                        type, Long.toString(id), row.residentId(), row.content().floorAreaId());
+            } catch (com.eldercare.backend.common.error.NotFoundException e) {
+                throw missing(id);
+            }
+        }
         String table = switch (type) {
             case "M04.CARE_PLAN" -> "care_plan";
             case "M04.TASK" -> "care_task";
