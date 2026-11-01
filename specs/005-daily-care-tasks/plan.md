@@ -4,6 +4,24 @@
 
 **Input**: Feature specification from `specs/005-daily-care-tasks/spec.md`
 
+### Ghi chú triển khai — tiếp nhận Phase 6 (2026-11-01)
+
+- Checkout đầu phiên `44a7c201`, nhánh hiện có; không đổi nhánh, commit/push/merge. Báo đủ 18 dòng chứa HungNX-nguyen tại mục 8. Giữ Working-history.md và hand-over-task-003.md chưa theo dõi có sẵn; không sửa tài liệu bàn giao 003.
+- Chủ dự án đã duyệt bản dịch sáu operation T039 bằng câu trả lời “1”; chi tiết tại phase6-contract-proposal.md. Chưa tự mở rộng API/SPI hoặc thư viện. Các gate nguồn B/D/E, retention, VOID và mobile common của Phase 5 giữ nguyên. Khi merge ưu tiên listener nguồn tương ứng B/E, tránh xử lý trùng.
+- T032: hàm thuần CareResultTiming.completedStatus(windowFrom,windowTo,performedAt), đặt tại internal/result/domain. Hai biên bao gồm; sau cuối khung là COMPLETED_LATE, trước đầu khung hoặc khung đảo bị từ chối. Không đưa giờ đồng bộ vào hàm để thời điểm nhận muộn không làm sai trạng thái đã thực hiện đúng khung (FR-035). Kiểm quyền/trạng thái đang mở và giới hạn thời điểm ghi thuộc service T036, không đưa vào luật thuần.
+- TDD T032: RED 46 kiểm gồm 2 failure + 4 error do thiếu CareResultTiming; GREEN 46/46 (6 ca T032 + 40 ArchTest), exit0. Đã chạy spotless:apply giới hạn care. Log 005-p6-t032-{red,green}.log và 005-p6-spotless.log ở thư mục artifacts phiên. Chưa đánh task hoàn thành trước clean verify cuối phase.
+- R-15/T035: kết quả gộp vào care_task, id kết quả bằng id task; giữ bất biến nhóm 3 và chỉ mục resident/resultType/performedAt, không tạo bảng kết quả riêng. Rà FR-038 thấy snapshot CareTaskData hiện thiếu upperLimit/vitalSignType; phải xử lý trong T036 để không áp cấu hình danh mục mới vào task đã lập.
+
+### Ghi chú triển khai Phase 6 — phần trực tuyến và các gate
+
+- T035/T036 dùng V005_98 (cột kết quả/check/trigger), V005_99 (carryover chỉ đọc; producer thuộc Phase7), V005_100 (reason_type_id tham chiếu catalog_item.id vật lý). ResultStore lưu kết quả và trạng thái trong một UPDATE có version, khóa người trước task. Pending đo lại giữ task mở, chặn record/notPerform đến khi nguồn xác nhận. JSON null được giữ để validator trả lỗi nghiệp vụ thay vì NullPointerException.
+- FR-038: CareTaskData chụp upperLimit/vitalSignType và resultConfigurationCaptured nội bộ khi lập task mới, kể cả không đặt giới hạn. Task ML cũ thiếu cả giới hạn lẫn dấu đã chụp trả503; không suy danh mục hiện tại hoặc backfill lịch sử không có bằng chứng. CareTask.resultType chỉ đọc từ snapshot là trường HTTP bổ sung đã duyệt tại mục5 proposal, không đổi API/SPI Java.
+- T038 đọc thỏa thuận hiện hành theo lô, gọi nguồn vị trí/lưu ý theo lô, lọc quyền từng người và kiểm chứng chỉ hiện hành khi nhận việc. Việc tồn được đọc cả trước đầu cửa sổ CFG_M15_07. Thiếu nguồn thực trả503, không dùng fake production. AllowedCommands dùng cùng điều kiện service, lệnh vẫn kiểm quyền riêng.
+- R-15 governance: M04.CARE_RESULT/TASK cùng id và dòng care_task; graph hai chiều buộc kiểm attachment cả hai trước xóa, seen-set sẵn có chặn vòng. Provider result không DELETE, provider task xóa vật lý. Scope kết quả chỉ nhận dòng có result_performed_at; planned_at dùng BusinessTime.ZONE. Gate shared retention điểm danh của A vẫn còn.
+- Web dùng CareChecklistPage/Detail/CareResultForm qua client gen:api. Form chọn theo snapshot; GET /result-values không query, lọc type/status phía client. Lỗi giữ input/idempotency key;202 chỉ báo chờ đo lại. Mobile dùng cache Drift riêng feature theo accountId/shiftId, fallback khi mất kết nối;403/404 xóa snapshot. CareChecklistScreen nhận accountId/shiftId từ shell A, không sửa common hoặc tự chọn ca. Mobile đã có form không cần danh mục mảng; SLEEP/MOOD/BEHAVIOR, phát sinh/đồng bộ/bản bị từ chối còn thiếu, chưa coi T040 đầy đủ.
+- Quyết định chủ dự án: T034/T037 payload chờ A; summary chờ E/012; phát sinh đo chỉ số và callback khác người/giờ gốc chờ D/007. Ngày01/11 chủ dự án chọn số lượng tính phí chờ E/010: chặn lệnh billable trước lưu, không suy ml/phút/giá trị đo thành số lượng dịch vụ hoặc bỏ sự kiện. Giữ ưu tiên listener nguồn B/E khi merge như Phase5.
+- TDD bổ sung: schema resultType RED1/42 do thiếu field, checklist10/10 xanh ở lượt tuần tự005-p6-billing-gate-red2 (recording RED1 đúng gate tính phí). JSON null RED1 NPE; safety RED3/25 (legacy ML, đóng pending, tính phí). Web12/12 test mới xanh; lint/build lượt đầu qua. Mobile7/7 rồi thêm retry/record RED, GREEN9/9. Hai lượt Maven chồng target gây thiếu FakeResidents$Entry: đã tìm nguyên nhân, chạy lại tuần tự, không sửa fake B hoặc tính lỗi môi trường là RED nghiệp vụ.
+
 ## Summary
 
 Feature 005 là module M04, phần 8.1 → 8.7 (UC-22 → UC-28). Nó cung cấp:
@@ -488,3 +506,20 @@ Cần khôi phục hạn mức của phiên để chạy spotless:apply,test h�
 
 
 **Ghi chú khi merge — ưu tiên listener của B/E (chủ dự án đã chốt):** nếu nhánh ghép đã có listener và kiểu sự kiện nguồn tương ứng do B/E cung cấp, ưu tiên dùng bản của B/E thay cho đường tích hợp tạm đã làm ở005. Đối chiếu và hợp nhất adapter/callback hiện có để mỗi sự kiện chỉ được xử lý một lần; bỏ phần tích hợp tạm bị thay thế khi đã kiểm tương đương. Giữ chữ ký API cũ và bàn giao B/E review trước khi ghép. Chỗ đặt lớp và chiều phụ thuộc vẫn theo C-02; nếu hợp đồng khác nhau thì ghi rõ chênh lệch để review/duyệt, không tự đổi chữ ký hoặc giữ hai listener chạy trùng. Ghi chú này là quy tắc cho lần merge sau, chưa xác nhận B/E đã có listener và chưa thay mã nguồn hiện tại.
+
+- Gate nghiệp vụ T039: chủ dự án chọn phương án 1, để PublicCareResultApi.summary chờ thống nhất E/012. Nguồn chỉ liệt kê năm mức ăn, chưa quy đổi averageEatingRatio hoặc chốt mẫu số ăn/nước theo ngày/lần ghi; không tự gán phần trăm hoặc trả rỗng giả. Đã thêm dòng bàn giao E ở mục 8. T033 RED thật 14 failure/0 error (404 thiếu endpoint), sau sửa đường dẫn nạp backend/.env; T035 RED 6 ca có 1 failure/2 error vì thiếu cột; các ca âm ban đầu chưa chứng minh constraint vì lỗi unknown column nên phải kiểm lại sau migration. Contract T039 RED 1 failure, sau bản dịch phát hiện riêng path history còn tên cũ do thay placeholder trước tên path; đã sửa đúng path đã duyệt, đang kiểm lại, chưa ghi xanh.
+
+### Kết quả review Phase6 và quyết định nhận việc tồn
+
+- Review độc lập phát hiện hai P1 (target quyền lịch sử do from/to, mobile đổi account/shift) và bốn P2 (nguồn điều dưỡng bị bỏ, mất projection careNotes/roomBed, refresh web lỗi thời, claim tồn dùng ca gốc). Các sửa đều có test tái hiện RED trước; log kết quả tại Working-history.
+- Target kiểm quyền history dùng vị trí hiện tại; khoảng from/to chỉ lọc kết quả. Mobile didUpdateWidget xóa dữ liệu cũ và kiểm generation. Web mọi đường tải dùng generation, mở detail giữ projection đã có nhưng không phục hồi careNotes khi server che content. Thuốc/cảnh báo/bàn giao hiện thành nguồn đọc riêng, không gọi lệnh module khác.
+- Chủ dự án chọn chờ E/008 ở Phase7 cho nhận việc có dấu tồn của ca sau. Giữ kiểm ca/giờ gốc hiện có, không coi nhánh claim tồn đã hoàn tất; checklist chỉ đưa allowedCommands qua cùng canClaim/canRecord của lệnh. Đây là gate nghiệp vụ đã chốt chờ, không phải quyết định tự đổi ca nhận việc.
+- Chưa nghiệm thu trực quan: Windows computer-use tự dừng do không xác định chắc URL; đã dừng UI và xóa fixture preview tạm. Không báo UI đã kiểm ảnh. Full web/mobile test được chạy lại sau sửa review; clean verify backend cuối vẫn phải hoàn tất trước đánh dấu.
+
+### Kết quả kiểm cuối Phase6 — 01/11/2026
+
+- Scoped sau review:61unit/kiến trúc và67IT xanh,0skip; gồm toàn bộ test Phase6,T008,ModuleBoundaryTest và40ArchTest. Web389/389 test xanh (--maxWorkers=2 sau một timeout StaffPage đã kiểm riêng6/6), lint sạch, build sau sửa cuối qua. Mobile thêm ô performedAt sau RED thiếu trường, scoped12/12 xanh; nhận dd/MM/yyyy HH:mm theo giờ Việt Nam, dùng common formatDateTime kiểm ngày hợp lệ, gửi ISO UTC, để trống giữ mặc định server. Không đổi hợp đồng; full mobile/analyzer lượt cuối đang được xác minh riêng.
+- .\mvnw.cmd clean verify chạy nền kết thúc exit1 sau20:54phút:772unit/Arch xanh;1713IT có8failure+10error,0skip;Spotless2387file sạch. Đã đọc toàn bộ XML lỗi và đối chiếu Working-history trước Phase5:18tên phương thức đỏ đều đã được ghi từ Phase4, không có tên lỗi mới trong lượt này. Care206IT có1error ở reason outbox chờA từ Phase3,0failure; các test Phase6 không đỏ.
+- Giữ task [] và không tuyên bố Phase6 hoàn tất: payload/offline và mobile transport/shell chờA; callback/phát sinh đo chỉ số chờD007; summary chờE012; quantity tính phí chờE010; nhận việc tồn ca sau chờE008. Giữ các gate Phase3–5/outbox/retention/VOID/nguồnB, ưu tiên listener B/E khi merge. Chưa nghiệm thu trực quan do công cụ Windows dừng kiểm URL. Không commit/push/PR hoặc thay đổi nhánh.
+
+Xác minh mobile sau bổ sung performedAt:64/64 full test xanh;12/12 scoped cuối xanh, analyzer No issues found. Web build sau sửa cuối cũng đã chạy lại và qua. Nội dung đầy đủ và18tên lỗi clean verify được lưu Working-history.md; docs/progress.md đã nối thêm kết quả, checkbox Phase6 giữ nguyên.

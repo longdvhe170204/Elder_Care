@@ -1113,6 +1113,23 @@ Chủ dự án chọn hoãn mục 5–6: không công bố `ongoingShifts`, khô
 
 API mục1–3 của đề xuất đã được duyệt. Chiều mã giữ care→admission: adapter/listener thuộc care, nguồn API/sự kiện004 do B công bố. Chưa nghiệm thu nguồn thật, nhánh đổi khỏiDAY_CARE, VOID, retention correction chain hoặc adapter mobile. Không coi raw parent M01.RESIDENT đã bảo đảm lưu giữ toàn chuỗi.
 
+### 11.9. Checklist và kết quả Phase 6 (005)
+
+| Tên logic | Mã triển khai |
+| --- | --- |
+| Trạng thái đóng theo khung | `CareResultTiming.completedStatus`, `COMPLETED`, `COMPLETED_LATE` |
+| Lệnh/kiểm kết quả | `CareResultService`, `CareResultValidation`, `CareResultInput`, `CareResultStore`, `CareResultQueries` |
+| Checklist/nhận việc | `CareChecklistService`, `CareChecklistStore`, `CareChecklistController`, `CareChecklistResponse`, `ChecklistRiskAgreement` |
+| Phát sinh/kết quả công khai/xác nhận chỉ số | `AdHocCareRecordingService`, `PublicCareResults`, `CareVitalSignTasks` |
+| Request/response | `CareResultWrite`, `CareNotPerformedWrite`, `AdHocCareRecordingWrite`, `CareResultResponse`; `CareTask.resultType` readOnly đã duyệt |
+| Snapshot cấu hình kết quả nội bộ | `CareTaskData.upperLimit`, `vitalSignType`, `resultConfigurationCaptured` |
+| Căn cứ quyền | `ASSIGNED`, `FLOOR_MANAGER_ROLE`, `SHIFT_LEAD_DUTY` |
+| Mức ăn/vận động | `ATE_ALL`, `MOST`, `SOME`, `NOT_EATEN`, `SKIPPED`; `INDEPENDENT`, `ASSISTED`, `UNABLE` |
+| Việc tồn | `FROM_PREVIOUS_SHIFT`, `AWAITING_HANDOVER_CONFIRMATION` |
+| Lỗi lệnh | `CARE_TASK_CLOSED`, `CONFIRMATION_REQUIRED`, `AWAITING_REMEASUREMENT`, `SERVICE_NOT_CONFIRMED`, `REASON_REQUIRED`; thiếu nguồn/quy tắc dùng `CARE_SOURCE_UNAVAILABLE` |
+| Web/mobile | `CareChecklistPage`, `CareChecklistDetail`, `CareResultForm`; mobile `CareChecklistScreen`, `CareChecklistRepository`, `CareChecklistCache`, `CachedCareChecklist`, `ApiCareChecklistGateway` |
+| Migration R-15 | `V005_98__care_task_results.sql`, `V005_99__care_checklist_carryover.sql`, `V005_100__care_result_reason_reference.sql`; kết quả gộp `care_task`, không tạo `care_result` |
+
 ## 12. Feature 006 (`006-medication-management`, D)
 
 ### 12.1. Bảng và cột nền tảng (T005, `V006_01__medication_foundation.sql`)

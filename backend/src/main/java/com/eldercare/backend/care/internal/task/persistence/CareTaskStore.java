@@ -57,7 +57,9 @@ public class CareTaskStore {
                 json.readValue(r.getString("data"), CareTaskData.class),
                 r.getLong("created_by"),
                 instant(r, "created_at"),
-                r.getInt("version"));
+                r.getInt("version"),
+                r.getBoolean("awaiting_remeasurement"),
+                r.getString("carryover"));
     }
 
     public CareTask get(long id, boolean lock) {
@@ -68,6 +70,28 @@ public class CareTaskStore {
 
     public List<CareTask> inShift(long id) {
         return jdbc.query("SELECT * FROM care_task WHERE shift_id=? ORDER BY planned_at,id", this::row, id);
+    }
+
+    public List<CareTask> checklist(long shiftId, long floor, long staffId, Instant from) {
+        return jdbc.query(
+                "SELECT * FROM care_task WHERE floor_area_id=? AND ((planned_at>=? AND shift_id=?) OR carryover IS NOT NULL) AND (performer_id=? OR (performer_id IS NULL AND status IN('NOT_YET_DUE','DUE','OVERDUE'))) ORDER BY (status='OVERDUE') DESC,planned_at,id",
+                this::row,
+                floor,
+                local(from),
+                shiftId,
+                staffId);
+    }
+
+    public CareTask claim(CareTask task, long staffId) {
+        int updated = jdbc.update(
+                "UPDATE care_task SET performer_id=?,version=version+1 WHERE id=? AND version=? AND status IN('NOT_YET_DUE','DUE','OVERDUE')",
+                staffId,
+                task.id(),
+                task.version());
+        if (updated != 1)
+            throw new com.eldercare.backend.common.error.BusinessException(
+                    org.springframework.http.HttpStatus.CONFLICT, "CARE_TASK_CLOSED", "Công việc đã thay đổi");
+        return get(task.id(), false);
     }
 
     public List<CareTask> notYetDueFrom(long resident, Instant at) {

@@ -30,6 +30,9 @@ public class CareTaskController {
     private final AccountApi accounts;
     private final BedAllocationApi beds;
     private final StatusHistoryApi history;
+    private final com.eldercare.backend.care.internal.result.service.CareResultQueries results;
+    private final com.eldercare.backend.care.internal.result.service.CareResultService recording;
+    private final com.eldercare.backend.care.internal.checklist.service.CareChecklistService checklist;
 
     public CareTaskController(
             CareTaskService commands,
@@ -40,7 +43,10 @@ public class CareTaskController {
             ResidentApi residents,
             AccountApi accounts,
             BedAllocationApi beds,
-            StatusHistoryApi history) {
+            StatusHistoryApi history,
+            com.eldercare.backend.care.internal.result.service.CareResultQueries results,
+            com.eldercare.backend.care.internal.result.service.CareResultService recording,
+            com.eldercare.backend.care.internal.checklist.service.CareChecklistService checklist) {
         this.commands = commands;
         this.queries = queries;
         this.user = user;
@@ -50,6 +56,9 @@ public class CareTaskController {
         this.accounts = accounts;
         this.beds = beds;
         this.history = history;
+        this.results = results;
+        this.recording = recording;
+        this.checklist = checklist;
     }
 
     @GetMapping("/shifts/{shiftId}/source-data")
@@ -134,7 +143,9 @@ public class CareTaskController {
                 .toList();
         return new CareTaskDetailResponse(
                 response(task),
-                null,
+                results.original(CareTaskService.target(task), id)
+                        .map(r -> CareResultResponse.of(r, actor(r.recordedBy()), health))
+                        .orElse(null),
                 health ? closure.reason() : null,
                 closure.at() == null || last == null
                         ? null
@@ -160,6 +171,12 @@ public class CareTaskController {
 
     private CareTaskResponse response(CareTask row) {
         var available = new LinkedHashMap<String, PermissionKey>();
+        if (recording.canRecord(row)) {
+            available.put("record", new PermissionKey(Function.TASK_CHECKLIST, Operation.CONFIRM));
+            available.put("notPerform", new PermissionKey(Function.TASK_CHECKLIST, Operation.CONFIRM));
+        }
+        if (checklist.canClaim(row))
+            available.put("claim", new PermissionKey(Function.TASK_CHECKLIST, Operation.CONFIRM));
         if (row.status() == TaskStatus.NOT_YET_DUE && user.roles().contains(Role.FLOOR_MANAGER))
             available.put("cancel", new PermissionKey(Function.SHIFT_TASK_PLANNING, Operation.UPDATE));
         CareTaskResponse.ResidentCard card = null;

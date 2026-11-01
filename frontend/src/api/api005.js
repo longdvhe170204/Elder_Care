@@ -48,6 +48,24 @@ export const postDayCareAttendancesByIdCheckOut = (params) => request('POST', '/
 /** Đính chính giờ đến/về (loại M04.DIEM_DANH_BAN_TRU) (FR-015) */
 export const postDayCareAttendanceRecordsByIdCorrect = (params) => request('POST', '/day-care-attendance-records/{id}/correct', params)
 
+/** Nhận công việc chung, hoặc Người phụ trách ca nhận việc về mình (FR-031, FR-033, BR-M04-13, BR-M09-01) */
+export const postCareTasksByIdClaim = (params) => request('POST', '/care-tasks/{id}/claim', params)
+
+/** Checklist của tôi trong ca (FR-029, FR-030, FR-031, FR-035) */
+export const getChecklist = (params) => request('GET', '/checklist', params)
+
+/** Ghi nhận hoàn thành (FR-026, FR-033, FR-034, FR-035, FR-036, FR-040a, FR-041, FR-044, BR-M04-06, BR-M04-10, BR-M04-12) */
+export const postCareTasksByIdRecord = (params) => request('POST', '/care-tasks/{id}/record', params)
+
+/** Ghi nhận không thực hiện (bắt buộc loại lý do; ghi chú tùy chọn) (FR-026, FR-027, FR-028a, FR-033, FR-044) */
+export const postCareTasksByIdNotPerform = (params) => request('POST', '/care-tasks/{id}/not-perform', params)
+
+/** Ghi nhận phát sinh (TT, ĐD, CS) (FR-025, FR-026, FR-035) */
+export const postAdHocCareRecordings = (params) => request('POST', '/ad-hoc-care-recordings', params)
+
+/** Lịch sử kết quả ghi nhận (gồm Bác sĩ chỉ xem) (FR-037, FR-049) */
+export const getResidentsByResidentIdCareResults = (params) => request('GET', '/residents/{residentId}/care-results', params)
+
 /** Danh mục loại công việc (FR-038) */
 export const getTaskTypes = (params) => request('GET', '/task-types', params)
 
