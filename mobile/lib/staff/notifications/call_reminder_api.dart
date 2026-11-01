@@ -27,10 +27,8 @@ const reminderStatusLabels = {
 
 const callResultLabels = {'REACHED': 'Đã liên lạc được', 'NOT_REACHED': 'Không liên lạc được'};
 
-/// Ba lý do của FR-030; `OTHER` có ở hợp đồng nhưng spec không nêu nên app không cho chọn, chỉ hiện nếu dữ liệu có.
-const callReasonChoices = {'NO_ANSWER': 'Không nghe máy', 'WRONG_NUMBER': 'Sai số', 'NO_NUMBER': 'Không có số'};
-
-const callReasonLabels = {...callReasonChoices, 'OTHER': 'Khác'};
+/// Ba lý do của FR-030.
+const callReasonLabels = {'NO_ANSWER': 'Không nghe máy', 'WRONG_NUMBER': 'Sai số', 'NO_NUMBER': 'Không có số'};
 
 /// Lý do của lịch sử chuyển nhắc (`handoffs`); mã khác hiện chung là "Chuyển nhắc".
 const handoffLabels = {
