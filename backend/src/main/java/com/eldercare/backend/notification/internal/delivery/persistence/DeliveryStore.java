@@ -83,7 +83,7 @@ public class DeliveryStore {
                 "SELECT a.entity_id, " + M13Sql.channel("a") + ", JSON_VALUE(a.content, '$.address'),"
                         + " JSON_VALUE(a.content, '$.content') FROM record_event r JOIN record_event a"
                         + " ON " + M13Sql.resultOf("r", "a") + " AND " + M13Sql.attempts("a")
-                        + " WHERE r.m13_result = 'FAILED' AND JSON_VALUE(r.content, '$.reason') LIKE 'TEMPORARY%'"
+                        + " WHERE r.m13_temporary_failure = TRUE"
                         + " AND " + M13Sql.channel("a") + " NOT IN ('IN_APP', 'FAMILY_PORTAL')"
                         + " AND " + M13Sql.attemptNo("a") + " <= ? AND " + M13Sql.latestOfChannel("a")
                         + " ORDER BY a.id LIMIT ?",
