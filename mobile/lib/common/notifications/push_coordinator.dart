@@ -17,6 +17,17 @@ class PushCoordinator extends ChangeNotifier {
   bool _permissionAsked = false;
   String? _registered;
   int? _opened;
+  bool _urgentArrived = false;
+
+  /// Có thông báo được bấm đang chờ mở.
+  bool get hasOpened => _opened != null;
+
+  /// Có thông báo Khẩn cấp vừa tới khi app đang mở, báo mỗi lần một lượt (009 T022).
+  bool takeUrgent() {
+    final arrived = _urgentArrived;
+    _urgentArrived = false;
+    return arrived;
+  }
 
   /// Lấy mã thông báo đang chờ mở, mỗi mã một lần.
   int? takeOpened() {
@@ -29,7 +40,10 @@ class PushCoordinator extends ChangeNotifier {
     _session = session;
     if (!await _messaging.start()) return;
     _messaging.tokenRefresh.listen((token) => _register(token));
-    _messaging.onMessage.listen((_) => notifyListeners());
+    _messaging.onMessage.listen((level) {
+      _urgentArrived = _urgentArrived || level == 'URGENT';
+      notifyListeners();
+    });
     _messaging.onOpened.listen(_open);
     final initial = await _messaging.initialOpened();
     if (initial != null) _open(initial);
