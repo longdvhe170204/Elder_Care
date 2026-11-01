@@ -379,5 +379,13 @@ Còn chờ, thuộc task khác: FR-026a, dừng theo sự kiện của 007 (T017
 - Không làm "hộp thông báo xem ngoại tuyến" dù mục phạm vi và mô tả api-009 có ghi: spec chỉ ghi MAY; lưu nội dung xuống máy dùng chung có thể lộ phần đã hết quyền xem (FR-034). Mất mạng thì báo lỗi kèm "Thử lại".
 - Lệch cần chốt: app chỉ cho chọn ba lý do của FR-030, hợp đồng và `CallResultService` có thêm `OTHER`. FR-030 ghi người nghe máy bắt buộc, FR-031 ghi "nếu khác người cần gọi", backend không kiểm; app theo FR-031.
 - Backend `CallReminderQueries` luôn trả `relationship` rỗng, `handoffs` chỉ có mã nhân viên: màn hiện "Người thân" và lịch sử không kèm tên. Hợp đồng chỉ có `residentId` nên màn không hiện tên người cao tuổi.
-- Web chưa có màn lượt nhắc gọi dù mục phạm vi có ghi.
+- Web có màn lượt nhắc gọi từ T035a (cùng ngày).
 - Đã thử trên máy ảo Android 12 với backend `QuickstartDemoApplication`: hộp, huy hiệu, xác nhận thật (`IN_APP`), báo cần mạng khi tắt mạng, cỡ chữ 200%, nút gọi mở trình quay số. Demo chưa có hồ sơ nhân viên nên job không tạo được lượt nhắc; màn lượt nhắc và ghi kết quả thử qua proxy tạm trả dữ liệu đúng hợp đồng. Dải báo Khẩn cấp qua FCM thật chưa thử được, chỉ có test.
+
+## Ghi chú lượt nhắc gọi trên web (2026-11-01, T035a, nhánh `impl/009-web-call-reminders`; bố cục chủ dự án duyệt cùng ngày)
+
+- Khối "Cần gọi điện" nằm trong hộp thông báo, không thêm tab; đứng trên bộ lọc vì bộ lọc không áp cho lượt nhắc, tải riêng nên lỗi không ảnh hưởng hộp; SSE và lệnh xác nhận tải lại khối.
+- Khác app có chủ ý (DESIGN 13.7): dòng có sẵn số điện thoại và nút "Ghi kết quả gọi" mở thẳng form, vì người dùng web gọi bằng máy khác rồi quay lại ghi; số là liên kết `tel:`. Chữ và thứ tự nội dung giữ như app.
+- Form thay nội dung ngay trong khung; 409 thì báo lỗi, tải lại và về chi tiết; 422 báo tại ô ghi chú.
+- Chưa làm: "Xác nhận và tiếp nhận" trên web (chờ 007); `callReminders` ở tab Lịch sử gửi (hợp đồng có, màn chưa hiện).
+- Đã thử trên trình duyệt với backend demo: hộp thông báo thật, ghi kết quả, lần gọi bổ sung, chế độ tối, bề rộng 375px. Lượt nhắc qua proxy tạm trả dữ liệu đúng hợp đồng, vì demo chưa có hồ sơ nhân viên.
