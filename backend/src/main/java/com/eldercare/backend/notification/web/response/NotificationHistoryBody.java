@@ -26,10 +26,16 @@ public record NotificationHistoryBody(
         List<Channel> channels,
         Instant viewedAt,
         Instant acknowledgedAt,
-        List<Map<String, Object>> callReminders,
+        List<CallReminderEntry> callReminders,
         List<String> flags) {
 
     public record Channel(String channel, String result, Instant occurredAt) {}
+
+    /** Lượt nhắc gọi của chuỗi chứa thông báo và kết quả (FR-037). */
+    public record CallReminderEntry(
+            long id, String personToCallType, long personToCallId, String status, List<CallOutcome> results) {}
+
+    public record CallOutcome(String result, Instant calledAt) {}
 
     public static NotificationHistoryBody of(HistoryEntry e) {
         var r = e.row();
@@ -49,7 +55,16 @@ public record NotificationHistoryBody(
                         .toList(),
                 r.viewedAt(),
                 r.acknowledgedAt(),
-                List.of(),
+                e.callReminders().stream()
+                        .map(c -> new CallReminderEntry(
+                                c.callReminderId(),
+                                c.personToCallType().name(),
+                                c.personToCallId(),
+                                c.status(),
+                                c.results().stream()
+                                        .map(o -> new CallOutcome(o.result(), o.calledAt()))
+                                        .toList()))
+                        .toList(),
                 r.flags());
     }
 }

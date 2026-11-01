@@ -10,7 +10,16 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { StatusBadge } from '@/common/StatusBadge'
 import { formatDateTime } from '@/common/dateTime'
-import { CHANNEL_LABELS, LEVEL_LABELS, RESULT_LABELS, basisLabel, label, recipientLabel } from './notificationLabels'
+import {
+  CALL_RESULT_LABELS,
+  CHANNEL_LABELS,
+  LEVEL_LABELS,
+  REMINDER_STATUS_LABELS,
+  RESULT_LABELS,
+  basisLabel,
+  label,
+  recipientLabel,
+} from './notificationLabels'
 
 // Lịch sử gửi (009 T035; FR-037): Quản lý viện toàn viện, Trưởng tầng các tầng được giao (backend lọc). Lượt nhắc gọi
 // hiện khi có 009 US1.
@@ -196,6 +205,23 @@ function HistoryDetail({ row: r }) {
                 </span>
               ))}
         </dd>
+        {r.callReminders.length > 0 && (
+          <>
+            <dt className="text-muted-foreground">Lượt nhắc gọi</dt>
+            <dd>
+              {r.callReminders.map((c) => (
+                <span key={c.id} className="block">
+                  {`Gọi ${recipientLabel(`${c.personToCallType}:${c.personToCallId}`)}: ${label(REMINDER_STATUS_LABELS, c.status)}`}
+                  {c.results.map((o, j) => (
+                    <span key={j} className="block text-muted-foreground tabular-nums">
+                      {`${label(CALL_RESULT_LABELS, o.result)}, ${formatDateTime(o.calledAt)}`}
+                    </span>
+                  ))}
+                </span>
+              ))}
+            </dd>
+          </>
+        )}
         {r.q354Case && (
           <>
             <dt className="text-muted-foreground">Trường hợp ngoài phạm vi đồng ý</dt>
