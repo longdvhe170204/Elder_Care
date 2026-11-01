@@ -88,6 +88,48 @@ describe('NotificationHistory', () => {
     expect(row).toHaveTextContent('Tin nhắn: Thất bại')
     expect(row).toHaveTextContent('Chưa xem')
   })
+
+  it('FR_037_chiTiet_hienLuotNhacGoiVaKetQua', async () => {
+    api.on(
+      'GET',
+      '/notification-history',
+      json(200, [
+        {
+          requestId: 5,
+          triggerSource: 'INCIDENT',
+          sourceRecord: { type: 'M05.INCIDENT', id: '9' },
+          level: 'URGENT',
+          recipient: 'STAFF:301',
+          basis: ['AssignedNurse'],
+          informationSubject: null,
+          q354Case: null,
+          receivedAt: '2026-10-23T02:42:00Z',
+          sentAt: '2026-10-23T02:42:01Z',
+          channels: [],
+          viewedAt: null,
+          acknowledgedAt: null,
+          callReminders: [
+            {
+              id: 8,
+              personToCallType: 'FAMILY_MEMBER',
+              personToCallId: 44,
+              status: 'RESULT_RECORDED',
+              results: [{ result: 'NOT_REACHED', calledAt: '2026-10-23T02:50:00Z' }],
+            },
+          ],
+          flags: [],
+        },
+      ]),
+    )
+    render(<NotificationHistory />)
+
+    fireEvent.click(await screen.findByRole('button', { name: /23\/10\/2026/ }))
+
+    const sheet = await screen.findByRole('dialog')
+    expect(sheet).toHaveTextContent('Lượt nhắc gọi')
+    expect(sheet).toHaveTextContent('Gọi Người thân 44: Đã có kết quả')
+    expect(sheet).toHaveTextContent('Không liên lạc được, 23/10/2026 09:50')
+  })
 })
 
 describe('DeliveryErrors', () => {
