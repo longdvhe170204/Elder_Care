@@ -351,3 +351,11 @@ Tên test ở data-model mục 11 là tên logic; bảng dưới là lớp thậ
 | FR-002, FR-009 *(ngoài danh sách T039, chưa có test)* | `RecipientResolutionIT.FR_002_…`, `FR_009_…`; `notificationLabels.test.js` |
 
 Còn chờ, thuộc task khác: FR-026a, dừng theo sự kiện của 007 (T017, T019, T021, chờ D); người cần gọi không còn đủ điều kiện (T019, chờ E); đầu–cuối với sự kiện thật (T037). Các SC đo ở T038.
+
+## Ghi chú T031, T042 hộp thông báo trên app (2026-11-01, nhánh `impl/009-mobile-inbox`)
+
+- Đọc chung ở `mobile/lib/common/notifications/` (`NotificationApi`, nhãn) cho phần người thân, người cao tuổi, sau này phần nhân viên (T022).
+- Người thân: cùng công thức `notification-inbox` với web (Q-305): khối Khẩn cấp chưa xác nhận có nút xác nhận, lọc mức, chưa xem, loại sự kiện, người cao tuổi (`GET /residents` không có quyền thì không có ô lọc, như web). Kéo xuống để tải lại, thay SSE của web. Không hiện "Bản ghi nguồn" vì là mã kỹ thuật, người thân không mở được. `FamilyRoot` hiện chỉ có màn này nên chưa có thanh điều hướng dưới.
+- Người cao tuổi (DESIGN.md 15.6): thẻ "Thông báo" ở màn Hôm nay kèm số chưa xem; danh sách và chi tiết chữ lớn, nút "Quay lại" có chữ; không ẩn, không xác nhận, không lọc. Bề rộng nút theo cỡ chữ của máy, tiêu đề màn nằm trong thân màn vì thanh không đủ chỗ ở cỡ chữ 200%. 15.6 nói bấm thông báo mở đúng màn của việc đó: hiện mở chi tiết thông báo, đổi khi các màn của 012, 014 có trên app.
+- Lệch 15.6: mất mạng chỉ báo câu ngắn và nút Thử lại, chưa giữ dữ liệu đã tải gần nhất qua các lần mở vì app chưa có bộ nhớ đệm đọc.
+- Nhận đẩy chưa làm: `mobile/` chưa có `google-services.json`, `GoogleService-Info.plist` và mã khởi tạo Firebase; T031, T042 giữ `[ ]`.
