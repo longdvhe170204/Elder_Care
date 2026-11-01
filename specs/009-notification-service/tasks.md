@@ -132,9 +132,9 @@ description: "Danh sách task triển khai feature 009 – Dịch vụ thông b�
 ### Implementation cho User Story 4
 
 - [x] T030 [US4] *(2026-10-23: `QuietHoursPolicy`, giữ trong `NotificationCreation`, `QuietHoursRelease` (việc `RELEASE_QUIET_HOURS`), `QuietHoursRescheduler` xong; 2026-10-24: `ResidentDeathListener` nghe `ResidentStatusChanged` sang `DECEASED`, giải phóng xét bản đồng ý hiện hành và qua đời)* Cài `BE/notification/yentinh/internal/GioYenTinh.java` (giữ trong transaction tiếp nhận, giải phóng ở việc 20 giây, kiểm lại điều kiện lúc giải phóng, gồm `XetPhamViDongY` với bản đồng ý hiện hành) và listener `ThamSoDaDoi(CFG-M13-02)`, `NguoiCaoTuoiDaChuyenTrangThai(GHI_NHAN_QUA_DOI)` (research B-06)
-- [ ] T031 [P] [US4] Tạo app `mobile/lib/nguoi-than/thong-bao/` (nhận đẩy, hộp thông báo)
+- [ ] T031 [P] [US4] *(2026-11-01: xong hộp thông báo `mobile/lib/family/notifications/`, 9 test; còn nhận đẩy, chờ cấu hình Firebase)* Tạo app `mobile/lib/nguoi-than/thong-bao/` (nhận đẩy, hộp thông báo)
 - [x] T041 [US4] *(2026-10-23: `RecipientGroup.Resident`; `push_device.app` đã có `RESIDENT_APP` từ `V009_02` nên không cần `V009_04`)* *(Bổ sung 2026-10-18)* Thêm `NhomNhan.NguoiCaoTuoi` vào `common.thongbao`, phân giải trong `BE/notification/nguoinhan/internal/XacDinhNguoiNhan.java` qua `TaiKhoanApi.theoNguoiCaoTuoi`; kiểm FR-022a trong kiểm tra yêu cầu; `GioYenTinh` áp cho `NGUOI_CAO_TUOI`; `thiet_bi_day.ung_dung` thêm `APP_NGUOI_CAO_TUOI` (migration `MIG/V009_04__nguoi_cao_tuoi_nhan.sql`)
-- [ ] T042 [P] [US4] *(Bổ sung 2026-10-18)* Tạo `mobile/lib/nguoi-cao-tuoi/thong-bao/` (nhận đẩy, hộp thông báo chữ lớn) và test `mobile/test/nguoi-cao-tuoi/thong_bao_test.dart`
+- [ ] T042 [P] [US4] *(2026-11-01: xong hộp thông báo chữ lớn `mobile/lib/resident/notifications/`, thẻ "Thông báo" ở màn Hôm nay, 8 test; còn nhận đẩy, chờ cấu hình Firebase)* *(Bổ sung 2026-10-18)* Tạo `mobile/lib/nguoi-cao-tuoi/thong-bao/` (nhận đẩy, hộp thông báo chữ lớn) và test `mobile/test/nguoi-cao-tuoi/thong_bao_test.dart`
 
 **Checkpoint**: Thông báo người thân chạy đúng.
 
