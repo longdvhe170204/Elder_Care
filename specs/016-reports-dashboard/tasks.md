@@ -72,11 +72,11 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 2
 
-- [ ] T011 [P] [US2] Test `BT/reporting/FR_012_PhamViTheoThoiGianIT.java` (SC-011), bộ 11 tài khoản `BT/reporting/SC_004_PhamViIT.java`, `FR_014_GioiHanTruongIT.java`, `FR_042a_SuCoHanhChinhIT.java`, `SC_005_TenThuocIT.java` (Q3 → Q11)
+- [ ] T011 [P] [US2] *(2026-11-01: xong `FR_012_TimeScopeIT` trên ca, phân công thật của 008, `SC_004_ScopeIT` bộ 11 tài khoản, `FR_014_FieldRestrictionIT` gồm cả `SC_005`; `FR_042a_AdminIncidentIT`, `SC_005` chỉ kiểm khung bằng chỉ tiêu giả `TestScopedMetrics`; còn chạy lại với chỉ tiêu thật khi 007 có phần đọc sự cố, 010 có `ChiPhiThongKeApi`, và Q7 đổi loại sự cố chờ 007)* Test `BT/reporting/FR_012_PhamViTheoThoiGianIT.java` (SC-011), bộ 11 tài khoản `BT/reporting/SC_004_PhamViIT.java`, `FR_014_GioiHanTruongIT.java`, `FR_042a_SuCoHanhChinhIT.java`, `SC_005_TenThuocIT.java` (Q3 → Q11)
 
 ### Implementation cho User Story 2
 
-- [ ] T012 [US2] Nối `PhamViBaoCao`, `QuyenNhomChiTieu`, giới hạn trường vào mọi đường đọc của `DashboardService` và khung báo cáo; bộ lọc trả chỉ giá trị trong phạm vi
+- [x] T012 [US2] *(2026-11-01: phạm vi theo từng ô của nhóm, ca thật sự thuộc về, việc chung của ca, báo Quản lý viện khi lỗi nguồn; `filterOptions` cho tầng/khu; giá trị lọc nhân viên, người cao tuổi làm cùng chỉ tiêu có các cột này, hiện lọc chỉ thu hẹp trong phạm vi)* Nối `PhamViBaoCao`, `QuyenNhomChiTieu`, giới hạn trường vào mọi đường đọc của `DashboardService` và khung báo cáo; bộ lọc trả chỉ giá trị trong phạm vi
 
 **Checkpoint**: P1 hoàn tất.
 

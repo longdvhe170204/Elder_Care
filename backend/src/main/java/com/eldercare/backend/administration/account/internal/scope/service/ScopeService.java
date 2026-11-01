@@ -151,6 +151,19 @@ class ScopeService implements ScopeApi {
         return of(assignments.at(user.staffId().get(), now), now);
     }
 
+    @Override
+    public ScopeFilter assignedFilter(CurrentUser user, Set<AssignmentKind> kinds) {
+        if (user.staffId().isEmpty()) {
+            return empty();
+        }
+        Instant now = time.now();
+        return of(
+                assignments.at(user.staffId().get(), now).stream()
+                        .filter(a -> kinds.contains(a.kind()))
+                        .toList(),
+                now);
+    }
+
     /**
      * Bộ lọc báo cáo khoảng đã qua (FR-035a; Q-192, Q-195): giao trưởng tầng theo các tầng đang được giao lúc xem, gồm
      * cả bản ghi trước khi được giao; phân công khác theo các khoảng góp giao với {@code [from, to)}. {@code residentIds}
