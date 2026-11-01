@@ -154,7 +154,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 7
 
-- [ ] T021 [P] [US7] Test `BT/reporting/FR_009_ChiTietKhopSoIT.java` (SC-006; Q12, Q13)
+- [ ] T021 [P] [US7] *(2026-11-01: xong khung `FR_009_DetailMatchIT` bằng chỉ tiêu giả: dashboard, báo cáo, chi tiết cùng số, ô chia nhóm, phân trang, dòng rút gọn; còn 20 chỉ tiêu thật của SC-006 và mở bản ghi chỉ xem ở feature sở hữu, chờ nguồn)* Test `BT/reporting/FR_009_ChiTietKhopSoIT.java` (SC-006; Q12, Q13)
 
 ### Implementation cho User Story 7
 
@@ -201,7 +201,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 - [ ] T031 [US5] *(Bổ sung 2026-10-18, Q-369)* Thêm chỉ tiêu cảnh báo SOS vào nhóm sức khỏe (research O-12) và màn `frontend/src/tinh-nang/bao-cao/suc-khoe-thuoc/`; test `ChiTieu_SK_CanhBaoSosTest` (quickstart B1)
 - [ ] T032 [US5] *(Bổ sung 2026-10-22, Q-374, Q-375)* Mở rộng chỉ tiêu của T031 thành `SK.CANH_BAO_SOS_HO_TRO` (research O-13, contracts/chi-tieu.md): dòng nút hỗ trợ khẩn cấp, thời gian tạo → tới nơi, số "không ghi mốc tới nơi", dòng "chưa rõ tầng"; test `ChiTieu_SK_CanhBaoSosHoTroTest` (quickstart B1, B2); cần 007 T096 (`daToiNoiLuc`, `NUT_HO_TRO` trong `CanhBaoThongKeApi`), bản giả trước đó
 
-- [ ] T027 [P] Test `BT/reporting/SC_008_ChiDocIT.java` (đếm bản ghi trước/sau mọi báo cáo; Q29) và hiệu năng báo cáo 12 tháng (SC-003; Q24)
+- [ ] T027 [P] *(2026-11-01: xong `SC_008_ReadOnlyIT`, so `CHECKSUM TABLE` toàn schema; còn đo SC-003 báo cáo 12 tháng, chờ chỉ tiêu thật)* Test `BT/reporting/SC_008_ChiDocIT.java` (đếm bản ghi trước/sau mọi báo cáo; Q29) và hiệu năng báo cáo 12 tháng (SC-003; Q24)
 - [x] T028 [P] *(2026-10-24: `ApiContractIT`; `pending` còn `/dashboard`, `/metrics`, `/reports/{group}`, `/metric-details/{metricCode}`)* Mở rộng `BT/common/HopDongApiTest.java` với `specs/016-reports-dashboard/contracts/api-016.yaml`
 - [x] T105 *(bổ sung 2026-10-29, Q-392)* Bỏ nhóm chỉ tiêu kho nguyên liệu: `MetricGroup.INVENTORY`, chỉ tiêu `KHO.DUOI_TOI_THIEU`, `KHO.LO_SAP_HET_HAN` (contracts/chi-tieu.md) và các ô quyền của nhóm này; sửa test liên quan
 - [ ] T029 Chạy `./mvnw verify`, `npm test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5
