@@ -1720,6 +1720,7 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 | --- | --- |
 | nội dung, nhóm nhận của `yeu_cau_thong_bao` | `notification_request.contents`, `notification_request.recipient_groups` |
 | trạng thái của `thong_bao`, `luot_nhac_goi` (cột dẫn xuất) | `notification.status`, `scheduled_send_at`, `sent_at`, `viewed_at`, `acknowledged_at`, `acknowledgement_method`, `hidden`, `recipient_key`; `call_reminder.status`, `final_result`, `stop_reason`, `due_at`, `current_staff_id`, `callee_key`, `pending_key` |
+| cột sinh cho truy vấn của 009 (T044) | `record_event.m13_temporary_failure` (kết quả lần gửi lỗi tạm); `notification.urgent_unacknowledged` (Khẩn cấp chưa xác nhận) |
 | loại bảng chung của 009 | `M13.NOTIFICATION_CHANNEL` (danh mục); `M13.NOTIFICATION_EVENT`, `M13.DELIVERY_ATTEMPT`, `M13.DELIVERY_RESULT`, `M13.CALL_REMINDER_NOTIFICATION`, `M13.CALL_REMINDER_HANDOFF`, `M13.CALL_RESULT`, `M13.DIRECT_CONTACT_RESULT` (sự kiện); `M13.DIRECT_CONTACT`, `M13.SMS_BATCH_WINDOW` (hồ sơ chung); `M13.REQUEST_DUPLICATE`, `M13.JOB_DONE` (mốc đã nhắc) |
 
 
