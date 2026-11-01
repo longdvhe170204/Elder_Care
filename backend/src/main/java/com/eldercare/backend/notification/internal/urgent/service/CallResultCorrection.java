@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 class CallResultCorrection implements CorrectableRecordProvider {
 
     static final String TYPE = "M13.CALL_RESULT";
-    private static final Set<String> REASONS = Set.of("NO_ANSWER", "WRONG_NUMBER", "NO_NUMBER", "OTHER");
+    private static final Set<String> REASONS = Set.of("NO_ANSWER", "WRONG_NUMBER", "NO_NUMBER");
 
     private final CallReminderStore store;
     private final CallReminderRouting routing;
@@ -75,8 +75,7 @@ class CallResultCorrection implements CorrectableRecordProvider {
             throw new InvalidValueException("Nội dung đúng cần trường result (REACHED, NOT_REACHED)");
         }
         if (result.equals("NOT_REACHED") && !(map.get("reason") instanceof String reason && REASONS.contains(reason))) {
-            throw new InvalidValueException(
-                    "Không liên lạc được cần lý do (NO_ANSWER, WRONG_NUMBER, NO_NUMBER, OTHER)");
+            throw new InvalidValueException("Không liên lạc được cần lý do (NO_ANSWER, WRONG_NUMBER, NO_NUMBER)");
         }
         if (result.equals("REACHED") && !(map.get("note") instanceof String note && !note.isBlank())) {
             throw new InvalidValueException("Đã liên lạc được cần ghi chú");
