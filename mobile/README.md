@@ -21,6 +21,10 @@ dart run build_runner build                     # sinh lại mã drift (*.g.dart
 
 Thêm package: nhờ A (người giữ `pubspec.yaml`).
 
+**Nhận đẩy (FCM)**: kho công khai nên không có cấu hình Firebase. Muốn nhận đẩy, đặt `google-services.json` vào `android/app/`, `GoogleService-Info.plist` vào `ios/Runner/` (lấy từ dự án Firebase, mã app `com.eldercare.mobile`). Thiếu file thì app vẫn build, chạy không có đẩy. Backend gửi đẩy cần `FIREBASE_CREDENTIALS` trỏ tới khóa dịch vụ Firebase, lưu ngoài kho, ghi đường dẫn bằng dấu `/`. Trên iOS, bước "Copy GoogleService-Info" của target Runner chép file vào gói app nếu có, vì file không nằm trong kho nên không thêm vào project Xcode; nhận đẩy còn cần bật Push Notifications trong Xcode (tài khoản Apple Developer trả phí) và tải khóa APNs lên Firebase.
+
+**Build Android báo "Unable to establish loopback connection"**: đường dẫn thư mục tạm có dấu cách; đặt `JAVA_TOOL_OPTIONS=-Djdk.net.unixdomain.tmpdir=C:\eldercare-tmp` (thư mục phải có sẵn) rồi build lại.
+
 ## 1. Cấu trúc `lib/`
 
 | Thư mục | Nhiệm vụ | Ai sửa |

@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/common/api/api_client.dart';
+import 'package:mobile/common/notifications/push_coordinator.dart';
 import 'package:mobile/common/theme/app_theme.dart';
 import 'package:mobile/family/notifications/family_inbox_screen.dart';
 
 import '../../support/fake_backend.dart';
+import '../../support/fake_push.dart';
 
 // 009 T031 (US4; FR-033, FR-034, FR-036, FR-026): hộp thông báo người thân trên app: Khẩn cấp chưa xác nhận lên đầu có nút
 // xác nhận, lọc mức và chưa xem, mở thông báo theo quyền hiện hành, ẩn thông báo đã xem. Nhận đẩy chờ cấu hình Firebase.
@@ -168,6 +170,54 @@ void main() {
     expect(call.headers['Idempotency-Key'], isNotEmpty);
     expect(jsonDecode(call.body), isA<Map<String, dynamic>>());
     expect(find.text('Bảng chi phí tháng 10 đã chốt'), findsNothing);
+  });
+
+  testWidgets('T031_tappedPush_opensThatNotification', (tester) async {
+    backend.on('GET', '/me/notifications/1', 200, notification(viewedAt: '2026-10-27T03:00:00Z'));
+    final fake = FakePush();
+    late PushCoordinator push;
+    await tester.runAsync(() async => push = await startedPush(backend, fake, 'FAMILY_MEMBER'));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: Scaffold(
+          body: FamilyInboxScreen(api: backend.client(), push: push),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.runAsync(() async {
+      fake.opened.add(1);
+      await pumpEventQueue();
+    });
+    await tester.pumpAndSettle();
+
+    expect(find.text('Xem lần đầu'), findsOneWidget);
+  });
+
+  testWidgets('T031_foregroundPush_reloadsList', (tester) async {
+    final fake = FakePush();
+    late PushCoordinator push;
+    await tester.runAsync(() async => push = await startedPush(backend, fake, 'FAMILY_MEMBER'));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: Scaffold(
+          body: FamilyInboxScreen(api: backend.client(), push: push),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    backend.on('GET', '/me/notifications', 200, page([notification(id: 9, title: 'Thông báo vừa tới')]));
+    await tester.runAsync(() async {
+      fake.received.add(null);
+      await pumpEventQueue();
+    });
+    await tester.pumpAndSettle();
+
+    expect(find.text('Thông báo vừa tới'), findsOneWidget);
   });
 
   testWidgets('FR_033_offline_retry', (tester) async {
