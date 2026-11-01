@@ -214,4 +214,4 @@ US2 → US1 → US3 → US4 → US5; mỗi bước chạy `./mvnw verify` và k�
 
 ## Phase 9: Convergence
 
-- [ ] T044 Đo lại phần NFR của quickstart sau gộp bảng T043 (job gửi tìm lần gửi chưa có kết quả, hộp thông báo, lượt nhắc gọi đọc `record_event`, `simple_record` bằng phép nối): Khẩn cấp ≤ 10 giây (NFR-03) trên dữ liệu demo cỡ thật; chậm thì thêm cột sinh, chỉ mục có tiền tố `m13_` ở file `_94` mới per NFR-03, plan: Gộp bảng theo R-15 (partial)
+- [x] T044 Đo lại phần NFR của quickstart sau gộp bảng T043 (job gửi tìm lần gửi chưa có kết quả, hộp thông báo, lượt nhắc gọi đọc `record_event`, `simple_record` bằng phép nối): Khẩn cấp ≤ 10 giây (NFR-03) trên dữ liệu demo cỡ thật; chậm thì thêm cột sinh, chỉ mục có tiền tố `m13_` ở file `_94` mới per NFR-03, plan: Gộp bảng theo R-15 (partial) *(2026-11-01: `SC_001_UrgentConcurrencyIT` trên dữ liệu một năm, chạy riêng; cột sinh, chỉ mục ở `V009_96` vì `_94` đã chạy; kết quả ở plan)*
