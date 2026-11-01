@@ -258,7 +258,7 @@ components:
         channels: { type: array, items: { type: object, properties: { channel: { type: string }, result: { type: string }, occurredAt: { type: string, format: date-time } } } }
         viewedAt: { type: string, format: date-time }
         acknowledgedAt: { type: string, format: date-time }
-        callReminders: { type: array, items: { type: object } }
+        callReminders: { type: array, description: 'Lượt nhắc gọi của chuỗi chứa thông báo và kết quả (FR-037)', items: { type: object, properties: { id: { type: integer, format: int64 }, personToCallType: { type: string, enum: [STAFF, FAMILY_MEMBER] }, personToCallId: { type: integer, format: int64 }, status: { type: string, enum: [AWAITING_RESULT, RESULT_RECORDED, STOPPED] }, results: { type: array, items: { type: object, properties: { result: { type: string, enum: [REACHED, NOT_REACHED] }, calledAt: { type: string, format: date-time } } } } } } }
         flags: { type: array, items: { type: string } }
     NotificationChannel:
       type: object

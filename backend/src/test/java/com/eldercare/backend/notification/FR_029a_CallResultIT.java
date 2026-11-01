@@ -98,6 +98,14 @@ class FR_029a_CallResultIT extends CallReminderTestBase {
                     assertThat(c.status()).isEqualTo("RESULT_RECORDED");
                     assertThat(c.results()).extracting(r -> r.result()).containsExactly("REACHED");
                 }));
+        // FR-037: lịch sử thông báo có lượt nhắc gọi và kết quả
+        mvc.perform(get("/api/v1/notification-history?sourceRecordType=M05.INCIDENT&sourceRecordId=kq-" + resident)
+                        .header("Authorization", bearer(users.staff(Role.NURSING_HOME_MANAGER))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].callReminders[0].id").value((int) id))
+                .andExpect(jsonPath("$[0].callReminders[0].personToCallType").value("STAFF"))
+                .andExpect(jsonPath("$[0].callReminders[0].status").value("RESULT_RECORDED"))
+                .andExpect(jsonPath("$[0].callReminders[0].results[0].result").value("REACHED"));
     }
 
     @Test
