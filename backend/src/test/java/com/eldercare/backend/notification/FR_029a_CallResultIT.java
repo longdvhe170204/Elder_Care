@@ -228,6 +228,22 @@ class FR_029a_CallResultIT extends CallReminderTestBase {
     }
 
     @Test
+    void FR_030_notReached_onlyThreeReasonsOfSpec() throws Exception {
+        TestUser lead = users.staff(Role.NURSING_STAFF);
+        TestUser late = users.staff(Role.NURSING_STAFF);
+        duties.shiftLead(floor, lead.staffId());
+        staffNotification(send(urgent("ly-do-" + resident, new RecipientGroup.Staff(late.staffId(), "X"))), late);
+        advance(PAST_CFG);
+        creation.run();
+        long id = reminders("STAFF", late.staffId()).getFirst();
+
+        record(id, lead, "{\"result\":\"NOT_REACHED\",\"calledAt\":\"" + time.now() + "\",\"reason\":\"OTHER\"}")
+                .andExpect(status().is4xxClientError());
+
+        assertThat(state(id)).containsEntry("status", "AWAITING_RESULT");
+    }
+
+    @Test
     void FR_027_myRemindersAndDetail_showCurrentPhoneAtOpen() throws Exception {
         TestUser lead = users.staff(Role.NURSING_STAFF);
         TestUser late = users.staff(Role.NURSING_STAFF);

@@ -153,7 +153,7 @@ class _CallResultFormState extends State<_CallResultForm> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final e in callReasonChoices.entries)
+                for (final e in callReasonLabels.entries)
                   ChoiceChip(
                     label: Text(e.value),
                     selected: _reason == e.key,

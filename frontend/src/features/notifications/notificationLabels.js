@@ -92,10 +92,8 @@ export const REMINDER_STATUS_LABELS = {
 
 export const CALL_RESULT_LABELS = { REACHED: 'Đã liên lạc được', NOT_REACHED: 'Không liên lạc được' }
 
-// Ba lý do của FR-030; `OTHER` có ở hợp đồng nhưng spec không nêu nên không cho chọn, chỉ hiện nếu dữ liệu có
-export const CALL_REASON_CHOICES = { NO_ANSWER: 'Không nghe máy', WRONG_NUMBER: 'Sai số', NO_NUMBER: 'Không có số' }
-
-export const CALL_REASON_LABELS = { ...CALL_REASON_CHOICES, OTHER: 'Khác' }
+// Ba lý do của FR-030
+export const CALL_REASON_LABELS = { NO_ANSWER: 'Không nghe máy', WRONG_NUMBER: 'Sai số', NO_NUMBER: 'Không có số' }
 
 // Lịch sử chuyển nhắc; mã khác hiện chung là "Chuyển nhắc"
 export const HANDOFF_LABELS = {

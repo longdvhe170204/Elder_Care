@@ -12,7 +12,6 @@ import { StatusBadge } from '@/common/StatusBadge'
 import { problemOf } from '@/common/problem'
 import { formatDateTime } from '@/common/dateTime'
 import {
-  CALL_REASON_CHOICES,
   CALL_REASON_LABELS,
   CALL_RESULT_LABELS,
   HANDOFF_LABELS,
@@ -277,7 +276,7 @@ function CallResultForm({ reminder, onSaved, onEnded, onBack }) {
                   onValueChange={(next) => next[0] && setReason(next[0])}
                   className="flex-wrap"
                 >
-                  {Object.entries(CALL_REASON_CHOICES).map(([value, text]) => (
+                  {Object.entries(CALL_REASON_LABELS).map(([value, text]) => (
                     <ToggleGroupItem key={value} value={value} className="h-11 px-4">
                       {text}
                     </ToggleGroupItem>
