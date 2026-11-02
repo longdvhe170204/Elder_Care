@@ -18,8 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 public class FacilitySources implements FacilityLicenseApi, FacilityContactApi {
-    private static final SharedKind<Map> LICENSE = SharedKind.of("M06.FACILITY_LICENSE", Map.class).notDeletable();
-    private static final SharedKind<Map> CONTACT = SharedKind.of("M06.FACILITY_CONTACT", Map.class).notDeletable();
+    private static final SharedKind<Map> LICENSE =
+            SharedKind.of("M06.FACILITY_LICENSE", Map.class).notDeletable();
+    private static final SharedKind<Map> CONTACT =
+            SharedKind.of("M06.FACILITY_CONTACT", Map.class).notDeletable();
     private final CatalogApi catalogs;
     private final BusinessTime time;
 
@@ -33,8 +35,10 @@ public class FacilitySources implements FacilityLicenseApi, FacilityContactApi {
         return usableLicenses().stream().anyMatch(row -> {
             var a = row.attributes();
             return Boolean.TRUE.equals(a.get("medicalCare"))
-                    && a.get("operationScopes") instanceof Collection<?> scopes && scopes.contains(scope)
-                    && !date.isBefore(date(a, "issueDate")) && !date.isAfter(date(a, "expiryDate"));
+                    && a.get("operationScopes") instanceof Collection<?> scopes
+                    && scopes.contains(scope)
+                    && !date.isBefore(date(a, "issueDate"))
+                    && !date.isAfter(date(a, "expiryDate"));
         });
     }
 
@@ -53,8 +57,10 @@ public class FacilitySources implements FacilityLicenseApi, FacilityContactApi {
     @Override
     public FacilityContactView current() {
         return catalogs.findByCode(CONTACT, null, "CURRENT")
-                .map(row -> new FacilityContactView((String) row.attributes().get("phoneNumber"),
-                        (String) row.attributes().get("note"), row.version()))
+                .map(row -> new FacilityContactView(
+                        (String) row.attributes().get("phoneNumber"),
+                        (String) row.attributes().get("note"),
+                        row.version()))
                 .orElseGet(() -> new FacilityContactView(null, null, 0));
     }
 
