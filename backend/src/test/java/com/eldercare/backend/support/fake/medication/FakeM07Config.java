@@ -14,6 +14,12 @@ public class FakeM07Config {
 
     @Bean
     @Primary
+    public FakeMedicationStatistics fakeMedicationStatistics() {
+        return new FakeMedicationStatistics();
+    }
+
+    @Bean
+    @Primary
     public FakeShiftNursePort fakeShiftNursePort() {
         return new FakeShiftNursePort();
     }

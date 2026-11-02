@@ -224,11 +224,6 @@ class RecordGroupTriggerIT extends MySqlIntegrationTestBase {
             "room_allowed_care_level",
             "room_isolation_history",
             "room_type_care_level",
-            // D (006, T069)
-            "m07_job_run",
-            "medication_active_ingredient",
-            "prescription_active_ingredient",
-            "resident_medication",
             // E (008, T050)
             "credential",
             "credential_practice_scope",

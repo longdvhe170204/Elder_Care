@@ -184,7 +184,7 @@ export function MedicationPage({ role }) {
       {mode === 'prn' ? (
         <PrnPanel canRecord={canRecord} now={shift.now} onSaved={setAnnouncement} />
       ) : mode === 'prescriptions' ? (
-        <PrescriptionPanel canRecord={canRecord} onSaved={setAnnouncement} />
+        <PrescriptionPanel role={role} canRecord={canRecord} onSaved={setAnnouncement} />
       ) : (
         <div className="flex flex-col gap-6">
           {times.map((t) => {

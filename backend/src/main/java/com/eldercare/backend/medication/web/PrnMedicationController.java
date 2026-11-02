@@ -2,9 +2,9 @@ package com.eldercare.backend.medication.web;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.common.error.web.ProblemBody;
-import com.eldercare.backend.medication.internal.service.ActorNames;
-import com.eldercare.backend.medication.internal.service.PrnMedicationService;
-import com.eldercare.backend.medication.internal.service.request.RecordPrnBody;
+import com.eldercare.backend.medication.internal.dose.domain.RecordPrnBody;
+import com.eldercare.backend.medication.internal.dose.service.PrnMedicationService;
+import com.eldercare.backend.medication.internal.governance.service.ActorNames;
 import com.eldercare.backend.medication.web.request.DoseRequests.ResultBasis;
 import com.eldercare.backend.medication.web.request.NewPrnAdministrationRequest;
 import com.eldercare.backend.medication.web.response.PrnBodies.PrnHistoryBody;
