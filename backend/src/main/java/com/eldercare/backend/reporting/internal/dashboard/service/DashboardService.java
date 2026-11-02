@@ -41,9 +41,11 @@ public class DashboardService {
     /** Nhóm chỉ tiêu của bảng FR-020, theo thứ tự dòng. */
     static final List<MetricGroup> GROUPS = List.of(
             MetricGroup.RESIDENTS,
+            MetricGroup.WAITING_LIST,
             MetricGroup.BEDS,
             MetricGroup.CARE_TASKS,
             MetricGroup.HEALTH_EVENTS,
+            MetricGroup.NON_HEALTH_INCIDENTS,
             MetricGroup.ACTIVITIES,
             MetricGroup.INCURRED_COSTS,
             MetricGroup.BALANCES,
@@ -109,6 +111,11 @@ public class DashboardService {
         List<Block> blocks = new ArrayList<>();
         for (MetricGroup group : GROUPS) {
             if (!scopes.visible(user, group, ReportChannel.DASHBOARD)) {
+                continue;
+            }
+            // người thấy nhóm sức khỏe đã có mọi sự cố ở đó; khối riêng chỉ cho Hành chính (FR-042a)
+            if (group == MetricGroup.NON_HEALTH_INCIDENTS
+                    && scopes.visible(user, MetricGroup.HEALTH_EVENTS, ReportChannel.DASHBOARD)) {
                 continue;
             }
             ReportScope scope = scopes.dashboard(user, group);

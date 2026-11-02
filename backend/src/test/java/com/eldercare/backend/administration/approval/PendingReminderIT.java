@@ -5,9 +5,9 @@ import static com.eldercare.backend.administration.approval.ApprovalFixtures.MAN
 import static com.eldercare.backend.administration.approval.ApprovalFixtures.OFFICE_B;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.administration.approval.api.ApproverReminderDue;
-import com.eldercare.backend.administration.approval.api.ManagerEscalationDue;
 import com.eldercare.backend.administration.approval.api.OverdueReminder.EscalationReason;
+import com.eldercare.backend.administration.approval.api.events.ApproverReminderDue;
+import com.eldercare.backend.administration.approval.api.events.ManagerEscalationDue;
 import com.eldercare.backend.common.Role;
 import java.time.Duration;
 import java.time.Instant;

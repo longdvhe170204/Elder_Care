@@ -131,6 +131,33 @@ describe('StatusTab', () => {
     expect(screen.queryByRole('button', { name: /Cho tạm vắng|Kết thúc/ })).not.toBeInTheDocument()
   })
 
+  it('Kế toán không có lệnh trạng thái: chỉ xem, không có nút nào (hồi quy NCT-2026-000008)', async () => {
+    routes()
+    open({ allowedCommands: [] })
+    expect(await screen.findByText('Bạn không có lệnh nào dùng được ở trạng thái này.')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', {
+        name: /Hoàn tất tiếp nhận|Hủy tiếp nhận|Cho tạm vắng|Ghi nhận trở về|Chuyển viện|Kết thúc lưu trú|Ghi nhận qua đời/,
+      }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('máy chủ từ chối 403 khi gửi: báo không có quyền trong khung, không báo đã chuyển trạng thái', async () => {
+    routes()
+    api.on('POST', '/residents/5/end-residency', problem(403, 'PERMISSION_DENIED', { detail: 'Không có quyền' }))
+    const onChanged = vi.fn()
+    open({ allowedCommands: ['END_RESIDENCY'], onChanged })
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Kết thúc lưu trú' }))
+    fireEvent.change(await screen.findByLabelText(/Lý do/), { target: { value: 'Hết hợp đồng' } })
+    await submitReady('Xác nhận kết thúc lưu trú')
+
+    const alerts = await screen.findAllByRole('alert')
+    expect(alerts.some((a) => a.textContent.includes('Không có quyền'))).toBe(true)
+    expect(screen.queryByText(/Đã chuyển sang/)).not.toBeInTheDocument()
+    expect(onChanged).not.toHaveBeenCalled()
+  })
+
   it('vai trò không được xem thì hiện trạng thái không có quyền', async () => {
     routes({ forbidden: true })
     open()

@@ -145,7 +145,8 @@ class FR_029a_CallResultIT extends CallReminderTestBase {
         record(first, lead, reached()).andExpect(status().isCreated());
         assertThat(notificationStatus(notification)).isEqualTo("ACKNOWLEDGED/LATE_BY_CALL");
         assertThat(jdbc.queryForObject(
-                        "SELECT supplementary FROM call_result WHERE call_reminder_id = ? ORDER BY id DESC LIMIT 1",
+                        "SELECT content->>'$.supplementary' = 'true' FROM record_event WHERE kind = 'M13.CALL_RESULT'"
+                                + " AND entity_type = 'M13.CALL_REMINDER' AND entity_id = ? ORDER BY id DESC LIMIT 1",
                         Boolean.class,
                         first))
                 .isTrue();

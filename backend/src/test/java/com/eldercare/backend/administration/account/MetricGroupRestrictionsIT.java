@@ -48,7 +48,7 @@ class MetricGroupRestrictionsIT extends MySqlIntegrationTestBase {
     @AfterEach
     void closeRoleRestriction() {
         if (roleRestrictionId != null) {
-            jdbc.update("UPDATE permission_restriction SET effective_to = ? WHERE id = ?", now(), roleRestrictionId);
+            jdbc.update("UPDATE permission_assignment SET effective_to = ? WHERE id = ?", now(), roleRestrictionId);
         }
     }
 
@@ -99,9 +99,10 @@ class MetricGroupRestrictionsIT extends MySqlIntegrationTestBase {
     private long restrict(String appliesTo, String role, Long accountId, String kind, String group, String channel) {
         jdbc.update(
                 """
-                INSERT INTO permission_restriction (applies_to, role, account_id, function_code, operation, kind,
-                                                    metric_group, channel, effective_from, actor_id, reason)
-                VALUES (?, ?, ?, 'DASHBOARD_REPORT', 'VIEW', ?, ?, ?, ?, 1, 'Test')
+                INSERT INTO permission_assignment (kind, applies_to, role, account_id, function_code, operation,
+                                                   restriction_kind, metric_group, channel, effective_from, actor_id,
+                                                   reason)
+                VALUES ('RESTRICTION', ?, ?, ?, 'DASHBOARD_REPORT', 'VIEW', ?, ?, ?, ?, 1, 'Test')
                 """,
                 appliesTo,
                 role,
@@ -110,7 +111,7 @@ class MetricGroupRestrictionsIT extends MySqlIntegrationTestBase {
                 group,
                 channel,
                 LocalDateTime.ofInstant(time.now().minusSeconds(60), ZoneOffset.UTC));
-        return jdbc.queryForObject("SELECT MAX(id) FROM permission_restriction", Long.class);
+        return jdbc.queryForObject("SELECT MAX(id) FROM permission_assignment WHERE kind = 'RESTRICTION'", Long.class);
     }
 
     private LocalDateTime now() {

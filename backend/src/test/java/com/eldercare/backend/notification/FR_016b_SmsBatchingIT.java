@@ -62,13 +62,15 @@ class FR_016b_SmsBatchingIT extends M13IntegrationTestBase {
         users = new TestUsers(jdbc, time);
         staff = users.staff(Role.ACCOUNTANT);
         profiles.phone(staff.staffId(), "0902222001");
-        jdbc.update("UPDATE notification_channel SET enabled = TRUE WHERE code = 'SMS'");
+        jdbc.update("UPDATE catalog_item SET attributes = JSON_SET(attributes, '$.enabled', CAST('true' AS JSON))"
+                + " WHERE catalog_type = 'M13.NOTIFICATION_CHANNEL' AND code = 'SMS'");
         sms.reset();
     }
 
     @AfterEach
     void reset() {
-        jdbc.update("UPDATE notification_channel SET enabled = FALSE WHERE code = 'SMS'");
+        jdbc.update("UPDATE catalog_item SET attributes = JSON_SET(attributes, '$.enabled', CAST('false' AS JSON))"
+                + " WHERE catalog_type = 'M13.NOTIFICATION_CHANNEL' AND code = 'SMS'");
         clock.reset();
         sms.reset();
     }
@@ -129,9 +131,10 @@ class FR_016b_SmsBatchingIT extends M13IntegrationTestBase {
         await().atMost(Duration.ofSeconds(10)).until(() -> sms.sent().size() == 3);
         assertThat(sentContents().get(2)).contains("2 thông báo mới").doesNotContain("Rút gọn");
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM delivery_result r JOIN delivery_attempt a ON a.id = r.attempt_id"
-                                + " JOIN notification_state s ON s.notification_id = a.notification_id"
-                                + " WHERE s.recipient_key = ? AND r.result = 'BATCHED' AND r.digest_attempt_id IS NOT NULL",
+                        "SELECT COUNT(*) FROM record_event a JOIN record_event r ON r.kind = 'M13.DELIVERY_RESULT' AND r.entity_type = 'M13.DELIVERY_ATTEMPT' AND r.entity_id = a.id"
+                                + " JOIN notification n ON n.id = a.entity_id WHERE a.kind = 'M13.DELIVERY_ATTEMPT'"
+                                + " AND a.entity_type = 'M13.NOTIFICATION' AND n.recipient_key = ? AND r.m13_result = 'BATCHED'"
+                                + " AND JSON_VALUE(r.content, '$.digestAttemptId' RETURNING SIGNED) IS NOT NULL",
                         Integer.class,
                         "STAFF:" + staff.staffId()))
                 .isEqualTo(2);
@@ -140,7 +143,8 @@ class FR_016b_SmsBatchingIT extends M13IntegrationTestBase {
         clock.setTo(at("2030-03-04T10:10:04"));
         closer.run();
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM sms_batch_window WHERE recipient_key = ? AND closed_at IS NULL",
+                        "SELECT COUNT(*) FROM simple_record WHERE kind = 'M13.SMS_BATCH_WINDOW'"
+                                + " AND content->>'$.recipientKey' = ? AND status = 'OPEN'",
                         Integer.class,
                         "STAFF:" + staff.staffId()))
                 .isZero();

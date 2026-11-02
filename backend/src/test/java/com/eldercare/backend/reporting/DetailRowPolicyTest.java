@@ -11,6 +11,7 @@ import com.eldercare.backend.administration.account.api.dto.ReviewRecipient;
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.dto.Visibility;
+import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.reporting.internal.metric.domain.DetailRow;
 import com.eldercare.backend.reporting.internal.scope.service.DetailRowPolicy;
@@ -37,6 +38,11 @@ class DetailRowPolicyTest {
 
         @Override
         public ScopeFilter filter(CurrentUser user, PermissionKey key) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ScopeFilter assignedFilter(CurrentUser user, Set<AssignmentKind> kinds) {
             throw new UnsupportedOperationException();
         }
 

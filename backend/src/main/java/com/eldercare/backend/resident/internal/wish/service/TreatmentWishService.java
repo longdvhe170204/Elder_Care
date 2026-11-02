@@ -6,9 +6,9 @@ import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.FamilyRelationshipApi;
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.NotFoundException;
@@ -27,9 +27,9 @@ import com.eldercare.backend.resident.internal.health.service.ActorNames;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepository;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService;
 import com.eldercare.backend.resident.internal.status.service.ProfileOpenGuard;
+import com.eldercare.backend.resident.internal.wish.domain.NewTreatmentWish;
 import com.eldercare.backend.resident.internal.wish.domain.TreatmentWish;
 import com.eldercare.backend.resident.internal.wish.persistence.TreatmentWishStore;
-import com.eldercare.backend.resident.internal.wish.persistence.TreatmentWishStore.NewWish;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -142,7 +142,7 @@ public class TreatmentWishService {
         Optional<TreatmentWish> previous = store.findActive(residentId);
         previous.ifPresent(old -> store.expire(old.id()));
         long id = store.insert(
-                new NewWish(
+                new NewTreatmentWish(
                         residentId,
                         command.preferredHospitals().stream()
                                 .map(h -> new PreferredHospital(
@@ -216,6 +216,16 @@ public class TreatmentWishService {
                                 ? null
                                 : family.registeredPhoneNumber(memberId).orElse(null)))
                 .toList();
+    }
+
+    /** Mã quan hệ của người cần báo với người cao tuổi (FR-023l); 012 chưa có bản cài hoặc không có quan hệ thì trống. */
+    public String relationshipOf(TreatmentWish wish, long familyMemberId) {
+        FamilyRelationshipApi family = relationships.getIfAvailable();
+        return family == null
+                ? null
+                : family.relationship(familyMemberId, wish.residentId())
+                        .map(Enum::name)
+                        .orElse(null);
     }
 
     /** Họ tên người ghi để hiện. */

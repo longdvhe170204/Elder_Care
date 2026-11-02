@@ -6,6 +6,7 @@ import com.eldercare.backend.resident.api.dto.OpinionSourceType;
 import com.eldercare.backend.resident.api.dto.PreferredHospital;
 import com.eldercare.backend.resident.api.dto.TreatmentEscort;
 import com.eldercare.backend.resident.api.dto.WishOpinion;
+import com.eldercare.backend.resident.internal.wish.domain.NewTreatmentWish;
 import com.eldercare.backend.resident.internal.wish.domain.RecordedOpinion;
 import com.eldercare.backend.resident.internal.wish.domain.TreatmentWish;
 import com.eldercare.backend.resident.internal.wish.domain.TreatmentWishStatus;
@@ -42,22 +43,8 @@ public class TreatmentWishStore {
         this.jdbc = jdbc;
     }
 
-    /** Dữ liệu một phiên bản mới. */
-    public record NewWish(
-            long residentId,
-            List<PreferredHospital> preferredHospitals,
-            HealthInsurance healthInsurance,
-            boolean askFamilyFirst,
-            List<Long> notifyFamilyMemberIds,
-            TreatmentEscort accompaniedBy,
-            String note,
-            OpinionSource respondent,
-            Long signedCopyFileId,
-            long recordedBy,
-            Instant recordedAt) {}
-
     /** Thêm phiên bản Hiệu lực cùng người cần báo và các ý kiến khác; trả id. */
-    public long insert(NewWish wish, List<WishOpinion> opinions) {
+    public long insert(NewTreatmentWish wish, List<WishOpinion> opinions) {
         var keys = new GeneratedKeyHolder();
         jdbc.update(
                 connection -> {

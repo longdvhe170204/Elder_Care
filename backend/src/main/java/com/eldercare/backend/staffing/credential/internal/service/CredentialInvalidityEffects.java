@@ -1,6 +1,7 @@
 package com.eldercare.backend.staffing.credential.internal.service;
 
 import com.eldercare.backend.administration.auditlog.api.*;
+import com.eldercare.backend.administration.auditlog.api.dto.*;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.staffing.api.events.*;
 import com.eldercare.backend.staffing.assignment.internal.persistence.AssignmentStore;

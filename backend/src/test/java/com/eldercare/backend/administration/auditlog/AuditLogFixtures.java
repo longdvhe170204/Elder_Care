@@ -3,7 +3,7 @@ package com.eldercare.backend.administration.auditlog;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.dto.InfoGroup;
 import com.eldercare.backend.administration.account.api.dto.Visibility;
-import com.eldercare.backend.administration.auditlog.api.AuditLogPermissions;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogPermissions;
 import com.eldercare.backend.administration.auditlog.api.spi.FieldClassificationProvider;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.support.FakePermissions;

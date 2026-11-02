@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * Lần đầu gặp dữ liệu quyền thiếu hoặc mâu thuẫn; báo Quản lý viện (FR-041b). {@code errorId} là dòng
- * {@code permission_data_error} đang mở.
+ * lỗi đang mở ({@code simple_record} loại {@code M15.PERMISSION_DATA_ERROR}).
  */
 public record PermissionDataError(long errorId, String source, Long recordId, String errorKind, Instant at)
         implements HasNotificationRequests {

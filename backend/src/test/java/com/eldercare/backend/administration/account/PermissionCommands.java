@@ -26,16 +26,23 @@ record PermissionCommands(MockMvc mvc, JdbcTemplate jdbc) {
     }
 
     String roleVersion(String role) {
-        return "\"" + jdbc.queryForObject("SELECT permission_version FROM role WHERE code = ?", Long.class, role)
+        return "\""
+                + jdbc.queryForObject(
+                        "SELECT CAST(attributes->'$.permissionVersion' AS SIGNED) FROM catalog_item"
+                                + " WHERE catalog_type = 'M15.ROLE' AND code = ?",
+                        Long.class,
+                        role)
                 + "\"";
     }
 
     /** Đóng mọi thu hẹp theo vai trò còn hiệu lực, tăng phiên bản để bộ đệm quyền của test khác tính lại. */
     void closeRoleRestrictions() {
-        jdbc.update("UPDATE role SET permission_version = permission_version + 1 WHERE code IN"
-                + " (SELECT role FROM permission_restriction WHERE applies_to = 'ROLE' AND effective_to IS NULL)");
-        jdbc.update("UPDATE permission_restriction SET effective_to = effective_from"
-                + " WHERE applies_to = 'ROLE' AND effective_to IS NULL");
+        jdbc.update("UPDATE catalog_item SET attributes = JSON_SET(attributes, '$.permissionVersion',"
+                + " CAST(attributes->'$.permissionVersion' AS SIGNED) + 1), version = version + 1"
+                + " WHERE catalog_type = 'M15.ROLE' AND code IN (SELECT role FROM permission_assignment"
+                + " WHERE kind = 'RESTRICTION' AND applies_to = 'ROLE' AND effective_to IS NULL)");
+        jdbc.update("UPDATE permission_assignment SET effective_to = effective_from"
+                + " WHERE kind = 'RESTRICTION' AND applies_to = 'ROLE' AND effective_to IS NULL");
     }
 
     static String restrict(String function, String operation, String kind) {

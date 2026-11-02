@@ -9,10 +9,9 @@ import com.eldercare.backend.administration.account.api.spi.PracticeScopeCatalog
 import com.eldercare.backend.administration.account.api.spi.PracticeScopeView;
 import com.eldercare.backend.administration.account.internal.auth.service.AccountService;
 import com.eldercare.backend.administration.account.internal.legal.domain.ProfessionalActivity;
-import com.eldercare.backend.administration.account.internal.legal.persistence.ProfessionalActivities;
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;
@@ -25,7 +24,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,13 +76,11 @@ public class ProfessionalActivityService implements ProfessionalActivityApi {
         AccountService.requireManager(currentUser.getObject());
         Function function = function(input.function());
         Set<Long> scopes = practiceScopes(input.practiceScopes());
-        long id;
-        try {
-            id = activities.insert(input.name().strip(), function, input.requiredLicenseType(), input.facility());
-        } catch (DuplicateKeyException e) {
+        if (activities.nameTaken(input.name().strip(), 0)) {
             throw duplicateName();
         }
-        activities.replacePracticeScopes(id, scopes);
+        long id = activities.insert(
+                input.name().strip(), function, input.requiredLicenseType(), input.facility(), scopes);
         ProfessionalActivity created = activities.find(id).orElseThrow();
         audit(CREATED, id, null, snapshot(created), reason);
         return created;
@@ -102,12 +98,10 @@ public class ProfessionalActivityService implements ProfessionalActivityApi {
             throw new BusinessException(HttpStatus.CONFLICT, "DEFAULT_ITEM", "Không đổi chức năng của mục mặc định");
         }
         Set<Long> scopes = practiceScopes(input.practiceScopes());
-        try {
-            activities.update(id, input.name().strip(), function, input.requiredLicenseType(), input.facility());
-        } catch (DuplicateKeyException e) {
+        if (before.active() && activities.nameTaken(input.name().strip(), id)) {
             throw duplicateName();
         }
-        activities.replacePracticeScopes(id, scopes);
+        activities.update(id, input.name().strip(), function, input.requiredLicenseType(), input.facility(), scopes);
         ProfessionalActivity after = activities.find(id).orElseThrow();
         audit(UPDATED, id, snapshot(before), snapshot(after), reason);
         return after;

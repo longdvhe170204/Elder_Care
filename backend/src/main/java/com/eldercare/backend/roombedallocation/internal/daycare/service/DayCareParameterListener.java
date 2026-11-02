@@ -1,7 +1,7 @@
 package com.eldercare.backend.roombedallocation.internal.daycare.service;
 
-import com.eldercare.backend.administration.parameter.api.ParameterChanged;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.events.ParameterChanged;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
 

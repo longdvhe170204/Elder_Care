@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.eldercare.backend.administration.account.api.spi.FamilyRelationshipType;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.support.TestUsers.TestUser;
 import java.util.Set;
@@ -56,6 +57,25 @@ class TreatmentWishVisibilityIT extends WishTestBase {
                 .andExpect(jsonPath("$.active.status").value("ACTIVE"))
                 .andExpect(jsonPath("$.active.preferredHospitals[0].name").value("Bệnh viện X"))
                 .andExpect(jsonPath("$.history", hasSize(2)));
+    }
+
+    @Test
+    void FR_023l_notifyFamilyMember_carriesTheRelationshipCode() throws Exception {
+        long residentId = newResident();
+        long child = newFamilyMember();
+        families.relate(child, residentId, FamilyRelationshipType.CHILD);
+        assignNurse(nurse, residentId);
+        user.set(nurse.user());
+        treatments.record(
+                target(residentId), new TreatmentCommandBuilder().notify(child).build());
+        user.set(doctor.user());
+
+        mvc.perform(get(url(residentId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.active.notifyFamilyMembers[0].familyMemberId")
+                        .value(child))
+                .andExpect(
+                        jsonPath("$.active.notifyFamilyMembers[0].relationship").value("CHILD"));
     }
 
     @Test

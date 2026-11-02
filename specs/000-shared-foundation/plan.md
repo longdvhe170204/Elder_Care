@@ -317,3 +317,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 
 - Bảy bảng dùng chung, khóa theo dòng, log lần chạy job ra file: research R-15, data-model mục 8, task T108. Hệ thống còn 79 bảng.
 - Bảo đảm nhóm dữ liệu (R-05) với bảng chứa nhiều nhóm: trigger theo dòng (`khoa_luc`) thay quyền theo bảng; `RecordGroupTriggerIT` kiểm mọi bảng có `khoa_luc`.
+
+## Ghi chú T098 hộp duyệt app nhân viên (2026-11-01, nhánh `impl/000-mobile-approval-inbox`)
+
+- `mobile/lib/staff/approval_requests/`: ba hộp bằng chip kèm số đếm "Chờ tôi duyệt", lọc trạng thái, loại yêu cầu như web; dòng hai dòng theo DESIGN.md 15.4; chi tiết là màn riêng (15.3), hai nút chia đều chân màn, cùng thứ tự nội dung và chữ với web T097 (mục 13 điều 7). Mục điều hướng "Phê duyệt" cho mọi nhân viên, như menu web. Sửa nội dung nháp không có, như web.
+- Đầu màn xanh đêm (15.4): `common/widgets/header_app_bar.dart`, chủ dự án chọn áp trước cho hai màn này; `StaffRoot._headerTabs` ghi tab đã áp, tab khác giữ thanh của theme tới khi đổi một lượt.
+- Chỉ trực tuyến (R-13): lệnh không vào hàng đợi ngoại tuyến, mất mạng báo "Kiểm tra mạng". If-Match lấy từ `version` của thân phản hồi (`VersionEtag`), vì `ApiClient` không trả header.

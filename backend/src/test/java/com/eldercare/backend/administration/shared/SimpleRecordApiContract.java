@@ -59,6 +59,25 @@ public interface SimpleRecordApiContract {
                 .isInstanceOf(NotFoundException.class);
     }
 
+    /** Đổi api 2026-10-30 (002 T098): theo loại và trạng thái, không cần người cao tuổi hay đối tượng cha. */
+    @Test
+    default void listByStatus_filtersKindAndStatus_byId() {
+        String waiting = "W" + TestUsers.nextId();
+        String done = "D" + TestUsers.nextId();
+        SimpleRecord<Attributes> first = tx(() -> records().create(RECORD, record(null, null, waiting, null)));
+        SimpleRecord<Attributes> closed = tx(() -> records().create(RECORD, record(null, null, done, null)));
+        SimpleRecord<Attributes> second =
+                tx(() -> records().create(RECORD, record(TestUsers.nextId(), null, waiting, null)));
+        tx(() -> records().create(OTHER_RECORD, record(null, null, waiting, null)));
+
+        assertThat(tx(() -> records().listByStatus(RECORD, Set.of(waiting))))
+                .extracting(SimpleRecord::id)
+                .containsExactly(first.id(), second.id());
+        assertThat(tx(() -> records().listByStatus(RECORD, Set.of(waiting, done))))
+                .extracting(SimpleRecord::id)
+                .containsExactly(first.id(), closed.id(), second.id());
+    }
+
     @Test
     default void change_checksVersion_thenLockBlocksFurtherChanges() {
         SimpleRecord<Attributes> r = tx(() -> records().create(RECORD, record(TestUsers.nextId(), null, "OPEN", null)));

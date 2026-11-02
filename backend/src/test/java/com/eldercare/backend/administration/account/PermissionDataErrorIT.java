@@ -44,7 +44,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * 002 T024 (FR-041b; research A-10; CHK059): dữ liệu nguồn lỗi thì từ chối lớp {@code SOURCE_DATA}; bảng
- * {@code permission_data_error} gộp theo (nguồn, bản ghi, loại lỗi) đang mở, lần đầu phát {@code PermissionDataError}
+ * lỗi dữ liệu quyền ({@code simple_record} loại {@code M15.PERMISSION_DATA_ERROR}) gộp theo (nguồn, bản ghi, loại lỗi) đang mở, lần đầu phát {@code PermissionDataError}
  * báo Quản lý viện, các lần sau chỉ tăng bộ đếm; mỗi lần từ chối ghi nhật ký; lần kiểm tra kế tiếp đọc được dữ liệu
  * hợp lệ thì đánh dấu đã khắc phục. Bản ghi lỗi giữ lại dù lệnh bị từ chối rollback.
  */
@@ -104,7 +104,7 @@ class PermissionDataErrorIT extends MySqlIntegrationTestBase {
         assertThat(error)
                 .containsEntry("source", "M03.BED_ALLOCATION")
                 .containsEntry("error_kind", "TWO_OPEN_ALLOCATIONS")
-                .containsEntry("occurrences", 2);
+                .containsEntry("occurrences", 2L);
         assertThat(events.stream(PermissionDataError.class)
                         .filter(e -> e.recordId() == broken)
                         .map(e -> List.<Object>of(e.errorId(), e.source(), e.errorKind())))
@@ -130,13 +130,14 @@ class PermissionDataErrorIT extends MySqlIntegrationTestBase {
                 .isTrue();
 
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM permission_data_error WHERE record_id = ? AND fixed_at IS NOT NULL",
+                        "SELECT COUNT(*) FROM simple_record WHERE kind = 'M15.PERMISSION_DATA_ERROR'"
+                                + " AND JSON_VALUE(content, '$.recordId' RETURNING SIGNED) = ? AND status = 'FIXED'",
                         Integer.class,
                         resident))
                 .isEqualTo(1);
         bedAllocations.invalid(resident, "TWO_OPEN_ALLOCATIONS");
         permissions.hasPermission(caregiver, RECORD_TASK, resident(resident));
-        assertThat(openError(resident)).containsEntry("occurrences", 1);
+        assertThat(openError(resident)).containsEntry("occurrences", 1L);
         assertThat(events.stream(PermissionDataError.class).filter(e -> e.recordId() == resident))
                 .hasSize(2);
     }
@@ -151,13 +152,15 @@ class PermissionDataErrorIT extends MySqlIntegrationTestBase {
             status.setRollbackOnly();
         });
 
-        assertThat(openError(broken)).containsEntry("occurrences", 1);
+        assertThat(openError(broken)).containsEntry("occurrences", 1L);
     }
 
     private Map<String, Object> openError(long recordId) {
         return jdbc.queryForMap(
-                "SELECT id, source, error_kind, occurrences FROM permission_data_error"
-                        + " WHERE record_id = ? AND fixed_at IS NULL",
+                "SELECT id, content->>'$.source' AS source, content->>'$.errorKind' AS error_kind,"
+                        + " JSON_VALUE(content, '$.occurrences' RETURNING SIGNED) AS occurrences FROM simple_record WHERE kind = 'M15.PERMISSION_DATA_ERROR'"
+                        + " AND JSON_VALUE(content, '$.recordId' RETURNING SIGNED) = ?"
+                        + " AND status = 'OPEN'",
                 recordId);
     }
 
@@ -171,7 +174,8 @@ class PermissionDataErrorIT extends MySqlIntegrationTestBase {
                 """, "data-error-it-" + staffId, staffId, created, created);
         long accountId = jdbc.queryForObject("SELECT id FROM account WHERE staff_id = ?", Long.class, staffId);
         jdbc.update(
-                "INSERT INTO role_assignment (account_id, role, effective_from, reason) VALUES (?, ?, ?, 'Test')",
+                "INSERT INTO permission_assignment (kind, applies_to, account_id, role, effective_from, reason)"
+                        + " VALUES ('ROLE_ASSIGNMENT', 'ACCOUNT', ?, ?, ?, 'Test')",
                 accountId,
                 role.code(),
                 created);
