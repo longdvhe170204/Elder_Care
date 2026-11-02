@@ -6,22 +6,22 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
-import com.eldercare.backend.medication.internal.domain.FrequencyType;
-import com.eldercare.backend.medication.internal.domain.Medication;
-import com.eldercare.backend.medication.internal.domain.PrescriberType;
-import com.eldercare.backend.medication.internal.domain.Prescription;
-import com.eldercare.backend.medication.internal.domain.PrescriptionBasis;
-import com.eldercare.backend.medication.internal.domain.PrescriptionBasisCommand;
-import com.eldercare.backend.medication.internal.domain.PrescriptionBasisType;
-import com.eldercare.backend.medication.internal.domain.PrescriptionStatus;
-import com.eldercare.backend.medication.internal.domain.PrescriptionType;
-import com.eldercare.backend.medication.internal.persistence.MedicationRepository;
-import com.eldercare.backend.medication.internal.persistence.PrescriptionBasisRepository;
-import com.eldercare.backend.medication.internal.persistence.PrescriptionRepository;
-import com.eldercare.backend.medication.internal.service.PrescriptionService;
-import com.eldercare.backend.medication.internal.service.request.DiscontinuePrescriptionBody;
-import com.eldercare.backend.medication.internal.service.request.ExternalBasisBody;
-import com.eldercare.backend.medication.internal.service.request.OrderPrescriptionBody;
+import com.eldercare.backend.medication.internal.catalog.domain.Medication;
+import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
+import com.eldercare.backend.medication.internal.prescription.domain.DiscontinuePrescriptionBody;
+import com.eldercare.backend.medication.internal.prescription.domain.ExternalBasisBody;
+import com.eldercare.backend.medication.internal.prescription.domain.FrequencyType;
+import com.eldercare.backend.medication.internal.prescription.domain.OrderPrescriptionBody;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriberType;
+import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionBasis;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionBasisCommand;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionBasisType;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionType;
+import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionBasisRepository;
+import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
+import com.eldercare.backend.medication.internal.prescription.service.PrescriptionService;
 import com.eldercare.backend.support.TestUsers;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -59,7 +59,8 @@ class BR_M07_16_ExternalPrescriberBasisIT extends M07IntegrationTestBase {
     @BeforeEach
     void setUp() {
         jdbc.update(
-                "INSERT INTO resident_medication (resident_id, version) VALUES (?, 0) "
+                "INSERT INTO resident_module_state (resident_id, module, data, version, updated_at)"
+                        + " VALUES (?, 'M07', JSON_OBJECT(), 0, UTC_TIMESTAMP(6)) "
                         + "ON DUPLICATE KEY UPDATE version = version",
                 residentId);
 

@@ -427,10 +427,10 @@ class FR_003_CarePlanLifecycleIT extends MySqlIntegrationTestBase {
                 .findFirst();
         assertThat(work).isPresent();
         var remind = parameters
-                .read(com.eldercare.backend.administration.parameter.api.ParameterCode.CFG_M15_05)
+                .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M15_05)
                 .asDuration();
         var escalate = parameters
-                .read(com.eldercare.backend.administration.parameter.api.ParameterCode.CFG_M15_06)
+                .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M15_06)
                 .asDuration();
         jdbc.update(
                 "UPDATE care_plan SET submitted_at=? WHERE id=?",

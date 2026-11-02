@@ -1,6 +1,6 @@
 package com.eldercare.backend.staffing.shift.internal.service.port;
 
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.Reason;
 
 /** Căn cứ vào ca của 015; lý do được truyền từ lệnh gọi khi cần xác nhận cảnh báo. */

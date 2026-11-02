@@ -66,7 +66,7 @@ class BR_M04_05_OverdueReminderIT extends CareOverdueTestBase {
         var at = task.windowTo().plusSeconds(600);
         step.run(at);
         var delay = context.getBean(com.eldercare.backend.administration.parameter.api.ParameterApi.class)
-                .read(com.eldercare.backend.administration.parameter.api.ParameterCode.CFG_M04_12)
+                .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M04_12)
                 .asDuration();
         step.run(at.plus(delay).minusNanos(1000));
         assertThat(recorded.stream(OverdueTaskNeedsHandling.class).filter(e -> e.taskId() == id))

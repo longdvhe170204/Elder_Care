@@ -1,6 +1,7 @@
 package com.eldercare.backend.care.internal.attendance.service;
 
 import com.eldercare.backend.administration.parameter.api.*;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.care.api.dto.AttendanceStatus;
 import com.eldercare.backend.care.api.events.*;
 import com.eldercare.backend.care.internal.attendance.persistence.AttendanceStore;

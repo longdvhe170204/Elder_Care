@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
@@ -30,6 +31,9 @@ class IdempotencyFilterIT extends MySqlIntegrationTestBase {
     @Autowired
     SampleController sample;
 
+    @Autowired
+    JdbcTemplate jdbc;
+
     @BeforeEach
     void resetCounter() {
         sample.created.set(0);
@@ -42,6 +46,30 @@ class IdempotencyFilterIT extends MySqlIntegrationTestBase {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"" + name + "\"}");
         return key == null ? request : request.header("Idempotency-Key", key);
+    }
+
+    @Test
+    void NFR_08_secretResponse_notStored_replayRefused_commandRunsOnce() throws Exception {
+        String key = UUID.randomUUID().toString();
+        MockHttpServletRequestBuilder secret = post("/api/v1/test-support/secrets")
+                .with(csrf())
+                .with(user("a"))
+                .header("Idempotency-Key", key)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}");
+
+        mvc.perform(secret)
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.secret").value("bi-mat-1"));
+
+        assertThat(jdbc.queryForObject(
+                        "SELECT result_json FROM idempotency_key WHERE key_value = ?", String.class, key))
+                .isNotNull()
+                .doesNotContain("bi-mat-1");
+        mvc.perform(secret)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("IDEMPOTENCY_RESULT_NOT_KEPT"));
+        assertThat(sample.created).hasValue(1);
     }
 
     @Test

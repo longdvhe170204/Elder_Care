@@ -5,6 +5,9 @@ import static org.mockito.Mockito.*;
 
 import com.eldercare.backend.administration.account.api.PermissionApi;
 import com.eldercare.backend.administration.correction.api.*;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionView;
+import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.care.internal.result.persistence.CareResultStore;
 import com.eldercare.backend.care.internal.result.service.*;
 import com.eldercare.backend.care.internal.status.persistence.CareLockStore;

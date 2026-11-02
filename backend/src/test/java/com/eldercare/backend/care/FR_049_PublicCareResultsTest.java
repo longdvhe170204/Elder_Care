@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.eldercare.backend.administration.correction.api.*;
+import com.eldercare.backend.administration.correction.api.dto.CurrentValue;
 import com.eldercare.backend.care.api.PublicCareResultApi;
 import com.eldercare.backend.care.api.dto.ResultType;
 import com.eldercare.backend.care.internal.result.domain.CareResult;

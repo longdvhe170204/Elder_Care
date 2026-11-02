@@ -99,14 +99,16 @@ abstract class CallReminderTestBase extends M13IntegrationTestBase {
     private void isolateFromOtherTests() {
         for (int attempt = 1; ; attempt++) {
             try {
-                jdbc.update("UPDATE call_reminder_state SET status = 'STOPPED', stop_reason = 'TEST_ISOLATION'"
+                jdbc.update("UPDATE call_reminder SET status = 'STOPPED', stop_reason = 'TEST_ISOLATION'"
                         + " WHERE status = 'AWAITING_RESULT'");
-                jdbc.update("INSERT INTO notification_event (notification_id, type, acknowledgement_method,"
-                        + " occurred_at) SELECT s.notification_id, 'ACKNOWLEDGE', 'IN_APP', UTC_TIMESTAMP(6)"
-                        + " FROM notification_state s WHERE s.level = 'URGENT' AND s.acknowledged_at IS NULL"
-                        + " AND s.sent_at IS NOT NULL AND NOT EXISTS (SELECT 1 FROM notification_event e"
-                        + " WHERE e.notification_id = s.notification_id AND e.type = 'ACKNOWLEDGE')");
-                jdbc.update("UPDATE notification_state SET status = 'ACKNOWLEDGED', acknowledged_at = UTC_TIMESTAMP(6),"
+                jdbc.update("INSERT INTO record_event (entity_type, entity_id, module, kind, content, by_system,"
+                        + " occurred_at, confirmed_at, unique_key) SELECT 'M13.NOTIFICATION', n.id, 'M13',"
+                        + " 'M13.NOTIFICATION_EVENT', JSON_OBJECT('type', 'ACKNOWLEDGE', 'acknowledgementMethod',"
+                        + " 'IN_APP'), TRUE, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6), CONCAT('M13.NE:', n.id, ':ACKNOWLEDGE')"
+                        + " FROM notification n WHERE n.level = 'URGENT' AND n.acknowledged_at IS NULL"
+                        + " AND n.sent_at IS NOT NULL AND NOT EXISTS (SELECT 1 FROM record_event e"
+                        + " WHERE e.unique_key = CONCAT('M13.NE:', n.id, ':ACKNOWLEDGE'))");
+                jdbc.update("UPDATE notification SET status = 'ACKNOWLEDGED', acknowledged_at = UTC_TIMESTAMP(6),"
                         + " acknowledgement_method = 'IN_APP' WHERE level = 'URGENT' AND acknowledged_at IS NULL"
                         + " AND sent_at IS NOT NULL");
                 return;
@@ -186,13 +188,16 @@ abstract class CallReminderTestBase extends M13IntegrationTestBase {
     }
 
     Map<String, Object> state(long reminderId) {
-        return jdbc.queryForMap("SELECT * FROM call_reminder_state WHERE call_reminder_id = ?", reminderId);
+        return jdbc.queryForMap("SELECT * FROM call_reminder WHERE id = ?", reminderId);
     }
 
     List<Map<String, Object>> handoffRows(long reminderId) {
         return jdbc.queryForList(
-                "SELECT previous_staff_id, reminded_staff_id, tier, reason FROM call_reminder_handoff"
-                        + " WHERE call_reminder_id = ? ORDER BY id",
+                "SELECT JSON_VALUE(h.content, '$.previousStaffId' RETURNING SIGNED) AS previous_staff_id,"
+                        + " JSON_VALUE(h.content, '$.remindedStaffId' RETURNING SIGNED) AS reminded_staff_id,"
+                        + " h.content->>'$.tier' AS tier, h.content->>'$.reason' AS reason FROM record_event h"
+                        + " WHERE h.kind = 'M13.CALL_REMINDER_HANDOFF' AND h.entity_type = 'M13.CALL_REMINDER'"
+                        + " AND h.entity_id = ? ORDER BY h.id",
                 reminderId);
     }
 
@@ -214,8 +219,8 @@ abstract class CallReminderTestBase extends M13IntegrationTestBase {
 
     String notificationStatus(long notificationId) {
         return jdbc.queryForObject(
-                "SELECT CONCAT(IFNULL(status, ''), '/', IFNULL(acknowledgement_method, '')) FROM notification_state"
-                        + " WHERE notification_id = ?",
+                "SELECT CONCAT(IFNULL(status, ''), '/', IFNULL(acknowledgement_method, '')) FROM notification"
+                        + " WHERE id = ?",
                 String.class,
                 notificationId);
     }

@@ -1,32 +1,55 @@
 package com.eldercare.backend.notification.internal.directcontact.persistence;
 
+import com.eldercare.backend.administration.shared.api.SimpleRecordApi;
+import com.eldercare.backend.administration.shared.api.dto.EntityRef;
+import com.eldercare.backend.administration.shared.api.dto.RecordChange;
+import com.eldercare.backend.administration.shared.api.dto.SimpleRecord;
 import com.eldercare.backend.notification.internal.directcontact.domain.DirectContact;
+import com.eldercare.backend.notification.internal.directcontact.domain.DirectContactContent;
+import com.eldercare.backend.notification.internal.directcontact.domain.DirectContactResultContent;
+import com.eldercare.backend.notification.internal.directcontact.domain.RecordedContactResult;
+import com.eldercare.backend.notification.internal.directcontact.domain.Unreached;
+import com.eldercare.backend.notification.internal.domain.NotificationEventContent;
+import com.eldercare.backend.notification.internal.persistence.M13SharedRows;
+import com.eldercare.backend.notification.internal.persistence.M13Sql;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.json.JsonMapper;
 
-/** Danh sách "cần liên hệ trực tiếp" và kết quả liên hệ (FR-021; data-model mục 9). */
+/**
+ * Danh sách cần liên hệ trực tiếp ở {@code simple_record} loại {@code M13.DIRECT_CONTACT} và kết quả liên hệ ở
+ * {@code record_event} (009 T043, data-model mục 0.1; FR-021): một mục mỗi thông báo, một kết quả mỗi mục; mục khóa khi
+ * rời Chờ liên hệ.
+ */
 @Repository
 public class DirectContactStore {
 
-    /** Thông báo tới người thân không tới được qua kênh nào. */
-    public record Unreached(long notificationId, long familyMemberId, Long residentId, String shortContent) {}
-
-    private static final String ROW = "SELECT d.id, d.notification_id, d.family_member_id, d.full_name, d.relationship,"
-            + " d.phone_number, d.short_content, d.status, d.created_at, r.resident_id, r.floor_area_id"
-            + " FROM direct_contact d JOIN notification n ON n.id = d.notification_id"
-            + " JOIN notification_request r ON r.id = n.request_id";
+    private static final String ROW =
+            "SELECT d.id, d.entity_id, JSON_VALUE(d.content, '$.familyMemberId' RETURNING SIGNED),"
+                    + " JSON_VALUE(d.content, '$.fullName'), JSON_VALUE(d.content, '$.relationship'),"
+                    + " JSON_VALUE(d.content, '$.phoneNumber'), JSON_VALUE(d.content, '$.shortContent'), d.status, d.created_at,"
+                    + " r.resident_id, r.floor_area_id FROM simple_record d JOIN notification n ON n.id = d.entity_id"
+                    + " JOIN notification_request r ON r.id = n.request_id WHERE d.kind = 'M13.DIRECT_CONTACT'";
 
     private final JdbcTemplate jdbc;
+    private final JsonMapper json;
+    private final SimpleRecordApi records;
+    private final M13SharedRows shared;
 
-    DirectContactStore(JdbcTemplate jdbc) {
+    DirectContactStore(JdbcTemplate jdbc, JsonMapper json, SimpleRecordApi records, M13SharedRows shared) {
         this.jdbc = jdbc;
+        this.json = json;
+        this.records = records;
+        this.shared = shared;
     }
 
     /**
@@ -37,17 +60,15 @@ public class DirectContactStore {
         return jdbc.query(
                 "SELECT n.id, n.recipient_id, r.resident_id, r.short_content FROM notification n"
                         + " JOIN notification_request r ON r.id = n.request_id"
-                        + " JOIN notification_state s ON s.notification_id = n.id"
                         + " WHERE n.recipient_type = 'FAMILY_MEMBER' AND n.level <> 'URGENT'"
                         + " AND (n.level = 'MEDIUM' OR JSON_SEARCH(n.basis, 'one', 'FamilyMember:%') IS NOT NULL)"
-                        + " AND s.sent_at IS NOT NULL AND n.created_at >= ?"
-                        + " AND NOT EXISTS (SELECT 1 FROM direct_contact d WHERE d.notification_id = n.id)"
-                        + " AND NOT EXISTS (SELECT 1 FROM delivery_attempt a"
-                        + " LEFT JOIN delivery_result x ON x.attempt_id = a.id WHERE a.notification_id = n.id"
-                        + " AND (x.id IS NULL OR x.result IN ('SENT', 'BATCHED') OR (x.result = 'FAILED'"
-                        + " AND x.reason LIKE 'TEMPORARY%' AND a.attempt_no <= ? AND a.attempt_no = (SELECT"
-                        + " MAX(y.attempt_no) FROM delivery_attempt y WHERE y.notification_id = a.notification_id"
-                        + " AND y.channel = a.channel))))"
+                        + " AND n.sent_at IS NOT NULL AND n.created_at >= ?"
+                        + " AND NOT EXISTS (SELECT 1 FROM simple_record d WHERE d.unique_key = CONCAT('M13.DC:', n.id))"
+                        + " AND NOT EXISTS (SELECT 1 FROM record_event a LEFT JOIN record_event x ON "
+                        + M13Sql.resultOf("x", "a") + " WHERE " + M13Sql.attempts("a") + " AND a.entity_id = n.id"
+                        + " AND (x.id IS NULL OR x.m13_result IN ('SENT', 'BATCHED') OR (x.m13_result = 'FAILED'"
+                        + " AND JSON_VALUE(x.content, '$.reason') LIKE 'TEMPORARY%' AND " + M13Sql.attemptNo("a")
+                        + " <= ? AND " + M13Sql.latestOfChannel("a") + ")))"
                         + " ORDER BY n.id LIMIT ?",
                 (rs, i) -> new Unreached(rs.getLong(1), rs.getLong(2), rs.getObject(3, Long.class), rs.getString(4)),
                 utc(since),
@@ -64,15 +85,12 @@ public class DirectContactStore {
             String shortContent,
             Instant at) {
         try {
-            jdbc.update(
-                    "INSERT INTO direct_contact (notification_id, family_member_id, full_name, phone_number,"
-                            + " short_content, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-                    notificationId,
-                    familyMemberId,
-                    fullName,
-                    phoneNumber,
-                    shortContent,
-                    utc(at));
+            shared.createRecord(
+                    DirectContactContent.KIND,
+                    new EntityRef(NotificationEventContent.NOTIFICATION, notificationId),
+                    DirectContactContent.PENDING,
+                    new DirectContactContent(familyMemberId, fullName, null, phoneNumber, shortContent, null),
+                    DirectContactContent.uniqueKey(notificationId));
             return true;
         } catch (DuplicateKeyException e) {
             return false;
@@ -83,7 +101,7 @@ public class DirectContactStore {
         List<Object> args = new ArrayList<>();
         StringBuilder sql = new StringBuilder(ROW);
         status.ifPresent(s -> {
-            sql.append(" WHERE d.status = ?");
+            sql.append(" AND d.status = ?");
             args.add(s);
         });
         sql.append(" ORDER BY d.created_at DESC, d.id DESC LIMIT ?");
@@ -92,28 +110,58 @@ public class DirectContactStore {
     }
 
     public Optional<DirectContact> lock(long id) {
-        return jdbc.query(ROW + " WHERE d.id = ? FOR UPDATE OF d", (rs, i) -> row(rs), id).stream()
+        return jdbc.query(ROW + " AND d.id = ? FOR UPDATE OF d", (rs, i) -> row(rs), id).stream()
                 .findFirst();
     }
 
+    /** Ghi kết quả liên hệ và chuyển mục sang trạng thái cuối (khóa dòng). */
     public void insertResult(
             long id, long contactedBy, Instant occurredAt, String result, String reason, String note, Instant at) {
-        jdbc.update(
-                "INSERT INTO direct_contact_result (direct_contact_id, contacted_by, occurred_at, result, reason,"
-                        + " note, recorded_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        shared.addEvent(
+                DirectContactResultContent.KIND,
+                DirectContactContent.KIND.code(),
                 id,
+                new DirectContactResultContent(occurredAt, result, reason, note),
                 contactedBy,
-                utc(occurredAt),
-                result,
-                reason,
-                note,
-                utc(at));
-        jdbc.update("UPDATE direct_contact SET status = ?, version = version + 1 WHERE id = ?", result, id);
+                at,
+                DirectContactResultContent.uniqueKey(id));
+        SimpleRecord<DirectContactContent> d = records.require(DirectContactContent.KIND, id);
+        records.change(
+                DirectContactContent.KIND,
+                id,
+                d.version(),
+                new RecordChange<>(result, d.content(), null, d.uniqueKey(), true));
     }
 
     /** Số mục còn Chờ liên hệ; đánh dấu đã nhắc (FR-021). */
+    @Transactional
     public int markReminded(Instant at) {
-        return jdbc.update("UPDATE direct_contact SET reminded_at = ? WHERE status = 'PENDING'", utc(at));
+        List<SimpleRecord<DirectContactContent>> pending =
+                records.listByStatus(DirectContactContent.KIND, Set.of(DirectContactContent.PENDING));
+        for (SimpleRecord<DirectContactContent> d : pending) {
+            records.change(
+                    DirectContactContent.KIND,
+                    d.id(),
+                    d.version(),
+                    new RecordChange<>(d.status(), d.content().reminded(at), null, d.uniqueKey(), false));
+        }
+        return pending.size();
+    }
+
+    /** Kết quả liên hệ {@code id} (đích của đính chính {@code M13.DIRECT_CONTACT_RESULT}) và người liên hệ. */
+    public Optional<RecordedContactResult> result(long id) {
+        return jdbc
+                .query(
+                        "SELECT x.actor_id, x.content, q.resident_id FROM record_event x JOIN simple_record d ON d.id = x.entity_id"
+                                + " JOIN notification n ON n.id = d.entity_id JOIN notification_request q ON q.id = n.request_id"
+                                + " WHERE x.id = ? AND x.kind = 'M13.DIRECT_CONTACT_RESULT'",
+                        (rs, i) -> new RecordedContactResult(
+                                rs.getLong(1),
+                                json.readValue(rs.getString(2), DirectContactResultContent.class),
+                                rs.getObject(3, Long.class)),
+                        id)
+                .stream()
+                .findFirst();
     }
 
     private static DirectContact row(java.sql.ResultSet rs) throws java.sql.SQLException {

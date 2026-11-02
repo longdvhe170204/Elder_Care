@@ -25,7 +25,7 @@ const ACTIVE = {
   ],
   healthInsurance: { initialRegistrationPlace: 'Trạm y tế P1', cardNumber: 'GD4797912345678', cardExpiry: '2027-06-30' },
   askFamilyFirst: true,
-  notifyFamilyMembers: [{ familyMemberId: 31, fullName: 'Nguyễn Thị Con', relationship: null, phoneNumber: '0912345678' }],
+  notifyFamilyMembers: [{ familyMemberId: 31, fullName: 'Nguyễn Thị Con', relationship: 'CHILD', phoneNumber: '0912345678' }],
   accompaniedBy: 'FACILITY_STAFF',
   note: 'Dị ứng penicillin',
   respondent: { type: 'RESIDENT', familyMemberId: null },
@@ -80,7 +80,7 @@ describe('TreatmentWish', () => {
     expect(within(now).getByText('Bệnh viện X · 12 Lê Lợi')).toBeInTheDocument()
     expect(within(now).getByText('Bệnh viện Y · 5 Hai Bà Trưng')).toBeInTheDocument()
     expect(within(now).getByText(/Số thẻ GD4797912345678/)).toBeInTheDocument()
-    expect(within(now).getByText('Nguyễn Thị Con, 0912345678')).toBeInTheDocument()
+    expect(within(now).getByText('Nguyễn Thị Con, Con, 0912345678')).toBeInTheDocument()
     expect(within(now).getByText('Viện cử nhân viên')).toBeInTheDocument()
     expect(within(now).getByText('Muốn bệnh viện Z')).toBeInTheDocument()
 

@@ -1,6 +1,6 @@
 package com.eldercare.backend.administration.approval.internal.domain;
 
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 
 /** Hành động nhật ký của yêu cầu phê duyệt (data-model mục 3, cột "Nhật ký"; FR-041, FR-044). */
 public final class ApprovalActions {

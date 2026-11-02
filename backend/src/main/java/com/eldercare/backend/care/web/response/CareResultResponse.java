@@ -1,6 +1,6 @@
 package com.eldercare.backend.care.web.response;
 
-import com.eldercare.backend.administration.correction.api.CurrentValue;
+import com.eldercare.backend.administration.correction.api.dto.CurrentValue;
 import com.eldercare.backend.care.internal.result.domain.CareResult;
 import com.eldercare.backend.common.error.BusinessException;
 import io.swagger.v3.oas.annotations.media.Schema;

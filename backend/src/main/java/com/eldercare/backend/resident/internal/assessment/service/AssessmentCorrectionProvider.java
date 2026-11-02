@@ -1,8 +1,8 @@
 package com.eldercare.backend.resident.internal.assessment.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.administration.correction.api.CorrectionView;
-import com.eldercare.backend.administration.correction.api.CreationMethod;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionView;
+import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.InvalidValueException;
@@ -65,6 +65,11 @@ class AssessmentCorrectionProvider implements CorrectableRecordProvider {
     @Override
     public Optional<Long> floorArea(long id) {
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<Long> residentId(long id) {
+        return assessments.findById(id).map(Assessment::getResidentId);
     }
 
     @Override

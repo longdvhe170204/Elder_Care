@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.eldercare.backend.administration.account.api.spi.*;
 import com.eldercare.backend.administration.auditlog.api.*;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
 import com.eldercare.backend.care.api.VitalSignTaskApi;
 import com.eldercare.backend.care.api.spi.VitalSignPort.*;
 import com.eldercare.backend.common.Role;

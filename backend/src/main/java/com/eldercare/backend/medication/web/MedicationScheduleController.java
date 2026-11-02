@@ -2,10 +2,10 @@ package com.eldercare.backend.medication.web;
 
 import com.eldercare.backend.common.error.web.ProblemBody;
 import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.medication.internal.service.DoseAdministrationService;
-import com.eldercare.backend.medication.internal.service.DoseViewService;
-import com.eldercare.backend.medication.internal.service.MedicationScheduleCalculator;
-import com.eldercare.backend.medication.internal.service.MedicationScheduleService;
+import com.eldercare.backend.medication.internal.dose.service.DoseAdministrationService;
+import com.eldercare.backend.medication.internal.dose.service.DoseViewService;
+import com.eldercare.backend.medication.internal.schedule.service.MedicationScheduleCalculator;
+import com.eldercare.backend.medication.internal.schedule.service.MedicationScheduleService;
 import com.eldercare.backend.medication.web.response.DoseBodies.DoseBody;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,16 +31,19 @@ public class MedicationScheduleController {
     private final DoseAdministrationService doseAdministrationService;
     private final DoseViewService doseViews;
     private final BusinessTime businessTime;
+    private final MedicationScheduleCalculator scheduleCalculator;
 
     public MedicationScheduleController(
             MedicationScheduleService scheduleService,
             DoseAdministrationService doseAdministrationService,
             DoseViewService doseViews,
-            BusinessTime businessTime) {
+            BusinessTime businessTime,
+            MedicationScheduleCalculator scheduleCalculator) {
         this.scheduleService = scheduleService;
         this.doseAdministrationService = doseAdministrationService;
         this.doseViews = doseViews;
         this.businessTime = businessTime;
+        this.scheduleCalculator = scheduleCalculator;
     }
 
     /**
@@ -75,8 +77,9 @@ public class MedicationScheduleController {
             @RequestParam(name = "to", required = false) Instant toTime) {
 
         Instant now = businessTime.now();
-        Instant effectiveFrom = fromTime != null ? fromTime : now.minus(1, ChronoUnit.HOURS);
-        Instant effectiveTo = toTime != null ? toTime : now.plus(3, ChronoUnit.HOURS);
+        int defaultWindowMinutes = scheduleCalculator.defaultWindowMinutes();
+        Instant effectiveFrom = fromTime != null ? fromTime : now.minusSeconds(defaultWindowMinutes * 60L);
+        Instant effectiveTo = toTime != null ? toTime : now.plusSeconds(defaultWindowMinutes * 60L);
 
         return doseViews
                 .views(scheduleService.getMedicationRound(floorAreaId, effectiveFrom, effectiveTo, now))

@@ -66,7 +66,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 **Target Platform**: Như 000.
 - Web: hộp thông báo (nhân viên, cổng người thân), luồng SSE, lượt nhắc gọi và ghi kết quả, danh sách liên hệ trực tiếp, lịch sử, lỗi gửi, cấu hình kênh.
-- App nhân viên: nhận đẩy, hộp thông báo (xem ngoại tuyến), xác nhận trực tuyến, "Xác nhận và tiếp nhận", lượt nhắc gọi và ghi kết quả.
+- App nhân viên: nhận đẩy, hộp thông báo, xác nhận trực tuyến, "Xác nhận và tiếp nhận", lượt nhắc gọi và ghi kết quả.
 - App người thân: nhận đẩy, hộp thông báo, xác nhận thông báo Khẩn cấp.
 
 **Project Type**: Web service (REST `/api/v1`, SSE), một web client và một mobile client chung (Q-346).
@@ -128,7 +128,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | NFR-02 Hiệu năng | Có | Hộp thông báo đọc bảng dẫn xuất; xác nhận một dòng sự kiện |
 | NFR-03 Thông báo khẩn cấp | Có | Outbox giao ngay sau commit, hàng Khẩn cấp riêng, gửi song song mọi kênh, FCM |
 | NFR-04 Tác vụ định kỳ | Có | `UNIQUE` lượt nhắc, lần gửi lại, khung gộp; chạy bù khi khởi động |
-| NFR-05 Khả dụng | Có | Outbox giao lại khi listener lỗi; hộp thông báo xem ngoại tuyến ở app |
+| NFR-05 Khả dụng | Có | Outbox giao lại khi listener lỗi |
 | NFR-06 Sao lưu | Gián tiếp | Dữ liệu ở MySQL |
 | NFR-07 Lưu trữ | Có | Không ngắn hơn CFG-M15-04 và bản ghi nguồn (data-model mục 10) |
 | NFR-08 Bảo mật | Có | Lọc phần nội dung theo quyền hiện hành; kênh ngoài không có sức khỏe; số điện thoại che một phần |
@@ -324,3 +324,68 @@ Ghi khi triển khai (constitution XIV: lệch kỹ thuật ghi ở plan cùng l
 - Bảo đảm DBR, BR sau gộp (XII): ràng buộc của bảng giữ riêng giữ nguyên; ràng buộc của bảng đã gộp chuyển theo cột "ràng buộc chuyển về backend" và đoạn "Bảo đảm" của data-model 0.1 (`khoa_duy_nhat`, cột sinh `UNIQUE`, `CHECK` theo `kind`, quyền theo cột, trigger khóa theo dòng, kiểm ở domain). Mỗi ràng buộc chuyển về domain có test tích hợp; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR áp dụng trong data-model.
 - Hiệu năng (NFR): truy vấn trên bảng chung dùng chỉ mục `(loai_doi_tuong, doi_tuong_id, loai)` và cột sinh có chỉ mục khai báo ở 0.1; chạy lại phần đo của quickstart sau khi gộp.
 - Dòng nhắc bảng cũ trong plan, research, tasks có ghi chú "R-15:" chỉ bảng đích.
+- **T043** (2026-10-30, nhánh `impl/009-table-consolidation`): `V009_95` giữ 4 bảng (`notification_request` thêm cột JSON nội dung, nhóm nhận; `notification`, `call_reminder` thêm cột dẫn xuất, khóa theo dòng; `push_device`), chép 16 bảng cũ vào bảng chung (đổi id tham chiếu chéo qua bảng ánh xạ tạm), `V009_94` thêm cột sinh `m13_batch_window_id`, `m13_result`. Lệch so với data-model 0.1 (ghi ở 0.1): thời điểm dự kiến của lần gửi dùng `occurred_at`; liên kết đính chính, nhật ký cũ tới id đã đổi đứt. Quy ước đọc mới (chủ dự án duyệt): M13 đọc dòng loại `M13.*` bằng SQL trong `persistence` (`M13Sql`), ghi qua API (`M13SharedRows` đổi lỗi trùng `unique_key` thành `DuplicateKeyException` nên service giữ cách xử lý lượt chạy đồng thời), vì API theo đối tượng cha không làm được phép nối, `NOT EXISTS` của job gửi, hộp thông báo, lượt nhắc gọi (research R-15 mục 2). SQL của `CallResultCorrection`, `DirectContactResultCorrection`, `NotificationScopeAssignment` chuyển vào `persistence`, record lồng của 6 lớp `persistence` ra `domain` (bỏ 9 dòng notification ở `PENDING_*` của `LayerArchTest`).
+- **T044** (2026-11-01, nhánh `impl/009-nfr-remeasure`): đo lại NFR sau gộp bảng trên dữ liệu một năm theo NFR-01 (365.000 yêu cầu, 1.095.000 thông báo, 5,8 triệu dòng `record_event` gồm 1 triệu dòng module khác). `SC_001_UrgentConcurrencyIT` (tên logic `SC_001_KhanCapDongThoiIT` ở quickstart mục 5) không chạy trong `verify`: cần `-Deldercare.perf=true` và `TEST_DB_URL` schema đuôi `_perf`, sinh dữ liệu khoảng 8 phút, không ghi binlog; lệnh ở chú thích lớp. Kết quả: SC-001 đạt (160 lần đẩy, tối đa dưới 0,5 giây); bốn truy vấn quá 1 giây (gửi lại lỗi tạm, hộp thông báo, liên hệ trực tiếp, lượt nhắc gọi gần 1 giây) xuống ≤ 10 ms nhờ `V009_96` (cột sinh, chỉ mục; `InboxStore`, `DeliveryStore.retryable` đọc cột sinh). Lệch tasks: tasks ghi "file `_94` mới", cài ở `V009_96` vì `_94` đã chạy; cột `urgent_unacknowledged` ở `notification` (bảng riêng của M13) nên không có tiền tố `m13_`. Còn: `LookupStore.errors` (danh sách lỗi gửi) 1,3–1,9 giây vì `FIND_IN_SET` trên `notification_request.flags` quét toàn bảng, có từ trước T043, chỉ đo, không sửa trong T044.
+
+## Rà truy vết T039 (2026-11-01, nhánh `impl/009-traceability`)
+
+Tên test ở data-model mục 11 là tên logic; bảng dưới là lớp thật.
+
+| Mã | Test thật |
+| --- | --- |
+| BR-M13-01 | `ChannelSelectionTest`, `BR_M13_01_ChannelSelectionIT`, `FR_016a_OffShiftIT`, `FR_016b_SmsBatchingIT` |
+| BR-M13-02 | `BR_M13_02_CallReminderIT`, `FR_029a_CallResultIT`, `CallReminderTargetTest` |
+| BR-M13-03 | `BR_M13_03_QuietHoursIT`, `QuietHoursTest` |
+| BR-M13-04 | `BR_M13_04_ShiftGroupsIT`, `RecipientResolutionIT`, `SC_004_RecipientTableIT` |
+| BR-M13-05, BR-M10-06 (phần 009) | `NotificationLookupIT` (căn cứ, trạng thái, kênh, thời điểm xem); mã trường hợp ở `RecipientResolutionIT` |
+| FR-001a, FR-014, FR-014a | `ConsentScopeTest`, `RecipientResolutionIT`, `FR_014_015_ConsentAndDeathIT` |
+| DBR-03 (phần 009) | `ContentFilterTest` |
+| FR-007 (f), FR-022a | `FR_022a_ResidentRecipientIT` |
+| FR-005, FR-012, FR-032 | `FR_005_DeduplicationIT`, `RecipientResolutionIT`, `BR_M13_02_CallReminderIT`, `M13RecordGroupTriggerIT` |
+| FR-039 | `FR_016_ChannelConfigIT`, `FR_021_DirectContactIT`, `NotificationLookupIT`, `InboxIT`, `NotificationAdmin.test.jsx` |
+| FR-040 | `FR_016_ChannelConfigIT` (nhật ký, lý do), `RecipientResolutionIT.FR_040_…` (Hệ thống, sự kiện kích hoạt) |
+| FR-041 | `M13ProvidersIT` |
+| FR-042 | Không có lớp riêng: `BR_M13_03_QuietHoursIT`, `FR_016a_OffShiftIT`, `FR_016b_SmsBatchingIT`, `FR_024_ParameterChangeIT`, `CallReminderTestBase` (FR-030a, FR-032) chạy trên đồng hồ giả lập |
+| FR-043 | `M13ArchTest` (một cách gửi duy nhất), các SPI ở contracts/module-interfaces.md; dòng cung cấp cho 016 là giai đoạn sau (Q-194) |
+| FR-043a, FR-043b | Yêu cầu với spec nguồn, 009 kiểm phần nhận ở `RequestValidationTest`, `FR_003_RequestValidationIT`; mức mặc định từng thông báo kiểm ở module nguồn (`AccountEventNotificationsTest`) |
+| FR-002, FR-009 *(ngoài danh sách T039, chưa có test)* | `RecipientResolutionIT.FR_002_…`, `FR_009_…`; `notificationLabels.test.js` |
+
+Còn chờ, thuộc task khác: FR-026a, dừng theo sự kiện của 007 (T017, T019, T021, chờ D); người cần gọi không còn đủ điều kiện (T019, chờ E); đầu–cuối với sự kiện thật (T037). Các SC đo ở T038.
+
+## Ghi chú T031, T042 hộp thông báo trên app (2026-11-01, nhánh `impl/009-mobile-inbox`)
+
+- Đọc chung ở `mobile/lib/common/notifications/` (`NotificationApi`, nhãn) cho phần người thân, người cao tuổi, sau này phần nhân viên (T022).
+- Người thân: cùng công thức `notification-inbox` với web (Q-305): khối Khẩn cấp chưa xác nhận có nút xác nhận, lọc mức, chưa xem, loại sự kiện, người cao tuổi (`GET /residents` không có quyền thì không có ô lọc, như web). Kéo xuống để tải lại, thay SSE của web. Không hiện "Bản ghi nguồn" vì là mã kỹ thuật, người thân không mở được. `FamilyRoot` hiện chỉ có màn này nên chưa có thanh điều hướng dưới.
+- Người cao tuổi (DESIGN.md 15.6): thẻ "Thông báo" ở màn Hôm nay kèm số chưa xem; danh sách và chi tiết chữ lớn, nút "Quay lại" có chữ; không ẩn, không xác nhận, không lọc. Bề rộng nút theo cỡ chữ của máy, tiêu đề màn nằm trong thân màn vì thanh không đủ chỗ ở cỡ chữ 200%. 15.6 nói bấm thông báo mở đúng màn của việc đó: hiện mở chi tiết thông báo, đổi khi các màn của 012, 014 có trên app.
+- Lệch 15.6: mất mạng chỉ báo câu ngắn và nút Thử lại, chưa giữ dữ liệu đã tải gần nhất qua các lần mở vì app chưa có bộ nhớ đệm đọc.
+- Nhận đẩy chưa làm: `mobile/` chưa có `google-services.json`, `GoogleService-Info.plist` và mã khởi tạo Firebase; T031, T042 giữ `[ ]`.
+
+## Ghi chú nhận đẩy trên app (2026-11-01, nhánh `impl/009-mobile-push`)
+
+- `common/notifications/push_messaging.dart` (`PushMessaging`, `FirebasePushMessaging`, `NoPushMessaging`), `push_coordinator.dart`: đăng nhập xong xin quyền, đăng ký token qua `POST /push-devices` với `app` theo loại tài khoản, token đổi thì đăng ký lại; có thông báo khi app đang mở thì màn tải lại (không hiện banner vì chưa có gói thông báo cục bộ); bấm thông báo thì mở đúng thông báo theo `data.notificationId` của `InAppSender`, kể cả khi app mở từ trạng thái tắt.
+- Phần nhân viên cũng đăng ký token và nhận thông báo hệ thống; chưa có màn hộp thông báo (T022) nên bấm vào chỉ mở app.
+- Thêm `firebase_core` làm phụ thuộc trực tiếp (trước đó là phụ thuộc gián tiếp của `firebase_messaging`), plugin `com.google.gms.google-services` 4.5.0.
+- `google-services.json`, `GoogleService-Info.plist` không vào kho vì kho công khai (`mobile/.gitignore`); plugin chỉ áp khi có file, thiếu file thì build được, `Firebase.initializeApp` lỗi và app chạy không có đẩy (đã build thử cả hai trường hợp).
+- Giữ `getToken`, `onTokenRefresh` dù đã bị đánh dấu lỗi thời: `register()`, `onRegistered` trả Firebase Installation ID, còn `FcmPushGateway` gửi theo registration token; đổi cần sửa cả backend.
+- Hợp đồng không có lệnh hủy token: đăng xuất không gỡ token; tài khoản khác đăng nhập trên máy đó đăng ký lại token. Giữa hai lần, máy vẫn có thể nhận đẩy của tài khoản cũ.
+- iOS: `GoogleService-Info.plist` không vào kho nên không thêm vào project Xcode; build phase "Copy GoogleService-Info" chép vào gói app khi có file; `Info.plist` thêm `UIBackgroundModes` `remote-notification`. Chưa build iOS vì máy phát triển là Windows; `Runner.entitlements` (`aps-environment`) chưa thêm vì cần tài khoản Apple Developer để ký, làm trên máy Mac.
+- Đã thử đầu–cuối trên máy ảo Android 12 có Google Play, backend `QuickstartDemoApplication` có `FIREBASE_CREDENTIALS`: `demo.quanly` đăng ký token; `demo.hanhchinh` gửi yêu cầu duyệt mẫu; máy nhận thông báo FCM "Yêu cầu YC-2026-000050" khi app chạy nền; bấm thì mở app, thông báo tự xóa. Demo chưa có tài khoản người thân (012), nên mở đúng thông báo ở phần người thân, người cao tuổi mới kiểm bằng test widget; phần nhân viên bấm chỉ mở app (T022). iOS cần máy Mac, tài khoản Apple Developer và khóa APNs.
+
+## Ghi chú màn thông báo nhân viên (2026-11-01, T022, nhánh `impl/009-mobile-staff-inbox`; bố cục chủ dự án duyệt cùng ngày)
+
+- Tab Thông báo đứng đầu phần nhân viên, mở mặc định, huy hiệu số Khẩn cấp chưa xác nhận. Khẩn cấp tới khi đang ở tab khác thì hiện dải báo, vì khi app đang mở máy không hiện thông báo hệ thống; `PushMessaging.onMessage` nay kèm `data.level`.
+- Hộp và chi tiết chuyển từ `family/notifications/` sang `common/notifications/` (`NotificationInbox`, `NotificationScreen`, `AcknowledgeActions`) để hai phần cùng công thức. Chi tiết có nút xác nhận cố định ở chân màn: trước đó người thân từ màn hình khóa mất ba thao tác, lệch SC-008. Loại sự kiện, người cao tuổi chuyển vào chip "Lọc thêm" để việc khẩn không bị đẩy xuống.
+- `ApiClient.getList` cho endpoint trả mảng (`GET /me/call-reminders`).
+- Không làm hộp thông báo xem ngoại tuyến (chủ dự án chốt 2026-11-01, đã bỏ khỏi mục phạm vi và mô tả api-009): spec chỉ ghi MAY; lưu nội dung xuống máy dùng chung có thể lộ phần đã hết quyền xem (FR-034). Mất mạng thì báo lỗi kèm "Thử lại".
+- Lý do "Không liên lạc được" chỉ có ba giá trị của FR-030: chủ dự án chốt 2026-11-01 gỡ `OTHER` khỏi hợp đồng, backend, glossary. Kết quả gọi lưu ở `record_event` nên không cần migration; chưa có bản ghi `OTHER` nào ở schema demo. FR-030 ghi người nghe máy bắt buộc, FR-031 ghi "nếu khác người cần gọi", backend không kiểm; app theo FR-031.
+- Backend `CallReminderQueries` luôn trả `relationship` rỗng, `handoffs` chỉ có mã nhân viên: màn hiện "Người thân" và lịch sử không kèm tên. Hợp đồng chỉ có `residentId` nên màn không hiện tên người cao tuổi.
+- Web có màn lượt nhắc gọi từ T035a (cùng ngày).
+- Đã thử trên máy ảo Android 12 với backend `QuickstartDemoApplication`: hộp, huy hiệu, xác nhận thật (`IN_APP`), báo cần mạng khi tắt mạng, cỡ chữ 200%, nút gọi mở trình quay số. Demo chưa có hồ sơ nhân viên nên job không tạo được lượt nhắc; màn lượt nhắc và ghi kết quả thử qua proxy tạm trả dữ liệu đúng hợp đồng. Dải báo Khẩn cấp qua FCM thật chưa thử được, chỉ có test.
+
+## Ghi chú lượt nhắc gọi trên web (2026-11-01, T035a, nhánh `impl/009-web-call-reminders`; bố cục chủ dự án duyệt cùng ngày)
+
+- Khối "Cần gọi điện" nằm trong hộp thông báo, không thêm tab; đứng trên bộ lọc vì bộ lọc không áp cho lượt nhắc, tải riêng nên lỗi không ảnh hưởng hộp; SSE và lệnh xác nhận tải lại khối.
+- Khác app có chủ ý (DESIGN 13.7): dòng có sẵn số điện thoại và nút "Ghi kết quả gọi" mở thẳng form, vì người dùng web gọi bằng máy khác rồi quay lại ghi; số là liên kết `tel:`. Chữ và thứ tự nội dung giữ như app.
+- Form thay nội dung ngay trong khung; 409 thì báo lỗi, tải lại và về chi tiết; 422 báo tại ô ghi chú.
+- Chưa làm: "Xác nhận và tiếp nhận" trên web (chờ 007); `callReminders` ở tab Lịch sử gửi (hợp đồng có, màn chưa hiện).
+- Đã thử trên trình duyệt với backend demo: hộp thông báo thật, ghi kết quả, lần gọi bổ sung, chế độ tối, bề rộng 375px. Lượt nhắc qua proxy tạm trả dữ liệu đúng hợp đồng, vì demo chưa có hồ sơ nhân viên.

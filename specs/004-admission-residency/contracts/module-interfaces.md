@@ -65,7 +65,7 @@ List<NgayLuuTruView> theoKhoang(long nctId, LocalDate tu, LocalDate den);
     // mỗi ngày trong thời gian tính phí: hopDongId, phienBanNoiDungId, coMat | VANG, luotVangId, daGiaiPhongGiuong
     // (Q-395: không có hệ số; sau giải phóng giường không tính phí lưu trú), dau (CHUA_VAO_O, QUA_HAN_HOP_DONG), ngoaiThoiGianTinhPhi (sau mốc dừng, sau ngày qua đời)
 List<BuoiBanTruView> buoiBanTru(long nctId, LocalDate tu, LocalDate den);
-    // mỗi buổi có lịch: trạng thái có mặt (005), hệ số (FR-060), ngày khu bán trú nghỉ (FR-060a); buổi chưa xác định không có hệ số
+    // mỗi buổi có lịch: trạng thái có mặt (005), tỷ lệ theo CFG-M02-05 (FR-060), ngày khu bán trú nghỉ (FR-060a); buổi chưa xác định không có tỷ lệ
 Optional<LocalDate> mocDungTinhPhi(long nctId);   // ngày kết thúc dự kiến (FR-066), ngày qua đời (FR-070), ngày Hủy tiếp nhận (FR-075a)
 ```
 
@@ -109,7 +109,7 @@ DanhSachViecView xem(long nctId);
 | `LoaiYeuCauHandler` (000) | `M02.THAY_DOI_LUU_TRU` | Research T-06; cài `kiemTraKhiDuyet`, `khiDuyet`, `gioiHanVaiTroDuyet` (thay đổi nhỏ, FR-043, Q-338; hàm này bổ sung vào SPI của 000 theo plan này); chuyển mở rộng `DUOC_THAY_THE` |
 | | `M02.DUYET_DIEU_KHOAN_HOP_DONG` | `kiemTraDieuKienApDung`: hợp đồng còn Nháp, băm nội dung khớp (FR-025a) |
 | | `M02.NGOAI_LE_KET_THUC` | `quyenTao` gồm Kế toán khi điều kiện là `KT_H_QUYET_TOAN`; `apDung` thêm `ngoai_le_dieu_kien` (FR-064), phát `NgoaiLeKetThucDaDuyet` (bổ sung 2026-10-22); `KT_H_XAC_NHAN_QUYET_TOAN` không lập được ngoại lệ *(R-15: `ngoai_le_dieu_kien` → `su_kien_chung`)* |
-| `DinhChinhDuocProvider` (000) | `M02.LUOT_VANG`, `M02.BAN_GHI_QUA_DOI`, `M02.QUYET_DINH_GIU_GIUONG`, `M02.BAN_GIAO_NCT`, `M02.LICH_SU_DIEM` | `tangKhuVuc` rỗng (không gắn tầng); `sauKhiDinhChinh` của `M02.LUOT_VANG` tính lại ngày vắng (FR-061) |
+| `DinhChinhDuocProvider` (000) | `M02.LUOT_VANG`, `M02.BAN_GHI_QUA_DOI`, `M02.BAN_GIAO_NCT` (`M02.QUYET_DINH_GIU_GIUONG`, `M02.LICH_SU_DIEM` bỏ theo Q-394, Q-395) | `tangKhuVuc` rỗng (không gắn tầng); `sauKhiDinhChinh` của `M02.LUOT_VANG` báo 010 tính lại (FR-061) |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | data-model mục 13, 14 | |
 | `GanPhamViProvider` (002) | Mọi loại của 004 | Trả `DoiTuong` với `nguoiCaoTuoiId` |
 | `QuyenTepProvider` (`common.tep`) | `M02.BAN_SCAN_HOP_DONG`, `M02.BANG_CHUNG_QUA_DOI` | Người tải bằng chứng qua đời được xem lại tệp của mình (FR-069) |
@@ -123,10 +123,10 @@ DanhSachViecView xem(long nctId);
 | `HopDongDaDoiTrangThai(hopDongId, nctId, tu, den, lyDo)`; `KhoanCocDaDoi(hopDongId, khoanMoi)` | 017, 018, 010, 012 | FR-033a, FR-033b |
 | `TiepNhanHoanTat(nctId, hopDongId, loaiLuuTru, ngayBatDau, ngayKetThucDuKien)` | 018 | FR-033b |
 | `PhuLucDaApDung(phuLucId, hopDongId, nctId, loaiThayDoi, ngayHieuLuc)` | 010, 018, 005 (báo điều dưỡng phụ trách xem xét kế hoạch), 011 | FR-042, FR-033b |
+| `LoaiLuuTruDaDoi(nctId)` *(bổ sung 2026-11-02: 003 contracts mục 2.2, T004, T045 đã ghi nhưng bảng này thiếu)* | 003 | FR-034 của 003 |
 | `LuotVangDaMo`, `LuotVangDaGiaHan`, `LuotVangDaDong` (`luotVangId`, `nctId`, mốc) | 001, 006, 011, 010 | FR-048, FR-049 |
 | `NgayLuuTruDaDoi(nctId, tuNgay, denNgay, nguyenNhan)` | 010 | FR-052, FR-056, FR-061 |
-| `CanQuyetDinhGiuGiuong(luotVangId, soNgay, dongChinhSach)`; `DenNgayXemXetGiuGiuong(luotVangId)` | 009 (Quản lý viện) | FR-055, FR-056, FR-061 |
-| `KhongCoDongChinhSach(luotVangId, ngay)` | 009 (Quản lý viện, Trung bình) | FR-053 |
+| `LongAbsenceManagerNotice(absenceId, residentId, absentDays, at)` (sửa 2026-11-02 theo Q-395, thay ba sự kiện cũ) | 009 (Quản lý viện, Trung bình, một lần) | FR-055 |
 | `HopDongQuaHanBaoQuanLy(hopDongId, soNgay)`; các lần nhắc `NhacM02(loai, doiTuongId)` | 009 | FR-017, FR-021, FR-026, FR-029, FR-066a, FR-072, FR-076 |
 | `DatCocChuaDapUngSauLuuTru(hopDongId)` | 009 (Quản lý viện) | FR-032 |
 | `YeuCauNguoiDaiDienCanHoanThien(yeuCauId)` | 009 (Hành chính) | FR-039 |

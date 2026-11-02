@@ -53,7 +53,8 @@ export function AccountDetail({ id, onChanged }) {
   }
 
   const { account, etag } = state
-  const allowed = (account.allowedCommands ?? []).filter((c) => COMMANDS[c])
+  // Tài khoản người cao tuổi: mọi lệnh ở ResidentAccountSection (cấp lại mật khẩu cần xác nhận, FR-051a)
+  const allowed = account.type === 'RESIDENT' ? [] : (account.allowedCommands ?? []).filter((c) => COMMANDS[c])
 
   // Lệnh xong thì tải lại (ETag, allowedCommands mới); cấp lại mật khẩu giữ form để hiện mật khẩu tạm
   function done() {

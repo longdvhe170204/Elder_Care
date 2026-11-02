@@ -7,10 +7,10 @@ import com.eldercare.backend.notification.api.events.NotificationUnreachable;
 import com.eldercare.backend.notification.api.events.UrgentNotificationAcknowledged;
 import com.eldercare.backend.notification.internal.domain.NotificationEventType;
 import com.eldercare.backend.notification.internal.persistence.NotificationStore;
+import com.eldercare.backend.notification.internal.urgent.domain.CallResultRow;
+import com.eldercare.backend.notification.internal.urgent.domain.ContentItem;
+import com.eldercare.backend.notification.internal.urgent.domain.Reminder;
 import com.eldercare.backend.notification.internal.urgent.persistence.CallReminderStore;
-import com.eldercare.backend.notification.internal.urgent.persistence.CallReminderStore.CallResultRow;
-import com.eldercare.backend.notification.internal.urgent.persistence.CallReminderStore.ContentItem;
-import com.eldercare.backend.notification.internal.urgent.persistence.CallReminderStore.Reminder;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -36,8 +36,7 @@ class CallReminderActions {
     private static final Map<String, String> REASONS = Map.of(
             "NO_ANSWER", "không nghe máy",
             "WRONG_NUMBER", "sai số",
-            "NO_NUMBER", "không có số",
-            "OTHER", "lý do khác");
+            "NO_NUMBER", "không có số");
 
     private final CallReminderStore store;
     private final NotificationStore notifications;

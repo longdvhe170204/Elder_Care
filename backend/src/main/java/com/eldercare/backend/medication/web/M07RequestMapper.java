@@ -1,15 +1,15 @@
 package com.eldercare.backend.medication.web;
 
-import com.eldercare.backend.medication.internal.service.request.ChangeDosageBody;
-import com.eldercare.backend.medication.internal.service.request.ConfirmedIssueBody;
-import com.eldercare.backend.medication.internal.service.request.CreatePrescriptionBody;
-import com.eldercare.backend.medication.internal.service.request.DiscontinuePrescriptionBody;
-import com.eldercare.backend.medication.internal.service.request.ExtendPrescriptionBody;
-import com.eldercare.backend.medication.internal.service.request.ExternalBasisBody;
-import com.eldercare.backend.medication.internal.service.request.FrequencyBody;
-import com.eldercare.backend.medication.internal.service.request.OrderPrescriptionBody;
-import com.eldercare.backend.medication.internal.service.request.PrescriberBody;
-import com.eldercare.backend.medication.internal.service.request.ReconciliationItemBody;
+import com.eldercare.backend.medication.internal.prescription.domain.ChangeDosageBody;
+import com.eldercare.backend.medication.internal.prescription.domain.ConfirmedIssueBody;
+import com.eldercare.backend.medication.internal.prescription.domain.CreatePrescriptionBody;
+import com.eldercare.backend.medication.internal.prescription.domain.DiscontinuePrescriptionBody;
+import com.eldercare.backend.medication.internal.prescription.domain.ExtendPrescriptionBody;
+import com.eldercare.backend.medication.internal.prescription.domain.ExternalBasisBody;
+import com.eldercare.backend.medication.internal.prescription.domain.FrequencyBody;
+import com.eldercare.backend.medication.internal.prescription.domain.OrderPrescriptionBody;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriberBody;
+import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItemBody;
 import com.eldercare.backend.medication.web.request.ExternalBasisRequest;
 import com.eldercare.backend.medication.web.request.NewPrescriptionRequest;
 import com.eldercare.backend.medication.web.request.PrescriptionChangeRequests.ChangeDosageRequest;

@@ -7,7 +7,7 @@ import com.eldercare.backend.administration.account.api.spi.FacilityLicenseApi;
 import com.eldercare.backend.administration.account.api.spi.LicenseApi;
 import com.eldercare.backend.administration.account.internal.legal.domain.ProfessionalActivity;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.data.ReminderMarkers;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.LocalDate;

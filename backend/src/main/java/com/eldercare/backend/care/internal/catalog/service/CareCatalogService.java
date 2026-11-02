@@ -6,6 +6,8 @@ import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.auditlog.api.*;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.shared.api.dto.*;
 import com.eldercare.backend.care.internal.catalog.domain.*;
 import com.eldercare.backend.care.internal.catalog.persistence.CareCatalogStore;

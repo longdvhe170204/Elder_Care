@@ -1,7 +1,8 @@
 package com.eldercare.backend.care.internal.rules.service;
 
-import com.eldercare.backend.administration.correction.api.CorrectionMade;
+import com.eldercare.backend.administration.correction.api.events.CorrectionMade;
 import com.eldercare.backend.administration.parameter.api.*;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.care.api.*;
 import com.eldercare.backend.care.api.dto.*;
 import com.eldercare.backend.care.api.events.*;

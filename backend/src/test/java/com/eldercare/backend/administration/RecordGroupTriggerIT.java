@@ -224,11 +224,6 @@ class RecordGroupTriggerIT extends MySqlIntegrationTestBase {
             "room_allowed_care_level",
             "room_isolation_history",
             "room_type_care_level",
-            // D (006, T069)
-            "m07_job_run",
-            "medication_active_ingredient",
-            "prescription_active_ingredient",
-            "resident_medication",
             // E (008, T050)
             "credential",
             "credential_practice_scope",
@@ -254,26 +249,5 @@ class RecordGroupTriggerIT extends MySqlIntegrationTestBase {
             "staff_import_batch",
             "staff_profile",
             "staffing_ratio_calculation",
-            "work_shift",
-            // A (009, T043)
-            "call_reminder",
-            "call_reminder_handoff",
-            "call_reminder_notification",
-            "call_reminder_state",
-            "call_result",
-            "delivery_attempt",
-            "delivery_result",
-            "direct_contact",
-            "direct_contact_result",
-            "m13_job_run",
-            "notification",
-            "notification_channel",
-            "notification_event",
-            "notification_request",
-            "notification_request_content",
-            "notification_request_duplicate",
-            "notification_request_recipient_group",
-            "notification_state",
-            "push_device",
-            "sms_batch_window");
+            "work_shift");
 }

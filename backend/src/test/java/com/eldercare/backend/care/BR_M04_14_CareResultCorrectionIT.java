@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.eldercare.backend.administration.account.api.spi.*;
 import com.eldercare.backend.administration.correction.api.*;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
+import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.care.api.dto.*;
 import com.eldercare.backend.care.api.events.*;
 import com.eldercare.backend.care.internal.result.domain.CareResultInput;
@@ -33,7 +35,7 @@ class BR_M04_14_CareResultCorrectionIT extends CareResultTestBase {
         if (org.springframework.test.context.transaction.TestTransaction.isActive() || resident == 0) return;
         // Chỉ dọn các dòng của resident fixture này; test không có outer transaction phải tự hoàn tác.
         jdbc.update(
-                "DELETE FROM EVENT_PUBLICATION WHERE (EVENT_TYPE LIKE 'com.eldercare.backend.care.%' AND (JSON_EXTRACT(SERIALIZED_EVENT,'$.residentId')=? OR (JSON_UNQUOTE(JSON_EXTRACT(SERIALIZED_EVENT,'$.context.sourceType')) IN ('M04.TASK','M04.CARE_RESULT') AND JSON_EXTRACT(SERIALIZED_EVENT,'$.context.sourceId') IN (SELECT id FROM care_task WHERE resident_id=?)))) OR (EVENT_TYPE='com.eldercare.backend.administration.correction.api.CorrectionMade' AND JSON_UNQUOTE(JSON_EXTRACT(SERIALIZED_EVENT,'$.recordType'))='M04.CARE_RESULT' AND JSON_EXTRACT(SERIALIZED_EVENT,'$.originalRecordId') IN (SELECT id FROM care_task WHERE resident_id=?))",
+                "DELETE FROM EVENT_PUBLICATION WHERE (EVENT_TYPE LIKE 'com.eldercare.backend.care.%' AND (JSON_EXTRACT(SERIALIZED_EVENT,'$.residentId')=? OR (JSON_UNQUOTE(JSON_EXTRACT(SERIALIZED_EVENT,'$.context.sourceType')) IN ('M04.TASK','M04.CARE_RESULT') AND JSON_EXTRACT(SERIALIZED_EVENT,'$.context.sourceId') IN (SELECT id FROM care_task WHERE resident_id=?)))) OR (EVENT_TYPE='com.eldercare.backend.administration.correction.api.events.CorrectionMade' AND JSON_UNQUOTE(JSON_EXTRACT(SERIALIZED_EVENT,'$.recordType'))='M04.CARE_RESULT' AND JSON_EXTRACT(SERIALIZED_EVENT,'$.originalRecordId') IN (SELECT id FROM care_task WHERE resident_id=?))",
                 resident, resident, resident);
         try (var connection = retentionConnection()) {
             for (String sql : List.of(
@@ -469,7 +471,7 @@ class BR_M04_14_CareResultCorrectionIT extends CareResultTestBase {
                     insert,
                     otherCorrection,
                     "fixture-preservation",
-                    "com.eldercare.backend.administration.correction.api.CorrectionMade",
+                    "com.eldercare.backend.administration.correction.api.events.CorrectionMade",
                     "{\"recordType\":\"M01.ASSESSMENT\",\"originalRecordId\":" + task + "}",
                     at,
                     at);

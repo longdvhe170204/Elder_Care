@@ -4,6 +4,8 @@ import com.eldercare.backend.administration.account.api.*;
 import com.eldercare.backend.administration.account.api.dto.*;
 import com.eldercare.backend.administration.account.api.spi.FamilyRelationshipApi;
 import com.eldercare.backend.administration.auditlog.api.*;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.care.api.dto.CarePlanStatus;
 import com.eldercare.backend.care.internal.careplan.domain.*;
 import com.eldercare.backend.care.internal.careplan.persistence.*;

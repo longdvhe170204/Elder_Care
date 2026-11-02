@@ -1,9 +1,9 @@
 package com.eldercare.backend.notification.internal.quiethours.service;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
-import com.eldercare.backend.administration.parameter.api.ParameterKind;
-import com.eldercare.backend.administration.parameter.api.ParameterValue;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterKind;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
 import com.eldercare.backend.common.notification.NotificationLevel;
 import com.eldercare.backend.notification.api.dto.RecipientType;
 import com.eldercare.backend.notification.internal.quiethours.domain.QuietHours;

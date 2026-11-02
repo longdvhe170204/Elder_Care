@@ -1,4 +1,4 @@
 /**
  * Internal Service Layer for Module M07.
  */
-package com.eldercare.backend.medication.internal.service;
+package com.eldercare.backend.medication.internal.dose.service;

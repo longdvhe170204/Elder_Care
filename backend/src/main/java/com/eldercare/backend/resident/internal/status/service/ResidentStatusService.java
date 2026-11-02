@@ -2,19 +2,25 @@ package com.eldercare.backend.resident.internal.status.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.RequiresPermission;
+import com.eldercare.backend.administration.account.api.dto.FailedLayer;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.Target;
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
+import com.eldercare.backend.administration.correction.api.CorrectionApi;
+import com.eldercare.backend.administration.correction.api.dto.CurrentValue;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.NotFoundException;
+import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.ReasonRequiredException;
+import com.eldercare.backend.common.file.FileApi;
+import com.eldercare.backend.common.file.FileView;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.dto.CommandContext;
 import com.eldercare.backend.resident.api.dto.Condition;
@@ -24,6 +30,7 @@ import com.eldercare.backend.resident.api.dto.StatusCommand;
 import com.eldercare.backend.resident.api.dto.TransitionResult;
 import com.eldercare.backend.resident.api.dto.Warning;
 import com.eldercare.backend.resident.api.events.ResidentStatusChanged;
+import com.eldercare.backend.resident.api.events.ResidentStatusNotice;
 import com.eldercare.backend.resident.api.spi.StatusTransitionParticipant;
 import com.eldercare.backend.resident.internal.health.service.ActorNames;
 import com.eldercare.backend.resident.internal.profile.domain.Resident;
@@ -58,11 +65,25 @@ public class ResidentStatusService {
 
     static final AuditAction CHANGED = new AuditAction("RESIDENT_STATUS_CHANGED", false);
     static final String ENTITY_TYPE = "M01.RESIDENT";
+    /** Loại bản ghi của dòng lịch sử trạng thái trong đính chính của 000 (FR-049a). */
+    public static final String HISTORY_RECORD_TYPE = "M01.RESIDENT_STATUS_HISTORY";
 
     /** Chi tiết bắt buộc của Chuyển viện và Ghi nhận qua đời ngoài viện (CHK016, FR-047b). */
     private static final String BASIS_FIELD = "basis";
 
     private static final String EVIDENCE_FIELD = "evidenceFileId";
+
+    private static final String EVIDENCE_BASIS = "EVIDENCE_FILE";
+
+    /** Chủ sở hữu của tệp bằng chứng qua đời là dòng lịch sử trạng thái; quyền tải ở {@code DeathEvidenceFilePermission}. */
+    static final String DEATH_EVIDENCE_OWNER = "M01.DEATH_EVIDENCE";
+
+    /** Giấy tờ bệnh viện gắn vào dòng lịch sử của Ghi nhận trở về từ bệnh viện và Chuyển viện (FR-047c, research H-18). */
+    static final String HOSPITAL_DOCUMENT_OWNER = "M01.HOSPITAL_DOCUMENT";
+
+    private static final String ATTACHMENTS_FIELD = "attachmentFileIds";
+
+    private static final int MAX_ATTACHMENTS = 10;
 
     /** Lệnh các module khác được gọi qua {@code ResidentStatusApi} (research H-03; 004 FR-002). */
     private static final Set<StatusCommand> MODULE_COMMANDS = Set.of(
@@ -81,7 +102,24 @@ public class ResidentStatusService {
             StatusCommand.END_RESIDENCY,
             StatusCommand.RECORD_DEATH);
 
+    /**
+     * Vai trò thực hiện từng lệnh người dùng (spec 001 bảng trạng thái, data-model cột "Người thực hiện", Phụ lục 26.2).
+     * Khóa quyền chưa đủ vì nhiều lệnh dùng chung ô với việc khác: T²⁶ và T³⁹ của Kế toán chỉ là ghi thu cọc và yêu cầu ngoại
+     * lệ, T⁸ của Quản lý viện chỉ là Quyết định giữ giường; {@code FootnoteRules} giao các chú thích này cho module sở hữu
+     * lệnh kiểm. Ghi nhận qua đời tại viện chỉ Bác sĩ, kiểm ở {@link #basisOf}.
+     */
+    private static final Map<StatusCommand, Set<Role>> COMMAND_ROLES = Map.of(
+            StatusCommand.COMPLETE_ADMISSION, Set.of(Role.OFFICE_STAFF),
+            StatusCommand.CANCEL_ADMISSION, Set.of(Role.OFFICE_STAFF),
+            StatusCommand.GRANT_TEMPORARY_ABSENCE, Set.of(Role.OFFICE_STAFF, Role.FLOOR_MANAGER),
+            StatusCommand.RECORD_RETURN, Set.of(Role.OFFICE_STAFF, Role.FLOOR_MANAGER),
+            StatusCommand.TRANSFER_OUT, Set.of(Role.DOCTOR, Role.NURSING_STAFF),
+            StatusCommand.END_RESIDENCY, Set.of(Role.OFFICE_STAFF, Role.DOCTOR),
+            StatusCommand.RECORD_DEATH, Set.of(Role.DOCTOR, Role.OFFICE_STAFF));
+
+    /** {@code residentId} cho giới hạn trường theo người cao tuổi của dòng (không ghi ra JSON). */
     public record HistoryEntry(
+            long residentId,
             ResidentStatus from,
             ResidentStatus to,
             String command,
@@ -104,6 +142,8 @@ public class ResidentStatusService {
     private final JsonMapper json;
     private final ActorNames names;
     private final ObjectProvider<CurrentUser> currentUser;
+    private final FileApi files;
+    private final ObjectProvider<CorrectionApi> corrections;
 
     ResidentStatusService(
             ResidentRepository residents,
@@ -115,7 +155,10 @@ public class ResidentStatusService {
             BusinessTime time,
             JsonMapper json,
             ActorNames names,
-            ObjectProvider<CurrentUser> currentUser) {
+            ObjectProvider<CurrentUser> currentUser,
+            FileApi files,
+            ObjectProvider<CorrectionApi> corrections) {
+        this.corrections = corrections;
         this.residents = residents;
         this.histories = histories;
         this.guard = guard;
@@ -126,12 +169,14 @@ public class ResidentStatusService {
         this.json = json;
         this.names = names;
         this.currentUser = currentUser;
+        this.files = files;
     }
 
     @BusinessCommand
     @RequiresPermission(function = Function.ADMISSION_CONTRACT_DEPOSIT, operation = Operation.CREATE)
     @Transactional
     public Outcome completeAdmission(Target target, Reason reason, JsonNode details) {
+        requireCommandRole(StatusCommand.COMPLETE_ADMISSION);
         Resident resident = lock(target);
         guard.requireOpen(resident.getId());
         return apply(
@@ -147,6 +192,7 @@ public class ResidentStatusService {
     @RequiresPermission(function = Function.ADMISSION_CONTRACT_DEPOSIT, operation = Operation.CREATE)
     @Transactional
     public Outcome cancelAdmission(Target target, Reason reason, JsonNode details) {
+        requireCommandRole(StatusCommand.CANCEL_ADMISSION);
         Resident resident = lock(target);
         guard.requireOpen(resident.getId());
         return apply(
@@ -157,6 +203,7 @@ public class ResidentStatusService {
     @RequiresPermission(function = Function.ABSENCE_RETURN, operation = Operation.CREATE)
     @Transactional
     public Outcome grantTemporaryAbsence(Target target, Reason reason, JsonNode details) {
+        requireCommandRole(StatusCommand.GRANT_TEMPORARY_ABSENCE);
         Resident resident = lock(target);
         guard.requireOpen(resident.getId());
         return apply(
@@ -172,6 +219,7 @@ public class ResidentStatusService {
     @RequiresPermission(function = Function.ABSENCE_RETURN, operation = Operation.CREATE)
     @Transactional
     public Outcome recordReturn(Target target, Reason reason, JsonNode details) {
+        requireCommandRole(StatusCommand.RECORD_RETURN);
         Resident resident = lock(target);
         guard.requireOpen(resident.getId());
         return apply(
@@ -182,6 +230,7 @@ public class ResidentStatusService {
     @RequiresPermission(function = Function.TRANSFER_OUT, operation = Operation.CREATE)
     @Transactional
     public Outcome transferOut(Target target, Reason reason, JsonNode details) {
+        requireCommandRole(StatusCommand.TRANSFER_OUT);
         Resident resident = lock(target);
         guard.requireOpen(resident.getId());
         return apply(resident, StatusCommand.TRANSFER_OUT, currentUser.getObject(), Optional.of(reason), details, null);
@@ -191,6 +240,7 @@ public class ResidentStatusService {
     @RequiresPermission(function = Function.RESIDENCY_END_DEATH, operation = Operation.CREATE)
     @Transactional
     public Outcome endResidency(Target target, Reason reason, JsonNode details) {
+        requireCommandRole(StatusCommand.END_RESIDENCY);
         Resident resident = lock(target);
         guard.requireOpen(resident.getId());
         return apply(
@@ -201,6 +251,7 @@ public class ResidentStatusService {
     @RequiresPermission(function = Function.RESIDENCY_END_DEATH, operation = Operation.CREATE)
     @Transactional
     public Outcome recordDeath(Target target, Reason reason, JsonNode details) {
+        requireCommandRole(StatusCommand.RECORD_DEATH);
         Resident resident = lock(target);
         guard.requireOpen(resident.getId());
         return apply(resident, StatusCommand.RECORD_DEATH, currentUser.getObject(), Optional.of(reason), details, null);
@@ -257,9 +308,23 @@ public class ResidentStatusService {
     public List<HistoryEntry> history(Target target) {
         long id = target.residentId();
         residents.findById(id).orElseThrow(NotFoundException::new);
-        return histories.findByResidentIdOrderByIdAsc(id).stream()
-                .map(this::entry)
+        List<ResidentStatusHistory> rows = histories.findByResidentIdOrderByIdAsc(id);
+        // Lý do hiển thị là lý do đã đính chính (FR-049a, FR-030); bản gốc giữ nguyên ở bảng lịch sử
+        Map<Long, CurrentValue> corrected = rows.isEmpty()
+                ? Map.of()
+                : corrections
+                        .getObject()
+                        .current(
+                                HISTORY_RECORD_TYPE,
+                                rows.stream().map(ResidentStatusHistory::getId).toList());
+        return rows.stream()
+                .map(row -> entry(row, correctedReason(corrected.get(row.getId()))))
                 .toList();
+    }
+
+    /** Giấy tờ bệnh viện gắn với một dòng lịch sử trạng thái (001 T081, T082). */
+    public List<FileView> hospitalDocuments(long historyId) {
+        return files.attachedTo(HOSPITAL_DOCUMENT_OWNER, historyId);
     }
 
     /**
@@ -269,7 +334,7 @@ public class ResidentStatusService {
     public static Set<StatusCommand> availableCommands(ResidentStatus status, Set<Role> roles) {
         Set<StatusCommand> available = new java.util.HashSet<>();
         for (StatusCommand command : USER_COMMANDS) {
-            if (StatusTransitionTable.next(status, command).isPresent()) {
+            if (StatusTransitionTable.next(status, command).isPresent() && holdsCommandRole(command, roles)) {
                 available.add(command);
             }
         }
@@ -281,6 +346,18 @@ public class ResidentStatusService {
 
     public static Target target(long residentId) {
         return ResidentProfileService.target(residentId);
+    }
+
+    private static boolean holdsCommandRole(StatusCommand command, Set<Role> roles) {
+        return roles.stream().anyMatch(COMMAND_ROLES.get(command)::contains);
+    }
+
+    /** Chạy sau {@code @RequiresPermission} và trước khi khóa dòng, nên lệnh bị từ chối không đổi dữ liệu. */
+    private void requireCommandRole(StatusCommand command) {
+        if (!holdsCommandRole(command, currentUser.getObject().roles())) {
+            throw new PermissionDeniedException(
+                    "PERMISSION_DENIED", "Không có quyền", Map.of("failedLayer", FailedLayer.ROLE.name()));
+        }
     }
 
     private Resident lock(Target target) {
@@ -303,6 +380,7 @@ public class ResidentStatusService {
         }
         JsonNode body = details == null ? noDetails() : details;
         BasisRef basis = basisOf(command, from, user, body, moduleBasis);
+        List<Long> attachments = attachmentsOf(command, from, body);
         participants
                 .orderedStream()
                 .filter(p -> p.interestedCommands().contains(command))
@@ -331,6 +409,12 @@ public class ResidentStatusService {
                 basis == null ? null : basis.type(),
                 basis == null ? null : basis.id(),
                 evaluation.waiver() == null ? null : json.writeValueAsString(evaluation.waiver())));
+        // tệp không có hoặc đã gắn thì ném lỗi và cả lệnh rollback, kể cả tệp đã gắn trước đó trong vòng lặp (FR-047c)
+        attachments.forEach(fileId -> files.attach(fileId, HOSPITAL_DOCUMENT_OWNER, row.getId()));
+        if (basis != null && EVIDENCE_BASIS.equals(basis.type())) {
+            // tệp không tồn tại hoặc đã gắn thì ném lỗi và cả lệnh rollback (FR-047b, research H-13)
+            files.attach(basis.id(), DEATH_EVIDENCE_OWNER, row.getId());
+        }
         resident.changeStatus(to, now);
         residents.saveAndFlush(resident);
 
@@ -355,6 +439,9 @@ public class ResidentStatusService {
                     warnings.addAll(p.warnings(context));
                 });
         events.publishEvent(new ResidentStatusChanged(residentId, from, to, command, row.getId(), now));
+        if (command == StatusCommand.TRANSFER_OUT || command == StatusCommand.RECORD_DEATH) {
+            events.publishEvent(new ResidentStatusNotice(residentId, command, row.getId(), now));
+        }
         return new Outcome(to, row.getId(), entry(row), List.copyOf(warnings));
     }
 
@@ -435,7 +522,7 @@ public class ResidentStatusService {
         if (command == StatusCommand.RECORD_DEATH) {
             boolean doctor = user.roles().contains(Role.DOCTOR);
             JsonNode evidence = details.get(EVIDENCE_FIELD);
-            boolean hasEvidence = evidence != null && evidence.isNumber();
+            boolean hasEvidence = evidence != null && evidence.isIntegralNumber();
             if (from == ResidentStatus.IN_RESIDENCE && !doctor) {
                 throw new BusinessException(
                         HttpStatus.FORBIDDEN,
@@ -447,9 +534,32 @@ public class ResidentStatusService {
                         "EVIDENCE_REQUIRED",
                         "Hành chính ghi nhận qua đời ngoài viện phải kèm giấy tờ bằng chứng (FR-047b)");
             }
-            return hasEvidence ? new BasisRef("EVIDENCE_FILE", evidence.longValue()) : null;
+            return hasEvidence ? new BasisRef(EVIDENCE_BASIS, evidence.longValue()) : null;
         }
         return null;
+    }
+
+    /**
+     * Giấy tờ bệnh viện đính kèm (FR-047c): chỉ Ghi nhận trở về từ Điều trị tại bệnh viện và Chuyển viện nhận, không bắt
+     * buộc, tối đa {@value #MAX_ATTACHMENTS} tệp; lệnh khác có tệp thì 422, và một tệp liệt kê hai lần chỉ gắn một lần.
+     */
+    private static List<Long> attachmentsOf(StatusCommand command, ResidentStatus from, JsonNode details) {
+        JsonNode listed = details.get(ATTACHMENTS_FIELD);
+        if (listed == null || listed.isNull() || (listed.isArray() && listed.isEmpty())) {
+            return List.of();
+        }
+        boolean accepted = command == StatusCommand.TRANSFER_OUT
+                || (command == StatusCommand.RECORD_RETURN && from == ResidentStatus.HOSPITALIZED);
+        if (!accepted) {
+            throw invalidDetails("ATTACHMENTS_NOT_ACCEPTED", "Lệnh này không nhận tệp đính kèm");
+        }
+        if (!listed.isArray() || listed.valueStream().anyMatch(id -> !id.isIntegralNumber())) {
+            throw invalidDetails("INVALID_ATTACHMENTS", "Tệp đính kèm là danh sách mã tệp");
+        }
+        if (listed.size() > MAX_ATTACHMENTS) {
+            throw invalidDetails("TOO_MANY_ATTACHMENTS", "Tối đa " + MAX_ATTACHMENTS + " tệp đính kèm");
+        }
+        return listed.valueStream().map(JsonNode::longValue).distinct().toList();
     }
 
     private static BusinessException invalidDetails(String code, String message) {
@@ -460,20 +570,33 @@ public class ResidentStatusService {
         return tools.jackson.databind.node.JsonNodeFactory.instance.objectNode();
     }
 
+    private static String correctedReason(CurrentValue value) {
+        if (value != null && value.corrected() && !value.voided() && value.content() instanceof Map<?, ?> content) {
+            Object reason = content.get(StatusHistoryCorrectionProvider.REASON);
+            return reason == null ? null : reason.toString();
+        }
+        return null;
+    }
+
     private HistoryEntry entry(ResidentStatusHistory row) {
+        return entry(row, null);
+    }
+
+    private HistoryEntry entry(ResidentStatusHistory row, String correctedReason) {
         Map<String, Object> basis =
                 row.getBasisType() == null ? null : Map.of("type", row.getBasisType(), "id", row.getBasisId());
         Map<String, Object> waiver = row.getConditionWaiver() == null
                 ? null
                 : json.readValue(row.getConditionWaiver(), new tools.jackson.core.type.TypeReference<>() {});
         return new HistoryEntry(
+                row.getResidentId(),
                 row.getFromStatus(),
                 row.getToStatus(),
                 row.getCommand(),
                 row.getOccurredAt(),
                 names.of(row.getPerformedBy()),
                 row.isBySystem(),
-                row.getReason(),
+                correctedReason != null ? correctedReason : row.getReason(),
                 basis,
                 waiver);
     }

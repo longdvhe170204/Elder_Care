@@ -618,3 +618,54 @@ Full lần3exit1/14:07phút:780unit xanh,1764IT9failure+36error,care257IT1error 
 GiữT050/T051[ ] vì nhánh billable event/newQuantity chưa nghiệm thu (E/010), VOID ngủ chờ tín hiệuD/007 theo quyết định chủ dự án, genericghi chờA thống nhất isolation; consumer thật và gateF trước còn mở. NhánhA/B qua endpointcare, bản gốc/trạng thái, projectionhistory/detail/family, quyềnxem, callbackF/ngủAMEND, rollback và concurrency đã có bằng chứng. Không dùng testguard thay nghiệm thu luồng bị chặn.
 
 Thứ tự tiếp: hoàn tất phần còn lại T050 (test payload billable khi quantity đã thống nhất) → T051 (producer/gates và retest tích hợp); sau đó T052 test bốn nguồn báo xem xét kế hoạch → T053 listener củaPhase10. Chưa bắt đầuPhase10. Ghi chú bàn giao PR: Phase9/T050–T051 một phần; đổi1HTTP operation đã duyệt, không đổi JavaAPI/SPI/event; kết quả/gates như trên. Chưa tạoPR/commit/push/đổi nhánh; giữ feature/005-daily-care-and-hand-over,HEADbd646d1e. docs/progress thêm kết quả cuối, team-plan thêm3dòng chờPhase9 và chỉ cập nhật trạng thái phần còn dở; Working-history giữ đầy đủ lịch sử/file/luồng/lệnh/kết quả.
+
+
+## Hòa merge origin/develop — 03/11/2026
+
+Chủ dự án yêu cầu rà conflict rồi xác nhận triển khai phương án đã đề xuất. Checkout đang merge HEAD `e35a46a2` với `origin/develop` (`698932cd`); không tạo merge mới, không commit/push hoặc đổi nhánh. Hai file unmerged là docs/team-plan.md (7 khối) và docs/progress.md (1 khối); mã Java không có marker nhưng có xung đột tích hợp do 000 T110 chuyển DTO/event khỏi gốc api.
+
+Quyết định kỹ thuật: giữ package mới của develop, chỉ cập nhật import/tham chiếu fully qualified trong care và BedTransferService của roombedallocation. Không tạo lớp tương thích ở package cũ, không đổi chữ ký API, HTTP, transaction hoặc nghiệp vụ. Giữ test hiện có để kiểm hồi quy; compile JDK25 đã RED trước sửa vì cannot find symbol, sau sửa source tiếp tục lộ lỗi import của BedTransferService và testCompile lộ ParameterCode fully qualified trong fixture. Không bổ sung test chỉ kiểm dòng import. Không đổi tasks/checkbox vì đây là hòa merge, chưa nghiệm thu phase hoặc mở Phase10.
+
+Tài liệu: nối nguyên nội dung nhật ký của cả hai nhánh (đã kiểm không mất dòng không rỗng), gộp các dòng chờ trùng theo công việc và giữ trạng thái có bằng chứng mới hơn. Giữ các gate Phase3–9 của 005; dùng cập nhật nguồn lưu trú 004/ResidenceTypeChanged và review 016 từ develop, giữ bằng chứng implementation/review 003/005 của HEAD. Gộp AssignmentIT theo chẩn đoán A đã thử; không sửa test E. Nguồn 004 đã có không đồng nghĩa adapter/listener 005 đã tích hợp. Các bản stage1/2/3 gốc được lưu ngoài checkout để đối chiếu.
+
+Kết quả xác minh lượt hòa merge được bổ sung bên dưới sau khi lệnh kết thúc; lịch sử chi tiết và danh sách file nằm ở Working-history.md.
+
+
+### Xác minh scoped và trạng thái Git sau gỡ conflict
+
+`merge-resolution-scoped.log` kết thúc exit1:127 test đơn vị/kiến trúc xanh,281 IT có0failure/1error/0skip.258 IT care có đúng lỗi cũ `FR_003_CarePlanLifecycleIT.FR_003_maximumEscapedReturnReasonSurvivesOutboxStorage` (Data too long cho EVENT_PUBLICATION.SERIALIZED_EVENT); không sửa schema/test để làm xanh. `BR_M03_07_BedTransferIT`15ca và `FR_035_LocationHistoryHttpIT`8ca xanh. Source và test đã qua compile với JDK25. Các log compile RED trước sửa, lỗi môi trường và scoped được giữ ngoài checkout.
+
+Web sau merge: `npm test -- --run`458test/77file xanh, `npm run lint` và `npm run build` exit0; build chỉ cảnh báo chunk lớn hơn500kB. Không sửa frontend hoặc UI. Reviewer độc lập theo skill requesting-code-review không phát hiện P1/P2 trong31file Java và tài liệu gộp, không sửa file/chạy test song song. `git diff --check` qua; kiểm marker trong source/docs/specs không còn kết quả. Đã `git add` đúng35file của lượt xử lý (31Java+4tài liệu), `git ls-files -u` rỗng; HEAD vẫn `e35a46a2`, MERGE_HEAD vẫn `698932cd`, không commit/push hoặc hoàn tất merge. File untracked `specs/003-room-bed-allocation/hand-over-task-003.md` có sẵn vẫn giữ ngoài index.
+
+Đã khởi chạy nền `mvnw.cmd -o clean verify` với JDK25 và biến môi trường MySQL từ backend/.env (không in bí mật);956unit/kiến trúc xanh, IT đang chạy. Chưa ghi kết quả cuối hoặc đóng gate toàn kho trước khi tiến trình kết thúc.
+
+
+### Kết quả cuối hòa merge — 03/11/2026
+
+`merge-resolution-clean-verify.log` đã kết thúc, Maven exit1/BUILD FAILURE,44:36phút. Đọc XML sau clean (không trộn báo cáo scoped):956unit/kiến trúc xanh/0skip;2504IT có6failure+30error/2skip. Hai skip thuộc SC_001_UrgentConcurrencyIT, không thêm điều kiện bỏ qua test trong lượt sửa. Spotless2959file sạch,0cần sửa. Care258IT có0failure/1error outbox reason cũ;24test riêngPhase9 (3unit+21IT) xanh;23IT003 liênquan (15BedTransfer+8LocationHistoryHttp) xanh. Web458test/77file,lint/build exit0; chỉ cảnh báo Vite chunk lớn. Không sửa mobile/UI hoặc chụp màn hình.
+
+36phươngthức đỏ chia theo lớp:
+
+| Lớp | Failure | Error | Nội dung/chủ phần |
+| --- | ---: | ---: | --- |
+| AssignmentIT | 2 | 25 | Gate fixture giờ/quyền đã bàn giao E008; không sửa test E |
+| ApiContractIT | 1 | 0 | Test chung chưa đăng ký api-005, danh sách đường dẫn dư đều thuộc005; chờ A000 |
+| FR_003_CarePlanLifecycleIT | 0 | 1 | maximumEscapedReturnReasonSurvivesOutboxStorage: reason hợp lệ vượt SERIALIZED_EVENT VARCHAR4000; chờ A000 |
+| ResidentContractIT | 1 | 0 | SelfDeterminationAssessment thiếu at; cùng tên đỏ cũ nhưng nguyên nhân hiện tại khác phần so operation trước merge; chờ B001 |
+| NFR_03_DeliveryDispatcherIT | 0 | 4 | Awaitility timeout4ca đã ghi đầy đủ tại team-plan; tên mới so mốc Phase9 trước merge, chờ A009 |
+| SC_008_ReadOnlyIT | 2 | 0 | Hai kiểm checksum khác duy nhất family_medication_batch; tên mới so mốc Phase9 trước merge, chờ A016/D006 xác minh |
+
+`merge-resolution-final-summary.json` lưu tổng từng nhóm/lớp, full method name, message rút gọn và đối chiếu với005-p9-final-verification-summary.json. Có6tên đỏ mới (4notification+2reporting),30tên cũ còn;15tên cũ không còn đỏ. Một trong30tên cũ là ResidentContractIT đã đổi nguyên nhân; không gọi toàn bộ30trườnghợp là cùng nguyên nhân baseline. Không suy rằng6lỗi mới do import khi chưa có bằng chứng nguyên nhân; không sửa nguồn A/B/D/E, tăng timeout, bỏ assertion hoặc schema để làm xanh.
+
+Lệnh xác minh đã thực thi (backend, JDK25 và biến .env được nạp vào Process):
+
+- `.\mvnw.cmd -o -DskipTests compile`: RED trước sửa import (merge-review-jdk25-compile.log).
+- `.\mvnw.cmd -o -DskipTests test-compile`: hai lượt RED tiếp theo đã chỉ ra BedTransferService và các FQN trong test; không ghi là xanh trước khi sửa đủ.
+- `.\mvnw.cmd -o -DspotlessFiles=.*care.* spotless:apply` và pattern `.*roombedallocation.*`: định dạng phần C; không đổi Java khác.
+- `.\mvnw.cmd -o -Dtest=com.eldercare.backend.care.*Test,*ArchTest,ModuleBoundaryTest -Dit.test=com.eldercare.backend.care.*IT,BR_M03_07_BedTransferIT,FR_035_LocationHistoryHttpIT verify`: scoped127unit/Arch xanh;281IT0failure/1error outbox cũ/0skip, exit1.
+- `.\mvnw.cmd -o clean verify`: chạy nền một lượt, kết quả956unit/2504IT/6failure/30error/2skip ở trên, exit1; không chạy lại test A/B/D/E riêng lẻ.
+- Frontend: `npm test -- --run`, `npm run lint`, `npm run build`: cả ba exit0,458test/77file.
+
+Đã gỡ đủ8khối conflict, cập nhật import/FQN31file Java (22main+9test) và4tài liệu; không tạo/xóa class, đổi hợp đồng, thêm thư viện hoặc migration. Progress.md giữ mọi dòng không rỗng từ cả hai phía trước merge. Git được đánh dấu resolve bằng add đúng35file của lượt này; incoming staged có sẵn vẫn giữ, hand-over-task-003.md có sẵn vẫn untracked. Không commit/push/đổi nhánh hoặc kết thúc merge: feature/005-daily-care-and-hand-over,HEAD=e35a46a2,MERGE_HEAD=698932cd.
+
+Chưa nghiệm thu toànkho/phase hoặc đánh thêm[x]. Các gate T050→T051 (quantity E010, VOID ngủ D007, generic correction A và nguồn/payload trước đó) giữ nguyên; task mới tiếp theo theo tasks.md vẫn T052→T053 sau khi đủ điều kiện. Ba dòng bàn giao quan sát sau merge đã thêm vào team-plan; dòng ParameterAsOfIT cũ được xóa vì A đã sửa trên develop25f492a8 và full hiện tại xanh1/1, kết quả giữ tại progress/history. File lịch sử này chỉ bổ sung, không xóa nội dung cũ.
