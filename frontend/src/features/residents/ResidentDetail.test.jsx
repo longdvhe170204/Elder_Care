@@ -111,6 +111,31 @@ describe('ResidentDetail', () => {
     expect(screen.getByRole('button', { name: 'Xem giá trị mới' })).toBeTruthy()
   })
 
+  it('BUG-UI-001: bấm Xem giá trị mới thì đóng form cũ, hiện giá trị người khác vừa lưu, lần sửa sau dùng ETag mới', async () => {
+    routes()
+    api.on('POST', '/residents/7/update-personal-info', problem(412, 'PRECONDITION_FAILED'))
+
+    open()
+    fireEvent.click(await screen.findByRole('button', { name: 'Cập nhật thông tin' }))
+    fireEvent.change(screen.getByLabelText('Lý do cập nhật'), { target: { value: 'Sửa' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }))
+    const reload = await screen.findByRole('button', { name: 'Xem giá trị mới' })
+
+    api.on(
+      'GET',
+      '/residents/7',
+      json(200, profile({ personalInfo: { ...profile().personalInfo, fullName: 'Tên Tab Khác' } }), { ETag: '"2"' }),
+    )
+    fireEvent.click(reload)
+
+    expect(await screen.findByText('Tên Tab Khác')).toBeTruthy()
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Lưu thay đổi' })).toBeNull())
+    expect(screen.queryByText('Dữ liệu đã thay đổi')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cập nhật thông tin' }))
+    expect(screen.getByLabelText('Họ tên').value).toBe('Tên Tab Khác')
+  })
+
   it('BUG-03: khối An toàn hiện dị ứng và lưu ý; đóng phần chi tiết thì nạp lại hồ sơ', async () => {
     routes({
       view: profile({
