@@ -41,6 +41,10 @@ dependencies:
   firebase_messaging: ^17.0.1
   geolocator: ^14.1.2
   url_launcher: ^6.3.3
+  drift: ^2.34.4
+  drift_flutter: ^0.3.1
+  lucide_icons_flutter: ^4.0.1
+  firebase_core: ^5.1.0
 
 dev_dependencies:
   flutter_test:
@@ -52,6 +56,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  drift_dev: ^2.34.0
+  build_runner: ^2.15.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -65,13 +71,15 @@ flutter:
   uses-material-design: true
 
   # Be Vietnam Pro (OFL, assets/fonts/BeVietnamPro-OFL.txt) đóng gói sẵn để dùng khi mất mạng (DESIGN.md 15.2).
-  # Kho mới có 400 và 700; 500, 600 cần thêm từ google/fonts (cùng nguồn với backend/src/main/resources/fonts).
+  # Ba độ đậm 400, 500, 600 theo DESIGN.md mục 4, lấy từ google/fonts (ofl/bevietnampro).
   fonts:
     - family: BeVietnamPro
       fonts:
         - asset: assets/fonts/BeVietnamPro-Regular.ttf
-        - asset: assets/fonts/BeVietnamPro-Bold.ttf
-          weight: 700
+        - asset: assets/fonts/BeVietnamPro-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/BeVietnamPro-SemiBold.ttf
+          weight: 600
 
   # To add assets to your application, add an assets section, like this:
   # assets:

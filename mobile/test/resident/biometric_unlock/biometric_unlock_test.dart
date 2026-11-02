@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/app.dart';
 import 'package:mobile/common/auth/secure_store.dart';
 import 'package:mobile/common/auth/session_controller.dart';
-import 'package:mobile/resident/resident_root.dart';
 
 import '../../support/fake_backend.dart';
 
 // 002 T097 (tên logic mo_khoa_sinh_trac_test; FR-074; DESIGN.md 15.6): sau lần đăng nhập đầu hỏi một lần có mở bằng
 // vân tay hoặc khuôn mặt; bật thì lần mở app sau phải qua sinh trắc học; không có mã PIN.
 
-Widget fakeScanner(void Function(String code) onCode) =>
-    Center(child: ElevatedButton(onPressed: () => onCode('qr-123'), child: const Text('Giả quét mã')));
+Widget fakeScanner(void Function(String code) onCode) => Center(
+  child: ElevatedButton(onPressed: () => onCode('qr-123'), child: const Text('Giả quét mã')),
+);
 
 Future<void> pumpApp(WidgetTester tester, FakeBackend backend, MemoryStore store, FakeBiometric biometric) async {
   final s = session(backend, store, biometric);
   await s.start();
-  await tester.pumpWidget(ResidentRoot(session: s, scannerBuilder: fakeScanner));
+  await tester.pumpWidget(ElderCareApp(session: s, queue: memoryQueue(s), scannerBuilder: fakeScanner));
   await tester.pumpAndSettle();
+  await openResidentLogin(tester);
 }
 
 void main() {

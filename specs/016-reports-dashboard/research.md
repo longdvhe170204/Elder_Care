@@ -8,17 +8,17 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## O-01. Vị trí trong backend
 
-**Quyết định**: Feature 016 là module M14 – Báo cáo (mục 18), gói `com.cambae.backend.m14`, chỉ đọc. Gói con:
+**Quyết định**: Feature 016 là module M14 – Báo cáo (mục 18), gói `com.eldercare.backend.reporting`, chỉ đọc. Gói con:
 
 | Gói con | Nội dung |
 | --- | --- |
-| `m14.chitieu` | Danh mục chỉ tiêu (định nghĩa cố định trong mã, FR-003): mã, nhóm, định nghĩa hiển thị, nguồn, hàm tính |
-| `m14.phamvi` | Dựng phạm vi báo cáo theo FR-010, FR-012 (dashboard, Trưởng tầng, Điều dưỡng, Người phụ trách ca) |
-| `m14.dashboard` | Dashboard theo vai trò |
-| `m14.baocao` | Báo cáo 18.1 → 18.6 |
-| `m14.chitiet` | Danh sách chi tiết của một con số |
-| `m14.xuat` | Xuất file, nhật ký lần xuất |
-| `m14.api` | (không có giao diện cho module khác) |
+| `reporting.chitieu` | Danh mục chỉ tiêu (định nghĩa cố định trong mã, FR-003): mã, nhóm, định nghĩa hiển thị, nguồn, hàm tính |
+| `reporting.phamvi` | Dựng phạm vi báo cáo theo FR-010, FR-012 (dashboard, Trưởng tầng, Điều dưỡng, Người phụ trách ca) |
+| `reporting.dashboard` | Dashboard theo vai trò |
+| `reporting.baocao` | Báo cáo 18.1 → 18.6 |
+| `reporting.chitiet` | Danh sách chi tiết của một con số |
+| `reporting.xuat` | Xuất file, nhật ký lần xuất |
+| `reporting.api` | (không có giao diện cho module khác) |
 
 **Lý do**: 016 là module cao nhất; mọi module khác đã khai giao diện thống kê cho nó.
 
@@ -45,7 +45,7 @@ Giao diện dùng (đã khai ở hợp đồng các feature):
 | Hoạt động, kiểm tra chất lượng, cô lập | `HoatDongThongKeApi` (014) |
 | Số dư | `SoDuThongKeApi` (017) |
 | Khai báo tạm trú | `KhaiBaoThongKeApi` (018) |
-| Tài sản, kho, mua sắm | `TaiSanThongKeApi`, `KhoThongKeApi`, `MuaSamThongKeApi` (019) |
+| Tài sản, mua sắm | `TaiSanThongKeApi`, `MuaSamThongKeApi` (019; kho bỏ theo Q-392) |
 | Lần loại bỏ dữ liệu, giá trị sau đính chính | `NhatKyApi` tóm tắt loại bỏ (000 FR-051); module nguồn trả giá trị hiện hành |
 
 `NguoiThanThongKeApi` (012), `DoGuiThongKeApi` (013), thống kê thông báo (009) không dùng ở giai đoạn này (Q-194).
@@ -120,7 +120,7 @@ Giao diện dùng (đã khai ở hợp đồng các feature):
 
 ## O-09. Chỉ đọc (FR-001; SC-008)
 
-**Quyết định**: Mọi transaction của M14 là `readOnly = true` trừ lệnh xuất (chỉ ghi nhật ký qua 000 và tệp). ArchUnit: `m14` không gọi API có tên `*Lenh*`, `*Port` ghi, không phát sự kiện ngoài nhật ký. Test SC-008 đếm bản ghi nghiệp vụ, thông báo trước/sau bộ kiểm thử.
+**Quyết định**: Mọi transaction của M14 là `readOnly = true` trừ lệnh xuất (chỉ ghi nhật ký qua 000 và tệp). ArchUnit: `reporting` không gọi API có tên `*Lenh*`, `*Port` ghi, không phát sự kiện ngoài nhật ký. Test SC-008 đếm bản ghi nghiệp vụ, thông báo trước/sau bộ kiểm thử.
 
 ---
 
@@ -129,14 +129,14 @@ Giao diện dùng (đã khai ở hợp đồng các feature):
 **Quyết định**: Ba module làm plan đầu chưa khai giao diện thống kê cho 016; thêm (đọc, không khóa):
 
 ```java
-// m01.api.NguoiCaoTuoiThongKeApi (001)
+// resident.api.NguoiCaoTuoiThongKeApi (001)
 Stream<TrangThaiTaiNgayView> trangThaiTaiNgay(PhamViLoc phamVi, LocalDate ngay);        // trạng thái 5.5, mức hiệu lực tại ngày
 Stream<BienDongView> bienDong(PhamViLoc phamVi, Instant tu, Instant den);              // FR-023: lệnh trạng thái, đổi mức theo thời điểm hiệu lực
 Stream<DanhGiaQuaHanView> danhGiaLaiQuaHan(PhamViLoc phamVi);                           // FR-044 (trạng thái do 001 xác định)
-// m02.api.LuuTruThongKeApi (004)
+// admission.api.LuuTruThongKeApi (004)
 Stream<LoaiLuuTruTaiNgayView> loaiLuuTruTaiNgay(PhamViLoc phamVi, LocalDate ngay);      // FR-022 (hợp đồng hiệu lực, chờ hiệu lực, chưa xác định)
 Stream<HoSoChoView> danhSachCho(LocalDate tu, LocalDate den);                           // FR-025
-// m03.api.GiuongThongKeApi (003)
+// roombedallocation.api.GiuongThongKeApi (003)
 Stream<TrangThaiGiuongTaiNgayView> trangThaiTaiNgay(PhamViLoc phamVi, Instant t);       // FR-024
 Stream<KhoangChoSanSangView> choSanSang(PhamViLoc phamVi, Instant tu, Instant den);     // FR-033 (CFG-M03-04)
 Stream<PhongCachLyView> phongCachLy(PhamViLoc phamVi, Instant t);

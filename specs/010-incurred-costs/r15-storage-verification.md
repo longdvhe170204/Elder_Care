@@ -27,7 +27,7 @@ Log và script ignored tại backend/target/010-foundation-verification của ch
 
 ## 4. Phải chờ ai và phần chưa xong
 
-- **A/000 T108:** mới có tài liệu trên 8573190, chưa có V000_09/m15.shared hoặc ReminderMarkers/TechnicalLocks. Chờ ResidentModuleStateApi, StatusHistoryApi, RecordEventApi, SimpleRecordApi, các helper common và fake đúng chủ để nối trạng thái, lịch sử, marker, khóa, hồ sơ nhỏ. Không tự tạo API/fake của A hoặc đọc/ghi trực tiếp bảng chung.
+- **A/000 T108:** mới có tài liệu trên 8573190, chưa có V000_09/administration.shared hoặc ReminderMarkers/TechnicalLocks. Chờ ResidentModuleStateApi, StatusHistoryApi, RecordEventApi, SimpleRecordApi, các helper common và fake đúng chủ để nối trạng thái, lịch sử, marker, khóa, hồ sơ nhỏ. Không tự tạo API/fake của A hoặc đọc/ghi trực tiếp bảng chung.
 - **B/004:** NguoiDaiDienPort còn chưa khai báo/fake; T002 giữ [ ] chỉ cho phần này sau khi fixture nguồn E đã xanh. BillingPeriod của T006 vẫn chờ kiểu hợp đồng/hồ sơ kết thúc/ngày giải phóng giường.
 - **C/005, D/006:** sự kiện/producer tính phí/có mặt/điều chỉnh/PRN/giao thuốc còn như team-plan. Fixture mới không thay nghiệm thu nguồn thật.
 - **A nền web:** vẫn cần đăng ký 010 trong TRANSLATED mới sinh được client; bản dịch HTTP đã duyệt giữ nguyên, không xin duyệt lại chỉ vì đổi cách lưu.
@@ -37,9 +37,9 @@ Log và script ignored tại backend/target/010-foundation-verification của ch
 ## 5. Địa chỉ để đọc/review
 
 - backend/src/main/resources/db/migration/V010_01__costs.sql (ba bảng, sáu trigger và GRANT).
-- backend/src/test/java/com/cambae/backend/m11/CostSchemaIT.java (15 ca MySQL).
-- backend/src/test/java/com/cambae/backend/m11/CostSourceFixtureTest.java; support/fake/m11/FakeCostSources.java; FakeM11Config.java.
+- backend/src/test/java/com/eldercare/backend/billing/CostSchemaIT.java (15 ca MySQL).
+- backend/src/test/java/com/eldercare/backend/billing/CostSourceFixtureTest.java; support/fake/billing/FakeCostSources.java; FakeM11Config.java.
 - specs/010-incurred-costs/data-model.md mục 0.1; tasks T005a/T005/T002/T038; plan phần T005a và R-15; glossary chỉ mục 16.7–16.8; contracts/module-interfaces mục 0.
 - docs/team-plan.md mục 8 có dòng A/000 T108 chờ riêng cho 010; progress chỉ thêm dòng mới sau khi kiểm xong.
 
-Phạm vi: M11, test/fake M11, V010, tài liệu 010, glossary mục 16 và dòng tiến độ/phụ thuộc. Không sửa common/m15.shared hoặc spec/nghiệp vụ, không tạo/chuyển nhánh/commit/push/PR; giữ CRLF/UTF-8.
+Phạm vi: M11, test/fake M11, V010, tài liệu 010, glossary mục 16 và dòng tiến độ/phụ thuộc. Không sửa common/administration.shared hoặc spec/nghiệp vụ, không tạo/chuyển nhánh/commit/push/PR; giữ CRLF/UTF-8.

@@ -1,5 +1,7 @@
 # Research: Lịch ca xoay vòng, phủ ca tối thiểu, đổi ca và nghỉ đột xuất (015)
 
+> **Sửa 2026-10-29 (Q-397):** bỏ mẫu xoay ca, nhóm xoay ca, lập lịch từ mẫu, phủ tối thiểu, thiếu ca, cảnh báo thiếu phủ, lời mời nhận ca; 015 chỉ còn đổi ca và nghỉ đột xuất. Nghỉ "theo ngày" mở cho mọi nhân viên, người lập chọn phạm vi. Phần dưới còn nhắc các phần đã bỏ thì bỏ qua; spec là căn cứ.
+
 **Ngày**: 2026-10-10 | **Plan**: [plan.md](plan.md) | **Spec**: [spec.md](spec.md)
 
 Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyết định nền R-01 → R-14 của 000 và các mẫu đã chốt ở 001 → 014 (N-01 → N-15 của 008, đặc biệt N-03 khóa, N-07 port nội bộ cho 015; B-02 khuôn thông báo) được dùng lại, không quyết lại. Các quyết định dưới đây là kỹ thuật; chúng không đổi nghiệp vụ (constitution IX). Chỗ spec chưa rõ hoặc mâu thuẫn được ghi ở plan, mục "Điểm cần báo lại".
@@ -8,16 +10,16 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## X-01. Vị trí trong backend
 
-**Quyết định**: Feature 015 thuộc module M09 (mục 13.2 phần lịch ca xoay vòng; UC-50 phần lập từ mẫu, UC-54), thêm gói con vào `com.cambae.backend.m09` (008 N-01).
+**Quyết định**: Feature 015 thuộc module M09 (mục 13.2 phần lịch ca xoay vòng; UC-50 phần lập từ mẫu, UC-54), thêm gói con vào `com.eldercare.backend.staffing` (008 N-01).
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
-| `m09.xoayca` | Mẫu xoay ca, nhóm xoay ca, thành viên, lập lịch từ mẫu, lập lại, báo cáo lập lịch | A, B |
-| `m09.phuca` | Yêu cầu phủ tối thiểu (đọc CFG-M09-07), tính phủ, lần tính, cảnh báo thiếu phủ, mục "thiếu ca", kiểm tra khi công bố | A, C, F |
-| `m09.doica` | Yêu cầu đổi ca, yêu cầu nghỉ đột xuất (theo ca, theo ngày), lời mời nhận ca thay, tra cứu người thay | D, E, F |
-| `m09.xoayca.lich`, `m09.doica.lich` | Job | |
+| `staffing.xoayca` | Mẫu xoay ca, nhóm xoay ca, thành viên, lập lịch từ mẫu, lập lại, báo cáo lập lịch | A, B |
+| `staffing.phuca` | Yêu cầu phủ tối thiểu (đọc CFG-M09-07), tính phủ, lần tính, cảnh báo thiếu phủ, mục "thiếu ca", kiểm tra khi công bố | A, C, F |
+| `staffing.doica` | Yêu cầu đổi ca, yêu cầu nghỉ đột xuất (theo ca, theo ngày), lời mời nhận ca thay, tra cứu người thay | D, E, F |
+| `staffing.xoayca.lich`, `staffing.doica.lich` | Job | |
 
-015 chỉ đổi ca, phân công, người phụ trách qua port nội bộ của 008 (`CaLenhPort`, `PhanCongLenhPort`, bổ sung `LichNhapLenhPort`; X-03); ArchUnit chỉ cho `m09.doica`, `m09.xoayca` dùng các port này (008 N-07).
+015 chỉ đổi ca, phân công, người phụ trách qua port nội bộ của 008 (`CaLenhPort`, `PhanCongLenhPort`, bổ sung `LichNhapLenhPort`; X-03); ArchUnit chỉ cho `staffing.doica`, `staffing.xoayca` dùng các port này (008 N-07).
 
 ---
 
@@ -32,7 +34,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 | 015 → 005 | `CongViecCaApi.khiNghiCoDuyet`, `khiKetThucPhanCong` (MANDATORY; đã khai cho 015) |
 | 015 → 006 | Không gọi: liều chung suy ra từ `DieuDuongCaPort` (008 cài) vốn đã loại người nghỉ có duyệt |
 | 015 → 007 | Không gọi: khi ca không còn Bác sĩ trực, 007 đọc `NhanSuCanhBaoPort` (008 cài) lúc chọn người nhận (007 FR-047b) |
-| 015 → 014 | `ChuyenDiNhiemVuLenhApi.goNhiemVu(nhanVienId, caId, canCu)` (MANDATORY, `m04.api`, plan 014); đọc `ChuyenDiNhiemVuPort` (008 → 014) để hiển thị FR-021 (h), FR-027 |
+| 015 → 014 | `ChuyenDiNhiemVuLenhApi.goNhiemVu(nhanVienId, caId, canCu)` (MANDATORY, `care.api`, plan 014); đọc `ChuyenDiNhiemVuPort` (008 → 014) để hiển thị FR-021 (h), FR-027 |
 | 015 → 009, 016 | Thông báo cài `CoYeuCauThongBao`; 016 đọc `XoayCaThongKeApi` |
 
 **Lý do**: 015 làm plan sau 005, 008, 014 nên gọi thẳng API của họ; không tạo vòng (Modulith `verify()`).
@@ -41,10 +43,10 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## X-03. Port nội bộ M09 dùng và bổ sung
 
-**Quyết định**: Dùng `CaLenhPort`, `PhanCongLenhPort`, cài `KiemTraCongBoMoRong` theo 008 N-07. Bổ sung theo plan này (gói `m09.lichca.port`):
+**Quyết định**: Dùng `CaLenhPort`, `PhanCongLenhPort`, cài `KiemTraCongBoMoRong` theo 008 N-07. Bổ sung theo plan này (gói `staffing.lichca.port`):
 
 ```java
-interface LichNhapLenhPort {        // 008 cài; MANDATORY; chỉ m09.xoayca dùng
+interface LichNhapLenhPort {        // 008 cài; MANDATORY; chỉ staffing.xoayca dùng
   long taoNhap(PhamViCa phamVi, YearMonth thang, List<CaNhap> ca, CanCu canCu);
       // tạo lịch Nháp, ca, ca_nhan_vien với can_cu_vao_ca = LAP_LICH; kiểm FR-013, FR-014 của 008 theo từng dòng;
       // ném lỗi khi phạm vi đã có lịch tháng (015 FR-014)
@@ -69,12 +71,12 @@ interface NghiCoDuyetPort {         // 015 cài; 008 dùng
 ## X-04. Khóa và đồng thời
 
 **Quyết định**:
-- Nối thứ tự khóa của 008 N-03: `nhan_vien` (theo `id` tăng) → `tang_ca_khoa` → `lich_ca` → `ca` → `phan_cong`; 015 thêm `yeu_cau_doi_ca` / `yeu_cau_nghi` / `canh_bao_thieu_phu` / `loi_moi` sau `ca`.
+- Nối thứ tự khóa của 008 N-03: `nhan_vien` (theo `id` tăng) → `tang_ca_khoa` → `lich_ca` → `ca` → `phan_cong`; 015 thêm `yeu_cau_doi_ca` / `yeu_cau_nghi` / `canh_bao_thieu_phu` / `loi_moi` sau `ca`. *(R-15: `tang_ca_khoa` → `khoa_ky_thuat`; `yeu_cau_doi_ca`, `yeu_cau_nghi` → `ho_so_chung`)*
 - **Đổi ca**: lệnh Duyệt khóa `nhan_vien` của A, B (theo `id`), rồi `ca` X, Y (theo `id`), rồi yêu cầu; kiểm FR-021 với dữ liệu tại lúc duyệt.
 - **Ca không ở hai yêu cầu mở** (FR-019, FR-026): bảng `yeu_cau_ca_mo (ca_id, nhan_vien_id)` `UNIQUE`, dòng xóa khi yêu cầu vào trạng thái cuối hoặc ca rời yêu cầu (bảng kỹ thuật, không phải nhóm 3).
 - **Một lời mời Chờ trả lời mỗi (ca, nhân viên)**: cột sinh `UNIQUE`.
 - **Một cảnh báo thiếu phủ mở mỗi ca**: cột sinh `khoa_mo = IF(trang_thai = 'DANG_MO', ca_id, NULL)` `UNIQUE`.
-- **Lập lịch từ mẫu**: khóa `tang_ca_khoa` của phạm vi (hoặc khóa toàn viện), kiểm "chưa có lịch tháng" trong khóa; hai lệnh song song → một thành công.
+- **Lập lịch từ mẫu**: khóa `tang_ca_khoa` của phạm vi (hoặc khóa toàn viện), kiểm "chưa có lịch tháng" trong khóa; hai lệnh song song → một thành công. *(R-15: `tang_ca_khoa` → `khoa_ky_thuat`)*
 
 ---
 
@@ -111,7 +113,7 @@ interface NghiCoDuyetPort {         // 015 cài; 008 dùng
 ## X-08. Yêu cầu đổi ca (mục D; BR-M09-10, UC-54, Q-179, Q-191, Q-185, Q-187, Q-10)
 
 **Quyết định**:
-- Loại yêu cầu phê duyệt `M09.DOI_CA` của 000 với ngoại lệ vòng đời đã khai ở 000 FR-031: `CHO_NGUOI_NHAN_DONG_Y → CHO_DUYET → DA_AP_DUNG`, cuối `NGUOI_NHAN_TU_CHOI`, `TU_CHOI`, `DA_HUY`, `HET_HIEU_LUC`. Handler cài `chuyenMoRong()` cho hai trạng thái riêng; bảng nghiệp vụ `yeu_cau_doi_ca` giữ dạng, A, X, B, Y, kết quả kiểm tra từng bước.
+- Loại yêu cầu phê duyệt `M09.DOI_CA` của 000 với ngoại lệ vòng đời đã khai ở 000 FR-031: `CHO_NGUOI_NHAN_DONG_Y → CHO_DUYET → DA_AP_DUNG`, cuối `NGUOI_NHAN_TU_CHOI`, `TU_CHOI`, `DA_HUY`, `HET_HIEU_LUC`. Handler cài `chuyenMoRong()` cho hai trạng thái riêng; bảng nghiệp vụ `yeu_cau_doi_ca` giữ dạng, A, X, B, Y, kết quả kiểm tra từng bước. *(R-15: `yeu_cau_doi_ca` → `ho_so_chung`)*
 - Hàm thuần `KiemTraDoiCa(yc, trangThaiSauDoi)` → (a) chặn chồng giờ; (b) cảnh báo vượt CFG-M09-02; (c) phân công không chuyển được; (d) người phụ trách sau đổi; (e) phủ trước/sau (`TinhPhu`); (f) tỷ lệ phục vụ trước/sau (008); (g) giờ làm trong tháng (chỉ người duyệt); (h) chuyến đi chồng (cảnh báo). Chạy lúc lập, đồng ý, duyệt với dữ liệu tại thời điểm đó.
 - Xem ca của B khi chọn Y (FR-020): endpoint trả DTO chỉ ngày, giờ, mẫu ca của các ca thỏa FR-019.
 - **Duyệt** (FR-024), một transaction: `CaLenhPort.roiCa`/`themVaoCa` cho A, B; với mỗi phân công Tương lai: `PhanCongLenhPort.huy` + `kiemTra`/`lap` cho người kia, không đạt thì `CongViecCaApi.khiKetThucPhanCong` và nhắc trưởng tầng; người phụ trách: B nếu đạt 008 FR-015, nếu không người duyệt chọn trong thân lệnh, không có → 409 `CAN_NGUOI_PHU_TRACH` (Q-187); `doiNguoiPhuTrach` (hiệu lực như 008 FR-019); dấu Bác sĩ trực chuyển; `ChuyenDiNhiemVuLenhApi.goNhiemVu` nếu chồng chuyến; tính lại phủ; thông báo.
@@ -123,7 +125,7 @@ interface NghiCoDuyetPort {         // 015 cài; 008 dùng
 ## X-09. Yêu cầu nghỉ đột xuất (mục E; Q-81, Q-91, Q-182, Q-184, Q-185, Q-187)
 
 **Quyết định**:
-- Loại yêu cầu `M09.NGHI_DOT_XUAT` với ngoại lệ vòng đời: `CHO_DUYET → DA_AP_DUNG | DA_AP_DUNG_MOT_PHAN | TU_CHOI | DA_HUY | HET_HIEU_LUC`; dạng `THEO_CA` / `THEO_NGAY`, chuyển `THEO_NGAY → THEO_CA` khi lịch công bố. Bảng `yeu_cau_nghi_muc` (ca hoặc ngày, kết quả từng mục `CHO`, `DUYET`, `TU_CHOI`, `DA_TACH`, `DA_ROI`, ghi chú "xếp lại dù đã duyệt nghỉ").
+- Loại yêu cầu `M09.NGHI_DOT_XUAT` với ngoại lệ vòng đời: `CHO_DUYET → DA_AP_DUNG | DA_AP_DUNG_MOT_PHAN | TU_CHOI | DA_HUY | HET_HIEU_LUC`; dạng `THEO_CA` / `THEO_NGAY`, chuyển `THEO_NGAY → THEO_CA` khi lịch công bố. Bảng `yeu_cau_nghi_muc` (ca hoặc ngày, kết quả từng mục `CHO`, `DUYET`, `TU_CHOI`, `DA_TACH`, `DA_ROI`, ghi chú "xếp lại dù đã duyệt nghỉ"). *(R-15: `yeu_cau_nghi_muc` → cột `JSON` của yêu cầu nghỉ (`ho_so_chung`))*
 - Lập: tách theo phạm vi thành nhiều yêu cầu trong cùng lệnh (FR-026, FR-026a); lập thay mang dấu.
 - **Duyệt (theo ca)**, một transaction cho các ca được duyệt: `CaLenhPort.roiCa(…, NGHI_CO_DUYET)`; hủy phân công Tương lai (`PhanCongLenhPort.huy`); `CongViecCaApi.khiNghiCoDuyet(nhanVienId, caIds)`; người phụ trách: người duyệt chọn trong lệnh, không có → `ganThieuNguoiPhuTrach` (lệnh vẫn thực hiện, Q-187); dấu Bác sĩ trực mất; `goNhiemVu` chuyến; tính lại phủ, mở cảnh báo nếu chuyển thiếu phủ; thông báo.
 - **Duyệt (theo ngày)**: ghi `nghi_theo_ngay (nhan_vien_id, ngay)` (nhóm 3, dùng cho `NghiCoDuyetPort`, `LapLichThang`); lịch Nháp có sẵn → gỡ nhân viên khỏi ca Nháp bắt đầu trong ngày qua `LichNhapLenhPort.thayNoiDungNhap` (chỉ phần của nhân viên đó; người phụ trách để trống và báo người lập lịch); tính lại phủ.
@@ -173,7 +175,7 @@ Riêng tư: lý do nghỉ, đổi ca mang `@NhomTruong(LY_DO_NHAN_SU)` (008), ch
 - **Kiểm thử**:
   - test bảng `MauCaTaiNgay`, `LapLichThang` (SC-001: 3 mẫu × 4 tháng, ca đêm cuối tháng), `DongApDung`, `TinhPhu` (người nhiều vai trò, tie-break), `KiemTraDoiCa`, `DieuKienNguoiThay`, `GioTrongThang`;
   - bộ 200 yêu cầu (SC-004) gồm đồng thời, ca bị hủy khi chờ, duyệt một phần, nghỉ theo ngày trước/sau công bố;
-  - Test tích hợp MySQL: `UNIQUE` cảnh báo mở mỗi ca, lời mời chờ, `yeu_cau_ca_mo`; trigger nhóm 3;
+  - Test tích hợp MySQL: `UNIQUE` cảnh báo mở mỗi ca, lời mời chờ, `yeu_cau_ca_mo`; trigger nhóm 3; *(R-15: `yeu_cau_ca_mo` → `khoa_duy_nhat` của `ho_so_chung`)*
   - test đồng thời: hai lệnh lập lịch cùng phạm vi; duyệt đổi ca cùng lúc với ghi vắng ca; hai người nhận lời mời cho chỗ cuối;
   - đồng hồ giả lập cho CFG-M09-02, 06, 10, 11, CFG-M15-05, 06.
 - Tên test theo BR/FR (`BR_M09_09_LapLichTuMauIT`, `BR_M09_11_ThieuPhuIT`).

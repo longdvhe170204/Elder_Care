@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getMetrics } from '@/api'
+import { getFloors, getMetrics } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -13,9 +13,10 @@ import { REPORT_GROUPS, isoDate } from './reportLabels'
 
 // Mục menu "Báo cáo" (016; bố cục duyệt 2026-10-24, DESIGN.md 5.21.0): tab theo nhóm báo cáo vai trò thấy (bảng FR-010)
 // và tab "Lần xuất"; chọn khoảng (FR-060, tối đa CFG-M14-01, backend từ chối khi dài hơn); nút chính "Xuất file".
-// Lọc theo tầng chờ danh mục tầng của 003.
+// Lọc tầng chỉ có giá trị trong phạm vi (FR-013): báo cáo trả các giá trị, phạm vi toàn viện thì lấy danh mục tầng của 003.
 
 const EXPORTS = 'EXPORTS'
+const ALL_FLOORS = 'ALL'
 
 function rangeOf(preset, custom) {
   const today = new Date()
@@ -40,6 +41,10 @@ export function ReportsPage({ role }) {
   const [opened, setOpened] = useState(null)
   const [exporting, setExporting] = useState(false)
   const [exports, setExports] = useState(0)
+  const [floorAreaId, setFloorAreaId] = useState(null)
+  const [filterOptions, setFilterOptions] = useState(null)
+  const [catalogFloors, setCatalogFloors] = useState([])
+  const facilityWide = filterOptions?.facilityWide === true
 
   useEffect(() => {
     getMetrics()
@@ -47,7 +52,16 @@ export function ReportsPage({ role }) {
       .catch(() => {})
   }, [])
 
+  useEffect(() => {
+    if (!facilityWide) return
+    getFloors()
+      .then(({ data }) => setCatalogFloors(data))
+      .catch(() => {})
+  }, [facilityWide])
+
   const current = groups.find((g) => g.value === tab)
+  const floors = facilityWide ? catalogFloors : (filterOptions?.floorAreas ?? [])
+  const floor = floors.find((f) => f.id === floorAreaId)
   const range = rangeOf(preset, custom)
   const validRange = range.from && range.to && range.from <= range.to
 
@@ -71,7 +85,12 @@ export function ReportsPage({ role }) {
         <ToggleGroup
           variant="outline"
           value={[tab]}
-          onValueChange={(next) => next[0] && setTab(next[0])}
+          onValueChange={(next) => {
+            if (next[0]) {
+              setTab(next[0])
+              setFloorAreaId(null)
+            }
+          }}
           className="flex-wrap self-start"
         >
           {groups.map((g) => (
@@ -105,6 +124,24 @@ export function ReportsPage({ role }) {
                 Tùy chọn
               </ToggleGroupItem>
             </ToggleGroup>
+            {floors.length > 1 && (
+              <ToggleGroup
+                variant="outline"
+                aria-label="Tầng"
+                value={[floorAreaId === null ? ALL_FLOORS : String(floorAreaId)]}
+                onValueChange={(next) => next[0] && setFloorAreaId(next[0] === ALL_FLOORS ? null : Number(next[0]))}
+                className="flex-wrap"
+              >
+                <ToggleGroupItem value={ALL_FLOORS} className="h-10 px-4">
+                  Mọi tầng
+                </ToggleGroupItem>
+                {floors.map((f) => (
+                  <ToggleGroupItem key={f.id} value={String(f.id)} className="h-10 px-4">
+                    {f.name}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            )}
             {preset === 'CUSTOM' && (
               <>
                 <Field className="w-auto">
@@ -132,12 +169,14 @@ export function ReportsPage({ role }) {
       </PageHeader>
       {current && validRange && (
         <ReportTable
-          key={`${current.value}|${range.from}|${range.to}`}
+          key={`${current.value}|${range.from}|${range.to}|${floorAreaId ?? ''}`}
           group={current.value}
           from={range.from}
           to={range.to}
+          floorAreaId={floorAreaId ?? undefined}
           metrics={metrics}
           onOpen={setOpened}
+          onFilterOptions={setFilterOptions}
         />
       )}
       {current && !validRange && (
@@ -154,6 +193,8 @@ export function ReportsPage({ role }) {
           groupLabel={current.label}
           from={range.from}
           to={range.to}
+          floorAreaId={floorAreaId ?? undefined}
+          floorName={floor?.name}
           canIdentify={role === 'NURSING_HOME_MANAGER'}
           onExported={() => setExports((n) => n + 1)}
         />

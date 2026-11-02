@@ -120,7 +120,7 @@ paths:
     get:
       tags: [danh-sach-cho]
       summary: Danh sách chờ (Hành chính, Quản lý viện)
-      description: 'Sắp theo điểm giảm dần, ngày đăng ký, thời điểm tạo. Vai trò khác, kể cả người thân, 403 (FR-018).'
+      description: 'Sắp hồ sơ Ưu tiên trước, rồi theo ngày đăng ký, thời điểm tạo (Q-394). Vai trò khác, kể cả người thân, 403 (FR-018).'
       x-fr: [FR-009, FR-018]
       parameters: [ { name: trangThai, in: query, schema: { type: array, items: { $ref: '#/components/schemas/TrangThaiHoSoCho' } } } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/HoSoCho' } } } } }, '403': { $ref: '#/components/responses/Loi' } }
@@ -139,46 +139,19 @@ paths:
               required: [luotDangKyId]
               properties:
                 luotDangKyId: { type: integer, format: int64 }
-                tinhHuong: { type: array, items: { type: string, description: 'Mã tình huống trong bảng CFG-M02-08' } }
       responses: { '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/HoSoCho' } } } }, '409': { $ref: '#/components/responses/LoiChan' } }
   /ho-so-cho/{id}:
     get:
       tags: [danh-sach-cho]
-      summary: Xem hồ sơ chờ, kèm chi tiết điểm
+      summary: Xem hồ sơ chờ
       x-fr: [FR-009]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/HoSoCho' } } } } }
-  /ho-so-cho/{id}/lich-su-diem:
-    get:
-      tags: [danh-sach-cho]
-      summary: Lịch sử điểm và điều chỉnh
-      x-fr: [FR-010, FR-011]
-      parameters: [ { $ref: '#/components/parameters/Id' } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/DongLichSuDiem' } } } } } }
-  /ho-so-cho/{id}/cap-nhat-tinh-huong:
+  /ho-so-cho/{id}/danh-dau-uu-tien:
     post:
       tags: [danh-sach-cho]
-      summary: Cập nhật tình huống đặc biệt (xác nhận hoặc bỏ dấu "từng lưu trú" kèm lý do)
-      x-fr: [FR-007, FR-010]
-      x-br: [BR-M02-15]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [tinhHuong, lyDo]
-              properties:
-                tinhHuong: { type: array, items: { type: string } }
-                lyDo: { $ref: '#/components/schemas/LyDo' }
-      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/HoSoCho' } } } } }
-  /ho-so-cho/{id}/de-nghi-dieu-chinh-diem:
-    post:
-      tags: [danh-sach-cho]
-      summary: Lập đề nghị điều chỉnh điểm (yêu cầu M02.DIEU_CHINH_DIEM, Quản lý viện duyệt)
-      description: 'Điểm chỉ đổi khi yêu cầu được áp dụng (FR-011, SC-004). Gửi duyệt và duyệt qua api-000.'
-      x-fr: [FR-011]
+      summary: Đánh dấu hoặc gỡ dấu Ưu tiên, bắt buộc lý do (Q-394)
+      x-fr: [FR-009]
       x-br: [BR-M02-10]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody:
@@ -187,17 +160,17 @@ paths:
           application/json:
             schema:
               type: object
-              required: [soDiem, lyDo]
+              required: [uuTien, lyDo]
               properties:
-                soDiem: { type: integer, description: 'Dương là cộng, âm là trừ; khác 0' }
+                uuTien: { type: boolean }
                 lyDo: { $ref: '#/components/schemas/LyDo' }
-      responses: { '201': { description: Đã lập yêu cầu, content: { application/json: { schema: { $ref: '#/components/schemas/ThamChieuYeuCau' } } } }, '422': { $ref: '#/components/responses/Loi' } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/HoSoCho' } } } } }
   /giuong/{giuongId}/ho-so-phu-hop:
     get:
       tags: [danh-sach-cho]
       summary: Danh sách hồ sơ chờ phù hợp với một giường Trống
       description: |
-        Lọc theo FR-012 trong lượt trống hiện tại, sắp theo điểm, ngày đăng ký, thời điểm tạo; kèm thành phần điểm.
+        Lọc theo FR-012 trong lượt trống hiện tại, sắp hồ sơ Ưu tiên trước, rồi theo ngày đăng ký, thời điểm tạo (Q-394).
         Không chọn sẵn, không giới hạn số hồ sơ (FR-013, Q-307). Danh sách rỗng nghĩa là "không có người phù hợp".
       x-fr: [FR-012, FR-013]
       x-br: [BR-M02-01, BR-M02-10]
@@ -228,7 +201,7 @@ paths:
     post:
       tags: [danh-sach-cho]
       summary: Gia đình từ chối giường này nhưng vẫn chờ
-      description: 'Hồ sơ về Đang chờ, giữ ngày đăng ký và điểm; giường về Trống; Hành chính được báo chọn người tiếp theo (Edge Case).'
+      description: 'Hồ sơ về Đang chờ, giữ ngày đăng ký và dấu Ưu tiên; giường về Trống; Hành chính được báo chọn người tiếp theo (Edge Case).'
       x-fr: [FR-012, FR-013]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { $ref: '#/components/requestBodies/LyDo' }
@@ -523,29 +496,16 @@ paths:
                 duKienTroLai: { type: string, format: date-time }
                 lyDo: { $ref: '#/components/schemas/LyDo' }
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/Loi' } }
-  /luot-vang/{id}/quyet-dinh-giu-giuong:
+  /luot-vang/{id}/giai-phong-giuong:
     post:
       tags: [vang]
-      summary: Quyết định giữ giường (Quản lý viện)
-      description: |
-        GIU_TIEP bắt buộc heSo và ngayXemXetLai; GIAI_PHONG bắt buộc heSo (mặc định 0%), giường giải phóng ngay (003);
-        lượt vắng đã đóng chỉ nhận CHI_DAT_HE_SO cho các ngày bị ảnh hưởng (FR-061). Các ngày "chờ quyết định" được tính lại (FR-056).
-      x-fr: [FR-055, FR-056, FR-061]
-      x-br: [BR-M02-07, BR-M02-18]
+      summary: Giải phóng giường của lượt vắng (Quản lý viện; Q-395)
+      description: 'Giường giải phóng ngay (003); từ ngày giải phóng, ngày vắng không tính phí lưu trú.'
+      x-fr: [FR-055]
+      x-br: [BR-M02-07]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [luaChon, heSo, lyDo]
-              properties:
-                luaChon: { type: string, enum: [GIU_TIEP, GIAI_PHONG, CHI_DAT_HE_SO] }
-                heSo: { type: number, minimum: 0, maximum: 100 }
-                ngayXemXetLai: { type: string, format: date }
-                lyDo: { $ref: '#/components/schemas/LyDo' }
-      responses: { '201': { description: Đã ghi, content: { application/json: { schema: { $ref: '#/components/schemas/LuotVangChiTiet' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/Loi' } }
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
+      responses: { '200': { description: Đã giải phóng, content: { application/json: { schema: { $ref: '#/components/schemas/LuotVangChiTiet' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
   /luot-vang/{id}/dinh-chinh:
     post:
       tags: [vang]
@@ -884,14 +844,10 @@ components:
         loaiLuuTru: { $ref: '#/components/schemas/LoaiLuuTru' }
         mucChamSoc: { $ref: '#/components/schemas/MaMucChamSoc' }
         chuaDanhGia: { type: boolean }
-        tinhHuong: { type: array, items: { type: object, properties: { ma: { type: string }, trangThai: { type: string, enum: [XAC_NHAN, CHO_XAC_NHAN] } } } }
-        diem: { type: integer }
-        diemChiTiet: { type: object, properties: { mucChamSoc: { type: integer }, thoiGianCho: { type: integer }, tinhHuong: { type: integer }, dieuChinh: { type: integer } } }
+        uuTien: { type: boolean, description: 'Dấu Ưu tiên (Q-394)' }
+        lyDoUuTien: { type: string }
         giuongDangGiuId: { type: integer, format: int64 }
         trangThai: { $ref: '#/components/schemas/TrangThaiHoSoCho' }
-    DongLichSuDiem:
-      type: object
-      properties: { thoiDiem: { type: string, format: date-time }, diemCu: { type: integer }, diemMoi: { type: integer }, nguyenNhan: { type: string }, nguoiDeNghi: { type: string }, nguoiDuyet: { type: string }, lyDo: { type: string } }
     DanhSachPhuHop:
       type: object
       properties:
@@ -914,18 +870,8 @@ components:
         khongYeuCauCoc: { type: boolean }
         khoanDatCoc: { type: integer, format: int64 }
         chinhSachGiuGiuong: { type: string }
-        chinhSachVangGhiDe: { type: array, items: { $ref: '#/components/schemas/DongChinhSachVang' } }
         lichDen: { type: array, items: { type: object, properties: { thuTrongTuan: { type: integer, minimum: 1, maximum: 7 }, ngay: { type: string, format: date }, gioDen: { type: string, example: '07:30' }, gioVe: { type: string, example: '16:30' } } } }
         dieuKienChamDut: { type: string }
-    DongChinhSachVang:
-      type: object
-      properties:
-        loaiLuuTru: { $ref: '#/components/schemas/LoaiLuuTru' }
-        loaiVang: { type: string }
-        tuNgayThu: { type: integer }
-        denNgayThu: { type: integer, description: 'Bỏ trống là không giới hạn' }
-        heSo: { type: string, description: 'Số phần trăm, THEO_HOP_DONG hoặc QUAN_LY_QUYET_DINH' }
-        giuGiuong: { type: string, enum: [CO, KHONG, THEO_HOP_DONG, QUAN_LY_QUYET_DINH] }
     HopDong:
       allOf:
         - $ref: '#/components/schemas/HopDongGhi'
@@ -1034,8 +980,6 @@ components:
         - type: object
           properties:
             lichSuDuKien: { type: array, items: { type: object, properties: { giaTriCu: { type: string, format: date-time }, giaTriMoi: { type: string, format: date-time }, lyDo: { type: string }, thoiDiem: { type: string, format: date-time } } } }
-            ngayVang: { type: array, items: { type: object, properties: { ngay: { type: string, format: date }, soThuTu: { type: integer }, heSo: { type: number }, giuGiuong: { type: boolean }, nguonDong: { type: string }, choQuyetDinh: { type: boolean }, khongCoDong: { type: boolean } } } }
-            quyetDinh: { type: array, items: { type: object, properties: { luaChon: { type: string }, heSo: { type: number }, ngayXemXetLai: { type: string, format: date }, nguoiQuyetDinh: { type: string }, thoiDiem: { type: string, format: date-time } } } }
             truongBiAn: { type: array, items: { type: string } }
     NgayNghiBanTru:
       type: object

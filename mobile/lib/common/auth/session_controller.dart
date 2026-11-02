@@ -47,8 +47,9 @@ enum SessionStatus {
 }
 
 /// Phiên đăng nhập của app (002 T046, T047 phần chung; T097): token phiên và token thiết bị trong kho an toàn, mã
-/// thiết bị UUID tạo một lần trên máy. Phiên của người cao tuổi không hết theo thời gian (002 FR-010, FR-013a), nên
-/// app chỉ quay về màn đăng nhập khi backend trả 401.
+/// thiết bị UUID tạo một lần trên máy. Một máy một phiên (FR-014a): nhân viên đăng nhập trên máy dùng chung kết thúc
+/// phiên của người trước ở backend. Phiên của người cao tuổi không hết theo thời gian (002 FR-010, FR-013a), nên app chỉ
+/// quay về màn đăng nhập khi backend trả 401.
 class SessionController extends ChangeNotifier {
   SessionController({required this.api, required this.store, required this.biometric});
 
@@ -56,6 +57,7 @@ class SessionController extends ChangeNotifier {
   static const deviceTokenKey = 'session.deviceToken';
   static const deviceIdKey = 'device.id';
   static const userTypeKey = 'session.userType';
+  static const accountIdKey = 'session.accountId';
   static const biometricKey = 'resident.biometric';
   static const biometricOfferedKey = 'resident.biometricOffered';
 
@@ -66,19 +68,24 @@ class SessionController extends ChangeNotifier {
   SessionStatus status = SessionStatus.starting;
   UserInfo? user;
 
+  /// Máy đã gắn với tài khoản người cao tuổi (có token thiết bị): chỉ đăng nhập lại bằng mã QR, không đăng nhập được
+  /// tài khoản khác (002 FR-014a, Q-370).
+  bool boundToResident = false;
+
   /// Câu báo cho màn đăng nhập, ví dụ sau khi đổi mật khẩu.
   String? notice;
 
   /// Mở app: lấy mã thiết bị, đọc phiên đã lưu và kiểm lại với backend.
   Future<void> start() async {
     api.deviceId = await _deviceId();
+    boundToResident = await store.read(deviceTokenKey) != null;
     api.token = await store.read(tokenKey);
     if (api.token == null) {
       return _set(SessionStatus.signedOut);
     }
     try {
       user = UserInfo.fromJson((await api.get('/me'))!);
-      await store.write(userTypeKey, user!.type.name);
+      await _remember(user!);
     } on ApiProblem catch (p) {
       if (p.status == 401) {
         await _clear();
@@ -89,7 +96,8 @@ class SessionController extends ChangeNotifier {
       // Mất mạng lúc mở app: phiên vẫn còn, dùng loại tài khoản đã lưu (DESIGN.md 15.6: màn xem dùng dữ liệu gần nhất)
       final type = await store.read(userTypeKey);
       user = UserInfo(
-        accountId: 0,
+        // Hàng đợi ngoại tuyến gắn bản ghi với tài khoản của phiên (002 FR-014a)
+        accountId: int.tryParse(await store.read(accountIdKey) ?? '') ?? 0,
         type: AccountType.values.firstWhere((t) => t.name == type, orElse: () => AccountType.resident),
         mustChangePassword: false,
       );
@@ -112,10 +120,45 @@ class SessionController extends ChangeNotifier {
     );
   }
 
-  /// Đổi mật khẩu bắt buộc lần đầu (002 FR-006); đổi xong backend kết thúc mọi phiên của tài khoản người cao tuổi
-  /// (BR-M15-24), nên app về màn đăng nhập.
+  /// Nhân viên, người thân đăng nhập ở màn đầu chung (002 T046, T047; FR-014a): kênh `MOBILE_APP`, backend gán kênh
+  /// phiên STAFF_APP hoặc FAMILY_APP theo loại tài khoản (đổi api-002 2026-10-28; FR-013a).
+  Future<void> appLogin(String username, String password) async {
+    await _signedIn(
+      await api.post('/auth/login', {'username': username, 'password': password, 'channel': 'MOBILE_APP'}),
+    );
+  }
+
+  /// Đăng xuất (002 FR-013): báo backend kết thúc phiên nếu còn mạng, rồi về màn đăng nhập. [notice] là câu báo cho màn
+  /// đăng nhập, ví dụ khi phiên bị kết thúc vì tài khoản không còn Hoạt động.
+  Future<void> signOut({String? notice, bool callBackend = true}) async {
+    if (callBackend) {
+      try {
+        await api.post('/auth/logout', const {});
+      } on ApiProblem {
+        // Phiên đã hết ở backend: vẫn đăng xuất trên máy
+      } on ApiUnreachable {
+        // Mất mạng: phiên ở backend kết thúc khi người khác đăng nhập trên máy này (FR-014a)
+      }
+    }
+    await _clear();
+    this.notice = notice;
+    _set(SessionStatus.signedOut);
+  }
+
+  /// Đổi mật khẩu bắt buộc lần đầu (002 FR-006). Tài khoản người cao tuổi: backend kết thúc mọi phiên (BR-M15-24), nên
+  /// app về màn đăng nhập; nhân viên, người thân giữ phiên và vào app.
   Future<void> changePassword(String currentPassword, String newPassword) async {
     await api.post('/auth/change-password', {'currentPassword': currentPassword, 'newPassword': newPassword});
+    final current = user!;
+    if (current.type != AccountType.resident) {
+      user = UserInfo(
+        accountId: current.accountId,
+        type: current.type,
+        fullName: current.fullName,
+        mustChangePassword: false,
+      );
+      return _set(SessionStatus.signedIn);
+    }
     await _clear();
     notice = 'Đã đổi mật khẩu. Quét mã mới hoặc dùng mật khẩu mới để vào.';
     _set(SessionStatus.signedOut);
@@ -142,14 +185,24 @@ class SessionController extends ChangeNotifier {
     final deviceToken = body['deviceToken'] as String?;
     if (deviceToken != null) {
       await store.write(deviceTokenKey, deviceToken);
+      boundToResident = true;
     }
     user = UserInfo.fromJson(body['user'] as Map<String, dynamic>);
-    await store.write(userTypeKey, user!.type.name);
+    await _remember(user!);
     if (user!.mustChangePassword || body['mustChangePassword'] == true) {
       return _set(SessionStatus.mustChangePassword);
     }
+    // Mở bằng sinh trắc học chỉ cho người cao tuổi (002 FR-074); máy dùng chung của nhân viên không giữ khóa riêng
+    if (user!.type != AccountType.resident) {
+      return _set(SessionStatus.signedIn);
+    }
     final offered = await store.read(biometricOfferedKey) == 'yes';
     _set(!offered && await biometric.isAvailable() ? SessionStatus.offerBiometric : SessionStatus.signedIn);
+  }
+
+  Future<void> _remember(UserInfo info) async {
+    await store.write(userTypeKey, info.type.name);
+    await store.write(accountIdKey, info.accountId.toString());
   }
 
   Future<String> _deviceId() async {

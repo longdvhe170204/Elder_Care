@@ -39,6 +39,9 @@ export const postAccountsByIdUnlock = (params) => request('POST', '/accounts/{id
 /** Mở khóa sớm tài khoản đang Khóa tạm (FR-019c, BR-M15-05) */
 export const postAccountsByIdEarlyUnlock = (params) => request('POST', '/accounts/{id}/early-unlock', params)
 
+/** Tài khoản nhân viên đang Khóa tạm người dùng được mở khóa sớm (bổ sung 2026-10-27, màn app nhân viên) (FR-019c) */
+export const getEarlyUnlockCandidates = (params) => request('GET', '/early-unlock-candidates', params)
+
 /** Kích hoạt lại tài khoản người thân Không hoạt động (FR-011, FR-051, FR-052) */
 export const postAccountsByIdReactivate = (params) => request('POST', '/accounts/{id}/reactivate', params)
 
@@ -105,8 +108,11 @@ export const postPendingReviewRecordsByIdReject = (params) => request('POST', '/
 /** Tạo tài khoản người cao tuổi theo lời chính người cao tuổi (Hành chính hoặc Quản lý viện) (FR-067, FR-068) */
 export const postResidentAccounts = (params) => request('POST', '/resident-accounts', params)
 
-/** Tạo mã QR đăng nhập dùng một lần (Hành chính, Quản lý viện, Điều dưỡng có phạm vi) (FR-069) */
-export const postAccountsByIdLoginQrCode = (params) => request('POST', '/accounts/{id}/login-qr-code', params)
+/** Trạng thái đăng nhập của người cao tuổi cho màn tạo mã (cùng quyền với tạo mã) (FR-069) */
+export const getResidentAccountsByResidentId = (params) => request('GET', '/resident-accounts/{residentId}', params)
+
+/** Tạo mã QR đăng nhập theo người cao tuổi, kèm xác nhận của người đó (Hành chính, Quản lý viện, Điều dưỡng có phạm vi) (FR-069) */
+export const postResidentAccountsByResidentIdLoginQrCode = (params) => request('POST', '/resident-accounts/{residentId}/login-qr-code', params)
 
 /** Người cao tuổi đăng nhập bằng mã QR; gắn thiết bị (FR-069, FR-070, FR-013a, BR-M15-24) */
 export const postAuthQrLogin = (params) => request('POST', '/auth/qr-login', params)

@@ -2,7 +2,7 @@
 
 **Ngày**: 2026-10-10 | **Plan**: [../plan.md](../plan.md)
 
-Hợp đồng trong backend, ở gói `com.cambae.backend.m07.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của 006 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
+Hợp đồng trong backend, ở gói `com.eldercare.backend.medication.api`. Module khác chỉ dùng các giao diện này, không đọc bảng của 006 (constitution X). Chữ ký viết dạng Java rút gọn để mô tả hợp đồng; mã thật viết ở giai đoạn triển khai.
 
 Chiều phụ thuộc theo research D-02: 006 phụ thuộc 000, 001, 002, 003, 004, 005. Các module 007, 008, 010, 012, 014, 016 phụ thuộc 006. Chỗ 006 cần dữ liệu của module phụ thuộc nó thì 006 khai báo SPI (mục 2.1), module đó cài. Plan của các module này phải giữ đúng chữ ký hoặc ghi rõ thay đổi.
 
@@ -14,11 +14,11 @@ Chiều phụ thuộc theo research D-02: 006 phụ thuộc 000, 001, 002, 003, 
 
 | SPI (gói khai báo) | Bản cài của 006 | Dùng bởi |
 | --- | --- | --- |
-| `ThamGiaChuyenTrangThai` (`m01.api`) | Bean `@Order` sau 005. Điều kiện `KT_C_THUOC_GUI` cho `KET_THUC_LUU_TRU`; tác động theo research D-16 | 001 H-02 |
-| `MucViecSauQuaDoiPort` (`m02.api`) | `ma() = THUOC_GUI`; `trangThai(nctId)`: `CHUA_HOAN_THANH` khi còn lô Chờ đối chiếu, Được sử dụng, Chỉ giữ hộ hoặc lần giao chưa Đã nhận lại; `KHONG_AP_DUNG` khi chưa từng có; còn lại `HOAN_THANH` | 004 FR-071, Q-64 |
-| `LieuThuocChecklistPort` (`m04.api`) | `theoCa(nctIds, tu, den)` trả `LieuHienThiView` (mục 1.3); giữ đúng chữ ký của 005 | 005 FR-029 |
-| `ThoiKhoaBieuNguonPort` (`m04.api`) | `theoNgay(nctId, ngay)`: liều định kỳ trong ngày (thời điểm, nguồn "thuốc", trạng thái hiện hành), không nêu tên thuốc khi người xem không có quyền xem thuốc | 005 FR-048 |
-| `NgoaiTuyenHandler` (`m15.taikhoan.api`) | `M07.KET_QUA_LIEU`, `M07.LAN_DUNG_PRN` (research D-11); từ chối thuốc kiểm soát đặc biệt | 002 A-11 |
+| `ThamGiaChuyenTrangThai` (`resident.api`) | Bean `@Order` sau 005. Điều kiện `KT_C_THUOC_GUI` cho `KET_THUC_LUU_TRU`; tác động theo research D-16 | 001 H-02 |
+| `MucViecSauQuaDoiPort` (`admission.api`) | `ma() = THUOC_GUI`; `trangThai(nctId)`: `CHUA_HOAN_THANH` khi còn lô Chờ đối chiếu, Được sử dụng, Chỉ giữ hộ hoặc lần giao chưa Đã nhận lại; `KHONG_AP_DUNG` khi chưa từng có; còn lại `HOAN_THANH` | 004 FR-071, Q-64 |
+| `LieuThuocChecklistPort` (`care.api`) | `theoCa(nctIds, tu, den)` trả `LieuHienThiView` (mục 1.3); giữ đúng chữ ký của 005 | 005 FR-029 |
+| `ThoiKhoaBieuNguonPort` (`care.api`) | `theoNgay(nctId, ngay)`: liều định kỳ trong ngày (thời điểm, nguồn "thuốc", trạng thái hiện hành), không nêu tên thuốc khi người xem không có quyền xem thuốc | 005 FR-048 |
+| `NgoaiTuyenHandler` (`administration.taikhoan.api`) | `M07.KET_QUA_LIEU`, `M07.LAN_DUNG_PRN` (research D-11); từ chối thuốc kiểm soát đặc biệt | 002 A-11 |
 | `DinhChinhDuocProvider` (000) | `M07.KET_QUA_LIEU`, `M07.LAN_DUNG_PRN`, `M07.LAN_GIAO_THUOC`, `M07.LAN_NHAN_LAI_THUOC`, `M07.PHIEU_DOI_CHIEU` (research D-12) | 000 R-08 |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | data-model mục 12, 13 | |
 | `GanPhamViProvider` (002) | Mọi loại của 006: trả `DoiTuong` với người cao tuổi và tầng/khu hiện tại | 002 FR-034 |
@@ -116,7 +116,7 @@ List<KetQuaTiepNhanView> theoYeuCau(long yeuCauMuaSamId);   // mỗi dòng: các
 | `DonSapHetHan(donId, nguoiNhan)` | 009 (Nhẹ) | FR-017 |
 | `CanLapPhieuDoiChieu(nctId, lyDo, han)`; `PhieuDoiChieuDaGui`, `…DaTraLai` | 009 (Trung bình; Nhẹ) | FR-034, FR-035 |
 | `ThuocDangDungTiepNhanDaDoi(nctId, phieuId)` | 009 (Nhẹ; người thực hiện, người xác nhận) | FR-034a, BR-M07-22 |
-| `ThuocGuiSapHet(khoaNhom, moc, soThuTu, soNgayConLai)` | 009 (Trung bình; người liên hệ chính, người đại diện; thêm Điều dưỡng phụ trách với CFG-M07-07; nội dung chia phần `CHUNG`, `SUC_KHOE`) | FR-046 |
+| `ThuocGuiSapHet(loId, lanBao, ghiChu)` *(Sửa 2026-10-29, Q-393)* | 009 (Trung bình; người liên hệ chính, người đại diện; nội dung chia phần `CHUNG` kèm ghi chú, `SUC_KHOE`); phát khi Điều dưỡng ghi Báo gia đình sắp hết | FR-046 |
 | `ThuocGuiHetHanDung(loId)`; `ThuocGuiDaDungHet(loId)`; `ThuocGuiChuyenChiGiuHo(loId, lyDo)`; `HetThuocGuiKhiDenLieu(lieuKey)` | 009 | FR-041, US7 #8 |
 | `CanNhanLaiThuocMangTheo(lanGiaoId)` | 009 (Điều dưỡng phụ trách) | FR-048b, Q-58 |
 | `TiepNhanThuocKhongDat(lanTiepNhanId, yeuCauMuaSamId, nguoiLapNhanVienId, boPhanId, saiLech)` *(bổ sung 2026-10-11; sửa lượt 3)* | 009 (Nhẹ; `NhanVien(nguoiLapNhanVienId)` và `PhuTrachBoPhan(boPhanId)`: Phụ trách bộ phận hiện tại của bộ phận của yêu cầu; 009 gộp người trùng, 006 không tự gửi) | FR-055, Q-337 |
@@ -129,7 +129,7 @@ Mỗi sự kiện mang khóa `loại + id + mốc` để bên nghe bỏ trùng (
 
 ## 2. 006 cần từ module khác
 
-### 2.1. SPI 006 khai báo ở `m07.api`, module khác cài
+### 2.1. SPI 006 khai báo ở `medication.api`, module khác cài
 
 ```java
 interface DieuDuongCaPort {                 // 008 cài; chỉ đọc
@@ -180,7 +180,7 @@ Bean thiếu thì lệnh cần nó bị chặn (mặc định an toàn): không 
 | Giao diện | Module (feature) | Dùng cho | Khi chưa có |
 | --- | --- | --- | --- |
 | `NguoiCaoTuoiApi.trangThai`, `thoiDiemTrangThaiCuoi`; `MucSucKhoeApi.hieuLuc`, `daKiemTra`; `HoSoSucKhoeApi.banDau`; `DiNguyenApi.diNguyenHieuLuc(THUOC)`; `BanDongYApi.baoGom` | M01 (001) | FR-001, FR-007, FR-008, FR-012, FR-034a, FR-049 | Có sẵn |
-| `QuanHeNguoiThanApi.thuocNguoiCaoTuoi` (khai báo theo 001, 012 cài); `NguoiDaiDienPort.laNguoiDaiDienHieuLuc` (`m02.api`, 012 cài) | 012 | FR-040, FR-041 (hoàn trả, hủy) | Bản giả |
+| `QuanHeNguoiThanApi.thuocNguoiCaoTuoi` (khai báo theo 001, 012 cài); `NguoiDaiDienPort.laNguoiDaiDienHieuLuc` (`admission.api`, 012 cài) | 012 | FR-040, FR-041 (hoàn trả, hủy) | Bản giả |
 | `ViTriApi.hienTai` | M03 (003) | Tầng của liều (FR-026, CHK033) | Có sẵn |
 | `DanhSachViecSauQuaDoiApi.capNhat`; `DonGiaApi.thuocNguonVien` | M02 (004) | FR-047; dấu "chưa có mục vật phẩm" (FR-003) | Có sẵn |
 | `LieuThuocChecklistPort`, `ThoiKhoaBieuNguonPort` (khai báo) | M04 (005) | 006 cài | Có sẵn |

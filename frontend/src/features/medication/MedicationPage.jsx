@@ -162,7 +162,7 @@ export function MedicationPage({ role }) {
             </ToggleGroupItem>
           </ToggleGroup>
           {mode === 'scheduled' && (
-            <ToggleGroup variant="filter" size="lg" value={[filter]} onValueChange={(n) => n[0] && setFilter(n[0])} className="flex-wrap" aria-label="Lọc theo trạng thái">
+            <ToggleGroup variant="filter" size="lg" value={[filter]} onValueChange={(n) => n[0] && setFilter(n[0])} aria-label="Lọc theo trạng thái">
               {FILTERS.map((f) => (
                 <ToggleGroupItem
                   key={f}

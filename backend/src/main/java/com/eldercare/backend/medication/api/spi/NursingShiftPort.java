@@ -1,0 +1,18 @@
+package com.eldercare.backend.medication.api.spi;
+
+import com.eldercare.backend.medication.api.dto.NursingShiftView;
+import java.time.Instant;
+import java.util.*;
+
+/** DieuDuongCaPort: phần ca của T015; phân công và xác nhận bàn giao nối ở T021/T026. */
+public interface NursingShiftPort {
+    boolean handoverConfirmed(long previousShiftId);
+
+    Optional<Long> assignedTo(long residentId, Instant at);
+
+    Optional<NursingShiftView> shiftAt(long floorAreaId, Instant at);
+
+    List<Long> nursesWithShift(long floorAreaId, Instant at);
+
+    boolean inProgressShiftMember(long staffId, Instant at);
+}

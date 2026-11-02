@@ -5,6 +5,11 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// google-services.json không có trong kho mã (kho công khai): máy nào có file mới bật đẩy, máy khác vẫn build được
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "com.eldercare.mobile"
     compileSdk = flutter.compileSdkVersion

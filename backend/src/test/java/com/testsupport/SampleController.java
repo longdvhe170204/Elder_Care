@@ -1,14 +1,15 @@
 package com.testsupport;
 
-import com.cambae.backend.common.error.AlreadyProcessedException;
-import com.cambae.backend.common.error.BusinessException;
-import com.cambae.backend.common.error.ConditionNotMetException;
-import com.cambae.backend.common.error.InvalidValueException;
-import com.cambae.backend.common.error.NotFoundException;
-import com.cambae.backend.common.error.PermissionDeniedException;
-import com.cambae.backend.common.error.ReasonRequiredException;
-import com.cambae.backend.common.error.UnmetCondition;
-import com.cambae.backend.common.error.VersionMismatchException;
+import com.eldercare.backend.common.error.AlreadyProcessedException;
+import com.eldercare.backend.common.error.BusinessException;
+import com.eldercare.backend.common.error.ConditionNotMetException;
+import com.eldercare.backend.common.error.InvalidValueException;
+import com.eldercare.backend.common.error.NotFoundException;
+import com.eldercare.backend.common.error.PermissionDeniedException;
+import com.eldercare.backend.common.error.ReasonRequiredException;
+import com.eldercare.backend.common.error.UnmetCondition;
+import com.eldercare.backend.common.error.VersionMismatchException;
+import com.eldercare.backend.common.web.SecretResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,6 +26,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class SampleController {
 
     public final AtomicInteger created = new AtomicInteger();
+
+    public record SampleSecret(String secret) implements SecretResponse {}
 
     @GetMapping("/api/v1/test-support/errors/{kind}")
     public void fail(@PathVariable String kind) {
@@ -62,5 +65,11 @@ public class SampleController {
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, Object> create(@RequestBody Map<String, Object> body) {
         return Map.of("number", created.incrementAndGet(), "name", body.getOrDefault("name", ""));
+    }
+
+    @PostMapping("/api/v1/test-support/secrets")
+    @ResponseStatus(HttpStatus.CREATED)
+    public SampleSecret secret(@RequestBody Map<String, Object> body) {
+        return new SampleSecret("bi-mat-" + created.incrementAndGet());
     }
 }

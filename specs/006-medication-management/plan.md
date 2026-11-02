@@ -1,5 +1,7 @@
 # Implementation Plan: Quản lý thuốc
 
+> *(Sửa 2026-10-29, Q-393)* Thuốc gia đình gửi không trừ số lượng theo liều, PRN, lần giao; không chọn lô khi xác nhận liều; không tính số ngày còn, không mốc nhắc CFG-M07-06, 07; thêm lệnh Ghi dùng hết, Báo gia đình sắp hết. Các dòng về biến động, `TinhSoNgayConLai`, chọn lô trong plan này không còn hiệu lực; việc sửa mã ở tasks T066 → T068.
+
 **Branch**: `006-medication-management` | **Date**: 2026-10-10, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/006-medication-management/spec.md`
@@ -23,7 +25,7 @@ Hướng kỹ thuật:
 - Người phụ trách liều tính lúc đọc và lúc ghi từ phân công của 008, không lưu trên liều; liều chung của tầng là kết quả của phép tính đó (D-09).
 - Ràng buộc đưa xuống MySQL: `UNIQUE (don_thuoc_id, thoi_diem_du_kien)` (DBR-13), trigger khóa trường đơn (DBR-14), trigger trạng thái cuối của đơn, liều, phiếu, lô, cột sinh `UNIQUE` cho một phiếu mở và một phiếu tiếp nhận, trigger giữ số lượng thuốc gửi chỉ đổi qua biến động (data-model mục 11).
 - Tác động lên đơn, liều, phiếu khi tiếp nhận, vắng, trở về, trạng thái cuối là bean `ThamGiaChuyenTrangThai` trong transaction của 001 (D-16).
-- 006 làm plan trước 007, 008, 010, 012, 014, 016; dữ liệu ca và phân công (008), chuyến đi (014), đề nghị mua hộ (010) lấy qua SPI khai báo ở `m07.api` (D-02).
+- 006 làm plan trước 007, 008, 010, 012, 014, 016; dữ liệu ca và phân công (008), chuyến đi (014), đề nghị mua hộ (010) lấy qua SPI khai báo ở `medication.api` (D-02).
 - Yêu cầu tạo/đóng cảnh báo, thông báo, sự kiện tính phí đi qua outbox ghi cùng transaction (D-17).
 - Ngoại tuyến chỉ cho xác nhận liều và lần dùng PRN của thuốc không kiểm soát đặc biệt, qua hai `NgoaiTuyenHandler` của khung 002 (D-11).
 
@@ -93,7 +95,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ. Mức các thông báo spec chưa nêu: plan áp nguyên tắc 3 bậc và báo lại (điểm 5). Cách tính số ngày còn lại khi lô dùng chung: plan theo BR-M07-18 và báo lại (điểm 1) |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-014 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Hợp đồng 001 được bổ sung một sự kiện (mục "Đồng bộ"), không đổi hành vi đã thiết kế |
-| X. Kiến trúc | Đạt | Một khối; gói `m07`; module khác chỉ dùng `m07.api`. Không có vòng phụ thuộc (D-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `medication`; module khác chỉ dùng `medication.api`. Không có vòng phụ thuộc (D-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Kiểm tra đơn mới, giới hạn PRN, quyền xác nhận, quy tắc hai người, số lượng ở backend. Mỗi lệnh có `POST …/{id}/<lenh>` riêng; lệnh trạng thái người cao tuổi dùng endpoint của 001 |
 | XII. Dữ liệu | Đạt | DBR-13, DBR-14 bằng `UNIQUE` và trigger; nhóm 3 theo mẫu 000; nhật ký trong transaction; `Clock`; `thoi_diem_thiet_bi` cho ngoại tuyến (DBR-25) |
 | XIII. Tham số | Đạt | Như V. Cửa sổ chốt lúc liều tới đầu cửa sổ; đổi CFG-M07-01 chỉ áp liều sau đó |
@@ -101,12 +103,12 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | XV. Truy vết, kiểm thử | Đạt | Tên test theo BR, FR. Mỗi BR của 006 có test (data-model mục 14); BR-M07-23 là phạm vi loại trừ nên không có chức năng để kiểm. BR-M15-20 và thao tác ngoại tuyến có thêm test Flutter |
 
 **Kiểm lại sau Phase 1**: Đạt. Thiết kế không thêm vai trò, trạng thái hay quy tắc nghiệp vụ ngoài spec. Có sáu bổ sung kỹ thuật, giải thích ở Complexity Tracking:
-1. Bảng `thuoc_nct` làm đích khóa theo người và giữ hạn đối chiếu.
+1. Bảng `thuoc_nct` làm đích khóa theo người và giữ hạn đối chiếu. *(R-15: `thuoc_nct` → `trang_thai_nct`)*
 2. Vật hóa dòng liều tại đầu cửa sổ thay vì lập sẵn hoặc không lưu.
 3. `ket_qua_lieu` cho mọi lần đóng, kể cả do Hệ thống.
-4. Ba SPI khai báo ở `m07.api` cho 008, 014, 010.
-5. Bảng `khoang_vang_thuoc` giữ bản sao khoảng vắng, khoảng đi.
-6. Hai job (theo phút, hằng ngày) và bảng `lan_chay_m07`.
+4. Ba SPI khai báo ở `medication.api` cho 008, 014, 010.
+5. Bảng `khoang_vang_thuoc` giữ bản sao khoảng vắng, khoảng đi. *(R-15: `khoang_vang_thuoc` → `ho_so_chung`)*
+6. Hai job (theo phút, hằng ngày) và bảng `lan_chay_m07`. *(R-15: `lan_chay_m07` → `moc_da_nhac`)*
 
 ### Đáp ứng yêu cầu phi chức năng (constitution X)
 
@@ -115,7 +117,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | NFR-01 Quy mô | Có | 300 người, 60 người dùng đồng thời giờ giao ca; chỉ mục ở data-model mục 4, 5 |
 | NFR-02 Hiệu năng | Có | Vòng phát thuốc tính trong bộ nhớ từ một truy vấn đơn; xác nhận khóa một dòng |
 | NFR-03 Thông báo khẩn cấp | Không | 006 không có thông báo Khẩn cấp |
-| NFR-04 Tác vụ định kỳ | Có | Job theo phút; khóa dòng, cột `da_*_luc`, `lan_chay_m07` chống gửi trùng; khóa sự kiện cho bên nghe |
+| NFR-04 Tác vụ định kỳ | Có | Job theo phút; khóa dòng, cột `da_*_luc`, `lan_chay_m07` chống gửi trùng; khóa sự kiện cho bên nghe *(R-15: `lan_chay_m07` → `moc_da_nhac`)* |
 | NFR-05 Khả dụng | Có | Chạy bù khi khởi động (D-19); ngoại tuyến cho xác nhận tại giường |
 | NFR-06 Sao lưu | Gián tiếp | Dữ liệu ở MySQL |
 | NFR-07 Lưu trữ | Có | `LuuTruProvider` theo hồ sơ, CFG-M15-03 (data-model mục 13) |
@@ -147,7 +149,7 @@ specs/006-medication-management/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/com/cambae/backend/m07/
+backend/src/main/java/com/eldercare/backend/medication/
 ├── api/           # DonThuocApi, LichThuocApi, LieuBanGiaoApi, MangThuocChuyenDiApi, ThuocGiaDinhGuiApi,
 │                  # ThuocCongNguoiThanApi, ThuocThongKeApi, SPI (DieuDuongCaPort, ChuyenDiThuocPort, DeNghiMuaHoPort), sự kiện
 ├── danhmuc/       {internal, web}   # thuốc, hoạt chất
@@ -156,7 +158,7 @@ backend/src/main/java/com/cambae/backend/m07/
 ├── lieu/          {internal, web}   # xác nhận, XacDinhNguoiPhuTrachLieu, DemTuChoiLienTiep, xem lại, NgoaiTuyenHandler
 ├── prn/           {internal, web}   # KiemTraGioiHanPrn, NgoaiTuyenHandler
 ├── doichieu/      {internal, web}   # phiếu, dòng, xác nhận hai người, đề nghị đính chính phiếu
-├── thuocgui/      {internal, web}   # lô, biến động, TinhSoNgayConLai, mốc nhắc, MucViecSauQuaDoiPort
+├── thuocgui/      {internal, web}   # lô, Ghi dùng hết, Báo gia đình sắp hết, MucViecSauQuaDoiPort (Q-393)
 ├── mangtheo/      {internal, web}   # khoảng vắng, lần giao, nhận lại, không mang thuốc
 ├── tiepnhanthuoc/ {internal, web}   # lần tiếp nhận thuốc cung ứng (mục I, D-21; bổ sung 2026-10-11)
 ├── trangthai/     {internal}        # bean ThamGiaChuyenTrangThai; cài LieuThuocChecklistPort, ThoiKhoaBieuNguonPort
@@ -182,18 +184,18 @@ mobile/lib/nhan-vien/
 mobile/lib/nguoi-than/thuoc/   # thuốc gửi; đơn, phiếu khi có bản đồng ý
 ```
 
-**Structure Decision**: Theo R-02 của 000. Feature 006 nằm ở `backend/…/m07` với tám gói con nghiệp vụ, gói `trangthai` gom SPI cài cho module thấp hơn, gói `lich` và gói `api`. Web có đủ chức năng. App nhân viên có vòng phát thuốc, xác nhận ngoại tuyến và các thao tác tại tầng. App người thân chỉ xem.
+**Structure Decision**: Theo R-02 của 000. Feature 006 nằm ở `backend/…/medication` với tám gói con nghiệp vụ, gói `trangthai` gom SPI cài cho module thấp hơn, gói `lich` và gói `api`. Web có đủ chức năng. App nhân viên có vòng phát thuốc, xác nhận ngoại tuyến và các thao tác tại tầng. App người thân chỉ xem.
 
 ## Complexity Tracking
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
-| Bảng `thuoc_nct` (một dòng mỗi người) | Đích khóa tuần tự cho FR-007, FR-025, FR-037 trên tập đơn của một người; giữ hạn đối chiếu tính từ lệnh tiếp nhận/trở về, kể cả khi chưa có phiếu | Khóa dòng `nguoi_cao_tuoi` của M01 là truy cập dữ liệu module khác; đặt hạn trên phiếu thì không có chỗ khi chưa ai lập phiếu |
+| Bảng `thuoc_nct` (một dòng mỗi người) | Đích khóa tuần tự cho FR-007, FR-025, FR-037 trên tập đơn của một người; giữ hạn đối chiếu tính từ lệnh tiếp nhận/trở về, kể cả khi chưa có phiếu | Khóa dòng `nguoi_cao_tuoi` của M01 là truy cập dữ liệu module khác; đặt hạn trên phiếu thì không có chỗ khi chưa ai lập phiếu *(R-15: `thuoc_nct` → `trang_thai_nct`)* |
 | Vật hóa dòng liều tại đầu cửa sổ | Q-306 cấm lập sẵn; FR-018, FR-020, FR-022 đòi lưu trạng thái do bộ lập lịch chuyển, cửa sổ đã chốt, người đóng "Hệ thống" | Lập sẵn N ngày: trái Q-306. Không lưu dòng nào trước khi xác nhận: mất Trễ, Bỏ lỡ, Tạm dừng kết thúc và cửa sổ đã chốt |
 | `ket_qua_lieu` cho mọi lần đóng, kể cả Bỏ lỡ | Đính chính của 000 cần một bản gốc nhóm 3 (DBR-23); Bỏ lỡ → Đã dùng (US8 #4, FR-029) là đính chính trên lần đóng của Hệ thống | Đính chính trực tiếp dòng `lieu_thuoc`: dòng nhóm 2, vi phạm trigger trạng thái cuối |
-| Ba SPI khai báo ở `m07.api` (008, 014, 010) | 008, 014, 010 làm plan sau và cần gọi hoặc đọc 006; 006 cần lại dữ liệu ca, chuyến, mua hộ | 006 gọi thẳng API của họ: vòng phụ thuộc, Modulith từ chối |
-| Bảng `khoang_vang_thuoc` | Lịch thuốc cần khoảng vắng và khoảng đi (có/không mang thuốc) để tính Tạm dừng, Mang theo cho liều tương lai; ghi kèm lệnh trạng thái | Đọc lượt vắng của 004 và chuyến của 014 mỗi lần tính lịch: nhiều lời gọi trên đường đọc nóng; `LuotVangApi` chỉ trả lượt đang mở |
-| Job theo phút, job hằng ngày, bảng `lan_chay_m07` | SC-004 đòi chuyển và nhắc ≤ 1 phút; NFR-04 đòi chạy bù không trùng; mốc theo ca chạy đúng một lần. Chu kỳ và giờ chạy là thông số vận hành, không có trong Phụ lục 25 | Mỗi việc một job: khó giữ thứ tự (đơn hiệu lực trước, rồi vật hóa liều) |
+| Ba SPI khai báo ở `medication.api` (008, 014, 010) | 008, 014, 010 làm plan sau và cần gọi hoặc đọc 006; 006 cần lại dữ liệu ca, chuyến, mua hộ | 006 gọi thẳng API của họ: vòng phụ thuộc, Modulith từ chối |
+| Bảng `khoang_vang_thuoc` | Lịch thuốc cần khoảng vắng và khoảng đi (có/không mang thuốc) để tính Tạm dừng, Mang theo cho liều tương lai; ghi kèm lệnh trạng thái | Đọc lượt vắng của 004 và chuyến của 014 mỗi lần tính lịch: nhiều lời gọi trên đường đọc nóng; `LuotVangApi` chỉ trả lượt đang mở *(R-15: `khoang_vang_thuoc` → `ho_so_chung`)* |
+| Job theo phút, job hằng ngày, bảng `lan_chay_m07` | SC-004 đòi chuyển và nhắc ≤ 1 phút; NFR-04 đòi chạy bù không trùng; mốc theo ca chạy đúng một lần. Chu kỳ và giờ chạy là thông số vận hành, không có trong Phụ lục 25 | Mỗi việc một job: khó giữ thứ tự (đơn hiệu lực trước, rồi vật hóa liều) *(R-15: `lan_chay_m07` → `moc_da_nhac`)* |
 
 ## Đồng bộ với hợp đồng của feature khác
 
@@ -209,7 +211,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 
 Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề nghị chủ dự án quyết bằng mã Q mới khi cần, rồi sửa `docs/business/nghiep-vu.md` và spec liên quan.
 
-1. **Số ngày dùng còn lại khi một lô gắn nhiều đơn.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
+1. **Số ngày dùng còn lại khi một lô gắn nhiều đơn.** *(Đã xử lý 2026-10-10: Q-311 → Q-336; không còn áp dụng từ 2026-10-29: Q-393 bỏ tính số ngày còn.)*
    - FR-046 ghi "số ngày còn lại của mỗi đơn = tổng số lượng còn của các lô gắn đơn ÷ lượng dùng mỗi ngày của đơn"; FR-043 và BR-M07-18 ghi "tính trên tổng lượng dùng mỗi ngày của các đơn dùng chung lô".
    - Với một lô gắn cả đơn định kỳ và đơn PRN, công thức "của mỗi đơn" đếm cùng số thuốc hai lần và có thể gửi hai thông báo cho một thuốc.
    - Plan tính trên nhóm dùng chung (lô và đơn liên thông qua liên kết), một thông báo mỗi nhóm (research D-14). Khi không có lô dùng chung, kết quả trùng FR-046. Đề nghị sửa câu FR-046 theo BR-M07-18.
@@ -231,52 +233,59 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
    - Assumptions còn câu dẫn `docs/phan-tich-yeu-cau.md` mục 4.2 (đã bỏ); có thể giữ làm lịch sử.
    - Điểm báo lại 12 của spec còn nêu "đề xuất lô hạn dùng sớm nhất (FR-044)", đã bỏ theo Q-307.
 
-9. **Q-63 và Thông tư 27/2024/TT-BYT** (spec điểm báo lại 2026-10-06, Q-304): thiết kế giữ phạm vi hiện tại (bắt buộc trực tuyến, xem lại khi mất kết nối), không có sổ nhập–xuất–tồn hay người chứng kiến cho thuốc gây nghiện, hướng thần. Nếu tư vấn pháp lý xác nhận viện thuộc diện áp dụng thì cần Q mới và thêm bảng sổ theo dõi ở `m07`; cấu trúc gói hiện tại không chặn việc bổ sung này. *(Còn mở 2026-10-10: chờ tư vấn pháp lý, mục 24.4.)*
+9. **Q-63 và Thông tư 27/2024/TT-BYT** (spec điểm báo lại 2026-10-06, Q-304): thiết kế giữ phạm vi hiện tại (bắt buộc trực tuyến, xem lại khi mất kết nối), không có sổ nhập–xuất–tồn hay người chứng kiến cho thuốc gây nghiện, hướng thần. Nếu tư vấn pháp lý xác nhận viện thuộc diện áp dụng thì cần Q mới và thêm bảng sổ theo dõi ở `medication`; cấu trúc gói hiện tại không chặn việc bổ sung này. *(Còn mở 2026-10-10: chờ tư vấn pháp lý, mục 24.4.)*
 
 ## Ghi chú triển khai
 
 ### Phase 3 (User Story 1 - Nhập đơn thuốc, kiểm trùng hoạt chất và dị ứng)
 - Đã hoàn thành các task T010 → T017.
 - Cấu trúc mã tuân thủ 100% tiếng Anh cho database, backend domain/entities, DTOs, controllers và tests.
-- Database: migration `V006_02__prescription.sql` với bảng `prescription`, `prescription_active_ingredient`, `prescription_issue`, `prescription_basis`, kèm trigger khóa sửa trường cố định và chặn xóa vật lý.
+- Database: migration `V006_02__prescription.sql` với bảng `prescription`, `prescription_active_ingredient`, `prescription_issue`, `prescription_basis`, kèm trigger khóa sửa trường cố định và chặn xóa vật lý. *(R-15: `prescription_active_ingredient` → cột `JSON` của `don_thuoc`; `prescription_issue`, `prescription_basis` → `su_kien_chung`)*
 - Nghiệp vụ: `PrescriptionValidator` kiểm tra trùng hoạt chất và xung đột dị ứng; `PrescriptionService` quản lý vòng đời đơn và xác nhận lý do; `PrescriptionAllergyListener` lắng nghe `AllergyRecordedEvent` và phát cảnh báo `MedicationAlertRequestedEvent`.
 - Giao diện: Component `PrescriptionPanel`, `PrescriptionSheet` tại `frontend/src/features/medication/` với giao diện kiểm tra an toàn đơn và xác nhận lý do chuyên môn.
-- Toàn bộ 18 test đơn vị backend m07 và 100 test vitest frontend đều đã đạt 100%.
+- Toàn bộ 18 test đơn vị backend medication và 100 test vitest frontend đều đã đạt 100%.
 
 ### Phase 4 (User Story 2 - Lịch thuốc tính từ đơn; xác nhận từng liều trong cửa sổ)
 - Đã hoàn thành các task T018 → T029 (backend, database, API, web frontend).
 - Đặt tên 100% tiếng Anh cho mọi entity, database table, controller, service, test:
-  - Database: `V006_03__medication_dose.sql` gồm `medication_dose` (Group 2), `dose_result` (Group 3 append-only), `dose_review` (Group 2) và 4 trigger: `trg_medication_dose_terminal_lock`, `trg_medication_dose_no_delete`, `trg_dose_result_no_update`, `trg_dose_result_no_delete`.
+  - Database: `V006_03__medication_dose.sql` gồm `medication_dose` (Group 2), `dose_result` (Group 3 append-only), `dose_review` (Group 2) và 4 trigger: `trg_medication_dose_terminal_lock`, `trg_medication_dose_no_delete`, `trg_dose_result_no_update`, `trg_dose_result_no_delete`. *(R-15: `dose_review` → `ho_so_chung`)*
   - Tính lịch thuần (research D-06): `MedicationScheduleCalculator.java` sinh projected slots với khóa `doseKey = {prescriptionId}-{yyyyMMddHHmm}`, hỗ trợ 3 kiểu tần suất (`TIMED_SLOTS`, `EVERY_N_HOURS`, `DAYS_OF_WEEK`), giải quyết cửa sổ riêng hoặc mặc định CFG-M07-01, xử lý vắng mặt (`SUSPENDED`/`LEAVE_MEDICATION`), và không lập sẵn bản ghi liều tương lai (Q-306).
   - Máy trạng thái liều: `DoseTransitionTable.java` kiểm soát chuyển trạng thái liều theo bảng FR-021.
   - Từ chối liên tiếp (BR-M07-13): `ConsecutiveRefusalCounter.java` đếm số lần từ chối liên tiếp, bỏ qua liều tạm dừng/hủy, kích hoạt `MedicationAlertRequestedEvent("TU_CHOI_LIEN_TIEP")` khi đạt ngưỡng CFG-M05-04.
   - Quản lý & Xác nhận liều: `DoseAssigneeResolver.java` tính người phụ trách lúc đọc và ghi qua `ShiftNursePort`; `DoseAdministrationService.java` xử lý Đã dùng (phát `MedicationBilledEvent` nguồn viện, cảnh báo phản ứng thuốc), Từ chối, Không thực hiện; vật hóa dòng tại đầu cửa sổ hoặc khi có lệnh.
-  - Ngoại tuyến & Xem lại (research D-11): `DoseResultOfflineHandler.java` cho `M07.KET_QUA_LIEU`, từ chối ngoại tuyến thuốc kiểm soát đặc biệt (BR-M07-20), xử lý xung đột trùng liều vào `dose_review`; `DoseReviewService.java` thực thi quy tắc hai người (SC-012).
+  - Ngoại tuyến & Xem lại (research D-11): `DoseResultOfflineHandler.java` cho `M07.KET_QUA_LIEU`, từ chối ngoại tuyến thuốc kiểm soát đặc biệt (BR-M07-20), xử lý xung đột trùng liều vào `dose_review`; `DoseReviewService.java` thực thi quy tắc hai người (SC-012). *(R-15: `dose_review` → `ho_so_chung`)*
   - Tác vụ theo phút: `M07JobService.java` vật hóa liều đầu cửa sổ, chuyển `DUE -> LATE` (nhắc một lần), chuyển `LATE -> MISSED` (Hệ thống đóng sau CFG-M07-02, phát cảnh báo bỏ lỡ), và đóng liều tạm dừng qua cửa sổ.
   - REST API & SPI: `MedicationScheduleController.java`, `DoseController.java`, `DefaultMedicationScheduleApi.java`, và adapter SPI cho Module 005 `MedicationChecklistPortAdapter.java` (`LieuThuocChecklistPort`, `ThoiKhoaBieuNguonPort`).
   - Giao diện web: `MedicationPage.jsx`, `DoseSheet.jsx`, `DoseTags.jsx` tại `frontend/src/features/medication/`.
-- Kiểm thử: 15/15 unit tests backend m07 pass (bao gồm `BR_M07_01_MedicationScheduleTest` và `BR_M07_13_ConsecutiveRefusalTest`), 100/100 Vitest tests pass, ESLint 0 lỗi, Maven spotless clean.
+- Kiểm thử: 15/15 unit tests backend medication pass (bao gồm `BR_M07_01_MedicationScheduleTest` và `BR_M07_13_ConsecutiveRefusalTest`), 100/100 Vitest tests pass, ESLint 0 lỗi, Maven spotless clean.
 
 
 
 ### Sửa sau merge vào develop (2026-10-26, nhánh `fix/m07-arch-tests`)
-- `develop` đỏ sau PR #34: `LayerArchTest`, `TimeArchTest`, `DataGroupArchTest` lỗi ở m07. Chủ dự án sửa, không đổi nghiệp vụ.
-- Service dùng thân request, response nên lớp `web/request`, `web/response` chuyển về `internal/service/request`, `internal/service/response` (cùng tên lớp); `DoseDetailView` từ `api/dto` về `internal/service/response` vì chỉ m07 dùng và có enum của `internal.domain`; `DoseTransitionTable` về `internal/domain`. Tách ánh xạ về controller cho đúng `web/{request, response}` là việc sau của D.
+- `develop` đỏ sau PR #34: `LayerArchTest`, `TimeArchTest`, `DataGroupArchTest` lỗi ở medication. Chủ dự án sửa, không đổi nghiệp vụ.
+- Service dùng thân request, response nên lớp `web/request`, `web/response` chuyển về `internal/service/request`, `internal/service/response` (cùng tên lớp); `DoseDetailView` từ `api/dto` về `internal/service/response` vì chỉ medication dùng và có enum của `internal.domain`; `DoseTransitionTable` về `internal/domain`. Tách ánh xạ về controller cho đúng `web/{request, response}` là việc sau của D.
 - Thời điểm lấy từ `BusinessTime` (DBR-25): constructor entity và các lệnh cập nhật `FamilyMedicationBatch` nhận `Instant now`; bỏ nhánh dự phòng `Instant.now()` ở `submit`, `confirm`, `reject`, `close`, `markReverted`, `M07JobRunStore.recordCompletion` (nơi gọi luôn truyền thời điểm).
 - `@DataGroup` cho 15 entity theo data-model mục 3 → 9a (bảng con theo nhóm của bảng cha). Setter công khai trên entity nhóm 2, 3 thay bằng lệnh có tên (`changeEndDate`, `scheduleSuspensionFrom`, `cancelScheduledSuspension`, `changeInstructionNote`, `markExpirationWarned`, `clearExpirationWarning`, `markReplaces`, `attachNoMedicationOrder`, `recordCreatedPrescription`); setter không ai gọi thì bỏ.
-- Cơ sở dữ liệu: `V006_09` thêm trigger nhóm 3 cho 9 bảng của V006_05 → V006_08 (data-model mục 6, 8, 9, 9a; `medication_handover` chỉ cho `status` đi tới theo FR-048a, `medication_handover_dose` chỉ đặt `reverted_at` một lần theo Q-60); `V006_10` cấp quyền ghi cho `eldercare_app` trên các bảng của V006_03 → V006_08 (trước đó không có, ứng dụng không ghi được liều, đối chiếu, giao thuốc, PRN, thuốc gửi, tiếp nhận).
+- Cơ sở dữ liệu: `V006_09` thêm trigger nhóm 3 cho 9 bảng của V006_05 → V006_08 (data-model mục 6, 8, 9, 9a; `medication_handover` chỉ cho `status` đi tới theo FR-048a, `medication_handover_dose` chỉ đặt `reverted_at` một lần theo Q-60); `V006_10` cấp quyền ghi cho `eldercare_app` trên các bảng của V006_03 → V006_08 (trước đó không có, ứng dụng không ghi được liều, đối chiếu, giao thuốc, PRN, thuốc gửi, tiếp nhận). *(R-15: `medication_handover_dose` → `lan_giao_nhan_thuoc` (`medication_handover`))*
 - Kiểm quyền theo phạm vi: lệnh có `@RequiresPermission` của `PrescriptionService` nhận `Target` (`target(residentId)`, `targetOf(prescriptionId)`); trước đó vai trò theo phân công (AC-04) luôn bị từ chối vì thiếu đối tượng.
-- Dị ứng: `M01HealthAllergyAdapter` cài `HealthAllergyPort` bằng `HealthItemApi`, `AllergenApi` của 001; bỏ bản trả rỗng. `PrescriptionAllergyListener` nghe `m01.api.events.AllergyRecorded` sau commit (`@TransactionalEventListener`, `REQUIRES_NEW`), ghi đã xử lý sau khi xong để lần phát lại của 001 vẫn kiểm; bỏ `m07.api.events.AllergyRecordedEvent` không ai phát.
+- Dị ứng: `M01HealthAllergyAdapter` cài `HealthAllergyPort` bằng `HealthItemApi`, `AllergenApi` của 001; bỏ bản trả rỗng. `PrescriptionAllergyListener` nghe `resident.api.events.AllergyRecorded` sau commit (`@TransactionalEventListener`, `REQUIRES_NEW`), ghi đã xử lý sau khi xong để lần phát lại của 001 vẫn kiểm; bỏ `medication.api.events.AllergyRecordedEvent` không ai phát.
 - Tham số: CFG-M07-01 (cửa sổ mặc định), CFG-M07-02 (Trễ → Bỏ lỡ, trước ghi cứng 60 phút), CFG-M07-04 (nhắc hết hạn), CFG-M07-05 (hạn đối chiếu, trước ghi cứng 24 giờ) đọc qua `ParameterApi`.
 - Người thực hiện lấy từ `CurrentUser`; bỏ mặc định tài khoản 1, 2 ở controller, service.
 - Test tích hợp: nền `M07IntegrationTestBase` (người dùng thật của 002 qua `SwitchableUser`, phân công điều dưỡng); id người cao tuổi, tên thuốc mới mỗi lần chạy; sửa SQL, khóa vấn đề `DI_UNG_<id>`, dị ứng danh mục trong bản giả của các test.
-- Hợp đồng (2026-10-26, A làm thay D, chủ dự án duyệt bản dịch 2026-10-26): `api-006.yaml` dịch tiếng Anh (glossary mục 12.2 → 12.5), tên theo DTO của m07 khi cùng nghĩa; thêm `GET /medications/{id}` (ETag cho If-Match của PUT). Controller chỉ còn đường dẫn tiếng Anh, `{residentId}`, tham số `active`, `status`, `tripId`, `from`, `to`; lịch thuốc nhận `from`, `to` là thời điểm (hợp đồng) và lọc liều trong khoảng; bỏ `POST …/ghi-chu` trùng và `POST /doses/{id}/reported` (chủ dự án chọn: ghi theo báo lại đi qua `administer`, FR-027). `ApiContractIT` đăng ký api-006 (lúc dịch còn 309 chỗ lệch operation, nay đã sửa, `checkOperations = true`). Web sinh `src/api/api006.js`; màn Danh mục thuốc dùng client sinh và tên trường tiếng Anh (trước dùng tên tiếng Việt, gửi `lyDo` khi ngừng hiệu lực).
+- Hợp đồng (2026-10-26, A làm thay D, chủ dự án duyệt bản dịch 2026-10-26): `api-006.yaml` dịch tiếng Anh (glossary mục 12.2 → 12.5), tên theo DTO của medication khi cùng nghĩa; thêm `GET /medications/{id}` (ETag cho If-Match của PUT). Controller chỉ còn đường dẫn tiếng Anh, `{residentId}`, tham số `active`, `status`, `tripId`, `from`, `to`; lịch thuốc nhận `from`, `to` là thời điểm (hợp đồng) và lọc liều trong khoảng; bỏ `POST …/ghi-chu` trùng và `POST /doses/{id}/reported` (chủ dự án chọn: ghi theo báo lại đi qua `administer`, FR-027). `ApiContractIT` đăng ký api-006 (lúc dịch còn 309 chỗ lệch operation, nay đã sửa, `checkOperations = true`). Web sinh `src/api/api006.js`; màn Danh mục thuốc dùng client sinh và tên trường tiếng Anh (trước dùng tên tiếng Việt, gửi `lyDo` khi ngừng hiệu lực).
 - Khoảng vắng không mang thuốc để trống giờ về (chủ dự án chọn, thay mặc định 24 giờ); thuốc cần mang tính liều dự kiến của đơn định kỳ trong khoảng vắng bằng `MedicationScheduleCalculator` khi biết giờ về (khoảng vắng hoặc `TripMedicationPort` của 014), không biết thì để trống số lượng; đơn PRN không tính sẵn số lượng. CFG-M05-04 (mặc định 2, trước ghi cứng 3) đọc qua `ParameterApi`.
 - Mã lỗi, mã vấn đề đổi theo glossary 12.5 (`ISSUES_REQUIRE_CONFIRMATION`, `ALLERGY_<id>`, `ALLERGY_CONFLICT` …); loại cảnh báo gửi 007 (`PHAN_UNG_THUOC`, `BO_LO_LIEU` …) giữ nguyên vì là mã của 007.
-- Operation khớp hợp đồng (2026-10-26, A làm thay D): thân request, response theo hợp đồng ở `web/request`, `web/response` (record, mỗi nhóm một file như `DoseBodies`, `HandoverBodies`); controller chuyển sang lệnh của service qua `M07RequestMapper`, service vẫn nhận `internal/service/request` (bỏ bốn lớp không còn ai dùng: `InstructionBody`, `MedicationBody`, `ReasonBody`, `ReviewDoseRequestBody`). Mã phản hồi, kiểu nội dung lỗi (`ProblemBody`, `application/problem+json`) khai bằng `@ApiResponses`; `Idempotency-Key` `required = false` như m13. Danh sách thuốc không còn `version`: web gọi `GET /medications/{id}` lấy ETag trước PUT.
+- Operation khớp hợp đồng (2026-10-26, A làm thay D): thân request, response theo hợp đồng ở `web/request`, `web/response` (record, mỗi nhóm một file như `DoseBodies`, `HandoverBodies`); controller chuyển sang lệnh của service qua `M07RequestMapper`, service vẫn nhận `internal/service/request` (bỏ bốn lớp không còn ai dùng: `InstructionBody`, `MedicationBody`, `ReasonBody`, `ReviewDoseRequestBody`). Mã phản hồi, kiểu nội dung lỗi (`ProblemBody`, `application/problem+json`) khai bằng `@ApiResponses`; `Idempotency-Key` `required = false` như notification. Danh sách thuốc không còn `version`: web gọi `GET /medications/{id}` lấy ETag trước PUT.
 - `DoseViewService` tính trường của `Dose` theo hợp đồng: `usableBatches` (lô gia đình gửi dùng được của đơn, không chọn sẵn, Q-307), `handoverId`, `result`, `closedBy`, `needsReview`, `awaitingRecordAfterReturn`; đơn vị liều lấy từ `usageUnit` của thuốc. `PrescriptionService.discontinueWarnings` (cảnh báo `NO_DOSE_GAP` khi ngừng đơn), `DoseReviewService.listReviews(status)` cho `GET /dose-reviews`.
 - Tiếp nhận thuốc cung ứng (FR-054, FR-055): `SuppliedMedicationIntakeService` cài `ProcurementIntakeApi`, `SuppliedMedicationIntakeController` (`POST`, `GET /supplied-medication-intakes`), sự kiện `SuppliedMedicationIntakeFailed`; test `BR_M07_24_SuppliedMedicationIntakeIT`.
-- Migration bổ sung: `V006_11` cột còn thiếu của `supplied_medication_intake` (thuốc, hàm lượng, dạng bào chế, hạn dùng, tình trạng, người giao; `intake_result` theo `PASSED`, `NOT_PASSED`); `V006_12` `adverse_reaction`, `note`, `recorded_after_disconnect` của `prn_administration`; `V006_13` `return_reason` của `reconciliation_correction_request` (trả lại đề nghị đính chính phiếu bắt buộc lý do, FR-039).
+- Migration bổ sung: `V006_11` cột còn thiếu của `supplied_medication_intake` (thuốc, hàm lượng, dạng bào chế, hạn dùng, tình trạng, người giao; `intake_result` theo `PASSED`, `NOT_PASSED`); `V006_12` `adverse_reaction`, `note`, `recorded_after_disconnect` của `prn_administration`; `V006_13` `return_reason` của `reconciliation_correction_request` (trả lại đề nghị đính chính phiếu bắt buộc lý do, FR-039). *(R-15: `supplied_medication_intake` → `lan_giao_nhan_thuoc` (`medication_handover`); `prn_administration` → `ket_qua_lieu` (`dose_result`); `reconciliation_correction_request` → `ho_so_chung`)*
 - Hợp đồng bổ sung khi sửa operation (chủ dự án duyệt 2026-10-26, ghi ở mô tả từng chỗ): schema phản hồi 200 `PrnHistory` (kèm `PrnAdministration`) cho `GET /prescriptions/{id}/prn-administrations`, `DoseReview` cho `GET /dose-reviews`, `MedicationToBring` cho `GET /residents/{residentId}/medications-to-bring`, `SuppliedMedicationIntake` cho `GET /supplied-medication-intakes`; tham số `floorAreaId` (không bắt buộc) của `GET /medication-doses/rounds`; `unlocksAt` trong `Problem` cho giống bản chung.
-- Bổ sung phản hồi theo FR (2026-10-26, chủ dự án chọn theo đề xuất, duyệt cùng hợp đồng): `MedicationToBring` thêm `medicationSource`, `usableBatches` (FR-048a theo điều kiện lô FR-044; `DoseViewService.usableBatches` dùng chung với liều); `PrnAdministration` thêm `adverseReaction`, `note`, `familyMedicationBatchId`, `recordedAfterDisconnect` (FR-024), `administeredById` thành `administeredBy`; `DoseReview` thêm `doseKey`, `residentId`, `medicationName`, `administeredAt`, `recordedBy` (FR-029), `reviewerId` thành `reviewedBy`; `SuppliedMedicationIntake.result` thành enum, `receiverId` thành `receiverName`. Người thực hiện trả họ tên qua `ActorNames` (`AccountApi.fullName`, bean `m07ActorNames` vì m01 đã có `actorNames`). Không thêm `basis` cho lần dùng PRN vì bảng `prn_administration` không lưu căn cứ (chỉ có `reported_by`). Không trả `received` (FR-054 "Đã nhận") ở `GET /supplied-medication-intakes` (chủ dự án chọn 2026-10-26): 019 tự tính qua `ProcurementIntakeApi.byProcurementRequest` (module-interfaces mục 1.8a), vì m07 chỉ tra từng dòng qua `ProcurementMedicationPort.lineRecordedPurchased`; summary của api-006 sửa theo. Test `M07ResponseFieldsIT`, `BR_M07_24_SuppliedMedicationIntakeIT.FR_054_list_showsResultAndReceiverName`.
+- Bổ sung phản hồi theo FR (2026-10-26, chủ dự án chọn theo đề xuất, duyệt cùng hợp đồng): `MedicationToBring` thêm `medicationSource`, `usableBatches` (FR-048a theo điều kiện lô FR-044; `DoseViewService.usableBatches` dùng chung với liều); `PrnAdministration` thêm `adverseReaction`, `note`, `familyMedicationBatchId`, `recordedAfterDisconnect` (FR-024), `administeredById` thành `administeredBy`; `DoseReview` thêm `doseKey`, `residentId`, `medicationName`, `administeredAt`, `recordedBy` (FR-029), `reviewerId` thành `reviewedBy`; `SuppliedMedicationIntake.result` thành enum, `receiverId` thành `receiverName`. Người thực hiện trả họ tên qua `ActorNames` (`AccountApi.fullName`, bean `m07ActorNames` vì resident đã có `actorNames`). Không thêm `basis` cho lần dùng PRN vì bảng `prn_administration` không lưu căn cứ (chỉ có `reported_by`). Không trả `received` (FR-054 "Đã nhận") ở `GET /supplied-medication-intakes` (chủ dự án chọn 2026-10-26): 019 tự tính qua `ProcurementIntakeApi.byProcurementRequest` (module-interfaces mục 1.8a), vì medication chỉ tra từng dòng qua `ProcurementMedicationPort.lineRecordedPurchased`; summary của api-006 sửa theo. Test `M07ResponseFieldsIT`, `BR_M07_24_SuppliedMedicationIntakeIT.FR_054_list_showsResultAndReceiverName`. *(R-15: `prn_administration` → `ket_qua_lieu` (`dose_result`))*
 - Hạn chế còn lại (chưa đoán thêm nghiệp vụ): `pendingHandoverConfirmation` luôn `null` (cần `CaTrucApi` của 008); `currentStatus` của liều bằng `status` (chưa đọc chuỗi đính chính của 000); bean `ObjectMapper` Jackson 2 ở `MedicationConfig` còn giữ; cửa sổ mặc định của vòng phát thuốc khi không truyền `from`, `to` (−1 giờ, +3 giờ) ghi cứng ở `MedicationScheduleController`.
+
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Lược đồ sau gộp và cách chuyển dữ liệu: data-model mục 0, 0.1; task T069.
+- Bảo đảm DBR, BR sau gộp (XII): ràng buộc của bảng giữ riêng giữ nguyên; ràng buộc của bảng đã gộp chuyển theo cột "ràng buộc chuyển về backend" và đoạn "Bảo đảm" của data-model 0.1 (`khoa_duy_nhat`, cột sinh `UNIQUE`, `CHECK` theo `kind`, quyền theo cột, trigger khóa theo dòng, kiểm ở domain). Mỗi ràng buộc chuyển về domain có test tích hợp; khi làm task gộp, sửa cột "bảo đảm bằng" của bảng DBR áp dụng trong data-model.
+- Hiệu năng (NFR): truy vấn trên bảng chung dùng chỉ mục `(loai_doi_tuong, doi_tuong_id, loai)` và cột sinh có chỉ mục khai báo ở 0.1; chạy lại phần đo của quickstart sau khi gộp.
+- Dòng nhắc bảng cũ trong plan, research, tasks có ghi chú "R-15:" chỉ bảng đích.

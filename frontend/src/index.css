@@ -7,7 +7,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Giá trị lấy từ DESIGN.md 3.6.0, bảng màu Trời xanh theo letters.app (mục Màu, Chữ, Độ nổi và hình khối). */
+/* Giá trị lấy từ DESIGN.md 6.3.1, hướng "Dòng thời gian ca" (mục 3 Màu, 4 Chữ, 6 Hình khối). */
 
 @theme inline {
     --font-heading: var(--font-sans);
@@ -59,12 +59,15 @@
     --color-bed-held: var(--bed-held);
     --color-bed-pending: var(--bed-pending);
     --color-bed-maintenance: var(--bed-maintenance);
+    /* Bo góc (DESIGN.md 6): 6 điểm nhấn, 8 mục menu, 10 ô nhập và khối việc, 12 bề mặt; từ 6.0.0 bỏ cấp 16, 20
+       nên xl, 2xl, 3xl cùng 12px để các màn cũ theo luôn */
     --radius-sm: 6px;
+    --radius-menu: 8px;
     --radius-md: 10px;
     --radius-lg: 12px;
-    --radius-xl: 16px;
-    --radius-2xl: 20px;
-    --radius-3xl: 20px;
+    --radius-xl: 12px;
+    --radius-2xl: 12px;
+    --radius-3xl: 12px;
     --radius-4xl: 9999px;
 }
 
@@ -74,11 +77,8 @@
     --landing-ivory: #FBF9F4;
     --landing-beige: #F2EADF;
     --landing-photo: #E4D8C6;
-    /* Nền trang (DESIGN.md 3.1): dải trời gốc #779BC1 → #9ABFDA → #CBDFEC pha 45% trắng */
-    --canvas-from: #B4C8DD;
-    --canvas-mid: #C7DCEB;
-    --canvas-to: #E2EDF5;
-    --background: #C7DCEB;
+    /* Nền trang (DESIGN.md 3.1): màu trơn, không dải màu */
+    --background: #EEF2F6;
     --foreground: #0F2235;
     --card: #FFFFFF;
     --card-foreground: #0F2235;
@@ -92,7 +92,7 @@
     --muted-foreground: #50627A;
     --accent: #C0EAFF;
     --accent-foreground: #0B5F8A;
-    --destructive: #C9302C;
+    --destructive: #B42318;
     --destructive-subtle: #FFECEC;
     --warning: #FFECC0;
     --warning-foreground: #8A5300;
@@ -100,8 +100,8 @@
     --success-foreground: #1F6B45;
     --info: #C0D5FF;
     --info-foreground: #2A4A8F;
-    --border: #EFEFF1;
-    --input: #868C98;
+    --border: #DDE3EA;
+    --input: #7E8591;
     --ring: #24496F;
     --chart-1: #C0EAFF;
     --chart-2: #2597D0;
@@ -117,21 +117,17 @@
     --avatar-4: #EFEFF1;
     --avatar-4-foreground: #4A4A55;
     --radius: 12px;
-    /* Menu (DESIGN.md 3.2): cùng dải trời gốc pha 15% trắng, đậm hơn nền trang một bậc; mục chọn là viên xanh đêm */
-    --sidebar: #A9C9E0;
-    --sidebar-from: #8BAACA;
-    --sidebar-mid: #A9C9E0;
-    --sidebar-to: #D3E4EF;
-    /* Chữ menu: màu chữ chính để không chìm vào nền trời; nhãn nhóm, chữ phụ nhạt hơn một bậc (DESIGN.md 3.2) */
-    --sidebar-foreground: #0F2235;
-    --sidebar-muted-foreground: #14304F;
+    /* Menu (DESIGN.md 3.2): xanh đêm đậm trơn; mục chọn là viên trắng (xanh đêm trên nền menu chỉ 1,54:1) */
+    --sidebar: #142B45;
+    --sidebar-foreground: #C9D6E5;
+    --sidebar-muted-foreground: #9FB3CA;
     --sidebar-primary: #24496F;
     --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: #24496F;
-    --sidebar-accent-foreground: #FFFFFF;
-    --sidebar-border: #0F22351F;
-    --sidebar-ring: #0F2235;
-    --sidebar-hover: #FFFFFF73;
+    --sidebar-accent: #FFFFFF;
+    --sidebar-accent-foreground: #142B45;
+    --sidebar-border: #FFFFFF1F;
+    --sidebar-ring: #FFFFFF;
+    --sidebar-hover: #FFFFFF1F;
     /* Sơ đồ giường (DESIGN.md 3.5, bed-cell): màu đặc, mỗi màu ≥ 3:1 so với nền thẻ */
     --bed-occupied: #4A6FD6;
     --bed-held: #1A8CC4;
@@ -144,10 +140,7 @@
     --landing-ivory: #111B2B;
     --landing-beige: #1D1B19;
     --landing-photo: #2B2722;
-    --canvas-from: #0F1A2A;
-    --canvas-mid: #15233A;
-    --canvas-to: #1B2B42;
-    --background: #15233A;
+    --background: #0F1A2A;
     --foreground: #E6EDF6;
     --card: #18243A;
     --card-foreground: #E6EDF6;
@@ -170,7 +163,7 @@
     --info: #16273D;
     --info-foreground: #9CC3FF;
     --border: #2A3A52;
-    --input: #6E80A0;
+    --input: #7E8591;
     --ring: #8DB4E2;
     --chart-1: #22344F;
     --chart-2: #6F9FD6;
@@ -185,16 +178,13 @@
     --avatar-3-foreground: #7FD3A3;
     --avatar-4: #2E2A20;
     --avatar-4-foreground: #E2D3AE;
-    --sidebar: #0E1829;
-    --sidebar-from: #0B1320;
-    --sidebar-mid: #0E1829;
-    --sidebar-to: #121D2D;
-    --sidebar-foreground: #FFFFFF;
+    --sidebar: #0B1320;
+    --sidebar-foreground: #B8C6DA;
     --sidebar-muted-foreground: #B8C6DA;
-    --sidebar-primary: #E6EDF6;
-    --sidebar-primary-foreground: #10203A;
+    --sidebar-primary: #24496F;
+    --sidebar-primary-foreground: #FFFFFF;
     --sidebar-accent: #E6EDF6;
-    --sidebar-accent-foreground: #10203A;
+    --sidebar-accent-foreground: #0B1320;
     --sidebar-border: #FFFFFF26;
     --sidebar-ring: #FFFFFF;
     --sidebar-hover: #FFFFFF1F;
@@ -278,8 +268,8 @@
     line-height: 26px;
 }
 @utility type-clock {
-    font-size: 28px;
-    line-height: 32px;
+    font-size: 32px;
+    line-height: 36px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
 }
@@ -333,9 +323,6 @@
     }
   body {
     @apply bg-background text-foreground type-body;
-    /* Dải trời xanh cho toàn trang (DESIGN.md 3.5.0); menu dùng bản đậm hơn của cùng dải */
-    background-image: linear-gradient(180deg, var(--canvas-from) 0%, var(--canvas-mid) 58%, var(--canvas-to) 100%);
-    background-attachment: fixed;
     }
   html {
     @apply font-sans;

@@ -1,11 +1,16 @@
 import 'dart:convert';
 
+import 'package:drift/drift.dart' show driftRuntimeOptions;
+import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:mobile/common/api/api_client.dart';
 import 'package:mobile/common/auth/biometric_auth.dart';
 import 'package:mobile/common/auth/secure_store.dart';
 import 'package:mobile/common/auth/session_controller.dart';
+import 'package:mobile/common/offline/offline_database.dart';
+import 'package:mobile/common/offline/offline_queue.dart';
 
 /// Backend giả cho test app: trả theo (phương thức, đường dẫn sau `/api/v1`), ghi lại mọi yêu cầu.
 class FakeBackend {
@@ -62,12 +67,35 @@ Map<String, dynamic> residentUser({bool mustChangePassword = false}) => {
   'mustChangePassword': mustChangePassword,
 };
 
+/// Người dùng của `/me`, `/auth/login` theo loại tài khoản (`STAFF`, `FAMILY_MEMBER`, `RESIDENT`).
+Map<String, dynamic> user(String type, {bool mustChangePassword = false}) => {
+  'accountId': 7,
+  'type': type,
+  'fullName': '[Họ tên 1]',
+  'roles': <String>[],
+  'mustChangePassword': mustChangePassword,
+};
+
 Map<String, dynamic> loginResponse({bool mustChangePassword = false}) => {
   'token': 'session-1',
   'deviceToken': 'device-token-1',
   'mustChangePassword': mustChangePassword,
   'user': residentUser(mustChangePassword: mustChangePassword),
 };
+
+/// Hàng đợi ngoại tuyến trên SQLite trong bộ nhớ, dùng client của phiên.
+OfflineQueue memoryQueue(SessionController s) {
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+  return OfflineQueue(OfflineDatabase(NativeDatabase.memory()), s.api);
+}
+
+/// Máy chưa gắn tài khoản người cao tuổi mở màn đăng nhập chung: bấm nút người cao tuổi để tới màn quét mã.
+Future<void> openResidentLogin(WidgetTester tester) async {
+  final choice = find.text('Người cao tuổi: quét mã QR');
+  if (choice.evaluate().isEmpty) return;
+  await tester.tap(choice);
+  await tester.pumpAndSettle();
+}
 
 SessionController session(FakeBackend backend, MemoryStore store, FakeBiometric biometric) =>
     SessionController(api: backend.client(), store: store, biometric: biometric);

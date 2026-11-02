@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../common/auth/session_controller.dart';
-import '../../common/widgets/sky_background.dart';
+import '../../common/widgets/page_body.dart';
 
 /// Hỏi một lần sau lần đăng nhập đầu (002 FR-074; DESIGN.md 15.6). Không có mã PIN.
 class BiometricOfferScreen extends StatelessWidget {
@@ -13,7 +13,7 @@ class BiometricOfferScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Scaffold(
-      body: SkyBackground(
+      body: PageBody(
         child: Card(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -22,15 +22,9 @@ class BiometricOfferScreen extends StatelessWidget {
               children: [
                 Text('Mở bằng vân tay hoặc khuôn mặt?', style: text.headlineMedium),
                 const SizedBox(height: 8),
-                Text(
-                  'Lần sau mở ứng dụng, chỉ cần chạm ngón tay hoặc nhìn vào máy.',
-                  style: text.bodyLarge,
-                ),
+                Text('Lần sau mở ứng dụng, chỉ cần chạm ngón tay hoặc nhìn vào máy.', style: text.bodyLarge),
                 const Spacer(),
-                FilledButton(
-                  onPressed: () => session.answerBiometricOffer(enable: true),
-                  child: const Text('Có'),
-                ),
+                FilledButton(onPressed: () => session.answerBiometricOffer(enable: true), child: const Text('Có')),
                 const SizedBox(height: 12),
                 OutlinedButton(
                   onPressed: () => session.answerBiometricOffer(enable: false),
@@ -55,7 +49,7 @@ class LockedScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Scaffold(
-      body: SkyBackground(
+      body: PageBody(
         child: Card(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -64,10 +58,7 @@ class LockedScreen extends StatelessWidget {
               children: [
                 Text('Ứng dụng đang khóa', style: text.headlineMedium),
                 const Spacer(),
-                FilledButton(
-                  onPressed: session.unlock,
-                  child: const Text('Mở bằng vân tay hoặc khuôn mặt'),
-                ),
+                FilledButton(onPressed: session.unlock, child: const Text('Mở bằng vân tay hoặc khuôn mặt')),
               ],
             ),
           ),

@@ -8,7 +8,7 @@ Nhánh impl/010-incurred-costs, nền e7b2b71. Người dùng đã tự chuyển
 
 - T003: ba interface FamilyPortalCostApi, FinalPeriodCostApi, CostStatisticsApi cùng DTO; tám sự kiện CostSourceBilled, CostSourceChanged, CostStatementFinalized, PurchaseAssistanceSent/Decided/Cancelled/Purchased, CostItemChanged. Các gói api/api.dto/api.events có NamedInterface.
 - T004: CostForBalancePort tại provision/internal/domain và PurchaseBalancePort tại purchase/internal/domain. Chỉ khai báo hai phương thức đọc của port chi phí và một phương thức kiểm dấu của port số dư; bangDaChot thuộc T036/T037.
-- Fake chung đúng chủ E: FakeFamilyPortalCosts, FakeFinalPeriodCosts, FakeCostStatistics, FakeCostForBalance, FakePurchaseBalance; cấu hình duy nhất FakeM11Config ở src/test/.../support/fake/m11. Không có fake/bean thay thế trong ứng dụng thật.
+- Fake chung đúng chủ E: FakeFamilyPortalCosts, FakeFinalPeriodCosts, FakeCostStatistics, FakeCostForBalance, FakePurchaseBalance; cấu hình duy nhất FakeM11Config ở src/test/.../support/fake/billing. Không có fake/bean thay thế trong ứng dụng thật.
 - Ghi chữ ký thực tế ở [contracts/module-interfaces.md mục 4](contracts/module-interfaces.md); cập nhật tên lớp/kiểu/hàm và đường dẫn vật lý tại glossary mục 16.6. Đây là khai báo đầu của M11, không sửa API hoặc fake của A/B/C/D.
 
 ## 2. TDD và kết quả kiểm
@@ -33,9 +33,9 @@ Log/script/report ignored ở backend/target/010-foundation-verification của c
 
 ## 4. File để review
 
-- backend/src/main/java/com/cambae/backend/m11/api/ (interface, DTO, events và NamedInterface).
-- backend/src/main/java/com/cambae/backend/m11/provision/internal/domain/CostForBalancePort.java.
-- backend/src/main/java/com/cambae/backend/m11/purchase/internal/domain/PurchaseBalancePort.java.
-- backend/src/test/java/com/cambae/backend/m11/CostApiContractsTest.java, CostViewSchemaTest.java, CostSharedFakesTest.java.
-- backend/src/test/java/com/cambae/backend/support/fake/m11/ (năm fake và FakeM11Config).
+- backend/src/main/java/com/eldercare/backend/billing/api/ (interface, DTO, events và NamedInterface).
+- backend/src/main/java/com/eldercare/backend/billing/internal/provision/domain/CostForBalancePort.java.
+- backend/src/main/java/com/eldercare/backend/billing/internal/purchase/domain/PurchaseBalancePort.java.
+- backend/src/test/java/com/eldercare/backend/billing/CostApiContractsTest.java, CostViewSchemaTest.java, CostSharedFakesTest.java.
+- backend/src/test/java/com/eldercare/backend/support/fake/billing/ (năm fake và FakeM11Config).
 - tasks/plan/contracts/module-interfaces, glossary mục 16.6, team-plan mục 8 và dòng tiến độ mới.
