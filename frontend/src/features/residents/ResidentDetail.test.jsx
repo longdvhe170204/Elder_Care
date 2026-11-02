@@ -111,6 +111,28 @@ describe('ResidentDetail', () => {
     expect(screen.getByRole('button', { name: 'Xem giá trị mới' })).toBeTruthy()
   })
 
+  it('BUG-03: khối An toàn hiện dị ứng và lưu ý; đóng phần chi tiết thì nạp lại hồ sơ', async () => {
+    routes({
+      view: profile({
+        activeHealthItems: [{ id: 1, type: 'ALLERGY', status: 'ACTIVE', allergen: { id: 2, name: 'Penicillin' } }],
+        careNote: 'Dễ ngã',
+      }),
+    })
+    api.on('GET', '/residents/7/initial-health-record', problem(404, 'NOT_FOUND'))
+    api.on('GET', '/residents/7/health-items', json(200, []))
+
+    open()
+
+    expect(await screen.findByText(/Penicillin/)).toBeTruthy()
+    expect(screen.getByText(/Dễ ngã/)).toBeTruthy()
+    expect(screen.queryByText('Chưa ghi nhận')).toBeNull()
+    const before = api.calls('GET', '/residents/7').length
+    fireEvent.click(screen.getByRole('button', { name: 'Sức khỏe' }))
+    const part = await screen.findByRole('dialog', { name: 'Sức khỏe: Nguyễn Văn An' })
+    fireEvent.keyDown(part, { key: 'Escape' })
+    await waitFor(() => expect(api.calls('GET', '/residents/7').length).toBe(before + 1))
+  })
+
   it('001 T033: nút Sức khỏe mở khung riêng chồng lên hồ sơ, nạp hồ sơ ban đầu và mục sức khỏe (DESIGN.md 5)', async () => {
     routes()
     api.on('GET', '/residents/7/initial-health-record', json(200, { id: 5, confirmed: false, corrected: false }, { ETag: '"1"' }))

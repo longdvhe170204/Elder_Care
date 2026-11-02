@@ -356,7 +356,14 @@ export function ResidentDetail({ residentId, onChanged, Title = 'h2', Descriptio
             </Button>
           )}
 
-          <Sheet open={partOpen} onOpenChange={setPartOpen}>
+          {/* Đóng phần chi tiết thì nạp lại hồ sơ để khối An toàn, Nhu cầu chăm sóc theo dữ liệu vừa ghi (BUG-03) */}
+          <Sheet
+            open={partOpen}
+            onOpenChange={(open) => {
+              setPartOpen(open)
+              if (!open) load()
+            }}
+          >
             <SheetContent className="sm:max-w-3xl">
               <SheetHeader className="pt-6">
                 <SheetTitle className="type-title">{`${partLabel}: ${info.fullName}`}</SheetTitle>
