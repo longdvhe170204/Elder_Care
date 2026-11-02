@@ -7,5 +7,9 @@ public final class HealthCatalogs {
     public static final SharedKind<VitalSignAttributes> VITAL_SIGN =
             SharedKind.of("M06.VITAL_SIGN", VitalSignAttributes.class).notDeletable();
 
+    public static final SharedKind<VitalSignComponentAttributes> VITAL_SIGN_COMPONENT = SharedKind.of(
+                    "M06.VITAL_SIGN_COMPONENT", VitalSignComponentAttributes.class)
+            .notDeletable();
+
     private HealthCatalogs() {}
 }

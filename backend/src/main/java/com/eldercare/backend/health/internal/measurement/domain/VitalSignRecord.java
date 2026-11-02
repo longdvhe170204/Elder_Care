@@ -15,13 +15,57 @@ public record VitalSignRecord(
         long residentId,
         long indicatorId,
         Instant measuredAt,
+        long measuredBy,
+        Long taskId,
+        Instant deviceMeasuredAt,
+        boolean offline,
+        Long thresholdVersionId,
         VitalSignLevel level,
         VitalSignConfirmationStatus confirmationStatus,
+        Instant remeasurementDeadline,
+        Long remeasurementFor,
         Map<String, VitalSignComponent> components,
         Set<VitalSignLabel> labels,
-        Instant lockedAt) {
+        String note,
+        Instant confirmedAt,
+        Instant lockedAt,
+        Instant createdAt,
+        long createdBy) {
     public VitalSignRecord {
-        components = Map.copyOf(components);
-        labels = Set.copyOf(labels);
+        components = components != null ? Map.copyOf(components) : Map.of();
+        labels = labels != null ? Set.copyOf(labels) : Set.of();
+    }
+
+    public VitalSignRecord(
+            long id,
+            long residentId,
+            long indicatorId,
+            Instant measuredAt,
+            VitalSignLevel level,
+            VitalSignConfirmationStatus confirmationStatus,
+            Map<String, VitalSignComponent> components,
+            Set<VitalSignLabel> labels,
+            Instant lockedAt) {
+        this(
+                id,
+                residentId,
+                indicatorId,
+                measuredAt,
+                0L,
+                null,
+                null,
+                false,
+                null,
+                level,
+                confirmationStatus,
+                null,
+                null,
+                components,
+                labels,
+                null,
+                lockedAt,
+                lockedAt,
+                Instant.EPOCH,
+                0L);
     }
 }
