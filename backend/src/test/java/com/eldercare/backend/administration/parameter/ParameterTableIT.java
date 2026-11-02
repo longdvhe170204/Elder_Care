@@ -28,7 +28,8 @@ import tools.jackson.databind.node.ObjectNode;
 @Import(ParameterFixtures.class)
 class ParameterTableIT extends MySqlIntegrationTestBase {
 
-    private static final String ABSENCE_FEES = "CFG-M02-05";
+    /** Tham số dạng bảng còn lại: CFG-M02-05 không còn là bảng từ Q-395 (V004_06). */
+    private static final String COVERAGE_TABLE = "CFG-M09-07";
 
     @Autowired
     MockMvc mvc;
@@ -52,34 +53,34 @@ class ParameterTableIT extends MySqlIntegrationTestBase {
 
     @AfterEach
     void restore() throws Exception {
-        api.restoreDefault(ABSENCE_FEES, api.etag(ABSENCE_FEES), "khôi phục sau test");
+        api.restoreDefault(COVERAGE_TABLE, api.etag(COVERAGE_TABLE), "khôi phục sau test");
     }
 
     @Test
     void US4_10_changingOneRow_logsWholeTableBeforeAndAfter() throws Exception {
-        JsonNode before = json.readTree(
-                jdbc.queryForObject("SELECT current_value FROM parameter WHERE code = ?", String.class, ABSENCE_FEES));
+        JsonNode before = json.readTree(jdbc.queryForObject(
+                "SELECT current_value FROM parameter WHERE code = ?", String.class, COVERAGE_TABLE));
         ObjectNode after = (ObjectNode) before.deepCopy();
-        ((ObjectNode) after.get("rows").get(0)).put("feeRatePercent", 90);
+        ((ObjectNode) after.get("rows").get(0)).put("minCount", 2);
 
-        api.change(ABSENCE_FEES, api.etag(ABSENCE_FEES), json.writeValueAsString(after), "Giảm phí tháng vắng đầu")
+        api.change(COVERAGE_TABLE, api.etag(COVERAGE_TABLE), json.writeValueAsString(after), "Tăng phủ ca tối thiểu")
                 .andExpect(status().isOk());
 
         JsonNode history = json.readTree(jdbc.queryForObject(
                 "SELECT value FROM parameter_history WHERE code = ? ORDER BY effective_from DESC LIMIT 1",
                 String.class,
-                ABSENCE_FEES));
+                COVERAGE_TABLE));
         assertThat(history).isEqualTo(after);
         JsonNode logBefore = json.readTree(jdbc.queryForObject(
                 "SELECT JSON_EXTRACT(data_before, '$.value') FROM audit_log WHERE action = 'PARAMETER_CHANGED'"
                         + " AND entity_id = ? ORDER BY id DESC LIMIT 1",
                 String.class,
-                ABSENCE_FEES));
+                COVERAGE_TABLE));
         JsonNode logAfter = json.readTree(jdbc.queryForObject(
                 "SELECT JSON_EXTRACT(data_after, '$.value') FROM audit_log WHERE action = 'PARAMETER_CHANGED'"
                         + " AND entity_id = ? ORDER BY id DESC LIMIT 1",
                 String.class,
-                ABSENCE_FEES));
+                COVERAGE_TABLE));
         assertThat(logBefore).isEqualTo(before);
         assertThat(logAfter).isEqualTo(after);
         assertThat(logAfter.get("rows")).hasSize(before.get("rows").size());
