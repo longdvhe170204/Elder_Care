@@ -1,7 +1,7 @@
 package com.eldercare.backend.notification.internal.quiethours.service;
 
-import com.eldercare.backend.administration.parameter.api.ParameterChanged;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.events.ParameterChanged;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.notification.internal.domain.NotificationEventType;
 import com.eldercare.backend.notification.internal.persistence.NotificationStore;

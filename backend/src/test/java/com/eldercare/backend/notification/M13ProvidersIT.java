@@ -42,17 +42,14 @@ class M13ProvidersIT extends M13IntegrationTestBase {
         String key = UUID.randomUUID().toString();
         jdbc.update(
                 "INSERT INTO notification_request (source_record_type, source_record_id, event_key, level,"
-                        + " resident_id, floor_area_id, received_at, intake_result) VALUES ('M05.INCIDENT', ?, ?,"
-                        + " 'LOW', ?, 4, ?, 'VALID')",
+                        + " resident_id, floor_area_id, received_at, intake_result, contents, recipient_groups)"
+                        + " VALUES ('M05.INCIDENT', ?, ?, 'LOW', ?, 4, ?, 'VALID', JSON_ARRAY(JSON_OBJECT('seq', 1,"
+                        + " 'informationType', 'GENERAL', 'content', 'x')), JSON_ARRAY())",
                 key,
                 key,
                 residentId,
                 receivedAt);
         long request = jdbc.queryForObject("SELECT id FROM notification_request WHERE event_key = ?", Long.class, key);
-        jdbc.update(
-                "INSERT INTO notification_request_content (request_id, seq, information_type, content)"
-                        + " VALUES (?, 1, 'GENERAL', 'x')",
-                request);
         jdbc.update(
                 "INSERT INTO notification (request_id, recipient_type, recipient_id, basis, level, created_at)"
                         + " VALUES (?, 'STAFF', 1, '[]', 'LOW', ?)",
@@ -61,20 +58,25 @@ class M13ProvidersIT extends M13IntegrationTestBase {
         long notification =
                 jdbc.queryForObject("SELECT id FROM notification WHERE request_id = ?", Long.class, request);
         jdbc.update(
-                "INSERT INTO notification_state (notification_id, recipient_key, level) VALUES (?, 'STAFF:1', 'LOW')",
-                notification);
-        jdbc.update(
-                "INSERT INTO notification_event (notification_id, type, occurred_at) VALUES (?, 'SEND', ?)",
+                "INSERT INTO record_event (entity_type, entity_id, module, kind, content, by_system, occurred_at,"
+                        + " confirmed_at) VALUES ('M13.NOTIFICATION', ?, 'M13', 'M13.NOTIFICATION_EVENT',"
+                        + " JSON_OBJECT('type', 'SEND'), TRUE, ?, ?)",
                 notification,
+                receivedAt,
                 receivedAt);
         jdbc.update(
-                "INSERT INTO delivery_attempt (notification_id, channel, attempt_no, scheduled_at)"
-                        + " VALUES (?, 'IN_APP', 1, ?)",
+                "INSERT INTO record_event (entity_type, entity_id, module, kind, content, by_system, occurred_at,"
+                        + " confirmed_at) VALUES ('M13.NOTIFICATION', ?, 'M13', 'M13.DELIVERY_ATTEMPT',"
+                        + " JSON_OBJECT('channel', 'IN_APP', 'attemptNo', 1), TRUE, ?, ?)",
                 notification,
+                receivedAt,
                 receivedAt);
         jdbc.update(
-                "INSERT INTO delivery_result (attempt_id, result, occurred_at) SELECT id, 'SENT', ? FROM"
-                        + " delivery_attempt WHERE notification_id = ?",
+                "INSERT INTO record_event (entity_type, entity_id, module, kind, content, by_system, occurred_at,"
+                        + " confirmed_at) SELECT 'M13.DELIVERY_ATTEMPT', id, 'M13', 'M13.DELIVERY_RESULT',"
+                        + " JSON_OBJECT('result', 'SENT'), TRUE, ?, ? FROM record_event WHERE kind = 'M13.DELIVERY_ATTEMPT'"
+                        + " AND entity_type = 'M13.NOTIFICATION' AND entity_id = ?",
+                receivedAt,
                 receivedAt,
                 notification);
         return new long[] {request, notification};
@@ -110,7 +112,9 @@ class M13ProvidersIT extends M13IntegrationTestBase {
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM notification WHERE id = ?", Integer.class, old[1]))
                 .isZero();
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM delivery_attempt WHERE notification_id = ?", Integer.class, old[1]))
+                        "SELECT COUNT(*) FROM record_event WHERE entity_type = 'M13.NOTIFICATION' AND entity_id = ?",
+                        Integer.class,
+                        old[1]))
                 .isZero();
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM notification WHERE id = ?", Integer.class, linked[1]))
                 .isEqualTo(1);
@@ -122,32 +126,35 @@ class M13ProvidersIT extends M13IntegrationTestBase {
         long[] old = requestWithNotification("2001-01-01 00:00:00", null);
         jdbc.update(
                 "INSERT INTO call_reminder (callee_type, callee_id, source_record_type, source_record_id, creation_reason,"
-                        + " created_at) VALUES ('FAMILY_MEMBER', 7, 'M05.INCIDENT', 'x', 'UNACKNOWLEDGED', '2001-01-01')");
+                        + " created_at, status, final_result, due_at, current_staff_id, callee_key) VALUES ('FAMILY_MEMBER',"
+                        + " 7, 'M05.INCIDENT', 'x', 'UNACKNOWLEDGED', '2001-01-01', 'RESULT_RECORDED', 'NOT_REACHED',"
+                        + " '2001-01-01', 1, UUID())");
         long root = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
         jdbc.update(
-                "INSERT INTO call_reminder (call_chain_id, callee_type, callee_id, creation_reason, created_at)"
-                        + " VALUES (?, 'FAMILY_MEMBER', 8, 'PREVIOUS_NOT_REACHED', '2001-01-01')",
+                "INSERT INTO call_reminder (call_chain_id, callee_type, callee_id, creation_reason, created_at, status,"
+                        + " final_result, due_at, current_staff_id, callee_key) VALUES (?, 'FAMILY_MEMBER', 8,"
+                        + " 'PREVIOUS_NOT_REACHED', '2001-01-01', 'RESULT_RECORDED', 'NOT_REACHED', '2001-01-01', 1, UUID())",
                 root);
         long next = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        jdbc.update(
-                "INSERT INTO call_reminder_notification (call_reminder_id, notification_id, merged_at)"
-                        + " VALUES (?, ?, '2001-01-01')",
-                root,
-                old[1]);
+        String child = "INSERT INTO record_event (entity_type, entity_id, module, kind, content, actor_id, by_system,"
+                + " occurred_at, confirmed_at) VALUES ('M13.CALL_REMINDER', ?, 'M13', ?, ?, ?, ?, '2001-01-01',"
+                + " '2001-01-01')";
+        jdbc.update(child, root, "M13.CALL_REMINDER_NOTIFICATION", "{\"notificationId\": " + old[1] + "}", null, true);
         for (long id : new long[] {root, next}) {
             jdbc.update(
-                    "INSERT INTO call_reminder_handoff (call_reminder_id, reminded_staff_id, tier, reason, due_at,"
-                            + " occurred_at) VALUES (?, 1, 'MANAGERS', 'INITIAL', '2001-01-01', '2001-01-01')",
-                    id);
-            jdbc.update(
-                    "INSERT INTO call_reminder_state (call_reminder_id, status, final_result, due_at, current_staff_id,"
-                            + " callee_key) VALUES (?, 'RESULT_RECORDED', 'NOT_REACHED', '2001-01-01', 1, ?)",
+                    child,
                     id,
-                    "retention:" + id);
+                    "M13.CALL_REMINDER_HANDOFF",
+                    "{\"remindedStaffId\": 1, \"tier\": \"MANAGERS\", \"reason\": \"INITIAL\"}",
+                    null,
+                    true);
             jdbc.update(
-                    "INSERT INTO call_result (call_reminder_id, called_by, called_at, result, reason, recorded_at)"
-                            + " VALUES (?, 1, '2001-01-01', 'NOT_REACHED', 'NO_ANSWER', '2001-01-01')",
-                    id);
+                    child,
+                    id,
+                    "M13.CALL_RESULT",
+                    "{\"result\": \"NOT_REACHED\", \"reason\": \"NO_ANSWER\", \"supplementary\": false}",
+                    1,
+                    false);
         }
 
         p.delete(List.of(old[0]));
@@ -156,7 +163,10 @@ class M13ProvidersIT extends M13IntegrationTestBase {
                         "SELECT COUNT(*) FROM call_reminder WHERE id IN (?, ?)", Integer.class, root, next))
                 .isZero();
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM call_result WHERE call_reminder_id IN (?, ?)", Integer.class, root, next))
+                        "SELECT COUNT(*) FROM record_event WHERE entity_type = 'M13.CALL_REMINDER' AND entity_id IN (?, ?)",
+                        Integer.class,
+                        root,
+                        next))
                 .isZero();
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM notification WHERE id = ?", Integer.class, old[1]))
                 .isZero();

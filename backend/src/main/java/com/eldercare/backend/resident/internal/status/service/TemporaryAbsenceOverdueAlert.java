@@ -3,19 +3,17 @@ package com.eldercare.backend.resident.internal.status.service;
 import com.eldercare.backend.administration.account.api.spi.BedAllocationApi;
 import com.eldercare.backend.administration.account.api.spi.BedAllocationView;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.dto.OpenAbsence;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.events.TemporaryAbsenceOverdue;
 import com.eldercare.backend.resident.api.spi.AbsenceApi;
 import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusStore;
-import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +31,6 @@ public class TemporaryAbsenceOverdueAlert {
     private final ObjectProvider<AbsenceApi> absences;
     private final ObjectProvider<BedAllocationApi> beds;
     private final ParameterApi parameters;
-    private final JdbcTemplate jdbc;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
 
@@ -42,14 +39,12 @@ public class TemporaryAbsenceOverdueAlert {
             ObjectProvider<AbsenceApi> absences,
             ObjectProvider<BedAllocationApi> beds,
             ParameterApi parameters,
-            JdbcTemplate jdbc,
             ApplicationEventPublisher events,
             BusinessTime time) {
         this.statuses = statuses;
         this.absences = absences;
         this.beds = beds;
         this.parameters = parameters;
-        this.jdbc = jdbc;
         this.events = events;
         this.time = time;
     }
@@ -69,14 +64,7 @@ public class TemporaryAbsenceOverdueAlert {
             if (open == null || !now.isAfter(open.expectedReturnAt().plus(grace))) {
                 continue;
             }
-            int inserted = jdbc.update(
-                    "INSERT IGNORE INTO return_overdue_alert (absence_id, expected_return_at, resident_id, alerted_at)"
-                            + " VALUES (?, ?, ?, ?)",
-                    open.absenceId(),
-                    Timestamp.from(open.expectedReturnAt()),
-                    residentId,
-                    Timestamp.from(now));
-            if (inserted == 1) {
+            if (statuses.recordOverdueAlert(open.absenceId(), open.expectedReturnAt(), residentId, now)) {
                 events.publishEvent(new TemporaryAbsenceOverdue(
                         residentId, open.absenceId(), open.expectedReturnAt(), floorOf(residentId, now), now));
                 alerted++;

@@ -4,6 +4,7 @@ import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.auditlog.api.*;
+import com.eldercare.backend.administration.auditlog.api.dto.*;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.*;
 import com.eldercare.backend.common.error.*;

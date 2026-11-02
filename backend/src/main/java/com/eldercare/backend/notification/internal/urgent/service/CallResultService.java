@@ -1,11 +1,11 @@
 package com.eldercare.backend.notification.internal.urgent.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
@@ -14,8 +14,8 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.notification.api.dto.RecipientType;
 import com.eldercare.backend.notification.api.spi.FamilyNotificationPort;
 import com.eldercare.backend.notification.internal.recipient.service.RecipientPhones;
+import com.eldercare.backend.notification.internal.urgent.domain.Reminder;
 import com.eldercare.backend.notification.internal.urgent.persistence.CallReminderStore;
-import com.eldercare.backend.notification.internal.urgent.persistence.CallReminderStore.Reminder;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -175,6 +175,8 @@ public class CallResultService {
                 }
                 Optional<CallReminderRouting.Assignment> to = routing.initial(r.floorAreaId(), Optional.empty(), now);
                 if (to.isPresent()) {
+                    Instant due =
+                            now.plus(parameters.read(ParameterCode.CFG_M13_04).asDuration());
                     long id = store.insertReminder(
                             r.chainId(),
                             RecipientType.FAMILY_MEMBER,
@@ -184,10 +186,10 @@ public class CallResultService {
                             null,
                             r.floorAreaId(),
                             "PREVIOUS_NOT_REACHED",
+                            due,
+                            to.get().staffId(),
+                            key,
                             now);
-                    Instant due =
-                            now.plus(parameters.read(ParameterCode.CFG_M13_04).asDuration());
-                    store.insertState(id, due, to.get().staffId(), key);
                     actions.assign(id, null, to.get(), "INITIAL", due, now);
                     return;
                 }

@@ -48,7 +48,8 @@ class FirstManagerBootstrapIT extends MySqlIntegrationTestBase {
     @BeforeEach
     void noManagerYet() {
         jdbc.update(
-                "UPDATE role_assignment SET effective_to = ? WHERE role = 'AC-01' AND effective_to IS NULL",
+                "UPDATE permission_assignment SET effective_to = ? WHERE kind = 'ROLE_ASSIGNMENT' AND role = 'AC-01'"
+                        + " AND effective_to IS NULL",
                 LocalDateTime.ofInstant(time.now(), ZoneOffset.UTC));
     }
 
@@ -70,13 +71,13 @@ class FirstManagerBootstrapIT extends MySqlIntegrationTestBase {
                         .matches(result.temporaryPassword(), (String) account.get("password_hash")))
                 .isTrue();
         assertThat(jdbc.queryForList(
-                        "SELECT role FROM role_assignment WHERE account_id = ? AND effective_to IS NULL"
-                                + " AND assigned_by IS NULL",
+                        "SELECT role FROM permission_assignment WHERE kind = 'ROLE_ASSIGNMENT' AND account_id = ?"
+                                + " AND effective_to IS NULL AND actor_id IS NULL",
                         String.class,
                         result.accountId()))
                 .containsExactly("AC-01");
         assertThat(jdbc.queryForObject(
-                        "SELECT status FROM account_status_history WHERE account_id = ? AND actor_id IS NULL",
+                        "SELECT value FROM status_history WHERE entity_type = 'M15.ACCOUNT' AND attribute = 'STATUS' AND entity_id = ? AND actor_id IS NULL",
                         String.class,
                         result.accountId()))
                 .isEqualTo("ACTIVE");

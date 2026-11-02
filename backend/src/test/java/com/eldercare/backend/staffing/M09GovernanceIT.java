@@ -156,11 +156,10 @@ class M09GovernanceIT extends MySqlIntegrationTestBase {
                 "INSERT INTO practice_scope(code,name,status) VALUES ('TEST-RETENTION-SCOPE','[Phạm vi giữ lại]','INACTIVE')");
         long id = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
         jdbc.update(
-                "INSERT INTO professional_activity(code,name,function_code,required_license_type,requires_facility_scope) VALUES ('TEST-RETENTION-ACTIVITY','[Nghiệp vụ giữ lại]','PRESCRIPTION','DOCTOR_LICENSE',FALSE)");
-        long activity = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        jdbc.update(
-                "INSERT INTO professional_activity_practice_scope(activity_id,practice_scope_id) VALUES (?,?)",
-                activity,
+                "INSERT INTO catalog_item(catalog_type,module,code,name,status,attributes) VALUES"
+                        + " ('M15.PROFESSIONAL_ACTIVITY','M15','TEST-RETENTION-ACTIVITY','[Nghiệp vụ giữ lại]','ACTIVE',"
+                        + " JSON_OBJECT('functionCode','PRESCRIPTION','requiredLicenseType','DOCTOR_LICENSE',"
+                        + " 'requiresFacilityScope',FALSE,'isDefault',FALSE,'practiceScopeIds',JSON_ARRAY(?)))",
                 id);
         assertThat(activities.usesCredentialType("DOCTOR_LICENSE")).isTrue();
         assertThat(activities.usesPracticeScope(id)).isTrue();

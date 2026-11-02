@@ -4,6 +4,7 @@ import com.eldercare.backend.administration.account.api.dto.MetricGroupRestricti
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.PermissionResult;
 import com.eldercare.backend.administration.account.api.dto.Target;
+import com.eldercare.backend.administration.account.api.spi.InvalidPermissionDataException;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
@@ -23,6 +24,12 @@ public interface PermissionApi {
     default MetricGroupRestrictions metricGroupRestrictions(CurrentUser user) {
         return MetricGroupRestrictions.NONE;
     }
+
+    /**
+     * Ghi lỗi dữ liệu quyền người gọi bắt được khi đọc phạm vi và báo Quản lý viện như lần kiểm quyền (FR-041b; 016
+     * FR-016). Mặc định không ghi, để bản giả của test cũ không phải cài.
+     */
+    default void recordDataError(CurrentUser user, InvalidPermissionDataException error) {}
 
     /** Kiểm tại thời điểm thiết bị, cho bản ghi ngoại tuyến (FR-041a; research A-11). */
     PermissionResult hasPermissionAt(CurrentUser user, PermissionKey key, Target target, Instant at);

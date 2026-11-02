@@ -77,32 +77,8 @@ class LayerArchTest {
         "com.eldercare.backend.staffing..internal.service.port"
     };
 
-    /** Câu SQL chuyển vào lớp {@code *Store} trong {@code persistence}: A (administration, notification), B (resident), E (staffing). */
+    /** Câu SQL chuyển vào lớp {@code *Store} trong {@code persistence}: E (staffing). */
     private static final Set<String> PENDING_JDBC_OUTSIDE_PERSISTENCE = Set.of(
-            "administration.account.internal.auth.service.FirstManagerBootstrap",
-            "administration.account.internal.auth.service.SessionService",
-            "administration.account.internal.legal.service.LicenseExpiryWarnings",
-            "administration.account.internal.offline.service.SyncService",
-            "administration.account.internal.permission.service.AccountPermissionsQuery",
-            "administration.account.internal.permission.service.ApproverService",
-            "administration.account.internal.permission.service.FieldVisibilityService",
-            "administration.account.internal.permission.service.RolePermissionCalculator",
-            "administration.account.internal.scope.service.PermissionDataErrors",
-            "administration.account.internal.scope.service.ScopeService",
-            "administration.approval.internal.service.DueRequestApplication",
-            "administration.approval.internal.service.PendingRequestReminder",
-            "administration.auditlog.internal.service.AuditLogQueryService",
-            "administration.auditlog.internal.service.AuditLogService",
-            "administration.correction.internal.service.CorrectionService",
-            "administration.parameter.internal.service.ParameterService",
-            "notification.internal.governance.service.DirectContactResultCorrection",
-            "notification.internal.governance.service.NotificationScopeAssignment",
-            "notification.internal.urgent.service.CallResultCorrection",
-            "resident.internal.assessment.service.CareLevelChangeRequestReminderService",
-            "resident.internal.assessment.service.ReassessmentNoticeService",
-            "resident.internal.consent.service.MissingConsentReminderService",
-            "resident.internal.status.service.TemporaryAbsenceOverdueAlert",
-            "resident.internal.wish.service.WishReminderService",
             "staffing.assignment.internal.service.AssignmentReminders",
             "staffing.credential.internal.service.CredentialInvalidityEffects",
             "staffing.credential.internal.service.CredentialReminders",
@@ -114,58 +90,11 @@ class LayerArchTest {
             "staffing.staff.internal.service.StaffEmploymentEffects",
             "staffing.staff.internal.service.StaffService");
 
-    /** A: record, enum ở gốc {@code api} chuyển vào {@code api.dto}, sự kiện vào {@code api.events}; C (005): care. */
-    private static final Set<String> PENDING_API_ROOT_TYPES = Set.of(
-            "administration.approval.api.ApprovalCommands",
-            "administration.approval.api.ApprovalRequestDetails",
-            "administration.approval.api.ApprovalRequestView",
-            "administration.approval.api.ApprovalStatus",
-            "administration.approval.api.ApproverReminderDue",
-            "administration.approval.api.CreateRequest",
-            "administration.approval.api.ExtendedTransitions",
-            "administration.approval.api.ManagerEscalationDue",
-            "administration.approval.api.Notices",
-            "administration.approval.api.RequestApplied",
-            "administration.approval.api.RequestApplyFailed",
-            "administration.approval.api.RequestCancelled",
-            "administration.approval.api.RequestCreated",
-            "administration.approval.api.RequestDecided",
-            "administration.approval.api.RequestSubmitted",
-            "administration.approval.api.ResultRef",
-            "administration.auditlog.api.AuditAction",
-            "administration.auditlog.api.AuditLogEntry",
-            "administration.auditlog.api.AuditLogPermissions",
-            "administration.auditlog.api.AuditLogRecord",
-            "administration.auditlog.api.Basis",
-            "administration.correction.api.CorrectionChainView",
-            "administration.correction.api.CorrectionMade",
-            "administration.correction.api.CorrectionPermissions",
-            "administration.correction.api.CorrectionType",
-            "administration.correction.api.CorrectionView",
-            "administration.correction.api.CreationMethod",
-            "administration.correction.api.CurrentValue",
-            "administration.parameter.api.ParameterChanged",
-            "administration.parameter.api.ParameterCode",
-            "administration.parameter.api.ParameterKind",
-            "administration.parameter.api.ParameterPermissions",
-            "administration.parameter.api.ParameterValue",
-            "administration.retention.api.RetentionDatabase",
-            "care.api.MedicationChecklistItem");
+    /** C (005): care; record, enum ở gốc {@code api} chuyển vào {@code api.dto}. */
+    private static final Set<String> PENDING_API_ROOT_TYPES = Set.of("care.api.MedicationChecklistItem");
 
-    /** Record lồng chuyển ra {@code domain}: A (administration, notification), B (resident), C (roombedallocation). */
+    /** Record lồng chuyển ra {@code domain}: C (roombedallocation). */
     private static final Set<String> PENDING_NESTED_RECORD_OWNERS = Set.of(
-            "administration.account.internal.auth.persistence.DeviceBindings",
-            "administration.account.internal.legal.persistence.ProfessionalActivities",
-            "administration.account.internal.permission.persistence.PermissionChanges",
-            "notification.internal.delivery.persistence.DeliveryStore",
-            "notification.internal.delivery.persistence.SmsWindowStore",
-            "notification.internal.directcontact.persistence.DirectContactStore",
-            "notification.internal.persistence.NotificationStore",
-            "notification.internal.quiethours.persistence.HeldNotificationStore",
-            "notification.internal.urgent.persistence.CallReminderStore",
-            "resident.internal.profile.persistence.ResidentLookup",
-            "resident.internal.wish.persistence.EndOfLifeWishStore",
-            "resident.internal.wish.persistence.TreatmentWishStore",
             "roombedallocation.internal.allocation.persistence.AllocationReminderStore",
             "roombedallocation.internal.bed.persistence.BedAssetStateStore",
             "roombedallocation.internal.bed.persistence.BedHoldStore",

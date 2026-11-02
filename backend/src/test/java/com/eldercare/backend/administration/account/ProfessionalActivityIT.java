@@ -104,10 +104,10 @@ class ProfessionalActivityIT extends MySqlIntegrationTestBase {
     @Test
     void FR_036_defaultItem_cannotBeDeactivated_listedWithDefaults() throws Exception {
         long id = jdbc.queryForObject(
-                "SELECT id FROM professional_activity WHERE code = ?",
+                "SELECT id FROM catalog_item WHERE catalog_type = 'M15.PROFESSIONAL_ACTIVITY' AND code = ?",
                 Long.class,
                 ProfessionalActivityApi.MEDICATION_ADMINISTRATION);
-        long version = jdbc.queryForObject("SELECT version FROM professional_activity WHERE id = ?", Long.class, id);
+        long version = jdbc.queryForObject("SELECT version FROM catalog_item WHERE id = ?", Long.class, id);
 
         command(
                         post("/api/v1/professional-activities/" + id + "/deactivate"),

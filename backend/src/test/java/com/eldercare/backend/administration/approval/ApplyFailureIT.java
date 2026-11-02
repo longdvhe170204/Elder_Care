@@ -3,7 +3,7 @@ package com.eldercare.backend.administration.approval;
 import static com.eldercare.backend.administration.approval.ApprovalFixtures.MANAGER;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.administration.approval.api.RequestApplyFailed;
+import com.eldercare.backend.administration.approval.api.events.RequestApplyFailed;
 import com.eldercare.backend.common.notification.RecipientGroup;
 import java.time.LocalDate;
 import java.util.List;

@@ -3,7 +3,7 @@ package com.eldercare.backend.resident;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.administration.correction.api.CorrectionApi;
-import com.eldercare.backend.administration.correction.api.CorrectionType;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import com.eldercare.backend.administration.retention.scheduling.ExpiredDataPurgeJob;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;

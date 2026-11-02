@@ -80,7 +80,7 @@ class FR_012_BedHoldsIT extends StructureTestSupport {
                 "releaseWhenAbsent",
                 resident,
                 time.now(),
-                new com.eldercare.backend.administration.auditlog.api.Basis("TEST", null, null, null)));
+                new com.eldercare.backend.administration.auditlog.api.dto.Basis("TEST", null, null, null)));
         assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, bed))
                 .isEqualTo("AWAITING_READY");
         assertThat(jdbc.queryForObject("SELECT status FROM bed_allocation WHERE resident_id=?", String.class, resident))

@@ -48,7 +48,7 @@ void main() {
     await tester.tap(find.text('Lưu mật khẩu mới'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Phần người thân: chưa có màn'), findsOneWidget);
+    expect(find.text('Thông báo'), findsOneWidget);
     expect(store.values[SessionController.tokenKey], 'family-1');
   });
 

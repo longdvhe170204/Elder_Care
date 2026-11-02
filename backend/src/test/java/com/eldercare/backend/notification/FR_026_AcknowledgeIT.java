@@ -105,12 +105,11 @@ class FR_026_AcknowledgeIT extends M13IntegrationTestBase {
                 .andExpect(jsonPath("$.status").value("VIEWED"));
         acknowledge(id, token).andExpect(status().isOk());
 
-        assertThat(jdbc.queryForMap(
-                        "SELECT status, acknowledgement_method FROM notification_state WHERE notification_id = ?", id))
+        assertThat(jdbc.queryForMap("SELECT status, acknowledgement_method FROM notification WHERE id = ?", id))
                 .containsEntry("status", "ACKNOWLEDGED")
                 .containsEntry("acknowledgement_method", "IN_APP");
         assertThat(jdbc.queryForObject(
-                        "SELECT actor_id FROM notification_event WHERE notification_id = ? AND type = 'ACKNOWLEDGE'",
+                        "SELECT e.actor_id FROM record_event e WHERE e.kind = 'M13.NOTIFICATION_EVENT' AND e.entity_type = 'M13.NOTIFICATION' AND e.entity_id = ? AND e.content->>'$.type' = 'ACKNOWLEDGE'",
                         Long.class,
                         id))
                 .isEqualTo(nurse.accountId());

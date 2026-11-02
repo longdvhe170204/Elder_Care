@@ -114,6 +114,14 @@ public class FakeSimpleRecordApi implements SimpleRecordApi {
         return this.<T>records(kind).filter(r -> parent.equals(r.parent())).toList();
     }
 
+    @Override
+    public <T> List<SimpleRecord<T>> listByStatus(SharedKind<T> kind, Set<String> statuses) {
+        if (statuses.isEmpty()) {
+            throw new IllegalArgumentException("statuses rỗng");
+        }
+        return this.<T>records(kind).filter(r -> statuses.contains(r.status())).toList();
+    }
+
     @SuppressWarnings("unchecked")
     private <T> java.util.stream.Stream<SimpleRecord<T>> records(SharedKind<T> kind) {
         return rows.values().stream()

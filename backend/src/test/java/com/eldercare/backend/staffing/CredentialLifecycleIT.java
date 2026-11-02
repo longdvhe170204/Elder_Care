@@ -3,6 +3,7 @@ package com.eldercare.backend.staffing;
 import static org.assertj.core.api.Assertions.*;
 
 import com.eldercare.backend.administration.parameter.api.*;
+import com.eldercare.backend.administration.parameter.api.dto.*;
 import com.eldercare.backend.care.api.dto.TaskRequirements;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;

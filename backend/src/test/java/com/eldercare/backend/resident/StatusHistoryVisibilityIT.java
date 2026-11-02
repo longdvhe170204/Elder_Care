@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eldercare.backend.administration.correction.api.CorrectionApi;
-import com.eldercare.backend.administration.correction.api.CorrectionType;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.file.FileApi;

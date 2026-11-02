@@ -3,7 +3,7 @@ package com.eldercare.backend.administration.parameter;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.eldercare.backend.administration.parameter.api.ParameterKind;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterKind;
 import com.eldercare.backend.administration.parameter.internal.domain.ParameterValidator;
 import com.eldercare.backend.administration.parameter.internal.domain.ParameterValidator.Definition;
 import com.eldercare.backend.common.error.InvalidValueException;

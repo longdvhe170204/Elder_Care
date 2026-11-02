@@ -11,12 +11,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.eldercare.backend.administration.approval.api.ApprovalRequestView;
-import com.eldercare.backend.administration.approval.api.ApprovalStatus;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalStatus;
 import com.eldercare.backend.administration.approval.internal.service.ApprovalRequestService;
 import com.eldercare.backend.administration.correction.api.CorrectionApi;
 import com.eldercare.backend.administration.correction.api.CorrectionResult;
-import com.eldercare.backend.administration.correction.api.CorrectionType;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import com.eldercare.backend.administration.sample.CorrectionFixtures;
 import com.eldercare.backend.administration.sample.SampleOfficeRecordProvider;
 import com.eldercare.backend.common.Reason;

@@ -85,7 +85,7 @@ class ApproverApiIT extends MySqlIntegrationTestBase {
 
         assertThat(approvers.approvers(APPROVE_SWAP, nowhere))
                 .allSatisfy(id -> assertThat(jdbc.queryForObject(
-                                "SELECT COUNT(*) FROM role_assignment WHERE account_id = ? AND role = 'AC-01'"
+                                "SELECT COUNT(*) FROM permission_assignment WHERE kind = 'ROLE_ASSIGNMENT' AND account_id = ? AND role = 'AC-01'"
                                         + " AND effective_to IS NULL",
                                 Integer.class,
                                 id))
