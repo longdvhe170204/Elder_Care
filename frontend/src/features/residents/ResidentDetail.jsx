@@ -385,7 +385,7 @@ export function ResidentDetail({ residentId, onChanged, Title = 'h2', Descriptio
                     residentId={residentId}
                     residentStatus={profile.status}
                     allowedCommands={allowedCommands}
-                    onChanged={load}
+                    onChanged={changed}
                   />
                 )}
                 {part === 'status' && (
