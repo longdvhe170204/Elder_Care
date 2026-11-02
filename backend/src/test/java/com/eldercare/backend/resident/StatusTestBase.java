@@ -16,6 +16,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -28,7 +29,7 @@ import tools.jackson.databind.node.JsonNodeFactory;
  * Nền chung cho test trạng thái người cao tuổi của 001 US4 (T043 → T046): hai bản giả {@link
  * StatusTransitionParticipant} đứng cho 003, 004, 005, 006, 007, 010, 011, 012, 013 (đặt lại trước mỗi test) và bản giả
  * {@link FakeAbsences} của 004. Participant thật của 003 ({@code AllocationStatusParticipant}) cần nguồn lưu trú của 004
- * ({@code AllocationResidencySource}), chưa có bản thật nên dùng bản giả của 003 ({@link FakeM03Config}). Hồ sơ dựng bằng
+ * ({@code AllocationResidencySource}), ở đây dùng bản giả của 003 ({@link FakeM03Config}) để đặt dữ liệu theo test. Hồ sơ dựng bằng
  * {@link #residentIn}: lịch sử trạng thái luôn khớp trạng thái hiện tại.
  */
 @Import({StatusTestBase.Fakes.class, FakeM03Config.class})
@@ -36,6 +37,20 @@ public abstract class StatusTestBase extends AssessmentTestBase {
 
     @TestConfiguration
     static class Fakes {
+
+        /**
+         * Test của 001 kiểm hành vi của M01 với các bản giả; bean thật của 004 (kiểm {@code details}, điều kiện hợp đồng) không tham gia để
+         * các test này không phải dựng thân lệnh của 004. Tích hợp thật của hai module ở {@code AdmissionRealBedIT}, {@code
+         * M02StatusParticipantIT}.
+         */
+        @Bean
+        static BeanDefinitionRegistryPostProcessor withoutM02Participant() {
+            return registry -> {
+                if (registry.containsBeanDefinition("m02StatusParticipant")) {
+                    registry.removeBeanDefinition("m02StatusParticipant");
+                }
+            };
+        }
 
         @Bean
         FakeStatusTransitionParticipant participantOne() {

@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Phân loại trường nhật ký của M02 theo nhóm thông tin ({@code PhanLoaiTruongProvider}; data-model mục 13, FR-028,
- * FR-069, BR-M02-21): giá, khoản cọc, dòng ghi đè chính sách vắng của hợp đồng, phụ lục và yêu cầu thay đổi là tài chính;
+ * FR-069, BR-M02-21): giá, khoản cọc của hợp đồng, phụ lục và yêu cầu thay đổi là tài chính;
  * nguyên nhân qua đời là sức khỏe. Trường không khai báo là công khai nội bộ. Tên trường theo thuộc tính JSON của
  * api-004; tên loại đối tượng của phụ lục ({@code M02.ADDENDUM}) do plan chưa đặt nên là tên tạm của T011.
  */
