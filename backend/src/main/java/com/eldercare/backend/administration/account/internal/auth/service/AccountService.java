@@ -676,9 +676,16 @@ public class AccountService implements AccountApi {
                     .map(b -> new DeviceBinding(b.boundAt(), b.deviceId()))
                     .orElse(null);
             if (manager || user.roles().contains(Role.OFFICE_STAFF)) {
-                commands.add("login-qr-code");
+                // Tài khoản đã khóa không tạo mã, không cấp lại mật khẩu (409 ACCOUNT_LOCKED); chỉ còn mở khóa
+                boolean usable = account.status() != AccountStatus.LOCKED;
+                if (usable) {
+                    commands.add("login-qr-code");
+                }
                 if (bound != null) {
                     commands.add("unbind-device");
+                }
+                if (usable) {
+                    commands.add("reset-password");
                 }
                 commands.add(account.status() == AccountStatus.LOCKED ? "unlock-resident" : "lock-resident");
             }
