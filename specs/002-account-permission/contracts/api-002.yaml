@@ -9,6 +9,7 @@ info:
     Xác thực: token phiên opaque (research A-02). Web gửi bằng cookie HttpOnly kèm header X-Requested-From;
     app gửi Authorization: Bearer. Mọi yêu cầu gửi X-Device-Id.
     Truy vết: mỗi operation có x-fr (FR của spec 002) và x-br khi có.
+    Phản hồi chứa mật khẩu tạm, mã QR chỉ trả một lần: gửi lại cùng Idempotency-Key thì 409 IDEMPOTENCY_RESULT_NOT_KEPT, không trả lại nội dung.
 servers:
   - url: /api/v1
 tags:
@@ -190,7 +191,7 @@ paths:
                 replacementDepartmentLead: { type: integer, format: int64 }
       responses:
         '200': { $ref: '#/components/responses/AccountOk' }
-        '409': { description: 'NO_MANAGER_LEFT, REPLACEMENT_LEAD_REQUIRED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '409': { description: 'NO_MANAGER_LEFT, REPLACEMENT_LEAD_REQUIRED, USE_RESIDENT_ACCOUNT_COMMAND', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
         '412': { $ref: '#/components/responses/Problem' }
   /accounts/{id}/unlock:
     post:
@@ -201,7 +202,7 @@ paths:
       requestBody: { $ref: '#/components/requestBodies/ReasonBody' }
       responses:
         '200': { $ref: '#/components/responses/AccountOk' }
-        '409': { description: 'LOCK_CAUSE_STILL_EXISTS', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '409': { description: 'LOCK_CAUSE_STILL_EXISTS, USE_RESIDENT_ACCOUNT_COMMAND', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
   /accounts/{id}/early-unlock:
     post:
       tags: [accounts]
