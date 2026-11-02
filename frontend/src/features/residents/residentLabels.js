@@ -16,4 +16,4 @@ export const GENDER_LABELS = { MALE: 'Nam', FEMALE: 'Nữ' }
 export const ID_DOCUMENT_LABELS = { CITIZEN_ID: 'CCCD', OTHER: 'Giấy tờ khác' }
 
 // Vai trò được tạo hồ sơ (Phụ lục 27, dòng "Hồ sơ người cao tuổi": Hành chính; Quản lý viện thay khi cần)
-export const PROFILE_CREATORS = ['OFFICE_STAFF', 'NURSING_HOME_MANAGER']
+export const PROFILE_CREATORS = ['OFFICE_STAFF']

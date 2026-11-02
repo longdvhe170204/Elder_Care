@@ -68,6 +68,11 @@ class AssessmentCorrectionProvider implements CorrectableRecordProvider {
     }
 
     @Override
+    public Optional<Long> residentId(long id) {
+        return assessments.findById(id).map(Assessment::getResidentId);
+    }
+
+    @Override
     public boolean canRecord(CurrentUser user) {
         return user.roles().contains(Role.DOCTOR);
     }

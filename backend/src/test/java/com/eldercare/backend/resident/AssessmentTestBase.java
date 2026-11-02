@@ -72,8 +72,10 @@ public abstract class AssessmentTestBase extends HealthTestBase {
     }
 
     protected long careNeedId() {
-        jdbc.update("INSERT INTO care_need (name) VALUES (?)", "Nhu cầu " + UUID.randomUUID());
-        return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        String name = "Nhu cầu " + UUID.randomUUID();
+        jdbc.update("INSERT INTO care_need (name) VALUES (?)", name);
+        // tra theo tên: LAST_INSERT_ID có thể đọc trên connection khác trong pool
+        return jdbc.queryForObject("SELECT id FROM care_need WHERE name = ?", Long.class, name);
     }
 
     protected String currentCareLevel(long residentId) {

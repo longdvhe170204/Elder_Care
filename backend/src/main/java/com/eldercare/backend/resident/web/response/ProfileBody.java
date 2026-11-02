@@ -1,6 +1,7 @@
 package com.eldercare.backend.resident.web.response;
 
 import com.eldercare.backend.administration.account.api.FieldGroup;
+import com.eldercare.backend.administration.account.api.SelfHiddenFields;
 import com.eldercare.backend.administration.account.api.VisibilityTarget;
 import com.eldercare.backend.administration.account.api.dto.InfoGroup;
 import com.eldercare.backend.administration.account.api.dto.Target;
@@ -10,14 +11,16 @@ import com.eldercare.backend.resident.internal.profile.service.ResidentProfileSe
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
- * Hồ sơ cho nhân viên (contracts/api-001.yaml, schema {@code Profile}). Các trường của user story sau (loại hình lưu
- * trú, nhu cầu, lưu ý chăm sóc, mục sức khỏe) để rỗng tới khi làm; {@code hasEndOfLifeWish} và
+ * Hồ sơ cho nhân viên (contracts/api-001.yaml, schema {@code Profile}). Danh sách để rỗng nhu cầu, lưu ý chăm sóc, mục
+ * sức khỏe; chi tiết nạp bằng {@link #withDetail}; loại hình lưu trú thuộc 004. {@code hasEndOfLifeWish} và
  * {@code hasTreatmentWish} là cờ có/không (FR-023e, FR-023m) nên không gắn nhóm; {@code hiddenFields} do 002 điền khi
- * tuần tự hóa.
+ * tuần tự hóa. Lưu ý chăm sóc hiện cho mọi nhân viên xem được hồ sơ (FR-009); người thân không có lưu ý và nhu cầu
+ * (schema {@code FamilyProfile}).
  */
 @Schema(name = "Profile")
 public record ProfileBody(
@@ -27,18 +30,22 @@ public record ProfileBody(
         ResidentStatus status,
         Instant statusSince,
         String currentResidenceType,
-        @FieldGroup(InfoGroup.CARE_LEVEL) String currentCareLevel,
-        List<String> careNeeds,
+
+        @FieldGroup(InfoGroup.CARE_LEVEL) @Schema(allowableValues = {"BASIC", "REGULAR", "SPECIAL"})
+        String currentCareLevel,
+
+        @FieldGroup(InfoGroup.HEALTH) List<String> careNeeds,
         String careNote,
-        @FieldGroup(InfoGroup.HEALTH) List<Object> activeHealthItems,
+        @FieldGroup(InfoGroup.HEALTH) List<HealthItemBody> activeHealthItems,
         Boolean hasActiveConsent,
         Boolean hasEndOfLifeWish,
         Boolean hasTreatmentWish,
         Long previousProfileId,
         Set<String> allowedCommands,
         List<String> hiddenFields,
-        @JsonIgnore @Schema(hidden = true) Target target)
-        implements VisibilityTarget {
+        @JsonIgnore @Schema(hidden = true) Target target,
+        @JsonIgnore @Schema(hidden = true) boolean familyViewer)
+        implements VisibilityTarget, SelfHiddenFields {
 
     /**
      * {@code hasTreatmentWish} là {@code null} khi người xem không có quyền với nội dung phiếu và không phải Hành chính
@@ -49,7 +56,8 @@ public record ProfileBody(
             Set<String> allowedCommands,
             boolean hasActiveConsent,
             boolean hasEndOfLifeWish,
-            Boolean hasTreatmentWish) {
+            Boolean hasTreatmentWish,
+            boolean familyViewer) {
         return new ProfileBody(
                 view.id(),
                 view.profileCode(),
@@ -67,12 +75,54 @@ public record ProfileBody(
                 view.previousProfileId(),
                 allowedCommands,
                 List.of(),
-                ResidentProfileService.target(view.id()));
+                ResidentProfileService.target(view.id()),
+                familyViewer);
+    }
+
+    /** Phần chi tiết của {@code GET /residents/{id}}: mục sức khỏe Hiệu lực, nhu cầu và lưu ý của lần Đã xác nhận gần nhất. */
+    public ProfileBody withDetail(List<HealthItemBody> healthItems, List<String> needs, String note) {
+        return new ProfileBody(
+                id,
+                profileCode,
+                personalInfo,
+                status,
+                statusSince,
+                currentResidenceType,
+                currentCareLevel,
+                needs,
+                note,
+                healthItems,
+                hasActiveConsent,
+                hasEndOfLifeWish,
+                hasTreatmentWish,
+                previousProfileId,
+                allowedCommands,
+                hiddenFields,
+                target,
+                familyViewer);
     }
 
     @Override
     @JsonIgnore
     public Target visibilityTarget() {
         return target;
+    }
+
+    /**
+     * Cờ phiếu nguyện vọng khi điều trị không theo nhóm thông tin nên module tự khai (FR-023m, research H-18): {@code null}
+     * là người xem không được thấy cờ, 002 bỏ trường và ghi {@code hasTreatmentWish} vào {@code hiddenFields}.
+     */
+    @Override
+    @JsonIgnore
+    public Set<String> selfHiddenFields() {
+        Set<String> hidden = new HashSet<>();
+        if (hasTreatmentWish == null) {
+            hidden.add("hasTreatmentWish");
+        }
+        if (familyViewer) {
+            hidden.add("careNote");
+            hidden.add("careNeeds");
+        }
+        return hidden;
     }
 }
