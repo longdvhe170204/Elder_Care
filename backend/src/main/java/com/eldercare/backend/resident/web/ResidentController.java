@@ -22,6 +22,7 @@ import com.eldercare.backend.resident.internal.profile.service.ResidentProfileSe
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService.LinkedProfile;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService.ProfileView;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService.SearchPage;
+import com.eldercare.backend.resident.internal.status.service.ProfileOpenGuard;
 import com.eldercare.backend.resident.internal.status.service.ResidentStatusService;
 import com.eldercare.backend.resident.internal.wish.service.EndOfLifeWishService;
 import com.eldercare.backend.resident.internal.wish.service.TreatmentWishService;
@@ -214,6 +215,12 @@ class ResidentController {
                 permissions.allowedCommands(currentUser, ResidentProfileService.target(view.id()), COMMANDS));
         if (!currentUser.roles().contains(Role.DOCTOR)) {
             commands.remove(CONFIRM_INITIAL_HEALTH_RECORD);
+        }
+        // Trạng thái cuối: backend chặn 409 PROFILE_CLOSED nên không cho hiện nút (BUG-06). Lệnh ghi khác giữ nguyên vì
+        // màn
+        // còn dùng để hiện đính chính.
+        if (ProfileOpenGuard.FINAL_STATUSES.contains(view.status())) {
+            commands.remove(UPDATE_PERSONAL_INFO);
         }
         Set<String> statusCommands =
                 ResidentStatusService.availableCommands(view.status(), currentUser.roles()).stream()

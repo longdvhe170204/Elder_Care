@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProfileOpenGuard {
 
-    static final Set<ResidentStatus> FINAL_STATUSES =
+    public static final Set<ResidentStatus> FINAL_STATUSES =
             Set.of(ResidentStatus.RESIDENCY_ENDED, ResidentStatus.DECEASED, ResidentStatus.ADMISSION_CANCELLED);
 
     private final ResidentStatusStore statuses;
