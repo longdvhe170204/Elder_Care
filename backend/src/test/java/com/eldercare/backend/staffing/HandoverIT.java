@@ -616,6 +616,77 @@ class HandoverIT extends MySqlIntegrationTestBase {
     }
 
     @Test
+    void FR_057_correctionNotifiesConfirmerWithoutTheLocalAccountLink() {
+        long id = draft();
+        assessment(id);
+        service.complete(id);
+        current.set(receiver);
+        clock.setTo(ends);
+        service.confirm(id);
+        jdbc.update(
+                "UPDATE staff_profile SET account_id=NULL WHERE id=?",
+                receiver.staffId().orElseThrow());
+        current.set(giver);
+
+        corrections.create(
+                "M09.HANDOVER",
+                id,
+                com.eldercare.backend.administration.correction.api.dto.CorrectionType.AMEND_CONTENT,
+                Map.of("generalAssessment", "Nhận định đã kiểm lại"),
+                new com.eldercare.backend.common.Reason("Đính chính sau xác nhận"));
+
+        var event = events.stream(com.eldercare.backend.staffing.api.events.HandoverCorrected.class)
+                .filter(e -> e.handoverId() == id)
+                .findFirst()
+                .orElseThrow();
+        assertThat(event.notificationRequests().getFirst().recipientGroups())
+                .contains(new com.eldercare.backend.common.notification.RecipientGroup.Staff(
+                        receiver.staffId().orElseThrow(), "HANDOVER_CORRECTED"));
+    }
+
+    @Test
+    void FR_057_correctionTargetsCurrentShiftLeadAfterTheConfirmingShiftEnds() {
+        long id = draft();
+        assessment(id);
+        service.complete(id);
+        current.set(receiver);
+        clock.setTo(ends);
+        service.confirm(id);
+        var manager = person(Role.FLOOR_MANAGER);
+        var lead = person(Role.NURSING_STAFF);
+        jdbc.update(
+                "INSERT INTO floor_manager_assignment(staff_id,floor_area_id,starts_at) VALUES (?,?,?)",
+                manager.staffId().orElseThrow(),
+                floor,
+                ShiftStore.sql(starts));
+        long schedule = jdbc.queryForObject("SELECT schedule_id FROM work_shift WHERE id=?", Long.class, next);
+        long template = jdbc.queryForObject("SELECT template_id FROM work_shift WHERE id=?", Long.class, next);
+        shift(schedule, template, ends.plusSeconds(28800), ends.plusSeconds(57600), lead);
+        clock.setTo(ends.plusSeconds(28860));
+        current.set(manager);
+
+        corrections.create(
+                "M09.HANDOVER",
+                id,
+                com.eldercare.backend.administration.correction.api.dto.CorrectionType.AMEND_CONTENT,
+                Map.of("generalAssessment", "Nhận định bổ sung sau ca xác nhận"),
+                new com.eldercare.backend.common.Reason("Kiểm lại nội dung bàn giao"));
+
+        var event = events.stream(com.eldercare.backend.staffing.api.events.HandoverCorrected.class)
+                .filter(e -> e.handoverId() == id)
+                .findFirst()
+                .orElseThrow();
+        assertThat(event.notificationRequests().getFirst().recipientGroups())
+                .containsExactly(
+                        new com.eldercare.backend.common.notification.RecipientGroup.Staff(
+                                giver.staffId().orElseThrow(), "HANDOVER_CORRECTED"),
+                        new com.eldercare.backend.common.notification.RecipientGroup.Staff(
+                                receiver.staffId().orElseThrow(), "HANDOVER_CORRECTED"),
+                        new com.eldercare.backend.common.notification.RecipientGroup.ShiftLead(
+                                floor, new com.eldercare.backend.common.notification.Substitution.Default()));
+    }
+
+    @Test
     void FR_046_correctionKeepsOriginalAndNeverTransfersTasksAgain() {
         long id = draft();
         assessment(id);
