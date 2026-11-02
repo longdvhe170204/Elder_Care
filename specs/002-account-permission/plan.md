@@ -386,3 +386,11 @@ Test không bị ảnh hưởng: test của 000 và của module khác dùng b�
 - `POST /accounts/{id}/login-qr-code` đánh dấu `deprecated`, chưa bắt xác nhận vì web đang gọi; gỡ ở T103.
 - Trạng thái cuối kiểm cả lúc tạo mã (409 `RESIDENCY_ENDED`) và lúc dùng mã (401 `INVALID_QR_CODE`) cho khoảng trễ trước khi sự kiện khóa tài khoản được xử lý.
 - `reset-password` chưa thêm vào `allowedCommands` của tài khoản người cao tuổi: `ResidentAccountSection` đọc nhãn theo lệnh và lỗi với lệnh chưa biết; thêm cùng màn ở T103.
+
+## Ghi chú bước 3 của quyết định mã QR (2026-11-02, T103, nhánh `impl/002-resident-qr-web`)
+
+- Đính chính ghi chú bước 2: `ResidentAccountSection` bỏ qua lệnh chưa biết; lý do thật để chưa thêm `reset-password` là `AccountDetail` sẽ hiện nút "Cấp lại mật khẩu" chung, gửi không kèm xác nhận nên bị 422. Nay `AccountDetail` không hiện lệnh chung cho tài khoản người cao tuổi; mọi lệnh ở `ResidentAccountSection`.
+- `allowedCommands` của tài khoản người cao tuổi (Hành chính, Quản lý viện): `login-qr-code`, `reset-password` chỉ khi tài khoản chưa ở Đã khóa (tạo mã sẽ 409 `ACCOUNT_LOCKED`); thứ tự `login-qr-code`, `unbind-device`, `reset-password`, `lock-resident` hoặc `unlock-resident`.
+- Gỡ `POST /accounts/{id}/login-qr-code` và `ResidentAccountService.createLoginCode`; web gọi `POST /resident-accounts/{residentId}/login-qr-code` kèm xác nhận. Test dùng `ResidentLogins.createCode` đổi sang lệnh mới (tra `resident_id` của tài khoản).
+- Xác nhận vừa nhập giữ trong khung chi tiết để "Tạo mã mới" điền sẵn khi mã hết hạn; đóng khung thì mất. Mỗi lần tạo vẫn ghi nhật ký kèm xác nhận.
+
