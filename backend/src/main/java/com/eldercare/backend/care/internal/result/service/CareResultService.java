@@ -47,6 +47,7 @@ public class CareResultService {
     private final ApplicationEventPublisher events;
     private final ObjectProvider<DutyApi> duties;
     private final AuditLogApi audit;
+    private final com.eldercare.backend.care.internal.rules.service.CareResultRules rules;
 
     public CareResultService(
             CareTaskStore tasks,
@@ -64,7 +65,8 @@ public class CareResultService {
             ParameterApi parameters,
             ApplicationEventPublisher events,
             ObjectProvider<DutyApi> duties,
-            AuditLogApi audit) {
+            AuditLogApi audit,
+            com.eldercare.backend.care.internal.rules.service.CareResultRules rules) {
         this.tasks = tasks;
         this.results = results;
         this.locks = locks;
@@ -81,6 +83,7 @@ public class CareResultService {
         this.events = events;
         this.duties = duties;
         this.audit = audit;
+        this.rules = rules;
     }
 
     @RequiresPermission(function = Function.TASK_CHECKLIST, operation = Operation.CONFIRM)
@@ -305,6 +308,7 @@ public class CareResultService {
     }
 
     private void recordedEvents(CareTask task, CareResultInput input, Instant performed, TaskStatus next, Instant now) {
+        rules.onResult(task.id());
         var context = new CareEventContext(
                 "M04.TASK", task.id(), "RESULT_RECORDED", now, Optional.of(task.floorAreaId()), List.of());
         events.publishEvent(new AlertClosureRequested(
