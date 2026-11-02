@@ -210,7 +210,60 @@ describe('HealthTab, hồ sơ sức khỏe ban đầu', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Đính chính' }))
 
     expect(await screen.findByText('Các lần đính chính')).toBeTruthy()
-    expect(await screen.findByText('Amlodipine 10mg')).toBeTruthy()
+    expect((await screen.findAllByText('Amlodipine 10mg')).length).toBeGreaterThan(0)
+  })
+
+  it('BUG-02: form đính chính điền sẵn giá trị hiện hành, chỉ sửa một ô thì các ô khác vẫn giữ nguyên', async () => {
+    routes({ initial: record({ confirmed: true, confirmedBy: 'Bác sĩ Lê', corrected: true }), items: [] })
+    api.on(
+      'GET',
+      '/corrections/M01.INITIAL_HEALTH_RECORD/5',
+      json(200, {
+        recordType: 'M01.INITIAL_HEALTH_RECORD',
+        originalRecordId: 5,
+        corrected: true,
+        voided: false,
+        originalContent: { bloodType: 'O+', currentMedications: 'Amlodipine 5mg' },
+        currentContent: { bloodType: 'O+', currentMedications: 'Amlodipine 10mg' },
+        corrections: [],
+      }),
+    )
+    api.on('POST', '/corrections/M01.INITIAL_HEALTH_RECORD/5', json(201, { id: 1 }))
+
+    open()
+    fireEvent.click(await screen.findByRole('button', { name: 'Đính chính' }))
+    const blood = await screen.findByRole('textbox', { name: 'Nhóm máu' })
+    expect(blood.value).toBe('O+')
+    fireEvent.change(screen.getByRole('textbox', { name: 'Thuốc đang sử dụng khi tiếp nhận' }), { target: { value: 'Amlodipine 20mg' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Lý do' }), { target: { value: 'Sai liều' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu đính chính' }))
+
+    await waitFor(() => expect(api.calls('POST', '/corrections/M01.INITIAL_HEALTH_RECORD/5')).toHaveLength(1))
+    const { correctedContent } = JSON.parse(api.calls('POST', '/corrections/M01.INITIAL_HEALTH_RECORD/5')[0][1].body)
+    expect(correctedContent.bloodType).toBe('O+')
+    expect(correctedContent.currentMedications).toBe('Amlodipine 20mg')
+  })
+
+  it('BUG-09: hồ sơ đã Hủy ghi nhận hiện nhãn Đã hủy ghi nhận, không hiện Đã đính chính', async () => {
+    routes({ initial: record({ confirmed: true, confirmedBy: 'Bác sĩ Lê', corrected: true }), items: [] })
+    api.on(
+      'GET',
+      '/corrections/M01.INITIAL_HEALTH_RECORD/5',
+      json(200, {
+        recordType: 'M01.INITIAL_HEALTH_RECORD',
+        originalRecordId: 5,
+        corrected: true,
+        voided: true,
+        originalContent: {},
+        currentContent: {},
+        corrections: [],
+      }),
+    )
+
+    open()
+
+    expect(await screen.findByText('Đã hủy ghi nhận')).toBeTruthy()
+    expect(screen.queryByText('Đã đính chính')).toBeNull()
   })
 })
 

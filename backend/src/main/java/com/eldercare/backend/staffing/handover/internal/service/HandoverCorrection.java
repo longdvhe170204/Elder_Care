@@ -13,7 +13,6 @@ import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.staffing.api.events.HandoverCorrected;
 import com.eldercare.backend.staffing.handover.internal.persistence.HandoverStore;
 import com.eldercare.backend.staffing.shift.internal.persistence.ShiftStore;
-import com.eldercare.backend.staffing.staff.internal.persistence.StaffStore;
 import java.util.*;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,7 +25,7 @@ public class HandoverCorrection implements CorrectableRecordProvider, ScopeAssig
     private final HandoverStore store;
     private final HandoverContents contents;
     private final ShiftStore shifts;
-    private final StaffStore staff;
+    private final AccountApi accounts;
     private final DutyApi duties;
     private final JdbcTemplate jdbc;
     private final ApplicationEventPublisher events;
@@ -40,7 +39,7 @@ public class HandoverCorrection implements CorrectableRecordProvider, ScopeAssig
             HandoverStore store,
             HandoverContents contents,
             ShiftStore shifts,
-            StaffStore staff,
+            AccountApi accounts,
             DutyApi duties,
             JdbcTemplate jdbc,
             ApplicationEventPublisher events,
@@ -52,7 +51,7 @@ public class HandoverCorrection implements CorrectableRecordProvider, ScopeAssig
         this.store = store;
         this.contents = contents;
         this.shifts = shifts;
-        this.staff = staff;
+        this.accounts = accounts;
         this.duties = duties;
         this.jdbc = jdbc;
         this.events = events;
@@ -193,8 +192,7 @@ public class HandoverCorrection implements CorrectableRecordProvider, ScopeAssig
         Long receiver = jdbc.queryForObject("SELECT confirmed_by FROM shift_handover WHERE id=?", Long.class, id);
         var receiverStaff = receiver == null
                 ? Optional.<Long>empty()
-                : jdbc.queryForList("SELECT id FROM staff_profile WHERE account_id=?", Long.class, receiver).stream()
-                        .findFirst();
+                : accounts.byId(receiver).map(AccountView::staffId);
         events.publishEvent(new HandoverCorrected(
                 id,
                 time.now(),

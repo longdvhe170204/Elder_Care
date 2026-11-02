@@ -17,8 +17,8 @@ const TYPES = [
 
 const REASON_MAX = 2000
 
-function emptyContent(fields) {
-  return Object.fromEntries(fields.map((f) => [f.name, '']))
+function startContent(fields, initial) {
+  return Object.fromEntries(fields.map((f) => [f.name, initial?.[f.name] == null ? '' : String(initial[f.name])]))
 }
 
 // Lỗi 422 báo tại ô (DESIGN.md 7.4): lý do ở ô Lý do, còn lại ở ô nội dung khi đang sửa nội dung.
@@ -30,9 +30,11 @@ function fieldErrorOf(error, type) {
   return null
 }
 
-export function CorrectionForm({ recordType, recordId, fields, onSaved }) {
+// initialContent: giá trị hiện hành để điền sẵn; module có nội dung gồm nhiều trường truyền vào để không phải nhập lại
+// các ô không sửa. Không truyền thì các ô để trống như trước.
+export function CorrectionForm({ recordType, recordId, fields, initialContent, onSaved }) {
   const [type, setType] = useState('AMEND_CONTENT')
-  const [content, setContent] = useState(() => emptyContent(fields))
+  const [content, setContent] = useState(() => startContent(fields, initialContent))
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [fieldErrors, setFieldErrors] = useState({})
@@ -55,7 +57,8 @@ export function CorrectionForm({ recordType, recordId, fields, onSaved }) {
         path: { recordType, originalRecordId: recordId },
         body,
       })
-      setContent(emptyContent(fields))
+      // Đã lưu và có điền sẵn: nội dung vừa nhập là giá trị hiện hành mới; 202 thì chưa áp dụng nên về giá trị cũ
+      setContent((current) => (status !== 202 && initialContent ? current : startContent(fields, initialContent)))
       setReason('')
       // 202: cách C, đã lập yêu cầu phê duyệt; bản gốc chưa được đánh dấu đính chính (US2 #4)
       if (status === 202) {
@@ -97,6 +100,11 @@ export function CorrectionForm({ recordType, recordId, fields, onSaved }) {
           )}
         </Field>
 
+        {type === 'AMEND_CONTENT' && initialContent && (
+          <FieldDescription>
+            Đã điền sẵn giá trị hiện hành. Chỉ sửa ô cần đính chính; xóa trống một ô là xóa giá trị của ô đó.
+          </FieldDescription>
+        )}
         {type === 'AMEND_CONTENT' &&
           fields.map((f, index) => {
             const invalid = index === 0 && !!fieldErrors.content
