@@ -305,6 +305,7 @@ public class AccountService implements AccountApi {
         CurrentUser user = currentUser.getObject();
         requireManager(user);
         Account account = store.lock(accountId).orElseThrow(NotFoundException::new);
+        requireNotResident(account);
         VersionEtag.requireMatch(ifMatch, account.version(), details(account, user));
         if (account.status() == AccountStatus.LOCKED) {
             throw conflict("INVALID_STATE", "Tài khoản đã khóa");
@@ -344,6 +345,7 @@ public class AccountService implements AccountApi {
         CurrentUser user = currentUser.getObject();
         requireManager(user);
         Account account = store.lock(accountId).orElseThrow(NotFoundException::new);
+        requireNotResident(account);
         VersionEtag.requireMatch(ifMatch, account.version(), details(account, user));
         if (account.status() != AccountStatus.LOCKED) {
             throw conflict("INVALID_STATE", "Chỉ mở khóa tài khoản Đã khóa");
@@ -691,6 +693,15 @@ public class AccountService implements AccountApi {
                 a.lastLoginAt(),
                 a.version(),
                 a.permissionVersion());
+    }
+
+    /** Tài khoản người cao tuổi khóa, mở khóa bằng lệnh riêng: gỡ thiết bị, cần xác nhận của chính người đó (FR-072, FR-073). */
+    private static void requireNotResident(Account account) {
+        if (account.type() == AccountType.RESIDENT) {
+            throw conflict(
+                    "USE_RESIDENT_ACCOUNT_COMMAND",
+                    "Tài khoản người cao tuổi dùng lệnh khóa, mở khóa riêng (FR-072, FR-073)");
+        }
     }
 
     private static BusinessException conflict(String errorCode, String message) {
