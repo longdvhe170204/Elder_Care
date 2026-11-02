@@ -98,22 +98,10 @@ public class ResidentAccountService {
     }
 
     /**
-     * Mã QR dùng một lần, hết hạn sau CFG-M15-11; vô hiệu mã chưa dùng trước đó (FR-069). Hành chính, Quản lý viện, hoặc
-     * Điều dưỡng có phạm vi với người cao tuổi (Phụ lục 27 ⁴⁸): kiểm quyền {@code (RESIDENT_ACCOUNT, CREATE)} trên người
-     * cao tuổi của tài khoản, đọc được sau khi tra tài khoản nên lệnh tự kiểm ({@code RequiresPermissionArchTest}).
-     */
-    @BusinessCommand(requiresReason = false)
-    @Transactional
-    public LoginCode createLoginCode(long accountId) {
-        CurrentUser user = currentUser.getObject();
-        Account account = store.lock(accountId).orElseThrow(NotFoundException::new);
-        requireCodePermission(user, target(account));
-        return issueCode(account, user, Map.of());
-    }
-
-    /**
-     * Mã QR theo người cao tuổi (FR-069): Điều dưỡng không đọc được danh sách tài khoản nên không có id tài khoản. Bắt buộc
-     * xác nhận của chính người cao tuổi; chưa có tài khoản thì 404. Kiểm quyền như {@link #createLoginCode}.
+     * Mã QR dùng một lần, hết hạn sau CFG-M15-11; vô hiệu mã chưa dùng trước đó (FR-069). Theo người cao tuổi vì Điều
+     * dưỡng không đọc được danh sách tài khoản nên không có id tài khoản. Bắt buộc xác nhận của chính người cao tuổi; chưa
+     * có tài khoản thì 404. Hành chính, Quản lý viện, hoặc Điều dưỡng có phạm vi (Phụ lục 27 ⁴⁸): lệnh tự kiểm quyền
+     * {@code (RESIDENT_ACCOUNT, CREATE)} trên người cao tuổi ({@code RequiresPermissionArchTest}).
      */
     @BusinessCommand(requiresReason = false)
     @Transactional
