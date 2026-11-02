@@ -642,7 +642,8 @@ class AssignmentIT extends MySqlIntegrationTestBase {
     @org.springframework.transaction.annotation.Transactional
     void FR_030_assignedNurseUsesTheConfiguredMedicationLicenseAndFeedsAllThreeSpis() {
         jdbc.update(
-                "UPDATE professional_activity SET required_license_type='NURSING_LICENSE' WHERE code='MEDICATION_ADMINISTRATION'");
+                "UPDATE catalog_item SET attributes = JSON_SET(attributes, '$.requiredLicenseType', 'NURSING_LICENSE')"
+                        + " WHERE catalog_type = 'M15.PROFESSIONAL_ACTIVITY' AND code = 'MEDICATION_ADMINISTRATION'");
         long nurse = staff(Role.NURSING_STAFF);
         jdbc.update("INSERT INTO shift_staff(shift_id,staff_id) VALUES (?,?)", shift, nurse);
         var input = new AssignmentInput(nurse, "FLOOR", floor, null, Role.NURSING_STAFF, "PRIMARY", true, null, null);

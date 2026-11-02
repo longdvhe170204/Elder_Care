@@ -1,6 +1,7 @@
 package com.eldercare.backend.staffing.assignment.internal.service;
 
 import com.eldercare.backend.administration.auditlog.api.*;
+import com.eldercare.backend.administration.auditlog.api.dto.*;
 import com.eldercare.backend.common.notification.SourceRecord;
 import com.eldercare.backend.staffing.assignment.internal.persistence.AssignmentStore;
 import com.eldercare.backend.staffing.internal.service.M09TimedTask;

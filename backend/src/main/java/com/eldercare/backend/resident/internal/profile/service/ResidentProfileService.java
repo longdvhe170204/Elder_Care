@@ -9,9 +9,9 @@ import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.administration.account.api.dto.Target;
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;
@@ -29,8 +29,8 @@ import com.eldercare.backend.resident.internal.profile.domain.Contact;
 import com.eldercare.backend.resident.internal.profile.domain.IdDocumentType;
 import com.eldercare.backend.resident.internal.profile.domain.PersonalInfo;
 import com.eldercare.backend.resident.internal.profile.domain.Resident;
+import com.eldercare.backend.resident.internal.profile.domain.ResidentMatch;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentLookup;
-import com.eldercare.backend.resident.internal.profile.persistence.ResidentLookup.Match;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepository;
 import com.eldercare.backend.resident.internal.status.domain.ResidentStatusHistory;
 import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryRepository;
@@ -145,7 +145,7 @@ public class ResidentProfileService {
             lookup.findOpenByCitizenId(citizenId).ifPresent(open -> {
                 throw citizenIdInUse(open.profileCode());
             });
-            Optional<Match> closed = lookup.findLatestClosedByCitizenId(citizenId);
+            Optional<ResidentMatch> closed = lookup.findLatestClosedByCitizenId(citizenId);
             if (closed.isPresent() && closed.get().status() == ResidentStatus.DECEASED) {
                 warnings.add(new Warning(
                         "CITIZEN_ID_MATCHES_DECEASED_PROFILE",
@@ -154,7 +154,7 @@ public class ResidentProfileService {
                 previousProfileId = closed.get().id();
             }
         } else {
-            List<Match> same = lookup.findSameNameAndBirthDate(info.fullName(), info.dateOfBirth());
+            List<ResidentMatch> same = lookup.findSameNameAndBirthDate(info.fullName(), info.dateOfBirth());
             if (!same.isEmpty() && !confirmNotDuplicate) {
                 throw possibleDuplicate(same);
             }
@@ -168,7 +168,7 @@ public class ResidentProfileService {
         } catch (DataIntegrityViolationException e) {
             // UNIQUE (open_citizen_id): hai lệnh tạo cùng CCCD chạy cùng lúc
             throw citizenIdInUse(lookup.findOpenByCitizenId(info.idDocumentNumber())
-                    .map(Match::profileCode)
+                    .map(ResidentMatch::profileCode)
                     .orElse(null));
         }
         resident.assignProfileCode(time.today().getYear());
@@ -219,7 +219,7 @@ public class ResidentProfileService {
             residents.saveAndFlush(resident);
         } catch (DataIntegrityViolationException e) {
             throw citizenIdInUse(lookup.findOpenByCitizenId(after.idDocumentNumber())
-                    .map(Match::profileCode)
+                    .map(ResidentMatch::profileCode)
                     .orElse(null));
         }
         Map<String, Object> beforeValues = snapshot(before);
@@ -439,7 +439,7 @@ public class ResidentProfileService {
                 HttpStatus.CONFLICT, "CITIZEN_ID_IN_USE", "CCCD đang được dùng ở một hồ sơ chưa kết thúc", properties);
     }
 
-    private static BusinessException possibleDuplicate(List<Match> same) {
+    private static BusinessException possibleDuplicate(List<ResidentMatch> same) {
         List<Map<String, Object>> candidates = same.stream()
                 .map(m -> Map.<String, Object>of(
                         "id", m.id(),

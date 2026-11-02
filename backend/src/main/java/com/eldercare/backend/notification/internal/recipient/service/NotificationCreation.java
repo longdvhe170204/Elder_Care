@@ -2,11 +2,11 @@ package com.eldercare.backend.notification.internal.recipient.service;
 
 import com.eldercare.backend.notification.internal.delivery.service.DeliveryDispatcher;
 import com.eldercare.backend.notification.internal.delivery.service.OutOfAppPlanner;
+import com.eldercare.backend.notification.internal.domain.NewNotification;
 import com.eldercare.backend.notification.internal.domain.NotificationEventType;
 import com.eldercare.backend.notification.internal.intake.domain.RequestFlag;
 import com.eldercare.backend.notification.internal.intake.domain.ValidatedRequest;
 import com.eldercare.backend.notification.internal.persistence.NotificationStore;
-import com.eldercare.backend.notification.internal.persistence.NotificationStore.NewNotification;
 import com.eldercare.backend.notification.internal.quiethours.domain.QuietHours;
 import com.eldercare.backend.notification.internal.quiethours.service.QuietHoursPolicy;
 import com.eldercare.backend.notification.internal.recipient.domain.ResolvedRecipient;

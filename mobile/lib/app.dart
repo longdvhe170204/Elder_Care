@@ -4,6 +4,7 @@ import 'common/api/problem_message.dart';
 import 'common/auth/change_password_screen.dart';
 import 'common/auth/login_screen.dart';
 import 'common/auth/session_controller.dart';
+import 'common/notifications/push_coordinator.dart';
 import 'common/offline/offline_queue.dart';
 import 'common/theme/app_theme.dart';
 import 'family/family_root.dart';
@@ -18,13 +19,22 @@ import 'staff/staff_root.dart';
 /// tài khoản người cao tuổi vào thẳng màn quét mã (FR-014a). Đăng nhập xong chuyển sang phần tương ứng theo loại tài khoản. Phần người cao tuổi dùng
 /// theme chữ lớn (DESIGN.md 15.6), hai phần kia dùng theme chung (15.2).
 class ElderCareApp extends StatelessWidget {
-  const ElderCareApp({super.key, required this.session, required this.queue, this.scannerBuilder = cameraScanner});
+  const ElderCareApp({
+    super.key,
+    required this.session,
+    required this.queue,
+    this.push,
+    this.scannerBuilder = cameraScanner,
+  });
 
   final SessionController session;
 
   /// Hàng đợi ngoại tuyến của phần nhân viên (000 T100).
   final OfflineQueue queue;
   final ScannerBuilder scannerBuilder;
+
+  /// Nhận đẩy (009 T031, T042); test không truyền thì không có đẩy.
+  final PushCoordinator? push;
 
   bool get _resident => session.user == null ? session.boundToResident : session.user!.type == AccountType.resident;
 
@@ -73,8 +83,8 @@ class ElderCareApp extends StatelessWidget {
     SessionStatus.locked => LockedScreen(session: session),
     SessionStatus.signedIn => switch (session.user!.type) {
       AccountType.staff => StaffRoot(session: session, queue: queue),
-      AccountType.familyMember => FamilyRoot(session: session),
-      AccountType.resident => const ResidentRoot(),
+      AccountType.familyMember => FamilyRoot(session: session, push: push),
+      AccountType.resident => ResidentRoot(api: session.api, push: push),
     },
   };
 }

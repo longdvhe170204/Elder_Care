@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.eldercare.backend.administration.parameter.api.*;
+import com.eldercare.backend.administration.parameter.api.dto.*;
 import com.eldercare.backend.roombedallocation.api.DayCareCapacityApi;
 import com.eldercare.backend.roombedallocation.api.dto.*;
 import com.eldercare.backend.roombedallocation.api.spi.CordonedArea;

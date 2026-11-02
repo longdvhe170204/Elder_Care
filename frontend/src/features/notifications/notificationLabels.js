@@ -87,11 +87,17 @@ const RECIPIENT_TYPES = { STAFF: 'Nhân viên', FAMILY_MEMBER: 'Người thân',
 
 export const label = (labels, value) => (value ? (labels[value] ?? value) : '')
 
+function groupDetailLabel(group, detail, text) {
+  // người tạm nhận do 007, 008 chỉ định ghi nhóm Staff căn cứ TAM_NHAN (FR-009)
+  if (group === 'Staff' && detail === 'TAM_NHAN') return 'Tạm nhận – bàn giao chưa xác nhận'
+  return detail && group === 'FacilityRole' ? `${text} ${detail}` : text
+}
+
 export function basisLabel(basis) {
   const substitute = basis.startsWith('SUBSTITUTE:')
   const [group, detail] = (substitute ? basis.slice('SUBSTITUTE:'.length) : basis).split(':')
   const text = BASIS_LABELS[group] ?? group
-  const full = detail && group === 'FacilityRole' ? `${text} ${detail}` : text
+  const full = groupDetailLabel(group, detail, text)
   return substitute ? `Nhận thay cho: ${full}` : full
 }
 

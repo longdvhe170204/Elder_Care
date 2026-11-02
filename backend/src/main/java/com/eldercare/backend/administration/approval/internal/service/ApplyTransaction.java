@@ -1,18 +1,18 @@
 package com.eldercare.backend.administration.approval.internal.service;
 
-import com.eldercare.backend.administration.approval.api.ApprovalRequestView;
-import com.eldercare.backend.administration.approval.api.ApprovalStatus;
-import com.eldercare.backend.administration.approval.api.RequestApplied;
-import com.eldercare.backend.administration.approval.api.RequestApplyFailed;
-import com.eldercare.backend.administration.approval.api.ResultRef;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalStatus;
+import com.eldercare.backend.administration.approval.api.dto.ResultRef;
+import com.eldercare.backend.administration.approval.api.events.RequestApplied;
+import com.eldercare.backend.administration.approval.api.events.RequestApplyFailed;
 import com.eldercare.backend.administration.approval.api.spi.RequestTypeHandler;
 import com.eldercare.backend.administration.approval.internal.domain.ApprovalActions;
 import com.eldercare.backend.administration.approval.internal.domain.RequestTransitionTable;
 import com.eldercare.backend.administration.approval.internal.domain.RequestTransitionTable.Command;
 import com.eldercare.backend.administration.approval.internal.persistence.ApprovalRequestStore;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.error.UnmetCondition;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Instant;

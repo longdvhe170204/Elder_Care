@@ -5,12 +5,11 @@ import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.internal.permission.domain.PermissionScope;
 import com.eldercare.backend.administration.account.internal.permission.domain.PermissionViews.RestrictionKind;
-import com.eldercare.backend.administration.account.internal.permission.domain.PermissionViews.RoleInfo;
+import com.eldercare.backend.administration.account.internal.permission.domain.PermissionViews.RestrictionRow;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,8 +17,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
 
 /**
- * Bảng {@code role}, {@code permission_matrix}, {@code permission_restriction}, {@code additional_grant} cho lệnh đổi
- * quyền (002 T075; research A-05): thay đổi là đóng dòng cũ ({@code effective_to}) hoặc thêm dòng mới, không xóa.
+ * Bảng {@code permission_matrix}, dòng thu hẹp và quyền gán thêm của {@code permission_assignment} cho lệnh đổi quyền
+ * (002 T075, T098; research A-05): thay đổi là đóng dòng cũ ({@code effective_to}) hoặc thêm dòng mới, không xóa. Số
+ * phiên bản quyền của vai trò ở danh mục vai trò ({@code RoleCatalog}).
  */
 @Component
 public class PermissionChanges {
@@ -30,41 +30,6 @@ public class PermissionChanges {
     PermissionChanges(JdbcTemplate jdbc, BusinessTime time) {
         this.jdbc = jdbc;
         this.time = time;
-    }
-
-    /** Dòng thu hẹp, theo vai trò ({@code role}) hoặc theo tài khoản ({@code accountId}). */
-    public record RestrictionRow(
-            long id,
-            String role,
-            Long accountId,
-            PermissionKey key,
-            RestrictionKind kind,
-            String metricGroup,
-            String channel) {}
-
-    public List<RoleInfo> roles() {
-        return jdbc.query(
-                "SELECT code, name, account_type, execution_scope FROM role ORDER BY code",
-                (rs, i) -> new RoleInfo(
-                        rs.getString(1), rs.getString(2), rs.getString(3), PermissionScope.valueOf(rs.getString(4))));
-    }
-
-    public Optional<Integer> roleVersion(String role) {
-        return jdbc.queryForList("SELECT permission_version FROM role WHERE code = ?", Integer.class, role).stream()
-                .findFirst();
-    }
-
-    /**
-     * Tăng {@code role.permission_version} khi bằng {@code expected} (so và tăng trong một câu lệnh, giữ khóa dòng tới
-     * hết transaction, BR-M15-17); trả {@code false} khi phiên bản đã khác.
-     */
-    public boolean bumpRoleVersion(String role, long expected) {
-        return jdbc.update(
-                        "UPDATE role SET permission_version = permission_version + 1 WHERE code = ?"
-                                + " AND permission_version = ?",
-                        role,
-                        expected)
-                == 1;
     }
 
     /** Phạm vi của ô ma trận của các vai trò đã cho cho một khóa; rỗng khi không vai trò nào có ô này (FR-025). */
@@ -90,8 +55,8 @@ public class PermissionChanges {
     public List<RestrictionRow> activeRestrictions(String role, Long accountId) {
         LocalDateTime now = now();
         return jdbc.query(
-                "SELECT id, role, account_id, function_code, operation, kind, metric_group, channel"
-                        + " FROM permission_restriction WHERE " + target(role)
+                "SELECT id, role, account_id, function_code, operation, restriction_kind, metric_group, channel"
+                        + " FROM permission_assignment WHERE kind = 'RESTRICTION' AND " + target(role)
                         + " AND effective_from <= ? AND (effective_to IS NULL OR effective_to > ?) ORDER BY id",
                 (rs, i) -> new RestrictionRow(
                         rs.getLong(1),
@@ -119,9 +84,9 @@ public class PermissionChanges {
         jdbc.update(
                 con -> {
                     var ps = con.prepareStatement("""
-                            INSERT INTO permission_restriction (applies_to, role, account_id, function_code, operation,
-                                kind, metric_group, channel, effective_from, actor_id, reason)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            INSERT INTO permission_assignment (kind, applies_to, role, account_id, function_code,
+                                operation, restriction_kind, metric_group, channel, effective_from, actor_id, reason)
+                            VALUES ('RESTRICTION', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                             """, new String[] {"id"});
                     ps.setString(1, role != null ? "ROLE" : "ACCOUNT");
                     ps.setString(2, role);
@@ -143,14 +108,18 @@ public class PermissionChanges {
     /** Đóng một dòng thu hẹp đang hiệu lực (khôi phục về mức ma trận). */
     public void closeRestriction(long id) {
         jdbc.update(
-                "UPDATE permission_restriction SET effective_to = ? WHERE id = ? AND effective_to IS NULL", now(), id);
+                "UPDATE permission_assignment SET effective_to = ? WHERE id = ? AND kind = 'RESTRICTION'"
+                        + " AND effective_to IS NULL",
+                now(),
+                id);
     }
 
     /** Quyền Duyệt kế hoạch chăm sóc gán thêm đang hiệu lực của tài khoản (FR-024). */
     public boolean hasActiveGrant(long accountId) {
         LocalDateTime now = now();
         Integer rows = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM additional_grant WHERE account_id = ? AND effective_from <= ?"
+                "SELECT COUNT(*) FROM permission_assignment WHERE kind = 'ADDITIONAL_GRANT' AND account_id = ?"
+                        + " AND effective_from <= ?"
                         + " AND (effective_to IS NULL OR effective_to > ?)",
                 Integer.class,
                 accountId,
@@ -161,8 +130,9 @@ public class PermissionChanges {
 
     public void insertCarePlanApprovalGrant(long accountId, long actorId, String reason) {
         jdbc.update(
-                "INSERT INTO additional_grant (account_id, function_code, operation, effective_from, actor_id, reason)"
-                        + " VALUES (?, 'CARE_PLAN', 'APPROVE', ?, ?, ?)",
+                "INSERT INTO permission_assignment (kind, applies_to, account_id, function_code, operation,"
+                        + " effective_from, actor_id, reason)"
+                        + " VALUES ('ADDITIONAL_GRANT', 'ACCOUNT', ?, 'CARE_PLAN', 'APPROVE', ?, ?, ?)",
                 accountId,
                 now(),
                 actorId,
@@ -171,7 +141,8 @@ public class PermissionChanges {
 
     public void closeGrant(long accountId) {
         jdbc.update(
-                "UPDATE additional_grant SET effective_to = ? WHERE account_id = ? AND effective_to IS NULL",
+                "UPDATE permission_assignment SET effective_to = ? WHERE kind = 'ADDITIONAL_GRANT' AND account_id = ?"
+                        + " AND effective_to IS NULL",
                 now(),
                 accountId);
     }
@@ -182,8 +153,9 @@ public class PermissionChanges {
      */
     public List<Long> activeManagers() {
         return jdbc.queryForList(
-                "SELECT ra.account_id FROM role_assignment ra JOIN account a ON a.id = ra.account_id"
-                        + " WHERE ra.role = 'AC-01' AND ra.effective_to IS NULL AND a.status = 'ACTIVE' FOR UPDATE",
+                "SELECT ra.account_id FROM permission_assignment ra JOIN account a ON a.id = ra.account_id"
+                        + " WHERE ra.kind = 'ROLE_ASSIGNMENT' AND ra.role = 'AC-01' AND ra.effective_to IS NULL"
+                        + " AND a.status = 'ACTIVE' FOR UPDATE",
                 Long.class);
     }
 

@@ -82,14 +82,16 @@ class BR_M13_01_ChannelSelectionIT extends M13IntegrationTestBase {
                 .toInstant());
         users = new TestUsers(jdbc, time);
         resident = TestUsers.nextId();
-        jdbc.update("UPDATE notification_channel SET enabled = TRUE WHERE code = 'SMS'");
+        jdbc.update("UPDATE catalog_item SET attributes = JSON_SET(attributes, '$.enabled', CAST('true' AS JSON))"
+                + " WHERE catalog_type = 'M13.NOTIFICATION_CHANNEL' AND code = 'SMS'");
         sms.reset();
     }
 
     @AfterEach
     void reset() {
         clock.reset();
-        jdbc.update("UPDATE notification_channel SET enabled = FALSE WHERE code = 'SMS'");
+        jdbc.update("UPDATE catalog_item SET attributes = JSON_SET(attributes, '$.enabled', CAST('false' AS JSON))"
+                + " WHERE catalog_type = 'M13.NOTIFICATION_CHANNEL' AND code = 'SMS'");
         family.reset();
         sms.reset();
     }
@@ -128,9 +130,10 @@ class BR_M13_01_ChannelSelectionIT extends M13IntegrationTestBase {
     private Map<String, String> outcomes(long notificationId) {
         Map<String, String> out = new java.util.TreeMap<>();
         jdbc.queryForList(
-                        "SELECT a.channel, r.result FROM delivery_attempt a"
-                                + " LEFT JOIN delivery_result r ON r.attempt_id = a.id WHERE a.notification_id = ?"
-                                + " ORDER BY a.attempt_no",
+                        "SELECT a.content->>'$.channel' AS channel, r.m13_result AS result FROM record_event a"
+                                + " LEFT JOIN record_event r ON r.kind = 'M13.DELIVERY_RESULT' AND r.entity_type = 'M13.DELIVERY_ATTEMPT' AND r.entity_id = a.id"
+                                + " WHERE a.kind = 'M13.DELIVERY_ATTEMPT' AND a.entity_type = 'M13.NOTIFICATION'"
+                                + " AND a.entity_id = ? ORDER BY JSON_VALUE(a.content, '$.attemptNo' RETURNING SIGNED)",
                         notificationId)
                 .forEach(row -> out.put(
                         (String) row.get("channel"), row.get("result") == null ? "" : (String) row.get("result")));
@@ -188,7 +191,8 @@ class BR_M13_01_ChannelSelectionIT extends M13IntegrationTestBase {
                 new RecipientGroup.PrimaryContact(resident)));
         awaitOutcomes(on, Map.of("FAMILY_PORTAL", "SENT", "SMS", "SENT"));
 
-        jdbc.update("UPDATE notification_channel SET enabled = FALSE WHERE code = 'SMS'");
+        jdbc.update("UPDATE catalog_item SET attributes = JSON_SET(attributes, '$.enabled', CAST('false' AS JSON))"
+                + " WHERE catalog_type = 'M13.NOTIFICATION_CHANNEL' AND code = 'SMS'");
         long off = send(request(
                 "ch-family-off-" + resident,
                 NotificationLevel.MEDIUM,
@@ -220,15 +224,17 @@ class BR_M13_01_ChannelSelectionIT extends M13IntegrationTestBase {
         resender.run();
         await().atMost(Duration.ofSeconds(10))
                 .until(() -> jdbc.queryForObject(
-                                "SELECT COUNT(*) FROM delivery_attempt a JOIN delivery_result r ON r.attempt_id = a.id"
-                                        + " WHERE a.notification_id = ? AND a.channel = 'SMS'",
+                                "SELECT COUNT(*) FROM record_event a JOIN record_event r ON r.kind = 'M13.DELIVERY_RESULT' AND r.entity_type = 'M13.DELIVERY_ATTEMPT' AND r.entity_id = a.id"
+                                        + " WHERE a.kind = 'M13.DELIVERY_ATTEMPT' AND a.entity_type = 'M13.NOTIFICATION'"
+                                        + " AND a.entity_id = ? AND a.content->>'$.channel' = 'SMS'",
                                 Integer.class,
                                 b)
                         == 2);
         // CFG-M13-05 mặc định 1 lần gửi lại: lần thứ ba không có
         resender.run();
         assertThat(jdbc.queryForObject(
-                        "SELECT MAX(attempt_no) FROM delivery_attempt WHERE notification_id = ? AND channel = 'SMS'",
+                        "SELECT MAX(JSON_VALUE(a.content, '$.attemptNo' RETURNING SIGNED)) FROM record_event a WHERE a.kind = 'M13.DELIVERY_ATTEMPT' AND a.entity_type = 'M13.NOTIFICATION'"
+                                + " AND a.entity_id = ? AND a.content->>'$.channel' = 'SMS'",
                         Integer.class,
                         b))
                 .isEqualTo(2);

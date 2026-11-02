@@ -60,15 +60,18 @@ class PracticeScopeIT extends MySqlIntegrationTestBase {
                 time.today().plusYears(1));
         internalMedicine = AccountFixtures.nextId();
         jdbc.update(
-                "INSERT INTO professional_activity_practice_scope (activity_id, practice_scope_id)"
-                        + " SELECT id, ? FROM professional_activity WHERE code = ?",
+                "UPDATE catalog_item SET attributes = JSON_ARRAY_APPEND(attributes, '$.practiceScopeIds', ?)"
+                        + " WHERE catalog_type = 'M15.PROFESSIONAL_ACTIVITY' AND code = ?",
                 internalMedicine,
                 ProfessionalActivityApi.INTERNAL_DIAGNOSIS_PRESCRIBING);
     }
 
     @AfterEach
     void removeRequirement() {
-        jdbc.update("DELETE FROM professional_activity_practice_scope WHERE practice_scope_id = ?", internalMedicine);
+        jdbc.update(
+                "UPDATE catalog_item SET attributes = JSON_REMOVE(attributes, '$.practiceScopeIds[last]')"
+                        + " WHERE catalog_type = 'M15.PROFESSIONAL_ACTIVITY' AND code = ?",
+                ProfessionalActivityApi.INTERNAL_DIAGNOSIS_PRESCRIBING);
     }
 
     @Test

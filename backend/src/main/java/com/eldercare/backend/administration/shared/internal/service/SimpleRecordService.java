@@ -107,6 +107,16 @@ class SimpleRecordService implements SimpleRecordApi {
                 .toList();
     }
 
+    @Override
+    public <T> List<SimpleRecord<T>> listByStatus(SharedKind<T> kind, Set<String> statuses) {
+        if (statuses.isEmpty()) {
+            throw new IllegalArgumentException("statuses rỗng");
+        }
+        return store.listByStatus(kind.code(), statuses).stream()
+                .map(r -> record(kind, r))
+                .toList();
+    }
+
     private void checkUnique(String uniqueKey, long self) {
         if (uniqueKey != null && store.existsUniqueKey(uniqueKey, self)) {
             throw condition("UNIQUE_KEY", "Trùng khóa duy nhất " + uniqueKey);

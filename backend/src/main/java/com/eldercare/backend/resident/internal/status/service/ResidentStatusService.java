@@ -2,20 +2,22 @@ package com.eldercare.backend.resident.internal.status.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.RequiresPermission;
+import com.eldercare.backend.administration.account.api.dto.FailedLayer;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.Target;
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.administration.correction.api.CorrectionApi;
-import com.eldercare.backend.administration.correction.api.CurrentValue;
+import com.eldercare.backend.administration.correction.api.dto.CurrentValue;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.NotFoundException;
+import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.error.ReasonRequiredException;
 import com.eldercare.backend.common.file.FileApi;
 import com.eldercare.backend.common.file.FileView;
@@ -100,6 +102,21 @@ public class ResidentStatusService {
             StatusCommand.END_RESIDENCY,
             StatusCommand.RECORD_DEATH);
 
+    /**
+     * Vai trò thực hiện từng lệnh người dùng (spec 001 bảng trạng thái, data-model cột "Người thực hiện", Phụ lục 26.2).
+     * Khóa quyền chưa đủ vì nhiều lệnh dùng chung ô với việc khác: T²⁶ và T³⁹ của Kế toán chỉ là ghi thu cọc và yêu cầu ngoại
+     * lệ, T⁸ của Quản lý viện chỉ là Quyết định giữ giường; {@code FootnoteRules} giao các chú thích này cho module sở hữu
+     * lệnh kiểm. Ghi nhận qua đời tại viện chỉ Bác sĩ, kiểm ở {@link #basisOf}.
+     */
+    private static final Map<StatusCommand, Set<Role>> COMMAND_ROLES = Map.of(
+            StatusCommand.COMPLETE_ADMISSION, Set.of(Role.OFFICE_STAFF),
+            StatusCommand.CANCEL_ADMISSION, Set.of(Role.OFFICE_STAFF),
+            StatusCommand.GRANT_TEMPORARY_ABSENCE, Set.of(Role.OFFICE_STAFF, Role.FLOOR_MANAGER),
+            StatusCommand.RECORD_RETURN, Set.of(Role.OFFICE_STAFF, Role.FLOOR_MANAGER),
+            StatusCommand.TRANSFER_OUT, Set.of(Role.DOCTOR, Role.NURSING_STAFF),
+            StatusCommand.END_RESIDENCY, Set.of(Role.OFFICE_STAFF, Role.DOCTOR),
+            StatusCommand.RECORD_DEATH, Set.of(Role.DOCTOR, Role.OFFICE_STAFF));
+
     /** {@code residentId} cho giới hạn trường theo người cao tuổi của dòng (không ghi ra JSON). */
     public record HistoryEntry(
             long residentId,
@@ -159,6 +176,7 @@ public class ResidentStatusService {
     @RequiresPermission(function = Function.ADMISSION_CONTRACT_DEPOSIT, operation = Operation.CREATE)
     @Transactional
     public Outcome completeAdmission(Target target, Reason reason, JsonNode details) {
+        requireCommandRole(StatusCommand.COMPLETE_ADMISSION);
         Resident resident = lock(target);
         guard.requireOpen(resident.getId());
         return apply(
@@ -174,6 +192,7 @@ public class ResidentStatusService {
     @RequiresPermission(function = Function.ADMISSION_CONTRACT_DEPOSIT, operation = Operation.CREATE)
     @Transactional
     public Outcome cancelAdmission(Target target, Reason reason, JsonNode details) {
+        requireCommandRole(StatusCommand.CANCEL_ADMISSION);
         Resident resident = lock(target);
         guard.requireOpen(resident.getId());
         return apply(
@@ -184,6 +203,7 @@ public class ResidentStatusService {
     @RequiresPermission(function = Function.ABSENCE_RETURN, operation = Operation.CREATE)
     @Transactional
     public Outcome grantTemporaryAbsence(Target target, Reason reason, JsonNode details) {
+        requireCommandRole(StatusCommand.GRANT_TEMPORARY_ABSENCE);
         Resident resident = lock(target);
         guard.requireOpen(resident.getId());
         return apply(
@@ -199,6 +219,7 @@ public class ResidentStatusService {
     @RequiresPermission(function = Function.ABSENCE_RETURN, operation = Operation.CREATE)
     @Transactional
     public Outcome recordReturn(Target target, Reason reason, JsonNode details) {
+        requireCommandRole(StatusCommand.RECORD_RETURN);
         Resident resident = lock(target);
         guard.requireOpen(resident.getId());
         return apply(
@@ -209,6 +230,7 @@ public class ResidentStatusService {
     @RequiresPermission(function = Function.TRANSFER_OUT, operation = Operation.CREATE)
     @Transactional
     public Outcome transferOut(Target target, Reason reason, JsonNode details) {
+        requireCommandRole(StatusCommand.TRANSFER_OUT);
         Resident resident = lock(target);
         guard.requireOpen(resident.getId());
         return apply(resident, StatusCommand.TRANSFER_OUT, currentUser.getObject(), Optional.of(reason), details, null);
@@ -218,6 +240,7 @@ public class ResidentStatusService {
     @RequiresPermission(function = Function.RESIDENCY_END_DEATH, operation = Operation.CREATE)
     @Transactional
     public Outcome endResidency(Target target, Reason reason, JsonNode details) {
+        requireCommandRole(StatusCommand.END_RESIDENCY);
         Resident resident = lock(target);
         guard.requireOpen(resident.getId());
         return apply(
@@ -228,6 +251,7 @@ public class ResidentStatusService {
     @RequiresPermission(function = Function.RESIDENCY_END_DEATH, operation = Operation.CREATE)
     @Transactional
     public Outcome recordDeath(Target target, Reason reason, JsonNode details) {
+        requireCommandRole(StatusCommand.RECORD_DEATH);
         Resident resident = lock(target);
         guard.requireOpen(resident.getId());
         return apply(resident, StatusCommand.RECORD_DEATH, currentUser.getObject(), Optional.of(reason), details, null);
@@ -310,7 +334,7 @@ public class ResidentStatusService {
     public static Set<StatusCommand> availableCommands(ResidentStatus status, Set<Role> roles) {
         Set<StatusCommand> available = new java.util.HashSet<>();
         for (StatusCommand command : USER_COMMANDS) {
-            if (StatusTransitionTable.next(status, command).isPresent()) {
+            if (StatusTransitionTable.next(status, command).isPresent() && holdsCommandRole(command, roles)) {
                 available.add(command);
             }
         }
@@ -322,6 +346,18 @@ public class ResidentStatusService {
 
     public static Target target(long residentId) {
         return ResidentProfileService.target(residentId);
+    }
+
+    private static boolean holdsCommandRole(StatusCommand command, Set<Role> roles) {
+        return roles.stream().anyMatch(COMMAND_ROLES.get(command)::contains);
+    }
+
+    /** Chạy sau {@code @RequiresPermission} và trước khi khóa dòng, nên lệnh bị từ chối không đổi dữ liệu. */
+    private void requireCommandRole(StatusCommand command) {
+        if (!holdsCommandRole(command, currentUser.getObject().roles())) {
+            throw new PermissionDeniedException(
+                    "PERMISSION_DENIED", "Không có quyền", Map.of("failedLayer", FailedLayer.ROLE.name()));
+        }
     }
 
     private Resident lock(Target target) {

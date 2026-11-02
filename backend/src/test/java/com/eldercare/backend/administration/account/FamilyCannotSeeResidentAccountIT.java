@@ -71,7 +71,9 @@ class FamilyCannotSeeResidentAccountIT extends MySqlIntegrationTestBase {
             assertThat(call.andReturn().getResponse().getStatus()).isIn(403, 404);
         }
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM login_qr_code WHERE account_id = ?", Integer.class, account))
+                        "SELECT COUNT(*) FROM device_credential WHERE kind = 'LOGIN_QR_CODE' AND account_id = ?",
+                        Integer.class,
+                        account))
                 .isZero();
     }
 }

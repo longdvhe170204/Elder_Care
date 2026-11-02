@@ -48,13 +48,16 @@ class FR_031_CorrectionResidentIT extends MySqlIntegrationTestBase {
     void FR_031_callResult_residentFromCallReminder() {
         long resident = TestUsers.nextId();
         long reminder = insert(
-                "INSERT INTO call_reminder(callee_type,callee_id,resident_id,creation_reason,created_at)"
-                        + " VALUES ('FAMILY_MEMBER',?,?,'UNACKNOWLEDGED',UTC_TIMESTAMP(6))",
+                "INSERT INTO call_reminder(callee_type,callee_id,resident_id,creation_reason,created_at,status,due_at,"
+                        + "current_staff_id,callee_key) VALUES ('FAMILY_MEMBER',?,?,'UNACKNOWLEDGED',UTC_TIMESTAMP(6),"
+                        + "'RESULT_RECORDED',UTC_TIMESTAMP(6),1,UUID())",
                 TestUsers.nextId(),
                 resident);
         long result = insert(
-                "INSERT INTO call_result(call_reminder_id,called_by,called_at,result,reason,recorded_at)"
-                        + " VALUES (?,?,UTC_TIMESTAMP(6),'NOT_REACHED','NO_ANSWER',UTC_TIMESTAMP(6))",
+                "INSERT INTO record_event(entity_type,entity_id,module,kind,content,actor_id,by_system,occurred_at,"
+                        + "confirmed_at) VALUES ('M13.CALL_REMINDER',?,'M13','M13.CALL_RESULT',JSON_OBJECT('result',"
+                        + "'NOT_REACHED','reason','NO_ANSWER','supplementary',FALSE),?,FALSE,UTC_TIMESTAMP(6),"
+                        + "UTC_TIMESTAMP(6))",
                 reminder,
                 TestUsers.nextId());
 
@@ -65,8 +68,8 @@ class FR_031_CorrectionResidentIT extends MySqlIntegrationTestBase {
     void FR_031_directContactResult_residentFromNotificationRequest() {
         long resident = TestUsers.nextId();
         long request = insert(
-                "INSERT INTO notification_request(level,resident_id,received_at,intake_result)"
-                        + " VALUES ('URGENT',?,UTC_TIMESTAMP(6),'VALID')",
+                "INSERT INTO notification_request(level,resident_id,received_at,intake_result,contents,recipient_groups)"
+                        + " VALUES ('URGENT',?,UTC_TIMESTAMP(6),'VALID',JSON_ARRAY(),JSON_ARRAY())",
                 resident);
         long notification = insert(
                 "INSERT INTO notification(request_id,recipient_type,recipient_id,basis,level,created_at)"
@@ -74,10 +77,14 @@ class FR_031_CorrectionResidentIT extends MySqlIntegrationTestBase {
                 request,
                 TestUsers.nextId());
         long contact = insert(
-                "INSERT INTO direct_contact(notification_id,created_at) VALUES (?,UTC_TIMESTAMP(6))", notification);
+                "INSERT INTO simple_record(kind,module,entity_type,entity_id,status,content,created_at,created_by)"
+                        + " VALUES ('M13.DIRECT_CONTACT','M13','M13.NOTIFICATION',?,'CONTACTED',JSON_OBJECT(),"
+                        + "UTC_TIMESTAMP(6),0)",
+                notification);
         long result = insert(
-                "INSERT INTO direct_contact_result(direct_contact_id,contacted_by,occurred_at,result,recorded_at)"
-                        + " VALUES (?,?,UTC_TIMESTAMP(6),'CONTACTED',UTC_TIMESTAMP(6))",
+                "INSERT INTO record_event(entity_type,entity_id,module,kind,content,actor_id,by_system,occurred_at,"
+                        + "confirmed_at) VALUES ('M13.DIRECT_CONTACT',?,'M13','M13.DIRECT_CONTACT_RESULT',"
+                        + "JSON_OBJECT('result','CONTACTED'),?,FALSE,UTC_TIMESTAMP(6),UTC_TIMESTAMP(6))",
                 contact,
                 TestUsers.nextId());
 

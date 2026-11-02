@@ -20,12 +20,24 @@ public record ReportScope(boolean facilityWide, List<Grant> grants) {
 
     /**
      * Một phần phạm vi: tầng/khu, phòng, người cao tuổi, trong khoảng {@code [from, to)} của mốc bản ghi; khoảng rỗng là
-     * mọi thời điểm (trưởng tầng, dashboard).
+     * mọi thời điểm (trưởng tầng, dashboard). {@code commonFloorAreaIds}: tầng/khu của ca, chỉ gồm bản ghi không gắn
+     * người cao tuổi (việc chung, liều chung, Q-61, Q-85; khoanh vùng, bàn giao), không gồm người khác trên tầng.
      */
-    public record Grant(Set<Long> floorAreaIds, Set<Long> roomIds, Set<Long> residentIds, Instant from, Instant to) {
+    public record Grant(
+            Set<Long> floorAreaIds,
+            Set<Long> roomIds,
+            Set<Long> residentIds,
+            Set<Long> commonFloorAreaIds,
+            Instant from,
+            Instant to) {
 
         public static Grant always(ScopeFilter filter) {
-            return new Grant(filter.floorAreaIds(), filter.roomIds(), filter.residentIds(), null, null);
+            return always(filter, Set.of());
+        }
+
+        public static Grant always(ScopeFilter filter, Set<Long> commonFloorAreaIds) {
+            return new Grant(
+                    filter.floorAreaIds(), filter.roomIds(), filter.residentIds(), commonFloorAreaIds, null, null);
         }
 
         boolean matches(MetricRecord r) {
@@ -37,7 +49,10 @@ public record ReportScope(boolean facilityWide, List<Grant> grants) {
             }
             return (r.floorAreaId() != null && floorAreaIds.contains(r.floorAreaId()))
                     || (r.roomId() != null && roomIds.contains(r.roomId()))
-                    || (r.residentId() != null && residentIds.contains(r.residentId()));
+                    || (r.residentId() != null && residentIds.contains(r.residentId()))
+                    || (r.residentId() == null
+                            && r.floorAreaId() != null
+                            && commonFloorAreaIds.contains(r.floorAreaId()));
         }
     }
 
@@ -55,6 +70,7 @@ public record ReportScope(boolean facilityWide, List<Grant> grants) {
         Set<Long> residents = new HashSet<>();
         for (Grant g : grants) {
             floors.addAll(g.floorAreaIds());
+            floors.addAll(g.commonFloorAreaIds());
             rooms.addAll(g.roomIds());
             residents.addAll(g.residentIds());
         }
@@ -72,6 +88,7 @@ public record ReportScope(boolean facilityWide, List<Grant> grants) {
                 && grants.stream()
                         .allMatch(g -> g.floorAreaIds().isEmpty()
                                 && g.roomIds().isEmpty()
-                                && g.residentIds().isEmpty());
+                                && g.residentIds().isEmpty()
+                                && g.commonFloorAreaIds().isEmpty());
     }
 }

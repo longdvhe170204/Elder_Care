@@ -58,8 +58,8 @@ public class ReadinessCorrectionProvider implements CorrectableRecordProvider {
 
     @Override
     public boolean allows(
-            CurrentUser user, com.eldercare.backend.administration.correction.api.CreationMethod method, long id) {
-        return method == com.eldercare.backend.administration.correction.api.CreationMethod.B
+            CurrentUser user, com.eldercare.backend.administration.correction.api.dto.CreationMethod method, long id) {
+        return method == com.eldercare.backend.administration.correction.api.dto.CreationMethod.B
                 || permissions
                         .hasPermission(
                                 user,

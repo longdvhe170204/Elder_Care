@@ -1,5 +1,7 @@
 package com.eldercare.backend.administration.parameter.api;
 
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
 import java.time.Instant;
 
 /** Đọc tham số cấu hình lúc chạy (contracts/module-interfaces.md mục 1.4; FR-018, FR-019). */
