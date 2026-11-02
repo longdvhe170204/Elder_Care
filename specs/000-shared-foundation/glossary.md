@@ -1606,6 +1606,13 @@ Tên chính thức của C/D giữ theo feature sở hữu; các tên dưới đ
 | loại bảng chung của 008 | `M09.DEPARTMENT`, `M09.CREDENTIAL_TYPE`, `M09.PRACTICE_SCOPE`, `M09.SHIFT_TEMPLATE` (danh mục); thuộc tính `NGUOI_PHU_TRACH` của `BO_PHAN`, `CA` (lịch sử chung); `M09.SHIFT_PUBLICATION`, `M09.HANDOVER_COMMENT`, `M09.HANDOVER_REPLY`, `M09.STAFFING_RATIO_CALCULATION` (sự kiện); `M09.STAFF_IMPORT_BATCH` (hồ sơ chung); `M09.TANG:<id>` (khóa); `M09.JOB.<job>` (mốc đã nhắc) |
 
 
+### 14.17. Người nhận thông báo đính chính bàn giao (2026-10-27)
+
+| Tiếng Việt | Tên trong mã / cách dùng ở 008 |
+| --- | --- |
+| Người xác nhận bàn giao đã ghi | `confirmed_by` là mã tài khoản; đọc hồ sơ nhân viên qua `AccountApi.byId(...).staffId`, không dùng liên kết tài khoản cục bộ của M09 |
+| Người phụ trách ca hiện tại nhận đính chính | `RecipientGroup.ShiftLead(floorAreaId, Substitution.Default)` trong `HandoverCorrected`; M13 phân giải theo nhiệm vụ tại thời điểm gửi (FR-057) |
+
 ## 15. Feature 009 (`009-notification-service`, A) *(bổ sung 2026-10-21, khi dịch `contracts/api-009.yaml`)*
 
 Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với mã (R-03). Khuôn `common.notification` đã dịch ở mục 6.5 (`NotificationRequest`, `NotificationLevel`, `InformationType`, `RecipientGroup`, `Substitution`, `InformationSubject`, `Q354Case`) giữ nguyên.
@@ -1727,9 +1734,325 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 | loại bảng chung của 009 | `M13.NOTIFICATION_CHANNEL` (danh mục); `M13.NOTIFICATION_EVENT`, `M13.DELIVERY_ATTEMPT`, `M13.DELIVERY_RESULT`, `M13.CALL_REMINDER_NOTIFICATION`, `M13.CALL_REMINDER_HANDOFF`, `M13.CALL_RESULT`, `M13.DIRECT_CONTACT_RESULT` (sự kiện); `M13.DIRECT_CONTACT`, `M13.SMS_BATCH_WINDOW` (hồ sơ chung); `M13.REQUEST_DUPLICATE`, `M13.JOB_DONE` (mốc đã nhắc) |
 
 
-## 16. Feature 010 (`010-incurred-costs`, E)
+## 16. Feature 010 (`010-incurred-costs`, E) — bản dịch đã duyệt 2026-10-29
 
-*Chủ feature điền khi dịch `contracts/api-010.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+A/chủ dự án đã duyệt bản dịch hợp đồng 010 và bảng tên qua xác nhận của E trong phiên 2026-10-29. Đã bắt đầu phần hàm thuần M11; chưa cài HTTP. Mã FR/BR/DBR/CFG/Q giữ nguyên. Tên của API thuộc B/C/D do chủ nguồn chốt; không dùng bảng này để tự khai báo hoặc sửa API của họ. "Chốt" dịch là `finalize` theo yêu cầu tích hợp 016 ở team-plan mục 8.
+
+### 16.1. Đường dẫn HTTP (giữ nguyên phương thức và phạm vi)
+
+| Tên logic | Tên tiếng Anh đề xuất |
+| --- | --- |
+| `/chi-phi/ban-ghi-nguon` | `/costs/billing-sources` |
+| `/chi-phi/khoan/theo-su-kien` | `/costs/items/from-events` |
+| `/chi-phi/khoan/nhap-tay` | `/costs/items/manual` |
+| `/chi-phi/khoan/{id}/dieu-chinh` | `/costs/items/{id}/adjust` |
+| `/chi-phi/khoan/{id}` | `/costs/items/{id}` |
+| `/chi-phi/khoan/kiem-tra` | `/costs/items/check` |
+| `/chi-phi/khoan/{id}/bo-kiem-tra` | `/costs/items/{id}/uncheck` |
+| `/chi-phi/khoan/duyet` | `/costs/items/approve` |
+| `/chi-phi/khoan/{id}/tra-lai` | `/costs/items/{id}/return` |
+| `/chi-phi/khoan/{id}/huy` | `/costs/items/{id}/cancel` |
+| `/chi-phi/bien-dong-sau-chot` | `/costs/post-finalization-changes` |
+| `/chi-phi/bang` | `/costs/statements` |
+| `/chi-phi/bang/{id}` | `/costs/statements/{id}` |
+| `/chi-phi/bang/{id}/gui-chot` | `/costs/statements/{id}/submit-for-finalization` |
+| `/chi-phi/bang/{id}/tra-lai` | `/costs/statements/{id}/return` |
+| `/chi-phi/bang/{id}/chot` | `/costs/statements/{id}/finalize` |
+| `/chi-phi/ky` | `/costs/periods` |
+| `/de-nghi-mua-ho` | `/purchase-assistance-requests` |
+| `/de-nghi-mua-ho/{id}/gui` | `/purchase-assistance-requests/{id}/send` |
+| `/de-nghi-mua-ho/{id}/dong-y` | `/purchase-assistance-requests/{id}/agree` |
+| `/de-nghi-mua-ho/{id}/tu-choi` | `/purchase-assistance-requests/{id}/reject` |
+| `/de-nghi-mua-ho/{id}/xin-bo-sung` | `/purchase-assistance-requests/{id}/request-additional-consent` |
+| `/de-nghi-mua-ho/{id}/rut-bo-sung` | `/purchase-assistance-requests/{id}/withdraw-additional-consent` |
+| `/de-nghi-mua-ho/{id}/huy` | `/purchase-assistance-requests/{id}/cancel` |
+| `/de-nghi-mua-ho/{id}/ghi-da-mua` | `/purchase-assistance-requests/{id}/record-purchased` |
+| `/nguoi-cao-tuoi/{nctId}/chi-phi/bang` | `/residents/{residentId}/costs/statements` |
+| `/nguoi-cao-tuoi/{nctId}/chi-phi/tam-tinh` | `/residents/{residentId}/costs/provisional` |
+| `/chi-phi/ky/{id}/xuat` | `/costs/periods/{id}/export` |
+
+### 16.2. Schema, lỗi và thành phần hợp đồng
+
+| Tên logic | Tên tiếng Anh đề xuất |
+| --- | --- |
+| `LyDo` | `Reason` |
+| `LoaiNguon` | `BillingSourceType` |
+| `LoaiChiPhi` | `CostType` |
+| `Loi` | `Problem` |
+| `LoiChan` | `BlockingProblem` |
+| `BanGhiNguon` | `BillingSource` |
+| `LapTheoSuKien` | `CreateCostsFromEvents` |
+| `KetQuaHangLoat` | `CostBatchResult` |
+| `NhapTay` | `ManualCostItem` |
+| `DieuChinh` | `CostAdjustment` |
+| `ChonKhoan` | `CostItemSelection` |
+| `Khoan` | `CostItem` |
+| `Bang` | `CostStatement` |
+| `CanhBaoBienDong` | `CostChangeWarning` |
+| `DeNghiMuaHoMoi` | `NewPurchaseAssistanceRequest` |
+| `DeNghiMuaHo` | `PurchaseAssistanceRequest` |
+| `GhiDaMua` | `RecordPurchased` |
+| `TamTinh` | `ProvisionalCostSummary` |
+
+`NctId → ResidentId`, `phien → session`. Tag: `nguon → source`, `khoan → items`, `bang → statements`, `mua-ho → purchase-assistance`, `cung-cap → cost-access`. Request body và response dùng chung giữ tên tương ứng `Reason`, `Problem`, `BlockingProblem`.
+
+### 16.3. Trường JSON và tham số
+
+| Tên logic | Tên tiếng Anh đề xuất |
+| --- | --- |
+| `nctId` | `residentId` |
+| `loai` | `type` |
+| `tu` | `from` |
+| `den` | `to` |
+| `kyId` | `periodId` |
+| `trangThai` | `status` |
+| `lyDoChapNhanVuot` | `excessApprovalReason` |
+| `khoanIds` | `itemIds` |
+| `soTienMoi` | `newAmount` |
+| `lyDo` | `reason` |
+| `phamVi` | `scope` |
+| `dinhDang` | `format` |
+| `maLoi` | `errorCode` |
+| `dieuKienChuaThoa` | `unmetConditions` |
+| `loaiNguon` | `sourceType` |
+| `nguonId` | `sourceId` |
+| `donVi` | `unit` |
+| `ngayPhatSinh` | `incurredOn` |
+| `thoiDiem` | `occurredAt` |
+| `moTa` | `description` |
+| `soLuong` | `quantity` |
+| `heSo` | `factor` |
+| `dau` | `flags` |
+| `khoanHienCo` | `existingItemId` |
+| `nguonIds` | `sourceIds` |
+| `khoangNgay` | `dateRange` |
+| `thanhCong` | `succeededIds` |
+| `boQua` | `skipped` |
+| `khoanId` | `itemId` |
+| `donGia` | `unitPrice` |
+| `tepIds` | `fileIds` |
+| `soTien` | `amount` |
+| `loaiDieuChinh` | `adjustmentType` |
+| `bienDongId` | `sourceChangeId` |
+| `boLoc` | `filter` |
+| `bangId` | `statementId` |
+| `loaiChiPhi` | `costType` |
+| `nguonSinh` | `origin` |
+| `banGhiNguon` | `billingSource` |
+| `maVatPham` | `itemCode` |
+| `tenThuoc` | `medicationName` |
+| `canCuDonGia` | `unitPriceBasis` |
+| `khoanGocId` | `originalItemId` |
+| `kyGoc` | `originalPeriod` |
+| `lichSuTinhLai` | `recalculationHistory` |
+| `dieuChinh` | `adjustments` |
+| `tongHienHanh` | `currentTotal` |
+| `truongBiAn` | `hiddenFields` |
+| `ky` | `period` |
+| `loaiBang` | `statementType` |
+| `kyCuoi` | `finalPeriod` |
+| `denNgay` | `throughDate` |
+| `tongTheoLoai` | `totalsByType` |
+| `tong` | `total` |
+| `canhBaoBienDong` | `changeWarning` |
+| `tyLeTang` | `increaseRatio` |
+| `baLoaiTangNhieuNhat` | `topThreeIncreases` |
+| `vatPhamId` | `catalogItemId` |
+| `soTienDuKien` | `estimatedAmount` |
+| `nguoiYeuCau` | `requester` |
+| `soTienDuocPhep` | `allowedAmount` |
+| `dangChoBoSung` | `additionalConsentPending` |
+| `soDuKhongDu` | `insufficientBalance` |
+| `quyetDinh` | `decisions` |
+| `soTienThucTe` | `actualAmount` |
+| `ngayMua` | `purchasedOn` |
+| `tepChungTuId` | `receiptFileId` |
+| `lyDoMuaGap` | `urgentPurchase` |
+| `nguoiYeuCauMuaGapId` | `urgentPurchaseRequesterId` |
+| `nhan` | `label` |
+| `conKhoanChuaCoDonGia` | `hasUnpricedItems` |
+
+`nguon → source` trong dòng bị bỏ qua; `khoan → items` trong bảng chi phí. `urgentPurchase` giữ kiểu boolean của `lyDoMuaGap`; không đổi thành chuỗi lý do. Chuỗi nhãn `tạm tính, chưa chốt` vẫn bằng tiếng Việt. `flags` trong bộ lọc giữ kiểu string của bản gốc, còn danh sách dấu của bản ghi giữ kiểu array; chưa thêm enum dấu hoặc trường mới.
+
+### 16.4. Giá trị enum
+
+| Giá trị logic | Giá trị tiếng Anh đề xuất |
+| --- | --- |
+| `NGAY_LUU_TRU` | `RESIDENCY_DAY` |
+| `BUOI_BAN_TRU` | `DAY_CARE_SESSION` |
+| `KET_QUA_CONG_VIEC` | `CARE_TASK_RESULT` |
+| `LIEU` | `DOSE` |
+| `LAN_DUNG_PRN` | `PRN_ADMINISTRATION` |
+| `LAN_GIAO` | `DISPENSE_RECORD` |
+| `SUAT_AN_NGUOI_THAN` | `FAMILY_MEAL` |
+| `DEM_O_LAI` | `OVERNIGHT_STAY` |
+| `DIEM_DANH_HOAT_DONG` | `ACTIVITY_ATTENDANCE` |
+| `PHI_LUU_TRU` | `RESIDENCY_FEE` |
+| `PHI_BUOI_BAN_TRU` | `DAY_CARE_SESSION_FEE` |
+| `DICH_VU` | `SERVICE` |
+| `VAT_PHAM_TIEU_HAO` | `CONSUMABLE` |
+| `HOAT_DONG` | `ACTIVITY` |
+| `THUOC` | `MEDICATION` |
+| `NGUOI_THAN_O_LAI` | `FAMILY_OVERNIGHT_STAY` |
+| `MUA_HO` | `PURCHASE_ASSISTANCE` |
+| `KHOAN_KHAC` | `OTHER` |
+| `DANG_MO` | `OPEN` |
+| `CHO_CHOT` | `AWAITING_FINALIZATION` |
+| `DA_CHOT` | `FINALIZED` |
+| `NHAP` | `DRAFT` |
+| `DA_KIEM_TRA` | `CHECKED` |
+| `DA_DUYET` | `APPROVED` |
+| `DA_HUY` | `CANCELLED` |
+| `THEO_SU_KIEN` | `EVENT_BASED` |
+| `NHAP_TAY` | `MANUAL` |
+| `DIEU_CHINH` | `ADJUSTMENT` |
+| `THUONG` | `REGULAR` |
+| `BO_SUNG` | `SUPPLEMENTARY` |
+| `SUA_SAI_SAU_CHOT` | `POST_FINALIZATION_CORRECTION` |
+| `THEO_NGUON_DOI` | `SOURCE_CHANGE` |
+| `MIEN_GIAM` | `WAIVER` |
+| `BO_SUNG_PHAT_SINH_MUON` | `LATE_ADDITION` |
+| `NHAN_VIEN` | `STAFF` |
+| `NGUOI_THAN` | `FAMILY_MEMBER` |
+| `CHO_DONG_Y` | `AWAITING_CONSENT` |
+| `DUOC_PHEP_MUA` | `PURCHASE_ALLOWED` |
+| `TU_CHOI` | `REJECTED` |
+| `HUY` | `CANCELLED` |
+| `DA_MUA` | `PURCHASED` |
+| `TOAN_BO` | `ALL` |
+| `CHUA_TUNG_XUAT` | `NEVER_EXPORTED` |
+
+`DOSE`, `PRN_ADMINISTRATION`, `DISPENSE_RECORD` khớp tên nguồn đã công bố của 006; không sửa `medication.api.events.BilledSource`. Hủy khoản là `DA_HUY`, hủy đề nghị là `HUY`; cả hai dịch thành `CANCELLED` trong hai vòng đời riêng.
+
+### 16.5. Mã lỗi có trong hợp đồng gốc
+
+| Mã logic | Mã tiếng Anh đề xuất |
+| --- | --- |
+| `DIEU_KIEN_CHUA_THOA` | `CONDITION_NOT_MET` |
+| `DA_CO_KHOAN` | `COST_ITEM_ALREADY_EXISTS` |
+| `NGOAI_THOI_GIAN_TINH_PHI` | `OUTSIDE_BILLING_PERIOD` |
+| `NGAY_CHUA_KET_THUC` | `DAY_NOT_ENDED` |
+| `KHONG_PHAI_SU_KIEN_TINH_PHI` | `NOT_A_BILLABLE_EVENT` |
+| `CO_TRONG_DANH_MUC` | `ITEM_IN_CATALOG` |
+| `TONG_AM` | `NEGATIVE_TOTAL` |
+| `CON_KHOAN_NHAP` | `DRAFT_ITEMS_REMAIN` |
+| `CON_KHOAN_CHUA_DUYET` | `UNAPPROVED_ITEMS_REMAIN` |
+| `CHUA_QUA_NGAY_CUOI` | `PERIOD_NOT_ENDED` |
+| `BANG_DA_CHOT` | `STATEMENT_FINALIZED` |
+| `VUOT_SO_DUOC_PHEP` | `ALLOWED_AMOUNT_EXCEEDED` |
+| `DA_DUOC_XU_LY` | `ALREADY_PROCESSED` |
+| `CAN_LY_DO_CHAP_NHAN_VUOT` | `EXCESS_APPROVAL_REASON_REQUIRED` |
+| `KHONG_HO_TRO_DINH_CHINH` | `CORRECTION_NOT_SUPPORTED` |
+
+Các mã dùng chung `CONDITION_NOT_MET`, `ALREADY_PROCESSED`, `CORRECTION_NOT_SUPPORTED` theo mục 5 của glossary. Chưa bổ sung mã lỗi ngoài hợp đồng gốc.
+
+### 16.6. Tên Java của phần E
+
+| Tên logic | Tên tiếng Anh dự kiến |
+| --- | --- |
+| `ChiPhiCongNguoiThanApi` | `FamilyPortalCostApi` |
+| `ChiPhiKyCuoiApi` | `FinalPeriodCostApi` |
+| `ChiPhiThongKeApi` | `CostStatisticsApi` |
+| `SuKienTinhPhiNguon` | `CostSourceBilled` |
+| `SuKienTinhPhiNguonDaDoi` | `CostSourceChanged` |
+| `BangChiPhiDaChot` | `CostStatementFinalized` |
+| `DeNghiMuaHoDaGui` | `PurchaseAssistanceSent` |
+| `DeNghiMuaHoDaQuyetDinh` | `PurchaseAssistanceDecided` |
+| `DeNghiMuaHoDaHuy` | `PurchaseAssistanceCancelled` |
+| `DeNghiMuaHoDaMua` | `PurchaseAssistancePurchased` |
+| `KhoanChiPhiDaDoi` | `CostItemChanged` |
+| `ChiPhiChoSoDuPort` | `CostForBalancePort` |
+| `SoDuMuaHoPort` | `PurchaseBalancePort` |
+| `LamTronDong` | `DongRounding` |
+| `PhiNgayLuuTru` | `ResidencyDayFee` |
+| `PhiBuoiBanTru` | `DayCareSessionFee` |
+| `ThoiGianTinhPhi` | `BillingPeriod` |
+
+Đã cài `DongRounding`, `ResidencyDayFee`, `DayCareSessionFee` tại `billing.internal.pricing.domain`. `round` trả BigDecimal số nguyên đồng; `base` tính giá cơ sở. Theo Q-395, `ResidencyDayFee.monthly(monthlyPrice, date)` và `direct(dailyPrice)` dùng đủ giá, không nhận hệ số. Chỉ `DayCareSessionFee.monthly`/`direct` áp `factorPercent` từ nguồn; tham số này là phần trăm (30 nghĩa là 30%, theo data-model 010); `scheduledSessionCount` là số buổi có lịch sau lọc ngày khu nghỉ do nguồn cung cấp; `lastScheduledSession` xác định buổi có lịch cuối tháng. Chưa có adapter đọc/lọc nguồn hoặc `BillingPeriod`. T003/T004 đã khai báo các API/port/sự kiện bên trên và fake chung; chưa có bản cài thật hoặc nơi phát sự kiện.
+
+Ba API công khai và sự kiện đặt trong `billing.api`, `dto`, `events`; bản giả do E giữ tại `support/fake/billing/`. Port số dư nội bộ chỉ cho phần 017/019 của M11. Không tạo gói rỗng; lớp hàm thuần đặt trong `billing.internal.pricing.domain`, các tầng khác theo backend/README.md. Web `features/charges`, app `family/charges` theo README; 010 không có màn app nhân viên.
+
+#### 16.6.1. Kiểu và hàm trao đổi đã khai báo T003/T004
+
+| Tên logic / ý nghĩa | Tên tiếng Anh |
+| --- | --- |
+| Bảng chi phí, khoản chi phí, bản ghi nguồn | CostStatementView, CostItemView, BillingSourceView |
+| Tổng theo loại, tạm tính | CostTypeTotal, ProvisionalCostSummaryView |
+| Đề nghị mua hộ, người yêu cầu | PurchaseAssistanceView, PurchaseRequesterView |
+| Điều kiện chi phí kỳ cuối | FinalPeriodConditionView (satisfied, reasons) |
+| Dòng khoản/bảng/kỳ cho báo cáo | CostItemReportView, CostStatementReportView, CostPeriodView |
+| Loại chi phí, loại bảng, trạng thái đề nghị | CostType, CostStatementType, PurchaseAssistanceStatus |
+| Bảng đã chốt cho người thân | FamilyPortalCostApi.finalizedStatements |
+| Tạm tính, đề nghị chờ đồng ý | FamilyPortalCostApi.provisional, awaitingConsent |
+| Điều kiện kỳ cuối | FinalPeriodCostApi.finalPeriodCondition |
+| Khoản, bảng, kỳ thống kê | CostStatisticsApi.items, statements, periods |
+| Tổng chưa chốt, phí ngày cơ sở | CostForBalancePort.unfinalizedTotal, baseDailyFee |
+| Số dư không đủ | PurchaseBalancePort.insufficientBalance |
+| Khóa sự kiện, số lượng mới, đã hủy, căn cứ | eventKey, newQuantity, cancelled, basis |
+| Mã bảng, thời điểm chốt, mã đề nghị | statementId, finalizedAt, requestId |
+
+CostForBalancePort ở billing.internal.provision.domain; PurchaseBalancePort ở billing.internal.purchase.domain. Bản giả duy nhất: FakeFamilyPortalCosts, FakeFinalPeriodCosts, FakeCostStatistics, FakeCostForBalance, FakePurchaseBalance; cấu hình test FakeM11Config ở support.fake.billing. Tất cả chỉ là khai báo/bản giả ở lượt này. Chữ ký Java chi tiết ở contracts/module-interfaces 010 mục 4; chưa có bangDaChot của T037, chưa sửa trường/endpoint HTTP.
+
+### 16.7. Vị trí lưu sau R-15 (2026-10-30)
+
+Ba bảng riêng đã có trong V010_01__costs.sql; các loại ở bảng chung chỉ là ánh xạ của E, còn chờ A/000 T108 cung cấp API/bảng, không đọc/ghi trực tiếp.
+
+| Tên logic | Vị trí thực tế sau gộp |
+| --- | --- |
+| ky_chi_phi | cost_statement, kind PERIOD |
+| bang_chi_phi | cost_statement, kind STATEMENT |
+| bang_chi_phi_tong_loai | cost_statement.totals_by_type (JSON) |
+| khoan_chi_phi | cost_item |
+| su_kien_tinh_phi | cost_source_index |
+| chi_phi_nct | ResidentModuleStateApi, module M11, dữ liệu finalCostCompletedFrom |
+| lich_su_tinh_lai | StatusHistoryApi, M11.COST_RECALCULATION |
+| bien_dong_nguon_sau_chot | RecordEventApi, M11.POST_FINALIZATION_CHANGE |
+| de_nghi_mua_ho | SimpleRecordApi, M11.PURCHASE_ASSISTANCE_REQUEST |
+| de_nghi_gui_nguoi_dai_dien | RecordEventApi, M11.PURCHASE_RECIPIENT |
+| quyet_dinh_mua_ho | RecordEventApi, M11.PURCHASE_DECISION |
+| su_kien_nguon_da_xu_ly | ReminderMarkers, M11.SOURCE_PROCESSED |
+| lan_xuat_ke_toan, lan_xuat_bang | Hành động nhật ký qua AuditLogApi |
+| lan_chay_m11 | Structured log logs/jobs.log |
+
+Không tạo các tên bảng legacy resident_cost_guard, cost_period, cost_statement_type_total, cost_recalculation_history, post_finalization_source_change, cost_source_event_processed, purchase_assistance_request/recipient/decision, cost_export/statement hoặc cost_scheduler_run.
+
+### 16.8. Tên cột và dấu của T005a
+
+| Tên logic | Tên mã |
+| --- | --- |
+| Loại dòng kỳ/bảng | kind: PERIOD/STATEMENT |
+| Tháng, ngày đầu/cuối tháng | period_month, period_starts_on, period_ends_on |
+| Kỳ, bảng, người cao tuổi | period_id, statement_id, resident_id |
+| Loại bảng, kỳ cuối, tính tới ngày | statement_type, final_period, through_date |
+| Hạn chốt, tổng theo loại, tổng | finalization_due_on, totals_by_type, total |
+| Gửi chốt, cảnh báo biến động | submitted_by, submitted_at, change_warning |
+| Chốt, tham chiếu xuất đầu, khóa dòng | finalized_by, finalized_at, first_export_id, locked_at |
+| Khóa duy nhất đối chiếu bởi CHECK | unique_key |
+| Loại khoản, nguồn sinh | cost_type, origin |
+| Loại nguồn, mã nguồn, đơn vị tính phí | source_type, source_id, billing_unit |
+| Đề nghị, dịch vụ, mã vật phẩm | purchase_assistance_id, service_id, item_code |
+| Mô tả, ngày/thời điểm phát sinh | description, incurred_on, occurred_at |
+| Số lượng, đơn vị, đơn giá, hệ số, tiền | quantity, unit, unit_price, factor_percent, amount |
+| Căn cứ giá, giá trị nguồn đã dùng, dấu, lý do | unit_price_basis, source_values, flags, reason |
+| Khoản/kỳ gốc, loại điều chỉnh, biến động nguồn | original_item_id, original_period_id, adjustment_type, source_change_id |
+| Kiểm/duyệt, chấp nhận vượt, hủy | checked_by/at, approved_by/at, excess_approval_reason, cancelled_by, cancellation_reason |
+| Phiên bản, lập bởi/lúc | version, created_by, created_at |
+| Thuốc nguồn, số lượng hiện hành, đã hủy, cập nhật | medication_id, current_quantity, cancelled, updated_at |
+| Cổng nội bộ khi tính lại | @m11_recalculating |
+| Fixture nguồn chung, test schema | FakeCostSources, CostSchemaIT, CostSourceFixtureTest |
+
+| Dấu logic | Giá trị mã (SET) |
+| --- | --- |
+| THUOC_GOI | INCLUDED_IN_PACKAGE |
+| THIEU_DON_GIA | MISSING_UNIT_PRICE |
+| CHUA_VAO_O | NOT_YET_MOVED_IN |
+| LAP_TRUOC | CREATED_IN_ADVANCE |
+| PHAT_SINH_THUOC_KY_DA_CHOT | AFTER_FINALIZED_PERIOD |
+| VUOT_SO_DONG_Y | EXCEEDS_CONSENT |
+| MUA_GAP_VUOT | URGENT_EXCESS |
+| ANH_HUONG_KET_THUC | AFFECTS_TERMINATION |
+
+Cột tiền/đơn giá là DECIMAL(15,0), số lượng DECIMAL(10,2), hệ số phần trăm DECIMAL(5,2), thời điểm DATETIME(6), id BIGINT. JSON tiền vẫn integer/int64. Kind của dòng SQL không mở rộng statementType trong REST. JSON ở bảng chung theo data-model 010 mục 0.1; chưa tự khai báo chữ ký Java của A.
 
 ## 17. Feature 011 (`011-nutrition-management`, D)
 
