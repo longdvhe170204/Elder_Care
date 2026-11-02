@@ -75,7 +75,7 @@ class VitalSignSchemaIT extends MySqlIntegrationTestBase {
             assertThatThrownBy(() -> execute(
                             admin,
                             "INSERT INTO vital_sign_record SELECT " + (id + 1)
-                                    + ",resident_id,indicator_id,DATE_ADD(created_at,INTERVAL 1 SECOND),measured_by,task_id,device_measured_at,offline,threshold_version_id,level,confirmation_status,remeasurement_deadline,remeasurement_for,components,labels,note,confirmed_at,locked_at,created_at,created_by FROM vital_sign_record WHERE id="
+                                    + ",resident_id,indicator_id,DATE_ADD(created_at,INTERVAL 1 SECOND),measured_by,task_id,device_measured_at,offline,threshold_version_id,level,confirmation_status,remeasurement_deadline,remeasurement_for,components,labels,note,confirmed_at,locked_at,created_at,created_by,synced_after_permission_loss FROM vital_sign_record WHERE id="
                                     + id))
                     .isInstanceOf(SQLException.class)
                     .hasMessageContaining("chk_vital_sign_measured_at");
@@ -103,7 +103,7 @@ class VitalSignSchemaIT extends MySqlIntegrationTestBase {
                                 "INSERT INTO vital_sign_record SELECT " + rejectedId
                                         + ",resident_id,indicator_id,measured_at,measured_by,task_id,device_measured_at,offline,threshold_version_id,level,confirmation_status,remeasurement_deadline,remeasurement_for,CAST('"
                                         + components
-                                        + "' AS JSON),labels,note,confirmed_at,locked_at,created_at,created_by FROM vital_sign_record WHERE id="
+                                        + "' AS JSON),labels,note,confirmed_at,locked_at,created_at,created_by,synced_after_permission_loss FROM vital_sign_record WHERE id="
                                         + id))
                         .isInstanceOf(SQLException.class)
                         .hasMessageContaining("chk_vital_sign_components");

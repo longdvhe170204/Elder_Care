@@ -10,6 +10,48 @@ import org.springframework.context.annotation.Primary;
 public class FakeM05Config {
     @Bean
     @Primary
+    public FakeIncidents fakeIncidents(FakeAlerts alerts) {
+        return new FakeIncidents(alerts);
+    }
+
+    @Bean
+    @Primary
+    public FakeAlerts fakeAlerts() {
+        return new FakeAlerts();
+    }
+
+    @Bean
+    @Primary
+    public FakeIsolation fakeIsolation() {
+        return new FakeIsolation();
+    }
+
+    @Bean
+    @Primary
+    public FakeFamilyPortalHealth fakeFamilyPortalHealth() {
+        return new FakeFamilyPortalHealth();
+    }
+
+    @Bean
+    @Primary
+    public FakeIncidentStatistics fakeIncidentStatistics() {
+        return new FakeIncidentStatistics();
+    }
+
+    @Bean
+    @Primary
+    public FakeIncidentCommands fakeIncidentCommands() {
+        return new FakeIncidentCommands();
+    }
+
+    @Bean
+    @Primary
+    public com.eldercare.backend.incident.api.AlertCommandApi fakeAlertCommands(FakeIncidentCommands commands) {
+        return commands::acknowledgeAlert;
+    }
+
+    @Bean
+    @Primary
     public FakeEmergencyFamily fakeEmergencyFamily() {
         return new FakeEmergencyFamily();
     }

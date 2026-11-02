@@ -33,84 +33,84 @@ tags:
 
 paths:
   # ---------------- Danh mục ----------------
-  /chi-so-danh-muc:
+  /vital-sign-catalog:
     get:
       tags: [danh-muc]
       summary: Danh mục chỉ số, kèm khoảng hợp lệ hiện hành từ CFG-M06-03 và dấu chuaCoKhoangHopLe
       x-fr: [FR-001]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ChiSo' } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/VitalSignIndicator' } } } } } }
     post:
       tags: [danh-muc]
       summary: Thêm chỉ số (Quản lý viện); khoảng hợp lệ thêm ở CFG-M06-03
       x-fr: [FR-001, FR-002]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ChiSo' } } } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/VitalSignIndicator' } } } }
       responses: { '201': { description: Đã thêm }, '403': { $ref: '#/components/responses/Loi' } }
-  /chi-so-danh-muc/{id}:
+  /vital-sign-catalog/{id}:
     put:
       tags: [danh-muc]
       summary: Sửa tên, đơn vị, nhóm sinh hiệu (Quản lý viện)
       x-fr: [FR-002]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ChiSo' } } } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/VitalSignIndicator' } } } }
       responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Loi' } }
-  /chi-so-danh-muc/{id}/ngung-hieu-luc:
+  /vital-sign-catalog/{id}/deactivate:
     post:
       tags: [danh-muc]
       summary: Ngừng hiệu lực chỉ số
       x-fr: [FR-002]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/LyDo' }
+      requestBody: { $ref: '#/components/requestBodies/Reason' }
       responses: { '200': { description: OK } }
-  /quy-tac-xu-huong:
+  /trend-rules:
     get:
       tags: [danh-muc]
       summary: Danh mục quy tắc xu hướng
       x-fr: [FR-039]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/QuyTacXuHuong' } } } } } }
-  /quy-tac-xu-huong/{ma}:
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/TrendRule' } } } } } }
+  /trend-rules/{code}:
     put:
       tags: [danh-muc]
       summary: Bật/tắt, đổi mức (Quản lý viện; lý do bắt buộc)
       x-fr: [FR-039]
       x-br: [BR-M05-04, BR-M15-04]
-      parameters: [ { name: ma, in: path, required: true, schema: { type: string, enum: [SUT_CAN, BO_LO_LAN_DO, MAT_NGU_KEO_DAI, TU_CHOI_THUOC] } }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [bat, muc, lyDo], properties: { bat: { type: boolean }, muc: { $ref: '#/components/schemas/Muc' }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
+      parameters: [ { name: code, in: path, required: true, schema: { type: string, enum: [WEIGHT_LOSS, MISSED_MEASUREMENT, PROLONGED_INSOMNIA, MEDICATION_REFUSAL] } }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [enabled, level, reason], properties: { enabled: { type: boolean }, level: { $ref: '#/components/schemas/IncidentLevel' }, reason: { $ref: '#/components/schemas/Reason' } } } } } }
       responses: { '200': { description: OK }, '412': { $ref: '#/components/responses/Loi' }, '422': { $ref: '#/components/responses/Loi' } }
-  /loai-su-co:
+  /incident-types:
     get:
       tags: [danh-muc]
       summary: Danh mục loại sự cố (mức mặc định, dấu không thuộc sức khỏe)
       x-fr: [FR-042]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LoaiSuCo' } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/IncidentType' } } } } } }
     post:
       tags: [danh-muc]
       summary: Thêm loại sự cố (Quản lý viện)
       x-fr: [FR-042]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LoaiSuCo' } } } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/IncidentType' } } } }
       responses: { '201': { description: Đã thêm } }
-  /loai-su-co/{id}:
+  /incident-types/{id}:
     put:
       tags: [danh-muc]
       summary: Sửa loại sự cố, gồm dấu khongThuocSucKhoe (nhật ký trước/sau)
       x-fr: [FR-042]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IfMatch' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LoaiSuCo' } } } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/IncidentType' } } } }
       responses: { '200': { description: OK } }
-  /loai-dien-bien:
+  /progression-types:
     get:
       tags: [danh-muc]
       summary: Danh mục loại diễn biến, có dấu bienPhapHoiSuc
       x-fr: [FR-048a]
       x-br: [BR-M05-20]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/LoaiDienBien' } } } } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ProgressionType' } } } } } }
     post:
       tags: [danh-muc]
       summary: Thêm loại diễn biến (Quản lý viện)
       x-fr: [FR-048a]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/LoaiDienBien' } } } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ProgressionType' } } } }
       responses: { '201': { description: Đã thêm } }
 
   # ---------------- Lịch đo ----------------
@@ -819,6 +819,9 @@ components:
     IfMatch: { name: If-Match, in: header, required: true, schema: { type: string } }
     IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
   requestBodies:
+    Reason:
+      required: true
+      content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { $ref: '#/components/schemas/Reason' } } } } }
     LyDo:
       required: true
       content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } }
@@ -919,29 +922,31 @@ components:
         khoangHopLe: { type: object, description: 'NGOAI_KHOANG_VAT_LY: { maThanhPhan: { min, max } }' }
         suCoDangMo: { type: integer, format: int64, description: 'DA_CO_SU_CO_KHAN_CAP_MO' }
         nguyenVong: { type: object, description: 'CHUA_DOI_CHIEU_NGUYEN_VONG' }
-    ChiSo:
+    Reason: { type: string, minLength: 1, maxLength: 2000 }
+    IncidentLevel: { type: string, enum: [LOW, MEDIUM, CRITICAL] }
+    VitalSignIndicator:
       type: object
-      required: [ma, ten, donVi, thanhPhan]
+      required: [code, name, unit, components]
       properties:
         id: { type: integer, format: int64 }
-        ma: { type: string }
-        ten: { type: string }
-        donVi: { type: string }
-        sinhHieu: { type: boolean }
-        thanhPhan: { type: array, minItems: 1, items: { type: object, properties: { ma: { type: string }, ten: { type: string }, soChuSoThapPhan: { type: integer } } } }
-        khoangHopLe: { type: object, readOnly: true, description: 'Từ CFG-M06-03' }
-        chuaCoKhoangHopLe: { type: boolean, readOnly: true }
-        hieuLuc: { type: boolean }
-    QuyTacXuHuong:
+        code: { type: string }
+        name: { type: string }
+        unit: { type: string }
+        vitalSign: { type: boolean }
+        components: { type: array, minItems: 1, items: { type: object, properties: { code: { type: string }, name: { type: string }, decimalPlaces: { type: integer } } } }
+        validRange: { type: object, readOnly: true, description: 'Từ CFG-M06-03' }
+        missingValidRange: { type: boolean, readOnly: true }
+        active: { type: boolean }
+    TrendRule:
       type: object
-      properties: { ma: { type: string }, ten: { type: string }, bat: { type: boolean }, muc: { $ref: '#/components/schemas/Muc' }, maThamSo: { type: string } }
-    LoaiSuCo:
+      properties: { code: { type: string }, name: { type: string }, enabled: { type: boolean }, level: { $ref: '#/components/schemas/IncidentLevel' }, parameterCode: { type: string } }
+    IncidentType:
       type: object
-      required: [ma, ten, mucMacDinh]
-      properties: { id: { type: integer, format: int64 }, ma: { type: string }, ten: { type: string }, mucMacDinh: { $ref: '#/components/schemas/Muc' }, khongThuocSucKhoe: { type: boolean }, choPhepKhongNct: { type: boolean, readOnly: true }, hieuLuc: { type: boolean } }
-    LoaiDienBien:
+      required: [code, name, defaultLevel]
+      properties: { id: { type: integer, format: int64 }, code: { type: string }, name: { type: string }, defaultLevel: { $ref: '#/components/schemas/IncidentLevel' }, nonHealth: { type: boolean }, allowsNoResident: { type: boolean, readOnly: true }, active: { type: boolean } }
+    ProgressionType:
       type: object
-      properties: { id: { type: integer, format: int64 }, ma: { type: string }, ten: { type: string }, nhom: { type: string, enum: [DANH_GIA, HANH_DONG, THONG_BAO, THEO_DOI, HE_THONG] }, bienPhapHoiSuc: { type: boolean } }
+      properties: { id: { type: integer, format: int64 }, code: { type: string }, name: { type: string }, group: { type: string, enum: [EVALUATION, ACTION, NOTIFICATION, MONITORING, SYSTEM] }, resuscitation: { type: boolean } }
     LichDoMoi:
       type: object
       required: [chiSoIds, tanSuat, batDau]

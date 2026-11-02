@@ -32,9 +32,21 @@ export const NAV_GROUPS = [
     label: null,
     items: [
       // Dòng "Dashboard, báo cáo"
-      { key: 'dashboard', label: 'Tổng quan', icon: 'LayoutDashboard', functions: ['DASHBOARD_REPORT'], roles: [QL, TT, BS, DD, HC, KT] },
+      {
+        key: 'dashboard',
+        label: 'Tổng quan',
+        icon: 'LayoutDashboard',
+        functions: ['DASHBOARD_REPORT'],
+        roles: [QL, TT, BS, DD, HC, KT],
+      },
       // Dòng "Dashboard, báo cáo" (016; tab theo bảng FR-010 trong màn)
-      { key: 'reports', label: 'Báo cáo', icon: 'ChartColumn', functions: ['DASHBOARD_REPORT'], roles: [QL, TT, BS, DD, HC, KT] },
+      {
+        key: 'reports',
+        label: 'Báo cáo',
+        icon: 'ChartColumn',
+        functions: ['DASHBOARD_REPORT'],
+        roles: [QL, TT, BS, DD, HC, KT],
+      },
       // Yêu cầu phê duyệt (000 US5): mọi vai trò nhân viên lập hoặc duyệt được tùy loại yêu cầu; danh sách do backend lọc theo phạm vi
       {
         key: 'approval-requests',
@@ -49,24 +61,70 @@ export const NAV_GROUPS = [
       // viện), Phụ lục 27 không có dòng riêng; người khác thấy danh sách trống
       { key: 'pending-review-records', label: 'Chờ xem lại', icon: 'CloudOff', roles: [QL, TT, BS, DD, CS] },
       // Dòng "Hồ sơ người cao tuổi"
-      { key: 'residents', label: 'Người cao tuổi', icon: 'Users', functions: ['RESIDENT_PROFILE'], roles: [QL, TT, BS, DD, CS, HC, NT, KT] },
+      {
+        key: 'residents',
+        label: 'Người cao tuổi',
+        icon: 'Users',
+        functions: ['RESIDENT_PROFILE'],
+        roles: [QL, TT, BS, DD, CS, HC, NT, KT],
+      },
     ],
   },
   {
     label: 'Trong ca',
     items: [
       // Dòng "Checklist, ghi nhận công việc"
-      { key: 'care-tasks', label: 'Checklist ca', icon: 'ListChecks', functions: ['TASK_CHECKLIST'], roles: [QL, TT, BS, DD, CS] },
+      {
+        key: 'care-tasks',
+        label: 'Checklist ca',
+        icon: 'ListChecks',
+        functions: ['TASK_CHECKLIST'],
+        roles: [QL, TT, BS, DD, CS],
+      },
       // Dòng "Phát thuốc, thuốc khi cần"
-      { key: 'medication', label: 'Phát thuốc', icon: 'Pill', functions: ['MEDICATION_ADMINISTRATION'], roles: [QL, TT, BS, DD] },
+      {
+        key: 'medication',
+        label: 'Phát thuốc',
+        icon: 'Pill',
+        functions: ['MEDICATION_ADMINISTRATION'],
+        roles: [QL, TT, BS, DD],
+      },
       // Dòng "Danh mục thuốc"
-      { key: 'medication-catalog', label: 'Danh mục thuốc', icon: 'BookOpen', functions: ['MEDICATION_CATALOG'], roles: [QL, BS, DD] },
+      {
+        key: 'medication-catalog',
+        label: 'Danh mục thuốc',
+        icon: 'BookOpen',
+        functions: ['MEDICATION_CATALOG'],
+        roles: [QL, BS, DD],
+      },
       // Dòng "Xử lý cảnh báo"
       { key: 'alerts', label: 'Cảnh báo', icon: 'Bell', functions: ['ALERT_HANDLING'], roles: [QL, TT, BS, DD, CS] },
       // Dòng "Sự cố, khẩn cấp"
-      { key: 'incidents', label: 'Sự cố', icon: 'TriangleAlert', functions: ['INCIDENT_EMERGENCY'], roles: [QL, TT, BS, DD, CS, BEP, HC, NT, KT] },
+      {
+        key: 'incidents',
+        label: 'Sự cố',
+        icon: 'TriangleAlert',
+        functions: ['INCIDENT_EMERGENCY'],
+        roles: [QL, TT, BS, DD, CS, BEP, HC, NT, KT],
+      },
+      // Dòng "Danh mục sức khỏe" (007 T009)
+      {
+        key: 'health-catalog',
+        label: 'Danh mục sức khỏe',
+        icon: 'BookOpen',
+        functions: ['ACCOUNT_PERMISSION_PARAMETER'],
+        roles: [QL, BS, DD],
+      },
+      // Dòng "Danh mục sức khỏe" (007 T009)
+      { key: 'health-catalog', label: 'Danh mục sức khỏe', icon: 'BookOpen', functions: ['ACCOUNT_PERMISSION_PARAMETER'], roles: [QL, BS, DD] },
       // Dòng "Bàn giao ca"
-      { key: 'handovers', label: 'Bàn giao ca', icon: 'ArrowLeftRight', functions: ['SHIFT_HANDOVER'], roles: [QL, TT, BS, DD, CS] },
+      {
+        key: 'handovers',
+        label: 'Bàn giao ca',
+        icon: 'ArrowLeftRight',
+        functions: ['SHIFT_HANDOVER'],
+        roles: [QL, TT, BS, DD, CS],
+      },
     ],
   },
   {
@@ -75,9 +133,21 @@ export const NAV_GROUPS = [
       // Dòng Hồ sơ nhân viên, chứng chỉ (Phụ lục 27): Quản lý viện T, Trưởng tầng X.
       { key: 'staff', label: 'Nhân sự', icon: 'Users', functions: ['STAFF_PROFILE'], roles: [QL, TT] },
       // Dòng "Phân bổ, chuyển giường" và "Cách ly phòng"
-      { key: 'beds', label: 'Phòng, giường', icon: 'BedDouble', functions: ['BED_ALLOCATION', 'ROOM_ISOLATION'], roles: [QL, TT, HC, BS] },
+      {
+        key: 'beds',
+        label: 'Phòng, giường',
+        icon: 'BedDouble',
+        functions: ['BED_ALLOCATION', 'ROOM_ISOLATION'],
+        roles: [QL, TT, HC, BS],
+      },
       // Dòng "Lịch ca, phân công"
-      { key: 'shifts', label: 'Lịch ca', icon: 'CalendarDays', functions: ['SHIFT_SCHEDULE'], roles: [QL, TT, BS, DD, CS, BEP, HC] },
+      {
+        key: 'shifts',
+        label: 'Lịch ca',
+        icon: 'CalendarDays',
+        functions: ['SHIFT_SCHEDULE'],
+        roles: [QL, TT, BS, DD, CS, BEP, HC],
+      },
       // Dòng "Suất ăn đã chốt, phiếu bữa ăn"
       { key: 'meals', label: 'Suất ăn', icon: 'Utensils', functions: ['MEAL_COUNT_TICKET'], roles: [QL, TT, BS, BEP] },
     ],
@@ -86,22 +156,52 @@ export const NAV_GROUPS = [
     label: 'Hành chính, tài chính',
     items: [
       // Dòng "Tiếp nhận, hợp đồng, đặt cọc"
-      { key: 'admissions', label: 'Tiếp nhận, hợp đồng', icon: 'FileSignature', functions: ['ADMISSION_CONTRACT_DEPOSIT'], roles: [QL, HC, NT, KT] },
+      {
+        key: 'admissions',
+        label: 'Tiếp nhận, hợp đồng',
+        icon: 'FileSignature',
+        functions: ['ADMISSION_CONTRACT_DEPOSIT'],
+        roles: [QL, HC, NT, KT],
+      },
       // Dòng "Chi phí, khoản điều chỉnh"
       { key: 'charges', label: 'Chi phí', icon: 'Receipt', functions: ['COST_ADJUSTMENT'], roles: [QL, HC, NT, KT] },
       // Dòng "Mong muốn về khách thăm, người đón" (Q-364); người thân và quyền (dòng "Người thân và quyền") thêm khi thiết kế 012
-      { key: 'relatives', label: 'Người thân', icon: 'HeartHandshake', functions: ['VISITOR_PREFERENCE'], roles: [QL, TT, DD, HC] },
+      {
+        key: 'relatives',
+        label: 'Người thân',
+        icon: 'HeartHandshake',
+        functions: ['VISITOR_PREFERENCE'],
+        roles: [QL, TT, DD, HC],
+      },
       // Dòng "Đăng ký thăm"
-      { key: 'visits', label: 'Đăng ký thăm', icon: 'CalendarCheck', functions: ['VISIT_REGISTRATION'], roles: [QL, TT, HC, NT] },
+      {
+        key: 'visits',
+        label: 'Đăng ký thăm',
+        icon: 'CalendarCheck',
+        functions: ['VISIT_REGISTRATION'],
+        roles: [QL, TT, HC, NT],
+      },
     ],
   },
   {
     label: 'Quản trị',
     items: [
       // Dòng "Tài khoản, phân quyền, tham số"
-      { key: 'admin', label: 'Tài khoản, tham số', icon: 'Settings', functions: ['ACCOUNT_PERMISSION_PARAMETER'], roles: [QL, HC] },
+      {
+        key: 'admin',
+        label: 'Tài khoản, tham số',
+        icon: 'Settings',
+        functions: ['ACCOUNT_PERMISSION_PARAMETER'],
+        roles: [QL, HC],
+      },
       // Dòng "Nhật ký thay đổi"
-      { key: 'audit-log', label: 'Nhật ký thay đổi', icon: 'History', functions: ['AUDIT_LOG'], roles: [QL, TT, BS, DD, CS, BEP, HC, KT] },
+      {
+        key: 'audit-log',
+        label: 'Nhật ký thay đổi',
+        icon: 'History',
+        functions: ['AUDIT_LOG'],
+        roles: [QL, TT, BS, DD, CS, BEP, HC, KT],
+      },
     ],
   },
 ]
