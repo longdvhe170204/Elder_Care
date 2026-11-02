@@ -24,7 +24,7 @@ frontend/ npm ci && npm test && npm run dev
 mobile/   flutter test
 ```
 
-Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (chiều `m05 → m06`; không có vòng 007 ↔ 008, 007 ↔ 009, 007 ↔ 012, 007 ↔ 014), test cơ sở dữ liệu (data-model mục 12), test đồng thời và các nhóm test ở mục 4.
+Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (chiều `incident → health`; không có vòng 007 ↔ 008, 007 ↔ 009, 007 ↔ 012, 007 ↔ 014), test cơ sở dữ liệu (data-model mục 12), test đồng thời và các nhóm test ở mục 4.
 
 ## 3. Kịch bản kiểm chứng đầu–cuối (profile demo)
 
@@ -107,7 +107,7 @@ Kết quả mong đợi: `verify` xanh, gồm Modulith `verify()` (chiều `m05 
 | Giấy phép, khám | `BR_M06_05_PhamViKhamIT`, `FR_072_DieuDuongGhiKhamIT`, `GiayPhepTriggerIT` | Q50, Q51 |
 | Nguy kịch | `BR_M05_15_NguyKichIT`, `DBR_34_DauNguyKichIT`, `BR_M05_16_XacNhanLaiIT`, `FR_050d_LuaChonIT` | Q53 → Q56 |
 | Trạng thái cuối, chạy bù | `FR_038_TrangThaiCuoiIT`, `KT_D_CanhBaoSuCoIT`, `BR_M05_25_ChayBuIT` | Q57, Q58 |
-| Kiến trúc | `ApplicationModules.verify()`; ArchUnit: `m06` không phụ thuộc `m05`; `m05`, `m06` không gọi API của 008, 009, 012, 014 (chỉ qua SPI mục 2.1); gói `..lich..` không tạo bản ghi nghiệp vụ | |
+| Kiến trúc | `ApplicationModules.verify()`; ArchUnit: `health` không phụ thuộc `incident`; `incident`, `health` không gọi API của 008, 009, 012, 014 (chỉ qua SPI mục 2.1); gói `..lich..` không tạo bản ghi nghiệp vụ | |
 | Web (Vitest) | Màn cảnh báo (lệnh theo `lenhDuocPhep`, 409 đã có người tiếp nhận); màn sự cố (chặn hồi sức, thẻ chỉ nhận dạng); tra cứu tiếp xúc không chọn sẵn ai | Q13, Q28, Q44 |
 | App (`flutter_test`) | `KichHoatKhanCapKhongNgoaiTuyenTest`, `GhiChiSoNgoaiTuyenTest`, `KetQuaDongBoChiSoTest` (BR-M15-20), `DoLaiTest`, `TheKhanCapTest` | Q2, Q27, Q31 |
 
@@ -164,7 +164,7 @@ Dữ liệu: Tầng 2 có Nhân viên chăm sóc C, Điều dưỡng D2 cùng ca
 
 | # | Thao tác | Kết quả mong đợi | Spec |
 | --- | --- | --- | --- |
-| S9 | A gọi `POST /sos`; 12 giây sau `POST /sos/{id}/vi-tri` (sai số 15 m); tua 30 giây, gửi lại | Cảnh báo tạo ngay, không chờ vị trí; hai dòng `vi_tri_canh_bao`; chi tiết cảnh báo có `viTriMoiNhat` nhãn tham khảo; `GET /sos/hien-tai` có `guiViTri = true`, `chuKyGuiViTriGiay = 30` | US12 #11, FR-047h |
+| S9 | A gọi `POST /sos`; 12 giây sau `POST /sos/{id}/vi-tri` (sai số 15 m); tua 30 giây, gửi lại | Cảnh báo tạo ngay, không chờ vị trí; hai dòng `vi_tri_canh_bao`; chi tiết cảnh báo có `viTriMoiNhat` nhãn tham khảo; `GET /sos/hien-tai` có `guiViTri = true`, `chuKyGuiViTriGiay = 30` | US12 #11, FR-047h *(R-15: `vi_tri_canh_bao` → `su_kien_chung`)* |
 | S10 | Không gửi vị trí 61 giây; mở chi tiết cảnh báo | `coTheDaCu = true` | FR-047h, edge case |
 | S11 | A ở Hoạt động bên ngoài bấm SOS, gửi vị trí; R mở cổng (012) | Vị trí là vị trí chính; dữ liệu cho 012 không có trường vị trí | US12 #12, FR-047h |
 | S12 | D tiếp nhận lúc 14:01, ghi "Đã tới nơi" lúc 14:03; A gửi vị trí tiếp; D ghi lần hai | `/sos/hien-tai` `DA_TOI` kèm họ tên D, `guiViTri = false`; vị trí 409 `DUNG_GUI_VI_TRI`; lần hai 409; báo cáo thời gian tới nơi 2 phút | US12 #13, FR-047j, FR-081 |
@@ -179,7 +179,7 @@ Dữ liệu: Tầng 2 có Nhân viên chăm sóc C, Điều dưỡng D2 cùng ca
 | H9 | Đóng cảnh báo H1 khi chưa ghi đã tới nơi | `khongGhiMocToiNoi = true` | FR-047j |
 | C1 | A có phiếu nguyện vọng khi điều trị (bệnh viện X, cần hỏi trước, người cần báo R); sự cố Trung bình; `GET …/chuyen-vien/thong-tin` | Trả phiếu, người liên hệ chính; không có gợi ý cơ sở | US5 #8, FR-049 |
 | C2 | Chuyển viện với `daLienLacNguoiCanBao = false` không lý do; rồi có lý do, `nguoiDiKem`, hai tệp giấy chuyển viện | 422; 201, bản tóm tắt có nguyện vọng khi điều trị, người đi kèm; 001 nhận `tepDinhKemIds`; `phieuTepId` có PDF chứa dòng "không thay giấy chuyển cơ sở khám bệnh, chữa bệnh" | US5 #8, FR-049, FR-050, FR-050h |
-| C3 | `GET …/phieu` hai lần; `POST …/in-lai` | Hai lần cùng byte; bản in lại có dấu "Bản in lại"; hai dòng `lan_in_phieu_chuyen_vien` và nhật ký | FR-050h |
+| C3 | `GET …/phieu` hai lần; `POST …/in-lai` | Hai lần cùng byte; bản in lại có dấu "Bản in lại"; hai dòng `lan_in_phieu_chuyen_vien` và nhật ký | FR-050h *(R-15: `lan_in_phieu_chuyen_vien` → hành động `nhat_ky`)* |
 | C4 | Chuyển viện từ sự cố Khẩn cấp, `daLienLacNguoiCanBao = false`, không lý do | 201 (cấp cứu, plan điểm báo lại 11) | FR-049 |
 
 Test: `BR_M05_28_ViTriSosIT` (S9 → S11), `BR_M05_30_DaToiNoiIT` (S12, H5, H9), `BR_M05_29_NutHoTroIT` (H1, H2, H4, H6), `FR_047i_NguoiNhanHoTroIT` (H1 → H3), `BR_M05_31_Goi115IT` (H7, H8), `BR_M05_32_PhieuChuyenVienIT` (C1 → C4), `PdfBieuMauTest` (font tiếng Việt, đóng dấu không đổi trang gốc), `ViTriKhongLoNguoiThanArchTest` (DTO cho 012 không có trường vị trí). SC-018 → SC-021: đo trên các test trên với đồng hồ giả lập; SC-021 đo thời gian dựng phiếu ≤ 3 giây.

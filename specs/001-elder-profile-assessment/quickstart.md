@@ -65,7 +65,7 @@ Kết quả mong đợi: `verify` xanh, gồm test kiến trúc (`HoSoMoGuardArc
 
 ## 4. Test tự động: truy vết kịch bản → test
 
-| Spec | Lớp test (backend, `com.cambae.backend.m01…`) | Loại |
+| Spec | Lớp test (backend, `com.eldercare.backend.resident…`) | Loại |
 | --- | --- | --- |
 | US1 #1–10, FR-001 → FR-009 | `TaoHoSoIT`, `HoSoCccdIT`, `HoSoTrungTenIT`, `HoSoLienKetIT`, `CapNhatThongTinIT`, `TraCuuPhamViIT`, `GioiHanTruongHoSoIT` | Tích hợp |
 | US2 #1–8, FR-017 → FR-023 | `MucSucKhoeBatBienIT`, `BR_M01_07_DiUngIT`, `BR_M01_12_ChoKiemTraIT`, `MucSucKhoeTrungIT`, `HoSoSucKhoeBanDauIT`, `BR_M01_11_DanhMucIT` | Tích hợp, cơ sở dữ liệu |

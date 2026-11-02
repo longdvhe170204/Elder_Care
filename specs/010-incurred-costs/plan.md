@@ -1,5 +1,7 @@
 # Implementation Plan: Chi phí phát sinh
 
+> **Sửa 2026-10-29 (Q-395):** bỏ bảng hệ số phí khi vắng; nội trú vắng tính như ngày lưu trú, từ ngày Giải phóng giường không tính phí lưu trú; bỏ dấu "chờ quyết định", "không có dòng chính sách". Spec FR-005a, FR-007, FR-009 là căn cứ; chỗ nào dưới đây còn nhắc hệ số vắng theo 004 thì theo spec.
+
 **Branch**: `010-incurred-costs` | **Date**: 2026-10-10, cập nhật 2026-10-18 | **Spec**: [spec.md](spec.md)
 
 **Input**: Feature specification from `specs/010-incurred-costs/spec.md`
@@ -17,7 +19,7 @@ Feature 010 là phần chi phí phát sinh của module M11 (mục 15.1 → 15.8
 8. Bảng chi phí và tạm tính cho người thân, dữ liệu cho 017, 016, xuất kế toán (mục H).
 
 Hướng kỹ thuật:
-- Gói `m11` với tám gói con; 017 và phần mua sắm của 019 (cùng M11) dùng port nội bộ (research P-01, P-12).
+- Gói `billing` với tám gói con; 017 và phần mua sắm của 019 (cùng M11) dùng port nội bộ (research P-01, P-12).
 - Ngày lưu trú và buổi bán trú tính từ 004 lúc tra cứu và lúc lập, không lưu; nguồn của 005, 006, 011, 012, 014 vào một **chỉ mục kỹ thuật** dựng từ sự kiện, chỉ để tra cứu và tìm khoản khi nguồn đổi; không có danh sách "chưa lập khoản" (P-04).
 - Đơn giá, chia giá tháng, buổi bán trú, thời gian tính phí, biến động, điều kiện kỳ cuối, tạm tính là hàm thuần kiểm thử bằng bảng (P-05, P-07, P-08, P-10, P-11).
 - DBR-15 sau R-15 bằng unique_key do caller đặt, CHECK đối chiếu theo (nguồn, đơn vị) và UNIQUE cho khoản đang hiệu lực; DBR-17 bằng locked_at/trigger của bảng và khoản (data-model mục 0.1).
@@ -34,7 +36,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ### Cập nhật 2026-10-22 (spec mục "Cập nhật 2026-10-22": Q-378, Q-380, Q-385)
 
-- **Gửi 017 chi tiết khoản Đã chốt** (FR-042, bảng giao tiếp "Gửi 017"; 017 FR-031, FR-032, FR-034): port nội bộ `ChiPhiChoSoDuPort` thêm `bangDaChot(bangId)` trả bảng (loại, kỳ, tổng, tổng theo loại từ `bang_chi_phi_tong_loai`) và khoản Đã chốt (ngày phát sinh, loại, mô tả, số lượng, đơn vị, đơn giá, thành tiền; khoản điều chỉnh kèm kỳ gốc; khoản thuốc chỉ "Thuốc" và mã vật phẩm theo FR-019). Chỉ đọc, dữ liệu đã có; không thêm bảng, không đổi REST (research P-12).
+- **Gửi 017 chi tiết khoản Đã chốt** (FR-042, bảng giao tiếp "Gửi 017"; 017 FR-031, FR-032, FR-034): port nội bộ `ChiPhiChoSoDuPort` thêm `bangDaChot(bangId)` trả bảng (loại, kỳ, tổng, tổng theo loại từ `bang_chi_phi_tong_loai`) và khoản Đã chốt (ngày phát sinh, loại, mô tả, số lượng, đơn vị, đơn giá, thành tiền; khoản điều chỉnh kèm kỳ gốc; khoản thuốc chỉ "Thuốc" và mã vật phẩm theo FR-019). Chỉ đọc, dữ liệu đã có; không thêm bảng, không đổi REST (research P-12). *(R-15: `bang_chi_phi_tong_loai` → cột `JSON` của `bang_chi_phi`)*
 - **Q-380 (sửa theo Q-385)**: phí chấm dứt sớm là khoản nhập tay có lý do của FR-021 vào bảng kỳ cuối, Quản lý viện duyệt từng khoản; không thêm loại khoản, tham số hay cách tính.
 - **Q-385**: 017 không còn đối soát chuyển khoản; không ảnh hưởng 010.
 
@@ -95,7 +97,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ; điểm còn lệch ghi ở mục báo lại |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-012 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Triển khai backend/web đã mở; mobile người thân mở 2026-10-27. Phiên chuẩn bị 2026-10-29 chỉ sửa tài liệu/bản dịch, chưa mã hoặc SQL; không đổi nghiệp vụ hay hợp đồng của 004 |
-| X. Kiến trúc | Đạt | Một khối; gói `m11`; module khác dùng `m11.api`. Không có vòng (P-02). REST; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `billing`; module khác dùng `billing.api`. Không có vòng (P-02). REST; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Đơn giá, điều kiện lập, chốt, vượt mua hộ, điều kiện kỳ cuối ở backend. Mỗi lệnh có endpoint riêng |
 | XII. Dữ liệu | Đạt | DBR-15, 17 bằng `UNIQUE` và trigger; DBR-16 bằng căn cứ đơn giá lưu theo khoản; nhật ký trong transaction; `Clock` |
 | XIII. Tham số | Đạt | Như V; CFG-M11-02 lúc gửi được lưu trên đề nghị (FR-023) |
@@ -105,7 +107,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 **Kiểm lại sau Phase 1**: Đạt. Thiết kế không thêm vai trò, trạng thái hay quy tắc nghiệp vụ ngoài spec. Có bốn bổ sung kỹ thuật, giải thích ở Complexity Tracking:
 1. Chỉ mục kỹ thuật sự kiện tính phí.
 2. Port nội bộ M11 cho 017.
-3. Bảng `bien_dong_nguon_sau_chot`.
+3. Bảng `bien_dong_nguon_sau_chot`. *(R-15: `bien_dong_nguon_sau_chot` → `su_kien_chung`)*
 4. Thư viện ghi XLSX.
 
 ### Đáp ứng yêu cầu phi chức năng (constitution X)
@@ -147,7 +149,7 @@ specs/010-incurred-costs/
 Sơ đồ dưới dùng tên logic của thiết kế. Khi cài đặt dùng tên tiếng Anh và tầng theo backend/README.md; chỉ tạo gói có lớp, không tạo trước cây thư mục rỗng. Tên dự kiến của 010 ở glossary mục 16; phiên chuẩn bị chưa tạo mã.
 
 ```text
-backend/src/main/java/com/cambae/backend/m11/
+backend/src/main/java/com/eldercare/backend/billing/
 ├── api/           # ChiPhiCongNguoiThanApi, ChiPhiKyCuoiApi, ChiPhiThongKeApi, SuKienTinhPhiNguon*, sự kiện
 ├── ky/            {internal, web}   # kỳ, bảng, gửi chốt, chốt, BienDongKy
 ├── khoan/         {internal, web}   # vòng đời, kiểm tra, duyệt, tính lại, lịch sử
@@ -171,15 +173,15 @@ frontend/src/tinh-nang/chi-phi/
 mobile/lib/nguoi-than/chi-phi/   # bảng, tạm tính, đồng ý mua hộ
 ```
 
-**Structure Decision**: Theo R-02 của 000. Feature 010 nằm ở `backend/…/m11` với chín gói con và gói `api`; 017 và phần mua sắm của 019 thêm gói con vào cùng `m11`. Web có đủ chức năng. App người thân có bảng, tạm tính và đồng ý mua hộ.
+**Structure Decision**: Theo R-02 của 000. Feature 010 nằm ở `backend/…/billing` với chín gói con và gói `api`; 017 và phần mua sắm của 019 thêm gói con vào cùng `billing`. Web có đủ chức năng. App người thân có bảng, tạm tính và đồng ý mua hộ.
 
 ## Complexity Tracking
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
 | Chỉ mục kỹ thuật `su_kien_tinh_phi` | Tra cứu nguồn theo người, loại, khoảng ngày (FR-005) và tìm khoản khi nguồn đổi (FR-020) trên năm module | Gọi API đọc của từng module mỗi lần tra cứu: 005, 006 không có API tìm theo tính phí; vẫn cần ánh xạ nguồn → khoản |
-| Port nội bộ M11 (`ChiPhiChoSoDuPort`, `SoDuMuaHoPort`) | 017 cùng module cần tổng chưa chốt, phí ngày cơ sở; 010 cần dấu số dư không đủ | Đặt ở `m11.api`: mở dữ liệu nội bộ cho mọi module |
-| `bien_dong_nguon_sau_chot` | FR-027 đòi báo kèm khoản gốc, sự kiện, giá trị trước/sau và khoản điều chỉnh trỏ về sự kiện gây ra; không được tính sẵn số chênh lệch | Chỉ gửi thông báo: mất liên kết khoản điều chỉnh → sự kiện |
+| Port nội bộ M11 (`ChiPhiChoSoDuPort`, `SoDuMuaHoPort`) | 017 cùng module cần tổng chưa chốt, phí ngày cơ sở; 010 cần dấu số dư không đủ | Đặt ở `billing.api`: mở dữ liệu nội bộ cho mọi module |
+| `bien_dong_nguon_sau_chot` | FR-027 đòi báo kèm khoản gốc, sự kiện, giá trị trước/sau và khoản điều chỉnh trỏ về sự kiện gây ra; không được tính sẵn số chênh lệch | Chỉ gửi thông báo: mất liên kết khoản điều chỉnh → sự kiện *(R-15: `bien_dong_nguon_sau_chot` → `su_kien_chung`)* |
 | Thư viện ghi XLSX | Q-05 chọn Excel/CSV; kế toán quen Excel | Chỉ CSV: lỗi mã hóa khi mở bằng Excel ở một số máy; vẫn giữ CSV làm tùy chọn |
 
 ## Đồng bộ với hợp đồng của feature khác
@@ -188,7 +190,7 @@ Plan này bổ sung hoặc dựa vào các điểm dưới đây; plan của fea
 
 1. **004** (đã ghi bổ sung vào [../004-admission-residency/contracts/module-interfaces.md](../004-admission-residency/contracts/module-interfaces.md) mục 1.8): sự kiện `PhienBanDonGiaDaTao(dichVuId, hieuLucTu, hieuLucDen)` khi tạo phiên bản đơn giá (kể cả hiệu lực lùi cho khoảng chưa có phiên bản, DBR-08), để 010 tính lại khoản thiếu đơn giá (FR-012). 010 cài `KyCuoiPort`, `MucViecSauQuaDoiPort` (`CHI_PHI_KY_CUOI`), dùng `KT_A_CHI_PHI` và các API, sự kiện của 004 như đã khai báo.
 2. **005, 006**: dùng các sự kiện tính phí đã khai báo (005 C-13, 006 D-17); 010 cài `DeNghiMuaHoPort` đúng chữ ký. Không đổi.
-3. **011, 012, 014**: phát `m11.api.SuKienTinhPhiNguon`, `SuKienTinhPhiNguonDaDoi` cho suất ăn người thân, đêm ở lại, điểm danh có phí ([contracts/module-interfaces.md](contracts/module-interfaces.md) mục 1.5). **012** cài `NguoiDaiDienPort` (đã khai báo ở 004) và đọc `ChiPhiCongNguoiThanApi`.
+3. **011, 012, 014**: phát `billing.api.SuKienTinhPhiNguon`, `SuKienTinhPhiNguonDaDoi` cho suất ăn người thân, đêm ở lại, điểm danh có phí ([contracts/module-interfaces.md](contracts/module-interfaces.md) mục 1.5). **012** cài `NguoiDaiDienPort` (đã khai báo ở 004) và đọc `ChiPhiCongNguoiThanApi`.
 4. **017** (cùng M11): cài `SoDuMuaHoPort`; dùng `ChiPhiChoSoDuPort` (*2026-10-22:* thêm `bangDaChot` cho phiếu báo phí, bảng quyết toán); nghe `BangChiPhiDaChot` (đúng một lần mỗi bảng) và `DeNghiMuaHo*`. **016** đọc `ChiPhiThongKeApi`. **009**: thông báo theo FR-044 cài `CoYeuCauThongBao`.
 
 ## Điểm cần báo lại về tài liệu nguồn
@@ -206,12 +208,18 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 
 4. **Mức thông báo nhắc đề nghị mua hộ chờ đồng ý** (bảng FR-044 ghi "Theo feature 000 FR-031a"): plan dùng Trung bình như dòng 000 của bảng 009 FR-043b. Đề nghị ghi mức cụ thể vào FR-044. *(Đã xử lý 2026-10-10: Q-311 → Q-336; xem mục "Cập nhật 2026-10-10, lượt 2" và "Điểm cần báo lại" của spec.)*
 
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Ánh xạ bảng ở data-model mục 0; task T038. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
+- Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
+- Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.
+
 ## Chuẩn bị triển khai 2026-10-29 — impl/010-incurred-costs
 
 - Người dùng tự tạo nhánh/worktree từ origin/develop da9636a; trạng thái lúc bắt đầu sạch. Giữ nguyên mọi worktree 008. Người dùng tự làm các bước tạo nhánh, commit và push; phiên này không commit/push/PR/merge.
 - Đã đọc luật và nguồn thiết kế, đối chiếu API thật; 37 task còn [ ], M11 chỉ có package-info.java. Bản dịch HTTP và glossary mục 16 đã được A/chủ dự án duyệt qua xác nhận của E ngày 2026-10-29 trước khi bắt đầu mã; giữ 28 đường dẫn/29 thao tác, 17 schema, 101 ref, 16 request body; giữ phương thức, response, cấu trúc, kiểu, required, enum theo ánh xạ, giới hạn và FR/BR. Không sinh client hoặc cài HTTP từ bản chưa duyệt.
 - "Chốt" dùng finalize/FINALIZED theo yêu cầu 016. Tiền SQL DECIMAL(15,0) theo audit mới của 000; JSON vẫn integer/int64 như hợp đồng. Data-model bổ sung khóa UPDATE/DELETE của bảng con theo trạng thái cha; chưa migration/test trigger. Không sửa spec.md hoặc nghiệp vụ.
-- Kỹ thuật: bỏ cách hiểu đường dẫn BE/BT là tên vật lý; chỉ tạo gói có lớp theo README, hàm thuần đặt m11.pricing.internal.domain, bản giả chung support/fake/<module>/. Web charges, app family/charges; mobile người thân đã mở, 010 không có màn app nhân viên. Dùng DESIGN.md 6.x khi tới task màn; lượt này không sửa màn/theme.
+- Kỹ thuật: bỏ cách hiểu đường dẫn BE/BT là tên vật lý; chỉ tạo gói có lớp theo README, hàm thuần đặt billing.internal.pricing.domain, bản giả chung support/fake/<module>/. Web charges, app family/charges; mobile người thân đã mở, 010 không có màn app nhân viên. Dùng DESIGN.md 6.x khi tới task màn; lượt này không sửa màn/theme.
 - Không còn coi API 004 "Có sẵn": ContractReadApi chỉ có attendanceOn, chưa nội dung hợp đồng/đơn giá/ngày lưu trú/SPI kỳ cuối/người đại diện và fake. Chờ B khai báo ở 004; không tự mở rộng api của B. Nguồn 005 chờ C khai báo/phát các sự kiện tính phí/có mặt. D đã có MedicationBilledEvent (phát từ DoseAdministrationService), MedicationBillAdjustedEvent (chưa phát), PurchaseAssistancePort và fake; chờ producer điều chỉnh/nguồn PRN/giao thuốc. Người đại diện/số dư bản thật của 012/017 là phần E làm sau, không đẩy sang người khác.
 - E cần khai báo ba API/sự kiện của mình và fake tại T003/T004 sau duyệt; A (016) đang chờ thống kê. Khi API nguồn chưa có interface/fake đúng chủ, dừng phần tích hợp phụ thuộc và báo người dùng; không tạo fake thứ hai hoặc fake production. Gate duyệt đã qua; T001 và phần độc lập của T006 đã thực hiện theo phần cập nhật bên dưới.
 - Bản gốc còn 17 response 2xx không có content/schema và vài trường object/dấu chưa chi tiết. Bản dịch giữ nguyên, chưa tự bổ sung cấu trúc để cài theo suy đoán; rà riêng với chủ dự án trước các task HTTP tương ứng. Chưa giải quyết các xác nhận vận hành Q-05 bằng giả định.
@@ -238,17 +246,11 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 ## T003/T004 — khai báo hợp đồng Java và fake chung 2026-10-29
 
 - Viết CostApiContractsTest trước: lượt đỏ testCompile do API/port chưa có; thêm CostSharedFakesTest/CostViewSchemaTest trước fake/DTO, lượt đỏ tiếp theo cũng testCompile. Sau khai báo và fake: 71 test M11 xanh (22 ca mới + 49 ca trước). Không coi đây là test nghiệp vụ producer hoặc quyền thật.
-- Ba API ở m11.api, 11 DTO/ba enum ở api.dto, tám sự kiện ở api.events, mỗi gói có NamedInterface. DTO đọc đối chiếu trường từ YAML đã duyệt/data-model/contract liên module; object chưa rõ giữ Map/List<Map>, không bổ sung HTTP schema. Chữ ký tiếng Anh ghi contracts/module-interfaces mục 4, glossary chỉ mục 16.6. Không sửa source/API của chủ khác.
+- Ba API ở billing.api, 11 DTO/ba enum ở api.dto, tám sự kiện ở api.events, mỗi gói có NamedInterface. DTO đọc đối chiếu trường từ YAML đã duyệt/data-model/contract liên module; object chưa rõ giữ Map/List<Map>, không bổ sung HTTP schema. Chữ ký tiếng Anh ghi contracts/module-interfaces mục 4, glossary chỉ mục 16.6. Không sửa source/API của chủ khác.
 - Đường dẫn logic port chuyển thành provision/internal/domain/CostForBalancePort và purchase/internal/domain/PurchaseBalancePort theo tầng README; chỉ công khai Java trong nội bộ M11, không đưa vào api. Hai chiều truy cập giữ đúng P-12/M11ArchTest. bangDaChot để T036/T037; hành vi thiếu bean để consumer T027 kiểm.
 - Chủ E cung cấp năm fake qua FakeM11Config ở support/fake/m11, chỉ TestConfiguration. Fixture thống kê đặt sẵn tập dòng theo từng ScopeFilter, không đoán phạm vi từ nguồn B/C; fake kỳ cuối/tạm tính bắt test cấu hình kết quả rõ. T002 vẫn dở: fixture nguồn E chưa làm đủ, người đại diện chờ B/004 khai báo; không dùng fake production.
 - T003/T004 [x] theo phạm vi khai báo và test xanh, chưa đóng Phase 1/2. Các API/port mới chưa có bản thật; cả tám sự kiện chưa có producer. D/011, C/014, E/012 phát sự kiện nguồn khi cài; E tiếp tục T005/T007/T008, BillingPeriod và các task nghiệp vụ. Dòng team-plan giữ phần chưa merge/bản thật/phát nguồn, có dòng review hợp đồng mới; người dùng tự commit/push/PR.
 - Spotless M11 đã qua. Clean verify nền sau nạp .env/backend/.env, giữ mật khẩu demo, đã xong 15:49 min: 711 unit/arch xanh (M11 71), 1426 IT còn 7 thất bại/9 lỗi, 0 bỏ qua, đúng 9 lớp M01/M03 đã ghi nhận ở team-plan/lượt trước, không có lớp đỏ mới. Spotless check qua. Maven trả BUILD FAILURE do lỗi nền; chưa coi toàn backend xanh hoặc Phase 1/2 hoàn tất. Chi tiết api-declaration-verification.md; progress chỉ thêm. Không sửa web/mobile, không chạy kiểm web/Flutter trong lượt này.
-
-## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
-
-- Ánh xạ bảng ở data-model mục 0; task T038. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
-- Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
-- Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.
 
 ## T005a và fixture nguồn — R-15, 2026-10-30
 
@@ -258,4 +260,10 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 - Hai bảng nghiệp vụ có locked_at, trigger giữ mọi dữ liệu đã khóa và kiểm cha cũ/mới của khoản (kể cả INSERT sau chốt); ngoại lệ first_export_id chỉ đặt một lần. @m11_recalculating dùng đúng connection, không mở khóa dữ liệu đã chốt. Retention dùng tài khoản riêng, admin cũng không được sửa dòng đã khóa. Kind/id giữ định danh dòng, backend vẫn phải kiểm nghiệp vụ chốt/tổng/nguồn và trạng thái lệnh ở task sau.
 - Fixture FakeCostSources dùng ApplicationEventPublisher, đăng ký ở FakeM11Config, chỉ src/test. T002 đã xong phần fixture nguồn E và port số dư fake, còn fake người đại diện chờ B/004 khai báo. Không coi fixture là producer C/D/012 hoặc fake production.
 - TDD: fixture đỏ ở testCompile do chưa có lớp; CostSchemaIT trước SQL chạy 15 ca, 1 thất bại/14 lỗi do bảng chưa có. Sau migration 14/15 qua, kiểm quyền DELETE của một ca cần đọc SQLException gốc thay thông báo bọc của Spring; sửa helper, không đổi quyền hoặc nới điều kiện. Lượt sau 74 unit/arch M11 và 15 IT schema đều xanh, 0 bỏ qua. Spotless apply M11 qua; clean verify toàn backend đã xong 05:59 min: 714 unit/arch xanh (M11 74), 1441 IT còn 7 thất bại/9 lỗi tại đúng 9 lớp nền M01/M03, 0 bỏ qua/không lớp đỏ mới; 15 IT M11 xanh. Spotless check 2051 file sạch. Maven BUILD FAILURE do lỗi nền, chưa nghiệm thu toàn backend/Phase 1–2. Kết quả ở r15-storage-verification.md.
-- Chờ A/000 T108: V000_09, m15.shared.api và fake, ReminderMarkers/TechnicalLocks. Không tự cài common hoặc gói A, không tạo bảng legacy để né chờ. T006 còn cần B/004; nguồn C/D và client A vẫn chờ. JSON/REST đã duyệt giữ nguyên, không sửa spec/nghiệp vụ hoặc mã web/mobile.
+- Chờ A/000 T108: V000_09, administration.shared.api và fake, ReminderMarkers/TechnicalLocks. Không tự cài common hoặc gói A, không tạo bảng legacy để né chờ. T006 còn cần B/004; nguồn C/D và client A vẫn chờ. JSON/REST đã duyệt giữ nguyên, không sửa spec/nghiệp vụ hoặc mã web/mobile.
+
+## Merge develop vào nhánh 008 có phần 010 — 2026-11-02
+
+- Nhánh `impl/008-fr057-handover-notifications` mang cả phần 010 (T001, T003, T004, T005a, một phần T006) viết trên gói cũ `com.cambae.backend.m11`. Khi merge `develop` (đã đổi gói gốc ở `b60cfb6a`), chuyển sang `com.eldercare.backend.billing`, bản giả sang `support/fake/billing`.
+- Lệch kỹ thuật: `LayerArchTest.moduleTopLevelPackages` của develop chỉ cho `api`, `web`, `internal`, `scheduling` ở gốc module, nên `billing.pricing.internal.domain`, `billing.provision.internal.domain`, `billing.purchase.internal.domain` chuyển thành `billing.internal.{pricing, provision, purchase}.domain` theo backend/README.md mục "Module lớn". `M11ArchTest` đổi theo (`billing.internal.balance..`, `billing.internal.procurement..`, `billing.internal.purchase..`); `CostApiContractsTest` kiểm gói port là `.internal.provision.domain`, `.internal.purchase.domain`. Không đổi chữ ký, hợp đồng hay nghiệp vụ.
+- `RecordGroupTriggerIT.F_04` của develop bắt ba bảng V010_01 chưa khai nhóm dữ liệu; thêm `V010_02__cost_data_groups.sql` (`cost_statement`, `cost_item` MULTIPLE vì đã có `locked_at` và trigger `row_lock`, `no_delete`; `cost_source_index` TECHNICAL). Không sửa V010_01 vì đã chạy trên schema test của máy E và máy merge.

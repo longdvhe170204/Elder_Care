@@ -62,6 +62,9 @@ eldercare:
     fcm:
       # Tệp khóa dịch vụ Firebase (009 T001, research B-05); không ghi vào kho mã. Trống thì không đẩy FCM.
       credentials-file: ${FIREBASE_CREDENTIALS:}
+  logging:
+    # Thư mục file log lần chạy job jobs.log (logback-spring.xml; research R-15 mục 4, backend/docs/operations.md)
+    jobs-dir: logs
 
 ---
 spring:
@@ -90,6 +93,8 @@ spring:
 # Không job nào chạy theo lịch hay lúc khởi động trong test (công tắc chung, SchedulingConfig); test gọi job trực tiếp
 # hoặc qua runJobs. Các dòng cron "-" bên dưới có từ trước, giữ nguyên.
 eldercare:
+  logging:
+    jobs-dir: target/logs
   scheduling:
     enabled: false
   jobs:
@@ -122,6 +127,8 @@ eldercare:
       cron: "-"
     # Job dọn tệp chưa gắn (001 T004): test gọi UnattachedFileCleanup.run()
     clean-unattached-files:
+      cron: "-"
+    clean-technical-data:
       cron: "-"
     # Job M13 (009 T010): test gọi M13FastJob.run(), M13DailyJob.catchUp()
     m13-fast:

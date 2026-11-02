@@ -1,5 +1,7 @@
 # Giao diện giữa module: Feature 015
 
+> **Sửa 2026-10-29 (Q-397):** bỏ mẫu xoay ca, nhóm xoay ca, lập lịch từ mẫu, phủ tối thiểu, thiếu ca, cảnh báo thiếu phủ, lời mời nhận ca; 015 chỉ còn đổi ca và nghỉ đột xuất. Nghỉ "theo ngày" mở cho mọi nhân viên, người lập chọn phạm vi. Phần dưới còn nhắc các phần đã bỏ thì bỏ qua; spec là căn cứ.
+
 **Ngày**: 2026-10-10 | **Plan**: [../plan.md](../plan.md)
 
 Feature 015 thêm gói con vào module M09 (cùng 008). Giao diện dưới đây gồm port nội bộ M09 (dùng và bổ sung), bản cài SPI, giao diện công khai cho 016 và API của module khác mà 015 gọi (research X-02, X-03). Hàm ghi có ghi chú `MANDATORY` chạy trong transaction của lệnh gọi.
@@ -12,17 +14,14 @@ Feature 015 thêm gói con vào module M09 (cùng 008). Giao diện dưới đâ
 
 `CaLenhPort` (`themVaoCa`, `roiCa`, `doiNguoiPhuTrach`, `ganThieuNguoiPhuTrach`), `PhanCongLenhPort` (`kiemTra`, `lap`, `huy`). Căn cứ 015 truyền: `CanCuVaoCa.DOI_CA | NHAN_THAY | LOI_MOI`, `CanCuRoiCa.DOI_CA | NGHI_CO_DUYET` kèm mã yêu cầu hoặc lời mời.
 
-### 1.2. Bổ sung theo plan này (gói `m09.lichca.port`)
+### 1.2. Bổ sung theo plan này (gói `staffing.lichca.port`)
 
 ```java
-interface LichNhapLenhPort {        // 008 cài; MANDATORY; chỉ m09.xoayca, m09.doica dùng
-  long taoNhap(PhamViCa phamVi, YearMonth thang, List<CaNhap> ca, CanCu canCu);   // 015 FR-008, FR-014
-  void thayNoiDungNhap(long lichCaId, List<CaNhap> ca, CanCu canCu);              // 015 FR-013 (Lập lại)
+interface LichNhapLenhPort {        // 008 cài; MANDATORY; chỉ staffing.doica dùng (Q-397: bỏ taoNhap, thayNoiDungNhap)
   void goNhanVienKhoiNhap(long lichCaId, long nhanVienId, LocalDate ngay, CanCu canCu);
       // 015 FR-026a: gỡ khỏi ca Nháp bắt đầu trong ngày và phân công Nháp; người phụ trách để trống
   Optional<LichView> lichThang(PhamViCa phamVi, YearMonth thang);
 }
-record CaNhap(LocalDate ngay, long mauCaId, List<Long> nhanVienIds) {}   // người phụ trách luôn trống (015 FR-011, Q-307)
 
 interface NghiCoDuyetPort {         // 015 cài; 008 dùng
   boolean nghiTheoNgay(long nhanVienId, LocalDate ngay);                      // 008 FR-012: cảnh báo khi sửa tay lịch Nháp
@@ -31,18 +30,15 @@ interface NghiCoDuyetPort {         // 015 cài; 008 dùng
 }
 ```
 
-### 1.3. `KiemTraCongBoMoRong` (015 cài; 008 gọi trong lệnh công bố)
-
-`kiemTra(lichCaId)` trả: ca thiếu phủ, mục "thiếu ca", yêu cầu nghỉ theo ngày còn chờ (cảnh báo không chặn; lệnh công bố cần xác nhận đã xem và lý do, 015 FR-017).
+### 1.3. `KiemTraCongBoMoRong` *(Bỏ theo Q-397, 2026-10-29)*
 
 ### 1.4. Sự kiện nội bộ M09 015 nghe (008 phát)
 
 | Sự kiện | Xử lý |
 | --- | --- |
-| `LichNhapDaLuu(lichCaId)` | Tính phủ ca Nháp, mục "thiếu ca" |
-| `LichCaDaCongBo(lichId, …)` | Mở cảnh báo thiếu phủ; nghỉ theo ngày còn chờ → theo ca |
-| `CaDaThayDoi`, `CaDaHuy`, vắng ca, `NhanVienDaBoSungVaoCa` | Tính phủ; yêu cầu, lời mời hết hiệu lực khi không còn thỏa |
-| `NhanVienDaNghiViec`, `GiayPhepDaDoiHieuLuc`, `DaoTaoDaDoiHieuLuc` | Tính phủ các ca chưa kết thúc của người đó; yêu cầu hết hiệu lực |
+| `LichCaDaCongBo(lichId, …)` | Nghỉ theo ngày còn chờ → theo ca |
+| `CaDaThayDoi`, `CaDaHuy`, vắng ca, `NhanVienDaBoSungVaoCa` | Yêu cầu hết hiệu lực khi không còn thỏa |
+| `NhanVienDaNghiViec` | Yêu cầu hết hiệu lực |
 
 `LichNhapDaLuu`, `GiayPhepDaDoiHieuLuc`, `DaoTaoDaDoiHieuLuc` bổ sung vào danh sách sự kiện của 008 theo plan này (008 đã có `CaDaThayDoi`, `CaDaHuy`, `LichCaDaCongBo`).
 
@@ -50,14 +46,11 @@ interface NghiCoDuyetPort {         // 015 cài; 008 dùng
 
 ## 2. 015 cung cấp ra ngoài M09
 
-### 2.1. `m09.api.XoayCaThongKeApi` (016; FR-042)
+### 2.1. `staffing.api.DoiCaThongKeApi` (016; FR-042; đổi tên 2026-10-29, Q-397)
 
 ```java
-Stream<LanTinhPhuView> phu(PhamViLoc phamVi, LocalDate tu, LocalDate den);          // ca thiếu phủ, thời gian thiếu phủ theo vai trò
-Stream<MucThieuCaView> thieuCaDaCongBo(PhamViLoc phamVi, YearMonth thang);
 Stream<YeuCauNhanSuView> yeuCau(PhamViLoc phamVi, LocalDate tu, LocalDate den);     // loại, trạng thái cuối, thời gian lập → quyết định
 Stream<GioLamView> gioLamTheoThang(PhamViLoc phamVi, YearMonth thang);              // FR-034 (không có lý do)
-Stream<LoiMoiView> loiMoi(PhamViLoc phamVi, LocalDate tu, LocalDate den);           // tỷ lệ nhận
 ```
 
 ### 2.2. SPI và provider 015 cài
@@ -65,7 +58,7 @@ Stream<LoiMoiView> loiMoi(PhamViLoc phamVi, LocalDate tu, LocalDate den);       
 | SPI | Bản cài | Dùng bởi |
 | --- | --- | --- |
 | `LoaiYeuCauHandler` (000) | `M09.DOI_CA`, `M09.NGHI_DOT_XUAT`: `chuyenMoRong()` cho các trạng thái ngoại lệ (000 FR-031 đã khai); `choTuDuyet = true` với dấu "tự duyệt" (Q-10); `apDung` gọi tác động FR-024 / FR-029 | 000 |
-| `GanPhamViProvider` (002) | `M09.DOI_CA`, `M09.NGHI_DOT_XUAT`, `M09.THIEU_PHU`, `M09.LOI_MOI`: phạm vi ca | 002 FR-034 |
+| `GanPhamViProvider` (002) | `M09.DOI_CA`, `M09.NGHI_DOT_XUAT`: phạm vi ca | 002 FR-034 |
 | `PhanLoaiTruongProvider`, `LuuTruProvider` (000) | Lý do `LY_DO_NHAN_SU`; lưu ≥ CFG-M15-04 | 000 |
 
 ### 2.3. Sự kiện 015 phát
@@ -73,7 +66,6 @@ Stream<LoiMoiView> loiMoi(PhamViLoc phamVi, LocalDate tu, LocalDate den);       
 | Sự kiện | Người nghe | FR |
 | --- | --- | --- |
 | Thông báo (cài `CoYeuCauThongBao`) | 009 | FR-044 |
-| `CaThieuPhuDaMo`, `CaThieuPhuDaDong` | 016 | FR-042 |
 
 ---
 

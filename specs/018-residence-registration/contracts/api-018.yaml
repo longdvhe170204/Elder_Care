@@ -3,7 +3,7 @@ info:
   title: Elder Care – Feature 018 (khai báo tạm trú, lưu trú)
   version: 1.0.0-design
   description: |
-    Hợp đồng REST của feature 018 (module M02, gói m02.khaibao). Quy ước chung theo research R-03 của 000:
+    Hợp đồng REST của feature 018 (module M02, gói admission.khaibao). Quy ước chung theo research R-03 của 000:
     tiền tố /api/v1, lỗi RFC 9457 có maLoi và dieuKienChuaThoa[], Idempotency-Key cho mọi lệnh ghi.
     Hệ thống không tự tạo khai báo (Q-306); không nộp hồ sơ thay, không kết nối Cổng dịch vụ công.
     Đính chính kết quả ghi nhầm dùng endpoint đính chính chung của 000 với loại M02.KHAI_BAO.

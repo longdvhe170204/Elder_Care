@@ -16,16 +16,21 @@ flutter test                                   # một file: flutter test test/<
 flutter test --plain-name "<tên test>"
 flutter analyze
 dart format <file>
+dart run build_runner build                     # sinh lại mã drift (*.g.dart) sau khi sửa bảng
 ```
 
 Thêm package: nhờ A (người giữ `pubspec.yaml`).
+
+**Nhận đẩy (FCM)**: kho công khai nên không có cấu hình Firebase. Muốn nhận đẩy, đặt `google-services.json` vào `android/app/`, `GoogleService-Info.plist` vào `ios/Runner/` (lấy từ dự án Firebase, mã app `com.eldercare.mobile`). Thiếu file thì app vẫn build, chạy không có đẩy. Backend gửi đẩy cần `FIREBASE_CREDENTIALS` trỏ tới khóa dịch vụ Firebase, lưu ngoài kho, ghi đường dẫn bằng dấu `/`. Trên iOS, bước "Copy GoogleService-Info" của target Runner chép file vào gói app nếu có, vì file không nằm trong kho nên không thêm vào project Xcode; nhận đẩy còn cần bật Push Notifications trong Xcode (tài khoản Apple Developer trả phí) và tải khóa APNs lên Firebase.
+
+**Build Android báo "Unable to establish loopback connection"**: đường dẫn thư mục tạm có dấu cách; đặt `JAVA_TOOL_OPTIONS=-Djdk.net.unixdomain.tmpdir=C:\eldercare-tmp` (thư mục phải có sẵn) rồi build lại.
 
 ## 1. Cấu trúc `lib/`
 
 | Thư mục | Nhiệm vụ | Ai sửa |
 | --- | --- | --- |
-| `main.dart` | Mở màn đăng nhập rồi chuyển sang `staff/`, `family/` hoặc `resident/` theo loại tài khoản (000 T006) | A |
-| `common/` | Dùng chung: theme (token của DESIGN.md frontmatter, mục 15.2), widget công thức (mục 7.2, 15: `task_card`, `status_pill`, `resident_avatar`…), client API, phiên đăng nhập, hàng đợi ngoại tuyến (drift) và phong bì đồng bộ (000 `OfflineEnvelope`), định dạng ngày giờ | A duyệt |
+| `main.dart`, `app.dart` | `main.dart` dựng phiên rồi chạy `ElderCareApp` (`app.dart`): một `MaterialApp`, màn theo trạng thái phiên, đăng nhập xong chuyển sang `staff/staff_root.dart`, `family/family_root.dart` hoặc `resident/resident_root.dart` theo loại tài khoản (000 T006, T007) | A |
+| `common/` | Dùng chung: theme (token của DESIGN.md frontmatter, mục 15.2), widget công thức (mục 7.2, 15: dòng việc theo `task-block`, trạng thái chữ màu, `resident_avatar`…), client API, phiên đăng nhập, hàng đợi ngoại tuyến (drift) và phong bì đồng bộ (000 `OfflineEnvelope`), định dạng ngày giờ | A duyệt |
 | `staff/<module>/` | Phần nhân viên; ghi được khi mất mạng (Q-01) | Chủ module (docs/team-plan.md) |
 | `family/<module>/` | Phần người thân | Chủ module |
 | `resident/<module>/` | Phần người cao tuổi (DESIGN.md 15.6: chữ lớn, vùng bấm lớn, nút SOS) | Chủ module |
@@ -63,15 +68,20 @@ test/staff/care_tasks/
 ## 5. Đã chốt khi mở mobile (2026-10-24, A)
 
 - Trạng thái: `ChangeNotifier` của Flutter (`common/auth/session_controller.dart`), không thêm gói.
-- Điều hướng: `MaterialApp.home` đổi màn theo trạng thái phiên; màn con dùng `Navigator` của Flutter. Đổi sang `go_router` khi phần nhân viên có nhiều màn.
+- Điều hướng: `MaterialApp.home` của `ElderCareApp` (`lib/app.dart`, 2026-10-27) đổi màn theo trạng thái phiên và loại tài khoản; phần người cao tuổi dùng `AppTheme.resident`, hai phần kia `AppTheme.light`; màn con dùng `Navigator` của Flutter. Đổi sang `go_router` khi phần nhân viên có nhiều màn.
 - Client API: viết tay trong `common/api/api_client.dart` (Problem Details thành `ApiProblem`, mất mạng thành `ApiUnreachable`); script sinh client (000 T010b) làm khi phần nhân viên cần nhiều endpoint.
 - Kho token: `flutter_secure_storage` qua `common/auth/secure_store.dart` (test dùng `MemoryStore`).
-- Theme: `common/theme/app_theme.dart` (token DESIGN.md, `Tones` cho tông trạng thái, `AppTheme.resident` chữ x1,25 vùng bấm 56). Font Be Vietnam Pro 400, 700 đóng gói ở `assets/fonts/`; còn thiếu 500, 600.
-- Chưa chốt: gói biểu tượng lucide cho Flutter, cách lưu chế độ sáng tối (DESIGN.md 15.7).
+- Theme: `common/theme/app_theme.dart` theo DESIGN.md 6.6 (mục 15.2: `Tones` cho màu ngoài `ColorScheme`, `AppRadius` cho bo góc, thang chữ trong `TextTheme`; `AppTheme.resident` chữ x1,25 vùng bấm 56). Font Be Vietnam Pro 400, 500, 600 đóng gói ở `assets/fonts/`.
+- Theme 6.x (2026-10-28, nhánh `impl/000-design-v6`): nền trang trơn của `Scaffold`; thân màn dùng `widgets/page_body.dart` (`PageBody`, lề 16; thay `SkyBackground` đã bỏ); nhãn trạng thái `widgets/status_pill.dart` chữ màu không nền (`StatusTone` theo DESIGN.md 3.5). Màn không tự đặt màu, bo góc, cỡ chữ; đầu màn xanh đêm đậm và danh sách dòng (DESIGN.md 15.4) làm khi sửa từng màn.
+- Lint, định dạng (000 T008b, 2026-10-27): `analysis_options.yaml` theo `flutter_lints` cộng sáu luật và `strict-casts`, `strict-raw-types`; `dart format` dòng 120 ký tự (`formatter.page_width`). `flutter analyze` phải sạch trước khi mở PR.
+- Hàng đợi ngoại tuyến (000 T100, 2026-10-27): `common/offline/offline_queue.dart` trên drift (`offline_database.dart`, mã sinh `*.g.dart` có trong kho). Module gọi `enqueue(accountId, recordType, content)` khi ghi lúc mất mạng (chỉ "ghi nhận thực hiện", Q-01), `sync(accountId)` khi có mạng; kết quả từng bản ghi lưu lại cho màn kết quả đồng bộ (002 T060). Gói thêm cùng bộ drift: `drift_flutter`, `drift_dev`, `build_runner`.
+- Đăng nhập (002 T046, T047; sửa 2026-10-28): màn đầu chung `common/auth/login_screen.dart` cho nhân viên, người thân (`SessionController.appLogin`, kênh `MOBILE_APP`: backend gán kênh phiên STAFF_APP hoặc FAMILY_APP theo loại tài khoản); nút phụ mở màn quét mã người cao tuổi do `app.dart` truyền vào; đổi mật khẩu chung `common/auth/change_password_screen.dart`; câu lỗi theo `detail` của backend (`common/api/problem_message.dart`), phần người cao tuổi giữ câu ngắn riêng. `ApiClient.post` nhận `headers` (`If-Match`).
+- Phần nhân viên (`staff/staff_root.dart`): thanh điều hướng dưới, mỗi mục là một bản ghi `(nhãn, biểu tượng, màn)`; feature thêm màn của mình vào đó (A duyệt), mục thứ 6 trở đi gom vào "Thêm". Hiện có Đồng bộ, Chờ xem lại, Mở khóa sớm (002 T046, T060). Widget chung mới: `status_pill.dart`, `not_designed_state.dart`, `format/date_time.dart`, `offline/record_types.dart` (nhãn loại bản ghi ngoại tuyến, module thêm nhãn của mình).
+- Biểu tượng (2026-10-27): `lucide_icons_flutter`, cùng tên biểu tượng với web (DESIGN.md 15.3). Chưa chốt: cách lưu chế độ sáng tối (DESIGN.md 15.7).
 
 ## 6. Mở phần nhân viên, người thân (2026-10-27, chủ dự án)
 
 - Chủ module làm màn của feature mình trong `staff/<feature>/`, `family/<feature>/` theo tasks; thư mục chưa có thì tạo cùng PR đầu tiên.
 - Thứ tự nền của A trong `common/` và `main.dart`: 000 T006, T007 (điều hướng theo loại tài khoản, khung ba phần), T008b (lint), 002 T046, T047 (đăng nhập nhân viên trên thiết bị dùng chung, mở khóa sớm; đăng nhập người thân), 000 T100 (hàng đợi ngoại tuyến drift, phong bì `Idempotency-Key`, `thoiDiemThietBi`), 002 T060 (kết quả đồng bộ, chờ xem lại), 000 T010b (script sinh client khi số endpoint lớn).
 - Tới khi có hàng đợi ngoại tuyến: lệnh ghi của phần nhân viên gọi API trực tuyến qua `common/api/api_client.dart` và báo cần mạng khi `ApiUnreachable`; không tự viết hàng đợi riêng trong thư mục feature.
-- Màn chỉ dùng dữ liệu mẫu khi không có backend phải ghi rõ trong test; dữ liệu minh họa theo AGENTS.md mục 6.
+- Màn chỉ dùng dữ liệu mẫu khi không có backend phải ghi rõ trong test; dữ liệu minh họa theo AGENTS.md mục 6. Màn chỉ hiện trường có trong spec và hợp đồng (DESIGN.md mục 13 điều 6), cùng thứ tự và chữ với màn web tương ứng.

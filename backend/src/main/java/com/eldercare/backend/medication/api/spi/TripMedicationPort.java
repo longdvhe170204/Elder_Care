@@ -1,0 +1,16 @@
+package com.eldercare.backend.medication.api.spi;
+
+import com.eldercare.backend.medication.api.dto.TimeInterval;
+import java.util.Optional;
+
+/**
+ * SPI declared by M07 and implemented by Module M04 (014) to provide trip / hospital transfer information.
+ * Read-only.
+ */
+public interface TripMedicationPort {
+    /** Expected trip interval when resident is evaluated as Eligible. */
+    Optional<TimeInterval> approvedTripInterval(long residentId, long tripId);
+
+    /** Trip duration interval. */
+    Optional<TimeInterval> tripInterval(long tripId);
+}

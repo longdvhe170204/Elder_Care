@@ -21,7 +21,7 @@ Hướng kỹ thuật:
 - Chuyển trạng thái theo giờ, nhắc và leo thang do một job theo phút (SC-005 ≤ 1 phút, NFR-04), có chạy bù và nhắc gộp (C-12).
 - Ràng buộc đưa xuống MySQL: cột sinh `UNIQUE` cho DBR-11, một phiên bản mở, DBR-12 (bỏ qua công việc Hủy), một kiểm tra đầu ca mỗi (ca, điều dưỡng); trigger khóa mục kế hoạch ngoài Nháp và khóa công việc ở trạng thái cuối (data-model mục 9).
 - Hủy và đóng tự động là tác động kèm lệnh của actor ở module khác, trong cùng transaction: bean `ThamGiaChuyenTrangThai` của 001; `CongViecCaApi` cho 008, 015 (vắng ca, nghỉ việc, đổi phân công, xác nhận bàn giao); `NguonCongViecApi` cho 007, 011, 014 (C-08, C-10).
-- 005 làm plan trước 006, 007, 008, 011, 012, 014, nên khai báo SPI ở `m04.api` để lấy dữ liệu của họ (ca, phân công, chứng chỉ, nguồn công việc, chỉ số, liều thuốc, bản ghi đón) mà không tạo vòng phụ thuộc (C-02).
+- 005 làm plan trước 006, 007, 008, 011, 012, 014, nên khai báo SPI ở `care.api` để lấy dữ liệu của họ (ca, phân công, chứng chỉ, nguồn công việc, chỉ số, liều thuốc, bản ghi đón) mà không tạo vòng phụ thuộc (C-02).
 - Yêu cầu tạo/đóng cảnh báo, thông báo, sự kiện tính phí, ăn kém kéo dài đi qua outbox ghi cùng transaction. Riêng lưu chỉ số đo gọi đồng bộ `ChiSoPort`, vì kết quả lưu quyết định trạng thái công việc (C-09, C-13).
 - Ngoại tuyến chỉ cho ghi nhận thực hiện, qua hai `NgoaiTuyenHandler` của khung 002 (C-14).
 
@@ -31,8 +31,8 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 ### Cập nhật 2026-10-18 (spec mục "Cập nhật 2026-10-18": Q-347, Q-349, Q-350)
 
-- **Thỏa thuận lựa chọn có rủi ro** (FR-002a, FR-030): bảng `thoa_thuan_rui_ro` gắn phiên bản kế hoạch, kèm người tham gia và ý kiến có nguồn (dùng `NguonYKienApi` của 001); nhận định của Bác sĩ gắn với thỏa thuận; người quyết định theo BR-M01-15 tầng 2. Lệnh `PUT /ke-hoach-cham-soc/{id}/thoa-thuan`; checklist trả thỏa thuận của phiên bản Hiệu lực. Bảng riêng nên không bao giờ là căn cứ công việc (research C-18, data-model mục 3).
-- **Loại lý do Không thực hiện** (FR-028a): danh mục nhóm 1 `loai_ly_do_khong_thuc_hien` có dòng cố định "Người cao tuổi từ chối"; lệnh Không thực hiện nhận `loaiLyDoId` và `ghiChu`; app lưu danh mục để ghi ngoại tuyến (research C-14, C-18).
+- **Thỏa thuận lựa chọn có rủi ro** (FR-002a, FR-030): bảng `thoa_thuan_rui_ro` gắn phiên bản kế hoạch, kèm người tham gia và ý kiến có nguồn (dùng `NguonYKienApi` của 001); nhận định của Bác sĩ gắn với thỏa thuận; người quyết định theo BR-M01-15 tầng 2. Lệnh `PUT /ke-hoach-cham-soc/{id}/thoa-thuan`; checklist trả thỏa thuận của phiên bản Hiệu lực. Bảng riêng nên không bao giờ là căn cứ công việc (research C-18, data-model mục 3). *(R-15: `thoa_thuan_rui_ro` → `muc_ke_hoach`)*
+- **Loại lý do Không thực hiện** (FR-028a): danh mục nhóm 1 `loai_ly_do_khong_thuc_hien` có dòng cố định "Người cao tuổi từ chối"; lệnh Không thực hiện nhận `loaiLyDoId` và `ghiChu`; app lưu danh mục để ghi ngoại tuyến (research C-14, C-18). *(R-15: `loai_ly_do_khong_thuc_hien` → `danh_muc_chung`)*
 - Không thêm thư viện, vai trò, trạng thái. Điểm báo lại 11, 12 bên dưới.
 
 ## Technical Context
@@ -94,7 +94,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | VII. Điểm chưa rõ | Đạt | Không tự đoán nghiệp vụ. Mức các thông báo spec chưa nêu: plan áp nguyên tắc 3 bậc và báo lại (điểm 4). BR-M04-07 lệch BR-M09-06: plan theo spec FR-046 và BR-M09-06 (điểm 1) |
 | VIII. Tiêu chí thành công | Đạt | SC-001 → SC-012 có cách đo ở quickstart mục 5 |
 | IX. Phạm vi giai đoạn | Đạt | Chỉ tài liệu thiết kế; không mã, không `src/`, không cấu hình build, không SQL; không đổi nghiệp vụ. Không sửa hợp đồng của 000 → 004 |
-| X. Kiến trúc | Đạt | Một khối; gói `m04`; module khác chỉ dùng `m04.api`. Không có vòng phụ thuộc (C-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
+| X. Kiến trúc | Đạt | Một khối; gói `care`; module khác chỉ dùng `care.api`. Không có vòng phụ thuộc (C-02). REST `/api/v1`; MySQL; hai client (Q-346). NFR ở bảng bên dưới |
 | XI. Nghiệp vụ ở backend | Đạt | Kiểm tra lập, quyền ghi, bảng chuyển, quy tắc mục F ở backend. Mỗi lệnh có `POST …/{id}/<lenh>` riêng; lệnh trạng thái người cao tuổi dùng endpoint của 001 |
 | XII. Dữ liệu | Đạt | DBR-11, DBR-12 bằng cột sinh `UNIQUE` và khóa; nhóm 3 theo mẫu 000; nhật ký trong transaction; `Clock`; `thoi_diem_thiet_bi` cho ngoại tuyến (DBR-25) |
 | XIII. Tham số | Đạt | Như V. Đổi CFG-M04-03 trong ngày áp từ lần kiểm tra kế tiếp |
@@ -102,12 +102,12 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | XV. Truy vết, kiểm thử | Đạt | Tên test theo BR, FR. Mỗi BR của 005 có test (data-model mục 12). BR-M04-27 và BR-M15-20 có thêm test Flutter |
 
 **Kiểm lại sau Phase 1**: Đạt. Thiết kế không thêm vai trò, trạng thái hay quy tắc nghiệp vụ ngoài spec. Có sáu bổ sung kỹ thuật, giải thích ở Complexity Tracking:
-1. Bảng `cham_soc_nct` làm đích khóa theo người.
+1. Bảng `cham_soc_nct` làm đích khóa theo người. *(R-15: `cham_soc_nct` → `trang_thai_nct`)*
 2. Trạng thái `DA_HUY_NGAY_NGHI` của dòng có mặt.
 3. Lệnh lập công việc theo lô, từ chối cả lô.
-4. Tám SPI khai báo ở `m04.api` cho các module làm plan sau.
+4. Tám SPI khai báo ở `care.api` cho các module làm plan sau.
 5. `ChiSoPort` gọi đồng bộ, khác các yêu cầu tới 007 đi qua outbox.
-6. Hai job (theo phút, hằng ngày) và bảng `lan_chay_m04`.
+6. Hai job (theo phút, hằng ngày) và bảng `lan_chay_m04`. *(R-15: `lan_chay_m04` → `moc_da_nhac`)*
 
 ### Đáp ứng yêu cầu phi chức năng (constitution X)
 
@@ -148,7 +148,7 @@ specs/005-daily-care-tasks/
 Cấu trúc dự kiến cho giai đoạn triển khai. Giai đoạn thiết kế không tạo các thư mục này (CLAUDE.md).
 
 ```text
-backend/src/main/java/com/cambae/backend/m04/
+backend/src/main/java/com/eldercare/backend/care/
 ├── api/           # KeHoachChamSocApi, CoMatBanTruApi, CongViecCaApi, CongViecBanGiaoApi, NguonCongViecApi,
 │                  # CongViecVangMatApi, CongViecDoChiSoApi, CongViecThongKeApi, ThoiKhoaBieuApi,
 │                  # SPI 005 khai báo (NhanSuCaPort, NguonCongViecPort, ChiSoPort, LieuThuocChecklistPort,
@@ -183,18 +183,18 @@ mobile/lib/nhan-vien/
 └── diem-danh-ban-tru/
 ```
 
-**Structure Decision**: Theo R-02 của 000. Feature 005 nằm ở `backend/…/m04` với chín gói con nghiệp vụ, gói `trangthai` gom SPI cài cho module thấp hơn, gói `lich` và gói `api`. Phần 8.8 → 8.10 của M04 (hoạt động, ngoài viện, tinh thần, kiểm tra chất lượng) thuộc feature 014; plan 014 thêm gói con vào cùng `m04`. Web có đủ chức năng. App nhân viên có checklist, ghi nhận ngoại tuyến và các thao tác tại tầng. App người thân không có màn của 005.
+**Structure Decision**: Theo R-02 của 000. Feature 005 nằm ở `backend/…/care` với chín gói con nghiệp vụ, gói `trangthai` gom SPI cài cho module thấp hơn, gói `lich` và gói `api`. Phần 8.8 → 8.10 của M04 (hoạt động, ngoài viện, tinh thần, kiểm tra chất lượng) thuộc feature 014; plan 014 thêm gói con vào cùng `care`. Web có đủ chức năng. App nhân viên có checklist, ghi nhận ngoại tuyến và các thao tác tại tầng. App người thân không có màn của 005.
 
 ## Complexity Tracking
 
 | Điểm cần giải thích | Vì sao cần | Phương án đơn giản hơn bị loại vì |
 | --- | --- | --- |
-| Bảng `cham_soc_nct` (một dòng mỗi người) | Đích khóa tuần tự cho DBR-11, FR-006, khóa trùng theo người khi lập theo lô | Khóa dòng `nguoi_cao_tuoi` của M01 là truy cập dữ liệu module khác |
+| Bảng `cham_soc_nct` (một dòng mỗi người) | Đích khóa tuần tự cho DBR-11, FR-006, khóa trùng theo người khi lập theo lô | Khóa dòng `nguoi_cao_tuoi` của M01 là truy cập dữ liệu module khác *(R-15: `cham_soc_nct` → `trang_thai_nct`)* |
 | Trạng thái `DA_HUY_NGAY_NGHI` của dòng có mặt | Bảng FR-013 ghi "không còn trạng thái có mặt cho buổi đó"; giữ dòng để 010, 016 thấy buổi đã bị hủy do ngày nghỉ, có nhật ký | Xóa dòng: mất dấu vết và vi phạm "không mặc định CRUD" |
 | Lệnh lập theo lô, từ chối cả lô khi một dòng lỗi | Người phụ trách ca lập hàng trăm công việc trong giờ giao ca; "hoặc toàn bộ, hoặc không" của 000; trả đủ lỗi một lần | Mỗi công việc một lệnh: chậm, và lần lập dừng giữa chừng để lại ca lập dở |
-| Tám SPI khai báo ở `m04.api` (008, 007, 006, 011, 012, 014) | 008, 007, 011, 014 phải gọi lệnh của 005 trong transaction của họ, nên phụ thuộc 005; 005 cần lại dữ liệu của họ | 005 gọi thẳng API của họ: vòng phụ thuộc, Modulith từ chối |
+| Tám SPI khai báo ở `care.api` (008, 007, 006, 011, 012, 014) | 008, 007, 011, 014 phải gọi lệnh của 005 trong transaction của họ, nên phụ thuộc 005; 005 cần lại dữ liệu của họ | 005 gọi thẳng API của họ: vòng phụ thuộc, Modulith từ chối |
 | `ChiSoPort` đồng bộ, các yêu cầu khác tới 007 qua outbox | Giá trị bị chặn hoặc cần đo lại thì công việc không được đóng (FR-034); chỉ biết khi 007 trả lời ngay | Outbox cho chỉ số: công việc đã đóng trong khi giá trị bị từ chối |
-| Job theo phút, job hằng ngày, bảng `lan_chay_m04` | SC-005 đòi chuyển và nhắc ≤ 1 phút; FR-052 đòi chạy bù không trùng; mốc theo ca, theo ngày chạy đúng một lần. Chu kỳ và giờ chạy là thông số vận hành, không có trong Phụ lục 25 | Mỗi việc một job: khó bảo đảm thứ tự (Hiệu lực kế hoạch trước, rồi có mặt đầu ngày) và nhiều khóa |
+| Job theo phút, job hằng ngày, bảng `lan_chay_m04` | SC-005 đòi chuyển và nhắc ≤ 1 phút; FR-052 đòi chạy bù không trùng; mốc theo ca, theo ngày chạy đúng một lần. Chu kỳ và giờ chạy là thông số vận hành, không có trong Phụ lục 25 | Mỗi việc một job: khó bảo đảm thứ tự (Hiệu lực kế hoạch trước, rồi có mặt đầu ngày) và nhiều khóa *(R-15: `lan_chay_m04` → `moc_da_nhac`)* |
 
 ## Điểm cần báo lại về tài liệu nguồn
 
@@ -232,3 +232,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 11. **(2026-10-18) Hiển thị thỏa thuận trên checklist** (spec "Điểm cần báo lại" 1 của lượt 2026-10-18): 8.1 không nêu chỗ hiển thị; plan làm theo FR-030 (checklist trả thỏa thuận của phiên bản Hiệu lực). Chờ chủ dự án xác nhận; nếu bỏ thì chỉ bỏ trường `thoaThuan` của `Checklist`. *(Đã xử lý 2026-10-18: Q-360: giữ hiển thị trên checklist)*
 
 12. **(2026-10-18) Hai "ngày xem lại" của thỏa thuận** (ngày xem lại thỏa thuận và ngày xem lại nhận định, FR-002a): spec không nói tới hạn thì làm gì. Plan chỉ lưu và hiển thị, không nhắc (Q-306). Cùng câu hỏi với plan 001 điểm báo lại 11. Ngoài ra FR-002a ghi người cao tuổi "MUST có trong danh sách khi tham gia được"; hệ thống không biết khi nào người cao tuổi tham gia được, nên plan chỉ bắt buộc khi Bác sĩ nhận định người cao tuổi tự quyết được (`CHECK (nct_tham_gia OR NOT tu_quyet_duoc)`). Đề nghị xác nhận. *(Đã xử lý 2026-10-18: Q-360: nhắc một lần mỗi ngày xem lại (research C-18); quy tắc `nct_tham_gia` giữ theo plan, chủ dự án ủy quyền chốt)*
+
+## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
+
+- Ánh xạ bảng ở data-model mục 0; task T064. Trước khi viết migration, viết data-model mục 0.1 theo mẫu của 001, 009 (bảng gộp, loại ở bảng chung kèm nội dung, ràng buộc chuyển về backend, bảo đảm và test), rồi sửa bảng DBR áp dụng.
+- Bảo đảm DBR, BR (XII): như feature đã cài, mỗi ràng buộc của bảng cũ có nơi bảo đảm mới (`khoa_duy_nhat`, cột sinh, `CHECK` theo `kind`, trigger khóa theo dòng hoặc domain kèm test tích hợp).
+- Task, plan, research nhắc bảng cũ có ghi chú "R-15:" chỉ bảng đích: tạo bảng đích hoặc dùng bảng chung thay cho bảng cũ.

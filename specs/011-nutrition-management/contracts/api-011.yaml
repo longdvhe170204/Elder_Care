@@ -210,7 +210,7 @@ paths:
   /thuc-don/{id}/truoc-khi-gui:
     get:
       tags: [thuc-don]
-      summary: "Thông tin trước khi gửi: tồn kho nguyên liệu (019), số người theo chế độ ăn (không tên)"
+      summary: "Thông tin trước khi gửi: số người theo chế độ ăn (không tên); tồn kho bỏ theo Q-392"
       x-fr: [FR-025a]
       parameters: [ { $ref: '#/components/parameters/Id' } ]
       responses: { '200': { description: OK } }

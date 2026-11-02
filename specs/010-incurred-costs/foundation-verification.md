@@ -38,10 +38,10 @@ Các lớp đỏ có sẵn: `BR_M01_01_TemporaryAbsenceOverdueIT`, `BR_M01_02_Re
 
 ## 4. File để đọc
 
-- backend/src/main/java/com/cambae/backend/m11/pricing/internal/domain/DongRounding.java
-- backend/src/main/java/com/cambae/backend/m11/pricing/internal/domain/ResidencyDayFee.java
-- backend/src/main/java/com/cambae/backend/m11/pricing/internal/domain/DayCareSessionFee.java
-- backend/src/test/java/com/cambae/backend/m11/: DongRoundingTest, ResidencyDayFeeTest, DayCareSessionFeeTest, M11ArchTest.
+- backend/src/main/java/com/eldercare/backend/billing/internal/pricing/domain/DongRounding.java
+- backend/src/main/java/com/eldercare/backend/billing/internal/pricing/domain/ResidencyDayFee.java
+- backend/src/main/java/com/eldercare/backend/billing/internal/pricing/domain/DayCareSessionFee.java
+- backend/src/test/java/com/eldercare/backend/billing/: DongRoundingTest, ResidencyDayFeeTest, DayCareSessionFeeTest, M11ArchTest.
 - tasks/plan/research P-12, glossary mục 16, biên bản duyệt preparation-review.md, team-plan và dòng mới cuối progress.
 
 ## 5. Việc A cần làm để sinh client 010

@@ -8,7 +8,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Các q
 
 ## A-01. Vị trí trong backend
 
-**Quyết định**: Feature 002 nằm ở module M15, gói `com.cambae.backend.m15.taikhoan`, chia bốn gói con:
+**Quyết định**: Feature 002 nằm ở module M15, gói `com.eldercare.backend.administration.taikhoan`, chia bốn gói con:
 
 | Gói con | Nội dung |
 | --- | --- |
@@ -19,7 +19,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Các q
 
 Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.api` công khai các giao diện mà 000 đã khai báo trước (`NguoiDungHienTai`, `QuyenApi`, `PhamViApi`, `QuyenXemTruongApi`, `NguoiDuyetApi`), giữ đúng chữ ký ở [../000-shared-foundation/contracts/module-interfaces.md](../000-shared-foundation/contracts/module-interfaces.md) mục 2.
 
-**Lý do**: Phụ lục 26.2 đặt UC-68, UC-70 ở feature 002 thuộc M15; 000 đã dành chỗ `m15/taikhoan` (plan 000, Project Structure).
+**Lý do**: Phụ lục 26.2 đặt UC-68, UC-70 ở feature 002 thuộc M15; 000 đã dành chỗ `administration/taikhoan` (plan 000, Project Structure).
 
 **Phương án đã cân nhắc**: Tách xác thực thành module riêng bị loại vì sinh module ngoài M01–M15 (constitution X).
 
@@ -54,7 +54,7 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
 - Băm mật khẩu bằng Argon2id (`Argon2PasswordEncoder` của Spring Security, tham số theo khuyến nghị OWASP hiện hành).
 - Mật khẩu tạm khi tạo tài khoản hoặc cấp lại: 12 ký tự ngẫu nhiên, chỉ trả về một lần trong phản hồi của lệnh, để người thực hiện giao trực tiếp cho người đã xác minh (FR-052). Tài khoản mang cờ `buoc_doi_mat_khau`. Phiên của tài khoản mang cờ này chỉ gọi được `doi-mat-khau` và `dang-xuat` (FR-006).
 - Độ mạnh mật khẩu (FR-006a, BR-M15-21): kiểm theo CFG-M15-09 (dạng `BANG` `{doDaiToiThieu, batBuocChu, batBuocSo}`, mặc định 8, có, có), thêm điều kiện kỹ thuật "khác mật khẩu tạm"; không đạt trả 422 `MAT_KHAU_KHONG_DAT` kèm yêu cầu. Mật khẩu tạm sinh ra cũng đạt mức này.
-- Khởi tạo Quản lý viện đầu tiên (FR-004b, BR-M15-22): lệnh dòng lệnh `khoi-tao-quan-ly-vien` của ứng dụng backend, chỉ chạy khi chưa có dòng `gan_vai_tro` còn hiệu lực với AC-01 (kiểm dưới khóa bảng). Lệnh gọi `HoSoNhanVienApi` của 008 tạo hồ sơ tối thiểu, tạo tài khoản AC-01 buộc đổi mật khẩu, in mật khẩu tạm ra màn hình một lần, ghi nhật ký với `nguoi_thuc_hien_loai = KHOI_TAO`. Không có endpoint REST cho việc này.
+- Khởi tạo Quản lý viện đầu tiên (FR-004b, BR-M15-22): lệnh dòng lệnh `khoi-tao-quan-ly-vien` của ứng dụng backend, chỉ chạy khi chưa có dòng `gan_vai_tro` còn hiệu lực với AC-01 (kiểm dưới khóa bảng). Lệnh gọi `HoSoNhanVienApi` của 008 tạo hồ sơ tối thiểu, tạo tài khoản AC-01 buộc đổi mật khẩu, in mật khẩu tạm ra màn hình một lần, ghi nhật ký với `nguoi_thuc_hien_loai = KHOI_TAO`. Không có endpoint REST cho việc này. *(R-15: `gan_vai_tro` → `quyen_tai_khoan` (`permission_assignment`))*
 - Đếm sai (FR-008, BR-M15-05):
   - cột `so_lan_sai_lien_tiep` trên `tai_khoan`, tăng bằng `UPDATE … SET so_lan_sai = so_lan_sai + 1` để không mất lần đếm khi đăng nhập đồng thời;
   - đủ ngưỡng của CFG-M15-01 thì đặt `khoa_tam_den = bây giờ + thời gian khóa`, chuyển Khóa tạm, kết thúc phiên;
@@ -98,17 +98,17 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
 
 **Quyết định**:
 - Ba bảng có hiệu lực theo thời điểm, mỗi dòng có `hieu_luc_tu` và `hieu_luc_den` (`DATETIME(6)`, `NULL` là còn hiệu lực):
-  - `thu_hep_quyen` với `doi_tuong = VAI_TRO | TAI_KHOAN`: bỏ một loại thao tác, hoặc hạ phạm vi từ toàn viện xuống theo phân công. Với chức năng `DASHBOARD_BAO_CAO`, thêm cột `nhom_chi_tieu` và `kenh` (dashboard / báo cáo) để thu hẹp chi tiết hơn (feature 016 FR-010a);
-  - `quyen_gan_them`: chỉ cho khóa `(KE_HOACH_CHAM_SOC, DUYET)` gán cho tài khoản có vai trò Điều dưỡng (FR-024, Q-07);
-  - `gan_vai_tro`: tài khoản, vai trò, người gán, lý do.
+  - `thu_hep_quyen` với `doi_tuong = VAI_TRO | TAI_KHOAN`: bỏ một loại thao tác, hoặc hạ phạm vi từ toàn viện xuống theo phân công. Với chức năng `DASHBOARD_BAO_CAO`, thêm cột `nhom_chi_tieu` và `kenh` (dashboard / báo cáo) để thu hẹp chi tiết hơn (feature 016 FR-010a); *(R-15: `thu_hep_quyen` → `quyen_tai_khoan` (`permission_assignment`))*
+  - `quyen_gan_them`: chỉ cho khóa `(KE_HOACH_CHAM_SOC, DUYET)` gán cho tài khoản có vai trò Điều dưỡng (FR-024, Q-07); *(R-15: `quyen_gan_them` → `quyen_tai_khoan` (`permission_assignment`))*
+  - `gan_vai_tro`: tài khoản, vai trò, người gán, lý do. *(R-15: `gan_vai_tro` → `quyen_tai_khoan` (`permission_assignment`))*
 - Thay đổi = đóng dòng cũ (`hieu_luc_den = bây giờ`) và thêm dòng mới trong một transaction. Không xóa dòng. Nhờ đó tra cứu quyền tại thời điểm quá khứ (FR-026a, BR-M15-16) chỉ cần lọc `hieu_luc_tu <= t < coalesce(hieu_luc_den, ∞)`. Đây là dữ liệu nhóm 1 có lịch sử, đúng mẫu 1.2 của data-model 000; cột `hieu_luc_den` là cột duy nhất được `UPDATE`, một lần.
-- **Kiểm tra không vượt ma trận (FR-025)**: lệnh thu hẹp kiểm khóa và phạm vi mới phải nằm trong ô ma trận của vai trò (thu hẹp theo vai trò) hoặc trong hợp quyền các vai trò của tài khoản (thu hẹp theo tài khoản). Vi phạm trả 409 `VUOT_QUYEN_TOI_DA`. Không có API thêm quyền ngoài `quyen_gan_them`.
+- **Kiểm tra không vượt ma trận (FR-025)**: lệnh thu hẹp kiểm khóa và phạm vi mới phải nằm trong ô ma trận của vai trò (thu hẹp theo vai trò) hoặc trong hợp quyền các vai trò của tài khoản (thu hẹp theo tài khoản). Vi phạm trả 409 `VUOT_QUYEN_TOI_DA`. Không có API thêm quyền ngoài `quyen_gan_them`. *(R-15: `quyen_gan_them` → `quyen_tai_khoan` (`permission_assignment`))*
 - **Thứ tự tính quyền vai trò** (FR-025, BR-M15-18, CHK017):
   1. với từng vai trò của tài khoản: quyền ma trận trừ thu hẹp theo vai trò;
   2. hợp các vai trò; phạm vi của cùng một khóa là hợp phạm vi (toàn viện thắng);
   3. trừ thu hẹp theo tài khoản;
-  4. cộng `quyen_gan_them`.
-- **Luôn còn Quản lý viện (FR-012)**: lệnh khóa tài khoản, gỡ vai trò AC-01, thu hẹp khóa `(TAI_KHOAN_PHAN_QUYEN, *)` đếm số tài khoản Hoạt động còn quyền đó **sau** thay đổi, dưới khóa `SELECT … FOR UPDATE` trên các dòng `gan_vai_tro` của AC-01. Bằng 0 thì từ chối 409 `KHONG_CON_QUAN_LY_VIEN`. Khóa tự động do Nghỉ việc không bị chặn (spec chỉ chặn "thao tác người dùng").
+  4. cộng `quyen_gan_them`. *(R-15: `quyen_gan_them` → `quyen_tai_khoan` (`permission_assignment`))*
+- **Luôn còn Quản lý viện (FR-012)**: lệnh khóa tài khoản, gỡ vai trò AC-01, thu hẹp khóa `(TAI_KHOAN_PHAN_QUYEN, *)` đếm số tài khoản Hoạt động còn quyền đó **sau** thay đổi, dưới khóa `SELECT … FOR UPDATE` trên các dòng `gan_vai_tro` của AC-01. Bằng 0 thì từ chối 409 `KHONG_CON_QUAN_LY_VIEN`. Khóa tự động do Nghỉ việc không bị chặn (spec chỉ chặn "thao tác người dùng"). *(R-15: `gan_vai_tro` → `quyen_tai_khoan` (`permission_assignment`))*
 - **Chống ghi đè (FR-026, BR-M15-17)**: `tai_khoan.phien_ban_quyen` cho thay đổi theo tài khoản, `vai_tro.phien_ban_quyen` cho thay đổi theo vai trò; lệnh bắt buộc `If-Match`; sai thì 412 kèm tập quyền hiện hành.
 - **Hiệu lực ngay (FR-027)**: quyền được tính lại ở mỗi yêu cầu. Có bộ đệm trong tiến trình cho "quyền vai trò đã hợp" của một tài khoản, khóa đệm gồm `(tai_khoan_id, tai_khoan.phien_ban_quyen, tổng phien_ban_quyen của các vai trò)`; các số phiên bản đọc cùng lần tra phiên (A-02), nên đổi quyền là khóa đệm đổi ngay ở yêu cầu kế tiếp.
 
@@ -161,7 +161,7 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
 
 **Quyết định**:
 - Enum `NhomThongTin`: `NHAN_DANG`, `LIEN_HE`, `MUC_CHAM_SOC`, `SUC_KHOE` (dị ứng, bệnh nền, tiền sử, chỉ số, đánh giá), `THUOC`, `NGUYEN_VONG`, `CHI_PHI`, `TAI_CHINH`, `CONG_KHAI_NOI_BO`. Danh sách cố định theo 19.3; module không thêm nhóm.
-- Bảng `quy_tac_xem_truong` (nạp từ migration, nguồn 19.3): vai trò × nhóm → được xem / không. Ví dụ Hành chính, Kế toán không xem `SUC_KHOE`, `THUOC`; `NGUYEN_VONG` chỉ thấy "đã có / chưa có"; Bếp không xem `SUC_KHOE`.
+- Bảng `quy_tac_xem_truong` (nạp từ migration, nguồn 19.3): vai trò × nhóm → được xem / không. Ví dụ Hành chính, Kế toán không xem `SUC_KHOE`, `THUOC`; `NGUYEN_VONG` chỉ thấy "đã có / chưa có"; Bếp không xem `SUC_KHOE`. *(R-15: `quy_tac_xem_truong` → `danh_muc_chung`)*
 - **Theo cặp (nhóm, phạm vi) của từng vai trò rồi mới hợp** (FR-034): `QuyenXemTruongApi.duocXem(nd, nhom, doiTuong)` xét từng vai trò của tài khoản: vai trò cho xem nhóm đó **và** đối tượng nằm trong phạm vi của vai trò đó. Ví dụ Hành chính kiêm Điều dưỡng xem `SUC_KHOE` chỉ khi người cao tuổi trong phạm vi phân công điều dưỡng.
 - **Áp ở backend khi tuần tự hóa**: trường DTO mang chú thích `@NhomTruong(NhomThongTin.SUC_KHOE)`. Một `BeanSerializerModifier` của Jackson bỏ trường người xem không được xem và thêm mảng `truongBiAn` vào đối tượng. Giá trị thật không rời máy chủ. Nhật ký dùng cùng API (000 R-06).
 - Khoản chi phí loại Thuốc (Q-133): trường `tenThuoc`, `hamLuong` mang nhóm `THUOC`; `maVatPham` mang `CHI_PHI`.
@@ -176,7 +176,7 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
 ## A-09. Điều kiện pháp lý (FR-036 → FR-040, BR-M06-05, BR-M15-19)
 
 **Quyết định**:
-- Bảng `nghiep_vu_chuyen_mon` (nhóm 1): mã, tên, khóa quyền áp dụng (`ChucNang` + `CHUYEN_MON`), loại giấy phép/đào tạo yêu cầu, có yêu cầu phạm vi hoạt động của cơ sở không. Bảng nối `nghiep_vu_chuyen_mon_pham_vi` tới danh mục phạm vi hành nghề **của feature 008** (008 FR-006, BR-M15-19); 002 không giữ danh mục riêng.
+- Bảng `nghiep_vu_chuyen_mon` (nhóm 1): mã, tên, khóa quyền áp dụng (`ChucNang` + `CHUYEN_MON`), loại giấy phép/đào tạo yêu cầu, có yêu cầu phạm vi hoạt động của cơ sở không. Bảng nối `nghiep_vu_chuyen_mon_pham_vi` tới danh mục phạm vi hành nghề **của feature 008** (008 FR-006, BR-M15-19); 002 không giữ danh mục riêng. *(R-15: `nghiep_vu_chuyen_mon`, `nghiep_vu_chuyen_mon_pham_vi` → `danh_muc_chung`)*
 - Hai mục mặc định nạp từ migration, cờ `mac_dinh = true`, không ngừng hiệu lực được: chẩn đoán và kê đơn nội bộ; phát thuốc và xác nhận liều.
 - Kiểm tra tại thời điểm thao tác (hoặc thời điểm thiết bị với bản ghi ngoại tuyến):
   - (a), (b) qua `GiayPhepApi.hieuLuc(nhanVienId, loai, ngay)` của 008: trả giấy phép còn hiệu lực đến hết ngày hết hạn theo Asia/Ho_Chi_Minh (FR-038) cùng các mục phạm vi hành nghề;
@@ -203,7 +203,7 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
   - xem được nhưng thiếu quyền thao tác: 403 `KHONG_CO_QUYEN` kèm `lopKhongThoa`;
   - thiếu điều kiện pháp lý: 403 `DIEU_KIEN_PHAP_LY` kèm tên giấy phép, ngày hết hạn.
 - **Danh sách thao tác được phép (FR-042)**: mọi `GET` chi tiết của đối tượng nhóm 2 trả `lenhDuocPhep[]`, tính bằng cùng `QuyenApi` (000 đã dùng cách này). `GET /toi/quyen` trả tập khóa quyền của người dùng để client ẩn menu. Client chỉ dùng để hiển thị (constitution XI).
-- **Dữ liệu nguồn thiếu, mâu thuẫn** (FR-041b): API của module nguồn ném `DuLieuQuyenKhongHopLe(nguon, loaiLoi, banGhiId)`. `QuyenApi` từ chối với `lopKhongThoa = DU_LIEU_NGUON`, trừ khóa `(SU_CO_KHAN_CAP, TAO)` (đi theo FR-044a với phần nhận dạng có được). Bảng `loi_du_lieu_quyen` gộp theo `(nguon, ban_ghi_id, loai_loi)`: lần đầu thêm dòng và phát sự kiện báo Quản lý viện; các lần sau chỉ tăng bộ đếm. Lần kiểm tra kế tiếp đọc được dữ liệu hợp lệ thì đặt `da_khac_phuc_luc` (CHK059). Đây là bản ghi kỹ thuật kèm theo lần kiểm tra quyền, không phải dữ liệu nghiệp vụ tự sinh.
+- **Dữ liệu nguồn thiếu, mâu thuẫn** (FR-041b): API của module nguồn ném `DuLieuQuyenKhongHopLe(nguon, loaiLoi, banGhiId)`. `QuyenApi` từ chối với `lopKhongThoa = DU_LIEU_NGUON`, trừ khóa `(SU_CO_KHAN_CAP, TAO)` (đi theo FR-044a với phần nhận dạng có được). Bảng `loi_du_lieu_quyen` gộp theo `(nguon, ban_ghi_id, loai_loi)`: lần đầu thêm dòng và phát sự kiện báo Quản lý viện; các lần sau chỉ tăng bộ đếm. Lần kiểm tra kế tiếp đọc được dữ liệu hợp lệ thì đặt `da_khac_phuc_luc` (CHK059). Đây là bản ghi kỹ thuật kèm theo lần kiểm tra quyền, không phải dữ liệu nghiệp vụ tự sinh. *(R-15: `loi_du_lieu_quyen` → `ho_so_chung`)*
 - **Bộ lập lịch** (FR-044): `NguoiDungHienTai.laBoLapLich()` thì `QuyenApi` bỏ lớp phạm vi và pháp lý. Job chỉ gọi các tác động mà quy tắc nguồn quy định (FR-010a của 000).
 
 ---
@@ -212,7 +212,7 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
 
 **Quyết định**:
 - **Kiểm tra theo thời điểm thiết bị**: `QuyenApi.coQuyenTaiThoiDiem(nd, khoaQuyen, doiTuong, t)` dùng lịch sử:
-  - trạng thái tài khoản tại `t`: bảng `lich_su_trang_thai_tai_khoan` (mỗi lần chuyển một dòng, chỉ thêm);
+  - trạng thái tài khoản tại `t`: bảng `lich_su_trang_thai_tai_khoan` (mỗi lần chuyển một dòng, chỉ thêm); *(R-15: `lich_su_trang_thai_tai_khoan` → `lich_su_chung`)*
   - vai trò, thu hẹp, quyền gán thêm tại `t`: các bảng có hiệu lực (A-05);
   - phân công tại `t`: lịch sử phân công của 008;
   - giấy phép tại `t`: `GiayPhepApi.hieuLuc(..., ngay của t)`.
@@ -222,7 +222,7 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
   - hợp lý, hợp lệ tại `t`, mất một lớp lúc đồng bộ: `CHAP_NHAN_KEM_NHAN`; module lưu bản ghi với cột `nhan_dong_bo_sau_mat_quyen = true`; 002 phát sự kiện báo Trưởng tầng của tầng liên quan (Người phụ trách ca nếu tầng chưa có Trưởng tầng, Quản lý viện nếu không gắn tầng; CHK056);
   - không hợp lý: `CHO_XEM_LAI`;
   - hợp lý nhưng không hợp lệ tại `t`: `TU_CHOI` kèm lý do.
-- **Bản ghi chờ xem lại**: bảng chung `ban_ghi_cho_xem_lai` ở 002 (nhóm 2): loại bản ghi (mã module), nội dung JSON, thời điểm thiết bị, thời điểm đồng bộ, người ghi, tầng/khu, trạng thái `CHO_XEM_LAI` → `DA_CHAP_NHAN` / `DA_TU_CHOI`. Module đăng ký `NgoaiTuyenHandler` để kiểm nội dung và ghi bản ghi thật khi được chấp nhận (thời điểm hiệu lực là lúc chấp nhận, giữ `thoi_diem_thiet_bi`). Bản ghi bị từ chối vẫn lưu ở bảng này, không có hiệu lực (FR-041c).
+- **Bản ghi chờ xem lại**: bảng chung `ban_ghi_cho_xem_lai` ở 002 (nhóm 2): loại bản ghi (mã module), nội dung JSON, thời điểm thiết bị, thời điểm đồng bộ, người ghi, tầng/khu, trạng thái `CHO_XEM_LAI` → `DA_CHAP_NHAN` / `DA_TU_CHOI`. Module đăng ký `NgoaiTuyenHandler` để kiểm nội dung và ghi bản ghi thật khi được chấp nhận (thời điểm hiệu lực là lúc chấp nhận, giữ `thoi_diem_thiet_bi`). Bản ghi bị từ chối vẫn lưu ở bảng này, không có hiệu lực (FR-041c). *(R-15: `ban_ghi_cho_xem_lai` → `ho_so_chung`)*
 - **Báo kết quả cho người dùng** (BR-M15-20): phản hồi đồng bộ trả kết quả từng bản ghi; app nhân viên hiển thị danh sách. Nếu tài khoản không còn Hoạt động thì phản hồi kèm kết thúc phiên; nếu phạm vi đã hết, app nhận danh sách người cao tuổi còn trong phạm vi để chặn ghi mới (CHK057).
 - Thao tác bắt buộc trực tuyến (kích hoạt khẩn cấp, xác nhận liều có kiểm soát đặc biệt, theo Q-01) không đi qua luồng này; module từ chối bản ghi ngoại tuyến của các thao tác đó.
 
@@ -271,8 +271,8 @@ Mỗi gói có `api`, `internal`, `web`, và `lich` khi có job. Gói `taikhoan.
 
 **Quyết định**:
 - `tai_khoan.loai` thêm `NGUOI_CAO_TUOI`, liên kết `nguoi_cao_tuoi_id` (`UNIQUE`, FR-067 "tối đa một tài khoản"); vai trò duy nhất AC-16; phạm vi `BAN_THAN` (chỉ người cao tuổi liên kết); không có lớp điều kiện pháp lý (FR-068). Tạo: AC-01 hoặc AC-09; `NguoiCaoTuoiApi.trangThai` phải là Đang lưu trú; lệnh bắt buộc `xacNhan` gồm `cach` (`YEU_CAU` / `DONG_Y`) và `voiNhanVienId`, ghi vào `nhat_ky.chi_tiet`. Thiếu `xacNhan` thì 422; vì vậy đề nghị chỉ từ người thân không đủ để tạo.
-- **Mã QR**: 128 bit ngẫu nhiên, chỉ lưu SHA-256 ở `ma_qr_dang_nhap`, hết hạn sau CFG-M15-11. Người tạo: AC-01, AC-09, hoặc AC-04 có phạm vi với người cao tuổi (Phụ lục 27 ⁴⁸). Tạo mã mới đặt `vo_hieu_luc_luc` cho mã chưa dùng của cùng tài khoản. `POST /xac-thuc/dang-nhap-qr` chạy trong một transaction: kiểm mã chưa dùng, chưa hết hạn, tài khoản Hoạt động hoặc Khóa tạm đã hết hạn khóa; gỡ thiết bị đang gắn (kết thúc phiên trên đó); gắn `X-Thiet-Bi` hiện tại; tạo phiên kênh `APP_NGUOI_CAO_TUOI` và một **token thiết bị**; đánh dấu mã đã dùng.
-- **Token thiết bị**: 256 bit opaque, chỉ lưu SHA-256 ở `thiet_bi_gan`, trả cho app một lần lúc gắn, app giữ trong `flutter_secure_storage`. Chỉ endpoint nút SOS của 007 nhận token này (header `X-Token-Thiet-Bi`) qua `ThietBiGanApi.xacDinh`; token không mở phiên, không gọi được endpoint khác. Hết tác dụng khi thiết bị bị gỡ hoặc tài khoản sang Đã khóa; Khóa tạm (sai mật khẩu) không làm mất tác dụng. Chuỗi bộ lọc của 002 để `/sos/**` qua không cần phiên; ngoài đăng nhập, đây là đường duy nhất như vậy.
+- **Mã QR**: 128 bit ngẫu nhiên, chỉ lưu SHA-256 ở `ma_qr_dang_nhap`, hết hạn sau CFG-M15-11. Người tạo: AC-01, AC-09, hoặc AC-04 có phạm vi với người cao tuổi (Phụ lục 27 ⁴⁸). Tạo mã mới đặt `vo_hieu_luc_luc` cho mã chưa dùng của cùng tài khoản. `POST /xac-thuc/dang-nhap-qr` chạy trong một transaction: kiểm mã chưa dùng, chưa hết hạn, tài khoản Hoạt động hoặc Khóa tạm đã hết hạn khóa; gỡ thiết bị đang gắn (kết thúc phiên trên đó); gắn `X-Thiet-Bi` hiện tại; tạo phiên kênh `APP_NGUOI_CAO_TUOI` và một **token thiết bị**; đánh dấu mã đã dùng. *(R-15: `ma_qr_dang_nhap` → `thiet_bi_xac_thuc` (`device_credential`))*
+- **Token thiết bị**: 256 bit opaque, chỉ lưu SHA-256 ở `thiet_bi_gan`, trả cho app một lần lúc gắn, app giữ trong `flutter_secure_storage`. Chỉ endpoint nút SOS của 007 nhận token này (header `X-Token-Thiet-Bi`) qua `ThietBiGanApi.xacDinh`; token không mở phiên, không gọi được endpoint khác. Hết tác dụng khi thiết bị bị gỡ hoặc tài khoản sang Đã khóa; Khóa tạm (sai mật khẩu) không làm mất tác dụng. Chuỗi bộ lọc của 002 để `/sos/**` qua không cần phiên; ngoài đăng nhập, đây là đường duy nhất như vậy. *(R-15: `thiet_bi_gan` → `thiet_bi_xac_thuc` (`device_credential`))*
 - **Phiên**: kênh `APP_NGUOI_CAO_TUOI` bỏ qua kiểm CFG-M15-10 ở lần tra phiên (A-02); job `ChuyenKhongHoatDong` chỉ lọc `loai = NGUOI_THAN`. Phiên kết thúc khi tài khoản rời Hoạt động hoặc Khóa tạm, đổi mật khẩu, gỡ thiết bị, người cao tuổi tự đăng xuất (FR-070).
 - **Mật khẩu dự phòng**: `POST /xac-thuc/dang-nhap` với `kenh = APP_NGUOI_CAO_TUOI` cũng gắn thiết bị và trả token thiết bị như mã QR.
 - **Ngoại lệ FR-014a**: đăng nhập tài khoản khác trên `X-Thiet-Bi` đang gắn trả 409 `THIET_BI_DA_GAN` cho tới khi thiết bị được gỡ.

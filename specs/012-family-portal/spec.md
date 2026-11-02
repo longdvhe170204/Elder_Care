@@ -152,6 +152,11 @@ Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 
 - **Q-377 → Q-379**: loại (3) chi phí của cổng thêm phiếu báo phí (PDF, Excel), bảng quyết toán (PDF) tải được do feature 017 cung cấp (FR-046); người thân có quyền xem chi phí được báo mức Nhẹ khi có chứng từ mới (feature 017 FR-030). Chứng từ không thay hóa đơn.
 - **Q-373, Q-374**: nút SOS gửi kèm vị trí GPS khi người cao tuổi đã cho quyền, hiện "đang tới", "đã tới" (FR-085).
 
+### Cập nhật 2026-10-29 (đồng bộ Q-396: bỏ bản tin tuần)
+
+- Chủ dự án bỏ bản tin tuần (BR-M10-08, BR-M10-09, BR-M05-26, UC-60, CFG-M10-03, CFG-M10-12 bỏ). Người thân xem tình hình người cao tuổi trên cổng (mục G) và nhận thông báo sự cố theo feature 009.
+- Bỏ User Story 7, mục H (FR-051 → FR-057), FR-073, SC-006; bỏ dòng Bản tin ở phân loại dữ liệu, ma trận quyền, bảng thông báo, bảng giao tiếp, Key Entities; sửa FR-072, FR-075, Edge Cases. Mã FR, US giữ để không đánh lại số. Các mục cập nhật cũ nhắc bản tin giữ nguyên làm lịch sử.
+
 ## Phạm vi
 
 **Trong phạm vi** (Module 10 mục 14.1 → 14.8; BR-M10-01 → 09, BR-M10-10 phần cổng; DBR-02, DBR-03; UC-55 → UC-60; NFR-08 phần lượt xem của người thân; CFG-M10-01 → 03, CFG-M10-04 → 12 (đề xuất); thực thể NGUOI_THAN, QUAN_HE_NGUOI_THAN, LUOT_THAM, PHAN_HOI, BAN_TIN):
@@ -163,7 +168,7 @@ Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 
 5. Đăng ký thăm, kiểm tra khung giờ, sức chứa, khoanh vùng, trạng thái người cao tuổi; ghi nhận vào/ra (14.2, BR-M10-02, UC-57).
 6. Người thân ở lại chăm sóc (14.4, BR-M10-04).
 7. Cổng thông tin người thân: hiển thị theo quyền từng người thân; ghi nhật ký lượt xem sức khỏe (14.5, 14.6, BR-M10-01, NFR-08, UC-56).
-8. Bản tin tuần: nhắc lập theo kỳ, Điều dưỡng phụ trách soạn từ số liệu tổng hợp hệ thống tính sẵn, duyệt, gửi, theo dõi đã xem (14.5, BR-M10-06, 08, 09, UC-60; **sửa, 2026-10-06, Q-306, Q-307**).
+8. *(Bỏ theo Q-396, 2026-10-29)* Bản tin tuần.
 9. Phản hồi, khiếu nại: hạn xử lý theo mức ưu tiên, leo thang, người thân xác nhận đóng hoặc mở lại (14.7, BR-M10-05, UC-59).
 10. *(Bổ sung 2026-10-18, Q-365 → Q-371)* Kênh người cao tuổi: hiển thị thông tin của chính người cao tuổi, phản hồi của người cao tuổi (kể cả ghi thay và loại Mong muốn), nút SOS và trạng thái của nó (14.6a, 14.7, BR-M10-11, 12, UC-96, phần người cao tuổi của UC-59). Tài khoản, thiết bị gắn: feature 002; cảnh báo SOS: feature 007.
 
@@ -176,7 +181,6 @@ Chủ dự án chốt Q-365, Q-366, Q-368 → Q-371 (docs/business/nghiep-vu.md 
 - Sinh khoản chi phí, chốt kỳ, bảng chi phí: feature 010. Chốt suất ăn: feature 011. Spec này cung cấp bản ghi người thân ở lại làm nguồn.
 - Gửi thông báo, giờ yên tĩnh, lọc nội dung theo loại thông tin, ghi thời điểm gửi và xem: feature 009 (FR-013, FR-014, FR-022, FR-034). Spec này nêu sự kiện, mức, người nhận, loại thông tin (feature 009 FR-043a).
 - Yêu cầu thay đổi dịch vụ của người đại diện (nội dung, duyệt, áp dụng): feature 004 (FR-039). Spec này chỉ bảo đảm chỉ người đại diện có quyền này mới gửi được (BR-M10-01).
-- Dữ liệu nguồn của bản tin (ăn uống, nước, hoạt động, cân nặng, chỉ số, sự cố, chi phí tạm tính): feature 005, 007, 010, 011, 014.
 - Camera (14.6, mục 23): ngoài phạm vi giai đoạn đầu.
 - Đồ gửi (tiếp nhận, bàn giao, trả, xác nhận người nhận khác, đồng ý cho tự giữ): feature 013. Spec này chỉ hiển thị mục đồ gửi và nhận quyết định của người đại diện trên cổng (FR-046b).
 - Quy tắc dùng chung (nhóm dữ liệu, nhật ký, tham số, đính chính, yêu cầu phê duyệt): feature 000, kế thừa, không lặp lại.
@@ -189,7 +193,7 @@ Nhân vật dùng chung: người cao tuổi A (Nội trú dài hạn, Đang lư
 
 Hành chính lập hồ sơ người thân cho người cao tuổi: họ tên, quan hệ, số liên hệ, giấy tờ tùy thân, vai trò người đại diện hoặc người liên hệ chính, và sáu quyền cấp riêng cho từng người. Hệ thống bảo đảm mỗi người cao tuổi luôn có đúng một người liên hệ chính và ít nhất một người đại diện, và quyền xem sức khỏe chỉ bật được khi bản đồng ý chia sẻ dữ liệu bao gồm người thân đó.
 
-**Why this priority**: Mọi chức năng khác của module (đón, thăm, cổng, bản tin, thông báo khẩn của feature 009, ký hợp đồng của feature 004) dựa trên dữ liệu này. Cấp sai quyền xem sức khỏe là rủi ro pháp lý (5.1, BR-M01-08).
+**Why this priority**: Mọi chức năng khác của module (đón, thăm, cổng, thông báo khẩn của feature 009, ký hợp đồng của feature 004) dựa trên dữ liệu này. Cấp sai quyền xem sức khỏe là rủi ro pháp lý (5.1, BR-M01-08).
 
 **Independent Test**: Lập ba người thân R, M, N cho A với vai trò và quyền khác nhau; thử bỏ người liên hệ chính, bỏ người đại diện cuối cùng, bật quyền xem sức khỏe cho N khi bản đồng ý không gồm N; kiểm tra các lệnh bị chặn đúng và dữ liệu cung cấp cho feature 002, 009 đúng.
 
@@ -326,25 +330,9 @@ Người thân gửi phản hồi hoặc khiếu nại trên cổng (hoặc Hàn
 
 ---
 
-### User Story 7 - Điều dưỡng soạn bản tin tuần, duyệt và gửi (Priority: P3)
+### User Story 7 - Bản tin tuần *(Bỏ theo Q-396, 2026-10-29)*
 
-Mỗi thứ 2 (CFG-M10-03), hệ thống nhắc Điều dưỡng phụ trách lập bản tin của tuần trước cho từng người cao tuổi. Điều dưỡng lập bản tin và tự soạn nội dung; hệ thống tính sẵn số liệu tổng hợp từ dữ liệu đã ghi để Điều dưỡng xem, không gợi ý nội dung (Q-306, Q-307). Điều dưỡng thêm nhận xét và duyệt trong 48 giờ kể từ mốc của kỳ; nếu trong tuần có sự cố mức Trung bình trở lên thì phải có phần giải thích. Bản tin đã gửi không sửa; người thân chỉ thấy phần thuộc quyền của mình.
-
-**Why this priority**: Tăng niềm tin và giảm cuộc gọi hỏi thăm, nhưng phụ thuộc dữ liệu của nhiều feature và không ảnh hưởng an toàn.
-
-**Independent Test**: Dựng dữ liệu một tuần cho A (ăn uống, nước, 3 hoạt động, cân nặng, một sự cố Trung bình, chi phí tạm tính); tới mốc thứ 2 kiểm tra lời nhắc; Điều dưỡng lập bản tin; thử duyệt thiếu giải thích; duyệt và gửi; kiểm tra nội dung R, M, N thấy.
-
-**Acceptance Scenarios**:
-
-1. **Given** thứ 2 ngày 09/11 là mốc của kỳ 02/11 → 08/11, **When** tới mốc, **Then** Điều dưỡng phụ trách của mỗi người cao tuổi Đang lưu trú, Tạm vắng hoặc Điều trị tại bệnh viện được nhắc lập bản tin; không có bản tin nào được tạo. **When** D lập bản tin cho A, **Then** D thấy số liệu tổng hợp đã tính sẵn của kỳ: tỷ lệ ăn trung bình, lượng nước trung bình, số hoạt động đã tham gia, cân nặng và xu hướng, các chỉ số chính, sự cố trong kỳ, chi phí tạm tính (14.5); D soạn nội dung, chọn số liệu đưa vào bản tin, và bản tin ở Chờ duyệt. **When** D lập thêm một bản tin cho A cùng kỳ, **Then** hệ thống chặn (FR-051).
-2. **Given** kỳ của bản tin A có sự cố "ngã" mức Trung bình ngày 04/11, **When** D duyệt mà chưa nhập phần giải thích, **Then** hệ thống từ chối (BR-M10-09); **When** D nhập giải thích và nhận xét rồi duyệt, **Then** bản tin chuyển Đã duyệt và được gửi qua feature 009.
-3. **Given** bản tin gửi tới R, M, N, **When** mỗi người mở, **Then** M thấy phần chung và sức khỏe (có quyền và có bản đồng ý), R thấy phần chung và chi phí, N chỉ thấy phần chung (feature 009 FR-013, Q-105); thời điểm gửi và thời điểm xem của từng người được ghi (BR-M10-06).
-4. **Given** mốc của kỳ là 00:00 ngày 09/11 và bản tin của A chưa được lập hoặc chưa được duyệt, **When** tới 00:00 ngày 11/11 (48 giờ, CFG-M10-03), **Then** T được nhắc mức Trung bình; T chưa duyệt thay được; **When** tới 00:00 ngày 13/11 (96 giờ, CFG-M10-12) bản tin đã lập vẫn chưa duyệt, **Then** T được báo "có thể duyệt thay" mức Trung bình; T nhập nhận xét, phần giải thích sự cố (nếu kỳ có sự cố Trung bình trở lên) và duyệt; bản tin được gửi, người duyệt ghi là T kèm dấu "Trưởng tầng duyệt thay" (Q-124).
-5. **Given** bản tin kỳ 02/11 → 08/11 của A vẫn chưa duyệt, và của B chưa được lập, **When** tới mốc của kỳ sau (16/11), **Then** bản tin của A chuyển Không gửi với lý do "quá kỳ"; Q được báo cho cả A và B (FR-073, BR-M10-08).
-6. **Given** bản tin đã gửi, **When** D phát hiện cân nặng sai, **Then** D không sửa được bản đã gửi; D lập bản tin đính chính trỏ về bản gốc, duyệt và gửi; bản gốc vẫn xem được.
-7. **Given** A qua đời ngày 05/11, **When** tới mốc 09/11, **Then** không có lời nhắc lập bản tin cho A (feature 004 FR-073).
-8. **Given** sự cố "té trong phòng tắm" của A ngày 03/11 được ghi mức Nhẹ, **When** ngày 10/11 (trước khi duyệt) bác sĩ nâng lên Trung bình ở feature 007, **Then** bản tin kỳ 02/11 → 08/11 bắt buộc có phần giải thích trước khi duyệt; **Given** một sự cố khác trong kỳ đã chuyển Đã hủy, **Then** sự cố đó không tính (Q-129).
-9. **Given** B ở bệnh viện suốt 02/11 → 08/11, **When** tới mốc 09/11, **Then** không có lời nhắc lập bản tin cho B và Quản lý viện không được báo cho kỳ đó (FR-051).
+Không còn bản tin tuần. Người thân xem thông tin theo quyền trên cổng (User Story 5).
 
 ---
 
@@ -406,7 +394,7 @@ Người cao tuổi có tài khoản mở ứng dụng để biết hôm nay có
 - **Lượt thăm cho người bán trú**: chỉ đăng ký được vào ngày E có lịch đến và khung giờ nằm trong giờ có mặt dự kiến; E báo vắng thì lượt thăm chuyển Hủy như kịch bản 6 của User Story 4.
 - **Tham số khung giờ hoặc sức chứa thay đổi khi đã có lượt thăm**: lượt đã duyệt giữ nguyên, kể cả khi vượt sức chứa mới; chỉ đăng ký mới áp giá trị mới (FR-032).
 - **Người thăm là người trong danh sách tiếp xúc** (feature 007): không chặn đăng ký ở giai đoạn đầu; chỉ khu khoanh vùng bị chặn (BR-M05-11).
-- **Người cao tuổi qua đời khi đang có lượt thăm Đã duyệt, lượt ở lại Đang ở lại, bản tin Chờ duyệt, phản hồi đang mở**: lượt thăm tương lai chuyển Hủy; lượt ở lại được nhắc kết thúc; bản tin chuyển Không gửi; phản hồi vẫn xử lý tiếp (FR-075). Bàn giao thi hài cho gia đình không đi qua quy trình đón (FR-021) mà theo danh sách việc sau qua đời của feature 004.
+- **Người cao tuổi qua đời khi đang có lượt thăm Đã duyệt, lượt ở lại Đang ở lại, phản hồi đang mở**: lượt thăm tương lai chuyển Hủy; lượt ở lại được nhắc kết thúc; phản hồi vẫn xử lý tiếp (FR-075). Bàn giao thi hài cho gia đình không đi qua quy trình đón (FR-021) mà theo danh sách việc sau qua đời của feature 004.
 - **Kết thúc lưu trú**: quan hệ người thân giữ Hiệu lực tới khi tài khoản bị khóa theo CFG-M01-04 (feature 002) để người thân xem chi phí kỳ cuối; không nhận đăng ký thăm, lượt ở lại hay bản tin mới.
 - **Phản hồi về nhân viên cụ thể là người phụ trách mặc định** (ví dụ khiếu nại về chính Trưởng tầng): người tiếp nhận MAY giao lại cho người khác có quyền; Quản lý viện luôn xem được mọi phản hồi (FR-063).
 - **Phản hồi được gửi khi quyền hoặc quan hệ của người gửi sau đó kết thúc**: phản hồi vẫn được xử lý; người gửi không còn xem được trên cổng.
@@ -426,7 +414,6 @@ Người cao tuổi có tài khoản mở ứng dụng để biết hôm nay có
 | Lượt thăm (LUOT_THAM) | 2 | Đăng ký, Hủy, Vào, Ra; do Hệ thống: Không đến, Hủy tự động (FR-034, FR-036, FR-037); giờ vào/ra đã ghi chỉ đính chính |
 | Lượt ở lại | 2 | Đăng ký, Xác nhận, Từ chối, Bắt đầu, Gia hạn, Kết thúc, Hủy |
 | Phản hồi (PHAN_HOI) | 2 cho trạng thái; 3 cho nội dung, trả lời | Lệnh theo bảng FR-066 |
-| Bản tin (BAN_TIN) | 2 khi nháp; 3 khi đã gửi | Nhận xét, duyệt khi nháp; đã gửi chỉ đính chính bằng bản mới |
 | Nhật ký lượt xem sức khỏe | 3 | Chỉ ghi thêm |
 | Phiếu đăng ký người thân | 3 | Chỉ ghi thêm; sai sót xử lý bằng phiếu mới hoặc yêu cầu BR-M10-07 |
 | Dấu "được tự về" | 2 | Chỉ thay đổi qua yêu cầu BR-M10-07 (FR-013) |
@@ -437,8 +424,7 @@ Người cao tuổi có tài khoản mở ứng dụng để biết hôm nay có
 
 - "Trưởng tầng" khi gắn với một người cao tuổi hoặc một tầng (kể cả các cách viết "Trưởng tầng của tầng", "Trưởng tầng được giao") nghĩa là Trưởng tầng đang được giao tầng của người cao tuổi đó (feature 008, Q-84). Khi tầng không có Trưởng tầng được giao, việc xác nhận, duyệt, nhận xử lý dành cho Trưởng tầng MUST chuyển cho Quản lý viện, và thông báo gửi Trưởng tầng MUST gửi Quản lý viện.
 - "Quyền đang bật" là giá trị hiện hành của quyền trên quan hệ; "quyền có tác dụng" là quyền đang bật và thỏa điều kiện kèm theo (bản đồng ý với xem sức khỏe, FR-011); "yêu cầu Hiệu lực" là trạng thái của yêu cầu thay đổi (FR-020); "quan hệ Hiệu lực" tương đương "quan hệ còn hiệu lực" của feature 002.
-- "Điều dưỡng phụ trách" của BR-M10-08 được hiểu, với bản tin tuần, là Điều dưỡng có phạm vi dữ liệu với người cao tuổi tại thời điểm thao tác (FR-053), vì Điều dưỡng phụ trách ở 2.4 được gán theo từng ca.
-- Mốc 00:00 khi đếm đêm ở lại (FR-043) và kỳ bản tin 7 ngày liền trước mốc của kỳ (FR-051) là định nghĩa nghiệp vụ, không phải tham số; mốc nhắc lập và hạn duyệt bản tin là tham số CFG-M10-03.
+- Mốc 00:00 khi đếm đêm ở lại (FR-043) là định nghĩa nghiệp vụ, không phải tham số.
 
 
 #### A. Hồ sơ người thân và quan hệ
@@ -539,13 +525,13 @@ Người cao tuổi có tài khoản mở ứng dụng để biết hôm nay có
 
 #### G. Cổng thông tin người thân (14.5, 14.6, BR-M10-01)
 
-- **FR-046**: Cổng MUST chỉ hiển thị người cao tuổi mà người thân có quan hệ Hiệu lực (feature 002 FR-045) và chia thông tin thành bốn loại, hiển thị theo quyền: (1) **chung**, mọi người thân có quan hệ: họ tên, ảnh, phòng, trạng thái lưu trú, lịch sinh hoạt gồm buổi hoạt động, lượt thăm, lịch đến/về bán trú, lượt vắng dự kiến, thực đơn chung của viện (không gồm chế độ ăn riêng); hoạt động đã tham gia; lượt vắng; lượt thăm và phản hồi của chính mình; bản tin; thông báo; phần chung của sự cố (có sự cố, loại, thời điểm, viện đã xử lý; Q-352, bổ sung 2026-10-18); (2) **sức khỏe**, khi có quyền xem sức khỏe có tác dụng (FR-011): dị ứng và bệnh nền Hiệu lực, chỉ số, cân nặng, thuốc đang dùng, phần sức khỏe của sự cố (Q-352), kết quả công việc chăm sóc, tỷ lệ ăn và lượng nước, chế độ ăn riêng, lịch khám bên ngoài; (3) **chi phí**, khi có quyền xem chi phí: bảng chi phí đã chốt và chi phí tạm tính của kỳ đang mở do feature 010 cung cấp (feature 010 FR-037, FR-038). Tên thuốc trên khoản chi phí chỉ hiện khi người thân có thêm quyền xem sức khỏe có tác dụng; nếu không, chỉ hiện "Thuốc" và mã vật phẩm (Q-133, BR-M10-10); (4) **hợp đồng, dịch vụ**, chỉ người đại diện: hợp đồng, phụ lục, đặt cọc, tiến trình kết thúc lưu trú (feature 004). Phân loại này MUST trùng với loại thông tin của feature 009 FR-013. **(Bổ sung 2026-09-28, Q-211)** Loại (3) chi phí gồm thêm: số dư, số dư cọc, lịch sử giao dịch, số tài khoản thu của viện, mã nộp tiền, mã QR nộp tiền và sao kê tải được (Excel hoặc PDF, Q-381), do feature 017 cung cấp (feature 017 FR-003, FR-026); **(bổ sung 2026-10-22, Q-377 → Q-379)** phiếu báo phí (PDF, Excel) và bảng quyết toán (PDF, phiên bản hiện hành) tải được (feature 017 FR-038; sửa theo Q-385), ghi rõ không thay hóa đơn; người thân không có quyền xem chi phí không thấy các thông tin này. **(Bổ sung, 2026-10-06, Q-285)** Cổng MUST NOT có chức năng thanh toán trực tuyến; mã QR theo chuẩn VietQR chỉ là ảnh chứa số tài khoản của viện và nội dung chuyển khoản (có mã nộp tiền), Kế toán xác nhận khoản nộp thủ công theo sao kê (feature 017). Trạng thái đặt cọc ở loại (4) lấy từ feature 017 (feature 004 FR-031). **(Bổ sung, Q-357)** Phạm vi "nhận thông báo" của bản đồng ý (Q-353) chỉ áp cho việc gửi; cổng hiển thị bản tin, phần chung theo quan hệ và quyền ở trên. *(Nguồn: 14.5, 14.6, BR-M10-01, 4.4 chú thích ¹ ² ⁷, 15.9, Q-357)*
+- **FR-046**: Cổng MUST chỉ hiển thị người cao tuổi mà người thân có quan hệ Hiệu lực (feature 002 FR-045) và chia thông tin thành bốn loại, hiển thị theo quyền: (1) **chung**, mọi người thân có quan hệ: họ tên, ảnh, phòng, trạng thái lưu trú, lịch sinh hoạt gồm buổi hoạt động, lượt thăm, lịch đến/về bán trú, lượt vắng dự kiến, thực đơn chung của viện (không gồm chế độ ăn riêng); hoạt động đã tham gia; lượt vắng; lượt thăm và phản hồi của chính mình; thông báo; phần chung của sự cố (có sự cố, loại, thời điểm, viện đã xử lý; Q-352, bổ sung 2026-10-18); (2) **sức khỏe**, khi có quyền xem sức khỏe có tác dụng (FR-011): dị ứng và bệnh nền Hiệu lực, chỉ số, cân nặng, thuốc đang dùng, phần sức khỏe của sự cố (Q-352), kết quả công việc chăm sóc, tỷ lệ ăn và lượng nước, chế độ ăn riêng, lịch khám bên ngoài; (3) **chi phí**, khi có quyền xem chi phí: bảng chi phí đã chốt và chi phí tạm tính của kỳ đang mở do feature 010 cung cấp (feature 010 FR-037, FR-038). Tên thuốc trên khoản chi phí chỉ hiện khi người thân có thêm quyền xem sức khỏe có tác dụng; nếu không, chỉ hiện "Thuốc" và mã vật phẩm (Q-133, BR-M10-10); (4) **hợp đồng, dịch vụ**, chỉ người đại diện: hợp đồng, phụ lục, đặt cọc, tiến trình kết thúc lưu trú (feature 004). Phân loại này MUST trùng với loại thông tin của feature 009 FR-013. **(Bổ sung 2026-09-28, Q-211)** Loại (3) chi phí gồm thêm: số dư, số dư cọc, lịch sử giao dịch, số tài khoản thu của viện, mã nộp tiền, mã QR nộp tiền và sao kê tải được (Excel hoặc PDF, Q-381), do feature 017 cung cấp (feature 017 FR-003, FR-026); **(bổ sung 2026-10-22, Q-377 → Q-379)** phiếu báo phí (PDF, Excel) và bảng quyết toán (PDF, phiên bản hiện hành) tải được (feature 017 FR-038; sửa theo Q-385), ghi rõ không thay hóa đơn; người thân không có quyền xem chi phí không thấy các thông tin này. **(Bổ sung, 2026-10-06, Q-285)** Cổng MUST NOT có chức năng thanh toán trực tuyến; mã QR theo chuẩn VietQR chỉ là ảnh chứa số tài khoản của viện và nội dung chuyển khoản (có mã nộp tiền), Kế toán xác nhận khoản nộp thủ công theo sao kê (feature 017). Trạng thái đặt cọc ở loại (4) lấy từ feature 017 (feature 004 FR-031). **(Bổ sung, Q-357)** Phạm vi "nhận thông báo" của bản đồng ý (Q-353) chỉ áp cho việc gửi; cổng hiển thị phần chung theo quan hệ và quyền ở trên. *(Nguồn: 14.5, 14.6, BR-M10-01, 4.4 chú thích ¹ ² ⁷, 15.9, Q-357)*
 - **FR-046c** *(bổ sung 2026-09-28, Q-211, Q-213)*: Người thân nhận thêm các thông báo sau, chia phần theo loại thông tin (feature 009, Q-105): (a) mọi người đại diện nhận thông báo "sắp hết tiền" hoặc "còn nợ" mức Trung bình; phần có số tiền chỉ tới người có quyền xem chi phí (feature 017 FR-018); (b) người liên hệ chính và mọi người đại diện nhận thông báo Khẩn cấp khi người cao tuổi có dấu nguy kịch, với nội dung tối thiểu nếu không thuộc bản đồng ý (Q-72), không chứa nội dung nguyện vọng, và nhân viên được nhắc gọi điện để xác nhận lại nguyện vọng (feature 007 FR-050b; Q-307). Kết quả xác nhận lại được nhân viên ghi ở feature 007; cổng không có lệnh tự đổi nguyện vọng. *(Nguồn: BR-M11-13, BR-M05-15, 16)*
 - **FR-046b**: Ngoài bốn loại ở FR-046, cổng MUST hiển thị mục **đồ gửi** do feature 013 cung cấp (danh sách đồ gửi, trạng thái, lịch sử bàn giao, ảnh) chỉ cho người đại diện và người thân có quyền "được phép đón" đang hiệu lực của người cao tuổi đó, xét tại thời điểm xem; người thân khác MUST NOT thấy mục này. Cổng MUST cho người đại diện: xác nhận hoặc từ chối (kèm lý do) yêu cầu xác nhận người nhận khác; ghi hoặc rút (kèm lý do) đồng ý cho tự giữ tiền mặt, trang sức. Vòng đời, điều kiện và thông báo của hai thao tác này do feature 013 định nghĩa (feature 013 FR-015a, FR-017, FR-017b, FR-030). *(Nguồn: 14.6, BR-M12-04, BR-M12-06, BR-M12-09; đồng bộ spec 013)*
 - **FR-046a**: Cổng MUST cho người đại diện có quan hệ Hiệu lực xem và quyết định (Đồng ý / Từ chối kèm lý do) các đề nghị mua hộ ở trạng thái Chờ đồng ý của người cao tuổi mình đại diện. Đề nghị hiển thị mục cần mua, số lượng, số tiền dự kiến, lý do, người yêu cầu. Với thuốc, chỉ hiện tên thuốc khi người đại diện có quyền xem sức khỏe có tác dụng (Q-133). Vòng đời, việc nhắc và quy tắc "quyết định đầu tiên được ghi nhận" do feature 010 định nghĩa (feature 010 FR-023, FR-023a). Yêu cầu này không đi qua vòng đời "Chờ xác nhận" của FR-020. Người đại diện cũng MUST xem được, trên phần chi phí, khoản mua hộ đã duyệt có phần vượt số đã đồng ý, kèm lý do của Quản lý viện (Q-137). **(Bổ sung, 2026-09-30, Q-251)** Đề nghị quay lại Chờ đồng ý do Hành chính "Xin đồng ý bổ sung" (feature 010 FR-024) MUST hiển thị cả số tiền đã đồng ý trước và số tiền mới, cùng lý do; từ chối thì đề nghị giữ số đã đồng ý trước. Người thân không lập đề nghị mua hộ qua cổng; gia đình yêu cầu trực tiếp và Hành chính lập (Q-341; sửa câu 2026-10-11). *(Nguồn: BR-M11-07, BR-M10-10, UC-79; đồng bộ spec 010; Q-251, Q-341)*
 - **FR-046d** *(đổi mã từ FR-046c thứ hai, 2026-10-10)*: **(Đồng bộ spec 014, Q-167, Q-176)** Người đại diện MUST ghi được "đồng ý về muộn" cho người bán trú vào một buổi hoạt động hoặc chuyến đi cụ thể kết thúc sau giờ về theo lịch, và rút được đồng ý trước giờ bắt đầu của buổi; bản ghi gửi cho feature 014 (FR-016a). Người đại diện được báo khi giờ về dự kiến của ngày được dời. Mục hoạt động trên cổng (loại "chung") gồm buổi đã đăng ký, chuyến đi (điểm đến, giờ rời, giờ về dự kiến) và số hoạt động đã tham gia theo feature 014 FR-033; không gồm mức độ tham gia, cảnh báo cô lập (feature 014 FR-068). *(Nguồn: 3.4, 14.6; feature 014 FR-016a, FR-068)*
 - **FR-047**: Người thân MUST chỉ thấy giá trị hiện hành, không thấy nhật ký hay giá trị trước đính chính (feature 000). *(Nguồn: 19.4)*
-- **FR-048**: Mỗi lần người thân mở một phần thuộc loại sức khỏe MUST được ghi nhật ký gồm: người thân, người cao tuổi, phần đã xem, nguồn (cổng / bản tin / thông báo), thời điểm. Với bản tin và thông báo gửi qua feature 009, lần xem được ghi khi người thân mở bản tin hoặc thông báo có phần sức khỏe mà người đó được thấy (feature 009 FR-034), mỗi lần mở một bản ghi. Quản lý viện MUST tra cứu được nhật ký này; người thân MUST NOT xem nhật ký. *(Nguồn: NFR-08, 19.4)*
+- **FR-048**: Mỗi lần người thân mở một phần thuộc loại sức khỏe MUST được ghi nhật ký gồm: người thân, người cao tuổi, phần đã xem, nguồn (cổng / thông báo), thời điểm. Với thông báo gửi qua feature 009, lần xem được ghi khi người thân mở thông báo có phần sức khỏe mà người đó được thấy (feature 009 FR-034), mỗi lần mở một bản ghi. Quản lý viện MUST tra cứu được nhật ký này; người thân MUST NOT xem nhật ký. *(Nguồn: NFR-08, 19.4)*
 - **FR-049**: Chỉ người đại diện có quyền "được yêu cầu thay đổi dịch vụ" MUST thấy và dùng được thao tác gửi yêu cầu thay đổi dịch vụ; yêu cầu MUST được chuyển cho feature 004 (FR-039). *(Nguồn: BR-M10-01)*
 - **FR-050**: Người thân MUST thực hiện được trên cổng: đăng ký, hủy lượt thăm (khi có quyền); gửi và theo dõi phản hồi; xác nhận/từ chối yêu cầu thay đổi quyền và ngoại lệ đón (chỉ người đại diện); gửi yêu cầu thay đổi quyền theo FR-014; xem và xác nhận thông báo (feature 009). *(Nguồn: 14.6)*
 
@@ -554,25 +540,11 @@ Người cao tuổi có tài khoản mở ứng dụng để biết hôm nay có
 - **FR-083**: Kênh người cao tuổi MUST hiển thị cho tài khoản người cao tuổi (feature 002 FR-068) chỉ dữ liệu của chính người cao tuổi đó, gồm: (a) lịch sinh hoạt trong ngày, cùng phạm vi lịch sinh hoạt của người thân không có quyền riêng ở FR-046 (hoạt động, lượt thăm, lịch đến/về bán trú; không có công việc chăm sóc hay giờ thuốc); (b) thực đơn tuần đã công bố và suất ăn dự kiến phục vụ cho mình, kể cả món thay thế, không có dị ứng, bệnh lý (feature 011); (c) buổi hoạt động sắp tới của tầng mình và toàn viện, kèm việc mình đã có tên tham gia chưa, không có kết quả đánh giá khả năng tham gia (feature 014); (d) lượt thăm Đã duyệt của mình: ngày, khung giờ, người thăm; (e) đồ gửi của mình ở Đang giữ hoặc Đang được sử dụng: tên đồ, ảnh (feature 013). *(Nguồn: 14.6a, Q-366)*
 - **FR-084**: Kênh người cao tuổi MUST NOT hiển thị thông tin sức khỏe, chi phí, số dư, hợp đồng (Q-367), và MUST NOT có thao tác đăng ký thăm, đăng ký hoạt động, xác nhận người nhận đồ gửi. Yêu cầu mở dữ liệu của người cao tuổi khác MUST bị từ chối. *(Nguồn: BR-M10-11, Q-367)*
 - **FR-085**: Màn đầu của kênh MUST có nút SOS (feature 007 FR-047d), hiện cả khi chưa có phiên đăng nhập trên thiết bị đã gắn (feature 002 FR-071). **(Sửa 2026-10-19, Q-372)** Chạm nút thì kênh MUST đếm ngược 3 giây kèm nút Hủy lớn; hết giờ hoặc chạm lần nữa thì gửi; Hủy thì không gửi gì. Sau khi gửi, kênh MUST hiện "Đã gửi", rồi "[họ tên] đang tới" khi có người tiếp nhận và "[họ tên] đã tới" khi người đó ghi đã tới nơi (feature 007 FR-047f, FR-047j; sửa 2026-10-22, Q-374); kênh MUST hiện các nút chọn nhanh nơi đang ở (feature 007 FR-047f) và gửi vị trí GPS theo feature 007 FR-047h khi người cao tuổi đã cho quyền vị trí (chỉ xin khi đang dùng ứng dụng, Q-373); khi lệnh bị từ chối, mất kết nối, tài khoản Đã khóa hoặc thiết bị đã gỡ, kênh MUST hiện số liên hệ của viện (BR-M05-24) và số cấp cứu 115. Lần dùng đầu tiên, kênh MUST nêu rõ nút SOS không thay chuông gọi của viện. *(Nguồn: 14.6a, BR-M05-27, Q-369)*
-- **FR-086**: Phản hồi do người cao tuổi gửi, kể cả phản hồi được ghi thay, MUST NOT hiện với người thân ở cổng, bản tin hay thông báo. Người thân MUST NOT thấy việc người cao tuổi dùng kênh này (feature 002 FR-075). *(Nguồn: BR-M10-11)*
+- **FR-086**: Phản hồi do người cao tuổi gửi, kể cả phản hồi được ghi thay, MUST NOT hiện với người thân ở cổng hay thông báo. Người thân MUST NOT thấy việc người cao tuổi dùng kênh này (feature 002 FR-075). *(Nguồn: BR-M10-11)*
 
-#### H. Bản tin tuần (14.5, BR-M10-06, 08, 09)
+#### H. Bản tin tuần *(Bỏ theo Q-396, 2026-10-29)*
 
-- **FR-051**: **(Viết lại, 2026-10-06, Q-306)** Theo lịch CFG-M10-03 (mặc định \[thứ 2 hằng tuần\]), tại **mốc của kỳ**, hệ thống MUST nhắc Điều dưỡng phụ trách (FR-053) lập bản tin cho mỗi người cao tuổi ở Đang lưu trú, Tạm vắng hoặc Điều trị tại bệnh viện tại mốc đó; kỳ là 7 ngày liền trước mốc. Hệ thống MUST NOT tạo bản tin. Người cao tuổi không có mặt tại viện ngày nào trong kỳ (Tạm vắng hoặc Điều trị tại bệnh viện cả kỳ) MUST NOT được nhắc và không thuộc FR-055, FR-073 cho kỳ đó. Điều dưỡng MUST lập được bản tin bằng lệnh **Lập bản tin** cho (người cao tuổi, kỳ) đã qua mốc; bản tin là duy nhất theo (người cao tuổi, kỳ), lệnh lập trùng MUST bị chặn. *(Nguồn: BR-M10-08, Q-306)*
-- **FR-052**: **(Viết lại, 2026-10-06, Q-307)** Khi Điều dưỡng lập hoặc soạn bản tin, hệ thống MUST tính sẵn và hiển thị số liệu tổng hợp của kỳ, chia theo loại thông tin: **chung** — số hoạt động đã tham gia (feature 014), số ngày vắng trong kỳ, phần chung của sự cố trong kỳ kèm mức (feature 007 FR-082, Q-352); **sức khỏe** — tỷ lệ ăn trung bình, lượng nước trung bình (feature 005), cân nặng và xu hướng, các chỉ số chính, phần sức khỏe của sự cố trong kỳ (feature 007 FR-082, Q-352); **chi phí** — chi phí tạm tính của kỳ bản tin (feature 010 FR-038, Q-136): tổng theo loại của các khoản chưa hủy, chưa chốt, trừ khoản nhập tay và mua hộ chưa được duyệt, không có chi tiết từng khoản và không có tên thuốc, kèm nhãn "tạm tính, chưa chốt". Số liệu thiếu dữ liệu MUST hiển thị "không có dữ liệu trong kỳ". Hệ thống MUST NOT gợi ý hay soạn sẵn nội dung. Điều dưỡng soạn nội dung từng phần và MAY chọn đưa từng số liệu tổng hợp vào phần tương ứng; số liệu được chọn lưu theo giá trị tại lúc duyệt. Số liệu chi phí chỉ đưa được vào phần chi phí. *(Nguồn: 14.5, BR-M10-08, Q-307)*
-- **FR-053**: Điều dưỡng có phạm vi dữ liệu với người cao tuổi tại thời điểm thao tác MUST lập, soạn được nội dung và nhận xét (phần chung và phần sức khỏe) và duyệt bản tin. Khi bản tin đã Chờ duyệt mà đã quá CFG-M10-12 (đề xuất, mặc định [96 giờ]) kể từ mốc của kỳ (**sửa, 2026-10-06, Q-306**), Trưởng tầng được giao của tầng người cao tuổi MUST cũng nhận xét và duyệt thay được; bản tin ghi dấu "Trưởng tầng duyệt thay". Nếu trong kỳ có sự cố mức Trung bình hoặc Khẩn cấp, bản tin MUST có phần giải thích (loại sức khỏe) của người duyệt trước khi được duyệt, kể cả khi duyệt thay. "Sự cố mức Trung bình hoặc Khẩn cấp" MUST xét theo mức cao nhất mà sự cố từng có tính tới thời điểm duyệt, với sự cố có thời điểm xảy ra trong kỳ; sự cố Đã hủy (feature 007) không tính (đề xuất Q-129). *(Nguồn: BR-M10-08, BR-M10-09, UC-60, 4.4 dòng "Bản tin định kỳ": ĐD T; Clarification 2026-09-26 lượt 2, đề xuất Q-124)*
-- **FR-054**: Khi duyệt, bản tin MUST được gửi qua feature 009 tới mọi người thân có quan hệ Hiệu lực nằm trong phạm vi "nhận thông báo" của bản đồng ý Hiệu lực (feature 009 FR-014; sửa 2026-10-18, Q-353), với nội dung chia phần theo loại thông tin; mức thông báo Nhẹ; chịu giờ yên tĩnh (feature 009 FR-022). Thời điểm gửi và thời điểm xem của từng người MUST được ghi (BR-M10-06, feature 009 FR-034). *(Nguồn: BR-M10-06, BR-M10-08)*
-- **FR-055**: **(Sửa, 2026-10-06, Q-306)** Bản tin chưa được lập hoặc chưa được duyệt sau 48 giờ (CFG-M10-03) kể từ mốc của kỳ MUST nhắc Trưởng tầng của tầng người cao tuổi (mức Trung bình); sau CFG-M10-12 kể từ mốc, nếu bản tin đã lập mà chưa duyệt, MUST báo Trưởng tầng rằng bản tin đã có thể được duyệt thay (mức Trung bình). *(Nguồn: BR-M10-08; Clarification 2026-09-26 lượt 2, đề xuất Q-124)*
-- **FR-056**: Bản tin đã gửi MUST NOT sửa. Sai sót MUST xử lý bằng bản tin đính chính trỏ về bản gốc, gồm nội dung đúng và lý do đính chính; người lập và duyệt theo FR-053 (Điều dưỡng; Trưởng tầng được giao nếu bản gốc do Trưởng tầng duyệt thay), BR-M10-09 áp như bản thường. Bản đính chính MUST gửi qua feature 009 tới người thân có quan hệ Hiệu lực tại thời điểm gửi đính chính, lọc theo quyền hiện hành; bản gốc vẫn xem được, có dấu "đã được đính chính". **(Đồng bộ, 2026-10-01, Q-278)** Khi feature 007 báo một sự cố đã nêu trong bản tin đã gửi bị "Hủy ghi nhận" (feature 007 FR-046a), hệ thống MUST báo Hành chính và người đã duyệt bản tin kèm sự cố và bản tin liên quan, để lập bản tin đính chính theo quy tắc trên; hệ thống MUST NOT tự gửi đính chính. *(Nguồn: BR-M10-08, 1.5 nhóm 3; 9.6 "(Bổ sung, Q-278)")*
-- **FR-057**: Bảng trạng thái bản tin:
-
-| Từ | Lệnh | Đến | Ai | Điều kiện | Tác động |
-| --- | --- | --- | --- | --- | --- |
-| (chưa có) | Lập bản tin | Chờ duyệt | Điều dưỡng (FR-053) | FR-051: đã qua mốc của kỳ; chưa có bản tin cho (người cao tuổi, kỳ) | Hiển thị số liệu tổng hợp (FR-052) |
-| Chờ duyệt | Soạn nội dung, nhận xét | Chờ duyệt | Điều dưỡng; Trưởng tầng sau CFG-M10-12 kể từ mốc của kỳ (sửa 2026-10-10) | FR-053 | Lưu nhận xét, người, thời điểm |
-| Chờ duyệt | Duyệt | Đã gửi | Điều dưỡng; Trưởng tầng được giao sau CFG-M10-12 (duyệt thay) | FR-053, BR-M10-09 | Gửi qua 009 (FR-054); ghi dấu "duyệt thay" nếu có |
-| Chờ duyệt | Tới mốc của kỳ kế tiếp | Không gửi | Hệ thống (theo lịch) | — | Báo Quản lý viện (FR-073) |
-| Chờ duyệt | (Hệ thống) Người cao tuổi qua đời | Không gửi | Hệ thống | feature 004 FR-073 | — |
+- **FR-051 → FR-057**: *(Bỏ theo Q-396, 2026-10-29)* Không có bản tin, lời nhắc lập, duyệt, duyệt thay, đính chính bản tin.
 
 #### I. Phản hồi, khiếu nại (14.7, BR-M10-05)
 
@@ -612,7 +584,6 @@ Người cao tuổi có tài khoản mở ứng dụng để biết hôm nay có
 | Vào/ra lượt thăm | X | X | — | — | T | — | — | — |
 | Người thân ở lại | X, xác nhận khi tầng không có Trưởng tầng | T (xác nhận, từ chối, bắt đầu, kết thúc) | — | — | T (đăng ký, bắt đầu, gia hạn, kết thúc, hủy) | X | X | — |
 | Phản hồi | D | T | T | — | T | T | T | T (của mình, FR-058a) |
-| Bản tin | X | X, duyệt thay sau CFG-M10-12 (Q-124, Q-130) | T | — | — | X | X | — |
 | Nhật ký lượt xem sức khỏe | X | — | — | — | — | — | — | — |
 | Đề nghị mua hộ (feature 010, UC-79) | D | — | — | — | T (lập, gửi, ghi đã mua) | Đồng ý / từ chối (FR-046a) | — | — |
 | *(Bổ sung 2026-10-18, Q-365)* Kênh người cao tuổi (UC-96) | — | — | — | — | — | — | — | X (của mình, FR-083 → FR-085) |
@@ -639,12 +610,6 @@ Người cao tuổi có tài khoản mở ứng dụng để biết hôm nay có
 | Phản hồi mới, được giao lại, mở lại | Trung bình | Người phụ trách | — (nội bộ) |
 | Phản hồi đã được trả lời | Nhẹ | Người gửi | chung (nội dung trả lời thuộc nhóm nội dung phản hồi; phản hồi nhóm sức khỏe, thuốc xếp sức khỏe) |
 | Phản hồi quá hạn (leo thang) | Trung bình | Quản lý viện | — (nội bộ) |
-| Bản tin | Nhẹ | Mọi người thân có quan hệ Hiệu lực | chung, sức khỏe, chi phí (FR-052) |
-| Bản tin đính chính | Nhẹ | Người thân có quan hệ Hiệu lực lúc gửi đính chính | chung, sức khỏe, chi phí (theo phần được đính chính, FR-056) |
-| Nhắc lập bản tin của kỳ | Nhẹ | Điều dưỡng phụ trách | — (nội bộ) |
-| Bản tin chưa lập hoặc chưa duyệt quá 48 giờ từ mốc của kỳ | Trung bình | Trưởng tầng | — (nội bộ) |
-| Bản tin có thể được Trưởng tầng duyệt thay | Trung bình | Trưởng tầng | — (nội bộ) |
-| Bản tin chưa lập hoặc Không gửi vì quá kỳ | Nhẹ | Quản lý viện | — (nội bộ) |
 | *(Bổ sung 2026-10-18, Q-366)* Nhắc lượt thăm Đã duyệt trong ngày: lúc hết giờ yên tĩnh của ngày có lượt, hoặc khi lượt được tạo trong ngày | Nhẹ | Chính người cao tuổi (nhóm (f), feature 009 FR-007) | chung |
 | *(Bổ sung 2026-10-18, Q-366)* Phản hồi của người cao tuổi đã được trả lời | Nhẹ | Chính người cao tuổi gửi (nhóm (f)) | chung (phản hồi nhóm sức khỏe, thuốc: chỉ báo đã có trả lời, FR-058a) |
 
@@ -659,24 +624,23 @@ Người cao tuổi có tài khoản mở ứng dụng để biết hôm nay có
 | Cung cấp | 004 | Người đại diện (ký hợp đồng); bản ghi đón (Cho tạm vắng, bàn giao khi kết thúc) |
 | Nhận | 004 | Lượt vắng, kết thúc lưu trú, qua đời; yêu cầu thay đổi dịch vụ của người đại diện (FR-039 của 004) |
 | Cung cấp | 005 | Bản ghi đón cho Điểm danh về; lượt thăm cho thời khóa biểu (FR-048 của 005) |
-| Nhận | 005, 014 | Ăn uống, nước (005), hoạt động (014) cho bản tin |
 | Nhận | 011 | Thực đơn chung (loại "chung") và chế độ ăn riêng của người cao tuổi (loại "sức khỏe") cho cổng (FR-046) |
-| Nhận, Cung cấp | 007 | Nhận trạng thái khoanh vùng, dữ liệu bản tin (FR-082 của 007); cung cấp lượt thăm (FR-060 của 007), người liên hệ chính |
+| Nhận, Cung cấp | 007 | Nhận trạng thái khoanh vùng; cung cấp lượt thăm (FR-060 của 007), người liên hệ chính |
 | Cung cấp | 009 | Người liên hệ chính, người đại diện, quyền, thứ tự liên hệ, số liên hệ; yêu cầu thông báo (FR-069) |
 | Cung cấp | 010 | Lượt ở lại làm nguồn chi phí (mỗi mốc 00:00 là một đêm); quyết định của người đại diện về đề nghị mua hộ (FR-046a); nhận chi phí tạm tính, bảng chi phí đã chốt (có che tên thuốc theo Q-133) và đề nghị mua hộ Chờ đồng ý |
 | Cung cấp | 011 | Người ở lại có đăng ký ăn, khi lượt chuyển Đang ở lại, kết thúc sớm hoặc bị hủy (feature 011 FR-034 (c), FR-043) |
 | Nhận, Cung cấp | 013 | Nhận đồ gửi, lịch sử bàn giao, ảnh, yêu cầu xác nhận người nhận khác, đồng ý cho tự giữ cho cổng (FR-046b); cung cấp người đại diện, người có quyền "được phép đón", người liên hệ chính, giấy tờ tùy thân, và quyết định của người đại diện trên cổng (feature 013 FR-016, FR-017, FR-015a) |
 | Nhận | 017 | *(bổ sung 2026-10-22, Q-378, Q-379)* Phiếu báo phí, bảng quyết toán kèm file cho loại (3) chi phí (feature 017 FR-038) |
-| Cung cấp (giai đoạn sau, Q-194) | 016 | Dữ liệu thăm, phản hồi, bản tin cho báo cáo |
+| Cung cấp (giai đoạn sau, Q-194) | 016 | Dữ liệu thăm, phản hồi cho báo cáo |
 | Nhận | 002 | *(bổ sung 2026-10-18, Q-365, Q-370)* Tài khoản người cao tuổi, quyền cột NCT, thiết bị đã gắn cho kênh người cao tuổi và nút SOS (FR-067, FR-068, FR-071, FR-075 của 002) |
 | Nhận | 007 | *(bổ sung 2026-10-18, Q-369; sửa 2026-10-22, Q-373, Q-374)* Trạng thái cảnh báo SOS ("đang tới", "đã tới") và lý do từ chối; nhận vị trí GPS kèm lệnh (FR-047d, FR-047f, FR-047h, FR-047j của 007) cho FR-085 |
 | Nhận | 011, 013, 014 | *(bổ sung 2026-10-18, Q-366)* Suất ăn dự kiến của người cao tuổi (011), đồ gửi Đang giữ hoặc Đang được sử dụng (013), buổi hoạt động sắp tới và việc đã có tên (014) cho FR-083 |
 | Cung cấp | 001 | *(bổ sung 2026-10-18, Q-366)* Liên kết giữa phản hồi loại Mong muốn và mục ý kiến có nguồn "người cao tuổi" (FR-058b) |
 
-- **FR-072**: Mọi quy tắc theo thời gian của spec (hạn phản hồi, tự đóng, nhắc lập bản tin, hạn duyệt, Không đến, hạn ngoại lệ đón) MUST kiểm thử được bằng đồng hồ giả lập và dùng múi giờ Asia/Ho_Chi_Minh. *(Nguồn: NFR-09, NFR-13)*
-- **FR-073**: **(Sửa, 2026-10-06, Q-306)** Tới mốc của kỳ kế tiếp, với mỗi người cao tuổi thuộc FR-051 mà bản tin của kỳ trước chưa được lập, hoặc đã lập nhưng chuyển Không gửi vì quá kỳ, Quản lý viện MUST được báo (mức Nhẹ) kèm người cao tuổi, kỳ, tình trạng (chưa lập / chưa duyệt) và các lần nhắc đã gửi. *(Nguồn: BR-M10-08; Clarification 2026-09-26 lượt 2, đề xuất Q-124)*
+- **FR-072**: Mọi quy tắc theo thời gian của spec (hạn phản hồi, tự đóng, Không đến, hạn ngoại lệ đón) MUST kiểm thử được bằng đồng hồ giả lập và dùng múi giờ Asia/Ho_Chi_Minh. *(Nguồn: NFR-09, NFR-13)*
+- **FR-073**: *(Bỏ theo Q-396, 2026-10-29)* Không có báo Quản lý viện về bản tin chưa lập.
 - **FR-074**: Mọi tham số CFG-M10-01 → 12 MUST thay đổi được bởi Quản lý viện, có nhật ký (BR-M15-04). *(Nguồn: NFR-12)*
-- **FR-075**: Khi người cao tuổi chuyển trạng thái cuối: lượt thăm tương lai MUST chuyển Hủy; bản tin Chờ duyệt MUST chuyển Không gửi nếu Qua đời, còn với Kết thúc lưu trú hoặc Hủy tiếp nhận thì vẫn được duyệt và gửi cho kỳ trước thời điểm kết thúc, và không có lời nhắc lập bản tin cho kỳ sau (FR-051); yêu cầu thay đổi quyền và ngoại lệ đón Chờ xác nhận MUST chuyển Hủy với lý do trạng thái cuối; phản hồi đang mở MUST tiếp tục xử lý; quan hệ MUST giữ Hiệu lực cho tới khi tài khoản bị khóa theo CFG-M01-04 (feature 002). *(Nguồn: 5.6, feature 004 FR-073)*
+- **FR-075**: Khi người cao tuổi chuyển trạng thái cuối: lượt thăm tương lai MUST chuyển Hủy; yêu cầu thay đổi quyền và ngoại lệ đón Chờ xác nhận MUST chuyển Hủy với lý do trạng thái cuối; phản hồi đang mở MUST tiếp tục xử lý; quan hệ MUST giữ Hiệu lực cho tới khi tài khoản bị khóa theo CFG-M01-04 (feature 002). *(Nguồn: 5.6, feature 004 FR-073)*
 
 ### Truy vết quy tắc → kịch bản chấp nhận
 
@@ -687,14 +651,13 @@ Người cao tuổi có tài khoản mở ứng dụng để biết hôm nay có
 | BR-M10-03 | US2 kịch bản 3 → 6, 9, 11 | FR-021, FR-023, FR-024 |
 | BR-M10-04 | US8 kịch bản 2, 3 | FR-042, FR-043 |
 | BR-M10-05 | US6 kịch bản 1, 3, 9 | FR-061, FR-063 |
-| BR-M10-06 | US7 kịch bản 3 (bản tin); thông báo sự cố theo feature 009 | FR-054, feature 009 FR-034 |
+| BR-M10-06 | Thông báo sự cố theo feature 009 | Feature 009 FR-034 |
 | BR-M10-07 | US3 kịch bản 1 → 8; US1 kịch bản 9, 10 | FR-013 → FR-020 |
 | BR-M10-08 | US7 kịch bản 1, 4 → 6, 9 | FR-051, FR-055, FR-056, FR-057 |
 | BR-M10-09 | US7 kịch bản 2, 8 | FR-053 |
 | DBR-02 | US1 kịch bản 2, 3 | FR-003 → FR-006 |
 | DBR-03 | US1 kịch bản 4, 5; US5 kịch bản 1; US6 kịch bản 8 | FR-011, FR-058 |
 | Q-123 đếm đêm ở lại | US8 kịch bản 3 | FR-043 |
-| Q-124, Q-130 duyệt thay bản tin | US7 kịch bản 4 | FR-053, FR-055 |
 | Q-125 dấu "được tự về" | US2 kịch bản 10 | FR-013, FR-021 |
 | Q-126 phiếu đăng ký người thân | US1 kịch bản 9 | FR-008 |
 | Q-127 đặt/thôi người đại diện | US1 kịch bản 3, 10 | FR-005 |
@@ -717,7 +680,6 @@ Người cao tuổi có tài khoản mở ứng dụng để biết hôm nay có
 - **Khung giờ thăm** – không phải danh mục: là giá trị có cấu trúc của tham số CFG-M10-04 (danh sách khung gồm giờ bắt đầu, giờ kết thúc, sức chứa), một giá trị hiện hành có lịch sử (DBR-24), thay đổi theo BR-M15-04.
 - **Lượt ở lại** – nhóm 2: người thân, người cao tuổi, vị trí, lý do, bắt đầu và kết thúc (dự kiến, thực tế), có đăng ký ăn, người xác nhận hoặc từ chối và lý do, số đêm tính phí, trạng thái.
 - **Phản hồi (PHAN_HOI)** – nhóm 2 cho trạng thái, nhóm 3 cho nội dung: người gửi, người cao tuổi, loại, nhóm nội dung, nội dung, đính kèm, nguồn, mức ưu tiên, hạn, người phụ trách và lịch sử giao, hướng xử lý, trả lời, dấu quá hạn, thời điểm và cách đóng. **(Bổ sung 2026-10-18, Q-366, Q-371)** Người gửi là người thân hoặc người cao tuổi; người ghi thay; chủ đề (chỉ loại Mong muốn); mục ý kiến được gắn (loại Mong muốn); lịch sử đổi loại.
-- **Bản tin (BAN_TIN)** – nhóm 2 khi Chờ duyệt, nhóm 3 khi Đã gửi: người cao tuổi, kỳ, người lập, các phần nội dung theo loại thông tin do Điều dưỡng soạn, các số liệu tổng hợp được chọn đưa vào (FR-052), nhận xét, giải thích sự cố, người duyệt, thời điểm gửi, bản gốc (khi là bản đính chính).
 - **Nhật ký lượt xem sức khỏe** – nhóm 3: người thân, người cao tuổi, phần đã xem, thời điểm.
 
 ## Success Criteria *(mandatory)*
@@ -729,8 +691,8 @@ Người cao tuổi có tài khoản mở ứng dụng để biết hôm nay có
 - **SC-003**: Yêu cầu bỏ người được phép đón có hiệu lực trong không quá 1 phút kể từ lúc lập; 0 thay đổi quyền khác có hiệu lực khi chưa có xác nhận của người đại diện hoặc duyệt của Quản lý viện.
 - **SC-004**: Với đồng hồ giả lập, 0 lượt thăm được chấp nhận ngoài khung giờ, vượt sức chứa (kể cả khi 20 đăng ký gửi đồng thời cho chỗ cuối), trong khu khoanh vùng hoặc khi người cao tuổi không có mặt; người thân đã có tài khoản và đã đăng nhập hoàn tất một lượt đăng ký thăm (chọn ngày trong CFG-M10-05, chọn khung, nhập tối đa 2 người đi cùng) trên điện thoại trong không quá 2 phút, đo trên ít nhất 10 người thân dùng lần đầu.
 - **SC-005**: 100% phản hồi quá hạn được báo Quản lý viện trong không quá 5 phút sau hạn; sau ba tháng vận hành, ít nhất 90% hạn xử lý của phản hồi mức Cao được đáp ứng (chuyển Đã phản hồi trước hạn), tính mỗi hạn là một lượt (lần gửi và mỗi lần Mở lại là các lượt riêng), mức xét là mức tại thời điểm hạn đó được tính (sau khi người phụ trách đổi mức, Q-122).
-- **SC-006**: 100% người cao tuổi đủ điều kiện có lời nhắc lập bản tin tại mốc mỗi kỳ; 0 bản tin do hệ thống tạo; 100% lệnh lập trùng cùng kỳ bị chặn; 0 bản tin có sự cố mức Trung bình trở lên được gửi mà thiếu giải thích; điều dưỡng soạn và duyệt một bản tin trong không quá 5 phút khi đã có số liệu tổng hợp tính sẵn.
-- **SC-007**: 0 bản tin, thông báo gửi người thân chứa phần thuộc loại mà người đó không có quyền (feature 009 FR-013).
+- **SC-006**: *(Bỏ theo Q-396, 2026-10-29)*
+- **SC-007**: 0 thông báo gửi người thân chứa phần thuộc loại mà người đó không có quyền (feature 009 FR-013).
 - **SC-008**: Với bộ dữ liệu người thân ở lại 30 ngày (gồm lượt qua đêm, lượt trong ngày, lượt qua mốc đổi đơn giá), số đêm tính phí và số suất ăn khớp 100% bảng tính tay; 0 lượt được Bắt đầu khi chưa được xác nhận.
 - **SC-009**: 100% lượt thăm Đã vào/Đã ra có giờ vào và danh sách người thực tế; feature 007 lấy được lượt thăm của một người cao tuổi trong CFG-M05-07 không quá 1 phút sau khi ghi sự cố lây nhiễm.
 - **SC-010**: Tại mọi thời điểm, 100% người cao tuổi Đang lưu trú, Tạm vắng, Điều trị tại bệnh viện có đúng một người liên hệ chính và ít nhất một người đại diện (DBR-02).
@@ -745,7 +707,6 @@ Người cao tuổi có tài khoản mở ứng dụng để biết hôm nay có
 - Khung giờ thăm và sức chứa là một cấu hình chung cho toàn viện (một khu tiếp khách), tương tự quyết định Q-45 của feature 003 về khu nghỉ bán trú; sức chứa tính theo số người, không theo số lượt; điều này đã đưa vào FR-030 (b).
 - Người đón không phải người nhà cũng được lập hồ sơ người thân với quan hệ "Khác" để có số giấy tờ đối chiếu; spec không có danh sách người đón tách riêng.
 - Người bán trú tự về chỉ khi có dấu "được tự về" (Q-125); ~~"viện đưa về" chưa được hỗ trợ ở giai đoạn đầu~~ **(sửa, 2026-10-06, Q-295)** "viện đưa về" được hỗ trợ theo FR-021. Ghi bàn giao tại nơi nhận cần thiết bị có kết nối mạng như mọi lượt đón.
-- Kỳ bản tin là 7 ngày liền trước mốc của kỳ; mốc là đầu ngày theo lịch CFG-M10-03; "48 giờ" và CFG-M10-12 tính từ mốc của kỳ (**sửa, 2026-10-06, Q-306**).
 - Tỷ lệ ăn, lượng nước và kết quả công việc chăm sóc xếp loại "sức khỏe" (hạn chế nhất); số hoạt động xếp loại "chung", theo ví dụ ở feature 009 User Story 4 kịch bản 5a.
 - Dịch vụ "Người thân ở lại" là một dịch vụ ngoài hợp đồng trong danh mục 6.4, đơn giá theo phiên bản hiệu lực tại ngày phát sinh (Q-25).
 - Leo thang phản hồi chỉ một cấp (lên Quản lý viện) như BR-M10-05; không có cấp leo thang tiếp theo.

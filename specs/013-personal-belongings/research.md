@@ -8,18 +8,18 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## K-01. Vị trí trong backend
 
-**Quyết định**: Feature 013 là module M12 – Đồ gửi (mục 16), gói `com.cambae.backend.m12`.
+**Quyết định**: Feature 013 là module M12 – Đồ gửi (mục 16), gói `com.eldercare.backend.belongings`.
 
 | Gói con | Nội dung | Mục spec |
 | --- | --- | --- |
-| `m12.danhmuc` | Loại đồ (lịch sử dấu "cần đồng ý"), mức tình trạng, vị trí lưu giữ | A |
-| `m12.dogui` | Đồ gửi, bản ghi bàn giao, tách đồ, tính lại trạng thái, đính chính | B, C, D |
-| `m12.tra` | Lệnh Trả, xác minh người nhận, lần chặn trả, xác nhận người nhận khác | E |
-| `m12.dongy` | Đồng ý cho tự giữ | D (FR-015a) |
-| `m12.suco` | Thông báo thất lạc/hư hỏng, ghi hoặc liên kết sự cố 007 | F |
-| `m12.ketthuc` | Điều kiện `KT_B_DO_GUI`, mục `DO_GUI` sau qua đời, đề nghị xử lý đồ không người nhận | G |
-| `m12.kiemke` | Phiếu kiểm kê, đồ không rõ chủ | H2 |
-| `m12.trangthai`, `m12.lich`, `m12.api` | Bean trạng thái; job; giao diện công khai | |
+| `belongings.danhmuc` | Loại đồ (lịch sử dấu "cần đồng ý"), mức tình trạng, vị trí lưu giữ | A |
+| `belongings.dogui` | Đồ gửi, bản ghi bàn giao, tách đồ, tính lại trạng thái, đính chính | B, C, D |
+| `belongings.tra` | Lệnh Trả, xác minh người nhận, lần chặn trả, xác nhận người nhận khác | E |
+| `belongings.dongy` | Đồng ý cho tự giữ | D (FR-015a) |
+| `belongings.suco` | Thông báo thất lạc/hư hỏng, ghi hoặc liên kết sự cố 007 | F |
+| `belongings.ketthuc` | Điều kiện `KT_B_DO_GUI`, mục `DO_GUI` sau qua đời, đề nghị xử lý đồ không người nhận | G |
+| `belongings.kiemke` | Phiếu kiểm kê, đồ không rõ chủ | H2 |
+| `belongings.trangthai`, `belongings.lich`, `belongings.api` | Bean trạng thái; job; giao diện công khai | |
 
 ---
 
@@ -29,10 +29,10 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 | SPI / API | Người khai | Bản cài hoặc cách dùng của 013 |
 | --- | --- | --- |
-| `ThamGiaChuyenTrangThai` (`m01.api`) | 001 H-02 | Điều kiện `KT_B_DO_GUI` (`coTheMien = true`) cho `KET_THUC_LUU_TRU`; chặn Tiếp nhận, Giao sử dụng sau trạng thái cuối (FR-027) bằng đọc trạng thái, không cần tác động |
-| `MucViecSauQuaDoiPort` (`m02.api`) | 004 | `ma() = DO_GUI`; trạng thái theo FR-026 |
+| `ThamGiaChuyenTrangThai` (`resident.api`) | 001 H-02 | Điều kiện `KT_B_DO_GUI` (`coTheMien = true`) cho `KET_THUC_LUU_TRU`; chặn Tiếp nhận, Giao sử dụng sau trạng thái cuối (FR-027) bằng đọc trạng thái, không cần tác động |
+| `MucViecSauQuaDoiPort` (`admission.api`) | 004 | `ma() = DO_GUI`; trạng thái theo FR-026 |
 | `DanhSachViecSauQuaDoiApi.capNhat(nctId)` | 004 | Gọi sau mỗi lệnh đổi trạng thái đồ của người đã qua đời |
-| `DoGuiBanGiaoPort` (`m09.api`) | 008 | `dangGiu(nhanVienIds)`: đồ có giá trị Đang giữ theo người giữ (FR-014a) |
+| `DoGuiBanGiaoPort` (`staffing.api`) | 008 | `dangGiu(nhanVienIds)`: đồ có giá trị Đang giữ theo người giữ (FR-014a) |
 | `LoaiYeuCauHandler` (000) | 000 | `M12.XU_LY_DO_KHONG_NGUOI_NHAN` (`choTuDuyet = false`; K-09) |
 | `DinhChinhDuocProvider` (000) | 000 | `M12.BAN_GIAO_DO_GUI`, `M12.PHIEU_KIEM_KE` (K-05) |
 | `SuCoLenhApi.ghiNhan`, `themDienBien` (MANDATORY); `SuCoApi.xem` | 007 | K-07 |
@@ -50,9 +50,9 @@ Không có SPI 013 khai cho module sau. 016 đọc `DoGuiThongKeApi`.
 ## K-03. Khóa và đồng thời (FR-011b)
 
 **Quyết định**:
-- **Thứ tự khóa**: … → `nguoi_than_nct` (M10) → `do_gui_nct` (M12, một dòng mỗi người cao tuổi) → `do_gui` (theo `id` tăng) → `xac_nhan_nguoi_nhan` / `dong_y_tu_giu` → `phieu_kiem_ke`. Bean trạng thái của 013 chạy sau 012.
+- **Thứ tự khóa**: … → `nguoi_than_nct` (M10) → `do_gui_nct` (M12, một dòng mỗi người cao tuổi) → `do_gui` (theo `id` tăng) → `xac_nhan_nguoi_nhan` / `dong_y_tu_giu` → `phieu_kiem_ke`. Bean trạng thái của 013 chạy sau 012. *(R-15: `nguoi_than_nct` → `trang_thai_nct`; `xac_nhan_nguoi_nhan`, `phieu_kiem_ke` → `ho_so_chung`; `dong_y_tu_giu` → `do_gui` (cột))*
 - Mỗi lệnh bàn giao gửi `phienBan` của từng đồ trong thân lệnh (lệnh trên nhiều đồ: danh sách `(doGuiId, phienBan)`); khóa `do_gui` theo `id` tăng, so phiên bản; lệch → 409 `TRANG_THAI_DA_DOI` kèm trạng thái mới của đồ (FR-011b). Không dùng `If-Match` vì một lệnh có nhiều đồ.
-- Lệnh trên đồ của một người cao tuổi khóa `do_gui_nct` trước để điều kiện `KT_B_DO_GUI` và lệnh Kết thúc lưu trú của 004 (đọc dưới khóa `nguoi_cao_tuoi` của 001 rồi xuống `do_gui_nct`) không lệch.
+- Lệnh trên đồ của một người cao tuổi khóa `do_gui_nct` trước để điều kiện `KT_B_DO_GUI` và lệnh Kết thúc lưu trú của 004 (đọc dưới khóa `nguoi_cao_tuoi` của 001 rồi xuống `do_gui_nct`) không lệch. *(R-15: `do_gui_nct` → `trang_thai_nct`)*
 
 ---
 
@@ -63,8 +63,8 @@ Không có SPI 013 khai cho module sau. 016 đọc `DoGuiThongKeApi`.
 - `ban_giao_do_gui` (nhóm 3): loại (`TIEP_NHAN`, `GIAO_SU_DUNG`, `THU_LAI`, `CHUYEN_GIU`, `TRA`, `BAO_THAT_LAC`, `GHI_HU_HONG`, `TIM_THAY`, `XU_LY`), trạng thái đích, người giao, người nhận, thời điểm, số lượng, mức tình trạng và mô tả, vị trí, lý do, người ghi nhận, lần trả (`lan_tra_id`), sự cố liên kết, đề nghị xử lý, phiếu kiểm kê nguồn.
 - Hàm thuần `KiemTraLenhBanGiao(do, lenh, nguoiThucHien, t)` theo bảng trạng thái và FR-014 (người giao là người giữ hiện tại; ngoại lệ Trả từ Đang sử dụng, Báo thất lạc, Tìm thấy, Hành chính với lý do "người giữ vắng mặt" khi người giữ không có ca đang diễn ra hoặc tài khoản không Hoạt động).
 - **Tách** (FR-012, FR-013): hàm `TachDo(do, soLuongBanGiao)` → đồ mới (`do_goc_id`, `tiep_nhan_goc_id` của đồ gốc) mang trạng thái đích, đồ cũ giữ phần còn lại; bản ghi bàn giao của đồ mới là bản ghi của lệnh. Đếm thiếu: lệnh tách phần thiếu và ghi `BAO_THAT_LAC` cho nó cùng lần. Bất biến "tổng số lượng các đồ cùng `tiep_nhan_goc_id` = số lượng tiếp nhận (sau đính chính)" kiểm cuối mỗi lệnh và đính chính (SC-001).
-- **Tiếp nhận và giao ngay** (FR-005): một lệnh, hai bản ghi; với loại cần đồng ý: người giao phải là người đại diện (`NguoiDaiDienPort`) và lệnh kèm bản ký → tạo `dong_y_tu_giu` Hiệu lực trong cùng lệnh.
-- **Ảnh** (FR-008 → FR-010): `ban_giao_anh` (nhóm 3, tệp `common.tep`); dấu "đồ có giá trị" tính từ CFG-M12-01 lúc lệnh và lưu trên bản ghi (`la_do_co_gia_tri`), nên đổi tham số không làm hỏng bản ghi cũ.
+- **Tiếp nhận và giao ngay** (FR-005): một lệnh, hai bản ghi; với loại cần đồng ý: người giao phải là người đại diện (`NguoiDaiDienPort`) và lệnh kèm bản ký → tạo `dong_y_tu_giu` Hiệu lực trong cùng lệnh. *(R-15: `dong_y_tu_giu` → `do_gui` (cột))*
+- **Ảnh** (FR-008 → FR-010): `ban_giao_anh` (nhóm 3, tệp `common.tep`); dấu "đồ có giá trị" tính từ CFG-M12-01 lúc lệnh và lưu trên bản ghi (`la_do_co_gia_tri`), nên đổi tham số không làm hỏng bản ghi cũ. *(R-15: `ban_giao_anh` → cột `JSON` của `ban_giao_do_gui`)*
 - **Mức tình trạng** (FR-015): giảm mức → phản hồi 409 `CAN_CHON_XU_LY_TINH_TRANG` nếu thân lệnh chưa có `xuLyTinhTrang` (`GHI_NHAN` hoặc chuyển sang lệnh Ghi hư hỏng); mức "Không dùng được" chỉ ở Tiếp nhận hoặc Ghi hư hỏng.
 
 **Phương án loại**: tính trạng thái mỗi lần đọc từ bản ghi gần nhất — chậm cho danh sách, điều kiện kết thúc.
@@ -84,14 +84,14 @@ Không có SPI 013 khai cho module sau. 016 đọc `DoGuiThongKeApi`.
 ## K-06. Trả, xác nhận người nhận khác, đồng ý cho tự giữ (mục E; BR-M12-04, Q-149, Q-150, Q-153, Q-155, Q-253, Q-258)
 
 **Quyết định**:
-- **Lệnh Trả** là một lệnh trên nhiều đồ cho cùng người nhận (`lan_tra`, nhóm 3: người nhận, xác minh danh tính, chữ ký (tệp), ý kiến tình trạng, xác nhận người nhận khác dùng), mỗi đồ một bản ghi `TRA` trỏ `lan_tra_id` (FR-019).
+- **Lệnh Trả** là một lệnh trên nhiều đồ cho cùng người nhận (`lan_tra`, nhóm 3: người nhận, xác minh danh tính, chữ ký (tệp), ý kiến tình trạng, xác nhận người nhận khác dùng), mỗi đồ một bản ghi `TRA` trỏ `lan_tra_id` (FR-019). *(R-15: `lan_tra` → `ban_giao_do_gui` (`loai`))*
 - Hàm thuần `NguoiNhanHopLe(nguoiNhan, nct, cacDo, xacNhan, vaiTro, t)`:
-  1. người có quyền nhận (`QuyenNguoiThanApi.laNguoiDaiDien` hoặc `duocPhepDonTai`) → xác minh giấy tờ: khớp số đăng ký (`giayTo`); hồ sơ chưa có giấy tờ → ghi loại, số xuất trình, đối chiếu họ tên, số điện thoại, nhắc Hành chính bổ sung; không khớp → `lan_chan_tra` (nhóm 3, transaction riêng) và 409 `CHAN_TRA`;
+  1. người có quyền nhận (`QuyenNguoiThanApi.laNguoiDaiDien` hoặc `duocPhepDonTai`) → xác minh giấy tờ: khớp số đăng ký (`giayTo`); hồ sơ chưa có giấy tờ → ghi loại, số xuất trình, đối chiếu họ tên, số điện thoại, nhắc Hành chính bổ sung; không khớp → `lan_chan_tra` (nhóm 3, transaction riêng) và 409 `CHAN_TRA`; *(R-15: `lan_chan_tra` → `ban_giao_do_gui` (`loai`))*
   2. chính người cao tuổi với mọi đồ không thuộc loại "cần đồng ý" → được (Q-253);
-  3. khác → cần `xac_nhan_nguoi_nhan` `HIEU_LUC`, khớp người nhận (họ tên, giấy tờ), bao gồm mọi đồ đang trả; trong lệnh xác nhận chuyển `DA_DUNG`.
+  3. khác → cần `xac_nhan_nguoi_nhan` `HIEU_LUC`, khớp người nhận (họ tên, giấy tờ), bao gồm mọi đồ đang trả; trong lệnh xác nhận chuyển `DA_DUNG`. *(R-15: `xac_nhan_nguoi_nhan` → `ho_so_chung`)*
   Điều dưỡng: mọi đồ không có giá trị và trường hợp 1 hoặc 2; có lẫn đồ có giá trị → chặn toàn bộ (FR-016a).
-- `xac_nhan_nguoi_nhan` (nhóm 2) `CHO_XAC_NHAN | HIEU_LUC | TU_CHOI | HUY | DA_DUNG | HET_HAN`; nội dung khóa từ khi lập (trigger); `het_han_luc` = lúc Hiệu lực + CFG-M10-08. Duyệt thay (FR-017a): kiểm (a) chờ quá CFG-M12-05 và `bang_chung_lien_he` đạt CFG-M12-06 (mỗi người đại diện Hiệu lực ≥ số lần, ≥ số kênh), hoặc (b) không có người đại diện Hiệu lực kèm căn cứ; Quản lý viện ≠ người lập; đã có Từ chối → không duyệt thay. Đồ rời trạng thái hợp lệ → loại khỏi danh sách; hết đồ → `HUY` "không còn đồ".
-- `dong_y_tu_giu` (nhóm 2) `HIEU_LUC | DA_RUT | HET_HIEU_LUC`; cột sinh `khoa_hieu_luc = IF(trang_thai = 'HIEU_LUC', do_gui_id, NULL)` `UNIQUE`. Hết hiệu lực trong cùng lệnh khi đồ chuyển Đã trả, Thất lạc, Hư hỏng, Đã xử lý. Rút khi đồ Đang sử dụng → thông báo thu lại; không đổi trạng thái. Bật dấu "cần đồng ý" cho loại đồ → liệt kê đồ loại đó Đang sử dụng không có đồng ý và thông báo như rút.
+- `xac_nhan_nguoi_nhan` (nhóm 2) `CHO_XAC_NHAN | HIEU_LUC | TU_CHOI | HUY | DA_DUNG | HET_HAN`; nội dung khóa từ khi lập (trigger); `het_han_luc` = lúc Hiệu lực + CFG-M10-08. Duyệt thay (FR-017a): kiểm (a) chờ quá CFG-M12-05 và `bang_chung_lien_he` đạt CFG-M12-06 (mỗi người đại diện Hiệu lực ≥ số lần, ≥ số kênh), hoặc (b) không có người đại diện Hiệu lực kèm căn cứ; Quản lý viện ≠ người lập; đã có Từ chối → không duyệt thay. Đồ rời trạng thái hợp lệ → loại khỏi danh sách; hết đồ → `HUY` "không còn đồ". *(R-15: `xac_nhan_nguoi_nhan` → `ho_so_chung`)*
+- `dong_y_tu_giu` (nhóm 2) `HIEU_LUC | DA_RUT | HET_HIEU_LUC`; cột sinh `khoa_hieu_luc = IF(trang_thai = 'HIEU_LUC', do_gui_id, NULL)` `UNIQUE`. Hết hiệu lực trong cùng lệnh khi đồ chuyển Đã trả, Thất lạc, Hư hỏng, Đã xử lý. Rút khi đồ Đang sử dụng → thông báo thu lại; không đổi trạng thái. Bật dấu "cần đồng ý" cho loại đồ → liệt kê đồ loại đó Đang sử dụng không có đồng ý và thông báo như rút. *(R-15: `dong_y_tu_giu` → `do_gui` (cột))*
 - Người đại diện thao tác qua REST của 013 dưới `/cong/…` (kiểm `QuyenNguoiThanApi.laNguoiDaiDien` tại thời điểm), hoặc Hành chính ghi bản ký scan.
 
 ---
@@ -132,8 +132,8 @@ Không có SPI 013 khai cho module sau. 016 đọc `DoGuiThongKeApi`.
 
 **Quyết định**:
 - Kỳ kiểm kê tính từ CFG-M12-04 (chu kỳ, hạn) thành `ma_ky` (ví dụ `2026-10`), `han`.
-- `phieu_kiem_ke` (nhóm 2 → 3 khi Hoàn thành) `UNIQUE (vi_tri_id, ma_ky)`; lệnh Lập chụp mọi đồ có giá trị Đang giữ tại vị trí (`phieu_kiem_ke_dong`: đồ, số lượng, tình trạng, ảnh lúc lập); vị trí không có đồ → 409 `KHONG_CO_DO_CO_GIA_TRI`. Không có tham số chọn đồ (không bỏ bớt được).
-- Hoàn thành: thân lệnh có kết quả mỗi dòng (`DUNG`, `LECH_TINH_TRANG` kèm mức mới hoặc `GHI_HU_HONG`, `KHONG_TIM_THAY`), đồ thừa (`TIM_THAY` cho đồ Thất lạc; đính chính số lượng; `do_khong_ro_chu` kèm ảnh). Trong một transaction: dòng có đồ đã đổi trạng thái/vị trí sau khi lập → loại kèm ghi chú; `KHONG_TIM_THAY` → lệnh Báo thất lạc; `GHI_HU_HONG` → lệnh Ghi hư hỏng; `DUNG` không sinh bản ghi bàn giao. Đồ không rõ chủ → báo Quản lý viện.
+- `phieu_kiem_ke` (nhóm 2 → 3 khi Hoàn thành) `UNIQUE (vi_tri_id, ma_ky)`; lệnh Lập chụp mọi đồ có giá trị Đang giữ tại vị trí (`phieu_kiem_ke_dong`: đồ, số lượng, tình trạng, ảnh lúc lập); vị trí không có đồ → 409 `KHONG_CO_DO_CO_GIA_TRI`. Không có tham số chọn đồ (không bỏ bớt được). *(R-15: `phieu_kiem_ke` → `ho_so_chung`)*
+- Hoàn thành: thân lệnh có kết quả mỗi dòng (`DUNG`, `LECH_TINH_TRANG` kèm mức mới hoặc `GHI_HU_HONG`, `KHONG_TIM_THAY`), đồ thừa (`TIM_THAY` cho đồ Thất lạc; đính chính số lượng; `do_khong_ro_chu` kèm ảnh). Trong một transaction: dòng có đồ đã đổi trạng thái/vị trí sau khi lập → loại kèm ghi chú; `KHONG_TIM_THAY` → lệnh Báo thất lạc; `GHI_HU_HONG` → lệnh Ghi hư hỏng; `DUNG` không sinh bản ghi bàn giao. Đồ không rõ chủ → báo Quản lý viện. *(R-15: `do_khong_ro_chu` → `ho_so_chung`)*
 - Job hằng ngày: đầu kỳ nhắc Hành chính số vị trí chưa có phiếu; sau hạn: nhắc mỗi ngày (khóa vị trí/phiếu + kỳ + ngày), báo Quản lý viện một lần; phiếu lập sau hạn hoặc hoàn thành sau hạn mang `tre_han`. Job không tạo phiếu.
 
 ---
@@ -197,5 +197,5 @@ Bác sĩ, Nhân viên chăm sóc, Nhân viên bếp, Kế toán: không có quy�
 
 **Quyết định**: Bean `DoGuiKenhNctPortImpl` đọc đồ của người cao tuổi ở trạng thái Đang giữ, Đang được sử dụng; trả tên đồ, trạng thái, mã ảnh. `QuyenTepProvider` `M12.ANH_DO_GUI` cho tài khoản AC-16 xem ảnh đồ của chính mình. Không có thao tác nào; trả đồ, xác nhận người nhận giữ nguyên (BR-M12-04, BR-M12-06).
 
-**Lý do**: SPI ở `m10.api` theo cách `HoatDongBanTinPort`, không tạo vòng M10 ↔ M12.
+**Lý do**: SPI ở `family.api` theo cách `HoatDongBanTinPort`, không tạo vòng M10 ↔ M12.
 

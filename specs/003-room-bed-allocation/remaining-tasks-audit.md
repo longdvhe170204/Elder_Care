@@ -77,7 +77,7 @@ Gate chung: lượt nền `mvnw.cmd clean verify` gần nhất kết thúc exit 
 | Task | Thực tế và lý do còn mở |
 |---|---|
 | T053 | Test cách ly/quyền/chuyển kiểm soát/trở về đã có và xanh. Chưa đủ nhánh gỡ khoanh vùng/thêm tiếp xúc bằng sự kiện thật 007 vì chưa có các kiểu API/fake sự kiện; còn gate chung. |
-| T054 | Migration, lệnh đặt/gỡ, audit và sự kiện nguồn đã cài. **Hai listener gỡ khoanh vùng/thêm danh sách tiếp xúc chưa cài** do 007 chưa cung cấp kiểu sự kiện công khai/fake; thuộc D, m05/m06. |
+| T054 | Migration, lệnh đặt/gỡ, audit và sự kiện nguồn đã cài. **Hai listener gỡ khoanh vùng/thêm danh sách tiếp xúc chưa cài** do 007 chưa cung cấp kiểu sự kiện công khai/fake; thuộc D, incident/health. |
 | T055 | `ControlledTransferService` và xác nhận ở lại đã cài, có test atomicity/rollback/Bác sĩ Hoạt động/giữ hạn khi vắng. Còn gate chung và kiểm nguồn 004/007 thật, không phải chờ T032 để viết luồng ngoại lệ đã có. |
 | T056 | HTTP và web cách ly/chuyển/xác nhận đã cài; test và QA giao diện đã thực hiện trong Phase 9. Còn gate chung/tích hợp thật; mobile nhân viên chưa được mở. |
 
@@ -96,7 +96,7 @@ Gate chung: lượt nền `mvnw.cmd clean verify` gần nhất kết thúc exit 
 |---|---|
 | T061 | Ba API báo cáo/trạng thái/bàn giao đã cài, 7 IT reporting xanh; `BedFlagView.bedId` nullable đã được duyệt. Còn gate chung; giới hạn dữ liệu lịch sử cơ cấu/phòng/tài sản đã ghi ở `verification.md`, không thể coi snapshot hiện hành là lịch sử đầy đủ. |
 | T062 | `ApiContractIT` đã đăng ký 003, kiểm endpoint đã cài; còn pending duy nhất chuyển thường T036. Kiểm trigger hai bảng nhóm ghi nhận đã bổ sung/xanh. Cần hoàn tất endpoint còn thiếu và gate chung, không xóa pending để giả hoàn tất. |
-| T063 | **Chưa thể chạy với đủ bean thật**: 004→m02, 007→m05/m06, 008→m09 hiện chỉ có package-info; chưa có các provider SPI cần thiết. 019 thuộc C/m03, phần tài sản m11 qua API E; phần này cũng chưa có bản thật cần kiểm. Đây là task phụ thuộc liên feature rõ ràng. |
+| T063 | **Chưa thể chạy với đủ bean thật**: 004→admission, 007→incident/health, 008→staffing hiện chỉ có package-info; chưa có các provider SPI cần thiết. 019 thuộc C/roombedallocation, phần tài sản billing qua API E; phần này cũng chưa có bản thật cần kiểm. Đây là task phụ thuộc liên feature rõ ràng. |
 | T064 | Backend đã chạy nhưng gate đỏ 15 lỗi M01; web xanh. Flutter dừng trước test do Windows thiếu symlink/Developer Mode. Chưa chạy đủ 37 kịch bản demo hoặc đo SC-005 người dùng thực tế. Benchmark 300 giường qua MockMvc đạt <1 giây không thay phép đo 60 người dùng/10 thao tác/trung vị <2 phút trong quickstart. |
 | T065 | `verification.md` đã có bảng truy vết và test tương ứng nhiều quy tắc. Còn khoảng trống workflow/chuyển thường/nhập bù và tích hợp đã chỉ ở task gốc; không thể đóng chỉ vì đã lập bảng mapping, cũng chưa qua gate chung. |
 
