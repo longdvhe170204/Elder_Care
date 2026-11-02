@@ -2,6 +2,9 @@ package com.eldercare.backend.administration.account;
 
 import static com.eldercare.backend.administration.account.AccountFixtures.bearer;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -72,7 +75,7 @@ class LoginQrCodeIT extends MySqlIntegrationTestBase {
     void residentAccount() {
         clock.reset();
         fixtures = new AccountFixtures(jdbc, time);
-        logins = new ResidentLogins(mvc);
+        logins = new ResidentLogins(mvc, jdbc);
         office = fixtures.session(fixtures.staffAccount("AC-09"));
         residentId = AccountFixtures.nextId();
         account = fixtures.residentAccount(residentId);
@@ -168,7 +171,7 @@ class LoginQrCodeIT extends MySqlIntegrationTestBase {
         logins.createCode(careStaff, account).andExpect(status().isForbidden());
     }
 
-    private static final String CONSENT = "{\"consent\":{\"method\":\"REQUESTED\",\"withStaffId\":7}}";
+    private static final String CONSENT = ResidentLogins.CONSENT;
 
     private ResultActions codeForResident(String token, long resident, String body) throws Exception {
         return mvc.perform(post("/api/v1/resident-accounts/" + resident + "/login-qr-code")
@@ -245,14 +248,31 @@ class LoginQrCodeIT extends MySqlIntegrationTestBase {
 
     @Test
     void FR_069_onlyForActiveResidentAccounts() throws Exception {
-        long staff = fixtures.staffAccount("AC-05");
         jdbc.update("UPDATE account SET status = 'LOCKED', lock_cause = 'WITH_REASON' WHERE id = ?", account);
 
-        logins.createCode(office, staff)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errorCode").value("NOT_RESIDENT_ACCOUNT"));
         logins.createCode(office, account)
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("ACCOUNT_LOCKED"));
+    }
+
+    @Test
+    void FR_069_codeByAccountId_removed_onlyByResident() throws Exception {
+        mvc.perform(post("/api/v1/accounts/" + account + "/login-qr-code")
+                        .header("Authorization", bearer(office))
+                        .header("Idempotency-Key", UUID.randomUUID().toString()))
+                .andExpect(r -> assertThat(r.getResponse().getStatus()).isIn(404, 405));
+    }
+
+    @Test
+    void FR_069_FR_051a_allowedCommands_lockedAccount_noCodeNoReset() throws Exception {
+        mvc.perform(get("/api/v1/accounts/" + account).header("Authorization", bearer(office)))
+                .andExpect(jsonPath("$.allowedCommands").value(hasItems("login-qr-code", "reset-password")));
+
+        jdbc.update("UPDATE account SET status = 'LOCKED', lock_cause = 'WITH_REASON' WHERE id = ?", account);
+
+        mvc.perform(get("/api/v1/accounts/" + account).header("Authorization", bearer(office)))
+                .andExpect(jsonPath("$.allowedCommands").value(hasItem("unlock-resident")))
+                .andExpect(jsonPath("$.allowedCommands").value(not(hasItem("login-qr-code"))))
+                .andExpect(jsonPath("$.allowedCommands").value(not(hasItem("reset-password"))));
     }
 }

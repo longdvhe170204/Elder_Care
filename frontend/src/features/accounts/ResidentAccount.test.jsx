@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { json, mockRoutes, problem } from '@/test/fetchRoutes'
 import { AccountList } from './AccountList'
 
 // 002 T095 (tên logic TaiKhoanNguoiCaoTuoi.test.jsx; US8; FR-067, FR-069, FR-070, FR-072, FR-073; bố cục duyệt
 // 2026-10-24): tạo tài khoản người cao tuổi kèm xác nhận, mã QR đăng nhập, gỡ thiết bị, khóa, mở khóa, đề nghị khóa
-// theo lời người thân.
+// theo lời người thân. 002 T103 (FR-006, FR-051a, FR-069; bố cục duyệt 2026-11-02): không mật khẩu tạm khi tạo, tạo mã
+// kèm xác nhận và cảnh báo gỡ máy, cấp lại mật khẩu kèm xác nhận.
 
 function residentAccount(overrides = {}) {
   return {
@@ -18,7 +19,7 @@ function residentAccount(overrides = {}) {
     roles: ['AC-16'],
     lastLoginAt: null,
     boundDevice: { boundAt: '2026-10-20T02:03:00Z', deviceId: 'device-1' },
-    allowedCommands: ['login-qr-code', 'unbind-device', 'lock-resident'],
+    allowedCommands: ['login-qr-code', 'reset-password', 'unbind-device', 'lock-resident'],
     ...overrides,
   }
 }
@@ -47,7 +48,7 @@ function bodyOf(method, path) {
 }
 
 describe('Tài khoản người cao tuổi', () => {
-  it('FR_067_tao_chonNguoiCaoTuoi_xacNhan_hienMatKhauTam', async () => {
+  it('FR_067_FR_006_tao_chonNguoiCaoTuoi_xacNhan_khongCoMatKhauTam', async () => {
     api.on('GET', '/accounts', json(200, { items: [], nextCursor: null }))
     api.on(
       'GET',
@@ -57,7 +58,7 @@ describe('Tài khoản người cao tuổi', () => {
         nextCursor: null,
       }),
     )
-    api.on('POST', '/resident-accounts', json(201, { ...residentAccount(), temporaryPassword: 'Tam-123456' }))
+    api.on('POST', '/resident-accounts', json(201, residentAccount()))
     render(<AccountList canCreate={false} canCreateResident />)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Tạo tài khoản người cao tuổi' }))
@@ -70,7 +71,10 @@ describe('Tài khoản người cao tuổi', () => {
     fireEvent.change(within(sheet).getByLabelText('Mã hồ sơ nhân viên đã nghe'), { target: { value: '7' } })
     fireEvent.click(within(sheet).getByRole('button', { name: 'Tạo tài khoản' }))
 
-    expect(await within(sheet).findByText('Tam-123456')).toBeInTheDocument()
+    expect(
+      await within(sheet).findByText(/Người cao tuổi đăng nhập bằng mã QR, không dùng mật khẩu/),
+    ).toBeInTheDocument()
+    expect(within(sheet).queryByTestId('temporary-password')).toBeNull()
     expect(bodyOf('POST', '/resident-accounts')).toEqual({
       residentId: 501,
       username: 'nct-hoa',
@@ -104,21 +108,85 @@ describe('Tài khoản người cao tuổi', () => {
     expect(screen.queryByRole('button', { name: 'Tạo tài khoản người cao tuổi' })).toBeNull()
   })
 
-  it('FR_069_taoMaQr_hienMaVaThoiGianConLai', async () => {
+  it('FR_069_taoMaQr_xacNhan_canhBaoGoMay_hienMaVaThoiGianConLai', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true, now: new Date('2026-10-24T03:00:00Z') })
     api.on(
       'POST',
-      '/accounts/41/login-qr-code',
+      '/resident-accounts/501/login-qr-code',
       json(201, { code: 'qr-code-abc', expiresAt: '2026-10-24T03:05:00Z' }),
     )
     const sheet = await openDetail(residentAccount())
 
     expect(within(sheet).getByText(/Đã gắn 20\/10\/2026 09:03/)).toBeInTheDocument()
     fireEvent.click(await within(sheet).findByRole('button', { name: 'Tạo mã QR' }))
+    expect(within(sheet).getByText(/Quét mã sẽ gỡ máy đang gắn \(gắn 20\/10\/2026 09:03\)/)).toBeInTheDocument()
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Tạo mã' }))
+    expect(await within(sheet).findByText('Chọn người cao tuổi tự yêu cầu hay đồng ý')).toBeInTheDocument()
+    expect(api.calls('POST', '/resident-accounts/501/login-qr-code')).toHaveLength(0)
+
+    fireEvent.click(within(sheet).getByRole('radio', { name: 'Tự yêu cầu' }))
+    fireEvent.change(within(sheet).getByLabelText('Mã hồ sơ nhân viên đã nghe'), { target: { value: '7' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Tạo mã' }))
 
     expect(await within(sheet).findByRole('img', { name: 'Mã QR đăng nhập' })).toBeInTheDocument()
     expect(within(sheet).getByText('Còn 5:00')).toBeInTheDocument()
-    expect(api.calls('POST', '/accounts/41/login-qr-code')[0][1].headers['Idempotency-Key']).toMatch(/^[0-9a-f-]{36}$/)
+    expect(within(sheet).getByText('Quét mã sẽ gỡ máy đang gắn.')).toBeInTheDocument()
+    const [, init] = api.calls('POST', '/resident-accounts/501/login-qr-code')[0]
+    expect(init.headers['Idempotency-Key']).toMatch(/^[0-9a-f-]{36}$/)
+    expect(JSON.parse(init.body)).toEqual({ consent: { method: 'REQUESTED', withStaffId: 7 } })
+  })
+
+  it('FR_069_maHetHan_taoMaMoi_dienSanXacNhan', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true, now: new Date('2026-10-24T03:00:00Z') })
+    api.on(
+      'POST',
+      '/resident-accounts/501/login-qr-code',
+      json(201, { code: 'qr-code-abc', expiresAt: '2026-10-24T03:00:02Z' }),
+    )
+    const sheet = await openDetail(residentAccount({ boundDevice: null, allowedCommands: ['login-qr-code'] }))
+
+    fireEvent.click(await within(sheet).findByRole('button', { name: 'Tạo mã QR' }))
+    expect(within(sheet).queryByText(/Quét mã sẽ gỡ máy/)).toBeNull()
+    fireEvent.click(within(sheet).getByRole('radio', { name: 'Đồng ý' }))
+    fireEvent.change(within(sheet).getByLabelText('Mã hồ sơ nhân viên đã nghe'), { target: { value: '9' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Tạo mã' }))
+    await within(sheet).findByRole('img', { name: 'Mã QR đăng nhập' })
+
+    await act(() => vi.advanceTimersByTimeAsync(3000))
+    expect(await within(sheet).findByText('Mã đã hết hạn.')).toBeInTheDocument()
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Tạo mã mới' }))
+    expect(within(sheet).getByRole('radio', { name: 'Đồng ý' })).toBeChecked()
+    expect(within(sheet).getByLabelText('Mã hồ sơ nhân viên đã nghe')).toHaveValue('9')
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Tạo mã' }))
+
+    await waitFor(() => expect(api.calls('POST', '/resident-accounts/501/login-qr-code')).toHaveLength(2))
+    expect(JSON.parse(api.calls('POST', '/resident-accounts/501/login-qr-code')[1][1].body)).toEqual({
+      consent: { method: 'AGREED', withStaffId: 9 },
+    })
+  })
+
+  it('FR_051a_capLaiMatKhau_xacNhan_lyDo_hienMatKhauTam', async () => {
+    api.on('POST', '/accounts/41/reset-password', json(200, { temporaryPassword: 'Tam-654321' }))
+    const sheet = await openDetail(residentAccount())
+
+    expect(within(sheet).getAllByRole('button', { name: 'Cấp lại mật khẩu' })).toHaveLength(1)
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Cấp lại mật khẩu' }))
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Cấp mật khẩu tạm' }))
+    expect(await within(sheet).findByText('Nhập lý do')).toBeInTheDocument()
+    expect(within(sheet).getByText('Nhập mã hồ sơ nhân viên')).toBeInTheDocument()
+    expect(api.calls('POST', '/accounts/41/reset-password')).toHaveLength(0)
+
+    fireEvent.click(within(sheet).getByRole('radio', { name: 'Tự yêu cầu' }))
+    fireEvent.change(within(sheet).getByLabelText('Mã hồ sơ nhân viên đã nghe'), { target: { value: '7' } })
+    fireEvent.change(within(sheet).getByLabelText('Lý do'), { target: { value: 'Bà quên mật khẩu' } })
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Cấp mật khẩu tạm' }))
+
+    expect(await within(sheet).findByText('Tam-654321')).toBeInTheDocument()
+    expect(within(sheet).getByText(/Nếu quét mã QR trước khi dùng thì mật khẩu này hết hiệu lực/)).toBeInTheDocument()
+    expect(bodyOf('POST', '/accounts/41/reset-password')).toEqual({
+      reason: 'Bà quên mật khẩu',
+      consent: { method: 'REQUESTED', withStaffId: 7 },
+    })
   })
 
   it('FR_072_khoa_canCu_lyDo_guiIfMatch', async () => {
@@ -147,7 +215,7 @@ describe('Tài khoản người cao tuổi', () => {
         status: 'LOCKED',
         lockCause: 'RESIDENT_RESIDENCY_ENDED',
         boundDevice: null,
-        allowedCommands: ['login-qr-code', 'unlock-resident'],
+        allowedCommands: ['unlock-resident'],
       }),
     )
 

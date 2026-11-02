@@ -6,16 +6,23 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import com.jayway.jsonpath.JsonPath;
 import java.util.UUID;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 /** Gọi lệnh mã QR, đăng nhập bằng mã QR, gỡ thiết bị, khóa tài khoản người cao tuổi cho test của 002 US8. */
-record ResidentLogins(MockMvc mvc) {
+record ResidentLogins(MockMvc mvc, JdbcTemplate jdbc) {
 
+    static final String CONSENT = "{\"consent\":{\"method\":\"REQUESTED\",\"withStaffId\":7}}";
+
+    /** Tạo mã theo người cao tuổi của tài khoản, kèm xác nhận (FR-069; T103 gỡ lệnh theo id tài khoản). */
     ResultActions createCode(String token, long account) throws Exception {
-        return mvc.perform(post("/api/v1/accounts/" + account + "/login-qr-code")
+        Long resident = jdbc.queryForObject("SELECT resident_id FROM account WHERE id = ?", Long.class, account);
+        return mvc.perform(post("/api/v1/resident-accounts/" + resident + "/login-qr-code")
                 .header("Authorization", bearer(token))
-                .header("Idempotency-Key", UUID.randomUUID().toString()));
+                .header("Idempotency-Key", UUID.randomUUID().toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(CONSENT));
     }
 
     /** Mã QR mới do người có token tạo; lỗi nếu không tạo được. */

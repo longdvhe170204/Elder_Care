@@ -61,7 +61,7 @@ class ResidentSessionNoTimeoutIT extends MySqlIntegrationTestBase {
     void setUp() {
         clock.reset();
         fixtures = new AccountFixtures(jdbc, time);
-        logins = new ResidentLogins(mvc);
+        logins = new ResidentLogins(mvc, jdbc);
         account = fixtures.residentAccount(AccountFixtures.nextId());
     }
 
