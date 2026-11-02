@@ -141,6 +141,8 @@ Mã nghiệp vụ giữ nguyên, không dịch: BR-, FR-, CFG-, DBR-, Q-, UC-, A
 | `KHOA_LAP_LAI_DA_DUNG` (cùng khóa, nội dung khác) | `IDEMPOTENCY_KEY_REUSED` |
 | `KHOA_LAP_LAI_DANG_XU_LY` | `IDEMPOTENCY_IN_PROGRESS` |
 | cùng khóa, lệnh đã chạy, kết quả có bí mật nên không lưu | `IDEMPOTENCY_RESULT_NOT_KEPT` |
+| dùng lệnh khóa, mở khóa riêng của tài khoản người cao tuổi | `USE_RESIDENT_ACCOUNT_COMMAND` |
+| người cao tuổi đã ở trạng thái cuối, không tạo mã đăng nhập | `RESIDENCY_ENDED` |
 | lỗi của framework | tên trạng thái HTTP, ví dụ `BAD_REQUEST`, `NOT_FOUND`, `METHOD_NOT_ALLOWED` |
 
 Bổ sung theo từng feature khi dịch `contracts/api-NNN.yaml` (R-03).

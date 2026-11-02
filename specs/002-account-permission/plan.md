@@ -377,3 +377,12 @@ Test không bị ảnh hưởng: test của 000 và của module khác dùng b�
 - `SecretResponse` đánh dấu theo kiểu thân phản hồi nên lệnh mới trả bí mật chỉ cần cài interface; bộ lọc chạy ngoài MVC nên `SecretResponseAdvice` báo qua thuộc tính request. Dùng `Cache-Control` không được vì Spring Security đặt `no-store` cho mọi phản hồi.
 - Gửi lại cùng khóa: lệnh không chạy lần hai, trả 409 `IDEMPOTENCY_RESULT_NOT_KEPT`; người dùng làm lại bằng khóa mới. Chọn vậy thay vì lưu bí mật mã hóa, vì lưu lại là đúng thứ cần tránh.
 - Dòng cũ ở `idempotency_key` không chép đè: hết hạn sau 7 ngày, schema demo không có dòng chứa bí mật.
+
+## Ghi chú bước 2 của quyết định mã QR (2026-11-02, T102, nhánh `impl/002-resident-qr-rules`)
+
+- `POST /resident-accounts` trả `Account`, không còn `temporaryPassword`; mật khẩu ngẫu nhiên không ai biết, `must_change_password = FALSE`.
+- Đăng nhập QR khi tài khoản đang chờ đổi mật khẩu (vừa được cấp lại): thay bằng mật khẩu ngẫu nhiên và gỡ cờ, nhật ký ghi `temporaryPasswordVoided`. Bộ lọc phiên kiểm cờ trên tài khoản, không phân biệt cách đăng nhập, nên không thể chỉ bỏ qua cờ ở phiên QR. Chọn vậy thay vì thêm cột cho phiên, và mật khẩu tạm không đổi cũng không còn dùng được.
+- `GET /resident-accounts/{residentId}` và `POST /resident-accounts/{residentId}/login-qr-code` kiểm `(RESIDENT_ACCOUNT, CREATE)` trên người cao tuổi trước khi tra tài khoản, nên Điều dưỡng ngoài phạm vi không biết người đó có tài khoản hay không.
+- `POST /accounts/{id}/login-qr-code` đánh dấu `deprecated`, chưa bắt xác nhận vì web đang gọi; gỡ ở T103.
+- Trạng thái cuối kiểm cả lúc tạo mã (409 `RESIDENCY_ENDED`) và lúc dùng mã (401 `INVALID_QR_CODE`) cho khoảng trễ trước khi sự kiện khóa tài khoản được xử lý.
+- `reset-password` chưa thêm vào `allowedCommands` của tài khoản người cao tuổi: `ResidentAccountSection` đọc nhãn theo lệnh và lỗi với lệnh chưa biết; thêm cùng màn ở T103.

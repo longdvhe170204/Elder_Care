@@ -81,7 +81,7 @@ export function CreateResidentAccount({ onCreated, onClose }) {
             <p className="type-body-sm">
               Đã tạo tài khoản {created.username}. Tạo mã QR đăng nhập trong khung chi tiết tài khoản.
             </p>
-            <TemporaryPasswordNotice password={created.temporaryPassword} />
+            {created.temporaryPassword && <TemporaryPasswordNotice password={created.temporaryPassword} />}
             <Button variant="outline" className="self-start" onClick={onClose}>
               Xong
             </Button>
