@@ -176,10 +176,12 @@ function RecordForm({ residentId, onCancel, onDone }) {
     const next = {}
     if (!evidence) next.evidence = 'Chọn tệp bản ký đã scan'
     if (!date) next.date = 'Chọn ngày đồng ý'
+    else if (date > today()) next.date = 'Ngày đồng ý không ở tương lai'
     if (signer === 'LEGAL_REPRESENTATIVE') {
       if (!POSITIVE_INTEGER.test(signerId.trim())) next.signerId = 'Nhập mã người thân là người ký'
       if (!court.number.trim()) next.number = 'Nhập số quyết định'
       if (!court.date) next.courtDate = 'Chọn ngày quyết định'
+      else if (court.date > today()) next.courtDate = 'Ngày quyết định không ở tương lai'
       if (!court.court.trim()) next.courtName = 'Nhập tên Tòa án'
       if (!courtFile) next.courtFile = 'Chọn tệp quyết định của Tòa án'
     }
