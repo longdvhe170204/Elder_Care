@@ -36,8 +36,7 @@ class CallReminderActions {
     private static final Map<String, String> REASONS = Map.of(
             "NO_ANSWER", "không nghe máy",
             "WRONG_NUMBER", "sai số",
-            "NO_NUMBER", "không có số",
-            "OTHER", "lý do khác");
+            "NO_NUMBER", "không có số");
 
     private final CallReminderStore store;
     private final NotificationStore notifications;

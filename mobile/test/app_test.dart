@@ -39,7 +39,7 @@ void main() {
   testWidgets('T006_taiKhoanNguoiThan_vaoPhanNguoiThan', (tester) async {
     await pumpSignedIn(tester, backend, store, 'FAMILY_MEMBER');
 
-    expect(find.text('Phần người thân: chưa có màn'), findsOneWidget);
+    expect(find.text('Thông báo'), findsOneWidget);
   });
 
   testWidgets('T006_taiKhoanNguoiCaoTuoi_vaoHomNay', (tester) async {

@@ -13,6 +13,8 @@ import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.SwitchableUser;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,9 +65,12 @@ class ParameterAsOfIT extends MySqlIntegrationTestBase {
 
     @Test
     void US4_8_valueAtPastInstant_isTheValueCurrentThen() throws Exception {
-        Instant firstChange = Instant.parse("2026-11-01T01:00:00Z");
-        Instant between = Instant.parse("2026-11-02T01:00:00Z");
-        Instant secondChange = Instant.parse("2026-11-03T01:00:00Z");
+        // Mốc tương đối theo giờ thật: sau dòng nạp ban đầu của V000_04 (UTC_TIMESTAMP lúc chạy Flyway); ba mốc
+        // trong cùng một ngày để dòng sót của lần chạy hôm trước (schema test giữ dữ liệu) luôn trước firstChange
+        Instant day = Instant.now().truncatedTo(ChronoUnit.DAYS).plus(Duration.ofDays(30));
+        Instant firstChange = day.plus(Duration.ofHours(1));
+        Instant between = day.plus(Duration.ofHours(2));
+        Instant secondChange = day.plus(Duration.ofHours(3));
         clock.setTo(firstChange);
         api.change(RECHECK, api.etag(RECHECK), "{\"value\":20,\"unit\":\"MINUTES\"}", "Lần 1")
                 .andExpect(status().isOk());
@@ -79,7 +84,8 @@ class ParameterAsOfIT extends MySqlIntegrationTestBase {
                         .readAt(ParameterCode.CFG_M06_04, firstChange.minusSeconds(1))
                         .asDuration())
                 .isEqualTo(Duration.ofMinutes(10));
-        mvc.perform(get(ParameterClient.URL + RECHECK + "/history").param("asOf", "2026-11-02T08:00:00+07:00"))
+        mvc.perform(get(ParameterClient.URL + RECHECK + "/history")
+                        .param("asOf", between.atOffset(ZoneOffset.ofHours(7)).toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].value.value").value(20))

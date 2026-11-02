@@ -8,11 +8,10 @@ import { ProblemAlert } from '@/common/ProblemAlert'
 import { problemOf } from '@/common/problem'
 import { ResidentConsentFields } from './ResidentConsentFields'
 import { EMPTY_CONSENT, consentBody, consentErrors } from './residentConsent'
-import { TemporaryPasswordNotice } from './TemporaryPasswordNotice'
 
 // Tạo tài khoản người cao tuổi (002 T095; US8 #1; FR-067; bố cục duyệt 2026-10-24; hợp đồng POST /resident-accounts).
 // Danh sách là hồ sơ Đang lưu trú trong phạm vi (GET /residents của 001); đã có tài khoản thì backend trả 409.
-// Idempotency-Key giữ suốt form.
+// Idempotency-Key giữ suốt form. Tài khoản không có mật khẩu tạm, đăng nhập bằng mã QR (002 T103, FR-006).
 
 export function CreateResidentAccount({ onCreated, onClose }) {
   const [residents, setResidents] = useState(null)
@@ -79,9 +78,9 @@ export function CreateResidentAccount({ onCreated, onClose }) {
         {created ? (
           <div className="flex flex-col gap-3">
             <p className="type-body-sm">
-              Đã tạo tài khoản {created.username}. Tạo mã QR đăng nhập trong khung chi tiết tài khoản.
+              Đã tạo tài khoản {created.username}. Người cao tuổi đăng nhập bằng mã QR, không dùng mật khẩu. Tạo mã
+              trong khung chi tiết tài khoản.
             </p>
-            <TemporaryPasswordNotice password={created.temporaryPassword} />
             <Button variant="outline" className="self-start" onClick={onClose}>
               Xong
             </Button>

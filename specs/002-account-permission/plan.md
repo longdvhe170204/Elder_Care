@@ -323,7 +323,7 @@ Test không bị ảnh hưởng: test của 000 và của module khác dùng b�
 | --- | --- | --- | --- |
 | *(2026-10-21, Phase 9)* Thu hẹp chi tiết `DASHBOARD_REPORT` theo nhóm chỉ tiêu, kênh (016 FR-010a): lưu được, tính quyền mức khóa bỏ qua | Dashboard, báo cáo vẫn hiện nhóm chỉ tiêu đã thu hẹp | **Nới hơn spec** | 016 khi cài FR-010a |
 | *(sửa 2026-10-21, Phase 8)* Chú thích ¹, ², ⁷ chưa có bản cài (phạm vi người thân đã có, T071) | Người thân không xem được phần sức khỏe, việc của người đại diện, hợp đồng | Từ chối | Khi B cài ¹ (001), E cài ², ⁷ (012) |
-| *(2026-10-21, Phase 8)* Quyền riêng của từng người thân (FR-045 (3), US6 #2): chưa có `QuanHeNguoiThanApi.quyenDangBat` | Người thân trong bản đồng ý xem được sức khỏe dù chưa được cấp quyền xem sức khỏe; xem chi phí không theo quyền riêng | **Nới hơn spec** khi ¹ đã cài | Khi E khai báo `quyenDangBat` (012) |
+| *(2026-10-21, Phase 8)* Quyền riêng của từng người thân (FR-045 (3), US6 #2): chưa có `QuanHeNguoiThanApi.quyenDangBat` | Người thân trong bản đồng ý xem được sức khỏe dù chưa được cấp quyền xem sức khỏe; xem chi phí không theo quyền riêng | **Nới hơn spec** khi ¹ đã cài; *(2026-11-01, T100)* lớp quyền đã xét `rightEnabled` (`VIEW_HEALTH`, `VIEW_COSTS`), còn nới tới khi 012 cài SPI | Khi E cài `FamilyRelationshipApi.rightEnabled` (012) |
 | *(2026-10-20, Phase 6)* Phạm vi người tham gia chuyến của Trưởng đoàn, Người đi cùng (FR-031) | Trưởng đoàn, Người đi cùng không thấy người tham gia ngoài phạm vi phân công | Từ chối | Khi 014 khai báo SPI người tham gia chuyến (chưa có ở contracts) |
 | *(2026-10-20, Phase 6)* Đối tượng của Phụ trách bộ phận (FR-019f): `Target` không mang bộ phận | Lớp nhiệm vụ cho Phụ trách bộ phận mọi đối tượng của khóa; module sở hữu tài sản, mua sắm, kho phải tự so bộ phận của đối tượng | **Nới hơn spec** nếu module quên kiểm | Module sở hữu (013, 011) khi cài lệnh |
 | **FR-044a chưa kiểm "người cao tuổi chưa ở trạng thái cuối"** | Ghi được sự cố cho người đã ở trạng thái cuối | **Nới hơn spec** (chỉ thêm được sự cố, không xem được dữ liệu) | Khi B khai báo `NguoiCaoTuoiApi.trangThai` (001); 002 cũng cần ở US8 (T090, T091) |
@@ -370,3 +370,27 @@ Test không bị ảnh hưởng: test của 000 và của module khác dùng b�
 - Hiệu năng (NFR): truy vấn trên bảng chung dùng chỉ mục `(loai_doi_tuong, doi_tuong_id, loai)` và cột sinh có chỉ mục khai báo ở 0.1; chạy lại phần đo của quickstart sau khi gộp.
 - Dòng nhắc bảng cũ trong plan, research, tasks có ghi chú "R-15:" chỉ bảng đích.
 - **T098** (2026-10-30, nhánh `impl/002-table-consolidation`): `V002_95` tạo `permission_assignment`, `device_credential`, chép 12 bảng cũ (vai trò, quy tắc xem trường, nghiệp vụ chuyên môn vào `catalog_item`; lịch sử trạng thái vào `status_history`; chờ xem lại, lỗi dữ liệu quyền vào `simple_record`; cảnh báo giấy phép vào `reminder_marker`), gỡ quyền rồi `DROP`, khai `COMMENT DataGroup` cho 6 bảng còn lại. Lệch so với data-model 0.1, ghi lý do: (1) "Đổi api" 000 `SimpleRecordApi.listByStatus` (chủ dự án duyệt) vì API chưa có cách đọc dòng theo loại, trạng thái không gắn người cao tuổi hay đối tượng; thay cột sinh `m15_floor_area_id` (lọc tầng ở backend); (2) `recordType` vào nội dung vì `EntityRef` cần cả loại và id; (3) loại nhật ký giữ tên, liên kết cũ tới id đã đổi đứt (chủ dự án duyệt). Lớp: `RoleCatalog` (vai trò, `permissionVersion` so rồi tăng qua `CatalogApi.update`, trùng version là 412 như cũ), `ProfessionalActivities` chuyển từ `persistence` sang `service` vì không còn JDBC (sửa và đổi phạm vi hành nghề trong một lần cập nhật nên version tăng một), `PendingReviewRecords` tương tự; `PermissionReads`, `SessionStore`, `SyncStore` nhận câu SQL còn ở service (bỏ 13 dòng của account trong `PENDING_*` của `LayerArchTest`). `AccountStore` ghi, đọc lịch sử trạng thái qua `StatusHistoryApi` (dòng `POINT`, `unique_key` `M15.ASH:<id>:<UTC micro giây>`).
+
+## Ghi chú audit mã QR (2026-11-02, T101, nhánh `impl/002-qr-hardening`)
+
+- Chủ dự án chốt giữ QR, chỉ cho người cao tuổi; FR-006, FR-051a, FR-067, FR-069 sửa ở spec. `api-002.yaml` phần tạo tài khoản, tạo mã đổi cùng mã ở T102 để hợp đồng luôn khớp bản cài.
+- `SecretResponse` đánh dấu theo kiểu thân phản hồi nên lệnh mới trả bí mật chỉ cần cài interface; bộ lọc chạy ngoài MVC nên `SecretResponseAdvice` báo qua thuộc tính request. Dùng `Cache-Control` không được vì Spring Security đặt `no-store` cho mọi phản hồi.
+- Gửi lại cùng khóa: lệnh không chạy lần hai, trả 409 `IDEMPOTENCY_RESULT_NOT_KEPT`; người dùng làm lại bằng khóa mới. Chọn vậy thay vì lưu bí mật mã hóa, vì lưu lại là đúng thứ cần tránh.
+- Dòng cũ ở `idempotency_key` không chép đè: hết hạn sau 7 ngày, schema demo không có dòng chứa bí mật.
+
+## Ghi chú bước 2 của quyết định mã QR (2026-11-02, T102, nhánh `impl/002-resident-qr-rules`)
+
+- `POST /resident-accounts` trả `Account`, không còn `temporaryPassword`; mật khẩu ngẫu nhiên không ai biết, `must_change_password = FALSE`.
+- Đăng nhập QR khi tài khoản đang chờ đổi mật khẩu (vừa được cấp lại): thay bằng mật khẩu ngẫu nhiên và gỡ cờ, nhật ký ghi `temporaryPasswordVoided`. Bộ lọc phiên kiểm cờ trên tài khoản, không phân biệt cách đăng nhập, nên không thể chỉ bỏ qua cờ ở phiên QR. Chọn vậy thay vì thêm cột cho phiên, và mật khẩu tạm không đổi cũng không còn dùng được.
+- `GET /resident-accounts/{residentId}` và `POST /resident-accounts/{residentId}/login-qr-code` kiểm `(RESIDENT_ACCOUNT, CREATE)` trên người cao tuổi trước khi tra tài khoản, nên Điều dưỡng ngoài phạm vi không biết người đó có tài khoản hay không.
+- `POST /accounts/{id}/login-qr-code` đánh dấu `deprecated`, chưa bắt xác nhận vì web đang gọi; gỡ ở T103.
+- Trạng thái cuối kiểm cả lúc tạo mã (409 `RESIDENCY_ENDED`) và lúc dùng mã (401 `INVALID_QR_CODE`) cho khoảng trễ trước khi sự kiện khóa tài khoản được xử lý.
+- `reset-password` chưa thêm vào `allowedCommands` của tài khoản người cao tuổi: `ResidentAccountSection` đọc nhãn theo lệnh và lỗi với lệnh chưa biết; thêm cùng màn ở T103.
+
+## Ghi chú bước 3 của quyết định mã QR (2026-11-02, T103, nhánh `impl/002-resident-qr-web`)
+
+- Đính chính ghi chú bước 2: `ResidentAccountSection` bỏ qua lệnh chưa biết; lý do thật để chưa thêm `reset-password` là `AccountDetail` sẽ hiện nút "Cấp lại mật khẩu" chung, gửi không kèm xác nhận nên bị 422. Nay `AccountDetail` không hiện lệnh chung cho tài khoản người cao tuổi; mọi lệnh ở `ResidentAccountSection`.
+- `allowedCommands` của tài khoản người cao tuổi (Hành chính, Quản lý viện): `login-qr-code`, `reset-password` chỉ khi tài khoản chưa ở Đã khóa (tạo mã sẽ 409 `ACCOUNT_LOCKED`); thứ tự `login-qr-code`, `unbind-device`, `reset-password`, `lock-resident` hoặc `unlock-resident`.
+- Gỡ `POST /accounts/{id}/login-qr-code` và `ResidentAccountService.createLoginCode`; web gọi `POST /resident-accounts/{residentId}/login-qr-code` kèm xác nhận. Test dùng `ResidentLogins.createCode` đổi sang lệnh mới (tra `resident_id` của tài khoản).
+- Xác nhận vừa nhập giữ trong khung chi tiết để "Tạo mã mới" điền sẵn khi mã hết hạn; đóng khung thì mất. Mỗi lần tạo vẫn ghi nhật ký kèm xác nhận.
+

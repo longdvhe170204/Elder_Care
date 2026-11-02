@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Danh sách bản ghi tạo nên một con số ({@code ChiTietService}; FR-009, FR-012, FR-014; 016 T022 phần khung): cùng phạm vi,
- * bộ lọc với con số; có khoảng thì như báo cáo, không có thì như dashboard (hôm nay, phạm vi hiện hành). Dòng người cao
+ * bộ lọc với con số; có khoảng thì như báo cáo, không có thì như dashboard (hôm nay, phạm vi hiện hành, không có bộ lọc). Dòng người cao
  * tuổi ngoài phạm vi hiện hành ở dạng rút gọn (Q-196). Mốc "tính đến" chưa dùng: nguồn chưa có số liệu tại một thời điểm.
  */
 @Service
@@ -51,7 +51,13 @@ public class MetricDetailService {
     }
 
     public MetricDetail details(
-            CurrentUser user, String metricCode, LocalDate from, LocalDate to, String breakdownKey, int page) {
+            CurrentUser user,
+            String metricCode,
+            LocalDate from,
+            LocalDate to,
+            ReportFilters filters,
+            String breakdownKey,
+            int page) {
         MetricSource<?> source = catalog.source(metricCode).orElseThrow(NotFoundException::new);
         List<DetailRow> rows;
         if (from == null && to == null) {
@@ -62,8 +68,7 @@ public class MetricDetailService {
         } else {
             ReportPeriod period = periods.check(from, to);
             ReportScope scope = scopes.period(user, source.metric().group(), period.start(), period.end());
-            rows = evaluator.details(
-                    user, source, scope, period.start(), period.end(), ReportFilters.NONE, breakdownKey);
+            rows = evaluator.details(user, source, scope, period.start(), period.end(), filters, breakdownKey);
         }
         int first = Math.min(rows.size(), (Math.max(page, 1) - 1) * PAGE_SIZE);
         return new MetricDetail(metricCode, rows.size(), rows.subList(first, Math.min(rows.size(), first + PAGE_SIZE)));

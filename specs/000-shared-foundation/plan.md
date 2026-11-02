@@ -198,7 +198,7 @@ mobile/                          # một app chung cho nhân viên, người th�
 - Lỗi nghiệp vụ là `common.error.BusinessException` (có `status`, `errorCode`) và sáu lớp con theo T015, thêm `NotFoundException` (404 "Không tìm thấy", không lộ tồn tại, cho T016). Module cần mã riêng (`RECORD_VOIDED`, `CATALOG_ITEM_IN_USE`…) dùng thẳng `BusinessException`.
 - `ProblemDetailsHandler` kế thừa `ResponseEntityExceptionHandler`: lỗi của framework (400, 404, 405…) cũng là problem+json có `errorCode` bằng tên trạng thái HTTP.
 - `VersionEtag`: ETag dạng `"3"`; If-Match nhận `"3"`, `W/"3"`, `3`; If-Match không đọc được coi như sai phiên bản (412). Thiếu If-Match thì controller khai `@RequestHeader` bắt buộc nên Spring trả 400.
-- `IdempotencyFilter` (bộ lọc servlet chạy sau Spring Security) áp cho POST, PUT, PATCH, DELETE có header: khóa theo (khóa, `Authentication.getName()`) thay cho `nguoi_dung_id`; từ 002 T011 tên này là id tài khoản (`SessionAuthentication`) vì `common` không được phụ thuộc `administration` (Modulith cấm vòng phụ thuộc) và 002 chưa có; chỉ lưu kết quả 2xx (lệnh lỗi thì bỏ khóa để gửi lại được); cùng khóa khác nội dung thì 422 `IDEMPOTENCY_KEY_REUSED`, lần đầu đang chạy thì 409 `IDEMPOTENCY_IN_PROGRESS`; trả lại cả header `ETag`, `Location`.
+- `IdempotencyFilter` (bộ lọc servlet chạy sau Spring Security) áp cho POST, PUT, PATCH, DELETE có header: khóa theo (khóa, `Authentication.getName()`) thay cho `nguoi_dung_id`; từ 002 T011 tên này là id tài khoản (`SessionAuthentication`) vì `common` không được phụ thuộc `administration` (Modulith cấm vòng phụ thuộc) và 002 chưa có; chỉ lưu kết quả 2xx (lệnh lỗi thì bỏ khóa để gửi lại được); cùng khóa khác nội dung thì 422 `IDEMPOTENCY_KEY_REUSED`, lần đầu đang chạy thì 409 `IDEMPOTENCY_IN_PROGRESS`; trả lại cả header `ETag`, `Location`. Phản hồi cài `SecretResponse` chỉ lưu dấu đã chạy, không lưu nội dung; gửi lại thì 409 `IDEMPOTENCY_RESULT_NOT_KEPT` (2026-11-02, 002 T101).
 - Migration `V000_01__idempotency_key.sql` cấp `INSERT, UPDATE, DELETE` trên bảng này cho `eldercare_app` (bảng kỹ thuật).
 - Test thêm ngoài tasks để kiểm nhóm này: `ReasonTest`, `VersionEtagTest`, `ProblemDetailsHandlerIT`, `IdempotencyFilterIT`; controller mẫu cho test ở gói `com.testsupport` (ngoài vùng quét bean, nạp bằng `@Import`).
 
@@ -317,3 +317,9 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX). Đề ng
 
 - Bảy bảng dùng chung, khóa theo dòng, log lần chạy job ra file: research R-15, data-model mục 8, task T108. Hệ thống còn 79 bảng.
 - Bảo đảm nhóm dữ liệu (R-05) với bảng chứa nhiều nhóm: trigger theo dòng (`khoa_luc`) thay quyền theo bảng; `RecordGroupTriggerIT` kiểm mọi bảng có `khoa_luc`.
+
+## Ghi chú T098 hộp duyệt app nhân viên (2026-11-01, nhánh `impl/000-mobile-approval-inbox`)
+
+- `mobile/lib/staff/approval_requests/`: ba hộp bằng chip kèm số đếm "Chờ tôi duyệt", lọc trạng thái, loại yêu cầu như web; dòng hai dòng theo DESIGN.md 15.4; chi tiết là màn riêng (15.3), hai nút chia đều chân màn, cùng thứ tự nội dung và chữ với web T097 (mục 13 điều 7). Mục điều hướng "Phê duyệt" cho mọi nhân viên, như menu web. Sửa nội dung nháp không có, như web.
+- Đầu màn xanh đêm (15.4): `common/widgets/header_app_bar.dart`, chủ dự án chọn áp trước cho hai màn này; `StaffRoot._headerTabs` ghi tab đã áp, tab khác giữ thanh của theme tới khi đổi một lượt.
+- Chỉ trực tuyến (R-13): lệnh không vào hàng đợi ngoại tuyến, mất mạng báo "Kiểm tra mạng". If-Match lấy từ `version` của thân phản hồi (`VersionEtag`), vì `ApiClient` không trả header.

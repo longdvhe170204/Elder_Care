@@ -23,6 +23,7 @@ import com.eldercare.backend.administration.account.internal.permission.domain.R
 import com.eldercare.backend.administration.account.internal.permission.persistence.PermissionChanges;
 import com.eldercare.backend.administration.account.internal.scope.service.PermissionDataErrors;
 import com.eldercare.backend.common.Role;
+import com.eldercare.backend.common.notification.FamilyRight;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Instant;
 import java.util.EnumMap;
@@ -44,7 +45,8 @@ import org.springframework.stereotype.Service;
  *   <li>nhiệm vụ ({@link DutyPermissions}, T053) khi vai trò hoặc phạm vi không thỏa; căn cứ là nhiệm vụ;
  *   <li>phạm vi: phương án toàn viện thì qua; theo phân công, theo quan hệ thì đối tượng phải cụ thể và
  *       {@code ScopeApi.inScope}; trượt thì lớp {@code SCOPE}. {@code (INCIDENT_EMERGENCY, CREATE)} trên một người cao
- *       tuổi được miễn lớp này (FR-044a); căn cứ là ngoài phạm vi khi người ghi không xem được hồ sơ người đó
+ *       tuổi chưa ở trạng thái cuối tại {@code at} được miễn lớp này, đã ở trạng thái cuối thì lớp {@code SCOPE} (FR-044a,
+ *       T099); căn cứ là ngoài phạm vi khi người ghi không xem được hồ sơ người đó
  *       ({@code (RESIDENT_PROFILE, VIEW)} theo vai trò ∩ phạm vi; chủ dự án chọn 2026-10-20, US1 #9). Người thân với
  *       người cao tuổi đã ở trạng thái cuối (còn trong phạm vi tới hết CFG-M01-04) chỉ có {@code VIEW} (FR-049, US6 #7);
  *   <li>pháp lý ({@code LegalConditionService}, T064): thao tác {@code PROFESSIONAL} kiểm giấy phép người hành nghề và
@@ -73,6 +75,7 @@ class PermissionService implements PermissionApi {
     // 004 cài
     private final ObjectProvider<ResidencyEndApi> residencyEnds;
     private final PermissionChanges restrictions;
+    private final FamilyRights familyRights;
 
     PermissionService(
             RolePermissionCalculator roles,
@@ -83,7 +86,8 @@ class PermissionService implements PermissionApi {
             LegalConditionService legal,
             BusinessTime time,
             ObjectProvider<ResidencyEndApi> residencyEnds,
-            PermissionChanges restrictions) {
+            PermissionChanges restrictions,
+            FamilyRights familyRights) {
         this.roles = roles;
         this.scope = scope;
         this.conditions = conditions;
@@ -93,6 +97,7 @@ class PermissionService implements PermissionApi {
         this.time = time;
         this.residencyEnds = residencyEnds;
         this.restrictions = restrictions;
+        this.familyRights = familyRights;
     }
 
     @Override
@@ -113,6 +118,11 @@ class PermissionService implements PermissionApi {
     }
 
     /** Khóa có ít nhất một phương án không vướng chú thích nhiệm vụ hay chú thích điều kiện chưa có bản cài (FR-042). */
+    @Override
+    public void recordDataError(CurrentUser user, InvalidPermissionDataException error) {
+        dataErrors.record(error, user.accountId());
+    }
+
     @Override
     public Set<PermissionKey> permissions(CurrentUser user) {
         if (user.isScheduler()) {
@@ -176,13 +186,22 @@ class PermissionService implements PermissionApi {
             Map<String, FootnoteCondition> registered = registeredConditions();
             List<RoleGrant> passing = grants.getOrDefault(key, Set.of()).stream()
                     .filter(g -> g.footnotes().stream().allMatch(c -> satisfied(c, registered, user, target, at)))
+                    // Quyền riêng của người thân (FR-045 (3), T100): chú thích ¹ cần xem sức khỏe, chi phí cần xem chi
+                    // phí
+                    .filter(g -> !g.footnotes().contains("1")
+                            || familyRights.enabled(user, target, FamilyRight.VIEW_HEALTH, at))
+                    .filter(g -> key.function() != Function.COST_ADJUSTMENT
+                            || familyRights.enabled(user, target, FamilyRight.VIEW_COSTS, at))
                     .toList();
             // 2. Nhiệm vụ khi vai trò hoặc phạm vi không thỏa; giới hạn của nhiệm vụ là phạm vi của quyền đó
             if (passing.isEmpty()) {
                 return byDuty(user, key, target, at, FailedLayer.ROLE);
             }
-            // 3. Phạm vi; ghi sự cố trên một người cao tuổi được miễn (FR-044a)
+            // 3. Phạm vi; ghi sự cố trên một người cao tuổi chưa ở trạng thái cuối được miễn (FR-044a, T099)
             if (key.equals(INCIDENT_CREATE) && target.residentId() != null) {
+                if (ended(target, at)) {
+                    return PermissionResult.denied(FailedLayer.SCOPE);
+                }
                 return evaluate(user, PROFILE_VIEW, target, at, grants).allowed()
                         ? PermissionResult.allowed(PermissionBasis.ROLE)
                         : PermissionResult.allowed(PermissionBasis.OUT_OF_SCOPE);
@@ -195,9 +214,12 @@ class PermissionService implements PermissionApi {
             }
         } catch (InvalidPermissionDataException e) {
             dataErrors.record(e, user.accountId());
-            return key.equals(INCIDENT_CREATE) && target.residentId() != null
-                    ? PermissionResult.allowed(PermissionBasis.OUT_OF_SCOPE)
-                    : PermissionResult.denied(FailedLayer.SOURCE_DATA);
+            if (key.equals(INCIDENT_CREATE) && target.residentId() != null) {
+                return ended(target, at)
+                        ? PermissionResult.denied(FailedLayer.SCOPE)
+                        : PermissionResult.allowed(PermissionBasis.OUT_OF_SCOPE);
+            }
+            return PermissionResult.denied(FailedLayer.SOURCE_DATA);
         }
         // 4. Pháp lý (T064)
         return legal.denial(user, key, at).orElseGet(() -> PermissionResult.allowed(PermissionBasis.ROLE));
@@ -226,7 +248,7 @@ class PermissionService implements PermissionApi {
         return in;
     }
 
-    /** Người cao tuổi của đối tượng đã ở trạng thái cuối tại {@code at} (004). */
+    /** Người cao tuổi của đối tượng đã ở trạng thái cuối tại {@code at} (004); chưa có bản cài thì coi là chưa. */
     private boolean ended(Target target, Instant at) {
         ResidencyEndApi ends = residencyEnds.getIfAvailable();
         return target.residentId() != null

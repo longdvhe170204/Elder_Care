@@ -75,14 +75,8 @@ public class ReportController {
             @RequestParam(required = false) Long staffId,
             @RequestParam(required = false) Long shiftId,
             @RequestParam(required = false) CostMode costMode) {
-        ReportFilters filters = new ReportFilters(
-                floorAreaId == null ? null : Set.copyOf(floorAreaId),
-                residenceType,
-                careLevelId,
-                residentId,
-                staffId,
-                shiftId,
-                costMode);
+        ReportFilters filters =
+                filters(floorAreaId, residenceType, careLevelId, residentId, staffId, shiftId, costMode);
         LocalDate start = date != null ? date : from;
         LocalDate end = date != null ? date : to;
         return ReportBody.of(reports.period(user, group, periods.check(start, end), filters));
@@ -103,8 +97,36 @@ public class ReportController {
             @RequestParam(required = false) LocalDate from,
             @RequestParam(required = false) LocalDate to,
             @RequestParam(required = false) String breakdownKey,
+            @RequestParam(required = false) List<Long> floorAreaId,
+            @RequestParam(required = false) String residenceType,
+            @RequestParam(required = false) Long careLevelId,
+            @RequestParam(required = false) Long residentId,
+            @RequestParam(required = false) Long staffId,
+            @RequestParam(required = false) Long shiftId,
+            @RequestParam(required = false) CostMode costMode,
             @RequestParam(required = false) OffsetDateTime asOf,
             @RequestParam(required = false) Integer page) {
-        return MetricDetailBody.of(details.details(user, metricCode, from, to, breakdownKey, page == null ? 1 : page));
+        ReportFilters filters =
+                filters(floorAreaId, residenceType, careLevelId, residentId, staffId, shiftId, costMode);
+        return MetricDetailBody.of(
+                details.details(user, metricCode, from, to, filters, breakdownKey, page == null ? 1 : page));
+    }
+
+    private static ReportFilters filters(
+            List<Long> floorAreaId,
+            String residenceType,
+            Long careLevelId,
+            Long residentId,
+            Long staffId,
+            Long shiftId,
+            CostMode costMode) {
+        return new ReportFilters(
+                floorAreaId == null ? null : Set.copyOf(floorAreaId),
+                residenceType,
+                careLevelId,
+                residentId,
+                staffId,
+                shiftId,
+                costMode);
     }
 }

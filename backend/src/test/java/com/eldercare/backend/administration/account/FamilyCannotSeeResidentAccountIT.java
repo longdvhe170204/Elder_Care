@@ -43,7 +43,7 @@ class FamilyCannotSeeResidentAccountIT extends MySqlIntegrationTestBase {
     @BeforeEach
     void setUp() {
         fixtures = new AccountFixtures(jdbc, time);
-        logins = new ResidentLogins(mvc);
+        logins = new ResidentLogins(mvc, jdbc);
         family = fixtures.session(fixtures.familyAccount(AccountFixtures.nextId()));
         account = fixtures.residentAccount(AccountFixtures.nextId());
     }

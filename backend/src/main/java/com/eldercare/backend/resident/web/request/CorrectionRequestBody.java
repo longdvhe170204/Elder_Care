@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 
 /** Thân lệnh đính chính (contracts/api-001.yaml, requestBodies {@code CorrectionBody}); chuyển tới 000. */
-@Schema(name = "CorrectionBody")
+@Schema(name = "ResidentCorrectionBody")
 public record CorrectionRequestBody(
         @NotNull @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         Type type,
