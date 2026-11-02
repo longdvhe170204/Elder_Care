@@ -30,6 +30,7 @@ import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.common.web.SecretResponse;
 import com.eldercare.backend.common.web.VersionEtag;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -50,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ResidentAccountService {
 
     /** Mã QR chỉ trả một lần. */
-    public record LoginCode(String code, Instant expiresAt) {}
+    public record LoginCode(String code, Instant expiresAt) implements SecretResponse {}
 
     /** Người cao tuổi yêu cầu hoặc đồng ý trực tiếp với nhân viên nào (contracts {@code ResidentConsent}). */
     public record Consent(String method, Long withStaffId) {}

@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/common/api/api_client.dart';
+import 'package:mobile/common/notifications/notification_inbox.dart';
 import 'package:mobile/common/notifications/push_coordinator.dart';
 import 'package:mobile/common/theme/app_theme.dart';
-import 'package:mobile/family/notifications/family_inbox_screen.dart';
 
 import '../../support/fake_backend.dart';
 import '../../support/fake_push.dart';
@@ -46,7 +46,7 @@ Future<void> pumpScreen(WidgetTester tester, ApiClient api) async {
   await tester.pumpWidget(
     MaterialApp(
       theme: AppTheme.light(),
-      home: Scaffold(body: FamilyInboxScreen(api: api)),
+      home: Scaffold(body: NotificationInbox(api: api)),
     ),
   );
   await tester.pumpAndSettle();
@@ -133,6 +133,41 @@ void main() {
     expect(backend.requests.last.url.queryParameters['level'], 'MEDIUM');
   });
 
+  testWidgets('FR_033_moreFilters_eventType', (tester) async {
+    await pumpScreen(tester, backend.client());
+
+    await tester.tap(find.text('Lọc thêm'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Loại sự kiện'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('COST_FINALIZED').last);
+    await tester.pumpAndSettle();
+
+    expect(backend.requests.last.url.queryParameters['eventType'], 'COST_FINALIZED');
+    expect(find.text('Lọc thêm (1)'), findsOneWidget);
+  });
+
+  testWidgets('SC_008_urgentDetail_acknowledgeOnSameScreen', (tester) async {
+    final urgent = notification(id: 2, level: 'URGENT', title: 'Khẩn');
+    backend.on('GET', '/me/notifications', 200, page([urgent], urgent: 1));
+    backend.on('GET', '/me/notifications/2', 200, urgent);
+    backend.on('POST', '/notifications/2/acknowledge', 200);
+    await pumpScreen(tester, backend.client());
+
+    await tester.tap(find.text('Khẩn'));
+    await tester.pumpAndSettle();
+    backend.on(
+      'GET',
+      '/me/notifications/2',
+      200,
+      notification(id: 2, level: 'URGENT', title: 'Khẩn', acknowledgedAt: '2026-10-27T03:05:00Z'),
+    );
+    await tapButton(tester, 'Xác nhận đã nhận');
+
+    expect(backend.calls('POST', '/notifications/2/acknowledge'), hasLength(1));
+    expect(find.text('Xác nhận lúc'), findsOneWidget);
+  });
+
   testWidgets('FR_034_open_recordsView_currentRights_hiddenPartLocked', (tester) async {
     backend.on(
       'GET',
@@ -181,7 +216,7 @@ void main() {
       MaterialApp(
         theme: AppTheme.light(),
         home: Scaffold(
-          body: FamilyInboxScreen(api: backend.client(), push: push),
+          body: NotificationInbox(api: backend.client(), push: push),
         ),
       ),
     );
@@ -204,7 +239,7 @@ void main() {
       MaterialApp(
         theme: AppTheme.light(),
         home: Scaffold(
-          body: FamilyInboxScreen(api: backend.client(), push: push),
+          body: NotificationInbox(api: backend.client(), push: push),
         ),
       ),
     );
