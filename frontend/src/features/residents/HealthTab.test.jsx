@@ -243,6 +243,28 @@ describe('HealthTab, hồ sơ sức khỏe ban đầu', () => {
     expect(correctedContent.bloodType).toBe('O+')
     expect(correctedContent.currentMedications).toBe('Amlodipine 20mg')
   })
+
+  it('BUG-09: hồ sơ đã Hủy ghi nhận hiện nhãn Đã hủy ghi nhận, không hiện Đã đính chính', async () => {
+    routes({ initial: record({ confirmed: true, confirmedBy: 'Bác sĩ Lê', corrected: true }), items: [] })
+    api.on(
+      'GET',
+      '/corrections/M01.INITIAL_HEALTH_RECORD/5',
+      json(200, {
+        recordType: 'M01.INITIAL_HEALTH_RECORD',
+        originalRecordId: 5,
+        corrected: true,
+        voided: true,
+        originalContent: {},
+        currentContent: {},
+        corrections: [],
+      }),
+    )
+
+    open()
+
+    expect(await screen.findByText('Đã hủy ghi nhận')).toBeTruthy()
+    expect(screen.queryByText('Đã đính chính')).toBeNull()
+  })
 })
 
 describe('HealthTab, mục sức khỏe', () => {
