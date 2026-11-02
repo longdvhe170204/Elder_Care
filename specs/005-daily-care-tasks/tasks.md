@@ -163,6 +163,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 ---
 
 ## Phase 7: User Story 5 – Quá hạn được nhắc, leo thang theo mức và đưa vào bàn giao (Priority: P1)
+**Bản cài 02/11/2026, chưa nghiệm thu phase:** T042/T043 dùng các IT tiếng Anh BR_M04_05_OverdueReminderIT, FR_052_GroupedOverdueReminderIT, FR_047_TaskHandoverIT, FR_047a_PendingHandoverIT và hồi quy review; T044 mở rộng CareTaskDueStep/CareTaskClockProcessor/CareTaskNotices, không tạo bộ quét khác. T045 có CareHandoverQueries (projection005), CareTaskHandoverProjection (tương thích008) và callback CareTaskHandover. T046 GET /care-tasks/overdue?floorAreaId đã được chủ dự án duyệt bản dịch; web OverdueTasksPage và mobile OverdueTasksScreen là danh sách chỉ đọc. Giữ checkbox mở: nguồn008 thật, nhận việc tồn, projection008 cho vị trí, cảnh báo vị trí và metadata đo bị bỏ, mobile transport/shell, gate cuối và kiểm trực quan chưa đạt. Các callback T038 chưa cài không được coi đã xong trongT045. Quyết định/test/lệnh thực ở plan và Working-history.md; không dùng fake làm bằng chứng tích hợp thật.
 
 **Goal**: Hết khung → Quá hạn; nhắc người thực hiện một lần; Quan trọng báo Trưởng tầng và Người phụ trách ca; Bắt buộc yêu cầu cảnh báo Trung bình; Thường quá CFG-M04-12 báo Người phụ trách ca; danh sách chờ bàn giao; tự đóng sau bàn giao; tồn chờ xác nhận (FR-043 → FR-047a, FR-052, BR-M04-05 → 07, 29, BR-M09-08).
 

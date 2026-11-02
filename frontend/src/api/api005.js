@@ -51,6 +51,9 @@ export const postDayCareAttendanceRecordsByIdCorrect = (params) => request('POST
 /** Nhận công việc chung, hoặc Người phụ trách ca nhận việc về mình (FR-031, FR-033, BR-M04-13, BR-M09-01) */
 export const postCareTasksByIdClaim = (params) => request('POST', '/care-tasks/{id}/claim', params)
 
+/** Danh sách công việc Quá hạn (tầng của người gọi; Quản lý viện toàn viện) (FR-045) */
+export const getCareTasksOverdue = (params) => request('GET', '/care-tasks/overdue', params)
+
 /** Checklist của tôi trong ca (FR-029, FR-030, FR-031, FR-035) */
 export const getChecklist = (params) => request('GET', '/checklist', params)
 

@@ -344,13 +344,14 @@ paths:
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { type: object, required: [nguoiNhanId], properties: { nguoiNhanId: { type: integer, format: int64 }, lyDo: { $ref: '#/components/schemas/LyDo' } } } } } }
       responses: { '200': { description: Đã phân lại }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' } }
-  /cong-viec/qua-han:
+  /care-tasks/overdue:
     get:
+      x-implementation-phase: 7
       tags: [cong-viec]
       summary: Danh sách công việc Quá hạn (tầng của người gọi; Quản lý viện toàn viện)
       x-fr: [FR-045]
-      parameters: [ { name: tangKhuVucId, in: query, schema: { type: integer, format: int64 } } ]
-      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CongViec' } } } } } }
+      parameters: [ { name: floorAreaId, in: query, schema: { type: integer, format: int64 } } ]
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/CareTask' } } } } } }
 
   # ---------------- Checklist, ghi nhận ----------------
   /checklist:

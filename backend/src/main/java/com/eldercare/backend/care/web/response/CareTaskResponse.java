@@ -34,6 +34,16 @@ public record CareTaskResponse(
 
     public static CareTaskResponse of(
             CareTask t, ResidentCard resident, String performer, boolean health, Set<String> commands) {
+        return of(t, resident, performer, health, commands, 0);
+    }
+
+    public static CareTaskResponse of(
+            CareTask t,
+            ResidentCard resident,
+            String performer,
+            boolean health,
+            Set<String> commands,
+            int reminderCount) {
         return new CareTaskResponse(
                 t.id(),
                 t.residentId(),
@@ -52,7 +62,7 @@ public record CareTaskResponse(
                 t.carryover(),
                 t.status(),
                 t.awaitingRemeasurement(),
-                0,
+                reminderCount,
                 commands);
     }
 }

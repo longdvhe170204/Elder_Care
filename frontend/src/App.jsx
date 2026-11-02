@@ -8,6 +8,7 @@ import { homeOf, primaryRole } from '@/common/session'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ResidentListPage } from '@/features/residents/ResidentListPage'
 import { CareChecklistPage } from '@/features/care-tasks/CareChecklistPage'
+import { OverdueTasksPage } from '@/features/care-tasks/OverdueTasksPage'
 import { CarePlanPage } from '@/features/care-tasks/CarePlanPage'
 import { ShiftTaskPlanningPage } from '@/features/care-tasks/ShiftTaskPlanningPage'
 import { DayCareAttendancePage } from '@/features/care-tasks/DayCareAttendancePage'
@@ -38,6 +39,7 @@ const PAGES = {
   shifts: ShiftsPage,
   staff: StaffPage,
   'care-tasks': CareChecklistPage,
+  'overdue-care-tasks': OverdueTasksPage,
   'care-plans': CarePlanPage,
   'care-task-planning': ShiftTaskPlanningPage,
   'day-care-attendance': DayCareAttendancePage,

@@ -343,9 +343,13 @@ class BR_M04_01_ShiftTaskPlanningIT extends MySqlIntegrationTestBase {
         step.orElseThrow().run(from);
         assertThat(jdbc.queryForObject("SELECT status FROM care_task WHERE id=?", String.class, id))
                 .isEqualTo("DUE");
-        step.orElseThrow().run(to);
+        step.orElseThrow().run(to.minusNanos(1000));
         assertThat(jdbc.queryForObject("SELECT status FROM care_task WHERE id=?", String.class, id))
                 .isEqualTo("DUE");
+        // T044/FR-043: từ Phase7, bước theo phút xử lý cả mốc hết khung.
+        step.orElseThrow().run(to);
+        assertThat(jdbc.queryForObject("SELECT status FROM care_task WHERE id=?", String.class, id))
+                .isEqualTo("OVERDUE");
         step.orElseThrow().run(to);
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM care_task WHERE shift_id=?", Integer.class, shiftId))
                 .isEqualTo(1);

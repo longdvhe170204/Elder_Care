@@ -109,7 +109,7 @@ public class CareTaskStore {
 
     public List<CareTask> waiting(Instant now) {
         return jdbc.query(
-                "SELECT * FROM care_task WHERE status='NOT_YET_DUE' AND window_from<=? ORDER BY resident_id,id",
+                "SELECT * FROM care_task WHERE status IN('NOT_YET_DUE','DUE','OVERDUE') AND window_from<=? ORDER BY resident_id,id",
                 this::row,
                 local(now));
     }
@@ -127,6 +127,49 @@ public class CareTaskStore {
                 special
                         ? new Object[] {t.basisType().name(), t.shiftId(), t.performerId()}
                         : new Object[] {t.basisType().name(), t.basisId(), t.residentId(), local(t.plannedAt())}));
+    }
+
+    public Instant overdueAt(long id) {
+        return jdbc.queryForObject(
+                "SELECT overdue_at FROM care_task WHERE id=?", (r, i) -> instant(r, "overdue_at"), id);
+    }
+
+    public List<CareTask> overdue(Long floor, com.eldercare.backend.administration.account.api.dto.ScopeFilter scope) {
+        var args = new ArrayList<Object>();
+        String sql = "SELECT * FROM care_task WHERE status='OVERDUE'";
+        if (floor != null) {
+            sql += " AND floor_area_id=?";
+            args.add(floor);
+        }
+        if (!scope.facilityWide()) {
+            var terms = new ArrayList<String>();
+            if (!scope.floorAreaIds().isEmpty()) {
+                terms.add("floor_area_id IN ("
+                        + String.join(
+                                ",", Collections.nCopies(scope.floorAreaIds().size(), "?")) + ")");
+                args.addAll(scope.floorAreaIds());
+            }
+            if (!scope.residentIds().isEmpty()) {
+                terms.add("resident_id IN ("
+                        + String.join(
+                                ",", Collections.nCopies(scope.residentIds().size(), "?")) + ")");
+                args.addAll(scope.residentIds());
+            }
+            if (terms.isEmpty()) return List.of();
+            sql += " AND (" + String.join(" OR ", terms) + ")";
+        }
+        return jdbc.query(sql + " ORDER BY planned_at,id", this::row, args.toArray());
+    }
+
+    public CareTask carry(CareTask task, Long shiftId, Long performer, String carryover) {
+        jdbc.update(
+                "UPDATE care_task SET shift_id=?,performer_id=?,carryover=?,version=version+1 WHERE id=? AND version=?",
+                shiftId == null ? task.shiftId() : shiftId,
+                performer,
+                carryover,
+                task.id(),
+                task.version());
+        return get(task.id(), false);
     }
 
     public boolean overlapsOldPlan(CareTask t) {
