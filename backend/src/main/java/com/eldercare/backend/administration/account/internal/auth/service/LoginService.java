@@ -4,6 +4,8 @@ import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.dto.AccessChannel;
 import com.eldercare.backend.administration.account.api.dto.AccountStatus;
 import com.eldercare.backend.administration.account.api.dto.AccountType;
+import com.eldercare.backend.administration.account.api.spi.ResidentProfileApi;
+import com.eldercare.backend.administration.account.api.spi.ResidentProfileView;
 import com.eldercare.backend.administration.account.internal.auth.domain.AccountAuditActions;
 import com.eldercare.backend.administration.account.internal.auth.domain.ActiveSession;
 import com.eldercare.backend.administration.account.internal.auth.domain.LoginRules;
@@ -31,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -57,6 +60,8 @@ public class LoginService {
     private final AuditLogApi auditLog;
     private final ResidentDevices devices;
     private final DeviceBindings bindings;
+    private final ObjectProvider<ResidentProfileApi> residentProfiles;
+
     // Băm giả để tên không tồn tại tốn cùng thời gian kiểm như tên có thật (research A-03)
     private volatile String dummyHash;
 
@@ -67,7 +72,9 @@ public class LoginService {
             ParameterApi parameters,
             AuditLogApi auditLog,
             ResidentDevices devices,
-            DeviceBindings bindings) {
+            DeviceBindings bindings,
+            ObjectProvider<ResidentProfileApi> residentProfiles) {
+        this.residentProfiles = residentProfiles;
         this.store = store;
         this.devices = devices;
         this.bindings = bindings;
@@ -160,6 +167,7 @@ public class LoginService {
                 .orElseThrow(LoginService::invalidQrCode);
         Account account = store.lock(qr.accountId())
                 .filter(a -> a.type() == AccountType.RESIDENT)
+                .filter(a -> !residencyEnded(a.residentId()))
                 .orElseThrow(LoginService::invalidQrCode);
         if (LoginRules.effective(account.status(), account.lockedUntil(), now) != account.status()) {
             endTemporaryLock(account);
@@ -176,7 +184,22 @@ public class LoginService {
             throw ResidentDevices.deviceAlreadyBound();
         }
         bindings.markCodeUsed(qr.id(), deviceId);
-        return open(account, AccessChannel.RESIDENT_APP, deviceId, true, qr.id(), Map.of("deviceId", deviceId));
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("deviceId", deviceId);
+        // Đăng nhập QR không buộc đổi mật khẩu (FR-006): mật khẩu tạm đang chờ đổi hết hiệu lực để không còn dùng được
+        if (store.mustChangePassword(account.id())) {
+            store.changePassword(account.id(), passwords.encode(TemporaryPasswords.generate()));
+            details.put("temporaryPasswordVoided", true);
+        }
+        return open(account, AccessChannel.RESIDENT_APP, deviceId, true, qr.id(), details);
+    }
+
+    /** Sự kiện khóa tài khoản xử lý sau khi người cao tuổi chuyển trạng thái; mã không dùng được trong khoảng trễ đó (BR-M15-23). */
+    private boolean residencyEnded(Long residentId) {
+        ResidentProfileApi api = residentProfiles.getIfAvailable();
+        return residentId != null
+                && api != null
+                && api.profile(residentId).map(ResidentProfileView::finalStatus).orElse(false);
     }
 
     /**

@@ -30,6 +30,7 @@ import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.common.web.SecretResponse;
 import com.eldercare.backend.common.web.VersionEtag;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -50,7 +51,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class ResidentAccountService {
 
     /** Mã QR chỉ trả một lần. */
-    public record LoginCode(String code, Instant expiresAt) {}
+    public record LoginCode(String code, Instant expiresAt) implements SecretResponse {}
+
+    /** Tài khoản của người cao tuổi và thời điểm gắn máy đang gắn, để người tạo mã biết quét sẽ gỡ máy nào (FR-069). */
+    public record LoginState(long accountId, AccountStatus status, Instant boundAt) {}
 
     /** Người cao tuổi yêu cầu hoặc đồng ý trực tiếp với nhân viên nào (contracts {@code ResidentConsent}). */
     public record Consent(String method, Long withStaffId) {}
@@ -103,14 +107,68 @@ public class ResidentAccountService {
     public LoginCode createLoginCode(long accountId) {
         CurrentUser user = currentUser.getObject();
         Account account = store.lock(accountId).orElseThrow(NotFoundException::new);
-        PermissionResult result = permissions.getObject().hasPermission(user, CREATE, target(account));
+        requireCodePermission(user, target(account));
+        return issueCode(account, user, Map.of());
+    }
+
+    /**
+     * Mã QR theo người cao tuổi (FR-069): Điều dưỡng không đọc được danh sách tài khoản nên không có id tài khoản. Bắt buộc
+     * xác nhận của chính người cao tuổi; chưa có tài khoản thì 404. Kiểm quyền như {@link #createLoginCode}.
+     */
+    @BusinessCommand(requiresReason = false)
+    @Transactional
+    public LoginCode createLoginCodeForResident(long residentId, Consent consent) {
+        CurrentUser user = currentUser.getObject();
+        requireCodePermission(user, residentTarget(residentId));
+        requireConsent(consent, "FR-069");
+        long accountId =
+                store.byResident(residentId).orElseThrow(NotFoundException::new).id();
+        Account account = store.lock(accountId).orElseThrow(NotFoundException::new);
+        return issueCode(
+                account, user, Map.of("consentMethod", consent.method(), "consentWithStaffId", consent.withStaffId()));
+    }
+
+    /** Trạng thái đăng nhập của người cao tuổi cho màn tạo mã; cùng quyền với tạo mã. */
+    @Transactional(readOnly = true)
+    public LoginState loginState(long residentId) {
+        requireCodePermission(currentUser.getObject(), residentTarget(residentId));
+        Account account = store.byResident(residentId).orElseThrow(NotFoundException::new);
+        return new LoginState(
+                account.id(),
+                account.status(),
+                devices.active(account.id()).map(b -> b.boundAt()).orElse(null));
+    }
+
+    private static Target residentTarget(long residentId) {
+        return new Target(AccountAuditActions.ENTITY, String.valueOf(residentId), residentId, null);
+    }
+
+    private void requireCodePermission(CurrentUser user, Target target) {
+        PermissionResult result = permissions.getObject().hasPermission(user, CREATE, target);
         if (!result.allowed()) {
             throw new PermissionDeniedException(
                     "PERMISSION_DENIED",
                     "Không có quyền tạo mã đăng nhập cho tài khoản này",
                     Map.of("failedLayer", result.failedLayer().map(Enum::name).orElse("ROLE")));
         }
+    }
+
+    private static void requireConsent(Consent consent, String basis) {
+        if (consent == null
+                || consent.method() == null
+                || !CONSENT_METHODS.contains(consent.method())
+                || consent.withStaffId() == null) {
+            throw new InvalidValueException(
+                    "Cần xác nhận của chính người cao tuổi: cách và nhân viên đã nghe (" + basis + ")");
+        }
+    }
+
+    private LoginCode issueCode(Account account, CurrentUser user, Map<String, Object> details) {
+        long accountId = account.id();
         requireResident(account);
+        if (finalStatus(account.residentId())) {
+            throw conflict("RESIDENCY_ENDED", "Người cao tuổi đã kết thúc lưu trú, không tạo mã đăng nhập (BR-M15-23)");
+        }
         if (account.status() == AccountStatus.LOCKED) {
             throw conflict("ACCOUNT_LOCKED", "Tài khoản đã khóa, không tạo mã đăng nhập");
         }
@@ -123,6 +181,7 @@ public class ResidentAccountService {
                 .action(AccountAuditActions.LOGIN_QR_CREATED)
                 .entity(AccountAuditActions.ENTITY, accountId)
                 .after(Map.of("expiresAt", expiresAt.toString()))
+                .details(details)
                 .build());
         return new LoginCode(code, expiresAt);
     }
@@ -187,13 +246,7 @@ public class ResidentAccountService {
     public AccountDetails unlockResident(long accountId, String ifMatch, Consent consent) {
         CurrentUser user = currentUser.getObject();
         Account account = locked(accountId, ifMatch, user);
-        if (consent == null
-                || consent.method() == null
-                || !CONSENT_METHODS.contains(consent.method())
-                || consent.withStaffId() == null) {
-            throw new InvalidValueException(
-                    "Cần xác nhận của chính người cao tuổi: cách và nhân viên đã nghe (FR-073)");
-        }
+        requireConsent(consent, "FR-073");
         if (account.status() != AccountStatus.LOCKED) {
             throw conflict("INVALID_STATE", "Chỉ mở khóa tài khoản Đã khóa");
         }

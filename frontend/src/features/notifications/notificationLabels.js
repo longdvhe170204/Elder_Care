@@ -83,6 +83,25 @@ export const CONTACT_STATUS_LABELS = {
   UNREACHABLE: 'Không liên hệ được',
 }
 
+// Lượt nhắc gọi (FR-030, Q-307)
+export const REMINDER_STATUS_LABELS = {
+  AWAITING_RESULT: 'Chờ kết quả',
+  RESULT_RECORDED: 'Đã có kết quả',
+  STOPPED: 'Đã dừng',
+}
+
+export const CALL_RESULT_LABELS = { REACHED: 'Đã liên lạc được', NOT_REACHED: 'Không liên lạc được' }
+
+// Ba lý do của FR-030
+export const CALL_REASON_LABELS = { NO_ANSWER: 'Không nghe máy', WRONG_NUMBER: 'Sai số', NO_NUMBER: 'Không có số' }
+
+// Lịch sử chuyển nhắc; mã khác hiện chung là "Chuyển nhắc"
+export const HANDOFF_LABELS = {
+  INITIAL: 'Nhắc lần đầu',
+  OVERDUE: 'Chuyển nhắc, quá hạn',
+  SHIFT_ENDED: 'Chuyển nhắc, hết ca',
+}
+
 const RECIPIENT_TYPES = { STAFF: 'Nhân viên', FAMILY_MEMBER: 'Người thân', RESIDENT: 'Người cao tuổi' }
 
 export const label = (labels, value) => (value ? (labels[value] ?? value) : '')
@@ -108,3 +127,9 @@ export function recipientLabel(recipient) {
 }
 
 export const reasonLabel = (reason) => label(REASON_LABELS, reason)
+
+// Mã lượt nhắc gọi của thông báo có nguồn `M13.CALL_REMINDER` (research B-08); thông báo khác là `null`
+export function reminderIdOf(notification) {
+  const source = notification.sourceRecord
+  return source?.type === 'M13.CALL_REMINDER' ? Number(source.id) : null
+}

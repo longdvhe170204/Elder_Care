@@ -1,34 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import '../../common/api/api_client.dart';
-import '../../common/api/problem_message.dart';
-import '../../common/format/date_time.dart';
-import '../../common/notifications/notification_api.dart';
-import '../../common/notifications/notification_labels.dart';
-import '../../common/notifications/push_coordinator.dart';
-import '../../common/theme/app_theme.dart';
-import '../../common/widgets/status_pill.dart';
-import 'family_notification_screen.dart';
+import '../api/api_client.dart';
+import '../api/problem_message.dart';
+import '../format/date_time.dart';
+import '../theme/app_theme.dart';
+import '../widgets/status_pill.dart';
+import 'acknowledge_actions.dart';
+import 'notification_api.dart';
+import 'notification_labels.dart';
+import 'notification_screen.dart';
+import 'push_coordinator.dart';
 
 const _levels = [(null, 'Tất cả mức'), ('URGENT', 'Khẩn cấp'), ('MEDIUM', 'Trung bình'), ('LOW', 'Nhẹ')];
 
-/// Hộp thông báo người thân trên app (009 T031; FR-033 → FR-036), cùng công thức `notification-inbox` với web (Q-305):
-/// khối "Khẩn cấp chưa xác nhận" trên cùng có nút xác nhận, dưới là danh sách dòng; lọc mức, chưa xem, loại sự kiện,
-/// người cao tuổi. Kéo xuống để tải lại; có đẩy thì tải lại ngay.
-class FamilyInboxScreen extends StatefulWidget {
-  const FamilyInboxScreen({super.key, required this.api, this.push});
+/// Hộp thông báo của phần nhân viên và người thân (009 T022, T031; FR-033 → FR-036), cùng công thức `notification-inbox`
+/// với web (Q-305): khối "Khẩn cấp chưa xác nhận" trên cùng có nút xác nhận, dưới là danh sách dòng; chip chưa xem, mức;
+/// loại sự kiện, người cao tuổi ở "Lọc thêm". Kéo xuống để tải lại; có đẩy thì tải lại ngay.
+class NotificationInbox extends StatefulWidget {
+  const NotificationInbox({
+    super.key,
+    required this.api,
+    this.push,
+    this.leading,
+    this.sourceAction,
+    this.onRefresh,
+    this.onUrgentCount,
+  });
 
   final ApiClient api;
 
   /// Nhận đẩy: có thông báo thì tải lại, bấm thông báo thì mở đúng thông báo đó (009 T031).
   final PushCoordinator? push;
 
+  /// Khối đứng đầu danh sách; `reload` tải lại hộp. Phần nhân viên: "Cần gọi điện".
+  final Widget? Function(BuildContext context, VoidCallback reload)? leading;
+
+  /// Nút mở bản ghi nguồn ở chi tiết thông báo.
+  final SourceAction? sourceAction;
+
+  /// Chạy mỗi lần tải lại trang đầu.
+  final Future<void> Function()? onRefresh;
+
+  /// Số Khẩn cấp chưa xác nhận sau mỗi lần tải.
+  final ValueChanged<int>? onUrgentCount;
+
   @override
-  State<FamilyInboxScreen> createState() => _FamilyInboxScreenState();
+  State<NotificationInbox> createState() => _NotificationInboxState();
 }
 
-class _FamilyInboxScreenState extends State<FamilyInboxScreen> {
+class _NotificationInboxState extends State<NotificationInbox> {
   late final _notifications = NotificationApi(widget.api);
   List<Map<String, dynamic>>? _items;
   List<Map<String, dynamic>>? _residents;
@@ -71,9 +92,11 @@ class _FamilyInboxScreenState extends State<FamilyInboxScreen> {
       NotificationFilter(level: _level, unread: _unreadOnly, eventType: _eventType, residentId: _residentId);
 
   Future<void> _load([String? cursor]) async {
+    if (cursor == null) await widget.onRefresh?.call();
     try {
       final page = await _notifications.page(filter: _filter, cursor: cursor);
       if (!mounted) return;
+      widget.onUrgentCount?.call(page.urgentCount);
       setState(() {
         _items = cursor == null ? page.items : [...?_items, ...page.items];
         _unread = page.unreadCount;
@@ -103,12 +126,46 @@ class _FamilyInboxScreenState extends State<FamilyInboxScreen> {
     _load();
   }
 
+  int get _moreFilterCount => (_eventType == null ? 0 : 1) + (_residentId == null ? 0 : 1);
+
+  Future<void> _moreFilters() => showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (sheet) => Padding(
+      padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.viewInsetsOf(sheet).bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Lọc thêm', style: Theme.of(sheet).textTheme.titleMedium),
+          const SizedBox(height: 16),
+          _Filter<String>(
+            label: 'Loại sự kiện',
+            options: {for (final type in _eventTypes.toList()..sort()) type: type},
+            value: _eventType,
+            onChanged: (value) => _reload(() => _eventType = value),
+          ),
+          if (_residents != null) ...[
+            const SizedBox(height: 12),
+            _Filter<int>(
+              label: 'Người cao tuổi',
+              options: {for (final r in _residents!) r['id'] as int: _residentName(r)},
+              value: _residentId,
+              onChanged: (value) => _reload(() => _residentId = value),
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
+
   Future<void> _open(Map<String, dynamic> notification) => _openById(notification['id'] as int);
 
   Future<void> _openById(int id) async {
     final hidden = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => FamilyNotificationScreen(notifications: _notifications, id: id),
+        builder: (_) => NotificationScreen(notifications: _notifications, id: id, sourceAction: widget.sourceAction),
       ),
     );
     if (!mounted) return;
@@ -122,8 +179,9 @@ class _FamilyInboxScreenState extends State<FamilyInboxScreen> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final items = _items;
-    final urgent = items?.where(_isOpenUrgent).toList() ?? const <Map<String, dynamic>>[];
-    final rest = items?.where((n) => !_isOpenUrgent(n)).toList() ?? const <Map<String, dynamic>>[];
+    final urgent = items?.where(isOpenUrgent).toList() ?? const <Map<String, dynamic>>[];
+    final rest = items?.where((n) => !isOpenUrgent(n)).toList() ?? const <Map<String, dynamic>>[];
+    final leading = widget.leading?.call(context, _load);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -140,6 +198,14 @@ class _FamilyInboxScreenState extends State<FamilyInboxScreen> {
                   onSelected: (selected) => _reload(() => _unreadOnly = selected),
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: FilterChip(
+                  label: Text(_moreFilterCount == 0 ? 'Lọc thêm' : 'Lọc thêm ($_moreFilterCount)'),
+                  selected: _moreFilterCount > 0,
+                  onSelected: (_) => _moreFilters(),
+                ),
+              ),
               for (final (value, label) in _levels)
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
@@ -149,32 +215,6 @@ class _FamilyInboxScreenState extends State<FamilyInboxScreen> {
                     onSelected: (_) => _reload(() => _level = value),
                   ),
                 ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          child: Row(
-            children: [
-              Expanded(
-                child: _Filter<String>(
-                  label: 'Loại sự kiện',
-                  options: {for (final type in _eventTypes.toList()..sort()) type: type},
-                  value: _eventType,
-                  onChanged: (value) => _reload(() => _eventType = value),
-                ),
-              ),
-              if (_residents != null) ...[
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _Filter<int>(
-                    label: 'Người cao tuổi',
-                    options: {for (final r in _residents!) r['id'] as int: _residentName(r)},
-                    value: _residentId,
-                    onChanged: (value) => _reload(() => _residentId = value),
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -192,6 +232,7 @@ class _FamilyInboxScreenState extends State<FamilyInboxScreen> {
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                         child: Text('$_unread chưa xem, $_urgent khẩn cấp chưa xác nhận.', style: text.bodyMedium),
                       ),
+                      ?leading,
                       if (urgent.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -248,8 +289,6 @@ class _FamilyInboxScreenState extends State<FamilyInboxScreen> {
   }
 }
 
-bool _isOpenUrgent(Map<String, dynamic> n) => n['level'] == 'URGENT' && n['acknowledgedAt'] == null;
-
 String _residentName(Map<String, dynamic> r) =>
     (r['personalInfo'] as Map<String, dynamic>?)?['fullName'] as String? ?? 'Người cao tuổi ${r['id']}';
 
@@ -287,7 +326,7 @@ class _Filter<T> extends StatelessWidget {
 }
 
 /// Một thông báo Khẩn cấp chưa xác nhận (viền đỏ, `notification-inbox`): mở thông báo không phải xác nhận (FR-026).
-class _UrgentItem extends StatefulWidget {
+class _UrgentItem extends StatelessWidget {
   const _UrgentItem({
     super.key,
     required this.notification,
@@ -302,34 +341,10 @@ class _UrgentItem extends StatefulWidget {
   final Future<void> Function() onAcknowledged;
 
   @override
-  State<_UrgentItem> createState() => _UrgentItemState();
-}
-
-class _UrgentItemState extends State<_UrgentItem> {
-  final _key = newIdempotencyKey();
-  bool _busy = false;
-  String? _failure;
-
-  Future<void> _acknowledge() async {
-    setState(() {
-      _busy = true;
-      _failure = null;
-    });
-    try {
-      await widget.notifications.acknowledge(widget.notification['id'] as int, _key);
-      await widget.onAcknowledged();
-    } on Exception catch (e) {
-      if (mounted) setState(() => _failure = backendMessage(e));
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final text = theme.textTheme;
-    final n = widget.notification;
+    final n = notification;
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: DecoratedBox(
@@ -344,7 +359,7 @@ class _UrgentItemState extends State<_UrgentItem> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               InkWell(
-                onTap: widget.onOpen,
+                onTap: onOpen,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -353,12 +368,8 @@ class _UrgentItemState extends State<_UrgentItem> {
                   ],
                 ),
               ),
-              if (_failure != null) ...[
-                const SizedBox(height: 8),
-                Text(_failure!, style: text.bodyMedium?.copyWith(color: theme.colorScheme.error)),
-              ],
               const SizedBox(height: 8),
-              FilledButton(onPressed: _busy ? null : _acknowledge, child: const Text('Xác nhận đã nhận')),
+              AcknowledgeActions(notification: n, notifications: notifications, onDone: onAcknowledged),
             ],
           ),
         ),
