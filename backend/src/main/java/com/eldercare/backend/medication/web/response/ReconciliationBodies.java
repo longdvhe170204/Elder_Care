@@ -1,8 +1,8 @@
 package com.eldercare.backend.medication.web.response;
 
-import com.eldercare.backend.medication.internal.service.request.CreatePrescriptionBody;
-import com.eldercare.backend.medication.internal.service.response.ReconciliationItemResponse;
-import com.eldercare.backend.medication.internal.service.response.ReconciliationResponse;
+import com.eldercare.backend.medication.internal.prescription.domain.CreatePrescriptionBody;
+import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationItemResponse;
+import com.eldercare.backend.medication.internal.reconciliation.domain.ReconciliationResponse;
 import com.eldercare.backend.medication.web.request.NewPrescriptionRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;

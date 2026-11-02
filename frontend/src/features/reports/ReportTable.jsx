@@ -18,18 +18,19 @@ function ratio(v) {
     : `${formatValue(v.numerator)} / ${formatValue(v.denominator)}`
 }
 
-export function ReportTable({ group, from, to, metrics, onOpen }) {
+export function ReportTable({ group, from, to, floorAreaId, metrics, onOpen, onFilterOptions }) {
   const [state, setState] = useState({ status: 'loading' })
 
   const load = useCallback(async () => {
     setState({ status: 'loading' })
     try {
-      const { data } = await getReportsByGroup({ path: { group }, query: { from, to } })
+      const { data } = await getReportsByGroup({ path: { group }, query: { from, to, floorAreaId } })
       setState({ status: 'ready', report: data })
+      onFilterOptions(data.filterOptions)
     } catch (error) {
       setState({ status: 'error', problem: problemOf(error) })
     }
-  }, [group, from, to])
+  }, [group, from, to, floorAreaId, onFilterOptions])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- tải khi đổi báo cáo hoặc khoảng
@@ -91,7 +92,7 @@ export function ReportTable({ group, from, to, metrics, onOpen }) {
             {report.values.flatMap((v) => {
               const metric = metricOf(v.metricCode)
               const open = (breakdownKey, value) =>
-                onOpen({ metric, from, to, breakdownKey, valueText: formatValue(value) })
+                onOpen({ metric, from, to, floorAreaId, breakdownKey, valueText: formatValue(value) })
               return [
                 <TableRow key={v.metricCode}>
                   <TableCell className="type-label">{metric.name}</TableCell>

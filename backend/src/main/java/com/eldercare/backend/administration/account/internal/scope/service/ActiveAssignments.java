@@ -7,7 +7,7 @@ import com.eldercare.backend.administration.account.api.spi.BedAllocationApi;
 import com.eldercare.backend.administration.account.api.spi.BedAllocationView;
 import com.eldercare.backend.administration.account.api.spi.InvalidPermissionDataException;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;

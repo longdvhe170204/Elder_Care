@@ -22,6 +22,14 @@ import { ESCORT_LABELS, FINAL_STATUSES, OPINION_SOURCE_LABELS, TREATMENT_STATUS_
 // người đi kèm, ý kiến khác có nguồn. Nội dung thuộc nhóm sức khỏe: Hành chính chỉ thấy "Đã có phiếu", Kế toán không thấy
 // khối này (hasWish rỗng). Tạm thời mã người thân nhập tay vì chưa có danh sách (feature 012).
 
+const RELATIONSHIP_LABELS = {
+  SPOUSE: 'Vợ/chồng',
+  CHILD: 'Con',
+  GRANDCHILD: 'Cháu',
+  SIBLING: 'Anh, chị, em',
+  OTHER: 'Khác',
+}
+
 const WARNINGS = {
   NO_FAMILY_MEMBER_TO_NOTIFY: 'Phiếu yêu cầu hỏi gia đình trước nhưng chưa chọn người thân cần báo.',
 }
@@ -43,7 +51,7 @@ function TreatmentDetails({ wish }) {
             {wish.notifyFamilyMembers.length === 0
               ? 'Chưa chọn'
               : wish.notifyFamilyMembers
-                  .map((m) => [m.fullName ?? `Mã ${m.familyMemberId}`, m.relationship, m.phoneNumber].filter(Boolean).join(', '))
+                  .map((m) => [m.fullName ?? `Mã ${m.familyMemberId}`, RELATIONSHIP_LABELS[m.relationship], m.phoneNumber].filter(Boolean).join(', '))
                   .join('; ')}
           </Row>
         </div>

@@ -24,6 +24,8 @@ class ConsentFieldClassification implements FieldClassificationProvider {
                 "courtDecisionNumber", InfoGroup.IDENTITY,
                 "courtDecisionDate", InfoGroup.IDENTITY,
                 "courtDecisionCourt", InfoGroup.IDENTITY,
-                "courtDecisionFileId", InfoGroup.IDENTITY);
+                "courtDecisionFileId", InfoGroup.IDENTITY,
+                // người thân được xem dữ liệu sức khỏe: cấu hình chia sẻ sức khỏe
+                "familyMemberIdsAllowedHealthView", InfoGroup.HEALTH);
     }
 }

@@ -140,6 +140,9 @@ Mã nghiệp vụ giữ nguyên, không dịch: BR-, FR-, CFG-, DBR-, Q-, UC-, A
 | `KHONG_TIM_THAY` (404, không lộ tồn tại) | `NOT_FOUND` |
 | `KHOA_LAP_LAI_DA_DUNG` (cùng khóa, nội dung khác) | `IDEMPOTENCY_KEY_REUSED` |
 | `KHOA_LAP_LAI_DANG_XU_LY` | `IDEMPOTENCY_IN_PROGRESS` |
+| cùng khóa, lệnh đã chạy, kết quả có bí mật nên không lưu | `IDEMPOTENCY_RESULT_NOT_KEPT` |
+| dùng lệnh khóa, mở khóa riêng của tài khoản người cao tuổi | `USE_RESIDENT_ACCOUNT_COMMAND` |
+| người cao tuổi đã ở trạng thái cuối, không tạo mã đăng nhập | `RESIDENCY_ENDED` |
 | lỗi của framework | tên trạng thái HTTP, ví dụ `BAD_REQUEST`, `NOT_FOUND`, `METHOD_NOT_ALLOWED` |
 
 Bổ sung theo từng feature khi dịch `contracts/api-NNN.yaml` (R-03).
@@ -444,7 +447,7 @@ Bảng, cột, lớp của 002 bổ sung vào mục này cùng thay đổi với
 | chú thích `@CanQuyen(chucNang, thaoTac)`, `@NhomTruong` | `@RequiresPermission(function, operation)`, `@FieldGroup` |
 | SPI `PhanBoGiuongApi` (`dangMo`, `nguoiCaoTuoiTai`), `PhanBoView` | `BedAllocationApi` (`openAt`, `residentsIn`), `BedAllocationView` (`allocationId`, `bedId`, `roomId`, `floorAreaId`) |
 | SPI `TenTangKhuVucApi` (`ten`) *(bổ sung 2026-10-27)* | `FloorAreaNameApi` (`name`); bản cài M03 `FloorAreaNamesForAccount` |
-| SPI `QuanHeNguoiThanApi` (`hieuLuc`, `soDienThoaiDaDangKy`, `laNguoiDaiDienHieuLuc`, `thuocNguoiCaoTuoi`, `loaiQuanHe`), `QuanHeView` | `FamilyRelationshipApi` (`active`, `registeredPhoneNumber`, `isActiveRepresentative`, `belongsToResident`, `relationship`), `FamilyRelationshipView` (`relationshipId`, `residentId`) |
+| SPI `QuanHeNguoiThanApi` (`hieuLuc`, `soDienThoaiDaDangKy`, `laNguoiDaiDienHieuLuc`, `thuocNguoiCaoTuoi`, `loaiQuanHe`, `quyenDangBat`), `QuanHeView` | `FamilyRelationshipApi` (`active`, `registeredPhoneNumber`, `isActiveRepresentative`, `belongsToResident`, `relationship`, `rightEnabled` với `common.notification.FamilyRight`), `FamilyRelationshipView` (`relationshipId`, `residentId`) |
 | `LoaiQuanHe` (`VO_CHONG`, `CON`, `CHAU`, `ANH_CHI_EM`, `KHAC`; 012 `quan_he_nguoi_than.quan_he`) *(bổ sung 2026-10-30)* | `FamilyRelationshipType` (`SPOUSE`, `CHILD`, `GRANDCHILD`, `SIBLING`, `OTHER`) |
 | SPI `KetThucLuuTruApi.thoiDiemTrangThaiCuoi` | `ResidencyEndApi.finalStatusAt` |
 | SPI phần `NguoiCaoTuoiApi` 002 dùng (`trangThai`, `hoTen`; 2026-10-24, M01 cài để tránh vòng M15 ↔ M01) | `ResidentProfileApi.profile` → `ResidentProfileView` (`fullName`, `inResidence`, `finalStatus`) |
@@ -565,9 +568,10 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 | `LichSuTrangThai` (`tu`, `den`, `lenh`, `thoiDiem`, `nguoiThucHien`, `doHeThong`, `lyDo`, `canCu`, `mienDieuKien`), `KetQuaLenhTrangThai` (`lichSu`, `canhBao`) | `StatusHistoryEntry` (`from`, `to`, `command`, `at`, `performedBy`, `bySystem`, `reason`, `basis`, `conditionWaiver`), `StatusCommandResult` (`history`, `warnings`) |
 | `DieuKien` (`ma`, `moTa`, `canCu`, `module`, `coTheMien`), `CanhBao` (`ma`, `moTa`) | `Condition` (`code`, `description`, `basis`, `module`, `waivable`), `Warning` (`code`, `description`) |
 | `Loi`: `maLoi`, `dieuKienChuaThoa`, `giaTriHienHanh`, `ungVien` | `Problem`: `errorCode`, `unmetConditions`, `currentValue`, `candidates` |
-| thân lệnh trạng thái (`requestBodies/LenhTrangThai`: `lyDo`, `chiTiet`), thân chỉ có lý do (`LyDo`), thân đính chính (`DinhChinh`: `kieu`, `noiDungDung`, `lyDo`) | `StatusCommandBody` (`reason`, `details`), `ReasonBody` (`reason`), `CorrectionBody` (`type`, `correctedContent`, `reason`) |
+| thân lệnh trạng thái (`requestBodies/LenhTrangThai`: `lyDo`, `chiTiet`), thân chỉ có lý do (`LyDo`), thân đính chính (`DinhChinh`: `kieu`, `noiDungDung`, `lyDo`) | `StatusCommandBody` (`reason`, `details`), `ReasonBody` (`reason`), `ResidentCorrectionBody` (`type`, `correctedContent`, `reason`; tên schema khác `CorrectionBody` của 000 để không trùng trong OpenAPI) |
 | `chiTiet` của lệnh trạng thái: `doiPhanBoSangGiuongId`; chuyển viện `canCu` (`suCoId`, `chiDinh`); qua đời `bangChungTepId` | `details`: `switchAllocationToBedId`; `basis` (`incidentId`, `doctorOrder`); `evidenceFileId` |
 | `KetQuaDinhChinh` (`cach`, `dinhChinhId`, `yeuCauPheDuyetId`) | `CorrectionResult` (`creationMethod`, `correctionId`, `approvalRequestId`) |
+| `DiNguyenRutGon` (`id`, `ten`; dị nguyên trong mục sức khỏe), `KetQuaTaiTep` (`tepId`) | `AllergenRef` (`id`, `name`), `UploadedFile` (`fileId`) |
 | `MucChamSocTaiNgay` (`mucChamSoc`, `hieuLucTu`, `canCuLoai`, `canCuId`) | `CareLevelAtDate` (`careLevel`, `effectiveFrom`, `basisType`, `basisId`) |
 | `BanDongY` (`nguoiDongYLoai`, `nguoiDongYNguoiThanId`, `quyetDinhToaAn`, `nguoiThanDuocXemSucKhoe`, `dongYHinhAnh`, `dongYThongBao`, `thoiDiemDongY`, `bangChungTepId`, `trangThai`, `rutLai` (`luc`, `lyDo`, `duocThayTheBoiId`)) | `Consent` (`consenterType`, `consenterFamilyMemberId`, `courtDecision`, `familyMemberIdsAllowedHealthView`, `photoConsent`, `notificationConsent`, `consentedAt`, `evidenceFileId`, `status`, `withdrawal` (`at`, `reason`, `supersededById`)) |
 | `QuyetDinhToaAn` (`so`, `ngay`, `toaAn`, `tepId`) | `CourtDecision` (`number`, `date`, `court`, `fileId`) |
@@ -677,7 +681,17 @@ Thuật ngữ: người cao tuổi = `resident` (mã `nct` trong tên cũ = `res
 | `NguyenVongService`, `NguyenVongDieuTriService`, `NguyenVongApi` impl, `NhacNguyenVongService` (`batDauNhac`, `nhacThieu`, `nhacXemLai`), `NguyenVongController`, `NguyenVongDieuTriController`; nhật ký `NV_GHI`, `NVDT_GHI`; loại đối tượng `M01.NGUYEN_VONG`, `M01.NGUYEN_VONG_DIEU_TRI`; `NguyenVongApi.dieuTriHieuLuc` | `EndOfLifeWishService` (`get`, `record`, `recordVersion`, `currentView`), `TreatmentWishService` (`get`, `record`, `currentView`), `EndOfLifeWishApiImpl` (`EndOfLifeWishApi.currentTreatmentWish`), `WishReminderService` (`startReminding`, `runMissing`, `runReviews`), `EndOfLifeWishController`, `TreatmentWishController`; nhật ký `END_OF_LIFE_WISH_RECORDED`, `END_OF_LIFE_WISH_SUPERSEDED`, `TREATMENT_WISH_RECORDED`, `TREATMENT_WISH_EXPIRED`; loại đối tượng `M01.END_OF_LIFE_WISH`, `M01.TREATMENT_WISH`; lệnh trong `allowedCommands`: `RECORD_END_OF_LIFE_WISH`, `RECORD_TREATMENT_WISH` |
 | mã lỗi `NGUOI_KY_KHONG_HOP_LE` (409), `NGUOI_THAN_KHONG_HOP_LE` (409), `NGUON_Y_KIEN_KHONG_HOP_LE` (422); cảnh báo `THIEU_NGUYEN_VONG`, `THIEU_NGUYEN_VONG_DIEU_TRI`, `CHUA_CO_NGUOI_CAN_BAO` | `INVALID_SIGNER` (409), `INVALID_FAMILY_MEMBER` (409), `INVALID_OPINION_SOURCE` (422); `SELF_DETERMINATION_ASSESSMENT_REQUIRED`, `INVALID_REVIEW_DATE`, `INVALID_ASSESSING_DOCTOR`, `RESPONDENT_REQUIRED`, `REPRESENTATIVE_SELECTION_REQUIRED`, `FIRST_CONTACT_REQUIRED`, `SOURCE_NOT_ALLOWED`, `PREFERRED_HOSPITAL_REQUIRED`, `TOO_MANY_PREFERRED_HOSPITALS` (422); `INVALID_RESPONDENT` (409); cảnh báo `MISSING_END_OF_LIFE_WISH`, `MISSING_TREATMENT_WISH`, `NO_FAMILY_MEMBER_TO_NOTIFY` |
 | tên logic của lớp test trong tasks, quickstart, data-model: `BR_M01_01_TamVangQuaHanIT`, `BR_M01_02_BaoDanhGiaLaiIT`, `BR_M01_03_DoiMucIT`, `CapNhatThongTinIT`, `DocLapLuuTruMucChamSocIT`, `GhiNhanQuaDoiIT`, `GioiHanTruongHoSoIT`, `HoSoCccdIT`, `HoSoLienKetIT`, `HoSoTrungTenIT`, `LichSuTrangThaiIT`, `NhacLapYeuCauDoiMucIT`, `NhatKyDayDuM01IT`, `TaoHoSoIT`, `TraCuuPhamViIT`, `FR_053_MucTaiNgayIT`; phiếu nguyện vọng: `NguyenVongPhienBanIT`, `NguyenVongNguoiKyIT`, `NguyenVongGioiHanXemIT`, `NhacThieuNguyenVongIT`, `NhacXemLaiNhanDinhIT`, `NguyenVongDieuTriPhienBanIT`, `NguyenVongDieuTriGioiHanXemIT`, `HoanTatTiepNhanCanhBaoDieuTriIT` | `BR_M01_01_TemporaryAbsenceOverdueIT`, `BR_M01_02_ReassessmentNoticeIT`, `BR_M01_03_CareLevelChangeIT`, `UpdatePersonalInfoIT`, `ResidenceTypeAndCareLevelAreIndependentIT`, `RecordDeathIT`, `ProfileFieldLimitsIT`, `ProfileCitizenIdIT`, `ProfileLinkIT`, `ProfileDuplicateNameIT`, `StatusHistoryIT`, `CareLevelChangeRequestReminderIT`, `M01AuditCompletenessIT`, `CreateProfileIT`, `ScopedSearchIT`, `FR_053_CareLevelAtDateIT`; `EndOfLifeWishVersionIT`, `EndOfLifeWishSignerIT`, `EndOfLifeWishVisibilityIT`, `MissingEndOfLifeWishReminderIT`, `SelfDeterminationReviewReminderIT`, `TreatmentWishVersionIT`, `TreatmentWishVisibilityIT`, `CompleteAdmissionWishWarningsIT` (đổi tên 2026-10-23 theo constitution X) |
-| các bảng còn lại của 001 (hồ sơ sức khỏe, mục sức khỏe, đánh giá…) | bổ sung vào mục này cùng migration (R-03) |
+| `YKienDaGhiTuPhanHoi(phanHoiId, moduleNguon, loaiMuc, mucId, nctId, nguon)`; `moduleNguon` `M04`, `loaiMuc` `SO_THICH` | `OpinionRecordedFromFeedback(feedbackId, sourceModule, itemType, itemId, residentId, source)`; `sourceModule` `M04`, `itemType` `INTEREST` (hằng `SOURCE_ACTIVITY_MODULE`, `ITEM_INTEREST`) |
+| `TrangThaiNguoiCaoTuoiApi.giayToDinhKem(lichSuId)`; `TepView`; `TepApi` đọc tệp gắn bản ghi; chủ sở hữu `M01.GIAY_TO_BENH_VIEN`, `M01.QUA_DOI` | `ResidentStatusApi.hospitalDocuments(historyId)`; `FileView`; `FileApi.attachedTo(ownerType, ownerId)`; `M01.HOSPITAL_DOCUMENT`, `M01.DEATH_EVIDENCE` |
+| `LuuTruProvider` M01 (`M01.NGUOI_CAO_TUOI` và bản ghi con) | `ResidentRetention` (`M01.RESIDENT`), `ResidentChildRetention` (bảy loại con), `ResidentRetentionBeans` (gói `retention.config`); đọc chung theo bảng con: `ResidentRecordStore` (`resident.internal.persistence`) |
+| `GanPhamViProvider` của bản ghi con | `ChildScopeAssignment`, `ChildScopeAssignments` (gói `profile.config`), đọc qua `ResidentRecordStore` |
+| `DinhChinhDuocProvider` cho `M01.LICH_SU_TRANG_THAI` | `StatusHistoryCorrectionProvider` (`M01.RESIDENT_STATUS_HISTORY`); nhật ký `RECORD_CORRECTED` |
+| thông báo M01 → M13 (`HasNotificationRequests`); sự kiện Chuyển viện, Ghi nhận qua đời | các sự kiện M01 cài `HasNotificationRequests` (lớp `Notices`); `ResidentStatusNotice` |
+| nhật ký `CHUYEN_MUC` của lệnh áp dụng đổi mức; nhật ký đính chính gắn người cao tuổi | `CARE_LEVEL_CHANGED` (loại `M01.RESIDENT`); `RECORD_CORRECTED` |
+| tên logic test: `NhatKyDayDuM01IT`, `FR_023h_KhongDauNangLucArchTest`, `GiayToBenhVienIT`, `LuuTruM01IT`, `DinhChinhLichSuTrangThaiIT`, `KhoangTrangThaiIT`, `GanPhamViBanGhiConIT` | `M01AuditCompletenessIT` và `M01CommandAuditTrailIT`, `FR_023h_NoCapacityFlagIT`, `HospitalDocumentsIT`, `ResidentRetentionIT`, `StatusHistoryCorrectionIT`, `StatusPeriodsIT`, `ChildScopeAssignmentIT` |
+| `ho_so_suc_khoe_ban_dau`; `muc_suc_khoe` | `V001_04__health.sql`; `initial_health_record` (`resident_id`, `blood_type`, `mobility`, `self_care_ability`, `cognition`, `initial_needs_note`, `nutrition_needs`, `current_medications`, `rehabilitation_needs`, `performed_by`, `performed_at`, `confirmed_by`, `confirmed_at`, `version`); `health_item` (`resident_id`, `type`, `allergen_id`, `free_text`, `not_auto_checked`, `severity_id`, `source_id`, `recorded_by`, `recorded_at`, `status`, `excluded_at`, `excluded_by`, `exclusion_reason`, `pending_medication_check`, `pending_nutrition_check`, `version`) |
+| `canh_bao_tro_lai` | `V001_06__return_overdue_alert.sql`; `return_overdue_alert` (`absence_id`, `expected_return_at`, `resident_id`, `alerted_at`) |
+| lớp truy cập bảng nhắc, lần báo; bản ghi đọc từ các lớp đó | `PeriodicReminderStore` (`resident.internal.persistence`), `ReassessmentNoticeStore`, `ResidentStatusStore.recordOverdueAlert`, `EndOfLifeWishStore.dueReviews`; `DueReminder`, `ReassessmentNotice`, `PeriodicReassessmentDue`, `WishReviewDue`, `NewEndOfLifeWish`, `NewTreatmentWish`, `ResidentMatch` (gói `domain`) |
 
 ### 8.7. Bảng sau gộp R-15 *(bổ sung 2026-10-30; thay các dòng bảng đã bỏ ở 8.6; cột chi tiết ở data-model 001 mục 0.1)*
 
@@ -878,7 +892,398 @@ Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phas
 | Migration bổ sung mốc,không tạo bảng mới | `V003_07__doctor_confirmation_requested_at.sql` |
 ## 10. Feature 004 (`004-admission-residency`, B)
 
-*Chủ feature điền khi dịch `contracts/api-004.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+*Bổ sung 2026-10-25, khi dịch `contracts/api-004.yaml` (chờ chủ dự án duyệt). Tên bảng, cột, lớp nội bộ ghi dự kiến theo plan, data-model, tasks; chỉnh lại cùng thay đổi với mã (R-03). Chỉ sửa mục này.*
+
+Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (không dùng `registration`, tránh trùng 018 `residence registration`); hồ sơ chờ = `waiting list entry`; điểm ưu tiên = `priority score`; tình huống (đặc biệt) = `circumstance`; lượt trống (của giường) = `vacancy`; giữ chỗ tạm (cho hồ sơ chờ) = `reservation`; giữ giường (khi vắng) = `bed hold`; hợp đồng = `contract`; phụ lục = `addendum` (số nhiều `addenda`); điều khoản khác chuẩn = `non-standard term`; dịch vụ = `service`; đơn giá, phiên bản đơn giá = `unit price`, `price version`; đặt cọc = `deposit`; lượt vắng, ngày vắng = `absence`, `absence day`; chính sách vắng = `absence policy`; hệ số = `coefficient`; lịch đến (bán trú) = `arrival schedule`; báo vắng bán trú = `day care absence notice`; ngày nghỉ bán trú = `day care closure day`; hồ sơ kết thúc lưu trú = `residency ending`; bàn giao người cao tuổi = `resident handover`; ngoại lệ (điều kiện kết thúc) = `ending exception`; kỳ cuối = `final period`; bản ghi qua đời = `death record`; việc sau qua đời = `post-death task`; ý kiến về việc vào ở = `admission opinion`. `nct` trong tên cũ = `resident`.
+
+### 10.1. Đường dẫn API (tiền tố `/api/v1`) và tag
+
+| Tên logic | Mã |
+| --- | --- |
+| `/luot-dang-ky`, `/{id}`, `…/cap-nhat`, `…/y-kien-vao-o`, `…/dieu-kien-tiep-nhan`, `…/tien-trinh` | `/admission-applications`, `/{id}`, `…/update`, `…/admission-opinion`, `…/admission-conditions`, `…/progress` |
+| `/ho-so-cho`, `/{id}`, `…/lich-su-diem`, `…/cap-nhat-tinh-huong`, `…/de-nghi-dieu-chinh-diem` | `/waiting-list-entries`, `/{id}`, `…/score-history`, `…/update-circumstances`, `…/propose-score-adjustment` |
+| `/giuong/{giuongId}/ho-so-phu-hop` | `/beds/{bedId}/matching-entries` |
+| `…/ghi-nhan-da-lien-he`, `…/tu-choi-giuong`, `…/tu-choi`, `…/huy-cho`, `…/xac-nhan-con-nhu-cau` | `…/record-contacted`, `…/decline-bed`, `…/decline`, `…/cancel-waiting`, `…/confirm-still-needed` |
+| `/hop-dong`, `/{id}`, `…/dieu-khoan-khac-chuan`, `…/gui-duyet-dieu-khoan`, `…/gui-ky`, `…/tra-ve-nhap` | `/contracts`, `/{id}`, `…/non-standard-terms`, `…/submit-terms-for-approval`, `…/send-for-signature`, `…/return-to-draft` |
+| `…/ghi-nhan-da-ky`, `…/huy`, `…/noi-dung?ngay=`, `…/phu-luc`, `…/dat-coc` | `…/record-signed`, `…/cancel`, `…/content?date=`, `…/addenda`, `…/deposit` |
+| `/dich-vu`, `/{id}`, `…/ngung-hieu-luc`, `…/phien-ban-don-gia`, `…/hop-dong-lech-gia` | `/services`, `/{id}`, `…/deactivate`, `…/price-versions`, `…/mismatched-price-contracts` |
+| `/yeu-cau-thay-doi-luu-tru`, `/{id}` | `/residency-change-requests`, `/{id}` |
+| `/luot-vang`, `/{id}`, `…/gia-han-du-kien`, `…/quyet-dinh-giu-giuong`, `…/dinh-chinh` | `/absences`, `/{id}`, `…/extend-expected-return`, `…/bed-hold-decision`, `…/correct` |
+| `/bao-vang-ban-tru`, `/ngay-nghi-ban-tru`, `…/{id}/huy` | `/day-care-absence-notices`, `/day-care-closure-days`, `…/{id}/cancel` |
+| `/ho-so-ket-thuc`, `/{id}`, `…/dieu-kien`, `…/doi-ngay`, `…/huy`, `…/ban-giao`, `…/yeu-cau-ngoai-le` | `/residency-endings`, `/{id}`, `…/conditions`, `…/change-date`, `…/cancel`, `…/handover`, `…/request-exception` |
+| `/nguoi-cao-tuoi/{nctId}/ban-ghi-qua-doi`, `/ban-ghi-qua-doi/{id}/dinh-chinh` | `/residents/{residentId}/death-record`, `/death-records/{id}/correct` |
+| `/nguoi-cao-tuoi/{nctId}/viec-sau-qua-doi`, `…/yeu-cau-ngoai-le-quyet-toan` | `/residents/{residentId}/post-death-tasks`, `…/request-settlement-exception` |
+| tham số `nctId`, `giuongId`, `trangThai`, `quaHan`, `loai`, `tu`, `den`, `ngay`, `sau` | `residentId`, `bedId`, `status`, `overdue`, `type`, `from`, `to`, `date`, `cursor` |
+| tag `dang-ky`, `danh-sach-cho`, `hop-dong`, `dich-vu`, `thay-doi`, `vang`, `ket-thuc`, `qua-doi` | `applications`, `waiting-list`, `contracts`, `services`, `change-requests`, `absences`, `residency-ending`, `death` |
+
+### 10.2. Schema và trường JSON
+
+| Tên logic | Mã |
+| --- | --- |
+| `LuotDangKyGhi`, `LuotDangKy` (`nctId`, `ngayDangKy`, `nguoiLienHe`, `nhuCau`, `loaiLuuTruMongMuon`, `mucDuKien`, `ngayMongMuonVao`, `ghiChu`, `trangThai`, `hoSoChoId`, `yKienVaoO`, `yKienLucTiepNhanId`) | `AdmissionApplicationInput`, `AdmissionApplication` (`residentId`, `applicationDate`, `contactPerson`, `needs`, `desiredResidenceType`, `expectedCareLevel`, `desiredAdmissionDate`, `note`, `status`, `waitingListEntryId`, `admissionOpinion`, `opinionAtAdmissionId`) |
+| `YKienVaoO` (`yKien`, `nguon`, `ghiChu`, `nguoiGhi`, `thoiDiem`, `trangThai`); thân ghi (`yKien`, `nguon`, `ghiChu`); `NguonYKien` (`loai`, `nguoiThanId`) | `AdmissionOpinion` (`opinion`, `source`, `note`, `recordedBy`, `at`, `status`); `OpinionSource` (`type`, `familyMemberId`, như api-001) |
+| `DanhSachDieuKien` (`dieuKien`, `canhBao`, `yKienVaoO`), `DongDieuKien` (`ma`, `ten`, `trangThai`, `canCu`, `module`, `ngoaiLe` (`yeuCauPheDuyetId`, `nguoiDuyet`)), `CanhBao` (`ma`, `moTa`) | `ConditionList` (`conditions`, `warnings`, `admissionOpinion`), `ConditionLine` (`code`, `name`, `status`, `basis`, `module`, `exception` (`approvalRequestId`, `approver`)), `Warning` (`code`, `description`) |
+| `TienTrinh` (`buoc` (`ten`, `xong`, `canCu`)) | `Progress` (`steps` (`name`, `done`, `basis`)) |
+| `HoSoCho` (`hoTen`, `gioiTinh`, `ngayDangKy`, `loaiLuuTru`, `mucChamSoc`, `chuaDanhGia`, `tinhHuong` (`ma`, `trangThai`), `diem`, `diemChiTiet` (`mucChamSoc`, `thoiGianCho`, `tinhHuong`, `dieuChinh`), `giuongDangGiuId`, `trangThai`) | `WaitingListEntry` (`fullName`, `gender`, `applicationDate`, `residenceType`, `careLevel`, `notAssessed`, `circumstances` (`code`, `status`), `score`, `scoreBreakdown` (`careLevel`, `waitingTime`, `circumstances`, `adjustment`), `heldBedId`, `status`) |
+| `DongLichSuDiem` (`thoiDiem`, `diemCu`, `diemMoi`, `nguyenNhan`, `nguoiDeNghi`, `nguoiDuyet`, `lyDo`) | `ScoreHistoryEntry` (`at`, `oldScore`, `newScore`, `cause`, `proposedBy`, `approver`, `reason`) |
+| `DanhSachPhuHop` (`giuongId`, `batDauLuotTrong`, `hoSo`) | `MatchingEntries` (`bedId`, `vacancyStart`, `entries`) |
+| thân: `luotDangKyId`, `tinhHuong`, `soDiem`, `lyDoKhongTheoThuTu`, `giuongId` | `applicationId`, `circumstances`, `points`, `outOfOrderReason`, `bedId` |
+| `HopDongGhi` (`loaiLuuTru`, `ngayBatDau`, `ngayKetThuc`, `mucChamSoc`, `loaiPhongId`, `giuongId`, `kyTinhPhiLuuTru`, `dichVu` (`dichVuId`, `thuocGoi`, `soLuong`, `donGiaRieng`), `khongYeuCauCoc`, `khoanDatCoc`, `chinhSachGiuGiuong`, `chinhSachVangGhiDe`, `lichDen` (`thuTrongTuan`, `ngay`, `gioDen`, `gioVe`), `dieuKienChamDut`) | `ContractInput` (`residenceType`, `startDate`, `endDate`, `careLevel`, `roomTypeId`, `bedId`, `residencyFeeBillingPeriod`, `services` (`serviceId`, `inPackage`, `quantity`, `customUnitPrice`), `noDepositRequired`, `depositAmount`, `bedHoldPolicy`, `absencePolicyOverrides`, `arrivalSchedule` (`dayOfWeek`, `date`, `arrivalTime`, `departureTime`), `terminationCondition`) |
+| `DongChinhSachVang` (`loaiVang`, `tuNgayThu`, `denNgayThu`, `heSo`, `giuGiuong`) | `AbsencePolicyLine` (`absenceType`, `fromDay`, `toDay`, `coefficient`, `holdBed`) |
+| `HopDong` (`soHopDong`, `ngayKetThucHienHanh`, `dangChoDuyetDieuKhoan`, `dauQuaHanTu`, `ngayKy`, `lyDoChamDut`, `truongBiAn`, `lenhDuocPhep`), `KetQuaHopDong` (`hopDong`, `canhBao`) | `Contract` (`contractNumber`, `currentEndDate`, `awaitingTermsApproval`, `overdueSince`, `signedDate`, `terminationReason`, `hiddenFields`, `allowedCommands`), `ContractResult` (`contract`, `warnings`) |
+| `DieuKhoanKhacChuan` (`loai`, `moTa`, `giaTriChuan`, `giaTriDeXuat`) | `NonStandardTerm` (`type`, `description`, `standardValue`, `proposedValue`) |
+| thân ghi nhận đã ký (`ngayKy`, `nguoiDaiDienKyId`, `tepBanScanId`) | `signedDate`, `signingRepresentativeId`, `scanFileId` |
+| `NoiDungHopDong` (`hopDongId`, `phienBan`, `hieuLucTu`, `phuLucId`, `noiDung`, `donGiaDaGhi`) | `ContractContent` (`contractId`, `version`, `effectiveFrom`, `addendumId`, `content`, `recordedUnitPrices`) |
+| `PhuLuc` (`yeuCauPheDuyetId`, `loaiThayDoi`, `noiDungTruoc`, `noiDungSau`, `ngayHieuLuc`, `trangThai`) | `Addendum` (`approvalRequestId`, `changeTypes`, `contentBefore`, `contentAfter`, `effectiveDate`, `status`) |
+| `DatCoc` (`khongYeuCau`, `khoanCanDatCoc`, `trangThai`, `canCu` (`thoiDiem`, `giaoDichId`, `keToan`, `soPhieuThu`)) | `Deposit` (`notRequired`, `requiredAmount`, `status`, `basis` (`at`, `transactionId`, `accountant`, `receiptNumber`)) |
+| `DichVuGhi`, `DichVu` (`ten`, `donViTinh`, `kyTinh`, `maMuc`, `loaiPhongId`, `thuocId`), `PhienBanDonGia` (`donGia`, `hieuLucTu`, `hieuLucDen`, `daThamChieu`) | `ServiceInput`, `Service` (`name`, `unit`, `billingPeriod`, `careLevelCode`, `roomTypeId`, `medicationId`), `PriceVersion` (`unitPrice`, `effectiveFrom`, `effectiveTo`, `referenced`) |
+| hợp đồng lệch giá (`hopDongId`, `soHopDong`, `donGiaDaGhi`, `donGiaMoi`) | `contractId`, `contractNumber`, `recordedUnitPrice`, `newUnitPrice` |
+| `YeuCauThayDoiGhi` (`hopDongId`, `loaiThayDoi`, `giaTriSau`, `ngayHieuLucMongMuon`, `thamChieu` (`loai`, `id`)), `YeuCauThayDoi` (`yeuCauPheDuyetId`, `giaTriTruoc`, `anhHuongChiPhi` (`khoan`, `donGiaTruoc`, `donGiaSau`), `thayDoiNho`, `phuLucId`, `nguoiYeuCau`) | `ResidencyChangeRequestInput` (`contractId`, `changeTypes`, `newValue`, `requestedEffectiveDate`, `reference` (`type`, `id`)), `ResidencyChangeRequest` (`approvalRequestId`, `previousValue`, `costImpact` (`item`, `previousUnitPrice`, `newUnitPrice`), `minorChange`, `addendumId`, `requestedBy`) |
+| `LuotVang` (`loaiVang`, `roiLuc`, `duKienTroLai`, `veLuc`, `nguoiDon`, `nhanVienBanGiao`, `mangThuoc`, `giuGiuong`, `trangThai`) | `Absence` (`absenceType`, `departedAt`, `expectedReturnAt`, `returnedAt`, `pickedUpBy`, `handoverStaff`, `takesMedication`, `holdBed`, `status`) |
+| `LuotVangChiTiet` (`lichSuDuKien` (`giaTriCu`, `giaTriMoi`, `lyDo`, `thoiDiem`), `ngayVang` (`ngay`, `soThuTu`, `heSo`, `giuGiuong`, `nguonDong`, `choQuyetDinh`, `khongCoDong`), `quyetDinh` (`luaChon`, `heSo`, `ngayXemXetLai`, `nguoiQuyetDinh`, `thoiDiem`), `truongBiAn`) | `AbsenceDetail` (`expectedReturnHistory` (`oldValue`, `newValue`, `reason`, `at`), `absenceDays` (`date`, `sequenceNo`, `coefficient`, `holdBed`, `policyLineSource`, `pendingDecision`, `noPolicyLine`), `decisions` (`choice`, `coefficient`, `reviewDate`, `decidedBy`, `at`), `hiddenFields`) |
+| thân quyết định giữ giường (`luaChon`, `heSo`, `ngayXemXetLai`, `lyDo`); thân gia hạn (`duKienTroLai`, `lyDo`) | `choice`, `coefficient`, `reviewDate`, `reason`; `expectedReturnAt`, `reason` |
+| thân báo vắng bán trú (`nctId`, `ngay`, `buoiId`, `thoiDiemGiaDinhBao`) → phản hồi `duHan`; `NgayNghiBanTru` (`ngay`, `lyDo`, `khaiBaoMuon`, `trangThai`) | `residentId`, `date`, `sessionId`, `familyNotifiedAt` → `withinNoticePeriod`; `DayCareClosureDay` (`date`, `reason`, `lateDeclaration`, `status`) |
+| `HoSoKetThuc` (`truongHop`, `lyDoYTe`, `ngayKetThucDuKien`, `thoiDiemKetThucThucTe`, `noiChuyenDen`, `nguoiYeuCau`, `dauQuaNgayDuKienTu`, `banGiao` (`loaiNguoiNhan`, `nguoiNhan`, `thoiDiem`, `nhanVien`), `trangThai`) | `ResidencyEnding` (`endCase`, `medicalReason`, `expectedEndDate`, `actualEndedAt`, `destination`, `requestedBy`, `overdueSince`, `handover` (`recipientType`, `recipient`, `at`, `staff`), `status`) |
+| thân bàn giao (`loaiNguoiNhan`, `nguoiThanId`, `tenCoSo`, `thoiDiemBanGiao`, `nhanVienBanGiaoId`); thân ngoại lệ (`maDieuKien`, `lyDo`) | `recipientType`, `familyMemberId`, `facilityName`, `handoverAt`, `handoverStaffId`; `conditionCode`, `reason` |
+| `BanGhiQuaDoi` (`thoiDiemQuaDoi`, `diaDiem`, `nguoiPhatHien`, `nguoiXacNhan`, `nguyenNhan`, `tepBangChungId`, `daDinhChinh`, `truongBiAn`) | `DeathRecord` (`deathAt`, `place`, `discoveredBy`, `confirmedBy`, `cause`, `evidenceFileId`, `corrected`, `hiddenFields`) |
+| `DanhSachViecSauQuaDoi` (`muc` (`ma`, `trangThai`, `canCu`), `daDongLuc`) | `PostDeathTaskList` (`items` (`code`, `status`, `basis`), `closedAt`) |
+| `ThamChieuYeuCau` (`yeuCauPheDuyetId`, `loai`, `trangThai`) | `ApprovalRequestRef` (`approvalRequestId`, `type`, `status`) |
+| `Loi` (`maLoi`, `dieuKienChuaThoa`, `giaTriHienHanh`), `DieuKien` (`ma`, `moTa`, `canCu`, `module`, `coTheMien`) | `Problem` (`errorCode`, `unmetConditions`, `currentValue`), `Condition` (`code`, `description`, `basis`, `module`, `waivable`); giữ nguyên cấu trúc gốc của api-004, chưa trùng `Problem` chung của api-000 (xem mục "Điểm cần A quyết định" ở PR) |
+| `Id`, `IfMatch`, `IdempotencyKey`, `Sau`; scheme `phien`; response `Loi`, `LoiChan`; thân `LyDo`, `DinhChinh` (`kieu`, `noiDungDung`, `lyDo`); `LyDo`, `MaMucChamSoc`, `LoaiLuuTru` | `Id`, `IfMatch`, `IdempotencyKey`, `Cursor`; `session`; `Problem`, `Conflict`; `ReasonBody`, `CorrectionBody` (`type`, `correctedContent`, `reason`); `Reason`, `CareLevelCode`, `ResidenceType` (như api-001) |
+
+### 10.3. Giá trị enum
+
+| Tên logic | Mã |
+| --- | --- |
+| `TrangThaiLuotDangKy`: `DANG_XU_LY`, `DANG_CHO`, `DA_TIEP_NHAN`, `DA_HUY` | `ApplicationStatus`: `IN_PROGRESS`, `WAITING`, `ADMITTED`, `CANCELLED` |
+| `TrangThaiHoSoCho`: `DANG_CHO`, `DA_LIEN_HE`, `DA_TIEP_NHAN`, `TU_CHOI`, `HUY_CHO` | `WaitingListStatus`: `WAITING`, `CONTACTED`, `ADMITTED`, `DECLINED`, `WAITING_CANCELLED` |
+| trạng thái tình huống `XAC_NHAN`, `CHO_XAC_NHAN` | `CONFIRMED`, `PENDING_CONFIRMATION` |
+| `TrangThaiHopDong`: `NHAP`, `CHO_KY`, `HIEU_LUC`, `KET_THUC`, `CHAM_DUT`, `DA_HUY` | `ContractStatus`: `DRAFT`, `PENDING_SIGNATURE`, `ACTIVE`, `ENDED`, `TERMINATED`, `CANCELLED` |
+| `LoaiDichVu`: `CHAM_SOC`, `PHI_LUU_TRU`, `BUOI_BAN_TRU`, `PHUC_HOI`, `HOAT_DONG`, `DUA_DI_KHAM`, `TIEM`, `NGUOI_THAN_O_LAI`, `SUAT_AN`, `THUOC_NGUON_VIEN`, `KHAC` | `ServiceType`: `CARE`, `RESIDENCY_FEE`, `DAY_CARE_SESSION`, `REHABILITATION`, `ACTIVITY`, `MEDICAL_ESCORT`, `INJECTION`, `FAMILY_STAY`, `MEAL`, `FACILITY_SUPPLIED_MEDICATION`, `OTHER` |
+| kỳ tính `THANG`, `NGAY`, `BUOI`, `LAN`, `DON_VI` | `BillingPeriod`: `MONTH`, `DAY`, `SESSION`, `OCCURRENCE`, `UNIT` |
+| ý kiến `DONG_Y`, `KHONG_DONG_Y`, `KHONG_BAY_TO_DUOC`; trạng thái ý kiến `HIEU_LUC`, `DUOC_THAY_THE` | `AGREE`, `DISAGREE`, `UNABLE_TO_EXPRESS`; `ACTIVE`, `SUPERSEDED` |
+| trạng thái điều kiện `DAT`, `CHUA_DAT`, `KHONG_AP_DUNG`, `DAT_NGOAI_LE`, `TU_DONG` | `MET`, `NOT_MET`, `NOT_APPLICABLE`, `MET_BY_EXCEPTION`, `AUTOMATIC` |
+| bước tiến trình `DANG_KY`, `THU_THAP_THONG_TIN`, `DANH_GIA`, `XAC_DINH_LUU_TRU`, `XAC_DINH_CHAM_SOC`, `XAC_DINH_DICH_VU`, `KIEM_TRA_DIEU_KIEN`, `TIEP_NHAN` | `APPLICATION`, `INFORMATION_COLLECTION`, `ASSESSMENT`, `RESIDENCE_TYPE_DETERMINATION`, `CARE_DETERMINATION`, `SERVICE_DETERMINATION`, `CONDITION_CHECK`, `ADMISSION` |
+| loại vắng `VE_NHA`, `DI_CHOI_GIA_DINH`, `DI_KHAM_TRONG_NGAY`, `LY_DO_KHAC`, `BENH_VIEN`; lý do chuẩn `VE_NHA_NGUYEN_VONG_CUOI_DOI` | `AbsenceType`: `HOME_VISIT`, `FAMILY_OUTING`, `SAME_DAY_MEDICAL_VISIT`, `OTHER`, `HOSPITAL`; `HOME_VISIT_END_OF_LIFE_WISH` |
+| trạng thái lượt vắng `DANG_MO`, `DA_DONG` | `OPEN`, `CLOSED` |
+| dòng chính sách: `giuGiuong` `CO`, `KHONG`, `THEO_HOP_DONG`, `QUAN_LY_QUYET_DINH`; `heSo` `THEO_HOP_DONG`, `QUAN_LY_QUYET_DINH`; nguồn dòng `HOP_DONG`, `CO_SO`, `MAC_DINH` | `YES`, `NO`, `PER_CONTRACT`, `MANAGER_DECIDES`; `PER_CONTRACT`, `MANAGER_DECIDES`; `CONTRACT`, `FACILITY`, `DEFAULT` |
+| lựa chọn giữ giường `GIU_TIEP`, `GIAI_PHONG`, `CHI_DAT_HE_SO` | `HOLD_CONTINUE`, `RELEASE`, `COEFFICIENT_ONLY` |
+| loại điều khoản khác chuẩn `GIA`, `CHINH_SACH_VANG`, `CHINH_SACH_GIU_GIUONG` | `PRICE`, `ABSENCE_POLICY`, `BED_HOLD_POLICY` |
+| loại thay đổi `LOAI_LUU_TRU`, `MUC_CHAM_SOC`, `DICH_VU`, `THOI_GIAN`, `GIUONG`, `LICH_DEN`; tham chiếu `DANH_GIA`, `LENH_CHUYEN_GIUONG` | `RESIDENCE_TYPE`, `CARE_LEVEL`, `SERVICE`, `DURATION`, `BED`, `ARRIVAL_SCHEDULE`; `ASSESSMENT`, `BED_TRANSFER_ORDER` |
+| trạng thái phụ lục `CHO_HIEU_LUC`, `DA_AP_DUNG`, `KHONG_AP_DUNG` | `PENDING_EFFECTIVE`, `APPLIED`, `NOT_APPLIED` |
+| trạng thái đặt cọc `CHUA_DAP_UNG`, `DA_DAP_UNG`, `KHONG_YEU_CAU` (`DepositStatus`) | `NOT_SATISFIED`, `SATISFIED`, `NOT_REQUIRED` |
+| trạng thái ngày nghỉ bán trú `HIEU_LUC`, `DA_HUY` | `ACTIVE`, `CANCELLED` |
+| trường hợp kết thúc `HET_HOP_DONG`, `XUAT_VIEN`, `CHUYEN_CO_SO`, `CHAM_DUT_HOP_DONG` (+ `QUA_DOI` ở `thongTinQuyetToan`) | `EndCase`: `CONTRACT_EXPIRED`, `DISCHARGE`, `TRANSFER_TO_ANOTHER_FACILITY`, `CONTRACT_TERMINATION` (+ `DEATH`) |
+| trạng thái hồ sơ kết thúc `DANG_CHUAN_BI`, `HOAN_TAT`, `DA_HUY`; người nhận `NGUOI_THAN`, `CO_SO_TIEP_NHAN` | `PREPARING`, `COMPLETED`, `CANCELLED`; `FAMILY_MEMBER`, `RECEIVING_FACILITY` |
+| mã điều kiện tiếp nhận `TN_B_HOP_DONG`, `TN_C_DAT_COC`, `TN_E_MUC_HOP_DONG` (và (a), (d), (f) theo 001, 012) | `ADM_B_CONTRACT`, `ADM_C_DEPOSIT`, `ADM_E_CONTRACT_LEVEL` |
+| mã điều kiện kết thúc `KT_A_CHI_PHI`, `KT_B_DO_GUI`, `KT_C_THUOC_GUI`, `KT_D_CANH_BAO_SU_CO`, `KT_E_BAN_GIAO`, `KT_H_QUYET_TOAN`, `KT_H_XAC_NHAN_QUYET_TOAN` (dùng chung với 006, 007, 010, 013, 017) | `END_A_COSTS`, `END_B_BELONGINGS`, `END_C_STORED_MEDICATION`, `END_D_ALERTS_INCIDENTS`, `END_E_HANDOVER`, `END_H_SETTLEMENT`, `END_H_SETTLEMENT_CONFIRMATION` |
+| mục việc sau qua đời `DO_GUI`, `THUOC_GUI`, `CHI_PHI_KY_CUOI`, `CANH_BAO_SU_CO`, `QUYET_TOAN`; trạng thái `CHUA_HOAN_THANH`, `HOAN_THANH`, `KHONG_AP_DUNG` | `PostDeathItemCode`: `BELONGINGS`, `STORED_MEDICATION`, `FINAL_PERIOD_COSTS`, `ALERTS_INCIDENTS`, `SETTLEMENT`; `PostDeathItemStatus`: `NOT_COMPLETED`, `COMPLETED`, `NOT_APPLICABLE` |
+| trạng thái có mặt bán trú `CO_MAT`, `VANG_CO_BAO`, `VANG_KHONG_BAO` | `Attendance`: `PRESENT`, `ABSENT_NOTIFIED`, `ABSENT_UNNOTIFIED` |
+| nguyên nhân điểm `TINH_HANG_NGAY`, `DOI_MUC`, `DOI_TINH_HUONG`, `DIEU_CHINH`, `DOI_BANG_DIEM`, `TAO` | `ScoreCause`: `DAILY_CALCULATION`, `CARE_LEVEL_CHANGE`, `CIRCUMSTANCE_CHANGE`, `ADJUSTMENT`, `SCORE_TABLE_CHANGE`, `CREATED` |
+| kết quả liên hệ giường `LIEN_HE`, `TU_CHOI_GIUONG`, `HET_HAN` | `BedContactResult`: `CONTACTED`, `BED_DECLINED`, `EXPIRED` |
+| lệnh `chiTiet` của 001 do 004 sở hữu: `CHO_TAM_VANG` (`loaiVang`, `duKienTroLai`, `nguoiDonId`, `banGhiDonId`, `nhanVienBanGiaoId`, `mangThuoc`, `lyDoChuan`), `CHUYEN_VIEN` (`donViDuaDi`, `duKienTroLai`, `nhanVienBanGiaoId`), `GHI_NHAN_TRO_VE` (`thoiDiemVe`), `KET_THUC_LUU_TRU` (`hoSoKetThucId`, `thoiDiemHieuLuc`), `GHI_NHAN_QUA_DOI` (`thoiDiemQuaDoi`, `diaDiem`, `nguoiPhatHien`, `nguoiXacNhanId`, `nguyenNhan`, `tepBangChungId`), `HUY_TIEP_NHAN` (`hoSoChoId`, `lenhHoSoCho`) | `details` của `GRANT_TEMPORARY_ABSENCE` (`absenceType`, `expectedReturnAt`, `pickedUpById`, `pickupRecordId`, `handoverStaffId`, `takesMedication`, `standardReason`), `TRANSFER_OUT` (`transferUnit`, `expectedReturnAt`, `handoverStaffId`), `RECORD_RETURN` (`returnedAt`), `END_RESIDENCY` (`residencyEndingId`, `effectiveAt`), `RECORD_DEATH` (`deathAt`, `place`, `discoveredBy`, `confirmedById`, `cause`, `evidenceFileId`), `CANCEL_ADMISSION` (`waitingListEntryId`, `waitingListCommand` `DECLINE` hoặc `CANCEL_WAITING`) |
+| loại yêu cầu phê duyệt `M02.DIEU_CHINH_DIEM`, `M02.DUYET_DIEU_KHOAN_HOP_DONG`, `M02.THAY_DOI_LUU_TRU`, `M02.NGOAI_LE_KET_THUC` | `M02.SCORE_ADJUSTMENT`, `M02.CONTRACT_TERMS_APPROVAL`, `M02.RESIDENCY_CHANGE`, `M02.ENDING_EXCEPTION` |
+| loại đính chính `M02.LUOT_VANG`, `M02.BAN_GHI_QUA_DOI`, `M02.QUYET_DINH_GIU_GIUONG`, `M02.BAN_GIAO_NCT`, `M02.LICH_SU_DIEM` | `M02.ABSENCE`, `M02.DEATH_RECORD`, `M02.BED_HOLD_DECISION`, `M02.RESIDENT_HANDOVER`, `M02.SCORE_HISTORY` |
+| loại lưu giữ `M02.LUOT_DANG_KY`, `M02.HO_SO_CHO`, `M02.HOP_DONG`, `M02.LUOT_VANG`, `M02.BAO_VANG_BAN_TRU`, `M02.HO_SO_KET_THUC`, `M02.BAN_GHI_QUA_DOI`, `M02.NGAY_NGHI_BAN_TRU`; loại tệp `M02.BAN_SCAN_HOP_DONG`, `M02.BANG_CHUNG_QUA_DOI` | `M02.ADMISSION_APPLICATION`, `M02.WAITING_LIST_ENTRY`, `M02.CONTRACT`, `M02.ABSENCE`, `M02.DAY_CARE_ABSENCE_NOTICE`, `M02.RESIDENCY_ENDING`, `M02.DEATH_RECORD`, `M02.DAY_CARE_CLOSURE_DAY`; `M02.CONTRACT_SCAN`, `M02.DEATH_EVIDENCE` |
+| nhóm trường (`@FieldGroup`) `TAI_CHINH`, `SUC_KHOE` | `FINANCE`, `HEALTH` |
+| khóa quyền (`Function`) `TIEP_NHAN_HOP_DONG_DAT_COC`, `DANH_SACH_CHO_DIEM_UU_TIEN`, `YEU_CAU_THAY_DOI_LUU_TRU`, `TAM_VANG_TRO_VE`, `KET_THUC_LUU_TRU_QUA_DOI`, `DICH_VU_DON_GIA` | `ADMISSION_CONTRACT_DEPOSIT`, `WAITING_LIST`, `RESIDENCY_CHANGE_REQUEST`, `ABSENCE_RETURN`, `RESIDENCY_END_DEATH`, `SERVICE_PRICE` (đã có trong `m15.account.api.dto.Function`) |
+
+### 10.4. Mã lỗi và cảnh báo
+
+| Tên logic | Mã |
+| --- | --- |
+| `DIEU_KIEN_CHUA_THOA`, `CHUYEN_KHONG_HOP_LE` | `CONDITION_NOT_MET` (mã thực của 000), `INVALID_TRANSITION` |
+| `DA_CO_LUOT_DANG_KY`, `THIEU_NGUOI_DAI_DIEN` | `APPLICATION_ALREADY_EXISTS` (409), `REPRESENTATIVE_REQUIRED` (409) |
+| `HOP_DONG_DA_KHOA`, `HOP_DONG_CHONG_THOI_GIAN` | `CONTRACT_LOCKED` (409), `CONTRACT_OVERLAP` (409) |
+| `NGAY_DA_KHAI_BAO`, `BAN_GHI_DON_DA_DUNG` | `DAY_ALREADY_DECLARED` (409), `PICKUP_RECORD_ALREADY_USED` (409) |
+| cảnh báo `CHUA_GHI_Y_KIEN_VAO_O`, `NCT_KHONG_DONG_Y_VAO_O` | `ADMISSION_OPINION_MISSING`, `RESIDENT_DISAGREES_WITH_ADMISSION` |
+| nhật ký `M02_DANG_KY_*`, `M02_HO_SO_CHO_*`, `M02_DIEM`, `M02_HOP_DONG_*`, `M02_PHU_LUC_*`, `M02_VANG_*` (gồm `M02_VANG_TINH_LAI`), `M02_KET_THUC_*`, `M02_QUA_DOI`, `M02_DICH_VU_*`, `M02_NHAC`, `M02_BAO` | `M02_APPLICATION_*`, `M02_WAITING_ENTRY_*`, `M02_SCORE`, `M02_CONTRACT_*`, `M02_ADDENDUM_*`, `M02_ABSENCE_*` (gồm `M02_ABSENCE_RECALCULATED`), `M02_ENDING_*`, `M02_DEATH`, `M02_SERVICE_*`, `M02_REMINDER`, `M02_NOTICE` |
+
+### 10.5. Gói, giao diện công khai `admission.api`, sự kiện (T001, T003, T004)
+
+| Tên logic | Mã |
+| --- | --- |
+| gói chức năng `dangky`, `danhsachcho`, `hopdong`, `dichvu`, `thaydoi`, `vang`, `ketthuc`, `quadoi`, `tinhphi`, `trangthai`; `lich` | `internal.application`, `internal.waitinglist`, `internal.contract`, `internal.servicecatalog` (tránh trùng tầng `service`), `internal.change`, `internal.absence`, `internal.ending`, `internal.death`, `internal.residencyday`, `internal.transition`; `scheduling` |
+| `admission.api` (`api/sukien`); `@NamedInterface` | `admission.api` (`dto`, `spi`, `events`); `admission`, `admission-dto`, `admission-spi`, `admission-events` |
+| `HopDongDocApi` (`noiDungTaiNgay`, `hopDong`, `cuaNguoiCaoTuoi`, `khoanDatCoc`, `lichDenTaiNgay`) | `ContractReadApi` (`contentAtDate`, `contract`, `ofResident`, `depositAmount`, `arrivalScheduleAtDate`); `ContractContentView`, `ContractView`, `DepositAmountView`, `ArrivalScheduleView` |
+| `DonGiaApi` (`donGiaTaiNgay`, `donGiaHopDong`, `dichVuChamSoc`, `phiLuuTruTheoLoaiPhong`, `thuocNguonVien`; `danhDauThamChieu`) | `UnitPriceApi` (`unitPriceAt`, `contractUnitPrice`, `careServiceOf`, `residencyFeeServiceOf`, `facilityMedicationServiceOf`; `markReferenced`); `UnitPriceView`, `ServiceView` |
+| `NgayLuuTruApi` (`theoKhoang`, `buoiBanTru`, `mocDungTinhPhi`); `NgayLuuTruView`, `BuoiBanTruView` | `ResidencyDayApi` (`daysBetween`, `dayCareSessions`, `billingStopDate`); `ResidencyDayView`, `DayCareSessionView` |
+| `DieuKienTiepNhanApi` (`dieuKienTiepNhan`, `tienTrinh`, `dieuKienKetThuc`) | `AdmissionConditionApi` (`admissionConditions`, `progress`, `endingConditions`) |
+| `HoSoKetThucDocApi` (`dangChuanBi`, `thongTinQuyetToan`, `coNgoaiLeQuyetToanDaDuyet`) | `ResidencyEndingReadApi` (`preparing`, `settlementInfo`, `hasApprovedSettlementException`) |
+| `LuuTruThongKeApi` (`loaiLuuTruTaiNgay`, `danhSachCho`) | `ResidencyStatisticsApi` (`residenceTypeAtDate`, `waitingList`) |
+| `DanhSachViecSauQuaDoiApi` (`capNhat`, `xem`) | `PostDeathTaskApi` (`refresh`, `view`) |
+| SPI 004 khai báo: `NguoiDaiDienPort` (`laNguoiDaiDienHieuLuc`, `coNguoiDaiDien`), `BanGhiDonPort` (`banGhiDonHopLe`, `daDung`), `TrangThaiDatCocPort` (`trangThai`), `KyCuoiPort` (`taoKyCuoiNhap`, `tinhLai`, `huyMocDung`), `TrangThaiCoMatBanTruPort` (`trangThai`), `MucViecSauQuaDoiPort` (`ma`, `trangThai`) | `RepresentativePort` (`isActiveRepresentative`, `hasRepresentative`), `PickupRecordPort` (`validPickupRecord`, `markUsed`), `DepositStatusPort` (`status`), `FinalPeriodPort` (`createDraft`, `recalculate`, `cancelStop`), `DayCareAttendancePort` (`status`), `PostDeathItemPort` (`code`, `status`) |
+| SPI M02 cài cho module thấp hơn: `YeuCauDoiMucApi`, `HopDongApi`, `LuotVangApi` (001); `KetThucLuuTruApi` (002) | `CareLevelChangeRequestApi`, `ContractApi`, `AbsenceApi` (đã đặt tên ở mục 8.5); `ResidencyEndApi` (`m15.account.api.spi`, như team-plan mục 8) |
+| SPI 003 M02 cài: `NguonLuuTruChoPhanBo`, `DemLichDenBanTru`; API 003 M02 gọi: `PhanBoGiuongLenhApi`, `SucChuaBanTruApi` | tên tiếng Anh do C chốt ở mục 9 khi dịch api-003; 004 dùng đúng tên đó, chưa đặt trước |
+| `GiuongTrongCanChonHoSo`, `LechMucHopDong`, `HopDongDaDoiTrangThai`, `KhoanCocDaDoi`, `TiepNhanHoanTat` | `BedAvailableForWaitingList(bedId, matchingEntryCount)`, `ContractCareLevelMismatch(residentId, assessedLevel, contractLevel, contractStatus)`, `ContractStatusChanged(contractId, residentId, from, to, reason)`, `DepositAmountChanged(contractId, newAmount)`, `AdmissionCompleted(residentId, contractId, residenceType, startDate, expectedEndDate)` |
+| `PhuLucDaApDung`, `LuotVangDaMo`, `LuotVangDaGiaHan`, `LuotVangDaDong`, `NgayLuuTruDaDoi` | `AddendumApplied(addendumId, contractId, residentId, changeTypes, effectiveDate)`, `AbsenceOpened`, `AbsenceExtended`, `AbsenceClosed` (`absenceId`, `residentId`, mốc), `ResidencyDaysChanged(residentId, fromDate, toDate, cause)` |
+| `LoaiLuuTruDaDoi(nctId)` | `ResidenceTypeChanged(residentId)` |
+| `CanQuyetDinhGiuGiuong`, `DenNgayXemXetGiuGiuong`, `KhongCoDongChinhSach`, `HopDongQuaHanBaoQuanLy`, `NhacM02`, `DatCocChuaDapUngSauLuuTru`, `YeuCauNguoiDaiDienCanHoanThien` | `BedHoldDecisionNeeded(absenceId, days, policyLine)`, `BedHoldReviewDue(absenceId)`, `NoAbsencePolicyLine(absenceId, date)`, `ContractOverdueEscalated(contractId, days)`, `M02Reminder(type, subjectId)`, `DepositNotSatisfiedAfterAdmission(contractId)`, `RepresentativeRequestNeedsCompletion(requestId)` |
+| `HoSoKetThucDaLap`, `…DaDoiNgay`, `…DaHuy`, `…HoanTat`; `QuaDoiDaGhiNhan`; `NgoaiLeKetThucDaDuyet`; `NgayNghiBanTruDaDoi`, `BaoVangBanTruDaGhi`; `PhienBanDonGiaDaTao` | `ResidencyEndingCreated`, `ResidencyEndingDateChanged`, `ResidencyEndingCancelled`, `ResidencyEndingCompleted` (`residencyEndingId`, `residentId`, ngày); `DeathRecorded(residentId, at, recordId)`; `EndingExceptionApproved(residencyEndingId, residentId, conditionCode)` (`residencyEndingId` rỗng khi qua đời, Q-387); `DayCareClosureDayChanged(date, active)`, `DayCareAbsenceNoticeRecorded(residentId, date, sessionId, withinNoticePeriod)`; `PriceVersionCreated(serviceId, effectiveFrom, effectiveTo)` |
+| sự kiện 004 nghe: `NguoiCaoTuoiDaChuyenTrangThai`, `DanhGiaDauVaoDaXacNhan`, `MucChamSocDaDoi` (001); `GiuongDaTrong` (003); `YeuCauDaQuyetDinh`, `YeuCauApDungKhongThanh`, `YeuCauDaHuy`, `ThamSoDaDoi` (000) | `ResidentStatusChanged`, `InitialAssessmentConfirmed`, `CareLevelChanged`; `BedBecameVacant` (tên do C chốt, mục 9); `RequestDecided`, `RequestApplyFailed`, `RequestCancelled`, `ParameterChanged` |
+| `TrangThaiDatCocDaDoi`, `DieuKienQuyetToanDaDoi` (017 phát) | `DepositStatusChanged`, `SettlementConditionChanged` (tên do E chốt ở mục 23; 004 chỉ nghe) |
+| `ThamSoApi`, `NhatKyApi`, `DinhChinhApi`, `YeuCauPheDuyetApi`, `TepApi`, `TaiKhoanApi.coVaiTro` | `ParameterApi`, `AuditLogApi`, `CorrectionApi`, `ApprovalRequestApi`, `FileApi`, `AccountApi.hasRole` (như mục 6, 7, 8) |
+
+### 10.6. Bảng, cột, lớp và migration (T005 → T009, T015, T023, T032, T044, T051, T058, T063)
+
+| Tên logic | Mã |
+| --- | --- |
+| `V004_01__luu_tru_nct.sql`, `V004_02__dich_vu.sql`, `V004_03__luot_dang_ky.sql`, `V004_04__danh_sach_cho.sql`, `V004_05__hop_dong.sql`, `V004_06__phu_luc.sql`, `V004_07__vang_mat.sql`, `V004_08__ket_thuc.sql`, `V004_09__qua_doi.sql` | `V004_01__resident_residency.sql`, `V004_02__service_catalog.sql`, `V004_03__admission_application.sql`, `V004_04__waiting_list.sql`, `V004_05__contract.sql`, `V004_06__addendum.sql`, `V004_07__absence.sql`, `V004_08__residency_ending.sql`, `V004_09__death_record.sql` |
+| `luu_tru_nct` (`nct_id`, `da_dong_luc`, `phien_ban`); `lan_chay_theo_ngay` (`viec`, `ngay`, `ket_qua`, `lan_chay_lich_id`); `nhac_m02` (`loai`, `doi_tuong_id`, `lan_nhac_cuoi`, `so_lan`) | `resident_residency` (`resident_id`, `closed_at`, `version`); `daily_run` (`task`, `date`, `result`, `scheduler_run_id`); `m02_reminder` (`type`, `subject_id`, `last_reminded_at`, `count`) |
+| `luot_dang_ky` (`nct_id`, `ngay_dang_ky`, `nguoi_lien_he`, `nhu_cau`, `ghi_chu`, `loai_luu_tru_mong_muon`, `muc_du_kien`, `ngay_mong_muon_vao`, `trang_thai`, `nct_dang_mo`, `y_kien_luc_tiep_nhan_id`) | `admission_application` (`resident_id`, `application_date`, `contact_person`, `needs`, `note`, `desired_residence_type`, `expected_care_level`, `desired_admission_date`, `status`, `open_resident_id`, `opinion_at_admission_id`) |
+| `y_kien_vao_o` (`luot_dang_ky_id`, `y_kien`, `nguon_loai`, `nguon_nguoi_than_id`, `nguoi_ghi_id`, `thoi_diem`, `ghi_chu`, `trang_thai`, `thay_the_boi_id`, `luot_hieu_luc`) | `admission_opinion` (`application_id`, `opinion`, `source_type`, `source_family_member_id`, `recorded_by`, `recorded_at`, `note`, `status`, `superseded_by_id`, `active_application_id`) |
+| `ho_so_cho` (`luot_dang_ky_id`, `nct_id`, `muc_cham_soc`, `muc_chua_danh_gia`, `diem_hien_hanh`, `diem_chi_tiet`, `giuong_dang_giu_id`, `moc_cap_nhat`, `trang_thai`, `nct_dang_mo`, `giuong_giu_duy_nhat`); `ho_so_cho_tinh_huong` (`ma_tinh_huong`, `trang_thai`) | `waiting_list_entry` (`application_id`, `resident_id`, `care_level`, `care_level_not_assessed`, `current_score`, `score_breakdown`, `held_bed_id`, `last_confirmed_at`, `status`, `open_resident_id`, `held_bed_unique`); `waiting_list_circumstance` (`entry_id`, `circumstance_code`, `status`) |
+| `lich_su_diem` (`ho_so_cho_id`, `diem_cu`, `diem_moi`, `thanh_phan`, `nguyen_nhan`, `yeu_cau_phe_duyet_id`, `thoi_diem`); `lien_he_giuong` (`ho_so_cho_id`, `giuong_id`, `ket_qua`, `thoi_diem`, `nguoi_thuc_hien_id`, `ly_do`, `ly_do_khong_theo_thu_tu`) | `score_history` (`entry_id`, `old_score`, `new_score`, `components`, `cause`, `approval_request_id`, `at`); `bed_contact` (`entry_id`, `bed_id`, `result`, `at`, `performed_by`, `reason`, `out_of_order_reason`) |
+| `hop_dong` (`so_hop_dong`, `nct_id`, `loai_luu_tru`, `ngay_bat_dau`, `ngay_ket_thuc`, `ngay_ket_thuc_hien_hanh`, `muc_cham_soc`, `loai_phong_id`, `giuong_id`, `nguoi_dai_dien_ky_id`, `ngay_ky`, `tep_ban_scan_id`, `ky_tinh_phi_luu_tru`, `khoan_dat_coc`, `khong_yeu_cau_coc`, `chinh_sach_giu_giuong`, `dieu_kien_cham_dut`, `bam_noi_dung`, `dang_cho_duyet_dieu_khoan`, `yeu_cau_duyet_dieu_khoan_id`, `trang_thai`, `ly_do_cham_dut`, `dau_qua_han_tu`, `da_bao_qlv_qua_han_luc`) | `contract` (`contract_number`, `resident_id`, `residence_type`, `start_date`, `end_date`, `current_end_date`, `care_level`, `room_type_id`, `bed_id`, `signing_representative_id`, `signed_date`, `scan_file_id`, `residency_fee_billing_period`, `deposit_amount`, `no_deposit_required`, `bed_hold_policy`, `termination_condition`, `content_hash`, `awaiting_terms_approval`, `terms_approval_request_id`, `status`, `termination_reason`, `overdue_since`, `manager_notified_overdue_at`) |
+| `hop_dong_dich_vu`, `hop_dong_chinh_sach_vang`, `hop_dong_lich_den`; `phien_ban_noi_dung_hop_dong` (`so_thu_tu`, `hieu_luc_tu`, `phu_luc_id`, `noi_dung`) | `contract_service` (`in_package`, `quantity`, `custom_unit_price`, `recorded_unit_price`), `contract_absence_policy`, `contract_arrival_schedule` (`day_of_week`, `date`, `arrival_time`, `departure_time`); `contract_content_version` (`sequence_no`, `effective_from`, `addendum_id`, `content`) |
+| trigger `trg_hop_dong_khoa_noi_dung`, `trg_hop_dong_khong_chong`, `trg_phien_ban_don_gia_khong_chong`, `trg_phien_ban_don_gia_khong_sua`, `trg_luot_vang_khong_sua` | `trg_contract_lock_content`, `trg_contract_no_overlap`, `trg_price_version_no_overlap`, `trg_price_version_immutable`, `trg_absence_immutable_when_closed` |
+| `dich_vu` (`loai`, `ten`, `don_vi_tinh`, `ky_tinh`, `ma_muc`, `muc_hieu_luc`, `ten_hieu_luc`, `loai_phong_id`, `thuoc_id`); `phien_ban_don_gia` (`dich_vu_id`, `don_gia`, `hieu_luc_tu`, `hieu_luc_den`, `da_tham_chieu`) | `service` (`type`, `name`, `unit`, `billing_period`, `care_level_code`, `active_care_level`, `active_name`, `room_type_id`, `medication_id`); `price_version` (`service_id`, `unit_price`, `effective_from`, `effective_to`, `referenced`) |
+| `phu_luc_hop_dong` (`hop_dong_id`, `yeu_cau_phe_duyet_id`, `loai_thay_doi`, `noi_dung_truoc`, `noi_dung_sau`, `ngay_hieu_luc`, `trang_thai`, `phien_ban_noi_dung_id`); `yeu_cau_thay_doi_thuoc_tinh` (`thuoc_tinh`, `cho_hieu_luc`, `khoa`) | `contract_addendum` (`contract_id`, `approval_request_id`, `change_types`, `content_before`, `content_after`, `effective_date`, `status`, `content_version_id`); `change_request_attribute` (`attribute`, `pending_effective`, `lock_key`) |
+| `luot_vang` (`nct_id`, `loai_vang`, `ly_do`, `ly_do_chuan`, `roi_luc`, `du_kien_tro_lai`, `ve_luc`, `nguoi_don_id`, `ban_ghi_don_id`, `don_vi_dua_di`, `nhan_vien_ban_giao_id`, `mang_thuoc`, `giu_giuong_ban_dau`, `da_bao_nguong_luc`, `ngay_xem_xet_lai`, `luot_truoc_id`, `trang_thai`, `nct_dang_mo`) | `absence` (`resident_id`, `absence_type`, `reason`, `standard_reason`, `departed_at`, `expected_return_at`, `returned_at`, `picked_up_by_id`, `pickup_record_id`, `transfer_unit`, `handover_staff_id`, `takes_medication`, `initial_bed_hold`, `threshold_notified_at`, `review_date`, `previous_absence_id`, `status`, `open_resident_id`) |
+| `lich_su_du_kien_tro_lai`; `ngay_vang` (`luot_vang_id`, `ngay`, `so_thu_tu`, `he_so`, `giu_giuong`, `nguon_dong`, `dong_chinh_sach`, `dau_cho_quyet_dinh`, `dau_khong_co_dong`, `quyet_dinh_id`, `tinh_luc`, `thoi_diem_tham_so`); `quyet_dinh_giu_giuong` (`ngay_nguong`, `lua_chon`, `he_so`, `ngay_xem_xet_lai`, `ap_tu_ngay`, `ap_den_ngay`, `nguoi_quyet_dinh_id`) | `expected_return_history`; `absence_day` (`absence_id`, `date`, `sequence_no`, `coefficient`, `hold_bed`, `policy_line_source`, `policy_line`, `pending_decision_flag`, `no_policy_line_flag`, `decision_id`, `calculated_at`, `parameter_at`); `bed_hold_decision` (`threshold_date`, `choice`, `coefficient`, `review_date`, `applies_from`, `applies_to`, `decided_by`) |
+| `bao_vang_ban_tru` (`nct_id`, `ngay`, `buoi_id`, `thoi_diem_gia_dinh_bao`, `du_han`); `ngay_nghi_ban_tru` (`ngay`, `ly_do`, `trang_thai`, `ngay_hieu_luc`, `khai_bao_muon`) | `day_care_absence_notice` (`resident_id`, `date`, `session_id`, `family_notified_at`, `within_notice_period`); `day_care_closure_day` (`date`, `reason`, `status`, `active_date`, `late_declaration`) |
+| `ho_so_ket_thuc` (`nct_id`, `truong_hop`, `ly_do_y_te`, `noi_chuyen_den`, `ngay_ket_thuc_du_kien`, `thoi_diem_ket_thuc_thuc_te`, `nguoi_yeu_cau`, `dau_qua_ngay_du_kien_tu`, `ky_cuoi_tham_chieu`, `trang_thai`, `nct_dang_mo`) | `residency_ending` (`resident_id`, `end_case`, `medical_reason`, `destination`, `expected_end_date`, `actual_ended_at`, `requested_by`, `overdue_since`, `final_period_ref`, `status`, `open_resident_id`) |
+| `ban_giao_nct` (`ho_so_ket_thuc_id`, `loai_nguoi_nhan`, `nguoi_than_id`, `ten_co_so`, `thoi_diem_ban_giao`, `nhan_vien_ban_giao_id`); `ngoai_le_dieu_kien` (`ho_so_ket_thuc_id`, `nct_id`, `ma_dieu_kien`, `yeu_cau_phe_duyet_id`) | `resident_handover` (`ending_id`, `recipient_type`, `family_member_id`, `facility_name`, `handover_at`, `handover_staff_id`); `ending_condition_exception` (`ending_id`, `resident_id`, `condition_code`, `approval_request_id`) |
+| `ban_ghi_qua_doi` (`nct_id`, `thoi_diem_qua_doi`, `dia_diem`, `nguoi_phat_hien`, `nguoi_xac_nhan_id`, `nguyen_nhan`, `tep_bang_chung_id`); `muc_viec_sau_qua_doi` (`ban_ghi_qua_doi_id`, `ma_muc`, `trang_thai`, `can_cu`, `cap_nhat_luc`) | `death_record` (`resident_id`, `death_at`, `place`, `discovered_by`, `confirmed_by_id`, `cause_of_death`, `evidence_file_id`); `post_death_task` (`death_record_id`, `item_code`, `status`, `basis`, `updated_at`) |
+| loại nhắc `HO_SO_CHO_CAP_NHAT`, `PHAN_BO_LAI`, `HOP_DONG_SAP_HET`, `HOP_DONG_NGAN_NGAY`, `QUA_HAN_HOP_DONG`, `QUA_NGAY_DU_KIEN`, `VIEC_SAU_QUA_DOI`, `CHUA_VAO_O`, `XEM_XET_GIU_GIUONG` | `WAITING_ENTRY_UPDATE`, `REALLOCATION`, `CONTRACT_EXPIRING`, `SHORT_TERM_CONTRACT`, `CONTRACT_OVERDUE`, `PAST_EXPECTED_DATE`, `POST_DEATH_TASKS`, `NOT_YET_ADMITTED`, `BED_HOLD_REVIEW` |
+| `ViecHangNgayM02` (việc `TINH_DIEM`, `NGAY_VANG`, `HOP_DONG`, `KET_THUC`, `NHAC`) | `M02DailyJob` (tên job `M02_DAILY`; việc `CALCULATE_SCORES`, `ABSENCE_DAYS`, `CONTRACTS`, `ENDINGS`, `REMINDERS`); cấu hình `eldercare.jobs.m02-daily` |
+| `KhoaLuuTru`, `ThamGiaM02`, `DonGiaService`, `LuotDangKyService`, `DieuKienTiepNhanService`, `YKienVaoOService`, `TinhDiemUuTien`, `HoSoChoService` | `ResidencyLock`, `M02StatusParticipant`, `UnitPriceService`, `AdmissionApplicationService`, `AdmissionConditionService`, `AdmissionOpinionService`, `PriorityScoreCalculator`, `WaitingListService` |
+| `HopDongService`, `XacDinhKhacChuan`, `HopDongDocService`, `ThayDoiLuuTruHandler`, `LaThayDoiNho`, `TraChinhSachVang`, `LuotVangService`, `HoSoKetThucService`, `HoSoKetThucDocApiImpl`, `ViecSauQuaDoiService`, `DichVuService`, `NgayLuuTruService` | `ContractService`, `NonStandardTermDetector`, `ContractReadService`, `ResidencyChangeHandler` (`typeCode` `M02.RESIDENCY_CHANGE`), `IsMinorChange`, `AbsencePolicyResolver`, `AbsenceService`, `ResidencyEndingService`, `ResidencyEndingReadApiImpl`, `PostDeathTaskService`, `ServiceCatalogService`, `ResidencyDayService` |
+| `LuotDangKyController`, `HoSoChoController`, `HopDongController`, `DichVuController`, `YeuCauThayDoiController`, `VangController`, `KetThucController`, `QuaDoiController` | `AdmissionApplicationController`, `WaitingListController`, `ContractController`, `ServiceCatalogController`, `ResidencyChangeRequestController`, `AbsenceController`, `ResidencyEndingController`, `DeathRecordController` |
+| `PhanLoaiTruongProvider`, `LuuTruProvider`, `GanPhamViProvider`, `QuyenTepProvider`, `DinhChinhDuocProvider` | `FieldClassificationProvider`, `RetentionProvider`, `ScopeAssignmentProvider`, `FilePermissionProvider`, `CorrectableRecordProvider` |
+| bản giả `support/gia004/` | `support/fake/m02/` (`FakeM02Config`; bản giả của sáu SPI 004 khai báo) |
+| hàm thuần: điểm ưu tiên, tra chính sách vắng, điều khoản khác chuẩn, nội dung tại ngày | `PriorityScoreCalculator`, `AbsencePolicyResolver`, `NonStandardTermDetector`, `ContractReadService.contentAtDate` |
+
+### 10.7. Lớp test (quickstart mục 4, tasks)
+
+| Tên logic | Mã |
+| --- | --- |
+| `LuotDangKyIT`, `CapNhatLuotDangKyIT`, `TienTrinhIT`, `FR_004a_YKienVaoOIT`, `FR_004_DanhSachKhopLenhIT`, `BR_M02_22_MucHopDongIT`, `FR_076_CanhBaoChuaVaoOIT` | `AdmissionApplicationIT`, `UpdateAdmissionApplicationIT`, `ProgressIT`, `FR_004a_AdmissionOpinionIT`, `FR_004_ConditionsMatchCommandIT`, `BR_M02_22_ContractCareLevelIT`, `FR_076_NotYetAdmittedWarningIT` |
+| `BR_M02_10_DiemUuTienTest`, `DiemHangNgayIT`, `DieuChinhDiemIT`, `BR_M02_01_DanhSachPhuHopIT`, `FR_012_LuotTrongIT`, `BR_M02_02_GiuChoIT`, `GhiNhanLienHeDongThoiIT`, `FR_002_TuChoiHuyTiepNhanIT`, `BR_M02_03_NhacHoSoChoIT` | `BR_M02_10_PriorityScoreTest`, `DailyScoreIT`, `ScoreAdjustmentIT`, `BR_M02_01_MatchingEntriesIT`, `FR_012_VacancyIT`, `BR_M02_02_BedReservationIT`, `ConcurrentContactIT`, `FR_002_DeclineCancelAdmissionIT`, `BR_M02_03_WaitingEntryReminderIT` |
+| `HopDongVongDoiIT`, `HopDongKhoaNoiDungDbIT`, `DBR_06_HopDongKhongChongIT`, `FR_021_GhiNhanDaKyIT`, `XacDinhKhacChuanTest`, `DuyetDieuKhoanIT`, `BR_M02_09_NoiDungTaiNgayIT`, `BR_M02_05_NhacHopDongIT`, `FR_029_QuaHanHopDongIT` | `ContractLifecycleIT`, `ContractContentLockDbIT`, `DBR_06_ContractNoOverlapIT`, `FR_021_RecordSignedIT`, `NonStandardTermDetectorTest`, `TermsApprovalIT`, `BR_M02_09_ContentAtDateIT`, `BR_M02_05_ContractReminderIT`, `FR_029_ContractOverdueIT` |
+| `DatCocDieuKienIT`, `FR_032_DatCocSauLuuTruIT`, `SuKien017018IT` | `DepositConditionIT`, `FR_032_DepositAfterAdmissionIT`, `Events017018IT` |
+| `BR_M02_04_ApDungPhuLucIT`, `DBR_07_PhuLucIT`, `FR_041_KiemTraKhiDuyetIT`, `FR_046_TrungThuocTinhIT`, `ApDungKhongThanhIT`, `YeuCauNguoiDaiDienIT`, `DoiLichDenIT`, `LaThayDoiNhoTest`, `FR_043_ThayDoiNhoIT` | `BR_M02_04_ApplyAddendumIT`, `DBR_07_AddendumIT`, `FR_041_CheckOnApprovalIT`, `FR_046_DuplicateAttributeIT`, `ApplyFailedIT`, `RepresentativeRequestIT`, `ChangeArrivalScheduleIT`, `IsMinorChangeTest`, `FR_043_MinorChangeIT` |
+| `BR_M02_06_TraChinhSachTest`, `BR_M02_17_QuanLyQuyetDinhNgay1Test`, `NgayVangIT`, `BR_M02_07_QuyetDinhGiuGiuongIT`, `BR_M02_18_DinhChinhVuotNguongIT`, `FR_057_ChuyenVienKhiTamVangIT`, `BanTruHeSoIT`, `NgayNghiBanTruIT` | `BR_M02_06_AbsencePolicyLookupTest`, `BR_M02_17_ManagerDecidesDay1Test`, `AbsenceDayIT`, `BR_M02_07_BedHoldDecisionIT`, `BR_M02_18_CorrectionOverThresholdIT`, `FR_057_TransferOutDuringAbsenceIT`, `DayCareCoefficientIT`, `DayCareClosureDayIT` |
+| `HoSoKetThucIT`, `DieuKienKetThucIT`, `NgoaiLeKetThucIT`, `FR_066_KyCuoiIT`, `FR_066a_QuaNgayDuKienIT`, `HoSoKetThucDocApiIT` | `ResidencyEndingIT`, `EndingConditionsIT`, `EndingExceptionIT`, `FR_066_FinalPeriodIT`, `FR_066a_PastExpectedDateIT`, `ResidencyEndingReadApiIT` |
+| `GhiNhanQuaDoiIT`, `DanhSachViecSauQuaDoiIT`, `BR_M02_21_NguyenNhanTuVongIT` | `RecordDeathIT`, `PostDeathTaskListIT`, `BR_M02_21_CauseOfDeathIT` |
+| `DichVuIT`, `DBR_08_PhienBanDonGiaIT`, `HopDongLechGiaIT` | `ServiceCatalogIT`, `DBR_08_PriceVersionIT`, `MismatchedPriceContractIT` |
+| `BR_M02_19_ChayBuIT`, `NgayLuuTruApiIT`, `HopDongApiSpiIT`, `NguonLuuTruChoPhanBoIT`, `BeanThamGiaChuyenTrangThaiM02IT` | `BR_M02_19_CatchUpRunIT`, `ResidencyDayApiIT`, `ContractApiSpiIT`, (tên do C chốt, mục 9), `M02StatusParticipantIT` |
+| `HopDongApiTest` (so hợp đồng), `NhomGhiNhanCoTriggerIT` (mở rộng cho nhóm 3 của 004) | đăng ký api-004 vào `ApiContractIT`; mở rộng test nhóm 3 của 000 |
+
+### 10.8. Bổ sung khi cài Phase 2 (T003 → T012, 2026-10-25)
+
+*Tên kiểu trong chữ ký `admission.api` mà 10.5 chưa đặt, và chỗ cài khác 10.5, 10.6. Mọi chữ ký view là **provisional** tới khi module dùng xác nhận.*
+
+| Tên logic | Mã |
+| --- | --- |
+| `NoiDungHopDongView`, `HopDongView`, `KhoanDatCocView`, `LichDenView` | `ContractContentView` (`contractId`, `version`, `effectiveFrom`, `addendumId`, `content`, `recordedUnitPrices`), `ContractView` (kèm `ContractStatus`), `DepositAmountView`, `ArrivalScheduleView` |
+| `DonGiaView`, `DichVuView` | `UnitPriceView` (`serviceId`, `priceVersionId`, `unitPrice`, `effectiveFrom`, `effectiveTo`), `ServiceView` (`id`, `type`, `name`, `unit`, `billingPeriod`) |
+| `NgayLuuTruView`, `BuoiBanTruView` | `ResidencyDayView` (`presence`, `absenceId`, `sequenceNo`, `coefficientPercent`, cờ `pendingDecision`, `noPolicyLine`, `notYetAdmitted`, `contractOverdue`, `outsideBillingPeriod`), `DayCareSessionView` |
+| `DanhSachDieuKienView`, `TienTrinhView` | `ConditionListView` (`conditions`, `warnings`), `ConditionView` (`code`, `name`, `status` `ConditionStatus`, `basis`, `module`, `exceptionRequestId`), `ProgressStepView` |
+| `LoaiLuuTruTaiNgayView`, `HoSoChoView`, `DanhSachViecView` | `ResidenceTypeAtDateView`, `WaitingEntryView`, `PostDeathTaskView` (`items` `Item`, `closedAt`) |
+| `PhamViLoc`, `MaMucChamSoc` (trong chữ ký) | `ScopeFilter` (`m15.account.api.dto`), `CareLevel` (`m01.api.dto`) |
+| Sự kiện gửi thông báo (thêm trường so với 10.5) | Mọi sự kiện gửi thông báo thêm `at` (`Instant`) và `residentId` khi có: `BedAvailableForWaitingList(bedId, matchingEntryCount, at)`, `ContractCareLevelMismatch(…, at)`, `BedHoldDecisionNeeded(absenceId, residentId, days, policyLine, at)`, `BedHoldReviewDue(absenceId, residentId, at)`, `NoAbsencePolicyLine(absenceId, residentId, date, at)`, `ContractOverdueEscalated(contractId, residentId, days, at)`, `DepositNotSatisfiedAfterAdmission(contractId, residentId, at)`, `RepresentativeRequestNeedsCompletion(requestId, residentId, at)`, `M02Reminder(type, subjectId, on, at)` |
+| `trg_phien_ban_don_gia_khong_chong` | `trg_price_version_no_overlap_insert`, `trg_price_version_no_overlap_update` (MySQL cần một trigger cho mỗi sự kiện); `trg_price_version_immutable` như 10.6 |
+| `lan_chay_theo_ngay.ket_qua` | `daily_run.result` chỉ `SUCCEEDED`, `SKIPPED`; việc lỗi không ghi dòng nên lần sau làm lại |
+| `ViecHangNgayM02` (bộ chạy bù) | `M02DailyRunner` (`internal.transition.service`, hàm `catchUp`), `M02DailyTask` (mỗi việc: `name`, `latestDayOnly`, `run(day)`), job `M02DailyJob` (`scheduling`); `runJobs` thêm `M02_DAILY` |
+| `ThamGiaM02` | `M02StatusParticipant` (`@Order(1)`) |
+| SPI M02 cài cho module thấp hơn | `ResidencyEndLookup` (`ResidencyEndApi`), `AbsenceLookup` (`AbsenceApi`), `ContractLookup` (`ContractApi`), `CareLevelChangeRequestHandler` (`CareLevelChangeRequestApi`), cả bốn ở `internal.transition.service` |
+| `DonGiaService` | `UnitPriceService` (`internal.servicecatalog.service`) |
+| `PhanLoaiTruongProvider` | `M02FieldClassificationConfig` (`internal.transition.config`): bốn provider `M02.CONTRACT`, `M02.ADDENDUM` (tên tạm), `M02.RESIDENCY_CHANGE`, `M02.DEATH_RECORD` |
+
+### 10.9. Bổ sung khi cài Phase 3 (US1, T013 → T018, 2026-10-25)
+
+*Tên cài thực tế của đăng ký tiếp nhận; mã lỗi, cảnh báo, mã dòng điều kiện mà 10.3, 10.4 chưa đặt. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| lỗi `NCT_KHONG_DANG_TIEP_NHAN`, `LUOT_DA_DONG`, `NGAY_DANG_KY_BI_KHOA` | `RESIDENT_NOT_ADMISSION_IN_PROGRESS` (409), `APPLICATION_CLOSED` (409), `APPLICATION_DATE_LOCKED` (409, BR-M02-15) |
+| cảnh báo lệch mức, lệch loại lưu trú, chưa vào ở (FR-005, FR-076) | `CONTRACT_CARE_LEVEL_MISMATCH`, `RESIDENCE_TYPE_MISMATCH`, `NOT_YET_ADMITTED_FEE_CHARGED` |
+| mã dòng điều kiện khi Đạt: (a), (d), (f) (khi Chưa đạt dòng mang mã điều kiện của module sở hữu: `INITIAL_ASSESSMENT_NOT_CONFIRMED`, `INITIAL_ASSESSMENT_EXPIRED`, mã của 003, `DBR_02`) | `ADM_A_ASSESSMENT`, `ADM_D_BED`, `ADM_F_CONTACTS`; dòng (b), (c), (e) giữ `ADM_B_CONTRACT`, `ADM_C_DEPOSIT`, `ADM_E_CONTRACT_LEVEL` |
+| nhật ký lượt đăng ký | `M02_APPLICATION_CREATED`, `M02_APPLICATION_UPDATED`, `M02_APPLICATION_OPINION`, `M02_APPLICATION_ADMITTED`, `M02_APPLICATION_CANCELLED` (loại đối tượng `M02.ADMISSION_APPLICATION`) |
+| lớp trong `admission.internal.application` | `domain`: `AdmissionApplication`, `AdmissionOpinion`, `ApplicationStatus`, `OpinionChoice`, `OpinionStatus`; `persistence`: `AdmissionApplicationStore`; `service`: `AdmissionApplicationService`, `AdmissionOpinionService`, `AdmissionConditionService` (cài `AdmissionConditionApi`), `AdmissionContractConditions` ((b), (c), (e) dùng chung bean và danh sách), `AdmissionTransition` (tác động Hoàn tất, Hủy tiếp nhận), `AdmissionOpinionWarnings`, `NotYetAdmittedReminder`, `AdmissionApplicationScopeAssignment`, `AdmissionApplicationRetention`, `M02ActorNames` |
+| việc nhắc `NHAC` của `ViecHangNgayM02` | `M02ReminderTask` (việc `REMINDERS`, `latestDayOnly`) chạy các bean `ReminderRule`; ghi qua `ReminderLog` (`m02_reminder`); loại nhắc `NOT_YET_ADMITTED` (`CHUA_VAO_O`) |
+| bản giả hợp đồng đọc cho tới Phase 5 | `support/fake/m02/FakeContractReads` (`ContractReadApi`); đã xóa ở Phase 5, test dùng `ContractFixtures` (ghi bảng `contract` thật) |
+
+### 10.10. Bổ sung khi cài Phase 4 (US2, T020, T022 → T024, 2026-10-25)
+
+*Tên cài thực tế của danh sách chờ; mã lỗi, nhật ký, giá trị enum mà 10.2 → 10.6 chưa đặt. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| lượt liên hệ giường `ket_qua` `LIEN_HE`, `TU_CHOI_GIUONG`, `HET_HAN` | `bed_contact.result`: `CONTACTED`, `BED_DECLINED`, `EXPIRED` |
+| nguyên nhân dòng lịch sử điểm `TAO`, `TINH_HANG_NGAY`, `DOI_MUC`, `DOI_TINH_HUONG`, `DIEU_CHINH`, `DOI_BANG_DIEM` | `score_history.cause`: `CREATED`, `DAILY`, `CARE_LEVEL_CHANGED`, `CIRCUMSTANCES_CHANGED`, `ADJUSTMENT`, `SCORE_TABLE_CHANGED` |
+| thành phần điểm (`score_breakdown`, `components`) | JSON `{careLevel, waitingTime, circumstances, adjustment}`; `current_score` là tổng; `adjustment` là tổng điều chỉnh đã duyệt |
+| bảng điểm CFG-M02-08 (giá trị kiểu TABLE) | `{waitingPeriod {value, unit DAYS}, pointsPerWaitingPeriod, careLevelPoints {BASIC, REGULAR, SPECIAL → điểm} hoặc null, specialSituationPoints {mã tình huống → điểm} hoặc null}`; `null` là viện chưa đặt, tính 0 điểm; mã tình huống chọn được là khóa của `specialSituationPoints` |
+| loại yêu cầu `M02.DIEU_CHINH_DIEM` | `M02.SCORE_ADJUSTMENT`, nội dung `{entryId, points}`; Hành chính lập (khóa `WAITING_LIST`, `UPDATE`), Quản lý viện duyệt (`APPROVE`); gửi duyệt ngay khi lập |
+| loại đối tượng nhật ký, lưu giữ, gắn phạm vi | `M02.WAITING_LIST_ENTRY` (cũng là loại kết quả áp dụng của yêu cầu) |
+| nhật ký hồ sơ chờ | `M02_WAITING_ENTRY_CREATED`, `M02_WAITING_ENTRY_CIRCUMSTANCES_UPDATED` (có lý do), `M02_WAITING_ENTRY_CONFIRMED`, `M02_WAITING_ENTRY_DECLINED`, `M02_WAITING_ENTRY_CANCELLED`; điểm đổi ghi ở `score_history`, không ghi nhật ký |
+| lỗi `LUOT_KHONG_DANG_XU_LY`, `HO_SO_CHO_DA_DONG`, `HO_SO_CHO_KHONG_DANG_CHO`, `HO_SO_CHO_DA_TON_TAI` | `APPLICATION_NOT_IN_PROGRESS` (409), `WAITING_ENTRY_CLOSED` (409), `WAITING_ENTRY_NOT_WAITING` (409), `WAITING_ENTRY_ALREADY_EXISTS` (409, bảo đảm thêm bởi cột sinh `UNIQUE`) |
+| tình huống chờ xác nhận | `waiting_list_circumstance.status` `PENDING_CONFIRMATION`; chỉ tình huống `CONFIRMED` được tính điểm |
+| tình huống "từng lưu trú tại viện" (FR-007) | mã `PREVIOUSLY_RESIDED` (`WaitingListService.PREVIOUSLY_RESIDED`), đánh dấu sẵn `PENDING_CONFIRMATION` khi `ResidentApi.previousProfileId` có và hồ sơ trước `RESIDENCY_ENDED`; điểm của mã này do viện đặt trong `specialSituationPoints` |
+| hàm đọc hồ sơ trước ("Đổi api" 001) | `ResidentApi.previousProfileId(residentId): Optional<Long>` |
+| mã tham số ngoài bảng điểm | CFG-M02-03 đọc bằng `asDuration()` (ngày) |
+| lớp trong `admission.internal.waitinglist` | `domain`: `WaitingListEntry`, `WaitingListStatus`, `Circumstance`, `CircumstanceStatus`, `ScoreBreakdown`, `ScoreCause`, `ScoreHistoryRow`; `persistence`: `WaitingListStore`; `service`: `WaitingListService`, `PriorityScoreCalculator` (hàm thuần), `PriorityScoreTable` (và `Config` đọc CFG-M02-08), `ScoreRecalculation`, `CalculateScoresTask` (việc `CALCULATE_SCORES`, `latestDayOnly`), `WaitingListScoreListeners` (nghe `CareLevelChanged`, `ParameterChanged`), `ScoreAdjustmentRequestHandler`, `WaitingListTransition` (tác động lên hồ sơ chờ của lệnh Hủy tiếp nhận, do `M02StatusParticipant` gọi), `WaitingEntryUpdateReminder` (nhắc `WAITING_ENTRY_UPDATE`), `MatchingEntryService` (hồ sơ phù hợp, nhận `MatchCriteria` từ người gọi), `WaitingListEntryRetention`, `WaitingListScopeAssignment` |
+| phản hồi `HoSoCho`, lịch sử điểm, tham chiếu yêu cầu | `WaitingListEntryBody`, `ScoreHistoryEntryBody`, `ApprovalRequestRefBody`; thân yêu cầu `AddToWaitingListBody`, `UpdateCircumstancesBody`, `ProposeScoreAdjustmentBody`, `ReasonBody` (ở `m02.web`) |
+| test | `BR_M02_10_PriorityScoreTest`, `DailyScoreIT`, `ScoreAdjustmentIT`, `WaitingListEntryIT`, `BR_M02_01_MatchingEntriesIT`, `FR_002_DeclineCancelAdmissionIT`, `BR_M02_03_WaitingEntryReminderIT`, `WaitingListRetentionIT`, `FR_007_PreviousResidencyIT` |
+
+### 10.11. Bổ sung khi cài Phase 5 (US3, T029 → T037, 2026-10-25)
+
+*Tên cài thực tế của hợp đồng; mã lỗi, điều kiện, cảnh báo, nhật ký mà 10.2 → 10.6 chưa đặt. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| lỗi `NGUOI_CAO_TUOI_KHONG_DU_DIEU_KIEN_LAP_HOP_DONG`, `NGUOI_KY_KHONG_PHAI_NGUOI_DAI_DIEN`, `KHONG_CO_DIEU_KHOAN_KHAC_CHUAN` | `RESIDENT_NOT_ELIGIBLE_FOR_CONTRACT` (409), `INVALID_SIGNING_REPRESENTATIVE` (409, DBR-02), `NO_NON_STANDARD_TERMS` (409); `CONTRACT_LOCKED`, `CONTRACT_OVERLAP`, `REPRESENTATIVE_REQUIRED`, `INVALID_TRANSITION` đã có ở 10.4 |
+| mã điều kiện chặn Gửi ký (`CONDITION_NOT_MET`, module `004`) | `CONTRACT_ROOM_REQUIRED`, `CONTRACT_ARRIVAL_SCHEDULE_REQUIRED`, `CONTRACT_DEPOSIT_REQUIRED`, `CONTRACT_CARE_SERVICE_REQUIRED` (đúng một dịch vụ chăm sóc, đúng mức hợp đồng, Q-297), `TERMS_APPROVAL_REQUIRED` (FR-025a); chặn Ghi nhận đã ký: `SERVICE_PRICE_MISSING` (FR-036) |
+| cảnh báo không chặn khi lập, sửa, Gửi ký (FR-025) | `CONTRACT_CARE_LEVEL_MISMATCH` (đã ở 10.9), `SERVICE_PRICE_NOT_EFFECTIVE` |
+| loại yêu cầu `M02.DUYET_DIEU_KHOAN_HOP_DONG`; nội dung | `M02.CONTRACT_TERMS_APPROVAL`; `{contractId, contentHash, terms[] (type, description, standardValue, proposedValue)}`; lập khóa `ADMISSION_CONTRACT_DEPOSIT, UPDATE` (Hành chính), duyệt `ADMISSION_CONTRACT_DEPOSIT, APPROVE` (Quản lý viện) |
+| loại điều khoản khác chuẩn (đã ở 10.3) | `NonStandardTerm.Type`: `PRICE`, `ABSENCE_POLICY`, `BED_HOLD_POLICY` |
+| loại tệp, chủ sở hữu tệp bản scan | `M02.CONTRACT_SCAN` (chủ sở hữu là hợp đồng; `ContractScanFilePermission`) |
+| nhật ký hợp đồng (loại đối tượng `M02.CONTRACT`) | `M02_CONTRACT_CREATED`, `M02_CONTRACT_UPDATED`, `M02_CONTRACT_TERMS_SUBMITTED` (có lý do), `M02_CONTRACT_TERMS_APPROVED`, `M02_CONTRACT_SENT`, `M02_CONTRACT_RETURNED` (có lý do), `M02_CONTRACT_SIGNED`, `M02_CONTRACT_CANCELLED` (có lý do ở lệnh Hủy), `M02_CONTRACT_TERMINATED` (Hủy tiếp nhận sau khi Hiệu lực) |
+| việc hằng ngày `HOP_DONG` | `CONTRACTS` (`ContractOverdueTask`, `@Order(30)`, không `latestDayOnly`); nhắc `ContractReminders` (`CONTRACT_EXPIRING`, `SHORT_TERM_CONTRACT`, `CONTRACT_OVERDUE`) |
+| bảng | `contract` (cột `current_end_date`, `content_hash`, `awaiting_terms_approval`, `terms_approval_request_id`, `overdue_since`, `manager_notified_overdue_at`), `contract_service`, `contract_absence_policy`, `contract_arrival_schedule`, `contract_content_version` (mã hợp đồng trong cột `contract_id`); trigger thêm `trg_contract_no_delete`, ba trigger khóa mỗi bảng con (`…_lock_insert`, `…_lock_update`, `…_lock_delete`), `trg_contract_content_version_no_update`, `trg_contract_content_version_no_delete` |
+| lớp trong `admission.internal.contract` | `domain`: `Contract`, `ContractContent` (`ServiceLine`, `AbsencePolicyLine`, `ArrivalLine`), `ContractVersion`, `NonStandardTerm`; `persistence`: `ContractStore`; `service`: `ContractService`, `ContractRules`, `ContractSnapshot` (JSON chuẩn hóa và băm SHA-256), `NonStandardTermDetector`, `ContractTermsRequestHandler`, `ContractTermsListeners`, `ContractReadService` (cài `ContractReadApi` và `ContractApi` của 001; thay `ContractLookup` khung), `ContractTransition` (Hủy tiếp nhận kéo theo hợp đồng), `ContractOverdueTask`, `ContractReminders`, `ContractScopeAssignment`, `ContractScanFilePermission` |
+| phản hồi, thân yêu cầu | `ContractBody`, `ContractResultBody`, `ContractContentBody`, `NonStandardTermBody`, `AddendumBody`; `ContractInputBody` (kèm `FeeBillingPeriod`, `HoldBed`, `ServiceLineBody`, `AbsencePolicyLineBody`, `ArrivalLineBody`), `RecordSignedBody` |
+| hợp đồng lệch glossary | `AddendumBody.Status` theo hợp đồng api-004 là `PENDING_EFFECTIVE`, `APPLIED`, `NOT_APPLICABLE`; 10.3 ghi `NOT_APPLIED` (lệch, chờ chủ dự án chọn khi làm Phase 7) |
+| test | `ContractLifecycleIT`, `ContractContentLockDbIT`, `DBR_06_ContractNoOverlapIT`, `FR_021_RecordSignedIT`, `NonStandardTermDetectorTest`, `TermsApprovalIT`, `BR_M02_09_ContentAtDateIT`, `BR_M02_05_ContractReminderIT`, `FR_029_ContractOverdueIT`; nền `ContractTestBase`, `ContractFixtures` (thay `FakeContractReads` đã xóa) |
+
+### 10.12. Bổ sung khi cài Phase 6 (US4, T039 → T041, 2026-10-26)
+
+*Tên cài thực tế của phần đặt cọc. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| `GET /hop-dong/{id}/dat-coc`; thân phản hồi | `GET /contracts/{id}/deposit`; `DepositBody` (`notRequired`, `requiredAmount`, `status`, `basis`), `DepositBody.Basis` (`at`, `transactionId`, `accountant` là họ tên Kế toán, `receiptNumber` luôn rỗng vì Q-385 bỏ số phiếu thu chi) |
+| lớp trong `admission.internal.deposit.service` | `DepositViewService` (khoản cần đặt cọc từ hợp đồng, trạng thái từ `DepositStatusPort`; chưa có 017 thì Chưa đáp ứng), `DepositRecheckService.recheck(contractId)` (FR-032, listener của 017 sẽ gọi) |
+| sự kiện khoản cọc | `DepositAmountChanged(contractId, newAmount)` phát khi hợp đồng vào Chờ ký (kể cả gửi ký lại sau Trả về nháp); `newAmount` bằng 0 khi không yêu cầu cọc; phụ lục đổi khoản cọc phát ở Phase 7 |
+| test | `DepositConditionIT`, `FR_032_DepositAfterResidencyIT`, `Events017018IT` |
+
+### 10.13. Bổ sung khi cài Phase 7 (US5, T042 → T047, T075, 2026-10-26)
+
+*Tên cài thực tế của phần thay đổi lưu trú, phụ lục. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| `V004_06__phu_luc.sql` (đổi tên theo 10.6: `V004_06__addendum.sql`); `phu_luc_hop_dong`, `yeu_cau_thay_doi_thuoc_tinh` | `V004_06__addendum.sql`; `contract_addendum` (`contract_id`, `approval_request_id`, `change_types`, `content_before`, `content_after`, `effective_date`, `status`, `content_version_id`, `created_at`), `change_request_attribute` (`approval_request_id`, `contract_id`, `resident_id`, `attribute`, `pending_effective`, `lock_key`) |
+| trạng thái phụ lục (cột) | `PENDING_EFFECTIVE`, `APPLIED`, `NOT_APPLIED` (cột, theo 10.3); thân phản hồi `AddendumBody.Status` giữ `NOT_APPLICABLE` theo api-004 (chờ chủ dự án chọn, BL-66) |
+| `THAY_DOI_LUU_TRU` (loại yêu cầu), `ThayDoiLuuTruHandler`, `LaThayDoiNho` | `M02.RESIDENCY_CHANGE`, `ResidencyChangeHandler`, `IsMinorChange` (`admission.internal.change.service`) |
+| trạng thái mở rộng `DUOC_THAY_THE`, chuyển mở rộng | `SUPERSEDED`; mã chuyển `SUPERSEDE` (từ `DRAFT`, `PENDING_APPROVAL`, `APPROVED`) |
+| loại thay đổi `LOAI_LUU_TRU`, `MUC_CHAM_SOC`, `DICH_VU`, `THOI_GIAN`, `GIUONG`, `LICH_DEN` | `RESIDENCE_TYPE`, `CARE_LEVEL`, `SERVICE`, `DURATION`, `BED`, `ARRIVAL_SCHEDULE` (`ChangeType`) |
+| `newValue.services[]` | dòng thay đổi `{serviceId, action: ADD \| REMOVE, inPackage, quantity, customUnitPrice}` (không phải danh sách đích); khoản cọc đi kèm `newValue.depositAmount`, `newValue.noDepositRequired` |
+| lớp trong `admission.internal.change` | `domain`: `ChangeType`, `Addendum`, `ResidencyChangeContent`; `persistence`: `AddendumStore`; `service`: `ResidencyChangeHandler`, `ResidencyChangeRules` (điều kiện FR-041, FR-045, FR-046; giá trị trước; ảnh hưởng chi phí), `AddendumContent` (áp thay đổi lên nội dung phiên bản, diff trước/sau), `IsMinorChange`, `ResidencyChangeService`, `ResidencyChangeListeners`, `CareLevelChangeRequestHandler` (cài `CareLevelChangeRequestApi`, thay khung ở `transition`) |
+| web | `ResidencyChangeRequestController` (`POST /residency-change-requests`, `GET /residency-change-requests/{id}`), `ResidencyChangeRequestInputBody` (`Reference`), `ResidencyChangeRequestBody`, `AddendumBody.of`; `GET /contracts/{id}/addenda` đọc dữ liệu thật |
+| mã điều kiện chưa thỏa (409 `CONDITION_NOT_MET`) | `CONTRACT_NOT_ACTIVE`, `RESIDENT_IN_FINAL_STATUS`, `EFFECTIVE_DATE_BEFORE_CONTRACT_START`, `DUPLICATE_PENDING_ATTRIBUTE`, `RESIDENCE_TYPE_UNCHANGED`, `END_DATE_REQUIRED`, `ARRIVAL_SCHEDULE_REQUIRED`, `BED_REQUIRED`, `CARE_LEVEL_UNCHANGED`, `CARE_SERVICE_MISSING`, `SERVICE_NOT_FOUND`, `SERVICE_NOT_EFFECTIVE`, `SERVICE_PRICE_MISSING`, `SERVICE_NOT_IN_CONTRACT`, `SERVICE_ALREADY_IN_CONTRACT`, `CARE_SERVICE_NOT_ALLOWED`, `END_DATE_BEFORE_EFFECTIVE`, `CONTRACT_OVERLAP`, `NOT_INPATIENT`, `NOT_DAY_CARE`, `ADDENDUM_NOT_PENDING`, `BED_ALLOCATION_CHECK_UNAVAILABLE`, `DAY_CARE_CAPACITY_CHECK_UNAVAILABLE` |
+| nhật ký | `M02_ADDENDUM_CREATED` (khi duyệt), `M02_ADDENDUM_APPLIED`, `M02_ADDENDUM_NOT_APPLIED`; loại đối tượng `M02.ADDENDUM` |
+| test | `IsMinorChangeTest`, `BR_M02_04_ApplyAddendumIT`, `DBR_07_AddendumIT`, `FR_041_CheckOnApprovalIT`, `FR_046_DuplicateAttributeIT`, `ApplyFailedIT`, `RepresentativeRequestIT`, `ChangeArrivalScheduleIT`, `CareLevelChangeRequestIT`, `FR_043_MinorChangeIT` |
+
+### 10.14. Bổ sung khi cài Phase 8 (US6, T048 → T055, 2026-10-26)
+
+*Tên cài thực tế của phần lượt vắng, ngày vắng, quyết định giữ giường, báo vắng và ngày nghỉ bán trú. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| `V004_07__vang_mat.sql` (đổi tên theo 10.6: `V004_07__absence.sql`); `luot_vang`, `lich_su_du_kien_tro_lai`, `quyet_dinh_giu_giuong`, `ngay_vang`, `bao_vang_ban_tru`, `ngay_nghi_ban_tru` | `V004_07__absence.sql`; `absence` (`resident_id`, `absence_type`, `reason`, `standard_reason`, `departed_at`, `expected_return_at`, `returned_at`, `picked_up_by_id`, `pickup_record_id`, `transfer_unit`, `handover_staff_id`, `takes_medication`, `initial_bed_hold`, `threshold_notified_at`, `review_date`, `previous_absence_id`, `status`, `open_resident_id`, `created_by`, `created_at`, `closed_by`), `expected_return_history` (`absence_id`, `old_value`, `new_value`, `reason`, `actor_id`, `at`), `bed_hold_decision` (`absence_id`, `threshold_date`, `choice`, `coefficient`, `review_date`, `applies_from`, `applies_to`, `reason`, `decided_by`, `decided_at`), `absence_day`, `day_care_absence_notice` (`resident_id`, `date`, `session_id`, `family_notified_at`, `within_notice_period`, `recorded_by`, `recorded_at`), `day_care_closure_day` (`date`, `reason`, `status`, `active_date`, `late_declaration`, `declared_by`, `declared_at`, `cancelled_by`, `cancel_reason`, `cancelled_at`) |
+| trigger | `trg_absence_immutable_when_closed` (đã có ở 10.6), `trg_absence_no_delete`, `trg_expected_return_history_immutable`, `trg_bed_hold_decision_immutable`, `trg_day_care_absence_notice_immutable` và các `*_no_delete` (chỉ tài khoản `eldercare_retention` xóa) |
+| `TraChinhSachVang` (hàm thuần) | `AbsencePolicyResolver` (`resolve`, `dayCare`, `noLine`; `Outcome`, `Hold` `YES`/`NO`/`MANAGER_DECIDES`, `Source` `CONTRACT`/`FACILITY`/`DEFAULT`) ở `admission.internal.absence.service` |
+| lớp trong `admission.internal.absence` | `domain`: `AbsenceType`, `Absence`, `AbsenceDay`, `BedHoldChoice`, `BedHoldDecision`; `persistence`: `AbsenceStore`, `DayCareStore`; `service`: `AbsenceService` (đọc, gia hạn, quyết định giữ giường, tính lại sau đính chính), `AbsenceDayCalculator` (ghi `absence_day`), `AbsenceTransition` (tác động của `GRANT_TEMPORARY_ABSENCE`, `TRANSFER_OUT`, `RECORD_RETURN`), `AbsenceDayTask` (việc `ABSENCE_DAYS` của `M02_DAILY`), `AbsenceCorrectionProvider` (`M02.ABSENCE`), `BedHoldDecisionCorrectionProvider` (`M02.BED_HOLD_DECISION`), `DayCareService`, `AbsenceNames`; `AbsenceLookup` (`AbsenceApi.open`) ở `internal.transition.service` thay khung |
+| việc hằng ngày | `ABSENCE_DAYS` (`@Order(20)`, bảng `daily_run`): ghi nốt ngày vắng tới ngày chạy, báo ngưỡng một lần (`threshold_notified_at`), báo ngày xem xét lại |
+| web | `AbsenceController` (`GET /absences`, `GET /absences/{id}`, `POST …/extend-expected-return`, `…/bed-hold-decision`, `…/correct`), `DayCareController` (`POST /day-care-absence-notices`, `GET`, `POST /day-care-closure-days`, `POST …/{id}/cancel`); thân `ExtendExpectedReturnBody`, `BedHoldDecisionBody`, `DayCareAbsenceNoticeBody`, `DayCareClosureDayBody`, `CorrectionRequestBody`; phản hồi `AbsenceBody`, `AbsenceDetailBody`, `DayCareClosureDayView` |
+| mã điều kiện, lỗi | `ABS_PICKUP_RECORD` (điều kiện chưa thỏa của Cho tạm vắng, 409 `UNMET_CONDITIONS`), `ABSENCE_ALREADY_OPEN`, `ABSENCE_CLOSED`, `ABSENCE_STILL_OPEN`, `BED_NOT_HELD`, `THRESHOLD_NOT_REACHED`, `NO_PENDING_DAYS`, `NO_ARRIVAL_ON_DATE`, `CLOSURE_ALREADY_CANCELLED` (cộng `DAY_ALREADY_DECLARED`, `PICKUP_RECORD_ALREADY_USED` ở 10.4); cảnh báo `BED_REALLOCATION_NEEDED` |
+| nhật ký | `M02_ABSENCE_OPENED`, `M02_ABSENCE_CLOSED`, `M02_ABSENCE_EXTENDED`, `M02_ABSENCE_DECISION`, `M02_ABSENCE_RECALCULATED`, `M02_ABSENCE_NOTICE_RECORDED`, `M02_ABSENCE_CLOSURE_DECLARED`, `M02_ABSENCE_CLOSURE_CANCELLED`; loại đối tượng `M02.ABSENCE`, `M02.DAY_CARE_ABSENCE_NOTICE`, `M02.DAY_CARE_CLOSURE_DAY` |
+| nguyên nhân `ResidencyDaysChanged.cause` | `BED_HOLD_DECISION`, `BED_HOLD_DECISION_CORRECTION`, `ABSENCE_CORRECTION` |
+| nội dung đính chính | `M02.ABSENCE`: `departedAt`, `returnedAt` (ISO-8601); `M02.BED_HOLD_DECISION`: `coefficient`, `reviewDate` |
+| test | `BR_M02_06_AbsencePolicyLookupTest`, `BR_M02_17_ManagerDecidesDay1Test`, `AbsenceDayIT`, `BR_M02_07_BedHoldDecisionIT`, `BR_M02_18_CorrectionOverThresholdIT`, `FR_057_TransferOutDuringAbsenceIT`, `DayCareCoefficientIT`, `DayCareClosureDayIT`; nền `AbsenceTestBase` |
+
+### 10.15. Bổ sung khi cài Phase 9 (US7, T057 → T061, T106 → T108, 2026-10-26)
+
+*Tên cài thực tế của hồ sơ kết thúc lưu trú, bàn giao, ngoại lệ điều kiện và đọc cho 017. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| `V004_08__ket_thuc.sql` (đổi tên theo 10.6: `V004_08__residency_ending.sql`); `ho_so_ket_thuc`, `ban_giao_nct`, `ngoai_le_dieu_kien` | `V004_08__residency_ending.sql`; `residency_ending` (`resident_id`, `end_case`, `medical_reason`, `destination`, `expected_end_date`, `actual_ended_at`, `requested_by`, `reason`, `overdue_since`, `final_period_ref`, `status`, `cancel_reason`, `open_resident_id`, `version`, `created_by`, `created_at`, `closed_by`, `closed_at`), `resident_handover` (`ending_id`, `recipient_type`, `family_member_id`, `facility_name`, `handover_at`, `handover_staff_id`, `recorded_by`, `recorded_at`), `ending_condition_exception` (`ending_id` rỗng được, `resident_id`, `condition_code`, `approval_request_id`, `created_at`) |
+| trigger | `trg_residency_ending_immutable_when_closed`, `trg_residency_ending_no_delete`, `trg_resident_handover_immutable`, `trg_resident_handover_no_delete`, `trg_ending_condition_exception_immutable`, `trg_ending_condition_exception_no_delete` |
+| `ThamGiaM02` phần `KET_THUC_LUU_TRU` | `EndingTransition` (`unmet`, `waiver`, `completed`) do `M02StatusParticipant` gọi cho `END_RESIDENCY`; hợp đồng: `ContractTransition.residencyEnded`; lượt vắng: `AbsenceTransition.closedByFinalState`; yêu cầu thay đổi lưu trú: `ResidencyChangeClosing.closeAll` (`closeForFinalState` của 000 rồi `AddendumClosing`) |
+| lớp trong `admission.internal.ending` | `domain`: `ResidencyEnding`, `EndingStatus`, `Handover`, `RecipientType`, `EndingExceptionRecord`, `EndingConditionCode`; `persistence`: `ResidencyEndingStore`; `service`: `ResidencyEndingService` (lập, đổi ngày, hủy, bàn giao, lập yêu cầu ngoại lệ, xem), `EndingConditionService` (danh sách (a) → (h), cài `AdmissionConditionApi.endingConditions` qua `AdmissionConditionService`), `EndingTransition`, `EndingHandovers` (bàn giao hiện hành sau đính chính), `HandoverCorrectionProvider` (`M02.RESIDENT_HANDOVER`), `EndingExceptionHandler` (loại yêu cầu `M02.ENDING_EXCEPTION`), `EndingFootnoteCondition` (chú thích 39 của Phụ lục 27), `EndingOverdueTask` (việc `ENDINGS`), `EndingReminders` (`PAST_EXPECTED_DATE`), `ResidencyEndingReadApiImpl` |
+| web | `ResidencyEndingController` (`POST /residency-endings`, `GET …/{id}`, `GET …/{id}/conditions`, `POST …/change-date`, `…/cancel`, `…/handover`, `…/request-exception`); thân `ResidencyEndingInputBody` (`EndCaseInput`), `ChangeExpectedEndDateBody`, `ResidentHandoverBody`, `RequestEndingExceptionBody`; phản hồi `ResidencyEndingBody` (`HandoverBody`), `ConditionListBody.ofEnding` (thêm `exception`: `ExceptionRefBody`) |
+| `admission.api` mới (T108) | `ResidencyEndingReadApi` (`HoSoKetThucDocApi`: `preparing`, `settlementInfo`, `hasApprovedSettlementException`); `dto`: `EndCase` (thêm `DEATH` chỉ cho `SettlementInfoView`), `ResidencyEndingView`, `SettlementInfoView` |
+| mã điều kiện kết thúc | `END_A_COSTS`, `END_B_BELONGINGS`, `END_C_STORED_MEDICATION`, `END_D_ALERTS_INCIDENTS`, `END_E_HANDOVER`, `END_H_SETTLEMENT`, `END_H_SETTLEMENT_CONFIRMATION` (10.3); dòng hiển thị cố định `END_F_CONTRACT`, `END_G_BED` (trạng thái `AUTOMATIC`, mã 004 đặt vì research T-09 không đặt mã cho (f), (g)); dòng (h) hiện mã `END_H_SETTLEMENT` |
+| mã điều kiện chưa thỏa của 004 (409 `CONDITION_NOT_MET`) | `END_NO_PREPARING_ENDING`, `END_PAST_EXPECTED_DATE`, `END_EFFECTIVE_DATE_OUT_OF_RANGE`, `END_E_HANDOVER` (cùng `FINAL_PERIOD_UNAVAILABLE` khi lập hồ sơ mà chưa có bản cài `KyCuoiPort` của 010) |
+| mã lỗi | `RESIDENT_NOT_IN_RESIDENCE` (409), `RESIDENCY_ENDING_ALREADY_OPEN` (409), `RESIDENCY_ENDING_NOT_PREPARING` (409) |
+| nhật ký | `M02_ENDING_CREATED`, `M02_ENDING_DATE_CHANGED`, `M02_ENDING_CANCELLED`, `M02_ENDING_HANDOVER_RECORDED`, `M02_ENDING_COMPLETED`, `M02_ENDING_OVERDUE_MARKED`, `M02_ENDING_EXCEPTION_APPROVED`, `M02_CONTRACT_ENDED`; loại đối tượng `M02.RESIDENCY_ENDING` |
+| đối tượng kiểm quyền | `M02.RESIDENCY_ENDING` (hồ sơ kết thúc), `M02.ENDING_EXCEPTION` (yêu cầu ngoại lệ), `M02.ENDING_EXCEPTION.SETTLEMENT` (yêu cầu ngoại lệ ý tiền (h): chú thích 39 chỉ thỏa với hai loại đối tượng của hồ sơ kết thúc và loại này) |
+| loại yêu cầu, bản ghi nhóm 3 | `M02.NGOAI_LE_KET_THUC` → `M02.ENDING_EXCEPTION` (nội dung `{residencyEndingId, conditionCode}`); `M02.BAN_GIAO_NCT` → `M02.RESIDENT_HANDOVER` (đính chính `handoverAt`, `handoverStaffId`, `familyMemberId`, `facilityName`) |
+| nguyên nhân `ResidencyDaysChanged.cause` | `RESIDENCY_ENDING_OVERDUE` |
+| việc hằng ngày, nhắc | `ENDINGS` (`@Order(40)`, bảng `daily_run`); loại nhắc `PAST_EXPECTED_DATE` (mức Nhẹ) |
+| test | `ResidencyEndingIT`, `EndingConditionsIT`, `EndingExceptionIT`, `FR_066_FinalPeriodIT`, `FR_066a_PastExpectedDateIT`, `ResidencyEndingReadApiIT`, `EndingConcurrencyIT`, `EndingClosesRequestsIT`; nền `EndingTestBase` |
+
+
+### 10.16. Bổ sung khi cài Phase 10 (US8, T062 → T065, T106, T109, 2026-10-26)
+
+*Tên cài thực tế của bản ghi qua đời và danh sách việc sau qua đời. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| `V004_09__qua_doi.sql`; `ban_ghi_qua_doi`, `muc_viec_sau_qua_doi` | `V004_09__death_record.sql`; `death_record` (`resident_id` `UNIQUE`, `death_at`, `place`, `discovered_by`, `confirmed_by_id`, `cause_of_death`, `evidence_file_id`, `history_id`, `recorded_by`, `recorded_at`), `post_death_task` (`death_record_id`, `item_code`, `status`, `basis`, `updated_at`) |
+| trigger | `trg_death_record_immutable`, `trg_death_record_no_delete`, `trg_post_death_task_no_delete` |
+| `ThamGiaM02` phần `GHI_NHAN_QUA_DOI` | `DeathTransition.recorded` do `M02StatusParticipant` gọi cho `RECORD_DEATH`; hợp đồng `ContractTransition.residentDied` |
+| lớp trong `admission.internal.death` | `domain`: `DeathRecord`, `PostDeathTask`; `persistence`: `DeathStore`; `service`: `DeathTransition`, `PostDeathTaskService` (`PostDeathTaskApi`: `refresh`, `view`; thêm `list`, `recalculate`, `requestSettlementException`, `settlementExceptionAllowed`, `recordIdOf`), `DeathRecordService`, `DeathRecordCorrectionProvider`, `DeathEvidenceFilePermission`, `PostDeathReminders` |
+| web | `DeathController` (`GET /residents/{residentId}/death-record`, `POST /death-records/{id}/correct`, `GET /residents/{residentId}/post-death-tasks`, `POST …/request-settlement-exception`); `DeathRecordBody`, `PostDeathTaskListBody` |
+| loại đối tượng, tệp | `M02.DEATH_RECORD` (kiểm quyền, nhật ký, đính chính, phân loại trường `cause` = `HEALTH`); chủ sở hữu tệp `M02.DEATH_EVIDENCE` |
+| nội dung yêu cầu ngoại lệ sau qua đời | `M02.ENDING_EXCEPTION` với `{residentId, basis = POST_DEATH, conditionCode = END_H_SETTLEMENT}`; `ResidencyEndingService.POST_DEATH_BASIS`, `EXCEPTION_TYPE`, `settlementExceptionTarget` |
+| mã lỗi | `POST_DEATH_LIST_CLOSED` (409), `POST_DEATH_SETTLEMENT_NOT_OPEN` (409), `EVIDENCE_REQUIRED` (422, của 001) |
+| nhật ký | `M02_DEATH_RECORDED`, `M02_POST_DEATH_ITEM_CHANGED`, `M02_POST_DEATH_CLOSED`, `M02_ENDING_CANCELLED_BY_DEATH`, `M02_ENDING_EXCEPTION_APPROVED` (dùng chung) |
+| nhắc | `POST_DEATH_TASKS` (mức Nhẹ, `subjectId` là mã bản ghi qua đời) |
+| test | `RecordDeathEffectsIT` (tránh trùng `m01.RecordDeathIT`), `PostDeathTaskIT`, `BR_M02_21_CauseOfDeathIT`, `PostDeathSettlementExceptionIT`; nền `DeathTestBase` |
+### 10.17. Bổ sung khi cài Phase 11 (US9, T066 → T068 phần backend, 2026-10-27)
+
+*Tên cài thực tế của lệnh dịch vụ và phiên bản đơn giá. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| `DichVuService` (T067) | `ServiceCatalogService` (`internal.servicecatalog.service`; `list`, `create`, `update`, `deactivate`, `priceVersions`, `createPriceVersion`, `mismatchedContracts`; `Input`; `target(serviceId)`) |
+| kho dữ liệu, kiểu miền | `ServiceCatalogStore` (`persistence`); `ServiceRecord`, `PriceVersion`, `MismatchedContract` (`domain`) |
+| web (T068) | `ServiceController` (`GET`, `POST /services`, `PUT /services/{id}`, `POST /services/{id}/deactivate`, `GET`, `POST /services/{id}/price-versions`, `GET /services/{id}/mismatched-price-contracts`); `ServiceInputBody`, `PriceVersionInputBody`; `ServiceBody` (schema `Service`), `PriceVersionBody` (schema `PriceVersion`), `MismatchedPriceContractBody` |
+| loại đối tượng | `M02.SERVICE`, `M02.PRICE_VERSION` (quyền `SERVICE_PRICE`: AC-01 xem, tạo, sửa; AC-09 chỉ xem) |
+| mã lỗi | `SERVICE_NAME_EXISTS`, `CARE_SERVICE_LEVEL_EXISTS` (409, Q-297), `SERVICE_INACTIVE`, `SERVICE_ALREADY_INACTIVE`, `SERVICE_FIELD_LOCKED` (409), `PRICE_VERSION_OVERLAPS_APPLIED` (409), `VERSION_MISMATCH` (412) |
+| nhật ký | `M02_SERVICE_CREATED`, `M02_SERVICE_UPDATED`, `M02_SERVICE_DEACTIVATED` (bắt buộc lý do), `M02_SERVICE_PRICE_VERSION_CREATED` |
+| hợp đồng | schema `Service` thêm `version` (cũng là ETag, `If-Match` của `PUT`, `deactivate`) |
+| test | `ServiceCatalogIT` (DichVuIT), `DBR_08_PriceVersionIT`, `MismatchedPriceContractsIT` |
+
+
+### 10.18. Bổ sung khi cài Phase 12 (T069 → T071, 2026-10-27)
+
+*Tên cài thực tế của dữ liệu ngày lưu trú và số liệu 016. Chờ chủ dự án duyệt cùng PR.*
+
+| Tên logic | Mã |
+| --- | --- |
+| `NgayLuuTruService` (T069) | `ResidencyDayService` (`internal.residencyday.service`; cài `ResidencyDayApi`: `daysBetween`, `dayCareSessions`, `billingStopDate`) |
+| `LuuTruThongKeService` (T069) | `ResidencyStatisticsService` (cài `ResidencyStatisticsApi`: `residenceTypeAtDate`, `waitingList`) |
+| buổi bán trú | `DayCareSessions` (`internal.absence.service`; `sessionId` là số thứ tự buổi trong ngày theo giờ đến) |
+| cột mới (V004_10) | `admission_application.admitted_on` (ngày Hoàn tất tiếp nhận), `contract.terminated_on` (ngày hợp đồng Chấm dứt); kho `AdmissionApplicationStore.admittedOn`, `ContractStore.terminatedOn`, `ResidencyEndingStore.completedAt` |
+| cột mới (V004_11) | `resident_residency.admitted_on` (ngày vào ở ghi theo người; `AdmissionApplicationStore.recordAdmittedOn`) |
+| test (audit) | `AdmissionCompletedEventIT`, `DayCareSessionsIT` |
+| test | `ResidencyDayApiIT` (NgayLuuTruApiIT), `M02StatusParticipantIT` (BeanThamGiaChuyenTrangThaiM02IT), `M02RecordGroupTriggerIT` (NhomGhiNhanCoTriggerIT cho 004) |
+
+### 10.19. Sửa theo R-15, Q-394, Q-395 (2026-11-02; thay các dòng tương ứng ở trên)
+
+| Tên logic | Tên trong mã |
+| --- | --- |
+| `ho_so_tiep_nhan` (gộp `luot_dang_ky`, `ho_so_cho`, `y_kien_vao_o`) | bảng `admission_record`, cột `kind` (`APPLICATION`, `WAITING_ENTRY`, `OPINION`) |
+| `uu_tien`, `ly_do_uu_tien`, dấu Ưu tiên | `priority`, `priority_reason`; `POST /waiting-list-entries/{id}/mark-priority`; hành động `M02_WAITING_ENTRY_PRIORITY_MARKED` |
+| `phien_ban_hop_dong` (gộp `phien_ban_noi_dung_hop_dong`, `phu_luc_hop_dong`, `hop_dong_dich_vu`, `hop_dong_lich_den`) | bảng `contract_version`, cột `kind` (`DRAFT`, `CONTENT`, `ADDENDUM`) |
+| `dich_vu` | `catalog_item` loại `M02.SERVICE` (`ServiceAttributes`), cột sinh `m02_active_care_level` |
+| `luot_vang` (gộp `bao_vang_ban_tru`, `ngay_nghi_ban_tru`) | bảng `absence`, cột `kind` (`ABSENCE`, `DAY_CARE_NOTICE`, `CLOSURE_DAY`) |
+| `da_bao_quan_ly_luc`, `giai_phong_giuong_luc`, `giai_phong_boi_id`, `ly_do_giai_phong` | `manager_notified_at`, `bed_released_at`, `bed_released_by`, `bed_release_reason` |
+| Lệnh Giải phóng giường | `POST /absences/{id}/release-bed`; `AbsenceService.releaseBed`; hành động `M02_ABSENCE_BED_RELEASED` |
+| Báo Quản lý viện khi vắng dài | sự kiện `LongAbsenceManagerNotice`; việc `ABSENCE_NOTICE`; CFG-M02-05 `managerNoticeDays`, `dayCareNoticedPercent`, `dayCareUnnoticedPercent` |
+| `ket_thuc_luu_tru` (gộp `ho_so_ket_thuc`, `ban_ghi_qua_doi`) | bảng `residency_ending`, cột `kind` (`ENDING`, `DEATH`) |
+| `lien_he_giuong`, `ban_giao_nct`, `ngoai_le_dieu_kien` | `record_event` loại `M02.BED_CONTACT`, `M02.RESIDENT_HANDOVER`, `M02.ENDING_CONDITION_EXCEPTION` |
+| `lich_su_du_kien_tro_lai` | `status_history`, track `M02.ABSENCE` / `EXPECTED_RETURN` |
+| `luu_tru_nct`, `muc_viec_sau_qua_doi` | `resident_module_state` loại `M02.RESIDENCY` (`ResidencyState`) |
+| `lan_chay_theo_ngay`, `nhac_m02` | `reminder_marker` loại `M02.DAILY_RUN`, `M02.REMINDER` |
+| `yeu_cau_thay_doi_thuoc_tinh` | `simple_record` loại `M02.CHANGE_ATTRIBUTE` (`ChangeAttribute`; lệch data-model 0.1, lý do ở plan) |
+| Đã bỏ theo Q-394, Q-395 | `score_history`, `waiting_list_circumstance`, `bed_hold_decision`, `absence_day`, `contract_absence_policy`, `absencePolicyOverrides`, `/score-history`, `/update-circumstances`, `/propose-score-adjustment`, `/bed-hold-decision` |
+
 
 ## 11. Feature 005 (`005-daily-care-tasks`, C)
 
@@ -1274,6 +1679,12 @@ Không thêm chữ ký SPI/event Java; quantity tính phí và tín hiệu VOID 
 | hoạt chất của `don_thuoc`; dòng của `phieu_doi_chieu`; đơn của `thuoc_gia_dinh_gui` | `prescription.active_ingredient_ids`; `medication_reconciliation.lines`; `family_medication_batch.prescription_bindings` |
 | loại bảng chung của 006 | `M07.MEDICATION` (danh mục); `M07.PRESCRIPTION_ISSUE`, `M07.PRESCRIPTION_BASIS` (sự kiện); `M07.DOSE_REVIEW`, `M07.ABSENCE_INTERVAL`, `M07.RECONCILIATION_CORRECTION_REQUEST` (hồ sơ chung); `M07` (trạng thái theo người); `M07.JOB.<jobKey>` (mốc đã nhắc) |
 
+
+### 12.21. Gói chức năng nội bộ và khóa dòng *(2026-10-31)*
+
+Trong `medication.internal`, danh mục thuốc là `catalog`, đơn thuốc là `prescription`, liều và PRN là `dose`, lịch thuốc và job là `schedule`, đối chiếu là `reconciliation`, thuốc gia đình gửi là `family`, giao nhận và khoảng vắng là `handover`, tiếp nhận cung ứng là `procurement`, tích hợp quản trị là `governance`. Trong mỗi chức năng giữ các tầng `service`, `domain`, `persistence`, `config` theo backend/README.md. Đây là gói nội bộ, không đổi tên API công khai.
+
+Thời điểm khóa dòng của phiếu đối chiếu và bàn giao: trường `lockedAt`, cột `locked_at`; hai entity dùng `@DataGroup(MULTIPLE)`. Dòng đối chiếu nhúng giữ mã phiếu cha `reconciliationId`; thời điểm trong JSON chép từ dữ liệu cũ dùng ISO-8601 UTC để đọc thành `Instant`.
 
 ## 13. Feature 007 (`007-health-alert-incident`, D)
 
@@ -1905,6 +2316,13 @@ Tên chính thức của C/D giữ theo feature sở hữu; các tên dưới đ
 | loại bảng chung của 008 | `M09.DEPARTMENT`, `M09.CREDENTIAL_TYPE`, `M09.PRACTICE_SCOPE`, `M09.SHIFT_TEMPLATE` (danh mục); thuộc tính `NGUOI_PHU_TRACH` của `BO_PHAN`, `CA` (lịch sử chung); `M09.SHIFT_PUBLICATION`, `M09.HANDOVER_COMMENT`, `M09.HANDOVER_REPLY`, `M09.STAFFING_RATIO_CALCULATION` (sự kiện); `M09.STAFF_IMPORT_BATCH` (hồ sơ chung); `M09.TANG:<id>` (khóa); `M09.JOB.<job>` (mốc đã nhắc) |
 
 
+### 14.17. Người nhận thông báo đính chính bàn giao (2026-10-27)
+
+| Tiếng Việt | Tên trong mã / cách dùng ở 008 |
+| --- | --- |
+| Người xác nhận bàn giao đã ghi | `confirmed_by` là mã tài khoản; đọc hồ sơ nhân viên qua `AccountApi.byId(...).staffId`, không dùng liên kết tài khoản cục bộ của M09 |
+| Người phụ trách ca hiện tại nhận đính chính | `RecipientGroup.ShiftLead(floorAreaId, Substitution.Default)` trong `HandoverCorrected`; M13 phân giải theo nhiệm vụ tại thời điểm gửi (FR-057) |
+
 ## 15. Feature 009 (`009-notification-service`, A) *(bổ sung 2026-10-21, khi dịch `contracts/api-009.yaml`)*
 
 Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với mã (R-03). Khuôn `common.notification` đã dịch ở mục 6.5 (`NotificationRequest`, `NotificationLevel`, `InformationType`, `RecipientGroup`, `Substitution`, `InformationSubject`, `Q354Case`) giữ nguyên.
@@ -1949,7 +2367,7 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 | kết quả tiếp nhận `THANH_CONG`, `TU_CHOI`; xác nhận `DA_XAC_NHAN` | `SUCCEEDED`, `REJECTED`; `ACKNOWLEDGED` |
 | người cần gọi `NHAN_VIEN`, `NGUOI_THAN` | `STAFF`, `FAMILY_MEMBER` (như loại tài khoản 7.3) |
 | trạng thái lượt nhắc gọi `CHO_KET_QUA`, `DA_CO_KET_QUA`, `DA_DUNG` | `AWAITING_RESULT`, `RESULT_RECORDED`, `STOPPED` |
-| kết quả gọi `DA_LIEN_LAC`, `KHONG_LIEN_LAC`; lý do `KHONG_NGHE_MAY`, `SAI_SO`, `KHONG_CO_SO`, `KHAC` | `REACHED`, `NOT_REACHED`; `NO_ANSWER`, `WRONG_NUMBER`, `NO_NUMBER`, `OTHER` |
+| kết quả gọi `DA_LIEN_LAC`, `KHONG_LIEN_LAC`; lý do `KHONG_NGHE_MAY`, `SAI_SO`, `KHONG_CO_SO` | `REACHED`, `NOT_REACHED`; `NO_ANSWER`, `WRONG_NUMBER`, `NO_NUMBER` |
 | liên hệ trực tiếp `CHO_LIEN_HE`, `DA_LIEN_HE`, `KHONG_LIEN_HE_DUOC` | `PENDING`, `CONTACTED`, `UNREACHABLE` |
 | loại lỗi gửi `BI_TU_CHOI`, `THIEU_MUC`, `THIEU_LOAI_THONG_TIN`, `KHONG_CO_NGUOI_NHAN`, `GUI_THAT_BAI`, `NOI_DUNG_KHONG_HOP_LE` | `REJECTED`, `MISSING_LEVEL`, `MISSING_INFORMATION_TYPE`, `NO_RECIPIENT`, `DELIVERY_FAILED`, `INVALID_CONTENT` |
 | mã kênh `TRONG_UNG_DUNG`, `CONG_NGUOI_THAN`, `TIN_NHAN`, `KHAC_*` | `IN_APP`, `FAMILY_PORTAL`, `SMS`, `OTHER_*` |
@@ -2022,12 +2440,329 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 | --- | --- |
 | nội dung, nhóm nhận của `yeu_cau_thong_bao` | `notification_request.contents`, `notification_request.recipient_groups` |
 | trạng thái của `thong_bao`, `luot_nhac_goi` (cột dẫn xuất) | `notification.status`, `scheduled_send_at`, `sent_at`, `viewed_at`, `acknowledged_at`, `acknowledgement_method`, `hidden`, `recipient_key`; `call_reminder.status`, `final_result`, `stop_reason`, `due_at`, `current_staff_id`, `callee_key`, `pending_key` |
+| cột sinh cho truy vấn của 009 (T044) | `record_event.m13_temporary_failure` (kết quả lần gửi lỗi tạm); `notification.urgent_unacknowledged` (Khẩn cấp chưa xác nhận) |
 | loại bảng chung của 009 | `M13.NOTIFICATION_CHANNEL` (danh mục); `M13.NOTIFICATION_EVENT`, `M13.DELIVERY_ATTEMPT`, `M13.DELIVERY_RESULT`, `M13.CALL_REMINDER_NOTIFICATION`, `M13.CALL_REMINDER_HANDOFF`, `M13.CALL_RESULT`, `M13.DIRECT_CONTACT_RESULT` (sự kiện); `M13.DIRECT_CONTACT`, `M13.SMS_BATCH_WINDOW` (hồ sơ chung); `M13.REQUEST_DUPLICATE`, `M13.JOB_DONE` (mốc đã nhắc) |
 
 
-## 16. Feature 010 (`010-incurred-costs`, E)
+## 16. Feature 010 (`010-incurred-costs`, E) — bản dịch đã duyệt 2026-10-29
 
-*Chủ feature điền khi dịch `contracts/api-010.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+A/chủ dự án đã duyệt bản dịch hợp đồng 010 và bảng tên qua xác nhận của E trong phiên 2026-10-29. Đã bắt đầu phần hàm thuần M11; chưa cài HTTP. Mã FR/BR/DBR/CFG/Q giữ nguyên. Tên của API thuộc B/C/D do chủ nguồn chốt; không dùng bảng này để tự khai báo hoặc sửa API của họ. "Chốt" dịch là `finalize` theo yêu cầu tích hợp 016 ở team-plan mục 8.
+
+### 16.1. Đường dẫn HTTP (giữ nguyên phương thức và phạm vi)
+
+| Tên logic | Tên tiếng Anh đề xuất |
+| --- | --- |
+| `/chi-phi/ban-ghi-nguon` | `/costs/billing-sources` |
+| `/chi-phi/khoan/theo-su-kien` | `/costs/items/from-events` |
+| `/chi-phi/khoan/nhap-tay` | `/costs/items/manual` |
+| `/chi-phi/khoan/{id}/dieu-chinh` | `/costs/items/{id}/adjust` |
+| `/chi-phi/khoan/{id}` | `/costs/items/{id}` |
+| `/chi-phi/khoan/kiem-tra` | `/costs/items/check` |
+| `/chi-phi/khoan/{id}/bo-kiem-tra` | `/costs/items/{id}/uncheck` |
+| `/chi-phi/khoan/duyet` | `/costs/items/approve` |
+| `/chi-phi/khoan/{id}/tra-lai` | `/costs/items/{id}/return` |
+| `/chi-phi/khoan/{id}/huy` | `/costs/items/{id}/cancel` |
+| `/chi-phi/bien-dong-sau-chot` | `/costs/post-finalization-changes` |
+| `/chi-phi/bang` | `/costs/statements` |
+| `/chi-phi/bang/{id}` | `/costs/statements/{id}` |
+| `/chi-phi/bang/{id}/gui-chot` | `/costs/statements/{id}/submit-for-finalization` |
+| `/chi-phi/bang/{id}/tra-lai` | `/costs/statements/{id}/return` |
+| `/chi-phi/bang/{id}/chot` | `/costs/statements/{id}/finalize` |
+| `/chi-phi/ky` | `/costs/periods` |
+| `/de-nghi-mua-ho` | `/purchase-assistance-requests` |
+| `/de-nghi-mua-ho/{id}/gui` | `/purchase-assistance-requests/{id}/send` |
+| `/de-nghi-mua-ho/{id}/dong-y` | `/purchase-assistance-requests/{id}/agree` |
+| `/de-nghi-mua-ho/{id}/tu-choi` | `/purchase-assistance-requests/{id}/reject` |
+| `/de-nghi-mua-ho/{id}/xin-bo-sung` | `/purchase-assistance-requests/{id}/request-additional-consent` |
+| `/de-nghi-mua-ho/{id}/rut-bo-sung` | `/purchase-assistance-requests/{id}/withdraw-additional-consent` |
+| `/de-nghi-mua-ho/{id}/huy` | `/purchase-assistance-requests/{id}/cancel` |
+| `/de-nghi-mua-ho/{id}/ghi-da-mua` | `/purchase-assistance-requests/{id}/record-purchased` |
+| `/nguoi-cao-tuoi/{nctId}/chi-phi/bang` | `/residents/{residentId}/costs/statements` |
+| `/nguoi-cao-tuoi/{nctId}/chi-phi/tam-tinh` | `/residents/{residentId}/costs/provisional` |
+| `/chi-phi/ky/{id}/xuat` | `/costs/periods/{id}/export` |
+
+### 16.2. Schema, lỗi và thành phần hợp đồng
+
+| Tên logic | Tên tiếng Anh đề xuất |
+| --- | --- |
+| `LyDo` | `Reason` |
+| `LoaiNguon` | `BillingSourceType` |
+| `LoaiChiPhi` | `CostType` |
+| `Loi` | `Problem` |
+| `LoiChan` | `BlockingProblem` |
+| `BanGhiNguon` | `BillingSource` |
+| `LapTheoSuKien` | `CreateCostsFromEvents` |
+| `KetQuaHangLoat` | `CostBatchResult` |
+| `NhapTay` | `ManualCostItem` |
+| `DieuChinh` | `CostAdjustment` |
+| `ChonKhoan` | `CostItemSelection` |
+| `Khoan` | `CostItem` |
+| `Bang` | `CostStatement` |
+| `CanhBaoBienDong` | `CostChangeWarning` |
+| `DeNghiMuaHoMoi` | `NewPurchaseAssistanceRequest` |
+| `DeNghiMuaHo` | `PurchaseAssistanceRequest` |
+| `GhiDaMua` | `RecordPurchased` |
+| `TamTinh` | `ProvisionalCostSummary` |
+
+`NctId → ResidentId`, `phien → session`. Tag: `nguon → source`, `khoan → items`, `bang → statements`, `mua-ho → purchase-assistance`, `cung-cap → cost-access`. Request body và response dùng chung giữ tên tương ứng `Reason`, `Problem`, `BlockingProblem`.
+
+### 16.3. Trường JSON và tham số
+
+| Tên logic | Tên tiếng Anh đề xuất |
+| --- | --- |
+| `nctId` | `residentId` |
+| `loai` | `type` |
+| `tu` | `from` |
+| `den` | `to` |
+| `kyId` | `periodId` |
+| `trangThai` | `status` |
+| `lyDoChapNhanVuot` | `excessApprovalReason` |
+| `khoanIds` | `itemIds` |
+| `soTienMoi` | `newAmount` |
+| `lyDo` | `reason` |
+| `phamVi` | `scope` |
+| `dinhDang` | `format` |
+| `maLoi` | `errorCode` |
+| `dieuKienChuaThoa` | `unmetConditions` |
+| `loaiNguon` | `sourceType` |
+| `nguonId` | `sourceId` |
+| `donVi` | `unit` |
+| `ngayPhatSinh` | `incurredOn` |
+| `thoiDiem` | `occurredAt` |
+| `moTa` | `description` |
+| `soLuong` | `quantity` |
+| `heSo` | `factor` |
+| `dau` | `flags` |
+| `khoanHienCo` | `existingItemId` |
+| `nguonIds` | `sourceIds` |
+| `khoangNgay` | `dateRange` |
+| `thanhCong` | `succeededIds` |
+| `boQua` | `skipped` |
+| `khoanId` | `itemId` |
+| `donGia` | `unitPrice` |
+| `tepIds` | `fileIds` |
+| `soTien` | `amount` |
+| `loaiDieuChinh` | `adjustmentType` |
+| `bienDongId` | `sourceChangeId` |
+| `boLoc` | `filter` |
+| `bangId` | `statementId` |
+| `loaiChiPhi` | `costType` |
+| `nguonSinh` | `origin` |
+| `banGhiNguon` | `billingSource` |
+| `maVatPham` | `itemCode` |
+| `tenThuoc` | `medicationName` |
+| `canCuDonGia` | `unitPriceBasis` |
+| `khoanGocId` | `originalItemId` |
+| `kyGoc` | `originalPeriod` |
+| `lichSuTinhLai` | `recalculationHistory` |
+| `dieuChinh` | `adjustments` |
+| `tongHienHanh` | `currentTotal` |
+| `truongBiAn` | `hiddenFields` |
+| `ky` | `period` |
+| `loaiBang` | `statementType` |
+| `kyCuoi` | `finalPeriod` |
+| `denNgay` | `throughDate` |
+| `tongTheoLoai` | `totalsByType` |
+| `tong` | `total` |
+| `canhBaoBienDong` | `changeWarning` |
+| `tyLeTang` | `increaseRatio` |
+| `baLoaiTangNhieuNhat` | `topThreeIncreases` |
+| `vatPhamId` | `catalogItemId` |
+| `soTienDuKien` | `estimatedAmount` |
+| `nguoiYeuCau` | `requester` |
+| `soTienDuocPhep` | `allowedAmount` |
+| `dangChoBoSung` | `additionalConsentPending` |
+| `soDuKhongDu` | `insufficientBalance` |
+| `quyetDinh` | `decisions` |
+| `soTienThucTe` | `actualAmount` |
+| `ngayMua` | `purchasedOn` |
+| `tepChungTuId` | `receiptFileId` |
+| `lyDoMuaGap` | `urgentPurchase` |
+| `nguoiYeuCauMuaGapId` | `urgentPurchaseRequesterId` |
+| `nhan` | `label` |
+| `conKhoanChuaCoDonGia` | `hasUnpricedItems` |
+
+`nguon → source` trong dòng bị bỏ qua; `khoan → items` trong bảng chi phí. `urgentPurchase` giữ kiểu boolean của `lyDoMuaGap`; không đổi thành chuỗi lý do. Chuỗi nhãn `tạm tính, chưa chốt` vẫn bằng tiếng Việt. `flags` trong bộ lọc giữ kiểu string của bản gốc, còn danh sách dấu của bản ghi giữ kiểu array; chưa thêm enum dấu hoặc trường mới.
+
+### 16.4. Giá trị enum
+
+| Giá trị logic | Giá trị tiếng Anh đề xuất |
+| --- | --- |
+| `NGAY_LUU_TRU` | `RESIDENCY_DAY` |
+| `BUOI_BAN_TRU` | `DAY_CARE_SESSION` |
+| `KET_QUA_CONG_VIEC` | `CARE_TASK_RESULT` |
+| `LIEU` | `DOSE` |
+| `LAN_DUNG_PRN` | `PRN_ADMINISTRATION` |
+| `LAN_GIAO` | `DISPENSE_RECORD` |
+| `SUAT_AN_NGUOI_THAN` | `FAMILY_MEAL` |
+| `DEM_O_LAI` | `OVERNIGHT_STAY` |
+| `DIEM_DANH_HOAT_DONG` | `ACTIVITY_ATTENDANCE` |
+| `PHI_LUU_TRU` | `RESIDENCY_FEE` |
+| `PHI_BUOI_BAN_TRU` | `DAY_CARE_SESSION_FEE` |
+| `DICH_VU` | `SERVICE` |
+| `VAT_PHAM_TIEU_HAO` | `CONSUMABLE` |
+| `HOAT_DONG` | `ACTIVITY` |
+| `THUOC` | `MEDICATION` |
+| `NGUOI_THAN_O_LAI` | `FAMILY_OVERNIGHT_STAY` |
+| `MUA_HO` | `PURCHASE_ASSISTANCE` |
+| `KHOAN_KHAC` | `OTHER` |
+| `DANG_MO` | `OPEN` |
+| `CHO_CHOT` | `AWAITING_FINALIZATION` |
+| `DA_CHOT` | `FINALIZED` |
+| `NHAP` | `DRAFT` |
+| `DA_KIEM_TRA` | `CHECKED` |
+| `DA_DUYET` | `APPROVED` |
+| `DA_HUY` | `CANCELLED` |
+| `THEO_SU_KIEN` | `EVENT_BASED` |
+| `NHAP_TAY` | `MANUAL` |
+| `DIEU_CHINH` | `ADJUSTMENT` |
+| `THUONG` | `REGULAR` |
+| `BO_SUNG` | `SUPPLEMENTARY` |
+| `SUA_SAI_SAU_CHOT` | `POST_FINALIZATION_CORRECTION` |
+| `THEO_NGUON_DOI` | `SOURCE_CHANGE` |
+| `MIEN_GIAM` | `WAIVER` |
+| `BO_SUNG_PHAT_SINH_MUON` | `LATE_ADDITION` |
+| `NHAN_VIEN` | `STAFF` |
+| `NGUOI_THAN` | `FAMILY_MEMBER` |
+| `CHO_DONG_Y` | `AWAITING_CONSENT` |
+| `DUOC_PHEP_MUA` | `PURCHASE_ALLOWED` |
+| `TU_CHOI` | `REJECTED` |
+| `HUY` | `CANCELLED` |
+| `DA_MUA` | `PURCHASED` |
+| `TOAN_BO` | `ALL` |
+| `CHUA_TUNG_XUAT` | `NEVER_EXPORTED` |
+
+`DOSE`, `PRN_ADMINISTRATION`, `DISPENSE_RECORD` khớp tên nguồn đã công bố của 006; không sửa `medication.api.events.BilledSource`. Hủy khoản là `DA_HUY`, hủy đề nghị là `HUY`; cả hai dịch thành `CANCELLED` trong hai vòng đời riêng.
+
+### 16.5. Mã lỗi có trong hợp đồng gốc
+
+| Mã logic | Mã tiếng Anh đề xuất |
+| --- | --- |
+| `DIEU_KIEN_CHUA_THOA` | `CONDITION_NOT_MET` |
+| `DA_CO_KHOAN` | `COST_ITEM_ALREADY_EXISTS` |
+| `NGOAI_THOI_GIAN_TINH_PHI` | `OUTSIDE_BILLING_PERIOD` |
+| `NGAY_CHUA_KET_THUC` | `DAY_NOT_ENDED` |
+| `KHONG_PHAI_SU_KIEN_TINH_PHI` | `NOT_A_BILLABLE_EVENT` |
+| `CO_TRONG_DANH_MUC` | `ITEM_IN_CATALOG` |
+| `TONG_AM` | `NEGATIVE_TOTAL` |
+| `CON_KHOAN_NHAP` | `DRAFT_ITEMS_REMAIN` |
+| `CON_KHOAN_CHUA_DUYET` | `UNAPPROVED_ITEMS_REMAIN` |
+| `CHUA_QUA_NGAY_CUOI` | `PERIOD_NOT_ENDED` |
+| `BANG_DA_CHOT` | `STATEMENT_FINALIZED` |
+| `VUOT_SO_DUOC_PHEP` | `ALLOWED_AMOUNT_EXCEEDED` |
+| `DA_DUOC_XU_LY` | `ALREADY_PROCESSED` |
+| `CAN_LY_DO_CHAP_NHAN_VUOT` | `EXCESS_APPROVAL_REASON_REQUIRED` |
+| `KHONG_HO_TRO_DINH_CHINH` | `CORRECTION_NOT_SUPPORTED` |
+
+Các mã dùng chung `CONDITION_NOT_MET`, `ALREADY_PROCESSED`, `CORRECTION_NOT_SUPPORTED` theo mục 5 của glossary. Chưa bổ sung mã lỗi ngoài hợp đồng gốc.
+
+### 16.6. Tên Java của phần E
+
+| Tên logic | Tên tiếng Anh dự kiến |
+| --- | --- |
+| `ChiPhiCongNguoiThanApi` | `FamilyPortalCostApi` |
+| `ChiPhiKyCuoiApi` | `FinalPeriodCostApi` |
+| `ChiPhiThongKeApi` | `CostStatisticsApi` |
+| `SuKienTinhPhiNguon` | `CostSourceBilled` |
+| `SuKienTinhPhiNguonDaDoi` | `CostSourceChanged` |
+| `BangChiPhiDaChot` | `CostStatementFinalized` |
+| `DeNghiMuaHoDaGui` | `PurchaseAssistanceSent` |
+| `DeNghiMuaHoDaQuyetDinh` | `PurchaseAssistanceDecided` |
+| `DeNghiMuaHoDaHuy` | `PurchaseAssistanceCancelled` |
+| `DeNghiMuaHoDaMua` | `PurchaseAssistancePurchased` |
+| `KhoanChiPhiDaDoi` | `CostItemChanged` |
+| `ChiPhiChoSoDuPort` | `CostForBalancePort` |
+| `SoDuMuaHoPort` | `PurchaseBalancePort` |
+| `LamTronDong` | `DongRounding` |
+| `PhiNgayLuuTru` | `ResidencyDayFee` |
+| `PhiBuoiBanTru` | `DayCareSessionFee` |
+| `ThoiGianTinhPhi` | `BillingPeriod` |
+
+Đã cài `DongRounding`, `ResidencyDayFee`, `DayCareSessionFee` tại `billing.internal.pricing.domain`. `round` trả BigDecimal số nguyên đồng; `base` tính giá cơ sở. Theo Q-395, `ResidencyDayFee.monthly(monthlyPrice, date)` và `direct(dailyPrice)` dùng đủ giá, không nhận hệ số. Chỉ `DayCareSessionFee.monthly`/`direct` áp `factorPercent` từ nguồn; tham số này là phần trăm (30 nghĩa là 30%, theo data-model 010); `scheduledSessionCount` là số buổi có lịch sau lọc ngày khu nghỉ do nguồn cung cấp; `lastScheduledSession` xác định buổi có lịch cuối tháng. Chưa có adapter đọc/lọc nguồn hoặc `BillingPeriod`. T003/T004 đã khai báo các API/port/sự kiện bên trên và fake chung; chưa có bản cài thật hoặc nơi phát sự kiện.
+
+Ba API công khai và sự kiện đặt trong `billing.api`, `dto`, `events`; bản giả do E giữ tại `support/fake/billing/`. Port số dư nội bộ chỉ cho phần 017/019 của M11. Không tạo gói rỗng; lớp hàm thuần đặt trong `billing.internal.pricing.domain`, các tầng khác theo backend/README.md. Web `features/charges`, app `family/charges` theo README; 010 không có màn app nhân viên.
+
+#### 16.6.1. Kiểu và hàm trao đổi đã khai báo T003/T004
+
+| Tên logic / ý nghĩa | Tên tiếng Anh |
+| --- | --- |
+| Bảng chi phí, khoản chi phí, bản ghi nguồn | CostStatementView, CostItemView, BillingSourceView |
+| Tổng theo loại, tạm tính | CostTypeTotal, ProvisionalCostSummaryView |
+| Đề nghị mua hộ, người yêu cầu | PurchaseAssistanceView, PurchaseRequesterView |
+| Điều kiện chi phí kỳ cuối | FinalPeriodConditionView (satisfied, reasons) |
+| Dòng khoản/bảng/kỳ cho báo cáo | CostItemReportView, CostStatementReportView, CostPeriodView |
+| Loại chi phí, loại bảng, trạng thái đề nghị | CostType, CostStatementType, PurchaseAssistanceStatus |
+| Bảng đã chốt cho người thân | FamilyPortalCostApi.finalizedStatements |
+| Tạm tính, đề nghị chờ đồng ý | FamilyPortalCostApi.provisional, awaitingConsent |
+| Điều kiện kỳ cuối | FinalPeriodCostApi.finalPeriodCondition |
+| Khoản, bảng, kỳ thống kê | CostStatisticsApi.items, statements, periods |
+| Tổng chưa chốt, phí ngày cơ sở | CostForBalancePort.unfinalizedTotal, baseDailyFee |
+| Số dư không đủ | PurchaseBalancePort.insufficientBalance |
+| Khóa sự kiện, số lượng mới, đã hủy, căn cứ | eventKey, newQuantity, cancelled, basis |
+| Mã bảng, thời điểm chốt, mã đề nghị | statementId, finalizedAt, requestId |
+
+CostForBalancePort ở billing.internal.provision.domain; PurchaseBalancePort ở billing.internal.purchase.domain. Bản giả duy nhất: FakeFamilyPortalCosts, FakeFinalPeriodCosts, FakeCostStatistics, FakeCostForBalance, FakePurchaseBalance; cấu hình test FakeM11Config ở support.fake.billing. Tất cả chỉ là khai báo/bản giả ở lượt này. Chữ ký Java chi tiết ở contracts/module-interfaces 010 mục 4; chưa có bangDaChot của T037, chưa sửa trường/endpoint HTTP.
+
+### 16.7. Vị trí lưu sau R-15 (2026-10-30)
+
+Ba bảng riêng đã có trong V010_01__costs.sql; các loại ở bảng chung chỉ là ánh xạ của E, còn chờ A/000 T108 cung cấp API/bảng, không đọc/ghi trực tiếp.
+
+| Tên logic | Vị trí thực tế sau gộp |
+| --- | --- |
+| ky_chi_phi | cost_statement, kind PERIOD |
+| bang_chi_phi | cost_statement, kind STATEMENT |
+| bang_chi_phi_tong_loai | cost_statement.totals_by_type (JSON) |
+| khoan_chi_phi | cost_item |
+| su_kien_tinh_phi | cost_source_index |
+| chi_phi_nct | ResidentModuleStateApi, module M11, dữ liệu finalCostCompletedFrom |
+| lich_su_tinh_lai | StatusHistoryApi, M11.COST_RECALCULATION |
+| bien_dong_nguon_sau_chot | RecordEventApi, M11.POST_FINALIZATION_CHANGE |
+| de_nghi_mua_ho | SimpleRecordApi, M11.PURCHASE_ASSISTANCE_REQUEST |
+| de_nghi_gui_nguoi_dai_dien | RecordEventApi, M11.PURCHASE_RECIPIENT |
+| quyet_dinh_mua_ho | RecordEventApi, M11.PURCHASE_DECISION |
+| su_kien_nguon_da_xu_ly | ReminderMarkers, M11.SOURCE_PROCESSED |
+| lan_xuat_ke_toan, lan_xuat_bang | Hành động nhật ký qua AuditLogApi |
+| lan_chay_m11 | Structured log logs/jobs.log |
+
+Không tạo các tên bảng legacy resident_cost_guard, cost_period, cost_statement_type_total, cost_recalculation_history, post_finalization_source_change, cost_source_event_processed, purchase_assistance_request/recipient/decision, cost_export/statement hoặc cost_scheduler_run.
+
+### 16.8. Tên cột và dấu của T005a
+
+| Tên logic | Tên mã |
+| --- | --- |
+| Loại dòng kỳ/bảng | kind: PERIOD/STATEMENT |
+| Tháng, ngày đầu/cuối tháng | period_month, period_starts_on, period_ends_on |
+| Kỳ, bảng, người cao tuổi | period_id, statement_id, resident_id |
+| Loại bảng, kỳ cuối, tính tới ngày | statement_type, final_period, through_date |
+| Hạn chốt, tổng theo loại, tổng | finalization_due_on, totals_by_type, total |
+| Gửi chốt, cảnh báo biến động | submitted_by, submitted_at, change_warning |
+| Chốt, tham chiếu xuất đầu, khóa dòng | finalized_by, finalized_at, first_export_id, locked_at |
+| Khóa duy nhất đối chiếu bởi CHECK | unique_key |
+| Loại khoản, nguồn sinh | cost_type, origin |
+| Loại nguồn, mã nguồn, đơn vị tính phí | source_type, source_id, billing_unit |
+| Đề nghị, dịch vụ, mã vật phẩm | purchase_assistance_id, service_id, item_code |
+| Mô tả, ngày/thời điểm phát sinh | description, incurred_on, occurred_at |
+| Số lượng, đơn vị, đơn giá, hệ số, tiền | quantity, unit, unit_price, factor_percent, amount |
+| Căn cứ giá, giá trị nguồn đã dùng, dấu, lý do | unit_price_basis, source_values, flags, reason |
+| Khoản/kỳ gốc, loại điều chỉnh, biến động nguồn | original_item_id, original_period_id, adjustment_type, source_change_id |
+| Kiểm/duyệt, chấp nhận vượt, hủy | checked_by/at, approved_by/at, excess_approval_reason, cancelled_by, cancellation_reason |
+| Phiên bản, lập bởi/lúc | version, created_by, created_at |
+| Thuốc nguồn, số lượng hiện hành, đã hủy, cập nhật | medication_id, current_quantity, cancelled, updated_at |
+| Cổng nội bộ khi tính lại | @m11_recalculating |
+| Fixture nguồn chung, test schema | FakeCostSources, CostSchemaIT, CostSourceFixtureTest |
+
+| Dấu logic | Giá trị mã (SET) |
+| --- | --- |
+| THUOC_GOI | INCLUDED_IN_PACKAGE |
+| THIEU_DON_GIA | MISSING_UNIT_PRICE |
+| CHUA_VAO_O | NOT_YET_MOVED_IN |
+| LAP_TRUOC | CREATED_IN_ADVANCE |
+| PHAT_SINH_THUOC_KY_DA_CHOT | AFTER_FINALIZED_PERIOD |
+| VUOT_SO_DONG_Y | EXCEEDS_CONSENT |
+| MUA_GAP_VUOT | URGENT_EXCESS |
+| ANH_HUONG_KET_THUC | AFFECTS_TERMINATION |
+
+Cột tiền/đơn giá là DECIMAL(15,0), số lượng DECIMAL(10,2), hệ số phần trăm DECIMAL(5,2), thời điểm DATETIME(6), id BIGINT. JSON tiền vẫn integer/int64. Kind của dòng SQL không mở rộng statementType trong REST. JSON ở bảng chung theo data-model 010 mục 0.1; chưa tự khai báo chữ ký Java của A.
 
 ## 17. Feature 011 (`011-nutrition-management`, D)
 
@@ -2104,7 +2839,7 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 | `SK.SU_CO`, `SK.SU_CO_LEO_THANG`, `SK.SU_CO_THOI_GIAN_TIEP_NHAN`, `SK.THEO_DOI`, `SK.SU_CO_KHONG_THUOC_SK` | `HEALTH.INCIDENTS`, `HEALTH.INCIDENT_ESCALATIONS`, `HEALTH.INCIDENT_RESPONSE_TIME`, `HEALTH.FOLLOW_UPS`, `HEALTH.NON_HEALTH_INCIDENTS` |
 | `SK.DANH_GIA_LAI_QUA_HAN`, `SK.KHOANH_VUNG`, `SK.NGUY_KICH` | `HEALTH.OVERDUE_REASSESSMENTS`, `HEALTH.CONTAINMENT_ZONES`, `HEALTH.CRITICAL_FLAGS` |
 | `THUOC.TY_LE_BO_LO`, `THUOC.TY_LE_TU_CHOI`, `THUOC.DOI_CHIEU_QUA_HAN` | `MED.MISSED_RATE`, `MED.REFUSED_RATE`, `MED.OVERDUE_RECONCILIATIONS` |
-| `CA.BAN_GIAO_CHUA_XAC_NHAN`, `CA.TY_LE_PHUC_VU`, `CA.THIEU_PHU`, `CA.THIEU_CA`, `CA.YEU_CAU`, `CA.LOI_MOI`, `CA.GIO_LAM` | `SHIFT.UNCONFIRMED_HANDOVERS`, `SHIFT.STAFFING_RATIO`, `SHIFT.UNDER_COVERAGE`, `SHIFT.MISSING_SHIFTS`, `SHIFT.REQUESTS`, `SHIFT.INVITATIONS`, `SHIFT.WORKING_HOURS` |
+| `CA.BAN_GIAO_CHUA_XAC_NHAN`, `CA.TY_LE_PHUC_VU`, `CA.THIEU_PHU`, `CA.THIEU_CA`, `CA.YEU_CAU`, `CA.LOI_MOI`, `CA.GIO_LAM` | `SHIFT.UNCONFIRMED_HANDOVERS`, `SHIFT.STAFFING_RATIO`, `SHIFT.UNDER_COVERAGE`, `SHIFT.MISSING_SHIFTS`, `SHIFT.REQUESTS`, `SHIFT.INVITATIONS`, `SHIFT.WORKING_HOURS` (`CA.THIEU_PHU`, `CA.THIEU_CA`, `CA.LOI_MOI` bỏ theo Q-397, giữ dòng để truy vết bản dịch) |
 | `GP.CO_SO`, `GP.NHAN_VIEN` | `LICENSE.FACILITY`, `LICENSE.STAFF` |
 | `CP.BANG`, `CP.TONG_HOP`, `CP.DIEU_CHINH_SAU_CHOT`, `CP.TY_LE_THEO_SU_KIEN`, `CP.MUA_SAM` | `COST.STATEMENTS`, `COST.SUMMARY`, `COST.POST_FINALIZATION_ADJUSTMENTS`, `COST.EVENT_GENERATED_RATE`, `COST.PURCHASING` |
 | `SD.THAP_CON_NO`, `KB.CAN_LAM`, `TS.QUA_HAN`, `KHO.DUOI_TOI_THIEU`, `KHO.LO_SAP_HET_HAN` | `BALANCE.LOW_OR_OWING`, `REGISTRATION.TO_DO`, `ASSET.OVERDUE`, `INVENTORY.BELOW_MINIMUM`, `INVENTORY.EXPIRING_LOTS` (hai chỉ tiêu `KHO.*` bỏ theo Q-392, giữ dòng để truy vết bản dịch) |
@@ -2140,6 +2875,11 @@ Bảng, cột, lớp của 009 bổ sung vào mục này cùng thay đổi với
 | test `FR_061_NoiDungXuatTest`, `FR_062_NhatKyXuatIT`, `ChiTieu_GP_CoSoTest`; chỉ tiêu giả của test | `FR_061_ExportContentTest`, `FR_062_ExportAuditIT`, `MetricLicenseFacilityTest`; `TestDoseMetric` (`TEST.MISSED_DOSES`) |
 | *(bổ sung 2026-10-24, T009, khung T014, T022)* tính một chỉ tiêu; `DashboardService` (khối, trạng thái khối, bộ đệm); `ChiTietService`; controller; thân phản hồi | `reporting.internal.metric.service.MetricEvaluator` (`value`, `result`, `details`); `reporting.internal.dashboard.service.DashboardService` (`dashboard`, `metrics`, `GROUPS`, `Block`, `BlockStatus` `COMPLETE`/`UPDATING`, `Dashboard`); `reporting.internal.detail.service.MetricDetailService` (`MetricDetail`, `PAGE_SIZE`); `MetricCatalog.source`; `reporting.web.DashboardController`, `ReportController`; `web.response.DashboardBody`, `MetricValueBody`, `ReportBody`, `MetricBody`, `MetricDetailBody` |
 | test dashboard, báo cáo, chi tiết | `FR_020_DashboardIT`, `ReportApiIT`; web `DashboardPage.test.jsx`, `ReportsPage.test.jsx` |
+| *(bổ sung 2026-11-01, T011, T012)* test `FR_012_PhamViTheoThoiGianIT`, `SC_004_PhamViIT`, `FR_014_GioiHanTruongIT`, `SC_005_TenThuocIT`, `FR_042a_SuCoHanhChinhIT`; chỉ tiêu giả của test | `FR_012_TimeScopeIT`, `SC_004_ScopeIT`, `FR_014_FieldRestrictionIT` (gồm SC-005), `FR_042a_AdminIncidentIT`; `TestScopedMetrics`, `ReportScopeFixture` |
+| *(bổ sung 2026-11-01, 009 T031, T042)* `mobile/lib/nguoi-than/thong-bao/`, `mobile/lib/nguoi-cao-tuoi/thong-bao/`; test `thong_bao_test.dart` | `mobile/lib/family/notifications/` (`FamilyInboxScreen`, `FamilyNotificationScreen`), `mobile/lib/resident/notifications/` (`ResidentNotificationsScreen`), `mobile/lib/common/notifications/` (`NotificationApi`); `family_inbox_test.dart`, `resident_notifications_test.dart` |
+| *(bổ sung 2026-11-01, 000 T098)* `mobile/lib/nhan-vien/yeu-cau-phe-duyet/hop_duyet.dart`; test `hop_duyet_test.dart` | `mobile/lib/staff/approval_requests/` (`approval_inbox_screen.dart`, `approval_request_screen.dart`, `approval_labels.dart`); `test/staff/approval_requests/approval_inbox_test.dart` |
+| *(bổ sung 2026-11-01, T021, T027)* test `FR_009_ChiTietKhopSoIT`, `SC_008_ChiDocIT` | `FR_009_DetailMatchIT`, `SC_008_ReadOnlyIT` |
+| *(bổ sung 2026-11-01, "Đổi api" 002)* `PhamViApi.boLocPhanCong`; `QuyenApi.ghiLoiDuLieuQuyen`; giá trị lọc của báo cáo (`boLocCoThe` {`toanVien`, `tangKhuVuc`}); tầng của việc chung trong một phần phạm vi | `ScopeApi.assignedFilter`; `PermissionApi.recordDataError`; `Report.filterOptions` (`facilityWide`, `floorAreas` {`id`, `name`}), `ReportFilterOptions`; `ReportScope.Grant.commonFloorAreaIds` |
 | màn web (chốt 2026-10-24): một màn Báo cáo có tab cho mọi nhóm thay các thư mục theo nhóm | `features/dashboard/DashboardPage.jsx`; `features/reports/` (`ReportsPage`, `ReportTable`, `MetricDetailSheet`, `ExportDialog`, `ExportList`, `reportLabels`) |
 | web `tinh-nang/bao-cao/{dashboard, nguoi-cao-tuoi, cham-soc, chat-luong, suc-khoe-thuoc, chi-phi, nhan-su-ca, chi-tiet}` | `features/reports/{dashboard, residents, care, quality, health-medication, incurred-costs, staffing-shifts, metric-details}` |
 

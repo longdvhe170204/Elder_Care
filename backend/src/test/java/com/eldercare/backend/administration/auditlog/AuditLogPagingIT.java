@@ -3,6 +3,7 @@ package com.eldercare.backend.administration.auditlog;
 import static org.assertj.core.api.Assertions.*;
 
 import com.eldercare.backend.administration.auditlog.api.*;
+import com.eldercare.backend.administration.auditlog.api.dto.*;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import java.sql.Timestamp;
 import java.time.Instant;

@@ -7,9 +7,9 @@ import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.FamilyRelationshipApi;
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.error.BusinessException;
@@ -29,8 +29,8 @@ import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepos
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService;
 import com.eldercare.backend.resident.internal.status.service.ProfileOpenGuard;
 import com.eldercare.backend.resident.internal.wish.domain.EndOfLifeWish;
+import com.eldercare.backend.resident.internal.wish.domain.NewEndOfLifeWish;
 import com.eldercare.backend.resident.internal.wish.persistence.EndOfLifeWishStore;
-import com.eldercare.backend.resident.internal.wish.persistence.EndOfLifeWishStore.NewWish;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -184,7 +184,7 @@ public class EndOfLifeWishService {
         Optional<EndOfLifeWish> previous = store.findActive(residentId);
         previous.ifPresent(old -> store.supersede(old.id()));
         long id = store.insert(
-                new NewWish(
+                new NewEndOfLifeWish(
                         residentId,
                         command.choice(),
                         command.firstContact().strip(),

@@ -67,7 +67,7 @@ class ResidentAccountFinalStatusIT extends MySqlIntegrationTestBase {
     @BeforeEach
     void setUp() {
         fixtures = new AccountFixtures(jdbc, time);
-        logins = new ResidentLogins(mvc);
+        logins = new ResidentLogins(mvc, jdbc);
         office = fixtures.session(fixtures.staffAccount("AC-09"));
         resident = AccountFixtures.nextId();
         account = fixtures.residentAccount(resident);

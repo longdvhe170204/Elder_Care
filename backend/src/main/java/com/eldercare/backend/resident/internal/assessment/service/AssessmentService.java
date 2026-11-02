@@ -5,9 +5,9 @@ import com.eldercare.backend.administration.account.api.RequiresPermission;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.Target;
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
@@ -292,7 +292,7 @@ public class AssessmentService {
                 superseded = requests.supersedeByAssessment(residentId, id);
             }
             if (levelDiffers) {
-                events.publishEvent(new CareLevelChangeRequestNeeded(residentId, id, level));
+                events.publishEvent(new CareLevelChangeRequestNeeded(residentId, id, level, now));
                 changeRequestReminders.startReminding(residentId, id);
                 administratorNotified = true;
             }

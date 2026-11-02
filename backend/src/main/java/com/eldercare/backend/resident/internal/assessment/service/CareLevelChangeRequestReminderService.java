@@ -1,7 +1,7 @@
 package com.eldercare.backend.resident.internal.assessment.service;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.dto.CareLevel;
 import com.eldercare.backend.resident.api.events.CareLevelChangeRequestReminder;
@@ -9,15 +9,12 @@ import com.eldercare.backend.resident.api.spi.CareLevelChangeRequestApi;
 import com.eldercare.backend.resident.internal.assessment.domain.AssessmentStatus;
 import com.eldercare.backend.resident.internal.assessment.persistence.AssessmentRepository;
 import com.eldercare.backend.resident.internal.assessment.persistence.CareLevelHistoryStore;
-import java.sql.Timestamp;
+import com.eldercare.backend.resident.internal.domain.DueReminder;
+import com.eldercare.backend.resident.internal.persistence.PeriodicReminderStore;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +31,7 @@ public class CareLevelChangeRequestReminderService {
     public static final String JOB = "REMIND_CARE_LEVEL_CHANGE_REQUEST";
     static final String TYPE = "CREATE_CARE_LEVEL_CHANGE_REQUEST";
 
-    private final JdbcTemplate jdbc;
+    private final PeriodicReminderStore reminders;
     private final ParameterApi parameters;
     private final ObjectProvider<CareLevelChangeRequestApi> requests;
     private final AssessmentRepository assessments;
@@ -44,7 +41,7 @@ public class CareLevelChangeRequestReminderService {
     private final BusinessTime time;
 
     CareLevelChangeRequestReminderService(
-            JdbcTemplate jdbc,
+            PeriodicReminderStore reminders,
             ParameterApi parameters,
             ObjectProvider<CareLevelChangeRequestApi> requests,
             AssessmentRepository assessments,
@@ -52,7 +49,7 @@ public class CareLevelChangeRequestReminderService {
             CareLevelHistoryStore history,
             ApplicationEventPublisher events,
             BusinessTime time) {
-        this.jdbc = jdbc;
+        this.reminders = reminders;
         this.parameters = parameters;
         this.requests = requests;
         this.assessments = assessments;
@@ -65,12 +62,7 @@ public class CareLevelChangeRequestReminderService {
     /** Bắt đầu nhắc cho lần đánh giá lại vừa xác nhận ra mức khác; gọi lại không thêm dòng. */
     @Transactional
     public void startReminding(long residentId, long assessmentId) {
-        jdbc.update(
-                "INSERT IGNORE INTO periodic_reminder (type, resident_id, milestone_id, started_at) VALUES (?, ?, ?, ?)",
-                TYPE,
-                residentId,
-                assessmentId,
-                utc(time.now()));
+        reminders.start(TYPE, residentId, assessmentId, time.now());
     }
 
     /** Số lần nhắc phát trong lần chạy này. */
@@ -79,19 +71,10 @@ public class CareLevelChangeRequestReminderService {
         Duration period = parameters.read(ParameterCode.CFG_M03_02).asDuration();
         Instant now = time.now();
         CareLevelChangeRequestApi api = requests.getIfAvailable();
-        List<long[]> due = jdbc.query(
-                "SELECT r.resident_id, r.milestone_id, r.reminder_count FROM periodic_reminder r"
-                        + " JOIN resident s ON s.id = r.resident_id"
-                        + " WHERE r.type = ? AND s.status IN ('IN_RESIDENCE', 'TEMPORARILY_ABSENT',"
-                        + " 'OFF_SITE_ACTIVITY', 'HOSPITALIZED')"
-                        + " AND COALESCE(r.last_reminded_at, r.started_at) <= ?",
-                (rs, i) -> new long[] {rs.getLong(1), rs.getLong(2), rs.getLong(3)},
-                TYPE,
-                Timestamp.from(now.minus(period)));
         int reminded = 0;
-        for (long[] row : due) {
-            long residentId = row[0];
-            long assessmentId = row[1];
+        for (DueReminder row : reminders.due(TYPE, now.minus(period))) {
+            long residentId = row.residentId();
+            long assessmentId = row.milestoneId();
             var latest = assessments.findFirstByResidentIdAndStatusOrderByConfirmedAtDescIdDesc(
                     residentId, AssessmentStatus.CONFIRMED);
             if (latest.isEmpty() || latest.get().getId() != assessmentId) {
@@ -102,22 +85,11 @@ public class CareLevelChangeRequestReminderService {
                     || (api != null && api.hasOpenRequest(residentId))) {
                 continue;
             }
-            int number = (int) row[2] + 1;
-            jdbc.update(
-                    "UPDATE periodic_reminder SET last_reminded_at = ?, reminder_count = ? WHERE type = ? AND"
-                            + " resident_id = ? AND milestone_id = ?",
-                    Timestamp.from(now),
-                    number,
-                    TYPE,
-                    residentId,
-                    assessmentId);
-            events.publishEvent(new CareLevelChangeRequestReminder(residentId, assessmentId, newLevel, number));
+            int number = row.reminderCount() + 1;
+            reminders.markReminded(TYPE, residentId, assessmentId, now, number);
+            events.publishEvent(new CareLevelChangeRequestReminder(residentId, assessmentId, newLevel, number, now));
             reminded++;
         }
         return reminded;
-    }
-
-    private static LocalDateTime utc(Instant instant) {
-        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
     }
 }

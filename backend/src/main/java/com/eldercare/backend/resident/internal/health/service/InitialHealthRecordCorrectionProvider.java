@@ -1,8 +1,8 @@
 package com.eldercare.backend.resident.internal.health.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
-import com.eldercare.backend.administration.correction.api.CorrectionView;
-import com.eldercare.backend.administration.correction.api.CreationMethod;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionView;
+import com.eldercare.backend.administration.correction.api.dto.CreationMethod;
 import com.eldercare.backend.administration.correction.api.spi.CorrectableRecordProvider;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.InvalidValueException;
@@ -67,6 +67,11 @@ class InitialHealthRecordCorrectionProvider implements CorrectableRecordProvider
     }
 
     @Override
+    public Optional<Long> residentId(long id) {
+        return records.findById(id).map(InitialHealthRecord::getResidentId);
+    }
+
+    @Override
     public boolean canRecord(CurrentUser user) {
         return user.roles().contains(Role.DOCTOR) || user.roles().contains(Role.NURSING_STAFF);
     }
@@ -90,8 +95,8 @@ class InitialHealthRecordCorrectionProvider implements CorrectableRecordProvider
 
     @Override
     public void afterCorrection(CorrectionView correction) {
-        events.publishEvent(new InitialHealthRecordChanged(
-                find(correction.originalRecordId()).getResidentId()));
+        long residentId = find(correction.originalRecordId()).getResidentId();
+        events.publishEvent(new InitialHealthRecordChanged(residentId));
     }
 
     private InitialHealthRecord find(long id) {

@@ -5,6 +5,8 @@ import 'common/api/api_client.dart';
 import 'common/auth/biometric_auth.dart';
 import 'common/auth/secure_store.dart';
 import 'common/auth/session_controller.dart';
+import 'common/notifications/push_coordinator.dart';
+import 'common/notifications/push_messaging.dart';
 import 'common/offline/offline_database.dart';
 import 'common/offline/offline_queue.dart';
 
@@ -21,6 +23,8 @@ Future<void> main() async {
     biometric: DeviceBiometricAuth(),
   );
   final queue = OfflineQueue(OfflineDatabase.onDevice(), session.api);
-  runApp(ElderCareApp(session: session, queue: queue));
+  final push = PushCoordinator(FirebasePushMessaging());
+  runApp(ElderCareApp(session: session, queue: queue, push: push));
+  await push.start(session);
   await session.start();
 }

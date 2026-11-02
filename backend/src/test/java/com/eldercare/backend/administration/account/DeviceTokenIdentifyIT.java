@@ -51,7 +51,7 @@ class DeviceTokenIdentifyIT extends MySqlIntegrationTestBase {
     @BeforeEach
     void setUp() {
         fixtures = new AccountFixtures(jdbc, time);
-        logins = new ResidentLogins(mvc);
+        logins = new ResidentLogins(mvc, jdbc);
         office = fixtures.session(fixtures.staffAccount("AC-09"));
         residentId = AccountFixtures.nextId();
         account = fixtures.residentAccount(residentId);
@@ -89,7 +89,8 @@ class DeviceTokenIdentifyIT extends MySqlIntegrationTestBase {
                 .andExpect(r -> assertThat(r.getResponse().getStatus()).isNotEqualTo(401));
         mvc.perform(get("/api/v1/me")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/v1/roles")).andExpect(status().isUnauthorized());
-        mvc.perform(post("/api/v1/accounts/" + account + "/login-qr-code")).andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/v1/resident-accounts/" + account + "/login-qr-code"))
+                .andExpect(status().isUnauthorized());
         mvc.perform(get("/api/v1/me").header("Authorization", bearer("khong-phai-phien")))
                 .andExpect(status().isUnauthorized());
     }

@@ -1,6 +1,7 @@
 package com.eldercare.backend.care.internal.result.service;
 
 import com.eldercare.backend.administration.correction.api.*;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import com.eldercare.backend.common.Reason;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.*;

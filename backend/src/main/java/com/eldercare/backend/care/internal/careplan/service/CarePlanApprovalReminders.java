@@ -2,7 +2,10 @@ package com.eldercare.backend.care.internal.careplan.service;
 
 import com.eldercare.backend.administration.approval.api.OverdueReminder;
 import com.eldercare.backend.administration.auditlog.api.*;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.care.api.dto.*;
 import com.eldercare.backend.care.api.events.CarePlanManagerEscalation;
 import com.eldercare.backend.care.internal.careplan.domain.CarePlan;

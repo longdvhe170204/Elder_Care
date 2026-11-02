@@ -57,11 +57,16 @@ public record RecordEndOfLifeWishBody(
 
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Long signedCopyFileId,
 
-        @NotNull @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull
+        @Schema(
+                requiredMode = Schema.RequiredMode.REQUIRED,
+                allowableValues = {"ADMISSION", "FAMILY_REQUEST"})
         WishRecordSource source) {
 
     /** Quyết định của Tòa án (schema {@code CourtDecision}); trường thiếu bị từ chối ở dịch vụ. */
-    @Schema(name = "CourtDecision")
+    @Schema(
+            name = "CourtDecision",
+            requiredProperties = {"number", "date", "court", "fileId"})
     public record CourtDecisionBody(String number, java.time.LocalDate date, String court, Long fileId) {}
 
     @Schema(name = "RecordEndOfLifeWishOpinion")

@@ -19,7 +19,7 @@ import com.eldercare.backend.administration.account.internal.permission.domain.P
 import com.eldercare.backend.administration.account.internal.permission.service.RolePermissionCalculator;
 import com.eldercare.backend.administration.account.internal.persistence.AccountStore;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.BusinessTime;
 import java.time.Duration;
@@ -149,6 +149,19 @@ class ScopeService implements ScopeApi {
         }
         Instant now = time.now();
         return of(assignments.at(user.staffId().get(), now), now);
+    }
+
+    @Override
+    public ScopeFilter assignedFilter(CurrentUser user, Set<AssignmentKind> kinds) {
+        if (user.staffId().isEmpty()) {
+            return empty();
+        }
+        Instant now = time.now();
+        return of(
+                assignments.at(user.staffId().get(), now).stream()
+                        .filter(a -> kinds.contains(a.kind()))
+                        .toList(),
+                now);
     }
 
     /**

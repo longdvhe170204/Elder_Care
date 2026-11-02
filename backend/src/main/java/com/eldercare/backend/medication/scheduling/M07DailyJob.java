@@ -1,8 +1,9 @@
 package com.eldercare.backend.medication.scheduling;
 
 import com.eldercare.backend.common.scheduling.ScheduledJob;
+import com.eldercare.backend.common.scheduling.SchedulerRuns;
 import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.medication.internal.service.M07JobService;
+import com.eldercare.backend.medication.internal.schedule.service.M07JobService;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -19,28 +20,31 @@ public class M07DailyJob implements ScheduledJob {
 
     private final M07JobService jobService;
     private final BusinessTime businessTime;
+    private final SchedulerRuns runs;
     private final boolean onStartup;
 
     public M07DailyJob(
             M07JobService jobService,
             BusinessTime businessTime,
+            SchedulerRuns runs,
             @Value("${eldercare.jobs.m07-daily.on-startup:${eldercare.scheduling.enabled:true}}") boolean onStartup) {
         this.jobService = jobService;
         this.businessTime = businessTime;
+        this.runs = runs;
         this.onStartup = onStartup;
     }
 
     @Scheduled(cron = "${eldercare.jobs.m07-daily.cron:0 0 0 * * *}", zone = "Asia/Ho_Chi_Minh")
     @SchedulerLock(name = M07Jobs.DAILY, lockAtMostFor = "PT30M")
     public void scheduled() {
-        jobService.runDailyTasks(businessTime.today(), businessTime.now());
+        runNow();
     }
 
     @EventListener(ApplicationReadyEvent.class)
     @SchedulerLock(name = M07Jobs.DAILY, lockAtMostFor = "PT30M")
     public void atStartup() {
         if (onStartup) {
-            jobService.runDailyTasks(businessTime.today(), businessTime.now());
+            runNow();
         }
     }
 
@@ -51,6 +55,13 @@ public class M07DailyJob implements ScheduledJob {
 
     @Override
     public void runNow() {
-        jobService.runDailyTasks(businessTime.today(), businessTime.now());
+        String runId = runs.start(name());
+        try {
+            jobService.runDailyTasks(businessTime.today(), businessTime.now());
+            runs.finish(runId, SchedulerRuns.Result.SUCCEEDED, 0);
+        } catch (RuntimeException error) {
+            runs.finish(runId, SchedulerRuns.Result.FAILED, 0);
+            throw error;
+        }
     }
 }

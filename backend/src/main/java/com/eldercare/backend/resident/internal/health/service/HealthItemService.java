@@ -6,10 +6,10 @@ import com.eldercare.backend.administration.account.api.dto.AccountType;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.Target;
-import com.eldercare.backend.administration.auditlog.api.AuditAction;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.data.CatalogBase;
@@ -65,7 +65,7 @@ public class HealthItemService implements HealthItemApi {
     static final AuditAction RECORDED = new AuditAction("HEALTH_ITEM_RECORDED", false);
     static final AuditAction EXCLUDED = new AuditAction("HEALTH_ITEM_EXCLUDED", true);
     static final AuditAction CHECKED = new AuditAction("HEALTH_ITEM_CHECKED", false);
-    private static final String ENTITY_TYPE = "M01.HEALTH_ITEM";
+    static final String ENTITY_TYPE = "M01.HEALTH_ITEM";
     private static final String CHECK_RULE = "BR-M01-12";
     private static final int MAX_TEXT_LENGTH = 1000;
 

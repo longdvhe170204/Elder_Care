@@ -98,6 +98,14 @@ class FR_029a_CallResultIT extends CallReminderTestBase {
                     assertThat(c.status()).isEqualTo("RESULT_RECORDED");
                     assertThat(c.results()).extracting(r -> r.result()).containsExactly("REACHED");
                 }));
+        // FR-037: lịch sử thông báo có lượt nhắc gọi và kết quả
+        mvc.perform(get("/api/v1/notification-history?sourceRecordType=M05.INCIDENT&sourceRecordId=kq-" + resident)
+                        .header("Authorization", bearer(users.staff(Role.NURSING_HOME_MANAGER))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].callReminders[0].id").value((int) id))
+                .andExpect(jsonPath("$[0].callReminders[0].personToCallType").value("STAFF"))
+                .andExpect(jsonPath("$[0].callReminders[0].status").value("RESULT_RECORDED"))
+                .andExpect(jsonPath("$[0].callReminders[0].results[0].result").value("REACHED"));
     }
 
     @Test
@@ -145,7 +153,8 @@ class FR_029a_CallResultIT extends CallReminderTestBase {
         record(first, lead, reached()).andExpect(status().isCreated());
         assertThat(notificationStatus(notification)).isEqualTo("ACKNOWLEDGED/LATE_BY_CALL");
         assertThat(jdbc.queryForObject(
-                        "SELECT supplementary FROM call_result WHERE call_reminder_id = ? ORDER BY id DESC LIMIT 1",
+                        "SELECT content->>'$.supplementary' = 'true' FROM record_event WHERE kind = 'M13.CALL_RESULT'"
+                                + " AND entity_type = 'M13.CALL_REMINDER' AND entity_id = ? ORDER BY id DESC LIMIT 1",
                         Boolean.class,
                         first))
                 .isTrue();
@@ -224,6 +233,22 @@ class FR_029a_CallResultIT extends CallReminderTestBase {
         assertThat(state(id)).containsEntry("final_result", "NOT_REACHED");
         assertThat(notificationStatus(notification)).startsWith("UNREACHABLE/");
         await().atMost(Duration.ofSeconds(10)).until(() -> managerUnreachableNotices(id) >= 1);
+    }
+
+    @Test
+    void FR_030_notReached_onlyThreeReasonsOfSpec() throws Exception {
+        TestUser lead = users.staff(Role.NURSING_STAFF);
+        TestUser late = users.staff(Role.NURSING_STAFF);
+        duties.shiftLead(floor, lead.staffId());
+        staffNotification(send(urgent("ly-do-" + resident, new RecipientGroup.Staff(late.staffId(), "X"))), late);
+        advance(PAST_CFG);
+        creation.run();
+        long id = reminders("STAFF", late.staffId()).getFirst();
+
+        record(id, lead, "{\"result\":\"NOT_REACHED\",\"calledAt\":\"" + time.now() + "\",\"reason\":\"OTHER\"}")
+                .andExpect(status().is4xxClientError());
+
+        assertThat(state(id)).containsEntry("status", "AWAITING_RESULT");
     }
 
     @Test

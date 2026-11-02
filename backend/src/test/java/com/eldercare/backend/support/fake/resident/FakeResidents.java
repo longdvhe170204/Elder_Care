@@ -73,6 +73,11 @@ public class FakeResidents implements ResidentApi {
     }
 
     @Override
+    public Optional<Long> previousProfileId(long residentId) {
+        return Optional.empty();
+    }
+
+    @Override
     public List<Long> byStatus(Set<ResidentStatus> statuses) {
         return residents.entrySet().stream()
                 .filter(e -> statuses.contains(e.getValue().status()))

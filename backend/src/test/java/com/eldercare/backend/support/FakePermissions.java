@@ -20,7 +20,8 @@ import com.eldercare.backend.administration.account.api.dto.ReviewRecipient;
 import com.eldercare.backend.administration.account.api.dto.ScopeFilter;
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.dto.Visibility;
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.Role;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -177,6 +178,11 @@ public class FakePermissions implements PermissionApi, ScopeApi, FieldVisibility
         return hasPermission(user, key, Target.UNSPECIFIED).allowed()
                 ? ScopeFilter.FACILITY
                 : new ScopeFilter(false, Set.of(), Set.of(), Set.of());
+    }
+
+    @Override
+    public ScopeFilter assignedFilter(CurrentUser user, Set<AssignmentKind> kinds) {
+        return new ScopeFilter(false, Set.of(), Set.of(), Set.of());
     }
 
     @Override

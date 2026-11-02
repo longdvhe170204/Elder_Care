@@ -137,9 +137,9 @@ public abstract class HealthTestBase extends MySqlIntegrationTestBase {
 
     /** Dị nguyên chọn từ danh mục, tên riêng cho mỗi lần gọi. */
     protected long allergenId() {
-        jdbc.update(
-                "INSERT INTO allergen (name, allergen_group) VALUES (?, 'ACTIVE_INGREDIENT')",
-                "Hoạt chất " + UUID.randomUUID());
-        return jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
+        String name = "Hoạt chất " + UUID.randomUUID();
+        jdbc.update("INSERT INTO allergen (name, allergen_group) VALUES (?, 'ACTIVE_INGREDIENT')", name);
+        // tra theo tên: LAST_INSERT_ID có thể đọc trên connection khác trong pool
+        return jdbc.queryForObject("SELECT id FROM allergen WHERE name = ?", Long.class, name);
     }
 }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
   ApiError,
+  getCorrectionsByRecordTypeByOriginalRecordId,
   getResidentsByIdInitialHealthRecord,
   postResidentsByIdInitialHealthRecordConfirm,
   putResidentsByIdInitialHealthRecord,
@@ -40,6 +41,7 @@ export function InitialHealthRecord({ residentId, allowedCommands }) {
   const [form, setForm] = useState(null)
   const [busy, setBusy] = useState(false)
   const [correcting, setCorrecting] = useState(false)
+  const [voided, setVoided] = useState(false)
 
   const canWrite = allowedCommands.includes('WRITE_INITIAL_HEALTH_RECORD')
   const canConfirm = allowedCommands.includes('CONFIRM_INITIAL_HEALTH_RECORD')
@@ -67,6 +69,24 @@ export function InitialHealthRecord({ residentId, allowedCommands }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- nạp hồ sơ khi mở tab
     load()
   }, [load])
+
+  // Hợp đồng hồ sơ chỉ có corrected; Đã hủy ghi nhận đọc từ chuỗi đính chính (BUG-09). Lỗi thì giữ nhãn hiện có.
+  useEffect(() => {
+    if (!record?.corrected) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- bản ghi chưa đính chính thì không hủy
+      setVoided(false)
+      return undefined
+    }
+    let cancelled = false
+    getCorrectionsByRecordTypeByOriginalRecordId({
+      path: { recordType: HEALTH_RECORD_TYPE, originalRecordId: record.id },
+    })
+      .then(({ data }) => !cancelled && setVoided(data.voided))
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [record])
 
   function startEditing() {
     setForm(formOf(record))
@@ -134,8 +154,8 @@ export function InitialHealthRecord({ residentId, allowedCommands }) {
         <h3 id="initial-health-record-title" className="type-card-title">
           Hồ sơ sức khỏe ban đầu
         </h3>
-        {record && <StatusBadge status={record.confirmed ? 'Đã xác nhận' : 'Bản nháp'} />}
-        {record && <CorrectionBadge corrected={record.corrected} />}
+        {record && !voided && <StatusBadge status={record.confirmed ? 'Đã xác nhận' : 'Bản nháp'} />}
+        {record && <CorrectionBadge corrected={record.corrected} voided={voided} />}
       </div>
 
       {state === 'loading' && (
@@ -244,6 +264,7 @@ export function InitialHealthRecord({ residentId, allowedCommands }) {
               open={correcting}
               onOpenChange={setCorrecting}
               canCorrect={canWrite}
+              prefillCurrent
               onChanged={load}
             />
           )}

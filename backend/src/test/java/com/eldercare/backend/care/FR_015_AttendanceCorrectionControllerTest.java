@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.eldercare.backend.administration.correction.api.*;
+import com.eldercare.backend.administration.correction.api.dto.CorrectionType;
 import com.eldercare.backend.care.web.DayCareAttendanceCorrectionController;
 import com.eldercare.backend.care.web.request.AttendanceCorrectionWrite;
 import com.eldercare.backend.common.Reason;

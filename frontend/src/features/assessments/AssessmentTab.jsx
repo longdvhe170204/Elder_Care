@@ -329,6 +329,7 @@ export function AssessmentTab({ residentId, residentStatus, allowedCommands = []
           open
           onOpenChange={(open) => !open && setCorrectingId(null)}
           canCorrect={canConfirm}
+          prefillCurrent
           onChanged={() => {
             load()
             onChanged?.()
