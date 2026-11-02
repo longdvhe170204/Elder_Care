@@ -57,6 +57,8 @@ export const NAV_GROUPS = [
     items: [
       // Dòng "Checklist, ghi nhận công việc"
       { key: 'care-tasks', label: 'Checklist ca', icon: 'ListChecks', functions: ['TASK_CHECKLIST'], roles: [QL, TT, BS, DD, CS] },
+      // Dòng "Xử lý việc quá hạn", Phụ lục 27 (005 T046).
+      { key: 'overdue-care-tasks', label: 'Công việc quá hạn', icon: 'ListChecks', functions: ['OVERDUE_TASK_HANDLING'], roles: [QL, TT] },
       { key: 'care-task-planning', label: 'Lập công việc ca', icon: 'ClipboardCheck', functions: ['SHIFT_TASK_PLANNING'], roles: [QL, TT, DD] },
       { key: 'day-care-attendance', label: 'Điểm danh bán trú', icon: 'ClipboardCheck', functions: ['DAY_CARE_ATTENDANCE'], roles: [QL, TT, DD, CS, HC] },
       // Dòng "Kế hoạch chăm sóc" và "Danh mục loại công việc chăm sóc" (005 T017, Phụ lục 27).

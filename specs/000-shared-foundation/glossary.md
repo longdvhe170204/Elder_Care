@@ -1130,6 +1130,21 @@ API mục1–3 của đề xuất đã được duyệt. Chiều mã giữ care�
 | Web/mobile | `CareChecklistPage`, `CareChecklistDetail`, `CareResultForm`; mobile `CareChecklistScreen`, `CareChecklistRepository`, `CareChecklistCache`, `CachedCareChecklist`, `ApiCareChecklistGateway` |
 | Migration R-15 | `V005_98__care_task_results.sql`, `V005_99__care_checklist_carryover.sql`, `V005_100__care_result_reason_reference.sql`; kết quả gộp `care_task`, không tạo `care_result` |
 
+### 11.10. Quá hạn và bàn giao Phase 7 (005, 02/11/2026)
+
+| Tên nghiệp vụ / đường dẫn logic | Tên mã / đường dẫn thực |
+| --- | --- |
+| Danh sách công việc quá hạn | GET /care-tasks/overdue; query floorAreaId (chủ dự án duyệt bản dịch) |
+| Chuyển trạng thái/leo thang theo phút | CareTaskDueStep, CareTaskClockProcessor, CareTaskNotices; internal/task/service |
+| Nguồn bàn giao đầy đủ005 | CareHandoverQueries implements HandoverTaskApi |
+| Projection tương thích008 | CareTaskHandoverProjection implements TaskHandoverApi; chưa hỗ trợ task không residentId |
+| Xác nhận bàn giao | CareTaskHandover.onHandoverConfirmed; MANDATORY |
+| Tồn từ ca trước / tồn chờ xác nhận | FROM_PREVIOUS_SHIFT / AWAITING_HANDOVER_CONFIRMATION (carryover hiện có) |
+| Lịch sử người trước/sau và căn cứ bàn giao | CareTaskHandling.previousPerformerId / performerId / handoverId; StatusHistoryApi |
+| Màn quá hạn web / app nhân viên | features/care-tasks/OverdueTasksPage.jsx / staff/care_tasks/overdue_tasks_screen.dart |
+
+Không thêm enum/trường API công khai mới; callback ngoài bàn giao và các dependency chưa đạt giữ gate trong plan/team-plan.
+
 ## 12. Feature 006 (`006-medication-management`, D)
 
 ### 12.1. Bảng và cột nền tảng (T005, `V006_01__medication_foundation.sql`)

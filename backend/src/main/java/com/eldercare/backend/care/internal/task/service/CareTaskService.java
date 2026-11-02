@@ -265,6 +265,11 @@ public class CareTaskService {
     }
 
     public void record(CareTask before, CareTask after, String command, Reason reason, boolean system) {
+        record(before, after, command, reason, system, null);
+    }
+
+    public void record(
+            CareTask before, CareTask after, String command, Reason reason, boolean system, Long handoverId) {
         history.add(
                 HISTORY,
                 after.id(),
@@ -278,9 +283,13 @@ public class CareTaskService {
                         system ? null : user.accountId(),
                         system,
                         reason,
-                        after.basisType().name(),
-                        after.basisId(),
-                        new CareTaskHandling(after.data().content()),
+                        handoverId == null ? after.basisType().name() : "M09.HANDOVER",
+                        handoverId == null ? after.basisId() : handoverId,
+                        new CareTaskHandling(
+                                after.data().content(),
+                                before == null ? null : before.performerId(),
+                                after.performerId(),
+                                handoverId),
                         after.floorAreaId(),
                         null));
         audit.write(AuditLogEntry.builder()
