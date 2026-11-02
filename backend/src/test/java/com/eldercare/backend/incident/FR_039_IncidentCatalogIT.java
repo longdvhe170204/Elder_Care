@@ -113,18 +113,21 @@ class FR_039_IncidentCatalogIT extends MySqlIntegrationTestBase {
         var disabled = service.updateTrendRule(
                 code,
                 VersionEtag.of(seeded.version()),
-                new TrendRuleUpdate(false, IncidentLevel.LOW, new Reason("Tắt quy tắc kiểm thử")));
+                new TrendRuleUpdate(false, IncidentLevel.LOW),
+                new Reason("Tắt quy tắc kiểm thử"));
         assertThat(disabled.enabled()).isFalse();
         var enabled = service.updateTrendRule(
                 code,
                 VersionEtag.of(disabled.version()),
-                new TrendRuleUpdate(true, IncidentLevel.CRITICAL, new Reason("Bật quy tắc kiểm thử")));
+                new TrendRuleUpdate(true, IncidentLevel.CRITICAL),
+                new Reason("Bật quy tắc kiểm thử"));
         assertThat(enabled.enabled()).isTrue();
         assertThat(enabled.level()).isEqualTo(IncidentLevel.CRITICAL);
         assertThatThrownBy(() -> service.updateTrendRule(
                         code,
                         VersionEtag.of(disabled.version()),
-                        new TrendRuleUpdate(false, IncidentLevel.LOW, new Reason("Phiên bản cũ"))))
+                        new TrendRuleUpdate(false, IncidentLevel.LOW),
+                        new Reason("Phiên bản cũ")))
                 .isInstanceOf(VersionMismatchException.class);
         assertThat(jdbc.queryForObject(
                         "SELECT COUNT(*) FROM audit_log WHERE entity_type='M05.TREND_RULE' AND entity_id=?",

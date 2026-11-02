@@ -30,7 +30,7 @@ class IncidentCatalogController {
             @PathVariable String code,
             @RequestHeader("If-Match") String ifMatch,
             @RequestBody TrendRuleRequest request) {
-        var updated = catalogs.updateTrendRule(code, ifMatch, request.toInput());
+        var updated = catalogs.updateTrendRule(code, ifMatch, request.toInput(), request.reason());
         return ResponseEntity.ok().eTag(VersionEtag.of(updated.version())).build();
     }
 

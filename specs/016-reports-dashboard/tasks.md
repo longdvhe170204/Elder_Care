@@ -72,11 +72,11 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 2
 
-- [ ] T011 [P] [US2] Test `BT/reporting/FR_012_PhamViTheoThoiGianIT.java` (SC-011), bộ 11 tài khoản `BT/reporting/SC_004_PhamViIT.java`, `FR_014_GioiHanTruongIT.java`, `FR_042a_SuCoHanhChinhIT.java`, `SC_005_TenThuocIT.java` (Q3 → Q11)
+- [ ] T011 [P] [US2] *(2026-11-01: xong `FR_012_TimeScopeIT` trên ca, phân công thật của 008, `SC_004_ScopeIT` bộ 11 tài khoản, `FR_014_FieldRestrictionIT` gồm cả `SC_005`; `FR_042a_AdminIncidentIT`, `SC_005` chỉ kiểm khung bằng chỉ tiêu giả `TestScopedMetrics`; còn chạy lại với chỉ tiêu thật khi 007 có phần đọc sự cố, 010 có `ChiPhiThongKeApi`, và Q7 đổi loại sự cố chờ 007)* Test `BT/reporting/FR_012_PhamViTheoThoiGianIT.java` (SC-011), bộ 11 tài khoản `BT/reporting/SC_004_PhamViIT.java`, `FR_014_GioiHanTruongIT.java`, `FR_042a_SuCoHanhChinhIT.java`, `SC_005_TenThuocIT.java` (Q3 → Q11)
 
 ### Implementation cho User Story 2
 
-- [ ] T012 [US2] Nối `PhamViBaoCao`, `QuyenNhomChiTieu`, giới hạn trường vào mọi đường đọc của `DashboardService` và khung báo cáo; bộ lọc trả chỉ giá trị trong phạm vi
+- [x] T012 [US2] *(2026-11-01: phạm vi theo từng ô của nhóm, ca thật sự thuộc về, việc chung của ca, báo Quản lý viện khi lỗi nguồn; `filterOptions` cho tầng/khu; giá trị lọc nhân viên, người cao tuổi làm cùng chỉ tiêu có các cột này, hiện lọc chỉ thu hẹp trong phạm vi)* Nối `PhamViBaoCao`, `QuyenNhomChiTieu`, giới hạn trường vào mọi đường đọc của `DashboardService` và khung báo cáo; bộ lọc trả chỉ giá trị trong phạm vi
 
 **Checkpoint**: P1 hoàn tất.
 
@@ -154,7 +154,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ### Tests cho User Story 7
 
-- [ ] T021 [P] [US7] Test `BT/reporting/FR_009_ChiTietKhopSoIT.java` (SC-006; Q12, Q13)
+- [ ] T021 [P] [US7] *(2026-11-01: xong khung `FR_009_DetailMatchIT` bằng chỉ tiêu giả: dashboard, báo cáo, chi tiết cùng số, ô chia nhóm, phân trang, dòng rút gọn; còn 20 chỉ tiêu thật của SC-006 và mở bản ghi chỉ xem ở feature sở hữu, chờ nguồn)* Test `BT/reporting/FR_009_ChiTietKhopSoIT.java` (SC-006; Q12, Q13)
 
 ### Implementation cho User Story 7
 
@@ -164,9 +164,9 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 
 ## Phase 10: User Story 8 – Báo cáo nhân sự và ca trực (Priority: P3)
 
-**Goal**: Ca, thiếu phủ, đổi ca, nghỉ, tỷ lệ phục vụ, chứng chỉ (FR-070 → FR-073).
+**Goal**: Ca, đổi ca, nghỉ, tỷ lệ phục vụ, chứng chỉ (FR-070 → FR-073; thiếu phủ, thiếu ca, lời mời bỏ theo Q-397).
 
-**Independent Test**: Tháng 11 tầng 2 với 60 ca, 4 ca thiếu phủ (20 giờ), 1 mục thiếu ca đã công bố, 6 yêu cầu đổi ca → số đúng.
+**Independent Test**: Tháng 11 tầng 2 với 60 ca, 6 yêu cầu đổi ca → số đúng (ca thiếu phủ, mục thiếu ca bỏ theo Q-397).
 
 ### Tests cho User Story 8
 
@@ -201,7 +201,7 @@ description: "Danh sách task triển khai feature 016 – Báo cáo và dashboa
 - [ ] T031 [US5] *(Bổ sung 2026-10-18, Q-369)* Thêm chỉ tiêu cảnh báo SOS vào nhóm sức khỏe (research O-12) và màn `frontend/src/tinh-nang/bao-cao/suc-khoe-thuoc/`; test `ChiTieu_SK_CanhBaoSosTest` (quickstart B1)
 - [ ] T032 [US5] *(Bổ sung 2026-10-22, Q-374, Q-375)* Mở rộng chỉ tiêu của T031 thành `SK.CANH_BAO_SOS_HO_TRO` (research O-13, contracts/chi-tieu.md): dòng nút hỗ trợ khẩn cấp, thời gian tạo → tới nơi, số "không ghi mốc tới nơi", dòng "chưa rõ tầng"; test `ChiTieu_SK_CanhBaoSosHoTroTest` (quickstart B1, B2); cần 007 T096 (`daToiNoiLuc`, `NUT_HO_TRO` trong `CanhBaoThongKeApi`), bản giả trước đó
 
-- [ ] T027 [P] Test `BT/reporting/SC_008_ChiDocIT.java` (đếm bản ghi trước/sau mọi báo cáo; Q29) và hiệu năng báo cáo 12 tháng (SC-003; Q24)
+- [ ] T027 [P] *(2026-11-01: xong `SC_008_ReadOnlyIT`, so `CHECKSUM TABLE` toàn schema; còn đo SC-003 báo cáo 12 tháng, chờ chỉ tiêu thật)* Test `BT/reporting/SC_008_ChiDocIT.java` (đếm bản ghi trước/sau mọi báo cáo; Q29) và hiệu năng báo cáo 12 tháng (SC-003; Q24)
 - [x] T028 [P] *(2026-10-24: `ApiContractIT`; `pending` còn `/dashboard`, `/metrics`, `/reports/{group}`, `/metric-details/{metricCode}`)* Mở rộng `BT/common/HopDongApiTest.java` với `specs/016-reports-dashboard/contracts/api-016.yaml`
 - [x] T105 *(bổ sung 2026-10-29, Q-392)* Bỏ nhóm chỉ tiêu kho nguyên liệu: `MetricGroup.INVENTORY`, chỉ tiêu `KHO.DUOI_TOI_THIEU`, `KHO.LO_SAP_HET_HAN` (contracts/chi-tieu.md) và các ô quyền của nhóm này; sửa test liên quan
 - [ ] T029 Chạy `./mvnw verify`, `npm test` và kịch bản quickstart.md mục 3; đo SC theo quickstart mục 5

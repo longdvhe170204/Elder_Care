@@ -333,6 +333,49 @@ class RecipientResolutionIT extends M13IntegrationTestBase {
                 .contains("Staff:REQUESTER");
     }
 
+    @Test
+    void FR_009_temporaryHolder_basisRecorded() {
+        TestUser holder = users.staff(Role.NURSING_STAFF);
+
+        long id = send(staffRequest(
+                "fr009-" + resident, NotificationLevel.MEDIUM, new RecipientGroup.Staff(holder.staffId(), "TAM_NHAN")));
+
+        assertThat((String) notificationOf(id, "STAFF", holder.staffId()).get("basis"))
+                .contains("Staff:TAM_NHAN");
+    }
+
+    @Test
+    void FR_002_levelKeptAsSourceSent() {
+        TestUser nurse = users.staff(Role.NURSING_STAFF);
+
+        for (NotificationLevel level : NotificationLevel.values()) {
+            long id = send(staffRequest(
+                    "fr002-" + level + "-" + resident, level, new RecipientGroup.Staff(nurse.staffId(), "OWNER")));
+
+            assertThat(jdbc.queryForObject("SELECT level FROM notification_request WHERE id = ?", String.class, id))
+                    .isEqualTo(level.name());
+        }
+    }
+
+    @Test
+    void FR_040_systemActivity_recordedAsSystem_tracesToTriggeringEvent() {
+        TestUser nurse = users.staff(Role.NURSING_STAFF);
+
+        long id = send(staffRequest(
+                "fr040-" + resident, NotificationLevel.LOW, new RecipientGroup.Staff(nurse.staffId(), "OWNER")));
+
+        Map<String, Object> row = jdbc.queryForMap(
+                "SELECT e.actor_id, e.by_system, r.event_type, r.source_record_id FROM record_event e"
+                        + " JOIN notification n ON n.id = e.entity_id JOIN notification_request r ON r.id = n.request_id"
+                        + " WHERE e.kind = 'M13.NOTIFICATION_EVENT' AND r.id = ? ORDER BY e.id LIMIT 1",
+                id);
+        assertThat(row.get("actor_id")).isNull();
+        assertThat(row.get("by_system")).isIn(true, 1, 1L);
+        assertThat(row)
+                .containsEntry("event_type", "TEST_EVENT")
+                .containsEntry("source_record_id", "fr040-" + resident);
+    }
+
     private static NotifiableRelationshipView relation(
             long familyMemberId, boolean primary, boolean representative, Set<FamilyRight> rights) {
         return new NotifiableRelationshipView(

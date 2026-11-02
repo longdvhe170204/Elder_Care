@@ -32,7 +32,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationLookupService implements NotificationLookupApi {
 
     /** Một dòng lịch sử gửi kèm kết quả từng kênh. */
-    public record HistoryEntry(SentNotification row, List<NotifiedPersonView.ChannelResult> channels) {}
+    public record HistoryEntry(
+            SentNotification row,
+            List<NotifiedPersonView.ChannelResult> channels,
+            List<NotifiedPersonView.CallReminderSummary> callReminders) {}
 
     private final LookupStore store;
     private final CallReminderStore reminders;
@@ -117,7 +120,7 @@ public class NotificationLookupService implements NotificationLookupApi {
                 .history(
                         new HistoryFilter(sourceRecordType, sourceRecordId, recipientId, floorAreaId, from, to, floors))
                 .stream()
-                .map(r -> new HistoryEntry(r, store.channels(r.notificationId())))
+                .map(r -> new HistoryEntry(r, store.channels(r.notificationId()), callReminders(r.notificationId())))
                 .toList();
     }
 

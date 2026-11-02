@@ -49,7 +49,7 @@ class FR_039_IncidentCatalogControllerTest {
         var trend = new TrendRuleRequest(false, IncidentLevel.CRITICAL, Reason.of("Tăng rủi ro"));
         var incident = new IncidentTypeRequest("CUSTOM", "Khác", IncidentLevel.LOW, true, false);
         var progression = new ProgressionTypeRequest("OBSERVE", "Theo dõi", ProgressionGroup.MONITORING, false);
-        when(service.updateTrendRule("WEIGHT_LOSS", "\"2\"", trend.toInput()))
+        when(service.updateTrendRule("WEIGHT_LOSS", "\"2\"", trend.toInput(), trend.reason()))
                 .thenReturn(
                         new TrendRuleView("WEIGHT_LOSS", "Sụt cân", false, IncidentLevel.CRITICAL, "CFG-M05-01", 3));
         when(service.createIncidentType(incident.toInput()))
@@ -64,7 +64,7 @@ class FR_039_IncidentCatalogControllerTest {
         controller.updateIncidentType(8, "\"1\"", incident);
         controller.createProgressionType(progression);
 
-        verify(service).updateTrendRule("WEIGHT_LOSS", "\"2\"", trend.toInput());
+        verify(service).updateTrendRule("WEIGHT_LOSS", "\"2\"", trend.toInput(), trend.reason());
         verify(service).createIncidentType(incident.toInput());
         verify(service).updateIncidentType(8, "\"1\"", incident.toInput(), false);
         verify(service).createProgressionType(progression.toInput());

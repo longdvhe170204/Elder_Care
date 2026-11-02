@@ -1,6 +1,7 @@
 package com.eldercare.backend.resident.internal.profile.persistence;
 
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
+import com.eldercare.backend.resident.internal.profile.domain.ResidentMatch;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -24,9 +25,6 @@ public class ResidentLookup {
     public static final int MAX_PAGE_SIZE = 100;
     private static final String FINAL_STATUSES = "'RESIDENCY_ENDED', 'DECEASED', 'ADMISSION_CANCELLED'";
 
-    /** Hồ sơ đang mang một CCCD hoặc một phần nhận dạng của hồ sơ trùng. */
-    public record Match(long id, String profileCode, String fullName, LocalDate dateOfBirth, ResidentStatus status) {}
-
     private final JdbcTemplate jdbc;
 
     ResidentLookup(JdbcTemplate jdbc) {
@@ -34,12 +32,12 @@ public class ResidentLookup {
     }
 
     /** Hồ sơ chưa ở trạng thái cuối đang mang CCCD này (DBR-01). */
-    public Optional<Match> findOpenByCitizenId(String citizenId) {
+    public Optional<ResidentMatch> findOpenByCitizenId(String citizenId) {
         return one("WHERE open_citizen_id = ?", citizenId);
     }
 
     /** Hồ sơ gần nhất ở trạng thái cuối mang CCCD này (FR-004). */
-    public Optional<Match> findLatestClosedByCitizenId(String citizenId) {
+    public Optional<ResidentMatch> findLatestClosedByCitizenId(String citizenId) {
         return one(
                 "WHERE id_document_type = 'CITIZEN_ID' AND id_document_number = ? AND status IN ("
                         + FINAL_STATUSES
@@ -48,7 +46,7 @@ public class ResidentLookup {
     }
 
     /** Hồ sơ ở mọi trạng thái trùng họ tên (không phân biệt hoa thường, có phân biệt dấu) và ngày sinh (FR-005). */
-    public List<Match> findSameNameAndBirthDate(String fullName, LocalDate dateOfBirth) {
+    public List<ResidentMatch> findSameNameAndBirthDate(String fullName, LocalDate dateOfBirth) {
         return jdbc.query(
                 MATCH_SELECT
                         + " WHERE full_name_match = TRIM(REGEXP_REPLACE(?, '[[:space:]]+', ' ')) AND date_of_birth = ?"
@@ -95,13 +93,13 @@ public class ResidentLookup {
     private static final String MATCH_SELECT =
             "SELECT id, profile_code, full_name, date_of_birth, status FROM resident";
 
-    private Optional<Match> one(String where, Object... args) {
+    private Optional<ResidentMatch> one(String where, Object... args) {
         return jdbc.query(MATCH_SELECT + " " + where, (rs, i) -> match(rs), args).stream()
                 .findFirst();
     }
 
-    private static Match match(ResultSet rs) throws SQLException {
-        return new Match(
+    private static ResidentMatch match(ResultSet rs) throws SQLException {
+        return new ResidentMatch(
                 rs.getLong("id"),
                 rs.getString("profile_code"),
                 rs.getString("full_name"),

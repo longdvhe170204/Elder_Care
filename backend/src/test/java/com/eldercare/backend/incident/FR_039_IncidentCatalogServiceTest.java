@@ -115,7 +115,7 @@ class FR_039_IncidentCatalogServiceTest {
                         1,
                         new TrendRuleAttributes(IncidentLevel.MEDIUM, "CFG-M05-03")));
         assertThatThrownBy(() -> service.updateTrendRule(
-                        "WEIGHT_LOSS", "\"99\"", new TrendRuleUpdate(false, IncidentLevel.LOW, new Reason("Tắt"))))
+                        "WEIGHT_LOSS", "\"99\"", new TrendRuleUpdate(false, IncidentLevel.LOW), new Reason("Tắt")))
                 .isInstanceOf(VersionMismatchException.class);
         assertThat(catalogs.require(IncidentCatalogs.TREND_RULE, seeded.id())).isEqualTo(seeded);
         verifyNoInteractions(audit);
@@ -124,7 +124,7 @@ class FR_039_IncidentCatalogServiceTest {
     @Test
     void FR_039_missingReasonDoesNotChangeTheRule() {
         assertThatThrownBy(() -> service.updateTrendRule(
-                        "WEIGHT_LOSS", "\"0\"", new TrendRuleUpdate(false, IncidentLevel.LOW, null)))
+                        "WEIGHT_LOSS", "\"0\"", new TrendRuleUpdate(false, IncidentLevel.LOW), null))
                 .isInstanceOf(ReasonRequiredException.class);
         verifyNoInteractions(audit);
     }
@@ -166,7 +166,8 @@ class FR_039_IncidentCatalogServiceTest {
         var result = service.updateTrendRule(
                 "WEIGHT_LOSS",
                 VersionEtag.of(seeded.version()),
-                new TrendRuleUpdate(false, IncidentLevel.CRITICAL, new Reason("Tăng mức theo quyết định viện")));
+                new TrendRuleUpdate(false, IncidentLevel.CRITICAL),
+                new Reason("Tăng mức theo quyết định viện"));
 
         assertThat(result.code()).isEqualTo("WEIGHT_LOSS");
         assertThat(result.enabled()).isFalse();

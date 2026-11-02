@@ -115,9 +115,13 @@ class ResidentContractIT extends MySqlIntegrationTestBase {
                 "/reassessments",
                 "/consents",
                 "/files");
+        // Chỉ đường dẫn có trong api-001: module khác cũng có đường dẫn dưới /residents (m03, m07); đường dẫn lạ do
+        // ApiContractIT bắt
+        Set<String> contractPaths = contract.getPaths().keySet();
         inCode.removeIf(op -> {
             String path = op.substring(op.indexOf(' ') + 1);
-            return residentRoots.stream().noneMatch(root -> path.equals(root) || path.startsWith(root + "/"));
+            return !contractPaths.contains(path)
+                    || residentRoots.stream().noneMatch(root -> path.equals(root) || path.startsWith(root + "/"));
         });
         assertThat(inCode).containsExactlyInAnyOrderElementsOf(IMPLEMENTED);
         assertThat(operations(contract, "")).containsAll(IMPLEMENTED);

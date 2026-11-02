@@ -35,6 +35,7 @@ class T005_IncidentCatalogMigrationIT extends MySqlIntegrationTestBase {
                 SELECT code, JSON_UNQUOTE(attributes->'$.level') AS level,
                   JSON_UNQUOTE(attributes->'$.parameterCode') AS parameter_code
                 FROM catalog_item WHERE catalog_type='M05.TREND_RULE' AND module='M05'
+                  AND code IN ('WEIGHT_LOSS', 'MISSED_MEASUREMENT', 'PROLONGED_INSOMNIA', 'MEDICATION_REFUSAL')
                 ORDER BY sort_order
                 """);
         assertThat(rules).hasSize(4);

@@ -11,6 +11,7 @@ import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
 import com.eldercare.backend.administration.shared.api.CatalogApi;
 import com.eldercare.backend.administration.shared.api.dto.CatalogItem;
 import com.eldercare.backend.administration.shared.api.dto.NewCatalogItem;
+import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.data.BusinessCommand;
 import com.eldercare.backend.common.data.CatalogStatus;
@@ -73,10 +74,10 @@ public class IncidentCatalogService {
     @BusinessCommand
     @RequiresPermission(function = Function.ACCOUNT_PERMISSION_PARAMETER, operation = Operation.UPDATE)
     @Transactional
-    public TrendRuleView updateTrendRule(String code, String ifMatch, TrendRuleUpdate input) {
+    public TrendRuleView updateTrendRule(String code, String ifMatch, TrendRuleUpdate input, Reason reason) {
         requireManager();
-        if (input == null || input.reason() == null) throw new ReasonRequiredException();
-        if (input.level() == null) throw invalid();
+        if (reason == null) throw new ReasonRequiredException();
+        if (input == null || input.level() == null) throw invalid();
         var before =
                 catalogs.findByCode(IncidentCatalogs.TREND_RULE, null, code).orElseThrow(NotFoundException::new);
         VersionEtag.requireMatch(ifMatch, before.version(), trend(before));
@@ -103,7 +104,7 @@ public class IncidentCatalogService {
                 .entity(IncidentCatalogs.TREND_RULE.code(), before.id())
                 .before(trendSnapshot(trend(before)))
                 .after(trendSnapshot(after))
-                .reason(input.reason())
+                .reason(reason)
                 .build());
         return after;
     }

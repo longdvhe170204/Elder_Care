@@ -16,7 +16,6 @@ import com.eldercare.backend.incident.internal.alert.domain.IncidentLevel;
 import com.eldercare.backend.incident.internal.alert.persistence.AlertStore;
 import com.eldercare.backend.incident.internal.governance.service.MonitoringLock;
 import com.eldercare.backend.resident.api.ResidentApi;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -32,9 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class AlertService {
-
-    private static final Duration DEFAULT_MEDIUM_DEADLINE = Duration.ofMinutes(15);
-    private static final Duration DEFAULT_LOW_DEADLINE = Duration.ofMinutes(60);
 
     private final AlertStore alertStore;
     private final ApplicationEventPublisher eventPublisher;
@@ -258,19 +254,24 @@ public class AlertService {
             return null; // Khẩn cấp không có hạn tiếp nhận, phát báo động ngay (FR-031)
         }
         if (level == IncidentLevel.MEDIUM) {
-            Duration duration = DEFAULT_MEDIUM_DEADLINE;
-            try {
-                var param = parameterApi.read(
-                        com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M05_01);
-                if (param != null && param.isSet()) {
-                    duration = param.asDuration();
-                }
-            } catch (Exception ignored) {
-                // Sử dụng mặc định nếu tham số chưa nạp hoặc sai kiểu
-            }
-            return now.plus(duration);
+            return now.plus(parameterApi
+                    .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M05_01)
+                    .asDuration());
         }
-        // LOW
-        return now.plus(DEFAULT_LOW_DEADLINE);
+        if (floorAreaId == null || staffPort.isEmpty()) {
+            throw new IllegalStateException("Chưa có nguồn ca để tính hạn cảnh báo Nhẹ");
+        }
+        var shifts = staffPort.get();
+        var current = shifts.shiftAt(floorAreaId, now)
+                .orElseThrow(() -> new IllegalStateException("Chưa có ca hiện tại của tầng"));
+        var handoverLead = parameterApi
+                .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M09_04)
+                .asDuration();
+        if (now.isAfter(current.endsAt().minus(handoverLead))) {
+            return shifts.nextShift(floorAreaId, now)
+                    .orElseThrow(() -> new IllegalStateException("Chưa có ca kế tiếp của tầng"))
+                    .endsAt();
+        }
+        return current.endsAt();
     }
 }

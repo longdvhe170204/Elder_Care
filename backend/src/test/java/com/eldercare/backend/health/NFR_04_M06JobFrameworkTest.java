@@ -2,6 +2,7 @@ package com.eldercare.backend.health;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
+
 import com.eldercare.backend.common.scheduling.SchedulerRuns;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.health.internal.scheduling.persistence.M06JobRunStore;
@@ -16,7 +17,8 @@ import org.junit.jupiter.api.Test;
 
 class NFR_04_M06JobFrameworkTest {
 
-    private static final Instant NOW = OffsetDateTime.parse("2030-03-04T08:21:45+07:00").toInstant();
+    private static final Instant NOW =
+            OffsetDateTime.parse("2030-03-04T08:21:45+07:00").toInstant();
 
     @Test
     void NFR_04_minuteRunInvokesEachTaskOnceAtTheCurrentScheduledMinute() {

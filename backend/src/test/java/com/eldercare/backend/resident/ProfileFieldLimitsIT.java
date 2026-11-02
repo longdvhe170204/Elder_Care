@@ -156,6 +156,17 @@ class ProfileFieldLimitsIT extends ResidentProfileTestBase {
     }
 
     @Test
+    void BUG06_finalStatus_doesNotOfferUpdatePersonalInfo() throws Exception {
+        long id = create(json(uniqueName(), ""));
+        jdbc.update("UPDATE resident SET status = 'RESIDENCY_ENDED' WHERE id = ?", id);
+        user.set(OFFICE);
+
+        mvc.perform(get("/api/v1/residents/" + id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.allowedCommands", not(hasItem("UPDATE_PERSONAL_INFO"))));
+    }
+
+    @Test
     void US1_6_caregiver_seesAssignedProfileOnly() throws Exception {
         long assigned = create(json(uniqueName(), ""));
         long other = create(json(uniqueName(), ""));

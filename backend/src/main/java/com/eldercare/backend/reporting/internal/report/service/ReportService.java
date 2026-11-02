@@ -13,15 +13,20 @@ import com.eldercare.backend.reporting.internal.metric.service.MetricCatalog;
 import com.eldercare.backend.reporting.internal.metric.service.MetricEvaluator;
 import com.eldercare.backend.reporting.internal.report.domain.MetricResult;
 import com.eldercare.backend.reporting.internal.report.domain.Report;
+import com.eldercare.backend.reporting.internal.report.domain.ReportFilterOptions;
 import com.eldercare.backend.reporting.internal.report.domain.ReportGroup;
 import com.eldercare.backend.reporting.internal.scope.domain.ReportScope;
 import com.eldercare.backend.reporting.internal.scope.service.ReportPeriods.ReportPeriod;
 import com.eldercare.backend.reporting.internal.scope.service.ReportScopeService;
+import com.eldercare.backend.roombedallocation.api.LocationStructureApi;
+import com.eldercare.backend.roombedallocation.api.dto.AreaView;
+import com.eldercare.backend.roombedallocation.api.dto.FloorView;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,13 +44,19 @@ public class ReportService {
     private final MetricCatalog catalog;
     private final ReportScopeService scopes;
     private final MetricEvaluator evaluator;
+    private final LocationStructureApi structure;
     private final BusinessTime time;
 
     public ReportService(
-            MetricCatalog catalog, ReportScopeService scopes, MetricEvaluator evaluator, BusinessTime time) {
+            MetricCatalog catalog,
+            ReportScopeService scopes,
+            MetricEvaluator evaluator,
+            LocationStructureApi structure,
+            BusinessTime time) {
         this.catalog = catalog;
         this.scopes = scopes;
         this.evaluator = evaluator;
+        this.structure = structure;
         this.time = time;
     }
 
@@ -69,7 +80,24 @@ public class ReportService {
                 results.add(dayNotEnded ? withDayNotEnded(r) : r);
             }
         }
-        return new Report(group, period.from(), period.to(), now, filters, union(rough), List.copyOf(results));
+        ScopeFilter scope = union(rough);
+        return new Report(
+                group, period.from(), period.to(), now, filters, scope, filterOptions(scope), List.copyOf(results));
+    }
+
+    private ReportFilterOptions filterOptions(ScopeFilter scope) {
+        List<ReportFilterOptions.FloorArea> floors = new ArrayList<>();
+        scope.floorAreaIds().stream()
+                .sorted()
+                .forEach(id -> name(id).ifPresent(name -> floors.add(new ReportFilterOptions.FloorArea(id, name))));
+        return new ReportFilterOptions(scope.facilityWide(), List.copyOf(floors));
+    }
+
+    private Optional<String> name(long floorAreaId) {
+        return structure
+                .floor(floorAreaId)
+                .map(FloorView::name)
+                .or(() -> structure.area(floorAreaId).map(AreaView::name));
     }
 
     private static MetricResult withDayNotEnded(MetricResult r) {

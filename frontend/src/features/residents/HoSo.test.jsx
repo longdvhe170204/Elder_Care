@@ -47,6 +47,16 @@ function fill({ name = 'Nguyễn Văn An', dob = '1948-03-14', gender = 'MALE' }
 }
 
 describe('CreateResident', () => {
+  it('BUG-07: họ tên quá 200 ký tự báo tại ô bằng tiếng Việt, không gọi backend', () => {
+    renderForm()
+    fill({ name: 'A'.repeat(201) })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo hồ sơ' }))
+
+    expect(screen.getByText('Họ tên tối đa 200 ký tự')).toBeTruthy()
+    expect(api.fetchMock).not.toHaveBeenCalled()
+  })
+
   it('chặn gửi khi thiếu họ tên, ngày sinh, giới tính', () => {
     renderForm()
 

@@ -35,13 +35,24 @@ class ApiClient {
   /// Lần cuối backend trả lời (kể cả trả lỗi); hàng đợi ngoại tuyến gửi kèm khi đồng bộ (002 FR-041c).
   DateTime? lastConnectedAt;
 
-  Future<Map<String, dynamic>?> get(String path) => _send('GET', path, null);
+  Future<Map<String, dynamic>?> get(String path) async {
+    final decoded = await _send('GET', path, null);
+    return decoded is Map<String, dynamic> ? decoded : null;
+  }
+
+  /// Endpoint trả mảng JSON.
+  Future<List<dynamic>> getList(String path) async {
+    final decoded = await _send('GET', path, null);
+    return decoded is List<dynamic> ? decoded : const [];
+  }
 
   /// `headers`: ví dụ `If-Match` của lệnh trên đối tượng có phiên bản (000 FR-040).
-  Future<Map<String, dynamic>?> post(String path, Map<String, dynamic> body, {Map<String, String>? headers}) =>
-      _send('POST', path, body, headers);
+  Future<Map<String, dynamic>?> post(String path, Map<String, dynamic> body, {Map<String, String>? headers}) async {
+    final decoded = await _send('POST', path, body, headers);
+    return decoded is Map<String, dynamic> ? decoded : null;
+  }
 
-  Future<Map<String, dynamic>?> _send(
+  Future<Object?> _send(
     String method,
     String path,
     Map<String, dynamic>? body, [
@@ -69,6 +80,6 @@ class ApiClient {
       final problem = decoded is Map<String, dynamic> ? decoded : const <String, dynamic>{};
       throw ApiProblem(response.statusCode, problem['errorCode'] as String?, problem['detail'] as String?);
     }
-    return decoded is Map<String, dynamic> ? decoded : null;
+    return decoded;
   }
 }

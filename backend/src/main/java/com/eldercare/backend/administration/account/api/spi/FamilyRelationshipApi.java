@@ -1,5 +1,6 @@
 package com.eldercare.backend.administration.account.api.spi;
 
+import com.eldercare.backend.common.notification.FamilyRight;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +27,12 @@ public interface FamilyRelationshipApi {
      * điều trị, 007 phiếu tóm tắt chuyển viện). Web hiện nhãn tiếng Việt theo mã.
      */
     Optional<FamilyRelationshipType> relationship(long familyMemberId, long residentId);
+
+    /**
+     * Quyền được cấp riêng cho người thân với người cao tuổi đang bật tại {@code at} (FR-045 (3), FR-046; 012
+     * {@code quyenDangBat}): lớp quyền của 002 xét {@code VIEW_HEALTH} cho phần sức khỏe, {@code VIEW_COSTS} cho chi phí.
+     */
+    boolean rightEnabled(long familyMemberId, long residentId, FamilyRight right, Instant at);
 
     /** Họ tên trên hồ sơ người thân, cho {@code AccountApi.fullName} (002 T032a). */
     Optional<String> familyMemberName(long familyMemberId);

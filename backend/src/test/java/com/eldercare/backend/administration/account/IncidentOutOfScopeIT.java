@@ -26,6 +26,7 @@ import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import com.eldercare.backend.support.fake.administration.FakeBedAllocations;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
+import com.eldercare.backend.support.fake.administration.FakeResidencyEnds;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -43,7 +44,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 /**
  * 002 T020 (FR-044a, FR-041b, US1 #9; research A-07, A-10): khóa {@code (INCIDENT_EMERGENCY, CREATE)} trên một người cao
  * tuổi bỏ lớp phạm vi, kết quả mang căn cứ ngoài phạm vi để lệnh của 007 ghi {@code ngoaiPhamVi} vào nhật ký; khóa khác
- * vẫn bị chặn; dữ liệu nguồn lỗi thì từ chối lớp {@code SOURCE_DATA}, riêng ghi sự cố vẫn được phép.
+ * vẫn bị chặn; dữ liệu nguồn lỗi thì từ chối lớp {@code SOURCE_DATA}, riêng ghi sự cố vẫn được phép. T099: ngoại lệ chỉ
+ * áp cho người cao tuổi chưa ở trạng thái cuối tại thời điểm kiểm ({@code ResidencyEndApi}, 007 FR-041).
  */
 @Import(FakeM15Config.class)
 class IncidentOutOfScopeIT extends MySqlIntegrationTestBase {
@@ -61,6 +63,9 @@ class IncidentOutOfScopeIT extends MySqlIntegrationTestBase {
 
     @Autowired
     FakeBedAllocations bedAllocations;
+
+    @Autowired
+    FakeResidencyEnds residencyEnds;
 
     @Autowired
     JdbcTemplate jdbc;
@@ -130,6 +135,49 @@ class IncidentOutOfScopeIT extends MySqlIntegrationTestBase {
                         .hasPermission(caregiver, REPORT_INCIDENT, resident(broken))
                         .basis())
                 .contains(PermissionBasis.OUT_OF_SCOPE);
+    }
+
+    @Test
+    void T099_finalStatusResident_outOfScope_deniedAtScope() {
+        CurrentUser kitchen = staff(Role.KITCHEN_STAFF, null);
+        residencyEnds.ended(onFloor1.residentId(), time.now().minus(Duration.ofHours(1)));
+
+        assertThat(permissions.hasPermission(kitchen, REPORT_INCIDENT, onFloor1).failedLayer())
+                .contains(FailedLayer.SCOPE);
+    }
+
+    @Test
+    void T099_finalStatusResident_inScope_deniedAtScope() {
+        CurrentUser caregiver = staff(Role.CAREGIVER, FLOOR_1);
+        residencyEnds.ended(onFloor1.residentId(), time.now().minus(Duration.ofHours(1)));
+
+        assertThat(permissions
+                        .hasPermission(caregiver, REPORT_INCIDENT, onFloor1)
+                        .failedLayer())
+                .contains(FailedLayer.SCOPE);
+    }
+
+    @Test
+    void T099_finalStatusLaterThanCheck_stillAllowedOutOfScope() {
+        CurrentUser kitchen = staff(Role.KITCHEN_STAFF, null);
+        residencyEnds.ended(onFloor1.residentId(), time.now().plus(Duration.ofHours(1)));
+
+        assertThat(permissions.hasPermission(kitchen, REPORT_INCIDENT, onFloor1).basis())
+                .contains(PermissionBasis.OUT_OF_SCOPE);
+    }
+
+    @Test
+    void T099_sourceDataError_finalStatusResident_denied() {
+        CurrentUser caregiver = staff(Role.CAREGIVER, FLOOR_1);
+        SecurityContextHolder.getContext().setAuthentication(new SessionAuthentication((ActiveSession) caregiver));
+        long broken = IDS.incrementAndGet();
+        bedAllocations.invalid(broken, "TWO_OPEN_ALLOCATIONS");
+        residencyEnds.ended(broken, time.now().minus(Duration.ofHours(1)));
+
+        assertThat(permissions
+                        .hasPermission(caregiver, REPORT_INCIDENT, resident(broken))
+                        .failedLayer())
+                .contains(FailedLayer.SCOPE);
     }
 
     private CurrentUser staff(Role role, Long floor) {

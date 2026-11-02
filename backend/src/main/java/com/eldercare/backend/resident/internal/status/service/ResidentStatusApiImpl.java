@@ -3,6 +3,7 @@ package com.eldercare.backend.resident.internal.status.service;
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.Reason;
+import com.eldercare.backend.common.file.FileView;
 import com.eldercare.backend.resident.api.ResidentStatusApi;
 import com.eldercare.backend.resident.api.dto.Condition;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 
 /** Lệnh đổi trạng thái từ module khác (014, 007, 004) và xem trước điều kiện cho 004 (research H-03). */
@@ -28,6 +30,11 @@ class ResidentStatusApiImpl implements ResidentStatusApi {
             com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryRepository histories) {
         this.status = status;
         this.histories = histories;
+    }
+
+    @Override
+    public List<FileView> hospitalDocuments(long historyId) {
+        return status.hospitalDocuments(historyId);
     }
 
     @Override
@@ -47,6 +54,7 @@ class ResidentStatusApiImpl implements ResidentStatusApi {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<StatusPeriod> statusPeriods(long residentId, Set<ResidentStatus> statuses, Instant from, Instant to) {
         if (statuses.isEmpty() || !from.isBefore(to)) return List.of();
         var entries = histories.findByResidentIdOrderByIdAsc(residentId).stream()
