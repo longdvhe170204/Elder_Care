@@ -253,7 +253,8 @@ public class AccountService implements AccountApi {
     @BusinessCommand(requiresReason = false)
     @RequiresPermission(function = Function.RESIDENT_ACCOUNT, operation = Operation.CREATE)
     @Transactional
-    public Created createResident(long residentId, String username, String consentMethod, Long consentWithStaffId) {
+    public AccountDetails createResident(
+            long residentId, String username, String consentMethod, Long consentWithStaffId) {
         CurrentUser user = currentUser.getObject();
         if (!user.roles().contains(Role.NURSING_HOME_MANAGER) && !user.roles().contains(Role.OFFICE_STAFF)) {
             throw new PermissionDeniedException(
@@ -273,11 +274,10 @@ public class AccountService implements AccountApi {
         if (!profile.inResidence()) {
             throw conflict("NOT_IN_RESIDENCE", "Người cao tuổi không ở trạng thái Đang lưu trú (FR-067)");
         }
-        String temporaryPassword = TemporaryPasswords.generate();
         long accountId;
         try {
-            accountId =
-                    store.insertResident(residentId, username, passwords.encode(temporaryPassword), user.accountId());
+            accountId = store.insertResident(
+                    residentId, username, passwords.encode(TemporaryPasswords.generate()), user.accountId());
         } catch (DuplicateKeyException e) {
             throw new ConditionNotMetException(List.of(new UnmetCondition("FR-001", "Tên đăng nhập đã được dùng")));
         }
@@ -295,7 +295,7 @@ public class AccountService implements AccountApi {
                 .after(after)
                 .details(Map.of("consentMethod", consentMethod, "consentWithStaffId", consentWithStaffId))
                 .build());
-        return new Created(details(store.find(accountId).orElseThrow(), user), temporaryPassword);
+        return details(store.find(accountId).orElseThrow(), user);
     }
 
     @BusinessCommand
@@ -374,6 +374,7 @@ public class AccountService implements AccountApi {
     /**
      * Cấp lại mật khẩu (FR-006): tài khoản nhân viên chỉ Quản lý viện; tài khoản người thân Hành chính hoặc Quản lý
      * viện, kèm xác minh danh tính, nhật ký ghi cách xác minh (FR-051, FR-052). Hành chính với tài khoản khác: 404 chung.
+     * Tài khoản người cao tuổi: Hành chính, Quản lý viện, bắt buộc xác nhận của chính người đó (FR-051a).
      */
     @BusinessCommand
     @RequiresPermission(function = Function.ACCOUNT_PERMISSION_PARAMETER, operation = Operation.UPDATE)
@@ -383,13 +384,20 @@ public class AccountService implements AccountApi {
             Reason reason,
             String verificationMethod,
             String idDocumentNumber,
-            String calledPhoneNumber) {
+            String calledPhoneNumber,
+            String consentMethod,
+            Long consentWithStaffId) {
         CurrentUser user = currentUser.getObject();
         requireFamilyAccountOperator(user);
         Account account = store.lock(accountId).orElseThrow(NotFoundException::new);
         boolean family = account.type() == AccountType.FAMILY_MEMBER;
-        if (!family && !user.roles().contains(Role.NURSING_HOME_MANAGER)) {
+        boolean resident = account.type() == AccountType.RESIDENT;
+        if (!family && !resident && !user.roles().contains(Role.NURSING_HOME_MANAGER)) {
             throw new NotFoundException();
+        }
+        if (resident && (consentMethod == null || consentWithStaffId == null)) {
+            throw new InvalidValueException(
+                    "Cần xác nhận của chính người cao tuổi: cách và nhân viên đã nghe (FR-051a)");
         }
         if (family) {
             requireVerification(account.familyMemberId(), verificationMethod, idDocumentNumber, calledPhoneNumber);
@@ -403,6 +411,9 @@ public class AccountService implements AccountApi {
                 .reason(reason);
         if (family) {
             entry.details(Map.of("verificationMethod", verificationMethod));
+        }
+        if (resident) {
+            entry.details(Map.of("consentMethod", consentMethod, "consentWithStaffId", consentWithStaffId));
         }
         auditLog.write(entry.build());
         return temporaryPassword;

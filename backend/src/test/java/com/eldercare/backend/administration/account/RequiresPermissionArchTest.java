@@ -65,6 +65,11 @@ class RequiresPermissionArchTest {
                     "com.eldercare.backend.notification.internal.channel.service.ChannelService.change",
                     "vai trò Quản lý viện theo bảng FR-039 của 009 (Phụ lục 27 không có dòng thông báo)"),
             Map.entry(
+                    "com.eldercare.backend.administration.account.internal.auth.service.ResidentAccountService"
+                            + ".createLoginCodeForResident",
+                    "PermissionApi.hasPermission (RESIDENT_ACCOUNT, CREATE) trên người cao tuổi; Điều dưỡng chỉ trong phạm"
+                            + " vi (Phụ lục 27 ⁴⁸); 002 FR-069"),
+            Map.entry(
                     "com.eldercare.backend.administration.account.internal.auth.service.ResidentAccountService.createLoginCode",
                     "PermissionApi.hasPermission (RESIDENT_ACCOUNT, CREATE) trên người cao tuổi của tài khoản, đọc sau khi tra"
                             + " tài khoản; Điều dưỡng chỉ trong phạm vi (Phụ lục 27 ⁴⁸); 002 FR-069"));
