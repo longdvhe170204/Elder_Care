@@ -1,8 +1,7 @@
 package com.eldercare.backend.medication.web.response;
 
-import com.eldercare.backend.medication.internal.service.response.PrescriptionCheckResponse;
-import com.eldercare.backend.medication.internal.service.response.PrescriptionIssueResponse;
-import com.eldercare.backend.medication.internal.service.response.PrescriptionResponse;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionIssueResponse;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import java.math.BigDecimal;

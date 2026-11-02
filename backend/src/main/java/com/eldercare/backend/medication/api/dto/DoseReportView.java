@@ -9,6 +9,7 @@ public record DoseReportView(
         String doseKey,
         long residentId,
         long floorAreaId,
+        Long shiftId,
         Instant scheduledTime,
         DoseStatus finalStatus,
         Long closedByStaffId,

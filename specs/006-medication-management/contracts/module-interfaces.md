@@ -187,3 +187,13 @@ Bean thiếu thì lệnh cần nó bị chặn (mặc định an toàn): không 
 | `QuyenApi` (khóa `CHUYEN_MON` cho kê đơn nội bộ, phát thuốc), `PhamViApi.nguoiPhuTrachCa`, `QuyenXemTruongApi`, `NguoiDungHienTai` | M15 (002) | Research D-08, D-18 | Có sẵn |
 | `NhatKyApi`, `ThamSoApi`, `DinhChinhApi`, `TepApi`, `common` | M15 (000) | Mọi lệnh | Có sẵn |
 | Bản cài các SPI mục 2.1 | 008, 014, 010 | | Bản giả có công tắc `/api/v1/kiem-thu/gia-lap/{module}` |
+
+### 2.4. Yêu cầu A bổ sung ánh xạ tham chiếu sau gộp T069 (2026-10-31)
+
+Đây là yêu cầu review, chưa phải hợp đồng API đã duyệt. Người dùng chọn đề nghị A bổ sung ánh xạ loại và id cũ sang mới, kèm test nhật ký, đính chính; D chưa sửa API của 000.
+
+- Data-model 006 mục 0.1 yêu cầu cấp id mới cho PRN và các loại giao nhận gộp; `LegacyRecordTypeSource` hiện chỉ có `Map<String, String> legacyRecordTypes()` và quy định giữ id. `RecordTypeAliases.withLegacy` chỉ mở rộng loại; truy vấn đính chính vẫn so cùng `original_record_id`, nên chưa xử lý được id đổi sau gộp.
+- Cần giải được tham chiếu hiện hành từ cặp `(loại cũ, id cũ)`, và lấy đủ các cặp tham chiếu cũ từ một cặp hiện hành. Có thể dùng `EntityRef(entityType, entityId)` có sẵn; tên và chữ ký API do A đề xuất, chủ dự án duyệt. Giữ nguyên chữ ký API hiện có và hành vi của module giữ id.
+- Correction, audit và retention phải đọc theo đúng từng cặp loại/id, không ghép tập loại với tập id độc lập. Giữ nguyên nhật ký và đính chính chỉ thêm; không sửa các dòng lịch sử để né ánh xạ. Tệp đổi chủ theo cặp tham chiếu thực tế của migration.
+- Test bắt buộc: kết quả liều thường id `42` và PRN cũ id `42` cùng tồn tại; PRN chuyển sang id mới `9001`. Nhật ký, đính chính, trạng thái hủy và chuỗi loại bỏ của PRN phải theo được sang `9001`, không lẫn vào liều thường `42`; kiểm cả chiều đọc loại cũ và loại mới. Thêm ca id không đổi, không có ánh xạ và chạy lại không sinh ánh xạ trùng. Bản giả chung và test hợp đồng phải có cùng hành vi.
+- D chỉ nối phần gộp đổi id khi API và bản giả này sẵn sàng; T069 chưa đánh dấu hoàn tất.

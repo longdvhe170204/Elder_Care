@@ -9,12 +9,12 @@ import static org.mockito.Mockito.when;
 import com.eldercare.backend.medication.api.dto.DosePendingHandoverView;
 import com.eldercare.backend.medication.api.dto.DoseStatus;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
-import com.eldercare.backend.medication.internal.domain.DoseReviewStatus;
-import com.eldercare.backend.medication.internal.domain.MedicationDose;
-import com.eldercare.backend.medication.internal.persistence.DoseReviewRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationDoseRepository;
-import com.eldercare.backend.medication.internal.service.DefaultDoseHandoverService;
-import com.eldercare.backend.medication.internal.service.DoseAdministrationService;
+import com.eldercare.backend.medication.internal.dose.domain.DoseReviewStatus;
+import com.eldercare.backend.medication.internal.dose.domain.MedicationDose;
+import com.eldercare.backend.medication.internal.dose.persistence.DoseReviewRepository;
+import com.eldercare.backend.medication.internal.dose.persistence.MedicationDoseRepository;
+import com.eldercare.backend.medication.internal.dose.service.DefaultDoseHandoverService;
+import com.eldercare.backend.medication.internal.dose.service.DoseAdministrationService;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -64,7 +64,7 @@ class DoseHandoverApiTest {
                 "viên",
                 MedicationSource.FACILITY,
                 false,
-                com.eldercare.backend.medication.internal.domain.DoseStatus.LATE,
+                com.eldercare.backend.medication.internal.dose.domain.DoseStatus.LATE,
                 1L,
                 Instant.now());
         setId(lateDose, 101L);
@@ -101,7 +101,7 @@ class DoseHandoverApiTest {
                 "viên",
                 MedicationSource.FACILITY,
                 false,
-                com.eldercare.backend.medication.internal.domain.DoseStatus.ADMINISTERED,
+                com.eldercare.backend.medication.internal.dose.domain.DoseStatus.ADMINISTERED,
                 1L,
                 Instant.now());
         when(doseRepository.findByPrescriptionIdAndScheduledTime(10L, scheduled))

@@ -114,16 +114,26 @@ export function MedicationCatalogPage({ role }) {
     getMedications({ query: { q: search || undefined, active: activeParam } })
       .then(({ data }) => {
         if (cancelled) return
-        if (Array.isArray(data)) {
-          setItems(data)
-        } else {
-          setItems(INITIAL_DEMO_MEDICATIONS)
+        let list = Array.isArray(data) && data.length > 0 ? data : INITIAL_DEMO_MEDICATIONS
+        if (filterStatus === 'ACTIVE') list = list.filter((m) => m.active)
+        if (filterStatus === 'INACTIVE') list = list.filter((m) => !m.active)
+        if (search) {
+          const q = search.toLowerCase()
+          list = list.filter(
+            (m) =>
+              m.name?.toLowerCase().includes(q) ||
+              m.concentration?.toLowerCase().includes(q) ||
+              m.dosageForm?.toLowerCase().includes(q)
+          )
         }
+        setItems(list)
         setLoading(false)
       })
       .catch(() => {
         if (cancelled) return
         let filtered = [...INITIAL_DEMO_MEDICATIONS]
+        if (filterStatus === 'ACTIVE') filtered = filtered.filter((m) => m.active)
+        if (filterStatus === 'INACTIVE') filtered = filtered.filter((m) => !m.active)
         if (search) {
           const q = search.toLowerCase()
           filtered = filtered.filter(
@@ -133,8 +143,6 @@ export function MedicationCatalogPage({ role }) {
               m.dosageForm.toLowerCase().includes(q)
           )
         }
-        if (filterStatus === 'ACTIVE') filtered = filtered.filter((m) => m.active)
-        if (filterStatus === 'INACTIVE') filtered = filtered.filter((m) => !m.active)
         setItems(filtered)
         setLoading(false)
       })
@@ -266,12 +274,20 @@ export function MedicationCatalogPage({ role }) {
     <div className="flex flex-col gap-6 p-6">
       <PageHeader
         title="Danh mục thuốc"
-        description="Quản lý danh mục hoạt chất, hàm lượng, dạng bào chế và cửa sổ dùng thuốc (FR-001 → FR-003)."
-        actions={
-          isManager && (
-            <Button onClick={handleOpenCreate} className="gap-2">
+        subtitle={
+          isManager
+            ? 'Quản lý danh mục hoạt chất, hàm lượng, dạng bào chế và cửa sổ dùng thuốc (FR-001 → FR-003).'
+            : 'Tra cứu danh mục thuốc, hoạt chất và cửa sổ dùng thuốc (Chỉ Quản lý viện có quyền Thêm/Sửa/Ngừng theo Phụ lục 27).'
+        }
+        aside={
+          isManager ? (
+            <Button onClick={handleOpenCreate} className="gap-2 shrink-0">
               <Plus className="h-4 w-4" /> Thêm thuốc
             </Button>
+          ) : (
+            <div className="text-xs text-muted-foreground bg-muted/60 rounded-lg px-3 py-1.5 border">
+              Vai trò: <strong>{role === 'DOCTOR' ? 'Bác sĩ' : role === 'NURSING_STAFF' ? 'Điều dưỡng' : role}</strong> (Chỉ xem)
+            </div>
           )
         }
       />
@@ -290,7 +306,7 @@ export function MedicationCatalogPage({ role }) {
               className="pl-9"
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
               <Filter className="h-4 w-4" /> Trạng thái:
             </span>
@@ -315,6 +331,11 @@ export function MedicationCatalogPage({ role }) {
                 </button>
               ))}
             </div>
+            {isManager && (
+              <Button onClick={handleOpenCreate} size="sm" className="gap-1.5 shrink-0 ml-2">
+                <Plus className="h-4 w-4" /> Thêm thuốc
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
