@@ -20,6 +20,7 @@ import com.eldercare.backend.admission.api.dto.ServiceView;
 import com.eldercare.backend.admission.api.dto.UnitPriceView;
 import com.eldercare.backend.admission.api.events.AddendumApplied;
 import com.eldercare.backend.admission.api.events.DepositAmountChanged;
+import com.eldercare.backend.admission.api.events.ResidenceTypeChanged;
 import com.eldercare.backend.admission.api.spi.RepresentativePort;
 import com.eldercare.backend.admission.internal.change.domain.Addendum;
 import com.eldercare.backend.admission.internal.change.domain.ChangeType;
@@ -319,6 +320,9 @@ class ResidencyChangeHandler implements RequestTypeHandler {
                 .build());
         events.publishEvent(new AddendumApplied(
                 addendum.id(), contract.id(), contract.residentId(), names(change.changeTypes()), effective));
+        if (names(change.changeTypes()).contains("RESIDENCE_TYPE")) {
+            events.publishEvent(new ResidenceTypeChanged(contract.residentId()));
+        }
         return new ResultRef(ADDENDUM_ENTITY, String.valueOf(addendum.id()));
     }
 

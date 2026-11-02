@@ -193,6 +193,9 @@ class BR_M02_04_ApplyAddendumIT extends ChangeTestBase {
                         e.contractId() == s.contractId() && e.newAmount().compareTo(new BigDecimal("3000000")) == 0);
         assertThat(latestContent(s.contractId()).get("residenceType").asString())
                 .isEqualTo("SHORT_TERM_RESIDENTIAL");
+        assertThat(events.stream(com.eldercare.backend.admission.api.events.ResidenceTypeChanged.class))
+                .as("003 đánh giá lại phòng khi loại lưu trú đổi")
+                .anyMatch(e -> e.residentId() == s.residentId());
     }
 
     @Test
