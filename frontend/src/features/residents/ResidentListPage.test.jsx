@@ -55,6 +55,17 @@ const HOSPITAL = { residentId: 1, status: 'DUE', dueAt: null, overdueSince: null
 const rowOf = async (name) => (await screen.findByText(name)).closest('tr')
 
 describe('ResidentListPage', () => {
+  it('BUG-10: chỉ Hành chính có nút Tạo hồ sơ, Quản lý viện chỉ có quyền xem (Phụ lục 27)', async () => {
+    setup()
+    const manager = render(<ResidentListPage role="NURSING_HOME_MANAGER" />)
+    await screen.findByText('Bà An')
+    expect(screen.queryByRole('button', { name: 'Tạo hồ sơ' })).toBeNull()
+    manager.unmount()
+
+    render(<ResidentListPage role="OFFICE_STAFF" />)
+    expect(await screen.findByRole('button', { name: 'Tạo hồ sơ' })).toBeTruthy()
+  })
+
   it('một ô tìm duy nhất; tìm gửi q, bảng hiện mức chăm sóc, loại hình, trạng thái theo hợp đồng', async () => {
     setup()
     render(<ResidentListPage role="NURSING_STAFF" />)
