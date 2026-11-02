@@ -1,0 +1,134 @@
+package com.eldercare.backend.admission.internal.contract.service;
+
+import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.admission.api.dto.ContractStatus;
+import com.eldercare.backend.admission.api.events.ContractStatusChanged;
+import com.eldercare.backend.admission.internal.contract.domain.Contract;
+import com.eldercare.backend.admission.internal.contract.persistence.ContractStore;
+import com.eldercare.backend.admission.internal.transition.service.ResidencyLock;
+import com.eldercare.backend.common.time.BusinessTime;
+import com.eldercare.backend.resident.api.dto.TransitionResult;
+import java.time.LocalDate;
+import java.util.Map;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Phần của hợp đồng trong lệnh Hủy tiếp nhận và Kết thúc lưu trú của 001 (FR-002, FR-027, FR-065; bảng trạng thái hợp đồng), do {@code
+ * M02StatusParticipant} gọi trong transaction của lệnh (001 đã khóa dòng hồ sơ; ở đây khóa tiếp theo người,
+ * rồi từng hợp đồng): hợp đồng Nháp và Chờ ký thành Đã hủy; hợp đồng Hiệu lực thành Chấm dứt, lý do chấm dứt trỏ về lịch sử
+ * trạng thái của lệnh (lý do của lệnh nằm ở đó). Kết thúc lưu trú: Kết thúc hoặc Chấm dứt theo ngày kết thúc hợp đồng
+ * ({@link #residencyEnded}). Ghi nhận qua đời: Chấm dứt "Qua đời" ({@link #residentDied}).
+ */
+@Component
+public class ContractTransition {
+
+    static final AuditAction CANCELLED_BY_ADMISSION = new AuditAction("M02_CONTRACT_CANCELLED", false);
+    static final AuditAction TERMINATED = new AuditAction("M02_CONTRACT_TERMINATED", false);
+    static final AuditAction ENDED = new AuditAction("M02_CONTRACT_ENDED", false);
+
+    private final ContractStore store;
+    private final ResidencyLock residencyLock;
+    private final AuditLogApi auditLog;
+    private final ApplicationEventPublisher events;
+
+    ContractTransition(
+            ContractStore store, ResidencyLock residencyLock, AuditLogApi auditLog, ApplicationEventPublisher events) {
+        this.store = store;
+        this.residencyLock = residencyLock;
+        this.auditLog = auditLog;
+        this.events = events;
+    }
+
+    private static LocalDate dayOf(TransitionResult result) {
+        return result.at().atZone(BusinessTime.ZONE).toLocalDate();
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void admissionCancelled(TransitionResult result) {
+        long residentId = result.residentId();
+        residencyLock.lock(residentId);
+        for (Contract listed : store.ofResident(residentId)) {
+            Contract contract = store.lock(listed.id()).orElseThrow();
+            switch (contract.status()) {
+                case DRAFT, PENDING_SIGNATURE -> {
+                    store.transition(contract.id(), contract.status(), ContractStatus.CANCELLED);
+                    record(contract, ContractStatus.CANCELLED, CANCELLED_BY_ADMISSION, result, null);
+                }
+                case ACTIVE -> {
+                    String reason = "Hủy tiếp nhận (lịch sử trạng thái " + result.historyId() + ")";
+                    store.markTerminated(contract.id(), reason, dayOf(result));
+                    record(contract, ContractStatus.TERMINATED, TERMINATED, result, reason);
+                }
+                default -> {}
+            }
+        }
+    }
+
+    /**
+     * Lệnh Kết thúc lưu trú (FR-027, FR-065): hợp đồng Hiệu lực chuyển Kết thúc khi thời điểm hiệu lực không sớm hơn ngày kết thúc
+     * hiện hành (dấu "quá hạn hợp đồng" được gỡ, FR-029), ngược lại hoặc khi hợp đồng không có ngày kết thúc thì chuyển Chấm
+     * dứt, lý do trỏ về lịch sử trạng thái của lệnh. Hợp đồng Nháp, Chờ ký của lần tái ký giữ nguyên.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void residencyEnded(TransitionResult result, LocalDate effectiveDate) {
+        long residentId = result.residentId();
+        residencyLock.lock(residentId);
+        for (Contract listed : store.ofResident(residentId)) {
+            Contract contract = store.lock(listed.id()).orElseThrow();
+            if (contract.status() != ContractStatus.ACTIVE) {
+                continue;
+            }
+            LocalDate end = contract.currentEndDate();
+            if (end != null && !effectiveDate.isBefore(end)) {
+                store.transition(contract.id(), ContractStatus.ACTIVE, ContractStatus.ENDED);
+                if (contract.overdueSince() != null) {
+                    store.setOverdueSince(contract.id(), null);
+                }
+                record(contract, ContractStatus.ENDED, ENDED, result, null);
+            } else {
+                String reason = "Kết thúc lưu trú sớm hơn ngày kết thúc hợp đồng (lịch sử trạng thái "
+                        + result.historyId() + ")";
+                store.markTerminated(contract.id(), reason, dayOf(result));
+                record(contract, ContractStatus.TERMINATED, TERMINATED, result, reason);
+            }
+        }
+    }
+
+    /**
+     * Lệnh Ghi nhận qua đời (FR-070): hợp đồng Hiệu lực chuyển Chấm dứt với lý do "Qua đời", trỏ về lịch sử trạng thái của lệnh.
+     * Như Kết thúc lưu trú, hợp đồng Nháp, Chờ ký giữ nguyên.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void residentDied(TransitionResult result) {
+        long residentId = result.residentId();
+        residencyLock.lock(residentId);
+        for (Contract listed : store.ofResident(residentId)) {
+            Contract contract = store.lock(listed.id()).orElseThrow();
+            if (contract.status() != ContractStatus.ACTIVE) {
+                continue;
+            }
+            String reason = "Qua đời (lịch sử trạng thái " + result.historyId() + ")";
+            store.markTerminated(contract.id(), reason, dayOf(result));
+            record(contract, ContractStatus.TERMINATED, TERMINATED, result, reason);
+        }
+    }
+
+    private void record(
+            Contract contract, ContractStatus to, AuditAction action, TransitionResult result, String reason) {
+        auditLog.write(AuditLogEntry.builder()
+                .action(action)
+                .entity(ContractService.ENTITY_TYPE, contract.id())
+                .resident(contract.residentId())
+                .before(Map.of("status", contract.status().name()))
+                .after(Map.of("status", to.name()))
+                .details(Map.of("historyId", result.historyId()))
+                .build());
+        events.publishEvent(
+                new ContractStatusChanged(contract.id(), contract.residentId(), contract.status(), to, reason));
+    }
+}
