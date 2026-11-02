@@ -9,7 +9,9 @@ import com.eldercare.backend.resident.api.dto.WishOpinion;
 import com.eldercare.backend.resident.api.dto.WishRecordSource;
 import com.eldercare.backend.resident.api.dto.WishSignerType;
 import com.eldercare.backend.resident.internal.wish.domain.EndOfLifeWish;
+import com.eldercare.backend.resident.internal.wish.domain.NewEndOfLifeWish;
 import com.eldercare.backend.resident.internal.wish.domain.RecordedOpinion;
+import com.eldercare.backend.resident.internal.wish.domain.WishReviewDue;
 import com.eldercare.backend.resident.internal.wish.domain.WishStatus;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -44,32 +46,21 @@ public class EndOfLifeWishStore {
         this.jdbc = jdbc;
     }
 
-    /** Dữ liệu một phiên bản mới; {@code recordedAt} và {@code assessedAt} từ đồng hồ nghiệp vụ. */
-    public record NewWish(
-            long residentId,
-            WishChoice choice,
-            String firstContact,
-            String note,
-            WishSignerType respondentType,
-            Long respondentFamilyMemberId,
-            String relationship,
-            long assessingDoctorId,
-            boolean canSelfDetermine,
-            Instant assessedAt,
-            String supportMethod,
-            LocalDate reviewDate,
-            WishSignerType signerType,
-            Long signerFamilyMemberId,
-            RepresentativeSelection representativeSelection,
-            CourtDecisionRef courtDecision,
-            Instant signedAt,
-            long signedCopyFileId,
-            WishRecordSource source,
-            long recordedBy,
-            Instant recordedAt) {}
+    /** Phiếu Hiệu lực tới ngày xem lại của hồ sơ chưa ở trạng thái cuối, chưa có dòng nhắc {@code reminderType}. */
+    public List<WishReviewDue> dueReviews(LocalDate today, String reminderType) {
+        return jdbc.query(
+                "SELECT w.resident_id, w.id, w.assessing_doctor_id FROM end_of_life_wish w JOIN resident s ON s.id = w.resident_id"
+                        + " WHERE w.status = 'ACTIVE' AND w.review_date <= ?"
+                        + " AND s.status NOT IN ('RESIDENCY_ENDED', 'DECEASED', 'ADMISSION_CANCELLED')"
+                        + " AND NOT EXISTS (SELECT 1 FROM periodic_reminder r WHERE r.type = ?"
+                        + " AND r.resident_id = w.resident_id AND r.milestone_id = w.id)",
+                (rs, i) -> new WishReviewDue(rs.getLong(1), rs.getLong(2), rs.getLong(3)),
+                today,
+                reminderType);
+    }
 
     /** Thêm phiên bản Hiệu lực cùng các ý kiến khác; trả id. */
-    public long insert(NewWish wish, List<WishOpinion> opinions) {
+    public long insert(NewEndOfLifeWish wish, List<WishOpinion> opinions) {
         var keys = new GeneratedKeyHolder();
         jdbc.update(
                 connection -> {

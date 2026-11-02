@@ -55,6 +55,22 @@ describe('App', () => {
     expect(screen.queryByLabelText('Xem với vai trò')).toBeNull()
   })
 
+  it('BUG-UI-002: tải lại trang giữ màn đang mở theo hash', async () => {
+    api.on('GET', '/me', new Response(null, { status: 500 }))
+    api.on('GET', '/residents', json(200, { items: [], nextCursor: null }))
+    window.history.replaceState(null, '', '/')
+    const first = render(<App />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Người cao tuổi' }))
+    await waitFor(() => expect(window.location.hash).toBe('#residents'))
+    first.unmount()
+
+    // Mô phỏng F5: App dựng lại từ đầu, URL còn nguyên
+    render(<App />)
+    expect(await screen.findByRole('heading', { name: 'Người cao tuổi' })).toBeInTheDocument()
+    window.history.replaceState(null, '', '/')
+  })
+
   it('khongCoBackend_giuBanMauDoiVaiTro', async () => {
     api.on('GET', '/me', new Response(null, { status: 500 }))
     render(<App />)

@@ -1,6 +1,10 @@
 package com.eldercare.backend.resident.internal.assessment.service;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
+import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditAction;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.CareLevelApi;
 import com.eldercare.backend.resident.api.dto.CareLevel;
@@ -14,6 +18,7 @@ import com.eldercare.backend.resident.internal.assessment.persistence.CareLevelH
 import com.eldercare.backend.resident.internal.health.persistence.CareNeedRepository;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,12 +35,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CareLevelApiImpl implements CareLevelApi {
 
+    private static final AuditAction CARE_LEVEL_CHANGED = new AuditAction("CARE_LEVEL_CHANGED", false);
+
     private final CareLevelHistoryStore history;
     private final AssessmentRepository assessments;
     private final CareNeedRepository careNeeds;
     private final BusinessTime time;
     private final ApplicationEventPublisher events;
     private final ObjectProvider<CurrentUser> currentUser;
+    private final AuditLogApi auditLog;
 
     CareLevelApiImpl(
             CareLevelHistoryStore history,
@@ -43,7 +51,9 @@ public class CareLevelApiImpl implements CareLevelApi {
             CareNeedRepository careNeeds,
             BusinessTime time,
             ApplicationEventPublisher events,
-            ObjectProvider<CurrentUser> currentUser) {
+            ObjectProvider<CurrentUser> currentUser,
+            AuditLogApi auditLog) {
+        this.auditLog = auditLog;
         this.history = history;
         this.assessments = assessments;
         this.careNeeds = careNeeds;
@@ -89,6 +99,19 @@ public class CareLevelApiImpl implements CareLevelApi {
                 approvalRequestId,
                 time.now(),
                 currentUser.getObject().accountId());
+        // Mức đổi theo yêu cầu thay đổi lưu trú là thay đổi nhóm 2 nên có nhật ký gắn người cao tuổi (DBR-23); căn cứ
+        // là
+        // yêu cầu phê duyệt, lý do nằm ở yêu cầu đó
+        auditLog.write(AuditLogEntry.builder()
+                .action(CARE_LEVEL_CHANGED)
+                .entity("M01.RESIDENT", residentId)
+                .resident(residentId)
+                .before(previous.map(p -> Map.<String, Object>of("currentCareLevel", p.name()))
+                        .orElse(null))
+                .after(Map.of("currentCareLevel", level.name()))
+                .basis(new Basis(null, approvalRequestId, null, null))
+                .details(Map.of("effectiveFrom", effectiveFrom.toString()))
+                .build());
         events.publishEvent(new CareLevelChanged(
                 residentId,
                 previous,

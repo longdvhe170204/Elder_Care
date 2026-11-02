@@ -12,8 +12,15 @@ async function failure(response) {
   return new ApiError(response.status, body)
 }
 
+// FileTypes.MAX_SIZE của backend. Máy chủ ngắt kết nối khi nhận thân yêu cầu quá lớn nên trình duyệt chỉ thấy lỗi mạng;
+// kiểm trước khi gửi để báo đúng "Tệp quá 10 MB" (BUG-05)
+const MAX_FILE_BYTES = 10 * 1024 * 1024
+
 // Trả mã tệp (fileId); tệp chưa gắn bản ghi nào sẽ bị dọn sau 24 giờ
 export async function uploadFile(file) {
+  if (file.size > MAX_FILE_BYTES) {
+    throw new ApiError(422, { status: 422, errorCode: 'FILE_TOO_LARGE', title: 'Tệp quá lớn', detail: 'Tệp quá 10 MB' })
+  }
   const form = new FormData()
   form.append('file', file)
   const response = await fetch(BASE_URL, {

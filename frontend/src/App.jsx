@@ -50,6 +50,12 @@ const PAGES = {
 // Mục menu chỉ hiện khi đã có màn
 const BUILT = new Set(Object.keys(PAGES))
 
+// Màn đang mở giữ ở hash của URL để tải lại trang (F5) không về Tổng quan (BUG-UI-002); hash lạ thì về màn mặc định.
+function pageFromUrl() {
+  const key = window.location.hash.slice(1)
+  return Object.hasOwn(PAGES, key) ? key : 'dashboard'
+}
+
 function firstPage(role, hasFunction = null) {
   return navForRole(role, hasFunction, BUILT)[0]?.items[0].key
 }
@@ -73,7 +79,7 @@ function LivePermissions({ role, page, onNavigate, render }) {
 
 function App() {
   const [role, setRole] = useState('FLOOR_MANAGER')
-  const [page, setPage] = useState('dashboard')
+  const [page, setPage] = useState(pageFromUrl)
   const [params, setParams] = useState({})
   // Phiên thật (002 T045): có thì vai trò theo tài khoản; chưa đăng nhập thì sang /login; không có backend thì bản
   // mẫu đổi vai trò
@@ -118,6 +124,7 @@ function App() {
   function navigate(nextPage, nextParams = {}) {
     setPage(nextPage)
     setParams(nextParams)
+    window.history.replaceState(null, '', `#${nextPage}`)
   }
 
   function changeRole(nextRole) {
