@@ -1,5 +1,12 @@
 # Giao diện giữa module: Feature 005
 
+### Ghi chú triển khai Phase 9 (02/11/2026)
+
+- Chủ dự án duyệt bản dịch HTTP `POST /care-results/{id}/correct`, `type/correctedContent/reason`, `AMEND_CONTENT/VOID`, giữ Idempotency-Key và201khôngbody. Không thêm signature API/SPI/event Java. `CareResultCorrectionProvider` cài SPI hiện có cho `M04.CARE_RESULT`; bản gốc vẫn ở care_task, không thay trạng thái hoặc giá trị gốc.
+- Nội dung đúng là object giá trị thay thế đầy đủ (`numericValue`, `codeValue`, `jsonValue`, `upperLimitConfirmed`, `note` tùy loại); không cho đổi metadata/resultType/performedAt. Provider kiểm cấu trúc và kiểm theo snapshot loại trong callback có id. Cách A/B dùng recorder/tầng task gốc và kiểm quyền hiện hành; MEASURED_VALUE chuyển007, cách C không được hỗ trợ tại005.
+- `CorrectionMade` có sẵn tiếp tục kích hoạt quy tắc F Phase8 sau apply; không phát thêm một sự kiện thay thế hoặc gọi hai lần. AMEND_CONTENT ngủ phát `SleepResultRecorded` với group đã kiểm và milestone CORRECTION:<id>, ngày plannedAt. Chủ dự án chọn giữ gate VOID ngủ chờ D/007 thống nhất biểu diễn, không tự dùng group rỗng/null.
+- `BillableCareResultCorrected.newQuantity` vẫn chờ E/010 cùng gate quantity Phase6; chưa phát số lượng suy từ giá trị kết quả. Endpoint care chạy READ_COMMITTED. Đường generic000 mặc định isolation cũ giữ CARE_SOURCE_UNAVAILABLE trước ghi, chờ A thống nhất; đọc chain không bị hạn chế như lệnh ghi. Không coi đường generic/billing/VOID ngủ đã nghiệm thu.
+
 ### Ghi chú triển khai Phase 6 (01/11/2026)
 
 - Sáu operation HTTP đã dịch tại phase6-contract-proposal.md mục1–3; mục5 CareTask.resultType chỉ đọc từ snapshot được chủ dự án duyệt bổ sung. CareTaskResponse/Checklist/CareTaskDetail cùng dùng trường này; không thêm chữ ký Java API/SPI.

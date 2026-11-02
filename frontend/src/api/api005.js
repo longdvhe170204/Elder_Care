@@ -66,6 +66,9 @@ export const postCareTasksByIdNotPerform = (params) => request('POST', '/care-ta
 /** Ghi nhận phát sinh (TT, ĐD, CS) (FR-025, FR-026, FR-035) */
 export const postAdHocCareRecordings = (params) => request('POST', '/ad-hoc-care-recordings', params)
 
+/** Đính chính kết quả (người ghi gốc, Trưởng tầng, Người phụ trách ca của tầng) (FR-037, BR-M04-14) */
+export const postCareResultsByIdCorrect = (params) => request('POST', '/care-results/{id}/correct', params)
+
 /** Lịch sử kết quả ghi nhận (gồm Bác sĩ chỉ xem) (FR-037, FR-049) */
 export const getResidentsByResidentIdCareResults = (params) => request('GET', '/residents/{residentId}/care-results', params)
 

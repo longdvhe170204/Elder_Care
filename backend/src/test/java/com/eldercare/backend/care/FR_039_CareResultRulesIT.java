@@ -71,6 +71,9 @@ class FR_039_CareResultRulesIT extends CareResultTestBase {
     }
 
     long save(String kind, String code, Integer ml, Instant at, Long meal, Instant planned) {
+        // Fixture có thể mô phỏng mốc cuối ngày khi test thực chạy trước mốc; không ghi trước lúc thực hiện.
+        var recordedAt = time.now();
+        if (at.isAfter(recordedAt)) recordedAt = at;
         long id = TestUsers.nextId();
         jdbc.update(
                 "INSERT INTO care_task(id,resident_id,task_type_id,basis_type,basis_id,shift_id,floor_area_id,planned_at,window_from,window_to,importance,performer_role,performer_id,status,data,created_by,created_at) SELECT ?,resident_id,task_type_id,?,?,shift_id,floor_area_id,?,?,? ,importance,performer_role,performer_id,'DUE',JSON_SET(data,'$.resultType',?),created_by,created_at FROM care_task WHERE id=?",
@@ -89,7 +92,7 @@ class FR_039_CareResultRulesIT extends CareResultTestBase {
                 input,
                 TaskStatus.COMPLETED,
                 at,
-                time.now(),
+                recordedAt,
                 null,
                 user.accountId(),
                 "ASSIGNED",

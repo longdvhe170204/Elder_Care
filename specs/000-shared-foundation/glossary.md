@@ -1157,6 +1157,19 @@ Không thêm enum/trường API công khai mới; callback ngoài bàn giao và 
 
 Giữ nguyên chữ ký `AlertRequested`, `ProlongedPoorEating`, `CorrectionMade`. `mealIds` phải là id bữa của 011; nhánh EATING chưa liên kết giữ gate theo quyết định chủ dự án. Không tạo bảng kết quả hoặc bộ đếm mới.
 
+### 11.12. Đính chính kết quả Phase 9 (005, 02/11/2026)
+
+| Khái niệm | Tên mã |
+| --- | --- |
+| Endpoint đính chính đã duyệt | `POST /care-results/{id}/correct`; `CareResultCorrection`, `type`, `correctedContent`, `reason`; `AMEND_CONTENT`, `VOID` |
+| Provider kết quả nhóm 3 | `CareResultCorrectionProvider`, loại `M04.CARE_RESULT`; `internal/result/service` |
+| Transaction của endpoint care | `CareResultCorrectionService`, `READ_COMMITTED` |
+| HTTP controller/request | `CareResultCorrectionController`, `CareResultCorrectionWrite`; `web`, `web/request` |
+| Client sinh từ YAML | `postCareResultsByIdCorrect` trong `frontend/src/api/api005.js` |
+| Mốc đính chính ngủ | `CORRECTION:<correctionId>` trên `SleepResultRecorded.context` |
+
+Không thêm chữ ký SPI/event Java; quantity tính phí và tín hiệu VOID ngủ còn gate đã ghi trong plan/team-plan.
+
 ## 12. Feature 006 (`006-medication-management`, D)
 
 ### 12.1. Bảng và cột nền tảng (T005, `V006_01__medication_foundation.sql`)

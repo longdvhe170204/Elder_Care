@@ -219,6 +219,8 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 
 - [ ] T051 [US7] Cài `DinhChinhDuocProvider` `M04.KET_QUA_GHI_NHAN` trong `BE/care/ghinhan/internal/KetQuaDinhChinhProvider.java` (`tangKhuVuc` = tầng/khu công việc; `sauKhiDinhChinh` phát sự kiện cho 010 và chạy lại quy tắc F) và endpoint `POST /ket-qua-ghi-nhan/{id}/dinh-chinh` trong `GhiNhanController.java`
 
+**Checkpoint 03/11/2026 — T050/T051 chưa đóng:** cài provider/service ở `internal/result/service`, controller/request ở `web`/`web/request`; bản dịch `POST /care-results/{id}/correct` đã duyệt. Nhánh A/B, projection đọc, VOID được hỗ trợ, callback F/ngủ AMEND và quyền xem chain có test thật. Scoped44unit/Arch/Boundary+41IT liên quan xanh sau RED; full cuối780unit xanh,1765IT9failure+36error/0skip,24test riêngPhase9 xanh,Spotless2420sạch. Không có tên lỗi mới soPhase8;45tên cũ còn,2ParameterChangeIT không tái hiện (chưa coi đã sửa). Chờ E/010 newQuantity, D/007 tín hiệu VOID ngủ/consumer thật, A isolation generic; các gate F Phase8 giữ nguyên. Không coi testguard là nghiệm thu nhánh tính phí/VOID ngủ/generic. Chi tiết ở plan/Working-history; tiếp T050→T051 theo dependency rồi T052→T053 Phase10.
+
 **Checkpoint**: Đính chính chạy độc lập.
 
 ---
