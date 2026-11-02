@@ -66,7 +66,7 @@ Plan tuân theo FR-010a của 000 (Q-306, Q-307):
 
 **Target Platform**: Như 000.
 - Web: hộp thông báo (nhân viên, cổng người thân), luồng SSE, lượt nhắc gọi và ghi kết quả, danh sách liên hệ trực tiếp, lịch sử, lỗi gửi, cấu hình kênh.
-- App nhân viên: nhận đẩy, hộp thông báo (xem ngoại tuyến), xác nhận trực tuyến, "Xác nhận và tiếp nhận", lượt nhắc gọi và ghi kết quả.
+- App nhân viên: nhận đẩy, hộp thông báo, xác nhận trực tuyến, "Xác nhận và tiếp nhận", lượt nhắc gọi và ghi kết quả.
 - App người thân: nhận đẩy, hộp thông báo, xác nhận thông báo Khẩn cấp.
 
 **Project Type**: Web service (REST `/api/v1`, SSE), một web client và một mobile client chung (Q-346).
@@ -128,7 +128,7 @@ Không còn mục NEEDS CLARIFICATION. Các lựa chọn kỹ thuật đã chố
 | NFR-02 Hiệu năng | Có | Hộp thông báo đọc bảng dẫn xuất; xác nhận một dòng sự kiện |
 | NFR-03 Thông báo khẩn cấp | Có | Outbox giao ngay sau commit, hàng Khẩn cấp riêng, gửi song song mọi kênh, FCM |
 | NFR-04 Tác vụ định kỳ | Có | `UNIQUE` lượt nhắc, lần gửi lại, khung gộp; chạy bù khi khởi động |
-| NFR-05 Khả dụng | Có | Outbox giao lại khi listener lỗi; hộp thông báo xem ngoại tuyến ở app |
+| NFR-05 Khả dụng | Có | Outbox giao lại khi listener lỗi |
 | NFR-06 Sao lưu | Gián tiếp | Dữ liệu ở MySQL |
 | NFR-07 Lưu trữ | Có | Không ngắn hơn CFG-M15-04 và bản ghi nguồn (data-model mục 10) |
 | NFR-08 Bảo mật | Có | Lọc phần nội dung theo quyền hiện hành; kênh ngoài không có sức khỏe; số điện thoại che một phần |
@@ -370,3 +370,22 @@ Còn chờ, thuộc task khác: FR-026a, dừng theo sự kiện của 007 (T017
 - Hợp đồng không có lệnh hủy token: đăng xuất không gỡ token; tài khoản khác đăng nhập trên máy đó đăng ký lại token. Giữa hai lần, máy vẫn có thể nhận đẩy của tài khoản cũ.
 - iOS: `GoogleService-Info.plist` không vào kho nên không thêm vào project Xcode; build phase "Copy GoogleService-Info" chép vào gói app khi có file; `Info.plist` thêm `UIBackgroundModes` `remote-notification`. Chưa build iOS vì máy phát triển là Windows; `Runner.entitlements` (`aps-environment`) chưa thêm vì cần tài khoản Apple Developer để ký, làm trên máy Mac.
 - Đã thử đầu–cuối trên máy ảo Android 12 có Google Play, backend `QuickstartDemoApplication` có `FIREBASE_CREDENTIALS`: `demo.quanly` đăng ký token; `demo.hanhchinh` gửi yêu cầu duyệt mẫu; máy nhận thông báo FCM "Yêu cầu YC-2026-000050" khi app chạy nền; bấm thì mở app, thông báo tự xóa. Demo chưa có tài khoản người thân (012), nên mở đúng thông báo ở phần người thân, người cao tuổi mới kiểm bằng test widget; phần nhân viên bấm chỉ mở app (T022). iOS cần máy Mac, tài khoản Apple Developer và khóa APNs.
+
+## Ghi chú màn thông báo nhân viên (2026-11-01, T022, nhánh `impl/009-mobile-staff-inbox`; bố cục chủ dự án duyệt cùng ngày)
+
+- Tab Thông báo đứng đầu phần nhân viên, mở mặc định, huy hiệu số Khẩn cấp chưa xác nhận. Khẩn cấp tới khi đang ở tab khác thì hiện dải báo, vì khi app đang mở máy không hiện thông báo hệ thống; `PushMessaging.onMessage` nay kèm `data.level`.
+- Hộp và chi tiết chuyển từ `family/notifications/` sang `common/notifications/` (`NotificationInbox`, `NotificationScreen`, `AcknowledgeActions`) để hai phần cùng công thức. Chi tiết có nút xác nhận cố định ở chân màn: trước đó người thân từ màn hình khóa mất ba thao tác, lệch SC-008. Loại sự kiện, người cao tuổi chuyển vào chip "Lọc thêm" để việc khẩn không bị đẩy xuống.
+- `ApiClient.getList` cho endpoint trả mảng (`GET /me/call-reminders`).
+- Không làm hộp thông báo xem ngoại tuyến (chủ dự án chốt 2026-11-01, đã bỏ khỏi mục phạm vi và mô tả api-009): spec chỉ ghi MAY; lưu nội dung xuống máy dùng chung có thể lộ phần đã hết quyền xem (FR-034). Mất mạng thì báo lỗi kèm "Thử lại".
+- Lý do "Không liên lạc được" chỉ có ba giá trị của FR-030: chủ dự án chốt 2026-11-01 gỡ `OTHER` khỏi hợp đồng, backend, glossary. Kết quả gọi lưu ở `record_event` nên không cần migration; chưa có bản ghi `OTHER` nào ở schema demo. FR-030 ghi người nghe máy bắt buộc, FR-031 ghi "nếu khác người cần gọi", backend không kiểm; app theo FR-031.
+- Backend `CallReminderQueries` luôn trả `relationship` rỗng, `handoffs` chỉ có mã nhân viên: màn hiện "Người thân" và lịch sử không kèm tên. Hợp đồng chỉ có `residentId` nên màn không hiện tên người cao tuổi.
+- Web có màn lượt nhắc gọi từ T035a (cùng ngày).
+- Đã thử trên máy ảo Android 12 với backend `QuickstartDemoApplication`: hộp, huy hiệu, xác nhận thật (`IN_APP`), báo cần mạng khi tắt mạng, cỡ chữ 200%, nút gọi mở trình quay số. Demo chưa có hồ sơ nhân viên nên job không tạo được lượt nhắc; màn lượt nhắc và ghi kết quả thử qua proxy tạm trả dữ liệu đúng hợp đồng. Dải báo Khẩn cấp qua FCM thật chưa thử được, chỉ có test.
+
+## Ghi chú lượt nhắc gọi trên web (2026-11-01, T035a, nhánh `impl/009-web-call-reminders`; bố cục chủ dự án duyệt cùng ngày)
+
+- Khối "Cần gọi điện" nằm trong hộp thông báo, không thêm tab; đứng trên bộ lọc vì bộ lọc không áp cho lượt nhắc, tải riêng nên lỗi không ảnh hưởng hộp; SSE và lệnh xác nhận tải lại khối.
+- Khác app có chủ ý (DESIGN 13.7): dòng có sẵn số điện thoại và nút "Ghi kết quả gọi" mở thẳng form, vì người dùng web gọi bằng máy khác rồi quay lại ghi; số là liên kết `tel:`. Chữ và thứ tự nội dung giữ như app.
+- Form thay nội dung ngay trong khung; 409 thì báo lỗi, tải lại và về chi tiết; 422 báo tại ô ghi chú.
+- Chưa làm: "Xác nhận và tiếp nhận" trên web (chờ 007); `callReminders` ở tab Lịch sử gửi (hợp đồng có, màn chưa hiện).
+- Đã thử trên trình duyệt với backend demo: hộp thông báo thật, ghi kết quả, lần gọi bổ sung, chế độ tối, bề rộng 375px. Lượt nhắc qua proxy tạm trả dữ liệu đúng hợp đồng, vì demo chưa có hồ sơ nhân viên.
