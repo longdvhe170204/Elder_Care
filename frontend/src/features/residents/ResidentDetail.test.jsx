@@ -111,6 +111,66 @@ describe('ResidentDetail', () => {
     expect(screen.getByRole('button', { name: 'Xem giá trị mới' })).toBeTruthy()
   })
 
+  it('BUG-UI-001: bấm Xem giá trị mới thì đóng form cũ, hiện giá trị người khác vừa lưu, lần sửa sau dùng ETag mới', async () => {
+    routes()
+    api.on('POST', '/residents/7/update-personal-info', problem(412, 'PRECONDITION_FAILED'))
+
+    open()
+    fireEvent.click(await screen.findByRole('button', { name: 'Cập nhật thông tin' }))
+    fireEvent.change(screen.getByLabelText('Lý do cập nhật'), { target: { value: 'Sửa' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }))
+    const reload = await screen.findByRole('button', { name: 'Xem giá trị mới' })
+
+    api.on(
+      'GET',
+      '/residents/7',
+      json(200, profile({ personalInfo: { ...profile().personalInfo, fullName: 'Tên Tab Khác' } }), { ETag: '"2"' }),
+    )
+    fireEvent.click(reload)
+
+    expect(await screen.findByText('Tên Tab Khác')).toBeTruthy()
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Lưu thay đổi' })).toBeNull())
+    expect(screen.queryByText('Dữ liệu đã thay đổi')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cập nhật thông tin' }))
+    expect(screen.getByLabelText('Họ tên').value).toBe('Tên Tab Khác')
+  })
+
+  it('BUG-07: họ tên quá 200 ký tự báo tại ô bằng tiếng Việt, không gọi backend', async () => {
+    routes()
+
+    open()
+    fireEvent.click(await screen.findByRole('button', { name: 'Cập nhật thông tin' }))
+    fireEvent.change(screen.getByLabelText('Họ tên'), { target: { value: 'A'.repeat(201) } })
+    fireEvent.change(screen.getByLabelText('Lý do cập nhật'), { target: { value: 'Sửa' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }))
+
+    expect(await screen.findByText('Họ tên tối đa 200 ký tự')).toBeTruthy()
+    expect(api.calls('POST', '/residents/7/update-personal-info')).toHaveLength(0)
+  })
+
+  it('BUG-03: khối An toàn hiện dị ứng và lưu ý; đóng phần chi tiết thì nạp lại hồ sơ', async () => {
+    routes({
+      view: profile({
+        activeHealthItems: [{ id: 1, type: 'ALLERGY', status: 'ACTIVE', allergen: { id: 2, name: 'Penicillin' } }],
+        careNote: 'Dễ ngã',
+      }),
+    })
+    api.on('GET', '/residents/7/initial-health-record', problem(404, 'NOT_FOUND'))
+    api.on('GET', '/residents/7/health-items', json(200, []))
+
+    open()
+
+    expect(await screen.findByText(/Penicillin/)).toBeTruthy()
+    expect(screen.getByText(/Dễ ngã/)).toBeTruthy()
+    expect(screen.queryByText('Chưa ghi nhận')).toBeNull()
+    const before = api.calls('GET', '/residents/7').length
+    fireEvent.click(screen.getByRole('button', { name: 'Sức khỏe' }))
+    const part = await screen.findByRole('dialog', { name: 'Sức khỏe: Nguyễn Văn An' })
+    fireEvent.keyDown(part, { key: 'Escape' })
+    await waitFor(() => expect(api.calls('GET', '/residents/7').length).toBe(before + 1))
+  })
+
   it('001 T033: nút Sức khỏe mở khung riêng chồng lên hồ sơ, nạp hồ sơ ban đầu và mục sức khỏe (DESIGN.md 5)', async () => {
     routes()
     api.on('GET', '/residents/7/initial-health-record', json(200, { id: 5, confirmed: false, corrected: false }, { ETag: '"1"' }))

@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
+import { TriangleAlert } from 'lucide-react'
 import {
   ApiError,
   postAccountsByIdLockResident,
-  postAccountsByIdLoginQrCode,
+  postAccountsByIdResetPassword,
   postAccountsByIdUnbindDevice,
   postAccountsByIdUnlockResident,
   postApprovalRequests,
+  postResidentAccountsByResidentIdLoginQrCode,
 } from '@/api'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -18,13 +21,20 @@ import { formatDateTime } from '@/common/dateTime'
 import { RESIDENT_COMMANDS, RESIDENT_LOCK_BASIS_LABELS } from './accountLabels'
 import { ResidentConsentFields } from './ResidentConsentFields'
 import { EMPTY_CONSENT, consentBody, consentErrors } from './residentConsent'
+import { TemporaryPasswordNotice } from './TemporaryPasswordNotice'
 
 // Phần tài khoản người cao tuổi trong khung chi tiết (002 T095; US8; FR-069 → FR-073, A-16; bố cục duyệt 2026-10-24):
 // thiết bị đang gắn, mã QR đăng nhập dùng một lần kèm thời gian còn lại, lệnh theo allowedCommands mở form ngay dưới,
 // đề nghị khóa theo lời người thân là yêu cầu phê duyệt M15.RESIDENT_ACCOUNT_LOCK do Quản lý viện duyệt.
+// 002 T103 (FR-006, FR-051a, FR-069; bố cục duyệt 2026-11-02): tạo mã và cấp lại mật khẩu kèm xác nhận của chính người
+// cao tuổi; có máy gắn thì cảnh báo quét mã sẽ gỡ máy đó; mã hết hạn thì tạo mã mới với xác nhận vừa nhập điền sẵn.
 
 const REASON_MAX = 2000
 const FAMILY_REQUEST = 'family-request'
+const QR = 'login-qr-code'
+const RESET = 'reset-password'
+const RESIDENT_PASSWORD_HINT =
+  'Chỉ hiện một lần. Giao trực tiếp cho người cao tuổi; đăng nhập bằng mật khẩu này phải đổi. Nếu quét mã QR trước khi dùng thì mật khẩu này hết hiệu lực.'
 
 function remaining(expiresAt, now) {
   const seconds = Math.max(0, Math.ceil((new Date(expiresAt).getTime() - now) / 1000))
@@ -38,7 +48,7 @@ function vietnamToday() {
 export function ResidentAccountSection({ account, etag, onChanged }) {
   const [command, setCommand] = useState(null)
   const [qr, setQr] = useState(null)
-  const [qrFailure, setQrFailure] = useState(null)
+  const [lastConsent, setLastConsent] = useState(EMPTY_CONSENT)
   const [now, setNow] = useState(() => Date.now())
   const allowed = (account.allowedCommands ?? []).filter((c) => RESIDENT_COMMANDS[c])
 
@@ -48,18 +58,9 @@ export function ResidentAccountSection({ account, etag, onChanged }) {
     return () => clearInterval(timer)
   }, [qr])
 
-  async function createQr() {
-    setQrFailure(null)
-    try {
-      const { data } = await postAccountsByIdLoginQrCode({
-        path: { id: account.id },
-        headers: { 'Idempotency-Key': crypto.randomUUID() },
-      })
-      setNow(Date.now())
-      setQr(data)
-    } catch (error) {
-      setQrFailure(problemOf(error))
-    }
+  function open(next) {
+    if (next === QR) setQr(null)
+    setCommand(next)
   }
 
   const expired = qr && new Date(qr.expiresAt).getTime() <= now
@@ -74,7 +75,10 @@ export function ResidentAccountSection({ account, etag, onChanged }) {
       {qr && (
         <div className="flex flex-wrap items-center gap-4 rounded-xl border p-3">
           {expired ? (
-            <p className="type-body-sm">Mã đã hết hạn. Tạo mã mới.</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="type-body-sm">Mã đã hết hạn.</p>
+              <Button onClick={() => open(QR)}>Tạo mã mới</Button>
+            </div>
           ) : (
             <>
               <QRCodeSVG value={qr.code} size={168} role="img" aria-label="Mã QR đăng nhập" />
@@ -82,12 +86,12 @@ export function ResidentAccountSection({ account, etag, onChanged }) {
                 <span>Mã dùng một lần</span>
                 <span className="tabular-nums text-warning-foreground">{`Còn ${remaining(qr.expiresAt, now)}`}</span>
                 <span className="text-muted-foreground">Tạo mã mới làm mã cũ hết hiệu lực.</span>
+                {account.boundDevice && <span className="text-warning-foreground">Quét mã sẽ gỡ máy đang gắn.</span>}
               </div>
             </>
           )}
         </div>
       )}
-      <ProblemAlert problem={qrFailure} />
 
       {command ? (
         <ResidentCommandForm
@@ -95,6 +99,13 @@ export function ResidentAccountSection({ account, etag, onChanged }) {
           command={command}
           account={account}
           etag={etag}
+          initialConsent={command === QR ? lastConsent : EMPTY_CONSENT}
+          onCode={(data, consent) => {
+            setNow(Date.now())
+            setQr(data)
+            setLastConsent(consent)
+            setCommand(null)
+          }}
           onDone={() => {
             if (command !== FAMILY_REQUEST) {
               setCommand(null)
@@ -109,17 +120,11 @@ export function ResidentAccountSection({ account, etag, onChanged }) {
         />
       ) : (
         <div className="flex flex-wrap gap-2">
-          {allowed.map((c) =>
-            c === 'login-qr-code' ? (
-              <Button key={c} onClick={createQr}>
-                {RESIDENT_COMMANDS[c].label}
-              </Button>
-            ) : (
-              <Button key={c} variant="outline" onClick={() => setCommand(c)}>
-                {RESIDENT_COMMANDS[c].label}
-              </Button>
-            ),
-          )}
+          {allowed.map((c) => (
+            <Button key={c} variant={c === QR ? 'default' : 'outline'} onClick={() => open(c)}>
+              {RESIDENT_COMMANDS[c].label}
+            </Button>
+          ))}
           {allowed.includes('lock-resident') && (
             <Button
               variant="outline"
@@ -135,19 +140,22 @@ export function ResidentAccountSection({ account, etag, onChanged }) {
   )
 }
 
-function ResidentCommandForm({ command, account, etag, onDone, onCancel, onStale }) {
+function ResidentCommandForm({ command, account, etag, initialConsent, onCode, onDone, onCancel, onStale }) {
   const [reason, setReason] = useState('')
   const [basis, setBasis] = useState('')
-  const [consent, setConsent] = useState(EMPTY_CONSENT)
+  const [consent, setConsent] = useState(initialConsent)
   const [familyMemberId, setFamilyMemberId] = useState('')
   const [errors, setErrors] = useState({})
   const [failure, setFailure] = useState(null)
   const [saving, setSaving] = useState(false)
   const [requestId, setRequestId] = useState(null)
+  const [password, setPassword] = useState(null)
   const [key] = useState(() => crypto.randomUUID())
 
-  const needsReason = command !== 'unlock-resident'
-  const title = command === FAMILY_REQUEST ? 'Đề nghị khóa theo lời người thân' : RESIDENT_COMMANDS[command].label
+  const needsConsent = command === 'unlock-resident' || command === QR || command === RESET
+  const needsReason = command !== 'unlock-resident' && command !== QR
+  const titles = { [FAMILY_REQUEST]: 'Đề nghị khóa theo lời người thân', [QR]: 'Tạo mã QR đăng nhập' }
+  const title = titles[command] ?? RESIDENT_COMMANDS[command].label
   const submitLabel =
     command === FAMILY_REQUEST ? 'Gửi Quản lý viện duyệt' : RESIDENT_COMMANDS[command].submit
 
@@ -164,6 +172,14 @@ function ResidentCommandForm({ command, account, etag, onDone, onCancel, onStale
           headers: { 'If-Match': etag },
           body: { consent: consentBody(consent) },
         })
+      case QR:
+        return postResidentAccountsByResidentIdLoginQrCode({
+          path: { residentId: account.residentId },
+          headers: { 'Idempotency-Key': key },
+          body: { consent: consentBody(consent) },
+        })
+      case RESET:
+        return postAccountsByIdResetPassword({ path, body: { reason, consent: consentBody(consent) } })
       default:
         return postApprovalRequests({
           headers: { 'Idempotency-Key': key },
@@ -181,7 +197,7 @@ function ResidentCommandForm({ command, account, etag, onDone, onCancel, onStale
   async function submit(event) {
     event.preventDefault()
     setFailure(null)
-    const next = command === 'unlock-resident' ? consentErrors(consent) : {}
+    const next = needsConsent ? consentErrors(consent) : {}
     if (command === 'lock-resident' && !basis) next.basis = 'Chọn căn cứ khóa'
     if (command === FAMILY_REQUEST && !/^\d+$/.test(familyMemberId.trim())) {
       next.familyMemberId = 'Nhập mã hồ sơ người thân'
@@ -193,6 +209,8 @@ function ResidentCommandForm({ command, account, etag, onDone, onCancel, onStale
     setSaving(true)
     try {
       const { data } = await send()
+      if (command === QR) return onCode(data, consent)
+      if (command === RESET) return setPassword(data.temporaryPassword)
       if (command === FAMILY_REQUEST) setRequestId(data.id)
       onDone()
     } catch (error) {
@@ -205,6 +223,17 @@ function ResidentCommandForm({ command, account, etag, onDone, onCancel, onStale
     } finally {
       setSaving(false)
     }
+  }
+
+  if (password !== null) {
+    return (
+      <div className="flex flex-col gap-3">
+        <TemporaryPasswordNotice password={password} hint={RESIDENT_PASSWORD_HINT} />
+        <Button variant="outline" className="self-start" onClick={onCancel}>
+          Xong
+        </Button>
+      </div>
+    )
   }
 
   if (requestId !== null) {
@@ -221,6 +250,12 @@ function ResidentCommandForm({ command, account, etag, onDone, onCancel, onStale
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-4 rounded-xl border p-4">
       <h3 className="type-card-title">{title}</h3>
+      {command === QR && account.boundDevice && (
+        <Alert variant="attention">
+          <TriangleAlert aria-hidden="true" />
+          <AlertDescription>{`Quét mã sẽ gỡ máy đang gắn (gắn ${formatDateTime(account.boundDevice.boundAt)}).`}</AlertDescription>
+        </Alert>
+      )}
       <FieldGroup>
         {command === 'lock-resident' && (
           <FieldSet data-invalid={!!errors.basis || undefined}>
@@ -244,8 +279,13 @@ function ResidentCommandForm({ command, account, etag, onDone, onCancel, onStale
           </FieldSet>
         )}
 
-        {command === 'unlock-resident' && (
-          <ResidentConsentFields idPrefix="resident-unlock" consent={consent} onChange={setConsent} errors={errors} />
+        {needsConsent && (
+          <ResidentConsentFields
+            idPrefix={`resident-${command}`}
+            consent={consent}
+            onChange={setConsent}
+            errors={errors}
+          />
         )}
 
         {command === FAMILY_REQUEST && (

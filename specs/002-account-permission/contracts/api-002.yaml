@@ -267,6 +267,7 @@ paths:
               properties:
                 reason: { $ref: '#/components/schemas/Reason' }
                 verification: { $ref: '#/components/schemas/Verification' }
+                consent: { $ref: '#/components/schemas/ResidentConsent' }
       responses:
         '200': { description: 'Mật khẩu tạm, chỉ trả một lần', content: { application/json: { schema: { type: object, properties: { temporaryPassword: { type: string } } } } } }
   /accounts/{id}/assign-role:
@@ -514,7 +515,7 @@ paths:
     post:
       tags: [accounts]
       summary: Tạo tài khoản người cao tuổi theo lời chính người cao tuổi (Hành chính hoặc Quản lý viện)
-      description: Người cao tuổi phải Đang lưu trú và chưa có tài khoản. Không có consent thì 422 (FR-067).
+      description: Người cao tuổi phải Đang lưu trú và chưa có tài khoản. Không có consent thì 422. Không có mật khẩu tạm, không buộc đổi mật khẩu (FR-067).
       x-fr: [FR-067, FR-068]
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody:
@@ -529,22 +530,44 @@ paths:
                 username: { type: string }
                 consent: { $ref: '#/components/schemas/ResidentConsent' }
       responses:
-        '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/AccountWithTemporaryPassword' } } } }
+        '201': { description: Đã tạo, content: { application/json: { schema: { $ref: '#/components/schemas/Account' } } } }
         '409': { description: 'ALREADY_HAS_ACCOUNT, NOT_IN_RESIDENCE', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
         '422': { $ref: '#/components/responses/Problem' }
-  /accounts/{id}/login-qr-code:
+  /resident-accounts/{residentId}:
+    get:
+      tags: [accounts]
+      summary: Trạng thái đăng nhập của người cao tuổi cho màn tạo mã (cùng quyền với tạo mã)
+      description: Cho biết có máy đang gắn để cảnh báo quét mã sẽ gỡ máy đó. Chưa có tài khoản thì 404.
+      x-fr: [FR-069]
+      parameters: [ { name: residentId, in: path, required: true, schema: { type: integer, format: int64 } } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ResidentLoginState' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /resident-accounts/{residentId}/login-qr-code:
     post:
       tags: [accounts]
-      summary: Tạo mã QR đăng nhập dùng một lần (Hành chính, Quản lý viện, Điều dưỡng có phạm vi)
-      description: Mã hết hạn sau CFG-M15-11; tạo mã mới làm mã cũ chưa dùng hết hiệu lực. Chỉ tài khoản người cao tuổi.
+      summary: Tạo mã QR đăng nhập theo người cao tuổi, kèm xác nhận của người đó (Hành chính, Quản lý viện, Điều dưỡng có phạm vi)
+      description: Mã hết hạn sau CFG-M15-11; tạo mã mới làm mã cũ chưa dùng hết hiệu lực. Chưa có tài khoản thì 404.
       x-fr: [FR-069]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      parameters: [ { name: residentId, in: path, required: true, schema: { type: integer, format: int64 } }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [consent]
+              properties:
+                consent: { $ref: '#/components/schemas/ResidentConsent' }
       responses:
         '201':
           description: Mã chỉ trả một lần
           content: { application/json: { schema: { type: object, properties: { code: { type: string }, expiresAt: { type: string, format: date-time } } } } }
         '403': { $ref: '#/components/responses/Problem' }
-        '409': { description: 'NOT_RESIDENT_ACCOUNT, ACCOUNT_LOCKED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { description: 'RESIDENCY_ENDED, ACCOUNT_LOCKED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+        '422': { $ref: '#/components/responses/Problem' }
   /auth/qr-login:
     post:
       tags: [auth]
@@ -695,6 +718,13 @@ components:
         method: { type: string, enum: [IN_PERSON_ID_DOCUMENT, CALLBACK_REGISTERED_NUMBER] }
         idDocumentNumber: { type: string }
         calledPhoneNumber: { type: string }
+    ResidentLoginState:
+      type: object
+      description: FR-069. boundDevice rỗng khi chưa gắn máy.
+      properties:
+        accountId: { type: integer, format: int64 }
+        status: { type: string, enum: [ACTIVE, TEMPORARILY_LOCKED, INACTIVE, LOCKED] }
+        boundDevice: { type: object, properties: { boundAt: { type: string, format: date-time } } }
     ResidentConsent:
       type: object
       required: [method, withStaffId]

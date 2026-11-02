@@ -95,6 +95,8 @@ Bổ sung theo plan 015 (hợp đồng 015 mục 1.2, 1.4): `LichNhapLenhPort` (
 
 Mỗi sự kiện mang khóa `loại + id + mốc` (NFR-04), mức, nhóm người nhận, loại thông tin theo research N-14.
 
+**FR-057, sửa hồi quy 2026-10-27:** `HandoverCorrected` giữ nguyên chữ ký. Nhóm nhận gồm nhân viên bàn giao, nhân viên đã xác nhận (đọc `AccountApi.byId(confirmedBy).staffId`, không phụ thuộc `staff_profile.account_id`) và `RecipientGroup.ShiftLead` của tầng/khu vực, với `Substitution.Default` theo quy ước chung. 009 phân giải Người phụ trách ca tại thời điểm gửi; không lấy người phụ trách của ca cũ hoặc thay bằng nhóm Trưởng tầng. Mức Nhẹ, nguồn `M09.HANDOVER` và nội dung chung giữ nguyên.
+
 ---
 
 ## 2. 008 cần từ module khác

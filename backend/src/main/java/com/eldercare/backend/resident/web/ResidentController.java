@@ -2,6 +2,7 @@ package com.eldercare.backend.resident.web;
 
 import com.eldercare.backend.administration.account.api.CurrentUser;
 import com.eldercare.backend.administration.account.api.PermissionApi;
+import com.eldercare.backend.administration.account.api.dto.AccountType;
 import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
@@ -9,20 +10,26 @@ import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.web.ProblemBody;
 import com.eldercare.backend.common.web.VersionEtag;
+import com.eldercare.backend.resident.api.AssessmentApi;
 import com.eldercare.backend.resident.api.ConsentApi;
+import com.eldercare.backend.resident.api.dto.CareNeedView;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.dto.StatusCommand;
+import com.eldercare.backend.resident.internal.health.service.HealthItemService;
+import com.eldercare.backend.resident.internal.health.service.HealthItemService.StatusFilter;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService.CreateResult;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService.LinkedProfile;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService.ProfileView;
 import com.eldercare.backend.resident.internal.profile.service.ResidentProfileService.SearchPage;
+import com.eldercare.backend.resident.internal.status.service.ProfileOpenGuard;
 import com.eldercare.backend.resident.internal.status.service.ResidentStatusService;
 import com.eldercare.backend.resident.internal.wish.service.EndOfLifeWishService;
 import com.eldercare.backend.resident.internal.wish.service.TreatmentWishService;
 import com.eldercare.backend.resident.web.request.CreateResidentBody;
 import com.eldercare.backend.resident.web.request.UpdatePersonalInfoBody;
 import com.eldercare.backend.resident.web.response.CreateProfileResultBody;
+import com.eldercare.backend.resident.web.response.HealthItemBody;
 import com.eldercare.backend.resident.web.response.ProfileBody;
 import com.eldercare.backend.resident.web.response.ProfilePage;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -107,6 +114,8 @@ class ResidentController {
     private final ConsentApi consents;
     private final EndOfLifeWishService endOfLifeWishes;
     private final TreatmentWishService treatmentWishes;
+    private final HealthItemService healthItems;
+    private final AssessmentApi assessments;
 
     ResidentController(
             ResidentProfileService profiles,
@@ -114,7 +123,11 @@ class ResidentController {
             CurrentUser currentUser,
             ConsentApi consents,
             EndOfLifeWishService endOfLifeWishes,
-            TreatmentWishService treatmentWishes) {
+            TreatmentWishService treatmentWishes,
+            HealthItemService healthItems,
+            AssessmentApi assessments) {
+        this.healthItems = healthItems;
+        this.assessments = assessments;
         this.profiles = profiles;
         this.permissions = permissions;
         this.currentUser = currentUser;
@@ -161,7 +174,7 @@ class ResidentController {
     @ApiResponse(responseCode = "200", description = "OK")
     ResponseEntity<ProfileBody> get(@PathVariable long id) {
         ProfileView view = profiles.view(ResidentProfileService.target(id));
-        return ResponseEntity.ok().eTag(VersionEtag.of(view.version())).body(body(view));
+        return ResponseEntity.ok().eTag(VersionEtag.of(view.version())).body(detail(view));
     }
 
     @PostMapping("/{id}/update-personal-info")
@@ -182,7 +195,7 @@ class ResidentController {
             @Valid @RequestBody UpdatePersonalInfoBody body) {
         ProfileView updated = profiles.updatePersonalInfo(
                 ResidentProfileService.target(id), ifMatch, body.personalInfo(), body.reason());
-        return ResponseEntity.ok().eTag(VersionEtag.of(updated.version())).body(body(updated));
+        return ResponseEntity.ok().eTag(VersionEtag.of(updated.version())).body(detail(updated));
     }
 
     @GetMapping("/{id}/linked-profiles")
@@ -202,6 +215,12 @@ class ResidentController {
                 permissions.allowedCommands(currentUser, ResidentProfileService.target(view.id()), COMMANDS));
         if (!currentUser.roles().contains(Role.DOCTOR)) {
             commands.remove(CONFIRM_INITIAL_HEALTH_RECORD);
+        }
+        // Trạng thái cuối: backend chặn 409 PROFILE_CLOSED nên không cho hiện nút (BUG-06). Lệnh ghi khác giữ nguyên vì
+        // màn
+        // còn dùng để hiện đính chính.
+        if (ProfileOpenGuard.FINAL_STATUSES.contains(view.status())) {
+            commands.remove(UPDATE_PERSONAL_INFO);
         }
         Set<String> statusCommands =
                 ResidentStatusService.availableCommands(view.status(), currentUser.roles()).stream()
@@ -224,6 +243,39 @@ class ResidentController {
                 commands,
                 consents.current(view.id()).isPresent(),
                 endOfLifeWishes.hasActive(view.id()),
-                sees ? treatmentWishes.hasActive(view.id()) : null);
+                sees ? treatmentWishes.hasActive(view.id()) : null,
+                isFamilyViewer());
+    }
+
+    /**
+     * Chi tiết hồ sơ (BUG-03; FR-008, FR-009, FR-022): mục sức khỏe chỉ nạp khi người xem có quyền; lưu ý và nhu cầu
+     * không nạp cho người thân. Danh sách không nạp để tránh truy vấn theo từng dòng.
+     */
+    private ProfileBody detail(ProfileView view) {
+        long id = view.id();
+        Target target = ResidentProfileService.target(id);
+        List<HealthItemBody> active = permissions
+                        .hasPermission(currentUser, SEE_TREATMENT_WISH, target)
+                        .allowed()
+                ? healthItems.list(target, StatusFilter.ACTIVE).stream()
+                        .map(HealthItemBody::of)
+                        .toList()
+                : List.of();
+        if (isFamilyViewer()) {
+            return body(view).withDetail(active, List.of(), null);
+        }
+        List<String> needs = assessments
+                .latestConfirmed(id)
+                .map(latest -> latest.careNeeds().stream()
+                        .map(CareNeedView::name)
+                        .sorted()
+                        .toList())
+                .orElse(List.of());
+        String note = assessments.currentCareNote(List.of(id)).get(id).orElse(null);
+        return body(view).withDetail(active, needs, note);
+    }
+
+    private boolean isFamilyViewer() {
+        return currentUser.type() == AccountType.FAMILY_MEMBER;
     }
 }

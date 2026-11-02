@@ -48,8 +48,9 @@ export const RESIDENT_LOCK_BASIS_LABELS = { RESIDENT_REQUESTED: 'Người cao tu
 
 // Lệnh trên tài khoản người cao tuổi theo allowedCommands (002 T095): nhãn nút mở form, nhãn nút gửi
 export const RESIDENT_COMMANDS = {
-  'login-qr-code': { label: 'Tạo mã QR' },
+  'login-qr-code': { label: 'Tạo mã QR', submit: 'Tạo mã' },
   'unbind-device': { label: 'Gỡ thiết bị', submit: 'Gỡ thiết bị đang gắn' },
+  'reset-password': { label: 'Cấp lại mật khẩu', submit: 'Cấp mật khẩu tạm' },
   'lock-resident': { label: 'Khóa', submit: 'Khóa tài khoản' },
   'unlock-resident': { label: 'Mở khóa', submit: 'Mở khóa tài khoản' },
 }
