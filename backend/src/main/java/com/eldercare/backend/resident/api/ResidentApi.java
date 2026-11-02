@@ -27,4 +27,7 @@ public interface ResidentApi {
 
     /** Cho job của module khác. */
     List<Long> byStatus(Set<ResidentStatus> statuses);
+
+    /** Hồ sơ trước cùng CCCD (FR-004); 004 hiện "từng lưu trú tại viện" khi đưa vào danh sách chờ (004 FR-007). */
+    Optional<Long> previousProfileId(long residentId);
 }
