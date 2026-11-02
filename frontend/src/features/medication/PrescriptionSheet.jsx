@@ -9,9 +9,10 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { Textarea } from '@/components/ui/textarea'
 import { ResidentAvatar } from '@/common/ResidentAvatar'
 import { DEMO_RESIDENTS } from '@/common/demoData'
+import { cn } from '@/lib/utils'
 import { DEMO_MEDICATIONS } from './prescriptionData'
 
-export function PrescriptionSheet({ open, onOpenChange, onSave, existingPrescriptions = [] }) {
+export function PrescriptionSheet({ open, onOpenChange, onSave, existingPrescriptions = [], isDoctor = true }) {
   const [residentCode, setResidentCode] = useState(DEMO_RESIDENTS[0]?.code || 'NCT-0001')
   const [medicationId, setMedicationId] = useState(1)
   const [dosage, setDosage] = useState('1')
@@ -23,10 +24,12 @@ export function PrescriptionSheet({ open, onOpenChange, onSave, existingPrescrip
   const [minIntervalMinutes, setMinIntervalMinutes] = useState('240')
   const [maxDosesPer24h, setMaxDosesPer24h] = useState('3')
   const [medicationSource, setMedicationSource] = useState('FACILITY') // FACILITY | FAMILY_SENT
-  const [prescriberType, setPrescriberType] = useState('INTERNAL') // INTERNAL | EXTERNAL
+  const [prescriberType, setPrescriberType] = useState(isDoctor ? 'INTERNAL' : 'EXTERNAL') // INTERNAL | EXTERNAL
   const [facilityName, setFacilityName] = useState('')
   const [prescriberName, setPrescriberName] = useState('')
   const [instructionNote, setInstructionNote] = useState('')
+
+  const selectedPrescriberType = isDoctor ? prescriberType : 'EXTERNAL'
 
   // Kết quả kiểm tra xung đột & dị ứng
   const [checkResult, setCheckResult] = useState(null)
@@ -102,7 +105,7 @@ export function PrescriptionSheet({ open, onOpenChange, onSave, existingPrescrip
       setErrorMsg('Vui lòng nhập liều dùng lớn hơn 0')
       return
     }
-    if (prescriberType === 'EXTERNAL' && (!facilityName.trim() || !prescriberName.trim())) {
+    if (selectedPrescriberType === 'EXTERNAL' && (!facilityName.trim() || !prescriberName.trim())) {
       setErrorMsg('Đơn bên ngoài bắt buộc nhập Tên cơ sở khám và Bác sĩ kê đơn')
       return
     }
@@ -136,9 +139,9 @@ export function PrescriptionSheet({ open, onOpenChange, onSave, existingPrescrip
       minIntervalMinutes: prescriptionType === 'PRN' ? Number(minIntervalMinutes) : null,
       maxDosesPer24h: prescriptionType === 'PRN' ? Number(maxDosesPer24h) : null,
       medicationSource,
-      prescriberType,
-      facilityName: prescriberType === 'EXTERNAL' ? facilityName : null,
-      prescriberName: prescriberType === 'EXTERNAL' ? prescriberName : 'Bác sĩ viện',
+      prescriberType: selectedPrescriberType,
+      facilityName: selectedPrescriberType === 'EXTERNAL' ? facilityName : null,
+      prescriberName: selectedPrescriberType === 'EXTERNAL' ? prescriberName : 'Bác sĩ viện',
       prescribedAt: '2026-10-23',
       instructionNote,
       status: 'Hiệu lực',
@@ -364,29 +367,36 @@ export function PrescriptionSheet({ open, onOpenChange, onSave, existingPrescrip
           <div className="flex flex-col gap-3 rounded-lg border bg-muted/30 p-3">
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium">Cơ sở kê đơn:</span>
-              <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+              <label className={cn('flex items-center gap-1.5 text-sm', isDoctor ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed')}>
                 <input
                   type="radio"
                   name="prescriberType"
                   value="INTERNAL"
-                  checked={prescriberType === 'INTERNAL'}
+                  disabled={!isDoctor}
+                  checked={selectedPrescriberType === 'INTERNAL'}
                   onChange={() => setPrescriberType('INTERNAL')}
                 />
-                Nội bộ viện (INTERNAL)
+                Nội bộ viện (INTERNAL) {!isDoctor && '(Chỉ Bác sĩ)'}
               </label>
               <label className="flex items-center gap-1.5 text-sm cursor-pointer">
                 <input
                   type="radio"
                   name="prescriberType"
                   value="EXTERNAL"
-                  checked={prescriberType === 'EXTERNAL'}
+                  checked={selectedPrescriberType === 'EXTERNAL'}
                   onChange={() => setPrescriberType('EXTERNAL')}
                 />
-                Bên ngoài (EXTERNAL)
+                Bên ngoài (EXTERNAL - Toa bệnh viện)
               </label>
             </div>
 
-            {prescriberType === 'EXTERNAL' && (
+            {!isDoctor && (
+              <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-500/10 p-2.5 rounded-md">
+                Theo quy định <strong>BR-M07-05 & FR-006</strong>: Điều dưỡng chỉ được nhập đơn thuốc từ cơ sở khám chữa bệnh bên ngoài (theo toa thuốc người thân/gia đình gửi về), không được tự kê đơn nội bộ viện.
+              </p>
+            )}
+
+            {selectedPrescriberType === 'EXTERNAL' && (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 pt-2">
                 <div className="flex flex-col gap-1.5">
                   <FieldLabel htmlFor="facName">Tên cơ sở khám/bệnh viện *</FieldLabel>

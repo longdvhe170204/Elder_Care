@@ -1,8 +1,8 @@
 package com.eldercare.backend.medication.web.response;
 
-import com.eldercare.backend.medication.internal.service.DoseViewService.UsableBatch;
-import com.eldercare.backend.medication.internal.service.response.HandoverResponse;
-import com.eldercare.backend.medication.internal.service.response.MedicationToBringResponse;
+import com.eldercare.backend.medication.internal.dose.service.DoseViewService.UsableBatch;
+import com.eldercare.backend.medication.internal.handover.domain.HandoverResponse;
+import com.eldercare.backend.medication.internal.handover.domain.MedicationToBringResponse;
 import com.eldercare.backend.medication.web.response.DoseBodies.PersonBody;
 import com.eldercare.backend.medication.web.response.DoseBodies.UsableBatchBody;
 import io.swagger.v3.oas.annotations.media.Schema;

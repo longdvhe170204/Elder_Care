@@ -10,19 +10,20 @@ import static org.mockito.Mockito.when;
 import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
-import com.eldercare.backend.medication.internal.domain.PrescriberType;
-import com.eldercare.backend.medication.internal.domain.Prescription;
-import com.eldercare.backend.medication.internal.domain.PrescriptionStatus;
-import com.eldercare.backend.medication.internal.domain.PrescriptionType;
-import com.eldercare.backend.medication.internal.domain.PrnAdministration;
-import com.eldercare.backend.medication.internal.persistence.PrescriptionRepository;
-import com.eldercare.backend.medication.internal.persistence.PrnAdministrationRepository;
-import com.eldercare.backend.medication.internal.persistence.ResidentMedicationLock;
-import com.eldercare.backend.medication.internal.service.FamilyMedicationService;
-import com.eldercare.backend.medication.internal.service.PrnMedicationService;
-import com.eldercare.backend.medication.internal.service.request.RecordPrnBody;
-import com.eldercare.backend.medication.internal.service.response.PrnAdministrationResponse;
-import com.eldercare.backend.medication.internal.service.response.PrnHistoryResponse;
+import com.eldercare.backend.medication.internal.dose.domain.PrnAdministration;
+import com.eldercare.backend.medication.internal.dose.domain.PrnAdministrationResponse;
+import com.eldercare.backend.medication.internal.dose.domain.PrnHistoryResponse;
+import com.eldercare.backend.medication.internal.dose.domain.RecordPrnBody;
+import com.eldercare.backend.medication.internal.dose.persistence.PrnAdministrationRepository;
+import com.eldercare.backend.medication.internal.dose.service.PrnMedicationService;
+import com.eldercare.backend.medication.internal.family.service.FamilyMedicationService;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriberType;
+import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionType;
+import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
+import com.eldercare.backend.medication.internal.reconciliation.persistence.ResidentMedicationLock;
+import com.eldercare.backend.roombedallocation.api.ResidentLocationApi;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -35,6 +36,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -61,7 +63,9 @@ class BR_M07_04_PrnLimitTest {
                 prescriptionRepo,
                 residentMedicationLock,
                 new BusinessTime(Clock.systemUTC()),
-                mock(FamilyMedicationService.class));
+                mock(FamilyMedicationService.class),
+                mock(ApplicationEventPublisher.class),
+                mock(ResidentLocationApi.class));
     }
 
     private void setId(Object entity, Long id) {

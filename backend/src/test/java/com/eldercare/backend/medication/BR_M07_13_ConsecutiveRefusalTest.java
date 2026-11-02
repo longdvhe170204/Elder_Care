@@ -2,9 +2,9 @@ package com.eldercare.backend.medication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.eldercare.backend.medication.internal.domain.DoseStatus;
-import com.eldercare.backend.medication.internal.service.ClosedDoseView;
-import com.eldercare.backend.medication.internal.service.ConsecutiveRefusalCounter;
+import com.eldercare.backend.medication.internal.dose.domain.DoseStatus;
+import com.eldercare.backend.medication.internal.dose.service.ClosedDoseView;
+import com.eldercare.backend.medication.internal.dose.service.ConsecutiveRefusalCounter;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;

@@ -5,20 +5,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
-import com.eldercare.backend.medication.internal.domain.DoseCancellationReason;
-import com.eldercare.backend.medication.internal.domain.DoseStatus;
-import com.eldercare.backend.medication.internal.domain.FrequencyType;
-import com.eldercare.backend.medication.internal.domain.Medication;
-import com.eldercare.backend.medication.internal.domain.MedicationDose;
-import com.eldercare.backend.medication.internal.domain.Prescription;
-import com.eldercare.backend.medication.internal.domain.PrescriptionStatus;
-import com.eldercare.backend.medication.internal.domain.PrescriptionType;
-import com.eldercare.backend.medication.internal.persistence.MedicationDoseRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationRepository;
-import com.eldercare.backend.medication.internal.persistence.PrescriptionRepository;
-import com.eldercare.backend.medication.internal.service.M07JobService;
-import com.eldercare.backend.medication.internal.service.PrescriptionService;
-import com.eldercare.backend.medication.internal.service.request.ExtendPrescriptionBody;
+import com.eldercare.backend.medication.internal.catalog.domain.Medication;
+import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
+import com.eldercare.backend.medication.internal.dose.domain.DoseCancellationReason;
+import com.eldercare.backend.medication.internal.dose.domain.DoseStatus;
+import com.eldercare.backend.medication.internal.dose.domain.MedicationDose;
+import com.eldercare.backend.medication.internal.dose.persistence.MedicationDoseRepository;
+import com.eldercare.backend.medication.internal.prescription.domain.ExtendPrescriptionBody;
+import com.eldercare.backend.medication.internal.prescription.domain.FrequencyType;
+import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionType;
+import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
+import com.eldercare.backend.medication.internal.prescription.service.PrescriptionService;
+import com.eldercare.backend.medication.internal.schedule.service.M07JobService;
 import com.eldercare.backend.support.TestUsers;
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -62,7 +62,8 @@ class BR_M07_08_PrescriptionExpirationIT extends M07IntegrationTestBase {
     @BeforeEach
     void setUp() {
         jdbc.update(
-                "INSERT INTO resident_medication (resident_id, version) VALUES (?, 0) "
+                "INSERT INTO resident_module_state (resident_id, module, data, version, updated_at)"
+                        + " VALUES (?, 'M07', JSON_OBJECT(), 0, UTC_TIMESTAMP(6)) "
                         + "ON DUPLICATE KEY UPDATE version = version",
                 residentId);
 
@@ -88,7 +89,10 @@ class BR_M07_08_PrescriptionExpirationIT extends M07IntegrationTestBase {
         // Việc hằng ngày chạy một lần mỗi ngày (research D-19): bỏ dấu đã chạy của lần chạy test trước cùng ngày
         try (Connection c = adminConnection();
                 Statement st = c.createStatement()) {
-            st.executeUpdate("DELETE FROM m07_job_run WHERE job_key = 'DAILY_CHECK' AND checkpoint = '" + today + "'");
+            st.executeUpdate("DELETE FROM reminder_marker WHERE kind = 'M07.JOB.DAILY_CHECK'"
+                    + " AND entity_type = 'M07.JOB' AND entity_id = 0 AND marker = '"
+                    + today
+                    + "'");
         }
 
         // 1. ACTIVE prescription ended yesterday
@@ -109,7 +113,7 @@ class BR_M07_08_PrescriptionExpirationIT extends M07IntegrationTestBase {
                 now.minus(10, ChronoUnit.DAYS),
                 today.minusDays(1),
                 MedicationSource.FACILITY,
-                com.eldercare.backend.medication.internal.domain.PrescriberType.INTERNAL,
+                com.eldercare.backend.medication.internal.prescription.domain.PrescriberType.INTERNAL,
                 null,
                 null,
                 10L,
@@ -161,7 +165,7 @@ class BR_M07_08_PrescriptionExpirationIT extends M07IntegrationTestBase {
                 now.minus(10, ChronoUnit.DAYS),
                 today.minusDays(1),
                 MedicationSource.FACILITY,
-                com.eldercare.backend.medication.internal.domain.PrescriberType.INTERNAL,
+                com.eldercare.backend.medication.internal.prescription.domain.PrescriberType.INTERNAL,
                 null,
                 null,
                 10L,
@@ -219,7 +223,7 @@ class BR_M07_08_PrescriptionExpirationIT extends M07IntegrationTestBase {
                 now.minus(5, ChronoUnit.DAYS),
                 today.plusDays(5),
                 MedicationSource.FACILITY,
-                com.eldercare.backend.medication.internal.domain.PrescriberType.INTERNAL,
+                com.eldercare.backend.medication.internal.prescription.domain.PrescriberType.INTERNAL,
                 null,
                 null,
                 10L,

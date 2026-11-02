@@ -1,8 +1,9 @@
 package com.eldercare.backend.medication.scheduling;
 
 import com.eldercare.backend.common.scheduling.ScheduledJob;
+import com.eldercare.backend.common.scheduling.SchedulerRuns;
 import com.eldercare.backend.common.time.BusinessTime;
-import com.eldercare.backend.medication.internal.service.M07JobService;
+import com.eldercare.backend.medication.internal.schedule.service.M07JobService;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -16,16 +17,18 @@ public class M07MinuteJob implements ScheduledJob {
 
     private final M07JobService jobService;
     private final BusinessTime businessTime;
+    private final SchedulerRuns runs;
 
-    public M07MinuteJob(M07JobService jobService, BusinessTime businessTime) {
+    public M07MinuteJob(M07JobService jobService, BusinessTime businessTime, SchedulerRuns runs) {
         this.jobService = jobService;
         this.businessTime = businessTime;
+        this.runs = runs;
     }
 
     @Scheduled(cron = "${eldercare.jobs.m07-minute.cron:0 * * * * *}", zone = "Asia/Ho_Chi_Minh")
     @SchedulerLock(name = M07Jobs.MINUTE, lockAtMostFor = "PT5M")
     public void scheduled() {
-        jobService.runMinuteTasks(businessTime.now());
+        runNow();
     }
 
     @Override
@@ -35,6 +38,13 @@ public class M07MinuteJob implements ScheduledJob {
 
     @Override
     public void runNow() {
-        jobService.runMinuteTasks(businessTime.now());
+        String runId = runs.start(name());
+        try {
+            jobService.runMinuteTasks(businessTime.now());
+            runs.finish(runId, SchedulerRuns.Result.SUCCEEDED, 0);
+        } catch (RuntimeException error) {
+            runs.finish(runId, SchedulerRuns.Result.FAILED, 0);
+            throw error;
+        }
     }
 }
