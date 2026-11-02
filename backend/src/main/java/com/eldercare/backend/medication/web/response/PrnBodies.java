@@ -1,7 +1,7 @@
 package com.eldercare.backend.medication.web.response;
 
-import com.eldercare.backend.medication.internal.service.response.PrnAdministrationResponse;
-import com.eldercare.backend.medication.internal.service.response.PrnHistoryResponse;
+import com.eldercare.backend.medication.internal.dose.domain.PrnAdministrationResponse;
+import com.eldercare.backend.medication.internal.dose.domain.PrnHistoryResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.Instant;

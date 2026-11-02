@@ -1,11 +1,11 @@
 package com.eldercare.backend.medication.web;
 
 import com.eldercare.backend.common.error.web.ProblemBody;
-import com.eldercare.backend.medication.internal.domain.SuppliedMedicationIntake;
-import com.eldercare.backend.medication.internal.domain.SuppliedMedicationIntake.IntakeResult;
-import com.eldercare.backend.medication.internal.service.ActorNames;
-import com.eldercare.backend.medication.internal.service.SuppliedMedicationIntakeService;
-import com.eldercare.backend.medication.internal.service.SuppliedMedicationIntakeService.RecordIntake;
+import com.eldercare.backend.medication.internal.governance.service.ActorNames;
+import com.eldercare.backend.medication.internal.procurement.domain.SuppliedMedicationIntake;
+import com.eldercare.backend.medication.internal.procurement.domain.SuppliedMedicationIntake.IntakeResult;
+import com.eldercare.backend.medication.internal.procurement.service.SuppliedMedicationIntakeService;
+import com.eldercare.backend.medication.internal.procurement.service.SuppliedMedicationIntakeService.RecordIntake;
 import com.eldercare.backend.medication.web.request.NewSuppliedMedicationIntakeBody;
 import com.eldercare.backend.medication.web.response.SuppliedMedicationIntakeResponse;
 import io.swagger.v3.oas.annotations.media.Content;

@@ -1,6 +1,6 @@
 package com.eldercare.backend.medication.web.response;
 
-import com.eldercare.backend.medication.internal.service.response.FamilyMedicationBatchResponse;
+import com.eldercare.backend.medication.internal.family.domain.FamilyMedicationBatchResponse;
 import com.eldercare.backend.medication.web.response.DoseBodies.PersonBody;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;

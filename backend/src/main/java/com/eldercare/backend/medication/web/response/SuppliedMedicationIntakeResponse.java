@@ -1,6 +1,6 @@
 package com.eldercare.backend.medication.web.response;
 
-import com.eldercare.backend.medication.internal.domain.SuppliedMedicationIntake;
+import com.eldercare.backend.medication.internal.procurement.domain.SuppliedMedicationIntake;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.Instant;

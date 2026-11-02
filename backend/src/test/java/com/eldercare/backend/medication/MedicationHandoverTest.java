@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,38 +13,38 @@ import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.medication.api.dto.MedicationSource;
 import com.eldercare.backend.medication.api.spi.TripMedicationPort;
-import com.eldercare.backend.medication.internal.domain.DoseStatus;
-import com.eldercare.backend.medication.internal.domain.FrequencyType;
-import com.eldercare.backend.medication.internal.domain.MedicationDose;
-import com.eldercare.backend.medication.internal.domain.MedicationHandover;
-import com.eldercare.backend.medication.internal.domain.MedicationHandoverDose;
-import com.eldercare.backend.medication.internal.domain.MedicationHandoverItem;
-import com.eldercare.backend.medication.internal.domain.MedicationReturn;
-import com.eldercare.backend.medication.internal.domain.NoMedicationOrder;
-import com.eldercare.backend.medication.internal.domain.PrescriberType;
-import com.eldercare.backend.medication.internal.domain.Prescription;
-import com.eldercare.backend.medication.internal.domain.PrescriptionStatus;
-import com.eldercare.backend.medication.internal.domain.PrescriptionType;
-import com.eldercare.backend.medication.internal.domain.RecipientType;
-import com.eldercare.backend.medication.internal.persistence.MedicationAbsenceIntervalRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationDoseRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationHandoverDoseRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationHandoverItemRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationHandoverRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationReturnItemRepository;
-import com.eldercare.backend.medication.internal.persistence.MedicationReturnRepository;
-import com.eldercare.backend.medication.internal.persistence.NoMedicationOrderRepository;
-import com.eldercare.backend.medication.internal.persistence.PrescriptionRepository;
-import com.eldercare.backend.medication.internal.persistence.ResidentMedicationLock;
-import com.eldercare.backend.medication.internal.service.MedicationHandoverService;
-import com.eldercare.backend.medication.internal.service.MedicationScheduleCalculator;
-import com.eldercare.backend.medication.internal.service.request.CreateHandoverBody;
-import com.eldercare.backend.medication.internal.service.request.HandoverItemBody;
-import com.eldercare.backend.medication.internal.service.request.NoMedicationOrderBody;
-import com.eldercare.backend.medication.internal.service.request.ReturnHandoverBody;
-import com.eldercare.backend.medication.internal.service.request.ReturnItemBody;
-import com.eldercare.backend.medication.internal.service.response.HandoverResponse;
+import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
+import com.eldercare.backend.medication.internal.dose.domain.DoseStatus;
+import com.eldercare.backend.medication.internal.dose.domain.MedicationDose;
+import com.eldercare.backend.medication.internal.dose.persistence.MedicationDoseRepository;
+import com.eldercare.backend.medication.internal.handover.domain.CreateHandoverBody;
+import com.eldercare.backend.medication.internal.handover.domain.HandoverItemBody;
+import com.eldercare.backend.medication.internal.handover.domain.HandoverResponse;
+import com.eldercare.backend.medication.internal.handover.domain.MedicationHandover;
+import com.eldercare.backend.medication.internal.handover.domain.MedicationHandoverDose;
+import com.eldercare.backend.medication.internal.handover.domain.MedicationHandoverItem;
+import com.eldercare.backend.medication.internal.handover.domain.MedicationReturn;
+import com.eldercare.backend.medication.internal.handover.domain.NoMedicationOrder;
+import com.eldercare.backend.medication.internal.handover.domain.NoMedicationOrderBody;
+import com.eldercare.backend.medication.internal.handover.domain.RecipientType;
+import com.eldercare.backend.medication.internal.handover.domain.ReturnHandoverBody;
+import com.eldercare.backend.medication.internal.handover.domain.ReturnItemBody;
+import com.eldercare.backend.medication.internal.handover.persistence.MedicationAbsenceIntervalRepository;
+import com.eldercare.backend.medication.internal.handover.persistence.MedicationHandoverDoseRepository;
+import com.eldercare.backend.medication.internal.handover.persistence.MedicationHandoverItemRepository;
+import com.eldercare.backend.medication.internal.handover.persistence.MedicationHandoverRepository;
+import com.eldercare.backend.medication.internal.handover.persistence.MedicationReturnItemRepository;
+import com.eldercare.backend.medication.internal.handover.persistence.MedicationReturnRepository;
+import com.eldercare.backend.medication.internal.handover.persistence.NoMedicationOrderRepository;
+import com.eldercare.backend.medication.internal.handover.service.MedicationHandoverService;
+import com.eldercare.backend.medication.internal.prescription.domain.FrequencyType;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriberType;
+import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionType;
+import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
+import com.eldercare.backend.medication.internal.reconciliation.persistence.ResidentMedicationLock;
+import com.eldercare.backend.medication.internal.schedule.service.MedicationScheduleCalculator;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -52,6 +53,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -232,6 +234,39 @@ class MedicationHandoverTest {
         assertThat(openDose.getStatus()).isEqualTo(DoseStatus.LEAVE_MEDICATION);
         verify(doseRepo).save(openDose);
         verify(handoverDoseRepo).save(any(MedicationHandoverDose.class));
+    }
+
+    @Test
+    @DisplayName("BR-M07-22: Một khoảng vắng cho phép nhiều lần giao thuốc mang theo")
+    void BR_M07_22_multipleHandoversInOneAbsenceAreKeptAsSeparateRecords() {
+        CreateHandoverBody body = new CreateHandoverBody();
+        body.setRecipientType("STAFF");
+        body.setRecipientName("Điều dưỡng A");
+
+        HandoverItemBody item = new HandoverItemBody();
+        item.setPrescriptionId(201L);
+        item.setQuantity(BigDecimal.ONE);
+        body.setItems(List.of(item));
+
+        when(prescriptionRepo.findById(201L)).thenReturn(Optional.of(createSamplePrescription(201L, 100L)));
+        AtomicLong ids = new AtomicLong(40L);
+        when(handoverRepo.save(any(MedicationHandover.class))).thenAnswer(invocation -> {
+            MedicationHandover handover = invocation.getArgument(0);
+            setId(handover, ids.incrementAndGet());
+            return handover;
+        });
+        when(handoverItemRepo.save(any(MedicationHandoverItem.class))).thenAnswer(invocation -> {
+            MedicationHandoverItem handoverItem = invocation.getArgument(0);
+            setId(handoverItem, ids.incrementAndGet());
+            return handoverItem;
+        });
+        when(doseRepo.findByPrescriptionIdAndStatusIn(eq(201L), any())).thenReturn(List.of());
+
+        HandoverResponse first = handoverService.createHandover(100L, body, 1L);
+        HandoverResponse second = handoverService.createHandover(100L, body, 1L);
+
+        assertThat(first.getId()).isNotEqualTo(second.getId());
+        verify(handoverRepo, times(2)).save(any(MedicationHandover.class));
     }
 
     @Test
