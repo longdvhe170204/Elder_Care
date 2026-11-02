@@ -193,11 +193,13 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 ### Tests cho User Story 6
 
 - [ ] T047 [P] [US6] Test đơn vị `BT/care/BR_M04_08_NuocUongTest.java`, `BR_M04_09_ChuoiBuaKemTest.java`, `BR_M04_11_TamTrangTest.java` (Q30 → Q33)
-- [ ] T048 [P] [US6] Test `BT/care/NuocUongIT.java`, `ChuoiBuaKemIT.java`, `US7_6_HuyGhiNhanChuoiIT.java`: dùng giá trị sau đính chính; hủy ghi nhận làm đứt chuỗi; mốc nước mỗi ngày một lần (`lan_chay_m04` `NUOC_UONG`) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_chay_m04` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [ ] T048 [P] [US6] Test `BT/care/NuocUongIT.java`, `ChuoiBuaKemIT.java`, `US7_6_HuyGhiNhanChuoiIT.java`: dùng giá trị sau đính chính; bỏ kết quả bữa đã Hủy ghi nhận, không làm đứt chuỗi bữa; thiếu ngày tâm trạng/hành vi làm đứt chuỗi ngày (chủ dự án chốt 02/11/2026 theo FR-040/C-11); mốc nước mỗi ngày một lần (`lan_chay_m04` `NUOC_UONG`) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_chay_m04` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 
 ### Implementation cho User Story 6
 
 - [ ] T049 [US6] Cài `BE/care/quytac/internal/DanhGiaNuocUong.java`, `DemChuoiBuaKem.java`, `DemNgayTamTrang.java` (đọc qua `DinhChinhApi.hienHanh`; CFG-M04 đọc lúc chạy) và nối: mốc nước vào việc theo phút; chuỗi bữa và tâm trạng gọi sau khi ghi nhận/đính chính; phát `YeuCauCanhBao`, `AnKemKeoDai` (research C-11)
+
+**Checkpoint 02/11/2026 (T047–T049 chưa đóng):** bản cài thực ở `internal/rules/{domain,service}`, dùng persistence hiện có và `CareMinuteWork`; scoped44 unit/Arch +14IT xanh sau RED. `clean verify` nền cuối777unit xanh,1744IT có9failure+38error,0skip;18test riêng Phase8 xanh,Spotless2413 sạch. So Phase7 giữ45tên lỗi và thêm2ParameterChangeIT, đã bàn giaoA; không đánh `[x]`. Còn gate mealId phát sinh D/011, payload chuỗi dài A/D, consumer007/011 thật; provider/lifecycle correction thuộc T050→T051 Phase9 chưa cài. Chi tiết ở plan và Working-history.md.
 
 **Checkpoint**: Quy tắc mục F chạy độc lập.
 

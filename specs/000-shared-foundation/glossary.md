@@ -1145,6 +1145,18 @@ API mục1–3 của đề xuất đã được duyệt. Chiều mã giữ care�
 
 Không thêm enum/trường API công khai mới; callback ngoài bàn giao và các dependency chưa đạt giữ gate trong plan/team-plan.
 
+### 11.11. Quy tắc từ kết quả Phase 8 (005, 02/11/2026)
+
+| Tên nghiệp vụ | Tên mã |
+| --- | --- |
+| Hàm thuần nước, chuỗi bữa, chuỗi ngày | `WaterIntakeRule`, `PoorMealStreak`, `NegativeMoodStreak`; `internal/rules/domain` |
+| Projection hiện hành từ kết quả gốc và đính chính | `CurrentCareResults`; `internal/rules/service`, tái sử dụng `CareResultStore`/`CareTaskStore` |
+| Điều phối quy tắc và bước kiểm tra nước theo phút | `CareResultRules`, `CareWaterCheckStep`; `internal/rules/service` |
+| Loại yêu cầu cảnh báo nước / ăn / tâm trạng | `LOW_WATER_INTAKE`, `PROLONGED_POOR_EATING`, `PROLONGED_NEGATIVE_MOOD` (trường String hiện có) |
+| Dấu xử lý/ngăn phát lặp | `M04.WATER_CHECK`, `M04.POOR_EATING`, `M04.NEGATIVE_MOOD`; `reminder_marker` |
+
+Giữ nguyên chữ ký `AlertRequested`, `ProlongedPoorEating`, `CorrectionMade`. `mealIds` phải là id bữa của 011; nhánh EATING chưa liên kết giữ gate theo quyết định chủ dự án. Không tạo bảng kết quả hoặc bộ đếm mới.
+
 ## 12. Feature 006 (`006-medication-management`, D)
 
 ### 12.1. Bảng và cột nền tảng (T005, `V006_01__medication_foundation.sql`)
