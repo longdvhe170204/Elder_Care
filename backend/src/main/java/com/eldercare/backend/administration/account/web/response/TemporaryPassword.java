@@ -1,3 +1,5 @@
 package com.eldercare.backend.administration.account.web.response;
 
-public record TemporaryPassword(String temporaryPassword) {}
+import com.eldercare.backend.common.web.SecretResponse;
+
+public record TemporaryPassword(String temporaryPassword) implements SecretResponse {}
