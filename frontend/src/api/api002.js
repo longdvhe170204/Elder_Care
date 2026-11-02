@@ -114,9 +114,6 @@ export const getResidentAccountsByResidentId = (params) => request('GET', '/resi
 /** Tạo mã QR đăng nhập theo người cao tuổi, kèm xác nhận của người đó (Hành chính, Quản lý viện, Điều dưỡng có phạm vi) (FR-069) */
 export const postResidentAccountsByResidentIdLoginQrCode = (params) => request('POST', '/resident-accounts/{residentId}/login-qr-code', params)
 
-/** Tạo mã QR theo tài khoản (web đang dùng; gỡ ở 002 T103, thay bằng lệnh theo người cao tuổi) (FR-069) */
-export const postAccountsByIdLoginQrCode = (params) => request('POST', '/accounts/{id}/login-qr-code', params)
-
 /** Người cao tuổi đăng nhập bằng mã QR; gắn thiết bị (FR-069, FR-070, FR-013a, BR-M15-24) */
 export const postAuthQrLogin = (params) => request('POST', '/auth/qr-login', params)
 

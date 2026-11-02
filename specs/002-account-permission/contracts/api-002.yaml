@@ -568,20 +568,6 @@ paths:
         '404': { $ref: '#/components/responses/Problem' }
         '409': { description: 'RESIDENCY_ENDED, ACCOUNT_LOCKED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
         '422': { $ref: '#/components/responses/Problem' }
-  /accounts/{id}/login-qr-code:
-    post:
-      deprecated: true
-      tags: [accounts]
-      summary: Tạo mã QR theo tài khoản (web đang dùng; gỡ ở 002 T103, thay bằng lệnh theo người cao tuổi)
-      description: Mã hết hạn sau CFG-M15-11; tạo mã mới làm mã cũ chưa dùng hết hiệu lực. Chỉ tài khoản người cao tuổi.
-      x-fr: [FR-069]
-      parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      responses:
-        '201':
-          description: Mã chỉ trả một lần
-          content: { application/json: { schema: { type: object, properties: { code: { type: string }, expiresAt: { type: string, format: date-time } } } } }
-        '403': { $ref: '#/components/responses/Problem' }
-        '409': { description: 'NOT_RESIDENT_ACCOUNT, ACCOUNT_LOCKED, RESIDENCY_ENDED', content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } } }
   /auth/qr-login:
     post:
       tags: [auth]
