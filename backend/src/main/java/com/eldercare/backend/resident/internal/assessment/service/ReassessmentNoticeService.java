@@ -1,18 +1,20 @@
 package com.eldercare.backend.resident.internal.assessment.service;
 
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.resident.api.dto.ReassessmentState;
 import com.eldercare.backend.resident.api.dto.ReassessmentStatus;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
 import com.eldercare.backend.resident.api.events.ReassessmentDue;
 import com.eldercare.backend.resident.api.events.ReassessmentOverdue;
+import com.eldercare.backend.resident.internal.assessment.domain.PeriodicReassessmentDue;
 import com.eldercare.backend.resident.internal.assessment.domain.ReassessmentBasis;
-import java.sql.Timestamp;
+import com.eldercare.backend.resident.internal.assessment.domain.ReassessmentNotice;
+import com.eldercare.backend.resident.internal.assessment.persistence.ReassessmentNoticeStore;
+import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusStore;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
@@ -21,7 +23,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,31 +48,23 @@ public class ReassessmentNoticeService {
     private static final Set<ResidentStatus> FINAL =
             EnumSet.of(ResidentStatus.RESIDENCY_ENDED, ResidentStatus.DECEASED, ResidentStatus.ADMISSION_CANCELLED);
 
-    private static final String LATEST_CONFIRMED =
-            "COALESCE((SELECT MAX(a.confirmed_at) FROM assessment a WHERE a.resident_id = n.resident_id"
-                    + " AND a.status = 'CONFIRMED'), '1000-01-01')";
-
-    /** Một lần báo chưa được đáp ứng. */
-    public record Notice(
-            long id,
-            ReassessmentBasis basis,
-            String sourceType,
-            long sourceId,
-            Instant notifiedAt,
-            Instant deadlineFrom,
-            Instant overdueAlertedAt) {}
-
     /** Trạng thái kèm các căn cứ đã báo (GET /residents/{id}/reassessment). */
-    public record Detail(ReassessmentStatus status, List<Notice> basis) {}
+    public record Detail(ReassessmentStatus status, List<ReassessmentNotice> basis) {}
 
-    private final JdbcTemplate jdbc;
+    private final ReassessmentNoticeStore notices;
+    private final ResidentStatusStore statuses;
     private final ParameterApi parameters;
     private final ApplicationEventPublisher events;
     private final BusinessTime time;
 
     ReassessmentNoticeService(
-            JdbcTemplate jdbc, ParameterApi parameters, ApplicationEventPublisher events, BusinessTime time) {
-        this.jdbc = jdbc;
+            ReassessmentNoticeStore notices,
+            ResidentStatusStore statuses,
+            ParameterApi parameters,
+            ApplicationEventPublisher events,
+            BusinessTime time) {
+        this.notices = notices;
+        this.statuses = statuses;
         this.parameters = parameters;
         this.events = events;
         this.time = time;
@@ -95,11 +88,7 @@ public class ReassessmentNoticeService {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public void onReturnFromHospital(long residentId, long historyId, Instant at) {
-        jdbc.update(
-                "UPDATE reassessment_notice n SET n.deadline_from = ?, n.overdue_alerted_at = NULL"
-                        + " WHERE n.resident_id = ? AND n.notified_at > " + LATEST_CONFIRMED,
-                Timestamp.from(at),
-                residentId);
+        notices.restartDeadlines(residentId, at);
         insert(residentId, ReassessmentBasis.RETURN_FROM_HOSPITAL, SOURCE_STATUS_HISTORY, historyId, at, at);
     }
 
@@ -108,16 +97,9 @@ public class ReassessmentNoticeService {
     public int runPeriodic() {
         Duration validity = parameters.read(ParameterCode.CFG_M01_02).asDuration();
         Instant now = time.now();
-        List<long[]> due = jdbc.query(
-                "SELECT r.id, a.id FROM resident r JOIN assessment a ON a.id = (SELECT l.id FROM assessment l"
-                        + " WHERE l.resident_id = r.id AND l.status = 'CONFIRMED' ORDER BY l.confirmed_at DESC,"
-                        + " l.id DESC LIMIT 1) WHERE r.status IN ('IN_RESIDENCE', 'TEMPORARILY_ABSENT',"
-                        + " 'OFF_SITE_ACTIVITY', 'HOSPITALIZED') AND a.confirmed_at <= ?",
-                (rs, i) -> new long[] {rs.getLong(1), rs.getLong(2)},
-                Timestamp.from(now.minus(validity)));
         int notified = 0;
-        for (long[] row : due) {
-            if (notice(row[0], ReassessmentBasis.PERIODIC, SOURCE_ASSESSMENT, row[1])) {
+        for (PeriodicReassessmentDue row : notices.periodicDue(now.minus(validity))) {
+            if (notice(row.residentId(), ReassessmentBasis.PERIODIC, SOURCE_ASSESSMENT, row.assessmentId())) {
                 notified++;
             }
         }
@@ -135,11 +117,8 @@ public class ReassessmentNoticeService {
                     || detail.basis().stream().anyMatch(n -> n.overdueAlertedAt() != null)) {
                 continue;
             }
-            for (Notice n : detail.basis()) {
-                jdbc.update(
-                        "UPDATE reassessment_notice SET overdue_alerted_at = ? WHERE id = ?",
-                        Timestamp.from(now),
-                        n.id());
+            for (ReassessmentNotice n : detail.basis()) {
+                notices.markOverdueAlerted(n.id(), now);
             }
             events.publishEvent(new ReassessmentOverdue(
                     residentId, detail.status().overdueSince().orElseThrow()));
@@ -159,13 +138,13 @@ public class ReassessmentNoticeService {
 
     @Transactional(readOnly = true)
     public Detail detail(long residentId) {
-        Optional<ResidentStatus> status = residentStatus(residentId);
+        Optional<ResidentStatus> status = statuses.find(residentId);
         if (status.isEmpty() || FINAL.contains(status.get())) {
             return new Detail(
                     new ReassessmentStatus(ReassessmentState.NOT_APPLICABLE, Optional.empty(), Optional.empty()),
                     List.of());
         }
-        List<Notice> unmet = unmet(residentId);
+        List<ReassessmentNotice> unmet = notices.unmet(residentId);
         if (unmet.isEmpty()) {
             return new Detail(
                     new ReassessmentStatus(ReassessmentState.NONE, Optional.empty(), Optional.empty()), List.of());
@@ -175,7 +154,7 @@ public class ReassessmentNoticeService {
         }
         Duration deadline = parameters.read(ParameterCode.CFG_M01_03).asDuration();
         Optional<Instant> dueAt = unmet.stream()
-                .map(Notice::deadlineFrom)
+                .map(ReassessmentNotice::deadlineFrom)
                 .filter(java.util.Objects::nonNull)
                 .min(Instant::compareTo)
                 .map(from -> from.plus(deadline));
@@ -189,14 +168,11 @@ public class ReassessmentNoticeService {
     /** Mã người cao tuổi đang có lần báo chưa đáp ứng (nguồn của danh sách "cần thực hiện" và của job quá hạn). */
     @Transactional(readOnly = true)
     public List<Long> residentsWithUnmetNotices() {
-        return jdbc.query(
-                "SELECT DISTINCT n.resident_id FROM reassessment_notice n WHERE n.notified_at > " + LATEST_CONFIRMED
-                        + " ORDER BY n.resident_id",
-                (rs, i) -> rs.getLong(1));
+        return notices.residentsWithUnmetNotices();
     }
 
     private boolean notice(long residentId, ReassessmentBasis basis, String sourceType, long sourceId) {
-        ResidentStatus status = residentStatus(residentId).orElse(null);
+        ResidentStatus status = statuses.find(residentId).orElse(null);
         if (status == null || FINAL.contains(status)) {
             return false;
         }
@@ -211,50 +187,8 @@ public class ReassessmentNoticeService {
             long sourceId,
             Instant notifiedAt,
             Instant deadlineFrom) {
-        int inserted = jdbc.update(
-                "INSERT IGNORE INTO reassessment_notice (resident_id, basis, source_type, source_id, notified_at,"
-                        + " deadline_from) VALUES (?, ?, ?, ?, ?, ?)",
-                residentId,
-                basis.name(),
-                sourceType,
-                sourceId,
-                Timestamp.from(notifiedAt),
-                deadlineFrom == null ? null : Timestamp.from(deadlineFrom));
-        if (inserted == 0) {
-            return false;
-        }
-        long noticeId = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        events.publishEvent(new ReassessmentDue(residentId, noticeId, basis.name(), notifiedAt));
-        return true;
-    }
-
-    private List<Notice> unmet(long residentId) {
-        return new ArrayList<>(jdbc.query(
-                "SELECT n.id, n.basis, n.source_type, n.source_id, n.notified_at, n.deadline_from,"
-                        + " n.overdue_alerted_at FROM reassessment_notice n WHERE n.resident_id = ? AND n.notified_at > "
-                        + LATEST_CONFIRMED + " ORDER BY n.notified_at, n.id",
-                (rs, i) -> new Notice(
-                        rs.getLong(1),
-                        ReassessmentBasis.valueOf(rs.getString(2)),
-                        rs.getString(3),
-                        rs.getLong(4),
-                        rs.getTimestamp(5).toInstant(),
-                        instant(rs.getTimestamp(6)),
-                        instant(rs.getTimestamp(7))),
-                residentId));
-    }
-
-    private Optional<ResidentStatus> residentStatus(long residentId) {
-        return jdbc
-                .query(
-                        "SELECT status FROM resident WHERE id = ?",
-                        (rs, i) -> ResidentStatus.valueOf(rs.getString(1)),
-                        residentId)
-                .stream()
-                .findFirst();
-    }
-
-    private static Instant instant(Timestamp timestamp) {
-        return timestamp == null ? null : timestamp.toInstant();
+        Optional<Long> noticeId = notices.insert(residentId, basis, sourceType, sourceId, notifiedAt, deadlineFrom);
+        noticeId.ifPresent(id -> events.publishEvent(new ReassessmentDue(residentId, id, basis.name(), notifiedAt)));
+        return noticeId.isPresent();
     }
 }

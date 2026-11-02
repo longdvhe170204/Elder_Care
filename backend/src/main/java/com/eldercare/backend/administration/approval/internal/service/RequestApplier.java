@@ -2,8 +2,8 @@ package com.eldercare.backend.administration.approval.internal.service;
 
 import com.eldercare.backend.administration.approval.internal.domain.ApprovalActions;
 import com.eldercare.backend.administration.auditlog.api.AuditLogApi;
-import com.eldercare.backend.administration.auditlog.api.AuditLogEntry;
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogEntry;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

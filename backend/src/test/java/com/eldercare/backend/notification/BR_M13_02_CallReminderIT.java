@@ -98,7 +98,8 @@ class BR_M13_02_CallReminderIT extends CallReminderTestBase {
 
         assertThat(reminders("STAFF", late.staffId())).containsExactly(id);
         assertThat(jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM call_reminder_notification WHERE call_reminder_id = ?",
+                        "SELECT COUNT(*) FROM record_event WHERE kind = 'M13.CALL_REMINDER_NOTIFICATION'"
+                                + " AND entity_type = 'M13.CALL_REMINDER' AND entity_id = ?",
                         Integer.class,
                         id))
                 .isEqualTo(2);

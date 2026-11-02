@@ -35,4 +35,10 @@ public interface SimpleRecordApi {
 
     /** Theo {@code id}. */
     <T> List<SimpleRecord<T>> listByParent(SharedKind<T> kind, EntityRef parent);
+
+    /**
+     * Mọi dòng của loại có trạng thái thuộc {@code statuses} (không rỗng), theo {@code id}; cho danh sách không gắn người
+     * cao tuổi hay đối tượng cha (đổi api 2026-10-30, 002 T098).
+     */
+    <T> List<SimpleRecord<T>> listByStatus(SharedKind<T> kind, Set<String> statuses);
 }

@@ -5,11 +5,11 @@ import com.eldercare.backend.administration.account.api.dto.Function;
 import com.eldercare.backend.administration.account.api.dto.Operation;
 import com.eldercare.backend.administration.account.api.dto.PermissionKey;
 import com.eldercare.backend.administration.account.api.dto.Target;
-import com.eldercare.backend.administration.approval.api.ApprovalRequestView;
-import com.eldercare.backend.administration.approval.api.ResultRef;
+import com.eldercare.backend.administration.approval.api.dto.ApprovalRequestView;
+import com.eldercare.backend.administration.approval.api.dto.ResultRef;
 import com.eldercare.backend.administration.approval.api.spi.RequestTypeHandler;
-import com.eldercare.backend.administration.auditlog.api.AuditLogPermissions;
-import com.eldercare.backend.administration.parameter.api.ParameterPermissions;
+import com.eldercare.backend.administration.auditlog.api.dto.AuditLogPermissions;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterPermissions;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.UnmetCondition;
@@ -49,6 +49,15 @@ public class ApprovalFixtures {
         volatile boolean allowSelfApproval = true;
         volatile Set<Role> roleRestriction;
 
+        /** Đặt cả bốn công tắc một lần (chạy tay quickstart ở profile demo, T103). */
+        public void configure(
+                boolean conditionUnmet, boolean failOnApply, boolean allowSelfApproval, Set<Role> roleRestriction) {
+            this.conditionUnmet = conditionUnmet;
+            this.failOnApply = failOnApply;
+            this.allowSelfApproval = allowSelfApproval;
+            this.roleRestriction = roleRestriction;
+        }
+
         public void reset() {
             conditionUnmet = false;
             failOnApply = false;
@@ -61,12 +70,12 @@ public class ApprovalFixtures {
      * Loại yêu cầu mẫu: nội dung {@code {"key": "...", "note": "..."}}; tác động là một mục danh mục mẫu tên
      * "Tác động &lt;key&gt;", để đếm số lần áp dụng (SC-003).
      */
-    static class SampleRequestHandler implements RequestTypeHandler {
+    public static class SampleRequestHandler implements RequestTypeHandler {
 
         private final Control control;
         private final JdbcTemplate jdbc;
 
-        SampleRequestHandler(Control control, JdbcTemplate jdbc) {
+        public SampleRequestHandler(Control control, JdbcTemplate jdbc) {
             this.control = control;
             this.jdbc = jdbc;
         }

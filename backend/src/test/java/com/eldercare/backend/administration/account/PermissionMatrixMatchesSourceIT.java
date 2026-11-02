@@ -56,7 +56,8 @@ class PermissionMatrixMatchesSourceIT extends MySqlIntegrationTestBase {
 
     @Test
     void SC_001_loadedMatrix_matchesEveryCellOfAppendix27() throws IOException {
-        Set<String> roles = new HashSet<>(jdbc.queryForList("SELECT code FROM role", String.class));
+        Set<String> roles = new HashSet<>(
+                jdbc.queryForList("SELECT code FROM catalog_item WHERE catalog_type = 'M15.ROLE'", String.class));
 
         assertThat(loaded("APPENDIX_27")).containsExactlyInAnyOrderElementsOf(Appendix27Matrix.rows(roles));
     }
@@ -65,7 +66,8 @@ class PermissionMatrixMatchesSourceIT extends MySqlIntegrationTestBase {
     @Test
     void FR_068_residentRole_selfScope_matrixColumnLoaded() throws IOException {
         assertThat(jdbc.queryForList(
-                        "SELECT CONCAT(account_type, '/', execution_scope) FROM role WHERE code = 'AC-16'",
+                        "SELECT CONCAT(attributes->>'$.accountType', '/', attributes->>'$.executionScope') FROM catalog_item"
+                                + " WHERE catalog_type = 'M15.ROLE' AND code = 'AC-16'",
                         String.class))
                 .containsExactly("RESIDENT/SELF");
         List<Row> expected = Appendix27Matrix.rows(Set.of("AC-16"));
@@ -85,7 +87,8 @@ class PermissionMatrixMatchesSourceIT extends MySqlIntegrationTestBase {
     @Test
     void FR_022_fieldVisibilityRules_matchSection19_3() {
         List<String> rules = jdbc.query(
-                "SELECT role, info_group, visibility FROM field_visibility_rule",
+                "SELECT SUBSTRING_INDEX(code, ':', 1), SUBSTRING_INDEX(code, ':', -1), attributes->>'$.visibility'"
+                        + " FROM catalog_item WHERE catalog_type = 'M15.FIELD_VISIBILITY'",
                 (rs, i) -> rs.getString(1) + "|" + rs.getString(2) + "|" + rs.getString(3));
 
         assertThat(rules).containsExactlyInAnyOrderElementsOf(FIELD_VISIBILITY);

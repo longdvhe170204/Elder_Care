@@ -38,7 +38,7 @@ public class HandoverQueries implements ShiftHandoverState {
     public java.util.List<com.eldercare.backend.incident.api.dto.UnconfirmedShiftHandoverView> startedUnconfirmed(
             java.time.Instant from, java.time.Instant to) {
         var gap = parameters
-                .read(com.eldercare.backend.administration.parameter.api.ParameterCode.CFG_M09_09)
+                .read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M09_09)
                 .asDuration();
         var result = new java.util.ArrayList<com.eldercare.backend.incident.api.dto.UnconfirmedShiftHandoverView>();
         for (long id : store.unconfirmedPrevious(from.minus(gap), to)) {

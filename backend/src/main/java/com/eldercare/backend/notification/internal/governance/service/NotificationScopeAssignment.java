@@ -2,7 +2,7 @@ package com.eldercare.backend.notification.internal.governance.service;
 
 import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.ScopeAssignmentProvider;
-import org.springframework.jdbc.core.JdbcTemplate;
+import com.eldercare.backend.notification.internal.persistence.NotificationStore;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,10 +14,10 @@ class NotificationScopeAssignment implements ScopeAssignmentProvider {
 
     static final String TYPE = "M13.NOTIFICATION";
 
-    private final JdbcTemplate jdbc;
+    private final NotificationStore notifications;
 
-    NotificationScopeAssignment(JdbcTemplate jdbc) {
-        this.jdbc = jdbc;
+    NotificationScopeAssignment(NotificationStore notifications) {
+        this.notifications = notifications;
     }
 
     @Override
@@ -27,15 +27,9 @@ class NotificationScopeAssignment implements ScopeAssignmentProvider {
 
     @Override
     public Target assignScope(long id) {
-        return jdbc
-                .query(
-                        "SELECT r.resident_id, r.floor_area_id FROM notification n JOIN notification_request r"
-                                + " ON r.id = n.request_id WHERE n.id = ?",
-                        (rs, i) -> new Target(
-                                TYPE, Long.toString(id), rs.getObject(1, Long.class), rs.getObject(2, Long.class)),
-                        id)
-                .stream()
-                .findFirst()
+        return notifications
+                .scope(id)
+                .map(s -> new Target(TYPE, Long.toString(id), s.residentId(), s.floorAreaId()))
                 .orElse(new Target(TYPE, Long.toString(id), null, null));
     }
 }

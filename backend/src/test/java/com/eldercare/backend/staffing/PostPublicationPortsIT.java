@@ -2,7 +2,7 @@ package com.eldercare.backend.staffing;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.eldercare.backend.administration.auditlog.api.Basis;
+import com.eldercare.backend.administration.auditlog.api.dto.Basis;
 import com.eldercare.backend.common.*;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.time.*;

@@ -149,7 +149,9 @@ class LoginTemporaryLockIT extends MySqlIntegrationTestBase {
                                 + " AND actor_type = 'SCHEDULER' AND JSON_EXTRACT(basis, '$.ruleCode') = 'CFG-M15-01'",
                         String.valueOf(account)))
                 .isEqualTo(1);
-        assertThat(count("SELECT COUNT(*) FROM account_status_history WHERE account_id = ?", account))
+        assertThat(count(
+                        "SELECT COUNT(*) FROM status_history WHERE entity_type = 'M15.ACCOUNT' AND attribute = 'STATUS' AND entity_id = ?",
+                        account))
                 .isEqualTo(2);
     }
 

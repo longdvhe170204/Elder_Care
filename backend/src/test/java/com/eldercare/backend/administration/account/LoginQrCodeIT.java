@@ -95,7 +95,8 @@ class LoginQrCodeIT extends MySqlIntegrationTestBase {
                         SessionTokens.hash(token)))
                 .isEqualTo("RESIDENT_APP");
         assertThat(jdbc.queryForObject(
-                        "SELECT device_id FROM bound_device WHERE device_token_hash = ? AND unbound_at IS NULL",
+                        "SELECT device_id FROM device_credential WHERE kind = 'BOUND_DEVICE' AND secret_hash = ?"
+                                + " AND ended_at IS NULL",
                         String.class,
                         SessionTokens.hash(deviceToken)))
                 .isEqualTo(device);

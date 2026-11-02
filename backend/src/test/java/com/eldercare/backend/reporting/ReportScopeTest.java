@@ -20,10 +20,11 @@ import com.eldercare.backend.administration.account.api.dto.Target;
 import com.eldercare.backend.administration.account.api.spi.AssignmentApi;
 import com.eldercare.backend.administration.account.api.spi.AssignmentKind;
 import com.eldercare.backend.administration.account.api.spi.AssignmentView;
+import com.eldercare.backend.administration.account.api.spi.InvalidPermissionDataException;
 import com.eldercare.backend.administration.parameter.api.ParameterApi;
-import com.eldercare.backend.administration.parameter.api.ParameterCode;
-import com.eldercare.backend.administration.parameter.api.ParameterKind;
-import com.eldercare.backend.administration.parameter.api.ParameterValue;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterCode;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterKind;
+import com.eldercare.backend.administration.parameter.api.dto.ParameterValue;
 import com.eldercare.backend.common.Role;
 import com.eldercare.backend.common.error.PermissionDeniedException;
 import com.eldercare.backend.common.time.BusinessTime;
@@ -31,13 +32,18 @@ import com.eldercare.backend.reporting.internal.metric.domain.MetricGroup;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricRecord;
 import com.eldercare.backend.reporting.internal.scope.domain.ReportScope;
 import com.eldercare.backend.reporting.internal.scope.service.ReportScopeService;
+import com.eldercare.backend.staffing.api.dto.ShiftView;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
+import com.eldercare.backend.support.fake.staffing.FakeShifts;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.support.StaticListableBeanFactory;
 import tools.jackson.databind.json.JsonMapper;
@@ -94,6 +100,8 @@ class ReportScopeTest {
     record Rec(String sourceKey, Instant referenceTime, Long floorAreaId, Long residentId) implements MetricRecord {}
 
     private final FakeAssignments assignments = new FakeAssignments();
+    private final FakeShifts shifts = new FakeShifts();
+    private final List<InvalidPermissionDataException> recordedErrors = new ArrayList<>();
     private Set<PermissionKey> keys = Set.of(ReportScopeService.KEY);
     private ScopeFilter currentFilter = ScopeFilter.FACILITY;
     private MetricGroupRestrictions restrictions = MetricGroupRestrictions.NONE;
@@ -120,6 +128,11 @@ class ReportScopeTest {
         }
 
         @Override
+        public void recordDataError(CurrentUser user, InvalidPermissionDataException error) {
+            recordedErrors.add(error);
+        }
+
+        @Override
         public Set<String> allowedCommands(CurrentUser user, Target target, Map<String, PermissionKey> commands) {
             throw new UnsupportedOperationException();
         }
@@ -135,6 +148,21 @@ class ReportScopeTest {
         public ScopeFilter filter(CurrentUser user, PermissionKey key) {
             assignments.history(STAFF, NOW, NOW.plusNanos(1)); // dữ liệu nguồn lỗi ném như bản thật
             return currentFilter;
+        }
+
+        @Override
+        public ScopeFilter assignedFilter(CurrentUser user, Set<AssignmentKind> kinds) {
+            Set<Long> floors = new HashSet<>();
+            Set<Long> residents = new HashSet<>();
+            for (AssignmentView a : assignments.activeAt(STAFF, NOW)) {
+                if (kinds.contains(a.kind()) && a.floorAreaId() != null) {
+                    floors.add(a.floorAreaId());
+                }
+                if (kinds.contains(a.kind()) && a.residentId() != null) {
+                    residents.add(a.residentId());
+                }
+            }
+            return new ScopeFilter(false, floors, Set.of(), residents);
         }
 
         @Override
@@ -179,8 +207,130 @@ class ReportScopeTest {
                 permissionApi,
                 scopeApi,
                 beans.getBeanProvider(AssignmentApi.class),
+                shifts,
                 parameterApi,
                 new BusinessTime(Clock.fixed(NOW, BusinessTime.ZONE)));
+    }
+
+    // ca 06:00 → 14:00 giờ Việt Nam ngày 05/10
+    private static final Instant SHIFT_START = Instant.parse("2026-10-04T23:00:00Z");
+    private static final Instant SHIFT_END = Instant.parse("2026-10-05T07:00:00Z");
+
+    @BeforeEach
+    void shiftNine() {
+        shifts.shift(new ShiftView(9L, 1L, SHIFT_START, SHIFT_END, "CLOSED", null), List.of(STAFF));
+    }
+
+    private static AssignmentView resident501(Instant from, Instant scopeEndsAt) {
+        return new AssignmentView(AssignmentKind.SHIFT_MEMBER, null, null, 501L, 9L, from, SHIFT_END, scopeEndsAt);
+    }
+
+    private ReportScope nurseReport() {
+        return service().period(new User(Set.of(Role.NURSING_STAFF)), MetricGroup.CARE_TASKS, OCT_1, NOW);
+    }
+
+    @Test
+    void FR_012_removedFromShift_scopeStopsAtRemoval_noMarginAfter() {
+        assignments.assign(STAFF, resident501(SHIFT_START, Instant.parse("2026-10-05T03:00:00Z")));
+
+        assertThat(nurseReport().covers(rec("before", "2026-10-05T02:59:00Z", 1, 501L)))
+                .isTrue();
+        assertThat(nurseReport().covers(rec("after", "2026-10-05T03:30:00Z", 1, 501L)))
+                .isFalse();
+    }
+
+    @Test
+    void FR_012_shiftNotBelongedTo_absentAtStartOrApprovedLeave_notCounted() {
+        shifts.reset();
+        assignments.assign(STAFF, resident501(SHIFT_START, null));
+
+        assertThat(nurseReport().covers(rec("x", "2026-10-05T01:00:00Z", 1, 501L)))
+                .isFalse();
+    }
+
+    @Test
+    void FR_012_addedMidShift_noMarginBeforeBeingAdded() {
+        assignments.assign(STAFF, resident501(Instant.parse("2026-10-05T02:00:00Z"), null));
+
+        assertThat(nurseReport().covers(rec("before", "2026-10-05T01:30:00Z", 1, 501L)))
+                .isFalse();
+        assertThat(nurseReport().covers(rec("after", "2026-10-05T02:30:00Z", 1, 501L)))
+                .isTrue();
+    }
+
+    @Test
+    void Q_61_Q_85_nurse_commonWorkOfShiftFloor_notOtherResidentsOnFloor() {
+        assignments.assign(STAFF, resident501(SHIFT_START, null));
+
+        ReportScope scope = nurseReport();
+
+        assertThat(scope.covers(rec("common", "2026-10-05T01:00:00Z", 1, null))).isTrue();
+        assertThat(scope.covers(rec("other", "2026-10-05T01:00:00Z", 1, 502L))).isFalse();
+        assertThat(scope.covers(rec("otherFloor", "2026-10-05T01:00:00Z", 2, null)))
+                .isFalse();
+        assertThat(scope.covers(rec("outOfHours", "2026-10-05T12:00:00Z", 1, null)))
+                .isFalse();
+    }
+
+    @Test
+    void Q_195_shiftLead_wholeFloorOnlyDuringLedShift() {
+        assignments.assign(
+                STAFF, new AssignmentView(AssignmentKind.SHIFT_LEAD, 1L, null, null, 9L, SHIFT_START, SHIFT_END));
+
+        ReportScope scope = nurseReport();
+
+        assertThat(scope.covers(rec("inShift", "2026-10-05T01:00:00Z", 1, 502L)))
+                .isTrue();
+        assertThat(scope.covers(rec("outOfHours", "2026-10-05T12:00:00Z", 1, 502L)))
+                .isFalse();
+    }
+
+    @Test
+    void Q_61_dashboard_commonWorkOfCurrentShift() {
+        Instant start = NOW.minusSeconds(3600);
+        Instant end = NOW.plusSeconds(3600);
+        shifts.shift(new ShiftView(12L, 1L, start, end, "IN_PROGRESS", null), List.of(STAFF));
+        assignments.assign(STAFF, new AssignmentView(AssignmentKind.SHIFT_MEMBER, null, null, 501L, 12L, start, end));
+        currentFilter = new ScopeFilter(false, Set.of(), Set.of(), Set.of(501L));
+
+        ReportScope scope = service().dashboard(new User(Set.of(Role.NURSING_STAFF)), MetricGroup.CARE_TASKS);
+
+        assertThat(scope.covers(rec("own", "2026-10-24T02:00:00Z", 1, 501L))).isTrue();
+        assertThat(scope.covers(rec("common", "2026-10-24T02:00:00Z", 1, null))).isTrue();
+        assertThat(scope.covers(rec("other", "2026-10-24T02:00:00Z", 1, 502L))).isFalse();
+        assertThat(service()
+                        .dashboard(new User(Set.of(Role.NURSING_STAFF)), MetricGroup.CONTAINMENT_ZONES)
+                        .covers(rec("zone", "2026-10-24T02:00:00Z", 1, null)))
+                .isTrue();
+    }
+
+    @Test
+    void FR_015_dashboard_eachGroupByOwnRole_nurseAssignmentsNotInFloorManagerGroup() {
+        Instant start = NOW.minusSeconds(3600);
+        Instant end = NOW.plusSeconds(3600);
+        assignments.assign(
+                STAFF,
+                new AssignmentView(
+                        AssignmentKind.FLOOR_MANAGER,
+                        1L,
+                        null,
+                        null,
+                        null,
+                        Instant.parse("2026-10-01T00:00:00Z"),
+                        null));
+        assignments.assign(STAFF, new AssignmentView(AssignmentKind.SHIFT_MEMBER, null, null, 501L, 12L, start, end));
+        currentFilter = new ScopeFilter(false, Set.of(1L), Set.of(), Set.of(501L));
+        User both = new User(Set.of(Role.FLOOR_MANAGER, Role.NURSING_STAFF));
+
+        ReportScope activities = service().dashboard(both, MetricGroup.ACTIVITIES);
+        ReportScope tasks = service().dashboard(both, MetricGroup.CARE_TASKS);
+
+        assertThat(activities.covers(rec("floor", "2026-10-24T02:00:00Z", 1, null)))
+                .isTrue();
+        assertThat(activities.covers(rec("assigned", "2026-10-24T02:00:00Z", 3, 501L)))
+                .isFalse();
+        assertThat(tasks.covers(rec("assigned", "2026-10-24T02:00:00Z", 3, 501L)))
+                .isTrue();
     }
 
     private static Rec rec(String key, String at, long floor, Long resident) {
@@ -371,5 +521,8 @@ class ReportScopeTest {
                 .isInstanceOfSatisfying(
                         PermissionDeniedException.class,
                         e -> assertThat(e.properties()).containsEntry("failedLayer", "SOURCE_DATA"));
+        assertThat(recordedErrors)
+                .extracting(InvalidPermissionDataException::errorKind)
+                .containsExactly("CONFLICTING_ASSIGNMENT");
     }
 }
