@@ -8,6 +8,8 @@ Tài liệu mô tả bảng, cột, ràng buộc và cách bảo đảm DBR. Đ�
 
 ## 0. Gộp bảng theo R-15 *(bổ sung 2026-10-29, bản 2)*
 
+> **Lệch khi cài (2026-11-02, plan mục "Tích hợp R-15"):** `yeu_cau_thay_doi_thuoc_tinh` ghi vào `simple_record` loại `M02.CHANGE_ATTRIBUTE` thay vì `khoa_ky_thuat` ở bảng 0.1 (bảng khóa không giữ được yêu cầu, hợp đồng và không nhả được); dịch vụ, lịch đến của hợp đồng Nháp ở dòng `DRAFT` của `phien_ban_hop_dong`; `content_version_id` không có khóa ngoại.
+
 Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/research.md) (bản 2, chủ dự án duyệt 2026-10-29, constitution XII 3.2.0); không đổi nghiệp vụ, API, quyền. Mô tả bảng ở các mục sau vẫn là căn cứ cột và ràng buộc: bảng gộp mang đủ cột của bảng cũ (cột riêng vào `JSON` hoặc cột `NULL` có `CHECK` theo `loai`); ràng buộc duy nhất thành `khoa_duy_nhat`; dòng nhóm 3 hoặc đã khóa có `khoa_luc` và trigger theo dòng. Bảy bảng chung ở [data-model 000 mục 8](../000-shared-foundation/data-model.md): `danh_muc_chung`, `lich_su_chung`, `su_kien_chung`, `ho_so_chung`, `trang_thai_nct`, `moc_da_nhac`, `khoa_ky_thuat`. Khi cài thấy bảng nào không thể gộp mà vẫn giữ được BR, DBR thì giữ và ghi lý do ở plan.
 
 - Giữ, gộp: `ho_so_tiep_nhan` = `luot_dang_ky` + `ho_so_cho` + `y_kien_vao_o` (cùng nhóm 2); `hop_dong`; `phien_ban_hop_dong` = `phien_ban_noi_dung_hop_dong` (nhóm 3) + `phu_luc_hop_dong` (nhóm 2), khóa theo dòng; `phien_ban_don_gia` (DBR-08); `luot_vang` (+ `ngay_nghi_ban_tru`, `bao_vang_ban_tru` theo `loai`, khóa theo dòng); `ket_thuc_luu_tru` = `ho_so_ket_thuc` + `ban_ghi_qua_doi` (cột `loai`, khóa theo dòng).
