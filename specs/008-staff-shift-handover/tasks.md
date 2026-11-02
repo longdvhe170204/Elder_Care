@@ -12,6 +12,8 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 **Giai đoạn**: Theo mục "Giai đoạn hiện tại" của CLAUDE.md (constitution IX); task của `mobile/` chỉ làm khi mục đó mở phần mobile, trừ màn mẫu thiết kế.
 
+**Cập nhật 2026-10-27**: mobile nhân viên đã mở; T016b/T022b/T030/T041b làm được phần trực tuyến và test widget, phần đăng nhập/điều hướng/client chung chờ A theo mobile/README.md mục 6. Các checkpoint có ngày bên dưới là kết quả lịch sử; câu "mobile chưa mở" tại các mốc đó không còn là điều kiện chặn hiện tại. `FileApi.attach`, nguồn vị trí/giường chính thức của 003 và `ResidentStatusApi.statusPeriods` đã có trên develop; nguồn nào còn thiếu xem team-plan mục 8. 009 đã chốt không xử lý `CredentialExpiryWarningClosed`, không còn chờ A cài listener này. Bổ sung T050 cho hồi quy thông báo đính chính FR-057.
+
 **Cập nhật 2026-10-22** (plan mục "Cập nhật 2026-10-22"; Q-382; 007 FR-047i): thêm T046 → T049. Không đánh số lại.
 
 **Tiến độ 2026-10-23 (E)**: bản dịch đầy đủ `contracts/api-008.yaml` và glossary mục 14 đã được A duyệt theo xác nhận của E trong phiên làm việc. Phase 1 (T001–T002) đã hoàn thành sau TDD và `./mvnw clean verify` trên JDK 25/MySQL 8.0: 174 test đơn vị/kiến trúc, 426 test tích hợp, không lỗi/thất bại/bỏ qua. Kết quả đối chiếu và cách xử lý phụ thuộc T002/T003 ở plan mục "Ghi chú triển khai"; chưa tạo PR vào develop. Phase 2 T003–T009 hoàn thành: clean verify chạy nền trên JDK 25/MySQL 8.0 qua 182 test đơn vị/kiến trúc và 454 tích hợp (636 tổng), không lỗi/thất bại/bỏ qua; Spotless và đối chiếu API qua. Các đổi hợp đồng/phần A đã được người dùng duyệt và ghi ở plan; người dùng đã commit/push Phase 2 ở `2a2ec09`.
@@ -69,7 +71,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 - [x] T014 [US2] Đăng ký việc theo phút: ca `DA_CONG_BO → DANG_DIEN_RA → DA_DONG/CHO_BAN_GIAO`
 - [x] T015 [US2] Cài `CaTrucApi`, `NhanSuCaPort` (005), `DieuDuongCaPort` (006), `NhanSuCanhBaoPort` (007), `ThamChieuViTri` (003) trong `BE/m09/nhiemvu/internal/TraCuuCaService.java` (người phụ trách ca theo thời điểm, Bác sĩ trực nhiều người, có tên trong ca) (research N-11) **Phần hiện có**: `ShiftQueries` cài `ShiftApi` và các hàm đọc ca của bốn SPI tối thiểu được người dùng duyệt; test dùng bản giả chung m03/m04/m05/m07. Các hàm phân công/giao Trưởng tầng ở T021; bàn giao ở T026–T028, không khai báo/cài trả rỗng để thay dữ liệu nguồn chưa có.
 - [x] T016 [US2] Tạo `BE/m09/lichca/web/LichCaController.java`: `/mau-ca`, `/{id}`, `/lich-ca`, `/lich-ca/{id}/ca`, `/ca/{id}`, `/lich-ca/{id}/xem-truoc-cong-bo`, `/cong-bo`, `GET /toi/ca`, `GET /bac-si-truc`; màn web `frontend/src/tinh-nang/lich-ca/` (cảnh báo xác nhận, danh sách chặn công bố) với test Vitest; phần mobile tách T016b theo CLAUDE.md
-- [ ] T016b [US2] App `mobile/lib/nhan-vien/ca-cua-toi/`: giữ chưa làm chức năng cho tới khi chủ dự án mở triển khai mobile; backend/web T016 không chờ task này.
+- [ ] T016b [US2] App ca cá nhân (đường dẫn thật theo mobile/README.md): giai đoạn đã mở 2026-10-27; làm phần trực tuyến và test widget, tích hợp đăng nhập/điều hướng/client chung sau phần nền A. Backend/web T016 không chờ task này.
 
 **Checkpoint**: Phần backend/web lịch ca đã kiểm tra; clean verify chạy nền qua 672 test (191 đơn vị/kiến trúc, 481 IT), 105 test web với một worker, lint/build và kiểm trình duyệt qua. Phân công/giao Trưởng tầng, bàn giao và tỷ lệ nối đúng task nguồn đã ghi ở T021/T026/T037; T016b mobile chưa mở triển khai. Người dùng đã commit/push Phase 3 tại `ec85fd5` (đối chiếu origin ngày 2026-10-24).
 
@@ -92,7 +94,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 - [x] T020 [US3] Cài `BE/m09/phancong/internal/PhanCongService.java`: giao/kết thúc Trưởng tầng, lập (yêu cầu loại công việc qua `LoaiCongViecApi.yeuCau`; nghiệp vụ "phát thuốc" qua `NghiepVuChuyenMonApi.loaiYeuCau`), hủy, kết thúc (gọi `CongViecCaApi.khiKetThucPhanCong`), sao chép; nhắc người cao tuổi chưa có người phụ trách; việc theo phút chuyển trạng thái phân công (research N-08)
 - [x] T021 [US3] Cài `PhanCongApi`, `NhiemVuApi` (002; gồm `nguoiThayTruongTang`, `boPhanCua`, `laPhuTrachBoPhan`) trong `BE/m09/nhiemvu/internal/` Nối kiểm/gỡ/chuyển hiệu lực/snapshot phân công lúc công bố, `AssignmentApi` thật cho phủ Trưởng tầng và các hàm phân công còn thiếu của SPI 003/005/006/007 (tách khỏi T013/T015 vì chờ bảng T019).
 - [x] T022 [US3] Tạo `BE/m09/phancong/web/PhanCongController.java`: `/giao-truong-tang`, `/{id}/ket-thuc`, `/ca/{id}/phan-cong`, `/phan-cong/{id}`, `/huy`, `/ket-thuc`, `/ca/{id}/sao-chep-phan-cong`; màn web `frontend/src/tinh-nang/phan-cong/`. **Tên/chỗ cài**: `m09.assignment.web.AssignmentController`, `features/shifts/AssignmentPanel`, `FloorManagerPanel` theo README; 9 thao tác gốc và POST `/shifts/{id}/assignments/preview` đã được người dùng duyệt cho cảnh báo trước lưu FR-031. Chỉ sửa bản hợp đồng đã duyệt và sinh lại client.
-- [ ] T022b [P] [US3] Màn app `mobile/lib/nhan-vien/phan-cong/` (tên logic); chưa mở triển khai chức năng mobile theo CLAUDE.md, không chặn phần backend/web.
+- [ ] T022b [P] [US3] Màn app phân công (đường dẫn thật theo mobile/README.md); giai đoạn đã mở 2026-10-27, làm trực tuyến và test widget trước khi nối phần nền A; không chặn phần backend/web.
 
 **Checkpoint**: T017–T022 backend/web hoàn thành (2026-10-24): test trước, Spotless qua; clean verify chạy nền qua 739 test (204 đơn vị/kiến trúc + 535 IT), 0 lỗi/thất bại/bỏ qua. Web 111 test/19 file, lint/build qua; kiểm giao diện ở 1440/900/390 px, sáng/tối, bàn phím và vai trò. API/enum/fake 001 đã khớp B trên develop b049b1f; bản cài 001 chưa gộp vào nhánh E, nguồn 003/005 trong test dùng fake chung, cần C/D review/cài thật. T022b mobile chưa mở; T026–T028 bàn giao và T037 tỷ lệ thuộc phase sau. Chưa commit/push Phase 4.
 
@@ -192,7 +194,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 
 - [x] T040 [US6] Cài lệnh bổ sung nhân viên, chuyển người phụ trách ca, ghi nhận vắng, hủy ca trong `BE/m09/shift/internal/service/PostPublicationService.java`; port `shift/internal/service/port/ShiftCommandPort.java` và `assignment/internal/service/port/AssignmentCommandPort.java` cùng bộ cài MANDATORY cho 015 (research N-07; plan Phase 8, module-interfaces mục 2.8).
 - [x] T041 [US6] Bổ sung đúng endpoint đã dịch: `POST /shifts/{id}/add-staff`, `/change-lead`, `/record-absence`, `/cancel`, `GET /duty-basis-audit-logs`; nối các lệnh và tra cứu vào web `features/shifts` theo giai đoạn backend/web. Đối chiếu toàn bộ HTTP 008 xanh; không đổi YAML/client sinh. Phần mobile tách T041b theo CLAUDE.md/mobile README.
-- [ ] T041b [US6] Khi chủ dự án mở mobile nhân viên: app `mobile/lib/nhan-vien/vang-ca/` và test `mobile/test/nhan-vien/ghi_nhan_vang_ca_test.dart`; đặt đường dẫn thật theo mobile/README.md. Chưa làm trong giai đoạn chỉ mở mobile người cao tuổi.
+- [ ] T041b [US6] App ghi nhận vắng ca và test widget (đường dẫn thật theo mobile/README.md); giai đoạn đã mở 2026-10-27. Phần gọi lệnh cần client chung hỗ trợ `Idempotency-Key` và đăng nhập nhân viên của A; tới khi có hàng đợi ngoại tuyến chỉ ghi trực tuyến theo mobile/README.md mục 6.
 
 **Checkpoint**: Mọi user story của 008 chạy độc lập.
 
@@ -210,6 +212,7 @@ description: "Danh sách task triển khai feature 008 – Nhân sự, ca trực
 ---
 - [x] T049 [P] *(Bổ sung 2026-10-22, 007 FR-047i)* Chốt ba hàm `AlertStaffPort.onShift`, `floorDuringShift`, `floorsWithShift` đã cài trong AlertStaffLookup/ShiftQueries; `BT/m09/AlertStaffPortIT.java` kiểm K1 với bean thật, biên ca/vắng/giờ hành chính CFG/danh sách tầng, không dùng fake ca. Sửa ví dụ K1 theo Q-332: vai trò không xếp ca là Quản lý viện/Hành chính/Kế toán. Phần kiểm nghiệp vụ US13 của D tách T049b.
 - [ ] T049b Khi D có US13 của 007: chạy lại H1–H9 với AlertStaffPort thật (007 T063/T099); D review ba hàm và bản giả chung hiện có. Nhánh hiện chưa có bộ test nghiệp vụ này, chưa nghiệm thu nút hỗ trợ khẩn cấp đầu–cuối.
+- [x] T050 [US1] Sửa hồi quy FR-057: thông báo đính chính lấy người xác nhận qua `AccountApi.byId`, báo Người phụ trách ca hiện tại bằng nhóm `ShiftLead`; kiểm trường hợp M09 không có liên kết tài khoản cục bộ, ca xác nhận đã kết thúc và người giao kiêm người xác nhận. Test trước trong `HandoverCorrectionNotificationsTest`, `HandoverNotificationsTest`, `HandoverIT`; không đổi HTTP hoặc API công khai. Chốt 2026-10-28: ba test đơn vị và toàn bộ 27 HandoverIT xanh với pool mặc định 5. Lỗi/giới hạn kiểm toàn kho ghi ở plan và team-plan; không đánh hoàn thành toàn phase hoặc toàn spec.
 
 ## Dependencies & Execution Order
 
