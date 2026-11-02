@@ -13,6 +13,7 @@ import com.eldercare.backend.administration.account.web.request.ReactivateBody;
 import com.eldercare.backend.administration.account.web.request.ReasonBody;
 import com.eldercare.backend.administration.account.web.request.ResetPasswordBody;
 import com.eldercare.backend.administration.account.web.request.RoleBody;
+import com.eldercare.backend.administration.account.web.request.UnlockResidentBody;
 import com.eldercare.backend.administration.account.web.request.Verification;
 import com.eldercare.backend.administration.account.web.response.AccountBody;
 import com.eldercare.backend.administration.account.web.response.AccountPage;
@@ -205,12 +206,15 @@ class AccountController {
     @ApiResponse(responseCode = "200", description = "Mật khẩu tạm, chỉ trả một lần")
     TemporaryPassword resetPassword(@PathVariable long id, @RequestBody ResetPasswordBody body) {
         Verification v = body.verification();
+        UnlockResidentBody.ResidentConsent c = body.consent();
         return new TemporaryPassword(accounts.resetPassword(
                 id,
                 body.reason(),
                 v == null || v.method() == null ? null : v.method().name(),
                 v == null ? null : v.idDocumentNumber(),
-                v == null ? null : v.calledPhoneNumber()));
+                v == null ? null : v.calledPhoneNumber(),
+                c == null || c.method() == null ? null : c.method().name(),
+                c == null ? null : c.withStaffId()));
     }
 
     /** Tập quyền hiện hành, hoặc tại {@code asOf} quá khứ (FR-026a; 002 T076). */
