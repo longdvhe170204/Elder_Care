@@ -461,3 +461,9 @@ CareTaskHandling.details có content/previousPerformerId/performerId/handoverId 
 ### Ánh xạ vật lý Phase 8 — 02/11/2026
 
 Không thêm bảng/cột/migration. Quy tắc đọc kết quả từ care_task qua CareResultStore và giá trị hiện hành qua CorrectionApi.current. VOID bị bỏ ở projection; chuỗi được tính lại, không lưu bảng trạng thái chuỗi. reminder_marker giữ kind M04.WATER_CHECK/M04.POOR_EATING/M04.NEGATIVE_MOOD, entity_type M01.RESIDENT, entity_id residentId; marker lần lượt là ngày, SHA-256 thành phần chuỗi bữa, ngày kết thúc:độ dài chuỗi ngày. Marker và event nằm cùng transaction. Các gate mealId/payload/correction lifecycle còn mở được ghi trong plan và team-plan.
+
+### Ánh xạ vật lý Phase 9 — 02/11/2026
+
+Không thêm bảng/cột/migration. care_task giữ bản gốc (result_values, result_type, thời điểm, người ghi) và trạng thái COMPLETED/COMPLETED_LATE; UPDATE bị trigger chặn, DELETE bị quyền tài khoản app chặn trước trigger. CorrectionApi ghi correction/correction_chain và audit_log của000, current/chain cung cấp projection mới hoặc cờVOID; không cập nhật lại numeric/code trên care_task. Tầng của bản gốc lấy care_task.floor_area_id, không thay bằng tầng hiện tại của resident.
+
+Lệnh tạo dùng READ_COMMITTED và khóa resident→task→correction_chain; quy tắcF đọc current sau callback và ghi reminder_marker/event trong cùng transaction. Metadata/isConfirmed/chain chỉ đọc. Guard kỹ thuật isolation của generic000 và gate quantity/VOID ngủ được ghi trong plan/team-plan; không đổi schema hay nhóm dữ liệu để xử lý các gate này.

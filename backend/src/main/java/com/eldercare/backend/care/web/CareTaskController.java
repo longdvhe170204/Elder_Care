@@ -33,6 +33,7 @@ public class CareTaskController {
     private final com.eldercare.backend.care.internal.result.service.CareResultQueries results;
     private final com.eldercare.backend.care.internal.result.service.CareResultService recording;
     private final com.eldercare.backend.care.internal.checklist.service.CareChecklistService checklist;
+    private final com.eldercare.backend.administration.correction.api.CorrectionApi corrections;
 
     public CareTaskController(
             CareTaskService commands,
@@ -46,7 +47,8 @@ public class CareTaskController {
             StatusHistoryApi history,
             com.eldercare.backend.care.internal.result.service.CareResultQueries results,
             com.eldercare.backend.care.internal.result.service.CareResultService recording,
-            com.eldercare.backend.care.internal.checklist.service.CareChecklistService checklist) {
+            com.eldercare.backend.care.internal.checklist.service.CareChecklistService checklist,
+            com.eldercare.backend.administration.correction.api.CorrectionApi corrections) {
         this.commands = commands;
         this.queries = queries;
         this.user = user;
@@ -59,6 +61,7 @@ public class CareTaskController {
         this.results = results;
         this.recording = recording;
         this.checklist = checklist;
+        this.corrections = corrections;
     }
 
     @GetMapping("/shifts/{shiftId}/source-data")
@@ -144,7 +147,13 @@ public class CareTaskController {
         return new CareTaskDetailResponse(
                 response(task),
                 results.original(CareTaskService.target(task), id)
-                        .map(r -> CareResultResponse.of(r, actor(r.recordedBy()), health))
+                        .map(r -> CareResultResponse.of(
+                                r,
+                                actor(r.recordedBy()),
+                                health,
+                                corrections
+                                        .current("M04.CARE_RESULT", List.of(id))
+                                        .get(id)))
                         .orElse(null),
                 health ? closure.reason() : null,
                 closure.at() == null || last == null

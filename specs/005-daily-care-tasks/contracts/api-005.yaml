@@ -419,15 +419,17 @@ paths:
         '200': { description: Có công việc cùng loại đang mở, content: { application/json: { schema: { type: object, properties: { sameTypeTasks: { type: array, items: { $ref: '#/components/schemas/CareTask' } } } } } } }
         '201': { description: Đã ghi, content: { application/json: { schema: { $ref: '#/components/schemas/CareTaskDetail' } } } }
         '409': { $ref: '#/components/responses/LoiChan' }
-  /ket-qua-ghi-nhan/{id}/dinh-chinh:
+  /care-results/{id}/correct:
     post:
+      x-implementation-phase: 9
+      operationId: correctCareResult
       tags: [checklist]
       summary: Đính chính kết quả (người ghi gốc, Trưởng tầng, Người phụ trách ca của tầng)
-      description: 'Loại M04.KET_QUA_GHI_NHAN; kiểu SUA_NOI_DUNG hoặc HUY_GHI_NHAN; công việc giữ trạng thái (FR-037). Kết quả đo chỉ số đính chính ở 007.'
+      description: 'Loại M04.CARE_RESULT; kiểu AMEND_CONTENT hoặc VOID; công việc giữ trạng thái (FR-037). Kết quả đo chỉ số đính chính ở 007. Bản dịch được chủ dự án duyệt ngày 02/11/2026.'
       x-fr: [FR-037]
       x-br: [BR-M04-14]
       parameters: [ { $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
-      requestBody: { $ref: '#/components/requestBodies/DinhChinh' }
+      requestBody: { $ref: '#/components/requestBodies/CareResultCorrection' }
       responses: { '201': { description: Đã lưu }, '403': { $ref: '#/components/responses/Loi' } }
   /residents/{residentId}/care-results:
     get:
@@ -785,17 +787,17 @@ components:
     LyDo:
       required: true
       content: { application/json: { schema: { type: object, required: [lyDo], properties: { lyDo: { $ref: '#/components/schemas/LyDo' } } } } }
-    DinhChinh:
+    CareResultCorrection:
       required: true
       content:
         application/json:
           schema:
             type: object
-            required: [kieu, lyDo]
+            required: [type, reason]
             properties:
-              kieu: { type: string, enum: [SUA_NOI_DUNG, HUY_GHI_NHAN] }
-              noiDungDung: { type: object, additionalProperties: true }
-              lyDo: { $ref: '#/components/schemas/LyDo' }
+              type: { type: string, enum: [AMEND_CONTENT, VOID] }
+              correctedContent: { type: object, additionalProperties: true, description: 'Bắt buộc khi AMEND_CONTENT; các trường giá trị đúng theo loại kết quả' }
+              reason: { $ref: '#/components/schemas/Reason' }
     DayCareAttendanceCorrection:
       required: true
       content:

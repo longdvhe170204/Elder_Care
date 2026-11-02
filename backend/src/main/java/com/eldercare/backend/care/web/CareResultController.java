@@ -28,6 +28,7 @@ public class CareResultController {
     private final FieldVisibilityApi visibility;
     private final AdHocCareRecordingService adHoc;
     private final BusinessTime time;
+    private final com.eldercare.backend.administration.correction.api.CorrectionApi corrections;
 
     public CareResultController(
             CareResultService commands,
@@ -39,7 +40,8 @@ public class CareResultController {
             CurrentUser user,
             FieldVisibilityApi visibility,
             AdHocCareRecordingService adHoc,
-            BusinessTime time) {
+            BusinessTime time,
+            com.eldercare.backend.administration.correction.api.CorrectionApi corrections) {
         this.commands = commands;
         this.tasks = tasks;
         this.taskDetails = taskDetails;
@@ -50,6 +52,7 @@ public class CareResultController {
         this.visibility = visibility;
         this.adHoc = adHoc;
         this.time = time;
+        this.corrections = corrections;
     }
 
     @PostMapping("/care-tasks/{id}/record")
@@ -103,9 +106,15 @@ public class CareResultController {
                 residentId,
                 beds.openAt(residentId, time.now()).map(b -> b.floorAreaId()).orElse(null));
         boolean health = visibility.canView(user, InfoGroup.HEALTH, target) == Visibility.FULL;
-        return queries.history(target, residentId, from, to, types == null ? Set.of() : types).stream()
+        var rows = queries.history(target, residentId, from, to, types == null ? Set.of() : types);
+        var current = corrections.current(
+                "M04.CARE_RESULT", rows.stream().map(r -> r.id()).toList());
+        return rows.stream()
                 .map(r -> CareResultResponse.of(
-                        r, accounts.fullName(r.recordedBy()).orElse(Long.toString(r.recordedBy())), health))
+                        r,
+                        accounts.fullName(r.recordedBy()).orElse(Long.toString(r.recordedBy())),
+                        health,
+                        current.get(r.id())))
                 .toList();
     }
 }
