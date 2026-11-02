@@ -77,7 +77,7 @@ description: "Danh sách task triển khai feature 010 – Chi phí phát sinh"
 
 ## Phase 4: User Story 2 – Đơn giá và số tiền đúng căn cứ (Priority: P1)
 
-**Goal**: Đơn giá theo nội dung hợp đồng tại ngày phát sinh hoặc phiên bản đơn giá; thuộc gói 0 đồng; ngày vắng nội trú tính như ngày lưu trú, chặn sau Giải phóng giường (Q-395); thiếu đơn giá thì đánh dấu, tính lại khi có phiên bản (FR-008 → FR-013, DBR-16, BR-M11-02, 03, 09, BR-M02-06 phần 010).
+**Goal**: Đơn giá theo nội dung hợp đồng tại ngày phát sinh hoặc phiên bản đơn giá; thuộc gói 0 đồng; ngày vắng nội trú tính như ngày lưu trú, chặn từ chính ngày Giải phóng giường (Q-395); thiếu đơn giá thì đánh dấu, tính lại khi có phiên bản (FR-008 → FR-013, DBR-16, BR-M11-02, 03, 09, BR-M02-06 phần 010).
 
 **Independent Test**: Hợp đồng giá tháng 9.300.000 đồng tháng 10 (31 ngày) có gói gồm tã; phiên bản "đưa đi khám" đổi giữa tháng; phụ lục đổi giá tháng từ 20/11 → số tiền từng khoản đúng.
 
