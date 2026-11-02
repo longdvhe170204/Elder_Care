@@ -416,3 +416,5 @@ US2 → US1 → US3 → US4 → US5 → US11 → US6 → US7 → US8 → US9 →
 - Mọi mốc đọc `ThamSoApi` (CFG-M05-*, CFG-M06-*)
 
 - *(2026-11-03, D, sửa lỗi sau đồng bộ)* Bổ sung nguồn đọc giấy phép/số liên hệ của T057 để chạy `FacilitySourcesIT` đã có; chưa hoàn tất lệnh quản lý giấy phép. T062 đã đăng ký kiểm đường dẫn 007 (14 operation có mã, 76 chưa cài), phần so operation còn chờ bản dịch đầy đủ phần đo chỉ số; T057/T062 giữ mở.
+
+- *(2026-11-03, D, đường dẫn tiếng Anh)* Theo duyệt của người dùng, T018 dùng `/residents/{residentId}/vital-signs` (GET/POST) và `/vital-sign-records/{id}/remeasure` (POST), đồng bộ hợp đồng/controller/client sinh và test HTTP. Đây là dịch hai đường dẫn đang cài; không đánh dấu thêm T062 hoặc các endpoint chưa triển khai.

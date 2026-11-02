@@ -1034,6 +1034,7 @@ Thời điểm khóa dòng của phiếu đối chiếu và bàn giao: trường
 | gói chức năng M06: danh mục, lịch đo, chỉ số, ngưỡng, giấy phép, khám, tham gia trạng thái | `health.internal.catalog`, `schedule`, `measurement`, `threshold`, `license`, `examination`, `governance` (cùng dưới `health.internal`) |
 | Lệnh ghi chỉ số, đo lại, dịch vụ đo chỉ số, phân giải ngưỡng áp dụng | `RecordVitalSignCommand`, `RemeasureVitalSignCommand`, `VitalSignMeasurementService`, `ApplicableThresholdResolver`, `DefaultApplicableThresholdResolver` |
 | gói chức năng M05: cảnh báo, xu hướng, sự cố, khẩn cấp, nguy kịch, ngã, lây nhiễm, tham gia trạng thái | `incident.internal.alert`, `trend`, `incident`, `emergency`, `critical`, `fall`, `infection`, `governance` (cùng dưới `incident.internal`) |
+| Lịch sử và ghi chỉ số theo người cao tuổi (GET, POST); đo lại (POST) | `/residents/{residentId}/vital-signs`; `/vital-sign-records/{id}/remeasure`; client `getResidentsByResidentIdVitalSigns`, `postResidentsByResidentIdVitalSigns`, `postVitalSignRecordsByIdRemeasure` |
 | Màn web danh mục sức khỏe (T009) | `HealthCatalogPage` (`frontend/src/features/health-catalog/HealthCatalogPage.jsx`) |
 
 
