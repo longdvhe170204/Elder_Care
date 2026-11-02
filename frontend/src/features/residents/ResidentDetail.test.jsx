@@ -136,6 +136,19 @@ describe('ResidentDetail', () => {
     expect(screen.getByLabelText('Họ tên').value).toBe('Tên Tab Khác')
   })
 
+  it('BUG-07: họ tên quá 200 ký tự báo tại ô bằng tiếng Việt, không gọi backend', async () => {
+    routes()
+
+    open()
+    fireEvent.click(await screen.findByRole('button', { name: 'Cập nhật thông tin' }))
+    fireEvent.change(screen.getByLabelText('Họ tên'), { target: { value: 'A'.repeat(201) } })
+    fireEvent.change(screen.getByLabelText('Lý do cập nhật'), { target: { value: 'Sửa' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }))
+
+    expect(await screen.findByText('Họ tên tối đa 200 ký tự')).toBeTruthy()
+    expect(api.calls('POST', '/residents/7/update-personal-info')).toHaveLength(0)
+  })
+
   it('BUG-03: khối An toàn hiện dị ứng và lưu ý; đóng phần chi tiết thì nạp lại hồ sơ', async () => {
     routes({
       view: profile({
