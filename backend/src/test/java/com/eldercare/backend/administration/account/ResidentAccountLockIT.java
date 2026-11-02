@@ -105,6 +105,24 @@ class ResidentAccountLockIT extends MySqlIntegrationTestBase {
     }
 
     @Test
+    void FR_073_genericLockAndUnlock_refusedForResidentAccount() throws Exception {
+        String manager = fixtures.session(fixtures.staffAccount("AC-01"));
+
+        logins.command(manager, account, "lock", version(), "{\"reason\":\"Khóa bằng lệnh chung\"}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("USE_RESIDENT_ACCOUNT_COMMAND"));
+        assertThat(jdbc.queryForObject("SELECT status FROM account WHERE id = ?", String.class, account))
+                .isEqualTo("ACTIVE");
+
+        jdbc.update("UPDATE account SET status = 'LOCKED', lock_cause = 'MANUAL' WHERE id = ?", account);
+        logins.command(manager, account, "unlock", version(), "{\"reason\":\"Mở bằng lệnh chung\"}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("USE_RESIDENT_ACCOUNT_COMMAND"));
+        assertThat(jdbc.queryForObject("SELECT status FROM account WHERE id = ?", String.class, account))
+                .isEqualTo("LOCKED");
+    }
+
+    @Test
     void FR_072_onlyOfficeOrManager_notNurse() throws Exception {
         String nurse = fixtures.session(fixtures.staffAccount("AC-04"));
 
