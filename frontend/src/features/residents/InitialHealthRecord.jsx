@@ -244,6 +244,7 @@ export function InitialHealthRecord({ residentId, allowedCommands }) {
               open={correcting}
               onOpenChange={setCorrecting}
               canCorrect={canWrite}
+              prefillCurrent
               onChanged={load}
             />
           )}
