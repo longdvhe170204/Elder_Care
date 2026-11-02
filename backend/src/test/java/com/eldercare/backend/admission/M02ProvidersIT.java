@@ -45,11 +45,10 @@ class M02ProvidersIT extends DeathTestBase {
                 .containsEntry("depositAmount", InfoGroup.FINANCE)
                 .containsEntry("recordedUnitPrices", InfoGroup.FINANCE)
                 .doesNotContainKey("status");
-        assertThat(classification("M02.PRICE_VERSION").fieldGroups()).containsEntry("unitPrice", InfoGroup.FINANCE);
         assertThat(classification("M02.DEATH_RECORD").fieldGroups()).containsEntry("cause", InfoGroup.HEALTH);
-        assertThat(classification("M02.ADMISSION_APPLICATION").fieldGroups())
-                .as("ý kiến vào ở là công khai nội bộ")
-                .isEmpty();
+        assertThat(classifications.stream().map(FieldClassificationProvider::entityType))
+                .as("mỗi loại đối tượng chỉ một provider, trùng thì nhật ký báo lỗi")
+                .doesNotHaveDuplicates();
     }
 
     @Test
