@@ -29,10 +29,10 @@ Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (mod
 
 | Bảng cũ | Đích | Loại ở bảng chung | Ràng buộc của bảng cũ | Cách giữ sau gộp |
 | --- | --- | --- | --- | --- |
-| `chi_so_nct` | `trang_thai_nct` | `M05.CHI_SO_NCT` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `chi_so_nct` | `trang_thai_nct` | `M06.RESIDENT_VITAL_SIGNS` | — | cột vào `JSON` hoặc cột của bảng đích |
 | `theo_doi_nct` | `trang_thai_nct` | `M05.THEO_DOI_NCT` | — | cột vào `JSON` hoặc cột của bảng đích |
-| `chi_so` | `danh_muc_chung` | `M05.CHI_SO` | / `id`, `ma`, `ten`, `don_vi`, `thu_tu` / / `UNIQUE (ma)`; sáu chỉ số khởi tạo `HUYET_AP`, `NHIP_TIM`, `NHIET_DO`, `SPO2`, `DUONG_HUYET`, `CAN_NANG` / FR-001 / | `khoa_duy_nhat` |
-| `chi_so_thanh_phan` | `danh_muc_chung` | `M05.CHI_SO_THANH_PHAN` | — | cột vào `JSON` hoặc cột của bảng đích |
+| `chi_so` | `danh_muc_chung` | `M06.VITAL_SIGN` | / `id`, `ma`, `ten`, `don_vi`, `thu_tu` / / `UNIQUE (ma)`; sáu chỉ số khởi tạo `HUYET_AP`, `NHIP_TIM`, `NHIET_DO`, `SPO2`, `DUONG_HUYET`, `CAN_NANG` / FR-001 / | `catalog_item.code_key`, `active_name`; thuộc tính `{unit, vitalSign}`. Không xóa loại có tham chiếu; FK từ bản ghi chỉ số. |
+| `chi_so_thanh_phan` | `danh_muc_chung` | `M06.VITAL_SIGN_COMPONENT` | — | cột vào `JSON` hoặc cột của bảng đích |
 | `quy_tac_xu_huong` | `danh_muc_chung` | `M05.QUY_TAC_XU_HUONG` | — | cột vào `JSON` hoặc cột của bảng đích |
 | `loai_su_co` | `danh_muc_chung` | `M05.LOAI_SU_CO` | — | cột vào `JSON` hoặc cột của bảng đích |
 | `loai_dien_bien` | `danh_muc_chung` | `M05.LOAI_DIEN_BIEN` | — | cột vào `JSON` hoặc cột của bảng đích |
@@ -127,6 +127,12 @@ Quy ước: loại ở bảng chung đặt mã `<module>.<TÊN_BẢNG_CŨ>` (mod
 
 ## 3. Danh mục (M06, M05)
 
+**Bản cài dịch vụ T006 (2026-11-02):** `HealthCatalogs.VITAL_SIGN_COMPONENT` dùng loại `M06.VITAL_SIGN_COMPONENT` trên `catalog_item`, `parent_id` là chỉ số, `attributes={decimalPlaces}`; mã thành phần duy nhất trong cha. Tạo cha/con/nhật ký trong cùng transaction; sửa chỉ số chỉ đổi tên/đơn vị/sinh hiệu, giữ mã và cấu trúc thành phần theo FR-002. Ngừng hiệu lực giữ cha/con cho dữ liệu đã tham chiếu. M05 dùng các loại `M05.TREND_RULE`, `M05.INCIDENT_TYPE`, `M05.PROGRESSION_TYPE` của migration đã có; trạng thái chung thể hiện bật/tắt hoặc hiệu lực. Năm mã loại sự cố có quy tắc riêng được chặn Ngừng hiệu lực trong dịch vụ. Không tạo bảng mới; không nạp seed hoặc khoảng vật lý chưa được chốt. Test `FR_002_VitalSignCatalogTest`, `FR_039_IncidentCatalogServiceTest`, `FR_039_IncidentCatalogIT` kiểm bảo đảm này.
+
+**Phần lược đồ đã cài 2026-11-01 (T005 một phần):** `V007_02__health_incident_catalogs.sql` chỉ thêm dòng vào `catalog_item`, giữ nhóm `DataGroup=CATALOG` sẵn có. Bốn dòng `M05.TREND_RULE` có `attributes = {level, parameterCode}`; `status` biểu diễn bật/tắt, `code_key` giữ duy nhất theo mã. Mức khởi tạo lần lượt `MEDIUM`, `LOW`, `LOW`, `MEDIUM` theo FR-039; tham số chỉ lưu mã CFG, không chép giá trị CFG thành hằng. Mười hai dòng `M05.PROGRESSION_TYPE` có `{group, resuscitation}`, trong đó năm biện pháp hồi sức theo BR-M05-20. Tên mã tiếng Anh ở glossary 000 mục 13. Seed chỉ số/thành phần và loại sự cố còn mở vì dữ liệu khởi tạo chưa đầy đủ; không tạo bảng cũ hoặc trạng thái theo người trước lệnh. `T005_IncidentCatalogMigrationIT` kiểm giá trị seed, nhóm dữ liệu và không có bảng riêng cũ.
+
+**Bổ sung T005 (2026-11-02):** `V007_02_1__emergency_incident_type_catalog.sql` thêm hai dòng `M05.INCIDENT_TYPE`: `FALL` (mục 9.3 tài liệu nghiệp vụ) và `MISSING_OR_NOT_RETURNED` (8.9, BR-M04-17), đều có `{defaultLevel: "CRITICAL", nonHealth: false, allowsNoResident: false}`. Không sửa migration đã có; không tạo bảng mới hoặc bản ghi trạng thái theo người. Phần còn lại của seed vẫn mở; test `FR_042_fallAndMissingResidentKeepTheEmergencyDefaultsFromBusinessRules` kiểm hai mức và cờ này trên MySQL.
+
 ### `chi_so` – nhóm 1 → gộp theo R-15: `chi_so` → `danh_muc_chung`
 
 | Cột | Kiểu | Ghi chú | Nguồn |
@@ -200,12 +206,19 @@ Chỉ mục `(nct_id, trang_thai)`. Trigger `BEFORE UPDATE`: chặn đổi mọi
 
 ### `ban_ghi_chi_so` – nhóm 3 có bản nháp
 
+**Lược đồ thực tế (2026-10-31, T012 đọc trước):** `vital_sign_record` (`V007_01__vital_sign_record.sql`), `COMMENT='DataGroup=MULTIPLE'`, domain `VitalSignRecord` có `@DataGroup(MULTIPLE)` và `lockedAt`. Các mã loại health ở mục 0.1 dùng M06 theo `SharedKindArchTest`, sửa tiền tố M05 nhầm của bảng sinh tự động. Không di chuyển ID vì 007 chưa có bảng cũ.
+
+- Thành phần gộp vào `components` JSON dạng `{ "VALUE": { "value": 71.25, "level": "NORMAL" } }`; giữ mức từng thành phần tại lúc đo, không chỉ giữ giá trị. CHECK JSON Schema giữ miền số `DECIMAL(7,2)` và tập mức; không có bảng con.
+- `locked_at` và `confirmed_at` cùng rỗng ở `AWAITING_REMEASUREMENT`, cùng có và bằng nhau ở `CONFIRMED`/`REMEASURED`. Trigger `trg_vital_sign_record_row_lock` giữ toàn bộ dữ liệu gốc, chỉ cho chuyển xác nhận một lần và thêm `NOT_REMEASURED`. Trigger `no_delete` chỉ cho tài khoản retention xóa.
+- DBR-23/FR-009, FR-012 và R-15: `VitalSignSchemaIT` kiểm khóa dòng, quyền xóa, thời điểm đo, JSON thành phần. Phần đọc T013 kiểm `LatestVitalSignReadIT`: giá trị hiện hành qua `CorrectionApi.current("M06.VITAL_SIGN_RECORD", ids)`, loại bản hủy, dùng mốc đo gốc và vị trí lịch sử qua `ResidentLocationApi.at`. Không đổi mức tại lúc đo cho nguồn bàn giao (Q-88).
+
 | Cột | Kiểu | Ghi chú | Nguồn |
 | --- | --- | --- | --- |
 | `id`, `nct_id`, `chi_so_id` | | | FR-010 |
 | `thoi_diem_do` | `DATETIME(6)` | ≤ `tao_luc` (FR-012) | FR-012 |
 | `nguoi_do_id`, `cong_viec_id` | | Công việc nguồn có thể rỗng (đo ngoài lịch) | FR-010 |
 | `thoi_diem_thiet_bi`, `ngoai_tuyen` | | DBR-25; `tao_luc` là thời điểm đồng bộ | FR-010 |
+| `synced_after_permission_loss` | `BOOLEAN NOT NULL DEFAULT FALSE` | T014/V007_04: lưu lúc INSERT cho cả lần đầu và đo lại khi ACCEPTED_WITH_FLAG; trigger chặn đổi cờ | 002 A-11, BR-M15-20 |
 | `nguong_phien_ban_id` | `BIGINT NULL` | Rỗng = chưa có ngưỡng | FR-013, FR-023 |
 | `muc` | `ENUM('BINH_THUONG','CANH_BAO','NGUY_HIEM','CHUA_CO_NGUONG')` | Thành phần nặng nhất | FR-013 |
 | `trang_thai_xac_nhan` | `ENUM('CHO_DO_LAI','DA_XAC_NHAN','DA_DO_LAI')` | | FR-015, FR-016 |
