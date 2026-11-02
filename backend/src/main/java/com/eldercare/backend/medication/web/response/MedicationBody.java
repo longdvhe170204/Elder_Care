@@ -1,7 +1,6 @@
 package com.eldercare.backend.medication.web.response;
 
-import com.eldercare.backend.medication.internal.service.MedicationService.MedicationDetailView;
-import com.eldercare.backend.medication.internal.service.response.MedicationResponse;
+import com.eldercare.backend.medication.internal.catalog.service.MedicationService.MedicationDetailView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import java.util.List;

@@ -4,17 +4,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.eldercare.backend.common.error.BusinessException;
-import com.eldercare.backend.medication.internal.domain.Medication;
-import com.eldercare.backend.medication.internal.persistence.MedicationRepository;
-import com.eldercare.backend.medication.internal.service.AllergyItemView;
-import com.eldercare.backend.medication.internal.service.HealthAllergyPort;
-import com.eldercare.backend.medication.internal.service.PrescriptionService;
-import com.eldercare.backend.medication.internal.service.ReconciliationCheckPort;
-import com.eldercare.backend.medication.internal.service.request.ConfirmedIssueBody;
-import com.eldercare.backend.medication.internal.service.request.CreatePrescriptionBody;
-import com.eldercare.backend.medication.internal.service.request.FrequencyBody;
-import com.eldercare.backend.medication.internal.service.request.PrescriberBody;
-import com.eldercare.backend.medication.internal.service.response.PrescriptionResponse;
+import com.eldercare.backend.medication.internal.catalog.domain.Medication;
+import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
+import com.eldercare.backend.medication.internal.prescription.domain.ConfirmedIssueBody;
+import com.eldercare.backend.medication.internal.prescription.domain.CreatePrescriptionBody;
+import com.eldercare.backend.medication.internal.prescription.domain.FrequencyBody;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriberBody;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionResponse;
+import com.eldercare.backend.medication.internal.prescription.service.AllergyItemView;
+import com.eldercare.backend.medication.internal.prescription.service.HealthAllergyPort;
+import com.eldercare.backend.medication.internal.prescription.service.PrescriptionService;
+import com.eldercare.backend.medication.internal.reconciliation.service.ReconciliationCheckPort;
 import com.eldercare.backend.support.TestUsers;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -45,8 +45,9 @@ class BR_M07_05_PrescriberAuthorityIT extends M07IntegrationTestBase {
     @BeforeEach
     void setUp() {
         jdbc.update(
-                "INSERT INTO resident_medication (resident_id, reconciliation_due_at, reconciliation_reason, reconciliation_warned_at, version) "
-                        + "VALUES (?, NULL, NULL, NULL, 0) ON DUPLICATE KEY UPDATE version = version",
+                "INSERT INTO resident_module_state (resident_id, module, data, version, updated_at)"
+                        + " VALUES (?, 'M07', JSON_OBJECT(), 0, UTC_TIMESTAMP(6))"
+                        + " ON DUPLICATE KEY UPDATE version = version",
                 residentId);
 
         // Mỗi test một thuốc mới có hoạt chất 101 (Penicillin của bản giả dị ứng)

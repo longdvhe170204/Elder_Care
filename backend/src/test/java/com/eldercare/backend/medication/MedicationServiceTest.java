@@ -11,14 +11,14 @@ import com.eldercare.backend.common.Reason;
 import com.eldercare.backend.common.error.ConditionNotMetException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.VersionMismatchException;
-import com.eldercare.backend.medication.internal.domain.Medication;
-import com.eldercare.backend.medication.internal.domain.MedicationStatus;
-import com.eldercare.backend.medication.internal.persistence.MedicationRepository;
-import com.eldercare.backend.medication.internal.service.MedicationCatalogPort;
-import com.eldercare.backend.medication.internal.service.MedicationService;
-import com.eldercare.backend.medication.internal.service.MedicationService.CreateMedicationCommand;
-import com.eldercare.backend.medication.internal.service.MedicationService.MedicationDetailView;
-import com.eldercare.backend.medication.internal.service.MedicationService.UpdateMedicationCommand;
+import com.eldercare.backend.medication.internal.catalog.domain.Medication;
+import com.eldercare.backend.medication.internal.catalog.domain.MedicationStatus;
+import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
+import com.eldercare.backend.medication.internal.catalog.service.MedicationCatalogPort;
+import com.eldercare.backend.medication.internal.catalog.service.MedicationService;
+import com.eldercare.backend.medication.internal.catalog.service.MedicationService.CreateMedicationCommand;
+import com.eldercare.backend.medication.internal.catalog.service.MedicationService.MedicationDetailView;
+import com.eldercare.backend.medication.internal.catalog.service.MedicationService.UpdateMedicationCommand;
 import java.lang.reflect.Field;
 import java.util.Optional;
 import java.util.Set;
@@ -39,6 +39,7 @@ class MedicationServiceTest {
     void setUp() {
         repository = mock(MedicationRepository.class);
         catalogPort = mock(MedicationCatalogPort.class);
+        when(repository.save(any(Medication.class))).thenAnswer(invocation -> invocation.getArgument(0));
         service = new MedicationService(repository, catalogPort);
     }
 
