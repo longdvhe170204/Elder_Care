@@ -4,7 +4,6 @@ import com.eldercare.backend.administration.account.internal.auth.service.Accoun
 import com.eldercare.backend.administration.account.internal.auth.service.AccountService.AccountDetails;
 import com.eldercare.backend.administration.account.internal.auth.service.ResidentAccountService;
 import com.eldercare.backend.administration.account.internal.auth.service.ResidentAccountService.Consent;
-import com.eldercare.backend.administration.account.internal.auth.service.ResidentAccountService.LoginCode;
 import com.eldercare.backend.administration.account.web.request.LockResidentBody;
 import com.eldercare.backend.administration.account.web.request.ReasonBody;
 import com.eldercare.backend.administration.account.web.request.UnlockResidentBody;
@@ -16,8 +15,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.UUID;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,8 +24,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Lệnh trên tài khoản người cao tuổi (002 T092, T094; contracts/api-002.yaml mục H): mã QR đăng nhập, gỡ thiết bị, khóa
- * và mở khóa theo lời chính người cao tuổi. Tạo tài khoản ở {@code ResidentAccountCreationController} (T091).
+ * Lệnh trên tài khoản người cao tuổi (002 T092, T094; contracts/api-002.yaml mục H): gỡ thiết bị, khóa và mở khóa theo
+ * lời chính người cao tuổi. Tạo tài khoản, mã QR đăng nhập ở {@code ResidentAccountCreationController} (T091, T102).
  */
 @RestController
 @RequestMapping("/api/v1/accounts")
@@ -41,28 +38,6 @@ class ResidentAccountController {
     ResidentAccountController(ResidentAccountService residents, AccountService accounts) {
         this.residents = residents;
         this.accounts = accounts;
-    }
-
-    @PostMapping("/{id}/login-qr-code")
-    @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Mã chỉ trả một lần"),
-        @ApiResponse(
-                responseCode = "403",
-                content =
-                        @Content(
-                                mediaType = "application/problem+json",
-                                schema = @Schema(implementation = ProblemBody.class))),
-        @ApiResponse(
-                responseCode = "409",
-                description = "NOT_RESIDENT_ACCOUNT, ACCOUNT_LOCKED",
-                content =
-                        @Content(
-                                mediaType = "application/problem+json",
-                                schema = @Schema(implementation = ProblemBody.class)))
-    })
-    ResponseEntity<LoginCode> loginQrCode(
-            @PathVariable long id, @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(residents.createLoginCode(id));
     }
 
     @PostMapping("/{id}/unbind-device")
