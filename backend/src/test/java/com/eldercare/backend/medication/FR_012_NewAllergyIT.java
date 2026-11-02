@@ -3,15 +3,15 @@ package com.eldercare.backend.medication;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.eldercare.backend.medication.api.events.MedicationAlertRequestedEvent;
-import com.eldercare.backend.medication.internal.domain.Medication;
-import com.eldercare.backend.medication.internal.domain.Prescription;
-import com.eldercare.backend.medication.internal.domain.PrescriptionStatus;
-import com.eldercare.backend.medication.internal.domain.PrescriptionType;
-import com.eldercare.backend.medication.internal.persistence.MedicationRepository;
-import com.eldercare.backend.medication.internal.persistence.PrescriptionRepository;
-import com.eldercare.backend.medication.internal.service.AllergyItemView;
-import com.eldercare.backend.medication.internal.service.HealthAllergyPort;
-import com.eldercare.backend.medication.internal.service.PrescriptionAllergyListener;
+import com.eldercare.backend.medication.internal.catalog.domain.Medication;
+import com.eldercare.backend.medication.internal.catalog.persistence.MedicationRepository;
+import com.eldercare.backend.medication.internal.prescription.domain.Prescription;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionStatus;
+import com.eldercare.backend.medication.internal.prescription.domain.PrescriptionType;
+import com.eldercare.backend.medication.internal.prescription.persistence.PrescriptionRepository;
+import com.eldercare.backend.medication.internal.prescription.service.AllergyItemView;
+import com.eldercare.backend.medication.internal.prescription.service.HealthAllergyPort;
+import com.eldercare.backend.medication.internal.prescription.service.PrescriptionAllergyListener;
 import com.eldercare.backend.resident.api.events.AllergyRecorded;
 import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import java.math.BigDecimal;
@@ -100,8 +100,9 @@ class FR_012_NewAllergyIT extends MySqlIntegrationTestBase {
         testHealthAllergyPort.checkedCalled.set(false);
 
         jdbc.update(
-                "INSERT INTO resident_medication (resident_id, reconciliation_due_at, reconciliation_reason, reconciliation_warned_at, version) "
-                        + "VALUES (?, NULL, NULL, NULL, 0) ON DUPLICATE KEY UPDATE version = version",
+                "INSERT INTO resident_module_state (resident_id, module, data, version, updated_at)"
+                        + " VALUES (?, 'M07', JSON_OBJECT(), 0, UTC_TIMESTAMP(6))"
+                        + " ON DUPLICATE KEY UPDATE version = version",
                 residentId);
 
         if (!medicationRepository.existsById(medId)) {
@@ -119,7 +120,7 @@ class FR_012_NewAllergyIT extends MySqlIntegrationTestBase {
                 "Viên",
                 "Uống",
                 PrescriptionType.PERIODIC,
-                com.eldercare.backend.medication.internal.domain.FrequencyType.TIMED_SLOTS,
+                com.eldercare.backend.medication.internal.prescription.domain.FrequencyType.TIMED_SLOTS,
                 "[\"08:00\"]",
                 null,
                 null,
@@ -129,7 +130,7 @@ class FR_012_NewAllergyIT extends MySqlIntegrationTestBase {
                 Instant.now(),
                 null,
                 com.eldercare.backend.medication.api.dto.MedicationSource.FACILITY,
-                com.eldercare.backend.medication.internal.domain.PrescriberType.INTERNAL,
+                com.eldercare.backend.medication.internal.prescription.domain.PrescriberType.INTERNAL,
                 null,
                 "Dr. House",
                 1L,

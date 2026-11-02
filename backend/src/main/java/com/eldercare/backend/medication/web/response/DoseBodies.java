@@ -1,10 +1,10 @@
 package com.eldercare.backend.medication.web.response;
 
-import com.eldercare.backend.medication.internal.service.CalculatedDoseSlot;
-import com.eldercare.backend.medication.internal.service.DoseReviewService.ReviewView;
-import com.eldercare.backend.medication.internal.service.DoseViewService.DoseView;
-import com.eldercare.backend.medication.internal.service.DoseViewService.ResultView;
-import com.eldercare.backend.medication.internal.service.DoseViewService.UsableBatch;
+import com.eldercare.backend.medication.internal.dose.service.DoseReviewService.ReviewView;
+import com.eldercare.backend.medication.internal.dose.service.DoseViewService.DoseView;
+import com.eldercare.backend.medication.internal.dose.service.DoseViewService.ResultView;
+import com.eldercare.backend.medication.internal.dose.service.DoseViewService.UsableBatch;
+import com.eldercare.backend.medication.internal.schedule.service.CalculatedDoseSlot;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.time.LocalDate;

@@ -987,6 +987,12 @@ Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phas
 | loại bảng chung của 006 | `M07.MEDICATION` (danh mục); `M07.PRESCRIPTION_ISSUE`, `M07.PRESCRIPTION_BASIS` (sự kiện); `M07.DOSE_REVIEW`, `M07.ABSENCE_INTERVAL`, `M07.RECONCILIATION_CORRECTION_REQUEST` (hồ sơ chung); `M07` (trạng thái theo người); `M07.JOB.<jobKey>` (mốc đã nhắc) |
 
 
+### 12.21. Gói chức năng nội bộ và khóa dòng *(2026-10-31)*
+
+Trong `medication.internal`, danh mục thuốc là `catalog`, đơn thuốc là `prescription`, liều và PRN là `dose`, lịch thuốc và job là `schedule`, đối chiếu là `reconciliation`, thuốc gia đình gửi là `family`, giao nhận và khoảng vắng là `handover`, tiếp nhận cung ứng là `procurement`, tích hợp quản trị là `governance`. Trong mỗi chức năng giữ các tầng `service`, `domain`, `persistence`, `config` theo backend/README.md. Đây là gói nội bộ, không đổi tên API công khai.
+
+Thời điểm khóa dòng của phiếu đối chiếu và bàn giao: trường `lockedAt`, cột `locked_at`; hai entity dùng `@DataGroup(MULTIPLE)`. Dòng đối chiếu nhúng giữ mã phiếu cha `reconciliationId`; thời điểm trong JSON chép từ dữ liệu cũ dùng ISO-8601 UTC để đọc thành `Instant`.
+
 ## 13. Feature 007 (`007-health-alert-incident`, D)
 
 *Chủ feature điền khi dịch `contracts/api-007.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
