@@ -52,13 +52,13 @@ export const postLichDoByIdThayDoi = (params) => request('POST', '/lich-do/{id}/
 export const postLichDoByIdNgung = (params) => request('POST', '/lich-do/{id}/ngung', params)
 
 /** Lịch sử chỉ số (giá trị hiện hành, giá trị gốc nếu đã đính chính, người đo, ngưỡng áp dụng, kết quả so) (FR-010, FR-080, BR-M06-06) */
-export const getNguoiCaoTuoiByNctIdChiSo = (params) => request('GET', '/nguoi-cao-tuoi/{nctId}/chi-so', params)
+export const getResidentsByResidentIdVitalSigns = (params) => request('GET', '/residents/{residentId}/vital-signs', params)
 
 /** Ghi chỉ số ngoài lịch (Nhân viên chăm sóc, Điều dưỡng trong phạm vi) (FR-010, FR-011, FR-012, FR-013, FR-015, BR-M06-03, BR-M06-04, BR-M04-12) */
-export const postNguoiCaoTuoiByNctIdChiSo = (params) => request('POST', '/nguoi-cao-tuoi/{nctId}/chi-so', params)
+export const postResidentsByResidentIdVitalSigns = (params) => request('POST', '/residents/{residentId}/vital-signs', params)
 
 /** Ghi lần đo lại cho bản ghi "chờ đo lại" (FR-016, FR-017, FR-018, BR-M06-04) */
-export const postBanGhiChiSoByIdDoLai = (params) => request('POST', '/ban-ghi-chi-so/{id}/do-lai', params)
+export const postVitalSignRecordsByIdRemeasure = (params) => request('POST', '/vital-sign-records/{id}/remeasure', params)
 
 /** Danh sách người cao tuổi quá CFG-M06-01 chưa có ngưỡng cá nhân (Bác sĩ) (FR-025, BR-M06-02) */
 export const getChiSoChuaCoNguongCaNhan = (params) => request('GET', '/chi-so/chua-co-nguong-ca-nhan', params)

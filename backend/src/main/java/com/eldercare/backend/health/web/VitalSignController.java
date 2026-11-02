@@ -30,10 +30,10 @@ public class VitalSignController {
         this.currentUser = currentUser;
     }
 
-    @GetMapping("/nguoi-cao-tuoi/{nctId}/chi-so")
+    @GetMapping("/residents/{residentId}/vital-signs")
     @RequiresPermission(function = Function.VITAL_SIGN, operation = Operation.VIEW)
     public List<VitalSignRecordResponse> getVitalSigns(
-            @PathVariable("nctId") long residentId,
+            @PathVariable("residentId") long residentId,
             @RequestParam(value = "chiSoId", required = false) Long indicatorId,
             @RequestParam(value = "tu", required = false) Instant from,
             @RequestParam(value = "den", required = false) Instant to) {
@@ -41,16 +41,16 @@ public class VitalSignController {
         return records.stream().map(VitalSignRecordResponse::from).toList();
     }
 
-    @PostMapping("/nguoi-cao-tuoi/{nctId}/chi-so")
+    @PostMapping("/residents/{residentId}/vital-signs")
     @RequiresPermission(function = Function.VITAL_SIGN, operation = Operation.CREATE)
     public ResponseEntity<VitalSignRecordResponse> recordVitalSign(
-            @PathVariable("nctId") long residentId, @RequestBody RecordVitalSignRequest request) {
+            @PathVariable("residentId") long residentId, @RequestBody RecordVitalSignRequest request) {
         var command = request.toCommand(residentId, currentUser.accountId());
         var record = measurementService.record(command, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(VitalSignRecordResponse.from(record));
     }
 
-    @PostMapping("/ban-ghi-chi-so/{id}/do-lai")
+    @PostMapping("/vital-sign-records/{id}/remeasure")
     @RequiresPermission(function = Function.VITAL_SIGN, operation = Operation.CREATE)
     public ResponseEntity<VitalSignRecordResponse> remeasureVitalSign(
             @PathVariable("id") long draftId, @RequestBody RemeasureVitalSignRequest request) {

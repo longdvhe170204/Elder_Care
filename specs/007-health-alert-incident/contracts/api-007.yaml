@@ -156,13 +156,13 @@ paths:
       responses: { '200': { description: OK }, '409': { $ref: '#/components/responses/LoiChan' } }
 
   # ---------------- Chỉ số ----------------
-  /nguoi-cao-tuoi/{nctId}/chi-so:
+  /residents/{residentId}/vital-signs:
     get:
       tags: [chi-so]
       summary: Lịch sử chỉ số (giá trị hiện hành, giá trị gốc nếu đã đính chính, người đo, ngưỡng áp dụng, kết quả so)
       x-fr: [FR-010, FR-080]
       x-br: [BR-M06-06]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { name: chiSoId, in: query, schema: { type: integer, format: int64 } }, { name: tu, in: query, schema: { type: string, format: date-time } }, { name: den, in: query, schema: { type: string, format: date-time } } ]
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { name: chiSoId, in: query, schema: { type: integer, format: int64 } }, { name: tu, in: query, schema: { type: string, format: date-time } }, { name: den, in: query, schema: { type: string, format: date-time } } ]
       responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/BanGhiChiSo' } } } } }, '403': { $ref: '#/components/responses/Loi' } }
     post:
       tags: [chi-so]
@@ -172,10 +172,10 @@ paths:
         Nguy hiểm không "xuLyNgay": trangThaiXacNhan = CHO_DO_LAI kèm hanDoLai; ngược lại xác nhận ngay.
       x-fr: [FR-010, FR-011, FR-012, FR-013, FR-015]
       x-br: [BR-M06-03, BR-M06-04, BR-M04-12]
-      parameters: [ { $ref: '#/components/parameters/NctId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      parameters: [ { $ref: '#/components/parameters/ResidentId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/GhiChiSo' } } } }
       responses: { '201': { description: Đã lưu, content: { application/json: { schema: { $ref: '#/components/schemas/BanGhiChiSo' } } } }, '403': { $ref: '#/components/responses/Loi' }, '409': { $ref: '#/components/responses/LoiChan' }, '422': { $ref: '#/components/responses/Loi' } }
-  /ban-ghi-chi-so/{id}/do-lai:
+  /vital-sign-records/{id}/remeasure:
     post:
       tags: [chi-so]
       summary: Ghi lần đo lại cho bản ghi "chờ đo lại"
@@ -814,6 +814,7 @@ components:
     phien: { type: http, scheme: bearer, description: 'Token phiên opaque của 002 (A-02)' }
     tokenThietBi: { type: apiKey, in: header, name: X-Token-Thiet-Bi, description: 'Token thiết bị của người cao tuổi (002 research A-15); chỉ dùng cho /sos' }
   parameters:
+    ResidentId: { name: residentId, in: path, required: true, schema: { type: integer, format: int64 } }
     Id: { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
     NctId: { name: nctId, in: path, required: true, schema: { type: integer, format: int64 } }
     IfMatch: { name: If-Match, in: header, required: true, schema: { type: string } }
