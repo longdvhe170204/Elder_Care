@@ -12,6 +12,7 @@ import { CorrectionForm } from './CorrectionForm'
 // - fields: các ô nội dung do module sở hữu bản ghi khai báo ([{ name, label }]); component không tự suy schema.
 // - canCorrect: màn của module truyền theo lệnh được phép của bản ghi; chỉ để ẩn hoặc hiện form,
 //   quyền thật do backend kiểm (403 CORRECTION_NOT_ALLOWED). Mặc định không hiện.
+// - prefillCurrent: điền sẵn form theo Giá trị hiện hành của chuỗi. Mặc định để trống.
 
 const TYPE_LABEL = { AMEND_CONTENT: 'Sửa nội dung', VOID: 'Hủy ghi nhận' }
 
@@ -80,7 +81,7 @@ function ChainBody({ chain, fields }) {
   )
 }
 
-function SheetBody({ recordType, recordId, fields, canCorrect, onChanged }) {
+function SheetBody({ recordType, recordId, fields, canCorrect, prefillCurrent, onChanged }) {
   const [state, setState] = useState({ status: 'loading' })
 
   // refresh: tải lại sau khi lưu, giữ nội dung đang hiện cho tới khi có chuỗi mới.
@@ -154,6 +155,7 @@ function SheetBody({ recordType, recordId, fields, canCorrect, onChanged }) {
                     recordType={recordType}
                     recordId={recordId}
                     fields={fields}
+                    initialContent={prefillCurrent ? chain.currentContent : undefined}
                     onSaved={refreshAfterSave}
                   />
                 </section>
@@ -173,6 +175,7 @@ export function CorrectionHistorySheet({
   open,
   onOpenChange,
   canCorrect = false,
+  prefillCurrent = false,
   onChanged,
 }) {
   return (
@@ -185,6 +188,7 @@ export function CorrectionHistorySheet({
             recordId={recordId}
             fields={fields}
             canCorrect={canCorrect}
+            prefillCurrent={prefillCurrent}
             onChanged={onChanged}
           />
         )}

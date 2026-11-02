@@ -373,3 +373,13 @@ Ghi khi triển khai (constitution XIV: lệch kỹ thuật ghi ở plan cùng l
 - Loại diễn biến: hiển thị danh mục diễn biến và cờ biện pháp hồi sức.
 - Sinh client API từ api-007.yaml (`npm run gen:api`), kết nối `PAGES` trong `App.jsx` và menu `navigation.js`.
 - TDD: test đỏ trước khi cài (`HealthCatalogPage.test.jsx`), sau khi cài 6/6 test xanh. `npm run lint` và `npm run build` đều qua 100%.
+
+### Sửa kiểm kiến trúc sau đồng bộ develop (2026-11-03, D)
+
+- Lệnh `IncidentCatalogService.updateTrendRule` nhận `Reason` trực tiếp thay vì gói trong `TrendRuleUpdate`, theo FR-007 và `DataGroupArchTest`. HTTP vẫn gửi cùng trường `reason`; controller tách lý do, nhật ký giữ nguyên và test thiếu lý do/ETag/rollback không bỏ. Chỉ đổi kiểu nội bộ, không đổi `api/` hoặc hợp đồng HTTP.
+- Bỏ hai thời lượng mặc định ghi cứng của `AlertService`: mức Trung bình đọc `CFG_M05_01` mỗi lần; mức Nhẹ lấy giờ kết thúc ca qua `AlertStaffPort`, sau mốc `CFG_M09_04` thì lấy ca kế tiếp theo FR-031/CHK020. Khi thiếu cấu hình hoặc nguồn ca, dừng trước khi ghi, không suy ra hạn 60 phút. Test `FR_031_AlertDeadlineTest` được viết trước, chạy đỏ 5/7, gồm hạn tùy cấu hình và biên bàn giao.
+- Người dùng yêu cầu sửa ba lỗi kiến trúc và hoàn tất merge: thêm đúng ba lớp job vào danh sách FR-010a của `SchedulerScopeArchTest` theo S-21; không sửa predicate/assertion của luật. Job gọi trực tiếp trong test, chưa thay enum `runJobs` của api-000. Giữ dòng A review ở team-plan vì file kiểm dùng chung thuộc A. Định dạng `NFR_04_M06JobFrameworkTest` bằng Spotless, không đổi hành vi. Kết quả kiểm cuối ghi ở progress.md.
+
+- Kiểm toàn backend phát hiện test `FacilitySourcesIT` đã có nhưng thiếu bean: cài nguồn đọc `health.internal.license.service.FacilitySources` theo S-16, dùng `CatalogApi` cho giấy phép, thay thế do sai sót và số liên hệ hiện hành. Không thêm lệnh tạo/sửa giấy phép hoặc endpoint; T057 vẫn mở.
+- `VitalSignController` bỏ hai alias tiếng Anh chưa có trong api-007, giữ đúng đường dẫn đang khai báo. Đăng ký api-007 trong `ApiContractIT` với 14 operation đã cài và 76 operation chưa cài; phần kiểm cấu trúc operation chưa bật vì hợp đồng đo chỉ số chưa dịch đầy đủ. Không đổi cấu hình kiểm của hợp đồng khác; T062 giữ mở cho phần so operation, không coi kiểm đường dẫn là nghiệm thu đầy đủ.
+- Test seed T005 giới hạn truy vấn theo bốn mã khởi tạo thay vì giả định bảng không có dòng do lớp IT khác tạo; giữ nguyên kiểm số lượng, thứ tự, mức và mã CFG. Lượt đỏ toàn backend cho thấy dòng TREND_* của test danh mục làm sai kích thước.

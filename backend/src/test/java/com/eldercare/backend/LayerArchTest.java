@@ -77,13 +77,8 @@ class LayerArchTest {
         "com.eldercare.backend.staffing..internal.service.port"
     };
 
-    /** Câu SQL chuyển vào lớp {@code *Store} trong {@code persistence}: B (resident), E (staffing). */
+    /** Câu SQL chuyển vào lớp {@code *Store} trong {@code persistence}: E (staffing). */
     private static final Set<String> PENDING_JDBC_OUTSIDE_PERSISTENCE = Set.of(
-            "resident.internal.assessment.service.CareLevelChangeRequestReminderService",
-            "resident.internal.assessment.service.ReassessmentNoticeService",
-            "resident.internal.consent.service.MissingConsentReminderService",
-            "resident.internal.status.service.TemporaryAbsenceOverdueAlert",
-            "resident.internal.wish.service.WishReminderService",
             "staffing.assignment.internal.service.AssignmentReminders",
             "staffing.credential.internal.service.CredentialInvalidityEffects",
             "staffing.credential.internal.service.CredentialReminders",
@@ -98,11 +93,8 @@ class LayerArchTest {
     /** C (005): care; record, enum ở gốc {@code api} chuyển vào {@code api.dto}. */
     private static final Set<String> PENDING_API_ROOT_TYPES = Set.of("care.api.MedicationChecklistItem");
 
-    /** Record lồng chuyển ra {@code domain}: B (resident), C (roombedallocation). */
+    /** Record lồng chuyển ra {@code domain}: C (roombedallocation). */
     private static final Set<String> PENDING_NESTED_RECORD_OWNERS = Set.of(
-            "resident.internal.profile.persistence.ResidentLookup",
-            "resident.internal.wish.persistence.EndOfLifeWishStore",
-            "resident.internal.wish.persistence.TreatmentWishStore",
             "roombedallocation.internal.allocation.persistence.AllocationReminderStore",
             "roombedallocation.internal.bed.persistence.BedAssetStateStore",
             "roombedallocation.internal.bed.persistence.BedHoldStore",

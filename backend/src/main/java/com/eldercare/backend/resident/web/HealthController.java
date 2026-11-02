@@ -89,6 +89,7 @@ class HealthController {
     }
 
     @PostMapping("/initial-health-records/{id}/correct")
+    @ApiResponse(responseCode = "201", description = "Đã lưu (cách A, B) hoặc yêu cầu phê duyệt Chờ duyệt (cách C)")
     ResponseEntity<CorrectionResultBody> correctInitialRecord(
             @PathVariable long id,
             @RequestHeader(name = "Idempotency-Key", required = false) UUID idempotencyKey,

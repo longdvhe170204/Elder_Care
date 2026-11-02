@@ -50,7 +50,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 **Quyết định**:
 - **Thứ tự khóa** (nối 007 S-03): `nguoi_cao_tuoi` (001) → `luu_tru_nct` (004) → … → `chi_phi_nct` (M11, một dòng mỗi người) → `bang_chi_phi` → `khoan_chi_phi` (theo `id` tăng). Bean trạng thái của 010 chạy sau 006, 007 theo `@Order` của 001; `KyCuoiPort` chạy trong transaction lệnh hồ sơ kết thúc của 004 (sau khóa `luu_tru_nct`). *(R-15: `luu_tru_nct`, `chi_phi_nct` → `trang_thai_nct`)*
-- **Lập khoản theo sự kiện** (FR-006, DBR-15): khóa `chi_phi_nct`; lấy hoặc lập bảng (`UNIQUE (ky_id, nct_id, loai_bang)`); thêm khoản. Lưới an toàn: cột sinh `khoa_don_vi_hieu_luc = IF(nguon_sinh = 'THEO_SU_KIEN' AND trang_thai <> 'DA_HUY', CONCAT(loai_nguon, ':', id_nguon, ':', don_vi_tinh_phi), NULL)` `UNIQUE`. Lệnh đến sau trả 409 `DA_CO_KHOAN` (hàng loạt: bỏ qua kèm lý do).
+- **Lập khoản theo sự kiện** (FR-006, DBR-15), cập nhật R-15: khóa trạng thái M11 qua ResidentModuleStateApi của A (chờ T108), rồi lấy/lập cost_statement kind STATEMENT. Caller đặt unique_key cho khoản EVENT_BASED còn hiệu lực = CONCAT(source_type, ":", source_id, ":", billing_unit); CHECK đối chiếu và UNIQUE trong cost_item giữ lưới an toàn, hủy thì đặt NULL. Không tạo lại chi_phi_nct/cost_period hoặc cột sinh đã thay bằng unique_key. Lệnh đến sau trả 409 COST_ITEM_ALREADY_EXISTS; hàng loạt bỏ qua kèm lý do. Test schema tuần tự đã xanh; test đồng thời và lệnh thật vẫn ở T009/T011.
 - **Lệnh trên bảng** (gửi chốt, trả lại, chốt): khóa `bang_chi_phi` và kiểm tra lại; lệnh chốt dựa trên trạng thái cũ bị từ chối (FR-033) bằng `If-Match` trên `bang_chi_phi.phien_ban` vì nhiều khoản có thể đổi giữa lúc xem và lúc chốt (US3 Edge Case "hai người cùng thao tác").
 - **Lệnh trên khoản** (kiểm tra, duyệt, trả lại, hủy, tính lại): khóa dòng khoản, kiểm tra lại; khi đổi trạng thái bảng (về Đang mở) khóa thêm dòng bảng theo thứ tự trên.
 - **Đề nghị mua hộ** (quyết định đầu tiên thắng, 000 FR-040): khóa dòng đề nghị; quyết định thứ hai trả 409 `DA_DUOC_XU_LY`.
@@ -88,9 +88,9 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 **Quyết định**:
 - Hàm thuần trong `billing.tinhgia`:
   - `LamTronDong(x)`: nửa lên theo giá trị tuyệt đối (FR-013);
-  - `PhiNgayLuuTru(giaThang, soNgayThang, laNgayCuoiThang, heSo)`: phí ngày cơ sở = `LamTronDong(giaThang / soNgay)`, ngày cuối tháng = `giaThang − (soNgay − 1) × co_so` (FR-009); áp hệ số rồi làm tròn;
+  - `PhiNgayLuuTru(giaThang, ngay)`: phí ngày cơ sở = `LamTronDong(giaThang / soNgayThang)`, ngày cuối tháng = `giaThang − (soNgayThang − 1) × co_so` (FR-009); nội trú tính đủ giá cả ngày vắng theo Q-395, không nhận hệ số. Bản cài `ResidencyDayFee.monthly` nhận giá tháng và ngày, `direct` nhận đơn giá ngày; chỉ gọi cho ngày còn được tính phí;
   - `PhiBuoiBanTru(giaThang, cacBuoiCoLich, buoi, heSo)`: số buổi có lịch theo lịch đến của hợp đồng hiệu lực trừ ngày khu nghỉ, không đếm buổi phát sinh; buổi có lịch cuối nhận chênh lệch;
-  - `ThoiGianTinhPhi(hopDong, hoanTatTiepNhan, hoSoKetThuc, quaDoi, huyTiepNhan)`: khoảng và dấu "chưa vào ở" (FR-011, Q-22).
+  - `ThoiGianTinhPhi(hopDong, hoanTatTiepNhan, hoSoKetThuc, quaDoi, huyTiepNhan)`: khoảng và dấu "chưa vào ở" (FR-011, Q-22). Theo Q-395, bộ kiểm ngày lưu trú còn cần ngày Giải phóng giường từ nguồn 004 để chặn ngay từ ngày đó; đây là dữ liệu dự kiến, chưa thêm chữ ký API của B. `BillingPeriod` và kiểm này chưa cài; chờ B khai báo kiểu hợp đồng/nguồn đúng chủ.
 - **Căn cứ đơn giá** (FR-008): khoản thuộc hợp đồng → `DonGiaApi.donGiaHopDong(nctId, dichVuId, ngay)` / `HopDongDocApi.noiDungTaiNgay`; ngoài hợp đồng → `DonGiaApi.donGiaTaiNgay(dichVuId, ngay, danhDauThamChieu = true)` trong transaction lập khoản (004 đặt `da_tham_chieu`, T-05). Thuốc nguồn viện: `DonGiaApi.thuocNguonVien(thuocId)` ra dịch vụ. Dịch vụ chăm sóc theo mức: `DonGiaApi.dichVuChamSoc(muc)` (Q-297). Khoản lưu `can_cu_don_gia` (loại, id phiên bản nội dung hoặc phiên bản đơn giá).
 - **Thuộc gói** (FR-010): nội dung hợp đồng tại ngày có dịch vụ trong gói → dấu `THUOC_GOI`, số tiền 0.
 - **Thiếu đơn giá** (FR-012): không có giá → khoản Nháp dấu `THIEU_DON_GIA`, `so_tien = NULL`; thông báo Hành chính (Nhẹ). 004 tạo phiên bản đơn giá (kể cả hiệu lực lùi cho khoảng chưa có phiên bản, DBR-08) và phát `PhienBanDonGiaDaTao(dichVuId, hieuLucTu, hieuLucDen)` (bổ sung vào hợp đồng 004); listener của 010 tính lại mọi khoản chưa chốt `THIEU_DON_GIA` của dịch vụ đó có ngày phát sinh trong khoảng, gỡ dấu, ghi lịch sử tính lại. Khoản đã có đơn giá không tính lại (000 FR-017).
@@ -174,7 +174,7 @@ Mỗi mục gồm Quyết định, Lý do, Phương án đã cân nhắc. Quyế
 
 ## P-12. Port nội bộ M11 cho 017 và 019
 
-**Quyết định**: Gói `billing.cungcap.port`, `billing.muaho.port`; ArchUnit chỉ cho `billing.sodu`, `billing.muasam` dùng:
+**Quyết định**: Gói `billing.cungcap.port`, `billing.muaho.port` là tên logic. Khi cài, ArchUnit tách hai chiều theo chính hai chữ ký bên dưới: CostForBalancePort (010 cài) cho billing.internal.balance/billing.internal.procurement dùng; PurchaseBalancePort (017 cài) cho billing.internal.purchase của 010 gọi. Câu cũ gộp cả hai port vào ngoại lệ billing.sodu/billing.muasam sẽ chặn chính lệnh mua hộ của 010, trái chiều khai báo P-12. Đây là làm rõ ranh giới kỹ thuật, không đổi nghiệp vụ hoặc chữ ký.
 
 ```java
 interface ChiPhiChoSoDuPort {               // 010 cài, 017 dùng

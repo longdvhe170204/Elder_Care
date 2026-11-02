@@ -153,6 +153,7 @@ export function ResidentDetail({ residentId, onChanged, Title = 'h2', Descriptio
   function validate() {
     const next = {}
     if (!form.fullName.trim()) next.fullName = 'Nhập họ tên'
+    else if (form.fullName.trim().length > 200) next.fullName = 'Họ tên tối đa 200 ký tự'
     if (!form.dateOfBirth) next.dateOfBirth = 'Chọn ngày sinh'
     else if (form.dateOfBirth > new Date().toISOString().slice(0, 10)) next.dateOfBirth = 'Ngày sinh không ở tương lai'
     if (!form.gender) next.gender = 'Chọn giới tính'
@@ -223,7 +224,16 @@ export function ResidentDetail({ residentId, onChanged, Title = 'h2', Descriptio
   const problem = (
     <ProblemAlert problem={failure}>
       {failure?.status === 412 && (
-        <Button type="button" variant="outline" className="h-11 self-start" onClick={load}>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 self-start"
+          onClick={() => {
+            // Đóng form cũ: giữ lại thì giá trị cũ đè lên thay đổi của người khác ở lần lưu sau (BUG-UI-001)
+            setEditing(false)
+            load()
+          }}
+        >
           Xem giá trị mới
         </Button>
       )}
@@ -356,7 +366,14 @@ export function ResidentDetail({ residentId, onChanged, Title = 'h2', Descriptio
             </Button>
           )}
 
-          <Sheet open={partOpen} onOpenChange={setPartOpen}>
+          {/* Đóng phần chi tiết thì nạp lại hồ sơ để khối An toàn, Nhu cầu chăm sóc theo dữ liệu vừa ghi (BUG-03) */}
+          <Sheet
+            open={partOpen}
+            onOpenChange={(open) => {
+              setPartOpen(open)
+              if (!open) load()
+            }}
+          >
             <SheetContent className="sm:max-w-3xl">
               <SheetHeader className="pt-6">
                 <SheetTitle className="type-title">{`${partLabel}: ${info.fullName}`}</SheetTitle>
@@ -369,7 +386,7 @@ export function ResidentDetail({ residentId, onChanged, Title = 'h2', Descriptio
                     residentId={residentId}
                     residentStatus={profile.status}
                     allowedCommands={allowedCommands}
-                    onChanged={load}
+                    onChanged={changed}
                   />
                 )}
                 {part === 'status' && (

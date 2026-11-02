@@ -48,6 +48,8 @@ const STATUS_TONE = {
   'Không liên lạc được': 'attention',
   'Chờ liên hệ': 'attention',
   'Đã liên hệ': 'settled',
+  'Chờ kết quả': 'attention',
+  'Đã có kết quả': 'settled',
   'Đang bật': 'settled',
   // Tài khoản (002): Không hoạt động giữ neutral, Đã khóa viền xám để phân biệt
   'Hoạt động': 'settled',

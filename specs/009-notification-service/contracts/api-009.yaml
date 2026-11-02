@@ -7,7 +7,7 @@ info:
     tiền tố /api/v1, lỗi RFC 9457 có errorCode, If-Match cho cấu hình kênh, Idempotency-Key cho mọi lệnh ghi.
     Tên định danh tiếng Anh theo glossary.md của 000, mục 15 (dịch 2026-10-21; bản tên logic tiếng Việt ở lịch sử git).
     Module nguồn không gọi REST để gửi thông báo: yêu cầu thông báo đi bằng sự kiện cài HasNotificationRequests (module-interfaces mục 1.1).
-    Xác nhận thông báo Khẩn cấp, ghi kết quả gọi, ghi kết quả liên hệ bắt buộc trực tuyến (Q-01); hộp thông báo xem được ngoại tuyến ở app.
+    Xác nhận thông báo Khẩn cấp, ghi kết quả gọi, ghi kết quả liên hệ bắt buộc trực tuyến (Q-01).
     Nội dung trả về theo quyền hiện hành của người xem (FR-034, Q-99): phần không còn quyền bị bỏ, liệt kê trong hiddenParts.
     Thông báo đẩy tới app qua FCM theo token đăng ký ở /push-devices; web nhận luồng SSE ở /notifications/stream.
     Đính chính kết quả gọi, kết quả liên hệ đi qua khung của api-000 với loại M13.CALL_RESULT, M13.DIRECT_CONTACT_RESULT.
@@ -235,7 +235,7 @@ components:
         result: { type: string, enum: [REACHED, NOT_REACHED] }
         calledAt: { type: string, format: date-time }
         calledPhoneNumber: { type: string }
-        reason: { type: string, enum: [NO_ANSWER, WRONG_NUMBER, NO_NUMBER, OTHER] }
+        reason: { type: string, enum: [NO_ANSWER, WRONG_NUMBER, NO_NUMBER] }
         answeredBy: { type: string }
         note: { type: string, description: 'Bắt buộc khi REACHED (FR-030)' }
         supplementary: { type: boolean, readOnly: true }
@@ -258,7 +258,7 @@ components:
         channels: { type: array, items: { type: object, properties: { channel: { type: string }, result: { type: string }, occurredAt: { type: string, format: date-time } } } }
         viewedAt: { type: string, format: date-time }
         acknowledgedAt: { type: string, format: date-time }
-        callReminders: { type: array, items: { type: object } }
+        callReminders: { type: array, description: 'Lượt nhắc gọi của chuỗi chứa thông báo và kết quả (FR-037)', items: { type: object, properties: { id: { type: integer, format: int64 }, personToCallType: { type: string, enum: [STAFF, FAMILY_MEMBER] }, personToCallId: { type: integer, format: int64 }, status: { type: string, enum: [AWAITING_RESULT, RESULT_RECORDED, STOPPED] }, results: { type: array, items: { type: object, properties: { result: { type: string, enum: [REACHED, NOT_REACHED] }, calledAt: { type: string, format: date-time } } } } } } }
         flags: { type: array, items: { type: string } }
     NotificationChannel:
       type: object

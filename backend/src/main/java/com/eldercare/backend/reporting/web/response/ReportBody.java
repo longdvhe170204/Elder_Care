@@ -15,8 +15,14 @@ public record ReportBody(
         LocalDate to,
         Instant asOf,
         Map<String, Object> filters,
+        FilterOptions filterOptions,
         List<MetricValueBody> values,
         List<String> notes) {
+
+    /** Giá trị lọc tầng/khu trong phạm vi của người xem (FR-013). */
+    public record FilterOptions(boolean facilityWide, List<FloorArea> floorAreas) {}
+
+    public record FloorArea(long id, String name) {}
 
     /** FR-050: chi phí của 016 là chi phí phát sinh của người cao tuổi, không phải báo cáo tài chính của viện. */
     static final String COSTS_NOTE = "Chi phí phát sinh của người cao tuổi, không phải báo cáo tài chính của viện";
@@ -28,6 +34,11 @@ public record ReportBody(
                 r.to(),
                 r.asOf(),
                 r.filters().toMap(),
+                new FilterOptions(
+                        r.filterOptions().facilityWide(),
+                        r.filterOptions().floorAreas().stream()
+                                .map(f -> new FloorArea(f.id(), f.name()))
+                                .toList()),
                 r.results().stream()
                         .map(MetricResult::value)
                         .map(MetricValueBody::of)

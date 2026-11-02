@@ -23,6 +23,8 @@ Future<List<String>> pumpStaff(WidgetTester tester, FakeBackend backend, MemoryS
   );
   await tester.pumpWidget(ElderCareApp(session: s, queue: queue));
   await settle(tester);
+  await tester.tap(find.text('Đồng bộ'));
+  await settle(tester);
   return keys!;
 }
 

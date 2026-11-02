@@ -39,7 +39,8 @@ Mã chỉ tiêu dùng trong REST (`/bao-cao/{nhom}`, `/chi-tiet/{maChiTieu}`) v�
 | `CA.BAN_GIAO_CHUA_XAC_NHAN` | Bàn giao | 008 `NhanSuThongKeApi.banGiao`; *(2026-10-27)* `banGiaoDangMo` (`openHandovers`) | FR-020 |
 | `CA.TY_LE_PHUC_VU` | Tỷ lệ phục vụ | 008 `tyLePhucVu` | FR-020, FR-070 |
 | ~~`CA.THIEU_PHU`, `CA.THIEU_CA`~~ | *(Bỏ theo Q-397)* | — | FR-071 |
-| `CA.YEU_CAU`, `CA.LOI_MOI` | Nhân sự và ca trực | 015 `yeuCau`, `loiMoi` | FR-072 |
+| `CA.YEU_CAU` | Nhân sự và ca trực | 015 `yeuCau` | FR-072 |
+| ~~`CA.LOI_MOI`~~ | *(Bỏ theo Q-397)* | — | FR-072 |
 | `CA.GIO_LAM` | Nhân sự và ca trực (QL, TT được giao) | 015 `gioLamTheoThang` | FR-073 |
 | `GP.CO_SO`, `GP.NHAN_VIEN` | Giấy phép | 007 `GiayPhepCoSoApi`; 008 `chungChiSapHetHan` | FR-020 |
 | `CP.BANG`, `CP.TONG_HOP`, `CP.DIEU_CHINH_SAU_CHOT`, `CP.TY_LE_THEO_SU_KIEN` | Chi phí phát sinh | 010 `ChiPhiThongKeApi` | FR-020, FR-050 → FR-055 |

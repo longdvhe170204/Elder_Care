@@ -33,7 +33,8 @@ public class InboxStore {
             + " r.source_record_type, r.source_record_id"
             + " FROM notification n JOIN notification_request r ON r.id = n.request_id";
 
-    private static final String URGENT_FIRST = "IF(n.level = 'URGENT' AND n.acknowledged_at IS NULL, 1, 0)";
+    /** Cột sinh {@code IF(level = 'URGENT' AND acknowledged_at IS NULL, 1, 0)} (009 T044, chỉ mục hộp thông báo). */
+    private static final String URGENT_FIRST = "n.urgent_unacknowledged";
 
     private final JdbcTemplate jdbc;
 

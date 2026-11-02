@@ -50,6 +50,10 @@ class AlertServiceTest {
         recordEvents = mock(RecordEventApi.class);
 
         when(businessTime.now()).thenReturn(NOW);
+        var deadline = mock(com.eldercare.backend.administration.parameter.api.dto.ParameterValue.class);
+        when(deadline.asDuration()).thenReturn(java.time.Duration.ofMinutes(15));
+        when(parameterApi.read(com.eldercare.backend.administration.parameter.api.dto.ParameterCode.CFG_M05_01))
+                .thenReturn(deadline);
 
         alertService = new AlertService(
                 alertStore,

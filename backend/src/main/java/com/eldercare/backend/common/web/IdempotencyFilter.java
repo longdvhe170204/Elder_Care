@@ -44,6 +44,7 @@ import tools.jackson.databind.json.JsonMapper;
  * Chống lặp lệnh theo header {@code Idempotency-Key} (research R-03, R-13; FR-037): cùng khóa, cùng người gửi thì trả
  * lại kết quả lần đầu, không chạy lệnh lần hai. Chỉ lưu kết quả 2xx; lệnh lỗi thì bỏ khóa để gửi lại được. Cùng khóa
  * mà nội dung khác thì 422 {@code IDEMPOTENCY_KEY_REUSED}; lần đầu còn đang chạy thì 409 {@code IDEMPOTENCY_IN_PROGRESS}.
+ * Phản hồi {@link SecretResponse} chỉ lưu dấu đã chạy, không lưu nội dung: gửi lại thì 409 {@code IDEMPOTENCY_RESULT_NOT_KEPT}.
  */
 @Component
 public class IdempotencyFilter extends OncePerRequestFilter {
@@ -51,6 +52,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
     public static final String HEADER = "Idempotency-Key";
     static final int MAX_KEY_LENGTH = 100;
     public static final Duration RETENTION = Duration.ofDays(7);
+    static final String SECRET_RESULT = IdempotencyFilter.class.getName() + ".secretResult";
     private static final Set<String> METHODS = Set.of("POST", "PUT", "PATCH", "DELETE");
     private static final List<String> REPLAYED_HEADERS = List.of(HttpHeaders.ETAG, HttpHeaders.LOCATION);
 
@@ -110,7 +112,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             if (HttpStatus.valueOf(wrapped.getStatus()).is2xxSuccessful()) {
                 jdbc.update(
                         "UPDATE idempotency_key SET result_json = ? WHERE key_value = ? AND username = ?",
-                        json.writeValueAsString(snapshot(wrapped)),
+                        json.writeValueAsString(snapshot(wrapped, cached.getAttribute(SECRET_RESULT) != null)),
                         key,
                         username);
                 stored = true;
@@ -143,6 +145,14 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             return;
         }
         Map<?, ?> saved = json.readValue(result.toString(), Map.class);
+        if (Boolean.TRUE.equals(saved.get("secret"))) {
+            writeProblem(
+                    response,
+                    HttpStatus.CONFLICT,
+                    "IDEMPOTENCY_RESULT_NOT_KEPT",
+                    "Lệnh đã thực hiện, kết quả có thông tin bí mật nên không trả lại");
+            return;
+        }
         response.setStatus(((Number) saved.get("status")).intValue());
         if (saved.get("contentType") != null) {
             response.setContentType(saved.get("contentType").toString());
@@ -154,7 +164,10 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         response.getWriter().write(saved.get("body").toString());
     }
 
-    private static Map<String, Object> snapshot(ContentCachingResponseWrapper response) {
+    private static Map<String, Object> snapshot(ContentCachingResponseWrapper response, boolean secret) {
+        if (secret) {
+            return Map.of("secret", true);
+        }
         Map<String, String> headers = new LinkedHashMap<>();
         for (String name : REPLAYED_HEADERS) {
             if (response.getHeader(name) != null) {

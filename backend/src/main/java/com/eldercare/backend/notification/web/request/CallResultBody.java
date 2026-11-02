@@ -32,8 +32,7 @@ public record CallResultBody(
     public enum Reason {
         NO_ANSWER,
         WRONG_NUMBER,
-        NO_NUMBER,
-        OTHER
+        NO_NUMBER
     }
 
     public static CallResultBody of(ResultView r) {

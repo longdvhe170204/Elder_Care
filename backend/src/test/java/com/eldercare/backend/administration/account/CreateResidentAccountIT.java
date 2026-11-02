@@ -89,11 +89,11 @@ class CreateResidentAccountIT extends MySqlIntegrationTestBase {
                 .andExpect(jsonPath("$.residentId").value(resident))
                 .andExpect(jsonPath("$.roles[0]").value("AC-16"))
                 .andExpect(jsonPath("$.fullName").value("Nguyễn Thị Hoa"))
-                .andExpect(jsonPath("$.temporaryPassword").isNotEmpty());
+                .andExpect(jsonPath("$.temporaryPassword").doesNotExist());
 
         long account = jdbc.queryForObject("SELECT id FROM account WHERE resident_id = ?", Long.class, resident);
         assertThat(jdbc.queryForObject("SELECT must_change_password FROM account WHERE id = ?", Boolean.class, account))
-                .isTrue();
+                .isFalse();
         assertThat(jdbc.queryForObject(
                         "SELECT details FROM audit_log WHERE action = 'ACCOUNT_CREATED' AND entity_id = ?",
                         String.class,
