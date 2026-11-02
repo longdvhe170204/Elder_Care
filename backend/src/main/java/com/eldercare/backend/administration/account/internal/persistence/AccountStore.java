@@ -298,21 +298,28 @@ public class AccountStore {
     }
 
     public long insertStaff(long staffId, String username, String passwordHash, Long createdBy) {
-        return insert("staff_id", AccountType.STAFF, staffId, username, passwordHash, createdBy);
+        return insert("staff_id", AccountType.STAFF, staffId, username, passwordHash, true, createdBy);
     }
 
     /** Tài khoản người thân (FR-050), buộc đổi mật khẩu lần đầu như tài khoản nhân viên. */
     public long insertFamily(long familyMemberId, String username, String passwordHash, Long createdBy) {
-        return insert("family_member_id", AccountType.FAMILY_MEMBER, familyMemberId, username, passwordHash, createdBy);
+        return insert(
+                "family_member_id", AccountType.FAMILY_MEMBER, familyMemberId, username, passwordHash, true, createdBy);
     }
 
-    /** Tài khoản người cao tuổi (FR-067), buộc đổi mật khẩu lần đầu như bảng chuyển trạng thái của spec. */
+    /** Tài khoản người cao tuổi (FR-067): mật khẩu ngẫu nhiên không ai biết, không buộc đổi; đăng nhập bằng mã QR. */
     public long insertResident(long residentId, String username, String passwordHash, Long createdBy) {
-        return insert("resident_id", AccountType.RESIDENT, residentId, username, passwordHash, createdBy);
+        return insert("resident_id", AccountType.RESIDENT, residentId, username, passwordHash, false, createdBy);
     }
 
     private long insert(
-            String linkColumn, AccountType type, long linkId, String username, String passwordHash, Long createdBy) {
+            String linkColumn,
+            AccountType type,
+            long linkId,
+            String username,
+            String passwordHash,
+            boolean mustChangePassword,
+            Long createdBy) {
         LocalDateTime now = utc(time.now());
         GeneratedKeyHolder key = new GeneratedKeyHolder();
         jdbc.update(
@@ -320,14 +327,15 @@ public class AccountStore {
                     PreparedStatement ps = connection.prepareStatement(
                             "INSERT INTO account (username, type, " + linkColumn + ", status, password_hash,"
                                     + " must_change_password, inactivity_reference_at, created_at, created_by)"
-                                    + " VALUES (?, '" + type.name() + "', ?, 'ACTIVE', ?, TRUE, ?, ?, ?)",
+                                    + " VALUES (?, '" + type.name() + "', ?, 'ACTIVE', ?, ?, ?, ?, ?)",
                             Statement.RETURN_GENERATED_KEYS);
                     ps.setString(1, username);
                     ps.setLong(2, linkId);
                     ps.setString(3, passwordHash);
-                    ps.setObject(4, now);
+                    ps.setBoolean(4, mustChangePassword);
                     ps.setObject(5, now);
-                    ps.setObject(6, createdBy);
+                    ps.setObject(6, now);
+                    ps.setObject(7, createdBy);
                     return ps;
                 },
                 key);

@@ -127,6 +127,13 @@ class ReportApiIT extends MySqlIntegrationTestBase {
     }
 
     @Test
+    void FR_009_details_sameFiltersAsTheNumber() throws Exception {
+        perform(manager, lastWeek(DETAILS)).andExpect(jsonPath("$.total").value(3));
+        perform(manager, lastWeek(DETAILS).param("floorAreaId", String.valueOf(floor1)))
+                .andExpect(jsonPath("$.total").value(2));
+    }
+
+    @Test
     void FR_060_rangeTooLong_422() throws Exception {
         LocalDate today = time.today();
         perform(

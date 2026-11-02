@@ -18,6 +18,7 @@ import com.eldercare.backend.common.error.BusinessException;
 import com.eldercare.backend.common.error.InvalidValueException;
 import com.eldercare.backend.common.error.NotFoundException;
 import com.eldercare.backend.common.error.PermissionDeniedException;
+import com.eldercare.backend.common.file.FileApi;
 import com.eldercare.backend.common.time.BusinessTime;
 import com.eldercare.backend.common.web.VersionEtag;
 import com.eldercare.backend.resident.api.dto.ResidentStatus;
@@ -28,8 +29,8 @@ import com.eldercare.backend.resident.internal.profile.domain.Contact;
 import com.eldercare.backend.resident.internal.profile.domain.IdDocumentType;
 import com.eldercare.backend.resident.internal.profile.domain.PersonalInfo;
 import com.eldercare.backend.resident.internal.profile.domain.Resident;
+import com.eldercare.backend.resident.internal.profile.domain.ResidentMatch;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentLookup;
-import com.eldercare.backend.resident.internal.profile.persistence.ResidentLookup.Match;
 import com.eldercare.backend.resident.internal.profile.persistence.ResidentRepository;
 import com.eldercare.backend.resident.internal.status.domain.ResidentStatusHistory;
 import com.eldercare.backend.resident.internal.status.persistence.ResidentStatusHistoryRepository;
@@ -84,6 +85,9 @@ public class ResidentProfileService {
 
     public record SearchPage(List<ProfileView> items, String nextCursor) {}
 
+    /** Chủ sở hữu của ảnh người cao tuổi là hồ sơ (id hồ sơ); quyền tải ở {@code ResidentPhotoFilePermission}. */
+    static final String PHOTO_OWNER = "M01.RESIDENT_PHOTO";
+
     private final ResidentRepository residents;
     private final ResidentStatusHistoryRepository history;
     private final ResidentLookup lookup;
@@ -95,6 +99,7 @@ public class ResidentProfileService {
     private final ObjectProvider<CurrentUser> currentUser;
     private final ObjectProvider<PermissionApi> permissions;
     private final ObjectProvider<ScopeApi> scope;
+    private final FileApi files;
 
     ResidentProfileService(
             ResidentRepository residents,
@@ -107,7 +112,8 @@ public class ResidentProfileService {
             JsonMapper json,
             ObjectProvider<CurrentUser> currentUser,
             ObjectProvider<PermissionApi> permissions,
-            ObjectProvider<ScopeApi> scope) {
+            ObjectProvider<ScopeApi> scope,
+            FileApi files) {
         this.residents = residents;
         this.history = history;
         this.lookup = lookup;
@@ -119,6 +125,7 @@ public class ResidentProfileService {
         this.currentUser = currentUser;
         this.permissions = permissions;
         this.scope = scope;
+        this.files = files;
     }
 
     /** Đối tượng kiểm quyền và phạm vi của một hồ sơ (kiểm quyền ở {@code RequiresPermissionAspect}). */
@@ -138,7 +145,7 @@ public class ResidentProfileService {
             lookup.findOpenByCitizenId(citizenId).ifPresent(open -> {
                 throw citizenIdInUse(open.profileCode());
             });
-            Optional<Match> closed = lookup.findLatestClosedByCitizenId(citizenId);
+            Optional<ResidentMatch> closed = lookup.findLatestClosedByCitizenId(citizenId);
             if (closed.isPresent() && closed.get().status() == ResidentStatus.DECEASED) {
                 warnings.add(new Warning(
                         "CITIZEN_ID_MATCHES_DECEASED_PROFILE",
@@ -147,7 +154,7 @@ public class ResidentProfileService {
                 previousProfileId = closed.get().id();
             }
         } else {
-            List<Match> same = lookup.findSameNameAndBirthDate(info.fullName(), info.dateOfBirth());
+            List<ResidentMatch> same = lookup.findSameNameAndBirthDate(info.fullName(), info.dateOfBirth());
             if (!same.isEmpty() && !confirmNotDuplicate) {
                 throw possibleDuplicate(same);
             }
@@ -161,11 +168,12 @@ public class ResidentProfileService {
         } catch (DataIntegrityViolationException e) {
             // UNIQUE (open_citizen_id): hai lệnh tạo cùng CCCD chạy cùng lúc
             throw citizenIdInUse(lookup.findOpenByCitizenId(info.idDocumentNumber())
-                    .map(Match::profileCode)
+                    .map(ResidentMatch::profileCode)
                     .orElse(null));
         }
         resident.assignProfileCode(time.today().getYear());
         residents.saveAndFlush(resident);
+        attachPhoto(info.photoFileId(), resident.getId());
         history.append(ResidentStatusHistory.profileCreated(resident.getId(), now, user.accountId()));
         AuditLogEntry.Builder entry = AuditLogEntry.builder()
                 .action(CREATED)
@@ -203,12 +211,15 @@ public class ResidentProfileService {
                         });
             }
         }
+        if (!Objects.equals(before.photoFileId(), after.photoFileId())) {
+            attachPhoto(after.photoFileId(), id);
+        }
         resident.changePersonalInfo(after, contactJson(after.contact()));
         try {
             residents.saveAndFlush(resident);
         } catch (DataIntegrityViolationException e) {
             throw citizenIdInUse(lookup.findOpenByCitizenId(after.idDocumentNumber())
-                    .map(Match::profileCode)
+                    .map(ResidentMatch::profileCode)
                     .orElse(null));
         }
         Map<String, Object> beforeValues = snapshot(before);
@@ -223,6 +234,16 @@ public class ResidentProfileService {
                 .build());
         events.publishEvent(new PersonalInfoUpdated(id, changed));
         return view(resident);
+    }
+
+    /**
+     * Gắn ảnh vào hồ sơ trong transaction của lệnh (research H-13): tệp không có thật thì 404, đã gắn nơi khác thì 409
+     * và cả lệnh rollback. Ảnh cũ khi thay vẫn gắn với hồ sơ làm lịch sử, không bị job dọn tệp xóa.
+     */
+    private void attachPhoto(Long photoFileId, long residentId) {
+        if (photoFileId != null) {
+            files.attach(photoFileId, PHOTO_OWNER, residentId);
+        }
     }
 
     @RequiresPermission(function = Function.RESIDENT_PROFILE, operation = Operation.VIEW)
@@ -257,8 +278,8 @@ public class ResidentProfileService {
     /**
      * Tra cứu trong phạm vi của người xem (FR-007, FR-035): tìm theo họ tên, mã hồ sơ hoặc số giấy tờ, lọc trạng thái,
      * mới nhất trước, phân trang theo con trỏ. Không dùng {@code @RequiresPermission}: quyền theo phân công không đạt
-     * với đối tượng chưa xác định, nên kiểm vai trò có khóa Xem rồi lọc bằng bộ lọc phạm vi. Phạm vi theo tầng hoặc
-     * phòng cần phân bổ giường của 003, nên hiện lọc theo tập hồ sơ mà 002 trả về.
+     * với đối tượng chưa xác định, nên kiểm vai trò có khóa Xem rồi lọc bằng bộ lọc phạm vi. Tầng, phòng được
+     * phân công đã được 002 đổi thành tập hồ sơ theo phân bổ giường của 003 (T019).
      */
     @Transactional(readOnly = true)
     public SearchPage search(String q, Set<ResidentStatus> statuses, String cursor, int limit) {
@@ -418,7 +439,7 @@ public class ResidentProfileService {
                 HttpStatus.CONFLICT, "CITIZEN_ID_IN_USE", "CCCD đang được dùng ở một hồ sơ chưa kết thúc", properties);
     }
 
-    private static BusinessException possibleDuplicate(List<Match> same) {
+    private static BusinessException possibleDuplicate(List<ResidentMatch> same) {
         List<Map<String, Object>> candidates = same.stream()
                 .map(m -> Map.<String, Object>of(
                         "id", m.id(),

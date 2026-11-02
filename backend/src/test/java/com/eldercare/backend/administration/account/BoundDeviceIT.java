@@ -55,7 +55,7 @@ class BoundDeviceIT extends MySqlIntegrationTestBase {
     @BeforeEach
     void residentAccount() {
         fixtures = new AccountFixtures(jdbc, time);
-        logins = new ResidentLogins(mvc);
+        logins = new ResidentLogins(mvc, jdbc);
         office = fixtures.session(fixtures.staffAccount("AC-09"));
         account = fixtures.residentAccount(AccountFixtures.nextId());
     }

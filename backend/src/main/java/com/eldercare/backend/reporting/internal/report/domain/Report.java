@@ -17,4 +17,5 @@ public record Report(
         Instant asOf,
         ReportFilters filters,
         ScopeFilter scope,
+        ReportFilterOptions filterOptions,
         List<MetricResult> results) {}

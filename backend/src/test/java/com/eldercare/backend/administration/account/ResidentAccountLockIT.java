@@ -55,7 +55,7 @@ class ResidentAccountLockIT extends MySqlIntegrationTestBase {
     @BeforeEach
     void setUp() {
         fixtures = new AccountFixtures(jdbc, time);
-        logins = new ResidentLogins(mvc);
+        logins = new ResidentLogins(mvc, jdbc);
         office = fixtures.session(fixtures.staffAccount("AC-09"));
         account = fixtures.residentAccount(AccountFixtures.nextId());
     }
@@ -102,6 +102,24 @@ class ResidentAccountLockIT extends MySqlIntegrationTestBase {
         logins.command(office, account, "unlock-resident", version(), CONSENT)
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errorCode").value("LOCK_CAUSE_STILL_EXISTS"));
+    }
+
+    @Test
+    void FR_073_genericLockAndUnlock_refusedForResidentAccount() throws Exception {
+        String manager = fixtures.session(fixtures.staffAccount("AC-01"));
+
+        logins.command(manager, account, "lock", version(), "{\"reason\":\"Khóa bằng lệnh chung\"}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("USE_RESIDENT_ACCOUNT_COMMAND"));
+        assertThat(jdbc.queryForObject("SELECT status FROM account WHERE id = ?", String.class, account))
+                .isEqualTo("ACTIVE");
+
+        jdbc.update("UPDATE account SET status = 'LOCKED', lock_cause = 'MANUAL' WHERE id = ?", account);
+        logins.command(manager, account, "unlock", version(), "{\"reason\":\"Mở bằng lệnh chung\"}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("USE_RESIDENT_ACCOUNT_COMMAND"));
+        assertThat(jdbc.queryForObject("SELECT status FROM account WHERE id = ?", String.class, account))
+                .isEqualTo("LOCKED");
     }
 
     @Test

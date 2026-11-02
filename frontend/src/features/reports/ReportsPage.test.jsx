@@ -123,6 +123,69 @@ describe('ReportsPage', () => {
     expect(screen.queryByRole('checkbox')).toBeNull()
   })
 
+  async function openWithFloorFilter() {
+    const filterOptions = {
+      facilityWide: false,
+      floorAreas: [
+        { id: 1, name: 'Tầng 1' },
+        { id: 2, name: 'Tầng 2' },
+      ],
+    }
+    api.on('GET', (u) => u.pathname === '/api/v1/reports/HEALTH_MEDICATION', () => json(200, { ...REPORT, filterOptions }))
+    api.on(
+      'GET',
+      '/metric-details/MED.MISSED_RATE',
+      json(200, { metricCode: 'MED.MISSED_RATE', total: 0, rows: [] }),
+    )
+    api.on('POST', '/reports/HEALTH_MEDICATION/export', json(201, { fileId: 7, auditLogId: 9 }))
+    render(<ReportsPage role="FLOOR_MANAGER" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Sức khỏe, thuốc' }))
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Tầng 2' }))
+    await screen.findByText('Tỷ lệ liều Bỏ lỡ')
+  }
+
+  it('FR_013_locTang_chiGiaTriTrongPhamVi_chiTietCungBoLoc', async () => {
+    await openWithFloorFilter()
+
+    expect(api.calls('GET', '/reports/HEALTH_MEDICATION').at(-1)[0]).toContain('floorAreaId=2')
+    fireEvent.click(screen.getByRole('button', { name: '1,8' }))
+    await vi.waitFor(() =>
+      expect(api.calls('GET', '/metric-details/MED.MISSED_RATE').at(-1)[0]).toContain('floorAreaId=2'),
+    )
+  })
+
+  it('FR_061_xuatCungBoLocVoiManHinh', async () => {
+    await openWithFloorFilter()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Xuất file' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Xuất file' }))
+
+    await vi.waitFor(() => {
+      const [, init] = api.calls('POST', '/reports/HEALTH_MEDICATION/export').at(-1)
+      expect(JSON.parse(init.body).filters).toEqual({ floorAreaId: [2] })
+    })
+  })
+
+  it('FR_013_toanVien_lucTangTuDanhMuc003_haiTangTroLen', async () => {
+    api.on('GET', (u) => u.pathname === '/api/v1/reports/HEALTH_MEDICATION', () =>
+      json(200, { ...REPORT, filterOptions: { facilityWide: true, floorAreas: [] } }),
+    )
+    api.on(
+      'GET',
+      '/floors',
+      json(200, [
+        { id: 1, name: 'Tầng 1' },
+        { id: 2, name: 'Tầng 2' },
+      ]),
+    )
+    render(<ReportsPage role="DOCTOR" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Sức khỏe, thuốc' }))
+
+    expect(await screen.findByRole('button', { name: 'Tầng 2' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Mọi tầng' })).toBeInTheDocument()
+  })
+
   it('FR_062_lanXuat_bang', async () => {
     api.on(
       'GET',

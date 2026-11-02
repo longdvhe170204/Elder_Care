@@ -35,7 +35,7 @@ public class AssignmentQueries implements AssignmentApi {
                     room = "ROOM".equals(a.targetType()) ? a.targetId() : null,
                     resident = "RESIDENT".equals(a.targetType()) ? a.targetId() : null;
             views.add(new AssignmentView(
-                    AssignmentKind.SHIFT_MEMBER, floor, room, resident, s.id(), s.startsAt(), s.endsAt(), cut));
+                    AssignmentKind.SHIFT_MEMBER, floor, room, resident, s.id(), a.startsAt(), s.endsAt(), cut));
         }
         for (var a : store.managersForStaff(staff, from, to))
             views.add(new AssignmentView(

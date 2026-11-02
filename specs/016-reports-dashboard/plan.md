@@ -158,7 +158,7 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
 - Phạm vi theo ca của Điều dưỡng, Người phụ trách ca lấy từ `AssignmentApi.history` (SPI của 002, 008 cài) thay cho `CaTrucApi.caCuaNhanVien` ở research O-03: phân công gắn ca đã mang giờ ca, CFG-M15-07 cộng hai đầu; ca hủy, vắng, nghỉ có duyệt thuộc luật của 008 khi trả lịch sử phân công. Trưởng tầng: phân công `FLOOR_MANAGER` đang hiệu lực lúc xem, không giới hạn thời gian.
 - Thu hẹp chi tiết theo `metric_group`, `channel` (FR-010a): "Đổi api" 002 `PermissionApi.metricGroupRestrictions` (chủ dự án duyệt 2026-10-24) trả dòng thu hẹp theo từng vai trò và theo tài khoản; `MetricGroupAccess.scopes(roles, group, channel, restrictions)` áp theo vai trò trước khi hợp, theo tài khoản sau (A-05); bỏ thao tác thì nhóm không hiện, hạ phạm vi thì ô toàn viện thành phạm vi phân công (dashboard dùng phân công đang góp lúc xem). Dashboard dùng kênh `DASHBOARD`, báo cáo và xuất dùng `REPORT`.
 - Dòng rút gọn (Q-196) xét nhóm thông tin theo vai trò, không theo phạm vi hiện hành: "Đổi api" 002 `FieldVisibilityApi.canViewByRole`. Hai hàm có mặc định trong interface nên bản giả cũ không phải sửa; `FakePermissions` có thêm `metricGroupRestrictions(...)`.
-- FR-016: M14 từ chối khi `InvalidPermissionDataException`; việc báo Quản lý viện (002 FR-041b) do 002 ghi khi kiểm quyền, `ScopeApi.filter` hiện chưa ghi.
+- FR-016: M14 từ chối khi `InvalidPermissionDataException`; việc báo Quản lý viện (002 FR-041b) do 002 ghi khi kiểm quyền, `ScopeApi.filter` hiện chưa ghi. *(Sửa 2026-11-01: M14 gọi `PermissionApi.recordDataError`, xem mục US2.)*
 
 ### Phase 11 (US9, xuất) (2026-10-24, nhánh `impl/016-report-export`)
 
@@ -199,6 +199,21 @@ Plan không tự sửa các điểm dưới đây (constitution I, IX).
 - Q-390: lần Chờ sẵn sàng có lúc bắt đầu trong khoảng; đọc `awaitingReady` tới lúc xem để lần kết thúc sau cuối khoảng vẫn đủ thời gian; vượt hạn là `to` sau `deadline` của 003.
 - `BED.EMPTY_AWAITING_TRANSFER` (Trống – chờ xử lý hư hỏng) khai trong `chi-tieu.md` nhưng chưa cài: dấu của 019 ở port nội bộ M03 chưa có bản cài; cài chỉ tiêu trả 0 sẽ sai nghĩa.
 - Test chỉ tiêu dùng stub cục bộ của `BedStatisticsApi` trong lớp test (bản giả chung không có lý do giữ chỗ, phòng cách ly); `FakeBedAllocations` cho số người.
+
+### US2 phạm vi và giới hạn trường (2026-11-01, nhánh `impl/016-report-scope`)
+
+- Dashboard không còn dùng nguyên `ScopeApi.filter` cho mọi nhóm: "Đổi api" 002 `ScopeApi.assignedFilter(user, kinds)` trả phạm vi hiện hành chỉ từ các loại phân công ô của nhóm cho phép; lý do: tài khoản Điều dưỡng kiêm Trưởng tầng thấy người phân công ở nhóm chỉ dành cho Trưởng tầng (FR-015).
+- Báo cáo khoảng lấy giao của `AssignmentApi.history` với `ShiftApi.staffShifts` (thành viên hiệu lực của 008): ca hủy, nghỉ có duyệt, vắng từ đầu ca không tính. Lệch so với ghi chú Phase 1, 2: lịch sử phân công của 008 không tự loại các ca này.
+- Chủ dự án chốt 2026-11-01: vắng giữa ca thì phạm vi dừng tại `absent_at`, không bỏ cả ca (khớp "thật sự có tên trong ca" và cách 008 tính Người phụ trách ca); vắng từ đầu ca thì không tính. Mốc kết thúc sớm (`scopeEndsAt`) không cộng CFG-M15-07; bổ sung giữa ca không cộng biên trước mốc bổ sung. `AssignmentQueries.history` trả `from` là lúc phân công bắt đầu thay cho giờ bắt đầu ca (A sửa trên M09, chờ E xem).
+- Việc chung, liều chung (Q-61, Q-85): `Grant.commonFloorAreaIds` là tầng/khu của ca (`ShiftView.floorAreaId`), chỉ khớp bản ghi không gắn người cao tuổi; dùng cho cả ô `ASSIGNMENT_AREA` (khoanh vùng, bàn giao).
+- `GROUPS` thêm `WAITING_LIST`, `NON_HEALTH_INCIDENTS` (US2 #1); người thấy nhóm sức khỏe không có khối sự cố riêng.
+- FR-016: "Đổi api" 002 `PermissionApi.recordDataError` ghi lỗi và báo Quản lý viện khi M14 bắt `InvalidPermissionDataException`; thay ghi chú ở Phase 1, 2.
+- Hợp đồng (chủ dự án duyệt 2026-11-01): `Report.filterOptions` (`facilityWide`, `floorAreas`), `/metric-details` nhận bộ lọc của báo cáo (trước đó danh sách bỏ qua bộ lọc nên lệch số, FR-009). Web: bộ lọc tầng trên màn Báo cáo; phạm vi toàn viện lấy danh mục `GET /floors`, không gọi được thì không hiện; chi tiết và file xuất cùng bộ lọc.
+
+### T021, T027 phần chạy được (2026-11-01, nhánh `impl/016-detail-readonly`)
+
+- `SC_008_ReadOnlyIT` so `CHECKSUM TABLE` mọi bảng trước và sau khi xem; bỏ `login_session`, `device` (mỗi yêu cầu ghi lần kết nối cuối, không phải dữ liệu nghiệp vụ). Lần xuất chỉ đổi `audit_log`, `file`, `idempotency_key`.
+- Dòng rút gọn luôn `canOpenRecord = false` (`DetailRow.asReduced`), nghiêm hơn FR-012 (mở được khi quyền hiện hành ở feature sở hữu cho phép, ví dụ quyền "X" của Trưởng tầng ở dòng phát thuốc). Xét lại khi có chỉ tiêu thật: M14 cần biết khóa quyền của từng loại bản ghi nguồn.
 
 ## Gộp bảng theo R-15 *(bổ sung 2026-10-29, constitution XII 3.2.0)*
 

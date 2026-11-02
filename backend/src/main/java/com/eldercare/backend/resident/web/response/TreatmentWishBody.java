@@ -28,7 +28,7 @@ public record TreatmentWishBody(
         Instant at,
         TreatmentWishStatus status) {
 
-    /** {@code relationship} chưa có vì 012 chưa đưa nhãn quan hệ qua {@code FamilyRelationshipApi}. */
+    /** {@code relationship} là mã {@code FamilyRelationshipType} (002 "Đổi api" 2026-10-30), web hiện nhãn tiếng Việt. */
     public record NotifyFamilyMemberBody(
             long familyMemberId, String fullName, String relationship, String phoneNumber) {}
 
@@ -42,7 +42,11 @@ public record TreatmentWishBody(
                 wish.healthInsurance(),
                 wish.askFamilyFirst(),
                 service.notifyContacts(wish).stream()
-                        .map(c -> new NotifyFamilyMemberBody(c.familyMemberId(), c.fullName(), null, c.phoneNumber()))
+                        .map(c -> new NotifyFamilyMemberBody(
+                                c.familyMemberId(),
+                                c.fullName(),
+                                service.relationshipOf(wish, c.familyMemberId()),
+                                c.phoneNumber()))
                         .toList(),
                 wish.accompaniedBy(),
                 wish.note(),

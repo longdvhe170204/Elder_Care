@@ -131,6 +131,34 @@ class BR_M01_11_CatalogIT extends MySqlIntegrationTestBase {
     }
 
     @Test
+    void FR_018a_listCarriesVersionSoTheClientCanSendIfMatch() throws Exception {
+        String name = "Latex " + UUID.randomUUID();
+        String created = command(
+                        post("/api/v1/catalogs/allergens"),
+                        manager,
+                        null,
+                        "{\"name\":\"" + name + "\",\"group\":\"OTHER\"}")
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.version").value(0))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        long id = Long.parseLong(created.replaceAll(".*\"id\":(\\d+).*", "$1"));
+
+        read("/api/v1/catalogs/allergens?group=OTHER", manager)
+                .andExpect(jsonPath("$[?(@.id==" + id + ")].version").value(0));
+        command(
+                        put("/api/v1/catalogs/allergens/" + id),
+                        manager,
+                        "\"0\"",
+                        "{\"name\":\"" + name + " 2\",\"group\":\"OTHER\"}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.version").value(1));
+        read("/api/v1/catalogs/allergens?group=OTHER", manager)
+                .andExpect(jsonPath("$[?(@.id==" + id + ")].version").value(1));
+    }
+
+    @Test
     void FR_018a_allergenListFiltersByGroup() throws Exception {
         String food = "Tôm " + UUID.randomUUID();
         String drug = "Aspirin " + UUID.randomUUID();

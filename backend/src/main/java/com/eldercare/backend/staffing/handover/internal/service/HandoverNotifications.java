@@ -14,7 +14,7 @@ public class HandoverNotifications {
         recipients.add(new RecipientGroup.Staff(giver, "HANDOVER_CORRECTED"));
         if (receiver != null && receiver != giver)
             recipients.add(new RecipientGroup.Staff(receiver, "HANDOVER_CORRECTED"));
-        recipients.add(new RecipientGroup.FloorManager(shift.scopeId(), new Substitution.Default()));
+        recipients.add(new RecipientGroup.ShiftLead(shift.scopeId(), new Substitution.Default()));
         return List.of(new NotificationRequest(
                 "008",
                 "HANDOVER_CORRECTED",

@@ -22,9 +22,13 @@ import com.eldercare.backend.reporting.internal.metric.domain.MetricGroup;
 import com.eldercare.backend.reporting.internal.metric.domain.MetricGroupAccess;
 import com.eldercare.backend.reporting.internal.scope.domain.ReportScope;
 import com.eldercare.backend.reporting.internal.scope.domain.ReportScope.Grant;
+import com.eldercare.backend.staffing.api.ShiftApi;
+import com.eldercare.backend.staffing.api.dto.ShiftView;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,14 +41,17 @@ import org.springframework.transaction.annotation.Transactional;
  * Dựng {@link ReportScope} theo FR-010, FR-012 (research O-03), xét lại mỗi lần gọi (FR-017).
  *
  * <ul>
- *   <li>Dashboard: phạm vi hiện hành của 002 ({@code ScopeApi.filter}, gồm CFG-M15-07).
+ *   <li>Dashboard: phạm vi hiện hành của 002, gồm CFG-M15-07, chỉ từ các loại phân công ô của nhóm cho phép (FR-015).
  *   <li>Trưởng tầng, khoảng bất kỳ: tầng/khu đang được giao lúc xem, mọi thời điểm.
- *   <li>Điều dưỡng, Người phụ trách ca: từng phân công theo ca của 008 trong giờ ca ± CFG-M15-07; ca hủy, vắng, nghỉ có
- *       duyệt không có trong lịch sử phân công của 008 ({@code AssignmentApi.history}).
+ *   <li>Điều dưỡng, Người phụ trách ca: từng phân công theo ca của 008 trong giờ ca ± CFG-M15-07; bị gỡ, vắng giữa ca thì
+ *       dừng tại mốc đó, không cộng biên; bổ sung giữa ca thì tính từ lúc có tên; ca không còn thuộc về người xem (hủy,
+ *       vắng từ đầu ca, nghỉ có duyệt) không có trong {@code ShiftApi.staffShifts} nên bị loại.
+ *   <li>Việc chung, liều chung của tầng/khu trong ca (Q-61, Q-85): phân công theo người, phòng góp cả tầng/khu của ca
+ *       cho bản ghi không gắn người cao tuổi.
  * </ul>
  *
  * Ô toàn viện của bảng FR-010 bị 002 hạ phạm vi (FR-010a) thì tính như phạm vi phân công. Dữ liệu nguồn lỗi thì từ
- * chối với lớp {@code SOURCE_DATA} (FR-016).
+ * chối với lớp {@code SOURCE_DATA} và báo Quản lý viện (FR-016).
  */
 @Service
 @Transactional(readOnly = true)
@@ -56,6 +63,7 @@ public class ReportScopeService {
     private final PermissionApi permissions;
     private final ScopeApi scopes;
     private final ObjectProvider<AssignmentApi> assignments;
+    private final ShiftApi shifts;
     private final ParameterApi parameters;
     private final BusinessTime time;
 
@@ -63,11 +71,13 @@ public class ReportScopeService {
             PermissionApi permissions,
             ScopeApi scopes,
             ObjectProvider<AssignmentApi> assignments,
+            ShiftApi shifts,
             ParameterApi parameters,
             BusinessTime time) {
         this.permissions = permissions;
         this.scopes = scopes;
         this.assignments = assignments;
+        this.shifts = shifts;
         this.parameters = parameters;
         this.time = time;
     }
@@ -76,30 +86,13 @@ public class ReportScopeService {
     public ReportScope dashboard(CurrentUser user, MetricGroup group) {
         Set<GroupScope> kinds = allowedKinds(user, group, ReportChannel.DASHBOARD);
         try {
-            ScopeFilter current = scopes.filter(user, KEY);
-            if (!current.facilityWide()) {
-                return ReportScope.of(List.of(Grant.always(current)));
-            }
-            if (kinds.contains(GroupScope.FACILITY)) {
+            if (scopes.filter(user, KEY).facilityWide() && kinds.contains(GroupScope.FACILITY)) {
                 return ReportScope.FACILITY;
             }
-            // Ô toàn viện bị hạ cho riêng nhóm này (FR-010a): phân công đang góp vào phạm vi lúc xem
-            AssignmentApi api = assignments.getIfAvailable();
-            if (api == null || user.staffId().isEmpty()) {
-                return ReportScope.EMPTY;
-            }
-            Instant now = time.now();
-            Duration margin = parameters.read(ParameterCode.CFG_M15_07).asDuration();
-            List<Grant> grants = new ArrayList<>();
-            for (AssignmentView a : api.history(user.staffId().get(), now.minus(margin), now.plus(margin))) {
-                Grant g = duringShift(a, margin, now);
-                if (!now.isBefore(g.from()) && now.isBefore(g.to())) {
-                    grants.add(new Grant(g.floorAreaIds(), g.roomIds(), g.residentIds(), null, null));
-                }
-            }
-            return ReportScope.of(grants);
+            ScopeFilter assigned = scopes.assignedFilter(user, assignmentKinds(kinds));
+            return ReportScope.of(List.of(Grant.always(assigned, commonFloorsNow(user, kinds))));
         } catch (InvalidPermissionDataException e) {
-            throw sourceDataError();
+            throw sourceDataError(user, e);
         }
     }
 
@@ -116,22 +109,25 @@ public class ReportScopeService {
             }
             long staffId = user.staffId().get();
             List<Grant> grants = new ArrayList<>();
-            if (kinds.contains(GroupScope.ASSIGNED_FLOORS) || kinds.contains(GroupScope.FLOOR_STAFF)) {
+            Set<AssignmentKind> assignmentKinds = assignmentKinds(kinds);
+            if (assignmentKinds.contains(AssignmentKind.FLOOR_MANAGER)) {
                 grants.add(assignedFloors(api.activeAt(staffId, time.now())));
             }
-            if (kinds.contains(GroupScope.ASSIGNMENT)
-                    || kinds.contains(GroupScope.ASSIGNMENT_AREA)
-                    || kinds.contains(GroupScope.FACILITY)) {
+            if (assignmentKinds.contains(AssignmentKind.SHIFT_MEMBER)) {
                 Duration margin = parameters.read(ParameterCode.CFG_M15_07).asDuration();
-                for (AssignmentView a : api.history(staffId, from.minus(margin), to.plus(margin))) {
-                    if (a.kind() != AssignmentKind.FLOOR_MANAGER) {
-                        grants.add(duringShift(a, margin, to));
+                Instant start = from.minus(margin);
+                Instant end = to.plus(margin);
+                Map<Long, ShiftView> belonged = shiftsOf(staffId, start, end);
+                for (AssignmentView a : api.history(staffId, start, end)) {
+                    if (a.kind() != AssignmentKind.FLOOR_MANAGER
+                            && (a.shiftId() == null || belonged.containsKey(a.shiftId()))) {
+                        grants.add(duringShift(a, belonged.get(a.shiftId()), margin, to));
                     }
                 }
             }
             return ReportScope.of(grants);
         } catch (InvalidPermissionDataException e) {
-            throw sourceDataError();
+            throw sourceDataError(user, e);
         }
     }
 
@@ -159,6 +155,51 @@ public class ReportScopeService {
         return kinds;
     }
 
+    /** Loại phân công góp vào ô của nhóm; ô toàn viện chỉ tới đây khi bị hạ phạm vi (FR-010a). */
+    private static Set<AssignmentKind> assignmentKinds(Set<GroupScope> kinds) {
+        Set<AssignmentKind> result = EnumSet.noneOf(AssignmentKind.class);
+        if (kinds.contains(GroupScope.ASSIGNED_FLOORS) || kinds.contains(GroupScope.FLOOR_STAFF)) {
+            result.add(AssignmentKind.FLOOR_MANAGER);
+        }
+        if (kinds.contains(GroupScope.ASSIGNMENT)
+                || kinds.contains(GroupScope.ASSIGNMENT_AREA)
+                || kinds.contains(GroupScope.FACILITY)) {
+            result.add(AssignmentKind.SHIFT_MEMBER);
+            result.add(AssignmentKind.SHIFT_LEAD);
+        }
+        return result;
+    }
+
+    private Map<Long, ShiftView> shiftsOf(long staffId, Instant from, Instant to) {
+        Map<Long, ShiftView> result = new HashMap<>();
+        for (ShiftView s : shifts.staffShifts(staffId, from, to)) {
+            result.put(s.id(), s);
+        }
+        return result;
+    }
+
+    /** Tầng/khu của ca người xem đang thuộc về lúc xem, ± CFG-M15-07, cho việc chung, liều chung. */
+    private Set<Long> commonFloorsNow(CurrentUser user, Set<GroupScope> kinds) {
+        AssignmentApi api = assignments.getIfAvailable();
+        if (api == null || user.staffId().isEmpty() || !assignmentKinds(kinds).contains(AssignmentKind.SHIFT_MEMBER)) {
+            return Set.of();
+        }
+        long staffId = user.staffId().get();
+        Instant now = time.now();
+        Duration margin = parameters.read(ParameterCode.CFG_M15_07).asDuration();
+        Instant start = now.minus(margin);
+        Instant end = now.plus(margin);
+        Map<Long, ShiftView> belonged = shiftsOf(staffId, start, end);
+        Set<Long> floors = new HashSet<>();
+        for (AssignmentView a : api.history(staffId, start, end)) {
+            Grant g = duringShift(a, belonged.get(a.shiftId()), margin, now);
+            if (!now.isBefore(g.from()) && now.isBefore(g.to())) {
+                floors.addAll(g.commonFloorAreaIds());
+            }
+        }
+        return Set.copyOf(floors);
+    }
+
     private static Grant assignedFloors(List<AssignmentView> active) {
         Set<Long> floors = new HashSet<>();
         for (AssignmentView a : active) {
@@ -166,17 +207,27 @@ public class ReportScopeService {
                 floors.add(a.floorAreaId());
             }
         }
-        return new Grant(Set.copyOf(floors), Set.of(), Set.of(), null, null);
+        return new Grant(Set.copyOf(floors), Set.of(), Set.of(), Set.of(), null, null);
     }
 
-    private static Grant duringShift(AssignmentView a, Duration margin, Instant periodEnd) {
+    private static Grant duringShift(AssignmentView a, ShiftView shift, Duration margin, Instant periodEnd) {
         Duration m = a.shiftId() != null ? margin : Duration.ZERO;
-        Instant end = a.to() == null ? periodEnd.plus(margin) : a.to().plus(m);
+        Instant start = shift != null && a.from().isAfter(shift.startsAt())
+                ? a.from()
+                : a.from().minus(m);
+        Instant end;
+        if (a.scopeEndsAt() != null) {
+            end = a.scopeEndsAt();
+        } else {
+            end = a.to() == null ? periodEnd.plus(margin) : a.to().plus(m);
+        }
+        boolean withFloor = a.kind() == AssignmentKind.SHIFT_MEMBER && a.floorAreaId() == null && shift != null;
         return new Grant(
                 ids(a.floorAreaId()),
                 ids(a.roomId()),
                 ids(a.residentId()),
-                a.from().minus(m),
+                withFloor ? ids(shift.floorAreaId()) : Set.of(),
+                start,
                 end);
     }
 
@@ -184,7 +235,8 @@ public class ReportScopeService {
         return id == null ? Set.of() : Set.of(id);
     }
 
-    private static PermissionDeniedException sourceDataError() {
+    private PermissionDeniedException sourceDataError(CurrentUser user, InvalidPermissionDataException error) {
+        permissions.recordDataError(user, error);
         return new PermissionDeniedException(
                 "PERMISSION_DENIED",
                 "Không xác định được phạm vi của người xem",
