@@ -989,6 +989,29 @@ Sự cố ngã có mức mặc định là Khẩn cấp. Người ghi được c
 
 Cột "Xử lý" mô tả người làm việc chuyên môn. Người tiếp nhận ban đầu của cảnh báo ở mọi mức là Điều dưỡng phụ trách; chuỗi leo thang theo BR-M05-01.
 
+**Danh mục loại sự cố khởi tạo (Q-398):**
+
+Bên cạnh sự cố ngã (`NGA`, mức mặc định Khẩn cấp), đồ gửi thất lạc (`DO_GUI_THAT_LAC`), đồ gửi hư hỏng (`DO_GUI_HU_HONG`) và cơ sở vật chất (`CO_SO_VAT_CHAT`), hệ thống khởi tạo danh mục các loại sự cố lâm sàng & chăm sóc:
+
+| Mã sự cố | Tên loại sự cố | Ưu tiên xử lý mặc định (`defaultPriority`) | Ngoài sức khỏe (`nonHealth`) | Cho phép không gắn NCT (`allowsNoResident`) |
+|---|---|---|---|---|
+| `KHO_THO_MAT_Y_THUC` | Khó thở cấp hoặc mất ý thức | `CRITICAL` (Khẩn cấp) | `false` | `false` |
+| `THUOC` | Sự cố liên quan đến sử dụng thuốc | `MEDIUM` (Trung bình) | `false` | `false` |
+| `AN_UONG` | Sặc/nghẹn thức ăn, nghi tắc đường thở | `CRITICAL` (Khẩn cấp) | `false` | `false` |
+| `PHUC_VU_SAI_SUAT_AN` | Phục vụ sai suất ăn hoặc chế độ ăn | `MEDIUM` (Trung bình) | `false` | `false` |
+| `HANH_VI` | Kích động, gây gổ liên quan đến người cao tuổi | `MEDIUM` (Trung bình) | `false` | `false` |
+| `CHAN_THUONG_KHAC` | Chấn thương khác ở người cao tuổi | `MEDIUM` (Trung bình) | `false` | `false` |
+| `KHAC` | Sự cố sức khỏe/chăm sóc khác của người cao tuổi | `MEDIUM` (Trung bình) | `false` | `false` |
+
+*Quy tắc triển khai:*
+- Mức mặc định là **ưu tiên xử lý ban đầu**, không phải mức tổn thương thực tế.
+- Khi tạo sự cố, hệ thống điền mức mặc định; nhân viên có thẩm quyền được điều chỉnh, bắt buộc ghi lý do và lưu lịch sử.
+- Tình huống nguy kịch được xử lý ngay theo quy trình cấp cứu, không chờ hoàn tất biểu mẫu.
+- `nonHealth = false`: thuộc phạm vi sức khỏe, an toàn hoặc chăm sóc người cao tuổi.
+- `allowsNoResident = false`: bắt buộc gắn ít nhất một người cao tuổi liên quan.
+- `KHAC` bắt buộc nhập mô tả và xác nhận lại mức ưu tiên. Sự cố vận hành không liên quan người cao tuổi phải dùng loại riêng.
+- Các giá trị trên dùng làm chuẩn cấu hình khởi tạo; các quy tắc đánh giá y khoa hoặc tự động nâng/hạ mức chưa được xác định thì để cấu hình riêng, không tự đặt.
+
 ### 9.4. Quy trình
 
 Phát hiện → Ghi nhận → Đánh giá → Xử lý → Thông báo → Theo dõi → Đóng.
@@ -1156,9 +1179,26 @@ Các quy tắc chi tiết của mục này mang mã BR-M05-17 → BR-M05-26 (9.7
 
 ### 10.1. Theo dõi chỉ số
 
-Quản lý: huyết áp; nhịp tim; nhiệt độ; SpO2; đường huyết; chỉ số khác. Bác sĩ có thể thiết lập lịch đo riêng cho từng người; lịch đo là căn cứ lập công việc đo chỉ số (BR-M04-01).
+Quản lý: huyết áp; nhịp tim; nhiệt độ; SpO2; đường huyết; cân nặng; chỉ số khác. Bác sĩ có thể thiết lập lịch đo riêng cho từng người; lịch đo là căn cứ lập công việc đo chỉ số (BR-M04-01).
 
 Theo dõi chỉ số thuộc nhóm chức năng "Chăm sóc" (1.6). Công việc đo được ghi nhận trong checklist như công việc chăm sóc hằng ngày. Các quy tắc 10.3 và 10.5 áp khi kết quả được ghi.
+
+**Danh mục chỉ số sức khỏe khởi tạo (Q-398):**
+
+| Mã chỉ số | Tên chỉ số | Thành phần (`chi_so_thanh_phan`) | Đơn vị (`unit`) | Số chữ số thập phân (`decimalPlaces`) | Sinh hiệu (`vitalSign`) |
+|---|---|---|---|---:|---|
+| `HUYET_AP` | Huyết áp | `TAM_THU` — Tâm thu; `TAM_TRUONG` — Tâm trương | `mmHg` | 0 cho mỗi thành phần | `true` |
+| `NHIP_TIM` | Nhịp tim | `GIA_TRI` | `nhịp/phút` | 0 | `true` |
+| `NHIET_DO` | Nhiệt độ cơ thể | `GIA_TRI` | `°C` | 1 | `true` |
+| `SPO2` | Độ bão hòa oxy ngoại vi | `GIA_TRI` | `%` | 0 | `true` |
+| `DUONG_HUYET` | Đường huyết | `GIA_TRI` | `mmol/L` | 1 | `false` |
+| `CAN_NANG` | Cân nặng | `GIA_TRI` | `kg` | 1 | `false` |
+
+*Quy tắc triển khai:*
+- Huyết áp lưu hai giá trị riêng biệt (`TAM_THU` và `TAM_TRUONG`), không lưu chuỗi gộp như `"120/80"`.
+- `unit` và `decimalPlaces` áp dụng tại từng thành phần.
+- `vitalSign` dùng để phân nhóm sinh hiệu trong hệ thống; không tự động quyết định các phép đo bắt buộc sau sự cố ngã.
+- Giới hạn nhập hợp lệ và ngưỡng cảnh báo là cấu hình riêng. Hệ thống không tự suy diễn các ngưỡng y khoa từ bảng này.
 
 ### 10.2. Khám và điều trị
 
@@ -2693,6 +2733,7 @@ Các quyết định dưới đây đã được chốt và phản ánh vào cá
 | Q-395 | Phí khi vắng có cần bảng hệ số theo loại vắng và số ngày vắng không | Không. Nội trú: ngày vắng tính như ngày lưu trú, giữ giường tới khi trở về; vắng tới CFG-M02-05 ngày thì báo Quản lý viện một lần, Quản lý viện có lệnh Giải phóng giường, từ đó ngày vắng không tính phí lưu trú; giảm phí bằng khoản điều chỉnh có duyệt. Bán trú: tỷ lệ Vắng có báo, Vắng không báo ở CFG-M02-05. Bỏ bảng hệ số, ghi đè theo hợp đồng, ngưỡng giữ giường, quyết định giữ giường và tính lại. Sửa BR-M02-06, 07, Q-08 | 6.7, 15.5, BR-M02-06, 07, BR-M03-19, Phụ lục 25 | 003, 004, 010 |
 | Q-396 | Có giữ bản tin định kỳ gửi người thân không | Không. Người thân xem trực tiếp trên cổng; sự cố đã có thông báo riêng. Bỏ bản tin, BR-M10-08, 09, BR-M05-26, CFG-M10-03, 12, UC-60, dòng "Bản tin định kỳ" của Phụ lục 27. Sửa Q-124, Q-129, Q-130 | 14.5, BR-M10-06, 08, 09, BR-M05-26, Phụ lục 25 → 27 | 007, 009, 012, 014 |
 | Q-397 | Có lập lịch ca từ mẫu xoay ca và tính phủ tối thiểu không | Không. Lịch ca lập bằng tay ở 008; ca thiếu người do Trưởng tầng tự bổ sung nhân viên vào ca. 015 chỉ còn đổi ca và nghỉ đột xuất. Bỏ mẫu xoay ca, nhóm xoay ca, lập lịch từ mẫu, phủ tối thiểu, cảnh báo thiếu phủ, lời mời nhận ca thay, CFG-M09-06, 07, 10. Nghỉ "theo ngày" mở cho mọi nhân viên, người lập chọn phạm vi để xác định người duyệt (chủ dự án xác nhận 2026-10-29). Sửa BR-M09-09 → 11, Q-77, Q-191 | 13.2, BR-M09-09 → 11, 19.3, Phụ lục 25, 26 | 008, 015 |
+| Q-398 | Danh mục chỉ số sức khỏe khởi tạo và danh mục loại sự cố lâm sàng & chăm sóc (feature 005, 007) | Chốt danh mục 6 chỉ số sức khỏe (`HUYET_AP` với 2 thành phần `TAM_THU`, `TAM_TRUONG`; `NHIP_TIM`; `NHIET_DO`; `SPO2`; `DUONG_HUYET`; `CAN_NANG`) và danh mục 7 loại sự cố lâm sàng & chăm sóc (`KHO_THO_MAT_Y_THUC`, `THUOC`, `AN_UONG`, `PHUC_VU_SAI_SUAT_AN`, `HANH_VI`, `CHAN_THUONG_KHAC`, `KHAC`) cùng mức ưu tiên mặc định và các cờ phân nhóm như bảng tại 9.3 và 10.1; không tự suy diễn các ngưỡng y khoa hay tự động nâng/hạ mức khi chưa có cấu hình riêng | 9.3, 10.1 | 005, 007 |
 
 ### 24.4. Điểm cần đối chiếu trước khi triển khai
 
