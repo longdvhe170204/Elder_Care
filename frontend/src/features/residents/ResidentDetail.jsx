@@ -223,7 +223,16 @@ export function ResidentDetail({ residentId, onChanged, Title = 'h2', Descriptio
   const problem = (
     <ProblemAlert problem={failure}>
       {failure?.status === 412 && (
-        <Button type="button" variant="outline" className="h-11 self-start" onClick={load}>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 self-start"
+          onClick={() => {
+            // Đóng form cũ: giữ lại thì giá trị cũ đè lên thay đổi của người khác ở lần lưu sau (BUG-UI-001)
+            setEditing(false)
+            load()
+          }}
+        >
           Xem giá trị mới
         </Button>
       )}
