@@ -39,7 +39,7 @@ public class CallResultService {
 
     static final AuditAction RECORDED = new AuditAction("CALL_RESULT_RECORDED", false);
     static final String ENTITY = "M13.CALL_REMINDER";
-    private static final Set<String> REASONS = Set.of("NO_ANSWER", "WRONG_NUMBER", "NO_NUMBER", "OTHER");
+    private static final Set<String> REASONS = Set.of("NO_ANSWER", "WRONG_NUMBER", "NO_NUMBER");
 
     /** Kết quả gọi người dùng nhập (schema {@code CallResult}). */
     public record CallResultInput(

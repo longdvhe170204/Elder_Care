@@ -1,6 +1,9 @@
 package com.eldercare.backend.administration.account;
 
+import static com.eldercare.backend.administration.account.AccountFixtures.bearer;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -14,6 +17,7 @@ import com.eldercare.backend.support.MySqlIntegrationTestBase;
 import com.eldercare.backend.support.fake.administration.FakeAssignments;
 import com.eldercare.backend.support.fake.administration.FakeBedAllocations;
 import com.eldercare.backend.support.fake.administration.FakeM15Config;
+import com.eldercare.backend.support.fake.administration.FakeResidentProfiles;
 import com.jayway.jsonpath.JsonPath;
 import java.time.Duration;
 import java.util.UUID;
@@ -23,8 +27,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 /**
  * 002 T084 (US8 #2; FR-069, FR-070; research A-15): mã QR dùng một lần, hết hạn sau CFG-M15-11 (5 phút), mã mới vô hiệu
@@ -52,6 +58,9 @@ class LoginQrCodeIT extends MySqlIntegrationTestBase {
 
     @Autowired
     FakeBedAllocations bedAllocations;
+
+    @Autowired
+    FakeResidentProfiles residents;
 
     AccountFixtures fixtures;
     ResidentLogins logins;
@@ -157,6 +166,81 @@ class LoginQrCodeIT extends MySqlIntegrationTestBase {
                 .andExpect(jsonPath("$.expiresAt").exists());
         logins.createCode(outOfScope, account).andExpect(status().isForbidden());
         logins.createCode(careStaff, account).andExpect(status().isForbidden());
+    }
+
+    private static final String CONSENT = "{\"consent\":{\"method\":\"REQUESTED\",\"withStaffId\":7}}";
+
+    private ResultActions codeForResident(String token, long resident, String body) throws Exception {
+        return mvc.perform(post("/api/v1/resident-accounts/" + resident + "/login-qr-code")
+                .header("Authorization", bearer(token))
+                .header("Idempotency-Key", UUID.randomUUID().toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body));
+    }
+
+    @Test
+    void FR_069_byResident_requiresConsent_recordsIt() throws Exception {
+        codeForResident(office, residentId, "{}").andExpect(status().isUnprocessableEntity());
+
+        codeForResident(office, residentId, CONSENT)
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.code").isNotEmpty())
+                .andExpect(jsonPath("$.expiresAt").exists());
+
+        assertThat(jdbc.queryForObject(
+                        "SELECT details FROM audit_log WHERE action = 'LOGIN_QR_CREATED' AND entity_id = ?"
+                                + " ORDER BY id DESC LIMIT 1",
+                        String.class,
+                        String.valueOf(account)))
+                .contains("REQUESTED");
+    }
+
+    @Test
+    void FR_069_byResident_noAccount_404() throws Exception {
+        codeForResident(office, AccountFixtures.nextId(), CONSENT).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void FR_069_stateShowsBoundDevice_forWarning_withinPermission() throws Exception {
+        String url = "/api/v1/resident-accounts/" + residentId;
+
+        mvc.perform(get(url).header("Authorization", bearer(office)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.boundDevice").doesNotExist());
+        logins.loggedIn(office, account, UUID.randomUUID().toString());
+        mvc.perform(get(url).header("Authorization", bearer(office)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.boundDevice.boundAt").exists());
+        mvc.perform(get(url).header("Authorization", bearer(fixtures.session(fixtures.staffAccount("AC-05")))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void FR_006_qrLogin_neverForcesPasswordChange_voidsPendingTemporaryPassword() throws Exception {
+        jdbc.update("UPDATE account SET must_change_password = TRUE, password_hash = 'tam' WHERE id = ?", account);
+
+        String[] session = logins.loggedIn(office, account, UUID.randomUUID().toString());
+
+        mvc.perform(get("/api/v1/me").header("Authorization", bearer(session[0])))
+                .andExpect(status().isOk());
+        assertThat(jdbc.queryForObject("SELECT must_change_password FROM account WHERE id = ?", Boolean.class, account))
+                .isFalse();
+        assertThat(jdbc.queryForObject("SELECT password_hash FROM account WHERE id = ?", String.class, account))
+                .isNotEqualTo("tam");
+    }
+
+    @Test
+    void BR_M15_23_finalStatus_refusesCreatingAndUsingCode() throws Exception {
+        String code = logins.code(office, account);
+        residents.resident(residentId, "Nguyễn Thị Hoa", false, true);
+
+        logins.login(code, UUID.randomUUID().toString())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorCode").value("INVALID_QR_CODE"));
+        logins.createCode(office, account)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.errorCode").value("RESIDENCY_ENDED"));
     }
 
     @Test
