@@ -155,6 +155,21 @@ describe('ConsentTab', () => {
     expect(api.calls('POST', '/residents/5/consents')).toHaveLength(0)
   })
 
+  it('BUG-05: tệp trên 10 MB báo "Tệp quá 10 MB" tại ô, không gửi lên máy chủ', async () => {
+    routes({ consents: [] })
+    open({ allowedCommands: ['RECORD_CONSENT'] })
+    const big = pdf('qua-dung-luong.pdf')
+    Object.defineProperty(big, 'size', { value: 10 * 1024 * 1024 + 1 })
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Ghi nhận bản đồng ý' }))
+    choose('Bản ký đã scan', big)
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu bản đồng ý' }))
+
+    expect(await screen.findByText('Tệp quá 10 MB')).toBeInTheDocument()
+    expect(api.calls('POST', '/files')).toHaveLength(0)
+    expect(api.calls('POST', '/residents/5/consents')).toHaveLength(0)
+  })
+
   it('thiếu bản ký hoặc mã người thân sai thì báo tại ô và không gọi backend', async () => {
     routes({ consents: [] })
     open({ allowedCommands: ['RECORD_CONSENT'] })
