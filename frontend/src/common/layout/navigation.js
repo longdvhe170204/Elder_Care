@@ -152,8 +152,6 @@ export const NAV_GROUPS = [
         functions: ['ACCOUNT_PERMISSION_PARAMETER'],
         roles: [QL, BS, DD],
       },
-      // Dòng "Danh mục sức khỏe" (007 T009)
-      { key: 'health-catalog', label: 'Danh mục sức khỏe', icon: 'BookOpen', functions: ['ACCOUNT_PERMISSION_PARAMETER'], roles: [QL, BS, DD] },
       // Dòng "Bàn giao ca"
       {
         key: 'handovers',
