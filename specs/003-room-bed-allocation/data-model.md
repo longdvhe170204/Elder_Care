@@ -19,7 +19,7 @@ Gộp kỹ thuật theo [research R-15 của 000](../000-shared-foundation/resea
 
 ### 0.1. Lược đồ sau gộp *(bổ sung 2026-10-29; tên mã theo bảng đã cài, migration `V003_95`)*
 
-Mô tả dưới đây thay mô tả của các bảng đã gộp (mô tả cũ đã bỏ ở các mục sau, 2026-10-30; mã gộp ở 003 T066); cột không nhắc lại giữ như bảng đã cài (`V003_01` → `V003_06`).
+Mô tả dưới đây thay mô tả của các bảng đã gộp (mô tả cũ đã bỏ ở các mục sau, 2026-10-30; mã gộp ở 003 T066); cột không nhắc lại giữ như bảng đã cài (`V003_01` → `V003_06`); `V003_07` bổ sung mốc đặt dấu chờ bác sĩ nullable trên bảng `bed_allocation` được giữ, không tạo bảng phụ.
 
 **`room`** (`phong`) – nhóm 1. Giữ mọi cột và `uq_room_code`. `floor_id` trỏ `danh_muc_chung.id` loại `M03.FLOOR`; `room_type_id` trỏ loại `M03.ROOM_TYPE` (id mới). Thêm `allowed_care_levels JSON NOT NULL` (thay `room_allowed_care_level`, mảng mã `M01.CARE_LEVEL`).
 
@@ -219,6 +219,7 @@ Khớp bảng trạng thái giường của spec (mục C). Cột "Gọi từ" c
 | `dau_cho_lap_yeu_cau` | `BOOLEAN` | Sau chuyển gấp khác giá, chưa có yêu cầu | FR-030 |
 | `dau_cho_ve_cung_gia` | `BOOLEAN` | Yêu cầu sau chuyển gấp bị từ chối | FR-030 |
 | `dau_cho_bs_xac_nhan` | `BOOLEAN` | | FR-024a |
+| `thoi_diem_dat_dau_cho_bs` | `DATETIME(6) NULL` | Mã `doctor_confirmation_requested_at` (V003_07,2026-10-31); lưu lần đặt dấu gần nhất bằng BusinessTime,giữ mốc khi cờ vẫntrue; dữ liệu cũ không biết mốc giữNULL. Trả qua AllocationHandoverView.createdAt,không suy từ bat_dau. Cột nằm cùng bản phân bổ nên giữ/xóa cùng bản gốc,không thêm bảng R-15 | FR-024a; nguồn bàn giao008 |
 | `bs_xac_nhan_id`, `bs_xac_nhan_luc`, `bs_xac_nhan_ly_do` | | | FR-024a (a) |
 | `da_bao_qua_bat_dau_cho` | `DATETIME(6) NULL` | Mốc `bat_dau` đã báo quá hạn (G-09) | FR-023 |
 | `giuong_dang_hieu_luc` | Cột sinh `IF(trang_thai='DANG_HIEU_LUC', giuong_id, NULL)` | `UNIQUE` | DBR-09 |

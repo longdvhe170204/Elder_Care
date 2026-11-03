@@ -129,7 +129,7 @@ public class ControlledTransferService {
                 reason.value(),
                 user.accountId(),
                 facts.careLevel(old.residentId()).orElseThrow());
-        store.metadata(id, next, doctor, pending);
+        store.metadata(id, next, doctor, pending, at);
         states.transition(old.bedId(), transition(BedEvent.TRANSFERRED_OUT, id, reason, null, id));
         states.transition(target, transition(BedEvent.ALLOCATION_STARTED, next, reason, null, null));
         if (hold != null) states.transition(target, transition(BedEvent.ABSENT_KEEP_BED, next, reason, hold, null));

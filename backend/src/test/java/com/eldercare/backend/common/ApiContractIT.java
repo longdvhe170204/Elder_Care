@@ -83,6 +83,16 @@ class ApiContractIT extends MySqlIntegrationTestBase {
                     Set.of("PUT /api/v1/residency-change-requests/{id}"),
                     Set.of(),
                     true),
+            // 005 T060 (2026-11-03): 38/41 operation đã cài khớp hợp đồng; còn hai đường dẫn tiếng Việt chưa dịch và
+            // /testing/fakes chưa cài
+            new Contract(
+                    Path.of("..", "specs", "005-daily-care-tasks", "contracts", "api-005.yaml"),
+                    Set.of(
+                            "GET /api/v1/nguoi-cao-tuoi/{nctId}/thoi-khoa-bieu",
+                            "POST /api/v1/cong-viec/{id}/phan-lai",
+                            "PUT /api/v1/testing/fakes/{module}"),
+                    Set.of(),
+                    true),
             // 006 (dịch 2026-10-26 sau PR #34)
             new Contract(
                     Path.of("..", "specs", "006-medication-management", "contracts", "api-006.yaml"),

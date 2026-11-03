@@ -66,6 +66,11 @@ public class AllocationCorrectionProvider implements CorrectableRecordProvider {
     }
 
     @Override
+    public Optional<Long> residentId(long id) {
+        return Optional.of(store.required(id).residentId());
+    }
+
+    @Override
     public boolean canRecord(CurrentUser user) {
         var result = permissions.hasPermission(
                 user, new PermissionKey(Function.BED_ALLOCATION, Operation.CREATE), Target.UNSPECIFIED);

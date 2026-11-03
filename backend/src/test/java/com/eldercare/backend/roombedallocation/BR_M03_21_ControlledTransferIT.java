@@ -173,6 +173,11 @@ class BR_M03_21_ControlledTransferIT extends StructureTestSupport {
         assertThat(transfers.getFirst().previousFloorId()).isEqualTo(floor);
         assertThat(transfers.getFirst().nextFloorId()).isEqualTo(floor);
         assertThat(jdbc.queryForObject(
+                        "SELECT doctor_confirmation_requested_at FROM bed_allocation WHERE id=?",
+                        Timestamp.class,
+                        transfers.getFirst().nextAllocationId()))
+                .isNotNull();
+        assertThat(jdbc.queryForObject(
                         "SELECT previous_allocation_id FROM bed_allocation WHERE id=?",
                         Long.class,
                         transfers.getFirst().nextAllocationId()))

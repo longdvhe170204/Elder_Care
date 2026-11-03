@@ -162,6 +162,11 @@ class FR_024_AllocationStatusParticipantIT extends StructureTestSupport {
                         Boolean.class,
                         resident))
                 .isTrue();
+        assertThat(jdbc.queryForObject(
+                        "SELECT doctor_confirmation_requested_at FROM bed_allocation WHERE resident_id=?",
+                        Timestamp.class,
+                        resident))
+                .isNotNull();
     }
 
     @ParameterizedTest

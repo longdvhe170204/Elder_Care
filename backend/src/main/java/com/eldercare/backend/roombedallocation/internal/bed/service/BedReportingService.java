@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 /** T061: API dữ liệu cho008/016; consumer kiểm quyền chức năng rồi truyền bộ lọc phạm vi. */
 @Service
 @Transactional(readOnly = true)
-public class BedReportingService implements BedStatusApi, BedStatisticsApi, BedHandoverAlertApi {
+public class BedReportingService implements BedStatusApi, BedStatisticsApi, BedHandoverAlertApi, AllocationHandoverApi {
     private final BedReportingStore store;
     private final BusinessTime time;
     private final ParameterApi parameters;
@@ -136,15 +136,33 @@ public class BedReportingService implements BedStatusApi, BedStatisticsApi, BedH
 
     @Override
     public List<BedAlertView> byFloor(long floor, Instant at) {
+        return pendingStays(floor, at)
+                .map(r -> new BedAlertView(r.allocationId(), r.residentId(), r.bedId(), "AWAITING_DOCTOR_CONFIRMATION"))
+                .toList();
+    }
+
+    @Override
+    public List<AllocationHandoverView> atFloor(long floor, Instant at) {
+        return pendingStays(floor, at)
+                .map(r -> new AllocationHandoverView(
+                        r.allocationId(),
+                        r.residentId(),
+                        r.roomId(),
+                        "Chờ bác sĩ xác nhận lưu trú trong phòng cách ly",
+                        r.doctorConfirmationRequestedAt()))
+                .toList();
+    }
+
+    private Stream<Flags> pendingStays(long floor, Instant at) {
         if (at == null) throw new InvalidValueException("Cần thời điểm tra cứu");
         return store.flags().stream()
                 .filter(r -> r.floorId() == floor
                         && r.active()
                         && !r.from().isAfter(at)
                         && r.to().isAfter(at)
-                        && r.flags().contains("AWAITING_DOCTOR_CONFIRMATION"))
-                .map(r -> new BedAlertView(r.allocationId(), r.residentId(), r.bedId(), "AWAITING_DOCTOR_CONFIRMATION"))
-                .toList();
+                        && r.flags().contains("AWAITING_DOCTOR_CONFIRMATION")
+                        && (r.doctorConfirmationRequestedAt() == null
+                                || !r.doctorConfirmationRequestedAt().isAfter(at)));
     }
 
     @Override

@@ -126,6 +126,9 @@ List<CanhBaoView> theoTang(long tangId, Instant t);   // phân bổ mang dấu "
 ```
 
 Chỉ là cảnh báo chưa xử lý để 008 hiển thị trong bàn giao (1.3). Giường Chờ sẵn sàng quá hạn không có ở đây: người bàn giao tự ghi (FR-044, Q-307).
+**Bản cài tiếng Anh 2026-10-31**: `AllocationHandoverApi.atFloor(long floorId, Instant at)` trả `AllocationHandoverView(id, residentId, roomId, description, createdAt)` cho consumer008; giữ nguyên interface/DTO đã khai báo. `id` là id phân bổ,`roomId` là phòng của view hiện hành sau đính chính. Chỉ trả phân bổ Hiệu lực,cùng tầng,đang mang dấu chờ bác sĩ và còn khoảng hiệu lực tại `at`; nguồn đang mở hiện hành,không phải lịch sử đầy đủ của dấu đã gỡ. Caller008 tự kiểm quyền chức năng/phạm vi.
+
+`createdAt` là mốc đặt dấu trên phân bổ đó (`doctor_confirmation_requested_at`),không phải `start_at`. Khi false→true ghi mốc bằng BusinessTime; khi vẫn đang chờ giữ nguyên mốc. Chuyển kiểm soát mang dấu sang phân bổ mới ghi mốc của lệnh chuyển cho nguồn mới. Dòng cũ chưa lưu mốc trả `createdAt = null`,không đoán thời gian;008 dùng snapshot danh sách nguồn khi chốt,trong nhánh dự phòng không thể suy cảnh báo cũ thiếu mốc là mới. Không thêm trường,endpoint hoặc tự tạo mục bàn giao.
 
 ### 1.10. SPI 003 cài cho module khác
 

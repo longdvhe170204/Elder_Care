@@ -26,8 +26,8 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 
 ## Phase 1: Setup
 
-- [ ] T001 Tạo khung gói `BE/care/{api,kehoach,comat,congviec,ghinhan,checklist,danhmuc,quytac,quahan,thoikhoabieu,trangthai,lich}/` với `package-info.java` (research C-01)
-- [ ] T002 [P] Tạo bản giả SPI 005 khai báo (contracts mục 2.1) trong `BT/support/gia005/`: `NhanSuCaPort` (008), `NguonCongViecPort` (007, 011, 014), `ChiSoPort`, `CanhBaoDocPort` (007), `LieuThuocChecklistPort` (006), `BanGhiDonBanTruPort` (012), `KetQuaKiemTraPort` (014), `ThoiKhoaBieuNguonPort`; công tắc `/api/v1/kiem-thu/gia-lap/{module}` chỉ ở profile `test`, `demo`
+- [ ] T001 Tạo khung gói `BE/care/{api,careplan,attendance,task,recording,checklist,catalog,rules,overdue,timetable,status,scheduling}/` với `package-info.java` (research C-01; tên mã theo glossary mục 11, lớp sẽ đặt theo backend/README.md)
+- [ ] T002 [P] Khai báo trước tám SPI cần cho fixture trong `BE/care/api/spi/` (phần tương ứng của T003), tạo bản giả do 005 sở hữu trong `BT/support/fake/care/`: `ShiftStaffPort` (008), `TaskSourcePort` (007, 011, 014), `VitalSignPort`, `AlertReadPort` (007), `MedicationChecklistPort` (006), `DayCarePickupPort` (012), `QualityCheckPort` (014), `TimetableSourcePort`. Công tắc `PUT /api/v1/testing/fakes/{module}`, body `{enabled: boolean}`, trả 204 (chủ dự án duyệt 2026-10-26); chỉ khi import `FakeM04Config` ở profile `test`/`demo`, không đưa fake vào production. Lý do đổi thứ tự kỹ thuật và bằng chứng kiểm ở plan mục Ghi chú triển khai.
 
 ---
 
@@ -52,6 +52,8 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 
 ## Phase 3: User Story 1 – Kế hoạch chăm sóc theo phiên bản (Priority: P1) 🎯 MVP
 
+**Trạng thái checkout 2026-10-31 (yêu cầu tiếp tục Phase3):** đã cài lát cắt T010–T017/T016a ở `care/internal/careplan`, `care/web/{request,response}` và `frontend/src/features/care-tasks`, có RED/GREEN ghi trong plan/Working-history. T012 dùng migration mới `V005_96__care_plan_revisions.sql` vì số cũ đã được dùng; T013 dùng snapshot typed + JDBC Store thay vì chép tên entity/đường dẫn logic. T014/016 có 11 operation thực; T017 có hai màn và client sinh cho23operation đã duyệt. HTTP ba danh mục thêm `version` chỉ đọc và quy tắc một mục tiêu nước/mỗi phiên bản đã được chủ dự án chốt31/10. Checkbox vẫn mở: đang chạy clean verify cuối, giữ gate nền A/B và review liên module; nội dung lý do trong thông báo Trả lại cần duyệt thêm `CarePlanReturned.reason`. Chưa nghiệm thu nhánh nguồn quan hệ người thân thật hoặc kiểm hình ảnh giao diện; không suy test fake thành nguồn thật. Callback toàn bộ trạng thái cuối T057 và các story Phase4 trở đi giữ ngoài phạm vi lượt này.
+
 **Goal**: Phiên bản Nháp → Chờ duyệt → Chờ hiệu lực → Hiệu lực → Hết hiệu lực; mục chỉ sửa ở Nháp; hiệu lực từ ngày sau ngày duyệt; so sánh phiên bản (FR-001 → FR-008, DBR-11, BR-M04-19, BR-M04-25).
 
 **Independent Test**: Lập nháp 3 mục, gửi duyệt, Bác sĩ duyệt với ngày mai; hôm nay phiên bản cũ còn hiệu lực, ngày mai phiên bản mới hiệu lực và phiên bản cũ Hết hiệu lực; thử sửa phiên bản đang hiệu lực.
@@ -71,11 +73,17 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 - [ ] T016a [US1] Cài lệnh thỏa thuận trong `BE/care/kehoach/internal/ThoaThuanService.java` và `PUT /ke-hoach-cham-soc/{id}/thoa-thuan` trong `KeHoachController` (`If-Match`; chỉ Nháp; bác sĩ nhận định có AC-03; người quyết định theo nhận định, người đại diện của người bệnh kiểm `QuanHeNguoiThanApi.thuocNguoiCaoTuoi`; mỗi ý kiến qua `NguonYKienApi.kiemTra`; ngày xem lại lưu để nhắc) và việc `XEM_LAI_THOA_THUAN` của `ViecHangNgayM04` (phát `NhacXemLaiThoaThuan` một lần mỗi ngày xem lại cho Điều dưỡng phụ trách và Bác sĩ đã nhận định; test `FR_002a_NhacXemLaiIT.java` viết trước, Q43) (FR-002a, Q-360, research C-18; bổ sung 2026-10-18)
 - [ ] T017 [P] [US1] Tạo màn web `frontend/src/tinh-nang/ke-hoach-cham-soc/` (phiên bản, mục, thỏa thuận lựa chọn có rủi ro với nhận định của Bác sĩ, người quyết định, ý kiến có nguồn tách riêng từng người, duyệt, so sánh) và `frontend/src/tinh-nang/loai-cong-viec/`
 
+**Kết quả kiểm checkout 2026-10-31:** clean verify cuối exit1/17:42 phút:732unit/Arch xanh;1597IT có7failure+9error/0skip, cùng16phương thức baselinePhase2;90ITcare xanh,Spotless2297file sạch. Frontend362test/65file,lint/build exit0. Giữ T010–T017/T016a[ ] vì gate toàn kho/review và các điểm chưa nghiệm thu ở plan; không ghi phase hoàn thành. Bằng chứng tại Working-history.md và plan.
+
+**Bổ sung sau duyệt reason31/10:** chủ dự án đã duyệt `CarePlanReturned.reason` với constructor cũ, nội dung HEALTH và tiêu đề/push chung. Bản cài tại checkout đang kiểm; payload biên4233ký tự vượt outbox4000. Chủ dự án chọn chờ A mở rộng outbox trước; không thêm migration sửa schema nền, không cắt lý do. T011/T014 vẫn mở vì ca lưu payload tối đa chưa đạt; kết quả kiểm trước bổ sung reason ở trên không được dùng làm bằng chứng cho nguồn mới.
+
 **Checkpoint**: Kế hoạch chăm sóc chạy độc lập.
 
 ---
 
 ## Phase 4: User Story 2 – Người phụ trách ca lập công việc của ca (Priority: P1)
+
+**Bản cài tại checkout 2026-11-01, chưa nghiệm thu phase:** ánh xạ T018 sang `FR_026_CareTaskTransitionsTest`/`FR_017_CareTaskValidatorTest`; T019 gom các kịch bản vào `BR_M04_01_ShiftTaskPlanningIT` (mỗi phương thức mang mã BR/FR/DBR). T020 dùng migration mới `V005_97__shift_care_tasks.sql` vì số cũ đã dùng; T021 dùng record typed `CareTask`, `CareTaskData`, `CareTaskHandling` và JDBC `CareTaskStore`, lịch sử qua `StatusHistoryApi` theo R-15. T022–T023 ở `care/internal/task/service`; T025 có bảy operation đã dịch/duyệt và `CareTaskSources` cài `TaskSourceApi` MANDATORY. T024 mới có `CareTaskDueStep`: phần nhắc mọi ca chưa có công việc chờ nguồn E theo lựa chọn hoãn của chủ dự án, không thêm `ongoingShifts`. T026 có web `features/care-tasks/ShiftTaskPlanningPage` và widget `staff/care_tasks/ShiftTaskPlanningScreen`; adapter mobile/đăng ký vào app chờ A cung cấp client hỗ trợ mảng và `rowErrors`; chủ dự án không cho C sửa common. Cảnh báo Bắt buộc gắn vị trí chờ thống nhất với 007. Các lựa chọn hoãn được ghi ở `phase4-contract-proposal.md` mục 7. Không đánh `[x]` khi gate cuối, nguồn thật và phần còn chờ chưa đạt.
 
 **Goal**: Lệnh lập theo lô; `KiemTraLapCongViec` trả lỗi theo dòng; một dòng lỗi thì cả lô không lưu; không gợi ý, không chép sẵn; công việc phát sinh, làm lại; kiểm tra đầu ca một lần mỗi (ca, điều dưỡng); trạng thái theo đồng hồ khi lập muộn (FR-017 → FR-025, FR-026a, FR-029, DBR-12, BR-M04-01, 24, 26, BR-M09-01).
 
@@ -102,6 +110,9 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 
 ## Phase 5: User Story 3 – Người bán trú chỉ có công việc trong thời gian có mặt (Priority: P1)
 
+**Bản cài tại checkout 2026-11-01, chưa nghiệm thu:** T027 có test ma trận/schema/luồng; T028 dùng `simple_record`/`record_event` và `V005_94__shared_day_care_attendance.sql`; T029 có service/API đọc/checkout/giờ về/callback và AMEND_CONTENT; T030 có bước ngày/phút trên khung hiện có; T031 có bốn HTTP đã duyệt, web đăng ký màn/menu và widget mobile tiêm gateway. Bộ liên quan trước sửa hợp đồng cuối:46unit/Arch+29IT xanh; web374test, mobile52test xanh. Clean verify đầu dừng ở756unit/2failure do test đếmAPI cũ và componentYAML chèn sai cấp. Đã sửa count/hợp đồng và kiểm parser tĩnh; chưa chạy Maven lại vì automatic approval review hết hạn mức. Chủ dự án chọn chờ VOID và nhánh đổi khỏiDAY_CARE; retention chuỗi shared/correction chờA, nguồn/type004 chờB, adaptermobile chờA. Giữ T027–T031[ ]; chi tiết và thứ tự tiếp trong Working-history.md/plan.
+
+
 **Goal**: Trạng thái có mặt theo ngày, điểm danh đến/về qua bản ghi đón, Vắng không báo theo CFG-M02-07, giờ về dự kiến, báo còn có mặt hết ngày (FR-012 → FR-016, FR-018, FR-018a, FR-019, BR-M04-02).
 
 **Independent Test**: E có lịch 07:30–16:30; lập trước điểm danh bị chặn; điểm danh đến 08:10 → Người phụ trách ca được báo, lập được từ 08:10; điểm danh về 15:00 → công việc sau đó bị hủy.
@@ -122,6 +133,10 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 ---
 
 ## Phase 6: User Story 4 – Checklist theo ca và ghi nhận kết quả theo loại (Priority: P1)
+
+**Tiếp nhận 2026-11-01:** T032 đặt tại `care/internal/result/domain/CareResultTiming.java`, test `care/FR_035_CareResultTimingTest.java`; các đường dẫn bên dưới vẫn là tên logic. Bản dịch sáu operation T039 đã được chủ dự án duyệt tại `phase6-contract-proposal.md`. Chỉ đánh `[x]` sau kiểm cuối phase theo yêu cầu; các gate Phase 5 không được coi là đã giải quyết.
+
+**Phạm vi kiểm Phase6 hiện tại:** T035 dùng V005_98/99/100 theo R-15, không chép tên migration logic. CareTask.resultType readOnly đã duyệt bổ sung. T033/T036 tính phí chờ E/010; T034/T037 chờ A chốt payload; T036/T039 nhánh đo phát sinh/callback khác metadata chờ D/007, summary chờ E/012. T040 có cache/checklist/form trực tuyến một phần, chưa tích hợp đầy đủ shell/danh mục mảng/offline. Giữ checkbox cho các task chưa đủ điều kiện; chi tiết và lý do kỹ thuật ở plan/Working-history.
 
 **Goal**: Checklist theo ca và phân công, công việc chung, nhận việc; ghi nhận theo loại kết quả, đo chỉ số qua `ChiSoPort`, xác nhận phục vụ bữa, Ghi nhận phát sinh, ghi muộn, ngoại tuyến, sự kiện tính phí (FR-029 → FR-037, FR-040a, FR-041, FR-051, BR-M04-10, 12, 27, BR-M15-20).
 
@@ -148,6 +163,7 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 ---
 
 ## Phase 7: User Story 5 – Quá hạn được nhắc, leo thang theo mức và đưa vào bàn giao (Priority: P1)
+**Bản cài 02/11/2026, chưa nghiệm thu phase:** T042/T043 dùng các IT tiếng Anh BR_M04_05_OverdueReminderIT, FR_052_GroupedOverdueReminderIT, FR_047_TaskHandoverIT, FR_047a_PendingHandoverIT và hồi quy review; T044 mở rộng CareTaskDueStep/CareTaskClockProcessor/CareTaskNotices, không tạo bộ quét khác. T045 có CareHandoverQueries (projection005), CareTaskHandoverProjection (tương thích008) và callback CareTaskHandover. T046 GET /care-tasks/overdue?floorAreaId đã được chủ dự án duyệt bản dịch; web OverdueTasksPage và mobile OverdueTasksScreen là danh sách chỉ đọc. Giữ checkbox mở: nguồn008 thật, nhận việc tồn, projection008 cho vị trí, cảnh báo vị trí và metadata đo bị bỏ, mobile transport/shell, gate cuối và kiểm trực quan chưa đạt. Các callback T038 chưa cài không được coi đã xong trongT045. Quyết định/test/lệnh thực ở plan và Working-history.md; không dùng fake làm bằng chứng tích hợp thật.
 
 **Goal**: Hết khung → Quá hạn; nhắc người thực hiện một lần; Quan trọng báo Trưởng tầng và Người phụ trách ca; Bắt buộc yêu cầu cảnh báo Trung bình; Thường quá CFG-M04-12 báo Người phụ trách ca; danh sách chờ bàn giao; tự đóng sau bàn giao; tồn chờ xác nhận (FR-043 → FR-047a, FR-052, BR-M04-05 → 07, 29, BR-M09-08).
 
@@ -177,11 +193,13 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 ### Tests cho User Story 6
 
 - [ ] T047 [P] [US6] Test đơn vị `BT/care/BR_M04_08_NuocUongTest.java`, `BR_M04_09_ChuoiBuaKemTest.java`, `BR_M04_11_TamTrangTest.java` (Q30 → Q33)
-- [ ] T048 [P] [US6] Test `BT/care/NuocUongIT.java`, `ChuoiBuaKemIT.java`, `US7_6_HuyGhiNhanChuoiIT.java`: dùng giá trị sau đính chính; hủy ghi nhận làm đứt chuỗi; mốc nước mỗi ngày một lần (`lan_chay_m04` `NUOC_UONG`) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_chay_m04` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
+- [ ] T048 [P] [US6] Test `BT/care/NuocUongIT.java`, `ChuoiBuaKemIT.java`, `US7_6_HuyGhiNhanChuoiIT.java`: dùng giá trị sau đính chính; bỏ kết quả bữa đã Hủy ghi nhận, không làm đứt chuỗi bữa; thiếu ngày tâm trạng/hành vi làm đứt chuỗi ngày (chủ dự án chốt 02/11/2026 theo FR-040/C-11); mốc nước mỗi ngày một lần (`lan_chay_m04` `NUOC_UONG`) **Theo R-15 (data-model mục 0, 0.1; sửa câu chữ 2026-10-30): không tạo bảng riêng cho các bảng sau mà ghi vào bảng đích: `lan_chay_m04` → `moc_da_nhac`; ràng buộc giữ theo cột "Cách giữ sau gộp" của 0.1.**
 
 ### Implementation cho User Story 6
 
 - [ ] T049 [US6] Cài `BE/care/quytac/internal/DanhGiaNuocUong.java`, `DemChuoiBuaKem.java`, `DemNgayTamTrang.java` (đọc qua `DinhChinhApi.hienHanh`; CFG-M04 đọc lúc chạy) và nối: mốc nước vào việc theo phút; chuỗi bữa và tâm trạng gọi sau khi ghi nhận/đính chính; phát `YeuCauCanhBao`, `AnKemKeoDai` (research C-11)
+
+**Checkpoint 02/11/2026 (T047–T049 chưa đóng):** bản cài thực ở `internal/rules/{domain,service}`, dùng persistence hiện có và `CareMinuteWork`; scoped44 unit/Arch +14IT xanh sau RED. `clean verify` nền cuối777unit xanh,1744IT có9failure+38error,0skip;18test riêng Phase8 xanh,Spotless2413 sạch. So Phase7 giữ45tên lỗi và thêm2ParameterChangeIT, đã bàn giaoA; không đánh `[x]`. Còn gate mealId phát sinh D/011, payload chuỗi dài A/D, consumer007/011 thật; provider/lifecycle correction thuộc T050→T051 Phase9 chưa cài. Chi tiết ở plan và Working-history.md.
 
 **Checkpoint**: Quy tắc mục F chạy độc lập.
 
@@ -200,6 +218,8 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 ### Implementation cho User Story 7
 
 - [ ] T051 [US7] Cài `DinhChinhDuocProvider` `M04.KET_QUA_GHI_NHAN` trong `BE/care/ghinhan/internal/KetQuaDinhChinhProvider.java` (`tangKhuVuc` = tầng/khu công việc; `sauKhiDinhChinh` phát sự kiện cho 010 và chạy lại quy tắc F) và endpoint `POST /ket-qua-ghi-nhan/{id}/dinh-chinh` trong `GhiNhanController.java`
+
+**Checkpoint 03/11/2026 — T050/T051 chưa đóng:** cài provider/service ở `internal/result/service`, controller/request ở `web`/`web/request`; bản dịch `POST /care-results/{id}/correct` đã duyệt. Nhánh A/B, projection đọc, VOID được hỗ trợ, callback F/ngủ AMEND và quyền xem chain có test thật. Scoped44unit/Arch/Boundary+41IT liên quan xanh sau RED; full cuối780unit xanh,1765IT9failure+36error/0skip,24test riêngPhase9 xanh,Spotless2420sạch. Không có tên lỗi mới soPhase8;45tên cũ còn,2ParameterChangeIT không tái hiện (chưa coi đã sửa). Chờ E/010 newQuantity, D/007 tín hiệu VOID ngủ/consumer thật, A isolation generic; các gate F Phase8 giữ nguyên. Không coi testguard là nghiệm thu nhánh tính phí/VOID ngủ/generic. Chi tiết ở plan/Working-history; tiếp T050→T051 theo dependency rồi T052→T053 Phase10.
 
 **Checkpoint**: Đính chính chạy độc lập.
 
@@ -247,7 +267,8 @@ description: "Danh sách task triển khai feature 005 – Chăm sóc hằng ng�
 ## Phase 12: Polish & Cross-Cutting
 
 - [ ] T059 [P] Cài `CongViecThongKeApi` (016) trong `BE/care/congviec/internal/`
-- [ ] T060 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/005-daily-care-tasks/contracts/api-005.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 005
+- [x] T060 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/005-daily-care-tasks/contracts/api-005.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 005
+  - *(2026-11-03, A)* `ApiContractIT` đăng ký `api-005`, bật so operation: 38/41 operation khớp; chờ `GET /nguoi-cao-tuoi/{nctId}/thoi-khoa-bieu`, `POST /cong-viec/{id}/phan-lai` (đường dẫn chưa dịch, chưa cài) và `PUT /testing/fakes/{module}`. Bảng nhóm 3 của 005 do `RecordGroupTriggerIT` (F-04, XII) kiểm chung, không thêm test riêng.
 - [ ] T061 Khi 006, 007, 008, 011, 012, 014 có bản thật, chạy lại test US2, US4, US5, US9 với bean thật thay T002
 - [ ] T062 Đo NFR-02 (mở checklist 3 giây) và khối lượng 7.500 công việc/ngày với dữ liệu sinh; chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3
 - [ ] T063 Rà truy vết data-model mục 12: DBR-11, 12, 15, 17, 23, 25 và BR-M04-01 → 14, 19, 20, 24 → 29, BR-M09-01, 08 (phần 005), BR-M15-20 (phần 005), FR-002a, FR-028a (bổ sung 2026-10-18) có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-009, FR-010, FR-049, FR-050, FR-053 (bổ sung 2026-10-10) — mỗi FR có task hoặc test tương ứng (constitution XV)
@@ -302,3 +323,28 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8 → US9; mỗi bư�
 - 005 không sinh, không gợi ý công việc (Q-306, Q-307); job chỉ chuyển trạng thái theo giờ, nhắc, báo, yêu cầu cảnh báo
 - Mọi mốc đọc `ThamSoApi` (CFG-M04-*, CFG-M02-07, CFG-M15-05, 06)
 - Ngoại tuyến chỉ cho ghi nhận thực hiện (Q-01)
+
+
+## Bằng chứng triển khai trước merge (giữ lịch sử, R-15 còn mở)
+
+**Kiểm 2026-10-26**: T001–T002 đã cài; 23 ca mới và các kiểm kiến trúc xanh. `clean verify` nền kết thúc exit1: 461 test đơn vị/kiến trúc xanh; 1098 IT còn 6 failure + 9 error ở 8 lớp M01 đã bàn giao B. Spotless qua. Giữ hai checkbox trống theo gate cuối phase, không ghi Phase1 đã nghiệm thu. Chi tiết ở plan/Working-history.md; task tiếp theo T003, không tạo lại tám SPI đã có.
+
+**Triển khai 2026-10-27** (chưa đóng phase): T003 đã có 11 API/DTO và fake (8 SPI ở T002 giữ nguyên); T004 có28event; T005 dùng `V005_01__care_foundation.sql`, tên bảng/cột theo glossary11.2. T006 dùng `internal/status/{service,persistence}` và `internal/scheduling/{service,persistence}`, hai job ở `scheduling/`. T008 có provider/readiness cho bảng story chưa tạo; T009 có ArchTest và fixture vi phạm, bao gồm work của scheduler. Test scoped tương ứng xanh, đang chờ clean verify cuối.
+
+**Cập nhật T007/T007a 2026-10-28**: A đã công bố Function.CARE_TASK_CATALOG theo Q-391. C dùng @RequiresPermission CREATE/UPDATE cho lệnh và VIEW cho truy vấn, không dùng SELF_CHECKED. T007a đã cài domain/store/service/controller cho đúng bốn operation hợp đồng, dùng migration đã merge V005_01_1__non_performance_reason_type.sql; không tạo migration trùng. T007 còn thiếu service/controller loại công việc và giá trị kết quả. Kết quả kiểm T007a và gate toàn kho ghi ở plan mục T007a ngày 2026-10-28.
+
+**Kiểm cuối 2026-10-27**: clean verify nền exit1/04:32phút;474unit/kiến trúc xanh,1112IT còn6failure+9error ở đúng8lớpM01 đã bàn giaoB;27kiểm mới Phase2 xanh, Spotless1509file sạch. Giữ toàn bộ checkbox Phase2[ ]; không sửa B để ép gate.
+
+**Checkpoint**: Nền 005 chưa nghiệm thu; khóa quyền đã có, không còn chờ A ở điểm quyền. Chủ dự án chọn cài T007a trước, T007 là việc tiếp theo sau kiểm T007a. Giữ điều kiện hoàn tất nền trước Phase3/T010. Bản dịch HTTP Phase 3 đã được duyệt, chưa bắt đầu implementation story Phase 3, chưa hoàn tất T016/T016a. ApiContractIT chung chưa đăng ký api-005; chủ dự án chọn giữ file A nguyên trạng và bàn giao A review bốn operation T007a, các operation chưa cài tiếp tục pending.
+
+T007a đã có service/HTTP và23test xanh trên bảng riêng ngày2026-10-28; checkbox hiện giữ mở vì tasks mới yêu cầu chuyển sang CatalogApi theo R-15. Không sửa migration đã merge trong lượt ghép này. Khung T001 dùng bốn tầng hợp lệ của README mới; bỏ các gói rỗng cấp một cũ, test kiểm lớp thật thay vì package-info rỗng.
+
+**Cập nhật nền ngày2026-10-31**: T005/T006/T007/T007a có mã chuyển nền quaAPI bảngchung,V005_95 và támoperationT007. T007không còn thiếu service/controller tại checkout;TaskTypeApi cóprovider đọc chứngchỉ thực. T001/T002/T003/T004/T009 giữkhai báo/fake/testhiệncó;không viếtlại hoặc đưa fake vào production. T008 đã qua5IT readiness,providerstory còn phải nối schemaR-15 khi T012/T020/T028/T035 tạo bảngthật,không coi DDLfixture là nguồn nghiệpvụ hoànchỉnh. Chưa đánh[x] trước cleanverify cuối và review;T064 chỉ thực hiện phần nền,không đóng taskgộp toànfeature. Bằng chứng và phầncònthiếu ghi plan/Working-history.
+
+**Gate nền31/10 đã kết thúc**: cleanverify cuối exit1/09:50phút,721unit/kiếntrúc xanh,1563IT còn7failure+9error/0skip ở16phươngthức M01/ApiContractIT đãnêu trongplan;care56IT,roombedallocation258IT,staffing251IT đều xanh;Spotless2250file sạch. Giữcheckbox và checkpoint Phase2,chưa bắt đầu implementationPhase3. RàsoátPhase3 chỉxácđịnh thứtự/điềukiện ởWorking-history.md,không đánh task hoặc coi YAMLtest làruntime.
+
+**Gate cuối lượt 2026-11-01:** `005-p4-clean-verify-final2.log` exit1/10:14 phút;751unit/Arch xanh;1629IT có8failure+10error/0skip;31ITPhase4 và6ITT008 xanh,Spotless2323file sạch. Đối chiếu đủ tên:16phươngthức baselinePhase3 còn nguyên,thêm ca outbox reason đã biết và ParameterAsOfIT/A mới(expected20M/actual10M). Giữ tất cảcheckboxPhase4[ ];các lựa chọn hoãn ởđềxuấtmục7 vẫn chưahoànthành. KhôngcàiT044/Phase7 hoặcT027/Phase5. Chi tiết bằng chứng/file/luồng/thứtựtiếp ởWorking-history.md vàplan.
+
+**Checkpoint trước duyệt API Phase5 2026-11-01 (lịch sử):** T027 có `FR_013_AttendanceTransitionsTest`/`AttendanceTransitions` thuần; T028 có `FR_012_AttendanceSchemaIT` và migration `V005_94__shared_day_care_attendance.sql` trên `simple_record` theo R-15. Chưa cài luồng T029–T031; đề xuất API ở `phase5-contract-proposal.md` đang chờ duyệt, không áp dụng mặc định. Các checkbox T027–T031 giữ `[ ]`; kết quả test/việc chờ ghi trong plan và Working-history.md. Chưa đến gate clean verify cuối phase.
+
+Kết quả kiểm ngày01/11/2026: scoped61unit/kiến trúc+67IT xanh; web389test/lint/build qua; mobile64test/analyzer qua. Clean verify nền exit1/20:54phút:772unit/kiến trúc xanh,1713IT còn8failure+10error đã đối chiếu18tên lỗi với lịch sửPhase4;Spotless2387file sạch. Không có tên test Phase6 đỏ nhưng còn các gate đã chọn chờ và kiểm trực quan chưa đạt; giữ[] toànphase, chi tiết Working-history/plan/progress. Chưa tiếp nhậnT042.

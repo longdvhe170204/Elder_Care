@@ -7,7 +7,12 @@ import { PermissionDeniedState } from '@/common/PageState'
 import { homeOf, primaryRole } from '@/common/session'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ResidentListPage } from '@/features/residents/ResidentListPage'
-import { ShiftChecklistPage } from '@/features/care-tasks/ShiftChecklistPage'
+import { CareChecklistPage } from '@/features/care-tasks/CareChecklistPage'
+import { OverdueTasksPage } from '@/features/care-tasks/OverdueTasksPage'
+import { CarePlanPage } from '@/features/care-tasks/CarePlanPage'
+import { ShiftTaskPlanningPage } from '@/features/care-tasks/ShiftTaskPlanningPage'
+import { DayCareAttendancePage } from '@/features/care-tasks/DayCareAttendancePage'
+import { CareCatalogPage } from '@/features/care-tasks/CareCatalogPage'
 import { AlertsPage } from '@/features/alerts/AlertsPage'
 import { AdminPage } from '@/features/admin/AdminPage'
 import { ApprovalInbox } from '@/features/approval-requests/ApprovalInbox'
@@ -34,7 +39,12 @@ const PAGES = {
   residents: ResidentListPage,
   shifts: ShiftsPage,
   staff: StaffPage,
-  'care-tasks': ShiftChecklistPage,
+  'care-tasks': CareChecklistPage,
+  'overdue-care-tasks': OverdueTasksPage,
+  'care-plans': CarePlanPage,
+  'care-task-planning': ShiftTaskPlanningPage,
+  'day-care-attendance': DayCareAttendancePage,
+  'care-catalogs': CareCatalogPage,
   incidents: IncidentDetailPage,
   medication: MedicationPage,
   'medication-catalog': MedicationCatalogPage,
