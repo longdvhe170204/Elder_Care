@@ -5,6 +5,7 @@ import com.eldercare.backend.roombedallocation.internal.allocation.domain.*;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -175,7 +176,12 @@ public class AllocationCommandStore {
     }
 
     public void awaitingDoctor(long id) {
-        jdbc.update("UPDATE bed_allocation SET awaiting_doctor_confirmation=TRUE WHERE id=?", id);
+        jdbc.update(
+                "UPDATE bed_allocation SET doctor_confirmation_requested_at="
+                        + "CASE WHEN awaiting_doctor_confirmation THEN doctor_confirmation_requested_at ELSE ? END,"
+                        + "awaiting_doctor_confirmation=TRUE WHERE id=?",
+                Timestamp.from(time.now().truncatedTo(ChronoUnit.MICROS)),
+                id);
     }
 
     public boolean markWithoutBed(long residentId, Instant at) {

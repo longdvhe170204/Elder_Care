@@ -87,6 +87,22 @@ class BR_M03_24_AllocationCorrectionIT extends StructureTestSupport {
     }
 
     @Test
+    void FR_049_correctionAuditKeepsResidentOfOriginalAllocation() {
+        corrections.create(
+                "M03.BED_ALLOCATION",
+                id,
+                CorrectionType.AMEND_CONTENT,
+                Map.of("endAt", start.plusSeconds(7200).toString()),
+                new Reason("Sửa mốc kết thúc"));
+        assertThat(jdbc.queryForObject(
+                        "SELECT resident_id FROM audit_log WHERE action='CORRECTION_ADDED'"
+                                + " AND entity_type='M03.BED_ALLOCATION' AND entity_id=?",
+                        Long.class,
+                        Long.toString(id)))
+                .isEqualTo(resident);
+    }
+
+    @Test
     void BR_M03_24_amendChangesCurrentViewAndPublishesBeforeAfter() {
         assertThat(provider("M03.BED_ALLOCATION").floorArea(id)).contains(floor);
         var saved = corrections.create(

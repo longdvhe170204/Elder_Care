@@ -45,4 +45,10 @@ describe('navForRole', () => {
 
     expect(withoutFunctions).toEqual(['approval-requests', 'notifications', 'pending-review-records'])
   })
+
+  it('mỗi mục menu có khóa riêng', () => {
+    const all = keys(NAV_GROUPS)
+
+    expect(all.filter((key, i) => all.indexOf(key) !== i)).toEqual([])
+  })
 })

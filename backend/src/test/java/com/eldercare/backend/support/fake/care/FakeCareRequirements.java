@@ -5,7 +5,29 @@ import com.eldercare.backend.care.api.dto.TaskRequirements;
 import java.util.*;
 
 /** Nguồn yêu cầu công việc/kế hoạch và tác động kèm lệnh của C; không thay bằng bean giả trong sản phẩm. */
+@org.springframework.transaction.annotation.Transactional(
+        propagation = org.springframework.transaction.annotation.Propagation.SUPPORTS)
 public class FakeCareRequirements implements TaskTypeApi, CarePlanApi, ShiftTaskApi, TaskHandoverApi {
+    /** Các truy vấn mới chỉ dùng khi test đã dựng fixture API đầy đủ. */
+    public Optional<com.eldercare.backend.care.api.dto.CarePlanView> effectiveOn(
+            long residentId, java.time.LocalDate date) {
+        throw new IllegalStateException("Chưa đặt fixture effectiveOn; dùng FakeM04ApiConfig");
+    }
+
+    public Optional<Integer> waterTargetMl(long residentId, java.time.LocalDate date) {
+        throw new IllegalStateException("Chưa đặt fixture waterTargetMl; dùng FakeM04ApiConfig");
+    }
+
+    public boolean hasEffectivePlan(long residentId) {
+        throw new IllegalStateException("Chưa đặt fixture hasEffectivePlan; dùng FakeM04ApiConfig");
+    }
+
+    @org.springframework.transaction.annotation.Transactional(
+            propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public void onApprovedLeave(long staffId, Set<Long> shiftIds) {
+        throw new IllegalStateException("Chưa đặt fixture onApprovedLeave; dùng FakeM04ApiConfig");
+    }
+
     private record Scope(long floor, long shift) {}
 
     private final Map<Scope, List<com.eldercare.backend.care.api.dto.TaskHandoverView>> sources =
@@ -103,8 +125,12 @@ public class FakeCareRequirements implements TaskTypeApi, CarePlanApi, ShiftTask
         return plans.getOrDefault(id, Set.of());
     }
 
+    @org.springframework.transaction.annotation.Transactional(
+            propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
     public void onAssignmentChanged(long resident, long shift) {}
 
+    @org.springframework.transaction.annotation.Transactional(
+            propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
     public void onAssignmentEnded(long assignment, long shift) {
         if (failEnd) throw new IllegalStateException("Nguồn công việc từ chối kết thúc");
         ended.add(assignment);

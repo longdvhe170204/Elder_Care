@@ -69,7 +69,7 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 - [x] T014 [P] [US1] Tạo entity `BE/roombedallocation/cocau/internal/{KhuVuc,Tang,LoaiPhong,Phong,LyDoChuyenGiuong}.java` (`@NhomDuLieu(DANH_MUC)`) và `BE/roombedallocation/giuong/internal/Giuong.java`
 - [x] T015 [US1] Cài `BE/roombedallocation/cocau/internal/CoCauService.java`: tạo, sửa, ngừng hiệu lực, kích hoạt lại, xóa (chỉ khi chưa từng tham chiếu, kể cả `ThamChieuViTri.daTungThamChieu`) cho khu vực, tầng, loại phòng, phòng, lý do chuyển; sửa chính sách phòng khóa giường và kiểm (a), (c); nhật ký `M03_CO_CAU_*` (FR-001 → FR-007)
 - [x] T016 [US1] Cài tạo giường (`TAO_GIUONG` → `TRONG`, gọi ghi tăng tài sản 019, cảnh báo BR-M03-22) trong `BE/roombedallocation/giuong/internal/GiuongService.java`; giường không có lệnh xóa (Q-237)
-- [x] T017 [US1] Tạo controller `BE/roombedallocation/cocau/web/CoCauController.java` và `BE/roombedallocation/giuong/web/GiuongController.java` cho `/khu-vuc`, `/tang`, `/loai-phong`, `/phong`, `/ly-do-chuyen-giuong` (kèm `/{id}`, `/ngung-hieu-luc`, `/kich-hoat-lai`), `POST/GET /giuong`, `GET /giuong/{id}` theo contracts/api-003.yaml; cài `CoCauViTriApi`, `PhongChoPhepApi`
+- [ ] T017 [US1] Tạo controller `BE/roombedallocation/cocau/web/CoCauController.java` và `BE/roombedallocation/giuong/web/GiuongController.java` cho `/khu-vuc`, `/tang`, `/loai-phong`, `/phong`, `/ly-do-chuyen-giuong` (kèm `/{id}`, `/ngung-hieu-luc`, `/kich-hoat-lai`), `POST/GET /giuong`, `GET /giuong/{id}` theo contracts/api-003.yaml; cài `CoCauViTriApi`, `PhongChoPhepApi`
 - [x] T018 [P] [US1] Tạo màn web `frontend/src/tinh-nang/co-cau-phong-giuong/` (cây khu vực → tầng → phòng → giường, loại phòng, lý do chuyển)
 
 **Checkpoint**: Cơ cấu dựng được độc lập.
@@ -86,19 +86,19 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 ### Tests cho User Story 2
 
-- [x] T019 [P] [US2] Test `BT/roombedallocation/BR_M03_01_DieuKienPhanBoIT.java`: mức (hiện hành → hợp đồng → lượt đăng ký, Q-301), loại hình, giới tính, cách ly/khoanh vùng, trạng thái giường, giữ chỗ, dấu tài sản; trả đủ điều kiện chưa thỏa (DBR-10, BR-M03-01)
-- [x] T020 [P] [US2] Test `BT/roombedallocation/BR_M03_02_HaiNguoiCungGiuongIT.java`, `DBR_09_KhongChongIT.java`, `FR_020_PhanBoDongThoiIT.java`: 10 luồng trên một giường chỉ một thành công (SC-001); `INSERT` trực tiếp chồng khoảng bị trigger chặn; cột sinh `UNIQUE` chặn hai đang hiệu lực
-- [x] T021 [P] [US2] Test `BT/roombedallocation/FR_023_PhanBoBanDauIT.java`, `BR_M03_20_PhamViPhanBoBanDauIT.java`, `FR_022_DanhSachGiuongIT.java`, `BR_M03_19_TroVeChuaCoGiuongIT.java`: người Đang tiếp nhận chỉ có `TUONG_LAI`; phạm vi theo giường; danh sách giường phù hợp không chọn sẵn và khớp lệnh; người trở về không có giường mang dấu "chưa có giường" và được nhắc (US2 #1–15)
+- [ ] T019 [P] [US2] Test `BT/roombedallocation/BR_M03_01_DieuKienPhanBoIT.java`: mức (hiện hành → hợp đồng → lượt đăng ký, Q-301), loại hình, giới tính, cách ly/khoanh vùng, trạng thái giường, giữ chỗ, dấu tài sản; trả đủ điều kiện chưa thỏa (DBR-10, BR-M03-01)
+- [ ] T020 [P] [US2] Test `BT/roombedallocation/BR_M03_02_HaiNguoiCungGiuongIT.java`, `DBR_09_KhongChongIT.java`, `FR_020_PhanBoDongThoiIT.java`: 10 luồng trên một giường chỉ một thành công (SC-001); `INSERT` trực tiếp chồng khoảng bị trigger chặn; cột sinh `UNIQUE` chặn hai đang hiệu lực
+- [ ] T021 [P] [US2] Test `BT/roombedallocation/FR_023_PhanBoBanDauIT.java`, `BR_M03_20_PhamViPhanBoBanDauIT.java`, `FR_022_DanhSachGiuongIT.java`, `BR_M03_19_TroVeChuaCoGiuongIT.java`: người Đang tiếp nhận chỉ có `TUONG_LAI`; phạm vi theo giường; danh sách giường phù hợp không chọn sẵn và khớp lệnh; người trở về không có giường mang dấu "chưa có giường" và được nhắc (US2 #1–15)
 - [x] T022 [P] [US2] Test `BT/roombedallocation/PhanBoRangBuocDbIT.java`: mọi cột sinh, trigger, `CHECK` của `phan_bo_giuong` (tích hợp MySQL)
 
 ### Implementation cho User Story 2
 
 - [x] T023 [US2] Tạo `MIG/V003_03__phan_bo_giuong.sql`: `phan_bo_giuong` theo data-model mục 4 (`trang_thai ENUM('TUONG_LAI','DANG_HIEU_LUC','DA_DONG','DA_HUY')`; cột sinh `ket_thuc_hieu_dung = COALESCE(ket_thuc, ket_thuc_du_kien, '9999-12-31')`; cột sinh `giuong_dang_hieu_luc`, `nct_dang_hieu_luc`, `nct_tuong_lai` có `UNIQUE`; năm `CHECK` của mục 4; chỉ mục `(giuong_id, bat_dau)`, `(nct_id, bat_dau)`, `(trang_thai, bat_dau)`; trigger `trg_phan_bo_giuong_khong_chong`, `_khong_sua` khi `DA_DONG`/`DA_HUY`, `_khong_xoa`), `vi_tri_nct` (`nct_id` khóa chính, `chua_co_giuong_tu`, `phien_ban`), view `v_phan_bo_hien_hanh` (áp `v_dinh_chinh_moi_nhat`, loại `v_ban_ghi_da_huy`), `nhac_phan_bo` (khóa chính `(loai_doi_tuong, doi_tuong_id, loai_dau)`)
 - [x] T024 [P] [US2] Tạo entity `BE/roombedallocation/phanbo/internal/PhanBoGiuong.java`, `ViTriNct.java`, `NhacPhanBo.java`
-- [x] T025 [US2] Cài `BE/roombedallocation/phanbo/internal/KiemTraPhanBo.java` (FR-018 (a)–(g), dùng `NguonLuuTruChoPhanBo`, `TinhTrangLayNhiemChoPhanBo`, dấu tài sản) và `KhoaTuanTu.java` (khóa người cao tuổi khi qua 001 → dòng `trang_thai_nct` của M03 (`resident_module_state`, thay `vi_tri_nct` theo R-15) → giường theo `id`; `@Retryable` khi deadlock) (research G-03, G-05) *(câu chữ sửa 2026-10-30 theo R-15; đã cài theo bảng cũ ở PR #33, chuyển bảng ở T066)*
-- [x] T026 [US2] Cài `BE/roombedallocation/phanbo/internal/PhanBoService.java`: phân bổ cho người Đang tiếp nhận (`TUONG_LAI`, giường `CHO_SAN_SANG` theo FR-011a, gọi `daPhanBo` kết thúc giữ chỗ hồ sơ chờ), phân bổ cho người chưa có giường (`DANG_HIEU_LUC`, gỡ dấu), hủy phân bổ tương lai có lý do; nhật ký `M03_PB_*`; cài `PhanBoGiuongApi` (002), `ViTriApi` (FR-017 → FR-023, FR-025a)
-- [x] T027 [US2] Tạo `BE/roombedallocation/phanbo/web/PhanBoController.java`: `GET /phan-bo-giuong/giuong-phu-hop`, `POST/GET /phan-bo-giuong`, `GET /phan-bo-giuong/{id}`, `POST …/{id}/huy`, `GET /nguoi-cao-tuoi/{nctId}/vi-tri`, `GET /giuong/tong-hop`
-- [x] T028 [P] [US2] Tạo màn web `frontend/src/tinh-nang/phan-bo-giuong/ChonGiuong.jsx` (không chọn sẵn), `frontend/src/tinh-nang/bang-giuong/BangGiuong.jsx` và test `ChonGiuong.test.jsx`, `BangGiuong.test.jsx`, `DieuKienChuaThoa.test.jsx`
+- [ ] T025 [US2] Cài `BE/roombedallocation/phanbo/internal/KiemTraPhanBo.java` (FR-018 (a)–(g), dùng `NguonLuuTruChoPhanBo`, `TinhTrangLayNhiemChoPhanBo`, dấu tài sản) và `KhoaTuanTu.java` (khóa người cao tuổi khi qua 001 → dòng `trang_thai_nct` của M03 (`resident_module_state`, thay `vi_tri_nct` theo R-15) → giường theo `id`; `@Retryable` khi deadlock) (research G-03, G-05) *(câu chữ sửa 2026-10-30 theo R-15; đã cài theo bảng cũ ở PR #33, chuyển bảng ở T066)*
+- [ ] T026 [US2] Cài `BE/roombedallocation/phanbo/internal/PhanBoService.java`: phân bổ cho người Đang tiếp nhận (`TUONG_LAI`, giường `CHO_SAN_SANG` theo FR-011a, gọi `daPhanBo` kết thúc giữ chỗ hồ sơ chờ), phân bổ cho người chưa có giường (`DANG_HIEU_LUC`, gỡ dấu), hủy phân bổ tương lai có lý do; nhật ký `M03_PB_*`; cài `PhanBoGiuongApi` (002), `ViTriApi` (FR-017 → FR-023, FR-025a)
+- [ ] T027 [US2] Tạo `BE/roombedallocation/phanbo/web/PhanBoController.java`: `GET /phan-bo-giuong/giuong-phu-hop`, `POST/GET /phan-bo-giuong`, `GET /phan-bo-giuong/{id}`, `POST …/{id}/huy`, `GET /nguoi-cao-tuoi/{nctId}/vi-tri`, `GET /giuong/tong-hop`
+- [ ] T028 [P] [US2] Tạo màn web `frontend/src/tinh-nang/phan-bo-giuong/ChonGiuong.jsx` (không chọn sẵn), `frontend/src/tinh-nang/bang-giuong/BangGiuong.jsx` và test `ChonGiuong.test.jsx`, `BangGiuong.test.jsx`, `DieuKienChuaThoa.test.jsx`
 
 **Checkpoint**: Phân bổ an toàn đồng thời.
 
@@ -117,18 +117,20 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 ### Tests cho User Story 3
 
 - [x] T029 [P] [US3] Test `BT/roombedallocation/BR_M03_07_ChuyenGiuongIT.java`, `FR_033_ChuyenDongThoiIT.java`, `BR_M03_04_SuKienChuyenIT.java`: một transaction; lỗi giữa chừng rollback; hai lệnh chuyển cùng người chỉ một thành công; phát `DaChuyenGiuong`; người vắng có giữ giường chuyển sang giường mới `DANG_GIU_CHO` với hạn còn lại (FR-032)
-- [x] T030 [P] [US3] Test `BT/roombedallocation/FR_029_ChuyenTheoLichIT.java` (đồng hồ giả lập): duyệt yêu cầu giữ giường bằng `TUONG_LAI`; ngày hiệu lực giường chưa Trống → `cho_giuong_san_sang`, chuyển khi xác nhận sẵn sàng; áp dụng không thành → `DA_HUY`
-- [x] T031 [P] [US3] Test `BT/roombedallocation/FR_030_ChuyenKhacGiaIT.java`, `FR_027_NhapBuIT.java`, `BR_M03_23_TuongLaiKhongPhuHopIT.java`, `FR_034_PhongKhongPhuHopIT.java`: chuyển gấp khác giá chỉ với lý do y tế/an toàn, đặt dấu chờ lập yêu cầu và nhắc CFG-M03-02; từ chối → dấu chờ về phòng cùng giá; nhập bù tạo yêu cầu `M03.NHAP_BU_PHAN_BO`; mức đổi làm phân bổ tương lai không phù hợp → báo; mức/giới tính đổi → dấu phòng không phù hợp
+- [ ] T030 [P] [US3] Test `BT/roombedallocation/FR_029_ChuyenTheoLichIT.java` (đồng hồ giả lập): duyệt yêu cầu giữ giường bằng `TUONG_LAI`; ngày hiệu lực giường chưa Trống → `cho_giuong_san_sang`, chuyển khi xác nhận sẵn sàng; áp dụng không thành → `DA_HUY`
+- [ ] T031 [P] [US3] Test `BT/roombedallocation/FR_030_ChuyenKhacGiaIT.java`, `FR_027_NhapBuIT.java`, `BR_M03_23_TuongLaiKhongPhuHopIT.java`, `FR_034_PhongKhongPhuHopIT.java`: chuyển gấp khác giá chỉ với lý do y tế/an toàn, đặt dấu chờ lập yêu cầu và nhắc CFG-M03-02; từ chối → dấu chờ về phòng cùng giá; nhập bù tạo yêu cầu `M03.NHAP_BU_PHAN_BO`; mức đổi làm phân bổ tương lai không phù hợp → báo; mức/giới tính đổi → dấu phòng không phù hợp
 
 ### Implementation cho User Story 3
 
-- [x] T032 [US3] Cài `BE/roombedallocation/phanbo/internal/ChuyenGiuongService.java`: khóa tuần tự, `KiemTraPhanBo` cho giường mới, đóng phân bổ cũ (`CHUYEN_GIUONG`) và mở phân bổ mới cùng thời điểm, giường cũ `CHO_SAN_SANG`, giường mới `DANG_SU_DUNG` hoặc `DANG_GIU_CHO` (FR-032); lý do chuyển bắt buộc; khác đơn giá (`khacDonGia`) chỉ khi lý do `y_te_an_toan` và đặt `dau_cho_lap_yeu_cau` (research G-07; FR-028 → FR-033)
-- [x] T033 [US3] Cài phần chuyển theo lịch trong `BE/roombedallocation/phanbo/internal/ChuyenTheoLich.java` (`kiemTraDatTruocChuyenTheoLich`, `datTruocChuyenTheoLich`, `kiemTraChuyenTheoLich`, `thucHienChuyenTheoLich`, `huyPhanBoTheoLich`, `daLapYeuCauSauChuyenGap`, `ketQuaYeuCauSauChuyenGap`) cài `PhanBoGiuongLenhApi` (FR-029, FR-030)
-- [x] T034 [US3] Tạo `MIG/V003_04__yeu_cau_nhap_bu.sql` (`yeu_cau_phe_duyet_id` khóa chính, `nct_id`, `phan_bo_hien_tai_id`, `giuong_moi_id`, `thoi_diem_chuyen`; không `UPDATE`) và cài handler `BE/roombedallocation/phanbo/internal/NhapBuYeuCauHandler.java` cho `M03.NHAP_BU_PHAN_BO` (`quyenTao` = `PHAN_BO_CHUYEN_GIUONG, TAO`; duyệt AC-01; `kiemTraDieuKienApDung` chạy lại FR-018, FR-019, FR-027 (c); `apDung` chuyển giường nhập bù với `nhap_bu`, `thoi_diem_nhap_thuc`) (FR-027)
-- [x] T035 [US3] Cài listener `MucChamSocDaDoi`, `DanhGiaDauVaoDaXacNhan`, `ThongTinCaNhanDaCapNhat`, `LoaiLuuTruDaDoi` trong `BE/roombedallocation/phanbo/internal/DanhGiaLaiPhuHop.java`: đặt/gỡ `dau_phong_khong_phu_hop`, báo phân bổ tương lai không phù hợp (BR-M03-23, FR-034)
-- [ ] T036 *(rà 2026-10-30: backend, web xong (PR #33); còn app nhân viên)* [US3] Bổ sung endpoint `POST /phan-bo-giuong/{id}/chuyen-giuong` (kèm nhập bù) vào `PhanBoController.java`; màn web `frontend/src/tinh-nang/phan-bo-giuong/ChuyenGiuong.jsx`; app `mobile/lib/nhan-vien/chuyen-giuong/` và test `mobile/test/nhan-vien/chuyen_giuong_test.dart`
+- [ ] T032 [US3] Cài `BE/roombedallocation/phanbo/internal/ChuyenGiuongService.java`: khóa tuần tự, `KiemTraPhanBo` cho giường mới, đóng phân bổ cũ (`CHUYEN_GIUONG`) và mở phân bổ mới cùng thời điểm, giường cũ `CHO_SAN_SANG`, giường mới `DANG_SU_DUNG` hoặc `DANG_GIU_CHO` (FR-032); lý do chuyển bắt buộc; khác đơn giá (`khacDonGia`) chỉ khi lý do `y_te_an_toan` và đặt `dau_cho_lap_yeu_cau` (research G-07; FR-028 → FR-033)
+- [ ] T033 [US3] Cài phần chuyển theo lịch trong `BE/roombedallocation/phanbo/internal/ChuyenTheoLich.java` (`kiemTraDatTruocChuyenTheoLich`, `datTruocChuyenTheoLich`, `kiemTraChuyenTheoLich`, `thucHienChuyenTheoLich`, `huyPhanBoTheoLich`, `daLapYeuCauSauChuyenGap`, `ketQuaYeuCauSauChuyenGap`) cài `PhanBoGiuongLenhApi` (FR-029, FR-030)
+- [ ] T034 [US3] Tạo `MIG/V003_04__yeu_cau_nhap_bu.sql` (`yeu_cau_phe_duyet_id` khóa chính, `nct_id`, `phan_bo_hien_tai_id`, `giuong_moi_id`, `thoi_diem_chuyen`; không `UPDATE`) và cài handler `BE/roombedallocation/phanbo/internal/NhapBuYeuCauHandler.java` cho `M03.NHAP_BU_PHAN_BO` (`quyenTao` = `PHAN_BO_CHUYEN_GIUONG, TAO`; duyệt AC-01; `kiemTraDieuKienApDung` chạy lại FR-018, FR-019, FR-027 (c); `apDung` chuyển giường nhập bù với `nhap_bu`, `thoi_diem_nhap_thuc`) (FR-027)
+- [ ] T035 [US3] Cài listener `MucChamSocDaDoi`, `DanhGiaDauVaoDaXacNhan`, `ThongTinCaNhanDaCapNhat`, `LoaiLuuTruDaDoi` trong `BE/roombedallocation/phanbo/internal/DanhGiaLaiPhuHop.java`: đặt/gỡ `dau_phong_khong_phu_hop`, báo phân bổ tương lai không phù hợp (BR-M03-23, FR-034)
+- [ ] T036 *(đối chiếu merge 2026-10-30: web đã có; controller chuyển thường và app nhân viên chưa đủ)* [US3] Bổ sung endpoint `POST /phan-bo-giuong/{id}/chuyen-giuong` (kèm nhập bù) vào `PhanBoController.java`; màn web `frontend/src/tinh-nang/phan-bo-giuong/ChuyenGiuong.jsx`; app `mobile/lib/nhan-vien/chuyen-giuong/` và test `mobile/test/nhan-vien/chuyen_giuong_test.dart`
 
 **Checkpoint**: Chuyển giường đủ biến thể.
+
+**Cập nhật đợt1 ngày 2026-10-29**: T029 có BR_M03_07_BedTransferIT15ca (chuyển thường, giữ hạn vắng, sự kiện, đồng thời và rollback); bộ hẹp43IT xanh. BedTransferService/BedTransferStore cài phần chuyển ngay của T032, giữ T032[ ]: chủ dự án chọn giữ SPI hiện hành, chuyển từ phân bổ có awaiting_request/awaiting_same_price tạm trả503 trước ghi và giữ nguyên dấu/reminder vì chưa có nguồn đối chiếu giá hợp đồng. T033/T034 và controller T036 chưa cài. Khóa quyền/checker/M01 cơ bản đã có, không còn chờ statusPeriods; nguồn004/007/019 thật vẫn thuộc kiểm T063. Không coi test producer là nghiệm thu receiver005.
 
 **Khởi động Phase 5 (2026-10-24; chỉ phần độc lập, chưa hoàn tất)**: Chủ dự án duyệt dịch riêng operation chuyển giường T036, tiếp tục chọn chờ B cho API/fake/sự kiện M01. Đã viết đỏ rồi cài phần migration của T034 bằng `V003_04__bed_backfill_request.sql`; `FR_027_BackfillSchemaIT` có 5 IT (schema/chỉ mục, PK/FK, bất biến admin/retention, rollback và dọn cùng phân bổ), sau cài cùng 23 ArchTest xanh. Handler T034 chưa cài vì còn cần checker FR-018/lệnh chuyển giường và nguồn khoảng vắng M01. T036 mới dịch `POST /bed-allocations/{id}/transfer`, clone request/response và sinh client; chưa controller/web/mobile. Giữ T029–T036 chưa đánh; không dùng dữ liệu giả thay nguồn M01. Ghi chú và kết quả clean verify nền ở plan/Working-history.md.
 
@@ -143,16 +145,16 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 ### Tests cho User Story 4
 
 - [x] T037 [P] [US4] Test đơn vị `BT/roombedallocation/BangChuyenTrangThaiGiuongTest.java` tham số hóa mọi dòng của bảng chuyển data-model mục 3 và mọi cặp ngoài bảng
-- [x] T038 [P] [US4] Test `BT/roombedallocation/BR_M03_05_GiuongCoNguoiIT.java`, `BR_M03_06_VeTrongIT.java`, `BR_M03_13_GiuongHongDatTruocIT.java`, `BR_M03_15_DauChoChuyenNguoiIT.java`, `TamNgungSuDungIT.java`, `FR_016a_ThucHienTreIT.java`: giường có người chặn lệnh tài sản; hết hạn giữ chỗ hồ sơ chờ về Trống và gọi 004; giường hỏng hủy phân bổ tương lai theo FR-013a; Báo hỏng giường có người ghi dấu "chờ chuyển người"; tạm ngừng có lý do, sử dụng lại về `CHO_SAN_SANG`; việc trễ hơn CFG-M03-08 ghi `thuc_hien_tre` (US4 #1–16)
-- [x] T039 [P] [US4] Test `BT/roombedallocation/PhanBoThamGiaChuyenTrangThaiIT.java`: mỗi lệnh của bảng G-06 (Hoàn tất tiếp nhận, Hủy tiếp nhận, Cho tạm vắng, Chuyển viện, Ghi nhận trở về, Kết thúc lưu trú, Ghi nhận qua đời) đổi giường, phân bổ đúng; lỗi thì rollback cả lệnh 001
+- [ ] T038 [P] [US4] Test `BT/roombedallocation/BR_M03_05_GiuongCoNguoiIT.java`, `BR_M03_06_VeTrongIT.java`, `BR_M03_13_GiuongHongDatTruocIT.java`, `BR_M03_15_DauChoChuyenNguoiIT.java`, `TamNgungSuDungIT.java`, `FR_016a_ThucHienTreIT.java`: giường có người chặn lệnh tài sản; hết hạn giữ chỗ hồ sơ chờ về Trống và gọi 004; giường hỏng hủy phân bổ tương lai theo FR-013a; Báo hỏng giường có người ghi dấu "chờ chuyển người"; tạm ngừng có lý do, sử dụng lại về `CHO_SAN_SANG`; việc trễ hơn CFG-M03-08 ghi `thuc_hien_tre` (US4 #1–16)
+- [ ] T039 [P] [US4] Test `BT/roombedallocation/PhanBoThamGiaChuyenTrangThaiIT.java`: mỗi lệnh của bảng G-06 (Hoàn tất tiếp nhận, Hủy tiếp nhận, Cho tạm vắng, Chuyển viện, Ghi nhận trở về, Kết thúc lưu trú, Ghi nhận qua đời) đổi giường, phân bổ đúng; lỗi thì rollback cả lệnh 001
 
 ### Implementation cho User Story 4
 
-- [x] T040 [US4] Cài giữ chỗ trong `BE/roombedallocation/giuong/internal/GiuChoService.java`: `giuChoHoSoCho` (hạn CFG-M02-02), `huyGiuCho` (idempotent), `giaiPhongGiuongKhiVang`, `giaHanKetThucDuKien` của `PhanBoGiuongLenhApi` (FR-012, FR-014, FR-015)
+- [ ] T040 [US4] Cài giữ chỗ trong `BE/roombedallocation/giuong/internal/GiuChoService.java`: `giuChoHoSoCho` (hạn CFG-M02-02), `huyGiuCho` (idempotent), `giaiPhongGiuongKhiVang`, `giaHanKetThucDuKien` của `PhanBoGiuongLenhApi` (FR-012, FR-014, FR-015)
 - [x] T041 [US4] Cài lệnh tạm ngừng, sử dụng lại (AC-01; Q-246, Q-261) trong `GiuongService.java` và endpoint `POST /giuong/{id}/tam-ngung-su-dung`, `/su-dung-lai`, `GET /giuong/{id}/lich-su-trang-thai` trong `GiuongController.java`
-- [x] T042 [US4] Cài `BE/roombedallocation/giuong/port/GiuongTheoTaiSanPortImpl.java`: `TAI_SAN_BAO_TRI`, `TAI_SAN_THANH_LY`, `TAI_SAN_SAN_SANG`, dấu "chờ chuyển người", ngoại lệ FR-013a, FR-013b; chặn khi giường có người (BR-M03-05, 13, 15)
-- [x] T043 [US4] Cài bean `ThamGiaChuyenTrangThai` của 003 trong `BE/roombedallocation/phanbo/internal/PhanBoThamGiaChuyenTrangThai.java` (`@Order` sau 004; `chiTiet.doiPhanBoSangGiuongId` cho Hoàn tất tiếp nhận; giữ giường khi vắng theo `giuGiuongKhiVang` (Q-395: 004 luôn trả giữ, không hạn); giải phóng khi kết thúc, qua đời; cảnh báo FR-024a khi trở về phòng chịu chặn) (research G-06)
-- [x] T044 [US4] Cài job `BE/roombedallocation/lich/HetHanGiuCho.java` và `BaoQuaBatDauDuKien.java` (ShedLock, 15 phút; chống lặp theo `da_bao_het_han_luc`, `da_bao_qua_bat_dau_cho`; gọi `hoSoChoHetHanGiuCho` cùng transaction) (research G-09)
+- [ ] T042 [US4] Cài `BE/roombedallocation/giuong/port/GiuongTheoTaiSanPortImpl.java`: `TAI_SAN_BAO_TRI`, `TAI_SAN_THANH_LY`, `TAI_SAN_SAN_SANG`, dấu "chờ chuyển người", ngoại lệ FR-013a, FR-013b; chặn khi giường có người (BR-M03-05, 13, 15)
+- [ ] T043 [US4] Cài bean `ThamGiaChuyenTrangThai` của 003 trong `BE/roombedallocation/phanbo/internal/PhanBoThamGiaChuyenTrangThai.java` (`@Order` sau 004; `chiTiet.doiPhanBoSangGiuongId` cho Hoàn tất tiếp nhận; giữ giường khi vắng theo `giuGiuongKhiVang` (Q-395: 004 luôn trả giữ, không hạn); giải phóng khi kết thúc, qua đời; cảnh báo FR-024a khi trở về phòng chịu chặn) (research G-06)
+- [ ] T044 [US4] Cài job `BE/roombedallocation/lich/HetHanGiuCho.java` và `BaoQuaBatDauDuKien.java` (ShedLock, 15 phút; chống lặp theo `da_bao_het_han_luc`, `da_bao_qua_bat_dau_cho`; gọi `hoSoChoHetHanGiuCho` cùng transaction) (research G-09)
 
 **Kết quả lượt Phase 6 (2026-10-24; chưa hoàn tất cả phase)**: Chỉ đánh T037/T041 sau `mvnw.cmd clean verify` nền BUILD SUCCESS (02:06), 351 unit/kiến trúc +495 IT, 0 failure/error/skip, Spotless 786 file qua. T037 có 184 ca bảng chuyển; T041 có lệnh tạm ngừng/sử dụng lại và lịch sử, 3 operation được duyệt dịch và ApiContractIT đã kiểm. T040 mới có 4 tác động nội bộ BedHoldService, chưa nối facade API đầy đủ; T044 mới có HoldExpiryJob, chưa BaoQuaBatDauDuKien. T038/T039/T040/T042/T043/T044 giữ chưa đánh: thiếu hợp đồng/fake M01 và checker/lệnh theo lịch của phase trước. Không đổi UI, không chụp màn hình; frontend 113 test, lint/build qua. Xem plan và Working-history.md; task chưa hoàn tất tiếp theo của Phase 6 là T038.
 **Checkpoint**: P1 hoàn tất; giường và phân bổ đầy đủ.
@@ -167,15 +169,17 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 ### Tests cho User Story 5
 
-- [x] T045 [P] [US5] Test `BT/roombedallocation/LichSuViTriIT.java`, `CungPhongIT.java`, `TraCuuDinhChinhIT.java`, `BR_M03_24_DinhChinhBao007IT.java`, `QuyenTraCuuIT.java`: kết quả khớp dữ liệu (SC-003 < 1 giây); đính chính phân bổ đổi kết quả tra cứu và báo 007; người ngoài phạm vi bị chặn
+- [ ] T045 [P] [US5] Test `BT/roombedallocation/LichSuViTriIT.java`, `CungPhongIT.java`, `TraCuuDinhChinhIT.java`, `BR_M03_24_DinhChinhBao007IT.java`, `QuyenTraCuuIT.java`: kết quả khớp dữ liệu (SC-003 < 1 giây); đính chính phân bổ đổi kết quả tra cứu và báo 007; người ngoài phạm vi bị chặn
 
 ### Implementation cho User Story 5
 
-- [ ] T046 *(rà 2026-10-30: đã cài; chờ C sửa `FR_035_LocationHistoryHttpIT.FR_036` đang đỏ (team-plan mục 8))* [US5] Cài `BE/roombedallocation/phanbo/internal/LichSuViTriService.java` (`LichSuViTriApi`) trên `v_phan_bo_hien_hanh` (research G-10)
-- [x] T047 [US5] Cài `DinhChinhDuocProvider` cho `M03.PHAN_BO_GIUONG` và `M03.XAC_NHAN_SAN_SANG` (`tangKhuVuc` là tầng của giường; `sauKhiDinhChinh` báo 007) trong `BE/roombedallocation/phanbo/internal/PhanBoDinhChinhProvider.java`
-- [ ] T048 *(rà 2026-10-30: đã cài; chờ C sửa `FR_035_LocationHistoryHttpIT.FR_036` đang đỏ (team-plan mục 8))* [US5] Tạo `BE/roombedallocation/phanbo/web/LichSuViTriController.java`: `GET /lich-su-vi-tri/nguoi-cao-tuoi/{nctId}`, `/lich-su-vi-tri/giuong`, `/lich-su-vi-tri/cung-phong`, `POST /phan-bo-giuong/{id}/dinh-chinh`, `POST /giuong/{id}/lich-su-trang-thai/{lichSuId}/dinh-chinh`; màn web `frontend/src/tinh-nang/lich-su-vi-tri/`
+- [x] Phần sửa fixture FR-036 thuộc T045/T048 (2026-10-28): đã tái hiện FR_036_missingM01AbsenceSourceFailsClosed mong 503 nhưng nhận 404 trước sửa. Test nay dùng spy M01 với lỗi nguồn được cấu hình riêng cho ca 503; ca FR_036_roommateAbsencesUseRealM01HistoryAndClipToOverlap nạp hồ sơ/lịch sử thật, không stub statusPeriods, kiểm khoảng vắng của cả hai người bị cắt theo khoảng cùng phòng và loại khoảng ngoài giao. Hồi quy 23 IT lịch sử/HTTP/đính chính xanh, 2 unit khung xanh; clean verify cuối có 680 unit và toàn bộ 231 IT M03 xanh, Spotless sạch; toàn kho còn 20 lỗi M01/M15 đã ghi bàn giao. Chỉ phần sửa fixture này hoàn tất, không đánh toàn T045/T046/T048 vì các phạm vi khác chưa nghiệm thu.
 
-**Ghi chú triển khai 2026-10-24**: T045–T048 đã có bản cài và kiểm hẹp xanh; tên lớp/đường dẫn thực tế và lệch SPI ghi ở plan. `clean verify` cuối: 392 unit/kiến trúc và 170 IT M03 xanh, toàn kho còn 14 lỗi test M01. Chưa đánh `[x]`: M01 `statusPeriods` còn stub; chủ dự án giữ nguyên schema lịch sử theo giường nên chưa thể trả dấu nhập bù FR-027 ở HTTP này; UI chưa kiểm trực quan browser đủ ba bề rộng/chế độ tối.
+- [ ] T046 [US5] Cài `BE/roombedallocation/phanbo/internal/LichSuViTriService.java` (`LichSuViTriApi`) trên `v_phan_bo_hien_hanh` (research G-10)
+- [ ] T047 [US5] Cài `DinhChinhDuocProvider` cho `M03.PHAN_BO_GIUONG` và `M03.XAC_NHAN_SAN_SANG` (`tangKhuVuc` là tầng của giường; `sauKhiDinhChinh` báo 007) trong `BE/roombedallocation/phanbo/internal/PhanBoDinhChinhProvider.java` Bổ sung SPI đã có residentId(id): đọc người cao tuổi của bản phân bổ gốc để nhật ký CORRECTION_ADDED gắn resident_id (FR-049; sửa hẹp2026-10-30,không đổi hợp đồng000).
+- [ ] T048 [US5] Tạo `BE/roombedallocation/phanbo/web/LichSuViTriController.java`: `GET /lich-su-vi-tri/nguoi-cao-tuoi/{nctId}`, `/lich-su-vi-tri/giuong`, `/lich-su-vi-tri/cung-phong`, `POST /phan-bo-giuong/{id}/dinh-chinh`, `POST /giuong/{id}/lich-su-trang-thai/{lichSuId}/dinh-chinh`; màn web `frontend/src/tinh-nang/lich-su-vi-tri/`
+
+**Ghi chú triển khai 2026-10-24**: T045–T048 đã có bản cài và kiểm hẹp xanh; tên lớp/đường dẫn thực tế và lệch SPI ghi ở plan. `clean verify` cuối: 392 unit/kiến trúc và 170 IT M03 xanh, toàn kho còn 14 lỗi test M01. Chưa đánh `[x]`: M01 `statusPeriods` đã có bản thật; fixture lỗi nguồn được sửa và kiểm dữ liệu thật ngày2026-10-28; chủ dự án giữ nguyên schema lịch sử theo giường nên chưa thể trả dấu nhập bù FR-027 ở HTTP này; UI chưa kiểm trực quan browser đủ ba bề rộng/chế độ tối.
 
 **Checkpoint**: Truy vết vị trí chạy độc lập.
 
@@ -189,13 +193,13 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 ### Tests cho User Story 6
 
-- [x] T049 [P] [US6] Test `BT/roombedallocation/BR_M03_03_SucChuaIT.java`, `FR_039_BuoiGiaoIT.java`, `BR_M03_25_DoiKhungGioIT.java`, `KhuNghiDuyNhatIT.java`: vượt sức chứa bị chặn; đổi CFG-M03-01 hoặc khung giờ thì đếm lại và cảnh báo buổi vượt; hai khu nghỉ Hiệu lực bị `UNIQUE` chặn; ngừng hiệu lực khi còn lịch tương lai → 409
+- [ ] T049 [P] [US6] Test `BT/roombedallocation/BR_M03_03_SucChuaIT.java`, `FR_039_BuoiGiaoIT.java`, `BR_M03_25_DoiKhungGioIT.java`, `KhuNghiDuyNhatIT.java`: vượt sức chứa bị chặn; đổi CFG-M03-01 hoặc khung giờ thì đếm lại và cảnh báo buổi vượt; hai khu nghỉ Hiệu lực bị `UNIQUE` chặn; ngừng hiệu lực khi còn lịch tương lai → 409
 
 ### Implementation cho User Story 6
 
-- [x] T050 [US6] Khu nghỉ, buổi bán trú (`V003_05` đã có; sau gộp R-15 là loại `M03.DAY_CARE_REST_AREA`, `M03.DAY_CARE_SESSION` của `danh_muc_chung`, data-model 0.1, chuyển ở T066): khu nghỉ có đúng một trong tầng hoặc khu vực và chỉ một khu Hiệu lực (kiểm dưới khóa `M03.KHU_NGHI`), buổi có giờ kết thúc sau giờ bắt đầu và tên Hiệu lực không trùng (`ten_hieu_luc`) *(câu chữ sửa 2026-10-30 theo R-15; đã cài theo bảng cũ ở PR #33, chuyển bảng ở T066)*
-- [x] T051 [US6] Cài `BE/roombedallocation/bantru/internal/BanTruService.java`: cấu hình khu nghỉ, buổi (không chồng khung dưới khóa khu nghỉ), `SucChuaBanTruApi` cho 004, 005, đếm lại qua `DemLichDenBanTru` khi đổi buổi hoặc `ThamSoDaDoi(CFG-M03-01)`, nhật ký `M03_BAN_TRU_CANH_BAO_VUOT` (research G-11)
-- [x] T052 [US6] Tạo `BE/roombedallocation/bantru/web/BanTruController.java` (`/khu-nghi-ban-tru`, `/{id}`, `/{id}/ngung-hieu-luc`, `/so-dang-ky`, `/buoi-ban-tru`, `/{id}`, `/{id}/ngung-hieu-luc`) và màn web `frontend/src/tinh-nang/khu-nghi-ban-tru/`
+- [ ] T050 [US6] Khu nghỉ, buổi bán trú (`V003_05` đã có; sau gộp R-15 là loại `M03.DAY_CARE_REST_AREA`, `M03.DAY_CARE_SESSION` của `danh_muc_chung`, data-model 0.1, chuyển ở T066): khu nghỉ có đúng một trong tầng hoặc khu vực và chỉ một khu Hiệu lực (kiểm dưới khóa `M03.KHU_NGHI`), buổi có giờ kết thúc sau giờ bắt đầu và tên Hiệu lực không trùng (`ten_hieu_luc`) *(câu chữ sửa 2026-10-30 theo R-15; đã cài theo bảng cũ ở PR #33, chuyển bảng ở T066)*
+- [ ] T051 [US6] Cài `BE/roombedallocation/bantru/internal/BanTruService.java`: cấu hình khu nghỉ, buổi (không chồng khung dưới khóa khu nghỉ), `SucChuaBanTruApi` cho 004, 005, đếm lại qua `DemLichDenBanTru` khi đổi buổi hoặc `ThamSoDaDoi(CFG-M03-01)`, nhật ký `M03_BAN_TRU_CANH_BAO_VUOT` (research G-11)
+- [ ] T052 [US6] Tạo `BE/roombedallocation/bantru/web/BanTruController.java` (`/khu-nghi-ban-tru`, `/{id}`, `/{id}/ngung-hieu-luc`, `/so-dang-ky`, `/buoi-ban-tru`, `/{id}`, `/{id}/ngung-hieu-luc`) và màn web `frontend/src/tinh-nang/khu-nghi-ban-tru/`
 
 **Checkpoint**: Bán trú có sức chứa.
 
@@ -211,12 +215,12 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 ### Tests cho User Story 7
 
-- [x] T053 [P] [US7] Test `BT/roombedallocation/CachLyPhongIT.java`, `BR_M03_01_CachLyIT.java`, `BR_M03_21_BacSiChiDinhIT.java`, `FR_024a_TroVePhongCachLyIT.java`: chỉ AC-01, AC-03 đặt/gỡ; phòng cách ly và vùng khoanh chặn phân bổ; chuyển kiểm soát lây nhiễm cần bác sĩ chỉ định (`TaiKhoanApi.coVaiTro`); trở về phòng chịu chặn đặt dấu chờ bác sĩ xác nhận, gỡ khi `KhoanhVungDaGo`
+- [ ] T053 [P] [US7] Test `BT/roombedallocation/CachLyPhongIT.java`, `BR_M03_01_CachLyIT.java`, `BR_M03_21_BacSiChiDinhIT.java`, `FR_024a_TroVePhongCachLyIT.java`: chỉ AC-01, AC-03 đặt/gỡ; phòng cách ly và vùng khoanh chặn phân bổ; chuyển kiểm soát lây nhiễm cần bác sĩ chỉ định (`TaiKhoanApi.coVaiTro`); trở về phòng chịu chặn đặt dấu chờ bác sĩ xác nhận, gỡ khi `KhoanhVungDaGo`
 
 ### Implementation cho User Story 7
 
-- [x] T054 [US7] Tạo `MIG/V003_06__lich_su_cach_ly_phong.sql` (`hanh_dong ENUM('DAT','GO')`, `ly_do` bắt buộc, `su_co_id NULL`; trigger chỉ thêm) và cài `BE/roombedallocation/cachly/internal/CachLyService.java` (đặt, gỡ, `M03_CACH_LY`, phát `PhongDaDatCachLy`/`PhongDaGoCachLy`, listener `KhoanhVungDaGo`, `DaThemVaoDanhSachTiepXuc`) (research G-08)
-- [x] T055 [US7] Cài chuyển kiểm soát lây nhiễm (`bac_si_chi_dinh_id`, lý do `KIEM_SOAT_LAY_NHIEM`) và xác nhận ở lại vùng cách ly (`bs_xac_nhan_*`) trong `ChuyenGiuongService.java`
+- [ ] T054 [US7] Tạo `MIG/V003_06__lich_su_cach_ly_phong.sql` (`hanh_dong ENUM('DAT','GO')`, `ly_do` bắt buộc, `su_co_id NULL`; trigger chỉ thêm) và cài `BE/roombedallocation/cachly/internal/CachLyService.java` (đặt, gỡ, `M03_CACH_LY`, phát `PhongDaDatCachLy`/`PhongDaGoCachLy`, listener `KhoanhVungDaGo`, `DaThemVaoDanhSachTiepXuc`) (research G-08)
+- [ ] T055 [US7] Cài chuyển kiểm soát lây nhiễm (`bac_si_chi_dinh_id`, lý do `KIEM_SOAT_LAY_NHIEM`) và xác nhận ở lại vùng cách ly (`bs_xac_nhan_*`) trong `ChuyenGiuongService.java`
 - [ ] T056 *(rà 2026-10-30: backend, web xong (PR #33); còn app nhân viên)* [US7] Tạo `BE/roombedallocation/cachly/web/CachLyController.java` (`POST /phong/{id}/dat-cach-ly`, `/go-cach-ly`, `GET /phong/{id}/lich-su-cach-ly`) và endpoint `POST /phan-bo-giuong/{id}/chuyen-giuong-kiem-soat-lay-nhiem`, `/xac-nhan-o-lai-vung-cach-ly`; màn web `frontend/src/tinh-nang/cach-ly-phong/` và app `mobile/lib/nhan-vien/cach-ly-phong/`
 
 **Checkpoint**: Cách ly chạy độc lập.
@@ -235,12 +239,12 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 ### Tests cho User Story 8
 
-- [x] T057 [P] [US8] Test `BT/roombedallocation/BR_M03_09_ChoSanSangIT.java`, `BR_M03_10_KhuKhuanIT.java`, `XacNhanSanSangQuyenIT.java` (đồng hồ giả lập): nhắc Trưởng tầng một lần khi quá hạn; người rời thuộc danh sách thì thiếu khử khuẩn/bảo hộ → 422 và `CHECK` chặn; chỉ Trưởng tầng, Người phụ trách ca của tầng xác nhận (research G-14); có chuyển theo lịch đang chờ thì xác nhận chuyển ngay
+- [ ] T057 [P] [US8] Test `BT/roombedallocation/BR_M03_09_ChoSanSangIT.java`, `BR_M03_10_KhuKhuanIT.java`, `XacNhanSanSangQuyenIT.java` (đồng hồ giả lập): nhắc Trưởng tầng một lần khi quá hạn; người rời thuộc danh sách thì thiếu khử khuẩn/bảo hộ → 422 và `CHECK` chặn; chỉ Trưởng tầng, Người phụ trách ca của tầng xác nhận (research G-14); có chuyển theo lịch đang chờ thì xác nhận chuyển ngay
 
 ### Implementation cho User Story 8
 
-- [x] T058 [US8] Cài `BE/roombedallocation/giuong/internal/XacNhanSanSangService.java`: `bat_buoc_khu_khuan = TinhTrangLayNhiemChoPhanBo.thuocDanhSach(nguoi của phan_bo_vua_dong_id)`; `XAC_NHAN_SAN_SANG` → `TRONG` (phát `GiuongDaTrong`) hoặc thực hiện phân bổ `cho_giuong_san_sang` (FR-011a, FR-044, FR-045)
-- [x] T059 [US8] Cài job `BE/roombedallocation/lich/NhacGiuongChoSanSang.java` và `NhacChuKyPhanBo.java` (CFG-M03-04, CFG-M03-02; chống lặp `da_nhac_san_sang_luc` của giường và `moc_da_nhac` loại `M03.ALLOCATION_REMINDER.<flagType>` (thay `nhac_phan_bo` theo R-15); nhật ký `M03_NHAC`) (research G-09) *(câu chữ sửa 2026-10-30 theo R-15; đã cài theo bảng cũ ở PR #33, chuyển bảng ở T066)*
+- [ ] T058 [US8] Cài `BE/roombedallocation/giuong/internal/XacNhanSanSangService.java`: `bat_buoc_khu_khuan = TinhTrangLayNhiemChoPhanBo.thuocDanhSach(nguoi của phan_bo_vua_dong_id)`; `XAC_NHAN_SAN_SANG` → `TRONG` (phát `GiuongDaTrong`) hoặc thực hiện phân bổ `cho_giuong_san_sang` (FR-011a, FR-044, FR-045)
+- [ ] T059 [US8] Cài job `BE/roombedallocation/lich/NhacGiuongChoSanSang.java` và `NhacChuKyPhanBo.java` (CFG-M03-04, CFG-M03-02; chống lặp `da_nhac_san_sang_luc` của giường và `moc_da_nhac` loại `M03.ALLOCATION_REMINDER.<flagType>` (thay `nhac_phan_bo` theo R-15); nhật ký `M03_NHAC`) (research G-09) *(câu chữ sửa 2026-10-30 theo R-15; đã cài theo bảng cũ ở PR #33, chuyển bảng ở T066)*
 - [ ] T060 *(rà 2026-10-30: backend xong (PR #33); còn app nhân viên)* [US8] Tạo endpoint `GET /giuong/{id}/dieu-kien-xac-nhan-san-sang`, `POST /giuong/{id}/xac-nhan-san-sang` trong `GiuongController.java`; app `mobile/lib/nhan-vien/bang-giuong-tang/` và test `mobile/test/nhan-vien/xac_nhan_san_sang_test.dart` (ô khử khuẩn bắt buộc khi `canKhuKhuan`)
 
 **Checkpoint**: Mọi user story của 003 chạy độc lập.
@@ -253,8 +257,8 @@ description: "Danh sách task triển khai feature 003 – Phòng, giường và
 
 ## Phase 11: Polish & Cross-Cutting
 
-- [x] T061 [P] Cài `TinhTrangGiuongApi`, `GiuongThongKeApi` (016), `CanhBaoBanGiaoApi` (008) trong `BE/roombedallocation/giuong/internal/`
-- [x] T062 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/003-room-bed-allocation/contracts/api-003.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 003
+- [ ] T061 [P] Cài `TinhTrangGiuongApi`, `GiuongThongKeApi` (016), `CanhBaoBanGiaoApi` (008) trong `BE/roombedallocation/giuong/internal/` Bổ sung bản cài AllocationHandoverApi đã công bố cho008; V003_07 lưu mốc đặt dấu chờ bác sĩ trên bed_allocation,giữNULL cho dữ liệu cũ,không suy từ start_at; test nguồn thật và consumer HTTP008 theo plan ngày2026-10-31.
+- [ ] T062 [P] Mở rộng `BT/common/HopDongApiTest.java` với `specs/003-room-bed-allocation/contracts/api-003.yaml`; mở rộng `NhomGhiNhanCoTriggerIT` cho bảng nhóm 3 của 003
 - [ ] T063 Khi 004, 007, 008, 019 có bản thật, chạy lại test của US2, US4, US7, US8 với bean thật thay T002
 - [ ] T064 Chạy `./mvnw verify`, `npm test`, `flutter test` và kịch bản quickstart.md mục 3; đo SC-005 (danh sách giường < 1 giây) theo quickstart mục 5
 - [ ] T065 Rà truy vết data-model mục 11: DBR-09, 10, 23, 25, 26, 32 (phần 003) và BR-M03-01 → 07, 09, 10, 13, 15, 19 → 25 có test; FR chung đã làm trong các task khác mà task chưa ghi số (quyền, nhật ký, thông báo, bảng giao tiếp, số liệu cung cấp…): FR-024, FR-025, FR-051 (bổ sung 2026-10-10) — mỗi FR có task hoặc test tương ứng (constitution XV)
@@ -320,3 +324,11 @@ US1 → US2 → US3 → US4 → US5 → US6 → US7 → US8; mỗi bước chạ
 **Tiếp tục tích hợp sau merge M01 (chưa nghiệm thu)**: T025 bổ sung retry toàn transaction bằng resilience có sẵn của Spring Framework 7; T043 bổ sung chỉ mục kỹ thuật waiting_hold_bed_ids trong resident_position bằng migration mới V003_04_1__waiting_hold_index.sql để lấy id hiện hành trước khóa giường tăng dần trong transaction RR của M01. Không đổi API/M01 isolation; cần kiểm hồi quy và clean verify cuối trước đánh task. Chi tiết lý do, phạm vi và bằng chứng test ở plan/Working-history.md.
 
 **Kết quả kiểm sau tích hợp M01 (2026-10-24)**: 148 IT M03 và 392 unit/kiến trúc của kho xanh; frontend 232 test, lint/build qua. Clean verify nền toàn kho vẫn exit 1 (993 IT: 5 failure +9 error), chỉ còn fixture/contract M01 đang chờ B theo quyết định chủ dự án; không skip test và không đánh thêm [x]. T025/T043 có thêm V003_04_2__allocation_write_guard.sql, RC S/RR X trước position/room/bed, cùng pool đọc view RC độc lập để giữ đúng đính chính trong transaction RR. Không đổi isolation M01, API hoặc thư viện. Xem plan/Working-history.md cho đánh đổi và kết quả từng lệnh.
+
+**Đối chiếu merge 2026-10-30**: giữ T017/T030–T035 mở vì chưa đủ nhánh/handler/provider hoặc kiểm tương ứng tại checkout; không lấy checkbox đánh sẵn của phía develop làm bằng chứng test. T029 đã có kiểm15ca ngày29/10; T032 còn guard503 theo quyết định giữ SPI. Các đường dẫn gói dùng roombedallocation; R-15/T066 vẫn là việc sau, không sửa migration cũ trong lượt ghép.
+
+Đối chiếu checkbox khi ghép: giữ trạng thái có bằng chứng của nhánh C cho T001–T065; thêm T066/R-15 từ develop nhưng không tự nghiệm thu các task chỉ được đánh sẵn. Trạng thái kiểm hiện tại ghi ở plan mục merge2026-10-30.
+
+**Sửa hẹp 2026-10-30**: FakeHandoverLocations dùng fixture trạng thái đầy đủ,giữ roomId/holdReason,lọc phạm vi trước kiểm dữ liệu và cắt khoảng Chờ sẵn sàng nhưng giữ startedAt; không tạo fake mới. T047 có kiểm nhật ký người cao tuổi thật. Bằng chứng đỏ/xanh và review ở plan,verification mục9. Chỉ hai phần sửa này hoàn tất tại checkout; giữ nguyên checkbox T047,T066 và các task/phase chưa đủ phạm vi.
+
+**Cập nhật T061/T063 ngày 2026-10-31**: AllocationHandoverApi đã có provider thật trong BedReportingService;V003_07 lưu mốc đặt dấu chờ bác sĩ,legacy giữNULL. 39IT liên quan xanh,gồm consumer008 qua HTTP đọc nguồn thật;Spotless10file đạt,review độc lập không finding. Chi tiết và verify toàn kho ở verification.md mục10. Giữ checkbox vì T061/T063 còn phạm vi khác;LocationApi,R-15/T066 và nghiệm thu Phase11 chưa xong.

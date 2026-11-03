@@ -13,7 +13,7 @@ Hướng dẫn dùng ở giai đoạn triển khai; giai đoạn thiết kế ch
   - người cao tuổi: A, B, C, F nội trú Đang lưu trú tầng 2; E bán trú lịch 07:30–16:30 (004);
   - danh mục loại công việc mẫu: xoay trở (Bắt buộc), hỗ trợ uống nước (ml, Quan trọng, giới hạn 500), hỗ trợ ăn, thay tã (có tính phí), đo huyết áp, vận động, tâm trạng, kiểm tra đầu ca, giám sát;
   - CFG theo mặc định Phụ lục 25: CFG-M04-01 1 giờ, CFG-M04-02 ±15 phút, CFG-M04-03 16:00 / 60%, CFG-M04-04 3, CFG-M04-05 3, CFG-M04-06 2 giờ, CFG-M04-12 30 phút, CFG-M02-07 2 giờ, CFG-M09-04 30 phút, CFG-M15-07 2 giờ, CFG-M15-08 24 giờ;
-  - bản giả có công tắc qua `/api/v1/kiem-thu/gia-lap/{module}` (chỉ `test`, `demo`): `NhanSuCaPort` (008), `NguonCongViecPort` (007, 011, 014), `ChiSoPort`, `CanhBaoDocPort` (007), `LieuThuocChecklistPort` (006), `BanGhiDonBanTruPort` (012), `KetQuaKiemTraPort` (014), `ThoiKhoaBieuNguonPort`; bộ ghi sự kiện để xem sự kiện gửi 007, 009, 010, 011.
+  - bản giả T002: test dùng `@Import(FakeM04Config.class)` với profile `test` hoặc `demo`, rồi tiêm từng fake để đặt fixture và gọi `reset()` sau kịch bản. Công tắc đã duyệt: `PUT /api/v1/testing/fakes/{module}`, body `{"enabled": false}` để tắt, `true` để bật, trả 204; module `006`, `007`, `008`, `011`, `012`, `014`. Tắt nguồn gây lỗi rõ ràng, bật lại giữ fixture. Xem ánh xạ tám SPI ở glossary mục 11. Cấu hình/fake/controller đều ở test classpath, không được tự nạp vào context khác; `spring-boot:run` thông thường và JAR production không có chúng. Khi chạy demo có fake phải chủ động dùng test classpath và import cấu hình. Bộ ghi sự kiện tới 007, 009, 010, 011 chưa thuộc T002, sẽ nối khi cài các story phát sự kiện.
 
 ## 2. Chạy
 

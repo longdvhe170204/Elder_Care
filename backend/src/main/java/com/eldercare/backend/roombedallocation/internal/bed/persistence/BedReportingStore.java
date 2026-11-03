@@ -115,7 +115,7 @@ public class BedReportingStore {
 
     public List<Flags> flags() {
         return jdbc.query(
-                "SELECT v.id,v.resident_id,v.bed_id,v.room_id,v.floor_id,v.start_at,v.effective_end,v.status,v.room_unsuitable,v.awaiting_request,v.awaiting_same_price,v.awaiting_doctor_confirmation FROM v_current_allocation v WHERE v.status IN ('ACTIVE','FUTURE') ORDER BY v.id",
+                "SELECT v.id,v.resident_id,v.bed_id,v.room_id,v.floor_id,v.start_at,v.effective_end,v.status,v.room_unsuitable,v.awaiting_request,v.awaiting_same_price,v.awaiting_doctor_confirmation,a.doctor_confirmation_requested_at FROM v_current_allocation v JOIN bed_allocation a ON a.id=v.id WHERE v.status IN ('ACTIVE','FUTURE') ORDER BY v.id",
                 (r, n) -> {
                     Set<String> flags = new HashSet<>();
                     for (String flag : List.of(
@@ -133,7 +133,11 @@ public class BedReportingStore {
                             r.getTimestamp("start_at").toInstant(),
                             r.getTimestamp("effective_end").toInstant(),
                             r.getString("status").equals("ACTIVE"),
-                            Set.copyOf(flags));
+                            Set.copyOf(flags),
+                            r.getTimestamp("doctor_confirmation_requested_at") == null
+                                    ? null
+                                    : r.getTimestamp("doctor_confirmation_requested_at")
+                                            .toInstant());
                 });
     }
 

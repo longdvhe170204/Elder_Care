@@ -36,5 +36,6 @@ public final class BedReportingSnapshot {
             Instant from,
             Instant to,
             boolean active,
-            Set<String> flags) {}
+            Set<String> flags,
+            Instant doctorConfirmationRequestedAt) {}
 }

@@ -9,19 +9,28 @@ import org.springframework.context.annotation.*;
 
 /** Nguồn giường/cảnh báo phân bổ dùng chung của 003. */
 public class FakeHandoverLocations implements BedStatusApi, BedStatisticsApi, AllocationHandoverApi {
-    private final Map<Long, Long> floors = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<Long, BedStateOnDate> snapshots = new java.util.concurrent.ConcurrentHashMap<>();
     private final Map<Long, List<AwaitingReadyBedView>> beds = new java.util.concurrent.ConcurrentHashMap<>();
     private final Map<Long, List<AllocationHandoverView>> alerts = new java.util.concurrent.ConcurrentHashMap<>();
     private final Map<Long, String> states = new java.util.concurrent.ConcurrentHashMap<>();
 
     public void beds(long floor, List<AwaitingReadyBedView> values) {
         beds.put(floor, List.copyOf(values));
-        values.forEach(bed -> floors.put(bed.bedId(), floor));
-        values.forEach(b -> states.put(b.bedId(), "AWAITING_READINESS"));
+        values.forEach(bed -> {
+            state(new BedStateOnDate(
+                    bed.bedId(), floor, BedStatus.AWAITING_READY, bed.awaitingSince(), bed.roomId(), null));
+            states.put(bed.bedId(), "AWAITING_READINESS");
+        });
     }
 
     public void state(long bed, String state) {
         states.put(bed, state);
+    }
+
+    /** Đặt đầy đủ metadata báo cáo; state(long,String) vẫn đổi trạng thái của fixture đã có. */
+    public void state(BedStateOnDate value) {
+        snapshots.put(value.bedId(), value);
+        states.put(value.bedId(), value.state().name());
     }
 
     public Map<Long, String> currentState(Collection<Long> ids, Instant at) {
@@ -55,9 +64,26 @@ public class FakeHandoverLocations implements BedStatusApi, BedStatisticsApi, Al
     public java.util.stream.Stream<BedStateOnDate> stateAt(
             com.eldercare.backend.administration.account.api.dto.ScopeFilter scope, Instant at) {
         return states.entrySet().stream()
-                .filter(row -> scope.facilityWide() || scope.floorAreaIds().contains(floors.get(row.getKey())))
-                .map(row -> new BedStateOnDate(
-                        row.getKey(), floors.getOrDefault(row.getKey(), 0L), state(row.getValue()), at, 0L, null));
+                .filter(row -> {
+                    var snapshot = snapshots.get(row.getKey());
+                    return snapshot == null
+                            || scope.facilityWide()
+                            || scope.floorAreaIds().contains(snapshot.floorId())
+                            || scope.roomIds().contains(snapshot.roomId());
+                })
+                .map(row -> reportState(row.getKey(), row.getValue(), at));
+    }
+
+    private BedStateOnDate reportState(long bed, String value, Instant at) {
+        var snapshot = snapshots.get(bed);
+        if (snapshot == null) throw new IllegalStateException("Chưa đặt metadata phòng/tầng cho giường " + bed);
+        BedStatus status = state(value);
+        String reason = status == BedStatus.HELD ? snapshot.holdReason() : null;
+        if (status == BedStatus.HELD
+                && (reason == null
+                        || !Set.of("WAITING_RECORD", "ABSENT_RESIDENT").contains(reason)))
+            throw new IllegalStateException("Chưa đặt lý do giữ chỗ cho giường " + bed);
+        return new BedStateOnDate(bed, snapshot.floorId(), status, at, snapshot.roomId(), reason);
     }
 
     public java.util.stream.Stream<AwaitingReadyInterval> awaitingReady(
@@ -68,10 +94,11 @@ public class FakeHandoverLocations implements BedStatusApi, BedStatisticsApi, Al
                         .map(bed -> new AwaitingReadyInterval(
                                 bed.bedId(),
                                 row.getKey(),
-                                bed.awaitingSince(),
+                                bed.awaitingSince().isBefore(from) ? from : bed.awaitingSince(),
                                 to,
                                 bed.awaitingSince(),
-                                bed.awaitingSince())));
+                                bed.awaitingSince())))
+                .filter(row -> row.from().isBefore(row.to()));
     }
 
     public java.util.stream.Stream<RoomIsolationView> isolatedRooms(

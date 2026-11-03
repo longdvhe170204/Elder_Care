@@ -24,6 +24,12 @@ class SchedulerScopeArchTest {
     /** Job → loại việc FR-010a cho phép. */
     static final Map<String, String> ALLOWED = Map.ofEntries(
             Map.entry(
+                    "com.eldercare.backend.care.scheduling.CareMinuteJob",
+                    "khung chuyển trạng thái theo giờ, nhắc và cảnh báo; không lập công việc (005 C-12)"),
+            Map.entry(
+                    "com.eldercare.backend.care.scheduling.CareDailyJob",
+                    "khung hiệu lực kế hoạch/có mặt và nhắc theo ngày; không lập công việc (005 C-12)"),
+            Map.entry(
                     "com.eldercare.backend.common.scheduling.TechnicalDataCleanupJob",
                     "dọn dữ liệu kỹ thuật hết hạn (khóa chống lặp, sự kiện đã giao xong), không phải bản ghi nghiệp vụ (audit F-11, F-12)"),
             Map.entry(

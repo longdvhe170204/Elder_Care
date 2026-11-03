@@ -853,7 +853,8 @@ Bảy operation mang `x-implementation-phase: 4` ghi nhận phần đã được
 | Kết quả chuyển, phân bổ cũ/mới, cảnh báo | `BedTransferResult` (`previousAllocation`, `newAllocation`, `warnings`), dùng `BedAllocation` và `Warning` đã dịch |
 | Kết quả lập yêu cầu nhập bù chờ duyệt | `BackfillRequestCreated` (`approvalRequestId`, `status`) |
 | Màn danh sách phân bổ để chuyển / form chuyển giường web | `BedTransfersPanel`, `BedTransferForm` trong `frontend/src/features/beds/` (T036) |
-| Chỉ chuyển theo chỉ định / cần yêu cầu đổi lưu trú trong mô tả HTTP Phase 5 | `INFECTION_CONTROL_TRANSFER_REQUIRED`, `RESIDENCY_CHANGE_REQUEST_REQUIRED` (chưa có implementation) |
+| Chỉ chuyển theo chỉ định / cần yêu cầu đổi lưu trú trong mô tả HTTP Phase 5 | `INFECTION_CONTROL_TRANSFER_REQUIRED`, `RESIDENCY_CHANGE_REQUEST_REQUIRED` (service T032 đã có một phần 2026-10-29; HTTP T036 còn pending) |
+| Bảng kỹ thuật `yeu_cau_nhap_bu` | `bed_backfill_request` (`approval_request_id`, `resident_id`, `current_allocation_id`, `new_bed_id`, `transfer_at`), migration `V003_04__bed_backfill_request.sql` |
 | Mã loại yêu cầu nhập bù trong fixture schema (handler chưa cài) | `M03.BED_ALLOCATION_BACKFILL` (tên logic `M03.NHAP_BU_PHAN_BO`) |
 | Tạm ngừng, sử dụng lại, lịch sử trạng thái (T041) | `POST /beds/{id}/suspend`, `POST /beds/{id}/reuse`, `GET /beds/{id}/state-history?after=...`; `BedStateChanged`, `BedStateHistoryRow`, `After` |
 | Lịch sử trạng thái / actor / căn cứ | `BedHistoryEntry`; `from`, `to`, `event`, `occurredAt`, `plannedAt`, `executedLate`, `actor`, `reason`, `basis.type/id`, `disinfected`, `ppeUsed`, `note`, `corrected` |
@@ -866,14 +867,29 @@ Bảy operation mang `x-implementation-phase: 4` ghi nhận phần đã được
 
 Tại mốc Phase 5: tổng 71 operation giữ nguyên, gồm 39 Phase 3 +7 Phase 4 +1 Phase 5 đã duyệt, 24 chưa dịch. Clone component mới, giữ component tên logic cho phase sau. T034 mới có migration/test schema, chưa handler phê duyệt; T036 mới có bản dịch và client, chưa controller/UI/mobile.
 
+**T029/T032 — chuyển thường (2026-10-29, phần đang có dấu giá còn hoãn)**:
+
+| Tên logic / vai trò | Tên trong mã |
+| --- | --- |
+| ChuyenGiuongService; metadata chuyển trực tiếp | BedTransferService; BedTransferStore |
+| Nhật ký chuyển giường thường | M03_BED_TRANSFER; đối tượng M03.BED_ALLOCATION |
+| Bộ test chuyển thường/đồng thời/sự kiện/hoàn tác | BR_M03_07_BedTransferIT (FR_028, FR_030, FR_032, FR_033) |
+| Nhánh đang có dấu giá nhưng chưa có nguồn giá hợp đồng | SOURCE_UNAVAILABLE (503); giữ nguyên AWAITING_REQUEST/AWAITING_SAME_PRICE và reminder theo quyết định giữ SPI |
+| Lỗi đã có bản cài ở chuyển trực tiếp chưa có dấu chờ | INFECTION_CONTROL_TRANSFER_REQUIRED, RESIDENCY_CHANGE_REQUEST_REQUIRED; không thay endpoint pending T036 |
+
 ### 9.20. Bảng sau gộp R-15 *(bổ sung 2026-10-30; cột chi tiết ở data-model 003 mục 0.1)*
 
 | Tên logic | Mã |
 | --- | --- |
 | mức chăm sóc cho phép của `phong` | `room.allowed_care_levels` |
 | loại bảng chung của 003 | `M03.AREA`, `M03.FLOOR`, `M03.ROOM_TYPE`, `M03.BED_TRANSFER_REASON`, `M03.DAY_CARE_REST_AREA`, `M03.DAY_CARE_SESSION` (danh mục); thuộc tính `CACH_LY` của `PHONG` (lịch sử chung); `M03.BED_BACKFILL_REQUEST` (hồ sơ chung); `M03` (trạng thái theo người); `M03.ALLOCATION_REMINDER.<flagType>` (mốc đã nhắc); `M03.PHAN_BO`, `M03.SUC_CHUA_BAN_TRU`, `M03.KHU_NGHI` (khóa) |
+### 9.21. Nguồn phân bổ chờ bác sĩ cho bàn giao (2026-10-31)
 
-
+| Tên logic | Tên triển khai |
+| --- | --- |
+| Nguồn phân bổ đang chờ bác sĩ theo tầng | `AllocationHandoverApi.atFloor`,bản cài `BedReportingService` |
+| Mốc đặt dấu chờ bác sĩ trên bản phân bổ | `bed_allocation.doctor_confirmation_requested_at`,`BedReportingSnapshot.Flags.doctorConfirmationRequestedAt`; `AllocationHandoverView.createdAt`,NULL với dữ liệu cũ chưa biết mốc |
+| Migration bổ sung mốc,không tạo bảng mới | `V003_07__doctor_confirmation_requested_at.sql` |
 ## 10. Feature 004 (`004-admission-residency`, B)
 
 *Bổ sung 2026-10-25, khi dịch `contracts/api-004.yaml` (chờ chủ dự án duyệt). Tên bảng, cột, lớp nội bộ ghi dự kiến theo plan, data-model, tasks; chỉnh lại cùng thay đổi với mã (R-03). Chỉ sửa mục này.*
@@ -1271,7 +1287,298 @@ Thuật ngữ: lượt đăng ký tiếp nhận = `admission application` (khôn
 
 ## 11. Feature 005 (`005-daily-care-tasks`, C)
 
-*Chủ feature điền khi dịch `contracts/api-005.yaml` (đường dẫn, schema, enum, mã lỗi; bảng, lớp cùng thay đổi với mã). Chỉ sửa mục này.*
+| Tên logic | Mã |
+| --- | --- |
+| schema lỗi của 005 trong mã (T060, 2026-11-03) | `care.web.response.CareProblemBody` (`CareCatalogProblem`), `.TaskClosed` (`CareTaskClosedProblem`), `.RowErrors` (`CareTaskRowProblem`) |
+| nhận định tự quyết trong thân lệnh thỏa thuận rủi ro; thân lệnh Duyệt kế hoạch; phản hồi việc cùng loại đang mở | `RiskAssessmentWrite` (`CareSelfDeterminationAssessment`); `CarePlanApprovalWrite` (`CarePlanApproval`); `SameTypeTasksResponse` (`CareSameTypeTasks`) |
+
+### 11.1. Phase 1 — khung gói và SPI (2026-10-26)
+
+Chưa dịch các endpoint/schema nghiệp vụ api-005. Riêng operation công tắc dưới đây được chủ dự án duyệt trong phiên 2026-10-26. Tên logic trong tasks/research không phải đường dẫn mã thật.
+
+| Tên logic | Tên triển khai |
+| --- | --- |
+| kehoach, comat, congviec, ghinhan | `careplan`, `attendance`, `task`, `recording` |
+| checklist, danhmuc, quytac, quahan | `checklist`, `catalog`, `rules`, `overdue` |
+| thoikhoabieu, trangthai, lich | `timetable`, `status`, `scheduling` |
+| NhanSuCaPort | `m04.api.spi.ShiftStaffPort`: `shift`, `publishedShifts`, `shiftContaining`, `shiftLead`, `assignments`, `responsibleNurses`, `onShift`, `qualified`, `hasQualifiedStaff`, `handoverConfirmed`, `handoverTasks` |
+| NguonCongViecPort | `TaskSourcePort`: `managedTypes`, `validate`, `confirmServing` |
+| ChiSoPort | `VitalSignPort.record` |
+| LieuThuocChecklistPort | `MedicationChecklistPort.inRange` |
+| CanhBaoDocPort | `AlertReadPort.open`, `byTask` |
+| BanGhiDonBanTruPort | `DayCarePickupPort.valid`, `markUsed` |
+| KetQuaKiemTraPort | `QualityCheckPort.failed` |
+| ThoiKhoaBieuNguonPort | `TimetableSourcePort.onDate` |
+| CaView, PhanCongChamSocView, ViecBanGiaoView | `ShiftStaffPort.ShiftView`, `CareAssignmentView`, `HandoverTasksView` |
+| LoaiCanCu, KetQuaKiemTraCanCu | `TaskSourcePort.SourceType`, `SourceValidation` |
+| KetQuaGhiChiSo: DA_LUU / BI_CHAN / CHO_DO_LAI | `VitalSignPort.RecordingResult`, `RecordingStatus`: `SAVED` / `BLOCKED` / `AWAITING_REMEASUREMENT` |
+| LieuHienThiView, ThuocTomTat | `MedicationChecklistPort.DoseView`, `MedicationSummary` |
+| CanhBaoView, BanGhiDonView, KetQuaKiemTraView, MucThoiKhoaBieuView | `AlertReadPort.AlertView`, `DayCarePickupPort.PickupView`, `QualityCheckPort.FailedCheckView`, `TimetableSourcePort.TimetableItemView` |
+| MUC_KE_HOACH, LAN_DO, BUA, BUOI_HOAT_DONG | `CARE_PLAN_ITEM`, `MEASUREMENT`, `MEAL`, `ACTIVITY_SESSION` |
+| THEO_DOI_SAU_NGA, THEO_DOI_TIEP_XUC, CANH_BAO_UONG_NUOC | `POST_FALL_MONITORING`, `CONTACT_MONITORING`, `WATER_INTAKE_ALERT` |
+| KIEM_TRA_DAU_CA, GIAM_SAT, PHAT_SINH, GHI_NHAN_PHAT_SINH, LAM_LAI | `SHIFT_START_CHECK`, `SUPERVISION`, `AD_HOC`, `AD_HOC_RECORDING`, `REWORK` |
+| BAN_GHI_DON_DA_DUNG | `PICKUP_RECORD_ALREADY_USED` (lỗi fake, chưa là schema lỗi HTTP nghiệp vụ) |
+| Bản giả SPI 005 | `support/fake/m04/`: `FakeShiftStaff`, `FakeTaskSource`, `FakeVitalSigns`, `FakeMedicationChecklist`, `FakeAlertReader`, `FakeDayCarePickups`, `FakeQualityChecks`, `FakeTimetableSource` |
+| Cấu hình/công tắc | `FakeM04Config`, `FakeM04Switches`, `FakeM04Controller`, `SwitchRequest(enabled)`; `PUT /api/v1/testing/fakes/{module}`, 204; module `006`, `007`, `008`, `011`, `012`, `014` |
+
+Các view được mô tả projection ở module-interfaces mục 2.1; kiểu chỉ SPI dùng nằm lồng trong SPI theo backend/README.md. Kiểu fixture `FakeVitalSigns.Measurement` lưu đủ đối số lần gọi, không phải DTO production. Không thêm thuật ngữ hay enum vai trò ngoài `common.Role` đã công bố.
+
+### 11.2. Phase 2 — API, sự kiện, nền dữ liệu (2026-10-27)
+
+Đã duyệt riêng bản dịch HTTP danh mục và hai operation result-values (contracts/phase2-api-review.md); chưa cài service/controller do điểm quyền chưa được chốt. API Java bên dưới là khai báo, không nhận là provider nghiệp vụ đã có. Tám SPI Phase1 giữ nguyên.
+
+| Tên logic | Tên triển khai |
+| --- | --- |
+| KeHoachChamSocApi | `CarePlanApi: effectiveOn, waterTargetMl, hasEffectivePlan, currentTaskTypes` |
+| LoaiCongViecApi | `TaskTypeApi.requirements` |
+| CoMatBanTruApi | `DayCareAttendanceApi: onDate, returnTimeOn, inRange, changeReturnTime, restoreReturnTime, checkOut` |
+| CongViecCaApi | `ShiftTaskApi: onAbsence, onApprovedLeave, onResignation, onAssignmentChanged, onAssignmentEnded, onHandoverConfirmed` |
+| CongViecBanGiaoApi | `HandoverTaskApi: unclosed, currentStates, recordedInHandover` |
+| NguonCongViecApi | `TaskSourceApi: sourceCancelled, sourceChanged` |
+| CongViecVangMatApi | `AbsenceTaskApi.recalculate` |
+| CongViecDoChiSoApi | `VitalSignTaskApi.confirmed` |
+| CongViecThongKeApi | `TaskStatisticsApi: inRange, attendanceInRange, resultsInRange, resultRecorders` |
+| ThoiKhoaBieuApi | `TimetableApi.onDate` |
+| KetQuaChamSocCongApi | `PublicCareResultApi: results, summary` |
+| PhienBanKeHoachView, MucKeHoachView | `CarePlanView`, `CarePlanItemView` |
+| YeuCauLoaiCongViec, CoMatView | `TaskRequirements`, `AttendanceView` |
+| KetQuaXacNhan, CongViecChoBanGiaoView, TrangThaiCongViecView | `HandoverTransferResult`, `HandoverTaskView`, `TaskStateView` |
+| KhoangThoiGian, CongViecBaoCaoView, KetQuaView | `CareTimeRange`, `TaskReportView`, `CareResultView` |
+| KetQuaNguoiThanView, TongHopAnUongView, lịch sử trạng thái | `FamilyCareResultView`, `EatingDrinkingSummary`, `TaskStateChange` |
+| Mức quan trọng | `Importance.NORMAL/IMPORTANT/MANDATORY` |
+| Loại kết quả | `ResultType.EATING/ML/MEASURED_VALUE/MOVEMENT/SLEEP/MOOD/BEHAVIOR/ITEM_QUANTITY/PERFORMED/NONE` |
+| Trạng thái công việc | `TaskStatus.NOT_YET_DUE/DUE/OVERDUE/COMPLETED/COMPLETED_LATE/NOT_PERFORMED/CANCELLED` |
+| Trạng thái phiên bản | `CarePlanStatus.DRAFT/PENDING_APPROVAL/PENDING_EFFECT/EFFECTIVE/EXPIRED/CANCELLED` |
+| Trạng thái có mặt | `AttendanceStatus.NOT_ARRIVED/PRESENT/LEFT/REPORTED_ABSENT/UNREPORTED_ABSENT/HOLIDAY_CANCELLED` |
+| QUA_DON, TU_VE, VIEN_DUA_VE | `CheckoutType.PICKUP/SELF_RETURN/INSTITUTE_RETURN` |
+| KhoaChamSoc, ViecTheoPhutM04, ViecHangNgayM04 | `CareResidentLock`, `CareMinuteJob` (CARE_MINUTE), `CareDailyJob` (CARE_DAILY) |
+
+DTO ở api/dto, sự kiện ở api/events, private metadata/read/store/service/config đúng internal/<chức năng>/<tầng>. Không tạo thêm enum Role, dùng common.Role; default_role trong SQL dùng VARCHAR để giữ một nguồn enum Java, provider/lệnh sau này phải kiểm Role hợp lệ.
+
+| Sự kiện logic | Record trong api/events |
+| --- | --- |
+| YeuCauCanhBao | `AlertRequested` |
+| YeuCauDongCanhBao | `AlertClosureRequested` |
+| NhacQuaHan | `OverdueTaskReminder` |
+| NhacQuaHanGop | `BatchedOverdueTaskReminder` |
+| CongViecQuaHanCanXuLy | `OverdueTaskNeedsHandling` |
+| CaChuaCoCongViec | `ShiftWithoutTasks` |
+| CanLapCongViec | `TaskPlanningNeeded` |
+| KeHoachDaDoi | `CarePlanChanged` |
+| NguonCongViecDaDoi | `TaskSourceChanged` |
+| PhienBanKeHoachDaGuiDuyet | `CarePlanSubmitted` |
+| PhienBanKeHoachDaTraLai | `CarePlanReturned` |
+| PhienBanKeHoachDaThuHoi | `CarePlanApprovalWithdrawn` |
+| PhienBanKeHoachQuaHanDuyet | `CarePlanApprovalOverdue` |
+| PhienBanKeHoachBaoQuanLyVien | `CarePlanManagerEscalation` |
+| NhacXemLaiThoaThuan | `RiskAgreementReviewReminder` |
+| CanXemXetKeHoach | `CarePlanReviewNeeded` |
+| CongViecThanhChung | `TaskBecameShared` |
+| CongViecChungKhongAiDuDieuKien | `SharedTaskWithoutQualifiedStaff` |
+| DaDiemDanhDen | `DayCareCheckedIn` |
+| VangKhongBao | `UnreportedAbsence` |
+| BanTruConCoMatHetNgay | `DayCarePresentAtDayEnd` |
+| TrangThaiCoMatDaXacDinh | `AttendanceDetermined` |
+| TrangThaiCoMatDaDoi | `AttendanceChanged` |
+| KetQuaCoTinhPhi | `BillableCareResultRecorded` |
+| KetQuaTinhPhiDaDinhChinh | `BillableCareResultCorrected` |
+| AnKemKeoDai | `ProlongedPoorEating` |
+| CongViecDoBiBo | `MeasurementTaskMissed` |
+| KetQuaNguDaGhi | `SleepResultRecorded` |
+
+CareEventContext là metadata sourceType/sourceId/milestone/occurredAt/floorAreaId/recipients; CareEvent tính key, CareNotice triển khai HasNotificationRequests, CareEventNotifications dựng khuôn. Khóa hash namespace+mốc có độ dài cố định, sourceId và tên event là tiền tố; nguồn/task type và loại ngày xem lại không bị gộp nhầm. Các DTO/event chưa có HTTP schema nghiệp vụ mới.
+
+| Bảng logic / file | Tên thực tế |
+| --- | --- |
+| cham_soc_nct (nct_id, phien_ban) | `care_resident_lock(resident_id, version)` |
+| lan_chay_m04 (viec, moc) | `m04_job_milestone(job, milestone)` |
+| loai_cong_viec | `care_task_type`: task_group, professional, result_type, default_role, default_importance, window_before_minutes, window_after_minutes, billable, service_id, upper_limit, vital_sign_type; name/status/version/active_name theo nhóm1 |
+| loai_cong_viec_chung_chi | `care_task_type_certificate(task_type_id, certificate_code)` |
+| danh_muc_gia_tri_ket_qua | `care_result_value(value_type, code, name, rule_group, status, version, active_name)` |
+| loai_ly_do_khong_thuc_hien | `care_non_performance_reason_type(name, fixed, status, version, active_name)` |
+| V005_01__nen_m04.sql | `V005_01__care_foundation.sql` |
+| V005_01a__loai_ly_do.sql | `V005_01_1__non_performance_reason_type.sql`; 01a không hợp lệ với version số Flyway |
+| Nhóm kết quả ngủ/tâm trạng/hành vi | `SLEEP_QUALITY/MOOD/BEHAVIOR`, rule_group `INSOMNIA/NEGATIVE` hoặc NULL |
+| Nhóm công việc18giá trị | `PERSONAL_HYGIENE/BATHING/DRESSING/EATING_ASSISTANCE/DRINKING_ASSISTANCE/TOILETING_ASSISTANCE/MOVEMENT/REHABILITATION/VITAL_SIGN_MEASUREMENT/ACTIVITY/SLEEP/MOOD/BEHAVIOR/DIAPER_ITEM_CHANGE/SHIFT_START_CHECK/SUPERVISION/MEDICATION/OTHER` |
+
+Nền migration hiện chỉ có sáu bảng trên. Provider T008 dùng các **tên dự kiến của bảng story chưa tạo**, không phải bằng chứng đã cài các bảng: care_plan (resident_id, previous_plan_id), care_plan_item (care_plan_id, source_item_id), care_risk_agreement (care_plan_id, source_agreement_id), care_risk_opinion/care_risk_participant (agreement_id), care_task (resident_id nullable, floor_area_id, planned_at, basis_type, basis_id, original_task_id), care_result (task_id, resident_id), care_task_history (task_id), care_day_attendance (resident_id), care_attendance_record (attendance_id). Migration/service story phải giữ đồng bộ các tên này và bổ sung cột nghiệp vụ đúng data-model; không lấy projection tối thiểu làm toàn bộ schema.
+
+Loại đối tượng chính: M04.CARE_PLAN, M04.TASK, M04.CARE_RESULT, M04.DAY_CARE_ATTENDANCE. Lưu giữ còn có M04.CARE_PLAN_ITEM, M04.RISK_AGREEMENT, M04.RISK_OPINION, M04.TASK_HISTORY, M04.ATTENDANCE_RECORD và ba alias LOCATION_TASK/LOCATION_CARE_RESULT/LOCATION_TASK_HISTORY cho cùng bảng nhưng thời hạn CFG-M15-04. Alias là phân tách kỹ thuật RetentionKind, chưa thêm trường hoặc endpoint HTTP. Nhật ký/căn cứ của story sau phải dùng đúng loại để đính chính/lưu giữ đi kèm được kiểm nhất quán.
+
+Bản giả API mới: FakeM04ApiConfig/FakeM04ApiFixture, import riêng với test/demo, không thay FakeM04Config của8SPI. Công tắc các SPI Phase1 không tự bật tắt fixture API mới; hai cấu hình có mục đích khác nhau.
+
+### 11.3. HTTP kế hoạch Phase 3 (005, duyệt 2026-10-27)
+
+Chỉ là hợp đồng đã dịch, chưa xác nhận endpoint runtime. Bảng đầy đủ và operationId tại `005-daily-care-tasks/contracts/phase3-api-review.md`; không đổi chữ ký DTO/API nội bộ đã công bố.
+
+| Tên logic | Tên tiếng Anh |
+| --- | --- |
+| `/nguoi-cao-tuoi/{nctId}/ke-hoach-cham-soc`, `/ke-hoach-cham-soc/{id}` | `/residents/{residentId}/care-plans`, `/care-plans/{id}` |
+| `/muc`, `/thoa-thuan`, `/gui-duyet`, `/duyet`, `/tra-lai`, `/huy`, `/thu-hoi` | `/items`, `/risk-agreements`, `/submit`, `/approve`, `/return`, `/cancel`, `/withdraw-approval` |
+| `/so-sanh?tu=&den=` | `/compare?from=&to=` |
+| PhienBanKeHoach, MucKeHoach, ThoaThuanRuiRo, SoSanhPhienBan | `CarePlan`, `CarePlanItem`, `RiskAgreement`, `CarePlanComparison` |
+| saoChep, nctId, soPhienBan, trangThai | `copyCurrent`, `residentId`, `revision`, `status` |
+| ngayHieuLuc, hieuLucDen, nguoiLap, nguoiDuyet, duyetLuc, tuDuyet | `effectiveFrom`, `effectiveTo`, `createdBy`, `approvedBy`, `approvedAt`, `selfApproved` |
+| lyDoThayDoi, lyDo, muc, thoaThuan, chuaCoKeHoachHieuLuc, lenhDuocPhep | `changeReason`, `reason`, `items`, `riskAgreements`, `noEffectivePlan`, `allowedCommands` |
+| mucGocId, loaiCongViecId, noiDung | `sourceItemId`, `taskTypeId`, `content` |
+| kieuTanSuat, nGio, soLan, mocBatDau, cacMoc, ngayTrongTuan | `frequencyType`, `intervalHours`, `timesPerDay`, `startsAt`, `times`, `weekdays` (HTTP mảng 1–7) |
+| SO_LAN_NGAY, MOI_N_GIO, NGAY_TRONG_TUAN, MOT_LAN_MOI_CA | `TIMES_PER_DAY`, `EVERY_N_HOURS`, `DAYS_OF_WEEK`, `ONCE_PER_SHIFT` |
+| khungTruocPhut, khungSauPhut, vaiTroThucHien, loaiKetQua, mucQuanTrong, coTinhPhi, mucTieuMl | `windowBeforeMinutes`, `windowAfterMinutes`, `performerRole`, `resultType`, `importance`, `billable`, `waterTargetMl` |
+| thoaThuanGocId, luaChon, ruiRoDaTraoDoi, nctThamGia, nguoiThamGia | `sourceAgreementId`, `choice`, `discussedRisks`, `residentParticipates`, `participants` |
+| bacSiNhanDinhId, nhanDinh, nguoiQuyetDinh, nguoiThanId, bacSiId | `assessingDoctorId`, `selfDeterminationAssessment`, `decisionMaker`, `familyMemberId`, `doctorId` |
+| loai, id; NGUOI_THAN/NHAN_VIEN của người tham gia | `type`, `id`; `FAMILY_MEMBER/STAFF` |
+| NGUOI_CAO_TUOI/DAI_DIEN_NGUOI_BENH/BAC_SI của người quyết định | `RESIDENT/PATIENT_REPRESENTATIVE/DOCTOR` |
+| yKien, nguon, nguoiGhi, thoiDiem, ngayXemLai | `opinions`, `source`, `recordedBy`, `at`, `reviewDate` |
+| them, bot, doi, truoc, sau, truongDoi | `added`, `removed`, `changed`, `before`, `after`, `changedFields` |
+| DA_CO_PHIEN_BAN_MO, PHIEN_BAN_DA_KHOA, NGAY_HIEU_LUC_KHONG_HOP_LE | `OPEN_REVISION_EXISTS`, `REVISION_LOCKED`, `INVALID_EFFECTIVE_DATE` |
+| NhanDinhTuQuyet, NguonYKien | `SelfDeterminationAssessment`, `OpinionSource`: chép đúng schema công khai 001, không thêm trường |
+| Trạng thái kế hoạch, mức quan trọng | `CarePlanStatus` (giá trị như 11.2), `Importance.NORMAL/IMPORTANT/MANDATORY` |
+
+Các operation chưa dịch ở story khác vẫn giữ tên; tham chiếu tới schema mục/thỏa thuận dùng tên schema mới để không có `$ref` treo. Lỗi kế hoạch dùng `CarePlanProblem`/`CarePlanConditionProblem`, cùng hình dạng tiếng Anh đã có của `CareCatalogProblem`; `CarePlanReason` dùng `Reason`, không đổi thân lý do của các story chưa dịch.
+
+### 11.4. T007a — danh mục loại lý do Không thực hiện (2026-10-28)
+
+| Tên logic | Tên thực tế |
+| --- | --- |
+| Loại lý do; kho; service; controller danh mục lý do | NonPerformanceReasonType; NonPerformanceReasonStore; NonPerformanceReasonService; NonPerformanceReasonController |
+| Yêu cầu ghi tên; lý do ngừng; phản hồi danh mục | NonPerformanceReasonWrite; CareCatalogReason (Reason); NonPerformanceReasonTypeResponse (schema NonPerformanceReasonType) |
+| Loại đối tượng nhật ký danh mục lý do | M04.NON_PERFORMANCE_REASON_TYPE |
+| Tạo/sửa/ngừng loại lý do | NON_PERFORMANCE_REASON_CREATED / NON_PERFORMANCE_REASON_UPDATED / NON_PERFORMANCE_REASON_DEACTIVATED |
+| LOAI_LY_DO_CO_DINH | REASON_TYPE_FIXED (409); dùng lại DUPLICATE_NAME (409), INVALID_VALUE (422), VERSION_MISMATCH (412), REASON_REQUIRED (422) |
+| Quyền danh mục (Q-391, thay ghi chú C-16 cũ) | Function.CARE_TASK_CATALOG: VIEW/CREATE/UPDATE |
+### 11.5. Nền R-15 và danh mục T007 (2026-10-31)
+
+| Thuật ngữ | Mã triển khai |
+| --- | --- |
+| Loại công việc, giá trị kết quả, loại lý do Không thực hiện | `CareCatalogKinds.TASK_TYPES/RESULT_VALUES/REASONS`; `M04.TASK_TYPE`, `M04.RESULT_VALUE`, `M04.NON_PERFORMANCE_REASON_TYPE` |
+| Nội dung riêng của danh mục | `TaskTypeAttributes`, `ResultValueAttributes`, `ReasonAttributes` |
+| ID danh mục trước gộp | `LegacyCatalogId(table,id)`; `attributes.legacy`,adapter giữIDcôngkhai cũ |
+| Lệnh danh mục và nguồn yêu cầu loại công việc | `CareCatalogService`, `CareCatalogStore`, `CareTaskTypeLookup` cài `TaskTypeApi` |
+| HTTP danh mục đã duyệt | `CareCatalogController`; `TaskTypeWrite/Response`, `ResultValueWrite/Response` |
+| Khóa theo người, dấu xử lý theo ngày | `CareResidentState`, `CareLockStore` qua `ResidentModuleStateApi`; `CareMilestoneStore` qua `ReminderMarkers` |
+| Migration nền sau gộp | `V005_95__care_foundation_consolidation.sql` |
+
+### 11.6. Kế hoạch theo phiên bản Phase 3 (2026-10-31)
+
+| Thuật ngữ | Mã triển khai |
+| --- | --- |
+| Phiên bản, mục, nội dung mục | `CarePlan`, `CarePlanItem`, `CarePlanItemData`; `care_plan`, `care_plan_item` |
+| Bảng chuyển, chuỗi thời điểm, so sánh | `CarePlanTransitions`, `CarePlanItemSequence`, `CarePlanComparison`; `CarePlanDifference` giữ được khung null của Nháp |
+| Kho/lệnh/nguồn đọc kế hoạch | `CarePlanStore`, `CarePlanService`, `CarePlanQueries` (cài `CarePlanApi`) |
+| Thỏa thuận, người quyết định, người tham gia, ý kiến | `CareRiskAgreement`, `RiskDecisionMaker`, `RiskParticipant`, `RiskOpinion`, `RiskOpinionEntry` |
+| Loại mục trong bảng gộp | `TASK`, `RISK_AGREEMENT`; mọi căn cứ công việc chỉ lấy `TASK` |
+| Loại con bảng chung | `CareRiskKinds.PARTICIPANTS/OPINIONS`; `M04.RISK_PARTICIPANT`, `M04.RISK_OPINION`, parent `M04.RISK_AGREEMENT` |
+| Kho/lệnh thỏa thuận | `CareRiskStore`, `CareRiskService` |
+| Bước hiệu lực, nhắc duyệt, nhắc xem lại | `CarePlanActivation`, `CarePlanApprovalReminders`, `CareRiskReview`; tên bước `CARE_PLAN_EFFECTIVE`, `CARE_PLAN_APPROVAL_REMINDER`, `CARE_RISK_REVIEW` |
+| Thông báo theo người có quyền duyệt | `CarePlanNotices`; từng `RecipientGroup.Approvers` chỉ mang một account để giới hạn payload |
+| Lệnh được phép của phiên bản | `replaceItems`, `replaceRiskAgreements`, `submit`, `approve`, `return`, `cancel`, `withdrawApproval` |
+| Lỗi kế hoạch thiếu mục, hồ sơ cuối, nguồn người lập chưa sẵn sàng | `EMPTY_PLAN` (409), `RESIDENT_FINAL_STATUS` (409), `CARE_SOURCE_UNAVAILABLE` (503) |
+| Nhật ký lệnh kế hoạch | `CARE_PLAN_CREATED`, `CARE_PLAN_ITEMS_REPLACED`, `CARE_PLAN_RISKS_REPLACED`, `CARE_PLAN_SUBMITTED`, `CARE_PLAN_APPROVED`, `CARE_PLAN_SELF_APPROVED`, `CARE_PLAN_RETURN`, `CARE_PLAN_CANCEL`, `CARE_PLAN_WITHDRAW` |
+| Nhật ký job kế hoạch | `CARE_PLAN_EFFECTIVE`, `CARE_PLAN_EXPIRED`, `CARE_PLAN_APPROVAL_REMINDER` |
+| Migration kế hoạch và trigger con theo phiên bản | `V005_96__care_plan_revisions.sql` |
+| Màn web T017 | `features/care-tasks/CarePlanPage`, `CarePlanDetail`, `CarePlanItemsForm`, `CareRiskAgreementsForm`, `CareCatalogPage`; menu `care-plans`, `care-catalogs` |
+| Phiên bản danh mục chỉ đọc được chủ dự án duyệt31/10 | `version` trên `TaskType`, `ResultValue`, `NonPerformanceReasonType`; gửi lại bằng `If-Match` khi sửa |
+| Lý do thông báo Trả lại, được chủ dự án duyệt31/10 | `CarePlanReturned.reason`; `String`, null cho constructor/sự kiện cũ; chỉ trong `ContentPart(HEALTH, reason)`, không có trong `title`/`shortContent` |
+
+### 11.7. Lập công việc Phase 4 (2026-11-01)
+
+| Thuật ngữ | Mã triển khai |
+| --- | --- |
+| Lệnh nhập, snapshot, công việc và kết quả kiểm | `CareTaskDraft`, `CareTaskData`, `CareTask`, `CareTaskValidation` |
+| Bảng chuyển và trạng thái lúc lập | `CareTaskTransitions.next/initialStatus` |
+| Kiểm từng dòng, lệnh lô, nguồn đọc | `CareTaskValidator`, `CareTaskService`, `CareTaskQueries` |
+| Kho công việc và thông tin đóng | `CareTaskStore`, `CareTaskClosure`; `care_task` |
+| Lịch sử xử lý dùng chung | `CareTaskHandling`; `HistoryTrack(M04.TASK,HANDLING)` qua `StatusHistoryApi` |
+| Callback hủy/đổi nguồn | `CareTaskSources` cài `TaskSourceApi`, MANDATORY |
+| Bước tới hạn, nhắc khi lập muộn | `CareTaskDueStep`, `CareTaskNotices`; marker `M04.TASK_OVERDUE` |
+| Đọc nguồn/nhân sự đã duyệt | `TaskSourcePort.sources`/`SourceView`, `ShiftStaffPort.members`/`ShiftMemberView` |
+| Lỗi theo dòng từ 1 | `rowErrors[{row,codes}]`, HTTP 409 `UNMET_CONDITIONS` |
+| Mã kiểm từng dòng C-07 | `RESIDENT_NOT_STAYING`, `RESIDENT_ABSENT`, `DAY_CARE_NOT_PRESENT`, `OUTSIDE_SHIFT`, `PLAN_ITEM_MISMATCH`, `INVALID_BASIS`, `MEDICATION_IS_NOT_A_TASK`, `INVALID_PERFORMER`, `MISSING_CERTIFICATE`, `DUPLICATE_BASIS`, `OLD_REVISION_WINDOW_OVERLAP`, `SHIFT_CHECK_ALREADY_EXISTS` |
+| Khóa công việc đã tới hạn/đóng | HTTP 409 `TASK_CLOSED`; không hủy việc đã thực tế tới đầu khung khi job chậm |
+| Migration mới T020 | `V005_97__shift_care_tasks.sql`, BUSINESS; `duplicate_key`, `shift_check_key` |
+| Màn web/mobile T026 | `ShiftTaskPlanningPage`, menu `care-task-planning`; `ShiftTaskPlanningScreen`, `CareTaskPlanningGateway` (chưa có adapter production) |
+
+Chủ dự án chọn hoãn mục 5–6: không công bố `ongoingShifts`, không sửa client mobile của A; cảnh báo MANDATORY gắn vị trí cũng chờ thống nhất với 007 (đề xuất mục 7).
+
+### 11.8. Có mặt bán trú Phase 5 — bản cài 2026-11-01
+
+| Thuật ngữ | Mã triển khai |
+| --- | --- |
+| Bảng chuyển FR-013 | `AttendanceTransitions` |
+| Snapshot hồ sơ và bản ghi điểm danh | `AttendanceData`, `AttendanceRecordData`, `AttendanceKinds`, `AttendanceDaySource` |
+| Lưu hồ sơ nhóm2/bản ghi nhóm3 | `AttendanceStore` qua `SimpleRecordApi`/`RecordEventApi`; kind `M04.DAY_CARE_ATTENDANCE`, `M04.ATTENDANCE_RECORD` |
+| Nguồn, lệnh và projection API | `AttendanceSources`, `AttendanceService`, `AttendanceQueries` (@Fallback) |
+| Kết quả về cùng danh sách việc hủy | `AttendanceCheckoutResult`, `DayCareCheckoutResponse` |
+| Các bước theo lịch | `AttendanceDayStartWork` (`DAY_CARE_DAY_START`), `AttendanceClockWork`, `AttendanceDayEndWork` (`DAY_CARE_DAY_END`) |
+| Mốc báo hết ngày | `M04.ATTENDANCE_DAY_END`, entity `M04.DAY_CARE_ATTENDANCE`, marker ngày |
+| Đính chính giờ | `AttendanceCorrectionProvider`, `AttendanceCorrectionWrite`, `DayCareAttendanceCorrectionController`; AMEND_CONTENT, VOID chưa hỗ trợ |
+| Nguồn ngày nghỉ/báo vắng đã duyệt | `DayCareCalendarPort.CalendarView(holiday,timelyAbsenceId,lateAbsenceId)`; fixture `FakeDayCareCalendar` |
+| Callback đã duyệt | `DayCareAttendanceApi.refreshCalendar(residentId,date)` MANDATORY, giữ chữ ký cũ |
+| Bốn HTTP | `/day-care-attendances`, `/day-care-attendances/check-in`, `/day-care-attendances/{id}/check-out`, `/day-care-attendance-records/{id}/correct` |
+| Request/response | `DayCareCheckInWrite`, `DayCareCheckOutWrite`, `DayCareAttendanceResponse`; requestBody `DayCareAttendanceCorrection` |
+| Màn web/mobile | `DayCareAttendancePage`, menu `day-care-attendance`; `DayCareAttendanceScreen`, `DayCareAttendanceGateway`, `DayCareAttendanceData` |
+| Lỗi điều kiện | `DAY_CARE_NOT_STAYING`, `ATTENDANCE_STATE_CONFLICT`, `INVALID_PICKUP_RECORD`; thiếu nguồn `CARE_SOURCE_UNAVAILABLE`; VOID dùng `CORRECTION_NOT_SUPPORTED` của khung chung |
+| Migration và cột/index riêng M04 | `V005_94__shared_day_care_attendance.sql`; `m04_attendance_date`, `m04_expected_arrival`, `uq_m04_attendance_day`, `ck_m04_attendance_state`, `ix_m04_attendance_due`, `ix_m04_attendance_day` |
+| Test | `FR_013_AttendanceTransitionsTest`, `FR_012_AttendanceSchemaIT`, `FR_012_AttendanceContractTest`, `BR_M04_02_DayCareAttendanceIT`, `FR_015_AttendanceCorrectionControllerTest` |
+
+API mục1–3 của đề xuất đã được duyệt. Chiều mã giữ care→admission: adapter/listener thuộc care, nguồn API/sự kiện004 do B công bố. Chưa nghiệm thu nguồn thật, nhánh đổi khỏiDAY_CARE, VOID, retention correction chain hoặc adapter mobile. Không coi raw parent M01.RESIDENT đã bảo đảm lưu giữ toàn chuỗi.
+
+### 11.9. Checklist và kết quả Phase 6 (005)
+
+| Tên logic | Mã triển khai |
+| --- | --- |
+| Trạng thái đóng theo khung | `CareResultTiming.completedStatus`, `COMPLETED`, `COMPLETED_LATE` |
+| Lệnh/kiểm kết quả | `CareResultService`, `CareResultValidation`, `CareResultInput`, `CareResultStore`, `CareResultQueries` |
+| Checklist/nhận việc | `CareChecklistService`, `CareChecklistStore`, `CareChecklistController`, `CareChecklistResponse`, `ChecklistRiskAgreement` |
+| Phát sinh/kết quả công khai/xác nhận chỉ số | `AdHocCareRecordingService`, `PublicCareResults`, `CareVitalSignTasks` |
+| Request/response | `CareResultWrite`, `CareNotPerformedWrite`, `AdHocCareRecordingWrite`, `CareResultResponse`; `CareTask.resultType` readOnly đã duyệt |
+| Snapshot cấu hình kết quả nội bộ | `CareTaskData.upperLimit`, `vitalSignType`, `resultConfigurationCaptured` |
+| Căn cứ quyền | `ASSIGNED`, `FLOOR_MANAGER_ROLE`, `SHIFT_LEAD_DUTY` |
+| Mức ăn/vận động | `ATE_ALL`, `MOST`, `SOME`, `NOT_EATEN`, `SKIPPED`; `INDEPENDENT`, `ASSISTED`, `UNABLE` |
+| Việc tồn | `FROM_PREVIOUS_SHIFT`, `AWAITING_HANDOVER_CONFIRMATION` |
+| Lỗi lệnh | `CARE_TASK_CLOSED`, `CONFIRMATION_REQUIRED`, `AWAITING_REMEASUREMENT`, `SERVICE_NOT_CONFIRMED`, `REASON_REQUIRED`; thiếu nguồn/quy tắc dùng `CARE_SOURCE_UNAVAILABLE` |
+| Web/mobile | `CareChecklistPage`, `CareChecklistDetail`, `CareResultForm`; mobile `CareChecklistScreen`, `CareChecklistRepository`, `CareChecklistCache`, `CachedCareChecklist`, `ApiCareChecklistGateway` |
+| Migration R-15 | `V005_98__care_task_results.sql`, `V005_99__care_checklist_carryover.sql`, `V005_100__care_result_reason_reference.sql`; kết quả gộp `care_task`, không tạo `care_result` |
+
+### 11.10. Quá hạn và bàn giao Phase 7 (005, 02/11/2026)
+
+| Tên nghiệp vụ / đường dẫn logic | Tên mã / đường dẫn thực |
+| --- | --- |
+| Danh sách công việc quá hạn | GET /care-tasks/overdue; query floorAreaId (chủ dự án duyệt bản dịch) |
+| Chuyển trạng thái/leo thang theo phút | CareTaskDueStep, CareTaskClockProcessor, CareTaskNotices; internal/task/service |
+| Nguồn bàn giao đầy đủ005 | CareHandoverQueries implements HandoverTaskApi |
+| Projection tương thích008 | CareTaskHandoverProjection implements TaskHandoverApi; chưa hỗ trợ task không residentId |
+| Xác nhận bàn giao | CareTaskHandover.onHandoverConfirmed; MANDATORY |
+| Tồn từ ca trước / tồn chờ xác nhận | FROM_PREVIOUS_SHIFT / AWAITING_HANDOVER_CONFIRMATION (carryover hiện có) |
+| Lịch sử người trước/sau và căn cứ bàn giao | CareTaskHandling.previousPerformerId / performerId / handoverId; StatusHistoryApi |
+| Màn quá hạn web / app nhân viên | features/care-tasks/OverdueTasksPage.jsx / staff/care_tasks/overdue_tasks_screen.dart |
+
+Không thêm enum/trường API công khai mới; callback ngoài bàn giao và các dependency chưa đạt giữ gate trong plan/team-plan.
+
+### 11.11. Quy tắc từ kết quả Phase 8 (005, 02/11/2026)
+
+| Tên nghiệp vụ | Tên mã |
+| --- | --- |
+| Hàm thuần nước, chuỗi bữa, chuỗi ngày | `WaterIntakeRule`, `PoorMealStreak`, `NegativeMoodStreak`; `internal/rules/domain` |
+| Projection hiện hành từ kết quả gốc và đính chính | `CurrentCareResults`; `internal/rules/service`, tái sử dụng `CareResultStore`/`CareTaskStore` |
+| Điều phối quy tắc và bước kiểm tra nước theo phút | `CareResultRules`, `CareWaterCheckStep`; `internal/rules/service` |
+| Loại yêu cầu cảnh báo nước / ăn / tâm trạng | `LOW_WATER_INTAKE`, `PROLONGED_POOR_EATING`, `PROLONGED_NEGATIVE_MOOD` (trường String hiện có) |
+| Dấu xử lý/ngăn phát lặp | `M04.WATER_CHECK`, `M04.POOR_EATING`, `M04.NEGATIVE_MOOD`; `reminder_marker` |
+
+Giữ nguyên chữ ký `AlertRequested`, `ProlongedPoorEating`, `CorrectionMade`. `mealIds` phải là id bữa của 011; nhánh EATING chưa liên kết giữ gate theo quyết định chủ dự án. Không tạo bảng kết quả hoặc bộ đếm mới.
+
+### 11.12. Đính chính kết quả Phase 9 (005, 02/11/2026)
+
+| Khái niệm | Tên mã |
+| --- | --- |
+| Endpoint đính chính đã duyệt | `POST /care-results/{id}/correct`; `CareResultCorrection`, `type`, `correctedContent`, `reason`; `AMEND_CONTENT`, `VOID` |
+| Provider kết quả nhóm 3 | `CareResultCorrectionProvider`, loại `M04.CARE_RESULT`; `internal/result/service` |
+| Transaction của endpoint care | `CareResultCorrectionService`, `READ_COMMITTED` |
+| HTTP controller/request | `CareResultCorrectionController`, `CareResultCorrectionWrite`; `web`, `web/request` |
+| Client sinh từ YAML | `postCareResultsByIdCorrect` trong `frontend/src/api/api005.js` |
+| Mốc đính chính ngủ | `CORRECTION:<correctionId>` trên `SleepResultRecorded.context` |
+
+Không thêm chữ ký SPI/event Java; quantity tính phí và tín hiệu VOID ngủ còn gate đã ghi trong plan/team-plan.
 
 ## 12. Feature 006 (`006-medication-management`, D)
 

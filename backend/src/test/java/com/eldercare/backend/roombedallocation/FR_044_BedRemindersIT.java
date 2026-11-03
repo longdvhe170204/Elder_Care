@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.*;
 
 import com.eldercare.backend.common.time.TestClockControl;
 import com.eldercare.backend.roombedallocation.api.events.*;
+import com.eldercare.backend.support.JobLogCapture;
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.util.UUID;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -48,7 +50,10 @@ class FR_044_BedRemindersIT extends StructureTestSupport {
                         .count())
                 .isZero();
         clock.advanceBy(Duration.ofHours(2));
-        run("bedReadinessReminderJob");
+        try (var log = new JobLogCapture()) {
+            run("bedReadinessReminderJob");
+            assertSchedulerRun("M03.BED", bed, "REMIND_BED_READINESS", log);
+        }
         run("bedReadinessReminderJob");
         assertThat(events.stream(BedReadinessReminder.class)
                         .filter(e -> e.bedId() == bed)
@@ -86,7 +91,10 @@ class FR_044_BedRemindersIT extends StructureTestSupport {
                         .count())
                 .isZero();
         clock.advanceBy(Duration.ofDays(2));
-        run("allocationReminderJob");
+        try (var log = new JobLogCapture()) {
+            run("allocationReminderJob");
+            assertSchedulerRun("M03.RESIDENT", resident, "REMIND_ALLOCATIONS", log);
+        }
         run("allocationReminderJob");
         assertThat(events.stream(AllocationReminder.class)
                         .filter(e -> e.targetId() == resident)
@@ -152,6 +160,21 @@ class FR_044_BedRemindersIT extends StructureTestSupport {
 
     @Autowired
     com.eldercare.backend.roombedallocation.internal.allocation.persistence.AllocationCommandStore commands;
+
+    /** FR-045: căn cứ nhật ký phải tra được đúng lần chạy UUID trong jobs.log. */
+    private void assertSchedulerRun(String entityType, long id, String job, JobLogCapture log) {
+        String runId = jdbc.queryForObject(
+                "SELECT JSON_UNQUOTE(JSON_EXTRACT(basis,'$.schedulerRunId')) FROM audit_log"
+                        + " WHERE action='M03_REMINDER' AND entity_type=? AND entity_id=? ORDER BY id DESC LIMIT 1",
+                String.class,
+                entityType,
+                Long.toString(id));
+        assertThat(runId).isNotNull();
+        assertThat(UUID.fromString(runId).toString()).isEqualTo(runId);
+        assertThat(log.events(runId)).hasSize(2);
+        assertThat(log.events(runId).getFirst()).containsEntry("job", job).containsEntry("event", "START");
+        assertThat(log.events(runId).getLast()).containsEntry("event", "FINISH").containsEntry("result", "SUCCEEDED");
+    }
 
     @Test
     void FR_034_flagCommandStartsAndResetsReminderCycleBeforeFirstJob() {

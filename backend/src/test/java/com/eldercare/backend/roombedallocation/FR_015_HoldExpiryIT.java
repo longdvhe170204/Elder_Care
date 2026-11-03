@@ -3,8 +3,10 @@ package com.eldercare.backend.roombedallocation;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.eldercare.backend.support.JobLogCapture;
 import com.eldercare.backend.support.TestUsers;
 import com.eldercare.backend.support.fake.roombedallocation.FakeAllocationResidencySource;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -37,7 +39,22 @@ class FR_015_HoldExpiryIT extends StructureTestSupport {
     @Test
     void FR_015_waitingHoldExpiresOnceAndCalls004InTheSameTransaction() {
         long waiting = expired("WAITING_RECORD");
-        run();
+        try (var log = new JobLogCapture()) {
+            run();
+            String runId = jdbc.queryForObject(
+                    "SELECT JSON_UNQUOTE(JSON_EXTRACT(basis,'$.schedulerRunId')) FROM audit_log"
+                            + " WHERE action='M03_BED_STATE_CHANGED' AND entity_type='M03.BED' AND entity_id=?"
+                            + " ORDER BY id DESC LIMIT 1",
+                    String.class,
+                    Long.toString(bed));
+            assertThat(runId).isNotNull();
+            assertThat(UUID.fromString(runId).toString()).isEqualTo(runId);
+            assertThat(log.events(runId)).hasSize(2);
+            assertThat(log.events(runId).getFirst())
+                    .containsEntry("job", "EXPIRE_BED_HOLDS")
+                    .containsEntry("event", "START");
+            assertThat(log.result(runId)).isEqualTo("SUCCEEDED");
+        }
         run();
         assertThat(jdbc.queryForObject("SELECT state FROM bed WHERE id=?", String.class, bed))
                 .isEqualTo("EMPTY");

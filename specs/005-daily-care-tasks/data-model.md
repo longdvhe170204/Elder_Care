@@ -406,3 +406,64 @@ Danh mục loại công việc, giá trị kết quả, loại lý do Không th�
 | BR-M15-20 (phần 005) | Kết quả đồng bộ từng bản ghi | Test Flutter `KetQuaDongBoTest` |
 
 BR-M04-15 → 18, 21 → 23 thuộc feature 014; 005 chỉ cung cấp lệnh lập công việc làm lại (BR-M04-23, FR-026a) và giờ về dự kiến (FR-018a).
+
+## Ghi nhận nền R-15 đã cài tại checkout — 2026-10-31
+
+V005_95__care_foundation_consolidation.sql chỉ chuyển6bảng đã có của Phase2;không tạo bảng story. care_task_type/care_task_type_certificate thànhM04.TASK_TYPE của catalog_item với TaskTypeAttributes;care_result_value thànhM04.RESULT_VALUE với ResultValueAttributes;care_non_performance_reason_type thànhM04.NON_PERFORMANCE_REASON_TYPE với ReasonAttributes. Các ràng buộc enum/kiểu/cờcốđịnh kiểm qua CatalogApi+serviceM04 và test tíchhợp;UNIQUE tênđanghiệulực vẫn ởcatalog_item. Dòngchuyển giữ status/version và legacy={table,id};IDvậtlý cấp mới để tránh trùng,adapter trảIDcôngkhai cũ,không đổi loại/id của nhật ký. Chứng chỉ vào attributes.certificates,mã kết quả100ký tự vào attributes.code.
+
+care_resident_lock thành resident_module_state moduleM04,data.version giữ giátrịcũ;CareLockStore dùng ResidentModuleStateApi,khóa theo thứtự id. m04_job_milestone thành reminder_marker,kind/entity_typeM04.DAILY_WORK,entity_id0,markerSHA256(job+':'+milestone),details giữjob/milestone/legacy. Marker vàwork cùngtransaction,chạy lỗi hoàn tác marker để thửlại. Bảngđích đã được000 khaiDataGroup,không tạo hoặc đổi địnhnghĩa bảngchung. Không đổi loại bản ghi nên không cầnLegacyRecordTypeSource cho phạmvi nền này. T064 còn phần bảngstory/trigger/retention khi cácstory được cài,không coi migration nền là hoàn tấtT064.
+
+## Ánh xạ vật lý Phase 3 đã cài tại checkout — 2026-10-31
+
+- V005_96__care_plan_revisions.sql tạo care_plan và care_plan_item, cả hai COMMENT DataGroup=BUSINESS. CarePlan/CarePlanItem/CareRiskAgreement khai @DataGroup(BUSINESS): hai kind đều là nhóm2, không khai MULTIPLE chỉ vì có nhiều kind. record_event dùng entity MULTIPLE và cơ chế chung đã có của000; thêm guard riêng hai kind M04 theo trạng thái parent, không thay định nghĩa entity củaA.
+- care_plan_item.kind=TASK: typed FK task_type_id trỏ id vật lý catalog_item; data là CarePlanItemData, giữ taskTypeId công khai, nội dung/tần suất/times/weekdays/khung/role/result/importance/billable/waterTarget. frequency_type/interval_hours/starts_at có cột typed để CHECK. source_item_id giữ gốc sao chép. active là cờ kỹ thuật của danh sách phiên bản. Mọi truy vấn căn cứ công việc lọc TASK và active.
+- kind=RISK_AGREEMENT: các trường nhận định, quyết định, ngày xem lại có cột typed và CHECK theo kind, không có task_type_id/frequency. care_plan_item.data là object rỗng cho loại này, không chép danh sách con vào JSON. source_item_id ánh xạ sourceAgreementId.
+- record_event, parent EntityRef(M04.RISK_AGREEMENT,id): kind M04.RISK_PARTICIPANT có content {type:FAMILY_MEMBER|STAFF,id:long,active:boolean}; kind M04.RISK_OPINION có content {source:OpinionSource,content:string<=2000,active:boolean}. actor_id/occurred_at lưu người ghi/thời điểm; nhận qua RecordEventApi. Chưa confirm con vì Trả lại cho phép sửa danh sách của bản Nháp; trigger theo trạng thái care_plan khóa ngoài Nháp. Thay danh sách giữ nội dung con cũ, chỉ tắt active rồi thêm con mới; source/recording metadata được giữ khi sao chép sang phiên bản mới.
+- Thời điểm hai bảng care_* chuyển Instant ↔ LocalDateTime theo BusinessTime.ZONE. Bảng chung vẫn theo quy ước UTC của000, API chịu trách nhiệm chuyển đổi. CHECK effective_from>DATE(approved_at) kiểm đúng ngày nghiệp vụ.
+- Retention: CARE_PLAN_ITEM chỉ kind TASK; RISK_AGREEMENT chỉ kind RISK_AGREEMENT, kể cả dòng inactive để không bỏ dữ liệu lịch sử. Con record_event không có chu kỳ quét/xóa độc lập củacare; ExpiredDataPurge/SharedRowRetention.deleteFor(parent) của000 xử lý trước khi xóa cha. Tham chiếu source_item_id và previous_plan_id giữ chuỗi phiên bản.
+- Bảo đảm đã kiểm: BR_M04_19_CarePlanSchemaIT8ca, FR_003_CarePlanLifecycleIT15ca, FR_003_CarePlanConcurrencyIT2ca, T008_CareGovernanceIT6ca trong các gate hẹp đã ghi plan. Chưa suy các số này thành clean verify hoặc nghiệm thu T064 toàn feature.
+- Bổ sung cuối31/10: LifecycleIT hiện22ca, ConcurrencyIT3ca sau các test null/OpenAPI/ranh giới khóa. Clean verify cuối có90ITcare xanh; toàn kho còn7failure+9error của16phương thức baselineA/B, giữ nguyên điều kiện nghiệm thu.
+
+## Ánh xạ vật lý Phase 4 tại checkout — 2026-11-01
+
+T020 dùng V005_97__shift_care_tasks.sql mới, không sửa migration đã merge. care_task nhóm BUSINESS chứa cột cho trạng thái, căn cứ, ca, vị trí, thời điểm/khung, người thực hiện, version và các generated UNIQUE theo mục 6. Snapshot nội dung/loại kết quả/tính phí/chứng chỉ ở JSON data có kiểu CareTaskData; task_type_id vật lý và publicTaskTypeId trong snapshot giữ ánh xạ danh mục đã gộp. Trạng thái cuối bị trigger chặn UPDATE.
+
+Lịch sử xử lý không tạo care_task_history: HistoryTrack M04.TASK/HANDLING qua StatusHistoryApi, details CareTaskHandling; nhắc lúc lập muộn dùng ReminderMarkers với M04.TASK_OVERDUE/INITIAL. Dữ liệu ghi nhận/đính chính của Phase 6/8 chưa được coi đã cài bằng schema này. T024 nhắc ca chưa có công việc còn chờ nguồn liệt kê ca, không tạo bảng riêng hay dùng id 0 làm sentinel.
+
+## Ánh xạ vật lý T028 Phase 5 — checkpoint 2026-11-01
+
+`co_mat_ban_tru` dùng `simple_record`, kind `M04.DAY_CARE_ATTENDANCE`: resident_id là người cao tuổi, effective_from là ngày nghiệp vụ, status dùng AttendanceStatus. Migration `V005_94__shared_day_care_attendance.sql` thêm cột sinh/index chỉ cho kind này; UNIQUE `(resident_id,m04_attendance_date)` chặn trùng ngay cả writer không đặt unique_key. Mỗi loại khác có m04_attendance_date=NULL nên không bị áp luật của005. `m04_expected_arrival` lấy content.expectedArrival để tạo chỉ mục giờ đến. API shared được dùng khi cài runtime tiếp; không cho module005 SQL trực tiếp bảng chung.
+
+`diem_danh_ban_tru` sẽ dùng `record_event`, kind `M04.ATTENDANCE_RECORD`, parent EntityRef của attendance; chỉ lệnh người dùng thêm bản ghi đã xác nhận. Chưa có runtime/payload điểm danh trong checkpoint này; không coi migration là đã cài T029. Đề xuất dịch HTTP/calendar/callback còn chờ chủ dự án duyệt.
+
+## Ánh xạ runtime Phase5 sau duyệt — 2026-11-01
+
+AttendanceKinds.DAYS dùng simple_record kind M04.DAY_CARE_ATTENDANCE, resident_id/ngày effective_from/status ở cột chung; AttendanceData giữ floorAreaId, expectedArrival/expectedReturn/currentExpectedReturn, returnRegistrationId, arrivalRecordId/departureRecordId, arrivedAt/leftAt, checkoutType, adHocSession, timelyAbsenceId/lateAbsenceId. AttendanceKinds.RECORDS dùng record_event kind M04.ATTENDANCE_RECORD; AttendanceRecordData giữ attendanceId, direction ARRIVE/LEAVE, at thực tế, checkoutType/pickupRecordId. occurred_at/confirmed_at là lúc ghi qua BusinessTime; gốc đã xác nhận không sửa khi đính chính.
+
+Hai loại cùng parent M01.RESIDENT để metadata raw gắn hồ sơ, nhưng retention chưa đủ: alias005 còn bảng cũ và genericpurge chưa enumerate record gốc để kiểm thời hạn correction. Gate này chờA, không khẳng định đã xóa an toàn toànchuỗi. ScopeAssignmentProvider M04.DAY_CARE_ATTENDANCE đã đọc bản ghi thật qua AttendanceStore/APIshared và floorAreaId snapshot. Audit ghi diff trường thay đổi, gồm giờ hiện hành và id bản ghi/đăng ký/báo vắng để truy vết.
+
+Chủ dự án chọn chờ VOID và chờ thống nhất nhánh đổi khỏiDAY_CARE với B. Không thêm trạng thái ngoài AttendanceStatus hoặc tự khôi phục/hủy thêm công việc khi chưa có quy tắc. Đính chính giờ hiện cập nhật projection/phát AttendanceChanged, giữ task đóng theo FR-026; tác động dây chuyền khi sửa giờ về cần thống nhất trước khi coi phần đó đủ nghiệp vụ.
+
+### Ánh xạ triển khai Phase 6 — 01/11/2026
+
+R-15: kết quả dùng id và dòng care_task của task, nhận biết bằng result_performed_at. V005_98 thêm numeric/code/json cùng metadata performed/recorded/device, quyền, người ghi, nhãn muộn/mất quyền, nguồn chỉ số/bữa, pending_result và awaiting_remeasurement; CHECK buộc kết quả hoàn chỉnh, không cho payload dở dang, trigger bảo vệ ghi nhận khỏi UPDATE/DELETE trái nhóm3. V005_99 thêm carryover cho đọc việc tồn (lệnh sinh dấu thuộc Phase7). V005_100 liên kết reason_type_id tới catalog_item.id vật lý, response/audit giữ public id đã chọn. Không tạo bảng care_result riêng.
+
+CareTaskData chụp cấu hình kết quả tại lệnh lập; resultConfigurationCaptured phân biệt không đặt upperLimit một cách tường minh với snapshot cũ chưa có trường. ML legacy không có bằng chứng cấu hình bị chặn, không backfill từ danh mục hiện tại. M04.TASK↔M04.CARE_RESULT là hai định danh logic cùng dòng: graph retention kiểm đủ attachment cả hai trước xóa vật lý tại TASK; seen-set xử lý vòng.
+
+### Ánh xạ vật lý Phase 7 — 02/11/2026
+
+Không thêm bảng/cột/migration cho nhắc và bàn giao. care_task tiếp tục giữ due_at/overdue_at/closed_at của V005_97 và carryover của V005_99; chuyển ca cập nhật shift_id/performer_id/carryover dưới khóa, giữ planned_at/window_from/window_to/status nếu không phải lệnh đóng. Lý do/quy tắc tự đóng dùng closure_reason/closure_rule đã có.
+
+Các mốc logic da_nhac_luc/da_bao_nptc_luc/da_bao_leo_thang_luc được giữ bằng ReminderMarkers trên reminder_marker, cùng transaction publication: kind M04.TASK_OVERDUE, entity_type M04.TASK, marker INITIAL hoặc NORMAL_ESCALATION; details.at lưu mốc thực tế. Số lần đã nhắc được tính từ status_history/HANDLING với command REMINDER/BATCHED_REMINDER/IMPORTANT_ESCALATION/NORMAL_ESCALATION/ALERT_REQUESTED, không tạo cột đếm cần cập nhật. Marker M04.TASK_HANDOVER với RECORDED:<handoverId>/CONFIRMED:<handoverId> chống replay; không đổi nhóm dữ liệu hoặc sửa/xóa lịch sử.
+
+CareTaskHandling.details có content/previousPerformerId/performerId/handoverId (nullable cho lịch sử cũ, constructor content cũ giữ); callback ghi basis_type M09.HANDOVER và basis_id handoverId. CareHandoverQueries đọc alertIds qua AlertReadPort, không lưu bản sao cảnh báo. Transaction chạy bù theo nhóm nhận để marker và event gộp cùng commit; nhóm vượt MAX_GROUPED_TASKS=32 bị chặn trước ghi theo quyết định chờA chốt payload an toàn, không chia nhiều thông báo hoặc coi FR052 đã nghiệm thu không giới hạn.
+
+### Ánh xạ vật lý Phase 8 — 02/11/2026
+
+Không thêm bảng/cột/migration. Quy tắc đọc kết quả từ care_task qua CareResultStore và giá trị hiện hành qua CorrectionApi.current. VOID bị bỏ ở projection; chuỗi được tính lại, không lưu bảng trạng thái chuỗi. reminder_marker giữ kind M04.WATER_CHECK/M04.POOR_EATING/M04.NEGATIVE_MOOD, entity_type M01.RESIDENT, entity_id residentId; marker lần lượt là ngày, SHA-256 thành phần chuỗi bữa, ngày kết thúc:độ dài chuỗi ngày. Marker và event nằm cùng transaction. Các gate mealId/payload/correction lifecycle còn mở được ghi trong plan và team-plan.
+
+### Ánh xạ vật lý Phase 9 — 02/11/2026
+
+Không thêm bảng/cột/migration. care_task giữ bản gốc (result_values, result_type, thời điểm, người ghi) và trạng thái COMPLETED/COMPLETED_LATE; UPDATE bị trigger chặn, DELETE bị quyền tài khoản app chặn trước trigger. CorrectionApi ghi correction/correction_chain và audit_log của000, current/chain cung cấp projection mới hoặc cờVOID; không cập nhật lại numeric/code trên care_task. Tầng của bản gốc lấy care_task.floor_area_id, không thay bằng tầng hiện tại của resident.
+
+Lệnh tạo dùng READ_COMMITTED và khóa resident→task→correction_chain; quy tắcF đọc current sau callback và ghi reminder_marker/event trong cùng transaction. Metadata/isConfirmed/chain chỉ đọc. Guard kỹ thuật isolation của generic000 và gate quantity/VOID ngủ được ghi trong plan/team-plan; không đổi schema hay nhóm dữ liệu để xử lý các gate này.
